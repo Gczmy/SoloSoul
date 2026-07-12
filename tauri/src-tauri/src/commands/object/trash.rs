@@ -163,7 +163,9 @@ pub async fn object_restore(
         template_id: record_data["template_id"].as_str().map(String::from),
         template_type: record_data["template_type"].as_str().map(String::from),
         template_hash: record_data["template_hash"].as_str().map(String::from),
-        ignored_template_hash: record_data["ignored_template_hash"].as_str().map(String::from),
+        ignored_template_hash: record_data["ignored_template_hash"]
+            .as_str()
+            .map(String::from),
         created_at: record_data["created_at"]
             .as_str()
             .unwrap_or(&now)
@@ -291,24 +293,24 @@ pub async fn page_delete(
                 original_sort_order: None,
                 data: serde_json::to_vec(&serde_json::json!({
                     "id": rec.id,
-                    "account_id": rec.account_id,
-                    "type_id": rec.type_id,
-                    "section_type": rec.section_type,
+                    "accountId": rec.account_id,
+                    "typeId": rec.type_id,
+                    "sectionType": rec.section_type,
                     "name": rec.name,
-                    "icon_name": rec.icon_name,
-                    "parent_id": rec.parent_id,
-                    "children_ids": rec.children_ids,
+                    "iconName": rec.icon_name,
+                    "parentId": rec.parent_id,
+                    "childrenIds": rec.children_ids,
                     "properties": rec.properties,
-                    "property_labels": rec.property_labels,
-                    "sensitivity_level": rec.sensitivity_level,
+                    "propertyLabels": rec.property_labels,
+                    "sensitivityLevel": rec.sensitivity_level,
                     "tags": rec.tags_json,
-                    "created_at": rec.created_at,
-                    "updated_at": rec.updated_at,
+                    "createdAt": rec.created_at,
+                    "updatedAt": rec.updated_at,
                     "version": rec.version,
-                    "template_id": rec.template_id,
-                    "template_type": rec.template_type,
-                    "contract_type_id": rec.contract_type_id,
-                    "template_hash": rec.template_hash,
+                    "templateId": rec.template_id,
+                    "templateType": rec.template_type,
+                    "contractTypeId": rec.contract_type_id,
+                    "templateHash": rec.template_hash,
                 }))
                 .unwrap_or_default(),
                 deleted_at: now_ms,
@@ -335,24 +337,24 @@ pub async fn page_delete(
             if let Ok(Some(rec)) = vault.load_object(&obj.id) {
                 let full_record = serde_json::json!({
                     "id": rec.id,
-                    "account_id": rec.account_id,
-                    "type_id": rec.type_id,
-                    "section_type": rec.section_type,
+                    "accountId": rec.account_id,
+                    "typeId": rec.type_id,
+                    "sectionType": rec.section_type,
                     "name": rec.name,
-                    "icon_name": rec.icon_name,
-                    "parent_id": rec.parent_id,
-                    "children_ids": rec.children_ids,
+                    "iconName": rec.icon_name,
+                    "parentId": rec.parent_id,
+                    "childrenIds": rec.children_ids,
                     "properties": rec.properties,
-                    "property_labels": rec.property_labels,
-                    "sensitivity_level": rec.sensitivity_level,
+                    "propertyLabels": rec.property_labels,
+                    "sensitivityLevel": rec.sensitivity_level,
                     "tags": rec.tags_json,
-                    "created_at": rec.created_at,
-                    "updated_at": rec.updated_at,
+                    "createdAt": rec.created_at,
+                    "updatedAt": rec.updated_at,
                     "version": rec.version,
-                    "template_id": rec.template_id,
-                    "template_type": rec.template_type,
-                    "contract_type_id": rec.contract_type_id,
-                    "template_hash": rec.template_hash,
+                    "templateId": rec.template_id,
+                    "templateType": rec.template_type,
+                    "contractTypeId": rec.contract_type_id,
+                    "templateHash": rec.template_hash,
                 });
                 let trash = solosoul_vault::TrashItem {
                     id: format!("trash_{}", uuid::Uuid::new_v4()),
@@ -490,7 +492,9 @@ pub async fn page_restore(
                         template_id: record_data["template_id"].as_str().map(String::from),
                         template_type: record_data["template_type"].as_str().map(String::from),
                         template_hash: record_data["template_hash"].as_str().map(String::from),
-                        ignored_template_hash: record_data["ignored_template_hash"].as_str().map(String::from),
+                        ignored_template_hash: record_data["ignored_template_hash"]
+                            .as_str()
+                            .map(String::from),
                         created_at: record_data["created_at"]
                             .as_str()
                             .unwrap_or(&now)

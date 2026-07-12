@@ -19,25 +19,35 @@ export interface SnapshotEntry {
   diffSummary: string;
 }
 
+export type FlattenedField =
+  | { kind: 'field'; key: string; value: string; label?: string; sensitivity?: SensitivityLevel }
+  | {
+      kind: 'dynamicGroup';
+      key: string;
+      label?: string;
+      sensitivity?: SensitivityLevel;
+      children: { label: string; value: string; type?: string }[];
+    };
+
 export function flattenProperties(
   props: Record<string, unknown> | undefined,
   fieldOrder?: string[],
-): { key: string; value: string; label?: string; sensitivity?: SensitivityLevel }[] {
+): FlattenedField[] {
   if (!props) return [];
-  // 从 properties 中提取 __fields 定义，用于识别 dynamic_group 字段
   const fieldDefs = props.__fields as
-    | Record<string, { type?: string }>
+    | Record<string, { type?: string; name?: string }>
     | undefined;
-  const entries: { key: string; value: string; label?: string; sensitivity?: SensitivityLevel }[] = [];
+  const entries: FlattenedField[] = [];
   for (const [k, v] of Object.entries(props)) {
     if (k.startsWith('__')) continue;
     if (v === null || v === undefined || v === '') continue;
 
-    // dynamic_group 字段：每个子字段作为独立条目
     if (fieldDefs?.[k]?.type === 'dynamic_group' && Array.isArray(v)) {
+      if (v.length === 0) continue;
+      const children: { label: string; value: string; type?: string }[] = [];
       for (const item of v) {
         if (!item || typeof item !== 'object') continue;
-        const { name, value: itemVal } = item as Record<string, unknown>;
+        const { name, value: itemVal, type: itemType } = item as Record<string, unknown>;
         if (name === undefined || name === null || name === '') continue;
         let displayVal = '';
         if (Array.isArray(itemVal)) {
@@ -45,23 +55,27 @@ export function flattenProperties(
         } else if (itemVal !== null && itemVal !== undefined) {
           displayVal = String(itemVal);
         }
-        // 动态字段组子项不保留自身 sensitivity；统一由父字段的 __fields / propertyLabels 决定，
-        // 避免模板同步后子项里存留的旧敏感度覆盖新设置。
-        entries.push({
-          key: k,
-          value: displayVal,
+        children.push({
           label: String(name),
+          value: displayVal,
+          type: typeof itemType === 'string' ? itemType : undefined,
         });
       }
+      entries.push({
+        kind: 'dynamicGroup',
+        key: k,
+        label: fieldDefs?.[k]?.name,
+        children,
+      });
       continue;
     }
 
     if (typeof v === 'string') {
-      entries.push({ key: k, value: v });
+      entries.push({ kind: 'field', key: k, value: v, label: fieldDefs?.[k]?.name });
     } else if (typeof v === 'number' || typeof v === 'boolean') {
-      entries.push({ key: k, value: String(v) });
+      entries.push({ kind: 'field', key: k, value: String(v), label: fieldDefs?.[k]?.name });
     } else if (Array.isArray(v) && v.length > 0) {
-      entries.push({ key: k, value: v.join(', ') });
+      entries.push({ kind: 'field', key: k, value: v.join(', '), label: fieldDefs?.[k]?.name });
     }
   }
   if (fieldOrder && fieldOrder.length > 0) {
@@ -136,13 +150,67 @@ function SnapshotCard({
       ? (snapData.tags as string[])
       : [];
 
-  const resolveFieldSensitivity = (field: (typeof fields)[number]): SensitivityLevel => {
+  const resolveFieldSensitivity = (field: FlattenedField): SensitivityLevel => {
     return (
       field.sensitivity ||
       (snapPropertyLabels?.[field.key] as SensitivityLevel | undefined) ||
       (fieldDefs?.[field.key]?.sensitivityLevel as SensitivityLevel | undefined) ||
       getFieldSensitivity(field.key) ||
       'internal'
+    );
+  };
+
+  const renderValueSpan = (opts: {
+    value: string;
+    fieldId: string;
+    sens: SensitivityLevel;
+    fieldLabel?: string;
+  }) => {
+    const { value, fieldId, sens, fieldLabel } = opts;
+    const revealed = isRevealed(fieldId);
+    const needsReveal = sens === 'sensitive' || sens === 'critical';
+    return (
+      <span
+        onClick={
+          needsReveal && !revealed
+            ? async () => {
+                try {
+                  if (sens === 'critical') {
+                    const result = await verifyPassword();
+                    if (result.ok) {
+                      reveal(fieldId);
+                      const criticalFieldName = fieldLabel
+                        ? `${t('editor:field_types.dynamic_group')}: ${fieldLabel}`
+                        : getFieldName(fieldId);
+                      onCriticalAccess?.(criticalFieldName, result.method);
+                    }
+                  } else {
+                    reveal(fieldId);
+                  }
+                } catch {
+                  /* ignore */
+                }
+              }
+            : undefined
+        }
+        style={{
+          cursor: needsReveal && !revealed ? 'pointer' : 'default',
+          filter: needsReveal && !revealed ? 'blur(5px)' : 'blur(0px)',
+          userSelect: needsReveal && !revealed ? 'none' : 'auto',
+          background:
+            needsReveal && !revealed
+              ? 'var(--bg-subtle, rgba(128,128,128,0.15))'
+              : 'transparent',
+          borderRadius: 2,
+          padding: '0 2px',
+          color: 'var(--text-primary)',
+          transition: 'filter 0.15s ease, background 0.15s ease',
+          willChange: needsReveal && !revealed ? 'filter' : 'auto',
+        }}
+        title={needsReveal && !revealed ? t('common:click_to_reveal') || 'Click to reveal' : ''}
+      >
+        {value}
+      </span>
     );
   };
 
@@ -165,18 +233,86 @@ function SnapshotCard({
           {snapName}
         </div>
       </div>
-      {/* Properties — like detail panel, with sensitivity */}
+      {/* Properties — tree-structured dynamic groups */}
       {fields.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 4 }}>
           {fields.map((f) => {
+            if (f.kind === 'dynamicGroup') {
+              const sens = resolveFieldSensitivity(f);
+              const deprecated = isFieldDeprecated(f.key);
+              const fieldId = f.key;
+              const label = f.label || getFieldName(f.key);
+              return (
+                <div key={fieldId} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                  {/* Parent dynamic group row */}
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      fontSize: 'var(--text-caption)',
+                      padding: '6px 8px',
+                      borderRadius: 6,
+                      background: 'var(--bg-toolbar)',
+                      border: '1px solid var(--border-subtle)',
+                      opacity: deprecated ? 0.7 : 1,
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 90 }}>
+                      <span
+                        style={{
+                          fontWeight: 500,
+                          color: 'var(--text-secondary)',
+                          textDecoration: deprecated ? 'line-through' : 'none',
+                        }}
+                      >
+                        {label}
+                      </span>
+                      <SensitivityBadge level={sens} />
+                      {deprecated && <DeprecatedBadge />}
+                    </div>
+                  </div>
+                  {/* Child fields */}
+                  {f.children.map((child, idx) => (
+                    <div
+                      key={`${fieldId}-child-${idx}`}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        marginLeft: 16,
+                        fontSize: 'var(--text-caption)',
+                        padding: '6px 8px',
+                        borderRadius: 6,
+                        background: 'var(--bg-toolbar)',
+                        border: '1px solid var(--border-subtle)',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 74 }}>
+                        <span style={{ fontWeight: 500, color: 'var(--text-secondary)' }}>
+                          {child.label}
+                        </span>
+                      </div>
+                      <div style={{ flex: 1, textAlign: 'right' }}>
+                        {renderValueSpan({
+                          value: child.value,
+                          fieldId,
+                          sens,
+                          fieldLabel: child.label,
+                        })}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              );
+            }
+
             const sens = resolveFieldSensitivity(f);
             const deprecated = isFieldDeprecated(f.key);
             const fieldId = f.key;
-            const revealed = isRevealed(fieldId);
-            const needsReveal = sens === 'sensitive' || sens === 'critical';
             return (
               <div
-                key={f.key}
+                key={`${f.key}-${f.label}`}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -202,48 +338,8 @@ function SnapshotCard({
                   <SensitivityBadge level={sens} />
                   {deprecated && <DeprecatedBadge />}
                 </div>
-                <div style={{ flex: 1 }}>
-                  <span
-                    onClick={
-                      needsReveal && !revealed
-                        ? async () => {
-                            try {
-                              if (sens === 'critical') {
-                                const result = await verifyPassword();
-                                if (result.ok) {
-                                  reveal(fieldId);
-                                  const criticalFieldName = f.label
-                                    ? `${t('editor:field_types.dynamic_group')}: ${f.label}`
-                                    : getFieldName(f.key);
-                                  onCriticalAccess?.(criticalFieldName, result.method);
-                                }
-                              } else {
-                                reveal(fieldId);
-                              }
-                            } catch {
-                              /* ignore */
-                            }
-                          }
-                        : undefined
-                    }
-                    style={{
-                      cursor: needsReveal && !revealed ? 'pointer' : 'default',
-                      filter: needsReveal && !revealed ? 'blur(5px)' : 'blur(0px)',
-                      userSelect: needsReveal && !revealed ? 'none' : 'auto',
-                      background:
-                        needsReveal && !revealed
-                          ? 'var(--bg-subtle, rgba(128,128,128,0.15))'
-                          : 'transparent',
-                      borderRadius: 2,
-                      padding: '0 2px',
-                      color: 'var(--text-primary)',
-                      transition: 'filter 0.15s ease, background 0.15s ease',
-                      willChange: needsReveal && !revealed ? 'filter' : 'auto',
-                    }}
-                    title={needsReveal && !revealed ? 'Click to reveal' : ''}
-                  >
-                    {f.value}
-                  </span>
+                <div style={{ flex: 1, textAlign: 'right' }}>
+                  {renderValueSpan({ value: f.value, fieldId, sens, fieldLabel: f.label })}
                 </div>
               </div>
             );
@@ -517,10 +613,8 @@ export function HistoryViewer({
             }}
           >
           {snap && (() => {
-            const triggerLabel = t(`common:trigger_${snap.triggeredBy}`, {
-              defaultValue: snap.diffSummary
-                ? t(`common:diff_${snap.diffSummary}`, { defaultValue: snap.triggeredBy })
-                : snap.triggeredBy,
+            const triggerLabel = t(`common:trigger_${snap.triggeredBy}` as const, {
+              defaultValue: snap.triggeredBy,
             });
             return `${t('common:version')} #${total - currentIdx} · ${new Date(snap.timestamp).toLocaleString()} · ${triggerLabel}`;
           })()}

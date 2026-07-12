@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/Input';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/stores/authStore';
-import { useObjectStore } from '@/stores/objectStore';
+import { useObjectStore, type ObjectSummary, type ObjectData } from '@/stores/objectStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useTemplateStore } from '@/stores/templateStore';
 import type { TemplateProperty } from '@/types/template';
@@ -66,7 +66,7 @@ export function ObjectWorkspacePage() {
   const [snapshotCounts, setSnapshotCounts] = useState<Record<string, number>>({});
   const [attachmentObjId, setAttachmentObjId] = useState<string | null>(null);
   const [attachmentCounts, setAttachmentCounts] = useState<Record<string, number>>({});
-  const [detailObj, setDetailObj] = useState<(typeof visibleObjects)[number] | null>(null);
+  const [detailObj, setDetailObj] = useState<(ObjectSummary | ObjectData) | null>(null);
 
   // 模板指纹映射：仅在模板列表变化时异步计算一次，避免切换页面时批量重算导致闪烁。
   const [templateHashMap, setTemplateHashMap] = useState<Map<string, string>>(new Map());
@@ -94,6 +94,23 @@ export function ObjectWorkspacePage() {
   const [deprecatedFields, setDeprecatedFields] = useState<DeprecatedField[]>([]);
 
   const accountId = useAuthStore((s) => s.currentAccount?.id);
+
+  // 同步成功后刷新当前打开的详情对象，避免本地 state 保留旧的 templateHash 导致提示条继续显示。
+  const refreshDetailObjAfterSync = useCallback(
+    async (objectId: string) => {
+      if (!accountId || detailObj?.id !== objectId) return;
+      try {
+        const obj = await invoke<ObjectData | null>('object_get', {
+          accountId,
+          objectId,
+        });
+        if (obj) setDetailObj(obj);
+      } catch (err) {
+        console.warn('[Workspace] Refresh detail object after sync failed:', err);
+      }
+    },
+    [accountId, detailObj?.id],
+  );
 
   // 模板同步确认弹窗打开期间，对应对象的提示条应临时隐藏，避免被弹窗遮罩盖住。
   const [syncDialogOpenForObjectId, setSyncDialogOpenForObjectId] = useState<string | null>(null);
@@ -298,6 +315,17 @@ export function ObjectWorkspacePage() {
     };
   }, [accountId, userTemplates]);
 
+  // 同步/忽略模板后主动刷新指纹映射，防止模板列表 state 未变化导致提示条继续显示。
+  const refreshTemplateHashMap = useCallback(async () => {
+    if (!accountId) return;
+    try {
+      const map = await invoke<Record<string, string>>('template_hash_map', { accountId });
+      setTemplateHashMap(new Map(Object.entries(map)));
+    } catch (err) {
+      console.warn('[Workspace] Refresh template hash map failed:', err);
+    }
+  }, [accountId]);
+
   // Load snapshot counts for visible objects
   useEffect(() => {
     const ids = visibleObjects.map((o) => o.id);
@@ -373,6 +401,8 @@ export function ObjectWorkspacePage() {
           } else {
             await loadObjects(accountId, sectionFilter ? { collectionType: sectionFilter } : undefined);
           }
+          await refreshDetailObjAfterSync(objectId);
+          await refreshTemplateHashMap();
           return;
         }
         setSyncDialog((prev) => (prev ? { ...prev, result, loading: false } : null));
@@ -382,7 +412,7 @@ export function ObjectWorkspacePage() {
         setSyncDialogOpenForObjectId(null);
       }
     },
-    [accountId, previewSyncTemplate, applySyncTemplate, loadObjects, pageId, sectionFilter],
+    [accountId, previewSyncTemplate, applySyncTemplate, loadObjects, pageId, sectionFilter, refreshDetailObjAfterSync, refreshTemplateHashMap],
   );
 
   const handleConfirmSync = useCallback(async () => {
@@ -398,32 +428,36 @@ export function ObjectWorkspacePage() {
       } else {
         await loadObjects(accountId, sectionFilter ? { collectionType: sectionFilter } : undefined);
       }
+      await refreshDetailObjAfterSync(syncDialog.objectId);
+      await refreshTemplateHashMap();
     } catch (err) {
       console.warn('[Workspace] Apply sync failed:', err);
       setSyncDialog((prev) => (prev ? { ...prev, loading: false } : null));
     }
-  }, [syncDialog, accountId, applySyncTemplate, loadObjects, pageId, sectionFilter]);
+  }, [syncDialog, accountId, applySyncTemplate, loadObjects, pageId, sectionFilter, refreshDetailObjAfterSync, refreshTemplateHashMap]);
 
   const handleDismissSync = useCallback(async (objectId: string, latestHash?: string) => {
     if (!latestHash) return;
     try {
       await ignoreTemplateSync(objectId, latestHash);
-      // 后端已持久化 ignoredTemplateHash；刷新列表使提示条立即消失。
+      // 后端已持久化 ignoredTemplateHash；刷新列表与指纹映射使提示条立即消失。
       if (accountId) {
         if (pageId) {
           await loadObjects(accountId, { parentId: pageId });
         } else {
           await loadObjects(accountId, sectionFilter ? { collectionType: sectionFilter } : undefined);
         }
+        await refreshTemplateHashMap();
       }
     } catch (err) {
       console.warn('[Workspace] Ignore template sync failed:', err);
     }
-  }, [ignoreTemplateSync, loadObjects, accountId, pageId, sectionFilter]);
+  }, [ignoreTemplateSync, loadObjects, accountId, pageId, sectionFilter, refreshTemplateHashMap]);
 
   const handleRequestDismissSync = useCallback(
     (objectId: string, objectName: string, latestHash?: string) => {
       if (!latestHash) return;
+      setSyncDialogOpenForObjectId(objectId);
       setDismissConfirm({ objectId, objectName, latestHash });
     },
     [],
@@ -433,6 +467,7 @@ export function ObjectWorkspacePage() {
     if (!dismissConfirm) return;
     handleDismissSync(dismissConfirm.objectId, dismissConfirm.latestHash);
     setDismissConfirm(null);
+    setSyncDialogOpenForObjectId(null);
   }, [dismissConfirm, handleDismissSync]);
 
   const handleViewDeprecatedFields = useCallback(
@@ -846,7 +881,10 @@ export function ObjectWorkspacePage() {
           result={syncDialog.result}
           loading={syncDialog.loading}
           onConfirm={handleConfirmSync}
-          onCancel={() => setSyncDialog(null)}
+          onCancel={() => {
+            setSyncDialog(null);
+            setSyncDialogOpenForObjectId(null);
+          }}
         />
       )}
 
@@ -858,7 +896,10 @@ export function ObjectWorkspacePage() {
           body={t('editor:template_sync_dismiss_body')}
           confirmLabel={t('common:confirm')}
           cancelLabel={t('common:cancel')}
-          onCancel={() => setDismissConfirm(null)}
+          onCancel={() => {
+            setDismissConfirm(null);
+            setSyncDialogOpenForObjectId(null);
+          }}
           onConfirm={handleConfirmDismissSync}
         />
       )}

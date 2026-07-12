@@ -1,8 +1,32 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeAll, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import { initReactI18next } from 'react-i18next';
 import { SnapshotDataView } from './TrashDetailPanel';
 import type { SnapshotDataViewProps } from './TrashDetailPanel';
 import type { UserTemplate } from '@/types/template';
+import i18n from '@/lib/i18n';
+
+vi.unmock('react-i18next');
+
+beforeAll(async () => {
+  await i18n.use(initReactI18next).init({
+    lng: 'zh-CN',
+    fallbackLng: 'zh-CN',
+    defaultNS: 'common',
+    ns: ['common', 'editor'],
+    resources: {
+      'zh-CN': {
+        common: {},
+        editor: {
+          field_types: {
+            dynamic_group: '动态字段组',
+          },
+        },
+      },
+    },
+    interpolation: { escapeValue: false },
+  });
+});
 
 function renderSnapshot(props: Partial<SnapshotDataViewProps> = {}) {
   const defaultData: SnapshotDataViewProps['data'] = {
@@ -96,6 +120,31 @@ describe('SnapshotDataView', () => {
     expect(screen.queryByText('critical')).not.toBeInTheDocument();
   });
 
+  it('localizes __dynamic_group__ key in snapshot view', () => {
+    renderSnapshot({
+      data: {
+        name: 'Test Object',
+        tags: [],
+        properties: {
+          __fields: {
+            __dynamic_group__: {
+              name: '__dynamic_group__',
+              type: 'dynamic_group',
+              sensitivityLevel: 'sensitive',
+            },
+          },
+          __dynamic_group__: [
+            { id: 'c1', name: '手机', type: 'phone', value: '123' },
+          ],
+        },
+      },
+    });
+
+    expect(screen.queryByText('__dynamic_group__')).not.toBeInTheDocument();
+    expect(screen.getByText('动态字段组')).toBeInTheDocument();
+    expect(screen.getByText('手机')).toBeInTheDocument();
+  });
+
   it('uses snapshot propertyLabels for dynamic_group parent sensitivity', () => {
     renderSnapshot({
       data: {
@@ -121,5 +170,44 @@ describe('SnapshotDataView', () => {
     expect(screen.getByText('critical')).toBeInTheDocument();
     expect(screen.queryByText('sensitive')).not.toBeInTheDocument();
     expect(screen.queryByText('public')).not.toBeInTheDocument();
+  });
+
+  it('uses snapshot __fields sensitivity over current template sensitivity when detailTemplate is provided', () => {
+    const detailTemplate = {
+      id: 'tpl-1',
+      name: 'ID Card',
+      category: 'identity',
+      icon: 'id',
+      accountId: 'acc-1',
+      createdAt: '2026-01-01T00:00:00Z',
+      properties: [
+        {
+          id: 'fullName',
+          name: '姓名',
+          type: 'text',
+          sensitivityLevel: 'public',
+        },
+      ],
+    } as unknown as UserTemplate;
+
+    renderSnapshot({
+      data: {
+        name: 'Test Object',
+        tags: [],
+        properties: {
+          __fields: {
+            fullName: { name: '姓名', type: 'text', sensitivityLevel: 'sensitive' },
+          },
+          fullName: 'Alice',
+        },
+      },
+      detailTemplate,
+      currentPropertyLabels: { fullName: 'critical' },
+    });
+
+    // 快照 __fields 中的 sensitive 优先于当前模板的 public
+    expect(screen.getByText('sensitive')).toBeInTheDocument();
+    expect(screen.queryByText('public')).not.toBeInTheDocument();
+    expect(screen.queryByText('critical')).not.toBeInTheDocument();
   });
 });

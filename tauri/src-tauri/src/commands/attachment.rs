@@ -943,7 +943,7 @@ mod tests {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
-                    ..Default::default()
+            ..Default::default()
         };
         vault.save_object(&record1).unwrap();
 
@@ -983,7 +983,7 @@ mod tests {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
-                    ..Default::default()
+            ..Default::default()
         };
         vault.save_object(&record2).unwrap();
 
@@ -1044,7 +1044,7 @@ mod tests {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
-                    ..Default::default()
+            ..Default::default()
         };
         vault.save_object(&record).unwrap();
 

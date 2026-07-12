@@ -19,11 +19,12 @@ export interface SyncFieldInfo {
 }
 
 export interface SyncFieldChangeItem {
-  kind: 'type' | 'name' | 'sensitivity' | 'options';
+  kind: 'type' | 'name' | 'sensitivity' | 'options' | 'metadata';
   payload?:
     | { oldType: string; newType: string }
     | { oldName: string; newName: string }
-    | { oldLevel: string; newLevel: string };
+    | { oldLevel: string; newLevel: string }
+    | { metadataKeys: string[] };
 }
 
 export interface SyncFieldChange {

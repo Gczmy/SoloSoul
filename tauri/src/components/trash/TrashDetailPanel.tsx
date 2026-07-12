@@ -244,9 +244,14 @@ function ObjectDetailContent({
           >
             {item.previewProperties.map((p, i) => {
               const propType = (p as Record<string, unknown>).type as PropertyType | undefined;
-              const sensitivity = (p as Record<string, unknown>).sensitivityLevel as
+              const explicitSensitivity = (p as Record<string, unknown>).sensitivityLevel as
                 | SensitivityLevel
                 | undefined;
+              const fieldId = (p as Record<string, unknown>).fieldId as string | undefined;
+              const fallbackSensitivity = fieldId
+                ? item.propertyLabels?.[fieldId]
+                : undefined;
+              const sensitivity = explicitSensitivity || fallbackSensitivity;
               const typeLabel = propType
                 ? t(`editor:field_types.${propType}`, propType)
                 : String(p.value);
@@ -908,10 +913,8 @@ function SnapshotContent({
                   color: 'var(--accent-primary)',
                 }}
               >
-                {t(`common:trigger_${currentSnap.triggeredBy}`, {
-                defaultValue: currentSnap.diffSummary
-                  ? t(`common:diff_${currentSnap.diffSummary}`, { defaultValue: currentSnap.triggeredBy })
-                  : currentSnap.triggeredBy,
+                {t(`common:trigger_${currentSnap.triggeredBy}` as const, {
+                defaultValue: currentSnap.triggeredBy,
               })}
               </span>
             </div>
@@ -939,6 +942,10 @@ export interface SnapshotDataViewProps {
   data: Record<string, unknown>;
   detailTemplate: UserTemplate | null;
   currentPropertyLabels?: Record<string, SensitivityLevel>;
+}
+
+function isMetaPropertyKey(key: string): boolean {
+  return ['__fields', '__attachments', '__templateName', '__templateHash', '__deprecatedFields'].includes(key);
 }
 
 export function SnapshotDataView({ data, detailTemplate, currentPropertyLabels: _currentPropertyLabels }: SnapshotDataViewProps) {
@@ -1009,15 +1016,23 @@ export function SnapshotDataView({ data, detailTemplate, currentPropertyLabels: 
 
     const seen = new Set<string>();
 
+    // 快照 __fields 中的敏感度是历史版本的直接证据，模板顺序与 __fields 顺序都需要它。
+    const rawFields = rawProps.__fields as Record<
+      string,
+      { name?: string; type?: PropertyType; sensitivityLevel?: SensitivityLevel }
+    > | undefined;
+
     // 1. 模板顺序
     if (detailTemplate) {
       for (const p of detailTemplate.properties) {
         const v = rawProps[p.id];
-        if (v !== null && v !== undefined && v !== '' && !String(p.id).startsWith('__')) {
+        if (v !== null && v !== undefined && v !== '' && !isMetaPropertyKey(String(p.id))) {
           seen.add(p.id);
           const def = fieldDefs.get(p.id);
+          // 快照敏感度优先顺序：快照 propertyLabels -> 快照 __fields -> 当前模板 -> internal
+          const snapshotLevel = rawFields?.[p.id]?.sensitivityLevel;
           const sensitivityLevel =
-            sensitivityMap.get(p.id) || ((p.sensitivityLevel || 'internal') as SensitivityLevel);
+            sensitivityMap.get(p.id) || snapshotLevel || ((p.sensitivityLevel || 'internal') as SensitivityLevel);
           if ((def?.type || p.type) === 'dynamic_group') {
             result.push({
               kind: 'dynamicGroup',
@@ -1040,13 +1055,9 @@ export function SnapshotDataView({ data, detailTemplate, currentPropertyLabels: 
     }
 
     // 2. __fields 顺序（模板不存在时尤为重要）
-    const rawFields = rawProps.__fields as Record<
-      string,
-      { name?: string; type?: PropertyType; sensitivityLevel?: SensitivityLevel }
-    > | undefined;
     if (rawFields && typeof rawFields === 'object') {
       for (const id of Object.keys(rawFields)) {
-        if (seen.has(id) || String(id).startsWith('__')) continue;
+        if (seen.has(id) || isMetaPropertyKey(String(id))) continue;
         const v = rawProps[id];
         if (v === null || v === undefined || v === '') continue;
         seen.add(id);
@@ -1075,7 +1086,7 @@ export function SnapshotDataView({ data, detailTemplate, currentPropertyLabels: 
 
     // 3. 其余未定义字段
     for (const [k, v] of Object.entries(rawProps)) {
-      if (!k.startsWith('__') && !seen.has(k) && v !== null && v !== undefined && v !== '') {
+      if (!isMetaPropertyKey(k) && !seen.has(k) && v !== null && v !== undefined && v !== '') {
         result.push({
           kind: 'field',
           key: k,

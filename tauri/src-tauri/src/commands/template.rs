@@ -415,7 +415,10 @@ pub async fn template_hash_map(
     let templates = vault.list_user_templates(&account_id)?;
     let mut map = HashMap::new();
     for tpl in templates {
-        map.insert(tpl.id.clone(), crate::commands::object::template_fingerprint(&tpl));
+        map.insert(
+            tpl.id.clone(),
+            crate::commands::object::template_fingerprint(&tpl),
+        );
     }
     Ok(map)
 }
@@ -783,7 +786,10 @@ mod tests {
         let templates = vault.list_user_templates("acc-1").unwrap();
         let mut map = HashMap::new();
         for t in &templates {
-            map.insert(t.id.clone(), crate::commands::object::template_fingerprint(t));
+            map.insert(
+                t.id.clone(),
+                crate::commands::object::template_fingerprint(t),
+            );
         }
 
         assert_eq!(map.len(), 1);

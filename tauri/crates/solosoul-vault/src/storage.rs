@@ -2122,7 +2122,7 @@ impl VaultStore {
         }
 
         // properties 已加密，无法使用 SQL LIKE。所有 keyword 匹配在解密后的内存数据上进行。
-        sql.push_str(" ORDER BY created_at DESC");
+        sql.push_str(" ORDER BY created_at ASC, id ASC");
 
         let mut stmt = conn
             .prepare(&sql)

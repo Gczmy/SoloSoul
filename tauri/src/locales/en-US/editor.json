@@ -112,6 +112,7 @@
   "template_sync_change_name": "Name: {{old}} → {{new}}",
   "template_sync_change_sensitivity": "Sensitivity: {{old}} → {{new}}",
   "template_sync_change_options": "Options changed",
+  "template_sync_change_metadata": "Metadata updated ({{keys}})",
   "deprecated_fields_title": "Historical fields for {{name}}",
   "deprecated_fields_body": "The following fields were archived because they became incompatible or were removed by a template update.",
   "deprecated_fields_empty": "No historical fields",

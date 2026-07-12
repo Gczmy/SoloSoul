@@ -88,6 +88,8 @@
   flex-wrap: wrap;
   gap: 6px;
   padding-right: 4px;
+  max-height: 120px;
+  overflow-y: auto;
 }
 
 .typeChip {

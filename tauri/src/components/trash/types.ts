@@ -14,6 +14,7 @@ export interface TrashDetail {
   templateId?: string;
   propertyLabels?: Record<string, SensitivityLevel>;
   previewProperties: {
+    fieldId?: string;
     key: string;
     value: unknown;
     type?: PropertyType;

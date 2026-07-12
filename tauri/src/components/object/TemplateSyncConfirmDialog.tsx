@@ -73,6 +73,12 @@ function formatChangeItem(
     }
     case 'options':
       return t('editor:template_sync_change_options');
+    case 'metadata': {
+      const p = item.payload as { metadataKeys: string[] } | undefined;
+      return t('editor:template_sync_change_metadata', {
+        keys: p?.metadataKeys?.join(', ') ?? '',
+      });
+    }
     default:
       return '';
   }

@@ -1,6 +1,9 @@
 use super::*;
 
-use solosoul_vault::{ObjectRecord, Profile, TrashItem, UserTemplate, VaultConfig, VaultStore};
+use solosoul_vault::{
+    ObjectRecord, Profile, PropertyType, TemplateProperty, TrashItem, UserTemplate, VaultConfig,
+    VaultStore,
+};
 use tempfile::TempDir;
 
 fn setup_vault() -> (VaultStore, TempDir) {
@@ -82,7 +85,7 @@ fn test_record_to_data_conversion() {
         created_at: "2024-01-01T00:00:00Z".to_string(),
         updated_at: "2024-01-02T00:00:00Z".to_string(),
         version: 1,
-            ..Default::default()
+        ..Default::default()
     };
     let data = record_to_data(&record);
     assert_eq!(data.id, "obj-1");
@@ -180,7 +183,7 @@ fn test_vault_object_save_and_load() {
         created_at: chrono::Utc::now().to_rfc3339(),
         updated_at: chrono::Utc::now().to_rfc3339(),
         version: 1,
-            ..Default::default()
+        ..Default::default()
     };
     vault.save_object(&record).unwrap();
     let loaded = vault.load_object("obj-1").unwrap().unwrap();
@@ -214,7 +217,7 @@ fn test_vault_object_list_and_soft_delete() {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
-                    ..Default::default()
+            ..Default::default()
         };
         vault.save_object(&record).unwrap();
     }
@@ -268,7 +271,7 @@ fn test_object_create_with_parent() {
         created_at: chrono::Utc::now().to_rfc3339(),
         updated_at: chrono::Utc::now().to_rfc3339(),
         version: 1,
-            ..Default::default()
+        ..Default::default()
     };
     vault.save_object(&parent).unwrap();
 
@@ -294,7 +297,7 @@ fn test_object_create_with_parent() {
         created_at: chrono::Utc::now().to_rfc3339(),
         updated_at: chrono::Utc::now().to_rfc3339(),
         version: 1,
-            ..Default::default()
+        ..Default::default()
     };
     vault.save_object(&child).unwrap();
 
@@ -364,7 +367,7 @@ fn test_object_soft_delete_with_trash_item() {
         created_at: chrono::Utc::now().to_rfc3339(),
         updated_at: chrono::Utc::now().to_rfc3339(),
         version: 1,
-            ..Default::default()
+        ..Default::default()
     };
     vault.save_object(&record).unwrap();
 
@@ -434,7 +437,7 @@ fn test_hard_delete_purges_object() {
         created_at: chrono::Utc::now().to_rfc3339(),
         updated_at: chrono::Utc::now().to_rfc3339(),
         version: 1,
-            ..Default::default()
+        ..Default::default()
     };
     vault.save_object(&record).unwrap();
 
@@ -487,7 +490,7 @@ fn test_trash_permanent_delete_flow() {
         created_at: chrono::Utc::now().to_rfc3339(),
         updated_at: chrono::Utc::now().to_rfc3339(),
         version: 1,
-            ..Default::default()
+        ..Default::default()
     };
     vault.save_object(&record).unwrap();
 
@@ -543,7 +546,7 @@ fn test_snapshot_operations() {
         created_at: chrono::Utc::now().to_rfc3339(),
         updated_at: chrono::Utc::now().to_rfc3339(),
         version: 1,
-            ..Default::default()
+        ..Default::default()
     };
     vault.save_object(&record).unwrap();
 
@@ -602,7 +605,7 @@ fn test_copy_snapshots() {
         created_at: chrono::Utc::now().to_rfc3339(),
         updated_at: chrono::Utc::now().to_rfc3339(),
         version: 1,
-            ..Default::default()
+        ..Default::default()
     };
     vault.save_object(&record).unwrap();
 
@@ -648,7 +651,7 @@ fn test_snapshot_rollback_via_vault() {
         created_at: chrono::Utc::now().to_rfc3339(),
         updated_at: chrono::Utc::now().to_rfc3339(),
         version: 1,
-            ..Default::default()
+        ..Default::default()
     };
     vault.save_object(&record).unwrap();
 
@@ -741,7 +744,7 @@ fn test_page_section_delete_and_restore() {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
-                    ..Default::default()
+            ..Default::default()
         };
         vault.save_object(&record).unwrap();
     }
@@ -825,7 +828,7 @@ fn test_page_restore_from_trash_reconstruction() {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
-                    ..Default::default()
+            ..Default::default()
         };
         vault.save_object(&record).unwrap();
     }
@@ -953,7 +956,7 @@ fn test_page_restore_from_trash_reconstruction() {
                             .to_string(),
                         updated_at: now,
                         version: record_data["version"].as_u64().unwrap_or(1) as u32,
-                                            ..Default::default()
+                        ..Default::default()
                     };
                     if vault.save_object(&record).is_ok() {
                         if new_id != trash.original_id {
@@ -1047,7 +1050,7 @@ fn test_trash_page_detail_includes_children() {
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
             version: 1,
-                    ..Default::default()
+            ..Default::default()
         };
         vault.save_object(&record).unwrap();
     }
@@ -1309,7 +1312,7 @@ fn test_compute_sync_changes_categorizes_fields() {
         created_at: chrono::Utc::now().to_rfc3339(),
         updated_at: chrono::Utc::now().to_rfc3339(),
         version: 1,
-            ..Default::default()
+        ..Default::default()
     };
 
     let tpl = UserTemplate {
@@ -1418,7 +1421,7 @@ fn test_apply_sync_changes_archives_incompatible_field() {
         created_at: chrono::Utc::now().to_rfc3339(),
         updated_at: chrono::Utc::now().to_rfc3339(),
         version: 1,
-            ..Default::default()
+        ..Default::default()
     };
 
     let tpl = UserTemplate {
@@ -1498,7 +1501,7 @@ fn test_apply_sync_changes_preserves_safe_type_conversion() {
         created_at: chrono::Utc::now().to_rfc3339(),
         updated_at: chrono::Utc::now().to_rfc3339(),
         version: 1,
-            ..Default::default()
+        ..Default::default()
     };
 
     let tpl = UserTemplate {
@@ -1577,7 +1580,7 @@ fn test_compute_sync_changes_uses_property_labels_as_sensitivity_baseline() {
         created_at: chrono::Utc::now().to_rfc3339(),
         updated_at: chrono::Utc::now().to_rfc3339(),
         version: 1,
-            ..Default::default()
+        ..Default::default()
     };
 
     let tpl = UserTemplate {
@@ -1633,4 +1636,538 @@ fn test_compute_sync_changes_uses_property_labels_as_sensitivity_baseline() {
 
     // dynamicGroup 在 property_labels 中已经是 public，不应被误报
     assert!(!result.fields_updated.iter().any(|f| f.id == "dynamicGroup"));
+}
+
+#[test]
+fn test_apply_sync_changes_preserves_multiline_value_on_rename() {
+    let (vault, _dir) = setup_vault();
+
+    // 创建模板：字段 ID 为 f1，名称 "1"，类型 multiline
+    let tpl = UserTemplate {
+        contract_type_id: None,
+        id: "tpl-rename".to_string(),
+        account_id: "acc-1".to_string(),
+        name: "Rename Test".to_string(),
+        icon_id: None,
+        properties: vec![TemplateProperty {
+            contract_field: None,
+            contract_bindings: None,
+            id: "f1".to_string(),
+            name: "1".to_string(),
+            prop_type: PropertyType::MultilineText,
+            sensitivity_level: None,
+            sensitive: None,
+            options: None,
+            deprecated_at: None,
+            allowed_types: None,
+            max_items: None,
+        }],
+        category: None,
+        created_at: chrono::Utc::now().to_rfc3339(),
+        updated_at: None,
+    };
+    vault.save_user_template(&tpl).unwrap();
+
+    // 创建对象：字段 f1 的值为 "a"，__fields 中记录旧名称 "1"
+    let mut record = ObjectRecord {
+        id: "obj-rename".to_string(),
+        account_id: "acc-1".to_string(),
+        type_id: "note".to_string(),
+        section_type: "note".to_string(),
+        name: "Test Object".to_string(),
+        icon_name: "document".to_string(),
+        parent_id: None,
+        children_ids: vec![],
+        properties: serde_json::json!({
+            "__fields": {
+                "f1": { "name": "1", "type": "multiline" }
+            },
+            "f1": "a"
+        }),
+        property_labels: None,
+        sensitivity_level: "internal".to_string(),
+        is_deleted: false,
+        deleted_at: None,
+        tags_json: vec![],
+        template_id: Some("tpl-rename".to_string()),
+        template_type: Some("user".to_string()),
+        template_hash: Some(template_fingerprint(&tpl)),
+        ignored_template_hash: None,
+        contract_type_id: None,
+        created_at: chrono::Utc::now().to_rfc3339(),
+        updated_at: chrono::Utc::now().to_rfc3339(),
+        version: 1,
+    };
+    vault.save_object(&record).unwrap();
+
+    // 修改模板字段名 "1" -> "2"，类型不变
+    let mut modified_tpl = tpl.clone();
+    modified_tpl.properties[0].name = "2".to_string();
+    modified_tpl.updated_at = Some(chrono::Utc::now().to_rfc3339());
+    vault.save_user_template(&modified_tpl).unwrap();
+
+    // 计算并应用同步
+    let result = compute_sync_changes(&record, &modified_tpl);
+    assert!(result.has_changes, "should detect name change");
+    assert!(
+        result.fields_updated.iter().any(|f| f.id == "f1"),
+        "f1 should be in updated fields"
+    );
+    assert!(
+        result.fields_added.is_empty(),
+        "rename should not be treated as added field"
+    );
+    assert!(
+        result.fields_deprecated.is_empty(),
+        "rename should not be treated as deprecated field"
+    );
+
+    apply_sync_changes(&mut record, &modified_tpl, &result, false);
+
+    // 关键断言：字段值必须保留，__fields 中的字段名应更新为 "2"
+    assert_eq!(
+        record.properties["f1"], "a",
+        "multiline value must be preserved"
+    );
+    let fields = record.properties["__fields"].as_object().unwrap();
+    assert_eq!(
+        fields["f1"]["name"], "2",
+        "__fields name should be updated to new template name"
+    );
+    assert_eq!(
+        fields["f1"]["type"], "multiline",
+        "__fields type should remain multiline"
+    );
+}
+
+#[test]
+fn test_apply_sync_changes_preserves_existing_values_when_fields_missing() {
+    // 旧对象可能缺少 __fields（功能上线前创建），同步时不应覆盖已有字段值。
+    let mut record = ObjectRecord {
+        id: "obj-1".to_string(),
+        account_id: "acc-1".to_string(),
+        type_id: "identity".to_string(),
+        section_type: "identity".to_string(),
+        name: "Test".to_string(),
+        icon_name: "document".to_string(),
+        parent_id: None,
+        children_ids: vec![],
+        // 没有 __fields，但实际有字段值
+        properties: serde_json::json!({
+            "f1": "a"
+        }),
+        property_labels: None,
+        sensitivity_level: "internal".to_string(),
+        is_deleted: false,
+        deleted_at: None,
+        tags_json: vec![],
+        template_id: Some("tpl-1".to_string()),
+        template_type: Some("user".to_string()),
+        contract_type_id: None,
+        template_hash: None,
+        created_at: chrono::Utc::now().to_rfc3339(),
+        updated_at: chrono::Utc::now().to_rfc3339(),
+        version: 1,
+        ..Default::default()
+    };
+
+    let tpl = UserTemplate {
+        id: "tpl-1".to_string(),
+        account_id: "acc-1".to_string(),
+        name: "Contact".to_string(),
+        icon_id: None,
+        properties: vec![solosoul_vault::TemplateProperty {
+            id: "f1".to_string(),
+            name: "2".to_string(),
+            prop_type: solosoul_vault::PropertyType::Text,
+            sensitive: None,
+            sensitivity_level: Some("internal".to_string()),
+            options: None,
+            deprecated_at: None,
+            contract_field: None,
+            contract_bindings: None,
+            allowed_types: None,
+            max_items: None,
+        }],
+        category: Some("identity".to_string()),
+        created_at: chrono::Utc::now().to_rfc3339(),
+        updated_at: Some(chrono::Utc::now().to_rfc3339()),
+        contract_type_id: None,
+    };
+
+    let result = compute_sync_changes(&record, &tpl);
+    apply_sync_changes(&mut record, &tpl, &result, false);
+
+    // 关键断言：即使缺少 __fields，已有字段值 "a" 也必须保留
+    assert_eq!(
+        record.properties["f1"], "a",
+        "existing value must not be overwritten"
+    );
+    let fields = record.properties["__fields"].as_object().unwrap();
+    assert_eq!(fields["f1"]["name"], "2");
+}
+
+#[test]
+fn test_dynamic_group_sensitivity_preserved_in_snapshots_after_template_sync() {
+    let (vault, _dir) = setup_vault();
+
+    // 1. 创建模板：动态字段组敏感度为 critical
+    let tpl = UserTemplate {
+        contract_type_id: None,
+        id: "tpl-dg".to_string(),
+        account_id: "acc-1".to_string(),
+        name: "Contact".to_string(),
+        icon_id: None,
+        properties: vec![TemplateProperty {
+            contract_field: None,
+            contract_bindings: None,
+            id: "contacts".to_string(),
+            name: "联系方式".to_string(),
+            prop_type: PropertyType::DynamicGroup,
+            sensitivity_level: Some("critical".to_string()),
+            sensitive: None,
+            options: None,
+            deprecated_at: None,
+            allowed_types: Some(vec![PropertyType::Text, PropertyType::Phone]),
+            max_items: None,
+        }],
+        category: Some("identity".to_string()),
+        created_at: chrono::Utc::now().to_rfc3339(),
+        updated_at: None,
+    };
+    vault.save_user_template(&tpl).unwrap();
+
+    // 2. 模拟 object_create：继承 property_labels 与 __fields，并保存初始快照
+    let property_labels = inherit_property_labels(&vault, Some("tpl-dg"));
+    let property_fields = inherit_property_fields(&vault, Some("tpl-dg"));
+    let mut properties = serde_json::json!({
+        "contacts": [
+            { "id": "c1", "name": "手机", "type": "phone", "value": "123" }
+        ]
+    });
+    inject_property_fields(&mut properties, &property_fields);
+    let template_hash = Some(template_fingerprint(&tpl));
+    if let Some(obj) = properties.as_object_mut() {
+        obj.insert(
+            "__templateHash".to_string(),
+            serde_json::Value::String(template_hash.clone().unwrap()),
+        );
+    }
+
+    let record = ObjectRecord {
+        id: "obj-dg".to_string(),
+        account_id: "acc-1".to_string(),
+        type_id: "identity".to_string(),
+        section_type: "identity".to_string(),
+        name: "Test Contact".to_string(),
+        icon_name: "document".to_string(),
+        parent_id: None,
+        children_ids: vec![],
+        properties: properties.clone(),
+        property_labels: property_labels.clone(),
+        sensitivity_level: "internal".to_string(),
+        is_deleted: false,
+        deleted_at: None,
+        tags_json: vec![],
+        template_id: Some("tpl-dg".to_string()),
+        template_type: Some("user".to_string()),
+        template_hash: template_hash.clone(),
+        ignored_template_hash: None,
+        contract_type_id: None,
+        created_at: chrono::Utc::now().to_rfc3339(),
+        updated_at: chrono::Utc::now().to_rfc3339(),
+        version: 1,
+    };
+    vault.save_object(&record).unwrap();
+
+    let snap1_data = serde_json::to_vec(&serde_json::json!({
+        "name": record.name,
+        "tags": record.tags_json,
+        "properties": record.properties,
+        "propertyLabels": record.property_labels,
+    }))
+    .unwrap();
+    vault
+        .save_snapshot("obj-dg", "user_edit", &snap1_data, "diff_created")
+        .unwrap();
+
+    // 3. 修改模板动态字段组敏感度为 sensitive
+    let mut modified_tpl = tpl.clone();
+    modified_tpl.properties[0].sensitivity_level = Some("sensitive".to_string());
+    modified_tpl.updated_at = Some(chrono::Utc::now().to_rfc3339());
+    vault.save_user_template(&modified_tpl).unwrap();
+
+    // 4. 加载对象并应用同步
+    let mut record = vault.load_object("obj-dg").unwrap().unwrap();
+    let result = compute_sync_changes(&record, &modified_tpl);
+    assert!(result.has_changes, "should detect sensitivity change");
+    apply_sync_changes(&mut record, &modified_tpl, &result, false);
+    vault.save_object(&record).unwrap();
+
+    let snap2_data = serde_json::to_vec(&serde_json::json!({
+        "name": record.name,
+        "tags": record.tags_json,
+        "properties": record.properties,
+        "propertyLabels": record.property_labels,
+    }))
+    .unwrap();
+    vault
+        .save_snapshot("obj-dg", "template_sync", &snap2_data, "diff_template_sync")
+        .unwrap();
+
+    // 5. 加载两个快照并验证敏感度
+    let snapshots = vault.list_snapshots("obj-dg").unwrap();
+    assert_eq!(snapshots.len(), 2);
+
+    let latest_snap_id = snapshots[0]["id"].as_str().unwrap();
+    let old_snap_id = snapshots[1]["id"].as_str().unwrap();
+
+    let latest_data = vault.get_snapshot(latest_snap_id).unwrap().unwrap();
+    let latest: serde_json::Value = serde_json::from_slice(&latest_data).unwrap();
+    let old_data = vault.get_snapshot(old_snap_id).unwrap().unwrap();
+    let old: serde_json::Value = serde_json::from_slice(&old_data).unwrap();
+
+    // 旧快照应保持 critical
+    let old_labels = old["propertyLabels"]["contacts"].as_str();
+    assert_eq!(
+        old_labels,
+        Some("critical"),
+        "old snapshot should keep critical sensitivity, got {:?}",
+        old["propertyLabels"]
+    );
+
+    // 新快照应为 sensitive
+    let new_labels = latest["propertyLabels"]["contacts"].as_str();
+    assert_eq!(
+        new_labels,
+        Some("sensitive"),
+        "latest snapshot should have sensitive sensitivity, got {:?}",
+        latest["propertyLabels"]
+    );
+}
+
+#[test]
+fn test_compute_sync_changes_detects_dynamic_group_metadata() {
+    let record = ObjectRecord {
+        id: "obj-1".to_string(),
+        account_id: "acc-1".to_string(),
+        type_id: "identity".to_string(),
+        section_type: "identity".to_string(),
+        name: "Test".to_string(),
+        icon_name: "document".to_string(),
+        parent_id: None,
+        children_ids: vec![],
+        properties: serde_json::json!({
+            "__fields": {
+                "contacts": {
+                    "name": "联系方式",
+                    "type": "dynamic_group",
+                    "allowedTypes": ["text"],
+                    "maxItems": 5
+                }
+            },
+            "contacts": []
+        }),
+        property_labels: Some(serde_json::json!({ "contacts": "internal" })),
+        sensitivity_level: "internal".to_string(),
+        is_deleted: false,
+        deleted_at: None,
+        tags_json: vec![],
+        template_id: Some("tpl-1".to_string()),
+        template_type: Some("user".to_string()),
+        contract_type_id: None,
+        template_hash: None,
+        created_at: chrono::Utc::now().to_rfc3339(),
+        updated_at: chrono::Utc::now().to_rfc3339(),
+        version: 1,
+        ..Default::default()
+    };
+
+    let tpl = UserTemplate {
+        id: "tpl-1".to_string(),
+        account_id: "acc-1".to_string(),
+        name: "Contact".to_string(),
+        icon_id: None,
+        properties: vec![solosoul_vault::TemplateProperty {
+            id: "contacts".to_string(),
+            name: "联系方式".to_string(),
+            prop_type: solosoul_vault::PropertyType::DynamicGroup,
+            sensitive: None,
+            sensitivity_level: Some("internal".to_string()),
+            options: None,
+            deprecated_at: None,
+            contract_field: None,
+            contract_bindings: None,
+            allowed_types: Some(vec![
+                solosoul_vault::PropertyType::Text,
+                solosoul_vault::PropertyType::Phone,
+            ]),
+            max_items: Some(10),
+        }],
+        category: Some("identity".to_string()),
+        created_at: chrono::Utc::now().to_rfc3339(),
+        updated_at: Some(chrono::Utc::now().to_rfc3339()),
+        contract_type_id: None,
+    };
+
+    let result = compute_sync_changes(&record, &tpl);
+    assert!(
+        result.has_changes,
+        "should detect dynamic group metadata changes"
+    );
+    assert_eq!(result.fields_updated.len(), 1);
+    assert_eq!(result.fields_updated[0].id, "contacts");
+    assert!(
+        result.fields_updated[0]
+            .changes
+            .iter()
+            .any(|c| matches!(c, SyncFieldChangeItem::Metadata { metadata_keys } if metadata_keys.contains(&"allowedTypes".to_string()) && metadata_keys.contains(&"maxItems".to_string()))),
+        "expected Metadata change for allowedTypes and maxItems, got {:?}",
+        result.fields_updated[0].changes
+    );
+}
+
+#[test]
+fn test_compute_sync_changes_detects_field_metadata() {
+    let record = ObjectRecord {
+        id: "obj-1".to_string(),
+        account_id: "acc-1".to_string(),
+        type_id: "identity".to_string(),
+        section_type: "identity".to_string(),
+        name: "Test".to_string(),
+        icon_name: "document".to_string(),
+        parent_id: None,
+        children_ids: vec![],
+        properties: serde_json::json!({
+            "__fields": {
+                "nameField": {
+                    "name": "姓名",
+                    "type": "text",
+                    "deprecatedAt": "",
+                    "contractField": false
+                }
+            },
+            "nameField": "Alice"
+        }),
+        property_labels: None,
+        sensitivity_level: "internal".to_string(),
+        is_deleted: false,
+        deleted_at: None,
+        tags_json: vec![],
+        template_id: Some("tpl-1".to_string()),
+        template_type: Some("user".to_string()),
+        contract_type_id: None,
+        template_hash: None,
+        created_at: chrono::Utc::now().to_rfc3339(),
+        updated_at: chrono::Utc::now().to_rfc3339(),
+        version: 1,
+        ..Default::default()
+    };
+
+    let tpl = UserTemplate {
+        id: "tpl-1".to_string(),
+        account_id: "acc-1".to_string(),
+        name: "Contact".to_string(),
+        icon_id: None,
+        properties: vec![solosoul_vault::TemplateProperty {
+            id: "nameField".to_string(),
+            name: "姓名".to_string(),
+            prop_type: solosoul_vault::PropertyType::Text,
+            sensitive: None,
+            sensitivity_level: Some("internal".to_string()),
+            options: None,
+            deprecated_at: Some("2024-01-01T00:00:00Z".to_string()),
+            contract_field: Some(true),
+            contract_bindings: None,
+            allowed_types: None,
+            max_items: None,
+        }],
+        category: Some("identity".to_string()),
+        created_at: chrono::Utc::now().to_rfc3339(),
+        updated_at: Some(chrono::Utc::now().to_rfc3339()),
+        contract_type_id: None,
+    };
+
+    let result = compute_sync_changes(&record, &tpl);
+    assert!(result.has_changes, "should detect field metadata changes");
+    assert_eq!(result.fields_updated.len(), 1);
+    assert_eq!(result.fields_updated[0].id, "nameField");
+    assert!(
+        result.fields_updated[0]
+            .changes
+            .iter()
+            .any(|c| matches!(c, SyncFieldChangeItem::Metadata { metadata_keys } if metadata_keys.contains(&"deprecatedAt".to_string()) && metadata_keys.contains(&"contractField".to_string()))),
+        "expected Metadata change for deprecatedAt and contractField, got {:?}",
+        result.fields_updated[0].changes
+    );
+}
+
+#[test]
+fn test_trash_detail_object_data_camel_case_and_snake_case_fallback() {
+    // 模拟 object_delete 现在使用的 camelCase 序列化
+    let camel_case_data = serde_json::json!({
+        "id": "obj-1",
+        "accountId": "acc-1",
+        "typeId": "note",
+        "sectionType": "identity",
+        "name": "Test",
+        "iconName": "document",
+        "parentId": null,
+        "childrenIds": [],
+        "properties": {
+            "__fields": {
+                "f1": { "name": "字段1", "type": "text" }
+            },
+            "f1": "value1"
+        },
+        "propertyLabels": { "f1": "sensitive" },
+        "sensitivityLevel": "internal",
+        "tags": [],
+        "createdAt": "2024-01-01T00:00:00Z",
+        "updatedAt": "2024-01-01T00:00:00Z",
+        "version": 1,
+        "templateId": null,
+        "templateType": null,
+        "contractTypeId": null,
+        "templateHash": null,
+    });
+
+    // 验证 trash_get_detail 内部的解析逻辑：优先读取 camelCase
+    let sensitivity_map = camel_case_data
+        .get("propertyLabels")
+        .or_else(|| camel_case_data.get("property_labels"))
+        .and_then(|v| v.as_object())
+        .cloned()
+        .unwrap_or_default();
+    assert_eq!(
+        sensitivity_map.get("f1").and_then(|v| v.as_str()),
+        Some("sensitive")
+    );
+
+    let template_id = camel_case_data
+        .get("templateId")
+        .or_else(|| camel_case_data.get("template_id"))
+        .and_then(|v| v.as_str());
+    assert_eq!(template_id, None);
+
+    // 验证旧数据 snake_case 也能通过 fallback 读取
+    let snake_case_data = serde_json::json!({
+        "id": "obj-1",
+        "account_id": "acc-1",
+        "property_labels": { "f1": "public" },
+        "template_id": "tpl-old",
+    });
+    let old_sensitivity = snake_case_data
+        .get("propertyLabels")
+        .or_else(|| snake_case_data.get("property_labels"))
+        .and_then(|v| v.as_object())
+        .and_then(|m| m.get("f1"))
+        .and_then(|v| v.as_str());
+    assert_eq!(old_sensitivity, Some("public"));
+
+    let old_template_id = snake_case_data
+        .get("templateId")
+        .or_else(|| snake_case_data.get("template_id"))
+        .and_then(|v| v.as_str());
+    assert_eq!(old_template_id, Some("tpl-old"));
 }

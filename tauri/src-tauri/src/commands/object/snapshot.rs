@@ -70,6 +70,11 @@ pub async fn snapshot_rollback(
     if !snapshot["properties"].is_null() {
         record.properties = snapshot["properties"].clone();
     }
+    if !snapshot["propertyLabels"].is_null() {
+        record.property_labels = Some(snapshot["propertyLabels"].clone());
+    } else if let Some(labels) = snapshot.get("property_labels") {
+        record.property_labels = Some(labels.clone());
+    }
     record.updated_at = chrono::Utc::now().to_rfc3339();
     record.version += 1;
     vault.save_object(&record)?;
@@ -82,12 +87,7 @@ pub async fn snapshot_rollback(
         "propertyLabels": record.property_labels,
     }))
     .unwrap_or_default();
-    let _ = vault.save_snapshot(
-        &object_id,
-        "rollback",
-        &rollback_data,
-        "diff_rollback",
-    );
+    let _ = vault.save_snapshot(&object_id, "rollback", &rollback_data, "diff_rollback");
     let _ = vault.log_structured(
         "object_rollback",
         "object",
@@ -264,16 +264,18 @@ pub async fn trash_get_detail(
             let props = data.get("properties")?.as_object()?;
             let fields_def = props.get("__fields").and_then(|v| v.as_object());
 
-            // 字段级敏感度的真实来源是 property_labels（对象当前敏感度副本）
+            // 字段级敏感度的真实来源是 propertyLabels（对象当前敏感度副本）
             let sensitivity_map = data
-                .get("property_labels")
+                .get("propertyLabels")
+                .or_else(|| data.get("property_labels"))
                 .and_then(|v| v.as_object())
                 .cloned()
                 .unwrap_or_default();
 
             // 1. 加载模板（用于排序和补充字段定义）
             let tpl = data
-                .get("template_id")
+                .get("templateId")
+                .or_else(|| data.get("template_id"))
                 .and_then(|v| v.as_str())
                 .and_then(|tpl_id| vault.load_user_template(tpl_id).ok().flatten());
 
@@ -369,6 +371,7 @@ pub async fn trash_get_detail(
                     })
                     .unwrap_or_else(|| "internal".to_string());
                 result.push(serde_json::json!({
+                    "fieldId": field_id,
                     "key": name,
                     "value": v,
                     "type": ptype,
@@ -448,8 +451,15 @@ pub async fn trash_get_detail(
     // Extract template_id and property_labels from stored data
     let (template_id, property_labels) = (|| -> Option<(String, Option<serde_json::Value>)> {
         let data: serde_json::Value = serde_json::from_slice(&trash.data).ok()?;
-        let tpl_id = data.get("template_id").and_then(|v| v.as_str()).map(String::from);
-        let labels = data.get("property_labels").cloned();
+        let tpl_id = data
+            .get("templateId")
+            .or_else(|| data.get("template_id"))
+            .and_then(|v| v.as_str())
+            .map(String::from);
+        let labels = data
+            .get("propertyLabels")
+            .or_else(|| data.get("property_labels"))
+            .cloned();
         Some((tpl_id?, labels))
     })()
     .map(|(id, labels)| (Some(id), labels))

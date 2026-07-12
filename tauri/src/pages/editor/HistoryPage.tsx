@@ -98,7 +98,7 @@ export function HistoryPage() {
                       </div>
                       <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
                         {t(`common:trigger_${s.triggeredBy}` as const, {
-                          defaultValue: s.diffSummary || s.triggeredBy,
+                          defaultValue: s.triggeredBy,
                         })}
                       </div>
                     </div>

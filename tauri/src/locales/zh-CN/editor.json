@@ -112,6 +112,7 @@
   "template_sync_change_name": "名称：{{old}} → {{new}}",
   "template_sync_change_sensitivity": "敏感度：{{old}} → {{new}}",
   "template_sync_change_options": "选项已变更",
+  "template_sync_change_metadata": "元数据已更新（{{keys}}）",
   "deprecated_fields_title": "{{name}} 的历史字段",
   "deprecated_fields_body": "以下字段因模板更新导致类型不兼容或已被删除，其原值已被安全归档。",
   "deprecated_fields_empty": "暂无历史字段",

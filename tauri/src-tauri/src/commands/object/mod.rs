@@ -222,6 +222,10 @@ pub enum SyncFieldChangeItem {
         new_level: String,
     },
     Options,
+    Metadata {
+        #[serde(rename = "metadataKeys")]
+        metadata_keys: Vec<String>,
+    },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -778,28 +782,24 @@ fn get_object_template_hash(record: &ObjectRecord) -> Option<String> {
 
 /// 将旧字段定义与值移入 properties.__deprecatedFields。
 fn deprecate_field(
-    properties: &mut serde_json::Value,
+    properties: &mut serde_json::Map<String, serde_json::Value>,
     field_id: &str,
     field_def: &serde_json::Map<String, serde_json::Value>,
     old_value: serde_json::Value,
     reason: &str,
 ) {
-    let deprecated = properties
-        .as_object_mut()
-        .and_then(|obj| obj.get_mut("__deprecatedFields"))
-        .and_then(|v| v.as_object_mut());
-    let deprecated_map = match deprecated {
+    let deprecated_map = match properties
+        .get_mut("__deprecatedFields")
+        .and_then(|v| v.as_object_mut())
+    {
         Some(m) => m,
         None => {
-            if let Some(obj) = properties.as_object_mut() {
-                obj.insert(
-                    "__deprecatedFields".to_string(),
-                    serde_json::Value::Object(serde_json::Map::new()),
-                );
-            }
+            properties.insert(
+                "__deprecatedFields".to_string(),
+                serde_json::Value::Object(serde_json::Map::new()),
+            );
             properties
-                .as_object_mut()
-                .and_then(|obj| obj.get_mut("__deprecatedFields"))
+                .get_mut("__deprecatedFields")
                 .and_then(|v| v.as_object_mut())
                 .expect("__deprecatedFields should exist")
         }
@@ -1083,6 +1083,47 @@ fn compute_sync_changes(
         if old_opts != new_opts.as_ref() {
             changes.push(SyncFieldChangeItem::Options);
         }
+
+        // 其他元数据变化：动态字段组 allowedTypes/maxItems、字段 deprecatedAt/contractField
+        let mut metadata_keys: Vec<String> = Vec::new();
+        if new_type == "dynamic_group" {
+            let old_allowed = old_def
+                .get("allowedTypes")
+                .and_then(|v| v.as_array())
+                .map(|arr| arr.iter().filter_map(|v| v.as_str()).collect::<Vec<_>>());
+            let new_allowed = prop
+                .allowed_types
+                .as_ref()
+                .map(|types| types.iter().map(|t| t.as_str()).collect::<Vec<_>>());
+            if old_allowed != new_allowed {
+                metadata_keys.push("allowedTypes".to_string());
+            }
+            let old_max = old_def.get("maxItems").and_then(|v| v.as_u64());
+            let new_max = prop.max_items.map(|m| m as u64);
+            if old_max != new_max {
+                metadata_keys.push("maxItems".to_string());
+            }
+        }
+        let old_deprecated = old_def
+            .get("deprecatedAt")
+            .and_then(|v| v.as_str())
+            .unwrap_or("");
+        let new_deprecated = prop.deprecated_at.as_deref().unwrap_or("");
+        if old_deprecated != new_deprecated {
+            metadata_keys.push("deprecatedAt".to_string());
+        }
+        let old_contract = old_def
+            .get("contractField")
+            .and_then(|v| v.as_bool())
+            .unwrap_or(false);
+        let new_contract = prop.contract_field.unwrap_or(false);
+        if old_contract != new_contract {
+            metadata_keys.push("contractField".to_string());
+        }
+        if !metadata_keys.is_empty() {
+            changes.push(SyncFieldChangeItem::Metadata { metadata_keys });
+        }
+
         if !changes.is_empty() {
             fields_updated.push(SyncFieldChange {
                 id: prop.id.clone(),
@@ -1151,7 +1192,7 @@ fn apply_sync_changes(
                 .cloned()
                 .unwrap_or(serde_json::Value::Null);
             deprecate_field(
-                &mut record.properties,
+                &mut props_obj,
                 &dep.id,
                 old_def.as_object().unwrap_or(&serde_json::Map::new()),
                 old_value,
@@ -1186,7 +1227,7 @@ fn apply_sync_changes(
                 } else {
                     // 不安全：归档旧字段并设置新默认值
                     deprecate_field(
-                        &mut record.properties,
+                        &mut props_obj,
                         field_id,
                         old.as_object().unwrap_or(&serde_json::Map::new()),
                         old_value,
@@ -1201,15 +1242,21 @@ fn apply_sync_changes(
                 }
             }
         } else {
-            // 新增字段
-            props_obj.insert(field_id.clone(), default_value_for_type(new_type));
+            // 新增字段：仅当对象中尚无该字段值时才写入默认值，避免旧对象缺少 __fields 时已有数据被覆盖
+            if !props_obj.contains_key(field_id) {
+                props_obj.insert(field_id.clone(), default_value_for_type(new_type));
+            }
         }
 
-        // 更新 __fields 定义
-        if let Some(fields) = record
-            .properties
-            .as_object_mut()
-            .and_then(|obj| obj.get_mut("__fields"))
+        // 更新 __fields 定义（直接在 props_obj 上修改，避免后续写回时被覆盖；缺失时创建）
+        if props_obj.get("__fields").is_none() {
+            props_obj.insert(
+                "__fields".to_string(),
+                serde_json::Value::Object(serde_json::Map::new()),
+            );
+        }
+        if let Some(fields) = props_obj
+            .get_mut("__fields")
             .and_then(|v| v.as_object_mut())
         {
             fields.insert(field_id.clone(), new_def);
@@ -1456,15 +1503,15 @@ pub async fn object_delete(state: State<'_, AppState>, object_id: String) -> Res
         let obj_section = rec.section_type.clone();
         // Store complete ObjectRecord as data (§23.2.2)
         let full_record = serde_json::json!({
-            "id": rec.id, "account_id": rec.account_id, "type_id": rec.type_id,
-            "section_type": rec.section_type, "name": rec.name, "icon_name": rec.icon_name,
-            "parent_id": rec.parent_id, "children_ids": rec.children_ids,
-            "properties": rec.properties, "property_labels": rec.property_labels,
-            "sensitivity_level": rec.sensitivity_level, "tags": rec.tags_json,
-            "created_at": rec.created_at, "updated_at": rec.updated_at, "version": rec.version,
-            "template_id": rec.template_id, "template_type": rec.template_type,
-            "contract_type_id": rec.contract_type_id,
-            "template_hash": rec.template_hash,
+            "id": rec.id, "accountId": rec.account_id, "typeId": rec.type_id,
+            "sectionType": rec.section_type, "name": rec.name, "iconName": rec.icon_name,
+            "parentId": rec.parent_id, "childrenIds": rec.children_ids,
+            "properties": rec.properties, "propertyLabels": rec.property_labels,
+            "sensitivityLevel": rec.sensitivity_level, "tags": rec.tags_json,
+            "createdAt": rec.created_at, "updatedAt": rec.updated_at, "version": rec.version,
+            "templateId": rec.template_id, "templateType": rec.template_type,
+            "contractTypeId": rec.contract_type_id,
+            "templateHash": rec.template_hash,
         });
         let trash = solosoul_vault::TrashItem {
             id: format!("trash_{}", uuid::Uuid::new_v4()),
