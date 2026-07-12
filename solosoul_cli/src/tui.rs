@@ -56,8 +56,7 @@ impl Tui {
             self.terminal.draw(|frame| self.app.render(frame))?;
 
             // 若存在需要 inquire 外部编辑的字段，优先处理
-            if self.app.external_edit.is_some() {
-                let request = self.app.external_edit.take().unwrap();
+            if let Some(request) = self.app.external_edit.take() {
                 match crate::widgets::external_editor::run(&request) {
                     Ok(value) => self.app.apply_external_edit(value),
                     Err(e) => {

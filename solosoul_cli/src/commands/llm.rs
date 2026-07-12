@@ -145,7 +145,10 @@ pub fn chat(app: &mut App, conversation_id: Option<&str>) -> Result<()> {
     let mut state = crate::screens::llm_chat::LlmChatState::new();
     if let Some(conv_id) = conversation_id {
         // Load existing conversation if specified
-        let vault = app.vault_service.get_vault_store().unwrap();
+        let vault = app
+            .vault_service
+            .get_vault_store()
+            .expect("Vault 已校验解锁");
         if let Ok(Some(conv)) = app
             .llm_service
             .get_conversation(&vault, &account_id, conv_id)

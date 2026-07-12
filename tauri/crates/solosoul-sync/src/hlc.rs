@@ -35,7 +35,7 @@ impl Hlc {
     /// Generate a fresh HLC timestamp for the local node.
     pub fn now(node_id: &str) -> Self {
         let physical = physical_now_ms();
-        let mut last = LAST_TIME_MS.lock().unwrap();
+        let mut last = LAST_TIME_MS.lock().expect("HLC 时间戳锁未 poison");
         let (wall, counter) = if physical > *last {
             *last = physical;
             (physical, 0)

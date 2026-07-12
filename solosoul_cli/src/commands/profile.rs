@@ -169,7 +169,9 @@ fn set_value_at_path(data: &mut Value, path: &str, value: Value) -> Result<(), S
     let obj = data
         .as_object_mut()
         .ok_or_else(|| "Profile 数据不是对象".to_string())?;
-    let (last, parents) = parts.split_last().unwrap();
+    let (last, parents) = parts
+        .split_last()
+        .expect("路径已校验非空，split_last 必然返回 Some");
 
     let mut current = obj;
     for part in parents {

@@ -11,8 +11,8 @@ use solo_soul::plugin::registry::PluginRegistry;
 use std::path::PathBuf;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
-/// 串行化涉及环境变量的测试，避免并行时互相覆盖。
-static ENV_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+/// 串行化涉及环境变量的异步测试，避免并行时互相覆盖。
+static ENV_LOCK: tokio::sync::Mutex<()> = tokio::sync::Mutex::const_new(());
 
 fn generate_minisign_keypair() -> ([u8; 8], Vec<u8>, Ed25519KeyPair) {
     let rng = SystemRandom::new();
@@ -121,19 +121,16 @@ fn registry_json() -> Vec<u8> {
 
 #[tokio::test]
 async fn test_update_registry_from_remote() {
-    let (data, signature) = {
-        let _guard = ENV_LOCK.lock().unwrap();
-        let (key_id, public_key, keypair) = generate_minisign_keypair();
-        let data = registry_json();
-        let signature = sign_registry(&data, key_id, &keypair);
+    let _guard = ENV_LOCK.lock().await;
+    let (key_id, public_key, keypair) = generate_minisign_keypair();
+    let data = registry_json();
+    let signature = sign_registry(&data, key_id, &keypair);
 
-        std::env::set_var("SOLOSOUL_REGISTRY_URL", "__placeholder__");
-        std::env::set_var(
-            "SOLOSOUL_REGISTRY_PUBKEY",
-            public_key_base64(key_id, &public_key),
-        );
-        (data, signature)
-    };
+    std::env::set_var("SOLOSOUL_REGISTRY_URL", "__placeholder__");
+    std::env::set_var(
+        "SOLOSOUL_REGISTRY_PUBKEY",
+        public_key_base64(key_id, &public_key),
+    );
 
     let (_server, url) = start_test_server(data.clone(), signature).await;
     std::env::set_var("SOLOSOUL_REGISTRY_URL", format!("{}/registry.json", url));
@@ -151,26 +148,23 @@ async fn test_update_registry_from_remote() {
 
 #[tokio::test]
 async fn test_update_registry_rejects_invalid_signature() {
-    let (data, corrupted) = {
-        let _guard = ENV_LOCK.lock().unwrap();
-        let (key_id, public_key, keypair) = generate_minisign_keypair();
-        let data = registry_json();
-        let signature = sign_registry(&data, key_id, &keypair);
-        // 破坏 global signature 的 base64：将最后一行第一个字符替换为 'A'
-        let mut lines: Vec<&str> = signature.lines().collect();
-        let last = lines.last_mut().unwrap();
-        if !last.is_empty() {
-            *last = "A";
-        }
-        let corrupted = lines.join("\n");
+    let _guard = ENV_LOCK.lock().await;
+    let (key_id, public_key, keypair) = generate_minisign_keypair();
+    let data = registry_json();
+    let signature = sign_registry(&data, key_id, &keypair);
+    // 破坏 global signature 的 base64：将最后一行第一个字符替换为 'A'
+    let mut lines: Vec<&str> = signature.lines().collect();
+    let last = lines.last_mut().unwrap();
+    if !last.is_empty() {
+        *last = "A";
+    }
+    let corrupted = lines.join("\n");
 
-        std::env::set_var("SOLOSOUL_REGISTRY_URL", "__placeholder__");
-        std::env::set_var(
-            "SOLOSOUL_REGISTRY_PUBKEY",
-            public_key_base64(key_id, &public_key),
-        );
-        (data, corrupted)
-    };
+    std::env::set_var("SOLOSOUL_REGISTRY_URL", "__placeholder__");
+    std::env::set_var(
+        "SOLOSOUL_REGISTRY_PUBKEY",
+        public_key_base64(key_id, &public_key),
+    );
 
     let (_server, url) = start_test_server(data, corrupted).await;
     std::env::set_var("SOLOSOUL_REGISTRY_URL", format!("{}/registry.json", url));
@@ -186,22 +180,19 @@ async fn test_update_registry_rejects_invalid_signature() {
 
 #[tokio::test]
 async fn test_update_registry_rejects_mismatched_key() {
-    let (data, signature) = {
-        let _guard = ENV_LOCK.lock().unwrap();
-        let (key_id, _public_key, keypair) = generate_minisign_keypair();
-        let data = registry_json();
-        let signature = sign_registry(&data, key_id, &keypair);
+    let _guard = ENV_LOCK.lock().await;
+    let (key_id, _public_key, keypair) = generate_minisign_keypair();
+    let data = registry_json();
+    let signature = sign_registry(&data, key_id, &keypair);
 
-        // 使用另一把公钥
-        let (_, other_pk, _) = generate_minisign_keypair();
+    // 使用另一把公钥
+    let (_, other_pk, _) = generate_minisign_keypair();
 
-        std::env::set_var("SOLOSOUL_REGISTRY_URL", "__placeholder__");
-        std::env::set_var(
-            "SOLOSOUL_REGISTRY_PUBKEY",
-            public_key_base64(key_id, &other_pk),
-        );
-        (data, signature)
-    };
+    std::env::set_var("SOLOSOUL_REGISTRY_URL", "__placeholder__");
+    std::env::set_var(
+        "SOLOSOUL_REGISTRY_PUBKEY",
+        public_key_base64(key_id, &other_pk),
+    );
 
     let (_server, url) = start_test_server(data, signature).await;
     std::env::set_var("SOLOSOUL_REGISTRY_URL", format!("{}/registry.json", url));
