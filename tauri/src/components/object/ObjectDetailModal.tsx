@@ -331,10 +331,6 @@ export function ObjectDetailModal({
     return fieldMap.get(fieldKey);
   };
 
-  const getFieldType = (fieldKey: string): string => {
-    return getFieldProperty(fieldKey)?.type || objFieldDefs?.[fieldKey]?.type || 'text';
-  };
-
   const getFieldSensitivity = (fieldKey: string): SensitivityLevel => {
     // 1. 对象自有 propertyLabels（即使模板被删除也保留敏感度）
     const labels = obj?.propertyLabels as Record<string, string> | undefined;
