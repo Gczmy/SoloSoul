@@ -254,9 +254,6 @@ export const WorkspaceObjectCard = memo(function WorkspaceObjectCard({
               >
                 {collectionLabel}
               </span>
-              {obj.contractTypeId && (
-                <PluginBadge contractTypeId={obj.contractTypeId} size="sm" variant="full" />
-              )}
               {/* 模板名 — 模板不匹配（已删除/更改页面）时显示删除线 */}
               {obj.templateId && (
                 <span
@@ -277,6 +274,9 @@ export const WorkspaceObjectCard = memo(function WorkspaceObjectCard({
                         return tplName ? `${tplName} (${tid.slice(0, 8)}…)` : tid;
                       })()}
                 </span>
+              )}
+              {obj.contractTypeId && (
+                <PluginBadge contractTypeId={obj.contractTypeId} size="sm" variant="full" />
               )}
             </div>
           </div>
