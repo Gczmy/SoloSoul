@@ -1,7 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import { flattenProperties, HistoryViewer } from './HistoryViewer';
-import type { SensitivityLevel } from '@/components/ui/SensitivityBadge';
 import * as invokeModule from '@tauri-apps/api/core';
 
 vi.mock('@tauri-apps/api/core', () => ({
@@ -65,7 +64,7 @@ describe('flattenProperties', () => {
     };
     const result = flattenProperties(props as Record<string, unknown>);
     expect(result).toEqual([
-      { kind: 'field', key: 'f1', value: 'a', label: '旧字段名' },
+      { kind: 'field', key: 'f1', value: 'a', label: '旧字段名', type: 'multiline' },
     ]);
   });
 });

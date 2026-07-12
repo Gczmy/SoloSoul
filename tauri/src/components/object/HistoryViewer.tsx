@@ -4,6 +4,8 @@ import { invoke } from '@tauri-apps/api/core';
 import { motion } from 'framer-motion';
 import { Clock, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { SensitivityBadge, type SensitivityLevel } from '@/components/ui/SensitivityBadge';
+import { FieldTypeIcon } from '@/components/ui/FieldTypeIcon';
+import type { PropertyType } from '@/types/template';
 import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
 import { DeprecatedBadge } from '@/components/ui/DeprecatedBadge';
 import { SnapshotVersionBadge } from '@/components/ui/SnapshotVersionBadge';
@@ -20,12 +22,13 @@ export interface SnapshotEntry {
 }
 
 export type FlattenedField =
-  | { kind: 'field'; key: string; value: string; label?: string; sensitivity?: SensitivityLevel }
+  | { kind: 'field'; key: string; value: string; label?: string; sensitivity?: SensitivityLevel; type?: PropertyType }
   | {
       kind: 'dynamicGroup';
       key: string;
       label?: string;
       sensitivity?: SensitivityLevel;
+      type?: PropertyType;
       children: { label: string; value: string; type?: string }[];
     };
 
@@ -65,17 +68,18 @@ export function flattenProperties(
         kind: 'dynamicGroup',
         key: k,
         label: fieldDefs?.[k]?.name,
+        type: 'dynamic_group',
         children,
       });
       continue;
     }
 
     if (typeof v === 'string') {
-      entries.push({ kind: 'field', key: k, value: v, label: fieldDefs?.[k]?.name });
+      entries.push({ kind: 'field', key: k, value: v, label: fieldDefs?.[k]?.name, type: fieldDefs?.[k]?.type as PropertyType | undefined });
     } else if (typeof v === 'number' || typeof v === 'boolean') {
-      entries.push({ kind: 'field', key: k, value: String(v), label: fieldDefs?.[k]?.name });
+      entries.push({ kind: 'field', key: k, value: String(v), label: fieldDefs?.[k]?.name, type: fieldDefs?.[k]?.type as PropertyType | undefined });
     } else if (Array.isArray(v) && v.length > 0) {
-      entries.push({ kind: 'field', key: k, value: v.join(', '), label: fieldDefs?.[k]?.name });
+      entries.push({ kind: 'field', key: k, value: v.join(', '), label: fieldDefs?.[k]?.name, type: fieldDefs?.[k]?.type as PropertyType | undefined });
     }
   }
   if (fieldOrder && fieldOrder.length > 0) {
@@ -214,6 +218,13 @@ function SnapshotCard({
     );
   };
 
+  const getFieldNameLabel = (field: FlattenedField): string => {
+    if (field.key === '__dynamic_group__') {
+      return t('editor:field_types.dynamic_group', { defaultValue: '动态字段组' });
+    }
+    return field.label || getFieldName(field.key);
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
       {/* Version badge */}
@@ -241,7 +252,6 @@ function SnapshotCard({
               const sens = resolveFieldSensitivity(f);
               const deprecated = isFieldDeprecated(f.key);
               const fieldId = f.key;
-              const label = f.label || getFieldName(f.key);
               return (
                 <div key={fieldId} style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
                   {/* Parent dynamic group row */}
@@ -259,6 +269,7 @@ function SnapshotCard({
                     }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 90 }}>
+                      <FieldTypeIcon type={f.type || 'text'} />
                       <span
                         style={{
                           fontWeight: 500,
@@ -266,7 +277,7 @@ function SnapshotCard({
                           textDecoration: deprecated ? 'line-through' : 'none',
                         }}
                       >
-                        {label}
+                        {getFieldNameLabel(f)}
                       </span>
                       <SensitivityBadge level={sens} />
                       {deprecated && <DeprecatedBadge />}
@@ -289,6 +300,7 @@ function SnapshotCard({
                       }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 74 }}>
+                        <FieldTypeIcon type={(child.type as PropertyType) || 'text'} />
                         <span style={{ fontWeight: 500, color: 'var(--text-secondary)' }}>
                           {child.label}
                         </span>
@@ -326,6 +338,7 @@ function SnapshotCard({
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 90 }}>
+                  <FieldTypeIcon type={f.type || 'text'} />
                   <span
                     style={{
                       fontWeight: 500,
@@ -333,7 +346,7 @@ function SnapshotCard({
                       textDecoration: deprecated ? 'line-through' : 'none',
                     }}
                   >
-                    {f.label || getFieldName(f.key)}
+                    {getFieldNameLabel(f)}
                   </span>
                   <SensitivityBadge level={sens} />
                   {deprecated && <DeprecatedBadge />}
