@@ -8,12 +8,14 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 20px;
-  z-index: 100;
+  z-index: 1000;
   background: var(--bg-toolbar);
   border-bottom: 1px solid var(--border-subtle);
   user-select: none;
   -webkit-user-select: none;
   cursor: default;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 .left {
   display: flex;

@@ -35,7 +35,12 @@ export function AppBar({
     >
       <div className={styles.left}>
         {onBack && (
-          <button className={styles.backButton} onClick={onBack} aria-label={t('back')}>
+          <button
+            type="button"
+            className={styles.backButton}
+            onClick={onBack}
+            aria-label={t('back')}
+          >
             <ArrowLeft size={ICON_SIZE.xl} />
           </button>
         )}

@@ -36,6 +36,13 @@ export function AppShell({ children, title, actions, onBack }: AppShellProps) {
             : 'row',
       }}
     >
+      <AppBar
+        title={title}
+        actions={actions}
+        onBack={onBack}
+        topBarHeight={isTop ? FUNCTION_BAR_HEIGHT : 0}
+        sidebarPosition={effectivePosition}
+      />
       {isMobile ? (
         <MobileBottomNav />
       ) : isHorizontal ? (
@@ -53,13 +60,6 @@ export function AppShell({ children, title, actions, onBack }: AppShellProps) {
               : undefined
         }
       >
-        <AppBar
-          title={title}
-          actions={actions}
-          onBack={onBack}
-          topBarHeight={isTop ? FUNCTION_BAR_HEIGHT : 0}
-          sidebarPosition={effectivePosition}
-        />
         <main className={styles.content}>{children}</main>
       </div>
     </div>
