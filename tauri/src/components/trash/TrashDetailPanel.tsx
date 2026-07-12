@@ -326,9 +326,12 @@ function ObjectDetailContent({
                 );
               }
 
-              const typeLabel = propType
-                ? t(`editor:field_types.${propType}`, propType)
-                : String(p.value);
+              const displayValue =
+                typeof p.value === 'string'
+                  ? p.value
+                  : p.value !== undefined && p.value !== null
+                    ? JSON.stringify(p.value)
+                    : '';
               return (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   {propType && <FieldTypeIcon type={propType} size={ICON_SIZE.sm} />}
@@ -341,7 +344,7 @@ function ObjectDetailContent({
                       flexShrink: 0,
                     }}
                   >
-                    {typeLabel}
+                    {displayValue}
                   </span>
                 </div>
               );
