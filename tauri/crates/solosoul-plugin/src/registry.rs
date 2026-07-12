@@ -166,7 +166,6 @@ impl PluginRegistry {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
     use semver::Version;
 
     fn version(min: &str, max: &str) -> crate::RegistryVersion {
