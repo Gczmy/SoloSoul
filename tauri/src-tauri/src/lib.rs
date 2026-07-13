@@ -235,7 +235,7 @@ pub fn run() {
             #[cfg(target_os = "android")]
             let resource_dir = {
                 let data_dir = resolve_app_data_dir(app.handle())?;
-                data_dir.join("resources")
+                Ok(data_dir.join("resources"))
             };
             #[cfg(not(target_os = "android"))]
             let resource_dir = app.path().resource_dir();
