@@ -7,6 +7,7 @@
         <item name="android:navigationBarColor">#FAFAF8</item>
         <item name="android:windowLightStatusBar">true</item>
         <item name="android:windowLightNavigationBar">true</item>
+        <item name="android:enforceStatusBarContrast">false</item>
         <item name="android:enforceNavigationBarContrast">false</item>
     </style>
 </resources>

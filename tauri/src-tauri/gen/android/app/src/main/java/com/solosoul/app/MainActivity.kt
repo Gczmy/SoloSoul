@@ -1,8 +1,11 @@
 package com.solosoul.app
 
 import android.content.res.AssetManager
+import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.enableEdgeToEdge
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import java.io.File
 import java.io.IOException
 
@@ -10,9 +13,28 @@ class MainActivity : TauriActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     enableEdgeToEdge()
     super.onCreate(savedInstanceState)
+    // 启动时根据系统主题同步状态栏图标颜色，避免 WebView 加载前出现黑白不匹配。
+    syncStatusBarStyleWithSystemTheme()
     // 将 APK assets 中的只读资源复制到应用私有文件目录，
     // 供 Rust 后端通过 std::fs 读取（Tauri Android 的 resource_dir 返回 asset:// URL）。
     extractAssetsToFilesDir(assets, filesDir)
+  }
+
+  /**
+   * 根据系统当前 day/night 模式设置状态栏/导航栏图标颜色，
+   * 使启动闪屏与 WebView 加载期间的系统栏风格与系统主题一致。
+   * 前端加载完成后会通过 status-bar plugin 重新按应用内主题覆盖。
+   */
+  private fun syncStatusBarStyleWithSystemTheme() {
+    val isNight = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+      Configuration.UI_MODE_NIGHT_YES
+    val window = window
+    val rootView = window.decorView.rootView
+    val controller = WindowCompat.getInsetsController(window, rootView)
+      ?: return
+    // 深色系统主题 → 浅色图标/文字；浅色系统主题 → 深色图标/文字。
+    controller.isAppearanceLightStatusBars = !isNight
+    controller.isAppearanceLightNavigationBars = !isNight
   }
 
   companion object {
