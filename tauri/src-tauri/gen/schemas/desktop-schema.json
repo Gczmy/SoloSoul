@@ -2349,6 +2349,18 @@
       "description": "Permission identifier",
       "oneOf": [
         {
+          "description": "允许前端设置 Android 状态栏/导航栏图标与文字颜色。",
+          "type": "string",
+          "const": "allow-set-status-bar-style",
+          "markdownDescription": "允许前端设置 Android 状态栏/导航栏图标与文字颜色。"
+        },
+        {
+          "description": "拒绝前端设置 Android 状态栏/导航栏图标与文字颜色。",
+          "type": "string",
+          "const": "deny-set-status-bar-style",
+          "markdownDescription": "拒绝前端设置 Android 状态栏/导航栏图标与文字颜色。"
+        },
+        {
           "description": "Default core plugins set.\n#### This default permission set includes:\n\n- `core:path:default`\n- `core:event:default`\n- `core:window:default`\n- `core:webview:default`\n- `core:app:default`\n- `core:image:default`\n- `core:resources:default`\n- `core:menu:default`\n- `core:tray:default`",
           "type": "string",
           "const": "core:default",

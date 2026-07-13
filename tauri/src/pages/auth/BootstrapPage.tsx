@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import i18next from 'i18next';
 import { useAuthStore } from '@/stores/authStore';
+import { useApplyThemeFromSettings } from '@/hooks/useApplyThemeFromSettings';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { SecurePasswordInput } from '@/components/forms/PasswordInput';
@@ -10,6 +11,7 @@ import { AlertTriangle } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/constants';
 
 export function BootstrapPage() {
+  useApplyThemeFromSettings();
   const navigate = useNavigate();
   const { bootstrap, isLoading, error } = useAuthStore();
   const [accountName, setAccountName] = useState('');

@@ -19,8 +19,13 @@ impl AppState {
                 .path()
                 .resolve(".", tauri::path::BaseDirectory::Data)
                 .map_err(|e| anyhow::anyhow!("无法解析应用数据目录: {e}"))?;
+            tracing::info!("[AppState] mobile data_dir: {}", data_dir.display());
             let svc = VaultService::with_base_path(data_dir);
             svc.load_accounts();
+            tracing::info!(
+                "[AppState] loaded accounts count: {}",
+                svc.list_accounts().len()
+            );
             Arc::new(RwLock::new(svc))
         } else {
             Arc::new(RwLock::new(VaultService::new()))

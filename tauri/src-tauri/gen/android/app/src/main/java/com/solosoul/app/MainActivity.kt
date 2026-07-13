@@ -48,9 +48,17 @@ class MainActivity : TauriActivity() {
       listOf("docs", "SoloSoul_plugin_market").forEach { assetDir ->
         try {
           copyAssetDir(assetManager, assetDir, File(destRoot, assetDir))
+          android.util.Log.d("SoloSoul", "资源复制完成: ${File(destRoot, assetDir).absolutePath}")
         } catch (e: IOException) {
           android.util.Log.w("SoloSoul", "跳过资源复制 $assetDir: ${e.message}")
         }
+      }
+      // 关键资源存在性校验，帮助后续排查
+      val guideIndex = File(destRoot, "docs/guides/index.json")
+      if (!guideIndex.exists()) {
+        android.util.Log.w("SoloSoul", "帮助索引未找到: ${guideIndex.absolutePath}")
+      } else {
+        android.util.Log.d("SoloSoul", "帮助索引已就绪: ${guideIndex.absolutePath}")
       }
     }
 

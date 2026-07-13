@@ -33,6 +33,7 @@
     },
     "http:default",
     "notification:default",
-    "os:default"
+    "os:default",
+    "allow-set-status-bar-style"
   ]
 }

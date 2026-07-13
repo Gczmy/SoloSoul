@@ -63,7 +63,7 @@ pub fn resource_path(rel: &str) -> PathBuf {
         return path;
     }
 
-    if cfg!(debug_assertions) {
+    if cfg!(debug_assertions) && !cfg!(target_os = "android") {
         let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("resources")
             .join(rel);

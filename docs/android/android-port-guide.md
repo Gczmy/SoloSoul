@@ -114,6 +114,21 @@ SoloSoul 当前主客户端为 **Tauri v2 + React 19 + TypeScript + Vite**，Rus
   - `local_embed.rs`
   - `plugin/*`（Tauri 侧）
 
+- [x] `tauri/src-tauri/src/plugin/paths.rs`
+  - Android 上插件市场目录也改为从 `{data}/resources` 读取，与帮助文档一致
+- [x] `tauri/src-tauri/src/status_bar_plugin.rs` + `capabilities/default.json`
+  - 修复桌面端 `StatusBarPluginHandle` 因 `PhantomData<R>` 不满足 `Send + Sync` 导致的编译错误
+  - 新增 `solo-soul:allow-set-status-bar-style` 权限，使前端 `set_status_bar_style` 在 Android 上不再被 capability 拒绝
+- [x] `tauri/src-tauri/gen/android/app/src/main/java/com/solosoul/app/MainActivity.kt`
+  - 资源复制完成后增加日志与 `docs/guides/index.json` 存在性校验，便于排查帮助索引缺失问题
+- [x] `tauri/src/hooks/useApplyThemeFromSettings.ts` + `AppRoutes.tsx` + `LoginPage.tsx` + `BootstrapPage.tsx`
+  - 抽离公共 Hook 统一根据 settings 应用主题
+  - 登录页、创建账户页 mount 时主动应用主题并同步 Android 状态栏颜色
+- [x] `tauri/src-tauri/src/state/app_state.rs`
+  - 移动端启动时打印 `data_dir` 与已加载账户数，便于排查账户数据丢失问题
+- [x] 开发命令保留应用数据
+  - `npm run tauri:android:dev -- --no-reinstall` 可在不卸载 App 的情况下重装，避免每次重新编译都清空账户数据
+
 ### 3.3 Phase 2 — 前端移动端适配
 
 - [x] 新增 `src/hooks/useIsMobile.ts`：基于 `matchMedia` 的移动端检测
@@ -159,10 +174,35 @@ SoloSoul 当前主客户端为 **Tauri v2 + React 19 + TypeScript + Vite**，Rus
 - `cargo ndk -t aarch64-linux-android check --package solo_soul` ✅
 - `npm run tauri:android:dev` 模拟器启动 ✅
 - 移动端设置页入口过滤、关于页更新检查已通过代码审查 ✅
+- 帮助索引本地路径、状态栏权限、登录页主题同步已通过代码审查 ✅
 
 ---
 
-## 4. 待完成的关键步骤
+## 4. 推荐开发/验证命令
+
+```bash
+cd tauri
+
+# 1. 安装依赖
+npm install
+
+# 2. 桌面端快速检查
+npx tsc --noEmit
+cargo check --package solo_soul
+
+# 3. Android 模拟器热调试（保留应用数据，避免每次重新创建账户）
+npm run tauri:android:dev -- --no-reinstall
+
+# 4. 若必须完整重装（如签名变更、native lib 更新），账户数据会丢失，需重新创建账户
+npm run tauri:android:dev
+
+# 5. Android Release APK 构建
+npm run tauri:android:build
+```
+
+---
+
+## 6. 待完成的关键步骤
 
 ### 4.1 MVP 功能手动验证
 
@@ -183,6 +223,16 @@ SoloSoul 当前主客户端为 **Tauri v2 + React 19 + TypeScript + Vite**，Rus
   - 新增 `src/lib/mobileFileTransfer.ts` 处理 `content://` URI 中转
   - 单附件上传/下载、导入/导出均通过应用缓存中转
   - 批量下载到目录在移动端暂不支持，已给出明确提示
+- [x] 每次重新编译 APK 后要求新建账户
+  - 根因：`npm run tauri:android:dev` 默认会卸载重装 App，清空应用私有数据目录
+  - 规避：使用 `npm run tauri:android:dev -- --no-reinstall` 保留数据；若签名或 native lib 变更导致必须重装，则账户数据会丢失，属开发期正常行为
+  - 代码侧已在 `AppState` 中增加日志，确认移动端数据目录与账户加载数量
+- [x] 深色主题下 Android 系统状态栏图标/文字仍为黑色
+  - 根因：`set_status_bar_style` command 未在 capability 中授权，invoke 被静默拒绝
+  - 修复：新增 `solo-soul:allow-set-status-bar-style` 权限；登录页/引导页 mount 时主动应用主题
+- [x] 帮助页面无法加载索引 `asset://localhost/docs/guides/index.json`
+  - 根因：Android 上 `app.path().resolve("resources", BaseDirectory::Data)` 可能返回 asset URL，导致 Rust `std::fs` 读取失败
+  - 修复：`lib.rs` 与 `plugin/paths.rs` 改为通过 `resolve_app_data_dir` 拼接 `{data}/resources`；`MainActivity.kt` 增加复制完成日志与存在性校验
 - [ ] 导出路径若使用 `~/` 在移动端已映射到应用数据目录，但前端需给出合适默认路径（当前由用户通过系统对话框选择）。
 - [x] OCR、插件、同步、自动更新等功能在移动端已返回「暂不支持」，前端对应入口已隐藏或禁用。
 - [ ] 软键盘弹出时输入框遮挡问题需进一步测试（已加 `adjustResize`）。
@@ -192,7 +242,7 @@ SoloSoul 当前主客户端为 **Tauri v2 + React 19 + TypeScript + Vite**，Rus
 
 ---
 
-## 5. 二期功能规划
+## 7. 二期功能规划
 
 | 功能 | Android 方案 | 预估工作量 |
 |------|-------------|-----------|
@@ -206,7 +256,7 @@ SoloSoul 当前主客户端为 **Tauri v2 + React 19 + TypeScript + Vite**，Rus
 
 ---
 
-## 6. 风险与应对
+## 8. 风险与应对
 
 | 风险 | 影响 | 应对 |
 |------|------|------|
@@ -220,7 +270,7 @@ SoloSoul 当前主客户端为 **Tauri v2 + React 19 + TypeScript + Vite**，Rus
 
 ---
 
-## 7. 交付物清单
+## 9. 交付物清单
 
 1. `docs/android/android-port-guide.md` — 本文件
 2. `docs/android/android-environment-setup.md` — 环境搭建与首次运行指南

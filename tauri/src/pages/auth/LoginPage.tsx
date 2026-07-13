@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { useAuthStore } from '@/stores/authStore';
+import { useApplyThemeFromSettings } from '@/hooks/useApplyThemeFromSettings';
 import type { AccountInfo } from '@/lib/ipc';
 import { getBiometricErrorMessage } from '@/lib/biometricError';
 
@@ -27,6 +28,7 @@ const __DEBUG_SHOW_ALL = false;
 let _cachedLoginMethod: 'faceId' | 'touchId' | 'windowsHello' | 'pin' | 'password' | null = null;
 
 export function LoginPage() {
+  useApplyThemeFromSettings();
   const navigate = useNavigate();
   const {
     login,

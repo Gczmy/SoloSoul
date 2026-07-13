@@ -6,6 +6,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useObjectStore } from '@/stores/objectStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useProfileStore } from '@/stores/profileStore';
+import { useApplyThemeFromSettings } from '@/hooks/useApplyThemeFromSettings';
 import { applyTheme, getSystemTheme, listenForSystemTheme } from '@/lib/theme';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { getCurrentWindow } from '@tauri-apps/api/window';
@@ -220,30 +221,10 @@ export function AppRoutes() {
     }
   }, [isAuthenticated]);
 
-  // Apply theme on mount (4.3.5 — instant, no refresh needed)
+  useApplyThemeFromSettings();
+
+  // Listen for system theme changes (via Tauri Event from Rust backend)
   useEffect(() => {
-    (async () => {
-      const settings = useSettingsStore.getState().settings;
-      await applyTheme({
-        preset:
-          settings.theme === 'dark'
-            ? 'warm-stone-dark'
-            : settings.theme === 'light'
-              ? 'warm-stone-light'
-              : 'system',
-        accentColor: settings.accentColor,
-        backgroundType: settings.backgroundType,
-        backgroundValue: settings.backgroundValue,
-        defaultLightTheme: settings.defaultLightTheme,
-        defaultDarkTheme: settings.defaultDarkTheme,
-      });
-
-      // Language is already set by initI18n() via IPC (authoritative).
-      // User-saved preferences are applied in the isAuthenticated effect (line 69-72).
-      // Skip here to avoid overriding correct detection with DEFAULT_SETTINGS on first launch.
-    })();
-
-    // Listen for system theme changes (via Tauri Event from Rust backend)
     let unlistenSystemTheme: (() => void) | undefined;
     (async () => {
       unlistenSystemTheme = await listenForSystemTheme((mode) => {

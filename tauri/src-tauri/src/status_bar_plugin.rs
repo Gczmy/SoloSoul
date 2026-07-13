@@ -12,9 +12,12 @@
 
 use serde::{Deserialize, Serialize};
 use tauri::{
-    plugin::{Builder, PluginApi, PluginHandle, TauriPlugin},
+    plugin::{Builder, PluginApi, TauriPlugin},
     AppHandle, Manager, Runtime,
 };
+
+#[cfg(target_os = "android")]
+use tauri::plugin::PluginHandle;
 
 /// 状态栏风格参数。
 #[derive(Debug, Deserialize, Serialize)]
@@ -27,11 +30,13 @@ pub struct SetStatusBarStylePayload {
 const PLUGIN_IDENTIFIER: &str = "com.solosoul.app";
 
 /// 插件句柄包装，便于在 command 中通过 Tauri state 获取。
+/// 桌面端无实际句柄，使用函数指针 PhantomData 保证 StatusBarPluginHandle
+/// 自动实现 Send + Sync，满足 Tauri state 的约束。
 pub struct StatusBarPluginHandle<R: Runtime> {
     #[cfg(target_os = "android")]
     handle: PluginHandle<R>,
     #[cfg(not(target_os = "android"))]
-    _phantom: std::marker::PhantomData<R>,
+    _phantom: std::marker::PhantomData<fn() -> R>,
 }
 
 impl<R: Runtime> StatusBarPluginHandle<R> {
@@ -83,7 +88,7 @@ fn register_plugin<R: Runtime>(
     _api: PluginApi<R, ()>,
 ) -> Result<(), Box<dyn std::error::Error>> {
     app.manage(StatusBarPluginHandle {
-        _phantom: std::marker::PhantomData,
+        _phantom: std::marker::PhantomData::<fn() -> R>,
     });
     Ok(())
 }
