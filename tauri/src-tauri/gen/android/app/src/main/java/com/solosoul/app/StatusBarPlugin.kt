@@ -28,15 +28,22 @@ class StatusBarPlugin(private val activity: Activity): Plugin(activity) {
     @Command
     fun setStyle(invoke: Invoke) {
         val args = invoke.parseArgs(StatusBarStyleArgs::class.java)
+        android.util.Log.d("SoloSoul", "StatusBarPlugin.setStyle called with style=${args.style}")
         val window: Window = activity.window
         val rootView = window.decorView.rootView
         val controller = WindowCompat.getInsetsController(window, rootView)
+        if (controller == null) {
+            android.util.Log.w("SoloSoul", "StatusBarPlugin.setStyle: WindowInsetsController is null")
+            invoke.resolve(JSObject())
+            return
+        }
 
         // style 为 "dark" 时应用背景深，图标应设为浅色（isAppearanceLightStatusBars = false）。
         // style 为 "light" 时应用背景浅，图标应设为深色（isAppearanceLightStatusBars = true）。
         val isLight = args.style == "light"
         controller.isAppearanceLightStatusBars = isLight
         controller.isAppearanceLightNavigationBars = isLight
+        android.util.Log.d("SoloSoul", "StatusBarPlugin.setStyle: isAppearanceLightStatusBars=$isLight")
 
         invoke.resolve(JSObject())
     }

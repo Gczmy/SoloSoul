@@ -60,8 +60,11 @@ async function syncTitleBarColor(config: ThemeConfig) {
  *  非 Android 平台调用会被安全忽略。 */
 async function syncStatusBarStyle(theme: 'light' | 'dark') {
   try {
+    console.log('[theme] syncStatusBarStyle:', theme);
     await invoke('set_status_bar_style', { style: theme });
-  } catch {
+    console.log('[theme] syncStatusBarStyle success:', theme);
+  } catch (err) {
+    console.warn('[theme] syncStatusBarStyle failed:', err);
     // ignore when running in browser, desktop, or API unavailable
   }
 }

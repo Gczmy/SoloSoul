@@ -41,16 +41,19 @@ class MainActivity : TauriActivity() {
     /**
      * 把 assets 下指定的资源目录递归复制到 [destRoot]/resources/。
      * 仅复制 docs 与 SoloSoul_plugin_market（当前 Rust 代码主要使用的两类资源）。
+     * Tauri v2 打包后的资源可能位于 assets 根目录或 assets/resources/ 子目录，
+     * 因此根目录找不到时会回退到 resources/ 子目录。
      */
     @JvmStatic
     fun extractAssetsToFilesDir(assetManager: AssetManager, filesDir: File) {
       val destRoot = File(filesDir, "resources")
-      listOf("docs", "SoloSoul_plugin_market").forEach { assetDir ->
-        try {
-          copyAssetDir(assetManager, assetDir, File(destRoot, assetDir))
-          android.util.Log.d("SoloSoul", "资源复制完成: ${File(destRoot, assetDir).absolutePath}")
-        } catch (e: IOException) {
-          android.util.Log.w("SoloSoul", "跳过资源复制 $assetDir: ${e.message}")
+      android.util.Log.d("SoloSoul", "Assets 根目录列表: ${assetManager.list("")?.joinToString()}")
+      listOf("docs" to "docs", "SoloSoul_plugin_market" to "SoloSoul_plugin_market").forEach { (assetDir, destDirName) ->
+        val copied = tryCopyAssetDir(assetManager, assetDir, File(destRoot, destDirName))
+        if (!copied) {
+          // 回退：Tauri 可能把资源放在 assets/resources/ 下
+          val fallbackCopied = tryCopyAssetDir(assetManager, "resources/$assetDir", File(destRoot, destDirName))
+          android.util.Log.d("SoloSoul", "资源回退复制 $assetDir: $fallbackCopied")
         }
       }
       // 关键资源存在性校验，帮助后续排查
@@ -59,6 +62,19 @@ class MainActivity : TauriActivity() {
         android.util.Log.w("SoloSoul", "帮助索引未找到: ${guideIndex.absolutePath}")
       } else {
         android.util.Log.d("SoloSoul", "帮助索引已就绪: ${guideIndex.absolutePath}")
+      }
+    }
+
+    @JvmStatic
+    private fun tryCopyAssetDir(assetManager: AssetManager, assetPath: String, destDir: File): Boolean {
+      return try {
+        copyAssetDir(assetManager, assetPath, destDir)
+        val children = assetManager.list(assetPath) ?: emptyArray()
+        android.util.Log.d("SoloSoul", "资源复制完成: $assetPath -> ${destDir.absolutePath} (entries=${children.size})")
+        children.isNotEmpty() || destDir.exists()
+      } catch (e: IOException) {
+        android.util.Log.w("SoloSoul", "跳过资源复制 $assetPath: ${e.message}")
+        false
       }
     }
 

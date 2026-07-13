@@ -59,7 +59,7 @@ pub fn resource_path(rel: &str) -> PathBuf {
     // 优先使用 Tauri 在 setup 阶段解析的资源目录，保证生产包路径正确。
     if let Some(dir) = RESOURCE_DIR.get() {
         let path = dir.join(rel);
-        eprintln!("[resource_path] resource_dir: {:?}", path);
+        tracing::debug!("[resource_path] resource_dir: {}", path.display());
         return path;
     }
 
@@ -67,7 +67,7 @@ pub fn resource_path(rel: &str) -> PathBuf {
         let path = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("resources")
             .join(rel);
-        eprintln!("[resource_path] debug fallback: {:?}", path);
+        tracing::debug!("[resource_path] debug fallback: {}", path.display());
         path
     } else {
         let exe = std::env::current_exe().unwrap_or_default();
@@ -76,14 +76,14 @@ pub fn resource_path(rel: &str) -> PathBuf {
         {
             // macOS app bundle: SoloSoul.app/Contents/MacOS/SoloSoul → ../Resources
             let path = exe_dir.join("../Resources").join(rel);
-            eprintln!("[resource_path] release fallback macOS: {:?}", path);
+            tracing::debug!("[resource_path] release fallback macOS: {}", path.display());
             path
         }
         #[cfg(not(target_os = "macos"))]
         {
             // Windows / Linux 兜底：资源与可执行文件同目录或 resources 子目录
             let path = exe_dir.join(rel);
-            eprintln!("[resource_path] release fallback: {:?}", path);
+            tracing::debug!("[resource_path] release fallback: {}", path.display());
             path
         }
     }
@@ -181,9 +181,30 @@ pub fn load_guide_index() -> Result<GuideIndex, String> {
     }
 
     let path = resource_path("docs/guides/index.json");
-    eprintln!("[load_guide_index] reading from {:?}", path);
+    tracing::info!("[load_guide_index] reading from {}", path.display());
+
+    if !path.exists() {
+        let parent = path.parent().map(|p| p.to_path_buf());
+        let entries = parent
+            .as_ref()
+            .and_then(|p| std::fs::read_dir(p).ok())
+            .map(|entries| {
+                entries
+                    .filter_map(|e| e.ok())
+                    .map(|e| e.path().display().to_string())
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            })
+            .unwrap_or_else(|| "(无法读取目录)".to_string());
+        return Err(format!(
+            "Failed to read guide index at {}: 文件不存在。父目录内容: {}",
+            path.display(),
+            entries
+        ));
+    }
+
     let content = std::fs::read_to_string(&path)
-        .map_err(|e| format!("Failed to read guide index at {:?}: {}", path, e))?;
+        .map_err(|e| format!("Failed to read guide index at {}: {}", path.display(), e))?;
     let index: GuideIndex = serde_json::from_str(&content)
         .map_err(|e| format!("Failed to parse guide index: {}", e))?;
 
