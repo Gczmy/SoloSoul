@@ -234,8 +234,16 @@ pub fn run() {
             // MainActivity 已在 onCreate 中将所需资源复制到 files/resources/，这里优先使用它。
             #[cfg(target_os = "android")]
             let resource_dir: Result<PathBuf, String> = {
-                let data_dir = resolve_app_data_dir(app.handle())?;
-                Ok(data_dir.join("resources"))
+                match resolve_app_data_dir(app.handle()) {
+                    Ok(data_dir) => Ok(data_dir.join("resources")),
+                    Err(e) => {
+                        tracing::error!(
+                            "[setup] ❌ 无法解析数据目录以设置 RESOURCE_DIR: {}",
+                            e
+                        );
+                        Err(e)
+                    }
+                }
             };
             #[cfg(not(target_os = "android"))]
             let resource_dir = app.path().resource_dir();

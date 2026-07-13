@@ -37,10 +37,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   checkHasAccount: async () => {
     try {
       const result = await invoke<boolean>('check_has_account');
+      console.log('[authStore] check_has_account result:', result);
       set({ hasAccount: result, backendError: false });
-    } catch {
+    } catch (err) {
       // Backend unavailable — don't jump to bootstrap
       // hasAccount stays null (unknown), BootstrapGuard will wait
+      console.error('[authStore] check_has_account failed:', err);
       set({ backendError: true });
     }
   },
