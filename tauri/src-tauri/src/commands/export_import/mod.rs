@@ -13,9 +13,9 @@ use solosoul_vault::ObjectSummary;
 use std::collections::{BTreeSet, HashMap};
 use std::fs::File;
 use std::io::{Read, Write};
-use tauri::State;
 #[cfg(mobile)]
 use tauri::Manager;
+use tauri::State;
 use uuid::Uuid;
 use zip::write::SimpleFileOptions;
 use zip::ZipArchive;

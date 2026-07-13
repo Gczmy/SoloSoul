@@ -44,7 +44,8 @@ pub fn get_system_theme() -> Result<String, String> {
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     {
         use dark_light::Mode;
-        let mode = dark_light::detect().map_err(|e| format!("Failed to detect system theme: {}", e))?;
+        let mode =
+            dark_light::detect().map_err(|e| format!("Failed to detect system theme: {}", e))?;
         match mode {
             Mode::Dark => Ok("dark".to_string()),
             Mode::Light => Ok("light".to_string()),

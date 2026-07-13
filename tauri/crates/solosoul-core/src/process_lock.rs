@@ -40,7 +40,10 @@ impl ProcessLock {
             file.try_lock_exclusive()
                 .map_err(|_| "Vault 正被其他进程使用，请关闭后再试".to_string())?;
 
-            Ok(Self { file, path: lock_path })
+            Ok(Self {
+                file,
+                path: lock_path,
+            })
         }
 
         #[cfg(any(target_os = "android", target_os = "ios"))]

@@ -33,8 +33,7 @@ impl SharedDaemon {
 
     /// Get or create the daemon. The daemon lives for the app lifetime.
     #[cfg(desktop)]
-    pub async fn get(&self,
-    ) -> Result<Arc<Mutex<Option<ServiceDaemon>>>, String> {
+    pub async fn get(&self) -> Result<Arc<Mutex<Option<ServiceDaemon>>>, String> {
         let mut guard = self.0.lock().await;
         if guard.is_none() {
             *guard = Some(ServiceDaemon::new().map_err(|e| format!("mDNS daemon: {}", e))?);
@@ -43,8 +42,7 @@ impl SharedDaemon {
     }
 
     #[cfg(mobile)]
-    pub async fn get(&self,
-    ) -> Result<Arc<Mutex<Option<()>>>, String> {
+    pub async fn get(&self) -> Result<Arc<Mutex<Option<()>>>, String> {
         Ok(self.0.clone())
     }
 }
@@ -59,7 +57,7 @@ pub struct DiscoveredDevice {
 
 #[tauri::command]
 pub async fn mdns_discover(
-    #[allow(unused_variables)] daemon: tauri::State<'_ , SharedDaemon>,
+    #[allow(unused_variables)] daemon: tauri::State<'_, SharedDaemon>,
     #[allow(unused_variables)] timeout_ms: u64,
 ) -> Result<Vec<DiscoveredDevice>, String> {
     #[cfg(desktop)]
@@ -99,7 +97,7 @@ pub async fn mdns_discover(
 
 #[tauri::command]
 pub async fn mdns_advertise(
-    #[allow(unused_variables)] daemon: tauri::State<'_ , SharedDaemon>,
+    #[allow(unused_variables)] daemon: tauri::State<'_, SharedDaemon>,
     #[allow(unused_variables)] device_name: String,
     #[allow(unused_variables)] port: u16,
 ) -> Result<(), String> {

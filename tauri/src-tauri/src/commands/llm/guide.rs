@@ -205,18 +205,16 @@ pub fn load_guide_index() -> Result<GuideIndex, String> {
         return Err(msg);
     }
 
-    let content = std::fs::read_to_string(&path)
-        .map_err(|e| {
-            let msg = format!("Failed to read guide index at {}: {}", path.display(), e);
-            tracing::error!("[load_guide_index] {}", msg);
-            msg
-        })?;
-    let index: GuideIndex = serde_json::from_str(&content)
-        .map_err(|e| {
-            let msg = format!("Failed to parse guide index: {}", e);
-            tracing::error!("[load_guide_index] {}", msg);
-            msg
-        })?;
+    let content = std::fs::read_to_string(&path).map_err(|e| {
+        let msg = format!("Failed to read guide index at {}: {}", path.display(), e);
+        tracing::error!("[load_guide_index] {}", msg);
+        msg
+    })?;
+    let index: GuideIndex = serde_json::from_str(&content).map_err(|e| {
+        let msg = format!("Failed to parse guide index: {}", e);
+        tracing::error!("[load_guide_index] {}", msg);
+        msg
+    })?;
 
     set_index_cache(index.clone());
     Ok(index)

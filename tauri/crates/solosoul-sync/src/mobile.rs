@@ -74,11 +74,7 @@ impl SyncService {
     }
 
     /// 标记 peer 信任状态（占位，返回不支持错误）。
-    pub async fn trust_peer(
-        &self,
-        _peer_node_id: String,
-        _trusted: bool,
-    ) -> Result<(), String> {
+    pub async fn trust_peer(&self, _peer_node_id: String, _trusted: bool) -> Result<(), String> {
         Err("移动端暂不支持设备同步".to_string())
     }
 

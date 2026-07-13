@@ -64,7 +64,9 @@ fn setup_panic_hook() {
 /// 解析应用数据目录。
 /// - 桌面端：使用 `dirs::data_dir()/com.solosoul.app`
 /// - 移动端：使用 Tauri 的 `BaseDirectory::Data`，通过 `app.path()` 解析
-fn resolve_app_data_dir(#[allow(unused_variables)] app: &tauri::AppHandle) -> Result<PathBuf, String> {
+fn resolve_app_data_dir(
+    #[allow(unused_variables)] app: &tauri::AppHandle,
+) -> Result<PathBuf, String> {
     #[cfg(any(target_os = "android", target_os = "ios"))]
     {
         app.path()
@@ -237,10 +239,7 @@ pub fn run() {
                 match resolve_app_data_dir(app.handle()) {
                     Ok(data_dir) => Ok(data_dir.join("resources")),
                     Err(e) => {
-                        tracing::error!(
-                            "[setup] ❌ 无法解析数据目录以设置 RESOURCE_DIR: {}",
-                            e
-                        );
+                        tracing::error!("[setup] ❌ 无法解析数据目录以设置 RESOURCE_DIR: {}", e);
                         Err(e)
                     }
                 }
@@ -254,7 +253,10 @@ pub fn run() {
                     let _ = commands::llm::RESOURCE_DIR.set(dir.clone());
                 }
                 Err(e) => {
-                    tracing::error!("[setup] ❌ 无法获取 resource_dir，RESOURCE_DIR 未设置: {}", e);
+                    tracing::error!(
+                        "[setup] ❌ 无法获取 resource_dir，RESOURCE_DIR 未设置: {}",
+                        e
+                    );
                 }
             }
 

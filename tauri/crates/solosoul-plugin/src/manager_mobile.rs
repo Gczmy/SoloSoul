@@ -46,9 +46,7 @@ impl PluginManager {
     }
 
     /// 创建插件管理器（Release 模式，使用 Tauri 资源目录）
-    pub fn new_with_resource_dir(
-        resource_dir: &std::path::PathBuf,
-    ) -> Result<Self, PluginError> {
+    pub fn new_with_resource_dir(resource_dir: &std::path::PathBuf) -> Result<Self, PluginError> {
         let market_dir = super::paths::resolve_market_dir(Some(resource_dir))?;
         let audit_path = PluginStore::data_dir()?.join("plugin_audit.jsonl");
         Ok(Self {
@@ -150,16 +148,12 @@ impl PluginManager {
     }
 
     /// 获取审计日志（占位，返回空列表）。
-    pub fn audit_log(
-        &self,
-        _limit: Option<usize>,
-    ) -> Result<Vec<PluginAuditEntry>, PluginError> {
+    pub fn audit_log(&self, _limit: Option<usize>) -> Result<Vec<PluginAuditEntry>, PluginError> {
         Ok(Vec::new())
     }
 
     /// 刷新注册表（占位，返回错误）。
-    pub async fn update_registry(&self,
-    ) -> Result<(), PluginError> {
+    pub async fn update_registry(&self) -> Result<(), PluginError> {
         Err(PluginError::ExecutionFailed(
             "移动端暂不支持插件运行时".to_string(),
         ))

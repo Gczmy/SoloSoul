@@ -38,10 +38,14 @@
 | H002 | P2     | 性能       | 全 Rust workspace                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | `.clone()` 共 1192 处，存在不必要的拷贝可能            | `[ ]` 待改进 |
 | C001 | P2     | 静态检查   | `solosoul_cli/src/commands/export_import.rs:356`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | 变量 `mut` 修饰多余，可移除                            | `[ ]` 待修复 |
 
+| C001 | P2     | 静态检查   | `solosoul_cli/src/commands/export_import.rs:356` | 变量 `mut` 修饰多余，可移除 | `[ ]` 待修复 |
+| A001 | P0     | Android 功能 | `tauri/src-tauri/gen/android/app/src/main/java/com/solosoul/app/MainActivity.kt:49`<br>`tauri/src-tauri/src/lib.rs:67-82` | Android 端帮助文档索引加载失败：Kotlin 资源复制目标目录与 Rust 数据目录不一致 | `[ ]` 待修复 |
+| A002 | P0     | Android 体验 | `tauri/src-tauri/src/commands/ocr.rs:368-702`<br>`tauri/src/pages/scan/OcrPage.tsx:71-94` | Android 端 OCR 未支持但查询命令报错，导致页面加载与用户操作时重复弹出 toast | `[ ]` 待修复 |
+
 ## 修复进度
 
-- 已完成：0 / 13
-- 当前处理：无
+- 已完成：0 / 15
+- 当前处理：A001
 
 ---
 
@@ -165,6 +169,34 @@
 
 **建议修复**：
 将 `mut app` 改为 `app`。
+
+---
+
+### A001 — Android 帮助文档索引加载失败
+
+**影响分析**：
+Android 端进入帮助页面后提示「无法加载帮助索引」。根因是 `MainActivity.kt` 将 APK assets 复制到 `filesDir/resources/`（即 `/data/user/0/com.solosoul.app/files/resources/`），而 Rust 端 `resolve_app_data_dir()` 使用 `BaseDirectory::Data` 解析为应用数据目录根（`/data/user/0/com.solosoul.app/`），并从中读取 `resources/docs/guides/index.json`。两个路径不一致，导致复制成功但 Rust 找不到文件。
+
+**涉及位置**：
+- `tauri/src-tauri/gen/android/app/src/main/java/com/solosoul/app/MainActivity.kt:49`
+- `tauri/src-tauri/src/lib.rs:67-82`
+
+**建议修复**：
+将 Kotlin 侧资源复制目标从 `filesDir` 改为 `dataDir`（应用数据目录根），与 Rust 的 `BaseDirectory::Data` 保持一致。同时补充 info 级别日志，便于运行时确认资源是否复制成功。
+
+---
+
+### A002 — Android 端 OCR 未支持但重复弹出报错 toast
+
+**影响分析**：
+OCR 功能在移动端暂未实现，所有 OCR 命令的 `#[cfg(mobile)]` 分支直接返回 `mobile_not_supported_with()` 错误。进入 OCR 页面时，`loadTiersAndStatus` 会调用 `ocr_list_available_tiers`、`ocr_get_active_tier`、`ocr_get_model_status`，全部报错并弹出一个 toast；用户再点击扫描按钮时，`ocr_scan_image`/`ocr_scan_mrz` 又报错弹出第二个 toast，造成「重复提示」。
+
+**涉及位置**：
+- `tauri/src-tauri/src/commands/ocr.rs:368-702`（所有 `#[cfg(mobile)]` OCR 命令）
+- `tauri/src/pages/scan/OcrPage.tsx:71-94`（页面加载时查询模型状态）
+
+**建议修复**：
+对移动端的「查询类」OCR 命令（列出档位、获取当前档位、获取模型状态等）返回空/默认值而非错误，避免页面加载时弹 toast；扫描/安装/下载等用户主动触发的命令继续返回错误提示，但只会触发一次。这样移动端 OCR 页面可正常展示「暂不支持」的占位状态，而不会重复报错。
 
 ---
 

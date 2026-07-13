@@ -38,18 +38,16 @@ fn allowed_fs_base<R: tauri::Runtime>(
             return Ok(PathBuf::from(base));
         }
         let home_key = if cfg!(windows) { "USERPROFILE" } else { "HOME" };
-        std::env::var(home_key)
-            .map(PathBuf::from)
-            .map_err(|_| "Could not determine user home directory; set SOLOSOUL_FS_BASE".to_string())
+        std::env::var(home_key).map(PathBuf::from).map_err(|_| {
+            "Could not determine user home directory; set SOLOSOUL_FS_BASE".to_string()
+        })
     }
 }
 
 /// During tests, allow any absolute path by using the filesystem root as the
 /// base. This keeps unit tests simple while still exercising path logic.
 #[cfg(test)]
-fn allowed_fs_base<R: tauri::Runtime>(
-    _app: &tauri::AppHandle<R>,
-) -> Result<PathBuf, String> {
+fn allowed_fs_base<R: tauri::Runtime>(_app: &tauri::AppHandle<R>) -> Result<PathBuf, String> {
     Ok(PathBuf::from(if cfg!(windows) { "C:\\" } else { "/" }))
 }
 

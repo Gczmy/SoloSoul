@@ -43,10 +43,7 @@ impl<R: Runtime> StatusBarPluginHandle<R> {
     /// 设置状态栏/导航栏图标风格。
     /// - `"light"` → 深色图标/文字（浅色背景）。
     /// - `"dark"`  → 浅色图标/文字（深色背景）。
-    pub fn set_style(
-        &self,
-        style: String,
-    ) -> Result<(), String> {
+    pub fn set_style(&self, style: String) -> Result<(), String> {
         #[cfg(target_os = "android")]
         {
             self.handle

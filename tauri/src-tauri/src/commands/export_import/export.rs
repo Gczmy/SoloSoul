@@ -289,9 +289,7 @@ pub async fn export_execute(
         #[cfg(mobile)]
         {
             app.path()
-                .resolve(&req.save_path[2..],
-                    tauri::path::BaseDirectory::Data,
-                )
+                .resolve(&req.save_path[2..], tauri::path::BaseDirectory::Data)
                 .map_err(|e| format!("无法解析应用数据目录: {e}"))?
                 .to_string_lossy()
                 .to_string()
