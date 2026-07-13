@@ -81,3 +81,7 @@ SoloSoul-Releases/
 .ruby-version
 .python-version
 .nvmrc
+
+# Android / mobile test artifacts (screenshots, automation scripts)
+tauri/solosoul_*.png
+tauri/auto_create_account.sh
