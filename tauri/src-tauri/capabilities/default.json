@@ -34,7 +34,6 @@
     "http:default",
     "notification:default",
     "os:default",
-    "allow-all-custom-commands",
-    "allow-set-status-bar-style"
+    "allow-all-custom-commands"
   ]
 }
