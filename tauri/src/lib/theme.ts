@@ -55,6 +55,17 @@ async function syncTitleBarColor(config: ThemeConfig) {
   }
 }
 
+/** Sync Android status/navigation bar icon style with the active app theme.
+ *  "dark" app theme → white icons/text; "light" app theme → black icons/text.
+ *  非 Android 平台调用会被安全忽略。 */
+async function syncStatusBarStyle(theme: 'light' | 'dark') {
+  try {
+    await invoke('set_status_bar_style', { style: theme });
+  } catch {
+    // ignore when running in browser, desktop, or API unavailable
+  }
+}
+
 /** Apply accent color as a CSS custom property on <html>.
  *  Preset accents also set [data-accent] so themes.css can provide the
  *  matching hover/focus/selected tokens; custom accents compute a hover
@@ -122,8 +133,12 @@ export async function applyTheme(config: ThemeConfig) {
   );
   applyScheme(activeScheme);
 
-  // Sync native title bar background with the active theme
+  // Sync native title bar background with the active theme (desktop only)
   void syncTitleBarColor(config);
+
+  // Sync Android status/navigation bar icon color with the active theme
+  const resolvedTheme = root.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+  void syncStatusBarStyle(resolvedTheme);
 }
 
 /** Listen for system theme changes (4.3.5) via Tauri Event from Rust backend.

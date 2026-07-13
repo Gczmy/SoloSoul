@@ -8,6 +8,7 @@ pub mod local_embed;
 pub mod plugin;
 pub mod services;
 pub mod state;
+pub mod status_bar_plugin;
 
 use state::AppState;
 
@@ -134,7 +135,8 @@ pub fn run() {
         .plugin(tauri_plugin_http::init())
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_process::init())
-        .plugin(tauri_plugin_os::init());
+        .plugin(tauri_plugin_os::init())
+        .plugin(status_bar_plugin::init());
 
     // 桌面端专属插件
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -537,6 +539,7 @@ pub fn run() {
             commands::discovery::mdns_discover,
             // Window chrome commands
             commands::window::set_titlebar_color,
+            status_bar_plugin::set_status_bar_style,
             // Embedding model commands
             commands::embed_model::llm_get_embed_models,
             commands::embed_model::llm_download_embed_model,
