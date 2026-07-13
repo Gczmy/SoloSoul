@@ -450,7 +450,8 @@ pub async fn ocr_get_supported_languages() -> Result<Vec<String>, String> {
 #[cfg(mobile)]
 #[tauri::command]
 pub async fn ocr_get_supported_languages() -> Result<Vec<String>, String> {
-    mobile_not_supported_with()
+    // 移动端 OCR 暂未实现；返回空列表避免页面初始化时弹出未支持提示。
+    Ok(vec![])
 }
 
 /// 返回所有可用的模型档位信息。
@@ -479,7 +480,8 @@ pub async fn ocr_list_available_tiers() -> Result<Vec<OcrTierInfo>, String> {
 #[cfg(mobile)]
 #[tauri::command]
 pub async fn ocr_list_available_tiers() -> Result<Vec<OcrTierInfo>, String> {
-    mobile_not_supported_with()
+    // 移动端 OCR 暂未实现；返回空列表避免页面初始化时弹出未支持提示。
+    Ok(vec![])
 }
 
 /// 获取当前激活的模型档位。
@@ -492,7 +494,8 @@ pub async fn ocr_get_active_tier(state: tauri::State<'_, AppState>) -> Result<St
 #[cfg(mobile)]
 #[tauri::command]
 pub async fn ocr_get_active_tier(_state: tauri::State<'_, AppState>) -> Result<String, String> {
-    mobile_not_supported_with()
+    // 移动端 OCR 暂未实现；返回默认值，避免页面初始化时弹出未支持提示。
+    Ok("small".to_string())
 }
 
 /// 设置当前激活的模型档位。
@@ -552,9 +555,14 @@ pub async fn ocr_get_model_status(
 #[tauri::command]
 pub async fn ocr_get_model_status(
     _state: tauri::State<'_, AppState>,
-    _tier: String,
+    tier: String,
 ) -> Result<OcrModelStatus, String> {
-    mobile_not_supported_with()
+    // 移动端 OCR 暂未实现；返回未安装/未打包状态，避免页面初始化时弹出未支持提示。
+    Ok(OcrModelStatus {
+        tier,
+        installed: false,
+        bundled: false,
+    })
 }
 
 /// OCR 模型安装进度事件负载。
