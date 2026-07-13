@@ -1,9 +1,0 @@
-[[permission]]
-identifier = "allow-set-status-bar-style"
-description = "允许前端设置 Android 状态栏/导航栏图标与文字颜色。"
-commands.allow = ["set_status_bar_style"]
-
-[[permission]]
-identifier = "deny-set-status-bar-style"
-description = "拒绝前端设置 Android 状态栏/导航栏图标与文字颜色。"
-commands.deny = ["set_status_bar_style"]
