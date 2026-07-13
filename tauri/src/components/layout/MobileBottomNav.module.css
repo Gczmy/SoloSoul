@@ -2,7 +2,7 @@
   position: fixed;
   left: 0;
   right: 0;
-  bottom: 0;
+  bottom: env(safe-area-inset-bottom, 0px);
   height: 56px;
   display: flex;
   align-items: center;
@@ -10,7 +10,6 @@
   background: var(--bg-toolbar);
   border-top: 1px solid var(--border-subtle);
   z-index: 200;
-  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 .navItem {

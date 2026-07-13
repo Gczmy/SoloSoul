@@ -17,6 +17,23 @@
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
+
+/* Horizontal navigation (top/bottom) makes the app bar span the full width. */
+.horizontal {
+  left: 0;
+  right: 0;
+}
+
+/* When the function bar is at the top, the app bar sits below it. */
+.belowTopBar {
+  top: var(--function-bar-height);
+}
+
+/* Right sidebar leaves the app bar full-width but with right inset. */
+.rightSidebar {
+  left: 0;
+  right: 48px;
+}
 .left {
   display: flex;
   align-items: center;
@@ -39,7 +56,9 @@
   cursor: pointer;
   padding: 6px;
   border-radius: 6px;
-  display: flex;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   transition: all 0.15s ease;
 }
 .backButton:hover {
@@ -51,21 +70,33 @@
   transform: scale(0.94);
 }
 
-/* Mobile: full-width app bar with smaller padding */
+/* Mobile: full-width app bar with smaller padding, respect notch/status bar */
 @media (max-width: 767px) {
   .appBar {
     left: 0;
+    right: 0;
+    top: env(safe-area-inset-top, 0px);
     padding: 0 12px;
     height: 48px;
+    /* Ensure the app bar itself receives touches, not the system status area */
+    pointer-events: auto;
   }
   .title {
     font-size: var(--text-body);
   }
+  /* Keep the back button away from the left-edge gesture exclusion zone. */
   .backButton {
+    margin-left: 8px;
+  }
+  .backButton,
+  .actions button,
+  .actions [role="button"] {
     padding: 8px;
     min-width: 44px;
     min-height: 44px;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
+    pointer-events: auto;
   }
 }

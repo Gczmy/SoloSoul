@@ -32,21 +32,8 @@
 
   .content {
     padding: 12px;
-    padding-top: calc(48px + 12px);
-    padding-bottom: calc(56px + 12px);
-  }
-}
-
-/* Safe area insets for mobile notches / gesture bars */
-@supports (padding-top: env(safe-area-inset-top)) {
-  .content {
-    padding-top: max(calc(56px + 16px), calc(56px + env(safe-area-inset-top)));
-  }
-
-  @media (max-width: 767px) {
-    .content {
-      padding-top: max(calc(48px + 12px), calc(48px + env(safe-area-inset-top)));
-      padding-bottom: max(calc(56px + 12px), calc(56px + env(safe-area-inset-bottom)));
-    }
+    /* app bar is now positioned below the status/notch safe area */
+    padding-top: calc(48px + env(safe-area-inset-top, 0px) + 12px);
+    padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px) + 12px);
   }
 }

@@ -7,7 +7,9 @@ interface AppBarProps {
   title: string;
   actions?: React.ReactNode;
   onBack?: () => void;
+  /** @deprecated 由 sidebarPosition 推导，保留以兼容旧调用 */
   titleBarOffset?: number;
+  /** @deprecated 由 sidebarPosition 推导，保留以兼容旧调用 */
   topBarHeight?: number;
   sidebarPosition?: 'left' | 'right' | 'top' | 'bottom';
 }
@@ -16,8 +18,6 @@ export function AppBar({
   title,
   actions,
   onBack,
-  titleBarOffset = 0,
-  topBarHeight = 0,
   sidebarPosition = 'left',
 }: AppBarProps) {
   const isHorizontal = sidebarPosition === 'top' || sidebarPosition === 'bottom';
@@ -25,13 +25,14 @@ export function AppBar({
 
   return (
     <header
-      className={styles.appBar}
-      style={{
-        paddingLeft: 20,
-        top: titleBarOffset + topBarHeight,
-        left: isHorizontal ? 0 : sidebarPosition === 'right' ? 0 : 48,
-        right: isHorizontal ? 0 : sidebarPosition === 'right' ? 48 : 0,
-      }}
+      className={[
+        styles.appBar,
+        isHorizontal ? styles.horizontal : styles.vertical,
+        sidebarPosition === 'top' && styles.belowTopBar,
+        sidebarPosition === 'right' && styles.rightSidebar,
+      ]
+        .filter(Boolean)
+        .join(' ')}
     >
       <div className={styles.left}>
         {onBack && (

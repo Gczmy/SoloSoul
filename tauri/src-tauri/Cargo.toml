@@ -118,6 +118,14 @@ mobile = []
 name = "solo_soul"
 crate-type = ["staticlib", "cdylib", "rlib"]
 
+[[example]]
+name = "create_account"
+path = "examples/create_account.rs"
+
+[[example]]
+name = "unlock_account"
+path = "examples/unlock_account.rs"
+
 [[bin]]
 name = "solo_soul"
 path = "src/main.rs"
