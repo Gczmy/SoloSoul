@@ -1,0 +1,20 @@
+"$schema" = "../schemas/schema.json"
+
+[default]
+description = """
+SoloSoul 应用默认权限集。
+
+允许所有应用自定义 command（账户、Vault、对象、附件、搜索、设置等），
+以及 Android 状态栏/导航栏样式控制。
+"""
+permissions = ["allow-set-status-bar-style"]
+
+[[permission]]
+identifier = "allow-set-status-bar-style"
+description = "允许前端设置 Android 状态栏/导航栏图标与文字颜色。"
+commands.allow = ["set_status_bar_style"]
+
+[[permission]]
+identifier = "allow-all-custom-commands"
+description = "允许所有 SoloSoul 自定义 command（用于桌面端与移动端核心功能）。"
+commands.allow = ["*"]
