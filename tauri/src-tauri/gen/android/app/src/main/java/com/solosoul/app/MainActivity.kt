@@ -17,7 +17,8 @@ class MainActivity : TauriActivity() {
     syncStatusBarStyleWithSystemTheme()
     // 将 APK assets 中的只读资源复制到应用私有文件目录，
     // 供 Rust 后端通过 std::fs 读取（Tauri Android 的 resource_dir 返回 asset:// URL）。
-    extractAssetsToFilesDir(assets, filesDir)
+    // 注意：Rust 端使用 BaseDirectory::Data 解析到应用数据目录根，因此目标根目录也必须是 dataDir。
+    extractAssetsToDataDir(assets, dataDir)
   }
 
   /**
@@ -45,23 +46,24 @@ class MainActivity : TauriActivity() {
      * 因此根目录找不到时会回退到 resources/ 子目录。
      */
     @JvmStatic
-    fun extractAssetsToFilesDir(assetManager: AssetManager, filesDir: File) {
-      val destRoot = File(filesDir, "resources")
+    fun extractAssetsToDataDir(assetManager: AssetManager, dataDir: File) {
+      val destRoot = File(dataDir, "resources")
+      android.util.Log.i("SoloSoul", "开始复制资源到: ${destRoot.absolutePath}")
       android.util.Log.d("SoloSoul", "Assets 根目录列表: ${assetManager.list("")?.joinToString()}")
       listOf("docs" to "docs", "SoloSoul_plugin_market" to "SoloSoul_plugin_market").forEach { (assetDir, destDirName) ->
         val copied = tryCopyAssetDir(assetManager, assetDir, File(destRoot, destDirName))
         if (!copied) {
           // 回退：Tauri 可能把资源放在 assets/resources/ 下
           val fallbackCopied = tryCopyAssetDir(assetManager, "resources/$assetDir", File(destRoot, destDirName))
-          android.util.Log.d("SoloSoul", "资源回退复制 $assetDir: $fallbackCopied")
+          android.util.Log.i("SoloSoul", "资源回退复制 $assetDir: $fallbackCopied")
         }
       }
       // 关键资源存在性校验，帮助后续排查
       val guideIndex = File(destRoot, "docs/guides/index.json")
       if (!guideIndex.exists()) {
-        android.util.Log.w("SoloSoul", "帮助索引未找到: ${guideIndex.absolutePath}")
+        android.util.Log.e("SoloSoul", "帮助索引未找到: ${guideIndex.absolutePath}")
       } else {
-        android.util.Log.d("SoloSoul", "帮助索引已就绪: ${guideIndex.absolutePath}")
+        android.util.Log.i("SoloSoul", "帮助索引已就绪: ${guideIndex.absolutePath}")
       }
     }
 
