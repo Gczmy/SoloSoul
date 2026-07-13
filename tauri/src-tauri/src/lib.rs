@@ -233,7 +233,7 @@ pub fn run() {
             // Android 上 Tauri 的 resource_dir 返回 asset:// URL，std::fs 无法直接读取。
             // MainActivity 已在 onCreate 中将所需资源复制到 files/resources/，这里优先使用它。
             #[cfg(target_os = "android")]
-            let resource_dir = {
+            let resource_dir: Result<PathBuf, String> = {
                 let data_dir = resolve_app_data_dir(app.handle())?;
                 Ok(data_dir.join("resources"))
             };
