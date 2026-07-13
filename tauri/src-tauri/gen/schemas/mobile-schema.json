@@ -2349,6 +2349,24 @@
       "description": "Permission identifier",
       "oneOf": [
         {
+          "description": "SoloSoul 应用默认权限集。\n\n允许所有应用自定义 command（账户、Vault、对象、附件、搜索、设置等），\n以及 Android 状态栏/导航栏样式控制。\n\n#### This default permission set includes:\n\n- `allow-set-status-bar-style`",
+          "type": "string",
+          "const": "default",
+          "markdownDescription": "SoloSoul 应用默认权限集。\n\n允许所有应用自定义 command（账户、Vault、对象、附件、搜索、设置等），\n以及 Android 状态栏/导航栏样式控制。\n\n#### This default permission set includes:\n\n- `allow-set-status-bar-style`"
+        },
+        {
+          "description": "允许所有 SoloSoul 自定义 command（用于桌面端与移动端核心功能）。",
+          "type": "string",
+          "const": "allow-all-custom-commands",
+          "markdownDescription": "允许所有 SoloSoul 自定义 command（用于桌面端与移动端核心功能）。"
+        },
+        {
+          "description": "允许前端设置 Android 状态栏/导航栏图标与文字颜色。",
+          "type": "string",
+          "const": "allow-set-status-bar-style",
+          "markdownDescription": "允许前端设置 Android 状态栏/导航栏图标与文字颜色。"
+        },
+        {
           "description": "Default core plugins set.\n#### This default permission set includes:\n\n- `core:path:default`\n- `core:event:default`\n- `core:window:default`\n- `core:webview:default`\n- `core:app:default`\n- `core:image:default`\n- `core:resources:default`\n- `core:menu:default`\n- `core:tray:default`",
           "type": "string",
           "const": "core:default",

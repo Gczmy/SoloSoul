@@ -7,7 +7,7 @@ SoloSoul 应用默认权限集。
 允许所有应用自定义 command（账户、Vault、对象、附件、搜索、设置等），
 以及 Android 状态栏/导航栏样式控制。
 """
-permissions = ["allow-set-status-bar-style"]
+permissions = ["allow-set-status-bar-style", "allow-all-custom-commands"]
 
 [[permission]]
 identifier = "allow-set-status-bar-style"
