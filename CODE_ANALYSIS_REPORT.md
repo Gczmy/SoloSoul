@@ -36,16 +36,14 @@
 | F004 | P2     | 前端规范   | `tauri/src/lib/ipc.ts:1`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | `invoke` 已定义但从未使用                              | `[ ]` 待修复 |
 | H001 | P2     | 潜在风险   | 全 Rust workspace（含测试）                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           | `.unwrap()` 共 1776 处，潜在 panic 面较广             | `[ ]` 待改进 |
 | H002 | P2     | 性能       | 全 Rust workspace                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     | `.clone()` 共 1192 处，存在不必要的拷贝可能            | `[ ]` 待改进 |
-| C001 | P2     | 静态检查   | `solosoul_cli/src/commands/export_import.rs:356`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      | 变量 `mut` 修饰多余，可移除                            | `[ ]` 待修复 |
-
-| C001 | P2     | 静态检查   | `solosoul_cli/src/commands/export_import.rs:356` | 变量 `mut` 修饰多余，可移除 | `[ ]` 待修复 |
-| A001 | P0     | Android 功能 | `tauri/src-tauri/gen/android/app/src/main/java/com/solosoul/app/MainActivity.kt:49`<br>`tauri/src-tauri/src/lib.rs:67-82` | Android 端帮助文档索引加载失败：Kotlin 资源复制目标目录与 Rust 数据目录不一致 | `[ ]` 待修复 |
-| A002 | P0     | Android 体验 | `tauri/src-tauri/src/commands/ocr.rs:368-702`<br>`tauri/src/pages/scan/OcrPage.tsx:71-94` | Android 端 OCR 未支持但查询命令报错，导致页面加载与用户操作时重复弹出 toast | `[ ]` 待修复 |
+| C001 | P2     | 静态检查   | `solosoul_cli/src/commands/export_import.rs:356` | 变量 `mut` 修饰多余，可移除                            | `[ ]` 待修复 |
+| A001 | P0     | Android 功能 | `tauri/src-tauri/gen/android/app/src/main/java/com/solosoul/app/MainActivity.kt:49`<br>`tauri/src-tauri/src/lib.rs:67-82` | Android 端帮助文档索引加载失败：Kotlin 资源复制目标目录与 Rust 数据目录不一致 | `[x]` 已修复 |
+| A002 | P0     | Android 体验 | `tauri/src-tauri/src/commands/ocr.rs:368-702`<br>`tauri/src/pages/scan/OcrPage.tsx:71-94` | Android 端 OCR 未支持但查询命令报错，导致页面加载与用户操作时重复弹出 toast | `[x]` 已修复 |
 
 ## 修复进度
 
-- 已完成：0 / 15
-- 当前处理：A001
+- 已完成：2 / 15
+- 当前处理：无
 
 ---
 
@@ -184,6 +182,10 @@ Android 端进入帮助页面后提示「无法加载帮助索引」。根因是
 **建议修复**：
 将 Kotlin 侧资源复制目标从 `filesDir` 改为 `dataDir`（应用数据目录根），与 Rust 的 `BaseDirectory::Data` 保持一致。同时补充 info 级别日志，便于运行时确认资源是否复制成功。
 
+**修复说明**：
+- `MainActivity.kt`：将 `extractAssetsToFilesDir(assets, filesDir)` 改为 `extractAssetsToDataDir(assets, dataDir)`，目标根目录改为 `dataDir/resources`，与 Rust 解析路径一致。
+- 增加 info 级别日志，记录复制开始、回退复制结果以及帮助索引是否存在，便于通过 `adb logcat` 排查。
+
 ---
 
 ### A002 — Android 端 OCR 未支持但重复弹出报错 toast
@@ -197,6 +199,10 @@ OCR 功能在移动端暂未实现，所有 OCR 命令的 `#[cfg(mobile)]` 分�
 
 **建议修复**：
 对移动端的「查询类」OCR 命令（列出档位、获取当前档位、获取模型状态等）返回空/默认值而非错误，避免页面加载时弹 toast；扫描/安装/下载等用户主动触发的命令继续返回错误提示，但只会触发一次。这样移动端 OCR 页面可正常展示「暂不支持」的占位状态，而不会重复报错。
+
+**修复说明**：
+- `tauri/src-tauri/src/commands/ocr.rs`：将 `#[cfg(mobile)]` 分支中的 `ocr_get_supported_languages`、`ocr_list_available_tiers`、`ocr_get_active_tier`、`ocr_get_model_status` 改为返回空列表/默认值，而非 `mobile_not_supported_with()`。
+- 扫描类命令（`ocr_scan_image`、`ocr_scan_mrz`）与安装/下载/设置档位命令仍返回「当前平台暂不支持该功能」，确保用户主动触发时只收到一次提示。
 
 ---
 
