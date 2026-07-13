@@ -265,7 +265,7 @@ impl VaultService {
         self.account_dir(id).join("config.json")
     }
 
-    fn load_accounts(&self) {
+    pub fn load_accounts(&self) {
         let file = self.accounts_file();
         if !file.exists() {
             tracing::warn!("Accounts file does not exist: {}", file.display());

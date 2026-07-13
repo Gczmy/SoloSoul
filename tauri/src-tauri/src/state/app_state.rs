@@ -19,7 +19,9 @@ impl AppState {
                 .path()
                 .resolve(".", tauri::path::BaseDirectory::Data)
                 .map_err(|e| anyhow::anyhow!("无法解析应用数据目录: {e}"))?;
-            Arc::new(RwLock::new(VaultService::with_base_path(data_dir)))
+            let svc = VaultService::with_base_path(data_dir);
+            svc.load_accounts();
+            Arc::new(RwLock::new(svc))
         } else {
             Arc::new(RwLock::new(VaultService::new()))
         };
