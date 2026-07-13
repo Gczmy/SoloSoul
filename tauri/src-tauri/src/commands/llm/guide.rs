@@ -196,17 +196,27 @@ pub fn load_guide_index() -> Result<GuideIndex, String> {
                     .join(", ")
             })
             .unwrap_or_else(|| "(无法读取目录)".to_string());
-        return Err(format!(
+        let msg = format!(
             "Failed to read guide index at {}: 文件不存在。父目录内容: {}",
             path.display(),
             entries
-        ));
+        );
+        tracing::error!("[load_guide_index] {}", msg);
+        return Err(msg);
     }
 
     let content = std::fs::read_to_string(&path)
-        .map_err(|e| format!("Failed to read guide index at {}: {}", path.display(), e))?;
+        .map_err(|e| {
+            let msg = format!("Failed to read guide index at {}: {}", path.display(), e);
+            tracing::error!("[load_guide_index] {}", msg);
+            msg
+        })?;
     let index: GuideIndex = serde_json::from_str(&content)
-        .map_err(|e| format!("Failed to parse guide index: {}", e))?;
+        .map_err(|e| {
+            let msg = format!("Failed to parse guide index: {}", e);
+            tracing::error!("[load_guide_index] {}", msg);
+            msg
+        })?;
 
     set_index_cache(index.clone());
     Ok(index)

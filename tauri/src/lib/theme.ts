@@ -61,7 +61,7 @@ async function syncTitleBarColor(config: ThemeConfig) {
 async function syncStatusBarStyle(theme: 'light' | 'dark') {
   try {
     console.log('[theme] syncStatusBarStyle:', theme);
-    await invoke('set_status_bar_style', { style: theme });
+    await invoke('set_status_bar_style', { payload: { style: theme } });
     console.log('[theme] syncStatusBarStyle success:', theme);
   } catch (err) {
     console.warn('[theme] syncStatusBarStyle failed:', err);
