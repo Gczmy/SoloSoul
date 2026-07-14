@@ -5,13 +5,16 @@ import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { CardGrid } from '@/components/ui/CardGrid';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
+import { useIsMobile } from '@/hooks/useIsMobile';
 import type { ProfileSection } from '@/types';
+import type { LucideIcon } from 'lucide-react';
+import styles from './HomePage.module.css';
 
 // Icons sourced from PAGE_ICON_MAP — §7.4 Single Source of Truth
 const sections: {
   type: ProfileSection;
   labelKey: string;
-  icon: typeof PAGE_ICON_MAP.profile;
+  icon: LucideIcon;
   descKey: string;
 }[] = [
   { type: 'identity', labelKey: 'identity', icon: PAGE_ICON_MAP.profile, descKey: 'identity_desc' },
@@ -30,17 +33,10 @@ const sections: {
   },
 ];
 
-const helpCard: QuickCard = {
-  path: '/help',
-  labelKey: 'help',
-  icon: PAGE_ICON_MAP.help,
-  descKey: 'help_desc',
-};
-
 type QuickCard = {
   path: string;
   labelKey: string;
-  icon: typeof PAGE_ICON_MAP.profile;
+  icon: LucideIcon;
   descKey: string;
 };
 
@@ -81,8 +77,59 @@ const quickCards: QuickCard[] = [
     icon: PAGE_ICON_MAP.ai_chat,
     descKey: 'ai_chat_desc',
   },
-  helpCard,
+  {
+    path: '/help',
+    labelKey: 'help',
+    icon: PAGE_ICON_MAP.help,
+    descKey: 'help_desc',
+  },
 ];
+
+function HomeCard({
+  icon: Icon,
+  title,
+  desc,
+  onClick,
+}: {
+  icon: LucideIcon;
+  title: string;
+  desc: string;
+  onClick: () => void;
+}) {
+  const isMobile = useIsMobile();
+
+  return (
+    <Card interactive onClick={onClick}>
+      {isMobile ? (
+        <>
+          <div className={styles.cardHeader}>
+            <Icon size={24} className={styles.cardIcon} />
+            <h3 className={styles.cardTitle}>{title}</h3>
+          </div>
+          <p className={styles.cardDesc}>{desc}</p>
+        </>
+      ) : (
+        <>
+          <div style={{ marginBottom: 8 }}>
+            <Icon size={28} />
+          </div>
+          <h3
+            style={{
+              fontSize: 'var(--text-card-title)',
+              fontWeight: 600,
+              marginBottom: 4,
+            }}
+          >
+            {title}
+          </h3>
+          <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)' }}>
+            {desc}
+          </p>
+        </>
+      )}
+    </Card>
+  );
+}
 
 export function HomePage() {
   const navigate = useNavigate();
@@ -114,17 +161,13 @@ export function HomePage() {
         {/* Profile Sections */}
         <CardGrid>
           {sections.map((s) => (
-            <Card key={s.type} interactive onClick={() => navigate(`/workspace?section=${s.type}`)}>
-              <div style={{ marginBottom: 8 }}>
-                <s.icon size={28} />
-              </div>
-              <h3 style={{ fontSize: 'var(--text-card-title)', fontWeight: 600, marginBottom: 4 }}>
-                {t(`navigation:${s.labelKey}`)}
-              </h3>
-              <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)' }}>
-                {t(`common:${s.descKey}`)}
-              </p>
-            </Card>
+            <HomeCard
+              key={s.type}
+              icon={s.icon}
+              title={t(`navigation:${s.labelKey}`)}
+              desc={t(`common:${s.descKey}`)}
+              onClick={() => navigate(`/workspace?section=${s.type}`)}
+            />
           ))}
         </CardGrid>
 
@@ -142,21 +185,13 @@ export function HomePage() {
         {/* Quick Access Cards */}
         <CardGrid>
           {quickCards.map((q) => (
-            <Card
+            <HomeCard
               key={q.path}
-              interactive
+              icon={q.icon}
+              title={t(`navigation:${q.labelKey}`)}
+              desc={t(`common:${q.descKey}`)}
               onClick={() => navigate(q.path, { state: { fromHome: true } })}
-            >
-              <div style={{ marginBottom: 8 }}>
-                <q.icon size={28} />
-              </div>
-              <h3 style={{ fontSize: 'var(--text-card-title)', fontWeight: 600, marginBottom: 4 }}>
-                {t(`navigation:${q.labelKey}`)}
-              </h3>
-              <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)' }}>
-                {t(`common:${q.descKey}`)}
-              </p>
-            </Card>
+            />
           ))}
         </CardGrid>
       </PageContainer>
