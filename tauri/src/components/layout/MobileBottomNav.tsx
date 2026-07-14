@@ -227,9 +227,13 @@ export function MobileBottomNav() {
         })}
 
         {/* Add page */}
-        <div className={styles.navItem}>
-          <AddPageButton onCreate={(page) => handleNavigate(`/workspace/custom/${page.id}`)} position="bottom" />
-        </div>
+        <AddPageButton
+          onCreate={(page) => handleNavigate(`/workspace/custom/${page.id}`)}
+          position="bottom"
+          className={styles.addPageItem}
+          buttonClassName={styles.addPageTrigger}
+          showLabel
+        />
 
         {/* Expand / collapse toggle */}
         <button

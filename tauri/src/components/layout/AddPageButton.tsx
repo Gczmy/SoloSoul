@@ -25,9 +25,15 @@ import { ICON_SIZE } from '@/lib/constants';
 export function AddPageButton({
   onCreate,
   position = 'left',
+  className,
+  buttonClassName,
+  showLabel,
 }: {
   onCreate: (page: CustomPage) => void;
   position?: import('./NavButton').NavPosition;
+  className?: string;
+  buttonClassName?: string;
+  showLabel?: boolean;
 }) {
   const isHorizontal = position === 'top' || position === 'bottom';
   const isBottom = position === 'bottom';
@@ -209,18 +215,22 @@ export function AddPageButton({
     ) : null;
 
   return (
-    <div className={styles.addPageRow} data-add-page-zone="true" style={isHorizontal ? { flexDirection: 'row' } : {}}>
+    <div
+      className={`${styles.addPageRow} ${className || ''}`}
+      data-add-page-zone="true"
+      style={className ? undefined : isHorizontal ? { flexDirection: 'row' } : {}}
+    >
       {/* + button */}
       <div
         ref={wrapperRef}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
-        style={isHorizontal ? { width: 40, height: 40 } : undefined}
+        style={className || !isHorizontal ? undefined : { width: 40, height: 40 }}
       >
         <button
           ref={buttonRef}
-          className={styles.addPageButton}
-          style={isHorizontal ? { width: 40, height: 40, borderRadius: 10 } : {}}
+          className={`${styles.addPageButton} ${buttonClassName || ''}`}
+          style={buttonClassName ? undefined : isHorizontal ? { width: 40, height: 40, borderRadius: 10 } : {}}
           onClick={() => {
             setButtonRect(buttonRef.current?.getBoundingClientRect() || null);
             setIsCreating(true);
@@ -233,7 +243,9 @@ export function AddPageButton({
           <Plus size={ICON_SIZE.xl} />
         </button>
         {createPortal(nameCard, document.body)}
-      </div>{' '}
+      </div>
+      {showLabel && <span className={styles.addPageLabel}>{t('add_page')}</span>}
+      {' '}
       {/* Popover create row — portaled to body so it sits above sidebar/tooltips */}
       {createPortal(
         <AnimatePresence>

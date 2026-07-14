@@ -334,3 +334,13 @@
   background: rgba(128, 128, 128, 0.06);
   color: var(--text-primary);
 }
+
+.addPageLabel {
+  font-size: 10px;
+  color: inherit;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  line-height: 1.2;
+}
