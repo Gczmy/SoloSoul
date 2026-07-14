@@ -378,6 +378,11 @@ pub async fn attachment_copy_to_vault(
                 }
             }
         }
+        // 移动端：文件由前端通过 plugin-fs 中转后放在应用缓存目录，需加入白名单
+        #[cfg(any(target_os = "android", target_os = "ios"))]
+        {
+            bases.push(std::env::temp_dir());
+        }
         bases
     };
     if !allowed_bases.is_empty() && !allowed_bases.iter().any(|b| src.starts_with(b)) {
