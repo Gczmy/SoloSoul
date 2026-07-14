@@ -19,6 +19,7 @@
   "plugins": "Plugins",
   "add_page": "Add Page",
   "add_page_placeholder": "Page name",
+  "add_page_description_placeholder": "Description (optional)",
   "custom_page": "My Projects",
   "page_name_exists": "Page name already exists",
   "select_icon": "Choose Icon",

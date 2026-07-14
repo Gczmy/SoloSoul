@@ -233,6 +233,7 @@ export function MobileBottomNav() {
           className={styles.addPageItem}
           buttonClassName={styles.addPageTrigger}
           showLabel
+          showDescription
         />
 
         {/* Expand / collapse toggle */}

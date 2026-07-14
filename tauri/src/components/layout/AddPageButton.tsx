@@ -28,18 +28,21 @@ export function AddPageButton({
   className,
   buttonClassName,
   showLabel,
+  showDescription,
 }: {
   onCreate: (page: CustomPage) => void;
   position?: import('./NavButton').NavPosition;
   className?: string;
   buttonClassName?: string;
   showLabel?: boolean;
+  showDescription?: boolean;
 }) {
   const isHorizontal = position === 'top' || position === 'bottom';
   const isBottom = position === 'bottom';
   const isRight = position === 'right';
   const [isCreating, setIsCreating] = useState(false);
   const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
   const [nameError, setNameError] = useState(false);
   const [selectedIconId, setSelectedIconId] = useState<CustomIconId>(DEFAULT_CUSTOM_ICON);
   const [buttonRect, setButtonRect] = useState<DOMRect | null>(null);
@@ -50,7 +53,8 @@ export function AddPageButton({
   // Compute max height for icon picker scroll area based on available viewport space
   const scrollMaxHeight = useMemo(() => {
     if (!buttonRect) return 280;
-    const nonInputHeight = 72; // input(~40) + gap/padding(~18) + label(~14)
+    // name input(~40) + optional description input(~40) + gap/padding(~24) + label(~14)
+    const nonInputHeight = showDescription ? 118 : 72;
     if (isBottom) {
       // Opens upward from button bottom
       return Math.max(120, Math.min(280, buttonRect.top - 80));
@@ -59,7 +63,7 @@ export function AddPageButton({
     const topEdge = isHorizontal ? buttonRect.bottom + 8 : buttonRect.top;
     const available = window.innerHeight - topEdge - 16 - nonInputHeight;
     return Math.max(120, Math.min(280, available));
-  }, [buttonRect, isHorizontal, isBottom]);
+  }, [buttonRect, isHorizontal, isBottom, showDescription]);
 
   // Compute popover left position for horizontal mode with right-edge overflow protection.
   // When the + button is near the right edge (function area collapsed), clamp left so
@@ -83,6 +87,7 @@ export function AddPageButton({
   const handleCancel = useCallback(() => {
     setIsCreating(false);
     setName('');
+    setDescription('');
     setNameError(false);
     setSelectedIconId(DEFAULT_CUSTOM_ICON);
   }, []);
@@ -103,11 +108,12 @@ export function AddPageButton({
       setNameError(true);
       return;
     }
-    addCustomPage(currentAccount.id, trimmed, selectedIconId).then((page) => {
+    const trimmedDesc = description.trim();
+    addCustomPage(currentAccount.id, trimmed, selectedIconId, trimmedDesc || undefined).then((page) => {
       onCreate(page);
     });
     handleCancel();
-  }, [name, selectedIconId, currentAccount, addCustomPage, onCreate, t, handleCancel]);
+  }, [name, description, selectedIconId, currentAccount, addCustomPage, onCreate, t, handleCancel]);
 
   // Close popover on outside click
   useEffect(() => {
@@ -329,6 +335,39 @@ export function AddPageButton({
                   animation: nameError ? 'shake 0.4s ease' : 'none',
                 }}
               />
+              {showDescription && (
+                <input
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value.slice(0, 60))}
+                  onBlur={(e) => {
+                    if (
+                      popoverRef.current &&
+                      !popoverRef.current.contains(e.relatedTarget as Node)
+                    ) {
+                      handleConfirm();
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleConfirm();
+                    if (e.key === 'Escape') handleCancel();
+                  }}
+                  placeholder={t('add_page_description_placeholder')}
+                  maxLength={60}
+                  aria-label={t('add_page_description_placeholder')}
+                  style={{
+                    padding: '6px 10px',
+                    fontSize: 'var(--text-body-sm)',
+                    border: '1px solid var(--border-subtle)',
+                    borderRadius: 6,
+                    background: 'transparent',
+                    color: 'var(--text-primary)',
+                    fontFamily: 'inherit',
+                    outline: 'none',
+                    width: '100%',
+                    boxSizing: 'border-box',
+                  }}
+                />
+              )}
               {nameError && (
                 <div
                   style={{

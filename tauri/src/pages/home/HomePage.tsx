@@ -4,7 +4,8 @@ import { AppShell } from '@/components/layout/AppShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { CardGrid } from '@/components/ui/CardGrid';
-import { PAGE_ICON_MAP } from '@/lib/pageIcons';
+import { PAGE_ICON_MAP, resolveCustomIcon } from '@/lib/pageIcons';
+import { useActiveCustomPages } from '@/components/layout/useNavigationItems';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import type { ProfileSection } from '@/types';
 import type { LucideIcon } from 'lucide-react';
@@ -93,7 +94,7 @@ function HomeCard({
 }: {
   icon: LucideIcon;
   title: string;
-  desc: string;
+  desc?: string;
   onClick: () => void;
 }) {
   const isMobile = useIsMobile();
@@ -106,7 +107,7 @@ function HomeCard({
             <Icon size={24} className={styles.cardIcon} />
             <h3 className={styles.cardTitle}>{title}</h3>
           </div>
-          <p className={styles.cardDesc}>{desc}</p>
+          {desc && <p className={styles.cardDesc}>{desc}</p>}
         </>
       ) : (
         <>
@@ -122,9 +123,11 @@ function HomeCard({
           >
             {title}
           </h3>
-          <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)' }}>
-            {desc}
-          </p>
+          {desc && (
+            <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)' }}>
+              {desc}
+            </p>
+          )}
         </>
       )}
     </Card>
@@ -134,6 +137,7 @@ function HomeCard({
 export function HomePage() {
   const navigate = useNavigate();
   const { t } = useTranslation(['common', 'navigation']);
+  const activeCustomPages = useActiveCustomPages();
 
   return (
     <AppShell title={t('common:home')}>
@@ -158,7 +162,7 @@ export function HomePage() {
           {t('common:data_sections')}
         </h2>
 
-        {/* Profile Sections */}
+        {/* Profile Sections + Custom Pages */}
         <CardGrid>
           {sections.map((s) => (
             <HomeCard
@@ -167,6 +171,15 @@ export function HomePage() {
               title={t(`navigation:${s.labelKey}`)}
               desc={t(`common:${s.descKey}`)}
               onClick={() => navigate(`/workspace?section=${s.type}`)}
+            />
+          ))}
+          {activeCustomPages.map((page) => (
+            <HomeCard
+              key={page.id}
+              icon={resolveCustomIcon(page.iconId)}
+              title={page.name}
+              desc={page.description}
+              onClick={() => navigate(`/workspace/custom/${page.id}`)}
             />
           ))}
         </CardGrid>

@@ -14,6 +14,7 @@ export interface CustomPage {
   id: string;
   name: string;
   iconId: string;
+  description?: string;
   createdAt: string;
   sortOrder: number;
   deletedAt?: string;
@@ -54,7 +55,7 @@ interface SettingsState {
     value: AppSettings[K],
   ) => Promise<void>;
   clearOnVaultLock: () => void;
-  addCustomPage: (accountId: string, name: string, iconId?: string) => Promise<CustomPage>;
+  addCustomPage: (accountId: string, name: string, iconId?: string, description?: string) => Promise<CustomPage>;
   removeCustomPage: (accountId: string, pageId: string) => Promise<void>;
 }
 
@@ -70,6 +71,7 @@ const customPageSchema = z.object({
   id: z.string(),
   name: z.string(),
   iconId: z.string(),
+  description: z.string().optional(),
   createdAt: z.string(),
   sortOrder: z.number(),
   deletedAt: z.string().optional(),
@@ -293,14 +295,34 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       if (objects.length > 0) {
         // New-format pages exist in objects table — use them (including deleted pages so
         // templates referencing deleted pages can still show the original page name)
-        const pages: CustomPage[] = objects.map((o, i) => ({
-          id: o.id,
-          name: o.name,
-          iconId: o.iconName || DEFAULT_CUSTOM_ICON,
-          createdAt: o.createdAt,
-          sortOrder: i,
-          deletedAt: o.isDeleted ? o.updatedAt : undefined,
-        }));
+        const pages: CustomPage[] = await Promise.all(
+          objects.map(async (o, i) => {
+            let description: string | undefined;
+            if (!o.isDeleted) {
+              try {
+                const detail = await invoke<{ properties?: Record<string, unknown> } | null>(
+                  'object_get',
+                  { accountId, objectId: o.id },
+                );
+                const desc = detail?.properties?.description;
+                if (typeof desc === 'string') {
+                  description = desc;
+                }
+              } catch (e) {
+                console.warn('[settingsStore] Failed to load page description:', o.id, e);
+              }
+            }
+            return {
+              id: o.id,
+              name: o.name,
+              iconId: o.iconName || DEFAULT_CUSTOM_ICON,
+              description,
+              createdAt: o.createdAt,
+              sortOrder: i,
+              deletedAt: o.isDeleted ? o.updatedAt : undefined,
+            };
+          }),
+        );
         set((s) => ({ settings: { ...s.settings, customPages: pages } }));
         return;
       }
@@ -369,13 +391,14 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     }
   },
 
-  addCustomPage: async (accountId, name, iconId) => {
+  addCustomPage: async (accountId, name, iconId, description) => {
     const prevPages = get().settings.customPages;
     const id = crypto.randomUUID();
     const newPage: CustomPage = {
       id,
       name,
       iconId: iconId ?? DEFAULT_CUSTOM_ICON,
+      description,
       createdAt: new Date().toISOString(),
       sortOrder: prevPages.length,
     };
@@ -390,7 +413,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
           name,
           collectionType: 'page',
           iconName: iconId ?? DEFAULT_CUSTOM_ICON,
-          properties: {},
+          properties: description ? { description } : {},
           id,
         },
       });
