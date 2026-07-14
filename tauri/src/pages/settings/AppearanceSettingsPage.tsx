@@ -12,6 +12,7 @@ import { useTranslation } from 'react-i18next';
 import { ThemeSchemePanel } from '@/components/settings/ThemeSchemePanel';
 import type { AccentPreset } from '@/types';
 import type { SupportedLang } from '@/lib/i18n';
+import { isMobilePlatformSync } from '@/lib/platform';
 import { Palette, PanelTop, PanelBottom, PanelLeft, PanelRight } from 'lucide-react';
 import type { ThemeScheme } from '@/lib/themeSchemes';
 import type { AppSettings } from '@/stores/settingsStore';
@@ -48,6 +49,7 @@ export function AppearanceSettingsPage() {
   const currentAccount = useAuthStore((s) => s.currentAccount);
   const { settings, updateSetting } = useSettingsStore();
   const accountId = currentAccount?.id || '';
+  const isMobile = isMobilePlatformSync();
   const { t } = useTranslation(['settings', 'common']);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
 
@@ -315,123 +317,127 @@ export function AppearanceSettingsPage() {
               </div>
             </Card>
 
-            {/* Sidebar position */}
-            <Card>
-              <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 12 }}>
-                {t('settings:sidebar_position')}
-              </h3>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
-                {SIDEBAR_OPTIONS.map((opt) => {
-                  const Icon = opt.icon;
-                  const isActive = settings.sidebarPosition === opt.value;
-                  return (
-                    <button
-                      key={opt.value}
-                      onClick={() => updateSetting(accountId, 'sidebarPosition', opt.value)}
-                      style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        gap: 6,
-                        padding: '12px 4px',
-                        borderRadius: 10,
-                        border: isActive
-                          ? '2px solid var(--accent-primary)'
-                          : '1px solid var(--border-subtle)',
-                        background: isActive ? 'rgba(91,124,153,0.08)' : 'transparent',
-                        cursor: 'pointer',
-                        transition: 'all 0.15s ease',
-                        color: isActive ? 'var(--accent-primary)' : 'var(--text-secondary)',
-                      }}
-                    >
-                      <Icon size={ICON_SIZE['2xl']} />
-                      <span
+            {/* Sidebar position (desktop only) */}
+            {!isMobile && (
+              <Card>
+                <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 12 }}>
+                  {t('settings:sidebar_position')}
+                </h3>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+                  {SIDEBAR_OPTIONS.map((opt) => {
+                    const Icon = opt.icon;
+                    const isActive = settings.sidebarPosition === opt.value;
+                    return (
+                      <button
+                        key={opt.value}
+                        onClick={() => updateSetting(accountId, 'sidebarPosition', opt.value)}
                         style={{
-                          fontSize: 'var(--text-caption)',
-                          fontWeight: isActive ? 500 : 400,
-                        }}
-                      >
-                        {t(opt.labelKey)}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            </Card>
-
-            {/* Sidebar button mode: card vs page */}
-            <Card>
-              <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 4 }}>
-                {t('settings:sidebar_button_mode')}
-              </h3>
-              <p
-                style={{
-                  fontSize: 'var(--text-caption)',
-                  color: 'var(--text-secondary)',
-                  marginBottom: 12,
-                }}
-              >
-                {t('settings:sidebar_button_mode_desc')}
-              </p>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                {(['ocr', 'plugins', 'ai_chat', 'search'] as const).map((id) => {
-                  const currentMode = settings.sidebarButtonModes[id] || 'card';
-                  const Icon = PAGE_ICON_MAP[id];
-                  const label = t(`navigation:${id}`);
-                  return (
-                    <label
-                      key={id}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '8px 10px',
-                        borderRadius: 8,
-                        background: 'var(--bg-toolbar)',
-                        cursor: 'pointer',
-                        transition: 'background 0.12s',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background = 'var(--bg-hover)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'var(--bg-toolbar)';
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <Icon size={ICON_SIZE.md} style={{ color: 'var(--text-secondary)' }} />
-                        <span style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500 }}>
-                          {label}
-                        </span>
-                      </div>
-                      <select
-                        value={currentMode}
-                        onChange={(e) => {
-                          const newModes: Record<string, 'card' | 'page'> = {
-                            ...settings.sidebarButtonModes,
-                            [id]: e.target.value as 'card' | 'page',
-                          };
-                          updateSetting(accountId, 'sidebarButtonModes', newModes);
-                        }}
-                        style={{
-                          padding: '4px 8px',
-                          fontSize: 'var(--text-caption)',
-                          borderRadius: 6,
-                          border: '1px solid var(--border-subtle)',
-                          background: 'var(--bg-elevated)',
-                          color: 'var(--text-primary)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          gap: 6,
+                          padding: '12px 4px',
+                          borderRadius: 10,
+                          border: isActive
+                            ? '2px solid var(--accent-primary)'
+                            : '1px solid var(--border-subtle)',
+                          background: isActive ? 'rgba(91,124,153,0.08)' : 'transparent',
                           cursor: 'pointer',
-                          fontFamily: 'inherit',
+                          transition: 'all 0.15s ease',
+                          color: isActive ? 'var(--accent-primary)' : 'var(--text-secondary)',
                         }}
                       >
-                        <option value="card">{t('settings:button_mode_card')}</option>
-                        <option value="page">{t('settings:button_mode_page')}</option>
-                      </select>
-                    </label>
-                  );
-                })}
-              </div>
-            </Card>
+                        <Icon size={ICON_SIZE['2xl']} />
+                        <span
+                          style={{
+                            fontSize: 'var(--text-caption)',
+                            fontWeight: isActive ? 500 : 400,
+                          }}
+                        >
+                          {t(opt.labelKey)}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </Card>
+            )}
+
+            {/* Sidebar button mode: card vs page (desktop only) */}
+            {!isMobile && (
+              <Card>
+                <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 4 }}>
+                  {t('settings:sidebar_button_mode')}
+                </h3>
+                <p
+                  style={{
+                    fontSize: 'var(--text-caption)',
+                    color: 'var(--text-secondary)',
+                    marginBottom: 12,
+                  }}
+                >
+                  {t('settings:sidebar_button_mode_desc')}
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  {(['ocr', 'plugins', 'ai_chat', 'search'] as const).map((id) => {
+                    const currentMode = settings.sidebarButtonModes[id] || 'card';
+                    const Icon = PAGE_ICON_MAP[id];
+                    const label = t(`navigation:${id}`);
+                    return (
+                      <label
+                        key={id}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '8px 10px',
+                          borderRadius: 8,
+                          background: 'var(--bg-toolbar)',
+                          cursor: 'pointer',
+                          transition: 'background 0.12s',
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.background = 'var(--bg-hover)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.background = 'var(--bg-toolbar)';
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <Icon size={ICON_SIZE.md} style={{ color: 'var(--text-secondary)' }} />
+                          <span style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500 }}>
+                            {label}
+                          </span>
+                        </div>
+                        <select
+                          value={currentMode}
+                          onChange={(e) => {
+                            const newModes: Record<string, 'card' | 'page'> = {
+                              ...settings.sidebarButtonModes,
+                              [id]: e.target.value as 'card' | 'page',
+                            };
+                            updateSetting(accountId, 'sidebarButtonModes', newModes);
+                          }}
+                          style={{
+                            padding: '4px 8px',
+                            fontSize: 'var(--text-caption)',
+                            borderRadius: 6,
+                            border: '1px solid var(--border-subtle)',
+                            background: 'var(--bg-elevated)',
+                            color: 'var(--text-primary)',
+                            cursor: 'pointer',
+                            fontFamily: 'inherit',
+                          }}
+                        >
+                          <option value="card">{t('settings:button_mode_card')}</option>
+                          <option value="page">{t('settings:button_mode_page')}</option>
+                        </select>
+                      </label>
+                    );
+                  })}
+                </div>
+              </Card>
+            )}
           </PageContainer>
         </div>
       </div>
