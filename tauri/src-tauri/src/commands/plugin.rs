@@ -1,9 +1,6 @@
 //! 插件系统 Tauri Commands
 
-#[cfg(desktop)]
 use crate::commands::{current_account_optional, vault_handle};
-#[cfg(mobile)]
-use crate::commands::{mobile_not_supported, mobile_not_supported_with};
 use crate::plugin::{
     MarketPluginInfo, PluginAuditEntry, PluginEvent, PluginInstallResult, PluginManifest,
     PluginResult, PluginSession, PluginTier,
@@ -12,7 +9,6 @@ use crate::state::AppState;
 use std::collections::HashMap;
 use tauri::{command, ipc::Channel, State};
 
-#[cfg(desktop)]
 #[command]
 pub async fn plugin_list_all(
     state: State<'_, AppState>,
@@ -28,16 +24,6 @@ pub async fn plugin_list_all(
         .map_err(|e| e.to_string())
 }
 
-#[cfg(mobile)]
-#[command]
-pub async fn plugin_list_all(
-    _state: State<'_, AppState>,
-    _tier: Option<String>,
-) -> Result<Vec<MarketPluginInfo>, String> {
-    mobile_not_supported_with()
-}
-
-#[cfg(desktop)]
 #[command]
 pub async fn plugin_list_installed(
     state: State<'_, AppState>,
@@ -48,15 +34,6 @@ pub async fn plugin_list_installed(
         .map_err(|e| e.to_string())
 }
 
-#[cfg(mobile)]
-#[command]
-pub async fn plugin_list_installed(
-    _state: State<'_, AppState>,
-) -> Result<Vec<PluginManifest>, String> {
-    mobile_not_supported_with()
-}
-
-#[cfg(desktop)]
 #[command]
 pub async fn plugin_list_attachments(state: State<'_, AppState>) -> Result<String, String> {
     let vault_store = vault_handle(&state)?;
@@ -65,14 +42,7 @@ pub async fn plugin_list_attachments(state: State<'_, AppState>) -> Result<Strin
     resolver.list_attachments().map_err(|e| e.to_string())
 }
 
-#[cfg(mobile)]
-#[command]
-pub async fn plugin_list_attachments(_state: State<'_, AppState>) -> Result<String, String> {
-    mobile_not_supported_with()
-}
-
 /// 从 PluginManifest 的 contracts 中提取 (type_id, role_id, default_property_id) 元组列表。
-#[cfg(desktop)]
 fn extract_binding_candidates(manifest: &PluginManifest) -> Vec<(String, String, String)> {
     let mut candidates = Vec::new();
     for contract in &manifest.contracts {
@@ -89,7 +59,6 @@ fn extract_binding_candidates(manifest: &PluginManifest) -> Vec<(String, String,
     candidates
 }
 
-#[cfg(desktop)]
 #[command]
 pub async fn plugin_install(
     state: State<'_, AppState>,
@@ -138,17 +107,6 @@ pub async fn plugin_install(
     Ok(result)
 }
 
-#[cfg(mobile)]
-#[command]
-pub async fn plugin_install(
-    _state: State<'_, AppState>,
-    _plugin_id: String,
-    _version: String,
-) -> Result<PluginInstallResult, String> {
-    mobile_not_supported_with()
-}
-
-#[cfg(desktop)]
 #[command]
 pub async fn plugin_update(
     state: State<'_, AppState>,
@@ -161,16 +119,6 @@ pub async fn plugin_update(
         .map_err(|e| e.to_string())
 }
 
-#[cfg(mobile)]
-#[command]
-pub async fn plugin_update(
-    _state: State<'_, AppState>,
-    _plugin_id: String,
-) -> Result<PluginInstallResult, String> {
-    mobile_not_supported_with()
-}
-
-#[cfg(desktop)]
 #[command]
 pub async fn plugin_uninstall(state: State<'_, AppState>, plugin_id: String) -> Result<(), String> {
     state
@@ -179,16 +127,6 @@ pub async fn plugin_uninstall(state: State<'_, AppState>, plugin_id: String) -> 
         .map_err(|e| e.to_string())
 }
 
-#[cfg(mobile)]
-#[command]
-pub async fn plugin_uninstall(
-    _state: State<'_, AppState>,
-    _plugin_id: String,
-) -> Result<(), String> {
-    mobile_not_supported()
-}
-
-#[cfg(desktop)]
 #[command]
 pub async fn plugin_run(
     state: State<'_, AppState>,
@@ -206,18 +144,6 @@ pub async fn plugin_run(
         .map_err(|e| e.to_string())
 }
 
-#[cfg(mobile)]
-#[command]
-pub async fn plugin_run(
-    _state: State<'_, AppState>,
-    _plugin_id: String,
-    _params: HashMap<String, String>,
-    _channel: Channel<PluginEvent>,
-) -> Result<PluginResult, String> {
-    mobile_not_supported_with()
-}
-
-#[cfg(desktop)]
 #[command]
 pub async fn plugin_consent_response(
     state: State<'_, AppState>,
@@ -232,18 +158,6 @@ pub async fn plugin_consent_response(
         .map_err(|e| e.to_string())
 }
 
-#[cfg(mobile)]
-#[command]
-pub async fn plugin_consent_response(
-    _state: State<'_, AppState>,
-    _request_id: String,
-    _approved: bool,
-    _value: Option<String>,
-) -> Result<(), String> {
-    mobile_not_supported()
-}
-
-#[cfg(desktop)]
 #[command]
 pub async fn plugin_dialog_response(
     state: State<'_, AppState>,
@@ -257,17 +171,6 @@ pub async fn plugin_dialog_response(
         .map_err(|e| e.to_string())
 }
 
-#[cfg(mobile)]
-#[command]
-pub async fn plugin_dialog_response(
-    _state: State<'_, AppState>,
-    _request_id: String,
-    _value: Option<String>,
-) -> Result<(), String> {
-    mobile_not_supported()
-}
-
-#[cfg(desktop)]
 #[command]
 pub async fn plugin_list_sessions(
     state: State<'_, AppState>,
@@ -278,15 +181,6 @@ pub async fn plugin_list_sessions(
         .map_err(|e| e.to_string())
 }
 
-#[cfg(mobile)]
-#[command]
-pub async fn plugin_list_sessions(
-    _state: State<'_, AppState>,
-) -> Result<Vec<PluginSession>, String> {
-    mobile_not_supported_with()
-}
-
-#[cfg(desktop)]
 #[command]
 pub async fn plugin_audit_log(
     state: State<'_, AppState>,
@@ -298,16 +192,6 @@ pub async fn plugin_audit_log(
         .map_err(|e| e.to_string())
 }
 
-#[cfg(mobile)]
-#[command]
-pub async fn plugin_audit_log(
-    _state: State<'_, AppState>,
-    _limit: Option<usize>,
-) -> Result<Vec<PluginAuditEntry>, String> {
-    mobile_not_supported_with()
-}
-
-#[cfg(desktop)]
 #[command]
 pub async fn plugin_update_registry(state: State<'_, AppState>) -> Result<(), String> {
     state
@@ -315,10 +199,4 @@ pub async fn plugin_update_registry(state: State<'_, AppState>) -> Result<(), St
         .update_registry()
         .await
         .map_err(|e| e.to_string())
-}
-
-#[cfg(mobile)]
-#[command]
-pub async fn plugin_update_registry(_state: State<'_, AppState>) -> Result<(), String> {
-    mobile_not_supported()
 }

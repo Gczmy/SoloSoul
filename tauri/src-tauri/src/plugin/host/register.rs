@@ -755,6 +755,7 @@ pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(),
         .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
 
     // solosoul_image_watermark —— 为图片添加水印
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
     linker
         .func_wrap(
             "env",
@@ -798,7 +799,8 @@ pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(),
                         }
                     };
 
-                match solosoul_core::watermark::apply_to_image(&input_path, &output_path, &config) {
+                match solosoul_core::watermark::apply_to_image(
+                    &input_path, &output_path, &config) {
                     Ok(()) => code::SUCCESS,
                     Err(e) => {
                         let _ = caller.data().host.channel.send(PluginEvent::log(
@@ -812,7 +814,24 @@ pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(),
         )
         .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
 
+    #[cfg(any(target_os = "android", target_os = "ios"))]
+    linker
+        .func_wrap(
+            "env",
+            "solosoul_image_watermark",
+            |_caller: Caller<'_, SoloHostState>,
+             _input_path_ptr: i32,
+             _input_path_len: i32,
+             _output_path_ptr: i32,
+             _output_path_len: i32,
+             _config_json_ptr: i32,
+             _config_json_len: i32|
+             -> i32 { code::NOT_IMPLEMENTED },
+        )
+        .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
+
     // solosoul_pdf_watermark —— 为 PDF 添加水印
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
     linker
         .func_wrap(
             "env",
@@ -856,7 +875,8 @@ pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(),
                         }
                     };
 
-                match solosoul_core::watermark::apply_to_pdf(&input_path, &output_path, &config) {
+                match solosoul_core::watermark::apply_to_pdf(
+                    &input_path, &output_path, &config) {
                     Ok(()) => code::SUCCESS,
                     Err(e) => {
                         let _ = caller.data().host.channel.send(PluginEvent::log(
@@ -867,6 +887,22 @@ pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(),
                     }
                 }
             },
+        )
+        .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
+
+    #[cfg(any(target_os = "android", target_os = "ios"))]
+    linker
+        .func_wrap(
+            "env",
+            "solosoul_pdf_watermark",
+            |_caller: Caller<'_, SoloHostState>,
+             _input_path_ptr: i32,
+             _input_path_len: i32,
+             _output_path_ptr: i32,
+             _output_path_len: i32,
+             _config_json_ptr: i32,
+             _config_json_len: i32|
+             -> i32 { code::NOT_IMPLEMENTED },
         )
         .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
 

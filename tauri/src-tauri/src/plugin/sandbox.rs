@@ -33,6 +33,13 @@ impl WasmSandbox {
     pub fn compile(&self, wasm: &[u8]) -> Result<Module, PluginError> {
         let mut config = Config::new();
         config.consume_fuel(true);
+        // 移动端强制使用 Pulley 解释器目标，避免 Cranelift JIT 在 Android/iOS 上的 native signal / mmap 兼容性问题
+        #[cfg(any(target_os = "android", target_os = "ios"))]
+        {
+            config
+                .target("pulley64")
+                .map_err(|e| PluginError::ExecutionFailed(format!("设置 Pulley target 失败: {}", e)))?;
+        }
         let engine =
             Engine::new(&config).map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
         Module::new(&engine, wasm).map_err(PluginError::from)

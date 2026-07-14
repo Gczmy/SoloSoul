@@ -35,23 +35,35 @@ pub struct PluginStore {
 }
 
 impl PluginStore {
-    /// 创建插件存储，同时确保基础目录存在
+    /// 创建插件存储，使用默认数据根目录
     pub fn new() -> Result<Self, PluginError> {
-        let base_dir = Self::plugins_dir()?;
+        let data_dir = Self::data_dir()?;
+        Self::new_with_data_dir(data_dir)
+    }
+
+    /// 创建插件存储，使用指定的 SoloSoul 数据根目录
+    pub fn new_with_data_dir(data_dir: PathBuf) -> Result<Self, PluginError> {
+        let base_dir = data_dir.join("plugins");
         Self::ensure_dir(&base_dir)?;
         Ok(Self { base_dir })
     }
 
-    /// 获取当前用户的插件基础目录
-    fn plugins_dir() -> Result<PathBuf, PluginError> {
-        Ok(Self::data_dir()?.join("plugins"))
-    }
-
-    /// 获取 SoloSoul 数据根目录（~/.solosoul）
+    /// 获取 SoloSoul 数据根目录
+    /// - 桌面端: ~/.solosoul
+    /// - 移动端: {current_dir}/.solosoul （Android/iOS 无传统 home 目录，使用应用当前工作目录作为兜底）
     pub fn data_dir() -> Result<PathBuf, PluginError> {
-        let home = dirs::home_dir()
-            .ok_or_else(|| PluginError::StoreError("无法获取主目录".to_string()))?;
-        Ok(home.join(".solosoul"))
+        #[cfg(any(target_os = "android", target_os = "ios"))]
+        {
+            let base = std::env::current_dir()
+                .map_err(|e| PluginError::StoreError(format!("无法获取当前目录: {}", e)))?;
+            Ok(base.join(".solosoul"))
+        }
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+        {
+            let home = dirs::home_dir()
+                .ok_or_else(|| PluginError::StoreError("无法获取主目录".to_string()))?;
+            Ok(home.join(".solosoul"))
+        }
     }
 
     /// 确保目录存在并设置权限

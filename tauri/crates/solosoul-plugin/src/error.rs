@@ -72,7 +72,6 @@ impl From<serde_json::Error> for PluginError {
     }
 }
 
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
 impl From<wasmtime::Error> for PluginError {
     fn from(e: wasmtime::Error) -> Self {
         PluginError::ExecutionFailed(e.to_string())

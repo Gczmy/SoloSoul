@@ -15,6 +15,8 @@ use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::Arc;
 use tauri::ipc::Channel;
+#[cfg(any(target_os = "android", target_os = "ios"))]
+use tauri::Manager;
 
 /// 插件 ID 允许字符集，防止通过 ID 构造路径遍历。
 /// 将插件 ID 转换为可安全用于文件路径的名称。
@@ -131,9 +133,22 @@ impl PluginManager {
     /// 创建插件管理器（Release 模式，使用 Tauri 资源目录）
     pub fn new_with_app_handle(app_handle: &tauri::AppHandle) -> Result<Self, PluginError> {
         let market_dir = super::paths::resolve_market_dir(Some(app_handle))?;
-        let audit_path = PluginStore::data_dir()?.join("plugin_audit.jsonl");
+
+        // 移动端使用 Tauri 应用私有数据目录，桌面端使用 ~/.solosoul
+        #[cfg(any(target_os = "android", target_os = "ios"))]
+        let data_dir = {
+            app_handle
+                .path()
+                .resolve(".", tauri::path::BaseDirectory::Data)
+                .map_err(|e| PluginError::StoreError(format!("无法解析应用数据目录: {}", e)))?
+                .join(".solosoul")
+        };
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+        let data_dir = PluginStore::data_dir()?;
+
+        let audit_path = data_dir.join("plugin_audit.jsonl");
         Ok(Self {
-            store: PluginStore::new()?,
+            store: PluginStore::new_with_data_dir(data_dir)?,
             registry: PluginRegistry::new_with_app_handle(app_handle)?,
             market_dir,
             session_manager: PluginSessionManager::new(),

@@ -22,28 +22,12 @@ pub use solosoul_plugin::rate_limiter::{RateLimiter, RateLimiterMap};
 pub use solosoul_plugin::session::{PluginSession, PluginSessionManager};
 pub use solosoul_plugin::store::{compute_sha256, PluginStore};
 
-// Tauri 特有本地模块
+// Tauri 特有本地模块（mobile 与 desktop 复用同一套 wasmtime 实现）
 pub mod event;
-
-#[cfg(desktop)]
 pub mod host;
-#[cfg(mobile)]
-#[path = "host_mobile.rs"]
-pub mod host;
-
-#[cfg(desktop)]
 pub mod manager;
-#[cfg(mobile)]
-#[path = "manager_mobile.rs"]
-pub mod manager;
-
 pub mod paths;
 pub mod registry;
-
-#[cfg(desktop)]
-pub mod sandbox;
-#[cfg(mobile)]
-#[path = "sandbox_mobile.rs"]
 pub mod sandbox;
 
 // 从本地模块重新导出（保持 super::xxx 兼容）
