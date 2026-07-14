@@ -40,3 +40,93 @@
   text-overflow: ellipsis;
   max-width: 100%;
 }
+
+/* Expand / collapse arrow */
+.toggleIcon {
+  transition: transform 0.2s ease;
+}
+
+.toggleIconExpanded {
+  transform: rotate(180deg);
+}
+
+/* Upward expandable function button panel */
+.functionPanel {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+  z-index: 199;
+  max-height: 50vh;
+  overflow-y: auto;
+  background: var(--bg-toolbar);
+  border-top: 1px solid var(--border-subtle);
+  border-radius: 16px 16px 0 0;
+  box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+  padding: 16px 12px calc(12px + env(safe-area-inset-bottom, 0px));
+  animation: slideUp 0.2s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.functionGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.functionButtonWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.functionButton {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  min-height: 68px;
+  padding: 8px 4px;
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 10px;
+  line-height: 1.2;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.functionButton:active {
+  background: var(--state-hover);
+}
+
+.functionButtonActive {
+  color: var(--accent-primary);
+  background: rgba(91, 124, 153, 0.08);
+}
+
+.functionLabel {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+  max-width: 100%;
+  word-break: break-word;
+}

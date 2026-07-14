@@ -225,6 +225,7 @@
   "search_desc": "全局搜索对象、资料、帮助文档",
   "settings_desc": "管理账户、主题、安全与偏好设置",
   "collapse": "收起",
+  "expand": "展开",
   "confirm_delete_title": "删除附件",
   "confirm_delete_body": "确定要删除「{{name}}」吗？将被移入回收站，后续可恢复。",
   "ai_chat_desc": "与 AI 助手对话，获取建议与帮助",

@@ -226,6 +226,7 @@
   "search_desc": "Globally search objects, profiles, and help docs",
   "settings_desc": "Manage account, theme, security, and preferences",
   "collapse": "Collapse",
+  "expand": "Expand",
   "confirm_delete_title": "Delete attachment",
   "confirm_delete_body": "Delete \"{{name}}\"? It will be moved to trash and can be restored later.",
   "ai_chat_desc": "Chat with the AI assistant for suggestions and help",
