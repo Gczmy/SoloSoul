@@ -241,11 +241,10 @@ export function AddPageButton({
           data-tauri-drag-region="false"
         >
           <Plus size={ICON_SIZE.xl} />
+          {showLabel && <span className={styles.addPageLabel}>{t('add_page')}</span>}
         </button>
         {createPortal(nameCard, document.body)}
-      </div>
-      {showLabel && <span className={styles.addPageLabel}>{t('add_page')}</span>}
-      {' '}
+      </div>{' '}
       {/* Popover create row — portaled to body so it sits above sidebar/tooltips */}
       {createPortal(
         <AnimatePresence>
