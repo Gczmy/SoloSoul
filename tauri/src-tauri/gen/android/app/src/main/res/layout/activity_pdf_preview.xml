@@ -4,7 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#1F1C18">
+    android:background="#1F1C18"
+    android:fitsSystemWindows="true">
 
     <!-- 顶部工具栏：文件名 + 关闭 -->
     <LinearLayout
@@ -35,14 +36,15 @@
             android:contentDescription="Close" />
     </LinearLayout>
 
-    <!-- PDF 页面渲染区 -->
+    <!-- PDF 页面渲染区，使用白色背景避免 PDF 白色页面/透明背景与深色背景融合 -->
     <ImageView
         android:id="@+id/pdfPageImage"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
         android:scaleType="fitCenter"
-        android:background="#000000" />
+        android:background="#FFFFFF"
+        android:padding="12dp" />
 
     <!-- 底部控制栏：上一页 / 页码 / 下一页 -->
     <LinearLayout

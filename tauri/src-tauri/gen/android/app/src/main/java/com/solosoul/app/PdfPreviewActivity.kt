@@ -1,16 +1,16 @@
 package com.solosoul.app
 
 import android.graphics.Bitmap
+import android.graphics.Color
 import android.graphics.pdf.PdfRenderer
-import android.net.Uri
 import android.os.Bundle
 import android.os.ParcelFileDescriptor
-import android.view.View
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.FileProvider
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -19,7 +19,7 @@ import java.io.IOException
  * 原生 PDF 预览 Activity。
  *
  * 使用 Android PdfRenderer 将 PDF 页面渲染为 Bitmap，避免依赖外部 PDF 阅读器。
- * 支持上一页/下一页导航，并在页面切换时保持状态栏为浅色图标（适配深色背景）。
+ * 支持上一页/下一页导航，并确保系统状态栏可见且图标为浅色。
  */
 class PdfPreviewActivity : AppCompatActivity() {
 
@@ -46,6 +46,13 @@ class PdfPreviewActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_pdf_preview)
 
+        // 状态栏与导航栏保持可见，图标/文字设为浅色（深色背景）。
+        window.statusBarColor = Color.parseColor("#1F1C18")
+        window.navigationBarColor = Color.parseColor("#1F1C18")
+        val controller = WindowCompat.getInsetsController(window, window.decorView)
+        controller.isAppearanceLightStatusBars = false
+        controller.isAppearanceLightNavigationBars = false
+
         pageImage = findViewById(R.id.pdfPageImage)
         titleView = findViewById(R.id.pdfTitle)
         pageInfoView = findViewById(R.id.pdfPageInfo)
@@ -56,9 +63,6 @@ class PdfPreviewActivity : AppCompatActivity() {
         closeButton.setOnClickListener { finish() }
         prevButton.setOnClickListener { showPage(currentIndex - 1) }
         nextButton.setOnClickListener { showPage(currentIndex + 1) }
-
-        // 保持深色预览背景配浅色状态栏图标。
-        window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_LAYOUT_STABLE
 
         val path = intent.getStringExtra(EXTRA_PATH)
         val title = intent.getStringExtra(EXTRA_TITLE)

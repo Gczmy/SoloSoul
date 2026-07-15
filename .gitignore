@@ -85,3 +85,7 @@ SoloSoul-Releases/
 # Android / mobile test artifacts (screenshots, automation scripts)
 tauri/solosoul_*.png
 tauri/auto_create_account.sh
+
+# Android build outputs (APK, AAB, generated .so, intermediates)
+tauri/src-tauri/gen/android/app/build/
+tauri/src-tauri/gen/android/app/src/main/jniLibs/
