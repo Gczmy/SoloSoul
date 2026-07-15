@@ -606,6 +606,29 @@ fn build_attachment_tree_pages(
     Ok(pages)
 }
 
+/// If `dest` already exists, append an incrementing counter before the extension.
+/// e.g. `a.pdf` -> `a(1).pdf`, `a(1).pdf` -> `a(2).pdf`.
+fn make_unique_dest_path(dest: &Path) -> PathBuf {
+    if !dest.exists() {
+        return dest.to_path_buf();
+    }
+    let parent = dest.parent().unwrap_or_else(|| Path::new(""));
+    let stem = dest.file_stem().and_then(|s| s.to_str()).unwrap_or("file");
+    let ext = dest
+        .extension()
+        .and_then(|s| s.to_str())
+        .map(|s| format!(".{}", s))
+        .unwrap_or_default();
+    let mut n = 1;
+    loop {
+        let candidate = parent.join(format!("{}({}){}", stem, n, ext));
+        if !candidate.exists() {
+            return candidate;
+        }
+        n += 1;
+    }
+}
+
 /// Download an attachment file to a user-chosen destination path.
 /// Copies the file from vault storage to a destination path that is verified
 /// to be within the user's allowed download area (desktop, documents, downloads,
@@ -728,12 +751,15 @@ pub async fn attachment_download(
         }
     }
 
+    // Resolve duplicate file names: a.pdf -> a(1).pdf -> a(2).pdf
+    let dest = make_unique_dest_path(dest);
+
     // Create parent directory and copy the file
     if let Some(parent) = dest.parent() {
         std::fs::create_dir_all(parent)
             .map_err(|e| format!("Failed to create destination directory: {}", e))?;
     }
-    std::fs::copy(&src, dest).map_err(|e| format!("Failed to copy file: {}", e))?;
+    std::fs::copy(&src, &dest).map_err(|e| format!("Failed to copy file: {}", e))?;
 
     Ok(())
 }
@@ -1172,5 +1198,24 @@ mod tests {
         let atts2 = load_attachments(&rec2.properties);
         assert_eq!(atts2.iter().filter(|a| a.deleted_at.is_none()).count(), 0);
         assert_eq!(atts2.iter().filter(|a| a.deleted_at.is_some()).count(), 2);
+    }
+
+    #[test]
+    fn test_make_unique_dest_path_no_conflict() {
+        let tmp = tempfile::tempdir().unwrap();
+        let dest = tmp.path().join("a.pdf");
+        assert_eq!(make_unique_dest_path(&dest), dest);
+    }
+
+    #[test]
+    fn test_make_unique_dest_path_with_conflict() {
+        let tmp = tempfile::tempdir().unwrap();
+        let dest = tmp.path().join("a.pdf");
+        std::fs::write(&dest, b"").unwrap();
+        let r1 = make_unique_dest_path(&dest);
+        assert_eq!(r1, tmp.path().join("a(1).pdf"));
+        std::fs::write(&r1, b"").unwrap();
+        let r2 = make_unique_dest_path(&dest);
+        assert_eq!(r2, tmp.path().join("a(2).pdf"));
     }
 }
