@@ -176,7 +176,7 @@ export function ObjectTemplateSelector({
 
   return (
     <Card>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
         <span style={{ fontSize: 'var(--text-caption)', color: 'var(--text-secondary)' }}>
           {t('common:object_type')}:
         </span>
@@ -198,6 +198,8 @@ export function ObjectTemplateSelector({
               fontSize: 'var(--text-badge)',
               color: 'var(--text-tertiary)',
               textDecoration: selectedType ? 'none' : 'line-through',
+              wordBreak: 'break-word',
+              minWidth: 0,
             }}
           >
             ·{' '}

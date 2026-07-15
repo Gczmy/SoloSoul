@@ -476,7 +476,13 @@ export function ObjectDetailModal({
                     >
                       {obj.name}
                     </h2>
-                    <span style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
+                    <span
+                      style={{
+                        fontSize: 'var(--text-badge)',
+                        color: 'var(--text-tertiary)',
+                        wordBreak: 'break-word',
+                      }}
+                    >
                       {resolveCollectionLabelLocal(obj.collectionType)}
                       {/* 模板名 — 模板不匹配（已删除/更改页面）时显示删除线 */}
                       {obj.templateId &&
