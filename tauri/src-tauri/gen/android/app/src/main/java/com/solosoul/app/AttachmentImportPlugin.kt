@@ -196,10 +196,30 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
   private fun tryRenameDocument(uri: Uri, newName: String): Uri? {
     return try {
       // 系统保存对话框返回的通常是 document URI，直接使用即可
-      DocumentsContract.renameDocument(activity.contentResolver, uri, newName)
+      val renamed = DocumentsContract.renameDocument(activity.contentResolver, uri, newName)
+      if (renamed != null) {
+        // 对 Download Provider 等场景，renameDocument 可能只更新元数据，
+        // 再用 ContentResolver.update 更新 DISPLAY_NAME 作为兜底。
+        updateDisplayName(renamed, newName)
+        val verified = queryDisplayName(renamed)
+        android.util.Log.d("SoloSoul", "after rename: newName=$newName, verified=$verified")
+      }
+      renamed
     } catch (e: Exception) {
       android.util.Log.d("SoloSoul", "renameDocument failed for $newName: ${e.message}")
       null
+    }
+  }
+
+  private fun updateDisplayName(uri: Uri, newName: String): Boolean {
+    return try {
+      val values = android.content.ContentValues().apply {
+        put(OpenableColumns.DISPLAY_NAME, newName)
+      }
+      activity.contentResolver.update(uri, values, null, null) > 0
+    } catch (e: Exception) {
+      android.util.Log.d("SoloSoul", "updateDisplayName failed: ${e.message}")
+      false
     }
   }
 
