@@ -138,8 +138,8 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
       }
 
       // 系统文件选择器若因同名自动追加序号，通常会放在扩展名之后（如 a.pdf(1)）。
-      // 这里把它修正到扩展名之前（a(1).pdf），避免文件无法识别。
-      uri = sanitizeDuplicateDisplayName(uri)
+      // 以原始文件名为基准，尝试重命名为原始名或 a(1).pdf、a(2).pdf，确保扩展名在前。
+      uri = renameToUniqueDisplayName(uri, srcFile.name)
 
       invoke.resolve(JSObject())
     } catch (e: IOException) {
@@ -150,19 +150,43 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
   }
 
   /**
-   * 修正系统因同名自动追加的序号位置。
-   * 例如 "a.pdf(1)" → "a(1).pdf"；"a (1).pdf" → "a(1).pdf"；无扩展名时 "a(1)" 保持不变。
+   * 以原始文件名为基准，把目标 URI 重命名为唯一且扩展名正确的名字。
+   * 例如系统已生成 a.pdf(1)，会优先修正为 a(1).pdf；若该名也存在则递增。
    */
-  private fun sanitizeDuplicateDisplayName(uri: Uri): Uri {
-    val name = queryDisplayName(uri) ?: return uri
-    val newName = sanitizeDuplicateSuffix(name)
-    if (newName == name) return uri
+  private fun renameToUniqueDisplayName(uri: Uri, originalName: String): Uri {
+    val currentName = queryDisplayName(uri)
+    // 如果当前文件名看起来已经是 "原始名"，直接返回
+    if (currentName == originalName) return uri
+
+    // 先尝试修正当前可能错误放置的序号：a.pdf(1) -> a(1).pdf
+    if (currentName != null) {
+      val corrected = sanitizeDuplicateSuffix(currentName)
+      if (corrected != currentName) {
+        tryRenameDocument(uri, corrected)?.let { return it }
+      }
+    }
+
+    // 否则以 originalName 为基准生成候选名：originalName, a(1).pdf, a(2).pdf...
+    val ext = originalName.substringAfterLast(".", "")
+    val stem = if (ext.isEmpty()) originalName else originalName.substringBeforeLast(".")
+    val candidates = mutableListOf(originalName)
+    for (i in 1..1000) {
+      candidates.add(if (ext.isEmpty()) "${stem}($i)" else "${stem}($i).${ext}")
+    }
+
+    for (name in candidates) {
+      tryRenameDocument(uri, name)?.let { return it }
+    }
+    return uri
+  }
+
+  private fun tryRenameDocument(uri: Uri, newName: String): Uri? {
     return try {
       val docId = DocumentsContract.getDocumentId(uri)
       val docUri = DocumentsContract.buildDocumentUriUsingTree(uri, docId)
-      DocumentsContract.renameDocument(activity.contentResolver, docUri, newName) ?: uri
+      DocumentsContract.renameDocument(activity.contentResolver, docUri, newName)
     } catch (e: Exception) {
-      uri
+      null
     }
   }
 

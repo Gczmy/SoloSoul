@@ -56,13 +56,14 @@ export function AttachmentViewer({
   const [loading, setLoading] = useState(true);
   const [showTrash, setShowTrash] = useState(false);
   const [permDeleteItem, setPermDeleteItem] = useState<AttachmentItem | null>(null);
+  const [deleteItem, setDeleteItem] = useState<AttachmentItem | null>(null);
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
   const renameInputRef = useRef<HTMLInputElement>(null);
   const [previewItem, setPreviewItem] = useState<AttachmentItem | null>(null);
   const { t } = useTranslation(['common', 'editor']);
   const showToast = useUiStore((s) => s.showToast);
-  const { requestConfirm, dialog: confirmDialog } = useConfirm();
+  const { dialog: confirmDialog } = useConfirm();
 
   const openAttachmentExternal = async (item: AttachmentItem) => {
     try {
@@ -170,23 +171,21 @@ export function AttachmentViewer({
   };
 
   const handleDelete = (item: AttachmentItem) => {
-    const truncatedName = truncateFileName(item.fileName);
-    requestConfirm(
-      t('common:confirm_delete_title', 'Delete attachment'),
-      t('common:confirm_delete_body', { name: truncatedName }) ||
-        `Delete "${truncatedName}"? It will be moved to trash.`,
-      async () => {
-        await invoke('attachment_soft_delete', { objectId, attachmentId: item.id }).catch((e) => {
-          showToast({
-            type: 'error',
-            message: t('common:delete_failed') || `Delete failed: ${e}`,
-          });
-        });
-        await loadAttachments();
-        onCountChange?.();
-      },
-      { confirmLabel: t('common:delete'), cancelLabel: t('common:cancel'), priority: 'auth' },
-    );
+    setDeleteItem(item);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteItem) return;
+    const item = deleteItem;
+    setDeleteItem(null);
+    await invoke('attachment_soft_delete', { objectId, attachmentId: item.id }).catch((e) => {
+      showToast({
+        type: 'error',
+        message: t('common:delete_failed') || `Delete failed: ${e}`,
+      });
+    });
+    await loadAttachments();
+    onCountChange?.();
   };
 
   const handleRestore = async (item: AttachmentItem) => {
@@ -358,7 +357,13 @@ export function AttachmentViewer({
         background: 'rgba(0,0,0,0.35)',
         backdropFilter: 'blur(6px)',
       }}
-      onClick={onClose}
+      onClick={() => {
+        // 有确认对话框打开时禁止背景点击关闭，避免移动端误触回到 workspace
+        if (deleteItem || permDeleteItem || batchDeleteConfirm || batchRestoreConfirm || batchPermanentDeleteConfirm) {
+          return;
+        }
+        onClose();
+      }}
     >
       {!loading && (
         <motion.div
@@ -700,6 +705,21 @@ export function AttachmentViewer({
       />
       {confirmDialog}
       {/* Confirmation dialogs */}
+      <ConfirmDialog
+        open={!!deleteItem}
+        title={t('common:confirm_delete_title', 'Delete attachment')}
+        body={
+          t('common:confirm_delete_body', {
+            name: deleteItem ? truncateFileName(deleteItem.fileName) : '',
+          }) ||
+          `Delete "${deleteItem ? truncateFileName(deleteItem.fileName) : ''}"? It will be moved to trash.`
+        }
+        confirmLabel={t('common:delete')}
+        cancelLabel={t('common:cancel')}
+        confirmStyle="danger"
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setDeleteItem(null)}
+      />
       <ConfirmDialog
         open={batchDeleteConfirm}
         title={t('common:batch_delete_title')}
