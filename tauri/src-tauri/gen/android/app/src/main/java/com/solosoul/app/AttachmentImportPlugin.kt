@@ -155,14 +155,23 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
    */
   private fun renameToUniqueDisplayName(uri: Uri, originalName: String): Uri {
     val currentName = queryDisplayName(uri)
+    android.util.Log.d("SoloSoul", "renameToUniqueDisplayName: original=$originalName, current=$currentName, uri=$uri")
+
     // 如果当前文件名看起来已经是 "原始名"，直接返回
-    if (currentName == originalName) return uri
+    if (currentName == originalName) {
+      android.util.Log.d("SoloSoul", "currentName equals originalName, skip")
+      return uri
+    }
 
     // 先尝试修正当前可能错误放置的序号：a.pdf(1) -> a(1).pdf
     if (currentName != null) {
       val corrected = sanitizeDuplicateSuffix(currentName)
+      android.util.Log.d("SoloSoul", "corrected=$corrected")
       if (corrected != currentName) {
-        tryRenameDocument(uri, corrected)?.let { return it }
+        tryRenameDocument(uri, corrected)?.let {
+          android.util.Log.d("SoloSoul", "renamed to corrected: $it")
+          return it
+        }
       }
     }
 
@@ -175,17 +184,21 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
     }
 
     for (name in candidates) {
-      tryRenameDocument(uri, name)?.let { return it }
+      tryRenameDocument(uri, name)?.let {
+        android.util.Log.d("SoloSoul", "renamed to: $name, newUri=$it")
+        return it
+      }
     }
+    android.util.Log.d("SoloSoul", "all rename attempts failed, keep uri=$uri")
     return uri
   }
 
   private fun tryRenameDocument(uri: Uri, newName: String): Uri? {
     return try {
-      val docId = DocumentsContract.getDocumentId(uri)
-      val docUri = DocumentsContract.buildDocumentUriUsingTree(uri, docId)
-      DocumentsContract.renameDocument(activity.contentResolver, docUri, newName)
+      // 系统保存对话框返回的通常是 document URI，直接使用即可
+      DocumentsContract.renameDocument(activity.contentResolver, uri, newName)
     } catch (e: Exception) {
+      android.util.Log.d("SoloSoul", "renameDocument failed for $newName: ${e.message}")
       null
     }
   }
