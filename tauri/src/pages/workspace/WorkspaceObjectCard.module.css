@@ -1,0 +1,119 @@
+.cardHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.headerMain {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  overflow: hidden;
+  min-width: 0;
+  flex: 1;
+}
+
+.headerIcon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.headerContent {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* 桌面端：让页面 badge + 模板名作为一组参与父级水平 flex */
+.metaGroup {
+  display: contents;
+}
+
+/* 桌面端：插件徽章直接参与父级水平 flex */
+.pluginRow {
+  display: contents;
+}
+
+.objectName {
+  font-size: var(--text-body);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pageBadge {
+  font-size: var(--text-badge);
+  color: var(--text-tertiary);
+  margin-left: 2px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--bg-elevated);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.templateName {
+  font-size: var(--text-badge);
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.actionsDivider {
+  width: 3px;
+  height: 20px;
+  border-radius: 9999px;
+  background: var(--border-subtle);
+  flex-shrink: 0;
+}
+
+@media (max-width: 767px) {
+  .cardHeader {
+    align-items: flex-start;
+  }
+
+  .headerMain {
+    align-items: flex-start;
+  }
+
+  .headerContent {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .metaGroup {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .pluginRow {
+    display: flex;
+  }
+
+  .objectName {
+    white-space: normal;
+    word-break: break-word;
+    overflow: visible;
+    text-overflow: clip;
+  }
+
+  .templateName {
+    white-space: normal;
+    word-break: break-word;
+  }
+}

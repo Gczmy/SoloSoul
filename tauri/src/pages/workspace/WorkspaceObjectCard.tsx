@@ -12,6 +12,7 @@ import { PluginBadge } from '@/components/template/PluginBadge';
 import { useDragToAttach } from '@/hooks/useDragToAttach';
 import { DragUploadOverlay } from '@/components/object/DragUploadOverlay';
 import { ICON_SIZE } from '@/lib/constants';
+import styles from './WorkspaceObjectCard.module.css';
 
 /** Extract displayable key-value pairs from object properties (filters internal __ fields).
  * 对于 dynamic_group 类型，每个子字段作为独立条目返回，使用子字段名称作为 label。
@@ -209,80 +210,44 @@ export const WorkspaceObjectCard = memo(function WorkspaceObjectCard({
         )}
         {/* Header row */}
         <div
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginBottom: fields.length > 0 ? 8 : 0,
-          }}
+          className={styles.cardHeader}
+          style={{ marginBottom: fields.length > 0 ? 8 : 0 }}
         >
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              overflow: 'hidden',
-              minWidth: 0,
-            }}
-          >
-            <span style={{ flexShrink: 0, display: 'flex' }}>
+          <div className={styles.headerMain}>
+            <span className={styles.headerIcon}>
               <TemplateIcon size={ICON_SIZE['2xl']} />
             </span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
-              <span
-                style={{
-                  fontSize: 'var(--text-body)',
-                  fontWeight: 600,
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {obj.name}
+            <div className={styles.headerContent}>
+              <span className={styles.objectName}>{obj.name}</span>
+              <span className={styles.metaGroup}>
+                <span className={styles.pageBadge}>{collectionLabel}</span>
+                {/* 模板名 — 模板不匹配（已删除/更改页面）时显示删除线 */}
+                {obj.templateId && (
+                  <span
+                    className={styles.templateName}
+                    style={{ textDecoration: tplMatch ? 'none' : 'line-through' }}
+                  >
+                    {tplMatch
+                      ? tpl!.name
+                      : (() => {
+                          const tplName = (obj.properties as Record<string, unknown>)
+                            ?.__templateName as string | undefined;
+                          const tid = obj.templateId || '';
+                          return tplName ? `${tplName} (${tid.slice(0, 8)}…)` : tid;
+                        })()}
+                  </span>
+                )}
               </span>
-              <span
-                style={{
-                  fontSize: 'var(--text-badge)',
-                  color: 'var(--text-tertiary)',
-                  marginLeft: 2,
-                  padding: '1px 5px',
-                  borderRadius: 4,
-                  background: 'var(--bg-elevated)',
-                  flexShrink: 0,
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {collectionLabel}
-              </span>
-              {/* 模板名 — 模板不匹配（已删除/更改页面）时显示删除线 */}
-              {obj.templateId && (
-                <span
-                  style={{
-                    fontSize: 'var(--text-badge)',
-                    color: 'var(--text-tertiary)',
-                    textDecoration: tplMatch ? 'none' : 'line-through',
-                    flexShrink: 0,
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {tplMatch
-                    ? tpl!.name
-                    : (() => {
-                        const tplName = (obj.properties as Record<string, unknown>)
-                          ?.__templateName as string | undefined;
-                        const tid = obj.templateId || '';
-                        return tplName ? `${tplName} (${tid.slice(0, 8)}…)` : tid;
-                      })()}
-                </span>
-              )}
               {obj.contractTypeId && (
-                <PluginBadge contractTypeId={obj.contractTypeId} size="sm" variant="full" />
+                <span className={styles.pluginRow}>
+                  <PluginBadge contractTypeId={obj.contractTypeId} size="sm" variant="full" />
+                </span>
               )}
             </div>
           </div>
           {/* Action buttons — info (history/attachments) | divider | edit/delete */}
           <div
-            style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}
+            className={styles.headerActions}
             onClick={(e) => e.stopPropagation()}
           >
             <BadgeIconButton
@@ -297,15 +262,7 @@ export const WorkspaceObjectCard = memo(function WorkspaceObjectCard({
               onClick={onAttachments}
               title="Attachments"
             />
-            <div
-              style={{
-                width: 3,
-                height: 20,
-                borderRadius: 9999,
-                background: 'var(--border-subtle)',
-                flexShrink: 0,
-              }}
-            />
+            <div className={styles.actionsDivider} />
             <BadgeIconButton Icon={Pencil} onClick={onEdit} title="Edit" />
             <BadgeIconButton Icon={Trash2} onClick={onDelete} title="Move to trash" dangerOutline />
           </div>
