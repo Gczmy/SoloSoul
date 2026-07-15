@@ -35,13 +35,14 @@ import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import { DragUploadOverlay } from '@/components/object/DragUploadOverlay';
 import type { PageIconKey, CustomIconId } from '@/lib/pageIcons';
 import type { LucideIcon } from 'lucide-react';
-import { truncateFileName } from '@/lib/attachmentUtils';
+import { truncateFileName, previewItemByMime } from '@/lib/attachmentUtils';
 import { formatBytes } from '@/lib/utils';
 import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
 import { AttachmentPreviewOverlay } from '@/components/attachment/AttachmentPreviewOverlay';
 import { ConfirmDialog } from '@/components/attachment/ConfirmDialog';
 import { ICON_SIZE } from '@/lib/constants';
 import buttonStyles from '@/components/ui/Button.module.css';
+import { isMobilePlatformSync } from '@/lib/platform';
 
 /** Resolve icon from either PAGE_ICON_MAP (built-in) or CUSTOM_ICON_MAP (user-selectable). */
 function resolvePageIcon(iconKey?: string | null): LucideIcon {
@@ -206,6 +207,11 @@ export function GlobalAttachmentManager() {
   };
 
   const handlePreview = async (item: AttachmentMeta) => {
+    // 移动端 PDF 无法直接在 WebView 遮罩中渲染，统一使用系统应用打开，与对象附件卡片保持一致。
+    if (isMobilePlatformSync() && previewItemByMime(item) === 'pdf') {
+      openAttachmentExternal(item);
+      return;
+    }
     setPreviewItem(item);
   };
 
