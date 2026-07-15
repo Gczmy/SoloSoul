@@ -3,8 +3,8 @@
   "bundle": {
     "resources": {
       "resources/pdfium": "pdfium",
-      "../../SoloSoul_plugin_market/plugins": "SoloSoul_plugin_market/plugins",
-      "../../SoloSoul_plugin_market/registry.json": "SoloSoul_plugin_market/registry.json"
+      "resources-desktop/SoloSoul_plugin_market/plugins": "SoloSoul_plugin_market/plugins",
+      "resources-desktop/SoloSoul_plugin_market/registry.json": "SoloSoul_plugin_market/registry.json"
     }
   }
 }

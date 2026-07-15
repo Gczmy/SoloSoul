@@ -649,8 +649,8 @@ pub async fn attachment_download(
         .unwrap_or_else(|_| attachments_dir.clone());
     let in_attachments = src.starts_with(&attachments_canon)
         || src_path.starts_with(attachments_canon.to_string_lossy().as_ref());
-    let in_vault = src.starts_with(&vault_base)
-        || src_path.starts_with(vault_base.to_string_lossy().as_ref());
+    let in_vault =
+        src.starts_with(&vault_base) || src_path.starts_with(vault_base.to_string_lossy().as_ref());
 
     if !in_attachments && !in_vault {
         return Err("Source path must be within vault storage".to_string());
@@ -799,13 +799,19 @@ pub async fn attachment_open<R: Runtime>(
             }
         })
         .map_err(|e| {
-            tracing::error!("attachment_open debug: resolve failed for {}: {}", path_str, e);
+            tracing::error!(
+                "attachment_open debug: resolve failed for {}: {}",
+                path_str,
+                e
+            );
             format!("Cannot access attachment file: {}", e)
         })?;
     let attachments_canon = attachments_dir
         .canonicalize()
         .unwrap_or_else(|_| attachments_dir.clone());
-    if !path.starts_with(&attachments_canon) && !path_str.starts_with(attachments_canon.to_string_lossy().as_ref()) {
+    if !path.starts_with(&attachments_canon)
+        && !path_str.starts_with(attachments_canon.to_string_lossy().as_ref())
+    {
         tracing::error!(
             "attachment_open debug: path {} is outside attachments_dir {}",
             path.display(),

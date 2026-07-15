@@ -32,6 +32,10 @@ Thumbs.db
 # Generated files
 src/types/ipc.ts
 
+# Staged resources for desktop/mobile bundles
+src-tauri/resources-mobile/
+src-tauri/resources-desktop/
+
 # Logs
 *.log
 npm-debug.log*

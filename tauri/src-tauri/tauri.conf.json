@@ -51,7 +51,7 @@
     ],
     "resources": {
       "resources/docs": "docs",
-      "resources/models": "models"
+      "resources/models/pp-ocr-v6-small": "models/pp-ocr-v6-small"
     },
     "windows": {
       "nsis": {

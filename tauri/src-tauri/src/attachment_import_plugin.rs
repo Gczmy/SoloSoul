@@ -276,8 +276,8 @@ pub async fn attachment_export_content_uri<R: Runtime>(
     // 并且优先要求其在 attachments 子目录下。
     let in_attachments = src.starts_with(&attachments_canon)
         || src_path.starts_with(attachments_canon.to_string_lossy().as_ref());
-    let in_vault = src.starts_with(&base_canon)
-        || src_path.starts_with(base_canon.to_string_lossy().as_ref());
+    let in_vault =
+        src.starts_with(&base_canon) || src_path.starts_with(base_canon.to_string_lossy().as_ref());
 
     if !in_attachments && !in_vault {
         return Err(format!(

@@ -271,10 +271,15 @@ mod tests {
 
     #[test]
     fn test_model_exists() {
-        // This test assumes the model is downloaded in resources for dev testing
+        // 模型已改为按需下载，不再随包携带；仅在本地已下载时验证。
         let models_dir =
             std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("resources/models");
-        assert!(is_model_installed(&models_dir, "all-MiniLM-L6-v2"));
+        if !is_model_installed(&models_dir, "all-MiniLM-L6-v2") {
+            eprintln!(
+                "Skipping test_model_exists: embedding model not present (downloaded on demand)"
+            );
+            return;
+        }
     }
 
     #[test]
