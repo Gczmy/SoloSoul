@@ -7,6 +7,7 @@
  * - 下载/导出：先让 Rust 写到应用缓存的临时文件，再用 plugin-fs 复制到目标 URI。
  */
 
+import { invoke } from '@tauri-apps/api/core';
 import { copyFile, mkdir, remove, stat } from '@tauri-apps/plugin-fs';
 import { appCacheDir, join } from '@tauri-apps/api/path';
 
@@ -77,7 +78,7 @@ export async function copyStagedFileToDest(
 /**
  * 把 Vault 中的文件下载到目标路径。
  * 桌面端直接调用 downloadFn；Android 端若目标是 content:// URI，
- * 则先把文件写入应用缓存，再用 plugin-fs 复制到 URI。
+ * 则通过原生插件直接把 Vault 文件流式复制到 URI。
  */
 export async function downloadViaStage(
   srcPath: string,
@@ -85,11 +86,30 @@ export async function downloadViaStage(
   fileName: string,
   downloadFn: (src: string, dest: string) => Promise<void>,
 ): Promise<void> {
+  if (!srcPath) {
+    throw new Error('Attachment source path is missing');
+  }
+  if (isUriPath(srcPath)) {
+    throw new Error(
+      'Attachment is not stored in vault (source is still a content URI). Please re-upload.',
+    );
+  }
+
   if (!isUriPath(destPath)) {
     await downloadFn(srcPath, destPath);
     return;
   }
 
+  // Android content:// URI：原生插件直接处理，避免 plugin-fs 无法复制 URI。
+  if (destPath.startsWith('content://')) {
+    await invoke('attachment_export_content_uri', {
+      srcPath: srcPath,
+      destUri: destPath,
+    });
+    return;
+  }
+
+  // file:// URI 等兜底：先中转缓存，再用 plugin-fs 复制。
   const stagedPath = await prepareStagedDownloadPath(fileName);
   try {
     await downloadFn(srcPath, stagedPath);

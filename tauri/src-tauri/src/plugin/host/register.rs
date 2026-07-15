@@ -799,8 +799,7 @@ pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(),
                         }
                     };
 
-                match solosoul_core::watermark::apply_to_image(
-                    &input_path, &output_path, &config) {
+                match solosoul_core::watermark::apply_to_image(&input_path, &output_path, &config) {
                     Ok(()) => code::SUCCESS,
                     Err(e) => {
                         let _ = caller.data().host.channel.send(PluginEvent::log(
@@ -875,8 +874,7 @@ pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(),
                         }
                     };
 
-                match solosoul_core::watermark::apply_to_pdf(
-                    &input_path, &output_path, &config) {
+                match solosoul_core::watermark::apply_to_pdf(&input_path, &output_path, &config) {
                     Ok(()) => code::SUCCESS,
                     Err(e) => {
                         let _ = caller.data().host.channel.send(PluginEvent::log(

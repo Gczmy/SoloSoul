@@ -24,7 +24,11 @@ fn validate_attachment_id(id: &str) -> Result<(), String> {
     Ok(())
 }
 
-fn attachment_dir(base: &Path, object_id: &str, attachment_id: &str) -> Result<PathBuf, String> {
+pub(crate) fn attachment_dir(
+    base: &Path,
+    object_id: &str,
+    attachment_id: &str,
+) -> Result<PathBuf, String> {
     validate_attachment_id(object_id)?;
     validate_attachment_id(attachment_id)?;
     Ok(base.join("attachments").join(object_id).join(attachment_id))

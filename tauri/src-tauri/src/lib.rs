@@ -3,6 +3,7 @@ use std::sync::OnceLock;
 use tauri::Emitter;
 use tauri::Manager;
 
+pub mod attachment_import_plugin;
 pub mod commands;
 pub mod local_embed;
 pub mod plugin;
@@ -138,7 +139,8 @@ pub fn run() {
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_os::init())
-        .plugin(status_bar_plugin::init());
+        .plugin(status_bar_plugin::init())
+        .plugin(attachment_import_plugin::init());
 
     // 桌面端专属插件
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -524,6 +526,8 @@ pub fn run() {
             commands::attachment::attachment_cleanup_orphans,
             commands::attachment::attachment_download,
             commands::attachment::attachment_open,
+            attachment_import_plugin::attachment_import_content_uri,
+            attachment_import_plugin::attachment_export_content_uri,
             // Sync commands
             commands::sync::sync_discover,
             commands::sync::sync_get_status,

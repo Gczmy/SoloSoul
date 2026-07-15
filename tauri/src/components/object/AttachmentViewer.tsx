@@ -111,10 +111,16 @@ export function AttachmentViewer({
 
   const handleAdd = async () => {
     const filePath = await pickFileToAttach();
-    if (filePath) {
+    if (!filePath) return;
+    try {
       await uploadSingleAttachment(filePath, objectId);
       await loadAttachments();
       onCountChange?.();
+    } catch (e) {
+      showToast({
+        type: 'error',
+        message: `${t('common:upload_failed')}: ${e}`,
+      });
     }
   };
 

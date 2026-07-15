@@ -5,6 +5,11 @@ import {
   stageFileForUpload,
 } from './mobileFileTransfer';
 
+/** 判断是否为 Android content:// URI */
+function isContentUri(path: string): boolean {
+  return path.startsWith('content://');
+}
+
 /** MIME 类型映射表（扩展名 → MIME type） */
 export const MIME_MAP: Record<string, string> = {
   jpg: 'image/jpeg',
@@ -97,7 +102,7 @@ export async function pickFileToAttach(): Promise<string | null> {
  *
  * 完整流程：解析文件名 → 获取文件大小 → 生成 UUID → 复制到 Vault → 写入数据库。
  *
- * @param filePath  - 源文件的绝对路径
+ * @param filePath  - 源文件的绝对路径或 URI
  * @param objectId  - 目标对象 ID
  * @returns 新创建的附件 ID
  */
@@ -105,29 +110,45 @@ export async function uploadSingleAttachment(filePath: string, objectId: string)
   const fileName = getFileName(filePath);
   const id = crypto.randomUUID();
 
-  // Android 上 plugin-dialog 返回 content:// URI，Rust 标准库无法直接读取。
-  // 先通过 plugin-fs 中转，把 URI 复制到应用缓存后再交给 Rust。
   let uploadPath = filePath;
   let sizeBytes: number;
   let stagedPath: string | null = null;
-  if (isUriPath(filePath)) {
-    const staged = await stageFileForUpload(filePath);
-    uploadPath = staged.localPath;
-    sizeBytes = staged.size;
-    stagedPath = staged.localPath;
+  let vaultPath: string;
+
+  if (isContentUri(filePath)) {
+    // Android 上 plugin-dialog 返回 content:// URI，通过原生插件直接流式导入 Vault。
+    const imported = await invoke<{ vaultPath: string; sizeBytes: number }>(
+      'attachment_import_content_uri',
+      {
+        objectId,
+        attachmentId: id,
+        contentUri: filePath,
+        fileName,
+      },
+    );
+    vaultPath = imported.vaultPath;
+    sizeBytes = imported.sizeBytes;
   } else {
-    sizeBytes = await getFileSize(filePath);
-  }
+    // 桌面端或 file:// URI：先中转/获取大小，再复制到 Vault。
+    if (isUriPath(filePath)) {
+      const staged = await stageFileForUpload(filePath);
+      uploadPath = staged.localPath;
+      sizeBytes = staged.size;
+      stagedPath = staged.localPath;
+    } else {
+      sizeBytes = await getFileSize(filePath);
+    }
 
-  const vaultPath = await invoke<string>('attachment_copy_to_vault', {
-    srcPath: uploadPath,
-    objectId,
-    attachmentId: id,
-    fileName,
-  }).catch(() => uploadPath);
+    vaultPath = await invoke<string>('attachment_copy_to_vault', {
+      srcPath: uploadPath,
+      objectId,
+      attachmentId: id,
+      fileName,
+    }).catch(() => uploadPath);
 
-  if (stagedPath) {
-    await cleanupStagedFile(stagedPath);
+    if (stagedPath) {
+      await cleanupStagedFile(stagedPath);
+    }
   }
 
   await invoke('attachment_save', {

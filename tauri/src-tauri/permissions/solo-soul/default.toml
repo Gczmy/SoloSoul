@@ -174,6 +174,8 @@ commands.allow = [
   "attachment_cleanup_orphans",
   "attachment_download",
   "attachment_open",
+  "attachment_import_content_uri",
+  "attachment_export_content_uri",
   "sync_discover",
   "sync_get_status",
   "sync_enable",
