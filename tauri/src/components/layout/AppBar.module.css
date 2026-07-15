@@ -38,16 +38,22 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0;
 }
 .title {
   font-size: var(--text-section-title);
   font-weight: 600;
   margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .actions {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-shrink: 0;
+  min-width: 0;
 }
 .backButton {
   background: none;
@@ -84,6 +90,10 @@
   .title {
     font-size: var(--text-body);
   }
+  .actions {
+    gap: 4px;
+  }
+
   /* Keep the back button away from the left-edge gesture exclusion zone. */
   .backButton {
     margin-left: 8px;

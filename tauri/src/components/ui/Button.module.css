@@ -104,3 +104,20 @@
     transform: rotate(360deg);
   }
 }
+
+/* 响应式：移动端隐藏按钮文字，仅显示图标 */
+.label {
+  display: inline;
+}
+
+@media (max-width: 767px) {
+  .hideLabelOnMobile.button {
+    padding: 8px;
+  }
+  .hideLabelOnMobile .label {
+    display: none;
+  }
+  .hideLabelOnMobile svg {
+    margin-right: 0 !important;
+  }
+}

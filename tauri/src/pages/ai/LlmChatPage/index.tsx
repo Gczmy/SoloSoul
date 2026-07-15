@@ -5,6 +5,7 @@ import { PageContainer } from '@/components/layout/PageContainer';
 
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { MessageSquare, Settings, BarChart3 } from 'lucide-react';
+import buttonStyles from '@/components/ui/Button.module.css';
 import { ConversationSidebar } from '@/components/llm/ConversationSidebar';
 import { MessageArea } from '@/components/llm/MessageArea';
 import { TrashConversationCard } from '@/components/llm/TrashConversationCard';
@@ -66,6 +67,7 @@ export function LlmChatPage() {
         actions={
           <button
             type="button"
+            className={buttonStyles.hideLabelOnMobile}
             onClick={() => navigate('/settings/llm', { state: { from: '/llm-chat' } })}
             style={{
               fontSize: 'var(--text-caption)',
@@ -94,7 +96,7 @@ export function LlmChatPage() {
               e.currentTarget.style.color = 'var(--text-primary)';
             }}
           >
-            <Settings size={ICON_SIZE.sm} /> {t('settings:ai_chat_configure')}
+            <Settings size={ICON_SIZE.sm} /> <span className={buttonStyles.label}>{t('settings:ai_chat_configure')}</span>
           </button>
         }
       >

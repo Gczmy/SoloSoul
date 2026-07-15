@@ -14,6 +14,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useUiStore } from '@/stores/uiStore';
 import { useConfirm } from '@/hooks/useConfirm';
 import { LayoutTemplate, Pencil, Plus, BookOpen, Search } from 'lucide-react';
+import buttonStyles from '@/components/ui/Button.module.css';
 import type {
   UserTemplate,
   TemplateProperty,
@@ -478,17 +479,24 @@ export function TemplateManagerPage() {
       onBack={handleBack}
       actions={
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Button variant="secondary" onClick={() => setShowSampleGallery(true)}>
+          <Button
+            variant="secondary"
+            className={buttonStyles.hideLabelOnMobile}
+            aria-label={t('settings:sample_templates') || 'Sample templates'}
+            onClick={() => setShowSampleGallery(true)}
+          >
             <BookOpen size={ICON_SIZE.md} style={{ marginRight: 4 }} />
-            {t('settings:sample_templates') || '模板示例'}
+            <span className={buttonStyles.label}>{t('settings:sample_templates') || '模板示例'}</span>
           </Button>
           <Button
             variant="secondary"
+            className={buttonStyles.hideLabelOnMobile}
+            aria-label={t('settings:new_template') || 'New template'}
             style={{ border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)' }}
             onClick={openCreate}
           >
             <Plus size={ICON_SIZE.md} style={{ marginRight: 4 }} />
-            {t('settings:new_template') || '新建模板'}
+            <span className={buttonStyles.label}>{t('settings:new_template') || '新建模板'}</span>
           </Button>
         </div>
       }

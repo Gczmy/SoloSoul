@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { Button } from '@/components/ui/Button';
+import buttonStyles from '@/components/ui/Button.module.css';
 import { useAuthStore } from '@/stores/authStore';
 import { useObjectStore, type ObjectSummary, type ObjectData } from '@/stores/objectStore';
 import { useSettingsStore } from '@/stores/settingsStore';
@@ -646,6 +647,7 @@ export function ObjectWorkspacePage() {
             ]}
           />
           <button
+            className={buttonStyles.hideLabelOnMobile}
             onClick={() => navigate(newObjectUrl)}
             onMouseEnter={(e) => {
               e.currentTarget.style.background =
@@ -668,16 +670,17 @@ export function ObjectWorkspacePage() {
               transition: 'background 0.2s, border-color 0.2s',
             }}
           >
-            + {t('create')}
+            + <span className={buttonStyles.label}>{t('create')}</span>
           </button>
           {pageId && customPage && (
             <Button
               variant="danger-outline"
               size="sm"
+              className={buttonStyles.hideLabelOnMobile}
               onClick={() => setConfirmPageDelete(true)}
               title={t('delete')}
             >
-              <Trash size={ICON_SIZE.sm} /> {t('delete')}
+              <Trash size={ICON_SIZE.sm} /> <span className={buttonStyles.label}>{t('delete')}</span>
             </Button>
           )}
         </div>

@@ -227,12 +227,13 @@ export function PluginDashboardPage() {
             disabled={isLoadingMarket}
             aria-busy={isLoadingMarket}
             title={t('plugin:refresh', { defaultValue: 'Refresh registry' })}
+            aria-label={t('plugin:refresh', { defaultValue: 'Refresh registry' })}
           >
             <RefreshCw
               size={ICON_SIZE.md}
               className={`${styles.refreshIcon} ${isLoadingMarket ? styles.spinning : ''}`}
             />
-            <span>{t('plugin:refresh', { defaultValue: 'Refresh' })}</span>
+            <span className={styles.refreshLabel}>{t('plugin:refresh', { defaultValue: 'Refresh' })}</span>
           </button>
         </div>
 
