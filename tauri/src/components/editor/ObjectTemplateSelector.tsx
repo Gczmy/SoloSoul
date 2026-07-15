@@ -93,6 +93,11 @@ export function ObjectTemplateSelector({
                   fontSize: 'var(--text-body-sm)',
                   cursor: 'pointer',
                   transition: 'all 0.15s ease',
+                  whiteSpace: 'normal',
+                  wordBreak: 'break-word',
+                  maxWidth: '100%',
+                  textAlign: 'left',
+                  lineHeight: 1.3,
                 }}
               >
                 {label}
@@ -136,6 +141,10 @@ export function ObjectTemplateSelector({
               fontSize: 'var(--text-caption)',
               cursor: 'pointer',
               transition: 'all 0.15s ease',
+              whiteSpace: 'normal',
+              wordBreak: 'break-word',
+              maxWidth: '100%',
+              textAlign: 'left',
             }}
             title={t('editor:manage_templates')}
           >
