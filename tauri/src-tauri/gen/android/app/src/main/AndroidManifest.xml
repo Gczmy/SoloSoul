@@ -7,6 +7,23 @@
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
     <uses-permission android:name="android.permission.CAMERA" />
 
+    <!-- Android 11+ 需要显式声明查询能处理常见文件类型的外部应用，
+         否则 resolveActivity / createChooser 无法列出 PDF 阅读器等应用。 -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:mimeType="application/pdf" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:mimeType="text/plain" />
+        </intent>
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:mimeType="image/*" />
+        </intent>
+    </queries>
+
     <!-- AndroidTV support -->
     <uses-feature android:name="android.software.leanback" android:required="false" />
 
@@ -22,7 +39,8 @@
             android:windowSoftInputMode="adjustResize|stateHidden"
             android:label="@string/main_activity_title"
             android:name=".MainActivity"
-            android:exported="true">
+            android:exported="true"
+            android:theme="@style/Theme.solo_soul">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -30,6 +48,13 @@
                 <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".PdfPreviewActivity"
+            android:exported="false"
+            android:label="@string/pdf_preview_title"
+            android:theme="@style/Theme.solo_soul"
+            android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|smallestScreenSize|screenLayout|uiMode" />
 
         <provider
           android:name="androidx.core.content.FileProvider"

@@ -58,7 +58,7 @@ async function syncTitleBarColor(config: ThemeConfig) {
 /** Sync Android status/navigation bar icon style with the active app theme.
  *  "dark" app theme → white icons/text; "light" app theme → black icons/text.
  *  非 Android 平台调用会被安全忽略。 */
-async function syncStatusBarStyle(theme: 'light' | 'dark') {
+export async function syncStatusBarStyle(theme: 'light' | 'dark') {
   try {
     console.log('[theme] syncStatusBarStyle:', theme);
     await invoke('set_status_bar_style', { payload: { style: theme } });

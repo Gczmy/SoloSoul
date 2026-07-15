@@ -26,8 +26,28 @@ export const MIME_MAP: Record<string, string> = {
   csv: 'text/csv',
 };
 
-/** 从文件路径中提取文件名 */
+/** 从文件路径或 URI 中提取文件名 */
 export function getFileName(filePath: string): string {
+  if (!filePath) return 'file';
+
+  try {
+    // 对 content:// URI 先去掉 query 与 fragment，只保留 path 部分
+    if (filePath.startsWith('content://')) {
+      const withoutQuery = filePath.split('?')[0].split('#')[0];
+      // 某些 Provider 的 path 形如 /document/primary:Download/file.pdf 或 /raw:/path/file.pdf
+      const segments = withoutQuery.split('/');
+      for (let i = segments.length - 1; i >= 0; i--) {
+        const seg = decodeURIComponent(segments[i]);
+        const cleaned = seg.replace(/^(raw:|document:|primary:|msf:|msd:)/, '');
+        if (cleaned && cleaned !== 'content:' && cleaned.includes('.')) {
+          return cleaned;
+        }
+      }
+    }
+  } catch {
+    // 忽略 URI 解析异常，继续兜底
+  }
+
   return filePath.split('/').pop() || filePath.split('\\').pop() || 'file';
 }
 

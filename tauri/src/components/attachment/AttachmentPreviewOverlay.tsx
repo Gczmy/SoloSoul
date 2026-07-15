@@ -4,6 +4,8 @@ import { X, ZoomIn, ZoomOut, RotateCcw, ExternalLink } from 'lucide-react';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import type { AttachmentItem } from '@/lib/attachmentUtils';
 import { previewItemByMime } from '@/lib/attachmentUtils';
+import { isMobilePlatformSync } from '@/lib/platform';
+import { syncStatusBarStyle } from '@/lib/theme';
 import { ICON_SIZE } from '@/lib/constants';
 
 interface AttachmentPreviewOverlayProps {
@@ -54,10 +56,19 @@ export function AttachmentPreviewOverlay({
       setLoading(false);
       setNaturalSize(null);
       setScale(1);
+      // 关闭预览遮罩后恢复应用主题对应的状态栏样式
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      void syncStatusBarStyle(currentTheme === 'dark' ? 'dark' : 'light');
       return;
     }
 
-    const kind = previewItemByMime(item);
+    // 打开预览遮罩时使用深色背景配浅色状态栏图标/文字
+    void syncStatusBarStyle('dark');
+
+    const rawKind = previewItemByMime(item);
+    // Android/iOS WebView 无法通过 <embed> 直接渲染本地 PDF data URL，
+    // 统一交给系统应用打开。
+    const kind = rawKind === 'pdf' && isMobilePlatformSync() ? 'other' : rawKind;
     setPreviewKind(kind);
     setPreviewUrl('');
     setTextContent('');
@@ -87,6 +98,11 @@ export function AttachmentPreviewOverlay({
       // 'other' files are not loaded automatically.
       setLoading(false);
     }
+  }, [item]);
+
+  useEffect(() => {
+    if (!item) return;
+    // 不再强制切换状态栏颜色；仅通过 CSS safe-area insets 避免覆盖状态栏/手势条。
   }, [item]);
 
   // Calculate an initial scale that fits the image inside the viewport.
@@ -283,7 +299,10 @@ export function AttachmentPreviewOverlay({
     <div
       style={{
         position: 'fixed',
-        inset: 0,
+        top: 'env(safe-area-inset-top, 0px)',
+        left: 0,
+        right: 0,
+        bottom: 'env(safe-area-inset-bottom, 0px)',
         zIndex: 'var(--z-preview-overlay)',
         display: 'flex',
         flexDirection: 'column',

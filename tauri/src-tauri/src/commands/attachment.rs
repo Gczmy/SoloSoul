@@ -1,12 +1,16 @@
 //! File attachment commands — attach files to objects, with soft-delete support (§25.6)
 
+#[cfg(target_os = "android")]
+use crate::attachment_import_plugin::{AttachmentImportPluginHandle, OpenFilePayload};
 use crate::commands::vault_handle;
 use crate::state::AppState;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
-use tauri::State;
+#[cfg(target_os = "android")]
+use tauri::Manager;
+use tauri::{AppHandle, Runtime, State};
 
 /// 单个对象最多允许的活跃附件数量。
 const MAX_ACTIVE_ATTACHMENTS: usize = 200;
@@ -621,11 +625,34 @@ pub async fn attachment_download(
         .canonicalize()
         .map_err(|_| "Invalid vault base path".to_string())?;
 
-    // Security: ensure the source path is within vault storage
+    // Security: ensure the source path is within vault storage.
+    // 在 Android 上 /data/data/... 与 /data/user/0/... 可能互为 symlink，
+    // canonicalize 失败但文件存在时保留原始路径做前缀比较。
     let src = std::path::Path::new(&src_path)
         .canonicalize()
+        .or_else(|_| {
+            let p = std::path::PathBuf::from(&src_path);
+            if p.exists() {
+                Ok(p)
+            } else {
+                Err(std::io::Error::new(
+                    std::io::ErrorKind::NotFound,
+                    "source path does not exist",
+                ))
+            }
+        })
         .map_err(|e| format!("Invalid source path: {}", e))?;
-    if !src.starts_with(&vault_base) {
+
+    let attachments_dir = vault_base.join("attachments");
+    let attachments_canon = attachments_dir
+        .canonicalize()
+        .unwrap_or_else(|_| attachments_dir.clone());
+    let in_attachments = src.starts_with(&attachments_canon)
+        || src_path.starts_with(attachments_canon.to_string_lossy().as_ref());
+    let in_vault = src.starts_with(&vault_base)
+        || src_path.starts_with(vault_base.to_string_lossy().as_ref());
+
+    if !in_attachments && !in_vault {
         return Err("Source path must be within vault storage".to_string());
     }
 
@@ -714,8 +741,11 @@ pub async fn attachment_download(
 /// Open an attachment with the system's default application.
 /// The path is resolved from the attachment metadata and verified to be inside
 /// the vault's `attachments` directory before opening.
+/// On Android, uses the native FileProvider plugin so that external PDF viewers
+/// can read the app-private vault file.
 #[tauri::command]
-pub async fn attachment_open(
+pub async fn attachment_open<R: Runtime>(
+    #[allow(unused_variables)] app: AppHandle<R>,
     state: State<'_, AppState>,
     object_id: String,
     attachment_id: String,
@@ -740,6 +770,15 @@ pub async fn attachment_open(
         .or(att.src_path.as_ref())
         .ok_or("Attachment has no file path")?;
 
+    tracing::error!(
+        "attachment_open debug: object_id={}, attachment_id={}, vault_path={:?}, src_path={:?}, mime_type={}",
+        object_id,
+        attachment_id,
+        att.vault_path,
+        att.src_path,
+        att.mime_type
+    );
+
     let vault_base = svc
         .base_path()
         .canonicalize()
@@ -748,13 +787,52 @@ pub async fn attachment_open(
 
     let path = std::path::Path::new(path_str)
         .canonicalize()
-        .map_err(|e| format!("Cannot access attachment file: {}", e))?;
-    if !path.starts_with(&attachments_dir) {
+        .or_else(|_| {
+            let p = std::path::PathBuf::from(path_str);
+            if p.exists() {
+                Ok(p)
+            } else {
+                Err(std::io::Error::new(
+                    std::io::ErrorKind::NotFound,
+                    "source path does not exist",
+                ))
+            }
+        })
+        .map_err(|e| {
+            tracing::error!("attachment_open debug: resolve failed for {}: {}", path_str, e);
+            format!("Cannot access attachment file: {}", e)
+        })?;
+    let attachments_canon = attachments_dir
+        .canonicalize()
+        .unwrap_or_else(|_| attachments_dir.clone());
+    if !path.starts_with(&attachments_canon) && !path_str.starts_with(attachments_canon.to_string_lossy().as_ref()) {
+        tracing::error!(
+            "attachment_open debug: path {} is outside attachments_dir {}",
+            path.display(),
+            attachments_canon.display()
+        );
         return Err("Attachment path is outside vault storage".to_string());
     }
 
-    opener::open(&path).map_err(|e| format!("Failed to open file: {}", e))?;
-    Ok(())
+    #[cfg(target_os = "android")]
+    {
+        tracing::error!(
+            "attachment_open debug: using Android plugin to open {} with mime {}",
+            path.display(),
+            att.mime_type
+        );
+        let handle = app.state::<AttachmentImportPluginHandle<R>>();
+        handle.open_file(OpenFilePayload {
+            path: path.to_string_lossy().to_string(),
+            mime_type: att.mime_type.clone(),
+        })
+    }
+
+    #[cfg(not(target_os = "android"))]
+    {
+        opener::open(&path).map_err(|e| format!("Failed to open file: {}", e))?;
+        Ok(())
+    }
 }
 
 /// Scan attachments directory and remove files not referenced in any object's metadata.

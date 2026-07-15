@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">SoloSoul</string>
     <string name="main_activity_title">SoloSoul</string>
+    <string name="pdf_preview_title">PDF Preview</string>
 </resources>

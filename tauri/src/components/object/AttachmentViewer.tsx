@@ -18,6 +18,7 @@ import { useUiStore } from '@/stores/uiStore';
 import { useConfirm } from '@/hooks/useConfirm';
 import { useDragToAttach } from '@/hooks/useDragToAttach';
 import { downloadViaStage, isUriPath } from '@/lib/mobileFileTransfer';
+import { isMobilePlatformSync } from '@/lib/platform';
 import { useBatchSelect } from '@/hooks/useBatchSelect';
 import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import { DragUploadOverlay } from '@/components/object/DragUploadOverlay';
@@ -25,6 +26,7 @@ import { DragUploadOverlay } from '@/components/object/DragUploadOverlay';
 import { pickFileToAttach, uploadSingleAttachment } from '@/lib/attachmentUpload';
 import {
   truncateFileName,
+  previewItemByMime,
   type AttachmentItem,
 } from '@/lib/attachmentUtils';
 import { formatBytes } from '@/lib/utils';
@@ -79,6 +81,11 @@ export function AttachmentViewer({
   };
 
   const handlePreview = async (item: AttachmentItem) => {
+    // 移动端 PDF 使用原生 PdfRenderer 预览，不在 WebView 遮罩中尝试渲染 data URL。
+    if (isMobilePlatformSync() && previewItemByMime(item) === 'pdf') {
+      openAttachmentExternal(item);
+      return;
+    }
     setPreviewItem(item);
   };
 

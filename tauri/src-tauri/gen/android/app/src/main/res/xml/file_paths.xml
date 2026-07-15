@@ -2,4 +2,6 @@
 <paths xmlns:android="http://schemas.android.com/apk/res/android">
   <external-path name="my_images" path="." />
   <cache-path name="my_cache_images" path="." />
+  <!-- Vault 附件位于应用私有文件目录，需要 FileProvider 暴露给外部 PDF 阅读器等应用 -->
+  <files-path name="vault_files" path="." />
 </paths>

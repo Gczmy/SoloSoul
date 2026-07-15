@@ -58,6 +58,14 @@ pub struct ExportContentUriPayload {
     pub dest_uri: String,
 }
 
+/// 调用 Kotlin 打开文件命令时传入的参数。
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct OpenFilePayload {
+    pub path: String,
+    pub mime_type: String,
+}
+
 /// 插件句柄包装，便于在 command 中通过 Tauri state 获取。
 pub struct AttachmentImportPluginHandle<R: Runtime> {
     #[cfg(target_os = "android")]
@@ -86,6 +94,23 @@ impl<R: Runtime> AttachmentImportPluginHandle<R> {
         {
             let _ = payload;
             Err("attachment_import_content_uri is only supported on Android".to_string())
+        }
+    }
+
+    /// 在 Android 端通过 FileProvider 用系统默认应用打开本地文件。
+    /// 非 Android 平台直接返回不支持错误。
+    pub fn open_file(&self, payload: OpenFilePayload) -> Result<(), String> {
+        #[cfg(target_os = "android")]
+        {
+            self.handle
+                .run_mobile_plugin::<serde_json::Value>("openFile", payload)
+                .map(|_| ())
+                .map_err(|e| e.to_string())
+        }
+        #[cfg(not(target_os = "android"))]
+        {
+            let _ = payload;
+            Err("attachment_open_file is only supported on Android".to_string())
         }
     }
 

@@ -86,7 +86,8 @@ describe('AttachmentPreviewOverlay', () => {
     );
 
     expect(await screen.findByText(/not stored in vault/i)).toBeInTheDocument();
-    expect(mockInvoke).not.toHaveBeenCalled();
+    expect(mockInvoke).not.toHaveBeenCalledWith('fs_read_file_as_data_url', expect.anything());
+    expect(mockInvoke).not.toHaveBeenCalledWith('fs_read_file_as_text', expect.anything());
   });
 
   it('shows error when vaultPath is a content URI', async () => {
@@ -98,7 +99,8 @@ describe('AttachmentPreviewOverlay', () => {
     );
 
     expect(await screen.findByText(/not stored in vault/i)).toBeInTheDocument();
-    expect(mockInvoke).not.toHaveBeenCalled();
+    expect(mockInvoke).not.toHaveBeenCalledWith('fs_read_file_as_data_url', expect.anything());
+    expect(mockInvoke).not.toHaveBeenCalledWith('fs_read_file_as_text', expect.anything());
   });
 
   it('calls onOpenExternal for unsupported types', async () => {

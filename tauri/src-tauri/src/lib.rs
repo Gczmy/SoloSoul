@@ -1,5 +1,6 @@
 use std::path::PathBuf;
 use std::sync::OnceLock;
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 use tauri::Emitter;
 use tauri::Manager;
 
