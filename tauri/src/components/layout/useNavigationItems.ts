@@ -199,6 +199,26 @@ export function useBoundNavActions(): UseBoundNavActionsResult {
   return { items, showSearch, setShowSearch };
 }
 
+/** 移动端底部展开功能按钮区强制使用页面模式（AI 对话、插件、OCR、搜索均进入对应页面）。 */
+export function useMobileNavActions(): UseBoundNavActionsResult {
+  const { items, showSearch, setShowSearch } = useBoundNavActions();
+  const mobileItems = items.map((item): NavItem => {
+    if (item.type === 'link') return item;
+    const id = item.iconKey;
+    const path = getPagePath(id);
+    if (path) {
+      return { type: 'link', path, iconKey: id as PageIconKey, labelKey: id } as NavLink;
+    }
+    const link =
+      CUSTOMIZABLE_LINKS[id as Exclude<CustomizableActionId, 'search' | 'ocr' | 'plugins'>];
+    if (link) {
+      return { type: 'link', ...link } as NavLink;
+    }
+    return item;
+  });
+  return { items: mobileItems, showSearch, setShowSearch };
+}
+
 export type AiQuickChatPlacement = 'left' | 'right' | 'bottom' | 'top';
 
 interface UseAiQuickChatResult {
