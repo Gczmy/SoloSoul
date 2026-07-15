@@ -23,6 +23,12 @@ android {
         targetSdk = 36
         versionCode = tauriProperties.getProperty("tauri.android.versionCode", "1").toInt()
         versionName = tauriProperties.getProperty("tauri.android.versionName", "1.0")
+
+        // 只打包 arm64 与 armv7，覆盖绝大多数 Android 真机；
+        // x86/x86_64 仅用于模拟器调试，release universal 包不再携带。
+        ndk {
+            abiFilters += listOf("arm64-v8a", "armeabi-v7a")
+        }
     }
     buildTypes {
         getByName("debug") {

@@ -1,0 +1,9 @@
+{
+  "$schema": "https://raw.githubusercontent.com/tauri-apps/tauri/v2/crates/tauri-config-schema/schema.json",
+  "bundle": {
+    "resources": {
+      "resources-mobile/SoloSoul_plugin_market/plugins": "SoloSoul_plugin_market/plugins",
+      "resources-mobile/SoloSoul_plugin_market/registry.json": "SoloSoul_plugin_market/registry.json"
+    }
+  }
+}
