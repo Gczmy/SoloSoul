@@ -998,7 +998,7 @@ export function ObjectDetailModal({
           isFieldDeprecated={isFieldDeprecated}
           getFieldName={getFieldName}
           fieldOrder={fieldOrder}
-          zIndex={3100}
+          zIndex={5100}
         />
       )}
       {showAttachments && obj && (
@@ -1006,7 +1006,7 @@ export function ObjectDetailModal({
           objectId={obj.id}
           onClose={() => setShowAttachments(false)}
           onCountChange={onAttachmentsChange}
-          zIndex={3100}
+          zIndex={5100}
         />
       )}
 

@@ -8,6 +8,7 @@ interface ConfirmState {
   confirmLabel?: string;
   cancelLabel?: string;
   onConfirm?: () => void;
+  priority?: 'default' | 'important' | 'auth';
 }
 
 export function useConfirm() {
@@ -22,7 +23,11 @@ export function useConfirm() {
       title: string,
       message: string,
       onConfirm: () => void,
-      options?: { confirmLabel?: string; cancelLabel?: string },
+      options?: {
+        confirmLabel?: string;
+        cancelLabel?: string;
+        priority?: 'default' | 'important' | 'auth';
+      },
     ) => {
       setState({
         isOpen: true,
@@ -31,6 +36,7 @@ export function useConfirm() {
         confirmLabel: options?.confirmLabel,
         cancelLabel: options?.cancelLabel,
         onConfirm,
+        priority: options?.priority ?? 'default',
       });
     },
     [],
@@ -52,6 +58,7 @@ export function useConfirm() {
         state.onConfirm?.();
       }}
       onCancel={close}
+      priority={state.priority}
     />
   );
 

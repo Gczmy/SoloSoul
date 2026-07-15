@@ -11,6 +11,7 @@ interface ConfirmDialogProps {
   cancelLabel?: string;
   onConfirm: () => void;
   onCancel: () => void;
+  priority?: 'default' | 'important' | 'auth';
 }
 
 export function ConfirmDialog({
@@ -21,11 +22,12 @@ export function ConfirmDialog({
   cancelLabel,
   onConfirm,
   onCancel,
+  priority = 'default',
 }: ConfirmDialogProps) {
   const { t } = useTranslation('common');
 
   return (
-    <Dialog isOpen={isOpen} onClose={onCancel} title={title}>
+    <Dialog isOpen={isOpen} onClose={onCancel} title={title} priority={priority}>
       <p className={styles.message}>{message}</p>
       <div className={styles.actions}>
         <Button variant="secondary" onClick={onCancel}>

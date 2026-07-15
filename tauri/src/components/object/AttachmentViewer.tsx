@@ -185,7 +185,7 @@ export function AttachmentViewer({
         await loadAttachments();
         onCountChange?.();
       },
-      { confirmLabel: t('common:delete'), cancelLabel: t('common:cancel') },
+      { confirmLabel: t('common:delete'), cancelLabel: t('common:cancel'), priority: 'auth' },
     );
   };
 
