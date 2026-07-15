@@ -44,6 +44,10 @@ pub struct ImportContentUriPayload {
 pub struct ImportContentUriResult {
     pub vault_path: String,
     pub size_bytes: u64,
+    /// Android 端通过 ContentResolver 查询到的真实显示名称。
+    /// 当 content URI 的路径段不是真实文件名时，该字段提供正确的附件名。
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub display_name: Option<String>,
 }
 
 /// 调用 Kotlin 导出命令时传入的参数。

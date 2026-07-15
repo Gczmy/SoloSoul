@@ -290,6 +290,30 @@ pub async fn fs_read_file_as_data_url<R: tauri::Runtime>(
     Ok(format!("data:{};base64,{}", mime, b64))
 }
 
+/// Read a text file and return its contents as a UTF-8 string.
+/// Used for in-app preview of txt/md/json/xml/csv attachments.
+#[tauri::command]
+pub async fn fs_read_file_as_text<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    path: String,
+) -> Result<String, String> {
+    use std::io::Read;
+    let p = resolve_allowed_path(&app, &path)?;
+    let mut file = std::fs::File::open(&p).map_err(|e| format!("Open: {}", e))?;
+    let meta = file.metadata().map_err(|e| format!("Metadata: {}", e))?;
+    if meta.len() > MAX_DATA_URL_SIZE {
+        return Err(format!(
+            "File too large for preview: {} bytes (max {})",
+            meta.len(),
+            MAX_DATA_URL_SIZE
+        ));
+    }
+    let mut buf = String::new();
+    file.read_to_string(&mut buf)
+        .map_err(|e| format!("Read: {}", e))?;
+    Ok(buf)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -398,5 +422,19 @@ mod tests {
         ))
         .unwrap();
         assert!(url.starts_with("data:application/octet-stream;base64,"));
+    }
+
+    #[test]
+    fn test_fs_read_file_as_text() {
+        let app = tauri::test::mock_app();
+        let dir = TempDir::new().unwrap();
+        let path = dir.path().join("test.txt");
+        fs::write(&path, "hello 世界").unwrap();
+        let content = futures::executor::block_on(fs_read_file_as_text(
+            app.handle().clone(),
+            path.to_string_lossy().to_string(),
+        ))
+        .unwrap();
+        assert_eq!(content, "hello 世界");
     }
 }

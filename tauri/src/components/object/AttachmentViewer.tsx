@@ -25,7 +25,6 @@ import { DragUploadOverlay } from '@/components/object/DragUploadOverlay';
 import { pickFileToAttach, uploadSingleAttachment } from '@/lib/attachmentUpload';
 import {
   truncateFileName,
-  isImageMime,
   type AttachmentItem,
 } from '@/lib/attachmentUtils';
 import { formatBytes } from '@/lib/utils';
@@ -80,12 +79,7 @@ export function AttachmentViewer({
   };
 
   const handlePreview = async (item: AttachmentItem) => {
-    const isImg = isImageMime(item.mimeType, item.fileName);
-    if (isImg) {
-      setPreviewItem(item);
-    } else {
-      openAttachmentExternal(item);
-    }
+    setPreviewItem(item);
   };
 
   const loadAttachments = useCallback(async () => {
@@ -692,7 +686,11 @@ export function AttachmentViewer({
         </motion.div>
       )}{' '}
       {/* Preview overlay */}
-      <AttachmentPreviewOverlay item={previewItem} onClose={() => setPreviewItem(null)} />
+      <AttachmentPreviewOverlay
+        item={previewItem}
+        onClose={() => setPreviewItem(null)}
+        onOpenExternal={openAttachmentExternal}
+      />
       {confirmDialog}
       {/* Confirmation dialogs */}
       <ConfirmDialog

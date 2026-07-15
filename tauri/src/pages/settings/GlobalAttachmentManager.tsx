@@ -188,18 +188,7 @@ export function GlobalAttachmentManager() {
 
   // ── Attachment operations ──────────────────────────────────
 
-  const handlePreview = async (item: AttachmentMeta) => {
-    const ext = item.fileName.split('.').pop()?.toLowerCase() || '';
-    const isImage =
-      item.mimeType.startsWith('image/') ||
-      ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'].includes(ext);
-
-    if (isImage) {
-      setPreviewItem(item);
-      return;
-    }
-
-    // For non-images, open with the system default app via a trusted Rust command.
+  const openAttachmentExternal = async (item: AttachmentMeta) => {
     try {
       await invoke('attachment_open', {
         objectId: item.objectId,
@@ -213,6 +202,10 @@ export function GlobalAttachmentManager() {
           `Cannot open file: ${item.fileName}`,
       });
     }
+  };
+
+  const handlePreview = async (item: AttachmentMeta) => {
+    setPreviewItem(item);
   };
 
   const handleStartRename = (item: AttachmentMeta, objectId: string) => {
@@ -1082,7 +1075,11 @@ export function GlobalAttachmentManager() {
       </PageContainer>
 
       {/* Preview overlay */}
-      <AttachmentPreviewOverlay item={previewItem} onClose={() => setPreviewItem(null)} />
+      <AttachmentPreviewOverlay
+        item={previewItem}
+        onClose={() => setPreviewItem(null)}
+        onOpenExternal={openAttachmentExternal}
+      />
 
       {/* Confirmation dialogs */}
       <ConfirmDialog

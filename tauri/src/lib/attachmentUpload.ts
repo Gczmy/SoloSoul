@@ -107,7 +107,8 @@ export async function pickFileToAttach(): Promise<string | null> {
  * @returns 新创建的附件 ID
  */
 export async function uploadSingleAttachment(filePath: string, objectId: string): Promise<string> {
-  const fileName = getFileName(filePath);
+  const fileNameFromPath = getFileName(filePath);
+  let fileName = fileNameFromPath;
   const id = crypto.randomUUID();
 
   let uploadPath = filePath;
@@ -117,17 +118,23 @@ export async function uploadSingleAttachment(filePath: string, objectId: string)
 
   if (isContentUri(filePath)) {
     // Android 上 plugin-dialog 返回 content:// URI，通过原生插件直接流式导入 Vault。
-    const imported = await invoke<{ vaultPath: string; sizeBytes: number }>(
-      'attachment_import_content_uri',
-      {
-        objectId,
-        attachmentId: id,
-        contentUri: filePath,
-        fileName,
-      },
-    );
+    const imported = await invoke<{
+      vaultPath: string;
+      sizeBytes: number;
+      displayName?: string;
+    }>('attachment_import_content_uri', {
+      objectId,
+      attachmentId: id,
+      contentUri: filePath,
+      fileName,
+    });
     vaultPath = imported.vaultPath;
     sizeBytes = imported.sizeBytes;
+    // Android content URI 的真实文件名需以 Kotlin 端 ContentResolver 查询结果为准
+    const realName = imported.displayName || getFileName(imported.vaultPath);
+    if (realName) {
+      fileName = realName;
+    }
   } else {
     // 桌面端或 file:// URI：先中转/获取大小，再复制到 Vault。
     if (isUriPath(filePath)) {

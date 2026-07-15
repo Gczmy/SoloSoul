@@ -434,6 +434,7 @@ pub fn run() {
             commands::fs::fs_get_file_size,
             commands::fs::fs_is_dir,
             commands::fs::fs_read_file_as_data_url,
+            commands::fs::fs_read_file_as_text,
             // System commands
             commands::system::get_app_info,
             commands::system::get_system_theme,
