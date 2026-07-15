@@ -41,6 +41,7 @@ import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
 import { AttachmentPreviewOverlay } from '@/components/attachment/AttachmentPreviewOverlay';
 import { ConfirmDialog } from '@/components/attachment/ConfirmDialog';
 import { ICON_SIZE } from '@/lib/constants';
+import buttonStyles from '@/components/ui/Button.module.css';
 
 /** Resolve icon from either PAGE_ICON_MAP (built-in) or CUSTOM_ICON_MAP (user-selectable). */
 function resolvePageIcon(iconKey?: string | null): LucideIcon {
@@ -938,8 +939,15 @@ export function GlobalAttachmentManager() {
 
               <div style={{ flex: 1 }} />
 
-              <Button variant="secondary" size="sm" onClick={loadData}>
-                <RotateCcw size={ICON_SIZE.sm} /> {t('common:refresh') || 'Refresh'}
+              <Button
+                variant="secondary"
+                size="sm"
+                className={buttonStyles.hideLabelOnMobile}
+                aria-label={t('common:refresh') || 'Refresh'}
+                onClick={loadData}
+              >
+                <RotateCcw size={ICON_SIZE.sm} />{' '}
+                <span className={buttonStyles.label}>{t('common:refresh') || 'Refresh'}</span>
               </Button>
             </div>
 

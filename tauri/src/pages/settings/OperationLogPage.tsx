@@ -15,6 +15,7 @@ import { resolveCollectionLabel } from '@/lib/utils';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { ICON_SIZE } from '@/lib/constants';
 import { isUriPath, copyStagedFileToDest } from '@/lib/mobileFileTransfer';
+import buttonStyles from '@/components/ui/Button.module.css';
 
 
 interface AuditLogEntry {
@@ -251,9 +252,15 @@ export function OperationLogPage() {
               </button>
             )}
           </div>
-          <Button variant="secondary" size="sm" onClick={handleExport}>
-            <Download size={ICON_SIZE.sm} />
-            {t('settings:export_logs')}
+          <Button
+            variant="secondary"
+            size="sm"
+            className={buttonStyles.hideLabelOnMobile}
+            aria-label={t('settings:export_logs') || 'Export logs'}
+            onClick={handleExport}
+          >
+            <Download size={ICON_SIZE.sm} />{' '}
+            <span className={buttonStyles.label}>{t('settings:export_logs')}</span>
           </Button>
         </div>
 
@@ -336,7 +343,15 @@ export function OperationLogPage() {
                   />
 
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        marginBottom: 4,
+                        flexWrap: 'wrap',
+                      }}
+                    >
                       <span
                         style={{
                           fontSize: 'var(--text-badge)',
@@ -380,6 +395,8 @@ export function OperationLogPage() {
                               : entry.entityType === 'object'
                                 ? '#22c55e'
                                 : 'var(--text-secondary)',
+                          wordBreak: 'break-word',
+                          minWidth: 0,
                         }}
                       >
                         {t(`settings:log.entity.${entry.entityType}`, entry.entityType)}

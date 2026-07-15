@@ -180,7 +180,15 @@ export function DebugLogPage() {
                   >
                     {log.actionType.toUpperCase()}
                   </span>
-                  <span style={{ color: 'var(--text-secondary)', flex: 1 }}>
+                  <span
+                    style={{
+                      color: 'var(--text-secondary)',
+                      flex: 1,
+                      minWidth: 0,
+                      whiteSpace: 'pre-wrap',
+                      wordBreak: 'break-word',
+                    }}
+                  >
                     {log.entityType}
                     {log.entityName ? `: ${log.entityName}` : ''}
                     {log.details ? ` - ${log.details}` : ''}
