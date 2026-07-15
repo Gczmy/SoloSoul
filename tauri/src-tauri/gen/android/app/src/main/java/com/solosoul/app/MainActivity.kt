@@ -51,7 +51,6 @@ class MainActivity : TauriActivity() {
     fun extractAssetsToDataDir(assetManager: AssetManager, dataDir: File) {
       val destRoot = File(dataDir, "resources")
       android.util.Log.i("SoloSoul", "开始复制资源到: ${destRoot.absolutePath}")
-      android.util.Log.d("SoloSoul", "Assets 根目录列表: ${assetManager.list("")?.joinToString()}")
 
       // 1. 复制 docs
       val docsCopied = tryCopyAssetDir(assetManager, "docs", File(destRoot, "docs"))
@@ -89,7 +88,6 @@ class MainActivity : TauriActivity() {
         if (assetExists(assetManager, registrySrc)) {
           try {
             copyAssetFile(assetManager, registrySrc, registryDest)
-            android.util.Log.i("SoloSoul", "复制注册表: $registrySrc")
             anyCopied = true
           } catch (e: IOException) {
             android.util.Log.w("SoloSoul", "复制注册表失败: ${e.message}")
@@ -106,7 +104,6 @@ class MainActivity : TauriActivity() {
             if (assetExists(assetManager, fileSrc)) {
               try {
                 copyAssetFile(assetManager, fileSrc, File(pluginDirDest, fileName))
-                android.util.Log.d("SoloSoul", "复制插件文件: $fileSrc")
               } catch (e: IOException) {
                 android.util.Log.w("SoloSoul", "复制插件文件失败 $fileSrc: ${e.message}")
               }
@@ -133,7 +130,6 @@ class MainActivity : TauriActivity() {
       return try {
         copyAssetDir(assetManager, assetPath, destDir)
         val children = assetManager.list(assetPath) ?: emptyArray()
-        android.util.Log.d("SoloSoul", "资源复制完成: $assetPath -> ${destDir.absolutePath} (entries=${children.size})")
         children.isNotEmpty() || destDir.exists()
       } catch (e: IOException) {
         android.util.Log.w("SoloSoul", "跳过资源复制 $assetPath: ${e.message}")

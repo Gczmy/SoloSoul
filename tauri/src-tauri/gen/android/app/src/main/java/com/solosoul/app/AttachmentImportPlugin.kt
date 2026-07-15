@@ -263,7 +263,6 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
   fun openFile(invoke: Invoke) {
     try {
       val args = invoke.parseArgs(OpenFileArgs::class.java)
-      android.util.Log.d("SoloSoul", "openFile called: path=${args.path}, mime=${args.mimeType}")
       val srcFile = File(args.path)
       if (!srcFile.exists()) {
         android.util.Log.e("SoloSoul", "openFile: source file does not exist: ${args.path}")
@@ -291,11 +290,9 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
           input.copyTo(output)
         }
       }
-      android.util.Log.d("SoloSoul", "openFile: copied to ${tempFile.absolutePath}")
 
       val authority = "${activity.packageName}.fileprovider"
       val uri = FileProvider.getUriForFile(activity, authority, tempFile)
-      android.util.Log.d("SoloSoul", "openFile: uri=$uri")
       val intent = android.content.Intent(android.content.Intent.ACTION_VIEW).apply {
         setDataAndType(uri, args.mimeType)
         flags = android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION or android.content.Intent.FLAG_ACTIVITY_NEW_TASK

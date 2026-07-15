@@ -28,7 +28,6 @@ class StatusBarPlugin(private val activity: Activity): Plugin(activity) {
     @Command
     fun setStyle(invoke: Invoke) {
         val args = invoke.parseArgs(StatusBarStyleArgs::class.java)
-        android.util.Log.d("SoloSoul", "StatusBarPlugin.setStyle called with style=${args.style}")
         val window: Window = activity.window
         val rootView = window.decorView.rootView
         val controller = WindowCompat.getInsetsController(window, rootView)
@@ -43,7 +42,6 @@ class StatusBarPlugin(private val activity: Activity): Plugin(activity) {
         val isLight = args.style == "light"
         controller.isAppearanceLightStatusBars = isLight
         controller.isAppearanceLightNavigationBars = isLight
-        android.util.Log.d("SoloSoul", "StatusBarPlugin.setStyle: isAppearanceLightStatusBars=$isLight")
 
         invoke.resolve(JSObject())
     }
