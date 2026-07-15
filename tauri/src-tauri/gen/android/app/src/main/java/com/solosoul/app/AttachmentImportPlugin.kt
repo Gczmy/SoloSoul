@@ -3,6 +3,7 @@ package com.solosoul.app
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
+import android.provider.DocumentsContract
 import android.provider.OpenableColumns
 import androidx.core.content.FileProvider
 import app.tauri.annotation.Command
@@ -126,7 +127,7 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
         return
       }
 
-      val uri = Uri.parse(args.destUri)
+      var uri = Uri.parse(args.destUri)
       activity.contentResolver.openOutputStream(uri)?.use { output ->
         FileInputStream(srcFile).use { input ->
           input.copyTo(output)
@@ -136,11 +137,35 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
         return
       }
 
+      // 系统文件选择器若因同名自动追加序号，通常会放在扩展名之后（如 a.pdf(1)）。
+      // 这里把它修正到扩展名之前（a(1).pdf），避免文件无法识别。
+      uri = sanitizeDuplicateDisplayName(uri)
+
       invoke.resolve(JSObject())
     } catch (e: IOException) {
       invoke.reject("复制文件失败: ${e.message}")
     } catch (e: Exception) {
       invoke.reject("导出附件失败: ${e.message}")
+    }
+  }
+
+  /**
+   * 修正系统因同名自动追加的序号位置。
+   * 例如 "a.pdf(1)" → "a(1).pdf"；无扩展名时 "a(1)" 保持不变。
+   */
+  private fun sanitizeDuplicateDisplayName(uri: Uri): Uri {
+    val name = queryDisplayName(uri) ?: return uri
+    val match = Regex("^(.*?)(\\.\\w+)?\\s*\\((\\d+)\\)$").find(name) ?: return uri
+    val base = match.groupValues[1]
+    val ext = match.groupValues[2]
+    val num = match.groupValues[3]
+    val newName = if (ext.isNotEmpty()) "${base}(${num})${ext}" else "${base}(${num})"
+    return try {
+      val docId = DocumentsContract.getDocumentId(uri)
+      val docUri = DocumentsContract.buildDocumentUriUsingTree(uri, docId)
+      DocumentsContract.renameDocument(activity.contentResolver, docUri, newName) ?: uri
+    } catch (e: Exception) {
+      uri
     }
   }
 

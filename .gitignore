@@ -89,6 +89,9 @@ tauri/src-tauri/resources-mobile/
 tauri/src-tauri/gen/android/app/build/
 tauri/src-tauri/gen/android/app/src/main/jniLibs/
 
+# Tauri generated schemas (regenerated on build)
+tauri/src-tauri/gen/schemas/
+
 # Temporary test screenshots and one-off scripts
 tauri/solosoul_*.png
 tauri/auto_create_account.sh
