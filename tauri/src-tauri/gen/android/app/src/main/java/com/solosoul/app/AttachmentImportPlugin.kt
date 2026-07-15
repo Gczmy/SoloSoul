@@ -151,21 +151,64 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
 
   /**
    * 修正系统因同名自动追加的序号位置。
-   * 例如 "a.pdf(1)" → "a(1).pdf"；无扩展名时 "a(1)" 保持不变。
+   * 例如 "a.pdf(1)" → "a(1).pdf"；"a (1).pdf" → "a(1).pdf"；无扩展名时 "a(1)" 保持不变。
    */
   private fun sanitizeDuplicateDisplayName(uri: Uri): Uri {
     val name = queryDisplayName(uri) ?: return uri
-    val match = Regex("^(.*?)(\\.\\w+)?\\s*\\((\\d+)\\)$").find(name) ?: return uri
-    val base = match.groupValues[1]
-    val ext = match.groupValues[2]
-    val num = match.groupValues[3]
-    val newName = if (ext.isNotEmpty()) "${base}(${num})${ext}" else "${base}(${num})"
+    val newName = sanitizeDuplicateSuffix(name)
+    if (newName == name) return uri
     return try {
       val docId = DocumentsContract.getDocumentId(uri)
       val docUri = DocumentsContract.buildDocumentUriUsingTree(uri, docId)
       DocumentsContract.renameDocument(activity.contentResolver, docUri, newName) ?: uri
     } catch (e: Exception) {
       uri
+    }
+  }
+
+  private fun sanitizeDuplicateSuffix(name: String): String {
+    // 找到最后一个 "(num)" 模式
+    var lastOpen = -1
+    var lastClose = -1
+    var i = 0
+    while (i < name.length) {
+      if (name[i] == '(') {
+        var j = i + 1
+        while (j < name.length && name[j].isDigit()) {
+          j++
+        }
+        if (j < name.length && name[j] == ')') {
+          lastOpen = i
+          lastClose = j
+          i = j + 1
+          continue
+        }
+      }
+      i++
+    }
+    if (lastOpen < 0 || lastClose < 0) return name
+
+    val num = name.substring(lastOpen + 1, lastClose)
+    val before = name.substring(0, lastOpen).trimEnd()
+    val after = name.substring(lastClose + 1).trimStart()
+
+    return if (after.isEmpty()) {
+      // 如 a.pdf(1)：把 before 末尾的扩展名移到序号之后
+      val dot = before.lastIndexOf('.')
+      if (dot > 0) {
+        val ext = before.substring(dot)
+        if (ext.length > 1 && ext.substring(1).all { it.isLetterOrDigit() }) {
+          val base = before.substring(0, dot).trimEnd()
+          "${base}(${num})${ext}"
+        } else {
+          "${before}(${num})"
+        }
+      } else {
+        "${before}(${num})"
+      }
+    } else {
+      // 如 a(1).pdf 或 a (1).pdf：after 就是扩展名
+      "${before}(${num})${after}"
     }
   }
 

@@ -874,7 +874,6 @@ export function ObjectWorkspacePage() {
           objectId={attachmentObjId}
           onClose={() => setAttachmentObjId(null)}
           onCountChange={refreshAttachmentCounts}
-          zIndex={5100}
         />
       )}
 

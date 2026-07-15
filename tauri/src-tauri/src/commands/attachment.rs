@@ -606,15 +606,82 @@ fn build_attachment_tree_pages(
     Ok(pages)
 }
 
+/// Move a duplicate counter suffix before the file extension.
+/// e.g. "a.pdf(1)" -> "a(1).pdf"; "a (1).pdf" -> "a(1).pdf"; "a(1)" -> "a(1)".
+fn sanitize_duplicate_suffix(name: &str) -> String {
+    // 找到最后一个 "(num)" 模式。
+    let chars: Vec<char> = name.chars().collect();
+    let mut last_open = None;
+    let mut last_close = None;
+    let mut i = 0;
+    while i < chars.len() {
+        if chars[i] == '(' {
+            let mut j = i + 1;
+            while j < chars.len() && chars[j].is_ascii_digit() {
+                j += 1;
+            }
+            if j < chars.len() && chars[j] == ')' {
+                last_open = Some(i);
+                last_close = Some(j);
+                i = j + 1;
+                continue;
+            }
+        }
+        i += 1;
+    }
+
+    let (open, close) = match (last_open, last_close) {
+        (Some(o), Some(c)) => (o, c),
+        _ => return name.to_string(),
+    };
+
+    let num: String = chars[open + 1..close].iter().collect();
+    let before: String = chars[..open].iter().collect();
+    let after: String = chars[close + 1..].iter().collect();
+    let before_trimmed = before.trim_end();
+    let after_trimmed = after.trim_start();
+
+    if after_trimmed.is_empty() {
+        // 如 a.pdf(1)：把 before 末尾的扩展名移到序号之后
+        if let Some(dot) = before_trimmed.rfind('.') {
+            let ext = &before_trimmed[dot..];
+            if ext.len() > 1 && ext[1..].chars().all(|c| c.is_alphanumeric()) {
+                let base = before_trimmed[..dot].trim_end();
+                return format!("{}({}){}", base, num, ext);
+            }
+        }
+        format!("{}({})", before_trimmed, num)
+    } else {
+        // 如 a(1).pdf 或 a (1).pdf：after 就是扩展名
+        format!("{}({}){}", before_trimmed, num, after_trimmed)
+    }
+}
+
 /// If `dest` already exists, append an incrementing counter before the extension.
 /// e.g. `a.pdf` -> `a(1).pdf`, `a(1).pdf` -> `a(2).pdf`.
 fn make_unique_dest_path(dest: &Path) -> PathBuf {
-    if !dest.exists() {
-        return dest.to_path_buf();
+    // 某些系统保存对话框遇到同名文件会自动把序号放在扩展名之后（如 a.pdf(1)），
+    // 先修正为 a(1).pdf，再判断是否存在并递增。
+    let corrected = if let Some(name) = dest.file_name().and_then(|s| s.to_str()) {
+        let new_name = sanitize_duplicate_suffix(name);
+        if new_name != name {
+            dest.with_file_name(&new_name)
+        } else {
+            dest.to_path_buf()
+        }
+    } else {
+        dest.to_path_buf()
+    };
+
+    if !corrected.exists() {
+        return corrected;
     }
-    let parent = dest.parent().unwrap_or_else(|| Path::new(""));
-    let stem = dest.file_stem().and_then(|s| s.to_str()).unwrap_or("file");
-    let ext = dest
+    let parent = corrected.parent().unwrap_or_else(|| Path::new(""));
+    let stem = corrected
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .unwrap_or("file");
+    let ext = corrected
         .extension()
         .and_then(|s| s.to_str())
         .map(|s| format!(".{}", s))
@@ -1217,5 +1284,22 @@ mod tests {
         std::fs::write(&r1, b"").unwrap();
         let r2 = make_unique_dest_path(&dest);
         assert_eq!(r2, tmp.path().join("a(2).pdf"));
+    }
+
+    #[test]
+    fn test_make_unique_dest_path_fixes_system_suffix() {
+        let tmp = tempfile::tempdir().unwrap();
+        // 系统保存对话框可能自动返回 a.pdf(1)，需要修正为 a(1).pdf
+        let dest = tmp.path().join("a.pdf(1)");
+        let result = make_unique_dest_path(&dest);
+        assert_eq!(result, tmp.path().join("a(1).pdf"));
+    }
+
+    #[test]
+    fn test_sanitize_duplicate_suffix_variants() {
+        assert_eq!(sanitize_duplicate_suffix("a.pdf(1)"), "a(1).pdf");
+        assert_eq!(sanitize_duplicate_suffix("a (1).pdf"), "a(1).pdf");
+        assert_eq!(sanitize_duplicate_suffix("a(1)"), "a(1)");
+        assert_eq!(sanitize_duplicate_suffix("a.pdf"), "a.pdf");
     }
 }
