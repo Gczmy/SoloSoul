@@ -21,6 +21,7 @@
   gap: 2px;
   height: 100%;
   min-width: 0;
+  min-height: 44px;
   color: var(--text-secondary);
   background: transparent;
   border: none;
@@ -50,7 +51,7 @@
 .addPageItem .addPageTrigger {
   flex: 1;
   width: 100%;
-  min-height: 0;
+  min-height: 44px;
   display: flex;
   flex-direction: column;
   align-items: center;

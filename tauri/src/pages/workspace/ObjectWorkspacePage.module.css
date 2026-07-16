@@ -38,6 +38,14 @@
   transition: background 0.2s, border-color 0.2s;
 }
 
+@media (max-width: 767px) {
+  .createBtn {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 10px 14px;
+  }
+}
+
 @media (hover: hover) and (pointer: fine) {
   .createBtn:hover {
     background: color-mix(in srgb, var(--accent-primary) 10%, transparent);

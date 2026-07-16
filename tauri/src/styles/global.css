@@ -232,3 +232,13 @@ input[type='password']::-webkit-credentials-auto-fill-button,
 input[type='password']::-webkit-contacts-auto-fill-button {
   display: none !important;
 }
+
+/* 移动端触控目标尺寸基线：按钮、类按钮元素至少 44×44px；
+   导航项、图标按钮、列表项等由各自组件 CSS Module 单独保证 */
+@media (max-width: 767px) {
+  button,
+  [role='button'] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
