@@ -232,3 +232,30 @@ input[type='password']::-webkit-credentials-auto-fill-button,
 input[type='password']::-webkit-contacts-auto-fill-button {
   display: none !important;
 }
+
+/* 移动端触控目标尺寸基线：按钮、图标按钮、导航项、列表项至少 44×44px */
+@media (max-width: 767px) {
+  button,
+  [role='button'],
+  a[href],
+  input[type='checkbox'],
+  input[type='radio'],
+  select,
+  summary {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* 文本类输入框不需要放大触控区，避免破坏表单布局 */
+  input[type='text'],
+  input[type='password'],
+  input[type='email'],
+  input[type='number'],
+  input[type='search'],
+  input[type='tel'],
+  input[type='url'],
+  textarea {
+    min-height: auto;
+    min-width: auto;
+  }
+}
