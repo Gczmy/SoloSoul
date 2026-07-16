@@ -1,3 +1,4 @@
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AppShell } from '@/components/layout/AppShell';
@@ -6,9 +7,12 @@ import { Card } from '@/components/ui/Card';
 import { CardGrid } from '@/components/ui/CardGrid';
 import { PAGE_ICON_MAP, resolveCustomIcon } from '@/lib/pageIcons';
 import { useActiveCustomPages } from '@/components/layout/useNavigationItems';
+import { CustomPageEditPopover } from '@/components/layout/CustomPageEditPopover';
 import { useIsMobile } from '@/hooks/useIsMobile';
+import { useLongPress } from '@/hooks/useLongPress';
 import type { ProfileSection } from '@/types';
 import type { LucideIcon } from 'lucide-react';
+import type { CustomPage } from '@/stores/settingsStore';
 import styles from './HomePage.module.css';
 
 // Icons sourced from PAGE_ICON_MAP — §7.4 Single Source of Truth
@@ -86,51 +90,76 @@ const quickCards: QuickCard[] = [
   },
 ];
 
-function HomeCard({
-  icon: Icon,
-  title,
-  desc,
-  onClick,
-}: {
+interface HomeCardProps {
   icon: LucideIcon;
   title: string;
   desc?: string;
   onClick: () => void;
+  onMouseDown?: (e: React.MouseEvent) => void;
+  onMouseUp?: (e: React.MouseEvent) => void;
+  onMouseLeave?: (e: React.MouseEvent) => void;
+  onTouchStart?: (e: React.TouchEvent) => void;
+  onTouchEnd?: (e: React.TouchEvent) => void;
+}
+
+const HomeCard = React.forwardRef<HTMLDivElement, HomeCardProps>(function HomeCard(
+  {
+    icon: Icon,
+    title,
+    desc,
+    onClick,
+    onMouseDown,
+    onMouseUp,
+    onMouseLeave,
+    onTouchStart,
+    onTouchEnd,
+  },
+  ref,
+) {
+  return (
+    <Card
+      ref={ref}
+      interactive
+      onClick={onClick}
+      onMouseDown={onMouseDown}
+      onMouseUp={onMouseUp}
+      onMouseLeave={onMouseLeave}
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
+    >
+      <div className={styles.cardHeader}>
+        <Icon size={24} className={styles.cardIcon} />
+        <h3 className={styles.cardTitle}>{title}</h3>
+      </div>
+      {desc && <p className={styles.cardDesc}>{desc}</p>}
+    </Card>
+  );
+});
+
+function EditableCustomPageCard({
+  page,
+  onStartEdit,
+}: {
+  page: CustomPage;
+  onStartEdit: (page: CustomPage, rect: DOMRect | null) => void;
 }) {
-  const isMobile = useIsMobile();
+  const navigate = useNavigate();
+  const cardRef = useRef<HTMLDivElement>(null);
+  const longPress = useLongPress({
+    onLongPress: () => onStartEdit(page, cardRef.current?.getBoundingClientRect() || null),
+    onClick: () => navigate(`/workspace/custom/${page.id}`),
+  });
+  const { onClick, ...longPressEvents } = longPress;
 
   return (
-    <Card interactive onClick={onClick}>
-      {isMobile ? (
-        <>
-          <div className={styles.cardHeader}>
-            <Icon size={24} className={styles.cardIcon} />
-            <h3 className={styles.cardTitle}>{title}</h3>
-          </div>
-          {desc && <p className={styles.cardDesc}>{desc}</p>}
-        </>
-      ) : (
-        <>
-          <div style={{ marginBottom: 8 }}>
-            <Icon size={28} />
-          </div>
-          <h3
-            style={{
-              fontSize: 'var(--text-card-title)',
-              fontWeight: 600,
-              marginBottom: 4,
-            }}
-          >
-            {title}
-          </h3>
-          {desc && (
-            <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)' }}>
-              {desc}
-            </p>
-          )}
-        </>
-      )}
-    </Card>
+    <HomeCard
+      ref={cardRef}
+      icon={resolveCustomIcon(page.iconId)}
+      title={page.name}
+      desc={page.description}
+      onClick={onClick}
+      {...longPressEvents}
+    />
   );
 }
 
@@ -138,6 +167,19 @@ export function HomePage() {
   const navigate = useNavigate();
   const { t } = useTranslation(['common', 'navigation']);
   const activeCustomPages = useActiveCustomPages();
+  const isMobile = useIsMobile();
+  const [editingPage, setEditingPage] = useState<CustomPage | null>(null);
+  const [editingCardRect, setEditingCardRect] = useState<DOMRect | null>(null);
+
+  const handleStartEdit = (page: CustomPage, rect: DOMRect | null) => {
+    setEditingCardRect(rect);
+    setEditingPage(page);
+  };
+
+  const handleCloseEdit = () => {
+    setEditingPage(null);
+    setEditingCardRect(null);
+  };
 
   return (
     <AppShell title={t('common:home')}>
@@ -174,14 +216,17 @@ export function HomePage() {
             />
           ))}
           {activeCustomPages.map((page) => (
-            <HomeCard
-              key={page.id}
-              icon={resolveCustomIcon(page.iconId)}
-              title={page.name}
-              desc={page.description}
-              onClick={() => navigate(`/workspace/custom/${page.id}`)}
-            />
+            <EditableCustomPageCard key={page.id} page={page} onStartEdit={handleStartEdit} />
           ))}
+          {editingPage && (
+            <CustomPageEditPopover
+              page={editingPage}
+              isOpen={!!editingPage}
+              onClose={handleCloseEdit}
+              triggerRect={editingCardRect}
+              position="bottom"
+            />
+          )}
         </CardGrid>
 
         <h2
