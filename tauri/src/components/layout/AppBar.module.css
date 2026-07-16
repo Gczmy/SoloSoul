@@ -67,8 +67,10 @@
   justify-content: center;
   transition: all 0.15s ease;
 }
-.backButton:hover {
-  background: color-mix(in srgb, var(--text-primary) 8%, transparent);
+@media (hover: hover) and (pointer: fine) {
+  .backButton:hover {
+    background: color-mix(in srgb, var(--text-primary) 8%, transparent);
+  }
 }
 
 .backButton:active {

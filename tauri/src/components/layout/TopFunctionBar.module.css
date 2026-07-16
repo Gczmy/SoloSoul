@@ -61,9 +61,11 @@
   border-radius: 10px;
 }
 
-.horizontalArrowToggle:hover {
-  color: var(--accent-primary);
-  background: rgba(128, 128, 128, 0.06);
+@media (hover: hover) and (pointer: fine) {
+  .horizontalArrowToggle:hover {
+    color: var(--accent-primary);
+    background: rgba(128, 128, 128, 0.06);
+  }
 }
 
 .horizontalArrowIcon {
