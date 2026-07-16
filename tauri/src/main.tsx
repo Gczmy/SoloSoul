@@ -21,6 +21,7 @@ const rootEl = document.getElementById('root');
 // theme and accent are already applied (~1ms IPC read).
 // i18n must init first so settingsStore's lazy changeLanguage doesn't race.
 initI18n()
+  .then(() => initPlatform())
   .then(() =>
     import('@/stores/settingsStore')
       .then((m) => m.useSettingsStore.getState())
