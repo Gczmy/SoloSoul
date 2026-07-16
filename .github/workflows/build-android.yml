@@ -49,6 +49,15 @@ jobs:
           sdkmanager --install "ndk;27.0.12077973"
           echo "NDK_HOME=$ANDROID_HOME/ndk/27.0.12077973" >> "$GITHUB_ENV"
 
+      - name: Install cargo-ndk
+        run: cargo install cargo-ndk --locked
+
+      - name: Cargo check (Android target)
+        run: cargo ndk -t aarch64-linux-android check
+        env:
+          ANDROID_HOME: ${{ env.ANDROID_HOME }}
+          NDK_HOME: ${{ env.NDK_HOME }}
+
       - name: Install frontend dependencies
         run: npm ci
 
