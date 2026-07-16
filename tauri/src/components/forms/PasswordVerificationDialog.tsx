@@ -6,6 +6,7 @@ import { SecurePasswordInput } from '@/components/forms/PasswordInput';
 import { PinInput } from '@/components/forms/PinInput';
 import { Button } from '@/components/ui/Button';
 import { useToastError } from '@/hooks/useToastError';
+import { useAutoLockPauseStore } from '@/stores/autoLockPauseStore';
 import { Fingerprint, KeyRound, ScanFace, ShieldCheck, Grip } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/constants';
 
@@ -107,6 +108,15 @@ export function PasswordVerificationDialog({
       if (commitTimerRef.current) clearTimeout(commitTimerRef.current);
     };
   }, []);
+
+  // 对话框打开期间暂停自动锁定计时（与 CLI 的 auto_lock_paused 语义一致），
+  // 避免用户长时间未输入时验证框被锁定流程变成孤儿状态
+  useEffect(() => {
+    if (!open) return;
+    const { pause, resume } = useAutoLockPauseStore.getState();
+    pause();
+    return () => resume();
+  }, [open]);
 
   // 对话框打开时重置状态、检查可用性
   useEffect(() => {

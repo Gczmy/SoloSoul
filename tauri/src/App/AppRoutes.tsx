@@ -7,6 +7,7 @@ import { useObjectStore } from '@/stores/objectStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useProfileStore } from '@/stores/profileStore';
 import { useApplyThemeFromSettings } from '@/hooks/useApplyThemeFromSettings';
+import { useAutoLock } from '@/hooks/useAutoLock';
 import { applyTheme, getSystemTheme, listenForSystemTheme } from '@/lib/theme';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { getCurrentWindow } from '@tauri-apps/api/window';
@@ -222,6 +223,7 @@ export function AppRoutes() {
   }, [isAuthenticated]);
 
   useApplyThemeFromSettings();
+  useAutoLock();
 
   // Listen for system theme changes (via Tauri Event from Rust backend)
   useEffect(() => {
