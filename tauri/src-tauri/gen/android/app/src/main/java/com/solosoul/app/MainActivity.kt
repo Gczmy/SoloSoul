@@ -1,8 +1,10 @@
 package com.solosoul.app
 
+import android.content.Intent
 import android.content.res.AssetManager
 import android.content.res.Configuration
 import android.os.Bundle
+import android.webkit.WebView
 import androidx.activity.enableEdgeToEdge
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -19,6 +21,56 @@ class MainActivity : TauriActivity() {
     // 供 Rust 后端通过 std::fs 读取（Tauri Android 的 resource_dir 返回 asset:// URL）。
     // 注意：Rust 端使用 BaseDirectory::Data 解析到应用数据目录根，因此目标根目录也必须是 dataDir。
     extractAssetsToDataDir(assets, dataDir)
+    // 处理快捷方式 intent（冷启动）
+    handleShortcutIntent(intent)
+  }
+
+  override fun onNewIntent(intent: Intent?) {
+    super.onNewIntent(intent)
+    // 处理快捷方式 intent（热启动）
+    handleShortcutIntent(intent)
+  }
+
+  /**
+   * 读取 intent 中的 shortcut_action extra，并通过 WebView 注入自定义 DOM 事件
+   * 通知前端触发「新建对象」流程。若 WebView 尚未就绪则事件会被前端缓存消费。
+   */
+  private fun handleShortcutIntent(intent: Intent?) {
+    val action = intent?.getStringExtra("shortcut_action") ?: return
+    if (action != "new_object") return
+    val webView = findWebView(window.decorView) ?: return
+    val script = """
+      (function() {
+        if (window.__SOLOSOUL_HANDLE_SHORTCUT__) {
+          window.__SOLOSOUL_HANDLE_SHORTCUT__(${quoteJsString(action)});
+        } else {
+          try { sessionStorage.setItem('solosoul_pending_shortcut', ${quoteJsString(action)}); } catch(e) {}
+        }
+      })();
+    """.trimIndent()
+    runOnUiThread {
+      webView.evaluateJavascript(script, null)
+    }
+  }
+
+  /** 简单转义字符串供 JS 使用，避免引入额外依赖 */
+  private fun quoteJsString(s: String): String {
+    return "\"" + s.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n") + "\""
+  }
+
+  /**
+   * 递归查找 Tauri 注入的 WebView（Tauri 2 不会暴露固定 ID）。
+   */
+  private fun findWebView(root: android.view.View?): WebView? {
+    if (root == null) return null
+    if (root is WebView) return root
+    if (root is android.view.ViewGroup) {
+      for (i in 0 until root.childCount) {
+        val child = root.getChildAt(i)
+        findWebView(child)?.let { return it }
+      }
+    }
+    return null
   }
 
   /**

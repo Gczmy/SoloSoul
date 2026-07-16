@@ -2,4 +2,6 @@
     <string name="app_name">SoloSoul</string>
     <string name="main_activity_title">SoloSoul</string>
     <string name="pdf_preview_title">PDF Preview</string>
+    <string name="shortcut_new_object_short">新建对象</string>
+    <string name="shortcut_new_object_long">新建 SoloSoul 对象</string>
 </resources>
