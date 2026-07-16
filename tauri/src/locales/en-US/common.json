@@ -366,5 +366,13 @@
   "guide_detail_step1_title": "Drag into This Panel",
   "guide_detail_step1_desc": "Drag files from your file manager directly into this detail panel to attach them. The panel will highlight when dragged over.",
   "guide_detail_step2_title": "Attachment Manager",
-  "guide_detail_step2_desc": "Click the Attachments button to open the manager, or drag files directly into the manager window for batch upload."
+  "guide_detail_step2_desc": "Click the Attachments button to open the manager, or drag files directly into the manager window for batch upload.",
+
+  "home_guide_title": "Home Guide",
+  "home_guide_step1_title": "Profile Sections",
+  "home_guide_step1_desc": "Profile sections include Identity, Travel, Financial, and Professional predefined pages, plus any custom pages you create. Click a card to open its workspace.",
+  "home_guide_step2_title": "Quick Access",
+  "home_guide_step2_desc": "Quick access cards provide shortcuts to Settings, Trash, Plugins, OCR, Search, AI Chat, and Help. Click a card to jump to that feature.",
+  "home_guide_step3_title": "Custom Pages",
+  "home_guide_step3_desc": "Long-press a custom page card in the Profile Sections area to edit its icon, name, and description. Predefined pages and quick access cards cannot be edited."
 }

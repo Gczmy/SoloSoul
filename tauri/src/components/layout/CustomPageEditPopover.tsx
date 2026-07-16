@@ -259,12 +259,12 @@ export function CustomPageEditPopover({
               />
               <input
                 value={description}
-                onChange={(e) => setDescription(e.target.value.slice(0, 60))}
+                onChange={(e) => setDescription(e.target.value.slice(0, 30))}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') handleConfirm();
                   if (e.key === 'Escape') handleCancel();
                 }}
-                maxLength={60}
+                maxLength={30}
                 placeholder={t('navigation:add_page_description_placeholder')}
                 aria-label={t('navigation:add_page_description_placeholder')}
                 className={styles.addPageInput}

@@ -327,21 +327,21 @@ export function AddPageButton({
               {showDescription && (
                 <input
                   value={description}
-                  onChange={(e) => setDescription(e.target.value.slice(0, 60))}
-                  onBlur={(e) => {
-                    if (
-                      popoverRef.current &&
-                      !popoverRef.current.contains(e.relatedTarget as Node)
-                    ) {
-                      handleConfirm();
-                    }
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') handleConfirm();
-                    if (e.key === 'Escape') handleCancel();
-                  }}
-                  placeholder={t('add_page_description_placeholder')}
-                  maxLength={60}
+                onChange={(e) => setDescription(e.target.value.slice(0, 30))}
+                onBlur={(e) => {
+                  if (
+                    popoverRef.current &&
+                    !popoverRef.current.contains(e.relatedTarget as Node)
+                  ) {
+                    handleConfirm();
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleConfirm();
+                  if (e.key === 'Escape') handleCancel();
+                }}
+                placeholder={t('add_page_description_placeholder')}
+                maxLength={30}
                   aria-label={t('add_page_description_placeholder')}
                   className={styles.addPageInput}
                   data-secondary

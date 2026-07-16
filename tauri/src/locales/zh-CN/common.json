@@ -365,5 +365,13 @@
   "guide_detail_step1_title": "拖拽到此面板",
   "guide_detail_step1_desc": "直接将文件从文件管理器拖入当前详情面板，即可为此对象添加附件。拖入时面板会高亮提示。",
   "guide_detail_step2_title": "附件管理器",
-  "guide_detail_step2_desc": "点击「附件」按钮打开附件管理器，也可将文件直接拖入管理器窗口进行批量上传。"
+  "guide_detail_step2_desc": "点击「附件」按钮打开附件管理器，也可将文件直接拖入管理器窗口进行批量上传。",
+
+  "home_guide_title": "首页指南",
+  "home_guide_step1_title": "资料分区",
+  "home_guide_step1_desc": "资料分区包含身份、旅行、财务、职业四个预定义页面，以及您自定义的页面。点击任意卡片即可进入对应页面管理工作区对象。",
+  "home_guide_step2_title": "快捷入口",
+  "home_guide_step2_desc": "快捷入口提供设置、回收站、插件、OCR、搜索、AI 对话和帮助的快速访问，点击卡片即可跳转到对应功能。",
+  "home_guide_step3_title": "自定义页面",
+  "home_guide_step3_desc": "长按资料分区中的自定义页面卡片，可以修改页面图标、名称和说明。预定义页面和快捷入口卡片不支持编辑。"
 }

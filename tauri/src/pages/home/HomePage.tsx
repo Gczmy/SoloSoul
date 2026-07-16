@@ -8,8 +8,10 @@ import { CardGrid } from '@/components/ui/CardGrid';
 import { PAGE_ICON_MAP, resolveCustomIcon } from '@/lib/pageIcons';
 import { useActiveCustomPages } from '@/components/layout/useNavigationItems';
 import { CustomPageEditPopover } from '@/components/layout/CustomPageEditPopover';
+import { PageGuide } from '@/components/guide/PageGuide';
 import { useIsMobile } from '@/hooks/useIsMobile';
 import { useLongPress } from '@/hooks/useLongPress';
+import { LayoutGrid, Zap, Hand } from 'lucide-react';
 import type { ProfileSection } from '@/types';
 import type { LucideIcon } from 'lucide-react';
 import type { CustomPage } from '@/stores/settingsStore';
@@ -182,7 +184,43 @@ export function HomePage() {
   };
 
   return (
-    <AppShell title={t('common:home')}>
+    <AppShell
+      title={t('common:home')}
+      actions={
+        <PageGuide
+          pages={[
+            {
+              icon: LayoutGrid,
+              title: t('common:home_guide_title'),
+              steps: [
+                {
+                  icon: LayoutGrid,
+                  title: t('common:home_guide_step1_title'),
+                  description: t('common:home_guide_step1_desc'),
+                },
+                {
+                  icon: Zap,
+                  title: t('common:home_guide_step2_title'),
+                  description: t('common:home_guide_step2_desc'),
+                },
+                {
+                  icon: Hand,
+                  title: t('common:home_guide_step3_title'),
+                  description: t('common:home_guide_step3_desc'),
+                },
+              ],
+              helpLinks: [
+                {
+                  title: t('common:guide_help_getting_started'),
+                  description: t('common:guide_help_getting_started_desc'),
+                  href: '/help?id=getting-started',
+                },
+              ],
+            },
+          ]}
+        />
+      }
+    >
       <PageContainer variant="wide" gap="section">
         <Card>
           <h2 style={{ fontSize: 'var(--text-page-title)', fontWeight: 600, marginBottom: 4 }}>
