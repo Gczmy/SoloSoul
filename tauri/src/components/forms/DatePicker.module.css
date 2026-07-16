@@ -20,9 +20,11 @@
     box-shadow 0.2s;
 }
 
-.trigger:hover:not(:focus):not(:disabled) {
-  border-color: var(--accent-primary);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 10%, transparent);
+@media (hover: hover) and (pointer: fine) {
+  .trigger:hover:not(:focus):not(:disabled) {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  }
 }
 
 .trigger:focus {
@@ -58,9 +60,11 @@
   line-height: 1;
 }
 
-.clearButton:hover:not(:disabled) {
-  background: var(--state-hover);
-  color: var(--text-primary);
+@media (hover: hover) and (pointer: fine) {
+  .clearButton:hover:not(:disabled) {
+    background: var(--state-hover);
+    color: var(--text-primary);
+  }
 }
 
 .popover {
@@ -101,8 +105,10 @@
   cursor: pointer;
 }
 
-.navButton:hover:not(:disabled) {
-  background: var(--state-hover);
+@media (hover: hover) and (pointer: fine) {
+  .navButton:hover:not(:disabled) {
+    background: var(--state-hover);
+  }
 }
 
 .selects {
@@ -143,8 +149,10 @@
   cursor: pointer;
 }
 
-.day:hover:not(:disabled) {
-  background: var(--state-hover);
+@media (hover: hover) and (pointer: fine) {
+  .day:hover:not(:disabled) {
+    background: var(--state-hover);
+  }
 }
 
 .day:disabled {
@@ -157,8 +165,10 @@
   color: white;
 }
 
-.selectedDay:hover:not(:disabled) {
-  background: var(--accent-hover);
+@media (hover: hover) and (pointer: fine) {
+  .selectedDay:hover:not(:disabled) {
+    background: var(--accent-hover);
+  }
 }
 
 .today {

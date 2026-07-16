@@ -83,11 +83,13 @@
   flex-shrink: 0;
   padding: 0;
   transition: all 0.15s ease;
+}@media (hover: hover) and (pointer: fine) {
+  .clearBtn:hover {
+    background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+    color: var(--accent-primary);
+  }
 }
-.clearBtn:hover {
-  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
-  color: var(--accent-primary);
-}
+
 .clearBtn:active {
   transform: scale(0.88);
 }
@@ -129,12 +131,14 @@
     background 0.12s ease,
     color 0.12s ease,
     border-color 0.12s ease;
+}@media (hover: hover) and (pointer: fine) {
+  .filterBtn:hover {
+    background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+  }
 }
-.filterBtn:hover {
-  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
-  border-color: var(--accent-primary);
-  color: var(--accent-primary);
-}
+
 .filterBtn:active {
   transform: scale(0.96);
 }
@@ -205,10 +209,12 @@
   font-family: inherit;
   font-size: inherit;
   transition: background 0.1s ease;
+}@media (hover: hover) and (pointer: fine) {
+  .resultItem:hover {
+    background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  }
 }
-.resultItem:hover {
-  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
-}
+
 .resultItem:active {
   transform: scale(0.97);
 }
@@ -270,11 +276,13 @@
   font-family: inherit;
   font-size: var(--text-body-sm);
   transition: background 0.1s ease;
+}@media (hover: hover) and (pointer: fine) {
+  .recentItem:hover {
+    background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+    color: var(--accent-primary);
+  }
 }
-.recentItem:hover {
-  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
-  color: var(--accent-primary);
-}
+
 .recentItem:active {
   transform: scale(0.97);
 }
@@ -293,11 +301,13 @@
   font-family: inherit;
   font-size: var(--text-body-sm);
   transition: background 0.1s ease;
+}@media (hover: hover) and (pointer: fine) {
+  .settingsItem:hover {
+    background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+    color: var(--accent-primary);
+  }
 }
-.settingsItem:hover {
-  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
-  color: var(--accent-primary);
-}
+
 .settingsItem:active {
   transform: scale(0.97);
 }

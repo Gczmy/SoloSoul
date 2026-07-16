@@ -141,11 +141,13 @@
   color: var(--text-primary);
 }
 
-.installBtn:hover:not(:disabled),
-.updateBtn:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
-  border-color: var(--accent-primary);
-  color: var(--accent-primary);
+@media (hover: hover) and (pointer: fine) {
+  .installBtn:hover:not(:disabled),
+  .updateBtn:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+  }
 }
 
 .updateBtn {
@@ -158,20 +160,24 @@
   border-color: transparent;
 }
 
-.runBtn:hover:not(:disabled) {
-  background: var(--success);
-  color: white;
-  border-color: var(--success);
+@media (hover: hover) and (pointer: fine) {
+  .runBtn:hover:not(:disabled) {
+    background: var(--success);
+    color: white;
+    border-color: var(--success);
+  }
 }
 
 .clearActionBtn {
   color: var(--text-secondary);
 }
 
-.clearActionBtn:hover:not(:disabled) {
-  background: var(--danger-subtle);
-  color: var(--danger);
-  border-color: transparent;
+@media (hover: hover) and (pointer: fine) {
+  .clearActionBtn:hover:not(:disabled) {
+    background: var(--danger-subtle);
+    color: var(--danger);
+    border-color: transparent;
+  }
 }
 
 .spin {

@@ -40,10 +40,14 @@
     border-color 0.2s,
     box-shadow 0.2s;
 }
-.input:hover:not(:focus):not(.hasError) {
-  border-color: var(--accent-primary);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 10%, transparent);
+/* 桌面指针设备保留 hover 边框高亮；触屏设备避免点按后残留高亮 */
+@media (hover: hover) and (pointer: fine) {
+  .input:hover:not(:focus):not(.hasError) {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  }
 }
+
 .input:focus {
   border-color: var(--accent-primary);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 15%, transparent);
@@ -93,9 +97,11 @@
   padding: 0;
 }
 
-.clearBtn:hover {
-  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
-  color: var(--accent-primary);
+@media (hover: hover) and (pointer: fine) {
+  .clearBtn:hover {
+    background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+    color: var(--accent-primary);
+  }
 }
 
 .clearBtn:active {

@@ -33,9 +33,12 @@
   flex-shrink: 0;
 }
 
-.navButton:hover {
-  background: rgba(128, 128, 128, 0.06);
-  color: var(--text-primary);
+/* 桌面指针设备保留 hover 高亮；触屏设备避免点按后残留高亮 */
+@media (hover: hover) and (pointer: fine) {
+  .navButton:hover {
+    background: rgba(128, 128, 128, 0.06);
+    color: var(--text-primary);
+  }
 }
 
 /* 9.4 — 选中状态 */
@@ -44,9 +47,11 @@
   background: rgba(91, 124, 153, 0.1);
 }
 
-.activeButton:hover {
-  background: rgba(91, 124, 153, 0.15);
-  color: var(--accent-primary);
+@media (hover: hover) and (pointer: fine) {
+  .activeButton:hover {
+    background: rgba(91, 124, 153, 0.15);
+    color: var(--accent-primary);
+  }
 }
 
 /* ── 9.3 — 悬停名称卡片（Portal 到 body，不被 overflow 裁剪） ── */
