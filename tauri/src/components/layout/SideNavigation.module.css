@@ -344,3 +344,64 @@
   max-width: 100%;
   line-height: 1.2;
 }
+
+/* ── Add page popover inputs ────────────────────────── */
+.addPageInput {
+  width: 100%;
+  padding: 6px 10px;
+  font-size: var(--text-body);
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-primary);
+  font-family: inherit;
+  outline: none;
+  box-sizing: border-box;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.addPageInput[data-secondary] {
+  font-size: var(--text-body-sm);
+}
+
+.addPageInput::placeholder {
+  color: var(--text-tertiary);
+}
+
+.addPageInput:hover {
+  border-color: var(--accent-primary);
+  background-color: rgba(128, 128, 128, 0.04);
+}
+
+.addPageInput:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 25%, transparent);
+  background-color: rgba(128, 128, 128, 0.06);
+}
+
+.addPageInput[data-error='true'] {
+  border-color: #e74c3c;
+  animation: shake 0.4s ease;
+}
+
+.addPageInput[data-error='true']:hover,
+.addPageInput[data-error='true']:focus {
+  border-color: #e74c3c;
+  box-shadow: 0 0 0 2px rgba(231, 76, 60, 0.25);
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-4px);
+  }
+  75% {
+    transform: translateX(4px);
+  }
+}

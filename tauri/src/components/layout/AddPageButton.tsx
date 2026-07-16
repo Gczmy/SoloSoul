@@ -321,19 +321,8 @@ export function AddPageButton({
                 maxLength={20}
                 autoFocus
                 aria-label={t('add_page_placeholder')}
-                style={{
-                  padding: '6px 10px',
-                  fontSize: 'var(--text-body)',
-                  border: nameError ? '1px solid #e74c3c' : '1px solid var(--accent-primary)',
-                  borderRadius: 6,
-                  background: 'transparent',
-                  color: 'var(--text-primary)',
-                  fontFamily: 'inherit',
-                  outline: 'none',
-                  width: '100%',
-                  boxSizing: 'border-box',
-                  animation: nameError ? 'shake 0.4s ease' : 'none',
-                }}
+                className={styles.addPageInput}
+                data-error={nameError || undefined}
               />
               {showDescription && (
                 <input
@@ -354,18 +343,8 @@ export function AddPageButton({
                   placeholder={t('add_page_description_placeholder')}
                   maxLength={60}
                   aria-label={t('add_page_description_placeholder')}
-                  style={{
-                    padding: '6px 10px',
-                    fontSize: 'var(--text-body-sm)',
-                    border: '1px solid var(--border-subtle)',
-                    borderRadius: 6,
-                    background: 'transparent',
-                    color: 'var(--text-primary)',
-                    fontFamily: 'inherit',
-                    outline: 'none',
-                    width: '100%',
-                    boxSizing: 'border-box',
-                  }}
+                  className={styles.addPageInput}
+                  data-secondary
                 />
               )}
               {nameError && (

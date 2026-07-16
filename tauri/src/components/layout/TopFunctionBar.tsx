@@ -379,6 +379,7 @@ export function TopFunctionBar({
           <AddPageButton
             onCreate={(page) => navigate(`/workspace/custom/${page.id}`)}
             position={POSITION}
+            showDescription
           />
 
           {/* Horizontal foldable area */}

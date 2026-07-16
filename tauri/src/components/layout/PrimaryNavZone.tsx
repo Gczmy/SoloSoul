@@ -163,6 +163,7 @@ export function PrimaryNavZone({ sidebarPosition, isHorizontal }: PrimaryNavZone
             navigate(`/workspace/custom/${page.id}`);
           }}
           position={sidebarPosition}
+          showDescription
         />
       )}
     </>
