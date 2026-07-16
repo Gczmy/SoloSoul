@@ -138,6 +138,8 @@
         return undefined;
       case 'plugin:window|inner_size':
         return { width: 1280, height: 800 };
+      case 'plugin:os|platform':
+        return window.__MOCK_PLATFORM__ || 'macos';
       case 'plugin:webview|set_webview_background_color':
       case 'plugin:window|set_background_color':
         return undefined;

@@ -16,6 +16,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
+    "test:e2e:mobile": "playwright test --project=mobile",
     "check-all": "tsc --noEmit && cargo fmt --check && cargo clippy -- -D warnings && npm run lint && npm run test",
     "format": "prettier --write src/",
     "format:check": "prettier --check src/"
