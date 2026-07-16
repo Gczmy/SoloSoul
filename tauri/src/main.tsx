@@ -14,6 +14,10 @@ initLlmNotificationListener().catch((err) =>
 // 预加载平台信息，供 isMobilePlatformSync 等同步判定使用（非阻塞）
 initPlatform().catch((err) => console.warn('[main] Platform init failed:', err));
 
+// 移动端启动性能基线：记录应用启动时刻（MOB-P1-07）
+const appStartTime = performance.now();
+(window as typeof window & { __SOLOSOUL_APP_START_TIME?: number }).__SOLOSOUL_APP_START_TIME = appStartTime;
+
 const rootEl = document.getElementById('root');
 
 // Block initial render until i18n (system language detection via Rust) and
