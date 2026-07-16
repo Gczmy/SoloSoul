@@ -30,6 +30,17 @@ android {
             abiFilters += listOf("arm64-v8a", "armeabi-v7a")
         }
     }
+    signingConfigs {
+        create("release") {
+            val path = System.getenv("SOLOSOUL_KEYSTORE_PATH")
+            if (path != null) {
+                storeFile = file(path)
+                storePassword = System.getenv("SOLOSOUL_KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("SOLOSOUL_KEY_ALIAS") ?: "solosoul-upload"
+                keyPassword = System.getenv("SOLOSOUL_KEY_PASSWORD")
+            }
+        }
+    }
     buildTypes {
         getByName("debug") {
             manifestPlaceholders["usesCleartextTraffic"] = "true"
@@ -43,6 +54,7 @@ android {
             }
         }
         getByName("release") {
+            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
             proguardFiles(
                 *fileTree(".") { include("**/*.pro") }

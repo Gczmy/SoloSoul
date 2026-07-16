@@ -50,6 +50,8 @@ Thumbs.db
 # Environment
 .env
 .env.local
+*.jks
+*.keystore
 
 # Logs
 *.log
