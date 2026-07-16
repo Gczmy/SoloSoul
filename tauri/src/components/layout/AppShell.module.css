@@ -12,6 +12,7 @@
   min-width: 0;
 }
 
+/* 键盘弹出时 .content 是主要滚动容器；overscroll-behavior 防止系统手势误触 */
 .content {
   flex: 1;
   overflow-x: hidden;
@@ -22,6 +23,7 @@
   padding-top: calc(56px + 16px);
   /* Extra fallback for browsers that support scrollbar-gutter. */
   scrollbar-gutter: stable;
+  overscroll-behavior: none;
 }
 
 /* Mobile: reduce padding and account for bottom navigation */
