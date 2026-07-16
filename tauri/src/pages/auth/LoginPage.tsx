@@ -67,6 +67,15 @@ export function LoginPage() {
   const [committedIcon, setCommittedIcon] = useState<string | null>(null);
   const commitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // 移动端启动性能基线：登录页首个输入框可交互时记录 T1（MOB-P1-07）
+  useEffect(() => {
+    const start = (window as typeof window & { __SOLOSOUL_APP_START_TIME?: number }).__SOLOSOUL_APP_START_TIME;
+    if (typeof start === 'number') {
+      const t1 = performance.now() - start;
+      console.warn(`[perf] T1=${t1.toFixed(1)}ms`);
+    }
+  }, []);
+
   useEffect(() => {
     // Defensive load: fetch the account list directly in case Vite HMR keeps
     // authStore.listAccounts pointing at a stale command name.

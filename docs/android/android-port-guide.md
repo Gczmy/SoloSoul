@@ -217,6 +217,28 @@ npm run tauri:android:build
 7. 备份创建/恢复
 8. 导入/导出 `.solosoul`
 
+### 4.1.1 启动性能基线
+
+定义两个指标：
+
+- **T1**：点图标 → 解锁页可交互
+- **T2**：解锁成功 → 首页对象列表可见
+
+代码已埋点：
+
+- `tauri/src/main.tsx`：应用启动时记录 `__SOLOSOUL_APP_START_TIME`。
+- `tauri/src/pages/auth/LoginPage.tsx`：登录页挂载时输出 `[perf] T1=xxxms`。
+- `tauri/src/pages/home/HomePage.tsx`：首页挂载时输出 `[perf] T2=xxxms`。
+
+真机采集方法：
+
+```bash
+# 连接 Android 设备并过滤日志
+adb logcat -s "Web Console" | grep "\[perf\]"
+```
+
+每次冷启动 ×10，取 P50/P95，记录在案。预算：T1 P95 ≤ 2.5s、T2 P95 ≤ 1.5s。
+
 ### 4.2 已知需要在验证中修复的问题
 
 - [x] 附件 `attachment_copy_to_vault` / `attachment_download` 的目录校验在移动端已做兼容：
