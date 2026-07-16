@@ -26,7 +26,8 @@ mod stub;
 mod windows;
 
 /// 旧版基于本地加密文件的存储。用于从旧版本升级时迁移凭证、当前 macOS 方案、以及测试 mock。
-pub(crate) mod legacy;
+/// 在移动端（Android/iOS）作为 tauri-plugin-biometric 的凭证存储后端使用。
+pub mod legacy;
 
 /// ⚠️ 未来 Keychain 方案保留模块。详见 `macos_keychain.rs` 顶部注释。
 /// 当前未使用，但保留完整实现以便团队加入 Apple Developer Program 后切换。
@@ -109,7 +110,7 @@ impl BiometricError {
 }
 
 /// 平台相关的生物识别凭证存储后端。
-pub(crate) trait BiometricStorage: Send + Sync {
+pub trait BiometricStorage: Send + Sync {
     /// 保存凭证。`reason` 用于系统提示框（如适用）。
     fn save(&self, account_id: &str, key_hex: &str, reason: &str) -> Result<(), BiometricError>;
 
@@ -137,7 +138,16 @@ fn platform_storage(base_path: PathBuf) -> Box<dyn BiometricStorage + Send + Syn
     return Box::new(macos::MacOsBiometricStorage::new(base_path));
     #[cfg(target_os = "windows")]
     return Box::new(windows::WindowsBiometricStorage::new(base_path));
-    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+    // 移动端（Android/iOS）使用加密本地文件作为 tauri-plugin-biometric 的凭证存储后端。
+    // TODO: 未来迁移到 Android Keystore / iOS Keychain 以获得硬件级安全。
+    #[cfg(any(target_os = "android", target_os = "ios"))]
+    return Box::new(legacy::FileBiometricStorage::new(base_path));
+    #[cfg(not(any(
+        target_os = "macos",
+        target_os = "windows",
+        target_os = "android",
+        target_os = "ios"
+    )))]
     {
         let _ = base_path;
         Box::new(stub::StubBiometricStorage)

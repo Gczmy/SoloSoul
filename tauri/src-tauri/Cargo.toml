@@ -69,6 +69,10 @@ minisign-verify = "0.2"
 wasmtime = { version = "45.0.1", features = ["cranelift", "runtime", "component-model", "pulley"] }
 wasmtime-wasi = { version = "45.0.1", default-features = false, features = ["p1"] }
 
+# 平台专属：移动端（Android/iOS）
+[target.'cfg(any(target_os = "android", target_os = "ios"))'.dependencies]
+tauri-plugin-biometric = "2"
+
 # 平台专属：桌面端（非 Android/iOS）
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 tauri-plugin-window-state = "2"

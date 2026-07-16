@@ -143,6 +143,12 @@ pub fn run() {
         .plugin(status_bar_plugin::init())
         .plugin(attachment_import_plugin::init());
 
+    // 移动端专属插件
+    #[cfg(any(target_os = "android", target_os = "ios"))]
+    {
+        builder = builder.plugin(tauri_plugin_biometric::init());
+    }
+
     // 桌面端专属插件
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     {
