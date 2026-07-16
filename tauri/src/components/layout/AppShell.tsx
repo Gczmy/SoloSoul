@@ -4,7 +4,7 @@ import { TopFunctionBar } from './TopFunctionBar';
 import { MobileBottomNav } from './MobileBottomNav';
 import { AppBar } from './AppBar';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { useIsMobile } from '@/hooks/useIsMobile';
+import { useIsNarrowViewport } from '@/hooks/useIsNarrowViewport';
 
 const FUNCTION_BAR_HEIGHT = 48;
 
@@ -16,10 +16,10 @@ interface AppShellProps {
 }
 
 export function AppShell({ children, title, actions, onBack }: AppShellProps) {
-  const isMobile = useIsMobile();
+  const isNarrowViewport = useIsNarrowViewport();
   const sidebarPosition = useSettingsStore((s) => s.settings.sidebarPosition);
-  // 移动端强制使用底部导航栏
-  const effectivePosition = isMobile ? 'bottom' : sidebarPosition;
+  // 窄视口下强制使用底部导航栏
+  const effectivePosition = isNarrowViewport ? 'bottom' : sidebarPosition;
   const isTop = effectivePosition === 'top';
   const isHorizontal = isTop || effectivePosition === 'bottom';
 
@@ -43,7 +43,7 @@ export function AppShell({ children, title, actions, onBack }: AppShellProps) {
         topBarHeight={isTop ? FUNCTION_BAR_HEIGHT : 0}
         sidebarPosition={effectivePosition}
       />
-      {isMobile ? (
+      {isNarrowViewport ? (
         <MobileBottomNav />
       ) : isHorizontal ? (
         <TopFunctionBar sidebarPosition={effectivePosition} />

@@ -9,7 +9,7 @@ import { useProfileStore } from '@/stores/profileStore';
 import { useApplyThemeFromSettings } from '@/hooks/useApplyThemeFromSettings';
 import { useAutoLock } from '@/hooks/useAutoLock';
 import { applyTheme, getSystemTheme, listenForSystemTheme } from '@/lib/theme';
-import { useIsMobile } from '@/hooks/useIsMobile';
+import { isMobilePlatformSync } from '@/lib/platform';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { confirm } from '@tauri-apps/plugin-dialog';
 import { UpdateBanner, type UpdateBannerState } from '@/components/ui/UpdateBanner';
@@ -32,7 +32,7 @@ import { LoginPage } from '@/pages/auth/LoginPage';
 export function AppRoutes() {
   const navigate = useNavigate();
   const { t } = useTranslation('ocr');
-  const isMobile = useIsMobile();
+  const isMobile = isMobilePlatformSync();
   const { checkHasAccount, hasAccount, isAuthenticated } = useAuthStore();
   const [updateState, setUpdateState] = useState<
     | { kind: 'hidden' }

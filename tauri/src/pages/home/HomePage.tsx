@@ -9,7 +9,7 @@ import { PAGE_ICON_MAP, resolveCustomIcon } from '@/lib/pageIcons';
 import { useActiveCustomPages } from '@/components/layout/useNavigationItems';
 import { CustomPageEditPopover } from '@/components/layout/CustomPageEditPopover';
 import { PageGuide } from '@/components/guide/PageGuide';
-import { useIsMobile } from '@/hooks/useIsMobile';
+
 import { useLongPress } from '@/hooks/useLongPress';
 import { LayoutGrid, Zap, Hand } from 'lucide-react';
 import type { ProfileSection } from '@/types';
@@ -169,7 +169,7 @@ export function HomePage() {
   const navigate = useNavigate();
   const { t } = useTranslation(['common', 'navigation']);
   const activeCustomPages = useActiveCustomPages();
-  const isMobile = useIsMobile();
+
   const [editingPage, setEditingPage] = useState<CustomPage | null>(null);
   const [editingCardRect, setEditingCardRect] = useState<DOMRect | null>(null);
 
