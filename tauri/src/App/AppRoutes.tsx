@@ -9,7 +9,7 @@ import { useProfileStore } from '@/stores/profileStore';
 import { useApplyThemeFromSettings } from '@/hooks/useApplyThemeFromSettings';
 import { useAutoLock } from '@/hooks/useAutoLock';
 import { applyTheme, getSystemTheme, listenForSystemTheme } from '@/lib/theme';
-import { useIsMobile } from '@/hooks/useIsMobile';
+import { isMobilePlatformSync } from '@/lib/platform';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { confirm } from '@tauri-apps/plugin-dialog';
 import { UpdateBanner, type UpdateBannerState } from '@/components/ui/UpdateBanner';
@@ -32,7 +32,7 @@ import { LoginPage } from '@/pages/auth/LoginPage';
 export function AppRoutes() {
   const navigate = useNavigate();
   const { t } = useTranslation('ocr');
-  const isMobile = useIsMobile();
+  const isMobilePlatform = isMobilePlatformSync();
   const { checkHasAccount, hasAccount, isAuthenticated } = useAuthStore();
   const [updateState, setUpdateState] = useState<
     | { kind: 'hidden' }
@@ -53,7 +53,7 @@ export function AppRoutes() {
 
   // 启动时检查更新并显示非侵入式横幅（桌面端）
   useEffect(() => {
-    if (isMobile) return;
+    if (isMobilePlatform) return;
     checkForUpdate().then((result) => {
       if (result.kind !== 'available') return;
       const skipped = localStorage.getItem(ST_SKIPPED_VERSION);
@@ -66,7 +66,7 @@ export function AppRoutes() {
         totalBytes: 0,
       });
     });
-  }, [isMobile]);
+  }, [isMobilePlatform]);
 
   const startDownload = useCallback(async () => {
     if (updateState.kind !== 'available' && updateState.kind !== 'error') return;
@@ -121,7 +121,7 @@ export function AppRoutes() {
 
   // 首次启动时静默安装 bundled small OCR 模型（桌面端）
   const triggerOcrFirstInstall = useCallback(async () => {
-    if (isMobile) {
+    if (isMobilePlatform) {
       markOcrFirstInstallDone();
       return;
     }
@@ -144,7 +144,7 @@ export function AppRoutes() {
       // 错误会通过 ocr-install-progress 事件进入 store；这里兜底确保 banner 不消失。
       setShowOcrBanner(true);
     }
-  }, [startListening, isMobile]);
+  }, [startListening, isMobilePlatform]);
 
   useEffect(() => {
     triggerOcrFirstInstall();
@@ -154,7 +154,7 @@ export function AppRoutes() {
 
   // OCR 模型安装期间拦截窗口关闭，提示用户避免退出导致安装不完整（桌面端）
   useEffect(() => {
-    if (isMobile || !isInstalling) return;
+    if (isMobilePlatform || !isInstalling) return;
 
     const appWindow = getCurrentWindow();
     let unlisten: (() => void) | undefined;
@@ -178,7 +178,7 @@ export function AppRoutes() {
     return () => {
       unlisten?.();
     };
-  }, [isInstalling, t, isMobile]);
+  }, [isInstalling, t, isMobilePlatform]);
 
   useEffect(() => {
     checkHasAccount();

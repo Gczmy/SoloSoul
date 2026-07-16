@@ -6,10 +6,13 @@ import './styles/global.css';
 import './styles/themes.css';
 import { initI18n } from './lib/i18n';
 import { initLlmNotificationListener } from '@/lib/notification';
+import { initPlatform } from '@/lib/platform';
 // Start global LLM notification listener (non-blocking)
 initLlmNotificationListener().catch((err) =>
   console.warn('[main] LLM notification listener failed:', err),
 );
+// 预加载平台信息，供 isMobilePlatformSync 等同步判定使用（非阻塞）
+initPlatform().catch((err) => console.warn('[main] Platform init failed:', err));
 
 const rootEl = document.getElementById('root');
 
@@ -18,6 +21,7 @@ const rootEl = document.getElementById('root');
 // theme and accent are already applied (~1ms IPC read).
 // i18n must init first so settingsStore's lazy changeLanguage doesn't race.
 initI18n()
+  .then(() => initPlatform())
   .then(() =>
     import('@/stores/settingsStore')
       .then((m) => m.useSettingsStore.getState())
