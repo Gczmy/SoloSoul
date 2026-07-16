@@ -21,7 +21,9 @@ android {
         applicationId = "com.solosoul.app"
         minSdk = 28
         targetSdk = 36
-        versionCode = tauriProperties.getProperty("tauri.android.versionCode", "1").toInt()
+        // versionCode = 基础值（tauri.properties）+ CI 构建序号，保证每次发布单调递增
+        versionCode = tauriProperties.getProperty("tauri.android.versionCode", "1").toInt() +
+            (System.getenv("GITHUB_RUN_NUMBER") ?: "0").toInt()
         versionName = tauriProperties.getProperty("tauri.android.versionName", "1.0")
 
         // 只打包 arm64 与 armv7，覆盖绝大多数 Android 真机；

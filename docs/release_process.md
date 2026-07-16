@@ -261,6 +261,48 @@ Push 到 `master` 分支后，GitHub Actions 会自动：
 
 ---
 
+## Android 发版补充
+
+Android 产物为 AAB（Android App Bundle），由 `tauri/src-tauri/gen/android/app/build.gradle.kts` 构建。
+
+### 版本号规则
+
+| 来源 | 说明 |
+|------|------|
+| `versionName` | 取自 `tauri/src-tauri/gen/android/app/tauri.properties` 的 `tauri.android.versionName`，应与 `tauri.conf.json` 的 `version` 保持一致。 |
+| `versionCode` | 取自 `tauri.properties` 的 `tauri.android.versionCode` 基础值，并叠加 `GITHUB_RUN_NUMBER` 以保证每次 CI 构建单调递增。Play Store 要求 `versionCode` 只增不减。 |
+
+`build.gradle.kts` 中的计算逻辑：
+
+```kotlin
+versionCode = tauriProperties.getProperty("tauri.android.versionCode", "1").toInt() +
+    (System.getenv("GITHUB_RUN_NUMBER") ?: "0").toInt()
+```
+
+发版前确保 `tauri.android.versionCode` 已按版本号规则更新（例如 `2.5.12` 可编码为 `20512` 或更高）。若基础值已高于新计算值，必须继续递增，不可下降，否则 Play Store 会拒绝上传。
+
+### AAB 构建
+
+```bash
+cd tauri
+npx tauri android build --aab
+```
+
+产物位于 `tauri/src-tauri/gen/android/app/build/outputs/bundle/release/app-release.aab`。
+
+### 签名与上传
+
+Release AAB 使用 `signingConfigs.release`，从环境变量读取 keystore 信息：
+
+- `SOLOSOUL_KEYSTORE_PATH`
+- `SOLOSOUL_KEYSTORE_PASSWORD`
+- `SOLOSOUL_KEY_ALIAS`
+- `SOLOSOUL_KEY_PASSWORD`
+
+本地构建时若环境变量缺失，则回退为未签名（debug），不会报错；CI 发布时必须提供上述变量。
+
+---
+
 ## 附录：版本号速查
 
 | 组件 | 文件路径 | 字段 |
@@ -268,3 +310,4 @@ Push 到 `master` 分支后，GitHub Actions 会自动：
 | Node.js / npm | `tauri/package.json` | `"version": "x.y.z"` |
 | Tauri 配置 | `tauri/src-tauri/tauri.conf.json` | `"version": "x.y.z"` |
 | Rust / Cargo | `tauri/Cargo.toml` | `[workspace.package] version = "x.y.z"` |
+| Android | `tauri/src-tauri/gen/android/app/tauri.properties` | `tauri.android.versionName` / `tauri.android.versionCode` |
