@@ -46,6 +46,7 @@ import { ConfirmDeleteDialog } from '@/components/workspace/ConfirmDeleteDialog'
 
 import { PageGuide } from '@/components/guide/PageGuide';
 import { ICON_SIZE } from '@/lib/constants';
+import styles from './ObjectWorkspacePage.module.css';
 
 export function ObjectWorkspacePage() {
   const navigate = useNavigate();
@@ -688,7 +689,7 @@ export function ObjectWorkspacePage() {
     >
       <PageContainer variant="medium" gap="default">
         <div
-          style={{ display: 'contents' }}
+          className={styles.controls}
           onMouseDown={(e) => {
             if (e.detail > 1) e.preventDefault();
           }}
@@ -698,6 +699,7 @@ export function ObjectWorkspacePage() {
             pageId={pageId}
             customPages={customPages}
             activeCustomPages={activeCustomPages}
+            className={styles.tabs}
           />
 
           <Input

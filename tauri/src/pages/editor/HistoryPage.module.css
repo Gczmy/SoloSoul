@@ -1,0 +1,36 @@
+.snapshotRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.snapshotInfo {
+  min-width: 0;
+  flex: 1;
+}
+
+.snapshotTitle {
+  font-size: var(--text-body-sm);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.snapshotMeta {
+  font-size: var(--text-badge);
+  color: var(--text-tertiary);
+}
+
+/* 移动端：快照信息允许换行，避免时间戳被截断 */
+@media (max-width: 767px) {
+  .snapshotRow {
+    align-items: flex-start;
+  }
+
+  .snapshotTitle {
+    white-space: normal;
+    word-break: break-word;
+  }
+}

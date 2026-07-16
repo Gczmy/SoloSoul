@@ -18,6 +18,7 @@ interface WorkspaceCategoryTabsProps {
   pageId?: string;
   customPages: CustomPage[];
   activeCustomPages: CustomPage[];
+  className?: string;
 }
 
 export function WorkspaceCategoryTabs({
@@ -25,6 +26,7 @@ export function WorkspaceCategoryTabs({
   pageId,
   customPages: _customPages,
   activeCustomPages,
+  className,
 }: WorkspaceCategoryTabsProps) {
   const navigate = useNavigate();
   const { t } = useTranslation(['common', 'navigation', 'editor']);
@@ -69,7 +71,7 @@ export function WorkspaceCategoryTabs({
   });
 
   return (
-    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+    <div className={className} style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
       {CATEGORY_TYPES.map((catType) => {
         const isActive = !pageId && sectionFilter === catType;
         return (

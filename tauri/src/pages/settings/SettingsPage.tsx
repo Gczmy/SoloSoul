@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 
 import { isMobilePlatformSync } from '@/lib/platform';
+import styles from './SettingsPage.module.css';
 
 export function SettingsPage() {
   const navigate = useNavigate();
@@ -177,70 +178,28 @@ export function SettingsPage() {
     <AppShell title={t('settings:title')} onBack={() => navigate('/home')}>
       <PageContainer variant="small" gap="large">
         {settingGroups.map((group) => (
-          <div key={group.title}>
-            <h3
-              style={{
-                fontSize: 'var(--text-body-sm)',
-                fontWeight: 600,
-                color: 'var(--text-secondary)',
-                textTransform: 'uppercase',
-                letterSpacing: '0.05em',
-                marginBottom: 8,
-                paddingLeft: 4,
-              }}
-            >
-              {group.title}
-            </h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <div key={group.title} className={styles.settingGroup}>
+            <h3 className={styles.groupTitle}>{group.title}</h3>
+            <div className={styles.items}>
               {group.items.map((item) => (
                 <Card
                   key={item.label}
                   interactive
                   onClick={() => navigate(item.path, { state: { from: '/settings' } })}
                 >
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div className={styles.itemRow}>
+                    <div className={styles.itemMain}>
                       <item.icon size={20} />
-                      <div>
-                        <span style={{ fontSize: 'var(--text-sm)', fontWeight: 500 }}>
-                          {item.label}
-                        </span>
+                      <div className={styles.itemText}>
+                        <div className={styles.itemLabel}>{item.label}</div>
                         {'desc' in item && item.desc && (
-                          <div
-                            style={{
-                              fontSize: 'var(--text-badge)',
-                              color: 'var(--text-tertiary)',
-                              marginTop: 1,
-                            }}
-                          >
-                            {item.desc}
-                          </div>
+                          <div className={styles.itemDesc}>{item.desc}</div>
                         )}
                       </div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      {item.badge && (
-                        <span
-                          style={{
-                            fontSize: 'var(--text-badge)',
-                            color: 'var(--text-tertiary)',
-                            background: 'var(--bg-toolbar)',
-                            padding: '2px 6px',
-                            borderRadius: 4,
-                          }}
-                        >
-                          {item.badge}
-                        </span>
-                      )}
-                      <span style={{ color: 'var(--text-tertiary)', fontSize: 'var(--text-md)' }}>
-                        ›
-                      </span>
+                      {item.badge && <span className={styles.itemBadge}>{item.badge}</span>}
+                      <span className={styles.itemArrow}>›</span>
                     </div>
                   </div>
                 </Card>

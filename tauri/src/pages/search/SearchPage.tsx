@@ -21,6 +21,7 @@ import type { CustomPage } from '@/stores/settingsStore';
 import { SensitivityBadge, SensitivityLevel } from '@/components/ui/SensitivityBadge';
 import { DEBOUNCE_DELAY_MS } from '@/lib/constants';
 import { searchCache } from '@/lib/searchCache';
+import styles from './SearchPage.module.css';
 
 const SENSITIVITY_ORDER: SensitivityLevel[] = ['public', 'internal', 'sensitive', 'critical'];
 const SYSTEM_PAGE_KEYS = ['identity', 'travel', 'financial', 'professional'] as const;
@@ -326,31 +327,14 @@ export function SearchPage() {
                       <ResultIcon size={18} />
                     </span>
                     <div style={{ overflow: 'hidden' }}>
-                      <div
-                        style={{
-                          fontSize: 'var(--text-body)',
-                          fontWeight: 500,
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
+                      <div className={styles.resultTitle}>
                         {isPage || item.itemType === 'template' || item.matchType === 'template' ? (
                           <Highlight text={resolveResultName(item, customPages, t)} query={query} />
                         ) : (
                           resolveResultName(item, customPages, t)
                         )}
                       </div>
-                      <div
-                        style={{
-                          fontSize: 'var(--text-badge)',
-                          color: 'var(--text-tertiary)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 4,
-                          flexWrap: 'wrap',
-                        }}
-                      >
+                      <div className={styles.resultMeta}>
                         {isPage ? (
                           <span>{t('settings:search_type_page')}</span>
                         ) : item.itemType === 'template' ? (

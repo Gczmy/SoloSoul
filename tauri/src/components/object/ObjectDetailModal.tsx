@@ -35,6 +35,7 @@ import { useDragToAttach } from '@/hooks/useDragToAttach';
 import { DragUploadOverlay } from '@/components/object/DragUploadOverlay';
 import { PageGuide } from '@/components/guide/PageGuide';
 import { ICON_SIZE } from '@/lib/constants';
+import styles from './ObjectDetailModal.module.css';
 
 interface ObjectDetailModalProps {
   /** 已加载的对象摘要/完整数据。与 objectId 二选一，优先使用此值。 */
@@ -417,19 +418,7 @@ export function ObjectDetailModal({
 
   return (
     <>
-      <div
-        style={{
-          position: 'fixed',
-          inset: 0,
-          zIndex: 'var(--z-modal)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: 'var(--bg-overlay)',
-          backdropFilter: 'blur(4px)',
-        }}
-        onClick={onClose}
-      >
+      <div className={styles.overlay} onClick={onClose}>
         {!loading && obj && (
           <motion.div
             initial={{ opacity: 0 }}
@@ -437,18 +426,7 @@ export function ObjectDetailModal({
             transition={{ duration: 0.2 }}
             ref={detailDragRef}
             onClick={(e) => e.stopPropagation()}
-            style={{
-              background: 'var(--bg-elevated)',
-              borderRadius: 16,
-              padding: '28px 32px',
-              maxWidth: 560,
-              width: '90%',
-              maxHeight: '80vh',
-              overflowY: 'auto',
-              boxShadow: 'var(--shadow-lg)',
-              border: '1px solid var(--border-subtle)',
-              position: 'relative',
-            }}
+            className={styles.modal}
           >
             <>
               {/* Header */}
@@ -644,27 +622,11 @@ export function ObjectDetailModal({
                     return (
                       <div
                         key={f.key}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          gap: 12,
-                          padding: '8px 12px',
-                          borderRadius: 8,
-                          background: 'var(--bg-toolbar)',
-                          border: '1px solid var(--border-subtle)',
-                          opacity: deprecated ? 0.7 : 1,
-                        }}
+                        className={styles.fieldRow}
+                        style={{ opacity: deprecated ? 0.7 : 1 }}
                       >
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 6,
-                              marginBottom: 2,
-                            }}
-                          >
+                          <div className={styles.fieldLabel}>
                             <span
                               style={{
                                 fontSize: 'var(--text-caption)',
@@ -686,15 +648,12 @@ export function ObjectDetailModal({
                             {deprecated && <DeprecatedBadge />}
                           </div>
                           <div
+                            className={styles.fieldValue}
                             style={{
-                              fontSize: 'var(--text-body)',
                               color:
                                 needsReveal && !revealed
                                   ? 'var(--text-tertiary)'
                                   : 'var(--text-primary)',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap',
                             }}
                           >
                             {revealed ? f.value : maskValue(f.value, fieldId, sens)}

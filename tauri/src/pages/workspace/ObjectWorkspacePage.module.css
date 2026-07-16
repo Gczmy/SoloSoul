@@ -1,0 +1,26 @@
+.controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--page-gap);
+}
+
+.tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* 移动端：分类标签横向滚动，避免折行占用过多垂直空间 */
+@media (max-width: 767px) {
+  .tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .tabs::-webkit-scrollbar {
+    display: none;
+  }
+}

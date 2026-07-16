@@ -1,0 +1,18 @@
+.formActions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+/* 移动端：底部操作按钮全宽堆叠，避免窄视口下按钮被截断 */
+@media (max-width: 767px) {
+  .formActions {
+    flex-direction: column-reverse;
+    align-items: stretch;
+  }
+
+  .formActions > * {
+    width: 100%;
+    justify-content: center;
+  }
+}

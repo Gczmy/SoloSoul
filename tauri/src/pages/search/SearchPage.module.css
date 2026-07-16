@@ -1,0 +1,24 @@
+.resultTitle {
+  font-size: var(--text-body);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.resultMeta {
+  font-size: var(--text-badge);
+  color: var(--text-tertiary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+/* 移动端：允许标题换行，避免长对象名溢出 */
+@media (max-width: 767px) {
+  .resultTitle {
+    white-space: normal;
+    word-break: break-word;
+  }
+}

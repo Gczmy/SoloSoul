@@ -15,6 +15,7 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { ObjectTemplateSelector } from '@/components/editor/ObjectTemplateSelector';
 import { ObjectFieldList } from '@/components/editor/ObjectFieldList';
 import type { PropertyType } from '@/types/template';
+import styles from './ObjectEditorPage.module.css';
 
 // Each template belongs to a workspace section.
 // collectionType is the section (for filtering), not the template name.
@@ -486,7 +487,7 @@ export function ObjectEditorPage() {
                   getSensitivity={getSensitivity}
                   isNew={isNew}
                 />
-                <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                <div className={styles.formActions}>
                   <Button variant="secondary" onClick={() => navigate(-1)}>
                     {t('common:cancel')}
                   </Button>

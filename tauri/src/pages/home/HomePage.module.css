@@ -27,3 +27,13 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* 移动端：允许描述换行，避免窄卡片内文字溢出 */
+@media (max-width: 767px) {
+  .cardDesc {
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+}

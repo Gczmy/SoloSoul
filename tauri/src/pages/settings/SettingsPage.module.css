@@ -1,0 +1,88 @@
+.settingGroup {
+  margin-bottom: var(--section-gap);
+}
+
+.groupTitle {
+  font-size: var(--text-body-sm);
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+  padding-left: 4px;
+}
+
+.items {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.itemRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.itemMain {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  flex: 1;
+}
+
+.itemText {
+  min-width: 0;
+  flex: 1;
+}
+
+.itemLabel {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.itemDesc {
+  font-size: var(--text-badge);
+  color: var(--text-tertiary);
+  margin-top: 1px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.itemBadge {
+  font-size: var(--text-badge);
+  color: var(--text-tertiary);
+  background: var(--bg-toolbar);
+  padding: 2px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.itemArrow {
+  color: var(--text-tertiary);
+  font-size: var(--text-md);
+  flex-shrink: 0;
+}
+
+/* 移动端：允许设置项文字换行，避免长描述被截断 */
+@media (max-width: 767px) {
+  .itemRow {
+    align-items: flex-start;
+  }
+
+  .itemMain {
+    align-items: flex-start;
+  }
+
+  .itemLabel,
+  .itemDesc {
+    white-space: normal;
+    word-break: break-word;
+  }
+}

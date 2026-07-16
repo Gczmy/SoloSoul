@@ -11,6 +11,7 @@ import { useUiStore } from '@/stores/uiStore';
 import { useConfirm } from '@/hooks/useConfirm';
 import { Clock, RotateCcw, ChevronRight } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/constants';
+import styles from './HistoryPage.module.css';
 
 interface SnapshotEntry {
   id: string;
@@ -83,20 +84,14 @@ export function HistoryPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--card-gap-sm)' }}>
               {snapshots.map((s, i) => (
                 <Card key={s.id}>
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                    }}
-                  >
-                    <div>
-                      <div style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500 }}>
+                  <div className={styles.snapshotRow}>
+                    <div className={styles.snapshotInfo}>
+                      <div className={styles.snapshotTitle}>
                         {i === 0
                           ? t('common:snapshot_current')
                           : new Date(s.timestamp).toLocaleString()}
                       </div>
-                      <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
+                      <div className={styles.snapshotMeta}>
                         {t(`common:trigger_${s.triggeredBy}` as const, {
                           defaultValue: s.triggeredBy,
                         })}
