@@ -50,8 +50,7 @@
       "icons/icon.ico"
     ],
     "resources": {
-      "resources/docs": "docs",
-      "resources/models/pp-ocr-v6-small": "models/pp-ocr-v6-small"
+      "resources/docs": "docs"
     },
     "windows": {
       "nsis": {

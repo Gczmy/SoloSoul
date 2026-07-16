@@ -2,6 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/tauri-apps/tauri/v2/crates/tauri-config-schema/schema.json",
   "bundle": {
     "resources": {
+      "resources/models/pp-ocr-v6-small": "models/pp-ocr-v6-small",
       "resources-desktop/SoloSoul_plugin_market/plugins": "SoloSoul_plugin_market/plugins",
       "resources-desktop/SoloSoul_plugin_market/registry.json": "SoloSoul_plugin_market/registry.json"
     }
