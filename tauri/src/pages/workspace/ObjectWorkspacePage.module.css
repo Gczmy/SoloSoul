@@ -24,3 +24,23 @@
     display: none;
   }
 }
+
+/* 对象工作区 — 创建按钮 */
+.createBtn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-toolbar);
+  color: var(--text-primary);
+  font-size: var(--text-body-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .createBtn:hover {
+    background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+    border-color: var(--accent-primary);
+  }
+}

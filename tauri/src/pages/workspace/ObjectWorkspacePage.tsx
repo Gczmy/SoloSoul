@@ -46,7 +46,11 @@ import { ConfirmDeleteDialog } from '@/components/workspace/ConfirmDeleteDialog'
 
 import { PageGuide } from '@/components/guide/PageGuide';
 import { ICON_SIZE } from '@/lib/constants';
+<<<<<<< HEAD
 import styles from './ObjectWorkspacePage.module.css';
+=======
+import styles from './ObjectWorkspacePage.module.css';
+>>>>>>> feat/mobile-p2-hover-elimination
 
 export function ObjectWorkspacePage() {
   const navigate = useNavigate();
@@ -648,28 +652,8 @@ export function ObjectWorkspacePage() {
             ]}
           />
           <button
-            className={buttonStyles.hideLabelOnMobile}
+            className={`${buttonStyles.hideLabelOnMobile} ${styles.createBtn}`}
             onClick={() => navigate(newObjectUrl)}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background =
-                'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-              e.currentTarget.style.borderColor = 'var(--accent-primary)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'var(--bg-toolbar)';
-              e.currentTarget.style.borderColor = 'var(--border-subtle)';
-            }}
-            style={{
-              padding: '8px 16px',
-              borderRadius: 8,
-              border: '1px solid var(--border-subtle)',
-              background: 'var(--bg-toolbar)',
-              color: 'var(--text-primary)',
-              fontSize: 'var(--text-body-sm)',
-              fontWeight: 500,
-              cursor: 'pointer',
-              transition: 'background 0.2s, border-color 0.2s',
-            }}
           >
             + <span className={buttonStyles.label}>{t('create')}</span>
           </button>

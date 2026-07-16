@@ -76,3 +76,137 @@
     word-break: break-word;
   }
 }
+
+/* 对象详情弹层 — 操作按钮与字段复制按钮样式 */
+
+/* 底部操作按钮（历史/附件/编辑） */
+.actionBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-toolbar);
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: var(--text-body-sm);
+  font-weight: 500;
+  min-height: 36px;
+  transition: all 0.15s ease;
+}
+
+@media (max-width: 767px) {
+  .actionBtn {
+    min-height: 44px;
+    padding: 10px 14px;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .actionBtn:hover {
+    background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+  }
+}
+
+/* 字段复制按钮 */
+.copyBtn {
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border-subtle);
+  background: transparent;
+  cursor: pointer;
+  font-size: var(--text-badge);
+  color: var(--text-tertiary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 28px;
+  transition: all var(--duration-fast) var(--ease-smooth);
+}
+
+@media (max-width: 767px) {
+  .copyBtn,
+  .revealBtn {
+    min-height: 44px;
+    padding: 10px 14px;
+  }
+}
+
+.copyBtnCopied {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--accent-primary) 35%, transparent);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .copyBtn:hover {
+    background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+  }
+}
+
+/* 字段揭示按钮 */
+.revealBtn {
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border-subtle);
+  background: transparent;
+  cursor: pointer;
+  font-size: var(--text-badge);
+  color: var(--text-tertiary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 28px;
+  transition: all 0.15s ease;
+}
+
+.revealBtnCritical {
+  background: rgba(220, 38, 38, 0.06);
+  color: #dc2626;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .revealBtn:hover {
+    background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+  }
+
+  .revealBtnCritical:hover {
+    background: rgba(220, 38, 38, 0.12);
+    border-color: var(--border-subtle);
+    color: #dc2626;
+  }
+}
+
+/* 关闭按钮 */
+.closeBtn {
+  padding: 6px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: var(--text-tertiary);
+  min-width: 36px;
+  min-height: 36px;
+  transition: all 0.15s ease;
+}
+
+@media (max-width: 767px) {
+  .closeBtn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .closeBtn:hover {
+    background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+    color: var(--accent-primary);
+  }
+}

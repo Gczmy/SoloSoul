@@ -58,6 +58,8 @@
   font-size: var(--text-body);
   padding: 2px;
 }
-.close:hover {
-  color: var(--text-primary);
+@media (hover: hover) and (pointer: fine) {
+  .close:hover {
+    color: var(--text-primary);
+  }
 }

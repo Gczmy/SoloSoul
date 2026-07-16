@@ -15,8 +15,11 @@
   white-space: nowrap;
 }
 
-.trigger:hover {
-  border-color: var(--accent-primary);
+/* 桌面指针设备保留 hover 边框高亮；触屏设备避免点按后残留高亮 */
+@media (hover: hover) and (pointer: fine) {
+  .trigger:hover {
+    border-color: var(--accent-primary);
+  }
 }
 
 .trigger:focus-visible {
@@ -86,9 +89,12 @@
   transition: background 0.1s;
 }
 
-.item:hover {
-  background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
-  color: var(--accent-primary);
+/* 桌面指针设备保留 hover 背景高亮；触屏设备避免点按后残留高亮 */
+@media (hover: hover) and (pointer: fine) {
+  .item:hover {
+    background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+    color: var(--accent-primary);
+  }
 }
 
 .itemActive {
@@ -97,7 +103,9 @@
   font-weight: 600;
 }
 
-.itemActive:hover {
-  background: var(--accent-hover);
-  color: white;
+@media (hover: hover) and (pointer: fine) {
+  .itemActive:hover {
+    background: var(--accent-hover);
+    color: white;
+  }
 }

@@ -63,9 +63,11 @@
   transition: all 0.15s ease;
 }
 
-.headerBtn:hover {
-  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
-  color: var(--accent-primary);
+@media (hover: hover) and (pointer: fine) {
+  .headerBtn:hover {
+    background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+    color: var(--accent-primary);
+  }
 }
 
 .tabs {
@@ -94,9 +96,11 @@
   transition: all 0.15s ease;
 }
 
-.tab:hover {
-  background: color-mix(in srgb, var(--accent-primary) 6%, transparent);
-  color: var(--text-primary);
+@media (hover: hover) and (pointer: fine) {
+  .tab:hover {
+    background: color-mix(in srgb, var(--accent-primary) 6%, transparent);
+    color: var(--text-primary);
+  }
 }
 
 .tabActive {
@@ -139,8 +143,10 @@
   transition: border-color 0.15s ease;
 }
 
-.pluginCard:hover {
-  border-color: color-mix(in srgb, var(--accent-primary) 20%, var(--border-subtle));
+@media (hover: hover) and (pointer: fine) {
+  .pluginCard:hover {
+    border-color: color-mix(in srgb, var(--accent-primary) 20%, var(--border-subtle));
+  }
 }
 
 .pluginRow {
@@ -199,10 +205,12 @@
   white-space: nowrap;
 }
 
-.actionBtn:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
-  border-color: var(--accent-primary);
-  color: var(--accent-primary);
+@media (hover: hover) and (pointer: fine) {
+  .actionBtn:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+  }
 }
 
 .actionBtn:disabled {
@@ -217,10 +225,12 @@
   border-color: transparent;
 }
 
-.runBtn:hover:not(:disabled) {
-  background: var(--success);
-  color: white;
-  border-color: var(--success);
+@media (hover: hover) and (pointer: fine) {
+  .runBtn:hover:not(:disabled) {
+    background: var(--success);
+    color: white;
+    border-color: var(--success);
+  }
 }
 
 .installBtn {
@@ -228,10 +238,12 @@
   color: var(--text-primary);
 }
 
-.installBtn:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
-  border-color: var(--accent-primary);
-  color: var(--accent-primary);
+@media (hover: hover) and (pointer: fine) {
+  .installBtn:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+  }
 }
 
 .statusBadge {

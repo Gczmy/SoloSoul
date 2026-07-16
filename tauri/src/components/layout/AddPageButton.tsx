@@ -367,24 +367,7 @@ export function AddPageButton({
                   >
                     {t('page_name_exists')}
                   </span>
-                  <button
-                    onClick={handleCancel}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.color = 'var(--accent-primary)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.color = 'var(--text-tertiary)';
-                    }}
-                    style={{
-                      fontSize: 'var(--text-badge)',
-                      color: 'var(--text-tertiary)',
-                      background: 'none',
-                      border: 'none',
-                      cursor: 'pointer',
-                      padding: 0,
-                      transition: 'color 0.15s ease',
-                    }}
-                  >
+                  <button onClick={handleCancel} className={styles.cancelTextBtn}>
                     {t('common:cancel')}
                   </button>
                 </div>
@@ -449,37 +432,7 @@ export function AddPageButton({
                               key={id}
                               onMouseDown={(e) => e.preventDefault()}
                               onClick={() => setSelectedIconId(id)}
-                              onMouseEnter={(e) => {
-                                if (id !== selectedIconId) {
-                                  e.currentTarget.style.background =
-                                    'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
-                                  e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                                }
-                              }}
-                              onMouseLeave={(e) => {
-                                if (id !== selectedIconId) {
-                                  e.currentTarget.style.background = 'transparent';
-                                  e.currentTarget.style.borderColor = 'transparent';
-                                }
-                              }}
-                              style={{
-                                width: 32,
-                                height: 32,
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                borderRadius: 6,
-                                border:
-                                  id === selectedIconId
-                                    ? '2px solid var(--accent-primary)'
-                                    : '1px solid transparent',
-                                background:
-                                  id === selectedIconId
-                                    ? 'var(--accent-primary-transparent, rgba(91,124,153,0.1))'
-                                    : 'transparent',
-                                cursor: 'pointer',
-                                transition: 'all 0.1s ease',
-                              }}
+                              className={`${styles.iconPickerBtn} ${id === selectedIconId ? styles.iconPickerBtnSelected : ''}`}
                               title={id}
                               aria-label={id}
                             >

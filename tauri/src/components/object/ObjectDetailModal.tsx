@@ -134,7 +134,6 @@ export function ObjectDetailModal({
   const [fetchedObj, setFetchedObj] = useState<ObjectData | null>(null);
   const [loading, setLoading] = useState(!object && !!objectId);
   const [copiedField, setCopiedField] = useState<string | null>(null);
-  const [hoveredField, setHoveredField] = useState<string | null>(null);
   const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fetchIdRef = useRef(0);
 
@@ -389,32 +388,7 @@ export function ObjectDetailModal({
   const fieldOrder = templates.find((t) => t.id === obj?.templateId)?.properties.map((p) => p.id);
   const fields = flattenProperties(obj?.properties, fieldOrder, objFieldDefs);
 
-  const actionBtnStyle: React.CSSProperties = {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 6,
-    padding: '8px 12px',
-    borderRadius: 8,
-    border: '1px solid var(--border-subtle)',
-    background: 'var(--bg-toolbar)',
-    color: 'var(--text-secondary)',
-    cursor: 'pointer',
-    fontSize: 'var(--text-body-sm)',
-    fontWeight: 500,
-    transition: 'all 0.15s ease',
-  };
-
-  const onActionBtnEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
-    e.currentTarget.style.borderColor = 'var(--accent-primary)';
-    e.currentTarget.style.color = 'var(--accent-primary)';
-  };
-  const onActionBtnLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.currentTarget.style.background = 'var(--bg-toolbar)';
-    e.currentTarget.style.borderColor = 'var(--border-subtle)';
-    e.currentTarget.style.color = 'var(--text-secondary)';
-  };
-  // Removed onDeleteBtnEnter/onDeleteBtnLeave — now using DeleteButton
+  // 操作按钮样式已迁移至 ObjectDetailModal.module.css，避免 inline hover 在触屏残留高亮
 
   return (
     <>
@@ -499,27 +473,7 @@ export function ObjectDetailModal({
                     </span>
                   </div>
                 </div>
-                <button
-                  onClick={onClose}
-                  style={{
-                    padding: 6,
-                    borderRadius: 8,
-                    border: 'none',
-                    background: 'transparent',
-                    cursor: 'pointer',
-                    color: 'var(--text-tertiary)',
-                    transition: 'all 0.15s ease',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background =
-                      'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
-                    e.currentTarget.style.color = 'var(--accent-primary)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'transparent';
-                    e.currentTarget.style.color = 'var(--text-tertiary)';
-                  }}
-                >
+                <button onClick={onClose} className={styles.closeBtn}>
                   <X size={ICON_SIZE.xl} />
                 </button>
               </div>
@@ -661,56 +615,24 @@ export function ObjectDetailModal({
                         </div>
                         <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
                           {needsReveal && !revealed && (
-                            <button
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                const revealName = f.label
-                                  ? `${t('editor:field_types.dynamic_group')}: ${f.label}`
-                                  : getFieldName(f.key);
-                                handleRevealField(fieldId, sens, revealName);
-                              }}
-                              style={{
-                                padding: '4px 10px',
-                                borderRadius: 6,
-                                border: '1px solid var(--border-subtle)',
-                                background:
-                                  sens === 'critical' ? 'rgba(220,38,38,0.06)' : 'transparent',
-                                cursor: 'pointer',
-                                fontSize: 'var(--text-badge)',
-                                color: sens === 'critical' ? '#dc2626' : 'var(--text-tertiary)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 4,
-                                transition: 'all 0.15s ease',
-                              }}
-                              onMouseEnter={(e) => {
-                                if (sens === 'critical') {
-                                  e.currentTarget.style.background = 'rgba(220,38,38,0.12)';
-                                } else {
-                                  e.currentTarget.style.background =
-                                    'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
-                                  e.currentTarget.style.color = 'var(--accent-primary)';
-                                  e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                                }
-                              }}
-                              onMouseLeave={(e) => {
-                                if (sens === 'critical') {
-                                  e.currentTarget.style.background = 'rgba(220,38,38,0.06)';
-                                } else {
-                                  e.currentTarget.style.background = 'transparent';
-                                  e.currentTarget.style.color = 'var(--text-tertiary)';
-                                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                                }
-                              }}
-                            >
-                              {sens === 'critical' ? (
-                                <Lock size={ICON_SIZE.xs} />
-                              ) : (
-                                <Eye size={ICON_SIZE.xs} />
-                              )}{' '}
-                              {sens === 'critical' ? t('common:unlock') : t('common:reveal')}
-                            </button>
+                          <button
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              const revealName = f.label
+                                ? `${t('editor:field_types.dynamic_group')}: ${f.label}`
+                                : getFieldName(f.key);
+                              handleRevealField(fieldId, sens, revealName);
+                            }}
+                            className={`${styles.revealBtn} ${sens === 'critical' ? styles.revealBtnCritical : ''}`}
+                          >
+                            {sens === 'critical' ? (
+                              <Lock size={ICON_SIZE.xs} />
+                            ) : (
+                              <Eye size={ICON_SIZE.xs} />
+                            )}{' '}
+                            {sens === 'critical' ? t('common:unlock') : t('common:reveal')}
+                          </button>
                           )}
                           <button
                             onMouseDown={(e) => e.preventDefault()}
@@ -720,37 +642,7 @@ export function ObjectDetailModal({
                                 f.key,
                               )
                             }
-                            onMouseEnter={() => setHoveredField(f.key)}
-                            onMouseLeave={() => setHoveredField(null)}
-                            style={{
-                              padding: '4px 10px',
-                              borderRadius: 6,
-                              border:
-                                '1px solid ' +
-                                (copiedField === f.key
-                                  ? 'var(--accent-primary)'
-                                  : 'var(--border-subtle)'),
-                              background:
-                                hoveredField === f.key && copiedField !== f.key
-                                  ? 'color-mix(in srgb, var(--accent-primary) 12%, transparent)'
-                                  : 'transparent',
-                              cursor: 'pointer',
-                              fontSize: 'var(--text-badge)',
-                              color:
-                                copiedField === f.key
-                                  ? 'var(--accent-primary)'
-                                  : hoveredField === f.key
-                                    ? 'var(--accent-primary)'
-                                    : 'var(--text-tertiary)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 4,
-                              boxShadow:
-                                copiedField === f.key
-                                  ? '0 0 10px color-mix(in srgb, var(--accent-primary) 35%, transparent)'
-                                  : 'none',
-                              transition: 'all var(--duration-fast) var(--ease-smooth)',
-                            }}
+                            className={`${styles.copyBtn} ${copiedField === f.key ? styles.copyBtnCopied : ''}`}
                           >
                             {copiedField === f.key ? (
                               <Check size={ICON_SIZE.xs} />
@@ -843,9 +735,7 @@ export function ObjectDetailModal({
                       setShowHistory(true);
                     }
                   }}
-                  style={actionBtnStyle}
-                  onMouseEnter={onActionBtnEnter}
-                  onMouseLeave={onActionBtnLeave}
+                  className={styles.actionBtn}
                 >
                   <Clock size={ICON_SIZE.sm} /> {t('common:history')}
                 </button>
@@ -857,18 +747,14 @@ export function ObjectDetailModal({
                       setShowAttachments(true);
                     }
                   }}
-                  style={actionBtnStyle}
-                  onMouseEnter={onActionBtnEnter}
-                  onMouseLeave={onActionBtnLeave}
+                  className={styles.actionBtn}
                 >
                   <Paperclip size={ICON_SIZE.sm} /> {t('common:attachments')}
                 </button>
                 {onEdit && (
                   <button
                     onClick={onEdit}
-                    style={actionBtnStyle}
-                    onMouseEnter={onActionBtnEnter}
-                    onMouseLeave={onActionBtnLeave}
+                    className={styles.actionBtn}
                   >
                     <Pencil size={ICON_SIZE.sm} /> {t('common:edit')}
                   </button>

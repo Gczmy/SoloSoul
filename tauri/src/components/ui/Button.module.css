@@ -21,8 +21,11 @@
   background: var(--accent-primary);
   color: white;
 }
-.primary:hover:not(:disabled) {
-  background: var(--accent-hover);
+/* 桌面指针设备保留 hover 高亮；触屏设备避免点按后残留高亮 */
+@media (hover: hover) and (pointer: fine) {
+  .primary:hover:not(:disabled) {
+    background: var(--accent-hover);
+  }
 }
 .primary:active:not(:disabled) {
   transform: scale(0.97);
@@ -33,17 +36,21 @@
   border: 1px solid var(--border-subtle);
   color: var(--text-primary);
 }
-.secondary:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
-  border-color: var(--accent-primary);
+@media (hover: hover) and (pointer: fine) {
+  .secondary:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+    border-color: var(--accent-primary);
+  }
 }
 
 .tertiary {
   background: transparent;
   color: var(--accent-primary);
 }
-.tertiary:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
+@media (hover: hover) and (pointer: fine) {
+  .tertiary:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
+  }
 }
 
 .glass {
@@ -57,8 +64,10 @@
   background: var(--accent-danger);
   color: var(--accent-danger-text);
 }
-.danger:hover:not(:disabled) {
-  background: var(--accent-danger-hover);
+@media (hover: hover) and (pointer: fine) {
+  .danger:hover:not(:disabled) {
+    background: var(--accent-danger-hover);
+  }
 }
 .danger:active:not(:disabled) {
   transform: scale(0.97);
@@ -68,9 +77,11 @@
   background: color-mix(in srgb, #ef4444 10%, transparent);
   color: #ef4444;
 }
-.dangerOutline:hover:not(:disabled) {
-  background: #ef4444;
-  color: #ffffff;
+@media (hover: hover) and (pointer: fine) {
+  .dangerOutline:hover:not(:disabled) {
+    background: #ef4444;
+    color: #ffffff;
+  }
 }
 .dangerOutline:active:not(:disabled) {
   transform: scale(0.97);
