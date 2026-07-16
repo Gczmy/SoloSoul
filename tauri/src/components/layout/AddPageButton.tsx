@@ -297,6 +297,8 @@ export function AddPageButton({
                 zIndex: 300,
                 border: '1px solid var(--border-subtle)',
                 transformOrigin: 'top',
+                maxWidth: 'calc(100vw - 32px)',
+                maxHeight: 'calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 32px)',
               }}
             >
               {/* Name input */}

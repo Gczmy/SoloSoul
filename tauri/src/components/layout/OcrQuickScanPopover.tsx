@@ -6,6 +6,7 @@ import { invoke } from '@tauri-apps/api/core';
 import type { OcrTierInfo, OcrModelStatus } from '@/lib/ipc';
 import { useToastError } from '@/hooks/useToastError';
 import { OcrPopoverHeader } from '@/components/ocr/OcrPopoverHeader';
+import styles from './OcrQuickScanPopover.module.css';
 import { OcrHistoryTrashDropdown } from '@/components/ocr/OcrHistoryTrashDropdown';
 import { OcrScanControls } from '@/components/ocr/OcrScanControls';
 import { OcrResultPanel } from '@/components/ocr/OcrResultPanel';
@@ -175,25 +176,14 @@ export function OcrQuickScanPopover({
     <div
       ref={cardRef}
       data-ocr-quick-scan="open"
+      className={styles.card}
       style={{
-        position: 'fixed',
         ...(isFloating
           ? { right: 12, left: 'auto' }
           : isRight
             ? { right: 52, left: 'auto' }
             : { left: 52, right: 'auto' }),
         top: position?.top ?? 100,
-        width: 400,
-        height: 560,
-        zIndex: 200,
-        background: 'var(--bg-elevated)',
-        borderRadius: 14,
-        boxShadow: 'var(--shadow-lg), 0 0 0 1px var(--border-subtle)',
-        border: '1px solid var(--border-subtle)',
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden',
-        animation: 'ocrQuickScanSlideIn 0.18s cubic-bezier(0.34, 1.56, 0.64, 1) both',
       }}
     >
       <OcrPopoverHeader

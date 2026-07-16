@@ -1,0 +1,34 @@
+.card {
+  position: fixed;
+  z-index: 200;
+  background: var(--bg-elevated);
+  border-radius: 14px;
+  box-shadow: var(--shadow-lg), 0 0 0 1px var(--border-subtle);
+  border: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: quickChatSlideIn 0.18s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  width: 380px;
+  height: 520px;
+}
+
+@keyframes quickChatSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-8px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+/* 移动端：全屏或接近全屏，避免固定尺寸超出视口 */
+@media (max-width: 767px) {
+  .card {
+    width: calc(100vw - 24px);
+    height: calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 24px);
+    max-height: calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 24px);
+  }
+}

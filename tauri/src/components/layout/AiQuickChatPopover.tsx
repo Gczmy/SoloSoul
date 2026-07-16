@@ -13,6 +13,7 @@ import { UnconfiguredHint } from '@/components/llm/UnconfiguredHint';
 import { useLlmChatCore } from '@/hooks/useLlmChatCore';
 import { ST_QUICK_CHAT_PREFIX } from '@/lib/constants';
 import { ICON_SIZE } from '@/lib/constants';
+import styles from './AiQuickChatPopover.module.css';
 
 // =============================================================================
 // AiQuickChatPopover — quick AI chat floating card beside sidebar
@@ -148,25 +149,14 @@ export function AiQuickChatPopover({
     <div
       ref={cardRef}
       data-ai-quick-chat="open"
+      className={styles.card}
       style={{
-        position: 'fixed',
         ...(isFloating
           ? { right: 12, left: 'auto' }
           : isRight
             ? { right: 52, left: 'auto' }
             : { left: 52, right: 'auto' }),
         top: position?.top ?? 100,
-        width: 380,
-        height: 520,
-        zIndex: 200,
-        background: 'var(--bg-elevated)',
-        borderRadius: 14,
-        boxShadow: 'var(--shadow-lg), 0 0 0 1px var(--border-subtle)',
-        border: '1px solid var(--border-subtle)',
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden',
-        animation: 'quickChatSlideIn 0.18s cubic-bezier(0.34, 1.56, 0.64, 1) both',
       }}
     >
       {/* Header */}

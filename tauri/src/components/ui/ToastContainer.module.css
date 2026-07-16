@@ -1,7 +1,7 @@
 .container {
   position: fixed;
-  bottom: 20px;
-  right: 20px;
+  bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+  right: calc(20px + env(safe-area-inset-right, 0px));
   z-index: var(--z-toast);
   display: flex;
   flex-direction: column;
@@ -19,8 +19,8 @@
   box-shadow: 0 4px 16px var(--shadow-color-md);
   pointer-events: auto;
   animation: slideIn 0.25s ease;
-  min-width: 200px;
-  max-width: 360px;
+  min-width: min(200px, 100%);
+  max-width: min(360px, calc(100vw - 32px));
 }
 @keyframes slideIn {
   from {

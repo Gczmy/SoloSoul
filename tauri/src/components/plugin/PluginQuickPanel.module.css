@@ -1,7 +1,7 @@
 .card {
   position: fixed;
-  width: 400px;
-  height: 560px;
+  width: min(400px, calc(100vw - 32px));
+  height: min(560px, calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 32px));
   z-index: 200;
   background: var(--bg-elevated);
   border-radius: 14px;
