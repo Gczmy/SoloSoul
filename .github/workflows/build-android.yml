@@ -63,3 +63,64 @@ jobs:
         with:
           name: solosoul-android-debug
           path: tauri/src-tauri/gen/android/app/build/outputs/apk/debug/*.apk
+
+  build-android-release:
+    name: Build Android Release AAB
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    defaults:
+      run:
+        working-directory: tauri
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: tauri/package-lock.json
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
+
+      - name: Setup JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install NDK
+        run: |
+          sdkmanager --install "ndk;27.0.12077973"
+          echo "NDK_HOME=$ANDROID_HOME/ndk/27.0.12077973" >> "$GITHUB_ENV"
+
+      - name: Decode keystore
+        run: echo "${{ secrets.SOLOSOUL_KEYSTORE_BASE64 }}" | base64 -d > /tmp/solosoul-upload.jks
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Build Android release AAB
+        run: npx tauri android build --aab
+        env:
+          ANDROID_HOME: ${{ env.ANDROID_HOME }}
+          NDK_HOME: ${{ env.NDK_HOME }}
+          SOLOSOUL_KEYSTORE_PATH: /tmp/solosoul-upload.jks
+          SOLOSOUL_KEYSTORE_PASSWORD: ${{ secrets.SOLOSOUL_KEYSTORE_PASSWORD }}
+          SOLOSOUL_KEY_ALIAS: ${{ secrets.SOLOSOUL_KEY_ALIAS }}
+          SOLOSOUL_KEY_PASSWORD: ${{ secrets.SOLOSOUL_KEY_PASSWORD }}
+
+      - name: Upload AAB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: solosoul-android-release
+          path: tauri/src-tauri/gen/android/app/build/outputs/bundle/release/*.aab
