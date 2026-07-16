@@ -46,11 +46,7 @@ import { ConfirmDeleteDialog } from '@/components/workspace/ConfirmDeleteDialog'
 
 import { PageGuide } from '@/components/guide/PageGuide';
 import { ICON_SIZE } from '@/lib/constants';
-<<<<<<< HEAD
 import styles from './ObjectWorkspacePage.module.css';
-=======
-import styles from './ObjectWorkspacePage.module.css';
->>>>>>> feat/mobile-p2-hover-elimination
 
 export function ObjectWorkspacePage() {
   const navigate = useNavigate();
