@@ -55,7 +55,6 @@ class NsdPlugin(private val activity: Activity): Plugin(activity) {
     private val discoveredServices = ConcurrentHashMap<String, NsdServiceInfo>()
     private var discoveryListener: NsdManager.DiscoveryListener? = null
     private var registrationListener: NsdManager.RegistrationListener? = null
-    private var resolveListener: NsdManager.ResolveListener? = null
     private var multicastLock: WifiManager.MulticastLock? = null
 
     private var permissionGranted: Boolean? = null
@@ -281,6 +280,16 @@ class NsdPlugin(private val activity: Activity): Plugin(activity) {
     override fun onDestroy() {
         super.onDestroy()
         permissionRunnable?.let { permissionHandler.removeCallbacks(it) }
+        // 清理 NSD 发现与注册，避免插件销毁后泄漏监听器和 MulticastLock
+        discoveryListener?.let { listener ->
+            try {
+                nsdManager.stopServiceDiscovery(listener)
+            } catch (e: Exception) {
+                android.util.Log.w("SoloSoul", "stopServiceDiscovery in onDestroy failed: ${e.message}")
+            }
+        }
+        discoveryListener = null
+        unregisterServiceInternal()
         releaseMulticastLock()
     }
 
@@ -319,6 +328,7 @@ class NsdPlugin(private val activity: Activity): Plugin(activity) {
     }
 
     private fun resolveService(serviceInfo: NsdServiceInfo) {
+        val listener = object : NsdManager.ResolveListener {
             override fun onResolveFailed(serviceInfo: NsdServiceInfo?, errorCode: Int) {
                 android.util.Log.w("SoloSoul", "NSD resolve failed: $errorCode")
             }
@@ -330,7 +340,7 @@ class NsdPlugin(private val activity: Activity): Plugin(activity) {
             }
         }
         try {
-            nsdManager.resolveService(serviceInfo, resolveListener)
+            nsdManager.resolveService(serviceInfo, listener)
         } catch (e: Exception) {
             android.util.Log.w("SoloSoul", "resolveService failed: ${e.message}")
         }
