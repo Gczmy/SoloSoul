@@ -20,9 +20,8 @@
 }
 
 # ── ML Kit 文字识别 ──
-# ML Kit 内部使用反射加载 native 库与模型配置。
--keep class com.google.mlkit.** { *; }
--keep class com.google.android.gms.** { *; }
+# ML Kit 与 Play Services 自带 consumer ProGuard 规则和 @Keep 注解，
+# 保留其自身 keep 即可；过度 keep 会阻止 R8 优化，显著增加 APK 体积。
 -dontwarn com.google.mlkit.**
 -dontwarn com.google.android.gms.**
 

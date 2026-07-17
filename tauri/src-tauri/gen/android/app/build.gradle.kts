@@ -65,12 +65,14 @@ android {
                     .plus(getDefaultProguardFile("proguard-android-optimize.txt"))
                     .toList().toTypedArray()
             )
-            // release 构建剥离原生 .so 调试符号以缩减体积
+            // release 构建保留 native debug symbols 用于 Play Console 崩溃还原，
+            // 但符号不打包进 APK，保持 APK 体积最小；同时禁用 legacy packaging，
+            // 让 .so 在 APK 中 page-aligned，安装时无需解压，减少安装后占用。
+            ndk {
+                debugSymbolLevel = "FULL"
+            }
             packaging {
-                jniLibs.useLegacyPackaging = true
-                // 移除调试符号表（~30% .so 体积节省）
-                jniLibs.keepDebugSymbols.clear()
-                // 排除 ML Kit 中不需要的 ABI 原生库
+                jniLibs.useLegacyPackaging = false
                 resources {
                     excludes += setOf(
                         "META-INF/**",
