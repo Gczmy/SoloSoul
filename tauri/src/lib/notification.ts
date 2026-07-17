@@ -43,13 +43,11 @@ export function setQuickChatOpen(open: boolean): void {
 /**
  * Initialize the global LLM stream listener for notification purposes.
  * Should be called once at app startup.
+ *
+ * 注意：不在启动时申请通知权限，权限延迟到首次真正发送通知时由
+ * sendSystemNotificationWithFallback 按需申请，避免启动即弹窗。
  */
 export async function initLlmNotificationListener(): Promise<void> {
-  const permission = await isPermissionGranted();
-  if (!permission) {
-    await requestPermission();
-  }
-
   if (unlisten) return;
 
   unlisten = await listen<LlmStreamPayload>('llm-stream-chunk', (event) => {
@@ -66,17 +64,14 @@ export async function initLlmNotificationListener(): Promise<void> {
     pendingConversations.delete(payload.conversationId);
 
     if (!isAiPageOpen && !isQuickChatOpen) {
-      // System notification
-      sendNotification({
-        title: 'SoloSoul AI',
-        body: 'AI 已完成回复，点击查看',
-      });
-      // In-app toast (sync with system notification)
-      useUiStore.getState().showToast({
-        message: 'AI 已完成回复',
-        type: 'info',
-        duration: AI_NOTIFICATION_TOAST_DURATION_MS,
-      });
+      // 首次触发时按需申请权限，避免启动即弹窗
+      sendSystemNotificationWithFallback(
+        'SoloSoul AI',
+        'AI 已完成回复，点击查看',
+        'AI 已完成回复',
+        'info',
+        true,
+      );
     }
   });
 }
