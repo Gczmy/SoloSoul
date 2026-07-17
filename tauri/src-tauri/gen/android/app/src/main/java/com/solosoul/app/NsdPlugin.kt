@@ -1,8 +1,16 @@
 package com.solosoul.app
 
+import android.Manifest
 import android.app.Activity
+import android.content.pm.PackageManager
 import android.net.nsd.NsdManager
 import android.net.nsd.NsdServiceInfo
+import android.net.wifi.WifiManager
+import android.os.Build
+import android.os.Handler
+import android.os.Looper
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import app.tauri.annotation.Command
 import app.tauri.annotation.InvokeArg
 import app.tauri.annotation.TauriPlugin
@@ -40,13 +48,23 @@ class NsdPlugin(private val activity: Activity): Plugin(activity) {
         activity.getSystemService(Activity.NSD_SERVICE) as NsdManager
     }
 
+    private val wifiManager: WifiManager by lazy {
+        activity.applicationContext.getSystemService(Activity.WIFI_SERVICE) as WifiManager
+    }
+
     private val discoveredServices = ConcurrentHashMap<String, NsdServiceInfo>()
     private var discoveryListener: NsdManager.DiscoveryListener? = null
     private var registrationListener: NsdManager.RegistrationListener? = null
     private var resolveListener: NsdManager.ResolveListener? = null
+    private var multicastLock: WifiManager.MulticastLock? = null
+
+    private var permissionGranted: Boolean? = null
+    private val permissionHandler = Handler(Looper.getMainLooper())
+    private var permissionRunnable: Runnable? = null
 
     companion object {
         private const val SERVICE_TYPE = "_solosoul._tcp"
+        private const val PERMISSION_REQUEST_CODE = 1001
     }
 
     @Command
@@ -87,9 +105,12 @@ class NsdPlugin(private val activity: Activity): Plugin(activity) {
                     android.util.Log.e("SoloSoul", "NSD stop discovery failed: $errorCode")
                 }
             }
+            acquireMulticastLock()
             nsdManager.discoverServices(SERVICE_TYPE, NsdManager.PROTOCOL_DNS_SD, discoveryListener)
             invoke.resolve(JSObject())
         } catch (e: Exception) {
+            releaseMulticastLock()
+            discoveryListener = null
             invoke.reject("启动 NSD 发现失败: ${e.message}")
         }
     }
@@ -106,6 +127,7 @@ class NsdPlugin(private val activity: Activity): Plugin(activity) {
             }
             discoveryListener = null
             discoveredServices.clear()
+            releaseMulticastLock()
             invoke.resolve(JSObject())
         } catch (e: Exception) {
             invoke.reject("停止 NSD 发现失败: ${e.message}")
@@ -202,8 +224,101 @@ class NsdPlugin(private val activity: Activity): Plugin(activity) {
         }
     }
 
+    @Command
+    fun requestPermissions(invoke: Invoke) {
+        try {
+            val permission = getRequiredPermission()
+            if (permission == null) {
+                invoke.resolve(JSObject())
+                return
+            }
+
+            // 缓存命中且确实仍被授予时快速返回；若用户从系统设置撤销权限，则重新请求。
+            permissionGranted?.let {
+                if (it && ContextCompat.checkSelfPermission(activity, permission) == PackageManager.PERMISSION_GRANTED) {
+                    invoke.resolve(JSObject())
+                    return
+                }
+            }
+
+            if (ContextCompat.checkSelfPermission(activity, permission) == PackageManager.PERMISSION_GRANTED) {
+                permissionGranted = true
+                invoke.resolve(JSObject())
+                return
+            }
+
+            ActivityCompat.requestPermissions(
+                activity,
+                arrayOf(permission),
+                PERMISSION_REQUEST_CODE
+            )
+
+            // 权限请求是异步的，通过轮询等待用户响应（最多 10 秒）。
+            permissionRunnable?.let { permissionHandler.removeCallbacks(it) }
+            val deadline = System.currentTimeMillis() + 10_000
+            val runnable = object : Runnable {
+                override fun run() {
+                    if (ContextCompat.checkSelfPermission(activity, permission) == PackageManager.PERMISSION_GRANTED) {
+                        permissionGranted = true
+                        permissionRunnable = null
+                        invoke.resolve(JSObject())
+                    } else if (System.currentTimeMillis() >= deadline) {
+                        permissionGranted = false
+                        permissionRunnable = null
+                        invoke.reject("Permission denied: $permission")
+                    } else {
+                        permissionHandler.postDelayed(this, 200)
+                    }
+                }
+            }
+            permissionRunnable = runnable
+            permissionHandler.postDelayed(runnable, 200)
+        } catch (e: Exception) {
+            invoke.reject("请求 NSD 权限失败: ${e.message}")
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        permissionRunnable?.let { permissionHandler.removeCallbacks(it) }
+        releaseMulticastLock()
+    }
+
+    /**
+     * 返回当前 Android 版本发现 NSD 服务所需的运行时权限。
+     * - API 33+：NEARBY_WIFI_DEVICES
+     * - API <= 32：ACCESS_FINE_LOCATION
+     */
+    private fun getRequiredPermission(): String? {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            Manifest.permission.NEARBY_WIFI_DEVICES
+        } else {
+            Manifest.permission.ACCESS_FINE_LOCATION
+        }
+    }
+
+    private fun acquireMulticastLock() {
+        try {
+            if (multicastLock == null) {
+                multicastLock = wifiManager.createMulticastLock("SoloSoulNsdLock").apply {
+                    setReferenceCounted(false)
+                }
+            }
+            multicastLock?.takeIf { !it.isHeld }?.acquire()
+        } catch (e: Exception) {
+            android.util.Log.w("SoloSoul", "acquireMulticastLock failed: ${e.message}")
+        }
+    }
+
+    private fun releaseMulticastLock() {
+        try {
+            multicastLock?.takeIf { it.isHeld }?.release()
+        } catch (e: Exception) {
+            android.util.Log.w("SoloSoul", "releaseMulticastLock failed: ${e.message}")
+        }
+    }
+
     private fun resolveService(serviceInfo: NsdServiceInfo) {
-        resolveListener = object : NsdManager.ResolveListener {
             override fun onResolveFailed(serviceInfo: NsdServiceInfo?, errorCode: Int) {
                 android.util.Log.w("SoloSoul", "NSD resolve failed: $errorCode")
             }

@@ -100,6 +100,7 @@ pub async fn mdns_discover(
     let _ = daemon;
     let timeout_ms = timeout_ms.min(MDNS_MAX_TIMEOUT_MS);
     let handle = app.state::<crate::nsd_plugin::NsdPluginHandle<tauri::Wry>>();
+    handle.request_permissions()?;
     handle.start_discovery()?;
 
     // 轮询等待 NSD 发现结果，避免立即读取返回空列表

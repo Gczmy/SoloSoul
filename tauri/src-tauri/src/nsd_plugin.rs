@@ -128,6 +128,21 @@ impl<R: Runtime> NsdPluginHandle<R> {
             Ok(Vec::new())
         }
     }
+
+    /// 请求 NSD 所需的运行时权限（Android 上为 NEARBY_WIFI_DEVICES 或 ACCESS_FINE_LOCATION）。
+    pub fn request_permissions(&self) -> Result<(), String> {
+        #[cfg(target_os = "android")]
+        {
+            self.handle
+                .run_mobile_plugin::<serde_json::Value>("requestPermissions", serde_json::json!({}))
+                .map(|_| ())
+                .map_err(|e| e.to_string())
+        }
+        #[cfg(not(target_os = "android"))]
+        {
+            Ok(())
+        }
+    }
 }
 
 /// 初始化插件：注册 Android Kotlin 插件并将句柄存入 state。

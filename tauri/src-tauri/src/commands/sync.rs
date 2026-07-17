@@ -167,6 +167,8 @@ pub async fn sync_enable(
     // 移动端：启用同步后自动注册 NSD 服务，让桌面端可以发现本机；
     // 关闭同步时注销 NSD 服务。
     if enable {
+        let handle = app.state::<crate::nsd_plugin::NsdPluginHandle<tauri::Wry>>();
+        handle.request_permissions()?;
         let port = state.sync_service.listen_port().await;
         if port != 0 {
             let fingerprint = state
