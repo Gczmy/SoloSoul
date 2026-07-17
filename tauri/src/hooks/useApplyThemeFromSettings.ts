@@ -12,8 +12,7 @@ export function useApplyThemeFromSettings() {
   useEffect(() => {
     const run = async () => {
       const s = useSettingsStore.getState().settings;
-      const resolvedSystemTheme =
-        s.theme === 'system' ? await getSystemTheme() : undefined;
+      const resolvedSystemTheme = s.theme === 'system' ? await getSystemTheme() : undefined;
       await applyTheme({
         preset:
           s.theme === 'dark'

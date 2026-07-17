@@ -133,9 +133,7 @@ describe('SnapshotDataView', () => {
               sensitivityLevel: 'sensitive',
             },
           },
-          __dynamic_group__: [
-            { id: 'c1', name: '手机', type: 'phone', value: '123' },
-          ],
+          __dynamic_group__: [{ id: 'c1', name: '手机', type: 'phone', value: '123' }],
         },
       },
     });
@@ -158,9 +156,7 @@ describe('SnapshotDataView', () => {
               sensitivityLevel: 'public',
             },
           },
-          contacts: [
-            { id: 'c1', name: '手机', type: 'phone', value: '123' },
-          ],
+          contacts: [{ id: 'c1', name: '手机', type: 'phone', value: '123' }],
         },
         propertyLabels: { contacts: 'critical' },
       },

@@ -27,9 +27,7 @@ function isContractTypeInstalled(
   contractTypeId: string,
   installedPlugins: ReturnType<typeof usePluginStore.getState>['installedPlugins'],
 ): boolean {
-  return installedPlugins.some((p) =>
-    p.contracts?.some((c) => c.typeId === contractTypeId),
-  );
+  return installedPlugins.some((p) => p.contracts?.some((c) => c.typeId === contractTypeId));
 }
 
 export function PluginBadge({ contractTypeId, size = 'sm', variant = 'full' }: PluginBadgeProps) {
@@ -50,9 +48,7 @@ export function PluginBadge({ contractTypeId, size = 'sm', variant = 'full' }: P
   const bgColor = isInstalled
     ? 'var(--accent-primary-soft, rgba(99,102,241,0.12))'
     : 'color-mix(in srgb, var(--text-tertiary) 15%, transparent)';
-  const fgColor = isInstalled
-    ? 'var(--accent-primary, #6366f1)'
-    : 'var(--text-tertiary)';
+  const fgColor = isInstalled ? 'var(--accent-primary, #6366f1)' : 'var(--text-tertiary)';
 
   if (variant === 'icon') {
     return (

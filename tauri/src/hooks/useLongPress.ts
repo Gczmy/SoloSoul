@@ -22,7 +22,11 @@ export interface LongPressHandlers {
  * Detect long press gestures on touch devices and mouse.
  * Prevents the click event from firing when a long press is detected.
  */
-export function useLongPress({ onLongPress, onClick, threshold = 500 }: UseLongPressOptions): LongPressHandlers {
+export function useLongPress({
+  onLongPress,
+  onClick,
+  threshold = 500,
+}: UseLongPressOptions): LongPressHandlers {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isLongPressRef = useRef(false);
 

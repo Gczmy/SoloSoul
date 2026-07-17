@@ -32,8 +32,6 @@ export function hexToRgb(hex: string): [number, number, number] | null {
   return [(num >> 16) & 255, (num >> 8) & 255, num & 255];
 }
 
-
-
 /** Sync the native window background color with the active scheme so the
  *  system title bar (traffic lights area) matches the app theme. */
 async function syncTitleBarColor(config: ThemeConfig) {
@@ -78,7 +76,10 @@ export function applyAccentColor(accent: AccentPreset, customHex?: string) {
   if (accent === 'custom' && customHex) {
     root.setAttribute('data-accent', 'custom');
     root.style.setProperty('--accent-primary', customHex);
-    root.style.setProperty('--accent-hover', 'color-mix(in srgb, var(--accent-primary), black 12%)');
+    root.style.setProperty(
+      '--accent-hover',
+      'color-mix(in srgb, var(--accent-primary), black 12%)',
+    );
     return;
   }
   const preset = accent && ACCENT_COLORS[accent] ? accent : 'ocean';
@@ -169,4 +170,3 @@ export async function listenForSystemTheme(
     return () => mq.removeEventListener('change', listener);
   }
 }
-

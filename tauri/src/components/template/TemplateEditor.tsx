@@ -182,7 +182,7 @@ export function TemplateEditor({
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%' }}>
-      <div className={nameError ? 'name-input-error' : ''} >
+      <div className={nameError ? 'name-input-error' : ''}>
         <Input
           label={t('common:name') || '名称'}
           value={editName}
@@ -304,7 +304,8 @@ export function TemplateEditor({
             border: '1px solid var(--border-subtle)',
           }}
         >
-          {editProperties.filter((p) => !p.deprecatedAt && p.type !== 'dynamic_group').length === 0 &&
+          {editProperties.filter((p) => !p.deprecatedAt && p.type !== 'dynamic_group').length ===
+            0 &&
             editProperties.filter((p) => p.deprecatedAt).length === 0 && (
               <div
                 style={{
@@ -337,9 +338,10 @@ export function TemplateEditor({
                 const isExpanded = expandedBindingFields.has(fieldKey);
 
                 // 自动推导：contractField: true 但无硬编码 bindings 时，从已安装插件 manifest 匹配
-                const derivedBindings = (bindings.length === 0 && prop.contractField && editContractTypeId)
-                  ? deriveContractBindings(editContractTypeId, prop.id, installedPlugins)
-                  : [];
+                const derivedBindings =
+                  bindings.length === 0 && prop.contractField && editContractTypeId
+                    ? deriveContractBindings(editContractTypeId, prop.id, installedPlugins)
+                    : [];
                 const effectiveBindings = bindings.length > 0 ? bindings : derivedBindings;
                 const currentContractId = selectedContractId[fieldKey] || '';
                 const currentRoleId = selectedRoleId[fieldKey] || '';

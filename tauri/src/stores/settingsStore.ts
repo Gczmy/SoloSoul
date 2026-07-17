@@ -59,7 +59,12 @@ interface SettingsState {
     value: AppSettings[K],
   ) => Promise<void>;
   clearOnVaultLock: () => void;
-  addCustomPage: (accountId: string, name: string, iconId?: string, description?: string) => Promise<CustomPage>;
+  addCustomPage: (
+    accountId: string,
+    name: string,
+    iconId?: string,
+    description?: string,
+  ) => Promise<CustomPage>;
   removeCustomPage: (accountId: string, pageId: string) => Promise<void>;
 }
 

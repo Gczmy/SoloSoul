@@ -167,8 +167,14 @@ export function ExportSection({
             }
           >
             <SelectCheckbox
-              checked={totalSelected > 0 && totalSelected === pageGroups.reduce((s, g) => s + g.objects.length, 0)}
-              indeterminate={totalSelected > 0 && totalSelected < pageGroups.reduce((s, g) => s + g.objects.length, 0)}
+              checked={
+                totalSelected > 0 &&
+                totalSelected === pageGroups.reduce((s, g) => s + g.objects.length, 0)
+              }
+              indeterminate={
+                totalSelected > 0 &&
+                totalSelected < pageGroups.reduce((s, g) => s + g.objects.length, 0)
+              }
               onChange={() =>
                 onSelectAllExport(
                   totalSelected < pageGroups.reduce((s, g) => s + g.objects.length, 0),

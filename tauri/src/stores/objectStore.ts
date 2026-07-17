@@ -1,10 +1,7 @@
 import { create } from 'zustand';
 import { invoke } from '@tauri-apps/api/core';
 import i18next from '@/lib/i18n';
-import type {
-  DeprecatedField,
-  TemplateSyncResult,
-} from '@/lib/templateSync';
+import type { DeprecatedField, TemplateSyncResult } from '@/lib/templateSync';
 
 export interface ObjectSummary {
   id: string;
@@ -83,22 +80,13 @@ interface ObjectState {
   restoreObject: (objectId: string) => Promise<void>;
   purgeObject: (objectId: string) => Promise<void>;
   /** 预览对象按当前模板同步后的变更（dryRun=true）。 */
-  previewSyncTemplate: (
-    accountId: string,
-    objectId: string,
-  ) => Promise<TemplateSyncResult>;
+  previewSyncTemplate: (accountId: string, objectId: string) => Promise<TemplateSyncResult>;
   /** 应用当前模板设置到对象。 */
-  applySyncTemplate: (
-    accountId: string,
-    objectId: string,
-  ) => Promise<TemplateSyncResult>;
+  applySyncTemplate: (accountId: string, objectId: string) => Promise<TemplateSyncResult>;
   /** 忽略当前模板同步提示，将指纹持久化到对象。 */
   ignoreTemplateSync: (objectId: string, hash: string) => Promise<void>;
   /** 列出对象中已归档的历史字段。 */
-  loadDeprecatedFields: (
-    accountId: string,
-    objectId: string,
-  ) => Promise<DeprecatedField[]>;
+  loadDeprecatedFields: (accountId: string, objectId: string) => Promise<DeprecatedField[]>;
   trashObjects: ObjectSummary[];
   clearOnVaultLock: () => void;
 }

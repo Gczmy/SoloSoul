@@ -404,7 +404,11 @@ describe('HistoryViewer', () => {
           properties: {
             __fields: {
               // 某些旧快照/模板中动态字段组名称存成了原始 key
-              __dynamic_group__: { name: '__dynamic_group__', type: 'dynamic_group', sensitivityLevel: 'internal' },
+              __dynamic_group__: {
+                name: '__dynamic_group__',
+                type: 'dynamic_group',
+                sensitivityLevel: 'internal',
+              },
             },
             __dynamic_group__: [
               { id: 'c1', name: '新字段2', type: 'text', value: '1' },

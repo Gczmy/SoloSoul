@@ -408,7 +408,9 @@ export function TopFunctionBar({
                 style={isTransitioning ? { pointerEvents: 'none' as const } : undefined}
               >
                 {items.map((item) => {
-                  const isCardButton = (CARD_ACTION_IDS as readonly string[]).includes(item.iconKey);
+                  const isCardButton = (CARD_ACTION_IDS as readonly string[]).includes(
+                    item.iconKey,
+                  );
                   if (isCardButton) {
                     const cardEl = renderButtonWithCard(item);
                     if (cardEl) return cardEl;

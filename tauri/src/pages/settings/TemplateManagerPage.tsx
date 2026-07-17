@@ -89,9 +89,12 @@ export function TemplateManagerPage() {
 
   // 动态字段组（模板级开关）
   const [dynamicGroupEnabled, setDynamicGroupEnabled] = useState(false);
-  const [dynamicGroupAllowedTypes, setDynamicGroupAllowedTypes] = useState<PropertyType[] | undefined>();
+  const [dynamicGroupAllowedTypes, setDynamicGroupAllowedTypes] = useState<
+    PropertyType[] | undefined
+  >();
   const [dynamicGroupMaxItems, setDynamicGroupMaxItems] = useState<number | undefined>();
-  const [dynamicGroupSensitivity, setDynamicGroupSensitivity] = useState<SensitivityLevel>('internal');
+  const [dynamicGroupSensitivity, setDynamicGroupSensitivity] =
+    useState<SensitivityLevel>('internal');
   const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null);
   const [detailTemplate, setDetailTemplate] = useState<ListTemplate | null>(null);
   const [showDeprecated, setShowDeprecated] = useState(false);
@@ -156,7 +159,7 @@ export function TemplateManagerPage() {
       name: ut.name,
       category: ut.category || 'identity',
       contractTypeId: ut.contractTypeId,
-        properties: ut.properties.map((p) => ({
+      properties: ut.properties.map((p) => ({
         id: p.id,
         name: p.name,
         type: p.type,
@@ -279,7 +282,11 @@ export function TemplateManagerPage() {
     setShowNameError(false);
     // 保存前：对 contractField: true 但尚无 contractBindings 的字段，自动推导并持久化
     const finalProperties = editProperties.map((p) => {
-      if (p.contractField && (!p.contractBindings || p.contractBindings.length === 0) && editContractTypeId) {
+      if (
+        p.contractField &&
+        (!p.contractBindings || p.contractBindings.length === 0) &&
+        editContractTypeId
+      ) {
         const derived = deriveContractBindings(editContractTypeId, p.id, installedPlugins);
         if (derived.length > 0) {
           return { ...p, contractBindings: derived };
@@ -364,18 +371,14 @@ export function TemplateManagerPage() {
   const handleDynamicGroupMaxItemsChange = (maxItems: number | undefined) => {
     setDynamicGroupMaxItems(maxItems);
     setEditProperties((prev) =>
-      prev.map((p) =>
-        p.type === 'dynamic_group' ? { ...p, maxItems } : p,
-      ),
+      prev.map((p) => (p.type === 'dynamic_group' ? { ...p, maxItems } : p)),
     );
   };
 
   const handleDynamicGroupSensitivityChange = (level: SensitivityLevel) => {
     setDynamicGroupSensitivity(level);
     setEditProperties((prev) =>
-      prev.map((p) =>
-        p.type === 'dynamic_group' ? { ...p, sensitivityLevel: level } : p,
-      ),
+      prev.map((p) => (p.type === 'dynamic_group' ? { ...p, sensitivityLevel: level } : p)),
     );
   };
 
@@ -486,7 +489,9 @@ export function TemplateManagerPage() {
             onClick={() => setShowSampleGallery(true)}
           >
             <BookOpen size={ICON_SIZE.md} style={{ marginRight: 4 }} />
-            <span className={buttonStyles.label}>{t('settings:sample_templates') || '模板示例'}</span>
+            <span className={buttonStyles.label}>
+              {t('settings:sample_templates') || '模板示例'}
+            </span>
           </Button>
           <Button
             variant="secondary"
@@ -502,7 +507,9 @@ export function TemplateManagerPage() {
       }
     >
       <PageContainer variant="medium" gap="default">
-        {isLoading && templates.length === 0 && <LoadingPlaceholder variant="base" minHeight={120} />}
+        {isLoading && templates.length === 0 && (
+          <LoadingPlaceholder variant="base" minHeight={120} />
+        )}
         {error && <div style={{ color: 'var(--error)' }}>{error}</div>}
 
         {!isLoading && !error && allTemplates.length > 0 && (
@@ -742,17 +749,18 @@ export function TemplateManagerPage() {
             if (!selectedSample) return;
             try {
               // 从示例模板创建时，使用共享推导函数补齐 contractBindings
-              const derivedProperties = deriveSampleTemplateBindings(selectedSample, installedPlugins).map(
-                (p) => ({
-                  id: p.id,
-                  name: p.name,
-                  type: p.type,
-                  sensitivityLevel: p.sensitivityLevel,
-                  options: p.options,
-                  contractField: p.contractField,
-                  contractBindings: p.contractBindings,
-                }),
-              );
+              const derivedProperties = deriveSampleTemplateBindings(
+                selectedSample,
+                installedPlugins,
+              ).map((p) => ({
+                id: p.id,
+                name: p.name,
+                type: p.type,
+                sensitivityLevel: p.sensitivityLevel,
+                options: p.options,
+                contractField: p.contractField,
+                contractBindings: p.contractBindings,
+              }));
               await createTemplate(
                 selectedSample.name,
                 selectedSample.icon,

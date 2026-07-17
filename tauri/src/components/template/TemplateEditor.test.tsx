@@ -1,11 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { TemplateEditor } from './TemplateEditor';
-import type {
-  TemplateProperty,
-  PropertyType,
-  SensitivityLevel,
-} from '@/types/template';
+import type { TemplateProperty, PropertyType, SensitivityLevel } from '@/types/template';
 import type { PluginManifest } from '@/lib/plugin';
 
 // ── Mock deriveContractBindings ──────────────────────────────────────────
@@ -299,9 +295,7 @@ describe('TemplateEditor — toggleBindingExpanded auto-derivation', () => {
     // 在 style 属性中找 dashed 标签
     const allElements = container.querySelectorAll<HTMLElement>('[style]');
     const derivedTag = Array.from(allElements).find(
-      (el) =>
-        el.textContent?.includes('Street') &&
-        el.getAttribute('style')?.includes('dashed'),
+      (el) => el.textContent?.includes('Street') && el.getAttribute('style')?.includes('dashed'),
     );
     expect(derivedTag).toBeTruthy();
 
@@ -339,9 +333,7 @@ describe('TemplateEditor — toggleBindingExpanded auto-derivation', () => {
 
     const allElements = container.querySelectorAll<HTMLElement>('[style]');
     const persistedTag = Array.from(allElements).find(
-      (el) =>
-        el.textContent?.includes('Street') &&
-        el.getAttribute('style')?.includes('solid'),
+      (el) => el.textContent?.includes('Street') && el.getAttribute('style')?.includes('solid'),
     );
     expect(persistedTag).toBeTruthy();
     expect(persistedTag!.querySelector('button')).toBeTruthy();

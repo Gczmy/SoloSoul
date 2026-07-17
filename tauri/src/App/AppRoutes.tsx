@@ -286,14 +286,17 @@ export function AppRoutes() {
     }
 
     // 暴露全局回调供 Kotlin evaluateJavascript 调用
-    (window as typeof window & { __SOLOSOUL_HANDLE_SHORTCUT__?: (action: string) => void }).__SOLOSOUL_HANDLE_SHORTCUT__ = (action: string) => {
+    (
+      window as typeof window & { __SOLOSOUL_HANDLE_SHORTCUT__?: (action: string) => void }
+    ).__SOLOSOUL_HANDLE_SHORTCUT__ = (action: string) => {
       if (action === 'new_object') {
         handleShortcut();
       }
     };
 
     return () => {
-      delete (window as typeof window & { __SOLOSOUL_HANDLE_SHORTCUT__?: (action: string) => void }).__SOLOSOUL_HANDLE_SHORTCUT__;
+      delete (window as typeof window & { __SOLOSOUL_HANDLE_SHORTCUT__?: (action: string) => void })
+        .__SOLOSOUL_HANDLE_SHORTCUT__;
     };
   }, [navigate, isAuthenticated]);
 

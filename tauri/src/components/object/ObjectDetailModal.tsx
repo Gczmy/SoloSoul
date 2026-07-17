@@ -66,8 +66,8 @@ function flattenProperties(
 ): { key: string; label?: string; value: string; fieldId?: string }[] {
   if (!props) return [];
   const entries: { key: string; label?: string; value: string; fieldId?: string }[] = [];
-  const defs = fieldDefs ??
-    ((props.__fields as Record<string, { type?: string }> | undefined) || {});
+  const defs =
+    fieldDefs ?? ((props.__fields as Record<string, { type?: string }> | undefined) || {});
   for (const [k, v] of Object.entries(props)) {
     if (k.startsWith('__')) continue;
     if (v === null || v === undefined || v === '') continue;
@@ -615,24 +615,24 @@ export function ObjectDetailModal({
                         </div>
                         <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
                           {needsReveal && !revealed && (
-                          <button
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              const revealName = f.label
-                                ? `${t('editor:field_types.dynamic_group')}: ${f.label}`
-                                : getFieldName(f.key);
-                              handleRevealField(fieldId, sens, revealName);
-                            }}
-                            className={`${styles.revealBtn} ${sens === 'critical' ? styles.revealBtnCritical : ''}`}
-                          >
-                            {sens === 'critical' ? (
-                              <Lock size={ICON_SIZE.xs} />
-                            ) : (
-                              <Eye size={ICON_SIZE.xs} />
-                            )}{' '}
-                            {sens === 'critical' ? t('common:unlock') : t('common:reveal')}
-                          </button>
+                            <button
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                const revealName = f.label
+                                  ? `${t('editor:field_types.dynamic_group')}: ${f.label}`
+                                  : getFieldName(f.key);
+                                handleRevealField(fieldId, sens, revealName);
+                              }}
+                              className={`${styles.revealBtn} ${sens === 'critical' ? styles.revealBtnCritical : ''}`}
+                            >
+                              {sens === 'critical' ? (
+                                <Lock size={ICON_SIZE.xs} />
+                              ) : (
+                                <Eye size={ICON_SIZE.xs} />
+                              )}{' '}
+                              {sens === 'critical' ? t('common:unlock') : t('common:reveal')}
+                            </button>
                           )}
                           <button
                             onMouseDown={(e) => e.preventDefault()}
@@ -752,10 +752,7 @@ export function ObjectDetailModal({
                   <Paperclip size={ICON_SIZE.sm} /> {t('common:attachments')}
                 </button>
                 {onEdit && (
-                  <button
-                    onClick={onEdit}
-                    className={styles.actionBtn}
-                  >
+                  <button onClick={onEdit} className={styles.actionBtn}>
                     <Pencil size={ICON_SIZE.sm} /> {t('common:edit')}
                   </button>
                 )}

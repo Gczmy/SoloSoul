@@ -23,9 +23,7 @@ function flattenProperties(
 ): { key: string; value: string; label?: string }[] {
   if (!props) return [];
   // 从 properties 中提取 __fields 定义，用于识别 dynamic_group 字段
-  const fieldDefs = props.__fields as
-    | Record<string, { type?: string }>
-    | undefined;
+  const fieldDefs = props.__fields as Record<string, { type?: string }> | undefined;
   const entries: { key: string; value: string; label?: string }[] = [];
   for (const [k, v] of Object.entries(props)) {
     if (k.startsWith('__')) continue;
@@ -209,10 +207,7 @@ export const WorkspaceObjectCard = memo(function WorkspaceObjectCard({
           </div>
         )}
         {/* Header row */}
-        <div
-          className={styles.cardHeader}
-          style={{ marginBottom: fields.length > 0 ? 8 : 0 }}
-        >
+        <div className={styles.cardHeader} style={{ marginBottom: fields.length > 0 ? 8 : 0 }}>
           <div className={styles.headerMain}>
             <span className={styles.headerIcon}>
               <TemplateIcon size={ICON_SIZE['2xl']} />
@@ -246,10 +241,7 @@ export const WorkspaceObjectCard = memo(function WorkspaceObjectCard({
             </div>
           </div>
           {/* Action buttons — info (history/attachments) | divider | edit/delete */}
-          <div
-            className={styles.headerActions}
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className={styles.headerActions} onClick={(e) => e.stopPropagation()}>
             <BadgeIconButton
               Icon={Clock}
               count={snapshotCount}

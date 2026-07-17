@@ -233,7 +233,9 @@ export function PluginDashboardPage() {
               size={ICON_SIZE.md}
               className={`${styles.refreshIcon} ${isLoadingMarket ? styles.spinning : ''}`}
             />
-            <span className={styles.refreshLabel}>{t('plugin:refresh', { defaultValue: 'Refresh' })}</span>
+            <span className={styles.refreshLabel}>
+              {t('plugin:refresh', { defaultValue: 'Refresh' })}
+            </span>
           </button>
         </div>
 

@@ -1,8 +1,4 @@
-import type {
-  PropertyType,
-  SensitivityLevel,
-  ContractRoleBinding,
-} from '@/types/template';
+import type { PropertyType, SensitivityLevel, ContractRoleBinding } from '@/types/template';
 import { deriveContractBindings, type PluginManifest } from '@/lib/plugin';
 
 export type SampleTemplateLocale = 'zh' | 'en';
@@ -60,7 +56,13 @@ export const SAMPLE_TEMPLATES_ZH: SampleTemplate[] = [
       { id: 'dateOfBirth', name: '出生日期', type: 'date', sensitivityLevel: 'internal' },
       { id: 'nationality', name: '国籍', type: 'text', sensitivityLevel: 'public' },
       { id: 'issueDate', name: '签发日期', type: 'date', sensitivityLevel: 'internal' },
-      { id: 'expiryDate', name: '有效期至', type: 'date', sensitivityLevel: 'internal', contractField: true },
+      {
+        id: 'expiryDate',
+        name: '有效期至',
+        type: 'date',
+        sensitivityLevel: 'internal',
+        contractField: true,
+      },
     ],
   },
   {
@@ -82,7 +84,13 @@ export const SAMPLE_TEMPLATES_ZH: SampleTemplate[] = [
       { id: 'nationality', name: '国籍', type: 'text', sensitivityLevel: 'public' },
       { id: 'dateOfBirth', name: '出生日期', type: 'date', sensitivityLevel: 'internal' },
       { id: 'issueDate', name: '签发日期', type: 'date', sensitivityLevel: 'internal' },
-      { id: 'expiryDate', name: '有效期至', type: 'date', sensitivityLevel: 'internal', contractField: true },
+      {
+        id: 'expiryDate',
+        name: '有效期至',
+        type: 'date',
+        sensitivityLevel: 'internal',
+        contractField: true,
+      },
     ],
   },
   {
@@ -97,7 +105,13 @@ export const SAMPLE_TEMPLATES_ZH: SampleTemplate[] = [
       { id: 'visaType', name: '签证类型', type: 'text', sensitivityLevel: 'public' },
       { id: 'number', name: '签证号码', type: 'text', sensitivityLevel: 'critical' },
       { id: 'issueDate', name: '签发日期', type: 'date', sensitivityLevel: 'internal' },
-      { id: 'expiryDate', name: '有效期至', type: 'date', sensitivityLevel: 'internal', contractField: true },
+      {
+        id: 'expiryDate',
+        name: '有效期至',
+        type: 'date',
+        sensitivityLevel: 'internal',
+        contractField: true,
+      },
     ],
   },
   {
@@ -124,7 +138,13 @@ export const SAMPLE_TEMPLATES_ZH: SampleTemplate[] = [
       { id: 'cardNumber', name: '卡号', type: 'text', sensitivityLevel: 'critical' },
       { id: 'cardType', name: '卡类型', type: 'text', sensitivityLevel: 'public' },
       { id: 'holderName', name: '持卡人', type: 'text', sensitivityLevel: 'public' },
-      { id: 'expiryDate', name: '有效期至', type: 'date', sensitivityLevel: 'internal', contractField: true },
+      {
+        id: 'expiryDate',
+        name: '有效期至',
+        type: 'date',
+        sensitivityLevel: 'internal',
+        contractField: true,
+      },
     ],
   },
   {
@@ -249,7 +269,13 @@ export const SAMPLE_TEMPLATES_EN: SampleTemplate[] = [
       { id: 'dateOfBirth', name: 'Date of Birth', type: 'date', sensitivityLevel: 'internal' },
       { id: 'nationality', name: 'Nationality', type: 'text', sensitivityLevel: 'public' },
       { id: 'issueDate', name: 'Issue Date', type: 'date', sensitivityLevel: 'internal' },
-      { id: 'expiryDate', name: 'Expiry Date', type: 'date', sensitivityLevel: 'internal', contractField: true },
+      {
+        id: 'expiryDate',
+        name: 'Expiry Date',
+        type: 'date',
+        sensitivityLevel: 'internal',
+        contractField: true,
+      },
     ],
   },
   {
@@ -277,7 +303,13 @@ export const SAMPLE_TEMPLATES_EN: SampleTemplate[] = [
       { id: 'nationality', name: 'Nationality', type: 'text', sensitivityLevel: 'public' },
       { id: 'dateOfBirth', name: 'Date of Birth', type: 'date', sensitivityLevel: 'internal' },
       { id: 'issueDate', name: 'Issue Date', type: 'date', sensitivityLevel: 'internal' },
-      { id: 'expiryDate', name: 'Expiry Date', type: 'date', sensitivityLevel: 'internal', contractField: true },
+      {
+        id: 'expiryDate',
+        name: 'Expiry Date',
+        type: 'date',
+        sensitivityLevel: 'internal',
+        contractField: true,
+      },
     ],
   },
   {
@@ -292,7 +324,13 @@ export const SAMPLE_TEMPLATES_EN: SampleTemplate[] = [
       { id: 'visaType', name: 'Visa Type', type: 'text', sensitivityLevel: 'public' },
       { id: 'number', name: 'Number', type: 'text', sensitivityLevel: 'critical' },
       { id: 'issueDate', name: 'Issue Date', type: 'date', sensitivityLevel: 'internal' },
-      { id: 'expiryDate', name: 'Expiry Date', type: 'date', sensitivityLevel: 'internal', contractField: true },
+      {
+        id: 'expiryDate',
+        name: 'Expiry Date',
+        type: 'date',
+        sensitivityLevel: 'internal',
+        contractField: true,
+      },
     ],
   },
   {
@@ -319,7 +357,13 @@ export const SAMPLE_TEMPLATES_EN: SampleTemplate[] = [
       { id: 'cardNumber', name: 'Card Number', type: 'text', sensitivityLevel: 'critical' },
       { id: 'cardType', name: 'Card Type', type: 'text', sensitivityLevel: 'public' },
       { id: 'holderName', name: 'Holder Name', type: 'text', sensitivityLevel: 'public' },
-      { id: 'expiryDate', name: 'Expiry Date', type: 'date', sensitivityLevel: 'internal', contractField: true },
+      {
+        id: 'expiryDate',
+        name: 'Expiry Date',
+        type: 'date',
+        sensitivityLevel: 'internal',
+        contractField: true,
+      },
     ],
   },
   {
@@ -426,7 +470,11 @@ export function deriveSampleTemplateBindings(
   installedPlugins: PluginManifest[],
 ): SampleTemplateProperty[] {
   return sample.properties.map((p) => {
-    if (p.contractField && (!p.contractBindings || p.contractBindings.length === 0) && sample.contractTypeId) {
+    if (
+      p.contractField &&
+      (!p.contractBindings || p.contractBindings.length === 0) &&
+      sample.contractTypeId
+    ) {
       const derived = deriveContractBindings(sample.contractTypeId, p.id, installedPlugins);
       if (derived.length > 0) {
         return { ...p, contractBindings: derived };

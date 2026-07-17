@@ -3,7 +3,9 @@
   z-index: 200;
   background: var(--bg-elevated);
   border-radius: 14px;
-  box-shadow: var(--shadow-lg), 0 0 0 1px var(--border-subtle);
+  box-shadow:
+    var(--shadow-lg),
+    0 0 0 1px var(--border-subtle);
   border: 1px solid var(--border-subtle);
   display: flex;
   flex-direction: column;
@@ -29,6 +31,8 @@
   .card {
     width: calc(100vw - 24px);
     height: calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 24px);
-    max-height: calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 24px);
+    max-height: calc(
+      100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 24px
+    );
   }
 }

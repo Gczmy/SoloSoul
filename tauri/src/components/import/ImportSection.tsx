@@ -125,8 +125,10 @@ export function ImportSection({
   // Text for conflict kind
   const conflictKindText = (kind: ConflictKind): string => {
     switch (kind) {
-      case 'identical': return t('settings:conflict_kind_identical');
-      case 'renamedLocal': return t('settings:conflict_kind_renamed_local');
+      case 'identical':
+        return t('settings:conflict_kind_identical');
+      case 'renamedLocal':
+        return t('settings:conflict_kind_renamed_local');
     }
   };
 
@@ -353,49 +355,59 @@ export function ImportSection({
 
           {/* Decrypted preview — Page → Object → Attachment tree */}
           {decryptedPreview && (
-            <>                <div
-                  style={{
-                    marginTop: 12,
-                    borderTop: '1px solid var(--border-subtle)',
-                    paddingTop: 12,
-                  }}
-                >
-                  <h4 style={{ fontSize: 'var(--text-body-sm)', fontWeight: 600, marginBottom: 6 }}>
-                    {t('settings:select_objects')}
-                  </h4>
-                  {importPageGroups.length > 0 && (
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 8,
-                        padding: '4px 0',
-                        cursor: 'pointer',
-                        userSelect: 'none',
-                        borderBottom: '1px solid var(--border-subtle)',
-                        marginBottom: 4,
-                      }}
-                      onClick={() =>
+            <>
+              {' '}
+              <div
+                style={{
+                  marginTop: 12,
+                  borderTop: '1px solid var(--border-subtle)',
+                  paddingTop: 12,
+                }}
+              >
+                <h4 style={{ fontSize: 'var(--text-body-sm)', fontWeight: 600, marginBottom: 6 }}>
+                  {t('settings:select_objects')}
+                </h4>
+                {importPageGroups.length > 0 && (
+                  <div
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      padding: '4px 0',
+                      cursor: 'pointer',
+                      userSelect: 'none',
+                      borderBottom: '1px solid var(--border-subtle)',
+                      marginBottom: 4,
+                    }}
+                    onClick={() =>
+                      onSelectAllImport(importTotalSelected < decryptedPreview.objects.length)
+                    }
+                  >
+                    <SelectCheckbox
+                      checked={
+                        importTotalSelected > 0 &&
+                        importTotalSelected === decryptedPreview.objects.length
+                      }
+                      indeterminate={
+                        importTotalSelected > 0 &&
+                        importTotalSelected < decryptedPreview.objects.length
+                      }
+                      onChange={() =>
                         onSelectAllImport(importTotalSelected < decryptedPreview.objects.length)
                       }
+                    />
+                    <span style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500, flex: 1 }}>
+                      {importTotalSelected === decryptedPreview.objects.length
+                        ? t('common:deselect_all')
+                        : t('common:select_all')}
+                    </span>
+                    <span
+                      style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}
                     >
-                      <SelectCheckbox
-                        checked={importTotalSelected > 0 && importTotalSelected === decryptedPreview.objects.length}
-                        indeterminate={importTotalSelected > 0 && importTotalSelected < decryptedPreview.objects.length}
-                        onChange={() =>
-                          onSelectAllImport(importTotalSelected < decryptedPreview.objects.length)
-                        }
-                      />
-                      <span style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500, flex: 1 }}>
-                        {importTotalSelected === decryptedPreview.objects.length
-                          ? t('common:deselect_all')
-                          : t('common:select_all')}
-                      </span>
-                      <span style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
-                        {t('common:object_count', { n: importTotalSelected })}
-                      </span>
-                    </div>
-                  )}
+                      {t('common:object_count', { n: importTotalSelected })}
+                    </span>
+                  </div>
+                )}
 
                 {importPageGroups.length === 0 ? (
                   <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-tertiary)' }}>
@@ -505,23 +517,24 @@ export function ImportSection({
                                     <SensitivityBadge
                                       level={obj.sensitivityLevel as SensitivityLevel}
                                     />
-                                    {isConflict && (() => {
-                                      const cinfo = conflictMap.get(obj.id);
-                                      return (
-                                        <span
-                                          title={cinfo ? conflictKindText(cinfo.kind) : ''}
-                                          style={{
-                                            fontSize: 'var(--text-badge)',
-                                            color: 'var(--warning)',
-                                            border: '1px solid var(--warning)',
-                                            borderRadius: 3,
-                                            padding: '0 4px',
-                                          }}
-                                        >
-                                          {t('settings:conflict')}
-                                        </span>
-                                      );
-                                    })()}
+                                    {isConflict &&
+                                      (() => {
+                                        const cinfo = conflictMap.get(obj.id);
+                                        return (
+                                          <span
+                                            title={cinfo ? conflictKindText(cinfo.kind) : ''}
+                                            style={{
+                                              fontSize: 'var(--text-badge)',
+                                              color: 'var(--warning)',
+                                              border: '1px solid var(--warning)',
+                                              borderRadius: 3,
+                                              padding: '0 4px',
+                                            }}
+                                          >
+                                            {t('settings:conflict')}
+                                          </span>
+                                        );
+                                      })()}
                                     {hasAtts && (
                                       <button
                                         type="button"
@@ -647,7 +660,8 @@ export function ImportSection({
                     </div>
                     {/* Per-object conflict strategy selector */}
                     {decryptedPreview.conflicts.map((c) => {
-                      const currentStrategy = objectConflictStrategies.get(c.objectId) ?? importStrategy;
+                      const currentStrategy =
+                        objectConflictStrategies.get(c.objectId) ?? importStrategy;
                       return (
                         <div
                           key={c.objectId}
@@ -664,7 +678,8 @@ export function ImportSection({
                             {c.importedName}
                             {c.importedName !== c.existingName && (
                               <span style={{ color: 'var(--text-tertiary)' }}>
-                                {' '}← 本地: {c.existingName}
+                                {' '}
+                                ← 本地: {c.existingName}
                               </span>
                             )}
                           </span>
@@ -680,7 +695,10 @@ export function ImportSection({
                           <select
                             value={currentStrategy}
                             onChange={(e) =>
-                              onSetObjectConflictStrategy(c.objectId, e.target.value as ImportStrategy)
+                              onSetObjectConflictStrategy(
+                                c.objectId,
+                                e.target.value as ImportStrategy,
+                              )
                             }
                             style={{
                               fontSize: 'var(--text-caption)',
@@ -693,7 +711,9 @@ export function ImportSection({
                               cursor: 'pointer',
                             }}
                           >
-                            <option value="skipExisting">{t('settings:strategy_skipExisting')}</option>
+                            <option value="skipExisting">
+                              {t('settings:strategy_skipExisting')}
+                            </option>
                             <option value="overwrite">{t('settings:strategy_overwrite')}</option>
                             <option value="keepBoth">{t('settings:strategy_keepBoth')}</option>
                           </select>
@@ -703,7 +723,6 @@ export function ImportSection({
                   </div>
                 )}
               </div>
-
               {/* Action buttons */}
               {!showStrategySelector ? (
                 <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>

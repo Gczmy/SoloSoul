@@ -29,7 +29,12 @@ describe('templateSync', () => {
       const map = new Map([['tpl-1', 'latest-hash']]);
       expect(
         objectNeedsSync(
-          { id: 'obj-1', templateId: 'tpl-1', templateHash: 'old-hash', ignoredTemplateHash: 'latest-hash' },
+          {
+            id: 'obj-1',
+            templateId: 'tpl-1',
+            templateHash: 'old-hash',
+            ignoredTemplateHash: 'latest-hash',
+          },
           map,
         ),
       ).toBe(false);
@@ -38,10 +43,7 @@ describe('templateSync', () => {
     it('returns false when the object hash matches the latest hash', () => {
       const map = new Map([['tpl-1', 'latest-hash']]);
       expect(
-        objectNeedsSync(
-          { id: 'obj-1', templateId: 'tpl-1', templateHash: 'latest-hash' },
-          map,
-        ),
+        objectNeedsSync({ id: 'obj-1', templateId: 'tpl-1', templateHash: 'latest-hash' }, map),
       ).toBe(false);
     });
   });

@@ -109,9 +109,11 @@ export function AddPageButton({
       return;
     }
     const trimmedDesc = description.trim();
-    addCustomPage(currentAccount.id, trimmed, selectedIconId, trimmedDesc || undefined).then((page) => {
-      onCreate(page);
-    });
+    addCustomPage(currentAccount.id, trimmed, selectedIconId, trimmedDesc || undefined).then(
+      (page) => {
+        onCreate(page);
+      },
+    );
     handleCancel();
   }, [name, description, selectedIconId, currentAccount, addCustomPage, onCreate, t, handleCancel]);
 
@@ -236,7 +238,13 @@ export function AddPageButton({
         <button
           ref={buttonRef}
           className={`${styles.addPageButton} ${buttonClassName || ''}`}
-          style={buttonClassName ? undefined : isHorizontal ? { width: 40, height: 40, borderRadius: 10 } : {}}
+          style={
+            buttonClassName
+              ? undefined
+              : isHorizontal
+                ? { width: 40, height: 40, borderRadius: 10 }
+                : {}
+          }
           onClick={() => {
             setButtonRect(buttonRef.current?.getBoundingClientRect() || null);
             setIsCreating(true);
@@ -298,7 +306,8 @@ export function AddPageButton({
                 border: '1px solid var(--border-subtle)',
                 transformOrigin: 'top',
                 maxWidth: 'calc(100vw - 32px)',
-                maxHeight: 'calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 32px)',
+                maxHeight:
+                  'calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 32px)',
               }}
             >
               {/* Name input */}
@@ -329,21 +338,21 @@ export function AddPageButton({
               {showDescription && (
                 <input
                   value={description}
-                onChange={(e) => setDescription(e.target.value.slice(0, 30))}
-                onBlur={(e) => {
-                  if (
-                    popoverRef.current &&
-                    !popoverRef.current.contains(e.relatedTarget as Node)
-                  ) {
-                    handleConfirm();
-                  }
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleConfirm();
-                  if (e.key === 'Escape') handleCancel();
-                }}
-                placeholder={t('add_page_description_placeholder')}
-                maxLength={30}
+                  onChange={(e) => setDescription(e.target.value.slice(0, 30))}
+                  onBlur={(e) => {
+                    if (
+                      popoverRef.current &&
+                      !popoverRef.current.contains(e.relatedTarget as Node)
+                    ) {
+                      handleConfirm();
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') handleConfirm();
+                    if (e.key === 'Escape') handleCancel();
+                  }}
+                  placeholder={t('add_page_description_placeholder')}
+                  maxLength={30}
                   aria-label={t('add_page_description_placeholder')}
                   className={styles.addPageInput}
                   data-secondary

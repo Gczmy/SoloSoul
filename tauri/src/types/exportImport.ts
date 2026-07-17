@@ -74,4 +74,3 @@ export interface ImportResult {
   objectCount: number;
   attachmentCount: number;
 }
-

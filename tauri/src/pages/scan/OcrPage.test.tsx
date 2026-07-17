@@ -76,17 +76,19 @@ describe('OcrPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockInvoke.mockImplementation(async (cmd: string, args?: unknown) => {
-      if (cmd === 'ocr_list_available_tiers') return [
-        { tier: 'tiny', name: 'Tiny', description: 'Fast' },
-        { tier: 'small', name: 'Small', description: 'Default' },
-        { tier: 'medium', name: 'Medium', description: 'Accurate' },
-      ];
+      if (cmd === 'ocr_list_available_tiers')
+        return [
+          { tier: 'tiny', name: 'Tiny', description: 'Fast' },
+          { tier: 'small', name: 'Small', description: 'Default' },
+          { tier: 'medium', name: 'Medium', description: 'Accurate' },
+        ];
       if (cmd === 'ocr_get_active_tier') return 'small';
-      if (cmd === 'ocr_get_model_status') return {
-        tier: (args as Record<string, unknown>).tier as string ?? 'small',
-        installed: true,
-        bundled: true,
-      };
+      if (cmd === 'ocr_get_model_status')
+        return {
+          tier: ((args as Record<string, unknown>).tier as string) ?? 'small',
+          installed: true,
+          bundled: true,
+        };
       return undefined;
     });
   });
@@ -119,16 +121,18 @@ describe('OcrPage', () => {
   it('scans selected image and displays result', async () => {
     mockOpen.mockResolvedValue('/test/image.png');
     mockInvoke.mockImplementation(async (cmd: string, _args?: unknown) => {
-      if (cmd === 'ocr_scan_image') return {
-        text: 'Hello World',
-        confidence: 0.95,
-        boxes: [{ text: 'Hello World', confidence: 0.95, points: [] }],
-      };
-      if (cmd === 'ocr_list_available_tiers') return [
-        { tier: 'tiny', name: 'Tiny', description: 'Fast' },
-        { tier: 'small', name: 'Small', description: 'Default' },
-        { tier: 'medium', name: 'Medium', description: 'Accurate' },
-      ];
+      if (cmd === 'ocr_scan_image')
+        return {
+          text: 'Hello World',
+          confidence: 0.95,
+          boxes: [{ text: 'Hello World', confidence: 0.95, points: [] }],
+        };
+      if (cmd === 'ocr_list_available_tiers')
+        return [
+          { tier: 'tiny', name: 'Tiny', description: 'Fast' },
+          { tier: 'small', name: 'Small', description: 'Default' },
+          { tier: 'medium', name: 'Medium', description: 'Accurate' },
+        ];
       if (cmd === 'ocr_get_active_tier') return 'small';
       if (cmd === 'ocr_get_model_status') return { tier: 'small', installed: true, bundled: true };
       return undefined;
@@ -157,16 +161,18 @@ describe('OcrPage', () => {
   it('imports scan result as object', async () => {
     mockOpen.mockResolvedValue('/test/image.png');
     mockInvoke.mockImplementation(async (cmd: string) => {
-      if (cmd === 'ocr_scan_image') return {
-        text: 'Hello World',
-        confidence: 0.95,
-        boxes: [{ text: 'Hello World', confidence: 0.95, points: [] }],
-      };
-      if (cmd === 'ocr_list_available_tiers') return [
-        { tier: 'tiny', name: 'Tiny', description: 'Fast' },
-        { tier: 'small', name: 'Small', description: 'Default' },
-        { tier: 'medium', name: 'Medium', description: 'Accurate' },
-      ];
+      if (cmd === 'ocr_scan_image')
+        return {
+          text: 'Hello World',
+          confidence: 0.95,
+          boxes: [{ text: 'Hello World', confidence: 0.95, points: [] }],
+        };
+      if (cmd === 'ocr_list_available_tiers')
+        return [
+          { tier: 'tiny', name: 'Tiny', description: 'Fast' },
+          { tier: 'small', name: 'Small', description: 'Default' },
+          { tier: 'medium', name: 'Medium', description: 'Accurate' },
+        ];
       if (cmd === 'ocr_get_active_tier') return 'small';
       if (cmd === 'ocr_get_model_status') return { tier: 'small', installed: true, bundled: true };
       return undefined;
@@ -196,17 +202,19 @@ describe('OcrPage', () => {
 
   it('shows not-installed toast when active model is not installed', async () => {
     mockInvoke.mockImplementation(async (cmd: string, args?: unknown) => {
-      if (cmd === 'ocr_list_available_tiers') return [
-        { tier: 'tiny', name: 'Tiny', description: 'Fast' },
-        { tier: 'small', name: 'Small', description: 'Default' },
-        { tier: 'medium', name: 'Medium', description: 'Accurate' },
-      ];
+      if (cmd === 'ocr_list_available_tiers')
+        return [
+          { tier: 'tiny', name: 'Tiny', description: 'Fast' },
+          { tier: 'small', name: 'Small', description: 'Default' },
+          { tier: 'medium', name: 'Medium', description: 'Accurate' },
+        ];
       if (cmd === 'ocr_get_active_tier') return 'tiny';
-      if (cmd === 'ocr_get_model_status') return {
-        tier: (args as Record<string, unknown>).tier as string ?? 'tiny',
-        installed: false,
-        bundled: true,
-      };
+      if (cmd === 'ocr_get_model_status')
+        return {
+          tier: ((args as Record<string, unknown>).tier as string) ?? 'tiny',
+          installed: false,
+          bundled: true,
+        };
       if (cmd === 'ocr_set_active_tier') return undefined;
       if (cmd === 'ocr_get_supported_languages') return ['en'];
       return undefined;
@@ -236,17 +244,19 @@ describe('OcrPage', () => {
     mockOpen.mockResolvedValue('/test/image.png');
     mockInvoke.mockImplementation(async (cmd: string, args?: unknown) => {
       if (cmd === 'ocr_scan_image') throw new Error('model not found');
-      if (cmd === 'ocr_list_available_tiers') return [
-        { tier: 'tiny', name: 'Tiny', description: 'Fast' },
-        { tier: 'small', name: 'Small', description: 'Default' },
-        { tier: 'medium', name: 'Medium', description: 'Accurate' },
-      ];
+      if (cmd === 'ocr_list_available_tiers')
+        return [
+          { tier: 'tiny', name: 'Tiny', description: 'Fast' },
+          { tier: 'small', name: 'Small', description: 'Default' },
+          { tier: 'medium', name: 'Medium', description: 'Accurate' },
+        ];
       if (cmd === 'ocr_get_active_tier') return 'small';
-      if (cmd === 'ocr_get_model_status') return {
-        tier: (args as Record<string, unknown>).tier as string ?? 'small',
-        installed: true,
-        bundled: true,
-      };
+      if (cmd === 'ocr_get_model_status')
+        return {
+          tier: ((args as Record<string, unknown>).tier as string) ?? 'small',
+          installed: true,
+          bundled: true,
+        };
       return undefined;
     });
     render(

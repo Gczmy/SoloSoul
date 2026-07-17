@@ -110,7 +110,9 @@ export function SecondaryActionBar({
             if (wrapperRef.current?.contains(leaveTarget as Node)) return;
             if (!isAnyCardOpenRef.current) setHovering(false);
           };
-          (addPageZone as HTMLElement).addEventListener('mouseleave', handleLeaveAddPage, { once: true });
+          (addPageZone as HTMLElement).addEventListener('mouseleave', handleLeaveAddPage, {
+            once: true,
+          });
         } else if (!isAnyCardOpen) {
           setHovering(false);
         }
@@ -128,11 +130,10 @@ export function SecondaryActionBar({
     sidebarPosition === 'bottom' ? 'top' : sidebarPosition === 'right' ? 'right' : 'left';
   const { ocrButtonRef, quickScanPos } = useOcrQuickScan(560, ocrQuickScanPlacement);
   const { pluginButtonRef, quickPanelPos } = usePluginQuickPanel(560, pluginQuickPanelPlacement);
-  const {
-    aiButtonRef,
-    quickChatPos,
-    updateQuickChatPos,
-  } = useAiQuickChat(520, aiQuickChatPlacement);
+  const { aiButtonRef, quickChatPos, updateQuickChatPos } = useAiQuickChat(
+    520,
+    aiQuickChatPlacement,
+  );
 
   // AI chat uses local state (not Zustand), so trigger position update and
   // attach scroll/resize listeners manually (hook's internal useEffect never

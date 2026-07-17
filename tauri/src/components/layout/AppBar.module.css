@@ -102,7 +102,7 @@
   }
   .backButton,
   .actions button,
-  .actions [role="button"] {
+  .actions [role='button'] {
     padding: 8px;
     min-width: 44px;
     min-height: 44px;

@@ -109,7 +109,9 @@ function UpdatedFieldList({
           </span>
           <span style={{ display: 'block', fontSize: 'var(--text-caption)' }}>
             {f.changes
-              .map((c) => formatChangeItem(c, t, getFieldNameLabel, getFieldTypeLabel, getSensitivityLabel))
+              .map((c) =>
+                formatChangeItem(c, t, getFieldNameLabel, getFieldTypeLabel, getSensitivityLabel),
+              )
               .join(' · ')}
           </span>
         </li>
@@ -137,7 +139,13 @@ function IncompatibleFieldList({
             {getFieldTypeLabel(f.oldType)} → {getFieldTypeLabel(f.newType)}
           </span>
           {f.oldValuePreview && (
-            <span style={{ display: 'block', fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
+            <span
+              style={{
+                display: 'block',
+                fontSize: 'var(--text-caption)',
+                color: 'var(--text-tertiary)',
+              }}
+            >
               {f.oldValuePreview}
             </span>
           )}
@@ -183,7 +191,9 @@ export function TemplateSyncConfirmDialog({
       title={t('editor:template_sync_title')}
       dialogStyle={{ maxWidth: 480, width: '90%' }}
     >
-      <div style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-body)', lineHeight: 1.5 }}>
+      <div
+        style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-body)', lineHeight: 1.5 }}
+      >
         <p style={{ margin: '0 0 12px' }}>{t('editor:template_sync_body')}</p>
 
         {!result && (
@@ -249,7 +259,13 @@ export function TemplateSyncConfirmDialog({
                   getFieldNameLabel={getFieldNameLabel}
                   getFieldTypeLabel={getFieldTypeLabel}
                 />
-                <p style={{ margin: '8px 0 0', fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
+                <p
+                  style={{
+                    margin: '8px 0 0',
+                    fontSize: 'var(--text-caption)',
+                    color: 'var(--text-tertiary)',
+                  }}
+                >
                   {t('editor:template_sync_incompatible_hint')}
                 </p>
               </>
@@ -262,7 +278,12 @@ export function TemplateSyncConfirmDialog({
         <Button variant="secondary" onClick={onCancel} disabled={loading}>
           {t('common:cancel')}
         </Button>
-        <Button variant="primary" onClick={onConfirm} loading={loading} disabled={!result || noChanges}>
+        <Button
+          variant="primary"
+          onClick={onConfirm}
+          loading={loading}
+          disabled={!result || noChanges}
+        >
           {t('editor:template_sync_apply')}
         </Button>
       </div>

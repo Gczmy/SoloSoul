@@ -20,7 +20,9 @@
   font-family: inherit;
   cursor: pointer;
   outline: none;
-  transition: border-color 0.15s, background 0.15s;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
   box-sizing: border-box;
 }
 
@@ -153,7 +155,9 @@
   font-size: 16px;
   cursor: pointer;
   outline: none;
-  transition: background 0.12s, border-color 0.12s;
+  transition:
+    background 0.12s,
+    border-color 0.12s;
   box-sizing: border-box;
   user-select: none;
 }

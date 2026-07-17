@@ -17,7 +17,6 @@ import { ICON_SIZE } from '@/lib/constants';
 import { isUriPath, copyStagedFileToDest } from '@/lib/mobileFileTransfer';
 import buttonStyles from '@/components/ui/Button.module.css';
 
-
 interface AuditLogEntry {
   id: number;
   timestamp: string;

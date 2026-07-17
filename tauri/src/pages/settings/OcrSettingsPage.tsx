@@ -128,257 +128,259 @@ export function OcrSettingsPage() {
       {confirmDialog}
       <PageContainer variant="medium" gap="default">
         {!isMobile && (
-        <Card>
-          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 12 }}>
-            {t('ocr:active_model')}
-          </h3>
-          <select
-            value={activeTier}
-            onChange={(e) => handleTierChange(e.target.value)}
-            disabled={loading}
-            style={{
-              width: '100%',
-              padding: '8px 10px',
-              fontSize: 'var(--text-body-sm)',
-              borderRadius: 8,
-              border: '1px solid var(--border-subtle)',
-              background: 'var(--bg-toolbar)',
-              color: 'var(--text-primary)',
-              transition: 'border-color 0.15s ease',
-            }}
-          >
-            {tiers.map((tier) => {
-              const label = getTierLabel(t, tier);
-              return (
-                <option key={tier.tier} value={tier.tier}>
-                  {label.name} — {label.description}
-                </option>
-              );
-            })}
-          </select>
-        </Card>
+          <Card>
+            <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 12 }}>
+              {t('ocr:active_model')}
+            </h3>
+            <select
+              value={activeTier}
+              onChange={(e) => handleTierChange(e.target.value)}
+              disabled={loading}
+              style={{
+                width: '100%',
+                padding: '8px 10px',
+                fontSize: 'var(--text-body-sm)',
+                borderRadius: 8,
+                border: '1px solid var(--border-subtle)',
+                background: 'var(--bg-toolbar)',
+                color: 'var(--text-primary)',
+                transition: 'border-color 0.15s ease',
+              }}
+            >
+              {tiers.map((tier) => {
+                const label = getTierLabel(t, tier);
+                return (
+                  <option key={tier.tier} value={tier.tier}>
+                    {label.name} — {label.description}
+                  </option>
+                );
+              })}
+            </select>
+          </Card>
         )}
 
         {!isMobile && (
-        <Card>
-          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 12 }}>
-            {t('ocr:model_management')}
-          </h3>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {tiers.map((tier) => {
-              const status = statusMap[tier.tier];
-              const isInstalling = installingTier === tier.tier;
-              const isDownloading = downloadingTier === tier.tier;
-              const isDeleting = deletingTier === tier.tier;
-              const tierSize =
-                tier.tier === 'tiny' ? '1.5MB' : tier.tier === 'medium' ? '132MB' : '30MB';
-              return (
-                <div
-                  key={tier.tier}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '10px 12px',
-                    borderRadius: 8,
-                    background: 'var(--bg-toolbar)',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
-                    {status?.installed ? (
-                      <CheckCircle size={ICON_SIZE.md} color="var(--accent-primary)" />
-                    ) : status?.bundled ? (
-                      <AlertCircle size={ICON_SIZE.md} color="var(--text-tertiary)" />
-                    ) : (
-                      <AlertCircle size={ICON_SIZE.md} color="var(--error)" />
-                    )}
-                    <div>
-                      <div style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500 }}>
-                        {getTierLabel(t, tier).name}
-                      </div>
-                      <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
-                        {status?.installed
-                          ? `${t('ocr:status_installed')} · ${t('ocr:storage_usage_value', { size: tierSize })}`
-                          : status?.bundled
-                            ? t('ocr:status_bundled')
-                            : t('ocr:status_not_installed')}
+          <Card>
+            <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 12 }}>
+              {t('ocr:model_management')}
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {tiers.map((tier) => {
+                const status = statusMap[tier.tier];
+                const isInstalling = installingTier === tier.tier;
+                const isDownloading = downloadingTier === tier.tier;
+                const isDeleting = deletingTier === tier.tier;
+                const tierSize =
+                  tier.tier === 'tiny' ? '1.5MB' : tier.tier === 'medium' ? '132MB' : '30MB';
+                return (
+                  <div
+                    key={tier.tier}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '10px 12px',
+                      borderRadius: 8,
+                      background: 'var(--bg-toolbar)',
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
+                      {status?.installed ? (
+                        <CheckCircle size={ICON_SIZE.md} color="var(--accent-primary)" />
+                      ) : status?.bundled ? (
+                        <AlertCircle size={ICON_SIZE.md} color="var(--text-tertiary)" />
+                      ) : (
+                        <AlertCircle size={ICON_SIZE.md} color="var(--error)" />
+                      )}
+                      <div>
+                        <div style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500 }}>
+                          {getTierLabel(t, tier).name}
+                        </div>
+                        <div
+                          style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}
+                        >
+                          {status?.installed
+                            ? `${t('ocr:status_installed')} · ${t('ocr:storage_usage_value', { size: tierSize })}`
+                            : status?.bundled
+                              ? t('ocr:status_bundled')
+                              : t('ocr:status_not_installed')}
+                        </div>
                       </div>
                     </div>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      {status?.bundled && !status?.installed && (
+                        <button
+                          onClick={() => handleInstallBundled(tier.tier)}
+                          disabled={isInstalling}
+                          onMouseEnter={(e) => {
+                            if (!isInstalling) {
+                              e.currentTarget.style.background =
+                                'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
+                              e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                              e.currentTarget.style.color = 'var(--accent-primary)';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!isInstalling) {
+                              e.currentTarget.style.background = 'var(--bg-toolbar)';
+                              e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                              e.currentTarget.style.color = 'var(--text-primary)';
+                            }
+                          }}
+                          style={{
+                            padding: '6px 12px',
+                            borderRadius: 8,
+                            border: '1px solid var(--border-subtle)',
+                            background: 'var(--bg-toolbar)',
+                            color: 'var(--text-primary)',
+                            fontSize: 'var(--text-caption)',
+                            fontWeight: 500,
+                            cursor: isInstalling ? 'default' : 'pointer',
+                            opacity: isInstalling ? 0.6 : 1,
+                            transition: 'all 0.15s ease',
+                            fontFamily: 'inherit',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 4,
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {isInstalling
+                            ? t('common:loading', { defaultValue: '...' })
+                            : t('ocr:install')}
+                        </button>
+                      )}
+                      {!status?.bundled && !status?.installed && (
+                        <button
+                          onClick={() => handleDownload(tier.tier)}
+                          disabled={isDownloading}
+                          onMouseEnter={(e) => {
+                            if (!isDownloading) {
+                              e.currentTarget.style.background =
+                                'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
+                              e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                              e.currentTarget.style.color = 'var(--accent-primary)';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!isDownloading) {
+                              e.currentTarget.style.background = 'var(--bg-toolbar)';
+                              e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                              e.currentTarget.style.color = 'var(--text-primary)';
+                            }
+                          }}
+                          style={{
+                            padding: '6px 12px',
+                            borderRadius: 8,
+                            border: '1px solid var(--border-subtle)',
+                            background: 'var(--bg-toolbar)',
+                            color: 'var(--text-primary)',
+                            fontSize: 'var(--text-caption)',
+                            fontWeight: 500,
+                            cursor: isDownloading ? 'default' : 'pointer',
+                            opacity: isDownloading ? 0.6 : 1,
+                            transition: 'all 0.15s ease',
+                            fontFamily: 'inherit',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 4,
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {isDownloading ? (
+                            t('common:loading', { defaultValue: '...' })
+                          ) : (
+                            <>
+                              <Download size={ICON_SIZE.sm} />
+                              {t('ocr:download')}
+                            </>
+                          )}
+                        </button>
+                      )}
+                      {status?.installed && (
+                        <button
+                          onClick={() => handleDelete(tier.tier)}
+                          disabled={isDeleting}
+                          onMouseEnter={(e) => {
+                            if (!isDeleting) {
+                              e.currentTarget.style.background =
+                                'color-mix(in srgb, var(--error) 12%, transparent)';
+                              e.currentTarget.style.borderColor = 'var(--error)';
+                              e.currentTarget.style.color = 'var(--error)';
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!isDeleting) {
+                              e.currentTarget.style.background = 'var(--bg-toolbar)';
+                              e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                              e.currentTarget.style.color = 'var(--text-primary)';
+                            }
+                          }}
+                          style={{
+                            padding: '6px 12px',
+                            borderRadius: 8,
+                            border: '1px solid var(--border-subtle)',
+                            background: 'var(--bg-toolbar)',
+                            color: 'var(--text-primary)',
+                            fontSize: 'var(--text-caption)',
+                            fontWeight: 500,
+                            cursor: isDeleting ? 'default' : 'pointer',
+                            opacity: isDeleting ? 0.6 : 1,
+                            transition: 'all 0.15s ease',
+                            fontFamily: 'inherit',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: 4,
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {isDeleting ? (
+                            t('common:loading', { defaultValue: '...' })
+                          ) : (
+                            <>
+                              <Trash2 size={ICON_SIZE.sm} color="var(--error)" />
+                              {t('common:delete')}
+                            </>
+                          )}
+                        </button>
+                      )}
+                    </div>
                   </div>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    {status?.bundled && !status?.installed && (
-                      <button
-                        onClick={() => handleInstallBundled(tier.tier)}
-                        disabled={isInstalling}
-                        onMouseEnter={(e) => {
-                          if (!isInstalling) {
-                            e.currentTarget.style.background =
-                              'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
-                            e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                            e.currentTarget.style.color = 'var(--accent-primary)';
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (!isInstalling) {
-                            e.currentTarget.style.background = 'var(--bg-toolbar)';
-                            e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                            e.currentTarget.style.color = 'var(--text-primary)';
-                          }
-                        }}
-                        style={{
-                          padding: '6px 12px',
-                          borderRadius: 8,
-                          border: '1px solid var(--border-subtle)',
-                          background: 'var(--bg-toolbar)',
-                          color: 'var(--text-primary)',
-                          fontSize: 'var(--text-caption)',
-                          fontWeight: 500,
-                          cursor: isInstalling ? 'default' : 'pointer',
-                          opacity: isInstalling ? 0.6 : 1,
-                          transition: 'all 0.15s ease',
-                          fontFamily: 'inherit',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: 4,
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {isInstalling
-                          ? t('common:loading', { defaultValue: '...' })
-                          : t('ocr:install')}
-                      </button>
-                    )}
-                    {!status?.bundled && !status?.installed && (
-                      <button
-                        onClick={() => handleDownload(tier.tier)}
-                        disabled={isDownloading}
-                        onMouseEnter={(e) => {
-                          if (!isDownloading) {
-                            e.currentTarget.style.background =
-                              'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
-                            e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                            e.currentTarget.style.color = 'var(--accent-primary)';
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (!isDownloading) {
-                            e.currentTarget.style.background = 'var(--bg-toolbar)';
-                            e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                            e.currentTarget.style.color = 'var(--text-primary)';
-                          }
-                        }}
-                        style={{
-                          padding: '6px 12px',
-                          borderRadius: 8,
-                          border: '1px solid var(--border-subtle)',
-                          background: 'var(--bg-toolbar)',
-                          color: 'var(--text-primary)',
-                          fontSize: 'var(--text-caption)',
-                          fontWeight: 500,
-                          cursor: isDownloading ? 'default' : 'pointer',
-                          opacity: isDownloading ? 0.6 : 1,
-                          transition: 'all 0.15s ease',
-                          fontFamily: 'inherit',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: 4,
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {isDownloading ? (
-                          t('common:loading', { defaultValue: '...' })
-                        ) : (
-                          <>
-                            <Download size={ICON_SIZE.sm} />
-                            {t('ocr:download')}
-                          </>
-                        )}
-                      </button>
-                    )}
-                    {status?.installed && (
-                      <button
-                        onClick={() => handleDelete(tier.tier)}
-                        disabled={isDeleting}
-                        onMouseEnter={(e) => {
-                          if (!isDeleting) {
-                            e.currentTarget.style.background =
-                              'color-mix(in srgb, var(--error) 12%, transparent)';
-                            e.currentTarget.style.borderColor = 'var(--error)';
-                            e.currentTarget.style.color = 'var(--error)';
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (!isDeleting) {
-                            e.currentTarget.style.background = 'var(--bg-toolbar)';
-                            e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                            e.currentTarget.style.color = 'var(--text-primary)';
-                          }
-                        }}
-                        style={{
-                          padding: '6px 12px',
-                          borderRadius: 8,
-                          border: '1px solid var(--border-subtle)',
-                          background: 'var(--bg-toolbar)',
-                          color: 'var(--text-primary)',
-                          fontSize: 'var(--text-caption)',
-                          fontWeight: 500,
-                          cursor: isDeleting ? 'default' : 'pointer',
-                          opacity: isDeleting ? 0.6 : 1,
-                          transition: 'all 0.15s ease',
-                          fontFamily: 'inherit',
-                          display: 'inline-flex',
-                          alignItems: 'center',
-                          gap: 4,
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {isDeleting ? (
-                          t('common:loading', { defaultValue: '...' })
-                        ) : (
-                          <>
-                            <Trash2 size={ICON_SIZE.sm} color="var(--error)" />
-                            {t('common:delete')}
-                          </>
-                        )}
-                      </button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {!statusMap['small']?.installed && !statusMap['small']?.bundled && (
-            <div style={{ marginTop: 12 }}>
-              <label
-                style={{
-                  display: 'block',
-                  fontSize: 'var(--text-caption)',
-                  color: 'var(--text-secondary)',
-                  marginBottom: 6,
-                }}
-              >
-                {t('ocr:download_url_label')}
-              </label>
-              <input
-                type="text"
-                value={downloadUrl}
-                onChange={(e) => setDownloadUrl(e.target.value)}
-                placeholder={t('ocr:download_url_placeholder')}
-                style={{
-                  width: '100%',
-                  padding: '8px 10px',
-                  fontSize: 'var(--text-body-sm)',
-                  borderRadius: 8,
-                  border: '1px solid var(--border-subtle)',
-                  background: 'var(--bg-toolbar)',
-                  color: 'var(--text-primary)',
-                  transition: 'border-color 0.15s ease',
-                }}
-              />
+                );
+              })}
             </div>
-          )}
-        </Card>
+
+            {!statusMap['small']?.installed && !statusMap['small']?.bundled && (
+              <div style={{ marginTop: 12 }}>
+                <label
+                  style={{
+                    display: 'block',
+                    fontSize: 'var(--text-caption)',
+                    color: 'var(--text-secondary)',
+                    marginBottom: 6,
+                  }}
+                >
+                  {t('ocr:download_url_label')}
+                </label>
+                <input
+                  type="text"
+                  value={downloadUrl}
+                  onChange={(e) => setDownloadUrl(e.target.value)}
+                  placeholder={t('ocr:download_url_placeholder')}
+                  style={{
+                    width: '100%',
+                    padding: '8px 10px',
+                    fontSize: 'var(--text-body-sm)',
+                    borderRadius: 8,
+                    border: '1px solid var(--border-subtle)',
+                    background: 'var(--bg-toolbar)',
+                    color: 'var(--text-primary)',
+                    transition: 'border-color 0.15s ease',
+                  }}
+                />
+              </div>
+            )}
+          </Card>
         )}
 
         {isMobile && (
@@ -386,7 +388,9 @@ export function OcrSettingsPage() {
             <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 8 }}>
               {t('ocr:mobile_ocr_title')}
             </h3>
-            <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)', margin: 0 }}>
+            <p
+              style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)', margin: 0 }}
+            >
               {t('ocr:mobile_ocr_description')}
             </p>
           </Card>

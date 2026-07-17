@@ -14,12 +14,7 @@ interface AppBarProps {
   sidebarPosition?: 'left' | 'right' | 'top' | 'bottom';
 }
 
-export function AppBar({
-  title,
-  actions,
-  onBack,
-  sidebarPosition = 'left',
-}: AppBarProps) {
+export function AppBar({ title, actions, onBack, sidebarPosition = 'left' }: AppBarProps) {
   const isHorizontal = sidebarPosition === 'top' || sidebarPosition === 'bottom';
   const { t } = useTranslation('common');
 

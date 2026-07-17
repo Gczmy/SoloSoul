@@ -60,19 +60,12 @@ export function DynamicGroupConfig({
   const typesSummary = isAllSelected
     ? t('editor:dynamic_group_no_limit')
     : `${effectiveAllowed.length}/${ALL_PROPERTY_TYPES.length}`;
-  const maxSummary =
-    maxItems === undefined
-      ? t('editor:dynamic_group_no_limit')
-      : `${maxItems}`;
+  const maxSummary = maxItems === undefined ? t('editor:dynamic_group_no_limit') : `${maxItems}`;
   const sensitivitySummary = sensitivity ?? 'internal';
 
   return (
     <div className={styles.wrapper}>
-      <button
-        type="button"
-        className={styles.triggerBtn}
-        onClick={() => setExpanded((v) => !v)}
-      >
+      <button type="button" className={styles.triggerBtn} onClick={() => setExpanded((v) => !v)}>
         <span
           className={styles.chevron}
           style={{ transform: expanded ? 'rotate(90deg)' : 'rotate(0deg)' }}
@@ -80,7 +73,12 @@ export function DynamicGroupConfig({
           <ChevronRight size={ICON_SIZE.sm} />
         </span>
         <span className={styles.triggerText}>
-          {typesLabel}: {typesSummary}<span className={styles.separator}>·</span>{maxLabel}: {maxSummary}<span className={styles.separator}>·</span>{sensitivityLabel}: {t(`editor:sensitivity_levels.${sensitivitySummary}`, sensitivitySummary)}
+          {typesLabel}: {typesSummary}
+          <span className={styles.separator}>·</span>
+          {maxLabel}: {maxSummary}
+          <span className={styles.separator}>·</span>
+          {sensitivityLabel}:{' '}
+          {t(`editor:sensitivity_levels.${sensitivitySummary}`, sensitivitySummary)}
         </span>
       </button>
 

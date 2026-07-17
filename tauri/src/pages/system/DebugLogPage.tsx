@@ -12,7 +12,6 @@ import { Bug, Download, RefreshCw } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/constants';
 import { isUriPath, copyStagedFileToDest } from '@/lib/mobileFileTransfer';
 
-
 interface AuditLogEntry {
   id: number;
   timestamp: string;

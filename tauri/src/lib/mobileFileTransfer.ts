@@ -68,10 +68,7 @@ export async function prepareStagedDownloadPath(fileName: string): Promise<strin
 /**
  * 把本地临时文件复制到目标 URI（通常是 Android content:// URI）。
  */
-export async function copyStagedFileToDest(
-  stagedPath: string,
-  destUri: string,
-): Promise<void> {
+export async function copyStagedFileToDest(stagedPath: string, destUri: string): Promise<void> {
   await copyFile(stagedPath, destUri);
 }
 

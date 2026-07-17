@@ -133,9 +133,7 @@ describe('deriveSampleTemplateBindings', () => {
         p.id === 'street'
           ? {
               ...p,
-              contractBindings: [
-                { contractTypeId: 'custom/v1', roleId: 'customRole' },
-              ],
+              contractBindings: [{ contractTypeId: 'custom/v1', roleId: 'customRole' }],
             }
           : p,
       ),

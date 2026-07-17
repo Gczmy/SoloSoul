@@ -147,7 +147,9 @@ export function SampleTemplateDetail({ template, onBack, onUse }: SampleTemplate
                   border: '1px solid var(--border-subtle)',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}>
+                <div
+                  style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}
+                >
                   <span
                     style={{ color: 'var(--text-tertiary)', display: 'flex', alignItems: 'center' }}
                   >

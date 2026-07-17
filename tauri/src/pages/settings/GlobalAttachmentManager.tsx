@@ -28,7 +28,6 @@ import { DEFAULT_CUSTOM_ICON, PAGE_ICON_MAP, CUSTOM_ICON_MAP } from '@/lib/pageI
 import { pickFileToAttach, uploadSingleAttachment } from '@/lib/attachmentUpload';
 import { downloadViaStage, isUriPath } from '@/lib/mobileFileTransfer';
 
-
 import { useDragToAttach } from '@/hooks/useDragToAttach';
 import { useBatchSelect } from '@/hooks/useBatchSelect';
 import { SelectCheckbox } from '@/components/ui/SelectCheckbox';

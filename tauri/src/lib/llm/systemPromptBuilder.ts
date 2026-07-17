@@ -199,4 +199,3 @@ export function buildMessagesWithSystemPromptAndGuide(
   }
   return buildMessagesWithSystemPrompt(userPrompt, history, combinedSystem);
 }
-

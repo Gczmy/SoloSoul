@@ -65,9 +65,7 @@ export function MobileBottomNav() {
       {/* Expandable function button panel */}
       {expanded && (
         <div className={styles.functionPanel}>
-          <div className={styles.functionGrid}>
-            {items.map((item) => renderPlainButton(item))}
-          </div>
+          <div className={styles.functionGrid}>{items.map((item) => renderPlainButton(item))}</div>
         </div>
       )}
 
@@ -111,7 +109,9 @@ export function MobileBottomNav() {
             size={22}
             className={`${styles.toggleIcon} ${expanded ? styles.toggleIconExpanded : ''}`}
           />
-          <span className={styles.navLabel}>{expanded ? t('common:collapse') : t('common:expand')}</span>
+          <span className={styles.navLabel}>
+            {expanded ? t('common:collapse') : t('common:expand')}
+          </span>
         </button>
 
         {/* Lock vault quick action */}

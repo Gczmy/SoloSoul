@@ -247,10 +247,7 @@ export function useAiQuickChat(
         top = Math.max(rect.top - cardHeight - 8, 8);
       } else {
         // left or right placement — align card top with button top
-        top = Math.min(
-          Math.max(rect.top, 8),
-          window.innerHeight - cardHeight - 8,
-        );
+        top = Math.min(Math.max(rect.top, 8), window.innerHeight - cardHeight - 8);
       }
       setQuickChatPos({ top });
     }
@@ -296,10 +293,7 @@ export function useOcrQuickScan(
         top = Math.max(rect.top - cardHeight - 8, 8);
       } else {
         // left or right placement — align card top with button top
-        top = Math.min(
-          Math.max(rect.top, 8),
-          window.innerHeight - cardHeight - 8,
-        );
+        top = Math.min(Math.max(rect.top, 8), window.innerHeight - cardHeight - 8);
       }
       setQuickScanPos({ top });
     }
@@ -345,10 +339,7 @@ export function usePluginQuickPanel(
         top = Math.max(rect.top - cardHeight - 8, 8);
       } else {
         // left or right placement — align card top with button top
-        top = Math.min(
-          Math.max(rect.top, 8),
-          window.innerHeight - cardHeight - 8,
-        );
+        top = Math.min(Math.max(rect.top, 8), window.innerHeight - cardHeight - 8);
       }
       setQuickPanelPos({ top });
     }

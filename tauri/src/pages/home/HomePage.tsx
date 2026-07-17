@@ -172,7 +172,8 @@ export function HomePage() {
 
   // 移动端启动性能基线：首页对象列表可见时记录 T2（MOB-P1-07）
   useEffect(() => {
-    const start = (window as typeof window & { __SOLOSOUL_APP_START_TIME?: number }).__SOLOSOUL_APP_START_TIME;
+    const start = (window as typeof window & { __SOLOSOUL_APP_START_TIME?: number })
+      .__SOLOSOUL_APP_START_TIME;
     if (typeof start === 'number') {
       const t2 = performance.now() - start;
       console.warn(`[perf] T2=${t2.toFixed(1)}ms`);

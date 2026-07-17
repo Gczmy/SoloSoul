@@ -6,8 +6,6 @@ use sha2::Digest;
 use std::path::{Path, PathBuf};
 use tauri::{path::BaseDirectory, AppHandle, Emitter, Manager};
 
-
-
 // ── Registry ─────────────────────────────────────────────────
 
 const REGISTRY_URL: &str = "https://raw.githubusercontent.com/SoloSoul/models/main/registry.json";

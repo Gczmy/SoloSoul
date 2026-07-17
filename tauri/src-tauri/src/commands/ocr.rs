@@ -6,10 +6,10 @@
 use crate::state::AppState;
 use serde::{Deserialize, Serialize};
 
-#[cfg(desktop)]
-use crate::commands::{current_account, vault_handle};
 #[cfg(mobile)]
 use crate::commands::mobile_not_supported;
+#[cfg(desktop)]
+use crate::commands::{current_account, vault_handle};
 
 #[cfg(desktop)]
 use serde_json::json;

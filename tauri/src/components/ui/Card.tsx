@@ -15,45 +15,47 @@ interface CardProps {
   style?: React.CSSProperties;
 }
 
-export const Card = memo(forwardRef<HTMLDivElement, CardProps>(function Card(
-  {
-    children,
-    className,
-    interactive,
-    onClick,
-    onDoubleClick,
-    onMouseDown,
-    onMouseUp,
-    onMouseLeave,
-    onTouchStart,
-    onTouchEnd,
-    style,
-  }: CardProps,
-  ref,
-) {
-  return (
-    <div
-      ref={ref}
-      className={`${styles.card} ${interactive ? styles.interactive : ''} ${className || ''}`}
-      onClick={onClick}
-      onDoubleClick={onDoubleClick}
-      onMouseDown={onMouseDown}
-      onMouseUp={onMouseUp}
-      onMouseLeave={onMouseLeave}
-      onTouchStart={onTouchStart}
-      onTouchEnd={onTouchEnd}
-      role={onClick ? 'button' : undefined}
-      tabIndex={onClick ? 0 : undefined}
-      style={style}
-      onKeyDown={
-        onClick
-          ? (e) => {
-              if (e.key === 'Enter' || e.key === ' ') onClick();
-            }
-          : undefined
-      }
-    >
-      {children}
-    </div>
-  );
-}));
+export const Card = memo(
+  forwardRef<HTMLDivElement, CardProps>(function Card(
+    {
+      children,
+      className,
+      interactive,
+      onClick,
+      onDoubleClick,
+      onMouseDown,
+      onMouseUp,
+      onMouseLeave,
+      onTouchStart,
+      onTouchEnd,
+      style,
+    }: CardProps,
+    ref,
+  ) {
+    return (
+      <div
+        ref={ref}
+        className={`${styles.card} ${interactive ? styles.interactive : ''} ${className || ''}`}
+        onClick={onClick}
+        onDoubleClick={onDoubleClick}
+        onMouseDown={onMouseDown}
+        onMouseUp={onMouseUp}
+        onMouseLeave={onMouseLeave}
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
+        role={onClick ? 'button' : undefined}
+        tabIndex={onClick ? 0 : undefined}
+        style={style}
+        onKeyDown={
+          onClick
+            ? (e) => {
+                if (e.key === 'Enter' || e.key === ' ') onClick();
+              }
+            : undefined
+        }
+      >
+        {children}
+      </div>
+    );
+  }),
+);

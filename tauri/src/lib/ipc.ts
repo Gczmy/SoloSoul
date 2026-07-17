@@ -1,4 +1,3 @@
-
 export interface SyncConflict {
   table: string;
   id: string;

@@ -158,7 +158,10 @@ export function CustomPageEditPopover({
         handleConfirmRef.current();
       }
     };
-    outsideClickTimeoutRef.current = setTimeout(() => document.addEventListener('mousedown', handler), 0);
+    outsideClickTimeoutRef.current = setTimeout(
+      () => document.addEventListener('mousedown', handler),
+      0,
+    );
     return () => {
       if (outsideClickTimeoutRef.current) {
         clearTimeout(outsideClickTimeoutRef.current);
@@ -177,7 +180,8 @@ export function CustomPageEditPopover({
           exit={{ opacity: 0, y: -6, scale: 0.96 }}
           transition={{ duration: 0.15, ease: 'easeOut' }}
           style={{
-            position: 'fixed',              left: isBottom
+            position: 'fixed',
+            left: isBottom
               ? triggerRect
                 ? triggerRect.left
                 : 56
@@ -190,11 +194,7 @@ export function CustomPageEditPopover({
                   : triggerRect
                     ? triggerRect.right + 8
                     : 56,
-            right: isRight
-              ? triggerRect
-                ? window.innerWidth - triggerRect.left + 8
-                : 56
-              : 'auto',
+            right: isRight ? (triggerRect ? window.innerWidth - triggerRect.left + 8 : 56) : 'auto',
             top: isBottom
               ? triggerRect
                 ? triggerRect.bottom + 8
@@ -216,7 +216,8 @@ export function CustomPageEditPopover({
             border: '1px solid var(--border-subtle)',
             transformOrigin: 'top',
             maxWidth: 'calc(100vw - 32px)',
-            maxHeight: 'calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 32px)',
+            maxHeight:
+              'calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 32px)',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>

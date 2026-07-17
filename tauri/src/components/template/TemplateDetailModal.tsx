@@ -120,10 +120,7 @@ export function TemplateDetailModal({
                   gap: 8,
                 }}
               >
-                <PluginBadge
-                  contractTypeId={detailTemplate.contractTypeId}
-                  size="sm"
-                />
+                <PluginBadge contractTypeId={detailTemplate.contractTypeId} size="sm" />
                 <span
                   style={
                     page.deleted ? { textDecoration: 'line-through', opacity: 0.6 } : undefined

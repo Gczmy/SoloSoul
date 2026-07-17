@@ -13,7 +13,14 @@ interface DialogProps {
   priority?: 'default' | 'important' | 'auth';
 }
 
-export function Dialog({ isOpen, onClose, children, title, dialogStyle, priority = 'default' }: DialogProps) {
+export function Dialog({
+  isOpen,
+  onClose,
+  children,
+  title,
+  dialogStyle,
+  priority = 'default',
+}: DialogProps) {
   useEffect(() => {
     if (!isOpen) return;
     // 锁定背景滚动

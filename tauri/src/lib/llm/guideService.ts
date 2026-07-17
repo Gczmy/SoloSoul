@@ -69,4 +69,3 @@ export function formatChunksAsSystemMessage(chunks: GuideChunk[]): string | null
 
   return parts.join('\n');
 }
-

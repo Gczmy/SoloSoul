@@ -211,9 +211,7 @@ export function DynamicGroupEditor({
                 <select
                   className={styles.typeSelect}
                   value={item.type}
-                  onChange={(e) =>
-                    handleUpdate(item.id, { type: e.target.value as PropertyType })
-                  }
+                  onChange={(e) => handleUpdate(item.id, { type: e.target.value as PropertyType })}
                   disabled={disabled}
                 >
                   {availableTypes.map((pt) => (

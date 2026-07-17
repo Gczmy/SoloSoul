@@ -33,10 +33,7 @@ interface Props {
   payload: ExpiryGuardianPayload;
 }
 
-const URGENCY_LABELS: Record<
-  string,
-  { zh: string; en: string }
-> = {
+const URGENCY_LABELS: Record<string, { zh: string; en: string }> = {
   expired: { zh: '已过期', en: 'Expired' },
   critical: { zh: '紧急', en: 'Critical' },
   warning: { zh: '警告', en: 'Warning' },
@@ -77,9 +74,7 @@ export const ExpiryGuardianView: React.FC<Props> = ({ payload }) => {
             <div key={key} className={`${styles.summaryItem} ${URGENCY_CLASS[key]}`}>
               <span className={styles.summaryIcon}>{URGENCY_ICON[key]}</span>
               <strong className={styles.summaryCount}>{count}</strong>
-              <span className={styles.summaryLabel}>
-                {isZh ? label.zh : label.en}
-              </span>
+              <span className={styles.summaryLabel}>{isZh ? label.zh : label.en}</span>
             </div>
           );
         })}
@@ -88,33 +83,24 @@ export const ExpiryGuardianView: React.FC<Props> = ({ payload }) => {
       {payload.items.length > 0 ? (
         <ul className={styles.list}>
           {payload.items.map((item) => (
-            <li
-              key={item.objectId}
-              className={`${styles.item} ${URGENCY_CLASS[item.urgency]}`}
-            >
+            <li key={item.objectId} className={`${styles.item} ${URGENCY_CLASS[item.urgency]}`}>
               <div className={styles.itemHeader}>
                 <span className={styles.itemKind}>{item.kind}</span>
                 <span className={styles.itemName}>{item.objectName}</span>
                 <span className={styles.itemBadge}>
                   <span className={styles.itemBadgeIcon}>{URGENCY_ICON[item.urgency]}</span>
-                  {isZh
-                    ? URGENCY_LABELS[item.urgency]?.zh
-                    : URGENCY_LABELS[item.urgency]?.en}
+                  {isZh ? URGENCY_LABELS[item.urgency]?.zh : URGENCY_LABELS[item.urgency]?.en}
                 </span>
               </div>
               <div className={styles.itemMeta}>
                 {item.expiryDate} ·{' '}
-                {isZh
-                  ? `剩余 ${item.daysRemaining} 天`
-                  : `${item.daysRemaining} days remaining`}
+                {isZh ? `剩余 ${item.daysRemaining} 天` : `${item.daysRemaining} days remaining`}
               </div>
             </li>
           ))}
         </ul>
       ) : (
-        <p className={styles.empty}>
-          {isZh ? '没有找到到期证件' : 'No expiring documents found'}
-        </p>
+        <p className={styles.empty}>{isZh ? '没有找到到期证件' : 'No expiring documents found'}</p>
       )}
     </div>
   );

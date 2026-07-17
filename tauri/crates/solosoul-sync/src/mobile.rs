@@ -55,7 +55,11 @@ impl SyncService {
                 &vault,
                 "sync_enabled",
                 None,
-                Some(&format!("fingerprint={},port={}", manager.fingerprint(), port)),
+                Some(&format!(
+                    "fingerprint={},port={}",
+                    manager.fingerprint(),
+                    port
+                )),
             );
             *guard = Some(manager);
             Ok(())

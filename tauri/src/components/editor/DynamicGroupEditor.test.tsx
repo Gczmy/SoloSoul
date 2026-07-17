@@ -42,9 +42,7 @@ describe('DynamicGroupEditor', () => {
       <DynamicGroupEditor
         propertyId="contactMethods"
         label="联系方式"
-        value={[
-          { id: '1', name: '手机', type: 'phone', value: '13800138000' },
-        ]}
+        value={[{ id: '1', name: '手机', type: 'phone', value: '13800138000' }]}
         onChange={onChange}
       />,
     );

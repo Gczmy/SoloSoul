@@ -69,7 +69,8 @@ export function LoginPage() {
 
   // 移动端启动性能基线：登录页首个输入框可交互时记录 T1（MOB-P1-07）
   useEffect(() => {
-    const start = (window as typeof window & { __SOLOSOUL_APP_START_TIME?: number }).__SOLOSOUL_APP_START_TIME;
+    const start = (window as typeof window & { __SOLOSOUL_APP_START_TIME?: number })
+      .__SOLOSOUL_APP_START_TIME;
     if (typeof start === 'number') {
       const t1 = performance.now() - start;
       console.warn(`[perf] T1=${t1.toFixed(1)}ms`);

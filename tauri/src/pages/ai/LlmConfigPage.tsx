@@ -76,7 +76,7 @@ export function LlmConfigPage() {
       invoke<ProviderConfig[]>('llm_get_providers', { accountId }),
       invoke<{
         activeProviderId?: string;
-        aiFeaturesEnabled?: { chat: boolean }
+        aiFeaturesEnabled?: { chat: boolean };
         includeSystemPrompt?: boolean;
         hasAcceptedRisk?: boolean;
         useLocalEmbedding?: boolean;
@@ -240,9 +240,7 @@ export function LlmConfigPage() {
       await invoke('llm_set_ai_features', {
         accountId,
         features: { chat: next, ...ALWAYS_DISABLED_FEATURES },
-      }).catch((err) =>
-        console.warn('[LLMConfig] Set AI features failed:', err),
-      );
+      }).catch((err) => console.warn('[LLMConfig] Set AI features failed:', err));
   };
 
   const handleAcceptRisk = async () => {
@@ -254,10 +252,9 @@ export function LlmConfigPage() {
     setShowRiskDialog(false);
     setChatEnabled(true);
     await invoke('llm_set_ai_features', {
-      accountId,        features: { chat: true, ...ALWAYS_DISABLED_FEATURES },
-    }).catch((err) =>
-      console.warn('[LLMConfig] Set features after risk accept failed:', err),
-    );
+      accountId,
+      features: { chat: true, ...ALWAYS_DISABLED_FEATURES },
+    }).catch((err) => console.warn('[LLMConfig] Set features after risk accept failed:', err));
   };
 
   const handleSystemPromptToggle = async () => {

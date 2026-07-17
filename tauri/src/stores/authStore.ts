@@ -83,7 +83,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   bootstrap: async (name, password, locale, passwordHint) => {
     set({ isLoading: true, error: null });
     try {
-      const account = await invoke<AccountInfo>('bootstrap', { accountName: name, password, locale, passwordHint });
+      const account = await invoke<AccountInfo>('bootstrap', {
+        accountName: name,
+        password,
+        locale,
+        passwordHint,
+      });
       set({
         isAuthenticated: true,
         currentAccount: account,

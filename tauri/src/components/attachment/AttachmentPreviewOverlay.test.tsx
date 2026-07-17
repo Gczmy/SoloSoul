@@ -26,9 +26,7 @@ describe('AttachmentPreviewOverlay', () => {
   });
 
   it('renders nothing when item is null', () => {
-    const { container } = render(
-      <AttachmentPreviewOverlay item={null} onClose={vi.fn()} />,
-    );
+    const { container } = render(<AttachmentPreviewOverlay item={null} onClose={vi.fn()} />);
     expect(container.firstChild).toBeNull();
   });
 
@@ -78,12 +76,7 @@ describe('AttachmentPreviewOverlay', () => {
   });
 
   it('shows error when vaultPath is missing', async () => {
-    render(
-      <AttachmentPreviewOverlay
-        item={makeItem({ vaultPath: null })}
-        onClose={vi.fn()}
-      />,
-    );
+    render(<AttachmentPreviewOverlay item={makeItem({ vaultPath: null })} onClose={vi.fn()} />);
 
     expect(await screen.findByText(/not stored in vault/i)).toBeInTheDocument();
     expect(mockInvoke).not.toHaveBeenCalledWith('fs_read_file_as_data_url', expect.anything());

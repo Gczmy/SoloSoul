@@ -284,10 +284,7 @@ export function ObjectEditorPage() {
             break;
           }
           names.add(key);
-          if (
-            field.allowedTypes?.length &&
-            !field.allowedTypes.includes(type as PropertyType)
-          ) {
+          if (field.allowedTypes?.length && !field.allowedTypes.includes(type as PropertyType)) {
             errors[field.key] = t('editor:dynamic_group_disallowed_type', {
               type,
             });

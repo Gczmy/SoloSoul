@@ -190,7 +190,8 @@ export function DataManagementPage() {
                 transition: 'all 0.15s ease',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                e.currentTarget.style.background =
+                  'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
                 e.currentTarget.style.color = 'var(--accent-primary)';
               }}
               onMouseLeave={(e) => {
@@ -371,7 +372,8 @@ export function DataManagementPage() {
                 transition: 'all 0.15s ease',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                e.currentTarget.style.background =
+                  'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
                 e.currentTarget.style.borderColor = 'var(--accent-primary)';
                 e.currentTarget.style.color = 'var(--accent-primary)';
               }}
@@ -399,7 +401,8 @@ export function DataManagementPage() {
                 transition: 'all 0.15s ease',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                e.currentTarget.style.background =
+                  'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
                 e.currentTarget.style.borderColor = 'var(--accent-primary)';
                 e.currentTarget.style.color = 'var(--accent-primary)';
               }}
@@ -444,7 +447,8 @@ export function DataManagementPage() {
                 transition: 'all 0.15s ease',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                e.currentTarget.style.background =
+                  'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
                 e.currentTarget.style.borderColor = 'var(--accent-primary)';
                 e.currentTarget.style.color = 'var(--accent-primary)';
               }}
@@ -472,7 +476,8 @@ export function DataManagementPage() {
                 transition: 'all 0.15s ease',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                e.currentTarget.style.background =
+                  'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
                 e.currentTarget.style.borderColor = 'var(--accent-primary)';
                 e.currentTarget.style.color = 'var(--accent-primary)';
               }}

@@ -66,7 +66,13 @@ export function DeprecatedFieldsViewer({
           <X size={ICON_SIZE.xl} />
         </button>
 
-        <p style={{ margin: '0 0 12px', color: 'var(--text-secondary)', fontSize: 'var(--text-body)' }}>
+        <p
+          style={{
+            margin: '0 0 12px',
+            color: 'var(--text-secondary)',
+            fontSize: 'var(--text-body)',
+          }}
+        >
           {t('editor:deprecated_fields_body')}
         </p>
 

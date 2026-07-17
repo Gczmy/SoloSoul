@@ -49,9 +49,7 @@ export function TemplateFieldInput({
     case 'date':
       return (
         <div className={styles.field}>
-          <label className={styles.label}>
-            {labelRow}
-          </label>
+          <label className={styles.label}>{labelRow}</label>
           {hint && <div className={styles.hint}>{hint}</div>}
           <DatePicker
             value={String(value ?? '')}
@@ -64,9 +62,7 @@ export function TemplateFieldInput({
     case 'datetime':
       return (
         <div className={styles.field}>
-          <label className={styles.label}>
-            {labelRow}
-          </label>
+          <label className={styles.label}>{labelRow}</label>
           {hint && <div className={styles.hint}>{hint}</div>}
           <DatePicker
             value={String(value ?? '')}

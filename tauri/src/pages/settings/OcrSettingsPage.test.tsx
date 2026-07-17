@@ -49,14 +49,15 @@ describe('OcrSettingsPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockInvoke.mockImplementation(async (cmd: string, args?: unknown) => {
-      if (cmd === 'ocr_list_available_tiers') return [
-        { tier: 'tiny', name: 'Tiny', description: 'Fast' },
-        { tier: 'small', name: 'Small', description: 'Default' },
-        { tier: 'medium', name: 'Medium', description: 'Accurate' },
-      ];
+      if (cmd === 'ocr_list_available_tiers')
+        return [
+          { tier: 'tiny', name: 'Tiny', description: 'Fast' },
+          { tier: 'small', name: 'Small', description: 'Default' },
+          { tier: 'medium', name: 'Medium', description: 'Accurate' },
+        ];
       if (cmd === 'ocr_get_active_tier') return 'small';
       if (cmd === 'ocr_get_model_status') {
-        const tier = (args as Record<string, unknown>).tier as string ?? 'small';
+        const tier = ((args as Record<string, unknown>).tier as string) ?? 'small';
         return { tier, installed: tier === 'small', bundled: tier === 'small' };
       }
       return undefined;
@@ -118,15 +119,20 @@ describe('OcrSettingsPage', () => {
     // Tiny is not installed/bundled in default mock, so no install button.
     // Re-render with updated mock status
     mockInvoke.mockImplementation(async (cmd: string, args?: unknown) => {
-      if (cmd === 'ocr_list_available_tiers') return [
-        { tier: 'tiny', name: 'Tiny', description: 'Fast' },
-        { tier: 'small', name: 'Small', description: 'Default' },
-        { tier: 'medium', name: 'Medium', description: 'Accurate' },
-      ];
+      if (cmd === 'ocr_list_available_tiers')
+        return [
+          { tier: 'tiny', name: 'Tiny', description: 'Fast' },
+          { tier: 'small', name: 'Small', description: 'Default' },
+          { tier: 'medium', name: 'Medium', description: 'Accurate' },
+        ];
       if (cmd === 'ocr_get_active_tier') return 'small';
       if (cmd === 'ocr_get_model_status') {
-        const tier = (args as Record<string, unknown>).tier as string ?? 'small';
-        return { tier, installed: tier === 'small', bundled: tier === 'small' || tier === 'medium' };
+        const tier = ((args as Record<string, unknown>).tier as string) ?? 'small';
+        return {
+          tier,
+          installed: tier === 'small',
+          bundled: tier === 'small' || tier === 'medium',
+        };
       }
       return undefined;
     });

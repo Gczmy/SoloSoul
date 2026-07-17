@@ -158,7 +158,10 @@ export const usePluginStore = create<PluginState>()((set, get) => ({
       await get().loadMarket();
       await get().loadInstalled();
       // 触发模板重载，使 seed 模板的 contract_bindings 迁移结果即时反映在 UI
-      useTemplateStore.getState().loadTemplates().catch(() => {});
+      useTemplateStore
+        .getState()
+        .loadTemplates()
+        .catch(() => {});
     } catch (err) {
       set({ error: String(err) });
     }
@@ -170,7 +173,10 @@ export const usePluginStore = create<PluginState>()((set, get) => ({
       await get().loadMarket();
       await get().loadInstalled();
       // 更新可能带来新的合同/role，同样触发模板重载
-      useTemplateStore.getState().loadTemplates().catch(() => {});
+      useTemplateStore
+        .getState()
+        .loadTemplates()
+        .catch(() => {});
     } catch (err) {
       set({ error: String(err) });
     }

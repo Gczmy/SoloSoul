@@ -100,8 +100,19 @@ pub async fn biometric_check_availability(
         .vault_service
         .read()
         .map_err(|_| "Vault service lock poisoned".to_string())?;
-    let manager = BiometricManager::new(svc.base_path().clone());
-    let configured = manager.is_configured(&account_id);
+
+    // Android 使用 Keystore 存储，iOS 沿用 FileBiometricStorage
+    #[cfg(target_os = "android")]
+    let configured = {
+        let path = svc.base_path().join(&account_id).join("keystore_data.json");
+        path.exists()
+    };
+
+    #[cfg(target_os = "ios")]
+    let configured = {
+        let manager = BiometricManager::new(svc.base_path().clone());
+        manager.is_configured(&account_id)
+    };
 
     Ok(BiometricAvailability {
         available: status.is_available,
@@ -209,14 +220,50 @@ pub async fn biometric_save_credential(
         )
         .map_err(|e| e.to_string())?;
 
-    // 3. 派生主密钥并保存到移动端加密文件存储
+    // 3. 派生主密钥并使用平台安全存储保存
     let key_hex = manager
         .derive_key_hex(&password, &account_id)
         .map_err(|e| map_bio_error(e, "save"))?;
-    let storage = FileBiometricStorage::new(svc.base_path().clone());
-    storage
-        .save(&account_id, &key_hex, reason)
-        .map_err(|e| map_bio_error(e, "save"))?;
+
+    #[cfg(target_os = "android")]
+    {
+        use crate::keystore_plugin::KeystorePluginHandle;
+        use tauri::Manager;
+
+        let keystore = app.state::<KeystorePluginHandle<tauri::Wry>>();
+        let cipher = keystore
+            .save(&account_id, &key_hex)
+            .map_err(|e| map_bio_error(BiometricError::KeychainWriteFailed(e), "save"))?;
+
+        let path = svc.base_path().join(&account_id).join("keystore_data.json");
+        let json = serde_json::to_string(&cipher)
+            .map_err(|e| map_bio_error(BiometricError::Other(format!("serialize: {e}")), "save"))?;
+        std::fs::write(&path, json).map_err(|e| {
+            map_bio_error(BiometricError::KeychainWriteFailed(e.to_string()), "save")
+        })?;
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let mut perms = std::fs::metadata(&path)
+                .map_err(|e| BiometricError::Other(format!("stat: {e}")))?
+                .permissions();
+            perms.set_mode(0o600);
+            std::fs::set_permissions(&path, perms)
+                .map_err(|e| BiometricError::Other(format!("chmod: {e}")))?;
+        }
+
+        // 删除旧版 FileBiometricStorage 凭证，避免弱加密文件残留
+        let legacy_path = svc.base_path().join(&account_id).join("biometric_key");
+        let _ = std::fs::remove_file(&legacy_path);
+    }
+
+    #[cfg(target_os = "ios")]
+    {
+        let storage = FileBiometricStorage::new(svc.base_path().clone());
+        storage
+            .save(&account_id, &key_hex, reason)
+            .map_err(|e| map_bio_error(e, "save"))?;
+    }
 
     // 4. 更新配置标记
     manager
@@ -331,10 +378,39 @@ pub async fn biometric_unlock(
         .map_err(|e| e.to_string())?;
 
     // 2. 读取已保存的主密钥
-    let storage = FileBiometricStorage::new(svc.base_path().clone());
-    let key_hex = storage
-        .read(&account_id, reason)
-        .map_err(|e| map_bio_error(e, "unlock"))?;
+    let key_hex = {
+        #[cfg(target_os = "android")]
+        {
+            use crate::keystore_plugin::KeystorePluginHandle;
+            use tauri::Manager;
+
+            let path = svc.base_path().join(&account_id).join("keystore_data.json");
+            let json = std::fs::read_to_string(&path)
+                .map_err(|_| map_bio_error(BiometricError::KeychainItemNotFound, "unlock"))?;
+            let cipher: crate::keystore_plugin::KeystoreCiphertext = serde_json::from_str(&json)
+                .map_err(|_| map_bio_error(BiometricError::InvalidKeyFormat, "unlock"))?;
+
+            let keystore = app.state::<KeystorePluginHandle<tauri::Wry>>();
+            keystore
+                .read(&account_id, &cipher.iv, &cipher.ciphertext)
+                .map_err(|e| {
+                    if e == "BIOMETRIC_KEY_INVALIDATED" || e == "BIOMETRIC_KEY_NOT_FOUND" {
+                        map_bio_error(BiometricError::KeychainItemNotFound, "unlock")
+                    } else {
+                        map_bio_error(BiometricError::KeychainReadFailed(e), "unlock")
+                    }
+                })?
+        }
+
+        #[cfg(target_os = "ios")]
+        {
+            let storage = FileBiometricStorage::new(svc.base_path().clone());
+            storage
+                .read(&account_id, reason)
+                .map_err(|e| map_bio_error(e, "unlock"))?
+        }
+    };
+
     let key_bytes = hex::decode(&key_hex)
         .map_err(|_| map_bio_error(BiometricError::InvalidKeyFormat, "unlock"))?;
     let key: [u8; 32] = key_bytes
@@ -417,7 +493,7 @@ pub async fn biometric_delete_credential(
 #[cfg(all(mobile, any(target_os = "android", target_os = "ios")))]
 #[tauri::command]
 pub async fn biometric_delete_credential(
-    _app: tauri::AppHandle,
+    app: tauri::AppHandle,
     state: State<'_, AppState>,
     account_id: String,
     password: String,
@@ -439,11 +515,30 @@ pub async fn biometric_delete_credential(
         .verify_password(&password, &account_id)
         .map_err(|e| map_bio_error(e, "delete"))?;
 
-    // 2. 删除移动端加密文件存储中的凭证
-    let storage = FileBiometricStorage::new(svc.base_path().clone());
-    match storage.delete(&account_id) {
-        Ok(()) | Err(BiometricError::KeychainItemNotFound) => {}
-        Err(e) => return Err(map_bio_error(e, "delete")),
+    // 2. 删除移动端安全存储中的凭证
+    #[cfg(target_os = "android")]
+    {
+        use crate::keystore_plugin::KeystorePluginHandle;
+        use tauri::Manager;
+
+        let keystore = app.state::<KeystorePluginHandle<tauri::Wry>>();
+        let _ = keystore.delete(&account_id);
+
+        let path = svc.base_path().join(&account_id).join("keystore_data.json");
+        let _ = std::fs::remove_file(&path);
+
+        // 同时清理可能存在的旧版 FileBiometricStorage 凭证
+        let legacy_path = svc.base_path().join(&account_id).join("biometric_key");
+        let _ = std::fs::remove_file(&legacy_path);
+    }
+
+    #[cfg(target_os = "ios")]
+    {
+        let storage = FileBiometricStorage::new(svc.base_path().clone());
+        match storage.delete(&account_id) {
+            Ok(()) | Err(BiometricError::KeychainItemNotFound) => {}
+            Err(e) => return Err(map_bio_error(e, "delete")),
+        }
     }
 
     // 3. 更新配置标记

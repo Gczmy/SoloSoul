@@ -14,7 +14,12 @@ export function TrashConfirmDialog({ action, onClose, onConfirm }: TrashConfirmD
   return (
     <>
       <div
-        style={{ position: 'fixed', inset: 0, background: 'var(--bg-overlay)', zIndex: 'var(--z-modal-important)' }}
+        style={{
+          position: 'fixed',
+          inset: 0,
+          background: 'var(--bg-overlay)',
+          zIndex: 'var(--z-modal-important)',
+        }}
         onClick={onClose}
       />
       <div

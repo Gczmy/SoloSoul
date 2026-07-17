@@ -96,7 +96,8 @@ export function LlmChatPage() {
               e.currentTarget.style.color = 'var(--text-primary)';
             }}
           >
-            <Settings size={ICON_SIZE.sm} /> <span className={buttonStyles.label}>{t('settings:ai_chat_configure')}</span>
+            <Settings size={ICON_SIZE.sm} />{' '}
+            <span className={buttonStyles.label}>{t('settings:ai_chat_configure')}</span>
           </button>
         }
       >

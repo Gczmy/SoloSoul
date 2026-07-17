@@ -166,13 +166,22 @@ export function ObjectWorkspacePage() {
 
   // Inlined from useWorkspacePasswordGuard — shared between detail panel and history viewer.
   const [showPwDialog, setShowPwDialog] = useState(false);
-  const pwResolveRef = useRef<((result: { ok: boolean; method: 'password' | 'touchId' | 'faceId' }) => void) | null>(null);
-  const [bioAvailable, setBioAvailable] = useState<{ available: boolean; biometryType?: string }>({ available: false });
+  const pwResolveRef = useRef<
+    ((result: { ok: boolean; method: 'password' | 'touchId' | 'faceId' }) => void) | null
+  >(null);
+  const [bioAvailable, setBioAvailable] = useState<{ available: boolean; biometryType?: string }>({
+    available: false,
+  });
   const [passwordHint, setPasswordHint] = useState<string | null>(null);
 
   useEffect(() => {
-    invoke<{ available: boolean; configured: boolean; biometryType?: string }>('biometric_check_availability', { accountId: accountId || '' })
-      .then((r) => setBioAvailable({ available: r.available && r.configured, biometryType: r.biometryType }))
+    invoke<{ available: boolean; configured: boolean; biometryType?: string }>(
+      'biometric_check_availability',
+      { accountId: accountId || '' },
+    )
+      .then((r) =>
+        setBioAvailable({ available: r.available && r.configured, biometryType: r.biometryType }),
+      )
       .catch((err) => console.warn('[Workspace] Biometric check failed:', err));
     if (accountId) {
       invoke<Array<{ id: string; passwordHint?: string }>>('vault_list_accounts')
@@ -180,31 +189,44 @@ export function ObjectWorkspacePage() {
           const acc = accounts.find((a) => a.id === accountId);
           setPasswordHint(acc?.passwordHint || null);
         })
-        .catch(() => { /* ignore */ });
+        .catch(() => {
+          /* ignore */
+        });
     }
   }, [accountId]);
 
-  const passwordVerify = useCallback(async (): Promise<{ ok: boolean; method: 'password' | 'touchId' | 'faceId' }> => {
+  const passwordVerify = useCallback(async (): Promise<{
+    ok: boolean;
+    method: 'password' | 'touchId' | 'faceId';
+  }> => {
     return new Promise((resolve) => {
       pwResolveRef.current = resolve;
       setShowPwDialog(true);
     });
   }, []);
 
-  const verifyVaultPassword = useCallback(async (password: string): Promise<boolean> => {
-    if (!accountId) return false;
-    try {
-      await invoke('unlock_with_password', { accountId, password });
-      return true;
-    } catch {
-      return false;
-    }
-  }, [accountId]);
+  const verifyVaultPassword = useCallback(
+    async (password: string): Promise<boolean> => {
+      if (!accountId) return false;
+      try {
+        await invoke('unlock_with_password', { accountId, password });
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    [accountId],
+  );
 
   const handleBiometricUnlock = useCallback(async (): Promise<boolean> => {
     if (!accountId) return false;
     try {
-      await invoke('biometric_unlock', { accountId, location: 'critical_data_access', action: 'unlock', biometryType: bioAvailable.biometryType });
+      await invoke('biometric_unlock', {
+        accountId,
+        location: 'critical_data_access',
+        action: 'unlock',
+        biometryType: bioAvailable.biometryType,
+      });
       const method = (bioAvailable.biometryType as 'touchId' | 'faceId') || 'touchId';
       pwResolveRef.current?.({ ok: true, method });
       return true;
@@ -401,7 +423,10 @@ export function ObjectWorkspacePage() {
           if (pageId) {
             await loadObjects(accountId, { parentId: pageId });
           } else {
-            await loadObjects(accountId, sectionFilter ? { collectionType: sectionFilter } : undefined);
+            await loadObjects(
+              accountId,
+              sectionFilter ? { collectionType: sectionFilter } : undefined,
+            );
           }
           await refreshDetailObjAfterSync(objectId);
           await refreshTemplateHashMap();
@@ -414,7 +439,16 @@ export function ObjectWorkspacePage() {
         setSyncDialogOpenForObjectId(null);
       }
     },
-    [accountId, previewSyncTemplate, applySyncTemplate, loadObjects, pageId, sectionFilter, refreshDetailObjAfterSync, refreshTemplateHashMap],
+    [
+      accountId,
+      previewSyncTemplate,
+      applySyncTemplate,
+      loadObjects,
+      pageId,
+      sectionFilter,
+      refreshDetailObjAfterSync,
+      refreshTemplateHashMap,
+    ],
   );
 
   const handleConfirmSync = useCallback(async () => {
@@ -436,25 +470,40 @@ export function ObjectWorkspacePage() {
       console.warn('[Workspace] Apply sync failed:', err);
       setSyncDialog((prev) => (prev ? { ...prev, loading: false } : null));
     }
-  }, [syncDialog, accountId, applySyncTemplate, loadObjects, pageId, sectionFilter, refreshDetailObjAfterSync, refreshTemplateHashMap]);
+  }, [
+    syncDialog,
+    accountId,
+    applySyncTemplate,
+    loadObjects,
+    pageId,
+    sectionFilter,
+    refreshDetailObjAfterSync,
+    refreshTemplateHashMap,
+  ]);
 
-  const handleDismissSync = useCallback(async (objectId: string, latestHash?: string) => {
-    if (!latestHash) return;
-    try {
-      await ignoreTemplateSync(objectId, latestHash);
-      // 后端已持久化 ignoredTemplateHash；刷新列表与指纹映射使提示条立即消失。
-      if (accountId) {
-        if (pageId) {
-          await loadObjects(accountId, { parentId: pageId });
-        } else {
-          await loadObjects(accountId, sectionFilter ? { collectionType: sectionFilter } : undefined);
+  const handleDismissSync = useCallback(
+    async (objectId: string, latestHash?: string) => {
+      if (!latestHash) return;
+      try {
+        await ignoreTemplateSync(objectId, latestHash);
+        // 后端已持久化 ignoredTemplateHash；刷新列表与指纹映射使提示条立即消失。
+        if (accountId) {
+          if (pageId) {
+            await loadObjects(accountId, { parentId: pageId });
+          } else {
+            await loadObjects(
+              accountId,
+              sectionFilter ? { collectionType: sectionFilter } : undefined,
+            );
+          }
+          await refreshTemplateHashMap();
         }
-        await refreshTemplateHashMap();
+      } catch (err) {
+        console.warn('[Workspace] Ignore template sync failed:', err);
       }
-    } catch (err) {
-      console.warn('[Workspace] Ignore template sync failed:', err);
-    }
-  }, [ignoreTemplateSync, loadObjects, accountId, pageId, sectionFilter, refreshTemplateHashMap]);
+    },
+    [ignoreTemplateSync, loadObjects, accountId, pageId, sectionFilter, refreshTemplateHashMap],
+  );
 
   const handleRequestDismissSync = useCallback(
     (objectId: string, objectName: string, latestHash?: string) => {
@@ -661,7 +710,8 @@ export function ObjectWorkspacePage() {
               onClick={() => setConfirmPageDelete(true)}
               title={t('delete')}
             >
-              <Trash size={ICON_SIZE.sm} /> <span className={buttonStyles.label}>{t('delete')}</span>
+              <Trash size={ICON_SIZE.sm} />{' '}
+              <span className={buttonStyles.label}>{t('delete')}</span>
             </Button>
           )}
         </div>
@@ -779,12 +829,15 @@ export function ObjectWorkspacePage() {
           {detailObj && (
             <ObjectDetailModal
               object={detailObj}
-              needsSync={
-                (() => {
-                  if (!templateHashMap || !detailObj.templateId || syncDialogOpenForObjectId === detailObj.id) return false;
-                  return objectNeedsSync(detailObj, templateHashMap);
-                })()
-              }
+              needsSync={(() => {
+                if (
+                  !templateHashMap ||
+                  !detailObj.templateId ||
+                  syncDialogOpenForObjectId === detailObj.id
+                )
+                  return false;
+                return objectNeedsSync(detailObj, templateHashMap);
+              })()}
               onClose={() => setDetailObj(null)}
               onEdit={() => {
                 navigate(`/editor/${detailObj.id}`);
@@ -802,7 +855,9 @@ export function ObjectWorkspacePage() {
                   detailObj.templateId ? templateHashMap.get(detailObj.templateId) : undefined,
                 )
               }
-              onViewDeprecatedFields={() => handleViewDeprecatedFields(detailObj.id, detailObj.name)}
+              onViewDeprecatedFields={() =>
+                handleViewDeprecatedFields(detailObj.id, detailObj.name)
+              }
               onAttachmentsChange={refreshAttachmentCounts}
             />
           )}

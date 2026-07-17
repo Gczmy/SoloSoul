@@ -1,9 +1,5 @@
 import { invoke } from '@tauri-apps/api/core';
-import {
-  cleanupStagedFile,
-  isUriPath,
-  stageFileForUpload,
-} from './mobileFileTransfer';
+import { cleanupStagedFile, isUriPath, stageFileForUpload } from './mobileFileTransfer';
 
 /** 判断是否为 Android content:// URI */
 function isContentUri(path: string): boolean {

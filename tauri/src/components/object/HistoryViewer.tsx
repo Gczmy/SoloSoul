@@ -22,7 +22,14 @@ export interface SnapshotEntry {
 }
 
 export type FlattenedField =
-  | { kind: 'field'; key: string; value: string; label?: string; sensitivity?: SensitivityLevel; type?: PropertyType }
+  | {
+      kind: 'field';
+      key: string;
+      value: string;
+      label?: string;
+      sensitivity?: SensitivityLevel;
+      type?: PropertyType;
+    }
   | {
       kind: 'dynamicGroup';
       key: string;
@@ -37,9 +44,7 @@ export function flattenProperties(
   fieldOrder?: string[],
 ): FlattenedField[] {
   if (!props) return [];
-  const fieldDefs = props.__fields as
-    | Record<string, { type?: string; name?: string }>
-    | undefined;
+  const fieldDefs = props.__fields as Record<string, { type?: string; name?: string }> | undefined;
   const entries: FlattenedField[] = [];
   for (const [k, v] of Object.entries(props)) {
     // 跳过对象元数据字段，但保留字段定义中存在的 key（如 __dynamic_group__）
@@ -76,11 +81,29 @@ export function flattenProperties(
     }
 
     if (typeof v === 'string') {
-      entries.push({ kind: 'field', key: k, value: v, label: fieldDefs?.[k]?.name, type: fieldDefs?.[k]?.type as PropertyType | undefined });
+      entries.push({
+        kind: 'field',
+        key: k,
+        value: v,
+        label: fieldDefs?.[k]?.name,
+        type: fieldDefs?.[k]?.type as PropertyType | undefined,
+      });
     } else if (typeof v === 'number' || typeof v === 'boolean') {
-      entries.push({ kind: 'field', key: k, value: String(v), label: fieldDefs?.[k]?.name, type: fieldDefs?.[k]?.type as PropertyType | undefined });
+      entries.push({
+        kind: 'field',
+        key: k,
+        value: String(v),
+        label: fieldDefs?.[k]?.name,
+        type: fieldDefs?.[k]?.type as PropertyType | undefined,
+      });
     } else if (Array.isArray(v) && v.length > 0) {
-      entries.push({ kind: 'field', key: k, value: v.join(', '), label: fieldDefs?.[k]?.name, type: fieldDefs?.[k]?.type as PropertyType | undefined });
+      entries.push({
+        kind: 'field',
+        key: k,
+        value: v.join(', '),
+        label: fieldDefs?.[k]?.name,
+        type: fieldDefs?.[k]?.type as PropertyType | undefined,
+      });
     }
   }
   if (fieldOrder && fieldOrder.length > 0) {
@@ -203,9 +226,7 @@ function SnapshotCard({
           filter: needsReveal && !revealed ? 'blur(5px)' : 'blur(0px)',
           userSelect: needsReveal && !revealed ? 'none' : 'auto',
           background:
-            needsReveal && !revealed
-              ? 'var(--bg-subtle, rgba(128,128,128,0.15))'
-              : 'transparent',
+            needsReveal && !revealed ? 'var(--bg-subtle, rgba(128,128,128,0.15))' : 'transparent',
           borderRadius: 2,
           padding: '0 2px',
           color: 'var(--text-primary)',
@@ -627,12 +648,13 @@ export function HistoryViewer({
               textAlign: 'center',
             }}
           >
-          {snap && (() => {
-            const triggerLabel = t(`common:trigger_${snap.triggeredBy}` as const, {
-              defaultValue: snap.triggeredBy,
-            });
-            return `${t('common:version')} #${total - currentIdx} · ${new Date(snap.timestamp).toLocaleString()} · ${triggerLabel}`;
-          })()}
+            {snap &&
+              (() => {
+                const triggerLabel = t(`common:trigger_${snap.triggeredBy}` as const, {
+                  defaultValue: snap.triggeredBy,
+                });
+                return `${t('common:version')} #${total - currentIdx} · ${new Date(snap.timestamp).toLocaleString()} · ${triggerLabel}`;
+              })()}
           </div>
         </motion.div>
       )}

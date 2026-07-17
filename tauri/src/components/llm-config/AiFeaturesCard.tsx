@@ -25,10 +25,7 @@ export function AiFeaturesCard({ chatEnabled, onToggle }: AiFeaturesCardProps) {
           fontSize: 'var(--text-body-sm)',
         }}
       >
-        <SelectCheckbox
-          checked={chatEnabled}
-          onChange={onToggle}
-        />
+        <SelectCheckbox checked={chatEnabled} onChange={onToggle} />
         {t('settings:ai_chat')}
       </label>
     </Card>

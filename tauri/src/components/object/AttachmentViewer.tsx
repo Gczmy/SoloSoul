@@ -24,11 +24,7 @@ import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import { DragUploadOverlay } from '@/components/object/DragUploadOverlay';
 
 import { pickFileToAttach, uploadSingleAttachment } from '@/lib/attachmentUpload';
-import {
-  truncateFileName,
-  previewItemByMime,
-  type AttachmentItem,
-} from '@/lib/attachmentUtils';
+import { truncateFileName, previewItemByMime, type AttachmentItem } from '@/lib/attachmentUtils';
 import { formatBytes } from '@/lib/utils';
 import { DeleteButton } from '@/components/ui/DeleteButton';
 import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
@@ -359,7 +355,13 @@ export function AttachmentViewer({
       }}
       onClick={() => {
         // 有确认对话框打开时禁止背景点击关闭，避免移动端误触回到 workspace
-        if (deleteItem || permDeleteItem || batchDeleteConfirm || batchRestoreConfirm || batchPermanentDeleteConfirm) {
+        if (
+          deleteItem ||
+          permDeleteItem ||
+          batchDeleteConfirm ||
+          batchRestoreConfirm ||
+          batchPermanentDeleteConfirm
+        ) {
           return;
         }
         onClose();

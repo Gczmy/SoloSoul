@@ -17,7 +17,9 @@ interface TemplateState {
   ) => Promise<string>;
   updateTemplate: (
     id: string,
-    updates: Partial<Pick<UserTemplate, 'name' | 'iconId' | 'category' | 'properties' | 'contractTypeId'>>,
+    updates: Partial<
+      Pick<UserTemplate, 'name' | 'iconId' | 'category' | 'properties' | 'contractTypeId'>
+    >,
   ) => Promise<void>;
   deleteTemplate: (id: string) => Promise<void>;
   getTemplate: (id: string) => Promise<UserTemplate | null>;

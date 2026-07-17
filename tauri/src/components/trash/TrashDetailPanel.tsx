@@ -249,9 +249,7 @@ function ObjectDetailContent({
                 | SensitivityLevel
                 | undefined;
               const fieldId = (p as Record<string, unknown>).fieldId as string | undefined;
-              const fallbackSensitivity = fieldId
-                ? item.propertyLabels?.[fieldId]
-                : undefined;
+              const fallbackSensitivity = fieldId ? item.propertyLabels?.[fieldId] : undefined;
               const sensitivity = explicitSensitivity || fallbackSensitivity;
               const displayKey =
                 p.key === '__dynamic_group__'
@@ -288,7 +286,8 @@ function ObjectDetailContent({
                           : child.value !== undefined && child.value !== null
                             ? JSON.stringify(child.value)
                             : '',
-                      type: typeof child.type === 'string' ? (child.type as PropertyType) : undefined,
+                      type:
+                        typeof child.type === 'string' ? (child.type as PropertyType) : undefined,
                     })) ?? [];
 
                 return (
@@ -992,8 +991,8 @@ function SnapshotContent({
                 }}
               >
                 {t(`common:trigger_${currentSnap.triggeredBy}` as const, {
-                defaultValue: currentSnap.triggeredBy,
-              })}
+                  defaultValue: currentSnap.triggeredBy,
+                })}
               </span>
             </div>
             <span
@@ -1008,7 +1007,13 @@ function SnapshotContent({
           </div>
           <div style={{ minHeight: 60 }}>
             {loading && !data && <LoadingPlaceholder variant="base" minHeight={60} />}
-            {data && <SnapshotDataView data={data} detailTemplate={detailTemplate} currentPropertyLabels={currentPropertyLabels} />}
+            {data && (
+              <SnapshotDataView
+                data={data}
+                detailTemplate={detailTemplate}
+                currentPropertyLabels={currentPropertyLabels}
+              />
+            )}
           </div>
         </div>
       )}
@@ -1023,10 +1028,20 @@ export interface SnapshotDataViewProps {
 }
 
 function isMetaPropertyKey(key: string): boolean {
-  return ['__fields', '__attachments', '__templateName', '__templateHash', '__deprecatedFields'].includes(key);
+  return [
+    '__fields',
+    '__attachments',
+    '__templateName',
+    '__templateHash',
+    '__deprecatedFields',
+  ].includes(key);
 }
 
-export function SnapshotDataView({ data, detailTemplate, currentPropertyLabels: _currentPropertyLabels }: SnapshotDataViewProps) {
+export function SnapshotDataView({
+  data,
+  detailTemplate,
+  currentPropertyLabels: _currentPropertyLabels,
+}: SnapshotDataViewProps) {
   const { t } = useTranslation(['editor']);
   const rawProps = data.properties as Record<string, unknown> | undefined;
   const tags: string[] = Array.isArray(data.tags) ? (data.tags as string[]) : [];
@@ -1047,11 +1062,10 @@ export function SnapshotDataView({ data, detailTemplate, currentPropertyLabels: 
 
   // 优先使用对象自带的 __fields 字段定义获取名称/类型；模板存在时用于排序和补充。
   const fieldDefs = useMemo(() => {
-    const defs = new Map<
-      string,
-      { name: string; type?: PropertyType }
-    >();
-    const rawFields = rawProps?.__fields as Record<string, { name?: string; type?: PropertyType }> | undefined;
+    const defs = new Map<string, { name: string; type?: PropertyType }>();
+    const rawFields = rawProps?.__fields as
+      | Record<string, { name?: string; type?: PropertyType }>
+      | undefined;
     if (rawFields && typeof rawFields === 'object') {
       for (const [id, def] of Object.entries(rawFields)) {
         defs.set(id, {
@@ -1079,7 +1093,13 @@ export function SnapshotDataView({ data, detailTemplate, currentPropertyLabels: 
       type?: PropertyType;
     };
     type FieldEntry =
-      | { kind: 'field'; key: string; value: string; type?: PropertyType; sensitivityLevel?: SensitivityLevel }
+      | {
+          kind: 'field';
+          key: string;
+          value: string;
+          type?: PropertyType;
+          sensitivityLevel?: SensitivityLevel;
+        }
       | {
           kind: 'dynamicGroup';
           key: string;
@@ -1094,10 +1114,9 @@ export function SnapshotDataView({ data, detailTemplate, currentPropertyLabels: 
     const seen = new Set<string>();
 
     // 快照 __fields 中的敏感度是历史版本的直接证据，模板顺序与 __fields 顺序都需要它。
-    const rawFields = rawProps.__fields as Record<
-      string,
-      { name?: string; type?: PropertyType; sensitivityLevel?: SensitivityLevel }
-    > | undefined;
+    const rawFields = rawProps.__fields as
+      | Record<string, { name?: string; type?: PropertyType; sensitivityLevel?: SensitivityLevel }>
+      | undefined;
 
     // 1. 模板顺序
     if (detailTemplate) {
@@ -1109,7 +1128,9 @@ export function SnapshotDataView({ data, detailTemplate, currentPropertyLabels: 
           // 快照敏感度优先顺序：快照 propertyLabels -> 快照 __fields -> 当前模板 -> internal
           const snapshotLevel = rawFields?.[p.id]?.sensitivityLevel;
           const sensitivityLevel =
-            sensitivityMap.get(p.id) || snapshotLevel || ((p.sensitivityLevel || 'internal') as SensitivityLevel);
+            sensitivityMap.get(p.id) ||
+            snapshotLevel ||
+            ((p.sensitivityLevel || 'internal') as SensitivityLevel);
           if ((def?.type || p.type) === 'dynamic_group') {
             result.push({
               kind: 'dynamicGroup',
@@ -1203,9 +1224,7 @@ export function SnapshotDataView({ data, detailTemplate, currentPropertyLabels: 
           );
         }
         const displayKey =
-          f.key === '__dynamic_group__'
-            ? t('editor:field_types.dynamic_group', f.key)
-            : f.key;
+          f.key === '__dynamic_group__' ? t('editor:field_types.dynamic_group', f.key) : f.key;
         return (
           <div
             key={f.key}
@@ -1270,9 +1289,7 @@ function parseDynamicGroupValue(v: unknown): {
   }
   if (!arr) return [];
   return arr
-    .filter(
-      (item): item is Record<string, unknown> => item !== null && typeof item === 'object',
-    )
+    .filter((item): item is Record<string, unknown> => item !== null && typeof item === 'object')
     .map((item) => ({
       key: typeof item.name === 'string' ? item.name : String(item.id || ''),
       value:
@@ -1296,9 +1313,7 @@ function DynamicGroupSnapshotRow({
 }) {
   const { t } = useTranslation(['editor']);
   const displayKey =
-    groupKey === '__dynamic_group__'
-      ? t('editor:field_types.dynamic_group', groupKey)
-      : groupKey;
+    groupKey === '__dynamic_group__' ? t('editor:field_types.dynamic_group', groupKey) : groupKey;
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
       <div

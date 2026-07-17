@@ -6,6 +6,7 @@ use tauri::Manager;
 
 pub mod attachment_import_plugin;
 pub mod commands;
+pub mod keystore_plugin;
 pub mod local_embed;
 pub mod mobile_ocr_plugin;
 pub mod nsd_plugin;
@@ -145,7 +146,8 @@ pub fn run() {
         .plugin(status_bar_plugin::init())
         .plugin(attachment_import_plugin::init())
         .plugin(nsd_plugin::init())
-        .plugin(mobile_ocr_plugin::init());
+        .plugin(mobile_ocr_plugin::init())
+        .plugin(keystore_plugin::init());
 
     // 移动端专属插件
     #[cfg(any(target_os = "android", target_os = "ios"))]
