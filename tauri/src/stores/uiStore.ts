@@ -6,6 +6,11 @@ interface Toast {
   type: 'info' | 'success' | 'warning' | 'error';
   duration?: number;
   timeoutId?: ReturnType<typeof setTimeout>;
+  /** 可选的操作按钮，点击后执行回调并关闭 toast */
+  action?: {
+    label: string;
+    onClick: () => void;
+  };
 }
 
 interface UiState {

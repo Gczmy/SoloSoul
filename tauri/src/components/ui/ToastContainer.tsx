@@ -6,14 +6,50 @@ export function ToastContainer() {
 
   if (toasts.length === 0) return null;
 
+  const handleAction = (toast: (typeof toasts)[number]) => {
+    if (toast.action) {
+      toast.action.onClick();
+    }
+    dismissToast(toast.id);
+  };
+
   return (
     <div className={styles.container}>
       {toasts.map((toast) => (
-        <div key={toast.id} className={`${styles.toast} ${styles[toast.type]}`}>
+        <div
+          key={toast.id}
+          className={`${styles.toast} ${styles[toast.type]} ${toast.action ? styles.clickable : ''}`}
+          onClick={toast.action ? () => handleAction(toast) : undefined}
+          role={toast.action ? 'button' : undefined}
+          tabIndex={toast.action ? 0 : undefined}
+          onKeyDown={
+            toast.action
+              ? (e: React.KeyboardEvent) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleAction(toast);
+                  }
+                }
+              : undefined
+          }
+        >
           <span className={styles.message}>{toast.message}</span>
-          <button className={styles.close} onClick={() => dismissToast(toast.id)}>
-            x
-          </button>
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+            {toast.action && (
+              <button
+                className={styles.actionBtn}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleAction(toast);
+                }}
+              >
+                {toast.action.label}
+              </button>
+            )}
+            <button className={styles.close} onClick={(e) => { e.stopPropagation(); dismissToast(toast.id); }}>
+              x
+            </button>
+          </div>
         </div>
       ))}
     </div>

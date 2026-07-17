@@ -153,7 +153,26 @@ export async function checkBackupReminder(): Promise<void> {
         'settings:backup_reminder_body',
         'It has been a while since your last backup. Please go to Settings > Backup & Restore to create one.',
       );
-      await sendSystemNotificationWithFallback(title, body, body, 'warning', true);
+      // 发送系统通知 + 应用内可点击 toast
+      const navigate = (await import('react-router-dom')).useNavigate;
+      try {
+        await sendSystemNotificationWithFallback(title, body, body, 'warning', true);
+      } catch {
+        // ignore
+      }
+      // 应用内 toast 增加「去备份」按钮
+      useUiStore.getState().showToast({
+        message: body,
+        type: 'warning',
+        duration: 8000,
+        action: {
+          label: i18next.t('settings:backup_now', '去备份'),
+          onClick: () => {
+            // 通过 window.location 导航，避免在非组件作用域使用 useNavigate
+            window.location.href = '/settings/backup';
+          },
+        },
+      });
     }
   } catch (err) {
     console.error('[notification] Backup reminder check failed:', err);
