@@ -123,12 +123,12 @@ export function OcrQuickScanPopover({
     return () => document.removeEventListener('keydown', handler);
   }, [onClose]);
 
-  const isMobile = isMobilePlatformSync();
+  const isMobilePlatform = isMobilePlatformSync();
 
   const handleSelectFile = async () => {
     try {
       const filters =
-        store.scanMode === 'mrz' || isMobile
+        store.scanMode === 'mrz' || isMobilePlatform
           ? [{ name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'webp', 'bmp', 'tiff'] }]
           : [
               {
@@ -232,7 +232,7 @@ export function OcrQuickScanPopover({
           onTierChange={handleTierChange}
           onScanModeChange={(mode) => store.setScanMode(mode)}
           onSelectFile={handleSelectFile}
-          isMobile={isMobile}
+          isMobile={isMobilePlatform}
         />
 
         <OcrResultPanel

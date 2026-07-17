@@ -40,7 +40,7 @@ export function SettingsPage() {
       .catch(() => setVaultSize(null));
   }, []);
 
-  const isMobile = isMobilePlatformSync();
+  const isMobilePlatform = isMobilePlatformSync();
 
   const settingGroups = [
     {
@@ -111,7 +111,7 @@ export function SettingsPage() {
           path: '/settings/templates',
           desc: t('settings:desc.templates') || '管理自定义对象模板',
         },
-        ...(!isMobile
+        ...(!isMobilePlatform
           ? [
               {
                 label: t('settings:items.plugins') || '插件',
@@ -121,7 +121,7 @@ export function SettingsPage() {
               },
             ]
           : []),
-        ...(isDevOrDebug() && !isMobile
+        ...(isDevOrDebug() && !isMobilePlatform
           ? [
               {
                 label: t('settings:items.sync') || '设备同步',

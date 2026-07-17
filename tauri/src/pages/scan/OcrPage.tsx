@@ -44,7 +44,7 @@ export function OcrPage() {
   const [installingTier, setInstallingTier] = useState<string | null>(null);
   const [downloadingTier, setDownloadingTier] = useState<string | null>(null);
   const [downloadUrl, setDownloadUrl] = useState('');
-  const isMobile = isMobilePlatformSync();
+  const isMobilePlatform = isMobilePlatformSync();
 
   /** 处理扫描错误：将后端返回的「模型未安装」前缀解析为国际化提示。 */
   const handleScanError = (err: unknown) => {
@@ -104,7 +104,7 @@ export function OcrPage() {
 
   const getFileFilters = () => {
     // MRZ 与移动端均只支持图片格式（移动端 ML Kit 无法处理 PDF）
-    if (scanMode === 'mrz' || isMobile) {
+    if (scanMode === 'mrz' || isMobilePlatform) {
       return [{ name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'webp', 'bmp', 'tiff'] }];
     }
     return [
@@ -183,7 +183,7 @@ export function OcrPage() {
         filters: getFileFilters(),
         multiple: false,
         title:
-          scanMode === 'mrz' || isMobile
+          scanMode === 'mrz' || isMobilePlatform
             ? t('ocr:select_image_title')
             : t('ocr:select_file_title'),
       });
@@ -482,7 +482,7 @@ export function OcrPage() {
 
             <Button onClick={handleSelectFile} loading={isScanning}>
               <FileText size={ICON_SIZE.sm} style={{ marginRight: 6 }} />{' '}
-              {scanMode === 'mrz' || isMobile
+              {scanMode === 'mrz' || isMobilePlatform
                 ? t('ocr:select_image')
                 : t('ocr:select_image_or_pdf')}
             </Button>

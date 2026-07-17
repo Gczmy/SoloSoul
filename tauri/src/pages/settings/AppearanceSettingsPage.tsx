@@ -49,7 +49,7 @@ export function AppearanceSettingsPage() {
   const currentAccount = useAuthStore((s) => s.currentAccount);
   const { settings, updateSetting } = useSettingsStore();
   const accountId = currentAccount?.id || '';
-  const isMobile = isMobilePlatformSync();
+  const isMobilePlatform = isMobilePlatformSync();
   const { t } = useTranslation(['settings', 'common']);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
 
@@ -318,7 +318,7 @@ export function AppearanceSettingsPage() {
             </Card>
 
             {/* Sidebar position (desktop only) */}
-            {!isMobile && (
+            {!isMobilePlatform && (
               <Card>
                 <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 12 }}>
                   {t('settings:sidebar_position')}
@@ -364,7 +364,7 @@ export function AppearanceSettingsPage() {
             )}
 
             {/* Sidebar button mode: card vs page (desktop only) */}
-            {!isMobile && (
+            {!isMobilePlatform && (
               <Card>
                 <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 4 }}>
                   {t('settings:sidebar_button_mode')}

@@ -18,12 +18,12 @@ export function OcrSettingsPage() {
   const { t } = useTranslation(['ocr', 'settings', 'common']);
   const { onError, onSuccess } = useToastError();
   const { requestConfirm, dialog: confirmDialog } = useConfirm();
-  const isMobile = isMobilePlatformSync();
+  const isMobilePlatform = isMobilePlatformSync();
 
   const [tiers, setTiers] = useState<OcrTierInfo[]>([]);
   const [activeTier, setActiveTier] = useState('small');
   const [statusMap, setStatusMap] = useState<Record<string, OcrModelStatus>>({});
-  const [loading, setLoading] = useState(!isMobile);
+  const [loading, setLoading] = useState(!isMobilePlatform);
   const [installingTier, setInstallingTier] = useState<string | null>(null);
   const [downloadingTier, setDownloadingTier] = useState<string | null>(null);
   const [deletingTier, setDeletingTier] = useState<string | null>(null);
@@ -56,7 +56,7 @@ export function OcrSettingsPage() {
 
   // P212: mount-only init — loadTiersAndStatus/onError/t are stable, omitted intentionally.
   useEffect(() => {
-    if (!isMobile) {
+    if (!isMobilePlatform) {
       loadTiersAndStatus();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -127,7 +127,7 @@ export function OcrSettingsPage() {
     <AppShell title={t('ocr:settings_title')} onBack={() => navigate('/settings')}>
       {confirmDialog}
       <PageContainer variant="medium" gap="default">
-        {!isMobile && (
+        {!isMobilePlatform && (
           <Card>
             <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 12 }}>
               {t('ocr:active_model')}
@@ -159,7 +159,7 @@ export function OcrSettingsPage() {
           </Card>
         )}
 
-        {!isMobile && (
+        {!isMobilePlatform && (
           <Card>
             <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 12 }}>
               {t('ocr:model_management')}
@@ -383,7 +383,7 @@ export function OcrSettingsPage() {
           </Card>
         )}
 
-        {isMobile && (
+        {isMobilePlatform && (
           <Card>
             <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 8 }}>
               {t('ocr:mobile_ocr_title')}

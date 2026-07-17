@@ -48,10 +48,10 @@ export function AboutPage() {
   const [downloadError, setDownloadError] = useState<string | null>(null);
 
   useEffect(() => {
-    const isMobile = isMobilePlatformSync();
+    const isMobilePlatform = isMobilePlatformSync();
     Promise.all([
       invoke<AppInfo>('get_app_info'),
-      isMobile
+      isMobilePlatform
         ? Promise.resolve({ currentVersion: '', latestVersion: null, state: 'up-to-date' as const })
         : checkForUpdate().then((result) => {
             if (result.kind === 'available') {
