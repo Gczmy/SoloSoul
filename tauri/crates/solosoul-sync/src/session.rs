@@ -133,7 +133,7 @@ pub fn handle_inbound(
 ) -> Result<SyncSessionResult, String> {
     let mut session = NoiseSession::handshake_responder(transport, keys)?;
 
-    let (peer_node_id, peer_account, fingerprint) = match recv_msg(&mut session, transport)? {
+    let (peer_node_id, _peer_account, _fingerprint) = match recv_msg(&mut session, transport)? {
         SyncMessage::Hello {
             node_id: pid,
             account_id: pacc,

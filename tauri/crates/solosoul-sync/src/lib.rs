@@ -13,6 +13,7 @@ pub mod types;
 pub mod attachments;
 pub mod delta;
 pub mod noise;
+pub mod session;
 pub mod transport;
 
 // 桌面端使用基于 mdns-sd 的 SyncManager；移动端使用基于 Android NSD / iOS Bonjour 的

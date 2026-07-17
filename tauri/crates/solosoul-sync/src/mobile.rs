@@ -11,12 +11,13 @@ use solosoul_core::vault_service::VaultService;
 use solosoul_vault::{PeerSyncState, VaultStore};
 use std::net::{SocketAddr, TcpListener};
 use std::sync::atomic::{AtomicBool, AtomicU16, Ordering};
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex as StdMutex};
 use std::time::Duration;
+use tokio::sync::Mutex;
 use tokio::task::{spawn_blocking, JoinHandle};
 
 /// 长周期 Noise 身份密钥，与桌面端实现一致。
-pub use crate::noise::NoiseKeys as NoiseKeys;
+pub use crate::noise::NoiseKeys;
 
 /// 同步服务。
 pub struct SyncService {
@@ -202,7 +203,7 @@ struct MobileSyncManager {
     vault: Arc<VaultStore>,
     listen_port: AtomicU16,
     running: AtomicBool,
-    worker_handles: Mutex<Vec<JoinHandle<()>>>,
+    worker_handles: StdMutex<Vec<JoinHandle<()>>>,
 }
 
 impl MobileSyncManager {
@@ -219,7 +220,7 @@ impl MobileSyncManager {
             vault,
             listen_port: AtomicU16::new(0),
             running: AtomicBool::new(false),
-            worker_handles: Mutex::new(Vec::new()),
+            worker_handles: StdMutex::new(Vec::new()),
         })
     }
 

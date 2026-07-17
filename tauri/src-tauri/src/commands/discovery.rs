@@ -55,58 +55,61 @@ pub struct DiscoveredDevice {
     pub addresses: Vec<String>,
 }
 
+#[cfg(desktop)]
 #[tauri::command]
 pub async fn mdns_discover(
-    #[allow(unused_variables)] daemon: tauri::State<'_, SharedDaemon>,
-    #[allow(unused_variables)] timeout_ms: u64,
-    #[cfg(mobile)] app: tauri::AppHandle,
+    daemon: tauri::State<'_, SharedDaemon>,
+    timeout_ms: u64,
 ) -> Result<Vec<DiscoveredDevice>, String> {
-    #[cfg(desktop)]
-    {
-        let timeout_ms = timeout_ms.min(MDNS_MAX_TIMEOUT_MS);
-        let daemon_arc = daemon.get().await?;
-        let guard = daemon_arc.lock().await;
-        let daemon = guard.as_ref().ok_or("mDNS daemon not initialized")?;
+    let timeout_ms = timeout_ms.min(MDNS_MAX_TIMEOUT_MS);
+    let daemon_arc = daemon.get().await?;
+    let guard = daemon_arc.lock().await;
+    let daemon = guard.as_ref().ok_or("mDNS daemon not initialized")?;
 
-        let receiver = daemon
-            .browse(MDNS_SERVICE_TYPE)
-            .map_err(|e| format!("Browse: {}", e))?;
+    let receiver = daemon
+        .browse(MDNS_SERVICE_TYPE)
+        .map_err(|e| format!("Browse: {}", e))?;
 
-        let mut devices = Vec::new();
-        let deadline = std::time::Instant::now() + std::time::Duration::from_millis(timeout_ms);
+    let mut devices = Vec::new();
+    let deadline = std::time::Instant::now() + std::time::Duration::from_millis(timeout_ms);
 
-        while std::time::Instant::now() < deadline {
-            if let Ok(ServiceEvent::ServiceResolved(info)) =
-                receiver.recv_timeout(std::time::Duration::from_millis(MDNS_POLL_INTERVAL_MS))
-            {
-                let addresses: Vec<String> =
-                    info.get_addresses().iter().map(|a| a.to_string()).collect();
-                devices.push(DiscoveredDevice {
-                    name: info.get_fullname().to_string(),
-                    host: info.get_hostname().to_string(),
-                    port: info.get_port(),
-                    addresses,
-                });
-            }
+    while std::time::Instant::now() < deadline {
+        if let Ok(ServiceEvent::ServiceResolved(info)) =
+            receiver.recv_timeout(std::time::Duration::from_millis(MDNS_POLL_INTERVAL_MS))
+        {
+            let addresses: Vec<String> =
+                info.get_addresses().iter().map(|a| a.to_string()).collect();
+            devices.push(DiscoveredDevice {
+                name: info.get_fullname().to_string(),
+                host: info.get_hostname().to_string(),
+                port: info.get_port(),
+                addresses,
+            });
         }
-        Ok(devices)
     }
+    Ok(devices)
+}
 
-    #[cfg(mobile)]
-    {
-        let handle = app.state::<crate::nsd_plugin::NsdPluginHandle<tauri::Wry>>();
-        handle.start_discovery()?;
-        let services = handle.get_discovered_services()?;
-        Ok(services
-            .into_iter()
-            .map(|s| DiscoveredDevice {
-                name: s.node_id.clone(),
-                host: s.host,
-                port: s.port,
-                addresses: vec![format!("{}:{}", s.host, s.port)],
-            })
-            .collect())
-    }
+#[cfg(mobile)]
+#[tauri::command]
+pub async fn mdns_discover(
+    app: tauri::AppHandle,
+    daemon: tauri::State<'_, SharedDaemon>,
+    timeout_ms: u64,
+) -> Result<Vec<DiscoveredDevice>, String> {
+    let _ = timeout_ms;
+    let handle = app.state::<crate::nsd_plugin::NsdPluginHandle<tauri::Wry>>();
+    handle.start_discovery()?;
+    let services = handle.get_discovered_services()?;
+    Ok(services
+        .into_iter()
+        .map(|s| DiscoveredDevice {
+            name: s.node_id.clone(),
+            host: s.host,
+            port: s.port,
+            addresses: vec![format!("{}:{}", s.host, s.port)],
+        })
+        .collect())
 }
 
 #[tauri::command]
