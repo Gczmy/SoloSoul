@@ -58,11 +58,30 @@ android {
         getByName("release") {
             signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = true
+            isShrinkResources = true
+            isCrunchPngs = true
             proguardFiles(
                 *fileTree(".") { include("**/*.pro") }
                     .plus(getDefaultProguardFile("proguard-android-optimize.txt"))
                     .toList().toTypedArray()
             )
+            // release 构建剥离原生 .so 调试符号以缩减体积
+            packaging {
+                jniLibs.useLegacyPackaging = true
+                // 移除调试符号表（~30% .so 体积节省）
+                jniLibs.keepDebugSymbols.clear()
+                // 排除 ML Kit 中不需要的 ABI 原生库
+                resources {
+                    excludes += setOf(
+                        "META-INF/**",
+                        "META-INF/NOTICE",
+                        "META-INF/LICENSE",
+                        "META-INF/DEPENDENCIES",
+                        "META-INF/AL2.0",
+                        "META-INF/LGPL2.1",
+                    )
+                }
+            }
         }
     }
     kotlinOptions {
