@@ -156,11 +156,10 @@ pub async fn mdns_advertise(
     Ok(())
 }
 
+/// 移动端注册 NSD 服务（供 sync_enable 内部调用，避免命令间重复逻辑）。
 #[cfg(mobile)]
-#[tauri::command]
-pub async fn mdns_advertise(
-    app: tauri::AppHandle,
-    _daemon: tauri::State<'_, SharedDaemon>,
+pub async fn register_sync_service(
+    app: &tauri::AppHandle,
     device_name: String,
     port: u16,
 ) -> Result<(), String> {
@@ -178,6 +177,10 @@ pub async fn mdns_advertise(
         (account_id, fp)
     };
 
+    if account_id.is_empty() {
+        return Err("Cannot advertise sync service: no unlocked account".to_string());
+    }
+
     let handle = app.state::<crate::nsd_plugin::NsdPluginHandle<tauri::Wry>>();
     handle.register_service(crate::nsd_plugin::RegisterServicePayload {
         port,
@@ -186,6 +189,17 @@ pub async fn mdns_advertise(
         fingerprint,
     })?;
     Ok(())
+}
+
+#[cfg(mobile)]
+#[tauri::command]
+pub async fn mdns_advertise(
+    app: tauri::AppHandle,
+    _daemon: tauri::State<'_, SharedDaemon>,
+    device_name: String,
+    port: u16,
+) -> Result<(), String> {
+    register_sync_service(&app, device_name, port).await
 }
 
 #[cfg(test)]

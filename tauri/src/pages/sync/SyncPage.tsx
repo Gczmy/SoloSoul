@@ -54,8 +54,20 @@ export function SyncPage() {
     loadStatus();
   }, [loadStatus]);
 
+  // 进入页面且同步已启用时，自动扫描附近设备
+  const syncEnabled = store.syncEnabled;
+  useEffect(() => {
+    if (syncEnabled) {
+      useSyncStore.getState().discoverDevices(5000);
+    }
+  }, [syncEnabled]);
+
   const handleToggleSync = async () => {
     await store.enable(!store.syncEnabled);
+  };
+
+  const handleDiscover = async () => {
+    await store.discoverDevices(5000);
   };
 
   const handleSyncWithDevice = async (deviceId: string) => {
@@ -172,6 +184,103 @@ export function SyncPage() {
               </strong>{' '}
               {store.localFingerprint}
             </div>
+          )}
+        </Card>
+
+        {/* Discovered devices */}
+        <Card>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>
+              {t('settings:sync_discovered_devices', { defaultValue: 'Discovered Devices' })}
+            </h3>
+            <button
+              onClick={handleDiscover}
+              disabled={!store.syncEnabled || store.isDiscoveringDevices}
+              style={{
+                padding: '6px 12px',
+                borderRadius: 8,
+                border: '1px solid var(--border-subtle)',
+                background: 'var(--bg-toolbar)',
+                color: 'var(--text-primary)',
+                fontSize: 'var(--text-body-sm)',
+                fontWeight: 500,
+                cursor: !store.syncEnabled || store.isDiscoveringDevices ? 'default' : 'pointer',
+                opacity: !store.syncEnabled || store.isDiscoveringDevices ? 0.5 : 1,
+                transition: 'all 0.15s ease',
+                fontFamily: 'inherit',
+              }}
+            >
+              {store.isDiscoveringDevices
+                ? t('common:loading', { defaultValue: 'Loading...' })
+                : t('settings:sync_discover', { defaultValue: 'Discover' })}
+            </button>
+          </div>
+          <p
+            style={{
+              fontSize: 'var(--text-caption)',
+              color: 'var(--text-tertiary)',
+              marginTop: 8,
+              marginBottom: 12,
+            }}
+          >
+            {t('settings:sync_discovered_hint', {
+              defaultValue: 'Nearby devices advertising SoloSoul sync will appear here.',
+            })}
+          </p>
+          {store.discoveredDevices.length > 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+              {store.discoveredDevices.map((device) => {
+                const deviceAddr =
+                    device.addresses[0] || `${device.host}:${device.port}`;
+                return (
+                <div
+                  key={deviceAddr}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 10,
+                    padding: '10px 12px',
+                    borderRadius: 8,
+                    background: 'var(--bg-toolbar)',
+                  }}
+                >
+                  <Smartphone size={ICON_SIZE.lg} style={{ color: 'var(--accent-primary)' }} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500 }}>
+                      {device.name || t('settings:sync_unknown_device', { defaultValue: 'Unknown device' })}
+                    </div>
+                    <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
+                      {deviceAddr}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleSyncWithDevice(deviceAddr)}
+                    disabled={store.isLoading}
+                    style={{
+                      padding: '6px 12px',
+                      borderRadius: 8,
+                      border: '1px solid var(--border-subtle)',
+                      background: 'var(--bg-toolbar)',
+                      color: 'var(--text-primary)',
+                      fontSize: 'var(--text-body-sm)',
+                      fontWeight: 500,
+                      cursor: store.isLoading ? 'default' : 'pointer',
+                      opacity: store.isLoading ? 0.5 : 1,
+                      transition: 'all 0.15s ease',
+                      fontFamily: 'inherit',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {t('settings:sync_manual_sync', { defaultValue: 'Sync' })}
+                  </button>
+                </div>
+              );
+              })}
+            </div>
+          ) : (
+            <p style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
+              {t('settings:sync_no_devices_found', { defaultValue: 'No devices found. Click Discover to scan.' })}
+            </p>
           )}
         </Card>
 

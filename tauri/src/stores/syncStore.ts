@@ -11,6 +11,13 @@ export interface SyncPeer {
   lastSeen: string;
 }
 
+export interface DiscoveredDevice {
+  name: string;
+  host: string;
+  port: number;
+  addresses: string[];
+}
+
 interface SyncStatus {
   isDiscovering: boolean;
   syncEnabled: boolean;
@@ -23,9 +30,12 @@ interface SyncStoreState extends SyncStatus {
   error: string | null;
   lastResult: SyncResult | null;
   recentResults: SyncResult[];
+  discoveredDevices: DiscoveredDevice[];
+  isDiscoveringDevices: boolean;
 
   loadStatus: () => Promise<void>;
   enable: (enabled: boolean) => Promise<void>;
+  discoverDevices: (timeoutMs?: number) => Promise<void>;
   syncWithDevice: (deviceId: string) => Promise<void>;
   trustPeer: (peerNodeId: string, trusted: boolean) => Promise<void>;
   forgetPeer: (peerNodeId: string) => Promise<void>;
@@ -40,6 +50,8 @@ export const useSyncStore = create<SyncStoreState>((set, get) => ({
   error: null,
   lastResult: null,
   recentResults: [],
+  discoveredDevices: [],
+  isDiscoveringDevices: false,
 
   loadStatus: async () => {
     try {
@@ -56,8 +68,24 @@ export const useSyncStore = create<SyncStoreState>((set, get) => ({
       await invoke<void>('sync_enable', { enable: enabled });
       const status = await invoke<SyncStatus>('sync_get_status');
       set({ ...status, isLoading: false, error: null });
+      // 启用后自动发现附近设备
+      if (enabled) {
+        void get().discoverDevices(5000);
+      } else {
+        set({ discoveredDevices: [] });
+      }
     } catch (err) {
       set({ isLoading: false, error: String(err) });
+    }
+  },
+
+  discoverDevices: async (timeoutMs = 5000) => {
+    set({ isDiscoveringDevices: true, error: null });
+    try {
+      const devices = await invoke<DiscoveredDevice[]>('mdns_discover', { timeoutMs });
+      set({ discoveredDevices: devices, isDiscoveringDevices: false, error: null });
+    } catch (err) {
+      set({ isDiscoveringDevices: false, error: String(err) });
     }
   },
 

@@ -157,8 +157,57 @@ pub async fn sync_enable(state: State<'_, AppState>, enable: bool) -> Result<(),
 
 #[cfg(mobile)]
 #[tauri::command]
-pub async fn sync_enable(state: State<'_, AppState>, enable: bool) -> Result<(), String> {
-    state.sync_service.enable(enable).await
+pub async fn sync_enable(
+    app: tauri::AppHandle,
+    state: State<'_, AppState>,
+    enable: bool,
+) -> Result<(), String> {
+    state.sync_service.enable(enable).await?;
+
+    // 移动端：启用同步后自动注册 NSD 服务，让桌面端可以发现本机；
+    // 关闭同步时注销 NSD 服务。
+    if enable {
+        let port = state.sync_service.listen_port().await;
+        if port != 0 {
+            let fingerprint = state
+                .sync_service
+                .local_fingerprint()
+                .await
+                .unwrap_or_default();
+            let device_name = if fingerprint.is_empty() {
+                format!("SoloSoul-{}", port)
+            } else {
+                format!("SoloSoul-{}", &fingerprint[..fingerprint.len().min(8)])
+            };
+            if let Err(e) =
+                crate::commands::discovery::register_sync_service(&app, device_name, port).await
+            {
+                // NSD 注册失败时回滚同步状态，避免半开启。
+                let _ = state.sync_service.enable(false).await;
+                return Err(format!(
+                    "Failed to enable sync: NSD advertise failed: {}",
+                    e
+                ));
+            }
+        }
+    } else {
+        let handle = app.state::<crate::nsd_plugin::NsdPluginHandle<tauri::Wry>>();
+        let _ = handle.unregister_service();
+    }
+    Ok(())
+}
+
+#[cfg(mobile)]
+#[tauri::command]
+pub async fn sync_listen_port(state: State<'_, AppState>) -> Result<u16, String> {
+    Ok(state.sync_service.listen_port().await)
+}
+
+#[cfg(desktop)]
+#[tauri::command]
+pub async fn sync_listen_port(_state: State<'_, AppState>) -> Result<u16, String> {
+    // 桌面端监听端口由 mDNS 服务信息直接提供，无需单独暴露。
+    Ok(0)
 }
 
 #[cfg(desktop)]

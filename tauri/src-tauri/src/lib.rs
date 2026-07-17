@@ -547,6 +547,7 @@ pub fn run() {
             commands::sync::sync_discover,
             commands::sync::sync_get_status,
             commands::sync::sync_enable,
+            commands::sync::sync_listen_port,
             commands::sync::sync_with_device,
             commands::sync::sync_trust_peer,
             commands::sync::sync_forget_peer,
