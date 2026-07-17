@@ -142,16 +142,12 @@ export function SettingsPage() {
           path: '/search',
           desc: t('settings:desc.search') || '全局搜索',
         },
-        ...(!isMobile
-          ? [
-              {
-                label: t('settings:items.ocr') || 'OCR',
-                icon: Scan,
-                path: '/settings/ocr',
-                desc: t('settings:desc.ocr') || 'Manage OCR models and preferences',
-              },
-            ]
-          : []),
+        {
+          label: t('settings:items.ocr') || 'OCR',
+          icon: Scan,
+          path: '/settings/ocr',
+          desc: t('settings:desc.ocr') || 'Manage OCR models and preferences',
+        },
         {
           label: t('settings:items.help_docs'),
           icon: BookOpen,

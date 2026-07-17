@@ -11,17 +11,19 @@ import type { OcrTierInfo, OcrModelStatus } from '@/lib/ipc';
 import { getTierLabel } from '@/lib/utils';
 import { Download, CheckCircle, AlertCircle, Trash2 } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/constants';
+import { isMobilePlatformSync } from '@/lib/platform';
 
 export function OcrSettingsPage() {
   const navigate = useNavigate();
   const { t } = useTranslation(['ocr', 'settings', 'common']);
   const { onError, onSuccess } = useToastError();
   const { requestConfirm, dialog: confirmDialog } = useConfirm();
+  const isMobile = isMobilePlatformSync();
 
   const [tiers, setTiers] = useState<OcrTierInfo[]>([]);
   const [activeTier, setActiveTier] = useState('small');
   const [statusMap, setStatusMap] = useState<Record<string, OcrModelStatus>>({});
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!isMobile);
   const [installingTier, setInstallingTier] = useState<string | null>(null);
   const [downloadingTier, setDownloadingTier] = useState<string | null>(null);
   const [deletingTier, setDeletingTier] = useState<string | null>(null);
@@ -54,7 +56,9 @@ export function OcrSettingsPage() {
 
   // P212: mount-only init — loadTiersAndStatus/onError/t are stable, omitted intentionally.
   useEffect(() => {
-    loadTiersAndStatus();
+    if (!isMobile) {
+      loadTiersAndStatus();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -123,6 +127,7 @@ export function OcrSettingsPage() {
     <AppShell title={t('ocr:settings_title')} onBack={() => navigate('/settings')}>
       {confirmDialog}
       <PageContainer variant="medium" gap="default">
+        {!isMobile && (
         <Card>
           <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 12 }}>
             {t('ocr:active_model')}
@@ -152,7 +157,9 @@ export function OcrSettingsPage() {
             })}
           </select>
         </Card>
+        )}
 
+        {!isMobile && (
         <Card>
           <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 12 }}>
             {t('ocr:model_management')}
@@ -372,6 +379,18 @@ export function OcrSettingsPage() {
             </div>
           )}
         </Card>
+        )}
+
+        {isMobile && (
+          <Card>
+            <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 8 }}>
+              {t('ocr:mobile_ocr_title')}
+            </h3>
+            <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)', margin: 0 }}>
+              {t('ocr:mobile_ocr_description')}
+            </p>
+          </Card>
+        )}
       </PageContainer>
     </AppShell>
   );

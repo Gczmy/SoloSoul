@@ -382,11 +382,12 @@ pub async fn ocr_scan_image(
 #[cfg(mobile)]
 #[tauri::command]
 pub async fn ocr_scan_image(
+    app: tauri::AppHandle,
     _state: tauri::State<'_, AppState>,
-    _file_path: String,
+    file_path: String,
     _language: Option<String>,
 ) -> Result<OcrResult, String> {
-    mobile_not_supported_with()
+    crate::mobile_ocr_plugin::mobile_ocr_scan_image(app, file_path)
 }
 
 /// 扫描图片中的 MRZ（机读区）并返回解析结果。
@@ -440,10 +441,12 @@ pub async fn ocr_scan_mrz(
 #[cfg(mobile)]
 #[tauri::command]
 pub async fn ocr_scan_mrz(
+    _app: tauri::AppHandle,
     _state: tauri::State<'_, AppState>,
     _file_path: String,
 ) -> Result<Option<MrzResult>, String> {
-    mobile_not_supported_with()
+    // 移动端 MRZ 识别暂由通用 OCR 流程兜底，此处返回 null 让前端走 ocr_scan_image 分支。
+    Ok(None)
 }
 
 /// 返回 OCR 支持的识别语言列表。

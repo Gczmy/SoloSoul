@@ -20,6 +20,8 @@
   "import_success": "已从 OCR 创建文档",
   "import_failed": "导入文档失败",
   "no_text": "未检测到文字，请尝试更清晰的图片。",
+  "mobile_ocr_title": "移动端 OCR",
+  "mobile_ocr_description": "移动端使用设备自带的 ML Kit 文字识别引擎，无需下载模型，数据不会离开您的设备。",
   "model_title": "OCR 模型",
   "model_management": "模型管理",
   "active_model": "当前模型",
