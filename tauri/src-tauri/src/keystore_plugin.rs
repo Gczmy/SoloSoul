@@ -4,6 +4,10 @@
 //! 受生物识别保护的 AES 密钥加密，并持久化密文与 IV。
 //! 密钥生成时启用 setInvalidatedByBiometricEnrollment(true)，
 //! 当用户新增/删除指纹或人脸时，旧密钥会永久失效。
+//!
+//! 与 tauri-plugin-biometric 不同，本插件将生物识别提示与加解密
+//! 操作绑定在同一个 CryptoObject 中完成，确保每次使用密钥都必须
+//! 经过用户生物识别授权。
 
 use serde::{Deserialize, Serialize};
 use tauri::{
@@ -25,6 +29,15 @@ pub struct KeystoreCiphertext {
     pub ciphertext: String,
 }
 
+/// 生物识别提示信息。
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BiometricPromptInfo<'a> {
+    pub title: &'a str,
+    pub subtitle: &'a str,
+    pub cancel_title: &'a str,
+}
+
 /// 插件句柄包装，便于在 command 中通过 Tauri state 获取。
 pub struct KeystorePluginHandle<R: Runtime> {
     #[cfg(target_os = "android")]
@@ -34,17 +47,34 @@ pub struct KeystorePluginHandle<R: Runtime> {
 }
 
 impl<R: Runtime> KeystorePluginHandle<R> {
-    /// 使用 Android Keystore 加密数据。
-    pub fn save(&self, alias: &str, data: &str) -> Result<KeystoreCiphertext, String> {
+    /// 通过生物识别提示加密数据。
+    pub fn authenticate_and_save(
+        &self,
+        alias: &str,
+        data: &str,
+        prompt: BiometricPromptInfo<'_>,
+    ) -> Result<KeystoreCiphertext, String> {
         #[cfg(target_os = "android")]
         {
             #[derive(Debug, Clone, Serialize)]
             struct Payload<'a> {
                 alias: &'a str,
                 data: &'a str,
+                title: &'a str,
+                subtitle: &'a str,
+                cancel_title: &'a str,
             }
             self.handle
-                .run_mobile_plugin::<serde_json::Value>("save", Payload { alias, data })
+                .run_mobile_plugin::<serde_json::Value>(
+                    "authenticateAndSave",
+                    Payload {
+                        alias,
+                        data,
+                        title: prompt.title,
+                        subtitle: prompt.subtitle,
+                        cancel_title: prompt.cancel_title,
+                    },
+                )
                 .map_err(|e| e.to_string())
                 .and_then(|v| {
                     serde_json::from_value::<KeystoreCiphertext>(v).map_err(|e| e.to_string())
@@ -52,13 +82,19 @@ impl<R: Runtime> KeystorePluginHandle<R> {
         }
         #[cfg(not(target_os = "android"))]
         {
-            let _ = (alias, data);
+            let _ = (alias, data, prompt);
             Err("Keystore storage is only supported on Android".to_string())
         }
     }
 
-    /// 使用 Android Keystore 解密数据。
-    pub fn read(&self, alias: &str, iv: &str, ciphertext: &str) -> Result<String, String> {
+    /// 通过生物识别提示解密数据。
+    pub fn authenticate_and_read(
+        &self,
+        alias: &str,
+        iv: &str,
+        ciphertext: &str,
+        prompt: BiometricPromptInfo<'_>,
+    ) -> Result<String, String> {
         #[cfg(target_os = "android")]
         {
             #[derive(Debug, Clone, Serialize)]
@@ -66,6 +102,9 @@ impl<R: Runtime> KeystorePluginHandle<R> {
                 alias: &'a str,
                 iv: &'a str,
                 ciphertext: &'a str,
+                title: &'a str,
+                subtitle: &'a str,
+                cancel_title: &'a str,
             }
             #[derive(Debug, Clone, Deserialize)]
             struct Wrapper {
@@ -73,11 +112,14 @@ impl<R: Runtime> KeystorePluginHandle<R> {
             }
             self.handle
                 .run_mobile_plugin::<serde_json::Value>(
-                    "read",
+                    "authenticateAndRead",
                     Payload {
                         alias,
                         iv,
                         ciphertext,
+                        title: prompt.title,
+                        subtitle: prompt.subtitle,
+                        cancel_title: prompt.cancel_title,
                     },
                 )
                 .map_err(|e| e.to_string())
@@ -86,7 +128,7 @@ impl<R: Runtime> KeystorePluginHandle<R> {
         }
         #[cfg(not(target_os = "android"))]
         {
-            let _ = (alias, iv, ciphertext);
+            let _ = (alias, iv, ciphertext, prompt);
             Err("Keystore storage is only supported on Android".to_string())
         }
     }

@@ -17,6 +17,26 @@ fn bio_err(code: &str) -> String {
     format!("{}{}", BIO_ERR_PREFIX, code)
 }
 
+/// 将 Keystore 插件返回的错误字符串映射为 BiometricError。
+#[cfg(target_os = "android")]
+fn map_keystore_error(e: String, operation: &str) -> String {
+    if e == "BIOMETRIC_KEY_INVALIDATED" || e == "BIOMETRIC_KEY_NOT_FOUND" {
+        map_bio_error(BiometricError::KeychainItemNotFound, operation)
+    } else if e == "BIOMETRIC_CANCELLED" {
+        map_bio_error(BiometricError::UserPresenceCancelled, operation)
+    } else if e == "BIOMETRIC_NOT_ENROLLED" {
+        map_bio_error(BiometricError::UserPresenceUnavailable, operation)
+    } else if e == "BIOMETRIC_LOCKOUT" || e == "BIOMETRIC_UNAVAILABLE" {
+        map_bio_error(BiometricError::UserPresenceUnavailable, operation)
+    } else if e.starts_with("BIOMETRIC_ERROR:") {
+        map_bio_error(BiometricError::Other(e), operation)
+    } else if operation == "save" {
+        map_bio_error(BiometricError::KeychainWriteFailed(e), operation)
+    } else {
+        map_bio_error(BiometricError::KeychainReadFailed(e), operation)
+    }
+}
+
 /// 将 BiometricError 映射为前端可国际化的短代码。
 fn map_bio_error(e: BiometricError, operation: &str) -> String {
     let code = match &e {
@@ -191,7 +211,6 @@ pub async fn biometric_save_credential(
 ) -> Result<(), String> {
     use solosoul_core::biometric::legacy::FileBiometricStorage;
     use solosoul_core::biometric::BiometricStorage;
-    use tauri_plugin_biometric::{AuthOptions, BiometricExt};
 
     let svc = state
         .vault_service
@@ -204,36 +223,28 @@ pub async fn biometric_save_credential(
         .verify_password(&password, &account_id)
         .map_err(|e| map_bio_error(e, "save"))?;
 
-    // 2. 通过系统生物识别提示确认用户身份（严格模式，不允许设备密码回退）
-    let reason = "verify your identity to enable biometric authentication for SoloSoul";
-    app.biometric()
-        .authenticate(
-            reason.to_string(),
-            AuthOptions {
-                allow_device_credential: false,
-                cancel_title: Some("Cancel".to_string()),
-                fallback_title: None,
-                title: Some("SoloSoul".to_string()),
-                subtitle: Some("Enable biometric authentication".to_string()),
-                confirmation_required: Some(false),
-            },
-        )
-        .map_err(|e| e.to_string())?;
-
-    // 3. 派生主密钥并使用平台安全存储保存
+    // 2. 派生主密钥并使用平台安全存储保存
     let key_hex = manager
         .derive_key_hex(&password, &account_id)
         .map_err(|e| map_bio_error(e, "save"))?;
 
     #[cfg(target_os = "android")]
     {
-        use crate::keystore_plugin::KeystorePluginHandle;
+        use crate::keystore_plugin::{BiometricPromptInfo, KeystorePluginHandle};
         use tauri::Manager;
 
         let keystore = app.state::<KeystorePluginHandle<tauri::Wry>>();
         let cipher = keystore
-            .save(&account_id, &key_hex)
-            .map_err(|e| map_bio_error(BiometricError::KeychainWriteFailed(e), "save"))?;
+            .authenticate_and_save(
+                &account_id,
+                &key_hex,
+                BiometricPromptInfo {
+                    title: "SoloSoul",
+                    subtitle: "Enable biometric authentication",
+                    cancel_title: "Cancel",
+                },
+            )
+            .map_err(|e| map_keystore_error(e, "save"))?;
 
         let path = svc.base_path().join(&account_id).join("keystore_data.json");
         let json = serde_json::to_string(&cipher)
@@ -259,18 +270,19 @@ pub async fn biometric_save_credential(
 
     #[cfg(target_os = "ios")]
     {
+        let reason = "verify your identity to enable biometric authentication for SoloSoul";
         let storage = FileBiometricStorage::new(svc.base_path().clone());
         storage
             .save(&account_id, &key_hex, reason)
             .map_err(|e| map_bio_error(e, "save"))?;
     }
 
-    // 4. 更新配置标记
+    // 3. 更新配置标记
     manager
         .set_config_flag(&account_id, true)
         .map_err(|e| map_bio_error(e, "save"))?;
 
-    // 5. 审计日志
+    // 4. 审计日志
     if let Some(vg) = svc.get_vault_store() {
         let vault = vg.as_ref();
         let loc = location.unwrap_or_else(|| "unknown".to_string());
@@ -353,7 +365,6 @@ pub async fn biometric_unlock(
 ) -> Result<(), String> {
     use solosoul_core::biometric::legacy::FileBiometricStorage;
     use solosoul_core::biometric::BiometricStorage;
-    use tauri_plugin_biometric::{AuthOptions, BiometricExt};
 
     let svc = state
         .vault_service
@@ -361,27 +372,11 @@ pub async fn biometric_unlock(
         .map_err(|_| "Vault service lock poisoned".to_string())?;
     let manager = BiometricManager::new(svc.base_path().clone());
 
-    // 1. 通过系统生物识别提示确认用户身份（允许设备密码回退）
-    let reason = "unlock SoloSoul";
-    app.biometric()
-        .authenticate(
-            reason.to_string(),
-            AuthOptions {
-                allow_device_credential: true,
-                cancel_title: Some("Cancel".to_string()),
-                fallback_title: None,
-                title: Some("SoloSoul".to_string()),
-                subtitle: Some("Unlock with biometric authentication".to_string()),
-                confirmation_required: Some(false),
-            },
-        )
-        .map_err(|e| e.to_string())?;
-
-    // 2. 读取已保存的主密钥
+    // 1. 读取已保存的主密钥（Android 通过 CryptoObject 绑定生物识别提示）
     let key_hex = {
         #[cfg(target_os = "android")]
         {
-            use crate::keystore_plugin::KeystorePluginHandle;
+            use crate::keystore_plugin::{BiometricPromptInfo, KeystorePluginHandle};
             use tauri::Manager;
 
             let path = svc.base_path().join(&account_id).join("keystore_data.json");
@@ -392,18 +387,22 @@ pub async fn biometric_unlock(
 
             let keystore = app.state::<KeystorePluginHandle<tauri::Wry>>();
             keystore
-                .read(&account_id, &cipher.iv, &cipher.ciphertext)
-                .map_err(|e| {
-                    if e == "BIOMETRIC_KEY_INVALIDATED" || e == "BIOMETRIC_KEY_NOT_FOUND" {
-                        map_bio_error(BiometricError::KeychainItemNotFound, "unlock")
-                    } else {
-                        map_bio_error(BiometricError::KeychainReadFailed(e), "unlock")
-                    }
-                })?
+                .authenticate_and_read(
+                    &account_id,
+                    &cipher.iv,
+                    &cipher.ciphertext,
+                    BiometricPromptInfo {
+                        title: "SoloSoul",
+                        subtitle: "Unlock with biometric authentication",
+                        cancel_title: "Cancel",
+                    },
+                )
+                .map_err(|e| map_keystore_error(e, "unlock"))?
         }
 
         #[cfg(target_os = "ios")]
         {
+            let reason = "unlock SoloSoul";
             let storage = FileBiometricStorage::new(svc.base_path().clone());
             storage
                 .read(&account_id, reason)
@@ -418,11 +417,11 @@ pub async fn biometric_unlock(
         .try_into()
         .map_err(|_| map_bio_error(BiometricError::InvalidKeyFormat, "unlock"))?;
 
-    // 3. 解锁 Vault
+    // 2. 解锁 Vault
     svc.unlock_with_session_key(&account_id, &key)
         .map_err(|e| map_bio_error(BiometricError::Other(format!("{:#}", e)), "unlock"))?;
 
-    // 4. 审计日志
+    // 3. 审计日志
     if let Some(vg) = svc.get_vault_store() {
         let vault = vg.as_ref();
         let loc = location.unwrap_or_else(|| "unknown".to_string());
