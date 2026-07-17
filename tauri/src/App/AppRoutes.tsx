@@ -266,6 +266,37 @@ export function AppRoutes() {
     };
   }, [navigate]);
 
+  // Android 快捷方式「新建对象」：监听 Kotlin 端注入的 DOM 事件
+  useEffect(() => {
+    const handleShortcut = () => {
+      if (isAuthenticated) {
+        navigate('/editor?new=1');
+      } else {
+        sessionStorage.setItem('solosoul_pending_shortcut', 'new_object');
+      }
+    };
+
+    // 消费可能来自冷启动的 pending action
+    const pending = sessionStorage.getItem('solosoul_pending_shortcut');
+    if (pending === 'new_object') {
+      sessionStorage.removeItem('solosoul_pending_shortcut');
+      if (isAuthenticated) {
+        navigate('/editor?new=1');
+      }
+    }
+
+    // 暴露全局回调供 Kotlin evaluateJavascript 调用
+    (window as typeof window & { __SOLOSOUL_HANDLE_SHORTCUT__?: (action: string) => void }).__SOLOSOUL_HANDLE_SHORTCUT__ = (action: string) => {
+      if (action === 'new_object') {
+        handleShortcut();
+      }
+    };
+
+    return () => {
+      delete (window as typeof window & { __SOLOSOUL_HANDLE_SHORTCUT__?: (action: string) => void }).__SOLOSOUL_HANDLE_SHORTCUT__;
+    };
+  }, [navigate, isAuthenticated]);
+
   const retryOcrInstall = useCallback(() => {
     useOcrInstallStore.getState().reset();
     triggerOcrFirstInstall();

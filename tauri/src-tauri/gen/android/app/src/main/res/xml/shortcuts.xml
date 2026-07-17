@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="new_object"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_add"
+        android:shortcutShortLabel="@string/shortcut_new_object_short"
+        android:shortcutLongLabel="@string/shortcut_new_object_long">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="${applicationId}"
+            android:targetClass="com.solosoul.app.MainActivity">
+            <extra
+                android:name="shortcut_action"
+                android:value="new_object" />
+        </intent>
+    </shortcut>
+</shortcuts>

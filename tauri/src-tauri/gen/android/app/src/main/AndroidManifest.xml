@@ -7,11 +7,15 @@
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission android:name="android.permission.USE_BIOMETRIC" />
-    <!-- NSD 发现与注册需要网络相关权限 -->
+    <!-- NSD 服务发现权限（设备同步） -->
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
+    <!-- API ≤ 32 需要定位权限发现 NSD 服务，API 33+ 使用 NEARBY_WIFI_DEVICES -->
+    <uses-permission
+        android:name="android.permission.ACCESS_FINE_LOCATION"
+        android:maxSdkVersion="32" />
+    <uses-permission android:name="android.permission.NEARBY_WIFI_DEVICES" />
 
     <!-- Android 11+ 需要显式声明查询能处理常见文件类型的外部应用，
          否则 resolveActivity / createChooser 无法列出 PDF 阅读器等应用。 -->
@@ -53,6 +57,9 @@
                 <!-- AndroidTV support -->
                 <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
             </intent-filter>
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
         </activity>
 
         <activity
