@@ -289,17 +289,21 @@ export function LlmChatPage() {
           box-shadow: 0 4px 12px rgba(0,0,0,0.12);
           z-index: 10;
         }
-        .tooltip-btn:hover::after { opacity: 1; }
+        @media (hover: hover) and (pointer: fine) {
+          .tooltip-btn:hover::after { opacity: 1; }
+        }
         .conv-item {
           border: 1px solid transparent;
           border-radius: 8px;
           margin: 2px 8px;
           transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
         }
-        .conv-item:hover {
-          transform: translateY(-2px);
-          border-color: var(--accent-primary);
-          box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+        @media (hover: hover) and (pointer: fine) {
+          .conv-item:hover {
+            transform: translateY(-2px);
+            border-color: var(--accent-primary);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+          }
         }
         @keyframes blink { 0%, 80%, 100% { opacity: 0.3; } 40% { opacity: 1; } }
       `}</style>

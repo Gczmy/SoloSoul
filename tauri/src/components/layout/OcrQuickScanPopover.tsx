@@ -257,20 +257,22 @@ export function OcrQuickScanPopover({
         .ocr-history-item {
           transition: background-color 120ms ease;
         }
-        .ocr-history-item:hover {
-          background-color: rgba(91, 124, 153, 0.10);
+        @media (hover: hover) and (pointer: fine) {
+          .ocr-history-item:hover {
+            background-color: rgba(91, 124, 153, 0.10);
+          }
+          .ocr-history-item--selected:hover {
+            background-color: rgba(91, 124, 153, 0.16);
+          }
+          .ocr-history-item__btn:hover {
+            color: var(--accent-primary) !important;
+          }
         }
         .ocr-history-item--selected {
           background-color: rgba(91, 124, 153, 0.08);
         }
-        .ocr-history-item--selected:hover {
-          background-color: rgba(91, 124, 153, 0.16);
-        }
         .ocr-history-item:active {
           background-color: rgba(91, 124, 153, 0.22);
-        }
-        .ocr-history-item__btn:hover {
-          color: var(--accent-primary) !important;
         }
         .ocr-result-container {
           display: flex;
