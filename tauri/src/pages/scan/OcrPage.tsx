@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/stores/authStore';
 import { useObjectStore } from '@/stores/objectStore';
 import { useToastError } from '@/hooks/useToastError';
+import { isMobilePlatformSync } from '@/lib/platform';
 import { invoke } from '@tauri-apps/api/core';
 import type { OcrResult, OcrTierInfo, OcrModelStatus, MrzResult } from '@/lib/ipc';
 import { OCR_MODEL_SERIES, OCR_MODEL_NOT_INSTALLED_PREFIX } from '@/lib/constants';
@@ -43,6 +44,7 @@ export function OcrPage() {
   const [installingTier, setInstallingTier] = useState<string | null>(null);
   const [downloadingTier, setDownloadingTier] = useState<string | null>(null);
   const [downloadUrl, setDownloadUrl] = useState('');
+  const isMobile = isMobilePlatformSync();
 
   /** 处理扫描错误：将后端返回的「模型未安装」前缀解析为国际化提示。 */
   const handleScanError = (err: unknown) => {
@@ -101,7 +103,8 @@ export function OcrPage() {
   }, []);
 
   const getFileFilters = () => {
-    if (scanMode === 'mrz') {
+    // MRZ 与移动端均只支持图片格式（移动端 ML Kit 无法处理 PDF）
+    if (scanMode === 'mrz' || isMobile) {
       return [{ name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'webp', 'bmp', 'tiff'] }];
     }
     return [
@@ -179,7 +182,10 @@ export function OcrPage() {
       const path = await open({
         filters: getFileFilters(),
         multiple: false,
-        title: scanMode === 'mrz' ? t('ocr:select_image_title') : t('ocr:select_file_title'),
+        title:
+          scanMode === 'mrz' || isMobile
+            ? t('ocr:select_image_title')
+            : t('ocr:select_file_title'),
       });
       if (path && typeof path === 'string') {
         setFilePath(path);
@@ -476,7 +482,9 @@ export function OcrPage() {
 
             <Button onClick={handleSelectFile} loading={isScanning}>
               <FileText size={ICON_SIZE.sm} style={{ marginRight: 6 }} />{' '}
-              {scanMode === 'mrz' ? t('ocr:select_image') : t('ocr:select_image_or_pdf')}
+              {scanMode === 'mrz' || isMobile
+                ? t('ocr:select_image')
+                : t('ocr:select_image_or_pdf')}
             </Button>
           </div>
         </Card>
