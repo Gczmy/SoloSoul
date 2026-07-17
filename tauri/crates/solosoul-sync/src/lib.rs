@@ -9,21 +9,20 @@ pub mod hlc;
 pub mod protocol;
 pub mod types;
 
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
+// 共享模块：协议、Noise、传输、Delta、附件同步逻辑在所有平台可用。
 pub mod attachments;
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
 pub mod delta;
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
-pub mod manager;
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
 pub mod noise;
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
-pub mod service;
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
 pub mod transport;
 
+// 桌面端使用基于 mdns-sd 的 SyncManager；移动端使用基于 Android NSD / iOS Bonjour 的
+// 发现层，因此 manager/service 按平台拆分。
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+pub mod manager;
 #[cfg(any(target_os = "android", target_os = "ios"))]
-mod mobile;
+pub mod mobile;
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+pub mod service;
 
 pub use hlc::{Hlc, SyncWatermark};
 pub use protocol::{AttachmentInfo, SyncMessage, SyncRecord};
@@ -33,8 +32,6 @@ pub use types::{
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 pub use manager::SyncManager;
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
-pub use noise::NoiseKeys;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 pub use service::SyncService;
 

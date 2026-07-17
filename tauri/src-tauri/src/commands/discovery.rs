@@ -59,6 +59,7 @@ pub struct DiscoveredDevice {
 pub async fn mdns_discover(
     #[allow(unused_variables)] daemon: tauri::State<'_, SharedDaemon>,
     #[allow(unused_variables)] timeout_ms: u64,
+    #[cfg(mobile)] app: tauri::AppHandle,
 ) -> Result<Vec<DiscoveredDevice>, String> {
     #[cfg(desktop)]
     {
@@ -92,7 +93,20 @@ pub async fn mdns_discover(
     }
 
     #[cfg(mobile)]
-    crate::commands::mobile_not_supported_with()
+    {
+        let handle = app.state::<crate::nsd_plugin::NsdPluginHandle<tauri::Wry>>();
+        handle.start_discovery()?;
+        let services = handle.get_discovered_services()?;
+        Ok(services
+            .into_iter()
+            .map(|s| DiscoveredDevice {
+                name: s.node_id.clone(),
+                host: s.host,
+                port: s.port,
+                addresses: vec![format!("{}:{}", s.host, s.port)],
+            })
+            .collect())
+    }
 }
 
 #[tauri::command]
