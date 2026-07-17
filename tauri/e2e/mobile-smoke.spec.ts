@@ -83,6 +83,19 @@ test('mobile smoke: object detail modal opens and closes', async ({ page }) => {
   }
 });
 
+test('mobile smoke: desktop-only route /plugins is guarded on mobile', async ({ page }) => {
+  await login(page);
+
+  // 直接导航到桌面专属的 /plugins 路由
+  await page.goto('/plugins');
+
+  // DesktopOnlyGuard 应在移动端重定向到首页
+  await expect(page).toHaveURL(/\/(home)?$/);
+
+  // 首页内容应正常渲染
+  await expect(page.locator('text=Welcome back')).toBeVisible();
+});
+
 test('mobile smoke: touch target sizes are at least 44px', async ({ page }) => {
   await login(page);
 
