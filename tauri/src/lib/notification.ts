@@ -5,6 +5,9 @@ import {
   sendNotification,
 } from '@tauri-apps/plugin-notification';
 import { useUiStore } from '@/stores/uiStore';
+import { useSettingsStore } from '@/stores/settingsStore';
+import { invoke } from '@tauri-apps/api/core';
+import i18next from '@/lib/i18n';
 
 const AI_NOTIFICATION_TOAST_DURATION_MS = 5000;
 
@@ -84,4 +87,80 @@ export async function initLlmNotificationListener(): Promise<void> {
  */
 export function markConversationPending(convId: string): void {
   pendingConversations.add(convId);
+}
+
+/**
+ * 发送系统通知，并在权限被拒绝时回退到应用内 toast。
+ * 首次调用时会尝试申请通知权限（按需）。
+ */
+export async function sendSystemNotificationWithFallback(
+  title: string,
+  body: string,
+  toastMessage?: string,
+  toastType: 'info' | 'warning' | 'error' | 'success' = 'info',
+  showToastAlways = false,
+): Promise<void> {
+  try {
+    let hasPermission = await isPermissionGranted();
+    if (!hasPermission) {
+      hasPermission = (await requestPermission()) === 'granted';
+    }
+
+    if (hasPermission) {
+      sendNotification({ title, body });
+    }
+
+    if (!hasPermission || showToastAlways) {
+      useUiStore.getState().showToast({
+        message: toastMessage || body,
+        type: toastType,
+        duration: 5000,
+      });
+    }
+  } catch (err) {
+    console.error('[notification] sendSystemNotificationWithFallback failed:', err);
+    // 兜底：至少显示应用内 toast
+    useUiStore.getState().showToast({
+      message: toastMessage || body,
+      type: toastType,
+      duration: 5000,
+    });
+  }
+}
+
+interface BackupInfo {
+  created_at: string;
+}
+
+/**
+ * 检查备份提醒。若用户未备份或距上次备份超过 `backupReminderDays` 天，
+ * 则发送系统通知 + 应用内 toast 引导用户前往备份页。
+ * 在 Vault 解锁后延迟调用，避免启动时权限弹窗干扰。
+ */
+export async function checkBackupReminder(): Promise<void> {
+  try {
+    const days = useSettingsStore.getState().settings.backupReminderDays;
+    if (days <= 0) return;
+
+    const backups = await invoke<BackupInfo[]>('backup_list');
+    let needsBackup = backups.length === 0;
+
+    if (!needsBackup) {
+      backups.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      const lastBackupTime = new Date(backups[0].created_at).getTime();
+      const diffDays = (Date.now() - lastBackupTime) / (1000 * 60 * 60 * 24);
+      needsBackup = diffDays >= days;
+    }
+
+    if (needsBackup) {
+      const title = i18next.t('settings:backup_reminder_title', 'SoloSoul');
+      const body = i18next.t(
+        'settings:backup_reminder_body',
+        'It has been a while since your last backup. Please go to Settings > Backup & Restore to create one.',
+      );
+      await sendSystemNotificationWithFallback(title, body, body, 'warning', true);
+    }
+  } catch (err) {
+    console.error('[notification] Backup reminder check failed:', err);
+  }
 }

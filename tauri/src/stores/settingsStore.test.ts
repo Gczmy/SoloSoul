@@ -46,6 +46,8 @@ describe('settingsStore', () => {
         language: 'en-US',
         locale: 'en',
         autoLockTimeoutMinutes: 5,
+        autoLockNotificationEnabled: false,
+        backupReminderDays: 7,
         biometricEnabled: false,
         confirmDelete: true,
         customPages: [],
@@ -125,6 +127,8 @@ describe('settingsStore', () => {
         language: 'zh-CN',
         locale: 'zh',
         autoLockTimeoutMinutes: 10,
+        autoLockNotificationEnabled: true,
+        backupReminderDays: 14,
         biometricEnabled: true,
         confirmDelete: false,
         customPages: [
@@ -142,6 +146,8 @@ describe('settingsStore', () => {
       expect(s.language).toBe('zh-CN');
       expect(s.locale).toBe('zh');
       expect(s.autoLockTimeoutMinutes).toBe(10);
+      expect(s.autoLockNotificationEnabled).toBe(true);
+      expect(s.backupReminderDays).toBe(14);
       expect(s.biometricEnabled).toBe(true);
       expect(s.confirmDelete).toBe(false);
       expect(s.customPages).toHaveLength(1);

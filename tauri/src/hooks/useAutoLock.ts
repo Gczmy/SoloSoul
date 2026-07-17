@@ -3,6 +3,8 @@ import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useVaultStore } from '@/stores/vaultStore';
 import { useAutoLockPauseStore } from '@/stores/autoLockPauseStore';
+import { sendSystemNotificationWithFallback } from '@/lib/notification';
+import i18next from '@/lib/i18n';
 
 /** 视为用户活动的事件（被动监听，不干扰交互） */
 const ACTIVITY_EVENTS = ['mousemove', 'mousedown', 'keydown', 'wheel', 'touchstart'] as const;
@@ -23,6 +25,9 @@ const ACTIVITY_THROTTLE_MS = 1_000;
 export function useAutoLock(): void {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const timeoutMinutes = useSettingsStore((s) => s.settings.autoLockTimeoutMinutes);
+  const autoLockNotificationEnabled = useSettingsStore(
+    (s) => s.settings.autoLockNotificationEnabled,
+  );
 
   useEffect(() => {
     if (!isAuthenticated || timeoutMinutes <= 0) return;
@@ -48,6 +53,15 @@ export function useAutoLock(): void {
       }
       if (Date.now() - lastActivity >= timeoutMs) {
         lockInitiated = true;
+
+        // 若用户开启「自动锁定通知」，在锁定前发送一次系统通知
+        if (autoLockNotificationEnabled) {
+          const body = i18next.t('settings:auto_locked_notification');
+          sendSystemNotificationWithFallback('SoloSoul', body, body, 'info').catch((err) =>
+            console.error('[useAutoLock] notification failed:', err),
+          );
+        }
+
         useVaultStore
           .getState()
           .lock()
@@ -72,5 +86,5 @@ export function useAutoLock(): void {
       document.removeEventListener('visibilitychange', onVisibilityChange);
       clearInterval(interval);
     };
-  }, [isAuthenticated, timeoutMinutes]);
+  }, [isAuthenticated, timeoutMinutes, autoLockNotificationEnabled]);
 }
