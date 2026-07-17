@@ -249,6 +249,12 @@ export function LoginPage() {
         console.warn('[PERF] PIN unlock total:', (performance.now() - t0).toFixed(1), 'ms');
         (window as typeof window & { __SOLOSOUL_UNLOCK_TIME?: number }).__SOLOSOUL_UNLOCK_TIME = t0;
         useAuthStore.setState({ isAuthenticated: true, currentAccount: acc });
+        // PIN 解锁后延迟检查备份提醒
+        setTimeout(() => {
+          import('@/lib/notification')
+            .then((m) => m.checkBackupReminder())
+            .catch((err) => console.error('[LoginPage] backup reminder check failed:', err));
+        }, 2000);
         navigate('/');
       } catch (e) {
         console.warn('[PERF] PIN unlock failed:', (performance.now() - t0).toFixed(1), 'ms');
@@ -294,6 +300,12 @@ export function LoginPage() {
       success = true;
       console.warn('[PERF] Biometric unlock total:', (performance.now() - t0).toFixed(1), 'ms');
       (window as typeof window & { __SOLOSOUL_UNLOCK_TIME?: number }).__SOLOSOUL_UNLOCK_TIME = t0;
+      // 生物识别解锁后延迟检查备份提醒
+      setTimeout(() => {
+        import('@/lib/notification')
+          .then((m) => m.checkBackupReminder())
+          .catch((err) => console.error('[LoginPage] backup reminder check failed:', err));
+      }, 2000);
       // Navigate immediately to avoid showing the biometric UI after success
       navigate('/');
     } catch (e) {
