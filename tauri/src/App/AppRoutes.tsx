@@ -277,12 +277,11 @@ export function AppRoutes() {
     };
 
     // 消费可能来自冷启动的 pending action
+    // 注意：必须先判断登录态再移除 pending，否则未登录时 pending 会被吞掉。
     const pending = sessionStorage.getItem('solosoul_pending_shortcut');
-    if (pending === 'new_object') {
+    if (pending === 'new_object' && isAuthenticated) {
       sessionStorage.removeItem('solosoul_pending_shortcut');
-      if (isAuthenticated) {
-        navigate('/editor?new=1');
-      }
+      navigate('/editor?new=1');
     }
 
     // 暴露全局回调供 Kotlin evaluateJavascript 调用

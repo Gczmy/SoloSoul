@@ -12,6 +12,26 @@ import java.io.File
 import java.io.IOException
 
 class MainActivity : TauriActivity() {
+  // 冷启动时 WebView 可能尚未挂树，先把快捷方式 action 暂存到这里，
+  // 等 WebView 就绪后通过 tryFlushPendingShortcut 注入前端 sessionStorage。
+  private var pendingShortcutAction: String? = null
+  private val shortcutFlushHandler = android.os.Handler(android.os.Looper.getMainLooper())
+  private var shortcutFlushAttempts = 0
+  private val shortcutFlushRunnable = object : Runnable {
+    override fun run() {
+      if (tryFlushPendingShortcut()) {
+        return
+      }
+      // 最多重试 10 次（约 2.5 秒），避免无限轮询
+      shortcutFlushAttempts++
+      if (shortcutFlushAttempts >= 10) {
+        android.util.Log.w("SoloSoul", "快捷方式注入重试次数已达上限，放弃: $pendingShortcutAction")
+        return
+      }
+      shortcutFlushHandler.postDelayed(this, 250)
+    }
+  }
+
   override fun onCreate(savedInstanceState: Bundle?) {
     enableEdgeToEdge()
     super.onCreate(savedInstanceState)
@@ -23,22 +43,63 @@ class MainActivity : TauriActivity() {
     extractAssetsToDataDir(assets, dataDir)
     // 处理快捷方式 intent（冷启动）
     handleShortcutIntent(intent)
+    // 延迟重试注入 pending shortcut，以覆盖 WebView 尚未就绪的冷启动场景
+    schedulePendingShortcutFlush()
   }
 
   override fun onNewIntent(intent: Intent?) {
     super.onNewIntent(intent)
     // 处理快捷方式 intent（热启动）
     handleShortcutIntent(intent)
+    // 热启动时也可能遇到 WebView 尚未就绪，重新启动 flush 轮询
+    schedulePendingShortcutFlush()
+  }
+
+  override fun onResume() {
+    super.onResume()
+    // 每次回到前台时尝试清空可能因 WebView 未就绪而遗留的 pending shortcut
+    tryFlushPendingShortcut()
   }
 
   /**
    * 读取 intent 中的 shortcut_action extra，并通过 WebView 注入自定义 DOM 事件
-   * 通知前端触发「新建对象」流程。若 WebView 尚未就绪则事件会被前端缓存消费。
+   * 通知前端触发「新建对象」流程。若 WebView 尚未就绪则缓存到 pendingShortcutAction，
+   * 稍后通过 schedulePendingShortcutFlush / tryFlushPendingShortcut 重试。
    */
   private fun handleShortcutIntent(intent: Intent?) {
     val action = intent?.getStringExtra("shortcut_action") ?: return
     if (action != "new_object") return
-    val webView = findWebView(window.decorView) ?: return
+    if (!tryFlushPendingShortcut(action)) {
+      pendingShortcutAction = action
+      android.util.Log.w("SoloSoul", "WebView 未就绪，暂存快捷方式 action: $action")
+    }
+  }
+
+  private fun schedulePendingShortcutFlush() {
+    shortcutFlushHandler.removeCallbacks(shortcutFlushRunnable)
+    shortcutFlushAttempts = 0
+    shortcutFlushHandler.postDelayed(shortcutFlushRunnable, 250)
+  }
+
+  override fun onDestroy() {
+    super.onDestroy()
+    shortcutFlushHandler.removeCallbacks(shortcutFlushRunnable)
+  }
+
+  private fun tryFlushPendingShortcut(): Boolean {
+    val action = pendingShortcutAction ?: return true
+    return tryFlushPendingShortcut(action).also { flushed ->
+      if (flushed) {
+        pendingShortcutAction = null
+      }
+    }
+  }
+
+  private fun tryFlushPendingShortcut(action: String): Boolean {
+    val webView = findWebView(window.decorView)
+    if (webView == null) {
+      return false
+    }
     val script = """
       (function() {
         if (window.__SOLOSOUL_HANDLE_SHORTCUT__) {
@@ -51,6 +112,7 @@ class MainActivity : TauriActivity() {
     runOnUiThread {
       webView.evaluateJavascript(script, null)
     }
+    return true
   }
 
   /** 简单转义字符串供 JS 使用，避免引入额外依赖 */
