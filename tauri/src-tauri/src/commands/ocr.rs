@@ -14,18 +14,17 @@ use crate::commands::{mobile_not_supported, mobile_not_supported_with};
 #[cfg(desktop)]
 use serde_json::json;
 #[cfg(desktop)]
-use solosoul_core::ocr::{
-    engine::OcrEngine,
-    model::{
-        install_model_from_bundled, install_model_from_bundled_with_progress, is_model_installed,
-        resolve_model_bundle,
-    },
-    types::{MrzResult, OcrModelTier, OcrResult},
-};
+use solosoul_core::ocr::engine::OcrEngine;
 #[cfg(desktop)]
+use solosoul_core::ocr::model::{
+    install_model_from_bundled, install_model_from_bundled_with_progress,
+};
+use solosoul_core::ocr::model::{is_model_installed, resolve_model_bundle};
+use solosoul_core::ocr::types::{MrzResult, OcrModelTier, OcrResult};
 use std::path::{Path, PathBuf};
 #[cfg(desktop)]
-use tauri::{Emitter, Manager};
+use tauri::Emitter;
+use tauri::Manager;
 
 // Re-export core types so callers can rely on a stable Tauri-facing name.
 #[cfg(desktop)]
@@ -155,18 +154,33 @@ pub struct OcrModelStatus {
 }
 
 // =============================================================================
-// Paths and preferences (desktop only)
+// Paths and preferences
 // =============================================================================
-#[cfg(desktop)]
-mod desktop_impl {
-    use super::*;
 
-    /// 解析应用本地数据目录下的 OCR 模型根目录。
-    pub fn models_dir(app: &tauri::AppHandle) -> Result<PathBuf, String> {
+/// 解析应用数据目录下的 OCR 模型根目录。
+/// - 桌面端：LocalData/models
+/// - 移动端：Data/models（应用私有目录可写）
+pub fn models_dir(app: &tauri::AppHandle) -> Result<PathBuf, String> {
+    #[cfg(desktop)]
+    {
         app.path()
             .resolve("models", tauri::path::BaseDirectory::LocalData)
             .map_err(|e| format!("无法解析模型目录: {e}"))
     }
+    #[cfg(mobile)]
+    {
+        app.path()
+            .resolve("models", tauri::path::BaseDirectory::Data)
+            .map_err(|e| format!("无法解析模型目录: {e}"))
+    }
+}
+
+// =============================================================================
+// Desktop-only helpers
+// =============================================================================
+#[cfg(desktop)]
+mod desktop_impl {
+    use super::*;
 
     /// 解析打包资源中的模型根目录。
     pub fn bundled_models_dir() -> Result<PathBuf, String> {
@@ -554,13 +568,16 @@ pub async fn ocr_get_model_status(
 #[cfg(mobile)]
 #[tauri::command]
 pub async fn ocr_get_model_status(
-    _state: tauri::State<'_, AppState>,
+    state: tauri::State<'_, AppState>,
     tier: String,
 ) -> Result<OcrModelStatus, String> {
-    // 移动端 OCR 暂未实现；返回未安装/未打包状态，避免页面初始化时弹出未支持提示。
+    let tier: OcrModelTier = tier.parse()?;
+    let models_dir = models_dir(&state.handle)?;
+
     Ok(OcrModelStatus {
-        tier,
-        installed: false,
+        tier: tier.to_string(),
+        installed: is_model_installed(&models_dir, tier),
+        // 移动端不打包 OCR 模型（P0-03 已排除），始终为 false
         bundled: false,
     })
 }
@@ -702,18 +719,59 @@ pub async fn ocr_download_model(
 #[cfg(mobile)]
 #[tauri::command]
 pub async fn ocr_download_model(
-    _state: tauri::State<'_, AppState>,
-    _tier: String,
-    _base_url: String,
+    state: tauri::State<'_, AppState>,
+    tier: String,
+    base_url: String,
 ) -> Result<(), String> {
-    mobile_not_supported()
+    let tier: OcrModelTier = tier.parse()?;
+    let models_dir = models_dir(&state.handle)?;
+    download_model_files(&base_url, &models_dir, tier).await
+}
+
+/// 删除指定档位的 OCR 模型（释放存储空间）。
+#[cfg(desktop)]
+#[tauri::command]
+pub async fn ocr_delete_model(
+    state: tauri::State<'_, AppState>,
+    tier: String,
+) -> Result<(), String> {
+    use solosoul_core::ocr::model::remove_model_dir;
+
+    let vault = vault_handle(&state)?;
+    let account_id = current_account(&state)?;
+
+    let tier: OcrModelTier = tier.parse()?;
+    let models_dir = models_dir(&state.handle)?;
+    remove_model_dir(&models_dir, tier)?;
+
+    let _ = vault.log_structured(
+        "ocr_delete_model",
+        "ocr_model",
+        None,
+        Some(&tier.to_string()),
+        &account_id,
+        None,
+    );
+    Ok(())
+}
+
+#[cfg(mobile)]
+#[tauri::command]
+pub async fn ocr_delete_model(
+    state: tauri::State<'_, AppState>,
+    tier: String,
+) -> Result<(), String> {
+    use solosoul_core::ocr::model::remove_model_dir;
+
+    let tier: OcrModelTier = tier.parse()?;
+    let models_dir = models_dir(&state.handle)?;
+    remove_model_dir(&models_dir, tier)
 }
 
 // =============================================================================
-// Download helper (desktop only)
+// Download helper (shared)
 // =============================================================================
 
-#[cfg(desktop)]
 async fn download_model_files(
     base_url: &str,
     models_dir: &Path,

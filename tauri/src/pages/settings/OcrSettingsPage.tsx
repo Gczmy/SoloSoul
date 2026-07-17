@@ -5,16 +5,18 @@ import { AppShell } from '@/components/layout/AppShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { useToastError } from '@/hooks/useToastError';
+import { useConfirm } from '@/hooks/useConfirm';
 import { invoke } from '@tauri-apps/api/core';
 import type { OcrTierInfo, OcrModelStatus } from '@/lib/ipc';
 import { getTierLabel } from '@/lib/utils';
-import { Download, CheckCircle, AlertCircle } from 'lucide-react';
+import { Download, CheckCircle, AlertCircle, Trash2 } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/constants';
 
 export function OcrSettingsPage() {
   const navigate = useNavigate();
   const { t } = useTranslation(['ocr', 'settings', 'common']);
   const { onError, onSuccess } = useToastError();
+  const { requestConfirm, dialog: confirmDialog } = useConfirm();
 
   const [tiers, setTiers] = useState<OcrTierInfo[]>([]);
   const [activeTier, setActiveTier] = useState('small');
@@ -22,6 +24,7 @@ export function OcrSettingsPage() {
   const [loading, setLoading] = useState(true);
   const [installingTier, setInstallingTier] = useState<string | null>(null);
   const [downloadingTier, setDownloadingTier] = useState<string | null>(null);
+  const [deletingTier, setDeletingTier] = useState<string | null>(null);
   const [downloadUrl, setDownloadUrl] = useState('');
 
   const loadTiersAndStatus = async () => {
@@ -78,25 +81,47 @@ export function OcrSettingsPage() {
     }
   };
 
+  const handleDelete = async (tier: string) => {
+    setDeletingTier(tier);
+    try {
+      await invoke<void>('ocr_delete_model', { tier });
+      await loadTiersAndStatus();
+      onSuccess(t('ocr:delete_success', { tier }));
+    } catch (e) {
+      onError(e, t('ocr:delete_failed', { tier }));
+    } finally {
+      setDeletingTier(null);
+    }
+  };
+
   const handleDownload = async (tier: string) => {
     if (!downloadUrl.trim()) {
       onError(new Error(t('ocr:download_url_required')), t('ocr:download_url_required'));
       return;
     }
-    setDownloadingTier(tier);
-    try {
-      await invoke<void>('ocr_download_model', { tier, baseUrl: downloadUrl.trim() });
-      await loadTiersAndStatus();
-      onSuccess(t('ocr:download_success', { tier }));
-    } catch (e) {
-      onError(e, t('ocr:download_failed', { tier }));
-    } finally {
-      setDownloadingTier(null);
-    }
+    const size = tier === 'tiny' ? '1.5MB' : tier === 'medium' ? '132MB' : '30MB';
+    requestConfirm(
+      t('ocr:confirm_download_title'),
+      t('ocr:confirm_download_message', { tier, size }),
+      async () => {
+        setDownloadingTier(tier);
+        try {
+          await invoke<void>('ocr_download_model', { tier, baseUrl: downloadUrl.trim() });
+          await loadTiersAndStatus();
+          onSuccess(t('ocr:download_success', { tier }));
+        } catch (e) {
+          onError(e, t('ocr:download_failed', { tier }));
+        } finally {
+          setDownloadingTier(null);
+        }
+      },
+      { confirmLabel: t('ocr:confirm_download_ok'), cancelLabel: t('common:cancel') },
+    );
   };
 
   return (
     <AppShell title={t('ocr:settings_title')} onBack={() => navigate('/settings')}>
+      {confirmDialog}
       <PageContainer variant="medium" gap="default">
         <Card>
           <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 12 }}>
@@ -137,6 +162,9 @@ export function OcrSettingsPage() {
               const status = statusMap[tier.tier];
               const isInstalling = installingTier === tier.tier;
               const isDownloading = downloadingTier === tier.tier;
+              const isDeleting = deletingTier === tier.tier;
+              const tierSize =
+                tier.tier === 'tiny' ? '1.5MB' : tier.tier === 'medium' ? '132MB' : '30MB';
               return (
                 <div
                   key={tier.tier}
@@ -163,7 +191,7 @@ export function OcrSettingsPage() {
                       </div>
                       <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
                         {status?.installed
-                          ? t('ocr:status_installed')
+                          ? `${t('ocr:status_installed')} · ${t('ocr:storage_usage_value', { size: tierSize })}`
                           : status?.bundled
                             ? t('ocr:status_bundled')
                             : t('ocr:status_not_installed')}
@@ -256,6 +284,53 @@ export function OcrSettingsPage() {
                           <>
                             <Download size={ICON_SIZE.sm} />
                             {t('ocr:download')}
+                          </>
+                        )}
+                      </button>
+                    )}
+                    {status?.installed && (
+                      <button
+                        onClick={() => handleDelete(tier.tier)}
+                        disabled={isDeleting}
+                        onMouseEnter={(e) => {
+                          if (!isDeleting) {
+                            e.currentTarget.style.background =
+                              'color-mix(in srgb, var(--error) 12%, transparent)';
+                            e.currentTarget.style.borderColor = 'var(--error)';
+                            e.currentTarget.style.color = 'var(--error)';
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!isDeleting) {
+                            e.currentTarget.style.background = 'var(--bg-toolbar)';
+                            e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                            e.currentTarget.style.color = 'var(--text-primary)';
+                          }
+                        }}
+                        style={{
+                          padding: '6px 12px',
+                          borderRadius: 8,
+                          border: '1px solid var(--border-subtle)',
+                          background: 'var(--bg-toolbar)',
+                          color: 'var(--text-primary)',
+                          fontSize: 'var(--text-caption)',
+                          fontWeight: 500,
+                          cursor: isDeleting ? 'default' : 'pointer',
+                          opacity: isDeleting ? 0.6 : 1,
+                          transition: 'all 0.15s ease',
+                          fontFamily: 'inherit',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: 4,
+                          whiteSpace: 'nowrap',
+                        }}
+                      >
+                        {isDeleting ? (
+                          t('common:loading', { defaultValue: '...' })
+                        ) : (
+                          <>
+                            <Trash2 size={ICON_SIZE.sm} color="var(--error)" />
+                            {t('common:delete')}
                           </>
                         )}
                       </button>

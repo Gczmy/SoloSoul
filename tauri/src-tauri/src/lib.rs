@@ -512,6 +512,7 @@ pub fn run() {
             commands::ocr::ocr_install_bundled_model,
             commands::ocr::ocr_install_bundled_model_with_progress,
             commands::ocr::ocr_download_model,
+            commands::ocr::ocr_delete_model,
             // Attachment commands
             commands::attachment::attachment_list,
             commands::attachment::attachment_save,
