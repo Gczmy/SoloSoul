@@ -712,6 +712,11 @@ pub async fn ocr_delete_model(
 // Download helper (shared)
 // =============================================================================
 
+/// 最大重试次数。
+const MAX_RETRIES: u32 = 3;
+/// 指数退避的初始等待时间（毫秒）。
+const BASE_BACKOFF_MS: u64 = 1_000;
+
 async fn download_model_files(
     base_url: &str,
     models_dir: &Path,
@@ -735,21 +740,81 @@ async fn download_model_files(
     let base = base_url.trim_end_matches('/');
     for (rel_path, label) in files {
         let url = format!("{base}/{tier_name}/{rel_path}");
-        let resp = client
-            .get(&url)
-            .send()
-            .await
-            .map_err(|e| format!("下载 {label} 失败: {e}"))?;
-        if !resp.status().is_success() {
-            return Err(format!("下载 {label} 失败: HTTP {}", resp.status()));
-        }
-        let bytes = resp
-            .bytes()
-            .await
-            .map_err(|e| format!("读取 {label} 响应失败: {e}"))?;
         let dst = dst_base.join(rel_path);
-        std::fs::write(&dst, bytes).map_err(|e| format!("写入 {label} 失败: {e}"))?;
+
+        // 带指数退避的重试循环
+        let mut last_error = String::new();
+        let mut success = false;
+        for attempt in 0..=MAX_RETRIES {
+            // 重试前清理可能存在的半成品文件
+            if attempt > 0 && dst.exists() {
+                let _ = std::fs::remove_file(&dst);
+            }
+
+            match download_single_file(&client, &url, &dst, label).await {
+                Ok(()) => {
+                    success = true;
+                    break;
+                }
+                Err(e) => {
+                    last_error = e;
+                    if attempt < MAX_RETRIES {
+                        let wait_ms = BASE_BACKOFF_MS * (2u64.pow(attempt));
+                        tracing::warn!(
+                            "下载 {label} 第 {} 次失败，{}ms 后重试: {}",
+                            attempt + 1,
+                            wait_ms,
+                            last_error
+                        );
+                        tokio::time::sleep(std::time::Duration::from_millis(wait_ms)).await;
+                    }
+                }
+            }
+        }
+
+        if !success {
+            // 所有重试均失败，清理残留文件
+            let _ = std::fs::remove_file(&dst);
+            return Err(format!(
+                "下载 {label} 失败（已重试 {} 次）: {}",
+                MAX_RETRIES, last_error
+            ));
+        }
     }
+
+    Ok(())
+}
+
+/// 下载单个文件并写入磁盘，如果写入失败则清理残留。
+async fn download_single_file(
+    client: &reqwest::Client,
+    url: &str,
+    dst: &Path,
+    label: &str,
+) -> Result<(), String> {
+    let resp = client
+        .get(url)
+        .send()
+        .await
+        .map_err(|e| format!("下载 {label} 失败: {e}"))?;
+
+    if !resp.status().is_success() {
+        return Err(format!("下载 {label} 失败: HTTP {}", resp.status()));
+    }
+
+    let bytes = resp
+        .bytes()
+        .await
+        .map_err(|e| format!("读取 {label} 响应失败: {e}"))?;
+
+    // 写入前先写入临时文件，避免进程崩溃导致半成品残留
+    let temp_path = dst.with_extension("tmp");
+    std::fs::write(&temp_path, &bytes)
+        .map_err(|e| format!("写入 {label} 临时文件失败: {e}"))?;
+
+    // 原子重命名：临时文件确认写入后再替换目标文件
+    std::fs::rename(&temp_path, dst)
+        .map_err(|e| format!("重命名 {label} 文件失败: {e}"))?;
 
     Ok(())
 }
