@@ -118,6 +118,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         id: accountId,
         name: accountId,
       };
+      // 记录解锁完成时刻供 T2 性能基线使用
+      (window as typeof window & { __SOLOSOUL_UNLOCK_TIME?: number }).__SOLOSOUL_UNLOCK_TIME =
+        performance.now();
+
       set({
         isAuthenticated: true,
         currentAccount: account,

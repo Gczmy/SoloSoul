@@ -16,6 +16,8 @@ interface SecurePasswordInputProps {
   autoComplete?: string;
   /** Enter key callback for form submission without mouse */
   onEnter?: () => void;
+  /** Focus callback for the underlying input element */
+  onFocus?: () => void;
   /** Password hint shown via the hint button tooltip */
   hint?: string | null;
   /** Whether to show the hint button. Defaults to true.
@@ -35,6 +37,7 @@ export function SecurePasswordInput({
   hint,
   showHintButton = true,
   onEnter,
+  onFocus,
 }: SecurePasswordInputProps) {
   const inputId = useId();
   const [visible, setVisible] = useState(false);
@@ -48,8 +51,11 @@ export function SecurePasswordInput({
   const inputRef = useRef<HTMLInputElement>(null);
   const { t } = useTranslation(['common', 'auth']);
 
-  // Focus change handler — sync to state
-  const handleFocus = useCallback(() => setIsFocused(true), []);
+  // Focus change handler — sync to state and fire external callback
+  const handleFocus = useCallback(() => {
+    setIsFocused(true);
+    onFocus?.();
+  }, [onFocus]);
   const handleBlur = useCallback(() => {
     setVisible(false);
     setIsFocused(false);

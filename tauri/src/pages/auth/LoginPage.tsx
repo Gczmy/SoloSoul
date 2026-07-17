@@ -67,15 +67,9 @@ export function LoginPage() {
   const [committedIcon, setCommittedIcon] = useState<string | null>(null);
   const commitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // 移动端启动性能基线：登录页首个输入框可交互时记录 T1（MOB-P1-07）
-  useEffect(() => {
-    const start = (window as typeof window & { __SOLOSOUL_APP_START_TIME?: number })
-      .__SOLOSOUL_APP_START_TIME;
-    if (typeof start === 'number') {
-      const t1 = performance.now() - start;
-      console.warn(`[perf] T1=${t1.toFixed(1)}ms`);
-    }
-  }, []);
+  // 移动端启动性能基线：登录页首个输入框获焦时记录 T1（MOB-P1-07）
+  // 注意 T1 从 __SOLOSOUL_APP_START_TIME 开始算，记录首个输入框 focus 时刻。
+  const t1FiredRef = useRef(false);
 
   useEffect(() => {
     // Defensive load: fetch the account list directly in case Vite HMR keeps
@@ -253,6 +247,7 @@ export function LoginPage() {
           action: 'unlock',
         });
         console.warn('[PERF] PIN unlock total:', (performance.now() - t0).toFixed(1), 'ms');
+        (window as typeof window & { __SOLOSOUL_UNLOCK_TIME?: number }).__SOLOSOUL_UNLOCK_TIME = t0;
         useAuthStore.setState({ isAuthenticated: true, currentAccount: acc });
         navigate('/');
       } catch (e) {
@@ -298,6 +293,7 @@ export function LoginPage() {
       useAuthStore.setState({ isAuthenticated: true, currentAccount: acc, accounts: accs });
       success = true;
       console.warn('[PERF] Biometric unlock total:', (performance.now() - t0).toFixed(1), 'ms');
+      (window as typeof window & { __SOLOSOUL_UNLOCK_TIME?: number }).__SOLOSOUL_UNLOCK_TIME = t0;
       // Navigate immediately to avoid showing the biometric UI after success
       navigate('/');
     } catch (e) {
@@ -639,6 +635,18 @@ export function LoginPage() {
                 hint={selectedAccount?.passwordHint || null}
                 autoComplete="current-password"
                 onEnter={handleSubmit}
+                onFocus={() => {
+                  // T1：首个输入框获焦时记录，仅一次
+                  if (t1FiredRef.current) return;
+                  t1FiredRef.current = true;
+                  const start = (
+                    window as typeof window & { __SOLOSOUL_APP_START_TIME?: number }
+                  ).__SOLOSOUL_APP_START_TIME;
+                  if (typeof start === 'number') {
+                    const t1 = performance.now() - start;
+                    console.warn(`[perf] T1=${t1.toFixed(1)}ms`);
+                  }
+                }}
               />
               {(error || bioError || submitError || pinError) && (
                 <div style={{ color: '#dc2626', fontSize: 'var(--text-body-sm)' }}>

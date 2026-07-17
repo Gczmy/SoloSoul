@@ -171,11 +171,13 @@ export function HomePage() {
   const activeCustomPages = useActiveCustomPages();
 
   // 移动端启动性能基线：首页对象列表可见时记录 T2（MOB-P1-07）
+  // 从解锁完成时刻（__SOLOSOUL_UNLOCK_TIME）开始计算，而非应用启动时刻
   useEffect(() => {
-    const start = (window as typeof window & { __SOLOSOUL_APP_START_TIME?: number })
-      .__SOLOSOUL_APP_START_TIME;
-    if (typeof start === 'number') {
-      const t2 = performance.now() - start;
+    const unlockTime = (
+      window as typeof window & { __SOLOSOUL_UNLOCK_TIME?: number }
+    ).__SOLOSOUL_UNLOCK_TIME;
+    if (typeof unlockTime === 'number') {
+      const t2 = performance.now() - unlockTime;
       console.warn(`[perf] T2=${t2.toFixed(1)}ms`);
     }
   }, []);
