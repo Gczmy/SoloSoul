@@ -40,7 +40,7 @@ jobs:
 
   rust-check:
     name: Rust Format, Clippy & Tests
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
         with:
@@ -55,6 +55,15 @@ jobs:
         uses: Swatinem/rust-cache@v2
         with:
           workspaces: tauri/src-tauri
+
+      - name: Setup Rust targets
+        run: |
+          rustup target add aarch64-apple-ios aarch64-apple-ios-sim
+
+      - name: Cargo check (iOS targets)
+        run: |
+          cd tauri
+          cargo check --target aarch64-apple-ios --target aarch64-apple-ios-sim
 
       - name: Check formatting
         run: |
