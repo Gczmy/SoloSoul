@@ -69,7 +69,7 @@ export function MobileBottomNav() {
         </div>
       )}
 
-      <nav className={styles.bottomNav} aria-label={t('home')}>
+      <nav className={styles.bottomNav} aria-label={t('home')} data-testid="mobile-bottom-nav">
         {NAV_ITEMS.map(({ path, labelKey, Icon }) => {
           const isActive =
             path === '/' ? location.pathname === '/' : location.pathname.startsWith(path);

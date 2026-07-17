@@ -151,7 +151,7 @@ export const WorkspaceObjectCard = memo(function WorkspaceObjectCard({
   });
 
   return (
-    <div ref={dragRef} style={{ position: 'relative' }}>
+    <div ref={dragRef} style={{ position: 'relative' }} data-testid="workspace-object-card">
       <Card interactive onClick={onClick}>
         {/* 模板更新提示条 */}
         {needsSync && onSync && (

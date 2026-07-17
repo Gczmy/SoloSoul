@@ -8,6 +8,7 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { useProfileStore } from '@/stores/profileStore';
 import { useApplyThemeFromSettings } from '@/hooks/useApplyThemeFromSettings';
 import { useAutoLock } from '@/hooks/useAutoLock';
+import { initLlmNotificationListener } from '@/lib/notification';
 import { applyTheme, getSystemTheme, listenForSystemTheme } from '@/lib/theme';
 import { isMobilePlatformSync } from '@/lib/platform';
 import { getCurrentWindow } from '@tauri-apps/api/window';
@@ -224,6 +225,15 @@ export function AppRoutes() {
 
   useApplyThemeFromSettings();
   useAutoLock();
+
+  // 延迟初始化通知监听器，直到用户解锁 Vault 后再注册，避免启动时
+  // 触发权限申请或占用资源（MOB-P3-03）。
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    initLlmNotificationListener().catch((err) =>
+      console.warn('[AppRoutes] LLM notification listener failed:', err),
+    );
+  }, [isAuthenticated]);
 
   // Listen for system theme changes (via Tauri Event from Rust backend)
   useEffect(() => {

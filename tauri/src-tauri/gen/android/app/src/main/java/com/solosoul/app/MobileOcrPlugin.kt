@@ -26,6 +26,14 @@ class ScanImageArgs {
  */
 @TauriPlugin
 class MobileOcrPlugin(private val activity: Activity): Plugin(activity) {
+    /**
+     * 复用 TextRecognizer 实例，避免每次扫描重复初始化模型。
+     * 使用 lazy 延迟加载，首次扫描时才创建。
+     */
+    private val recognizer: TextRecognizer by lazy {
+        TextRecognition.getClient(ChineseTextRecognizerOptions.Builder().build())
+    }
+
     @Command
     fun scanImage(invoke: Invoke) {
         try {
@@ -38,10 +46,6 @@ class MobileOcrPlugin(private val activity: Activity): Plugin(activity) {
             }
 
             val image = InputImage.fromFilePath(activity, uri)
-            // 优先使用中文识别器，同时覆盖英文等拉丁字符。
-            val recognizer = TextRecognition.getClient(
-                ChineseTextRecognizerOptions.Builder().build()
-            )
 
             recognizer.process(image)
                 .addOnSuccessListener { visionText ->
@@ -80,6 +84,16 @@ class MobileOcrPlugin(private val activity: Activity): Plugin(activity) {
                 }
         } catch (e: Exception) {
             invoke.reject("OCR 调用失败: ${e.message}")
+        }
+    }
+
+    /**
+     * 插件销毁时释放 ML Kit 原生资源。
+     */
+    override fun onDestroy() {
+        super.onDestroy()
+        if (::recognizer.isInitialized) {
+            recognizer.close()
         }
     }
 }

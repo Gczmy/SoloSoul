@@ -401,6 +401,7 @@ export function ObjectDetailModal({
             ref={detailDragRef}
             onClick={(e) => e.stopPropagation()}
             className={styles.modal}
+            data-testid="object-detail-modal"
           >
             <>
               {/* Header */}
@@ -473,7 +474,7 @@ export function ObjectDetailModal({
                     </span>
                   </div>
                 </div>
-                <button onClick={onClose} className={styles.closeBtn}>
+                <button onClick={onClose} className={styles.closeBtn} data-testid="object-detail-close" aria-label={t('common:close')}>
                   <X size={ICON_SIZE.xl} />
                 </button>
               </div>

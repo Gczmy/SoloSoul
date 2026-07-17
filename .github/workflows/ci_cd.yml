@@ -247,7 +247,67 @@ jobs:
             tauri/src-tauri/target/release/bundle/nsis/*.exe.sig
 
   # ============================================================
-  # Job 6: Create Release Draft (master push only, after builds)
+  # Job 6: Mobile E2E Smoke Tests (PR + master push)
+  # ============================================================
+  mobile-e2e-smoke:
+    name: Mobile E2E Smoke Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tauri
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check if mobile files changed
+        id: changed
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            mobile:
+              - 'tauri/src/**/*.{ts,tsx,css}'
+              - 'tauri/e2e/**'
+              - 'tauri/playwright.config.ts'
+              - 'tauri/package*.json'
+              - '.github/workflows/ci_cd.yml'
+
+      - name: Skip if no mobile changes
+        if: steps.changed.outputs.mobile != 'true'
+        run: echo "No mobile-related changes, skipping mobile E2E tests."
+
+      - name: Setup Node
+        if: steps.changed.outputs.mobile == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: tauri/package-lock.json
+
+      - name: Install dependencies
+        if: steps.changed.outputs.mobile == 'true'
+        run: npm ci
+
+      - name: Install Playwright browsers
+        if: steps.changed.outputs.mobile == 'true'
+        run: npx playwright install chromium
+
+      - name: Run mobile smoke E2E tests
+        if: steps.changed.outputs.mobile == 'true'
+        run: npx playwright test --project=mobile
+
+      - name: Upload Playwright report on failure
+        if: failure() && steps.changed.outputs.mobile == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: mobile-e2e-report
+          path: |
+            tauri/playwright-report/
+            tauri/test-results/
+
+  # ============================================================
+  # Job 7: Create Release Draft (master push only, after builds)
   # ============================================================
   release:
     name: Create Release Draft
