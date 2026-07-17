@@ -21,6 +21,7 @@ import {
 import { LocalEmbeddingsPanel } from '@/components/llm-config/LocalEmbeddingsPanel';
 import { KnowledgeBaseCard } from '@/components/llm-config/KnowledgeBaseCard';
 import { RiskAcceptanceDialog } from '@/components/llm-config/RiskAcceptanceDialog';
+import { isMobilePlatformSync } from '@/lib/platform';
 import { ICON_SIZE } from '@/lib/constants';
 
 /** AI 功能中始终处于禁用状态的功能（UI 尚未提供开关） */
@@ -350,18 +351,20 @@ export function LlmConfigPage() {
           onTestConnection={handleTestConnection}
         />
 
-        <LocalEmbeddingsPanel
-          useLocalEmbedding={useLocalEmbedding}
-          localModelId={localModelId}
-          embedModels={embedModels}
-          downloadingId={downloadingId}
-          downloadProgress={downloadProgress}
-          modelsLoading={modelsLoading}
-          onToggle={handleToggleLocalEmbedding}
-          onSelectModel={handleSelectLocalModel}
-          onDownload={handleDownloadModel}
-          onDelete={handleDeleteModel}
-        />
+        {!isMobilePlatformSync() && (
+          <LocalEmbeddingsPanel
+            useLocalEmbedding={useLocalEmbedding}
+            localModelId={localModelId}
+            embedModels={embedModels}
+            downloadingId={downloadingId}
+            downloadProgress={downloadProgress}
+            modelsLoading={modelsLoading}
+            onToggle={handleToggleLocalEmbedding}
+            onSelectModel={handleSelectLocalModel}
+            onDownload={handleDownloadModel}
+            onDelete={handleDeleteModel}
+          />
+        )}
 
         <KnowledgeBaseCard
           embeddingAvailable={embeddingAvailable}
