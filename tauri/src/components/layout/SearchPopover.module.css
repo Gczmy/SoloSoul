@@ -20,6 +20,14 @@
   flex-direction: column;
   overflow: hidden;
 }
+
+/* 移动端键盘弹出时，搜索弹层需要更多垂直空间 */
+@media (max-width: 767px) {
+  .card {
+    max-height: calc(100vh - 64px);
+    max-height: calc(100dvh - 64px);
+  }
+}
 .inputRow {
   display: flex;
   align-items: center;

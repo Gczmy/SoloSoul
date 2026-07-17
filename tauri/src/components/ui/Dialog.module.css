@@ -41,6 +41,16 @@
   z-index: 1;
 }
 
+/* 移动端键盘弹出时，优先保证对话框内容可滚动且不被键盘遮挡 */
+@media (max-width: 767px) {
+  .dialog {
+    max-height: calc(100% - 32px);
+    align-self: flex-start;
+    margin-top: auto;
+    margin-bottom: auto;
+  }
+}
+
 @keyframes dialogIn {
   from {
     opacity: 0;
