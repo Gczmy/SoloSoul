@@ -124,11 +124,16 @@ fn register_plugin<R: Runtime>(
 
 /// 识别图片中的文字（移动端入口）。
 #[tauri::command]
-pub fn mobile_ocr_scan_image<R: Runtime>(
+pub async fn mobile_ocr_scan_image<R: Runtime>(
     app: AppHandle<R>,
     file_path: String,
 ) -> Result<OcrResult, String> {
-    let handle = app.state::<MobileOcrPluginHandle<R>>();
-    let result = handle.scan_image(ScanImagePayload { file_path })?;
+    // ML Kit 识别是 IO/CPU 密集型操作，放到 spawn_blocking 避免阻塞 tokio runtime
+    let result = tokio::task::spawn_blocking(move || {
+        let handle = app.state::<MobileOcrPluginHandle<R>>();
+        handle.scan_image(ScanImagePayload { file_path })
+    })
+    .await
+    .map_err(|e| format!("mobile ocr task failed: {e}"))??;
     Ok(result.into())
 }

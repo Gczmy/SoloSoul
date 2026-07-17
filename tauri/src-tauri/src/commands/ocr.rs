@@ -8,10 +8,8 @@ use serde::{Deserialize, Serialize};
 
 #[cfg(mobile)]
 use crate::commands::mobile_not_supported;
-#[cfg(desktop)]
 use crate::commands::{current_account, vault_handle};
 
-#[cfg(desktop)]
 use serde_json::json;
 #[cfg(desktop)]
 use solosoul_core::ocr::engine::OcrEngine;
@@ -383,11 +381,36 @@ pub async fn ocr_scan_image(
 #[tauri::command]
 pub async fn ocr_scan_image(
     app: tauri::AppHandle,
-    _state: tauri::State<'_, AppState>,
+    state: tauri::State<'_, AppState>,
     file_path: String,
     _language: Option<String>,
 ) -> Result<OcrResult, String> {
-    crate::mobile_ocr_plugin::mobile_ocr_scan_image(app, file_path)
+    // 移动端同样需要 Vault 已解锁，并记录审计日志
+    let vault = vault_handle(&state)?;
+    let account_id = current_account(&state)?;
+
+    let result = crate::mobile_ocr_plugin::mobile_ocr_scan_image(app, file_path.clone()).await?;
+
+    let file_name = PathBuf::from(&file_path)
+        .file_name()
+        .map(|n| n.to_string_lossy().to_string());
+    let details = serde_json::json!({
+        "fileType": "image",
+        "boxCount": result.boxes.len(),
+        "textLength": result.text.len(),
+        "confidence": result.confidence,
+    })
+    .to_string();
+    let _ = vault.log_structured(
+        "ocr_scan",
+        "file",
+        None,
+        file_name.as_deref(),
+        &account_id,
+        Some(&details),
+    );
+
+    Ok(result)
 }
 
 /// 扫描图片中的 MRZ（机读区）并返回解析结果。
