@@ -15,6 +15,7 @@ interface OcrScanControlsProps {
   onTierChange: (tier: string) => void;
   onScanModeChange: (mode: 'general' | 'mrz') => void;
   onSelectFile: () => void;
+  isMobile?: boolean;
 }
 
 export function OcrScanControls({
@@ -27,6 +28,7 @@ export function OcrScanControls({
   onTierChange,
   onScanModeChange,
   onSelectFile,
+  isMobile = false,
 }: OcrScanControlsProps) {
   const { t } = useTranslation(['ocr', 'common']);
 
@@ -213,7 +215,9 @@ export function OcrScanControls({
           }}
         >
           <FileText size={ICON_SIZE.md} />
-          {scanMode === 'mrz' ? t('ocr:select_image') : t('ocr:select_image_or_pdf')}
+          {scanMode === 'mrz' || isMobile
+            ? t('ocr:select_image')
+            : t('ocr:select_image_or_pdf')}
         </button>
       </div>
 

@@ -5,6 +5,7 @@ import { useOcrScanStore, type OcrScanEntry } from '@/stores/ocrScanStore';
 import { invoke } from '@tauri-apps/api/core';
 import type { OcrTierInfo, OcrModelStatus } from '@/lib/ipc';
 import { useToastError } from '@/hooks/useToastError';
+import { isMobilePlatformSync } from '@/lib/platform';
 import { OcrPopoverHeader } from '@/components/ocr/OcrPopoverHeader';
 import styles from './OcrQuickScanPopover.module.css';
 import { OcrHistoryTrashDropdown } from '@/components/ocr/OcrHistoryTrashDropdown';
@@ -122,10 +123,12 @@ export function OcrQuickScanPopover({
     return () => document.removeEventListener('keydown', handler);
   }, [onClose]);
 
+  const isMobile = isMobilePlatformSync();
+
   const handleSelectFile = async () => {
     try {
       const filters =
-        store.scanMode === 'mrz'
+        store.scanMode === 'mrz' || isMobile
           ? [{ name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'webp', 'bmp', 'tiff'] }]
           : [
               {
@@ -229,6 +232,7 @@ export function OcrQuickScanPopover({
           onTierChange={handleTierChange}
           onScanModeChange={(mode) => store.setScanMode(mode)}
           onSelectFile={handleSelectFile}
+          isMobile={isMobile}
         />
 
         <OcrResultPanel
