@@ -7,6 +7,7 @@ use tauri::Manager;
 pub mod attachment_import_plugin;
 pub mod commands;
 pub mod local_embed;
+pub mod mobile_ocr_plugin;
 pub mod nsd_plugin;
 pub mod plugin;
 pub mod services;
@@ -143,7 +144,8 @@ pub fn run() {
         .plugin(tauri_plugin_os::init())
         .plugin(status_bar_plugin::init())
         .plugin(attachment_import_plugin::init())
-        .plugin(nsd_plugin::init());
+        .plugin(nsd_plugin::init())
+        .plugin(mobile_ocr_plugin::init());
 
     // 移动端专属插件
     #[cfg(any(target_os = "android", target_os = "ios"))]
@@ -520,6 +522,7 @@ pub fn run() {
             commands::ocr::ocr_install_bundled_model,
             commands::ocr::ocr_install_bundled_model_with_progress,
             commands::ocr::ocr_download_model,
+            commands::ocr::ocr_delete_model,
             // Attachment commands
             commands::attachment::attachment_list,
             commands::attachment::attachment_save,
