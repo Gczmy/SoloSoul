@@ -7,8 +7,6 @@ import android.net.nsd.NsdManager
 import android.net.nsd.NsdServiceInfo
 import android.net.wifi.WifiManager
 import android.os.Build
-import android.os.Handler
-import android.os.Looper
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import app.tauri.annotation.Command
@@ -19,7 +17,6 @@ import app.tauri.plugin.Plugin
 import app.tauri.plugin.Invoke
 import org.json.JSONArray
 import org.json.JSONObject
-import java.net.InetAddress
 import java.util.concurrent.ConcurrentHashMap
 
 @InvokeArg
@@ -58,8 +55,7 @@ class NsdPlugin(private val activity: Activity): Plugin(activity) {
     private var multicastLock: WifiManager.MulticastLock? = null
 
     private var permissionGranted: Boolean? = null
-    private val permissionHandler = Handler(Looper.getMainLooper())
-    private var permissionRunnable: Runnable? = null
+    private var pendingPermissionInvoke: Invoke? = null
 
     companion object {
         private const val SERVICE_TYPE = "_solosoul._tcp"
@@ -246,40 +242,48 @@ class NsdPlugin(private val activity: Activity): Plugin(activity) {
                 return
             }
 
+            // 避免并发请求覆盖前一个回调
+            pendingPermissionInvoke?.let {
+                try { it.reject("Another permission request was started") } catch (_: Exception) { }
+            }
+            pendingPermissionInvoke = invoke
+
             ActivityCompat.requestPermissions(
                 activity,
                 arrayOf(permission),
                 PERMISSION_REQUEST_CODE
             )
-
-            // 权限请求是异步的，通过轮询等待用户响应（最多 10 秒）。
-            permissionRunnable?.let { permissionHandler.removeCallbacks(it) }
-            val deadline = System.currentTimeMillis() + 10_000
-            val runnable = object : Runnable {
-                override fun run() {
-                    if (ContextCompat.checkSelfPermission(activity, permission) == PackageManager.PERMISSION_GRANTED) {
-                        permissionGranted = true
-                        permissionRunnable = null
-                        invoke.resolve(JSObject())
-                    } else if (System.currentTimeMillis() >= deadline) {
-                        permissionGranted = false
-                        permissionRunnable = null
-                        invoke.reject("Permission denied: $permission")
-                    } else {
-                        permissionHandler.postDelayed(this, 200)
-                    }
-                }
-            }
-            permissionRunnable = runnable
-            permissionHandler.postDelayed(runnable, 200)
         } catch (e: Exception) {
+            pendingPermissionInvoke = null
             invoke.reject("请求 NSD 权限失败: ${e.message}")
+        }
+    }
+
+    /**
+     * 处理权限请求结果回调，替代轮询。
+     */
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode != PERMISSION_REQUEST_CODE) return
+        val invoke = pendingPermissionInvoke ?: return
+        pendingPermissionInvoke = null
+
+        val granted = grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED
+        permissionGranted = granted
+        if (granted) {
+            invoke.resolve(JSObject())
+        } else {
+            invoke.reject("Permission denied for NSD discovery")
         }
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        permissionRunnable?.let { permissionHandler.removeCallbacks(it) }
+        // 若权限请求仍在等待，拒绝并释放回调，避免前端挂起
+        pendingPermissionInvoke?.let {
+            try { it.reject("Plugin destroyed before permission result") } catch (_: Exception) { }
+            pendingPermissionInvoke = null
+        }
         // 清理 NSD 发现与注册，避免插件销毁后泄漏监听器和 MulticastLock
         discoveryListener?.let { listener ->
             try {
