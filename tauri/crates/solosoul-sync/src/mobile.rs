@@ -16,7 +16,7 @@ use tokio::sync::Mutex;
 use tokio::task::{spawn_blocking, JoinHandle};
 
 /// 长周期 Noise 身份密钥，与桌面端实现一致。
-pub use crate::noise::NoiseKeys;
+use crate::noise::NoiseKeys;
 
 /// 同步服务。
 pub struct SyncService {

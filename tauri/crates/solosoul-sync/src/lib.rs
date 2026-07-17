@@ -37,4 +37,8 @@ pub use manager::SyncManager;
 pub use service::SyncService;
 
 #[cfg(any(target_os = "android", target_os = "ios"))]
-pub use mobile::{NoiseKeys, SyncService};
+pub use mobile::SyncService;
+
+// NoiseKeys 在 noise 模块中定义；桌面端与移动端统一从此处 re-export，
+// 避免 mobile 模块再导出时与 lib.rs 的 re-export 产生冲突。
+pub use noise::NoiseKeys;
