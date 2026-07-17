@@ -3,7 +3,6 @@
 //! 移动端不使用桌面端的 mdns-sd，发现层由 Android NSD / iOS Bonjour 插件负责。
 //! 本模块仅负责启动 TCP 监听、接受入站同步连接、以及作为发起方与指定地址同步。
 
-use crate::noise::NoiseKeys;
 use crate::session::{handle_inbound, run_initiator_session};
 use crate::transport::SyncTransport;
 use crate::types::{SyncPeerInfo, SyncSessionResult};
@@ -51,12 +50,12 @@ impl SyncService {
             };
             let (node_id, keys) = get_or_create_sync_identity(&vault)?;
             let manager = MobileSyncManager::new(node_id, account_id, keys, vault.clone())?;
-            manager.start()?;
+            let port = manager.start()?;
             audit_log(
                 &vault,
                 "sync_enabled",
                 None,
-                Some(&format!("fingerprint={}", manager.fingerprint())),
+                Some(&format!("fingerprint={},port={}", manager.fingerprint(), port)),
             );
             *guard = Some(manager);
             Ok(())
@@ -193,6 +192,12 @@ impl SyncService {
             Ok(keys.fingerprint())
         }
     }
+
+    /// 返回当前监听端口（未启用时返回 0）。
+    pub async fn listen_port(&self) -> u16 {
+        let guard = self.manager.lock().await;
+        guard.as_ref().map(|m| m.listen_port()).unwrap_or(0)
+    }
 }
 
 /// 移动端同步管理器：维护 TCP 监听与 Noise 身份。
@@ -202,7 +207,7 @@ struct MobileSyncManager {
     keys: NoiseKeys,
     vault: Arc<VaultStore>,
     listen_port: AtomicU16,
-    running: AtomicBool,
+    running: Arc<AtomicBool>,
     worker_handles: StdMutex<Vec<JoinHandle<()>>>,
 }
 
@@ -219,13 +224,17 @@ impl MobileSyncManager {
             keys,
             vault,
             listen_port: AtomicU16::new(0),
-            running: AtomicBool::new(false),
+            running: Arc::new(AtomicBool::new(false)),
             worker_handles: StdMutex::new(Vec::new()),
         })
     }
 
     fn fingerprint(&self) -> String {
         self.keys.fingerprint()
+    }
+
+    fn listen_port(&self) -> u16 {
+        self.listen_port.load(Ordering::SeqCst)
     }
 
     fn start(&self) -> Result<u16, String> {
@@ -244,7 +253,7 @@ impl MobileSyncManager {
             .port();
         self.listen_port.store(port, Ordering::SeqCst);
 
-        let running = self.running.clone();
+        let running = Arc::clone(&self.running);
         let node_id = self.node_id.clone();
         let account_id = self.account_id.clone();
         let keys = self.keys.clone();

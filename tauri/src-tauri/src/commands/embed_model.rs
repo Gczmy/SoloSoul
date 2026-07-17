@@ -6,8 +6,7 @@ use sha2::Digest;
 use std::path::{Path, PathBuf};
 use tauri::{path::BaseDirectory, AppHandle, Emitter, Manager};
 
-#[cfg(mobile)]
-use crate::commands::{mobile_not_supported, mobile_not_supported_with};
+
 
 // ── Registry ─────────────────────────────────────────────────
 
@@ -29,7 +28,6 @@ pub struct EmbedRegistry {
     pub models: Vec<EmbedModelInfo>,
 }
 
-#[cfg(desktop)]
 /// Fetch the remote model registry.
 pub async fn fetch_registry() -> Result<EmbedRegistry, String> {
     let client = reqwest::Client::builder()

@@ -253,7 +253,7 @@ jobs:
     name: Create Release Draft
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
-    needs: [build-macos, build-windows, build-android-release]
+    needs: [build-macos, build-windows]
     steps:
       - uses: actions/checkout@v4
 
@@ -269,7 +269,8 @@ jobs:
           name: windows-release
           path: release-artifacts/
 
-      - name: Download Android release artifacts
+      - name: Download Android release artifacts (from build-android.yml)
+        continue-on-error: true
         uses: actions/download-artifact@v4
         with:
           name: solosoul-android-release

@@ -86,9 +86,9 @@ npx tauri android build --apk --debug      # 验证 Android 端可构建
 | MOB-P4-01 | OCR/embedding 模型按需下载 | 5–8 天 | P0-03 |
 | MOB-P4-02 | 移动端推理后端（ort/ML Kit） | 10–20 天 | P4-01 |
 | MOB-P5-01 | `tauri ios init` 与工程提交 | 2–3 天 | P1 |
-| MOB-P5-02 | iOS `attachment_open` 实现 | 3–5 天 | P5-01 |
-| MOB-P5-03 | iOS 状态栏/生物识别补齐 | 3–5 天 | P5-01、P3-01 |
-| MOB-P5-04 | Apple 签名与 TestFlight | 3–5 天（需真机） | P5-01 |
+| MOB-P5-02 | iOS `attachment_open` 实现（⏸️ 暂缓） | 3–5 天 | P5-01 |
+| MOB-P5-03 | iOS 状态栏/生物识别补齐（⏸️ 暂缓） | 3–5 天 | P5-01、P3-01 |
+| MOB-P5-04 | Apple 签名与 TestFlight（⏸️ 暂缓） | 3–5 天（需真机） | P5-01 |
 
 ---
 
@@ -588,6 +588,8 @@ npx tauri android build --apk --debug      # 验证 Android 端可构建
 ## 7. P5 — iOS 启动
 
 > 前置：Apple Developer 账号（99 USD/年）、一台 Mac、一台 iPhone 真机（最后验证必需）。
+>
+> **状态更新（2026-07-17）**：MOB-P5-01 工程与配置已落地（代码审查发现移动端 Rust target 存在编译问题，需先修复再谈 iOS 验证）。**MOB-P5-02 / P5-03 / P5-04 暂缓处理 —— 目前无 iOS 版本发布计划**，任务内容保留，待重启 iOS 计划时直接沿用。
 
 ### MOB-P5-01 `tauri ios init` 与工程提交
 
@@ -605,7 +607,7 @@ npx tauri android build --apk --debug      # 验证 Android 端可构建
 
 - [ ] 模拟器完成启动 → 创建账户 → 解锁 → 列表/详情/新建对象闭环。
 
-### MOB-P5-02 iOS `attachment_open` 实现
+### MOB-P5-02 iOS `attachment_open` 实现（⏸️ 暂缓）
 
 - **预估**：3–5 天（需真机）｜ **依赖**：P5-01
 
@@ -622,7 +624,7 @@ npx tauri android build --apk --debug      # 验证 Android 端可构建
 
 - [ ] iOS 真机附件导入、预览、外部打开、导出分享全链路可用。
 
-### MOB-P5-03 iOS 状态栏/生物识别补齐
+### MOB-P5-03 iOS 状态栏/生物识别补齐（⏸️ 暂缓）
 
 - **预估**：3–5 天（需真机）｜ **依赖**：P5-01、P3-01
 
@@ -636,7 +638,7 @@ npx tauri android build --apk --debug      # 验证 Android 端可构建
 
 - [ ] Face ID 解锁 Vault；状态栏风格随主题切换；键盘场景无遮挡。
 
-### MOB-P5-04 Apple 签名与 TestFlight
+### MOB-P5-04 Apple 签名与 TestFlight（⏸️ 暂缓）
 
 - **预估**：3–5 天（需真机）｜ **依赖**：P5-01
 
@@ -661,5 +663,5 @@ npx tauri android build --apk --debug      # 验证 Android 端可构建
 - [ ] **P2**：390px 视口全页面走查通过；hover/触控/键盘/安全区/路由守卫问题清零。
 - [ ] **P3**：指纹解锁、双端同步、备份提醒真机可用。
 - [ ] **P4**（可选）：移动端 OCR 可用或明确的降级方案落地。
-- [ ] **P5**：TestFlight 内测可装可用。
+- [ ] **P5**：TestFlight 内测可装可用。（⏸️ P5-02~P5-04 暂缓：暂无 iOS 发布计划）
 - [ ] 全程：`npm run check-all` 与 `cargo ndk check` 常绿；文档（port-guide、release_process）同步更新。

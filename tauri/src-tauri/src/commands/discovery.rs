@@ -97,10 +97,27 @@ pub async fn mdns_discover(
     daemon: tauri::State<'_, SharedDaemon>,
     timeout_ms: u64,
 ) -> Result<Vec<DiscoveredDevice>, String> {
-    let _ = timeout_ms;
+    let _ = daemon;
+    let timeout_ms = timeout_ms.min(MDNS_MAX_TIMEOUT_MS);
     let handle = app.state::<crate::nsd_plugin::NsdPluginHandle<tauri::Wry>>();
     handle.start_discovery()?;
+
+    // 轮询等待 NSD 发现结果，避免立即读取返回空列表
+    let deadline = std::time::Instant::now() + std::time::Duration::from_millis(timeout_ms);
+    let mut last_count = 0usize;
+    loop {
+        tokio::time::sleep(std::time::Duration::from_millis(MDNS_POLL_INTERVAL_MS)).await;
+        let services = handle.get_discovered_services()?;
+        let count = services.len();
+        // 找到新服务或超时则退出
+        if count > last_count || std::time::Instant::now() >= deadline {
+            break;
+        }
+        last_count = count;
+    }
+
     let services = handle.get_discovered_services()?;
+    handle.stop_discovery()?;
     Ok(services
         .into_iter()
         .map(|s| DiscoveredDevice {
@@ -112,36 +129,63 @@ pub async fn mdns_discover(
         .collect())
 }
 
+#[cfg(desktop)]
 #[tauri::command]
 pub async fn mdns_advertise(
-    #[allow(unused_variables)] daemon: tauri::State<'_, SharedDaemon>,
-    #[allow(unused_variables)] device_name: String,
-    #[allow(unused_variables)] port: u16,
+    daemon: tauri::State<'_, SharedDaemon>,
+    device_name: String,
+    port: u16,
 ) -> Result<(), String> {
-    #[cfg(desktop)]
-    {
-        let daemon_arc = daemon.get().await?;
-        let guard = daemon_arc.lock().await;
-        let daemon = guard.as_ref().ok_or("mDNS daemon not initialized")?;
+    let daemon_arc = daemon.get().await?;
+    let guard = daemon_arc.lock().await;
+    let daemon = guard.as_ref().ok_or("mDNS daemon not initialized")?;
 
-        let service = ServiceInfo::new(
-            MDNS_SERVICE_TYPE,
-            &device_name,
-            &format!("{}.local.", device_name),
-            "",
-            port,
-            std::collections::HashMap::<String, String>::new(),
-        )
-        .map_err(|e| format!("ServiceInfo: {}", e))?;
+    let service = ServiceInfo::new(
+        MDNS_SERVICE_TYPE,
+        &device_name,
+        &format!("{}.local.", device_name),
+        "",
+        port,
+        std::collections::HashMap::<String, String>::new(),
+    )
+    .map_err(|e| format!("ServiceInfo: {}", e))?;
 
-        daemon
-            .register(service)
-            .map_err(|e| format!("Register: {}", e))?;
-        Ok(())
-    }
+    daemon
+        .register(service)
+        .map_err(|e| format!("Register: {}", e))?;
+    Ok(())
+}
 
-    #[cfg(mobile)]
-    crate::commands::mobile_not_supported()
+#[cfg(mobile)]
+#[tauri::command]
+pub async fn mdns_advertise(
+    app: tauri::AppHandle,
+    _daemon: tauri::State<'_, SharedDaemon>,
+    device_name: String,
+    port: u16,
+) -> Result<(), String> {
+    use crate::commands::current_account_optional;
+    use tauri::Manager;
+
+    let (account_id, fingerprint) = {
+        let state = app.state::<crate::state::AppState>();
+        let account_id = current_account_optional(&state).unwrap_or_default();
+        let fp = state
+            .sync_service
+            .local_fingerprint()
+            .await
+            .unwrap_or_default();
+        (account_id, fp)
+    };
+
+    let handle = app.state::<crate::nsd_plugin::NsdPluginHandle<tauri::Wry>>();
+    handle.register_service(crate::nsd_plugin::RegisterServicePayload {
+        port,
+        node_id: device_name,
+        account_id,
+        fingerprint,
+    })?;
+    Ok(())
 }
 
 #[cfg(test)]

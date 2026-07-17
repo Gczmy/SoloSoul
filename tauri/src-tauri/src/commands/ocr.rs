@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 #[cfg(desktop)]
 use crate::commands::{current_account, vault_handle};
 #[cfg(mobile)]
-use crate::commands::{mobile_not_supported, mobile_not_supported_with};
+use crate::commands::mobile_not_supported;
 
 #[cfg(desktop)]
 use serde_json::json;

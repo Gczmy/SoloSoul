@@ -5,24 +5,19 @@
 //! that depends on the unlocked vault store.
 
 use crate::state::AppState;
-use solosoul_core::biometric::BiometricAvailability;
+use solosoul_core::biometric::{BiometricAvailability, BiometricError, BiometricManager};
 use tauri::State;
 
 #[cfg(desktop)]
-use solosoul_core::biometric::{trigger_system_biometric, BiometricError, BiometricManager};
-#[cfg(all(mobile, any(target_os = "android", target_os = "ios")))]
-use solosoul_core::biometric::{BiometricError, BiometricManager};
+use solosoul_core::biometric::trigger_system_biometric;
 
-#[cfg(desktop)]
 const BIO_ERR_PREFIX: &str = "__BIO_ERR__:";
 
-#[cfg(desktop)]
 fn bio_err(code: &str) -> String {
     format!("{}{}", BIO_ERR_PREFIX, code)
 }
 
 /// 将 BiometricError 映射为前端可国际化的短代码。
-#[cfg(desktop)]
 fn map_bio_error(e: BiometricError, operation: &str) -> String {
     let code = match &e {
         BiometricError::PlatformNotSupported => "platform_not_supported",
