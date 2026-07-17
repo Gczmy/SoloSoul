@@ -19,16 +19,20 @@ class MainActivity : TauriActivity() {
   private var shortcutFlushAttempts = 0
   private val shortcutFlushRunnable = object : Runnable {
     override fun run() {
-      if (tryFlushPendingShortcut()) {
-        return
+      val action = pendingShortcutAction ?: return
+      tryFlushPendingShortcut(action) { success ->
+        if (success) {
+          pendingShortcutAction = null
+          return@tryFlushPendingShortcut
+        }
+        // 最多重试 30 次（约 7.5 秒），覆盖低端机冷启动
+        shortcutFlushAttempts++
+        if (shortcutFlushAttempts >= 30) {
+          android.util.Log.w("SoloSoul", "快捷方式注入重试次数已达上限，放弃: $action")
+          return@tryFlushPendingShortcut
+        }
+        shortcutFlushHandler.postDelayed(this, 250)
       }
-      // 最多重试 10 次（约 2.5 秒），避免无限轮询
-      shortcutFlushAttempts++
-      if (shortcutFlushAttempts >= 10) {
-        android.util.Log.w("SoloSoul", "快捷方式注入重试次数已达上限，放弃: $pendingShortcutAction")
-        return
-      }
-      shortcutFlushHandler.postDelayed(this, 250)
     }
   }
 
@@ -58,7 +62,7 @@ class MainActivity : TauriActivity() {
   override fun onResume() {
     super.onResume()
     // 每次回到前台时尝试清空可能因 WebView 未就绪而遗留的 pending shortcut
-    tryFlushPendingShortcut()
+    tryFlushPendingShortcut { /* no-op */ }
   }
 
   /**
@@ -69,9 +73,13 @@ class MainActivity : TauriActivity() {
   private fun handleShortcutIntent(intent: Intent?) {
     val action = intent?.getStringExtra("shortcut_action") ?: return
     if (action != "new_object") return
-    if (!tryFlushPendingShortcut(action)) {
-      pendingShortcutAction = action
-      android.util.Log.w("SoloSoul", "WebView 未就绪，暂存快捷方式 action: $action")
+    tryFlushPendingShortcut(action) { success ->
+      if (success) {
+        pendingShortcutAction = null
+      } else {
+        pendingShortcutAction = action
+        android.util.Log.w("SoloSoul", "WebView 未就绪，暂存快捷方式 action: $action")
+      }
     }
   }
 
@@ -86,33 +94,47 @@ class MainActivity : TauriActivity() {
     shortcutFlushHandler.removeCallbacks(shortcutFlushRunnable)
   }
 
-  private fun tryFlushPendingShortcut(): Boolean {
-    val action = pendingShortcutAction ?: return true
-    return tryFlushPendingShortcut(action).also { flushed ->
-      if (flushed) {
-        pendingShortcutAction = null
-      }
+  private fun tryFlushPendingShortcut(onResult: (Boolean) -> Unit = {}) {
+    val action = pendingShortcutAction
+    if (action == null) {
+      onResult(true)
+      return
     }
+    tryFlushPendingShortcut(action, onResult)
   }
 
-  private fun tryFlushPendingShortcut(action: String): Boolean {
+  private fun tryFlushPendingShortcut(action: String, onResult: (Boolean) -> Unit) {
     val webView = findWebView(window.decorView)
     if (webView == null) {
-      return false
+      onResult(false)
+      return
+    }
+    // 避免在 about:blank 等临时 origin 上写入 sessionStorage，
+    // 否则前端加载后无法读取到 pending action。
+    val url = webView.url
+    if (url.isNullOrBlank() || url.startsWith("about:")) {
+      android.util.Log.d("SoloSoul", "WebView 尚未加载应用页面，暂存快捷方式 action: $action")
+      onResult(false)
+      return
     }
     val script = """
       (function() {
         if (window.__SOLOSOUL_HANDLE_SHORTCUT__) {
           window.__SOLOSOUL_HANDLE_SHORTCUT__(${quoteJsString(action)});
+          return true;
         } else {
-          try { sessionStorage.setItem('solosoul_pending_shortcut', ${quoteJsString(action)}); } catch(e) {}
+          try {
+            sessionStorage.setItem('solosoul_pending_shortcut', ${quoteJsString(action)});
+            return true;
+          } catch(e) {
+            return false;
+          }
         }
       })();
     """.trimIndent()
-    runOnUiThread {
-      webView.evaluateJavascript(script, null)
+    webView.evaluateJavascript(script) { value ->
+      onResult(value == "true")
     }
-    return true
   }
 
   /** 简单转义字符串供 JS 使用，避免引入额外依赖 */
