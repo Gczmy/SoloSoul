@@ -8,10 +8,10 @@ use crate::state::AppState;
 use solosoul_core::biometric::BiometricAvailability;
 use tauri::State;
 
-#[cfg(mobile)]
-use crate::commands::{mobile_not_supported, mobile_not_supported_with};
 #[cfg(desktop)]
 use solosoul_core::biometric::{trigger_system_biometric, BiometricError, BiometricManager};
+#[cfg(all(mobile, any(target_os = "android", target_os = "ios")))]
+use solosoul_core::biometric::{BiometricError, BiometricManager};
 
 #[cfg(desktop)]
 const BIO_ERR_PREFIX: &str = "__BIO_ERR__:";
@@ -85,13 +85,35 @@ pub async fn biometric_check_availability(
     Ok(result)
 }
 
-#[cfg(mobile)]
+#[cfg(all(mobile, any(target_os = "android", target_os = "ios")))]
 #[tauri::command]
 pub async fn biometric_check_availability(
-    _state: State<'_, AppState>,
-    _account_id: String,
+    app: tauri::AppHandle,
+    state: State<'_, AppState>,
+    account_id: String,
 ) -> Result<BiometricAvailability, String> {
-    mobile_not_supported_with()
+    use tauri_plugin_biometric::{BiometricExt, BiometryType};
+
+    let status = app.biometric().status().map_err(|e| e.to_string())?;
+    let biometry_type = match status.biometry_type {
+        BiometryType::TouchID => Some("touchId".to_string()),
+        BiometryType::FaceID => Some("faceId".to_string()),
+        BiometryType::None => None,
+    };
+
+    let svc = state
+        .vault_service
+        .read()
+        .map_err(|_| "Vault service lock poisoned".to_string())?;
+    let manager = BiometricManager::new(svc.base_path().clone());
+    let configured = manager.is_configured(&account_id);
+
+    Ok(BiometricAvailability {
+        available: status.is_available,
+        configured,
+        biometry_type,
+        error: status.error,
+    })
 }
 
 #[cfg(desktop)]
@@ -150,17 +172,82 @@ pub async fn biometric_save_credential(
     Ok(())
 }
 
-#[cfg(mobile)]
+#[cfg(all(mobile, any(target_os = "android", target_os = "ios")))]
 #[tauri::command]
 pub async fn biometric_save_credential(
-    _state: State<'_, AppState>,
-    _account_id: String,
-    _password: String,
-    _location: Option<String>,
-    _action: Option<String>,
-    _biometry_type: Option<String>,
+    app: tauri::AppHandle,
+    state: State<'_, AppState>,
+    account_id: String,
+    password: String,
+    location: Option<String>,
+    action: Option<String>,
+    biometry_type: Option<String>,
 ) -> Result<(), String> {
-    mobile_not_supported()
+    use solosoul_core::biometric::legacy::FileBiometricStorage;
+    use solosoul_core::biometric::BiometricStorage;
+    use tauri_plugin_biometric::{AuthOptions, BiometricExt};
+
+    let svc = state
+        .vault_service
+        .read()
+        .map_err(|_| "Vault service lock poisoned".to_string())?;
+    let manager = BiometricManager::new(svc.base_path().clone());
+
+    // 1. 验证主密码
+    manager
+        .verify_password(&password, &account_id)
+        .map_err(|e| map_bio_error(e, "save"))?;
+
+    // 2. 通过系统生物识别提示确认用户身份（严格模式，不允许设备密码回退）
+    let reason = "verify your identity to enable biometric authentication for SoloSoul";
+    app.biometric()
+        .authenticate(
+            reason.to_string(),
+            AuthOptions {
+                allow_device_credential: false,
+                cancel_title: Some("Cancel".to_string()),
+                fallback_title: None,
+                title: Some("SoloSoul".to_string()),
+                subtitle: Some("Enable biometric authentication".to_string()),
+                confirmation_required: Some(false),
+            },
+        )
+        .map_err(|e| e.to_string())?;
+
+    // 3. 派生主密钥并保存到移动端加密文件存储
+    let key_hex = manager
+        .derive_key_hex(&password, &account_id)
+        .map_err(|e| map_bio_error(e, "save"))?;
+    let storage = FileBiometricStorage::new(svc.base_path().clone());
+    storage
+        .save(&account_id, &key_hex, reason)
+        .map_err(|e| map_bio_error(e, "save"))?;
+
+    // 4. 更新配置标记
+    manager
+        .set_config_flag(&account_id, true)
+        .map_err(|e| map_bio_error(e, "save"))?;
+
+    // 5. 审计日志
+    if let Some(vg) = svc.get_vault_store() {
+        let vault = vg.as_ref();
+        let loc = location.unwrap_or_else(|| "unknown".to_string());
+        let act = action.unwrap_or_else(|| "enable".to_string());
+        let bio_type = biometry_type.as_deref().unwrap_or("unknown");
+        let _ = vault.log_structured(
+            "biometric_saved",
+            "biometric",
+            Some(&account_id),
+            None,
+            "user",
+            Some(&format!(
+                "location={} action={} type={}",
+                loc, act, bio_type
+            )),
+        );
+    }
+
+    Ok(())
 }
 
 #[cfg(desktop)]
@@ -212,16 +299,85 @@ pub async fn biometric_unlock(
     Ok(())
 }
 
-#[cfg(mobile)]
+#[cfg(all(mobile, any(target_os = "android", target_os = "ios")))]
 #[tauri::command]
 pub async fn biometric_unlock(
-    _state: State<'_, AppState>,
-    _account_id: String,
-    _location: Option<String>,
-    _action: Option<String>,
-    _biometry_type: Option<String>,
+    app: tauri::AppHandle,
+    state: State<'_, AppState>,
+    account_id: String,
+    location: Option<String>,
+    action: Option<String>,
+    biometry_type: Option<String>,
 ) -> Result<(), String> {
-    mobile_not_supported()
+    use solosoul_core::biometric::legacy::FileBiometricStorage;
+    use solosoul_core::biometric::BiometricStorage;
+    use tauri_plugin_biometric::{AuthOptions, BiometricExt};
+
+    let svc = state
+        .vault_service
+        .read()
+        .map_err(|_| "Vault service lock poisoned".to_string())?;
+    let manager = BiometricManager::new(svc.base_path().clone());
+
+    // 1. 通过系统生物识别提示确认用户身份（允许设备密码回退）
+    let reason = "unlock SoloSoul";
+    app.biometric()
+        .authenticate(
+            reason.to_string(),
+            AuthOptions {
+                allow_device_credential: true,
+                cancel_title: Some("Cancel".to_string()),
+                fallback_title: None,
+                title: Some("SoloSoul".to_string()),
+                subtitle: Some("Unlock with biometric authentication".to_string()),
+                confirmation_required: Some(false),
+            },
+        )
+        .map_err(|e| e.to_string())?;
+
+    // 2. 读取已保存的主密钥
+    let storage = FileBiometricStorage::new(svc.base_path().clone());
+    let key_hex = storage
+        .read(&account_id, reason)
+        .map_err(|e| map_bio_error(e, "unlock"))?;
+    let key_bytes = hex::decode(&key_hex)
+        .map_err(|_| map_bio_error(BiometricError::InvalidKeyFormat, "unlock"))?;
+    let key: [u8; 32] = key_bytes
+        .as_slice()
+        .try_into()
+        .map_err(|_| map_bio_error(BiometricError::InvalidKeyFormat, "unlock"))?;
+
+    // 3. 解锁 Vault
+    svc.unlock_with_session_key(&account_id, &key)
+        .map_err(|e| map_bio_error(BiometricError::Other(format!("{:#}", e)), "unlock"))?;
+
+    // 4. 审计日志
+    if let Some(vg) = svc.get_vault_store() {
+        let vault = vg.as_ref();
+        let loc = location.unwrap_or_else(|| "unknown".to_string());
+        let act = action.unwrap_or_else(|| "unlock".to_string());
+        let bio_type = biometry_type.as_deref().unwrap_or("unknown");
+        if loc != "critical_data_access" {
+            let action_type = match bio_type {
+                "touchId" => "touch_id_unlock",
+                "faceId" => "face_id_unlock",
+                _ => "biometric_unlock",
+            };
+            let _ = vault.log_structured(
+                action_type,
+                "biometric",
+                Some(&account_id),
+                None,
+                "user",
+                Some(&format!(
+                    "location={} action={} type={}",
+                    loc, act, bio_type
+                )),
+            );
+        }
+    }
+
+    Ok(())
 }
 
 #[cfg(desktop)]
@@ -263,17 +419,63 @@ pub async fn biometric_delete_credential(
     Ok(())
 }
 
-#[cfg(mobile)]
+#[cfg(all(mobile, any(target_os = "android", target_os = "ios")))]
 #[tauri::command]
 pub async fn biometric_delete_credential(
-    _state: State<'_, AppState>,
-    _account_id: String,
-    _password: String,
-    _location: Option<String>,
-    _action: Option<String>,
-    _biometry_type: Option<String>,
+    _app: tauri::AppHandle,
+    state: State<'_, AppState>,
+    account_id: String,
+    password: String,
+    location: Option<String>,
+    action: Option<String>,
+    biometry_type: Option<String>,
 ) -> Result<(), String> {
-    mobile_not_supported()
+    use solosoul_core::biometric::legacy::FileBiometricStorage;
+    use solosoul_core::biometric::BiometricStorage;
+
+    let svc = state
+        .vault_service
+        .read()
+        .map_err(|_| "Vault service lock poisoned".to_string())?;
+    let manager = BiometricManager::new(svc.base_path().clone());
+
+    // 1. 验证主密码
+    manager
+        .verify_password(&password, &account_id)
+        .map_err(|e| map_bio_error(e, "delete"))?;
+
+    // 2. 删除移动端加密文件存储中的凭证
+    let storage = FileBiometricStorage::new(svc.base_path().clone());
+    match storage.delete(&account_id) {
+        Ok(()) | Err(BiometricError::KeychainItemNotFound) => {}
+        Err(e) => return Err(map_bio_error(e, "delete")),
+    }
+
+    // 3. 更新配置标记
+    manager
+        .set_config_flag(&account_id, false)
+        .map_err(|e| map_bio_error(e, "delete"))?;
+
+    // 4. 审计日志
+    if let Some(vg) = svc.get_vault_store() {
+        let vault = vg.as_ref();
+        let loc = location.unwrap_or_else(|| "unknown".to_string());
+        let act = action.unwrap_or_else(|| "disable".to_string());
+        let bio_type = biometry_type.as_deref().unwrap_or("unknown");
+        let _ = vault.log_structured(
+            "biometric_deleted",
+            "biometric",
+            Some(&account_id),
+            None,
+            "user",
+            Some(&format!(
+                "location={} action={} type={}",
+                loc, act, bio_type
+            )),
+        );
+    }
+
+    Ok(())
 }
 
 #[cfg(desktop)]
@@ -292,10 +494,26 @@ pub async fn biometric_test(_account_id: String) -> Result<bool, String> {
     Ok(true)
 }
 
-#[cfg(mobile)]
+#[cfg(all(mobile, any(target_os = "android", target_os = "ios")))]
 #[tauri::command]
-pub async fn biometric_test(_account_id: String) -> Result<bool, String> {
-    mobile_not_supported_with()
+pub async fn biometric_test(app: tauri::AppHandle, _account_id: String) -> Result<bool, String> {
+    use tauri_plugin_biometric::{AuthOptions, BiometricExt};
+
+    app.biometric()
+        .authenticate(
+            "Test biometric authentication for SoloSoul".to_string(),
+            AuthOptions {
+                allow_device_credential: false,
+                cancel_title: Some("Cancel".to_string()),
+                fallback_title: None,
+                title: Some("SoloSoul".to_string()),
+                subtitle: Some("Test biometric authentication".to_string()),
+                confirmation_required: Some(false),
+            },
+        )
+        .map_err(|e| e.to_string())?;
+
+    Ok(true)
 }
 
 #[cfg(all(test, desktop))]

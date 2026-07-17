@@ -1,0 +1,14 @@
+{
+  "identifier": "mobile",
+  "description": "Mobile-only capabilities (biometric)",
+  "windows": [
+    "main"
+  ],
+  "platforms": [
+    "android",
+    "iOS"
+  ],
+  "permissions": [
+    "biometric:default"
+  ]
+}

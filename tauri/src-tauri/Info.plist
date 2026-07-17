@@ -6,5 +6,7 @@
   <string>SoloSoul</string>
   <key>CFBundleName</key>
   <string>SoloSoul</string>
+  <key>NSFaceIDUsageDescription</key>
+  <string>验证身份以解锁 SoloSoul</string>
 </dict>
 </plist>

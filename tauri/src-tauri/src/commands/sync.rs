@@ -116,8 +116,25 @@ pub async fn sync_discover(state: State<'_, AppState>) -> Result<SyncStatus, Str
 
 #[cfg(mobile)]
 #[tauri::command]
-pub async fn sync_discover(_state: State<'_, AppState>) -> Result<SyncStatus, String> {
-    mobile_not_supported_with()
+pub async fn sync_discover(state: State<'_, AppState>) -> Result<SyncStatus, String> {
+    let peers = state.sync_service.known_peers().await?;
+    let local_fingerprint = state.sync_service.local_fingerprint().await?;
+    Ok(SyncStatus {
+        is_discovering: state.sync_service.is_enabled().await,
+        sync_enabled: state.sync_service.is_enabled().await,
+        local_fingerprint,
+        connected_peers: peers
+            .into_iter()
+            .map(|p| SyncPeer {
+                id: p.node_id,
+                name: p.name,
+                addr: p.addr,
+                fingerprint: p.fingerprint,
+                trusted: p.trusted,
+                last_seen: p.last_seen,
+            })
+            .collect(),
+    })
 }
 
 #[cfg(desktop)]
@@ -128,8 +145,8 @@ pub async fn sync_get_status(state: State<'_, AppState>) -> Result<SyncStatus, S
 
 #[cfg(mobile)]
 #[tauri::command]
-pub async fn sync_get_status(_state: State<'_, AppState>) -> Result<SyncStatus, String> {
-    mobile_not_supported_with()
+pub async fn sync_get_status(state: State<'_, AppState>) -> Result<SyncStatus, String> {
+    sync_discover(state).await
 }
 
 #[cfg(desktop)]
@@ -140,8 +157,8 @@ pub async fn sync_enable(state: State<'_, AppState>, enable: bool) -> Result<(),
 
 #[cfg(mobile)]
 #[tauri::command]
-pub async fn sync_enable(_state: State<'_, AppState>, _enable: bool) -> Result<(), String> {
-    mobile_not_supported()
+pub async fn sync_enable(state: State<'_, AppState>, enable: bool) -> Result<(), String> {
+    state.sync_service.enable(enable).await
 }
 
 #[cfg(desktop)]
@@ -165,10 +182,19 @@ pub async fn sync_with_device(
 #[cfg(mobile)]
 #[tauri::command]
 pub async fn sync_with_device(
-    _state: State<'_, AppState>,
-    _device_id: String,
+    state: State<'_, AppState>,
+    device_id: String,
 ) -> Result<SyncResult, String> {
-    mobile_not_supported_with()
+    let result = state.sync_service.sync_with_device(device_id).await?;
+    let mut sync_result = SyncResult::from(&result.data);
+    if !result.attachments.errors.is_empty() {
+        sync_result.summary = format!(
+            "{}; attachment errors: {}",
+            sync_result.summary,
+            result.attachments.errors.join("; ")
+        );
+    }
+    Ok(sync_result)
 }
 
 #[cfg(desktop)]
@@ -184,11 +210,11 @@ pub async fn sync_trust_peer(
 #[cfg(mobile)]
 #[tauri::command]
 pub async fn sync_trust_peer(
-    _state: State<'_, AppState>,
-    _peer_node_id: String,
-    _trusted: bool,
+    state: State<'_, AppState>,
+    peer_node_id: String,
+    trusted: bool,
 ) -> Result<(), String> {
-    mobile_not_supported()
+    state.sync_service.trust_peer(peer_node_id, trusted).await
 }
 
 #[cfg(desktop)]
@@ -203,10 +229,10 @@ pub async fn sync_forget_peer(
 #[cfg(mobile)]
 #[tauri::command]
 pub async fn sync_forget_peer(
-    _state: State<'_, AppState>,
-    _peer_node_id: String,
+    state: State<'_, AppState>,
+    peer_node_id: String,
 ) -> Result<(), String> {
-    mobile_not_supported()
+    state.sync_service.forget_peer(peer_node_id).await
 }
 
 #[cfg(all(test, desktop))]

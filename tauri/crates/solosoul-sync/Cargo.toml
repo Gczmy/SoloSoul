@@ -28,10 +28,19 @@ hex = { workspace = true }
 base64 = { workspace = true }
 sha2 = { workspace = true }
 
-# mDNS / Noise — 桌面端先行，移动端二期替换为 Android NSD
+# Noise 加密传输（全平台）。mDNS 仅桌面端，移动端二期替换为 Android NSD / iOS Bonjour。
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 mdns-sd = "0.11"
-snow = "0.9"
+
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies.snow]
+version = "0.9"
+
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies.x25519-dalek]
+version = "2"
+features = ["static_secrets"]
+
+[target.'cfg(any(target_os = "android", target_os = "ios"))'.dependencies]
+snow = { version = "0.9", features = ["default"] }
 x25519-dalek = { version = "2", features = ["static_secrets"] }
 
 [dev-dependencies]

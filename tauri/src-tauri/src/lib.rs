@@ -7,6 +7,7 @@ use tauri::Manager;
 pub mod attachment_import_plugin;
 pub mod commands;
 pub mod local_embed;
+pub mod nsd_plugin;
 pub mod plugin;
 pub mod services;
 pub mod state;
@@ -141,7 +142,14 @@ pub fn run() {
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_os::init())
         .plugin(status_bar_plugin::init())
-        .plugin(attachment_import_plugin::init());
+        .plugin(attachment_import_plugin::init())
+        .plugin(nsd_plugin::init());
+
+    // 移动端专属插件
+    #[cfg(any(target_os = "android", target_os = "ios"))]
+    {
+        builder = builder.plugin(tauri_plugin_biometric::init());
+    }
 
     // 桌面端专属插件
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
