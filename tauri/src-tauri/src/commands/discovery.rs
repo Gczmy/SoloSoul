@@ -7,6 +7,8 @@
 use mdns_sd::{ServiceDaemon, ServiceEvent, ServiceInfo};
 use serde::Serialize;
 use std::sync::Arc;
+#[cfg(mobile)]
+use tauri::Manager;
 use tokio::sync::Mutex;
 
 const MDNS_SERVICE_TYPE: &str = "_solosoul._tcp.local.";

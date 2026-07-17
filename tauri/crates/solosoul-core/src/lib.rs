@@ -21,7 +21,6 @@ pub mod search_filter;
 pub mod template_service;
 pub mod vault_service;
 
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
 pub mod ocr;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 pub mod pdfium;

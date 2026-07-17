@@ -1,9 +1,10 @@
 use crate::state::AppState;
 use serde::Serialize;
+#[cfg(mobile)]
+use tauri::Manager;
 use tauri::State;
 
-#[cfg(mobile)]
-use crate::commands::{mobile_not_supported, mobile_not_supported_with};
+
 #[cfg(desktop)]
 use solosoul_sync::types::{ApplyStats, ConflictRecord};
 
@@ -236,8 +237,32 @@ pub async fn sync_with_device(
     state: State<'_, AppState>,
     device_id: String,
 ) -> Result<SyncResult, String> {
+    // 移动端手动构造 SyncResult，因为 From<&ApplyStats> 实现在桌面端。
     let result = state.sync_service.sync_with_device(device_id).await?;
-    let mut sync_result = SyncResult::from(&result.data);
+    let stats = &result.data;
+    let mut sync_result = SyncResult {
+        summary: format!(
+            "examined={}, applied={}, skipped={}, conflicts={}",
+            stats.examined,
+            stats.applied,
+            stats.skipped,
+            stats.conflicts.len()
+        ),
+        examined: stats.examined,
+        applied: stats.applied,
+        skipped: stats.skipped,
+        conflicts: vec![],
+        per_table: stats
+            .per_table
+            .iter()
+            .map(|(table, s)| TableResult {
+                table: table.clone(),
+                examined: s.examined,
+                applied: s.applied,
+                skipped: s.skipped,
+            })
+            .collect(),
+    };
     if !result.attachments.errors.is_empty() {
         sync_result.summary = format!(
             "{}; attachment errors: {}",

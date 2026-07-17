@@ -256,11 +256,11 @@ pub async fn biometric_save_credential(
         {
             use std::os::unix::fs::PermissionsExt;
             let mut perms = std::fs::metadata(&path)
-                .map_err(|e| BiometricError::Other(format!("stat: {e}")))?
+                .map_err(|e| map_bio_error(BiometricError::Other(format!("stat: {e}")), "save"))?
                 .permissions();
             perms.set_mode(0o600);
             std::fs::set_permissions(&path, perms)
-                .map_err(|e| BiometricError::Other(format!("chmod: {e}")))?;
+                .map_err(|e| map_bio_error(BiometricError::Other(format!("chmod: {e}")), "save"))?;
         }
 
         // 删除旧版 FileBiometricStorage 凭证，避免弱加密文件残留

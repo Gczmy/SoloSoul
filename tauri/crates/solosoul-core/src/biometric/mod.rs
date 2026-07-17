@@ -384,7 +384,7 @@ impl BiometricManager {
         let _ = std::fs::remove_file(path.with_extension("key.old"));
     }
 
-    fn set_config_flag(&self, account_id: &str, enabled: bool) -> Result<(), BiometricError> {
+    pub fn set_config_flag(&self, account_id: &str, enabled: bool) -> Result<(), BiometricError> {
         let config_path = self.config_path(account_id);
         let s = std::fs::read_to_string(&config_path)
             .map_err(|_| BiometricError::Other("Account not found".into()))?;
