@@ -29,6 +29,10 @@ export interface AppSettings {
   language: string;
   locale: string;
   autoLockTimeoutMinutes: number;
+  /** 自动锁定后是否发送系统通知（默认关闭） */
+  autoLockNotificationEnabled: boolean;
+  /** 备份提醒周期（天），≤0 表示关闭 */
+  backupReminderDays: number;
   biometricEnabled: boolean;
   confirmDelete: boolean;
   customPages: CustomPage[];
@@ -89,6 +93,8 @@ const accountPrefsSchema = z
     language: z.enum(['zh-CN', 'en-US']).optional(),
     locale: z.string().optional(),
     autoLockTimeoutMinutes: z.number().optional(),
+    autoLockNotificationEnabled: z.boolean().optional(),
+    backupReminderDays: z.number().optional(),
     biometricEnabled: z.boolean().optional(),
     confirmDelete: z.boolean().optional(),
     sidebarPosition: z.enum(['left', 'right', 'top', 'bottom']).optional(),
@@ -108,6 +114,8 @@ const DEFAULT_SETTINGS: AppSettings = {
   language: detectSystemLanguage(),
   locale: detectSystemLanguage().startsWith('zh') ? 'zh' : 'en',
   autoLockTimeoutMinutes: 5,
+  autoLockNotificationEnabled: false,
+  backupReminderDays: 7,
   biometricEnabled: false,
   confirmDelete: true,
   customPages: [],
@@ -231,6 +239,10 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       if (prefs.locale) parsed.locale = prefs.locale;
       if (typeof prefs.autoLockTimeoutMinutes === 'number')
         parsed.autoLockTimeoutMinutes = prefs.autoLockTimeoutMinutes;
+      if (typeof prefs.autoLockNotificationEnabled === 'boolean')
+        parsed.autoLockNotificationEnabled = prefs.autoLockNotificationEnabled;
+      if (typeof prefs.backupReminderDays === 'number')
+        parsed.backupReminderDays = prefs.backupReminderDays;
       if (prefs.trashRetention) parsed.trashRetention = prefs.trashRetention;
       if (typeof prefs.biometricEnabled === 'boolean')
         parsed.biometricEnabled = prefs.biometricEnabled;
@@ -456,6 +468,8 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         language: state.settings.language,
         locale: state.settings.locale,
         autoLockTimeoutMinutes: state.settings.autoLockTimeoutMinutes,
+        autoLockNotificationEnabled: state.settings.autoLockNotificationEnabled,
+        backupReminderDays: state.settings.backupReminderDays,
         defaultLightTheme: state.settings.defaultLightTheme,
         defaultDarkTheme: state.settings.defaultDarkTheme,
         sidebarPosition: state.settings.sidebarPosition,

@@ -8,10 +8,12 @@ import { Input } from '@/components/ui/Input';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { useToastError } from '@/hooks/useToastError';
 import { invoke } from '@tauri-apps/api/core';
-import { HardDrive, RotateCcw, Plus } from 'lucide-react';
+import { HardDrive, RotateCcw, Plus, Bell } from 'lucide-react';
 import { DeleteButton } from '@/components/ui/DeleteButton';
 import { ICON_SIZE } from '@/lib/constants';
 import { formatBytes } from '@/lib/utils';
+import { useSettingsStore } from '@/stores/settingsStore';
+import { useAuthStore } from '@/stores/authStore';
 
 interface BackupInfo {
   id: string;
@@ -30,6 +32,9 @@ export function BackupConfigPage() {
   const [backupName, setBackupName] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [restoringId, setRestoringId] = useState<string | null>(null);
+
+  const currentAccount = useAuthStore((s) => s.currentAccount);
+  const { settings, updateSetting } = useSettingsStore();
 
   const loadBackups = useCallback(async () => {
     setIsLoading(true);
@@ -164,6 +169,51 @@ export function BackupConfigPage() {
                 </>
               )}
             </button>
+          </div>
+        </Card>
+
+        {/* Backup Reminder */}
+        <Card>
+          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, margin: '0 0 4px' }}>
+            <Bell size={ICON_SIZE.md} style={{ marginRight: 6, verticalAlign: 'text-bottom' }} />
+            {t('settings:backup_reminder')}
+          </h3>
+          <p
+            style={{
+              fontSize: 'var(--text-body-sm)',
+              color: 'var(--text-secondary)',
+              margin: '0 0 12px',
+            }}
+          >
+            {t('settings:backup_reminder_desc')}
+          </p>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span style={{ fontSize: 'var(--text-sm)' }}>{t('settings:backup_reminder_days')}</span>
+            <select
+              value={settings.backupReminderDays}
+              onChange={(e) => {
+                const value = parseInt(e.target.value, 10);
+                if (currentAccount?.id) {
+                  updateSetting(currentAccount.id, 'backupReminderDays', value);
+                }
+              }}
+              style={{
+                padding: '6px 10px',
+                borderRadius: 8,
+                border: '1px solid var(--border-subtle)',
+                background: 'var(--bg-toolbar)',
+                color: 'var(--text-primary)',
+                fontFamily: 'inherit',
+                fontSize: 'var(--text-body-sm)',
+              }}
+            >
+              <option value="0">{t('settings:backup_reminder_off')}</option>
+              <option value="1">{t('settings:backup_reminder_1d')}</option>
+              <option value="3">{t('settings:backup_reminder_3d')}</option>
+              <option value="7">{t('settings:backup_reminder_7d')}</option>
+              <option value="15">{t('settings:backup_reminder_15d')}</option>
+              <option value="30">{t('settings:backup_reminder_30d')}</option>
+            </select>
           </div>
         </Card>
 

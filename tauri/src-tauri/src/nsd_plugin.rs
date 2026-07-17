@@ -115,11 +115,12 @@ impl<R: Runtime> NsdPluginHandle<R> {
                 services: Vec<NsdServiceInfo>,
             }
             self.handle
-                .run_mobile_plugin::<serde_json::Value>("getDiscoveredServices", serde_json::json!({}))
+                .run_mobile_plugin::<serde_json::Value>(
+                    "getDiscoveredServices",
+                    serde_json::json!({}),
+                )
                 .map_err(|e| e.to_string())
-                .and_then(|v| {
-                    serde_json::from_value::<Wrapper>(v).map_err(|e| e.to_string())
-                })
+                .and_then(|v| serde_json::from_value::<Wrapper>(v).map_err(|e| e.to_string()))
                 .map(|w| w.services)
         }
         #[cfg(not(target_os = "android"))]

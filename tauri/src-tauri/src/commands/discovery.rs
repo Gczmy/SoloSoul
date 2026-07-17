@@ -59,7 +59,7 @@ pub struct DiscoveredDevice {
 pub async fn mdns_discover(
     #[allow(unused_variables)] daemon: tauri::State<'_, SharedDaemon>,
     #[allow(unused_variables)] timeout_ms: u64,
-    #[cfg(mobile)] app: tauri::AppHandle,
+    #[allow(unused_variables)] app: tauri::AppHandle,
 ) -> Result<Vec<DiscoveredDevice>, String> {
     #[cfg(desktop)]
     {

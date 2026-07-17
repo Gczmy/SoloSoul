@@ -119,6 +119,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         accounts,
         isLoading: false,
       });
+
+      // 解锁后延迟检查备份提醒，避免启动时立即弹权限/通知
+      setTimeout(() => {
+        import('@/lib/notification')
+          .then((m) => m.checkBackupReminder())
+          .catch((err) => console.error('[authStore] backup reminder check failed:', err));
+      }, 2000);
     } catch (err) {
       set({ error: String(err), isLoading: false });
     }
