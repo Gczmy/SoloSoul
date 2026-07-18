@@ -137,7 +137,10 @@ fn write_encrypted_key_file(
     let blob = solosoul_crypto::aes::encrypt_blob(&file_key_arr, key_hex.as_bytes())
         .map_err(|e| BiometricError::Other(format!("Encrypt failed: {e}")))?;
 
-    std::fs::create_dir_all(path.parent().unwrap()).map_err(|e| {
+    let parent = path.parent().ok_or_else(|| {
+        BiometricError::Other(format!("Invalid path: no parent directory for {}", path.display()))
+    })?;
+    std::fs::create_dir_all(parent).map_err(|e| {
         BiometricError::Other(format!("Failed to create {}: {}", path.display(), e))
     })?;
     std::fs::write(path, hex::encode(blob.as_slice()))
