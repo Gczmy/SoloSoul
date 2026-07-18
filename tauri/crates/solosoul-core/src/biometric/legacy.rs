@@ -138,7 +138,10 @@ fn write_encrypted_key_file(
         .map_err(|e| BiometricError::Other(format!("Encrypt failed: {e}")))?;
 
     let parent = path.parent().ok_or_else(|| {
-        BiometricError::Other(format!("Invalid path: no parent directory for {}", path.display()))
+        BiometricError::Other(format!(
+            "Invalid path: no parent directory for {}",
+            path.display()
+        ))
     })?;
     std::fs::create_dir_all(parent).map_err(|e| {
         BiometricError::Other(format!("Failed to create {}: {}", path.display(), e))
