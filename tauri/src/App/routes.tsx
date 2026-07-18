@@ -26,42 +26,12 @@ import { OcrPage } from '@/pages/scan/OcrPage';
 import { HistoryPage } from '@/pages/editor/HistoryPage';
 import { SyncPage } from '@/pages/sync/SyncPage';
 import { useAuthStore } from '@/stores/authStore';
-import { isMobilePlatform } from '@/lib/platform';
-
 import type { ReactNode } from 'react';
-import { useEffect, useState } from 'react';
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   if (!isAuthenticated) return <Navigate to="/login" replace />;
   return <>{children}</>;
-}
-
-/**
- * 桌面专属路由守卫：在移动端访问时重定向到首页。
- * 使用异步 isMobilePlatform() 而非 sync 版本，避免缓存未初始化时误判。
- */
-function DesktopOnlyGuard({ children }: { children: React.ReactNode }) {
-  const [blocked, setBlocked] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    isMobilePlatform().then((mobile) => {
-      if (!cancelled) setBlocked(mobile);
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  if (blocked === null) return null;
-  if (blocked) return <Navigate to="/" replace />;
-  return <>{children}</>;
-}
-
-/** 将元素包装为桌面专属路由，保持路由表可读性 */
-function desktopOnly(element: ReactNode) {
-  return <DesktopOnlyGuard>{element}</DesktopOnlyGuard>;
 }
 
 export interface RouteConfig {

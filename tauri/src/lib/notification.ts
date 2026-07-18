@@ -9,8 +9,6 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { invoke } from '@tauri-apps/api/core';
 import i18next from '@/lib/i18n';
 
-const AI_NOTIFICATION_TOAST_DURATION_MS = 5000;
-
 interface LlmStreamPayload {
   conversationId: string;
   chunk: string;

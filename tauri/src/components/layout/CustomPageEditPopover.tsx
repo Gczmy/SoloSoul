@@ -8,7 +8,6 @@ import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore, type CustomPage } from '@/stores/settingsStore';
 import {
   CUSTOM_ICON_MAP,
-  resolveCustomIcon,
   ICON_CATEGORIES,
   CATEGORY_LABELS,
   type CustomIconId,

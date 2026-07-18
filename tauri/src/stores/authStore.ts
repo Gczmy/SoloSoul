@@ -37,6 +37,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   checkHasAccount: async () => {
     try {
       const result = await invoke<boolean>('check_has_account');
+      // eslint-disable-next-line no-console
       console.log('[authStore] check_has_account result:', result);
       set({ hasAccount: result, backendError: false });
     } catch (err) {

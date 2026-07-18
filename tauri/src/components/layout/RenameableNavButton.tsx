@@ -1,7 +1,6 @@
 import { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAuthStore } from '@/stores/authStore';
-import { useSettingsStore } from '@/stores/settingsStore';
+
 import type { CustomPage } from '@/stores/settingsStore';
 import { NavButton } from './NavButton';
 import { resolveCustomIcon } from '@/lib/pageIcons';
@@ -22,8 +21,7 @@ export function RenameableNavButton({
   onClick: () => void;
   position?: import('./NavButton').NavPosition;
 }) {
-  const accountId = useAuthStore((s) => s.currentAccount?.id);
-  const { t } = useTranslation(['navigation', 'common']);
+  useTranslation(['navigation', 'common']);
   const [isEditing, setIsEditing] = useState(false);
   const [renameCardRect, setRenameCardRect] = useState<DOMRect | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
