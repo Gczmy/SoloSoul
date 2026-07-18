@@ -268,7 +268,8 @@ pub async fn biometric_save_credential(
     #[cfg(target_os = "ios")]
     {
         let reason = "verify your identity to enable biometric authentication for SoloSoul";
-        let storage = solosoul_core::biometric::legacy::FileBiometricStorage::new(svc.base_path().clone());
+        let storage =
+            solosoul_core::biometric::legacy::FileBiometricStorage::new(svc.base_path().clone());
         storage
             .save(&account_id, &key_hex, reason)
             .map_err(|e| map_bio_error(e, "save"))?;

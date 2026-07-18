@@ -445,78 +445,103 @@ pub fn trigger_system_biometric(reason: &str, strict: bool) -> Result<(), Biomet
 
 #[cfg(target_os = "macos")]
 fn trigger_macos_biometric(reason: &str, strict: bool) -> Result<(), BiometricError> {
-    use std::ffi::{c_void, CString};
+    use std::ffi::CString;
     use std::sync::mpsc;
 
     use block2::RcBlock;
     use objc2::msg_send;
+    use objc2::rc::autoreleasepool;
     use objc2::runtime::{AnyClass, NSObject};
 
-    let la_name = c"LAContext";
-    let la_cls = AnyClass::get(la_name).ok_or(BiometricError::UserPresenceUnavailable)?;
+    // 注意：evaluatePolicy:reply: 会弹出系统 UI 并异步回调。
+    // 本函数通过 mpsc 阻塞等待回调，因此不应在 macOS 主线程调用，
+    // 否则主 runloop 被阻塞后系统提示框无法显示，导致死锁。
+    autoreleasepool(|_| {
+        let la_name = c"LAContext";
+        let la_cls = AnyClass::get(la_name).ok_or(BiometricError::UserPresenceUnavailable)?;
 
-    // SAFETY: LAContext 是已知的 Objective-C 类，msg_send! 通过 objc2 运行时安全调用 ObjC 消息发送。
-    // alloc/init 是标准 ObjC 构造模式，返回的可保留对象由调用方负责 release。
-    let ctx: *mut NSObject = unsafe {
-        let alloc: *mut NSObject = msg_send![la_cls, alloc];
-        msg_send![alloc, init]
-    };
-    if ctx.is_null() {
-        return Err(BiometricError::UserPresenceUnavailable);
-    }
+        // SAFETY: LAContext 是已知的 Objective-C 类，msg_send! 通过 objc2 运行时安全调用 ObjC 消息发送。
+        // alloc/init 是标准 ObjC 构造模式，返回的可保留对象由调用方负责 release。
+        let ctx: *mut NSObject = unsafe {
+            let alloc: *mut NSObject = msg_send![la_cls, alloc];
+            msg_send![alloc, init]
+        };
+        if ctx.is_null() {
+            return Err(BiometricError::UserPresenceUnavailable);
+        }
 
-    let c_reason =
-        CString::new(reason).map_err(|_| BiometricError::Other("invalid reason string".into()))?;
-    let ns_name = c"NSString";
-    let ns_cls = AnyClass::get(ns_name)
-        .ok_or_else(|| BiometricError::Other("NSString class not found".into()))?;
-    // SAFETY: NSString 是已知 ObjC 类 +initWithUTF8String: 接收非空 C 字符串指针，
-    // c_reason 是刚分配的 CString，在 msg_send 期间保持有效。
-    let ns_reason: *mut NSObject = unsafe {
-        let alloc: *mut NSObject = msg_send![ns_cls, alloc];
-        msg_send![alloc, initWithUTF8String: c_reason.as_ptr()]
-    };
-    if ns_reason.is_null() {
-        return Err(BiometricError::Other("failed to create NSString".into()));
-    }
+        let c_reason = CString::new(reason)
+            .map_err(|_| BiometricError::Other("invalid reason string".into()))?;
+        let ns_name = c"NSString";
+        let ns_cls = AnyClass::get(ns_name)
+            .ok_or_else(|| BiometricError::Other("NSString class not found".into()))?;
+        // SAFETY: NSString 是已知 ObjC 类 +initWithUTF8String: 接收非空 C 字符串指针，
+        // c_reason 是刚分配的 CString，在 msg_send 期间保持有效。
+        let ns_reason: *mut NSObject = unsafe {
+            let alloc: *mut NSObject = msg_send![ns_cls, alloc];
+            msg_send![alloc, initWithUTF8String: c_reason.as_ptr()]
+        };
+        if ns_reason.is_null() {
+            return Err(BiometricError::Other("failed to create NSString".into()));
+        }
 
-    let (tx, rx) = mpsc::channel::<bool>();
+        let (tx, rx) = mpsc::channel::<Result<(), BiometricError>>();
 
-    let block = RcBlock::new(move |success: i8, _error: *mut c_void| {
-        let _ = tx.send(success != 0);
-    });
+        let block = RcBlock::new(move |success: i8, error: *mut NSObject| {
+            if success != 0 {
+                let _ = tx.send(Ok(()));
+                return;
+            }
 
-    // strict=true: LAPolicyDeviceOwnerAuthenticationWithBiometrics = 1（仅生物识别，无密码回退）
-    // strict=false: LAPolicyDeviceOwnerAuthentication = 2（生物识别优先，失败可回退设备密码）
-    let policy: i64 = if strict { 1 } else { 2 };
-    // SAFETY: ctx 与 ns_reason 均为刚创建的非空 ObjC 对象指针；evaluatePolicy:reply:
-    // 在 block 返回前不会释放这些参数；block 是 RcBlock，保证在跨线程回调期间有效。
-    unsafe {
-        let _: () = msg_send![
-            ctx,
-            evaluatePolicy: policy,
-            localizedReason: ns_reason,
-            reply: &*block,
-        ];
-    }
+            let err = if error.is_null() {
+                BiometricError::UserPresenceCancelled
+            } else {
+                // SAFETY: error 是 evaluatePolicy 回调返回的非空 NSError 指针，
+                // 仅在当前 block 执行期间有效；code 属性返回 NSInteger（i64）。
+                let code: i64 = unsafe { msg_send![error, code] };
+                match code {
+                    // LAErrorPasscodeNotSet = 5
+                    5 => BiometricError::UserPresenceUnavailable,
+                    // LAErrorBiometryNotAvailable = 6
+                    6 => BiometricError::UserPresenceUnavailable,
+                    // LAErrorBiometryNotEnrolled = 7
+                    7 => BiometricError::UserPresenceUnavailable,
+                    // LAErrorBiometryLockout = 8
+                    8 => BiometricError::Other("biometry locked out".into()),
+                    _ => BiometricError::UserPresenceCancelled,
+                }
+            };
+            let _ = tx.send(Err(err));
+        });
 
-    let success = rx
-        .recv()
-        .map_err(|_| BiometricError::UserPresenceCancelled)?;
+        // strict=true: LAPolicyDeviceOwnerAuthenticationWithBiometrics = 1（仅生物识别，无密码回退）
+        // strict=false: LAPolicyDeviceOwnerAuthentication = 2（生物识别优先，失败可回退设备密码）
+        let policy: i64 = if strict { 1 } else { 2 };
+        // SAFETY: ctx 与 ns_reason 均为刚创建的非空 ObjC 对象指针；evaluatePolicy:reply:
+        // 在 block 返回前不会释放这些参数；block 是 RcBlock，保证在跨线程回调期间有效。
+        unsafe {
+            let _: () = msg_send![
+                ctx,
+                evaluatePolicy: policy,
+                localizedReason: ns_reason,
+                reply: &*block,
+            ];
+        }
 
-    // Release manually-owned ObjC objects (MRC)
-    // SAFETY: ctx 和 ns_reason 均为 alloc/init 产生的 +1 retain 对象，evaluatePolicy:reply:
-    // 同步执行完毕不再需要它们，在此 release 归还所有权是标准 MRC 模式。
-    unsafe {
-        let _: () = msg_send![ctx, release];
-        let _: () = msg_send![ns_reason, release];
-    }
+        let result = rx
+            .recv()
+            .map_err(|_| BiometricError::UserPresenceCancelled)?;
 
-    if success {
-        Ok(())
-    } else {
-        Err(BiometricError::UserPresenceCancelled)
-    }
+        // Release manually-owned ObjC objects (MRC)
+        // SAFETY: ctx 和 ns_reason 均为 alloc/init 产生的 +1 retain 对象，evaluatePolicy:reply:
+        // 同步执行完毕不再需要它们，在此 release 归还所有权是标准 MRC 模式。
+        unsafe {
+            let _: () = msg_send![ctx, release];
+            let _: () = msg_send![ns_reason, release];
+        }
+
+        result
+    })
 }
 
 /// 使用 canEvaluatePolicy:error:（policy=1）检测 macOS 设备是否真正支持并已启用生物识别。
@@ -524,69 +549,72 @@ fn trigger_macos_biometric(reason: &str, strict: bool) -> Result<(), BiometricEr
 #[cfg(target_os = "macos")]
 pub(crate) fn query_macos_biometric_availability() -> (bool, Option<String>, Option<String>) {
     use objc2::msg_send;
+    use objc2::rc::autoreleasepool;
     use objc2::runtime::{AnyClass, NSObject};
 
-    let la_name = c"LAContext";
-    let la_cls = match AnyClass::get(la_name) {
-        Some(cls) => cls,
-        None => return (false, None, Some("LAContext class not found".into())),
-    };
-
-    // SAFETY: same pattern as trigger_macos_biometric — LAContext alloc/init
-    // 是标准 ObjC 构造模式，返回的非空指针在后续 msg_send 调用期间保持有效。
-    let ctx: *mut NSObject = unsafe {
-        let alloc: *mut NSObject = msg_send![la_cls, alloc];
-        msg_send![alloc, init]
-    };
-    if ctx.is_null() {
-        return (false, None, Some("failed to create LAContext".into()));
-    }
-
-    // LAPolicyDeviceOwnerAuthenticationWithBiometrics = 1
-    let mut error: *mut NSObject = std::ptr::null_mut();
-    // SAFETY: ctx 是刚创建的非空 LAContext 指针；canEvaluatePolicy:error: 是
-    // Apple 的同步查询 API，在返回前完成所有操作；error 是 __autoreleasing 输出参数。
-    let success: i8 = unsafe { msg_send![ctx, canEvaluatePolicy: 1i64, error: &mut error] };
-
-    // SAFETY: biometryType 是 LAContext 的只读属性，返回 i64 枚举值，不访问外部内存。
-    let biometry_type: i64 = unsafe { msg_send![ctx, biometryType] };
-
-    // SAFETY: release the context
-    unsafe {
-        let _: () = msg_send![ctx, release];
-    }
-
-    if success != 0 {
-        // canEvaluatePolicy: 成功 → 设备真的支持生物识别
-        let bt = match biometry_type {
-            1 => Some("touchId".to_string()),
-            2 => Some("faceId".to_string()),
-            3 => Some("opticId".to_string()),
-            _ => None,
+    autoreleasepool(|_| {
+        let la_name = c"LAContext";
+        let la_cls = match AnyClass::get(la_name) {
+            Some(cls) => cls,
+            None => return (false, None, Some("LAContext class not found".into())),
         };
-        (true, bt, None)
-    } else {
-        let err_msg = if !error.is_null() {
-            // SAFETY: error is non-null from canEvaluatePolicy returning NO；
-            // LAContext 的 code 属性是 NSInteger（i64），不包含复杂对象。
-            let code: i64 = unsafe { msg_send![error, code] };
-            // LAError codes:
-            // LAErrorBiometryNotAvailable = 6
-            // LAErrorBiometryNotEnrolled = 7
-            // LAErrorBiometryLockout = 8
-            // LAErrorPasscodeNotSet = 5
-            match code {
-                5 => "passcode not set on device".into(),
-                6 => "biometry not available on this device".into(),
-                7 => "biometry not enrolled (no fingers registered)".into(),
-                8 => "biometry locked out".into(),
-                _ => format!("canEvaluatePolicy failed (code={})", code),
-            }
+
+        // SAFETY: same pattern as trigger_macos_biometric — LAContext alloc/init
+        // 是标准 ObjC 构造模式，返回的非空指针在后续 msg_send 调用期间保持有效。
+        let ctx: *mut NSObject = unsafe {
+            let alloc: *mut NSObject = msg_send![la_cls, alloc];
+            msg_send![alloc, init]
+        };
+        if ctx.is_null() {
+            return (false, None, Some("failed to create LAContext".into()));
+        }
+
+        // LAPolicyDeviceOwnerAuthenticationWithBiometrics = 1
+        let mut error: *mut NSObject = std::ptr::null_mut();
+        // SAFETY: ctx 是刚创建的非空 LAContext 指针；canEvaluatePolicy:error: 是
+        // Apple 的同步查询 API，在返回前完成所有操作；error 是 __autoreleasing 输出参数。
+        let success: i8 = unsafe { msg_send![ctx, canEvaluatePolicy: 1i64, error: &mut error] };
+
+        // SAFETY: biometryType 是 LAContext 的只读属性，返回 i64 枚举值，不访问外部内存。
+        let biometry_type: i64 = unsafe { msg_send![ctx, biometryType] };
+
+        // SAFETY: release the context
+        unsafe {
+            let _: () = msg_send![ctx, release];
+        }
+
+        if success != 0 {
+            // canEvaluatePolicy: 成功 → 设备真的支持生物识别
+            let bt = match biometry_type {
+                1 => Some("touchId".to_string()),
+                2 => Some("faceId".to_string()),
+                3 => Some("opticId".to_string()),
+                _ => None,
+            };
+            (true, bt, None)
         } else {
-            "biometric authentication not available".into()
-        };
-        (false, None, Some(err_msg))
-    }
+            let err_msg = if !error.is_null() {
+                // SAFETY: error is non-null from canEvaluatePolicy returning NO；
+                // LAContext 的 code 属性是 NSInteger（i64），不包含复杂对象。
+                let code: i64 = unsafe { msg_send![error, code] };
+                // LAError codes:
+                // LAErrorBiometryNotAvailable = 6
+                // LAErrorBiometryNotEnrolled = 7
+                // LAErrorBiometryLockout = 8
+                // LAErrorPasscodeNotSet = 5
+                match code {
+                    5 => "passcode not set on device".into(),
+                    6 => "biometry not available on this device".into(),
+                    7 => "biometry not enrolled (no fingers registered)".into(),
+                    8 => "biometry locked out".into(),
+                    _ => format!("canEvaluatePolicy failed (code={})", code),
+                }
+            } else {
+                "biometric authentication not available".into()
+            };
+            (false, None, Some(err_msg))
+        }
+    })
 }
 
 #[cfg(test)]

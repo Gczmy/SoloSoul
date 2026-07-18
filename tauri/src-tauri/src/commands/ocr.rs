@@ -809,12 +809,10 @@ async fn download_single_file(
 
     // 写入前先写入临时文件，避免进程崩溃导致半成品残留
     let temp_path = dst.with_extension("tmp");
-    std::fs::write(&temp_path, &bytes)
-        .map_err(|e| format!("写入 {label} 临时文件失败: {e}"))?;
+    std::fs::write(&temp_path, &bytes).map_err(|e| format!("写入 {label} 临时文件失败: {e}"))?;
 
     // 原子重命名：临时文件确认写入后再替换目标文件
-    std::fs::rename(&temp_path, dst)
-        .map_err(|e| format!("重命名 {label} 文件失败: {e}"))?;
+    std::fs::rename(&temp_path, dst).map_err(|e| format!("重命名 {label} 文件失败: {e}"))?;
 
     Ok(())
 }

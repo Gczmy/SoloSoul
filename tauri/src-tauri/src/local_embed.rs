@@ -270,15 +270,19 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_model_exists() {
-        // 模型已改为按需下载，不再随包携带；仅在本地已下载时验证。
+    fn test_is_model_installed_consistency() {
+        // 模型已改为按需下载，不再随包携带；无论本地是否已下载，
+        // is_model_installed 都应返回与文件存在性一致的布尔值。
         let models_dir =
             std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("resources/models");
-        if !is_model_installed(&models_dir, "all-MiniLM-L6-v2") {
-            eprintln!(
-                "Skipping test_model_exists: embedding model not present (downloaded on demand)"
-            );
-        }
+        let installed = is_model_installed(&models_dir, "all-MiniLM-L6-v2");
+        let model_path = models_dir.join("all-MiniLM-L6-v2/model.onnx");
+        let tokenizer_path = models_dir.join("all-MiniLM-L6-v2/tokenizer.json");
+        assert_eq!(
+            installed,
+            model_path.exists() && tokenizer_path.exists(),
+            "is_model_installed 返回值应与实际文件存在性一致"
+        );
     }
 
     #[test]

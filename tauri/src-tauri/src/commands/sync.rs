@@ -4,7 +4,6 @@ use serde::Serialize;
 use tauri::Manager;
 use tauri::State;
 
-
 #[cfg(desktop)]
 use solosoul_sync::types::{ApplyStats, ConflictRecord};
 
