@@ -6,7 +6,7 @@ use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Borders, List, ListItem, Paragraph, Wrap};
 use ratatui::Frame;
 
-use solosoul_sync::manager::SyncPeerInfo;
+use solosoul_sync::types::SyncPeerInfo;
 
 pub fn render(frame: &mut Frame, area: Rect, peers: &[SyncPeerInfo], info: &str) {
     let chunks = Layout::default()

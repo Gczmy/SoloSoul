@@ -200,7 +200,7 @@ pub enum AppPhase {
     },
     /// 设备同步状态页（`/sync status` 或 `/sync with` 完成后的展示）。
     SyncStatus {
-        peers: Vec<solosoul_sync::manager::SyncPeerInfo>,
+        peers: Vec<solosoul_sync::types::SyncPeerInfo>,
         info: String,
     },
     /// OCR 扫描结果页（`/ocr scan <path>` 或 `/ocr tiers` / `/ocr status`）。

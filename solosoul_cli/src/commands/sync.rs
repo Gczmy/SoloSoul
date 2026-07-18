@@ -18,7 +18,8 @@ use rand::RngCore;
 use std::sync::Arc;
 
 use solosoul_core::VaultService;
-use solosoul_sync::manager::{SyncManager, SyncPeerInfo};
+use solosoul_sync::manager::SyncManager;
+use solosoul_sync::types::SyncPeerInfo;
 use solosoul_sync::noise::NoiseKeys;
 
 /// 处理 `/sync [subcommand] [args...]`。子命令可省略，默认 `status`。
