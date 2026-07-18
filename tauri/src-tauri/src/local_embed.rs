@@ -278,7 +278,6 @@ mod tests {
             eprintln!(
                 "Skipping test_model_exists: embedding model not present (downloaded on demand)"
             );
-            return;
         }
     }
 
