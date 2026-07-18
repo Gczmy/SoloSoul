@@ -532,7 +532,8 @@ pub(crate) fn query_macos_biometric_availability() -> (bool, Option<String>, Opt
         None => return (false, None, Some("LAContext class not found".into())),
     };
 
-    // SAFETY: same pattern as trigger_macos_biometric
+    // SAFETY: same pattern as trigger_macos_biometric — LAContext alloc/init
+    // 是标准 ObjC 构造模式，返回的非空指针在后续 msg_send 调用期间保持有效。
     let ctx: *mut NSObject = unsafe {
         let alloc: *mut NSObject = msg_send![la_cls, alloc];
         msg_send![alloc, init]
@@ -543,8 +544,11 @@ pub(crate) fn query_macos_biometric_availability() -> (bool, Option<String>, Opt
 
     // LAPolicyDeviceOwnerAuthenticationWithBiometrics = 1
     let mut error: *mut NSObject = std::ptr::null_mut();
+    // SAFETY: ctx 是刚创建的非空 LAContext 指针；canEvaluatePolicy:error: 是
+    // Apple 的同步查询 API，在返回前完成所有操作；error 是 __autoreleasing 输出参数。
     let success: i8 = unsafe { msg_send![ctx, canEvaluatePolicy: 1i64, error: &mut error] };
 
+    // SAFETY: biometryType 是 LAContext 的只读属性，返回 i64 枚举值，不访问外部内存。
     let biometry_type: i64 = unsafe { msg_send![ctx, biometryType] };
 
     // SAFETY: release the context
@@ -563,7 +567,8 @@ pub(crate) fn query_macos_biometric_availability() -> (bool, Option<String>, Opt
         (true, bt, None)
     } else {
         let err_msg = if !error.is_null() {
-            // SAFETY: error is non-null from canEvaluatePolicy returning NO
+            // SAFETY: error is non-null from canEvaluatePolicy returning NO；
+            // LAContext 的 code 属性是 NSInteger（i64），不包含复杂对象。
             let code: i64 = unsafe { msg_send![error, code] };
             // LAError codes:
             // LAErrorBiometryNotAvailable = 6
