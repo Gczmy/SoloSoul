@@ -125,7 +125,7 @@ pub async fn mdns_discover(
         .into_iter()
         .map(|s| DiscoveredDevice {
             name: s.node_id.clone(),
-            host: s.host,
+            host: s.host.clone(),
             port: s.port,
             addresses: vec![format!("{}:{}", s.host, s.port)],
         })

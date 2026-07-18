@@ -209,9 +209,6 @@ pub async fn biometric_save_credential(
     action: Option<String>,
     biometry_type: Option<String>,
 ) -> Result<(), String> {
-    use solosoul_core::biometric::legacy::FileBiometricStorage;
-    use solosoul_core::biometric::BiometricStorage;
-
     let svc = state
         .vault_service
         .read()
@@ -271,7 +268,7 @@ pub async fn biometric_save_credential(
     #[cfg(target_os = "ios")]
     {
         let reason = "verify your identity to enable biometric authentication for SoloSoul";
-        let storage = FileBiometricStorage::new(svc.base_path().clone());
+        let storage = solosoul_core::biometric::legacy::FileBiometricStorage::new(svc.base_path().clone());
         storage
             .save(&account_id, &key_hex, reason)
             .map_err(|e| map_bio_error(e, "save"))?;
@@ -363,9 +360,6 @@ pub async fn biometric_unlock(
     action: Option<String>,
     biometry_type: Option<String>,
 ) -> Result<(), String> {
-    use solosoul_core::biometric::legacy::FileBiometricStorage;
-    use solosoul_core::biometric::BiometricStorage;
-
     let svc = state
         .vault_service
         .read()
@@ -402,6 +396,8 @@ pub async fn biometric_unlock(
 
         #[cfg(target_os = "ios")]
         {
+            use solosoul_core::biometric::legacy::FileBiometricStorage;
+            use solosoul_core::biometric::BiometricStorage;
             let reason = "unlock SoloSoul";
             let storage = FileBiometricStorage::new(svc.base_path().clone());
             storage
@@ -500,9 +496,6 @@ pub async fn biometric_delete_credential(
     action: Option<String>,
     biometry_type: Option<String>,
 ) -> Result<(), String> {
-    use solosoul_core::biometric::legacy::FileBiometricStorage;
-    use solosoul_core::biometric::BiometricStorage;
-
     let svc = state
         .vault_service
         .read()
@@ -533,6 +526,8 @@ pub async fn biometric_delete_credential(
 
     #[cfg(target_os = "ios")]
     {
+        use solosoul_core::biometric::legacy::FileBiometricStorage;
+        use solosoul_core::biometric::BiometricStorage;
         let storage = FileBiometricStorage::new(svc.base_path().clone());
         match storage.delete(&account_id) {
             Ok(()) | Err(BiometricError::KeychainItemNotFound) => {}
