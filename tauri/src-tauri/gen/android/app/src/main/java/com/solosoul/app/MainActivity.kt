@@ -51,7 +51,7 @@ class MainActivity : TauriActivity() {
     schedulePendingShortcutFlush()
   }
 
-  override fun onNewIntent(intent: Intent?) {
+  override fun onNewIntent(intent: Intent) {
     super.onNewIntent(intent)
     // 处理快捷方式 intent（热启动）
     handleShortcutIntent(intent)

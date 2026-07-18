@@ -197,7 +197,7 @@ class BiometricKeystorePlugin(private val activity: Activity): Plugin(activity) 
                 .setSubtitle(subtitle)
                 .setNegativeButtonText(cancelTitle)
                 .setConfirmationRequired(false)
-                .setAllowedAuthenticators(BiometricPrompt.AUTHENTICATOR_BIOMETRIC_STRONG)
+                .setAllowedAuthenticators(0x0F) /* Authenticators.BIOMETRIC_STRONG */
                 .build()
 
             val prompt = BiometricPrompt(

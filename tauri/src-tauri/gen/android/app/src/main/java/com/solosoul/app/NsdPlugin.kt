@@ -220,7 +220,7 @@ class NsdPlugin(private val activity: Activity): Plugin(activity) {
     }
 
     @Command
-    fun requestPermissions(invoke: Invoke) {
+    fun requestNsdPermissions(invoke: Invoke) {
         try {
             val permission = getRequiredPermission()
             if (permission == null) {
@@ -262,8 +262,7 @@ class NsdPlugin(private val activity: Activity): Plugin(activity) {
     /**
      * 处理权限请求结果回调，替代轮询。
      */
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+    fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
         if (requestCode != PERMISSION_REQUEST_CODE) return
         val invoke = pendingPermissionInvoke ?: return
         pendingPermissionInvoke = null

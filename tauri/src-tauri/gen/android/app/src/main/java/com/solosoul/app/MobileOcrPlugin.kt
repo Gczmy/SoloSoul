@@ -11,6 +11,7 @@ import app.tauri.plugin.JSObject
 import app.tauri.plugin.Plugin
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
+import com.google.mlkit.vision.text.TextRecognizer
 import com.google.mlkit.vision.text.chinese.ChineseTextRecognizerOptions
 
 @InvokeArg
@@ -28,10 +29,15 @@ class ScanImageArgs {
 class MobileOcrPlugin(private val activity: Activity): Plugin(activity) {
     /**
      * 复用 TextRecognizer 实例，避免每次扫描重复初始化模型。
-     * 使用 lazy 延迟加载，首次扫描时才创建。
+     * 使用可空类型 + 手动延迟加载，首次扫描时才创建。
      */
-    private val recognizer: TextRecognizer by lazy {
-        TextRecognition.getClient(ChineseTextRecognizerOptions.Builder().build())
+    private var recognizer: TextRecognizer? = null
+
+    private fun getRecognizer(): TextRecognizer {
+        if (recognizer == null) {
+            recognizer = TextRecognition.getClient(ChineseTextRecognizerOptions.Builder().build())
+        }
+        return recognizer!!
     }
 
     @Command
@@ -47,7 +53,7 @@ class MobileOcrPlugin(private val activity: Activity): Plugin(activity) {
 
             val image = InputImage.fromFilePath(activity, uri)
 
-            recognizer.process(image)
+            getRecognizer().process(image)
                 .addOnSuccessListener { visionText ->
                     try {
                         val boxes = mutableListOf<JSObject>()
@@ -92,8 +98,8 @@ class MobileOcrPlugin(private val activity: Activity): Plugin(activity) {
      */
     override fun onDestroy() {
         super.onDestroy()
-        if (::recognizer.isInitialized) {
-            recognizer.close()
+        recognizer?.let {
+            it.close()
         }
     }
 }

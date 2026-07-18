@@ -82,7 +82,7 @@ export const protectedRoutes: RouteConfig[] = [
   { path: '/settings/backup', element: <BackupConfigPage /> },
   { path: '/about', element: <AboutPage /> },
   { path: '/debug-log', element: <DebugLogPage /> },
-  { path: '/plugins', element: desktopOnly(<PluginGatePage />) },
+  { path: '/plugins', element: <PluginGatePage /> },
   { path: '/settings/templates', element: <TemplateManagerPage /> },
   { path: '/settings/attachments', element: <GlobalAttachmentManager /> },
   { path: '/settings/ocr', element: <OcrSettingsPage /> },
