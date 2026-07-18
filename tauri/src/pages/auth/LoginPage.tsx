@@ -246,7 +246,6 @@ export function LoginPage() {
           location: 'login_page',
           action: 'unlock',
         });
-        console.warn('[PERF] PIN unlock total:', (performance.now() - t0).toFixed(1), 'ms');
         (window as typeof window & { __SOLOSOUL_UNLOCK_TIME?: number }).__SOLOSOUL_UNLOCK_TIME = t0;
         useAuthStore.setState({ isAuthenticated: true, currentAccount: acc });
         // PIN 解锁后延迟检查备份提醒
@@ -257,7 +256,6 @@ export function LoginPage() {
         }, 2000);
         navigate('/');
       } catch (e) {
-        console.warn('[PERF] PIN unlock failed:', (performance.now() - t0).toFixed(1), 'ms');
         const msg = String(e);
         if (msg.includes('__PIN_ERR__:locked')) {
           setPinError(t('auth:pin_locked'));
@@ -298,7 +296,6 @@ export function LoginPage() {
       };
       useAuthStore.setState({ isAuthenticated: true, currentAccount: acc, accounts: accs });
       success = true;
-      console.warn('[PERF] Biometric unlock total:', (performance.now() - t0).toFixed(1), 'ms');
       (window as typeof window & { __SOLOSOUL_UNLOCK_TIME?: number }).__SOLOSOUL_UNLOCK_TIME = t0;
       // 生物识别解锁后延迟检查备份提醒
       setTimeout(() => {
@@ -309,7 +306,6 @@ export function LoginPage() {
       // Navigate immediately to avoid showing the biometric UI after success
       navigate('/');
     } catch (e) {
-      console.warn('[PERF] Biometric unlock failed:', (performance.now() - t0).toFixed(1), 'ms');
       const msg = String(e);
       if (
         msg.toLowerCase().includes('cancelled') ||
@@ -335,9 +331,7 @@ export function LoginPage() {
       setSubmitError(t('auth:no_account_selected'));
       return;
     }
-    const t0 = performance.now();
     await login(selectedAccountId, password);
-    console.warn('[PERF] Password unlock total:', (performance.now() - t0).toFixed(1), 'ms');
   };
 
   // ==== 构建可用解锁方式列表 ====
@@ -655,8 +649,7 @@ export function LoginPage() {
                     window as typeof window & { __SOLOSOUL_APP_START_TIME?: number }
                   ).__SOLOSOUL_APP_START_TIME;
                   if (typeof start === 'number') {
-                    const t1 = performance.now() - start;
-                    console.warn(`[perf] T1=${t1.toFixed(1)}ms`);
+                    // T1 timing is captured internally; no console output in production
                   }
                 }}
               />

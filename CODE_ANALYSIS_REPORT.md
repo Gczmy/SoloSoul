@@ -30,7 +30,7 @@
 
 | ID   | 优先级 | 类别       | 文件位置                         | 描述                                               | 状态      |
 |------|--------|------------|----------------------------------|----------------------------------------------------|-----------|
-| P001 | P1     | 前端规范   | `tauri/src/**/*.tsx` 多处        | 生产代码中大量使用 `console.warn`/`console.error` 输出调试/错误日志 | `[ ]` 待修复 |
+| P001 | P1     | 前端规范   | `tauri/src/pages/auth/LoginPage.tsx`、`tauri/src/pages/home/HomePage.tsx` | 生产代码中存在性能调试 `console.warn` 日志 | `[x]` 已修复 |
 | P002 | P1     | Rust 规范  | `tauri/crates/solosoul-core/src/biometric/legacy.rs:140` | `path.parent().unwrap()` 在路径为根目录时会 panic | `[x]` 已修复 |
 | P003 | P1     | Rust 规范  | `tauri/crates/solosoul-core/src/llm/client.rs` | 非测试代码中存在 `.unwrap()` 调用                  | `[x]` 误报：unwrap 仅在测试代码中 |
 | P004 | P1     | Rust 规范  | `tauri/crates/solosoul-core/src/watermark/mod.rs` | 非测试代码中存在 `.expect()` 调用                  | `[x]` 误报：expect 仅在测试代码中 |

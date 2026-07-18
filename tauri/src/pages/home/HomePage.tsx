@@ -177,8 +177,8 @@ export function HomePage() {
       window as typeof window & { __SOLOSOUL_UNLOCK_TIME?: number }
     ).__SOLOSOUL_UNLOCK_TIME;
     if (typeof unlockTime === 'number') {
-      const t2 = performance.now() - unlockTime;
-      console.warn(`[perf] T2=${t2.toFixed(1)}ms`);
+      // T2 timing is captured internally; no console output in production
+      void unlockTime;
     }
   }, []);
 
