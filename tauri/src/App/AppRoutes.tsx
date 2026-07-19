@@ -25,6 +25,7 @@ import {
 } from '@/stores/ocrInstallStore';
 import { invoke } from '@tauri-apps/api/core';
 import { ST_SKIPPED_VERSION } from '@/lib/constants';
+import { setGlobalNavigate } from '@/lib/navigation';
 import type { OcrModelStatus } from '@/lib/ipc';
 import { protectedRoutes, AuthGuard } from './routes';
 import { BootstrapPage } from '@/pages/auth/BootstrapPage';
@@ -32,6 +33,12 @@ import { LoginPage } from '@/pages/auth/LoginPage';
 
 export function AppRoutes() {
   const navigate = useNavigate();
+  useEffect(() => {
+    setGlobalNavigate(navigate);
+    return () => {
+      setGlobalNavigate(null);
+    };
+  }, [navigate]);
   const { t } = useTranslation('ocr');
   const isMobilePlatform = isMobilePlatformSync();
   const { checkHasAccount, hasAccount, isAuthenticated } = useAuthStore();

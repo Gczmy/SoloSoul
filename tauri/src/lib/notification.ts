@@ -8,6 +8,7 @@ import { useUiStore } from '@/stores/uiStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { invoke } from '@tauri-apps/api/core';
 import i18next from '@/lib/i18n';
+import { navigateTo } from '@/lib/navigation';
 
 interface LlmStreamPayload {
   conversationId: string;
@@ -169,7 +170,7 @@ export async function checkBackupReminder(): Promise<void> {
         action: {
           label: i18next.t('settings:backup_now', '去备份'),
           onClick: () => {
-            window.location.href = '/settings/backup';
+            navigateTo('/settings/backup');
           },
         },
       });
