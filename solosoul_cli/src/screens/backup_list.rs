@@ -6,9 +6,17 @@ use ratatui::text::Line;
 use ratatui::widgets::{Block, Borders, Paragraph, Row, Table};
 
 use crate::commands::backup::BackupInfo;
+use crate::i18n::I18n;
+use crate::t;
 
 /// 渲染备份列表。
-pub fn render(frame: &mut ratatui::Frame, area: Rect, items: &[BackupInfo], selected: usize) {
+pub fn render(
+    frame: &mut ratatui::Frame,
+    area: Rect,
+    items: &[BackupInfo],
+    selected: usize,
+    i18n: &I18n,
+) {
     let layout = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
@@ -18,11 +26,12 @@ pub fn render(frame: &mut ratatui::Frame, area: Rect, items: &[BackupInfo], sele
         ])
         .split(area);
 
-    let title = Paragraph::new(Line::from("备份列表").bold()).alignment(Alignment::Center);
+    let title =
+        Paragraph::new(Line::from(t!(i18n, "backup-title")).bold()).alignment(Alignment::Center);
     frame.render_widget(title, layout[0]);
 
     if items.is_empty() {
-        let hint = Paragraph::new("暂无备份。").alignment(Alignment::Center);
+        let hint = Paragraph::new(t!(i18n, "backup-empty")).alignment(Alignment::Center);
         frame.render_widget(hint, layout[1]);
     } else {
         let header = Row::new(vec!["ID / 名称", "创建时间", "大小", "Profile 数"])
@@ -62,10 +71,8 @@ pub fn render(frame: &mut ratatui::Frame, area: Rect, items: &[BackupInfo], sele
     }
 
     frame.render_widget(
-        Paragraph::new(
-            Line::from("使用 /backup restore <id> 恢复，/backup delete <id> 删除。").dark_gray(),
-        )
-        .alignment(Alignment::Center),
+        Paragraph::new(Line::from(t!(i18n, "backup-hint")).dark_gray())
+            .alignment(Alignment::Center),
         layout[2],
     );
 }

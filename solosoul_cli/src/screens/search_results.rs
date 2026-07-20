@@ -6,7 +6,10 @@ use ratatui::text::Line;
 use ratatui::widgets::{Block, Borders, Paragraph, Row, Table};
 
 use crate::commands::search::SearchResultItem;
+use crate::i18n::I18n;
+use crate::t;
 
+#[allow(clippy::too_many_arguments)]
 pub fn render(
     frame: &mut ratatui::Frame,
     area: Rect,
@@ -15,6 +18,7 @@ pub fn render(
     selected: usize,
     truncated: bool,
     total_scanned: usize,
+    i18n: &I18n,
 ) {
     let layout = Layout::default()
         .direction(Direction::Vertical)
@@ -25,7 +29,12 @@ pub fn render(
         ])
         .split(area);
 
-    let mut header_text = format!("搜索 \"{}\" · 共扫描 {} 项", query, total_scanned);
+    let mut header_text = t!(
+        i18n,
+        "search-title",
+        query = query,
+        count = total_scanned.to_string()
+    );
     if truncated {
         header_text.push_str(" · 结果已截断至前 200 条");
     }
@@ -36,7 +45,7 @@ pub fn render(
 
     if items.is_empty() {
         frame.render_widget(
-            Paragraph::new("未找到匹配结果。").alignment(Alignment::Center),
+            Paragraph::new(t!(i18n, "search-no-results")).alignment(Alignment::Center),
             layout[1],
         );
     } else {
@@ -82,7 +91,7 @@ pub fn render(
     }
 
     frame.render_widget(
-        Paragraph::new(Line::from("↑/↓ 选择 · Enter 打开 · /back 返回").dark_gray())
+        Paragraph::new(Line::from(t!(i18n, "hint-up-down-enter-esc")).dark_gray())
             .alignment(Alignment::Center),
         layout[2],
     );

@@ -2661,7 +2661,7 @@ impl App {
                 self.locked_selected,
             ),
             AppPhase::AccountList { accounts } => {
-                crate::screens::account_list::render(frame, layout[1], accounts)
+                crate::screens::account_list::render(frame, layout[1], accounts, &self.i18n)
             }
             AppPhase::UnlockWizard { step } => crate::screens::unlock::render(
                 frame,
@@ -2685,24 +2685,33 @@ impl App {
                 crate::screens::object_list::render(frame, layout[1], title, items, &self.i18n)
             }
             AppPhase::ObjectDetail { object } => {
-                crate::screens::object_detail::render(frame, layout[1], object)
+                crate::screens::object_detail::render(frame, layout[1], object, &self.i18n)
             }
-            AppPhase::Size { report } => crate::screens::size::render(frame, layout[1], report),
-            AppPhase::Doctor { report } => crate::screens::doctor::render(frame, layout[1], report),
+            AppPhase::Size { report } => {
+                crate::screens::size::render(frame, layout[1], report, &self.i18n)
+            }
+            AppPhase::Doctor { report } => {
+                crate::screens::doctor::render(frame, layout[1], report, &self.i18n)
+            }
             AppPhase::NewObjectWizard { step } => {
-                crate::screens::new_object::render(frame, layout[1], step)
+                crate::screens::new_object::render(frame, layout[1], step, &self.i18n)
             }
             AppPhase::EditObjectWizard { object_id, step } => {
-                crate::screens::edit_object::render(frame, layout[1], object_id, step)
+                crate::screens::edit_object::render(frame, layout[1], object_id, step, &self.i18n)
             }
             AppPhase::TrashList {
                 items,
                 selected,
                 selected_ids,
                 ..
-            } => {
-                crate::screens::trash_list::render(frame, layout[1], items, *selected, selected_ids)
-            }
+            } => crate::screens::trash_list::render(
+                frame,
+                layout[1],
+                items,
+                *selected,
+                selected_ids,
+                &self.i18n,
+            ),
             AppPhase::Onboarding { step } => {
                 crate::screens::onboarding::render(frame, layout[1], self, step)
             }
@@ -2720,17 +2729,20 @@ impl App {
                 *selected,
                 *truncated,
                 *total_scanned,
+                &self.i18n,
             ),
             AppPhase::HistoryList {
                 object_id,
                 snapshots,
                 selected,
             } => crate::screens::history_list::render(
-                frame, layout[1], object_id, snapshots, *selected,
+                frame, layout[1], object_id, snapshots, *selected, &self.i18n,
             ),
             AppPhase::OperationLog {
                 entries, selected, ..
-            } => crate::screens::operation_log::render(frame, layout[1], entries, *selected),
+            } => crate::screens::operation_log::render(
+                frame, layout[1], entries, *selected, &self.i18n,
+            ),
             AppPhase::About { info } => {
                 crate::screens::about::render(frame, layout[1], info, &self.i18n)
             }
@@ -2750,15 +2762,18 @@ impl App {
                 items,
                 *show_deleted,
                 *selected,
+                &self.i18n,
             ),
             AppPhase::BackupList { items, selected } => {
-                crate::screens::backup_list::render(frame, layout[1], items, *selected)
+                crate::screens::backup_list::render(frame, layout[1], items, *selected, &self.i18n)
             }
             AppPhase::Profile {
                 profile,
                 data,
                 selected,
-            } => crate::screens::profile::render(frame, layout[1], profile, data, *selected),
+            } => crate::screens::profile::render(
+                frame, layout[1], profile, data, *selected, &self.i18n,
+            ),
             AppPhase::TemplateList {
                 user_templates,
                 system_templates,
@@ -2769,6 +2784,7 @@ impl App {
                 user_templates,
                 system_templates,
                 *selected,
+                &self.i18n,
             ),
             AppPhase::TemplateDetail {
                 template_id,
@@ -2782,12 +2798,15 @@ impl App {
                 name,
                 source,
                 json,
+                &self.i18n,
             ),
             AppPhase::LlmConfig {
                 config, selected, ..
-            } => crate::screens::llm_config::render(frame, layout[1], config, *selected),
+            } => {
+                crate::screens::llm_config::render(frame, layout[1], config, *selected, &self.i18n)
+            }
             AppPhase::LlmStats { stats, selected } => {
-                crate::screens::llm_stats::render(frame, layout[1], stats, *selected)
+                crate::screens::llm_stats::render(frame, layout[1], stats, *selected, &self.i18n)
             }
             AppPhase::ConversationList {
                 conversations,
@@ -2797,22 +2816,25 @@ impl App {
                 layout[1],
                 conversations,
                 *selected,
+                &self.i18n,
             ),
             AppPhase::LlmChat => {
                 if let Some(ref state) = self.chat_state {
-                    crate::screens::llm_chat::render(frame, layout[1], state)
+                    crate::screens::llm_chat::render(frame, layout[1], state, &self.i18n)
                 }
             }
             AppPhase::PluginList {
                 plugins,
                 selected,
                 filter,
-            } => crate::screens::plugin_list::render(frame, layout[1], plugins, *selected, filter),
+            } => crate::screens::plugin_list::render(
+                frame, layout[1], plugins, *selected, filter, &self.i18n,
+            ),
             AppPhase::PluginDetail { manifest } => {
-                crate::screens::plugin_detail::render(frame, layout[1], manifest)
+                crate::screens::plugin_detail::render(frame, layout[1], manifest, &self.i18n)
             }
             AppPhase::SyncStatus { peers, info } => {
-                crate::screens::sync_status::render(frame, layout[1], peers, info)
+                crate::screens::sync_status::render(frame, layout[1], peers, info, &self.i18n)
             }
             AppPhase::OcrResult {
                 result,
@@ -2828,10 +2850,11 @@ impl App {
                     source_path,
                     &t,
                     mrz.as_ref(),
+                    &self.i18n,
                 )
             }
             AppPhase::EmbedModelList { models, info } => {
-                crate::screens::embed_model::render(frame, layout[1], models, info)
+                crate::screens::embed_model::render(frame, layout[1], models, info, &self.i18n)
             }
             AppPhase::SettingsMenu {
                 selected,
@@ -2856,6 +2879,7 @@ impl App {
                     &current,
                     &mut self.clickable_regions,
                     self.mouse_pos,
+                    &self.i18n,
                 )
             }
             AppPhase::SettingsThemeSelect { selected } => {
@@ -2867,6 +2891,7 @@ impl App {
                     &current,
                     &mut self.clickable_regions,
                     self.mouse_pos,
+                    &self.i18n,
                 )
             }
             AppPhase::SettingsPreferenceEdit => {

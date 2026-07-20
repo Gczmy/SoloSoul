@@ -7,6 +7,9 @@ use ratatui::widgets::{Block, Borders, Paragraph, Row, Table};
 
 use solosoul_core::objects::AttachmentMeta;
 
+use crate::i18n::I18n;
+use crate::t;
+
 /// 渲染附件列表。
 pub fn render(
     frame: &mut ratatui::Frame,
@@ -15,6 +18,7 @@ pub fn render(
     items: &[AttachmentMeta],
     show_deleted: bool,
     selected: usize,
+    i18n: &I18n,
 ) {
     let layout = Layout::default()
         .direction(Direction::Vertical)
@@ -34,7 +38,7 @@ pub fn render(
     frame.render_widget(title, layout[0]);
 
     if items.is_empty() {
-        let hint = Paragraph::new("暂无附件。").alignment(Alignment::Center);
+        let hint = Paragraph::new(t!(i18n, "attachment-empty")).alignment(Alignment::Center);
         frame.render_widget(hint, layout[1]);
     } else {
         let header = Row::new(vec!["#", "文件名", "大小", "状态"])
@@ -82,10 +86,8 @@ pub fn render(
     }
 
     frame.render_widget(
-        Paragraph::new(
-            Line::from("使用 /attach add <path> 添加，/attach delete <id> 删除，/attach purge <id> 彻底删除。").dark_gray(),
-        )
-        .alignment(Alignment::Center),
+        Paragraph::new(Line::from(t!(i18n, "attachment-hint")).dark_gray())
+            .alignment(Alignment::Center),
         layout[2],
     );
 }

@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::app::{App, AppPhase};
 use crate::commands::require_unlocked;
+use crate::t;
 use crate::widgets::prompt::{self, PromptResult, PromptSpec};
 
 /// 备份信息，与 GUI 的 `BackupInfo` 字段保持一致。
@@ -100,29 +101,26 @@ pub fn handle(app: &mut App, args: &[&str]) -> Result<()> {
         "create" => match args.get(1).copied() {
             Some(name) => backup_create(app, name),
             None => {
-                app.error_message = Some("请提供备份名称，例如 /backup create weekly".to_string());
+                app.error_message = Some(t!(app.i18n, "cmd-provide-backup-name"));
                 Ok(())
             }
         },
         "restore" => match args.get(1).copied() {
             Some(id) => backup_restore(app, id),
             None => {
-                app.error_message =
-                    Some("请提供备份 ID，例如 /backup restore weekly_20260101_120000".to_string());
+                app.error_message = Some(t!(app.i18n, "cmd-provide-backup-id", cmd = "restore"));
                 Ok(())
             }
         },
         "delete" => match args.get(1).copied() {
             Some(id) => backup_delete(app, id),
             None => {
-                app.error_message =
-                    Some("请提供备份 ID，例如 /backup delete weekly_20260101_120000".to_string());
+                app.error_message = Some(t!(app.i18n, "cmd-provide-backup-id", cmd = "delete"));
                 Ok(())
             }
         },
         _ => {
-            app.error_message =
-                Some("用法：/backup list | create <name> | restore <id> | delete <id>".to_string());
+            app.error_message = Some(t!(app.i18n, "cmd-backup-usage"));
             Ok(())
         }
     }
@@ -212,7 +210,7 @@ fn backup_create(app: &mut App, name: &str) -> Result<()> {
     let safe_name = sanitize_backup_name(name)?;
     let backup_dir = backups_dir(app);
     fs::create_dir_all(&backup_dir).map_err(|e| {
-        app.error_message = Some(format!("创建备份目录失败: {}", e));
+        app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e));
         color_eyre::eyre::eyre!(e)
     })?;
 
@@ -244,26 +242,27 @@ fn backup_create(app: &mut App, name: &str) -> Result<()> {
     };
 
     let json = serde_json::to_string_pretty(&manifest).map_err(|e| {
-        app.error_message = Some(format!("序列化备份清单失败: {}", e));
+        app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e));
         color_eyre::eyre::eyre!(e)
     })?;
 
     fs::write(&backup_path, json).map_err(|e| {
-        app.error_message = Some(format!("写入备份文件失败: {}", e));
+        app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e));
         color_eyre::eyre::eyre!(e)
     })?;
 
     let metadata = fs::metadata(&backup_path).map_err(|e| {
-        app.error_message = Some(format!("读取备份文件元信息失败: {}", e));
+        app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e));
         color_eyre::eyre::eyre!(e)
     })?;
 
     let id = format!("{}_{}", safe_name, timestamp);
-    app.error_message = Some(format!(
-        "备份已创建: {} ({} profiles, {} bytes)",
-        id,
-        profiles.len(),
-        metadata.len()
+    app.error_message = Some(t!(
+        app.i18n,
+        "cmd-backup-created",
+        id = id,
+        size = profiles.len().to_string(),
+        bytes = metadata.len().to_string()
     ));
     Ok(())
 }
@@ -289,9 +288,9 @@ fn backup_restore(app: &mut App, backup_id: &str) -> Result<()> {
         Box::new(move |app, result| {
             if let PromptResult::Confirm(true) = result {
                 if let Err(e) = do_restore(app, &backup_id) {
-                    app.error_message = Some(format!("恢复备份失败: {}", e));
+                    app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e));
                 } else {
-                    app.error_message = Some(format!("备份 '{}' 已恢复", backup_id));
+                    app.error_message = Some(t!(app.i18n, "cmd-backup-restored", id = backup_id));
                 }
             }
         }),
@@ -308,12 +307,12 @@ fn do_restore(app: &mut App, backup_id: &str) -> Result<()> {
     let dir = backups_dir(app);
     let path = find_backup_path(&dir, backup_id)?;
     let content = fs::read_to_string(&path).map_err(|e| {
-        app.error_message = Some(format!("读取备份文件失败: {}", e));
+        app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e));
         color_eyre::eyre::eyre!(e)
     })?;
 
     let manifest: RestoreManifest = serde_json::from_str(&content).map_err(|e| {
-        app.error_message = Some(format!("解析备份清单失败: {}", e));
+        app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e));
         color_eyre::eyre::eyre!(e)
     })?;
 
@@ -355,9 +354,9 @@ fn backup_delete(app: &mut App, backup_id: &str) -> Result<()> {
         Box::new(move |app, result| {
             if let PromptResult::Confirm(true) = result {
                 if let Err(e) = do_delete(app, &backup_id) {
-                    app.error_message = Some(format!("删除备份失败: {}", e));
+                    app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e));
                 } else {
-                    app.error_message = Some(format!("备份 '{}' 已删除", backup_id));
+                    app.error_message = Some(t!(app.i18n, "cmd-backup-deleted", id = backup_id));
                 }
             }
         }),
@@ -370,7 +369,7 @@ fn do_delete(app: &mut App, backup_id: &str) -> Result<()> {
     let dir = backups_dir(app);
     let path = find_backup_path(&dir, backup_id)?;
     fs::remove_file(&path).map_err(|e| {
-        app.error_message = Some(format!("删除备份文件失败: {}", e));
+        app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e));
         color_eyre::eyre::eyre!(e)
     })
 }

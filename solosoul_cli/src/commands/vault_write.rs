@@ -9,6 +9,7 @@ use solosoul_core::ObjectRecord;
 
 use crate::app::{App, AppPhase, EditObjectStep, NewObjectStep, TrashFilter};
 use crate::commands::require_unlocked;
+use crate::t;
 use crate::widgets::field_editor::EditableField;
 use crate::widgets::prompt::{self, PromptResult, PromptSpec};
 
@@ -21,7 +22,7 @@ pub fn newpage(app: &mut App, name: Option<&str>) -> Result<()> {
     let name = match name {
         Some(n) if !n.is_empty() => n.to_string(),
         _ => {
-            app.error_message = Some("请提供页面名称，例如 /newpage 旅行".to_string());
+            app.error_message = Some(t!(app.i18n, "cmd-provide-page-name"));
             return Ok(());
         }
     };
@@ -62,12 +63,12 @@ pub fn newobject(app: &mut App, page_name: Option<&str>) -> Result<()> {
             start_select_template(app, page.id.clone(), page.name.clone())?;
             return Ok(());
         }
-        app.error_message = Some(format!("页面 '{}' 不存在", name));
+        app.error_message = Some(t!(app.i18n, "cmd-page-not-found", name = name));
         return Ok(());
     }
 
     if pages.is_empty() {
-        app.error_message = Some("暂无页面，请先使用 /newpage 创建页面".to_string());
+        app.error_message = Some(t!(app.i18n, "cmd-no-pages"));
         return Ok(());
     }
 
@@ -178,7 +179,7 @@ pub fn edit(app: &mut App, object_id: Option<&str>) -> Result<()> {
     let id = match object_id {
         Some(id) => id,
         None => {
-            app.error_message = Some("请提供对象 ID，例如 /edit obj_xxx".to_string());
+            app.error_message = Some(t!(app.i18n, "cmd-provide-object-id", cmd = "/edit"));
             return Ok(());
         }
     };
@@ -209,7 +210,7 @@ pub fn edit(app: &mut App, object_id: Option<&str>) -> Result<()> {
             };
         }
         _ => {
-            app.error_message = Some(format!("对象 '{}' 不存在或已被删除", id));
+            app.error_message = Some(t!(app.i18n, "cmd-object-not-found", id = id));
         }
     }
     Ok(())
@@ -240,7 +241,7 @@ pub fn delete(app: &mut App, object_id: Option<&str>) -> Result<()> {
     let id = match object_id {
         Some(id) => id,
         None => {
-            app.error_message = Some("请提供对象 ID，例如 /delete obj_xxx".to_string());
+            app.error_message = Some(t!(app.i18n, "cmd-provide-object-id", cmd = "/delete"));
             return Ok(());
         }
     };
@@ -255,7 +256,7 @@ pub fn delete(app: &mut App, object_id: Option<&str>) -> Result<()> {
     {
         Some(r) if r.account_id == account_id && !r.is_deleted => r,
         _ => {
-            app.error_message = Some(format!("对象 '{}' 不存在或已被删除", id));
+            app.error_message = Some(t!(app.i18n, "cmd-object-not-found", id = id));
             return Ok(());
         }
     };
@@ -269,16 +270,18 @@ pub fn delete(app: &mut App, object_id: Option<&str>) -> Result<()> {
         prompt::open(
             app,
             PromptSpec::Confirm {
-                message: format!(
-                    "页面 '{}' 下包含 {} 个对象，删除将一并移入回收站，确认？",
-                    record.name, child_count
+                message: t!(
+                    app.i18n,
+                    "cmd-prompt-delete-page",
+                    name = &record.name,
+                    count = child_count.to_string()
                 ),
                 default_yes: false,
             },
             Box::new(move |app, result| {
                 if let PromptResult::Confirm(true) = result {
                     if let Err(e) = delete_page(app, &record, &children) {
-                        app.error_message = Some(format!("删除页面失败: {}", e));
+                        app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e));
                     }
                 }
             }),
@@ -286,7 +289,7 @@ pub fn delete(app: &mut App, object_id: Option<&str>) -> Result<()> {
     } else {
         let retention_ms = objects::load_trash_retention(&vault, &record.account_id);
         if let Err(e) = objects::move_to_trash(&vault, &record, "object", None, retention_ms) {
-            app.error_message = Some(format!("删除失败: {}", e));
+            app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e));
         } else {
             vault
                 .log_structured(
@@ -298,7 +301,7 @@ pub fn delete(app: &mut App, object_id: Option<&str>) -> Result<()> {
                     Some(&format!("section={}", record.section_type)),
                 )
                 .ok();
-            app.error_message = Some(format!("对象 '{}' 已删除", record.name));
+            app.error_message = Some(t!(app.i18n, "cmd-deleted", name = &record.name));
         }
     }
     Ok(())
@@ -331,7 +334,7 @@ fn delete_page(
     // 页面本身需要先构建 ObjectRecord 再移入回收站
     if let Ok(Some(page_record)) = vault.load_object(&page.id) {
         if let Err(e) = objects::move_to_trash(&vault, &page_record, "page", None, retention_ms) {
-            app.error_message = Some(format!("删除页面失败: {}", e));
+            app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e));
             return Ok(());
         }
     }
@@ -348,10 +351,11 @@ fn delete_page(
         .ok();
 
     app.phase = AppPhase::Home { account_id };
-    app.error_message = Some(format!(
-        "页面 '{}' 及 {} 个子对象已删除",
-        page.name,
-        children.len()
+    app.error_message = Some(t!(
+        app.i18n,
+        "cmd-page-deleted",
+        name = &page.name,
+        count = children.len().to_string()
     ));
     Ok(())
 }
@@ -501,7 +505,7 @@ pub fn restore(app: &mut App, trash_id: Option<&str>) -> Result<()> {
     let trash_id = match trash_id {
         Some(id) => id,
         None => {
-            app.error_message = Some("请提供 trash_id，例如 /restore trash_xxx".to_string());
+            app.error_message = Some(t!(app.i18n, "cmd-provide-trash-id"));
             return Ok(());
         }
     };
@@ -511,8 +515,8 @@ pub fn restore(app: &mut App, trash_id: Option<&str>) -> Result<()> {
         .get_vault_store()
         .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
     match objects::restore_from_trash(&vault, &account_id, trash_id) {
-        Ok(result) => app.error_message = Some(format!("已恢复: {}", result.new_id)),
-        Err(e) => app.error_message = Some(format!("恢复失败: {}", e)),
+        Ok(result) => app.error_message = Some(t!(app.i18n, "cmd-restored", id = result.new_id)),
+        Err(e) => app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e)),
     }
     Ok(())
 }
@@ -521,7 +525,7 @@ pub fn purge(app: &mut App, trash_id: Option<&str>) -> Result<()> {
     let trash_id = match trash_id {
         Some(id) => id.to_string(),
         None => {
-            app.error_message = Some("请提供 trash_id，例如 /purge trash_xxx".to_string());
+            app.error_message = Some(t!(app.i18n, "cmd-provide-trash-id"));
             return Ok(());
         }
     };
@@ -536,7 +540,7 @@ pub fn purge(app: &mut App, trash_id: Option<&str>) -> Result<()> {
     {
         Some(t) => t,
         None => {
-            app.error_message = Some(format!("回收站项目 '{}' 不存在", trash_id));
+            app.error_message = Some(t!(app.i18n, "cmd-trash-item-not-found", id = &trash_id));
             return Ok(());
         }
     };
@@ -544,7 +548,7 @@ pub fn purge(app: &mut App, trash_id: Option<&str>) -> Result<()> {
     prompt::open(
         app,
         PromptSpec::Confirm {
-            message: format!("彻底删除 '{}'？此操作不可恢复。", trash.name_snapshot),
+            message: t!(app.i18n, "cmd-purge-prompt", name = &trash.name_snapshot),
             default_yes: false,
         },
         Box::new(move |app, result| {
@@ -558,8 +562,10 @@ pub fn purge(app: &mut App, trash_id: Option<&str>) -> Result<()> {
                     Err(_) => return,
                 };
                 match objects::purge_trash(&vault, &trash_id) {
-                    Ok(name) => app.error_message = Some(format!("已彻底删除 '{}'", name)),
-                    Err(e) => app.error_message = Some(format!("彻底删除失败: {}", e)),
+                    Ok(name) => app.error_message = Some(t!(app.i18n, "cmd-deleted", name = name)),
+                    Err(e) => {
+                        app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e))
+                    }
                 }
             }
         }),

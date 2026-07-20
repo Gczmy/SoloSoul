@@ -6,6 +6,7 @@ use solosoul_core::Profile;
 
 use crate::app::{App, AppPhase};
 use crate::commands::require_unlocked_with_vault;
+use crate::t;
 
 /// 命令入口。
 pub fn handle(app: &mut App, args: &[&str]) -> Result<()> {
@@ -19,9 +20,7 @@ pub fn handle(app: &mut App, args: &[&str]) -> Result<()> {
             args.get(3..).map(|slice| slice.join(" ")),
         ),
         _ => {
-            app.error_message = Some(
-                "用法: /profile | /profile rename <名称> | /profile set <路径> <值>".to_string(),
-            );
+            app.error_message = Some(t!(app.i18n, "cmd-profile-usage"));
             Ok(())
         }
     }
@@ -59,7 +58,7 @@ fn profile_data_value(profile: &Profile) -> Result<Value> {
 fn save_profile_data(app: &mut App, profile: &mut Profile, data: &Value) -> Result<()> {
     let (_, vault) = require_unlocked_with_vault(app)?;
     profile.data = serde_json::to_vec(data).map_err(|e| {
-        app.error_message = Some(format!("序列化 profile 数据失败: {}", e));
+        app.error_message = Some(t!(app.i18n, "cmd-profile-serialize-failed", err = e));
         color_eyre::eyre::eyre!(e)
     })?;
     profile.updated_at = chrono::Utc::now();
@@ -88,7 +87,7 @@ fn rename_profile(app: &mut App, name: Option<&str>) -> Result<()> {
     let name = match name {
         Some(n) if !n.is_empty() => n.to_string(),
         _ => {
-            app.error_message = Some("用法: /profile rename <名称>".to_string());
+            app.error_message = Some(t!(app.i18n, "cmd-profile-rename-usage"));
             return Ok(());
         }
     };
@@ -115,7 +114,7 @@ fn rename_profile(app: &mut App, name: Option<&str>) -> Result<()> {
         data,
         selected: 0,
     };
-    app.error_message = Some(format!("Profile 名称已更新为: {}", name));
+    app.error_message = Some(t!(app.i18n, "cmd-profile-updated", name = name));
     Ok(())
 }
 
@@ -125,14 +124,14 @@ fn set_profile_value(app: &mut App, path: Option<&str>, value: Option<String>) -
     let path = match path {
         Some(p) if !p.is_empty() => p,
         _ => {
-            app.error_message = Some("用法: /profile set <路径> <值>".to_string());
+            app.error_message = Some(t!(app.i18n, "cmd-profile-set-usage"));
             return Ok(());
         }
     };
     let value = match value {
         Some(v) => crate::commands::parse_value(&v),
         None => {
-            app.error_message = Some("用法: /profile set <路径> <值>".to_string());
+            app.error_message = Some(t!(app.i18n, "cmd-profile-set-usage"));
             return Ok(());
         }
     };
@@ -141,12 +140,12 @@ fn set_profile_value(app: &mut App, path: Option<&str>, value: Option<String>) -
     let mut data = profile_data_value(&profile)?;
 
     if let Err(e) = set_value_at_path(&mut data, path, value) {
-        app.error_message = Some(format!("设置失败: {}", e));
+        app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e));
         return Ok(());
     }
 
     save_profile_data(app, &mut profile, &data)?;
-    app.error_message = Some(format!("已更新: {}", path));
+    app.error_message = Some(t!(app.i18n, "cmd-preference-updated", key = path));
 
     // 刷新展示屏幕
     let data = profile_data_value(&profile)?;

@@ -4,6 +4,7 @@ use color_eyre::Result;
 
 use crate::app::{App, AppPhase};
 use crate::commands::require_unlocked;
+use crate::t;
 use crate::widgets::prompt::{self, PromptResult, PromptSpec};
 
 /// 执行 `/history <object-id>`：列出对象快照。
@@ -12,7 +13,7 @@ pub fn history(app: &mut App, object_id: Option<&str>) -> Result<()> {
     let object_id = match object_id {
         Some(id) => id.to_string(),
         None => {
-            app.error_message = Some("请提供对象 ID，例如 /history obj_xxx".to_string());
+            app.error_message = Some(t!(app.i18n, "cmd-history-usage"));
             return Ok(());
         }
     };
@@ -40,7 +41,7 @@ pub fn history(app: &mut App, object_id: Option<&str>) -> Result<()> {
             Ok(())
         }
         _ => {
-            app.error_message = Some(format!("对象 '{}' 不存在或已被删除", object_id));
+            app.error_message = Some(t!(app.i18n, "cmd-object-not-found", id = object_id));
             Ok(())
         }
     }
@@ -52,16 +53,14 @@ pub fn rollback(app: &mut App, object_id: Option<&str>, snapshot_id: Option<&str
     let object_id = match object_id {
         Some(id) => id.to_string(),
         None => {
-            app.error_message =
-                Some("请提供对象 ID 与快照 ID，例如 /rollback obj_xxx snap_xxx".to_string());
+            app.error_message = Some(t!(app.i18n, "cmd-rollback-usage"));
             return Ok(());
         }
     };
     let snapshot_id = match snapshot_id {
         Some(id) => id.to_string(),
         None => {
-            app.error_message =
-                Some("请提供对象 ID 与快照 ID，例如 /rollback obj_xxx snap_xxx".to_string());
+            app.error_message = Some(t!(app.i18n, "cmd-rollback-usage"));
             return Ok(());
         }
     };
@@ -69,16 +68,18 @@ pub fn rollback(app: &mut App, object_id: Option<&str>, snapshot_id: Option<&str
     prompt::open(
         app,
         PromptSpec::Confirm {
-            message: format!(
-                "确认将对象 '{}' 回滚到快照 '{}'？当前未保存的更改将丢失。",
-                object_id, snapshot_id
+            message: t!(
+                app.i18n,
+                "cmd-rollback-confirm",
+                obj = &object_id,
+                snap = &snapshot_id
             ),
             default_yes: false,
         },
         Box::new(move |app, result| {
             if let PromptResult::Confirm(true) = result {
                 if let Err(e) = do_rollback(app, &object_id, &snapshot_id) {
-                    app.error_message = Some(format!("回滚失败: {}", e));
+                    app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e));
                 }
             }
         }),
@@ -149,9 +150,11 @@ fn do_rollback(app: &mut App, object_id: &str, snapshot_id: &str) -> Result<()> 
         )),
     );
 
-    app.error_message = Some(format!(
-        "对象 '{}' 已回滚到快照 '{}'",
-        record.name, snapshot_id
+    app.error_message = Some(t!(
+        app.i18n,
+        "cmd-rollback-complete",
+        name = &record.name,
+        snap = snapshot_id
     ));
     Ok(())
 }

@@ -12,6 +12,7 @@
 //! - `/sync help` —— 帮助
 
 use crate::app::App;
+use crate::t;
 use color_eyre::Result;
 use rand::rngs::OsRng;
 use rand::RngCore;
@@ -51,7 +52,7 @@ pub fn handle(app: &mut App, argv: &[&str]) -> Result<()> {
             Ok(())
         }
         other => {
-            app.error_message = Some(format!("未知 /sync 子命令: {}", other));
+            app.error_message = Some(t!(app.i18n, "cmd-unknown-subcommand", cmd = other));
             Ok(())
         }
     }
@@ -81,13 +82,13 @@ fn status(app: &mut App) {
 /// 一次性同步：构造 SyncManager → start → sync_with_peer → stop。
 fn sync_with(app: &mut App, peer: &str) {
     if peer.is_empty() {
-        app.error_message = Some("用法: /sync with <peer-or-host:port>".to_string());
+        app.error_message = Some(t!(app.i18n, "cmd-sync-with-usage"));
         return;
     }
     let runtime = match tokio::runtime::Runtime::new() {
         Ok(rt) => rt,
         Err(e) => {
-            app.error_message = Some(format!("创建异步运行时失败: {}", e));
+            app.error_message = Some(t!(app.i18n, "cmd-sync-runtime-failed", err = e));
             return;
         }
     };
@@ -96,13 +97,15 @@ fn sync_with(app: &mut App, peer: &str) {
     match result {
         Ok(summary) => {
             tracing::info!("sync with {}: {}", peer, summary);
-            app.error_message = Some(format!(
-                "/sync with {} 完成：{}。详细计数在审计日志中。",
-                peer, summary
+            app.error_message = Some(t!(
+                app.i18n,
+                "cmd-sync-with-success",
+                peer = peer,
+                summary = summary
             ));
         }
         Err(e) => {
-            app.error_message = Some(format!("/sync with {} 失败: {}", peer, e));
+            app.error_message = Some(t!(app.i18n, "cmd-sync-with-failure", peer = peer, err = e));
         }
     }
 }
@@ -148,41 +151,42 @@ async fn run_one_shot_sync(
 
 fn trust_peer(app: &mut App, peer_node_id: &str, trusted: bool) {
     if peer_node_id.is_empty() {
-        app.error_message = Some(format!(
-            "用法: /sync {} <peer>",
-            if trusted { "trust" } else { "untrust" }
-        ));
+        app.error_message = Some(if trusted {
+            t!(app.i18n, "cmd-sync-trust-usage")
+        } else {
+            t!(app.i18n, "cmd-sync-untrust-usage")
+        });
         return;
     }
     let result = build_manager_for_manage(&app.vault_service)
         .and_then(|mgr| mgr.trust_peer(peer_node_id, trusted));
     match result {
         Ok(()) => {
-            app.error_message = Some(format!(
-                "已将 peer {} 标记为{}",
-                peer_node_id,
-                if trusted { "trusted" } else { "untrusted" }
-            ));
+            app.error_message = Some(if trusted {
+                t!(app.i18n, "cmd-sync-trusted", id = peer_node_id)
+            } else {
+                t!(app.i18n, "cmd-sync-untrusted", id = peer_node_id)
+            });
         }
         Err(e) => {
-            app.error_message = Some(format!("/sync trust 操作失败: {}", e));
+            app.error_message = Some(t!(app.i18n, "cmd-sync-trust-operation-failed", err = e));
         }
     }
 }
 
 fn forget_peer(app: &mut App, peer_node_id: &str) {
     if peer_node_id.is_empty() {
-        app.error_message = Some("用法: /sync forget <peer>".to_string());
+        app.error_message = Some(t!(app.i18n, "cmd-sync-forget-usage"));
         return;
     }
     let result =
         build_manager_for_manage(&app.vault_service).and_then(|mgr| mgr.forget_peer(peer_node_id));
     match result {
         Ok(()) => {
-            app.error_message = Some(format!("已从 vault 中删除 peer {}", peer_node_id));
+            app.error_message = Some(t!(app.i18n, "cmd-sync-forgotten", id = peer_node_id));
         }
         Err(e) => {
-            app.error_message = Some(format!("/sync forget 失败: {}", e));
+            app.error_message = Some(t!(app.i18n, "cmd-sync-forget-operation-failed", err = e));
         }
     }
 }

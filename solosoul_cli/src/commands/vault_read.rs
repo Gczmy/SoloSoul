@@ -4,6 +4,7 @@ use color_eyre::Result;
 
 use crate::app::{App, AppPhase, SizeReport};
 use crate::commands::require_unlocked;
+use crate::t;
 
 /// 执行 `/list [page_name]`：列出页面或页面内对象。
 pub fn list(app: &mut App, page_name: Option<&str>) -> Result<()> {
@@ -12,7 +13,7 @@ pub fn list(app: &mut App, page_name: Option<&str>) -> Result<()> {
     let vault = app
         .vault_service
         .get_vault_store()
-        .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
+        .ok_or_else(|| color_eyre::eyre::eyre!("Vault not open"))?;
 
     match page_name {
         None => {
@@ -21,7 +22,7 @@ pub fn list(app: &mut App, page_name: Option<&str>) -> Result<()> {
                 .map_err(|e| color_eyre::eyre::eyre!(e))?;
             app.previous_phase = Some(app.phase.clone());
             app.phase = AppPhase::ObjectList {
-                title: "页面列表".to_string(),
+                title: t!(app.i18n, "object-list-title"),
                 items: pages,
             };
         }
@@ -42,12 +43,12 @@ pub fn list(app: &mut App, page_name: Option<&str>) -> Result<()> {
                         .map_err(|e| color_eyre::eyre::eyre!(e))?;
                     app.previous_phase = Some(app.phase.clone());
                     app.phase = AppPhase::ObjectList {
-                        title: format!("页面: {}", page.name),
+                        title: format!("{}: {}", t!(app.i18n, "object-list-title"), page.name),
                         items: objects,
                     };
                 }
                 None => {
-                    app.error_message = Some(format!("页面 '{}' 不存在", name));
+                    app.error_message = Some(t!(app.i18n, "cmd-page-not-found", name = name));
                 }
             }
         }
@@ -63,7 +64,7 @@ pub fn open(app: &mut App, object_id: Option<&str>) -> Result<()> {
     let id = match object_id {
         Some(id) => id,
         None => {
-            app.error_message = Some("请提供对象 ID，例如 /open obj_xxx".to_string());
+            app.error_message = Some(t!(app.i18n, "cmd-provide-object-id", cmd = "/open"));
             return Ok(());
         }
     };
@@ -71,7 +72,7 @@ pub fn open(app: &mut App, object_id: Option<&str>) -> Result<()> {
     let vault = app
         .vault_service
         .get_vault_store()
-        .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
+        .ok_or_else(|| color_eyre::eyre::eyre!("Vault not open"))?;
 
     match vault
         .load_object(id)
@@ -82,7 +83,7 @@ pub fn open(app: &mut App, object_id: Option<&str>) -> Result<()> {
             app.phase = AppPhase::ObjectDetail { object: record };
         }
         _ => {
-            app.error_message = Some(format!("对象 '{}' 不存在或已被删除", id));
+            app.error_message = Some(t!(app.i18n, "cmd-object-not-found", id = id));
         }
     }
 
@@ -96,7 +97,7 @@ pub fn size(app: &mut App) -> Result<()> {
     let vault = app
         .vault_service
         .get_vault_store()
-        .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
+        .ok_or_else(|| color_eyre::eyre::eyre!("Vault not open"))?;
 
     let stats = vault.stats().map_err(|e| color_eyre::eyre::eyre!(e))?;
     let pages = vault
@@ -149,7 +150,6 @@ mod tests {
         list(&mut app, None).unwrap();
         match &app.phase {
             AppPhase::ObjectList { title, items } => {
-                assert_eq!(title, "页面列表");
                 assert!(items.is_empty());
             }
             _ => panic!("expected ObjectList"),

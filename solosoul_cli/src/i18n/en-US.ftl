@@ -156,6 +156,13 @@ template-title = Template Library
 template-empty = No templates.
 template-detail-title = Template Detail
 template-hint = ↑↓ Navigate · Enter View · D Delete User Template · Esc Back
+template-field-count = Fields
+doctor-source = Source: {$source}
+profile-hint = Esc Back · /profile set <path> <value> to edit
+size-title = Account Statistics
+hint-up-down-enter-esc = ↑/↓ Select · Enter Open · /back Back
+hint-esc-or-back = Press Esc or enter /back to return
+hint-esc-back = Esc Back
 
 ### Attachment
 attachment-list-title = Attachments - {$id}
@@ -237,8 +244,352 @@ status-lock-countdown = Lock countdown: {$sec}s
 status-settings = Settings · Lang={$lang} · Theme={$theme}
 
 ### Generic messages
+generic-yes = Yes
+generic-no = No
+generic-none = None
 loading = Loading...
 unknown-command = Unknown command: {$cmd}
 exit-prompt = Exit SoloSoul CLI?
 session-timeout = Session timed out and locked.
 no-results = No results.
+
+### Command messages
+cmd-no-previous-screen = No previous screen to go back.
+cmd-no-accounts = No local accounts found.
+cmd-already-logged-in = Already logged in.
+cmd-no-accounts-gui = No local accounts found. Please use the GUI client to create one.
+cmd-not-logged-in = Not logged in.
+cmd-need-unlock = Please use /unlock to login.
+cmd-vault-not-open = Vault is not open.
+cmd-vault-locked = Vault is locked.
+cmd-need-login = Not logged in.
+cmd-no-pages = No pages. Please create one with /newpage.
+cmd-no-current-account = No current account.
+cmd-not-in-wizard = Not currently in a wizard.
+cmd-no-changes = No changes to save.
+cmd-page-not-found = Page '{$name}' not found.
+cmd-object-not-found = Object '{$id}' not found or already deleted.
+cmd-provide-object-id = Please provide an object ID, e.g. {$cmd} obj_xxx
+cmd-provide-page-name = Please provide a page name, e.g. /newpage travel
+cmd-provide-trash-id = Please provide a trash ID, e.g. /restore trash_xxx
+cmd-profile-serialize-failed = Failed to serialize profile data: {$err}
+cmd-unknown-subcommand = Unknown subcommand: {$cmd}
+cmd-operation-failed = Operation failed: {$err}
+cmd-saved = Saved
+cmd-deleted = Deleted: {$name}
+cmd-restored = Restored: {$id}
+cmd-prompt-delete-page = Page '{$name}' contains {$count} objects. Deleting will move all to trash. Confirm?
+cmd-page-deleted = Page '{$name}' and {$count} child objects deleted.
+cmd-backup-created = Backup created: {$id} ({$size} profiles, {$bytes} bytes)
+cmd-backup-restored = Backup '{$id}' restored
+cmd-backup-deleted = Backup '{$id}' deleted
+cmd-backup-not-found = Backup '{$id}' not found
+cmd-backup-name-empty = Backup name cannot be empty
+cmd-trash-item-not-found = Trash item '{$id}' not found
+cmd-purge-prompt = Permanently delete '{$name}'? This cannot be undone.
+cmd-batch-restore-result = Restore complete: {$success} succeeded, {$failed} failed
+cmd-batch-purge-result = Purge complete: {$success} succeeded, {$failed} failed
+cmd-provide-object-id-or-detail = Please provide an object ID or run from the object detail page.
+cmd-execute-in-detail = Please execute {$cmd} from the object detail page.
+cmd-provide-attachment-id = Please provide an attachment ID, e.g. {$cmd} att_xxx
+cmd-provide-filename = Please provide a new filename.
+cmd-profile-rename-usage = Usage: /profile rename <name>
+cmd-profile-set-usage = Usage: /profile set <path> <value>
+cmd-profile-updated = Profile name updated to: {$name}
+cmd-preference-updated = Preference updated: {$key}
+cmd-setting-usage = Usage: /setting <key> <value>
+cmd-provide-backup-id = Please provide a backup ID, e.g. /backup {$cmd} weekly_20260101_120000
+cmd-backup-usage = Usage: /backup list | create <name> | restore <id> | delete <id>
+cmd-export-import-usage = Usage: /export [options] | /import <path> [options]
+cmd-provide-import-path = Please provide the file path to import.
+cmd-import-success = Successfully imported {$count} objects.
+cmd-password-min-length = Master password must be at least 8 characters.
+cmd-password-mismatch = The two passwords entered do not match.
+cmd-password-changed = Master password changed.
+cmd-password-hint-updated = Password hint updated to: {$text}
+cmd-password-hint-current = Current password hint: {$hint}
+cmd-trash-retention-usage = Usage: /security trash-retention <days>
+cmd-trash-retention-set = Trash retention period set to {$days} days.
+cmd-biometric-not-supported = Biometrics not supported on this platform.
+cmd-biometric-enabled = Biometric login enabled.
+cmd-biometric-disabled = Biometric login disabled.
+cmd-biometric-test-passed = Biometric test passed.
+cmd-biometric-test-unavailable = Biometric test unavailable.
+cmd-account-deleted = Account deleted.
+cmd-password-wrong-canceled = Wrong password. Account deletion canceled.
+cmd-verify-failed = Verification failed: {$err}
+cmd-template-show-usage = Usage: /template show <id>
+cmd-template-delete-usage = Usage: /template delete <id>
+cmd-template-deleted = User template deleted: {$id}
+cmd-load-failed = Failed to load: {$err}
+cmd-export-import-unknown = Unknown export/import subcommand: {$cmd}
+cmd-key-empty = Key cannot be empty.
+
+### Security commands
+cmd-security-usage = Usage: /security password|hint|trash-retention|delete-account|biometric
+cmd-biometric-status = Biometrics: {$status} · {$configured} · Type: {$kind} · {$error}
+cmd-biometric-usage = Usage: /security biometric status|enable|disable|test
+prompt-current-password = Current Master Password
+prompt-new-password = New Master Password
+prompt-confirm-password = Confirm New Master Password
+prompt-enable-biometric = Enter current master password to enable biometric
+prompt-disable-biometric = Enter current master password to disable biometric
+prompt-delete-account = Enter current master password to confirm account deletion
+prompt-delete-account-confirm = ! Deleting your account will permanently erase all data. Continue?
+prompt-export-password = Export Password
+prompt-import-password = Import Password
+
+### Export/Import
+cmd-export-success = Exported {$count} objects to {$path}
+cmd-import-preview = Package preview: v{$version}, {$count} objects, attachments: {$has}, password hint: {$hint}
+cmd-export-password-too-short = Export password must be at least 8 characters.
+cmd-export-password-format = Export password must contain both letters and digits.
+cmd-export-password-same-master = Export password cannot be the same as the master password.
+cmd-export-password-verify-failed = Failed to verify master password: {$err}
+cmd-export-too-many-args = Too many file arguments.
+cmd-export-no-scope = Please specify one of --full, --pages, or --objects.
+cmd-export-unknown-option = Unknown export option: {$opt}
+cmd-import-unknown-option = Unknown import option: {$opt}
+cmd-export-need-pages-list = --pages requires a comma-separated list of page IDs.
+cmd-export-need-objects-list = --objects requires a comma-separated list of object IDs.
+cmd-import-need-strategy = --strategy requires a strategy value (skip/overwrite/merge).
+cmd-import-unknown-strategy = Unknown import strategy: {$strategy}
+cmd-account-not-found = No current account.
+
+### LLM commands
+cmd-llm-need-login = Not logged in. Cannot view LLM configuration.
+cmd-llm-vault-locked = Vault is not unlocked.
+cmd-llm-no-active-provider = No active LLM provider. Use /llm_config to configure.
+cmd-llm-config-failed = Failed to load LLM configuration: {$err}
+cmd-llm-stats-failed = Failed to load LLM statistics: {$err}
+cmd-llm-list-failed = Failed to load conversation list: {$err}
+cmd-llm-need-login-chat = Not logged in. Cannot use LLM chat.
+cmd-llm-loaded-conversation = Loaded conversation: {$name}
+
+### Sync commands
+cmd-sync-usage = Usage: /sync <subcommand> [args]
+cmd-sync-trust-usage = Usage: /sync trust <peer>
+cmd-sync-untrust-usage = Usage: /sync untrust <peer>
+cmd-sync-forget-usage = Usage: /sync forget <peer>
+cmd-sync-with-usage = Usage: /sync with <peer-or-host:port>
+cmd-sync-runtime-failed = Failed to create async runtime: {$err}
+cmd-sync-trust-operation-failed = /sync trust operation failed: {$err}
+cmd-sync-forget-operation-failed = /sync forget operation failed: {$err}
+cmd-sync-info = Persisted peers from historical sync sessions
+
+### OCR commands
+cmd-ocr-usage = Usage: /ocr scan [--mrz] <image-path>
+cmd-ocr-unknown-flag = /ocr scan: unknown flag {$flag}. Usage: /ocr scan [--mrz] <image-path>
+cmd-ocr-extra-arg = /ocr scan: rejecting extra argument {$arg}. Usage: /ocr scan [--mrz] <image-path>
+cmd-ocr-image-not-found = Image not found: {$path}
+cmd-ocr-env-parse-failed = SOLOSOUL_OCR_TIER parse failed: {$err}
+cmd-ocr-tier-not-installed = {$tier} tier model not installed. Please install via GUI or place at {$path}.
+cmd-ocr-engine-failed = Failed to load OCR engine: {$err}
+cmd-ocr-mrz-not-found = No MRZ region detected in image.
+cmd-ocr-mrz-failed = MRZ scan failed: {$err}
+cmd-ocr-scan-failed = OCR scan failed: {$err}
+
+### Embed Model commands
+cmd-embed-usage = Usage: /embed_model install <model_id>
+cmd-embed-remove-usage = Usage: /embed_model remove <model_id>
+cmd-embed-already-installed = Model {$model} already installed.
+cmd-embed-not-installed = Model {$model} not installed.
+cmd-embed-installed = Embedding model {$model} installed. Run /embed_model list to view.
+cmd-embed-install-failed = /embed_model install failed: {$err}
+cmd-embed-removed = Embedding model {$model} removed.
+cmd-embed-remove-failed = /embed_model remove failed: {$err}
+cmd-embed-runtime-failed = Failed to create async runtime: {$err}
+
+### Plugin commands
+cmd-plugin-usage-run = Usage: /plugin_run <plugin_id>
+cmd-plugin-usage-install = Usage: /plugin_install <plugin_id>
+cmd-plugin-usage-update = Usage: /plugin_update <plugin_id>
+cmd-plugin-usage-uninstall = Usage: /plugin_uninstall <plugin_id>
+cmd-plugin-usage-search = Usage: /plugin_search <keyword>
+cmd-plugin-market-empty = No plugins available in the marketplace.
+cmd-plugin-need-login = Not logged in. Cannot run plugins.
+cmd-plugin-vault-locked = Vault is not unlocked.
+cmd-plugin-not-found = Plugin not found: {$id}
+cmd-plugin-running = Running plugin: {$id} ...
+cmd-plugin-run-result = Plugin {$id} completed: exit_code={$code}, fuel={$fuel}
+cmd-plugin-run-failed = Plugin {$id} run failed: {$err}
+cmd-plugin-installed = Plugin {$id} v{$ver} installed successfully.
+cmd-plugin-install-failed = Failed to install plugin {$id}: {$err}
+cmd-plugin-updated = Plugin {$id} updated to v{$ver}.
+cmd-plugin-update-failed = Failed to update plugin {$id}: {$err}
+cmd-plugin-uninstalled = Plugin {$id} uninstalled.
+cmd-plugin-uninstall-failed = Failed to uninstall plugin {$id}: {$err}
+cmd-plugin-no-sessions = No active plugin sessions.
+cmd-plugin-sessions-header = Active sessions ({$count}):
+cmd-plugin-list-sessions-failed = Failed to list sessions: {$err}
+cmd-plugin-none-installed = No plugins installed locally.
+cmd-plugin-installed-header = Installed plugins ({$count}):
+cmd-plugin-list-installed-failed = Failed to list installed plugins: {$err}
+cmd-plugin-limit-must-be-positive = Limit must be a positive integer.
+cmd-plugin-limit-must-be-number = Limit must be a number.
+cmd-plugin-no-audit-logs = No plugin audit logs.
+cmd-plugin-audit-header = Audit Log (recent {$count}):
+cmd-plugin-audit-failed = Failed to get audit log: {$err}
+cmd-plugin-updating-registry = Updating plugin registry...
+cmd-plugin-registry-updated = Plugin registry updated.
+cmd-plugin-registry-update-failed = Failed to update registry: {$err}
+cmd-plugin-search-no-match = No plugins matching "{$keyword}" found.
+cmd-plugin-search-failed = Plugin search failed: {$err}
+cmd-plugin-init-failed = Failed to initialize plugin manager: {$err}
+
+### History
+cmd-history-usage = Please provide an object ID, e.g. /history obj_xxx
+cmd-rollback-usage = Please provide an object ID and snapshot ID, e.g. /rollback obj_xxx snap_xxx
+cmd-rollback-confirm = Confirm rollback of '{$obj}' to snapshot '{$snap}'? Unsaved changes will be lost.
+cmd-rollback-complete = Object '{$name}' rolled back to snapshot '{$snap}'
+
+### Search
+cmd-search-need-keyword = Please provide a search keyword, e.g. /search passport
+
+### Template
+cmd-template-usage = Usage: /template | /template show <id> | /template delete <id>
+cmd-template-source-user = User
+cmd-template-source-system = System
+cmd-template-delete-failed = Delete failed: {$err}
+
+### Profile
+cmd-profile-usage = Usage: /profile | /profile rename <name> | /profile set <path> <value>
+
+### Log
+cmd-log-serialize-failed = Failed to serialize log: {$err}
+cmd-log-dir-failed = Failed to create log directory: {$err}
+cmd-log-write-failed = Failed to write export file: {$err}
+cmd-log-exported = Audit log exported to: {$path}
+cmd-log-vault-not-open = Vault is not open.
+
+### Doctor
+doctor-dir-status-label = Data directory status:
+doctor-dir-writable-label = Data directory writable:
+doctor-lock-status-label = Process lock status:
+cmd-doctor-no-issues = No issues found.
+
+### New Object
+newobj-create-object = Create Object
+newobj-select-page = Create Object: Select Page
+newobj-select-page-desc = Select a page as the parent for the new object, or press q to cancel.
+newobj-no-pages = No pages. Please create one with /newpage first.
+newobj-hint-up-down-enter-q = ↑/↓ Select · Enter Confirm · q Cancel
+newobj-blank-object = Blank Object
+newobj-select-template = Create Object: Select Template (Page:
+newobj-select-template-desc = Select a template to fill in fields, or select "Blank Object" to enter only a name.
+newobj-fields = Fields
+newobj-fill-fields-hint = Press Enter to edit fields, s to save, q to cancel.
+newobj-fields-nav = ↑/↓ Select Field · Enter Edit · n Rename · s Save · q Cancel
+
+### Edit Object
+editobj-object-info = Object Info
+editobj-properties = Properties
+editobj-template = Template: {$tpl}
+
+
+### Settings select
+settings-lang-title = Select Language
+settings-theme-title = Select Theme
+settings-select-hint = ↑/↓ Select · Enter or click to apply · Esc Cancel
+
+### Sync
+sync-peers-title = Peer List
+sync-no-peers-hint = Tip: Use `/sync with <host:port>` to sync with a GUI instance. Persistent peers will appear here.
+sync-subcommand-prefix = Subcommands
+sync-peers-hint-p1 = To sync with a peer, first run
+sync-peers-hint-p2 =  then enable continuous sync via the GUI.
+
+### OCR
+ocr-no-text = (No text recognized)
+ocr-tiers = Model Tiers
+ocr-recognized-text = Recognized Text
+ocr-hint-prefix = Tip
+ocr-hint-text = Switch tiers with `SOLOSOUL_OCR_TIER=small|medium|tiny /ocr scan <path>`; if a model is not installed, the GUI or manual placement will be prompted.
+ocr-mrz-hint-text = MRZ fields come from the machine-readable zone at the bottom of the image; checksum validation is performed by the MRZ parser.
+ocr-mrz-fields = MRZ Fields
+
+### Embed Model
+embed-model-not-installed = (No local embedding models installed)
+embed-model-list-title = Model List
+
+### LLM
+llm-active-label = Active:
+llm-providers = Providers
+llm-stats-summary = Total requests: {$count}  |  Total tokens: {$tokens}  |  Prompt: {$prompt}  |  Completion: {$completion}
+llm-stats-model = Model
+llm-stats-provider = Provider
+llm-stats-count = Count
+llm-stats-tokens = Tokens
+llm-stats-by-model = By Model
+llm-chat-welcome = LLM Chat ready. Type your question and press Enter to send. Type /back to return.
+llm-chat-title = LLM Chat
+llm-chat-user-prefix = You:
+llm-chat-thinking = AI: ⏳ Thinking...
+llm-chat-waiting = ⏳ Waiting for response...
+llm-chat-input-hint = Type message, Enter to send, Esc to return
+llm-conversation-title = LLM Conversation History
+llm-conversation-count-prefix = Total 
+llm-conversations-label = Conversations
+hint-up-down-esc-q = ↑/↓ Navigate  Esc/q Return
+hint-esc-q = Esc/q Return
+hint-up-down-enter-esc-q =  conversations  |  ↑/↓ Select  Enter Open  Esc/q Return
+
+### Plugin List
+plugin-list-empty = No plugins available.
+plugin-list-no-match = No matching results.
+plugin-list-hint = ↑/↓ Navigate  Type to filter  |  Enter Detail  r Run  i Install  u Update  d Uninstall  |  q/Esc Back
+plugin-list-hint-filtering = Type keyword to filter  Esc Clear  Backspace Delete  |  ↑/↓ Navigate  Enter Detail  r Run
+
+### Plugin Detail
+plugin-detail-prefix = Plugin Detail:
+plugin-detail-author = Author:
+plugin-detail-category = Category:
+plugin-detail-tier = Tier:
+plugin-detail-confirm = Requires confirmation:
+plugin-detail-homepage = Homepage:
+plugin-detail-core = Requires Core:
+plugin-detail-permissions = Permissions:
+plugin-detail-no-permissions =  No special permissions
+plugin-detail-network = Network Policy:
+plugin-detail-params = Parameters:
+plugin-detail-required = [Required]
+plugin-detail-optional = [Optional]
+plugin-detail-wasm-hash = WASM SHA256:
+plugin-detail-ttl = Data TTL:
+
+
+### Status bar (additional)
+status-welcome = Not logged in · No account
+status-account-list = Account List
+status-unlock = Login
+status-size = Account Statistics
+status-doctor = Doctor
+status-new-object = Create Object Wizard
+status-edit-object = Edit Object Wizard
+status-trash = Trash
+status-onboarding = Create Account
+status-search = Search Results
+status-history = History Snapshots
+status-operation-log = Audit Log
+status-about = About
+status-help = Help
+status-attachment = Attachments
+status-backup = Backup List
+status-profile = Profile
+status-template-list = Template List
+status-template-detail = Template Detail
+status-llm-config = LLM Configuration
+status-llm-stats = LLM Statistics
+status-conversation = Conversation History
+status-llm-chat = LLM Chat
+status-plugin-list = Plugin List
+status-plugin-detail = Plugin Detail
+status-sync = Device Sync
+status-ocr = OCR
+status-embed = Embedding Models
+status-settings-language = Settings · Language
+status-settings-theme = Settings · Theme
+status-settings-preference = Settings · Custom Preferences
+status-quit = Exiting
+status-lock-held = [L] Process lock held · GUI unavailable
+status-lock-not-exclusive = [!] Not exclusive

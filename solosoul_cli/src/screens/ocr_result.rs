@@ -1,5 +1,7 @@
 //! /ocr 结果屏：显示 OCR 文本块、档位状态或 MRZ 结构化字段。
 
+use crate::i18n::I18n;
+use crate::t;
 use ratatui::layout::{Constraint, Direction, Layout, Rect};
 use ratatui::style::{Color, Modifier, Style};
 use ratatui::text::{Line, Span};
@@ -22,9 +24,10 @@ pub fn render(
     source_path: &str,
     tiers: &[TierEntry],
     mrz: Option<&MrzResult>,
+    i18n: &I18n,
 ) {
     if let Some(mrz_data) = mrz {
-        render_mrz(frame, area, mrz_data, source_path);
+        render_mrz(frame, area, mrz_data, source_path, i18n);
         return;
     }
 
@@ -84,12 +87,17 @@ pub fn render(
             })
             .collect();
 
-        let list = List::new(items).block(Block::default().borders(Borders::ALL).title("模型档位"));
+        let list = List::new(items).block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title(t!(i18n, "ocr-tiers")),
+        );
         frame.render_widget(list, chunks[1]);
     } else {
         // OCR 文本块视图
         let body = if result.boxes.is_empty() && result.text.is_empty() {
-            Paragraph::new(Line::from("(未识别到文本)")).style(Style::default().fg(Color::DarkGray))
+            Paragraph::new(Line::from(t!(i18n, "ocr-no-text")))
+                .style(Style::default().fg(Color::DarkGray))
         } else {
             let lines: Vec<Line> = if result.boxes.is_empty() {
                 result
@@ -115,21 +123,28 @@ pub fn render(
             Paragraph::new(lines).wrap(Wrap { trim: false })
         };
         frame.render_widget(
-            body.block(Block::default().borders(Borders::ALL).title("识别文本")),
+            body.block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .title(t!(i18n, "ocr-recognized-text")),
+            ),
             chunks[1],
         );
     }
 
     let hint = Paragraph::new(Line::from(vec![
-        Span::styled("提示", Style::default().fg(Color::Cyan)),
-        Span::raw(": 用 `SOLOSOUL_OCR_TIER=small|medium|tiny /ocr scan <path>` 切换档位；"),
-        Span::raw("若某档位模型未安装，会提示通过 GUI 或手动放置。"),
+        Span::styled(
+            t!(i18n, "ocr-hint-prefix"),
+            Style::default().fg(Color::Cyan),
+        ),
+        Span::raw(": "),
+        Span::raw(t!(i18n, "ocr-hint-text")),
     ]));
     frame.render_widget(hint, chunks[2]);
 }
 
 /// 渲染 MRZ 结构化字段（护照/旅行文件）。
-fn render_mrz(frame: &mut Frame, area: Rect, m: &MrzResult, source: &str) {
+fn render_mrz(frame: &mut Frame, area: Rect, m: &MrzResult, source: &str, i18n: &I18n) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
@@ -208,12 +223,20 @@ fn render_mrz(frame: &mut Frame, area: Rect, m: &MrzResult, source: &str) {
         })
         .collect();
 
-    let list = List::new(items).block(Block::default().borders(Borders::ALL).title("MRZ 字段"));
+    let list = List::new(items).block(
+        Block::default()
+            .borders(Borders::ALL)
+            .title(t!(i18n, "ocr-mrz-fields")),
+    );
     frame.render_widget(list, chunks[1]);
 
     let hint = Paragraph::new(Line::from(vec![
-        Span::styled("提示", Style::default().fg(Color::Cyan)),
-        Span::raw(": MRZ 字段来自图像底部机读区；checksum 校验由后端 MRZ 解析器执行。"),
+        Span::styled(
+            t!(i18n, "ocr-hint-prefix"),
+            Style::default().fg(Color::Cyan),
+        ),
+        Span::raw(": "),
+        Span::raw(t!(i18n, "ocr-mrz-hint-text")),
     ]));
     frame.render_widget(hint, chunks[2]);
 }

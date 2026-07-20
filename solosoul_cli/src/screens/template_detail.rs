@@ -5,6 +5,9 @@ use ratatui::style::Stylize;
 use ratatui::text::Line;
 use ratatui::widgets::{Block, Borders, Paragraph, Wrap};
 
+use crate::i18n::I18n;
+use crate::t;
+
 pub fn render(
     frame: &mut ratatui::Frame,
     area: Rect,
@@ -12,6 +15,7 @@ pub fn render(
     name: &str,
     source: &str,
     json: &str,
+    i18n: &I18n,
 ) {
     let layout = Layout::default()
         .direction(Direction::Vertical)
@@ -23,13 +27,15 @@ pub fn render(
         ])
         .split(area);
 
-    let title = Paragraph::new(Line::from("模板详情").bold()).alignment(Alignment::Center);
+    let title = Paragraph::new(Line::from(t!(i18n, "template-detail-title")).bold())
+        .alignment(Alignment::Center);
     frame.render_widget(title, layout[0]);
 
     let info = Paragraph::new(vec![
-        Line::from(format!("名称: {}", name)),
-        Line::from(format!("来源: {}", source)),
-        Line::from(format!("ID: {}", template_id)),
+        Line::from(t!(i18n, "object-detail-name", name = name)),
+        Line::from(t!(i18n, "doctor-source", source = source)),
+        // Note: 'source' uses doctor-source as generic key
+        Line::from(t!(i18n, "object-detail-id", id = template_id)),
     ])
     .block(Block::default().title(" 元数据 ").borders(Borders::ALL));
     frame.render_widget(info, layout[1]);
@@ -40,7 +46,8 @@ pub fn render(
     frame.render_widget(detail, layout[2]);
 
     frame.render_widget(
-        Paragraph::new(Line::from("Esc 返回".dark_gray())).alignment(Alignment::Center),
+        Paragraph::new(Line::from(t!(i18n, "hint-esc-back")).dark_gray())
+            .alignment(Alignment::Center),
         layout[3],
     );
 }
@@ -54,8 +61,9 @@ mod tests {
     fn test_render_template_detail_smoke() {
         let backend = TestBackend::new(80, 24);
         let mut terminal = ratatui::Terminal::new(backend).unwrap();
+        let i18n = I18n::new("zh-CN");
         terminal
-            .draw(|frame| render(frame, frame.area(), "note", "笔记", "系统", "{}"))
+            .draw(|frame| render(frame, frame.area(), "note", "笔记", "系统", "{}", &i18n))
             .unwrap();
         let buf = terminal.backend().buffer();
         let content: String = buf.content.iter().map(|cell| cell.symbol()).collect();

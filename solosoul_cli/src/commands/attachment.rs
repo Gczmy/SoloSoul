@@ -8,6 +8,7 @@ use solosoul_core::objects;
 
 use crate::app::{App, AppPhase};
 use crate::commands::require_unlocked_with_vault;
+use crate::t;
 
 /// 命令入口。
 pub fn handle(app: &mut App, args: &[&str]) -> Result<()> {
@@ -31,7 +32,7 @@ pub fn handle(app: &mut App, args: &[&str]) -> Result<()> {
         Some("purge") => purge(app, args.get(1).copied()),
         Some("cleanup") => cleanup(app),
         Some(other) => {
-            app.error_message = Some(format!("未知子命令: {}", other));
+            app.error_message = Some(t!(app.i18n, "cmd-unknown-subcommand", cmd = other));
             Ok(())
         }
     }
@@ -54,7 +55,7 @@ fn list(app: &mut App, object_id: Option<&str>) -> Result<()> {
         None => match current_object_id(app) {
             Some(id) => id,
             None => {
-                app.error_message = Some("请提供对象 ID 或在对象详情页执行".to_string());
+                app.error_message = Some(t!(app.i18n, "cmd-provide-object-id-or-detail"));
                 return Ok(());
             }
         },
@@ -66,7 +67,7 @@ fn list(app: &mut App, object_id: Option<&str>) -> Result<()> {
     {
         Some(r) if r.account_id == account_id && !r.is_deleted => r,
         _ => {
-            app.error_message = Some(format!("对象 '{}' 不存在或已被删除", object_id));
+            app.error_message = Some(t!(app.i18n, "cmd-object-not-found", id = object_id));
             return Ok(());
         }
     };
@@ -98,7 +99,7 @@ fn add(app: &mut App, file_path: Option<&str>) -> Result<()> {
     let object_id = match current_object_id(app) {
         Some(id) => id,
         None => {
-            app.error_message = Some("请在对象详情页执行 /attach add".to_string());
+            app.error_message = Some(t!(app.i18n, "cmd-execute-in-detail", cmd = "/attach add"));
             return Ok(());
         }
     };
@@ -111,8 +112,8 @@ fn add(app: &mut App, file_path: Option<&str>) -> Result<()> {
         std::path::Path::new(file_path),
         &base,
     ) {
-        Ok(_) => app.error_message = Some(format!("已添加附件: {}", file_path)),
-        Err(e) => app.error_message = Some(format!("添加附件失败: {}", e)),
+        Ok(_) => app.error_message = Some(t!(app.i18n, "attachment-added", path = file_path)),
+        Err(e) => app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e)),
     }
     Ok(())
 }
@@ -130,21 +131,25 @@ fn rename(app: &mut App, attachment_id: Option<&str>, new_name: Option<&str>) ->
     let new_name = match new_name {
         Some(n) if !n.is_empty() => n,
         _ => {
-            app.error_message = Some("请提供新文件名".to_string());
+            app.error_message = Some(t!(app.i18n, "cmd-provide-filename"));
             return Ok(());
         }
     };
     let object_id = match current_object_id(app) {
         Some(id) => id,
         None => {
-            app.error_message = Some("请在对象详情页执行 /attach rename".to_string());
+            app.error_message = Some(t!(
+                app.i18n,
+                "cmd-execute-in-detail",
+                cmd = "/attach rename"
+            ));
             return Ok(());
         }
     };
 
     match objects::rename_attachment(&vault, &account_id, &object_id, attachment_id, new_name) {
-        Ok(()) => app.error_message = Some(format!("已重命名为: {}", new_name)),
-        Err(e) => app.error_message = Some(format!("重命名失败: {}", e)),
+        Ok(()) => app.error_message = Some(t!(app.i18n, "attachment-renamed", name = new_name)),
+        Err(e) => app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e)),
     }
     Ok(())
 }
@@ -153,14 +158,22 @@ fn delete(app: &mut App, attachment_id: Option<&str>) -> Result<()> {
     let attachment_id = match attachment_id {
         Some(id) => id.to_string(),
         None => {
-            app.error_message = Some("请提供附件 ID，例如 /attach delete att_xxx".to_string());
+            app.error_message = Some(t!(
+                app.i18n,
+                "cmd-provide-attachment-id",
+                cmd = "/attach delete"
+            ));
             return Ok(());
         }
     };
     let object_id = match current_object_id(app) {
         Some(id) => id,
         None => {
-            app.error_message = Some("请在对象详情页执行 /attach delete".to_string());
+            app.error_message = Some(t!(
+                app.i18n,
+                "cmd-execute-in-detail",
+                cmd = "/attach delete"
+            ));
             return Ok(());
         }
     };
@@ -183,8 +196,13 @@ fn delete(app: &mut App, attachment_id: Option<&str>) -> Result<()> {
                     &object_id,
                     &attachment_id,
                 ) {
-                    Ok(()) => app.error_message = Some(format!("已删除附件: {}", attachment_id)),
-                    Err(e) => app.error_message = Some(format!("删除附件失败: {}", e)),
+                    Ok(()) => {
+                        app.error_message =
+                            Some(t!(app.i18n, "attachment-deleted", id = attachment_id))
+                    }
+                    Err(e) => {
+                        app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e))
+                    }
                 }
             }
         }),
@@ -197,21 +215,29 @@ fn restore(app: &mut App, attachment_id: Option<&str>) -> Result<()> {
     let attachment_id = match attachment_id {
         Some(id) => id,
         None => {
-            app.error_message = Some("请提供附件 ID，例如 /attach restore att_xxx".to_string());
+            app.error_message = Some(t!(
+                app.i18n,
+                "cmd-provide-attachment-id",
+                cmd = "/attach restore"
+            ));
             return Ok(());
         }
     };
     let object_id = match current_object_id(app) {
         Some(id) => id,
         None => {
-            app.error_message = Some("请在对象详情页执行 /attach restore".to_string());
+            app.error_message = Some(t!(
+                app.i18n,
+                "cmd-execute-in-detail",
+                cmd = "/attach restore"
+            ));
             return Ok(());
         }
     };
 
     match objects::restore_attachment(&vault, &account_id, &object_id, attachment_id) {
-        Ok(()) => app.error_message = Some(format!("已恢复附件: {}", attachment_id)),
-        Err(e) => app.error_message = Some(format!("恢复附件失败: {}", e)),
+        Ok(()) => app.error_message = Some(t!(app.i18n, "attachment-restored", id = attachment_id)),
+        Err(e) => app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e)),
     }
     Ok(())
 }
@@ -220,14 +246,18 @@ fn purge(app: &mut App, attachment_id: Option<&str>) -> Result<()> {
     let attachment_id = match attachment_id {
         Some(id) => id.to_string(),
         None => {
-            app.error_message = Some("请提供附件 ID，例如 /attach purge att_xxx".to_string());
+            app.error_message = Some(t!(
+                app.i18n,
+                "cmd-provide-attachment-id",
+                cmd = "/attach purge"
+            ));
             return Ok(());
         }
     };
     let object_id = match current_object_id(app) {
         Some(id) => id,
         None => {
-            app.error_message = Some("请在对象详情页执行 /attach purge".to_string());
+            app.error_message = Some(t!(app.i18n, "cmd-execute-in-detail", cmd = "/attach purge"));
             return Ok(());
         }
     };
@@ -258,9 +288,12 @@ fn purge(app: &mut App, attachment_id: Option<&str>) -> Result<()> {
                     &base,
                 ) {
                     Ok(()) => {
-                        app.error_message = Some(format!("已彻底删除附件: {}", attachment_id))
+                        app.error_message =
+                            Some(t!(app.i18n, "attachment-purged", id = attachment_id))
                     }
-                    Err(e) => app.error_message = Some(format!("彻底删除附件失败: {}", e)),
+                    Err(e) => {
+                        app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e))
+                    }
                 }
             }
         }),
@@ -280,7 +313,7 @@ fn cleanup(app: &mut App) -> Result<()> {
             ));
         }
         Err(e) => {
-            app.error_message = Some(format!("清理附件失败: {}", e));
+            app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e));
         }
     }
     Ok(())

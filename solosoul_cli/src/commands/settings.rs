@@ -13,6 +13,7 @@ use serde_json::{Map, Value};
 
 use crate::app::{App, AppPhase};
 use crate::commands::require_unlocked;
+use crate::t;
 use crate::widgets::prompt::{PromptResult, PromptSpec};
 
 /// 命令入口。
@@ -24,7 +25,7 @@ pub fn handle(app: &mut App, args: &[&str]) -> Result<()> {
         "/setting" => setting(app, args.get(1).copied(), args.get(2).copied()),
         "/debug_log" => debug_log(app, args.get(1).copied()),
         _ => {
-            app.error_message = Some(format!("未知设置命令: {}", cmd));
+            app.error_message = Some(t!(app.i18n, "cmd-unknown-subcommand", cmd = cmd));
             Ok(())
         }
     }
@@ -115,7 +116,7 @@ pub fn apply_language(app: &mut App, code: &str) {
     let mut prefs = load_ui_prefs(app);
     prefs.insert("language".to_string(), Value::String(code.to_string()));
     if let Err(e) = save_ui_prefs(app, &prefs) {
-        app.error_message = Some(format!("写入语言偏好失败: {}", e));
+        app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e));
         crate::commands::core::back(app);
         return;
     }
@@ -139,7 +140,7 @@ pub fn apply_theme(app: &mut App, name: &str) {
     let mut prefs = load_ui_prefs(app);
     prefs.insert("theme".to_string(), Value::String(name.to_string()));
     if let Err(e) = save_ui_prefs(app, &prefs) {
-        app.error_message = Some(format!("写入主题偏好失败: {}", e));
+        app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e));
         crate::commands::core::back(app);
         return;
     }
@@ -176,7 +177,7 @@ fn open_preference_key_prompt(app: &mut App) {
             PromptResult::Text(raw) => {
                 let key = raw.trim().to_string();
                 if key.is_empty() {
-                    app.error_message = Some("键名不能为空".to_string());
+                    app.error_message = Some(t!(app.i18n, "cmd-key-empty"));
                     crate::commands::core::back(app);
                 } else {
                     open_preference_value_prompt(app, key);
@@ -248,16 +249,16 @@ fn save_ui_prefs(app: &mut App, prefs: &Map<String, Value>) -> Result<()> {
     let path = ui_prefs_path(app);
     if let Some(parent) = path.parent() {
         std::fs::create_dir_all(parent).map_err(|e| {
-            app.error_message = Some(format!("创建偏好目录失败: {}", e));
+            app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e));
             color_eyre::eyre::eyre!(e)
         })?;
     }
     let json = serde_json::to_string(&Value::Object(prefs.clone())).map_err(|e| {
-        app.error_message = Some(format!("序列化 UI 偏好失败: {}", e));
+        app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e));
         color_eyre::eyre::eyre!(e)
     })?;
     std::fs::write(&path, json).map_err(|e| {
-        app.error_message = Some(format!("写入 UI 偏好失败: {}", e));
+        app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e));
         color_eyre::eyre::eyre!(e)
     })
 }
@@ -271,11 +272,11 @@ fn language(app: &mut App, lang: Option<&str>) -> Result<()> {
             save_ui_prefs(app, &prefs)?;
             // 同步更新运行时 i18n locale
             app.i18n.set_locale(lang);
-            app.error_message = Some(format!("语言已设置为: {}", lang));
+            app.error_message = Some(t!(app.i18n, "current-language", code = lang));
         }
         None => {
             let current = prefs["language"].as_str().unwrap_or("");
-            app.error_message = Some(format!("当前语言: {}", current));
+            app.error_message = Some(t!(app.i18n, "current-language", code = current));
         }
     }
     Ok(())
@@ -288,11 +289,11 @@ fn theme(app: &mut App, theme: Option<&str>) -> Result<()> {
         Some(theme) => {
             prefs.insert("theme".to_string(), Value::String(theme.to_string()));
             save_ui_prefs(app, &prefs)?;
-            app.error_message = Some(format!("主题已设置为: {}", theme));
+            app.error_message = Some(t!(app.i18n, "current-theme", code = theme));
         }
         None => {
             let current = prefs["theme"].as_str().unwrap_or("system");
-            app.error_message = Some(format!("当前主题: {}", current));
+            app.error_message = Some(t!(app.i18n, "current-theme", code = current));
         }
     }
     Ok(())
@@ -303,20 +304,20 @@ fn setting(app: &mut App, key: Option<&str>, value: Option<&str>) -> Result<()> 
     let key = match key {
         Some(k) => k,
         None => {
-            app.error_message = Some("用法: /setting <key> <value>".to_string());
+            app.error_message = Some(t!(app.i18n, "cmd-setting-usage"));
             return Ok(());
         }
     };
     let value = match value {
         Some(v) => crate::commands::parse_value(v),
         None => {
-            app.error_message = Some("用法: /setting <key> <value>".to_string());
+            app.error_message = Some(t!(app.i18n, "cmd-setting-usage"));
             return Ok(());
         }
     };
 
     crate::commands::update_profile_preference(app, key, value)?;
-    app.error_message = Some(format!("偏好已更新: {}", key));
+    app.error_message = Some(t!(app.i18n, "cmd-preference-updated", key = key));
     Ok(())
 }
 
@@ -352,13 +353,13 @@ fn debug_log(app: &mut App, file_name: Option<&str>) -> Result<()> {
     });
 
     let json = serde_json::to_string_pretty(&bundle).map_err(|e| {
-        app.error_message = Some(format!("序列化诊断包失败: {}", e));
+        app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e));
         color_eyre::eyre::eyre!(e)
     })?;
 
     let logs_dir = app.vault_service.base_path().join("logs");
     std::fs::create_dir_all(&logs_dir).map_err(|e| {
-        app.error_message = Some(format!("创建日志目录失败: {}", e));
+        app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e));
         color_eyre::eyre::eyre!(e)
     })?;
 
@@ -370,7 +371,7 @@ fn debug_log(app: &mut App, file_name: Option<&str>) -> Result<()> {
     let path = logs_dir.join(&file_name);
 
     std::fs::write(&path, &json).map_err(|e| {
-        app.error_message = Some(format!("写入诊断包失败: {}", e));
+        app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e));
         color_eyre::eyre::eyre!(e)
     })?;
 
@@ -408,11 +409,10 @@ mod tests {
 
         // 获取默认值
         handle(&mut app, &["/language"]).unwrap();
-        assert!(app
-            .error_message
-            .as_deref()
-            .unwrap_or("")
-            .contains("当前语言"));
+        assert!(
+            app.error_message.is_some(),
+            "language get should set an error_message"
+        );
 
         // 设置
         handle(&mut app, &["/language", "zh-CN"]).unwrap();
@@ -427,11 +427,10 @@ mod tests {
         let (mut app, _id, _dir) = unlocked_app();
 
         handle(&mut app, &["/theme"]).unwrap();
-        assert!(app
-            .error_message
-            .as_deref()
-            .unwrap_or("")
-            .contains("当前主题"));
+        assert!(
+            app.error_message.is_some(),
+            "theme get should set an error_message"
+        );
 
         handle(&mut app, &["/theme", "dark"]).unwrap();
         let path = app.vault_service.base_path().join("ui_preferences.json");

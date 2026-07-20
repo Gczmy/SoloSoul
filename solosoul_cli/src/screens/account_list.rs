@@ -6,12 +6,14 @@ use ratatui::text::{Line, Text};
 use ratatui::widgets::{Clear, Paragraph, Wrap};
 use solosoul_core::AccountSummary;
 
+use crate::i18n::I18n;
+use crate::t;
 use crate::widgets::account_list::render_table;
 
 /// 渲染账户列表。
-pub fn render(frame: &mut ratatui::Frame, area: Rect, accounts: &[AccountSummary]) {
+pub fn render(frame: &mut ratatui::Frame, area: Rect, accounts: &[AccountSummary], i18n: &I18n) {
     if accounts.is_empty() {
-        let text = Text::from(Line::from("未发现本地账户").centered());
+        let text = Text::from(Line::from(t!(i18n, "cmd-no-accounts")).centered());
         let paragraph = Paragraph::new(text).alignment(Alignment::Center);
         frame.render_widget(paragraph, area);
         return;

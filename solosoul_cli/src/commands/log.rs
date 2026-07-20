@@ -4,6 +4,7 @@ use color_eyre::Result;
 
 use crate::app::{App, AppPhase};
 use crate::commands::require_unlocked;
+use crate::t;
 
 /// 执行 `/operation_log [limit]`：列出审计日志。
 pub fn operation_log(app: &mut App, limit: Option<&str>) -> Result<()> {
@@ -42,13 +43,13 @@ pub fn export_log(app: &mut App, file_name: Option<&str>) -> Result<()> {
         .list_audit_log(10000)
         .map_err(|e| color_eyre::eyre::eyre!(e))?;
     let json = serde_json::to_string_pretty(&entries).map_err(|e| {
-        app.error_message = Some(format!("序列化日志失败: {}", e));
+        app.error_message = Some(t!(app.i18n, "cmd-log-serialize-failed", err = e));
         color_eyre::eyre::eyre!(e)
     })?;
 
     let logs_dir = app.vault_service.base_path().join("logs");
     std::fs::create_dir_all(&logs_dir).map_err(|e| {
-        app.error_message = Some(format!("创建日志目录失败: {}", e));
+        app.error_message = Some(t!(app.i18n, "cmd-log-dir-failed", err = e));
         color_eyre::eyre::eyre!(e)
     })?;
 
@@ -60,11 +61,15 @@ pub fn export_log(app: &mut App, file_name: Option<&str>) -> Result<()> {
     let path = logs_dir.join(&file_name);
 
     std::fs::write(&path, &json).map_err(|e| {
-        app.error_message = Some(format!("写入导出文件失败: {}", e));
+        app.error_message = Some(t!(app.i18n, "cmd-log-write-failed", err = e));
         color_eyre::eyre::eyre!(e)
     })?;
 
-    app.error_message = Some(format!("审计日志已导出至: {}", path.display()));
+    app.error_message = Some(t!(
+        app.i18n,
+        "cmd-log-exported",
+        path = path.display().to_string()
+    ));
     Ok(())
 }
 

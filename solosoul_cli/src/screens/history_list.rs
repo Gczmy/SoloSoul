@@ -5,12 +5,16 @@ use ratatui::style::{Style, Stylize};
 use ratatui::text::Line;
 use ratatui::widgets::{Block, Borders, Paragraph, Row, Table};
 
+use crate::i18n::I18n;
+use crate::t;
+
 pub fn render(
     frame: &mut ratatui::Frame,
     area: Rect,
     object_id: &str,
     snapshots: &[serde_json::Value],
     selected: usize,
+    i18n: &I18n,
 ) {
     let layout = Layout::default()
         .direction(Direction::Vertical)
@@ -23,7 +27,7 @@ pub fn render(
 
     frame.render_widget(
         Paragraph::new(
-            Line::from(format!("对象 {} 的历史快照", object_id))
+            Line::from(t!(i18n, "history-title", id = object_id))
                 .bold()
                 .alignment(Alignment::Center),
         ),
@@ -32,7 +36,7 @@ pub fn render(
 
     if snapshots.is_empty() {
         frame.render_widget(
-            Paragraph::new("暂无历史快照。").alignment(Alignment::Center),
+            Paragraph::new(t!(i18n, "history-empty")).alignment(Alignment::Center),
             layout[1],
         );
     } else {
@@ -88,7 +92,8 @@ pub fn render(
     }
 
     frame.render_widget(
-        Paragraph::new(Line::from("使用 /rollback <对象ID> <快照ID> 恢复到指定版本。").dark_gray())
+        Paragraph::new(Line::from(t!(i18n, "log-export-hint")).dark_gray())
+            // Note: rollback hint uses a generic fallback for now
             .alignment(Alignment::Center),
         layout[2],
     );

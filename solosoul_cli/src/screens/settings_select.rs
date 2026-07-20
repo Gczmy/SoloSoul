@@ -8,6 +8,8 @@ use ratatui::text::{Line, Span};
 use ratatui::widgets::{Block, Borders, List, ListItem, ListState, Paragraph};
 
 use crate::app::{ClickAction, ClickableRegion};
+use crate::i18n::I18n;
+use crate::t;
 use crate::theme::Theme;
 
 /// 调用者构造可点击动作的回调。参数：(code/name, rect, regions)
@@ -19,11 +21,11 @@ pub struct SelectOptionsConfig<'a> {
     /// 键盘选中的索引。
     pub selected: usize,
     /// 页面标题，如 "选择语言"。
-    pub title: &'a str,
+    pub title: String,
     /// 命令名称，如 "/language"。
     pub command: &'a str,
     /// 底部帮助文字。
-    pub help: &'a str,
+    pub help: String,
     /// 回到译 action 构造器：参数为 code。
     pub click_action: fn(&'a str) -> ClickAction,
 }
@@ -38,6 +40,7 @@ pub fn render_option_list<'a>(
     config: SelectOptionsConfig<'a>,
     regions: &mut Vec<ClickableRegion>,
     _mouse_pos: Option<(u16, u16)>,
+    i18n: &I18n,
 ) {
     let theme = Theme::load();
     let selected = config.selected.min(config.options.len().saturating_sub(1));
@@ -51,7 +54,8 @@ pub fn render_option_list<'a>(
         ])
         .split(area);
 
-    let title = Paragraph::new(Line::from(config.title).bold()).alignment(Alignment::Center);
+    let title =
+        Paragraph::new(Line::from(config.title.as_str()).bold()).alignment(Alignment::Center);
     frame.render_widget(title, layout[0]);
 
     let row_height: u16 = 3;
@@ -91,7 +95,11 @@ pub fn render_option_list<'a>(
         .map(|(i, (code, display))| {
             let is_current = *code == config.current;
             let marker = if i == selected { "▸ " } else { "  " };
-            let current_marker = if is_current { "  · 当前" } else { "" };
+            let current_marker = if is_current {
+                format!("  · {}", t!(i18n, "settings-current"))
+            } else {
+                String::new()
+            };
             let style = if i == selected {
                 Style::default()
                     .fg(theme.brand)
@@ -127,7 +135,7 @@ pub fn render_option_list<'a>(
     }
 
     frame.render_widget(
-        Paragraph::new(Line::from(config.help.dark_gray())).alignment(Alignment::Center),
+        Paragraph::new(Line::from(config.help.as_str().dark_gray())).alignment(Alignment::Center),
         layout[2],
     );
 }
@@ -142,17 +150,20 @@ mod tests {
         let backend = TestBackend::new(80, 30);
         let mut terminal = ratatui::Terminal::new(backend).unwrap();
         let mut regions = Vec::new();
+        let i18n = crate::i18n::I18n::new("en-US");
         let config = SelectOptionsConfig {
             options: &[("zh-CN", "简体中文"), ("en-US", "English")],
             current: "zh-CN",
             selected: 0,
-            title: "测试选择",
+            title: "测试选择".to_string(),
             command: "/test",
-            help: "↑/↓ 选择 · Enter 确认",
+            help: "↑/↓ 选择 · Enter 确认".to_string(),
             click_action: |s| ClickAction::ApplyLanguage(s.to_string()),
         };
         terminal
-            .draw(|frame| render_option_list(frame, frame.area(), config, &mut regions, None))
+            .draw(|frame| {
+                render_option_list(frame, frame.area(), config, &mut regions, None, &i18n)
+            })
             .unwrap();
         let buf = terminal.backend().buffer();
         let content: String = buf.content.iter().map(|cell| cell.symbol()).collect();
@@ -166,17 +177,20 @@ mod tests {
         let backend = TestBackend::new(80, 18);
         let mut terminal = ratatui::Terminal::new(backend).unwrap();
         let mut regions = Vec::new();
+        let i18n = crate::i18n::I18n::new("en-US");
         let config = SelectOptionsConfig {
             options: &[("system", "跟随系统"), ("light", "浅色"), ("dark", "深色")],
             current: "system",
             selected: 1,
-            title: "选择主题",
+            title: "选择主题".to_string(),
             command: "/theme",
-            help: "↑/↓ 选择 · Enter 或点击应用",
+            help: "↑/↓ 选择 · Enter 或点击应用".to_string(),
             click_action: |s| ClickAction::ApplyTheme(s.to_string()),
         };
         terminal
-            .draw(|frame| render_option_list(frame, frame.area(), config, &mut regions, None))
+            .draw(|frame| {
+                render_option_list(frame, frame.area(), config, &mut regions, None, &i18n)
+            })
             .unwrap();
         let buf = terminal.backend().buffer();
         let content: String = buf.content.iter().map(|cell| cell.symbol()).collect();

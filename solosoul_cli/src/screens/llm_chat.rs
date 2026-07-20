@@ -2,6 +2,8 @@
 
 use std::sync::mpsc::Receiver;
 
+use crate::i18n::I18n;
+use crate::t;
 use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::style::{Color, Style};
 use ratatui::text::{Line, Span, Text};
@@ -9,6 +11,7 @@ use ratatui::widgets::{Block, Borders, Paragraph, Wrap};
 use ratatui::Frame;
 
 /// The state of an active LLM chat session.
+#[derive(Default)]
 pub struct LlmChatState {
     /// Messages displayed in the chat area (newest last).
     pub messages: Vec<ChatLine>,
@@ -42,11 +45,9 @@ pub enum StreamChunk {
 }
 
 impl LlmChatState {
-    pub fn new() -> Self {
+    pub fn new(i18n: &I18n) -> Self {
         Self {
-            messages: vec![ChatLine::System(
-                "LLM 聊天已就绪。输入您的问题，按 Enter 发送。输入 /back 返回。".into(),
-            )],
+            messages: vec![ChatLine::System(t!(i18n, "llm-chat-welcome"))],
             input: String::new(),
             pending_response: String::new(),
             is_streaming: false,
@@ -89,40 +90,36 @@ impl LlmChatState {
     }
 }
 
-impl Default for LlmChatState {
-    /// 转调 `new()` 以包含系统欢迎语，避免 `Receiver::default()` 不存在的问题。
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-pub fn render(frame: &mut Frame, area: Rect, chat_state: &LlmChatState) {
+pub fn render(frame: &mut Frame, area: Rect, chat_state: &LlmChatState, i18n: &I18n) {
     let layout = Layout::default()
         .constraints([Constraint::Min(3), Constraint::Length(3)])
         .split(area);
 
     // Chat messages area
-    render_messages(frame, layout[0], chat_state);
+    render_messages(frame, layout[0], chat_state, i18n);
 
     // Input area
-    render_input(frame, layout[1], chat_state);
+    render_input(frame, layout[1], chat_state, i18n);
 }
 
-fn render_messages(frame: &mut Frame, area: Rect, state: &LlmChatState) {
+fn render_messages(frame: &mut Frame, area: Rect, state: &LlmChatState, i18n: &I18n) {
     let mut lines: Vec<Line> = Vec::new();
 
     for msg in &state.messages {
         match msg {
             ChatLine::User(text) => {
                 lines.push(Line::from(vec![
-                    Span::styled("你: ", Style::default().fg(Color::Cyan).bold()),
+                    Span::styled(
+                        t!(i18n, "llm-chat-user-prefix"),
+                        Style::default().fg(Color::Cyan).bold(),
+                    ),
                     Span::styled(text, Style::default()),
                 ]));
             }
             ChatLine::Assistant(text) => {
                 for t in text.lines() {
                     lines.push(Line::from(vec![Span::styled(
-                        format!("AI: {}", t),
+                        format!("{}{}", t!(i18n, "llm-chat-ai-prefix"), t),
                         Style::default().fg(Color::Green),
                     )]));
                 }
@@ -135,7 +132,7 @@ fn render_messages(frame: &mut Frame, area: Rect, state: &LlmChatState) {
             }
             ChatLine::Error(text) => {
                 lines.push(Line::from(vec![Span::styled(
-                    format!("错误: {}", text),
+                    format!("{}{}", t!(i18n, "llm-chat-error-prefix"), text),
                     Style::default().fg(Color::Red),
                 )]));
             }
@@ -146,29 +143,33 @@ fn render_messages(frame: &mut Frame, area: Rect, state: &LlmChatState) {
     if state.is_streaming && !state.pending_response.is_empty() {
         for t in state.pending_response.lines() {
             lines.push(Line::from(vec![Span::styled(
-                format!("AI: {}", t),
+                format!("{}{}", t!(i18n, "llm-chat-ai-prefix"), t),
                 Style::default().fg(Color::Green),
             )]));
         }
     } else if state.is_streaming {
         lines.push(Line::from(vec![Span::styled(
-            "AI: ⏳ 思考中...",
+            t!(i18n, "llm-chat-thinking"),
             Style::default().fg(Color::Yellow),
         )]));
     }
 
     let text = Text::from(lines);
     let paragraph = Paragraph::new(text)
-        .block(Block::default().borders(Borders::ALL).title("LLM 对话"))
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title(t!(i18n, "llm-chat-title")),
+        )
         .wrap(Wrap { trim: false });
     frame.render_widget(paragraph, area);
 }
 
-fn render_input(frame: &mut Frame, area: Rect, state: &LlmChatState) {
+fn render_input(frame: &mut Frame, area: Rect, state: &LlmChatState, i18n: &I18n) {
     let status = if state.is_streaming {
-        "⏳ 等待响应中..."
+        t!(i18n, "llm-chat-waiting")
     } else {
-        "输入消息，Enter 发送，Esc 返回"
+        t!(i18n, "llm-chat-input-hint")
     };
 
     let display = if state.input.is_empty() {

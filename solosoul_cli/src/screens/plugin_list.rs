@@ -7,6 +7,8 @@ use ratatui::widgets::{Block, Borders, List, ListItem, Paragraph};
 use ratatui::Frame;
 
 use crate::commands::plugin::PluginSummary;
+use crate::i18n::I18n;
+use crate::t;
 
 /// 渲染插件列表页。
 pub fn render(
@@ -15,6 +17,7 @@ pub fn render(
     plugins: &[PluginSummary],
     selected: usize,
     filter: &str,
+    i18n: &I18n,
 ) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
@@ -33,10 +36,23 @@ pub fn render(
         .collect();
 
     let title = if filter.is_empty() {
-        format!("插件列表 (共 {} 个)", plugins.len())
+        format!(
+            "{} ({})",
+            t!(
+                i18n,
+                "plugin-list-title",
+                count = &plugins.len().to_string()
+            ),
+            plugins.len()
+        )
     } else {
         format!(
-            "插件列表: \"{}\" ({} / {} 个)",
+            "{}: \"{}\" ({} / {})",
+            t!(
+                i18n,
+                "plugin-list-title",
+                count = &plugins.len().to_string()
+            ),
             filter,
             filtered.len(),
             plugins.len()
@@ -45,9 +61,9 @@ pub fn render(
 
     let items: Vec<ListItem> = if filtered.is_empty() {
         let msg = if filter.is_empty() {
-            "暂无可用插件"
+            t!(i18n, "plugin-list-empty")
         } else {
-            "无匹配结果"
+            t!(i18n, "plugin-list-no-match")
         };
         vec![ListItem::new(msg)]
     } else {
@@ -78,9 +94,9 @@ pub fn render(
 
     // 底部帮助
     let hint_text = if filter.is_empty() {
-        "↑↓ 导航  键入过滤  |  Enter 详情  r 运行  i 安装  u 更新  d 卸载  |  q/Esc 返回"
+        t!(i18n, "plugin-list-hint")
     } else {
-        "输入关键字过滤  Esc 清除  Backspace 删除  |  ↑↓ 导航  Enter 详情  r 运行"
+        t!(i18n, "plugin-list-hint-filtering")
     };
     let help = Paragraph::new(Line::from(vec![Span::styled(
         hint_text,

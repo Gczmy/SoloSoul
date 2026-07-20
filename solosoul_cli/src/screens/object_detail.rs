@@ -6,8 +6,11 @@ use ratatui::text::{Line, Text};
 use ratatui::widgets::{Block, Borders, Paragraph, Row, Table};
 use solosoul_core::ObjectRecord;
 
+use crate::i18n::I18n;
+use crate::t;
+
 /// 渲染对象详情。
-pub fn render(frame: &mut ratatui::Frame, area: Rect, object: &ObjectRecord) {
+pub fn render(frame: &mut ratatui::Frame, area: Rect, object: &ObjectRecord, i18n: &I18n) {
     let layout = Layout::default()
         .direction(Direction::Vertical)
         .constraints([Constraint::Length(7), Constraint::Min(0)])
@@ -15,15 +18,24 @@ pub fn render(frame: &mut ratatui::Frame, area: Rect, object: &ObjectRecord) {
 
     // 元信息
     let meta_text = Text::from(vec![
-        Line::from(format!("名称: {}", object.name)).bold(),
-        Line::from(format!("ID: {}", object.id)).dark_gray(),
-        Line::from(format!("类型: {}", object.type_id)),
-        Line::from(format!(
-            "模板: {}",
-            object.template_type.as_deref().unwrap_or("无")
+        Line::from(t!(i18n, "object-detail-name", name = &object.name)).bold(),
+        Line::from(t!(i18n, "object-detail-id", id = &object.id)).dark_gray(),
+        Line::from(t!(i18n, "object-detail-type", r#type = &object.type_id)),
+        Line::from(t!(
+            i18n,
+            "object-detail-section",
+            section = object.template_type.as_deref().unwrap_or("none")
         )),
-        Line::from(format!("敏感度: {}", object.sensitivity_level)),
-        Line::from(format!("版本: {}", object.version)),
+        Line::from(t!(
+            i18n,
+            "object-detail-sensitivity",
+            level = &object.sensitivity_level
+        )),
+        Line::from(t!(
+            i18n,
+            "object-detail-version",
+            ver = &object.version.to_string()
+        )),
     ]);
     let meta =
         Paragraph::new(meta_text).block(Block::default().title(" 对象信息 ").borders(Borders::ALL));
@@ -64,10 +76,9 @@ pub fn render(frame: &mut ratatui::Frame, area: Rect, object: &ObjectRecord) {
 
     // 底部提示
     if should_mask {
-        let hint = Paragraph::new(
-            Line::from("敏感对象：属性值已掩码。编辑模式下可验证主密码后查看。").dark_gray(),
-        )
-        .alignment(Alignment::Center);
+        let hint =
+            Paragraph::new(Line::from(t!(i18n, "object-detail-sensitive-masked")).dark_gray())
+                .alignment(Alignment::Center);
         let hint_area = Rect::new(area.x, area.y + area.height - 1, area.width, 1);
         frame.render_widget(hint, hint_area);
     }

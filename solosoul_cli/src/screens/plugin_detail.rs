@@ -6,10 +6,12 @@ use ratatui::text::{Line, Span, Text};
 use ratatui::widgets::{Block, Borders, Paragraph, Wrap};
 use ratatui::Frame;
 
+use crate::i18n::I18n;
+use crate::t;
 use solosoul_plugin::PluginManifest;
 
 /// 渲染插件详情页。
-pub fn render(frame: &mut Frame, area: Rect, manifest: &PluginManifest) {
+pub fn render(frame: &mut Frame, area: Rect, manifest: &PluginManifest, i18n: &I18n) {
     let mut lines: Vec<Line> = Vec::new();
 
     let header = Style::default().fg(Color::Cyan);
@@ -38,25 +40,26 @@ pub fn render(frame: &mut Frame, area: Rect, manifest: &PluginManifest) {
     }
 
     // 基本信息
+    let none_str = t!(i18n, "generic-none");
     lines.push(Line::from(vec![
-        Span::styled("作者: ", label),
-        Span::styled(manifest.author.as_deref().unwrap_or("未指定"), value),
+        Span::styled(t!(i18n, "plugin-detail-author"), label),
+        Span::styled(manifest.author.as_deref().unwrap_or(&none_str), value),
     ]));
     lines.push(Line::from(vec![
-        Span::styled("类别: ", label),
+        Span::styled(t!(i18n, "plugin-detail-category"), label),
         Span::styled(manifest.category.as_str(), value),
     ]));
     lines.push(Line::from(vec![
-        Span::styled("等级: ", label),
+        Span::styled(t!(i18n, "plugin-detail-tier"), label),
         Span::styled(format!("{:?}", manifest.tier), value),
     ]));
     lines.push(Line::from(vec![
-        Span::styled("需要确认: ", label),
+        Span::styled(t!(i18n, "plugin-detail-confirm"), label),
         Span::styled(
             if manifest.require_user_confirmation {
-                "是"
+                t!(i18n, "generic-yes")
             } else {
-                "否"
+                t!(i18n, "generic-no")
             },
             value,
         ),
@@ -64,14 +67,14 @@ pub fn render(frame: &mut Frame, area: Rect, manifest: &PluginManifest) {
 
     if let Some(ref homepage) = manifest.homepage {
         lines.push(Line::from(vec![
-            Span::styled("主页: ", label),
+            Span::styled(t!(i18n, "plugin-detail-homepage"), label),
             Span::styled(homepage.as_str(), value),
         ]));
     }
 
     if let Some(ref core_ver) = manifest.required_core_version {
         lines.push(Line::from(vec![
-            Span::styled("要求 Core: ", label),
+            Span::styled(t!(i18n, "plugin-detail-core"), label),
             Span::styled(format!(">= {}", core_ver), value),
         ]));
     }
@@ -79,9 +82,15 @@ pub fn render(frame: &mut Frame, area: Rect, manifest: &PluginManifest) {
     lines.push(Line::from(vec![Span::raw("")]));
 
     // 权限
-    lines.push(Line::from(vec![Span::styled("权限:", label)]));
+    lines.push(Line::from(vec![Span::styled(
+        t!(i18n, "plugin-detail-permissions"),
+        label,
+    )]));
     if manifest.permissions.is_empty() {
-        lines.push(Line::from(vec![Span::styled("  无特殊权限", dim)]));
+        lines.push(Line::from(vec![Span::styled(
+            t!(i18n, "plugin-detail-no-permissions"),
+            dim,
+        )]));
     } else {
         for perm in &manifest.permissions {
             lines.push(Line::from(vec![Span::styled(
@@ -95,7 +104,10 @@ pub fn render(frame: &mut Frame, area: Rect, manifest: &PluginManifest) {
 
     // 网络策略
     let net = &manifest.network_policy;
-    lines.push(Line::from(vec![Span::styled("网络策略:", label)]));
+    lines.push(Line::from(vec![Span::styled(
+        t!(i18n, "plugin-detail-network"),
+        label,
+    )]));
     lines.push(Line::from(vec![Span::styled(
         format!("  allow_outbound: {}", net.block_all_outbound),
         value,
@@ -114,9 +126,16 @@ pub fn render(frame: &mut Frame, area: Rect, manifest: &PluginManifest) {
 
     // 参数
     if !manifest.params.is_empty() {
-        lines.push(Line::from(vec![Span::styled("参数:", label)]));
+        lines.push(Line::from(vec![Span::styled(
+            t!(i18n, "plugin-detail-params"),
+            label,
+        )]));
         for p in &manifest.params {
-            let required = if p.required { "[必填]" } else { "[可选]" };
+            let required = if p.required {
+                t!(i18n, "plugin-detail-required")
+            } else {
+                t!(i18n, "plugin-detail-optional")
+            };
             lines.push(Line::from(vec![Span::styled(
                 format!("  {}: {} {}", p.label, p.description, required),
                 value,
@@ -128,7 +147,7 @@ pub fn render(frame: &mut Frame, area: Rect, manifest: &PluginManifest) {
     // 数据 TTL
     if manifest.data_ttl_seconds > 0 {
         lines.push(Line::from(vec![
-            Span::styled("数据 TTL: ", label),
+            Span::styled(t!(i18n, "plugin-detail-ttl"), label),
             Span::styled(format!("{}s", manifest.data_ttl_seconds), value),
         ]));
     }
@@ -136,7 +155,7 @@ pub fn render(frame: &mut Frame, area: Rect, manifest: &PluginManifest) {
     // WASM hash
     if let Some(ref hash) = manifest.wasm_hash_sha256 {
         lines.push(Line::from(vec![
-            Span::styled("WASM SHA256: ", label),
+            Span::styled(t!(i18n, "plugin-detail-wasm-hash"), label),
             Span::styled(hash.as_str(), dim),
         ]));
     }
@@ -145,7 +164,11 @@ pub fn render(frame: &mut Frame, area: Rect, manifest: &PluginManifest) {
     let paragraph = Paragraph::new(text)
         .block(
             Block::default()
-                .title(format!("插件详情: {}", manifest.name))
+                .title(format!(
+                    "{} {}",
+                    t!(i18n, "plugin-detail-prefix"),
+                    manifest.name
+                ))
                 .borders(Borders::ALL),
         )
         .wrap(Wrap { trim: true });

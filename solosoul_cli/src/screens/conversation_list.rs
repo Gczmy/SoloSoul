@@ -1,5 +1,7 @@
 //! Conversation history list screen.
 
+use crate::i18n::I18n;
+use crate::t;
 use ratatui::layout::{Constraint, Layout, Rect};
 use ratatui::style::{Color, Style};
 use ratatui::text::{Line, Span, Text};
@@ -12,6 +14,7 @@ pub fn render(
     area: Rect,
     conversations: &[ConversationSummary],
     selected: usize,
+    i18n: &I18n,
 ) {
     let layout = Layout::default()
         .constraints([Constraint::Length(3), Constraint::Min(0)])
@@ -20,12 +23,14 @@ pub fn render(
     // Header
     let header = Paragraph::new(Text::from(vec![
         Line::from(vec![Span::styled(
-            "LLM 对话历史",
+            t!(i18n, "llm-conversation-title"),
             Style::default().bold().fg(Color::Cyan),
         )]),
         Line::from(format!(
-            "共 {} 条对话  |  ↑↓ 选择  Enter 打开  Esc/q 返回",
-            conversations.len()
+            "{}{}{}",
+            t!(i18n, "llm-conversation-count-prefix"),
+            conversations.len(),
+            t!(i18n, "hint-up-down-enter-esc-q")
         )),
     ]))
     .block(Block::default().borders(Borders::ALL));
@@ -33,7 +38,7 @@ pub fn render(
 
     // Conversation list
     if conversations.is_empty() {
-        let empty = Paragraph::new("暂无对话记录")
+        let empty = Paragraph::new(t!(i18n, "llm-conversation-empty"))
             .block(Block::default().borders(Borders::ALL))
             .style(Style::default().fg(Color::DarkGray));
         frame.render_widget(empty, layout[1]);
@@ -68,6 +73,10 @@ pub fn render(
 
     let mut list_state = ListState::default();
     list_state.select(Some(selected));
-    let list = List::new(items).block(Block::default().borders(Borders::ALL).title("对话"));
+    let list = List::new(items).block(
+        Block::default()
+            .borders(Borders::ALL)
+            .title(t!(i18n, "llm-conversations-label")),
+    );
     frame.render_stateful_widget(list, layout[1], &mut list_state);
 }

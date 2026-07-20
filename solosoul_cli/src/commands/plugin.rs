@@ -7,6 +7,7 @@ use std::sync::{Arc, Mutex};
 use color_eyre::Result;
 
 use crate::app::{App, AppPhase};
+use crate::t;
 
 use solosoul_plugin::{PluginEvent, PluginEventSink};
 
@@ -50,7 +51,7 @@ pub fn list_plugins(app: &mut App) -> Result<()> {
                 .collect();
 
             if plugins.is_empty() {
-                app.error_message = Some("插件市场中暂无可用插件".to_string());
+                app.error_message = Some(t!(app.i18n, "cmd-plugin-market-empty"));
             } else {
                 app.phase = AppPhase::PluginList {
                     plugins,
@@ -60,7 +61,7 @@ pub fn list_plugins(app: &mut App) -> Result<()> {
             }
         }
         Err(e) => {
-            app.error_message = Some(format!("加载插件列表失败: {}", e));
+            app.error_message = Some(t!(app.i18n, "cmd-plugin-search-failed", err = e));
         }
     }
     Ok(())
@@ -74,7 +75,7 @@ pub fn run_plugin(app: &mut App, plugin_id: Option<&str>, raw_params: &[&str]) -
     let plugin_id = match plugin_id {
         Some(id) => id.to_string(),
         None => {
-            app.error_message = Some("用法: /plugin_run <plugin_id>".to_string());
+            app.error_message = Some(t!(app.i18n, "cmd-plugin-usage-run"));
             return Ok(());
         }
     };
@@ -82,7 +83,7 @@ pub fn run_plugin(app: &mut App, plugin_id: Option<&str>, raw_params: &[&str]) -
     let account_id = match app.vault_service.get_current_account() {
         Some(id) => id,
         None => {
-            app.error_message = Some("未登录，无法运行插件".to_string());
+            app.error_message = Some(t!(app.i18n, "cmd-plugin-need-login"));
             return Ok(());
         }
     };
@@ -90,7 +91,7 @@ pub fn run_plugin(app: &mut App, plugin_id: Option<&str>, raw_params: &[&str]) -
     let vault = match app.vault_service.get_vault_store() {
         Some(v) => v,
         None => {
-            app.error_message = Some("Vault 未解锁".to_string());
+            app.error_message = Some(t!(app.i18n, "cmd-plugin-vault-locked"));
             return Ok(());
         }
     };
@@ -98,7 +99,7 @@ pub fn run_plugin(app: &mut App, plugin_id: Option<&str>, raw_params: &[&str]) -
     let market_dir = resolve_plugin_market_dir();
     let plugin_dir = market_dir.join("plugins").join(&plugin_id);
     if !plugin_dir.exists() {
-        app.error_message = Some(format!("未找到插件: {}", plugin_id));
+        app.error_message = Some(t!(app.i18n, "cmd-plugin-not-found", id = plugin_id));
         return Ok(());
     }
 
@@ -130,7 +131,7 @@ pub fn run_plugin(app: &mut App, plugin_id: Option<&str>, raw_params: &[&str]) -
     // 共享结果容器：工作线程写入，主线程在 handle_tick 中轮询
     let result_holder: Arc<Mutex<Option<String>>> = Arc::new(Mutex::new(None));
     app.plugin_run_pending = Some(result_holder.clone());
-    app.error_message = Some(format!("正在后台运行插件: {} ...", plugin_id));
+    app.error_message = Some(t!(app.i18n, "cmd-plugin-running", id = plugin_id));
 
     let plugin_id_clone = plugin_id;
     let market_dir_clone = market_dir;
@@ -172,11 +173,11 @@ pub fn run_plugin(app: &mut App, plugin_id: Option<&str>, raw_params: &[&str]) -
             {
                 Ok(result) => {
                     format!(
-                        "插件 {} 运行完成: exit_code={}, fuel={}",
+                        "Plugin {} completed: exit_code={}, fuel={}",
                         plugin_id_clone, result.exit_code, result.fuel_consumed
                     )
                 }
-                Err(e) => format!("插件 {} 运行失败: {}", plugin_id_clone, e),
+                Err(e) => format!("Plugin {} run failed: {}", plugin_id_clone, e),
             }
         });
 
@@ -193,7 +194,7 @@ pub fn install_plugin(app: &mut App, plugin_id: Option<&str>) -> Result<()> {
     let plugin_id = match plugin_id {
         Some(id) => id.to_string(),
         None => {
-            app.error_message = Some("用法: /plugin_install <plugin_id>".to_string());
+            app.error_message = Some(t!(app.i18n, "cmd-plugin-usage-install"));
             return Ok(());
         }
     };
@@ -213,13 +214,20 @@ pub fn install_plugin(app: &mut App, plugin_id: Option<&str>) -> Result<()> {
 
     match manager.install_from_registry(&plugin_id, &version) {
         Ok(result) => {
-            app.error_message = Some(format!(
-                "插件 {} v{} 安装成功",
-                result.plugin_id, result.version
+            app.error_message = Some(t!(
+                app.i18n,
+                "cmd-plugin-installed",
+                id = result.plugin_id,
+                ver = result.version
             ));
         }
         Err(e) => {
-            app.error_message = Some(format!("安装插件 {} 失败: {}", plugin_id, e));
+            app.error_message = Some(t!(
+                app.i18n,
+                "cmd-plugin-install-failed",
+                id = plugin_id,
+                err = e
+            ));
         }
     }
     Ok(())
@@ -230,7 +238,7 @@ pub fn update_plugin(app: &mut App, plugin_id: Option<&str>) -> Result<()> {
     let plugin_id = match plugin_id {
         Some(id) => id.to_string(),
         None => {
-            app.error_message = Some("用法: /plugin_update <plugin_id>".to_string());
+            app.error_message = Some(t!(app.i18n, "cmd-plugin-usage-update"));
             return Ok(());
         }
     };
@@ -241,13 +249,20 @@ pub fn update_plugin(app: &mut App, plugin_id: Option<&str>) -> Result<()> {
 
     match manager.update(&plugin_id) {
         Ok(result) => {
-            app.error_message = Some(format!(
-                "插件 {} 更新成功 (v{})",
-                result.plugin_id, result.version
+            app.error_message = Some(t!(
+                app.i18n,
+                "cmd-plugin-updated",
+                id = result.plugin_id,
+                ver = result.version
             ));
         }
         Err(e) => {
-            app.error_message = Some(format!("更新插件 {} 失败: {}", plugin_id, e));
+            app.error_message = Some(t!(
+                app.i18n,
+                "cmd-plugin-update-failed",
+                id = plugin_id,
+                err = e
+            ));
         }
     }
     Ok(())
@@ -258,7 +273,7 @@ pub fn uninstall_plugin(app: &mut App, plugin_id: Option<&str>) -> Result<()> {
     let plugin_id = match plugin_id {
         Some(id) => id.to_string(),
         None => {
-            app.error_message = Some("用法: /plugin_uninstall <plugin_id>".to_string());
+            app.error_message = Some(t!(app.i18n, "cmd-plugin-usage-uninstall"));
             return Ok(());
         }
     };
@@ -269,10 +284,15 @@ pub fn uninstall_plugin(app: &mut App, plugin_id: Option<&str>) -> Result<()> {
 
     match manager.uninstall(&plugin_id) {
         Ok(()) => {
-            app.error_message = Some(format!("插件 {} 已卸载", plugin_id));
+            app.error_message = Some(t!(app.i18n, "cmd-plugin-uninstalled", id = plugin_id));
         }
         Err(e) => {
-            app.error_message = Some(format!("卸载插件 {} 失败: {}", plugin_id, e));
+            app.error_message = Some(t!(
+                app.i18n,
+                "cmd-plugin-uninstall-failed",
+                id = plugin_id,
+                err = e
+            ));
         }
     }
     Ok(())
@@ -287,7 +307,7 @@ pub fn list_sessions(app: &mut App) -> Result<()> {
     match manager.list_sessions() {
         Ok(sessions) => {
             if sessions.is_empty() {
-                app.error_message = Some("当前没有活跃的插件会话".to_string());
+                app.error_message = Some(t!(app.i18n, "cmd-plugin-no-sessions"));
             } else {
                 let lines: Vec<String> = sessions
                     .iter()
@@ -298,15 +318,18 @@ pub fn list_sessions(app: &mut App) -> Result<()> {
                         )
                     })
                     .collect();
-                app.error_message = Some(format!(
-                    "活跃会话 ({}):\n{}",
-                    sessions.len(),
-                    lines.join("\n")
-                ));
+                app.error_message = Some(
+                    t!(
+                        app.i18n,
+                        "cmd-plugin-sessions-header",
+                        count = sessions.len().to_string()
+                    ) + "\n"
+                        + &lines.join("\n"),
+                );
             }
         }
         Err(e) => {
-            app.error_message = Some(format!("获取会话列表失败: {}", e));
+            app.error_message = Some(t!(app.i18n, "cmd-plugin-list-sessions-failed", err = e));
         }
     }
     Ok(())
@@ -321,21 +344,24 @@ pub fn list_installed_plugins(app: &mut App) -> Result<()> {
     match manager.list_installed() {
         Ok(installed) => {
             if installed.is_empty() {
-                app.error_message = Some("本地暂无已安装的插件".to_string());
+                app.error_message = Some(t!(app.i18n, "cmd-plugin-none-installed"));
             } else {
                 let lines: Vec<String> = installed
                     .iter()
                     .map(|p| format!("- {} v{} ({})", p.name, p.version, p.description))
                     .collect();
-                app.error_message = Some(format!(
-                    "已安装插件 ({}):\n{}",
-                    installed.len(),
-                    lines.join("\n")
-                ));
+                app.error_message = Some(
+                    t!(
+                        app.i18n,
+                        "cmd-plugin-installed-header",
+                        count = installed.len().to_string()
+                    ) + "\n"
+                        + &lines.join("\n"),
+                );
             }
         }
         Err(e) => {
-            app.error_message = Some(format!("获取已安装列表失败: {}", e));
+            app.error_message = Some(t!(app.i18n, "cmd-plugin-list-installed-failed", err = e));
         }
     }
     Ok(())
@@ -350,11 +376,11 @@ pub fn audit_log(app: &mut App, limit: Option<&str>) -> Result<()> {
     let limit_num: Option<usize> = match limit.and_then(|s| s.parse().ok()) {
         Some(n) if n > 0 => Some(n),
         Some(_) => {
-            app.error_message = Some("limit 必须为正整数".to_string());
+            app.error_message = Some(t!(app.i18n, "cmd-plugin-limit-must-be-positive"));
             return Ok(());
         }
         None if limit.is_some() => {
-            app.error_message = Some("limit 必须为数字".to_string());
+            app.error_message = Some(t!(app.i18n, "cmd-plugin-limit-must-be-number"));
             return Ok(());
         }
         None => Some(20), // 默认 20 条
@@ -363,7 +389,7 @@ pub fn audit_log(app: &mut App, limit: Option<&str>) -> Result<()> {
     match manager.audit_log(limit_num) {
         Ok(entries) => {
             if entries.is_empty() {
-                app.error_message = Some("暂无插件审计日志".to_string());
+                app.error_message = Some(t!(app.i18n, "cmd-plugin-no-audit-logs"));
             } else {
                 let lines: Vec<String> = entries
                     .iter()
@@ -375,15 +401,18 @@ pub fn audit_log(app: &mut App, limit: Option<&str>) -> Result<()> {
                         )
                     })
                     .collect();
-                app.error_message = Some(format!(
-                    "审计日志 (最近 {}):\n{}",
-                    entries.len(),
-                    lines.join("\n")
-                ));
+                app.error_message = Some(
+                    t!(
+                        app.i18n,
+                        "cmd-plugin-audit-header",
+                        count = entries.len().to_string()
+                    ) + "\n"
+                        + &lines.join("\n"),
+                );
             }
         }
         Err(e) => {
-            app.error_message = Some(format!("获取审计日志失败: {}", e));
+            app.error_message = Some(t!(app.i18n, "cmd-plugin-audit-failed", err = e));
         }
     }
     Ok(())
@@ -411,12 +440,12 @@ pub fn update_registry(app: &mut App) -> Result<()> {
     let rt = match tokio::runtime::Runtime::new() {
         Ok(rt) => rt,
         Err(e) => {
-            app.error_message = Some(format!("无法创建异步运行时: {}", e));
+            app.error_message = Some(t!(app.i18n, "cmd-plugin-init-failed", err = e));
             return Ok(());
         }
     };
 
-    app.error_message = Some("正在更新插件注册表...".to_string());
+    app.error_message = Some(t!(app.i18n, "cmd-plugin-updating-registry"));
 
     let result_holder: std::sync::Arc<std::sync::Mutex<Option<String>>> =
         std::sync::Arc::new(std::sync::Mutex::new(None));
@@ -427,12 +456,12 @@ pub fn update_registry(app: &mut App) -> Result<()> {
             match manager.update_registry().await {
                 Ok(()) => {
                     if let Ok(mut h) = holder.lock() {
-                        *h = Some("插件注册表已更新".to_string());
+                        *h = Some("Plugin registry updated.".to_string());
                     }
                 }
                 Err(e) => {
                     if let Ok(mut h) = holder.lock() {
-                        *h = Some(format!("更新注册表失败: {}", e));
+                        *h = Some(format!("Failed to update registry: {}", e));
                     }
                 }
             }
@@ -448,7 +477,7 @@ pub fn search_plugins(app: &mut App, keyword: Option<&str>) -> Result<()> {
     let keyword = match keyword {
         Some(k) => k.to_lowercase(),
         None => {
-            app.error_message = Some("用法: /plugin_search <keyword>".to_string());
+            app.error_message = Some(t!(app.i18n, "cmd-plugin-usage-search"));
             return Ok(());
         }
     };
@@ -477,7 +506,11 @@ pub fn search_plugins(app: &mut App, keyword: Option<&str>) -> Result<()> {
                 .collect();
 
             if matched.is_empty() {
-                app.error_message = Some(format!("未找到匹配 \"{}\" 的插件", keyword));
+                app.error_message = Some(t!(
+                    app.i18n,
+                    "cmd-plugin-search-no-match",
+                    keyword = keyword
+                ));
             } else {
                 app.phase = AppPhase::PluginList {
                     plugins: matched,
@@ -487,7 +520,7 @@ pub fn search_plugins(app: &mut App, keyword: Option<&str>) -> Result<()> {
             }
         }
         Err(e) => {
-            app.error_message = Some(format!("搜索插件失败: {}", e));
+            app.error_message = Some(t!(app.i18n, "cmd-plugin-search-failed", err = e));
         }
     }
     Ok(())
@@ -499,7 +532,7 @@ fn create_manager(app: &mut App) -> Option<solosoul_plugin::PluginManager> {
     match solosoul_plugin::PluginManager::new_with_resource_dir(&market_dir) {
         Ok(m) => Some(m),
         Err(e) => {
-            app.error_message = Some(format!("初始化插件管理器失败: {}", e));
+            app.error_message = Some(t!(app.i18n, "cmd-plugin-init-failed", err = e));
             None
         }
     }

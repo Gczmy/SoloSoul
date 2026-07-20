@@ -6,9 +6,11 @@ use ratatui::text::{Line, Text};
 use ratatui::widgets::{Block, Borders, Paragraph};
 
 use crate::app::SizeReport;
+use crate::i18n::I18n;
+use crate::t;
 
 /// 渲染账户统计。
-pub fn render(frame: &mut ratatui::Frame, area: Rect, report: &SizeReport) {
+pub fn render(frame: &mut ratatui::Frame, area: Rect, report: &SizeReport, i18n: &I18n) {
     fn format_bytes(bytes: u64) -> String {
         const UNITS: &[&str] = &["B", "KB", "MB", "GB"];
         if bytes == 0 {
@@ -21,16 +23,33 @@ pub fn render(frame: &mut ratatui::Frame, area: Rect, report: &SizeReport) {
 
     let text = Text::from(vec![
         Line::from(""),
-        Line::from(format!("页面数量: {}", report.page_count)),
-        Line::from(format!("对象数量: {}", report.object_count)),
-        Line::from(format!("回收站项目: {}", report.trash_count)),
-        Line::from(format!("Profile 数量: {}", report.profile_count)),
-        Line::from(format!(
-            "Vault 总大小: {}",
-            format_bytes(report.total_size_bytes)
+        Line::from(t!(
+            i18n,
+            "size-pages",
+            count = report.page_count.to_string()
+        )),
+        Line::from(t!(
+            i18n,
+            "size-objects",
+            count = report.object_count.to_string()
+        )),
+        Line::from(t!(
+            i18n,
+            "size-trash",
+            count = report.trash_count.to_string()
+        )),
+        Line::from(t!(
+            i18n,
+            "size-profiles",
+            count = report.profile_count.to_string()
+        )),
+        Line::from(t!(
+            i18n,
+            "size-total-size",
+            size = format_bytes(report.total_size_bytes)
         )),
         Line::from(""),
-        Line::from("按 Esc 或输入 /back 返回")
+        Line::from(t!(i18n, "hint-esc-or-back"))
             .dark_gray()
             .alignment(Alignment::Center),
     ]);

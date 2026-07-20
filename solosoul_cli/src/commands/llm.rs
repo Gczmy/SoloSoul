@@ -3,20 +3,21 @@
 use color_eyre::Result;
 
 use crate::app::{App, AppPhase};
+use crate::t;
 
 /// /model — show current provider and model.
 pub fn model(app: &mut App) -> Result<()> {
     let account_id = match app.vault_service.get_current_account() {
         Some(id) => id,
         None => {
-            app.error_message = Some("未登录，无法查看 LLM 模型配置".to_string());
+            app.error_message = Some(t!(app.i18n, "cmd-llm-need-login"));
             return Ok(());
         }
     };
     let vault = match app.vault_service.get_vault_store() {
         Some(v) => v,
         None => {
-            app.error_message = Some("Vault 未解锁".to_string());
+            app.error_message = Some(t!(app.i18n, "cmd-llm-vault-locked"));
             return Ok(());
         }
     };
@@ -29,12 +30,11 @@ pub fn model(app: &mut App) -> Result<()> {
                 );
                 app.error_message = Some(msg);
             } else {
-                app.error_message =
-                    Some("未设置活跃 LLM 提供商。使用 /llm_config 配置。".to_string());
+                app.error_message = Some(t!(app.i18n, "cmd-llm-no-active-provider"));
             }
         }
         Err(e) => {
-            app.error_message = Some(format!("加载 LLM 配置失败: {}", e));
+            app.error_message = Some(t!(app.i18n, "cmd-llm-config-failed", err = e));
         }
     }
     Ok(())
@@ -45,14 +45,14 @@ pub fn config(app: &mut App) -> Result<()> {
     let account_id = match app.vault_service.get_current_account() {
         Some(id) => id,
         None => {
-            app.error_message = Some("未登录，无法查看 LLM 配置".to_string());
+            app.error_message = Some(t!(app.i18n, "cmd-llm-need-login"));
             return Ok(());
         }
     };
     let vault = match app.vault_service.get_vault_store() {
         Some(v) => v,
         None => {
-            app.error_message = Some("Vault 未解锁".to_string());
+            app.error_message = Some(t!(app.i18n, "cmd-llm-vault-locked"));
             return Ok(());
         }
     };
@@ -65,7 +65,7 @@ pub fn config(app: &mut App) -> Result<()> {
             };
         }
         Err(e) => {
-            app.error_message = Some(format!("加载 LLM 配置失败: {}", e));
+            app.error_message = Some(t!(app.i18n, "cmd-llm-config-failed", err = e));
         }
     }
     Ok(())
@@ -76,7 +76,7 @@ pub fn stats(app: &mut App) -> Result<()> {
     let account_id = match app.vault_service.get_current_account() {
         Some(id) => id,
         None => {
-            app.error_message = Some("未登录，无法查看 LLM 统计".to_string());
+            app.error_message = Some(t!(app.i18n, "cmd-llm-need-login"));
             return Ok(());
         }
     };
@@ -92,7 +92,7 @@ pub fn stats(app: &mut App) -> Result<()> {
             app.phase = AppPhase::LlmStats { stats, selected: 0 };
         }
         Err(e) => {
-            app.error_message = Some(format!("加载 LLM 统计失败: {}", e));
+            app.error_message = Some(t!(app.i18n, "cmd-llm-stats-failed", err = e));
         }
     }
     Ok(())
@@ -103,7 +103,7 @@ pub fn list_conversations(app: &mut App) -> Result<()> {
     let account_id = match app.vault_service.get_current_account() {
         Some(id) => id,
         None => {
-            app.error_message = Some("未登录，无法查看对话列表".to_string());
+            app.error_message = Some(t!(app.i18n, "cmd-llm-need-login"));
             return Ok(());
         }
     };
@@ -122,7 +122,7 @@ pub fn list_conversations(app: &mut App) -> Result<()> {
             };
         }
         Err(e) => {
-            app.error_message = Some(format!("加载对话列表失败: {}", e));
+            app.error_message = Some(t!(app.i18n, "cmd-llm-list-failed", err = e));
         }
     }
     Ok(())
@@ -133,16 +133,16 @@ pub fn chat(app: &mut App, conversation_id: Option<&str>) -> Result<()> {
     let account_id = match app.vault_service.get_current_account() {
         Some(id) => id,
         None => {
-            app.error_message = Some("未登录，无法使用 LLM 聊天".to_string());
+            app.error_message = Some(t!(app.i18n, "cmd-llm-need-login-chat"));
             return Ok(());
         }
     };
     if app.vault_service.get_vault_store().is_none() {
-        app.error_message = Some("Vault 未解锁".to_string());
+        app.error_message = Some(t!(app.i18n, "cmd-llm-vault-locked"));
         return Ok(());
     }
 
-    let mut state = crate::screens::llm_chat::LlmChatState::new();
+    let mut state = crate::screens::llm_chat::LlmChatState::new(&app.i18n);
     if let Some(conv_id) = conversation_id {
         // Load existing conversation if specified
         let vault = app
@@ -156,9 +156,10 @@ pub fn chat(app: &mut App, conversation_id: Option<&str>) -> Result<()> {
             state.messages.clear();
             state
                 .messages
-                .push(crate::screens::llm_chat::ChatLine::System(format!(
-                    "已加载对话: {}",
-                    conv.name
+                .push(crate::screens::llm_chat::ChatLine::System(t!(
+                    app.i18n,
+                    "cmd-llm-loaded-conversation",
+                    name = &conv.name
                 )));
             for msg in &conv.messages {
                 match msg.role.as_str() {

@@ -13,6 +13,7 @@ use solosoul_core::{
 
 use crate::app::{App, AppPhase};
 use crate::commands::require_unlocked;
+use crate::t;
 
 /// 最大返回结果数。
 const RESULT_LIMIT: usize = 200;
@@ -79,7 +80,7 @@ pub fn search(app: &mut App, input: Option<&str>) -> Result<()> {
     let query = match extract_query(input) {
         Some(q) if !q.is_empty() => q,
         _ => {
-            app.error_message = Some("请提供搜索关键词，例如 /search 护照".to_string());
+            app.error_message = Some(t!(app.i18n, "cmd-search-need-keyword"));
             return Ok(());
         }
     };

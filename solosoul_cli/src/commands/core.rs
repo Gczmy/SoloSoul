@@ -1,6 +1,7 @@
 //! 核心全局命令（/exit、/back 等）。
 
 use crate::app::{App, AppPhase};
+use crate::t;
 
 /// 执行 `/exit`：先锁定 Vault，再标记退出。
 pub fn exit(app: &mut App) {
@@ -33,6 +34,6 @@ pub fn back(app: &mut App) {
         app.phase = prev;
         app.password_input.clear();
     } else {
-        app.error_message = Some("没有上一屏可返回".to_string());
+        app.error_message = Some(t!(app.i18n, "cmd-no-previous-screen"));
     }
 }

@@ -4,10 +4,12 @@ use crate::app::App;
 
 // ---- 共享帮助函数 ----
 
+use crate::t;
+
 /// 确保 Vault 已解锁，返回当前账户 ID。
 pub fn require_unlocked(app: &mut App) -> color_eyre::Result<String> {
     if !app.vault_service.is_unlocked() {
-        app.error_message = Some("请先使用 /unlock 登录".to_string());
+        app.error_message = Some(t!(app.i18n, "cmd-need-unlock"));
         return Err(color_eyre::eyre::eyre!("Vault is locked"));
     }
     app.vault_service
@@ -23,7 +25,7 @@ pub fn require_unlocked_with_vault(
     let vault = app
         .vault_service
         .get_vault_store()
-        .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
+        .ok_or_else(|| color_eyre::eyre::eyre!("Vault not open"))?;
     Ok((account_id, vault))
 }
 
@@ -71,7 +73,11 @@ pub fn update_profile_preference(
     }
 
     profile.data = serde_json::to_vec(&data).map_err(|e| {
-        app.error_message = Some(format!("序列化 profile 数据失败: {}", e));
+        app.error_message = Some(t!(
+            app.i18n,
+            "cmd-profile-serialize-failed",
+            err = e.to_string()
+        ));
         color_eyre::eyre::eyre!(e)
     })?;
     profile.updated_at = chrono::Utc::now();

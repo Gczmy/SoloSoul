@@ -5,6 +5,8 @@
 use ratatui::layout::Rect;
 
 use crate::app::{ClickAction, ClickableRegion};
+use crate::i18n::I18n;
+use crate::t;
 
 /// 当前内置的可选语言列表。
 pub const OPTIONS: &[(&str, &str)] = &[
@@ -22,6 +24,7 @@ pub fn render(
     current: &str,
     regions: &mut Vec<ClickableRegion>,
     mouse_pos: Option<(u16, u16)>,
+    i18n: &I18n,
 ) {
     super::settings_select::render_option_list(
         frame,
@@ -30,12 +33,13 @@ pub fn render(
             options: OPTIONS,
             current,
             selected,
-            title: "选择语言",
+            title: t!(i18n, "settings-lang-title"),
             command: "/language",
-            help: "↑/↓ 选择 · Enter 或点击应用 · Esc 取消",
+            help: t!(i18n, "settings-select-hint"),
             click_action: |s| ClickAction::ApplyLanguage(s.to_string()),
         },
         regions,
         mouse_pos,
+        i18n,
     );
 }

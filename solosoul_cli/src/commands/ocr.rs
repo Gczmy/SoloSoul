@@ -10,6 +10,7 @@
 //! - `/ocr help` —— 帮助
 
 use crate::app::App;
+use crate::t;
 use color_eyre::Result;
 use solosoul_core::ocr::engine::OcrEngine;
 use solosoul_core::ocr::model as ocr_model;
@@ -40,7 +41,7 @@ pub fn handle(app: &mut App, argv: &[&str]) -> Result<()> {
             Ok(())
         }
         other => {
-            app.error_message = Some(format!("未知 /ocr 子命令: {}", other));
+            app.error_message = Some(t!(app.i18n, "cmd-unknown-subcommand", cmd = other));
             Ok(())
         }
     }
@@ -152,18 +153,12 @@ fn scan(app: &mut App, args: &[&str]) {
         if a == "--mrz" {
             mrz_mode = true;
         } else if a.starts_with("--") {
-            app.error_message = Some(format!(
-                "/ocr scan: 未知 flag {}。用法: /ocr scan [--mrz] <image-path>",
-                a
-            ));
+            app.error_message = Some(t!(app.i18n, "cmd-ocr-unknown-flag", flag = a));
             return;
         } else if image_path.is_none() {
             image_path = Some(a);
         } else {
-            app.error_message = Some(format!(
-                "/ocr scan: 拒绝多余参数 {}。用法: /ocr scan [--mrz] <image-path>",
-                a
-            ));
+            app.error_message = Some(t!(app.i18n, "cmd-ocr-extra-arg", arg = a));
             return;
         }
     }
@@ -171,13 +166,13 @@ fn scan(app: &mut App, args: &[&str]) {
     let image_path = match image_path {
         Some(p) if !p.is_empty() => p,
         _ => {
-            app.error_message = Some("用法: /ocr scan [--mrz] <image-path>".to_string());
+            app.error_message = Some(t!(app.i18n, "cmd-ocr-usage"));
             return;
         }
     };
     let path = Path::new(image_path);
     if !path.exists() {
-        app.error_message = Some(format!("图片不存在: {}", image_path));
+        app.error_message = Some(t!(app.i18n, "cmd-ocr-image-not-found", path = image_path));
         return;
     }
 
@@ -185,7 +180,7 @@ fn scan(app: &mut App, args: &[&str]) {
         Ok(s) => match s.parse() {
             Ok(t) => t,
             Err(e) => {
-                app.error_message = Some(format!("SOLOSOUL_OCR_TIER 解析失败: {}", e));
+                app.error_message = Some(t!(app.i18n, "cmd-ocr-env-parse-failed", err = e));
                 return;
             }
         },
@@ -194,11 +189,11 @@ fn scan(app: &mut App, args: &[&str]) {
 
     let base = models_dir(app);
     if !ocr_model::is_model_installed(&base, tier) {
-        app.error_message = Some(format!(
-            "{} 档位模型未安装。请先通过 GUI 安装或手动放置到 {}/{}。",
-            tier,
-            base.display(),
-            tier.dir_name()
+        app.error_message = Some(t!(
+            app.i18n,
+            "cmd-ocr-tier-not-installed",
+            tier = tier.to_string(),
+            path = format!("{}/{}", base.display(), tier.dir_name())
         ));
         return;
     }
@@ -206,7 +201,7 @@ fn scan(app: &mut App, args: &[&str]) {
     let mut engine = match OcrEngine::load(&base, tier) {
         Ok(e) => e,
         Err(e) => {
-            app.error_message = Some(format!("加载 OCR engine 失败: {}", e));
+            app.error_message = Some(t!(app.i18n, "cmd-ocr-engine-failed", err = e));
             return;
         }
     };
@@ -215,11 +210,11 @@ fn scan(app: &mut App, args: &[&str]) {
         let mrz_result = match engine.scan_mrz(path) {
             Ok(Some(m)) => m,
             Ok(None) => {
-                app.error_message = Some("未在图片中识别到 MRZ 区域".to_string());
+                app.error_message = Some(t!(app.i18n, "cmd-ocr-mrz-not-found"));
                 return;
             }
             Err(e) => {
-                app.error_message = Some(format!("MRZ 识别失败: {}", e));
+                app.error_message = Some(t!(app.i18n, "cmd-ocr-mrz-failed", err = e));
                 return;
             }
         };
@@ -242,7 +237,7 @@ fn scan(app: &mut App, args: &[&str]) {
     let result = match engine.scan_image(path) {
         Ok(r) => r,
         Err(e) => {
-            app.error_message = Some(format!("OCR 扫描失败: {}", e));
+            app.error_message = Some(t!(app.i18n, "cmd-ocr-scan-failed", err = e));
             return;
         }
     };

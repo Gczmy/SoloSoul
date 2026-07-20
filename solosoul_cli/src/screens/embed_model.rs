@@ -1,5 +1,7 @@
 //! /embed_model 模型列表屏：列出已安装/激活情况。
 
+use crate::i18n::I18n;
+use crate::t;
 use ratatui::layout::{Constraint, Direction, Layout, Rect};
 use ratatui::style::{Color, Modifier, Style};
 use ratatui::text::{Line, Span};
@@ -14,7 +16,7 @@ pub struct EmbedModelEntry {
     pub source: String,
 }
 
-pub fn render(frame: &mut Frame, area: Rect, models: &[EmbedModelEntry], info: &str) {
+pub fn render(frame: &mut Frame, area: Rect, models: &[EmbedModelEntry], info: &str, i18n: &I18n) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
@@ -26,7 +28,7 @@ pub fn render(frame: &mut Frame, area: Rect, models: &[EmbedModelEntry], info: &
 
     let header = Paragraph::new(Line::from(vec![
         Span::styled(
-            "Embedding 模型",
+            t!(i18n, "embed-model-title"),
             Style::default()
                 .fg(Color::Cyan)
                 .add_modifier(Modifier::BOLD),
@@ -41,14 +43,18 @@ pub fn render(frame: &mut Frame, area: Rect, models: &[EmbedModelEntry], info: &
     if models.is_empty() {
         let empty = Paragraph::new(Line::from(vec![
             Span::styled(
-                "(本地尚未安装 embedding 模型)",
+                t!(i18n, "embed-model-not-installed"),
                 Style::default().fg(Color::Yellow),
             ),
             Span::raw("\n"),
-            Span::raw("用 `/embed_model install <id>` 从注册表下载并安装。"),
+            Span::raw(t!(i18n, "embed-model-install-hint")),
         ]))
         .wrap(Wrap { trim: true })
-        .block(Block::default().borders(Borders::ALL).title("模型列表"));
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title(t!(i18n, "embed-model-list-title")),
+        );
         frame.render_widget(empty, chunks[1]);
     } else {
         let items: Vec<ListItem> = models
@@ -67,18 +73,27 @@ pub fn render(frame: &mut Frame, area: Rect, models: &[EmbedModelEntry], info: &
                 ListItem::new(line)
             })
             .collect();
-        let list = List::new(items).block(Block::default().borders(Borders::ALL).title("模型列表"));
+        let list = List::new(items).block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title(t!(i18n, "embed-model-list-title")),
+        );
         frame.render_widget(list, chunks[1]);
     }
 
     let hint = Paragraph::new(Line::from(vec![
-        Span::styled("提示", Style::default().fg(Color::Cyan)),
-        Span::raw(": 注册表 URL 由环境变量 "),
+        Span::styled(
+            t!(i18n, "ocr-hint-prefix"),
+            Style::default().fg(Color::Cyan),
+        ),
+        Span::raw(": "),
+        Span::raw(t!(i18n, "embed-model-registry-hint")),
+        Span::raw(" "),
         Span::styled(
             "SOLOSOUL_EMBED_REGISTRY",
             Style::default().fg(Color::Yellow),
         ),
-        Span::raw(" 控制。"),
+        Span::raw("。"),
     ]));
     frame.render_widget(hint, chunks[2]);
 }

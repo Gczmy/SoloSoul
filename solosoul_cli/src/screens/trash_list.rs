@@ -6,12 +6,16 @@ use ratatui::text::Line;
 use ratatui::widgets::{Block, Borders, HighlightSpacing, Paragraph, Row, Table};
 use solosoul_core::TrashItemSummary;
 
+use crate::i18n::I18n;
+use crate::t;
+
 pub fn render(
     frame: &mut ratatui::Frame,
     area: Rect,
     items: &[TrashItemSummary],
     selected: usize,
     selected_ids: &[String],
+    i18n: &I18n,
 ) {
     let layout = Layout::default()
         .direction(Direction::Vertical)
@@ -22,11 +26,12 @@ pub fn render(
         ])
         .split(area);
 
-    let title = Paragraph::new(Line::from("回收站").bold()).alignment(Alignment::Center);
+    let title =
+        Paragraph::new(Line::from(t!(i18n, "trash-title")).bold()).alignment(Alignment::Center);
     frame.render_widget(title, layout[0]);
 
     if items.is_empty() {
-        let hint = Paragraph::new("回收站为空。").alignment(Alignment::Center);
+        let hint = Paragraph::new(t!(i18n, "trash-empty")).alignment(Alignment::Center);
         frame.render_widget(hint, layout[1]);
     } else {
         let header = Row::new(vec![
@@ -83,10 +88,7 @@ pub fn render(
     }
 
     frame.render_widget(
-        Paragraph::new(
-            Line::from("↑↓ 移动 · 空格 多选 · R 恢复 · P 彻底删除 · Esc 返回").dark_gray(),
-        )
-        .alignment(Alignment::Center),
+        Paragraph::new(Line::from(t!(i18n, "trash-hint")).dark_gray()).alignment(Alignment::Center),
         layout[2],
     );
 }

@@ -1,5 +1,7 @@
 //! /sync 状态屏：列出 vault 已持久化的 peers。
 
+use crate::i18n::I18n;
+use crate::t;
 use ratatui::layout::{Constraint, Direction, Layout, Rect};
 use ratatui::style::{Color, Modifier, Style};
 use ratatui::text::{Line, Span};
@@ -8,7 +10,7 @@ use ratatui::Frame;
 
 use solosoul_sync::types::SyncPeerInfo;
 
-pub fn render(frame: &mut Frame, area: Rect, peers: &[SyncPeerInfo], info: &str) {
+pub fn render(frame: &mut Frame, area: Rect, peers: &[SyncPeerInfo], info: &str, i18n: &I18n) {
     let chunks = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
@@ -20,7 +22,7 @@ pub fn render(frame: &mut Frame, area: Rect, peers: &[SyncPeerInfo], info: &str)
 
     let header = Paragraph::new(Line::from(vec![
         Span::styled(
-            "设备同步 (Sync)",
+            t!(i18n, "sync-title"),
             Style::default()
                 .fg(Color::Cyan)
                 .add_modifier(Modifier::BOLD),
@@ -33,17 +35,25 @@ pub fn render(frame: &mut Frame, area: Rect, peers: &[SyncPeerInfo], info: &str)
 
     if peers.is_empty() {
         let empty = Paragraph::new(Line::from(vec![
-            Span::styled("无持久化 peers。", Style::default().fg(Color::Yellow)),
-            Span::raw("\n"),
-            Span::raw(
-                "提示: 使用 `/sync with <host:port>` 与 GUI 实例同步后，此处会出现 peer 记录。",
+            Span::styled(
+                t!(i18n, "sync-no-peers"),
+                Style::default().fg(Color::Yellow),
             ),
+            Span::raw("\n"),
+            Span::raw(t!(i18n, "sync-no-peers-hint")),
         ]))
         .wrap(Wrap { trim: true })
-        .block(Block::default().borders(Borders::ALL).title("Peer 列表"));
+        .block(
+            Block::default()
+                .borders(Borders::ALL)
+                .title(t!(i18n, "sync-peers-title")),
+        );
         frame.render_widget(empty, chunks[1]);
         let hint = Paragraph::new(Line::from(vec![
-            Span::styled("子命令", Style::default().fg(Color::Cyan)),
+            Span::styled(
+                t!(i18n, "sync-subcommand-prefix"),
+                Style::default().fg(Color::Cyan),
+            ),
             Span::raw(": "),
             Span::raw("/sync status | /sync with <addr> | /sync trust <id> | /sync forget <id>"),
         ]));
@@ -71,14 +81,22 @@ pub fn render(frame: &mut Frame, area: Rect, peers: &[SyncPeerInfo], info: &str)
         })
         .collect();
 
-    let list = List::new(items).block(Block::default().borders(Borders::ALL).title("Peer 列表"));
+    let list = List::new(items).block(
+        Block::default()
+            .borders(Borders::ALL)
+            .title(t!(i18n, "sync-peers-title")),
+    );
     frame.render_widget(list, chunks[1]);
 
     let hint = Paragraph::new(Line::from(vec![
-        Span::styled("提示", Style::default().fg(Color::Cyan)),
-        Span::raw(": 要与某 peer 同步，请先 `"),
-        Span::styled("/sync trust <id>", Style::default().fg(Color::Yellow)),
-        Span::raw("` 再通过 GUI 启用持续同步；CLI 内 `/sync with <host:port>` 是一次性会话。"),
+        Span::styled(
+            t!(i18n, "ocr-hint-prefix"),
+            Style::default().fg(Color::Cyan),
+        ),
+        Span::raw(": "),
+        Span::raw(t!(i18n, "sync-peers-hint-p1")),
+        Span::styled("`/sync trust <id>`", Style::default().fg(Color::Yellow)),
+        Span::raw(t!(i18n, "sync-peers-hint-p2")),
     ]));
     frame.render_widget(hint, chunks[2]);
 }

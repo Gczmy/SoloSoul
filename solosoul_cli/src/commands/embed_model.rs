@@ -12,6 +12,7 @@
 //! - `/embed_model help` —— 帮助
 
 use crate::app::App;
+use crate::t;
 use color_eyre::Result;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
@@ -42,7 +43,7 @@ pub fn handle(app: &mut App, argv: &[&str]) -> Result<()> {
             Ok(())
         }
         other => {
-            app.error_message = Some(format!("未知 /embed_model 子命令: {}", other));
+            app.error_message = Some(t!(app.i18n, "cmd-unknown-subcommand", cmd = other));
             Ok(())
         }
     }
@@ -150,20 +151,24 @@ struct RegistryFile {
 
 fn install(app: &mut App, model_id: &str) {
     if model_id.is_empty() {
-        app.error_message = Some("用法: /embed_model install <model_id>".to_string());
+        app.error_message = Some(t!(app.i18n, "cmd-embed-usage"));
         return;
     }
     let dir = install_dir(app);
     let target = dir.join(model_id);
     if target.exists() {
-        app.error_message = Some(format!("模型 {} 已经安装", model_id));
+        app.error_message = Some(t!(
+            app.i18n,
+            "cmd-embed-already-installed",
+            model = model_id
+        ));
         return;
     }
 
     let runtime = match tokio::runtime::Runtime::new() {
         Ok(r) => r,
         Err(e) => {
-            app.error_message = Some(format!("创建异步运行时失败: {}", e));
+            app.error_message = Some(t!(app.i18n, "cmd-embed-runtime-failed", err = e));
             return;
         }
     };
@@ -172,13 +177,10 @@ fn install(app: &mut App, model_id: &str) {
     match result {
         Ok(report) => {
             tracing::info!("embed_model install {} ok: {}", model_id, report);
-            app.error_message = Some(format!(
-                "已安装 embedding 模型 {}。运行 /embed_model list 查看。",
-                model_id
-            ));
+            app.error_message = Some(t!(app.i18n, "cmd-embed-installed", model = model_id));
         }
         Err(e) => {
-            app.error_message = Some(format!("/embed_model install 失败: {}", e));
+            app.error_message = Some(t!(app.i18n, "cmd-embed-install-failed", err = e));
         }
     }
 }
@@ -243,21 +245,21 @@ async fn download_model(model_id: &str, target_dir: &std::path::Path) -> Result<
 
 fn remove(app: &mut App, model_id: &str) {
     if model_id.is_empty() {
-        app.error_message = Some("用法: /embed_model remove <model_id>".to_string());
+        app.error_message = Some(t!(app.i18n, "cmd-embed-remove-usage"));
         return;
     }
     let dir = install_dir(app).join(model_id);
     if !dir.exists() {
-        app.error_message = Some(format!("模型 {} 未安装", model_id));
+        app.error_message = Some(t!(app.i18n, "cmd-embed-not-installed", model = model_id));
         return;
     }
     // 激活模型由 GUI 端 LlmConfig 管理,此处仅删除目录。
     match std::fs::remove_dir_all(&dir) {
         Ok(()) => {
-            app.error_message = Some(format!("已删除 embedding 模型 {}", model_id));
+            app.error_message = Some(t!(app.i18n, "cmd-embed-removed", model = model_id));
         }
         Err(e) => {
-            app.error_message = Some(format!("/embed_model remove 失败: {}", e));
+            app.error_message = Some(t!(app.i18n, "cmd-embed-remove-failed", err = e));
         }
     }
 }

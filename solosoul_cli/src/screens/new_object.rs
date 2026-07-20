@@ -6,26 +6,28 @@ use ratatui::text::{Line, Text};
 use ratatui::widgets::{Block, Borders, Paragraph, Row, Table};
 
 use crate::app::NewObjectStep;
+use crate::i18n::I18n;
+use crate::t;
 use crate::widgets::field_editor;
 
-pub fn render(frame: &mut ratatui::Frame, area: Rect, step: &NewObjectStep) {
+pub fn render(frame: &mut ratatui::Frame, area: Rect, step: &NewObjectStep, i18n: &I18n) {
     match step {
         NewObjectStep::SelectPage { pages, selected } => {
-            render_select_page(frame, area, pages, *selected)
+            render_select_page(frame, area, pages, *selected, i18n)
         }
         NewObjectStep::SelectTemplate {
             page_name,
             templates,
             selected,
             ..
-        } => render_select_template(frame, area, page_name, templates, *selected),
+        } => render_select_template(frame, area, page_name, templates, *selected, i18n),
         NewObjectStep::FillFields {
             page_name,
             name,
             fields,
             selected,
             ..
-        } => render_fill_fields(frame, area, page_name, name, fields, *selected),
+        } => render_fill_fields(frame, area, page_name, name, fields, *selected, i18n),
     }
 }
 
@@ -34,6 +36,7 @@ fn render_select_page(
     area: Rect,
     pages: &[solosoul_core::ObjectSummary],
     selected: usize,
+    i18n: &I18n,
 ) {
     let layout = Layout::default()
         .direction(Direction::Vertical)
@@ -45,16 +48,19 @@ fn render_select_page(
         .split(area);
 
     let title = Paragraph::new(Text::from(vec![
-        Line::from("创建对象：选择页面").bold(),
-        Line::from("选择一个页面作为新对象的父级，或按 q 取消。").dark_gray(),
+        Line::from(t!(i18n, "newobj-select-page")).bold(),
+        Line::from(t!(i18n, "newobj-select-page-desc")).dark_gray(),
     ]))
-    .block(Block::default().borders(Borders::ALL).title(" /newobject "))
+    .block(
+        Block::default()
+            .borders(Borders::ALL)
+            .title(format!(" /newobject {}", t!(i18n, "newobj-create-object"))),
+    )
     .alignment(Alignment::Center);
     frame.render_widget(title, layout[0]);
 
     if pages.is_empty() {
-        let hint =
-            Paragraph::new("暂无页面，请先使用 /newpage 创建页面。").alignment(Alignment::Center);
+        let hint = Paragraph::new(t!(i18n, "newobj-no-pages")).alignment(Alignment::Center);
         frame.render_widget(hint, layout[1]);
     } else {
         let rows: Vec<Row> = pages
@@ -89,7 +95,7 @@ fn render_select_page(
     }
 
     frame.render_widget(
-        Paragraph::new(Line::from("↑/↓ 选择 · Enter 确认 · q 取消").dark_gray())
+        Paragraph::new(Line::from(t!(i18n, "hint-up-down-enter-q")).dark_gray())
             .alignment(Alignment::Center),
         layout[2],
     );
@@ -101,6 +107,7 @@ fn render_select_template(
     page_name: &str,
     templates: &[solosoul_core::UserTemplate],
     selected: usize,
+    i18n: &I18n,
 ) {
     let layout = Layout::default()
         .direction(Direction::Vertical)
@@ -112,14 +119,23 @@ fn render_select_template(
         .split(area);
 
     let title = Paragraph::new(Text::from(vec![
-        Line::from(format!("创建对象：选择模板（页面: {}）", page_name)).bold(),
-        Line::from("选择模板开始填写字段，或选择「空白对象」仅输入名称。").dark_gray(),
+        Line::from(format!(
+            "{} {}）",
+            t!(i18n, "newobj-select-template"),
+            page_name
+        ))
+        .bold(),
+        Line::from(t!(i18n, "newobj-select-template-desc")).dark_gray(),
     ]))
-    .block(Block::default().borders(Borders::ALL).title(" /newobject "))
+    .block(
+        Block::default()
+            .borders(Borders::ALL)
+            .title(format!(" /newobject {}", t!(i18n, "newobj-create-object"))),
+    )
     .alignment(Alignment::Center);
     frame.render_widget(title, layout[0]);
 
-    let mut options: Vec<String> = vec!["空白对象".to_string()];
+    let mut options: Vec<String> = vec![t!(i18n, "newobj-blank-object").to_string()];
     options.extend(templates.iter().map(|t| t.name.clone()));
 
     let rows: Vec<Row> = options
@@ -140,7 +156,7 @@ fn render_select_template(
     frame.render_widget(table, layout[1]);
 
     frame.render_widget(
-        Paragraph::new(Line::from("↑/↓ 选择 · Enter 确认 · q 取消").dark_gray())
+        Paragraph::new(Line::from(t!(i18n, "hint-up-down-enter-q")).dark_gray())
             .alignment(Alignment::Center),
         layout[2],
     );
@@ -153,6 +169,7 @@ fn render_fill_fields(
     name: &str,
     fields: &[crate::widgets::field_editor::EditableField],
     selected: usize,
+    i18n: &I18n,
 ) {
     let layout = Layout::default()
         .direction(Direction::Vertical)
@@ -165,16 +182,26 @@ fn render_fill_fields(
 
     let title = Paragraph::new(Text::from(vec![
         Line::from(format!("创建对象：{}（页面: {}）", name, page_name)).bold(),
-        Line::from("按 Enter 编辑字段，s 保存，q 取消。").dark_gray(),
+        Line::from(t!(i18n, "newobj-fill-fields-hint")).dark_gray(),
     ]))
-    .block(Block::default().borders(Borders::ALL).title(" /newobject "))
+    .block(
+        Block::default()
+            .borders(Borders::ALL)
+            .title(format!(" /newobject {}", t!(i18n, "newobj-create-object"))),
+    )
     .alignment(Alignment::Center);
     frame.render_widget(title, layout[0]);
 
-    field_editor::render(frame, layout[1], "字段", fields, selected);
+    field_editor::render(
+        frame,
+        layout[1],
+        &t!(i18n, "newobj-fields"),
+        fields,
+        selected,
+    );
 
     let hint = Paragraph::new(Text::from(
-        Line::from("↑/↓ 选择字段 · Enter 编辑字段 · n 修改名称 · s 保存 · q 取消").dark_gray(),
+        Line::from(t!(i18n, "newobj-fields-nav")).dark_gray(),
     ));
     frame.render_widget(hint, layout[2]);
 }

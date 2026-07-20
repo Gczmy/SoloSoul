@@ -6,7 +6,16 @@ use ratatui::text::Line;
 use ratatui::widgets::{Block, Borders, Paragraph, Row, Table};
 use solosoul_core::AuditLogEntry;
 
-pub fn render(frame: &mut ratatui::Frame, area: Rect, entries: &[AuditLogEntry], selected: usize) {
+use crate::i18n::I18n;
+use crate::t;
+
+pub fn render(
+    frame: &mut ratatui::Frame,
+    area: Rect,
+    entries: &[AuditLogEntry],
+    selected: usize,
+    i18n: &I18n,
+) {
     let layout = Layout::default()
         .direction(Direction::Vertical)
         .constraints([
@@ -18,7 +27,7 @@ pub fn render(frame: &mut ratatui::Frame, area: Rect, entries: &[AuditLogEntry],
 
     frame.render_widget(
         Paragraph::new(
-            Line::from(format!("审计日志 · 共 {} 条", entries.len()))
+            Line::from(t!(i18n, "log-title", count = entries.len().to_string()))
                 .bold()
                 .alignment(Alignment::Center),
         ),
@@ -27,7 +36,7 @@ pub fn render(frame: &mut ratatui::Frame, area: Rect, entries: &[AuditLogEntry],
 
     if entries.is_empty() {
         frame.render_widget(
-            Paragraph::new("暂无审计日志。").alignment(Alignment::Center),
+            Paragraph::new(t!(i18n, "log-empty")).alignment(Alignment::Center),
             layout[1],
         );
     } else {
@@ -89,7 +98,7 @@ pub fn render(frame: &mut ratatui::Frame, area: Rect, entries: &[AuditLogEntry],
     }
 
     frame.render_widget(
-        Paragraph::new(Line::from("使用 /export_log [文件名] 导出完整日志。").dark_gray())
+        Paragraph::new(Line::from(t!(i18n, "log-export-hint")).dark_gray())
             .alignment(Alignment::Center),
         layout[2],
     );

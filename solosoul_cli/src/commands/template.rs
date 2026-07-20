@@ -6,6 +6,7 @@ use solosoul_core::UserTemplate;
 
 use crate::app::{App, AppPhase};
 use crate::commands::require_unlocked_with_vault;
+use crate::t;
 
 /// 命令入口。
 pub fn handle(app: &mut App, args: &[&str]) -> Result<()> {
@@ -15,8 +16,7 @@ pub fn handle(app: &mut App, args: &[&str]) -> Result<()> {
         "show" => show_template(app, args.get(2).copied()),
         "delete" => delete_template(app, args.get(2).copied()),
         _ => {
-            app.error_message =
-                Some("用法: /template | /template show <id> | /template delete <id>".to_string());
+            app.error_message = Some(t!(app.i18n, "cmd-template-usage"));
             Ok(())
         }
     }
@@ -83,7 +83,7 @@ fn show_template(app: &mut App, id: Option<&str>) -> Result<()> {
     let id = match id {
         Some(id) => id,
         None => {
-            app.error_message = Some("用法: /template show <id>".to_string());
+            app.error_message = Some(t!(app.i18n, "cmd-template-show-usage"));
             return Ok(());
         }
     };
@@ -107,7 +107,7 @@ fn show_template(app: &mut App, id: Option<&str>) -> Result<()> {
             app.phase = AppPhase::TemplateDetail {
                 template_id: id.to_string(),
                 name: t.name.clone(),
-                source: "用户".to_string(),
+                source: t!(app.i18n, "cmd-template-source-user"),
                 json: serde_json::to_string_pretty(t).unwrap_or_default(),
             };
         }
@@ -116,12 +116,12 @@ fn show_template(app: &mut App, id: Option<&str>) -> Result<()> {
             app.phase = AppPhase::TemplateDetail {
                 template_id: id.to_string(),
                 name: t.name_fallback.clone(),
-                source: "系统".to_string(),
+                source: t!(app.i18n, "cmd-template-source-system"),
                 json: serde_json::to_string_pretty(t).unwrap_or_default(),
             };
         }
         TemplateView::None => {
-            app.error_message = Some(format!("模板 '{}' 不存在", id));
+            app.error_message = Some(t!(app.i18n, "cmd-object-not-found", id = id));
         }
     }
     Ok(())
@@ -132,7 +132,7 @@ fn delete_template(app: &mut App, id: Option<&str>) -> Result<()> {
     let id = match id {
         Some(id) => id,
         None => {
-            app.error_message = Some("用法: /template delete <id>".to_string());
+            app.error_message = Some(t!(app.i18n, "cmd-template-delete-usage"));
             return Ok(());
         }
     };
@@ -143,11 +143,11 @@ fn delete_template(app: &mut App, id: Option<&str>) -> Result<()> {
         .map_err(|e| color_eyre::eyre::eyre!(e))
     {
         Ok(()) => {
-            app.error_message = Some(format!("已删除用户模板: {}", id));
+            app.error_message = Some(t!(app.i18n, "cmd-template-deleted", id = id));
             list_templates(app)?;
         }
         Err(e) => {
-            app.error_message = Some(format!("删除失败: {}", e));
+            app.error_message = Some(t!(app.i18n, "cmd-template-delete-failed", err = e));
         }
     }
     Ok(())

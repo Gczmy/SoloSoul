@@ -19,6 +19,7 @@ use solosoul_core::export_import::{
 
 use crate::app::App;
 use crate::commands::require_unlocked;
+use crate::t;
 use crate::widgets::prompt::{self, PromptResult, PromptSpec};
 
 // ── 命令入口 ─────────────────────────────────────────────
@@ -30,7 +31,7 @@ pub fn handle(app: &mut App, args: &[&str]) -> Result<()> {
         "/export" => handle_export(app, &args[1..]),
         "/import" => handle_import(app, &args[1..]),
         _ => {
-            app.error_message = Some(format!("未知的导出/导入子命令: {}", base));
+            app.error_message = Some(t!(app.i18n, "cmd-export-import-unknown", cmd = base));
             Ok(())
         }
     }
@@ -61,7 +62,7 @@ fn handle_export(app: &mut App, args: &[&str]) -> Result<()> {
     let vault = match app.vault_service.get_vault_store() {
         Some(v) => v,
         None => {
-            app.error_message = Some("Vault 未打开".to_string());
+            app.error_message = Some(t!(app.i18n, "cmd-vault-not-open"));
             return Ok(());
         }
     };
@@ -69,7 +70,7 @@ fn handle_export(app: &mut App, args: &[&str]) -> Result<()> {
     let account_id = match app.vault_service.get_current_account() {
         Some(id) => id,
         None => {
-            app.error_message = Some("没有当前账户".to_string());
+            app.error_message = Some(t!(app.i18n, "cmd-account-not-found"));
             return Ok(());
         }
     };
@@ -79,7 +80,7 @@ fn handle_export(app: &mut App, args: &[&str]) -> Result<()> {
     prompt::open(
         app,
         PromptSpec::Text {
-            label: "导出密码".to_string(),
+            label: t!(app.i18n, "prompt-export-password"),
             initial: String::new(),
             mask: true,
             allow_toggle_mask: true,
@@ -101,14 +102,15 @@ fn handle_export(app: &mut App, args: &[&str]) -> Result<()> {
                     &base_clone,
                 ) {
                     Ok(count) => {
-                        app.error_message = Some(format!(
-                            "已导出 {} 个对象到 {}",
-                            count,
-                            path_clone.display()
+                        app.error_message = Some(t!(
+                            app.i18n,
+                            "cmd-export-success",
+                            count = count.to_string(),
+                            path = path_clone.display().to_string()
                         ));
                     }
                     Err(e) => {
-                        app.error_message = Some(format!("导出失败: {}", e));
+                        app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e));
                     }
                 }
             }
@@ -132,7 +134,7 @@ fn handle_import(app: &mut App, args: &[&str]) -> Result<()> {
     let file_arg = match file_arg {
         Some(f) => f,
         None => {
-            app.error_message = Some("请提供要导入的文件路径".to_string());
+            app.error_message = Some(t!(app.i18n, "cmd-provide-import-path"));
             return Ok(());
         }
     };
@@ -141,16 +143,23 @@ fn handle_import(app: &mut App, args: &[&str]) -> Result<()> {
     if preview {
         match import_preview(&path) {
             Ok(info) => {
-                app.error_message = Some(format!(
-                    "导出包预览: 版本 {}, 对象数 {}, 包含附件: {}, 密码提示: {}",
-                    info.version,
-                    info.object_count,
-                    if info.has_attachments { "是" } else { "否" },
-                    info.password_hint.unwrap_or_else(|| "无".to_string()),
+                app.error_message = Some(t!(
+                    app.i18n,
+                    "cmd-import-preview",
+                    version = info.version,
+                    count = info.object_count.to_string(),
+                    has = if info.has_attachments {
+                        t!(app.i18n, "generic-yes")
+                    } else {
+                        t!(app.i18n, "generic-no")
+                    },
+                    hint = info
+                        .password_hint
+                        .unwrap_or_else(|| t!(app.i18n, "generic-none"))
                 ));
             }
             Err(e) => {
-                app.error_message = Some(format!("导入预览失败: {}", e));
+                app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e));
             }
         }
         return Ok(());
@@ -162,7 +171,7 @@ fn handle_import(app: &mut App, args: &[&str]) -> Result<()> {
     let vault = match app.vault_service.get_vault_store() {
         Some(v) => v,
         None => {
-            app.error_message = Some("Vault 未打开".to_string());
+            app.error_message = Some(t!(app.i18n, "cmd-vault-not-open"));
             return Ok(());
         }
     };
@@ -170,7 +179,7 @@ fn handle_import(app: &mut App, args: &[&str]) -> Result<()> {
     let account_id = match app.vault_service.get_current_account() {
         Some(id) => id,
         None => {
-            app.error_message = Some("没有当前账户".to_string());
+            app.error_message = Some(t!(app.i18n, "cmd-account-not-found"));
             return Ok(());
         }
     };
@@ -179,7 +188,7 @@ fn handle_import(app: &mut App, args: &[&str]) -> Result<()> {
     prompt::open(
         app,
         PromptSpec::Text {
-            label: "导入密码".to_string(),
+            label: t!(app.i18n, "prompt-import-password"),
             initial: String::new(),
             mask: true,
             allow_toggle_mask: true,
@@ -188,10 +197,14 @@ fn handle_import(app: &mut App, args: &[&str]) -> Result<()> {
             if let PromptResult::Text(password) = result {
                 match import_vault(&vault, &account_id, &path, &password, strategy, &base) {
                     Ok(count) => {
-                        app.error_message = Some(format!("成功导入 {} 个对象", count));
+                        app.error_message = Some(t!(
+                            app.i18n,
+                            "cmd-import-success",
+                            count = count.to_string()
+                        ));
                     }
                     Err(e) => {
-                        app.error_message = Some(format!("导入失败: {}", e));
+                        app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e));
                     }
                 }
             }
