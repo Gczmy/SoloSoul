@@ -4,19 +4,21 @@
   justify-content: flex-end;
 }
 
-/* 移动端：底部操作按钮全宽堆叠，避免窄视口下按钮被截断 */
+/* 移动端：底部操作按钮全宽堆叠，固定在页面底部 */
 @media (max-width: 767px) {
   .formActions {
     flex-direction: column-reverse;
     align-items: stretch;
-    /* 键盘弹出时底部操作栏 sticky，确保保存/取消按钮始终可见 */
-    position: sticky;
+    position: fixed;
     bottom: 0;
-    background: var(--bg-base);
-    padding: 12px 0;
-    margin: 0 -12px;
+    left: 0;
+    right: 0;
+    background: var(--bg-toolbar);
+    backdrop-filter: blur(12px);
+    padding: 12px var(--page-padding, 16px);
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
     border-top: 1px solid var(--border-subtle);
-    z-index: 10;
+    z-index: 100;
   }
 
   .formActions > * {

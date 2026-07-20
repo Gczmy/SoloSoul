@@ -376,6 +376,7 @@ export function AttachmentViewer({
           ref={dragRef}
           style={{
             width: 500,
+            maxWidth: 'calc(100vw - 32px)',
             maxHeight: '80vh',
             display: 'flex',
             flexDirection: 'column',
@@ -384,6 +385,7 @@ export function AttachmentViewer({
             boxShadow: '0 24px 80px rgba(0,0,0,0.25)',
             border: '1px solid var(--border-subtle)',
             position: 'relative',
+            margin: 16,
           }}
         >
           {/* Header */}

@@ -462,6 +462,48 @@ export function AddPageButton({
                   })}
                 </div>
               </div>
+
+              {/* Cancel / Confirm buttons at bottom */}
+              <div
+                style={{
+                  display: 'flex',
+                  gap: 8,
+                  justifyContent: 'flex-end',
+                  paddingTop: 4,
+                  borderTop: '1px solid var(--border-subtle)',
+                }}
+              >
+                <button
+                  onClick={handleCancel}
+                  className={styles.cancelTextBtn}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: 6,
+                    fontSize: 'var(--text-body-sm)',
+                    background: 'transparent',
+                    border: '1px solid var(--border-subtle)',
+                    color: 'var(--text-secondary)',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {t('common:cancel')}
+                </button>
+                <button
+                  onClick={handleConfirm}
+                  style={{
+                    padding: '6px 12px',
+                    borderRadius: 6,
+                    fontSize: 'var(--text-body-sm)',
+                    background: 'var(--accent-primary)',
+                    border: 'none',
+                    color: '#fff',
+                    cursor: 'pointer',
+                    fontWeight: 500,
+                  }}
+                >
+                  {t('common:confirm')}
+                </button>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>,

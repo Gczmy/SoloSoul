@@ -75,7 +75,14 @@ export function SecurePasswordInput({
   const updateHintCardPos = useCallback(() => {
     if (hintBtnRef.current) {
       const rect = hintBtnRef.current.getBoundingClientRect();
-      setHintCardPos({ top: rect.top + rect.height / 2, left: rect.right + 8 });
+      const left = rect.right + 8;
+      const cardWidth = 240;
+      const viewportWidth = window.innerWidth;
+      // 确保提示卡片不溢出视口右侧
+      const clampedLeft = left + cardWidth > viewportWidth - 16
+        ? Math.max(8, viewportWidth - cardWidth - 16)
+        : left;
+      setHintCardPos({ top: rect.top + rect.height / 2, left: clampedLeft });
     }
   }, []);
 
@@ -228,6 +235,7 @@ export function SecurePasswordInput({
                 borderRadius: 4,
                 display: 'flex',
                 alignItems: 'center',
+                justifyContent: 'center',
                 color: 'var(--text-tertiary)',
                 transition: 'all 0.15s',
               }}
@@ -265,6 +273,7 @@ export function SecurePasswordInput({
                   borderRadius: 4,
                   display: 'flex',
                   alignItems: 'center',
+                  justifyContent: 'center',
                   color: isHintHovered ? 'var(--accent-primary)' : 'var(--text-tertiary)',
                   transition: 'all 0.15s',
                 }}

@@ -34,8 +34,9 @@
 
   .content {
     padding: 12px;
-    /* app bar is now positioned below the status/notch safe area */
+    /* app bar covers from top of screen, so content starts below the taller app bar */
     padding-top: calc(48px + env(safe-area-inset-top, 0px) + 12px);
-    padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px) + 12px);
+    /* extra bottom padding for fixed formActions bar */
+    padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px) + 12px + 56px);
   }
 }

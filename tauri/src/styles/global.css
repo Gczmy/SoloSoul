@@ -204,6 +204,9 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow: hidden;
+  /* 移动端禁止双指缩放 */
+  touch-action: manipulation;
+  -ms-touch-action: manipulation;
 }
 
 #root {

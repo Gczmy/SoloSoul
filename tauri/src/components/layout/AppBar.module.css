@@ -78,14 +78,14 @@
   transform: scale(0.94);
 }
 
-/* Mobile: full-width app bar with smaller padding, respect notch/status bar */
+/* Mobile: full-width app bar that covers status bar area */
 @media (max-width: 767px) {
   .appBar {
     left: 0;
     right: 0;
-    top: env(safe-area-inset-top, 0px);
-    padding: 0 12px;
-    height: 48px;
+    top: 0;
+    padding: env(safe-area-inset-top, 0px) 12px 0;
+    height: calc(48px + env(safe-area-inset-top, 0px));
     /* Ensure the app bar itself receives touches, not the system status area */
     pointer-events: auto;
   }

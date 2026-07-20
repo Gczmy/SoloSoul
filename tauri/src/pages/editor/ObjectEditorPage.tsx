@@ -174,40 +174,45 @@ export function ObjectEditorPage() {
   // When currentObject loads (for editing), populate the form
   // Guard: skip if a fresh fetch is in-flight (prevents stale cache data from
   // populating the form before the most recent getObject resolves).
+  // Template matching re-runs when objectTemplates async-finish loading
+  // (fixes "空白内容" bug where templates loaded after dataLoaded was set).
   useEffect(() => {
     if (
       isNew ||
       !currentObject ||
-      dataLoaded ||
       currentObject.id !== objectId ||
       loadingObjRef.current
     )
       return;
-    setName(currentObject.name || '');
-    // Populate property values
-    const vals: Record<string, unknown> = {};
-    if (currentObject.properties && typeof currentObject.properties === 'object') {
-      const fieldDefs = (currentObject.properties as Record<string, unknown>).__fields as
-        | Record<string, { type?: string }>
-        | undefined;
-      for (const [k, v] of Object.entries(currentObject.properties)) {
-        if (k.startsWith('__')) continue;
-        const fieldType = fieldDefs?.[k]?.type;
-        if (fieldType === 'dynamic_group' && Array.isArray(v)) {
-          vals[k] = v;
-        } else if (typeof v === 'string') {
-          vals[k] = v;
-        } else if (typeof v === 'number' || typeof v === 'boolean') {
-          vals[k] = String(v);
-        } else if (Array.isArray(v)) {
-          vals[k] = v;
-        } else if (v !== null && v !== undefined) {
-          vals[k] = String(v);
+
+    // Populate property values (only on first load, not on template re-match)
+    if (!dataLoaded) {
+      setName(currentObject.name || '');
+      const vals: Record<string, unknown> = {};
+      if (currentObject.properties && typeof currentObject.properties === 'object') {
+        const fieldDefs = (currentObject.properties as Record<string, unknown>).__fields as
+          | Record<string, { type?: string }>
+          | undefined;
+        for (const [k, v] of Object.entries(currentObject.properties)) {
+          if (k.startsWith('__')) continue;
+          const fieldType = fieldDefs?.[k]?.type;
+          if (fieldType === 'dynamic_group' && Array.isArray(v)) {
+            vals[k] = v;
+          } else if (typeof v === 'string') {
+            vals[k] = v;
+          } else if (typeof v === 'number' || typeof v === 'boolean') {
+            vals[k] = String(v);
+          } else if (Array.isArray(v)) {
+            vals[k] = v;
+          } else if (v !== null && v !== undefined) {
+            vals[k] = String(v);
+          }
         }
       }
+      setValues(vals);
     }
-    setValues(vals);
-    // Detect template from stored templateId first, then fall back to property keys
+
+    // Detect template (re-runs when objectTemplates changes even after dataLoaded)
     let matchedType = '';
     if (currentObject.templateId) {
       if (objectTemplates[currentObject.templateId]) {
@@ -228,7 +233,7 @@ export function ObjectEditorPage() {
     // 如果有 templateId 但模板不存在（已删除），不匹配到其他模板，
     // 而是走 __fields 回退路径，避免匹配到同字段 ID 的不同语言模板。
     if (!matchedType && !currentObject.templateId) {
-      const propKeys = Object.keys(vals);
+      const propKeys = Object.keys(values);
       let bestScore = 0;
       for (const [tplName, tplFields] of Object.entries(objectTemplates)) {
         const tplKeys = tplFields.map((f) => f.key);
@@ -241,11 +246,14 @@ export function ObjectEditorPage() {
     }
     if (matchedType) {
       setSelectedType(matchedType);
-    } else {
-      // 模板已删除 — 清空 selectedType，触发回退渲染路径
+    } else if (!dataLoaded) {
+      // 仅首次加载时清空 selectedType；后续模板加载后不覆盖用户已选
       setSelectedType('');
     }
-    setDataLoaded(true);
+
+    if (!dataLoaded) {
+      setDataLoaded(true);
+    }
   }, [
     currentObject,
     isNew,
@@ -254,6 +262,7 @@ export function ObjectEditorPage() {
     objectTemplates,
     templateMeta,
     currentObjectCache,
+    values,
   ]);
 
   const validateFields = (): boolean => {
