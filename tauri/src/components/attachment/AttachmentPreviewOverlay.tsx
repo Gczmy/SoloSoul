@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { X, ZoomIn, ZoomOut, RotateCcw, ExternalLink } from 'lucide-react';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
@@ -38,6 +39,7 @@ export function AttachmentPreviewOverlay({
   onClose,
   onOpenExternal,
 }: AttachmentPreviewOverlayProps) {
+  const { t } = useTranslation('common');
   const [previewKind, setPreviewKind] = useState<PreviewKind | null>(null);
   const [previewUrl, setPreviewUrl] = useState('');
   const [textContent, setTextContent] = useState('');
@@ -162,10 +164,10 @@ export function AttachmentPreviewOverlay({
     if (error) {
       return (
         <div style={{ color: '#e74c3c', padding: 24, textAlign: 'center' }}>
-          <div>Failed to load preview.</div>
+          <div>{t('common:attachment_preview_failed', 'Failed to load preview.')}</div>
           {(!item.vaultPath || isUriPath(item.vaultPath)) && (
             <div style={{ marginTop: 8, fontSize: 'var(--text-body-sm)' }}>
-              Attachment is not stored in vault.
+              {t('common:attachment_not_in_vault', 'Attachment is not stored in vault.')}
             </div>
           )}
         </div>
@@ -267,7 +269,7 @@ export function AttachmentPreviewOverlay({
               textAlign: 'center',
             }}
           >
-            <div>Preview is not supported for this file type.</div>
+            <div>{t('common:attachment_preview_unsupported', 'Preview is not supported for this file type.')}</div>
             {onOpenExternal && (
               <button
                 onClick={() => onOpenExternal(item)}
@@ -285,7 +287,7 @@ export function AttachmentPreviewOverlay({
                 }}
               >
                 <ExternalLink size={ICON_SIZE.md} />
-                <span>Open with system app</span>
+                <span>{t('common:attachment_open_system', 'Open with system app')}</span>
               </button>
             )}
           </div>
@@ -381,7 +383,7 @@ export function AttachmentPreviewOverlay({
         >
           <button
             onClick={zoomOut}
-            title="缩小"
+            title={t('common:attachment_zoom_out', 'Zoom Out')}
             style={{
               background: 'transparent',
               border: 'none',
@@ -397,7 +399,7 @@ export function AttachmentPreviewOverlay({
           <span style={{ minWidth: 52, textAlign: 'center' }}>{Math.round(scale * 100)}%</span>
           <button
             onClick={zoomIn}
-            title="放大"
+            title={t('common:attachment_zoom_in', 'Zoom In')}
             style={{
               background: 'transparent',
               border: 'none',
@@ -412,7 +414,7 @@ export function AttachmentPreviewOverlay({
           </button>
           <button
             onClick={resetZoom}
-            title="适应窗口"
+            title={t('common:attachment_zoom_fit', 'Fit to window')}
             style={{
               background: 'transparent',
               border: 'none',
