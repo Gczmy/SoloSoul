@@ -6,6 +6,7 @@ import {
 } from '@tauri-apps/plugin-notification';
 import { useUiStore } from '@/stores/uiStore';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { useAuthStore } from '@/stores/authStore';
 import { invoke } from '@tauri-apps/api/core';
 import i18next from '@/lib/i18n';
 import { navigateTo } from '@/lib/navigation';
@@ -183,10 +184,19 @@ export async function checkBackupReminder(): Promise<void> {
         },
       });
 
-      // 记录本次提醒时间（内存），避免下次解锁重复提醒
+      // 记录本次提醒时间并持久化到后端，避免下次解锁重复提醒
+      const now = Date.now();
       useSettingsStore.setState((s) => ({
-        settings: { ...s.settings, lastBackupReminderAt: Date.now() },
+        settings: { ...s.settings, lastBackupReminderAt: now },
       }));
+      // 异步持久化到后端，重启应用后仍可记忆最后提醒时间
+      const accountId = useAuthStore.getState().currentAccount?.id;
+      if (accountId) {
+        useSettingsStore
+          .getState()
+          .updateSetting(accountId, 'lastBackupReminderAt', now)
+          .catch((err) => console.error('[notification] Failed to persist backup reminder time:', err));
+      }
     }
   } catch (err) {
     console.error('[notification] Backup reminder check failed:', err);
