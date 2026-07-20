@@ -87,7 +87,7 @@ fn sanitize_backup_name(name: &str) -> Result<String> {
         })
         .collect();
     if sanitized.is_empty() {
-        Err(color_eyre::eyre::eyre!("备份名称不能为空"))
+        Err(color_eyre::eyre::eyre!("Backup name cannot be empty"))
     } else {
         Ok(sanitized)
     }
@@ -274,9 +274,12 @@ fn backup_restore(app: &mut App, backup_id: &str) -> Result<()> {
     let path = find_backup_path(&dir, backup_id)?;
     let (created_at, profile_count) = read_manifest_summary(&path).unwrap_or_default();
 
-    let message = format!(
-        "确认恢复备份 '{}'？\n创建时间: {}\n包含 {} 个 Profile。\n当前 Vault 中的同名 Profile 将被覆盖。",
-        backup_id, created_at, profile_count
+    let message = t!(
+        app.i18n,
+        "cmd-prompt-restore-backup",
+        id = &backup_id,
+        date = &created_at,
+        count = &profile_count.to_string()
     );
     let backup_id = backup_id.to_string();
     prompt::open(
@@ -343,7 +346,7 @@ fn backup_delete(app: &mut App, backup_id: &str) -> Result<()> {
     let dir = backups_dir(app);
     let _path = find_backup_path(&dir, backup_id)?;
 
-    let message = format!("确认删除备份 '{}'？\n此操作不可恢复。", backup_id);
+    let message = t!(app.i18n, "cmd-prompt-delete-backup", id = &backup_id);
     let backup_id = backup_id.to_string();
     prompt::open(
         app,

@@ -24,9 +24,13 @@ pub fn model(app: &mut App) -> Result<()> {
     match app.llm_service.load_config(&vault, &account_id) {
         Ok(config) => {
             if let Some(provider) = config.active_provider() {
-                let msg = format!(
-                    "当前模型: {} — {}\n提供商: {}\nAPI 类型: {:?}",
-                    provider.name, provider.model, provider.base_url, provider.api_type
+                let msg = t!(
+                    app.i18n,
+                    "cmd-llm-current-model",
+                    name = &provider.name,
+                    model = &provider.model,
+                    url = &provider.base_url,
+                    api_type = &format!("{:?}", provider.api_type)
                 );
                 app.error_message = Some(msg);
             } else {
@@ -83,7 +87,7 @@ pub fn stats(app: &mut App) -> Result<()> {
     let vault = match app.vault_service.get_vault_store() {
         Some(v) => v,
         None => {
-            app.error_message = Some("Vault 未解锁".to_string());
+            app.error_message = Some(t!(app.i18n, "cmd-llm-vault-locked"));
             return Ok(());
         }
     };
@@ -110,7 +114,7 @@ pub fn list_conversations(app: &mut App) -> Result<()> {
     let vault = match app.vault_service.get_vault_store() {
         Some(v) => v,
         None => {
-            app.error_message = Some("Vault 未解锁".to_string());
+            app.error_message = Some(t!(app.i18n, "cmd-llm-vault-locked"));
             return Ok(());
         }
     };

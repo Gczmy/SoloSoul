@@ -460,15 +460,16 @@ pub fn batch_restore(app: &mut App, ids: &[String]) -> Result<()> {
             Err(e) => failed.push(format!("{}: {}", id, e)),
         }
     }
-    app.error_message = Some(format!(
-        "恢复完成：成功 {} 项；失败 {} 项{}",
-        success.len(),
-        failed.len(),
-        if failed.is_empty() {
+    app.error_message = Some(t!(
+        app.i18n,
+        "cmd-batch-restore-result",
+        success = &success.len().to_string(),
+        failed = &failed.len().to_string(),
+        detail = &(if failed.is_empty() {
             String::new()
         } else {
             format!("\n{}", failed.join("\n"))
-        }
+        })
     ));
     Ok(())
 }
@@ -487,15 +488,16 @@ pub fn batch_purge(app: &mut App, ids: &[String]) -> Result<()> {
             Err(e) => failed.push(format!("{}: {}", id, e)),
         }
     }
-    app.error_message = Some(format!(
-        "彻底删除完成：成功 {} 项；失败 {} 项{}",
-        success,
-        failed.len(),
-        if failed.is_empty() {
+    app.error_message = Some(t!(
+        app.i18n,
+        "cmd-batch-purge-result",
+        success = &success.to_string(),
+        failed = &failed.len().to_string(),
+        detail = &(if failed.is_empty() {
             String::new()
         } else {
             format!("\n{}", failed.join("\n"))
-        }
+        })
     ));
     Ok(())
 }

@@ -229,26 +229,28 @@ fn parse_export_args<'a>(
                 "--full" => scope.full = true,
                 "--include-attachments" => scope.include_attachments = true,
                 "--pages" => {
-                    let list = iter.next().ok_or("--pages 后需要逗号分隔的页面列表")?;
+                    let list = iter
+                        .next()
+                        .ok_or("--pages requires a comma-separated list of page IDs")?;
                     scope.selected_page_ids = list.split(',').map(String::from).collect();
                 }
                 "--objects" => {
                     let list = iter
                         .next()
-                        .ok_or("--objects 后需要逗号分隔的对象 ID 列表")?;
+                        .ok_or("--objects requires a comma-separated list of object IDs")?;
                     scope.selected_object_ids = list.split(',').map(String::from).collect();
                 }
-                other => return Err(format!("未知导出选项: {}", other)),
+                other => return Err(format!("Unknown export option: {}", other)),
             }
         } else if file_arg.is_none() {
             file_arg = Some(*arg);
         } else {
-            return Err("多余的文件参数".to_string());
+            return Err("Extra file argument".to_string());
         }
     }
 
     if !scope.full && scope.selected_page_ids.is_empty() && scope.selected_object_ids.is_empty() {
-        return Err("请指定 --full、--pages 或 --objects 之一".to_string());
+        return Err("Please specify one of: --full, --pages, or --objects".to_string());
     }
 
     Ok((file_arg, scope))
@@ -267,20 +269,20 @@ fn parse_import_args<'a>(
             match *arg {
                 "--preview" => preview = true,
                 "--strategy" => {
-                    let value = iter.next().ok_or("--strategy 后需要策略值")?;
+                    let value = iter.next().ok_or("--strategy requires a strategy value")?;
                     strategy = match *value {
                         "skip" => ImportStrategy::SkipExisting,
                         "overwrite" => ImportStrategy::Overwrite,
                         "merge" => ImportStrategy::Merge,
-                        other => return Err(format!("未知导入策略: {}", other)),
+                        other => return Err(format!("Unknown import strategy: {}", other)),
                     };
                 }
-                other => return Err(format!("未知导入选项: {}", other)),
+                other => return Err(format!("Unknown import option: {}", other)),
             }
         } else if file_arg.is_none() {
             file_arg = Some(*arg);
         } else {
-            return Err("多余的文件参数".to_string());
+            return Err("Extra file argument".to_string());
         }
     }
 
@@ -320,22 +322,22 @@ fn resolve_export_path(
 /// 校验导出密码强度并确认其不是主密码。
 fn validate_export_password(app: &App, password: &str) -> std::result::Result<(), String> {
     if password.len() < 8 {
-        return Err("导出密码至少需要 8 位".to_string());
+        return Err(t!(app.i18n, "cmd-export-password-too-short"));
     }
     let has_letter = password.chars().any(|c| c.is_ascii_alphabetic());
     let has_digit = password.chars().any(|c| c.is_ascii_digit());
     if !has_letter || !has_digit {
-        return Err("导出密码必须同时包含字母和数字".to_string());
+        return Err(t!(app.i18n, "cmd-export-password-complexity"));
     }
 
     let account_id = app
         .vault_service
         .get_current_account()
-        .ok_or_else(|| "未找到当前账户".to_string())?;
+        .ok_or_else(|| t!(app.i18n, "cmd-account-not-found-generic"))?;
     match app.vault_service.verify_password(&account_id, password) {
-        Ok(true) => Err("导出密码不能与主密码相同".to_string()),
+        Ok(true) => Err(t!(app.i18n, "cmd-export-password-same-as-master")),
         Ok(false) => Ok(()),
-        Err(e) => Err(format!("校验主密码失败: {}", e)),
+        Err(e) => Err(t!(app.i18n, "cmd-verify-master-failed", err = &e)),
     }
 }
 

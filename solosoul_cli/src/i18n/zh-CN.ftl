@@ -279,7 +279,6 @@ cmd-page-deleted = 页面「{$name}」及 {$count} 个子对象已删除
 cmd-backup-created = 备份已创建：{$id}（{$size} 个 Profile，{$bytes} 字节）
 cmd-backup-restored = 备份「{$id}」已恢复
 cmd-backup-deleted = 备份「{$id}」已删除
-cmd-backup-not-found = 备份「{$id}」不存在
 cmd-backup-name-empty = 备份名称不能为空
 cmd-trash-item-not-found = 回收站项目「{$id}」不存在
 cmd-purge-prompt = 彻底删除「{$name}」？此操作不可恢复。
@@ -344,12 +343,7 @@ cmd-export-password-same-master = 导出密码不能与主密码相同
 cmd-export-password-verify-failed = 校验主密码失败：{$err}
 cmd-export-too-many-args = 多余的文件参数
 cmd-export-no-scope = 请指定 --full、--pages 或 --objects 之一
-cmd-export-unknown-option = 未知导出选项：{$opt}
-cmd-import-unknown-option = 未知导入选项：{$opt}
-cmd-export-need-pages-list = --pages 后需要逗号分隔的页面列表
-cmd-export-need-objects-list = --objects 后需要逗号分隔的对象 ID 列表
 cmd-import-need-strategy = --strategy 后需要策略值（skip/overwrite/merge）
-cmd-import-unknown-strategy = 未知导入策略：{$strategy}
 cmd-account-not-found = 未找到当前账户
 
 ### LLM commands
@@ -588,3 +582,4 @@ status-settings-preference = 设置 · 自定义偏好
 status-quit = 退出中
 status-lock-held = [L] 进程锁已持有 · GUI 不可用
 status-lock-not-exclusive = [!] 未独占
+\n### Commands Phase 3\ncmd-attachment-usage = 用法: /attach list [object_id] | add <file_path> | rename <id> <new_name> | delete <id> | restore <id> | purge <id> | cleanup\ncmd-provide-file-path = 请提供文件路径，例如 /attach add /path/to/file.pdf\ncmd-provide-attachment-id-example = 请提供附件 ID，例如 /attach rename att_xxx new.pdf\ncmd-prompt-soft-delete-attachment = 软删除附件 '{$id}'？可在回收站恢复。\ncmd-prompt-purge-attachment = 彻底删除附件 '{$id}'？此操作不可恢复。\ncmd-cleanup-result = 清理完成：移除 {$count} 个孤立附件，释放 {$bytes} 字节\ncmd-prompt-restore-backup = 确认恢复备份 '{$id}'？\n创建时间: {$date}\n包含 {$count} 个 Profile。\n当前 Vault 中的同名 Profile 将被覆盖。\ncmd-prompt-delete-backup = 确认删除备份 '{$id}'？\n此操作不可恢复。\ncmd-llm-current-model = 当前模型: {$name} - {$model}\n提供商: {$url}\nAPI 类型: {$api_type}\ncmd-template-load-failed = 加载系统模板失败: {$err}\ncmd-language-set = 语言已设置为: {$code}\ncmd-theme-set = 主题已设置为: {$name}\ncmd-preference-value-label = 偏好值（键={$key}，JSON 会被尝试解析，否则按字符串保存）\ncmd-debug-log-exported = 诊断包已导出至: {$path}\ncmd-ocr-no-models = 模型目录: {$path}\n未安装任何档位。请从 GUI 安装或下载到该目录。\ncmd-ocr-models-status = 模型目录: {$path}\n已安装: {$installed}\ncmd-ocr-status-title = OCR Status（{$path} 目录）\ncmd-extra-file-arg = 多余的文件参数\ncmd-export-need-scope = 请指定 --full、--pages 或 --objects 之一\ncmd-import-need-strategy-value = --strategy 后需要策略值\ncmd-export-password-complexity = 导出密码必须同时包含字母和数字\ncmd-account-not-found-generic = 未找到当前账户\ncmd-export-password-same-as-master = 导出密码不能与主密码相同\ncmd-verify-master-failed = 校验主密码失败: {$err}\n

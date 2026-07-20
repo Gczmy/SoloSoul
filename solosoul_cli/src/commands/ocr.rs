@@ -94,15 +94,17 @@ fn status(app: &mut App) {
         .map(|t| t.name.clone())
         .collect();
     let text = if installed.is_empty() {
-        format!(
-            "模型目录: {}\n未安装任何档位。请从 GUI 安装或下载到该目录。",
-            base.display()
+        t!(
+            app.i18n,
+            "cmd-ocr-no-models",
+            path = &base.display().to_string()
         )
     } else {
-        format!(
-            "模型目录: {}\n已安装: {}",
-            base.display(),
-            installed.join(", ")
+        t!(
+            app.i18n,
+            "cmd-ocr-models-status",
+            path = &base.display().to_string(),
+            installed = &installed.join(", ")
         )
     };
 
@@ -113,7 +115,11 @@ fn status(app: &mut App) {
             confidence: 0.0,
             boxes: Vec::new(),
         },
-        source_path: format!("OCR Status ({} 目录)", base.display()),
+        source_path: t!(
+            app.i18n,
+            "cmd-ocr-status-title",
+            path = &base.display().to_string()
+        ),
         tiers: Some(entries),
         mrz: None,
     };

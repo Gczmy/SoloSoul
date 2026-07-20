@@ -279,7 +279,6 @@ cmd-page-deleted = Page '{$name}' and {$count} child objects deleted.
 cmd-backup-created = Backup created: {$id} ({$size} profiles, {$bytes} bytes)
 cmd-backup-restored = Backup '{$id}' restored
 cmd-backup-deleted = Backup '{$id}' deleted
-cmd-backup-not-found = Backup '{$id}' not found
 cmd-backup-name-empty = Backup name cannot be empty
 cmd-trash-item-not-found = Trash item '{$id}' not found
 cmd-purge-prompt = Permanently delete '{$name}'? This cannot be undone.
@@ -344,12 +343,7 @@ cmd-export-password-same-master = Export password cannot be the same as the mast
 cmd-export-password-verify-failed = Failed to verify master password: {$err}
 cmd-export-too-many-args = Too many file arguments.
 cmd-export-no-scope = Please specify one of --full, --pages, or --objects.
-cmd-export-unknown-option = Unknown export option: {$opt}
-cmd-import-unknown-option = Unknown import option: {$opt}
-cmd-export-need-pages-list = --pages requires a comma-separated list of page IDs.
-cmd-export-need-objects-list = --objects requires a comma-separated list of object IDs.
 cmd-import-need-strategy = --strategy requires a strategy value (skip/overwrite/merge).
-cmd-import-unknown-strategy = Unknown import strategy: {$strategy}
 cmd-account-not-found = No current account.
 
 ### LLM commands
@@ -588,3 +582,4 @@ status-settings-preference = Settings · Custom Preferences
 status-quit = Exiting
 status-lock-held = [L] Process lock held · GUI unavailable
 status-lock-not-exclusive = [!] Not exclusive
+\n### Commands Phase 3\ncmd-attachment-usage = Usage: /attach list [object_id] | add <file_path> | rename <id> <new_name> | delete <id> | restore <id> | purge <id> | cleanup\ncmd-provide-file-path = Please provide a file path, e.g. /attach add /path/to/file.pdf\ncmd-provide-attachment-id-example = Please provide an attachment ID, e.g. /attach rename att_xxx new.pdf\ncmd-prompt-soft-delete-attachment = Soft delete attachment '{$id}'? Can be restored from trash.\ncmd-prompt-purge-attachment = Permanently delete attachment '{$id}'? This cannot be undone.\ncmd-cleanup-result = Cleanup complete: removed {$count} orphan attachments, freed {$bytes} bytes\ncmd-prompt-restore-backup = Confirm restore backup '{$id}'?\nCreated: {$date}\nContains {$count} profile(s).\nProfiles with the same name in the current Vault will be overwritten.\ncmd-prompt-delete-backup = Confirm delete backup '{$id}'?\nThis cannot be undone.\ncmd-llm-current-model = Current model: {$name} - {$model}\nProvider: {$url}\nAPI type: {$api_type}\ncmd-template-load-failed = Failed to load system templates: {$err}\ncmd-language-set = Language set to: {$code}\ncmd-theme-set = Theme set to: {$name}\ncmd-preference-value-label = Preference value (key={$key}, JSON will be parsed, otherwise saved as string)\ncmd-debug-log-exported = Debug log exported to: {$path}\ncmd-ocr-no-models = Model directory: {$path}\nNo models installed. Please install from GUI or download to this directory.\ncmd-ocr-models-status = Model directory: {$path}\nInstalled: {$installed}\ncmd-ocr-status-title = OCR Status ({$path} directory)\ncmd-extra-file-arg = Extra file argument\ncmd-export-need-scope = Please specify one of: --full, --pages, or --objects\ncmd-import-need-strategy-value = --strategy requires a strategy value\ncmd-export-password-complexity = Export password must contain both letters and digits\ncmd-account-not-found-generic = Current account not found\ncmd-export-password-same-as-master = Export password cannot be the same as the master password\ncmd-verify-master-failed = Failed to verify master password: {$err}\n

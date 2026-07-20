@@ -15,9 +15,7 @@ pub fn handle(app: &mut App, args: &[&str]) -> Result<()> {
     let _account_id = require_unlocked_with_vault(app)?;
     match args.first().copied() {
         None | Some("help") => {
-            app.error_message = Some(
-                "用法: /attach list [object_id] | add <file_path> | rename <id> <new_name> | delete <id> | restore <id> | purge <id> | cleanup".to_string(),
-            );
+            app.error_message = Some(t!(app.i18n, "cmd-attachment-usage"));
             Ok(())
         }
         Some("list") => list(app, args.get(1).copied()),
@@ -91,8 +89,7 @@ fn add(app: &mut App, file_path: Option<&str>) -> Result<()> {
     let file_path = match file_path {
         Some(p) => p,
         None => {
-            app.error_message =
-                Some("请提供文件路径，例如 /attach add /path/to/file.pdf".to_string());
+            app.error_message = Some(t!(app.i18n, "cmd-provide-file-path"));
             return Ok(());
         }
     };
@@ -123,8 +120,7 @@ fn rename(app: &mut App, attachment_id: Option<&str>, new_name: Option<&str>) ->
     let attachment_id = match attachment_id {
         Some(id) => id,
         None => {
-            app.error_message =
-                Some("请提供附件 ID，例如 /attach rename att_xxx new.pdf".to_string());
+            app.error_message = Some(t!(app.i18n, "cmd-provide-attachment-id-example"));
             return Ok(());
         }
     };
@@ -181,7 +177,11 @@ fn delete(app: &mut App, attachment_id: Option<&str>) -> Result<()> {
     crate::widgets::prompt::open(
         app,
         crate::widgets::prompt::PromptSpec::Confirm {
-            message: format!("软删除附件 '{}'？可在回收站恢复。", attachment_id),
+            message: t!(
+                app.i18n,
+                "cmd-prompt-soft-delete-attachment",
+                id = &attachment_id
+            ),
             default_yes: false,
         },
         Box::new(move |app, result| {
@@ -265,7 +265,7 @@ fn purge(app: &mut App, attachment_id: Option<&str>) -> Result<()> {
     crate::widgets::prompt::open(
         app,
         crate::widgets::prompt::PromptSpec::Confirm {
-            message: format!("彻底删除附件 '{}'？此操作不可恢复。", attachment_id),
+            message: t!(app.i18n, "cmd-prompt-purge-attachment", id = &attachment_id),
             default_yes: false,
         },
         Box::new(move |app, result| {
@@ -307,9 +307,11 @@ fn cleanup(app: &mut App) -> Result<()> {
 
     match objects::cleanup_orphan_attachments(&vault, &account_id, &base) {
         Ok((removed, freed)) => {
-            app.error_message = Some(format!(
-                "清理完成：移除 {} 个孤立附件，释放 {} 字节",
-                removed, freed
+            app.error_message = Some(t!(
+                app.i18n,
+                "cmd-cleanup-result",
+                count = removed.to_string(),
+                bytes = freed.to_string()
             ));
         }
         Err(e) => {

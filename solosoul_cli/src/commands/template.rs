@@ -41,7 +41,7 @@ fn list_templates(app: &mut App) -> Result<()> {
     let system_registry = match load_system_templates(app) {
         Ok(r) => r,
         Err(e) => {
-            app.error_message = Some(format!("加载系统模板失败: {}", e));
+            app.error_message = Some(t!(app.i18n, "cmd-template-load-failed", err = &e));
             return Ok(());
         }
     };
@@ -95,7 +95,7 @@ fn show_template(app: &mut App, id: Option<&str>) -> Result<()> {
     let system_registry = match load_system_templates(app) {
         Ok(r) => r,
         Err(e) => {
-            app.error_message = Some(format!("加载系统模板失败: {}", e));
+            app.error_message = Some(t!(app.i18n, "cmd-template-load-failed", err = &e));
             return Ok(());
         }
     };

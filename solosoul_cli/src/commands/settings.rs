@@ -122,7 +122,10 @@ pub fn apply_language(app: &mut App, code: &str) {
     }
     // 同步更新运行时 i18n locale
     app.i18n.set_locale(code);
-    app.success_message = Some((format!("语言已设置为: {}", code), Instant::now()));
+    app.success_message = Some((
+        t!(app.i18n, "cmd-language-set", code = code),
+        Instant::now(),
+    ));
     // 显式抹为 SettingsMenu + 刷新 current_language；不调 core::back 让 phase 能覆盖为当前 phase (Home/Locked)。
     let current_theme = current_theme(app);
     app.phase = AppPhase::SettingsMenu {
@@ -144,7 +147,7 @@ pub fn apply_theme(app: &mut App, name: &str) {
         crate::commands::core::back(app);
         return;
     }
-    app.success_message = Some((format!("主题已设置为: {}", name), Instant::now()));
+    app.success_message = Some((t!(app.i18n, "cmd-theme-set", name = name), Instant::now()));
     let current_language = current_language(app);
     app.phase = AppPhase::SettingsMenu {
         selected: 0,
@@ -194,7 +197,7 @@ fn open_preference_key_prompt(app: &mut App) {
 /// 弹出偏好值输入 prompt；用户在 prompt 中确认 → 复用 `handle({/setting, key, value})` 写入。
 fn open_preference_value_prompt(app: &mut App, key: String) {
     use crate::widgets::prompt::PromptCallback;
-    let label = format!("偏好值（键={}，JSON 会被尝试解析，否则按字符串保存）", key);
+    let label = t!(app.i18n, "cmd-preference-value-label", key = &key);
     let code = key;
     let on_done: PromptCallback = Box::new(move |app, result| match result {
         PromptResult::Text(value) => {
@@ -376,7 +379,11 @@ fn debug_log(app: &mut App, file_name: Option<&str>) -> Result<()> {
     })?;
 
     app.success_message = Some((
-        format!("诊断包已导出至: {}", path.display()),
+        t!(
+            app.i18n,
+            "cmd-debug-log-exported",
+            path = &path.display().to_string()
+        ),
         Instant::now(),
     ));
     Ok(())
