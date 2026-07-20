@@ -103,14 +103,41 @@ describe('useAutoLock', () => {
     expect(invoke).toHaveBeenCalledWith('lock');
   });
 
-  it('回到前台时立即结算已累积的闲置时间（移动端切后台/系统休眠）', () => {
+  it('回到前台时如果未被隐藏事件锁定则检查闲置（罕见情况）', () => {
     renderHook(() => useAutoLock());
+    vi.mocked(invoke).mockClear();
 
-    // 模拟系统休眠/WebView 挂起：时间流逝但定时器未执行
+    // 直接 dispatch visible（假设之前没有被 hidden 锁定）
     vi.setSystemTime(Date.now() + 6 * MIN);
+    Object.defineProperty(document, 'visibilityState', { value: 'visible', configurable: true });
     document.dispatchEvent(new Event('visibilitychange'));
 
     expect(invoke).toHaveBeenCalledWith('lock');
+  });
+
+  it('切到后台（visibility hidden）时立即锁定', () => {
+    renderHook(() => useAutoLock());
+    vi.mocked(invoke).mockClear();
+
+    Object.defineProperty(document, 'visibilityState', { value: 'hidden', configurable: true });
+    document.dispatchEvent(new Event('visibilitychange'));
+
+    expect(invoke).toHaveBeenCalledWith('lock');
+  });
+
+  it('切到后台只锁定一次', () => {
+    renderHook(() => useAutoLock());
+    vi.mocked(invoke).mockClear();
+
+    Object.defineProperty(document, 'visibilityState', { value: 'hidden', configurable: true });
+    document.dispatchEvent(new Event('visibilitychange'));
+
+    expect(invoke).toHaveBeenCalledWith('lock');
+    vi.mocked(invoke).mockClear();
+
+    // 再次 hidden 不应重复锁定
+    document.dispatchEvent(new Event('visibilitychange'));
+    expect(invoke).not.toHaveBeenCalled();
   });
 
   it('设置变更后按新阈值生效', () => {

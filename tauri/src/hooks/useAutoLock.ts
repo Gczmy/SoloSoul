@@ -70,7 +70,17 @@ export function useAutoLock(): void {
     };
 
     const onVisibilityChange = () => {
-      if (document.visibilityState === 'visible') checkIdle();
+      if (document.visibilityState === 'visible') {
+        checkIdle();
+      } else if (document.visibilityState === 'hidden') {
+        // 屏幕锁定/应用切到后台时立即锁定，不等待 idle timeout
+        if (lockInitiated) return;
+        lockInitiated = true;
+        useVaultStore
+          .getState()
+          .lock()
+          .catch((err) => console.error('[useAutoLock] lock on hide failed:', err));
+      }
     };
 
     for (const e of ACTIVITY_EVENTS) {
