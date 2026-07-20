@@ -3,6 +3,8 @@
   height: 100vh;
   overflow: hidden;
   background: var(--bg-base);
+  /* 移动端禁用双指缩放（继承到子元素） */
+  touch-action: manipulation;
 }
 .main {
   flex: 1;
@@ -10,6 +12,7 @@
   flex-direction: column;
   overflow: hidden;
   min-width: 0;
+  touch-action: manipulation;
 }
 
 /* 键盘弹出时 .content 是主要滚动容器；overscroll-behavior 防止系统手势误触 */
@@ -24,6 +27,7 @@
   /* Extra fallback for browsers that support scrollbar-gutter. */
   scrollbar-gutter: stable;
   overscroll-behavior: none;
+  touch-action: manipulation;
 }
 
 /* Mobile: reduce padding and account for bottom navigation */

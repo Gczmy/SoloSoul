@@ -88,6 +88,8 @@
     height: calc(48px + env(safe-area-inset-top, 0px));
     /* Ensure the app bar itself receives touches, not the system status area */
     pointer-events: auto;
+    /* 全不透明背景，滑动时内容不会从系统状态栏透出 */
+    background: var(--bg-elevated);
   }
   .title {
     font-size: var(--text-body);

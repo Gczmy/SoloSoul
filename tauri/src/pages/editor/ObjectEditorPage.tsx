@@ -164,6 +164,11 @@ export function ObjectEditorPage() {
       setName('');
       setValues({});
       getObject(accountId, objectId)
+        .then(() => {
+          // 异步获取完成后重置 dataLoaded，使主 effect 能从最新数据重新填充字段。
+          // 解决缓存数据（stale cache）在主 effect 运行后才到的问题。
+          setDataLoaded(false);
+        })
         .catch((e) => onError(e, t('common:object_load_failed')))
         .finally(() => {
           loadingObjRef.current = false;
