@@ -59,7 +59,7 @@ export function ScanLocalPage() {
       const dir = await open({
         directory: true,
         multiple: false,
-        title: 'Select directory to scan',
+        title: t('settings:scan_select_dir_title'),
       });
       if (dir && typeof dir === 'string') {
         setSelectedDir(dir);
@@ -67,8 +67,7 @@ export function ScanLocalPage() {
         const result = await invoke<ScannedFile[]>('fs_scan_directory', { path: dir });
         setFiles(result.filter((f) => SUPPORTED_EXTS.has(f.ext.toLowerCase())));
       }
-    } catch (e) {
-      onError(e, 'Failed to scan directory');
+    } catch (e) {        onError(e, t('settings:scan_failed'));
     } finally {
       setIsScanning(false);
     }
@@ -89,9 +88,9 @@ export function ScanLocalPage() {
           importedAt: new Date().toISOString(),
         },
       });
-      onSuccess(`Imported: ${file.name}`);
+      onSuccess(t('settings:scan_imported', { name: file.name }));
     } catch (e) {
-      onError(e, `Failed to import: ${file.name}`);
+      onError(e, t('settings:scan_import_failed', { name: file.name }));
     } finally {
       setImporting((prev) => {
         const next = new Set(prev);
@@ -132,13 +131,13 @@ export function ScanLocalPage() {
               <FolderOpen size={ICON_SIZE['2xl']} style={{ color: 'var(--accent-primary)' }} />
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>Select Directory</div>
+              <div style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>{t('settings:scan_select_dir_title')}</div>
               <div style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
-                {selectedDir || 'Choose a folder to scan for documents'}
+                {selectedDir || t('settings:scan_select_dir_desc')}
               </div>
             </div>
             <Button onClick={handleSelectDir} loading={isScanning}>
-              <Search size={ICON_SIZE.sm} style={{ marginRight: 4 }} /> Scan
+              <Search size={ICON_SIZE.sm} style={{ marginRight: 4 }} /> {t('settings:scan_scan_button')}
             </Button>
           </div>
         </Card>
@@ -148,10 +147,10 @@ export function ScanLocalPage() {
           <>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)' }}>
-                {files.length} file(s) found
+                {t('settings:scan_files_found', { count: files.length })}
               </span>
               <Button size="sm" variant="secondary" onClick={handleImportAll}>
-                <Upload size={ICON_SIZE.sm} style={{ marginRight: 4 }} /> Import All
+                <Upload size={ICON_SIZE.sm} style={{ marginRight: 4 }} /> {t('settings:scan_import_all')}
               </Button>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--card-gap-sm)' }}>
@@ -182,7 +181,7 @@ export function ScanLocalPage() {
                       onClick={() => handleImport(file)}
                       loading={importing.has(file.path)}
                     >
-                      Import
+                      {t('settings:scan_import_single')}
                     </Button>
                   </div>
                 </Card>
@@ -201,7 +200,7 @@ export function ScanLocalPage() {
                 fontSize: 'var(--text-sm)',
               }}
             >
-              No supported files found in this directory.
+              {t('settings:scan_no_supported_files')}
             </p>
           </Card>
         )}

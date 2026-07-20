@@ -270,7 +270,7 @@ export function GlobalAttachmentManager() {
   const handleDownload = async (item: AttachmentMeta) => {
     const filePath = item.vaultPath || item.srcPath;
     if (!filePath) {
-      showToast({ type: 'error', message: 'No file path available' });
+      showToast({ type: 'error', message: t('common:no_file_path') });
       return;
     }
     try {

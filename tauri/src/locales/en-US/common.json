@@ -54,6 +54,7 @@
   "download": "Download",
   "download_result": "Downloaded successfully",
   "download_failed": "Download failed",
+  "no_file_path": "No file path available",
   "batch_download_result": "Downloaded {{success}}/{{total}} files",
   "batch_download_mobile_unsupported": "Batch download to a directory is not supported on mobile. Please download files individually.",
   "select_download_directory": "Select download directory",
