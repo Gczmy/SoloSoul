@@ -65,9 +65,9 @@ export async function initLlmNotificationListener(): Promise<void> {
     if (!isAiPageOpen && !isQuickChatOpen) {
       // 首次触发时按需申请权限，避免启动即弹窗
       sendSystemNotificationWithFallback(
-        'SoloSoul AI',
-        'AI 已完成回复，点击查看',
-        'AI 已完成回复',
+        i18next.t('common:ai_notification_title', 'SoloSoul AI'),
+        i18next.t('common:ai_notification_body', 'Click to view the AI response'),
+        i18next.t('common:ai_notification_toast', 'AI response ready'),
         'info',
         true,
       );

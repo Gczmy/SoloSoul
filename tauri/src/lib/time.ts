@@ -17,9 +17,12 @@ export function formatTimestamp(iso: string): string {
 /** 使用 Intl.RelativeTimeFormat 格式化相对时间（支持中文和英文等本地化输出）。 */
 export function formatRelative(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return '刚刚';
   const rtf = new Intl.RelativeTimeFormat(undefined, { numeric: 'auto' });
+  const seconds = Math.floor(diff / 1000);
+  // 对于几秒内（≈7秒），用 0 值让 rtf 输出本地化 "now"（如 "现在" / "now"）
+  if (seconds < 8) return rtf.format(0, 'second');
+  if (seconds < 60) return rtf.format(-seconds, 'second');
+  const mins = Math.floor(seconds / 60);
   if (mins < 60) return rtf.format(-mins, 'minute');
   const hours = Math.floor(mins / 60);
   if (hours < 24) return rtf.format(-hours, 'hour');

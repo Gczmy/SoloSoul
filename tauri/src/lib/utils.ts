@@ -1,3 +1,4 @@
+import i18next from '@/lib/i18n';
 import type { TFunction } from 'i18next';
 import type { OcrTierInfo } from '@/lib/ipc';
 import type { CustomPage } from '@/stores/settingsStore';
@@ -14,12 +15,13 @@ const formatBytesNumberFormatter = new Intl.NumberFormat(undefined, {
 /** 将字节数格式化为人类可读字符串（B / KB / MB / GB）。
  *  使用 1024 进制（二进制），通过 Intl.NumberFormat 实现本地化数字格式。 */
 export function formatBytes(bytes: number): string {
-  if (bytes < 0) return '0 B';
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${formatBytesNumberFormatter.format(bytes / 1024)} KB`;
+  if (bytes < 0) return `0 ${i18next.t('common:byte_unit', 'B')}`;
+  if (bytes < 1024) return `${bytes} ${i18next.t('common:byte_unit', 'B')}`;
+  if (bytes < 1024 * 1024)
+    return `${formatBytesNumberFormatter.format(bytes / 1024)} ${i18next.t('common:byte_unit_kb', 'KB')}`;
   if (bytes < 1024 * 1024 * 1024)
-    return `${formatBytesNumberFormatter.format(bytes / (1024 * 1024))} MB`;
-  return `${formatBytesNumberFormatter.format(bytes / (1024 * 1024 * 1024))} GB`;
+    return `${formatBytesNumberFormatter.format(bytes / (1024 * 1024))} ${i18next.t('common:byte_unit_mb', 'MB')}`;
+  return `${formatBytesNumberFormatter.format(bytes / (1024 * 1024 * 1024))} ${i18next.t('common:byte_unit_gb', 'GB')}`;
 }
 
 /** 从字符串中提取前缀后的内容。 */
