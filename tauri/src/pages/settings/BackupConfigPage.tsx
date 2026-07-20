@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { useToastError } from '@/hooks/useToastError';
+import { useConfirm } from '@/hooks/useConfirm';
 import { invoke } from '@tauri-apps/api/core';
 import { HardDrive, RotateCcw, Plus, Bell } from 'lucide-react';
 import { DeleteButton } from '@/components/ui/DeleteButton';
@@ -27,6 +28,7 @@ export function BackupConfigPage() {
   const navigate = useNavigate();
   const { onError, onSuccess } = useToastError();
   const { t } = useTranslation(['settings', 'common']);
+  const { requestConfirm, dialog: confirmDialog } = useConfirm();
   const [backups, setBackups] = useState<BackupInfo[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [backupName, setBackupName] = useState('');
@@ -67,27 +69,41 @@ export function BackupConfigPage() {
     }
   };
 
-  const handleRestore = async (id: string) => {
-    setRestoringId(id);
-    try {
-      const count = await invoke<number>('backup_restore', { backupId: id });
-      onSuccess(t('settings:restored_from_backup', { count }));
-      loadBackups();
-    } catch (e) {
-      onError(e, t('common:restore_failed'));
-    } finally {
-      setRestoringId(null);
-    }
+  const handleRestore = (id: string, name: string) => {
+    requestConfirm(
+      t('settings:backup_restore_confirm_title'),
+      t('settings:backup_restore_confirm_body', { name }),
+      async () => {
+        setRestoringId(id);
+        try {
+          const count = await invoke<number>('backup_restore', { backupId: id });
+          onSuccess(t('settings:restored_from_backup', { count }));
+          loadBackups();
+        } catch (e) {
+          onError(e, t('common:restore_failed'));
+        } finally {
+          setRestoringId(null);
+        }
+      },
+      { confirmLabel: t('common:restore'), cancelLabel: t('common:cancel') },
+    );
   };
 
-  const handleDelete = async (id: string) => {
-    try {
-      await invoke('backup_delete', { backupId: id });
-      onSuccess(t('common:backup_deleted'));
-      loadBackups();
-    } catch (e) {
-      onError(e, t('common:delete_failed'));
-    }
+  const handleDelete = (id: string, name: string) => {
+    requestConfirm(
+      t('settings:backup_delete_confirm_title'),
+      t('settings:backup_delete_confirm_body', { name }),
+      async () => {
+        try {
+          await invoke('backup_delete', { backupId: id });
+          onSuccess(t('common:backup_deleted'));
+          loadBackups();
+        } catch (e) {
+          onError(e, t('common:delete_failed'));
+        }
+      },
+      { confirmLabel: t('common:delete'), cancelLabel: t('common:cancel') },
+    );
   };
 
   return (
@@ -266,7 +282,7 @@ export function BackupConfigPage() {
                   </div>
                   <div style={{ display: 'flex', gap: 4 }}>
                     <button
-                      onClick={() => handleRestore(backup.id)}
+                      onClick={() => handleRestore(backup.id, backup.name)}
                       disabled={restoringId === backup.id}
                       title={t('settings:restore_title')}
                       onMouseEnter={(e) => {
@@ -303,7 +319,7 @@ export function BackupConfigPage() {
                       <RotateCcw size={ICON_SIZE.sm} />
                     </button>
                     <DeleteButton
-                      onClick={() => handleDelete(backup.id)}
+                      onClick={() => handleDelete(backup.id, backup.name)}
                       title={t('settings:delete_title')}
                       iconOnly
                     />
@@ -313,6 +329,8 @@ export function BackupConfigPage() {
             </div>
           )}
         </Card>
+
+        {confirmDialog}
 
         {/* Info */}
         <p
