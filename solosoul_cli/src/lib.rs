@@ -13,6 +13,7 @@ pub mod app;
 pub mod cli;
 pub mod commands;
 pub mod events;
+pub mod i18n;
 pub mod screens;
 pub mod theme;
 pub mod tui;

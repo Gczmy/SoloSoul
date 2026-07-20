@@ -5,6 +5,8 @@ use ratatui::text::{Line, Text};
 use ratatui::widgets::Paragraph;
 
 use crate::app::{ClickAction, ClickableRegion};
+use crate::i18n::I18n;
+use crate::t;
 use crate::theme::Theme;
 use crate::widgets::option_list::OptionItem;
 
@@ -38,9 +40,6 @@ pub const SHORTCUTS: &[OptionItem] = &[
         label: "设置",
         command: Some("/setting"),
         desc: "账户偏好设置",
-        // 直接打开 SettingsMenu 而不再走 raw `/setting`（避免再次触发
-        // "用法: /setting <key> <value>" 错误）；命令行键入 `/setting`
-        // 仍由 `execute_command` 的无参分支进入菜单。
         action: ClickAction::OpenSettingsMenu,
     },
     OptionItem {
@@ -75,6 +74,7 @@ pub fn render(
     selected_shortcut: usize,
     mouse_pos: Option<(u16, u16)>,
     sheen_offset: u16,
+    i18n: &I18n,
 ) {
     let theme = Theme::load();
 
@@ -82,7 +82,6 @@ pub fn render(
     let inner = area.inner(Margin::new(2, 1));
 
     // 终端高度足够时显示品牌 Logo banner，否则显示紧凑文本标题。
-    // banner(8) + 6 个按钮(18) + 提示(2) = 28，需 inner 高度 >= 26 才能无滚动完整显示。
     let show_banner = inner.height >= 26;
     let chunks = if show_banner {
         Layout::default()
@@ -105,14 +104,25 @@ pub fn render(
     };
 
     if show_banner {
-        crate::screens::logo::render(frame, chunks[0], &theme, sheen_offset, " 已解锁 ");
+        crate::screens::logo::render(
+            frame,
+            chunks[0],
+            &theme,
+            sheen_offset,
+            &t!(i18n, "locked-title"),
+        );
     } else {
         let header_text = if account_name.is_empty() || account_name == account_id {
-            format!("SoloSoul · 欢迎回来，{}", account_id)
+            t!(i18n, "welcome-back", name = account_id)
         } else {
-            format!("SoloSoul · 欢迎回来，{} · {}", account_name, account_id)
+            t!(
+                i18n,
+                "welcome-back-full",
+                name = account_name,
+                id = account_id
+            )
         };
-        render_header(frame, chunks[0], &theme, &header_text);
+        render_header(frame, chunks[0], &theme, &header_text, i18n);
     }
 
     crate::widgets::option_list::render(
@@ -124,32 +134,31 @@ pub fn render(
         regions,
         mouse_pos,
     );
-    render_hint(frame, chunks[2], &theme);
+    render_hint(frame, chunks[2], &theme, i18n);
 }
 
-fn render_header(frame: &mut ratatui::Frame, area: Rect, theme: &Theme, title: &str) {
+fn render_header(frame: &mut ratatui::Frame, area: Rect, theme: &Theme, title: &str, i18n: &I18n) {
     let text = Text::from(vec![
         Line::from(""),
         Line::from(title).style(theme.style_brand()),
-        Line::from("独奏生命数据，重塑数字原点").style(theme.style_cream()),
+        Line::from(t!(i18n, "app-tagline")).style(theme.style_cream()),
         Line::from(""),
     ]);
     let paragraph = Paragraph::new(text).alignment(Alignment::Center);
     frame.render_widget(paragraph, area);
 }
 
-fn render_hint(frame: &mut ratatui::Frame, area: Rect, theme: &Theme) {
-    let text = Text::from(vec![Line::from(
-        "↑/↓ 选择，Enter 填入命令，直接输入 /help 查看全部命令",
-    )
-    .style(theme.style_hint())
-    .alignment(Alignment::Center)]);
+fn render_hint(frame: &mut ratatui::Frame, area: Rect, theme: &Theme, i18n: &I18n) {
+    let text = Text::from(vec![Line::from(t!(i18n, "home-hint"))
+        .style(theme.style_hint())
+        .alignment(Alignment::Center)]);
     frame.render_widget(Paragraph::new(text), area);
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::i18n::I18n;
     use ratatui::backend::TestBackend;
 
     #[test]
@@ -164,6 +173,7 @@ mod tests {
         let backend = TestBackend::new(80, 36);
         let mut terminal = ratatui::Terminal::new(backend).unwrap();
         let mut regions = Vec::new();
+        let i18n = I18n::new("zh-CN");
         terminal
             .draw(|frame| {
                 render(
@@ -175,16 +185,14 @@ mod tests {
                     0,
                     None,
                     0,
+                    &i18n,
                 )
             })
             .unwrap();
         let buf = terminal.backend().buffer();
         let content: String = buf.content.iter().map(|cell| cell.symbol()).collect();
-        // 32 行高度会触发 banner，断言 Logo 艺术字字符；
-        // 紧凑模式下则显示文本标题 "SoloSoul"。
         assert!(content.contains('█') || content.contains("SoloSoul"));
         assert_eq!(regions.len(), SHORTCUTS.len());
-        // CJK 在 TestBackend 中会被宽字符分隔，断言单个字符
         assert!(content.contains('浏'));
     }
 }

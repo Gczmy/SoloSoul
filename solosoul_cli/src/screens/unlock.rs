@@ -7,14 +7,22 @@ use ratatui::widgets::{Block, Borders, Cell, Paragraph, Row, Table};
 use solosoul_core::AccountSummary;
 
 use crate::app::UnlockStep;
+use crate::i18n::I18n;
+use crate::t;
 use crate::theme::Theme;
 
 /// 渲染登录向导。
-pub fn render(frame: &mut ratatui::Frame, area: Rect, step: &UnlockStep, sheen_offset: u16) {
+pub fn render(
+    frame: &mut ratatui::Frame,
+    area: Rect,
+    step: &UnlockStep,
+    sheen_offset: u16,
+    i18n: &I18n,
+) {
     let theme = Theme::load();
     match step {
         UnlockStep::SelectAccount { accounts, selected } => {
-            render_select_account(frame, area, &theme, accounts, *selected)
+            render_select_account(frame, area, &theme, accounts, *selected, i18n)
         }
         UnlockStep::EnterPassword {
             account_id,
@@ -32,6 +40,7 @@ pub fn render(frame: &mut ratatui::Frame, area: Rect, step: &UnlockStep, sheen_o
             *biometric_configured,
             biometry_type.as_deref(),
             sheen_offset,
+            i18n,
         ),
     }
 }
@@ -42,6 +51,7 @@ fn render_select_account(
     theme: &Theme,
     accounts: &[AccountSummary],
     selected: usize,
+    i18n: &I18n,
 ) {
     let inner = area.inner(Margin::new(2, 2));
     let chunks = Layout::default()
@@ -53,7 +63,7 @@ fn render_select_account(
         ])
         .split(inner);
 
-    render_brand_header(frame, chunks[0], theme, "选择账户登录");
+    render_brand_header(frame, chunks[0], theme, &t!(i18n, "unlock-select-account"));
 
     let rows: Vec<Row> = accounts
         .iter()
@@ -72,7 +82,11 @@ fn render_select_account(
         })
         .collect();
 
-    let header = Row::new(vec!["账户名", "账户 ID"]).style(
+    let header = Row::new(vec![
+        t!(i18n, "object-list-table-name"),
+        t!(i18n, "object-list-table-id"),
+    ])
+    .style(
         Style::default()
             .fg(theme.cream)
             .add_modifier(Modifier::BOLD),
@@ -84,7 +98,7 @@ fn render_select_account(
     .header(header)
     .block(
         Block::default()
-            .title(" 账户 ")
+            .title(t!(i18n, "unlock-select-account"))
             .title_style(theme.style_brand_dim())
             .borders(Borders::ALL)
             .border_style(theme.style_border(false)),
@@ -92,7 +106,7 @@ fn render_select_account(
     frame.render_widget(table, chunks[1]);
 
     let hint =
-        Paragraph::new(Line::from("使用 ↑/↓ 选择，Enter 确认，Esc 取消").style(theme.style_hint()))
+        Paragraph::new(Line::from(t!(i18n, "unlock-hint-account-list")).style(theme.style_hint()))
             .alignment(Alignment::Center);
     frame.render_widget(hint, chunks[2]);
 }
@@ -108,6 +122,7 @@ fn render_enter_password(
     biometric_configured: bool,
     biometry_type: Option<&str>,
     sheen_offset: u16,
+    i18n: &I18n,
 ) {
     let inner = area.inner(Margin::new(2, 2));
 
@@ -134,32 +149,44 @@ fn render_enter_password(
     };
 
     if show_banner {
-        crate::screens::logo::render(frame, chunks[0], theme, sheen_offset, " 登录 ");
+        crate::screens::logo::render(
+            frame,
+            chunks[0],
+            theme,
+            sheen_offset,
+            &t!(i18n, "unlock-enter-password"),
+        );
     } else {
-        render_brand_header(frame, chunks[0], theme, "输入主密码");
+        render_brand_header(frame, chunks[0], theme, &t!(i18n, "unlock-enter-password"));
     }
 
-    let hint_display = password_hint.as_deref().unwrap_or("无");
+    let hint_fallback = t!(i18n, "onboarding-confirm-hint-none");
+    let hint_display = password_hint.as_deref().unwrap_or(hint_fallback.as_str());
     let info = Paragraph::new(Text::from(vec![
-        Line::from(format!(
-            "账户：{}·{}，密码提示词：{}",
-            account_name, account_id, hint_display
+        Line::from(t!(
+            i18n,
+            "unlock-account-info",
+            name = account_name,
+            id = account_id,
+            hint = hint_display
         ))
         .style(theme.style_muted()),
         Line::from(""),
-        Line::from("主密码不会被保存，无法找回。").style(theme.style_warning()),
+        Line::from(t!(i18n, "unlock-password-warning")).style(theme.style_warning()),
     ]))
     .alignment(Alignment::Center);
     frame.render_widget(info, chunks[1]);
 
     let biometric_hint = if biometric_configured {
-        let kind = biometry_type.unwrap_or("生物识别");
-        format!(" · B 使用 {}", kind)
+        let kind_fallback = t!(i18n, "biometric-generic-name");
+        let kind = biometry_type.unwrap_or(kind_fallback.as_str());
+        t!(i18n, "unlock-biometric-hint", r#type = kind)
     } else {
         String::new()
     };
     let hint = Paragraph::new(
-        Line::from(format!("Enter 确认 · Esc 取消{}", biometric_hint)).style(theme.style_hint()),
+        Line::from(format!("{} {}", t!(i18n, "hint-enter-esc"), biometric_hint))
+            .style(theme.style_hint()),
     )
     .alignment(Alignment::Center);
     frame.render_widget(hint, chunks[2]);
@@ -193,6 +220,7 @@ fn render_brand_header(frame: &mut ratatui::Frame, area: Rect, theme: &Theme, su
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::i18n::I18n;
     use ratatui::backend::TestBackend;
 
     #[test]
@@ -207,6 +235,7 @@ mod tests {
             password_hint: None,
             created_at: None,
         }];
+        let i18n = I18n::new("zh-CN");
         terminal
             .draw(|frame| {
                 render(
@@ -217,6 +246,7 @@ mod tests {
                         selected: 0,
                     },
                     0,
+                    &i18n,
                 )
             })
             .unwrap();

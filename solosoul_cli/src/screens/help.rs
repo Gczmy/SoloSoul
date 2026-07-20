@@ -9,6 +9,8 @@ use ratatui::text::{Line, Text};
 use ratatui::widgets::{Block, Borders, Paragraph};
 
 use crate::commands::system::{command_usage, HELP_GROUPS};
+use crate::i18n::I18n;
+use crate::t;
 use crate::theme::Theme;
 
 /// 渲染帮助屏幕。
@@ -19,14 +21,17 @@ pub fn render(
     area: Rect,
     topic: &Option<String>,
     scroll_offset: usize,
+    i18n: &I18n,
 ) {
     let theme = Theme::load();
 
     match topic {
         Some(command) => {
-            let usage = command_usage(command).unwrap_or("未知命令，使用 /help 查看全部命令。");
+            let usage = command_usage(command)
+                .map(|s| s.to_string())
+                .unwrap_or_else(|| t!(i18n, "help-unknown-topic"));
             let lines = Text::from(vec![
-                Line::from(format!(" 命令: {} ", command)).bold(),
+                Line::from(t!(i18n, "help-topic", cmd = command)).bold(),
                 Line::from(""),
                 Line::from(format!(" {}", usage)),
             ]);
@@ -50,12 +55,12 @@ pub fn render(
 
             // Header
             all_lines.push(
-                Line::from(" Solo S o u l  C L I ")
+                Line::from(format!(" {} ", t!(i18n, "app-title")))
                     .bold()
                     .alignment(Alignment::Center),
             );
             all_lines.push(
-                Line::from(" 使用 /help <命令> 查看具体用法")
+                Line::from(t!(i18n, "help-header"))
                     .style(theme.style_muted())
                     .alignment(Alignment::Center),
             );
@@ -87,7 +92,7 @@ pub fn render(
                         " ".repeat(
                             (inner_width as usize)
                                 .saturating_sub(cmd_len + desc_trunc.chars().count() + 3)
-                        )
+                        ),
                     );
                     all_lines.push(Line::from(line_str).style(theme.style_text()));
                 }

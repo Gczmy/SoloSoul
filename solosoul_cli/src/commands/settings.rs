@@ -110,7 +110,7 @@ pub fn open_theme_select(app: &mut App) {
     app.phase = AppPhase::SettingsThemeSelect { selected };
 }
 
-/// 应用新语言：写入 ui_preferred，并显示 success toast，回退到 SettingsMenu。
+/// 应用新语言：写入 ui_preferred，更新运行时 i18n locale，显示 success toast。
 pub fn apply_language(app: &mut App, code: &str) {
     let mut prefs = load_ui_prefs(app);
     prefs.insert("language".to_string(), Value::String(code.to_string()));
@@ -119,6 +119,8 @@ pub fn apply_language(app: &mut App, code: &str) {
         crate::commands::core::back(app);
         return;
     }
+    // 同步更新运行时 i18n locale
+    app.i18n.set_locale(code);
     app.success_message = Some((format!("语言已设置为: {}", code), Instant::now()));
     // 显式抹为 SettingsMenu + 刷新 current_language；不调 core::back 让 phase 能覆盖为当前 phase (Home/Locked)。
     let current_theme = current_theme(app);
@@ -267,6 +269,8 @@ fn language(app: &mut App, lang: Option<&str>) -> Result<()> {
         Some(lang) => {
             prefs.insert("language".to_string(), Value::String(lang.to_string()));
             save_ui_prefs(app, &prefs)?;
+            // 同步更新运行时 i18n locale
+            app.i18n.set_locale(lang);
             app.error_message = Some(format!("语言已设置为: {}", lang));
         }
         None => {

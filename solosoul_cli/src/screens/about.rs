@@ -6,33 +6,37 @@ use ratatui::text::{Line, Text};
 use ratatui::widgets::{Block, Borders, Paragraph};
 
 use crate::commands::system::AboutInfo;
+use crate::i18n::I18n;
+use crate::t;
 
-pub fn render(frame: &mut ratatui::Frame, area: Rect, info: &AboutInfo) {
+pub fn render(frame: &mut ratatui::Frame, area: Rect, info: &AboutInfo, i18n: &I18n) {
+    let lock_status = if info.lock_acquired {
+        t!(i18n, "about-lock-acquired")
+    } else {
+        t!(i18n, "about-lock-none")
+    };
     let lines = vec![
         Line::from(""),
         Line::from(info.app_name.clone())
             .bold()
             .alignment(Alignment::Center),
-        Line::from(format!("版本: {}", info.version)).alignment(Alignment::Center),
-        Line::from(format!("平台: {} / {}", info.os, info.arch)).alignment(Alignment::Center),
-        Line::from(format!("数据目录: {}", info.data_dir)).alignment(Alignment::Center),
-        Line::from(format!(
-            "进程锁: {}",
-            if info.lock_acquired {
-                "已持有（GUI 不可用）"
-            } else {
-                "未独占"
-            }
-        ))
-        .alignment(Alignment::Center),
+        Line::from(t!(i18n, "about-version", ver = info.version)).alignment(Alignment::Center),
+        Line::from(t!(i18n, "about-platform", os = info.os, arch = info.arch))
+            .alignment(Alignment::Center),
+        Line::from(t!(i18n, "about-data-dir", path = info.data_dir)).alignment(Alignment::Center),
+        Line::from(t!(i18n, "about-lock", status = lock_status)).alignment(Alignment::Center),
         Line::from(""),
-        Line::from("本地优先 · 零知识 · 你的数据你做主")
+        Line::from(t!(i18n, "app-tagline-short"))
             .dark_gray()
             .alignment(Alignment::Center),
     ];
 
     let paragraph = Paragraph::new(Text::from(lines))
-        .block(Block::default().title(" /about ").borders(Borders::ALL))
+        .block(
+            Block::default()
+                .title(t!(i18n, "about-title"))
+                .borders(Borders::ALL),
+        )
         .alignment(Alignment::Center);
     frame.render_widget(paragraph, area);
 }

@@ -19,6 +19,7 @@ use zeroize::Zeroizing;
 use crate::commands;
 use crate::commands::plugin::PluginSummary;
 use crate::commands::search::SearchResultItem;
+use crate::i18n::I18n;
 use crate::widgets::command_input::CommandInput;
 use crate::widgets::command_palette::{CommandPalette, PaletteAction};
 use crate::widgets::field_editor::{self, EditableField};
@@ -406,6 +407,9 @@ pub struct App {
     /// 设置成功后的绿色 toast（带 Instant 戳）；status_bar.rs 在 5 秒内渲染过期。
     /// apply_language / apply_theme / trigger_debug_log_export 中设置。
     pub success_message: Option<(String, Instant)>,
+
+    /// 国际化管理器（fluent-rs），支持运行时语言切换。
+    pub i18n: I18n,
 }
 
 impl App {
@@ -429,6 +433,10 @@ impl App {
         } else {
             AppPhase::Welcome
         };
+
+        // 从 ui_preferences.json 读取已保存的语言偏好，若无则检测系统 locale。
+        let locale = detect_initial_locale(&vault_service);
+        let i18n = I18n::new(&locale);
 
         Ok(Self {
             phase,
@@ -459,6 +467,7 @@ impl App {
             llm_service: LlmService::new(),
             chat_state: None,
             plugin_run_pending: None,
+            i18n,
         })
     }
 
@@ -479,6 +488,33 @@ impl App {
         self.selected_shortcut = 0;
         self.phase = AppPhase::Home { account_id };
     }
+}
+
+/// 从 `ui_preferences.json` 或系统 locale 检测初始语言。
+pub fn detect_initial_locale(vault_service: &VaultService) -> String {
+    let base_path = vault_service.base_path();
+    let prefs_path = base_path.join("ui_preferences.json");
+    if let Ok(content) = std::fs::read_to_string(&prefs_path) {
+        if let Ok(prefs) = serde_json::from_str::<serde_json::Value>(&content) {
+            if let Some(lang) = prefs.get("language").and_then(|v| v.as_str()) {
+                if !lang.is_empty() {
+                    return lang.to_string();
+                }
+            }
+        }
+    }
+    // 回退：检测系统 locale
+    if let Some(locale) = sys_locale::get_locale() {
+        if locale.starts_with("zh") {
+            return "zh-CN".to_string();
+        }
+        let simple = locale.split(['-', '_']).next().unwrap_or("en");
+        if simple == "zh" {
+            return "zh-CN".to_string();
+        }
+        return "en-US".to_string();
+    }
+    "en-US".to_string()
 }
 
 /// 根据字段类型构造对应的外部编辑请求。
@@ -2627,9 +2663,13 @@ impl App {
             AppPhase::AccountList { accounts } => {
                 crate::screens::account_list::render(frame, layout[1], accounts)
             }
-            AppPhase::UnlockWizard { step } => {
-                crate::screens::unlock::render(frame, layout[1], step, self.sheen_offset)
-            }
+            AppPhase::UnlockWizard { step } => crate::screens::unlock::render(
+                frame,
+                layout[1],
+                step,
+                self.sheen_offset,
+                &self.i18n,
+            ),
             AppPhase::Home { account_id } => crate::screens::home::render(
                 frame,
                 layout[1],
@@ -2639,9 +2679,10 @@ impl App {
                 self.selected_shortcut,
                 self.mouse_pos,
                 self.sheen_offset,
+                &self.i18n,
             ),
             AppPhase::ObjectList { items, title } => {
-                crate::screens::object_list::render(frame, layout[1], title, items)
+                crate::screens::object_list::render(frame, layout[1], title, items, &self.i18n)
             }
             AppPhase::ObjectDetail { object } => {
                 crate::screens::object_detail::render(frame, layout[1], object)
@@ -2690,11 +2731,13 @@ impl App {
             AppPhase::OperationLog {
                 entries, selected, ..
             } => crate::screens::operation_log::render(frame, layout[1], entries, *selected),
-            AppPhase::About { info } => crate::screens::about::render(frame, layout[1], info),
+            AppPhase::About { info } => {
+                crate::screens::about::render(frame, layout[1], info, &self.i18n)
+            }
             AppPhase::Help {
                 topic,
                 scroll_offset,
-            } => crate::screens::help::render(frame, layout[1], topic, *scroll_offset),
+            } => crate::screens::help::render(frame, layout[1], topic, *scroll_offset, &self.i18n),
             AppPhase::AttachmentList {
                 object_id,
                 items,
@@ -2802,6 +2845,7 @@ impl App {
                 current_theme,
                 &mut self.clickable_regions,
                 self.mouse_pos,
+                &self.i18n,
             ),
             AppPhase::SettingsLanguageSelect { selected } => {
                 let current = crate::commands::settings::current_language(self);

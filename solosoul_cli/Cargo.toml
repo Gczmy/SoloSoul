@@ -63,5 +63,9 @@ sha2 = "0.10"
 # 这里声明为直接依赖以避免实现上的版本差异)
 rand = "0.8"
 
+# 国际化（fluent-rs）
+fluent-bundle = "0.15"
+unic-langid = "0.9"
+
 [dev-dependencies]
 tempfile = "3.14.0"
