@@ -159,10 +159,6 @@ template-hint = ↑↓ 移动 · Enter 查看详情 · D 删除用户模板 · E
 template-field-count = 字段数
 doctor-source = 来源：{$source}
 profile-hint = Esc 返回 · /profile set <路径> <值> 编辑字段
-size-title = 账户统计
-hint-up-down-enter-esc = ↑/↓ 选择 · Enter 打开 · /back 返回
-hint-esc-or-back = 按 Esc 或输入 /back 返回
-hint-esc-back = Esc 返回
 
 ### Attachment
 attachment-list-title = 附件列表 - {$id}
@@ -500,7 +496,6 @@ sync-peers-hint-p1 = 要与某 peer 同步，请先
 sync-peers-hint-p2 = 再通过 GUI 启用持续同步。
 
 ### OCR
-ocr-no-text = （未识别到文本）
 ocr-tiers = 模型档位
 ocr-recognized-text = 识别文本
 ocr-hint-prefix = 提示

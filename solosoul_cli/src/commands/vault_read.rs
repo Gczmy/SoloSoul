@@ -149,7 +149,7 @@ mod tests {
         let (mut app, _id, _dir) = unlocked_app();
         list(&mut app, None).unwrap();
         match &app.phase {
-            AppPhase::ObjectList { title, items } => {
+            AppPhase::ObjectList { title: _, items } => {
                 assert!(items.is_empty());
             }
             _ => panic!("expected ObjectList"),

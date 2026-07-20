@@ -159,10 +159,6 @@ template-hint = ↑↓ Navigate · Enter View · D Delete User Template · Esc B
 template-field-count = Fields
 doctor-source = Source: {$source}
 profile-hint = Esc Back · /profile set <path> <value> to edit
-size-title = Account Statistics
-hint-up-down-enter-esc = ↑/↓ Select · Enter Open · /back Back
-hint-esc-or-back = Press Esc or enter /back to return
-hint-esc-back = Esc Back
 
 ### Attachment
 attachment-list-title = Attachments - {$id}
@@ -500,7 +496,6 @@ sync-peers-hint-p1 = To sync with a peer, first run
 sync-peers-hint-p2 =  then enable continuous sync via the GUI.
 
 ### OCR
-ocr-no-text = (No text recognized)
 ocr-tiers = Model Tiers
 ocr-recognized-text = Recognized Text
 ocr-hint-prefix = Tip
