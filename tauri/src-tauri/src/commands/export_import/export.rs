@@ -31,10 +31,12 @@ pub async fn export_get_scope_tree(
         std::collections::HashMap::new();
 
     for obj in objects {
-        let group_key = if obj.collection_type == "page" {
-            // Page definition object — group under its own ID so it merges with children
-            obj.id.clone()
-        } else if !obj.section_type.is_empty() && custom_page_ids.contains(&obj.section_type) {
+        // Skip page-defining objects — they are already represented as section headers
+        // and should not appear as duplicate items inside their own page section.
+        if obj.collection_type == "page" {
+            continue;
+        }
+        let group_key = if !obj.section_type.is_empty() && custom_page_ids.contains(&obj.section_type) {
             // Object belongs to a custom page — use page ID as group key
             obj.section_type.clone()
         } else if !obj.section_type.is_empty() {
@@ -85,15 +87,14 @@ pub async fn export_get_scope_tree(
 
     // 2. Custom page groups in order they appear from list_objects
     for page_id in &custom_page_order {
-        if let Some(objs) = groups.remove(page_id.as_str()) {
-            let page_name = &custom_pages[page_id].0;
-            result.push(PageGroup {
-                section_type: page_id.clone(),
-                page_name: page_name.clone(),
-                object_count: objs.len(),
-                objects: objs,
-            });
-        }
+        let (page_name, _icon) = &custom_pages[page_id];
+        let objs = groups.remove(page_id.as_str()).unwrap_or_default();
+        result.push(PageGroup {
+            section_type: page_id.clone(),
+            page_name: page_name.clone(),
+            object_count: objs.len(),
+            objects: objs,
+        });
     }
 
     // 3. Any remaining groups (uncategorized, etc.)
