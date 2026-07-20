@@ -33,6 +33,8 @@ export interface AppSettings {
   autoLockNotificationEnabled: boolean;
   /** 备份提醒周期（天），≤0 表示关闭 */
   backupReminderDays: number;
+  /** 上次备份提醒的时间戳（毫秒），null 表示从未提醒过 */
+  lastBackupReminderAt: number | null;
   biometricEnabled: boolean;
   confirmDelete: boolean;
   customPages: CustomPage[];
@@ -100,6 +102,7 @@ const accountPrefsSchema = z
     autoLockTimeoutMinutes: z.number().optional(),
     autoLockNotificationEnabled: z.boolean().optional(),
     backupReminderDays: z.number().optional(),
+    lastBackupReminderAt: z.number().nullable().optional(),
     biometricEnabled: z.boolean().optional(),
     confirmDelete: z.boolean().optional(),
     sidebarPosition: z.enum(['left', 'right', 'top', 'bottom']).optional(),
@@ -121,6 +124,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   autoLockTimeoutMinutes: 5,
   autoLockNotificationEnabled: false,
   backupReminderDays: 7,
+  lastBackupReminderAt: null,
   biometricEnabled: false,
   confirmDelete: true,
   customPages: [],
@@ -248,6 +252,8 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         parsed.autoLockNotificationEnabled = prefs.autoLockNotificationEnabled;
       if (typeof prefs.backupReminderDays === 'number')
         parsed.backupReminderDays = prefs.backupReminderDays;
+      if (typeof (prefs as Record<string, unknown>).lastBackupReminderAt === 'number')
+        parsed.lastBackupReminderAt = (prefs as Record<string, unknown>).lastBackupReminderAt as number;
       if (prefs.trashRetention) parsed.trashRetention = prefs.trashRetention;
       if (typeof prefs.biometricEnabled === 'boolean')
         parsed.biometricEnabled = prefs.biometricEnabled;
@@ -475,6 +481,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         autoLockTimeoutMinutes: state.settings.autoLockTimeoutMinutes,
         autoLockNotificationEnabled: state.settings.autoLockNotificationEnabled,
         backupReminderDays: state.settings.backupReminderDays,
+        lastBackupReminderAt: state.settings.lastBackupReminderAt,
         defaultLightTheme: state.settings.defaultLightTheme,
         defaultDarkTheme: state.settings.defaultDarkTheme,
         sidebarPosition: state.settings.sidebarPosition,

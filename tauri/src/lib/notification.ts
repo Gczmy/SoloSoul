@@ -133,8 +133,16 @@ interface BackupInfo {
  */
 export async function checkBackupReminder(): Promise<void> {
   try {
-    const days = useSettingsStore.getState().settings.backupReminderDays;
+    const store = useSettingsStore.getState();
+    const { backupReminderDays: days, lastBackupReminderAt } = store.settings;
     if (days <= 0) return;
+
+    // 方案 A: 记录最后提醒时间，间隔 = backupReminderDays 天
+    // 如果上次提醒距今不足 days 天，则跳过本次提醒
+    const reminderIntervalMs = days * 24 * 60 * 60 * 1000;
+    if (lastBackupReminderAt !== null && Date.now() - lastBackupReminderAt < reminderIntervalMs) {
+      return;
+    }
 
     const backups = await invoke<BackupInfo[]>('backup_list');
     let needsBackup = backups.length === 0;
@@ -174,6 +182,11 @@ export async function checkBackupReminder(): Promise<void> {
           },
         },
       });
+
+      // 记录本次提醒时间（内存），避免下次解锁重复提醒
+      useSettingsStore.setState((s) => ({
+        settings: { ...s.settings, lastBackupReminderAt: Date.now() },
+      }));
     }
   } catch (err) {
     console.error('[notification] Backup reminder check failed:', err);

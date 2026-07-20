@@ -48,6 +48,7 @@ describe('settingsStore', () => {
         autoLockTimeoutMinutes: 5,
         autoLockNotificationEnabled: false,
         backupReminderDays: 7,
+        lastBackupReminderAt: null,
         biometricEnabled: false,
         confirmDelete: true,
         customPages: [],
