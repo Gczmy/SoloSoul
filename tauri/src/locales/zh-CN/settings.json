@@ -172,6 +172,8 @@
   "backup_reminder_title": "SoloSoul",
   "backup_reminder_body": "您已经有一段时间没有备份数据了。请前往「设置 > 备份与恢复」创建最新备份。",
   "backup_now": "去备份",
+  "backup_created": "备份「{{name}}」已创建（{{size}}）",
+  "restored_from_backup": "已从备份恢复 {{count}} 个对象",
   "backup_name_placeholder": "备份名称（例如：更新前）",
   "create": "创建",
   "no_backups_yet": "暂无备份",

@@ -57,7 +57,7 @@ export function BackupConfigPage() {
     setIsCreating(true);
     try {
       const result = await invoke<BackupInfo>('backup_create', { name: backupName.trim() });
-      onSuccess(`Backup "${result.name}" created (${formatBytes(result.size_bytes)})`);
+      onSuccess(t('settings:backup_created', { name: result.name, size: formatBytes(result.size_bytes) }));
       setBackupName('');
       loadBackups();
     } catch (e) {
@@ -71,7 +71,7 @@ export function BackupConfigPage() {
     setRestoringId(id);
     try {
       const count = await invoke<number>('backup_restore', { backupId: id });
-      onSuccess(`Restored ${count} object(s) from backup`);
+      onSuccess(t('settings:restored_from_backup', { count }));
       loadBackups();
     } catch (e) {
       onError(e, t('common:restore_failed'));

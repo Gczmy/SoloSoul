@@ -172,6 +172,8 @@
   "backup_reminder_title": "SoloSoul",
   "backup_reminder_body": "It has been a while since your last backup. Please go to Settings > Backup & Restore to create one.",
   "backup_now": "Back Up Now",
+  "backup_created": "Backup \"{{name}}\" created ({{size}})",
+  "restored_from_backup": "Restored {{count}} object(s) from backup",
   "backup_name_placeholder": "Backup name (e.g., before-update)",
   "create": "Create",
   "no_backups_yet": "No backups yet",
