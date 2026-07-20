@@ -582,4 +582,43 @@ status-settings-preference = Settings · Custom Preferences
 status-quit = Exiting
 status-lock-held = [L] Process lock held · GUI unavailable
 status-lock-not-exclusive = [!] Not exclusive
-\n### Commands Phase 3\ncmd-attachment-usage = Usage: /attach list [object_id] | add <file_path> | rename <id> <new_name> | delete <id> | restore <id> | purge <id> | cleanup\ncmd-provide-file-path = Please provide a file path, e.g. /attach add /path/to/file.pdf\ncmd-provide-attachment-id-example = Please provide an attachment ID, e.g. /attach rename att_xxx new.pdf\ncmd-prompt-soft-delete-attachment = Soft delete attachment '{$id}'? Can be restored from trash.\ncmd-prompt-purge-attachment = Permanently delete attachment '{$id}'? This cannot be undone.\ncmd-cleanup-result = Cleanup complete: removed {$count} orphan attachments, freed {$bytes} bytes\ncmd-prompt-restore-backup = Confirm restore backup '{$id}'?\nCreated: {$date}\nContains {$count} profile(s).\nProfiles with the same name in the current Vault will be overwritten.\ncmd-prompt-delete-backup = Confirm delete backup '{$id}'?\nThis cannot be undone.\ncmd-llm-current-model = Current model: {$name} - {$model}\nProvider: {$url}\nAPI type: {$api_type}\ncmd-template-load-failed = Failed to load system templates: {$err}\ncmd-language-set = Language set to: {$code}\ncmd-theme-set = Theme set to: {$name}\ncmd-preference-value-label = Preference value (key={$key}, JSON will be parsed, otherwise saved as string)\ncmd-debug-log-exported = Debug log exported to: {$path}\ncmd-ocr-no-models = Model directory: {$path}\nNo models installed. Please install from GUI or download to this directory.\ncmd-ocr-models-status = Model directory: {$path}\nInstalled: {$installed}\ncmd-ocr-status-title = OCR Status ({$path} directory)\ncmd-extra-file-arg = Extra file argument\ncmd-export-need-scope = Please specify one of: --full, --pages, or --objects\ncmd-import-need-strategy-value = --strategy requires a strategy value\ncmd-export-password-complexity = Export password must contain both letters and digits\ncmd-account-not-found-generic = Current account not found\ncmd-export-password-same-as-master = Export password cannot be the same as the master password\ncmd-verify-master-failed = Failed to verify master password: {$err}\n
+
+
+### Commands Phase 3
+cmd-attachment-usage = Usage: /attach list [object_id] | add <file_path> | rename <id> <new_name> | delete <id> | restore <id> | purge <id> | cleanup
+cmd-provide-file-path = Please provide a file path, e.g. /attach add /path/to/file.pdf
+cmd-provide-attachment-id-example = Please provide an attachment ID, e.g. /attach rename att_xxx new.pdf
+cmd-prompt-soft-delete-attachment = Soft delete attachment '{$id}'? Can be restored from trash.
+cmd-prompt-purge-attachment = Permanently delete attachment '{$id}'? This cannot be undone.
+cmd-cleanup-result = Cleanup complete: removed {$count} orphan attachments, freed {$bytes} bytes
+cmd-prompt-restore-backup =
+ Confirm restore backup '{$id}'?
+ Created: {$date}
+ Contains {$count} profile(s).
+ Profiles with the same name in the current Vault will be overwritten.
+cmd-prompt-delete-backup =
+ Confirm delete backup '{$id}'?
+ This cannot be undone.
+cmd-llm-current-model =
+ Current model: {$name} - {$model}
+ Provider: {$url}
+ API type: {$api_type}
+cmd-template-load-failed = Failed to load system templates: {$err}
+cmd-language-set = Language set to: {$code}
+cmd-theme-set = Theme set to: {$name}
+cmd-preference-value-label = Preference value (key={$key}, JSON will be parsed, otherwise saved as string)
+cmd-debug-log-exported = Debug log exported to: {$path}
+cmd-ocr-no-models =
+ Model directory: {$path}
+ No models installed. Please install from GUI or download to this directory.
+cmd-ocr-models-status =
+ Model directory: {$path}
+ Installed: {$installed}
+cmd-ocr-status-title = OCR Status ({$path} directory)
+cmd-extra-file-arg = Extra file argument
+cmd-export-need-scope = Please specify one of: --full, --pages, or --objects
+cmd-import-need-strategy-value = --strategy requires a strategy value
+cmd-export-password-complexity = Export password must contain both letters and digits
+cmd-account-not-found-generic = Current account not found
+cmd-export-password-same-as-master = Export password cannot be the same as the master password
+cmd-verify-master-failed = Failed to verify master password: {$err}

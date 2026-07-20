@@ -582,4 +582,43 @@ status-settings-preference = 设置 · 自定义偏好
 status-quit = 退出中
 status-lock-held = [L] 进程锁已持有 · GUI 不可用
 status-lock-not-exclusive = [!] 未独占
-\n### Commands Phase 3\ncmd-attachment-usage = 用法: /attach list [object_id] | add <file_path> | rename <id> <new_name> | delete <id> | restore <id> | purge <id> | cleanup\ncmd-provide-file-path = 请提供文件路径，例如 /attach add /path/to/file.pdf\ncmd-provide-attachment-id-example = 请提供附件 ID，例如 /attach rename att_xxx new.pdf\ncmd-prompt-soft-delete-attachment = 软删除附件 '{$id}'？可在回收站恢复。\ncmd-prompt-purge-attachment = 彻底删除附件 '{$id}'？此操作不可恢复。\ncmd-cleanup-result = 清理完成：移除 {$count} 个孤立附件，释放 {$bytes} 字节\ncmd-prompt-restore-backup = 确认恢复备份 '{$id}'？\n创建时间: {$date}\n包含 {$count} 个 Profile。\n当前 Vault 中的同名 Profile 将被覆盖。\ncmd-prompt-delete-backup = 确认删除备份 '{$id}'？\n此操作不可恢复。\ncmd-llm-current-model = 当前模型: {$name} - {$model}\n提供商: {$url}\nAPI 类型: {$api_type}\ncmd-template-load-failed = 加载系统模板失败: {$err}\ncmd-language-set = 语言已设置为: {$code}\ncmd-theme-set = 主题已设置为: {$name}\ncmd-preference-value-label = 偏好值（键={$key}，JSON 会被尝试解析，否则按字符串保存）\ncmd-debug-log-exported = 诊断包已导出至: {$path}\ncmd-ocr-no-models = 模型目录: {$path}\n未安装任何档位。请从 GUI 安装或下载到该目录。\ncmd-ocr-models-status = 模型目录: {$path}\n已安装: {$installed}\ncmd-ocr-status-title = OCR Status（{$path} 目录）\ncmd-extra-file-arg = 多余的文件参数\ncmd-export-need-scope = 请指定 --full、--pages 或 --objects 之一\ncmd-import-need-strategy-value = --strategy 后需要策略值\ncmd-export-password-complexity = 导出密码必须同时包含字母和数字\ncmd-account-not-found-generic = 未找到当前账户\ncmd-export-password-same-as-master = 导出密码不能与主密码相同\ncmd-verify-master-failed = 校验主密码失败: {$err}\n
+
+
+### Commands Phase 3
+cmd-attachment-usage = 用法: /attach list [object_id] | add <file_path> | rename <id> <new_name> | delete <id> | restore <id> | purge <id> | cleanup
+cmd-provide-file-path = 请提供文件路径，例如 /attach add /path/to/file.pdf
+cmd-provide-attachment-id-example = 请提供附件 ID，例如 /attach rename att_xxx new.pdf
+cmd-prompt-soft-delete-attachment = 软删除附件 '{$id}'？可在回收站恢复。
+cmd-prompt-purge-attachment = 彻底删除附件 '{$id}'？此操作不可恢复。
+cmd-cleanup-result = 清理完成：移除 {$count} 个孤立附件，释放 {$bytes} 字节
+cmd-prompt-restore-backup =
+ 确认恢复备份 '{$id}'？
+ 创建时间: {$date}
+ 包含 {$count} 个 Profile。
+ 当前 Vault 中的同名 Profile 将被覆盖。
+cmd-prompt-delete-backup =
+ 确认删除备份 '{$id}'？
+ 此操作不可恢复。
+cmd-llm-current-model =
+ 当前模型: {$name} - {$model}
+ 提供商: {$url}
+ API 类型: {$api_type}
+cmd-template-load-failed = 加载系统模板失败: {$err}
+cmd-language-set = 语言已设置为: {$code}
+cmd-theme-set = 主题已设置为: {$name}
+cmd-preference-value-label = 偏好值（键={$key}，JSON 会被尝试解析，否则按字符串保存）
+cmd-debug-log-exported = 诊断包已导出至: {$path}
+cmd-ocr-no-models =
+ 模型目录: {$path}
+ 未安装任何档位。请从 GUI 安装或下载到该目录。
+cmd-ocr-models-status =
+ 模型目录: {$path}
+ 已安装: {$installed}
+cmd-ocr-status-title = OCR Status（{$path} 目录）
+cmd-extra-file-arg = 多余的文件参数
+cmd-export-need-scope = 请指定 --full、--pages 或 --objects 之一
+cmd-import-need-strategy-value = --strategy 后需要策略值
+cmd-export-password-complexity = 导出密码必须同时包含字母和数字
+cmd-account-not-found-generic = 未找到当前账户
+cmd-export-password-same-as-master = 导出密码不能与主密码相同
+cmd-verify-master-failed = 校验主密码失败: {$err}
