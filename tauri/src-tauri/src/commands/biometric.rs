@@ -134,11 +134,31 @@ pub async fn biometric_check_availability(
         manager.is_configured(&account_id)
     };
 
+    // Android: 如果强生物识别不可用，检查弱生物识别（Class 2 人脸）
+    #[cfg(target_os = "android")]
+    let (weak_available, fallback_type) = if !status.is_available {
+        use crate::keystore_plugin::KeystorePluginHandle;
+        use tauri::Manager;
+        let keystore = app.state::<KeystorePluginHandle<tauri::Wry>>();
+        let info = keystore.check_biometric_availability().ok();
+        let wa = info.as_ref().map(|i| i.weak_available).unwrap_or(false);
+        (wa, wa.then(|| "faceId".to_string()))
+    } else {
+        (false, None)
+    };
+
+    #[cfg(not(target_os = "android"))]
+    let (weak_available, fallback_type) = (false, None);
+
+    // 如果弱生物识别可用但未检测到强生物识别，使用 faceId 类型
+    let effective_type = biometry_type.or(fallback_type);
+
     Ok(BiometricAvailability {
-        available: status.is_available,
+        available: status.is_available || weak_available,
         configured,
-        biometry_type,
+        biometry_type: effective_type,
         error: status.error,
+        weak_available,
     })
 }
 

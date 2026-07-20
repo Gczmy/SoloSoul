@@ -43,6 +43,8 @@ pub struct BiometricAvailability {
     pub configured: bool,
     pub biometry_type: Option<String>,
     pub error: Option<String>,
+    #[serde(default)]
+    pub weak_available: bool,
 }
 
 /// 生物识别存储层返回的错误。
@@ -243,6 +245,7 @@ impl BiometricManager {
             configured,
             biometry_type: bt,
             error: err,
+            weak_available: false,
         }
     }
 
@@ -693,6 +696,7 @@ mod tests {
             configured: false,
             biometry_type: Some("touchId".to_string()),
             error: None,
+            weak_available: false,
         };
         let json = serde_json::to_string(&original).unwrap();
         assert!(json.contains("touchId"));

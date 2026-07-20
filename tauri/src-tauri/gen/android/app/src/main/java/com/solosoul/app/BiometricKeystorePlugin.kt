@@ -7,6 +7,7 @@ import android.os.Looper
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyPermanentlyInvalidatedException
 import android.security.keystore.KeyProperties
+import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
@@ -174,6 +175,43 @@ class BiometricKeystorePlugin(private val activity: Activity): Plugin(activity) 
         }
     }
 
+    @Command
+    fun checkBiometricAvailability(invoke: Invoke) {
+        try {
+            val result = JSObject()
+            var strongAvailable = false
+            var weakAvailable = false
+
+            val bm = BiometricManager.from(activity)
+            if (bm != null) {
+                // 检查强生物识别（Class 3：指纹、IR 人脸等）
+                try {
+                    val strongResult = bm.canAuthenticate(
+                        BiometricManager.Authenticators.BIOMETRIC_STRONG
+                    )
+                    strongAvailable = strongResult == BiometricManager.BIOMETRIC_SUCCESS
+                } catch (_: Exception) {}
+
+                // 如果强生物识别不可用，检查弱生物识别（Class 2：前置摄像头人脸）
+                if (!strongAvailable) {
+                    try {
+                        val weakResult = bm.canAuthenticate(
+                            BiometricManager.Authenticators.BIOMETRIC_WEAK
+                        )
+                        weakAvailable = weakResult == BiometricManager.BIOMETRIC_SUCCESS
+                    } catch (_: Exception) {}
+                }
+            }
+
+            result.put("strongAvailable", strongAvailable)
+            result.put("weakAvailable", weakAvailable)
+            invoke.resolve(result)
+        } catch (e: Exception) {
+            android.util.Log.e("SoloSoul", "checkBiometricAvailability failed: ${e.message}", e)
+            invoke.reject("checkBiometricAvailability failed: ${e.message}")
+        }
+    }
+
     private fun showBiometricPrompt(
         cipher: Cipher,
         title: String,
@@ -196,8 +234,11 @@ class BiometricKeystorePlugin(private val activity: Activity): Plugin(activity) 
                 .setTitle(title)
                 .setSubtitle(subtitle)
                 .setNegativeButtonText(cancelTitle)
-                .setConfirmationRequired(false)
-                .setAllowedAuthenticators(0x0F) /* Authenticators.BIOMETRIC_STRONG */
+                .setConfirmationRequired(true)
+                .setAllowedAuthenticators(
+                    BiometricManager.Authenticators.BIOMETRIC_STRONG or
+                    BiometricManager.Authenticators.BIOMETRIC_WEAK
+                )
                 .build()
 
             val prompt = BiometricPrompt(

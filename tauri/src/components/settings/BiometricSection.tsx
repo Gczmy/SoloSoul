@@ -25,6 +25,7 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
   const [bioAvailable, setBioAvailable] = useState<{
     available: boolean;
     biometryType?: string;
+    weakAvailable?: boolean;
   } | null>(null);
   const [bioLoading, setBioLoading] = useState(false);
   const [showBioPwDialog, setShowBioPwDialog] = useState(false);
@@ -37,9 +38,10 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
   const passwordHint = currentAccount?.passwordHint || null;
 
   useEffect(() => {
-    invoke<{ available: boolean; biometryType?: string }>('biometric_check_availability', {
-      accountId,
-    })
+    invoke<{ available: boolean; biometryType?: string; weakAvailable?: boolean }>(
+      'biometric_check_availability',
+      { accountId },
+    )
       .then(setBioAvailable)
       .catch(() => setBioAvailable({ available: false }));
   }, [accountId]);
@@ -149,6 +151,33 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
           </div>
         ) : (
           <>
+            {/* 弱生物识别警告 */}
+            {bioAvailable.weakAvailable && (
+              <div
+                style={{
+                  padding: '8px 12px',
+                  borderRadius: 8,
+                  marginBottom: 12,
+                  background: 'rgba(212, 133, 10, 0.10)',
+                  border: '1px solid rgba(212, 133, 10, 0.25)',
+                  fontSize: 'var(--text-caption)',
+                  color: '#D4850A',
+                  lineHeight: 1.5,
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: 8,
+                }}
+              >
+                <span style={{ flexShrink: 0 }}>⚠️</span>
+                <span>
+                  {t('settings:biometric_weak_warning', {
+                    type: biometryType,
+                    defaultValue:
+                      'This uses weak biometric (Class 2) which is less secure. Only enable if you understand the risks.',
+                  })}
+                </span>
+              </div>
+            )}
             <p
               style={{
                 fontSize: 'var(--text-body-sm)',

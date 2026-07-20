@@ -29,6 +29,14 @@ pub struct KeystoreCiphertext {
     pub ciphertext: String,
 }
 
+/// Android 生物识别可用性信息。
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AvailabilityInfo {
+    pub strong_available: bool,
+    pub weak_available: bool,
+}
+
 /// 生物识别提示信息。
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -130,6 +138,30 @@ impl<R: Runtime> KeystorePluginHandle<R> {
         {
             let _ = (alias, iv, ciphertext, prompt);
             Err("Keystore storage is only supported on Android".to_string())
+        }
+    }
+
+    /// 检查 Android 设备的生物识别可用性（强 + 弱）。
+    pub fn check_biometric_availability(&self) -> Result<AvailabilityInfo, String> {
+        #[cfg(target_os = "android")]
+        {
+            self.handle
+                .run_mobile_plugin::<serde_json::Value>(
+                    "checkBiometricAvailability",
+                    serde_json::json!({}),
+                )
+                .map_err(|e| e.to_string())
+                .and_then(|v| {
+                    serde_json::from_value::<AvailabilityInfo>(v)
+                        .map_err(|e| format!("parse: {e}"))
+                })
+        }
+        #[cfg(not(target_os = "android"))]
+        {
+            Ok(AvailabilityInfo {
+                strong_available: false,
+                weak_available: false,
+            })
         }
     }
 
