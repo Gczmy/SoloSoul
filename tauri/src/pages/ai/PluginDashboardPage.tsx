@@ -385,12 +385,10 @@ export function PluginDashboardPage() {
   );
 }
 
-/** 将 RFC3339 时间戳拆为「日期 + 时间」两行：去掉时区后缀，秒小数位截断为 3 位。 */
+/** 将 RFC3339 时间戳拆为「日期 + 时间」两行：去掉时区后缀，时间精确到秒。 */
 function formatAuditTimestamp(iso: string): { date: string; time: string } {
   const [date, rest = ''] = iso.split('T');
-  const time = rest
-    .replace(/(Z|[+-]\d{2}:?\d{2})$/, '')
-    .replace(/\.(\d{3})\d*$/, '.$1');
+  const time = rest.replace(/(Z|[+-]\d{2}:?\d{2})$/, '').replace(/\.\d+$/, '');
   return { date, time };
 }
 
