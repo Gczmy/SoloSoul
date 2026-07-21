@@ -13,11 +13,18 @@
   color: var(--text-primary);
   font-family: inherit;
   cursor: pointer;
-  text-align: left;
+  /* 日期居中显示；datetime 文本（yyyy-MM-dd HH:mm）禁止换行 */
+  text-align: center;
+  white-space: nowrap;
   outline: none;
   transition:
     border-color 0.2s,
     box-shadow 0.2s;
+}
+
+/* 有清除按钮时为其预留空间，避免已选日期末尾数字被 X 按钮遮盖 */
+.triggerHasClear {
+  padding-right: 40px;
 }
 
 @media (hover: hover) and (pointer: fine) {
@@ -203,6 +210,20 @@
 
 .timeInput:focus {
   border-color: var(--accent-primary);
+}
+
+/* 移动端：抵消 global.css 对所有 button 强制 44×44 的规则——
+   7 列日期格被撑大后会溢出弹层卡片（最右列数字被裁切）；
+   清除按钮也会被放大，需给 trigger 预留更多右侧空间 */
+@media (max-width: 767px) {
+  .day {
+    min-width: 0;
+    min-height: 0;
+  }
+
+  .triggerHasClear {
+    padding-right: 56px;
+  }
 }
 
 .timeSeparator {

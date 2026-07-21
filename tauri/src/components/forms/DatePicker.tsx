@@ -146,7 +146,11 @@ export function DatePicker({
     <div className={styles.datePicker} ref={containerRef}>
       <button
         type="button"
-        className={styles.trigger}
+        className={
+          selectedDate && !disabled
+            ? `${styles.trigger} ${styles.triggerHasClear}`
+            : styles.trigger
+        }
         onClick={() => !disabled && setOpen((v) => !v)}
         disabled={disabled}
         aria-haspopup="dialog"
