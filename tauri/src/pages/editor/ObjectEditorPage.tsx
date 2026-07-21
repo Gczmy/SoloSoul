@@ -131,7 +131,10 @@ export function ObjectEditorPage() {
   const [values, setValues] = useState<Record<string, unknown>>({});
   const [isSaving, setIsSaving] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
-  const loadingObjRef = useRef(false);
+  // 记录已完成加载（无论成败）的对象 ID。替代原先 loadingObjRef + dataLoaded
+  // 双状态门控——ref 门控在真机时序下存在死锁窗口（填充 effect bail 后不再触发），
+  // 导致页面只剩对象类型一行、字段全部空白（模拟器时序快恰好绕过，故无法复现）。
+  const [loadedFor, setLoadedFor] = useState<string | null>(null);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   const fields = objectTemplates[selectedType] || [];
@@ -157,37 +160,31 @@ export function ObjectEditorPage() {
 
   // Load existing object and populate form
   useEffect(() => {
-    if (!isNew && objectId && accountId) {
-      // Reset form state before fetching so stale store data doesn't get locked in
-      loadingObjRef.current = true;
-      setDataLoaded(false);
-      setName('');
-      setValues({});
-      getObject(accountId, objectId)
-        .then(() => {
-          // 异步获取完成后重置 dataLoaded，使主 effect 能从最新数据重新填充字段。
-          // 解决缓存数据（stale cache）在主 effect 运行后才到的问题。
-          setDataLoaded(false);
-        })
-        .catch((e) => onError(e, t('common:object_load_failed')))
-        .finally(() => {
-          loadingObjRef.current = false;
-        });
-    }
+    if (isNew || !objectId || !accountId) return;
+    let cancelled = false;
+    // 重置表单状态，避免旧对象的缓存数据被锁定进表单
+    setDataLoaded(false);
+    setLoadedFor(null);
+    setName('');
+    setValues({});
+    getObject(accountId, objectId)
+      .catch((e) => onError(e, t('common:object_load_failed')))
+      .finally(() => {
+        // 无论成败都标记加载结束：失败已有 toast，表单照常渲染，避免空白页
+        if (!cancelled) setLoadedFor(objectId);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [objectId, accountId, getObject, isNew, onError, t]);
 
   // When currentObject loads (for editing), populate the form
-  // Guard: skip if a fresh fetch is in-flight (prevents stale cache data from
-  // populating the form before the most recent getObject resolves).
+  // Guard: 仅当本次加载已结束（loadedFor === objectId）且缓存对象就是当前对象时才填充，
+  // 避免 getObject 解析前用旧缓存（stale cache）提前填充。
   // Template matching re-runs when objectTemplates async-finish loading
   // (fixes "空白内容" bug where templates loaded after dataLoaded was set).
   useEffect(() => {
-    if (
-      isNew ||
-      !currentObject ||
-      currentObject.id !== objectId ||
-      loadingObjRef.current
-    )
+    if (isNew || loadedFor !== objectId || !currentObject || currentObject.id !== objectId)
       return;
 
     // Populate property values (only on first load, not on template re-match)
@@ -264,6 +261,7 @@ export function ObjectEditorPage() {
     isNew,
     dataLoaded,
     objectId,
+    loadedFor,
     objectTemplates,
     templateMeta,
     currentObjectCache,
@@ -474,7 +472,7 @@ export function ObjectEditorPage() {
           sectionParam={sectionParam}
         />
 
-        {!isNew && !dataLoaded
+        {!isNew && loadedFor !== objectId
           ? null
           : (selectedType || !isNew) && (
               <>
