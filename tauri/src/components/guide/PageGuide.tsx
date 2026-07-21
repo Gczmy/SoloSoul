@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { AnimatePresence, motion } from 'framer-motion';
 import { CircleHelp, X, ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/constants';
 import type { LucideIcon } from 'lucide-react';
@@ -33,9 +32,9 @@ interface PageGuideProps {
 /**
  * PageGuide — 多页面分步指南组件。
  *
- * 渲染一个「圆圈问号图标 + 文本」触发器按钮（无背景色、外边框 outline、悬停强调色），
- * 点击后弹出多页指南卡片，每页包含：步骤列表 + 相关帮助文档跳转卡片。
- * 支持上/下一页导航、页面指示圆点、移动端左右滑动手势翻页 + 页面切换动画。
+ * 渲染一个「圆圈问号图标 + 文本」触发器按钮，点击后弹出多页指南卡片，
+ * 每页包含：步骤列表 + 相关帮助文档跳转卡片。
+ * 支持上/下一页导航、页面指示小圆点、移动端左右滑动手势翻页（实时跟手滑动）。
  */
 export function PageGuide({ pages, label }: PageGuideProps) {
   const { t } = useTranslation('common');
@@ -43,13 +42,17 @@ export function PageGuide({ pages, label }: PageGuideProps) {
   const [open, setOpen] = useState(false);
   const [hovered, setHovered] = useState(false);
   const [pageIndex, setPageIndex] = useState(0);
+  const [isSnapping, setIsSnapping] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
-  const contentRef = useRef<HTMLDivElement>(null);
+  const stripRef = useRef<HTMLDivElement>(null);
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
-  // Tracks animation direction: 1 = forward (right), -1 = backward (left)
-  const direction = useRef(1);
+  const containerWidth = useRef(0);
+  // 以下 ref 用于拖拽期间的高频更新（不触发 React 重渲染）
+  const dragOffsetRef = useRef(0);
+  const isDraggingRef = useRef(false);
+  const pageIndexRef = useRef(0);
 
   // 每次打开时重置到第一页
   useEffect(() => {
@@ -98,8 +101,17 @@ export function PageGuide({ pages, label }: PageGuideProps) {
     (index: number) => {
       if (index < 0 || index >= pages.length) return;
       if (index === pageIndex) return;
-      direction.current = index > pageIndex ? 1 : -1;
+      isDraggingRef.current = false;
+      dragOffsetRef.current = 0;
+      pageIndexRef.current = index;
+      setIsSnapping(true);
       setPageIndex(index);
+      // 立即设置 strip 到目标位置（带过渡动画），确保浏览器在此帧内开始动画
+      if (stripRef.current) {
+        stripRef.current.style.transition = 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+        stripRef.current.style.transform = `translateX(-${index * 100}%)`;
+      }
+      setTimeout(() => setIsSnapping(false), 350);
     },
     [pageIndex, pages.length],
   );
@@ -112,31 +124,56 @@ export function PageGuide({ pages, label }: PageGuideProps) {
     if (!isLast) goTo(pageIndex + 1);
   }, [isLast, goTo, pageIndex]);
 
-  // Touch swipe handlers
+  // 触摸滑动手势（使用 ref 避免高频重渲染）
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
     touchStartY.current = e.touches[0].clientY;
+    containerWidth.current = (e.currentTarget as HTMLElement).offsetWidth;
+    isDraggingRef.current = true;
+    dragOffsetRef.current = 0;
+    pageIndexRef.current = pageIndex;
+    setIsSnapping(false); // 快速连续滑动时立即打断上一次快照动画
+  }, [pageIndex]);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!isDraggingRef.current) return;
+    const dx = e.touches[0].clientX - touchStartX.current;
+    const dy = e.touches[0].clientY - touchStartY.current;
+    dragOffsetRef.current = dx;
+    if (stripRef.current && Math.abs(dx) > Math.abs(dy)) {
+      // 直接操作 DOM，不触发 React 重渲染
+      stripRef.current.style.transition = 'none';
+      stripRef.current.style.transform = `translateX(calc(-${pageIndexRef.current * 100}% + ${dx}px))`;
+    }
   }, []);
 
   const handleTouchEnd = useCallback(
     (e: React.TouchEvent) => {
+      isDraggingRef.current = false;
       const dx = e.changedTouches[0].clientX - touchStartX.current;
       const dy = e.changedTouches[0].clientY - touchStartY.current;
-      const threshold = 50;
+      const threshold = Math.min(50, containerWidth.current * 0.15);
 
-      // Only trigger swipe if horizontal distance exceeds threshold
-      // and horizontal movement is greater than vertical (prevent scroll interference)
-      if (Math.abs(dx) > threshold && Math.abs(dx) > Math.abs(dy)) {
-        if (dx > 0) {
-          // Swipe right → prev page
-          if (!isFirst) goTo(pageIndex - 1);
-        } else {
-          // Swipe left → next page
-          if (!isLast) goTo(pageIndex + 1);
+      if (Math.abs(dx) > threshold && Math.abs(dx) > Math.abs(dy) * 1.5) {
+        if (dx > 0 && pageIndex > 0) {
+          goTo(pageIndex - 1);
+          return;
+        }
+        if (dx < 0 && pageIndex < pages.length - 1) {
+          goTo(pageIndex + 1);
+          return;
         }
       }
+      // 未触发翻页：回弹到当前页
+      setIsSnapping(true);
+      dragOffsetRef.current = 0;
+      if (stripRef.current) {
+        stripRef.current.style.transition = 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+        stripRef.current.style.transform = `translateX(-${pageIndex * 100}%)`;
+      }
+      setTimeout(() => setIsSnapping(false), 350);
     },
-    [isFirst, isLast, goTo, pageIndex],
+    [isFirst, isLast, goTo, pageIndex, pages.length],
   );
 
   const handleHelpLinkClick = (href: string) => {
@@ -148,21 +185,9 @@ export function PageGuide({ pages, label }: PageGuideProps) {
     setOpen(false);
   };
 
-  // Animation variants for page slide transition
-  const pageVariants = {
-    enter: (dir: number) => ({
-      x: dir > 0 ? 300 : -300,
-      opacity: 0,
-    }),
-    center: {
-      x: 0,
-      opacity: 1,
-    },
-    exit: (dir: number) => ({
-      x: dir > 0 ? -300 : 300,
-      opacity: 0,
-    }),
-  };
+  // 拖拽结束后通过 state 渲染正确位置；拖拽中通过 ref 直接操作 DOM
+  const stripTransform = `translateX(-${pageIndex * 100}%)`;
+  const stripTransition = 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
 
   return (
     <>
@@ -288,7 +313,7 @@ export function PageGuide({ pages, label }: PageGuideProps) {
               </button>
             </div>
 
-            {/* 页面指示圆点 */}
+            {/* 页面指示小圆点 */}
             <div
               style={{
                 display: 'flex',
@@ -304,247 +329,264 @@ export function PageGuide({ pages, label }: PageGuideProps) {
                   key={i}
                   onClick={() => goTo(i)}
                   style={{
-                    width: i === pageIndex ? 24 : 8,
+                    width: 8,
                     height: 8,
-                    borderRadius: 4,
+                    borderRadius: '50%',
                     border: 'none',
-                    background: i === pageIndex ? 'var(--accent-primary)' : 'var(--border-subtle)',
-                    cursor: 'pointer',
-                    transition: 'all 0.25s ease',
                     padding: 0,
+                    cursor: 'pointer',
+                    background: i === pageIndex ? 'var(--accent-primary)' : 'var(--border-subtle)',
+                    boxShadow:
+                      i === pageIndex
+                        ? '0 0 0 2px var(--bg-elevated), 0 0 0 4px var(--accent-primary)'
+                        : 'none',
+                    transition: 'all 0.25s ease',
                   }}
                   title={p.title}
+                  aria-label={p.title}
                 />
               ))}
             </div>
 
-            {/* 可滑动内容区域 — 触摸翻页 + 动画 */}
+            {/* 滑动条容器 — 左右滑动实时跟手 */}
             <div
-              ref={contentRef}
               onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
               style={{
                 flex: 1,
                 minHeight: 0,
-                overflowY: 'auto',
-                overflowX: 'hidden',
+                overflow: 'hidden',
                 position: 'relative',
                 overscrollBehavior: 'contain',
               }}
             >
-              <AnimatePresence mode="wait" custom={direction.current}>
-                <motion.div
-                  key={pageIndex}
-                  custom={direction.current}
-                  variants={pageVariants}
-                  initial="enter"
-                  animate="center"
-                  exit="exit"
-                  transition={{
-                    x: { type: 'spring', stiffness: 300, damping: 30 },
-                    opacity: { duration: 0.2 },
-                  }}
-                  style={{ padding: '16px 20px 8px' }}
-                >
-                  {/* Steps */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-                    {currentPage.steps.map((step, index) => {
-                      const Icon = step.icon;
-                      const isLastStep = index === currentPage.steps.length - 1;
-                      return (
-                        <div
-                          key={index}
-                          style={{
-                            display: 'flex',
-                            gap: 14,
-                            padding: '12px 0',
-                            position: 'relative',
-                          }}
-                        >
-                          {/* 左侧：图标 + 连接线 */}
+              <div
+                ref={stripRef}
+                style={{
+                  display: 'flex',
+                  width: `${pages.length * 100}%`,
+                  height: '100%',
+                  transform: stripTransform,
+                  transition: stripTransition,
+                  willChange: 'transform',
+                }}
+              >
+                {pages.map((page, pageIdx) => (
+                  <div
+                    key={pageIdx}
+                    style={{
+                      width: `${100 / pages.length}%`,
+                      flexShrink: 0,
+                      overflowY: 'auto',
+                      overflowX: 'hidden',
+                      padding: '16px 20px 8px',
+                      boxSizing: 'border-box',
+                    }}
+                  >
+                    {/* Steps */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+                      {page.steps.map((step, stepIdx) => {
+                        const Icon = step.icon;
+                        const isLastStep = stepIdx === page.steps.length - 1;
+                        return (
                           <div
+                            key={stepIdx}
                             style={{
                               display: 'flex',
-                              flexDirection: 'column',
-                              alignItems: 'center',
-                              flexShrink: 0,
-                              width: 28,
+                              gap: 14,
+                              padding: '12px 0',
+                              position: 'relative',
                             }}
                           >
+                            {/* 左侧：图标 + 连接线 */}
                             <div
                               style={{
-                                width: 28,
-                                height: 28,
-                                borderRadius: '50%',
-                                background:
-                                  'color-mix(in srgb, var(--accent-primary) 10%, transparent)',
-                                border:
-                                  '1px solid color-mix(in srgb, var(--accent-primary) 25%, transparent)',
                                 display: 'flex',
+                                flexDirection: 'column',
                                 alignItems: 'center',
-                                justifyContent: 'center',
                                 flexShrink: 0,
-                                zIndex: 1,
+                                width: 28,
                               }}
                             >
-                              <Icon size={ICON_SIZE.sm} style={{ color: 'var(--accent-primary)' }} />
-                            </div>
-                            {!isLastStep && (
                               <div
                                 style={{
-                                  width: 1,
-                                  flex: 1,
-                                  minHeight: 16,
-                                  background: 'var(--border-subtle)',
-                                  marginTop: 4,
-                                }}
-                              />
-                            )}
-                          </div>
-
-                          {/* 右侧：内容 */}
-                          <div style={{ flex: 1, minWidth: 0, paddingTop: 2 }}>
-                            <div
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 6,
-                                marginBottom: 4,
-                              }}
-                            >
-                              <span
-                                style={{
-                                  width: 18,
-                                  height: 18,
+                                  width: 28,
+                                  height: 28,
                                   borderRadius: '50%',
-                                  background: 'var(--accent-primary)',
-                                  color: '#fff',
-                                  fontSize: 10,
-                                  fontWeight: 700,
-                                  display: 'inline-flex',
+                                  background:
+                                    'color-mix(in srgb, var(--accent-primary) 10%, transparent)',
+                                  border:
+                                    '1px solid color-mix(in srgb, var(--accent-primary) 25%, transparent)',
+                                  display: 'flex',
                                   alignItems: 'center',
                                   justifyContent: 'center',
                                   flexShrink: 0,
+                                  zIndex: 1,
                                 }}
                               >
-                                {index + 1}
-                              </span>
-                              <span
-                                style={{
-                                  fontSize: 'var(--text-card-title)',
-                                  fontWeight: 600,
-                                  color: 'var(--text-primary)',
-                                }}
-                              >
-                                {step.title}
-                              </span>
+                                <Icon
+                                  size={ICON_SIZE.sm}
+                                  style={{ color: 'var(--accent-primary)' }}
+                                />
+                              </div>
+                              {!isLastStep && (
+                                <div
+                                  style={{
+                                    width: 1,
+                                    flex: 1,
+                                    minHeight: 16,
+                                    background: 'var(--border-subtle)',
+                                    marginTop: 4,
+                                  }}
+                                />
+                              )}
                             </div>
-                            <p
-                              style={{
-                                margin: 0,
-                                fontSize: 'var(--text-body-sm)',
-                                color: 'var(--text-secondary)',
-                                lineHeight: 1.6,
-                                whiteSpace: 'pre-wrap',
-                              }}
-                            >
-                              {step.description}
-                            </p>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
 
-                  {/* 相关帮助文档卡片 */}
-                  {currentPage.helpLinks.length > 0 && (
-                    <div
-                      style={{
-                        margin: '8px 0',
-                        padding: '12px',
-                        borderRadius: 10,
-                        background: 'var(--bg-toolbar)',
-                        border: '1px solid var(--border-subtle)',
-                      }}
-                    >
+                            {/* 右侧：内容 */}
+                            <div style={{ flex: 1, minWidth: 0, paddingTop: 2 }}>
+                              <div
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 6,
+                                  marginBottom: 4,
+                                }}
+                              >
+                                <span
+                                  style={{
+                                    width: 18,
+                                    height: 18,
+                                    borderRadius: '50%',
+                                    background: 'var(--accent-primary)',
+                                    color: '#fff',
+                                    fontSize: 10,
+                                    fontWeight: 700,
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    flexShrink: 0,
+                                  }}
+                                >
+                                  {stepIdx + 1}
+                                </span>
+                                <span
+                                  style={{
+                                    fontSize: 'var(--text-card-title)',
+                                    fontWeight: 600,
+                                    color: 'var(--text-primary)',
+                                  }}
+                                >
+                                  {step.title}
+                                </span>
+                              </div>
+                              <p
+                                style={{
+                                  margin: 0,
+                                  fontSize: 'var(--text-body-sm)',
+                                  color: 'var(--text-secondary)',
+                                  lineHeight: 1.6,
+                                  whiteSpace: 'pre-wrap',
+                                }}
+                              >
+                                {step.description}
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* 相关帮助文档卡片 */}
+                    {page.helpLinks.length > 0 && (
                       <div
                         style={{
-                          fontSize: 'var(--text-badge)',
-                          fontWeight: 600,
-                          color: 'var(--text-tertiary)',
-                          marginBottom: 8,
-                          textTransform: 'uppercase',
-                          letterSpacing: '0.5px',
+                          margin: '8px 0',
+                          padding: '12px',
+                          borderRadius: 10,
+                          background: 'var(--bg-toolbar)',
+                          border: '1px solid var(--border-subtle)',
                         }}
                       >
-                        {t('related_docs') ?? '相关帮助文档'}
-                      </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                        {currentPage.helpLinks.map((link, i) => (
-                          <button
-                            key={i}
-                            onClick={() => handleHelpLinkClick(link.href)}
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 10,
-                              padding: '8px 10px',
-                              borderRadius: 8,
-                              border: '1px solid var(--border-subtle)',
-                              background: 'var(--bg-elevated)',
-                              cursor: 'pointer',
-                              textAlign: 'left',
-                              width: '100%',
-                              transition: 'all 0.15s ease',
-                              fontFamily: 'inherit',
-                            }}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                              e.currentTarget.style.background =
-                                'color-mix(in srgb, var(--accent-primary) 4%, transparent)';
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                              e.currentTarget.style.background = 'var(--bg-elevated)';
-                            }}
-                          >
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                              <div
-                                style={{
-                                  fontSize: 'var(--text-body-sm)',
-                                  fontWeight: 600,
-                                  color: 'var(--text-primary)',
-                                  marginBottom: 2,
-                                }}
-                              >
-                                {link.title}
-                              </div>
-                              <div
-                                style={{
-                                  fontSize: 'var(--text-badge)',
-                                  color: 'var(--text-tertiary)',
-                                  overflow: 'hidden',
-                                  textOverflow: 'ellipsis',
-                                  whiteSpace: 'nowrap',
-                                }}
-                              >
-                                {link.description}
-                              </div>
-                            </div>
-                            <ArrowRight
-                              size={ICON_SIZE.sm}
+                        <div
+                          style={{
+                            fontSize: 'var(--text-badge)',
+                            fontWeight: 600,
+                            color: 'var(--text-tertiary)',
+                            marginBottom: 8,
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px',
+                          }}
+                        >
+                          {t('related_docs') ?? '相关帮助文档'}
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                          {page.helpLinks.map((link, i) => (
+                            <button
+                              key={i}
+                              onClick={() => handleHelpLinkClick(link.href)}
                               style={{
-                                color: 'var(--accent-primary)',
-                                flexShrink: 0,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 10,
+                                padding: '8px 10px',
+                                borderRadius: 8,
+                                border: '1px solid var(--border-subtle)',
+                                background: 'var(--bg-elevated)',
+                                cursor: 'pointer',
+                                textAlign: 'left',
+                                width: '100%',
+                                transition: 'all 0.15s ease',
+                                fontFamily: 'inherit',
                               }}
-                            />
-                          </button>
-                        ))}
+                              onMouseEnter={(e) => {
+                                e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                                e.currentTarget.style.background =
+                                  'color-mix(in srgb, var(--accent-primary) 4%, transparent)';
+                              }}
+                              onMouseLeave={(e) => {
+                                e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                                e.currentTarget.style.background = 'var(--bg-elevated)';
+                              }}
+                            >
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <div
+                                  style={{
+                                    fontSize: 'var(--text-body-sm)',
+                                    fontWeight: 600,
+                                    color: 'var(--text-primary)',
+                                    marginBottom: 2,
+                                  }}
+                                >
+                                  {link.title}
+                                </div>
+                                <div
+                                  style={{
+                                    fontSize: 'var(--text-badge)',
+                                    color: 'var(--text-tertiary)',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    whiteSpace: 'nowrap',
+                                  }}
+                                >
+                                  {link.description}
+                                </div>
+                              </div>
+                              <ArrowRight
+                                size={ICON_SIZE.sm}
+                                style={{
+                                  color: 'var(--accent-primary)',
+                                  flexShrink: 0,
+                                }}
+                              />
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
-                </motion.div>
-              </AnimatePresence>
+                    )}
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* Footer — 导航 + 关闭 */}
