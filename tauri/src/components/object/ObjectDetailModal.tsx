@@ -27,10 +27,11 @@ import { PluginBadge } from '@/components/template/PluginBadge';
 import { HistoryViewer } from '@/components/object/HistoryViewer';
 import { AttachmentViewer } from '@/components/object/AttachmentViewer';
 import { PAGE_ICON_MAP, resolveCustomIcon } from '@/lib/pageIcons';
+import { FieldTypeIcon } from '@/components/ui/FieldTypeIcon';
 import { resolveCollectionLabel } from '@/lib/utils';
 import { COPY_FEEDBACK_DURATION_MS } from '@/lib/constants';
 import { useSettingsStore } from '@/stores/settingsStore';
-import type { TemplateProperty } from '@/types/template';
+import type { PropertyType, TemplateProperty } from '@/types/template';
 import { useDragToAttach } from '@/hooks/useDragToAttach';
 import { DragUploadOverlay } from '@/components/object/DragUploadOverlay';
 import { PageGuide } from '@/components/guide/PageGuide';
@@ -580,6 +581,10 @@ export function ObjectDetailModal({
                     const fieldId = f.fieldId || `${obj.collectionType}.${f.key}`;
                     const revealed = isRevealed(fieldId);
                     const needsReveal = sens === 'sensitive' || sens === 'critical';
+                    // 字段类型图标：模板定义优先，回退到对象内嵌 __fields，最后按 text 处理
+                    const fieldType = (getFieldProperty(f.key)?.type ||
+                      objFieldDefs?.[f.key]?.type ||
+                      'text') as PropertyType;
                     return (
                       <div
                         key={f.key}
@@ -588,6 +593,7 @@ export function ObjectDetailModal({
                       >
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div className={styles.fieldLabel}>
+                            <FieldTypeIcon type={fieldType} />
                             <span
                               style={{
                                 fontSize: 'var(--text-caption)',
