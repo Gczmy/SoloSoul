@@ -322,7 +322,7 @@ export function PageGuide({ pages, label }: PageGuideProps) {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: 8,
+                gap: 6,
                 padding: '12px 20px 0',
                 flexShrink: 0,
               }}
@@ -332,8 +332,8 @@ export function PageGuide({ pages, label }: PageGuideProps) {
                   key={i}
                   onClick={() => goTo(i)}
                   style={{
-                    width: 5,
-                    height: 5,
+                    width: 4,
+                    height: 4,
                     borderRadius: '50%',
                     border: 'none',
                     padding: 0,
@@ -363,9 +363,13 @@ export function PageGuide({ pages, label }: PageGuideProps) {
               <div
                 ref={stripRef}
                 style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
                   display: 'flex',
                   width: `${pages.length * 100}%`,
-                  height: '100%',
                   transform: stripTransform,
                   transition: stripTransition,
                   willChange: 'transform',
@@ -379,6 +383,7 @@ export function PageGuide({ pages, label }: PageGuideProps) {
                       flexShrink: 0,
                       overflowY: 'auto',
                       overflowX: 'hidden',
+                      touchAction: 'pan-y',
                       padding: '16px 20px 8px',
                       boxSizing: 'border-box',
                     }}
