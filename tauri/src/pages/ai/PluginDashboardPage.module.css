@@ -346,6 +346,8 @@
   font-family: var(--font-mono);
   font-size: var(--text-caption);
   flex-shrink: 0;
+  /* 日期/时间两行显示，收紧行距与单行日志视觉对齐 */
+  line-height: 1.3;
 }
 
 .auditMessage {

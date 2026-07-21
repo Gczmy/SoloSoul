@@ -385,6 +385,15 @@ export function PluginDashboardPage() {
   );
 }
 
+/** 将 RFC3339 时间戳拆为「日期 + 时间」两行：去掉时区后缀，秒小数位截断为 3 位。 */
+function formatAuditTimestamp(iso: string): { date: string; time: string } {
+  const [date, rest = ''] = iso.split('T');
+  const time = rest
+    .replace(/(Z|[+-]\d{2}:?\d{2})$/, '')
+    .replace(/\.(\d{3})\d*$/, '.$1');
+  return { date, time };
+}
+
 function PluginLogPanel() {
   const { t } = useTranslation(['plugin', 'common']);
   const [logs, setLogs] = useState<{ level: string; message: string; timestamp: string }[]>([]);
@@ -409,12 +418,23 @@ function PluginLogPanel() {
         </div>
       ) : (
         <div className={styles.auditList}>
-          {logs.map((log, i) => (
-            <div key={i} className={styles.auditRow}>
-              <span className={styles.auditTime}>{log.timestamp}</span>
-              <span className={styles.auditMessage}>{log.message}</span>
-            </div>
-          ))}
+          {logs.map((log, i) => {
+            const { date, time } = formatAuditTimestamp(log.timestamp);
+            return (
+              <div key={i} className={styles.auditRow}>
+                <span className={styles.auditTime}>
+                  {date}
+                  {time && (
+                    <>
+                      <br />
+                      {time}
+                    </>
+                  )}
+                </span>
+                <span className={styles.auditMessage}>{log.message}</span>
+              </div>
+            );
+          })}
         </div>
       )}
     </Card>
