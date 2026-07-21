@@ -113,6 +113,16 @@
     align-items: start;
   }
 
+  /* 字段名独占一行，徽章（敏感度/插件绑定/弃用）换行到字段名下方 */
+  .fieldLabel {
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
+
+  .fieldLabel > span:first-child {
+    flex-basis: 100%;
+  }
+
   .fieldValue {
     white-space: normal;
     word-break: break-word;
@@ -245,6 +255,9 @@
 
 /* 关闭按钮 */
 .closeBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 6px;
   border-radius: 8px;
   border: none;
@@ -301,5 +314,14 @@
     padding: 0;
     gap: 0;
     border-radius: 10px;
+  }
+
+  /* 字段 reveal/copy 按钮：44×44 方块且图标居中
+     （原 padding 10px 14px + min-width 44px 导致图标偏左，右侧余出 4~9px） */
+  .copyBtn,
+  .revealBtn {
+    width: 44px;
+    padding: 0;
+    justify-content: center;
   }
 }

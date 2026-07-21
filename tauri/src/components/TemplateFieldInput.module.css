@@ -87,3 +87,16 @@
   color: var(--text-tertiary, #999);
   line-height: 1.4;
 }
+
+/* 移动端：字段名独占一行，徽章（敏感度/插件绑定/弃用）换行到字段名下方，
+   避免窄屏下同一行拥挤 */
+@media (max-width: 767px) {
+  .labelRow {
+    flex-wrap: wrap;
+  }
+
+  /* badge 容器是 labelRow 内唯一的 div 子元素（类型图标为 svg、字段名为 span） */
+  .labelRow > div {
+    flex-basis: 100%;
+  }
+}

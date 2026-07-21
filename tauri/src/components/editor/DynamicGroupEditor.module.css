@@ -116,3 +116,14 @@
 .addButton {
   align-self: flex-start;
 }
+
+/* 移动端：组名单独一行，敏感度徽章换行到组名下方 */
+@media (max-width: 767px) {
+  .header > div:first-child {
+    flex-wrap: wrap;
+  }
+
+  .header > div:first-child > .label {
+    flex-basis: 100%;
+  }
+}
