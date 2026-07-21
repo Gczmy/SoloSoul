@@ -497,7 +497,6 @@ export function TemplateManagerPage() {
             variant="secondary"
             className={buttonStyles.hideLabelOnMobile}
             aria-label={t('settings:new_template') || 'New template'}
-            style={{ border: '1px solid var(--accent-primary)', color: 'var(--accent-primary)' }}
             onClick={openCreate}
           >
             <Plus size={ICON_SIZE.md} style={{ marginRight: 4 }} />
