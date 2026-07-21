@@ -82,7 +82,9 @@
 
 @media (max-width: 767px) {
   .cardHeader {
-    align-items: flex-start;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
   }
 
   .headerMain {
@@ -115,5 +117,9 @@
   .templateName {
     white-space: normal;
     word-break: break-word;
+  }
+
+  .headerActions {
+    align-self: flex-end;
   }
 }
