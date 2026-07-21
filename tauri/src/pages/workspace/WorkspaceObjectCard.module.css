@@ -109,6 +109,8 @@
 
   .pageBadge {
     margin-left: 0;
+    /* 去掉左侧 padding：与下方模板名左对齐（pill 背景导致文字右偏 5px） */
+    padding-left: 0;
   }
 
   .templateName {
