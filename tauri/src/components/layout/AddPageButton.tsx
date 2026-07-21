@@ -272,7 +272,7 @@ export function AddPageButton({
               style={{
                 position: 'fixed',
                 left: isBottom
-                  ? '50%'
+                  ? 0
                   : isHorizontal
                     ? horizontalPopoverLeft
                     : isRight
@@ -280,12 +280,14 @@ export function AddPageButton({
                       : buttonRect
                         ? buttonRect.right + 8
                         : 56,
-                right: isRight && !isBottom
-                  ? buttonRect
-                    ? window.innerWidth - buttonRect.left + 8
-                    : 56
-                  : 'auto',
-                transform: isBottom ? 'translateX(-50%)' : undefined,
+                right: isBottom
+                  ? 0
+                  : isRight
+                    ? buttonRect
+                      ? window.innerWidth - buttonRect.left + 8
+                      : 56
+                    : 'auto',
+                margin: isBottom ? '0 auto' : undefined,
                 top: isBottom
                   ? 'auto'
                   : buttonRect
