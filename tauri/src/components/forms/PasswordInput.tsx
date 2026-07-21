@@ -49,6 +49,12 @@ export function SecurePasswordInput({
   const prevErrorRef = useRef(error);
   const hintBtnRef = useRef<HTMLButtonElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const touchActiveRef = useRef(false);
+  
+  // 触屏点击标记：用于阻止触屏操作后浏览器合成的 mouseenter 事件重新打开卡片
+  const clearTouchFlag = useCallback(() => {
+    touchActiveRef.current = false;
+  }, []);
   const { t } = useTranslation(['common', 'auth']);
 
   // Focus change handler — sync to state and fire external callback
@@ -87,6 +93,8 @@ export function SecurePasswordInput({
   }, []);
 
   const handleHintEnter = useCallback(() => {
+    // 触屏操作后浏览器可能合成 mouseenter，跳过以避免重新打开已关闭的卡片
+    if (touchActiveRef.current) return;
     setIsHintHovered(true);
     updateHintCardPos();
   }, [updateHintCardPos]);
@@ -94,6 +102,41 @@ export function SecurePasswordInput({
   const handleHintLeave = useCallback(() => {
     setIsHintHovered(false);
   }, []);
+
+  // 触屏设备：点击提示词按钮时切换卡片显示
+  // 注意：直接操作 state，不委托给 handleHintEnter/handleHintLeave，
+  // 避免 touchActiveRef 阻止自身打开/关闭。
+  const handleHintTouch = useCallback(
+    (e: React.TouchEvent) => {
+      e.stopPropagation();
+      touchActiveRef.current = true;
+      const nowShowing = !isHintHovered;
+      setIsHintHovered(nowShowing);
+      if (nowShowing) updateHintCardPos();
+      setTimeout(clearTouchFlag, 300);
+    },
+    [isHintHovered, updateHintCardPos, clearTouchFlag],
+  );
+
+  // 触屏/鼠标设备：点击卡片外部区域时关闭卡片
+  useEffect(() => {
+    if (!isHintHovered) return;
+    const closeOnOutside = (e: MouseEvent | TouchEvent) => {
+      if (hintBtnRef.current && !hintBtnRef.current.contains(e.target as Node)) {
+        setIsHintHovered(false);
+      }
+    };
+    // 使用 setTimeout 避免与当前触发事件冲突
+    const timer = setTimeout(() => {
+      document.addEventListener('touchstart', closeOnOutside);
+      document.addEventListener('mousedown', closeOnOutside);
+    }, 0);
+    return () => {
+      clearTimeout(timer);
+      document.removeEventListener('touchstart', closeOnOutside);
+      document.removeEventListener('mousedown', closeOnOutside);
+    };
+  }, [isHintHovered]);
 
   useEffect(() => {
     if (!isHintHovered) return;
@@ -259,6 +302,7 @@ export function SecurePasswordInput({
               style={{ position: 'relative', display: 'flex' }}
               onMouseEnter={handleHintEnter}
               onMouseLeave={handleHintLeave}
+              onTouchStart={handleHintTouch}
             >
               <button
                 ref={hintBtnRef}
