@@ -225,7 +225,7 @@ export function HomePage() {
                 {
                   title: t('common:guide_help_getting_started'),
                   description: t('common:guide_help_getting_started_desc'),
-                  href: '/help?id=getting-started',
+                  href: '/help?id=getting_started',
                 },
               ],
             },

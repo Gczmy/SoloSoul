@@ -590,7 +590,7 @@ export function ObjectWorkspacePage() {
                     description:
                       t('common:guide_help_getting_started_desc') ??
                       '了解 SoloSoul 基础操作与工作区布局',
-                    href: '/help?id=getting-started',
+                    href: '/help?id=getting_started',
                   },
                 ],
               },
@@ -633,7 +633,7 @@ export function ObjectWorkspacePage() {
                     description:
                       t('common:guide_help_create_object_desc') ??
                       '使用模板创建对象，快速录入结构化数据',
-                    href: '/help?id=create-objects',
+                    href: '/help?id=objects',
                   },
                   {
                     title: t('common:guide_help_objects') ?? '对象管理',
@@ -676,7 +676,7 @@ export function ObjectWorkspacePage() {
                     description:
                       t('common:guide_help_getting_started_desc') ??
                       '了解 SoloSoul 基础操作与工作区布局',
-                    href: '/help?id=getting-started',
+                    href: '/help?id=getting_started',
                   },
                   {
                     title: t('common:guide_help_attachments') ?? '附件管理',
