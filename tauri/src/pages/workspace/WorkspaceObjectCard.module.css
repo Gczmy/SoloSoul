@@ -80,11 +80,16 @@
   flex-shrink: 0;
 }
 
+.headerRow1,
+.headerRow2 {
+  display: none;
+}
+
 @media (max-width: 767px) {
   .cardHeader {
     flex-direction: column;
     align-items: stretch;
-    gap: 8px;
+    gap: 6px;
   }
 
   .headerMain {
@@ -93,33 +98,59 @@
 
   .headerContent {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
     gap: 4px;
+    width: 100%;
   }
 
-  .metaGroup {
+  .headerRow1,
+  .headerRow2 {
     display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    width: 100%;
   }
 
-  .pluginRow {
-    display: flex;
-  }
-
-  .objectName {
+  .headerRow1 .objectName {
+    flex: 1;
+    min-width: 0;
     white-space: normal;
     word-break: break-word;
     overflow: visible;
     text-overflow: clip;
   }
 
-  .templateName {
-    white-space: normal;
-    word-break: break-word;
+  .headerRow2 .metaGroup {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .actionsTop,
+  .actionsBottom {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+
+  .actionsDivider {
+    display: none;
   }
 
   .headerActions {
-    align-self: flex-end;
+    display: none;
+  }
+
+  .pluginRow {
+    display: flex;
+  }
+
+  .templateName {
+    white-space: normal;
+    word-break: break-word;
   }
 }
