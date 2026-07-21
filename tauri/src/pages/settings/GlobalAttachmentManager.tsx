@@ -274,10 +274,20 @@ export function GlobalAttachmentManager() {
       return;
     }
     try {
+      // 系统保存位置选择器会触发 visibilitychange，期间暂停自动锁定（与上传一致）
+      const { pause, resume } = await import('@/stores/autoLockPauseStore').then(
+        (m) => m.useAutoLockPauseStore.getState(),
+      );
       const { save } = await import('@tauri-apps/plugin-dialog');
-      const destPath = await save({
-        defaultPath: item.fileName,
-      });
+      pause();
+      let destPath: string | null;
+      try {
+        destPath = await save({
+          defaultPath: item.fileName,
+        });
+      } finally {
+        resume();
+      }
       if (!destPath) return;
       await downloadViaStage(filePath, destPath, item.fileName, (src, dest) =>
         invoke('attachment_download', { srcPath: src, destPath: dest }),

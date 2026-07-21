@@ -151,10 +151,20 @@ export function AttachmentViewer({
       return;
     }
     try {
+      // 系统保存位置选择器会触发 visibilitychange，期间暂停自动锁定（与上传一致）
+      const { pause, resume } = await import('@/stores/autoLockPauseStore').then(
+        (m) => m.useAutoLockPauseStore.getState(),
+      );
       const { save } = await import('@tauri-apps/plugin-dialog');
-      const destPath = await save({
-        defaultPath: item.fileName,
-      });
+      pause();
+      let destPath: string | null;
+      try {
+        destPath = await save({
+          defaultPath: item.fileName,
+        });
+      } finally {
+        resume();
+      }
       if (!destPath) return;
       await downloadViaStage(filePath, destPath, item.fileName, (src, dest) =>
         invoke('attachment_download', { srcPath: src, destPath: dest }),
@@ -269,12 +279,22 @@ export function AttachmentViewer({
     if (selectedItems.length === 0) return;
 
     try {
+      // 系统目录选择器会触发 visibilitychange，期间暂停自动锁定
+      const { pause, resume } = await import('@/stores/autoLockPauseStore').then(
+        (m) => m.useAutoLockPauseStore.getState(),
+      );
       const { open } = await import('@tauri-apps/plugin-dialog');
-      const dirPath = await open({
-        directory: true,
-        multiple: false,
-        title: t('common:select_download_directory') || 'Select download directory',
-      });
+      pause();
+      let dirPath: string | null;
+      try {
+        dirPath = (await open({
+          directory: true,
+          multiple: false,
+          title: t('common:select_download_directory') || 'Select download directory',
+        })) as string | null;
+      } finally {
+        resume();
+      }
       if (!dirPath) return;
 
       // Android 目录选择器返回 tree URI，无法直接用 std::fs 写入，暂不支持批量下载
