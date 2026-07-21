@@ -47,17 +47,17 @@
   white-space: nowrap;
 }
 
-/* 移动端：全屏页式展示，充分利用窄视口 */
+/* 移动端：不占满全屏，限制高度使底部操作按钮可见 */
 @media (max-width: 767px) {
   .modal {
-    width: 100%;
+    width: 92%;
     max-width: none;
-    height: 100%;
-    max-height: 100%;
-    border-radius: 0;
-    padding: 16px;
-    padding-top: calc(48px + env(safe-area-inset-top, 0px) + 12px);
-    padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    height: auto;
+    max-height: 85vh;
+    border-radius: 16px;
+    padding: 20px;
+    /* 保留系统安全区域 */
+    padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
   }
 
   .fieldRow {
@@ -74,6 +74,23 @@
   .fieldValue {
     white-space: normal;
     word-break: break-word;
+  }
+
+  /* 操作按钮：仅显示图标，隐藏文本 */
+  .actionLabel,
+  .btnLabel {
+    display: none;
+  }
+
+  .actionBtn,
+  .copyBtn,
+  .revealBtn {
+    gap: 0;
+  }
+
+  /* PageGuide 触发器按钮也改为仅图标 */
+  .guideWrapper button span {
+    display: none;
   }
 }
 

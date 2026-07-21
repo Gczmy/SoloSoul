@@ -631,8 +631,10 @@ export function ObjectDetailModal({
                                 <Lock size={ICON_SIZE.xs} />
                               ) : (
                                 <Eye size={ICON_SIZE.xs} />
-                              )}{' '}
-                              {sens === 'critical' ? t('common:unlock') : t('common:reveal')}
+                              )}
+                              <span className={styles.btnLabel}>
+                                {sens === 'critical' ? t('common:unlock') : t('common:reveal')}
+                              </span>
                             </button>
                           )}
                           <button
@@ -650,7 +652,9 @@ export function ObjectDetailModal({
                             ) : (
                               <Copy size={ICON_SIZE.xs} />
                             )}
-                            {copiedField === f.key ? t('common:copied') : t('common:copy')}
+                            <span className={styles.btnLabel}>
+                              {copiedField === f.key ? t('common:copied') : t('common:copy')}
+                            </span>
                           </button>
                         </div>
                       </div>
@@ -695,39 +699,42 @@ export function ObjectDetailModal({
                   flexWrap: 'wrap',
                 }}
               >
-                <PageGuide
-                  pages={[
-                    {
-                      icon: Upload,
-                      title: t('common:drag_upload_guide_title') ?? '拖拽附件上传指南',
-                      steps: [
-                        {
-                          icon: Maximize2,
-                          title: t('common:guide_detail_step1_title') ?? '拖拽到此面板',
-                          description:
-                            t('common:guide_detail_step1_desc') ??
-                            '直接将文件从文件管理器拖入当前详情面板，即可为此对象添加附件。拖入时面板会高亮提示。',
-                        },
-                        {
-                          icon: Paperclip,
-                          title: t('common:guide_detail_step2_title') ?? '附件管理器',
-                          description:
-                            t('common:guide_detail_step2_desc') ??
-                            '点击「附件」按钮打开附件管理器，也可将文件直接拖入管理器窗口进行批量上传。',
-                        },
-                      ],
-                      helpLinks: [
-                        {
-                          title: t('common:guide_help_attachments') ?? '附件管理',
-                          description:
-                            t('common:guide_help_attachments_desc') ??
-                            '附件的上传、下载、重命名与回收站管理',
-                          href: '/help?id=attachments',
-                        },
-                      ],
-                    },
-                  ]}
-                />
+
+                <div className={styles.guideWrapper}>
+                  <PageGuide
+                    pages={[
+                      {
+                        icon: Upload,
+                        title: t('common:drag_upload_guide_title') ?? '拖拽附件上传指南',
+                        steps: [
+                          {
+                            icon: Maximize2,
+                            title: t('common:guide_detail_step1_title') ?? '拖拽到此面板',
+                            description:
+                              t('common:guide_detail_step1_desc') ??
+                              '直接将文件从文件管理器拖入当前详情面板，即可为此对象添加附件。拖入时面板会高亮提示。',
+                          },
+                          {
+                            icon: Paperclip,
+                            title: t('common:guide_detail_step2_title') ?? '附件管理器',
+                            description:
+                              t('common:guide_detail_step2_desc') ??
+                              '点击「附件」按钮打开附件管理器，也可将文件直接拖入管理器窗口进行批量上传。',
+                          },
+                        ],
+                        helpLinks: [
+                          {
+                            title: t('common:guide_help_attachments') ?? '附件管理',
+                            description:
+                              t('common:guide_help_attachments_desc') ??
+                              '附件的上传、下载、重命名与回收站管理',
+                            href: '/help?id=attachments',
+                          },
+                        ],
+                      },
+                    ]}
+                  />
+                </div>
                 <button
                   onClick={() => {
                     if (onHistory) {
@@ -738,7 +745,8 @@ export function ObjectDetailModal({
                   }}
                   className={styles.actionBtn}
                 >
-                  <Clock size={ICON_SIZE.sm} /> {t('common:history')}
+                  <Clock size={ICON_SIZE.sm} />
+                  <span className={styles.actionLabel}>{t('common:history')}</span>
                 </button>
                 <button
                   onClick={() => {
@@ -750,11 +758,13 @@ export function ObjectDetailModal({
                   }}
                   className={styles.actionBtn}
                 >
-                  <Paperclip size={ICON_SIZE.sm} /> {t('common:attachments')}
+                  <Paperclip size={ICON_SIZE.sm} />
+                  <span className={styles.actionLabel}>{t('common:attachments')}</span>
                 </button>
                 {onEdit && (
                   <button onClick={onEdit} className={styles.actionBtn}>
-                    <Pencil size={ICON_SIZE.sm} /> {t('common:edit')}
+                    <Pencil size={ICON_SIZE.sm} />
+                    <span className={styles.actionLabel}>{t('common:edit')}</span>
                   </button>
                 )}
                 <DeleteButton
@@ -767,7 +777,7 @@ export function ObjectDetailModal({
                   }}
                   title={t('common:delete')}
                 >
-                  {t('common:delete')}
+                  <span className={styles.actionLabel}>{t('common:delete')}</span>
                 </DeleteButton>
               </div>
             </>
