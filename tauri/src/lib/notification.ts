@@ -7,9 +7,24 @@ import {
 import { useUiStore } from '@/stores/uiStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useAuthStore } from '@/stores/authStore';
+import { useAutoLockPauseStore } from '@/stores/autoLockPauseStore';
 import { invoke } from '@tauri-apps/api/core';
 import i18next from '@/lib/i18n';
 import { navigateTo } from '@/lib/navigation';
+
+/**
+ * 申请系统通知权限。系统权限弹窗会触发 visibilitychange，
+ * 期间暂停自动锁定，避免用户点「允许/拒绝」后回到应用发现已被锁定。
+ */
+async function requestNotificationPermission(): Promise<boolean> {
+  const { pause, resume } = useAutoLockPauseStore.getState();
+  pause();
+  try {
+    return (await requestPermission()) === 'granted';
+  } finally {
+    resume();
+  }
+}
 
 interface LlmStreamPayload {
   conversationId: string;
@@ -98,7 +113,7 @@ export async function sendSystemNotificationWithFallback(
   try {
     let hasPermission = await isPermissionGranted();
     if (!hasPermission) {
-      hasPermission = (await requestPermission()) === 'granted';
+      hasPermission = await requestNotificationPermission();
     }
 
     if (hasPermission) {
@@ -165,7 +180,7 @@ export async function checkBackupReminder(): Promise<void> {
       // 发送系统通知（不包含 fallback toast，因为下方已有可点击 toast）
       let hasPermission = await isPermissionGranted();
       if (!hasPermission) {
-        hasPermission = (await requestPermission()) === 'granted';
+        hasPermission = await requestNotificationPermission();
       }
       if (hasPermission) {
         sendNotification({ title, body });
