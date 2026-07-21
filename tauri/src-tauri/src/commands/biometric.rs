@@ -109,11 +109,16 @@ pub async fn biometric_check_availability(
 ) -> Result<BiometricAvailability, String> {
     use tauri_plugin_biometric::{BiometricExt, BiometryType};
 
-    let status = app.biometric().status().map_err(|e| e.to_string())?;
-    let biometry_type = match status.biometry_type {
-        BiometryType::TouchID => Some("touchId".to_string()),
-        BiometryType::FaceID => Some("faceId".to_string()),
-        BiometryType::None => None,
+    // 插件 status() 失败不中断检测（部分设备/系统版本会报错），
+    // Android 可用性判定以下方自有 Keystore 插件检测为准
+    let (status_available, status_biometry, status_error) = match app.biometric().status() {
+        Ok(s) => (s.is_available, Some(s.biometry_type), s.error),
+        Err(_) => (false, None, None),
+    };
+    let plugin_biometry_type = match status_biometry {
+        Some(BiometryType::TouchID) => Some("touchId".to_string()),
+        Some(BiometryType::FaceID) => Some("faceId".to_string()),
+        _ => None,
     };
 
     let svc = state
@@ -134,36 +139,45 @@ pub async fn biometric_check_availability(
         manager.is_configured(&account_id)
     };
 
-    // Android: 如果强生物识别不可用，检查弱生物识别（Class 2 人脸）
+    // Android：以自有 Keystore 插件检测为准（区分 Class 3 / Class 2）。
+    // 不再以 tauri-plugin-biometric 的 status 为唯一依据——旧 API 级别
+    // （<30）其弱生物识别检查退化为指纹检查，会漏检 Class 2 人脸。
     #[cfg(target_os = "android")]
-    let (weak_available, fallback_type) = if !status.is_available {
+    let (available, weak_available, effective_type) = {
         use crate::keystore_plugin::KeystorePluginHandle;
         use tauri::Manager;
-        let wa = app
+        let info = app
             .try_state::<KeystorePluginHandle<tauri::Wry>>()
-            .and_then(|keystore| keystore.check_biometric_availability().ok())
-            .map(|info| info.weak_available)
-            .unwrap_or(false);
+            .and_then(|keystore| keystore.check_biometric_availability().ok());
+        let strong = info.as_ref().map(|i| i.strong_available).unwrap_or(false);
+        let weak = info.as_ref().map(|i| i.weak_available).unwrap_or(false);
         tracing::info!(
-            "biometric_check_availability: strong_unavailable, weak_check={}",
-            wa
+            "biometric_check_availability: strong={}, weak={}, plugin_status={}",
+            strong,
+            weak,
+            status_available
         );
-        (wa, wa.then(|| "faceId".to_string()))
-    } else {
-        (false, None)
+        let available = strong || weak || status_available;
+        let weak_available = !strong && weak;
+        let effective_type = if strong {
+            plugin_biometry_type.clone().or(Some("touchId".to_string()))
+        } else if weak || status_available {
+            Some("faceId".to_string())
+        } else {
+            plugin_biometry_type.clone()
+        };
+        (available, weak_available, effective_type)
     };
 
-    #[cfg(not(target_os = "android"))]
-    let (weak_available, fallback_type) = (false, None);
-
-    // 如果弱生物识别可用但未检测到强生物识别，使用 faceId 类型
-    let effective_type = biometry_type.or(fallback_type);
+    #[cfg(target_os = "ios")]
+    let (available, weak_available, effective_type) =
+        (status_available, false, plugin_biometry_type.clone());
 
     Ok(BiometricAvailability {
-        available: status.is_available || weak_available,
+        available,
         configured,
         biometry_type: effective_type,
-        error: status.error,
+        error: status_error,
         weak_available,
     })
 }
