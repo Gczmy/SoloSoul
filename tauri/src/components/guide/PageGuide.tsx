@@ -54,6 +54,8 @@ export function PageGuide({ pages, label }: PageGuideProps) {
   const dragOffsetRef = useRef(0);
   const isDraggingRef = useRef(false);
   const pageIndexRef = useRef(0);
+  // 手势方向锁：'none' 未判定 / 'h' 横向翻页 / 'v' 竖向滚动（交给原生滚动，JS 不再干预）
+  const axisRef = useRef<'none' | 'h' | 'v'>('none');
   // 以下 ref 用于被动触摸事件处理程序（避免闭包过期）
   const goToRef = useRef<(index: number) => void>(() => {});
   const isFirstRef = useRef(false);
@@ -108,6 +110,7 @@ export function PageGuide({ pages, label }: PageGuideProps) {
       containerWidth.current = container.offsetWidth;
       isDraggingRef.current = true;
       dragOffsetRef.current = 0;
+      axisRef.current = 'none';
       pageIndexRef.current = pageIndex;
       setIsSnapping(false);
     };
@@ -116,8 +119,15 @@ export function PageGuide({ pages, label }: PageGuideProps) {
       if (!isDraggingRef.current) return;
       const dx = e.touches[0].clientX - touchStartX.current;
       const dy = e.touches[0].clientY - touchStartY.current;
+      // 已判定为竖向滚动的手势完全交给原生滚动，避免横向拖动 strip 与其打架
+      if (axisRef.current === 'v') return;
+      // 超过 8px 死区后锁定本次手势方向
+      if (axisRef.current === 'none' && (Math.abs(dx) > 8 || Math.abs(dy) > 8)) {
+        axisRef.current = Math.abs(dx) > Math.abs(dy) ? 'h' : 'v';
+        if (axisRef.current === 'v') return;
+      }
       dragOffsetRef.current = dx;
-      if (stripRef.current && Math.abs(dx) > Math.abs(dy)) {
+      if (stripRef.current && axisRef.current === 'h') {
         stripRef.current.style.transition = 'none';
         const pagePct = pageIndexRef.current * (100 / pagesLenRef.current);
         stripRef.current.style.transform = `translateX(calc(-${pagePct}% + ${dx}px))`;
@@ -126,6 +136,11 @@ export function PageGuide({ pages, label }: PageGuideProps) {
 
     const onTouchEnd = (e: TouchEvent) => {
       isDraggingRef.current = false;
+      // 竖向滚动手势未移动 strip，无需回弹/翻页判定
+      if (axisRef.current === 'v') {
+        axisRef.current = 'none';
+        return;
+      }
       const dx = e.changedTouches[0].clientX - touchStartX.current;
       const dy = e.changedTouches[0].clientY - touchStartY.current;
       const threshold = Math.min(50, containerWidth.current * 0.15);
@@ -351,14 +366,15 @@ export function PageGuide({ pages, label }: PageGuideProps) {
               }}
             >
               {pages.map((p, i) => (
-                <button
+                // 使用 span 而非 button：纯装饰性指示点，且避免移动端全局
+                // button{min-height/width:44px} 触控基线把 3px 圆点撑大
+                <span
                   key={i}
+                  aria-hidden="true"
                   style={{
                     width: 3,
                     height: 3,
                     borderRadius: '50%',
-                    border: 'none',
-                    padding: 0,
                     background: i === pageIndex ? 'var(--accent-primary)' : 'var(--border-subtle)',
                     transition: 'all 0.25s ease',
                   }}
@@ -367,7 +383,9 @@ export function PageGuide({ pages, label }: PageGuideProps) {
               ))}
             </div>
 
-            {/* 滑动条容器 — 左右滑动实时跟手 */}
+            {/* 滑动条容器 — 左右滑动实时跟手；pan-y 让竖向滚动完全交给原生，避免与横向翻页手势竞争。
+                注意：容器必须是 flex 列布局，strip 用 flex:1 撑高——height:100% 对 flex 布局
+                动态高度的容器会退化为 auto（内容高度），导致内部页永远不需要滚动 */}
             <div
               ref={containerRef}
               style={{
@@ -375,6 +393,9 @@ export function PageGuide({ pages, label }: PageGuideProps) {
                 minHeight: 0,
                 overflow: 'hidden',
                 position: 'relative',
+                touchAction: 'pan-y',
+                display: 'flex',
+                flexDirection: 'column',
               }}
             >
               <div
@@ -382,7 +403,8 @@ export function PageGuide({ pages, label }: PageGuideProps) {
                 style={{
                   display: 'flex',
                   width: `${pages.length * 100}%`,
-                  height: '100%',
+                  flex: 1,
+                  minHeight: 0,
                   transform: stripTransform,
                   transition: stripTransition,
                   willChange: 'transform',
