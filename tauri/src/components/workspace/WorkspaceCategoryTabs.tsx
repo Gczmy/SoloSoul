@@ -44,8 +44,9 @@ export function WorkspaceCategoryTabs({
   const onClearEnter = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
     e.currentTarget.style.borderColor = 'var(--accent-primary)';
     e.currentTarget.style.color = 'var(--text-primary)';
+    // 同样用 inset，避免 hover 外发光被 overflow 容器截断
     e.currentTarget.style.boxShadow =
-      '0 0 0 2px color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+      'inset 0 0 0 2px color-mix(in srgb, var(--accent-primary) 10%, transparent)';
   }, []);
   const onClearLeave = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
     e.currentTarget.style.borderColor = 'var(--border-subtle)';
@@ -61,7 +62,9 @@ export function WorkspaceCategoryTabs({
       ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)'
       : 'var(--bg-toolbar)',
     color: isActive ? 'var(--accent-primary)' : 'var(--text-primary)',
-    boxShadow: isActive ? '0 0 0 1px var(--accent-primary)' : 'none',
+    // 外发光 ring 会被 overflow 容器（移动端 .tabs 的横向滚动、页面滚动区）截断，
+    // 导致第一行/最左选项边框粗细不一；inset 内描边永远画在元素内部，不会被裁剪
+    boxShadow: isActive ? 'inset 0 0 0 1px var(--accent-primary)' : 'none',
     fontSize: 'var(--text-body-sm)',
     cursor: 'pointer',
     display: 'flex',
