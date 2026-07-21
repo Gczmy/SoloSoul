@@ -139,9 +139,15 @@ pub async fn biometric_check_availability(
     let (weak_available, fallback_type) = if !status.is_available {
         use crate::keystore_plugin::KeystorePluginHandle;
         use tauri::Manager;
-        let keystore = app.state::<KeystorePluginHandle<tauri::Wry>>();
-        let info = keystore.check_biometric_availability().ok();
-        let wa = info.as_ref().map(|i| i.weak_available).unwrap_or(false);
+        let wa = app
+            .try_state::<KeystorePluginHandle<tauri::Wry>>()
+            .and_then(|keystore| keystore.check_biometric_availability().ok())
+            .map(|info| info.weak_available)
+            .unwrap_or(false);
+        tracing::info!(
+            "biometric_check_availability: strong_unavailable, weak_check={}",
+            wa
+        );
         (wa, wa.then(|| "faceId".to_string()))
     } else {
         (false, None)
