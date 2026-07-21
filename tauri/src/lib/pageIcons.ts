@@ -353,9 +353,28 @@ export const CATEGORY_LABELS: Record<string, string> = {
   special: '特色',
 };
 
+// 历史遗留 iconId → 现行词表别名映射。
+// 早期种子模板（system_templates_*.json）使用旧词表，已建账户的模板里仍存留这些 ID，
+// 查不到会全部回退成同一个 FileText 图标，这里统一映射到新词表。
+// 注意：仅作兜底——若 ID 本身在 CUSTOM_ICON_MAP 中有效（如 identity），优先按原样解析。
+const LEGACY_ICON_ALIASES: Record<string, string> = {
+  identity: 'user',
+  passport: 'bookmarked',
+  visa: 'ticket',
+  bank: 'landmark',
+  card: 'credit_card',
+  education: 'graduation',
+  employment: 'briefcase',
+  address: 'home',
+};
+
 export function resolveCustomIcon(iconId: string): LucideIcon {
   if (iconId in CUSTOM_ICON_MAP) {
     return CUSTOM_ICON_MAP[iconId as CustomIconId];
+  }
+  const alias = LEGACY_ICON_ALIASES[iconId];
+  if (alias && alias in CUSTOM_ICON_MAP) {
+    return CUSTOM_ICON_MAP[alias as CustomIconId];
   }
   return CUSTOM_ICON_MAP[DEFAULT_CUSTOM_ICON];
 }

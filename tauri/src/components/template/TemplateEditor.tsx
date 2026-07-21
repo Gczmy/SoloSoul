@@ -272,7 +272,7 @@ export function TemplateEditor({
             editIconId && editIconId in CUSTOM_ICON_MAP
               ? CUSTOM_ICON_MAP[editIconId as CustomIconId]
               : resolveCustomIcon(editIconId),
-            { size: 18, style: { color: 'var(--accent-primary)', flexShrink: 0 } },
+            { size: ICON_SIZE.lg, style: { color: 'var(--accent-primary)', flexShrink: 0 } },
           )}
           <span style={{ flex: 1 }}>{t('settings:template_icon') || '模板图标'}</span>
           <span style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>

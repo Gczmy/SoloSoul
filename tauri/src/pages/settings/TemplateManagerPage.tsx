@@ -596,7 +596,7 @@ export function TemplateManagerPage() {
                   style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <TemplateIcon size={ICON_SIZE.xl} />
+                    <TemplateIcon size={ICON_SIZE.xl} style={{ flexShrink: 0 }} />
                     <div>
                       <div
                         style={{

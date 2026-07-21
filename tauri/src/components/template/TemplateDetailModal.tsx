@@ -8,6 +8,7 @@ import { DeprecatedBadge } from '@/components/ui/DeprecatedBadge';
 import { SensitivityBadges } from './SensitivityBadges';
 import { PluginBadge } from './PluginBadge';
 import { FieldTypeIcon } from '@/components/ui/FieldTypeIcon';
+import { resolveCustomIcon } from '@/lib/pageIcons';
 import type {
   PropertyType,
   SensitivityLevel,
@@ -64,6 +65,11 @@ export function TemplateDetailModal({
   if (!detailTemplate) return null;
 
   const page = pageLabel(detailTemplate.category || 'identity');
+  // 与列表卡片一致：使用模板自身 iconId，而非硬编码 LayoutTemplate
+  const detailUserTemplate = templates.find((u) => u.id === detailTemplate.id);
+  const DetailIcon = detailUserTemplate?.iconId
+    ? resolveCustomIcon(detailUserTemplate.iconId)
+    : LayoutTemplate;
 
   return (
     <div
@@ -106,7 +112,7 @@ export function TemplateDetailModal({
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <LayoutTemplate size={ICON_SIZE['2xl']} color="var(--accent-primary)" />
+            <DetailIcon size={ICON_SIZE['2xl']} color="var(--accent-primary)" />
             <div>
               <h2 style={{ fontSize: 'var(--text-md)', fontWeight: 700, margin: 0 }}>
                 {detailTemplate.name}

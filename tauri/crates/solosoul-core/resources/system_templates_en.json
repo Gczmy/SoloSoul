@@ -4,7 +4,7 @@
         {
             "key": "identity",
             "category": "identity",
-            "icon": "identity",
+            "icon": "user",
             "nameI18nKey": "editor:templates.identity",
             "nameFallback": "Identity",
             "properties": [
@@ -126,7 +126,7 @@
         {
             "key": "passport",
             "category": "travel",
-            "icon": "passport",
+            "icon": "bookmarked",
             "nameI18nKey": "editor:templates.passport",
             "nameFallback": "Passport",
             "contractTypeId": "com.solosoul.expiry/guardian/v1",
@@ -191,7 +191,7 @@
         {
             "key": "visa",
             "category": "travel",
-            "icon": "visa",
+            "icon": "ticket",
             "nameI18nKey": "editor:templates.visa",
             "nameFallback": "Visa",
             "contractTypeId": "com.solosoul.expiry/guardian/v1",
@@ -248,7 +248,7 @@
         {
             "key": "bank",
             "category": "financial",
-            "icon": "bank",
+            "icon": "landmark",
             "nameI18nKey": "editor:templates.bank",
             "nameFallback": "Bank Account",
             "properties": [
@@ -289,7 +289,7 @@
         {
             "key": "card",
             "category": "financial",
-            "icon": "card",
+            "icon": "credit_card",
             "nameI18nKey": "editor:templates.card",
             "nameFallback": "Card",
             "contractTypeId": "com.solosoul.expiry/guardian/v1",
@@ -338,7 +338,7 @@
         {
             "key": "education",
             "category": "professional",
-            "icon": "education",
+            "icon": "graduation",
             "nameI18nKey": "editor:templates.education",
             "nameFallback": "Education",
             "properties": [
@@ -387,7 +387,7 @@
         {
             "key": "employment",
             "category": "professional",
-            "icon": "employment",
+            "icon": "briefcase",
             "nameI18nKey": "editor:templates.employment",
             "nameFallback": "Employment",
             "properties": [
@@ -428,7 +428,7 @@
         {
             "key": "address",
             "category": "identity",
-            "icon": "address",
+            "icon": "home",
             "nameI18nKey": "editor:templates.address",
             "nameFallback": "Address",
             "contractTypeId": "com.solosoul.official.address-fmt/v1",
