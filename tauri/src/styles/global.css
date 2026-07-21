@@ -194,6 +194,8 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  /* 禁用 Android WebView 默认触摸高亮（点击按钮时的蓝色方块） */
+  -webkit-tap-highlight-color: transparent;
 }
 
 html,
