@@ -73,6 +73,8 @@ export function useAutoLock(): void {
       if (document.visibilityState === 'visible') {
         checkIdle();
       } else if (document.visibilityState === 'hidden') {
+        // 暂停期间（如文件选择器打开）跳过锁定，不中断用户操作
+        if (useAutoLockPauseStore.getState().pauseCount > 0) return;
         // 屏幕锁定/应用切到后台时立即锁定，不等待 idle timeout
         if (lockInitiated) return;
         lockInitiated = true;

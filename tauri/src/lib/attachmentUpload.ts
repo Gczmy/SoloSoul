@@ -104,10 +104,19 @@ export async function filterOutDirectories(
 /** 读取文件对话框，返回选中的文件路径或 null */
 export async function pickFileToAttach(): Promise<string | null> {
   try {
-    const { open } = await import('@tauri-apps/plugin-dialog');
-    const filePath = await open({ multiple: false, title: 'Select file to attach' });
-    if (filePath && typeof filePath === 'string') return filePath;
-    return null;
+    // 文件选择器打开时暂停自动锁定（系统对话框会导致 visibilitychange）
+    const { pause, resume } = await import('@/stores/autoLockPauseStore').then(
+      (m) => m.useAutoLockPauseStore.getState(),
+    );
+    pause();
+    try {
+      const { open } = await import('@tauri-apps/plugin-dialog');
+      const filePath = await open({ multiple: false, title: 'Select file to attach' });
+      if (filePath && typeof filePath === 'string') return filePath;
+      return null;
+    } finally {
+      resume();
+    }
   } catch {
     return null;
   }
