@@ -6,6 +6,23 @@
 (function () {
   if (typeof window === 'undefined') return;
 
+  // @tauri-apps/plugin-os v2 同步读取该对象而非走 invoke，
+  // 缺失会导致应用启动即崩溃（main.tsx 的 initPlatform）。
+  window.__TAURI_OS_PLUGIN_INTERNALS__ = {
+    get platform() {
+      return window.__MOCK_PLATFORM__ || 'macos';
+    },
+    get os_type() {
+      const p = window.__MOCK_PLATFORM__ || 'macos';
+      return p === 'android' ? 'Linux' : p === 'windows' ? 'Windows_NT' : 'Darwin';
+    },
+    arch: 'aarch64',
+    family: 'unix',
+    version: '15',
+    eol: '\n',
+    exe_extension: '',
+  };
+
   const callbacks = new Map();
   const eventListeners = new Map();
   let pluginRunCounter = 0;
@@ -79,6 +96,7 @@
       case 'ui_get_preferences':
         return { hasSeenOnboarding: true, theme: 'system', accentColor: 'ocean' };
       case 'list_accounts':
+      case 'vault_list_accounts':
         return [{ id: 'e2e-account', name: 'E2E User' }];
       case 'check_has_account':
         return true;
@@ -133,7 +151,19 @@
           sidebarBottomActions: ['search', 'plugins', 'ai_chat'],
         };
       case 'object_list':
-        return [];
+        return userMocks()[cmd] ? userMocks()[cmd](args) : [];
+      case 'template_list':
+        return userMocks()[cmd] ? userMocks()[cmd](args) : [];
+      case 'template_hash_map':
+      case 'snapshot_count_batch':
+      case 'attachment_count_batch':
+        return userMocks()[cmd] ? userMocks()[cmd](args) : {};
+      case 'backup_list':
+        return userMocks()[cmd] ? userMocks()[cmd](args) : [];
+      case 'pin_check_availability':
+        return { available: false };
+      case 'get_system_theme':
+        return 'light';
       case 'plugin:window|set_size':
         return undefined;
       case 'plugin:window|inner_size':

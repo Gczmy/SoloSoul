@@ -406,11 +406,11 @@ export function ObjectDetailModal({
             <>
               {/* Header */}
               <div
+                className={styles.modalHeader}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  marginBottom: 20,
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -479,7 +479,13 @@ export function ObjectDetailModal({
                 </button>
               </div>
 
-              <div style={{ height: 1, background: 'var(--border-subtle)', marginBottom: 16 }} />
+              <div
+                className={styles.headerDivider}
+                style={{ height: 1, background: 'var(--border-subtle)', marginBottom: 16 }}
+              />
+
+              {/* 可滚动内容区（移动端仅此区域滚动，头尾固定） */}
+              <div className={styles.modalBody}>
 
               {/* 模板更新提示条 */}
               {needsSync && onSyncTemplate && (
@@ -687,18 +693,10 @@ export function ObjectDetailModal({
                 </div>
               )}
 
+              </div>
+
               {/* Actions */}
-              <div
-                style={{
-                  marginTop: 20,
-                  paddingTop: 16,
-                  borderTop: '1px solid var(--border-subtle)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  flexWrap: 'wrap',
-                }}
-              >
+              <div className={styles.modalFooter}>
 
                 <div className={styles.guideWrapper}>
                   <PageGuide
@@ -743,7 +741,7 @@ export function ObjectDetailModal({
                       setShowHistory(true);
                     }
                   }}
-                  className={styles.actionBtn}
+                  className={`${styles.actionBtn} ${styles.footerBtn}`}
                 >
                   <Clock size={ICON_SIZE.sm} />
                   <span className={styles.actionLabel}>{t('common:history')}</span>
@@ -756,29 +754,31 @@ export function ObjectDetailModal({
                       setShowAttachments(true);
                     }
                   }}
-                  className={styles.actionBtn}
+                  className={`${styles.actionBtn} ${styles.footerBtn}`}
                 >
                   <Paperclip size={ICON_SIZE.sm} />
                   <span className={styles.actionLabel}>{t('common:attachments')}</span>
                 </button>
                 {onEdit && (
-                  <button onClick={onEdit} className={styles.actionBtn}>
+                  <button onClick={onEdit} className={`${styles.actionBtn} ${styles.footerBtn}`}>
                     <Pencil size={ICON_SIZE.sm} />
                     <span className={styles.actionLabel}>{t('common:edit')}</span>
                   </button>
                 )}
-                <DeleteButton
-                  onClick={() => {
-                    if (onDelete) {
-                      onDelete();
-                    } else {
-                      setConfirmDelete(true);
-                    }
-                  }}
-                  title={t('common:delete')}
-                >
-                  <span className={styles.actionLabel}>{t('common:delete')}</span>
-                </DeleteButton>
+                <div className={styles.deleteBtnWrapper}>
+                  <DeleteButton
+                    onClick={() => {
+                      if (onDelete) {
+                        onDelete();
+                      } else {
+                        setConfirmDelete(true);
+                      }
+                    }}
+                    title={t('common:delete')}
+                  >
+                    <span className={styles.actionLabel}>{t('common:delete')}</span>
+                  </DeleteButton>
+                </div>
               </div>
             </>
           </motion.div>
