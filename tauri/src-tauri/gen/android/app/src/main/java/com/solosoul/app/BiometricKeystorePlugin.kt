@@ -234,7 +234,7 @@ class BiometricKeystorePlugin(private val activity: Activity): Plugin(activity) 
                 .setTitle(title)
                 .setSubtitle(subtitle)
                 .setNegativeButtonText(cancelTitle)
-                .setConfirmationRequired(true)
+                .setConfirmationRequired(false)
                 .setAllowedAuthenticators(
                     BiometricManager.Authenticators.BIOMETRIC_STRONG or
                     BiometricManager.Authenticators.BIOMETRIC_WEAK
