@@ -543,7 +543,6 @@ export function PageGuide({ pages, label }: PageGuideProps) {
                           padding: '12px',
                           borderRadius: 10,
                           background: 'var(--bg-toolbar)',
-                          border: '1px solid var(--border-subtle)',
                         }}
                       >
                         <div
