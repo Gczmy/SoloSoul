@@ -109,7 +109,7 @@ export function PageGuide({ pages, label }: PageGuideProps) {
       // 立即设置 strip 到目标位置（带过渡动画），确保浏览器在此帧内开始动画
       if (stripRef.current) {
         stripRef.current.style.transition = 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
-        stripRef.current.style.transform = `translateX(-${index * 100}%)`;
+        stripRef.current.style.transform = `translateX(-${index * (100 / pages.length)}%)`;
       }
       setTimeout(() => setIsSnapping(false), 350);
     },
@@ -143,7 +143,8 @@ export function PageGuide({ pages, label }: PageGuideProps) {
     if (stripRef.current && Math.abs(dx) > Math.abs(dy)) {
       // 直接操作 DOM，不触发 React 重渲染
       stripRef.current.style.transition = 'none';
-      stripRef.current.style.transform = `translateX(calc(-${pageIndexRef.current * 100}% + ${dx}px))`;
+      const pagePct = pageIndexRef.current * (100 / pages.length);
+      stripRef.current.style.transform = `translateX(calc(-${pagePct}% + ${dx}px))`;
     }
   }, []);
 
@@ -169,7 +170,7 @@ export function PageGuide({ pages, label }: PageGuideProps) {
       dragOffsetRef.current = 0;
       if (stripRef.current) {
         stripRef.current.style.transition = 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
-        stripRef.current.style.transform = `translateX(-${pageIndex * 100}%)`;
+        stripRef.current.style.transform = `translateX(-${pageIndex * (100 / pages.length)}%)`;
       }
       setTimeout(() => setIsSnapping(false), 350);
     },
@@ -186,7 +187,9 @@ export function PageGuide({ pages, label }: PageGuideProps) {
   };
 
   // 拖拽结束后通过 state 渲染正确位置；拖拽中通过 ref 直接操作 DOM
-  const stripTransform = `translateX(-${pageIndex * 100}%)`;
+  // translateX 百分比相对于 strip 自身宽度，故需除以 pages.length
+  const pagePct = pageIndex * (100 / pages.length);
+  const stripTransform = `translateX(-${pagePct}%)`;
   const stripTransition = 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
 
   return (
@@ -329,17 +332,13 @@ export function PageGuide({ pages, label }: PageGuideProps) {
                   key={i}
                   onClick={() => goTo(i)}
                   style={{
-                    width: 8,
-                    height: 8,
+                    width: 5,
+                    height: 5,
                     borderRadius: '50%',
                     border: 'none',
                     padding: 0,
                     cursor: 'pointer',
                     background: i === pageIndex ? 'var(--accent-primary)' : 'var(--border-subtle)',
-                    boxShadow:
-                      i === pageIndex
-                        ? '0 0 0 2px var(--bg-elevated), 0 0 0 4px var(--accent-primary)'
-                        : 'none',
                     transition: 'all 0.25s ease',
                   }}
                   title={p.title}
