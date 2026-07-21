@@ -29,11 +29,6 @@
   overflow: hidden;
 }
 
-/* 桌面端：让页面 badge + 模板名作为一组参与父级水平 flex */
-.metaGroup {
-  display: contents;
-}
-
 /* 桌面端：插件徽章直接参与父级水平 flex */
 .pluginRow {
   display: contents;
@@ -80,61 +75,63 @@
   flex-shrink: 0;
 }
 
-.headerRow1,
-.headerRow2 {
+/* 移动端右列：隐藏（桌面端） */
+.mobileActionCol {
   display: none;
 }
 
 @media (max-width: 767px) {
   .cardHeader {
-    flex-direction: column;
+    flex-direction: row;
     align-items: stretch;
-    gap: 6px;
+    gap: 8px;
   }
 
   .headerMain {
+    flex: 1;
+    min-width: 0;
     align-items: flex-start;
   }
 
   .headerContent {
     flex-direction: column;
-    align-items: stretch;
-    gap: 4px;
+    align-items: flex-start;
+    gap: 2px;
     width: 100%;
   }
 
-  .headerRow1,
-  .headerRow2 {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    width: 100%;
-  }
-
-  .headerRow1 .objectName {
-    flex: 1;
-    min-width: 0;
+  .objectName {
     white-space: normal;
     word-break: break-word;
     overflow: visible;
     text-overflow: clip;
   }
 
-  .headerRow2 .metaGroup {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
+  .pageBadge {
+    margin-left: 0;
   }
 
-  .actionsTop,
-  .actionsBottom {
+  .templateName {
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  .pluginRow {
+    display: flex;
+  }
+
+  /* 移动端右列：两个按钮行纵向分布，撑满父级高度 */
+  .mobileActionCol {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    flex-shrink: 0;
+  }
+
+  .actionRow {
     display: flex;
     align-items: center;
     gap: 4px;
-    flex-shrink: 0;
   }
 
   .actionsDivider {
@@ -143,14 +140,5 @@
 
   .headerActions {
     display: none;
-  }
-
-  .pluginRow {
-    display: flex;
-  }
-
-  .templateName {
-    white-space: normal;
-    word-break: break-word;
   }
 }

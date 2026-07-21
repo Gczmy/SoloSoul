@@ -213,50 +213,27 @@ export const WorkspaceObjectCard = memo(function WorkspaceObjectCard({
               <TemplateIcon size={ICON_SIZE['2xl']} />
             </span>
             <div className={styles.headerContent}>
-              {/* Row 1: object name + history/attachments */}
-              <div className={styles.headerRow1}>
-                <span className={styles.objectName}>{obj.name}</span>
-                <div className={styles.actionsTop} onClick={(e) => e.stopPropagation()}>
-                  <BadgeIconButton
-                    Icon={Clock}
-                    count={snapshotCount}
-                    onClick={onHistory}
-                    title="History"
-                  />
-                  <BadgeIconButton
-                    Icon={Paperclip}
-                    count={attachmentCount}
-                    onClick={onAttachments}
-                    title="Attachments"
-                  />
-                </div>
-              </div>
-              {/* Row 2: page/template + edit/delete */}
-              <div className={styles.headerRow2}>
-                <span className={styles.metaGroup}>
-                  <span className={styles.pageBadge}>{collectionLabel}</span>
-                  {/* 模板名 — 模板不匹配（已删除/更改页面）时显示删除线 */}
-                  {obj.templateId && (
-                    <span
-                      className={styles.templateName}
-                      style={{ textDecoration: tplMatch ? 'none' : 'line-through' }}
-                    >
-                      {tplMatch
-                        ? tpl!.name
-                        : (() => {
-                            const tplName = (obj.properties as Record<string, unknown>)
-                              ?.__templateName as string | undefined;
-                            const tid = obj.templateId || '';
-                            return tplName ? `${tplName} (${tid.slice(0, 8)}…)` : tid;
-                          })()}
-                    </span>
-                  )}
+              {/* 第1行：对象名 */}
+              <span className={styles.objectName}>{obj.name}</span>
+              {/* 第2行：所属页面 */}
+              <span className={styles.pageBadge}>{collectionLabel}</span>
+              {/* 第3行：模板名 — 模板不匹配（已删除/更改页面）时显示删除线 */}
+              {obj.templateId && (
+                <span
+                  className={styles.templateName}
+                  style={{ textDecoration: tplMatch ? 'none' : 'line-through' }}
+                >
+                  {tplMatch
+                    ? tpl!.name
+                    : (() => {
+                        const tplName = (obj.properties as Record<string, unknown>)
+                          ?.__templateName as string | undefined;
+                        const tid = obj.templateId || '';
+                        return tplName ? `${tplName} (${tid.slice(0, 8)}…)` : tid;
+                      })()}
                 </span>
-                <div className={styles.actionsBottom} onClick={(e) => e.stopPropagation()}>
-                  <BadgeIconButton Icon={Pencil} onClick={onEdit} title="Edit" />
-                  <BadgeIconButton Icon={Trash2} onClick={onDelete} title="Move to trash" dangerOutline />
-                </div>
-              </div>
+              )}
+              {/* 第4行：插件徽章 */}
               {obj.contractTypeId && (
                 <span className={styles.pluginRow}>
                   <PluginBadge contractTypeId={obj.contractTypeId} size="sm" variant="full" />
@@ -264,7 +241,28 @@ export const WorkspaceObjectCard = memo(function WorkspaceObjectCard({
               )}
             </div>
           </div>
-          {/* 桌面端：所有操作按钮在一行（headerActions），移动端用上面的 split rows */}
+          {/* 移动端右列：操作按钮（仅移动端显示） */}
+          <div className={styles.mobileActionCol} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.actionRow}>
+              <BadgeIconButton
+                Icon={Clock}
+                count={snapshotCount}
+                onClick={onHistory}
+                title="History"
+              />
+              <BadgeIconButton
+                Icon={Paperclip}
+                count={attachmentCount}
+                onClick={onAttachments}
+                title="Attachments"
+              />
+            </div>
+            <div className={styles.actionRow}>
+              <BadgeIconButton Icon={Pencil} onClick={onEdit} title="Edit" />
+              <BadgeIconButton Icon={Trash2} onClick={onDelete} title="Move to trash" dangerOutline />
+            </div>
+          </div>
+          {/* 桌面端：所有操作按钮在一行（headerActions） */}
           <div className={styles.headerActions} onClick={(e) => e.stopPropagation()}>
             <BadgeIconButton
               Icon={Clock}
