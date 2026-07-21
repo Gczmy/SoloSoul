@@ -16,6 +16,7 @@ import {
 import { Button } from '@/components/ui/Button';
 import { useUiStore } from '@/stores/uiStore';
 import { useConfirm } from '@/hooks/useConfirm';
+import { useIsNarrowViewport } from '@/hooks/useIsNarrowViewport';
 import { useDragToAttach } from '@/hooks/useDragToAttach';
 import { downloadViaStage, isUriPath } from '@/lib/mobileFileTransfer';
 import { isMobilePlatformSync } from '@/lib/platform';
@@ -60,6 +61,7 @@ export function AttachmentViewer({
   const { t } = useTranslation(['common', 'editor']);
   const showToast = useUiStore((s) => s.showToast);
   const { dialog: confirmDialog } = useConfirm();
+  const isNarrowViewport = useIsNarrowViewport();
 
   const openAttachmentExternal = async (item: AttachmentItem) => {
     try {
@@ -408,7 +410,9 @@ export function AttachmentViewer({
                   gap: 8,
                 }}
               >
-                <Paperclip size={ICON_SIZE.sm} /> {t('common:attachments')}
+                {/* 窄视口只留图标，把空间让给 活跃/回收站 切换与右侧操作按钮 */}
+                <Paperclip size={ICON_SIZE.sm} />
+                {!isNarrowViewport && t('common:attachments')}
               </div>
               <div style={{ display: 'flex', gap: 4 }}>
                 <Button
@@ -466,17 +470,28 @@ export function AttachmentViewer({
                 </Button>
               </div>
             </div>
-            {!showTrash && (
-              <Button variant="secondary" size="sm" onClick={handleAdd}>
-                <Upload size={ICON_SIZE.sm} /> {t('common:upload')}
-              </Button>
-            )}
-            <BadgeIconButton
-              Icon={X}
-              onClick={onClose}
-              title={t('common:close') || 'Close'}
-              iconSize={ICON_SIZE.md}
-            />
+            {/* 右侧操作：窄视口下 Upload 改纯图标（与关闭按钮同款 44×44），避免头部溢出 */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+              {!showTrash &&
+                (isNarrowViewport ? (
+                  <BadgeIconButton
+                    Icon={Upload}
+                    onClick={handleAdd}
+                    title={t('common:upload') || 'Upload'}
+                    iconSize={ICON_SIZE.sm}
+                  />
+                ) : (
+                  <Button variant="secondary" size="sm" onClick={handleAdd}>
+                    <Upload size={ICON_SIZE.sm} /> {t('common:upload')}
+                  </Button>
+                ))}
+              <BadgeIconButton
+                Icon={X}
+                onClick={onClose}
+                title={t('common:close') || 'Close'}
+                iconSize={ICON_SIZE.md}
+              />
+            </div>
           </div>
           {/* 批量操作工具栏 — 常驻显示 */}
           {displayItems.length > 0 && (
