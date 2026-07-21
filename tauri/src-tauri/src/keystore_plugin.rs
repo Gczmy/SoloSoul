@@ -35,6 +35,15 @@ pub struct KeystoreCiphertext {
 pub struct AvailabilityInfo {
     pub strong_available: bool,
     pub weak_available: bool,
+    /// 诊断字段（Kotlin 侧返回，排查 Class 2 人脸设备检测问题）
+    #[serde(default)]
+    pub sdk_int: Option<i64>,
+    #[serde(default)]
+    pub face_feature: Option<bool>,
+    #[serde(default)]
+    pub strong_raw: Option<i64>,
+    #[serde(default)]
+    pub weak_raw: Option<i64>,
 }
 
 /// 生物识别提示信息。

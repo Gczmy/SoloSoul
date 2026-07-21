@@ -45,6 +45,10 @@ pub struct BiometricAvailability {
     pub error: Option<String>,
     #[serde(default)]
     pub weak_available: bool,
+    /// 诊断信息（仅 Android 填充）：设备生物识别检测原始值，用于排查
+    /// 特定机型（如 Class 2 人脸）可用性判定问题。不含敏感数据。
+    #[serde(default)]
+    pub debug: Option<String>,
 }
 
 /// 生物识别存储层返回的错误。
@@ -246,6 +250,7 @@ impl BiometricManager {
             biometry_type: bt,
             error: err,
             weak_available: false,
+            debug: None,
         }
     }
 
@@ -697,6 +702,7 @@ mod tests {
             biometry_type: Some("touchId".to_string()),
             error: None,
             weak_available: false,
+            debug: None,
         };
         let json = serde_json::to_string(&original).unwrap();
         assert!(json.contains("touchId"));

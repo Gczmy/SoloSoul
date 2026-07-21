@@ -247,10 +247,33 @@ class BiometricKeystorePlugin(private val activity: Activity): Plugin(activity) 
             val result = JSObject()
             result.put("strongAvailable", strongAvailable)
             result.put("weakAvailable", weakAvailable)
+            // 诊断字段：排查 Class 2 人脸设备上的可用性判定（adb logcat -s SoloSoul 可见）
+            result.put("sdkInt", Build.VERSION.SDK_INT)
+            result.put(
+                "faceFeature",
+                activity.packageManager.hasSystemFeature(PackageManager.FEATURE_FACE)
+            )
+            result.put(
+                "weakRaw",
+                rawCanAuthenticate(BiometricManager.Authenticators.BIOMETRIC_WEAK)
+            )
+            result.put(
+                "strongRaw",
+                rawCanAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)
+            )
+            android.util.Log.i("SoloSoul", "checkBiometricAvailability: $result")
             invoke.resolve(result)
         } catch (e: Exception) {
             android.util.Log.e("SoloSoul", "checkBiometricAvailability failed: ${e.message}", e)
             invoke.reject("checkBiometricAvailability failed: ${e.message}")
+        }
+    }
+
+    private fun rawCanAuthenticate(authenticators: Int): Int {
+        return try {
+            BiometricManager.from(activity).canAuthenticate(authenticators)
+        } catch (_: Exception) {
+            -1
         }
     }
 

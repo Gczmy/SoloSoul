@@ -143,12 +143,15 @@ pub async fn biometric_check_availability(
     // 不再以 tauri-plugin-biometric 的 status 为唯一依据——旧 API 级别
     // （<30）其弱生物识别检查退化为指纹检查，会漏检 Class 2 人脸。
     #[cfg(target_os = "android")]
-    let (available, weak_available, effective_type) = {
+    let (available, weak_available, effective_type, debug) = {
         use crate::keystore_plugin::KeystorePluginHandle;
         use tauri::Manager;
-        let info = app
+        // 记录完整调用结果以便区分：state 未注册（None）/ 桥接失败（Err）/ 正常
+        let keystore_result = app
             .try_state::<KeystorePluginHandle<tauri::Wry>>()
-            .and_then(|keystore| keystore.check_biometric_availability().ok());
+            .map(|keystore| keystore.check_biometric_availability());
+        tracing::info!("biometric_check_availability: keystore_result={:?}", keystore_result);
+        let info = keystore_result.and_then(|r| r.ok());
         let strong = info.as_ref().map(|i| i.strong_available).unwrap_or(false);
         let weak = info.as_ref().map(|i| i.weak_available).unwrap_or(false);
         tracing::info!(
@@ -166,12 +169,19 @@ pub async fn biometric_check_availability(
         } else {
             plugin_biometry_type.clone()
         };
-        (available, weak_available, effective_type)
+        // 诊断信息随响应返回，前端「不可用」卡片可直接展示，便于排查特定机型
+        let debug = info.as_ref().map(|i| {
+            format!(
+                "sdk={:?} faceFeature={:?} strongRaw={:?} weakRaw={:?} pluginStatus={}",
+                i.sdk_int, i.face_feature, i.strong_raw, i.weak_raw, status_available
+            )
+        });
+        (available, weak_available, effective_type, debug)
     };
 
     #[cfg(target_os = "ios")]
-    let (available, weak_available, effective_type) =
-        (status_available, false, plugin_biometry_type.clone());
+    let (available, weak_available, effective_type, debug) =
+        (status_available, false, plugin_biometry_type.clone(), None);
 
     Ok(BiometricAvailability {
         available,
@@ -179,6 +189,7 @@ pub async fn biometric_check_availability(
         biometry_type: effective_type,
         error: status_error,
         weak_available,
+        debug,
     })
 }
 
