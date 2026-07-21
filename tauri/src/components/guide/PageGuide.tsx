@@ -45,6 +45,7 @@ export function PageGuide({ pages, label }: PageGuideProps) {
   const [isSnapping, setIsSnapping] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const stripRef = useRef<HTMLDivElement>(null);
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
@@ -53,6 +54,11 @@ export function PageGuide({ pages, label }: PageGuideProps) {
   const dragOffsetRef = useRef(0);
   const isDraggingRef = useRef(false);
   const pageIndexRef = useRef(0);
+  // 以下 ref 用于被动触摸事件处理程序（避免闭包过期）
+  const goToRef = useRef<(index: number) => void>(() => {});
+  const isFirstRef = useRef(false);
+  const isLastRef = useRef(false);
+  const pagesLenRef = useRef(pages.length);
 
   // 每次打开时重置到第一页
   useEffect(() => {
@@ -91,6 +97,70 @@ export function PageGuide({ pages, label }: PageGuideProps) {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [open]);
 
+  // 原生被动触摸事件（passive:true 允许浏览器不等待 JS 即可开始滚动）
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container || !open) return;
+
+    const onTouchStart = (e: TouchEvent) => {
+      touchStartX.current = e.touches[0].clientX;
+      touchStartY.current = e.touches[0].clientY;
+      containerWidth.current = container.offsetWidth;
+      isDraggingRef.current = true;
+      dragOffsetRef.current = 0;
+      pageIndexRef.current = pageIndex;
+      setIsSnapping(false);
+    };
+
+    const onTouchMove = (e: TouchEvent) => {
+      if (!isDraggingRef.current) return;
+      const dx = e.touches[0].clientX - touchStartX.current;
+      const dy = e.touches[0].clientY - touchStartY.current;
+      dragOffsetRef.current = dx;
+      if (stripRef.current && Math.abs(dx) > Math.abs(dy)) {
+        stripRef.current.style.transition = 'none';
+        const pagePct = pageIndexRef.current * (100 / pagesLenRef.current);
+        stripRef.current.style.transform = `translateX(calc(-${pagePct}% + ${dx}px))`;
+      }
+    };
+
+    const onTouchEnd = (e: TouchEvent) => {
+      isDraggingRef.current = false;
+      const dx = e.changedTouches[0].clientX - touchStartX.current;
+      const dy = e.changedTouches[0].clientY - touchStartY.current;
+      const threshold = Math.min(50, containerWidth.current * 0.15);
+
+      if (Math.abs(dx) > threshold && Math.abs(dx) > Math.abs(dy) * 1.5) {
+        if (dx > 0 && pageIndexRef.current > 0) {
+          goToRef.current(pageIndexRef.current - 1);
+          return;
+        }
+        if (dx < 0 && pageIndexRef.current < pagesLenRef.current - 1) {
+          goToRef.current(pageIndexRef.current + 1);
+          return;
+        }
+      }
+      // 未触发翻页：回弹到当前页
+      setIsSnapping(true);
+      dragOffsetRef.current = 0;
+      if (stripRef.current) {
+        stripRef.current.style.transition = 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
+        stripRef.current.style.transform = `translateX(-${pageIndexRef.current * (100 / pagesLenRef.current)}%)`;
+      }
+      setTimeout(() => setIsSnapping(false), 350);
+    };
+
+    container.addEventListener('touchstart', onTouchStart, { passive: true });
+    container.addEventListener('touchmove', onTouchMove, { passive: true });
+    container.addEventListener('touchend', onTouchEnd, { passive: true });
+
+    return () => {
+      container.removeEventListener('touchstart', onTouchStart);
+      container.removeEventListener('touchmove', onTouchMove);
+      container.removeEventListener('touchend', onTouchEnd);
+    };
+  }, [open, pageIndex, pages.length]);
+
   const displayLabel = label ?? t('guide') ?? '指南';
   const active = hovered;
   const currentPage = pages[pageIndex];
@@ -116,6 +186,12 @@ export function PageGuide({ pages, label }: PageGuideProps) {
     [pageIndex, pages.length],
   );
 
+  // 每次渲染后更新 ref，使原生事件处理程序总是读取最新值
+  goToRef.current = goTo;
+  isFirstRef.current = isFirst;
+  isLastRef.current = isLast;
+  pagesLenRef.current = pages.length;
+
   const handlePrev = useCallback(() => {
     if (!isFirst) goTo(pageIndex - 1);
   }, [isFirst, goTo, pageIndex]);
@@ -123,59 +199,6 @@ export function PageGuide({ pages, label }: PageGuideProps) {
   const handleNext = useCallback(() => {
     if (!isLast) goTo(pageIndex + 1);
   }, [isLast, goTo, pageIndex]);
-
-  // 触摸滑动手势（使用 ref 避免高频重渲染）
-  const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
-    touchStartY.current = e.touches[0].clientY;
-    containerWidth.current = (e.currentTarget as HTMLElement).offsetWidth;
-    isDraggingRef.current = true;
-    dragOffsetRef.current = 0;
-    pageIndexRef.current = pageIndex;
-    setIsSnapping(false); // 快速连续滑动时立即打断上一次快照动画
-  }, [pageIndex]);
-
-  const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (!isDraggingRef.current) return;
-    const dx = e.touches[0].clientX - touchStartX.current;
-    const dy = e.touches[0].clientY - touchStartY.current;
-    dragOffsetRef.current = dx;
-    if (stripRef.current && Math.abs(dx) > Math.abs(dy)) {
-      // 直接操作 DOM，不触发 React 重渲染
-      stripRef.current.style.transition = 'none';
-      const pagePct = pageIndexRef.current * (100 / pages.length);
-      stripRef.current.style.transform = `translateX(calc(-${pagePct}% + ${dx}px))`;
-    }
-  }, []);
-
-  const handleTouchEnd = useCallback(
-    (e: React.TouchEvent) => {
-      isDraggingRef.current = false;
-      const dx = e.changedTouches[0].clientX - touchStartX.current;
-      const dy = e.changedTouches[0].clientY - touchStartY.current;
-      const threshold = Math.min(50, containerWidth.current * 0.15);
-
-      if (Math.abs(dx) > threshold && Math.abs(dx) > Math.abs(dy) * 1.5) {
-        if (dx > 0 && pageIndex > 0) {
-          goTo(pageIndex - 1);
-          return;
-        }
-        if (dx < 0 && pageIndex < pages.length - 1) {
-          goTo(pageIndex + 1);
-          return;
-        }
-      }
-      // 未触发翻页：回弹到当前页
-      setIsSnapping(true);
-      dragOffsetRef.current = 0;
-      if (stripRef.current) {
-        stripRef.current.style.transition = 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
-        stripRef.current.style.transform = `translateX(-${pageIndex * (100 / pages.length)}%)`;
-      }
-      setTimeout(() => setIsSnapping(false), 350);
-    },
-    [isFirst, isLast, goTo, pageIndex, pages.length],
-  );
 
   const handleHelpLinkClick = (href: string) => {
     setOpen(false);
@@ -330,46 +353,36 @@ export function PageGuide({ pages, label }: PageGuideProps) {
               {pages.map((p, i) => (
                 <button
                   key={i}
-                  onClick={() => goTo(i)}
                   style={{
-                    width: 4,
-                    height: 4,
+                    width: 3,
+                    height: 3,
                     borderRadius: '50%',
                     border: 'none',
                     padding: 0,
-                    cursor: 'pointer',
                     background: i === pageIndex ? 'var(--accent-primary)' : 'var(--border-subtle)',
                     transition: 'all 0.25s ease',
                   }}
                   title={p.title}
-                  aria-label={p.title}
                 />
               ))}
             </div>
 
             {/* 滑动条容器 — 左右滑动实时跟手 */}
             <div
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={handleTouchEnd}
+              ref={containerRef}
               style={{
                 flex: 1,
                 minHeight: 0,
                 overflow: 'hidden',
                 position: 'relative',
-                overscrollBehavior: 'contain',
               }}
             >
               <div
                 ref={stripRef}
                 style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
                   display: 'flex',
                   width: `${pages.length * 100}%`,
+                  height: '100%',
                   transform: stripTransform,
                   transition: stripTransition,
                   willChange: 'transform',
@@ -383,7 +396,6 @@ export function PageGuide({ pages, label }: PageGuideProps) {
                       flexShrink: 0,
                       overflowY: 'auto',
                       overflowX: 'hidden',
-                      touchAction: 'pan-y',
                       padding: '16px 20px 8px',
                       boxSizing: 'border-box',
                     }}
