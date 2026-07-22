@@ -151,8 +151,9 @@ export function DebugLogPage() {
                   key={log.id}
                   style={{
                     display: 'flex',
-                    gap: 8,
-                    padding: '2px 4px',
+                    flexDirection: 'column',
+                    gap: 2,
+                    padding: '4px 6px',
                     background: log.actionType.includes('delete')
                       ? 'rgba(220, 38, 38, 0.06)'
                       : log.actionType.includes('create')
@@ -161,31 +162,37 @@ export function DebugLogPage() {
                     borderRadius: 2,
                   }}
                 >
-                  <span
-                    style={{ color: 'var(--text-tertiary)', whiteSpace: 'nowrap', minWidth: 80 }}
-                  >
-                    {log.timestamp?.split('T')[1]?.split('.')[0] || ''}
-                  </span>
-                  <span
-                    style={{
-                      minWidth: 48,
-                      fontWeight: 600,
-                      color: log.actionType.includes('delete')
-                        ? '#dc2626'
-                        : log.actionType.includes('create')
-                          ? 'var(--accent-success)'
-                          : 'var(--accent-primary)',
-                    }}
-                  >
-                    {log.actionType.toUpperCase()}
-                  </span>
+                  {/* 第一行：[时间] [操作类型] */}
+                  <div style={{ display: 'flex', gap: 8 }}>
+                    <span
+                      style={{
+                        color: 'var(--text-tertiary)',
+                        whiteSpace: 'nowrap',
+                        minWidth: 80,
+                      }}
+                    >
+                      {log.timestamp?.split('T')[1]?.split('.')[0] || ''}
+                    </span>
+                    <span
+                      style={{
+                        fontWeight: 600,
+                        color: log.actionType.includes('delete')
+                          ? '#dc2626'
+                          : log.actionType.includes('create')
+                            ? 'var(--accent-success)'
+                            : 'var(--accent-primary)',
+                      }}
+                    >
+                      {log.actionType.toUpperCase()}
+                    </span>
+                  </div>
+                  {/* 第二行：[内容] 独占一行，不受时间/操作列宽约束 */}
                   <span
                     style={{
                       color: 'var(--text-secondary)',
-                      flex: 1,
-                      minWidth: 0,
                       whiteSpace: 'pre-wrap',
                       wordBreak: 'break-word',
+                      paddingLeft: 0,
                     }}
                   >
                     {log.entityType}
