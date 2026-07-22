@@ -332,6 +332,7 @@ Tauri 前端所有字段均有 `SensitivityLevel`：
 - **操作日志**：每次 CRUD 生成 `OperationEntry`，含 before→after 差异描述，支持 30 天软删除后永久清理。
 - **自动锁定**：监听窗口焦点变化与系统休眠事件，超时锁定 Vault 并擦除敏感状态。
 - **IPC 调用**：前端通过 `invoke` 调用 Rust Commands，禁止直接操作文件系统或网络。
+- **系统文件对话框**：凡调用系统原生文件选择器（plugin-dialog 的 `open`/`save`）必须使用 `tauri/src/lib/dialog.ts` 的封装（`openWithPause`/`saveWithPause`），禁止裸调。封装内部自动暂停自动锁定，防止 `visibilitychange:hidden` 导致 Vault 被误锁定。
 
 ---
 

@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Copy, Check, Eye, Download } from 'lucide-react';
 import { open } from '@tauri-apps/plugin-shell';
-import { save, open as openDialog } from '@tauri-apps/plugin-dialog';
+import { saveWithPause, openWithPause } from '@/lib/dialog';
 import { copyFile } from '@tauri-apps/plugin-fs';
 import { join } from '@tauri-apps/api/path';
 import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
@@ -339,7 +339,7 @@ function WatermarkResultContent({
 
   const handleDownload = async (item: WatermarkResultItem) => {
     try {
-      const dest = await save({ defaultPath: item.fileName });
+      const dest = await saveWithPause({ defaultPath: item.fileName });
       if (dest) {
         await copyFile(item.outputPath, dest);
       }
@@ -351,8 +351,8 @@ function WatermarkResultContent({
   const handleDownloadSelected = async () => {
     if (selectedIds.size === 0) return;
     try {
-      const dir = await openDialog({ directory: true });
-      if (!dir) return;
+      const dir = await openWithPause({ directory: true });
+      if (!dir || Array.isArray(dir)) return;
       const selected = items.filter((item) => selectedIds.has(resultItemId(item)));
       await Promise.all(
         selected.map(async (item) => {

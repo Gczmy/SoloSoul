@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/Button';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { useToastError } from '@/hooks/useToastError';
 import { invoke } from '@tauri-apps/api/core';
-import { save } from '@tauri-apps/plugin-dialog';
+import { saveWithPause } from '@/lib/dialog';
 import { Search, Download, X } from 'lucide-react';
 import { resolveCollectionLabel } from '@/lib/utils';
 import { useSettingsStore } from '@/stores/settingsStore';
@@ -149,7 +149,7 @@ export function OperationLogPage() {
 
   const handleExport = async () => {
     try {
-      const filePath = await save({
+      const filePath = await saveWithPause({
         defaultPath: 'audit_log_export.json',
         filters: [{ name: 'JSON', extensions: ['json'] }],
       });

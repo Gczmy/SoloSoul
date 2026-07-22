@@ -570,8 +570,8 @@ export function ExportSection({
         <button
           type="button"
           onClick={async () => {
-            const { save } = await import('@tauri-apps/plugin-dialog');
-            const fp = await save({
+            const { saveWithPause } = await import('@/lib/dialog');
+            const fp = await saveWithPause({
               filters: [{ name: 'SoloSoul Export', extensions: ['solosoul'] }],
               defaultPath: `solosoul_export_${Date.now()}.solosoul`,
             });

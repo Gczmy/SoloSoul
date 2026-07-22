@@ -274,20 +274,10 @@ export function GlobalAttachmentManager() {
       return;
     }
     try {
-      // 系统保存位置选择器会触发 visibilitychange，期间暂停自动锁定（与上传一致）
-      const { pause, resume } = await import('@/stores/autoLockPauseStore').then(
-        (m) => m.useAutoLockPauseStore.getState(),
-      );
-      const { save } = await import('@tauri-apps/plugin-dialog');
-      pause();
-      let destPath: string | null;
-      try {
-        destPath = await save({
-          defaultPath: item.fileName,
-        });
-      } finally {
-        resume();
-      }
+      const { saveWithPause } = await import('@/lib/dialog');
+      const destPath = await saveWithPause({
+        defaultPath: item.fileName,
+      });
       if (!destPath) return;
       await downloadViaStage(filePath, destPath, item.fileName, (src, dest) =>
         invoke('attachment_download', { srcPath: src, destPath: dest }),
@@ -390,8 +380,8 @@ export function GlobalAttachmentManager() {
     if (entries.length === 0) return;
 
     try {
-      const { open } = await import('@tauri-apps/plugin-dialog');
-      const dirPath = await open({
+      const { openWithPause } = await import('@/lib/dialog');
+      const dirPath = await openWithPause({
         directory: true,
         multiple: false,
         title: t('common:select_download_directory') || 'Select download directory',
@@ -399,7 +389,7 @@ export function GlobalAttachmentManager() {
       if (!dirPath) return;
 
       // Android 目录选择器返回 tree URI，无法直接用 std::fs 写入，暂不支持批量下载
-      if (isUriPath(dirPath)) {
+      if (typeof dirPath === 'string' && isUriPath(dirPath)) {
         showToast({
           type: 'warning',
           message:

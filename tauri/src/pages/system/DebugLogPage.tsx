@@ -7,7 +7,7 @@ import { Card } from '@/components/ui/Card';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 
 import { invoke } from '@tauri-apps/api/core';
-import { save } from '@tauri-apps/plugin-dialog';
+import { saveWithPause } from '@/lib/dialog';
 import { Bug, Download, RefreshCw } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/constants';
 import { isUriPath, copyStagedFileToDest } from '@/lib/mobileFileTransfer';
@@ -48,7 +48,7 @@ export function DebugLogPage() {
 
   const handleExport = async () => {
     try {
-      const filePath = await save({
+      const filePath = await saveWithPause({
         defaultPath: 'debug_log_export.json',
         filters: [{ name: 'JSON', extensions: ['json'] }],
       });

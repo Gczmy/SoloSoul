@@ -171,8 +171,8 @@ export function ImportSection({
         <button
           type="button"
           onClick={async () => {
-            const { open } = await import('@tauri-apps/plugin-dialog');
-            const selected = await open({
+            const { openWithPause } = await import('@/lib/dialog');
+            const selected = await openWithPause({
               filters: [{ name: 'SoloSoul Export', extensions: ['solosoul'] }],
               multiple: false,
             });

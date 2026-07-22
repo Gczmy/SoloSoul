@@ -159,20 +159,10 @@ export function AttachmentViewer({
       return;
     }
     try {
-      // 系统保存位置选择器会触发 visibilitychange，期间暂停自动锁定（与上传一致）
-      const { pause, resume } = await import('@/stores/autoLockPauseStore').then(
-        (m) => m.useAutoLockPauseStore.getState(),
-      );
-      const { save } = await import('@tauri-apps/plugin-dialog');
-      pause();
-      let destPath: string | null;
-      try {
-        destPath = await save({
-          defaultPath: item.fileName,
-        });
-      } finally {
-        resume();
-      }
+      const { saveWithPause } = await import('@/lib/dialog');
+      const destPath = await saveWithPause({
+        defaultPath: item.fileName,
+      });
       if (!destPath) return;
       await downloadViaStage(filePath, destPath, item.fileName, (src, dest) =>
         invoke('attachment_download', { srcPath: src, destPath: dest }),
@@ -286,22 +276,12 @@ export function AttachmentViewer({
     const selectedItems = displayItems.filter((item) => attachmentIds.includes(item.id));
     if (selectedItems.length === 0) return;
 
-    // 系统目录选择器会触发 visibilitychange，期间暂停自动锁定
-    const { pause, resume } = await import('@/stores/autoLockPauseStore').then(
-      (m) => m.useAutoLockPauseStore.getState(),
-    );
-    const { open } = await import('@tauri-apps/plugin-dialog');
-    pause();
-    let dirPath: string | null;
-    try {
-      dirPath = (await open({
-        directory: true,
-        multiple: false,
-        title: t('common:select_download_directory') || 'Select download directory',
-      })) as string | null;
-    } finally {
-      resume();
-    }
+    const { openWithPause } = await import('@/lib/dialog');
+    const dirPath = (await openWithPause({
+      directory: true,
+      multiple: false,
+      title: t('common:select_download_directory') || 'Select download directory',
+    })) as string | null;
     if (!dirPath) return;
 
     let successCount = 0;
