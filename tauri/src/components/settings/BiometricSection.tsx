@@ -163,20 +163,6 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
           >
             {t('settings:biometric_unavailable_desc') ??
               '当前设备未设置或不支持生物识别（Touch ID / Face ID）。请先在系统设置中添加指纹或面容，然后重新打开此页面。'}
-            {/* 诊断信息（仅 Android 返回）：排查特定机型生物识别检测问题用，不含敏感数据 */}
-            {bioAvailable.debug && (
-              <div
-                style={{
-                  marginTop: 8,
-                  fontSize: 'var(--text-badge)',
-                  color: 'var(--text-tertiary)',
-                  fontFamily: 'var(--font-mono)',
-                  wordBreak: 'break-all',
-                }}
-              >
-                {bioAvailable.debug}
-              </div>
-            )}
           </div>
         ) : (
           <>
@@ -270,6 +256,21 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
               </div>
             </div>
           </>
+        )}
+        {/* 诊断信息（仅 Android 返回）：不受 available 分支限制永远显示，
+            用于区分「旧构建 / 桥接失败 / 设备平台限制」，不含敏感数据 */}
+        {bioAvailable.debug && (
+          <div
+            style={{
+              marginTop: 12,
+              fontSize: 'var(--text-badge)',
+              color: 'var(--text-tertiary)',
+              fontFamily: 'var(--font-mono)',
+              wordBreak: 'break-all',
+            }}
+          >
+            {bioAvailable.debug}
+          </div>
         )}
       </Card>
 

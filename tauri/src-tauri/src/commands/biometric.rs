@@ -151,7 +151,24 @@ pub async fn biometric_check_availability(
             .try_state::<KeystorePluginHandle<tauri::Wry>>()
             .map(|keystore| keystore.check_biometric_availability());
         tracing::info!("biometric_check_availability: keystore_result={:?}", keystore_result);
-        let info = keystore_result.and_then(|r| r.ok());
+        // 诊断字符串无条件生成：桥接失败时也要让前端有内容可显示，
+        // 否则无法区分「旧构建」与「桥接失败」
+        let (bridge_desc, info) = match keystore_result {
+            None => ("missing".to_string(), None),
+            Some(Err(e)) => (format!("err:{e}"), None),
+            Some(Ok(i)) => (
+                format!(
+                    "ok strong={} weak={} sdk={:?} faceFeature={:?} strongRaw={:?} weakRaw={:?}",
+                    i.strong_available,
+                    i.weak_available,
+                    i.sdk_int,
+                    i.face_feature,
+                    i.strong_raw,
+                    i.weak_raw
+                ),
+                Some(i),
+            ),
+        };
         let strong = info.as_ref().map(|i| i.strong_available).unwrap_or(false);
         let weak = info.as_ref().map(|i| i.weak_available).unwrap_or(false);
         tracing::info!(
@@ -169,13 +186,10 @@ pub async fn biometric_check_availability(
         } else {
             plugin_biometry_type.clone()
         };
-        // 诊断信息随响应返回，前端「不可用」卡片可直接展示，便于排查特定机型
-        let debug = info.as_ref().map(|i| {
-            format!(
-                "sdk={:?} faceFeature={:?} strongRaw={:?} weakRaw={:?} pluginStatus={}",
-                i.sdk_int, i.face_feature, i.strong_raw, i.weak_raw, status_available
-            )
-        });
+        let debug = Some(format!(
+            "pluginStatus={} pluginType={:?} bridge={}",
+            status_available, plugin_biometry_type, bridge_desc
+        ));
         (available, weak_available, effective_type, debug)
     };
 
