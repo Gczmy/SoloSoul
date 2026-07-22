@@ -44,6 +44,22 @@ class MobileOcrPlugin(private val activity: Activity): Plugin(activity) {
      */
     private var pendingCapturePath: String? = null
 
+    /**
+     * 清理 cacheDir 中残留的拍照临时文件（ocr_capture_*.jpg）。
+     * 跳过当前正在使用的 pendingCapturePath 文件。
+     */
+    private fun cleanupOldCaptureFiles() {
+        try {
+            val files = activity.cacheDir.listFiles { file ->
+                file.name.startsWith("ocr_capture_") && file.name.endsWith(".jpg") &&
+                    file.absolutePath != pendingCapturePath
+            }
+            files?.forEach { it.delete() }
+        } catch (e: Exception) {
+            android.util.Log.w("SoloSoul", "cleanupOldCaptureFiles: ${e.message}")
+        }
+    }
+
     private fun getRecognizer(): TextRecognizer {
         if (recognizer == null) {
             recognizer = TextRecognition.getClient(ChineseTextRecognizerOptions.Builder().build())
@@ -111,6 +127,9 @@ class MobileOcrPlugin(private val activity: Activity): Plugin(activity) {
     @Command
     fun takePhoto(invoke: Invoke) {
         try {
+            // 清理上一次拍照残留的临时文件
+            cleanupOldCaptureFiles()
+
             val captureFile = File(activity.cacheDir, "ocr_capture_${System.currentTimeMillis()}.jpg")
             pendingCapturePath = captureFile.absolutePath
 
@@ -154,12 +173,14 @@ class MobileOcrPlugin(private val activity: Activity): Plugin(activity) {
     }
 
     /**
-     * 插件销毁时释放 ML Kit 原生资源。
+     * 插件销毁时释放 ML Kit 原生资源，并清理拍照临时文件。
      */
     override fun onDestroy() {
         super.onDestroy()
         recognizer?.let {
             it.close()
         }
+        pendingCapturePath = null
+        cleanupOldCaptureFiles()
     }
 }

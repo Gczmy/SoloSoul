@@ -261,30 +261,57 @@ export function TrashPage() {
         </div>
 
         {filtered.length > 0 && (
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              fontSize: 'var(--text-sm)',
-              color: 'var(--text-secondary)',
-              padding: '4px 0',
-            }}
-          >
-            <SelectCheckbox
-              checked={allFilteredSelected}
-              indeterminate={!allFilteredSelected && hasSelection}
-              onChange={() =>
-                allFilteredSelected ? clearSelection() : selectAll(filtered.map((i) => i.id))
-              }
-            />
-            <span>
-              {t('settings:select_all')} ({filtered.length})
-            </span>
-            {hasSelection && (
-              <span style={{ marginLeft: 'auto' }}>
-                {selectedIds.size} {t('settings:selected')}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                fontSize: 'var(--text-sm)',
+                color: 'var(--text-secondary)',
+                padding: '4px 0',
+              }}
+            >
+              <SelectCheckbox
+                checked={allFilteredSelected}
+                indeterminate={!allFilteredSelected && hasSelection}
+                onChange={() =>
+                  allFilteredSelected ? clearSelection() : selectAll(filtered.map((i) => i.id))
+                }
+              />
+              <span>
+                {t('settings:select_all')} ({filtered.length})
               </span>
+            </div>
+
+            {/* 批量操作栏：嵌入页面内，紧贴全选勾选框下方 */}
+            {hasSelection && (
+              <div
+                style={{
+                  padding: '10px 14px',
+                  background: 'var(--bg-toolbar)',
+                  borderRadius: 10,
+                  border: '1px solid var(--border-subtle)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                }}
+              >
+                <Button
+                  size="sm"
+                  variant="tertiary"
+                  onClick={() => doRestore(Array.from(selectedIds))}
+                >
+                  <RotateCcw size={ICON_SIZE.xs} style={{ marginRight: 4 }} />
+                  {t('common:restore_all')}
+                </Button>
+                <DeleteButton
+                  onClick={() => doDelete(Array.from(selectedIds))}
+                  title={t('common:delete_permanently_all')}
+                >
+                  {t('common:delete_permanently_all')}
+                </DeleteButton>
+              </div>
             )}
           </div>
         )}
@@ -443,42 +470,6 @@ export function TrashPage() {
                 </Card>
               ))
             )}
-          </div>
-        )}
-
-        {hasSelection && (
-          <div
-            style={{
-              position: 'sticky',
-              bottom: 0,
-              padding: '12px 16px',
-              background: 'var(--bg-elevated)',
-              borderRadius: 10,
-              border: '1px solid var(--border-subtle)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              boxShadow: '0 -2px 12px rgba(0,0,0,0.08)',
-            }}
-          >
-            <span
-              style={{
-                fontSize: 'var(--text-body-sm)',
-                color: 'var(--text-secondary)',
-                marginRight: 'auto',
-              }}
-            >
-              {selectedIds.size} {t('settings:selected')}
-            </span>
-            <Button size="sm" variant="tertiary" onClick={() => doRestore(Array.from(selectedIds))}>
-              <RotateCcw size={ICON_SIZE.xs} style={{ marginRight: 4 }} /> {t('common:restore')}
-            </Button>
-            <DeleteButton
-              onClick={() => doDelete(Array.from(selectedIds))}
-              title={t('common:delete_permanently')}
-            >
-              {t('common:delete_permanently')}
-            </DeleteButton>
           </div>
         )}
 
