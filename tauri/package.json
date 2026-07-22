@@ -20,7 +20,7 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:e2e:mobile": "playwright test --project=mobile",
-    "check-all": "tsc --noEmit && cargo fmt --check && cargo clippy -- -D warnings && npm run lint && npm run test",
+    "check-all": "tsc --noEmit && cargo fmt --check && cargo clippy -- -D warnings && npm run lint && npm run test && python3 scripts/check_acl_consistency.py",
     "format": "prettier --write src/",
     "format:check": "prettier --check src/"
   },

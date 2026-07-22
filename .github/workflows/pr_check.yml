@@ -80,6 +80,11 @@ jobs:
           cd tauri
           cargo test --verbose
 
+      - name: Check ACL consistency
+        run: |
+          cd tauri
+          python3 scripts/check_acl_consistency.py
+
   plugin-market-check:
     name: Plugin Market Registry Check
     runs-on: ubuntu-latest
