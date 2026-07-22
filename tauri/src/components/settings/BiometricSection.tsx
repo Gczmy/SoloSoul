@@ -32,7 +32,15 @@ interface BioAvailability {
 type BioMode = 'strong' | 'weak';
 
 /** 开关滑块（抽取以避免两行重复） */
-function ToggleSwitch({ checked, onChange }: { checked: boolean; onChange: () => void }) {
+function ToggleSwitch({
+  checked,
+  onChange,
+  disabled = false,
+}: {
+  checked: boolean;
+  onChange: () => void;
+  disabled?: boolean;
+}) {
   return (
     <label
       style={{
@@ -40,14 +48,15 @@ function ToggleSwitch({ checked, onChange }: { checked: boolean; onChange: () =>
         display: 'inline-block',
         width: 44,
         height: 24,
-        cursor: 'pointer',
+        cursor: disabled ? 'not-allowed' : 'pointer',
         flexShrink: 0,
+        opacity: 1,
       }}
     >
       <input
         type="checkbox"
         checked={checked}
-        onChange={onChange}
+        onChange={disabled ? () => {} : onChange}
         style={{ opacity: 0, width: 0, height: 0 }}
       />
       <span
@@ -122,7 +131,13 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
     const configured =
       mode === 'weak' ? bioAvailable?.weakConfigured : bioAvailable?.strongConfigured;
     setBioMode(mode);
-    setBioAction(configured ? 'disable' : 'enable');
+    // 弱人脸（Class 2）不再允许开启，仅已配置的历史用户可单向关闭
+    if (mode === 'weak') {
+      if (!configured) return;
+      setBioAction('disable');
+    } else {
+      setBioAction(configured ? 'disable' : 'enable');
+    }
     setBioPw('');
     setError(null);
     setShowBioPwDialog(true);
@@ -275,7 +290,7 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
               </div>
             )}
 
-            {/* Face ID（Class 2 弱生物识别）——独立开关，可与指纹同时开启 */}
+            {/* Face ID（Class 2 弱生物识别）—— 置灰不可开启 */}
             {showWeak && (
               <>
                 <div
@@ -286,7 +301,6 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
                     background: 'rgba(212, 133, 10, 0.10)',
                     border: '1px solid rgba(212, 133, 10, 0.25)',
                     fontSize: 'var(--text-caption)',
-                    color: '#D4850A',
                     lineHeight: 1.5,
                     display: 'flex',
                     alignItems: 'flex-start',
@@ -295,11 +309,7 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
                 >
                   <span style={{ flexShrink: 0 }}>⚠️</span>
                   <span>
-                    {t('settings:biometric_weak_warning', {
-                      type: weakType,
-                      defaultValue:
-                        'This uses weak biometric (Class 2) which is less secure. Only enable if you understand the risks.',
-                    })}
+                    {t('settings:biometric_weak_unsupported')}
                   </span>
                 </div>
                 <div
@@ -320,10 +330,13 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
                     <ScanFace size={ICON_SIZE.md} style={{ color: 'var(--text-tertiary)' }} />
                     {t('settings:biometric_toggle_label', { type: weakType })}
                   </span>
-                  <ToggleSwitch
-                    checked={!!bioAvailable.weakConfigured}
-                    onChange={() => handleBioToggle('weak')}
-                  />
+                  <div style={{ opacity: 0.45 }}>
+                    <ToggleSwitch
+                      checked={!!bioAvailable.weakConfigured}
+                      onChange={() => handleBioToggle('weak')}
+                      disabled={!bioAvailable.weakConfigured}
+                    />
+                  </div>
                 </div>
               </>
             )}

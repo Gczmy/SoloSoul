@@ -393,6 +393,7 @@
   "biometric_error_delete_failed": "Failed to delete biometric credential",
   "biometric_error_not_configured": "Biometric not configured; please enable first",
   "biometric_weak_warning": "{{type}} on this device is Class 2 (weak) biometric, which is less secure than Class 3 (fingerprint/IR face). Only enable if you understand the risks.",
+  "biometric_weak_unsupported": "Face recognition on this device is a weak biometric (Class 2) and does not meet SoloSoul's security requirements. Please use fingerprint (Touch ID), PIN, or your master password instead.",
   "biometric_unavailable_desc": "Biometric authentication (Touch ID / Face ID / Windows Hello) is not available or not set up on this device. Please configure biometrics in System Settings, then reopen this page.",
   "biometric_error_user_presence_unavailable": "Biometric authentication is not available on this device. Please set up Touch ID, Windows Hello, or a device password.",
   "biometric_error_keychain_write_failed": "Failed to save credential to Keychain",
