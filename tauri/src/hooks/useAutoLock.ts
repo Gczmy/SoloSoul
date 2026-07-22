@@ -1,10 +1,10 @@
 import { useEffect } from 'react';
-import { invoke } from '@tauri-apps/api/core';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useVaultStore } from '@/stores/vaultStore';
 import { useAutoLockPauseStore } from '@/stores/autoLockPauseStore';
 import { sendSystemNotificationWithFallback } from '@/lib/notification';
+import { listen } from '@tauri-apps/api/event';
 import i18next from '@/lib/i18n';
 
 /** 视为用户活动的事件（被动监听，不干扰交互） */
@@ -71,40 +71,45 @@ export function useAutoLock(): void {
       }
     };
 
-    const shouldLockOnHide = async () => {
-      // 锁屏状态始终立即锁定（不受开关控制）
-      try {
-        const locked = await invoke<boolean>('is_screen_locked');
-        if (locked) return true;
-      } catch {
-        // 查询失败按「锁屏」保守处理
-        return true;
+    const doLock = () => {
+      if (lockInitiated) return;
+      lockInitiated = true;
+      if (autoLockNotificationEnabled) {
+        const body = i18next.t('settings:auto_locked_notification');
+        sendSystemNotificationWithFallback('SoloSoul', body, body, 'info').catch((err) =>
+          console.error('[useAutoLock] notification failed:', err),
+        );
       }
-      // 非锁屏情况下，仅当用户开启「切后台锁定」才立即锁定
-      return autoLockOnBackground;
+      useVaultStore
+        .getState()
+        .lock()
+        .catch((err) => console.error('[useAutoLock] lock failed:', err));
     };
 
     const onVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
         checkIdle();
       } else if (document.visibilityState === 'hidden') {
-        // 暂停期间（如文件选择器打开）跳过锁定，不中断用户操作
+        // 暂停期间（如文件选择器打开）跳过锁定
         if (useAutoLockPauseStore.getState().pauseCount > 0) return;
-        // 屏幕锁定/应用切到后台时根据用户设置决定是否立即锁定
         if (lockInitiated) return;
-        shouldLockOnHide()
-          .then((shouldLock) => {
-            if (shouldLock) {
-              lockInitiated = true;
-              useVaultStore
-                .getState()
-                .lock()
-                .catch((err) => console.error('[useAutoLock] lock on hide failed:', err));
-            }
-          })
-          .catch((err) => console.error('[useAutoLock] shouldLockOnHide failed:', err));
+        // 切后台同步决策：不再 invoke('is_screen_locked')（IPC 在隐藏时不可靠），
+        // 改为仅依据开关。锁屏事件由原生侧 onPause + KeyguardManager 推送触发。
+        if (autoLockOnBackground) {
+          doLock();
+        }
       }
     };
+
+    // 监听原生锁屏事件（Android onPause + KeyguardManager）
+    let unlistenScreenLocked: (() => void) | null = null;
+    listen<{ locked: boolean }>('screen-locked', () => {
+      doLock();
+    })
+      .then((unlisten) => {
+        unlistenScreenLocked = unlisten;
+      })
+      .catch((err) => console.error('[useAutoLock] listen screen-locked failed:', err));
 
     for (const e of ACTIVITY_EVENTS) {
       window.addEventListener(e, recordActivity, { passive: true });
@@ -118,6 +123,8 @@ export function useAutoLock(): void {
       }
       document.removeEventListener('visibilitychange', onVisibilityChange);
       clearInterval(interval);
+      unlistenScreenLocked?.();
     };
   }, [isAuthenticated, timeoutMinutes, autoLockNotificationEnabled, autoLockOnBackground]);
+
 }

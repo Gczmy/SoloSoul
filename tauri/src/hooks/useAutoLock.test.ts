@@ -12,7 +12,12 @@ vi.mock('@/lib/i18n', () => ({
   detectSystemLanguage: vi.fn(() => 'en-US'),
 }));
 
+vi.mock('@tauri-apps/api/event', () => ({
+  listen: vi.fn(),
+}));
+
 import { invoke } from '@tauri-apps/api/core';
+import { listen } from '@tauri-apps/api/event';
 import { useAutoLock } from './useAutoLock';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
@@ -36,8 +41,8 @@ function setAutoLockOnBackground(enabled: boolean) {
 describe('useAutoLock', () => {
   beforeEach(() => {
     vi.useFakeTimers();
-    // 默认模拟非锁屏状态，避免锁屏分支干扰后台锁定测试。
-    vi.mocked(invoke).mockResolvedValue(false);
+    vi.mocked(invoke).mockResolvedValue(undefined);
+    vi.mocked(listen).mockResolvedValue(vi.fn());
     useAuthStore.setState({ isAuthenticated: true });
     useVaultStore.setState({ vaultState: 'unlocked' });
     useAutoLockPauseStore.setState({ pauseCount: 0 });
@@ -124,43 +129,39 @@ describe('useAutoLock', () => {
     expect(invoke).toHaveBeenCalledWith('lock');
   });
 
-  it('切到后台（visibility hidden）时立即锁定', async () => {
+  it('切到后台（visibility hidden）时立即锁定', () => {
     renderHook(() => useAutoLock());
     vi.mocked(invoke).mockClear();
 
     Object.defineProperty(document, 'visibilityState', { value: 'hidden', configurable: true });
     document.dispatchEvent(new Event('visibilitychange'));
-    await act(async () => {});
 
     expect(invoke).toHaveBeenCalledWith('lock');
   });
 
-  it('关闭切后台锁定时，切后台不立即锁定', async () => {
+  it('关闭切后台锁定时，切后台不立即锁定', () => {
     setAutoLockOnBackground(false);
     renderHook(() => useAutoLock());
     vi.mocked(invoke).mockClear();
 
     Object.defineProperty(document, 'visibilityState', { value: 'hidden', configurable: true });
     document.dispatchEvent(new Event('visibilitychange'));
-    await act(async () => {});
 
     expect(invoke).not.toHaveBeenCalledWith('lock');
   });
 
-  it('切到后台只锁定一次', async () => {
+  it('切到后台只锁定一次', () => {
     renderHook(() => useAutoLock());
     vi.mocked(invoke).mockClear();
 
     Object.defineProperty(document, 'visibilityState', { value: 'hidden', configurable: true });
     document.dispatchEvent(new Event('visibilitychange'));
-    await act(async () => {});
 
     expect(invoke).toHaveBeenCalledWith('lock');
     vi.mocked(invoke).mockClear();
 
     // 再次 hidden 不应重复锁定
     document.dispatchEvent(new Event('visibilitychange'));
-    await act(async () => {});
     expect(invoke).not.toHaveBeenCalled();
   });
 
@@ -170,6 +171,52 @@ describe('useAutoLock', () => {
     act(() => setTimeoutMinutes(1));
 
     vi.advanceTimersByTime(1 * MIN + 10_000);
+    expect(invoke).toHaveBeenCalledWith('lock');
+  });
+
+  it('收到原生 screen-locked 事件时触发锁定', async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let handler: ((event: any) => void) | null = null;
+    vi.mocked(listen).mockImplementation(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (eventName: string, callback: (event: any) => void) => {
+        if (eventName === 'screen-locked') {
+          handler = callback;
+        }
+        return Promise.resolve(vi.fn());
+      },
+    );
+
+    renderHook(() => useAutoLock());
+    vi.mocked(invoke).mockClear();
+
+    expect(handler).not.toBeNull();
+    handler!({ payload: { locked: true }, id: 0, event: 'screen-locked' });
+
+    expect(invoke).toHaveBeenCalledWith('lock');
+  });
+
+  it('screen-locked 事件不受 autoLockOnBackground 开关影响', async () => {
+    setAutoLockOnBackground(false);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let handler: ((event: any) => void) | null = null;
+    vi.mocked(listen).mockImplementation(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (eventName: string, callback: (event: any) => void) => {
+        if (eventName === 'screen-locked') {
+          handler = callback;
+        }
+        return Promise.resolve(vi.fn());
+      },
+    );
+
+    renderHook(() => useAutoLock());
+    vi.mocked(invoke).mockClear();
+
+    expect(handler).not.toBeNull();
+    handler!({ payload: { locked: true }, id: 0, event: 'screen-locked' });
+
+    // 锁屏事件必须始终锁定，不受开关控制
     expect(invoke).toHaveBeenCalledWith('lock');
   });
 });

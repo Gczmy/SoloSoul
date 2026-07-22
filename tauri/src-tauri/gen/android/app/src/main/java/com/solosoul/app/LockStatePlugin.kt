@@ -1,8 +1,10 @@
 package com.solosoul.app
 
 import android.app.Activity
+import android.app.Application
 import android.app.KeyguardManager
 import android.content.Context
+import android.os.Bundle
 import app.tauri.annotation.Command
 import app.tauri.annotation.TauriPlugin
 import app.tauri.plugin.JSObject
@@ -12,11 +14,44 @@ import app.tauri.plugin.Plugin
 /**
  * 锁屏状态检测插件。
  *
- * 通过 KeyguardManager.isKeyguardLocked 判断当前设备是否处于锁屏状态。
- * 前端在 `visibilitychange` 隐藏时调用，用于区分「系统锁屏」与「仅切后台」。
+ * 在 Activity onPause 时通过 KeyguardManager.isKeyguardLocked 同步判断
+ * 当前设备是否处于锁屏状态。如果是（按电源键灭屏），通过 trigger 向 JS
+ * 推送 "screen-locked" 事件；否则（仅切后台）不推送——交由前端根据
+ * autoLockOnBackground 开关决定。
+ *
+ * 事件可能在 WebView 冻结时发出，回到前台后补达，时序上都能触发锁定。
  */
 @TauriPlugin
 class LockStatePlugin(private val activity: Activity): Plugin(activity) {
+
+    init {
+        // 注册 Application 生命周期回调，监听宿主 Activity 的 onPause。
+        (activity.applicationContext as Application).registerActivityLifecycleCallbacks(
+            object : Application.ActivityLifecycleCallbacks {
+                override fun onActivityPaused(act: Activity) {
+                    // 不检查 act === activity：KeyguardManager.isKeyguardLocked 是全局锁屏标志，
+                    // 且 after config change activity 引用可能过期。仅需直接判断锁屏状态。
+                    try {
+                        val km = activity.getSystemService(Context.KEYGUARD_SERVICE) as? KeyguardManager
+                        if (km?.isKeyguardLocked == true) {
+                            val payload = JSObject()
+                            payload.put("locked", true)
+                            trigger("screen-locked", payload)
+                        }
+                    } catch (e: Exception) {
+                        android.util.Log.e("SoloSoul", "LockStatePlugin onPause check failed", e)
+                    }
+                }
+                override fun onActivityResumed(act: Activity) {}
+                override fun onActivityCreated(act: Activity, savedInstanceState: Bundle?) {}
+                override fun onActivityStarted(act: Activity) {}
+                override fun onActivityStopped(act: Activity) {}
+                override fun onActivitySaveInstanceState(act: Activity, outState: Bundle) {}
+                override fun onActivityDestroyed(act: Activity) {}
+            },
+        )
+    }
+
     @Command
     fun isScreenLocked(invoke: Invoke) {
         try {
