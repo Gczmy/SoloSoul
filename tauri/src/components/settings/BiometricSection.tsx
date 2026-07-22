@@ -27,7 +27,6 @@ interface BioAvailability {
   strongConfigured?: boolean;
   /** weak 槽已保存凭证（Face ID Class 2 开关状态） */
   weakConfigured?: boolean;
-  debug?: string;
 }
 
 type BioMode = 'strong' | 'weak';
@@ -330,21 +329,7 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
             )}
           </>
         )}
-        {/* 诊断信息（仅 Android 返回）：不受 available 分支限制永远显示，
-            用于区分「旧构建 / 桥接失败 / 设备平台限制」，不含敏感数据 */}
-        {bioAvailable.debug && (
-          <div
-            style={{
-              marginTop: 12,
-              fontSize: 'var(--text-badge)',
-              color: 'var(--text-tertiary)',
-              fontFamily: 'var(--font-mono)',
-              wordBreak: 'break-all',
-            }}
-          >
-            {bioAvailable.debug}
-          </div>
-        )}
+
       </Card>
 
       {/* Biometric password verification dialog */}
@@ -384,7 +369,11 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
                 gap: 8,
               }}
             >
-              <Fingerprint size={ICON_SIZE.xl} />
+              {bioMode === 'weak' ? (
+                <ScanFace size={ICON_SIZE.xl} />
+              ) : (
+                <Fingerprint size={ICON_SIZE.xl} />
+              )}
               {bioAction === 'enable'
                 ? t('settings:biometric_enable_prompt', { type: modeType })
                 : t('settings:biometric_disable_prompt', { type: modeType })}
