@@ -358,10 +358,21 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
 
   @Command
   fun pickTreeUri(invoke: Invoke) {
-    val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
-      addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+    try {
+      val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+      }
+      // 预检：部分 ROM 缺少 SAF 目录选择器（DocumentsUI），直接报明确错误
+      if (intent.resolveActivity(activity.packageManager) == null) {
+        android.util.Log.e("SoloSoul", "pickTreeUri: no activity handles ACTION_OPEN_DOCUMENT_TREE")
+        invoke.reject("NO_TREE_PICKER_HANDLER")
+        return
+      }
+      startActivityForResult(invoke, intent, "treePickerResult")
+    } catch (e: Exception) {
+      android.util.Log.e("SoloSoul", "pickTreeUri failed: ${e.message}", e)
+      invoke.reject("PICK_TREE_FAILED: ${e.message}")
     }
-    startActivityForResult(invoke, intent, "treePickerResult")
   }
 
   @ActivityCallback

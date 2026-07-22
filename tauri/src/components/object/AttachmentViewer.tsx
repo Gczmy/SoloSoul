@@ -42,6 +42,19 @@ export interface AttachmentViewerProps {
   zIndex?: number;
 }
 
+/** 上传/刷新链路的超时保护：防止原生 IPC 未结算导致 UI 永久卡死 */
+const UPLOAD_TIMEOUT_MS = 45_000;
+const REFRESH_TIMEOUT_MS = 15_000;
+
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error(`${label} timeout after ${ms}ms`)), ms),
+    ),
+  ]);
+}
+
 export function AttachmentViewer({
   objectId,
   onClose,
@@ -115,13 +128,30 @@ export function AttachmentViewer({
     if (!filePath) return;
     setUploading(true);
     try {
-      await uploadSingleAttachment(filePath, objectId);
+      // 真机上曾出现首个附件上传后 IPC 未结算导致 uploading 卡死、按钮永久禁用，
+      // 关键 await 均加超时兜底，保证按钮必然复位
+      await withTimeout(
+        uploadSingleAttachment(filePath, objectId),
+        UPLOAD_TIMEOUT_MS,
+        'upload',
+      );
       showToast({
         type: 'success',
-        message: t('common:upload_success') || 'Uploaded successfully',
+        message: t('common:upload_success'),
       });
-      await loadAttachments();
-      onCountChange?.();
+      // 刷新失败不影响上传结果本身，单独捕获并明确提示
+      try {
+        await withTimeout(loadAttachments(), REFRESH_TIMEOUT_MS, 'refresh');
+        onCountChange?.();
+      } catch (refreshErr) {
+        console.warn('[AttachmentViewer] refresh after upload failed:', refreshErr);
+        showToast({
+          type: 'warning',
+          message:
+            t('common:upload_refresh_failed') ||
+            'Uploaded, but the list failed to refresh. Please reopen.',
+        });
+      }
     } catch (e) {
       showToast({
         type: 'error',
@@ -286,10 +316,11 @@ export function AttachmentViewer({
       try {
         const result = await invoke<{ uri: string | null }>('attachment_pick_tree_uri');
         dirPath = result.uri;
-      } catch {
+      } catch (e) {
+        // 显示后端返回的具体错误，便于定位（如 NO_TREE_PICKER_HANDLER）
         showToast({
           type: 'error',
-          message: t('common:select_directory_failed') || 'Failed to pick directory',
+          message: `${t('common:select_directory_failed') || 'Failed to pick directory'}: ${e}`,
         });
         return;
       } finally {
