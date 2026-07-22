@@ -16,6 +16,17 @@ val tauriProperties = Properties().apply {
 android {
     compileSdk = 36
     namespace = "com.solosoul.app"
+    // universal flavor 的 abiFilters 由 buildSrc RustPlugin 按 abiList 属性生成，
+    // 且可能被命令行 -P 覆盖（tauri CLI 构建全量 target 时），这里显式钉死，
+    // 保证任何构建入口下 universal 包都不含模拟器专用的 x86/x86_64。
+    productFlavors {
+        getByName("universal") {
+            ndk {
+                abiFilters.clear()
+                abiFilters += listOf("arm64-v8a", "armeabi-v7a")
+            }
+        }
+    }
     defaultConfig {
         manifestPlaceholders["usesCleartextTraffic"] = "false"
         applicationId = "com.solosoul.app"
