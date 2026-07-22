@@ -276,12 +276,33 @@ export function AttachmentViewer({
     const selectedItems = displayItems.filter((item) => attachmentIds.includes(item.id));
     if (selectedItems.length === 0) return;
 
-    const { openWithPause } = await import('@/lib/dialog');
-    const dirPath = (await openWithPause({
-      directory: true,
-      multiple: false,
-      title: t('common:select_download_directory') || 'Select download directory',
-    })) as string | null;
+    let dirPath: string | null;
+    if (isMobilePlatformSync()) {
+      // 移动端：使用自定义 SAF 目录选择器（plugin-dialog 的 directory 模式在 Android 不支持）
+      const { pause, resume } = await import('@/stores/autoLockPauseStore').then(
+        (m) => m.useAutoLockPauseStore.getState(),
+      );
+      pause();
+      try {
+        const result = await invoke<{ uri: string | null }>('attachment_pick_tree_uri');
+        dirPath = result.uri;
+      } catch {
+        showToast({
+          type: 'error',
+          message: t('common:select_directory_failed') || 'Failed to pick directory',
+        });
+        return;
+      } finally {
+        resume();
+      }
+    } else {
+      const { openWithPause } = await import('@/lib/dialog');
+      dirPath = (await openWithPause({
+        directory: true,
+        multiple: false,
+        title: t('common:select_download_directory') || 'Select download directory',
+      })) as string | null;
+    }
     if (!dirPath) return;
 
     let successCount = 0;

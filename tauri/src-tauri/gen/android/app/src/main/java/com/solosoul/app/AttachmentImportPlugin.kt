@@ -6,12 +6,14 @@ import android.net.Uri
 import android.provider.DocumentsContract
 import android.provider.OpenableColumns
 import androidx.core.content.FileProvider
+import app.tauri.annotation.ActivityCallback
 import app.tauri.annotation.Command
 import app.tauri.annotation.InvokeArg
 import app.tauri.annotation.TauriPlugin
 import app.tauri.plugin.Invoke
 import app.tauri.plugin.JSObject
 import app.tauri.plugin.Plugin
+import androidx.activity.result.ActivityResult
 import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
@@ -352,6 +354,33 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
     } catch (e: Exception) {
       false
     }
+  }
+
+  @Command
+  fun pickTreeUri(invoke: Invoke) {
+    val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
+      addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+    }
+    startActivityForResult(invoke, intent, "treePickerResult")
+  }
+
+  @ActivityCallback
+  fun treePickerResult(invoke: Invoke, result: ActivityResult) {
+    val response = JSObject()
+    if (result.resultCode == Activity.RESULT_OK && result.data?.data != null) {
+      val uri = result.data?.data!!
+      try {
+        activity.contentResolver.takePersistableUriPermission(
+          uri,
+          Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+        )
+      } catch (e: SecurityException) {
+        // Not all providers support persistable permissions; non-persistable is fine for batch download
+        android.util.Log.w("SoloSoul", "Could not take persistable URI permission: ${e.message}")
+      }
+      response.put("uri", uri.toString())
+    }
+    invoke.resolve(response)
   }
 
   @Command

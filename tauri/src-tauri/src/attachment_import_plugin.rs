@@ -76,6 +76,15 @@ pub struct ExportToTreeUriPayload {
     pub mime_type: String,
 }
 
+/// pickTreeUri 命令的返回结果。
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PickTreeUriResult {
+    /// 用户选择的 SAF tree URI，取消时为 None。
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub uri: Option<String>,
+}
+
 /// 插件句柄包装，便于在 command 中通过 Tauri state 获取。
 pub struct AttachmentImportPluginHandle<R: Runtime> {
     #[cfg(target_os = "android")]
@@ -138,6 +147,23 @@ impl<R: Runtime> AttachmentImportPluginHandle<R> {
         {
             let _ = payload;
             Err("attachment_export_content_uri is only supported on Android".to_string())
+        }
+    }
+
+    /// 在 Android 端启动系统 SAF 目录选择器（Intent.ACTION_OPEN_DOCUMENT_TREE）。
+    /// 返回用户选择的 tree URI（取消时为 None）。
+    /// 非 Android 平台直接返回不支持错误。
+    pub fn pick_tree_uri(&self) -> Result<PickTreeUriResult, String> {
+        #[cfg(target_os = "android")]
+        {
+            // pickTreeUri 命令不读取 payload，() 序列化为 null 不影响 Kotlin 端
+            self.handle
+                .run_mobile_plugin::<PickTreeUriResult>("pickTreeUri", ())
+                .map_err(|e| e.to_string())
+        }
+        #[cfg(not(target_os = "android"))]
+        {
+            Err("attachment_pick_tree_uri is only supported on Android".to_string())
         }
     }
 
@@ -389,4 +415,16 @@ pub async fn attachment_export_tree_uri<R: Runtime>(
         file_name,
         mime_type,
     })
+}
+
+/// 启动 Android SAF 目录选择器（Intent.ACTION_OPEN_DOCUMENT_TREE）。
+///
+/// 返回用户选择的 tree URI（取消时 uri 字段为 None）。
+/// 桌面端/iOS 返回不支持错误。
+#[tauri::command]
+pub async fn attachment_pick_tree_uri<R: Runtime>(
+    app: AppHandle<R>,
+) -> Result<PickTreeUriResult, String> {
+    let handle = app.state::<AttachmentImportPluginHandle<R>>();
+    handle.pick_tree_uri()
 }
