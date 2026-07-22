@@ -1,10 +1,13 @@
 /**
  * 移动端文件 URI 中转工具
  *
- * Android 上 `plugin-dialog` 返回的是 `content://` URI，Rust 标准库无法直接读写。
- * 这里借助 `tauri-apps/plugin-fs`（其底层已适配 content URI）做中转：
- * - 上传：把 content URI 复制到应用缓存，拿到本地路径和大小后再交给 Rust。
- * - 下载/导出：先让 Rust 写到应用缓存的临时文件，再用 plugin-fs 复制到目标 URI。
+ * Android 上 `plugin-dialog` 返回的是 `content://` URI，Rust 标准库与
+ * `tauri-apps/plugin-fs` 均无法直接读写（plugin-fs 会报 "URL is not a valid path"）。
+ * 这里借助原生插件（ContentResolver）做中转：
+ * - 上传/导入：通过 `copy_content_uri_to_path` 把 content URI 复制到应用缓存，
+ *   拿到本地路径和大小后再交给 Rust。
+ * - 下载/导出：先让 Rust 写到应用缓存的临时文件，再通过
+ *   `attachment_export_content_uri` 复制到目标 URI。
  */
 
 import { invoke } from '@tauri-apps/api/core';
@@ -50,7 +53,16 @@ export async function stageFileForUpload(
   const stageDir = await ensureStageDir();
   const name = `${generateId()}_${getFileName(sourcePath)}`;
   const localPath = await join(stageDir, name);
-  await copyFile(sourcePath, localPath);
+  // plugin-fs 的 copyFile 无法读取 content:// URI（报 "URL is not a valid path"），
+  // 改走原生 ContentResolver 通道（与 stageImportPackage 一致）
+  if (sourcePath.startsWith('content://')) {
+    await invoke('copy_content_uri_to_path', {
+      contentUri: sourcePath,
+      destPath: localPath,
+    });
+  } else {
+    await copyFile(sourcePath, localPath);
+  }
   const info = await stat(localPath);
   return { localPath, size: info.size };
 }
@@ -135,6 +147,15 @@ export async function stageImportPackage(sourcePath: string): Promise<string> {
   const stageDir = await ensureStageDir();
   const name = `${generateId()}_import.solosoul`;
   const localPath = await join(stageDir, name);
+  // plugin-fs 的 copyFile 无法读取 content:// URI（报 "URL is not a valid path"），
+  // 改走原生 ContentResolver 通道（与导出侧一致）
+  if (sourcePath.startsWith('content://')) {
+    await invoke('copy_content_uri_to_path', {
+      contentUri: sourcePath,
+      destPath: localPath,
+    });
+    return localPath;
+  }
   await copyFile(sourcePath, localPath);
   return localPath;
 }

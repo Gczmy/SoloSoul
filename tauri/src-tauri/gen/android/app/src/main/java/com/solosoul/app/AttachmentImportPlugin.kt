@@ -35,6 +35,12 @@ class ExportContentUriArgs {
 }
 
 @InvokeArg
+class CopyContentUriArgs {
+  lateinit var contentUri: String
+  lateinit var destPath: String
+}
+
+@InvokeArg
 class ExportToTreeUriArgs {
   lateinit var srcPath: String
   lateinit var treeUri: String
@@ -124,6 +130,38 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
       }
     } catch (e: Exception) {
       null
+    }
+  }
+
+  /**
+   * 通用 content:// URI 复制：把 content URI 流式复制到调用方指定的本地路径。
+   * 用于导入包中转等不需要写入 Vault 附件目录的场景。
+   */
+  @Command
+  fun copyContentUriToFile(invoke: Invoke) {
+    try {
+      val args = invoke.parseArgs(CopyContentUriArgs::class.java)
+      val uri = Uri.parse(args.contentUri)
+      val destFile = File(args.destPath)
+      destFile.parentFile?.mkdirs()
+
+      activity.contentResolver.openInputStream(uri)?.use { input ->
+        FileOutputStream(destFile).use { output ->
+          input.copyTo(output)
+        }
+      } ?: run {
+        invoke.reject("无法打开文件: ${args.contentUri}")
+        return
+      }
+
+      val result = JSObject()
+      result.put("localPath", destFile.absolutePath)
+      result.put("sizeBytes", destFile.length())
+      invoke.resolve(result)
+    } catch (e: IOException) {
+      invoke.reject("复制文件失败: ${e.message}")
+    } catch (e: Exception) {
+      invoke.reject("复制 content URI 失败: ${e.message}")
     }
   }
 

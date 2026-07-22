@@ -109,7 +109,7 @@ function isCardMode(sidebarButtonModes: Record<string, 'card' | 'page'>, id: str
 /** Get the full-page path for a card-supporting button */
 function getPagePath(id: string): string | undefined {
   const pageMap: Record<string, string> = {
-    ocr: '/settings/ocr',
+    ocr: '/ocr',
     plugins: '/plugins',
     ai_chat: '/llm-chat',
     search: '/search',

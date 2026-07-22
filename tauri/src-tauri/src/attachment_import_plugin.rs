@@ -58,6 +58,22 @@ pub struct ExportContentUriPayload {
     pub dest_uri: String,
 }
 
+/// 调用 Kotlin 通用复制命令时传入的参数。
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CopyContentUriPayload {
+    pub content_uri: String,
+    pub dest_path: String,
+}
+
+/// Kotlin 通用复制命令的返回结果。
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CopyContentUriResult {
+    pub local_path: String,
+    pub size_bytes: u64,
+}
+
 /// 调用 Kotlin 打开文件命令时传入的参数。
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -147,6 +163,28 @@ impl<R: Runtime> AttachmentImportPluginHandle<R> {
         {
             let _ = payload;
             Err("attachment_export_content_uri is only supported on Android".to_string())
+        }
+    }
+
+    /// 在 Android 端通过 ContentResolver 把 content:// URI 复制到任意本地路径。
+    /// 非 Android 平台直接返回不支持错误。
+    pub fn copy_content_uri_to_file(
+        &self,
+        payload: CopyContentUriPayload,
+    ) -> Result<CopyContentUriResult, String> {
+        #[cfg(target_os = "android")]
+        {
+            self.handle
+                .run_mobile_plugin("copyContentUriToFile", payload)
+                .map_err(|e| e.to_string())
+                .and_then(|v| {
+                    serde_json::from_value::<CopyContentUriResult>(v).map_err(|e| e.to_string())
+                })
+        }
+        #[cfg(not(target_os = "android"))]
+        {
+            let _ = payload;
+            Err("copy_content_uri_to_path is only supported on Android".to_string())
         }
     }
 
@@ -415,6 +453,50 @@ pub async fn attachment_export_tree_uri<R: Runtime>(
         file_name,
         mime_type,
     })
+}
+
+/// 把 Android content:// URI 复制到应用缓存目录下的本地路径（通用中转，不绑定 Vault）。
+///
+/// 用于导入包中转等场景：前端先基于 appCacheDir 生成目标路径，
+/// 再由该命令通过 ContentResolver 流式复制。安全校验：目标路径必须位于应用缓存目录内。
+#[tauri::command]
+pub async fn copy_content_uri_to_path<R: Runtime>(
+    app: AppHandle<R>,
+    content_uri: String,
+    dest_path: String,
+) -> Result<CopyContentUriResult, String> {
+    let cache_dir = app
+        .path()
+        .app_cache_dir()
+        .map_err(|e| format!("Failed to resolve app cache dir: {}", e))?;
+
+    // 防御性前缀校验：dest_path 应始终由前端基于 appCacheDir 生成，
+    // 但命令可被任意前端代码调用，故限制写入范围在缓存目录内。
+    // 目标文件尚不存在，无法 canonicalize，比较其父目录的规范化路径。
+    let dest = std::path::PathBuf::from(&dest_path);
+    let parent = dest.parent().ok_or("Invalid dest path")?;
+    let parent_canon = parent
+        .canonicalize()
+        .unwrap_or_else(|_| parent.to_path_buf());
+    let cache_canon = cache_dir
+        .canonicalize()
+        .unwrap_or_else(|_| cache_dir.clone());
+    if !parent_canon.starts_with(&cache_canon) {
+        return Err("Destination path must be within app cache directory".to_string());
+    }
+
+    let payload = CopyContentUriPayload {
+        content_uri,
+        dest_path,
+    };
+
+    // JNI 文件复制会阻塞当前线程，放到 spawn_blocking 避免阻塞 tokio worker。
+    tokio::task::spawn_blocking(move || {
+        let handle = app.state::<AttachmentImportPluginHandle<R>>();
+        handle.copy_content_uri_to_file(payload)
+    })
+    .await
+    .map_err(|e| format!("Copy task failed: {}", e))?
 }
 
 /// 启动 Android SAF 目录选择器（Intent.ACTION_OPEN_DOCUMENT_TREE）。

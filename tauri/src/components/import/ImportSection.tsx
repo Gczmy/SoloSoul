@@ -164,6 +164,8 @@ export function ImportSection({
             fontSize: 'var(--text-body-sm)',
             color: 'var(--text-secondary)',
             marginBottom: 8,
+            // Android content:// URI 很长，折行防止溢出卡片
+            wordBreak: 'break-all',
           }}
         >
           {importPath || t('settings:no_file_selected')}

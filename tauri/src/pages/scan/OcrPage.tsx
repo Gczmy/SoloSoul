@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { open } from '@tauri-apps/plugin-dialog';
 import { AppShell } from '@/components/layout/AppShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
@@ -10,6 +9,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useObjectStore } from '@/stores/objectStore';
 import { useToastError } from '@/hooks/useToastError';
 import { isMobilePlatformSync } from '@/lib/platform';
+import { isUriPath } from '@/lib/mobileFileTransfer';
 import { invoke } from '@tauri-apps/api/core';
 import type { OcrResult, OcrTierInfo, OcrModelStatus, MrzResult } from '@/lib/ipc';
 import { OCR_MODEL_SERIES, OCR_MODEL_NOT_INSTALLED_PREFIX } from '@/lib/constants';
@@ -179,7 +179,8 @@ export function OcrPage() {
 
   const handleSelectFile = async () => {
     try {
-      const path = await open({
+      const { openWithPause } = await import('@/lib/dialog');
+      const path = await openWithPause({
         filters: getFileFilters(),
         multiple: false,
         title:
@@ -202,7 +203,9 @@ export function OcrPage() {
     try {
       await createObject({
         accountId,
-        name: filePath.split('/').pop() || t('ocr:scanned_document'),
+        name: isUriPath(filePath)
+          ? t('ocr:scanned_document')
+          : filePath.split('/').pop() || t('ocr:scanned_document'),
         collectionType: 'document',
         properties: { ocrText: result.text },
       });
@@ -266,116 +269,14 @@ export function OcrPage() {
       }}
     >
       <PageContainer variant="wide" gap="default">
-        {/* Model management */}
-        <Card>
-          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 12 }}>
-            {t('ocr:model_title')}
-          </h3>
+        {/* Model management（桌面端）；移动端使用系统 ML Kit，无需模型管理 */}
+        {!isMobilePlatform && (
+          <Card>
+            <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 12 }}>
+              {t('ocr:model_title')}
+            </h3>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <div>
-              <label
-                style={{
-                  display: 'block',
-                  fontSize: 'var(--text-caption)',
-                  color: 'var(--text-secondary)',
-                  marginBottom: 6,
-                }}
-              >
-                {t('ocr:active_model_series', { model: OCR_MODEL_SERIES })}
-              </label>
-              <select
-                value={activeTier}
-                onChange={(e) => handleTierChange(e.target.value)}
-                disabled={loadingStatus}
-                style={{
-                  width: '100%',
-                  padding: '8px 10px',
-                  fontSize: 'var(--text-body-sm)',
-                  borderRadius: 8,
-                  border: '1px solid var(--border-subtle)',
-                  background: 'var(--bg-elevated)',
-                  color: 'var(--text-primary)',
-                }}
-              >
-                {tiers.map((tier) => {
-                  const label = getTierLabel(t, tier);
-                  return (
-                    <option key={tier.tier} value={tier.tier}>
-                      {label.name} — {label.description}
-                    </option>
-                  );
-                })}
-              </select>
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {tiers.map((tier) => {
-                const status = statusMap[tier.tier];
-                const isInstalling = installingTier === tier.tier;
-                const isDownloading = downloadingTier === tier.tier;
-                return (
-                  <div
-                    key={tier.tier}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '10px 12px',
-                      borderRadius: 8,
-                      background: 'var(--bg-toolbar)',
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
-                      {status?.installed ? (
-                        <CheckCircle size={ICON_SIZE.md} color="var(--accent-primary)" />
-                      ) : status?.bundled ? (
-                        <AlertCircle size={ICON_SIZE.md} color="var(--text-tertiary)" />
-                      ) : (
-                        <AlertCircle size={ICON_SIZE.md} color="var(--error)" />
-                      )}
-                      <div>
-                        <div style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500 }}>
-                          {getTierLabel(t, tier).name}
-                        </div>
-                        <div
-                          style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}
-                        >
-                          {status?.installed
-                            ? t('ocr:status_installed')
-                            : status?.bundled
-                              ? t('ocr:status_bundled')
-                              : t('ocr:status_not_installed')}
-                        </div>
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      {status?.bundled && !status?.installed && (
-                        <Button
-                          size="sm"
-                          onClick={() => handleInstallBundled(tier.tier)}
-                          loading={isInstalling}
-                        >
-                          {t('ocr:install')}
-                        </Button>
-                      )}
-                      {!status?.bundled && !status?.installed && (
-                        <Button
-                          size="sm"
-                          onClick={() => handleDownload(tier.tier)}
-                          loading={isDownloading}
-                        >
-                          <Download size={ICON_SIZE.sm} style={{ marginRight: 4 }} />
-                          {t('ocr:download')}
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {!statusMap['small']?.installed && !statusMap['small']?.bundled && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div>
                 <label
                   style={{
@@ -385,13 +286,12 @@ export function OcrPage() {
                     marginBottom: 6,
                   }}
                 >
-                  {t('ocr:download_url_label')}
+                  {t('ocr:active_model_series', { model: OCR_MODEL_SERIES })}
                 </label>
-                <input
-                  type="text"
-                  value={downloadUrl}
-                  onChange={(e) => setDownloadUrl(e.target.value)}
-                  placeholder={t('ocr:download_url_placeholder')}
+                <select
+                  value={activeTier}
+                  onChange={(e) => handleTierChange(e.target.value)}
+                  disabled={loadingStatus}
                   style={{
                     width: '100%',
                     padding: '8px 10px',
@@ -401,11 +301,129 @@ export function OcrPage() {
                     background: 'var(--bg-elevated)',
                     color: 'var(--text-primary)',
                   }}
-                />
+                >
+                  {tiers.map((tier) => {
+                    const label = getTierLabel(t, tier);
+                    return (
+                      <option key={tier.tier} value={tier.tier}>
+                        {label.name} — {label.description}
+                      </option>
+                    );
+                  })}
+                </select>
               </div>
-            )}
-          </div>
-        </Card>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {tiers.map((tier) => {
+                  const status = statusMap[tier.tier];
+                  const isInstalling = installingTier === tier.tier;
+                  const isDownloading = downloadingTier === tier.tier;
+                  return (
+                    <div
+                      key={tier.tier}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '10px 12px',
+                        borderRadius: 8,
+                        background: 'var(--bg-toolbar)',
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
+                        {status?.installed ? (
+                          <CheckCircle size={ICON_SIZE.md} color="var(--accent-primary)" />
+                        ) : status?.bundled ? (
+                          <AlertCircle size={ICON_SIZE.md} color="var(--text-tertiary)" />
+                        ) : (
+                          <AlertCircle size={ICON_SIZE.md} color="var(--error)" />
+                        )}
+                        <div>
+                          <div style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500 }}>
+                            {getTierLabel(t, tier).name}
+                          </div>
+                          <div
+                            style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}
+                          >
+                            {status?.installed
+                              ? t('ocr:status_installed')
+                              : status?.bundled
+                                ? t('ocr:status_bundled')
+                                : t('ocr:status_not_installed')}
+                          </div>
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        {status?.bundled && !status?.installed && (
+                          <Button
+                            size="sm"
+                            onClick={() => handleInstallBundled(tier.tier)}
+                            loading={isInstalling}
+                          >
+                            {t('ocr:install')}
+                          </Button>
+                        )}
+                        {!status?.bundled && !status?.installed && (
+                          <Button
+                            size="sm"
+                            onClick={() => handleDownload(tier.tier)}
+                            loading={isDownloading}
+                          >
+                            <Download size={ICON_SIZE.sm} style={{ marginRight: 4 }} />
+                            {t('ocr:download')}
+                          </Button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {!statusMap['small']?.installed && !statusMap['small']?.bundled && (
+                <div>
+                  <label
+                    style={{
+                      display: 'block',
+                      fontSize: 'var(--text-caption)',
+                      color: 'var(--text-secondary)',
+                      marginBottom: 6,
+                    }}
+                  >
+                    {t('ocr:download_url_label')}
+                  </label>
+                  <input
+                    type="text"
+                    value={downloadUrl}
+                    onChange={(e) => setDownloadUrl(e.target.value)}
+                    placeholder={t('ocr:download_url_placeholder')}
+                    style={{
+                      width: '100%',
+                      padding: '8px 10px',
+                      fontSize: 'var(--text-body-sm)',
+                      borderRadius: 8,
+                      border: '1px solid var(--border-subtle)',
+                      background: 'var(--bg-elevated)',
+                      color: 'var(--text-primary)',
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          </Card>
+        )}
+
+        {isMobilePlatform && (
+          <Card>
+            <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 8 }}>
+              {t('ocr:mobile_ocr_title')}
+            </h3>
+            <p
+              style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)', margin: 0 }}
+            >
+              {t('ocr:mobile_ocr_description')}
+            </p>
+          </Card>
+        )}
 
         {/* Scan mode + action */}
         <Card>

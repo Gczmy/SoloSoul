@@ -547,6 +547,7 @@ pub fn run() {
             attachment_import_plugin::attachment_export_content_uri,
             attachment_import_plugin::attachment_export_tree_uri,
             attachment_import_plugin::attachment_pick_tree_uri,
+            attachment_import_plugin::copy_content_uri_to_path,
             // Sync commands
             commands::sync::sync_discover,
             commands::sync::sync_get_status,
