@@ -10,6 +10,7 @@ import { getBiometricErrorMessage } from '@/lib/biometricError';
 import { invoke } from '@tauri-apps/api/core';
 import { Fingerprint, ShieldCheck } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/constants';
+import { useAutoLockPauseStore } from '@/stores/autoLockPauseStore';
 
 interface BiometricSectionProps {
   accountId: string;
@@ -68,6 +69,10 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
     if (!bioPw) return;
     setBioLoading(true);
     setError(null);
+    // 启用生物识别时会触发系统原生验证弹窗（Android Keystore 绑定），
+    // 应用会切到后台，暂停自动锁定防止 visibilitychange 误锁
+    const { pause, resume } = useAutoLockPauseStore.getState();
+    pause();
     try {
       const rawType = bioAvailable?.biometryType || 'unknown';
       if (bioAction === 'enable') {
@@ -103,11 +108,16 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
         setError(getBiometricErrorMessage(e, t));
       }
     } finally {
+      resume();
       setBioLoading(false);
     }
   };
 
   const handleBioTest = async () => {
+    // 暂停自动锁定：触发生物识别会将应用切到后台，
+    // 若不暂停 visibilitychange handler 会在测试通过后立即锁定 Vault
+    const { pause, resume } = useAutoLockPauseStore.getState();
+    pause();
     try {
       await invoke('biometric_test', { accountId });
       onSuccess(t('settings:biometric_test_success', { type: biometryType }));
@@ -116,6 +126,8 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
         getBiometricErrorMessage(e, t),
         t('settings:biometric_test_failed', { type: biometryType }),
       );
+    } finally {
+      resume();
     }
   };
 

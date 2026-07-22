@@ -98,6 +98,22 @@ rust {
     rootDirRel = "../../../"
 }
 
+// 安卓端不使用 ONNX 模型（OCR 走 ML Kit，本地 Embedding 移动端不支持，
+// ocr_install_bundled_model 移动端返回不支持），但 Tauri 会把 src-tauri/resources
+// 全量复制进 assets（含 ~55MB models）。packagingOptions 的 excludes 对 assets
+// 不生效，因此在 assets 合并任务后直接从中间产物删除该目录。
+afterEvaluate {
+    tasks
+        .matching { it.name.matches(Regex("merge.+Assets")) && !it.name.contains("Test") }
+        .configureEach {
+            val taskName = name
+            doLast {
+                val variant = taskName.removePrefix("merge").removeSuffix("Assets")
+                delete(layout.buildDirectory.dir("intermediates/assets/$variant/$taskName/models"))
+            }
+        }
+}
+
 dependencies {
     implementation("androidx.core:core-ktx:1.16.0")
     implementation("androidx.webkit:webkit:1.14.0")

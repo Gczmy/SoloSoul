@@ -5,7 +5,6 @@ import { invoke } from '@tauri-apps/api/core';
 import { AppShell } from '@/components/layout/AppShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
-import { isDevOrDebug } from '@/lib/utils';
 import { formatBytes } from '@/lib/utils';
 import {
   Shield,
@@ -26,7 +25,6 @@ import {
   Search,
 } from 'lucide-react';
 
-import { isMobilePlatformSync } from '@/lib/platform';
 import styles from './SettingsPage.module.css';
 
 export function SettingsPage() {
@@ -39,8 +37,6 @@ export function SettingsPage() {
       .then((s) => setVaultSize(formatBytes(s.totalSizeBytes)))
       .catch(() => setVaultSize(null));
   }, []);
-
-  const isMobilePlatform = isMobilePlatformSync();
 
   const settingGroups = [
     {
@@ -111,26 +107,18 @@ export function SettingsPage() {
           path: '/settings/templates',
           desc: t('settings:desc.templates') || '管理自定义对象模板',
         },
-        ...(!isMobilePlatform
-          ? [
-              {
-                label: t('settings:items.plugins') || '插件',
-                icon: Puzzle,
-                path: '/plugins',
-                desc: t('settings:desc.plugins') || '管理本地插件市场',
-              },
-            ]
-          : []),
-        ...(isDevOrDebug() && !isMobilePlatform
-          ? [
-              {
-                label: t('settings:items.sync') || '设备同步',
-                icon: Smartphone,
-                path: '/sync',
-                desc: t('settings:desc.sync') || '与其他设备同步数据',
-              },
-            ]
-          : []),
+        {
+          label: t('settings:items.plugins') || '插件',
+          icon: Puzzle,
+          path: '/plugins',
+          desc: t('settings:desc.plugins') || '管理本地插件市场',
+        },
+        {
+          label: t('settings:items.sync') || '设备同步',
+          icon: Smartphone,
+          path: '/sync',
+          desc: t('settings:desc.sync') || '与其他设备同步数据',
+        },
       ],
     },
     {

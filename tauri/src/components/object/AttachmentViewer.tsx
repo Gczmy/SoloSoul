@@ -278,6 +278,19 @@ export function AttachmentViewer({
     const selectedItems = displayItems.filter((item) => attachmentIds.includes(item.id));
     if (selectedItems.length === 0) return;
 
+    // 移动端不支持目录选择器（SAF 返回 content:// URI 无法用于 std::fs），
+    // 直接提示用户单个下载，不尝试打开文件夹选择器（后者会抛异常且无反馈）
+    if (isMobilePlatformSync()) {
+      showToast({
+        type: 'warning',
+        message:
+          t('common:batch_download_mobile_unsupported') ||
+          'Batch download is not supported on mobile. Please download files individually.',
+      });
+      clearSelection();
+      return;
+    }
+
     try {
       // 系统目录选择器会触发 visibilitychange，期间暂停自动锁定
       const { pause, resume } = await import('@/stores/autoLockPauseStore').then(
@@ -296,17 +309,6 @@ export function AttachmentViewer({
         resume();
       }
       if (!dirPath) return;
-
-      // Android 目录选择器返回 tree URI，无法直接用 std::fs 写入，暂不支持批量下载
-      if (isUriPath(dirPath)) {
-        showToast({
-          type: 'warning',
-          message:
-            t('common:batch_download_mobile_unsupported') ||
-            'Batch download to a directory is not supported on mobile. Please download files individually.',
-        });
-        return;
-      }
 
       let successCount = 0;
       for (const item of selectedItems) {
