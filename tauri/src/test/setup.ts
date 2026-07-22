@@ -4,6 +4,7 @@ import { vi } from 'vitest';
 // Mock Tauri IPC
 vi.mock('@tauri-apps/api/core', () => ({
   invoke: vi.fn(),
+  addPluginListener: vi.fn(() => Promise.resolve({ unregister: vi.fn() })),
 }));
 
 vi.mock('@tauri-apps/api/event', () => ({

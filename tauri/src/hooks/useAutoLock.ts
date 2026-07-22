@@ -4,7 +4,7 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { useVaultStore } from '@/stores/vaultStore';
 import { useAutoLockPauseStore } from '@/stores/autoLockPauseStore';
 import { sendSystemNotificationWithFallback } from '@/lib/notification';
-import { listen } from '@tauri-apps/api/event';
+import { addPluginListener, type PluginListener } from '@tauri-apps/api/core';
 import i18next from '@/lib/i18n';
 
 /** 视为用户活动的事件（被动监听，不干扰交互） */
@@ -102,12 +102,14 @@ export function useAutoLock(): void {
     };
 
     // 监听原生锁屏事件（Android onPause + KeyguardManager）
-    let unlistenScreenLocked: (() => void) | null = null;
-    listen<{ locked: boolean }>('screen-locked', () => {
+    // 使用插件监听器（addPluginListener）而非全局事件 listen：
+    // Kotlin 侧 Plugin.trigger 只派发给插件私有 Channel 监听器，与全局事件总线无关。
+    let screenLockedListener: PluginListener | null = null;
+    addPluginListener<{ locked: boolean }>('lock-state', 'screen-locked', () => {
       doLock();
     })
-      .then((unlisten) => {
-        unlistenScreenLocked = unlisten;
+      .then((l) => {
+        screenLockedListener = l;
       })
       .catch((err) => console.error('[useAutoLock] listen screen-locked failed:', err));
 
@@ -123,7 +125,7 @@ export function useAutoLock(): void {
       }
       document.removeEventListener('visibilitychange', onVisibilityChange);
       clearInterval(interval);
-      unlistenScreenLocked?.();
+      screenLockedListener?.unregister()?.catch(() => {});
     };
   }, [isAuthenticated, timeoutMinutes, autoLockNotificationEnabled, autoLockOnBackground]);
 

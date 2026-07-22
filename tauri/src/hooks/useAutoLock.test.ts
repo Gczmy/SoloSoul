@@ -12,12 +12,7 @@ vi.mock('@/lib/i18n', () => ({
   detectSystemLanguage: vi.fn(() => 'en-US'),
 }));
 
-vi.mock('@tauri-apps/api/event', () => ({
-  listen: vi.fn(),
-}));
-
-import { invoke } from '@tauri-apps/api/core';
-import { listen } from '@tauri-apps/api/event';
+import { invoke, addPluginListener } from '@tauri-apps/api/core';
 import { useAutoLock } from './useAutoLock';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
@@ -42,7 +37,7 @@ describe('useAutoLock', () => {
   beforeEach(() => {
     vi.useFakeTimers();
     vi.mocked(invoke).mockResolvedValue(undefined);
-    vi.mocked(listen).mockResolvedValue(vi.fn());
+    vi.mocked(addPluginListener).mockResolvedValue({ unregister: vi.fn() } as never);
     useAuthStore.setState({ isAuthenticated: true });
     useVaultStore.setState({ vaultState: 'unlocked' });
     useAutoLockPauseStore.setState({ pauseCount: 0 });
@@ -176,14 +171,14 @@ describe('useAutoLock', () => {
 
   it('收到原生 screen-locked 事件时触发锁定', async () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let handler: ((event: any) => void) | null = null;
-    vi.mocked(listen).mockImplementation(
+    let handler: ((payload: any) => void) | null = null;
+    vi.mocked(addPluginListener).mockImplementation(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (eventName: string, callback: (event: any) => void) => {
-        if (eventName === 'screen-locked') {
+      (pluginName: string, eventName: string, callback: (payload: any) => void) => {
+        if (pluginName === 'lock-state' && eventName === 'screen-locked') {
           handler = callback;
         }
-        return Promise.resolve(vi.fn());
+        return Promise.resolve({ unregister: vi.fn() } as never);
       },
     );
 
@@ -191,7 +186,8 @@ describe('useAutoLock', () => {
     vi.mocked(invoke).mockClear();
 
     expect(handler).not.toBeNull();
-    handler!({ payload: { locked: true }, id: 0, event: 'screen-locked' });
+    // addPluginListener 回调直接收 payload，不是 { payload: ... } 包装
+    handler!({ locked: true });
 
     expect(invoke).toHaveBeenCalledWith('lock');
   });
@@ -199,14 +195,14 @@ describe('useAutoLock', () => {
   it('screen-locked 事件不受 autoLockOnBackground 开关影响', async () => {
     setAutoLockOnBackground(false);
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let handler: ((event: any) => void) | null = null;
-    vi.mocked(listen).mockImplementation(
+    let handler: ((payload: any) => void) | null = null;
+    vi.mocked(addPluginListener).mockImplementation(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (eventName: string, callback: (event: any) => void) => {
-        if (eventName === 'screen-locked') {
+      (pluginName: string, eventName: string, callback: (payload: any) => void) => {
+        if (pluginName === 'lock-state' && eventName === 'screen-locked') {
           handler = callback;
         }
-        return Promise.resolve(vi.fn());
+        return Promise.resolve({ unregister: vi.fn() } as never);
       },
     );
 
@@ -214,7 +210,8 @@ describe('useAutoLock', () => {
     vi.mocked(invoke).mockClear();
 
     expect(handler).not.toBeNull();
-    handler!({ payload: { locked: true }, id: 0, event: 'screen-locked' });
+    // addPluginListener 回调直接收 payload，不是 { payload: ... } 包装
+    handler!({ locked: true });
 
     // 锁屏事件必须始终锁定，不受开关控制
     expect(invoke).toHaveBeenCalledWith('lock');
