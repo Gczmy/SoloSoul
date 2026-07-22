@@ -164,13 +164,54 @@ npm run dev
 # 代码检查（TypeScript + Rust fmt + Clippy + Lint + Test）
 npm run check-all
 
-# Release 构建
+# Release 构建（桌面端）
 npm run tauri build
+
+# Android Debug APK（无需签名，适合功能测试）
+cargo tauri android build -d
+
+# Android Release APK（需设置签名环境变量）
+ANDROID_HOME=$HOME/Library/Android/sdk \
+ANDROID_NDK_HOME=$HOME/Library/Android/sdk/ndk/30.0.14904198 \
+export PATH="$HOME/.rustup/toolchains/stable-aarch64-apple-darwin/bin:$PATH" \
+cargo tauri android build
 ```
 
 **注意事项：**
 - macOS 构建需要 Xcode Command Line Tools。
 - Release 产物位于 `tauri/src-tauri/target/release/bundle/`。
+- Android Release 构建需要以下环境变量：
+  - `SOLOSOUL_KEYSTORE_PATH` — keystore 文件路径
+  - `SOLOSOUL_KEYSTORE_PASSWORD` — keystore 密码
+  - `SOLOSOUL_KEY_ALIAS` — 别名（默认 `solosoul-upload`）
+  - `SOLOSOUL_KEY_PASSWORD` — key 密码
+
+#### Android 构建设置
+
+**keystore 信息：**
+- 文件：`/Users/zzc/SoloSoul/solosoul-upload.jks`（PKCS12 格式，RSA 2048，有效期 10000 天）
+- 别名：`solosoul-upload`
+- keystore 密码与 key 密码：相同（PKCS12 不支持两者不同），**密码不入库**，由维护者本地妥善保管（建议密码管理器）
+
+**环境变量参考（密码以占位符表示，构建时替换为本地保管的实际值）：**
+```bash
+export SOLOSOUL_KEYSTORE_PATH=/Users/zzc/SoloSoul/solosoul-upload.jks
+export SOLOSOUL_KEYSTORE_PASSWORD=<your-keystore-password>
+export SOLOSOUL_KEY_ALIAS=solosoul-upload
+export SOLOSOUL_KEY_PASSWORD=<your-key-password>
+export ANDROID_HOME=$HOME/Library/Android/sdk
+export ANDROID_NDK_HOME=$HOME/Library/Android/sdk/ndk/30.0.14904198
+```
+
+**Rust 工具链注意：**本地同时安装有 Homebrew Rust 和 rustup。默认 PATH 优先使用 Homebrew 版（`/opt/homebrew/bin/rustc`），其**不支持** Android 交叉编译目标。使用 rustup 版构建 Android 时需显式设为优先：
+```bash
+export PATH="$HOME/.rustup/toolchains/stable-aarch64-apple-darwin/bin:$PATH"
+```
+或卸载 Homebrew Rust 消除冲突：`brew uninstall rust`。
+
+**Android APK 输出路径：**
+- Debug：`tauri/src-tauri/gen/android/app/build/outputs/apk/universal/debug/app-universal-debug.apk`
+- Release：`tauri/src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release.apk`
 
 ### Rust Workspace（Tauri）
 
