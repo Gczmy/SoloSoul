@@ -272,7 +272,15 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
                   marginBottom: showWeak ? 12 : 0,
                 }}
               >
-                <span style={{ fontSize: 'var(--text-body)' }}>
+                <span
+                  style={{
+                    fontSize: 'var(--text-body)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                  }}
+                >
+                  <Fingerprint size={ICON_SIZE.md} style={{ color: 'var(--text-tertiary)' }} />
                   {t('settings:biometric_toggle_label', { type: strongType })}
                 </span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
