@@ -70,6 +70,14 @@ pub struct MobileOcrPluginHandle<R: Runtime> {
     _phantom: std::marker::PhantomData<fn() -> R>,
 }
 
+/// Kotlin 拍照插件返回的结果。
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TakePhotoResult {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub path: Option<String>,
+}
+
 impl<R: Runtime> MobileOcrPluginHandle<R> {
     /// 在 Android 端通过 ML Kit 识别图片中的文字。
     /// 非 Android 平台直接返回不支持错误。
@@ -87,6 +95,26 @@ impl<R: Runtime> MobileOcrPluginHandle<R> {
         {
             let _ = payload;
             Err("mobile_ocr_scan_image is only supported on Android".to_string())
+        }
+    }
+
+    /// 启动系统相机拍照，返回临时文件路径（file:// URI）。
+    /// 非 Android 平台直接返回不支持错误。
+    /// Kotlin 侧持有 invoke 直到 Activity 回调，无需 spawn_blocking。
+    pub fn take_photo(&self) -> Result<TakePhotoResult, String> {
+        #[cfg(target_os = "android")]
+        {
+            // takePhoto 命令不读取 payload，() 序列化为 null 不影响 Kotlin 端
+            self.handle
+                .run_mobile_plugin("takePhoto", &())
+                .map_err(|e| e.to_string())
+                .and_then(|v| {
+                    serde_json::from_value::<TakePhotoResult>(v).map_err(|e| e.to_string())
+                })
+        }
+        #[cfg(not(target_os = "android"))]
+        {
+            Err("mobile_ocr_take_photo is only supported on Android".to_string())
         }
     }
 }
@@ -136,4 +164,14 @@ pub async fn mobile_ocr_scan_image<R: Runtime>(
     .await
     .map_err(|e| format!("mobile ocr task failed: {e}"))??;
     Ok(result.into())
+}
+
+/// 启动系统相机拍照（移动端入口）。
+/// 返回临时文件路径（file:// URI），取消时返回 None。
+#[tauri::command]
+pub async fn mobile_ocr_take_photo<R: Runtime>(
+    app: AppHandle<R>,
+) -> Result<Option<String>, String> {
+    let handle = app.state::<MobileOcrPluginHandle<R>>();
+    handle.take_photo().map(|r| r.path)
 }

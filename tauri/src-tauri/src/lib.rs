@@ -516,6 +516,7 @@ pub fn run() {
             commands::pin::pin_unlock,
             commands::pin::pin_disable,
             // OCR commands
+            mobile_ocr_plugin::mobile_ocr_take_photo,
             commands::ocr::ocr_scan_image,
             commands::ocr::ocr_scan_mrz,
             commands::ocr::ocr_get_supported_languages,

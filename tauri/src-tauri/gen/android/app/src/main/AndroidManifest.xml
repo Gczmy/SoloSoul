@@ -34,6 +34,10 @@
             <action android:name="android.intent.action.VIEW" />
             <data android:mimeType="image/*" />
         </intent>
+        <!-- OCR 拍照入口：Android 11+ 需声明包可见性，否则 resolveActivity 预检恒为 null -->
+        <intent>
+            <action android:name="android.media.action.IMAGE_CAPTURE" />
+        </intent>
     </queries>
 
     <!-- AndroidTV support -->

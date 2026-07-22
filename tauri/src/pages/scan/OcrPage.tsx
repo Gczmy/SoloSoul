@@ -15,7 +15,7 @@ import type { OcrResult, OcrTierInfo, OcrModelStatus, MrzResult } from '@/lib/ip
 import { OCR_MODEL_SERIES, OCR_MODEL_NOT_INSTALLED_PREFIX } from '@/lib/constants';
 import { getTierLabel } from '@/lib/utils';
 import { MrzResultCard } from '@/components/ocr/MrzResultCard';
-import { Scan, FileText, Upload, Download, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { Scan, FileText, Camera, Upload, Download, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/constants';
 
 type ScanMode = 'general' | 'mrz';
@@ -194,6 +194,28 @@ export function OcrPage() {
       }
     } catch (e) {
       onError(e, t('ocr:select_image_failed'));
+    }
+  };
+
+  const handleTakePhoto = async () => {
+    try {
+      const { useAutoLockPauseStore } = await import('@/stores/autoLockPauseStore');
+      const { pause, resume } = useAutoLockPauseStore.getState();
+      pause();
+      try {
+        const path = await invoke<string | null>('mobile_ocr_take_photo');
+        if (path) {
+          setFilePath(path);
+          await performScan(path);
+        }
+        // path 为 null：用户取消拍照，静默返回
+      } catch (e) {
+        onError(e, t('ocr:take_photo_failed'));
+      } finally {
+        resume();
+      }
+    } catch (e) {
+      onError(e, t('ocr:take_photo_failed'));
     }
   };
 
@@ -498,12 +520,19 @@ export function OcrPage() {
 
             <br />
 
-            <Button onClick={handleSelectFile} loading={isScanning}>
-              <FileText size={ICON_SIZE.sm} style={{ marginRight: 6 }} />{' '}
-              {scanMode === 'mrz' || isMobilePlatform
-                ? t('ocr:select_image')
-                : t('ocr:select_image_or_pdf')}
-            </Button>
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'center', alignItems: 'center' }}>
+              <Button onClick={handleSelectFile} loading={isScanning}>
+                <FileText size={ICON_SIZE.sm} style={{ marginRight: 6 }} />{' '}
+                {scanMode === 'mrz' || isMobilePlatform
+                  ? t('ocr:select_image')
+                  : t('ocr:select_image_or_pdf')}
+              </Button>
+              {isMobilePlatform && (
+                <Button onClick={handleTakePhoto} loading={isScanning}>
+                  <Camera size={ICON_SIZE.sm} style={{ marginRight: 6 }} /> {t('ocr:take_photo')}
+                </Button>
+              )}
+            </div>
           </div>
         </Card>
 

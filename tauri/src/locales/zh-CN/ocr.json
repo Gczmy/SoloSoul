@@ -9,6 +9,8 @@
   "select_file_title": "选择要扫描的文件",
   "select_pdf_title": "选择要扫描的 PDF",
   "select_image_failed": "选择图片失败",
+  "take_photo": "拍照",
+  "take_photo_failed": "拍照失败",
   "scanning": "扫描中…",
   "scan_failed": "OCR 扫描失败",
   "scan_model_not_installed": "模型 {{tier}} 未安装。请先调用 ocr_install_bundled_model 或 ocr_download_model。",
