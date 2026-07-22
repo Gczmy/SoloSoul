@@ -27,14 +27,22 @@ function setTimeoutMinutes(minutes: number) {
   });
 }
 
+function setAutoLockOnBackground(enabled: boolean) {
+  useSettingsStore.setState({
+    settings: { ...useSettingsStore.getState().settings, autoLockOnBackground: enabled },
+  });
+}
+
 describe('useAutoLock', () => {
   beforeEach(() => {
     vi.useFakeTimers();
-    vi.mocked(invoke).mockResolvedValue(undefined);
+    // 默认模拟非锁屏状态，避免锁屏分支干扰后台锁定测试。
+    vi.mocked(invoke).mockResolvedValue(false);
     useAuthStore.setState({ isAuthenticated: true });
     useVaultStore.setState({ vaultState: 'unlocked' });
     useAutoLockPauseStore.setState({ pauseCount: 0 });
     setTimeoutMinutes(5);
+    setAutoLockOnBackground(true);
   });
 
   afterEach(() => {
@@ -104,6 +112,7 @@ describe('useAutoLock', () => {
   });
 
   it('回到前台时如果未被隐藏事件锁定则检查闲置（罕见情况）', () => {
+    setAutoLockOnBackground(false);
     renderHook(() => useAutoLock());
     vi.mocked(invoke).mockClear();
 
@@ -115,28 +124,43 @@ describe('useAutoLock', () => {
     expect(invoke).toHaveBeenCalledWith('lock');
   });
 
-  it('切到后台（visibility hidden）时立即锁定', () => {
+  it('切到后台（visibility hidden）时立即锁定', async () => {
     renderHook(() => useAutoLock());
     vi.mocked(invoke).mockClear();
 
     Object.defineProperty(document, 'visibilityState', { value: 'hidden', configurable: true });
     document.dispatchEvent(new Event('visibilitychange'));
+    await act(async () => {});
 
     expect(invoke).toHaveBeenCalledWith('lock');
   });
 
-  it('切到后台只锁定一次', () => {
+  it('关闭切后台锁定时，切后台不立即锁定', async () => {
+    setAutoLockOnBackground(false);
     renderHook(() => useAutoLock());
     vi.mocked(invoke).mockClear();
 
     Object.defineProperty(document, 'visibilityState', { value: 'hidden', configurable: true });
     document.dispatchEvent(new Event('visibilitychange'));
+    await act(async () => {});
+
+    expect(invoke).not.toHaveBeenCalledWith('lock');
+  });
+
+  it('切到后台只锁定一次', async () => {
+    renderHook(() => useAutoLock());
+    vi.mocked(invoke).mockClear();
+
+    Object.defineProperty(document, 'visibilityState', { value: 'hidden', configurable: true });
+    document.dispatchEvent(new Event('visibilitychange'));
+    await act(async () => {});
 
     expect(invoke).toHaveBeenCalledWith('lock');
     vi.mocked(invoke).mockClear();
 
     // 再次 hidden 不应重复锁定
     document.dispatchEvent(new Event('visibilitychange'));
+    await act(async () => {});
     expect(invoke).not.toHaveBeenCalled();
   });
 

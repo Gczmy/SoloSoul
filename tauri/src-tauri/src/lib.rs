@@ -8,6 +8,7 @@ pub mod attachment_import_plugin;
 pub mod commands;
 pub mod keystore_plugin;
 pub mod local_embed;
+pub mod lock_state_plugin;
 pub mod mobile_ocr_plugin;
 pub mod nsd_plugin;
 pub mod plugin;
@@ -144,6 +145,7 @@ pub fn run() {
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_os::init())
         .plugin(status_bar_plugin::init())
+        .plugin(lock_state_plugin::init())
         .plugin(attachment_import_plugin::init())
         .plugin(nsd_plugin::init())
         .plugin(mobile_ocr_plugin::init())
@@ -543,6 +545,7 @@ pub fn run() {
             commands::attachment::attachment_open,
             attachment_import_plugin::attachment_import_content_uri,
             attachment_import_plugin::attachment_export_content_uri,
+            attachment_import_plugin::attachment_export_tree_uri,
             // Sync commands
             commands::sync::sync_discover,
             commands::sync::sync_get_status,
@@ -570,6 +573,7 @@ pub fn run() {
             // Window chrome commands
             commands::window::set_titlebar_color,
             status_bar_plugin::set_status_bar_style,
+            lock_state_plugin::is_screen_locked,
             // Embedding model commands
             commands::embed_model::llm_get_embed_models,
             commands::embed_model::llm_download_embed_model,

@@ -36,16 +36,17 @@ pub async fn export_get_scope_tree(
         if obj.collection_type == "page" {
             continue;
         }
-        let group_key = if !obj.section_type.is_empty() && custom_page_ids.contains(&obj.section_type) {
-            // Object belongs to a custom page — use page ID as group key
-            obj.section_type.clone()
-        } else if !obj.section_type.is_empty() {
-            obj.section_type.clone()
-        } else if !obj.collection_type.is_empty() {
-            obj.collection_type.clone()
-        } else {
-            "uncategorized".to_string()
-        };
+        let group_key =
+            if !obj.section_type.is_empty() && custom_page_ids.contains(&obj.section_type) {
+                // Object belongs to a custom page — use page ID as group key
+                obj.section_type.clone()
+            } else if !obj.section_type.is_empty() {
+                obj.section_type.clone()
+            } else if !obj.collection_type.is_empty() {
+                obj.collection_type.clone()
+            } else {
+                "uncategorized".to_string()
+            };
         groups.entry(group_key).or_default().push(obj);
     }
 

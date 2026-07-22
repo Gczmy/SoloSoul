@@ -34,6 +34,8 @@
   "auto_lock_never_warning": "Never locking reduces security. We recommend setting an auto-lock time when you step away from your device.",
   "auto_lock_notification": "Auto-lock Notification",
   "auto_lock_notification_desc": "Send a system notification when the vault is auto-locked (off by default).",
+  "auto_lock_on_background": "Lock on Background",
+  "auto_lock_on_background_desc": "Lock the vault immediately when the app is sent to background (off by default). Screen lock always locks regardless of this setting.",
   "auto_locked_notification": "Your vault has been auto-locked due to inactivity.",
   "change_password": "Change Password",
   "master_password_warning": "Please keep your master password safe. If lost, you will be unable to unlock the vault and all data will be unrecoverable!",

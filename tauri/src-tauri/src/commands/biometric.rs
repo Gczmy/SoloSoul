@@ -168,7 +168,10 @@ pub async fn biometric_check_availability(
         let keystore_result = app
             .try_state::<KeystorePluginHandle<tauri::Wry>>()
             .map(|keystore| keystore.check_biometric_availability());
-        tracing::info!("biometric_check_availability: keystore_result={:?}", keystore_result);
+        tracing::info!(
+            "biometric_check_availability: keystore_result={:?}",
+            keystore_result
+        );
         // 诊断字符串无条件生成：桥接失败时也要让前端有内容可显示，
         // 否则无法区分「旧构建」与「桥接失败」
         let (bridge_desc, info) = match keystore_result {
@@ -213,8 +216,13 @@ pub async fn biometric_check_availability(
     };
 
     #[cfg(target_os = "ios")]
-    let (available, weak_available, strong_available, effective_type, debug) =
-        (status_available, false, status_available, plugin_biometry_type.clone(), None);
+    let (available, weak_available, strong_available, effective_type, debug) = (
+        status_available,
+        false,
+        status_available,
+        plugin_biometry_type.clone(),
+        None,
+    );
 
     Ok(BiometricAvailability {
         available,
@@ -339,11 +347,12 @@ pub async fn biometric_save_credential(
 
         // 双槽读改写：只更新本次选择的槽，保留另一种方式的凭证
         let path = svc.base_path().join(&account_id).join("keystore_data.json");
-        let mut creds = read_keystore_credentials(svc.base_path(), &account_id)
-            .unwrap_or(KeystoreCredentials {
+        let mut creds = read_keystore_credentials(svc.base_path(), &account_id).unwrap_or(
+            KeystoreCredentials {
                 strong: None,
                 weak: None,
-            });
+            },
+        );
         if authenticator.as_deref() == Some("weak") {
             creds.weak = Some(slot);
         } else {
@@ -505,7 +514,10 @@ pub async fn biometric_unlock(
                     .authenticate_and_read(&account_id, &slot.iv, &slot.ciphertext, prompt, None)
                     .map_err(|e| map_keystore_error(e, "unlock"))?
             } else {
-                return Err(map_bio_error(BiometricError::KeychainItemNotFound, "unlock"));
+                return Err(map_bio_error(
+                    BiometricError::KeychainItemNotFound,
+                    "unlock",
+                ));
             }
         }
 
@@ -629,20 +641,19 @@ pub async fn biometric_delete_credential(
     // 2. 删除移动端安全存储中的对应槽凭证
     #[cfg(target_os = "android")]
     let remaining_any = {
-        use crate::keystore_plugin::{
-            KeystoreCredentials, KeystorePluginHandle,
-        };
+        use crate::keystore_plugin::{KeystoreCredentials, KeystorePluginHandle};
         use tauri::Manager;
 
         let keystore = app.state::<KeystorePluginHandle<tauri::Wry>>();
         let _ = keystore.delete(&account_id, authenticator.as_deref());
 
         let path = svc.base_path().join(&account_id).join("keystore_data.json");
-        let mut creds = read_keystore_credentials(svc.base_path(), &account_id)
-            .unwrap_or(KeystoreCredentials {
+        let mut creds = read_keystore_credentials(svc.base_path(), &account_id).unwrap_or(
+            KeystoreCredentials {
                 strong: None,
                 weak: None,
-            });
+            },
+        );
         if authenticator.as_deref() == Some("weak") {
             creds.weak = None;
         } else {

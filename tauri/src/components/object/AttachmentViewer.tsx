@@ -18,7 +18,7 @@ import { useUiStore } from '@/stores/uiStore';
 import { useConfirm } from '@/hooks/useConfirm';
 import { useIsNarrowViewport } from '@/hooks/useIsNarrowViewport';
 import { useDragToAttach } from '@/hooks/useDragToAttach';
-import { downloadViaStage, isUriPath } from '@/lib/mobileFileTransfer';
+import { downloadViaStage } from '@/lib/mobileFileTransfer';
 import { isMobilePlatformSync } from '@/lib/platform';
 import { useBatchSelect } from '@/hooks/useBatchSelect';
 import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
@@ -58,6 +58,7 @@ export function AttachmentViewer({
   const [renameValue, setRenameValue] = useState('');
   const renameInputRef = useRef<HTMLInputElement>(null);
   const [previewItem, setPreviewItem] = useState<AttachmentItem | null>(null);
+  const [uploading, setUploading] = useState(false);
   const { t } = useTranslation(['common', 'editor']);
   const showToast = useUiStore((s) => s.showToast);
   const { dialog: confirmDialog } = useConfirm();
@@ -97,9 +98,9 @@ export function AttachmentViewer({
       ]);
       setItems(active);
       setTrashItems(deleted);
-    } catch {
-      setItems([]);
-      setTrashItems([]);
+    } catch (e) {
+      console.warn('[AttachmentViewer] Failed to load attachments:', e);
+      // 保留旧列表，避免加载失败时界面被清空
     } finally {
       setLoading(false);
     }
@@ -112,8 +113,13 @@ export function AttachmentViewer({
   const handleAdd = async () => {
     const filePath = await pickFileToAttach();
     if (!filePath) return;
+    setUploading(true);
     try {
       await uploadSingleAttachment(filePath, objectId);
+      showToast({
+        type: 'success',
+        message: t('common:upload_success') || 'Uploaded successfully',
+      });
       await loadAttachments();
       onCountChange?.();
     } catch (e) {
@@ -121,6 +127,8 @@ export function AttachmentViewer({
         type: 'error',
         message: `${t('common:upload_failed')}: ${e}`,
       });
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -278,39 +286,43 @@ export function AttachmentViewer({
     const selectedItems = displayItems.filter((item) => attachmentIds.includes(item.id));
     if (selectedItems.length === 0) return;
 
-    // 移动端不支持目录选择器（SAF 返回 content:// URI 无法用于 std::fs），
-    // 直接提示用户单个下载，不尝试打开文件夹选择器（后者会抛异常且无反馈）
-    if (isMobilePlatformSync()) {
-      showToast({
-        type: 'warning',
-        message:
-          t('common:batch_download_mobile_unsupported') ||
-          'Batch download is not supported on mobile. Please download files individually.',
-      });
-      clearSelection();
-      return;
-    }
-
+    // 系统目录选择器会触发 visibilitychange，期间暂停自动锁定
+    const { pause, resume } = await import('@/stores/autoLockPauseStore').then(
+      (m) => m.useAutoLockPauseStore.getState(),
+    );
+    const { open } = await import('@tauri-apps/plugin-dialog');
+    pause();
+    let dirPath: string | null;
     try {
-      // 系统目录选择器会触发 visibilitychange，期间暂停自动锁定
-      const { pause, resume } = await import('@/stores/autoLockPauseStore').then(
-        (m) => m.useAutoLockPauseStore.getState(),
-      );
-      const { open } = await import('@tauri-apps/plugin-dialog');
-      pause();
-      let dirPath: string | null;
-      try {
-        dirPath = (await open({
-          directory: true,
-          multiple: false,
-          title: t('common:select_download_directory') || 'Select download directory',
-        })) as string | null;
-      } finally {
-        resume();
-      }
-      if (!dirPath) return;
+      dirPath = (await open({
+        directory: true,
+        multiple: false,
+        title: t('common:select_download_directory') || 'Select download directory',
+      })) as string | null;
+    } finally {
+      resume();
+    }
+    if (!dirPath) return;
 
-      let successCount = 0;
+    let successCount = 0;
+    if (isMobilePlatformSync()) {
+      // 移动端 SAF 目录返回的是 content://tree/... URI，走 Android 专用命令
+      for (const item of selectedItems) {
+        const filePath = item.vaultPath || item.srcPath;
+        if (!filePath) continue;
+        try {
+          await invoke('attachment_export_tree_uri', {
+            srcPath: filePath,
+            treeUri: dirPath,
+            fileName: item.fileName,
+            mimeType: item.mimeType,
+          });
+          successCount++;
+        } catch {
+          // continue with next file
+        }
+      }
+    } else {
       for (const item of selectedItems) {
         const filePath = item.vaultPath || item.srcPath;
         if (!filePath) continue;
@@ -322,19 +334,17 @@ export function AttachmentViewer({
           // continue with next file
         }
       }
-
-      showToast({
-        type: successCount === selectedItems.length ? 'success' : 'warning',
-        message:
-          t('common:batch_download_result', {
-            success: successCount,
-            total: selectedItems.length,
-          }) || `Downloaded ${successCount}/${selectedItems.length} files`,
-      });
-      clearSelection();
-    } catch {
-      // dialog cancelled
     }
+
+    showToast({
+      type: successCount === selectedItems.length ? 'success' : 'warning',
+      message:
+        t('common:batch_download_result', {
+          success: successCount,
+          total: selectedItems.length,
+        }) || `Downloaded ${successCount}/${selectedItems.length} files`,
+    });
+    clearSelection();
   };
 
   const handleBatchPermanentDelete = async () => {
@@ -493,18 +503,23 @@ export function AttachmentViewer({
               </div>
             </div>
             {/* 右侧操作：窄视口下 Upload 改纯图标（与关闭按钮同款 44×44），避免头部溢出 */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
-              {!showTrash &&
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>                {!showTrash &&
                 (isNarrowViewport ? (
                   <BadgeIconButton
                     Icon={Upload}
                     onClick={handleAdd}
                     title={t('common:upload') || 'Upload'}
                     iconSize={ICON_SIZE.sm}
+                    disabled={uploading}
                   />
                 ) : (
-                  <Button variant="secondary" size="sm" onClick={handleAdd}>
-                    <Upload size={ICON_SIZE.sm} /> {t('common:upload')}
+                  <Button variant="secondary" size="sm" onClick={handleAdd} disabled={uploading}>
+                    {uploading ? (
+                      <RotateCw size={ICON_SIZE.sm} style={{ animation: 'spin 1s linear infinite' }} />
+                    ) : (
+                      <Upload size={ICON_SIZE.sm} />
+                    )}{' '}
+                    {t('common:upload')}
                   </Button>
                 ))}
               <BadgeIconButton

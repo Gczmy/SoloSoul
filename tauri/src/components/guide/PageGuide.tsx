@@ -42,7 +42,6 @@ export function PageGuide({ pages, label }: PageGuideProps) {
   const [open, setOpen] = useState(false);
   const [hovered, setHovered] = useState(false);
   const [pageIndex, setPageIndex] = useState(0);
-  const [isSnapping, setIsSnapping] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -112,7 +111,6 @@ export function PageGuide({ pages, label }: PageGuideProps) {
       dragOffsetRef.current = 0;
       axisRef.current = 'none';
       pageIndexRef.current = pageIndex;
-      setIsSnapping(false);
     };
 
     const onTouchMove = (e: TouchEvent) => {
@@ -156,13 +154,11 @@ export function PageGuide({ pages, label }: PageGuideProps) {
         }
       }
       // 未触发翻页：回弹到当前页
-      setIsSnapping(true);
       dragOffsetRef.current = 0;
       if (stripRef.current) {
         stripRef.current.style.transition = 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
         stripRef.current.style.transform = `translateX(-${pageIndexRef.current * (100 / pagesLenRef.current)}%)`;
       }
-      setTimeout(() => setIsSnapping(false), 350);
     };
 
     container.addEventListener('touchstart', onTouchStart, { passive: true });
@@ -189,14 +185,12 @@ export function PageGuide({ pages, label }: PageGuideProps) {
       isDraggingRef.current = false;
       dragOffsetRef.current = 0;
       pageIndexRef.current = index;
-      setIsSnapping(true);
       setPageIndex(index);
       // 立即设置 strip 到目标位置（带过渡动画），确保浏览器在此帧内开始动画
       if (stripRef.current) {
         stripRef.current.style.transition = 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1)';
         stripRef.current.style.transform = `translateX(-${index * (100 / pages.length)}%)`;
       }
-      setTimeout(() => setIsSnapping(false), 350);
     },
     [pageIndex, pages.length],
   );

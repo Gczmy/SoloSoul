@@ -66,6 +66,16 @@ pub struct OpenFilePayload {
     pub mime_type: String,
 }
 
+/// 调用 Kotlin 导出到 tree URI 命令时传入的参数。
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ExportToTreeUriPayload {
+    pub src_path: String,
+    pub tree_uri: String,
+    pub file_name: String,
+    pub mime_type: String,
+}
+
 /// 插件句柄包装，便于在 command 中通过 Tauri state 获取。
 pub struct AttachmentImportPluginHandle<R: Runtime> {
     #[cfg(target_os = "android")]
@@ -130,6 +140,23 @@ impl<R: Runtime> AttachmentImportPluginHandle<R> {
             Err("attachment_export_content_uri is only supported on Android".to_string())
         }
     }
+
+    /// 在 Android 端把 Vault 中的本地文件导出到 SAF tree URI 目录。
+    /// 非 Android 平台直接返回不支持错误。
+    pub fn export_to_tree_uri(&self, payload: ExportToTreeUriPayload) -> Result<(), String> {
+        #[cfg(target_os = "android")]
+        {
+            self.handle
+                .run_mobile_plugin::<serde_json::Value>("exportToTreeUri", payload)
+                .map(|_| ())
+                .map_err(|e| e.to_string())
+        }
+        #[cfg(not(target_os = "android"))]
+        {
+            let _ = payload;
+            Err("attachment_export_to_tree_uri is only supported on Android".to_string())
+        }
+    }
 }
 
 /// 初始化插件：注册 Android Kotlin 插件并将句柄存入 state。
@@ -182,11 +209,15 @@ pub async fn attachment_import_content_uri<R: Runtime>(
     // Vault 必须处于解锁状态。
     let _vault = vault_handle(&state)?;
 
-    let svc = state
-        .vault_service
-        .read()
-        .map_err(|_| "Vault service lock poisoned".to_string())?;
-    let base = svc.base_path().clone();
+    // 尽早释放 vault_service read guard：先拿到 base_path 并创建目标目录，
+    // 避免长时间阻塞在 JNI 文件复制期间仍持有锁。
+    let base = {
+        let svc = state
+            .vault_service
+            .read()
+            .map_err(|_| "Vault service lock poisoned".to_string())?;
+        svc.base_path().clone()
+    };
 
     // 计算并创建 Vault 目标目录。
     let dest_dir = attachment_dir(&base, &object_id, &attachment_id)?;
@@ -201,14 +232,22 @@ pub async fn attachment_import_content_uri<R: Runtime>(
         .to_string();
     let dest_path = dest_dir.join(&safe_name);
 
-    let handle = app.state::<AttachmentImportPluginHandle<R>>();
-    handle.import_content_uri(ImportContentUriPayload {
+    let payload = ImportContentUriPayload {
         object_id,
         attachment_id,
         content_uri,
         file_name: safe_name,
         dest_path: dest_path.to_string_lossy().to_string(),
+    };
+
+    // JNI 文件复制会阻塞当前线程，放到 spawn_blocking 避免阻塞 tokio worker。
+    // 注意：在 spawn_blocking 内部重新获取插件句柄，避免引用 `app` 导致生命周期错误。
+    tokio::task::spawn_blocking(move || {
+        let handle = app.state::<AttachmentImportPluginHandle<R>>();
+        handle.import_content_uri(payload)
     })
+    .await
+    .map_err(|e| format!("Import task failed: {}", e))?
 }
 
 /// 把 Vault 中的附件文件直接导出到 Android content:// URI。
@@ -291,5 +330,63 @@ pub async fn attachment_export_content_uri<R: Runtime>(
     handle.export_content_uri(ExportContentUriPayload {
         src_path: src.to_string_lossy().to_string(),
         dest_uri,
+    })
+}
+
+/// 把 Vault 中的附件文件导出到 Android SAF tree URI 目录。
+///
+/// 流程：
+/// 1. 校验 Vault 已解锁。
+/// 2. 校验源文件位于 Vault attachments 目录内。
+/// 3. 调用 Kotlin 插件通过 ContentResolver 在目标目录下创建文件并流式复制。
+#[tauri::command]
+pub async fn attachment_export_tree_uri<R: Runtime>(
+    app: AppHandle<R>,
+    state: State<'_, AppState>,
+    src_path: String,
+    tree_uri: String,
+    file_name: String,
+    mime_type: String,
+) -> Result<(), String> {
+    // Vault 必须处于解锁状态。
+    let _vault = vault_handle(&state)?;
+
+    let svc = state
+        .vault_service
+        .read()
+        .map_err(|_| "Vault service lock poisoned".to_string())?;
+    let base = svc.base_path().clone();
+    let attachments_dir = base.join("attachments");
+
+    let src = std::path::Path::new(&src_path)
+        .canonicalize()
+        .or_else(|_| {
+            let p = std::path::PathBuf::from(&src_path);
+            if p.exists() {
+                Ok(p)
+            } else {
+                Err(std::io::Error::new(
+                    std::io::ErrorKind::NotFound,
+                    "source path does not exist",
+                ))
+            }
+        })
+        .map_err(|e| format!("Invalid source path: {}", e))?;
+
+    let attachments_canon = attachments_dir
+        .canonicalize()
+        .unwrap_or_else(|_| attachments_dir.clone());
+    let in_attachments = src.starts_with(&attachments_canon)
+        || src_path.starts_with(attachments_canon.to_string_lossy().as_ref());
+    if !in_attachments {
+        return Err("Source path must be within vault attachments storage".to_string());
+    }
+
+    let handle = app.state::<AttachmentImportPluginHandle<R>>();
+    handle.export_to_tree_uri(ExportToTreeUriPayload {
+        src_path: src.to_string_lossy().to_string(),
+        tree_uri,
+        file_name,
+        mime_type,
     })
 }

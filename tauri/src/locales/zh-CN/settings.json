@@ -34,6 +34,8 @@
   "auto_lock_never_warning": "永久不锁定会降低安全性，建议在离开设备时让保险库自动锁定。",
   "auto_lock_notification": "自动锁定通知",
   "auto_lock_notification_desc": "保险库自动锁定时发送系统通知（默认关闭）。",
+  "auto_lock_on_background": "切后台锁定",
+  "auto_lock_on_background_desc": "应用切换到后台时立即锁定保险库（默认关闭）。系统锁屏时不受此开关影响，始终锁定。",
   "auto_locked_notification": "您的保险库已因闲置而自动锁定。",
   "change_password": "修改密码",
   "master_password_warning": "请妥善保管您的主密码，如果遗失将无法解锁保险库，所有数据将无法找回！",

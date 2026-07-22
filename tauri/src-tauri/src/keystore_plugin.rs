@@ -55,8 +55,7 @@ impl<'de> Deserialize<'de> for KeystoreCredentials {
         let v = serde_json::Value::deserialize(deserializer)?;
         if v.get("iv").is_some() {
             // 旧版扁平格式 → strong 槽
-            let slot: KeystoreSlot =
-                serde_json::from_value(v).map_err(serde::de::Error::custom)?;
+            let slot: KeystoreSlot = serde_json::from_value(v).map_err(serde::de::Error::custom)?;
             Ok(Self {
                 strong: Some(slot),
                 weak: None,
@@ -151,9 +150,7 @@ impl<R: Runtime> KeystorePluginHandle<R> {
                     },
                 )
                 .map_err(|e| e.to_string())
-                .and_then(|v| {
-                    serde_json::from_value::<KeystoreSlot>(v).map_err(|e| e.to_string())
-                })
+                .and_then(|v| serde_json::from_value::<KeystoreSlot>(v).map_err(|e| e.to_string()))
         }
         #[cfg(not(target_os = "android"))]
         {
@@ -224,8 +221,7 @@ impl<R: Runtime> KeystorePluginHandle<R> {
                 )
                 .map_err(|e| e.to_string())
                 .and_then(|v| {
-                    serde_json::from_value::<AvailabilityInfo>(v)
-                        .map_err(|e| format!("parse: {e}"))
+                    serde_json::from_value::<AvailabilityInfo>(v).map_err(|e| format!("parse: {e}"))
                 })
         }
         #[cfg(not(target_os = "android"))]

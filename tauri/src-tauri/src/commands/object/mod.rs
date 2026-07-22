@@ -135,6 +135,10 @@ pub struct ObjectData {
     pub deleted_at: Option<String>,
     #[serde(rename = "contractTypeId")]
     pub contract_type_id: Option<String>,
+    #[serde(rename = "templateHash")]
+    pub template_hash: Option<String>,
+    #[serde(rename = "ignoredTemplateHash")]
+    pub ignored_template_hash: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -450,6 +454,8 @@ pub fn record_to_data(record: &ObjectRecord) -> ObjectData {
         template_type: record.template_type.clone(),
         property_labels: record.property_labels.clone(),
         contract_type_id: record.contract_type_id.clone(),
+        template_hash: record.template_hash.clone(),
+        ignored_template_hash: record.ignored_template_hash.clone(),
         created_at: record.created_at.clone(),
         updated_at: record.updated_at.clone(),
         deleted_at: record.deleted_at.clone(),

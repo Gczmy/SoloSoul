@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { invoke } from '@tauri-apps/api/core';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useVaultStore } from '@/stores/vaultStore';
@@ -28,6 +29,7 @@ export function useAutoLock(): void {
   const autoLockNotificationEnabled = useSettingsStore(
     (s) => s.settings.autoLockNotificationEnabled,
   );
+  const autoLockOnBackground = useSettingsStore((s) => s.settings.autoLockOnBackground);
 
   useEffect(() => {
     if (!isAuthenticated || timeoutMinutes <= 0) return;
@@ -69,19 +71,38 @@ export function useAutoLock(): void {
       }
     };
 
+    const shouldLockOnHide = async () => {
+      // 锁屏状态始终立即锁定（不受开关控制）
+      try {
+        const locked = await invoke<boolean>('is_screen_locked');
+        if (locked) return true;
+      } catch {
+        // 查询失败按「锁屏」保守处理
+        return true;
+      }
+      // 非锁屏情况下，仅当用户开启「切后台锁定」才立即锁定
+      return autoLockOnBackground;
+    };
+
     const onVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
         checkIdle();
       } else if (document.visibilityState === 'hidden') {
         // 暂停期间（如文件选择器打开）跳过锁定，不中断用户操作
         if (useAutoLockPauseStore.getState().pauseCount > 0) return;
-        // 屏幕锁定/应用切到后台时立即锁定，不等待 idle timeout
+        // 屏幕锁定/应用切到后台时根据用户设置决定是否立即锁定
         if (lockInitiated) return;
-        lockInitiated = true;
-        useVaultStore
-          .getState()
-          .lock()
-          .catch((err) => console.error('[useAutoLock] lock on hide failed:', err));
+        shouldLockOnHide()
+          .then((shouldLock) => {
+            if (shouldLock) {
+              lockInitiated = true;
+              useVaultStore
+                .getState()
+                .lock()
+                .catch((err) => console.error('[useAutoLock] lock on hide failed:', err));
+            }
+          })
+          .catch((err) => console.error('[useAutoLock] shouldLockOnHide failed:', err));
       }
     };
 
@@ -98,5 +119,5 @@ export function useAutoLock(): void {
       document.removeEventListener('visibilitychange', onVisibilityChange);
       clearInterval(interval);
     };
-  }, [isAuthenticated, timeoutMinutes, autoLockNotificationEnabled]);
+  }, [isAuthenticated, timeoutMinutes, autoLockNotificationEnabled, autoLockOnBackground]);
 }

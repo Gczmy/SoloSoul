@@ -47,6 +47,7 @@ describe('settingsStore', () => {
         locale: 'en',
         autoLockTimeoutMinutes: 5,
         autoLockNotificationEnabled: false,
+        autoLockOnBackground: false,
         backupReminderDays: 7,
         lastBackupReminderAt: null,
         biometricEnabled: false,
@@ -129,6 +130,7 @@ describe('settingsStore', () => {
         locale: 'zh',
         autoLockTimeoutMinutes: 10,
         autoLockNotificationEnabled: true,
+        autoLockOnBackground: true,
         backupReminderDays: 14,
         biometricEnabled: true,
         confirmDelete: false,
@@ -148,6 +150,7 @@ describe('settingsStore', () => {
       expect(s.locale).toBe('zh');
       expect(s.autoLockTimeoutMinutes).toBe(10);
       expect(s.autoLockNotificationEnabled).toBe(true);
+      expect(s.autoLockOnBackground).toBe(true);
       expect(s.backupReminderDays).toBe(14);
       expect(s.biometricEnabled).toBe(true);
       expect(s.confirmDelete).toBe(false);
@@ -303,6 +306,7 @@ describe('settingsStore', () => {
       expect(state.settings.language).toBe('en-US');
       expect(state.settings.locale).toBe('en');
       expect(state.settings.autoLockTimeoutMinutes).toBe(5);
+      expect(state.settings.autoLockOnBackground).toBe(false);
       expect(state.settings.biometricEnabled).toBe(false);
       expect(state.settings.confirmDelete).toBe(true);
       expect(state.settings.customPages).toEqual([]);

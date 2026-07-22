@@ -33,6 +33,14 @@ class ExportContentUriArgs {
 }
 
 @InvokeArg
+class ExportToTreeUriArgs {
+  lateinit var srcPath: String
+  lateinit var treeUri: String
+  lateinit var fileName: String
+  lateinit var mimeType: String
+}
+
+@InvokeArg
 class OpenFileArgs {
   lateinit var path: String
   lateinit var mimeType: String
@@ -259,6 +267,93 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
    * - 其他类型使用系统默认应用打开；通过 createChooser 绕过 Android 11+
    *   对 resolveActivity 的限制，并捕获 ActivityNotFoundException。
    */
+  @Command
+  fun exportToTreeUri(invoke: Invoke) {
+    try {
+      val args = invoke.parseArgs(ExportToTreeUriArgs::class.java)
+      val srcFile = File(args.srcPath)
+      if (!srcFile.exists()) {
+        invoke.reject("源文件不存在: ${args.srcPath}")
+        return
+      }
+
+      val treeUri = Uri.parse(args.treeUri)
+      val parent = DocumentsContract.buildDocumentUriUsingTree(treeUri, DocumentsContract.getTreeDocumentId(treeUri))
+        ?: run {
+        invoke.reject("无法从 tree URI 解析目标目录: ${args.treeUri}")
+        return
+      }
+
+      // 清理文件名，防止路径遍历
+      val safeName = File(args.fileName).name.takeIf { it.isNotBlank() && it != "/" }
+        ?: args.fileName
+      // 使用系统 API 创建唯一文件名
+      val uniqueName = createUniqueFileName(parent, safeName)
+
+      val mimeType = args.mimeType.ifBlank { "application/octet-stream" }
+      val newFile = DocumentsContract.createDocument(activity.contentResolver, parent, mimeType, uniqueName)
+        ?: run {
+        invoke.reject("无法在目标目录创建文件: $uniqueName")
+        return
+      }
+
+      activity.contentResolver.openOutputStream(newFile)?.use { output ->
+        FileInputStream(srcFile).use { input ->
+          input.copyTo(output)
+        }
+      } ?: run {
+        invoke.reject("无法打开目标 URI 输出流: $newFile")
+        return
+      }
+
+      invoke.resolve(JSObject())
+    } catch (e: IOException) {
+      invoke.reject("复制文件失败: ${e.message}")
+    } catch (e: Exception) {
+      invoke.reject("导出到 tree URI 失败: ${e.message}")
+    }
+  }
+
+  /**
+   * 在指定 document URI 所在目录生成一个唯一的文件名。
+   * 优先使用原始文件名；若已存在则追加 "(1)","(2)" 等序号。
+   */
+  private fun createUniqueFileName(parentUri: Uri, originalName: String): String {
+    if (!fileExistsInTree(parentUri, originalName)) {
+      return originalName
+    }
+    val ext = originalName.substringAfterLast(".", "")
+    val stem = if (ext.isEmpty()) originalName else originalName.substringBeforeLast(".")
+    var n = 1
+    while (true) {
+      val candidate = if (ext.isEmpty()) "${stem}($n)" else "${stem}($n).${ext}"
+      if (!fileExistsInTree(parentUri, candidate)) {
+        return candidate
+      }
+      n++
+      if (n > 1000) {
+        // 兜底：使用时间戳避免无限循环
+        val timestamp = System.currentTimeMillis()
+        return if (ext.isEmpty()) "${stem}_${timestamp}" else "${stem}_${timestamp}.${ext}"
+      }
+    }
+  }
+
+  private fun fileExistsInTree(parentUri: Uri, name: String): Boolean {
+    return try {
+      val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(parentUri, DocumentsContract.getTreeDocumentId(parentUri))
+      activity.contentResolver.query(childrenUri, arrayOf(DocumentsContract.Document.COLUMN_DISPLAY_NAME), null, null, null)?.use { cursor ->
+        while (cursor.moveToNext()) {
+          val displayName = cursor.getString(0)
+          if (displayName == name) return true
+        }
+      }
+      false
+    } catch (e: Exception) {
+      false
+    }
+  }
+
   @Command
   fun openFile(invoke: Invoke) {
     try {

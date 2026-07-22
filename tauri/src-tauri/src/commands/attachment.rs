@@ -81,8 +81,8 @@ pub async fn attachment_list(
 ) -> Result<Vec<AttachmentMeta>, String> {
     let show = show_deleted.unwrap_or(false);
     let vault = vault_handle(&state)?;
-    match vault.load_object(&object_id) {
-        Ok(Some(rec)) => Ok(load_attachments(&rec.properties)
+    match vault.load_object(&object_id)? {
+        Some(rec) => Ok(load_attachments(&rec.properties)
             .into_iter()
             .filter(|a| {
                 if show {
@@ -92,7 +92,7 @@ pub async fn attachment_list(
                 }
             })
             .collect()),
-        _ => Ok(vec![]),
+        None => Ok(vec![]),
     }
 }
 

@@ -31,6 +31,8 @@ export interface AppSettings {
   autoLockTimeoutMinutes: number;
   /** 自动锁定后是否发送系统通知（默认关闭） */
   autoLockNotificationEnabled: boolean;
+  /** 切到后台/锁屏时是否立即自动锁定（默认关闭） */
+  autoLockOnBackground: boolean;
   /** 备份提醒周期（天），≤0 表示关闭 */
   backupReminderDays: number;
   /** 上次备份提醒的时间戳（毫秒），null 表示从未提醒过 */
@@ -101,6 +103,7 @@ const accountPrefsSchema = z
     locale: z.string().optional(),
     autoLockTimeoutMinutes: z.number().optional(),
     autoLockNotificationEnabled: z.boolean().optional(),
+    autoLockOnBackground: z.boolean().optional(),
     backupReminderDays: z.number().optional(),
     lastBackupReminderAt: z.number().nullable().optional(),
     biometricEnabled: z.boolean().optional(),
@@ -123,6 +126,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   locale: detectSystemLanguage().startsWith('zh') ? 'zh' : 'en',
   autoLockTimeoutMinutes: 5,
   autoLockNotificationEnabled: false,
+  autoLockOnBackground: false,
   backupReminderDays: 7,
   lastBackupReminderAt: null,
   biometricEnabled: false,
@@ -250,6 +254,8 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         parsed.autoLockTimeoutMinutes = prefs.autoLockTimeoutMinutes;
       if (typeof prefs.autoLockNotificationEnabled === 'boolean')
         parsed.autoLockNotificationEnabled = prefs.autoLockNotificationEnabled;
+      if (typeof prefs.autoLockOnBackground === 'boolean')
+        parsed.autoLockOnBackground = prefs.autoLockOnBackground;
       if (typeof prefs.backupReminderDays === 'number')
         parsed.backupReminderDays = prefs.backupReminderDays;
       if (typeof (prefs as Record<string, unknown>).lastBackupReminderAt === 'number')
@@ -480,6 +486,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         locale: state.settings.locale,
         autoLockTimeoutMinutes: state.settings.autoLockTimeoutMinutes,
         autoLockNotificationEnabled: state.settings.autoLockNotificationEnabled,
+        autoLockOnBackground: state.settings.autoLockOnBackground,
         backupReminderDays: state.settings.backupReminderDays,
         lastBackupReminderAt: state.settings.lastBackupReminderAt,
         defaultLightTheme: state.settings.defaultLightTheme,

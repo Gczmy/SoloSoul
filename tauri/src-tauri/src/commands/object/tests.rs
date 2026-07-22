@@ -112,6 +112,8 @@ fn test_object_data_serde_roundtrip() {
         deleted_at: Some("2024-02-01T00:00:00Z".to_string()),
         template_id: None,
         template_type: None,
+        template_hash: None,
+        ignored_template_hash: None,
     };
     let json = serde_json::to_string(&original).unwrap();
     assert!(json.contains("accountId"));

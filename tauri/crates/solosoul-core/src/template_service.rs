@@ -6,6 +6,7 @@
 //! account creation. After import, users can freely edit or delete them.
 
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 
 // ---------------------------------------------------------------------------
@@ -201,6 +202,19 @@ pub fn seed_default_templates(
 // Plugin install migration — seed templates contract_bindings 补齐
 // ---------------------------------------------------------------------------
 
+/// 计算模板指纹，用于判断对象是否需要同步模板更新。
+/// 按字段 id 稳定排序后序列化再取 SHA-256 前 16 位。
+fn template_fingerprint(tpl: &solosoul_vault::UserTemplate) -> String {
+    let mut props: Vec<&solosoul_vault::TemplateProperty> = tpl.properties.iter().collect();
+    props.sort_by(|a, b| a.id.cmp(&b.id));
+    let canonical = serde_json::json!({
+        "properties": props,
+    });
+    let bytes = serde_json::to_vec(&canonical).unwrap_or_default();
+    let hash = Sha256::digest(&bytes);
+    hex::encode(&hash[..8])
+}
+
 /// 插件安装后迁移种子模板的 contract_bindings。
 /// 对模板中 contractField: true 但 contract_bindings 为空的字段，
 /// 根据已安装插件的合同合约 roles[].defaultPropertyId 自动推导绑定并持久化。
@@ -273,9 +287,31 @@ pub fn migrate_contract_bindings(
         }
 
         if changed {
+            // 在修改前计算旧指纹，修改后计算新指纹
+            let old_hash = template_fingerprint(&tpl);
             tpl.properties = new_properties;
             tpl.updated_at = Some(chrono::Utc::now().to_rfc3339());
+            let new_hash = template_fingerprint(&tpl);
             vault.save_user_template(&tpl)?;
+
+            // 同步更新所有使用该模板且指纹等于旧指纹的对象
+            let objects = vault.list_objects(account_id, None, None, None, false, false)?;
+            for obj in objects {
+                if obj.template_id.as_deref() != Some(&tpl.id) {
+                    continue;
+                }
+                let mut record = match vault.load_object(&obj.id)? {
+                    Some(r) => r,
+                    None => continue,
+                };
+                if record.template_hash.as_deref() != Some(&old_hash) {
+                    continue;
+                }
+                record.template_hash = Some(new_hash.clone());
+                record.updated_at = chrono::Utc::now().to_rfc3339();
+                record.version += 1;
+                vault.save_object(&record)?;
+            }
         }
     }
 
