@@ -290,33 +290,15 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
               </div>
             )}
 
-            {/* Face ID（Class 2 弱生物识别）—— 置灰不可开启 */}
+            {/* Face ID（Class 2 弱生物识别）—— 置灰不可开启，提示在开关下方 */}
             {showWeak && (
               <>
-                <div
-                  style={{
-                    padding: '8px 12px',
-                    borderRadius: 8,
-                    marginBottom: 12,
-                    background: 'rgba(212, 133, 10, 0.10)',
-                    border: '1px solid rgba(212, 133, 10, 0.25)',
-                    fontSize: 'var(--text-caption)',
-                    lineHeight: 1.5,
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    gap: 8,
-                  }}
-                >
-                  <AlertTriangle size={ICON_SIZE.md} style={{ flexShrink: 0, marginTop: 1 }} />
-                  <span>
-                    {t('settings:biometric_weak_unsupported')}
-                  </span>
-                </div>
                 <div
                   style={{
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'space-between',
+                    marginBottom: 12,
                   }}
                 >
                   <span
@@ -337,6 +319,24 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
                       disabled={!bioAvailable.weakConfigured}
                     />
                   </div>
+                </div>
+                {/* 样式与 PasswordChangeForm 的主密码保管警告保持一致 */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: 8,
+                    padding: 10,
+                    borderRadius: 8,
+                    background: 'rgba(212, 133, 10, 0.10)',
+                    border: '1px solid rgba(212, 133, 10, 0.25)',
+                    color: '#D4850A',
+                    fontSize: 'var(--text-caption)',
+                    lineHeight: 1.4,
+                  }}
+                >
+                  <AlertTriangle size={ICON_SIZE.md} style={{ flexShrink: 0, marginTop: 1 }} />
+                  {t('settings:biometric_weak_unsupported')}
                 </div>
               </>
             )}
