@@ -599,10 +599,135 @@ export function GlobalAttachmentManager() {
 
   const renderAttachment = (item: AttachmentMeta, objectId: string) => {
     const isRenaming = renamingId === item.id;
+    const isMobile = isMobilePlatformSync();
 
     const compositeKey = `${objectId}::${item.id}`;
     const isChecked = selectedIds.has(compositeKey);
 
+    // 移动端：多行布局 — 第1行 勾选框+图标+文件名，第2行 大小·时间，第3行 操作按钮
+    if (isMobile) {
+      return (
+        <div
+          key={item.id}
+          style={{
+            display: 'flex',
+            gap: 6,
+            padding: '6px 8px 6px 40px',
+            fontSize: 'var(--text-sm)',
+            borderBottom: '1px solid var(--border-subtle)',
+          }}
+        >
+          <SelectCheckbox
+            checked={isChecked}
+            onClick={(e) => {
+              e.stopPropagation();
+              toggleSelect(compositeKey);
+            }}
+          />
+          <Paperclip
+            size={ICON_SIZE.sm}
+            style={{ color: 'var(--text-tertiary)', flexShrink: 0 }}
+          />
+
+          {isRenaming ? (
+            <input
+              ref={renameInputRef}
+              value={renameValue}
+              onChange={(e) => setRenameValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleConfirmRename();
+                if (e.key === 'Escape') {
+                  setRenamingId(null);
+                  setRenameObjectId('');
+                }
+              }}
+              onBlur={handleConfirmRename}
+              style={{
+                flex: 1,
+                minWidth: 0,
+                padding: '2px 6px',
+                fontSize: 'var(--text-sm)',
+                borderRadius: 4,
+                border: '1px solid var(--accent-primary)',
+                background: 'transparent',
+                color: 'var(--text-primary)',
+                outline: 'none',
+              }}
+            />
+          ) : (
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div
+                style={{
+                  fontWeight: 500,
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  textDecoration: showTrash ? 'line-through' : 'none',
+                  opacity: showTrash ? 0.5 : 1,
+                }}
+              >
+                {truncateFileName(item.fileName)}
+              </div>
+              <div
+                style={{
+                  fontSize: 'var(--text-caption)',
+                  color: 'var(--text-tertiary)',
+                  marginTop: 1,
+                }}
+              >
+                {formatBytes(item.sizeBytes)} ·{' '}
+                {new Date(item.createdAt).toLocaleDateString()}
+              </div>
+              <div style={{ display: 'flex', gap: 4, marginTop: 4 }}>
+                {showTrash ? (
+                  <>
+                    <BadgeIconButton
+                      Icon={RotateCcw}
+                      onClick={() => handleRestore(item, objectId)}
+                      title={t('common:restore')}
+                      iconSize={ICON_SIZE.sm}
+                    />
+                    <DeleteButton
+                      iconOnly
+                      onClick={() => handlePermanentDelete(item, objectId)}
+                      title={t('common:delete_permanently')}
+                    />
+                  </>
+                ) : (
+                  <>
+                    <BadgeIconButton
+                      Icon={Eye}
+                      onClick={() => handlePreview(item)}
+                      title={t('common:preview')}
+                      iconSize={ICON_SIZE.sm}
+                    />
+                    <BadgeIconButton
+                      Icon={Edit2}
+                      onClick={() => handleStartRename(item, objectId)}
+                      title={t('common:rename')}
+                      iconSize={ICON_SIZE.sm}
+                    />
+                    <BadgeIconButton
+                      Icon={Download}
+                      onClick={() => handleDownload(item)}
+                      title={t('common:download')}
+                      iconSize={ICON_SIZE.sm}
+                    />
+                    <DeleteButton
+                      iconOnly
+                      onClick={() => handleSoftDelete(item, objectId)}
+                      title={t('common:delete')}
+                    />
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // 桌面端：原有单行布局
     return (
       <div
         key={item.id}
@@ -723,6 +848,7 @@ export function GlobalAttachmentManager() {
   const renderObject = (obj: AttachmentTreeObject, pageKey: string) => {
     const objKey = `${pageKey}::${obj.objectId}`;
     const isExpanded = expandedObjects.has(objKey);
+    const isMobile = isMobilePlatformSync();
 
     const row = (
       <div>
@@ -747,35 +873,94 @@ export function GlobalAttachmentManager() {
           ) : (
             <ChevronRight size={ICON_SIZE.sm} style={{ flexShrink: 0 }} />
           )}
-          <span style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
-            {obj.templateName}
-          </span>
-          <span
-            style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}
-          >
-            {obj.objectName}
-          </span>
-          <span
-            style={{
-              fontSize: 'var(--text-caption)',
-              color: 'var(--text-tertiary)',
-              flexShrink: 0,
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {t('settings:attachments_count', { n: obj.attachments.length })} ·{' '}
-            {formatBytes(obj.attachments.reduce((sum, a) => sum + a.sizeBytes, 0))}
-          </span>
-          {!showTrash && (
-            <BadgeIconButton
-              Icon={Upload}
-              onClick={(e) => {
-                e.stopPropagation();
-                handleUpload(obj.objectId);
-              }}
-              title={t('common:upload') || 'Upload'}
-              iconSize={ICON_SIZE.sm}
-            />
+          {isMobile ? (
+            // 移动端：第1行 模板名+对象名+上传按钮，第2行 统计信息
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                {obj.templateName && (
+                  <span
+                    style={{
+                      fontSize: 'var(--text-caption)',
+                      color: 'var(--text-tertiary)',
+                      flexShrink: 0,
+                    }}
+                  >
+                    {obj.templateName}
+                  </span>
+                )}
+                <span
+                  style={{
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    flex: 1,
+                    minWidth: 0,
+                  }}
+                >
+                  {obj.objectName}
+                </span>
+                {!showTrash && (
+                  <BadgeIconButton
+                    Icon={Upload}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleUpload(obj.objectId);
+                    }}
+                    title={t('common:upload') || 'Upload'}
+                    iconSize={ICON_SIZE.sm}
+                  />
+                )}
+              </div>
+              <div
+                style={{
+                  fontSize: 'var(--text-caption)',
+                  color: 'var(--text-tertiary)',
+                  marginTop: 1,
+                }}
+              >
+                {t('settings:attachments_count', { n: obj.attachments.length })} ·{' '}
+                {formatBytes(obj.attachments.reduce((sum, a) => sum + a.sizeBytes, 0))}
+              </div>
+            </div>
+          ) : (
+            // 桌面端：原有单行布局
+            <>
+              <span style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
+                {obj.templateName}
+              </span>
+              <span
+                style={{
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  flex: 1,
+                }}
+              >
+                {obj.objectName}
+              </span>
+              <span
+                style={{
+                  fontSize: 'var(--text-caption)',
+                  color: 'var(--text-tertiary)',
+                  flexShrink: 0,
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {t('settings:attachments_count', { n: obj.attachments.length })} ·{' '}
+                {formatBytes(obj.attachments.reduce((sum, a) => sum + a.sizeBytes, 0))}
+              </span>
+              {!showTrash && (
+                <BadgeIconButton
+                  Icon={Upload}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleUpload(obj.objectId);
+                  }}
+                  title={t('common:upload') || 'Upload'}
+                  iconSize={ICON_SIZE.sm}
+                />
+              )}
+            </>
           )}
         </div>
         {isExpanded && obj.attachments.map((att) => renderAttachment(att, obj.objectId))}
@@ -797,6 +982,14 @@ export function GlobalAttachmentManager() {
     const pageKey = getPageKey(page);
     const isExpanded = expandedPages.has(pageKey);
     const PageIconComp = resolvePageIcon(page.pageIcon);
+    const isMobile = isMobilePlatformSync();
+
+    const totalAttachments = page.objects.reduce((sum, o) => sum + o.attachments.length, 0);
+    const totalBytes = page.objects.reduce(
+      (sum, o) => sum + o.attachments.reduce((s, a) => s + a.sizeBytes, 0),
+      0,
+    );
+    const pageLabel = page.pageId ? page.pageName : t(`navigation:${page.pageName}`);
 
     return (
       <Card key={pageKey} style={{ padding: 0, overflow: 'hidden' }}>
@@ -821,29 +1014,61 @@ export function GlobalAttachmentManager() {
             size={ICON_SIZE.xl}
             style={{ flexShrink: 0, color: 'var(--accent-primary)' }}
           />
-          <span style={{ flex: 1 }}>
-            {page.pageId ? page.pageName : t(`navigation:${page.pageName}`)}
-          </span>
-          <span
-            style={{
-              fontSize: 'var(--text-caption)',
-              color: 'var(--text-tertiary)',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {t('settings:objects_count', { n: page.objects.length })} ·{' '}
-            {t('settings:attachments_count', {
-              n: page.objects.reduce((sum, o) => sum + o.attachments.length, 0),
-            })}{' '}
-            ·{' '}
-            {formatBytes(
-              page.objects.reduce(
-                (sum, o) => sum + o.attachments.reduce((s, a) => s + a.sizeBytes, 0),
-                0,
-              ),
-            )}
-          </span>
-          {isExpanded ? <ChevronDown size={ICON_SIZE.sm} /> : <ChevronRight size={ICON_SIZE.sm} />}
+          {isMobile ? (
+            // 移动端：第1行 页面名+展开箭头，第2行 统计信息
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span
+                  style={{
+                    flex: 1,
+                    minWidth: 0,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {pageLabel}
+                </span>
+                {isExpanded ? (
+                  <ChevronDown size={ICON_SIZE.sm} style={{ flexShrink: 0 }} />
+                ) : (
+                  <ChevronRight size={ICON_SIZE.sm} style={{ flexShrink: 0 }} />
+                )}
+              </div>
+              <div
+                style={{
+                  fontSize: 'var(--text-caption)',
+                  color: 'var(--text-tertiary)',
+                  marginTop: 2,
+                }}
+              >
+                {t('settings:objects_count', { n: page.objects.length })} ·{' '}
+                {t('settings:attachments_count', { n: totalAttachments })} ·{' '}
+                {formatBytes(totalBytes)}
+              </div>
+            </div>
+          ) : (
+            // 桌面端：原有单行布局
+            <>
+              <span style={{ flex: 1 }}>{pageLabel}</span>
+              <span
+                style={{
+                  fontSize: 'var(--text-caption)',
+                  color: 'var(--text-tertiary)',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {t('settings:objects_count', { n: page.objects.length })} ·{' '}
+                {t('settings:attachments_count', { n: totalAttachments })} ·{' '}
+                {formatBytes(totalBytes)}
+              </span>
+              {isExpanded ? (
+                <ChevronDown size={ICON_SIZE.sm} />
+              ) : (
+                <ChevronRight size={ICON_SIZE.sm} />
+              )}
+            </>
+          )}
         </div>
         {isExpanded && page.objects.map((obj) => renderObject(obj, pageKey))}
       </Card>
