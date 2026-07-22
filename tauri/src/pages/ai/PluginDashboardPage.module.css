@@ -1,6 +1,6 @@
 .header {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   gap: 12px;
 }
 
@@ -25,6 +25,7 @@
   cursor: pointer;
   transition: all 0.15s ease;
   white-space: nowrap;
+  align-self: stretch;
 }
 
 .refreshBtn:hover:not(:disabled) {
@@ -117,6 +118,7 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
+  white-space: nowrap;
   transition: all 0.15s ease;
 }
 
@@ -143,6 +145,7 @@
   color: var(--accent-primary);
   font-size: var(--text-badge);
   font-weight: 600;
+  flex-shrink: 0;
 }
 
 .list {
@@ -374,6 +377,10 @@
   .tabsCard {
     padding: 4px;
   }
+  .tabs {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
   .tab {
     padding: 6px 8px;
     font-size: var(--text-caption);
@@ -388,5 +395,9 @@
   }
   .refreshBtn .refreshLabel {
     display: none;
+  }
+  .tierChip {
+    min-height: 0;
+    min-width: 0;
   }
 }

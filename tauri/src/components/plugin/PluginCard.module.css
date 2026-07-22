@@ -95,6 +95,9 @@
   font-size: var(--text-badge);
   font-weight: 700;
   text-transform: uppercase;
+  display: inline-flex;
+  align-items: center;
+  line-height: 1.2;
 }
 
 .actions {

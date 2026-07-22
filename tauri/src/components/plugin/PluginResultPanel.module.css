@@ -100,6 +100,13 @@
   margin-top: -1px;
 }
 
+@media (max-width: 767px) {
+  .pairCopyBtn {
+    min-height: 0;
+    min-width: 0;
+  }
+}
+
 .pairCopyBtn:hover {
   background: var(--accent-subtle);
   color: var(--accent);
