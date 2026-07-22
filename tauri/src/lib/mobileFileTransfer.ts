@@ -69,6 +69,15 @@ export async function prepareStagedDownloadPath(fileName: string): Promise<strin
  * 把本地临时文件复制到目标 URI（通常是 Android content:// URI）。
  */
 export async function copyStagedFileToDest(stagedPath: string, destUri: string): Promise<void> {
+  // plugin-fs 的 copyFile 无法写入 content:// URI（报 "URL is not a valid path"），
+  // 改走原生 ContentResolver 通道（与 downloadViaStage 一致）
+  if (destUri.startsWith('content://')) {
+    await invoke('attachment_export_content_uri', {
+      srcPath: stagedPath,
+      destUri,
+    });
+    return;
+  }
   await copyFile(stagedPath, destUri);
 }
 
