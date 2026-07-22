@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -8,7 +8,7 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { useToastError } from '@/hooks/useToastError';
 import { getBiometricErrorMessage } from '@/lib/biometricError';
 import { invoke } from '@tauri-apps/api/core';
-import { Fingerprint, ShieldCheck } from 'lucide-react';
+import { Fingerprint, ShieldCheck, ScanFace } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/constants';
 import { useAutoLockPauseStore } from '@/stores/autoLockPauseStore';
 
@@ -16,52 +16,116 @@ interface BiometricSectionProps {
   accountId: string;
 }
 
+interface BioAvailability {
+  available: boolean;
+  biometryType?: string;
+  /** Class 3（指纹/强人脸）可用 */
+  strongAvailable?: boolean;
+  /** Class 2（弱人脸）可用 */
+  weakAvailable?: boolean;
+  /** strong 槽已保存凭证（Touch ID 开关状态） */
+  strongConfigured?: boolean;
+  /** weak 槽已保存凭证（Face ID Class 2 开关状态） */
+  weakConfigured?: boolean;
+  debug?: string;
+}
+
+type BioMode = 'strong' | 'weak';
+
+/** 开关滑块（抽取以避免两行重复） */
+function ToggleSwitch({ checked, onChange }: { checked: boolean; onChange: () => void }) {
+  return (
+    <label
+      style={{
+        position: 'relative',
+        display: 'inline-block',
+        width: 44,
+        height: 24,
+        cursor: 'pointer',
+        flexShrink: 0,
+      }}
+    >
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={onChange}
+        style={{ opacity: 0, width: 0, height: 0 }}
+      />
+      <span
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background: checked ? 'var(--accent-primary)' : 'var(--border-subtle)',
+          borderRadius: 12,
+          transition: '0.2s',
+        }}
+      />
+      <span
+        style={{
+          position: 'absolute',
+          top: 2,
+          left: checked ? 22 : 2,
+          width: 20,
+          height: 20,
+          borderRadius: '50%',
+          background: 'white',
+          transition: '0.2s',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+        }}
+      />
+    </label>
+  );
+}
+
 export function BiometricSection({ accountId }: BiometricSectionProps) {
   const { t } = useTranslation(['settings', 'common']);
   const { onError, onSuccess } = useToastError();
 
-  const biometricEnabled = useSettingsStore((s) => s.settings.biometricEnabled);
   const updateSetting = useSettingsStore((s) => s.updateSetting);
 
-  const [bioAvailable, setBioAvailable] = useState<{
-    available: boolean;
-    biometryType?: string;
-    weakAvailable?: boolean;
-    debug?: string;
-  } | null>(null);
+  const [bioAvailable, setBioAvailable] = useState<BioAvailability | null>(null);
   const [bioLoading, setBioLoading] = useState(false);
   const [showBioPwDialog, setShowBioPwDialog] = useState(false);
   const [bioPw, setBioPw] = useState('');
   const [bioAction, setBioAction] = useState<'enable' | 'disable' | null>(null);
+  const [bioMode, setBioMode] = useState<BioMode>('strong');
   const [error, setError] = useState<string | null>(null);
 
   // Password hint for the biometric verification dialog
   const currentAccount = useAuthStore((s) => s.currentAccount);
   const passwordHint = currentAccount?.passwordHint || null;
 
-  useEffect(() => {
-    invoke<{
-      available: boolean;
-      biometryType?: string;
-      weakAvailable?: boolean;
-      debug?: string;
-    }>('biometric_check_availability', { accountId })
-      .then(setBioAvailable)
-      .catch(() => setBioAvailable({ available: false }));
+  const refreshAvailability = useCallback(async (): Promise<BioAvailability | null> => {
+    try {
+      const r = await invoke<BioAvailability>('biometric_check_availability', { accountId });
+      setBioAvailable(r);
+      return r;
+    } catch {
+      setBioAvailable({ available: false });
+      return null;
+    }
   }, [accountId]);
 
-  const biometryType =
-    bioAvailable?.biometryType === 'touchId'
-      ? 'Touch ID'
-      : bioAvailable?.biometryType === 'faceId'
-        ? 'Face ID'
-        : bioAvailable?.biometryType === 'windowsHello'
-          ? 'Windows Hello'
-          : 'Touch ID';
+  useEffect(() => {
+    refreshAvailability();
+  }, [refreshAvailability]);
 
-  const handleBioToggle = () => {
-    setBioAction(biometricEnabled ? 'disable' : 'enable');
+  const strongType =
+    bioAvailable?.biometryType === 'faceId'
+      ? 'Face ID'
+      : bioAvailable?.biometryType === 'windowsHello'
+        ? 'Windows Hello'
+        : 'Touch ID';
+  const weakType = 'Face ID';
+  const modeType = bioMode === 'weak' ? weakType : strongType;
+
+  const handleBioToggle = (mode: BioMode) => {
+    const configured =
+      mode === 'weak' ? bioAvailable?.weakConfigured : bioAvailable?.strongConfigured;
+    setBioMode(mode);
+    setBioAction(configured ? 'disable' : 'enable');
     setBioPw('');
+    setError(null);
     setShowBioPwDialog(true);
   };
 
@@ -74,7 +138,7 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
     const { pause, resume } = useAutoLockPauseStore.getState();
     pause();
     try {
-      const rawType = bioAvailable?.biometryType || 'unknown';
+      const rawType = bioMode === 'weak' ? 'faceId' : bioAvailable?.biometryType || 'touchId';
       if (bioAction === 'enable') {
         await invoke('biometric_save_credential', {
           accountId,
@@ -82,9 +146,12 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
           location: 'settings_page',
           action: 'enable',
           biometryType: rawType,
+          authenticator: bioMode,
         });
-        await updateSetting(accountId, 'biometricEnabled', true);
-        onSuccess(t('settings:biometric_enabled_toast', { type: biometryType }));
+        const r = await refreshAvailability();
+        // 遗留标志保持同步：任一槽有凭证即为 true
+        await updateSetting(accountId, 'biometricEnabled', !!(r?.strongConfigured || r?.weakConfigured));
+        onSuccess(t('settings:biometric_enabled_toast', { type: modeType }));
       } else {
         await invoke('biometric_delete_credential', {
           accountId,
@@ -92,9 +159,11 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
           location: 'settings_page',
           action: 'disable',
           biometryType: rawType,
+          authenticator: bioMode,
         });
-        await updateSetting(accountId, 'biometricEnabled', false);
-        onSuccess(t('settings:biometric_disabled_toast', { type: biometryType }));
+        const r = await refreshAvailability();
+        await updateSetting(accountId, 'biometricEnabled', !!(r?.strongConfigured || r?.weakConfigured));
+        onSuccess(t('settings:biometric_disabled_toast', { type: modeType }));
       }
       setShowBioPwDialog(false);
     } catch (e) {
@@ -120,11 +189,11 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
     pause();
     try {
       await invoke('biometric_test', { accountId });
-      onSuccess(t('settings:biometric_test_success', { type: biometryType }));
+      onSuccess(t('settings:biometric_test_success', { type: strongType }));
     } catch (e) {
       onError(
         getBiometricErrorMessage(e, t),
-        t('settings:biometric_test_failed', { type: biometryType }),
+        t('settings:biometric_test_failed', { type: strongType }),
       );
     } finally {
       resume();
@@ -132,6 +201,9 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
   };
 
   if (bioAvailable === null) return null;
+
+  const showStrong = !!bioAvailable.strongAvailable;
+  const showWeak = !!bioAvailable.weakAvailable;
 
   return (
     <>
@@ -166,33 +238,6 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
           </div>
         ) : (
           <>
-            {/* 弱生物识别警告 */}
-            {bioAvailable.weakAvailable && (
-              <div
-                style={{
-                  padding: '8px 12px',
-                  borderRadius: 8,
-                  marginBottom: 12,
-                  background: 'rgba(212, 133, 10, 0.10)',
-                  border: '1px solid rgba(212, 133, 10, 0.25)',
-                  fontSize: 'var(--text-caption)',
-                  color: '#D4850A',
-                  lineHeight: 1.5,
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: 8,
-                }}
-              >
-                <span style={{ flexShrink: 0 }}>⚠️</span>
-                <span>
-                  {t('settings:biometric_weak_warning', {
-                    type: biometryType,
-                    defaultValue:
-                      'This uses weak biometric (Class 2) which is less secure. Only enable if you understand the risks.',
-                  })}
-                </span>
-              </div>
-            )}
             <p
               style={{
                 fontSize: 'var(--text-body-sm)',
@@ -200,61 +245,89 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
                 marginBottom: 12,
               }}
             >
-              {t('settings:biometric_desc', { type: biometryType })}
+              {t('settings:biometric_desc', { type: strongType })}
             </p>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <span style={{ fontSize: 'var(--text-body)' }}>
-                {t('settings:biometric_toggle_label', { type: biometryType })}
-              </span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                {biometricEnabled && (
-                  <Button variant="secondary" size="sm" onClick={handleBioTest}>
-                    <ShieldCheck size={ICON_SIZE.sm} style={{ marginRight: 4 }} />
-                    {t('settings:biometric_test_button', { type: biometryType })}
-                  </Button>
-                )}
-                <label
+
+            {/* Touch ID / 强生物识别 */}
+            {showStrong && (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: showWeak ? 12 : 0,
+                }}
+              >
+                <span style={{ fontSize: 'var(--text-body)' }}>
+                  {t('settings:biometric_toggle_label', { type: strongType })}
+                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  {bioAvailable.strongConfigured && (
+                    <Button variant="secondary" size="sm" onClick={handleBioTest}>
+                      <ShieldCheck size={ICON_SIZE.sm} style={{ marginRight: 4 }} />
+                      {t('settings:biometric_test_button', { type: strongType })}
+                    </Button>
+                  )}
+                  <ToggleSwitch
+                    checked={!!bioAvailable.strongConfigured}
+                    onChange={() => handleBioToggle('strong')}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Face ID（Class 2 弱生物识别）——独立开关，可与指纹同时开启 */}
+            {showWeak && (
+              <>
+                <div
                   style={{
-                    position: 'relative',
-                    display: 'inline-block',
-                    width: 44,
-                    height: 24,
-                    cursor: 'pointer',
+                    padding: '8px 12px',
+                    borderRadius: 8,
+                    marginBottom: 12,
+                    background: 'rgba(212, 133, 10, 0.10)',
+                    border: '1px solid rgba(212, 133, 10, 0.25)',
+                    fontSize: 'var(--text-caption)',
+                    color: '#D4850A',
+                    lineHeight: 1.5,
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: 8,
                   }}
                 >
-                  <input
-                    type="checkbox"
-                    checked={biometricEnabled}
-                    onChange={handleBioToggle}
-                    style={{ opacity: 0, width: 0, height: 0 }}
-                  />
+                  <span style={{ flexShrink: 0 }}>⚠️</span>
+                  <span>
+                    {t('settings:biometric_weak_warning', {
+                      type: weakType,
+                      defaultValue:
+                        'This uses weak biometric (Class 2) which is less secure. Only enable if you understand the risks.',
+                    })}
+                  </span>
+                </div>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  }}
+                >
                   <span
                     style={{
-                      position: 'absolute',
-                      inset: 0,
-                      background: biometricEnabled
-                        ? 'var(--accent-primary)'
-                        : 'var(--border-subtle)',
-                      borderRadius: 12,
-                      transition: '0.2s',
+                      fontSize: 'var(--text-body)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 6,
                     }}
+                  >
+                    <ScanFace size={ICON_SIZE.md} style={{ color: 'var(--text-tertiary)' }} />
+                    {t('settings:biometric_toggle_label', { type: weakType })}
+                  </span>
+                  <ToggleSwitch
+                    checked={!!bioAvailable.weakConfigured}
+                    onChange={() => handleBioToggle('weak')}
                   />
-                  <span
-                    style={{
-                      position: 'absolute',
-                      top: 2,
-                      left: biometricEnabled ? 22 : 2,
-                      width: 20,
-                      height: 20,
-                      borderRadius: '50%',
-                      background: 'white',
-                      transition: '0.2s',
-                      boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
-                    }}
-                  />
-                </label>
-              </div>
-            </div>
+                </div>
+              </>
+            )}
           </>
         )}
         {/* 诊断信息（仅 Android 返回）：不受 available 分支限制永远显示，
@@ -313,8 +386,8 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
             >
               <Fingerprint size={ICON_SIZE.xl} />
               {bioAction === 'enable'
-                ? t('settings:biometric_enable_prompt', { type: biometryType })
-                : t('settings:biometric_disable_prompt', { type: biometryType })}
+                ? t('settings:biometric_enable_prompt', { type: modeType })
+                : t('settings:biometric_disable_prompt', { type: modeType })}
             </h3>
             <SecurePasswordInput
               label={t('common:current_password')}

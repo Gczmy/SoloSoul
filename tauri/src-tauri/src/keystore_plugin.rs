@@ -21,13 +21,66 @@ use tauri::plugin::PluginHandle;
 #[cfg(target_os = "android")]
 const PLUGIN_IDENTIFIER: &str = "com.solosoul.app";
 
-/// Keystore 加密结果。
+/// 单槽 Keystore 加密结果。
 #[derive(Debug, Clone, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct KeystoreCiphertext {
+pub struct KeystoreSlot {
     pub iv: String,
     pub ciphertext: String,
 }
+
+/// 双槽凭证存储：strong（CryptoObject 授权绑定密钥，Class 3）与
+/// weak（免授权密钥 + 普通提示，Class 2）相互独立，可同时存在。
+/// 向后兼容：旧版扁平格式 `{iv, ciphertext}` 反序列化为 strong 槽。
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct KeystoreCredentials {
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub strong: Option<KeystoreSlot>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub weak: Option<KeystoreSlot>,
+}
+
+impl KeystoreCredentials {
+    pub fn is_empty(&self) -> bool {
+        self.strong.is_none() && self.weak.is_none()
+    }
+}
+
+impl<'de> Deserialize<'de> for KeystoreCredentials {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let v = serde_json::Value::deserialize(deserializer)?;
+        if v.get("iv").is_some() {
+            // 旧版扁平格式 → strong 槽
+            let slot: KeystoreSlot =
+                serde_json::from_value(v).map_err(serde::de::Error::custom)?;
+            Ok(Self {
+                strong: Some(slot),
+                weak: None,
+            })
+        } else {
+            #[derive(Deserialize)]
+            #[serde(rename_all = "camelCase")]
+            struct Helper {
+                #[serde(default)]
+                strong: Option<KeystoreSlot>,
+                #[serde(default)]
+                weak: Option<KeystoreSlot>,
+            }
+            let h = Helper::deserialize(v).map_err(serde::de::Error::custom)?;
+            Ok(Self {
+                strong: h.strong,
+                weak: h.weak,
+            })
+        }
+    }
+}
+
+/// 兼容别名：旧代码中的单槽密文类型。
+pub type KeystoreCiphertext = KeystoreSlot;
 
 /// Android 生物识别可用性信息。
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -65,12 +118,14 @@ pub struct KeystorePluginHandle<R: Runtime> {
 
 impl<R: Runtime> KeystorePluginHandle<R> {
     /// 通过生物识别提示加密数据。
+    /// `authenticator`："weak" 强制 Class 2 路径；None/"strong" 走 Class 3 优先。
     pub fn authenticate_and_save(
         &self,
         alias: &str,
         data: &str,
         prompt: BiometricPromptInfo<'_>,
-    ) -> Result<KeystoreCiphertext, String> {
+        authenticator: Option<&str>,
+    ) -> Result<KeystoreSlot, String> {
         #[cfg(target_os = "android")]
         {
             #[derive(Debug, Clone, Serialize)]
@@ -80,6 +135,8 @@ impl<R: Runtime> KeystorePluginHandle<R> {
                 title: &'a str,
                 subtitle: &'a str,
                 cancel_title: &'a str,
+                #[serde(skip_serializing_if = "Option::is_none")]
+                authenticator: Option<&'a str>,
             }
             self.handle
                 .run_mobile_plugin::<serde_json::Value>(
@@ -90,27 +147,30 @@ impl<R: Runtime> KeystorePluginHandle<R> {
                         title: prompt.title,
                         subtitle: prompt.subtitle,
                         cancel_title: prompt.cancel_title,
+                        authenticator,
                     },
                 )
                 .map_err(|e| e.to_string())
                 .and_then(|v| {
-                    serde_json::from_value::<KeystoreCiphertext>(v).map_err(|e| e.to_string())
+                    serde_json::from_value::<KeystoreSlot>(v).map_err(|e| e.to_string())
                 })
         }
         #[cfg(not(target_os = "android"))]
         {
-            let _ = (alias, data, prompt);
+            let _ = (alias, data, prompt, authenticator);
             Err("Keystore storage is only supported on Android".to_string())
         }
     }
 
     /// 通过生物识别提示解密数据。
+    /// `authenticator`："weak" 仅 Class 2 提示；"any" 指纹/人脸皆可；None/"strong" 走 Class 3。
     pub fn authenticate_and_read(
         &self,
         alias: &str,
         iv: &str,
         ciphertext: &str,
         prompt: BiometricPromptInfo<'_>,
+        authenticator: Option<&str>,
     ) -> Result<String, String> {
         #[cfg(target_os = "android")]
         {
@@ -122,6 +182,8 @@ impl<R: Runtime> KeystorePluginHandle<R> {
                 title: &'a str,
                 subtitle: &'a str,
                 cancel_title: &'a str,
+                #[serde(skip_serializing_if = "Option::is_none")]
+                authenticator: Option<&'a str>,
             }
             #[derive(Debug, Clone, Deserialize)]
             struct Wrapper {
@@ -137,6 +199,7 @@ impl<R: Runtime> KeystorePluginHandle<R> {
                         title: prompt.title,
                         subtitle: prompt.subtitle,
                         cancel_title: prompt.cancel_title,
+                        authenticator,
                     },
                 )
                 .map_err(|e| e.to_string())
@@ -145,7 +208,7 @@ impl<R: Runtime> KeystorePluginHandle<R> {
         }
         #[cfg(not(target_os = "android"))]
         {
-            let _ = (alias, iv, ciphertext, prompt);
+            let _ = (alias, iv, ciphertext, prompt, authenticator);
             Err("Keystore storage is only supported on Android".to_string())
         }
     }
@@ -170,26 +233,39 @@ impl<R: Runtime> KeystorePluginHandle<R> {
             Ok(AvailabilityInfo {
                 strong_available: false,
                 weak_available: false,
+                sdk_int: None,
+                face_feature: None,
+                strong_raw: None,
+                weak_raw: None,
             })
         }
     }
 
     /// 删除 Keystore 中的密钥别名。
-    pub fn delete(&self, alias: &str) -> Result<(), String> {
+    /// `authenticator`："weak" 只删 `{alias}_weak`；否则只删主别名。
+    pub fn delete(&self, alias: &str, authenticator: Option<&str>) -> Result<(), String> {
         #[cfg(target_os = "android")]
         {
             #[derive(Debug, Clone, Serialize)]
             struct Payload<'a> {
                 alias: &'a str,
+                #[serde(skip_serializing_if = "Option::is_none")]
+                authenticator: Option<&'a str>,
             }
             self.handle
-                .run_mobile_plugin::<serde_json::Value>("delete", Payload { alias })
+                .run_mobile_plugin::<serde_json::Value>(
+                    "delete",
+                    Payload {
+                        alias,
+                        authenticator,
+                    },
+                )
                 .map(|_| ())
                 .map_err(|e| e.to_string())
         }
         #[cfg(not(target_os = "android"))]
         {
-            let _ = alias;
+            let _ = (alias, authenticator);
             Err("Keystore storage is only supported on Android".to_string())
         }
     }

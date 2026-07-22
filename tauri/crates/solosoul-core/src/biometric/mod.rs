@@ -49,6 +49,15 @@ pub struct BiometricAvailability {
     /// 特定机型（如 Class 2 人脸）可用性判定问题。不含敏感数据。
     #[serde(default)]
     pub debug: Option<String>,
+    /// Class 3（指纹/强人脸）是否可用（Android 独立上报；桌面端等于 available）
+    #[serde(default)]
+    pub strong_available: bool,
+    /// strong 槽是否已保存凭证（Touch ID 开关状态依据）
+    #[serde(default)]
+    pub strong_configured: bool,
+    /// weak 槽是否已保存凭证（Face ID Class 2 开关状态依据）
+    #[serde(default)]
+    pub weak_configured: bool,
 }
 
 /// 生物识别存储层返回的错误。
@@ -251,6 +260,9 @@ impl BiometricManager {
             error: err,
             weak_available: false,
             debug: None,
+            strong_available: available,
+            strong_configured: configured,
+            weak_configured: false,
         }
     }
 
@@ -703,6 +715,9 @@ mod tests {
             error: None,
             weak_available: false,
             debug: None,
+            strong_available: true,
+            strong_configured: false,
+            weak_configured: false,
         };
         let json = serde_json::to_string(&original).unwrap();
         assert!(json.contains("touchId"));

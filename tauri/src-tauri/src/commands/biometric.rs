@@ -72,6 +72,17 @@ fn map_bio_error(e: BiometricError, operation: &str) -> String {
     bio_err(code)
 }
 
+/// 读取 keystore_data.json 双槽凭证（兼容旧版扁平格式，解析失败/不存在返回 None）。
+#[cfg(target_os = "android")]
+fn read_keystore_credentials(
+    base: &std::path::Path,
+    account_id: &str,
+) -> Option<crate::keystore_plugin::KeystoreCredentials> {
+    let path = base.join(account_id).join("keystore_data.json");
+    let json = std::fs::read_to_string(path).ok()?;
+    serde_json::from_str(&json).ok()
+}
+
 #[cfg(desktop)]
 #[tauri::command]
 pub async fn biometric_check_availability(
@@ -126,24 +137,31 @@ pub async fn biometric_check_availability(
         .read()
         .map_err(|_| "Vault service lock poisoned".to_string())?;
 
-    // Android 使用 Keystore 存储，iOS 沿用 FileBiometricStorage
+    // Android 使用 Keystore 双槽存储（strong/weak 各自独立），iOS 沿用 FileBiometricStorage
     #[cfg(target_os = "android")]
-    let configured = {
-        let path = svc.base_path().join(&account_id).join("keystore_data.json");
-        path.exists()
+    let (configured, strong_configured, weak_configured) = {
+        let creds = read_keystore_credentials(svc.base_path(), &account_id);
+        let strong_configured = creds.as_ref().and_then(|c| c.strong.as_ref()).is_some();
+        let weak_configured = creds.as_ref().and_then(|c| c.weak.as_ref()).is_some();
+        (
+            strong_configured || weak_configured,
+            strong_configured,
+            weak_configured,
+        )
     };
 
     #[cfg(target_os = "ios")]
-    let configured = {
+    let (configured, strong_configured, weak_configured) = {
         let manager = BiometricManager::new(svc.base_path().clone());
-        manager.is_configured(&account_id)
+        let configured = manager.is_configured(&account_id);
+        (configured, configured, false)
     };
 
     // Android：以自有 Keystore 插件检测为准（区分 Class 3 / Class 2）。
     // 不再以 tauri-plugin-biometric 的 status 为唯一依据——旧 API 级别
     // （<30）其弱生物识别检查退化为指纹检查，会漏检 Class 2 人脸。
     #[cfg(target_os = "android")]
-    let (available, weak_available, effective_type, debug) = {
+    let (available, weak_available, strong_available, effective_type, debug) = {
         use crate::keystore_plugin::KeystorePluginHandle;
         use tauri::Manager;
         // 记录完整调用结果以便区分：state 未注册（None）/ 桥接失败（Err）/ 正常
@@ -178,7 +196,8 @@ pub async fn biometric_check_availability(
             status_available
         );
         let available = strong || weak || status_available;
-        let weak_available = !strong && weak;
+        // weak 独立上报：设备同时有 Class 3 时，Face ID（Class 2）也作为独立开关显示
+        let weak_available = weak;
         let effective_type = if strong {
             plugin_biometry_type.clone().or(Some("touchId".to_string()))
         } else if weak || status_available {
@@ -190,12 +209,12 @@ pub async fn biometric_check_availability(
             "pluginStatus={} pluginType={:?} bridge={}",
             status_available, plugin_biometry_type, bridge_desc
         ));
-        (available, weak_available, effective_type, debug)
+        (available, weak_available, strong, effective_type, debug)
     };
 
     #[cfg(target_os = "ios")]
-    let (available, weak_available, effective_type, debug) =
-        (status_available, false, plugin_biometry_type.clone(), None);
+    let (available, weak_available, strong_available, effective_type, debug) =
+        (status_available, false, status_available, plugin_biometry_type.clone(), None);
 
     Ok(BiometricAvailability {
         available,
@@ -204,6 +223,9 @@ pub async fn biometric_check_availability(
         error: status_error,
         weak_available,
         debug,
+        strong_available,
+        strong_configured,
+        weak_configured,
     })
 }
 
@@ -216,6 +238,8 @@ pub async fn biometric_save_credential(
     location: Option<String>,
     action: Option<String>,
     biometry_type: Option<String>,
+    // 桌面端无 Class 2 概念，仅保持与移动端一致的参数签名
+    _authenticator: Option<String>,
 ) -> Result<(), String> {
     let svc = state
         .vault_service
@@ -273,6 +297,8 @@ pub async fn biometric_save_credential(
     location: Option<String>,
     action: Option<String>,
     biometry_type: Option<String>,
+    // "weak" 强制写入 weak 槽（Face ID Class 2）；缺省写 strong 槽（Touch ID）
+    authenticator: Option<String>,
 ) -> Result<(), String> {
     let svc = state
         .vault_service
@@ -292,11 +318,13 @@ pub async fn biometric_save_credential(
 
     #[cfg(target_os = "android")]
     {
-        use crate::keystore_plugin::{BiometricPromptInfo, KeystorePluginHandle};
+        use crate::keystore_plugin::{
+            BiometricPromptInfo, KeystoreCredentials, KeystorePluginHandle,
+        };
         use tauri::Manager;
 
         let keystore = app.state::<KeystorePluginHandle<tauri::Wry>>();
-        let cipher = keystore
+        let slot = keystore
             .authenticate_and_save(
                 &account_id,
                 &key_hex,
@@ -305,11 +333,23 @@ pub async fn biometric_save_credential(
                     subtitle: "Enable biometric authentication",
                     cancel_title: "Cancel",
                 },
+                authenticator.as_deref(),
             )
             .map_err(|e| map_keystore_error(e, "save"))?;
 
+        // 双槽读改写：只更新本次选择的槽，保留另一种方式的凭证
         let path = svc.base_path().join(&account_id).join("keystore_data.json");
-        let json = serde_json::to_string(&cipher)
+        let mut creds = read_keystore_credentials(svc.base_path(), &account_id)
+            .unwrap_or(KeystoreCredentials {
+                strong: None,
+                weak: None,
+            });
+        if authenticator.as_deref() == Some("weak") {
+            creds.weak = Some(slot);
+        } else {
+            creds.strong = Some(slot);
+        }
+        let json = serde_json::to_string(&creds)
             .map_err(|e| map_bio_error(BiometricError::Other(format!("serialize: {e}")), "save"))?;
         std::fs::write(&path, json).map_err(|e| {
             map_bio_error(BiometricError::KeychainWriteFailed(e.to_string()), "save")
@@ -432,32 +472,41 @@ pub async fn biometric_unlock(
         .map_err(|_| "Vault service lock poisoned".to_string())?;
     let manager = BiometricManager::new(svc.base_path().clone());
 
-    // 1. 读取已保存的主密钥（Android 通过 CryptoObject 绑定生物识别提示）
+    // 1. 读取已保存的主密钥（Android 通过生物识别提示保护）
     let key_hex = {
         #[cfg(target_os = "android")]
         {
             use crate::keystore_plugin::{BiometricPromptInfo, KeystorePluginHandle};
             use tauri::Manager;
 
-            let path = svc.base_path().join(&account_id).join("keystore_data.json");
-            let json = std::fs::read_to_string(&path)
-                .map_err(|_| map_bio_error(BiometricError::KeychainItemNotFound, "unlock"))?;
-            let cipher: crate::keystore_plugin::KeystoreCiphertext = serde_json::from_str(&json)
-                .map_err(|_| map_bio_error(BiometricError::InvalidKeyFormat, "unlock"))?;
+            let creds = read_keystore_credentials(svc.base_path(), &account_id)
+                .ok_or_else(|| map_bio_error(BiometricError::KeychainItemNotFound, "unlock"))?;
 
             let keystore = app.state::<KeystorePluginHandle<tauri::Wry>>();
-            keystore
-                .authenticate_and_read(
-                    &account_id,
-                    &cipher.iv,
-                    &cipher.ciphertext,
-                    BiometricPromptInfo {
-                        title: "SoloSoul",
-                        subtitle: "Unlock with biometric authentication",
-                        cancel_title: "Cancel",
-                    },
-                )
-                .map_err(|e| map_keystore_error(e, "unlock"))?
+            let prompt = BiometricPromptInfo {
+                title: "SoloSoul",
+                subtitle: "Unlock with biometric authentication",
+                cancel_title: "Cancel",
+            };
+            // weak 槽存在：普通提示同时接受指纹与人脸（用户任选），用 weak 密钥解密；
+            // 仅 strong 槽：Class 3 CryptoObject 提示（仅指纹/强人脸）
+            if let Some(slot) = &creds.weak {
+                keystore
+                    .authenticate_and_read(
+                        &account_id,
+                        &slot.iv,
+                        &slot.ciphertext,
+                        prompt,
+                        Some("any"),
+                    )
+                    .map_err(|e| map_keystore_error(e, "unlock"))?
+            } else if let Some(slot) = &creds.strong {
+                keystore
+                    .authenticate_and_read(&account_id, &slot.iv, &slot.ciphertext, prompt, None)
+                    .map_err(|e| map_keystore_error(e, "unlock"))?
+            } else {
+                return Err(map_bio_error(BiometricError::KeychainItemNotFound, "unlock"));
+            }
         }
 
         #[cfg(target_os = "ios")]
@@ -521,6 +570,8 @@ pub async fn biometric_delete_credential(
     location: Option<String>,
     action: Option<String>,
     biometry_type: Option<String>,
+    // 桌面端无 Class 2 概念，仅保持与移动端一致的参数签名
+    _authenticator: Option<String>,
 ) -> Result<(), String> {
     let svc = state
         .vault_service
@@ -561,6 +612,8 @@ pub async fn biometric_delete_credential(
     location: Option<String>,
     action: Option<String>,
     biometry_type: Option<String>,
+    // "weak" 只清 weak 槽（Face ID Class 2）；缺省只清 strong 槽（Touch ID）
+    authenticator: Option<String>,
 ) -> Result<(), String> {
     let svc = state
         .vault_service
@@ -573,37 +626,56 @@ pub async fn biometric_delete_credential(
         .verify_password(&password, &account_id)
         .map_err(|e| map_bio_error(e, "delete"))?;
 
-    // 2. 删除移动端安全存储中的凭证
+    // 2. 删除移动端安全存储中的对应槽凭证
     #[cfg(target_os = "android")]
-    {
-        use crate::keystore_plugin::KeystorePluginHandle;
+    let remaining_any = {
+        use crate::keystore_plugin::{
+            KeystoreCredentials, KeystorePluginHandle,
+        };
         use tauri::Manager;
 
         let keystore = app.state::<KeystorePluginHandle<tauri::Wry>>();
-        let _ = keystore.delete(&account_id);
+        let _ = keystore.delete(&account_id, authenticator.as_deref());
 
         let path = svc.base_path().join(&account_id).join("keystore_data.json");
-        let _ = std::fs::remove_file(&path);
-
-        // 同时清理可能存在的旧版 FileBiometricStorage 凭证
-        let legacy_path = svc.base_path().join(&account_id).join("biometric_key");
-        let _ = std::fs::remove_file(&legacy_path);
-    }
+        let mut creds = read_keystore_credentials(svc.base_path(), &account_id)
+            .unwrap_or(KeystoreCredentials {
+                strong: None,
+                weak: None,
+            });
+        if authenticator.as_deref() == Some("weak") {
+            creds.weak = None;
+        } else {
+            creds.strong = None;
+        }
+        let remaining = !creds.is_empty();
+        if remaining {
+            if let Ok(json) = serde_json::to_string(&creds) {
+                let _ = std::fs::write(&path, json);
+            }
+        } else {
+            let _ = std::fs::remove_file(&path);
+            // 同时清理可能存在的旧版 FileBiometricStorage 凭证
+            let legacy_path = svc.base_path().join(&account_id).join("biometric_key");
+            let _ = std::fs::remove_file(&legacy_path);
+        }
+        remaining
+    };
 
     #[cfg(target_os = "ios")]
-    {
+    let remaining_any = {
         use solosoul_core::biometric::legacy::FileBiometricStorage;
         use solosoul_core::biometric::BiometricStorage;
         let storage = FileBiometricStorage::new(svc.base_path().clone());
         match storage.delete(&account_id) {
-            Ok(()) | Err(BiometricError::KeychainItemNotFound) => {}
+            Ok(()) | Err(BiometricError::KeychainItemNotFound) => false,
             Err(e) => return Err(map_bio_error(e, "delete")),
         }
-    }
+    };
 
-    // 3. 更新配置标记
+    // 3. 更新配置标记（另一槽仍有凭证时保持启用）
     manager
-        .set_config_flag(&account_id, false)
+        .set_config_flag(&account_id, remaining_any)
         .map_err(|e| map_bio_error(e, "delete"))?;
 
     // 4. 审计日志

@@ -31,6 +31,8 @@ class AuthenticateAndSaveArgs {
     var title: String? = null
     var subtitle: String? = null
     var cancelTitle: String? = null
+    /** "weak" 强制走 Class 2 路径；null/"strong" 走 Class 3 优先路径 */
+    var authenticator: String? = null
 }
 
 @InvokeArg
@@ -41,11 +43,15 @@ class AuthenticateAndReadArgs {
     var title: String? = null
     var subtitle: String? = null
     var cancelTitle: String? = null
+    /** "weak" 仅 Class 2 提示；"any" 指纹/人脸皆可（配 weak 密钥）；null/"strong" 走 Class 3 */
+    var authenticator: String? = null
 }
 
 @InvokeArg
 class KeystoreDeleteArgs {
     lateinit var alias: String
+    /** "weak" 只删 {alias}_weak；否则只删主别名 */
+    var authenticator: String? = null
 }
 
 /**
@@ -81,6 +87,14 @@ class BiometricKeystorePlugin(private val activity: Activity): Plugin(activity) 
             val plaintext = args.data.toByteArray(Charsets.UTF_8)
 
             when {
+                // 强制 Class 2 路径（用户在设置中明确选择 Face ID）
+                args.authenticator == "weak" -> {
+                    if (isWeakAvailable()) {
+                        saveViaWeakPrompt(invoke, args.title, args.subtitle, args.cancelTitle, alias, plaintext)
+                    } else {
+                        invoke.reject("BIOMETRIC_UNAVAILABLE")
+                    }
+                }
                 isStrongAvailable() -> {
                     // Class 3：CryptoObject 绑定生物识别。提示框必须只允许 STRONG——
                     // keystore 密钥只能被 Class 3 解锁，若允许 Class 2 人脸通过提示，
@@ -103,22 +117,7 @@ class BiometricKeystorePlugin(private val activity: Activity): Plugin(activity) 
                     )
                 }
                 isWeakAvailable() -> {
-                    // 仅 Class 2：keystore 密钥无法由弱生物识别解锁（平台限制），
-                    // 改用普通提示 + 免授权密钥；安全性差异由 UI 弱生物识别警告告知
-                    val secretKey = getOrCreateWeakKey(alias)
-                    val cipher = Cipher.getInstance(TRANSFORMATION)
-                    cipher.init(Cipher.ENCRYPT_MODE, secretKey)
-
-                    showBiometricPrompt(
-                        cipher = cipher,
-                        useCryptoObject = false,
-                        allowedAuthenticators = BiometricManager.Authenticators.BIOMETRIC_WEAK,
-                        title = args.title ?: "SoloSoul",
-                        subtitle = args.subtitle ?: "Verify your identity",
-                        cancelTitle = args.cancelTitle ?: "Cancel",
-                        onSuccess = { resolveEncrypted(invoke, cipher, plaintext) },
-                        onError = { error -> invoke.reject(error) }
-                    )
+                    saveViaWeakPrompt(invoke, args.title, args.subtitle, args.cancelTitle, alias, plaintext)
                 }
                 else -> invoke.reject("BIOMETRIC_UNAVAILABLE")
             }
@@ -126,6 +125,33 @@ class BiometricKeystorePlugin(private val activity: Activity): Plugin(activity) 
             android.util.Log.e("SoloSoul", "Keystore save setup failed: ${e.message}", e)
             invoke.reject("Keystore save setup failed: ${e.message}")
         }
+    }
+
+    /** Class 2 路径保存：普通提示（仅 WEAK）+ 免授权密钥。 */
+    private fun saveViaWeakPrompt(
+        invoke: Invoke,
+        title: String?,
+        subtitle: String?,
+        cancelTitle: String?,
+        alias: String,
+        plaintext: ByteArray,
+    ) {
+        // 仅 Class 2：keystore 密钥无法由弱生物识别解锁（平台限制），
+        // 改用普通提示 + 免授权密钥；安全性差异由 UI 弱生物识别警告告知
+        val secretKey = getOrCreateWeakKey(alias)
+        val cipher = Cipher.getInstance(TRANSFORMATION)
+        cipher.init(Cipher.ENCRYPT_MODE, secretKey)
+
+        showBiometricPrompt(
+            cipher = cipher,
+            useCryptoObject = false,
+            allowedAuthenticators = BiometricManager.Authenticators.BIOMETRIC_WEAK,
+            title = title ?: "SoloSoul",
+            subtitle = subtitle ?: "Verify your identity",
+            cancelTitle = cancelTitle ?: "Cancel",
+            onSuccess = { resolveEncrypted(invoke, cipher, plaintext) },
+            onError = { error -> invoke.reject(error) }
+        )
     }
 
     private fun resolveEncrypted(invoke: Invoke, cipher: Cipher, plaintext: ByteArray) {
@@ -156,6 +182,28 @@ class BiometricKeystorePlugin(private val activity: Activity): Plugin(activity) 
             val ciphertext = hexToBytes(args.ciphertext)
 
             when {
+                // "weak"：仅 Class 2 提示；"any"：指纹/人脸皆可（均配 weak 免授权密钥）
+                args.authenticator == "weak" || args.authenticator == "any" -> {
+                    if (!isWeakAvailable() && !isStrongAvailable()) {
+                        invoke.reject("BIOMETRIC_UNAVAILABLE")
+                        return
+                    }
+                    val secretKey = getKey(weakAlias(alias))
+                        ?: run {
+                            invoke.reject("BIOMETRIC_KEY_NOT_FOUND")
+                            return
+                        }
+                    val allowed = if (args.authenticator == "any") {
+                        BiometricManager.Authenticators.BIOMETRIC_STRONG or
+                            BiometricManager.Authenticators.BIOMETRIC_WEAK
+                    } else {
+                        BiometricManager.Authenticators.BIOMETRIC_WEAK
+                    }
+                    readViaPlainPrompt(
+                        invoke, args.title, args.subtitle, args.cancelTitle,
+                        secretKey, allowed, iv, ciphertext
+                    )
+                }
                 isStrongAvailable() -> {
                     val secretKey = getKey(alias)
                         ?: run {
@@ -185,19 +233,9 @@ class BiometricKeystorePlugin(private val activity: Activity): Plugin(activity) 
                             invoke.reject("BIOMETRIC_KEY_NOT_FOUND")
                             return
                         }
-                    val cipher = Cipher.getInstance(TRANSFORMATION)
-                    val spec = GCMParameterSpec(GCM_TAG_LENGTH, iv)
-                    cipher.init(Cipher.DECRYPT_MODE, secretKey, spec)
-
-                    showBiometricPrompt(
-                        cipher = cipher,
-                        useCryptoObject = false,
-                        allowedAuthenticators = BiometricManager.Authenticators.BIOMETRIC_WEAK,
-                        title = args.title ?: "SoloSoul",
-                        subtitle = args.subtitle ?: "Unlock with biometric authentication",
-                        cancelTitle = args.cancelTitle ?: "Cancel",
-                        onSuccess = { resolveDecrypted(invoke, cipher, ciphertext) },
-                        onError = { error -> invoke.reject(error) }
+                    readViaPlainPrompt(
+                        invoke, args.title, args.subtitle, args.cancelTitle,
+                        secretKey, BiometricManager.Authenticators.BIOMETRIC_WEAK, iv, ciphertext
                     )
                 }
                 else -> invoke.reject("BIOMETRIC_UNAVAILABLE")
@@ -206,6 +244,33 @@ class BiometricKeystorePlugin(private val activity: Activity): Plugin(activity) 
             android.util.Log.e("SoloSoul", "Keystore read setup failed: ${e.message}", e)
             invoke.reject("Keystore read setup failed: ${e.message}")
         }
+    }
+
+    /** 普通提示（无 CryptoObject）解密：用于 weak 免授权密钥。 */
+    private fun readViaPlainPrompt(
+        invoke: Invoke,
+        title: String?,
+        subtitle: String?,
+        cancelTitle: String?,
+        secretKey: SecretKey,
+        allowedAuthenticators: Int,
+        iv: ByteArray,
+        ciphertext: ByteArray,
+    ) {
+        val cipher = Cipher.getInstance(TRANSFORMATION)
+        val spec = GCMParameterSpec(GCM_TAG_LENGTH, iv)
+        cipher.init(Cipher.DECRYPT_MODE, secretKey, spec)
+
+        showBiometricPrompt(
+            cipher = cipher,
+            useCryptoObject = false,
+            allowedAuthenticators = allowedAuthenticators,
+            title = title ?: "SoloSoul",
+            subtitle = subtitle ?: "Unlock with biometric authentication",
+            cancelTitle = cancelTitle ?: "Cancel",
+            onSuccess = { resolveDecrypted(invoke, cipher, ciphertext) },
+            onError = { error -> invoke.reject(error) }
+        )
     }
 
     private fun resolveDecrypted(invoke: Invoke, cipher: Cipher, ciphertext: ByteArray) {
@@ -229,7 +294,12 @@ class BiometricKeystorePlugin(private val activity: Activity): Plugin(activity) 
         try {
             val args = invoke.parseArgs(KeystoreDeleteArgs::class.java)
             val alias = normalizeAlias(args.alias)
-            deleteKey(alias)
+            // "weak" 只删 Class 2 免授权密钥；否则只删 Class 3 授权绑定密钥
+            if (args.authenticator == "weak") {
+                deleteKey(weakAlias(alias))
+            } else {
+                deleteKey(alias)
+            }
             invoke.resolve(JSObject())
         } catch (e: Exception) {
             android.util.Log.e("SoloSoul", "Keystore delete failed: ${e.message}", e)
@@ -241,8 +311,9 @@ class BiometricKeystorePlugin(private val activity: Activity): Plugin(activity) 
     fun checkBiometricAvailability(invoke: Invoke) {
         try {
             val strongAvailable = isStrongAvailable()
-            // 如果强生物识别不可用，检查弱生物识别（Class 2：前置摄像头人脸）
-            val weakAvailable = if (!strongAvailable) isWeakAvailable() else false
+            // 弱生物识别（Class 2：前置摄像头人脸）独立上报，
+            // 设备同时有 Class 3 时也可作为独立开关显示
+            val weakAvailable = isWeakAvailable()
 
             val result = JSObject()
             result.put("strongAvailable", strongAvailable)
@@ -437,11 +508,6 @@ class BiometricKeystorePlugin(private val activity: Activity): Plugin(activity) 
             keyStore.load(null)
             if (keyStore.containsAlias(alias)) {
                 keyStore.deleteEntry(alias)
-            }
-            // 同时清理 Class 2 路径的免授权密钥
-            val weak = weakAlias(alias)
-            if (keyStore.containsAlias(weak)) {
-                keyStore.deleteEntry(weak)
             }
         } catch (e: Exception) {
             android.util.Log.w("SoloSoul", "Failed to delete Keystore key: ${e.message}")
