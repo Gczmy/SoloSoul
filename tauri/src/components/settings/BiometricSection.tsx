@@ -8,7 +8,7 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { useToastError } from '@/hooks/useToastError';
 import { getBiometricErrorMessage } from '@/lib/biometricError';
 import { invoke } from '@tauri-apps/api/core';
-import { Fingerprint, ShieldCheck, ScanFace } from 'lucide-react';
+import { Fingerprint, ShieldCheck, ScanFace, AlertTriangle } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/constants';
 import { useAutoLockPauseStore } from '@/stores/autoLockPauseStore';
 
@@ -307,7 +307,7 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
                     gap: 8,
                   }}
                 >
-                  <span style={{ flexShrink: 0 }}>⚠️</span>
+                  <AlertTriangle size={ICON_SIZE.md} style={{ flexShrink: 0, marginTop: 1 }} />
                   <span>
                     {t('settings:biometric_weak_unsupported')}
                   </span>
