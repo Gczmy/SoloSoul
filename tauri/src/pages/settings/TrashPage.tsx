@@ -15,6 +15,7 @@ import { DeleteButton } from '@/components/ui/DeleteButton';
 import { useTemplateStore } from '@/stores/templateStore';
 import { invoke } from '@tauri-apps/api/core';
 import { Trash2, RotateCcw, FileText, Info, Folder, LayoutTemplate, Search } from 'lucide-react';
+import { isMobilePlatformSync } from '@/lib/platform';
 import { PluginBadge } from '@/components/template/PluginBadge';
 import type { UserTemplate } from '@/types/template';
 import { TrashDetailPanel } from '@/components/trash/TrashDetailPanel';
@@ -362,38 +363,25 @@ export function TrashPage() {
                     transition: 'transform 0.15s ease, box-shadow 0.15s ease',
                   }}
                 >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <SelectCheckbox
-                      checked={selectedIds.has(item.id)}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleSelection(item.id);
-                      }}
-                    />
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 10,
-                        flex: 1,
-                        minWidth: 0,
-                      }}
-                    >
-                      {(() => {
-                        const Icon =
-                          item.itemType === 'template'
-                            ? LayoutTemplate
-                            : item.itemType === 'page'
-                              ? Folder
-                              : FileText;
-                        return (
-                          <Icon
-                            size={ICON_SIZE.xl}
-                            style={{ color: 'var(--text-tertiary)', flexShrink: 0 }}
-                          />
-                        );
-                      })()}
-                      <div style={{ minWidth: 0 }}>
+                  {(() => {
+                    const isMobile = isMobilePlatformSync();
+                    const icon = (() => {
+                      const Icon =
+                        item.itemType === 'template'
+                          ? LayoutTemplate
+                          : item.itemType === 'page'
+                            ? Folder
+                            : FileText;
+                      return (
+                        <Icon
+                          size={ICON_SIZE.xl}
+                          style={{ color: 'var(--text-tertiary)', flexShrink: 0 }}
+                        />
+                      );
+                    })();
+
+                    const meta = (
+                      <div style={{ minWidth: 0, flex: 1 }}>
                         <div
                           style={{
                             fontSize: 'var(--text-body)',
@@ -420,53 +408,110 @@ export function TrashPage() {
                           <PluginBadge contractTypeId={item.contractTypeId} size="sm" />
                         </div>
                       </div>
-                    </div>
-                    <Button
-                      size="sm"
-                      variant="tertiary"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        doRestore([item.id]);
-                      }}
-                      title={t('common:restore')}
-                    >
-                      <RotateCcw size={ICON_SIZE.sm} />
-                    </Button>
-                    <DeleteButton
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        doDelete([item.id]);
-                      }}
-                      title={t('common:delete_permanently')}
-                    />
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openDetail(item.id);
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.color = 'var(--accent-primary)';
-                        e.currentTarget.style.background =
-                          'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.color = 'var(--text-tertiary)';
-                        e.currentTarget.style.background = 'none';
-                      }}
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        cursor: 'pointer',
-                        padding: 4,
-                        borderRadius: 4,
-                        color: 'var(--text-tertiary)',
-                        transition: 'background 0.15s, color 0.15s',
-                      }}
-                      title={t('common:details')}
-                    >
-                      <Info size={ICON_SIZE.lg} />
-                    </button>
-                  </div>
+                    );
+
+                    const actions = (
+                      <>
+                        <Button
+                          size="sm"
+                          variant="tertiary"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            doRestore([item.id]);
+                          }}
+                          title={t('common:restore')}
+                        >
+                          <RotateCcw size={ICON_SIZE.sm} />
+                        </Button>
+                        <DeleteButton
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            doDelete([item.id]);
+                          }}
+                          title={t('common:delete_permanently')}
+                        />
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openDetail(item.id);
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.color = 'var(--accent-primary)';
+                            e.currentTarget.style.background =
+                              'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.color = 'var(--text-tertiary)';
+                            e.currentTarget.style.background = 'none';
+                          }}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            padding: 4,
+                            borderRadius: 4,
+                            color: 'var(--text-tertiary)',
+                            transition: 'background 0.15s, color 0.15s',
+                          }}
+                          title={t('common:details')}
+                        >
+                          <Info size={ICON_SIZE.lg} />
+                        </button>
+                      </>
+                    );
+
+                    return isMobile ? (
+                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+                        <SelectCheckbox
+                          checked={selectedIds.has(item.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleSelection(item.id);
+                          }}
+                        />
+                        <div
+                          style={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: 8,
+                            flex: 1,
+                            minWidth: 0,
+                          }}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            {icon}
+                            {meta}
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+                            {actions}
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <SelectCheckbox
+                          checked={selectedIds.has(item.id)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleSelection(item.id);
+                          }}
+                        />
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 10,
+                            flex: 1,
+                            minWidth: 0,
+                          }}
+                        >
+                          {icon}
+                          {meta}
+                        </div>
+                        {actions}
+                      </div>
+                    );
+                  })()}
                 </Card>
               ))
             )}

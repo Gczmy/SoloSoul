@@ -45,6 +45,7 @@ export function OcrPage() {
   const [downloadingTier, setDownloadingTier] = useState<string | null>(null);
   const [downloadUrl, setDownloadUrl] = useState('');
   const isMobilePlatform = isMobilePlatformSync();
+  const ocrActionIconSize = isMobilePlatform ? ICON_SIZE.lg : ICON_SIZE.sm;
 
   /** 处理扫描错误：将后端返回的「模型未安装」前缀解析为国际化提示。 */
   const handleScanError = (err: unknown) => {
@@ -522,14 +523,14 @@ export function OcrPage() {
 
             <div style={{ display: 'flex', gap: 8, justifyContent: 'center', alignItems: 'center' }}>
               <Button onClick={handleSelectFile} loading={isScanning}>
-                <FileText size={ICON_SIZE.sm} style={{ marginRight: 6 }} />{' '}
+                <FileText size={ocrActionIconSize} style={{ marginRight: 6 }} />{' '}
                 {scanMode === 'mrz' || isMobilePlatform
                   ? t('ocr:select_image')
                   : t('ocr:select_image_or_pdf')}
               </Button>
               {isMobilePlatform && (
                 <Button onClick={handleTakePhoto} loading={isScanning}>
-                  <Camera size={ICON_SIZE.sm} style={{ marginRight: 6 }} /> {t('ocr:take_photo')}
+                  <Camera size={ocrActionIconSize} style={{ marginRight: 6 }} /> {t('ocr:take_photo')}
                 </Button>
               )}
             </div>
