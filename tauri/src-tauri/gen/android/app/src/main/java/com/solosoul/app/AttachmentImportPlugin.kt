@@ -518,7 +518,7 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
           invoke.reject("无法从 tree URI 解析目标目录: ${args.treeUri}")
           return
         }
-      syncLocalDirToTree(localDir, parent, "")
+      syncLocalDirToTree(localDir, parent)
       invoke.resolve(JSObject())
     } catch (e: Exception) {
       android.util.Log.e("SoloSoul", "syncDirToRemote failed: ${e.message}", e)
@@ -744,10 +744,16 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
    * 通过尝试查询 tree URI 的子文档来验证。
    * 返回 { accessible: boolean }。
    */
+  @InvokeArg
+  class CheckAccessArgs {
+    lateinit var treeUri: String
+  }
+
   @Command
   fun checkVaultDirAccess(invoke: Invoke) {
     try {
-      val treeUriStr = invoke.getString("treeUri")
+      val args = invoke.parseArgs(CheckAccessArgs::class.java)
+      val treeUriStr = args.treeUri
       if (treeUriStr.isNullOrBlank()) {
         invoke.resolve(JSObject().apply { put("accessible", false) })
         return

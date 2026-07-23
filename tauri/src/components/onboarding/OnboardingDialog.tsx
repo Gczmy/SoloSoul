@@ -30,7 +30,7 @@ const baseSteps = [
   { key: 'finish', icon: CheckCircle },
 ] as const;
 
-export function OnboardingDialog({ onComplete, onSkip }: OnboardingDialogProps) {
+export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDialogProps) {
   const { t } = useTranslation('common');
   const [step, setStep] = useState(0);
   const [platformName, setPlatformName] = useState<string>('');
@@ -39,6 +39,7 @@ export function OnboardingDialog({ onComplete, onSkip }: OnboardingDialogProps) 
   const [vaultDirSuccess, setVaultDirSuccess] = useState(false);
   const [vaultDirError, setVaultDirError] = useState<string | null>(null);
   const [vaultNeedsRestart, setVaultNeedsRestart] = useState(false);
+
   useEffect(() => {
     getPlatform().then((p) => {
       setPlatformName(p);
@@ -59,6 +60,17 @@ export function OnboardingDialog({ onComplete, onSkip }: OnboardingDialogProps) 
   const current = steps[step];
   const Icon = current?.icon || Sparkles;
   const isLast = step >= steps.length - 1;
+
+  // 每次进入 vault_directory 步骤时重置状态，让用户可以重新选择
+  useEffect(() => {
+    if (current?.key === 'vault_directory') {
+      setVaultDirChoice(null);
+      setVaultDirSuccess(false);
+      setVaultDirError(null);
+      setVaultNeedsRestart(false);
+      setVaultDirActing(false);
+    }
+  }, [step]);
 
   const handleVaultDirPick = useCallback(async () => {
     const { pause, resume } = await import('@/stores/autoLockPauseStore').then(
@@ -505,37 +517,7 @@ export function OnboardingDialog({ onComplete, onSkip }: OnboardingDialogProps) 
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <button
-            type="button"
-            onClick={onSkip}
-            style={{
-              fontSize: 'var(--text-caption)',
-              padding: '6px 12px',
-              borderRadius: 6,
-              border: '1px solid var(--border-subtle)',
-              background: 'var(--bg-toolbar)',
-              color: 'var(--text-tertiary)',
-              cursor: 'pointer',
-              fontFamily: 'inherit',
-              fontWeight: 500,
-              transition: 'all 0.15s ease',
-            }}
-            className="interactive-toolbar"
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background =
-                'color-mix(in srgb, var(--accent-warm) 8%, transparent)';
-              e.currentTarget.style.borderColor =
-                'color-mix(in srgb, var(--accent-warm) 30%, var(--border-subtle))';
-              e.currentTarget.style.color = 'var(--accent-warm)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'var(--bg-toolbar)';
-              e.currentTarget.style.borderColor = 'var(--border-subtle)';
-              e.currentTarget.style.color = 'var(--text-tertiary)';
-            }}
-          >
-            {t('onboarding_skip')}
-          </button>
+          <div />
           <div style={{ display: 'flex', gap: 8 }}>
             {step > 0 && (
               <button
