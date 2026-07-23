@@ -260,6 +260,12 @@ pub fn run() {
                         }
                     }
                 });
+
+                // 4c. 后台定期自动同步（每 30 秒检查 dirty flag）
+                if let Some(state) = app.try_state::<AppState>() {
+                    state.start_auto_sync_task();
+                    tracing::info!("[setup] SAF auto-sync task started (interval: 30s)");
+                }
             }
 
             // 5. 初始化桌面端发现服务（mDNS）— 移动端暂不提供

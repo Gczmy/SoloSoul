@@ -9,7 +9,7 @@ use crate::state::AppState;
 use serde::{Deserialize, Serialize};
 use solosoul_core::vault_file_system::{SafVaultFileSystem, VaultFileSystem};
 use std::sync::Arc;
-use tauri::{AppHandle, Manager, Runtime, State};
+use tauri::{AppHandle, Emitter, Manager, Runtime, State};
 
 /// 当前 Vault 目录类型。
 #[derive(Debug, Clone, Serialize)]
@@ -184,20 +184,40 @@ pub async fn vault_set_directory(
             }
         };
 
+        // 迁移/同步进度通知（spawn_blocking 外执行 emit）
+        let _ = state.handle.emit(
+            "sync-progress",
+            serde_json::json!({"phase": "migrate", "current": 0, "total": 3}),
+        );
+
         // 在 spawn_blocking 中执行迁移与同步，避免阻塞 tokio worker
         let uri_owned = uri.clone();
         let handle = state.handle.clone();
         tokio::task::spawn_blocking(move || -> Result<(), String> {
             if local_dir != temp_dir {
+                let _ = handle.emit(
+                    "sync-progress",
+                    serde_json::json!({"phase": "migrate", "current": 1, "total": 3}),
+                );
                 migrate_vault_data(&local_dir, &temp_dir)?;
+                let _ = handle.emit(
+                    "sync-progress",
+                    serde_json::json!({"phase": "migrate", "current": 2, "total": 3}),
+                );
             }
 
             // 通过临时文件系统同步到 SAF
             let sync_driver =
-                Arc::new(TauriSafSyncDriver::<tauri::Wry>::new(handle));
+                Arc::new(TauriSafSyncDriver::<tauri::Wry>::new(handle.clone()));
             let fs = SafVaultFileSystem::new(uri_owned, temp_dir, sync_driver);
             fs.sync_to_remote()
-                .map_err(|e| format!("首次同步到 SAF 失败: {e}"))
+                .map_err(|e| format!("首次同步到 SAF 失败: {e}"))?;
+
+            let _ = handle.emit(
+                "sync-progress",
+                serde_json::json!({"phase": "migrate", "current": 3, "total": 3}),
+            );
+            Ok(())
         })
         .await
         .map_err(|e| format!("迁移任务失败: {e}"))??;
@@ -222,23 +242,63 @@ pub async fn vault_set_directory(
 }
 
 /// 手动将 Vault 数据同步到远端（SAF）。
+/// 同步期间每次文件操作时向前端发送进度事件。
 #[tauri::command]
-pub async fn vault_sync_to_remote(state: State<'_, AppState>) -> Result<(), String> {
-    let svc = state
-        .vault_service
-        .read()
-        .map_err(|_| "Vault service lock poisoned".to_string())?;
-    svc.sync_to_remote()
+pub async fn vault_sync_to_remote(
+    app: AppHandle<tauri::Wry>,
+    state: State<'_, AppState>,
+) -> Result<(), String> {
+    // 发送同步开始事件
+    let _ = app.emit(
+        "sync-progress",
+        serde_json::json!({"phase": "sync_to_remote", "current": 0, "total": 1}),
+    );
+
+    let result = {
+        let svc = state
+            .vault_service
+            .read()
+            .map_err(|_| "Vault service lock poisoned".to_string())?;
+        svc.sync_to_remote()
+    };
+
+    // 发送同步完成事件
+    let _ = app.emit(
+        "sync-progress",
+        serde_json::json!({"phase": "sync_to_remote", "current": 1, "total": 1}),
+    );
+
+    result
 }
 
 /// 手动从远端（SAF）同步 Vault 数据到本地。
+/// 同步期间每次文件操作时向前端发送进度事件。
 #[tauri::command]
-pub async fn vault_sync_from_remote(state: State<'_, AppState>) -> Result<(), String> {
-    let svc = state
-        .vault_service
-        .read()
-        .map_err(|_| "Vault service lock poisoned".to_string())?;
-    svc.sync_from_remote()
+pub async fn vault_sync_from_remote(
+    app: AppHandle<tauri::Wry>,
+    state: State<'_, AppState>,
+) -> Result<(), String> {
+    // 发送同步开始事件
+    let _ = app.emit(
+        "sync-progress",
+        serde_json::json!({"phase": "sync_from_remote", "current": 0, "total": 1}),
+    );
+
+    let result = {
+        let svc = state
+            .vault_service
+            .read()
+            .map_err(|_| "Vault service lock poisoned".to_string())?;
+        svc.sync_from_remote()
+    };
+
+    // 发送同步完成事件
+    let _ = app.emit(
+        "sync-progress",
+        serde_json::json!({"phase": "sync_from_remote", "current": 1, "total": 1}),
+    );
+
+    result
 }
 
 /// 检查 SAF tree URI 是否仍然可访问。

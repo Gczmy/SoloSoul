@@ -878,6 +878,12 @@ impl VaultService {
         self.fs.sync_from_remote()
     }
 
+    /// 如果底层文件系统支持脏标记，同步尚未同步到远端的脏数据。
+    /// 适用于定期后台自动同步的调用场景。
+    pub fn sync_if_dirty(&self) -> Result<(), String> {
+        self.fs.sync_if_dirty()
+    }
+
     /// 当前 Vault 是否使用远端（SAF）存储。
     pub fn is_remote_storage(&self) -> bool {
         self.fs.is_remote()

@@ -6,6 +6,7 @@ use solosoul_core::VaultService;
 use solosoul_sync::SyncService;
 use std::path::PathBuf;
 use std::sync::{Arc, RwLock};
+use tauri::Emitter;
 use tauri::Manager;
 
 pub struct AppState {
@@ -113,6 +114,35 @@ impl AppState {
     ///
     /// 安全前置检查：在尝试同步前先验证 SAF tree URI 仍然可访问，
     /// 避免在权限已撤销的情况下静默降级为空状态，导致用户创建的数据丢失。
+    /// 启动后台自动同步任务。
+    /// 每 30 秒检查 dirty flag，有脏数据时自动同步到 SAF。
+    /// 该任务不会阻塞应用启动。
+    pub fn start_auto_sync_task(&self) -> tokio::task::JoinHandle<()> {
+        let svc = self.vault_service.clone();
+        let app = self.handle.clone();
+        tokio::spawn(async move {
+            loop {
+                tokio::time::sleep(std::time::Duration::from_secs(30)).await;
+                let read_guard = match svc.read() {
+                    Ok(g) => g,
+                    Err(_) => continue,
+                };
+                if read_guard.is_remote_storage() {
+                    if let Err(e) = read_guard.sync_if_dirty() {
+                        tracing::warn!("[auto-sync] sync_if_dirty failed: {e}");
+                        continue;
+                    }
+                    // 每次同步后也更新前端状态
+                    let _ = app.emit(
+                        "sync-progress",
+                        serde_json::json!({"phase": "auto_sync", "current": 1, "total": 1}),
+                    );
+                    tracing::debug!("[auto-sync] sync_if_dirty completed");
+                }
+            }
+        })
+    }
+
     pub async fn init_saf_sync(&self) -> Result<(), String> {
         let svc = self.vault_service.clone();
         let app_handle = self.handle.clone();

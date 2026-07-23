@@ -6,6 +6,7 @@
 //! 实现替换。
 
 use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
 /// Vault 文件系统抽象。
@@ -59,6 +60,15 @@ pub trait VaultFileSystem: Send + Sync {
     fn is_remote(&self) -> bool {
         false
     }
+
+    /// 将尚未同步到远端的脏数据同步到远端。
+    ///
+    /// 如果实现支持脏标记（dirty flag），每次写操作后应标记为脏，
+    /// 然后可由后台任务定期调用此方法进行同步。
+    /// 默认实现为空操作（适用于本地文件系统）。
+    fn sync_if_dirty(&self) -> Result<(), String> {
+        Ok(())
+    }
 }
 
 /// SAF-backed VaultFileSystem 的同步策略枚举。
@@ -109,9 +119,8 @@ pub struct SafVaultFileSystem {
     tree_uri: String,
     /// 本地临时目录，SQLite 等需要真实 Path 的场景直接读写此处。
     local_temp_dir: PathBuf,
-    /// 同步策略，Phase 2 自动同步时再启用，当前预留。
-    #[allow(dead_code)]
-    sync_strategy: SafSyncStrategy,
+    /// 是否有尚未同步到 SAF 的脏数据。
+    dirty: AtomicBool,
     sync_driver: Arc<dyn SafSyncDriver>,
 }
 
@@ -124,7 +133,7 @@ impl SafVaultFileSystem {
         Self {
             tree_uri,
             local_temp_dir,
-            sync_strategy: SafSyncStrategy::Manual,
+            dirty: AtomicBool::new(false),
             sync_driver,
         }
     }
@@ -158,12 +167,16 @@ impl VaultFileSystem for SafVaultFileSystem {
         if let Some(parent) = path.parent() {
             std::fs::create_dir_all(parent).map_err(|e| format!("创建父目录失败: {e}"))?;
         }
-        std::fs::write(&path, data).map_err(|e| format!("写入文件失败: {e}"))
+        std::fs::write(&path, data).map_err(|e| format!("写入文件失败: {e}"))?;
+        self.dirty.store(true, Ordering::Release);
+        Ok(())
     }
 
     fn remove_file(&self, relative_path: &str) -> Result<(), String> {
         let path = self.resolve(relative_path)?;
-        std::fs::remove_file(&path).map_err(|e| format!("删除文件失败: {e}"))
+        std::fs::remove_file(&path).map_err(|e| format!("删除文件失败: {e}"))?;
+        self.dirty.store(true, Ordering::Release);
+        Ok(())
     }
 
     fn exists(&self, relative_path: &str) -> Result<bool, String> {
@@ -178,7 +191,9 @@ impl VaultFileSystem for SafVaultFileSystem {
 
     fn remove_dir_all(&self, relative_path: &str) -> Result<(), String> {
         let path = self.resolve(relative_path)?;
-        std::fs::remove_dir_all(&path).map_err(|e| format!("删除目录失败: {e}"))
+        std::fs::remove_dir_all(&path).map_err(|e| format!("删除目录失败: {e}"))?;
+        self.dirty.store(true, Ordering::Release);
+        Ok(())
     }
 
     fn list_dir(&self, relative_path: &str) -> Result<Vec<String>, String> {
@@ -190,6 +205,14 @@ impl VaultFileSystem for SafVaultFileSystem {
             names.push(entry.file_name().to_string_lossy().into_owned());
         }
         Ok(names)
+    }
+
+    fn sync_if_dirty(&self) -> Result<(), String> {
+        if self.dirty.load(Ordering::Acquire) {
+            self.sync_to_remote()?;
+            self.dirty.store(false, Ordering::Release);
+        }
+        Ok(())
     }
 
     fn local_path(&self, relative_path: &str) -> Option<PathBuf> {
