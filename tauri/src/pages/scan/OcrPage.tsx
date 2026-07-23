@@ -15,7 +15,7 @@ import type { OcrResult, OcrTierInfo, OcrModelStatus, MrzResult } from '@/lib/ip
 import { OCR_MODEL_SERIES, OCR_MODEL_NOT_INSTALLED_PREFIX } from '@/lib/constants';
 import { getTierLabel } from '@/lib/utils';
 import { MrzResultCard } from '@/components/ocr/MrzResultCard';
-import { Scan, FileText, Camera, Upload, Download, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { Scan, Upload, Download, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/constants';
 
 type ScanMode = 'general' | 'mrz';
@@ -45,7 +45,6 @@ export function OcrPage() {
   const [downloadingTier, setDownloadingTier] = useState<string | null>(null);
   const [downloadUrl, setDownloadUrl] = useState('');
   const isMobilePlatform = isMobilePlatformSync();
-  const ocrActionIconSize = isMobilePlatform ? ICON_SIZE['2xl'] : ICON_SIZE.sm;
 
   /** 处理扫描错误：将后端返回的「模型未安装」前缀解析为国际化提示。 */
   const handleScanError = (err: unknown) => {
@@ -208,8 +207,10 @@ export function OcrPage() {
         if (path) {
           setFilePath(path);
           await performScan(path);
+        } else {
+          // 相机未返回有效图片路径（如部分 ROM 不写入指定文件），明确提示用户
+          onError(t('ocr:take_photo_no_image'), t('ocr:take_photo_failed'));
         }
-        // path 为 null：用户取消拍照，静默返回
       } catch (e) {
         onError(e, t('ocr:take_photo_failed'));
       } finally {
@@ -535,14 +536,13 @@ export function OcrPage() {
 
             <div style={{ display: 'flex', gap: 8, justifyContent: 'center', alignItems: 'center' }}>
               <Button onClick={handleSelectFile} loading={isScanning}>
-                <FileText size={ocrActionIconSize} style={{ marginRight: 6 }} />{' '}
                 {scanMode === 'mrz' || isMobilePlatform
                   ? t('ocr:select_image')
                   : t('ocr:select_image_or_pdf')}
               </Button>
               {isMobilePlatform && (
                 <Button onClick={handleTakePhoto} loading={isScanning}>
-                  <Camera size={ocrActionIconSize} style={{ marginRight: 6 }} /> {t('ocr:take_photo')}
+                  {t('ocr:take_photo')}
                 </Button>
               )}
             </div>

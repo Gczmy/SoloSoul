@@ -1,6 +1,7 @@
 package com.solosoul.app
 
 import android.app.Activity
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.provider.MediaStore
@@ -23,6 +24,7 @@ import org.json.JSONArray
 import com.google.mlkit.vision.text.TextRecognizer
 import com.google.mlkit.vision.text.chinese.ChineseTextRecognizerOptions
 import java.io.File
+import java.io.FileOutputStream
 
 @InvokeArg
 class ScanImageArgs {
@@ -54,6 +56,38 @@ class MobileOcrPlugin(private val activity: Activity): Plugin(activity) {
      * 保存待写入的拍照临时文件路径，在 Activity 回调中取回。
      */
     private var pendingCapturePath: String? = null
+
+    /**
+     * 用于在进程被系统回收并恢复后仍能取回拍照路径。
+     */
+    private val prefs by lazy {
+        activity.getSharedPreferences("MobileOcrPlugin", Context.MODE_PRIVATE)
+    }
+
+    companion object {
+        private const val PREF_PENDING_CAPTURE_PATH = "pending_capture_path"
+    }
+
+    /**
+     * 将 pendingCapturePath 持久化，以应对相机 Activity 期间进程被回收的场景。
+     */
+    private fun persistCapturePath(path: String?) {
+        prefs.edit().apply {
+            if (path == null) {
+                remove(PREF_PENDING_CAPTURE_PATH)
+            } else {
+                putString(PREF_PENDING_CAPTURE_PATH, path)
+            }
+            apply()
+        }
+    }
+
+    /**
+     * 从 SharedPreferences 恢复拍照路径（进程恢复场景）。
+     */
+    private fun restoreCapturePath(): String? {
+        return prefs.getString(PREF_PENDING_CAPTURE_PATH, null)
+    }
 
     /**
      * 清理 cacheDir 中残留的拍照临时文件（ocr_capture_*.jpg）。
@@ -162,6 +196,7 @@ class MobileOcrPlugin(private val activity: Activity): Plugin(activity) {
 
             val captureFile = File(activity.cacheDir, "ocr_capture_${System.currentTimeMillis()}.jpg")
             pendingCapturePath = captureFile.absolutePath
+            persistCapturePath(pendingCapturePath)
 
             val authority = "${activity.packageName}.fileprovider"
             val photoUri = FileProvider.getUriForFile(activity, authority, captureFile)
@@ -175,6 +210,7 @@ class MobileOcrPlugin(private val activity: Activity): Plugin(activity) {
             if (intent.resolveActivity(activity.packageManager) == null) {
                 android.util.Log.e("SoloSoul", "takePhoto: no activity handles ACTION_IMAGE_CAPTURE")
                 pendingCapturePath = null
+                persistCapturePath(null)
                 invoke.reject("NO_CAMERA_HANDLER")
                 return
             }
@@ -183,6 +219,7 @@ class MobileOcrPlugin(private val activity: Activity): Plugin(activity) {
         } catch (e: Exception) {
             android.util.Log.e("SoloSoul", "launchCamera failed: ${e.message}", e)
             pendingCapturePath = null
+            persistCapturePath(null)
             invoke.reject("TAKE_PHOTO_FAILED: ${e.message}")
         }
     }
@@ -204,15 +241,37 @@ class MobileOcrPlugin(private val activity: Activity): Plugin(activity) {
     @ActivityCallback
     fun takePhotoResult(invoke: Invoke, result: ActivityResult) {
         val response = JSObject()
-        if (result.resultCode == Activity.RESULT_OK && pendingCapturePath != null) {
-            val path = pendingCapturePath!!
+        var path = pendingCapturePath ?: restoreCapturePath()
+
+        if (result.resultCode == Activity.RESULT_OK && path != null) {
             val file = File(path)
             if (file.exists() && file.length() > 0) {
                 response.put("path", "file://$path")
+            } else if (result.data != null) {
+                // 部分 ROM 的相机会把图片 URI 放在 result.data 中，或忽略 EXTRA_OUTPUT。
+                // 尝试从 result.data 读取并复制到 cache 文件。
+                val uri = result.data!!.data
+                if (uri != null) {
+                    try {
+                        val input = activity.contentResolver.openInputStream(uri)
+                        val targetFile = File(path)
+                        input?.use { stream ->
+                            FileOutputStream(targetFile).use { output ->
+                                stream.copyTo(output)
+                            }
+                        }
+                        if (targetFile.exists() && targetFile.length() > 0) {
+                            response.put("path", "file://${targetFile.absolutePath}")
+                        }
+                    } catch (e: Exception) {
+                        android.util.Log.w("SoloSoul", "takePhotoResult: failed to copy from intent data: ${e.message}")
+                    }
+                }
             }
         }
         // 取消或文件未生成 → response 无 path 字段，前端视为用户取消
         pendingCapturePath = null
+        persistCapturePath(null)
         invoke.resolve(response)
     }
 

@@ -11,6 +11,7 @@
   "select_image_failed": "Failed to select file",
   "take_photo": "Take Photo",
   "take_photo_failed": "Failed to capture photo",
+  "take_photo_no_image": "No photo was captured, please try again",
   "scanning": "Scanning…",
   "scan_failed": "OCR scan failed",
   "scan_model_not_installed": "Model {{tier}} is not installed. Please install or download it first.",
