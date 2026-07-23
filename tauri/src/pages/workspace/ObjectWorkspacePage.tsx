@@ -15,7 +15,12 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { useTemplateStore } from '@/stores/templateStore';
 import type { TemplateProperty } from '@/types/template';
 import type { SensitivityLevel } from '@/components/ui/SensitivityBadge';
-import { objectNeedsSync, type TemplateSyncResult, type DeprecatedField } from '@/lib/templateSync';
+import {
+  objectNeedsSync,
+  resolveSemanticNeedsSync,
+  type TemplateSyncResult,
+  type DeprecatedField,
+} from '@/lib/templateSync';
 
 // Labels resolved at render time via t() so they support i18n
 import { DEBOUNCE_DELAY_MS } from '@/lib/constants';
@@ -116,6 +121,27 @@ export function ObjectWorkspacePage() {
 
   // 模板同步确认弹窗打开期间，对应对象的提示条应临时隐藏，避免被弹窗遮罩盖住。
   const [syncDialogOpenForObjectId, setSyncDialogOpenForObjectId] = useState<string | null>(null);
+
+  // 详情面板模板同步：hash 初判 + 语义复核
+  const detailHashNeedsSync =
+    !!detailObj &&
+    !!templateHashMap &&
+    syncDialogOpenForObjectId !== detailObj.id &&
+    objectNeedsSync(detailObj, templateHashMap);
+  const [detailSemanticNeedsSync, setDetailSemanticNeedsSync] = useState(false);
+  useEffect(() => {
+    if (!detailHashNeedsSync || !detailObj || !accountId) {
+      setDetailSemanticNeedsSync(false);
+      return;
+    }
+    let cancelled = false;
+    resolveSemanticNeedsSync(accountId, detailObj.id).then((needed) => {
+      if (!cancelled) setDetailSemanticNeedsSync(needed);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [detailHashNeedsSync, detailObj, accountId]);
 
   const { t } = useTranslation(['common', 'navigation', 'editor']);
   const {
@@ -829,15 +855,7 @@ export function ObjectWorkspacePage() {
           {detailObj && (
             <ObjectDetailModal
               object={detailObj}
-              needsSync={(() => {
-                if (
-                  !templateHashMap ||
-                  !detailObj.templateId ||
-                  syncDialogOpenForObjectId === detailObj.id
-                )
-                  return false;
-                return objectNeedsSync(detailObj, templateHashMap);
-              })()}
+              needsSync={detailHashNeedsSync && detailSemanticNeedsSync}
               onClose={() => setDetailObj(null)}
               onEdit={() => {
                 navigate(`/editor/${detailObj.id}`);

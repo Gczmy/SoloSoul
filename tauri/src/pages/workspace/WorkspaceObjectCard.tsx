@@ -1,4 +1,4 @@
-import { memo, useMemo } from 'react';
+import { memo, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
 import { PAGE_ICON_MAP, resolveCustomIcon } from '@/lib/pageIcons';
@@ -7,8 +7,9 @@ import { getSensitivityStyle, type SensitivityLevel } from '@/components/ui/Sens
 import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
 import type { ObjectSummary, ObjectData } from '@/stores/objectStore';
 import type { UserTemplate } from '@/types/template';
-import { objectNeedsSync } from '@/lib/templateSync';
+import { objectNeedsSync, resolveSemanticNeedsSync } from '@/lib/templateSync';
 import { PluginBadge } from '@/components/template/PluginBadge';
+import { useAuthStore } from '@/stores/authStore';
 import { useDragToAttach } from '@/hooks/useDragToAttach';
 import { DragUploadOverlay } from '@/components/object/DragUploadOverlay';
 import { ICON_SIZE } from '@/lib/constants';
@@ -109,14 +110,33 @@ export const WorkspaceObjectCard = memo(function WorkspaceObjectCard({
   onUploadComplete,
 }: WorkspaceObjectCardProps) {
   const { t } = useTranslation(['editor', 'common']);
+  const accountId = useAuthStore((s) => s.currentAccount?.id);
   const tpl = userTemplates.find((t) => t.id === obj.templateId);
 
   // 懒加载：每张卡片根据模板指纹映射独立计算同步状态，避免父级批量计算导致切换页面闪烁。
   // 用户点击“否”后记录当时模板指纹；模板再次变更时提示条重新出现。
-  const needsSync = useMemo(() => {
+  const hashNeedsSync = useMemo(() => {
     if (!templateHashMap || isSyncDialogOpen) return false;
     return objectNeedsSync(obj, templateHashMap);
   }, [obj, templateHashMap, isSyncDialogOpen]);
+
+  // 语义复核（异步）：复核期间不显示提示条，确认有真实变更才显示
+  const [semanticNeedsSync, setSemanticNeedsSync] = useState(false);
+  useEffect(() => {
+    if (!hashNeedsSync || !accountId) {
+      setSemanticNeedsSync(false);
+      return;
+    }
+    let cancelled = false;
+    resolveSemanticNeedsSync(accountId, obj.id).then((needed) => {
+      if (!cancelled) setSemanticNeedsSync(needed);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [hashNeedsSync, accountId, obj.id]);
+
+  const needsSync = hashNeedsSync && semanticNeedsSync;
   // 模板匹配需同时满足 ID 和页面归属（与编辑器 ObjectEditorPage 对齐）
   const tplMatch = tpl && (tpl.category || 'identity') === obj.collectionType;
   const fieldOrder = tpl?.properties.map((p) => p.id);
