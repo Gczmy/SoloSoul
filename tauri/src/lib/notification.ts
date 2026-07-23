@@ -149,9 +149,22 @@ interface BackupInfo {
  */
 export async function checkBackupReminder(): Promise<void> {
   try {
+    const accountId = useAuthStore.getState().currentAccount?.id;
+    if (!accountId) return;
+
     const store = useSettingsStore.getState();
-    const { backupReminderDays: days, lastBackupReminderAt } = store.settings;
+
+    // 直接读后端权威值，规避与 loadSettings 的竞态
+    // （解锁后 2s 时内存 settings 可能还是默认值）
+    const prefs = await invoke<Record<string, unknown>>('user_data_get_preferences', { accountId });
+    const days =
+      typeof prefs.backupReminderDays === 'number'
+        ? prefs.backupReminderDays
+        : store.settings.backupReminderDays;
     if (days <= 0) return;
+
+    const lastBackupReminderAt =
+      typeof prefs.lastBackupReminderAt === 'number' ? prefs.lastBackupReminderAt : null;
 
     // 方案 A: 记录最后提醒时间，间隔 = backupReminderDays 天
     // 如果上次提醒距今不足 days 天，则跳过本次提醒
@@ -205,7 +218,6 @@ export async function checkBackupReminder(): Promise<void> {
         settings: { ...s.settings, lastBackupReminderAt: now },
       }));
       // 异步持久化到后端，重启应用后仍可记忆最后提醒时间
-      const accountId = useAuthStore.getState().currentAccount?.id;
       if (accountId) {
         useSettingsStore
           .getState()
