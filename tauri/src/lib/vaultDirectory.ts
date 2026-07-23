@@ -20,7 +20,10 @@ export async function getVaultDirectory(): Promise<VaultDirectoryInfo> {
 export async function setVaultDirectory(
   safTreeUri: string | null,
 ): Promise<SetVaultDirectoryResult> {
-  return invoke<SetVaultDirectoryResult>('vault_set_directory', { safTreeUri });
+  // 参数名 payload 必须与 Rust 端 #[tauri::command] 的参数名一致
+  return invoke<SetVaultDirectoryResult>('vault_set_directory', {
+    payload: { safTreeUri },
+  });
 }
 
 export async function pickVaultDirectory(): Promise<string | null> {
