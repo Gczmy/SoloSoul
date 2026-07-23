@@ -1,6 +1,7 @@
 # Android 端“用户自选 Vault 目录”技术方案
 
-> 状态：设计阶段（Design），已选定方案 D）  
+> 状态：实现中 — Phase 0/1/2 已完成，Phase 3 发布前验证进行中）  
+> 影响范围：Android 客户端、Rust 后端、Kotlin 原生插件、前端设置/引导流程
 > 影响范围：Android 客户端、Rust 后端、Kotlin 原生插件、前端设置/引导流程  
 > 关联文档：`AGENTS.md`、docs/design_map/*、docs/sync-roadmap.md
 
@@ -162,95 +163,78 @@ SAF tree URI 下的文件操作主要有两种方式：
 
 #### 5.4.1 新增 `VaultFileSystem` trait
 
-路径：`tauri/src-tauri/src/fs/vault_file_system.rs`
+路径：`tauri/crates/solosoul-core/src/vault_file_system.rs`
 
 ```rust
-use std::path::Path;
-
-/// Vault 文件系统抽象层。
-/// 桌面端与 App-private 模式使用本地文件系统；
-/// Android 用户自定义目录使用 SAF-backed 文件系统。
 pub trait VaultFileSystem: Send + Sync {
-    /// 打开一个只读文件，返回内容。
     fn read_file(&self, relative_path: &str) -> Result<Vec<u8>, String>;
-    /// 写入文件（覆盖）。
     fn write_file(&self, relative_path: &str, data: &[u8]) -> Result<(), String>;
-    /// 删除文件。
     fn remove_file(&self, relative_path: &str) -> Result<(), String>;
-    /// 判断是否存在。
     fn exists(&self, relative_path: &str) -> Result<bool, String>;
-    /// 列出目录下所有条目（相对路径）。
-    fn list_dir(&self, relative_path: &str) -> Result<Vec<String>, String>;
-    /// 创建目录（若需要）。
     fn create_dir_all(&self, relative_path: &str) -> Result<(), String>;
-    /// 获取可用于 SQLite 的本地/虚拟路径描述。
-    fn sqlite_path(&self, relative_path: &str) -> Result<SqlitePath, String>;
-}
-
-/// 用于 SQLite 的路径形态。
-pub enum SqlitePath {
-    /// 可直接用 std::fs 访问的本地路径。
-    Local(std::path::PathBuf),
-    /// 需要通过 SAF 描述符临时映射的路径（含 fd 或 Content URI）。
-    Saf { uri: String, fd: i32 },
+    fn remove_dir_all(&self, relative_path: &str) -> Result<(), String>;
+    fn list_dir(&self, relative_path: &str) -> Result<Vec<String>, String>;
+    fn local_path(&self, relative_path: &str) -> Option<PathBuf>;
+    fn sync_to_remote(&self) -> Result<(), String> { Ok(()) }
+    fn sync_from_remote(&self) -> Result<(), String> { Ok(()) }
+    fn is_remote(&self) -> bool { false }
 }
 ```
 
 实现：
 
-- `LocalVaultFileSystem`：直接映射到本地 `std::path::Path`，复用现有逻辑。  
-- `SafVaultFileSystem`：持有 `tree_uri`，通过 Kotlin `ContentResolver` / `DocumentsContract` 将相对路径映射为文件 URI，再调用 `openFileDescriptor`。
+- `LocalVaultFileSystem`：直接映射到本地 `std::path::Path`，复用现有逻辑，是桌面端与 Android App-private 模式的默认实现。
+- `SafVaultFileSystem`：把所有文件操作代理到 `local_temp_dir`，通过注入的 `SafSyncDriver` 在显式调用 `sync_to_remote` / `sync_from_remote` 时与 SAF 目录做全量同步。当前 Phase 1/2 采用**本地临时副本 + 手动全量同步**策略，SQLite 数据库始终读写本地临时目录，避免直接在 SAF `content://` URI 上打开数据库的兼容性风险。
 
 #### 5.4.2 修改 `VaultService` 初始化
 
-`VaultService` 当前使用 `with_base_path(PathBuf)`。需要新增：
+`VaultService` 新增 `with_file_system(base_path, fs)` 构造：
 
 ```rust
 impl VaultService {
-    pub fn with_file_system(fs: Arc<dyn VaultFileSystem>) -> Self { ... }
+    pub fn with_file_system(base_path: PathBuf, fs: Arc<dyn VaultFileSystem>) -> Self { ... }
 }
 ```
 
 内部所有文件路径均基于该 `VaultFileSystem`。  
-桌面端：`LocalVaultFileSystem` 使用 `dirs::data_dir()/com.solosoul.app`。  
-Android：`AppState::new` 时读取用户偏好中的 `vault_dir_uri`，构建 `SafVaultFileSystem`。
+桌面端：`VaultService::new()` 默认使用 `LocalVaultFileSystem`，路径为 `dirs::data_dir()/com.solosoul.app`。  
+Android：`AppState::new` 时读取 `app_config.json` 中的 `saf_tree_uri`；存在时构建 `SafVaultFileSystem`，否则使用 `LocalVaultFileSystem`。
 
 #### 5.4.3 `AppState` 初始化流程
 
-当前 `state/app_state.rs`：
+实际实现位于 `tauri/src-tauri/src/state/app_state.rs`：
 
 ```rust
 let data_dir = handle
     .path()
     .resolve(".", tauri::path::BaseDirectory::Data)
     .map_err(...)?;
-let svc = VaultService::with_base_path(data_dir);
-```
 
-改造后：
-
-```rust
-// 1. 读取 ui_preferences / user_data_preferences 中的 vault_dir_uri
-let prefs = load_ui_preferences(&handle)?;
-let vault_fs: Arc<dyn VaultFileSystem> = if cfg!(target_os = "android") {
-    if let Some(uri) = prefs.vault_dir_uri {
-        Arc::new(SafVaultFileSystem::new(uri)?)
-    } else {
-        // 首次启动默认使用 App-private，待引导后切换
-        Arc::new(LocalVaultFileSystem::new(app_data_dir(&handle)?))
+let svc = match AppState::load_saved_saf_uri(&data_dir) {
+    Some(uri) => {
+        let temp_dir = data_dir.join("saf_vault_temp");
+        let sync_driver = Arc::new(TauriSafSyncDriver::<tauri::Wry>::new(handle.clone()));
+        let fs = Arc::new(SafVaultFileSystem::new(uri, temp_dir.clone(), sync_driver));
+        // 仅在本地临时目录没有账户数据时从 SAF 拉取，避免每次启动都阻塞应用启动
+        if !temp_dir.join("accounts.json").exists() {
+            if let Err(e) = fs.sync_from_remote() { ... }
+        }
+        VaultService::with_file_system(temp_dir, fs)
     }
-} else {
-    Arc::new(LocalVaultFileSystem::new(desktop_data_dir()))
+    None => VaultService::with_base_path(data_dir),
 };
-
-let svc = VaultService::with_file_system(vault_fs);
 ```
+
+要点：
+- `app_config.json` 保存在 Tauri 应用私有数据目录，与 Vault 数据目录解耦，方便在创建 `VaultService` 之前读取 SAF 配置。
+- 当 `saf_tree_uri` 存在且本地临时目录尚未初始化时，才从 SAF 全量拉取数据；日常启动直接复用本地临时副本，保证性能。
+- 所有 Vault 文件操作最终通过 `SafVaultFileSystem` 解析为本地临时路径，对 `VaultService` 透明。
 
 ### 5.5 前端流程
 
-#### 5.5.1 首次启动引导
+#### 5.5.1 首次启动引导（待实现，Phase 3 完成）
 
-在欢迎页 / 创建账户前增加一步，且**不可跳过**（提供默认选项）：
+当前 Phase 2 已在设置页提供目录切换能力；发布前需要在欢迎页 / 创建账户前增加一步，且**不可跳过**（提供默认选项）：
 
 ```
 选择保险库数据存放位置
@@ -264,19 +248,20 @@ let svc = VaultService::with_file_system(vault_fs);
    [选择目录...]
 ```
 
-- 选择“外部目录” → 调用 `pickVaultDir` → 用户选择目录 → `set_vault_dir` → 创建账户。
+- 选择“外部目录” → 调用 `pickVaultDirectory` → 用户选择目录 → `vault_set_directory` → 创建账户。
 - 选择“应用私有目录” → 默认使用 `BaseDirectory::Data`，后续可在设置中迁移。
 
-#### 5.5.2 设置页入口
+#### 5.5.2 设置页入口（已实现）
 
-在“设置 → 数据与安全”中新增：
+路径：`tauri/src/pages/settings/VaultDirectoryPage.tsx`
 
-- **当前 Vault 目录**：显示当前类型（App-private / 外部目录）与路径/URI。
-- **迁移到外部目录**：仅 App-private 模式下显示。
-- **更改目录**：外部目录模式下可重新选择。
-- **风险提示**：
-  - App-private 模式：“卸载应用会删除本地保险库数据”。
-  - 外部目录模式：“请妥善保管该目录，若手动删除文件将无法恢复”。
+在“设置 → 数据管理 → 保险库目录”中提供：
+
+- **当前 Vault 目录**：显示当前类型（App-private / 外部目录）与 SAF tree URI。
+- **选择/更换目录**：仅 Android 显示，调用系统 SAF 目录选择器。
+- **同步到 SAF / 从 SAF 同步**：手动全量同步按钮，供用户需要时强制同步。
+- **恢复为本地目录**：删除 SAF 配置，下次启动回退到 App-private 目录。
+- **风险提示**：切换目录后需要重启应用；将数据存放到外部目录后，卸载应用时数据不会丢失，但用户手动删除 SAF 目录中的文件将导致数据丢失。
 
 ---
 
@@ -320,35 +305,40 @@ SQLite 打开 SAF 文件有两种思路：
 
 ## 8. 实施路线图
 
-### Phase 0：基础设施与可行性验证（1 周）
+### Phase 0：基础设施与可行性验证（已完成）
 
-- 实现 `VaultFileSystem` trait、`LocalVaultFileSystem`。
-- 实现 `SafVaultFileSystem` 基础读写（不含 SQLite）。
-- 在 `VaultService` 中接入抽象层，确保桌面端无回归。
-- 真机基准测试：SQLite over SAF（fd 重定向 vs 本地缓存）。
-- 产出：《SAF 性能基准报告》。
+- ✅ 在 `tauri/crates/solosoul-core/src/vault_file_system.rs` 中定义 `VaultFileSystem` trait、`LocalVaultFileSystem`、`SafVaultFileSystem`、`SafSyncDriver` 及 no-op 占位。
+- ✅ 实现基于本地临时目录 + 手动同步的 `SafVaultFileSystem`；SQLite 等高频随机读写仍落在本地临时目录，避免直接在 SAF `content://` URI 上打开数据库。
+- ✅ 在 `VaultService` 中新增 `with_file_system(base_path, fs)`，接入抽象层，桌面端默认使用 `LocalVaultFileSystem` 无回归。
+- ✅ `solosoul-core` 单元测试通过（`cargo test -p solosoul-core` 126 passed）。
+- ⏸ 真机基准测试（SQLite over SAF fd 重定向 vs 本地缓存）：当前实现采用本地缓存方案，基准测试留到 Phase 3 作为发布前验证项。
 
-### Phase 1：Android 默认外部目录（1 周）
+### Phase 1：Android SAF 目录与同步命令（已完成）
 
-- 在 Kotlin 插件中实现 `pickVaultDir` / `vaultDirPicked`。
-- 新增 Rust commands：`get_vault_dir`、`set_vault_dir`。
-- 修改 `AppState` 初始化，读取 `vault_dir_uri` 并构建 `SafVaultFileSystem`。
-- 首次启动引导：默认推荐“外部目录”。
-- 测试：创建账户、创建对象、附件读写、解锁/锁定循环。
+- ✅ Kotlin 插件 `AttachmentImportPlugin` 新增 `pickVaultDir` / `vaultDirResult`、`syncDirToRemote`、`syncDirFromRemote`。
+- ✅ Rust Tauri 命令：`vault_get_directory`、`vault_set_directory`、`vault_sync_to_remote`、`vault_sync_from_remote`，以及桥接命令 `vault_pick_directory`。
+- ✅ `AppState::new` 在 Android 启动时读取 `app_config.json` 中的 `saf_tree_uri`；存在时构建 `SafVaultFileSystem`，不存在时回退到本地 App-private 目录。
+- ✅ 新增 `TauriSafSyncDriver` 调用 Kotlin 插件完成本地临时目录与 SAF tree 之间的全量同步。
+- ✅ ACL 已补充相关命令权限。
 
-### Phase 2：迁移与设置页（1 周）
+### Phase 2：迁移与设置页（已完成）
 
-- 设置页新增“Vault 目录”项。
-- 实现 App-private ↔ 外部目录 的数据迁移。
-- 授权失效检测与重新选择引导。
-- 完整测试：迁移、授权撤销、卸载重装、路径切换。
+- ✅ 设置页新增“保险库目录”入口（`VaultDirectoryPage.tsx`）。
+- ✅ 支持在 App-private 目录与 SAF 用户目录之间切换；切换时自动把现有 Vault 数据复制到新的 SAF 临时目录并首次同步到远端。
+- ✅ 切换目录后提示“需要重启应用”，使用 Tauri `relaunch()` 重启后生效。
+- ✅ 提供手动“同步到 SAF / 从 SAF 同步”按钮，供用户需要时强制同步。
+- ✅ i18n 中英双语 key 已补全。
+- ⚠️ 授权失效检测与重新选择引导：当前仅在启动时按 URI 构建 `SafVaultFileSystem`，若用户在系统设置中撤销授权，下次启动可能失败；Phase 3 需要补充错误提示与重新选择流程。
 
-### Phase 3：发布前验证（1 周）
+### Phase 3：发布前验证（进行中）
 
-- 多 ROM 真机回归。
-- 性能基准复测。
-- 文档更新与 i18n 补全。
-- 发布 Android 版本。
+- [ ] 多 ROM 真机回归：Pixel / 小米 / 华为 / 三星等常见 ROM。
+- [ ] 性能基准：对比 App-private 与 SAF 模式下的解锁、对象列表、附件写入、搜索耗时。
+- [ ] 卸载重装测试：确认 SAF 模式下卸载后数据保留，重装后可正常读取。
+- [ ] 授权撤销场景：系统设置中撤销 SAF 授权后，应用能正确提示并引导重新选择目录。
+- [ ] 首次启动引导：当前设置页入口已可用，但首次安装后的 onboarding 引导尚未添加，需在发布前补充“选择保险库目录”步骤。
+- [ ] 文档更新与 i18n 补全：更新本设计文档，确保与实际代码一致；检查所有新增 UI 文案均有中英翻译。
+- [ ] 发布 Android 版本。
 
 ---
 
@@ -393,45 +383,79 @@ SQLite 打开 SAF 文件有两种思路：
 
 ### Kotlin 层
 - `tauri/src-tauri/gen/android/app/src/main/java/com/solosoul/app/AttachmentImportPlugin.kt`
-  - 新增 `pickVaultDir` / `vaultDirPicked`
-  - 新增辅助命令：`openFileDescriptorForPath` / `copyUriToLocal`（供 SQLite fd 模式使用）
+  - 新增 `pickVaultDir` / `vaultDirResult`
+  - 新增 `syncDirToRemote` / `syncDirFromRemote`
+  - 复用既有 `AttachmentImportPlugin`，避免引入新插件
 
-### Rust 层
-- 新增 `tauri/src-tauri/src/fs/vault_file_system.rs`
-  - 定义 `VaultFileSystem` trait、`SqlitePath` enum
+### Rust 层（core）
+- `tauri/crates/solosoul-core/src/vault_file_system.rs`
+  - 定义 `VaultFileSystem` trait
   - 实现 `LocalVaultFileSystem`
-  - 实现 `SafVaultFileSystem`（Android only）
-- `tauri/src-tauri/src/fs/mod.rs`
+  - 实现 `SafVaultFileSystem`、`SafSyncDriver`、`NoOpSafSyncDriver`
+- `tauri/crates/solosoul-core/src/lib.rs`
+  - 导出相关类型
+- `tauri/crates/solosoul-core/src/vault_service.rs`
+  - 新增 `with_file_system(base_path, fs)` 构造
+
+### Rust 层（Tauri app）
+- `tauri/src-tauri/src/fs/vault_file_system.rs`
+  - 从 `solosoul-core` re-export
+- `tauri/src-tauri/src/fs/saf_sync_driver.rs`
+  - 新增 `TauriSafSyncDriver`，桥接到 Kotlin 插件
+- `tauri/src-tauri/src/fs.rs`
   - 导出新模块
 - `tauri/src-tauri/src/state/app_state.rs`
-  - 根据 `vault_dir_uri` 选择文件系统
-- `tauri/src-tauri/src/commands/settings.rs`
-  - 新增 `get_vault_dir`、`set_vault_dir`
+  - 读取 `app_config.json` 中的 `saf_tree_uri` 并选择文件系统
+- `tauri/src-tauri/src/commands/vault_directory.rs`
+  - 新增 `vault_get_directory`、`vault_set_directory`、`vault_sync_to_remote`、`vault_sync_from_remote`
+- `tauri/src-tauri/src/attachment_import_plugin.rs`
+  - 新增 `pick_vault_directory`、`sync_dir_to_remote`、`sync_dir_from_remote` 插件命令封装
 - `tauri/src-tauri/src/lib.rs`
   - 注册新增命令
 - `tauri/src-tauri/permissions/solo-soul/default.toml`
-  - 将新增命令加入 ACL 允许列表
+  - 将 `vault_get_directory`、`vault_set_directory`、`vault_sync_to_remote`、`vault_sync_from_remote`、`vault_pick_directory` 加入 ACL 允许列表
 - `tauri/src-tauri/Cargo.toml`
-  - 如需新增 JNI/SAF 辅助 crate 则在此声明
+  - 无需新增 crate；复用现有 `solosoul-core`
 
 ### 前端层
-- `tauri/src/pages/setup/SetupPage.tsx`（或 onboarding 流程）
-  - 新增“选择 Vault 目录”步骤
+- `tauri/src/pages/settings/VaultDirectoryPage.tsx`（新增）
+  - 显示当前目录类型与 SAF URI
+  - 提供选择/更换目录、同步到 SAF、从 SAF 同步、恢复本地目录按钮
+  - 切换目录后提示重启
+- `tauri/src/lib/vaultDirectory.ts`（新增）
+  - 封装 `vault_get_directory`、`vault_set_directory`、`vault_pick_directory`、`vault_sync_to_remote`、`vault_sync_from_remote` 的 invoke 调用
 - `tauri/src/pages/settings/SettingsPage.tsx`
-  - 新增“Vault 目录”设置项
-- 新增/更新 i18n key
-  - `settings:vault_dir_title`
-  - `settings:vault_dir_app_private`
-  - `settings:vault_dir_external`
-  - `settings:vault_dir_select`
-  - `settings:vault_dir_change`
-  - `settings:vault_dir_migrate`
-  - `settings:vault_dir_app_private_hint`
-  - `settings:vault_dir_external_hint`
+  - 在“数据管理”分组中新增“保险库目录”入口（Android 限定）
+- `tauri/src/App/routes.tsx`
+  - 新增 `/settings/vault-directory` 路由
+- i18n key（中英双语）
+  - `settings:vault_directory`
+  - `settings:vault_directory_desc`
+  - `settings:vault_directory_current_type`
+  - `settings:vault_directory_type_local`
+  - `settings:vault_directory_type_saf`
+  - `settings:vault_directory_saf_uri`
+  - `settings:vault_directory_choose`
+  - `settings:vault_directory_change`
+  - `settings:vault_directory_reset_local`
+  - `settings:vault_directory_sync_to_remote`
+  - `settings:vault_directory_sync_from_remote`
+  - `settings:vault_directory_sync_*_success` / `settings:vault_directory_sync_*_failed`
+  - `settings:vault_directory_set_success` / `settings:vault_directory_set_failed`
+  - `settings:vault_directory_reset_success` / `settings:vault_directory_reset_failed`
+  - `settings:vault_directory_load_failed`
+  - `settings:vault_directory_retry`
+  - `settings:vault_directory_restart_required`
+  - `settings:vault_directory_restart_required_desc`
+  - `settings:vault_directory_explanation`
+  - `settings:vault_directory_unavailable`
+  - `settings:vault_directory_restart`
+  - `settings:vault_directory_restart_failed`
+  - `settings:items.vault_directory`
+  - `settings:desc.vault_directory`
 
-### 测试
-- Rust 单元测试：`LocalVaultFileSystem` 基础操作
-- Rust 集成测试：`SafVaultFileSystem` 路径映射与读写
-- 前端测试：引导流程、设置页交互
-- 真机回归：选择目录、创建账户、对象/附件读写、迁移、卸载重装、授权撤销
-- 性能基准：SQLite over SAF 关键指标
+### 测试与验证
+- Rust 单元测试：`LocalVaultFileSystem` 基础操作（已随 `solosoul-core` 通过）
+- 桌面端回归：`cargo check` / `cargo test -p solosoul-core` 通过
+- 前端静态检查：`npx tsc --noEmit` / ESLint 通过
+- 待完成：多 ROM 真机回归、授权撤销处理、首次启动引导、性能基准、卸载重装测试

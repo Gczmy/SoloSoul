@@ -75,6 +75,7 @@ commands.allow = [
   "vault_set_directory",
   "vault_sync_to_remote",
   "vault_sync_from_remote",
+  "vault_pick_directory",
   "profile_save",
   "profile_load",
   "profile_list",

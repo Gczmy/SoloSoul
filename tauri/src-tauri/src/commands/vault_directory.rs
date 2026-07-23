@@ -15,8 +15,10 @@ use tauri::{Manager, State};
 #[serde(rename_all = "camelCase")]
 pub enum VaultDirectoryType {
     /// 应用私有目录（默认）。
+    #[serde(rename = "local")]
     Local,
     /// SAF 用户选择目录。
+    #[serde(rename = "saf")]
     Saf,
 }
 

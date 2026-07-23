@@ -6,6 +6,7 @@ import { AppShell } from '@/components/layout/AppShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { formatBytes } from '@/lib/utils';
+import { isMobilePlatformSync } from '@/lib/platform';
 import {
   Shield,
   HardDrive,
@@ -23,6 +24,7 @@ import {
   Scan,
   Paperclip,
   Search,
+  FolderTree,
 } from 'lucide-react';
 
 import styles from './SettingsPage.module.css';
@@ -30,6 +32,7 @@ import styles from './SettingsPage.module.css';
 export function SettingsPage() {
   const navigate = useNavigate();
   const { t } = useTranslation(['settings', 'common']);
+  const isMobile = isMobilePlatformSync();
   const [vaultSize, setVaultSize] = useState<string | null>(null);
 
   useEffect(() => {
@@ -71,6 +74,16 @@ export function SettingsPage() {
           badge: vaultSize,
           desc: t('settings:desc.data_management'),
         },
+        ...(isMobile
+          ? [
+              {
+                label: t('settings:items.vault_directory') || '保险库目录',
+                icon: FolderTree,
+                path: '/settings/vault-directory',
+                desc: t('settings:desc.vault_directory') || '选择保险库数据存储位置',
+              },
+            ]
+          : []),
         {
           label: t('settings:items.export_import'),
           icon: Upload,
