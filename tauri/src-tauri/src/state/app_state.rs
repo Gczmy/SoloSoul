@@ -1,3 +1,4 @@
+use crate::attachment_import_plugin::AttachmentImportPluginHandle;
 use crate::fs::saf_sync_driver::TauriSafSyncDriver;
 use crate::plugin::PluginManager;
 use solosoul_core::vault_file_system::SafVaultFileSystem;
@@ -109,14 +110,48 @@ impl AppState {
 
     /// 异步初始化 SAF 数据同步（首次启动时从 SAF 拉取数据到本地临时目录）。
     /// 在 spawn_blocking 中执行递归文件复制，避免阻塞 tokio 主线程。
+    ///
+    /// 安全前置检查：在尝试同步前先验证 SAF tree URI 仍然可访问，
+    /// 避免在权限已撤销的情况下静默降级为空状态，导致用户创建的数据丢失。
     pub async fn init_saf_sync(&self) -> Result<(), String> {
         let svc = self.vault_service.clone();
-        tokio::task::spawn_blocking(move || {
-            let read_guard = svc.read().map_err(|_| "Vault service lock poisoned".to_string())?;
+        let app_handle = self.handle.clone();
+
+        // 解析数据目录并读取保存的 SAF URI（在 spawn_blocking 外执行，path() 不阻塞）
+        let data_dir = app_handle
+            .path()
+            .resolve(".", tauri::path::BaseDirectory::Data)
+            .map_err(|e| format!("无法解析应用数据目录: {e}"))?;
+        let saved_uri = Self::load_saved_saf_uri(&data_dir);
+
+        tokio::task::spawn_blocking(move || -> Result<(), String> {
+            // 前置检查：验证 SAF URI 仍然可访问
+            if let Some(ref uri) = saved_uri {
+                let plugin_handle =
+                    app_handle.state::<AttachmentImportPluginHandle<tauri::Wry>>();
+                let valid = plugin_handle
+                    .check_vault_dir_access(uri)
+                    .unwrap_or(false);
+                if !valid {
+                    tracing::error!(
+                        "[AppState] SAF directory access revoked for {}, skipping initial sync",
+                        uri
+                    );
+                    return Err(
+                        "SAF 目录访问权限已被撤销，请前往「设置 > 保险库目录」重新选择目录。"
+                            .to_string(),
+                    );
+                }
+            }
+
+            let read_guard =
+                svc.read().map_err(|_| "Vault service lock poisoned".to_string())?;
             let accounts_path = read_guard.base_path().join("accounts.json");
             // 只在本地临时目录已有账户数据时才跳过同步
             if accounts_path.exists() {
-                tracing::info!("[AppState] SAF temp dir already has accounts.json, skipping initial sync");
+                tracing::info!(
+                    "[AppState] SAF temp dir already has accounts.json, skipping initial sync"
+                );
                 return Ok(());
             }
             read_guard.sync_from_remote()?;

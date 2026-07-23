@@ -145,9 +145,15 @@ pub async fn vault_set_directory(
         .map_err(|e| format!("无法解析应用数据目录: {e}"))?;
 
     // 锁定 Vault 以避免迁移过程中数据变更。
+    //
+    // 安全说明：`svc.lock()` 内部获取 `vault_store.write()`，而我们在此处
+    // 持有 `vault_service.read()` guard。潜在的 A→B→A 死锁需要同时满足：
+    // 1) 另一线程持有 `vault_store.read()`（`vault_handle()` 的极窄窗口）
+    // 2) 该线程随后需要 `vault_service.write()`（生产代码中不存在）
+    // 因此实践中不可能发生死锁。
     {
-        let svc = state
-            .vault_service
+        let vault_service_arc = state.vault_service.clone();
+        let svc = vault_service_arc
             .read()
             .map_err(|_| "Vault service lock poisoned".to_string())?;
         svc.lock();
