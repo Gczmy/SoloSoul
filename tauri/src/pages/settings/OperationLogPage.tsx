@@ -55,7 +55,7 @@ function formatDetail(
 
   // 优先解析后端已结构化的 JSON details（key=value 被规范化成对象），
   // 解析失败时退回到旧的 key=value 正则解析。
-  const vars: Record<string, string | number> = {};
+  const vars: Record<string, string | number | boolean> = {};
   let parsedObject = false;
   try {
     const parsed = JSON.parse(raw);
@@ -85,9 +85,15 @@ function formatDetail(
         : entry.actionType === 'windows_hello_unlock'
           ? 'windowsHello'
           : null;
+  // page_restore 有两种形态：直接恢复（带 count）和级联恢复（来自对象恢复）
+  const isPageRestoreCascaded =
+    entry.actionType === 'page_restore' && vars.cascadedFromObject === true;
+
   const key = bioTypeFromAction
     ? 'settings:log.detail.biometric_unlock'
-    : `settings:log.detail.${entry.actionType}`;
+    : isPageRestoreCascaded
+      ? 'settings:log.detail.page_restore_cascaded'
+      : `settings:log.detail.${entry.actionType}`;
 
   const translated = t(key, { defaultValue: raw });
   if (translated === key || translated === raw) {
@@ -118,6 +124,11 @@ function formatDetail(
     // Translate unlock method for critical field access logs
     if (vars.method)
       vars.method = t(`settings:log.method.${vars.method}`, { defaultValue: String(vars.method) });
+    // Translate import strategy (skipExisting / overwrite / keepBoth)
+    if (vars.strategy) {
+      const strategyKey = `settings:strategy_${vars.strategy}`;
+      vars.strategy = t(strategyKey, { defaultValue: String(vars.strategy) });
+    }
     return t(key, { defaultValue: raw, ...vars });
   }
   return t(key, { defaultValue: raw, reason: raw });

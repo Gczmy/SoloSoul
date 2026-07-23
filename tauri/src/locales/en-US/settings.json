@@ -558,7 +558,10 @@
       "pin_unlock": "{{location}} — {{action}} ({{method}})",
       "login": "{{location}} — {{action}} ({{method}})",
       "export_execute": "{{count}} object(s) exported",
-      "import_execute": "{{count}} object(s) imported ({{strategy}})",
+      "import_execute": "From: {{fileName}} · Objects: {{count}} · Attachments: {{attachmentCount}} · Strategy: {{strategy}}",
+      "page_create": "Page: {{name}}",
+      "page_restore": "{{count}} object(s) restored with page",
+      "page_restore_cascaded": "Page {{pageName}} restored cascaded from object restore",
       "attachment_cleanup": "{{count}} orphan(s) freed {{bytes}}",
       "ocr_scan": "File type: {{fileType}} · Boxes: {{boxCount}} · Text length: {{textLength}} · Confidence: {{confidence}}"
     }

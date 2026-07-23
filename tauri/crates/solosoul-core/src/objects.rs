@@ -340,13 +340,17 @@ fn restore_object(
                 vault.delete_trash_item(&page_trash.id)?;
                 consumed_trash_ids.push(page_trash.id.clone());
                 cascaded_page_name = Some(page_record.name.clone());
+                let cascade_details = serde_json::json!({
+                    "cascadedFromObject": true,
+                    "pageName": page_record.name,
+                });
                 let _ = vault.log_structured(
                     "page_restore",
                     "page",
                     Some(&page_record.id),
                     Some(&page_record.name),
                     "user",
-                    Some("cascaded_from_object_restore"),
+                    Some(&cascade_details.to_string()),
                 );
             } else {
                 let raw_name = record_data["parentPageName"].as_str().unwrap_or("");

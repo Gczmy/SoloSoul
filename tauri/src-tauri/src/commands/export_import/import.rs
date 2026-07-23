@@ -712,16 +712,27 @@ async fn import_execute_internal(
         }
     }
 
+    let file_name = std::path::Path::new(&file_path)
+        .file_name()
+        .map(|s| s.to_string_lossy().to_string())
+        .unwrap_or_else(|| file_path.clone());
+    let details = serde_json::json!({
+        "count": imported,
+        "attachmentCount": imported_attachments_count,
+        "fileName": file_name,
+        "strategy": match strategy {
+            ImportStrategy::SkipExisting => "skipExisting",
+            ImportStrategy::Overwrite => "overwrite",
+            ImportStrategy::KeepBoth => "keepBoth",
+        },
+    });
     let _ = vault.log_structured(
         "import_execute",
         "import",
         None,
         None,
         "user",
-        Some(&format!(
-            "imported {} objects ({} attachments) from {} (strategy: {:?})",
-            imported, imported_attachments_count, file_path, strategy
-        )),
+        Some(&details.to_string()),
     );
 
     Ok(ImportResult {
