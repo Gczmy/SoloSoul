@@ -559,7 +559,8 @@
       "login": "{{location}} — {{action}} ({{method}})",
       "export_execute": "{{count}} object(s) exported",
       "import_execute": "{{count}} object(s) imported ({{strategy}})",
-      "attachment_cleanup": "{{count}} orphan(s) freed {{bytes}}"
+      "attachment_cleanup": "{{count}} orphan(s) freed {{bytes}}",
+      "ocr_scan": "File type: {{fileType}} · Boxes: {{boxCount}} · Text length: {{textLength}} · Confidence: {{confidence}}"
     }
   },
   "template_manager_title": "Template Manager",

@@ -559,7 +559,8 @@
       "login": "{{location}} — {{action}}（{{method}}）",
       "export_execute": "导出了 {{count}} 个对象",
       "import_execute": "导入了 {{count}} 个对象（策略：{{strategy}}）",
-      "attachment_cleanup": "清理了 {{count}} 个孤立附件，释放 {{bytes}}"
+      "attachment_cleanup": "清理了 {{count}} 个孤立附件，释放 {{bytes}}",
+      "ocr_scan": "文件类型：{{fileType}} · 识别框数：{{boxCount}} · 文本长度：{{textLength}} · 置信度：{{confidence}}"
     }
   },
   "template_manager_title": "模板管理",
