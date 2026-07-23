@@ -610,6 +610,45 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
     }
   }
 
+  /**
+   * 检查 SAF tree URI 是否仍然可访问（授权未被撤销）。
+   * 通过尝试查询 tree URI 的子文档来验证。
+   * 返回 { accessible: boolean }。
+   */
+  @Command
+  fun checkVaultDirAccess(invoke: Invoke) {
+    try {
+      val treeUriStr = invoke.getString("treeUri")
+      if (treeUriStr.isNullOrBlank()) {
+        invoke.resolve(JSObject().apply { put("accessible", false) })
+        return
+      }
+      val treeUri = Uri.parse(treeUriStr)
+      val treeDocId = DocumentsContract.getTreeDocumentId(treeUri)
+      val docUri = DocumentsContract.buildDocumentUriUsingTree(treeUri, treeDocId)
+      if (docUri == null) {
+        invoke.resolve(JSObject().apply { put("accessible", false) })
+        return
+      }
+      // 尝试查询 tree URI 的子文档列表，成功即表示可访问
+      val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(treeUri, treeDocId)
+      activity.contentResolver.query(childrenUri, arrayOf(DocumentsContract.Document.COLUMN_DOCUMENT_ID), null, null, null)?.use { cursor ->
+        // 至少能打开 cursor，说明可访问
+        cursor.moveToFirst()
+        invoke.resolve(JSObject().apply { put("accessible", true) })
+      } ?: run {
+        invoke.resolve(JSObject().apply { put("accessible", false) })
+      }
+    } catch (e: SecurityException) {
+      // 最常见的授权撤销场景
+      android.util.Log.w("SoloSoul", "checkVaultDirAccess: SAF access revoked: ${e.message}")
+      invoke.resolve(JSObject().apply { put("accessible", false) })
+    } catch (e: Exception) {
+      android.util.Log.e("SoloSoul", "checkVaultDirAccess failed: ${e.message}", e)
+      invoke.resolve(JSObject().apply { put("accessible", false) })
+    }
+  }
+
   @ActivityCallback
   fun vaultDirResult(invoke: Invoke, result: ActivityResult) {
     val response = JSObject()

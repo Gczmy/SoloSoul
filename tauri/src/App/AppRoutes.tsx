@@ -39,7 +39,7 @@ export function AppRoutes() {
       setGlobalNavigate(null);
     };
   }, [navigate]);
-  const { t } = useTranslation('ocr');
+  const { t } = useTranslation(['ocr', 'settings']);
   const isMobilePlatform = isMobilePlatformSync();
   const { checkHasAccount, hasAccount, isAuthenticated } = useAuthStore();
   const [updateState, setUpdateState] = useState<
@@ -191,6 +191,31 @@ export function AppRoutes() {
   useEffect(() => {
     checkHasAccount();
   }, [checkHasAccount]);
+
+  // Check SAF vault directory validity after login
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const checkVaultDir = async () => {
+      try {
+        const { checkVaultDirectory } = await import('@/lib/vaultDirectory');
+        const valid = await checkVaultDirectory();
+        if (!valid) {
+          // SAF 目录失效，提示用户前往设置重新选择
+          console.warn('[AppRoutes] SAF vault directory access revoked');
+          // 使用 uiStore 的 toast 系统，避免循环依赖
+          const { useUiStore } = await import('@/stores/uiStore');
+          useUiStore.getState().showToast({
+            type: 'warning',
+            message: t('settings:vault_directory_invalid_toast', 'SAF directory access revoked. Go to Settings > Vault Directory to re-select.'),
+            duration: 10000,
+          });
+        }
+      } catch {
+        // Silently ignore if not on Android
+      }
+    };
+    checkVaultDir();
+  }, [isAuthenticated]);
 
   // Load settings and profile after authentication
   useEffect(() => {

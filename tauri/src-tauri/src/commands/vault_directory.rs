@@ -3,12 +3,13 @@
 //! Phase 1：支持 Android 端选择 SAF 目录作为持久化 Vault 存储位置，
 //! 并提供手动同步命令。
 
+use crate::attachment_import_plugin::AttachmentImportPluginHandle;
 use crate::fs::saf_sync_driver::TauriSafSyncDriver;
 use crate::state::AppState;
 use serde::{Deserialize, Serialize};
 use solosoul_core::vault_file_system::{SafVaultFileSystem, VaultFileSystem};
 use std::sync::Arc;
-use tauri::{Manager, State};
+use tauri::{AppHandle, Manager, Runtime, State};
 
 /// 当前 Vault 目录类型。
 #[derive(Debug, Clone, Serialize)]
@@ -29,6 +30,9 @@ pub struct VaultDirectoryInfo {
     pub directory_type: VaultDirectoryType,
     /// 当前激活的 SAF tree URI（未使用 SAF 时为 None）。
     pub saf_tree_uri: Option<String>,
+    /// SAF tree URI 是否仍然可访问（授权未被撤销）。
+    /// 本地目录模式下该字段恒为 true。
+    pub valid: bool,
 }
 
 /// `vault_set_directory` 的参数。
@@ -108,9 +112,16 @@ pub async fn vault_get_directory(state: State<'_, AppState>) -> Result<VaultDire
         VaultDirectoryType::Local
     };
 
+    let valid = if let Some(ref uri) = saved_uri {
+        check_saf_uri_validity(&state.handle, uri)
+    } else {
+        true
+    };
+
     Ok(VaultDirectoryInfo {
         saf_tree_uri: saved_uri,
         directory_type,
+        valid,
     })
 }
 
@@ -203,6 +214,29 @@ pub async fn vault_sync_from_remote(state: State<'_, AppState>) -> Result<(), St
         .read()
         .map_err(|_| "Vault service lock poisoned".to_string())?;
     svc.sync_from_remote()
+}
+
+/// 检查 SAF tree URI 是否仍然可访问。
+fn check_saf_uri_validity<R: Runtime>(app: &AppHandle<R>, tree_uri: &str) -> bool {
+    let handle = app.state::<AttachmentImportPluginHandle<R>>();
+    handle.check_vault_dir_access(tree_uri).unwrap_or(false)
+}
+
+/// 检查当前 Vault 目录的 SAF URI 是否仍然有效。
+/// 返回 `{ valid: bool }`。
+#[tauri::command]
+pub async fn vault_check_directory<R: Runtime>(
+    app: AppHandle<R>,
+) -> Result<bool, String> {
+    let data_dir = app
+        .path()
+        .resolve(".", tauri::path::BaseDirectory::Data)
+        .map_err(|e| format!("无法解析应用数据目录: {e}"))?;
+    let saved_uri = load_saved_saf_uri(&data_dir);
+    match saved_uri {
+        Some(uri) => Ok(check_saf_uri_validity(&app, &uri)),
+        None => Ok(true), // No SAF URI = nothing to validate
+    }
 }
 
 /// 获取当前 VaultService 的本地 base_path。

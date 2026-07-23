@@ -213,6 +213,25 @@ impl<R: Runtime> AttachmentImportPluginHandle<R> {
         }
     }
 
+    /// 在 Android 端检查 SAF tree URI 是否仍然可访问（授权未被撤销）。
+    /// 返回 `{ accessible: bool }`。
+    /// 非 Android 平台直接返回 false（无法验证）。
+    pub fn check_vault_dir_access(&self, tree_uri: &str) -> Result<bool, String> {
+        #[cfg(target_os = "android")]
+        {
+            let payload = serde_json::json!({ "treeUri": tree_uri });
+            self.handle
+                .run_mobile_plugin::<serde_json::Value>("checkVaultDirAccess", payload)
+                .map_err(|e| e.to_string())
+                .map(|v| v.get("accessible").and_then(|a| a.as_bool()).unwrap_or(false))
+        }
+        #[cfg(not(target_os = "android"))]
+        {
+            let _ = tree_uri;
+            Ok(false)
+        }
+    }
+
     /// 在 Android 端启动 Vault 目录选择器（ACTION_OPEN_DOCUMENT_TREE），
     /// 返回用户选择的 tree URI（取消时为 None）。
     pub fn pick_vault_dir(&self) -> Result<PickTreeUriResult, String> {

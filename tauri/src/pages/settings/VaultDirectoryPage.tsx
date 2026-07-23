@@ -170,6 +170,35 @@ export function VaultDirectoryPage() {
           </Card>
         ) : (
           <>
+            {info.directoryType === 'saf' && !info.valid && (
+              <Card
+                style={{
+                  border: '1px solid #dc2626',
+                  background: 'rgba(220, 38, 38, 0.06)',
+                  marginBottom: 12,
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 10 }}>
+                  <AlertCircle size={20} style={{ color: '#dc2626', flexShrink: 0 }} />
+                  <div>
+                    <div style={{ fontWeight: 600, marginBottom: 4 }}>
+                      {t('settings:vault_directory_invalid_title')}
+                    </div>
+                    <div style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)' }}>
+                      {t('settings:vault_directory_invalid_desc')}
+                    </div>
+                  </div>
+                </div>
+                <Button
+                  onClick={handlePickAndSet}
+                  loading={acting}
+                  disabled={acting || needsRestart}
+                >
+                  <Folder size={16} />
+                  {t('settings:vault_directory_choose')}
+                </Button>
+              </Card>
+            )}
             <Card>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
                 <div

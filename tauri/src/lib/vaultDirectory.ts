@@ -3,6 +3,8 @@ import { invoke } from '@tauri-apps/api/core';
 export interface VaultDirectoryInfo {
   directoryType: 'local' | 'saf';
   safTreeUri: string | null;
+  /** SAF tree URI 是否仍然可访问（授权未被撤销）。本地目录模式恒为 true。 */
+  valid: boolean;
 }
 
 export interface SetVaultDirectoryResult {
@@ -32,4 +34,9 @@ export async function syncVaultToRemote(): Promise<void> {
 
 export async function syncVaultFromRemote(): Promise<void> {
   return invoke<void>('vault_sync_from_remote');
+}
+
+/** 检查 SAF 目录是否仍然可访问（授权未被撤销）。返回 true 表示有效。 */
+export async function checkVaultDirectory(): Promise<boolean> {
+  return invoke<boolean>('vault_check_directory');
 }
