@@ -265,12 +265,14 @@ fn restore_page(
     let page_id = page_record.id.clone();
     let page_name = page_record.name.clone();
     vault.delete_trash_item(&trash.id)?;
+    let mut consumed_trash_ids = vec![trash.id.clone()];
 
     let mut cascaded_count = 0u32;
     let children = find_child_objects_in_trash(vault, &page_id)?;
     for child_trash in &children {
         if let Ok((_, _)) = restore_single_object(vault, child_trash, lang) {
             vault.delete_trash_item(&child_trash.id)?;
+            consumed_trash_ids.push(child_trash.id.clone());
             let _ = vault.log_structured(
                 "object_restore",
                 "object",
@@ -298,6 +300,7 @@ fn restore_page(
         cascaded_page_name: None,
         cascaded_count,
         rebuilt_page_name: None,
+        consumed_trash_ids,
     })
 }
 
@@ -321,6 +324,7 @@ fn restore_object(
 
     let mut cascaded_page_name: Option<String> = None;
     let mut rebuilt_page_name: Option<String> = None;
+    let mut consumed_trash_ids = vec![trash.id.clone()];
 
     if !is_built_in_section(&target_section) && uuid::Uuid::parse_str(&target_section).is_ok() {
         let page_exists = vault
@@ -334,6 +338,7 @@ fn restore_object(
             if let Ok(Some(page_trash)) = find_page_in_trash(vault, &target_section) {
                 let (page_record, _) = restore_single_object(vault, &page_trash, lang)?;
                 vault.delete_trash_item(&page_trash.id)?;
+                consumed_trash_ids.push(page_trash.id.clone());
                 cascaded_page_name = Some(page_record.name.clone());
                 let _ = vault.log_structured(
                     "page_restore",
@@ -386,6 +391,7 @@ fn restore_object(
         cascaded_page_name,
         cascaded_count: 0,
         rebuilt_page_name,
+        consumed_trash_ids,
     })
 }
 
@@ -405,6 +411,7 @@ fn restore_template(
         cascaded_page_name: None,
         cascaded_count: 0,
         rebuilt_page_name: None,
+        consumed_trash_ids: vec![trash.id.clone()],
     })
 }
 
@@ -648,6 +655,7 @@ pub struct RestoreResult {
     pub cascaded_page_name: Option<String>,
     pub cascaded_count: u32,
     pub rebuilt_page_name: Option<String>,
+    pub consumed_trash_ids: Vec<String>,
 }
 
 /// 彻底删除回收站项目（含底层对象）。
@@ -1345,12 +1353,17 @@ mod tests {
         move_to_trash(&vault, &obj, "object", Some(page.id.clone()), 3600000).unwrap();
         move_to_trash(&vault, &page, "page", None, 3600000).unwrap();
 
-        let obj_trash = vault
-            .list_trash_items(None, None)
-            .unwrap()
-            .into_iter()
+        let trash_items = vault.list_trash_items(None, None).unwrap();
+        let obj_trash = trash_items
+            .iter()
             .find(|t| t.item_type == "object")
-            .unwrap();
+            .unwrap()
+            .clone();
+        let page_trash = trash_items
+            .iter()
+            .find(|t| t.item_type == "page" && t.original_id == page.id)
+            .unwrap()
+            .clone();
 
         let result = restore_from_trash(&vault, &obj_trash.id).unwrap();
 
@@ -1358,6 +1371,8 @@ mod tests {
         assert_eq!(result.cascaded_page_name.as_deref(), Some("CustomPage"));
         assert!(result.rebuilt_page_name.is_none());
         assert_eq!(result.cascaded_count, 0);
+        assert!(result.consumed_trash_ids.contains(&obj_trash.id));
+        assert!(result.consumed_trash_ids.contains(&page_trash.id));
 
         assert!(!vault.load_object(&page.id).unwrap().unwrap().is_deleted);
         assert!(!vault.load_object(&obj.id).unwrap().unwrap().is_deleted);
@@ -1427,6 +1442,7 @@ mod tests {
         assert_eq!(result.rebuilt_page_name.as_deref(), Some("My Lost Page"));
         assert!(result.cascaded_page_name.is_none());
         assert_eq!(result.cascaded_count, 0);
+        assert!(result.consumed_trash_ids.contains(&trash.id));
 
         let stub = vault.load_object(&page_id).unwrap().unwrap();
         assert_eq!(stub.name, "My Lost Page");
@@ -1456,17 +1472,24 @@ mod tests {
         move_to_trash(&vault, &obj, "object", Some(page.id.clone()), 3600000).unwrap();
         move_to_trash(&vault, &page, "page", None, 3600000).unwrap();
 
-        let page_trash = vault
-            .list_trash_items(None, None)
-            .unwrap()
-            .into_iter()
+        let trash_items = vault.list_trash_items(None, None).unwrap();
+        let page_trash = trash_items
+            .iter()
             .find(|t| t.item_type == "page")
-            .unwrap();
+            .unwrap()
+            .clone();
+        let obj_trash = trash_items
+            .iter()
+            .find(|t| t.item_type == "object")
+            .unwrap()
+            .clone();
 
         let result = restore_from_trash(&vault, &page_trash.id).unwrap();
 
         assert_eq!(result.restored_id, page.id);
         assert_eq!(result.cascaded_count, 1);
+        assert!(result.consumed_trash_ids.contains(&page_trash.id));
+        assert!(result.consumed_trash_ids.contains(&obj_trash.id));
 
         assert!(!vault.load_object(&page.id).unwrap().unwrap().is_deleted);
         assert!(!vault.load_object(&obj.id).unwrap().unwrap().is_deleted);

@@ -43,6 +43,7 @@ export interface RestoreOutcome {
   cascadedPageName?: string;
   cascadedCount?: number;
   rebuiltPageName?: string;
+  consumedTrashIds?: string[];
 }
 
 interface TrashState {
@@ -114,7 +115,8 @@ export const useTrashStore = create<TrashState>((set, get) => ({
         trashId,
         lang: i18next.language,
       });
-      set((s) => ({ items: s.items.filter((i) => i.id !== trashId) }));
+      const consumed = outcome.consumedTrashIds ?? [trashId];
+      set((s) => ({ items: s.items.filter((i) => !consumed.includes(i.id)) }));
       return outcome;
     } catch (err) {
       // If the item was cascade-restored by a sibling/page restore, its trash row is already gone.

@@ -13,6 +13,7 @@ pub struct RestoreOutcome {
     pub cascaded_page_name: Option<String>,
     pub cascaded_count: u32,
     pub rebuilt_page_name: Option<String>,
+    pub consumed_trash_ids: Vec<String>,
 }
 
 impl From<solosoul_core::objects::RestoreResult> for RestoreOutcome {
@@ -23,6 +24,7 @@ impl From<solosoul_core::objects::RestoreResult> for RestoreOutcome {
             cascaded_page_name: result.cascaded_page_name,
             cascaded_count: result.cascaded_count,
             rebuilt_page_name: result.rebuilt_page_name,
+            consumed_trash_ids: result.consumed_trash_ids,
         }
     }
 }
