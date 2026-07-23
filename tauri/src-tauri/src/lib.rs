@@ -241,7 +241,26 @@ pub fn run() {
                     return Err(format!("AppState 创建失败: {:#}", e).into());
                 }
             };
+            let has_saf_vault = app_state.has_saf_vault();
             app.manage(app_state);
+
+            // 4b. 后台首次 SAF 同步（Android）
+            // 在 spawn_blocking 中执行递归文件复制，不阻塞应用启动。
+            if has_saf_vault {
+                let app_handle = app.handle().clone();
+                tauri::async_runtime::spawn(async move {
+                    tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+                    if let Some(state) = app_handle.try_state::<AppState>() {
+                        if let Err(e) = state.init_saf_sync().await {
+                            tracing::warn!(
+                                "[setup] SAF initial sync failed (deferred to first command): {e}"
+                            );
+                        } else {
+                            tracing::info!("[setup] SAF initial sync completed");
+                        }
+                    }
+                });
+            }
 
             // 5. 初始化桌面端发现服务（mDNS）— 移动端暂不提供
             #[cfg(not(any(target_os = "android", target_os = "ios")))]

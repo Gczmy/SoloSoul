@@ -328,14 +328,14 @@ SQLite 打开 SAF 文件有两种思路：
 - ✅ 切换目录后提示“需要重启应用”，使用 Tauri `relaunch()` 重启后生效。
 - ✅ 提供手动“同步到 SAF / 从 SAF 同步”按钮，供用户需要时强制同步。
 - ✅ i18n 中英双语 key 已补全。
-- ⚠️ 授权失效检测与重新选择引导：当前仅在启动时按 URI 构建 `SafVaultFileSystem`，若用户在系统设置中撤销授权，下次启动可能失败；Phase 3 需要补充错误提示与重新选择流程。
+- ✅ 授权失效检测与重新选择引导：`vault_get_directory` 命令新增 `valid` 字段，调用 Kotlin `checkVaultDirAccess` 查询 SAF URI 可访问性；VaultDirectoryPage 显示失效红色警告卡片（含重新选择按钮）；登录后通过 toast 提示用户。
 
 ### Phase 3：发布前验证（进行中）
 
 - [ ] 多 ROM 真机回归：Pixel / 小米 / 华为 / 三星等常见 ROM。
 - [ ] 性能基准：对比 App-private 与 SAF 模式下的解锁、对象列表、附件写入、搜索耗时。
 - [ ] 卸载重装测试：确认 SAF 模式下卸载后数据保留，重装后可正常读取。
-- [ ] 授权撤销场景：系统设置中撤销 SAF 授权后，应用能正确提示并引导重新选择目录。
+- [x] 授权撤销场景：`vault_get_directory`/`vault_check_directory` 检测 SAF URI 有效性 + VaultDirectoryPage 红色警告 + 登录后 toast 通知。
 - [ ] 首次启动引导：当前设置页入口已可用，但首次安装后的 onboarding 引导尚未添加，需在发布前补充“选择保险库目录”步骤。
 - [x] 文档更新与 i18n 补全：设计文档已更新至与实际代码一致；新增 11 个中英双语的 i18n key。
 - [ ] 发布 Android 版本。

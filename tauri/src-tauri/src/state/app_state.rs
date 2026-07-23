@@ -1,6 +1,6 @@
 use crate::fs::saf_sync_driver::TauriSafSyncDriver;
 use crate::plugin::PluginManager;
-use solosoul_core::vault_file_system::{SafVaultFileSystem, VaultFileSystem};
+use solosoul_core::vault_file_system::SafVaultFileSystem;
 use solosoul_core::VaultService;
 use solosoul_sync::SyncService;
 use std::path::PathBuf;
@@ -52,13 +52,7 @@ impl AppState {
                     let sync_driver =
                         Arc::new(TauriSafSyncDriver::<tauri::Wry>::new(handle.clone()));
                     let fs = Arc::new(SafVaultFileSystem::new(uri, temp_dir.clone(), sync_driver));
-                    // 仅在本地临时目录没有账户数据时从 SAF 拉取，
-                    // 避免每次启动都阻塞应用启动。
-                    if !temp_dir.join("accounts.json").exists() {
-                        if let Err(e) = fs.sync_from_remote() {
-                            tracing::warn!("[AppState] 首次从 SAF 同步失败: {e}");
-                        }
-                    }
+                    // 首次同步延迟到 init_saf_sync 中异步执行，不阻塞启动。
                     VaultService::with_file_system(temp_dir, fs)
                 }
                 None => {
@@ -103,5 +97,33 @@ impl AppState {
             sync_service,
             plugin_manager,
         })
+    }
+
+    /// 判断当前是否使用了 SAF 远程存储。
+    pub fn has_saf_vault(&self) -> bool {
+        self.vault_service
+            .read()
+            .map(|svc| svc.is_remote_storage())
+            .unwrap_or(false)
+    }
+
+    /// 异步初始化 SAF 数据同步（首次启动时从 SAF 拉取数据到本地临时目录）。
+    /// 在 spawn_blocking 中执行递归文件复制，避免阻塞 tokio 主线程。
+    pub async fn init_saf_sync(&self) -> Result<(), String> {
+        let svc = self.vault_service.clone();
+        tokio::task::spawn_blocking(move || {
+            let read_guard = svc.read().map_err(|_| "Vault service lock poisoned".to_string())?;
+            let accounts_path = read_guard.base_path().join("accounts.json");
+            // 只在本地临时目录已有账户数据时才跳过同步
+            if accounts_path.exists() {
+                tracing::info!("[AppState] SAF temp dir already has accounts.json, skipping initial sync");
+                return Ok(());
+            }
+            read_guard.sync_from_remote()?;
+            tracing::info!("[AppState] SAF initial sync completed");
+            Ok(())
+        })
+        .await
+        .map_err(|e| format!("SAF sync task panicked: {e}"))?
     }
 }

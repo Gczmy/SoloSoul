@@ -131,6 +131,8 @@ pub async fn vault_get_directory(state: State<'_, AppState>) -> Result<VaultDire
 /// - `saf_tree_uri` 为 Some：保存 URI，迁移现有 Vault 数据到新目录，并同步到 SAF。
 ///
 /// 当前实现要求切换目录后重启应用，才能完全在新目录下重新初始化 VaultService。
+///
+/// 注意：数据迁移与首次同步在 `spawn_blocking` 中执行，避免阻塞 tokio 异步运行时。
 #[tauri::command]
 pub async fn vault_set_directory(
     state: State<'_, AppState>,
@@ -162,22 +164,39 @@ pub async fn vault_set_directory(
         std::fs::create_dir_all(&temp_dir).map_err(|e| format!("创建临时目录失败: {e}"))?;
 
         // 迁移：把当前本地 Vault 数据复制到 SAF 临时目录
-        let local_dir = if cfg!(mobile) {
-            data_dir.clone()
-        } else {
-            svc_base_path(&state)?
+        let local_dir = {
+            let svc = state
+                .vault_service
+                .read()
+                .map_err(|_| "Vault service lock poisoned".to_string())?;
+            if cfg!(mobile) {
+                data_dir.clone()
+            } else {
+                let bp = svc.base_path().clone();
+                drop(svc);
+                bp
+            }
         };
-        if local_dir != temp_dir {
-            migrate_vault_data(&local_dir, &temp_dir)?;
-        }
 
-        // 通过临时文件系统同步到 SAF
-        let sync_driver = Arc::new(TauriSafSyncDriver::<tauri::Wry>::new(state.handle.clone()));
-        let fs = SafVaultFileSystem::new(uri.clone(), temp_dir.clone(), sync_driver);
-        fs.sync_to_remote()
-            .map_err(|e| format!("首次同步到 SAF 失败: {e}"))?;
+        // 在 spawn_blocking 中执行迁移与同步，避免阻塞 tokio worker
+        let uri_owned = uri.clone();
+        let handle = state.handle.clone();
+        tokio::task::spawn_blocking(move || -> Result<(), String> {
+            if local_dir != temp_dir {
+                migrate_vault_data(&local_dir, &temp_dir)?;
+            }
 
-        // 持久化配置
+            // 通过临时文件系统同步到 SAF
+            let sync_driver =
+                Arc::new(TauriSafSyncDriver::<tauri::Wry>::new(handle));
+            let fs = SafVaultFileSystem::new(uri_owned, temp_dir, sync_driver);
+            fs.sync_to_remote()
+                .map_err(|e| format!("首次同步到 SAF 失败: {e}"))
+        })
+        .await
+        .map_err(|e| format!("迁移任务失败: {e}"))??;
+
+        // 持久化配置（轻量 I/O，无需 spawn_blocking）
         save_saf_uri(&data_dir, Some(uri))?;
 
         Ok(SetVaultDirectoryResult {
@@ -237,15 +256,6 @@ pub async fn vault_check_directory<R: Runtime>(
         Some(uri) => Ok(check_saf_uri_validity(&app, &uri)),
         None => Ok(true), // No SAF URI = nothing to validate
     }
-}
-
-/// 获取当前 VaultService 的本地 base_path。
-fn svc_base_path(state: &AppState) -> Result<std::path::PathBuf, String> {
-    let svc = state
-        .vault_service
-        .read()
-        .map_err(|_| "Vault service lock poisoned".to_string())?;
-    Ok(svc.base_path().clone())
 }
 
 /// 把 src 目录下的 Vault 数据迁移到 dst 目录。

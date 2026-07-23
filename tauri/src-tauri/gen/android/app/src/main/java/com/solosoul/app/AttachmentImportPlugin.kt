@@ -513,6 +513,7 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
 
   /**
    * 递归把本地目录内容同步到 SAF tree 下。
+   * 仅修改与本地不同的文件（mtime + size 比较），未变更的文件跳过以节省时间。
    */
   private fun syncLocalDirToTree(localDir: File, parentUri: Uri) {
     val files = localDir.listFiles() ?: return
@@ -529,7 +530,11 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
       } else {
         val existing = findChildDocument(parentUri, file.name)
         if (existing != null) {
-          // 删除后重新创建，实现覆盖
+          // 检查远端文件是否与本地一致（mtime + size），跳过未变更的文件
+          if (filesMatch(existing, file)) {
+            continue
+          }
+          // 不一致则删除后重新创建
           try {
             DocumentsContract.deleteDocument(activity.contentResolver, existing)
           } catch (e: Exception) {
@@ -549,16 +554,59 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
   }
 
   /**
+   * 查询 SAF 文档的元数据，与本地文件比较 mtime 和 size 是否一致。
+   * 两个维度都匹配时返回 true（表示文档与文件内容相同，可跳过同步）。
+   * 查询失败或 provider 不支持 mtime 列时返回 false（安全降级为重新复制）。
+   */
+  private fun filesMatch(docUri: Uri, localFile: File): Boolean {
+    return try {
+      var matched = false
+      activity.contentResolver.query(
+        docUri,
+        arrayOf(DocumentsContract.Document.COLUMN_LAST_MODIFIED, DocumentsContract.Document.COLUMN_SIZE),
+        null, null, null
+      )?.use { cursor ->
+        if (cursor.moveToFirst()) {
+          val mtimeIdx = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_LAST_MODIFIED)
+          val sizeIdx = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_SIZE)
+          val remoteMtime = if (mtimeIdx >= 0) cursor.getLong(mtimeIdx) else -1L
+          val remoteSize = if (sizeIdx >= 0) cursor.getLong(sizeIdx) else -1L
+          matched = remoteMtime > 0 && remoteMtime == localFile.lastModified() && remoteSize == localFile.length()
+        }
+      }
+      matched
+    } catch (e: Exception) {
+      // 查询失败时安全降级为重新复制
+      false
+    }
+  }
+
+  /**
    * 递归把 SAF tree 内容同步到本地目录。
+   * 仅通过 mtime + size 比较跳过未变更的文件，减少 I/O。
    */
   private fun syncTreeToLocalDir(contentResolver: android.content.ContentResolver, parentUri: Uri, localDir: File) {
     val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(parentUri, DocumentsContract.getTreeDocumentId(parentUri))
       ?: return
-    contentResolver.query(childrenUri, arrayOf(DocumentsContract.Document.COLUMN_DOCUMENT_ID, DocumentsContract.Document.COLUMN_DISPLAY_NAME, DocumentsContract.Document.COLUMN_MIME_TYPE), null, null, null)?.use { cursor ->
+    contentResolver.query(
+      childrenUri,
+      arrayOf(
+        DocumentsContract.Document.COLUMN_DOCUMENT_ID,
+        DocumentsContract.Document.COLUMN_DISPLAY_NAME,
+        DocumentsContract.Document.COLUMN_MIME_TYPE,
+        DocumentsContract.Document.COLUMN_LAST_MODIFIED,
+        DocumentsContract.Document.COLUMN_SIZE
+      ),
+      null, null, null
+    )?.use { cursor ->
       while (cursor.moveToNext()) {
         val docId = cursor.getString(0)
         val displayName = cursor.getString(1)
         val mimeType = cursor.getString(2)
+        val mtimeIdx = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_LAST_MODIFIED)
+        val sizeIdx = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_SIZE)
+        val remoteMtime = if (mtimeIdx >= 0) cursor.getLong(mtimeIdx) else -1L
+        val remoteSize = if (sizeIdx >= 0) cursor.getLong(sizeIdx) else -1L
         val docUri = DocumentsContract.buildDocumentUriUsingTree(parentUri, docId)
         if (mimeType == DocumentsContract.Document.MIME_TYPE_DIR) {
           val childDir = File(localDir, displayName)
@@ -566,11 +614,20 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
           syncTreeToLocalDir(contentResolver, docUri, childDir)
         } else {
           val file = File(localDir, displayName)
+          // 如果本地文件存在且 mtime+size 匹配，跳过复制
+          if (file.exists() && remoteMtime > 0 && remoteSize > 0 &&
+              file.lastModified() == remoteMtime && file.length() == remoteSize) {
+            continue
+          }
           file.parentFile?.mkdirs()
           contentResolver.openInputStream(docUri)?.use { input ->
             FileOutputStream(file).use { output ->
               input.copyTo(output)
             }
+          }
+          // 复制后保留远端 mtime，使后续对比一致
+          if (remoteMtime > 0) {
+            file.setLastModified(remoteMtime)
           }
         }
       }
