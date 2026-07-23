@@ -654,7 +654,7 @@ export function TemplateManagerPage() {
                         if (ut) openEdit(ut);
                       }}
                     >
-                      <Pencil size={ICON_SIZE.md} />
+                      <Pencil size={ICON_SIZE.md} style={{ color: 'var(--text-primary)' }} />
                     </Button>
                     <DeleteButton
                       onClick={() => handleDelete(tpl.id, tpl.name)}

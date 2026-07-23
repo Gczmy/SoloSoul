@@ -352,7 +352,7 @@ export function SampleTemplateGallery({ isOpen, onClose, onSelect }: SampleTempl
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <SampleIcon
                       size={ICON_SIZE['2xl']}
-                      style={{ color: 'var(--accent-primary)' }}
+                      style={{ color: 'var(--text-primary)' }}
                     />
                     <div>
                       <div
