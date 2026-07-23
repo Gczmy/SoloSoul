@@ -254,7 +254,9 @@ function ObjectDetailContent({
               const displayKey =
                 p.key === '__dynamic_group__'
                   ? t('editor:field_types.dynamic_group', p.key)
-                  : p.key;
+                  : p.key === 'description'
+                    ? t('common:description')
+                    : p.key;
 
               const formatTypeLabel = (type?: PropertyType) =>
                 type ? t(`editor:field_types.${type}`, type) : '';
@@ -1042,7 +1044,7 @@ export function SnapshotDataView({
   detailTemplate,
   currentPropertyLabels: _currentPropertyLabels,
 }: SnapshotDataViewProps) {
-  const { t } = useTranslation(['editor']);
+  const { t } = useTranslation(['editor', 'common']);
   const rawProps = data.properties as Record<string, unknown> | undefined;
   const tags: string[] = Array.isArray(data.tags) ? (data.tags as string[]) : [];
   const snapName = typeof data.name === 'string' ? data.name : '';
@@ -1224,7 +1226,11 @@ export function SnapshotDataView({
           );
         }
         const displayKey =
-          f.key === '__dynamic_group__' ? t('editor:field_types.dynamic_group', f.key) : f.key;
+          f.key === '__dynamic_group__'
+            ? t('editor:field_types.dynamic_group', f.key)
+            : f.key === 'description'
+              ? t('common:description')
+              : f.key;
         return (
           <div
             key={f.key}
@@ -1311,9 +1317,12 @@ function DynamicGroupSnapshotRow({
   sensitivityLevel?: SensitivityLevel;
   children: { key: string; value: string; type?: PropertyType }[];
 }) {
-  const { t } = useTranslation(['editor']);
-  const displayKey =
-    groupKey === '__dynamic_group__' ? t('editor:field_types.dynamic_group', groupKey) : groupKey;
+  const { t } = useTranslation(['editor', 'common']);    const displayKey =
+    groupKey === '__dynamic_group__'
+      ? t('editor:field_types.dynamic_group', groupKey)
+      : groupKey === 'description'
+        ? t('common:description')
+        : groupKey;
   return (
     <div style={{ display: 'flex', flexDirection: 'column' }}>
       <div

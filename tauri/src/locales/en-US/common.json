@@ -5,6 +5,7 @@
   "delete": "Delete",
   "edit": "Edit",
   "name": "Name",
+  "description": "Description",
   "create": "New",
   "add": "Add",
   "confirm": "Confirm",
