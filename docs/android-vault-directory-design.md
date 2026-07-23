@@ -1,6 +1,6 @@
 # Android 端“用户自选 Vault 目录”技术方案
 
-> 状态：实现中 — Phase 0/1/2 已完成，Phase 3 发布前验证进行中）  
+> 状态：Phase 0-3 代码实现已完成，待真机验证）  
 > 影响范围：Android 客户端、Rust 后端、Kotlin 原生插件、前端设置/引导流程
 > 影响范围：Android 客户端、Rust 后端、Kotlin 原生插件、前端设置/引导流程  
 > 关联文档：`AGENTS.md`、docs/design_map/*、docs/sync-roadmap.md
@@ -210,15 +210,13 @@ let data_dir = handle
     .resolve(".", tauri::path::BaseDirectory::Data)
     .map_err(...)?;
 
-let svc = match AppState::load_saved_saf_uri(&data_dir) {
+let svc = match Self::load_saved_saf_uri(&data_dir) {
     Some(uri) => {
         let temp_dir = data_dir.join("saf_vault_temp");
         let sync_driver = Arc::new(TauriSafSyncDriver::<tauri::Wry>::new(handle.clone()));
         let fs = Arc::new(SafVaultFileSystem::new(uri, temp_dir.clone(), sync_driver));
-        // 仅在本地临时目录没有账户数据时从 SAF 拉取，避免每次启动都阻塞应用启动
-        if !temp_dir.join("accounts.json").exists() {
-            if let Err(e) = fs.sync_from_remote() { ... }
-        }
+        // 首次同步延迟到 AppState::init_saf_sync() 异步执行（spawn_blocking），
+        // 在 setup 完成后由后台 tokio 任务触发，不阻塞应用启动。
         VaultService::with_file_system(temp_dir, fs)
     }
     None => VaultService::with_base_path(data_dir),
@@ -232,24 +230,20 @@ let svc = match AppState::load_saved_saf_uri(&data_dir) {
 
 ### 5.5 前端流程
 
-#### 5.5.1 首次启动引导（待实现，Phase 3 完成）
+#### 5.5.1 首次启动引导（已实现）
 
-当前 Phase 2 已在设置页提供目录切换能力；发布前需要在欢迎页 / 创建账户前增加一步，且**不可跳过**（提供默认选项）：
+路径：`tauri/src/components/onboarding/OnboardingDialog.tsx`
 
-```
-选择保险库数据存放位置
+在欢迎页之后插入「选择保险库数据存放位置」步骤（仅 Android 显示）：
 
-○ 应用私有目录（不推荐）
-   数据存储在应用内部，卸载 SoloSoul 时会被系统删除。
-
-● 外部目录（推荐）
-   数据保存在 Documents/SoloSoul 等外部目录，
-   卸载后数据不会丢失，可随时迁移或备份。
-   [选择目录...]
-```
-
-- 选择“外部目录” → 调用 `pickVaultDirectory` → 用户选择目录 → `vault_set_directory` → 创建账户。
-- 选择“应用私有目录” → 默认使用 `BaseDirectory::Data`，后续可在设置中迁移。
+- 提供**两个选项卡片**：「应用私有目录（不推荐）」与「外部目录（推荐）」。
+- 选择“外部目录” → 调用 `pickVaultDirectory()` → 系统 SAF 目录选择器 → 用户选定 → `setVaultDirectory(uri)` → 提示「需要重启应用」。
+- 选择“应用私有目录” → 直接进入下一步（后续可在设置中迁移）。
+- 选择外部目录后重启应用前，会同步调用 `onComplete()` 标记引导已完成，再执行 `relaunch()`。
+- 实现细节：
+  - 该步骤通过 `getPlatform()` 异步检测平台，非 Android 自动跳过。
+  - 选择过程中暂停自动锁定（`autoLockPauseStore.pause()/resume()`）。
+  - 选择 SAF 目录后如果 `needsRestart` 为 true，显示重启按钮。
 
 #### 5.5.2 设置页入口（已实现）
 
@@ -330,15 +324,22 @@ SQLite 打开 SAF 文件有两种思路：
 - ✅ i18n 中英双语 key 已补全。
 - ✅ 授权失效检测与重新选择引导：`vault_get_directory` 命令新增 `valid` 字段，调用 Kotlin `checkVaultDirAccess` 查询 SAF URI 可访问性；VaultDirectoryPage 显示失效红色警告卡片（含重新选择按钮）；登录后通过 toast 提示用户。
 
-### Phase 3：发布前验证（进行中）
+### Phase 3：发布前验证（代码实现已完成）
+
+- [x] **授权撤销场景**：`vault_check_directory` / `vault_get_directory.valid` 检测 SAF URI 有效性 + VaultDirectoryPage 红色警告 + 登录后 toast 通知。
+- [x] **首次启动引导**：OnboardingDialog 已添加 Android 限定的「选择保险库数据存放位置」步骤，支持 App-private / SAF 外部目录选择，选择后重启应用切换。
+- [x] **文档更新与 i18n 补全**：设计文档已同步与实际代码一致；中英双语 key 完备（onboarding 11 个 + settings 20+ 个）。
+- [x] **启动同步异步化**：首次 `sync_from_remote` 从构造函数移除，改为 `spawn_blocking` 延迟执行，不阻塞应用启动。
+- [x] **增量同步**：Kotlin 双向同步增加 mtime+size 比较跳过未变更文件，减少 I/O。
+- [ ] **发布 Android 版本**（需先完成以下真机验证）。
+
+### 后续跟踪（发布前真机验证）
+
+以下验证项因依赖真机环境，不作为代码实现任务跟踪，由发布负责人在发布前执行：
 
 - [ ] 多 ROM 真机回归：Pixel / 小米 / 华为 / 三星等常见 ROM。
 - [ ] 性能基准：对比 App-private 与 SAF 模式下的解锁、对象列表、附件写入、搜索耗时。
 - [ ] 卸载重装测试：确认 SAF 模式下卸载后数据保留，重装后可正常读取。
-- [x] 授权撤销场景：`vault_get_directory`/`vault_check_directory` 检测 SAF URI 有效性 + VaultDirectoryPage 红色警告 + 登录后 toast 通知。
-- [ ] 首次启动引导：当前设置页入口已可用，但首次安装后的 onboarding 引导尚未添加，需在发布前补充“选择保险库目录”步骤。
-- [x] 文档更新与 i18n 补全：设计文档已更新至与实际代码一致；新增 11 个中英双语的 i18n key。
-- [ ] 发布 Android 版本。
 
 ---
 
