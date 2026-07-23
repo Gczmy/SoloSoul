@@ -146,6 +146,7 @@
   "vault_directory_invalid_title": "SAF Directory Access Lost",
   "vault_directory_invalid_desc": "Access to the SAF directory has been revoked or the directory was deleted. Please re-select the directory to restore data sync.",
   "vault_directory_invalid_toast": "SAF directory access revoked. Go to Settings > Vault Directory to re-select.",
+  "vault_directory_migrating_title": "Migrating data…",
   "backup": "Backup",
   "backup_desc": "Create encrypted backups of your vault data.",
   "create_backup": "Create Backup",

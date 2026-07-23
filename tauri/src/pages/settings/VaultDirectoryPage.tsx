@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AppShell } from '@/components/layout/AppShell';
@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { useToastError } from '@/hooks/useToastError';
 import { getPlatform } from '@/lib/platform';
 import { relaunch } from '@tauri-apps/plugin-process';
+import { listen } from '@tauri-apps/api/event';
 import {
   getVaultDirectory,
   setVaultDirectory,
@@ -16,7 +17,13 @@ import {
   syncVaultFromRemote,
   type VaultDirectoryInfo,
 } from '@/lib/vaultDirectory';
-import { Folder, RefreshCw, Download, Upload, AlertCircle } from 'lucide-react';
+import { Folder, RefreshCw, Download, Upload, AlertCircle, Loader2 } from 'lucide-react';
+
+interface SyncProgress {
+  phase: 'sync_to_remote' | 'sync_from_remote' | 'migrate' | 'auto_sync';
+  current: number;
+  total: number;
+}
 
 export function VaultDirectoryPage() {
   const navigate = useNavigate();
@@ -29,6 +36,8 @@ export function VaultDirectoryPage() {
   const [acting, setActing] = useState(false);
   const [needsRestart, setNeedsRestart] = useState(false);
   const [platformName, setPlatformName] = useState<string>('');
+  const [syncProgress, setSyncProgress] = useState<SyncProgress | null>(null);
+  const unmountedRef = useRef(false);
 
   const loadInfo = useCallback(async () => {
     try {
@@ -53,6 +62,36 @@ export function VaultDirectoryPage() {
         setLoading(false);
       }
     });
+
+    // 监听同步/迁移进度事件
+    let unlisten: (() => void) | null = null;
+    listen<SyncProgress>('sync-progress', (event) => {
+      const { phase, current, total } = event.payload;
+
+      // auto_sync 是后台静默同步，不显示前台进度
+      if (phase === 'auto_sync') {
+        return;
+      }
+
+      if (current >= total) {
+        // 同步完成：延迟清除进度条，让用户看到完成状态
+        setSyncProgress({ phase, current, total });
+        setTimeout(() => {
+          if (!unmountedRef.current) {
+            setSyncProgress(null);
+          }
+        }, 2000);
+      } else {
+        setSyncProgress({ phase, current, total });
+      }
+    }).then((fn) => {
+      unlisten = fn;
+    });
+
+    return () => {
+      unmountedRef.current = true;
+      if (unlisten) unlisten();
+    };
   }, [loadInfo]);
 
   const handlePickAndSet = async () => {
@@ -66,6 +105,8 @@ export function VaultDirectoryPage() {
       if (!uri) {
         return;
       }
+      // 用户选择了有效目录后才设置进度
+      setSyncProgress({ phase: 'migrate', current: 0, total: 3 });
       const result = await setVaultDirectory(uri);
       if (result.success) {
         onSuccess(t('settings:vault_directory_set_success'));
@@ -103,9 +144,11 @@ export function VaultDirectoryPage() {
   const handleSyncToRemote = async () => {
     try {
       setActing(true);
+      setSyncProgress({ phase: 'sync_to_remote', current: 0, total: 1 });
       await syncVaultToRemote();
       onSuccess(t('settings:vault_directory_sync_to_remote_success'));
     } catch (e) {
+      setSyncProgress(null);
       onError(e, t('settings:vault_directory_sync_to_remote_failed'));
     } finally {
       setActing(false);
@@ -115,14 +158,30 @@ export function VaultDirectoryPage() {
   const handleSyncFromRemote = async () => {
     try {
       setActing(true);
+      setSyncProgress({ phase: 'sync_from_remote', current: 0, total: 1 });
       await syncVaultFromRemote();
       onSuccess(t('settings:vault_directory_sync_from_remote_success'));
       // 从远端拉取后运行中的 VaultService 可能仍持有旧 SQLite 连接，必须重启才能安全使用新数据
       setNeedsRestart(true);
     } catch (e) {
+      setSyncProgress(null);
       onError(e, t('settings:vault_directory_sync_from_remote_failed'));
     } finally {
       setActing(false);
+    }
+  };
+
+  /** 获取进度阶段的 i18n 标题 */
+  const getProgressLabel = (phase: SyncProgress['phase']): string => {
+    switch (phase) {
+      case 'sync_to_remote':
+        return t('settings:vault_directory_sync_to_remote');
+      case 'sync_from_remote':
+        return t('settings:vault_directory_sync_from_remote');
+      case 'migrate':
+        return t('settings:vault_directory_migrating_title');
+      default:
+        return '';
     }
   };
 
@@ -170,6 +229,58 @@ export function VaultDirectoryPage() {
           </Card>
         ) : (
           <>
+            {syncProgress && (
+              <Card
+                style={{
+                  border: '1px solid color-mix(in srgb, var(--accent-primary) 30%, transparent)',
+                  background: 'color-mix(in srgb, var(--accent-primary) 8%, var(--bg-elevated))',
+                  marginBottom: 12,
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                  <Loader2
+                    size={20}
+                    style={{
+                      color: 'var(--accent-primary)',
+                      flexShrink: 0,
+                    }}
+                  />
+                  <div style={{ fontWeight: 600, fontSize: 'var(--text-body-sm)' }}>
+                    {getProgressLabel(syncProgress.phase)}
+                  </div>
+                </div>
+                <div
+                  style={{
+                    width: '100%',
+                    height: 6,
+                    borderRadius: 3,
+                    background: 'var(--bg-toolbar)',
+                    overflow: 'hidden',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: `${Math.round((syncProgress.current / syncProgress.total) * 100)}%`,
+                      height: '100%',
+                      borderRadius: 3,
+                      background: 'var(--accent-primary)',
+                      transition: 'width 0.3s ease',
+                    }}
+                  />
+                </div>
+                <div
+                  style={{
+                    marginTop: 4,
+                    fontSize: 'var(--text-caption)',
+                    color: 'var(--text-tertiary)',
+                    textAlign: 'right',
+                  }}
+                >
+                  {syncProgress.current}/{syncProgress.total}
+                </div>
+              </Card>
+            )}
+
             {info.directoryType === 'saf' && !info.valid && (
               <Card
                 style={{
