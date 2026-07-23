@@ -42,6 +42,8 @@ const ALL_ENTITY_TYPES = [
   'trash_item',
   'llm',
   'auth',
+  'file',
+  'ocr_model',
 ];
 
 function formatDetail(
