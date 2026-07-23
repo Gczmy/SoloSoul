@@ -307,10 +307,28 @@ mod tests {
     use super::*;
     use tempfile::TempDir;
 
-    #[test]
-    fn test_local_vault_file_system_read_write() {
+    fn setup_local() -> (LocalVaultFileSystem, TempDir) {
         let dir = TempDir::new().unwrap();
         let fs = LocalVaultFileSystem::new(dir.path().to_path_buf());
+        (fs, dir)
+    }
+
+    fn setup_saf() -> (SafVaultFileSystem, TempDir) {
+        let dir = TempDir::new().unwrap();
+        let driver = Arc::new(NoOpSafSyncDriver);
+        let fs = SafVaultFileSystem::new(
+            "content://tree/primary%3ASoloSoul".to_string(),
+            dir.path().to_path_buf(),
+            driver,
+        );
+        (fs, dir)
+    }
+
+    // ── LocalVaultFileSystem 基础测试 ──
+
+    #[test]
+    fn test_local_vault_file_system_read_write() {
+        let (fs, _dir) = setup_local();
 
         fs.write_file("accounts.json", b"hello").unwrap();
         assert!(fs.exists("accounts.json").unwrap());
@@ -319,16 +337,14 @@ mod tests {
 
     #[test]
     fn test_local_vault_file_system_rejects_parent_dir() {
-        let dir = TempDir::new().unwrap();
-        let fs = LocalVaultFileSystem::new(dir.path().to_path_buf());
+        let (fs, _dir) = setup_local();
 
         assert!(fs.read_file("../etc/passwd").is_err());
     }
 
     #[test]
     fn test_local_vault_file_system_list_dir() {
-        let dir = TempDir::new().unwrap();
-        let fs = LocalVaultFileSystem::new(dir.path().to_path_buf());
+        let (fs, _dir) = setup_local();
 
         fs.write_file("a/1.txt", b"1").unwrap();
         fs.write_file("a/2.txt", b"2").unwrap();
@@ -336,5 +352,128 @@ mod tests {
         let mut names = fs.list_dir("a").unwrap();
         names.sort();
         assert_eq!(names, vec!["1.txt", "2.txt"]);
+    }
+
+    // ── SafVaultFileSystem 基础操作测试 ──
+
+    #[test]
+    fn test_saf_vault_file_system_read_write() {
+        let (fs, _dir) = setup_saf();
+
+        fs.write_file("accounts.json", b"hello").unwrap();
+        assert!(fs.exists("accounts.json").unwrap());
+        assert_eq!(fs.read_file("accounts.json").unwrap(), b"hello");
+    }
+
+    #[test]
+    fn test_saf_vault_file_system_rejects_parent_dir() {
+        let (fs, _dir) = setup_saf();
+
+        assert!(fs.read_file("../etc/passwd").is_err());
+    }
+
+    #[test]
+    fn test_saf_vault_file_system_rejects_absolute_path() {
+        let (fs, _dir) = setup_saf();
+
+        assert!(fs.read_file("/etc/passwd").is_err());
+    }
+
+    #[test]
+    fn test_saf_vault_file_system_list_dir() {
+        let (fs, _dir) = setup_saf();
+
+        fs.write_file("a/1.txt", b"1").unwrap();
+        fs.write_file("a/2.txt", b"2").unwrap();
+
+        let mut names = fs.list_dir("a").unwrap();
+        names.sort();
+        assert_eq!(names, vec!["1.txt", "2.txt"]);
+    }
+
+    #[test]
+    fn test_saf_vault_file_system_remove_file() {
+        let (fs, _dir) = setup_saf();
+
+        fs.write_file("tmp.txt", b"data").unwrap();
+        assert!(fs.exists("tmp.txt").unwrap());
+
+        fs.remove_file("tmp.txt").unwrap();
+        assert!(!fs.exists("tmp.txt").unwrap());
+    }
+
+    #[test]
+    fn test_saf_vault_file_system_remove_dir_all() {
+        let (fs, _dir) = setup_saf();
+
+        fs.write_file("acc_1/config.json", b"{}").unwrap();
+        assert!(fs.exists("acc_1/config.json").unwrap());
+
+        fs.remove_dir_all("acc_1").unwrap();
+        assert!(!fs.exists("acc_1").unwrap());
+    }
+
+    #[test]
+    fn test_saf_vault_file_system_create_dir_all() {
+        let (fs, _dir) = setup_saf();
+
+        fs.create_dir_all("a/b/c").unwrap();
+        assert!(fs.exists("a/b/c").unwrap());
+        assert!(fs.local_path("a/b/c").unwrap().is_dir());
+    }
+
+    #[test]
+    fn test_saf_vault_file_system_empty_path_resolves_to_root() {
+        let (fs, _dir) = setup_saf();
+
+        let path = fs.local_path("").unwrap();
+        assert!(path.is_dir());
+        assert_eq!(path, fs.local_temp_dir());
+    }
+
+    // ── SafVaultFileSystem 同步委派测试 ──
+
+    #[test]
+    fn test_saf_vault_file_system_is_remote() {
+        let (fs, _dir) = setup_saf();
+
+        assert!(fs.is_remote());
+    }
+
+    #[test]
+    fn test_saf_vault_file_system_sync_to_remote_delegates_to_driver() {
+        let (fs, _dir) = setup_saf();
+
+        // NoOpSafSyncDriver 总是返回 Ok(())
+        assert!(fs.sync_to_remote().is_ok());
+    }
+
+    #[test]
+    fn test_saf_vault_file_system_sync_from_remote_delegates_to_driver() {
+        let (fs, _dir) = setup_saf();
+
+        assert!(fs.sync_from_remote().is_ok());
+    }
+
+    #[test]
+    fn test_saf_vault_file_system_tree_uri() {
+        let (fs, _dir) = setup_saf();
+
+        assert_eq!(fs.tree_uri(), "content://tree/primary%3ASoloSoul");
+    }
+
+    #[test]
+    fn test_saf_vault_file_system_local_path_coincides_with_temp_dir() {
+        let dir = TempDir::new().unwrap();
+        let driver = Arc::new(NoOpSafSyncDriver);
+        let fs = SafVaultFileSystem::new(
+            "content://tree/primary%3ASoloSoul".to_string(),
+            dir.path().to_path_buf(),
+            driver,
+        );
+
+        // local_path 应与构造时传入的路径一致
+        assert_eq!(fs.local_path("").unwrap(), dir.path());
+        assert_eq!(fs.local_path("sub").unwrap(), dir.path().join("sub"));
     }
 }

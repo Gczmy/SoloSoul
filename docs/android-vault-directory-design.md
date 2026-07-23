@@ -331,6 +331,7 @@ SQLite 打开 SAF 文件有两种思路：
 - [x] **文档更新与 i18n 补全**：设计文档已同步与实际代码一致；中英双语 key 完备（onboarding 11 个 + settings 20+ 个）。
 - [x] **启动同步异步化**：首次 `sync_from_remote` 从构造函数移除，改为 `spawn_blocking` 延迟执行，不阻塞应用启动。
 - [x] **增量同步**：Kotlin 双向同步增加 mtime+size 比较跳过未变更文件，减少 I/O。
+- [x] **原子写入**：Kotlin syncDirToRemote / syncDirFromRemote / exportToTreeUri 全部改为先写 .tmp 文件、成功后重命名，防止中途失败丢数据。
 - [ ] **发布 Android 版本**（需先完成以下真机验证）。
 
 ### 后续跟踪（发布前真机验证）
@@ -456,7 +457,8 @@ SQLite 打开 SAF 文件有两种思路：
   - `settings:desc.vault_directory`
 
 ### 测试与验证
-- Rust 单元测试：`LocalVaultFileSystem` 基础操作（已随 `solosoul-core` 通过）
-- 桌面端回归：`cargo check` / `cargo test -p solosoul-core` 通过
+- `LocalVaultFileSystem` 基础操作测试：3 个（`cargo test -p solosoul-core` 通过）
+- `SafVaultFileSystem` 单元测试：13 个（覆盖读写/路径校验/目录操作/同步委派/元数据，`cargo test -p solosoul-core` 通过）
+- 桌面端回归：`cargo check` / `cargo test -p solosoul-core` 16 个 vault_file_system 测试全绿
 - 前端静态检查：`npx tsc --noEmit` / ESLint 通过
-- 待完成：多 ROM 真机回归、授权撤销处理、首次启动引导、性能基准、卸载重装测试
+- 待完成：多 ROM 真机回归、性能基准、卸载重装测试

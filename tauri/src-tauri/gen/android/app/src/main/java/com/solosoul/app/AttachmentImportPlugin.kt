@@ -204,6 +204,42 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
   }
 
   /**
+   * 在 parentUri 下创建临时 .tmp 文件，写入 sourceFile 内容。
+   * 写入成功后返回临时文档 URI；写入失败时自动清理 .tmp 并返回 null。
+   */
+  private fun createTempDocumentAndWrite(
+    parentUri: Uri,
+    tempName: String,
+    mimeType: String,
+    sourceFile: File
+  ): Uri? {
+    val tempDoc = DocumentsContract.createDocument(
+      activity.contentResolver, parentUri, mimeType, tempName
+    ) ?: return null
+
+    try {
+      activity.contentResolver.openOutputStream(tempDoc)?.use { output ->
+        FileInputStream(sourceFile).use { input ->
+          input.copyTo(output)
+        }
+      } ?: run {
+        // 无法打开输出流，清理临时文件
+        try {
+          DocumentsContract.deleteDocument(activity.contentResolver, tempDoc)
+        } catch (_: Exception) {}
+        return null
+      }
+    } catch (e: Exception) {
+      // 写入失败，清理临时文件，不碰原文件
+      try {
+        DocumentsContract.deleteDocument(activity.contentResolver, tempDoc)
+      } catch (_: Exception) {}
+      return null
+    }
+    return tempDoc
+  }
+
+  /**
    * 以原始文件名为基准，把目标 URI 重命名为唯一且扩展名正确的名字。
    * 例如系统已生成 a.pdf(1)，会优先修正为 a(1).pdf；若该名也存在则递增。
    */
@@ -333,22 +369,25 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
       // 清理文件名，防止路径遍历
       val safeName = File(args.fileName).name.takeIf { it.isNotBlank() && it != "/" }
         ?: args.fileName
-      // 使用系统 API 创建唯一文件名
-      val uniqueName = createUniqueFileName(parent, safeName)
 
       val mimeType = args.mimeType.ifBlank { "application/octet-stream" }
-      val newFile = DocumentsContract.createDocument(activity.contentResolver, parent, mimeType, uniqueName)
-        ?: run {
-        invoke.reject("无法在目标目录创建文件: $uniqueName")
+
+      // 原子写入：先创建 .tmp 文件写入，成功后重命名为最终文件名
+      // 避免写入中途失败时在目标目录留下损坏的残缺文件
+      val tempName = "${safeName}.tmp"
+      val tempDoc = createTempDocumentAndWrite(parent, tempName, mimeType, srcFile)
+      if (tempDoc == null) {
+        invoke.reject("无法写入临时文件 $tempName")
         return
       }
 
-      activity.contentResolver.openOutputStream(newFile)?.use { output ->
-        FileInputStream(srcFile).use { input ->
-          input.copyTo(output)
-        }
-      } ?: run {
-        invoke.reject("无法打开目标 URI 输出流: $newFile")
+      // 使用系统 API 创建唯一文件名（仅在 .tmp 重命名与目标冲突时使用）
+      val uniqueName = createUniqueFileName(parent, safeName)
+      val renamed = DocumentsContract.renameDocument(
+        activity.contentResolver, tempDoc, uniqueName
+      )
+      if (renamed == null) {
+        invoke.reject("无法重命名临时文件为 $uniqueName")
         return
       }
 
@@ -513,7 +552,8 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
 
   /**
    * 递归把本地目录内容同步到 SAF tree 下。
-   * 仅修改与本地不同的文件（mtime + size 比较），未变更的文件跳过以节省时间。
+   * 使用原子写入模式：先写入 .tmp 临时文件，成功后再删除旧文件并重命名为最终文件名。
+   * 写入失败时自动清理 .tmp，不碰原文件，避免同步中途失败导致数据丢失。
    */
   private fun syncLocalDirToTree(localDir: File, parentUri: Uri) {
     val files = localDir.listFiles() ?: return
@@ -534,20 +574,36 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
           if (filesMatch(existing, file)) {
             continue
           }
-          // 不一致则删除后重新创建
+        }
+
+        // 原子写入：先写 .tmp，成功后重命名
+        val mimeType = getMimeType(file.name)
+        val tempName = "${file.name}.tmp"
+        val tempDoc = createTempDocumentAndWrite(parentUri, tempName, mimeType, file)
+        if (tempDoc == null) {
+          android.util.Log.w("SoloSoul", "写入临时文件失败，跳过: ${file.name}")
+          continue
+        }
+
+        // 写入成功：删除旧文件（如果存在）
+        if (existing != null) {
           try {
             DocumentsContract.deleteDocument(activity.contentResolver, existing)
           } catch (e: Exception) {
             android.util.Log.w("SoloSoul", "删除旧文件失败: ${e.message}")
           }
         }
-        val mimeType = getMimeType(file.name)
-        val newUri = DocumentsContract.createDocument(activity.contentResolver, parentUri, mimeType, file.name)
-          ?: continue
-        activity.contentResolver.openOutputStream(newUri)?.use { output ->
-          FileInputStream(file).use { input ->
-            input.copyTo(output)
-          }
+
+        // 重命名 .tmp 为最终文件名（SAF 的 renameDocument 不保证原子性，
+        // 但至少写入完成后才动原文件，不会因写入失败丢失数据）
+        val renamed = DocumentsContract.renameDocument(
+          activity.contentResolver, tempDoc, file.name
+        )
+        if (renamed == null) {
+          android.util.Log.w(
+            "SoloSoul",
+            "重命名临时文件失败，残留 .tmp 文件: $tempName，可手动清理"
+          )
         }
       }
     }
@@ -583,7 +639,8 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
 
   /**
    * 递归把 SAF tree 内容同步到本地目录。
-   * 仅通过 mtime + size 比较跳过未变更的文件，减少 I/O。
+   * 使用原子写入模式：先写入 .tmp 临时文件，再用 renameTo 原子重命名为最终文件名。
+   * 本地文件系统的 renameTo 在同一分区上是原子操作，写入失败时 .tmp 可被自动清理。
    */
   private fun syncTreeToLocalDir(contentResolver: android.content.ContentResolver, parentUri: Uri, localDir: File) {
     val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(parentUri, DocumentsContract.getTreeDocumentId(parentUri))
@@ -620,11 +677,26 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
             continue
           }
           file.parentFile?.mkdirs()
+
+          // 原子写入：先写 .tmp，再用 renameTo 原子替换
+          val tmpFile = File(localDir, "${displayName}.tmp")
           contentResolver.openInputStream(docUri)?.use { input ->
-            FileOutputStream(file).use { output ->
+            FileOutputStream(tmpFile).use { output ->
               input.copyTo(output)
             }
+          } ?: continue
+
+          // renameTo 在同一文件系统上是原子操作
+          if (!tmpFile.renameTo(file)) {
+            android.util.Log.w(
+              "SoloSoul",
+              "原子重命名失败，尝试直接替换: ${displayName}"
+            )
+            // renameTo 失败（如跨分区），降级为删旧 + 重命名
+            file.delete()
+            tmpFile.renameTo(file)
           }
+
           // 复制后保留远端 mtime，使后续对比一致
           if (remoteMtime > 0) {
             file.setLastModified(remoteMtime)
