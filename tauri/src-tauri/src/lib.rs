@@ -6,6 +6,7 @@ use tauri::Manager;
 
 pub mod attachment_import_plugin;
 pub mod commands;
+pub mod fs;
 pub mod keystore_plugin;
 pub mod local_embed;
 pub mod lock_state_plugin;

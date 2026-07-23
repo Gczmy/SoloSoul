@@ -5,6 +5,7 @@
 use crate::biometric::legacy::FileBiometricStorage;
 use crate::biometric::BiometricManager;
 use crate::pin::PinManager;
+use crate::vault_file_system::{LocalVaultFileSystem, VaultFileSystem};
 use serde::{Deserialize, Serialize};
 use solosoul_crypto::kdf::{derive_key, generate_salt, KdfConfig};
 use solosoul_crypto::secure::secure_compare;
@@ -182,6 +183,7 @@ pub struct AccountSummary {
 
 pub struct VaultService {
     base_path: PathBuf,
+    fs: Arc<dyn VaultFileSystem>,
     accounts_cache: RwLock<HashMap<String, AccountEntry>>,
     session_key: RwLock<Option<Zeroizing<[u8; 32]>>>,
     unlocked_account: RwLock<Option<String>>,
@@ -207,14 +209,7 @@ fn make_biometric_manager(base_path: PathBuf) -> BiometricManager {
 impl VaultService {
     pub fn new() -> Self {
         let base_path = Self::default_base_path();
-        let svc = Self {
-            base_path,
-            accounts_cache: RwLock::new(HashMap::new()),
-            session_key: RwLock::new(None),
-            unlocked_account: RwLock::new(None),
-            vault_store: RwLock::new(None),
-            create_lock: std::sync::Mutex::new(()),
-        };
+        let svc = Self::with_base_path(base_path);
         svc.load_accounts();
         svc
     }
@@ -222,8 +217,11 @@ impl VaultService {
     /// 使用指定的基础路径创建 VaultService（P120: 避免测试中 set_var 污染）。
     /// 不自动从 env var 读取路径，也不调用 load_accounts（由调用者按需初始化）。
     pub fn with_base_path(base_path: PathBuf) -> Self {
+        let fs: Arc<dyn VaultFileSystem> =
+            Arc::new(LocalVaultFileSystem::new(base_path.clone()));
         Self {
             base_path,
+            fs,
             accounts_cache: RwLock::new(HashMap::new()),
             session_key: RwLock::new(None),
             unlocked_account: RwLock::new(None),
@@ -253,26 +251,43 @@ impl VaultService {
         &self.base_path
     }
 
-    fn accounts_file(&self) -> PathBuf {
-        self.base_path.join("accounts.json")
+    fn accounts_file_rel(&self) -> &str {
+        "accounts.json"
     }
 
-    fn account_dir(&self, id: &str) -> PathBuf {
-        self.base_path.join(id)
+    fn account_dir_rel(&self, id: &str) -> String {
+        id.to_string()
     }
 
-    fn config_path(&self, id: &str) -> PathBuf {
-        self.account_dir(id).join("config.json")
+    fn config_path_rel(&self, id: &str) -> String {
+        format!("{id}/config.json")
+    }
+
+    fn ensure_private_dir(&self, rel: &str) -> Result<(), String> {
+        if let Some(path) = self.fs.local_path(rel) {
+            set_private_dir(&path)?;
+        }
+        Ok(())
+    }
+
+    fn ensure_private_file(&self, rel: &str) -> Result<(), String> {
+        if let Some(path) = self.fs.local_path(rel) {
+            set_private_file(&path)?;
+        }
+        Ok(())
     }
 
     pub fn load_accounts(&self) {
-        let file = self.accounts_file();
-        if !file.exists() {
-            tracing::warn!("Accounts file does not exist: {}", file.display());
-            return;
+        let rel = self.accounts_file_rel();
+        match self.fs.exists(rel) {
+            Ok(false) | Err(_) => {
+                tracing::warn!("Accounts file does not exist: {}", rel);
+                return;
+            }
+            Ok(true) => {}
         }
-        match fs::read_to_string(&file) {
-            Ok(content) => match serde_json::from_str::<Vec<AccountEntry>>(&content) {
+        match self.fs.read_file(rel) {
+            Ok(content) => match serde_json::from_slice::<Vec<AccountEntry>>(&content) {
                 Ok(accounts) => {
                     if let Ok(mut cache) = self.accounts_cache.write() {
                         for a in accounts {
@@ -281,16 +296,16 @@ impl VaultService {
                         tracing::debug!(
                             "Loaded {} account(s) from {}",
                             cache.len(),
-                            file.display()
+                            rel
                         );
                     }
                 }
                 Err(e) => {
-                    tracing::error!("Failed to parse {}: {}", file.display(), e);
+                    tracing::error!("Failed to parse accounts file: {}", e);
                 }
             },
             Err(e) => {
-                tracing::error!("Failed to read {}: {}", file.display(), e);
+                tracing::error!("Failed to read accounts file: {}", e);
             }
         }
     }
@@ -299,11 +314,11 @@ impl VaultService {
         let cache = self.accounts_cache.read().map_err(|e| e.to_string())?;
         let list: Vec<&AccountEntry> = cache.values().collect();
         let content = serde_json::to_string_pretty(&list).map_err(|e| e.to_string())?;
-        fs::create_dir_all(&self.base_path).map_err(|e| e.to_string())?;
-        set_private_dir(&self.base_path)?;
-        let file = self.accounts_file();
-        fs::write(&file, content).map_err(|e| e.to_string())?;
-        set_private_file(&file)?;
+        self.fs.create_dir_all("")?;
+        self.ensure_private_dir("")?;
+        let rel = self.accounts_file_rel();
+        self.fs.write_file(rel, content.as_bytes())?;
+        self.ensure_private_file(rel)?;
         Ok(())
     }
 
@@ -322,25 +337,20 @@ impl VaultService {
         };
         let mut result = Vec::new();
         for entry in &accounts {
-            let config_path = self.config_path(&entry.id);
-            let (salt, verify_hash, password_hint, created_at) = if config_path.exists() {
-                if let Ok(content) = fs::read_to_string(&config_path) {
-                    if let Ok(cfg) = serde_json::from_str::<AccountConfig>(&content) {
-                        (
+            let config_rel = self.config_path_rel(&entry.id);
+            let (salt, verify_hash, password_hint, created_at) =
+                match self.fs.read_file(&config_rel) {
+                    Ok(content) => match serde_json::from_slice::<AccountConfig>(&content) {
+                        Ok(cfg) => (
                             Some(cfg.salt),
                             Some(cfg.verify_hash),
                             cfg.password_hint,
                             Some(cfg.created_at),
-                        )
-                    } else {
-                        (None, None, None, None)
-                    }
-                } else {
-                    (None, None, None, None)
-                }
-            } else {
-                (None, None, None, None)
-            };
+                        ),
+                        Err(_) => (None, None, None, None),
+                    },
+                    Err(_) => (None, None, None, None),
+                };
 
             result.push(AccountSummary {
                 id: entry.id.clone(),
@@ -398,9 +408,9 @@ impl VaultService {
                 .map_err(|e| format!("Verify HKDF failed: {}", e))?,
         );
 
-        let dir = self.account_dir(&account_id);
-        fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
-        set_private_dir(&dir)?;
+        let dir_rel = self.account_dir_rel(&account_id);
+        self.fs.create_dir_all(&dir_rel)?;
+        self.ensure_private_dir(&dir_rel)?;
 
         let now = chrono::Utc::now().to_rfc3339();
         let config_data = AccountConfig {
@@ -426,10 +436,10 @@ impl VaultService {
             last_operation_at: None,
             last_operation_desc: None,
         };
-        let config_path = self.config_path(&account_id);
+        let config_rel = self.config_path_rel(&account_id);
         let config_json = serde_json::to_string_pretty(&config_data).map_err(|e| e.to_string())?;
-        fs::write(&config_path, config_json).map_err(|e| e.to_string())?;
-        set_private_file(&config_path)?;
+        self.fs.write_file(&config_rel, config_json.as_bytes())?;
+        self.ensure_private_file(&config_rel)?;
 
         // Add to cache
         let entry = AccountEntry {
@@ -448,7 +458,11 @@ impl VaultService {
             .as_slice()
             .try_into()
             .map_err(|_| "HKDF output must be 32 bytes".to_string())?;
-        let vault_config = VaultConfig::new(&account_id, self.account_dir(&account_id))
+        let account_dir_path = self
+            .fs
+            .local_path(&dir_rel)
+            .ok_or("无法解析账户本地目录")?;
+        let vault_config = VaultConfig::new(&account_id, account_dir_path)
             .with_data_key(master_key_arr);
         let vault =
             VaultStore::open(vault_config).map_err(|e| format!("Failed to open vault: {}", e))?;
@@ -480,9 +494,9 @@ impl VaultService {
     }
 
     pub fn unlock(&self, account_id: &str, password: &str) -> Result<(), String> {
-        let config_path = self.config_path(account_id);
-        let content =
-            fs::read_to_string(&config_path).map_err(|_| "Account not found".to_string())?;
+        let config_rel = self.config_path_rel(account_id);
+        let content = self.fs.read_file(&config_rel).map_err(|_| "Account not found".to_string())?;
+        let content = String::from_utf8(content).map_err(|_| "Config encoding error".to_string())?;
         let config: AccountConfig =
             serde_json::from_str(&content).map_err(|_| "Config parse error".to_string())?;
 
@@ -552,7 +566,11 @@ impl VaultService {
         }
 
         // Open vault with data key
-        let vault_config = VaultConfig::new(account_id, self.account_dir(account_id))
+        let account_dir_path = self
+            .fs
+            .local_path(&self.account_dir_rel(account_id))
+            .ok_or("无法解析账户本地目录")?;
+        let vault_config = VaultConfig::new(account_id, account_dir_path)
             .with_data_key(master_key_arr);
         let vault =
             VaultStore::open(vault_config).map_err(|e| format!("Failed to open vault: {}", e))?;
@@ -597,9 +615,9 @@ impl VaultService {
     /// Does NOT modify any state (no unlocking, no session key storage).
     /// Verify hash is derived from the Argon2id master key using HKDF-SHA256 (P2-010).
     pub fn verify_password(&self, account_id: &str, password: &str) -> Result<bool, String> {
-        let config_path = self.config_path(account_id);
-        let content =
-            fs::read_to_string(&config_path).map_err(|_| "Account not found".to_string())?;
+        let config_rel = self.config_path_rel(account_id);
+        let content = self.fs.read_file(&config_rel).map_err(|_| "Account not found".to_string())?;
+        let content = String::from_utf8(content).map_err(|_| "Config encoding error".to_string())?;
         let config: AccountConfig =
             serde_json::from_str(&content).map_err(|_| "Config parse error".to_string())?;
 
@@ -665,8 +683,12 @@ impl VaultService {
         }
 
         // Open vault with data key
+        let account_dir_path = self
+            .fs
+            .local_path(&self.account_dir_rel(account_id))
+            .ok_or("无法解析账户本地目录")?;
         let vault_config =
-            VaultConfig::new(account_id, self.account_dir(account_id)).with_data_key(*session_key);
+            VaultConfig::new(account_id, account_dir_path).with_data_key(*session_key);
         let vault =
             VaultStore::open(vault_config).map_err(|e| format!("Failed to open vault: {}", e))?;
         let vault_arc = Arc::new(vault);
@@ -726,9 +748,9 @@ impl VaultService {
         );
 
         // Update config
-        let config_path = self.config_path(account_id);
-        let content =
-            fs::read_to_string(&config_path).map_err(|_| "Account not found".to_string())?;
+        let config_rel = self.config_path_rel(account_id);
+        let content = self.fs.read_file(&config_rel).map_err(|_| "Account not found".to_string())?;
+        let content = String::from_utf8(content).map_err(|_| "Config encoding error".to_string())?;
         let mut config: AccountConfig =
             serde_json::from_str(&content).map_err(|_| "Config parse error".to_string())?;
         config.crypto_version = 3; // P2-010: HKDF-based verify hash
@@ -739,7 +761,7 @@ impl VaultService {
         config.kdf_iterations = Some(new_kdf_config.iterations);
         config.kdf_parallelism = Some(new_kdf_config.parallelism);
         let config_json = serde_json::to_string_pretty(&config).map_err(|e| e.to_string())?;
-        fs::write(&config_path, config_json).map_err(|e| e.to_string())?;
+        self.fs.write_file(&config_rel, config_json.as_bytes())?;
 
         // Update session key and reopen vault with new data key.
         {
@@ -750,8 +772,12 @@ impl VaultService {
         if let Ok(mut store) = self.vault_store.write() {
             *store = None;
         }
+        let account_dir_path = self
+            .fs
+            .local_path(&self.account_dir_rel(account_id))
+            .ok_or("无法解析账户本地目录")?;
         let vault_config =
-            VaultConfig::new(account_id, self.account_dir(account_id)).with_data_key(new_key_arr);
+            VaultConfig::new(account_id, account_dir_path).with_data_key(new_key_arr);
         match VaultStore::open(vault_config) {
             Ok(vault) => {
                 if let Ok(mut store) = self.vault_store.write() {
@@ -799,9 +825,9 @@ impl VaultService {
             cache.remove(account_id);
         }
         self.save_accounts()?;
-        let dir = self.account_dir(account_id);
-        if dir.exists() {
-            fs::remove_dir_all(&dir).map_err(|e| e.to_string())?;
+        let dir_rel = self.account_dir_rel(account_id);
+        if self.fs.exists(&dir_rel).unwrap_or(false) {
+            self.fs.remove_dir_all(&dir_rel)?;
         }
         Ok(())
     }
@@ -830,14 +856,14 @@ impl VaultService {
     }
 
     pub fn update_password_hint(&self, account_id: &str, hint: &str) -> Result<(), String> {
-        let config_path = self.config_path(account_id);
-        let content =
-            std::fs::read_to_string(&config_path).map_err(|_| "Account not found".to_string())?;
+        let config_rel = self.config_path_rel(account_id);
+        let content = self.fs.read_file(&config_rel).map_err(|_| "Account not found".to_string())?;
+        let content = String::from_utf8(content).map_err(|_| "Config encoding error".to_string())?;
         let mut config: AccountConfig =
             serde_json::from_str(&content).map_err(|_| "Config parse error".to_string())?;
         config.password_hint = Some(hint.to_string());
         let config_json = serde_json::to_string_pretty(&config).map_err(|e| e.to_string())?;
-        std::fs::write(&config_path, config_json).map_err(|e| e.to_string())?;
+        self.fs.write_file(&config_rel, config_json.as_bytes())?;
         Ok(())
     }
 }
@@ -856,15 +882,8 @@ mod tests {
     fn setup_service() -> (VaultService, TempDir) {
         let dir = TempDir::new().unwrap();
         let base = dir.path().join(".solosoul");
-        fs::create_dir_all(&base).unwrap();
-        let svc = VaultService {
-            base_path: base,
-            accounts_cache: RwLock::new(HashMap::new()),
-            session_key: RwLock::new(None),
-            unlocked_account: RwLock::new(None),
-            vault_store: RwLock::new(None),
-            create_lock: std::sync::Mutex::new(()),
-        };
+        std::fs::create_dir_all(&base).unwrap();
+        let svc = VaultService::with_base_path(base);
         (svc, dir)
     }
 
@@ -960,13 +979,13 @@ mod tests {
         let account_id = account["id"].as_str().unwrap();
 
         // Simulate biometric unlock having been enabled
-        let config_path = svc.config_path(account_id);
+        let config_path = svc.base_path().join(account_id).join("config.json");
         let mut raw: serde_json::Value =
             serde_json::from_str(&fs::read_to_string(&config_path).unwrap()).unwrap();
         raw["biometricEnabled"] = serde_json::Value::Bool(true);
         fs::write(&config_path, serde_json::to_string_pretty(&raw).unwrap()).unwrap();
         // 用旧版文件模拟已启用生物识别，验证 change_password 不会误删标记。
-        let legacy_key_path = svc.account_dir(account_id).join("biometric_key");
+        let legacy_key_path = svc.base_path().join(account_id).join("biometric_key");
         let legacy_key_hex = "deadbeef1234567890abcdef1234567890abcdef1234567890abcdef12345678";
         fs::write(&legacy_key_path, legacy_key_hex).unwrap();
 
@@ -1000,7 +1019,7 @@ mod tests {
         let account_id = account["id"].as_str().unwrap();
 
         // Simulate biometric unlock having been enabled
-        let config_path = svc.config_path(account_id);
+        let config_path = svc.base_path().join(account_id).join("config.json");
         let mut raw: serde_json::Value =
             serde_json::from_str(&fs::read_to_string(&config_path).unwrap()).unwrap();
         raw["biometricEnabled"] = serde_json::Value::Bool(true);
@@ -1023,7 +1042,7 @@ mod tests {
 
         svc.delete_account(account_id).unwrap();
         assert!(!svc.has_any_account());
-        assert!(!svc.account_dir(account_id).exists());
+        assert!(!svc.base_path().join(account_id).exists());
     }
 
     #[test]
