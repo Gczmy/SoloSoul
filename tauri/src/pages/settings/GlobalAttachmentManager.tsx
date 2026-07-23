@@ -1237,7 +1237,6 @@ export function GlobalAttachmentManager() {
                     indeterminate={selectedIds.size > 0 && !allSelected}
                     disabled={displayPages.length === 0}
                   />
-                  {allSelected ? t('common:deselect_all') : t('common:select_all')}
                 </div>
 
                 <div style={{ flex: 1 }} />
