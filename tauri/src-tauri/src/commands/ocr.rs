@@ -467,13 +467,14 @@ pub async fn ocr_set_active_tier(
     prefs.active_tier = tier;
     save_preferences(&state.handle, &prefs)?;
 
+    let details = json!({ "tier": tier.to_string() }).to_string();
     let _ = vault.log_structured(
         "ocr_set_active_tier",
         "ocr_model",
         None,
         Some(&tier.to_string()),
         &account_id,
-        None,
+        Some(&details),
     );
     Ok(())
 }
@@ -603,13 +604,14 @@ pub async fn ocr_install_bundled_model(
     let bundled_dir = bundled_models_dir()?;
     install_model_from_bundled(&bundled_dir, &models_dir, tier)?;
 
+    let details = json!({ "tier": tier.to_string() }).to_string();
     let _ = vault.log_structured(
         "ocr_install_bundled_model",
         "ocr_model",
         None,
         Some(&tier.to_string()),
         &account_id,
-        None,
+        Some(&details),
     );
     Ok(())
 }
@@ -644,7 +646,7 @@ pub async fn ocr_download_model(
     let models_dir = models_dir(&state.handle)?;
     download_model_files(&base_url, &models_dir, tier).await?;
 
-    let details = json!({ "baseUrl": base_url }).to_string();
+    let details = json!({ "baseUrl": base_url, "tier": tier.to_string() }).to_string();
     let _ = vault.log_structured(
         "ocr_download_model",
         "ocr_model",
@@ -684,13 +686,14 @@ pub async fn ocr_delete_model(
     let models_dir = models_dir(&state.handle)?;
     remove_model_dir(&models_dir, tier)?;
 
+    let details = json!({ "tier": tier.to_string() }).to_string();
     let _ = vault.log_structured(
         "ocr_delete_model",
         "ocr_model",
         None,
         Some(&tier.to_string()),
         &account_id,
-        None,
+        Some(&details),
     );
     Ok(())
 }
