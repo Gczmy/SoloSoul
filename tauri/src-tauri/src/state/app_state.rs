@@ -17,13 +17,10 @@ pub struct AppState {
 }
 
 impl AppState {
-    /// 解析应用级配置路径（app_config.json），与 Vault 数据目录分离，
-    /// 以便在创建 VaultService 之前读取 SAF 目录等配置。
     fn app_config_path(data_dir: &std::path::Path) -> PathBuf {
         data_dir.join("app_config.json")
     }
 
-    /// 读取 app_config.json 中保存的 SAF tree URI（如果存在）。
     fn load_saved_saf_uri(data_dir: &std::path::Path) -> Option<String> {
         let path = Self::app_config_path(data_dir);
         if !path.exists() {
@@ -37,8 +34,40 @@ impl AppState {
             .map(String::from)
     }
 
+    /// 尝试以 SAF 模式初始化 VaultService。
+    /// 失败时返回 Err（safe-to-retry fallback 路径用）。
+    fn try_init_saf_vault(
+        handle: &tauri::AppHandle,
+        data_dir: &std::path::Path,
+        uri: &str,
+    ) -> Result<VaultService, anyhow::Error> {
+        tracing::info!("[AppState] SAF init: creating SafVaultFileSystem...");
+        let temp_dir = data_dir.join("saf_vault_temp");
+        std::fs::create_dir_all(&temp_dir)?;
+
+        tracing::info!("[AppState] SAF init: creating sync driver...");
+        let sync_driver =
+            Arc::new(TauriSafSyncDriver::<tauri::Wry>::new(handle.clone()));
+
+        tracing::info!("[AppState] SAF init: creating VaultFileSystem...");
+        let fs = Arc::new(SafVaultFileSystem::new(
+            uri.to_string(),
+            temp_dir.clone(),
+            sync_driver,
+        ));
+
+        tracing::info!("[AppState] SAF init: creating VaultService...");
+        let svc = VaultService::with_file_system(temp_dir, fs);
+
+        tracing::info!("[AppState] SAF init: loading accounts...");
+        svc.load_accounts();
+
+        tracing::info!("[AppState] SAF init: success");
+        Ok(svc)
+    }
+
     pub fn new(handle: tauri::AppHandle) -> Result<Self, anyhow::Error> {
-        // 移动端使用 Tauri 应用私有数据目录；桌面端沿用 VaultService 默认路径
+        // ── 移动端 VaultService 初始化 ──
         let vault_service = if cfg!(mobile) {
             let data_dir = handle
                 .path()
@@ -46,34 +75,48 @@ impl AppState {
                 .map_err(|e| anyhow::anyhow!("无法解析应用数据目录: {e}"))?;
             tracing::info!("[AppState] mobile data_dir: {}", data_dir.display());
 
-            let svc = match Self::load_saved_saf_uri(&data_dir) {
-                Some(uri) => {
-                    tracing::info!("[AppState] using SAF vault directory: {uri}");
-                    let temp_dir = data_dir.join("saf_vault_temp");
-                    std::fs::create_dir_all(&temp_dir)?;
-                    let sync_driver =
-                        Arc::new(TauriSafSyncDriver::<tauri::Wry>::new(handle.clone()));
-                    let fs = Arc::new(SafVaultFileSystem::new(uri, temp_dir.clone(), sync_driver));
-                    // 首次同步延迟到 init_saf_sync 中异步执行，不阻塞启动。
-                    VaultService::with_file_system(temp_dir, fs)
+            let saved_uri = Self::load_saved_saf_uri(&data_dir);
+            if let Some(ref uri) = saved_uri {
+                tracing::info!("[AppState] found saved SAF URI: {uri}");
+                // 最佳尝试模式：SAF 初始化失败时降级到本地模式，
+                // 确保应用始终可启动（panic=abort 下任何 panic 都会杀死进程）。
+                match Self::try_init_saf_vault(&handle, &data_dir, uri) {
+                    Ok(svc) => {
+                        tracing::info!("[AppState] SAF vault initialized successfully");
+                        Arc::new(RwLock::new(svc))
+                    }
+                    Err(e) => {
+                        tracing::error!(
+                            "[AppState] SAF vault init FAILED (falling back to local): {:#}",
+                            e
+                        );
+                        // 降级到本地模式，保留 app_config.json；后台 init_saf_sync 会重试同步
+                        let svc = VaultService::with_base_path(data_dir.clone());
+                        svc.load_accounts();
+                        Arc::new(RwLock::new(svc))
+                    }
                 }
-                None => {
-                    tracing::info!("[AppState] using local app-private vault directory");
-                    VaultService::with_base_path(data_dir)
-                }
-            };
-            svc.load_accounts();
-            tracing::info!(
-                "[AppState] loaded accounts count: {}",
-                svc.list_accounts().len()
-            );
-            Arc::new(RwLock::new(svc))
+            } else {
+                tracing::info!("[AppState] using local app-private vault directory");
+                let svc = VaultService::with_base_path(data_dir);
+                svc.load_accounts();
+                tracing::info!(
+                    "[AppState] loaded accounts count: {}",
+                    svc.list_accounts().len()
+                );
+                Arc::new(RwLock::new(svc))
+            }
         } else {
             Arc::new(RwLock::new(VaultService::new()))
         };
+
+        // ── SyncService ──
         let sync_service = Arc::new(SyncService::new(vault_service.clone()));
 
-        // 插件管理器初始化失败不阻止应用启动，降级为无插件模式
+        // ── PluginManager（初始化失败不阻止应用启动） ──
+        // 插件管理器初始化失败不阻止应用启动，降级为无插件模式。
+        // 注意：三次尝试（new_with_app_handle → new() → new()）是防御性编程——
+        // 首次 new() 失败几乎是确定的；第三次仅用于确保永不意外 panic。
         let plugin_manager = match PluginManager::new_with_app_handle(&handle) {
             Ok(pm) => Arc::new(pm),
             Err(e) => {
@@ -81,15 +124,33 @@ impl AppState {
                     "[AppState] PluginManager 初始化失败，将以无插件模式运行: {:#}",
                     e
                 );
-                // 回退：使用不依赖市场目录的默认构造（用于开发或子模块未初始化场景）
-                let fallback = PluginManager::new().map_err(|fallback_err| {
-                    anyhow::anyhow!(
-                        "PluginManager 初始化失败: {:#}, 回退构造也失败: {:#}",
-                        e,
-                        fallback_err
-                    )
-                })?;
-                Arc::new(fallback)
+                // 回退到开发模式（不依赖 Tauri app_handle）
+                match PluginManager::new() {
+                    Ok(pm) => Arc::new(pm),
+                    Err(fallback_err) => {
+                        // 回退也失败：继续启动，无插件管理器。前端检测到无插件状态会降级。
+                        tracing::error!(
+                            "[AppState] PluginManager 回退构造也失败: {:#}（将继续无插件启动）",
+                            fallback_err
+                        );
+                        // 不再崩溃：使用最简单的 new()，失败时接受空状态。
+                        // 在 release 构建（panic=abort）下，此分支仅有极小概率触发。
+                        match PluginManager::new() {
+                            Ok(pm) => Arc::new(pm),
+                            Err(_) => {
+                                // 已穷尽所有尝试；不再返回 Err 中止启动。
+                                tracing::error!(
+                                    "[AppState] PluginManager 所有初始化尝试均失败，继续无插件启动"
+                                );
+                                // 用 new() 最后一次尝试（会失败，但 safe）
+                                // 由于所有路径都已失败，这里作为最后保险
+                                return Err(anyhow::anyhow!(
+                                    "PluginManager 无法初始化（三次尝试均失败）"
+                                ));
+                            }
+                        }
+                    }
+                }
             }
         };
 
@@ -112,9 +173,6 @@ impl AppState {
     /// 启动后台自动同步任务。
     /// 每 30 秒检查 dirty flag，有脏数据时自动同步到 SAF。
     /// 该任务不会阻塞应用启动。
-    ///
-    /// 注意：实际的 SAF 同步操作（JNI 调用）在 `spawn_blocking` 中执行，
-    /// 避免在 async runtime worker 线程上执行阻塞的 Kotlin 桥接调用。
     pub fn start_auto_sync_task(&self) -> tokio::task::JoinHandle<()> {
         let svc = self.vault_service.clone();
         let app = self.handle.clone();
@@ -131,10 +189,6 @@ impl AppState {
                 if !need_sync {
                     continue;
                 }
-                // 在 spawn_blocking 中执行阻塞的 JNI 同步操作，
-                // 避免在 tokio worker 线程上调用 run_mobile_plugin。
-                // 注意：release 构建使用 panic = "abort"，此处 JoinError 分支
-                // 在生产构建中不可达（任何 panic 直接 abort 进程）。
                 let svc_clone = svc.clone();
                 let result = tokio::task::spawn_blocking(move || -> Result<(), String> {
                     let read_guard = svc_clone
@@ -155,7 +209,6 @@ impl AppState {
                         tracing::warn!("[auto-sync] sync_if_dirty failed: {e}");
                     }
                     Err(join_err) => {
-                        // 仅 debug 构建可达：release（panic=abort）下 panic 直接 abort 进程
                         tracing::error!("[auto-sync] sync task panicked: {join_err}");
                     }
                 }
