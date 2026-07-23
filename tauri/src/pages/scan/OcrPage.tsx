@@ -45,7 +45,7 @@ export function OcrPage() {
   const [downloadingTier, setDownloadingTier] = useState<string | null>(null);
   const [downloadUrl, setDownloadUrl] = useState('');
   const isMobilePlatform = isMobilePlatformSync();
-  const ocrActionIconSize = isMobilePlatform ? ICON_SIZE.lg : ICON_SIZE.sm;
+  const ocrActionIconSize = isMobilePlatform ? ICON_SIZE['2xl'] : ICON_SIZE.sm;
 
   /** 处理扫描错误：将后端返回的「模型未安装」前缀解析为国际化提示。 */
   const handleScanError = (err: unknown) => {
@@ -488,11 +488,17 @@ export function OcrPage() {
                 style={{
                   padding: '6px 14px',
                   borderRadius: 6,
-                  border: 'none',
+                  border:
+                    scanMode === 'general'
+                      ? '1px solid color-mix(in srgb, var(--accent-primary) 35%, transparent)'
+                      : '1px solid transparent',
                   fontSize: 'var(--text-body-sm)',
                   cursor: 'pointer',
-                  background: scanMode === 'general' ? 'var(--bg-elevated)' : 'transparent',
-                  color: 'var(--text-primary)',
+                  background:
+                    scanMode === 'general'
+                      ? 'color-mix(in srgb, var(--accent-primary) 15%, transparent)'
+                      : 'transparent',
+                  color: scanMode === 'general' ? 'var(--accent-primary)' : 'var(--text-secondary)',
                   fontWeight: scanMode === 'general' ? 600 : 400,
                 }}
               >
@@ -507,11 +513,17 @@ export function OcrPage() {
                 style={{
                   padding: '6px 14px',
                   borderRadius: 6,
-                  border: 'none',
+                  border:
+                    scanMode === 'mrz'
+                      ? '1px solid color-mix(in srgb, var(--accent-primary) 35%, transparent)'
+                      : '1px solid transparent',
                   fontSize: 'var(--text-body-sm)',
                   cursor: 'pointer',
-                  background: scanMode === 'mrz' ? 'var(--bg-elevated)' : 'transparent',
-                  color: 'var(--text-primary)',
+                  background:
+                    scanMode === 'mrz'
+                      ? 'color-mix(in srgb, var(--accent-primary) 15%, transparent)'
+                      : 'transparent',
+                  color: scanMode === 'mrz' ? 'var(--accent-primary)' : 'var(--text-secondary)',
                   fontWeight: scanMode === 'mrz' ? 600 : 400,
                 }}
               >
