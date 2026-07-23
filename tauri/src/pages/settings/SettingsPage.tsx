@@ -133,7 +133,7 @@ export function SettingsPage() {
         {
           label: t('settings:items.ocr') || 'OCR',
           icon: Scan,
-          path: '/settings/ocr',
+          path: '/ocr',
           desc: t('settings:desc.ocr') || 'Manage OCR models and preferences',
         },
         {

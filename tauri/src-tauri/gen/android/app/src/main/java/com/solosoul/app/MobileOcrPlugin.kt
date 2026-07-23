@@ -16,6 +16,7 @@ import app.tauri.plugin.JSObject
 import app.tauri.plugin.Plugin
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
+import org.json.JSONArray
 import com.google.mlkit.vision.text.TextRecognizer
 import com.google.mlkit.vision.text.chinese.ChineseTextRecognizerOptions
 import java.io.File
@@ -88,12 +89,15 @@ class MobileOcrPlugin(private val activity: Activity): Plugin(activity) {
                             val rect = block.boundingBox
                             if (rect == null) return@forEach
 
-                            val points = arrayOf(
-                                arrayOf(rect.left.toFloat(), rect.top.toFloat()),
-                                arrayOf(rect.right.toFloat(), rect.top.toFloat()),
-                                arrayOf(rect.right.toFloat(), rect.bottom.toFloat()),
-                                arrayOf(rect.left.toFloat(), rect.bottom.toFloat())
-                            )
+                            val points = JSONArray()
+                            listOf(
+                                listOf(rect.left.toFloat(), rect.top.toFloat()),
+                                listOf(rect.right.toFloat(), rect.top.toFloat()),
+                                listOf(rect.right.toFloat(), rect.bottom.toFloat()),
+                                listOf(rect.left.toFloat(), rect.bottom.toFloat()),
+                            ).forEach { pt ->
+                                points.put(JSONArray().apply { pt.forEach(::put) })
+                            }
 
                             val box = JSObject()
                             box.put("text", block.text)
