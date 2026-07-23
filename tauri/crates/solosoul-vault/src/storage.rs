@@ -2371,7 +2371,7 @@ impl VaultStore {
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         let mut sql = String::from(
-            "SELECT id, item_type, name_snapshot, icon_snapshot, deleted_at, expires_at, original_parent_id, original_section_type, data
+            "SELECT id, item_type, name_snapshot, icon_snapshot, deleted_at, expires_at, original_parent_id, original_section_type, original_id, data
              FROM trash_items WHERE 1=1"
         );
         let mut params: Vec<Box<dyn rusqlite::types::ToSql>> = Vec::new();
@@ -2388,7 +2388,7 @@ impl VaultStore {
         let mut stmt = conn.prepare(&sql).map_err(|e| e.to_string())?;
         let items = stmt
             .query_map(p.as_slice(), |row| {
-                let raw_data: Vec<u8> = row.get(8)?;
+                let raw_data: Vec<u8> = row.get(9)?;
                 let decrypted = decrypt_field(&key, &raw_data).ok();
                 let contract_type_id = decrypted
                     .and_then(|d| serde_json::from_slice::<serde_json::Value>(&d).ok())
@@ -2399,6 +2399,7 @@ impl VaultStore {
                 Ok(TrashItemSummary {
                     id: row.get(0)?,
                     item_type: row.get(1)?,
+                    original_id: row.get(8)?,
                     name: row.get(2)?,
                     icon_id: row.get(3)?,
                     deleted_at: row.get(4)?,

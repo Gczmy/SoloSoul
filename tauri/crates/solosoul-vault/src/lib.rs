@@ -133,6 +133,7 @@ pub struct TrashItem {
 pub struct TrashItemSummary {
     pub id: String,
     pub item_type: String,
+    pub original_id: String,
     pub name: String,
     pub icon_id: Option<String>,
     pub deleted_at: i64,

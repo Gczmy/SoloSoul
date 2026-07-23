@@ -52,7 +52,11 @@ export function TrashConfirmDialog({ action, onClose, onConfirm }: TrashConfirmD
           }}
         >
           {action.type === 'delete'
-            ? t('settings:confirm_delete_desc', { count: action.count })
+            ? action.pageChildCount !== undefined
+              ? t('settings:trash_delete_page_with_children_desc', {
+                  count: action.pageChildCount,
+                })
+              : t('settings:confirm_delete_desc', { count: action.count })
             : t('settings:confirm_restore_desc', { count: action.count })}
         </p>
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>

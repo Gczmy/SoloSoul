@@ -53,6 +53,7 @@ export interface TrashConfirmAction {
   type: 'restore' | 'delete';
   ids: string[];
   count: number;
+  pageChildCount?: number;
   callback: () => Promise<void>;
 }
 

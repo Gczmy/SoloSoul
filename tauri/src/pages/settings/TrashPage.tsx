@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/Button';
 import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import { useAuthStore } from '@/stores/authStore';
 import { useTrashStore, TrashTimeFilter, TrashTypeFilter } from '@/stores/trashStore';
+import { useToastError } from '@/hooks/useToastError';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { DeleteButton } from '@/components/ui/DeleteButton';
 import { useTemplateStore } from '@/stores/templateStore';
@@ -54,6 +55,7 @@ export function TrashPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation(['settings', 'common', 'editor']);
+  const { onSuccess, onError } = useToastError();
   const accountId = useAuthStore((s) => s.currentAccount?.id);
   const {
     items,
@@ -97,31 +99,64 @@ export function TrashPage() {
   const hasSelection = selectedIds.size > 0;
 
   const doRestore = (ids: string[]) => {
-    const count = ids.length;
     setConfirmAction({
       type: 'restore',
       ids,
-      count,
+      count: ids.length,
       callback: async () => {
-        for (const id of ids) await restoreItem(id);
-        clearSelection();
-        if (accountId)
-          useSettingsStore
-            .getState()
-            .loadCustomPages(accountId)
-            .catch((err) =>
-              console.warn('[TrashPage] Load custom pages after restore failed:', err),
-            );
+        try {
+          for (const id of ids) {
+            const outcome = await restoreItem(id);
+            if (outcome.cascadedPageName) {
+              onSuccess(
+                t('settings:trash_restored_with_cascaded_page', { page: outcome.cascadedPageName }),
+              );
+            } else if (outcome.rebuiltPageName) {
+              onSuccess(
+                t('settings:trash_restored_with_rebuilt_page', { page: outcome.rebuiltPageName }),
+              );
+            } else if ((outcome.cascadedCount ?? 0) > 0) {
+              onSuccess(
+                t('settings:trash_restored_with_count', { count: outcome.cascadedCount }),
+              );
+            } else {
+              onSuccess(t('settings:trash_restored', { name: outcome.name }));
+            }
+          }
+          clearSelection();
+          if (accountId)
+            useSettingsStore
+              .getState()
+              .loadCustomPages(accountId)
+              .catch((err) =>
+                  console.warn('[TrashPage] Load custom pages after restore failed:', err),
+                );
+        } catch (err) {
+          onError(err, t('common:restore_failed'));
+        }
       },
     });
   };
 
   const doDelete = (ids: string[]) => {
-    const count = ids.length;
+    const selectedItems = items.filter((i) => ids.includes(i.id));
+    const pageSectionTypes = new Set(
+      selectedItems
+        .filter((i) => i.itemType === 'page' && i.originalSectionType)
+        .map((i) => i.originalSectionType as string),
+    );
+    let pageChildCount: number | undefined;
+    if (pageSectionTypes.size > 0) {
+      const count = items.filter(
+        (i) => i.itemType === 'object' && pageSectionTypes.has(i.originalSectionType ?? ''),
+      ).length;
+      if (count > 0) pageChildCount = count;
+    }
     setConfirmAction({
       type: 'delete',
       ids,
-      count,
+      count: ids.length,
+      pageChildCount,
       callback: async () => {
         await permanentDelete(ids);
         clearSelection();

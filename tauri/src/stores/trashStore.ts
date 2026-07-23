@@ -24,6 +24,7 @@ export function retentionPeriodDays(period: TrashRetentionPeriod): number {
 export interface TrashItemSummary {
   id: string;
   itemType: string;
+  originalId: string;
   name: string;
   iconId?: string;
   deletedAt: number;
@@ -35,6 +36,14 @@ export interface TrashItemSummary {
 
 export type TrashTimeFilter = 'all' | '1d' | '3d' | '7d' | '30d' | 'half_year';
 export type TrashTypeFilter = 'all' | 'page' | 'object' | 'template';
+
+export interface RestoreOutcome {
+  restoredId: string;
+  name: string;
+  cascadedPageName?: string;
+  cascadedCount?: number;
+  rebuiltPageName?: string;
+}
 
 interface TrashState {
   items: TrashItemSummary[];
@@ -49,7 +58,7 @@ interface TrashState {
   setTimeFilter: (f: TrashTimeFilter) => void;
   setTypeFilter: (f: TrashTypeFilter) => void;
   setSearchQuery: (q: string) => void;
-  restoreItem: (trashId: string) => Promise<void>;
+  restoreItem: (trashId: string) => Promise<RestoreOutcome>;
   permanentDelete: (trashIds: string[]) => Promise<void>;
   toggleSelection: (id: string) => void;
   selectAll: (ids: string[]) => void;
@@ -97,10 +106,30 @@ export const useTrashStore = create<TrashState>((set, get) => ({
     const item = get().items.find((i) => i.id === trashId);
     if (item?.itemType === 'template') {
       await invoke('template_restore', { trashId });
-    } else {
-      await invoke('trash_restore', { trashId, lang: i18next.language });
+      set((s) => ({ items: s.items.filter((i) => i.id !== trashId) }));
+      return { restoredId: item.originalId, name: item.name, cascadedCount: 0 };
     }
-    set((s) => ({ items: s.items.filter((i) => i.id !== trashId) }));
+    try {
+      const outcome = await invoke<RestoreOutcome>('trash_restore', {
+        trashId,
+        lang: i18next.language,
+      });
+      set((s) => ({ items: s.items.filter((i) => i.id !== trashId) }));
+      return outcome;
+    } catch (err) {
+      // If the item was cascade-restored by a sibling/page restore, its trash row is already gone.
+      // Treat that as a success so batch restores don't fail halfway through.
+      const message = typeof err === 'string' ? err : String(err);
+      if (message.includes('Trash item not found')) {
+        set((s) => ({ items: s.items.filter((i) => i.id !== trashId) }));
+        return {
+          restoredId: item?.originalId ?? trashId,
+          name: item?.name ?? trashId,
+          cascadedCount: 0,
+        };
+      }
+      throw err;
+    }
   },
 
   permanentDelete: async (trashIds) => {
