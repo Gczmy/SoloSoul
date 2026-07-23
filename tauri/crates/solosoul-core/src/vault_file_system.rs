@@ -6,6 +6,7 @@
 //! 实现替换。
 
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 
 /// Vault 文件系统抽象。
 ///
@@ -37,6 +38,177 @@ pub trait VaultFileSystem: Send + Sync {
     ///
     /// 该接口主要用于兼容仍需 `std::path::Path` 的场景（如 SQLite 数据库路径）。
     fn local_path(&self, relative_path: &str) -> Option<PathBuf>;
+
+    /// 将本地数据同步到远端（SAF）存储。
+    ///
+    /// 默认实现为空操作，适用于本地文件系统。
+    fn sync_to_remote(&self) -> Result<(), String> {
+        Ok(())
+    }
+
+    /// 从远端（SAF）存储同步数据到本地。
+    ///
+    /// 默认实现为空操作，适用于本地文件系统。
+    fn sync_from_remote(&self) -> Result<(), String> {
+        Ok(())
+    }
+
+    /// 返回该文件系统是否基于远端（SAF）存储。
+    ///
+    /// 默认实现返回 false。
+    fn is_remote(&self) -> bool {
+        false
+    }
+}
+
+/// SAF-backed VaultFileSystem 的同步策略枚举。
+///
+/// 由于 SQLite 无法直接在 SAF `content://` URI 上工作，本实现将所有数据
+/// 读写先落在本地临时目录，再根据策略与 SAF 目录同步。
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SafSyncStrategy {
+    /// 仅在显式调用 sync_to_saf/sync_from_saf 时同步。
+    Manual,
+    /// 每次写操作后自动同步到 SAF（未完成，预留）。
+    AutoOnWrite,
+}
+
+/// SAF 同步驱动 trait。
+///
+/// 由于 `solosoul-core` 不依赖 Tauri/移动端桥接，具体同步逻辑由上层（Tauri app）
+/// 注入。实现者负责把 `local_dir` 中的内容与 SAF `tree_uri` 指向的目录同步。
+pub trait SafSyncDriver: Send + Sync {
+    fn sync_to_remote(&self, local_dir: &std::path::Path, tree_uri: &str) -> Result<(), String>;
+    fn sync_from_remote(&self, local_dir: &std::path::Path, tree_uri: &str) -> Result<(), String>;
+}
+
+/// 用于测试或占位阶段的 no-op SAF 同步驱动。
+pub struct NoOpSafSyncDriver;
+
+impl SafSyncDriver for NoOpSafSyncDriver {
+    fn sync_to_remote(&self, _local_dir: &std::path::Path, _tree_uri: &str) -> Result<(), String> {
+        Ok(())
+    }
+
+    fn sync_from_remote(
+        &self,
+        _local_dir: &std::path::Path,
+        _tree_uri: &str,
+    ) -> Result<(), String> {
+        Ok(())
+    }
+}
+
+/// SAF-backed 文件系统实现。
+///
+/// 当前 Phase 1 实现把所有文件操作代理到本地临时目录；
+/// SAF 同步由调用方（AppState / commands）通过 `sync_to_remote`/`sync_from_remote` 触发，
+/// 避免在 trait 同步方法中引入 async/IPC 复杂度。
+pub struct SafVaultFileSystem {
+    /// SAF tree URI 字符串（如 `content://com.android.externalstorage.documents/tree/primary%3ASoloSoul`）。
+    tree_uri: String,
+    /// 本地临时目录，SQLite 等需要真实 Path 的场景直接读写此处。
+    local_temp_dir: PathBuf,
+    /// 同步策略，Phase 2 自动同步时再启用，当前预留。
+    #[allow(dead_code)]
+    sync_strategy: SafSyncStrategy,
+    sync_driver: Arc<dyn SafSyncDriver>,
+}
+
+impl SafVaultFileSystem {
+    pub fn new(
+        tree_uri: String,
+        local_temp_dir: PathBuf,
+        sync_driver: Arc<dyn SafSyncDriver>,
+    ) -> Self {
+        Self {
+            tree_uri,
+            local_temp_dir,
+            sync_strategy: SafSyncStrategy::Manual,
+            sync_driver,
+        }
+    }
+
+    pub fn tree_uri(&self) -> &str {
+        &self.tree_uri
+    }
+
+    pub fn local_temp_dir(&self) -> &Path {
+        &self.local_temp_dir
+    }
+
+    fn resolve(&self, relative_path: &str) -> Result<PathBuf, String> {
+        validate_relative_path(relative_path)?;
+        if relative_path.is_empty() {
+            Ok(self.local_temp_dir.clone())
+        } else {
+            Ok(self.local_temp_dir.join(relative_path))
+        }
+    }
+}
+
+impl VaultFileSystem for SafVaultFileSystem {
+    fn read_file(&self, relative_path: &str) -> Result<Vec<u8>, String> {
+        let path = self.resolve(relative_path)?;
+        std::fs::read(&path).map_err(|e| format!("读取文件失败: {e}"))
+    }
+
+    fn write_file(&self, relative_path: &str, data: &[u8]) -> Result<(), String> {
+        let path = self.resolve(relative_path)?;
+        if let Some(parent) = path.parent() {
+            std::fs::create_dir_all(parent).map_err(|e| format!("创建父目录失败: {e}"))?;
+        }
+        std::fs::write(&path, data).map_err(|e| format!("写入文件失败: {e}"))
+    }
+
+    fn remove_file(&self, relative_path: &str) -> Result<(), String> {
+        let path = self.resolve(relative_path)?;
+        std::fs::remove_file(&path).map_err(|e| format!("删除文件失败: {e}"))
+    }
+
+    fn exists(&self, relative_path: &str) -> Result<bool, String> {
+        let path = self.resolve(relative_path)?;
+        Ok(path.exists())
+    }
+
+    fn create_dir_all(&self, relative_path: &str) -> Result<(), String> {
+        let path = self.resolve(relative_path)?;
+        std::fs::create_dir_all(&path).map_err(|e| format!("创建目录失败: {e}"))
+    }
+
+    fn remove_dir_all(&self, relative_path: &str) -> Result<(), String> {
+        let path = self.resolve(relative_path)?;
+        std::fs::remove_dir_all(&path).map_err(|e| format!("删除目录失败: {e}"))
+    }
+
+    fn list_dir(&self, relative_path: &str) -> Result<Vec<String>, String> {
+        let path = self.resolve(relative_path)?;
+        let entries = std::fs::read_dir(&path).map_err(|e| format!("读取目录失败: {e}"))?;
+        let mut names = Vec::new();
+        for entry in entries {
+            let entry = entry.map_err(|e| format!("读取目录项失败: {e}"))?;
+            names.push(entry.file_name().to_string_lossy().into_owned());
+        }
+        Ok(names)
+    }
+
+    fn local_path(&self, relative_path: &str) -> Option<PathBuf> {
+        self.resolve(relative_path).ok()
+    }
+
+    fn sync_to_remote(&self) -> Result<(), String> {
+        self.sync_driver
+            .sync_to_remote(&self.local_temp_dir, &self.tree_uri)
+    }
+
+    fn sync_from_remote(&self) -> Result<(), String> {
+        self.sync_driver
+            .sync_from_remote(&self.local_temp_dir, &self.tree_uri)
+    }
+
+    fn is_remote(&self) -> bool {
+        true
+    }
 }
 
 /// 本地文件系统实现，直接映射到 `std::fs`。

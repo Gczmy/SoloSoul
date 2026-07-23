@@ -217,8 +217,14 @@ impl VaultService {
     /// 使用指定的基础路径创建 VaultService（P120: 避免测试中 set_var 污染）。
     /// 不自动从 env var 读取路径，也不调用 load_accounts（由调用者按需初始化）。
     pub fn with_base_path(base_path: PathBuf) -> Self {
-        let fs: Arc<dyn VaultFileSystem> =
-            Arc::new(LocalVaultFileSystem::new(base_path.clone()));
+        let fs: Arc<dyn VaultFileSystem> = Arc::new(LocalVaultFileSystem::new(base_path.clone()));
+        Self::with_file_system(base_path, fs)
+    }
+
+    /// 使用自定义文件系统创建 VaultService。
+    ///
+    /// 调用者应自行调用 `load_accounts()` 初始化账户缓存。
+    pub fn with_file_system(base_path: PathBuf, fs: Arc<dyn VaultFileSystem>) -> Self {
         Self {
             base_path,
             fs,
@@ -293,11 +299,7 @@ impl VaultService {
                         for a in accounts {
                             cache.insert(a.id.clone(), a);
                         }
-                        tracing::debug!(
-                            "Loaded {} account(s) from {}",
-                            cache.len(),
-                            rel
-                        );
+                        tracing::debug!("Loaded {} account(s) from {}", cache.len(), rel);
                     }
                 }
                 Err(e) => {
@@ -458,12 +460,9 @@ impl VaultService {
             .as_slice()
             .try_into()
             .map_err(|_| "HKDF output must be 32 bytes".to_string())?;
-        let account_dir_path = self
-            .fs
-            .local_path(&dir_rel)
-            .ok_or("无法解析账户本地目录")?;
-        let vault_config = VaultConfig::new(&account_id, account_dir_path)
-            .with_data_key(master_key_arr);
+        let account_dir_path = self.fs.local_path(&dir_rel).ok_or("无法解析账户本地目录")?;
+        let vault_config =
+            VaultConfig::new(&account_id, account_dir_path).with_data_key(master_key_arr);
         let vault =
             VaultStore::open(vault_config).map_err(|e| format!("Failed to open vault: {}", e))?;
         let vault_arc = Arc::new(vault);
@@ -495,8 +494,12 @@ impl VaultService {
 
     pub fn unlock(&self, account_id: &str, password: &str) -> Result<(), String> {
         let config_rel = self.config_path_rel(account_id);
-        let content = self.fs.read_file(&config_rel).map_err(|_| "Account not found".to_string())?;
-        let content = String::from_utf8(content).map_err(|_| "Config encoding error".to_string())?;
+        let content = self
+            .fs
+            .read_file(&config_rel)
+            .map_err(|_| "Account not found".to_string())?;
+        let content =
+            String::from_utf8(content).map_err(|_| "Config encoding error".to_string())?;
         let config: AccountConfig =
             serde_json::from_str(&content).map_err(|_| "Config parse error".to_string())?;
 
@@ -570,8 +573,8 @@ impl VaultService {
             .fs
             .local_path(&self.account_dir_rel(account_id))
             .ok_or("无法解析账户本地目录")?;
-        let vault_config = VaultConfig::new(account_id, account_dir_path)
-            .with_data_key(master_key_arr);
+        let vault_config =
+            VaultConfig::new(account_id, account_dir_path).with_data_key(master_key_arr);
         let vault =
             VaultStore::open(vault_config).map_err(|e| format!("Failed to open vault: {}", e))?;
         let vault_arc = Arc::new(vault);
@@ -616,8 +619,12 @@ impl VaultService {
     /// Verify hash is derived from the Argon2id master key using HKDF-SHA256 (P2-010).
     pub fn verify_password(&self, account_id: &str, password: &str) -> Result<bool, String> {
         let config_rel = self.config_path_rel(account_id);
-        let content = self.fs.read_file(&config_rel).map_err(|_| "Account not found".to_string())?;
-        let content = String::from_utf8(content).map_err(|_| "Config encoding error".to_string())?;
+        let content = self
+            .fs
+            .read_file(&config_rel)
+            .map_err(|_| "Account not found".to_string())?;
+        let content =
+            String::from_utf8(content).map_err(|_| "Config encoding error".to_string())?;
         let config: AccountConfig =
             serde_json::from_str(&content).map_err(|_| "Config parse error".to_string())?;
 
@@ -749,8 +756,12 @@ impl VaultService {
 
         // Update config
         let config_rel = self.config_path_rel(account_id);
-        let content = self.fs.read_file(&config_rel).map_err(|_| "Account not found".to_string())?;
-        let content = String::from_utf8(content).map_err(|_| "Config encoding error".to_string())?;
+        let content = self
+            .fs
+            .read_file(&config_rel)
+            .map_err(|_| "Account not found".to_string())?;
+        let content =
+            String::from_utf8(content).map_err(|_| "Config encoding error".to_string())?;
         let mut config: AccountConfig =
             serde_json::from_str(&content).map_err(|_| "Config parse error".to_string())?;
         config.crypto_version = 3; // P2-010: HKDF-based verify hash
@@ -855,10 +866,31 @@ impl VaultService {
         self.unlocked_account.read().ok()?.clone()
     }
 
+    /// 将 Vault 数据同步到远端存储（如 SAF）。
+    /// 若当前文件系统为本地文件系统，则为空操作。
+    pub fn sync_to_remote(&self) -> Result<(), String> {
+        self.fs.sync_to_remote()
+    }
+
+    /// 从远端存储（如 SAF）同步 Vault 数据到本地。
+    /// 若当前文件系统为本地文件系统，则为空操作。
+    pub fn sync_from_remote(&self) -> Result<(), String> {
+        self.fs.sync_from_remote()
+    }
+
+    /// 当前 Vault 是否使用远端（SAF）存储。
+    pub fn is_remote_storage(&self) -> bool {
+        self.fs.is_remote()
+    }
+
     pub fn update_password_hint(&self, account_id: &str, hint: &str) -> Result<(), String> {
         let config_rel = self.config_path_rel(account_id);
-        let content = self.fs.read_file(&config_rel).map_err(|_| "Account not found".to_string())?;
-        let content = String::from_utf8(content).map_err(|_| "Config encoding error".to_string())?;
+        let content = self
+            .fs
+            .read_file(&config_rel)
+            .map_err(|_| "Account not found".to_string())?;
+        let content =
+            String::from_utf8(content).map_err(|_| "Config encoding error".to_string())?;
         let mut config: AccountConfig =
             serde_json::from_str(&content).map_err(|_| "Config parse error".to_string())?;
         config.password_hint = Some(hint.to_string());

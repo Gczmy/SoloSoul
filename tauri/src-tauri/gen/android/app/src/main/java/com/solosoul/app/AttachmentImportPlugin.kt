@@ -54,6 +54,12 @@ class OpenFileArgs {
   lateinit var mimeType: String
 }
 
+@InvokeArg
+class SyncDirArgs {
+  lateinit var localDir: String
+  lateinit var treeUri: String
+}
+
 /**
  * Android content:// URI 附件导入/导出插件。
  *
@@ -413,6 +419,28 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
     }
   }
 
+  /**
+   * 选择 Vault 数据目录。与 pickTreeUri 不同，此处总是持久化读写授权，
+   * 并把 tree URI 作为应用级配置返回给 Rust 端。
+   */
+  @Command
+  fun pickVaultDir(invoke: Invoke) {
+    try {
+      val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+      }
+      if (intent.resolveActivity(activity.packageManager) == null) {
+        android.util.Log.e("SoloSoul", "pickVaultDir: no activity handles ACTION_OPEN_DOCUMENT_TREE")
+        invoke.reject("NO_TREE_PICKER_HANDLER")
+        return
+      }
+      startActivityForResult(invoke, intent, "vaultDirResult")
+    } catch (e: Exception) {
+      android.util.Log.e("SoloSoul", "pickVaultDir failed: ${e.message}", e)
+      invoke.reject("PICK_VAULT_DIR_FAILED: ${e.message}")
+    }
+  }
+
   @ActivityCallback
   fun treePickerResult(invoke: Invoke, result: ActivityResult) {
     val response = JSObject()
@@ -428,6 +456,176 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
         android.util.Log.w("SoloSoul", "Could not take persistable URI permission: ${e.message}")
       }
       response.put("uri", uri.toString())
+    }
+    invoke.resolve(response)
+  }
+
+  /**
+   * 同步本地目录到 SAF tree URI（覆盖远端）。
+   * 递归遍历 localDir 下所有文件，在 treeUri 下创建对应目录结构与文件。
+   */
+  @Command
+  fun syncDirToRemote(invoke: Invoke) {
+    try {
+      val args = invoke.parseArgs(SyncDirArgs::class.java)
+      val localDir = File(args.localDir)
+      if (!localDir.exists()) {
+        invoke.resolve(JSObject())
+        return
+      }
+      val treeUri = Uri.parse(args.treeUri)
+      val parent = DocumentsContract.buildDocumentUriUsingTree(treeUri, DocumentsContract.getTreeDocumentId(treeUri))
+        ?: run {
+          invoke.reject("无法从 tree URI 解析目标目录: ${args.treeUri}")
+          return
+        }
+      syncLocalDirToTree(localDir, parent, "")
+      invoke.resolve(JSObject())
+    } catch (e: Exception) {
+      android.util.Log.e("SoloSoul", "syncDirToRemote failed: ${e.message}", e)
+      invoke.reject("同步到 SAF 失败: ${e.message}")
+    }
+  }
+
+  /**
+   * 从 SAF tree URI 同步到本地目录（覆盖本地）。
+   * 递归遍历 treeUri 下所有文件，在 localDir 下创建对应目录结构与文件。
+   */
+  @Command
+  fun syncDirFromRemote(invoke: Invoke) {
+    try {
+      val args = invoke.parseArgs(SyncDirArgs::class.java)
+      val localDir = File(args.localDir)
+      localDir.mkdirs()
+      val treeUri = Uri.parse(args.treeUri)
+      val parent = DocumentsContract.buildDocumentUriUsingTree(treeUri, DocumentsContract.getTreeDocumentId(treeUri))
+        ?: run {
+          invoke.reject("无法从 tree URI 解析源目录: ${args.treeUri}")
+          return
+        }
+      syncTreeToLocalDir(activity.contentResolver, parent, localDir)
+      invoke.resolve(JSObject())
+    } catch (e: Exception) {
+      android.util.Log.e("SoloSoul", "syncDirFromRemote failed: ${e.message}", e)
+      invoke.reject("从 SAF 同步失败: ${e.message}")
+    }
+  }
+
+  /**
+   * 递归把本地目录内容同步到 SAF tree 下。
+   */
+  private fun syncLocalDirToTree(localDir: File, parentUri: Uri) {
+    val files = localDir.listFiles() ?: return
+    for (file in files) {
+      if (file.isDirectory) {
+        val existing = findChildDocument(parentUri, file.name)
+        val dirUri = if (existing != null) {
+          existing
+        } else {
+          DocumentsContract.createDocument(activity.contentResolver, parentUri, DocumentsContract.Document.MIME_TYPE_DIR, file.name)
+            ?: continue
+        }
+        syncLocalDirToTree(file, dirUri)
+      } else {
+        val existing = findChildDocument(parentUri, file.name)
+        if (existing != null) {
+          // 删除后重新创建，实现覆盖
+          try {
+            DocumentsContract.deleteDocument(activity.contentResolver, existing)
+          } catch (e: Exception) {
+            android.util.Log.w("SoloSoul", "删除旧文件失败: ${e.message}")
+          }
+        }
+        val mimeType = getMimeType(file.name)
+        val newUri = DocumentsContract.createDocument(activity.contentResolver, parentUri, mimeType, file.name)
+          ?: continue
+        activity.contentResolver.openOutputStream(newUri)?.use { output ->
+          FileInputStream(file).use { input ->
+            input.copyTo(output)
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * 递归把 SAF tree 内容同步到本地目录。
+   */
+  private fun syncTreeToLocalDir(contentResolver: android.content.ContentResolver, parentUri: Uri, localDir: File) {
+    val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(parentUri, DocumentsContract.getTreeDocumentId(parentUri))
+      ?: return
+    contentResolver.query(childrenUri, arrayOf(DocumentsContract.Document.COLUMN_DOCUMENT_ID, DocumentsContract.Document.COLUMN_DISPLAY_NAME, DocumentsContract.Document.COLUMN_MIME_TYPE), null, null, null)?.use { cursor ->
+      while (cursor.moveToNext()) {
+        val docId = cursor.getString(0)
+        val displayName = cursor.getString(1)
+        val mimeType = cursor.getString(2)
+        val docUri = DocumentsContract.buildDocumentUriUsingTree(parentUri, docId)
+        if (mimeType == DocumentsContract.Document.MIME_TYPE_DIR) {
+          val childDir = File(localDir, displayName)
+          childDir.mkdirs()
+          syncTreeToLocalDir(contentResolver, docUri, childDir)
+        } else {
+          val file = File(localDir, displayName)
+          file.parentFile?.mkdirs()
+          contentResolver.openInputStream(docUri)?.use { input ->
+            FileOutputStream(file).use { output ->
+              input.copyTo(output)
+            }
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * 在 parent 下查找指定显示名称的子文档 URI。
+   */
+  private fun findChildDocument(parentUri: Uri, displayName: String): Uri? {
+    val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(parentUri, DocumentsContract.getTreeDocumentId(parentUri))
+      ?: return null
+    activity.contentResolver.query(childrenUri, arrayOf(DocumentsContract.Document.COLUMN_DOCUMENT_ID, DocumentsContract.Document.COLUMN_DISPLAY_NAME), null, null, null)?.use { cursor ->
+      while (cursor.moveToNext()) {
+        val name = cursor.getString(1)
+        if (name == displayName) {
+          val docId = cursor.getString(0)
+          return DocumentsContract.buildDocumentUriUsingTree(parentUri, docId)
+        }
+      }
+    }
+    return null
+  }
+
+  private fun getMimeType(fileName: String): String {
+    val ext = fileName.substringAfterLast(".", "")
+    return when (ext.lowercase()) {
+      "jpg", "jpeg" -> "image/jpeg"
+      "png" -> "image/png"
+      "gif" -> "image/gif"
+      "webp" -> "image/webp"
+      "pdf" -> "application/pdf"
+      "txt" -> "text/plain"
+      "json" -> "application/json"
+      "db" -> "application/x-sqlite3"
+      else -> "application/octet-stream"
+    }
+  }
+
+  @ActivityCallback
+  fun vaultDirResult(invoke: Invoke, result: ActivityResult) {
+    val response = JSObject()
+    if (result.resultCode == Activity.RESULT_OK && result.data?.data != null) {
+      val uri = result.data?.data!!
+      try {
+        activity.contentResolver.takePersistableUriPermission(
+          uri,
+          Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+        )
+        response.put("uri", uri.toString())
+      } catch (e: SecurityException) {
+        android.util.Log.e("SoloSoul", "vaultDirResult: failed to take persistable URI permission: ${e.message}")
+        invoke.reject("VAULT_DIR_PERMISSION_DENIED")
+        return
+      }
     }
     invoke.resolve(response)
   }

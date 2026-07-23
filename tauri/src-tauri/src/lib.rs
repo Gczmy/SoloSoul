@@ -375,6 +375,10 @@ pub fn run() {
             // Vault commands
             commands::vault::unlock,
             commands::vault::lock,
+            commands::vault_directory::vault_get_directory,
+            commands::vault_directory::vault_set_directory,
+            commands::vault_directory::vault_sync_to_remote,
+            commands::vault_directory::vault_sync_from_remote,
             // Object commands
             commands::object::object_list,
             commands::object::object_get,

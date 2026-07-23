@@ -20,6 +20,7 @@ pub mod sync;
 pub mod system;
 pub mod template;
 pub mod vault;
+pub mod vault_directory;
 pub mod window;
 
 use crate::state::AppState;

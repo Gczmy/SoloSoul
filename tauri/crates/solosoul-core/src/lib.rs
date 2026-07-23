@@ -32,7 +32,9 @@ pub mod watermark;
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 //  Convenience re-exports for callers that only need the public types.
-pub use vault_file_system::{LocalVaultFileSystem, VaultFileSystem};
+pub use vault_file_system::{
+    LocalVaultFileSystem, NoOpSafSyncDriver, SafSyncDriver, SafVaultFileSystem, VaultFileSystem,
+};
 pub use vault_service::{AccountConfig, AccountSummary, VaultService};
 
 // Re-export vault storage types so CLI/GUI hosts can use them through a single crate.

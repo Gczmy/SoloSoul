@@ -101,6 +101,14 @@ pub struct PickTreeUriResult {
     pub uri: Option<String>,
 }
 
+/// SAF 目录同步命令的参数。
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SyncDirPayload {
+    pub local_dir: String,
+    pub tree_uri: String,
+}
+
 /// 插件句柄包装，便于在 command 中通过 Tauri state 获取。
 pub struct AttachmentImportPluginHandle<R: Runtime> {
     #[cfg(target_os = "android")]
@@ -202,6 +210,65 @@ impl<R: Runtime> AttachmentImportPluginHandle<R> {
         #[cfg(not(target_os = "android"))]
         {
             Err("attachment_pick_tree_uri is only supported on Android".to_string())
+        }
+    }
+
+    /// 在 Android 端启动 Vault 目录选择器（ACTION_OPEN_DOCUMENT_TREE），
+    /// 返回用户选择的 tree URI（取消时为 None）。
+    pub fn pick_vault_dir(&self) -> Result<PickTreeUriResult, String> {
+        #[cfg(target_os = "android")]
+        {
+            self.handle
+                .run_mobile_plugin::<PickTreeUriResult>("pickVaultDir", ())
+                .map_err(|e| e.to_string())
+        }
+        #[cfg(not(target_os = "android"))]
+        {
+            Err("vault_pick_directory is only supported on Android".to_string())
+        }
+    }
+
+    /// 在 Android 端把本地目录递归同步到 SAF tree URI 目录。
+    /// 非 Android 平台直接返回不支持错误。
+    pub fn sync_dir_to_remote(&self, local_dir: &str, tree_uri: &str) -> Result<(), String> {
+        #[cfg(target_os = "android")]
+        {
+            let payload = SyncDirPayload {
+                local_dir: local_dir.to_string(),
+                tree_uri: tree_uri.to_string(),
+            };
+            self.handle
+                .run_mobile_plugin::<serde_json::Value>("syncDirToRemote", payload)
+                .map(|_| ())
+                .map_err(|e| e.to_string())
+        }
+        #[cfg(not(target_os = "android"))]
+        {
+            let _ = local_dir;
+            let _ = tree_uri;
+            Err("sync_dir_to_remote is only supported on Android".to_string())
+        }
+    }
+
+    /// 在 Android 端从 SAF tree URI 目录递归同步到本地目录。
+    /// 非 Android 平台直接返回不支持错误。
+    pub fn sync_dir_from_remote(&self, local_dir: &str, tree_uri: &str) -> Result<(), String> {
+        #[cfg(target_os = "android")]
+        {
+            let payload = SyncDirPayload {
+                local_dir: local_dir.to_string(),
+                tree_uri: tree_uri.to_string(),
+            };
+            self.handle
+                .run_mobile_plugin::<serde_json::Value>("syncDirFromRemote", payload)
+                .map(|_| ())
+                .map_err(|e| e.to_string())
+        }
+        #[cfg(not(target_os = "android"))]
+        {
+            let _ = local_dir;
+            let _ = tree_uri;
+            Err("sync_dir_from_remote is only supported on Android".to_string())
         }
     }
 
@@ -509,4 +576,16 @@ pub async fn attachment_pick_tree_uri<R: Runtime>(
 ) -> Result<PickTreeUriResult, String> {
     let handle = app.state::<AttachmentImportPluginHandle<R>>();
     handle.pick_tree_uri()
+}
+
+/// 启动 Android SAF Vault 目录选择器。
+///
+/// 返回用户选择的 tree URI（取消时 uri 字段为 None）。
+/// 桌面端/iOS 返回不支持错误。
+#[tauri::command]
+pub async fn vault_pick_directory<R: Runtime>(
+    app: AppHandle<R>,
+) -> Result<PickTreeUriResult, String> {
+    let handle = app.state::<AttachmentImportPluginHandle<R>>();
+    handle.pick_vault_dir()
 }
