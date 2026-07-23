@@ -67,15 +67,15 @@ pub async fn object_restore(
         .read()
         .map_err(|_| "Vault service lock poisoned".to_string())?;
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref();    let _trash = vault
+    let vault = vault_guard.as_ref();
+    let _trash = vault
         .get_trash_item(&trash_id)?
         .ok_or("Trash item not found")?;
 
     let fallback_lang = get_ui_language(&svc);
     let lang = lang.as_deref().unwrap_or(&fallback_lang);
 
-    let result =
-        solosoul_core::objects::restore_from_trash_with_lang(vault, &trash_id, lang)?;
+    let result = solosoul_core::objects::restore_from_trash_with_lang(vault, &trash_id, lang)?;
 
     Ok(result.into())
 }
@@ -247,7 +247,7 @@ pub async fn page_delete(
                     id: format!("trash_{}", uuid::Uuid::new_v4()),
                     item_type: "object".to_string(),
                     original_id: rec.id.clone(),
-                    original_parent_id: None,
+                    original_parent_id: rec.parent_id.clone(),
                     original_section_type: Some(rec.section_type.clone()),
                     original_sort_order: None,
                     data: serde_json::to_vec(&full_record).unwrap_or_default(),

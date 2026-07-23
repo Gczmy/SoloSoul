@@ -2404,7 +2404,7 @@ impl VaultStore {
                     icon_id: row.get(3)?,
                     deleted_at: row.get(4)?,
                     expires_at: row.get(5)?,
-                    original_parent_name: row.get(6)?,
+                    original_parent_id: row.get(6)?,
                     original_section_type: row.get(7)?,
                     contract_type_id,
                 })

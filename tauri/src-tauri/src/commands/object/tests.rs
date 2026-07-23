@@ -124,14 +124,6 @@ fn test_object_data_serde_roundtrip() {
 }
 
 #[test]
-fn test_restored_suffix_localization() {
-    assert_eq!(restored_suffix("zh-CN"), "（已恢复）");
-    assert_eq!(restored_suffix("en-US"), " (restored)");
-    assert_eq!(restored_suffix("ja-JP"), " (restored)");
-    assert_eq!(restored_suffix(""), " (restored)");
-}
-
-#[test]
 fn test_retention_ms_parsing() {
     assert_eq!(retention_ms("30d"), 30 * 24 * 3600 * 1000i64);
     assert_eq!(retention_ms("60d"), 60 * 24 * 3600 * 1000i64);

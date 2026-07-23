@@ -138,7 +138,7 @@ pub struct TrashItemSummary {
     pub icon_id: Option<String>,
     pub deleted_at: i64,
     pub expires_at: Option<i64>,
-    pub original_parent_name: Option<String>,
+    pub original_parent_id: Option<String>,
     pub original_section_type: Option<String>,
     pub contract_type_id: Option<String>,
 }

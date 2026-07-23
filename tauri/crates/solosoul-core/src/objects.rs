@@ -1479,4 +1479,12 @@ mod tests {
         assert_eq!(parse_retention_ms("6m"), 180 * 24 * 3600 * 1000);
         assert_eq!(parse_retention_ms("half_year"), 180 * 24 * 3600 * 1000);
     }
+
+    #[test]
+    fn test_restored_suffix_localization() {
+        assert_eq!(restored_suffix("zh-CN"), "（已恢复）");
+        assert_eq!(restored_suffix("en-US"), " (restored)");
+        assert_eq!(restored_suffix("ja-JP"), " (restored)");
+        assert_eq!(restored_suffix(""), " (restored)");
+    }
 }

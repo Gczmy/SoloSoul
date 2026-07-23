@@ -29,7 +29,7 @@ export interface TrashItemSummary {
   iconId?: string;
   deletedAt: number;
   expiresAt?: number;
-  originalParentName?: string;
+  originalParentId?: string;
   originalSectionType?: string;
   contractTypeId?: string;
 }
