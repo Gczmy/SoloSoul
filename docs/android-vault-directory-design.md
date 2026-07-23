@@ -1,6 +1,6 @@
 # Android 端“用户自选 Vault 目录”技术方案
 
-> 状态：Phase 0-3 代码实现已完成，待真机验证）  
+> 状态：Phase 0-3 代码实现已完成（含 P1 自动同步与进度事件），待真机验证）  
 > 影响范围：Android 客户端、Rust 后端、Kotlin 原生插件、前端设置/引导流程
 > 影响范围：Android 客户端、Rust 后端、Kotlin 原生插件、前端设置/引导流程  
 > 关联文档：`AGENTS.md`、docs/design_map/*、docs/sync-roadmap.md
@@ -304,8 +304,8 @@ SQLite 打开 SAF 文件有两种思路：
 - ✅ 在 `tauri/crates/solosoul-core/src/vault_file_system.rs` 中定义 `VaultFileSystem` trait、`LocalVaultFileSystem`、`SafVaultFileSystem`、`SafSyncDriver` 及 no-op 占位。
 - ✅ 实现基于本地临时目录 + 手动同步的 `SafVaultFileSystem`；SQLite 等高频随机读写仍落在本地临时目录，避免直接在 SAF `content://` URI 上打开数据库。
 - ✅ 在 `VaultService` 中新增 `with_file_system(base_path, fs)`，接入抽象层，桌面端默认使用 `LocalVaultFileSystem` 无回归。
-- ✅ `solosoul-core` 单元测试通过（`cargo test -p solosoul-core` 126 passed）。
-- ⏸ 真机基准测试（SQLite over SAF fd 重定向 vs 本地缓存）：当前实现采用本地缓存方案，基准测试留到 Phase 3 作为发布前验证项。
+- ✅ `solosoul-core` 单元测试通过（`cargo test -p solosoul-core` 139 passed）。
+- ⏸ 真机基准测试（SQLite over SAF fd 重定向 vs 本地缓存）：当前实现采用本地缓存方案，基准测试留到发布前真机回归阶段。
 
 ### Phase 1：Android SAF 目录与同步命令（已完成）
 
@@ -332,7 +332,8 @@ SQLite 打开 SAF 文件有两种思路：
 - [x] **启动同步异步化**：首次 `sync_from_remote` 从构造函数移除，改为 `spawn_blocking` 延迟执行，不阻塞应用启动。
 - [x] **增量同步**：Kotlin 双向同步增加 mtime+size 比较跳过未变更文件，减少 I/O。
 - [x] **原子写入**：Kotlin syncDirToRemote / syncDirFromRemote / exportToTreeUri 全部改为先写 .tmp 文件、成功后重命名，防止中途失败丢数据。
-- [ ] **发布 Android 版本**（需先完成以下真机验证）。
+- [x] **自动同步（dirty flag + 定期后台同步）**：`SafVaultFileSystem` 添加 `AtomicBool` 脏标记，`write_file`/`remove_file`/`remove_dir_all` 成功后设为脏；后台 task 每 30 秒通过 `sync_if_dirty()` 检查并自动同步到 SAF；`VaultFileSystem` trait 和 `VaultService` 均已暴露 `sync_if_dirty()`。
+- [x] **同步与迁移进度事件**：`vault_sync_to_remote`/`vault_sync_from_remote` 命令 emit `sync-progress` 事件（开始/完成）；`vault_set_directory` 迁移阶段 emit 3 阶段进度事件（start/migrate/sync/complete）。
 
 ### 后续跟踪（发布前真机验证）
 
@@ -341,6 +342,7 @@ SQLite 打开 SAF 文件有两种思路：
 - [ ] 多 ROM 真机回归：Pixel / 小米 / 华为 / 三星等常见 ROM。
 - [ ] 性能基准：对比 App-private 与 SAF 模式下的解锁、对象列表、附件写入、搜索耗时。
 - [ ] 卸载重装测试：确认 SAF 模式下卸载后数据保留，重装后可正常读取。
+- [ ] 发布 Android 版本。
 
 ---
 
@@ -457,8 +459,9 @@ SQLite 打开 SAF 文件有两种思路：
   - `settings:desc.vault_directory`
 
 ### 测试与验证
-- `LocalVaultFileSystem` 基础操作测试：3 个（`cargo test -p solosoul-core` 通过）
-- `SafVaultFileSystem` 单元测试：13 个（覆盖读写/路径校验/目录操作/同步委派/元数据，`cargo test -p solosoul-core` 通过）
-- 桌面端回归：`cargo check` / `cargo test -p solosoul-core` 16 个 vault_file_system 测试全绿
+- `VaultService` 单元测试：20+ 个（`cargo test -p solosoul-core` 通过，总计 139 个）
+- `LocalVaultFileSystem` 基础操作测试：3 个
+- `SafVaultFileSystem` 单元测试：13 个（覆盖读写/路径校验/目录操作/同步委派/元数据/脏标记）
+- 桌面端回归：`cargo check`（0 errors, 0 warnings）/ `cargo test -p solosoul-core`（139/139）/ `npx tsc --noEmit` 全部通过
 - 前端静态检查：`npx tsc --noEmit` / ESLint 通过
 - 待完成：多 ROM 真机回归、性能基准、卸载重装测试
