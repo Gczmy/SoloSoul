@@ -209,4 +209,8 @@ commands.allow = [
   "llm_download_embed_model",
   "llm_delete_embed_model",
   "set_status_bar_style",
+  "plugin:lock-state|register_listener",
+  "plugin:lock-state|remove_listener",
+  "plugin:lock-state|registerListener",
+  "plugin:lock-state|removeListener",
 ]
