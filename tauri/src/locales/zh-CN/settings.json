@@ -480,7 +480,13 @@
       "sync_with_device": "与设备同步",
       "sync_peer_trusted": "信任同步设备",
       "sync_peer_revoked": "撤销信任同步设备",
-      "sync_peer_forgotten": "忘记同步设备"
+      "sync_peer_forgotten": "忘记同步设备",
+      "ocr_scan": "OCR 扫描",
+      "ocr_scan_mrz": "MRZ 扫描",
+      "ocr_set_active_tier": "切换 OCR 模型",
+      "ocr_install_bundled_model": "安装 OCR 模型",
+      "ocr_download_model": "下载 OCR 模型",
+      "ocr_delete_model": "删除 OCR 模型"
     },
     "entity": {
       "object": "对象",
@@ -494,7 +500,9 @@
       "import": "导入",
       "attachment": "附件",
       "llm": "AI",
-      "auth": "认证"
+      "auth": "认证",
+      "file": "文件",
+      "ocr_model": "OCR 模型"
     },
     "performed_by_user": "用户",
     "performed_by_system": "系统",

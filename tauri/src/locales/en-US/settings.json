@@ -480,7 +480,13 @@
       "sync_with_device": "Sync with Device",
       "sync_peer_trusted": "Trust Sync Peer",
       "sync_peer_revoked": "Revoke Sync Peer",
-      "sync_peer_forgotten": "Forget Sync Peer"
+      "sync_peer_forgotten": "Forget Sync Peer",
+      "ocr_scan": "OCR Scan",
+      "ocr_scan_mrz": "MRZ Scan",
+      "ocr_set_active_tier": "Switch OCR Model",
+      "ocr_install_bundled_model": "Install OCR Model",
+      "ocr_download_model": "Download OCR Model",
+      "ocr_delete_model": "Delete OCR Model"
     },
     "entity": {
       "object": "Object",
@@ -494,7 +500,9 @@
       "import": "Import",
       "attachment": "Attachment",
       "llm": "AI",
-      "auth": "Authentication"
+      "auth": "Authentication",
+      "file": "File",
+      "ocr_model": "OCR Model"
     },
     "performed_by_user": "User",
     "performed_by_system": "System",
