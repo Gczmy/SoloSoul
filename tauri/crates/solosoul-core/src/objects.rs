@@ -209,6 +209,9 @@ pub fn move_to_trash(
         "version": record.version,
         "template_id": record.template_id,
         "template_type": record.template_type,
+        "contract_type_id": record.contract_type_id,
+        "template_hash": record.template_hash,
+        "ignored_template_hash": record.ignored_template_hash,
     });
     let trash = TrashItem {
         id: format!("trash_{}", uuid::Uuid::new_v4()),
@@ -229,162 +232,422 @@ pub fn move_to_trash(
     Ok(())
 }
 
-/// 从 TrashItem 恢复 ObjectRecord。用于从回收站还原对象。
-pub fn object_record_from_trash(trash: &TrashItem) -> Result<ObjectRecord, String> {
-    let data: serde_json::Value =
-        serde_json::from_slice(&trash.data).map_err(|e| format!("回收站数据损坏: {}", e))?;
-    let now = chrono::Utc::now().to_rfc3339();
-    Ok(ObjectRecord {
-        id: data["id"]
-            .as_str()
-            .unwrap_or(&trash.original_id)
-            .to_string(),
-        account_id: data["account_id"]
-            .as_str()
-            .unwrap_or("imported")
-            .to_string(),
-        type_id: data["type_id"].as_str().unwrap_or("note").to_string(),
-        section_type: trash
-            .original_section_type
-            .as_deref()
-            .or(data["section_type"].as_str())
-            .unwrap_or("identity")
-            .to_string(),
-        name: data["name"]
-            .as_str()
-            .unwrap_or(&trash.name_snapshot)
-            .to_string(),
-        icon_name: data["icon_name"].as_str().unwrap_or("document").to_string(),
-        parent_id: data["parent_id"].as_str().map(String::from),
-        children_ids: data["children_ids"]
-            .as_array()
-            .map(|a| {
-                a.iter()
-                    .filter_map(|v| v.as_str().map(String::from))
-                    .collect()
-            })
-            .unwrap_or_default(),
-        properties: data["properties"].clone(),
-        property_labels: if data["property_labels"].is_null() {
-            None
-        } else {
-            Some(data["property_labels"].clone())
-        },
-        sensitivity_level: data["sensitivity_level"]
-            .as_str()
-            .unwrap_or("internal")
-            .to_string(),
-        is_deleted: false,
-        deleted_at: None,
-        tags_json: data["tags"]
-            .as_array()
-            .map(|a| {
-                a.iter()
-                    .filter_map(|v| v.as_str().map(String::from))
-                    .collect()
-            })
-            .unwrap_or_default(),
-        template_id: data["template_id"].as_str().map(String::from),
-        contract_type_id: data["contract_type_id"].as_str().map(String::from),
-        template_type: data["template_type"].as_str().map(String::from),
-        template_hash: data["template_hash"].as_str().map(String::from),
-        ignored_template_hash: data["ignored_template_hash"].as_str().map(String::from),
-        created_at: data["created_at"].as_str().unwrap_or(&now).to_string(),
-        updated_at: now,
-        version: data["version"].as_u64().unwrap_or(1) as u32,
-    })
+/// 从回收站恢复单个对象，含冲突处理、级联恢复父页面、页面桩重建。
+pub fn restore_from_trash(vault: &VaultStore, trash_id: &str) -> Result<RestoreResult, String> {
+    restore_from_trash_with_lang(vault, trash_id, "en-US")
 }
 
-/// 从回收站恢复单个对象，含冲突处理。
-pub fn restore_from_trash(
+/// 带语言参数的回收站恢复入口。
+pub fn restore_from_trash_with_lang(
     vault: &VaultStore,
-    account_id: &str,
     trash_id: &str,
+    lang: &str,
 ) -> Result<RestoreResult, String> {
     let trash = vault
         .get_trash_item(trash_id)?
         .ok_or_else(|| "回收站项目不存在".to_string())?;
 
-    let new_id = match trash.item_type.as_str() {
-        "object" | "page" => {
-            let mut record = object_record_from_trash(&trash)?;
+    match trash.item_type.as_str() {
+        "page" => restore_page(vault, &trash, lang),
+        "object" => restore_object(vault, &trash, lang),
+        "template" => restore_template(vault, &trash, trash_id),
+        _ => Err(format!("不支持的回收站类型: {}", trash.item_type)),
+    }
+}
 
-            // 如果原父页面不存在或已删除，清除 parent_id
-            if let Some(ref pid) = record.parent_id.clone() {
-                if vault
-                    .load_object(pid)
-                    .ok()
-                    .flatten()
-                    .is_none_or(|p| p.is_deleted)
-                {
-                    record.parent_id = None;
-                }
-            }
+/// 恢复页面类型回收站项，并级联恢复其下所有子对象。
+fn restore_page(
+    vault: &VaultStore,
+    trash: &TrashItem,
+    lang: &str,
+) -> Result<RestoreResult, String> {
+    let (page_record, _) = restore_single_object(vault, trash, lang)?;
+    let page_id = page_record.id.clone();
+    let page_name = page_record.name.clone();
+    vault.delete_trash_item(&trash.id)?;
 
-            // 检查冲突：同 section 下同名
-            let conflict = vault
-                .list_objects(account_id, None, None, Some(&record.name), false, false)?
-                .into_iter()
-                .any(|o| {
-                    o.name == record.name
-                        && o.section_type == record.section_type
-                        && o.id != record.id
-                });
-
-            let new_id = if conflict {
-                let suffix = uuid::Uuid::new_v4()
-                    .to_string()
-                    .split('-')
-                    .next()
-                    .unwrap_or("restored")
-                    .to_string();
-                format!("{}_{}", record.id, suffix)
-            } else {
-                record.id.clone()
-            };
-
-            if conflict {
-                record.id = new_id.clone();
-                record.name = format!("{}（已恢复）", record.name);
-            }
-
-            vault.save_object(&record)?;
-            vault.delete_trash_item(trash_id)?;
+    let mut cascaded_count = 0u32;
+    let children = find_child_objects_in_trash(vault, &page_id)?;
+    for child_trash in &children {
+        if let Ok((_, _)) = restore_single_object(vault, child_trash, lang) {
+            vault.delete_trash_item(&child_trash.id)?;
             let _ = vault.log_structured(
                 "object_restore",
-                if record.type_id == "page" {
-                    "page"
-                } else {
-                    "object"
-                },
-                Some(&trash.original_id),
-                Some(&trash.name_snapshot),
+                "object",
+                Some(&child_trash.original_id),
+                Some(&child_trash.name_snapshot),
                 "user",
-                Some(&format!(
-                    "section={} was_conflict={}",
-                    record.section_type, conflict
-                )),
+                Some(&format!("cascaded_from_page={}", page_id)),
             );
+            cascaded_count += 1;
+        }
+    }
 
-            new_id
+    let _ = vault.log_structured(
+        "page_restore",
+        "page",
+        Some(&page_id),
+        Some(&page_name),
+        "user",
+        Some(&format!("count={}", cascaded_count)),
+    );
+
+    Ok(RestoreResult {
+        restored_id: page_id,
+        restored_name: page_name,
+        cascaded_page_name: None,
+        cascaded_count,
+        rebuilt_page_name: None,
+    })
+}
+
+/// 恢复对象类型回收站项。若所属自定义页面缺失：在回收站则级联恢复，已永久删除则重建页面桩。
+fn restore_object(
+    vault: &VaultStore,
+    trash: &TrashItem,
+    lang: &str,
+) -> Result<RestoreResult, String> {
+    let record_data: serde_json::Value =
+        serde_json::from_slice(&trash.data).map_err(|e| format!("回收站数据损坏: {}", e))?;
+
+    let account_id = read_str(&record_data, "account_id", "accountId").unwrap_or("imported");
+    let target_section = trash
+        .original_section_type
+        .as_deref()
+        .or_else(|| record_data["sectionType"].as_str())
+        .or_else(|| record_data["section_type"].as_str())
+        .unwrap_or("identity")
+        .to_string();
+
+    let mut cascaded_page_name: Option<String> = None;
+    let mut rebuilt_page_name: Option<String> = None;
+
+    if !is_built_in_section(&target_section) && uuid::Uuid::parse_str(&target_section).is_ok() {
+        let page_exists = vault
+            .load_object(&target_section)
+            .ok()
+            .flatten()
+            .map(|o| !o.is_deleted)
+            .unwrap_or(false);
+
+        if !page_exists {
+            if let Ok(Some(page_trash)) = find_page_in_trash(vault, &target_section) {
+                let (page_record, _) = restore_single_object(vault, &page_trash, lang)?;
+                vault.delete_trash_item(&page_trash.id)?;
+                cascaded_page_name = Some(page_record.name.clone());
+                let _ = vault.log_structured(
+                    "page_restore",
+                    "page",
+                    Some(&page_record.id),
+                    Some(&page_record.name),
+                    "user",
+                    Some("cascaded_from_object_restore"),
+                );
+            } else {
+                let raw_name = record_data["parentPageName"].as_str().unwrap_or("");
+                let page_name = if raw_name.is_empty() {
+                    recovered_page_name(lang).to_string()
+                } else {
+                    raw_name.to_string()
+                };
+                let page_icon = record_data["parentPageIcon"].as_str().unwrap_or("folder");
+                let stub =
+                    rebuild_page_stub(vault, &target_section, account_id, &page_name, page_icon)?;
+                rebuilt_page_name = Some(stub.name.clone());
+                let _ = vault.log_structured(
+                    "page_create",
+                    "page",
+                    Some(&stub.id),
+                    Some(&stub.name),
+                    "user",
+                    Some("rebuilt_stub_from_object_restore"),
+                );
+            }
         }
-        "template" => {
-            // 模板恢复：直接还原数据
-            let template: solosoul_vault::UserTemplate =
-                serde_json::from_slice(&trash.data).map_err(|e| format!("模板数据损坏: {}", e))?;
-            vault.save_user_template(&template)?;
-            vault.delete_trash_item(trash_id)?;
-            template.name
+    }
+
+    let (record, was_conflict) = restore_single_object(vault, trash, lang)?;
+    vault.delete_trash_item(&trash.id)?;
+    let _ = vault.log_structured(
+        "object_restore",
+        "object",
+        Some(&trash.original_id),
+        Some(&trash.name_snapshot),
+        "user",
+        Some(&format!(
+            "section={} was_conflict={}",
+            target_section, was_conflict
+        )),
+    );
+
+    Ok(RestoreResult {
+        restored_id: record.id,
+        restored_name: record.name,
+        cascaded_page_name,
+        cascaded_count: 0,
+        rebuilt_page_name,
+    })
+}
+
+fn restore_template(
+    vault: &VaultStore,
+    trash: &TrashItem,
+    trash_id: &str,
+) -> Result<RestoreResult, String> {
+    let template: solosoul_vault::UserTemplate =
+        serde_json::from_slice(&trash.data).map_err(|e| format!("模板数据损坏: {}", e))?;
+    let name = template.name.clone();
+    vault.save_user_template(&template)?;
+    vault.delete_trash_item(trash_id)?;
+    Ok(RestoreResult {
+        restored_id: template.id,
+        restored_name: name,
+        cascaded_page_name: None,
+        cascaded_count: 0,
+        rebuilt_page_name: None,
+    })
+}
+
+// ── Restore helpers ────────────────────────────────────────
+
+const BUILT_IN_SECTIONS: &[&str] = &["identity", "travel", "financial", "professional"];
+
+fn is_built_in_section(section_type: &str) -> bool {
+    BUILT_IN_SECTIONS.contains(&section_type)
+}
+
+fn read_str<'a>(data: &'a serde_json::Value, snake: &str, camel: &str) -> Option<&'a str> {
+    data[camel].as_str().or_else(|| data[snake].as_str())
+}
+
+fn read_array(data: &serde_json::Value, snake: &str, camel: &str) -> Option<Vec<String>> {
+    data[camel]
+        .as_array()
+        .or_else(|| data[snake].as_array())
+        .map(|a| {
+            a.iter()
+                .filter_map(|v| v.as_str().map(String::from))
+                .collect()
+        })
+}
+
+fn restored_suffix(lang: &str) -> &'static str {
+    match lang {
+        "zh-CN" => "（已恢复）",
+        _ => " (restored)",
+    }
+}
+
+fn recovered_page_name(lang: &str) -> &'static str {
+    match lang {
+        "zh-CN" => "已恢复的页面",
+        _ => "Recovered Page",
+    }
+}
+
+fn inherit_contract_type_id(vault: &VaultStore, template_id: Option<&str>) -> Option<String> {
+    template_id.and_then(|tid| {
+        vault
+            .load_user_template(tid)
+            .ok()
+            .flatten()
+            .and_then(|t| t.contract_type_id)
+    })
+}
+
+fn find_page_in_trash(vault: &VaultStore, page_id: &str) -> Result<Option<TrashItem>, String> {
+    let all = vault.list_trash_items(None, None)?;
+    for item in &all {
+        if item.item_type == "page" && item.original_id == page_id {
+            return vault.get_trash_item(&item.id);
         }
-        _ => return Err(format!("不支持的回收站类型: {}", trash.item_type)),
+    }
+    Ok(None)
+}
+
+fn find_child_objects_in_trash(
+    vault: &VaultStore,
+    section_type: &str,
+) -> Result<Vec<TrashItem>, String> {
+    let all = vault.list_trash_items(None, None)?;
+    let mut out = Vec::new();
+    for item in &all {
+        if item.item_type == "object" {
+            if let Ok(Some(full)) = vault.get_trash_item(&item.id) {
+                if full.original_section_type.as_deref() == Some(section_type) {
+                    out.push(full);
+                }
+            }
+        }
+    }
+    Ok(out)
+}
+
+fn rebuild_page_stub(
+    vault: &VaultStore,
+    page_id: &str,
+    account_id: &str,
+    page_name: &str,
+    icon_name: &str,
+) -> Result<ObjectRecord, String> {
+    let now = chrono::Utc::now().to_rfc3339();
+    let record = ObjectRecord {
+        id: page_id.to_string(),
+        account_id: account_id.to_string(),
+        type_id: "page".to_string(),
+        section_type: page_id.to_string(),
+        name: page_name.to_string(),
+        icon_name: icon_name.to_string(),
+        parent_id: None,
+        children_ids: vec![],
+        properties: serde_json::json!({}),
+        property_labels: None,
+        sensitivity_level: "internal".to_string(),
+        is_deleted: false,
+        deleted_at: None,
+        tags_json: vec![],
+        template_id: None,
+        template_type: None,
+        template_hash: None,
+        ignored_template_hash: None,
+        created_at: now.clone(),
+        updated_at: now,
+        version: 1,
+        contract_type_id: None,
+    };
+    vault.save_object(&record)?;
+    Ok(record)
+}
+
+/// Restore a single non-deleted object from a trash item.
+/// Returns the restored ObjectRecord and whether the ID was changed due to a name conflict.
+fn restore_single_object(
+    vault: &VaultStore,
+    trash: &TrashItem,
+    lang: &str,
+) -> Result<(ObjectRecord, bool), String> {
+    let record_data: serde_json::Value =
+        serde_json::from_slice(&trash.data).map_err(|e| format!("Invalid trash data: {}", e))?;
+
+    let target_section = trash
+        .original_section_type
+        .as_deref()
+        .or_else(|| record_data["sectionType"].as_str())
+        .or_else(|| record_data["section_type"].as_str())
+        .unwrap_or("identity");
+
+    let account_id = read_str(&record_data, "account_id", "accountId").unwrap_or("imported");
+    let objects = vault
+        .list_objects(
+            account_id,
+            None,
+            None,
+            Some(&trash.name_snapshot),
+            false,
+            false,
+        )
+        .unwrap_or_default();
+    let exists = objects
+        .iter()
+        .any(|o| o.name == trash.name_snapshot && o.section_type == target_section);
+
+    let suffix = restored_suffix(lang);
+
+    let new_id = if exists {
+        format!(
+            "{}_{}",
+            trash.original_id,
+            uuid::Uuid::new_v4()
+                .to_string()
+                .split('-')
+                .next()
+                .unwrap_or("restored")
+        )
+    } else {
+        trash.original_id.clone()
     };
 
-    Ok(RestoreResult { new_id })
+    let new_name = if exists {
+        format!("{}{}", trash.name_snapshot, suffix)
+    } else {
+        trash.name_snapshot.clone()
+    };
+
+    let contract_type_id =
+        inherit_contract_type_id(vault, read_str(&record_data, "template_id", "templateId"));
+
+    let now = chrono::Utc::now().to_rfc3339();
+    let record = ObjectRecord {
+        contract_type_id,
+        id: new_id.clone(),
+        account_id: read_str(&record_data, "account_id", "accountId")
+            .unwrap_or("imported")
+            .to_string(),
+        type_id: read_str(&record_data, "type_id", "typeId")
+            .unwrap_or("note")
+            .to_string(),
+        section_type: target_section.to_string(),
+        name: new_name,
+        icon_name: read_str(&record_data, "icon_name", "iconName")
+            .unwrap_or("document")
+            .to_string(),
+        parent_id: read_str(&record_data, "parent_id", "parentId").map(String::from),
+        children_ids: read_array(&record_data, "children_ids", "childrenIds").unwrap_or_default(),
+        properties: record_data["properties"].clone(),
+        property_labels: if record_data["propertyLabels"].is_null() {
+            if record_data["property_labels"].is_null() {
+                None
+            } else {
+                Some(record_data["property_labels"].clone())
+            }
+        } else {
+            Some(record_data["propertyLabels"].clone())
+        },
+        sensitivity_level: read_str(&record_data, "sensitivity_level", "sensitivityLevel")
+            .unwrap_or("internal")
+            .to_string(),
+        is_deleted: false,
+        deleted_at: None,
+        tags_json: record_data["tags"]
+            .as_array()
+            .map(|a| {
+                a.iter()
+                    .filter_map(|v| v.as_str().map(String::from))
+                    .collect()
+            })
+            .unwrap_or_default(),
+        template_id: read_str(&record_data, "template_id", "templateId").map(String::from),
+        template_type: read_str(&record_data, "template_type", "templateType").map(String::from),
+        template_hash: read_str(&record_data, "template_hash", "templateHash").map(String::from),
+        ignored_template_hash: read_str(
+            &record_data,
+            "ignored_template_hash",
+            "ignoredTemplateHash",
+        )
+        .map(String::from),
+        created_at: read_str(&record_data, "created_at", "createdAt")
+            .unwrap_or(&now)
+            .to_string(),
+        updated_at: now.clone(),
+        version: record_data["version"].as_u64().unwrap_or(1) as u32,
+    };
+
+    vault.save_object(&record)?;
+    if new_id != trash.original_id {
+        let _ = vault.copy_snapshots(&trash.original_id, &new_id);
+    }
+
+    Ok((record, exists))
 }
 
 /// 恢复结果。
+/// 同时供 GUI 与 CLI 使用；Tauri 命令会把它映射到 camelCase 的 RestoreOutcome。
 pub struct RestoreResult {
-    pub new_id: String,
+    pub restored_id: String,
+    pub restored_name: String,
+    pub cascaded_page_name: Option<String>,
+    pub cascaded_count: u32,
+    pub rebuilt_page_name: Option<String>,
 }
 
 /// 彻底删除回收站项目（含底层对象）。
@@ -976,8 +1239,8 @@ mod tests {
         assert_eq!(trash_items.len(), 1);
 
         // 恢复
-        let result = restore_from_trash(&vault, &account_id, &trash_items[0].id).unwrap();
-        assert_eq!(result.new_id, obj.id);
+        let result = restore_from_trash(&vault, &trash_items[0].id).unwrap();
+        assert_eq!(result.restored_id, obj.id);
         let restored = vault.load_object(&obj.id).unwrap().unwrap();
         assert!(!restored.is_deleted);
     }
@@ -1022,6 +1285,191 @@ mod tests {
         assert_eq!(sanitize_file_name("../../../etc/passwd"), "passwd");
         assert_eq!(sanitize_file_name("/tmp/file.txt"), "file.txt");
         assert_eq!(sanitize_file_name("normal.txt"), "normal.txt");
+    }
+
+    /// 构造一个自定义页面：id 与 section_type 均为 page_id，更贴近真实应用。
+    fn make_custom_page(
+        vault: &VaultStore,
+        account_id: &str,
+        page_id: &str,
+        name: &str,
+    ) -> ObjectRecord {
+        let now = chrono::Utc::now().to_rfc3339();
+        let page = ObjectRecord {
+            id: page_id.to_string(),
+            account_id: account_id.to_string(),
+            type_id: "page".to_string(),
+            section_type: page_id.to_string(),
+            name: name.to_string(),
+            icon_name: "folder".to_string(),
+            parent_id: None,
+            children_ids: vec![],
+            properties: serde_json::json!({}),
+            property_labels: None,
+            sensitivity_level: "internal".to_string(),
+            is_deleted: false,
+            deleted_at: None,
+            tags_json: vec![],
+            template_id: None,
+            template_type: None,
+            template_hash: None,
+            ignored_template_hash: None,
+            created_at: now.clone(),
+            updated_at: now,
+            version: 1,
+            contract_type_id: None,
+        };
+        vault.save_object(&page).unwrap();
+        page
+    }
+
+    #[test]
+    fn test_restore_object_cascades_parent_page() {
+        let (vault, account_id, _dir) = test_setup();
+        let page_id = uuid::Uuid::new_v4().to_string();
+        let page = make_custom_page(&vault, &account_id, &page_id, "CustomPage");
+
+        let mut obj = create_object(
+            &vault,
+            &account_id,
+            &page.id,
+            "MyObject",
+            serde_json::json!({}),
+            None,
+            None,
+        )
+        .unwrap();
+        obj.section_type = page_id.clone();
+        vault.save_object(&obj).unwrap();
+
+        move_to_trash(&vault, &obj, "object", Some(page.id.clone()), 3600000).unwrap();
+        move_to_trash(&vault, &page, "page", None, 3600000).unwrap();
+
+        let obj_trash = vault
+            .list_trash_items(None, None)
+            .unwrap()
+            .into_iter()
+            .find(|t| t.item_type == "object")
+            .unwrap();
+
+        let result = restore_from_trash(&vault, &obj_trash.id).unwrap();
+
+        assert_eq!(result.restored_id, obj.id);
+        assert_eq!(result.cascaded_page_name.as_deref(), Some("CustomPage"));
+        assert!(result.rebuilt_page_name.is_none());
+        assert_eq!(result.cascaded_count, 0);
+
+        assert!(!vault.load_object(&page.id).unwrap().unwrap().is_deleted);
+        assert!(!vault.load_object(&obj.id).unwrap().unwrap().is_deleted);
+    }
+
+    #[test]
+    fn test_restore_object_rebuilds_page_stub() {
+        let (vault, account_id, _dir) = test_setup();
+        let page_id = uuid::Uuid::new_v4().to_string();
+
+        let mut obj = create_object(
+            &vault,
+            &account_id,
+            &page_id,
+            "OrphanObject",
+            serde_json::json!({}),
+            None,
+            None,
+        )
+        .unwrap();
+        obj.section_type = page_id.clone();
+        vault.save_object(&obj).unwrap();
+
+        // 手动构造带 parentPageName 的 TrashItem（模拟 page_delete 写入的格式）
+        let full_record = serde_json::json!({
+            "id": obj.id,
+            "accountId": obj.account_id,
+            "typeId": obj.type_id,
+            "sectionType": obj.section_type,
+            "name": obj.name,
+            "iconName": obj.icon_name,
+            "parentId": obj.parent_id,
+            "childrenIds": obj.children_ids,
+            "properties": obj.properties,
+            "propertyLabels": obj.property_labels,
+            "sensitivityLevel": obj.sensitivity_level,
+            "tags": obj.tags_json,
+            "createdAt": obj.created_at,
+            "updatedAt": obj.updated_at,
+            "version": obj.version,
+            "templateId": obj.template_id,
+            "templateType": obj.template_type,
+            "contractTypeId": obj.contract_type_id,
+            "templateHash": obj.template_hash,
+            "parentPageName": "My Lost Page",
+        });
+        let trash = TrashItem {
+            id: format!("trash_{}", uuid::Uuid::new_v4()),
+            item_type: "object".to_string(),
+            original_id: obj.id.clone(),
+            original_parent_id: None,
+            original_section_type: Some(obj.section_type.clone()),
+            original_sort_order: None,
+            data: serde_json::to_vec(&full_record).unwrap_or_default(),
+            deleted_at: chrono::Utc::now().timestamp_millis(),
+            expires_at: Some(chrono::Utc::now().timestamp_millis() + 3600000),
+            deleted_by: "user".to_string(),
+            name_snapshot: obj.name.clone(),
+            icon_snapshot: Some(obj.icon_name.clone()),
+        };
+        vault.save_trash_item(&trash).unwrap();
+        vault.delete_object(&obj.id, true).unwrap();
+
+        let result = restore_from_trash(&vault, &trash.id).unwrap();
+
+        assert_eq!(result.restored_id, obj.id);
+        assert_eq!(result.rebuilt_page_name.as_deref(), Some("My Lost Page"));
+        assert!(result.cascaded_page_name.is_none());
+        assert_eq!(result.cascaded_count, 0);
+
+        let stub = vault.load_object(&page_id).unwrap().unwrap();
+        assert_eq!(stub.name, "My Lost Page");
+        assert_eq!(stub.type_id, "page");
+        assert!(!stub.is_deleted);
+    }
+
+    #[test]
+    fn test_restore_page_cascades_objects() {
+        let (vault, account_id, _dir) = test_setup();
+        let page_id = uuid::Uuid::new_v4().to_string();
+        let page = make_custom_page(&vault, &account_id, &page_id, "ParentPage");
+
+        let mut obj = create_object(
+            &vault,
+            &account_id,
+            &page.id,
+            "ChildObj",
+            serde_json::json!({}),
+            None,
+            None,
+        )
+        .unwrap();
+        obj.section_type = page_id.clone();
+        vault.save_object(&obj).unwrap();
+
+        move_to_trash(&vault, &obj, "object", Some(page.id.clone()), 3600000).unwrap();
+        move_to_trash(&vault, &page, "page", None, 3600000).unwrap();
+
+        let page_trash = vault
+            .list_trash_items(None, None)
+            .unwrap()
+            .into_iter()
+            .find(|t| t.item_type == "page")
+            .unwrap();
+
+        let result = restore_from_trash(&vault, &page_trash.id).unwrap();
+
+        assert_eq!(result.restored_id, page.id);
+        assert_eq!(result.cascaded_count, 1);
+
+        assert!(!vault.load_object(&page.id).unwrap().unwrap().is_deleted);
+        assert!(!vault.load_object(&obj.id).unwrap().unwrap().is_deleted);
     }
 
     #[test]

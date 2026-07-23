@@ -446,8 +446,28 @@ pub fn trash(app: &mut App, args: &[&str]) -> Result<()> {
     apply_trash_filter(app, filter)
 }
 
+fn format_restored_detail(
+    i18n: &crate::i18n::I18n,
+    result: &objects::RestoreResult,
+) -> Option<String> {
+    if let Some(page) = &result.rebuilt_page_name {
+        return Some(t!(i18n, "cmd-restored-rebuilt-page", page = page));
+    }
+    if let Some(page) = &result.cascaded_page_name {
+        return Some(t!(i18n, "cmd-restored-cascaded-page", page = page));
+    }
+    if result.cascaded_count > 0 {
+        return Some(t!(
+            i18n,
+            "cmd-restored-cascaded-count",
+            count = result.cascaded_count.to_string()
+        ));
+    }
+    None
+}
+
 pub fn batch_restore(app: &mut App, ids: &[String]) -> Result<()> {
-    let account_id = require_unlocked(app)?;
+    let _account_id = require_unlocked(app)?;
     let vault = app
         .vault_service
         .get_vault_store()
@@ -455,8 +475,14 @@ pub fn batch_restore(app: &mut App, ids: &[String]) -> Result<()> {
     let mut success = Vec::new();
     let mut failed = Vec::new();
     for id in ids {
-        match objects::restore_from_trash(&vault, &account_id, id) {
-            Ok(result) => success.push(format!("{} -> {}", id, result.new_id)),
+        match objects::restore_from_trash(&vault, id) {
+            Ok(result) => {
+                let mut lines = vec![format!("{} -> {}", id, result.restored_id)];
+                if let Some(detail) = format_restored_detail(&app.i18n, &result) {
+                    lines.push(detail);
+                }
+                success.push(lines.join("\n"));
+            }
             Err(e) => failed.push(format!("{}: {}", id, e)),
         }
     }
@@ -503,7 +529,7 @@ pub fn batch_purge(app: &mut App, ids: &[String]) -> Result<()> {
 }
 
 pub fn restore(app: &mut App, trash_id: Option<&str>) -> Result<()> {
-    let account_id = require_unlocked(app)?;
+    let _account_id = require_unlocked(app)?;
     let trash_id = match trash_id {
         Some(id) => id,
         None => {
@@ -516,8 +542,14 @@ pub fn restore(app: &mut App, trash_id: Option<&str>) -> Result<()> {
         .vault_service
         .get_vault_store()
         .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
-    match objects::restore_from_trash(&vault, &account_id, trash_id) {
-        Ok(result) => app.error_message = Some(t!(app.i18n, "cmd-restored", id = result.new_id)),
+    match objects::restore_from_trash(&vault, trash_id) {
+        Ok(result) => {
+            let mut message = t!(app.i18n, "cmd-restored", id = result.restored_id);
+            if let Some(detail) = format_restored_detail(&app.i18n, &result) {
+                message = format!("{}\n{}", message, detail);
+            }
+            app.error_message = Some(message);
+        }
         Err(e) => app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e)),
     }
     Ok(())
