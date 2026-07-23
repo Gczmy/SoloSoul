@@ -109,35 +109,55 @@ impl AppState {
             .unwrap_or(false)
     }
 
-    /// 异步初始化 SAF 数据同步（首次启动时从 SAF 拉取数据到本地临时目录）。
-    /// 在 spawn_blocking 中执行递归文件复制，避免阻塞 tokio 主线程。
-    ///
-    /// 安全前置检查：在尝试同步前先验证 SAF tree URI 仍然可访问，
-    /// 避免在权限已撤销的情况下静默降级为空状态，导致用户创建的数据丢失。
     /// 启动后台自动同步任务。
     /// 每 30 秒检查 dirty flag，有脏数据时自动同步到 SAF。
     /// 该任务不会阻塞应用启动。
+    ///
+    /// 注意：实际的 SAF 同步操作（JNI 调用）在 `spawn_blocking` 中执行，
+    /// 避免在 async runtime worker 线程上执行阻塞的 Kotlin 桥接调用。
     pub fn start_auto_sync_task(&self) -> tokio::task::JoinHandle<()> {
         let svc = self.vault_service.clone();
         let app = self.handle.clone();
         tokio::spawn(async move {
             loop {
                 tokio::time::sleep(std::time::Duration::from_secs(30)).await;
-                let read_guard = match svc.read() {
-                    Ok(g) => g,
-                    Err(_) => continue,
+                let need_sync = {
+                    let read_guard = match svc.read() {
+                        Ok(g) => g,
+                        Err(_) => continue,
+                    };
+                    read_guard.is_remote_storage()
                 };
-                if read_guard.is_remote_storage() {
-                    if let Err(e) = read_guard.sync_if_dirty() {
-                        tracing::warn!("[auto-sync] sync_if_dirty failed: {e}");
-                        continue;
+                if !need_sync {
+                    continue;
+                }
+                // 在 spawn_blocking 中执行阻塞的 JNI 同步操作，
+                // 避免在 tokio worker 线程上调用 run_mobile_plugin。
+                // 注意：release 构建使用 panic = "abort"，此处 JoinError 分支
+                // 在生产构建中不可达（任何 panic 直接 abort 进程）。
+                let svc_clone = svc.clone();
+                let result = tokio::task::spawn_blocking(move || -> Result<(), String> {
+                    let read_guard = svc_clone
+                        .read()
+                        .map_err(|_| "Vault service lock poisoned".to_string())?;
+                    read_guard.sync_if_dirty()
+                })
+                .await;
+                match result {
+                    Ok(Ok(())) => {
+                        let _ = app.emit(
+                            "sync-progress",
+                            serde_json::json!({"phase": "auto_sync", "current": 1, "total": 1}),
+                        );
+                        tracing::debug!("[auto-sync] sync_if_dirty completed");
                     }
-                    // 每次同步后也更新前端状态
-                    let _ = app.emit(
-                        "sync-progress",
-                        serde_json::json!({"phase": "auto_sync", "current": 1, "total": 1}),
-                    );
-                    tracing::debug!("[auto-sync] sync_if_dirty completed");
+                    Ok(Err(e)) => {
+                        tracing::warn!("[auto-sync] sync_if_dirty failed: {e}");
+                    }
+                    Err(join_err) => {
+                        // 仅 debug 构建可达：release（panic=abort）下 panic 直接 abort 进程
+                        tracing::error!("[auto-sync] sync task panicked: {join_err}");
+                    }
                 }
             }
         })
@@ -147,33 +167,33 @@ impl AppState {
         let svc = self.vault_service.clone();
         let app_handle = self.handle.clone();
 
-        // 解析数据目录并读取保存的 SAF URI（在 spawn_blocking 外执行，path() 不阻塞）
+        // 解析数据目录并读取保存的 SAF URI（async 侧执行，path() 不阻塞）
         let data_dir = app_handle
             .path()
             .resolve(".", tauri::path::BaseDirectory::Data)
             .map_err(|e| format!("无法解析应用数据目录: {e}"))?;
         let saved_uri = Self::load_saved_saf_uri(&data_dir);
 
-        tokio::task::spawn_blocking(move || -> Result<(), String> {
-            // 前置检查：验证 SAF URI 仍然可访问
-            if let Some(ref uri) = saved_uri {
-                let plugin_handle =
-                    app_handle.state::<AttachmentImportPluginHandle<tauri::Wry>>();
-                let valid = plugin_handle
-                    .check_vault_dir_access(uri)
-                    .unwrap_or(false);
-                if !valid {
-                    tracing::error!(
-                        "[AppState] SAF directory access revoked for {}, skipping initial sync",
-                        uri
-                    );
-                    return Err(
-                        "SAF 目录访问权限已被撤销，请前往「设置 > 保险库目录」重新选择目录。"
-                            .to_string(),
-                    );
-                }
+        // 前置检查：验证 SAF URI 仍然可访问（在 spawn_blocking 外部执行，
+        // 避免在阻塞线程中调用 JNI 桥接）
+        if let Some(ref uri) = saved_uri {
+            let plugin_handle = app_handle.state::<AttachmentImportPluginHandle<tauri::Wry>>();
+            let valid = plugin_handle
+                .check_vault_dir_access(uri)
+                .unwrap_or(false);
+            if !valid {
+                tracing::error!(
+                    "[AppState] SAF directory access revoked for {}, skipping initial sync",
+                    uri
+                );
+                return Err(
+                    "SAF 目录访问权限已被撤销，请前往「设置 > 保险库目录」重新选择目录。"
+                        .to_string(),
+                );
             }
+        }
 
+        tokio::task::spawn_blocking(move || -> Result<(), String> {
             let read_guard =
                 svc.read().map_err(|_| "Vault service lock poisoned".to_string())?;
             let accounts_path = read_guard.base_path().join("accounts.json");
