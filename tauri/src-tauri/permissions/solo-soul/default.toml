@@ -39,7 +39,6 @@ commands.allow = [
   "trash_restore",
   "trash_permanent_delete",
   "page_delete",
-  "page_restore",
   "trash_get_retention",
   "trash_set_retention",
   "trash_get_detail",

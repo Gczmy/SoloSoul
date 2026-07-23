@@ -39,7 +39,7 @@
 | 模块 | 命令数 | 典型命令 |
 |------|--------|---------|
 | 回收站 (Trash) | 5 | `trash_restore`、`trash_permanent_delete`、`trash_get_detail`、`trash_get_retention`、`trash_set_retention` |
-| 页面 (Page) | 2 | `page_delete`、`page_restore` |
+| 页面 (Page) | 1 | `page_delete` |
 | 快照 (Snapshot) | 5 | `snapshot_list`、`snapshot_get`、`snapshot_get_data`、`snapshot_rollback`、`snapshot_count_batch` |
 | 附件 (Attachment) | 14 | `attachment_list`、`attachment_save`、`attachment_download`、`attachment_rename`、`attachment_cleanup_orphans`、`attachment_copy_to_vault` |
 | 搜索 (Search) | 2 | `search_unified`、`search_advanced` |

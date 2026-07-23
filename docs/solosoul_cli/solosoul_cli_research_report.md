@@ -92,7 +92,7 @@ CLI 不是 GUI 的简化版，而是**同一后端的另一套交互宿主**。�
 | `/delete <object-id>` | 软删除对象或页面 | `object::object_delete` / `object::page_delete` |
 | `/search [keyword]` | 搜索页面、对象、字段属性 | `search::search_unified` / `search::search_advanced` |
 | `/trash`（或 `/bin`） | 查看回收站 | `object::object_trash_list` |
-| `/restore <trash-id>` | 恢复回收站项目 | `object::trash_restore` / `object::page_restore` |
+| `/restore <trash-id>` | 恢复回收站项目 | `object::trash_restore` |
 | `/purge <trash-id>` | 彻底删除回收站项目 | `object::trash_permanent_delete` / `object::object_purge` |
 | `/history <object-id>` | 查看对象历史快照 | `object::snapshot_list` / `snapshot_get_data` |
 | `/rollback <object-id> <snapshot-id>` | 回滚到历史版本 | `object::snapshot_rollback` |
@@ -278,7 +278,7 @@ CLI 命令与现有 Tauri Commands 的映射关系如下表（按模块）：
 | Object | `object_create` | `/newpage`、`/newobject` | P0 |
 | Object | `object_update` | `/edit` | P0 |
 | Object | `object_delete` / `object_purge` | `/delete` / `/purge` | P0 |
-| Object | `object_restore` / `trash_restore` / `page_restore` | `/restore` | P0 |
+| Object | `object_restore` / `trash_restore` | `/restore` | P0 |
 | Object | `object_trash_list` / `trash_get_detail` | `/trash` | P0 |
 | Object | `trash_permanent_delete` | `/purge` | P0 |
 | Object | `trash_get_retention` / `trash_set_retention` | `/security trash-retention` | P1 |

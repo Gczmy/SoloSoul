@@ -392,7 +392,6 @@ pub fn run() {
             commands::object::trash_restore,
             commands::object::trash_permanent_delete,
             commands::object::page_delete,
-            commands::object::page_restore,
             commands::object::trash_get_retention,
             commands::object::trash_set_retention,
             commands::object::trash_get_detail,
