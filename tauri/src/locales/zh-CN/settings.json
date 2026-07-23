@@ -484,6 +484,12 @@
       "ocr_scan": "OCR 扫描",
       "ocr_scan_mrz": "MRZ 扫描",
       "ocr_set_active_tier": "切换 OCR 模型",
+      "sync_enabled": "启用同步",
+      "sync_disabled": "关闭同步",
+      "sync_with_device": "与设备同步",
+      "sync_peer_trusted": "信任同步设备",
+      "sync_peer_revoked": "撤销信任同步设备",
+      "sync_peer_forgotten": "忘记同步设备",
       "ocr_install_bundled_model": "安装 OCR 模型",
       "ocr_download_model": "下载 OCR 模型",
       "ocr_delete_model": "删除 OCR 模型"
@@ -502,7 +508,8 @@
       "llm": "AI",
       "auth": "认证",
       "file": "文件",
-      "ocr_model": "OCR 模型"
+      "ocr_model": "OCR 模型",
+      "sync": "同步"
     },
     "performed_by_user": "用户",
     "performed_by_system": "系统",
@@ -563,7 +570,13 @@
       "page_restore": "连带恢复了 {{count}} 个对象",
       "page_restore_cascaded": "因恢复对象而级联恢复页面 {{pageName}}",
       "attachment_cleanup": "清理了 {{count}} 个孤立附件，释放 {{bytes}}",
-      "ocr_scan": "文件类型：{{fileType}} · 识别框数：{{boxCount}} · 文本长度：{{textLength}} · 置信度：{{confidence}}"
+      "ocr_scan": "文件类型：{{fileType}} · 识别框数：{{boxCount}} · 文本长度：{{textLength}} · 置信度：{{confidence}}",
+      "sync_enabled": "启用局域网同步",
+      "sync_disabled": "关闭局域网同步",
+      "sync_with_device": "与设备 {{device_id}} 同步：{{summary}}",
+      "sync_peer_trusted": "信任设备 {{peer_id}}",
+      "sync_peer_revoked": "撤销信任设备 {{peer_id}}",
+      "sync_peer_forgotten": "忘记设备 {{peer_id}}"
     }
   },
   "template_manager_title": "模板管理",

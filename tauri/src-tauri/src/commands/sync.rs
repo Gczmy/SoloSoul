@@ -4,6 +4,29 @@ use serde::Serialize;
 use tauri::Manager;
 use tauri::State;
 
+/// 记录同步相关操作日志。Vault 未解锁时静默跳过（同步服务本身不依赖 Vault）。
+fn log_sync_action(
+    state: &State<'_, AppState>,
+    action: &str,
+    entity_name: Option<&str>,
+    details: Option<&str>,
+) {
+    let Some(account_id) = crate::commands::current_account_optional(state) else {
+        return;
+    };
+    let Ok(vault) = crate::commands::vault_handle(state) else {
+        return;
+    };
+    let _ = vault.log_structured(
+        action,
+        "sync",
+        Some(&account_id),
+        entity_name,
+        "user",
+        details,
+    );
+}
+
 #[cfg(desktop)]
 use solosoul_sync::types::{ApplyStats, ConflictRecord};
 
@@ -152,7 +175,18 @@ pub async fn sync_get_status(state: State<'_, AppState>) -> Result<SyncStatus, S
 #[cfg(desktop)]
 #[tauri::command]
 pub async fn sync_enable(state: State<'_, AppState>, enable: bool) -> Result<(), String> {
-    state.sync_service.enable(enable).await
+    state.sync_service.enable(enable).await?;
+    log_sync_action(
+        &state,
+        if enable {
+            "sync_enabled"
+        } else {
+            "sync_disabled"
+        },
+        None,
+        None,
+    );
+    Ok(())
 }
 
 #[cfg(mobile)]
@@ -196,6 +230,16 @@ pub async fn sync_enable(
         let handle = app.state::<crate::nsd_plugin::NsdPluginHandle<tauri::Wry>>();
         let _ = handle.unregister_service();
     }
+    log_sync_action(
+        &state,
+        if enable {
+            "sync_enabled"
+        } else {
+            "sync_disabled"
+        },
+        None,
+        None,
+    );
     Ok(())
 }
 
@@ -218,7 +262,10 @@ pub async fn sync_with_device(
     state: State<'_, AppState>,
     device_id: String,
 ) -> Result<SyncResult, String> {
-    let result = state.sync_service.sync_with_device(device_id).await?;
+    let result = state
+        .sync_service
+        .sync_with_device(device_id.clone())
+        .await?;
     let mut sync_result = SyncResult::from(&result.data);
     if !result.attachments.errors.is_empty() {
         sync_result.summary = format!(
@@ -227,6 +274,12 @@ pub async fn sync_with_device(
             result.attachments.errors.join("; ")
         );
     }
+    let details = serde_json::json!({
+        "device_id": device_id,
+        "summary": sync_result.summary,
+    })
+    .to_string();
+    log_sync_action(&state, "sync_with_device", Some(&device_id), Some(&details));
     Ok(sync_result)
 }
 
@@ -237,7 +290,10 @@ pub async fn sync_with_device(
     device_id: String,
 ) -> Result<SyncResult, String> {
     // 移动端手动构造 SyncResult，因为 From<&ApplyStats> 实现在桌面端。
-    let result = state.sync_service.sync_with_device(device_id).await?;
+    let result = state
+        .sync_service
+        .sync_with_device(device_id.clone())
+        .await?;
     let stats = &result.data;
     let mut sync_result = SyncResult {
         summary: format!(
@@ -269,6 +325,12 @@ pub async fn sync_with_device(
             result.attachments.errors.join("; ")
         );
     }
+    let details = serde_json::json!({
+        "device_id": device_id,
+        "summary": sync_result.summary,
+    })
+    .to_string();
+    log_sync_action(&state, "sync_with_device", Some(&device_id), Some(&details));
     Ok(sync_result)
 }
 
@@ -279,7 +341,21 @@ pub async fn sync_trust_peer(
     peer_node_id: String,
     trusted: bool,
 ) -> Result<(), String> {
-    state.sync_service.trust_peer(peer_node_id, trusted).await
+    state
+        .sync_service
+        .trust_peer(peer_node_id.clone(), trusted)
+        .await?;
+    log_sync_action(
+        &state,
+        if trusted {
+            "sync_peer_trusted"
+        } else {
+            "sync_peer_revoked"
+        },
+        Some(&peer_node_id),
+        None,
+    );
+    Ok(())
 }
 
 #[cfg(mobile)]
@@ -289,7 +365,21 @@ pub async fn sync_trust_peer(
     peer_node_id: String,
     trusted: bool,
 ) -> Result<(), String> {
-    state.sync_service.trust_peer(peer_node_id, trusted).await
+    state
+        .sync_service
+        .trust_peer(peer_node_id.clone(), trusted)
+        .await?;
+    log_sync_action(
+        &state,
+        if trusted {
+            "sync_peer_trusted"
+        } else {
+            "sync_peer_revoked"
+        },
+        Some(&peer_node_id),
+        None,
+    );
+    Ok(())
 }
 
 #[cfg(desktop)]
@@ -298,7 +388,9 @@ pub async fn sync_forget_peer(
     state: State<'_, AppState>,
     peer_node_id: String,
 ) -> Result<(), String> {
-    state.sync_service.forget_peer(peer_node_id).await
+    state.sync_service.forget_peer(peer_node_id.clone()).await?;
+    log_sync_action(&state, "sync_peer_forgotten", Some(&peer_node_id), None);
+    Ok(())
 }
 
 #[cfg(mobile)]
@@ -307,7 +399,9 @@ pub async fn sync_forget_peer(
     state: State<'_, AppState>,
     peer_node_id: String,
 ) -> Result<(), String> {
-    state.sync_service.forget_peer(peer_node_id).await
+    state.sync_service.forget_peer(peer_node_id.clone()).await?;
+    log_sync_action(&state, "sync_peer_forgotten", Some(&peer_node_id), None);
+    Ok(())
 }
 
 #[cfg(all(test, desktop))]

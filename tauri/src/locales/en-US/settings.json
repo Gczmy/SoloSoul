@@ -484,6 +484,12 @@
       "ocr_scan": "OCR Scan",
       "ocr_scan_mrz": "MRZ Scan",
       "ocr_set_active_tier": "Switch OCR Model",
+      "sync_enabled": "Enable Sync",
+      "sync_disabled": "Disable Sync",
+      "sync_with_device": "Sync with Device",
+      "sync_peer_trusted": "Trust Sync Peer",
+      "sync_peer_revoked": "Revoke Sync Peer",
+      "sync_peer_forgotten": "Forget Sync Peer",
       "ocr_install_bundled_model": "Install OCR Model",
       "ocr_download_model": "Download OCR Model",
       "ocr_delete_model": "Delete OCR Model"
@@ -502,7 +508,8 @@
       "llm": "AI",
       "auth": "Authentication",
       "file": "File",
-      "ocr_model": "OCR Model"
+      "ocr_model": "OCR Model",
+      "sync": "Sync"
     },
     "performed_by_user": "User",
     "performed_by_system": "System",
@@ -563,7 +570,13 @@
       "page_restore": "{{count}} object(s) restored with page",
       "page_restore_cascaded": "Page {{pageName}} restored cascaded from object restore",
       "attachment_cleanup": "{{count}} orphan(s) freed {{bytes}}",
-      "ocr_scan": "File type: {{fileType}} · Boxes: {{boxCount}} · Text length: {{textLength}} · Confidence: {{confidence}}"
+      "ocr_scan": "File type: {{fileType}} · Boxes: {{boxCount}} · Text length: {{textLength}} · Confidence: {{confidence}}",
+      "sync_enabled": "LAN sync enabled",
+      "sync_disabled": "LAN sync disabled",
+      "sync_with_device": "Synced with device {{device_id}}: {{summary}}",
+      "sync_peer_trusted": "Trusted peer device {{peer_id}}",
+      "sync_peer_revoked": "Revoked trust for peer device {{peer_id}}",
+      "sync_peer_forgotten": "Forgot peer device {{peer_id}}"
     }
   },
   "template_manager_title": "Template Manager",

@@ -44,6 +44,7 @@ const ALL_ENTITY_TYPES = [
   'auth',
   'file',
   'ocr_model',
+  'sync',
 ];
 
 function formatDetail(
