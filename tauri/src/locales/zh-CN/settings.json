@@ -367,7 +367,7 @@
   "ai_system_prompt_software": "注入软件信息、用户公开数据和使用统计",
   "ai_system_prompt_desc": "系统提示词仅包含您主动公开的信息，敏感数据绝不会发送给 AI",
   "biometric_title": "生物识别解锁",
-  "biometric_desc": "使用 {{type}} 解锁",
+  "biometric_desc": "使用生物识别解锁",
   "biometric_toggle_label": "使用 {{type}}",
   "biometric_test_button": "测试 {{type}}",
   "biometric_enable_prompt": "输入主密码以启用 {{type}}",

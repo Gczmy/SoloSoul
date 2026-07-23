@@ -259,7 +259,7 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
                 marginBottom: 12,
               }}
             >
-              {t('settings:biometric_desc', { type: strongType })}
+              {t('settings:biometric_desc')}
             </p>
 
             {/* Touch ID / 强生物识别 */}
@@ -278,10 +278,15 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
                     display: 'flex',
                     alignItems: 'center',
                     gap: 6,
+                    overflow: 'hidden',
                   }}
                 >
-                  <Fingerprint size={ICON_SIZE.md} style={{ color: 'var(--text-tertiary)' }} />
-                  {t('settings:biometric_toggle_label', { type: strongType })}
+                  <Fingerprint size={ICON_SIZE.md} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
+                  {!bioAvailable.strongConfigured && (
+                    <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {t('settings:biometric_toggle_label', { type: strongType })}
+                    </span>
+                  )}
                 </span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   {bioAvailable.strongConfigured && (
@@ -315,10 +320,15 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
                       display: 'flex',
                       alignItems: 'center',
                       gap: 6,
+                      overflow: 'hidden',
                     }}
                   >
-                    <ScanFace size={ICON_SIZE.md} style={{ color: 'var(--text-tertiary)' }} />
-                    {t('settings:biometric_toggle_label', { type: weakType })}
+                    <ScanFace size={ICON_SIZE.md} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
+                    {!bioAvailable.weakConfigured && (
+                      <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {t('settings:biometric_toggle_label', { type: weakType })}
+                      </span>
+                    )}
                   </span>
                   <div style={{ opacity: 0.45 }}>
                     <ToggleSwitch
