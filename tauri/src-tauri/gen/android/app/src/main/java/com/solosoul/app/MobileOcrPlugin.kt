@@ -10,10 +10,13 @@ import androidx.core.net.toUri
 import app.tauri.annotation.ActivityCallback
 import app.tauri.annotation.Command
 import app.tauri.annotation.InvokeArg
+import app.tauri.annotation.Permission
+import app.tauri.annotation.PermissionCallback
 import app.tauri.annotation.TauriPlugin
 import app.tauri.plugin.Invoke
 import app.tauri.plugin.JSObject
 import app.tauri.plugin.Plugin
+import app.tauri.PermissionState
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import org.json.JSONArray
@@ -32,7 +35,14 @@ class ScanImageArgs {
  * 通过 ML Kit 对图片进行文字识别，支持中文与拉丁文。
  * 识别结果映射为与桌面端 PP-OCRv6 一致的字段结构返回给 Rust。
  */
-@TauriPlugin
+@TauriPlugin(
+    permissions = [
+        Permission(
+            strings = [android.Manifest.permission.CAMERA],
+            alias = "camera",
+        ),
+    ],
+)
 class MobileOcrPlugin(private val activity: Activity): Plugin(activity) {
     /**
      * 复用 TextRecognizer 实例，避免每次扫描重复初始化模型。
@@ -84,7 +94,7 @@ class MobileOcrPlugin(private val activity: Activity): Plugin(activity) {
             getRecognizer().process(image)
                 .addOnSuccessListener { visionText ->
                     try {
-                        val boxes = mutableListOf<JSObject>()
+                        val boxes = JSONArray()
                         visionText.textBlocks.forEach { block ->
                             val rect = block.boundingBox
                             if (rect == null) return@forEach
@@ -104,7 +114,7 @@ class MobileOcrPlugin(private val activity: Activity): Plugin(activity) {
                             // ML Kit 不暴露单字置信度，使用 1.0 占位。
                             box.put("confidence", 1.0)
                             box.put("points", points)
-                            boxes.add(box)
+                            boxes.put(box)
                         }
 
                         val result = JSObject()
@@ -131,6 +141,22 @@ class MobileOcrPlugin(private val activity: Activity): Plugin(activity) {
     @Command
     fun takePhoto(invoke: Invoke) {
         try {
+            when (getPermissionState("camera")) {
+                PermissionState.GRANTED -> launchCamera(invoke)
+                else -> requestPermissionForAlias("camera", invoke, "cameraPermissionResult")
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("SoloSoul", "takePhoto failed: ${e.message}", e)
+            pendingCapturePath = null
+            invoke.reject("TAKE_PHOTO_FAILED: ${e.message}")
+        }
+    }
+
+    /**
+     * 实际的相机启动逻辑：清理旧文件 → 创建临时文件 → 预检 → 启动相机。
+     */
+    private fun launchCamera(invoke: Invoke) {
+        try {
             // 清理上一次拍照残留的临时文件
             cleanupOldCaptureFiles()
 
@@ -155,9 +181,23 @@ class MobileOcrPlugin(private val activity: Activity): Plugin(activity) {
 
             startActivityForResult(invoke, intent, "takePhotoResult")
         } catch (e: Exception) {
-            android.util.Log.e("SoloSoul", "takePhoto failed: ${e.message}", e)
+            android.util.Log.e("SoloSoul", "launchCamera failed: ${e.message}", e)
             pendingCapturePath = null
             invoke.reject("TAKE_PHOTO_FAILED: ${e.message}")
+        }
+    }
+
+    /**
+     * 相机权限申请结果回调。
+     */
+    @PermissionCallback
+    fun cameraPermissionResult(invoke: Invoke) {
+        when (getPermissionState("camera")) {
+            PermissionState.GRANTED -> launchCamera(invoke)
+            else -> {
+                pendingCapturePath = null
+                invoke.reject("CAMERA_PERMISSION_DENIED")
+            }
         }
     }
 
