@@ -45,6 +45,10 @@ pub async fn bootstrap(
     let result = svc.create_account(&account_name, &password, password_hint.as_deref())?;
     let account_id = result["id"].as_str().unwrap_or("").to_string();
 
+    // 首个账户创建成功后，立即触发一次 SAF 同步，消除首次数据丢失窗口。
+    // AutoSyncManager 会自行判断是否处于 SAF 模式，非 SAF 下为 no-op。
+    state.auto_sync.trigger_immediate();
+
     // Seed default templates from embedded resources (one-time import)
     {
         let vault_guard = svc

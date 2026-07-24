@@ -2,6 +2,8 @@ use crate::attachment_import_plugin::AttachmentImportPluginHandle;
 use crate::fs::normalize_path;
 use crate::fs::saf_sync_driver::TauriSafSyncDriver;
 use crate::plugin::PluginManager;
+use crate::sync::auto_sync;
+use crate::sync::auto_sync::AutoSyncManager;
 use solosoul_core::vault_file_system::{SafVaultFileSystem, VaultFileSystem};
 use solosoul_core::VaultService;
 use solosoul_sync::SyncService;
@@ -18,6 +20,7 @@ pub struct AppState {
     pub vault_service: Arc<RwLock<VaultService>>,
     pub sync_service: Arc<SyncService>,
     pub plugin_manager: Arc<PluginManager>,
+    pub auto_sync: AutoSyncManager,
 }
 
 /// Result of first-launch vault directory initialization.
@@ -70,11 +73,7 @@ impl AppState {
         .map_err(|e| format!("写入 .solosoul_config 失败: {e}"))?;
 
         // 通过完整的 SAF 文件系统同步，确保 .solosoul_config 被上传到远端
-        let fs = SafVaultFileSystem::new(
-            saf_uri.to_string(),
-            temp_dir.to_path_buf(),
-            sync_driver,
-        );
+        let fs = SafVaultFileSystem::new(saf_uri.to_string(), temp_dir.to_path_buf(), sync_driver);
         fs.sync_to_remote()?;
         tracing::info!("[AppState] .solosoul_config written and synced to SAF");
         Ok(())
@@ -255,6 +254,9 @@ impl AppState {
         // ── SyncService ──
         let sync_service = Arc::new(SyncService::new(vault_service.clone()));
 
+        // ── AutoSyncManager（在 VaultService 初始化之后启动） ──
+        let auto_sync = AutoSyncManager::new(vault_service.clone(), handle.clone());
+
         // ── PluginManager（初始化失败不阻止应用启动） ──
         let plugin_manager = match PluginManager::new_with_app_handle(&handle) {
             Ok(pm) => Arc::new(pm),
@@ -288,7 +290,15 @@ impl AppState {
             vault_service,
             sync_service,
             plugin_manager,
+            auto_sync,
         })
+    }
+
+    /// 执行一次到 SAF 远端的同步，并向前端发射进度事件。
+    ///
+    /// 非 SAF 模式下会快速返回，不执行任何 I/O。
+    pub async fn sync_to_remote_with_progress(&self) -> Result<(), String> {
+        auto_sync::run_sync(&self.vault_service, &self.handle).await
     }
 
     /// 判断当前是否使用了 SAF 远程存储。
