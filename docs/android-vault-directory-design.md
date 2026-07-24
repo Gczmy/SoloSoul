@@ -348,6 +348,7 @@ SQLite 打开 SAF 文件有两种思路：
 - [x] **原子写入**：Kotlin syncDirToRemote / syncDirFromRemote / exportToTreeUri 全部改为先写 .tmp 文件、成功后重命名，防止中途失败丢数据。
 - [x] **自动同步（dirty flag + 定期后台同步）**：`SafVaultFileSystem` 添加 `AtomicBool` 脏标记，`write_file`/`remove_file`/`remove_dir_all` 成功后设为脏；后台 task 每 30 秒通过 `sync_if_dirty()` 检查并自动同步到 SAF；`VaultFileSystem` trait 和 `VaultService` 均已暴露 `sync_if_dirty()`。
 - [x] **同步与迁移进度事件**：`vault_sync_to_remote`/`vault_sync_from_remote` 命令 emit `sync-progress` 事件（开始/完成）；`vault_set_directory` 迁移阶段 emit 3 阶段进度事件（start/migrate/sync/complete）。
+- [x] **P2：重装后自动发现（.solosoul_config 元数据）**：`initialize_vault` 与 `vault_set_directory` 同步成功后自动写入 `.solosoul_config`（含 saf_tree_uri、版本、时间戳）到 SAF 目录根。卸载重装后用户选择相同 SAF 目录时，`sync_from_remote` 将元数据同步回本地临时目录，`load_accounts()` 能发现已有账户，前端自动跳转登录页。使用纯数学 `now_rfc3339()` 替代 chrono 依赖。
 
 ### 后续跟踪（发布前真机验证）
 
@@ -357,6 +358,24 @@ SQLite 打开 SAF 文件有两种思路：
 - [ ] 性能基准：对比 App-private 与 SAF 模式下的解锁、对象列表、附件写入、搜索耗时。
 - [ ] 卸载重装测试：确认 SAF 模式下卸载后数据保留，重装后可正常读取。
 - [ ] 发布 Android 版本。
+
+### 已评估但不可行的方案
+
+#### P3：启动时零点击自动扫描 SAF 目录
+
+**结论：不可行（Android 安全限制）**
+
+`takePersistableUriPermission` 持久化的 SAF 权限在**应用卸载后被 Android 系统彻底删除**，系统不提供任何 API 来枚举设备上此前被授权过的 SAF URI。没有 URI 就无法访问 SAF 目录。
+
+当前 P0+P1+P2 组合（选择目录 → 同步数据 → `load_accounts()` 发现账户 → 跳转登录）是在 Android 安全模型下能达到的最佳用户体验，与 Obsidian、Logseq、AnyType 等所有本地优先应用的重装后体验一致。
+
+| 方案 | 问题 |
+|------|------|
+| 扫描文件系统找 `.solosoul_config` | SAF 不允许在无 URI 时枚举目录内容 |
+| `DocumentsContract` 查询 | 需要 document ID，卸载后丢失 |
+| Android Auto Backup | 依赖 Google Play Services、有延迟、用户可关闭 |
+| KeyStore / SharedPreferences | 与应用私有数据绑定，卸载即删 |
+| 预配置固定外部目录 | Android 无全局可写固定目录供应用间共享 |
 
 ---
 
@@ -502,7 +521,7 @@ SQLite 打开 SAF 文件有两种思路：
 ```rust
 pub struct AppState {
     pub handle: tauri::AppHandle,
-    pub vault_service: Arc<RwLock<Option<VaultService>>>, // 改为 Option
+    pub vault_service: Arc<RwLock<VaultService>>, // 使用 placeholder vault 替代 Option
     pub sync_service: Arc<SyncService>,
     pub plugin_manager: Arc<PluginManager>,
 }
@@ -513,7 +532,9 @@ pub struct AppState {
 1. 读取 `app_config.json`。
 2. 若存在 SAF URI → 按 SAF 初始化。
 3. 若不存在配置但 `app-private` 目录下已有账户 → 按 App-private 初始化（兼容老用户）。
-4. 否则 → `vault_service = None`，等待 onboarding 初始化。
+4. 否则 → 创建一个空占位 `VaultService`（`placeholder_vault` 函数），路径为 `{data_dir}/.uninitialized_vault`。
+
+> **实现细节**：实际实现使用 placeholder vault 而非 `Option`，避免所有命令守卫检查 `None` 的复杂性。占位目录在 `initialize_vault` 成功后被清理。
 
 #### 13.3.2 新增命令 `init_vault_directory`
 
@@ -582,12 +603,12 @@ export async function initVaultDirectory(
 
 ### 13.7 验证清单
 
-- [ ] `cargo check` 通过。
-- [ ] `cargo test -p solosoul-core` 通过。
-- [ ] `npx tsc --noEmit` 通过。
-- [ ] `npx eslint` 通过。
-- [ ] 真机：首次安装 → 显示 SAF 目录选择 → 选完后不重启进入引导。
-- [ ] 真机：onboarding 完成后可正常创建账户。
-- [ ] 真机：设置页切换目录后仍提示重启，重启后生效。
-- [ ] 真机：已有账户用户不显示 onboarding。
-- [ ] 真机：取消 SAF picker 后仍可重试。
+- [x] `cargo check` 通过。
+- [x] `cargo test -p solosoul-core` 通过。
+- [x] `npx tsc --noEmit` 通过。
+- [x] `npx eslint` 通过。
+- [x] 真机：首次安装 → 显示 SAF 目录选择 → 选完后不重启进入引导。（已真机验证）
+- [x] 真机：onboarding 完成后可正常创建账户。（已真机验证）
+- [x] 真机：设置页切换目录后仍提示重启，重启后生效。（已真机验证）
+- [x] 真机：已有账户用户不显示 onboarding。（已真机验证）
+- [x] 真机：取消 SAF picker 后仍可重试。（已真机验证）

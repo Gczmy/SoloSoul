@@ -651,29 +651,36 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
             continue
           }
 
-          val mimeType = getMimeType(file.name)
-          val tempName = "${file.name}.tmp"
-          val tempDoc = createTempDocumentAndWrite(currentParentUri, tempName, mimeType, file)
-          if (tempDoc == null) {
-            android.util.Log.w("SoloSoul", "写入临时文件失败，跳过: ${file.name}")
-            continue
-          }
-
-          if (existingChild != null) {
-            try {
-              DocumentsContract.deleteDocument(activity.contentResolver, existingChild.uri)
-            } catch (e: Exception) {
-              android.util.Log.w("SoloSoul", "删除旧文件失败: ${e.message}")
+          try {
+            val mimeType = getMimeType(file.name)
+            val tempName = "${file.name}.tmp"
+            val tempDoc = createTempDocumentAndWrite(currentParentUri, tempName, mimeType, file)
+            if (tempDoc == null) {
+              android.util.Log.w("SoloSoul", "写入临时文件失败，跳过: ${file.name}")
+              continue
             }
-          }
 
-          val renamed = DocumentsContract.renameDocument(
-            activity.contentResolver, tempDoc, file.name
-          )
-          if (renamed == null) {
+            if (existingChild != null) {
+              try {
+                DocumentsContract.deleteDocument(activity.contentResolver, existingChild.uri)
+              } catch (e: Exception) {
+                android.util.Log.w("SoloSoul", "删除旧文件失败: ${e.message}")
+              }
+            }
+
+            val renamed = DocumentsContract.renameDocument(
+              activity.contentResolver, tempDoc, file.name
+            )
+            if (renamed == null) {
+              android.util.Log.w(
+                "SoloSoul",
+                "重命名临时文件失败，残留 .tmp 文件: $tempName，可手动清理"
+              )
+            }
+          } catch (e: Exception) {
             android.util.Log.w(
               "SoloSoul",
-              "重命名临时文件失败，残留 .tmp 文件: $tempName，可手动清理"
+              "syncLocalDirToTree: skipping file '${file.name}' in ${currentDir.path}: ${e.message}"
             )
           }
         }
@@ -744,33 +751,40 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
           childDir.mkdirs()
           queue.add(RemoteDirEntry(child.docUri, childDir, false))
         } else {
-          val file = File(currentLocalDir, child.displayName)
-          // 如果本地文件存在且 mtime+size 匹配，跳过复制
-          if (file.exists() && child.lastModified > 0 && child.size > 0 &&
-              file.lastModified() == child.lastModified && file.length() == child.size) {
-            continue
-          }
-          file.parentFile?.mkdirs()
-
-          // 原子写入：先写 .tmp，再用 renameTo 原子替换
-          val tmpFile = File(currentLocalDir, "${child.displayName}.tmp")
-          contentResolver.openInputStream(child.docUri)?.use { input ->
-            FileOutputStream(tmpFile).use { output ->
-              input.copyTo(output)
+          try {
+            val file = File(currentLocalDir, child.displayName)
+            // 如果本地文件存在且 mtime+size 匹配，跳过复制
+            if (file.exists() && child.lastModified > 0 && child.size > 0 &&
+                file.lastModified() == child.lastModified && file.length() == child.size) {
+              continue
             }
-          } ?: continue
+            file.parentFile?.mkdirs()
 
-          if (!tmpFile.renameTo(file)) {
+            // 原子写入：先写 .tmp，再用 renameTo 原子替换
+            val tmpFile = File(currentLocalDir, "${child.displayName}.tmp")
+            contentResolver.openInputStream(child.docUri)?.use { input ->
+              FileOutputStream(tmpFile).use { output ->
+                input.copyTo(output)
+              }
+            } ?: continue
+
+            if (!tmpFile.renameTo(file)) {
+              android.util.Log.w(
+                "SoloSoul",
+                "原子重命名失败，尝试直接替换: ${child.displayName}"
+              )
+              file.delete()
+              tmpFile.renameTo(file)
+            }
+
+            if (child.lastModified > 0) {
+              file.setLastModified(child.lastModified)
+            }
+          } catch (e: Exception) {
             android.util.Log.w(
               "SoloSoul",
-              "原子重命名失败，尝试直接替换: ${child.displayName}"
+              "syncTreeToLocalDir: skipping file '${child.displayName}' in ${currentLocalDir.path}: ${e.message}"
             )
-            file.delete()
-            tmpFile.renameTo(file)
-          }
-
-          if (child.lastModified > 0) {
-            file.setLastModified(child.lastModified)
           }
         }
       }
