@@ -268,6 +268,8 @@
   "onboarding_vault_dir_restart_desc": "The vault directory has changed. Please restart the app to use the new directory.",
   "onboarding_vault_dir_restart_btn": "Restart App",
   "onboarding_vault_dir_set_failed": "Failed to set directory",
+  "onboarding_vault_dir_selected_label": "Selected external storage location",
+  "onboarding_vault_dir_reselect": "Reselect",
   "onboarding_create_object_title": "Create Your First Object",
   "onboarding_create_object_desc": "Create objects from Identity, Travel, Financial, or Professional pages, and use templates to organize your data.",
   "onboarding_templates_title": "Use Templates",

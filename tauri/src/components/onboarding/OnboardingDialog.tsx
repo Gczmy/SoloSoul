@@ -33,6 +33,8 @@ export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDial
   const [platformName, setPlatformName] = useState<string>('');
   const [vaultDirActing, setVaultDirActing] = useState(false);
   const [vaultDirError, setVaultDirError] = useState<string | null>(null);
+  // 外部目录（SAF）选择后先显示路径，等用户手动点击“下一步”再前进
+  const [selectedSafUri, setSelectedSafUri] = useState<string | null>(null);
 
   useEffect(() => {
     getPlatform().then((p) => {
@@ -55,7 +57,8 @@ export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDial
   const Icon = current?.icon || Sparkles;
   const isLast = step >= steps.length - 1;
 
-  // 每次进入 vault_directory 步骤时重置状态，让用户可以重新选择
+  // 进入 vault_directory 步骤时重置 loading/error 状态，但不重置已选路径，
+  // 以便用户返回上一步时仍能看到之前选择的外部目录。
   useEffect(() => {
     if (current?.key === 'vault_directory') {
       setVaultDirError(null);
@@ -78,8 +81,8 @@ export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDial
       }
       const result = await initVaultDirectory(uri);
       if (result.success) {
-        // 初始化成功，直接进入下一步（无需重启）
-        setStep((s) => s + 1);
+        // 初始化成功，记录已选 URI 并显示在界面上，由用户手动点击下一步
+        setSelectedSafUri(uri);
       } else {
         setVaultDirError(result.message || t('onboarding_vault_dir_set_failed'));
       }
@@ -155,7 +158,58 @@ export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDial
             {t('onboarding_vault_dir_desc')}
           </p>
 
-          {(
+          {selectedSafUri ? (
+            /* Selected SAF path summary */
+            <div
+              style={{
+                padding: 16,
+                borderRadius: 12,
+                border: '1px solid color-mix(in srgb, var(--accent-primary) 35%, transparent)',
+                background: 'color-mix(in srgb, var(--accent-primary) 6%, var(--bg-toolbar))',
+                textAlign: 'left',
+                marginBottom: 24,
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 'var(--text-caption)',
+                  color: 'var(--text-secondary)',
+                  marginBottom: 6,
+                }}
+              >
+                {t('onboarding_vault_dir_selected_label')}
+              </div>
+              <div
+                style={{
+                  fontSize: 'var(--text-body-sm)',
+                  color: 'var(--text-primary)',
+                  wordBreak: 'break-all',
+                  lineHeight: 1.5,
+                }}
+              >
+                {selectedSafUri}
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedSafUri(null);
+                }}
+                style={{
+                  marginTop: 12,
+                  fontSize: 'var(--text-caption)',
+                  color: 'var(--accent-primary)',
+                  background: 'transparent',
+                  border: 'none',
+                  padding: 0,
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  fontWeight: 500,
+                }}
+              >
+                {t('onboarding_vault_dir_reselect')}
+              </button>
+            </div>
+          ) : (
             <>
               {/* Choice: Local vs SAF */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
@@ -338,6 +392,38 @@ export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDial
                   }}
                 >
                   {t('onboarding_back')}
+                </button>
+              )}
+              {selectedSafUri && (
+                <button
+                  type="button"
+                  onClick={() => setStep((s) => s + 1)}
+                  style={{
+                    fontSize: 'var(--text-caption)',
+                    padding: '6px 12px',
+                    borderRadius: 6,
+                    border: '1px solid var(--border-subtle)',
+                    background: 'var(--bg-toolbar)',
+                    color: 'var(--text-primary)',
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                    fontWeight: 500,
+                    transition: 'all 0.15s ease',
+                  }}
+                  className="interactive-toolbar"
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background =
+                      'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                    e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                    e.currentTarget.style.color = 'var(--accent-primary)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'var(--bg-toolbar)';
+                    e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                    e.currentTarget.style.color = 'var(--text-primary)';
+                  }}
+                >
+                  {t('onboarding_next')}
                 </button>
               )}
             </div>

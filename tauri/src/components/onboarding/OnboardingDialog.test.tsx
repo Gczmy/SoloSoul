@@ -1,12 +1,19 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { OnboardingDialog } from './OnboardingDialog';
+import * as vaultDirectory from '@/lib/vaultDirectory';
+import { getPlatform } from '@/lib/platform';
 
 vi.mock('@/lib/platform', () => ({
   getPlatform: vi.fn().mockResolvedValue('web'),
   isMobilePlatform: vi.fn().mockResolvedValue(false),
   isMobilePlatformSync: vi.fn().mockReturnValue(false),
   initPlatform: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock('@/lib/vaultDirectory', () => ({
+  pickVaultDirectory: vi.fn(),
+  initVaultDirectory: vi.fn(),
 }));
 
 describe('OnboardingDialog', () => {
@@ -55,18 +62,6 @@ describe('OnboardingDialog', () => {
     expect(onComplete).toHaveBeenCalledTimes(1);
   });
 
-  it('calls onSkip when clicking skip', async () => {
-    const onSkip = vi.fn();
-    render(<OnboardingDialog onComplete={vi.fn()} onSkip={onSkip} />);
-
-    await waitFor(() => {
-      expect(screen.getByText(/onboarding_welcome_title/i)).toBeInTheDocument();
-    });
-
-    fireEvent.click(screen.getByRole('button', { name: /onboarding_skip/i }));
-    expect(onSkip).toHaveBeenCalledTimes(1);
-  });
-
   it('goes back to the previous step when clicking back', async () => {
     render(<OnboardingDialog onComplete={vi.fn()} onSkip={vi.fn()} />);
 
@@ -84,6 +79,98 @@ describe('OnboardingDialog', () => {
 
     await waitFor(() => {
       expect(screen.getByText(/onboarding_welcome_title/i)).toBeInTheDocument();
+    });
+  });
+});
+
+describe('OnboardingDialog vault directory step (Android)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('shows selected external path and next button after picking SAF directory', async () => {
+    vi.mocked(getPlatform).mockResolvedValue('android');
+    vi.mocked(vaultDirectory.pickVaultDirectory).mockResolvedValue(
+      'content://com.android.documents/tree/primary%3ADocuments%2FSoloSoul',
+    );
+    vi.mocked(vaultDirectory.initVaultDirectory).mockResolvedValue({
+      success: true,
+      needsRestart: false,
+      message: '',
+    });
+
+    render(<OnboardingDialog onComplete={vi.fn()} onSkip={vi.fn()} />);
+
+    // Android still starts from the welcome step; navigate to vault directory step
+    await waitFor(() => {
+      expect(screen.getByText(/onboarding_welcome_title/i)).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByRole('button', { name: /onboarding_next/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/onboarding_vault_dir_title/i)).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByText(/onboarding_vault_dir_saf_title/i));
+
+    await waitFor(() => {
+      expect(screen.getByText(/onboarding_vault_dir_selected_label/i)).toBeInTheDocument();
+    });
+    expect(
+      screen.getByText(
+        /content:\/\/com.android.documents\/tree\/primary%3ADocuments%2FSoloSoul/i,
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /onboarding_next/i })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /onboarding_next/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/onboarding_create_object_title/i)).toBeInTheDocument();
+    });
+  });
+
+  it('preserves selected external path when going back from the next step', async () => {
+    vi.mocked(getPlatform).mockResolvedValue('android');
+    vi.mocked(vaultDirectory.pickVaultDirectory).mockResolvedValue(
+      'content://com.android.documents/tree/primary%3ADocuments%2FSoloSoul',
+    );
+    vi.mocked(vaultDirectory.initVaultDirectory).mockResolvedValue({
+      success: true,
+      needsRestart: false,
+      message: '',
+    });
+
+    render(<OnboardingDialog onComplete={vi.fn()} onSkip={vi.fn()} />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/onboarding_welcome_title/i)).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByRole('button', { name: /onboarding_next/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/onboarding_vault_dir_title/i)).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByText(/onboarding_vault_dir_saf_title/i));
+
+    await waitFor(() => {
+      expect(screen.getByText(/onboarding_vault_dir_selected_label/i)).toBeInTheDocument();
+    });
+
+    // Advance to next step, then go back
+    fireEvent.click(screen.getByRole('button', { name: /onboarding_next/i }));
+    await waitFor(() => {
+      expect(screen.getByText(/onboarding_create_object_title/i)).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByRole('button', { name: /onboarding_back/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/onboarding_vault_dir_title/i)).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          /content:\/\/com.android.documents\/tree\/primary%3ADocuments%2FSoloSoul/i,
+        ),
+      ).toBeInTheDocument();
     });
   });
 });
