@@ -308,16 +308,15 @@ fn check_saf_uri_validity<R: Runtime>(app: &AppHandle<R>, tree_uri: &str) -> boo
 
 /// 首次启动时初始化 Vault 目录（无需重启）。
 /// 仅在 Android 上可用；桌面端调用会返回错误。
+///
+/// 当选择 SAF 目录时，命令会等待首次同步完成；同步失败将返回
+/// 错误，前端可据此提示用户。
 #[tauri::command]
 pub async fn init_vault_directory(
     state: State<'_, AppState>,
     payload: SetVaultDirectoryPayload,
 ) -> Result<InitializeVaultResult, String> {
-    let saf_uri = payload.saf_tree_uri;
-    let app_state = (*state).clone();
-    tokio::task::spawn_blocking(move || app_state.initialize_vault(saf_uri))
-        .await
-        .map_err(|e| format!("初始化任务失败: {e}"))?
+    state.initialize_vault(payload.saf_tree_uri).await
 }
 
 /// 检查当前 Vault 目录的 SAF URI 是否仍然有效。

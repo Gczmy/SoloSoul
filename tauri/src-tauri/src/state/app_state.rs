@@ -43,6 +43,25 @@ impl AppState {
             .map(String::from)
     }
 
+    /// 保存或删除 SAF tree URI 配置。
+    fn save_saf_uri(data_dir: &std::path::Path, uri: Option<&str>) -> Result<(), String> {
+        let path = Self::app_config_path(data_dir);
+        if let Some(parent) = path.parent() {
+            std::fs::create_dir_all(parent).map_err(|e| format!("创建配置目录失败: {e}"))?;
+        }
+        if let Some(uri) = uri {
+            let config = serde_json::json!({ "saf_tree_uri": uri });
+            std::fs::write(
+                &path,
+                serde_json::to_string_pretty(&config).map_err(|e| e.to_string())?,
+            )
+            .map_err(|e| format!("写入配置失败: {e}"))?;
+        } else if path.exists() {
+            std::fs::remove_file(&path).map_err(|e| format!("删除配置失败: {e}"))?;
+        }
+        Ok(())
+    }
+
     /// 尝试以 SAF 模式初始化 VaultService。
     fn try_init_saf_vault(
         handle: &tauri::AppHandle,
@@ -183,7 +202,11 @@ impl AppState {
     /// 首次启动时初始化 VaultService（不重启）。
     /// 仅对 Android 有效；桌面端调用会返回错误。
     /// 用新的 VaultService 整体替换当前 vault_service 中的实例。
-    pub fn initialize_vault(
+    ///
+    /// 注意：当选择 SAF 目录时，本方法会等待首次同步完成后再返回，
+    /// 以避免用户在同步完成前创建账户导致的数据竞态；同步失败会直
+    /// 接返回错误，让前端可以提示用户。
+    pub async fn initialize_vault(
         &self,
         saf_uri: Option<String>,
     ) -> Result<InitializeVaultResult, String> {
@@ -198,8 +221,8 @@ impl AppState {
             .map_err(|e| format!("无法解析应用数据目录: {e}"))?;
 
         let handle = self.handle.clone();
-        let new_svc = if let Some(uri) = saf_uri {
-            Self::try_init_saf_vault(&handle, &data_dir, &uri)
+        let new_svc = if let Some(ref uri) = saf_uri {
+            Self::try_init_saf_vault(&handle, &data_dir, uri)
                 .map_err(|e| format!("初始化 SAF Vault 失败: {e}"))?
         } else {
             Self::try_init_local_vault(&data_dir)
@@ -220,20 +243,31 @@ impl AppState {
             let _ = std::fs::remove_dir_all(&placeholder_dir);
         }
 
-        // SyncService 内部持有 vault_service Arc 的克隆，
-        // 通过同一个 RwLock 自然能读取到新的 VaultService，无需重建 SyncService。
-
-        // 若启用了 SAF，后台触发首次同步
+        // 若启用了 SAF，同步等待首次同步完成。
+        // 失败直接返回错误，前端会展示给用户；成功则保证用户在
+        // 已有远程数据被拉取后才会继续。
         if self.has_saf_vault() {
-            let handle = self.handle.clone();
-            tauri::async_runtime::spawn(async move {
-                tokio::time::sleep(std::time::Duration::from_millis(500)).await;
-                if let Some(state) = handle.try_state::<AppState>() {
-                    if let Err(e) = state.init_saf_sync().await {
-                        tracing::warn!("[init_vault] SAF initial sync failed: {e}");
-                    }
+            if let Err(e) = self.init_saf_sync().await {
+                // 同步失败：回退到本地 vault，避免留下半初始化的 SAF 状态。
+                // 同时不保存 SAF URI，下次启动仍走本地/占位路径。
+                tracing::warn!(
+                    "[initialize_vault] SAF initial sync failed, rolling back to local: {e}"
+                );
+                let local_svc = Self::try_init_local_vault(&data_dir)
+                    .map_err(|e| format!("回退到本地 Vault 失败: {e}"))?;
+                {
+                    let mut guard = self
+                        .vault_service
+                        .write()
+                        .map_err(|_| "Vault service lock poisoned".to_string())?;
+                    *guard = local_svc;
                 }
-            });
+                return Err(format!("首次同步失败: {e}"));
+            }
+            // 同步成功后才持久化 SAF URI
+            if let Some(ref uri) = saf_uri {
+                Self::save_saf_uri(&data_dir, Some(uri))?;
+            }
         }
 
         Ok(InitializeVaultResult {
