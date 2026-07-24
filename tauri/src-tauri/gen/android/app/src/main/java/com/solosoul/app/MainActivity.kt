@@ -176,7 +176,7 @@ class MainActivity : TauriActivity() {
 
   companion object {
     /**
-     * 把 assets 下指定的资源目录递归复制到 [destRoot]/resources/。
+     * 把 assets 下指定的资源目录递归复制到 dataDir/app_resources/。
      * - docs 完整复制（帮助文档）。
      * - SoloSoul_plugin_market 仅复制 registry.json 与每个插件的 manifest.json、plugin.wasm，
      *   避免把插件源码 target/ 编译产物打包进 APK / 复制到设备。
@@ -185,7 +185,8 @@ class MainActivity : TauriActivity() {
      */
     @JvmStatic
     fun extractAssetsToDataDir(assetManager: AssetManager, dataDir: File) {
-      val destRoot = File(dataDir, "resources")
+      // 资源目录与 Vault 数据目录物理隔离，避免 SAF 同步时误把资源当 Vault 数据。
+      val destRoot = File(dataDir, "app_resources")
       android.util.Log.i("SoloSoul", "开始复制资源到: ${destRoot.absolutePath}")
 
       // 1. 复制 docs

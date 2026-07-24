@@ -308,11 +308,11 @@ pub fn run() {
 
             // 6. 初始化 RESOURCE_DIR
             // Android 上 Tauri 的 resource_dir 返回 asset:// URL，std::fs 无法直接读取。
-            // MainActivity 已在 onCreate 中将所需资源复制到 files/resources/，这里优先使用它。
+            // MainActivity 已在 onCreate 中将所需资源复制到 files/app_resources/，这里优先使用它。
             #[cfg(target_os = "android")]
             let resource_dir: Result<PathBuf, String> = {
                 match resolve_app_data_dir(app.handle()) {
-                    Ok(data_dir) => Ok(data_dir.join("resources")),
+                    Ok(data_dir) => Ok(data_dir.join("app_resources")),
                     Err(e) => {
                         tracing::error!("[setup] ❌ 无法解析数据目录以设置 RESOURCE_DIR: {}", e);
                         Err(e)

@@ -558,8 +558,22 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
    *
    * 实现采用 BFS 迭代，每个目录只查询一次子文档列表，避免递归深度过大和
    * 在同步过程中长期持有 Cursor。
+   *
+   * 注意：本地镜像已由 Rust 端 migrate_vault_data 过滤应用级目录，此处顶层过滤
+   * 仅为防御性措施，防止旧版本 SAF 目录中残留应用级条目被回写。
    */
-  private data class LocalDirEntry(val localDir: File, val parentUri: Uri)
+  // 应用级目录/文件名称由 build.rs 从 app_level_names.json 自动生成到
+  // AppLevelNames.kt，避免 Rust/Kotlin 手动同步。
+
+  /**
+   * 仅用于顶层目录过滤，避免用户 Vault 内部同名目录被误跳过。
+   */
+  private data class LocalDirEntry(val localDir: File, val parentUri: Uri, val isRoot: Boolean)
+
+  /**
+   * 仅用于顶层目录过滤，避免用户 Vault 内部同名目录被误跳过。
+   */
+  private data class RemoteDirEntry(val parentUri: Uri, val localDir: File, val isRoot: Boolean)
 
   private data class ExistingChild(
     val uri: Uri,
@@ -569,10 +583,12 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
 
   private fun syncLocalDirToTree(localDir: File, parentUri: Uri) {
     val queue = ArrayDeque<LocalDirEntry>()
-    queue.add(LocalDirEntry(localDir, parentUri))
+    queue.add(LocalDirEntry(localDir, parentUri, true))
 
     while (queue.isNotEmpty()) {
-      val (currentDir, currentParentUri) = queue.removeFirst()
+      val entry = queue.removeFirst()
+      val currentDir = entry.localDir
+      val currentParentUri = entry.parentUri
       val files = currentDir.listFiles() ?: continue
 
       // 一次性查出当前目录下已有的子文档，避免每个文件都重新 query
@@ -609,6 +625,9 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
       }
 
       for (file in files) {
+        if (entry.isRoot && file.name in AppLevelNames.NAMES) {
+          continue
+        }
         if (file.isDirectory) {
           val existingChild = existingChildren[file.name]
           val dirUri = if (existingChild != null) {
@@ -621,7 +640,7 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
               file.name
             ) ?: continue
           }
-          queue.add(LocalDirEntry(file, dirUri))
+          queue.add(LocalDirEntry(file, dirUri, false))
         } else {
           val existingChild = existingChildren[file.name]
           if (existingChild != null &&
@@ -670,8 +689,6 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
    * 实现采用 BFS 迭代，逐个目录查询子文档，避免递归深度过大和在同步过程中
    * 长期持有 Cursor。
    */
-  private data class RemoteDirEntry(val parentUri: Uri, val localDir: File)
-
   private data class RemoteChild(
     val docUri: Uri,
     val displayName: String,
@@ -682,10 +699,12 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
 
   private fun syncTreeToLocalDir(contentResolver: android.content.ContentResolver, parentUri: Uri, localDir: File) {
     val queue = ArrayDeque<RemoteDirEntry>()
-    queue.add(RemoteDirEntry(parentUri, localDir))
+    queue.add(RemoteDirEntry(parentUri, localDir, true))
 
     while (queue.isNotEmpty()) {
-      val (currentParentUri, currentLocalDir) = queue.removeFirst()
+      val entry = queue.removeFirst()
+      val currentParentUri = entry.parentUri
+      val currentLocalDir = entry.localDir
       val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(
         currentParentUri,
         DocumentsContract.getTreeDocumentId(currentParentUri)
@@ -717,10 +736,13 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
       }
 
       for (child in children) {
+        if (entry.isRoot && child.displayName in AppLevelNames.NAMES) {
+          continue
+        }
         if (child.mimeType == DocumentsContract.Document.MIME_TYPE_DIR) {
           val childDir = File(currentLocalDir, child.displayName)
           childDir.mkdirs()
-          queue.add(RemoteDirEntry(child.docUri, childDir))
+          queue.add(RemoteDirEntry(child.docUri, childDir, false))
         } else {
           val file = File(currentLocalDir, child.displayName)
           // 如果本地文件存在且 mtime+size 匹配，跳过复制

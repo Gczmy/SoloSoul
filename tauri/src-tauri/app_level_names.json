@@ -1,0 +1,14 @@
+{
+  "comment": "不应被迁移/同步的应用级目录/文件，不属于 Vault 用户数据。",
+  "names": [
+    "app_config.json",
+    "saf_vault_temp",
+    "app_resources",
+    "resources",
+    "open_temp",
+    "pdf_preview_temp",
+    "ui_preferences.json",
+    "logs",
+    "models"
+  ]
+}

@@ -13,13 +13,13 @@ use tauri::Manager;
 pub fn resolve_market_dir(app_handle: Option<&tauri::AppHandle>) -> Result<PathBuf, PluginError> {
     if let Some(app) = app_handle {
         // Android 上 Tauri 的 resource_dir 返回 asset:// URL，无法被 std::fs 直接读取。
-        // MainActivity 已将资源复制到 {filesDir}/resources/，优先使用该私有目录。
+        // MainActivity 已将资源复制到 {filesDir}/app_resources/，优先使用该私有目录。
         #[cfg(target_os = "android")]
         let resource_dir = app
             .path()
             .resolve(".", tauri::path::BaseDirectory::Data)
             .ok()
-            .map(|d| d.join("resources"));
+            .map(|d| d.join("app_resources"));
         #[cfg(not(target_os = "android"))]
         let resource_dir = app.path().resource_dir().ok();
 

@@ -334,46 +334,130 @@ pub async fn vault_check_directory<R: Runtime>(app: AppHandle<R>) -> Result<bool
     }
 }
 
-/// 把 src 目录下的 Vault 数据迁移到 dst 目录。
-/// 跳过 app_config.json 和 saf_vault_temp 本身，避免循环。
-fn migrate_vault_data(src: &std::path::Path, dst: &std::path::Path) -> Result<(), String> {
-    if src == dst {
-        return Ok(());
-    }
-    std::fs::create_dir_all(dst).map_err(|e| format!("创建目标目录失败: {e}"))?;
+// 不应被迁移/同步的应用级目录/文件名称由 build.rs 从 app_level_names.json
+// 自动生成，避免 Rust/Kotlin 手动同步。
+include!(concat!(env!("OUT_DIR"), "/app_level_names.rs"));
 
-    // 先清空目标目录，避免残留旧数据。
-    if let Ok(entries) = std::fs::read_dir(dst) {
-        for entry in entries {
-            let entry = entry.map_err(|e| format!("读取目标目录项失败: {e}"))?;
-            let path = entry.path();
-            if path.is_dir() {
-                std::fs::remove_dir_all(&path).map_err(|e| format!("删除目标子目录失败: {e}"))?;
-            } else {
-                std::fs::remove_file(&path).map_err(|e| format!("删除目标文件失败: {e}"))?;
+/// 把 src 目录下的 Vault 数据迁移到 dst 目录。
+/// 仅顶层跳过应用级配置、资源、缓存和 SAF 临时目录本身，避免循环/冲突；
+/// 嵌套目录中的同名文件夹仍正常迁移，避免误删用户 Vault 数据。
+fn migrate_vault_data(src: &std::path::Path, dst: &std::path::Path) -> Result<(), String> {
+    fn inner(src: &std::path::Path, dst: &std::path::Path, depth: usize) -> Result<(), String> {
+        if src == dst {
+            return Ok(());
+        }
+        std::fs::create_dir_all(dst).map_err(|e| format!("创建目标目录失败: {e}"))?;
+
+        // 仅在顶层目录清空目标，避免嵌套时误删已迁移的兄弟目录。
+        if depth == 0 {
+            if let Ok(entries) = std::fs::read_dir(dst) {
+                for entry in entries {
+                    let entry = entry.map_err(|e| format!("读取目标目录项失败: {e}"))?;
+                    let path = entry.path();
+                    if path.is_dir() {
+                        std::fs::remove_dir_all(&path)
+                            .map_err(|e| format!("删除目标子目录失败: {e}"))?;
+                    } else {
+                        std::fs::remove_file(&path)
+                            .map_err(|e| format!("删除目标文件失败: {e}"))?;
+                    }
+                }
             }
         }
-    }
 
-    for entry in std::fs::read_dir(src).map_err(|e| format!("读取源目录失败: {e}"))? {
-        let entry = entry.map_err(|e| format!("读取目录项失败: {e}"))?;
-        let name = entry.file_name();
-        let name_str = name.to_string_lossy();
+        for entry in std::fs::read_dir(src).map_err(|e| format!("读取源目录失败: {e}"))? {
+            let entry = entry.map_err(|e| format!("读取目录项失败: {e}"))?;
+            let name = entry.file_name();
+            let name_str = name.to_string_lossy();
 
-        // 跳过应用级配置和 SAF 临时目录，避免循环/冲突
-        if name_str == "app_config.json" || name_str == "saf_vault_temp" {
-            continue;
+            // 仅在顶层跳过应用级配置、资源、缓存和 SAF 临时目录
+            if depth == 0 && APP_LEVEL_NAMES.contains(&name_str.as_ref()) {
+                continue;
+            }
+
+            let src_path = entry.path();
+            let dst_path = dst.join(&name);
+
+            if entry.file_type().map_err(|e| e.to_string())?.is_dir() {
+                inner(&src_path, &dst_path, depth + 1)?;
+            } else {
+                std::fs::copy(&src_path, &dst_path).map_err(|e| format!("复制文件失败: {e}"))?;
+            }
         }
 
-        let src_path = entry.path();
-        let dst_path = dst.join(&name);
-
-        if entry.file_type().map_err(|e| e.to_string())?.is_dir() {
-            migrate_vault_data(&src_path, &dst_path)?;
-        } else {
-            std::fs::copy(&src_path, &dst_path).map_err(|e| format!("复制文件失败: {e}"))?;
-        }
+        Ok(())
     }
 
-    Ok(())
+    inner(src, dst, 0)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_migrate_vault_data_skips_app_level_entries() {
+        let src = tempfile::TempDir::new().unwrap();
+        let dst = tempfile::TempDir::new().unwrap();
+
+        // 创建 Vault 数据
+        std::fs::write(src.path().join("vault.db"), "vault data").unwrap();
+        std::fs::create_dir_all(src.path().join("attachments")).unwrap();
+        std::fs::write(src.path().join("attachments").join("a.txt"), "attachment").unwrap();
+
+        // 创建应用级目录/文件
+        for name in APP_LEVEL_NAMES {
+            let path = src.path().join(name);
+            if name.ends_with(".json") {
+                std::fs::write(&path, "{}").unwrap();
+            } else {
+                std::fs::create_dir_all(&path).unwrap();
+                std::fs::write(path.join("dummy.txt"), "dummy").unwrap();
+            }
+        }
+
+        migrate_vault_data(src.path(), dst.path()).unwrap();
+
+        // Vault 数据应被迁移
+        assert!(dst.path().join("vault.db").exists());
+        assert!(dst.path().join("attachments").join("a.txt").exists());
+
+        // 应用级条目应被跳过（包括其内部内容）
+        for name in APP_LEVEL_NAMES {
+            assert!(!dst.path().join(name).exists(), "应跳过 {}", name);
+        }
+        assert!(!dst.path().join("resources").join("dummy.txt").exists());
+    }
+
+    #[test]
+    fn test_migrate_vault_data_preserves_user_directory_named_resources() {
+        let src = tempfile::TempDir::new().unwrap();
+        let dst = tempfile::TempDir::new().unwrap();
+
+        // 在 Vault 内部创建一个名为 "resources" 的子目录（不是顶层应用级目录）
+        let user_resources = src.path().join("objects").join("resources");
+        std::fs::create_dir_all(&user_resources).unwrap();
+        std::fs::write(user_resources.join("object.txt"), "user data").unwrap();
+
+        migrate_vault_data(src.path(), dst.path()).unwrap();
+
+        // 顶层的 "resources" 目录不存在（因为 src 顶层没有），
+        // 但 Vault 内部的 "objects/resources" 应该被保留
+        assert!(dst
+            .path()
+            .join("objects")
+            .join("resources")
+            .join("object.txt")
+            .exists());
+    }
+
+    #[test]
+    fn test_migrate_vault_data_same_src_dst_is_noop() {
+        let src = tempfile::TempDir::new().unwrap();
+        std::fs::write(src.path().join("vault.db"), "vault data").unwrap();
+
+        migrate_vault_data(src.path(), src.path()).unwrap();
+
+        assert!(src.path().join("vault.db").exists());
+    }
 }
