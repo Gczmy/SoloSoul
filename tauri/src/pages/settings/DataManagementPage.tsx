@@ -6,8 +6,9 @@ import { AppShell } from '@/components/layout/AppShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 
-import { HardDrive, PieChart, X } from 'lucide-react';
+import { HardDrive, PieChart, X, FolderTree } from 'lucide-react';
 import { formatBytes } from '@/lib/utils';
+import { isMobilePlatformSync } from '@/lib/platform';
 import { ICON_SIZE } from '@/lib/constants';
 
 interface VaultStats {
@@ -105,6 +106,7 @@ function PieChartSvg({ slices, size }: { slices: PieSlice[]; size: number }) {
 export function DataManagementPage() {
   const navigate = useNavigate();
   const { t } = useTranslation(['settings', 'common']);
+  const isMobile = isMobilePlatformSync();
   const [stats, setStats] = useState<VaultStats | null>(null);
   const [showBreakdown, setShowBreakdown] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -339,6 +341,36 @@ export function DataManagementPage() {
               zIndex: 99,
             }}
           />
+        )}
+
+        {/* Vault directory (mobile only) */}
+        {isMobile && (
+          <Card interactive onClick={() => navigate('/settings/vault-directory')}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 10,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: 'rgba(91,124,153,0.1)',
+                }}
+              >
+                <FolderTree size={ICON_SIZE['2xl']} style={{ color: 'var(--accent-primary)' }} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500 }}>
+                  {t('settings:items.vault_directory') || '保险库目录'}
+                </div>
+                <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)', marginTop: 2 }}>
+                  {t('settings:desc.vault_directory') || '选择保险库数据存储位置'}
+                </div>
+              </div>
+              <span style={{ color: 'var(--text-tertiary)', fontSize: 20 }}>›</span>
+            </div>
+          </Card>
         )}
 
         {/* Quick actions */}
