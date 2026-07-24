@@ -18,6 +18,7 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
+import java.util.ArrayDeque
 
 @InvokeArg
 class ImportContentUriArgs {
@@ -551,177 +552,207 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
   }
 
   /**
-   * 递归把本地目录内容同步到 SAF tree 下。
+   * 把本地目录内容同步到 SAF tree 下。
    * 使用原子写入模式：先写入 .tmp 临时文件，成功后再删除旧文件并重命名为最终文件名。
    * 写入失败时自动清理 .tmp，不碰原文件，避免同步中途失败导致数据丢失。
+   *
+   * 实现采用 BFS 迭代，每个目录只查询一次子文档列表，避免递归深度过大和
+   * 在同步过程中长期持有 Cursor。
    */
+  private data class LocalDirEntry(val localDir: File, val parentUri: Uri)
+
+  private data class ExistingChild(
+    val uri: Uri,
+    val lastModified: Long,
+    val size: Long
+  )
+
   private fun syncLocalDirToTree(localDir: File, parentUri: Uri) {
-    val files = localDir.listFiles() ?: return
-    for (file in files) {
-      if (file.isDirectory) {
-        val existing = findChildDocument(parentUri, file.name)
-        val dirUri = if (existing != null) {
-          existing
-        } else {
-          DocumentsContract.createDocument(activity.contentResolver, parentUri, DocumentsContract.Document.MIME_TYPE_DIR, file.name)
-            ?: continue
+    val queue = ArrayDeque<LocalDirEntry>()
+    queue.add(LocalDirEntry(localDir, parentUri))
+
+    while (queue.isNotEmpty()) {
+      val (currentDir, currentParentUri) = queue.removeFirst()
+      val files = currentDir.listFiles() ?: continue
+
+      // 一次性查出当前目录下已有的子文档，避免每个文件都重新 query
+      val existingChildren = mutableMapOf<String, ExistingChild>()
+      val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(
+        currentParentUri,
+        DocumentsContract.getTreeDocumentId(currentParentUri)
+      ) ?: continue
+      activity.contentResolver.query(
+        childrenUri,
+        arrayOf(
+          DocumentsContract.Document.COLUMN_DOCUMENT_ID,
+          DocumentsContract.Document.COLUMN_DISPLAY_NAME,
+          DocumentsContract.Document.COLUMN_LAST_MODIFIED,
+          DocumentsContract.Document.COLUMN_SIZE
+        ),
+        null, null, null
+      )?.use { cursor ->
+        while (cursor.moveToNext()) {
+          val docId = cursor.getString(0)
+          val displayName = cursor.getString(1)
+          val mtimeIdx = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_LAST_MODIFIED)
+          val sizeIdx = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_SIZE)
+          val lastModified = if (mtimeIdx >= 0) cursor.getLong(mtimeIdx) else -1L
+          val size = if (sizeIdx >= 0) cursor.getLong(sizeIdx) else -1L
+          if (!docId.isNullOrBlank() && !displayName.isNullOrBlank()) {
+            existingChildren[displayName] = ExistingChild(
+              DocumentsContract.buildDocumentUriUsingTree(currentParentUri, docId),
+              lastModified,
+              size
+            )
+          }
         }
-        syncLocalDirToTree(file, dirUri)
-      } else {
-        val existing = findChildDocument(parentUri, file.name)
-        if (existing != null) {
-          // 检查远端文件是否与本地一致（mtime + size），跳过未变更的文件
-          if (filesMatch(existing, file)) {
+      }
+
+      for (file in files) {
+        if (file.isDirectory) {
+          val existingChild = existingChildren[file.name]
+          val dirUri = if (existingChild != null) {
+            existingChild.uri
+          } else {
+            DocumentsContract.createDocument(
+              activity.contentResolver,
+              currentParentUri,
+              DocumentsContract.Document.MIME_TYPE_DIR,
+              file.name
+            ) ?: continue
+          }
+          queue.add(LocalDirEntry(file, dirUri))
+        } else {
+          val existingChild = existingChildren[file.name]
+          if (existingChild != null &&
+              existingChild.lastModified > 0 &&
+              existingChild.size > 0 &&
+              existingChild.lastModified == file.lastModified() &&
+              existingChild.size == file.length()) {
             continue
           }
-        }
 
-        // 原子写入：先写 .tmp，成功后重命名
-        val mimeType = getMimeType(file.name)
-        val tempName = "${file.name}.tmp"
-        val tempDoc = createTempDocumentAndWrite(parentUri, tempName, mimeType, file)
-        if (tempDoc == null) {
-          android.util.Log.w("SoloSoul", "写入临时文件失败，跳过: ${file.name}")
-          continue
-        }
-
-        // 写入成功：删除旧文件（如果存在）
-        if (existing != null) {
-          try {
-            DocumentsContract.deleteDocument(activity.contentResolver, existing)
-          } catch (e: Exception) {
-            android.util.Log.w("SoloSoul", "删除旧文件失败: ${e.message}")
+          val mimeType = getMimeType(file.name)
+          val tempName = "${file.name}.tmp"
+          val tempDoc = createTempDocumentAndWrite(currentParentUri, tempName, mimeType, file)
+          if (tempDoc == null) {
+            android.util.Log.w("SoloSoul", "写入临时文件失败，跳过: ${file.name}")
+            continue
           }
-        }
 
-        // 重命名 .tmp 为最终文件名（SAF 的 renameDocument 不保证原子性，
-        // 但至少写入完成后才动原文件，不会因写入失败丢失数据）
-        val renamed = DocumentsContract.renameDocument(
-          activity.contentResolver, tempDoc, file.name
-        )
-        if (renamed == null) {
-          android.util.Log.w(
-            "SoloSoul",
-            "重命名临时文件失败，残留 .tmp 文件: $tempName，可手动清理"
+          if (existingChild != null) {
+            try {
+              DocumentsContract.deleteDocument(activity.contentResolver, existingChild.uri)
+            } catch (e: Exception) {
+              android.util.Log.w("SoloSoul", "删除旧文件失败: ${e.message}")
+            }
+          }
+
+          val renamed = DocumentsContract.renameDocument(
+            activity.contentResolver, tempDoc, file.name
           )
+          if (renamed == null) {
+            android.util.Log.w(
+              "SoloSoul",
+              "重命名临时文件失败，残留 .tmp 文件: $tempName，可手动清理"
+            )
+          }
         }
       }
     }
   }
 
   /**
-   * 查询 SAF 文档的元数据，与本地文件比较 mtime 和 size 是否一致。
-   * 两个维度都匹配时返回 true（表示文档与文件内容相同，可跳过同步）。
-   * 查询失败或 provider 不支持 mtime 列时返回 false（安全降级为重新复制）。
+   * 把 SAF tree 内容同步到本地目录。
+   * 使用原子写入模式：先写入 .tmp 临时文件，再用 renameTo 原子重命名为最终文件名。
+   * 本地文件系统的 renameTo 在同一分区上是原子操作，写入失败时 .tmp 可被自动清理。
+   *
+   * 实现采用 BFS 迭代，逐个目录查询子文档，避免递归深度过大和在同步过程中
+   * 长期持有 Cursor。
    */
-  private fun filesMatch(docUri: Uri, localFile: File): Boolean {
-    return try {
-      var matched = false
-      activity.contentResolver.query(
-        docUri,
-        arrayOf(DocumentsContract.Document.COLUMN_LAST_MODIFIED, DocumentsContract.Document.COLUMN_SIZE),
+  private data class RemoteDirEntry(val parentUri: Uri, val localDir: File)
+
+  private data class RemoteChild(
+    val docUri: Uri,
+    val displayName: String,
+    val mimeType: String,
+    val lastModified: Long,
+    val size: Long
+  )
+
+  private fun syncTreeToLocalDir(contentResolver: android.content.ContentResolver, parentUri: Uri, localDir: File) {
+    val queue = ArrayDeque<RemoteDirEntry>()
+    queue.add(RemoteDirEntry(parentUri, localDir))
+
+    while (queue.isNotEmpty()) {
+      val (currentParentUri, currentLocalDir) = queue.removeFirst()
+      val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(
+        currentParentUri,
+        DocumentsContract.getTreeDocumentId(currentParentUri)
+      ) ?: continue
+
+      val children = mutableListOf<RemoteChild>()
+      contentResolver.query(
+        childrenUri,
+        arrayOf(
+          DocumentsContract.Document.COLUMN_DOCUMENT_ID,
+          DocumentsContract.Document.COLUMN_DISPLAY_NAME,
+          DocumentsContract.Document.COLUMN_MIME_TYPE,
+          DocumentsContract.Document.COLUMN_LAST_MODIFIED,
+          DocumentsContract.Document.COLUMN_SIZE
+        ),
         null, null, null
       )?.use { cursor ->
-        if (cursor.moveToFirst()) {
+        while (cursor.moveToNext()) {
+          val docId = cursor.getString(0)
+          val displayName = cursor.getString(1)
+          val mimeType = cursor.getString(2)
           val mtimeIdx = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_LAST_MODIFIED)
           val sizeIdx = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_SIZE)
           val remoteMtime = if (mtimeIdx >= 0) cursor.getLong(mtimeIdx) else -1L
           val remoteSize = if (sizeIdx >= 0) cursor.getLong(sizeIdx) else -1L
-          matched = remoteMtime > 0 && remoteMtime == localFile.lastModified() && remoteSize == localFile.length()
+          val docUri = DocumentsContract.buildDocumentUriUsingTree(currentParentUri, docId)
+          children.add(RemoteChild(docUri, displayName, mimeType, remoteMtime, remoteSize))
         }
       }
-      matched
-    } catch (e: Exception) {
-      // 查询失败时安全降级为重新复制
-      false
-    }
-  }
 
-  /**
-   * 递归把 SAF tree 内容同步到本地目录。
-   * 使用原子写入模式：先写入 .tmp 临时文件，再用 renameTo 原子重命名为最终文件名。
-   * 本地文件系统的 renameTo 在同一分区上是原子操作，写入失败时 .tmp 可被自动清理。
-   */
-  private fun syncTreeToLocalDir(contentResolver: android.content.ContentResolver, parentUri: Uri, localDir: File) {
-    val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(parentUri, DocumentsContract.getTreeDocumentId(parentUri))
-      ?: return
-    contentResolver.query(
-      childrenUri,
-      arrayOf(
-        DocumentsContract.Document.COLUMN_DOCUMENT_ID,
-        DocumentsContract.Document.COLUMN_DISPLAY_NAME,
-        DocumentsContract.Document.COLUMN_MIME_TYPE,
-        DocumentsContract.Document.COLUMN_LAST_MODIFIED,
-        DocumentsContract.Document.COLUMN_SIZE
-      ),
-      null, null, null
-    )?.use { cursor ->
-      while (cursor.moveToNext()) {
-        val docId = cursor.getString(0)
-        val displayName = cursor.getString(1)
-        val mimeType = cursor.getString(2)
-        val mtimeIdx = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_LAST_MODIFIED)
-        val sizeIdx = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_SIZE)
-        val remoteMtime = if (mtimeIdx >= 0) cursor.getLong(mtimeIdx) else -1L
-        val remoteSize = if (sizeIdx >= 0) cursor.getLong(sizeIdx) else -1L
-        val docUri = DocumentsContract.buildDocumentUriUsingTree(parentUri, docId)
-        if (mimeType == DocumentsContract.Document.MIME_TYPE_DIR) {
-          val childDir = File(localDir, displayName)
+      for (child in children) {
+        if (child.mimeType == DocumentsContract.Document.MIME_TYPE_DIR) {
+          val childDir = File(currentLocalDir, child.displayName)
           childDir.mkdirs()
-          syncTreeToLocalDir(contentResolver, docUri, childDir)
+          queue.add(RemoteDirEntry(child.docUri, childDir))
         } else {
-          val file = File(localDir, displayName)
+          val file = File(currentLocalDir, child.displayName)
           // 如果本地文件存在且 mtime+size 匹配，跳过复制
-          if (file.exists() && remoteMtime > 0 && remoteSize > 0 &&
-              file.lastModified() == remoteMtime && file.length() == remoteSize) {
+          if (file.exists() && child.lastModified > 0 && child.size > 0 &&
+              file.lastModified() == child.lastModified && file.length() == child.size) {
             continue
           }
           file.parentFile?.mkdirs()
 
           // 原子写入：先写 .tmp，再用 renameTo 原子替换
-          val tmpFile = File(localDir, "${displayName}.tmp")
-          contentResolver.openInputStream(docUri)?.use { input ->
+          val tmpFile = File(currentLocalDir, "${child.displayName}.tmp")
+          contentResolver.openInputStream(child.docUri)?.use { input ->
             FileOutputStream(tmpFile).use { output ->
               input.copyTo(output)
             }
           } ?: continue
 
-          // renameTo 在同一文件系统上是原子操作
           if (!tmpFile.renameTo(file)) {
             android.util.Log.w(
               "SoloSoul",
-              "原子重命名失败，尝试直接替换: ${displayName}"
+              "原子重命名失败，尝试直接替换: ${child.displayName}"
             )
-            // renameTo 失败（如跨分区），降级为删旧 + 重命名
             file.delete()
             tmpFile.renameTo(file)
           }
 
-          // 复制后保留远端 mtime，使后续对比一致
-          if (remoteMtime > 0) {
-            file.setLastModified(remoteMtime)
+          if (child.lastModified > 0) {
+            file.setLastModified(child.lastModified)
           }
         }
       }
     }
-  }
-
-  /**
-   * 在 parent 下查找指定显示名称的子文档 URI。
-   */
-  private fun findChildDocument(parentUri: Uri, displayName: String): Uri? {
-    val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(parentUri, DocumentsContract.getTreeDocumentId(parentUri))
-      ?: return null
-    activity.contentResolver.query(childrenUri, arrayOf(DocumentsContract.Document.COLUMN_DOCUMENT_ID, DocumentsContract.Document.COLUMN_DISPLAY_NAME), null, null, null)?.use { cursor ->
-      while (cursor.moveToNext()) {
-        val name = cursor.getString(1)
-        if (name == displayName) {
-          val docId = cursor.getString(0)
-          return DocumentsContract.buildDocumentUriUsingTree(parentUri, docId)
-        }
-      }
-    }
-    return null
   }
 
   private fun getMimeType(fileName: String): String {
