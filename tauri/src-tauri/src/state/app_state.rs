@@ -6,7 +6,6 @@ use solosoul_core::VaultService;
 use solosoul_sync::SyncService;
 use std::path::PathBuf;
 use std::sync::{Arc, RwLock};
-use tauri::Emitter;
 use tauri::Manager;
 
 pub struct AppState {
@@ -170,51 +169,7 @@ impl AppState {
             .unwrap_or(false)
     }
 
-    /// 启动后台自动同步任务。
-    /// 每 30 秒检查 dirty flag，有脏数据时自动同步到 SAF。
-    /// 该任务不会阻塞应用启动。
-    pub fn start_auto_sync_task(&self) -> tokio::task::JoinHandle<()> {
-        let svc = self.vault_service.clone();
-        let app = self.handle.clone();
-        tokio::spawn(async move {
-            loop {
-                tokio::time::sleep(std::time::Duration::from_secs(30)).await;
-                let need_sync = {
-                    let read_guard = match svc.read() {
-                        Ok(g) => g,
-                        Err(_) => continue,
-                    };
-                    read_guard.is_remote_storage()
-                };
-                if !need_sync {
-                    continue;
-                }
-                let svc_clone = svc.clone();
-                let result = tokio::task::spawn_blocking(move || -> Result<(), String> {
-                    let read_guard = svc_clone
-                        .read()
-                        .map_err(|_| "Vault service lock poisoned".to_string())?;
-                    read_guard.sync_if_dirty()
-                })
-                .await;
-                match result {
-                    Ok(Ok(())) => {
-                        let _ = app.emit(
-                            "sync-progress",
-                            serde_json::json!({"phase": "auto_sync", "current": 1, "total": 1}),
-                        );
-                        tracing::debug!("[auto-sync] sync_if_dirty completed");
-                    }
-                    Ok(Err(e)) => {
-                        tracing::warn!("[auto-sync] sync_if_dirty failed: {e}");
-                    }
-                    Err(join_err) => {
-                        tracing::error!("[auto-sync] sync task panicked: {join_err}");
-                    }
-                }
-            }
-        })
-    }
+
 
     pub async fn init_saf_sync(&self) -> Result<(), String> {
         let svc = self.vault_service.clone();

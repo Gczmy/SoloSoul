@@ -244,13 +244,17 @@ pub fn run() {
             let has_saf_vault = app_state.has_saf_vault();
             app.manage(app_state);
 
-            // 4b. 后台首次 SAF 同步（Android）
-            // 在 spawn_blocking 中执行递归文件复制，不阻塞应用启动。
+            // 4b. 后台首次 SAF 同步（Android, 500ms 后执行 initial sync）
+            // 4c. 后台定期自动同步（每 30 秒检查 dirty flag）
+            //
+            // 注意：必须通过 tauri::async_runtime::spawn 启动这两个后台任务，
+            // 因为 setup() 是同步回调，直接调用 tokio::spawn 在没有 Tokio runtime 的
+            // 线程上会 panic（Android 移动端已验证）。
             if has_saf_vault {
-                let app_handle = app.handle().clone();
+                let app_handle_init = app.handle().clone();
                 tauri::async_runtime::spawn(async move {
                     tokio::time::sleep(std::time::Duration::from_millis(500)).await;
-                    if let Some(state) = app_handle.try_state::<AppState>() {
+                    if let Some(state) = app_handle_init.try_state::<AppState>() {
                         if let Err(e) = state.init_saf_sync().await {
                             tracing::warn!(
                                 "[setup] SAF initial sync failed (deferred to first command): {e}"
@@ -261,11 +265,39 @@ pub fn run() {
                     }
                 });
 
-                // 4c. 后台定期自动同步（每 30 秒检查 dirty flag）
-                if let Some(state) = app.try_state::<AppState>() {
-                    state.start_auto_sync_task();
-                    tracing::info!("[setup] SAF auto-sync task started (interval: 30s)");
-                }
+                let app_handle_auto = app.handle().clone();
+                tauri::async_runtime::spawn(async move {
+                    loop {
+                        tokio::time::sleep(std::time::Duration::from_secs(30)).await;
+                        if let Some(state) = app_handle_auto.try_state::<AppState>() {
+                            let need_sync =
+                                state.vault_service.read().ok().map(|g| g.is_remote_storage()).unwrap_or(false);
+                            if !need_sync {
+                                continue;
+                            }
+                            let svc = state.vault_service.clone();
+                            let result = tokio::task::spawn_blocking(move || -> Result<(), String> {
+                                let read_guard = svc
+                                    .read()
+                                    .map_err(|_| "Vault service lock poisoned".to_string())?;
+                                read_guard.sync_if_dirty()
+                            })
+                            .await;
+                            match result {
+                                Ok(Ok(())) => {
+                                    tracing::debug!("[auto-sync] sync_if_dirty completed");
+                                }
+                                Ok(Err(e)) => {
+                                    tracing::warn!("[auto-sync] sync_if_dirty failed: {e}");
+                                }
+                                Err(join_err) => {
+                                    tracing::error!("[auto-sync] sync task panicked: {join_err}");
+                                }
+                            }
+                        }
+                    }
+                });
+                tracing::info!("[setup] SAF auto-sync task started (interval: 30s)");
             }
 
             // 5. 初始化桌面端发现服务（mDNS）— 移动端暂不提供
