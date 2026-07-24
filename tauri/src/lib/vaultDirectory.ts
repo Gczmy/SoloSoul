@@ -26,10 +26,18 @@ export async function setVaultDirectory(
   });
 }
 
+export interface InitializeVaultResult {
+  success: boolean;
+  needsRestart: boolean;
+  message: string;
+  /** 初始化后检测到的已有账户数量（0 = 新用户需创建，>0 = 直接登录）。 */
+  accountCount?: number;
+}
+
 export async function initVaultDirectory(
   safTreeUri: string | null,
-): Promise<SetVaultDirectoryResult> {
-  return invoke<SetVaultDirectoryResult>('init_vault_directory', {
+): Promise<InitializeVaultResult> {
+  return invoke<InitializeVaultResult>('init_vault_directory', {
     payload: { safTreeUri },
   });
 }

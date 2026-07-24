@@ -24,6 +24,9 @@ pub struct InitializeVaultResult {
     pub success: bool,
     pub needs_restart: bool,
     pub message: String,
+    /// 初始化后检测到的已有账户数量（0 = 新用户需创建，>0 = 直接登录）。
+    #[serde(default)]
+    pub account_count: u32,
 }
 
 impl AppState {
@@ -273,12 +276,28 @@ impl AppState {
             if let Some(ref uri) = saf_uri {
                 Self::save_saf_uri(&data_dir, Some(uri))?;
             }
+
+            // 同步后重载账户缓存，使前端能感知已有账户
+            {
+                let svc = self
+                    .vault_service
+                    .read()
+                    .map_err(|_| "Vault service lock poisoned".to_string())?;
+                svc.load_accounts();
+            }
         }
+
+        let account_count = self
+            .vault_service
+            .read()
+            .map(|g| g.list_accounts().len() as u32)
+            .unwrap_or(0);
 
         Ok(InitializeVaultResult {
             success: true,
             needs_restart: false,
             message: "Vault 目录已初始化".to_string(),
+            account_count,
         })
     }
 

@@ -81,6 +81,11 @@ export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDial
       }
       const result = await initVaultDirectory(uri);
       if (result.success) {
+        if (result.accountCount && result.accountCount > 0) {
+          // 已有账户，跳过 onboarding 直接完成
+          onComplete();
+          return;
+        }
         // 初始化成功，记录已选 URI 并显示在界面上，由用户手动点击下一步
         setSelectedSafUri(uri);
       } else {
