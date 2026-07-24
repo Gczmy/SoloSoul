@@ -5,6 +5,7 @@ import { AppShell } from '@/components/layout/AppShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useToastError } from '@/hooks/useToastError';
 import { getPlatform } from '@/lib/platform';
 import { relaunch } from '@tauri-apps/plugin-process';
@@ -35,6 +36,7 @@ export function VaultDirectoryPage() {
   const [loadError, setLoadError] = useState(false);
   const [acting, setActing] = useState(false);
   const [needsRestart, setNeedsRestart] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [platformName, setPlatformName] = useState<string>('');
   const [syncProgress, setSyncProgress] = useState<SyncProgress | null>(null);
   const unmountedRef = useRef(false);
@@ -123,7 +125,12 @@ export function VaultDirectoryPage() {
     }
   };
 
-  const handleResetLocal = async () => {
+  const handleResetLocal = () => {
+    setShowResetConfirm(true);
+  };
+
+  const handleConfirmResetLocal = async () => {
+    setShowResetConfirm(false);
     try {
       setActing(true);
       const result = await setVaultDirectory(null);
@@ -431,6 +438,16 @@ export function VaultDirectoryPage() {
             )}
           </>
         )}
+        {/* 确认恢复本地目录的二次确认弹窗 */}
+        <ConfirmDialog
+          isOpen={showResetConfirm}
+          title={t('settings:vault_directory_reset_local_confirm_title')}
+          message={t('settings:vault_directory_reset_local_confirm_message')}
+          confirmLabel={t('settings:vault_directory_reset_local_confirm_btn')}
+          onConfirm={handleConfirmResetLocal}
+          onCancel={() => setShowResetConfirm(false)}
+          priority="important"
+        />
       </PageContainer>
     </AppShell>
   );
