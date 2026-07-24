@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -35,6 +35,9 @@ export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDial
   const [vaultDirError, setVaultDirError] = useState<string | null>(null);
   // 外部目录（SAF）选择后先显示路径，等用户手动点击“下一步”再前进
   const [selectedSafUri, setSelectedSafUri] = useState<string | null>(null);
+  // SAF 同步进度阶段：idle（未同步）/ syncing（同步中）/ done（同步完成）
+  const [syncPhase, setSyncPhase] = useState<'idle' | 'syncing' | 'done'>('idle');
+  const syncDoneTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     getPlatform().then((p) => {
@@ -63,7 +66,15 @@ export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDial
     if (current?.key === 'vault_directory') {
       setVaultDirError(null);
       setVaultDirActing(false);
+      // 离开 vault_directory 页面时清理 sync 状态
+      setSyncPhase('idle');
     }
+    return () => {
+      if (syncDoneTimer.current) {
+        clearTimeout(syncDoneTimer.current);
+        syncDoneTimer.current = null;
+      }
+    };
   }, [current?.key]);
 
   const handleVaultDirPick = useCallback(async () => {
@@ -76,28 +87,35 @@ export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDial
       setVaultDirError(null);
       const uri = await pickVaultDirectory();
       if (!uri) {
-        // User cancelled — remain on choice screen
         return;
       }
+      // 开始同步时显示进度条
+      setSyncPhase('syncing');
       const result = await initVaultDirectory(uri);
+      setSyncPhase('done');
       if (result.success) {
         if (result.accountCount && result.accountCount > 0) {
           // 已有账户，跳过 onboarding 直接完成
           onComplete();
           return;
         }
-        // 初始化成功，记录已选 URI 并显示在界面上，由用户手动点击下一步
-        setSelectedSafUri(uri);
+        // 显示 "SAF 同步完成" 3 秒后自动切换到路径显示
+        syncDoneTimer.current = setTimeout(() => {
+          setSyncPhase('idle');
+          setSelectedSafUri(uri);
+        }, 3000);
       } else {
+        setSyncPhase('idle');
         setVaultDirError(result.message || t('onboarding_vault_dir_set_failed'));
       }
     } catch (e) {
+      setSyncPhase('idle');
       setVaultDirError(String(e));
     } finally {
       resume();
       setVaultDirActing(false);
     }
-  }, [t]);
+  }, [t, onComplete]);
 
   // Show only the vault directory step when we need to display it
   if (current.key === 'vault_directory') {
@@ -163,7 +181,80 @@ export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDial
             {t('onboarding_vault_dir_desc')}
           </p>
 
-          {selectedSafUri ? (
+          {syncPhase === 'syncing' ? (
+            /* SAF 同步中：进度条 + 提示 */
+            <>
+              <style>{`
+                @keyframes sync-progress-bar {
+                  0% { transform: translateX(-100%); }
+                  50% { transform: translateX(200%); }
+                  100% { transform: translateX(400%); }
+                }
+              `}</style>
+              <div
+                style={{
+                  width: '100%',
+                  height: 6,
+                  borderRadius: 3,
+                  background: 'var(--border-subtle)',
+                  overflow: 'hidden',
+                  marginBottom: 20,
+                }}
+              >
+                <div
+                  style={{
+                    width: '30%',
+                    height: '100%',
+                    borderRadius: 3,
+                    background: 'linear-gradient(90deg, var(--accent-primary), var(--accent-warm))',
+                    animation: 'sync-progress-bar 1.5s ease-in-out infinite',
+                  }}
+                />
+              </div>
+              <div
+                style={{
+                  fontSize: 'var(--text-body)',
+                  fontWeight: 600,
+                  color: 'var(--text-primary)',
+                  marginBottom: 8,
+                }}
+              >
+                {t('onboarding_vault_dir_syncing')}
+              </div>
+              <div
+                style={{
+                  fontSize: 'var(--text-caption)',
+                  color: 'var(--text-tertiary)',
+                  marginBottom: 24,
+                }}
+              >
+                {t('onboarding_vault_dir_sync_hint')}
+              </div>
+            </>
+          ) : syncPhase === 'done' ? (
+            /* 同步完成：成功提示 */
+            <div
+              style={{
+                padding: 16,
+                borderRadius: 12,
+                border: '1px solid color-mix(in srgb, var(--color-success, #22c55e) 35%, transparent)',
+                background: 'color-mix(in srgb, var(--color-success, #22c55e) 8%, var(--bg-toolbar))',
+                textAlign: 'center',
+                marginBottom: 24,
+              }}
+            >
+              <div style={{ fontSize: 32, marginBottom: 8 }}>✅</div>
+              <div
+                style={{
+                  fontSize: 'var(--text-body)',
+                  fontWeight: 600,
+                  color: 'var(--text-primary)',
+                }}
+              >
+                {t('onboarding_vault_dir_sync_done')}
+              </div>
+            </div>
+          ) : selectedSafUri ? (
             /* Selected SAF path summary */
             <div
               style={{

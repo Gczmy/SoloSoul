@@ -7,7 +7,7 @@ use solosoul_core::VaultService;
 use solosoul_sync::SyncService;
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, RwLock};
-use tauri::Manager;
+use tauri::{Emitter, Manager};
 
 /// `.solosoul_config` 文件名（存放在 SAF 目录根，用于重装后自动发现）。
 const SAF_CONFIG_FILE: &str = ".solosoul_config";
@@ -349,6 +349,12 @@ impl AppState {
         // 失败直接返回错误，前端会展示给用户；成功则保证用户在
         // 已有远程数据被拉取后才会继续。
         if self.has_saf_vault() {
+            // 同步开始：通知前端显示进度条
+            let _ = self.handle.emit(
+                "sync-progress",
+                serde_json::json!({"phase": "sync_start", "current": 0, "total": 1}),
+            );
+
             if let Err(e) = self.init_saf_sync().await {
                 // 同步失败：回退到本地 vault，避免留下半初始化的 SAF 状态。
                 // 同时不保存 SAF URI，下次启动仍走本地/占位路径。
@@ -366,6 +372,12 @@ impl AppState {
                 }
                 return Err(format!("首次同步失败: {e}"));
             }
+            // 同步成功：通知前端进度完成
+            let _ = self.handle.emit(
+                "sync-progress",
+                serde_json::json!({"phase": "sync_complete", "current": 1, "total": 1}),
+            );
+
             // 同步成功后才持久化 SAF URI
             if let Some(ref uri) = saf_uri {
                 Self::save_saf_uri(&data_dir, Some(uri))?;
