@@ -195,16 +195,19 @@ pub async fn vault_set_directory(
             serde_json::json!({"phase": "migrate", "current": 0, "total": 3}),
         );
 
+        // 克隆 temp_dir 供 spawn_blocking 内部使用，外部保留引用以写入 .solosoul_config
+        let temp_dir_inner = temp_dir.clone();
+
         // 在 spawn_blocking 中执行迁移与同步，避免阻塞 tokio worker
         let uri_owned = uri.clone();
         let handle = state.handle.clone();
         tokio::task::spawn_blocking(move || -> Result<(), String> {
-            if local_dir != temp_dir {
+            if local_dir != temp_dir_inner {
                 let _ = handle.emit(
                     "sync-progress",
                     serde_json::json!({"phase": "migrate", "current": 1, "total": 3}),
                 );
-                migrate_vault_data(&local_dir, &temp_dir)?;
+                migrate_vault_data(&local_dir, &temp_dir_inner)?;
                 let _ = handle.emit(
                     "sync-progress",
                     serde_json::json!({"phase": "migrate", "current": 2, "total": 3}),
@@ -213,7 +216,7 @@ pub async fn vault_set_directory(
 
             // 通过临时文件系统同步到 SAF
             let sync_driver = Arc::new(TauriSafSyncDriver::<tauri::Wry>::new(handle.clone()));
-            let fs = SafVaultFileSystem::new(uri_owned, temp_dir, sync_driver);
+            let fs = SafVaultFileSystem::new(uri_owned, temp_dir_inner, sync_driver);
             fs.sync_to_remote()
                 .map_err(|e| format!("首次同步到 SAF 失败: {e}"))?;
 
@@ -225,6 +228,15 @@ pub async fn vault_set_directory(
         })
         .await
         .map_err(|e| format!("迁移任务失败: {e}"))??;
+
+        // 写入 .solosoul_config 到 SAF 目录（含 saf_tree_uri 元数据），
+        // 使卸载重装后用户选择相同目录时能自动恢复配置。
+        let _ = AppState::write_saf_config_to_remote(
+            &temp_dir,
+            uri,
+            Arc::new(TauriSafSyncDriver::<tauri::Wry>::new(state.handle.clone())),
+        );
+        // 写入 .solosoul_config 失败不影响主流程，仅打日志
 
         // 持久化配置（轻量 I/O，无需 spawn_blocking）
         save_saf_uri(&data_dir, Some(uri))?;

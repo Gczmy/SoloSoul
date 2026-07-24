@@ -2,12 +2,15 @@ use crate::attachment_import_plugin::AttachmentImportPluginHandle;
 use crate::fs::normalize_path;
 use crate::fs::saf_sync_driver::TauriSafSyncDriver;
 use crate::plugin::PluginManager;
-use solosoul_core::vault_file_system::SafVaultFileSystem;
+use solosoul_core::vault_file_system::{SafVaultFileSystem, VaultFileSystem};
 use solosoul_core::VaultService;
 use solosoul_sync::SyncService;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::{Arc, RwLock};
 use tauri::Manager;
+
+/// `.solosoul_config` 文件名（存放在 SAF 目录根，用于重装后自动发现）。
+const SAF_CONFIG_FILE: &str = ".solosoul_config";
 
 #[derive(Clone)]
 pub struct AppState {
@@ -45,6 +48,97 @@ impl AppState {
             .get("saf_tree_uri")
             .and_then(|v| v.as_str())
             .map(String::from)
+    }
+
+    /// 写入 .solosoul_config 到本地临时目录，并通过 SAF 同步写入远端。
+    /// 使卸载重装后用户选择相同目录时能自动恢复 SAF URI。
+    pub(crate) fn write_saf_config_to_remote(
+        temp_dir: &Path,
+        saf_uri: &str,
+        sync_driver: Arc<dyn solosoul_core::vault_file_system::SafSyncDriver>,
+    ) -> Result<(), String> {
+        let config_path = temp_dir.join(SAF_CONFIG_FILE);
+        let config = serde_json::json!({
+            "version": 1,
+            "saf_tree_uri": saf_uri,
+            "created_at": Self::now_rfc3339(),
+        });
+        std::fs::write(
+            &config_path,
+            serde_json::to_string_pretty(&config).map_err(|e| e.to_string())?,
+        )
+        .map_err(|e| format!("写入 .solosoul_config 失败: {e}"))?;
+
+        // 通过完整的 SAF 文件系统同步，确保 .solosoul_config 被上传到远端
+        let fs = SafVaultFileSystem::new(
+            saf_uri.to_string(),
+            temp_dir.to_path_buf(),
+            sync_driver,
+        );
+        fs.sync_to_remote()?;
+        tracing::info!("[AppState] .solosoul_config written and synced to SAF");
+        Ok(())
+    }
+
+    /// 从本地临时目录读取 .solosoul_config，提取 saf_tree_uri。
+    pub(crate) fn read_saf_config_uri(temp_dir: &Path) -> Option<String> {
+        let config_path = temp_dir.join(SAF_CONFIG_FILE);
+        if !config_path.exists() {
+            return None;
+        }
+        let content = std::fs::read_to_string(&config_path).ok()?;
+        let config: serde_json::Value = serde_json::from_str(&content).ok()?;
+        config
+            .get("saf_tree_uri")
+            .and_then(|v| v.as_str())
+            .map(String::from)
+    }
+
+    /// ISO 8601 格式时间戳，替代 chrono crate 依赖。
+    fn now_rfc3339() -> String {
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default();
+        let secs = now.as_secs();
+        let days = secs / 86400;
+        let time_secs = secs % 86400;
+        let hours = time_secs / 3600;
+        let minutes = (time_secs % 3600) / 60;
+        let seconds = time_secs % 60;
+
+        let mut y = 1970i64;
+        let mut remaining_days = days as i64;
+        loop {
+            let days_in_year = if Self::is_leap_year(y) { 366 } else { 365 };
+            if remaining_days < days_in_year {
+                break;
+            }
+            remaining_days -= days_in_year;
+            y += 1;
+        }
+        let month_days = if Self::is_leap_year(y) {
+            [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+        } else {
+            [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+        };
+        let mut m = 1usize;
+        for days_in_month in month_days {
+            if remaining_days < days_in_month {
+                break;
+            }
+            remaining_days -= days_in_month;
+            m += 1;
+        }
+        let d = remaining_days + 1;
+
+        format!(
+            "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}+00:00",
+            y, m, d, hours, minutes, seconds
+        )
+    }
+
+    fn is_leap_year(y: i64) -> bool {
+        (y % 4 == 0 && y % 100 != 0) || y % 400 == 0
     }
 
     /// 保存或删除 SAF tree URI 配置。
@@ -284,6 +378,28 @@ impl AppState {
                     .read()
                     .map_err(|_| "Vault service lock poisoned".to_string())?;
                 svc.load_accounts();
+            }
+
+            // 写入 .solosoul_config 到 SAF 目录（含 saf_tree_uri 元数据），
+            // 使卸载重装后用户选择相同目录时能自动恢复配置。
+            if let Some(ref uri) = saf_uri {
+                let temp_dir = data_dir.join("saf_vault_temp");
+                let sync_driver =
+                    Arc::new(TauriSafSyncDriver::<tauri::Wry>::new(self.handle.clone()));
+                Self::write_saf_config_to_remote(&temp_dir, uri, sync_driver).ok();
+
+                // 检测：同步后检查 .solosoul_config 是否写入成功
+                if let Some(config_uri) = Self::read_saf_config_uri(&temp_dir) {
+                    tracing::info!(
+                        "[AppState] .solosoul_config detected after sync, URI matches: {}",
+                        config_uri == *uri
+                    );
+                } else {
+                    tracing::warn!(
+                        "[AppState] .solosoul_config not found after writing (sync may be pending)"
+                    );
+                }
+                // 写入/检测 .solosoul_config 失败不影响主流程，仅打日志
             }
         }
 
