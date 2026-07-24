@@ -10,6 +10,7 @@ import { HardDrive, PieChart, X, FolderTree } from 'lucide-react';
 import { formatBytes } from '@/lib/utils';
 import { isMobilePlatformSync } from '@/lib/platform';
 import { ICON_SIZE } from '@/lib/constants';
+import { VaultDirectorySection } from './VaultDirectorySection';
 
 interface VaultStats {
   profileCount: number;
@@ -343,10 +344,17 @@ export function DataManagementPage() {
           />
         )}
 
-        {/* Vault directory (mobile only) */}
+        {/* Vault directory (mobile only) — inline content */}
         {isMobile && (
-          <Card interactive onClick={() => navigate('/settings/vault-directory')}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                marginBottom: 12,
+              }}
+            >
               <div
                 style={{
                   width: 44,
@@ -368,9 +376,9 @@ export function DataManagementPage() {
                   {t('settings:desc.vault_directory') || '选择保险库数据存储位置'}
                 </div>
               </div>
-              <span style={{ color: 'var(--text-tertiary)', fontSize: 20 }}>›</span>
             </div>
-          </Card>
+            <VaultDirectorySection />
+          </div>
         )}
 
         {/* Quick actions */}
