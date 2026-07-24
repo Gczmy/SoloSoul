@@ -4,6 +4,7 @@
 //! 并提供手动同步命令。
 
 use crate::attachment_import_plugin::AttachmentImportPluginHandle;
+use crate::fs::normalize_path;
 use crate::fs::saf_sync_driver::TauriSafSyncDriver;
 use crate::state::{AppState, InitializeVaultResult};
 use serde::{Deserialize, Serialize};
@@ -94,11 +95,13 @@ fn save_saf_uri(data_dir: &std::path::Path, uri: Option<&str>) -> Result<(), Str
 /// 获取当前 Vault 目录信息。
 #[tauri::command]
 pub async fn vault_get_directory(state: State<'_, AppState>) -> Result<VaultDirectoryInfo, String> {
-    let data_dir = state
-        .handle
-        .path()
-        .resolve(".", tauri::path::BaseDirectory::Data)
-        .map_err(|e| format!("无法解析应用数据目录: {e}"))?;
+    let data_dir = normalize_path(
+        &state
+            .handle
+            .path()
+            .resolve(".", tauri::path::BaseDirectory::Data)
+            .map_err(|e| format!("无法解析应用数据目录: {e}"))?,
+    );
     let saved_uri = load_saved_saf_uri(&data_dir);
 
     let svc = state
@@ -138,11 +141,13 @@ pub async fn vault_set_directory(
     state: State<'_, AppState>,
     payload: SetVaultDirectoryPayload,
 ) -> Result<SetVaultDirectoryResult, String> {
-    let data_dir = state
-        .handle
-        .path()
-        .resolve(".", tauri::path::BaseDirectory::Data)
-        .map_err(|e| format!("无法解析应用数据目录: {e}"))?;
+    let data_dir = normalize_path(
+        &state
+            .handle
+            .path()
+            .resolve(".", tauri::path::BaseDirectory::Data)
+            .map_err(|e| format!("无法解析应用数据目录: {e}"))?,
+    );
 
     // 锁定 Vault 以避免迁移过程中数据变更。
     //

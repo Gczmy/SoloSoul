@@ -1,4 +1,5 @@
 use crate::attachment_import_plugin::AttachmentImportPluginHandle;
+use crate::fs::normalize_path;
 use crate::fs::saf_sync_driver::TauriSafSyncDriver;
 use crate::plugin::PluginManager;
 use solosoul_core::vault_file_system::SafVaultFileSystem;
@@ -118,10 +119,12 @@ impl AppState {
     pub fn new(handle: tauri::AppHandle) -> Result<Self, anyhow::Error> {
         // ── 移动端 VaultService 初始化 ──
         let vault_service = if cfg!(mobile) {
-            let data_dir = handle
-                .path()
-                .resolve(".", tauri::path::BaseDirectory::Data)
-                .map_err(|e| anyhow::anyhow!("无法解析应用数据目录: {e}"))?;
+            let data_dir = normalize_path(
+                &handle
+                    .path()
+                    .resolve(".", tauri::path::BaseDirectory::Data)
+                    .map_err(|e| anyhow::anyhow!("无法解析应用数据目录: {e}"))?,
+            );
             tracing::info!("[AppState] mobile data_dir: {}", data_dir.display());
 
             let saved_uri = Self::load_saved_saf_uri(&data_dir);
@@ -214,11 +217,13 @@ impl AppState {
             return Err("仅在移动端支持初始化 Vault 目录".to_string());
         }
 
-        let data_dir = self
-            .handle
-            .path()
-            .resolve(".", tauri::path::BaseDirectory::Data)
-            .map_err(|e| format!("无法解析应用数据目录: {e}"))?;
+        let data_dir = normalize_path(
+            &self
+                .handle
+                .path()
+                .resolve(".", tauri::path::BaseDirectory::Data)
+                .map_err(|e| format!("无法解析应用数据目录: {e}"))?,
+        );
 
         let handle = self.handle.clone();
         let new_svc = if let Some(ref uri) = saf_uri {
@@ -281,10 +286,12 @@ impl AppState {
         let svc = self.vault_service.clone();
         let app_handle = self.handle.clone();
 
-        let data_dir = app_handle
-            .path()
-            .resolve(".", tauri::path::BaseDirectory::Data)
-            .map_err(|e| format!("无法解析应用数据目录: {e}"))?;
+        let data_dir = normalize_path(
+            &app_handle
+                .path()
+                .resolve(".", tauri::path::BaseDirectory::Data)
+                .map_err(|e| format!("无法解析应用数据目录: {e}"))?,
+        );
         let saved_uri = Self::load_saved_saf_uri(&data_dir);
 
         if let Some(ref uri) = saved_uri {
