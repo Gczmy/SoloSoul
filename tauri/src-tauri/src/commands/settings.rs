@@ -4,6 +4,8 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
 use std::path::PathBuf;
+#[cfg(target_os = "android")]
+use tauri::Manager;
 use tauri::State;
 
 // ── Plaintext UI preferences (§4.1) ─────────────────────────
