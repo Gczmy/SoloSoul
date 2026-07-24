@@ -1,4 +1,16 @@
+import com.google.gson.JsonParser
 import java.util.Properties
+
+// 版本目录（version catalog）不能直接用于 buildscript 块，
+// 因此将 Gson 版本声明在 buildscript 块内，方便统一升级。
+buildscript {
+    val gsonVersion = "2.10.1"
+
+    dependencies {
+        // Gradle 任务生成代码需要显式依赖 Gson，避免依赖 Gradle 内置版本。
+        classpath("com.google.code.gson:gson:$gsonVersion")
+    }
+}
 
 plugins {
     id("com.android.application")
@@ -107,6 +119,53 @@ android {
 
 rust {
     rootDirRel = "../../../"
+}
+
+/**
+ * 从 app_level_names.json 生成 AppLevelNames.kt。
+ * 该任务保证 Rust 与 Kotlin 端共用同一套应用级目录/文件过滤列表。
+ */
+abstract class GenerateAppLevelNames : DefaultTask() {
+    @get:InputFile
+    abstract val inputFile: RegularFileProperty
+
+    @get:OutputDirectory
+    abstract val outputDir: DirectoryProperty
+
+    @TaskAction
+    fun generate() {
+        val parsed = JsonParser.parseString(inputFile.get().asFile.readText()).asJsonObject
+        val names = parsed.getAsJsonArray("names").map { it.asString }
+
+        val outputFile = outputDir.get().asFile.resolve("com/solosoul/app/AppLevelNames.kt")
+        outputFile.parentFile.mkdirs()
+
+        val items = names.joinToString(",\n") { "        \"$it\"" }
+        outputFile.writeText(
+            "package com.solosoul.app\n\n" +
+            "/**\n" +
+            " * Auto-generated from app_level_names.json. Do not edit manually.\n" +
+            " */\n" +
+            "object AppLevelNames {\n" +
+            "    val NAMES = setOf(\n" +
+            items + "\n" +
+            "    )\n" +
+            "}\n"
+        )
+    }
+}
+
+val generateAppLevelNames = tasks.register<GenerateAppLevelNames>("generateAppLevelNames") {
+    inputFile.set(file("../../../app_level_names.json"))
+    outputDir.set(layout.buildDirectory.dir("generated/source/appLevelNames/main/java"))
+}
+
+android {
+    sourceSets {
+        getByName("main") {
+            java.srcDir(generateAppLevelNames.flatMap { it.outputDir })
+        }
+    }
 }
 
 // 安卓端不使用 ONNX 模型（OCR 走 ML Kit，本地 Embedding 移动端不支持，

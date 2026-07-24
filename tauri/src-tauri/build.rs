@@ -25,7 +25,7 @@ fn generate_app_level_names() {
         .and_then(|v| v.as_array())
         .expect("app_level_names.json must contain a 'names' array");
 
-    // 生成 Rust 常量到 OUT_DIR
+    // 生成 Rust 常量到 OUT_DIR（Kotlin 端由 Gradle 任务生成，遵循 Cargo OUT_DIR 约定）
     let rust_items = names
         .iter()
         .map(|v| format!("    \"{}\"", v.as_str().expect("names must be strings")))
@@ -38,36 +38,4 @@ fn generate_app_level_names() {
     );
     std::fs::write(out_dir.join("app_level_names.rs"), rust_content)
         .expect("failed to write app_level_names.rs");
-
-    // 生成 Kotlin 常量文件到 Android 源码目录
-    let kt_names = names
-        .iter()
-        .map(|v| format!("        \"{}\"", v.as_str().expect("names must be strings")))
-        .collect::<Vec<_>>()
-        .join(",\n");
-    let kt_content = format!(
-        "package com.solosoul.app\n\n\
-         /**\n \
-         * Auto-generated from app_level_names.json. Do not edit manually.\n \
-         */\n\
-         object AppLevelNames {{\n    val NAMES = setOf(\n{}\n    )\n}}\n",
-        kt_names
-    );
-
-    let kt_path =
-        manifest_dir.join("gen/android/app/src/main/java/com/solosoul/app/AppLevelNames.kt");
-    if let Some(parent) = kt_path.parent() {
-        std::fs::create_dir_all(parent).expect("failed to create Kotlin output dir");
-    }
-    write_if_changed(&kt_path, kt_content).expect("failed to write AppLevelNames.kt");
-}
-
-/// 仅当内容变化时才写入，减少无意义的重新编译与 git 脏状态。
-fn write_if_changed(path: &std::path::Path, content: String) -> std::io::Result<()> {
-    if let Ok(existing) = std::fs::read_to_string(path) {
-        if existing == content {
-            return Ok(());
-        }
-    }
-    std::fs::write(path, content)
 }
