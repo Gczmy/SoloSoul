@@ -5,7 +5,7 @@
 
 use crate::attachment_import_plugin::AttachmentImportPluginHandle;
 use crate::fs::saf_sync_driver::TauriSafSyncDriver;
-use crate::state::AppState;
+use crate::state::{AppState, InitializeVaultResult};
 use serde::{Deserialize, Serialize};
 use solosoul_core::vault_file_system::{SafVaultFileSystem, VaultFileSystem};
 use std::sync::Arc;
@@ -207,8 +207,7 @@ pub async fn vault_set_directory(
             }
 
             // 通过临时文件系统同步到 SAF
-            let sync_driver =
-                Arc::new(TauriSafSyncDriver::<tauri::Wry>::new(handle.clone()));
+            let sync_driver = Arc::new(TauriSafSyncDriver::<tauri::Wry>::new(handle.clone()));
             let fs = SafVaultFileSystem::new(uri_owned, temp_dir, sync_driver);
             fs.sync_to_remote()
                 .map_err(|e| format!("首次同步到 SAF 失败: {e}"))?;
@@ -307,12 +306,24 @@ fn check_saf_uri_validity<R: Runtime>(app: &AppHandle<R>, tree_uri: &str) -> boo
     handle.check_vault_dir_access(tree_uri).unwrap_or(false)
 }
 
+/// 首次启动时初始化 Vault 目录（无需重启）。
+/// 仅在 Android 上可用；桌面端调用会返回错误。
+#[tauri::command]
+pub async fn init_vault_directory(
+    state: State<'_, AppState>,
+    payload: SetVaultDirectoryPayload,
+) -> Result<InitializeVaultResult, String> {
+    let saf_uri = payload.saf_tree_uri;
+    let app_state = (*state).clone();
+    tokio::task::spawn_blocking(move || app_state.initialize_vault(saf_uri))
+        .await
+        .map_err(|e| format!("初始化任务失败: {e}"))?
+}
+
 /// 检查当前 Vault 目录的 SAF URI 是否仍然有效。
 /// 返回 `{ valid: bool }`。
 #[tauri::command]
-pub async fn vault_check_directory<R: Runtime>(
-    app: AppHandle<R>,
-) -> Result<bool, String> {
+pub async fn vault_check_directory<R: Runtime>(app: AppHandle<R>) -> Result<bool, String> {
     let data_dir = app
         .path()
         .resolve(".", tauri::path::BaseDirectory::Data)

@@ -270,19 +270,19 @@ pub fn run() {
                     loop {
                         tokio::time::sleep(std::time::Duration::from_secs(30)).await;
                         if let Some(state) = app_handle_auto.try_state::<AppState>() {
-                            let need_sync =
-                                state.vault_service.read().ok().map(|g| g.is_remote_storage()).unwrap_or(false);
+                            let need_sync = state.has_saf_vault();
                             if !need_sync {
                                 continue;
                             }
                             let svc = state.vault_service.clone();
-                            let result = tokio::task::spawn_blocking(move || -> Result<(), String> {
-                                let read_guard = svc
-                                    .read()
-                                    .map_err(|_| "Vault service lock poisoned".to_string())?;
-                                read_guard.sync_if_dirty()
-                            })
-                            .await;
+                            let result =
+                                tokio::task::spawn_blocking(move || -> Result<(), String> {
+                                    let read_guard = svc
+                                        .read()
+                                        .map_err(|_| "Vault service lock poisoned".to_string())?;
+                                    read_guard.sync_if_dirty()
+                                })
+                                .await;
                             match result {
                                 Ok(Ok(())) => {
                                     tracing::debug!("[auto-sync] sync_if_dirty completed");
@@ -437,6 +437,7 @@ pub fn run() {
             commands::vault_directory::vault_sync_to_remote,
             commands::vault_directory::vault_sync_from_remote,
             commands::vault_directory::vault_check_directory,
+            commands::vault_directory::init_vault_directory,
             // Object commands
             commands::object::object_list,
             commands::object::object_get,

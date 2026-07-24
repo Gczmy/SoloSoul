@@ -8,13 +8,10 @@ import {
   ShieldCheck,
   CheckCircle,
   Folder,
-  AlertCircle,
-  RefreshCw,
 } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/constants';
 import { getPlatform } from '@/lib/platform';
-import { pickVaultDirectory, setVaultDirectory } from '@/lib/vaultDirectory';
-import { relaunch } from '@tauri-apps/plugin-process';
+import { pickVaultDirectory, initVaultDirectory } from '@/lib/vaultDirectory';
 
 interface OnboardingDialogProps {
   onComplete: () => void;
@@ -34,11 +31,8 @@ export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDial
   const { t } = useTranslation('common');
   const [step, setStep] = useState(0);
   const [platformName, setPlatformName] = useState<string>('');
-  const [vaultDirChoice, setVaultDirChoice] = useState<'local' | 'saf' | null>(null);
   const [vaultDirActing, setVaultDirActing] = useState(false);
-  const [vaultDirSuccess, setVaultDirSuccess] = useState(false);
   const [vaultDirError, setVaultDirError] = useState<string | null>(null);
-  const [vaultNeedsRestart, setVaultNeedsRestart] = useState(false);
 
   useEffect(() => {
     getPlatform().then((p) => {
@@ -64,13 +58,10 @@ export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDial
   // 每次进入 vault_directory 步骤时重置状态，让用户可以重新选择
   useEffect(() => {
     if (current?.key === 'vault_directory') {
-      setVaultDirChoice(null);
-      setVaultDirSuccess(false);
       setVaultDirError(null);
-      setVaultNeedsRestart(false);
       setVaultDirActing(false);
     }
-  }, [step]);
+  }, [current?.key]);
 
   const handleVaultDirPick = useCallback(async () => {
     const { pause, resume } = await import('@/stores/autoLockPauseStore').then(
@@ -82,37 +73,23 @@ export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDial
       setVaultDirError(null);
       const uri = await pickVaultDirectory();
       if (!uri) {
-        // User cancelled — return to choice
-        setVaultDirChoice(null);
+        // User cancelled — remain on choice screen
         return;
       }
-      const result = await setVaultDirectory(uri);
+      const result = await initVaultDirectory(uri);
       if (result.success) {
-        setVaultDirSuccess(true);
-        setVaultNeedsRestart(result.needsRestart);
+        // 初始化成功，直接进入下一步（无需重启）
+        setStep((s) => s + 1);
       } else {
         setVaultDirError(result.message || t('onboarding_vault_dir_set_failed'));
       }
     } catch (e) {
       setVaultDirError(String(e));
-      setVaultDirChoice(null);
     } finally {
       resume();
       setVaultDirActing(false);
     }
   }, [t]);
-
-  const handleFinishOnboarding = () => {
-    if (vaultNeedsRestart) {
-      // Mark onboarding as seen before restart so it doesn't show again
-      onComplete();
-      relaunch().catch(() => {
-        // Fallback: just stay on current page
-      });
-    } else {
-      onComplete();
-    }
-  };
 
   // Show only the vault directory step when we need to display it
   if (current.key === 'vault_directory') {
@@ -178,83 +155,31 @@ export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDial
             {t('onboarding_vault_dir_desc')}
           </p>
 
-          {vaultNeedsRestart ? (
-            <div
-              style={{
-                padding: 16,
-                borderRadius: 12,
-                background: 'color-mix(in srgb, var(--accent-primary) 8%, var(--bg-elevated))',
-                border: '1px solid color-mix(in srgb, var(--accent-primary) 30%, transparent)',
-                marginBottom: 24,
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-                <AlertCircle size={20} style={{ color: 'var(--accent-primary)', flexShrink: 0 }} />
-                <div style={{ textAlign: 'left' }}>
-                  <div
-                    style={{
-                      fontWeight: 600,
-                      marginBottom: 4,
-                      color: 'var(--text-primary)',
-                    }}
-                  >
-                    {t('onboarding_vault_dir_restart_title')}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: 'var(--text-body-sm)',
-                      color: 'var(--text-secondary)',
-                    }}
-                  >
-                    {t('onboarding_vault_dir_restart_desc')}
-                  </div>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={handleFinishOnboarding}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 6,
-                  padding: '8px 16px',
-                  borderRadius: 8,
-                  border: '1px solid var(--accent-primary)',
-                  background: 'color-mix(in srgb, var(--accent-primary) 10%, transparent)',
-                  color: 'var(--accent-primary)',
-                  fontSize: 'var(--text-body-sm)',
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                  fontFamily: 'inherit',
-                }}
-              >
-                <RefreshCw size={14} />
-                {t('onboarding_vault_dir_restart_btn')}
-              </button>
-            </div>
-          ) : vaultDirSuccess ? (
-            <div
-              style={{
-                padding: 14,
-                borderRadius: 12,
-                background: 'color-mix(in srgb, var(--accent-primary) 8%, var(--bg-elevated))',
-                marginBottom: 24,
-                color: 'var(--accent-primary)',
-                fontWeight: 500,
-                fontSize: 'var(--text-body)',
-              }}
-            >
-              {t('onboarding_vault_dir_success')}
-            </div>
-          ) : vaultDirChoice === null ? (
+          {(
             <>
               {/* Choice: Local vs SAF */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
                 <button
                   type="button"
-                  onClick={() => {
-                    setVaultDirChoice('local');
-                    setStep((s) => s + 1);
+                  onClick={async () => {
+                    const { pause, resume } = await import('@/stores/autoLockPauseStore').then(
+                      (m) => m.useAutoLockPauseStore.getState(),
+                    );
+                    pause();
+                    try {
+                      setVaultDirActing(true);
+                      const result = await initVaultDirectory(null);
+                      if (result.success) {
+                        setStep((s) => s + 1);
+                      } else {
+                        setVaultDirError(result.message || t('onboarding_vault_dir_set_failed'));
+                      }
+                    } catch (e) {
+                      setVaultDirError(String(e));
+                    } finally {
+                      resume();
+                      setVaultDirActing(false);
+                    }
                   }}
                   style={{
                     padding: '14px 16px',
@@ -359,20 +284,6 @@ export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDial
                 </div>
               )}
             </>
-          ) : (
-            // vaultDirChoice === 'saf' and waiting for result (should not reach here normally)
-            <div
-              style={{
-                padding: 14,
-                borderRadius: 12,
-                background: 'var(--bg-toolbar)',
-                marginBottom: 24,
-                color: 'var(--text-secondary)',
-                fontSize: 'var(--text-body)',
-              }}
-            >
-              {t('common:loading')}
-            </div>
           )}
 
           {/* Step dots */}
@@ -398,10 +309,7 @@ export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDial
                 <button
                   type="button"
                   onClick={() => {
-                    if (vaultDirChoice === 'saf') {
-                      setVaultDirChoice(null);
-                      setVaultDirError(null);
-                    }
+                    setVaultDirError(null);
                     setStep((s) => s - 1);
                   }}
                   style={{

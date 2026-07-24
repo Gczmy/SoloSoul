@@ -73,6 +73,7 @@ commands.allow = [
   "vault_update_hint",
   "vault_get_directory",
   "vault_set_directory",
+  "init_vault_directory",
   "vault_sync_to_remote",
   "vault_sync_from_remote",
   "vault_check_directory",

@@ -26,6 +26,14 @@ export async function setVaultDirectory(
   });
 }
 
+export async function initVaultDirectory(
+  safTreeUri: string | null,
+): Promise<SetVaultDirectoryResult> {
+  return invoke<SetVaultDirectoryResult>('init_vault_directory', {
+    payload: { safTreeUri },
+  });
+}
+
 export async function pickVaultDirectory(): Promise<string | null> {
   const result = await invoke<{ uri?: string | null }>('vault_pick_directory');
   return result.uri ?? null;

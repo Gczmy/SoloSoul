@@ -223,7 +223,11 @@ impl<R: Runtime> AttachmentImportPluginHandle<R> {
             self.handle
                 .run_mobile_plugin::<serde_json::Value>("checkVaultDirAccess", payload)
                 .map_err(|e| e.to_string())
-                .map(|v| v.get("accessible").and_then(|a| a.as_bool()).unwrap_or(false))
+                .map(|v| {
+                    v.get("accessible")
+                        .and_then(|a| a.as_bool())
+                        .unwrap_or(false)
+                })
         }
         #[cfg(not(target_os = "android"))]
         {

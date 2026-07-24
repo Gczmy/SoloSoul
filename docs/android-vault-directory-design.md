@@ -200,16 +200,13 @@ impl VaultService {
 桌面端：`VaultService::new()` 默认使用 `LocalVaultFileSystem`，路径为 `dirs::data_dir()/com.solosoul.app`。  
 Android：`AppState::new` 时读取 `app_config.json` 中的 `saf_tree_uri`；存在时构建 `SafVaultFileSystem`，否则使用 `LocalVaultFileSystem`。
 
-#### 5.4.3 `AppState` 初始化流程
+#### 5.4.3 `AppState` 初始化流程（含等级 A 延迟初始化）
 
-实际实现位于 `tauri/src-tauri/src/state/app_state.rs`：
+实际实现位于 `tauri/src-tauri/src/state/app_state.rs`。
+
+**常规启动（已有配置或已有账户）**：
 
 ```rust
-let data_dir = handle
-    .path()
-    .resolve(".", tauri::path::BaseDirectory::Data)
-    .map_err(...)?;
-
 let svc = match Self::load_saved_saf_uri(&data_dir) {
     Some(uri) => {
         let temp_dir = data_dir.join("saf_vault_temp");
@@ -217,11 +214,28 @@ let svc = match Self::load_saved_saf_uri(&data_dir) {
         let fs = Arc::new(SafVaultFileSystem::new(uri, temp_dir.clone(), sync_driver));
         // 首次同步延迟到 AppState::init_saf_sync() 异步执行（spawn_blocking），
         // 在 setup 完成后由后台 tokio 任务触发，不阻塞应用启动。
-        VaultService::with_file_system(temp_dir, fs)
+        Some(VaultService::with_file_system(temp_dir, fs))
     }
-    None => VaultService::with_base_path(data_dir),
+    None if accounts_exist_in_app_private(&data_dir) => {
+        // 兼容老用户：app-private 下已有账户，自动按本地模式初始化
+        let svc = VaultService::with_base_path(data_dir);
+        svc.load_accounts();
+        Some(svc)
+    }
+    None => None, // 等级 A：首次安装且无配置，延迟初始化
 };
 ```
+
+**首次启动（无配置、无账户）**：
+
+- `vault_service` 初始为 `None`（或占位状态）。
+- 不创建 `VaultService`，不打开 SQLite。
+- `check_has_account`、`vault_list_accounts` 在未初始化时分别返回 `false` 和空数组。
+- 用户通过 onboarding 选择 SAF 目录后，调用 `init_vault_directory(uri)`：
+  1. 创建 `SafVaultFileSystem`
+  2. 创建 `VaultService` 并 `load_accounts()`
+  3. 保存 `app_config.json`
+  4. 将 `vault_service` 置为可用
 
 要点：
 - `app_config.json` 保存在 Tauri 应用私有数据目录，与 Vault 数据目录解耦，方便在创建 `VaultService` 之前读取 SAF 配置。
@@ -230,20 +244,20 @@ let svc = match Self::load_saved_saf_uri(&data_dir) {
 
 ### 5.5 前端流程
 
-#### 5.5.1 首次启动引导（已实现）
+#### 5.5.1 首次启动引导（等级 A 方案）
 
 路径：`tauri/src/components/onboarding/OnboardingDialog.tsx`
 
 在欢迎页之后插入「选择保险库数据存放位置」步骤（仅 Android 显示）：
 
-- 提供**两个选项卡片**：「应用私有目录（不推荐）」与「外部目录（推荐）」。
-- 选择“外部目录” → 调用 `pickVaultDirectory()` → 系统 SAF 目录选择器 → 用户选定 → `setVaultDirectory(uri)` → 提示「需要重启应用」。
-- 选择“应用私有目录” → 直接进入下一步（后续可在设置中迁移）。
-- 选择外部目录后重启应用前，会同步调用 `onComplete()` 标记引导已完成，再执行 `relaunch()`。
+- **仅提供外部目录选项**：删除「应用私有目录」选项，首次启动即要求用户通过 SAF 选择持久化目录。这符合 Obsidian / Logseq 等本地优先应用的主流做法。
+- 选择流程：调用 `pickVaultDirectory()` → 系统 SAF 目录选择器 → 用户选定 → `initVaultDirectory(uri)` → 后端创建 `VaultService` → 成功后直接进入下一步。
+- **无需重启**：首次启动时 `AppState` 延迟初始化 `VaultService`，用户选择目录后才真正创建。
+- 取消选择时：停留在当前步骤，提示必须选择目录才能继续。
 - 实现细节：
   - 该步骤通过 `getPlatform()` 异步检测平台，非 Android 自动跳过。
   - 选择过程中暂停自动锁定（`autoLockPauseStore.pause()/resume()`）。
-  - 选择 SAF 目录后如果 `needsRestart` 为 true，显示重启按钮。
+  - 后端新增 `init_vault_directory` 命令，仅在没有初始化时调用。
 
 #### 5.5.2 设置页入口（已实现）
 
@@ -327,7 +341,7 @@ SQLite 打开 SAF 文件有两种思路：
 ### Phase 3：发布前验证（代码实现已完成）
 
 - [x] **授权撤销场景**：`vault_check_directory` / `vault_get_directory.valid` 检测 SAF URI 有效性 + VaultDirectoryPage 红色警告 + 登录后 toast 通知。
-- [x] **首次启动引导**：OnboardingDialog 已添加 Android 限定的「选择保险库数据存放位置」步骤，支持 App-private / SAF 外部目录选择，选择后重启应用切换。
+- [x] **首次启动引导**：OnboardingDialog 已添加 Android 限定的「选择保险库数据存放位置」步骤，仅提供 SAF 外部目录选择；首次启动延迟初始化 `VaultService`，选择目录后直接继续，无需重启。
 - [x] **文档更新与 i18n 补全**：设计文档已同步与实际代码一致；中英双语 key 完备（onboarding 11 个 + settings 20+ 个）。
 - [x] **启动同步异步化**：首次 `sync_from_remote` 从构造函数移除，改为 `spawn_blocking` 延迟执行，不阻塞应用启动。
 - [x] **增量同步**：Kotlin 双向同步增加 mtime+size 比较跳过未变更文件，减少 I/O。
@@ -465,3 +479,115 @@ SQLite 打开 SAF 文件有两种思路：
 - 桌面端回归：`cargo check`（0 errors, 0 warnings）/ `cargo test -p solosoul-core`（139/139）/ `npx tsc --noEmit` 全部通过
 - 前端静态检查：`npx tsc --noEmit` / ESLint 通过
 - 待完成：多 ROM 真机回归、性能基准、卸载重装测试
+
+---
+
+## 13. 等级 A 实施方案：首次启动延迟初始化
+
+### 13.1 目标
+
+在保持「后续切换目录仍需重启」的前提下，消除首次启动后的重启步骤，提升首次使用体验。
+
+### 13.2 核心设计
+
+- **启动时不创建 `VaultService`**：首次安装且无配置时，`AppState.vault_service` 为 `None`。
+- **Onboarding 强制选择 SAF 目录**：删除「内部/外部」二选一，只提供 SAF 选择。
+- **选择后即时初始化**：通过新命令 `init_vault_directory` 在 Rust 端创建 `VaultService`。
+- **后续目录切换**：仍通过 `vault_set_directory` + 重启实现。
+
+### 13.3 后端设计
+
+#### 13.3.1 `AppState` 字段与初始化
+
+```rust
+pub struct AppState {
+    pub handle: tauri::AppHandle,
+    pub vault_service: Arc<RwLock<Option<VaultService>>>, // 改为 Option
+    pub sync_service: Arc<SyncService>,
+    pub plugin_manager: Arc<PluginManager>,
+}
+```
+
+`AppState::new()` 启动时：
+
+1. 读取 `app_config.json`。
+2. 若存在 SAF URI → 按 SAF 初始化。
+3. 若不存在配置但 `app-private` 目录下已有账户 → 按 App-private 初始化（兼容老用户）。
+4. 否则 → `vault_service = None`，等待 onboarding 初始化。
+
+#### 13.3.2 新增命令 `init_vault_directory`
+
+- 参数：`{ saf_tree_uri?: string }`
+- 行为：
+  1. 检查 `vault_service` 是否已初始化，已初始化则报错。
+  2. 根据 `saf_tree_uri` 创建 `SafVaultFileSystem`（或 App-private）。
+  3. 创建 `VaultService` 并 `load_accounts()`。
+  4. 保存 `app_config.json`。
+  5. 将 `vault_service` 置为可用。
+  6. 触发后台 `init_saf_sync()`。
+
+#### 13.3.3 命令守卫
+
+以下命令在 `vault_service` 为 `None` 时的行为：
+
+| 命令 | 未初始化行为 |
+|---|---|
+| `check_has_account` | 返回 `false` |
+| `vault_list_accounts` | 返回空数组 |
+| `bootstrap` / `login` / `unlock` / 对象相关命令 | 返回错误「保险库尚未初始化」 |
+
+### 13.4 前端设计
+
+#### 13.4.1 `OnboardingDialog`
+
+- 删除「应用私有目录」选项按钮。
+- 用户点击「选择外部目录」→ `pickVaultDirectory()` → `initVaultDirectory(uri)`。
+- 成功 → 自动进入下一步。
+- 失败 → 显示错误，允许重试。
+- 取消 → 停留在当前步骤。
+
+#### 13.4.2 `vaultDirectory.ts`
+
+新增：
+
+```ts
+export async function initVaultDirectory(
+  safTreeUri: string,
+): Promise<InitVaultDirectoryResult> {
+  return invoke<InitVaultDirectoryResult>('init_vault_directory', {
+    payload: { safTreeUri },
+  });
+}
+```
+
+### 13.5 边界情况
+
+| 场景 | 处理 |
+|---|---|
+| 用户取消 SAF picker | 停留在当前步骤，提示必须选择 |
+| SAF 初始化失败 | 显示错误，允许重试 |
+| App 在 onboarding 中被杀 | 下次启动仍显示 onboarding |
+| 已有 app-private 账户 | 自动初始化，不显示 onboarding |
+| 后续切换目录 | 仍用 `vault_set_directory` + 重启 |
+
+### 13.6 文件改动清单
+
+- `tauri/src-tauri/src/state/app_state.rs`：`vault_service` 改为 `Option`，新增延迟初始化逻辑。
+- `tauri/src-tauri/src/commands/vault_directory.rs`：新增 `init_vault_directory`。
+- `tauri/src-tauri/src/commands/*.rs`：加守卫。
+- `tauri/src-tauri/src/lib.rs`：注册命令。
+- `tauri/src-tauri/permissions/solo-soul/default.toml`：加 ACL。
+- `tauri/src/lib/vaultDirectory.ts`：新增 `initVaultDirectory`。
+- `tauri/src/components/onboarding/OnboardingDialog.tsx`：删除内部选项，用新命令。
+
+### 13.7 验证清单
+
+- [ ] `cargo check` 通过。
+- [ ] `cargo test -p solosoul-core` 通过。
+- [ ] `npx tsc --noEmit` 通过。
+- [ ] `npx eslint` 通过。
+- [ ] 真机：首次安装 → 显示 SAF 目录选择 → 选完后不重启进入引导。
+- [ ] 真机：onboarding 完成后可正常创建账户。
+- [ ] 真机：设置页切换目录后仍提示重启，重启后生效。
+- [ ] 真机：已有账户用户不显示 onboarding。
+- [ ] 真机：取消 SAF picker 后仍可重试。
