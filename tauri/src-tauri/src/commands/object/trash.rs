@@ -1,3 +1,4 @@
+use crate::commands::settings::resolve_ui_prefs_path;
 use crate::commands::vault_handle;
 use crate::state::AppState;
 use tauri::State;
@@ -41,8 +42,14 @@ pub async fn object_trash_list(
 }
 
 /// Read the user's language setting from plaintext UI preferences.
-fn get_ui_language(svc: &solosoul_core::vault_service::VaultService) -> String {
-    let path = svc.base_path().join("ui_preferences.json");
+fn get_ui_language<R: tauri::Runtime>(
+    app: &tauri::AppHandle<R>,
+    svc: &solosoul_core::vault_service::VaultService,
+) -> String {
+    let path = match resolve_ui_prefs_path(app, svc) {
+        Ok(p) => p,
+        Err(_) => return "en-US".to_string(),
+    };
     if path.exists() {
         if let Ok(content) = std::fs::read_to_string(&path) {
             if let Ok(prefs) = serde_json::from_str::<serde_json::Value>(&content) {
@@ -60,6 +67,7 @@ fn get_ui_language(svc: &solosoul_core::vault_service::VaultService) -> String {
 /// Restore an object from trash. Delegates to solosoul-core::objects::restore_from_trash_with_lang.
 #[tauri::command]
 pub async fn object_restore(
+    app: tauri::AppHandle,
     state: State<'_, AppState>,
     trash_id: String,
     lang: Option<String>,
@@ -74,7 +82,7 @@ pub async fn object_restore(
         .get_trash_item(&trash_id)?
         .ok_or("Trash item not found")?;
 
-    let fallback_lang = get_ui_language(&svc);
+    let fallback_lang = get_ui_language(&app, &svc);
     let lang = lang.as_deref().unwrap_or(&fallback_lang);
 
     let result = solosoul_core::objects::restore_from_trash_with_lang(vault, &trash_id, lang)?;
@@ -107,11 +115,12 @@ pub async fn object_purge(state: State<'_, AppState>, object_id: String) -> Resu
 
 #[tauri::command]
 pub async fn trash_restore(
+    app: tauri::AppHandle,
     state: State<'_, AppState>,
     trash_id: String,
     lang: Option<String>,
 ) -> Result<RestoreOutcome, String> {
-    object_restore(state, trash_id, lang).await
+    object_restore(app, state, trash_id, lang).await
 }
 
 /// Permanently delete a trash item (by trash_id → looks up original_id).

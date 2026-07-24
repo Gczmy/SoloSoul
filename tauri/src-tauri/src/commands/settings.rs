@@ -8,8 +8,74 @@ use tauri::State;
 
 // ── Plaintext UI preferences (§4.1) ─────────────────────────
 
-fn ui_prefs_path(svc: &solosoul_core::vault_service::VaultService) -> PathBuf {
-    svc.base_path().join("ui_preferences.json")
+/// 解析 UI 偏好文件 `ui_preferences.json` 的存储路径。
+///
+/// - Android：使用应用私有数据目录（`app_data_dir`），避免 Android 10+
+///   对外部存储的访问限制和 MediaProvider 开销。
+/// - 桌面端：继续放在 Vault base 目录，保证 Vault 目录可移植。
+///
+/// 如果 Android 上旧文件还在 Vault base（可能是外部存储），且新路径
+/// 尚未存在，则自动复制一份到新路径，实现无感迁移。
+pub fn resolve_ui_prefs_path<R: tauri::Runtime>(
+    app: &tauri::AppHandle<R>,
+    svc: &solosoul_core::vault_service::VaultService,
+) -> Result<PathBuf, String> {
+    #[cfg(target_os = "android")]
+    {
+        let new_path = app
+            .path()
+            .app_data_dir()
+            .map_err(|e| format!("无法获取应用数据目录: {e}"))?
+            .join("ui_preferences.json");
+        let old_path = svc.base_path().join("ui_preferences.json");
+        if !new_path.exists() && old_path.exists() {
+            if let Err(e) = maybe_migrate_ui_prefs(&old_path, &new_path) {
+                tracing::warn!("迁移 UI preferences 失败: {}", e);
+                // 迁移失败时回退到旧路径，避免读取时丢失用户已有的 UI 偏好。
+                return Ok(old_path);
+            }
+        }
+        Ok(new_path)
+    }
+    #[cfg(not(target_os = "android"))]
+    {
+        let _ = app;
+        Ok(svc.base_path().join("ui_preferences.json"))
+    }
+}
+/// 将旧的 UI preferences 文件迁移到新的私有目录。
+///
+/// 先复制到目标目录内的临时文件，再原子重命名为目标文件，避免留下
+/// 半成品的 `ui_preferences.json`。迁移成功后删除旧文件；删除失败仅
+/// 记录日志，不影响迁移结果。
+#[cfg(any(target_os = "android", test))]
+fn maybe_migrate_ui_prefs(
+    old_path: &std::path::Path,
+    new_path: &std::path::Path,
+) -> Result<(), String> {
+    if let Some(parent) = new_path.parent() {
+        std::fs::create_dir_all(parent)
+            .map_err(|e| format!("创建 UI preferences 父目录失败: {e}"))?;
+    }
+
+    // 与原文件同目录的临时文件，保证 `rename` 在同一块文件系统内原子完成。
+    let tmp_path = new_path.with_extension("tmp");
+    let copy_res =
+        std::fs::copy(old_path, &tmp_path).map_err(|e| format!("复制 UI preferences 失败: {e}"));
+    if let Err(e) = copy_res {
+        let _ = std::fs::remove_file(&tmp_path);
+        return Err(e);
+    }
+
+    if let Err(e) = std::fs::rename(&tmp_path, new_path) {
+        let _ = std::fs::remove_file(&tmp_path);
+        return Err(format!("重命名 UI preferences 失败: {e}"));
+    }
+
+    if let Err(e) = std::fs::remove_file(old_path) {
+        tracing::warn!("删除旧 UI preferences 失败: {}", e);
+    }
+    Ok(())
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -34,12 +100,15 @@ impl Default for UiPreferences {
 }
 
 #[tauri::command]
-pub async fn ui_get_preferences(state: State<'_, AppState>) -> Result<UiPreferences, String> {
+pub async fn ui_get_preferences(
+    app: tauri::AppHandle,
+    state: State<'_, AppState>,
+) -> Result<UiPreferences, String> {
     let svc = state
         .vault_service
         .read()
         .map_err(|_| "Vault service lock poisoned".to_string())?;
-    let path = ui_prefs_path(&svc);
+    let path = resolve_ui_prefs_path(&app, &svc)?;
     if !path.exists() {
         return Ok(UiPreferences::default());
     }
@@ -49,6 +118,7 @@ pub async fn ui_get_preferences(state: State<'_, AppState>) -> Result<UiPreferen
 
 #[tauri::command]
 pub async fn ui_update_preference(
+    app: tauri::AppHandle,
     state: State<'_, AppState>,
     key: String,
     value: String,
@@ -57,7 +127,7 @@ pub async fn ui_update_preference(
         .vault_service
         .read()
         .map_err(|_| "Vault service lock poisoned".to_string())?;
-    let path = ui_prefs_path(&svc);
+    let path = resolve_ui_prefs_path(&app, &svc)?;
     if let Some(parent) = path.parent() {
         let _ = std::fs::create_dir_all(parent);
     }
@@ -331,5 +401,70 @@ mod tests {
         let prefs = loaded_data.get("preferences").unwrap();
         assert_eq!(prefs.get("theme").unwrap(), "dark");
         assert_eq!(loaded.version, 2);
+    }
+
+    #[test]
+    fn test_resolve_ui_prefs_path_desktop_uses_vault_base() {
+        let app = tauri::test::mock_app();
+        let dir = TempDir::new().unwrap();
+        let base = dir.path().join(".solosoul");
+        std::fs::create_dir_all(&base).unwrap();
+        let svc = solosoul_core::vault_service::VaultService::with_base_path(base.clone());
+
+        let path = resolve_ui_prefs_path(&app.handle(), &svc).unwrap();
+
+        // 桌面端应继续使用 Vault base 目录，保证 Vault 目录可移植
+        assert_eq!(path, base.join("ui_preferences.json"));
+    }
+
+    #[test]
+    fn test_resolve_ui_prefs_path_roundtrip() {
+        let app = tauri::test::mock_app();
+        let dir = TempDir::new().unwrap();
+        let base = dir.path().join(".solosoul");
+        std::fs::create_dir_all(&base).unwrap();
+        let svc = solosoul_core::vault_service::VaultService::with_base_path(base);
+
+        let path = resolve_ui_prefs_path(&app.handle(), &svc).unwrap();
+        let original = UiPreferences {
+            theme: "dark".to_string(),
+            accent_color: "ocean".to_string(),
+            language: "zh-CN".to_string(),
+            has_seen_onboarding: true,
+        };
+        std::fs::write(&path, serde_json::to_string(&original).unwrap()).unwrap();
+
+        let content = std::fs::read_to_string(&path).unwrap();
+        let prefs: UiPreferences = serde_json::from_str(&content).unwrap();
+        assert_eq!(prefs.language, "zh-CN");
+        assert_eq!(prefs.theme, "dark");
+        assert_eq!(prefs.accent_color, "ocean");
+        assert!(prefs.has_seen_onboarding);
+    }
+
+    #[test]
+    fn test_maybe_migrate_ui_prefs_success() {
+        let dir = TempDir::new().unwrap();
+        let old = dir.path().join("old_ui_preferences.json");
+        let new_dir = dir.path().join("new");
+        let new = new_dir.join("ui_preferences.json");
+        let original = UiPreferences {
+            theme: "dark".to_string(),
+            accent_color: "rose".to_string(),
+            language: "zh-CN".to_string(),
+            has_seen_onboarding: false,
+        };
+        std::fs::write(&old, serde_json::to_string(&original).unwrap()).unwrap();
+
+        maybe_migrate_ui_prefs(&old, &new).unwrap();
+
+        assert!(new.exists());
+        assert!(!old.exists());
+        let content = std::fs::read_to_string(&new).unwrap();
+        let prefs: UiPreferences = serde_json::from_str(&content).unwrap();
+        assert_eq!(prefs.language, "zh-CN");
+        assert_eq!(prefs.theme, "dark");
+        assert_eq!(prefs.accent_color, "rose");
+        assert!(!prefs.has_seen_onboarding);
     }
 }
