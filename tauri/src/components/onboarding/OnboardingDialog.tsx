@@ -222,6 +222,16 @@ export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDial
                   50% { transform: translateX(200%); }
                   100% { transform: translateX(400%); }
                 }
+                @keyframes count-bounce {
+                  0% { transform: scale(1.4); opacity: 0.7; }
+                  40% { transform: scale(0.9); opacity: 1; }
+                  70% { transform: scale(1.15); }
+                  100% { transform: scale(1); }
+                }
+                @keyframes text-scroll {
+                  0%, 15% { transform: translateX(0); }
+                  85%, 100% { transform: translateX(calc(min(-100% + 280px, 0px))); }
+                }
               `}</style>
               <div
                 style={{
@@ -249,14 +259,26 @@ export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDial
                   fontWeight: 600,
                   color: 'var(--text-primary)',
                   marginBottom: 8,
+                  overflow: 'hidden',
+                  whiteSpace: 'nowrap',
                 }}
               >
-                {syncFileName
-                  ? t('onboarding_vault_dir_syncing_file', {
+                {syncFileName ? (
+                  <span
+                    style={{
+                      display: 'inline-block',
+                      animation: 'text-scroll 4s ease-in-out infinite',
+                      paddingRight: 8,
+                    }}
+                  >
+                    {t('onboarding_vault_dir_syncing_file', {
                       fileName: syncFileName,
                       count: syncFileCount,
-                    })
-                  : t('onboarding_vault_dir_syncing')}
+                    })}
+                  </span>
+                ) : (
+                  t('onboarding_vault_dir_syncing')
+                )}
               </div>
               <div
                 style={{
@@ -266,7 +288,17 @@ export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDial
                 }}
               >
                 {syncFileName
-                  ? t('onboarding_vault_dir_sync_count', { count: syncFileCount })
+                  ? (
+                    <span
+                      key={syncFileCount}
+                      style={{
+                        display: 'inline-block',
+                        animation: 'count-bounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                      }}
+                    >
+                      {t('onboarding_vault_dir_sync_count', { count: syncFileCount })}
+                    </span>
+                  )
                   : t('onboarding_vault_dir_sync_hint')}
               </div>
             </>
