@@ -37,7 +37,10 @@ export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDial
   const [selectedSafUri, setSelectedSafUri] = useState<string | null>(null);
   // SAF 同步进度阶段：idle（未同步）/ syncing（同步中）/ done（同步完成）
   const [syncPhase, setSyncPhase] = useState<'idle' | 'syncing' | 'done'>('idle');
+  const [syncFileName, setSyncFileName] = useState<string>('');
+  const [syncFileCount, setSyncFileCount] = useState(0);
   const syncDoneTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const unlistenSync = useRef<{ unregister: () => void } | null>(null);
 
   useEffect(() => {
     getPlatform().then((p) => {
@@ -66,13 +69,17 @@ export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDial
     if (current?.key === 'vault_directory') {
       setVaultDirError(null);
       setVaultDirActing(false);
-      // 离开 vault_directory 页面时清理 sync 状态
       setSyncPhase('idle');
     }
     return () => {
       if (syncDoneTimer.current) {
         clearTimeout(syncDoneTimer.current);
         syncDoneTimer.current = null;
+      }
+      // 清理 Kotlin plugin 事件监听
+      if (unlistenSync.current) {
+        unlistenSync.current.unregister();
+        unlistenSync.current = null;
       }
     };
   }, [current?.key]);
@@ -91,8 +98,28 @@ export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDial
       }
       // 开始同步时显示进度条
       setSyncPhase('syncing');
+      setSyncFileName('');
+      setSyncFileCount(0);
+
+      // 监听 Kotlin 插件同步进度事件
+      try {
+        const { addPluginListener } = await import('@tauri-apps/api/core');
+        if (unlistenSync.current) unlistenSync.current.unregister();
+        unlistenSync.current = await addPluginListener<{
+          phase: string;
+          fileName?: string;
+          fileCount?: number;
+        }>('attachment-import-plugin', 'sync-progress', (payload) => {
+          if (payload.phase === 'syncing') {
+            setSyncFileName(payload.fileName ?? '');
+            setSyncFileCount(payload.fileCount ?? 0);
+          }
+        });
+      } catch (_e) {
+        // 桌面端无 Kotlin 插件，静默失败
+      }
+
       const result = await initVaultDirectory(uri);
-      setSyncPhase('done');
       if (result.success) {
         if (result.accountCount && result.accountCount > 0) {
           // 已有账户，跳过 onboarding 直接完成
@@ -112,6 +139,11 @@ export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDial
       setSyncPhase('idle');
       setVaultDirError(String(e));
     } finally {
+      // 确保在任何路径下都清理 Kotlin 插件事件监听
+      if (unlistenSync.current) {
+        unlistenSync.current.unregister();
+        unlistenSync.current = null;
+      }
       resume();
       setVaultDirActing(false);
     }
@@ -219,16 +251,23 @@ export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDial
                   marginBottom: 8,
                 }}
               >
-                {t('onboarding_vault_dir_syncing')}
+                {syncFileName
+                  ? t('onboarding_vault_dir_syncing_file', {
+                      fileName: syncFileName,
+                      count: syncFileCount,
+                    })
+                  : t('onboarding_vault_dir_syncing')}
               </div>
               <div
                 style={{
                   fontSize: 'var(--text-caption)',
                   color: 'var(--text-tertiary)',
-                  marginBottom: 24,
+                  marginBottom: syncFileName ? 4 : 24,
                 }}
               >
-                {t('onboarding_vault_dir_sync_hint')}
+                {syncFileName
+                  ? t('onboarding_vault_dir_sync_count', { count: syncFileCount })
+                  : t('onboarding_vault_dir_sync_hint')}
               </div>
             </>
           ) : syncPhase === 'done' ? (

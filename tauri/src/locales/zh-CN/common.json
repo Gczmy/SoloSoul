@@ -268,6 +268,8 @@
   "onboarding_vault_dir_restart_btn": "重启应用",
   "onboarding_vault_dir_set_failed": "设置目录失败",
   "onboarding_vault_dir_syncing": "SAF 同步中...",
+  "onboarding_vault_dir_syncing_file": "正在同步: {{fileName}}",
+  "onboarding_vault_dir_sync_count": "已同步 {{count}} 个文件",
   "onboarding_vault_dir_sync_hint": "请勿退出应用",
   "onboarding_vault_dir_sync_done": "SAF 同步完成",
   "onboarding_vault_dir_selected_label": "已选外部存储位置",

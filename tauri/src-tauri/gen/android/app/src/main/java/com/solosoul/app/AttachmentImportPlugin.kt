@@ -503,52 +503,92 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
   /**
    * 同步本地目录到 SAF tree URI（覆盖远端）。
    * 递归遍历 localDir 下所有文件，在 treeUri 下创建对应目录结构与文件。
+   * 在后台线程执行，同步期间通过 trigger 发送进度事件。
    */
   @Command
   fun syncDirToRemote(invoke: Invoke) {
-    try {
-      val args = invoke.parseArgs(SyncDirArgs::class.java)
-      val localDir = File(args.localDir)
-      if (!localDir.exists()) {
-        invoke.resolve(JSObject())
-        return
-      }
-      val treeUri = Uri.parse(args.treeUri)
-      val parent = DocumentsContract.buildDocumentUriUsingTree(treeUri, DocumentsContract.getTreeDocumentId(treeUri))
-        ?: run {
-          invoke.reject("无法从 tree URI 解析目标目录: ${args.treeUri}")
-          return
-        }
-      syncLocalDirToTree(localDir, parent)
-      invoke.resolve(JSObject())
+    val args: SyncDirArgs = try {
+      invoke.parseArgs(SyncDirArgs::class.java)
     } catch (e: Exception) {
-      android.util.Log.e("SoloSoul", "syncDirToRemote failed: ${e.message}", e)
-      invoke.reject("同步到 SAF 失败: ${e.message}")
+      invoke.reject("参数解析失败: ${e.message}")
+      return
     }
+
+    Thread {
+      try {
+        val localDir = File(args.localDir)
+        if (!localDir.exists()) {
+          activity.runOnUiThread { invoke.resolve(JSObject()) }
+          return@Thread
+        }
+        val treeUri = Uri.parse(args.treeUri)
+        val parent = DocumentsContract.buildDocumentUriUsingTree(treeUri, DocumentsContract.getTreeDocumentId(treeUri))
+          ?: run {
+            activity.runOnUiThread { invoke.reject("无法从 tree URI 解析目标目录: ${args.treeUri}") }
+            return@Thread
+          }
+
+        var fileCount = 0
+        syncLocalDirToTree(localDir, parent) { fileName ->
+          fileCount++
+          val payload = JSObject().apply {
+            put("phase", "syncing")
+            put("fileName", fileName)
+            put("fileCount", fileCount)
+          }
+          activity.runOnUiThread { this@AttachmentImportPlugin.trigger("sync-progress", payload) }
+        }
+
+        activity.runOnUiThread { invoke.resolve(JSObject()) }
+      } catch (e: Exception) {
+        android.util.Log.e("SoloSoul", "syncDirToRemote failed: ${e.message}", e)
+        activity.runOnUiThread { invoke.reject("同步到 SAF 失败: ${e.message}") }
+      }
+    }.start()
   }
 
   /**
    * 从 SAF tree URI 同步到本地目录（覆盖本地）。
    * 递归遍历 treeUri 下所有文件，在 localDir 下创建对应目录结构与文件。
+   * 在后台线程执行，同步期间通过 trigger 发送进度事件。
    */
   @Command
   fun syncDirFromRemote(invoke: Invoke) {
-    try {
-      val args = invoke.parseArgs(SyncDirArgs::class.java)
-      val localDir = File(args.localDir)
-      localDir.mkdirs()
-      val treeUri = Uri.parse(args.treeUri)
-      val parent = DocumentsContract.buildDocumentUriUsingTree(treeUri, DocumentsContract.getTreeDocumentId(treeUri))
-        ?: run {
-          invoke.reject("无法从 tree URI 解析源目录: ${args.treeUri}")
-          return
-        }
-      syncTreeToLocalDir(activity.contentResolver, parent, localDir)
-      invoke.resolve(JSObject())
+    val args: SyncDirArgs = try {
+      invoke.parseArgs(SyncDirArgs::class.java)
     } catch (e: Exception) {
-      android.util.Log.e("SoloSoul", "syncDirFromRemote failed: ${e.message}", e)
-      invoke.reject("从 SAF 同步失败: ${e.message}")
+      invoke.reject("参数解析失败: ${e.message}")
+      return
     }
+
+    Thread {
+      try {
+        val localDir = File(args.localDir)
+        localDir.mkdirs()
+        val treeUri = Uri.parse(args.treeUri)
+        val parent = DocumentsContract.buildDocumentUriUsingTree(treeUri, DocumentsContract.getTreeDocumentId(treeUri))
+          ?: run {
+            activity.runOnUiThread { invoke.reject("无法从 tree URI 解析源目录: ${args.treeUri}") }
+            return@Thread
+          }
+
+        var fileCount = 0
+        syncTreeToLocalDir(activity.contentResolver, parent, localDir) { fileName ->
+          fileCount++
+          val payload = JSObject().apply {
+            put("phase", "syncing")
+            put("fileName", fileName)
+            put("fileCount", fileCount)
+          }
+          activity.runOnUiThread { this@AttachmentImportPlugin.trigger("sync-progress", payload) }
+        }
+
+        activity.runOnUiThread { invoke.resolve(JSObject()) }
+      } catch (e: Exception) {
+        android.util.Log.e("SoloSoul", "syncDirFromRemote failed: ${e.message}", e)
+        activity.runOnUiThread { invoke.reject("从 SAF 同步失败: ${e.message}") }
+      }
+    }.start()
   }
 
   /**
@@ -581,7 +621,7 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
     val size: Long
   )
 
-  private fun syncLocalDirToTree(localDir: File, parentUri: Uri) {
+  private fun syncLocalDirToTree(localDir: File, parentUri: Uri, onProgress: (String) -> Unit = {}) {
     val queue = ArrayDeque<LocalDirEntry>()
     queue.add(LocalDirEntry(localDir, parentUri, true))
 
@@ -642,8 +682,7 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
           }
           queue.add(LocalDirEntry(file, dirUri, false))
         } else {
-          val existingChild = existingChildren[file.name]
-          if (existingChild != null &&
+          val existingChild = existingChildren[file.name]            if (existingChild != null &&
               existingChild.lastModified > 0 &&
               existingChild.size > 0 &&
               existingChild.lastModified == file.lastModified() &&
@@ -677,6 +716,8 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
                 "重命名临时文件失败，残留 .tmp 文件: $tempName，可手动清理"
               )
             }
+
+            onProgress(file.name)
           } catch (e: Exception) {
             android.util.Log.w(
               "SoloSoul",
@@ -704,7 +745,7 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
     val size: Long
   )
 
-  private fun syncTreeToLocalDir(contentResolver: android.content.ContentResolver, parentUri: Uri, localDir: File) {
+  private fun syncTreeToLocalDir(contentResolver: android.content.ContentResolver, parentUri: Uri, localDir: File, onProgress: (String) -> Unit = {}) {
     val queue = ArrayDeque<RemoteDirEntry>()
     queue.add(RemoteDirEntry(parentUri, localDir, true))
 
@@ -780,6 +821,8 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
             if (child.lastModified > 0) {
               file.setLastModified(child.lastModified)
             }
+
+            onProgress(child.displayName)
           } catch (e: Exception) {
             android.util.Log.w(
               "SoloSoul",
