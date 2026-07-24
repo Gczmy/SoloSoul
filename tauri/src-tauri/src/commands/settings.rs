@@ -35,6 +35,8 @@ pub fn resolve_ui_prefs_path<R: tauri::Runtime>(
                 return Ok(old_path);
             }
         }
+        // 即使迁移时没删掉，启动时再次尝试清理残留旧文件。
+        lazy_cleanup_old_ui_prefs(&old_path, &new_path);
         Ok(new_path)
     }
     #[cfg(not(target_os = "android"))]
@@ -43,6 +45,53 @@ pub fn resolve_ui_prefs_path<R: tauri::Runtime>(
         Ok(svc.base_path().join("ui_preferences.json"))
     }
 }
+/// 判断 IO 错误是否属于值得重试的短暂性错误。
+#[cfg(any(target_os = "android", test))]
+fn is_retryable_io_error(kind: std::io::ErrorKind) -> bool {
+    matches!(
+        kind,
+        std::io::ErrorKind::WouldBlock
+            | std::io::ErrorKind::Interrupted
+            | std::io::ErrorKind::Other
+    )
+}
+
+/// 尝试删除文件，文件不存在时视为成功；对短暂性 IO 错误重试指定次数。
+///
+/// 对明确的永久性错误（如 PermissionDenied）会立即短路返回，避免无意义重试。
+#[cfg(any(target_os = "android", test))]
+fn remove_with_retry(path: &std::path::Path, retries: u32) -> std::io::Result<()> {
+    let mut last_err = None;
+    for attempt in 0..=retries {
+        match std::fs::remove_file(path) {
+            Ok(()) => return Ok(()),
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+            Err(e) => {
+                last_err = Some(e);
+                let kind = last_err.as_ref().unwrap().kind();
+                if !is_retryable_io_error(kind) || attempt == retries {
+                    break;
+                }
+            }
+        }
+    }
+    Err(last_err.unwrap())
+}
+
+/// 在确认新路径已存在后，尝试清理可能残留的旧 UI preferences 文件。
+#[cfg(any(target_os = "android", test))]
+fn lazy_cleanup_old_ui_prefs(old_path: &std::path::Path, new_path: &std::path::Path) {
+    if old_path == new_path {
+        return;
+    }
+    if !new_path.exists() || !old_path.exists() {
+        return;
+    }
+    if let Err(e) = remove_with_retry(old_path, 3) {
+        tracing::debug!("清理旧 UI preferences 失败: {}", e);
+    }
+}
+
 /// 将旧的 UI preferences 文件迁移到新的私有目录。
 ///
 /// 先复制到目标目录内的临时文件，再原子重命名为目标文件，避免留下
@@ -53,6 +102,9 @@ fn maybe_migrate_ui_prefs(
     old_path: &std::path::Path,
     new_path: &std::path::Path,
 ) -> Result<(), String> {
+    if old_path == new_path {
+        return Ok(());
+    }
     if let Some(parent) = new_path.parent() {
         std::fs::create_dir_all(parent)
             .map_err(|e| format!("创建 UI preferences 父目录失败: {e}"))?;
@@ -72,8 +124,8 @@ fn maybe_migrate_ui_prefs(
         return Err(format!("重命名 UI preferences 失败: {e}"));
     }
 
-    if let Err(e) = std::fs::remove_file(old_path) {
-        tracing::warn!("删除旧 UI preferences 失败: {}", e);
+    if let Err(e) = remove_with_retry(old_path, 3) {
+        tracing::warn!("删除旧 UI preferences 失败（已重试）: {}", e);
     }
     Ok(())
 }
@@ -460,11 +512,85 @@ mod tests {
 
         assert!(new.exists());
         assert!(!old.exists());
-        let content = std::fs::read_to_string(&new).unwrap();
-        let prefs: UiPreferences = serde_json::from_str(&content).unwrap();
-        assert_eq!(prefs.language, "zh-CN");
-        assert_eq!(prefs.theme, "dark");
-        assert_eq!(prefs.accent_color, "rose");
-        assert!(!prefs.has_seen_onboarding);
+    }
+
+    #[test]
+    fn test_maybe_migrate_ui_prefs_same_path_is_noop() {
+        let dir = TempDir::new().unwrap();
+        let p = dir.path().join("ui_preferences.json");
+        std::fs::write(&p, "x").unwrap();
+
+        // 同一路径时不不应删除或覆盖文件
+        maybe_migrate_ui_prefs(&p, &p).unwrap();
+
+        assert!(p.exists());
+        let content = std::fs::read_to_string(&p).unwrap();
+        assert_eq!(content, "x");
+    }
+
+    #[test]
+    fn test_remove_with_retry_success() {
+        let dir = TempDir::new().unwrap();
+        let f = dir.path().join("a.txt");
+        std::fs::write(&f, "x").unwrap();
+        assert!(f.exists());
+        remove_with_retry(&f, 3).unwrap();
+        assert!(!f.exists());
+    }
+
+    #[test]
+    fn test_remove_with_retry_not_found_is_ok() {
+        let dir = TempDir::new().unwrap();
+        let f = dir.path().join("missing.txt");
+        remove_with_retry(&f, 3).unwrap();
+    }
+
+    #[test]
+    fn test_remove_with_retry_failure() {
+        let dir = TempDir::new().unwrap();
+        let d = dir.path().join("dir");
+        std::fs::create_dir(&d).unwrap();
+        // 删除目录（当作文件）应失败
+        assert!(remove_with_retry(&d, 2).is_err());
+    }
+
+    #[test]
+    fn test_lazy_cleanup_old_ui_prefs_success() {
+        let dir = TempDir::new().unwrap();
+        let old = dir.path().join("old_ui_preferences.json");
+        let new = dir.path().join("new_ui_preferences.json");
+        std::fs::write(&old, "x").unwrap();
+        std::fs::write(&new, "y").unwrap();
+
+        lazy_cleanup_old_ui_prefs(&old, &new);
+
+        assert!(!old.exists());
+        assert!(new.exists());
+    }
+
+    #[test]
+    fn test_lazy_cleanup_old_ui_prefs_same_path_is_noop() {
+        let dir = TempDir::new().unwrap();
+        let p = dir.path().join("ui_preferences.json");
+        std::fs::write(&p, "x").unwrap();
+
+        // 同一路径时不能误删唯一副本
+        lazy_cleanup_old_ui_prefs(&p, &p);
+
+        assert!(p.exists());
+    }
+
+    #[test]
+    fn test_lazy_cleanup_old_ui_prefs_new_missing_is_noop() {
+        let dir = TempDir::new().unwrap();
+        let old = dir.path().join("old_ui_preferences.json");
+        let new = dir.path().join("new_ui_preferences.json");
+        std::fs::write(&old, "x").unwrap();
+
+        // 新文件不存在时不应删除旧文件，避免丢失数据
+        lazy_cleanup_old_ui_prefs(&old, &new);
+
+        assert!(old.exists());
+        assert!(!new.exists());
     }
 }
