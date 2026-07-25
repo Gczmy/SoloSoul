@@ -368,7 +368,7 @@ include!(concat!(env!("OUT_DIR"), "/app_level_names.rs"));
 /// 把 src 目录下的 Vault 数据迁移到 dst 目录。
 /// 仅顶层跳过应用级配置、资源、缓存和 SAF 临时目录本身，避免循环/冲突；
 /// 嵌套目录中的同名文件夹仍正常迁移，避免误删用户 Vault 数据。
-fn migrate_vault_data(src: &std::path::Path, dst: &std::path::Path) -> Result<(), String> {
+pub(crate) fn migrate_vault_data(src: &std::path::Path, dst: &std::path::Path) -> Result<(), String> {
     fn inner(src: &std::path::Path, dst: &std::path::Path, depth: usize) -> Result<(), String> {
         if src == dst {
             return Ok(());

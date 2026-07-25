@@ -226,17 +226,66 @@ impl AppState {
             let saved_uri = Self::load_saved_saf_uri(&data_dir);
             if let Some(ref uri) = saved_uri {
                 tracing::info!("[AppState] found saved SAF URI: {uri}");
-                match Self::try_init_saf_vault(&handle, &data_dir, uri) {
-                    Ok(svc) => {
-                        tracing::info!("[AppState] SAF vault initialized successfully");
-                        Arc::new(RwLock::new(svc))
-                    }
-                    Err(e) => {
-                        tracing::error!(
-                            "[AppState] SAF vault init FAILED (falling back to local): {:#}",
-                            e
+
+                // 先检查 SAF URI 是否仍然可访问（防止用户手动删除外部目录后以失效状态启动）。
+                // check_vault_dir_access 在 Android 上通过 Kotlin 插件查询 ContentResolver
+                // 判断目录是否存在；非 Android 平台返回 false，由下层 cfg 守卫。
+                let is_valid = {
+                    let plugin_handle =
+                        handle.state::<AttachmentImportPluginHandle<tauri::Wry>>();
+                    plugin_handle.check_vault_dir_access(uri).unwrap_or(false)
+                };
+
+                if !is_valid {
+                    tracing::warn!(
+                        "[AppState] saved SAF URI is no longer accessible (dir deleted or revoked), falling back to local vault"
+                    );
+                    // 清除已失效的 SAF 配置，避免下次启动重复进入此路径。
+                    let _ = Self::save_saf_uri(&data_dir, None);
+                    // 迁移 SAF temp cache 到本地目录，保全用户缓存数据。
+                    // 迁移失败不阻止降级（仅打日志）。
+                    let temp_cache = data_dir.join("saf_vault_temp");
+                    if temp_cache.exists() {
+                        tracing::info!(
+                            "[AppState] migrating SAF temp cache to local vault"
                         );
-                        Arc::new(RwLock::new(Self::try_init_local_vault(&data_dir)?))
+                        if let Err(e) = crate::commands::vault_directory::migrate_vault_data(
+                            &temp_cache,
+                            &data_dir,
+                        ) {
+                            tracing::error!(
+                                "[AppState] temp cache migration failed (non-fatal): {e}"
+                            );
+                        }
+                    }
+                    // 降级到本地 vault
+                    match Self::try_init_local_vault(&data_dir) {
+                        Ok(svc) => {
+                            tracing::info!(
+                                "[AppState] local vault init after SAF fallback: OK"
+                            );
+                            Arc::new(RwLock::new(svc))
+                        }
+                        Err(e) => {
+                            tracing::error!(
+                                "[AppState] local vault init after SAF fallback FAILED: {e}"
+                            );
+                            return Err(e.into());
+                        }
+                    }
+                } else {
+                    match Self::try_init_saf_vault(&handle, &data_dir, uri) {
+                        Ok(svc) => {
+                            tracing::info!("[AppState] SAF vault initialized successfully");
+                            Arc::new(RwLock::new(svc))
+                        }
+                        Err(e) => {
+                            tracing::error!(
+                                "[AppState] SAF vault init FAILED (falling back to local): {:#}",
+                                e
+                            );
+                            Arc::new(RwLock::new(Self::try_init_local_vault(&data_dir)?))
+                        }
                     }
                 }
             } else {
