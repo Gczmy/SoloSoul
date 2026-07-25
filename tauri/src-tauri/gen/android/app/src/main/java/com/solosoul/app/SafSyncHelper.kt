@@ -321,7 +321,10 @@ object SafSyncHelper {
                     }
                     if (child.mimeType == DocumentsContract.Document.MIME_TYPE_DIR) {
                         val childDir = File(currentLocalDir, child.displayName)
-                        if (!childDir.mkdirs()) {
+                        // mkdirs() 在目录已存在时返回 false，不代表失败；
+                        // 只要最终目录存在且是目录，就应继续递归。
+                        childDir.mkdirs()
+                        if (!childDir.isDirectory) {
                             android.util.Log.w(
                                 "SoloSoul",
                                 "syncTreeToLocalDir: failed to create directory '${child.displayName}' in ${currentLocalDir.path}, skipping"

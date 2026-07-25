@@ -600,13 +600,9 @@ impl AppState {
             let read_guard = svc
                 .read()
                 .map_err(|_| "Vault service lock poisoned".to_string())?;
-            let accounts_path = read_guard.base_path().join("accounts.json");
-            if accounts_path.exists() {
-                tracing::info!(
-                    "[AppState] SAF temp dir already has accounts.json, skipping initial sync"
-                );
-                return Ok(());
-            }
+            // 始终执行首次同步：
+            // 1. 防止本地 temp 中仅有 accounts.json 而账户目录未同步的半拉状态；
+            // 2. sync_from_remote 内部按 mtime/size 跳过已一致文件，不会重复大下载。
             read_guard.sync_from_remote()?;
             tracing::info!("[AppState] SAF initial sync completed");
             Ok(())
