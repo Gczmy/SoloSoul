@@ -111,7 +111,7 @@ impl AutoSyncManager {
         action: Arc<dyn SyncAction>,
         config: AutoSyncConfig,
     ) {
-        tokio::spawn(async move {
+        let fut = async move {
             let mut state = AutoSyncState::Idle;
             let mut interval = tokio::time::interval(config.periodic_interval);
             interval.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
@@ -182,7 +182,15 @@ impl AutoSyncManager {
                     }
                 }
             }
-        });
+        };
+
+        // 生产环境使用 tauri 的全局 async runtime，确保在无 Tokio 上下文（如
+        // Android 主线程）中也能成功 spawn。测试环境下使用 tokio::spawn 即可，
+        // 因为 #[tokio::test] 已建立运行时上下文。
+        #[cfg(test)]
+        tokio::spawn(fut);
+        #[cfg(not(test))]
+        tauri::async_runtime::spawn(fut);
     }
 }
 
