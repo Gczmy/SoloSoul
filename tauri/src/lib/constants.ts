@@ -57,3 +57,32 @@ export const ST_I18NEXT_LANG = 'i18nextLng';
 
 /** 快速聊天会话存储键前缀 */
 export const ST_QUICK_CHAT_PREFIX = 'solosoul_quick_chat_conv_';
+
+// ============================================================================
+// Safe area insets (统一管理以适配系统状态栏/手势条)
+// ============================================================================
+
+/**
+ * CSS `env(safe-area-inset-top)` 的通用常量，用于 fixed 定位的顶部元素。
+ * 在支持的环境（如 Android WebView with viewport-fit=cover）中返回状态栏高度，
+ * 不支持时回退到 0px。
+ */
+export const SAFE_AREA_TOP = 'env(safe-area-inset-top, 0px)';
+
+/**
+ * CSS `env(safe-area-inset-bottom)` 的通用常量，用于 fixed 定位的底部元素。
+ * 在支持的环境中返回底部手势条高度，不支持时回退到 0px。
+ */
+export const SAFE_AREA_BOTTOM = 'env(safe-area-inset-bottom, 0px)';
+
+/**
+ * CSS `env(safe-area-inset-bottom)` 的偏移量常量，用于 bottom fixed 定位的元素。
+ * 与 `SAFE_AREA_BOTTOM` 值相同，但语义上适用于需要与固定像素值组合的场景：
+ *
+ * ```ts
+ * bottom: `calc(72px + ${SAFE_AREA_BOTTOM_OFFSET})`
+ * ```
+ *
+ * 这样既能保持固定的偏移量（如 72px），又能叠加系统手势条高度。
+ */
+export const SAFE_AREA_BOTTOM_OFFSET = 'env(safe-area-inset-bottom, 0px)';

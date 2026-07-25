@@ -24,7 +24,7 @@ import {
   markOcrFirstInstallDone,
 } from '@/stores/ocrInstallStore';
 import { invoke } from '@tauri-apps/api/core';
-import { ST_SKIPPED_VERSION } from '@/lib/constants';
+import { ST_SKIPPED_VERSION, SAFE_AREA_TOP } from '@/lib/constants';
 import { logger } from '@/lib/logger';
 import { setGlobalNavigate } from '@/lib/navigation';
 import { useSafSyncStore } from '@/stores/safSyncStore';
@@ -386,7 +386,7 @@ export function AppRoutes() {
         <div
           style={{
             position: 'fixed',
-            top: 0,
+            top: SAFE_AREA_TOP,
             left: 0,
             right: 0,
             zIndex: 1000,

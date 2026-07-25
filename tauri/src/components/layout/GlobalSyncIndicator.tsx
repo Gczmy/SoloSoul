@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { listen } from '@tauri-apps/api/event';
 import { useUiStore } from '@/stores/uiStore';
 import { Loader2, CheckCircle, AlertCircle } from 'lucide-react';
-import { ICON_SIZE } from '@/lib/constants';
+import { ICON_SIZE, SAFE_AREA_TOP } from '@/lib/constants';
 
 interface SyncProgressPayload {
   phase: string;
@@ -85,7 +85,7 @@ export function GlobalSyncIndicator() {
     <div
       style={{
         position: 'fixed',
-        top: 0,
+        top: SAFE_AREA_TOP,
         left: 0,
         right: 0,
         zIndex: 9999,

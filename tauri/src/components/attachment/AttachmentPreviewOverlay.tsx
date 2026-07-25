@@ -7,7 +7,7 @@ import type { AttachmentItem } from '@/lib/attachmentUtils';
 import { previewItemByMime } from '@/lib/attachmentUtils';
 import { isMobilePlatformSync } from '@/lib/platform';
 import { syncStatusBarStyle } from '@/lib/theme';
-import { ICON_SIZE } from '@/lib/constants';
+import { ICON_SIZE, SAFE_AREA_TOP, SAFE_AREA_BOTTOM } from '@/lib/constants';
 
 interface AttachmentPreviewOverlayProps {
   item: AttachmentItem | null;
@@ -301,10 +301,10 @@ export function AttachmentPreviewOverlay({
     <div
       style={{
         position: 'fixed',
-        top: 'env(safe-area-inset-top, 0px)',
+        top: SAFE_AREA_TOP,
         left: 0,
         right: 0,
-        bottom: 'env(safe-area-inset-bottom, 0px)',
+        bottom: SAFE_AREA_BOTTOM,
         zIndex: 'var(--z-preview-overlay)',
         display: 'flex',
         flexDirection: 'column',

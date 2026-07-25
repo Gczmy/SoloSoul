@@ -16,7 +16,7 @@ import {
   type CustomIconId,
 } from '@/lib/pageIcons';
 import { SYSTEM_PAGE_KEYS } from './useNavigationItems';
-import { ICON_SIZE } from '@/lib/constants';
+import { ICON_SIZE, SAFE_AREA_TOP, SAFE_AREA_BOTTOM } from '@/lib/constants';
 
 // =============================================================================
 // AddPageButton — "+" button with popover for name + icon selection
@@ -312,7 +312,7 @@ export function AddPageButton({
                 transformOrigin: 'top',
                 maxWidth: 'calc(100vw - 32px)',
                 maxHeight:
-                  'calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 32px)',
+                  `calc(100vh - ${SAFE_AREA_TOP} - ${SAFE_AREA_BOTTOM} - 32px)`,
               }}
             >
               {/* Name input */}

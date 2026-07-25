@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { useSafSyncStore } from '@/stores/safSyncStore';
 import { isMobilePlatformSync } from '@/lib/platform';
 import { CheckCircle2, AlertCircle, Loader2 } from 'lucide-react';
-import { ICON_SIZE } from '@/lib/constants';
+import { ICON_SIZE, SAFE_AREA_BOTTOM_OFFSET } from '@/lib/constants';
 
 /**
  * SAF 同步状态微指示器。
@@ -43,7 +43,7 @@ export function SafSyncIndicator() {
     <div
       style={{
         position: 'fixed',
-        bottom: 72,
+        bottom: `calc(72px + ${SAFE_AREA_BOTTOM_OFFSET})`,
         left: '50%',
         transform: 'translateX(-50%)',
         zIndex: 999,
