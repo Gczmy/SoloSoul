@@ -313,6 +313,7 @@ export function AddPageButton({
                 maxWidth: 'calc(100vw - 32px)',
                 maxHeight:
                   `calc(100vh - ${SAFE_AREA_TOP} - ${SAFE_AREA_BOTTOM} - 32px)`,
+                overflowY: 'auto',
               }}
             >
               {/* Name input */}

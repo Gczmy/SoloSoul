@@ -217,6 +217,7 @@ export function CustomPageEditPopover({
             maxWidth: 'calc(100vw - 32px)',
             maxHeight:
               `calc(100vh - ${SAFE_AREA_TOP} - ${SAFE_AREA_BOTTOM} - 32px)`,
+            overflowY: 'auto',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
