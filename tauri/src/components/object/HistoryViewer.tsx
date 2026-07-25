@@ -540,6 +540,7 @@ export function HistoryViewer({
             position: 'relative',
             width: 460,
             maxHeight: '80vh',
+            overflowY: 'auto',
             display: 'flex',
             flexDirection: 'column',
             background: 'var(--bg-elevated)',
