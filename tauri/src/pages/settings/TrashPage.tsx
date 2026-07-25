@@ -109,6 +109,8 @@ export function TrashPage() {
           for (const id of ids) {
             const outcome = await restoreItem(id);
             if (outcome.cascadedPageName) {
+              // 恢复对象触发了页面级联恢复：同时显示两条 toast
+              onSuccess(t('settings:trash_restored', { name: outcome.name }));
               onSuccess(
                 t('settings:trash_restored_with_cascaded_page', { page: outcome.cascadedPageName }),
               );
