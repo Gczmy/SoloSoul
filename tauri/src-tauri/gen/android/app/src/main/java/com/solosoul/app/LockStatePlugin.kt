@@ -111,10 +111,13 @@ class LockStatePlugin(private val activity: Activity): Plugin(activity) {
     init {
         // 注册屏幕熄灭广播监听，捕获应用在后台时用户按电源键锁屏的场景。
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            // 必须使用 RECEIVER_EXPORTED：ACTION_SCREEN_OFF 是系统广播，
+            // Android 13+ 用 NOT_EXPORTED 会阻止收到该广播，导致后台锁屏无法锁定。
+            // 该广播由系统发送，第三方应用无法伪造，导出安全。
             activity.registerReceiver(
                 screenOffReceiver,
                 IntentFilter(Intent.ACTION_SCREEN_OFF),
-                Context.RECEIVER_NOT_EXPORTED,
+                Context.RECEIVER_EXPORTED,
             )
         } else {
             activity.registerReceiver(screenOffReceiver, IntentFilter(Intent.ACTION_SCREEN_OFF))
