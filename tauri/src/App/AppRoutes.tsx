@@ -215,7 +215,7 @@ export function AppRoutes() {
       }
     };
     checkVaultDir();
-  }, [isAuthenticated]);
+  }, [isAuthenticated, t]);
 
   // Load settings and profile after authentication
   useEffect(() => {

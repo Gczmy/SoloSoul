@@ -115,7 +115,7 @@ export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDial
             setSyncFileCount(payload.fileCount ?? 0);
           }
         });
-      } catch (_e) {
+      } catch {
         // 桌面端无 Kotlin 插件，静默失败
       }
 
