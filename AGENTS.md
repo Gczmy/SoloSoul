@@ -192,6 +192,7 @@ cargo tauri android build
 - 文件：`/Users/zzc/SoloSoul/solosoul-upload.jks`（PKCS12 格式，RSA 2048，有效期 10000 天）
 - 别名：`solosoul-upload`
 - keystore 密码与 key 密码：相同（PKCS12 不支持两者不同），**密码不入库**，由维护者本地妥善保管（建议密码管理器）
+- 密码信息在: `/Users/zzc/SoloSoul/info.txt`
 
 **环境变量参考（密码以占位符表示，构建时替换为本地保管的实际值）：**
 ```bash

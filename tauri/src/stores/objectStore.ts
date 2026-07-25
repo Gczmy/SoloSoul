@@ -98,7 +98,8 @@ export const useObjectStore = create<ObjectState>((set) => ({
   error: null,
 
   loadObjects: async (accountId, filter) => {
-    set({ isLoading: true, error: null });
+    // 立即清空之前页面的陈旧对象，避免页面切换时闪烁旧卡片
+    set({ objects: [], isLoading: true, error: null });
     try {
       const objects = await invoke<ObjectSummary[]>('object_list', {
         accountId,

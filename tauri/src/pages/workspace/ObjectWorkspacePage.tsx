@@ -162,6 +162,13 @@ export function ObjectWorkspacePage() {
   const { templates: userTemplates, loadTemplates: loadUserTemplates } = useTemplateStore();
   const abortRef = useRef<AbortController | null>(null);
 
+  // 组件卸载时清理 store 中的陈旧对象，防止重新挂载时首帧闪烁上个页面的内容。
+  useEffect(() => {
+    return () => {
+      useObjectStore.setState({ objects: [] });
+    };
+  }, []);
+
   useEffect(() => {
     loadUserTemplates().catch((err) => logger.warn('[Workspace] Load templates failed:', err));
   }, [loadUserTemplates]);
