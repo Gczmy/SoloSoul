@@ -56,9 +56,9 @@ object SafSyncHelper {
             DocumentsContract.getTreeDocumentId(Uri.parse(treeUri))
         ) ?: return Result.failure(IllegalArgumentException("无法从 tree URI 解析目标目录: $treeUri"))
 
-        return withFileLock(localDir) {
+        return Result.success(withFileLock(localDir) {
             syncLocalDirToTreeInternal(context, localDir, parent, onProgress)
-        }
+        })
     }
 
     /**
@@ -76,9 +76,9 @@ object SafSyncHelper {
             DocumentsContract.getTreeDocumentId(Uri.parse(treeUri))
         ) ?: return Result.failure(IllegalArgumentException("无法从 tree URI 解析源目录: $treeUri"))
 
-        return withFileLock(localDir) {
+        return Result.success(withFileLock(localDir) {
             syncTreeToLocalDirInternal(context, parent, localDir, onProgress)
-        }
+        })
     }
 
     /**
