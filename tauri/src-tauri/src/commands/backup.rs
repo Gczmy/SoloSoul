@@ -232,6 +232,7 @@ pub async fn backup_create(state: State<'_, AppState>, name: String) -> Result<B
     fs::write(&backup_path, json).map_err(|e| e.to_string())?;
 
     let metadata = fs::metadata(&backup_path).map_err(|e| e.to_string())?;
+    state.auto_sync.trigger_debounce();
 
     Ok(BackupInfo {
         id: format!("{}_{}", safe_name, timestamp),
@@ -322,6 +323,7 @@ pub async fn backup_restore(
         vault.save_profile(&profile)?;
         restored += 1;
     }
+    state.auto_sync.trigger_debounce();
 
     Ok(restored)
 }

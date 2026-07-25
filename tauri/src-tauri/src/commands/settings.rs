@@ -282,7 +282,9 @@ pub async fn user_data_update_preference(
     profile.data = serde_json::to_vec(&data).map_err(|e| e.to_string())?;
     profile.updated_at = chrono::Utc::now();
     profile.version += 1;
-    vault.save_profile(&profile)
+    vault.save_profile(&profile)?;
+    state.auto_sync.trigger_debounce();
+    Ok(())
 }
 
 #[cfg(test)]

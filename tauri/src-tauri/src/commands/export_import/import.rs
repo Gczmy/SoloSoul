@@ -734,6 +734,7 @@ async fn import_execute_internal(
         "user",
         Some(&details.to_string()),
     );
+    state.auto_sync.trigger_debounce();
 
     Ok(ImportResult {
         object_count: imported,

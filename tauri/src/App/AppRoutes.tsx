@@ -27,6 +27,8 @@ import { invoke } from '@tauri-apps/api/core';
 import { ST_SKIPPED_VERSION } from '@/lib/constants';
 import { logger } from '@/lib/logger';
 import { setGlobalNavigate } from '@/lib/navigation';
+import { useSafSyncStore } from '@/stores/safSyncStore';
+import { SafSyncIndicator } from '@/components/sync/SafSyncIndicator';
 import type { OcrModelStatus } from '@/lib/ipc';
 import { protectedRoutes, AuthGuard } from './routes';
 import { BootstrapPage } from '@/pages/auth/BootstrapPage';
@@ -268,6 +270,15 @@ export function AppRoutes() {
     );
   }, [isAuthenticated]);
 
+  // 初始化 SAF 同步事件监听（仅在 Android 上有效）
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    useSafSyncStore.getState().startListening();
+    return () => {
+      useSafSyncStore.getState().stopListening();
+    };
+  }, [isAuthenticated]);
+
   // Listen for system theme changes (via Tauri Event from Rust backend)
   useEffect(() => {
     let unlistenSystemTheme: (() => void) | undefined;
@@ -389,6 +400,7 @@ export function AppRoutes() {
               }}
             />
           )}
+          <SafSyncIndicator />
         </div>
       )}
       <Routes>
