@@ -8,6 +8,10 @@ export interface SyncProgressPayload {
   current?: number;
   total?: number;
   message?: string;
+  /** 触发来源，如 periodic、debounce、immediate、background。 */
+  source?: string;
+  /** 为 true 时表示这是一次静默同步，前端不应显示提示。 */
+  silent?: boolean;
 }
 
 /** 简化的同步状态。 */
@@ -51,7 +55,12 @@ export const useSafSyncStore = create<SafSyncState>((set, get) => ({
     if (state._unlisten || state._unlistenPromise) return;
 
     const pending = listen<SyncProgressPayload>('sync-progress', (event) => {
-      const { phase, current, total, message } = event.payload;
+      const { phase, current, total, message, silent } = event.payload;
+
+      // 周期性兜底同步标记为 silent，前端不显示任何提示。
+      if (silent) {
+        return;
+      }
 
       switch (phase) {
         case 'sync_start':

@@ -396,6 +396,8 @@ pub fn run() {
             commands::vault_directory::vault_sync_background,
             commands::vault_directory::vault_check_directory,
             commands::vault_directory::init_vault_directory,
+            commands::vault_directory::schedule_saf_fallback_sync,
+            commands::vault_directory::cancel_saf_fallback_sync,
             // Object commands
             commands::object::object_list,
             commands::object::object_get,

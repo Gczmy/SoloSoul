@@ -109,6 +109,14 @@ pub struct SyncDirPayload {
     pub tree_uri: String,
 }
 
+/// WorkManager 后台同步兜底调度参数。
+#[derive(Debug, Clone, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ScheduleFallbackSyncPayload {
+    pub local_dir: String,
+    pub tree_uri: String,
+}
+
 /// 插件句柄包装，便于在 command 中通过 Tauri state 获取。
 pub struct AttachmentImportPluginHandle<R: Runtime> {
     #[cfg(target_os = "android")]
@@ -292,6 +300,44 @@ impl<R: Runtime> AttachmentImportPluginHandle<R> {
             let _ = local_dir;
             let _ = tree_uri;
             Err("sync_dir_from_remote is only supported on Android".to_string())
+        }
+    }
+
+    /// 在 Android 端调度 WorkManager 周期性后台同步兜底任务。
+    /// 非 Android 平台直接返回不支持错误。
+    pub fn schedule_fallback_sync(&self, local_dir: &str, tree_uri: &str) -> Result<(), String> {
+        #[cfg(target_os = "android")]
+        {
+            let payload = ScheduleFallbackSyncPayload {
+                local_dir: local_dir.to_string(),
+                tree_uri: tree_uri.to_string(),
+            };
+            self.handle
+                .run_mobile_plugin::<serde_json::Value>("scheduleFallbackSync", payload)
+                .map(|_| ())
+                .map_err(|e| e.to_string())
+        }
+        #[cfg(not(target_os = "android"))]
+        {
+            let _ = local_dir;
+            let _ = tree_uri;
+            Err("schedule_fallback_sync is only supported on Android".to_string())
+        }
+    }
+
+    /// 在 Android 端取消 WorkManager 周期性后台同步兜底任务。
+    /// 非 Android 平台直接返回不支持错误。
+    pub fn cancel_fallback_sync(&self) -> Result<(), String> {
+        #[cfg(target_os = "android")]
+        {
+            self.handle
+                .run_mobile_plugin::<serde_json::Value>("cancelFallbackSync", ())
+                .map(|_| ())
+                .map_err(|e| e.to_string())
+        }
+        #[cfg(not(target_os = "android"))]
+        {
+            Err("cancel_fallback_sync is only supported on Android".to_string())
         }
     }
 

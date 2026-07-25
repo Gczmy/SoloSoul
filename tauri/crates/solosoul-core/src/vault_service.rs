@@ -884,6 +884,11 @@ impl VaultService {
         self.fs.sync_if_dirty()
     }
 
+    /// 当前 Vault 是否有尚未同步到远端的脏数据。
+    pub fn is_dirty(&self) -> bool {
+        self.fs.is_dirty()
+    }
+
     /// 当前 Vault 是否使用远端（SAF）存储。
     pub fn is_remote_storage(&self) -> bool {
         self.fs.is_remote()

@@ -69,6 +69,13 @@ pub trait VaultFileSystem: Send + Sync {
     fn sync_if_dirty(&self) -> Result<(), String> {
         Ok(())
     }
+
+    /// 返回是否有尚未同步到远端的脏数据。
+    ///
+    /// 默认实现返回 false（本地文件系统无脏标记）。
+    fn is_dirty(&self) -> bool {
+        false
+    }
 }
 
 /// SAF-backed VaultFileSystem 的同步策略枚举。
@@ -210,9 +217,12 @@ impl VaultFileSystem for SafVaultFileSystem {
     fn sync_if_dirty(&self) -> Result<(), String> {
         if self.dirty.load(Ordering::Acquire) {
             self.sync_to_remote()?;
-            self.dirty.store(false, Ordering::Release);
         }
         Ok(())
+    }
+
+    fn is_dirty(&self) -> bool {
+        self.dirty.load(Ordering::Acquire)
     }
 
     fn local_path(&self, relative_path: &str) -> Option<PathBuf> {
@@ -220,8 +230,14 @@ impl VaultFileSystem for SafVaultFileSystem {
     }
 
     fn sync_to_remote(&self) -> Result<(), String> {
-        self.sync_driver
-            .sync_to_remote(&self.local_temp_dir, &self.tree_uri)
+        let result = self
+            .sync_driver
+            .sync_to_remote(&self.local_temp_dir, &self.tree_uri);
+        // 同步成功后才清除脏标记；失败时保留，下次继续同步。
+        if result.is_ok() {
+            self.dirty.store(false, Ordering::Release);
+        }
+        result
     }
 
     fn sync_from_remote(&self) -> Result<(), String> {

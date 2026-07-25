@@ -241,13 +241,21 @@ pub async fn vault_set_directory(
         // 持久化配置（轻量 I/O，无需 spawn_blocking）
         save_saf_uri(&data_dir, Some(uri))?;
 
+        // 调度 WorkManager 兜底同步，确保应用被系统回收后仍能同步到 SAF。
+        if let Err(e) = state.schedule_saf_fallback_sync() {
+            tracing::warn!("[vault_set_directory] failed to schedule SAF fallback sync: {e}");
+        }
+
         Ok(SetVaultDirectoryResult {
             success: true,
             needs_restart: true,
             message: "目录已设置，请重启应用以使用新的 Vault 目录".to_string(),
         })
     } else {
-        // 切回本地：仅删除配置，下次启动使用本地目录。
+        // 切回本地：取消后台兜底同步，并删除配置。
+        if let Err(e) = state.cancel_saf_fallback_sync() {
+            tracing::warn!("[vault_set_directory] failed to cancel SAF fallback sync: {e}");
+        }
         save_saf_uri(&data_dir, None)?;
         Ok(SetVaultDirectoryResult {
             success: true,
@@ -327,6 +335,20 @@ pub async fn vault_sync_background(state: State<'_, AppState>) -> Result<(), Str
     Ok(())
 }
 
+/// 调度 WorkManager 后台 SAF 同步兜底任务。
+/// 仅在 Android 且当前使用 SAF 远程 Vault 时生效。
+#[tauri::command]
+pub async fn schedule_saf_fallback_sync(state: State<'_, AppState>) -> Result<(), String> {
+    state.schedule_saf_fallback_sync()
+}
+
+/// 取消 WorkManager 后台 SAF 同步兜底任务。
+/// 仅在 Android 且当前使用 SAF 远程 Vault 时生效。
+#[tauri::command]
+pub async fn cancel_saf_fallback_sync(state: State<'_, AppState>) -> Result<(), String> {
+    state.cancel_saf_fallback_sync()
+}
+
 /// 检查 SAF tree URI 是否仍然可访问。
 fn check_saf_uri_validity<R: Runtime>(app: &AppHandle<R>, tree_uri: &str) -> bool {
     let handle = app.state::<AttachmentImportPluginHandle<R>>();
@@ -368,7 +390,10 @@ include!(concat!(env!("OUT_DIR"), "/app_level_names.rs"));
 /// 把 src 目录下的 Vault 数据迁移到 dst 目录。
 /// 仅顶层跳过应用级配置、资源、缓存和 SAF 临时目录本身，避免循环/冲突；
 /// 嵌套目录中的同名文件夹仍正常迁移，避免误删用户 Vault 数据。
-pub(crate) fn migrate_vault_data(src: &std::path::Path, dst: &std::path::Path) -> Result<(), String> {
+pub(crate) fn migrate_vault_data(
+    src: &std::path::Path,
+    dst: &std::path::Path,
+) -> Result<(), String> {
     fn inner(src: &std::path::Path, dst: &std::path::Path, depth: usize) -> Result<(), String> {
         if src == dst {
             return Ok(());

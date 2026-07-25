@@ -18,7 +18,6 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.IOException
-import java.util.ArrayDeque
 
 @InvokeArg
 class ImportContentUriArgs {
@@ -57,6 +56,12 @@ class OpenFileArgs {
 
 @InvokeArg
 class SyncDirArgs {
+  lateinit var localDir: String
+  lateinit var treeUri: String
+}
+
+@InvokeArg
+class ScheduleFallbackSyncArgs {
   lateinit var localDir: String
   lateinit var treeUri: String
 }
@@ -517,19 +522,8 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
     Thread {
       try {
         val localDir = File(args.localDir)
-        if (!localDir.exists()) {
-          activity.runOnUiThread { invoke.resolve(JSObject()) }
-          return@Thread
-        }
-        val treeUri = Uri.parse(args.treeUri)
-        val parent = DocumentsContract.buildDocumentUriUsingTree(treeUri, DocumentsContract.getTreeDocumentId(treeUri))
-          ?: run {
-            activity.runOnUiThread { invoke.reject("无法从 tree URI 解析目标目录: ${args.treeUri}") }
-            return@Thread
-          }
-
         var fileCount = 0
-        syncLocalDirToTree(localDir, parent) { fileName ->
+        val result = SafSyncHelper.syncLocalDirToTree(activity, localDir, args.treeUri) { fileName ->
           fileCount++
           val payload = JSObject().apply {
             put("phase", "syncing")
@@ -538,8 +532,13 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
           }
           activity.runOnUiThread { this@AttachmentImportPlugin.trigger("sync-progress", payload) }
         }
-
-        activity.runOnUiThread { invoke.resolve(JSObject()) }
+        if (result.isSuccess) {
+          activity.runOnUiThread { invoke.resolve(JSObject()) }
+        } else {
+          val ex = result.exceptionOrNull()
+          android.util.Log.e("SoloSoul", "syncDirToRemote failed: ${ex?.message}", ex)
+          activity.runOnUiThread { invoke.reject("同步到 SAF 失败: ${ex?.message}") }
+        }
       } catch (e: Exception) {
         android.util.Log.e("SoloSoul", "syncDirToRemote failed: ${e.message}", e)
         activity.runOnUiThread { invoke.reject("同步到 SAF 失败: ${e.message}") }
@@ -564,16 +563,8 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
     Thread {
       try {
         val localDir = File(args.localDir)
-        localDir.mkdirs()
-        val treeUri = Uri.parse(args.treeUri)
-        val parent = DocumentsContract.buildDocumentUriUsingTree(treeUri, DocumentsContract.getTreeDocumentId(treeUri))
-          ?: run {
-            activity.runOnUiThread { invoke.reject("无法从 tree URI 解析源目录: ${args.treeUri}") }
-            return@Thread
-          }
-
         var fileCount = 0
-        syncTreeToLocalDir(activity.contentResolver, parent, localDir) { fileName ->
+        val result = SafSyncHelper.syncTreeToLocalDir(activity, localDir, args.treeUri) { fileName ->
           fileCount++
           val payload = JSObject().apply {
             put("phase", "syncing")
@@ -582,13 +573,48 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
           }
           activity.runOnUiThread { this@AttachmentImportPlugin.trigger("sync-progress", payload) }
         }
-
-        activity.runOnUiThread { invoke.resolve(JSObject()) }
+        if (result.isSuccess) {
+          activity.runOnUiThread { invoke.resolve(JSObject()) }
+        } else {
+          val ex = result.exceptionOrNull()
+          android.util.Log.e("SoloSoul", "syncDirFromRemote failed: ${ex?.message}", ex)
+          activity.runOnUiThread { invoke.reject("从 SAF 同步失败: ${ex?.message}") }
+        }
       } catch (e: Exception) {
         android.util.Log.e("SoloSoul", "syncDirFromRemote failed: ${e.message}", e)
         activity.runOnUiThread { invoke.reject("从 SAF 同步失败: ${e.message}") }
       }
     }.start()
+  }
+
+  /**
+   * 调度 WorkManager 周期性后台同步兜底任务。
+   * 在 SAF 模式启用时调用，确保应用被系统回收后仍能定期同步到 SAF。
+   */
+  @Command
+  fun scheduleFallbackSync(invoke: Invoke) {
+    try {
+      val args = invoke.parseArgs(ScheduleFallbackSyncArgs::class.java)
+      SafFallbackWorker.schedule(activity, args.localDir, args.treeUri)
+      invoke.resolve(JSObject())
+    } catch (e: Exception) {
+      android.util.Log.e("SoloSoul", "scheduleFallbackSync failed: ${e.message}", e)
+      invoke.reject("调度后台同步失败: ${e.message}")
+    }
+  }
+
+  /**
+   * 取消 WorkManager 周期性后台同步兜底任务。
+   */
+  @Command
+  fun cancelFallbackSync(invoke: Invoke) {
+    try {
+      SafFallbackWorker.cancel(activity)
+      invoke.resolve(JSObject())
+    } catch (e: Exception) {
+      android.util.Log.e("SoloSoul", "cancelFallbackSync failed: ${e.message}", e)
+      invoke.reject("取消后台同步失败: ${e.message}")
+    }
   }
 
   /**
@@ -605,301 +631,6 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
   // 应用级目录/文件名称由 build.rs 从 app_level_names.json 自动生成到
   // AppLevelNames.kt，避免 Rust/Kotlin 手动同步。
 
-  /**
-   * 仅用于顶层目录过滤，避免用户 Vault 内部同名目录被误跳过。
-   */
-  private data class LocalDirEntry(val localDir: File, val parentUri: Uri, val isRoot: Boolean)
-
-  /**
-   * 仅用于顶层目录过滤，避免用户 Vault 内部同名目录被误跳过。
-   */
-  private data class RemoteDirEntry(val parentUri: Uri, val localDir: File, val isRoot: Boolean)
-
-  private data class ExistingChild(
-    val uri: Uri,
-    val lastModified: Long,
-    val size: Long
-  )
-
-  private fun syncLocalDirToTree(localDir: File, parentUri: Uri, onProgress: (String) -> Unit = {}) {
-    val queue = ArrayDeque<LocalDirEntry>()
-    queue.add(LocalDirEntry(localDir, parentUri, true))
-
-    while (queue.isNotEmpty()) {
-      val entry = queue.removeFirst()
-      val currentDir = entry.localDir
-      val currentParentUri = entry.parentUri
-      val files = currentDir.listFiles() ?: continue
-
-      // 一次性查出当前目录下已有的子文档，避免每个文件都重新 query
-      val existingChildren = mutableMapOf<String, ExistingChild>()
-      val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(
-        currentParentUri,
-        DocumentsContract.getTreeDocumentId(currentParentUri)
-      ) ?: continue
-      activity.contentResolver.query(
-        childrenUri,
-        arrayOf(
-          DocumentsContract.Document.COLUMN_DOCUMENT_ID,
-          DocumentsContract.Document.COLUMN_DISPLAY_NAME,
-          DocumentsContract.Document.COLUMN_LAST_MODIFIED,
-          DocumentsContract.Document.COLUMN_SIZE
-        ),
-        null, null, null
-      )?.use { cursor ->
-        while (cursor.moveToNext()) {
-          val docId = cursor.getString(0)
-          val displayName = cursor.getString(1)
-          val mtimeIdx = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_LAST_MODIFIED)
-          val sizeIdx = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_SIZE)
-          val lastModified = if (mtimeIdx >= 0) cursor.getLong(mtimeIdx) else -1L
-          val size = if (sizeIdx >= 0) cursor.getLong(sizeIdx) else -1L
-          if (!docId.isNullOrBlank() && !displayName.isNullOrBlank()) {
-            existingChildren[displayName] = ExistingChild(
-              DocumentsContract.buildDocumentUriUsingTree(currentParentUri, docId),
-              lastModified,
-              size
-            )
-          }
-        }
-      }
-
-      for (file in files) {
-        try {
-          if (entry.isRoot && file.name in AppLevelNames.NAMES) {
-            continue
-          }
-          if (file.isDirectory) {
-            val existingChild = existingChildren[file.name]
-            val dirUri = if (existingChild != null) {
-              existingChild.uri
-            } else {
-              val created = DocumentsContract.createDocument(
-                activity.contentResolver,
-                currentParentUri,
-                DocumentsContract.Document.MIME_TYPE_DIR,
-                file.name
-              )
-              if (created == null) {
-                android.util.Log.w(
-                  "SoloSoul",
-                  "syncLocalDirToTree: failed to create dir '${file.name}' in SAF tree, skipping"
-                )
-                continue
-              }
-              created
-            }
-            queue.add(LocalDirEntry(file, dirUri, false))
-          } else {
-            val existingChild = existingChildren[file.name]
-            if (existingChild != null &&
-                existingChild.lastModified > 0 &&
-                existingChild.size > 0 &&
-                existingChild.lastModified == file.lastModified() &&
-                existingChild.size == file.length()) {
-              continue
-            }
-
-            try {
-              val mimeType = getMimeType(file.name)
-              val tempName = "${file.name}.tmp"
-              val tempDoc = createTempDocumentAndWrite(currentParentUri, tempName, mimeType, file)
-              if (tempDoc == null) {
-                android.util.Log.w("SoloSoul", "写入临时文件失败，跳过: ${file.name}")
-                continue
-              }
-
-              if (existingChild != null) {
-                try {
-                  DocumentsContract.deleteDocument(activity.contentResolver, existingChild.uri)
-                } catch (e: Exception) {
-                  android.util.Log.w("SoloSoul", "删除旧文件失败: ${e.message}")
-                }
-              }
-
-              val renamed = DocumentsContract.renameDocument(
-                activity.contentResolver, tempDoc, file.name
-              )
-              if (renamed == null) {
-                android.util.Log.w(
-                  "SoloSoul",
-                  "重命名临时文件失败，残留 .tmp 文件: $tempName，可手动清理"
-                )
-              }
-
-              onProgress(file.name)
-            } catch (e: Exception) {
-              val msg = e.message ?: ""
-              if (msg.contains("ENAMETOOLONG")) {
-                android.util.Log.w(
-                  "SoloSoul",
-                  "syncLocalDirToTree: skipping file '${file.name}' (name too long)"
-                )
-              } else {
-                android.util.Log.w(
-                  "SoloSoul",
-                  "syncLocalDirToTree: skipping file '${file.name}' in ${currentDir.path}: ${e.message}"
-                )
-              }
-            }
-          }
-        } catch (e: Exception) {
-          val msg = e.message ?: ""
-          android.util.Log.w(
-            "SoloSoul",
-            "syncLocalDirToTree: skipping child '${file.name}' in ${currentDir.path}: ${msg}"
-          )
-        }
-      }
-    }
-  }
-
-  /**
-   * 把 SAF tree 内容同步到本地目录。
-   * 使用原子写入模式：先写入 .tmp 临时文件，再用 renameTo 原子重命名为最终文件名。
-   * 本地文件系统的 renameTo 在同一分区上是原子操作，写入失败时 .tmp 可被自动清理。
-   *
-   * 实现采用 BFS 迭代，逐个目录查询子文档，避免递归深度过大和在同步过程中
-   * 长期持有 Cursor。
-   */
-  private data class RemoteChild(
-    val docUri: Uri,
-    val displayName: String,
-    val mimeType: String,
-    val lastModified: Long,
-    val size: Long
-  )
-
-  private fun syncTreeToLocalDir(contentResolver: android.content.ContentResolver, parentUri: Uri, localDir: File, onProgress: (String) -> Unit = {}) {
-    val queue = ArrayDeque<RemoteDirEntry>()
-    queue.add(RemoteDirEntry(parentUri, localDir, true))
-
-    while (queue.isNotEmpty()) {
-      val entry = queue.removeFirst()
-      val currentParentUri = entry.parentUri
-      val currentLocalDir = entry.localDir
-      val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(
-        currentParentUri,
-        DocumentsContract.getTreeDocumentId(currentParentUri)
-      ) ?: continue
-
-      val children = mutableListOf<RemoteChild>()
-      contentResolver.query(
-        childrenUri,
-        arrayOf(
-          DocumentsContract.Document.COLUMN_DOCUMENT_ID,
-          DocumentsContract.Document.COLUMN_DISPLAY_NAME,
-          DocumentsContract.Document.COLUMN_MIME_TYPE,
-          DocumentsContract.Document.COLUMN_LAST_MODIFIED,
-          DocumentsContract.Document.COLUMN_SIZE
-        ),
-        null, null, null
-      )?.use { cursor ->
-        while (cursor.moveToNext()) {
-          val docId = cursor.getString(0)
-          val displayName = cursor.getString(1)
-          val mimeType = cursor.getString(2)
-          val mtimeIdx = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_LAST_MODIFIED)
-          val sizeIdx = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_SIZE)
-          val remoteMtime = if (mtimeIdx >= 0) cursor.getLong(mtimeIdx) else -1L
-          val remoteSize = if (sizeIdx >= 0) cursor.getLong(sizeIdx) else -1L
-          val docUri = DocumentsContract.buildDocumentUriUsingTree(currentParentUri, docId)
-          children.add(RemoteChild(docUri, displayName, mimeType, remoteMtime, remoteSize))
-        }
-      }
-
-      for (child in children) {
-          try {
-            if (entry.isRoot && child.displayName in AppLevelNames.NAMES) {
-              continue
-            }
-            if (child.mimeType == DocumentsContract.Document.MIME_TYPE_DIR) {
-              val childDir = File(currentLocalDir, child.displayName)
-              if (!childDir.mkdirs()) {
-                // mkdirs 失败：路径过长（ENAMETOOLOOLNG）或权限不足，
-                // 跳过该目录及其全部子文件而非阻塞整个同步。
-                android.util.Log.w(
-                  "SoloSoul",
-                  "syncTreeToLocalDir: failed to create directory '${child.displayName}' in ${currentLocalDir.path}, skipping"
-                )
-                continue
-              }
-              queue.add(RemoteDirEntry(child.docUri, childDir, false))
-            } else {
-              try {
-                val file = File(currentLocalDir, child.displayName)
-                // 如果本地文件存在且 mtime+size 匹配，跳过复制
-                if (file.exists() && child.lastModified > 0 && child.size > 0 &&
-                    file.lastModified() == child.lastModified && file.length() == child.size) {
-                  continue
-                }
-                file.parentFile?.mkdirs()
-
-                // 原子写入：先写 .tmp，再用 renameTo 原子替换
-                val tmpFile = File(currentLocalDir, "${child.displayName}.tmp")
-                contentResolver.openInputStream(child.docUri)?.use { input ->
-                  FileOutputStream(tmpFile).use { output ->
-                    input.copyTo(output)
-                  }
-                } ?: continue
-
-                if (!tmpFile.renameTo(file)) {
-                  android.util.Log.w(
-                    "SoloSoul",
-                    "原子重命名失败，尝试直接替换: ${child.displayName}"
-                  )
-                  file.delete()
-                  tmpFile.renameTo(file)
-                }
-
-                if (child.lastModified > 0) {
-                  file.setLastModified(child.lastModified)
-                }
-
-                onProgress(child.displayName)
-              } catch (e: Exception) {
-                val msg = e.message ?: ""
-                // ENAMETOOLONG 表示文件名过长，跳过该文件而非阻塞同步。
-                if (msg.contains("ENAMETOOLONG")) {
-                  android.util.Log.w(
-                    "SoloSoul",
-                    "syncTreeToLocalDir: skipping file '${child.displayName}' (name too long)"
-                  )
-                } else {
-                  android.util.Log.w(
-                    "SoloSoul",
-                    "syncTreeToLocalDir: skipping file '${child.displayName}' in ${currentLocalDir.path}: ${e.message}"
-                  )
-                }
-              }
-            }
-          } catch (e: Exception) {
-            // 外层兜底：捕获目录/文件处理分支之外的异常（如 displayName 极端异常），
-            // 避免单个条目导致整个同步失败。
-            val msg = e.message ?: ""
-            android.util.Log.w(
-              "SoloSoul",
-              "syncTreeToLocalDir: skipping child '${child.displayName}' in ${currentLocalDir.path}: ${msg}"
-            )
-          }
-        }
-    }
-  }
-
-  private fun getMimeType(fileName: String): String {
-    val ext = fileName.substringAfterLast(".", "")
-    return when (ext.lowercase()) {
-      "jpg", "jpeg" -> "image/jpeg"
-      "png" -> "image/png"
-      "gif" -> "image/gif"
-      "webp" -> "image/webp"
-      "pdf" -> "application/pdf"
-      "txt" -> "text/plain"
-      "json" -> "application/json"
-      "db" -> "application/x-sqlite3"
-      else -> "application/octet-stream"
-    }
-  }
 
   /**
    * 检查 SAF tree URI 是否仍然可访问（授权未被撤销）。

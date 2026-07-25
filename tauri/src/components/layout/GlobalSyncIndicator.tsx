@@ -10,6 +10,8 @@ interface SyncProgressPayload {
   current?: number;
   total?: number;
   message?: string;
+  source?: string;
+  silent?: boolean;
 }
 
 const AUTO_HIDE_MS = 3000;
@@ -40,7 +42,12 @@ export function GlobalSyncIndicator() {
     const unlistens: Array<() => void> = [];
 
     listen<SyncProgressPayload>('sync-progress', (event) => {
-      const { phase, current = 0, total = 0, message } = event.payload;
+      const { phase, current = 0, total = 0, message, silent } = event.payload;
+
+      // 静默同步不显示任何提示（如 30 秒周期性兜底同步）。
+      if (silent) {
+        return;
+      }
 
       if (phase === 'sync_start' || phase === 'sync_to_remote' || phase === 'sync_from_remote' || phase === 'migrate' || phase === 'auto_sync') {
         setSafSyncState('syncing');

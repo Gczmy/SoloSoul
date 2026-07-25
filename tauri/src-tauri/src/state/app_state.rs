@@ -231,8 +231,7 @@ impl AppState {
                 // check_vault_dir_access 在 Android 上通过 Kotlin 插件查询 ContentResolver
                 // 判断目录是否存在；非 Android 平台返回 false，由下层 cfg 守卫。
                 let is_valid = {
-                    let plugin_handle =
-                        handle.state::<AttachmentImportPluginHandle<tauri::Wry>>();
+                    let plugin_handle = handle.state::<AttachmentImportPluginHandle<tauri::Wry>>();
                     plugin_handle.check_vault_dir_access(uri).unwrap_or(false)
                 };
 
@@ -240,15 +239,17 @@ impl AppState {
                     tracing::warn!(
                         "[AppState] saved SAF URI is no longer accessible (dir deleted or revoked), falling back to local vault"
                     );
+                    // 取消可能已调度的 WorkManager 兜底同步，避免旧 URI 持续重试。
+                    let _ = handle
+                        .state::<AttachmentImportPluginHandle<tauri::Wry>>()
+                        .cancel_fallback_sync();
                     // 清除已失效的 SAF 配置，避免下次启动重复进入此路径。
                     let _ = Self::save_saf_uri(&data_dir, None);
                     // 迁移 SAF temp cache 到本地目录，保全用户缓存数据。
                     // 迁移失败不阻止降级（仅打日志）。
                     let temp_cache = data_dir.join("saf_vault_temp");
                     if temp_cache.exists() {
-                        tracing::info!(
-                            "[AppState] migrating SAF temp cache to local vault"
-                        );
+                        tracing::info!("[AppState] migrating SAF temp cache to local vault");
                         if let Err(e) = crate::commands::vault_directory::migrate_vault_data(
                             &temp_cache,
                             &data_dir,
@@ -261,9 +262,7 @@ impl AppState {
                     // 降级到本地 vault
                     match Self::try_init_local_vault(&data_dir) {
                         Ok(svc) => {
-                            tracing::info!(
-                                "[AppState] local vault init after SAF fallback: OK"
-                            );
+                            tracing::info!("[AppState] local vault init after SAF fallback: OK");
                             Arc::new(RwLock::new(svc))
                         }
                         Err(e) => {
@@ -334,20 +333,36 @@ impl AppState {
             }
         };
 
-        Ok(Self {
-            handle,
+        let app_state = Self {
+            handle: handle.clone(),
             vault_service,
             sync_service,
             plugin_manager,
             auto_sync,
-        })
+        };
+
+        // 若当前使用 SAF 远程 Vault，调度 WorkManager 兜底同步，
+        // 确保应用被系统回收后仍能定期同步到 SAF。
+        if app_state.has_saf_vault() {
+            if let Err(e) = app_state.schedule_saf_fallback_sync() {
+                tracing::warn!("[AppState] failed to schedule SAF fallback sync: {e}");
+            }
+        }
+
+        Ok(app_state)
     }
 
     /// 执行一次到 SAF 远端的同步，并向前端发射进度事件。
     ///
     /// 非 SAF 模式下会快速返回，不执行任何 I/O。
     pub async fn sync_to_remote_with_progress(&self) -> Result<(), String> {
-        auto_sync::run_sync(&self.vault_service, &self.handle).await
+        // 手动/显式同步始终显示提示。
+        auto_sync::run_sync(
+            &self.vault_service,
+            &self.handle,
+            auto_sync::SyncSource::Immediate,
+        )
+        .await
     }
 
     /// 判断当前是否使用了 SAF 远程存储。
@@ -356,6 +371,56 @@ impl AppState {
             .read()
             .map(|g| g.is_remote_storage())
             .unwrap_or(false)
+    }
+
+    /// 调度 WorkManager 后台 SAF 同步兜底任务。
+    ///
+    /// - 仅 Android 平台生效，其他平台直接返回 Ok(())。
+    /// - 仅在当前 Vault 为 SAF 远程存储且已保存 SAF URI 时执行。
+    /// - 失败仅记录日志并返回错误，不阻塞主流程。
+    pub(crate) fn schedule_saf_fallback_sync(&self) -> Result<(), String> {
+        if !cfg!(target_os = "android") {
+            return Ok(());
+        }
+        if !self.has_saf_vault() {
+            return Ok(());
+        }
+
+        let data_dir = normalize_path(
+            &self
+                .handle
+                .path()
+                .resolve(".", tauri::path::BaseDirectory::Data)
+                .map_err(|e| format!("无法解析应用数据目录: {e}"))?,
+        );
+        let saved_uri = Self::load_saved_saf_uri(&data_dir);
+        if let Some(tree_uri) = saved_uri {
+            let local_dir = data_dir.join("saf_vault_temp");
+            let plugin_handle = self
+                .handle
+                .state::<AttachmentImportPluginHandle<tauri::Wry>>();
+            plugin_handle
+                .schedule_fallback_sync(local_dir.to_string_lossy().as_ref(), &tree_uri)?;
+            tracing::info!("[AppState] scheduled SAF fallback sync via WorkManager");
+        }
+        Ok(())
+    }
+
+    /// 取消 WorkManager 后台 SAF 同步兜底任务。
+    ///
+    /// - 仅 Android 平台生效，其他平台直接返回 Ok(())。
+    /// - 失败仅记录日志并返回错误，不阻塞主流程。
+    pub(crate) fn cancel_saf_fallback_sync(&self) -> Result<(), String> {
+        if !cfg!(target_os = "android") {
+            return Ok(());
+        }
+
+        let plugin_handle = self
+            .handle
+            .state::<AttachmentImportPluginHandle<tauri::Wry>>();
+        plugin_handle.cancel_fallback_sync()?;
+        tracing::info!("[AppState] cancelled SAF fallback sync via WorkManager");
+        Ok(())
     }
 
     /// 首次启动时初始化 VaultService（不重启）。
@@ -429,6 +494,11 @@ impl AppState {
                         .map_err(|_| "Vault service lock poisoned".to_string())?;
                     *guard = local_svc;
                 }
+                // 取消 WorkManager 兜底同步：首次同步失败说明 SAF 不可用，
+                // 避免旧配置持续触发无效同步。
+                if let Err(e) = self.cancel_saf_fallback_sync() {
+                    tracing::warn!("[initialize_vault] failed to cancel SAF fallback sync: {e}");
+                }
                 return Err(format!("首次同步失败: {e}"));
             }
             // 同步成功：通知前端进度完成
@@ -471,6 +541,11 @@ impl AppState {
                     );
                 }
                 // 写入/检测 .solosoul_config 失败不影响主流程，仅打日志
+            }
+
+            // 调度 WorkManager 兜底同步，确保应用被系统回收后仍能同步到 SAF。
+            if let Err(e) = self.schedule_saf_fallback_sync() {
+                tracing::warn!("[AppState] failed to schedule SAF fallback sync: {e}");
             }
         }
 

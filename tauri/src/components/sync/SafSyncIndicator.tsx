@@ -19,6 +19,7 @@ export function SafSyncIndicator() {
   const error = useSafSyncStore((s) => s.error);
   const isMobile = isMobilePlatformSync();
 
+  // 静默同步不显示微指示器；store 会在 silent 事件到达时保持 idle。
   if (!isMobile || status === 'idle') return null;
 
   const isSyncing = status === 'syncing';

@@ -13,6 +13,22 @@ use std::time::Duration;
 use tauri::{AppHandle, Emitter, Manager};
 use tokio::sync::mpsc;
 
+/// 自动同步触发来源。
+///
+/// 用于区分周期性兜底、写操作防抖、关键里程碑等触发场景，
+/// 以便前端决定是否显示提示。
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum SyncSource {
+    /// 30 秒周期性兜底同步。
+    Periodic,
+    /// 写操作防抖同步。
+    Debounce,
+    /// 关键里程碑 / 立即同步。
+    Immediate,
+    /// 应用切后台同步。
+    Background,
+}
+
 /// 自动同步触发事件。
 pub enum SyncEvent {
     /// 立即同步，取消当前防抖定时器。
@@ -23,17 +39,27 @@ pub enum SyncEvent {
     Background,
 }
 
+impl SyncEvent {
+    fn source(&self) -> SyncSource {
+        match self {
+            SyncEvent::Immediate => SyncSource::Immediate,
+            SyncEvent::Debounce => SyncSource::Debounce,
+            SyncEvent::Background => SyncSource::Background,
+        }
+    }
+}
+
 enum AutoSyncState {
     Idle,
-    Scheduled(tokio::time::Instant),
-    Running,
+    Scheduled(SyncSource, tokio::time::Instant),
+    Running(SyncSource),
 }
 
 /// 可注入的同步动作。
 ///
 /// 将具体的同步实现从调度循环中解耦，便于单元测试和生产注入。
 pub trait SyncAction: Send + Sync + 'static {
-    fn run(&self) -> BoxFuture<'static, Result<(), String>>;
+    fn run(&self, source: SyncSource) -> BoxFuture<'static, Result<(), String>>;
 }
 
 /// 自动同步配置。
@@ -126,41 +152,41 @@ impl AutoSyncManager {
                         tokio::select! {
                             event = rx.recv() => match event {
                                 Some(SyncEvent::Immediate | SyncEvent::Background) => {
-                                    state = AutoSyncState::Running;
+                                    state = AutoSyncState::Running(event.unwrap().source());
                                 }
                                 Some(SyncEvent::Debounce) => {
                                     let deadline = tokio::time::Instant::now() + config.debounce_delay;
-                                    state = AutoSyncState::Scheduled(deadline);
+                                    state = AutoSyncState::Scheduled(SyncSource::Debounce, deadline);
                                 }
                                 None => break,
                             },
                             _ = interval.tick() => {
-                                state = AutoSyncState::Running;
+                                state = AutoSyncState::Running(SyncSource::Periodic);
                             }
                         }
                     }
-                    AutoSyncState::Scheduled(d) => {
+                    AutoSyncState::Scheduled(source, d) => {
                         tokio::select! {
                             event = rx.recv() => match event {
                                 Some(SyncEvent::Immediate | SyncEvent::Background) => {
-                                    state = AutoSyncState::Running;
+                                    state = AutoSyncState::Running(event.unwrap().source());
                                 }
                                 Some(SyncEvent::Debounce) => {
                                     let new_deadline = tokio::time::Instant::now() + config.debounce_delay;
-                                    state = AutoSyncState::Scheduled(new_deadline);
+                                    state = AutoSyncState::Scheduled(source, new_deadline);
                                 }
                                 None => break,
                             },
                             _ = tokio::time::sleep_until(d) => {
-                                state = AutoSyncState::Running;
+                                state = AutoSyncState::Running(source);
                             }
                             _ = interval.tick() => {
                                 // Already scheduled, nothing to do.
                             }
                         }
                     }
-                    AutoSyncState::Running => {
-                        let result = action.run().await;
+                    AutoSyncState::Running(source) => {
+                        let result = action.run(source).await;
                         match result {
                             Ok(()) => {
                                 retry_count = 0;
@@ -172,7 +198,7 @@ impl AutoSyncManager {
                                     let exponent = (retry_count - 1).min(10);
                                     let backoff = config.retry_delay * 2u32.pow(exponent);
                                     tokio::time::sleep(backoff).await;
-                                    state = AutoSyncState::Running;
+                                    state = AutoSyncState::Running(source);
                                 } else {
                                     retry_count = 0;
                                     state = AutoSyncState::Idle;
@@ -210,10 +236,10 @@ impl VaultSyncAction {
 }
 
 impl SyncAction for VaultSyncAction {
-    fn run(&self) -> BoxFuture<'static, Result<(), String>> {
+    fn run(&self, source: SyncSource) -> BoxFuture<'static, Result<(), String>> {
         let vault_service = self.vault_service.clone();
         let app_handle = self.app_handle.clone();
-        Box::pin(async move { run_sync(&vault_service, &app_handle).await })
+        Box::pin(async move { run_sync(&vault_service, &app_handle, source).await })
     }
 }
 
@@ -240,10 +266,17 @@ fn check_saf_access(app_handle: &AppHandle, tree_uri: &str) -> bool {
 /// 执行一次 `sync_to_remote()` 并发射进度事件。
 ///
 /// 非 SAF 模式下会快速返回，不执行任何 I/O。
+///
+/// - `source` 标识触发来源；`Periodic` 同步会标记为 `silent`，
+///   前端可据此不显示提示。
+/// - 若本地无脏数据，直接跳过并返回 Ok，不发射任何事件。
 pub async fn run_sync(
     vault_service: &Arc<RwLock<VaultService>>,
     app_handle: &AppHandle,
+    source: SyncSource,
 ) -> Result<(), String> {
+    let silent = source == SyncSource::Periodic;
+
     // SAF 未启用时直接跳过，避免桌面端无意义开销。
     {
         let guard = vault_service
@@ -268,12 +301,29 @@ pub async fn run_sync(
         }
     }
 
-    app_handle
-        .emit(
-            "sync-progress",
-            serde_json::json!({"phase": "sync_start", "current": 0, "total": 1}),
-        )
-        .ok();
+    // 无脏数据时静默跳过，避免无意义的同步和提示。
+    {
+        let guard = vault_service
+            .read()
+            .map_err(|_| "Vault service lock poisoned".to_string())?;
+        if !guard.is_dirty() {
+            return Ok(());
+        }
+    }
+
+    let event = || {
+        serde_json::json!({
+            "phase": "sync_start",
+            "current": 0,
+            "total": 1,
+            "source": source_string(source),
+            "silent": silent,
+        })
+    };
+
+    if !silent {
+        app_handle.emit("sync-progress", event()).ok();
+    }
 
     let svc = vault_service.clone();
     let result = tokio::task::spawn_blocking(move || {
@@ -287,23 +337,45 @@ pub async fn run_sync(
 
     match result {
         Ok(()) => {
-            app_handle
-                .emit(
-                    "sync-progress",
-                    serde_json::json!({"phase": "sync_complete", "current": 1, "total": 1}),
-                )
-                .ok();
+            if !silent {
+                app_handle
+                    .emit(
+                        "sync-progress",
+                        serde_json::json!({
+                            "phase": "sync_complete",
+                            "current": 1,
+                            "total": 1,
+                            "source": source_string(source),
+                            "silent": silent,
+                        }),
+                    )
+                    .ok();
+            }
             Ok(())
         }
         Err(e) => {
             app_handle
                 .emit(
                     "sync-progress",
-                    serde_json::json!({"phase": "error", "message": e.clone()}),
+                    serde_json::json!({
+                        "phase": "error",
+                        "message": e.clone(),
+                        "source": source_string(source),
+                        "silent": silent,
+                    }),
                 )
                 .ok();
             Err(e)
         }
+    }
+}
+
+fn source_string(source: SyncSource) -> &'static str {
+    match source {
+        SyncSource::Periodic => "periodic",
+        SyncSource::Debounce => "debounce",
+        SyncSource::Immediate => "immediate",
+        SyncSource::Background => "background",
     }
 }
 
@@ -332,7 +404,7 @@ mod tests {
     }
 
     impl SyncAction for MockSyncAction {
-        fn run(&self) -> BoxFuture<'static, Result<(), String>> {
+        fn run(&self, _source: SyncSource) -> BoxFuture<'static, Result<(), String>> {
             let count = self.calls.fetch_add(1, Ordering::SeqCst);
             if count < self.fail_before_success {
                 Box::pin(async move { Err("mock failure".to_string()) })
