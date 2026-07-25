@@ -13,6 +13,7 @@ import { ThemeSchemePanel } from '@/components/settings/ThemeSchemePanel';
 import type { AccentPreset } from '@/types';
 import type { SupportedLang } from '@/lib/i18n';
 import { isMobilePlatformSync } from '@/lib/platform';
+import { logger } from '@/lib/logger';
 import { Palette, PanelTop, PanelBottom, PanelLeft, PanelRight } from 'lucide-react';
 import type { ThemeScheme } from '@/lib/themeSchemes';
 import type { AppSettings } from '@/stores/settingsStore';
@@ -85,7 +86,7 @@ export function AppearanceSettingsPage() {
   const handlePresetChange = async (preset: 'light' | 'dark' | 'system') => {
     updateSetting(accountId, 'theme', preset);
     invoke('ui_update_preference', { key: 'theme', value: preset }).catch((err) =>
-      console.warn('[Appearance] Update theme pref failed:', err),
+      logger.warn('[Appearance] Update theme pref failed:', err),
     );
     const resolvedSystemTheme = preset === 'system' ? await getSystemTheme() : undefined;
     await applyTheme({
@@ -104,7 +105,7 @@ export function AppearanceSettingsPage() {
   const handleAccentChange = async (accent: AccentPreset) => {
     updateSetting(accountId, 'accentColor', accent);
     invoke('ui_update_preference', { key: 'accentColor', value: accent }).catch((err) =>
-      console.warn('[Appearance] Update accent pref failed:', err),
+      logger.warn('[Appearance] Update accent pref failed:', err),
     );
     const resolvedSystemTheme = settings.theme === 'system' ? await getSystemTheme() : undefined;
     await applyTheme({
@@ -132,7 +133,7 @@ export function AppearanceSettingsPage() {
       const newTheme = scheme.mode;
       updateSetting(accountId, 'theme', newTheme);
       invoke('ui_update_preference', { key: 'theme', value: newTheme }).catch((err) =>
-        console.warn('[Appearance] Update theme during scheme select failed:', err),
+        logger.warn('[Appearance] Update theme during scheme select failed:', err),
       );
       await applyTheme({
         preset: newTheme === 'dark' ? 'warm-stone-dark' : 'warm-stone-light',
@@ -150,7 +151,7 @@ export function AppearanceSettingsPage() {
     const key = scheme.mode === 'light' ? 'defaultLightTheme' : 'defaultDarkTheme';
     updateSetting(accountId, key, scheme.id);
     invoke('ui_update_preference', { key, value: scheme.id }).catch((err) =>
-      console.warn('[Appearance] Update scheme pref failed:', err),
+      logger.warn('[Appearance] Update scheme pref failed:', err),
     );
     syncUiCache();
   };

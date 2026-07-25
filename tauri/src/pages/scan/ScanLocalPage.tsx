@@ -13,6 +13,7 @@ import { useObjectStore } from '@/stores/objectStore';
 import { useToastError } from '@/hooks/useToastError';
 import { FolderOpen, FileText, Upload, Search } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/constants';
+import { logger } from '@/lib/logger';
 
 interface ScannedFile {
   path: string;
@@ -104,7 +105,7 @@ export function ScanLocalPage() {
     const results = await Promise.allSettled(files.map((file) => handleImport(file)));
     const failures = results.filter((r) => r.status === 'rejected');
     if (failures.length > 0) {
-      console.warn(`ImportAll: ${failures.length}/${files.length} files failed`);
+      logger.warn(`ImportAll: ${failures.length}/${files.length} files failed`);
     }
   };
 

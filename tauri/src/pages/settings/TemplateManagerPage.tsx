@@ -23,6 +23,7 @@ import type {
   ContractRoleBinding,
 } from '@/types/template';
 import { resolveCustomIcon } from '@/lib/pageIcons';
+import { logger } from '@/lib/logger';
 import { SampleTemplateGallery } from '@/components/template/SampleTemplateGallery';
 import { SampleTemplateDetail } from '@/components/template/SampleTemplateDetail';
 import type { SampleTemplate } from '@/lib/sampleTemplates';
@@ -112,11 +113,11 @@ export function TemplateManagerPage() {
   useEffect(() => {
     // 避免切换页面时重复触发 loading 导致闪烁；只在首次无数据时加载
     if (templates.length === 0) {
-      loadTemplates().catch((err) => console.warn('[TemplateManager] Load templates failed:', err));
+      loadTemplates().catch((err) => logger.warn('[TemplateManager] Load templates failed:', err));
     }
     if (accountId)
       loadCustomPages(accountId).catch((err) =>
-        console.warn('[TemplateManager] Load custom pages failed:', err),
+        logger.warn('[TemplateManager] Load custom pages failed:', err),
       );
   }, [loadTemplates, accountId, loadCustomPages, templates.length]);
 

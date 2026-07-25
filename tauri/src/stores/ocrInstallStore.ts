@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import { ST_OCR_FIRST_INSTALL } from '@/lib/constants';
+import { logger } from '@/lib/logger';
 
 export interface OcrInstallProgressPayload {
   tier: string;
@@ -79,7 +80,7 @@ export const useOcrInstallStore = create<OcrInstallState>((set, get) => ({
     if (state.unlistenPromise) {
       state.unlistenPromise
         .then((fn) => fn())
-        .catch((err) => console.warn('[ocrInstallStore] Failed to clean up listener:', err));
+        .catch((err) => logger.warn('[ocrInstallStore] Failed to clean up listener:', err));
     }
   },
 

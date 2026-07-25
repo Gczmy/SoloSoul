@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
+import { logger } from '@/lib/logger';
 
 export interface LlmStreamPayload {
   conversationId: string;
@@ -37,7 +38,7 @@ export const useLlmStore = create<LlmState>((set, get) => ({
     if (state.unlistenPromise) {
       state.unlistenPromise
         .then((fn) => fn())
-        .catch((err) => console.warn('[llmStore] Failed to clean up old listener:', err));
+        .catch((err) => logger.warn('[llmStore] Failed to clean up old listener:', err));
     }
 
     set({
@@ -88,7 +89,7 @@ export const useLlmStore = create<LlmState>((set, get) => ({
     if (state.unlistenPromise) {
       state.unlistenPromise
         .then((fn) => fn())
-        .catch((err) => console.warn('[llmStore] Failed to clean up old listener:', err));
+        .catch((err) => logger.warn('[llmStore] Failed to clean up old listener:', err));
     }
     set({ isStreaming: false, streamingConvId: null, unlisten: null, unlistenPromise: null });
   },
@@ -99,7 +100,7 @@ export const useLlmStore = create<LlmState>((set, get) => ({
     if (state.unlistenPromise) {
       state.unlistenPromise
         .then((fn) => fn())
-        .catch((err) => console.warn('[llmStore] Failed to clean up old listener:', err));
+        .catch((err) => logger.warn('[llmStore] Failed to clean up old listener:', err));
     }
     set({
       isStreaming: false,

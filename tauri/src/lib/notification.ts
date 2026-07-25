@@ -11,6 +11,7 @@ import { useAutoLockPauseStore } from '@/stores/autoLockPauseStore';
 import { invoke } from '@tauri-apps/api/core';
 import i18next from '@/lib/i18n';
 import { navigateTo } from '@/lib/navigation';
+import { logger } from '@/lib/logger';
 
 /**
  * 申请系统通知权限。系统权限弹窗会触发 visibilitychange，
@@ -128,7 +129,7 @@ export async function sendSystemNotificationWithFallback(
       });
     }
   } catch (err) {
-    console.error('[notification] sendSystemNotificationWithFallback failed:', err);
+    logger.error('[notification] sendSystemNotificationWithFallback failed:', err);
     // 兜底：至少显示应用内 toast
     useUiStore.getState().showToast({
       message: toastMessage || body,
@@ -222,10 +223,10 @@ export async function checkBackupReminder(): Promise<void> {
         useSettingsStore
           .getState()
           .updateSetting(accountId, 'lastBackupReminderAt', now)
-          .catch((err) => console.error('[notification] Failed to persist backup reminder time:', err));
+          .catch((err) => logger.warn('[notification] Failed to persist backup reminder time:', err));
       }
     }
   } catch (err) {
-    console.error('[notification] Backup reminder check failed:', err);
+    logger.warn('[notification] Backup reminder check failed:', err);
   }
 }

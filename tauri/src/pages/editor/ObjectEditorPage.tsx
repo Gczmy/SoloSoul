@@ -15,6 +15,7 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { ObjectTemplateSelector } from '@/components/editor/ObjectTemplateSelector';
 import { ObjectFieldList } from '@/components/editor/ObjectFieldList';
 import type { PropertyType } from '@/types/template';
+import { logger } from '@/lib/logger';
 import styles from './ObjectEditorPage.module.css';
 
 // Each template belongs to a workspace section.
@@ -51,7 +52,7 @@ export function ObjectEditorPage() {
   }, []);
 
   useEffect(() => {
-    loadUserTemplates().catch((err) => console.warn('[ObjectEditor] Load templates failed:', err));
+    loadUserTemplates().catch((err) => logger.warn('[ObjectEditor] Load templates failed:', err));
   }, [loadUserTemplates]);
 
   // Build templateMeta and objectTemplates from loaded user templates

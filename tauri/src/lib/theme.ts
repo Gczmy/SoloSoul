@@ -5,6 +5,7 @@
 import type { AccentPreset, ThemeConfig } from '@/types';
 import { applyScheme, resolveActiveScheme, getSchemeById } from './themeSchemes';
 import { invoke } from '@tauri-apps/api/core';
+import { logger } from './logger';
 
 const ACCENT_COLORS: Record<AccentPreset, string> = {
   ocean: '#5B7C99',
@@ -60,7 +61,7 @@ export async function syncStatusBarStyle(theme: 'light' | 'dark') {
   try {
     await invoke('set_status_bar_style', { payload: { style: theme } });
   } catch (err) {
-    console.warn('[theme] syncStatusBarStyle failed:', err);
+    logger.warn('[theme] syncStatusBarStyle failed:', err);
     // ignore when running in browser, desktop, or API unavailable
   }
 }

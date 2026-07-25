@@ -17,6 +17,7 @@ import { useTemplateStore } from '@/stores/templateStore';
 import { invoke } from '@tauri-apps/api/core';
 import { Trash2, RotateCcw, FileText, Info, Folder, LayoutTemplate, Search } from 'lucide-react';
 import { isMobilePlatformSync } from '@/lib/platform';
+import { logger } from '@/lib/logger';
 import { PluginBadge } from '@/components/template/PluginBadge';
 import type { UserTemplate } from '@/types/template';
 import { TrashDetailPanel } from '@/components/trash/TrashDetailPanel';
@@ -129,7 +130,7 @@ export function TrashPage() {
               .getState()
               .loadCustomPages(accountId)
               .catch((err) =>
-                  console.warn('[TrashPage] Load custom pages after restore failed:', err),
+                  logger.warn('[TrashPage] Load custom pages after restore failed:', err),
                 );
         } catch (err) {
           onError(err, t('common:restore_failed'));

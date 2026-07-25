@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import type { AttachmentInfo } from '@/types/exportImport';
+import { logger } from '@/lib/logger';
 
 interface UseExportScopeOptions {
   accountId: string;
@@ -151,7 +152,7 @@ export function useExportScope({
                 return n;
               });
             })
-            .catch((err) => console.warn('[useExportScope] Load attachments failed:', err));
+            .catch((err) => logger.warn('[useExportScope] Load attachments failed:', err));
         }
         return next;
       });
@@ -178,7 +179,7 @@ export function useExportScope({
               });
             })
             .catch((err) =>
-              console.warn('[useExportScope] Load attachment for expanded object failed:', err),
+              logger.warn('[useExportScope] Load attachment for expanded object failed:', err),
             );
         }
         return next;

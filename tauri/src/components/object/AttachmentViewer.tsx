@@ -32,6 +32,7 @@ import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
 import { AttachmentPreviewOverlay } from '@/components/attachment/AttachmentPreviewOverlay';
 import { ConfirmDialog } from '@/components/attachment/ConfirmDialog';
 import { ICON_SIZE } from '@/lib/constants';
+import { logger } from '@/lib/logger';
 
 export type { AttachmentItem } from '@/lib/attachmentUtils';
 
@@ -112,7 +113,7 @@ export function AttachmentViewer({
       setItems(active);
       setTrashItems(deleted);
     } catch (e) {
-      console.warn('[AttachmentViewer] Failed to load attachments:', e);
+      logger.warn('[AttachmentViewer] Failed to load attachments:', e);
       // 保留旧列表，避免加载失败时界面被清空
     } finally {
       setLoading(false);
@@ -144,7 +145,7 @@ export function AttachmentViewer({
         await withTimeout(loadAttachments(), REFRESH_TIMEOUT_MS, 'refresh');
         onCountChange?.();
       } catch (refreshErr) {
-        console.warn('[AttachmentViewer] refresh after upload failed:', refreshErr);
+        logger.warn('[AttachmentViewer] refresh after upload failed:', refreshErr);
         showToast({
           type: 'warning',
           message:
@@ -177,7 +178,7 @@ export function AttachmentViewer({
         objectId,
         attachmentId: renamingId,
         newName: renameValue.trim(),
-      }).catch((err) => console.warn('[AttachmentViewer] Rename failed:', err));
+      }).catch((err) => logger.warn('[AttachmentViewer] Rename failed:', err));
     }
     setRenamingId(null);
   };

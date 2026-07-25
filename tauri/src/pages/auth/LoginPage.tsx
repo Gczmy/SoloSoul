@@ -6,6 +6,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useApplyThemeFromSettings } from '@/hooks/useApplyThemeFromSettings';
 import type { AccountInfo } from '@/lib/ipc';
 import { getBiometricErrorMessage } from '@/lib/biometricError';
+import { logger } from '@/lib/logger';
 
 import { ShieldLogo } from '@/components/ui/ShieldLogo';
 import { SecurePasswordInput } from '@/components/forms/PasswordInput';
@@ -252,7 +253,7 @@ export function LoginPage() {
         setTimeout(() => {
           import('@/lib/notification')
             .then((m) => m.checkBackupReminder())
-            .catch((err) => console.error('[LoginPage] backup reminder check failed:', err));
+            .catch((err) => logger.warn('[LoginPage] backup reminder check failed:', err));
         }, 2000);
         navigate('/');
       } catch (e) {

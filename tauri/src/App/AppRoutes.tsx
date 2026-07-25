@@ -25,6 +25,7 @@ import {
 } from '@/stores/ocrInstallStore';
 import { invoke } from '@tauri-apps/api/core';
 import { ST_SKIPPED_VERSION } from '@/lib/constants';
+import { logger } from '@/lib/logger';
 import { setGlobalNavigate } from '@/lib/navigation';
 import type { OcrModelStatus } from '@/lib/ipc';
 import { protectedRoutes, AuthGuard } from './routes';
@@ -181,7 +182,7 @@ export function AppRoutes() {
       .then((fn) => {
         unlisten = fn;
       })
-      .catch((err) => console.warn('[AppRoutes] CloseRequested listener failed:', err));
+      .catch((err) => logger.warn('[AppRoutes] CloseRequested listener failed:', err));
 
     return () => {
       unlisten?.();
@@ -201,7 +202,7 @@ export function AppRoutes() {
         const valid = await checkVaultDirectory();
         if (!valid) {
           // SAF 目录失效，提示用户前往设置重新选择
-          console.warn('[AppRoutes] SAF vault directory access revoked');
+          logger.warn('[AppRoutes] SAF vault directory access revoked');
           // 使用 uiStore 的 toast 系统，避免循环依赖
           const { useUiStore } = await import('@/stores/uiStore');
           useUiStore.getState().showToast({
@@ -263,7 +264,7 @@ export function AppRoutes() {
   useEffect(() => {
     if (!isAuthenticated) return;
     initLlmNotificationListener().catch((err) =>
-      console.warn('[AppRoutes] LLM notification listener failed:', err),
+      logger.warn('[AppRoutes] LLM notification listener failed:', err),
     );
   }, [isAuthenticated]);
 

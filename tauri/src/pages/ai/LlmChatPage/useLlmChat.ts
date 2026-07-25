@@ -10,6 +10,7 @@ import {
   nowISO,
   generateId,
 } from '@/types/llmChat';
+import { logger } from '@/lib/logger';
 
 export type { Conversation, ConversationSummary };
 
@@ -77,7 +78,7 @@ export function useLlmChat(): UseLlmChatReturn {
         core?.setConversations(list);
         setTrashList(trash);
       })
-      .catch((err) => console.warn('[useLlmChat] Refresh conversation lists failed:', err));
+      .catch((err) => logger.warn('[useLlmChat] Refresh conversation lists failed:', err));
     // P212: core omitted intentionally — adding it causes re-subscription loop on every render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [accountId]);

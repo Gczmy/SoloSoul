@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { useTemplateStore } from '@/stores/templateStore';
+import { logger } from '@/lib/logger';
 import { useObjectStore, type ObjectData, type ObjectSummary } from '@/stores/objectStore';
 import { useRevealState } from '@/hooks/useRevealState';
 import { SensitivityBadge, type SensitivityLevel } from '@/components/ui/SensitivityBadge';
@@ -169,7 +170,7 @@ export function ObjectDetailModal({
   });
 
   useEffect(() => {
-    loadTemplates().catch((err) => console.warn('[ObjectDetail] Load templates failed:', err));
+    loadTemplates().catch((err) => logger.warn('[ObjectDetail] Load templates failed:', err));
   }, [loadTemplates]);
 
   useEffect(() => {
@@ -183,13 +184,13 @@ export function ObjectDetailModal({
       .then((r) =>
         setBioAvailable({ available: r.available && r.configured, biometryType: r.biometryType }),
       )
-      .catch((err) => console.warn('[ObjectDetail] Biometric availability check failed:', err));
+      .catch((err) => logger.warn('[ObjectDetail] Biometric availability check failed:', err));
     invoke<Array<{ id: string; passwordHint?: string }>>('vault_list_accounts')
       .then((accounts) => {
         const acc = accounts.find((a) => a.id === accountId);
         setPasswordHint(acc?.passwordHint || null);
       })
-      .catch((err) => console.warn('[ObjectDetail] Load password hint failed:', err));
+      .catch((err) => logger.warn('[ObjectDetail] Load password hint failed:', err));
   }, [accountId]);
 
   useEffect(() => {

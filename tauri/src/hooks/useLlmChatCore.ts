@@ -4,6 +4,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useLlmStore } from '@/stores/llmStore';
 import i18n from '@/lib/i18n';
 import { COPY_FEEDBACK_DURATION_MS } from '@/lib/constants';
+import { logger } from '@/lib/logger';
 import { useTranslation } from 'react-i18next';
 import {
   buildSystemPrompt,
@@ -246,7 +247,7 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
         invoke('llm_save_conversation', {
           accountId: accountIdRef.current,
           conversation: finalConv,
-        }).catch((err) => console.warn('[useLlmChatCore] Save conversation failed:', err));
+        }).catch((err) => logger.warn('[useLlmChatCore] Save conversation failed:', err));
         onConversationSaved?.();
       }
       llmStore.reset();

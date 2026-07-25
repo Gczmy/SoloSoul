@@ -7,6 +7,7 @@ import { sendSystemNotificationWithFallback } from '@/lib/notification';
 import { addPluginListener, type PluginListener } from '@tauri-apps/api/core';
 import { invoke } from '@tauri-apps/api/core';
 import i18next from '@/lib/i18n';
+import { logger } from '@/lib/logger';
 
 /** 视为用户活动的事件（被动监听，不干扰交互） */
 const ACTIVITY_EVENTS = ['mousemove', 'mousedown', 'keydown', 'wheel', 'touchstart'] as const;
@@ -61,14 +62,14 @@ export function useAutoLock(): void {
         if (autoLockNotificationEnabled) {
           const body = i18next.t('settings:auto_locked_notification');
           sendSystemNotificationWithFallback('SoloSoul', body, body, 'info').catch((err) =>
-            console.error('[useAutoLock] notification failed:', err),
+            logger.error('[useAutoLock] notification failed:', err),
           );
         }
 
         useVaultStore
           .getState()
           .lock()
-          .catch((err) => console.error('[useAutoLock] lock failed:', err));
+          .catch((err) => logger.error('[useAutoLock] lock failed:', err));
       }
     };
 
@@ -84,13 +85,13 @@ export function useAutoLock(): void {
       if (autoLockNotificationEnabled) {
         const body = i18next.t('settings:auto_locked_notification');
         sendSystemNotificationWithFallback('SoloSoul', body, body, 'info').catch((err) =>
-          console.error('[useAutoLock] notification failed:', err),
+          logger.error('[useAutoLock] notification failed:', err),
         );
       }
       useVaultStore
         .getState()
         .lock()
-        .catch((err) => console.error('[useAutoLock] lock failed:', err));
+        .catch((err) => logger.error('[useAutoLock] lock failed:', err));
     };
 
     const onVisibilityChange = () => {
@@ -122,7 +123,7 @@ export function useAutoLock(): void {
       .then((l) => {
         screenLockedListener = l;
       })
-      .catch((err) => console.error('[useAutoLock] listen screen-locked failed:', err));
+      .catch((err) => logger.error('[useAutoLock] listen screen-locked failed:', err));
 
     for (const e of ACTIVITY_EVENTS) {
       window.addEventListener(e, recordActivity, { passive: true });

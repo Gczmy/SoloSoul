@@ -16,12 +16,12 @@
 | P004 | P0     | 测试失败   | `tauri/src/pages/settings/SettingsPage.test.tsx` | Vault 大小徽章显示测试超时 | `[x]` 已修复 |
 | P005 | P1     | 规范       | `tauri/src/App/AppRoutes.tsx:218` | ESLint react-hooks/exhaustive-deps：useEffect 缺少依赖 `t` | `[x]` 已修复 |
 | P006 | P1     | 规范       | `tauri/src/components/onboarding/OnboardingDialog.tsx:118` | ESLint no-unused-vars：变量 `_e` 未使用 | `[x]` 已修复 |
-| P007 | P2     | 可优化     | `tauri/src` 多处 | 生产代码中仍存在 `console.warn` / `console.error` 调试日志 | `[ ]` 待修复 |
+| P007 | P2     | 可优化     | 全仓（25 文件）              | 清理生产代码中的 console.warn / console.error，统一改用项目日志系统或移除调试日志 | `[x] 已完成` |
 
 ## 修复进度
 
-- 已完成：6 / 7
-- 当前处理：P007
+- 已完成：7 / 7
+- 当前处理：无
 
 ### 已修复问题说明（续）
 

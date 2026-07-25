@@ -6,8 +6,9 @@ import './styles/global.css';
 import './styles/themes.css';
 import { initI18n } from './lib/i18n';
 import { initPlatform } from '@/lib/platform';
+import { logger } from '@/lib/logger';
 // 预加载平台信息，供 isMobilePlatformSync 等同步判定使用（非阻塞）
-initPlatform().catch((err) => console.warn('[main] Platform init failed:', err));
+initPlatform().catch((err) => logger.warn('[main] Platform init failed:', err));
 
 // 移动端启动性能基线：记录应用启动时刻（MOB-P1-07）
 const appStartTime = performance.now();

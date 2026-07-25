@@ -1,5 +1,6 @@
 import { check, type Update, type DownloadEvent } from '@tauri-apps/plugin-updater';
 import { relaunch } from '@tauri-apps/plugin-process';
+import { logger } from '@/lib/logger';
 
 export interface UpdateInfo {
   version: string;
@@ -37,7 +38,7 @@ export async function checkForUpdate(): Promise<UpdateCheckResult> {
     };
   } catch (error) {
     // 网络异常时静默失败，避免打扰用户
-    console.warn('[updater] check failed:', error);
+    logger.warn('[updater] check failed:', error);
     return {
       kind: 'error',
       message: error instanceof Error ? error.message : String(error),

@@ -21,6 +21,7 @@ import {
   type TemplateSyncResult,
   type DeprecatedField,
 } from '@/lib/templateSync';
+import { logger } from '@/lib/logger';
 
 // Labels resolved at render time via t() so they support i18n
 import { DEBOUNCE_DELAY_MS } from '@/lib/constants';
@@ -113,7 +114,7 @@ export function ObjectWorkspacePage() {
         });
         if (obj) setDetailObj(obj);
       } catch (err) {
-        console.warn('[Workspace] Refresh detail object after sync failed:', err);
+        logger.warn('[Workspace] Refresh detail object after sync failed:', err);
       }
     },
     [accountId, detailObj?.id],
@@ -162,7 +163,7 @@ export function ObjectWorkspacePage() {
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
-    loadUserTemplates().catch((err) => console.warn('[Workspace] Load templates failed:', err));
+    loadUserTemplates().catch((err) => logger.warn('[Workspace] Load templates failed:', err));
   }, [loadUserTemplates]);
 
   // Open object detail modal directly when navigated with ?objectId=... (e.g. from search)
@@ -170,7 +171,7 @@ export function ObjectWorkspacePage() {
     if (!detailObjectId || !accountId) return;
     invoke('object_get', { objectId: detailObjectId })
       .then((obj) => setDetailObj(obj as (typeof visibleObjects)[number]))
-      .catch((err) => console.warn('[Workspace] Fetch object detail failed:', err));
+      .catch((err) => logger.warn('[Workspace] Fetch object detail failed:', err));
   }, [detailObjectId, accountId]);
 
   const customPage = pageId ? customPages.find((p) => p.id === pageId) : null;
@@ -208,7 +209,7 @@ export function ObjectWorkspacePage() {
       .then((r) =>
         setBioAvailable({ available: r.available && r.configured, biometryType: r.biometryType }),
       )
-      .catch((err) => console.warn('[Workspace] Biometric check failed:', err));
+      .catch((err) => logger.warn('[Workspace] Biometric check failed:', err));
     if (accountId) {
       invoke<Array<{ id: string; passwordHint?: string }>>('vault_list_accounts')
         .then((accounts) => {
@@ -357,7 +358,7 @@ export function ObjectWorkspacePage() {
         setTemplateHashMap(new Map(Object.entries(map)));
       })
       .catch((err) => {
-        console.warn('[Workspace] Load template hash map failed:', err);
+        logger.warn('[Workspace] Load template hash map failed:', err);
         if (!cancelled) setTemplateHashMap(new Map());
       });
     return () => {
@@ -372,7 +373,7 @@ export function ObjectWorkspacePage() {
       const map = await invoke<Record<string, string>>('template_hash_map', { accountId });
       setTemplateHashMap(new Map(Object.entries(map)));
     } catch (err) {
-      console.warn('[Workspace] Refresh template hash map failed:', err);
+      logger.warn('[Workspace] Refresh template hash map failed:', err);
     }
   }, [accountId]);
 
@@ -392,7 +393,7 @@ export function ObjectWorkspacePage() {
       })
       .catch((err) => {
         if (!mounted || snapshotReqRef.current !== reqId) return; // stale error, discard
-        console.warn('[Workspace] Snapshot count batch failed:', err);
+        logger.warn('[Workspace] Snapshot count batch failed:', err);
       });
     return () => {
       mounted = false;
@@ -412,7 +413,7 @@ export function ObjectWorkspacePage() {
       .then((counts) => {
         if (!controller.signal.aborted) setAttachmentCounts(counts);
       })
-      .catch((err) => console.warn('[Workspace] Attachment count batch failed:', err));
+      .catch((err) => logger.warn('[Workspace] Attachment count batch failed:', err));
     return () => controller.abort();
   }, [visibleObjects]);
 
@@ -460,7 +461,7 @@ export function ObjectWorkspacePage() {
         }
         setSyncDialog((prev) => (prev ? { ...prev, result, loading: false } : null));
       } catch (err) {
-        console.warn('[Workspace] Preview sync failed:', err);
+        logger.warn('[Workspace] Preview sync failed:', err);
         setSyncDialog(null);
         setSyncDialogOpenForObjectId(null);
       }
@@ -493,7 +494,7 @@ export function ObjectWorkspacePage() {
       await refreshDetailObjAfterSync(syncDialog.objectId);
       await refreshTemplateHashMap();
     } catch (err) {
-      console.warn('[Workspace] Apply sync failed:', err);
+      logger.warn('[Workspace] Apply sync failed:', err);
       setSyncDialog((prev) => (prev ? { ...prev, loading: false } : null));
     }
   }, [
@@ -525,7 +526,7 @@ export function ObjectWorkspacePage() {
           await refreshTemplateHashMap();
         }
       } catch (err) {
-        console.warn('[Workspace] Ignore template sync failed:', err);
+        logger.warn('[Workspace] Ignore template sync failed:', err);
       }
     },
     [ignoreTemplateSync, loadObjects, accountId, pageId, sectionFilter, refreshTemplateHashMap],
@@ -555,7 +556,7 @@ export function ObjectWorkspacePage() {
         const fields = await loadDeprecatedFields(accountId, objectId);
         setDeprecatedFields(fields);
       } catch (err) {
-        console.warn('[Workspace] Load deprecated fields failed:', err);
+        logger.warn('[Workspace] Load deprecated fields failed:', err);
         setDeprecatedFields([]);
       }
     },

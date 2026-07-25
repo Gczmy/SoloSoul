@@ -6,6 +6,7 @@ import type { TrashRetentionPeriod } from '@/stores/trashStore';
 import { applyTheme } from '@/lib/theme';
 import { DEFAULT_CUSTOM_ICON } from '@/lib/pageIcons';
 import { ST_UI_PREFS } from '@/lib/constants';
+import { logger } from '@/lib/logger';
 
 // 9.8.3 — Custom page data structure
 // Custom pages are now stored in the objects table (P0-1), not in preferences.
@@ -180,7 +181,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         }
       }
     } catch (e) {
-      console.warn('[settingsStore] Failed to load cached UI prefs:', e);
+      logger.warn('[settingsStore] Failed to load cached UI prefs:', e);
     }
 
     // Step 2: fetch fresh prefs from IPC (slow, async)
@@ -223,14 +224,14 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
           }),
         );
       } catch (e) {
-        console.warn('[settingsStore] Failed to cache UI prefs:', e);
+        logger.warn('[settingsStore] Failed to cache UI prefs:', e);
       }
       // Language is set by initI18n() via Rust IPC (confirmed working = zh-CN).
       // User changes via settings are applied in updateSetting() — skip here to avoid
       // overwriting correct IPC detection with stale/stored values from vault.
       // Theme/accent/bg are safe to apply immediately.
     } catch (e) {
-      console.warn('[settingsStore] No ui_preferences file yet:', e);
+      logger.warn('[settingsStore] No ui_preferences file yet:', e);
     }
   },
 
@@ -297,10 +298,10 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
             value: parsed.defaultDarkTheme,
           });
       } catch (e) {
-        console.warn('[settingsStore] Failed to sync UI prefs:', e);
+        logger.warn('[settingsStore] Failed to sync UI prefs:', e);
       }
     } catch (e) {
-      console.error('[settingsStore] Failed to load settings:', e);
+      logger.error('[settingsStore] Failed to load settings:', e);
       set({ isLoading: false });
     }
   },
@@ -338,7 +339,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
                   description = desc;
                 }
               } catch (e) {
-                console.warn('[settingsStore] Failed to load page description:', o.id, e);
+                logger.warn('[settingsStore] Failed to load page description:', o.id, e);
               }
             }
             return {
@@ -374,7 +375,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
             });
             migrated.push(p);
           } catch (e) {
-            console.warn('[settingsStore] Failed to migrate custom page:', p.name, e);
+            logger.warn('[settingsStore] Failed to migrate custom page:', p.name, e);
           }
         }
         if (migrated.length > 0) {
@@ -385,12 +386,12 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
               payload: { accountId, preferences: { customPages: [] } },
             });
           } catch (e) {
-            console.warn('[settingsStore] Failed to clear old-format custom pages:', e);
+            logger.warn('[settingsStore] Failed to clear old-format custom pages:', e);
           }
         }
       }
     } catch (e) {
-      console.warn('[settingsStore] Failed to load custom pages:', e);
+      logger.warn('[settingsStore] Failed to load custom pages:', e);
     }
   },
 
@@ -405,17 +406,17 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         await i18next.changeLanguage(value);
         // Sync to plaintext UI prefs so backend can read the current language immediately
         invoke('ui_update_preference', { key: 'language', value }).catch((e) =>
-          console.warn('[settingsStore] Failed to sync language:', e),
+          logger.warn('[settingsStore] Failed to sync language:', e),
         );
         // Persist to localStorage for next cold launch
         try {
           localStorage.setItem('i18nextLng', value);
         } catch (e) {
-          console.warn('[settingsStore] Failed to cache language:', e);
+          logger.warn('[settingsStore] Failed to cache language:', e);
         }
       }
     } catch (e) {
-      console.warn('[settingsStore] Failed to update setting:', key, e);
+      logger.warn('[settingsStore] Failed to update setting:', key, e);
       set((s) => ({ settings: { ...s.settings, [key]: oldValue } }));
     }
   },
@@ -447,7 +448,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         },
       });
     } catch (e) {
-      console.warn('[settingsStore] Failed to add custom page:', name, e);
+      logger.warn('[settingsStore] Failed to add custom page:', name, e);
       // Rollback
       set((s) => ({ settings: { ...s.settings, customPages: prevPages } }));
     }
@@ -467,7 +468,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       // correctly finds all child objects assigned to this custom page.
       await invoke('page_delete', { accountId, sectionType: pageId, pageObjectId: pageId });
     } catch (e) {
-      console.warn('[settingsStore] Failed to remove custom page:', pageId, e);
+      logger.warn('[settingsStore] Failed to remove custom page:', pageId, e);
       set((s) => ({ settings: { ...s.settings, customPages: prevPages } }));
     }
   },

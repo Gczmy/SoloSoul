@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { uploadAttachmentsSequentially, filterOutDirectories } from '@/lib/attachmentUpload';
 import { useUiStore } from '@/stores/uiStore';
 import i18n from '@/lib/i18n';
+import { logger } from '@/lib/logger';
 
 export interface DragUploadState {
   /** 文件正拖拽到目标区域上方 */
@@ -118,8 +119,8 @@ export function useDragToAttach(objectId: string | null, options?: UseDragToAtta
         }
       });
     } catch (e) {
-      // 保留 console.error 用于调试追溯（错误对象 e 仅在 catch 作用域内）
-      console.error('Drag-drop upload failed:', e);
+      // 保留调试日志用于追溯（错误对象 e 仅在 catch 作用域内）
+      logger.warn('Drag-drop upload failed:', e);
       useUiStore.getState().showToast({
         type: 'error',
         message: i18n.t('upload_failed'),

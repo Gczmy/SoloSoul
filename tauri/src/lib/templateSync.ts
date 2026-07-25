@@ -61,6 +61,7 @@ export interface DeprecatedField {
 }
 
 import { useObjectStore } from '@/stores/objectStore';
+import { logger } from '@/lib/logger';
 
 // 语义复核结果缓存，避免同一对象在短时间内触发多次 preview/apply IPC。
 const semanticCheckCache = new Map<string, Promise<boolean>>();
@@ -101,7 +102,7 @@ export async function resolveSemanticNeedsSync(
       }
       return false;
     } catch (err) {
-      console.warn('[templateSync] semantic sync check failed:', err);
+      logger.warn('[templateSync] semantic sync check failed:', err);
       return true;
     }
   })();

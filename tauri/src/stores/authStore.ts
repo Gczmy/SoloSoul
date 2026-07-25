@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { invoke } from '@tauri-apps/api/core';
 import type { AccountInfo } from '@/lib/ipc';
+import { logger } from '@/lib/logger';
 
 interface AuthState {
   isAuthenticated: boolean;
@@ -39,7 +40,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     } catch (err) {
       // Backend unavailable — don't jump to bootstrap
       // hasAccount stays null (unknown), BootstrapGuard will wait
-      console.error('[authStore] check_has_account failed:', err);
+      logger.error('[authStore] check_has_account failed:', err);
       set({ backendError: true });
     }
   },
@@ -130,7 +131,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       setTimeout(() => {
         import('@/lib/notification')
           .then((m) => m.checkBackupReminder())
-          .catch((err) => console.error('[authStore] backup reminder check failed:', err));
+          .catch((err) => logger.warn('[authStore] backup reminder check failed:', err));
       }, 2000);
     } catch (err) {
       set({ error: String(err), isLoading: false });
