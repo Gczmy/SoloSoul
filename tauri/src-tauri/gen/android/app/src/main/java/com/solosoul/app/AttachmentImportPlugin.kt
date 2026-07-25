@@ -665,66 +665,90 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
       }
 
       for (file in files) {
-        if (entry.isRoot && file.name in AppLevelNames.NAMES) {
-          continue
-        }
-        if (file.isDirectory) {
-          val existingChild = existingChildren[file.name]
-          val dirUri = if (existingChild != null) {
-            existingChild.uri
-          } else {
-            DocumentsContract.createDocument(
-              activity.contentResolver,
-              currentParentUri,
-              DocumentsContract.Document.MIME_TYPE_DIR,
-              file.name
-            ) ?: continue
-          }
-          queue.add(LocalDirEntry(file, dirUri, false))
-        } else {
-          val existingChild = existingChildren[file.name]
-          if (existingChild != null &&
-              existingChild.lastModified > 0 &&
-              existingChild.size > 0 &&
-              existingChild.lastModified == file.lastModified() &&
-              existingChild.size == file.length()) {
+        try {
+          if (entry.isRoot && file.name in AppLevelNames.NAMES) {
             continue
           }
-
-          try {
-            val mimeType = getMimeType(file.name)
-            val tempName = "${file.name}.tmp"
-            val tempDoc = createTempDocumentAndWrite(currentParentUri, tempName, mimeType, file)
-            if (tempDoc == null) {
-              android.util.Log.w("SoloSoul", "写入临时文件失败，跳过: ${file.name}")
+          if (file.isDirectory) {
+            val existingChild = existingChildren[file.name]
+            val dirUri = if (existingChild != null) {
+              existingChild.uri
+            } else {
+              val created = DocumentsContract.createDocument(
+                activity.contentResolver,
+                currentParentUri,
+                DocumentsContract.Document.MIME_TYPE_DIR,
+                file.name
+              )
+              if (created == null) {
+                android.util.Log.w(
+                  "SoloSoul",
+                  "syncLocalDirToTree: failed to create dir '${file.name}' in SAF tree, skipping"
+                )
+                continue
+              }
+              created
+            }
+            queue.add(LocalDirEntry(file, dirUri, false))
+          } else {
+            val existingChild = existingChildren[file.name]
+            if (existingChild != null &&
+                existingChild.lastModified > 0 &&
+                existingChild.size > 0 &&
+                existingChild.lastModified == file.lastModified() &&
+                existingChild.size == file.length()) {
               continue
             }
 
-            if (existingChild != null) {
-              try {
-                DocumentsContract.deleteDocument(activity.contentResolver, existingChild.uri)
-              } catch (e: Exception) {
-                android.util.Log.w("SoloSoul", "删除旧文件失败: ${e.message}")
+            try {
+              val mimeType = getMimeType(file.name)
+              val tempName = "${file.name}.tmp"
+              val tempDoc = createTempDocumentAndWrite(currentParentUri, tempName, mimeType, file)
+              if (tempDoc == null) {
+                android.util.Log.w("SoloSoul", "写入临时文件失败，跳过: ${file.name}")
+                continue
+              }
+
+              if (existingChild != null) {
+                try {
+                  DocumentsContract.deleteDocument(activity.contentResolver, existingChild.uri)
+                } catch (e: Exception) {
+                  android.util.Log.w("SoloSoul", "删除旧文件失败: ${e.message}")
+                }
+              }
+
+              val renamed = DocumentsContract.renameDocument(
+                activity.contentResolver, tempDoc, file.name
+              )
+              if (renamed == null) {
+                android.util.Log.w(
+                  "SoloSoul",
+                  "重命名临时文件失败，残留 .tmp 文件: $tempName，可手动清理"
+                )
+              }
+
+              onProgress(file.name)
+            } catch (e: Exception) {
+              val msg = e.message ?: ""
+              if (msg.contains("ENAMETOOLONG")) {
+                android.util.Log.w(
+                  "SoloSoul",
+                  "syncLocalDirToTree: skipping file '${file.name}' (name too long)"
+                )
+              } else {
+                android.util.Log.w(
+                  "SoloSoul",
+                  "syncLocalDirToTree: skipping file '${file.name}' in ${currentDir.path}: ${e.message}"
+                )
               }
             }
-
-            val renamed = DocumentsContract.renameDocument(
-              activity.contentResolver, tempDoc, file.name
-            )
-            if (renamed == null) {
-              android.util.Log.w(
-                "SoloSoul",
-                "重命名临时文件失败，残留 .tmp 文件: $tempName，可手动清理"
-              )
-            }
-
-            onProgress(file.name)
-          } catch (e: Exception) {
-            android.util.Log.w(
-              "SoloSoul",
-              "syncLocalDirToTree: skipping file '${file.name}' in ${currentDir.path}: ${e.message}"
-            )
           }
+        } catch (e: Exception) {
+          val msg = e.message ?: ""
+          android.util.Log.w(
+            "SoloSoul",
+            "syncLocalDirToTree: skipping child '${file.name}' in ${currentDir.path}: ${msg}"
+          )
         }
       }
     }
@@ -785,53 +809,80 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
       }
 
       for (child in children) {
-        if (entry.isRoot && child.displayName in AppLevelNames.NAMES) {
-          continue
-        }
-        if (child.mimeType == DocumentsContract.Document.MIME_TYPE_DIR) {
-          val childDir = File(currentLocalDir, child.displayName)
-          childDir.mkdirs()
-          queue.add(RemoteDirEntry(child.docUri, childDir, false))
-        } else {
           try {
-            val file = File(currentLocalDir, child.displayName)
-            // 如果本地文件存在且 mtime+size 匹配，跳过复制
-            if (file.exists() && child.lastModified > 0 && child.size > 0 &&
-                file.lastModified() == child.lastModified && file.length() == child.size) {
+            if (entry.isRoot && child.displayName in AppLevelNames.NAMES) {
               continue
             }
-            file.parentFile?.mkdirs()
-
-            // 原子写入：先写 .tmp，再用 renameTo 原子替换
-            val tmpFile = File(currentLocalDir, "${child.displayName}.tmp")
-            contentResolver.openInputStream(child.docUri)?.use { input ->
-              FileOutputStream(tmpFile).use { output ->
-                input.copyTo(output)
+            if (child.mimeType == DocumentsContract.Document.MIME_TYPE_DIR) {
+              val childDir = File(currentLocalDir, child.displayName)
+              if (!childDir.mkdirs()) {
+                // mkdirs 失败：路径过长（ENAMETOOLOOLNG）或权限不足，
+                // 跳过该目录及其全部子文件而非阻塞整个同步。
+                android.util.Log.w(
+                  "SoloSoul",
+                  "syncTreeToLocalDir: failed to create directory '${child.displayName}' in ${currentLocalDir.path}, skipping"
+                )
+                continue
               }
-            } ?: continue
+              queue.add(RemoteDirEntry(child.docUri, childDir, false))
+            } else {
+              try {
+                val file = File(currentLocalDir, child.displayName)
+                // 如果本地文件存在且 mtime+size 匹配，跳过复制
+                if (file.exists() && child.lastModified > 0 && child.size > 0 &&
+                    file.lastModified() == child.lastModified && file.length() == child.size) {
+                  continue
+                }
+                file.parentFile?.mkdirs()
 
-            if (!tmpFile.renameTo(file)) {
-              android.util.Log.w(
-                "SoloSoul",
-                "原子重命名失败，尝试直接替换: ${child.displayName}"
-              )
-              file.delete()
-              tmpFile.renameTo(file)
+                // 原子写入：先写 .tmp，再用 renameTo 原子替换
+                val tmpFile = File(currentLocalDir, "${child.displayName}.tmp")
+                contentResolver.openInputStream(child.docUri)?.use { input ->
+                  FileOutputStream(tmpFile).use { output ->
+                    input.copyTo(output)
+                  }
+                } ?: continue
+
+                if (!tmpFile.renameTo(file)) {
+                  android.util.Log.w(
+                    "SoloSoul",
+                    "原子重命名失败，尝试直接替换: ${child.displayName}"
+                  )
+                  file.delete()
+                  tmpFile.renameTo(file)
+                }
+
+                if (child.lastModified > 0) {
+                  file.setLastModified(child.lastModified)
+                }
+
+                onProgress(child.displayName)
+              } catch (e: Exception) {
+                val msg = e.message ?: ""
+                // ENAMETOOLONG 表示文件名过长，跳过该文件而非阻塞同步。
+                if (msg.contains("ENAMETOOLONG")) {
+                  android.util.Log.w(
+                    "SoloSoul",
+                    "syncTreeToLocalDir: skipping file '${child.displayName}' (name too long)"
+                  )
+                } else {
+                  android.util.Log.w(
+                    "SoloSoul",
+                    "syncTreeToLocalDir: skipping file '${child.displayName}' in ${currentLocalDir.path}: ${e.message}"
+                  )
+                }
+              }
             }
-
-            if (child.lastModified > 0) {
-              file.setLastModified(child.lastModified)
-            }
-
-            onProgress(child.displayName)
           } catch (e: Exception) {
+            // 外层兜底：捕获目录/文件处理分支之外的异常（如 displayName 极端异常），
+            // 避免单个条目导致整个同步失败。
+            val msg = e.message ?: ""
             android.util.Log.w(
               "SoloSoul",
-              "syncTreeToLocalDir: skipping file '${child.displayName}' in ${currentLocalDir.path}: ${e.message}"
+              "syncTreeToLocalDir: skipping child '${child.displayName}' in ${currentLocalDir.path}: ${msg}"
             )
           }
         }
-      }
     }
   }
 

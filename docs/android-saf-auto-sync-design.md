@@ -1,6 +1,6 @@
 # Android SAF 自动同步技术方案
 
-> 状态：设计阶段，评审已完成，等待实现
+> 状态：代码实现已完成，待真机回归
 > 范围：Android 客户端、Rust 后端、前端状态反馈
 > 关联文档：`docs/android-vault-directory-design.md`
 > 评审日期：2026-07-25
@@ -382,16 +382,18 @@ listen<void>('saf-auth-revoked', () => {
 
 ## 10. 后续开发 checklist
 
-- [ ] 创建 `tauri/src-tauri/src/sync/auto_sync.rs`
-- [ ] 在 `AppState` 中集成 `AutoSyncManager`
-- [ ] 在 `bootstrap` 成功后触发首次同步
-- [ ] 在核心写入命令后触发防抖同步
-- [ ] 前端切后台时触发同步
-- [ ] 前端监听 `saf-sync-status` 并显示状态指示器
-- [ ] 处理 `saf-auth-revoked` 事件
-- [ ] 补充 Rust 单元测试
-- [ ] Android 真机回归测试
+- [x] 创建 `tauri/src-tauri/src/sync/auto_sync.rs`（三种触发器 + 指数退避重试 + 3 个单元测试）
+- [x] 在 `AppState` 中集成 `AutoSyncManager`
+- [x] 在 `bootstrap` 成功后触发首次同步（`trigger_immediate`）
+- [x] 在核心写入命令后触发防抖同步（`trigger_debounce`，覆盖 32 处）
+- [x] 前端切后台时触发同步（`useAutoLock.ts` + `vault_sync_background` 命令）
+- [x] 前端监听同步状态并显示微指示器（`SafSyncIndicator` + `safSyncStore`，监听 `sync-progress` 事件）
+- [x] 处理 `saf-auth-revoked` 事件（后端发射 + AppRoutes 前端 toast 通知）
+- [x] 补充 Rust 单元测试（防抖合并、即时优先、失败重试）
+- [ ] Android 真机回归测试（环境依赖，发布前执行）
 
 ---
 
 *最后更新：2026-07-25*
+
+> 注：第 5 项实际监听的是后端已有 `sync-progress` 事件而非新增 `saf-sync-status` 事件，状态由 `safSyncStore` 推导后通过 `SafSyncIndicator` 组件显示。后端 `saf-auth-revoked` 事件已由 `auto_sync.rs` 发射，前端 `AppRoutes.tsx` 通过 `listen('saf-auth-revoked')` 收到后以 toast 通知用户。

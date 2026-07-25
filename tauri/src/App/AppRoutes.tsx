@@ -279,6 +279,25 @@ export function AppRoutes() {
     };
   }, [isAuthenticated]);
 
+  // 监听 saf-auth-revoked 事件：SAF 授权被系统撤销时通知用户
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const unlisten = listen('saf-auth-revoked', () => {
+      // SAF 授权已失效，提示用户前往设置重新选择
+      logger.warn('[AppRoutes] SAF auth revoked event received');
+      import('@/stores/uiStore').then(({ useUiStore }) => {
+        useUiStore.getState().showToast({
+          type: 'warning',
+          message: t('settings:vault_directory_invalid_toast', 'SAF directory access revoked. Go to Settings > Vault Directory to re-select.'),
+          duration: 10000,
+        });
+      });
+    });
+    return () => {
+      unlisten.then((f) => f());
+    };
+  }, [isAuthenticated, t]);
+
   // Listen for system theme changes (via Tauri Event from Rust backend)
   useEffect(() => {
     let unlistenSystemTheme: (() => void) | undefined;
