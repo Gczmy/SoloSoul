@@ -682,7 +682,8 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
           }
           queue.add(LocalDirEntry(file, dirUri, false))
         } else {
-          val existingChild = existingChildren[file.name]            if (existingChild != null &&
+          val existingChild = existingChildren[file.name]
+          if (existingChild != null &&
               existingChild.lastModified > 0 &&
               existingChild.size > 0 &&
               existingChild.lastModified == file.lastModified() &&

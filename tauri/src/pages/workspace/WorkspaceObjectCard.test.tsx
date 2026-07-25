@@ -45,8 +45,8 @@ describe('WorkspaceObjectCard', () => {
       />,
     );
 
-    expect(screen.getByTestId('count-badge-history')).toHaveTextContent('3');
-    expect(screen.getByTestId('count-badge-attachments')).toHaveTextContent('2');
+    expect(screen.getAllByTestId('count-badge-history')[0]).toHaveTextContent('3');
+    expect(screen.getAllByTestId('count-badge-attachments')[0]).toHaveTextContent('2');
   });
 
   it('hides badges when counts are zero or undefined', () => {
