@@ -99,6 +99,7 @@ pub async fn snapshot_rollback(
             record.section_type, snapshot_id
         )),
     );
+    state.auto_sync.trigger_debounce();
     Ok(())
 }
 

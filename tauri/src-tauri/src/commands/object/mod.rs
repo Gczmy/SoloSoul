@@ -621,6 +621,7 @@ pub async fn object_create(
         "user",
         Some(&format!("section={}", input.collection_type)),
     );
+    state.auto_sync.trigger_debounce();
     Ok(record_to_data(&record))
 }
 
@@ -696,6 +697,7 @@ pub async fn object_update(
         "user",
         Some(&format!("section={}", record.section_type)),
     );
+    state.auto_sync.trigger_debounce();
     Ok(record_to_data(&record))
 }
 
@@ -1418,6 +1420,7 @@ pub async fn object_sync_with_template(
         );
     }
 
+    state.auto_sync.trigger_debounce();
     Ok(result)
 }
 
@@ -1437,6 +1440,7 @@ pub async fn object_ignore_template_sync(
     record.updated_at = chrono::Utc::now().to_rfc3339();
     record.version += 1;
     vault.save_object(&record)?;
+    state.auto_sync.trigger_debounce();
     Ok(())
 }
 
@@ -1543,6 +1547,7 @@ pub async fn object_delete(state: State<'_, AppState>, object_id: String) -> Res
             "user",
             Some(&format!("section={}", obj_section)),
         );
+        state.auto_sync.trigger_debounce();
         return Ok(());
     }
     Err("Object not found".to_string())

@@ -184,6 +184,7 @@ pub async fn template_create(
         "user",
         Some(&format!("name={}", template.name)),
     );
+    state.auto_sync.trigger_debounce();
 
     Ok(template.id)
 }
@@ -244,6 +245,7 @@ pub async fn template_update(
         "user",
         None,
     );
+    state.auto_sync.trigger_debounce();
 
     Ok(())
 }
@@ -363,6 +365,7 @@ pub async fn template_restore(
         "user",
         None,
     );
+    state.auto_sync.trigger_debounce();
 
     Ok(template.id)
 }

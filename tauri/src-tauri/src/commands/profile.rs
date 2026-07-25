@@ -61,6 +61,7 @@ pub async fn profile_save(
 
     let summary = solosoul_vault::ProfileSummary::from_profile(&profile);
     vault.save_profile(&profile)?;
+    state.auto_sync.trigger_debounce();
 
     Ok(ProfileSummary {
         id: summary.id,
@@ -205,7 +206,9 @@ pub async fn profile_update_field(
     profile.data = serde_json::to_vec(&data).map_err(|e| e.to_string())?;
     profile.updated_at = chrono::Utc::now();
     profile.version += 1;
-    vault.save_profile(&profile)
+    vault.save_profile(&profile)?;
+    state.auto_sync.trigger_debounce();
+    Ok(())
 }
 
 #[cfg(test)]

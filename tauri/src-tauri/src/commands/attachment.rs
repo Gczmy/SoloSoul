@@ -124,7 +124,9 @@ pub async fn attachment_delete(
     save_attachments(&mut record.properties, &atts);
     record.updated_at = chrono::Utc::now().to_rfc3339();
     record.version += 1;
-    vault.save_object(&record)
+    vault.save_object(&record)?;
+    state.auto_sync.trigger_debounce();
+    Ok(())
 }
 
 #[tauri::command]
@@ -142,7 +144,9 @@ pub async fn attachment_restore(
     save_attachments(&mut record.properties, &atts);
     record.updated_at = chrono::Utc::now().to_rfc3339();
     record.version += 1;
-    vault.save_object(&record)
+    vault.save_object(&record)?;
+    state.auto_sync.trigger_debounce();
+    Ok(())
 }
 
 #[tauri::command]
@@ -166,7 +170,9 @@ pub async fn attachment_save(
     save_attachments(&mut record.properties, &atts);
     record.updated_at = chrono::Utc::now().to_rfc3339();
     record.version += 1;
-    vault.save_object(&record)
+    vault.save_object(&record)?;
+    state.auto_sync.trigger_debounce();
+    Ok(())
 }
 
 #[tauri::command]
@@ -190,7 +196,9 @@ pub async fn attachment_rename(
     save_attachments(&mut record.properties, &atts);
     record.updated_at = chrono::Utc::now().to_rfc3339();
     record.version += 1;
-    vault.save_object(&record)
+    vault.save_object(&record)?;
+    state.auto_sync.trigger_debounce();
+    Ok(())
 }
 
 #[tauri::command]
@@ -209,7 +217,9 @@ pub async fn attachment_soft_delete(
     save_attachments(&mut record.properties, &atts);
     record.updated_at = chrono::Utc::now().to_rfc3339();
     record.version += 1;
-    vault.save_object(&record)
+    vault.save_object(&record)?;
+    state.auto_sync.trigger_debounce();
+    Ok(())
 }
 
 /// Batch soft-delete multiple attachments on the same object in a single transaction.
@@ -232,7 +242,9 @@ pub async fn attachment_batch_soft_delete(
     save_attachments(&mut record.properties, &atts);
     record.updated_at = chrono::Utc::now().to_rfc3339();
     record.version += 1;
-    vault.save_object(&record)
+    vault.save_object(&record)?;
+    state.auto_sync.trigger_debounce();
+    Ok(())
 }
 
 /// Batch restore multiple soft-deleted attachments on the same object in a single transaction.
@@ -254,7 +266,9 @@ pub async fn attachment_batch_restore(
     save_attachments(&mut record.properties, &atts);
     record.updated_at = chrono::Utc::now().to_rfc3339();
     record.version += 1;
-    vault.save_object(&record)
+    vault.save_object(&record)?;
+    state.auto_sync.trigger_debounce();
+    Ok(())
 }
 
 /// Batch permanent-delete multiple attachments on the same object in a single transaction.
@@ -296,7 +310,9 @@ pub async fn attachment_batch_delete(
     save_attachments(&mut record.properties, &atts);
     record.updated_at = chrono::Utc::now().to_rfc3339();
     record.version += 1;
-    vault.save_object(&record)
+    vault.save_object(&record)?;
+    state.auto_sync.trigger_debounce();
+    Ok(())
 }
 
 #[tauri::command]
@@ -997,6 +1013,7 @@ pub async fn attachment_cleanup_orphans(
             removed, total_freed
         )),
     );
+    state.auto_sync.trigger_debounce();
     Ok(removed)
 }
 

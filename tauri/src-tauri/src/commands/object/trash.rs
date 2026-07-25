@@ -86,6 +86,7 @@ pub async fn object_restore(
     let lang = lang.as_deref().unwrap_or(&fallback_lang);
 
     let result = solosoul_core::objects::restore_from_trash_with_lang(vault, &trash_id, lang)?;
+    state.auto_sync.trigger_debounce();
 
     Ok(result.into())
 }
@@ -110,6 +111,7 @@ pub async fn object_purge(state: State<'_, AppState>, object_id: String) -> Resu
         "user",
         Some(&format!("section={}", obj_section)),
     );
+    state.auto_sync.trigger_debounce();
     Ok(())
 }
 
@@ -144,6 +146,7 @@ pub async fn trash_permanent_delete(
             Some(&format!("original_id={}", trash.original_id)),
         );
         vault.delete_trash_item(&trash_id).ok();
+        state.auto_sync.trigger_debounce();
         return Ok(());
     }
     vault.delete_trash_item(&trash_id).ok();
@@ -155,6 +158,7 @@ pub async fn trash_permanent_delete(
         "user",
         None,
     );
+    state.auto_sync.trigger_debounce();
     Ok(())
 }
 
@@ -287,5 +291,6 @@ pub async fn page_delete(
         "user",
         Some(&format!("count={}", count)),
     );
+    state.auto_sync.trigger_debounce();
     Ok(count)
 }
