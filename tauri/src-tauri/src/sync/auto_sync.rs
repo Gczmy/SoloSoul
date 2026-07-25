@@ -5,10 +5,10 @@
 //! 避免多个 `sync_to_remote()` 并发运行。
 
 use crate::attachment_import_plugin::AttachmentImportPluginHandle;
+use futures::future::BoxFuture;
 use solosoul_core::VaultService;
 use std::path::Path;
-use std::sync::Arc;
-use std::sync::RwLock;
+use std::sync::{Arc, RwLock};
 use std::time::Duration;
 use tauri::{AppHandle, Emitter, Manager};
 use tokio::sync::mpsc;
@@ -29,6 +29,44 @@ enum AutoSyncState {
     Running,
 }
 
+/// 可注入的同步动作。
+///
+/// 将具体的同步实现从调度循环中解耦，便于单元测试和生产注入。
+pub trait SyncAction: Send + Sync + 'static {
+    fn run(&self) -> BoxFuture<'static, Result<(), String>>;
+}
+
+/// 自动同步配置。
+#[derive(Clone)]
+pub struct AutoSyncConfig {
+    /// 防抖同步的延迟。
+    pub debounce_delay: Duration,
+    /// 周期性同步的间隔。
+    pub periodic_interval: Duration,
+    /// 同步失败后的最大重试次数。
+    pub max_retries: u32,
+    /// 重试的基准退避间隔。
+    pub retry_delay: Duration,
+}
+
+impl AutoSyncConfig {
+    /// 生产默认配置。
+    pub fn production() -> Self {
+        Self {
+            debounce_delay: Duration::from_secs(30),
+            periodic_interval: Duration::from_secs(30),
+            max_retries: 3,
+            retry_delay: Duration::from_millis(500),
+        }
+    }
+}
+
+impl Default for AutoSyncConfig {
+    fn default() -> Self {
+        Self::production()
+    }
+}
+
 /// 自动同步管理器。
 ///
 /// 通过内部 mpsc 通道接收事件，在独立任务中调度同步。
@@ -38,11 +76,17 @@ pub struct AutoSyncManager {
 }
 
 impl AutoSyncManager {
-    /// 创建并启动自动同步任务。
-    pub fn new(vault_service: Arc<RwLock<VaultService>>, app_handle: AppHandle) -> Self {
+    /// 创建并启动自动同步任务（生产入口）。
+    pub fn new_for_vault(vault_service: Arc<RwLock<VaultService>>, app_handle: AppHandle) -> Self {
+        let action = Arc::new(VaultSyncAction::new(vault_service, app_handle));
+        Self::new(action, AutoSyncConfig::default())
+    }
+
+    /// 创建并启动自动同步任务（可注入同步动作与配置）。
+    pub fn new(action: Arc<dyn SyncAction>, config: AutoSyncConfig) -> Self {
         let (tx, rx) = mpsc::channel(64);
         let manager = Self { tx };
-        manager.start_loop(rx, vault_service, app_handle);
+        manager.start_loop(rx, action, config);
         manager
     }
 
@@ -64,16 +108,17 @@ impl AutoSyncManager {
     fn start_loop(
         &self,
         mut rx: mpsc::Receiver<SyncEvent>,
-        vault_service: Arc<RwLock<VaultService>>,
-        app_handle: AppHandle,
+        action: Arc<dyn SyncAction>,
+        config: AutoSyncConfig,
     ) {
-        const DEBOUNCE_DELAY: Duration = Duration::from_secs(30);
-        const PERIODIC_INTERVAL: Duration = Duration::from_secs(30);
-
-        tauri::async_runtime::spawn(async move {
+        tokio::spawn(async move {
             let mut state = AutoSyncState::Idle;
-            let mut deadline: Option<tokio::time::Instant> = None;
-            let mut interval = tokio::time::interval(PERIODIC_INTERVAL);
+            let mut interval = tokio::time::interval(config.periodic_interval);
+            interval.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
+            // tokio::time::interval 第一次 tick 会立即触发；
+            // 先消耗掉这次 tick，避免启动时误触发一次同步。
+            interval.tick().await;
+            let mut retry_count: u32 = 0;
 
             loop {
                 match state {
@@ -84,9 +129,8 @@ impl AutoSyncManager {
                                     state = AutoSyncState::Running;
                                 }
                                 Some(SyncEvent::Debounce) => {
-                                    let d = tokio::time::Instant::now() + DEBOUNCE_DELAY;
-                                    deadline = Some(d);
-                                    state = AutoSyncState::Scheduled(d);
+                                    let deadline = tokio::time::Instant::now() + config.debounce_delay;
+                                    state = AutoSyncState::Scheduled(deadline);
                                 }
                                 None => break,
                             },
@@ -99,18 +143,15 @@ impl AutoSyncManager {
                         tokio::select! {
                             event = rx.recv() => match event {
                                 Some(SyncEvent::Immediate | SyncEvent::Background) => {
-                                    deadline = None;
                                     state = AutoSyncState::Running;
                                 }
                                 Some(SyncEvent::Debounce) => {
-                                    let new_deadline = tokio::time::Instant::now() + DEBOUNCE_DELAY;
-                                    deadline = Some(new_deadline);
+                                    let new_deadline = tokio::time::Instant::now() + config.debounce_delay;
                                     state = AutoSyncState::Scheduled(new_deadline);
                                 }
                                 None => break,
                             },
                             _ = tokio::time::sleep_until(d) => {
-                                deadline = None;
                                 state = AutoSyncState::Running;
                             }
                             _ = interval.tick() => {
@@ -119,20 +160,52 @@ impl AutoSyncManager {
                         }
                     }
                     AutoSyncState::Running => {
-                        let _ = run_sync(&vault_service, &app_handle).await;
-                        if let Some(d) = deadline.take() {
-                            if d <= tokio::time::Instant::now() {
-                                state = AutoSyncState::Running;
-                            } else {
-                                state = AutoSyncState::Scheduled(d);
+                        let result = action.run().await;
+                        match result {
+                            Ok(()) => {
+                                retry_count = 0;
+                                state = AutoSyncState::Idle;
                             }
-                        } else {
-                            state = AutoSyncState::Idle;
+                            Err(_) => {
+                                if retry_count < config.max_retries {
+                                    retry_count += 1;
+                                    let exponent = (retry_count - 1).min(10);
+                                    let backoff = config.retry_delay * 2u32.pow(exponent);
+                                    tokio::time::sleep(backoff).await;
+                                    state = AutoSyncState::Running;
+                                } else {
+                                    retry_count = 0;
+                                    state = AutoSyncState::Idle;
+                                }
+                            }
                         }
                     }
                 }
             }
         });
+    }
+}
+
+/// 生产用同步动作：调用 VaultService.sync_to_remote()。
+struct VaultSyncAction {
+    vault_service: Arc<RwLock<VaultService>>,
+    app_handle: AppHandle,
+}
+
+impl VaultSyncAction {
+    fn new(vault_service: Arc<RwLock<VaultService>>, app_handle: AppHandle) -> Self {
+        Self {
+            vault_service,
+            app_handle,
+        }
+    }
+}
+
+impl SyncAction for VaultSyncAction {
+    fn run(&self) -> BoxFuture<'static, Result<(), String>> {
+        let vault_service = self.vault_service.clone();
+        let app_handle = self.app_handle.clone();
+        Box::pin(async move { run_sync(&vault_service, &app_handle).await })
     }
 }
 
@@ -223,5 +296,104 @@ pub async fn run_sync(
                 .ok();
             Err(e)
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::sync::atomic::{AtomicUsize, Ordering};
+
+    /// 用于测试的同步动作。
+    struct MockSyncAction {
+        /// 总调用次数。
+        calls: Arc<AtomicUsize>,
+        /// 前 N 次调用返回失败。
+        fail_before_success: usize,
+    }
+
+    impl MockSyncAction {
+        fn new(fail_before_success: usize) -> (Arc<AtomicUsize>, Self) {
+            let calls = Arc::new(AtomicUsize::new(0));
+            let action = Self {
+                calls: calls.clone(),
+                fail_before_success,
+            };
+            (calls, action)
+        }
+    }
+
+    impl SyncAction for MockSyncAction {
+        fn run(&self) -> BoxFuture<'static, Result<(), String>> {
+            let count = self.calls.fetch_add(1, Ordering::SeqCst);
+            if count < self.fail_before_success {
+                Box::pin(async move { Err("mock failure".to_string()) })
+            } else {
+                Box::pin(async move { Ok(()) })
+            }
+        }
+    }
+
+    fn test_config() -> AutoSyncConfig {
+        AutoSyncConfig {
+            debounce_delay: Duration::from_millis(50),
+            periodic_interval: Duration::from_secs(3600),
+            max_retries: 0,
+            retry_delay: Duration::from_millis(1),
+        }
+    }
+
+    /// 防抖：多次触发 Debounce，最终只执行一次同步。
+    #[tokio::test]
+    async fn test_debounce_triggers_only_once() {
+        let (calls, action) = MockSyncAction::new(0);
+        let manager = AutoSyncManager::new(Arc::new(action), test_config());
+
+        for _ in 0..5 {
+            manager.trigger_debounce();
+            tokio::time::sleep(Duration::from_millis(10)).await;
+        }
+
+        // 等待防抖窗口过去（50ms + 缓冲）
+        tokio::time::sleep(Duration::from_millis(120)).await;
+        assert_eq!(calls.load(Ordering::SeqCst), 1);
+    }
+
+    /// Immediate 事件应取消当前防抖并立即执行。
+    #[tokio::test]
+    async fn test_immediate_cancels_debounce() {
+        let (calls, action) = MockSyncAction::new(0);
+        let manager = AutoSyncManager::new(Arc::new(action), test_config());
+
+        manager.trigger_debounce();
+        tokio::time::sleep(Duration::from_millis(25)).await;
+        manager.trigger_immediate();
+
+        // 立即同步应在很短时间内执行
+        tokio::time::sleep(Duration::from_millis(30)).await;
+        assert_eq!(calls.load(Ordering::SeqCst), 1);
+
+        // 等待原防抖窗口过去，不应再触发
+        tokio::time::sleep(Duration::from_millis(80)).await;
+        assert_eq!(calls.load(Ordering::SeqCst), 1);
+    }
+
+    /// 同步失败 2 次，第 3 次成功。
+    #[tokio::test]
+    async fn test_retry_until_success() {
+        let (calls, action) = MockSyncAction::new(2);
+        let config = AutoSyncConfig {
+            debounce_delay: Duration::from_millis(50),
+            periodic_interval: Duration::from_secs(3600),
+            max_retries: 3,
+            retry_delay: Duration::from_millis(5),
+        };
+        let manager = AutoSyncManager::new(Arc::new(action), config);
+
+        manager.trigger_immediate();
+
+        // 初始 + 2 次重试，最多等待约 75ms
+        tokio::time::sleep(Duration::from_millis(200)).await;
+        assert_eq!(calls.load(Ordering::SeqCst), 3);
     }
 }

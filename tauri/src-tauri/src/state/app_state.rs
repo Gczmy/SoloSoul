@@ -255,7 +255,7 @@ impl AppState {
         let sync_service = Arc::new(SyncService::new(vault_service.clone()));
 
         // ── AutoSyncManager（在 VaultService 初始化之后启动） ──
-        let auto_sync = AutoSyncManager::new(vault_service.clone(), handle.clone());
+        let auto_sync = AutoSyncManager::new_for_vault(vault_service.clone(), handle.clone());
 
         // ── PluginManager（初始化失败不阻止应用启动） ──
         let plugin_manager = match PluginManager::new_with_app_handle(&handle) {
