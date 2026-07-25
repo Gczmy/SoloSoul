@@ -480,6 +480,7 @@
       "object_rollback": "Rollback Object",
       "page_create": "Create Page",
       "page_delete": "Delete Page",
+      "page_restore": "Restore Page",
       "trash_permanent_delete": "Purge Trash",
       "trash_set_retention": "Change Retention",
       "profile_save": "Save Profile",

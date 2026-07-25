@@ -341,6 +341,8 @@ pub async fn trash_get_detail(
             }
 
             // 4. 生成结果：敏感度从 property_labels 读取，fallback 到 __fields/模板/internal
+            //    对于 page 类型不包含 sensitiveLevel（页面描述等字段无敏感度概念）
+            let is_page = trash.item_type == "page";
             let mut result = Vec::new();
             for field_id in ordered_ids {
                 let v = match props.get(&field_id) {
@@ -351,33 +353,36 @@ pub async fn trash_get_detail(
                     Some(def) => def.clone(),
                     None => (field_id.clone(), "text".to_string()),
                 };
-                let sens = sensitivity_map
-                    .get(&field_id)
-                    .and_then(|v| v.as_str())
-                    .map(String::from)
-                    .or_else(|| {
-                        fields_def
-                            .and_then(|f| f.get(&field_id))
-                            .and_then(|d| d.get("sensitivityLevel"))
-                            .and_then(|v| v.as_str())
-                            .map(String::from)
-                    })
-                    .or_else(|| {
-                        tpl.as_ref().and_then(|t| {
-                            t.properties
-                                .iter()
-                                .find(|p| p.id == field_id)
-                                .and_then(|p| p.sensitivity_level.clone())
-                        })
-                    })
-                    .unwrap_or_else(|| "internal".to_string());
-                result.push(serde_json::json!({
+                let mut entry = serde_json::json!({
                     "fieldId": field_id,
                     "key": name,
                     "value": v,
                     "type": ptype,
-                    "sensitivityLevel": sens
-                }));
+                });
+                if !is_page {
+                    let sens = sensitivity_map
+                        .get(&field_id)
+                        .and_then(|v| v.as_str())
+                        .map(String::from)
+                        .or_else(|| {
+                            fields_def
+                                .and_then(|f| f.get(&field_id))
+                                .and_then(|d| d.get("sensitivityLevel"))
+                                .and_then(|v| v.as_str())
+                                .map(String::from)
+                        })
+                        .or_else(|| {
+                            tpl.as_ref().and_then(|t| {
+                                t.properties
+                                    .iter()
+                                    .find(|p| p.id == field_id)
+                                    .and_then(|p| p.sensitivity_level.clone())
+                            })
+                        })
+                        .unwrap_or_else(|| "internal".to_string());
+                    entry["sensitivityLevel"] = serde_json::Value::String(sens);
+                }
+                result.push(entry);
             }
             Some(result.into_iter().take(5).collect())
         })()

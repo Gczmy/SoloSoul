@@ -480,6 +480,7 @@
       "object_rollback": "回滚对象",
       "page_create": "创建页面",
       "page_delete": "删除页面",
+      "page_restore": "恢复页面",
       "trash_permanent_delete": "清空回收站",
       "trash_set_retention": "变更保留期",
       "profile_save": "保存档案",

@@ -201,7 +201,9 @@ function ObjectDetailContent({
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
           <span style={{ color: 'var(--text-tertiary)' }}>{t('settings:original_location')}</span>
           <span>
-            {resolveCollectionLabel(item.sectionType || item.originalLocation, customPages, t)}
+            {item.sectionType === 'page'
+              ? t('settings:log.entity.page')
+              : resolveCollectionLabel(item.sectionType || item.originalLocation, customPages, t)}
           </span>
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
