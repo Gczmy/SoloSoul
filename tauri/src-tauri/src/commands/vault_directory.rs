@@ -317,6 +317,16 @@ pub async fn vault_sync_from_remote(
     result
 }
 
+/// 触发一次切后台同步（仅 SAF 模式下有效）。
+///
+/// 应用切到后台时前端调用此命令，通知 `AutoSyncManager` 立即执行一次
+/// `sync_to_remote()`。命令本身不等待同步完成，立即返回。
+#[tauri::command]
+pub async fn vault_sync_background(state: State<'_, AppState>) -> Result<(), String> {
+    state.auto_sync.trigger_background();
+    Ok(())
+}
+
 /// 检查 SAF tree URI 是否仍然可访问。
 fn check_saf_uri_validity<R: Runtime>(app: &AppHandle<R>, tree_uri: &str) -> bool {
     let handle = app.state::<AttachmentImportPluginHandle<R>>();

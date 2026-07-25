@@ -5,6 +5,7 @@ import type { AccountInfo } from '@/lib/ipc';
 import { ST_ONBOARDING_SEEN } from '@/lib/constants';
 import { ToastContainer } from '@/components/ui/ToastContainer';
 import { OcrScanNotificationListener } from '@/components/layout/OcrScanNotificationListener';
+import { GlobalSyncIndicator } from '@/components/layout/GlobalSyncIndicator';
 import { PluginQuickNotificationListener } from '@/components/plugin/PluginQuickNotificationListener';
 import { OnboardingDialog } from '@/components/onboarding/OnboardingDialog';
 import { AppRoutes } from './AppRoutes';
@@ -75,6 +76,7 @@ function App() {
     <BrowserRouter>
       <AppRoutes />
       <ToastContainer />
+      <GlobalSyncIndicator />
       <OcrScanNotificationListener />
       <PluginQuickNotificationListener />
       {!hasSeenOnboarding && (

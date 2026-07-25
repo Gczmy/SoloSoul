@@ -393,6 +393,7 @@ pub fn run() {
             commands::vault_directory::vault_set_directory,
             commands::vault_directory::vault_sync_to_remote,
             commands::vault_directory::vault_sync_from_remote,
+            commands::vault_directory::vault_sync_background,
             commands::vault_directory::vault_check_directory,
             commands::vault_directory::init_vault_directory,
             // Object commands

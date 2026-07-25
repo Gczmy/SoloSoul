@@ -5,6 +5,7 @@ import { useVaultStore } from '@/stores/vaultStore';
 import { useAutoLockPauseStore } from '@/stores/autoLockPauseStore';
 import { sendSystemNotificationWithFallback } from '@/lib/notification';
 import { addPluginListener, type PluginListener } from '@tauri-apps/api/core';
+import { invoke } from '@tauri-apps/api/core';
 import i18next from '@/lib/i18n';
 
 /** 视为用户活动的事件（被动监听，不干扰交互） */
@@ -71,6 +72,12 @@ export function useAutoLock(): void {
       }
     };
 
+    const triggerBackgroundSync = () => {
+      // 切后台时触发一次 SAF 后台同步（仅在 Android SAF 模式下有效）。
+      // 使用 fire-and-forget，不等待结果，避免 WebView 冻结时挂起。
+      invoke('vault_sync_background').catch(() => {});
+    };
+
     const doLock = () => {
       if (lockInitiated) return;
       lockInitiated = true;
@@ -98,6 +105,8 @@ export function useAutoLock(): void {
         if (autoLockOnBackground) {
           doLock();
         }
+        // 无论是否切后台锁定，都尝试触发 SAF 后台同步。
+        triggerBackgroundSync();
       }
     };
 
@@ -107,6 +116,8 @@ export function useAutoLock(): void {
     let screenLockedListener: PluginListener | null = null;
     addPluginListener<{ locked: boolean }>('lock-state', 'screen-locked', () => {
       doLock();
+      // 锁屏时触发一次 SAF 后台同步。
+      triggerBackgroundSync();
     })
       .then((l) => {
         screenLockedListener = l;

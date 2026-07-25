@@ -4,11 +4,13 @@
 //! 关键里程碑同步、写操作防抖同步和切后台同步排队为单任务执行，
 //! 避免多个 `sync_to_remote()` 并发运行。
 
+use crate::attachment_import_plugin::AttachmentImportPluginHandle;
 use solosoul_core::VaultService;
+use std::path::Path;
 use std::sync::Arc;
 use std::sync::RwLock;
 use std::time::Duration;
-use tauri::{AppHandle, Emitter};
+use tauri::{AppHandle, Emitter, Manager};
 use tokio::sync::mpsc;
 
 /// 自动同步触发事件。
@@ -134,6 +136,26 @@ impl AutoSyncManager {
     }
 }
 
+/// 从应用数据目录读取保存的 SAF tree URI。
+fn load_saved_saf_uri(data_dir: &Path) -> Option<String> {
+    let path = data_dir.join("app_config.json");
+    if !path.exists() {
+        return None;
+    }
+    let content = std::fs::read_to_string(&path).ok()?;
+    let config: serde_json::Value = serde_json::from_str(&content).ok()?;
+    config
+        .get("saf_tree_uri")
+        .and_then(|v| v.as_str())
+        .map(String::from)
+}
+
+/// 检查 SAF tree URI 是否仍然可访问。
+fn check_saf_access(app_handle: &AppHandle, tree_uri: &str) -> bool {
+    let handle = app_handle.state::<AttachmentImportPluginHandle<tauri::Wry>>();
+    handle.check_vault_dir_access(tree_uri).unwrap_or(false)
+}
+
 /// 执行一次 `sync_to_remote()` 并发射进度事件。
 ///
 /// 非 SAF 模式下会快速返回，不执行任何 I/O。
@@ -148,6 +170,20 @@ pub async fn run_sync(
             .map_err(|_| "Vault service lock poisoned".to_string())?;
         if !guard.is_remote_storage() {
             return Ok(());
+        }
+    }
+
+    // 校验 SAF 授权是否仍然有效；若已失效则广播事件并跳过同步，
+    // 避免在授权撤销后继续尝试写入 SAF 导致崩溃或误导性错误。
+    if let Ok(data_dir) = app_handle
+        .path()
+        .resolve(".", tauri::path::BaseDirectory::Data)
+    {
+        if let Some(tree_uri) = load_saved_saf_uri(&data_dir) {
+            if !check_saf_access(app_handle, &tree_uri) {
+                let _ = app_handle.emit("saf-auth-revoked", ());
+                return Err("SAF 目录访问权限已失效".to_string());
+            }
         }
     }
 
