@@ -78,7 +78,7 @@ describe('AttachmentPreviewOverlay', () => {
   it('shows error when vaultPath is missing', async () => {
     render(<AttachmentPreviewOverlay item={makeItem({ vaultPath: null })} onClose={vi.fn()} />);
 
-    expect(await screen.findByText(/not stored in vault/i)).toBeInTheDocument();
+    expect(await screen.findByText(/common:attachment_not_in_vault/i)).toBeInTheDocument();
     expect(mockInvoke).not.toHaveBeenCalledWith('fs_read_file_as_data_url', expect.anything());
     expect(mockInvoke).not.toHaveBeenCalledWith('fs_read_file_as_text', expect.anything());
   });
@@ -91,7 +91,7 @@ describe('AttachmentPreviewOverlay', () => {
       />,
     );
 
-    expect(await screen.findByText(/not stored in vault/i)).toBeInTheDocument();
+    expect(await screen.findByText(/common:attachment_not_in_vault/i)).toBeInTheDocument();
     expect(mockInvoke).not.toHaveBeenCalledWith('fs_read_file_as_data_url', expect.anything());
     expect(mockInvoke).not.toHaveBeenCalledWith('fs_read_file_as_text', expect.anything());
   });
@@ -106,7 +106,7 @@ describe('AttachmentPreviewOverlay', () => {
       />,
     );
 
-    const button = await screen.findByText(/open with system app/i);
+    const button = await screen.findByText(/common:attachment_open_system/i);
     button.click();
     expect(onOpenExternal).toHaveBeenCalled();
   });

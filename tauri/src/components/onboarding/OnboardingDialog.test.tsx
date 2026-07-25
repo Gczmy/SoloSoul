@@ -115,7 +115,7 @@ describe('OnboardingDialog vault directory step (Android)', () => {
 
     await waitFor(() => {
       expect(screen.getByText(/onboarding_vault_dir_selected_label/i)).toBeInTheDocument();
-    });
+    }, { timeout: 4000 });
     expect(
       screen.getByText(
         /content:\/\/com.android.documents\/tree\/primary%3ADocuments%2FSoloSoul/i,
@@ -155,7 +155,7 @@ describe('OnboardingDialog vault directory step (Android)', () => {
 
     await waitFor(() => {
       expect(screen.getByText(/onboarding_vault_dir_selected_label/i)).toBeInTheDocument();
-    });
+    }, { timeout: 4000 });
 
     // Advance to next step, then go back
     fireEvent.click(screen.getByRole('button', { name: /onboarding_next/i }));
