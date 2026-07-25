@@ -5,6 +5,7 @@ use crate::plugin::PluginManager;
 use crate::sync::auto_sync;
 use crate::sync::auto_sync::AutoSyncManager;
 use solosoul_core::vault_file_system::{SafVaultFileSystem, VaultFileSystem};
+use solosoul_core::vault_service::AccountSummary;
 use solosoul_core::VaultService;
 use solosoul_sync::SyncService;
 use std::path::{Path, PathBuf};
@@ -33,6 +34,9 @@ pub struct InitializeVaultResult {
     /// 初始化后检测到的已有账户数量（0 = 新用户需创建，>0 = 直接登录）。
     #[serde(default)]
     pub account_count: u32,
+    /// 初始化后检测到的已有账户列表，用于引导页展示账户名称。
+    #[serde(default)]
+    pub accounts: Vec<AccountSummary>,
 }
 
 impl AppState {
@@ -549,17 +553,19 @@ impl AppState {
             }
         }
 
-        let account_count = self
+        let accounts: Vec<AccountSummary> = self
             .vault_service
             .read()
-            .map(|g| g.list_accounts().len() as u32)
-            .unwrap_or(0);
+            .map(|g| g.list_accounts())
+            .unwrap_or_default();
+        let account_count = accounts.len() as u32;
 
         Ok(InitializeVaultResult {
             success: true,
             needs_restart: false,
             message: "Vault 目录已初始化".to_string(),
             account_count,
+            accounts,
         })
     }
 

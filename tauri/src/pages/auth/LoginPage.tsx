@@ -713,6 +713,38 @@ export function LoginPage() {
           </div>
         )}
 
+        {/* 在已有账户的登录页提供创建新账户入口 */}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            marginTop: 16,
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => navigate('/bootstrap?mode=create')}
+            style={{
+              fontSize: 'var(--text-body-sm)',
+              color: 'var(--text-tertiary)',
+              background: 'transparent',
+              border: 'none',
+              padding: '6px 12px',
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              transition: 'all 0.15s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = 'var(--accent-primary)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = 'var(--text-tertiary)';
+            }}
+          >
+            {t('common:create_new_account_link')}
+          </button>
+        </div>
+
         {/* ===== 底部图标栏 — 切换解锁方式 ===== */}
         {loginMethod !== null && (
           <div

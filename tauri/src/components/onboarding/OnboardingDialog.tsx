@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useNavigate } from 'react-router-dom';
 
 import {
   Sparkles,
@@ -8,7 +9,11 @@ import {
   ShieldCheck,
   CheckCircle,
   Folder,
+  LogIn,
+  UserPlus,
 } from 'lucide-react';
+import { useAuthStore } from '@/stores/authStore';
+import type { AccountInfo } from '@/lib/ipc';
 import { ICON_SIZE } from '@/lib/constants';
 import { getPlatform } from '@/lib/platform';
 import { pickVaultDirectory, initVaultDirectory } from '@/lib/vaultDirectory';
@@ -41,6 +46,11 @@ export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDial
   const [syncFileCount, setSyncFileCount] = useState(0);
   const syncDoneTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const unlistenSync = useRef<{ unregister: () => void } | null>(null);
+  // 选择目录后检测到的已有账户列表与决策界面状态
+  const [foundAccounts, setFoundAccounts] = useState<AccountInfo[]>([]);
+  const [foundAccountCount, setFoundAccountCount] = useState(0);
+  const [showAccountDecision, setShowAccountDecision] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     getPlatform().then((p) => {
@@ -70,6 +80,11 @@ export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDial
       setVaultDirError(null);
       setVaultDirActing(false);
       setSyncPhase('idle');
+      // 重新进入目录选择步骤时，清除之前的账户决策状态，
+      // 让用户重新选择目录/触发同步。
+      setShowAccountDecision(false);
+      setFoundAccounts([]);
+      setFoundAccountCount(0);
     }
     return () => {
       if (syncDoneTimer.current) {
@@ -85,6 +100,7 @@ export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDial
   }, [current?.key]);
 
   const handleVaultDirPick = useCallback(async () => {
+    // 注意：本回调不直接调用 onComplete，决策卡片由用户选择后再决定
     const { pause, resume } = await import('@/stores/autoLockPauseStore').then(
       (m) => m.useAutoLockPauseStore.getState(),
     );
@@ -92,6 +108,8 @@ export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDial
     try {
       setVaultDirActing(true);
       setVaultDirError(null);
+      setShowAccountDecision(false);
+      setFoundAccounts([]);
       const uri = await pickVaultDirectory();
       if (!uri) {
         return;
@@ -122,8 +140,11 @@ export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDial
       const result = await initVaultDirectory(uri);
       if (result.success) {
         if (result.accountCount && result.accountCount > 0) {
-          // 已有账户，跳过 onboarding 直接完成
-          onComplete();
+          // 已有账户：显示登录/创建决策卡片
+          setFoundAccounts(result.accounts ?? []);
+          setFoundAccountCount(result.accountCount ?? 0);
+          setSyncPhase('idle');
+          setShowAccountDecision(true);
           return;
         }
         // 显示 "SAF 同步完成" 3 秒后自动切换到路径显示
@@ -147,7 +168,20 @@ export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDial
       resume();
       setVaultDirActing(false);
     }
-  }, [t, onComplete]);
+  }, [t]);
+
+  const handleLoginExisting = useCallback(async () => {
+    // 刷新全局账户状态，让 AppRoutes 自动路由到 /login
+    await useAuthStore.getState().checkHasAccount();
+    onComplete();
+    navigate('/login', { replace: true });
+  }, [navigate, onComplete]);
+
+  const handleCreateNewAccount = useCallback(async () => {
+    // 直接导航到创建账户页，由 AppRoutes 的特殊 query 处理
+    onComplete();
+    navigate('/bootstrap?mode=create', { replace: true });
+  }, [navigate, onComplete]);
 
   // Show only the vault directory step when we need to display it
   if (current.key === 'vault_directory') {
@@ -213,7 +247,132 @@ export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDial
             {t('onboarding_vault_dir_desc')}
           </p>
 
-          {syncPhase === 'syncing' ? (
+          {showAccountDecision ? (
+            /* 已有账户：让用户选择登录还是创建新账户 */
+            <div
+              style={{
+                padding: 16,
+                borderRadius: 12,
+                border: '1px solid color-mix(in srgb, var(--accent-primary) 35%, transparent)',
+                background: 'color-mix(in srgb, var(--accent-primary) 6%, var(--bg-toolbar))',
+                textAlign: 'left',
+                marginBottom: 24,
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 'var(--text-body)',
+                  fontWeight: 600,
+                  color: 'var(--text-primary)',
+                  marginBottom: 8,
+                }}
+              >
+                {t('onboarding_existing_accounts_title')}
+              </div>
+              <div
+                style={{
+                  fontSize: 'var(--text-body-sm)',
+                  color: 'var(--text-secondary)',
+                  marginBottom: 12,
+                  lineHeight: 1.5,
+                }}
+              >
+                {t('onboarding_existing_accounts_desc', {
+                  count: foundAccountCount,
+                })}
+              </div>
+              {foundAccounts.length > 0 && (
+                <ul
+                  style={{
+                    margin: '0 0 12px 0',
+                    paddingLeft: 18,
+                    fontSize: 'var(--text-body-sm)',
+                    color: 'var(--text-secondary)',
+                    lineHeight: 1.6,
+                  }}
+                >
+                  {foundAccounts.slice(0, 3).map((acc) => (
+                    <li key={acc.id}>{acc.name || acc.id}</li>
+                  ))}
+                  {foundAccounts.length > 3 && (
+                    <li>{t('onboarding_existing_accounts_more', { count: foundAccounts.length - 3 })}</li>
+                  )}
+                </ul>
+              )}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <button
+                  type="button"
+                  onClick={handleLoginExisting}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    padding: '12px 16px',
+                    borderRadius: 10,
+                    border: '1px solid var(--border-subtle)',
+                    background: 'var(--bg-toolbar)',
+                    color: 'var(--text-primary)',
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                    fontWeight: 500,
+                    fontSize: 'var(--text-body-sm)',
+                    transition: 'all 0.15s ease',
+                  }}
+                  className="interactive-toolbar"
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background =
+                      'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                    e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                    e.currentTarget.style.color = 'var(--accent-primary)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'var(--bg-toolbar)';
+                    e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                    e.currentTarget.style.color = 'var(--text-primary)';
+                  }}
+                >
+                  <LogIn size={ICON_SIZE.md} />
+                  {t('onboarding_action_login')}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleCreateNewAccount}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    padding: '12px 16px',
+                    borderRadius: 10,
+                    border: '1px solid var(--border-subtle)',
+                    background: 'var(--bg-toolbar)',
+                    color: 'var(--text-primary)',
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                    fontWeight: 500,
+                    fontSize: 'var(--text-body-sm)',
+                    transition: 'all 0.15s ease',
+                  }}
+                  className="interactive-toolbar"
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background =
+                      'color-mix(in srgb, var(--accent-warm) 10%, transparent)';
+                    e.currentTarget.style.borderColor = 'var(--accent-warm)';
+                    e.currentTarget.style.color = 'var(--accent-warm)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'var(--bg-toolbar)';
+                    e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                    e.currentTarget.style.color = 'var(--text-primary)';
+                  }}
+                >
+                  <UserPlus size={ICON_SIZE.md} />
+                  {t('onboarding_action_create_new')}
+                </button>
+              </div>
+            </div>
+          ) : syncPhase === 'syncing' ? (
             /* SAF 同步中：进度条 + 提示 */
             <>
               <style>{`

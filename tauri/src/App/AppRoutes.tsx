@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { listen } from '@tauri-apps/api/event';
 import { useAuthStore } from '@/stores/authStore';
@@ -380,6 +380,10 @@ export function AppRoutes() {
     triggerOcrFirstInstall();
   }, [triggerOcrFirstInstall]);
 
+  // 支持 /bootstrap?mode=create 在已有账户时仍能创建新账户
+  const [searchParams] = useSearchParams();
+  const bootstrapMode = searchParams.get('mode');
+
   return (
     <>
       {(updateState.kind !== 'hidden' || showOcrBanner) && (
@@ -429,10 +433,10 @@ export function AppRoutes() {
         <Route
           path="/bootstrap"
           element={
-            hasAccount === true ? (
-              <Navigate to="/login" replace />
-            ) : hasAccount === false ? (
+            hasAccount === false || bootstrapMode === 'create' ? (
               <BootstrapPage />
+            ) : hasAccount === true ? (
+              <Navigate to="/login" replace />
             ) : (
               <div
                 style={{

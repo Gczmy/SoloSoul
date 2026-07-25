@@ -1,8 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { BrowserRouter } from 'react-router-dom';
 import { OnboardingDialog } from './OnboardingDialog';
 import * as vaultDirectory from '@/lib/vaultDirectory';
 import { getPlatform } from '@/lib/platform';
+
+const renderWithRouter = (ui: React.ReactElement) => render(<BrowserRouter>{ui}</BrowserRouter>);
 
 vi.mock('@/lib/platform', () => ({
   getPlatform: vi.fn().mockResolvedValue('web'),
@@ -18,7 +21,7 @@ vi.mock('@/lib/vaultDirectory', () => ({
 
 describe('OnboardingDialog', () => {
   it('renders the first step by default', async () => {
-    render(<OnboardingDialog onComplete={vi.fn()} onSkip={vi.fn()} />);
+    renderWithRouter(<OnboardingDialog onComplete={vi.fn()} onSkip={vi.fn()} />);
 
     await waitFor(() => {
       expect(screen.getByText(/onboarding_welcome_title/i)).toBeInTheDocument();
@@ -27,7 +30,7 @@ describe('OnboardingDialog', () => {
   });
 
   it('advances to the next step when clicking next', async () => {
-    render(<OnboardingDialog onComplete={vi.fn()} onSkip={vi.fn()} />);
+    renderWithRouter(<OnboardingDialog onComplete={vi.fn()} onSkip={vi.fn()} />);
 
     // Wait for platform mock to resolve (vault_directory filtered out on 'web')
     await waitFor(() => {
@@ -43,7 +46,7 @@ describe('OnboardingDialog', () => {
 
   it('shows the done button on the last step and calls onComplete', async () => {
     const onComplete = vi.fn();
-    render(<OnboardingDialog onComplete={onComplete} onSkip={vi.fn()} />);
+    renderWithRouter(<OnboardingDialog onComplete={onComplete} onSkip={vi.fn()} />);
 
     // Wait for platform to load
     await waitFor(() => {
@@ -63,7 +66,7 @@ describe('OnboardingDialog', () => {
   });
 
   it('goes back to the previous step when clicking back', async () => {
-    render(<OnboardingDialog onComplete={vi.fn()} onSkip={vi.fn()} />);
+    renderWithRouter(<OnboardingDialog onComplete={vi.fn()} onSkip={vi.fn()} />);
 
     // Wait for platform to load
     await waitFor(() => {
@@ -99,7 +102,7 @@ describe('OnboardingDialog vault directory step (Android)', () => {
       message: '',
     });
 
-    render(<OnboardingDialog onComplete={vi.fn()} onSkip={vi.fn()} />);
+    renderWithRouter(<OnboardingDialog onComplete={vi.fn()} onSkip={vi.fn()} />);
 
     // Android still starts from the welcome step; navigate to vault directory step
     await waitFor(() => {
@@ -141,7 +144,7 @@ describe('OnboardingDialog vault directory step (Android)', () => {
       message: '',
     });
 
-    render(<OnboardingDialog onComplete={vi.fn()} onSkip={vi.fn()} />);
+    renderWithRouter(<OnboardingDialog onComplete={vi.fn()} onSkip={vi.fn()} />);
 
     await waitFor(() => {
       expect(screen.getByText(/onboarding_welcome_title/i)).toBeInTheDocument();

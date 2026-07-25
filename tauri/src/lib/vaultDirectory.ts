@@ -1,4 +1,5 @@
 import { invoke } from '@tauri-apps/api/core';
+import type { AccountInfo } from '@/lib/ipc';
 
 export interface VaultDirectoryInfo {
   directoryType: 'local' | 'saf';
@@ -32,6 +33,8 @@ export interface InitializeVaultResult {
   message: string;
   /** 初始化后检测到的已有账户数量（0 = 新用户需创建，>0 = 直接登录）。 */
   accountCount?: number;
+  /** 初始化后检测到的已有账户列表，用于引导页展示账户名称。 */
+  accounts?: AccountInfo[];
 }
 
 export async function initVaultDirectory(
