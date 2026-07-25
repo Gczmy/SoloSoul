@@ -198,6 +198,10 @@ export function OcrPage() {
   };
 
   const handleTakePhoto = async () => {
+    // 启动相机前立即清空上次结果并显示加载状态，避免从相机返回后闪烁旧结果
+    setResult(null);
+    setMrzResult(null);
+    setIsScanning(true);
     try {
       const { useAutoLockPauseStore } = await import('@/stores/autoLockPauseStore');
       const { pause, resume } = useAutoLockPauseStore.getState();
@@ -208,15 +212,18 @@ export function OcrPage() {
           setFilePath(path);
           await performScan(path);
         } else {
-          // 相机未返回有效图片路径（如部分 ROM 不写入指定文件），明确提示用户
+          // 相机取消或未返回路径，恢复空闲状态
+          setIsScanning(false);
           onError(t('ocr:take_photo_no_image'), t('ocr:take_photo_failed'));
         }
       } catch (e) {
+        setIsScanning(false);
         onError(e, t('ocr:take_photo_failed'));
       } finally {
         resume();
       }
     } catch (e) {
+      setIsScanning(false);
       onError(e, t('ocr:take_photo_failed'));
     }
   };
