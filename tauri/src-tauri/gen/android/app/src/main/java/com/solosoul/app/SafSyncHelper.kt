@@ -144,7 +144,7 @@ object SafSyncHelper {
             val existingChildren = mutableMapOf<String, ExistingChild>()
             val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(
                 currentParentUri,
-                DocumentsContract.getTreeDocumentId(currentParentUri)
+                DocumentsContract.getDocumentId(currentParentUri)
             ) ?: continue
             contentResolver.query(
                 childrenUri,
@@ -286,7 +286,7 @@ object SafSyncHelper {
             val currentLocalDir = entry.localDir
             val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(
                 currentParentUri,
-                DocumentsContract.getTreeDocumentId(currentParentUri)
+                DocumentsContract.getDocumentId(currentParentUri)
             ) ?: continue
 
             val children = mutableListOf<RemoteChild>()
