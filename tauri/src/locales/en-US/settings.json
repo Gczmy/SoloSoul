@@ -286,6 +286,8 @@
   "export_anyway": "Export Anyway",
   "export_options": "Export Options",
   "export_estimate_label": "Export file estimated size",
+  "export_templates_line": "Includes {{count}} template(s): {{names}}",
+  "export_templates_truncated_suffix": ", …",
   "include_attachments": "Include attachment files",
   "include_preferences": "Include preferences",
   "include_behavioral": "Include behavioral data",

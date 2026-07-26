@@ -9,6 +9,7 @@ import { AttachmentLimitsInfo } from './AttachmentLimitsInfo';
 import { WarningCancelButton } from './WarningCancelButton';
 import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import { ICON_SIZE } from '@/lib/constants';
+import type { ExportEstimate } from '@/types/exportImport';
 
 interface PageGroup {
   sectionType: string;
@@ -32,13 +33,6 @@ interface AttachmentInfo {
   id: string;
   fileName: string;
   sizeBytes: number;
-}
-
-interface ExportEstimate {
-  objectCount: number;
-  attachmentCount: number;
-  attachmentSelectedCount: number;
-  estimatedBytes: number;
 }
 
 interface ExportSectionProps {
@@ -135,7 +129,11 @@ export function ExportSection({
   onSetShowHintWarningAndExport,
   onSetWeakPasswordExport,
 }: ExportSectionProps) {
-  const { t } = useTranslation(['settings', 'common']);
+  const { t, i18n } = useTranslation(['settings', 'common']);
+
+  /** 按当前语言本地化连接名称列表（zh: 「、」；en: ", and"） */
+  const formatNameList = (names: string[]) =>
+    new Intl.ListFormat(i18n.language, { style: 'long', type: 'conjunction' }).format(names);
 
   return (
     <>
@@ -460,6 +458,26 @@ export function ExportSection({
                   : ''}
             </span>
           </div>
+          {/* 随导出打包的模板快照清单：让导出者明确知道哪些模板会被导出 */}
+          {!estimating && exportEstimate && exportEstimate.templateCount > 0 && (
+            <div
+              style={{
+                fontSize: 'var(--text-caption)',
+                color: 'var(--text-secondary)',
+                padding: '4px 0',
+                borderTop: '1px solid var(--border-subtle)',
+              }}
+            >
+              {t('settings:export_templates_line', {
+                count: exportEstimate.templateCount,
+                names:
+                  formatNameList(exportEstimate.templateNames.slice(0, 5)) +
+                  (exportEstimate.templateCount > 5
+                    ? t('settings:export_templates_truncated_suffix')
+                    : ''),
+              })}
+            </div>
+          )}
         </Card>
       )}
 

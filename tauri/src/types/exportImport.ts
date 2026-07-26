@@ -27,6 +27,9 @@ export interface ExportEstimate {
   attachmentCount: number;
   attachmentSelectedCount: number;
   estimatedBytes: number;
+  /** 随本次导出打包的用户模板快照数量与名称（后端与导出执行同一收集逻辑） */
+  templateCount: number;
+  templateNames: string[];
 }
 
 export interface ImportPreview {

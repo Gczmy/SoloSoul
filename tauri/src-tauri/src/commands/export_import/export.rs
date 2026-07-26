@@ -151,6 +151,15 @@ pub async fn export_estimate_size(
 
     let records = collect_scope_objects(&vault, &account_id, &scope)?;
     let count = records.len();
+
+    // 与导出执行（export_execute）共用同一收集逻辑，
+    // 保证「导出前展示的模板清单」与最终包内 templates 一致
+    let referenced_templates = collect_referenced_templates(&vault, &records);
+    let template_count = referenced_templates.len();
+    let template_names: Vec<String> = referenced_templates
+        .iter()
+        .map(|t| t.name.clone())
+        .collect();
     let mut estimated_bytes: u64 = records
         .iter()
         .map(|r| {
@@ -199,6 +208,8 @@ pub async fn export_estimate_size(
         attachment_count,
         attachment_selected_count,
         estimated_bytes,
+        template_count,
+        template_names,
     })
 }
 
@@ -239,19 +250,9 @@ pub async fn export_execute(
     }
 
     // ── Collect referenced templates ────────────────────────────
-    let template_ids: std::collections::BTreeSet<String> = records
+    let templates: Vec<serde_json::Value> = collect_referenced_templates(vault, &records)
         .iter()
-        .filter_map(|r| r.template_id.clone())
-        .collect();
-    let templates: Vec<serde_json::Value> = template_ids
-        .iter()
-        .filter_map(|tid| {
-            vault
-                .load_user_template(tid)
-                .ok()
-                .flatten()
-                .and_then(|tpl| serde_json::to_value(&tpl).ok())
-        })
+        .filter_map(|tpl| serde_json::to_value(tpl).ok())
         .collect();
 
     // ── Serialise payload ──────────────────────────────────────

@@ -1,13 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { DEBOUNCE_DELAY_MS } from '@/lib/constants';
-
-interface ExportEstimate {
-  objectCount: number;
-  attachmentCount: number;
-  attachmentSelectedCount: number;
-  estimatedBytes: number;
-}
+import type { ExportEstimate } from '@/types/exportImport';
 
 interface ScopeState {
   selectedPageIds: Set<string>;

@@ -118,6 +118,10 @@ pub struct ExportEstimate {
     pub attachment_count: usize,
     pub attachment_selected_count: usize,
     pub estimated_bytes: u64,
+    /// 随本次导出一并打包的用户模板（快照）数量与名称，
+    /// 让导出者在执行前明确知道哪些模板会被导出。
+    pub template_count: usize,
+    pub template_names: Vec<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -272,6 +276,23 @@ pub(crate) fn collect_scope_objects(
         }
     }
     Ok(records)
+}
+
+/// Collect user templates referenced by the given records (id-sorted, deduped).
+/// 加载失败的模板静默跳过。体积估算与导出执行共用此逻辑，保证
+/// 「导出前展示的模板清单」与「最终包内 templates」口径一致。
+pub(crate) fn collect_referenced_templates(
+    vault: &solosoul_vault::VaultStore,
+    records: &[solosoul_vault::ObjectRecord],
+) -> Vec<solosoul_vault::UserTemplate> {
+    let template_ids: BTreeSet<String> = records
+        .iter()
+        .filter_map(|r| r.template_id.clone())
+        .collect();
+    template_ids
+        .iter()
+        .filter_map(|tid| vault.load_user_template(tid).ok().flatten())
+        .collect()
 }
 
 // ── Sub-modules ─────────────────────────────────────────────

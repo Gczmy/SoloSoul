@@ -286,6 +286,8 @@
   "export_anyway": "仍然导出",
   "export_options": "导出选项",
   "export_estimate_label": "导出文件预计大小",
+  "export_templates_line": "包含 {{count}} 个模板：{{names}}",
+  "export_templates_truncated_suffix": "等",
   "include_attachments": "包含附件文件",
   "include_preferences": "包含偏好设置",
   "include_behavioral": "包含行为记录",
