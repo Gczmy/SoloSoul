@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/authStore';
 import { useNavigate } from 'react-router-dom';
+import { invoke } from '@tauri-apps/api/core';
 import { Fingerprint, Grip, X } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/constants';
 
@@ -47,10 +48,47 @@ export function PostLoginSetupGuide() {
 
     if (!hasBioHistory && !hasPinHistory) return;
 
-    setHasBiometric(hasBioHistory);
-    setHasPin(hasPinHistory);
-    setShowGuide(true);
-    _shownForAccount.add(currentAccount.id);
+    // 历史标志只表示「曾经用过」，不代表「本机未配置」。
+    // 以当前设备真实配置状态为准：已在安全设置中重新设置过的
+    // 解锁方式不再提醒；只有「有历史但本机未配置」才提示。
+    const accountId = currentAccount.id;
+    let cancelled = false;
+    (async () => {
+      let bioConfigured = false;
+      let pinConfigured = false;
+      if (hasBioHistory) {
+        bioConfigured = await invoke<{
+          strongConfigured?: boolean;
+          weakConfigured?: boolean;
+        }>('biometric_check_availability', { accountId })
+          .then((r) => r.strongConfigured === true || r.weakConfigured === true)
+          .catch(() => false);
+      }
+      if (hasPinHistory) {
+        pinConfigured = await invoke<{ configured?: boolean }>('pin_check_availability', {
+          accountId,
+        })
+          .then((r) => r.configured === true)
+          .catch(() => false);
+      }
+      if (cancelled) return;
+
+      const needBio = hasBioHistory && !bioConfigured;
+      const needPin = hasPinHistory && !pinConfigured;
+      // 全部已配置：不再提醒，本会话内也不再重复检查
+      if (!needBio && !needPin) {
+        _shownForAccount.add(accountId);
+        return;
+      }
+
+      setHasBiometric(needBio);
+      setHasPin(needPin);
+      setShowGuide(true);
+      _shownForAccount.add(accountId);
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, [currentAccount]);
 
   const handleDismiss = useCallback(() => {
