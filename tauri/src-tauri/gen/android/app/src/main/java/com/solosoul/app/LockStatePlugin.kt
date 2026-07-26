@@ -51,6 +51,12 @@ class LockStatePlugin(private val activity: Activity): Plugin(activity) {
     /** 锁屏遮盖是否已显示（仅用于 show 幂等；hide 不设门槛，随时可撤）。 */
     private var lockMaskShown = false
 
+    /** 主线程 Handler，用于所有延迟检测任务。 */
+    private val mainHandler = Handler(Looper.getMainLooper())
+
+    /** 跟踪尚未执行的延迟 runnable，插件销毁时统一取消，避免 Activity 销毁后仍回调。 */
+    private val pendingRunnables = mutableSetOf<Runnable>()
+
     /**
      * 用于进程被系统回收后恢复灭屏锁标记。
      */
@@ -112,10 +118,7 @@ class LockStatePlugin(private val activity: Activity): Plugin(activity) {
         setPendingFlag(true)
         // 部分 ROM 灭屏即锁，keyguard 可能已置位，同步 + 延迟各查一次
         checkKeyguardAndTrigger()
-        Handler(Looper.getMainLooper()).postDelayed({
-            if (activity.isFinishing || activity.isDestroyed) return@postDelayed
-            checkKeyguardAndTrigger()
-        }, 300)
+        postDelayedCheck(300) { checkKeyguardAndTrigger() }
     }
 
     private fun onUserPresent() {
@@ -136,10 +139,7 @@ class LockStatePlugin(private val activity: Activity): Plugin(activity) {
         // onPause 时同步检查一次（按电源键灭屏时 keyguard 可能已置位）
         checkKeyguardAndTrigger()
         // keyguard 可能在 onPause 之后才置位，延迟 500ms 再查一次
-        Handler(Looper.getMainLooper()).postDelayed({
-            if (activity.isFinishing || activity.isDestroyed) return@postDelayed
-            checkKeyguardAndTrigger()
-        }, 500)
+        postDelayedCheck(500) { checkKeyguardAndTrigger() }
     }
 
     override fun onStop() {
@@ -154,13 +154,42 @@ class LockStatePlugin(private val activity: Activity): Plugin(activity) {
         // 恢复 JS 处理，过早发出会丢失（前端另有回前台拉取兜底）。
         if (lockedWhileBackgrounded || restoreLockedFlag()) {
             showLockMask()
-            Handler(Looper.getMainLooper()).postDelayed({
-                if (activity.isFinishing || activity.isDestroyed) return@postDelayed
+            postDelayedCheck(400) {
                 if (lockedWhileBackgrounded || restoreLockedFlag()) {
                     markLockedAndTrigger(force = true)
                 }
-            }, 400)
+            }
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        // 取消所有未执行的延迟检测任务，避免 Activity 销毁后回调导致异常
+        synchronized(pendingRunnables) {
+            for (r in pendingRunnables) {
+                mainHandler.removeCallbacks(r)
+            }
+            pendingRunnables.clear()
+        }
+    }
+
+    /**
+     * 提交一个延迟检测任务，并在执行前检查 Activity 是否仍然存活。
+     * 任务会被记录到 pendingRunnables 中，执行后或 Activity 销毁时自动移除。
+     */
+    private fun postDelayedCheck(delayMs: Long, block: () -> Unit) {
+        lateinit var runnable: Runnable
+        runnable = Runnable {
+            synchronized(pendingRunnables) {
+                pendingRunnables.remove(runnable)
+            }
+            if (activity.isFinishing || activity.isDestroyed) return@Runnable
+            block()
+        }
+        synchronized(pendingRunnables) {
+            pendingRunnables.add(runnable)
+        }
+        mainHandler.postDelayed(runnable, delayMs)
     }
 
     private fun keyguardManager(): KeyguardManager? =
