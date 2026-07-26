@@ -24,7 +24,7 @@ import { searchCache } from '@/lib/searchCache';
 import styles from './SearchPage.module.css';
 
 const SENSITIVITY_ORDER: SensitivityLevel[] = ['public', 'internal', 'sensitive', 'critical'];
-const SYSTEM_PAGE_KEYS = ['identity', 'travel', 'financial', 'professional'] as const;
+const SYSTEM_PAGE_KEYS = ['identity', 'travel', 'financial', 'professional', 'document'] as const;
 
 function sortSensitivityLevels(levels: string[]): SensitivityLevel[] {
   return levels

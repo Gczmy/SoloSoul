@@ -21,7 +21,13 @@ export interface NavAction {
 
 export type NavItem = NavLink | NavAction;
 
-export const SYSTEM_PAGE_KEYS = ['identity', 'travel', 'financial', 'professional'] as const;
+export const SYSTEM_PAGE_KEYS = [
+  'identity',
+  'travel',
+  'financial',
+  'professional',
+  'document',
+] as const;
 
 export const primaryItems: NavLink[] = [
   { type: 'link', path: '/', iconKey: 'home', labelKey: 'home' },
@@ -38,6 +44,12 @@ export const primaryItems: NavLink[] = [
     path: '/workspace?section=professional',
     iconKey: 'professional',
     labelKey: 'professional',
+  },
+  {
+    type: 'link',
+    path: '/workspace?section=document',
+    iconKey: 'document',
+    labelKey: 'document',
   },
 ];
 

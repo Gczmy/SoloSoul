@@ -19,7 +19,7 @@ import styles from './HomePage.module.css';
 
 // Icons sourced from PAGE_ICON_MAP — §7.4 Single Source of Truth
 const sections: {
-  type: ProfileSection;
+  type: ProfileSection | 'document';
   labelKey: string;
   icon: LucideIcon;
   descKey: string;
@@ -37,6 +37,12 @@ const sections: {
     labelKey: 'professional',
     icon: PAGE_ICON_MAP.professional,
     descKey: 'professional_desc',
+  },
+  {
+    type: 'document',
+    labelKey: 'document',
+    icon: PAGE_ICON_MAP.document,
+    descKey: 'document_desc',
   },
 ];
 

@@ -5,12 +5,13 @@ import { useTranslation } from 'react-i18next';
 import { PAGE_ICON_MAP, resolveCustomIcon } from '@/lib/pageIcons';
 import type { CustomPage } from '@/stores/settingsStore';
 
-const CATEGORY_TYPES = ['identity', 'travel', 'financial', 'professional'] as const;
+const CATEGORY_TYPES = ['identity', 'travel', 'financial', 'professional', 'document'] as const;
 const CATEGORY_ICONS: Record<string, typeof PAGE_ICON_MAP.profile> = {
   identity: PAGE_ICON_MAP.profile,
   travel: PAGE_ICON_MAP.travel,
   financial: PAGE_ICON_MAP.financial,
   professional: PAGE_ICON_MAP.professional,
+  document: PAGE_ICON_MAP.document,
 };
 
 interface WorkspaceCategoryTabsProps {

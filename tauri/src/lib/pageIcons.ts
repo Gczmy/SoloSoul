@@ -111,6 +111,7 @@ export const PAGE_ICON_MAP = {
   travel: Plane,
   financial: Banknote,
   professional: Briefcase,
+  document: FileText,
   search: Search,
   settings: Settings,
   lock: Lock,

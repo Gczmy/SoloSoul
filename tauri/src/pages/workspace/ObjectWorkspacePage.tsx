@@ -185,7 +185,7 @@ export function ObjectWorkspacePage() {
 
   const resolveCollectionLabel = useCallback(
     (collectionType: string) => {
-      if (['identity', 'travel', 'financial', 'professional'].includes(collectionType)) {
+      if (['identity', 'travel', 'financial', 'professional', 'document'].includes(collectionType)) {
         return t(`navigation:${collectionType}`);
       }
       const cp = customPages.find((p) => p.id === collectionType);

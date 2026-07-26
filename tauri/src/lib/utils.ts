@@ -66,7 +66,7 @@ export function getTierLabel(
 // From pageLabels.ts
 // ============================================================================
 
-const BUILTIN_COLLECTIONS = ['identity', 'travel', 'financial', 'professional'] as const;
+const BUILTIN_COLLECTIONS = ['identity', 'travel', 'financial', 'professional', 'document'] as const;
 
 export function resolveCollectionLabel(
   collectionType: string,

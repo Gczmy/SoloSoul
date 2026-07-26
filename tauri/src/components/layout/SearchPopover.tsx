@@ -11,6 +11,7 @@ import {
   Plane,
   CreditCard,
   Briefcase,
+  FileText,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { invoke } from '@tauri-apps/api/core';
@@ -32,6 +33,7 @@ const FILTER_PAGES = [
   { key: 'travel', labelKey: 'navigation:travel', icon: Plane },
   { key: 'financial', labelKey: 'navigation:financial', icon: CreditCard },
   { key: 'professional', labelKey: 'navigation:professional', icon: Briefcase },
+  { key: 'document', labelKey: 'navigation:document', icon: FileText },
 ];
 
 interface SearchItem {
@@ -133,7 +135,7 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
   const matchPageTranslation = useCallback(
     (q: string): string | null => {
       const trimmed = q.toLowerCase().trim();
-      const systemKeys = ['identity', 'travel', 'financial', 'professional'] as const;
+      const systemKeys = ['identity', 'travel', 'financial', 'professional', 'document'] as const;
       for (const key of systemKeys) {
         const label = t(`navigation:${key}`).toLowerCase();
         if (label === trimmed || label.includes(trimmed) || trimmed.includes(label)) {
