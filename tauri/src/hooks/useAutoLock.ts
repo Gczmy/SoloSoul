@@ -132,7 +132,8 @@ export function useAutoLock(): void {
   // 锁屏锁定（Android）：与闲置超时设置无关，已认证即生效。
   // 原生侧标记只在 JS 确认（dismiss_lock_mask）后清除：
   // 事件因 WebView 冻结丢失时会在下次 resume 补达；
-  // 启动时的主动拉取则闭合「渲染进程被回收、事件已在监听器注册前发出」的环路。
+  // 每次回到前台的主动拉取则闭合「事件已丢但标记仍在」的所有环路
+  // （渲染进程被回收、resume 补达早于 WebView 恢复等）。
   useEffect(() => {
     if (!isAuthenticated) return;
 
@@ -143,9 +144,24 @@ export function useAutoLock(): void {
         .catch((err) => logger.error('[useAutoLock] lock failed:', err));
       // 撤掉原生锁屏遮盖层并清除原生挂起标记（Android；其他平台为 no-op）。
       // 无论 lock 是否因已锁定而跳过都要执行，避免遮盖/标记残留。
-      invoke('dismiss_lock_mask').catch(() => {});
+      invoke('dismiss_lock_mask').catch((err) =>
+        logger.warn('[useAutoLock] dismiss_lock_mask failed:', err),
+      );
       // 锁屏时触发一次 SAF 后台同步。
       invoke('vault_sync_background').catch(() => {});
+    };
+
+    // 回前台时主动拉取未确认的锁屏挂起标记：
+    // resume 补达可能早于 WebView 恢复 JS 处理而丢失，拉取是确定性兜底。
+    const pullLockPending = () => {
+      invoke<boolean>('get_lock_pending')
+        .then((pending) => {
+          if (pending) handleScreenLocked();
+        })
+        .catch(() => {});
+    };
+    const onForeground = () => {
+      if (document.visibilityState === 'visible') pullLockPending();
     };
 
     let screenLockedListener: PluginListener | null = null;
@@ -155,15 +171,13 @@ export function useAutoLock(): void {
       })
       .catch((err) => logger.error('[useAutoLock] listen screen-locked failed:', err));
 
-    // 启动/认证后主动拉取未确认的锁屏挂起标记
-    invoke<boolean>('get_lock_pending')
-      .then((pending) => {
-        if (pending) handleScreenLocked();
-      })
-      .catch(() => {});
+    // 启动/认证后立即拉取一次，并在此后每次回到前台时拉取
+    pullLockPending();
+    document.addEventListener('visibilitychange', onForeground);
 
     return () => {
       screenLockedListener?.unregister()?.catch(() => {});
+      document.removeEventListener('visibilitychange', onForeground);
     };
   }, [isAuthenticated]);
 }

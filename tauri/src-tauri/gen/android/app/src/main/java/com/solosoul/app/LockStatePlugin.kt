@@ -235,10 +235,16 @@ class LockStatePlugin(private val activity: Activity): Plugin(activity) {
             }
             override fun onActivityResumed(act: Activity) {
                 // 灭屏期间 WebView 冻结/渲染进程被回收都可能导致 trigger 丢失，
-                // 只要标记未被 JS 确认清除，回前台就重新挂遮罩并补达事件。
-                // 同时读取持久化标记，防止进程回收后成员变量丢失。
+                // 只要标记未被 JS 确认清除，回前台就补达事件。
+                // 遮罩立即挂上（赶在首帧前）；trigger 延迟少量时间等 WebView
+                // 恢复 JS 处理，过早发出会丢失（前端另有回前台拉取兜底）。
                 if (lockedWhileBackgrounded || restoreLockedFlag()) {
-                    markLockedAndTrigger()
+                    showLockMask()
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        if (lockedWhileBackgrounded || restoreLockedFlag()) {
+                            markLockedAndTrigger()
+                        }
+                    }, 400)
                 }
             }
             override fun onActivityCreated(act: Activity, savedInstanceState: Bundle?) {}
