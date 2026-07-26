@@ -140,7 +140,41 @@ pub async fn biometric_check_availability(
     // Android 使用 Keystore 双槽存储（strong/weak 各自独立），iOS 沿用 FileBiometricStorage
     #[cfg(target_os = "android")]
     let (configured, strong_configured, weak_configured) = {
-        let creds = read_keystore_credentials(svc.base_path(), &account_id);
+        use crate::keystore_plugin::KeystorePluginHandle;
+        use tauri::Manager;
+
+        let mut creds = read_keystore_credentials(svc.base_path(), &account_id);
+        let keystore = app.try_state::<KeystorePluginHandle<tauri::Wry>>();
+
+        // 卸载/换机后 Keystore 密钥已被系统擦除，但 keystore_data.json 可能
+        // 从 SAF 远端同步残留（陈旧凭证）。校验密钥真实存在并清理失效槽位，
+        // 避免安全设置显示"幽灵开启"；桥接失败时保守保留槽位，不误删有效凭证。
+        let mut pruned = false;
+        if let (Some(c), Some(ks)) = (creds.as_mut(), keystore.as_ref()) {
+            if c.strong.is_some() && ks.key_exists(&account_id, None) == Ok(false) {
+                c.strong = None;
+                pruned = true;
+            }
+            if c.weak.is_some() && ks.key_exists(&account_id, Some("weak")) == Ok(false) {
+                c.weak = None;
+                pruned = true;
+            }
+        }
+        if pruned {
+            if let Some(c) = creds.as_ref() {
+                let path = svc.base_path().join(&account_id).join("keystore_data.json");
+                if c.is_empty() {
+                    let _ = std::fs::remove_file(&path);
+                } else if let Ok(json) = serde_json::to_string(c) {
+                    let _ = std::fs::write(&path, json);
+                }
+                tracing::info!(
+                    "biometric_check_availability: pruned stale keystore slots for account={}",
+                    account_id
+                );
+            }
+        }
+
         let strong_configured = creds.as_ref().and_then(|c| c.strong.as_ref()).is_some();
         let weak_configured = creds.as_ref().and_then(|c| c.weak.as_ref()).is_some();
         (

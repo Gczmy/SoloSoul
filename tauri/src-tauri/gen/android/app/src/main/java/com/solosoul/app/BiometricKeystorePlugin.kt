@@ -54,6 +54,13 @@ class KeystoreDeleteArgs {
     var authenticator: String? = null
 }
 
+@InvokeArg
+class KeystoreKeyExistsArgs {
+    lateinit var alias: String
+    /** "weak" 查询 {alias}_weak；否则查询主别名 */
+    var authenticator: String? = null
+}
+
 /**
  * Android Keystore 生物识别凭证安全存储插件。
  *
@@ -61,6 +68,7 @@ class KeystoreDeleteArgs {
  * - authenticateAndSave：加密数据并持久化。
  * - authenticateAndRead：解密已保存的数据。
  * - delete：删除 Keystore 中的密钥别名。
+ * - keyExists：查询密钥别名是否真实存在（卸载/换机后凭证文件可能残留，用于识别陈旧状态）。
  *
  * 双路径设计：
  * - Class 3（指纹/强人脸）：BiometricPrompt + CryptoObject，密钥受生物识别保护，
@@ -304,6 +312,24 @@ class BiometricKeystorePlugin(private val activity: Activity): Plugin(activity) 
         } catch (e: Exception) {
             android.util.Log.e("SoloSoul", "Keystore delete failed: ${e.message}", e)
             invoke.reject("Keystore delete failed: ${e.message}")
+        }
+    }
+
+    @Command
+    fun keyExists(invoke: Invoke) {
+        try {
+            val args = invoke.parseArgs(KeystoreKeyExistsArgs::class.java)
+            val alias = normalizeAlias(args.alias)
+            // "weak" 查询 Class 2 免授权密钥；否则查询 Class 3 授权绑定密钥
+            val effectiveAlias = if (args.authenticator == "weak") weakAlias(alias) else alias
+            val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE)
+            keyStore.load(null)
+            val result = JSObject()
+            result.put("exists", keyStore.containsAlias(effectiveAlias))
+            invoke.resolve(result)
+        } catch (e: Exception) {
+            android.util.Log.e("SoloSoul", "Keystore keyExists failed: ${e.message}", e)
+            invoke.reject("Keystore keyExists failed: ${e.message}")
         }
     }
 

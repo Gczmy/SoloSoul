@@ -237,6 +237,42 @@ impl<R: Runtime> KeystorePluginHandle<R> {
         }
     }
 
+    /// 检查 Keystore 中指定密钥别名是否真实存在。
+    /// `authenticator`："weak" 查询 `{alias}_weak`；否则查询主别名。
+    /// 用途：卸载/换机后密钥已被系统擦除，但 keystore_data.json 可能
+    /// 从 SAF 同步残留，用于识别并清理"幽灵开启"的陈旧凭证。
+    pub fn key_exists(&self, alias: &str, authenticator: Option<&str>) -> Result<bool, String> {
+        #[cfg(target_os = "android")]
+        {
+            #[derive(Debug, Clone, Serialize)]
+            struct Payload<'a> {
+                alias: &'a str,
+                #[serde(skip_serializing_if = "Option::is_none")]
+                authenticator: Option<&'a str>,
+            }
+            #[derive(Debug, Clone, Deserialize)]
+            struct Wrapper {
+                exists: bool,
+            }
+            self.handle
+                .run_mobile_plugin::<serde_json::Value>(
+                    "keyExists",
+                    Payload {
+                        alias,
+                        authenticator,
+                    },
+                )
+                .map_err(|e| e.to_string())
+                .and_then(|v| serde_json::from_value::<Wrapper>(v).map_err(|e| e.to_string()))
+                .map(|w| w.exists)
+        }
+        #[cfg(not(target_os = "android"))]
+        {
+            let _ = (alias, authenticator);
+            Err("Keystore storage is only supported on Android".to_string())
+        }
+    }
+
     /// 删除 Keystore 中的密钥别名。
     /// `authenticator`："weak" 只删 `{alias}_weak`；否则只删主别名。
     pub fn delete(&self, alias: &str, authenticator: Option<&str>) -> Result<(), String> {

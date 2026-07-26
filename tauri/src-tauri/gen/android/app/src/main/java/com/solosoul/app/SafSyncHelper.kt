@@ -178,6 +178,9 @@ object SafSyncHelper {
                     if (entry.isRoot && file.name in AppLevelNames.NAMES) {
                         continue
                     }
+                    if (isDeviceBoundCredential(file.name)) {
+                        continue
+                    }
                     if (file.isDirectory) {
                         val existingChild = existingChildren[file.name]
                         val dirUri = if (existingChild != null) {
@@ -319,6 +322,9 @@ object SafSyncHelper {
                     if (entry.isRoot && child.displayName in AppLevelNames.NAMES) {
                         continue
                     }
+                    if (isDeviceBoundCredential(child.displayName)) {
+                        continue
+                    }
                     if (child.mimeType == DocumentsContract.Document.MIME_TYPE_DIR) {
                         val childDir = File(currentLocalDir, child.displayName)
                         // mkdirs() 在目录已存在时返回 false，不代表失败；
@@ -423,6 +429,15 @@ object SafSyncHelper {
         }
         return tempDoc
     }
+
+    /**
+     * 设备绑定凭证文件：Keystore 密钥随卸载/换机即被系统擦除，
+     * 跨设备/跨安装同步只会制造"幽灵开启"的陈旧状态（安全设置显示已开启但无法解锁），
+     * 双向同步均排除，且不限于根级（这些文件位于账户子目录内）。
+     */
+    private fun isDeviceBoundCredential(name: String): Boolean =
+        name == "keystore_data.json" || name == "biometric_key" ||
+            (name.startsWith("pin_") && name.endsWith(".cred"))
 
     private fun getMimeType(fileName: String): String {
         val ext = fileName.substringAfterLast(".", "")
