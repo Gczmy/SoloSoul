@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 
+import { IndeterminateProgressBar } from '@/components/ui/IndeterminateProgressBar';
+
 interface PinInputProps {
   length: number;
   onComplete: (pin: string) => void;
@@ -11,15 +13,6 @@ interface PinInputProps {
 export interface PinInputHandle {
   focus: () => void;
 }
-
-/** 共用渐变横线 CSS 值 */
-const GRADIENT_LINE =
-  'linear-gradient(90deg, ' +
-  'color-mix(in srgb, var(--accent-primary) 10%, var(--accent-warm)) 0%, ' +
-  'color-mix(in srgb, var(--accent-primary) 80%, var(--accent-warm)) 15%, ' +
-  'color-mix(in srgb, var(--accent-primary) 20%, var(--accent-warm)) 50%, ' +
-  'color-mix(in srgb, var(--accent-primary) 80%, var(--accent-warm)) 85%, ' +
-  'color-mix(in srgb, var(--accent-primary) 10%, var(--accent-warm)) 100%)';
 
 /**
  * 数字 PIN 码输入组件。
@@ -170,7 +163,7 @@ export const PinInput = forwardRef<PinInputHandle, PinInputProps>(function PinIn
         ))}
       </div>
 
-      {/* 验证中动画 — 梯度 + 叠加移动光斑 */}
+      {/* 验证中动画 — 与外部存储选择一致的渐变进度条 */}
       <div
         style={{
           position: 'absolute',
@@ -190,42 +183,11 @@ export const PinInput = forwardRef<PinInputHandle, PinInputProps>(function PinIn
             left: '50%',
             transform: 'translate(-50%, -50%)',
             width: totalWidth,
-            height: 4,
-            borderRadius: 2,
-            background: GRADIENT_LINE,
-            backgroundSize: '150% 100%',
-            animation: 'pin-flow 4s linear infinite',
           }}
         >
-          <div
-            style={{
-              position: 'absolute',
-              top: 0,
-              right: 0,
-              bottom: 0,
-              left: 0,
-              borderRadius: 4,
-              background:
-                'repeating-linear-gradient(-45deg, transparent 0px, transparent 10px, rgba(255,255,255,0.25) 12px, transparent 14px)',
-              animation: 'pin-ripple 0.8s linear infinite',
-              mixBlendMode: 'overlay',
-            }}
-          />
+          <IndeterminateProgressBar height={4} />
         </div>
       </div>
-
-      {/* 注入关键帧动画 */}
-      <style>{`
-        @keyframes pin-flow {
-          0% { background-position: 200% 0; }
-          100% { background-position: -200% 0; }
-        }
-        @keyframes pin-ripple {
-          0% { background-position: 0 0; }
-          100% { background-position: 19.8px 0; }
-        }
-
-      `}</style>
     </div>
   );
 });

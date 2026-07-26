@@ -17,6 +17,7 @@ import type { AccountInfo } from '@/lib/ipc';
 import { ICON_SIZE } from '@/lib/constants';
 import { getPlatform } from '@/lib/platform';
 import { pickVaultDirectory, initVaultDirectory } from '@/lib/vaultDirectory';
+import { IndeterminateProgressBar } from '@/components/ui/IndeterminateProgressBar';
 
 interface OnboardingDialogProps {
   onComplete: () => void;
@@ -375,27 +376,7 @@ export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDial
           ) : syncPhase === 'syncing' ? (
             /* SAF 同步中：进度条 + 提示 */
             <>
-              <div
-                style={{
-                  width: '100%',
-                  height: 6,
-                  borderRadius: 3,
-                  background: 'var(--border-subtle)',
-                  overflow: 'hidden',
-                  marginBottom: 20,
-                }}
-              >
-                <div
-                  style={{
-                    width: '30%',
-                    height: '100%',
-                    borderRadius: 3,
-                    background: 'linear-gradient(90deg, var(--accent-primary), var(--accent-warm))',
-                    animation: 'sync-progress-bar 1.5s ease-in-out infinite',
-                    willChange: 'transform',
-                  }}
-                />
-              </div>
+              <IndeterminateProgressBar height={6} style={{ marginBottom: 20 }} />
               <div
                 style={{
                   fontSize: 'var(--text-body)',
