@@ -232,14 +232,17 @@ export function OcrPage() {
     }
   };
 
-  /** 生成 OCR 导入对象的默认名称：前缀 + 当前日期（YYYYMMDD） */
+  /** 生成 OCR 导入对象的默认名称：前缀 + 当前日期时间（YYYYMMDDHHMMSS） */
   const generateDefaultImportName = () => {
     const now = new Date();
     const year = now.getFullYear();
     const month = String(now.getMonth() + 1).padStart(2, '0');
     const day = String(now.getDate()).padStart(2, '0');
-    const date = `${year}${month}${day}`;
-    return t('ocr:import_default_name', { date, defaultValue: `OCR扫描结果${date}` });
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    const datetime = `${year}${month}${day}${hours}${minutes}${seconds}`;
+    return t('ocr:import_default_name', { datetime, defaultValue: `OCR扫描结果${datetime}` });
   };
 
   const handleImportAsObject = (source: 'ocr' | 'mrz') => {
