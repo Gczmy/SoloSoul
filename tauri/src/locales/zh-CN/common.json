@@ -134,6 +134,7 @@
   "minute": "分钟",
   "minutes": "分钟",
   "welcome_back": "欢迎回来",
+  "welcome_back_name": "欢迎回来，{{name}}",
   "vault_description": "您的个人数据保险库。所有数据已加密并本地存储。",
   "search_placeholder": "搜索对象、资料...",
   "searching": "搜索中...",

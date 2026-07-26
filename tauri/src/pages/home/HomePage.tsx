@@ -9,6 +9,7 @@ import { PAGE_ICON_MAP, resolveCustomIcon } from '@/lib/pageIcons';
 import { useActiveCustomPages } from '@/components/layout/useNavigationItems';
 import { CustomPageEditPopover } from '@/components/layout/CustomPageEditPopover';
 import { PageGuide } from '@/components/guide/PageGuide';
+import { useAuthStore } from '@/stores/authStore';
 
 import { useLongPress } from '@/hooks/useLongPress';
 import { LayoutGrid, Zap, Hand } from 'lucide-react';
@@ -175,6 +176,8 @@ export function HomePage() {
   const navigate = useNavigate();
   const { t } = useTranslation(['common', 'navigation']);
   const activeCustomPages = useActiveCustomPages();
+  // 当前账户名，用于欢迎卡片让用户感知正在使用的账户
+  const accountName = useAuthStore((s) => s.currentAccount?.name);
 
   // 移动端启动性能基线：首页对象列表可见时记录 T2（MOB-P1-07）
   // 从解锁完成时刻（__SOLOSOUL_UNLOCK_TIME）开始计算，而非应用启动时刻
@@ -242,7 +245,9 @@ export function HomePage() {
       <PageContainer variant="wide" gap="section">
         <Card>
           <h2 style={{ fontSize: 'var(--text-page-title)', fontWeight: 600, marginBottom: 4 }}>
-            {t('common:welcome_back')}
+            {accountName
+              ? t('common:welcome_back_name', { name: accountName })
+              : t('common:welcome_back')}
           </h2>
           <p style={{ fontSize: 'var(--text-body)', color: 'var(--text-secondary)' }}>
             {t('common:vault_description')}
