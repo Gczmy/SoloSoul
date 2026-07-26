@@ -200,43 +200,45 @@
   }
 }
 
-/* ── SAF sync progress bar (indeterminate scroll) ──────── */
+/* ── SAF sync progress bar (indeterminate scroll) ────────
+   Use translate3d() for GPU acceleration on Android WebView. */
 @keyframes sync-progress-bar {
-  0% { transform: translateX(-100%); }
-  50% { transform: translateX(200%); }
-  100% { transform: translateX(400%); }
+  0% { transform: translate3d(-100%, 0, 0); }
+  50% { transform: translate3d(200%, 0, 0); }
+  100% { transform: translate3d(400%, 0, 0); }
 }
 
 @-webkit-keyframes sync-progress-bar {
-  0% { transform: translateX(-100%); }
-  50% { transform: translateX(200%); }
-  100% { transform: translateX(400%); }
+  0% { -webkit-transform: translate3d(-100%, 0, 0); transform: translate3d(-100%, 0, 0); }
+  50% { -webkit-transform: translate3d(200%, 0, 0); transform: translate3d(200%, 0, 0); }
+  100% { -webkit-transform: translate3d(400%, 0, 0); transform: translate3d(400%, 0, 0); }
 }
 
 /* ── File count numeric bounce animation ────────────────── */
 @keyframes count-bounce {
-  0% { transform: scale(1.4); opacity: 0.7; }
-  40% { transform: scale(0.9); opacity: 1; }
-  70% { transform: scale(1.15); }
-  100% { transform: scale(1); }
+  0% { transform: scale3d(1.4, 1.4, 1); opacity: 0.7; }
+  40% { transform: scale3d(0.9, 0.9, 1); opacity: 1; }
+  70% { transform: scale3d(1.15, 1.15, 1); }
+  100% { transform: scale3d(1, 1, 1); }
 }
 
 @-webkit-keyframes count-bounce {
-  0% { transform: scale(1.4); opacity: 0.7; }
-  40% { transform: scale(0.9); opacity: 1; }
-  70% { transform: scale(1.15); }
-  100% { transform: scale(1); }
+  0% { -webkit-transform: scale3d(1.4, 1.4, 1); opacity: 0.7; }
+  40% { -webkit-transform: scale3d(0.9, 0.9, 1); opacity: 1; }
+  70% { -webkit-transform: scale3d(1.15, 1.15, 1); }
+  100% { -webkit-transform: scale3d(1, 1, 1); }
 }
 
-/* ── File name marquee scroll animation ─────────────────── */
+/* ── File name marquee scroll animation ───────────────────
+   Simplified to avoid calc(min()) on older WebViews. */
 @keyframes text-scroll {
-  0%, 15% { transform: translateX(0); }
-  85%, 100% { transform: translateX(calc(min(-100% + 280px, 0px))); }
+  0%, 12% { transform: translate3d(0, 0, 0); }
+  88%, 100% { transform: translate3d(-100%, 0, 0); }
 }
 
 @-webkit-keyframes text-scroll {
-  0%, 15% { transform: translateX(0); }
-  85%, 100% { transform: translateX(calc(min(-100% + 280px, 0px))); }
+  0%, 12% { -webkit-transform: translate3d(0, 0, 0); transform: translate3d(0, 0, 0); }
+  88%, 100% { -webkit-transform: translate3d(-100%, 0, 0); transform: translate3d(-100%, 0, 0); }
 }
 
 /* ── Skeleton wave ──────────────────────────────────────── */

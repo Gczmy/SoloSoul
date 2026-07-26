@@ -350,6 +350,9 @@ export function LoginPage() {
     if (fromExisting) {
       try {
         await invoke('reset_security_flags', { accountId: selectedAccountId });
+        // 刷新账户列表，让 currentAccount 反映新的 hasBiometricHistory/hasPinHistory 标志，
+        // 同时让安全设置页在重新进入时读取到最新的可用性状态。
+        await listAccounts();
       } catch {
         // 重置失败不阻断登录流程，用户下次启动时再试
       }

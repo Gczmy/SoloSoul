@@ -81,11 +81,12 @@ export function PostLoginSetupGuide() {
     <div
       style={{
         position: 'fixed',
+        left: '50%',
         bottom: 80,
-        right: 20,
+        transform: 'translateX(-50%)',
         zIndex: 900,
         maxWidth: 380,
-        width: '100%',
+        width: 'calc(100% - 40px)',
         background: 'var(--bg-elevated)',
         border: '1px solid var(--border-subtle)',
         borderRadius: 14,
@@ -96,8 +97,8 @@ export function PostLoginSetupGuide() {
     >
       <style>{`
         @keyframes slideUpIn {
-          from { opacity: 0; transform: translateY(16px); }
-          to   { opacity: 1; transform: translateY(0); }
+          from { opacity: 0; transform: translate(-50%, 16px); }
+          to   { opacity: 1; transform: translate(-50%, 0); }
         }
       `}</style>
 

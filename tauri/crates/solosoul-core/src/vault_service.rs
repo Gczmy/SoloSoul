@@ -957,6 +957,30 @@ impl VaultService {
                 }
             }
         }
+        // SAF/外部目录下 VaultFileSystem::remove_file 可能静默失败，
+        // 再用本地 std::fs 路径兜底删除一次关键凭证文件。
+        if let Some(local_dir) = self.fs.local_path(&dir_rel) {
+            let keystore_local = local_dir.join("keystore_data.json");
+            if keystore_local.exists() {
+                if let Err(e) = std::fs::remove_file(&keystore_local) {
+                    tracing::warn!(
+                        "reset_security_flags: failed to remove keystore_data.json at {:?}: {}",
+                        keystore_local,
+                        e
+                    );
+                }
+            }
+            let bio_key_local = local_dir.join("biometric_key");
+            if bio_key_local.exists() {
+                if let Err(e) = std::fs::remove_file(&bio_key_local) {
+                    tracing::warn!(
+                        "reset_security_flags: failed to remove biometric_key at {:?}: {}",
+                        bio_key_local,
+                        e
+                    );
+                }
+            }
+        }
 
         tracing::info!(
             "已重置账户 {} 的安全标志（biometric/pin 已关闭，残留凭证已清理）",

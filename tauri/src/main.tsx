@@ -4,6 +4,7 @@ import App from './App';
 import './styles/tokens.css';
 import './styles/global.css';
 import './styles/themes.css';
+import './styles/animations.css';
 import { initI18n } from './lib/i18n';
 import { initPlatform } from '@/lib/platform';
 import { logger } from '@/lib/logger';
