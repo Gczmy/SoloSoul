@@ -29,6 +29,7 @@ import { logger } from '@/lib/logger';
 import { setGlobalNavigate } from '@/lib/navigation';
 import { useSafSyncStore } from '@/stores/safSyncStore';
 import { SafSyncIndicator } from '@/components/sync/SafSyncIndicator';
+import { PostLoginSetupGuide } from '@/components/guide/PostLoginSetupGuide';
 import type { OcrModelStatus } from '@/lib/ipc';
 import { protectedRoutes, AuthGuard } from './routes';
 import { BootstrapPage } from '@/pages/auth/BootstrapPage';
@@ -429,6 +430,7 @@ export function AppRoutes() {
           <SafSyncIndicator />
         </div>
       )}
+      {isAuthenticated && <PostLoginSetupGuide />}
       <Routes>
         <Route
           path="/bootstrap"

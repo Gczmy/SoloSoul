@@ -406,6 +406,8 @@
   "ai_system_prompt_title": "System Prompt (Context Injection)",
   "ai_system_prompt_software": "Inject software info, user public data and usage stats",
   "ai_system_prompt_desc": "System prompt only includes info you actively share; sensitive data is never sent to AI",
+  "biometric_setup_guide": "Set up Fingerprint / Face Unlock",
+  "pin_setup_guide": "Set up PIN Unlock",
   "biometric_title": "Biometric Unlock",
   "biometric_desc": "Use biometric unlock",
   "biometric_toggle_label": "Use {{type}}",

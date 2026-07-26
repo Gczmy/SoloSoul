@@ -406,6 +406,8 @@
   "ai_system_prompt_title": "系统提示词（上下文注入）",
   "ai_system_prompt_software": "注入软件信息、用户公开数据和使用统计",
   "ai_system_prompt_desc": "系统提示词仅包含您主动公开的信息，敏感数据绝不会发送给 AI",
+  "biometric_setup_guide": "设置指纹/面容解锁",
+  "pin_setup_guide": "设置 PIN 码解锁",
   "biometric_title": "生物识别解锁",
   "biometric_desc": "使用生物识别解锁",
   "biometric_toggle_label": "使用 {{type}}",

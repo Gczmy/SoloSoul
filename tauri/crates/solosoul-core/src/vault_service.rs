@@ -179,6 +179,13 @@ pub struct AccountSummary {
     pub password_hint: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub created_at: Option<String>,
+    /// 该账户是否曾在卸载前启用过生物识别（指纹/人脸）。
+    /// 用于重装后检测到已有账户时，引导用户重新设置。
+    #[serde(default)]
+    pub has_biometric_history: bool,
+    /// 该账户是否曾在卸载前启用过 PIN 码解锁。
+    #[serde(default)]
+    pub has_pin_history: bool,
 }
 
 pub struct VaultService {
@@ -340,7 +347,7 @@ impl VaultService {
         let mut result = Vec::new();
         for entry in &accounts {
             let config_rel = self.config_path_rel(&entry.id);
-            let (salt, verify_hash, password_hint, created_at) =
+            let (salt, verify_hash, password_hint, created_at, has_biometric_history, has_pin_history) =
                 match self.fs.read_file(&config_rel) {
                     Ok(content) => match serde_json::from_slice::<AccountConfig>(&content) {
                         Ok(cfg) => (
@@ -348,10 +355,12 @@ impl VaultService {
                             Some(cfg.verify_hash),
                             cfg.password_hint,
                             Some(cfg.created_at),
+                            cfg.biometric_enabled,
+                            cfg.pin_enabled,
                         ),
-                        Err(_) => (None, None, None, None),
+                        Err(_) => (None, None, None, None, false, false),
                     },
-                    Err(_) => (None, None, None, None),
+                    Err(_) => (None, None, None, None, false, false),
                 };
 
             result.push(AccountSummary {
@@ -361,6 +370,8 @@ impl VaultService {
                 verify_hash,
                 password_hint,
                 created_at,
+                has_biometric_history,
+                has_pin_history,
             });
         }
         result

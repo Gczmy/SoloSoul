@@ -37,6 +37,10 @@ export interface AccountInfo {
   verifyHash?: string;
   passwordHint?: string;
   createdAt?: string;
+  /** 该账户是否曾在卸载前启用过生物识别（指纹/人脸），引导用户重新设置。 */
+  hasBiometricHistory?: boolean;
+  /** 该账户是否曾在卸载前启用过 PIN 码解锁。 */
+  hasPinHistory?: boolean;
 }
 
 export interface ProfileSummary {
