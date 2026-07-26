@@ -31,7 +31,6 @@ export function OcrPage() {
 
   const initialFilePath = (location.state as { filePath?: string } | null)?.filePath || '';
 
-  const [filePath, setFilePath] = useState(initialFilePath);
   const [result, setResult] = useState<OcrResult | null>(null);
   const [mrzResult, setMrzResult] = useState<MrzResult | null>(null);
   const [isScanning, setIsScanning] = useState(false);
@@ -193,7 +192,6 @@ export function OcrPage() {
             : t('ocr:select_file_title'),
       });
       if (path && typeof path === 'string') {
-        setFilePath(path);
         await performScan(path);
       }
     } catch (e) {
@@ -213,7 +211,6 @@ export function OcrPage() {
       try {
         const path = await invoke<string | null>('mobile_ocr_take_photo');
         if (path) {
-          setFilePath(path);
           await performScan(path);
         } else {
           // 相机取消或未返回路径，恢复空闲状态

@@ -68,10 +68,12 @@ export function PromptDialog({
           }}
         />
         <div className={styles.actions}>
-          <Button variant="secondary" type="button" onClick={onCancel}>
+          <Button variant="secondary" type="button" onClick={onCancel} data-testid="prompt-dialog-cancel">
             {cancelLabel ?? t('cancel', { defaultValue: 'Cancel' })}
           </Button>
-          <Button type="submit">{confirmLabel ?? t('confirm', { defaultValue: 'Confirm' })}</Button>
+          <Button type="submit" data-testid="prompt-dialog-confirm">
+            {confirmLabel ?? t('confirm', { defaultValue: 'Confirm' })}
+          </Button>
         </div>
       </form>
     </Dialog>

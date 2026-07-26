@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { OcrPage } from './OcrPage';
 
@@ -190,12 +190,30 @@ describe('OcrPage', () => {
 
     fireEvent.click(screen.getByText('ocr:import_as_object'));
 
+    // 新流程：先弹出名称输入框，输入自定义名称后确认
+    const dialog = await screen.findByRole('dialog');
+    expect(dialog).toBeInTheDocument();
+
+    const input = within(dialog).getByRole('textbox');
+    fireEvent.change(input, { target: { value: 'My OCR Object' } });
+
+    fireEvent.click(within(dialog).getByTestId('prompt-dialog-confirm'));
+
     await waitFor(() => {
       expect(mockCreateObject).toHaveBeenCalledWith({
         accountId: 'test-account',
-        name: 'image.png',
+        name: 'My OCR Object',
         collectionType: 'document',
-        properties: { ocrText: 'Hello World' },
+        properties: {
+          ocrText: 'Hello World',
+          __fields: {
+            ocrText: {
+              name: expect.any(String),
+              type: 'multiline',
+              sensitivityLevel: 'internal',
+            },
+          },
+        },
       });
     });
   });

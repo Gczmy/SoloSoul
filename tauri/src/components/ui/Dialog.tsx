@@ -46,6 +46,8 @@ export function Dialog({
       {/* Dialog content */}
       <div
         className={styles.dialog}
+        role="dialog"
+        aria-modal="true"
         style={dialogStyle}
         onClick={(e) => {
           if (e.target === e.currentTarget) {
