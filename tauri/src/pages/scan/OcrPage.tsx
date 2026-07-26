@@ -255,8 +255,17 @@ export function OcrPage() {
   };
 
   const buildImportProperties = () => {
+    const ocrFieldName = t('ocr:field_ocr_text', { defaultValue: 'OCR 文本' });
+    const __fields = {
+      ocrText: {
+        name: ocrFieldName,
+        type: 'multiline',
+        sensitivityLevel: 'internal',
+      },
+    };
+
     if (pendingImportSource === 'ocr' && result) {
-      return { ocrText: result.text };
+      return { ocrText: result.text, __fields };
     }
     if (pendingImportSource === 'mrz' && mrzResult) {
       const summary = [
@@ -269,7 +278,7 @@ export function OcrPage() {
         `${t('ocr:mrz_field_expiry')}: ${mrzResult.expiryDate}`,
         `${t('ocr:mrz_raw_lines')}:\n${mrzResult.rawLines.join('\n')}`,
       ].join('\n');
-      return { ocrText: summary };
+      return { ocrText: summary, __fields };
     }
     return {};
   };

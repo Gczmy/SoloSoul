@@ -23,6 +23,7 @@
   "import_name_dialog_title": "Enter Object Name",
   "import_name_placeholder": "Object name",
   "import_default_name": "OCR Scan Result {{datetime}}",
+  "field_ocr_text": "OCR Text",
   "import_success": "Document created from OCR",
   "import_failed": "Failed to import document",
   "no_text": "No text detected. Try a clearer image or PDF.",

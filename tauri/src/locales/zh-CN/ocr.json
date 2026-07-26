@@ -23,6 +23,7 @@
   "import_name_dialog_title": "输入导入对象名称",
   "import_name_placeholder": "对象名称",
   "import_default_name": "OCR扫描结果{{datetime}}",
+  "field_ocr_text": "OCR 文本",
   "import_success": "已从 OCR 创建文档",
   "import_failed": "导入文档失败",
   "no_text": "未检测到文字，请尝试更清晰的图片。",
