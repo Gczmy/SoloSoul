@@ -9,12 +9,13 @@ import { useAuthStore } from '@/stores/authStore';
 import { useObjectStore } from '@/stores/objectStore';
 import { useToastError } from '@/hooks/useToastError';
 import { isMobilePlatformSync } from '@/lib/platform';
-import { isUriPath } from '@/lib/mobileFileTransfer';
+
 import { invoke } from '@tauri-apps/api/core';
 import type { OcrResult, OcrTierInfo, OcrModelStatus, MrzResult } from '@/lib/ipc';
 import { OCR_MODEL_SERIES, OCR_MODEL_NOT_INSTALLED_PREFIX } from '@/lib/constants';
 import { getTierLabel } from '@/lib/utils';
 import { MrzResultCard } from '@/components/ocr/MrzResultCard';
+import { PromptDialog } from '@/components/ui/PromptDialog';
 import { Scan, Upload, Download, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/constants';
 
@@ -35,6 +36,9 @@ export function OcrPage() {
   const [mrzResult, setMrzResult] = useState<MrzResult | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
+  const [isNameDialogOpen, setIsNameDialogOpen] = useState(false);
+  const [importNameDefault, setImportNameDefault] = useState('');
+  const [pendingImportSource, setPendingImportSource] = useState<'ocr' | 'mrz' | null>(null);
   const [scanMode, setScanMode] = useState<ScanMode>('general');
 
   const [tiers, setTiers] = useState<OcrTierInfo[]>([]);
@@ -228,23 +232,62 @@ export function OcrPage() {
     }
   };
 
-  const handleImportAsObject = async () => {
-    if (!accountId || !result) return;
+  /** 生成 OCR 导入对象的默认名称：前缀 + 当前日期（YYYYMMDD） */
+  const generateDefaultImportName = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const date = `${year}${month}${day}`;
+    return t('ocr:import_default_name', { date, defaultValue: `OCR扫描结果${date}` });
+  };
+
+  const handleImportAsObject = (source: 'ocr' | 'mrz') => {
+    if (!accountId) return;
+    if (source === 'ocr' && !result) return;
+    if (source === 'mrz' && !mrzResult) return;
+    setPendingImportSource(source);
+    setImportNameDefault(generateDefaultImportName());
+    setIsNameDialogOpen(true);
+  };
+
+  const buildImportProperties = () => {
+    if (pendingImportSource === 'ocr' && result) {
+      return { ocrText: result.text };
+    }
+    if (pendingImportSource === 'mrz' && mrzResult) {
+      const summary = [
+        `${t('ocr:mrz_field_type')}: ${mrzResult.documentType} (${mrzResult.documentTypeSub})`,
+        `${t('ocr:mrz_field_country')}: ${mrzResult.issuingCountry}`,
+        `${t('ocr:mrz_field_number')}: ${mrzResult.documentNumber}`,
+        `${t('ocr:mrz_field_nationality')}: ${mrzResult.nationality}`,
+        `${t('ocr:mrz_field_dob')}: ${mrzResult.dateOfBirth}`,
+        `${t('ocr:mrz_field_sex')}: ${mrzResult.sex}`,
+        `${t('ocr:mrz_field_expiry')}: ${mrzResult.expiryDate}`,
+        `${t('ocr:mrz_raw_lines')}:\n${mrzResult.rawLines.join('\n')}`,
+      ].join('\n');
+      return { ocrText: summary };
+    }
+    return {};
+  };
+
+  const handleConfirmImport = async (name: string) => {
+    if (!accountId || !pendingImportSource) return;
+    setIsNameDialogOpen(false);
     setIsImporting(true);
     try {
       await createObject({
         accountId,
-        name: isUriPath(filePath)
-          ? t('ocr:scanned_document')
-          : filePath.split('/').pop() || t('ocr:scanned_document'),
+        name,
         collectionType: 'document',
-        properties: { ocrText: result.text },
+        properties: buildImportProperties(),
       });
       onSuccess(t('ocr:import_success'));
     } catch (e) {
       onError(e, t('ocr:import_failed'));
     } finally {
       setIsImporting(false);
+      setPendingImportSource(null);
     }
   };
 
@@ -588,7 +631,7 @@ export function OcrPage() {
               <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>
                 {t('ocr:result_title')}
               </h3>
-              <Button size="sm" onClick={handleImportAsObject} loading={isImporting}>
+              <Button size="sm" onClick={() => handleImportAsObject('ocr')} loading={isImporting}>
                 <Upload size={ICON_SIZE.sm} style={{ marginRight: 4 }} />{' '}
                 {t('ocr:import_as_object')}
               </Button>
@@ -669,7 +712,7 @@ export function OcrPage() {
               <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>
                 {t('ocr:mrz_result_title')}
               </h3>
-              <Button size="sm" onClick={handleImportAsObject} loading={isImporting}>
+              <Button size="sm" onClick={() => handleImportAsObject('mrz')} loading={isImporting}>
                 <Upload size={ICON_SIZE.sm} style={{ marginRight: 4 }} />{' '}
                 {t('ocr:import_as_object')}
               </Button>
@@ -677,6 +720,20 @@ export function OcrPage() {
             <MrzResultCard result={mrzResult} />
           </Card>
         )}
+
+        <PromptDialog
+          isOpen={isNameDialogOpen}
+          title={t('ocr:import_name_dialog_title')}
+          defaultValue={importNameDefault}
+          placeholder={t('ocr:import_name_placeholder')}
+          confirmLabel={t('common:confirm')}
+          cancelLabel={t('common:cancel')}
+          onConfirm={handleConfirmImport}
+          onCancel={() => {
+            setIsNameDialogOpen(false);
+            setPendingImportSource(null);
+          }}
+        />
       </PageContainer>
     </AppShell>
   );
