@@ -1,9 +1,9 @@
 //! Android 锁屏状态检测插件
 //!
-//! 通过 `KeyguardManager.isKeyguardLocked` 判断设备当前是否处于锁屏状态，
-//! 供前端 `useAutoLock` 区分「系统锁屏」与「仅切后台」。
+//! Kotlin 侧通过 SCREEN_OFF → USER_PRESENT 事件对与 keyguard 检测判定系统锁屏，
+//! 经 `screen-locked` 事件与 `get_lock_pending` 查询通知前端 `useAutoLock` 锁定 Vault；
+//! 锁屏期间由原生窗口遮盖（dismiss_lock_mask 撤除）防止旧内容闪现。
 
-use serde::{Deserialize, Serialize};
 use tauri::{
     plugin::{Builder, PluginApi, TauriPlugin},
     AppHandle, Manager, Runtime,
@@ -15,13 +15,6 @@ use tauri::plugin::PluginHandle;
 #[cfg(target_os = "android")]
 const PLUGIN_IDENTIFIER: &str = "com.solosoul.app";
 
-/// 锁屏状态查询响应。
-#[derive(Debug, Clone, Deserialize, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct IsScreenLockedResponse {
-    pub locked: bool,
-}
-
 /// 插件句柄包装，便于在 command 中通过 Tauri state 获取。
 pub struct LockStatePluginHandle<R: Runtime> {
     #[cfg(target_os = "android")]
@@ -31,26 +24,6 @@ pub struct LockStatePluginHandle<R: Runtime> {
 }
 
 impl<R: Runtime> LockStatePluginHandle<R> {
-    /// 查询当前是否处于锁屏状态。
-    /// 非 Android 平台始终返回 false（桌面端没有对应的锁屏监听）。
-    pub fn is_screen_locked(&self) -> Result<bool, String> {
-        #[cfg(target_os = "android")]
-        {
-            let response: IsScreenLockedResponse = self
-                .handle
-                .run_mobile_plugin("isScreenLocked", serde_json::json!({}))
-                .map_err(|e| e.to_string())
-                .and_then(|v| {
-                    serde_json::from_value(v).map_err(|e| format!("Invalid response: {}", e))
-                })?;
-            Ok(response.locked)
-        }
-        #[cfg(not(target_os = "android"))]
-        {
-            Ok(false)
-        }
-    }
-
     /// 撤掉锁屏时显示的原生窗口遮盖层。
     /// 非 Android 平台为 no-op（没有对应的原生遮盖）。
     pub fn dismiss_lock_mask(&self) -> Result<(), String> {
@@ -73,7 +46,7 @@ impl<R: Runtime> LockStatePluginHandle<R> {
     pub fn get_lock_pending(&self) -> Result<bool, String> {
         #[cfg(target_os = "android")]
         {
-            #[derive(Debug, Clone, Deserialize)]
+            #[derive(Debug, Clone, serde::Deserialize)]
             struct Wrapper {
                 pending: bool,
             }
@@ -119,14 +92,6 @@ fn register_plugin<R: Runtime>(
         _phantom: std::marker::PhantomData::<fn() -> R>,
     });
     Ok(())
-}
-
-/// 查询当前是否处于锁屏状态。
-/// 桌面端/iOS 始终返回 false。
-#[tauri::command]
-pub fn is_screen_locked<R: Runtime>(app: AppHandle<R>) -> Result<bool, String> {
-    let handle = app.state::<LockStatePluginHandle<R>>();
-    handle.is_screen_locked()
 }
 
 /// 撤掉锁屏时显示的原生窗口遮盖层。

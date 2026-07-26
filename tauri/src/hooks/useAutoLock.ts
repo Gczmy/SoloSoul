@@ -76,7 +76,9 @@ export function useAutoLock(): void {
     const triggerBackgroundSync = () => {
       // 切后台时触发一次 SAF 后台同步（仅在 Android SAF 模式下有效）。
       // 使用 fire-and-forget，不等待结果，避免 WebView 冻结时挂起。
-      invoke('vault_sync_background').catch(() => {});
+      invoke('vault_sync_background').catch((err) =>
+        logger.warn('[useAutoLock] vault_sync_background failed:', err),
+      );
     };
 
     const doLock = () => {
@@ -148,7 +150,9 @@ export function useAutoLock(): void {
         logger.warn('[useAutoLock] dismiss_lock_mask failed:', err),
       );
       // 锁屏时触发一次 SAF 后台同步。
-      invoke('vault_sync_background').catch(() => {});
+      invoke('vault_sync_background').catch((err) =>
+        logger.warn('[useAutoLock] vault_sync_background failed:', err),
+      );
     };
 
     // 回前台时主动拉取未确认的锁屏挂起标记：

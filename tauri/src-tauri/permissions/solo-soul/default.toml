@@ -188,7 +188,6 @@ commands.allow = [
   "attachment_pick_tree_uri",
   "attachment_export_tree_uri",
   "copy_content_uri_to_path",
-  "is_screen_locked",
   "dismiss_lock_mask",
   "get_lock_pending",
   "sync_discover",

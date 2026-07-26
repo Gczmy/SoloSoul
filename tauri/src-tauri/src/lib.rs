@@ -601,7 +601,6 @@ pub fn run() {
             // Window chrome commands
             commands::window::set_titlebar_color,
             status_bar_plugin::set_status_bar_style,
-            lock_state_plugin::is_screen_locked,
             lock_state_plugin::dismiss_lock_mask,
             lock_state_plugin::get_lock_pending,
             // Embedding model commands

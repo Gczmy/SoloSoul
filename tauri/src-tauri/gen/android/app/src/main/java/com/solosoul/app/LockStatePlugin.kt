@@ -1,7 +1,6 @@
 package com.solosoul.app
 
 import android.app.Activity
-import android.app.Application
 import android.app.KeyguardManager
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -9,7 +8,6 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.drawable.ColorDrawable
 import android.os.Build
-import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.util.TypedValue
@@ -22,8 +20,8 @@ import app.tauri.plugin.Plugin
 /**
  * 锁屏状态检测插件。
  *
- * 前台锁屏：在 Activity onPause/onStop 时通过 KeyguardManager.isKeyguardLocked
- * 判断是否为锁屏（而非仅切后台），是则推送 "screen-locked" 事件。
+ * 前台锁屏：插件基类生命周期钩子 onPause/onStop 时通过
+ * KeyguardManager.isKeyguardLocked 判断是否为锁屏（而非仅切后台）。
  *
  * 后台锁屏：灭屏瞬间 keyguard 通常尚未置位，且灭屏后进程很快被冻结，
  * 「灭屏时查 keyguard」是竞态。改为 SCREEN_OFF → USER_PRESENT 事件对：
@@ -34,7 +32,7 @@ import app.tauri.plugin.Plugin
  *
  * 锁定标记（lockedWhileBackgrounded + 持久化）只在 JS 确认后由
  * dismissLockMask 清除：trigger 可能因 WebView 冻结/渲染进程被回收而丢失，
- * 未确认前每次 onResume 都会重新挂遮罩并补达事件；前端启动时也可通过
+ * 未确认前每次 onResume 都会重新挂遮罩并补达事件；前端也可通过
  * getLockPending 主动拉取，保证最终必然收敛到「锁定 + 无遮罩」。
  *
  * 检测到锁屏时先给窗口加不透明遮盖（decorView.foreground），
@@ -63,39 +61,107 @@ class LockStatePlugin(private val activity: Activity): Plugin(activity) {
     companion object {
         private const val PREF_LOCKED_WHILE_BACKGROUNDED = "locked_while_backgrounded"
         private const val PREF_SCREEN_OFF_PENDING = "screen_off_pending"
-    }
 
-    /**
-     * 屏幕状态广播监听。注册在 applicationContext 上，Activity 销毁后仍有效。
-     */
-    private val screenStateReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context, intent: Intent) {
-            when (intent.action) {
-                Intent.ACTION_SCREEN_OFF -> {
-                    setPendingFlag(true)
-                    // 部分 ROM 灭屏即锁，keyguard 可能已置位，同步 + 延迟各查一次
-                    checkKeyguardAndTrigger()
-                    Handler(Looper.getMainLooper()).postDelayed({ checkKeyguardAndTrigger() }, 300)
-                }
-                Intent.ACTION_USER_PRESENT -> {
-                    // keyguard 被解除才发出此广播，此刻进程必定解冻。
-                    // 以 isKeyguardSecure（设备配置了安全锁屏）判定"确实锁过屏"，
-                    // 无安全锁屏设备的纯灭屏不触发锁定。
-                    if (getPendingFlag()) {
-                        setPendingFlag(false)
-                        if (isKeyguardSecure()) {
-                            markLockedAndTrigger()
-                        }
-                    }
+        /**
+         * 进程级 receiver 单例标记：receiver 的职责要求其跨 Activity 存活
+         * （Activity 销毁/重建后仍需捕获后台灭屏与解锁广播），因此只在
+         * 进程内首次 init 时注册到 applicationContext，不随插件实例重复注册。
+         */
+        private var receiverRegistered = false
+
+        /**
+         * 当前存活的插件实例。receiver 收到广播后委托给它处理；
+         * Activity/插件实例重建后 init 自动指向新实例，不持有旧 Activity。
+         */
+        @Volatile
+        private var activeInstance: LockStatePlugin? = null
+
+        private val screenStateReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context, intent: Intent) {
+                val plugin = activeInstance ?: return
+                when (intent.action) {
+                    Intent.ACTION_SCREEN_OFF -> plugin.onScreenOff()
+                    Intent.ACTION_USER_PRESENT -> plugin.onUserPresent()
                 }
             }
         }
     }
 
-    /**
-     * 保存 Application 生命周期回调引用，用于在插件销毁时反注册，避免内存泄漏。
-     */
-    private var lifecycleCallbacks: Application.ActivityLifecycleCallbacks? = null
+    init {
+        activeInstance = this
+        // 进程级单例注册。必须使用 RECEIVER_EXPORTED：这些系统广播在
+        // Android 13+ 用 NOT_EXPORTED 会收不到；系统广播第三方无法伪造，导出安全。
+        if (!receiverRegistered) {
+            val filter = IntentFilter(Intent.ACTION_SCREEN_OFF).apply {
+                addAction(Intent.ACTION_USER_PRESENT)
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                activity.applicationContext.registerReceiver(
+                    screenStateReceiver,
+                    filter,
+                    Context.RECEIVER_EXPORTED,
+                )
+            } else {
+                activity.applicationContext.registerReceiver(screenStateReceiver, filter)
+            }
+            receiverRegistered = true
+        }
+    }
+
+    private fun onScreenOff() {
+        setPendingFlag(true)
+        // 部分 ROM 灭屏即锁，keyguard 可能已置位，同步 + 延迟各查一次
+        checkKeyguardAndTrigger()
+        Handler(Looper.getMainLooper()).postDelayed({
+            if (activity.isFinishing || activity.isDestroyed) return@postDelayed
+            checkKeyguardAndTrigger()
+        }, 300)
+    }
+
+    private fun onUserPresent() {
+        // keyguard 被解除才发出此广播，此刻进程必定解冻。
+        // 以 isKeyguardSecure（设备配置了安全锁屏）判定"确实锁过屏"，
+        // 无安全锁屏设备的纯灭屏不触发锁定。
+        if (getPendingFlag()) {
+            setPendingFlag(false)
+            if (isKeyguardSecure()) {
+                markLockedAndTrigger()
+            }
+        }
+    }
+
+    // ── 插件基类生命周期钩子（Tauri 自动派发，无需自行注册，无泄漏） ──
+
+    override fun onPause() {
+        // onPause 时同步检查一次（按电源键灭屏时 keyguard 可能已置位）
+        checkKeyguardAndTrigger()
+        // keyguard 可能在 onPause 之后才置位，延迟 500ms 再查一次
+        Handler(Looper.getMainLooper()).postDelayed({
+            if (activity.isFinishing || activity.isDestroyed) return@postDelayed
+            checkKeyguardAndTrigger()
+        }, 500)
+    }
+
+    override fun onStop() {
+        // onStop 作为 onPause 的补充检测点
+        checkKeyguardAndTrigger()
+    }
+
+    override fun onResume() {
+        // 灭屏期间 WebView 冻结/渲染进程被回收都可能导致 trigger 丢失，
+        // 只要标记未被 JS 确认清除，回前台就补达事件。
+        // 遮罩立即挂上（赶在首帧前）；trigger 延迟少量时间等 WebView
+        // 恢复 JS 处理，过早发出会丢失（前端另有回前台拉取兜底）。
+        if (lockedWhileBackgrounded || restoreLockedFlag()) {
+            showLockMask()
+            Handler(Looper.getMainLooper()).postDelayed({
+                if (activity.isFinishing || activity.isDestroyed) return@postDelayed
+                if (lockedWhileBackgrounded || restoreLockedFlag()) {
+                    markLockedAndTrigger(force = true)
+                }
+            }, 400)
+        }
+    }
 
     private fun keyguardManager(): KeyguardManager? =
         activity.getSystemService(Context.KEYGUARD_SERVICE) as? KeyguardManager
@@ -106,7 +172,7 @@ class LockStatePlugin(private val activity: Activity): Plugin(activity) {
 
     /**
      * 检查 keyguard 状态，若锁屏则进入锁定分支。
-     * 在 onPause/onStopped、SCREEN_OFF 同步与 postDelayed 重试中调用。
+     * 在 onPause/onStop、SCREEN_OFF 同步与 postDelayed 重试中调用。
      */
     private fun checkKeyguardAndTrigger() {
         try {
@@ -121,9 +187,14 @@ class LockStatePlugin(private val activity: Activity): Plugin(activity) {
     /**
      * 锁定分支：先上遮盖（防 WebView 解冻首帧泄露旧内容），
      * 再置标记并 trigger screen-locked 事件。
+     *
+     * 检测路径幂等：force=false 时若标记已置位说明已触发过，
+     * 直接短路，避免 SCREEN_OFF/onPause/onStop 多检测点重复发事件；
+     * onResume 补达显式 force=true（"JS 确认制"的补达语义依赖它）。
      * 标记不清除——等 JS 通过 dismissLockMask 确认。
      */
-    private fun markLockedAndTrigger() {
+    private fun markLockedAndTrigger(force: Boolean = false) {
+        if (!force && (lockedWhileBackgrounded || restoreLockedFlag())) return
         showLockMask()
         lockedWhileBackgrounded = true
         persistLockedFlag(true)
@@ -205,69 +276,6 @@ class LockStatePlugin(private val activity: Activity): Plugin(activity) {
             }
         } catch (e: Exception) {
             android.util.Log.e("SoloSoul", "LockStatePlugin hideLockMask failed", e)
-        }
-    }
-
-    init {
-        // 注册屏幕状态广播监听（applicationContext，Activity 销毁后仍有效）。
-        // 必须使用 RECEIVER_EXPORTED：这些系统广播在 Android 13+ 用
-        // NOT_EXPORTED 会收不到；系统广播第三方无法伪造，导出安全。
-        val filter = IntentFilter(Intent.ACTION_SCREEN_OFF).apply {
-            addAction(Intent.ACTION_USER_PRESENT)
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            activity.applicationContext.registerReceiver(
-                screenStateReceiver,
-                filter,
-                Context.RECEIVER_EXPORTED,
-            )
-        } else {
-            activity.applicationContext.registerReceiver(screenStateReceiver, filter)
-        }
-
-        // 注册 Application 生命周期回调，监听宿主 Activity 的生命周期事件。
-        lifecycleCallbacks = object : Application.ActivityLifecycleCallbacks {
-            override fun onActivityPaused(act: Activity) {
-                // onPause 时同步检查一次（按电源键灭屏时 keyguard 可能已置位）
-                checkKeyguardAndTrigger()
-                // keyguard 可能在 onPause 之后才置位，延迟 500ms 再查一次
-                Handler(Looper.getMainLooper()).postDelayed({ checkKeyguardAndTrigger() }, 500)
-            }
-            override fun onActivityResumed(act: Activity) {
-                // 灭屏期间 WebView 冻结/渲染进程被回收都可能导致 trigger 丢失，
-                // 只要标记未被 JS 确认清除，回前台就补达事件。
-                // 遮罩立即挂上（赶在首帧前）；trigger 延迟少量时间等 WebView
-                // 恢复 JS 处理，过早发出会丢失（前端另有回前台拉取兜底）。
-                if (lockedWhileBackgrounded || restoreLockedFlag()) {
-                    showLockMask()
-                    Handler(Looper.getMainLooper()).postDelayed({
-                        if (lockedWhileBackgrounded || restoreLockedFlag()) {
-                            markLockedAndTrigger()
-                        }
-                    }, 400)
-                }
-            }
-            override fun onActivityCreated(act: Activity, savedInstanceState: Bundle?) {}
-            override fun onActivityStarted(act: Activity) {}
-            override fun onActivityStopped(act: Activity) {
-                // onStopped 作为 onPause 的补充检测点
-                checkKeyguardAndTrigger()
-            }
-            override fun onActivitySaveInstanceState(act: Activity, outState: Bundle) {}
-            override fun onActivityDestroyed(act: Activity) {}
-        }
-        (activity.applicationContext as Application).registerActivityLifecycleCallbacks(lifecycleCallbacks)
-    }
-
-    @Command
-    fun isScreenLocked(invoke: Invoke) {
-        try {
-            val result = JSObject()
-            result.put("locked", isKeyguardLocked())
-            invoke.resolve(result)
-        } catch (e: Exception) {
-            android.util.Log.e("SoloSoul", "LockStatePlugin.isScreenLocked failed", e)
-            invoke.reject("无法获取锁屏状态")
         }
     }
 
