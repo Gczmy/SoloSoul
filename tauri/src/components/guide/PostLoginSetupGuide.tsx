@@ -32,8 +32,23 @@ export function PostLoginSetupGuide() {
   // Check account history on mount when currentAccount is available
   useEffect(() => {
     if (!currentAccount?.id) return;
-    // Skip if we've already shown the guide for this account
-    if (_shownForAccount.has(currentAccount.id)) return;
+    const accountId = currentAccount.id;
+
+    // Skip if we've already processed this account in the current session
+    if (_shownForAccount.has(accountId)) return;
+
+    // 同步标记已处理，防止后续重渲染/解挂时 async 回调被取消导致永久丢失
+    _shownForAccount.add(accountId);
+
+    // 持久化 reconciled 检查：跨会话不重复提示
+    const reconciledKey = `solosoul_guide_reconciled_${accountId}`;
+    try {
+      if (localStorage.getItem(reconciledKey) === 'true') {
+        return;
+      }
+    } catch {
+      // Ignore localStorage errors
+    }
 
     // Check dismissal count from localStorage
     try {
@@ -46,12 +61,19 @@ export function PostLoginSetupGuide() {
     const hasBioHistory = currentAccount.hasBiometricHistory === true;
     const hasPinHistory = currentAccount.hasPinHistory === true;
 
-    if (!hasBioHistory && !hasPinHistory) return;
+    // 无任何解锁方式历史记录 → 已 reconcil，不再检查
+    if (!hasBioHistory && !hasPinHistory) {
+      try {
+        localStorage.setItem(reconciledKey, 'true');
+      } catch {
+        // Ignore
+      }
+      return;
+    }
 
     // 历史标志只表示「曾经用过」，不代表「本机未配置」。
     // 以当前设备真实配置状态为准：已在安全设置中重新设置过的
     // 解锁方式不再提醒；只有「有历史但本机未配置」才提示。
-    const accountId = currentAccount.id;
     let cancelled = false;
     (async () => {
       let bioConfigured = false;
@@ -75,16 +97,19 @@ export function PostLoginSetupGuide() {
 
       const needBio = hasBioHistory && !bioConfigured;
       const needPin = hasPinHistory && !pinConfigured;
-      // 全部已配置：不再提醒，本会话内也不再重复检查
+      // 全部已配置：不再提醒，标记 reconciled 并跳过
       if (!needBio && !needPin) {
-        _shownForAccount.add(accountId);
+        try {
+          localStorage.setItem(reconciledKey, 'true');
+        } catch {
+          // Ignore
+        }
         return;
       }
 
       setHasBiometric(needBio);
       setHasPin(needPin);
       setShowGuide(true);
-      _shownForAccount.add(accountId);
     })();
     return () => {
       cancelled = true;
