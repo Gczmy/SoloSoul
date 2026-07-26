@@ -114,23 +114,6 @@ export function useAutoLock(): void {
     // 监听原生锁屏事件（Android onPause + KeyguardManager）
     // 使用插件监听器（addPluginListener）而非全局事件 listen：
     // Kotlin 侧 Plugin.trigger 只派发给插件私有 Channel 监听器，与全局事件总线无关。
-    let screenLockedListener: PluginListener | null = null;
-    addPluginListener<{ locked: boolean }>('lock-state', 'screen-locked', () => {
-      try {
-        doLock();
-      } finally {
-        // 撤掉原生锁屏遮盖层（Android；其他平台为 no-op）。
-        // doLock 因幂等保护跳过时也要撤，避免遮盖残留。
-        invoke('dismiss_lock_mask').catch(() => {});
-      }
-      // 锁屏时触发一次 SAF 后台同步。
-      triggerBackgroundSync();
-    })
-      .then((l) => {
-        screenLockedListener = l;
-      })
-      .catch((err) => logger.error('[useAutoLock] listen screen-locked failed:', err));
-
     for (const e of ACTIVITY_EVENTS) {
       window.addEventListener(e, recordActivity, { passive: true });
     }
@@ -143,8 +126,44 @@ export function useAutoLock(): void {
       }
       document.removeEventListener('visibilitychange', onVisibilityChange);
       clearInterval(interval);
-      screenLockedListener?.unregister()?.catch(() => {});
     };
   }, [isAuthenticated, timeoutMinutes, autoLockNotificationEnabled, autoLockOnBackground]);
 
+  // 锁屏锁定（Android）：与闲置超时设置无关，已认证即生效。
+  // 原生侧标记只在 JS 确认（dismiss_lock_mask）后清除：
+  // 事件因 WebView 冻结丢失时会在下次 resume 补达；
+  // 启动时的主动拉取则闭合「渲染进程被回收、事件已在监听器注册前发出」的环路。
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    const handleScreenLocked = () => {
+      useVaultStore
+        .getState()
+        .lock()
+        .catch((err) => logger.error('[useAutoLock] lock failed:', err));
+      // 撤掉原生锁屏遮盖层并清除原生挂起标记（Android；其他平台为 no-op）。
+      // 无论 lock 是否因已锁定而跳过都要执行，避免遮盖/标记残留。
+      invoke('dismiss_lock_mask').catch(() => {});
+      // 锁屏时触发一次 SAF 后台同步。
+      invoke('vault_sync_background').catch(() => {});
+    };
+
+    let screenLockedListener: PluginListener | null = null;
+    addPluginListener<{ locked: boolean }>('lock-state', 'screen-locked', handleScreenLocked)
+      .then((l) => {
+        screenLockedListener = l;
+      })
+      .catch((err) => logger.error('[useAutoLock] listen screen-locked failed:', err));
+
+    // 启动/认证后主动拉取未确认的锁屏挂起标记
+    invoke<boolean>('get_lock_pending')
+      .then((pending) => {
+        if (pending) handleScreenLocked();
+      })
+      .catch(() => {});
+
+    return () => {
+      screenLockedListener?.unregister()?.catch(() => {});
+    };
+  }, [isAuthenticated]);
 }

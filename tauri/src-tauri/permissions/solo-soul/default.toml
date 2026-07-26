@@ -190,6 +190,7 @@ commands.allow = [
   "copy_content_uri_to_path",
   "is_screen_locked",
   "dismiss_lock_mask",
+  "get_lock_pending",
   "sync_discover",
   "sync_listen_port",
   "sync_get_status",

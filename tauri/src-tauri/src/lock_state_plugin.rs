@@ -66,6 +66,28 @@ impl<R: Runtime> LockStatePluginHandle<R> {
             Ok(())
         }
     }
+
+    /// 查询是否有未被 JS 确认的锁屏挂起标记。
+    /// 前端启动/认证后主动拉取，闭合「事件已丢失但标记仍在」的环路。
+    /// 非 Android 平台始终返回 false。
+    pub fn get_lock_pending(&self) -> Result<bool, String> {
+        #[cfg(target_os = "android")]
+        {
+            #[derive(Debug, Clone, Deserialize)]
+            struct Wrapper {
+                pending: bool,
+            }
+            self.handle
+                .run_mobile_plugin::<serde_json::Value>("getLockPending", serde_json::json!({}))
+                .map_err(|e| e.to_string())
+                .and_then(|v| serde_json::from_value::<Wrapper>(v).map_err(|e| e.to_string()))
+                .map(|w| w.pending)
+        }
+        #[cfg(not(target_os = "android"))]
+        {
+            Ok(false)
+        }
+    }
 }
 
 /// 初始化插件：注册 Android Kotlin 插件并将句柄存入 state。
@@ -113,4 +135,12 @@ pub fn is_screen_locked<R: Runtime>(app: AppHandle<R>) -> Result<bool, String> {
 pub fn dismiss_lock_mask<R: Runtime>(app: AppHandle<R>) -> Result<(), String> {
     let handle = app.state::<LockStatePluginHandle<R>>();
     handle.dismiss_lock_mask()
+}
+
+/// 查询是否有未被 JS 确认的锁屏挂起标记。
+/// 前端启动/认证后主动拉取；桌面端/iOS 始终返回 false。
+#[tauri::command]
+pub fn get_lock_pending<R: Runtime>(app: AppHandle<R>) -> Result<bool, String> {
+    let handle = app.state::<LockStatePluginHandle<R>>();
+    handle.get_lock_pending()
 }

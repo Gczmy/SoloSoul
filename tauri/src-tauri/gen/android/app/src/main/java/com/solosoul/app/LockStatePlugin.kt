@@ -28,27 +28,29 @@ import app.tauri.plugin.Plugin
  * 后台锁屏：灭屏瞬间 keyguard 通常尚未置位，且灭屏后进程很快被冻结，
  * 「灭屏时查 keyguard」是竞态。改为 SCREEN_OFF → USER_PRESENT 事件对：
  * - ACTION_SCREEN_OFF（不区分电源键/超时自动灭屏）：置 pending 标记；
- * - ACTION_USER_PRESENT：只有 keyguard 出现并被解除时系统才发出，
- *   且此刻进程必定解冻，是"确实锁过屏"的铁证 → 触发锁定；
- * - ACTION_SCREEN_ON：点亮时 keyguard 未锁（无锁屏密码设备纯灭屏）→
- *   清除 pending，保持"锁屏才锁、纯灭屏不锁"语义。
+ * - ACTION_USER_PRESENT：keyguard 被解除时系统发出，此刻进程必定解冻。
+ *   仅当设备配置了安全锁屏（isKeyguardSecure：PIN/图案/密码/生物识别）
+ *   才确认"确实锁过屏"并触发锁定，随后清除 pending。
+ *
+ * 锁定标记（lockedWhileBackgrounded + 持久化）只在 JS 确认后由
+ * dismissLockMask 清除：trigger 可能因 WebView 冻结/渲染进程被回收而丢失，
+ * 未确认前每次 onResume 都会重新挂遮罩并补达事件；前端启动时也可通过
+ * getLockPending 主动拉取，保证最终必然收敛到「锁定 + 无遮罩」。
  *
  * 检测到锁屏时先给窗口加不透明遮盖（decorView.foreground），
  * 避免 WebView 解冻首帧泄露旧页面内容；前端进入登录页后调用
- * dismissLockMask 撤掉遮盖。
- *
- * 事件可能在 WebView 冻结时发出，回到前台后按持久化标记补达。
+ * dismissLockMask 撤掉遮盖并清除全部标记。
  */
 @TauriPlugin
 class LockStatePlugin(private val activity: Activity): Plugin(activity) {
 
     /**
-     * 标记灭屏期间是否检测到锁屏，用于 onResume 时补达事件。
-     * WebView 冻结可能导致 trigger 发出的事件在回前台时丢失。
+     * 标记灭屏期间是否检测到锁屏。注意：不在 trigger 时清除，
+     * 只有 JS 确认（dismissLockMask）后才清除，防止事件丢失后状态失联。
      */
     private var lockedWhileBackgrounded = false
 
-    /** 锁屏遮盖是否已显示（幂等控制）。 */
+    /** 锁屏遮盖是否已显示（仅用于 show 幂等；hide 不设门槛，随时可撤）。 */
     private var lockMaskShown = false
 
     /**
@@ -76,17 +78,14 @@ class LockStatePlugin(private val activity: Activity): Plugin(activity) {
                     Handler(Looper.getMainLooper()).postDelayed({ checkKeyguardAndTrigger() }, 300)
                 }
                 Intent.ACTION_USER_PRESENT -> {
-                    // keyguard 被解除才发出此广播，本身即"确实锁过屏"的铁证，
-                    // 无需再查 keyguard（此刻它已复位为 false）
+                    // keyguard 被解除才发出此广播，此刻进程必定解冻。
+                    // 以 isKeyguardSecure（设备配置了安全锁屏）判定"确实锁过屏"，
+                    // 无安全锁屏设备的纯灭屏不触发锁定。
                     if (getPendingFlag()) {
                         setPendingFlag(false)
-                        markLockedAndTrigger()
-                    }
-                }
-                Intent.ACTION_SCREEN_ON -> {
-                    // 无锁屏密码设备纯灭屏：点亮时 keyguard 未锁，清除挂起避免误锁
-                    if (getPendingFlag() && !isKeyguardLocked()) {
-                        setPendingFlag(false)
+                        if (isKeyguardSecure()) {
+                            markLockedAndTrigger()
+                        }
                     }
                 }
             }
@@ -98,10 +97,12 @@ class LockStatePlugin(private val activity: Activity): Plugin(activity) {
      */
     private var lifecycleCallbacks: Application.ActivityLifecycleCallbacks? = null
 
-    private fun isKeyguardLocked(): Boolean {
-        val km = activity.getSystemService(Context.KEYGUARD_SERVICE) as? KeyguardManager
-        return km?.isKeyguardLocked == true
-    }
+    private fun keyguardManager(): KeyguardManager? =
+        activity.getSystemService(Context.KEYGUARD_SERVICE) as? KeyguardManager
+
+    private fun isKeyguardLocked(): Boolean = keyguardManager()?.isKeyguardLocked == true
+
+    private fun isKeyguardSecure(): Boolean = keyguardManager()?.isKeyguardSecure == true
 
     /**
      * 检查 keyguard 状态，若锁屏则进入锁定分支。
@@ -120,6 +121,7 @@ class LockStatePlugin(private val activity: Activity): Plugin(activity) {
     /**
      * 锁定分支：先上遮盖（防 WebView 解冻首帧泄露旧内容），
      * 再置标记并 trigger screen-locked 事件。
+     * 标记不清除——等 JS 通过 dismissLockMask 确认。
      */
     private fun markLockedAndTrigger() {
         showLockMask()
@@ -145,8 +147,7 @@ class LockStatePlugin(private val activity: Activity): Plugin(activity) {
     }
 
     /**
-     * 灭屏挂起标记：SCREEN_OFF 置位，USER_PRESENT 确认后清除，
-     * SCREEN_ON 时 keyguard 未锁（无锁屏设备）也会清除。
+     * 灭屏挂起标记：SCREEN_OFF 置位，USER_PRESENT 确认后清除。
      */
     private fun setPendingFlag(value: Boolean) {
         prefs.edit().putBoolean(PREF_SCREEN_OFF_PENDING, value).apply()
@@ -154,18 +155,6 @@ class LockStatePlugin(private val activity: Activity): Plugin(activity) {
 
     private fun getPendingFlag(): Boolean {
         return prefs.getBoolean(PREF_SCREEN_OFF_PENDING, false)
-    }
-
-    /**
-     * 触发 screen-locked 事件，并清理锁屏标记。
-     */
-    private fun triggerScreenLocked() {
-        showLockMask()
-        lockedWhileBackgrounded = false
-        persistLockedFlag(false)
-        val payload = JSObject()
-        payload.put("locked", true)
-        trigger("screen-locked", payload)
     }
 
     /** 在主线程执行（已在主线程则直接执行，保证 onResume 中遮盖早于首帧绘制）。 */
@@ -204,9 +193,11 @@ class LockStatePlugin(private val activity: Activity): Plugin(activity) {
         }
     }
 
-    /** 撤掉锁屏遮盖（前端进入登录页后调用）。 */
+    /**
+     * 撤掉锁屏遮盖。不设实例态门槛：foreground = null 幂等，
+     * 即使遮盖由已重建的旧插件实例挂上也能撤掉。
+     */
     private fun hideLockMask() {
-        if (!lockMaskShown) return
         try {
             onUi {
                 activity.window.decorView.foreground = null
@@ -222,7 +213,6 @@ class LockStatePlugin(private val activity: Activity): Plugin(activity) {
         // 必须使用 RECEIVER_EXPORTED：这些系统广播在 Android 13+ 用
         // NOT_EXPORTED 会收不到；系统广播第三方无法伪造，导出安全。
         val filter = IntentFilter(Intent.ACTION_SCREEN_OFF).apply {
-            addAction(Intent.ACTION_SCREEN_ON)
             addAction(Intent.ACTION_USER_PRESENT)
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -244,11 +234,11 @@ class LockStatePlugin(private val activity: Activity): Plugin(activity) {
                 Handler(Looper.getMainLooper()).postDelayed({ checkKeyguardAndTrigger() }, 500)
             }
             override fun onActivityResumed(act: Activity) {
-                // 灭屏期间 WebView 冻结可能导致 trigger 事件丢失，
-                // 回前台时补达一次。doLock 有 lockInitiated 幂等保护。
+                // 灭屏期间 WebView 冻结/渲染进程被回收都可能导致 trigger 丢失，
+                // 只要标记未被 JS 确认清除，回前台就重新挂遮罩并补达事件。
                 // 同时读取持久化标记，防止进程回收后成员变量丢失。
                 if (lockedWhileBackgrounded || restoreLockedFlag()) {
-                    triggerScreenLocked()
+                    markLockedAndTrigger()
                 }
             }
             override fun onActivityCreated(act: Activity, savedInstanceState: Bundle?) {}
@@ -275,10 +265,33 @@ class LockStatePlugin(private val activity: Activity): Plugin(activity) {
         }
     }
 
+    /**
+     * 查询是否有未被 JS 确认的锁屏挂起标记。
+     * 前端启动/认证后主动拉取，闭合「事件已丢失但标记仍在」的环路。
+     */
+    @Command
+    fun getLockPending(invoke: Invoke) {
+        try {
+            val result = JSObject()
+            result.put("pending", lockedWhileBackgrounded || restoreLockedFlag())
+            invoke.resolve(result)
+        } catch (e: Exception) {
+            android.util.Log.e("SoloSoul", "LockStatePlugin.getLockPending failed", e)
+            invoke.reject("getLockPending failed: ${e.message}")
+        }
+    }
+
+    /**
+     * JS 确认点：撤掉锁屏遮盖并清除全部锁屏/挂起标记。
+     * 前端完成锁定进入登录页后调用。
+     */
     @Command
     fun dismissLockMask(invoke: Invoke) {
         try {
             hideLockMask()
+            lockedWhileBackgrounded = false
+            persistLockedFlag(false)
+            setPendingFlag(false)
             invoke.resolve(JSObject())
         } catch (e: Exception) {
             android.util.Log.e("SoloSoul", "LockStatePlugin.dismissLockMask failed", e)
