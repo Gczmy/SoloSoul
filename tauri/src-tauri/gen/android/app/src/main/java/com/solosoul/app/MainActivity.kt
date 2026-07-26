@@ -37,7 +37,12 @@ class MainActivity : TauriActivity() {
   }
 
   override fun onCreate(savedInstanceState: Bundle?) {
-    enableEdgeToEdge()
+    // 小窗/多窗口模式下不启用 edge-to-edge：decorFitsSystemWindows=true 时
+    // 系统自动把 WebView 内容排在窗口标题栏（caption bar）之下，
+    // 避免前端 env(safe-area-inset-top)=0 导致内容被标题栏遮挡。
+    if (!isInMultiWindowMode) {
+      enableEdgeToEdge()
+    }
     super.onCreate(savedInstanceState)
     // 启动时根据系统主题同步状态栏图标颜色，避免 WebView 加载前出现黑白不匹配。
     syncStatusBarStyleWithSystemTheme()
@@ -57,6 +62,13 @@ class MainActivity : TauriActivity() {
     handleShortcutIntent(intent)
     // 热启动时也可能遇到 WebView 尚未就绪，重新启动 flush 轮询
     schedulePendingShortcutFlush()
+  }
+
+  override fun onMultiWindowModeChanged(isInMultiWindowMode: Boolean, newConfig: Configuration) {
+    super.onMultiWindowModeChanged(isInMultiWindowMode, newConfig)
+    // 运行时进出小窗/分屏模式时同步切换 decor 布局模式：
+    // 多窗口下由系统把内容排在标题栏之下，回全屏恢复 edge-to-edge 沉浸。
+    WindowCompat.setDecorFitsSystemWindows(window, !isInMultiWindowMode)
   }
 
   override fun onResume() {
