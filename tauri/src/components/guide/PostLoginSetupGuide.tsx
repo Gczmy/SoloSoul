@@ -1,11 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/authStore';
-import { invoke } from '@tauri-apps/api/core';
 import { useNavigate } from 'react-router-dom';
 import { Fingerprint, Grip, X } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/constants';
-import { logger } from '@/lib/logger';
 
 /** localStorage key for guide dismissal count tracking. */
 const LS_GUIDE_DISMISS_COUNT = 'solosoul_setup_guide_dismiss_count';
