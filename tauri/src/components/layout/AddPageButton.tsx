@@ -18,6 +18,11 @@ import {
 import { SYSTEM_PAGE_KEYS } from './useNavigationItems';
 import { ICON_SIZE, SAFE_AREA_TOP, SAFE_AREA_BOTTOM } from '@/lib/constants';
 
+/** 预留的顶部空间：移动 AppBar (48px) + 安全区 + 8px 边距；
+ * 桌面端 AppBar 为 56px，64px 也能满足。 */
+const TOP_RESERVED_OFFSET = 64;
+const MOBILE_APP_BAR_HEIGHT = 48;
+
 // =============================================================================
 // AddPageButton — "+" button with popover for name + icon selection
 // =============================================================================
@@ -289,11 +294,12 @@ export function AddPageButton({
                     : 'auto',
                 margin: isBottom ? '0 auto' : undefined,
                 top: isBottom
-                  ? 'auto'
+                  ? `calc(${MOBILE_APP_BAR_HEIGHT}px + ${SAFE_AREA_TOP} + 8px)`
                   : buttonRect
-                    ? isHorizontal
-                      ? buttonRect.bottom + 8
-                      : buttonRect.top
+                    ? Math.max(
+                        isHorizontal ? buttonRect.bottom + 8 : buttonRect.top,
+                        TOP_RESERVED_OFFSET,
+                      )
                     : '50%',
                 bottom: isBottom
                   ? buttonRect
@@ -311,8 +317,9 @@ export function AddPageButton({
                 border: '1px solid var(--border-subtle)',
                 transformOrigin: 'top',
                 maxWidth: 'calc(100vw - 32px)',
-                maxHeight:
-                  `calc(100vh - ${SAFE_AREA_TOP} - ${SAFE_AREA_BOTTOM} - 32px)`,
+                maxHeight: isBottom
+                  ? undefined
+                  : `calc(100vh - ${SAFE_AREA_TOP} - ${SAFE_AREA_BOTTOM} - 32px)`,
                 overflowY: 'auto',
               }}
             >
