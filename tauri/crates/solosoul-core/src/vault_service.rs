@@ -905,6 +905,66 @@ impl VaultService {
         self.fs.is_remote()
     }
 
+    /// 重置账户的安全标志（生物识别/PIN 已启用状态）到关闭状态。
+    ///
+    /// 用于重装后选择已有外部目录并登录的场景：旧 config.json 中可能残留了前一次安装
+    /// 的 biometric_enabled/pin_enabled=true，但实际 KeyStore 凭证与 PIN 文件已被卸载清除。
+    /// 此方法将这些标志复位，避免用户进入安全设置后看到"已启用"但实际无法使用的状态。
+    ///
+    /// 同时清理 `keystore_data.json`、`biometric_key`、`pin_*.cred` 等凭证残留文件。
+    pub fn reset_security_flags(&self, account_id: &str) -> Result<(), String> {
+        let config_rel = self.config_path_rel(account_id);
+        let content = self
+            .fs
+            .read_file(&config_rel)
+            .map_err(|_| "Account not found".to_string())?;
+        let content =
+            String::from_utf8(content).map_err(|_| "Config encoding error".to_string())?;
+        let mut config: AccountConfig =
+            serde_json::from_str(&content).map_err(|_| "Config parse error".to_string())?;
+
+        config.biometric_enabled = false;
+        config.pin_enabled = false;
+        config.pin_length = 0;
+        config.pin_failed_attempts = 0;
+        config.pin_locked_until = None;
+
+        let json = serde_json::to_string_pretty(&config).map_err(|e| e.to_string())?;
+        self.fs.write_file(&config_rel, json.as_bytes())?;
+
+        // 清理可能残留的凭证文件
+        let dir_rel = self.account_dir_rel(account_id);
+        // keystore_data.json（Android 双槽凭证）
+        let keystore_path_rel = format!("{dir_rel}/keystore_data.json");
+        if self.fs.exists(&keystore_path_rel).unwrap_or(false) {
+            let _ = self.fs.remove_file(&keystore_path_rel);
+        }
+        // legacy biometric_key 文件
+        let bio_key_rel = format!("{dir_rel}/biometric_key");
+        if self.fs.exists(&bio_key_rel).unwrap_or(false) {
+            let _ = self.fs.remove_file(&bio_key_rel);
+        }
+        // PIN 凭证文件（pin_<hash>.cred）
+        // 通过本地路径枚举删除
+        if let Some(local_dir) = self.fs.local_path(&dir_rel) {
+            if let Ok(entries) = std::fs::read_dir(&local_dir) {
+                for entry in entries.flatten() {
+                    let name = entry.file_name();
+                    let name_str = name.to_string_lossy();
+                    if name_str.starts_with("pin_") && name_str.ends_with(".cred") {
+                        let _ = std::fs::remove_file(entry.path());
+                    }
+                }
+            }
+        }
+
+        tracing::info!(
+            "已重置账户 {} 的安全标志（biometric/pin 已关闭，残留凭证已清理）",
+            account_id
+        );
+        Ok(())
+    }
+
     pub fn update_password_hint(&self, account_id: &str, hint: &str) -> Result<(), String> {
         let config_rel = self.config_path_rel(account_id);
         let content = self

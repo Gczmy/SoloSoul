@@ -105,6 +105,27 @@ pub async fn login(
     .map_err(|e| format!("Login task failed: {}", e))?
 }
 
+/// 重置账户的安全标志（生物识别、PIN 等）到初始关闭状态。
+///
+/// 用于重装后从已有外部目录登录的场景：config.json 中的旧标志会在卸载后残留，
+/// 但实际凭证（KeyStore 条目、PIN 文件）已被清除。此命令将标志复位，
+/// 避免用户在安全设置中看到「已启用」但实际无法使用的状态。
+#[tauri::command]
+pub async fn reset_security_flags(
+    state: State<'_, AppState>,
+    account_id: String,
+) -> Result<(), String> {
+    let vault_service = state.vault_service.clone();
+    tokio::task::spawn_blocking(move || {
+        let svc = vault_service
+            .read()
+            .map_err(|_| "Vault service lock poisoned".to_string())?;
+        svc.reset_security_flags(&account_id)
+    })
+    .await
+    .map_err(|e| format!("reset_security_flags task failed: {}", e))?
+}
+
 /// Verify the master password and unlock the vault without writing an audit log.
 /// Used when re-authenticating to reveal critical fields, so the resulting
 /// critical-field audit entry is the only log produced.

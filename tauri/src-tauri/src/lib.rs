@@ -386,6 +386,7 @@ pub fn run() {
             commands::auth::get_current_account,
             commands::auth::verify_password,
             commands::auth::unlock_with_password,
+            commands::auth::reset_security_flags,
             // Vault commands
             commands::vault::unlock,
             commands::vault::lock,

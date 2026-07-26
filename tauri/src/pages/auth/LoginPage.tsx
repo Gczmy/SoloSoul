@@ -344,6 +344,16 @@ export function LoginPage() {
       return;
     }
     await login(selectedAccountId, password);
+    // 从已有外部目录登录后，config.json 中可能残留旧的安全标志（biometric/pin enabled），
+    // 但实际 KeyStore 凭证和 PIN 文件已被卸载清除。立即复位这些标志，
+    // 避免用户在安全设置中看到「已启用」但实际无法使用的状态。
+    if (fromExisting) {
+      try {
+        await invoke('reset_security_flags', { accountId: selectedAccountId });
+      } catch {
+        // 重置失败不阻断登录流程，用户下次启动时再试
+      }
+    }
   };
 
   // ==== 构建可用解锁方式列表 ====
