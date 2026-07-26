@@ -375,23 +375,6 @@ export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDial
           ) : syncPhase === 'syncing' ? (
             /* SAF 同步中：进度条 + 提示 */
             <>
-              <style>{`
-                @keyframes sync-progress-bar {
-                  0% { transform: translateX(-100%); }
-                  50% { transform: translateX(200%); }
-                  100% { transform: translateX(400%); }
-                }
-                @keyframes count-bounce {
-                  0% { transform: scale(1.4); opacity: 0.7; }
-                  40% { transform: scale(0.9); opacity: 1; }
-                  70% { transform: scale(1.15); }
-                  100% { transform: scale(1); }
-                }
-                @keyframes text-scroll {
-                  0%, 15% { transform: translateX(0); }
-                  85%, 100% { transform: translateX(calc(min(-100% + 280px, 0px))); }
-                }
-              `}</style>
               <div
                 style={{
                   width: '100%',
@@ -409,6 +392,7 @@ export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDial
                     borderRadius: 3,
                     background: 'linear-gradient(90deg, var(--accent-primary), var(--accent-warm))',
                     animation: 'sync-progress-bar 1.5s ease-in-out infinite',
+                    willChange: 'transform',
                   }}
                 />
               </div>
@@ -428,6 +412,7 @@ export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDial
                       display: 'inline-block',
                       animation: 'text-scroll 4s ease-in-out infinite',
                       paddingRight: 8,
+                      willChange: 'transform',
                     }}
                   >
                     {t('onboarding_vault_dir_syncing_file', {
@@ -453,6 +438,7 @@ export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDial
                       style={{
                         display: 'inline-block',
                         animation: 'count-bounce 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                        willChange: 'transform',
                       }}
                     >
                       {t('onboarding_vault_dir_sync_count', { count: syncFileCount })}
