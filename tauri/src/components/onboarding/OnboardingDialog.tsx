@@ -174,7 +174,7 @@ export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDial
     // 刷新全局账户状态，让 AppRoutes 自动路由到 /login
     await useAuthStore.getState().checkHasAccount();
     onComplete();
-    navigate('/login', { replace: true });
+    navigate('/login?fromExisting=true', { replace: true });
   }, [navigate, onComplete]);
 
   const handleCreateNewAccount = useCallback(async () => {

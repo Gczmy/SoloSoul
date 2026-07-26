@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { useAuthStore } from '@/stores/authStore';
@@ -42,6 +42,8 @@ export function LoginPage() {
     accounts,
     clearError,
   } = useAuthStore();
+  const [searchParams] = useSearchParams();
+  const fromExisting = searchParams.get('fromExisting') === 'true';
   const [selectedAccountId, setSelectedAccountId] = useState('');
   const [password, setPassword] = useState('');
   const { t } = useTranslation(['auth', 'common', 'settings']);
@@ -146,6 +148,15 @@ export function LoginPage() {
     abortRef.current = controller;
     if (!selectedAccountId) {
       // 尚未选中账户时保持缓存值，不触发优先级设置 effect，避免覆盖缓存
+      return () => controller.abort();
+    }
+
+    // 从 SAF 已有账户登录时，旧安装的生物识别/PIN 凭证已失效，强制仅显示主密码
+    if (fromExisting) {
+      setBioChecked(true);
+      setPinChecked(true);
+      setBioAvailable(false);
+      setPinAvailable(false);
       return () => controller.abort();
     }
 
