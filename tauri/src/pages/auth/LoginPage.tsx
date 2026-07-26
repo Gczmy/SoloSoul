@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
-import { useAuthStore } from '@/stores/authStore';
+import { useAuthStore, saveLastAccountId, LAST_ACCOUNT_KEY } from '@/stores/authStore';
 import { useApplyThemeFromSettings } from '@/hooks/useApplyThemeFromSettings';
 import type { AccountInfo } from '@/lib/ipc';
 import { getBiometricErrorMessage } from '@/lib/biometricError';
@@ -126,10 +126,17 @@ export function LoginPage() {
     if (isAuthenticated) navigate('/');
   }, [hasAccount, isAuthenticated, navigate]);
 
-  // Auto-select first account
+  // Auto-select last logged-in account (fall back to first account)
   useEffect(() => {
     if (accounts.length > 0 && !selectedAccountId) {
-      setSelectedAccountId(accounts[0].id);
+      let lastId = '';
+      try {
+        lastId = localStorage.getItem(LAST_ACCOUNT_KEY) || '';
+      } catch {
+        lastId = '';
+      }
+      const target = accounts.find((a) => a.id === lastId) || accounts[0];
+      setSelectedAccountId(target.id);
     }
   }, [accounts, selectedAccountId]);
 
@@ -263,8 +270,9 @@ export function LoginPage() {
           action: 'unlock',
         });
         (window as typeof window & { __SOLOSOUL_UNLOCK_TIME?: number }).__SOLOSOUL_UNLOCK_TIME = t0;
-        useAuthStore.setState({ isAuthenticated: true, currentAccount: acc });
-        // PIN 解锁后延迟检查备份提醒
+      saveLastAccountId(acc.id);
+      useAuthStore.setState({ isAuthenticated: true, currentAccount: acc });
+      // PIN 解锁后延迟检查备份提醒
         setTimeout(() => {
           import('@/lib/notification')
             .then((m) => m.checkBackupReminder())
@@ -310,6 +318,7 @@ export function LoginPage() {
         id: selectedAccountId,
         name: selectedAccountId,
       };
+      saveLastAccountId(acc.id);
       useAuthStore.setState({ isAuthenticated: true, currentAccount: acc, accounts: accs });
       success = true;
       (window as typeof window & { __SOLOSOUL_UNLOCK_TIME?: number }).__SOLOSOUL_UNLOCK_TIME = t0;

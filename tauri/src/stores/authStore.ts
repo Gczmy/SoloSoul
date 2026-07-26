@@ -3,6 +3,17 @@ import { invoke } from '@tauri-apps/api/core';
 import type { AccountInfo } from '@/lib/ipc';
 import { logger } from '@/lib/logger';
 
+export const LAST_ACCOUNT_KEY = 'solosoul_last_account_id';
+
+/** 持久化最近一次成功登录的账户 ID，供登录页默认选中 */
+export function saveLastAccountId(accountId: string) {
+  try {
+    localStorage.setItem(LAST_ACCOUNT_KEY, accountId);
+  } catch {
+    // localStorage 不可用时静默降级
+  }
+}
+
 interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
@@ -87,6 +98,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         locale,
         passwordHint,
       });
+      saveLastAccountId(account.id);
       set({
         isAuthenticated: true,
         currentAccount: account,
@@ -116,6 +128,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         id: accountId,
         name: accountId,
       };
+      saveLastAccountId(account.id);
       // 记录解锁完成时刻供 T2 性能基线使用
       (window as typeof window & { __SOLOSOUL_UNLOCK_TIME?: number }).__SOLOSOUL_UNLOCK_TIME =
         performance.now();
