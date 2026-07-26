@@ -140,6 +140,10 @@ pub struct UiPreferences {
     pub language: String,
     #[serde(default)]
     pub has_seen_onboarding: bool,
+    /// 应用级"已请求过通知权限"标记：系统权限对话框每次安装最多弹一次，
+    /// 避免每个新账户首次触发备份提醒时重复弹窗。
+    #[serde(default)]
+    pub notification_permission_requested: bool,
 }
 
 impl Default for UiPreferences {
@@ -149,6 +153,7 @@ impl Default for UiPreferences {
             accent_color: "ocean".to_string(),
             language: String::new(),
             has_seen_onboarding: false,
+            notification_permission_requested: false,
         }
     }
 }
@@ -317,12 +322,14 @@ mod tests {
             accent_color: "rose".to_string(),
             language: "zh-CN".to_string(),
             has_seen_onboarding: true,
+            notification_permission_requested: false,
         };
         let json = serde_json::to_string(&original).unwrap();
         assert!(json.contains("\"theme\":\"dark\""));
         assert!(json.contains("\"accentColor\":\"rose\""));
         assert!(json.contains("\"language\":\"zh-CN\""));
         assert!(json.contains("\"hasSeenOnboarding\":true"));
+        assert!(json.contains("\"notificationPermissionRequested\":false"));
         let restored: UiPreferences = serde_json::from_str(&json).unwrap();
         assert_eq!(restored.theme, original.theme);
         assert_eq!(restored.accent_color, original.accent_color);
@@ -487,6 +494,7 @@ mod tests {
             accent_color: "ocean".to_string(),
             language: "zh-CN".to_string(),
             has_seen_onboarding: true,
+            notification_permission_requested: false,
         };
         std::fs::write(&path, serde_json::to_string(&original).unwrap()).unwrap();
 
@@ -509,6 +517,7 @@ mod tests {
             accent_color: "rose".to_string(),
             language: "zh-CN".to_string(),
             has_seen_onboarding: false,
+            notification_permission_requested: false,
         };
         std::fs::write(&old, serde_json::to_string(&original).unwrap()).unwrap();
 

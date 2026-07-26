@@ -14,16 +14,43 @@ import { navigateTo } from '@/lib/navigation';
 import { logger } from '@/lib/logger';
 
 /**
- * 申请系统通知权限。系统权限弹窗会触发 visibilitychange，
- * 期间暂停自动锁定，避免用户点「允许/拒绝」后回到应用发现已被锁定。
+ * 申请系统通知权限（应用级最多弹一次系统对话框）。
+ *
+ * - 已授权（任一账户授权过，或用户在系统设置手动开启）：直接返回 true；
+ * - 未授权且本机从未请求过：弹系统对话框，并把"已请求"标记写入
+ *   ui_preferences.json（应用级、设备本地，不随账户/Vault 同步）；
+ * - 未授权但已请求过：不再弹窗（与 Android 13+ 行为一致），返回 false，
+ *   由调用方走应用内 toast 兜底。
+ *
+ * 系统权限弹窗会触发 visibilitychange，期间暂停自动锁定，
+ * 避免用户点「允许/拒绝」后回到应用发现已被锁定。
  */
-async function requestNotificationPermission(): Promise<boolean> {
+async function requestNotificationPermissionOnce(): Promise<boolean> {
+  if (await isPermissionGranted()) return true;
+
+  let alreadyRequested = false;
+  try {
+    const prefs = await invoke<{ notificationPermissionRequested?: boolean }>(
+      'ui_get_preferences',
+    );
+    alreadyRequested = prefs.notificationPermissionRequested === true;
+  } catch (err) {
+    // 读取失败时降级为允许请求，不因存储故障阻断功能
+    logger.warn('[notification] read permission-requested flag failed:', err);
+  }
+  if (alreadyRequested) return false;
+
   const { pause, resume } = useAutoLockPauseStore.getState();
   pause();
   try {
     return (await requestPermission()) === 'granted';
   } finally {
     resume();
+    // 无论允许/拒绝都记录"已请求"（二次请求在 Android 13+ 本就不再弹 UI）
+    invoke('ui_update_preference', {
+      key: 'notificationPermissionRequested',
+      value: 'true',
+    }).catch((err) => logger.warn('[notification] persist permission-requested flag failed:', err));
   }
 }
 
@@ -112,10 +139,7 @@ export async function sendSystemNotificationWithFallback(
   showToastAlways = false,
 ): Promise<void> {
   try {
-    let hasPermission = await isPermissionGranted();
-    if (!hasPermission) {
-      hasPermission = await requestNotificationPermission();
-    }
+    const hasPermission = await requestNotificationPermissionOnce();
 
     if (hasPermission) {
       sendNotification({ title, body });
@@ -192,10 +216,7 @@ export async function checkBackupReminder(): Promise<void> {
       );
 
       // 发送系统通知（不包含 fallback toast，因为下方已有可点击 toast）
-      let hasPermission = await isPermissionGranted();
-      if (!hasPermission) {
-        hasPermission = await requestNotificationPermission();
-      }
+      const hasPermission = await requestNotificationPermissionOnce();
       if (hasPermission) {
         sendNotification({ title, body });
       }
