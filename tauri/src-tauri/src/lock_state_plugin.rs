@@ -50,6 +50,22 @@ impl<R: Runtime> LockStatePluginHandle<R> {
             Ok(false)
         }
     }
+
+    /// 撤掉锁屏时显示的原生窗口遮盖层。
+    /// 非 Android 平台为 no-op（没有对应的原生遮盖）。
+    pub fn dismiss_lock_mask(&self) -> Result<(), String> {
+        #[cfg(target_os = "android")]
+        {
+            self.handle
+                .run_mobile_plugin::<serde_json::Value>("dismissLockMask", serde_json::json!({}))
+                .map(|_| ())
+                .map_err(|e| e.to_string())
+        }
+        #[cfg(not(target_os = "android"))]
+        {
+            Ok(())
+        }
+    }
 }
 
 /// 初始化插件：注册 Android Kotlin 插件并将句柄存入 state。
@@ -89,4 +105,12 @@ fn register_plugin<R: Runtime>(
 pub fn is_screen_locked<R: Runtime>(app: AppHandle<R>) -> Result<bool, String> {
     let handle = app.state::<LockStatePluginHandle<R>>();
     handle.is_screen_locked()
+}
+
+/// 撤掉锁屏时显示的原生窗口遮盖层。
+/// 前端完成锁定并进入登录页后调用；桌面端/iOS 为 no-op。
+#[tauri::command]
+pub fn dismiss_lock_mask<R: Runtime>(app: AppHandle<R>) -> Result<(), String> {
+    let handle = app.state::<LockStatePluginHandle<R>>();
+    handle.dismiss_lock_mask()
 }

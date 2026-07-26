@@ -602,6 +602,7 @@ pub fn run() {
             commands::window::set_titlebar_color,
             status_bar_plugin::set_status_bar_style,
             lock_state_plugin::is_screen_locked,
+            lock_state_plugin::dismiss_lock_mask,
             // Embedding model commands
             commands::embed_model::llm_get_embed_models,
             commands::embed_model::llm_download_embed_model,

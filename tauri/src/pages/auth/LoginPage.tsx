@@ -90,6 +90,10 @@ export function LoginPage() {
     abortRef.current?.abort();
     const ctrl = new AbortController();
     abortRef.current = ctrl;
+    // 到达登录页即撤掉原生锁屏遮盖层（Android；其他平台为 no-op）。
+    // 覆盖冷启动路径：进程被杀后持久化标记触发遮盖，但 JS 事件可能丢失，
+    // 冷启动后 Vault 内存密钥已不存在，必然落在登录页，挂载即撤遮盖。
+    invoke('dismiss_lock_mask').catch(() => {});
     checkHasAccount().then(() => {
       if (!ctrl.signal.aborted) listAccounts();
     });

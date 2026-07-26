@@ -116,7 +116,13 @@ export function useAutoLock(): void {
     // Kotlin 侧 Plugin.trigger 只派发给插件私有 Channel 监听器，与全局事件总线无关。
     let screenLockedListener: PluginListener | null = null;
     addPluginListener<{ locked: boolean }>('lock-state', 'screen-locked', () => {
-      doLock();
+      try {
+        doLock();
+      } finally {
+        // 撤掉原生锁屏遮盖层（Android；其他平台为 no-op）。
+        // doLock 因幂等保护跳过时也要撤，避免遮盖残留。
+        invoke('dismiss_lock_mask').catch(() => {});
+      }
       // 锁屏时触发一次 SAF 后台同步。
       triggerBackgroundSync();
     })
