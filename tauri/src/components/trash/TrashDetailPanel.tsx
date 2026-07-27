@@ -26,6 +26,7 @@ import { truncateFileName } from '@/lib/attachmentUtils';
 import type { PropertyType, SensitivityLevel, UserTemplate } from '@/types/template';
 import type { TrashDetail, SnapshotEntry, TrashAttachment, TrashChildSummary } from './types';
 import { ICON_SIZE } from '@/lib/constants';
+import { ValueContainer } from '@/components/ui/ValueContainer';
 
 interface TrashDetailPanelProps {
   detailItem: TrashDetail;
@@ -303,32 +304,31 @@ function ObjectDetailContent({
                       {sensitivity && <SensitivityBadge level={sensitivity} />}
                     </div>
                     {/* Child fields */}
-                    {childItems.map((child) => (
-                      <div
-                        key={child.name}
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 8,
-                          marginLeft: 16,
-                          fontSize: 'var(--text-caption)',
-                          color: 'var(--text-secondary)',
-                        }}
-                      >
-                        {child.type && <FieldTypeIcon type={child.type} size={ICON_SIZE.sm} />}
-                        <span style={{ fontWeight: 500, flexShrink: 0 }}>{child.name}</span>
-                        <span
+                    {childItems.map((child) => {
+                      const childValue = isTemplate ? formatTypeLabel(child.type) : child.value;
+                      return (
+                        <div
+                          key={child.name}
                           style={{
-                            color: 'var(--text-tertiary)',
-                            marginLeft: 'auto',
-                            flexShrink: 0,
-                            textAlign: 'right',
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            alignItems: 'flex-start',
+                            gap: 8,
+                            marginLeft: 16,
+                            fontSize: 'var(--text-caption)',
+                            color: 'var(--text-secondary)',
                           }}
                         >
-                          {isTemplate ? formatTypeLabel(child.type) : child.value}
-                        </span>
-                      </div>
-                    ))}
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: '0 0 auto' }}>
+                            {child.type && <FieldTypeIcon type={child.type} size={ICON_SIZE.sm} />}
+                            <span style={{ fontWeight: 500, flexShrink: 0 }}>{child.name}</span>
+                          </div>
+                          <ValueContainer value={childValue}>
+                            <span style={{ color: 'var(--text-tertiary)' }}>{childValue}</span>
+                          </ValueContainer>
+                        </div>
+                      );
+                    })}
                   </div>
                 );
               }
@@ -341,19 +341,23 @@ function ObjectDetailContent({
                     ? JSON.stringify(p.value)
                     : '';
               return (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  {propType && <FieldTypeIcon type={propType} size={ICON_SIZE.sm} />}
-                  <span style={{ fontWeight: 500, flexShrink: 0 }}>{displayKey}</span>
-                  {sensitivity && <SensitivityBadge level={sensitivity} />}
-                  <span
-                    style={{
-                      color: 'var(--text-tertiary)',
-                      marginLeft: 'auto',
-                      flexShrink: 0,
-                    }}
-                  >
-                    {displayValue}
-                  </span>
+                <div
+                  key={i}
+                  style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    alignItems: 'flex-start',
+                    gap: 8,
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, flex: '0 0 auto' }}>
+                    {propType && <FieldTypeIcon type={propType} size={ICON_SIZE.sm} />}
+                    <span style={{ fontWeight: 500, flexShrink: 0 }}>{displayKey}</span>
+                    {sensitivity && <SensitivityBadge level={sensitivity} />}
+                  </div>
+                  <ValueContainer value={displayValue}>
+                    <span style={{ color: 'var(--text-tertiary)' }}>{displayValue}</span>
+                  </ValueContainer>
                 </div>
               );
             })}
