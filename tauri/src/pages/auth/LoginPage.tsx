@@ -118,7 +118,20 @@ export function LoginPage() {
       .catch(() => {
         // Ignore: account-specific check will handle availability.
       });
-    return () => ctrl.abort();
+    // 每次回到前台时撤掉原生锁屏遮盖层：
+    // Kotlin LockStatePlugin.onResume() 在进程被杀恢复后可能重新挂遮罩，
+    // 而 useAutoLock 的 screen-locked 监听器在 isAuthenticated 变为 false
+    // 时已被清理，导致无人调 dismiss_lock_mask。此兜底确保无论何时回到前台都撤除。
+    const onVisibleDismissMask = () => {
+      if (document.visibilityState === 'visible') {
+        invoke('dismiss_lock_mask').catch(() => {});
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibleDismissMask);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibleDismissMask);
+      ctrl.abort();
+    };
   }, [checkHasAccount, listAccounts]);
 
   useEffect(() => {

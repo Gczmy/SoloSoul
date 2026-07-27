@@ -94,11 +94,39 @@ export function useAutoLock(): void {
         .getState()
         .lock()
         .catch((err) => logger.error('[useAutoLock] lock failed:', err));
+      // 主动撤掉原生锁屏遮盖层：当 autoLockOnBackground 开启时，
+      // doLock 先于 Kotlin 的延迟检测触发锁定，清除 isAuthenticated
+      // 导致第二个 useEffect 被清理，后续原生 markLockedAndTrigger
+      // 挂上的 mask 将无人处理。此处先发制人清除。
+      invoke('dismiss_lock_mask').catch((err) =>
+        logger.warn('[useAutoLock] dismiss_lock_mask failed:', err),
+      );
+    };
+
+    const pullLockPending = () => {
+      invoke<boolean>('get_lock_pending')
+        .then((pending) => {
+          if (pending) {
+            if (lockInitiated) return;
+            lockInitiated = true;
+            useVaultStore.getState().lock().catch((err) =>
+              logger.error('[useAutoLock] lock failed:', err),
+            );
+            invoke('dismiss_lock_mask').catch((err) =>
+              logger.warn('[useAutoLock] dismiss_lock_mask failed:', err),
+            );
+          }
+        })
+        .catch(() => {});
     };
 
     const onVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
         checkIdle();
+        // 兜底：第二个 useEffect 的 pullLockPending 依赖 [isAuthenticated]，
+        // 但 lock() 导致 isAuthenticated 变化后该 effect 会被清理。
+        // 此处不依赖 isAuthenticated，始终在回前台时检查原生锁屏标记。
+        pullLockPending();
       } else if (document.visibilityState === 'hidden') {
         // 暂停期间（如文件选择器打开）跳过锁定
         if (useAutoLockPauseStore.getState().pauseCount > 0) return;
