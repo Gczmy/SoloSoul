@@ -45,6 +45,10 @@ export function AddPageButton({
   const isHorizontal = position === 'top' || position === 'bottom';
   const isBottom = position === 'bottom';
   const isRight = position === 'right';
+  const [viewportHeight, setViewportHeight] = useState(
+    typeof window !== 'undefined' ? window.innerHeight : 0,
+  );
+  const isSmallWindow = viewportHeight < 500;
   const [isCreating, setIsCreating] = useState(false);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -57,13 +61,10 @@ export function AddPageButton({
   const outsideClickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Compute max height for icon picker scroll area based on available viewport space
   const scrollMaxHeight = useMemo(() => {
+    if (isBottom) return undefined;
     if (!buttonRect) return 280;
     // name input(~40) + optional description input(~40) + gap/padding(~24) + label(~14)
     const nonInputHeight = showDescription ? 118 : 72;
-    if (isBottom) {
-      // Opens upward from button bottom
-      return Math.max(120, Math.min(280, buttonRect.top - 80));
-    }
     // Opens downward: horizontal (below button) or side (aligned to top)
     const topEdge = isHorizontal ? buttonRect.bottom + 8 : buttonRect.top;
     const available = window.innerHeight - topEdge - 16 - nonInputHeight;
@@ -211,6 +212,13 @@ export function AddPageButton({
     };
   }, [isHovered, updateCardPosition]);
 
+  // Track viewport height so small-window detection stays reactive to resize/rotate
+  useEffect(() => {
+    const handleResize = () => setViewportHeight(window.innerHeight);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   const nameCard =
     isHovered && !isCreating ? (
       <div
@@ -320,7 +328,7 @@ export function AddPageButton({
                 maxHeight: isBottom
                   ? undefined
                   : `calc(100vh - ${SAFE_AREA_TOP} - ${SAFE_AREA_BOTTOM} - 32px)`,
-                overflowY: 'auto',
+                overflowY: isBottom ? 'hidden' : 'auto',
               }}
             >
               {/* Name input */}
@@ -347,6 +355,7 @@ export function AddPageButton({
                 aria-label={t('add_page_placeholder')}
                 className={styles.addPageInput}
                 data-error={nameError || undefined}
+                style={{ flexShrink: 0 }}
               />
               {showDescription && (
                 <input
@@ -369,6 +378,7 @@ export function AddPageButton({
                   aria-label={t('add_page_description_placeholder')}
                   className={styles.addPageInput}
                   data-secondary
+                  style={{ flexShrink: 0 }}
                 />
               )}
               {nameError && (
@@ -378,6 +388,7 @@ export function AddPageButton({
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     gap: 8,
+                    flexShrink: 0,
                   }}
                 >
                   <span
@@ -396,18 +407,30 @@ export function AddPageButton({
               )}
 
               {/* Icon picker with category sections (scrollable) */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 6,
+                  ...(isBottom && {
+                    flex: '1 1 auto',
+                    minHeight: isSmallWindow ? 80 : 120,
+                    overflow: 'hidden',
+                  }),
+                }}
+              >
                 <span style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
                   {t('select_icon')}
                 </span>
                 <div
                   style={{
-                    maxHeight: scrollMaxHeight,
+                    maxHeight: isBottom ? undefined : scrollMaxHeight,
                     overflowY: 'auto',
                     overflowX: 'hidden',
                     display: 'flex',
                     flexDirection: 'column',
                     gap: 10,
+                    ...(isBottom && { flex: '1 1 auto', minHeight: 0 }),
                   }}
                 >
                   {[
@@ -484,6 +507,8 @@ export function AddPageButton({
                   justifyContent: 'flex-end',
                   paddingTop: 4,
                   borderTop: '1px solid var(--border-subtle)',
+                  flexShrink: 0,
+                  marginTop: isBottom ? 'auto' : undefined,
                 }}
               >
                 <button
