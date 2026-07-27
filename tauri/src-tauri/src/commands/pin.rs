@@ -3,6 +3,7 @@
 //! 业务逻辑位于 `solosoul_core::pin::PinManager`；此文件仅包含薄包装层。
 //! 错误统一使用 `__PIN_ERR__:<code>` 格式返回，便于前端国际化。
 
+use crate::commands::object::trash::run_expired_trash_cleanup;
 use crate::state::AppState;
 use solosoul_core::pin::{PinError, PinManager, PinStatus};
 use solosoul_core::AccountSummary;
@@ -68,7 +69,7 @@ pub async fn pin_unlock(
     action: Option<String>,
 ) -> Result<AccountSummary, String> {
     let vault_service = state.vault_service.clone();
-    tokio::task::spawn_blocking(move || {
+    let summary = tokio::task::spawn_blocking(move || {
         let svc = vault_service
             .read()
             .map_err(|_| "Vault service lock poisoned".to_string())?;
@@ -90,7 +91,12 @@ pub async fn pin_unlock(
             .ok_or_else(|| "Account not found after PIN unlock".to_string())
     })
     .await
-    .map_err(|e| format!("pin_unlock task failed: {}", e))?
+    .map_err(|e| format!("pin_unlock task failed: {}", e))??;
+
+    // PIN 解锁成功后自动清理过期回收站项目
+    run_expired_trash_cleanup(&state);
+
+    Ok(summary)
 }
 
 /// 禁用 PIN 码（需要验证主密码）。

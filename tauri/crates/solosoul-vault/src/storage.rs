@@ -2467,6 +2467,85 @@ impl VaultStore {
         Ok(())
     }
 
+    /// 清理所有已过期的回收站项目。
+    ///
+    /// 逻辑：
+    /// 1. 查询 `trash_items` 表中 `expires_at` 不为空且小于当前时间戳的项目。
+    /// 2. 对于非 template 类型的项目，先删除对应原始对象（物理删除）。
+    /// 3. 记录审计日志 `trash_permanent_delete`。
+    /// 4. 从回收站表中删除该项目。
+    ///
+    /// 返回成功清理的项目数量。
+    pub fn cleanup_expired_trash(&self) -> Result<usize, String> {
+        let now_ms = chrono::Utc::now().timestamp_millis();
+
+        // 先查询所有过期项目并释放连接锁，再逐个调用会重新加锁的删除/日志方法，
+        // 避免在持有 Mutex 的同时再次加锁导致死锁。
+        let expired: Vec<(String, String, String, String)> = {
+            let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+            let conn = guard.as_mut().ok_or("Vault is locked")?;
+            let mut stmt = conn
+                .prepare(
+                    "SELECT id, item_type, original_id, name_snapshot
+                     FROM trash_items
+                     WHERE expires_at IS NOT NULL AND expires_at < ?1",
+                )
+                .map_err(|e| e.to_string())?;
+            let rows = stmt
+                .query_map(rusqlite::params![now_ms], |row| {
+                    Ok((
+                        row.get::<_, String>(0)?,
+                        row.get::<_, String>(1)?,
+                        row.get::<_, String>(2)?,
+                        row.get::<_, String>(3)?,
+                    ))
+                })
+                .map_err(|e| e.to_string())?
+                .collect::<Result<Vec<_>, _>>()
+                .map_err(|e| e.to_string())?;
+            rows
+        };
+
+        let mut cleaned = 0usize;
+        for (trash_id, item_type, original_id, name_snapshot) in expired {
+            // 先尝试物理删除原始对象；失败时保留回收站记录，避免产生孤儿对象。
+            if item_type != "template" {
+                if let Err(e) = self.delete_object(&original_id, false) {
+                    tracing::warn!(
+                        "[cleanup_expired_trash] skip trash_id={} because delete_object failed: {}",
+                        trash_id,
+                        e
+                    );
+                    continue;
+                }
+            }
+
+            // 从回收站移除；成功后再记审计日志，避免审计与实际状态不一致。
+            if let Err(e) = self.delete_trash_item(&trash_id) {
+                tracing::warn!(
+                    "[cleanup_expired_trash] delete_trash_item failed for trash_id={}: {}",
+                    trash_id,
+                    e
+                );
+                continue;
+            }
+            let _ = self.log_structured(
+                "trash_permanent_delete",
+                "trash_item",
+                Some(&trash_id),
+                Some(&name_snapshot),
+                "system",
+                Some(&format!(
+                    "original_id={} item_type={} reason=expired_auto_cleanup",
+                    original_id, item_type
+                )),
+            );
+            cleaned += 1;
+        }
+
+        Ok(cleaned)
+    }
+
     pub fn list_snapshots(&self, object_id: &str) -> Result<Vec<serde_json::Value>, String> {
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;

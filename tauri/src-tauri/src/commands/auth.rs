@@ -1,4 +1,5 @@
 use crate::commands::current_account_optional;
+use crate::commands::object::trash::run_expired_trash_cleanup;
 use crate::state::AppState;
 use serde::Serialize;
 use solosoul_core::auth::verify_password_core;
@@ -102,7 +103,12 @@ pub async fn login(
         Ok::<_, String>(())
     })
     .await
-    .map_err(|e| format!("Login task failed: {}", e))?
+    .map_err(|e| format!("Login task failed: {}", e))??;
+
+    // 登录成功后自动清理过期回收站项目（失败不影响登录结果）
+    run_expired_trash_cleanup(&state);
+
+    Ok(())
 }
 
 /// 重置账户的安全标志（生物识别、PIN 等）到初始关闭状态。
@@ -144,7 +150,12 @@ pub async fn unlock_with_password(
         Ok::<_, String>(())
     })
     .await
-    .map_err(|e| format!("Unlock task failed: {}", e))?
+    .map_err(|e| format!("Unlock task failed: {}", e))??;
+
+    // 解锁成功后自动清理过期回收站项目（失败不影响解锁结果）
+    run_expired_trash_cleanup(&state);
+
+    Ok(())
 }
 
 #[tauri::command]

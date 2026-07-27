@@ -4,6 +4,7 @@
 //! file only contains the thin `#[tauri::command]` wrappers and audit logging
 //! that depends on the unlocked vault store.
 
+use crate::commands::object::trash::run_expired_trash_cleanup;
 use crate::state::AppState;
 use solosoul_core::biometric::{BiometricAvailability, BiometricError, BiometricManager};
 use tauri::State;
@@ -496,6 +497,10 @@ pub async fn biometric_unlock(
             );
         }
     }
+
+    // 生物识别解锁成功后自动清理过期回收站项目
+    run_expired_trash_cleanup(&state);
+
     Ok(())
 }
 
@@ -603,6 +608,9 @@ pub async fn biometric_unlock(
             );
         }
     }
+
+    // 生物识别解锁成功后自动清理过期回收站项目
+    run_expired_trash_cleanup(&state);
 
     Ok(())
 }
