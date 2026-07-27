@@ -24,13 +24,19 @@
 
 .fieldRow {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
+  flex-direction: column;
+  gap: 4px;
   padding: 8px 12px;
   border-radius: 8px;
   background: var(--bg-toolbar);
   border: 1px solid var(--border-subtle);
+}
+
+.fieldRowTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .fieldLabel {
@@ -46,6 +52,7 @@
   text-overflow: clip;
   white-space: normal;
   word-break: break-word;
+  width: 100%;
 }
 
 /* 头部（桌面端与原先 inline 样式等价；移动端由下方媒体查询改为固定顶栏） */
@@ -106,22 +113,23 @@
     justify-content: space-between;
   }
 
-  /* 字段行：标签+值在左列，操作按钮固定右上，降低行高 */
+  /* 字段行：标签与操作按钮在顶部，字段值独占一整行 */
   .fieldRow {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    column-gap: 8px;
-    align-items: start;
+    display: flex;
+    flex-direction: column;
   }
 
-  /* 字段名独占一行，徽章（敏感度/插件绑定/弃用）换行到字段名下方 */
+  .fieldRowTop {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+  }
+
+  /* 字段名与徽章在窄屏下允许折行，避免与右侧操作按钮拥挤 */
   .fieldLabel {
     flex-wrap: wrap;
     row-gap: 4px;
-  }
-
-  .fieldLabel > span:first-child {
-    flex-basis: 100%;
   }
 
   /* 操作按钮：仅显示图标，隐藏文本 */

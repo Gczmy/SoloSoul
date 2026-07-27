@@ -592,7 +592,7 @@ export function ObjectDetailModal({
                         className={styles.fieldRow}
                         style={{ opacity: deprecated ? 0.7 : 1 }}
                       >
-                        <div style={{ flex: 1, minWidth: 0 }}>
+                        <div className={styles.fieldRowTop}>
                           <div className={styles.fieldLabel}>
                             <FieldTypeIcon type={fieldType} />
                             <span
@@ -615,60 +615,60 @@ export function ObjectDetailModal({
                             )}
                             {deprecated && <DeprecatedBadge />}
                           </div>
-                          <div
-                            className={styles.fieldValue}
-                            style={{
-                              color:
-                                needsReveal && !revealed
-                                  ? 'var(--text-tertiary)'
-                                  : 'var(--text-primary)',
-                            }}
-                          >
-                            {revealed ? f.value : maskValue(f.value, fieldId, sens)}
-                          </div>
-                        </div>
-                        <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
-                          {needsReveal && !revealed && (
+                          <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+                            {needsReveal && !revealed && (
+                              <button
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  const revealName = f.label
+                                    ? `${t('editor:field_types.dynamic_group')}: ${f.label}`
+                                    : getFieldName(f.key);
+                                  handleRevealField(fieldId, sens, revealName);
+                                }}
+                                className={`${styles.revealBtn} ${sens === 'critical' ? styles.revealBtnCritical : ''}`}
+                              >
+                                {sens === 'critical' ? (
+                                  <Lock size={ICON_SIZE.xs} />
+                                ) : (
+                                  <Eye size={ICON_SIZE.xs} />
+                                )}
+                                <span className={styles.btnLabel}>
+                                  {sens === 'critical' ? t('common:unlock') : t('common:reveal')}
+                                </span>
+                              </button>
+                            )}
                             <button
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                const revealName = f.label
-                                  ? `${t('editor:field_types.dynamic_group')}: ${f.label}`
-                                  : getFieldName(f.key);
-                                handleRevealField(fieldId, sens, revealName);
-                              }}
-                              className={`${styles.revealBtn} ${sens === 'critical' ? styles.revealBtnCritical : ''}`}
+                              onMouseDown={(e) => e.preventDefault()}
+                              onClick={() =>
+                                handleCopy(
+                                  revealed ? f.value : maskValue(f.value, fieldId, sens),
+                                  f.key,
+                                )
+                              }
+                              className={`${styles.copyBtn} ${copiedField === f.key ? styles.copyBtnCopied : ''}`}
                             >
-                              {sens === 'critical' ? (
-                                <Lock size={ICON_SIZE.xs} />
+                              {copiedField === f.key ? (
+                                <Check size={ICON_SIZE.xs} />
                               ) : (
-                                <Eye size={ICON_SIZE.xs} />
+                                <Copy size={ICON_SIZE.xs} />
                               )}
                               <span className={styles.btnLabel}>
-                                {sens === 'critical' ? t('common:unlock') : t('common:reveal')}
+                                {copiedField === f.key ? t('common:copied') : t('common:copy')}
                               </span>
                             </button>
-                          )}
-                          <button
-                            onMouseDown={(e) => e.preventDefault()}
-                            onClick={() =>
-                              handleCopy(
-                                revealed ? f.value : maskValue(f.value, fieldId, sens),
-                                f.key,
-                              )
-                            }
-                            className={`${styles.copyBtn} ${copiedField === f.key ? styles.copyBtnCopied : ''}`}
-                          >
-                            {copiedField === f.key ? (
-                              <Check size={ICON_SIZE.xs} />
-                            ) : (
-                              <Copy size={ICON_SIZE.xs} />
-                            )}
-                            <span className={styles.btnLabel}>
-                              {copiedField === f.key ? t('common:copied') : t('common:copy')}
-                            </span>
-                          </button>
+                          </div>
+                        </div>
+                        <div
+                          className={styles.fieldValue}
+                          style={{
+                            color:
+                              needsReveal && !revealed
+                                ? 'var(--text-tertiary)'
+                                : 'var(--text-primary)',
+                          }}
+                        >
+                          {revealed ? f.value : maskValue(f.value, fieldId, sens)}
                         </div>
                       </div>
                     );
