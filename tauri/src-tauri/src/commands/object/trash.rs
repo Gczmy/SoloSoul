@@ -166,29 +166,33 @@ pub async fn trash_permanent_delete(
 /// 该方法会遍历 `trash_items` 表中 `expires_at` 早于当前时间的项目，
 /// 对非 template 类型项目先物理删除原始对象，再记录审计日志并从回收站移除。
 ///
-/// 清理失败不会阻塞登录流程，仅记录错误日志。
+/// 清理逻辑在 tokio 后台 blocking 任务中执行，不阻塞登录/解锁响应。
+/// 清理失败仅记录日志，不影响登录/解锁结果。
 pub fn run_expired_trash_cleanup(state: &crate::state::AppState) {
-    let result = (|| -> Result<usize, String> {
-        let svc = state
-            .vault_service
-            .read()
-            .map_err(|_| "Vault service lock poisoned".to_string())?;
-        let vault = svc.get_vault_store().ok_or("Vault not unlocked")?;
-        vault.cleanup_expired_trash()
-    })();
+    let state = state.clone();
+    tokio::task::spawn_blocking(move || {
+        let result = (|| -> Result<usize, String> {
+            let svc = state
+                .vault_service
+                .read()
+                .map_err(|_| "Vault service lock poisoned".to_string())?;
+            let vault = svc.get_vault_store().ok_or("Vault not unlocked")?;
+            vault.cleanup_expired_trash()
+        })();
 
-    match result {
-        Ok(0) => {
-            tracing::info!("[trash_cleanup] no expired trash items to clean");
+        match result {
+            Ok(0) => {
+                tracing::info!("[trash_cleanup] no expired trash items to clean");
+            }
+            Ok(count) => {
+                tracing::info!("[trash_cleanup] cleaned {} expired trash item(s)", count);
+                state.auto_sync.trigger_debounce();
+            }
+            Err(e) => {
+                tracing::error!("[trash_cleanup] failed to clean expired trash: {}", e);
+            }
         }
-        Ok(count) => {
-            tracing::info!("[trash_cleanup] cleaned {} expired trash item(s)", count);
-            state.auto_sync.trigger_debounce();
-        }
-        Err(e) => {
-            tracing::error!("[trash_cleanup] failed to clean expired trash: {}", e);
-        }
-    }
+    });
 }
 
 /// Delete a page (section_type) and all its objects into trash.
