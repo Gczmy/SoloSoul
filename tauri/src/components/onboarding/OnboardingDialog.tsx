@@ -135,6 +135,8 @@ export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDial
       if (!uri) {
         return;
       }
+      // 立即保存 URI 以便用户返回上一步后重新进入时仍能看到选择
+      setSelectedSafUri(uri);
       // 开始同步时显示进度条
       setSyncPhase('syncing');
       setSyncFileName('');
@@ -171,7 +173,6 @@ export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDial
         // 显示 "SAF 同步完成" 3 秒后自动切换到路径显示
         syncDoneTimer.current = setTimeout(() => {
           setSyncPhase('idle');
-          setSelectedSafUri(uri);
         }, 3000);
       } else {
         setSyncPhase('idle');
@@ -707,7 +708,7 @@ export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDial
                   {t('onboarding_back')}
                 </button>
               )}
-              {selectedSafUri && (
+              {selectedSafUri && !showAccountDecision && (
                 <button
                   type="button"
                   onClick={() => setStep((s) => s + 1)}
