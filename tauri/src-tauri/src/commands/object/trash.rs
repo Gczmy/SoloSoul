@@ -1,6 +1,8 @@
 use crate::commands::settings::resolve_ui_prefs_path;
 use crate::commands::vault_handle;
 use crate::state::AppState;
+use std::sync::atomic::Ordering;
+use std::sync::Arc;
 use tauri::State;
 
 use super::*;
@@ -168,9 +170,35 @@ pub async fn trash_permanent_delete(
 ///
 /// 清理逻辑在 tokio 后台 blocking 任务中执行，不阻塞登录/解锁响应。
 /// 清理失败仅记录日志，不影响登录/解锁结果。
+///
+/// 通过 `AppState.trash_cleanup_running` 保证全局同时只运行一个清理任务。
 pub fn run_expired_trash_cleanup(state: &crate::state::AppState) {
+    // CAS 设置运行标志：如果已有任务在运行，则直接跳过，避免并发重复清理。
+    match state.trash_cleanup_running.compare_exchange(
+        false,
+        true,
+        Ordering::Acquire,
+        Ordering::Relaxed,
+    ) {
+        Ok(_) => {}
+        Err(_) => {
+            tracing::info!("[trash_cleanup] already running, skipping duplicate run");
+            return;
+        }
+    }
+
+    // 使用 Drop guard 确保无论清理成功、失败还是 panic，标志位都会被重置。
+    struct CleanupGuard(Arc<std::sync::atomic::AtomicBool>);
+    impl Drop for CleanupGuard {
+        fn drop(&mut self) {
+            self.0.store(false, Ordering::Release);
+        }
+    }
+
     let state = state.clone();
     tokio::task::spawn_blocking(move || {
+        let _guard = CleanupGuard(state.trash_cleanup_running.clone());
+
         let result = (|| -> Result<usize, String> {
             let svc = state
                 .vault_service

@@ -9,6 +9,7 @@ use solosoul_core::vault_service::AccountSummary;
 use solosoul_core::VaultService;
 use solosoul_sync::SyncService;
 use std::path::{Path, PathBuf};
+use std::sync::atomic::AtomicBool;
 use std::sync::{Arc, RwLock};
 use tauri::{Emitter, Manager};
 
@@ -22,6 +23,8 @@ pub struct AppState {
     pub sync_service: Arc<SyncService>,
     pub plugin_manager: Arc<PluginManager>,
     pub auto_sync: AutoSyncManager,
+    /// 标记是否已有后台过期回收站清理任务在运行，用于防止并发重复执行。
+    pub trash_cleanup_running: Arc<AtomicBool>,
 }
 
 /// Result of first-launch vault directory initialization.
@@ -343,6 +346,7 @@ impl AppState {
             sync_service,
             plugin_manager,
             auto_sync,
+            trash_cleanup_running: Arc::new(AtomicBool::new(false)),
         };
 
         // 若当前使用 SAF 远程 Vault，调度 WorkManager 兜底同步，
