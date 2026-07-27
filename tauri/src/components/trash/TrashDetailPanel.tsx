@@ -1242,10 +1242,10 @@ export function SnapshotDataView({
             key={f.key}
             style={{
               display: 'flex',
-              alignItems: 'center',
-              gap: 8,
+              flexDirection: 'column',
+              gap: 4,
               fontSize: 'var(--text-caption)',
-              padding: '3px 0',
+              padding: '4px 0',
               borderBottom: '1px solid var(--border-subtle)',
             }}
           >
@@ -1254,7 +1254,16 @@ export function SnapshotDataView({
               <span style={{ fontWeight: 500, color: 'var(--text-secondary)' }}>{displayKey}</span>
               {f.sensitivityLevel && <SensitivityBadge level={f.sensitivityLevel} />}
             </div>
-            <span style={{ color: 'var(--text-primary)', marginLeft: 'auto', textAlign: 'right' }}>
+            <span
+              style={{
+                color: 'var(--text-primary)',
+                textAlign: 'right',
+                overflowWrap: 'break-word',
+                wordBreak: 'break-word',
+                whiteSpace: 'pre-wrap',
+                width: '100%',
+              }}
+            >
               {f.value}
             </span>
           </div>
@@ -1352,10 +1361,10 @@ function DynamicGroupSnapshotRow({
           key={child.key}
           style={{
             display: 'flex',
-            alignItems: 'center',
-            gap: 8,
+            flexDirection: 'column',
+            gap: 4,
             fontSize: 'var(--text-caption)',
-            padding: '3px 0 3px 20px',
+            padding: '4px 0 4px 20px',
             borderBottom: '1px solid var(--border-subtle)',
           }}
         >
@@ -1363,7 +1372,16 @@ function DynamicGroupSnapshotRow({
             {child.type && <FieldTypeIcon type={child.type} size={ICON_SIZE.sm} />}
             <span style={{ fontWeight: 500, color: 'var(--text-secondary)' }}>{child.key}</span>
           </div>
-          <span style={{ color: 'var(--text-primary)', marginLeft: 'auto', textAlign: 'right' }}>
+          <span
+            style={{
+              color: 'var(--text-primary)',
+              textAlign: 'right',
+              overflowWrap: 'break-word',
+              wordBreak: 'break-word',
+              whiteSpace: 'pre-wrap',
+              width: '100%',
+            }}
+          >
             {child.value}
           </span>
         </div>

@@ -101,11 +101,8 @@ export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDial
       setVaultDirError(null);
       setVaultDirActing(false);
       setSyncPhase('idle');
-      // 重新进入目录选择步骤时，清除之前的账户决策状态，
-      // 让用户重新选择目录/触发同步。
-      setShowAccountDecision(false);
-      setFoundAccounts([]);
-      setFoundAccountCount(0);
+      // 保留之前的账户检测结果（showAccountDecision/foundAccounts），
+      // 让用户在返回时仍能看到登录/创建新账户的决策选项。
     }
     return () => {
       if (syncDoneTimer.current) {
@@ -861,9 +858,17 @@ export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDial
             )}
             <button
               type="button"
-              onClick={() => {
+              onClick={async () => {
                 if (isLast) {
+                  // 完成引导后检查是否有已有账户，有则跳转到登录页
+                  // （SAF 目录同步后账户可能已存在，需从后端重新查询）
+                  await useAuthStore.getState().checkHasAccount();
+                  const hasAccount = useAuthStore.getState().hasAccount;
+                  // 先执行 onComplete() 再 navigate，避免组件卸载后导航丢失
                   onComplete();
+                  if (hasAccount) {
+                    navigate('/login', { replace: true });
+                  }
                 } else {
                   setStep((s) => s + 1);
                 }
