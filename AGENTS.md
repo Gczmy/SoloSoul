@@ -185,6 +185,7 @@ cargo tauri android build
   - `SOLOSOUL_KEYSTORE_PASSWORD` — keystore 密码
   - `SOLOSOUL_KEY_ALIAS` — 别名（默认 `solosoul-upload`）
   - `SOLOSOUL_KEY_PASSWORD` — key 密码
+  - 密码信息在: `/Users/zzc/SoloSoul/info.txt`
 
 #### Android 构建设置
 
