@@ -615,7 +615,7 @@ export function ObjectDetailModal({
                             )}
                             {deprecated && <DeprecatedBadge />}
                           </div>
-                          <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
+                          <div className={styles.fieldActions}>
                             {needsReveal && !revealed && (
                               <button
                                 onClick={(e) => {
@@ -740,51 +740,53 @@ export function ObjectDetailModal({
                     ]}
                   />
                 </div>
-                <button
-                  onClick={() => {
-                    if (onHistory) {
-                      onHistory();
-                    } else {
-                      setShowHistory(true);
-                    }
-                  }}
-                  className={`${styles.actionBtn} ${styles.footerBtn}`}
-                >
-                  <Clock size={ICON_SIZE.sm} />
-                  <span className={styles.actionLabel}>{t('common:history')}</span>
-                </button>
-                <button
-                  onClick={() => {
-                    if (onAttachments) {
-                      onAttachments();
-                    } else {
-                      setShowAttachments(true);
-                    }
-                  }}
-                  className={`${styles.actionBtn} ${styles.footerBtn}`}
-                >
-                  <Paperclip size={ICON_SIZE.sm} />
-                  <span className={styles.actionLabel}>{t('common:attachments')}</span>
-                </button>
-                {onEdit && (
-                  <button onClick={onEdit} className={`${styles.actionBtn} ${styles.footerBtn}`}>
-                    <Pencil size={ICON_SIZE.sm} />
-                    <span className={styles.actionLabel}>{t('common:edit')}</span>
-                  </button>
-                )}
-                <div className={styles.deleteBtnWrapper}>
-                  <DeleteButton
+                <div className={styles.footerActions}>
+                  <button
                     onClick={() => {
-                      if (onDelete) {
-                        onDelete();
+                      if (onHistory) {
+                        onHistory();
                       } else {
-                        setConfirmDelete(true);
+                        setShowHistory(true);
                       }
                     }}
-                    title={t('common:delete')}
+                    className={`${styles.actionBtn} ${styles.footerBtn}`}
                   >
-                    <span className={styles.actionLabel}>{t('common:delete')}</span>
-                  </DeleteButton>
+                    <Clock size={ICON_SIZE.sm} />
+                    <span className={styles.actionLabel}>{t('common:history')}</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (onAttachments) {
+                        onAttachments();
+                      } else {
+                        setShowAttachments(true);
+                      }
+                    }}
+                    className={`${styles.actionBtn} ${styles.footerBtn}`}
+                  >
+                    <Paperclip size={ICON_SIZE.sm} />
+                    <span className={styles.actionLabel}>{t('common:attachments')}</span>
+                  </button>
+                  {onEdit && (
+                    <button onClick={onEdit} className={`${styles.actionBtn} ${styles.footerBtn}`}>
+                      <Pencil size={ICON_SIZE.sm} />
+                      <span className={styles.actionLabel}>{t('common:edit')}</span>
+                    </button>
+                  )}
+                  <div className={styles.deleteBtnWrapper}>
+                    <DeleteButton
+                      onClick={() => {
+                        if (onDelete) {
+                          onDelete();
+                        } else {
+                          setConfirmDelete(true);
+                        }
+                      }}
+                      title={t('common:delete')}
+                    >
+                      <span className={styles.actionLabel}>{t('common:delete')}</span>
+                    </DeleteButton>
+                  </div>
                 </div>
               </div>
             </>
