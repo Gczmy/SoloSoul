@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { motion } from 'framer-motion';
@@ -118,6 +118,62 @@ export function flattenProperties(
     });
   }
   return entries;
+}
+
+type WrapState = 'inline' | 'full' | 'full-wrapped';
+
+function useFieldWrapState(value: string) {
+  const ref = useRef<HTMLDivElement>(null);
+  const stateRef = useRef<WrapState>('inline');
+  const [state, setState] = useState<WrapState>('inline');
+
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const measure = () => {
+      const rect = el.getBoundingClientRect();
+      const computed = window.getComputedStyle(el);
+      const lineHeight = parseFloat(computed.lineHeight) || parseFloat(computed.fontSize) * 1.2;
+      const current = stateRef.current;
+      const wrapped = rect.height > lineHeight * 1.5;
+      let next = current;
+      if (current === 'inline' && wrapped) {
+        next = 'full';
+      } else if (current === 'full' && wrapped) {
+        next = 'full-wrapped';
+      }
+      if (next !== current) {
+        stateRef.current = next;
+        setState(next);
+      }
+    };
+    measure();
+    window.addEventListener('resize', measure);
+    return () => window.removeEventListener('resize', measure);
+  }, [value, state]);
+
+  return { ref, state };
+}
+
+function ValueContainer({ value, children }: { value: string; children: React.ReactNode }) {
+  const { ref, state } = useFieldWrapState(value);
+  const isFull = state === 'full' || state === 'full-wrapped';
+  return (
+    <div
+      ref={ref}
+      style={{
+        flex: isFull ? '0 0 100%' : '1 1 0%',
+        minWidth: 0,
+        maxWidth: '100%',
+        textAlign: state === 'full-wrapped' ? 'left' : 'right',
+        whiteSpace: 'normal',
+        wordBreak: 'break-word',
+        overflowWrap: 'break-word',
+      }}
+    >
+      {children}
+    </div>
+  );
 }
 
 function SnapshotCard({
@@ -312,7 +368,8 @@ function SnapshotCard({
                       key={`${fieldId}-child-${idx}`}
                       style={{
                         display: 'flex',
-                        alignItems: 'center',
+                        flexWrap: 'wrap',
+                        alignItems: 'flex-start',
                         gap: 8,
                         marginLeft: 16,
                         fontSize: 'var(--text-caption)',
@@ -322,20 +379,20 @@ function SnapshotCard({
                         border: '1px solid var(--border-subtle)',
                       }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 74 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 74, flex: '0 0 auto' }}>
                         <FieldTypeIcon type={(child.type as PropertyType) || 'text'} />
                         <span style={{ fontWeight: 500, color: 'var(--text-secondary)' }}>
                           {child.label}
                         </span>
                       </div>
-                      <div style={{ flex: 1, textAlign: 'right' }}>
+                      <ValueContainer value={child.value}>
                         {renderValueSpan({
                           value: child.value,
                           fieldId,
                           sens,
                           fieldLabel: child.label,
                         })}
-                      </div>
+                      </ValueContainer>
                     </div>
                   ))}
                 </div>
@@ -350,7 +407,8 @@ function SnapshotCard({
                 key={`${f.key}-${f.label}`}
                 style={{
                   display: 'flex',
-                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  alignItems: 'flex-start',
                   gap: 8,
                   fontSize: 'var(--text-caption)',
                   padding: '6px 8px',
@@ -360,7 +418,7 @@ function SnapshotCard({
                   opacity: deprecated ? 0.7 : 1,
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 90 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 90, flex: '0 0 auto' }}>
                   <FieldTypeIcon type={f.type || 'text'} />
                   <span
                     style={{
@@ -374,9 +432,9 @@ function SnapshotCard({
                   <SensitivityBadge level={sens} />
                   {deprecated && <DeprecatedBadge />}
                 </div>
-                <div style={{ flex: 1, textAlign: 'right' }}>
+                <ValueContainer value={f.value}>
                   {renderValueSpan({ value: f.value, fieldId, sens, fieldLabel: f.label })}
-                </div>
+                </ValueContainer>
               </div>
             );
           })}
