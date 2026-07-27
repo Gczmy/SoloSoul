@@ -24,7 +24,7 @@
 
 .fieldRow {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
   padding: 8px 12px;
@@ -42,9 +42,10 @@
 
 .fieldValue {
   font-size: var(--text-body);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+  word-break: break-word;
 }
 
 /* 头部（桌面端与原先 inline 样式等价；移动端由下方媒体查询改为固定顶栏） */
@@ -121,11 +122,6 @@
 
   .fieldLabel > span:first-child {
     flex-basis: 100%;
-  }
-
-  .fieldValue {
-    white-space: normal;
-    word-break: break-word;
   }
 
   /* 操作按钮：仅显示图标，隐藏文本 */
