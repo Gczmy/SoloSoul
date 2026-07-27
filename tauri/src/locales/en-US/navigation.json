@@ -23,6 +23,7 @@
   "add_page_description_placeholder": "Description (optional)",
   "custom_page": "My Projects",
   "page_name_exists": "Page name already exists",
+  "page_name_required": "Please enter a page name",
   "select_icon": "Choose Icon",
   "icon_category_all": "All",
   "icon_category_general": "General",

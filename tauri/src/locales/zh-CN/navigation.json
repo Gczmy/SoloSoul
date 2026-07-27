@@ -23,6 +23,7 @@
   "add_page_description_placeholder": "说明（可选）",
   "custom_page": "我的项目",
   "page_name_exists": "页面名称已存在",
+  "page_name_required": "请输入页面名称",
   "select_icon": "选择图标",
   "icon_category_all": "全部",
   "icon_category_general": "通用",

@@ -52,7 +52,7 @@ export function AddPageButton({
   const [isCreating, setIsCreating] = useState(false);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
-  const [nameError, setNameError] = useState(false);
+  const [nameError, setNameError] = useState<'empty' | 'duplicate' | null>(null);
   const [selectedIconId, setSelectedIconId] = useState<CustomIconId>(DEFAULT_CUSTOM_ICON);
   const [buttonRect, setButtonRect] = useState<DOMRect | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -94,14 +94,18 @@ export function AddPageButton({
     setIsCreating(false);
     setName('');
     setDescription('');
-    setNameError(false);
+    setNameError(null);
     setSelectedIconId(DEFAULT_CUSTOM_ICON);
   }, []);
 
-  const handleConfirm = useCallback(() => {
+  const handleConfirm = useCallback((isExplicit = false) => {
     const trimmed = name.trim();
     if (!trimmed || !currentAccount) {
-      handleCancel();
+      if (isExplicit) {
+        setNameError('empty');
+      } else {
+        handleCancel();
+      }
       return;
     }
     // Check for duplicate page names
@@ -111,7 +115,7 @@ export function AddPageButton({
       ...store.settings.customPages.filter((p) => !p.deletedAt).map((p) => p.name),
     ];
     if (existingNames.some((n) => n.toLowerCase() === trimmed.toLowerCase())) {
-      setNameError(true);
+      setNameError('duplicate');
       return;
     }
     const trimmedDesc = description.trim();
@@ -125,8 +129,7 @@ export function AddPageButton({
 
   // Close popover on outside click
   useEffect(() => {
-    if (!isCreating) return;
-    const handler = (e: MouseEvent) => {
+    if (!isCreating) return;      const handler = (e: MouseEvent) => {
       if (
         popoverRef.current &&
         !popoverRef.current.contains(e.target as Node) &&
@@ -134,7 +137,7 @@ export function AddPageButton({
         !buttonRef.current.contains(e.target as Node)
       ) {
         // If input has text → create page; if empty → cancel
-        handleConfirm();
+        handleConfirm(false);
       }
     };
     // Small delay to avoid conflicting with the button click
@@ -337,16 +340,16 @@ export function AddPageButton({
                 value={name}
                 onChange={(e) => {
                   setName(e.target.value.slice(0, 20));
-                  setNameError(false);
+                  setNameError(null);
                 }}
                 onBlur={(e) => {
                   // Only confirm if the blur is not caused by clicking inside the popover
                   if (popoverRef.current && !popoverRef.current.contains(e.relatedTarget as Node)) {
-                    handleConfirm();
+                    handleConfirm(false);
                   }
                 }}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleConfirm();
+                  if (e.key === 'Enter') handleConfirm(true);
                   if (e.key === 'Escape') handleCancel();
                 }}
                 placeholder={t('add_page_placeholder')}
@@ -354,23 +357,21 @@ export function AddPageButton({
                 autoFocus
                 aria-label={t('add_page_placeholder')}
                 className={styles.addPageInput}
-                data-error={nameError || undefined}
+                data-error={nameError ? 'true' : undefined}
                 style={{ flexShrink: 0 }}
               />
               {showDescription && (
                 <input
                   value={description}
                   onChange={(e) => setDescription(e.target.value.slice(0, 30))}
-                  onBlur={(e) => {
-                    if (
-                      popoverRef.current &&
+                  onBlur={(e) => {                    if (popoverRef.current &&
                       !popoverRef.current.contains(e.relatedTarget as Node)
                     ) {
-                      handleConfirm();
+                      handleConfirm(false);
                     }
                   }}
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter') handleConfirm();
+                    if (e.key === 'Enter') handleConfirm(true);
                     if (e.key === 'Escape') handleCancel();
                   }}
                   placeholder={t('add_page_description_placeholder')}
@@ -398,7 +399,7 @@ export function AddPageButton({
                       whiteSpace: 'nowrap',
                     }}
                   >
-                    {t('page_name_exists')}
+                    {nameError === 'empty' ? t('page_name_required') : t('page_name_exists')}
                   </span>
                   <button onClick={handleCancel} className={styles.cancelTextBtn}>
                     {t('common:cancel')}
@@ -525,9 +526,8 @@ export function AddPageButton({
                   }}
                 >
                   {t('common:cancel')}
-                </button>
-                <button
-                  onClick={handleConfirm}
+                </button>                  <button
+                  onClick={() => handleConfirm(true)}
                   style={{
                     padding: '6px 12px',
                     borderRadius: 6,
