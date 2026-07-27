@@ -49,6 +49,9 @@ export const ST_SKIPPED_VERSION = 'solosoul_skipped_version';
 /** 用户是否已完成新手引导 */
 export const ST_ONBOARDING_SEEN = 'solosoul_onboarding_seen';
 
+/** 引导过程中已选中的 SAF 外部目录 URI（用于 Android 活动重建后恢复选择） */
+export const ST_ONBOARDING_SAF_URI = 'solosoul_onboarding_saf_uri';
+
 /** OCR 首次安装已完成标记 */
 export const ST_OCR_FIRST_INSTALL = 'solosoul_ocr_first_install_done';
 

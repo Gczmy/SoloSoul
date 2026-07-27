@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import type { AccountInfo } from '@/lib/ipc';
-import { ICON_SIZE } from '@/lib/constants';
+import { ICON_SIZE, ST_ONBOARDING_SAF_URI } from '@/lib/constants';
 import { getPlatform } from '@/lib/platform';
 import { pickVaultDirectory, initVaultDirectory } from '@/lib/vaultDirectory';
 import { IndeterminateProgressBar } from '@/components/ui/IndeterminateProgressBar';
@@ -39,8 +39,28 @@ export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDial
   const [platformName, setPlatformName] = useState<string>('');
   const [vaultDirActing, setVaultDirActing] = useState(false);
   const [vaultDirError, setVaultDirError] = useState<string | null>(null);
-  // 外部目录（SAF）选择后先显示路径，等用户手动点击“下一步”再前进
-  const [selectedSafUri, setSelectedSafUri] = useState<string | null>(null);
+  // 外部目录（SAF）选择后先显示路径，等用户手动点击“下一步”再前进。
+  // 从 localStorage 恢复可解决 Android 因系统 SAF 选择器导致 Activity 重建后状态丢失的问题。
+  const [selectedSafUri, setSelectedSafUri] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem(ST_ONBOARDING_SAF_URI);
+    } catch {
+      return null;
+    }
+  });
+
+  // 将选中的 SAF URI 同步到 localStorage，以便 Android Activity 重建后恢复
+  useEffect(() => {
+    try {
+      if (selectedSafUri) {
+        localStorage.setItem(ST_ONBOARDING_SAF_URI, selectedSafUri);
+      } else {
+        localStorage.removeItem(ST_ONBOARDING_SAF_URI);
+      }
+    } catch {
+      // 某些隐私模式下 localStorage 不可用，忽略错误
+    }
+  }, [selectedSafUri]);
   // SAF 同步进度阶段：idle（未同步）/ syncing（同步中）/ done（同步完成）
   const [syncPhase, setSyncPhase] = useState<'idle' | 'syncing' | 'done'>('idle');
   const [syncFileName, setSyncFileName] = useState<string>('');

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import { invoke } from '@tauri-apps/api/core';
 import type { AccountInfo } from '@/lib/ipc';
-import { ST_ONBOARDING_SEEN } from '@/lib/constants';
+import { ST_ONBOARDING_SEEN, ST_ONBOARDING_SAF_URI } from '@/lib/constants';
 import { ToastContainer } from '@/components/ui/ToastContainer';
 import { OcrScanNotificationListener } from '@/components/layout/OcrScanNotificationListener';
 import { GlobalSyncIndicator } from '@/components/layout/GlobalSyncIndicator';
@@ -63,6 +63,8 @@ function App() {
   const finishOnboarding = () => {
     try {
       localStorage.setItem(ST_ONBOARDING_SEEN, 'true');
+      // 清除引导过程中缓存的 SAF 目录选择，避免影响后续重新安装/重置
+      localStorage.removeItem(ST_ONBOARDING_SAF_URI);
     } catch {
       /* ignore */
     }
