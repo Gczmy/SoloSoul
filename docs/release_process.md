@@ -76,9 +76,9 @@ npx tauri signer generate -w ~/.tauri/secret.key
 
 ## 阶段一：准备（在 Mac 上执行一次）
 
-### 1. 检查私有库同步状态
+### 1. 检查代码库同步状态
 
-确认 https://github.com/Gczmy/SoloSoul_code.git 与本地状态相同，如有未推送的本地更新，优先推送。
+确认 https://github.com/Gczmy/SoloSoul.git 与本地状态相同，如有未推送的本地更新，优先推送。
 
 ```bash
 git status
@@ -107,7 +107,7 @@ tauri.android.versionCode=20100
 > 版本号格式：`主版本.次版本.补丁`。macOS、Windows 和 Android 使用完全相同的版本号。
 > Tauri 不支持 `+buildNumber` 后缀，请使用纯 SemVer 格式。
 
-### 3. 推送版本号更新到私有库
+### 3. 推送版本号更新
 
 ```bash
 git add tauri/package.json tauri/src-tauri/tauri.conf.json tauri/Cargo.toml tauri/src-tauri/gen/android/app/tauri.properties
@@ -122,7 +122,7 @@ git push origin master
 ### 4a. macOS 构建（在 Mac 上执行）
 
 ```bash
-cd /Users/zzc/PycharmProjects/SoloSoul_code
+cd /path/to/SoloSoul
 ./docs/build_macos_release.sh
 ```
 
@@ -159,7 +159,8 @@ tauri/src-tauri/target/release/bundle/
 
 ```bash
 # 1. 先拉取最新代码（确保版本号已更新）
-cd /d/PycharmProject/SoloSoul_code
+#    Git Bash 中 /d/ 对应 Windows 的 D: 盘，请替换为实际仓库路径
+cd /d/path/to/SoloSoul
 git pull origin master
 
 # 2. 运行一键构建脚本
@@ -192,7 +193,7 @@ Android 产物为通用 APK。构建前需要：
 ```bash
 export ANDROID_HOME=$HOME/Library/Android/sdk
 export ANDROID_NDK_HOME=$HOME/Library/Android/sdk/ndk/30.0.14904198
-export SOLOSOUL_KEYSTORE_PATH=/Users/zzc/SoloSoul/solosoul-upload.jks
+export SOLOSOUL_KEYSTORE_PATH=<your-keystore-path>
 export SOLOSOUL_KEYSTORE_PASSWORD=<your-keystore-password>
 export SOLOSOUL_KEY_ALIAS=solosoul-upload
 export SOLOSOUL_KEY_PASSWORD=<your-key-password>
@@ -259,7 +260,7 @@ Release APK 使用 `signingConfigs.release`，从环境变量读取 keystore 信
 将 macOS、Windows 和 Android 产物都传输到 Mac，统一放到同一目录：
 
 ```
-/Users/zzc/PycharmProjects/SoloSoul_code/SoloSoul-Releases
+/path/to/SoloSoul/SoloSoul-Releases
 ├── SoloSoul_2.1.0_arm64.app.tar.gz     # macOS 自动更新包（必需）
 ├── SoloSoul_2.1.0_arm64.dmg            # macOS 首次安装 DMG（可选但推荐）
 ├── SoloSoul_2.1.0_x64-setup.exe        # Windows 安装包
@@ -271,7 +272,7 @@ Release APK 使用 `signingConfigs.release`，从环境变量读取 keystore 信
 所有平台的 Tauri updater `.sig` 签名统一在 macOS 上生成：
 
 ```bash
-cd /Users/zzc/PycharmProjects/SoloSoul_code
+cd /path/to/SoloSoul
 ./docs/sign_artifacts.sh
 ```
 
@@ -318,7 +319,7 @@ node scripts/generate-latest-json.js \
 
 ### 9. GitHub Release 发布
 
-在 **公开库** https://github.com/Gczmy/SoloSoul.git 创建 Release：
+在 https://github.com/Gczmy/SoloSoul.git 创建 Release：
 
 1. 点击 "Draft a new release"
 2. 选择或创建标签（如 `v2.1.0`）
@@ -335,13 +336,11 @@ node scripts/generate-latest-json.js \
 
 > **当前发布策略说明**：当前版本不进入 Google Play 商店或 Play Store 内部测试轨道，Android 产物以通用 APK 形式随 GitHub Release 发布，方便用户直接下载安装。如未来进入 Play Store，可额外构建 AAB 并提交 Play 商店后台。
 
-### 9. 更新公开库 changelog（简洁版本）
+### 10. 更新 CHANGELOG.md
 
-在 https://github.com/Gczmy/SoloSoul.git 更新 `CHANGELOG.md`，包含从上次版本到本次版本的所有变更摘要。
+在 https://github.com/Gczmy/SoloSoul.git 的 `CHANGELOG.md` 中补充本次版本的详细变更记录（检查 commit 记录，不要遗漏），并随版本号更新一起提交到 `master` 分支。
 
-### 10. 更新私有库 changelog（详细版本）
-
-在 https://github.com/Gczmy/SoloSoul_code.git 更新 `CHANGELOG.md`，包含详细的变更列表（检查 commit 记录，不要遗漏）。
+> 本仓库 `CHANGELOG.md` 为详细版本，涵盖所有 Added / Changed / Fixed / Security / Chore 条目，作为对外发布和内部追溯的唯一变更来源。
 
 ---
 
