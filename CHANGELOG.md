@@ -4,40 +4,34 @@ All notable changes to SoloSoul are documented in this file.
 
 ## [Unreleased]
 
+## [2.6.0] - 2026-07-28
+
 ### Added
 
-- **Android 客户端预研与 MVP 构建** — 基于 Tauri Mobile 将 SoloSoul 桌面端扩展至 Android：
-  - 新增 Rust Android target 交叉编译支持，解决 `openssl-sys`、`wasmtime`、`mdns-sd` 等桌面端依赖在 Android 上的编译问题。
-  - 新增 `solosoul-sync` 移动端占位模块、`solosoul-plugin` 移动端占位实现。
-  - 拆分 Tauri capabilities：`default.json` 移除 `updater:default`，新增 `desktop.json` 桌面端权限。
-  - `tauri/src-tauri/Cargo.toml` 新增 `[lib]` 块，支持生成 `libsolo_soul.so`。
-  - 初始化 `tauri/src-tauri/gen/android/` 工程，配置 `AndroidManifest.xml` 权限、`singleTask` 与软键盘模式。
-  - 前端响应式布局已适配移动端底部导航与安全区。
-  - 新增 `src/lib/mobileFileTransfer.ts`，通过 `tauri-apps/plugin-fs` 中转 Android `content://` URI，支持附件上传/下载、导入/导出在移动端的正常运行。
-  - 成功在 Android 模拟器上运行 `npm run tauri:android:dev` 并启动应用。
+- **账户恢复与同步** — 完成 P2 账户恢复加固与 P3 设备自动同步触发；同步+恢复相关保险库存储层统一重构。
+- **回收站过期自动清理** — 启动时自动清理过期回收站项目，改为 tokio 后台任务执行，并限制并发防止重复任务。
+- **导入体验增强** — OCR/MRZ 导入为对象前弹出名称输入框；默认名称精确到时分秒；扫描导入字段改为多行文本并使用 i18n 字段名。
+- **Android 锁屏安全** — 锁屏状态 Rust 插件集成；切后台检测与自动锁定兜底；引导流程持久化已选 SAF 外部目录，防止 Activity 重建后重复选择。
+- **Android 客户端 MVP** — 基于 Tauri Mobile 将 SoloSoul 桌面端扩展至 Android，支持响应式布局、content:// URI 文件中转、底部导航与安全区适配。
 
 ### Changed
 
-- `reqwest` 改为 `rustls-tls`，避免 Android 交叉编译时依赖 OpenSSL。
+- 对象详情/历史记录卡片字段值支持完整行宽度、长文本自动换行与智能对齐。
+- `reqwest` 改为 `rustls-tls`，避免 Android 交叉编译依赖 OpenSSL。
+- 移动端设置页隐藏插件、OCR、设备同步入口；关于页跳过桌面端自动更新检查。
 
 ### Fixed
 
-- 修复 `solosoul-plugin` 与 `solosoul-sync` 在 Android target 下的编译错误。
-- 修复 `commands/system.rs` 中 `dark_light` 在移动端的未解析依赖。
-- 修复 Android 上附件与导入导出因 `content://` URI 无法被 Rust 标准库读取而失败的问题：前端通过 `tauri-apps/plugin-fs` 中转，`attachment_copy_to_vault` 增加路径 canonicalize 失败降级。
-- 补充 `fs:allow-stat`、`fs:allow-mkdir`、`fs:allow-remove` 权限，确保移动端缓存中转目录可操作；审计日志/调试日志导出同样支持 content URI 中转。
-- 修复 `cargo test` 在存在系统代理时本地 HTTP 测试失败的问题（`plugin::host::tests`、`plugin_registry_update` 测试设置 `NO_PROXY`/`no_proxy`）。
+- 锁屏遮罩残留、切后台未锁定等 Android 生命周期问题。
+- 引导流程外部目录选择在前/后导航时丢失。
+- 登录页默认选中上次登录的账户。
+- 回收站快照字段值换行显示；新建页面卡片空名称高亮提示。
+- AddPageButton 弹窗适配正常模式、小窗模式与安全区，避免被 AppBar 遮挡。
+- PostLoginSetupGuide 重复提示设置的问题。
 
-### Changed
+### Chores
 
-- 移动端设置页隐藏插件、OCR、设备同步入口；关于页跳过桌面端自动更新检查。
-- `App` 初始化时预加载平台信息，供各页面同步判断是否为移动端。
-
-### Known Issues
-
-- Android 端 MVP 功能（账户/对象/附件/搜索/设置/备份/导入导出）需在模拟器/真机上手动验证。
-- 开发模式下 Vite HMR WebSocket 在 Android WebView 内连接失败，Release 构建无此问题。
-
+- 版本号同步升级到 2.6.0。
 ## [2.5.12] - 2026-07-12
 
 ### Added
