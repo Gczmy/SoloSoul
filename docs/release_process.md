@@ -82,7 +82,7 @@ npx tauri signer generate -w ~/.tauri/secret.key
 
 ```bash
 git status
-git push origin master
+git push origin main
 ```
 
 ### 2. 确认并统一版本号
@@ -112,7 +112,7 @@ tauri.android.versionCode=20100
 ```bash
 git add tauri/package.json tauri/src-tauri/tauri.conf.json tauri/Cargo.toml tauri/src-tauri/gen/android/app/tauri.properties
 git commit -m "chore: bump version to 2.1.0"
-git push origin master
+git push origin main
 ```
 
 ---
@@ -161,7 +161,7 @@ tauri/src-tauri/target/release/bundle/
 # 1. 先拉取最新代码（确保版本号已更新）
 #    Git Bash 中 /d/ 对应 Windows 的 D: 盘，请替换为实际仓库路径
 cd /d/path/to/SoloSoul
-git pull origin master
+git pull origin main
 
 # 2. 运行一键构建脚本
 ./docs/build_windows_release.sh
@@ -338,7 +338,7 @@ node scripts/generate-latest-json.js \
 
 ### 10. 更新 CHANGELOG.md
 
-在 https://github.com/Gczmy/SoloSoul.git 的 `CHANGELOG.md` 中补充本次版本的详细变更记录（检查 commit 记录，不要遗漏），并随版本号更新一起提交到 `master` 分支。
+在 https://github.com/Gczmy/SoloSoul.git 的 `CHANGELOG.md` 中补充本次版本的详细变更记录（检查 commit 记录，不要遗漏），并随版本号更新一起提交到 `main` 分支。
 
 > 本仓库 `CHANGELOG.md` 为详细版本，涵盖所有 Added / Changed / Fixed / Security / Chore 条目，作为对外发布和内部追溯的唯一变更来源。
 
@@ -346,13 +346,13 @@ node scripts/generate-latest-json.js \
 
 ## CI/CD 自动发布（备选）
 
-Push 到 `master` 分支后，GitHub Actions 会自动：
+Push 到 `main` 分支后，GitHub Actions 会自动：
 
 1. `frontend-check` job：TypeScript 类型检查、Lint、单元测试
 2. `rust-test` job：Rust 格式化检查、Clippy、单元测试
-3. `build-macos` job：在 `macos-latest` runner 上构建 DMG（仅 master push）
-4. `build-windows` job：在 `windows-latest` runner 上构建 NSIS（仅 master push）
-5. `build-android` job：在 `ubuntu-latest` runner 上构建 APK（仅 master push）
+3. `build-macos` job：在 `macos-latest` runner 上构建 DMG（仅 main push）
+4. `build-windows` job：在 `windows-latest` runner 上构建 NSIS（仅 main push）
+5. `build-android` job：在 `ubuntu-latest` runner 上构建 APK（仅 main push）
 6. `release` job：收集产物，统一创建并发布 GitHub Release（非 Draft、非 Pre-release），使 `releases/latest/download/latest.json` 立即对客户端可见。
 
 详见 `.github/workflows/ci_cd.yml` 和 `.github/workflows/build-android.yml`。
