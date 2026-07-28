@@ -50,19 +50,23 @@ export function SyncPage() {
     );
   }, [store.connectedPeers, ignoredPeerIds]);
 
+  // ⚡ 使用 getState() 避免闭包捕获整个 store 导致无限重触发
   const loadStatus = useCallback(async () => {
-    await store.loadStatus();
-    await store.loadListenPort();
-    await store.loadAutoSyncStatus();
-    await store.loadConflicts();
-  }, [store]);
+    const s = useSyncStore.getState();
+    await Promise.all([
+      s.loadStatus(),
+      s.loadListenPort(),
+      s.loadAutoSyncStatus(),
+      s.loadConflicts(),
+    ]);
+  }, []);
 
   useEffect(() => {
     loadStatus();
   }, [loadStatus]);
 
-  // 进入页面且同步已启用时，自动扫描附近设备
-  const syncEnabled = store.syncEnabled;
+  // 使用 selector 只监听 syncEnabled 变化，避免 store 全局变化时误触发
+  const syncEnabled = useSyncStore((s) => s.syncEnabled);
   useEffect(() => {
     if (syncEnabled) {
       useSyncStore.getState().discoverDevices(5000);
