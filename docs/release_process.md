@@ -1,16 +1,19 @@
-# SoloSoul 发布流程（macOS + Windows）
+# SoloSoul 发布流程（macOS + Windows + Android）
 
-> 同时发布 macOS DMG 和 Windows NSIS 安装包，版本号严格同步。
+> 同时发布 macOS DMG、Windows NSIS 安装包和 Android APK，版本号严格同步。
 > 当前基于 **Tauri v2** 架构。
 
 ---
 
 ## 环境要求
 
-- **macOS**：Node.js >= 22、Rust (stable)、npm、create-dmg（可选，用于美观 DMG）
-- **Windows**：Node.js >= 22、Rust (stable)、npm、Visual Studio 2022+（提供 MSVC 工具链）
+| 平台 | 所需环境 |
+|------|----------|
+| **macOS** | Node.js >= 22、Rust (stable)、npm、create-dmg（可选，用于美观 DMG） |
+| **Windows** | Node.js >= 22、Rust (stable)、npm、Visual Studio 2022+（提供 MSVC 工具链） |
+| **Android** | Node.js >= 22、Rust (stable)、npm、Android SDK、Android NDK、JDK 17+ |
 
-> 注：macOS 包必须在 Mac 上编译，Windows 包必须在 Windows 上编译，无法在一台机器上完成双平台。
+> 注：macOS 包必须在 Mac 上编译，Windows 包必须在 Windows 上编译，Android 包建议在 Mac/Linux 上编译（Tauri Android 工具链支持交叉编译）。
 
 ### 本地资源文件
 
@@ -88,26 +91,33 @@ Tauri 版本号分散在 **3 个文件**中，必须保持严格一致：
 
 | 文件 | 字段 | 示例 |
 |------|------|------|
-| `tauri/package.json` | `"version": "2.0.0"` | `"version": "2.1.0"` |
-| `tauri/src-tauri/tauri.conf.json` | `"version": "2.0.0"` | `"version": "2.1.0"` |
+| `tauri/package.json` | `"version': "2.0.0"` | `"version': "2.1.0"` |
+| `tauri/src-tauri/tauri.conf.json` | `"version': "2.0.0"` | `"version': "2.1.0"` |
 | `tauri/Cargo.toml` | `workspace.package.version` | `version = "2.1.0"` |
 
 修改以上三个文件，将版本号更新为下一个版本（遵循 [SemVer](https://semver.org/lang/zh-CN/)）。
 
-> 版本号格式：`主版本.次版本.补丁`。macOS 和 Windows 使用完全相同的版本号。
+Android 还需要同步更新 `tauri/src-tauri/gen/android/app/tauri.properties`：
+
+```properties
+tauri.android.versionName=2.1.0
+tauri.android.versionCode=20100
+```
+
+> 版本号格式：`主版本.次版本.补丁`。macOS、Windows 和 Android 使用完全相同的版本号。
 > Tauri 不支持 `+buildNumber` 后缀，请使用纯 SemVer 格式。
 
 ### 3. 推送版本号更新到私有库
 
 ```bash
-git add tauri/package.json tauri/src-tauri/tauri.conf.json tauri/Cargo.toml
+git add tauri/package.json tauri/src-tauri/tauri.conf.json tauri/Cargo.toml tauri/src-tauri/gen/android/app/tauri.properties
 git commit -m "chore: bump version to 2.1.0"
 git push origin master
 ```
 
 ---
 
-## 阶段二：分别编译（在两台机器上并行执行）
+## 阶段二：分别编译（在三台机器/环境上并行执行）
 
 ### 4a. macOS 构建（在 Mac 上执行）
 
@@ -169,19 +179,91 @@ tauri/src-tauri/target/release/bundle/
 
 > Windows 代码签名需另行购买证书并使用 `signtool` 签名，当前未在脚本中实现。
 
+### 4c. Android 构建（在 Mac 或 Linux 上执行）
+
+Android 产物为通用 APK。构建前需要：
+
+1. 安装 Android SDK、NDK 和 JDK 17+
+2. 配置签名 keystore
+3. 设置必要的环境变量
+
+#### Android 环境变量
+
+```bash
+export ANDROID_HOME=$HOME/Library/Android/sdk
+export ANDROID_NDK_HOME=$HOME/Library/Android/sdk/ndk/30.0.14904198
+export SOLOSOUL_KEYSTORE_PATH=/Users/zzc/SoloSoul/solosoul-upload.jks
+export SOLOSOUL_KEYSTORE_PASSWORD=<your-keystore-password>
+export SOLOSOUL_KEY_ALIAS=solosoul-upload
+export SOLOSOUL_KEY_PASSWORD=<your-key-password>
+
+# 构建 Android 需使用 rustup 版本，避免 Homebrew Rust 不支持交叉编译
+export PATH="$HOME/.rustup/toolchains/stable-aarch64-apple-darwin/bin:$PATH"
+```
+
+> 注：本地 Homebrew 版 Rust 不支持 Android 交叉编译目标，构建前必须将 rustup 版 Rust 置于 PATH 优先位置。
+
+#### Debug APK（无需签名，适合功能测试）
+
+```bash
+cd tauri
+cargo tauri android build -d
+```
+
+产物路径：`tauri/src-tauri/gen/android/app/build/outputs/apk/universal/debug/app-universal-debug.apk`
+
+#### Release APK（直接安装 / 内测 / 默认产物）
+
+```bash
+cd tauri
+cargo tauri android build --apk
+```
+
+产物路径：`tauri/src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release.apk`
+
+> **为什么默认构建 APK 而不是 AAB？** 当前 SoloSoul 不进入 Google Play 商店分发，APK 可直接在 Android 设备上安装，更适合 GitHub Release 侧载和内测。AAB 无法直接安装，仅作为未来上架 Play Store 时的备选格式。
+
+#### Android 版本号规则
+
+| 来源 | 说明 |
+|------|------|
+| `versionName` | 取自 `tauri/src-tauri/gen/android/app/tauri.properties` 的 `tauri.android.versionName`，应与 `tauri.conf.json` 的 `version` 保持一致。 |
+| `versionCode` | 取自 `tauri.properties` 的 `tauri.android.versionCode` 基础值，并叠加 `GITHUB_RUN_NUMBER` 以保证每次 CI 构建单调递增。Play Store 要求 `versionCode` 只增不减。 |
+
+`build.gradle.kts` 中的计算逻辑：
+
+```kotlin
+versionCode = tauriProperties.getProperty("tauri.android.versionCode", "1").toInt() +
+    (System.getenv("GITHUB_RUN_NUMBER") ?: "0").toInt()
+```
+
+发版前确保 `tauri.android.versionCode` 已按版本号规则更新（例如 `2.1.0` 可编码为 `20100` 或更高）。若基础值已高于新计算值，必须继续递增，不可下降，否则 Play Store 会拒绝上传。
+
+#### Android 签名说明
+
+Release APK 使用 `signingConfigs.release`，从环境变量读取 keystore 信息：
+
+- `SOLOSOUL_KEYSTORE_PATH`
+- `SOLOSOUL_KEYSTORE_PASSWORD`
+- `SOLOSOUL_KEY_ALIAS`
+- `SOLOSOUL_KEY_PASSWORD`
+
+本地构建时若环境变量缺失，则回退为未签名（debug），不会报错；CI 发布时必须提供上述变量。
+
 ---
 
 ## 阶段三：收集与发布（在 Mac 上执行）
 
 ### 5. 收集产物
 
-将 macOS 与 Windows 产物都传输到 Mac，统一放到同一目录：
+将 macOS、Windows 和 Android 产物都传输到 Mac，统一放到同一目录：
 
 ```
 /Users/zzc/PycharmProjects/SoloSoul_code/SoloSoul-Releases
 ├── SoloSoul_2.1.0_arm64.app.tar.gz     # macOS 自动更新包（必需）
 ├── SoloSoul_2.1.0_arm64.dmg            # macOS 首次安装 DMG（可选但推荐）
-└── SoloSoul_2.1.0_x64-setup.exe        # Windows 安装包
+├── SoloSoul_2.1.0_x64-setup.exe        # Windows 安装包
+└── SoloSoul_2.1.0_universal-release.apk # Android 通用安装包
 ```
 
 ### 6. 统一签名（在 Mac 上执行）
@@ -195,6 +277,8 @@ cd /Users/zzc/PycharmProjects/SoloSoul_code
 
 脚本会读取 `~/.tauri/secret.key`（或环境变量 `TAURI_SIGNING_PRIVATE_KEY`），为 `SoloSoul-Releases/` 中的 `.dmg`、`.exe` 和 `.AppImage` 生成同名 `.sig` 文件。
 
+> Android AAB 签名由 Gradle 构建时完成，不需要在此步骤额外签名。
+
 ### 7. 本地验证
 
 #### macOS
@@ -206,6 +290,15 @@ cd /Users/zzc/PycharmProjects/SoloSoul_code
 - 双击 `.exe` 安装包完成安装
 - 从开始菜单或桌面快捷方式启动 SoloSoul
 - 验证 Vault 解锁、对象 CRUD、设置页面等基础功能
+
+#### Android
+- 通过 adb 安装 APK：
+  ```bash
+  adb install -r tauri/src-tauri/gen/android/app/build/outputs/apk/universal/debug/app-universal-debug.apk
+  ```
+- 或在 Android Studio 中打开 `tauri/src-tauri/gen/android` 项目，直接运行/调试
+- 验证启动、Vault 解锁、对象 CRUD、设置页面等基础功能
+- 对于 Release APK，确认安装后验证启动、Vault 解锁、对象 CRUD、设置页面等基础功能
 
 ### 8. 生成 latest.json
 
@@ -221,6 +314,8 @@ node scripts/generate-latest-json.js \
 
 生成的 `latest.json` 包含各平台安装包下载地址与 Ed25519 签名，供应用内更新器读取。
 
+> 注意：`latest.json` 目前仅用于桌面端（macOS + Windows）自动更新。Android 更新通过 Google Play 商店分发。
+
 ### 9. GitHub Release 发布
 
 在 **公开库** https://github.com/Gczmy/SoloSoul.git 创建 Release：
@@ -232,10 +327,13 @@ node scripts/generate-latest-json.js \
    - `SoloSoul_2.1.0_arm64.app.tar.gz`  # macOS 自动更新包（必需）
    - `SoloSoul_2.1.0_arm64.dmg`         # macOS 首次安装 DMG（推荐）
    - `SoloSoul_2.1.0_x64-setup.exe`     # Windows 安装包
+   - `SoloSoul_2.1.0_universal-release.apk` # Android 通用安装包
    - `latest.json`
 5. 点击 "Publish release"
 
 > 通过 GitHub Releases 上传，而不是通过 git 提交。GitHub Releases 允许上传附件，这些附件不存储在 git 仓库中。
+
+> **当前发布策略说明**：当前版本不进入 Google Play 商店或 Play Store 内部测试轨道，Android 产物以通用 APK 形式随 GitHub Release 发布，方便用户直接下载安装。如未来进入 Play Store，可额外构建 AAB 并提交 Play 商店后台。
 
 ### 9. 更新公开库 changelog（简洁版本）
 
@@ -255,51 +353,10 @@ Push 到 `master` 分支后，GitHub Actions 会自动：
 2. `rust-test` job：Rust 格式化检查、Clippy、单元测试
 3. `build-macos` job：在 `macos-latest` runner 上构建 DMG（仅 master push）
 4. `build-windows` job：在 `windows-latest` runner 上构建 NSIS（仅 master push）
-5. `release` job：收集产物，统一创建并发布 GitHub Release（非 Draft、非 Pre-release），使 `releases/latest/download/latest.json` 立即对客户端可见。
+5. `build-android` job：在 `ubuntu-latest` runner 上构建 APK（仅 master push）
+6. `release` job：收集产物，统一创建并发布 GitHub Release（非 Draft、非 Pre-release），使 `releases/latest/download/latest.json` 立即对客户端可见。
 
-详见 `.github/workflows/ci_cd.yml`。
-
----
-
-## Android 发版补充
-
-Android 产物为 AAB（Android App Bundle），由 `tauri/src-tauri/gen/android/app/build.gradle.kts` 构建。
-
-### 版本号规则
-
-| 来源 | 说明 |
-|------|------|
-| `versionName` | 取自 `tauri/src-tauri/gen/android/app/tauri.properties` 的 `tauri.android.versionName`，应与 `tauri.conf.json` 的 `version` 保持一致。 |
-| `versionCode` | 取自 `tauri.properties` 的 `tauri.android.versionCode` 基础值，并叠加 `GITHUB_RUN_NUMBER` 以保证每次 CI 构建单调递增。Play Store 要求 `versionCode` 只增不减。 |
-
-`build.gradle.kts` 中的计算逻辑：
-
-```kotlin
-versionCode = tauriProperties.getProperty("tauri.android.versionCode", "1").toInt() +
-    (System.getenv("GITHUB_RUN_NUMBER") ?: "0").toInt()
-```
-
-发版前确保 `tauri.android.versionCode` 已按版本号规则更新（例如 `2.5.12` 可编码为 `20512` 或更高）。若基础值已高于新计算值，必须继续递增，不可下降，否则 Play Store 会拒绝上传。
-
-### AAB 构建
-
-```bash
-cd tauri
-npx tauri android build --aab
-```
-
-产物位于 `tauri/src-tauri/gen/android/app/build/outputs/bundle/release/app-release.aab`。
-
-### 签名与上传
-
-Release AAB 使用 `signingConfigs.release`，从环境变量读取 keystore 信息：
-
-- `SOLOSOUL_KEYSTORE_PATH`
-- `SOLOSOUL_KEYSTORE_PASSWORD`
-- `SOLOSOUL_KEY_ALIAS`
-- `SOLOSOUL_KEY_PASSWORD`
-
-本地构建时若环境变量缺失，则回退为未签名（debug），不会报错；CI 发布时必须提供上述变量。
+详见 `.github/workflows/ci_cd.yml` 和 `.github/workflows/build-android.yml`。
 
 ---
 
