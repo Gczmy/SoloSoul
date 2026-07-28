@@ -67,7 +67,7 @@ fn current_version() -> String {
 
 // ── Helper: APK 缓存路径 ──────────────────────────────────────
 
-/// 获取 APK 下载目标路径（应用缓存目录）。
+/// 获取 APK 最终文件路径（应用缓存目录下的 `update.apk`）。
 fn apk_cache_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
     let cache = app
         .path()
@@ -76,7 +76,15 @@ fn apk_cache_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
     Ok(cache)
 }
 
-/// 获取已下载的 APK 文件大小（字节），不存在则返回 0。
+/// 获取 APK 部分下载文件路径（`update.part`），用于断点续传。
+/// 下载完成后会重命名为 `update.apk`。
+fn apk_part_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
+    let mut path = apk_cache_path(app)?;
+    path.set_extension("part");
+    Ok(path)
+}
+
+/// 获取已下载完成的 APK 大小（字节），不存在则返回 0。
 pub fn apk_downloaded_size(app: &tauri::AppHandle) -> Result<u64, String> {
     let path = apk_cache_path(app)?;
     if path.exists() {
@@ -88,11 +96,13 @@ pub fn apk_downloaded_size(app: &tauri::AppHandle) -> Result<u64, String> {
     }
 }
 
-/// 删除已下载的 APK 缓存。
+/// 删除已下载的 APK 缓存（同时清理最终文件和部分文件）。
 pub fn delete_apk_cache(app: &tauri::AppHandle) -> Result<(), String> {
-    let path = apk_cache_path(app)?;
-    if path.exists() {
-        std::fs::remove_file(&path).map_err(|e| format!("删除 APK 缓存失败: {e}"))?;
+    for path in [apk_cache_path(app)?, apk_part_path(app)?] {
+        if path.exists() {
+            std::fs::remove_file(&path)
+                .map_err(|e| format!("删除缓存失败 ({}): {e}", path.display()))?;
+        }
     }
     Ok(())
 }
@@ -197,8 +207,11 @@ pub async fn android_check_update(
 
 /// 从指定 URL 下载 APK 文件到缓存目录，并发送进度事件。
 ///
-/// 如果提供了 `expected_checksum`（非空字符串），下载完成后会计算
-/// SHA-256 并校验是否匹配。验证失败则删除临时文件并返回错误。
+/// 支持**断点续传**：如果缓存目录中已存在部分下载的 `update.part` 文件，
+/// 会自动通过 HTTP `Range` 请求头从断点处继续下载。
+///
+/// 如果提供了 `expected_checksum`（非空字符串），下载完成后会读取完整文件
+/// 计算 SHA-256 并校验。验证失败则删除部分文件并返回错误。
 ///
 /// 事件名：`apk-download-progress`
 #[tauri::command]
@@ -208,9 +221,27 @@ pub async fn android_download_apk(
     expected_checksum: Option<String>,
 ) -> Result<(), String> {
     let dest = apk_cache_path(&app)?;
+    let part_path = apk_part_path(&app)?;
+    let should_verify = expected_checksum
+        .as_ref()
+        .map(|s| !s.is_empty())
+        .unwrap_or(false);
 
-    // 清理旧文件
-    let _ = std::fs::remove_file(&dest);
+    // 检查是否有已下载的部分文件，用于断点续传
+    let existing_size = if part_path.exists() {
+        let meta =
+            std::fs::metadata(&part_path).map_err(|e| format!("读取部分文件元数据: {e}"))?;
+        let size = meta.len();
+        // 部分文件体积异常（超过普通 APK 大小）时忽略
+        if size > 0 && size < 300_000_000 {
+            size
+        } else {
+            let _ = std::fs::remove_file(&part_path);
+            0
+        }
+    } else {
+        0
+    };
 
     let client = reqwest::Client::builder()
         .user_agent(USER_AGENT)
@@ -218,33 +249,44 @@ pub async fn android_download_apk(
         .build()
         .map_err(|e| format!("创建 HTTP 客户端失败: {e}"))?;
 
-    let mut resp = client
-        .get(&download_url)
-        .send()
-        .await
-        .map_err(|e| format!("请求 APK 下载失败: {e}"))?;
-
-    if !resp.status().is_success() {
-        return Err(format!("APK 下载返回 HTTP {}", resp.status()));
+    // 构建请求：如果有已下载的部分，添加 Range 头
+    let mut req = client.get(&download_url);
+    if existing_size > 0 {
+        req = req.header("Range", format!("bytes={}-", existing_size));
     }
 
-    let total = resp.content_length().unwrap_or(0);
-    let mut downloaded: u64 = 0;
-    let tmp_path = dest.with_extension("tmp");
-    let mut file =
-        std::fs::File::create(&tmp_path).map_err(|e| format!("创建临时文件失败: {e}"))?;
+    let mut resp = req.send().await.map_err(|e| format!("请求下载失败: {e}"))?;
+    let status = resp.status();
 
-    // 如果启用了校验，同时计算下载内容的 SHA-256
-    let should_verify = expected_checksum
-        .as_ref()
-        .map(|s| !s.is_empty())
-        .unwrap_or(false);
-    let mut hasher = if should_verify {
-        Some(sha2::Sha256::new())
-    } else {
-        None
-    };
+    // 处理响应：断点续传 vs 重新下载，并解析完整文件大小
+    let (mut file, initial_offset, file_total) =
+        if existing_size > 0 && status == reqwest::StatusCode::PARTIAL_CONTENT {
+            // ── 服务器支持 Range，续传 ──
+            let remaining = resp.content_length().unwrap_or(0);
+            let full_size_from_header =
+                parse_content_range_total(&resp).unwrap_or(existing_size + remaining);
+            let file = std::fs::OpenOptions::new()
+                .append(true)
+                .open(&part_path)
+                .map_err(|e| format!("打开部分文件追加: {e}"))?;
+            (file, existing_size, full_size_from_header)
+        } else {
+            // ── 不支持续传或没有部分文件，重新下载 ──
+            if existing_size > 0 {
+                // 服务器不支持 Range，删除旧文件重新下载
+                let _ = std::fs::remove_file(&part_path);
+            }
+            if !status.is_success() {
+                return Err(format!("APK 下载返回 HTTP {}", status));
+            }
+            let chunk_total = resp.content_length().unwrap_or(0);
+            let file = std::fs::File::create(&part_path)
+                .map_err(|e| format!("创建文件: {e}"))?;
+            (file, 0u64, chunk_total)
+        };
 
+    // ── 流式下载（统一处理续传和新下载） ──
+    let mut new_bytes: u64 = 0;
     while let Some(chunk) = resp
         .chunk()
         .await
@@ -253,21 +295,18 @@ pub async fn android_download_apk(
         use std::io::Write;
         file.write_all(&chunk)
             .map_err(|e| format!("写入分块失败: {e}"))?;
-        downloaded += chunk.len() as u64;
+        new_bytes += chunk.len() as u64;
 
-        // 更新校验和哈希
-        if let Some(ref mut h) = hasher {
-            h.update(&chunk);
-        }
-
-        if total > 0 {
-            let pct = (downloaded as f64 / total as f64 * 100.0) as u32;
+        // 发送进度事件（包含总量和百分比，供前端进度条使用）
+        let downloaded = initial_offset + new_bytes;
+        if file_total > 0 {
+            let pct = (downloaded as f64 / file_total as f64 * 100.0) as u32;
             let _ = app.emit(
                 "apk-download-progress",
                 ApkDownloadProgress {
                     progress: pct.min(100),
                     downloaded,
-                    total,
+                    total: file_total,
                     done: false,
                     error: None,
                 },
@@ -275,12 +314,31 @@ pub async fn android_download_apk(
         }
     }
 
-    // 校验 SHA-256（流式计算，无需二次读取文件）
-    if let (Some(h), Some(expected)) = (hasher, expected_checksum) {
-        let actual = format!("{:x}", h.finalize());
+    // 文件下载完成，关闭文件句柄
+    drop(file);
+
+    let final_size = initial_offset + new_bytes;
+
+    // ── SHA-256 校验 ──
+    if should_verify {
+        use std::io::Read;
+        let expected = expected_checksum.unwrap_or_default();
+        let mut file = std::fs::File::open(&part_path)
+            .map_err(|e| format!("打开文件计算校验和: {e}"))?;
+        let mut hasher = sha2::Sha256::new();
+        let mut buf = [0u8; 8192];
+        loop {
+            let n = file
+                .read(&mut buf)
+                .map_err(|e| format!("读取文件校验: {e}"))?;
+            if n == 0 {
+                break;
+            }
+            hasher.update(&buf[..n]);
+        }
+        let actual = format!("{:x}", hasher.finalize());
         if !expected.eq_ignore_ascii_case(&actual) {
-            // 校验失败：删除临时文件并返回错误
-            let _ = std::fs::remove_file(&tmp_path);
+            let _ = std::fs::remove_file(&part_path);
             return Err(format!(
                 "CHECKSUM_MISMATCH: expected {}, got {}",
                 expected, actual
@@ -288,22 +346,38 @@ pub async fn android_download_apk(
         }
     }
 
-    // 临时文件重命名为目标文件（原子操作）
-    std::fs::rename(&tmp_path, &dest).map_err(|e| format!("重命名 APK 文件失败: {e}"))?;
+    // ── 重命名为最终文件 ──
+    // 先删除可能存在的旧最终文件
+    let _ = std::fs::remove_file(&dest);
+    std::fs::rename(&part_path, &dest).map_err(|e| format!("重命名 APK 文件失败: {e}"))?;
 
     // 发送完成事件
     let _ = app.emit(
         "apk-download-progress",
         ApkDownloadProgress {
             progress: 100,
-            downloaded,
-            total,
+            downloaded: final_size,
+            total: final_size,
             done: true,
             error: None,
         },
     );
 
     Ok(())
+}
+
+/// 从 HTTP 响应中解析 `Content-Range` 响应头，提取完整文件大小。
+/// 格式: `bytes {start}-{end}/{total}`
+fn parse_content_range_total(resp: &reqwest::Response) -> Option<u64> {
+    let header = resp.headers().get(reqwest::header::CONTENT_RANGE)?;
+    let value = header.to_str().ok()?;
+    // 提取 `/` 之后的部分
+    let total = value.split('/').nth(1)?;
+    // 处理 `*` 通配（极少见，但防御性处理）
+    if total == "*" {
+        return None;
+    }
+    total.parse::<u64>().ok()
 }
 
 // ── Command: 安装 APK ──────────────────────────────────────────
