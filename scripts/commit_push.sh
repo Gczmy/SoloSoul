@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-cd /Users/zzc/PycharmProjects/SoloSoul_code
+cd /Users/zzc/PycharmProjects/SoloSoul
 
 git add -A
 git commit -m 'feat(import): add KeepBoth strategy with locale-based suffix, ID rewriting, and per-object conflict UI' \
@@ -17,5 +17,5 @@ git commit -m 'feat(import): add KeepBoth strategy with locale-based suffix, ID 
 Also:
 - Add expiry-guardian to plugin filter list'
 
-git push origin master
+git push origin main
 echo "Done."

@@ -12,5 +12,5 @@ git commit -m "refactor: P2 ponytail audit — CLI wrapper inlining & dedup
 - update_profile_preference extracted to commands/mod.rs, deduped settings+security
 - Removed unused Map import from security.rs"
 
-git push origin master
+git push origin main
 echo "✅ P2 pushed"

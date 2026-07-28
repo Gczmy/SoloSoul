@@ -3,7 +3,7 @@ name: SoloSoul PR Checks
 # Fast feedback for pull requests - no builds, just tests
 on:
   pull_request:
-    branches: [ master, main ]
+    branches: [main]
 
 env:
   RUST_VERSION: 'stable'

@@ -2,12 +2,12 @@ name: Build Android
 
 on:
   push:
-    branches: [main, master]
+    branches: [main]
     paths:
       - 'tauri/**'
       - 'docs/android/**'
   pull_request:
-    branches: [main, master]
+    branches: [main]
     paths:
       - 'tauri/**'
 
@@ -76,7 +76,7 @@ jobs:
   build-android-release:
     name: Build Android Release AAB
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     defaults:
       run:
         working-directory: tauri

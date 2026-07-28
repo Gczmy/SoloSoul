@@ -94,7 +94,7 @@ adb --version
 ## 5. 安装项目依赖
 
 ```bash
-cd /Users/zzc/PycharmProjects/SoloSoul_code/tauri
+cd /Users/zzc/PycharmProjects/SoloSoul/tauri
 
 # 前端依赖
 npm install
@@ -110,7 +110,7 @@ cargo check --package solo_soul
 首次运行 Android 开发服务器时，Tauri CLI 会自动初始化 Android 工程：
 
 ```bash
-cd /Users/zzc/PycharmProjects/SoloSoul_code/tauri
+cd /Users/zzc/PycharmProjects/SoloSoul/tauri
 npm run tauri:android:dev
 ```
 
@@ -158,7 +158,7 @@ emulator -avd Pixel_7_API_34
 ### 7.2 开发模式
 
 ```bash
-cd /Users/zzc/PycharmProjects/SoloSoul_code/tauri
+cd /Users/zzc/PycharmProjects/SoloSoul/tauri
 npm run tauri:android:dev
 ```
 
@@ -168,7 +168,7 @@ npm run tauri:android:dev
 
 ```bash
 # 调试 APK
-cd /Users/zzc/PycharmProjects/SoloSoul_code/tauri
+cd /Users/zzc/PycharmProjects/SoloSoul/tauri
 npx tauri android build --apk
 
 # Release AAB

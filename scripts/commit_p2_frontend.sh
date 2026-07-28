@@ -14,5 +14,5 @@ git commit -m "refactor: P2 frontend — useCancellable→AbortController, dead 
 - SafeMarkdown simplified to rest-props passthrough with className wrapper
 - theme.test.ts deleted (adjustAccentHover tests removed with function retained)"
 
-git push origin master
+git push origin main
 echo "✅ P2 frontend pushed"

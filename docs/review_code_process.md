@@ -91,7 +91,7 @@
 # 代码分析修复报告
 
 > 最后更新：YYYY-MM-DD HH:MM:SS
-> 当前分支：`master`
+> 当前分支：`main`
 > 修复轮次：1（初始分析）
 
 ## 问题清单（按优先级 P0 > P1 > P2）
@@ -171,7 +171,7 @@ npm run check-all
 # 仅添加与当前问题相关的文件，避免混入其他改动
 git add <相关文件>
 git commit -m "fix: resolve [ID] - [简要描述]"
-git push origin master
+git push origin main
 ```
 
 > 禁止在单个 commit 中混用多个问题修复（除非它们属于同一根因或同一重构）。如果一次运行修复了多个问题，请拆分为多个独立 commit。

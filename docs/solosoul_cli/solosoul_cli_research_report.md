@@ -2,7 +2,7 @@
 
 > 版本：v2.0
 > 日期：2026-06-14
-> 依据文档：`/Users/zzc/PycharmProjects/SoloSoul_code/docs/solosoul_cli_prepare.md`
+> 依据文档：`/Users/zzc/PycharmProjects/SoloSoul/docs/solosoul_cli_prepare.md`
 > 目标读者：SoloSoul 客户端开发团队、架构师、产品经理
 
 ---
@@ -469,14 +469,14 @@ CLI 启动时初始化 `VaultService::new()`，数据目录沿用现有规则：
 
 ### 6.4 仓库组织决策
 
-**决策：CLI 代码初期放在当前 `SoloSoul_code` 仓库内，不新建独立仓库。**
+**决策：CLI 代码初期放在当前 `SoloSoul` 仓库内，不新建独立仓库。**
 
 #### 目录位置
 
 CLI 代码将位于当前仓库根目录下的 `solosoul_cli/` 文件夹中，与 `tauri/`、`docs/`、`sdk/` 等目录并列：
 
 ```
-SoloSoul_code/
+SoloSoul/
 ├── tauri/                       # 现有 Tauri + Rust workspace
 │   ├── src-tauri/
 │   ├── crates/

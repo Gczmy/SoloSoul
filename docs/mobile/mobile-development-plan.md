@@ -21,7 +21,7 @@
 
 ### 0.2 分支与提交
 
-- 从 `master` 切功能分支：`git checkout -b feat/mobile-p1-signing`（示例）。
+- 从 `main` 切功能分支：`git checkout -b feat/mobile-p1-signing`（示例）。
 - 提交信息遵循仓库现有规范：`<type>(<scope>): <中文描述>`，scope 用 `android` / `ios` / `mobile` / `security` 等，例如 `feat(android): 配置 release 签名与 AAB 构建`。
 - PR 触发 `pr_check.yml`（tsc + lint + vitest + fmt + clippy + cargo test），**必须全绿才可合并**。
 
@@ -296,7 +296,7 @@ npx tauri android build --apk --debug      # 验证 Android 端可构建
 
 **实现步骤**：
 
-1. `build-android.yml` 新增 job `build-android-release`，`if: github.event_name == 'push' && github.ref == 'refs/heads/master'`：
+1. `build-android.yml` 新增 job `build-android-release`，`if: github.event_name == 'push' && github.ref == 'refs/heads/main'`：
    - 检出（含子模块）、Node/Rust/JDK/SDK/NDK 步骤复用现有 job。
    - 解码 keystore：
      ```yaml

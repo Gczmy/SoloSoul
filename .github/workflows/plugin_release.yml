@@ -5,7 +5,7 @@ name: Plugin Release
 
 on:
   push:
-    branches: [master, main]
+    branches: [main]
     paths: ['SoloSoul_plugin_market/**']
 
 jobs:

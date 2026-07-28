@@ -26,4 +26,4 @@ P1 items completed:
 
 Net: -7 deps (walkdir, once_cell, unicode-segmentation, thiserror, hex, uuid, tokio-util)"
 
-git push origin master
+git push origin main

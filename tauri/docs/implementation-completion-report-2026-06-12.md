@@ -2,13 +2,13 @@
 
 > 生成时间：2026-06-12  
 > 范围：Tauri + React 客户端（`tauri/` 目录）  
-> 分支：`master`（已推送）  
+> 分支：`main`（已推送）  
 
 ---
 
 ## 1. 总体结论
 
-计划文档 `docs/feature-bugfix-plan-2026-06-12.md` 中列出的 **20 项需求与 Bug 修复已全部完成并推送至 `master` 分支**。
+计划文档 `docs/feature-bugfix-plan-2026-06-12.md` 中列出的 **20 项需求与 Bug 修复已全部完成并推送至 `main` 分支**。
 
 - 前端 TypeScript 类型检查 `npx tsc --noEmit` 通过。
 - Rust 编译 `cargo check` 通过。

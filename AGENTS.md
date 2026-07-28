@@ -436,14 +436,14 @@ git push
 
 GitHub Actions 覆盖 **Tauri 前端 + Rust Workspace + Release 构建**。
 
-### ci_cd.yml（Push 到 master/main 或 PR）
+### ci_cd.yml（Push 到 main 或 PR）
 
 1. **frontend-check**（ubuntu-latest）— TypeScript 类型检查、ESLint、Vitest 单元测试。
 2. **rust-test**（ubuntu-latest）— `tauri/` 的 `cargo test` + `cargo fmt --check` + `cargo clippy`。
 3. **plugin-market-check**（ubuntu-latest）— 递归检出 `SoloSoul_plugin_market` 子模块，验证 `registry.json` 与 `plugins/` 一致，并检查子模块指针无未提交改动。
-4. **build-macos**（macos-latest，仅 master push）— Tauri Release 构建、DMG 打包。
-5. **build-windows**（windows-latest，仅 master push）— Tauri Release 构建、MSI 打包。
-6. **release**（ubuntu-latest，仅 master push）— Draft Pre-release 发布。
+4. **build-macos**（macos-latest，仅 main push）— Tauri Release 构建、DMG 打包。
+5. **build-windows**（windows-latest，仅 main push）— Tauri Release 构建、MSI 打包。
+6. **release**（ubuntu-latest，仅 main push）— Draft Pre-release 发布。
 
 ### pr_check.yml（PR 快速反馈）
 

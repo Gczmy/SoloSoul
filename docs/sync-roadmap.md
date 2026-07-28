@@ -16,7 +16,7 @@ P1 里程碑（v2.1.0）已经实现了一套端到端的本地优先设备同�
 - **冲突解决**：Last-Write-Wins（LWW），以 HLC 大小决定胜负。
 - **前端**：`SyncPage` 提供启用开关、本机 fingerprint、手动 `host:port` 同步、设备信任/撤销/忘记。
 
-当前代码已通过 `cargo test --all` 与 `npm run test`，并推送至 `origin/master`（commit `24d2474`）。
+当前代码已通过 `cargo test --all` 与 `npm run test`，并推送至 `origin/main`（commit `24d2474`）。
 
 ---
 

@@ -111,12 +111,12 @@ export function AboutPage() {
     },
     {
       labelKey: 'privacy_policy',
-      url: `https://github.com/Gczmy/SoloSoul/blob/master/docs/${docLang}/PRIVACY_POLICY.md`,
+      url: `https://github.com/Gczmy/SoloSoul/blob/main/docs/${docLang}/PRIVACY_POLICY.md`,
       icon: <Shield size={ICON_SIZE.sm} />,
     },
     {
       labelKey: 'terms_of_service',
-      url: `https://github.com/Gczmy/SoloSoul/blob/master/docs/${docLang}/TERMS_OF_SERVICE.md`,
+      url: `https://github.com/Gczmy/SoloSoul/blob/main/docs/${docLang}/TERMS_OF_SERVICE.md`,
       icon: <Info size={ICON_SIZE.sm} />,
     },
   ];

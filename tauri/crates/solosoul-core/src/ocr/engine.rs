@@ -247,7 +247,7 @@ impl OcrEngine {
     /// 6. 按长度过滤 + parse_mrz 解析
     ///
     /// 注意：旧策略（A/B/C 多级裁剪+PP-OCR/模板匹配）已在此分支禁用，
-    /// 代码保留在 master 分支历史中。
+    /// 代码保留在 main 分支历史中。
     pub fn scan_mrz(&mut self, image_path: &Path) -> Result<Option<MrzResult>, String> {
         use super::mrz::{icao_normalize, locate_mrz_region, preprocess_for_mrz, split_text_lines};
 

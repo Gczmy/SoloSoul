@@ -143,7 +143,7 @@ sdkmanager --list_installed | grep ndk
 #### 步骤 0.4：安装项目依赖
 
 ```bash
-cd /Users/zzc/PycharmProjects/SoloSoul_code/tauri
+cd /Users/zzc/PycharmProjects/SoloSoul/tauri
 npm install
 cargo check --package solo_soul
 ```
@@ -155,7 +155,7 @@ cargo check --package solo_soul
 #### 步骤 1.1：首次运行 Android dev 命令
 
 ```bash
-cd /Users/zzc/PycharmProjects/SoloSoul_code/tauri
+cd /Users/zzc/PycharmProjects/SoloSoul/tauri
 npm run tauri:android:dev
 ```
 
@@ -204,7 +204,7 @@ npm run tauri:android:dev
 #### 步骤 2.1：交叉编译检查
 
 ```bash
-cd /Users/zzc/PycharmProjects/SoloSoul_code/tauri
+cd /Users/zzc/PycharmProjects/SoloSoul/tauri
 cargo check --target aarch64-linux-android --package solo_soul
 cargo check --target x86_64-linux-android --package solo_soul
 ```
