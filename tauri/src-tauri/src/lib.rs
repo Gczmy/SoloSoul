@@ -14,6 +14,7 @@ pub mod mobile_ocr_plugin;
 pub mod nsd_plugin;
 pub mod plugin;
 pub mod services;
+pub mod update_plugin;
 pub mod state;
 pub mod status_bar_plugin;
 pub mod sync;
@@ -151,7 +152,8 @@ pub fn run() {
         .plugin(attachment_import_plugin::init())
         .plugin(nsd_plugin::init())
         .plugin(mobile_ocr_plugin::init())
-        .plugin(keystore_plugin::init());
+        .plugin(keystore_plugin::init())
+        .plugin(update_plugin::init());
 
     // 移动端专属插件
     #[cfg(any(target_os = "android", target_os = "ios"))]
@@ -613,6 +615,12 @@ pub fn run() {
             status_bar_plugin::set_status_bar_style,
             lock_state_plugin::dismiss_lock_mask,
             lock_state_plugin::get_lock_pending,
+            // Android 更新命令
+            commands::update::android_check_update,
+            commands::update::android_download_apk,
+            commands::update::android_get_apk_path,
+            commands::update::android_is_apk_downloaded,
+            update_plugin::android_install_apk,
             // Embedding model commands
             commands::embed_model::llm_get_embed_models,
             commands::embed_model::llm_download_embed_model,

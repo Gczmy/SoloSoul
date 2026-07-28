@@ -11,6 +11,9 @@
     <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <!-- 应用内更新：安装 APK 所需权限（Android 8+ 需要） -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+
     <!-- API ≤ 32 需要定位权限发现 NSD 服务，API 33+ 使用 NEARBY_WIFI_DEVICES -->
     <uses-permission
         android:name="android.permission.ACCESS_FINE_LOCATION"

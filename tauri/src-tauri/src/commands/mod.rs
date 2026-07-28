@@ -20,6 +20,7 @@ pub mod settings;
 pub mod sync;
 pub mod system;
 pub mod template;
+pub mod update;
 pub mod vault;
 pub mod vault_directory;
 pub mod window;

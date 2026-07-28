@@ -1,5 +1,7 @@
 import { check, type Update, type DownloadEvent } from '@tauri-apps/plugin-updater';
 import { relaunch } from '@tauri-apps/plugin-process';
+import { invoke } from '@tauri-apps/api/core';
+import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import { logger } from '@/lib/logger';
 
 export interface UpdateInfo {
@@ -14,6 +16,8 @@ export type UpdateCheckResult =
   | { kind: 'available'; info: UpdateInfo; update: Update }
   | { kind: 'up-to-date' }
   | { kind: 'error'; message?: string };
+
+// ── Desktop updater (Tauri plugin-updater) ─────────────────────
 
 /**
  * 检查是否有可用更新。
@@ -63,6 +67,91 @@ export async function downloadAndInstallUpdate(
   });
 
   await relaunch();
+}
+
+// ── Android self-update (GitHub API + APK download + install) ──
+
+export interface AndroidUpdateInfo {
+  latestVersion: string;
+  currentVersion: string;
+  downloadUrl: string | null;
+  releaseNotes: string | null;
+  publishedAt: string | null;
+  apkSize: number | null;
+}
+
+export interface ApkDownloadProgress {
+  progress: number;
+  downloaded: number;
+  total: number;
+  done: boolean;
+  error: string | null;
+}
+
+export type AndroidUpdateCheckResult =
+  | { kind: 'available'; info: AndroidUpdateInfo }
+  | { kind: 'up-to-date' }
+  | { kind: 'error'; message?: string };
+
+/**
+ * 检查 Android GitHub Release 更新。
+ */
+export async function androidCheckForUpdate(): Promise<AndroidUpdateCheckResult> {
+  try {
+    const info = await invoke<AndroidUpdateInfo>('android_check_update');
+    if (info.latestVersion === info.currentVersion) {
+      return { kind: 'up-to-date' };
+    }
+    return { kind: 'available', info };
+  } catch (error) {
+    logger.warn('[updater] android check failed:', error);
+    return {
+      kind: 'error',
+      message: error instanceof Error ? error.message : String(error),
+    };
+  }
+}
+
+/**
+ * 下载 Android APK 并监听进度事件。
+ * 返回一个取消监听函数。
+ */
+export async function androidDownloadApk(
+  downloadUrl: string,
+  onProgress?: (progress: ApkDownloadProgress) => void,
+): Promise<UnlistenFn> {
+  const unlisten = await listen<ApkDownloadProgress>('apk-download-progress', (event) => {
+    onProgress?.(event.payload);
+  });
+
+  // 在后台启动下载（不 await，让事件驱动进度）
+  invoke<void>('android_download_apk', { downloadUrl }).catch((err) => {
+    logger.error('[updater] android download failed:', err);
+    onProgress?.({
+      progress: 0,
+      downloaded: 0,
+      total: 0,
+      done: true,
+      error: String(err),
+    });
+  });
+
+  return unlisten;
+}
+
+/**
+ * 安装已下载的 Android APK（调用系统包安装器）。
+ */
+export async function androidInstallApk(): Promise<void> {
+  const filePath = await invoke<string>('android_get_apk_path');
+  await invoke('android_install_apk', { filePath });
+}
+
+/**
+ * 检查 APK 是否已下载。
+ */
+export async function androidIsApkDownloaded(): Promise<boolean> {
+  return invoke<boolean>('android_is_apk_downloaded');
 }
 
 export type { Update };

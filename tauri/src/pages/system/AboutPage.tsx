@@ -8,7 +8,16 @@ import { ShieldLogo } from '@/components/ui/ShieldLogo';
 import { invoke } from '@tauri-apps/api/core';
 import { ExternalLink, Code, Shield, Info, Download } from 'lucide-react';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
-import { checkForUpdate, downloadAndInstallUpdate, type UpdateProgress } from '@/lib/updater';
+import {
+  checkForUpdate,
+  downloadAndInstallUpdate,
+  androidCheckForUpdate,
+  androidDownloadApk,
+  androidInstallApk,
+  androidIsApkDownloaded,
+  type UpdateProgress,
+  type ApkDownloadProgress,
+} from '@/lib/updater';
 import { formatBytes } from '@/lib/utils';
 import { ICON_SIZE } from '@/lib/constants';
 import { isMobilePlatformSync } from '@/lib/platform';
@@ -26,6 +35,7 @@ interface VersionInfo {
   state: 'up-to-date' | 'available' | 'error';
   body?: string;
   error?: string;
+  downloadUrl?: string | null;
 }
 
 function friendlyPlatform(os: string, _arch: string): string {
@@ -42,7 +52,7 @@ export function AboutPage() {
 
   // 更新下载/安装状态
   const [downloading, setDownloading] = useState(false);
-  const [downloadProgress, setDownloadProgress] = useState<UpdateProgress | null>(null);
+  const [downloadProgress, setDownloadProgress] = useState<UpdateProgress | ApkDownloadProgress | null>(null);
   const [downloadedBytes, setDownloadedBytes] = useState(0);
   const [totalBytes, setTotalBytes] = useState(0);
   const [downloadError, setDownloadError] = useState<string | null>(null);
@@ -52,12 +62,33 @@ export function AboutPage() {
     Promise.all([
       invoke<AppInfo>('get_app_info'),
       isMobilePlatform
-        ? Promise.resolve({ currentVersion: '', latestVersion: null, state: 'up-to-date' as const })
+        ? androidCheckForUpdate().then((result) => {
+            if (result.kind === 'available') {
+              return {
+                currentVersion: '',
+                latestVersion: result.info.latestVersion,
+                downloadUrl: result.info.downloadUrl,
+                state: 'available' as const,
+                body: result.info.releaseNotes || undefined,
+              };
+            }
+            if (result.kind === 'error') {
+              return {
+                currentVersion: '',
+                latestVersion: null,
+                downloadUrl: null,
+                state: 'error' as const,
+                error: result.message,
+              };
+            }
+            return { currentVersion: '', latestVersion: null, downloadUrl: null, state: 'up-to-date' as const };
+          })
         : checkForUpdate().then((result) => {
             if (result.kind === 'available') {
               return {
                 currentVersion: '',
                 latestVersion: result.info.version,
+                downloadUrl: null,
                 state: 'available' as const,
                 body: result.info.body,
               };
@@ -66,11 +97,12 @@ export function AboutPage() {
               return {
                 currentVersion: '',
                 latestVersion: null,
+                downloadUrl: null,
                 state: 'error' as const,
                 error: result.message,
               };
             }
-            return { currentVersion: '', latestVersion: null, state: 'up-to-date' as const };
+            return { currentVersion: '', latestVersion: null, downloadUrl: null, state: 'up-to-date' as const };
           }),
     ])
       .then(([app, ver]) => {
@@ -88,20 +120,45 @@ export function AboutPage() {
     setDownloadedBytes(0);
     setTotalBytes(0);
     try {
-      await downloadAndInstallUpdate((progress) => {
-        setDownloadProgress(progress);
-        if (progress.event === 'Started') {
-          setTotalBytes(progress.data.contentLength ?? 0);
-        } else if (progress.event === 'Progress') {
-          setDownloadedBytes((prev) => prev + (progress.data.chunkLength ?? 0));
+      if (isMobilePlatformSync()) {
+        // Android 更新流程：下载 APK（如果尚未下载）→ 自动安装
+        const isDownloaded = await androidIsApkDownloaded();
+        if (!isDownloaded && versionInfo?.downloadUrl) {
+          // 启动下载（监听事件驱动进度），等待下载完成
+          await new Promise<void>((resolve, reject) => {
+            androidDownloadApk(versionInfo.downloadUrl!, (progress) => {
+              setDownloadProgress(progress);
+              setDownloadedBytes(progress.downloaded);
+              setTotalBytes(progress.total);
+              if (progress.done) {
+                if (progress.error) {
+                  reject(new Error(progress.error));
+                } else {
+                  resolve();
+                }
+              }
+            }).catch(reject);
+          });
         }
-      });
-      // 安装成功后会调用 relaunch()，通常不会执行到这里
+        // 安装已下载的 APK
+        await androidInstallApk();
+        setDownloading(false);
+      } else {
+        // 桌面端更新流程
+        await downloadAndInstallUpdate((progress) => {
+          setDownloadProgress(progress);
+          if (progress.event === 'Started') {
+            setTotalBytes(progress.data.contentLength ?? 0);
+          } else if (progress.event === 'Progress') {
+            setDownloadedBytes((prev) => prev + (progress.data.chunkLength ?? 0));
+          }
+        });
+      }
     } catch (err) {
       setDownloading(false);
       setDownloadError(err instanceof Error ? err.message : String(err));
     }
-  }, []);
+  }, [versionInfo]);
 
   const links = [
     {
@@ -292,7 +349,7 @@ export function AboutPage() {
                           <span
                             style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}
                           >
-                            {downloadProgress?.event === 'Finished'
+                            {'event' in (downloadProgress || {})
                               ? t('settings:installing') || 'Installing...'
                               : `${formatBytes(downloadedBytes)} / ${formatBytes(totalBytes)} (${progressPercent}%)`}
                           </span>

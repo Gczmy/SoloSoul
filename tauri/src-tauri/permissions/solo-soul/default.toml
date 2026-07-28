@@ -228,5 +228,11 @@ commands.allow = [
   "vault_sync_from_remote",
   "vault_sync_to_remote",
   "vault_update_hint",
-  "verify_password"
+  "verify_password",
+  # Android 更新
+  "android_check_update",
+  "android_download_apk",
+  "android_get_apk_path",
+  "android_install_apk",
+  "android_is_apk_downloaded"
 ]
