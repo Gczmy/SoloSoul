@@ -4,8 +4,14 @@ All notable changes to SoloSoul are documented in this file.
 
 ## [Unreleased]
 
+## [2.6.0] - 2026-07-28
+
 ### Added
 
+- **账户恢复加固（P2）** — 增强账户恢复流程的健壮性与安全性。
+- **设备自动同步触发（P3）** — 实现设备间自动同步触发机制。
+- **回收站过期自动清理** — 启动时自动清理过期回收站项目，改为 tokio 后台任务并限制并发。
+- **导入命名增强** — 从 OCR/MRZ 创建对象前先弹出名称输入对话框；默认名称包含时间戳，支持多行文本字段与本地化字段名。
 - **Android 客户端预研与 MVP 构建** — 基于 Tauri Mobile 将 SoloSoul 桌面端扩展至 Android：
   - 新增 Rust Android target 交叉编译支持，解决 `openssl-sys`、`wasmtime`、`mdns-sd` 等桌面端依赖在 Android 上的编译问题。
   - 新增 `solosoul-sync` 移动端占位模块、`solosoul-plugin` 移动端占位实现。
@@ -22,6 +28,11 @@ All notable changes to SoloSoul are documented in this file.
 
 ### Fixed
 
+- **锁屏遮罩残留** — 修复锁屏后遮罩未能正确移除的问题。
+- **切后台未锁定** — 修复应用切至后台时 Vault 未能正确锁定的问题。
+- **登录默认账户** — 登录页默认使用上次登录的账户。
+- **回收站字段值换行** — 回收站快照字段值单独一行并自动换行。
+- **新建页面卡片空名称** — 空名称点击确认时保持打开并高亮提示。
 - 修复 `solosoul-plugin` 与 `solosoul-sync` 在 Android target 下的编译错误。
 - 修复 `commands/system.rs` 中 `dark_light` 在移动端的未解析依赖。
 - 修复 Android 上附件与导入导出因 `content://` URI 无法被 Rust 标准库读取而失败的问题：前端通过 `tauri-apps/plugin-fs` 中转，`attachment_copy_to_vault` 增加路径 canonicalize 失败降级。
@@ -37,6 +48,10 @@ All notable changes to SoloSoul are documented in this file.
 
 - Android 端 MVP 功能（账户/对象/附件/搜索/设置/备份/导入导出）需在模拟器/真机上手动验证。
 - 开发模式下 Vite HMR WebSocket 在 Android WebView 内连接失败，Release 构建无此问题。
+
+### Chores
+
+- 版本号同步升级到 2.6.0。
 
 ## [2.5.12] - 2026-07-12
 
