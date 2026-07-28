@@ -582,6 +582,13 @@ pub fn run() {
             commands::sync::sync_with_device,
             commands::sync::sync_trust_peer,
             commands::sync::sync_forget_peer,
+            commands::sync::sync_trigger_foreground,
+            commands::sync::sync_set_auto_enabled,
+            commands::sync::sync_get_auto_status,
+            // Recovery commands
+            commands::recovery::recovery_host_start,
+            commands::recovery::recovery_host_cancel,
+            commands::recovery::recovery_restore_from_host,
             // Plugin commands
             commands::plugin::plugin_list_all,
             commands::plugin::plugin_list_installed,

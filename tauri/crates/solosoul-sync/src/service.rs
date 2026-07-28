@@ -220,6 +220,14 @@ impl SyncService {
             }
         }
     }
+    /// 返回当前同步服务的监听端口。
+    ///
+    /// Manager 未启动时返回 0，用于前端判断当前是否正在监听。
+    pub async fn listen_port(&self) -> u16 {
+        let guard = self.manager.lock().await;
+        guard.as_ref().map(|m| m.listen_port()).unwrap_or(0)
+    }
+
     /// 返回本地节点的 Noise 公钥指纹, GUI 状态栏 / pairing 二维码都会用它.
     pub async fn local_fingerprint(&self) -> Result<String, String> {
         let guard = self.manager.lock().await;

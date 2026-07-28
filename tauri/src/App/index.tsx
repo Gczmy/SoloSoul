@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { BrowserRouter } from 'react-router-dom';
 import { invoke } from '@tauri-apps/api/core';
 import type { AccountInfo } from '@/lib/ipc';
@@ -9,6 +9,7 @@ import { GlobalSyncIndicator } from '@/components/layout/GlobalSyncIndicator';
 import { PluginQuickNotificationListener } from '@/components/plugin/PluginQuickNotificationListener';
 import { OnboardingDialog } from '@/components/onboarding/OnboardingDialog';
 import { AppRoutes } from './AppRoutes';
+import { useSyncStore } from '@/stores/syncStore';
 
 import { initPlatform } from '@/lib/platform';
 
@@ -25,6 +26,22 @@ function App() {
     initPlatform().catch(() => {
       /* ignore */
     });
+  }, []);
+
+  // 设备自动同步：应用切回前台时触发一次同步，但最多每分钟一次，避免反复切换应用导致同步风暴。
+  const lastForegroundSyncRef = useRef<number>(0);
+  useEffect(() => {
+    const onVisibilityChange = () => {
+      if (!document.hidden) {
+        const now = Date.now();
+        if (now - lastForegroundSyncRef.current >= 60_000) {
+          lastForegroundSyncRef.current = now;
+          useSyncStore.getState().triggerForegroundSync();
+        }
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', onVisibilityChange);
   }, []);
 
   useEffect(() => {

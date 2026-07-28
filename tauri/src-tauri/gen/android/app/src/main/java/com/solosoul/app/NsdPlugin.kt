@@ -58,6 +58,13 @@ class NsdPlugin(private val activity: Activity): Plugin(activity) {
     private var pendingPermissionInvoke: Invoke? = null
 
     companion object {
+        /**
+         * Android NSD 服务类型。
+         *
+         * 注意：NsdManager API 要求省略 `.local.` 后缀（底层会自动补齐为完整 mDNS 名称）。
+         * 桌面端 Rust 使用 `mdns-sd`，必须保留完整后缀 `_solosoul._tcp.local.`。
+         * 两者在网络层等价，修改时需同步检查 Rust 端常量。
+         */
         private const val SERVICE_TYPE = "_solosoul._tcp"
         private const val PERMISSION_REQUEST_CODE = 1001
     }

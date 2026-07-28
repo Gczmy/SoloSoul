@@ -622,6 +622,7 @@ pub async fn object_create(
         Some(&format!("section={}", input.collection_type)),
     );
     state.auto_sync.trigger_debounce();
+    state.device_auto_sync.trigger_data_change();
     Ok(record_to_data(&record))
 }
 
@@ -698,6 +699,7 @@ pub async fn object_update(
         Some(&format!("section={}", record.section_type)),
     );
     state.auto_sync.trigger_debounce();
+    state.device_auto_sync.trigger_data_change();
     Ok(record_to_data(&record))
 }
 
@@ -1421,6 +1423,7 @@ pub async fn object_sync_with_template(
     }
 
     state.auto_sync.trigger_debounce();
+    state.device_auto_sync.trigger_data_change();
     Ok(result)
 }
 
@@ -1441,6 +1444,7 @@ pub async fn object_ignore_template_sync(
     record.version += 1;
     vault.save_object(&record)?;
     state.auto_sync.trigger_debounce();
+    state.device_auto_sync.trigger_data_change();
     Ok(())
 }
 
@@ -1548,6 +1552,7 @@ pub async fn object_delete(state: State<'_, AppState>, object_id: String) -> Res
             Some(&format!("section={}", obj_section)),
         );
         state.auto_sync.trigger_debounce();
+        state.device_auto_sync.trigger_data_change();
         return Ok(());
     }
     Err("Object not found".to_string())

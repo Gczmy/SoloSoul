@@ -15,6 +15,7 @@ import {
 import { useAuthStore } from '@/stores/authStore';
 import type { AccountInfo } from '@/lib/ipc';
 import { ICON_SIZE, ST_ONBOARDING_SAF_URI } from '@/lib/constants';
+import { RecoveryReceiveDialog } from '@/components/recovery/RecoveryReceiveDialog';
 import { getPlatform } from '@/lib/platform';
 import { pickVaultDirectory, initVaultDirectory } from '@/lib/vaultDirectory';
 import { IndeterminateProgressBar } from '@/components/ui/IndeterminateProgressBar';
@@ -71,6 +72,7 @@ export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDial
   const [foundAccounts, setFoundAccounts] = useState<AccountInfo[]>([]);
   const [foundAccountCount, setFoundAccountCount] = useState(0);
   const [showAccountDecision, setShowAccountDecision] = useState(false);
+  const [receiveDialogOpen, setReceiveDialogOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -201,6 +203,10 @@ export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDial
     onComplete();
     navigate('/bootstrap?mode=create', { replace: true });
   }, [navigate, onComplete]);
+
+  const handleRecoverFromDevice = useCallback(() => {
+    setReceiveDialogOpen(true);
+  }, []);
 
   // Show only the vault directory step when we need to display it
   if (current.key === 'vault_directory') {

@@ -72,6 +72,7 @@ pub async fn plugin_install(
         .map_err(|e| e.to_string())?;
 
     state.auto_sync.trigger_debounce();
+    state.device_auto_sync.trigger_data_change();
 
     // 安装成功后，对已解锁的 Vault 执行种子模板 contract_bindings 迁移
     if let Ok(vault) = vault_handle(&state) {
@@ -120,6 +121,7 @@ pub async fn plugin_update(
         .await
         .map_err(|e| e.to_string())?;
     state.auto_sync.trigger_debounce();
+    state.device_auto_sync.trigger_data_change();
     Ok(result)
 }
 
@@ -130,6 +132,7 @@ pub async fn plugin_uninstall(state: State<'_, AppState>, plugin_id: String) -> 
         .uninstall(&plugin_id)
         .map_err(|e| e.to_string())?;
     state.auto_sync.trigger_debounce();
+    state.device_auto_sync.trigger_data_change();
     Ok(())
 }
 

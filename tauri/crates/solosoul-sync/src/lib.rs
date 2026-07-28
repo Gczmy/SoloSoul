@@ -13,6 +13,7 @@ pub mod types;
 pub mod attachments;
 pub mod delta;
 pub mod noise;
+pub mod recovery;
 pub mod session;
 pub mod transport;
 

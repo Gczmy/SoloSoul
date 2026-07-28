@@ -63,6 +63,7 @@ pub struct SyncPeer {
 pub struct SyncStatus {
     pub is_discovering: bool,
     pub sync_enabled: bool,
+    pub auto_sync_enabled: bool,
     pub local_fingerprint: String,
     pub connected_peers: Vec<SyncPeer>,
 }
@@ -122,6 +123,7 @@ pub async fn sync_discover(state: State<'_, AppState>) -> Result<SyncStatus, Str
     Ok(SyncStatus {
         is_discovering: state.sync_service.is_enabled().await,
         sync_enabled: state.sync_service.is_enabled().await,
+        auto_sync_enabled: state.device_auto_sync.enabled(),
         local_fingerprint,
         connected_peers: peers
             .into_iter()
@@ -145,6 +147,7 @@ pub async fn sync_discover(state: State<'_, AppState>) -> Result<SyncStatus, Str
     Ok(SyncStatus {
         is_discovering: state.sync_service.is_enabled().await,
         sync_enabled: state.sync_service.is_enabled().await,
+        auto_sync_enabled: state.device_auto_sync.enabled(),
         local_fingerprint,
         connected_peers: peers
             .into_iter()
@@ -158,6 +161,57 @@ pub async fn sync_discover(state: State<'_, AppState>) -> Result<SyncStatus, Str
             })
             .collect(),
     })
+}
+
+/// 触发一次前台自动同步。
+#[cfg(desktop)]
+#[tauri::command]
+pub async fn sync_trigger_foreground(state: State<'_, AppState>) -> Result<(), String> {
+    state.device_auto_sync.trigger_foreground();
+    Ok(())
+}
+
+#[cfg(mobile)]
+#[tauri::command]
+pub async fn sync_trigger_foreground(state: State<'_, AppState>) -> Result<(), String> {
+    state.device_auto_sync.trigger_foreground();
+    Ok(())
+}
+
+/// 设置是否启用设备自动同步。
+#[cfg(desktop)]
+#[tauri::command]
+pub async fn sync_set_auto_enabled(
+    state: State<'_, AppState>,
+    enabled: bool,
+) -> Result<bool, String> {
+    state.device_auto_sync.set_enabled(enabled);
+    log_sync_action(&state, if enabled { "auto_sync_enabled" } else { "auto_sync_disabled" }, None, None);
+    Ok(enabled)
+}
+
+#[cfg(mobile)]
+#[tauri::command]
+pub async fn sync_set_auto_enabled(
+    state: State<'_, AppState>,
+    enabled: bool,
+) -> Result<bool, String> {
+    state.device_auto_sync.set_enabled(enabled);
+    log_sync_action(&state, if enabled { "auto_sync_enabled" } else { "auto_sync_disabled" }, None, None);
+    Ok(enabled)
+}
+
+/// 获取设备自动同步开关状态。
+#[cfg(desktop)]
+#[tauri::command]
+pub async fn sync_get_auto_status(state: State<'_, AppState>) -> Result<bool, String> {
+    Ok(state.device_auto_sync.enabled())
+}
+
+#[cfg(mobile)]
+#[tauri::command]
+pub async fn sync_get_auto_status(state: State<'_, AppState>) -> Result<bool, String> {
+    Ok(state.device_auto_sync.enabled())
 }
 
 #[cfg(desktop)]
@@ -251,9 +305,9 @@ pub async fn sync_listen_port(state: State<'_, AppState>) -> Result<u16, String>
 
 #[cfg(desktop)]
 #[tauri::command]
-pub async fn sync_listen_port(_state: State<'_, AppState>) -> Result<u16, String> {
-    // 桌面端监听端口由 mDNS 服务信息直接提供，无需单独暴露。
-    Ok(0)
+pub async fn sync_listen_port(state: State<'_, AppState>) -> Result<u16, String> {
+    // 桌面端同样返回实际监听端口，方便用户在自动发现失败时通过 host:port 手动连接。
+    Ok(state.sync_service.listen_port().await)
 }
 
 #[cfg(desktop)]
@@ -431,12 +485,14 @@ mod tests {
         let status = SyncStatus {
             is_discovering: true,
             sync_enabled: false,
+            auto_sync_enabled: false,
             local_fingerprint: "fp-001".to_string(),
             connected_peers: vec![],
         };
         let json = serde_json::to_string(&status).unwrap();
         assert!(json.contains("is_discovering"));
         assert!(json.contains("sync_enabled"));
+        assert!(json.contains("auto_sync_enabled"));
     }
 
     #[test]

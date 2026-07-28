@@ -4,13 +4,14 @@ use crate::fs::saf_sync_driver::TauriSafSyncDriver;
 use crate::plugin::PluginManager;
 use crate::sync::auto_sync;
 use crate::sync::auto_sync::AutoSyncManager;
+use crate::sync::device_auto_sync::DeviceAutoSyncManager;
 use solosoul_core::vault_file_system::{SafVaultFileSystem, VaultFileSystem};
 use solosoul_core::vault_service::AccountSummary;
 use solosoul_core::VaultService;
 use solosoul_sync::SyncService;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::AtomicBool;
-use std::sync::{Arc, RwLock};
+use std::sync::{Arc, Mutex, RwLock};
 use tauri::{Emitter, Manager};
 
 /// `.solosoul_config` 文件名（存放在 SAF 目录根，用于重装后自动发现）。
@@ -23,8 +24,35 @@ pub struct AppState {
     pub sync_service: Arc<SyncService>,
     pub plugin_manager: Arc<PluginManager>,
     pub auto_sync: AutoSyncManager,
+    /// 设备间自动同步调度器（前台/数据变更/定时）。
+    pub device_auto_sync: DeviceAutoSyncManager,
     /// 标记是否已有后台过期回收站清理任务在运行，用于防止并发重复执行。
     pub trash_cleanup_running: Arc<AtomicBool>,
+    /// 跨设备恢复主机状态（取消信号、后台线程、临时导出文件）。
+    pub recovery_state: Arc<Mutex<RecoveryState>>,
+}
+
+/// 跨设备恢复主机的运行时状态。
+pub struct RecoveryState {
+    pub cancel: Arc<AtomicBool>,
+    pub host_thread: Option<std::thread::JoinHandle<()>>,
+    pub export_path: Option<PathBuf>,
+}
+
+impl RecoveryState {
+    pub fn new() -> Self {
+        Self {
+            cancel: Arc::new(AtomicBool::new(false)),
+            host_thread: None,
+            export_path: None,
+        }
+    }
+}
+
+impl Default for RecoveryState {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 /// Result of first-launch vault directory initialization.
@@ -276,7 +304,7 @@ impl AppState {
                             tracing::error!(
                                 "[AppState] local vault init after SAF fallback FAILED: {e}"
                             );
-                            return Err(e.into());
+                            return Err(e);
                         }
                     }
                 } else {
@@ -308,6 +336,13 @@ impl AppState {
 
         // ── SyncService ──
         let sync_service = Arc::new(SyncService::new(vault_service.clone()));
+
+        // ── DeviceAutoSyncManager（设备间自动同步，依赖 SyncService） ──
+        let device_auto_sync = DeviceAutoSyncManager::new(
+            sync_service.clone(),
+            vault_service.clone(),
+            handle.clone(),
+        );
 
         // ── AutoSyncManager（在 VaultService 初始化之后启动） ──
         let auto_sync = AutoSyncManager::new_for_vault(vault_service.clone(), handle.clone());
@@ -346,7 +381,9 @@ impl AppState {
             sync_service,
             plugin_manager,
             auto_sync,
+            device_auto_sync,
             trash_cleanup_running: Arc::new(AtomicBool::new(false)),
+            recovery_state: Arc::new(Mutex::new(RecoveryState::new())),
         };
 
         // 若当前使用 SAF 远程 Vault，调度 WorkManager 兜底同步，

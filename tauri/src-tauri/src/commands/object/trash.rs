@@ -89,6 +89,7 @@ pub async fn object_restore(
 
     let result = solosoul_core::objects::restore_from_trash_with_lang(vault, &trash_id, lang)?;
     state.auto_sync.trigger_debounce();
+    state.device_auto_sync.trigger_data_change();
 
     Ok(result.into())
 }
@@ -114,6 +115,7 @@ pub async fn object_purge(state: State<'_, AppState>, object_id: String) -> Resu
         Some(&format!("section={}", obj_section)),
     );
     state.auto_sync.trigger_debounce();
+    state.device_auto_sync.trigger_data_change();
     Ok(())
 }
 
@@ -149,6 +151,7 @@ pub async fn trash_permanent_delete(
         );
         vault.delete_trash_item(&trash_id).ok();
         state.auto_sync.trigger_debounce();
+        state.device_auto_sync.trigger_data_change();
         return Ok(());
     }
     vault.delete_trash_item(&trash_id).ok();
@@ -161,6 +164,7 @@ pub async fn trash_permanent_delete(
         None,
     );
     state.auto_sync.trigger_debounce();
+    state.device_auto_sync.trigger_data_change();
     Ok(())
 }
 
@@ -215,6 +219,7 @@ pub fn run_expired_trash_cleanup(state: &crate::state::AppState) {
             Ok(count) => {
                 tracing::info!("[trash_cleanup] cleaned {} expired trash item(s)", count);
                 state.auto_sync.trigger_debounce();
+                state.device_auto_sync.trigger_data_change();
             }
             Err(e) => {
                 tracing::error!("[trash_cleanup] failed to clean expired trash: {}", e);
@@ -353,5 +358,6 @@ pub async fn page_delete(
         Some(&format!("count={}", count)),
     );
     state.auto_sync.trigger_debounce();
+    state.device_auto_sync.trigger_data_change();
     Ok(count)
 }

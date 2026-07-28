@@ -62,6 +62,7 @@ pub async fn profile_save(
     let summary = solosoul_vault::ProfileSummary::from_profile(&profile);
     vault.save_profile(&profile)?;
     state.auto_sync.trigger_debounce();
+    state.device_auto_sync.trigger_data_change();
 
     Ok(ProfileSummary {
         id: summary.id,
@@ -208,6 +209,7 @@ pub async fn profile_update_field(
     profile.version += 1;
     vault.save_profile(&profile)?;
     state.auto_sync.trigger_debounce();
+    state.device_auto_sync.trigger_data_change();
     Ok(())
 }
 

@@ -289,6 +289,7 @@ pub async fn user_data_update_preference(
     profile.version += 1;
     vault.save_profile(&profile)?;
     state.auto_sync.trigger_debounce();
+    state.device_auto_sync.trigger_data_change();
     Ok(())
 }
 

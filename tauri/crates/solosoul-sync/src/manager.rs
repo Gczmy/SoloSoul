@@ -13,6 +13,11 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 use tokio::task::{spawn, spawn_blocking, JoinHandle};
 
+/// 本机广播/发现的 mDNS 服务类型。
+///
+/// 注意：`mdns-sd` 库要求服务类型包含完整的 `.local.` 后缀；Android 的 `NsdManager`
+/// 在 API 层面必须省略该后缀（底层会自动补齐），因此 Android 端常量写作 `_solosoul._tcp`。
+/// 两者在网络层等价，这里保留完整后缀以满足 Rust 端库的要求。
 const SERVICE_TYPE: &str = "_solosoul._tcp.local.";
 const MDNS_TIMEOUT_MS: u64 = 200;
 const PEER_MAX_AGE_SECS: u64 = 300;

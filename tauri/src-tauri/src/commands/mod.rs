@@ -14,6 +14,7 @@ pub mod ocr;
 pub mod pin;
 pub mod plugin;
 pub mod profile;
+pub mod recovery;
 pub mod search;
 pub mod settings;
 pub mod sync;

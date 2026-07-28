@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { useSyncStore } from '@/stores/syncStore';
 import { DeleteButton } from '@/components/ui/DeleteButton';
+import { RecoveryHostDialog } from '@/components/recovery/RecoveryHostDialog';
 import type { SyncConflict } from '@/lib/ipc';
 import { ICON_SIZE } from '@/lib/constants';
 
@@ -38,6 +39,7 @@ export function SyncPage() {
   const [manualAddr, setManualAddr] = useState('');
   const [ignoredPeerIds, setIgnoredPeerIds] = useState<Set<string>>(new Set());
   const [activityOpen, setActivityOpen] = useState(false);
+  const [hostDialogOpen, setHostDialogOpen] = useState(false);
 
   const pendingPeer = useMemo(() => {
     return (
@@ -48,6 +50,8 @@ export function SyncPage() {
 
   const loadStatus = useCallback(async () => {
     await store.loadStatus();
+    await store.loadListenPort();
+    await store.loadAutoSyncStatus();
   }, [store]);
 
   useEffect(() => {
@@ -64,6 +68,10 @@ export function SyncPage() {
 
   const handleToggleSync = async () => {
     await store.enable(!store.syncEnabled);
+  };
+
+  const handleToggleAutoSync = async () => {
+    await store.setAutoSyncEnabled(!store.autoSyncEnabled);
   };
 
   const handleDiscover = async () => {
@@ -84,12 +92,60 @@ export function SyncPage() {
     setIgnoredPeerIds((prev) => new Set(prev).add(pendingPeer.id));
   };
 
+  const handleOpenHostDialog = () => {
+    setHostDialogOpen(true);
+  };
+
   return (
     <AppShell
       title={t('settings:sync', { defaultValue: 'Device Sync' })}
       onBack={() => navigate(backTo || '/home', { replace: true })}
     >
       <PageContainer variant="xs" gap="default">
+        {/* Link new device */}
+        <Card>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ fontSize: 'var(--text-card-title)', fontWeight: 600 }}>
+                {t('common:recovery_link_new_device')}
+              </div>
+              <div style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)', marginTop: 4 }}>
+                {t('common:onboarding_recover_from_device_desc')}
+              </div>
+            </div>
+            <button
+              onClick={handleOpenHostDialog}
+              disabled={store.isLoading}
+              style={{
+                padding: '8px 16px',
+                borderRadius: 8,
+                border: '1px solid var(--border-subtle)',
+                background: 'var(--bg-toolbar)',
+                color: 'var(--text-primary)',
+                fontSize: 'var(--text-body-sm)',
+                fontWeight: 500,
+                cursor: store.isLoading ? 'default' : 'pointer',
+                opacity: store.isLoading ? 0.6 : 1,
+                transition: 'all 0.15s ease',
+                fontFamily: 'inherit',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background =
+                  'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
+                e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                e.currentTarget.style.color = 'var(--accent-primary)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'var(--bg-toolbar)';
+                e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                e.currentTarget.style.color = 'var(--text-primary)';
+              }}
+            >
+              {t('common:recovery_link_new_device')}
+            </button>
+          </div>
+        </Card>
+
         {/* Status card */}
         <Card>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -167,6 +223,53 @@ export function SyncPage() {
             </button>
           </div>
 
+          {/* Auto-sync toggle */}
+          <div
+            style={{
+              marginTop: 12,
+              padding: 10,
+              borderRadius: 8,
+              background: 'var(--bg-toolbar)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+            }}
+          >
+            <div>
+              <div style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500 }}>
+                {t('settings:sync_auto', { defaultValue: 'Automatic Sync' })}
+              </div>
+              <div style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
+                {t('settings:sync_auto_desc', {
+                  defaultValue: 'Sync automatically on foreground, data changes, and periodically.',
+                })}
+              </div>
+            </div>
+            <button
+              onClick={handleToggleAutoSync}
+              disabled={!store.syncEnabled || store.isLoading}
+              style={{
+                padding: '8px 16px',
+                borderRadius: 8,
+                border: store.autoSyncEnabled
+                  ? '1px solid var(--accent-primary)'
+                  : '1px solid var(--border-subtle)',
+                background: 'var(--bg-elevated)',
+                color: store.autoSyncEnabled ? 'var(--accent-primary)' : 'var(--text-primary)',
+                fontSize: 'var(--text-body-sm)',
+                fontWeight: 500,
+                cursor: !store.syncEnabled || store.isLoading ? 'default' : 'pointer',
+                opacity: !store.syncEnabled || store.isLoading ? 0.6 : 1,
+                transition: 'all 0.15s ease',
+                fontFamily: 'inherit',
+              }}
+            >
+              {store.autoSyncEnabled
+                ? t('settings:sync_auto_on', { defaultValue: 'On' })
+                : t('settings:sync_auto_off', { defaultValue: 'Off' })}
+            </button>
+          </div>
+
           {store.localFingerprint && (
             <div
               style={{
@@ -183,6 +286,23 @@ export function SyncPage() {
                 {t('settings:sync_your_fingerprint', { defaultValue: 'Your fingerprint' })}:
               </strong>{' '}
               {store.localFingerprint}
+            </div>
+          )}
+          {store.syncEnabled && store.listenPort !== 0 && (
+            <div
+              style={{
+                marginTop: 8,
+                padding: 10,
+                borderRadius: 8,
+                background: 'var(--bg-toolbar)',
+                fontSize: 'var(--text-caption)',
+                color: 'var(--text-secondary)',
+              }}
+            >
+              <strong>
+                {t('settings:sync_your_port', { defaultValue: 'Your listen port' })}:
+              </strong>{' '}
+              {store.listenPort}
             </div>
           )}
         </Card>
@@ -278,9 +398,25 @@ export function SyncPage() {
               })}
             </div>
           ) : (
-            <p style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
-              {t('settings:sync_no_devices_found', { defaultValue: 'No devices found. Click Discover to scan.' })}
-            </p>
+            <>
+              <p style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
+                {t('settings:sync_no_devices_found', { defaultValue: 'No devices found. Click Discover to scan.' })}
+              </p>
+              {store.syncEnabled && (
+                <p
+                  style={{
+                    fontSize: 'var(--text-caption)',
+                    color: 'var(--text-tertiary)',
+                    marginTop: 8,
+                  }}
+                >
+                  {t('settings:sync_manual_fallback_hint', {
+                    defaultValue:
+                      'If automatic discovery fails, ensure both devices are on the same Wi-Fi and enter the other device\'s IP address with port below.',
+                  })}
+                </p>
+              )}
+            </>
           )}
         </Card>
 
@@ -567,6 +703,7 @@ export function SyncPage() {
         onTrust={handleTrustPending}
         onIgnore={handleIgnorePending}
       />
+      <RecoveryHostDialog isOpen={hostDialogOpen} onClose={() => setHostDialogOpen(false)} />
     </AppShell>
   );
 }

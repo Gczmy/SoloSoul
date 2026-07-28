@@ -126,6 +126,7 @@ pub async fn attachment_delete(
     record.version += 1;
     vault.save_object(&record)?;
     state.auto_sync.trigger_debounce();
+    state.device_auto_sync.trigger_data_change();
     Ok(())
 }
 
@@ -146,6 +147,7 @@ pub async fn attachment_restore(
     record.version += 1;
     vault.save_object(&record)?;
     state.auto_sync.trigger_debounce();
+    state.device_auto_sync.trigger_data_change();
     Ok(())
 }
 
@@ -172,6 +174,7 @@ pub async fn attachment_save(
     record.version += 1;
     vault.save_object(&record)?;
     state.auto_sync.trigger_debounce();
+    state.device_auto_sync.trigger_data_change();
     Ok(())
 }
 
@@ -198,6 +201,7 @@ pub async fn attachment_rename(
     record.version += 1;
     vault.save_object(&record)?;
     state.auto_sync.trigger_debounce();
+    state.device_auto_sync.trigger_data_change();
     Ok(())
 }
 
@@ -219,6 +223,7 @@ pub async fn attachment_soft_delete(
     record.version += 1;
     vault.save_object(&record)?;
     state.auto_sync.trigger_debounce();
+    state.device_auto_sync.trigger_data_change();
     Ok(())
 }
 
@@ -244,6 +249,7 @@ pub async fn attachment_batch_soft_delete(
     record.version += 1;
     vault.save_object(&record)?;
     state.auto_sync.trigger_debounce();
+    state.device_auto_sync.trigger_data_change();
     Ok(())
 }
 
@@ -268,6 +274,7 @@ pub async fn attachment_batch_restore(
     record.version += 1;
     vault.save_object(&record)?;
     state.auto_sync.trigger_debounce();
+    state.device_auto_sync.trigger_data_change();
     Ok(())
 }
 
@@ -312,6 +319,7 @@ pub async fn attachment_batch_delete(
     record.version += 1;
     vault.save_object(&record)?;
     state.auto_sync.trigger_debounce();
+    state.device_auto_sync.trigger_data_change();
     Ok(())
 }
 
@@ -1014,6 +1022,7 @@ pub async fn attachment_cleanup_orphans(
         )),
     );
     state.auto_sync.trigger_debounce();
+    state.device_auto_sync.trigger_data_change();
     Ok(removed)
 }
 

@@ -155,6 +155,13 @@ impl NoiseSession {
             .map_err(|e| format!("decrypt: {}", e))?;
         Ok(self.buffer[..len].to_vec())
     }
+
+    /// 返回远端静态公钥的短指纹（16 字节 hex），用于恢复流程验证主机身份。
+    pub fn remote_fingerprint(&self) -> Option<String> {
+        self.state
+            .get_remote_static()
+            .map(|k| hex::encode(&k[..16]))
+    }
 }
 
 #[cfg(test)]

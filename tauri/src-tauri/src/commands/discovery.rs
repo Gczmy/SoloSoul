@@ -11,7 +11,15 @@ use std::sync::Arc;
 use tauri::Manager;
 use tokio::sync::Mutex;
 
+/// 桌面端 mDNS 服务类型（完整域名后缀）。
+///
+/// 注意：Android 的 `NsdManager` 必须省略 `.local.` 后缀（底层会自动补齐），因此
+/// `NsdPlugin.kt` 中写作 `_solosoul._tcp`。两者在网络层等价，这里保留完整后缀
+/// 以满足 `mdns-sd` 库的要求。修改本常量时需同步检查 Android 端常量。
 const MDNS_SERVICE_TYPE: &str = "_solosoul._tcp.local.";
+/// 不含域后缀的服务类型基础名，用于跨平台一致性校验。
+#[cfg(test)]
+const MDNS_SERVICE_TYPE_BASE: &str = "_solosoul._tcp";
 const MDNS_MAX_TIMEOUT_MS: u64 = 30_000;
 const MDNS_POLL_INTERVAL_MS: u64 = 200;
 
@@ -244,6 +252,15 @@ mod tests {
         assert_eq!(MDNS_SERVICE_TYPE, "_solosoul._tcp.local.");
         assert_eq!(MDNS_MAX_TIMEOUT_MS, 30_000);
         assert_eq!(MDNS_POLL_INTERVAL_MS, 200);
+    }
+
+    #[test]
+    fn test_mdns_service_type_matches_android_base() {
+        // Android 端 NsdPlugin 使用的基础服务类型（不含 .local. 后缀）。
+        const ANDROID_SERVICE_TYPE: &str = "_solosoul._tcp";
+        let base = MDNS_SERVICE_TYPE.trim_end_matches(".local.");
+        assert_eq!(base, ANDROID_SERVICE_TYPE);
+        assert_eq!(MDNS_SERVICE_TYPE_BASE, ANDROID_SERVICE_TYPE);
     }
 
     #[test]

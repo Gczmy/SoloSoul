@@ -494,6 +494,123 @@ impl VaultService {
         }))
     }
 
+    /// 使用指定的 account_id 创建账户（用于跨设备恢复等场景）。
+    /// 调用方需保证 `account_id` 在本机唯一；`name` 若与已有账户重复会返回错误。
+    pub fn create_account_with_id(
+        &self,
+        account_id: &str,
+        name: &str,
+        password: &str,
+        password_hint: Option<&str>,
+    ) -> Result<serde_json::Value, String> {
+        if name.trim().is_empty() {
+            return Err("Account name is required".to_string());
+        }
+        if password.len() < 8 {
+            return Err("Password must be at least 8 characters".to_string());
+        }
+
+        let _create_guard = self.create_lock.lock().map_err(|e| e.to_string())?;
+
+        let cache = self.accounts_cache.read().map_err(|e| e.to_string())?;
+        if cache
+            .values()
+            .any(|a| a.name.to_lowercase() == name.to_lowercase())
+        {
+            return Err("Account name already taken".to_string());
+        }
+        drop(cache);
+
+        // 如果该 account_id 已经存在，直接拒绝，避免覆盖已有数据
+        if self.accounts_cache.read().map_err(|e| e.to_string())?.contains_key(account_id) {
+            return Err("Account ID already exists".to_string());
+        }
+
+        let salt = generate_salt();
+        let kdf_config = KdfConfig::from_env();
+        let master_key = derive_key(password, &salt, &kdf_config)
+            .map_err(|e| format!("Key derivation failed: {}", e))?;
+
+        let mk: [u8; 32] = master_key
+            .as_slice()
+            .try_into()
+            .map_err(|_| "Master key must be 32 bytes".to_string())?;
+        let verify_hash = hex::encode(
+            solosoul_crypto::hkdf_ext::derive_hkdf_key(&mk, &salt, b"SOLOSOUL_VAULT_VERIFY_v1")
+                .map_err(|e| format!("Verify HKDF failed: {}", e))?,
+        );
+
+        let dir_rel = self.account_dir_rel(account_id);
+        self.fs.create_dir_all(&dir_rel)?;
+        self.ensure_private_dir(&dir_rel)?;
+
+        let now = chrono::Utc::now().to_rfc3339();
+        let config_data = AccountConfig {
+            account_id: account_id.to_string(),
+            name: name.to_string(),
+            salt: base64::Engine::encode(
+                &base64::engine::general_purpose::STANDARD,
+                salt.as_slice(),
+            ),
+            verify_hash,
+            created_at: now.clone(),
+            crypto_version: 3,
+            biometric_enabled: false,
+            pin_enabled: false,
+            pin_length: 0,
+            pin_failed_attempts: 0,
+            pin_locked_until: None,
+            kdf_memory_kb: Some(kdf_config.memory_kb),
+            kdf_iterations: Some(kdf_config.iterations),
+            kdf_parallelism: Some(kdf_config.parallelism),
+            password_hint: password_hint.map(|s| s.to_string()),
+            last_login_at: Some(now.clone()),
+            last_operation_at: None,
+            last_operation_desc: None,
+        };
+        let config_rel = self.config_path_rel(account_id);
+        let config_json = serde_json::to_string_pretty(&config_data).map_err(|e| e.to_string())?;
+        self.fs.write_file(&config_rel, config_json.as_bytes())?;
+        self.ensure_private_file(&config_rel)?;
+
+        let entry = AccountEntry {
+            id: account_id.to_string(),
+            name: name.to_string(),
+            created_at: now.clone(),
+            last_accessed: Some(now),
+        };
+        if let Ok(mut cache) = self.accounts_cache.write() {
+            cache.insert(account_id.to_string(), entry);
+        }
+        self.save_accounts()?;
+
+        let master_key_arr: [u8; 32] = master_key
+            .as_slice()
+            .try_into()
+            .map_err(|_| "HKDF output must be 32 bytes".to_string())?;
+        let account_dir_path = self.fs.local_path(&dir_rel).ok_or("无法解析账户本地目录")?;
+        let vault_config =
+            VaultConfig::new(account_id, account_dir_path).with_data_key(master_key_arr);
+        let vault =
+            VaultStore::open(vault_config).map_err(|e| format!("Failed to open vault: {}", e))?;
+        let vault_arc = Arc::new(vault);
+        if let Ok(mut store) = self.vault_store.write() {
+            *store = Some(vault_arc);
+        }
+        if let Ok(mut key) = self.session_key.write() {
+            *key = Some(Zeroizing::new(master_key_arr));
+        }
+        if let Ok(mut ua) = self.unlocked_account.write() {
+            *ua = Some(account_id.to_string());
+        }
+
+        Ok(serde_json::json!({
+            "id": account_id, "name": name,
+            "salt": config_data.salt, "verifyHash": config_data.verify_hash,
+            "passwordHint": config_data.password_hint,
+        }))
+    }
+
     /// 安全解锁：接受 Zeroizing<String> 主密码，避免调用侧额外明文拷贝。
     pub fn unlock_secure(
         &self,

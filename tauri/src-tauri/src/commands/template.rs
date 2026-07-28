@@ -185,6 +185,7 @@ pub async fn template_create(
         Some(&format!("name={}", template.name)),
     );
     state.auto_sync.trigger_debounce();
+    state.device_auto_sync.trigger_data_change();
 
     Ok(template.id)
 }
@@ -246,6 +247,7 @@ pub async fn template_update(
         None,
     );
     state.auto_sync.trigger_debounce();
+    state.device_auto_sync.trigger_data_change();
 
     Ok(())
 }
@@ -366,6 +368,7 @@ pub async fn template_restore(
         None,
     );
     state.auto_sync.trigger_debounce();
+    state.device_auto_sync.trigger_data_change();
 
     Ok(template.id)
 }

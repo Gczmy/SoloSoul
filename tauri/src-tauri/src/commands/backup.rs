@@ -233,6 +233,7 @@ pub async fn backup_create(state: State<'_, AppState>, name: String) -> Result<B
 
     let metadata = fs::metadata(&backup_path).map_err(|e| e.to_string())?;
     state.auto_sync.trigger_debounce();
+    state.device_auto_sync.trigger_data_change();
 
     Ok(BackupInfo {
         id: format!("{}_{}", safe_name, timestamp),
@@ -324,6 +325,7 @@ pub async fn backup_restore(
         restored += 1;
     }
     state.auto_sync.trigger_debounce();
+    state.device_auto_sync.trigger_data_change();
 
     Ok(restored)
 }
