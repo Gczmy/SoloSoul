@@ -4,6 +4,19 @@ All notable changes to SoloSoul are documented in this file.
 
 ## [Unreleased]
 
+## [2.6.1] - 2026-07-28
+
+### Fixed
+
+- **设备同步页面严重卡顿** — 修复 SyncPage.tsx 中 useCallback 依赖整个 zustand store 导致的无限重渲染循环。改用 `useSyncStore.getState()` + 空依赖数组 + `Promise.all` 并行化 4 个 IPC 调用。
+- **ACL 权限缺失补全** — 补全同步/恢复相关命令（`sync_discover`、`sync_listen_port` 等）到 `allow-all-custom-commands` 白名单。
+
+### Chores
+
+- 版本号同步升级到 2.6.1。
+- 名称统一：代码/文档中的 `master` → `main`，`SoloSoul_code` → `SoloSoul`。
+- 同步插件市场子模块指针至最新版本。
+
 ## [2.6.0] - 2026-07-28
 
 ### Added
