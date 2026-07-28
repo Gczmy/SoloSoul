@@ -241,7 +241,7 @@ export function LoginPage() {
       });
 
     return () => controller.abort();
-  }, [selectedAccountId]);
+  }, [selectedAccountId, fromExisting]);
 
   // 卸载时清理悬停延迟定时器
   useEffect(() => {

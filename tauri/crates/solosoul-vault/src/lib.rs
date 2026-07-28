@@ -73,7 +73,8 @@ pub use profile::{Profile, ProfileData, ProfileSummary, VersionedProfileData};
 // ── Sync helpers ──────────────────────────────────────────
 
 /// HLC timestamp stored in the vault for conflict resolution.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub struct RecordHlc {
     pub wall_time_ms: u64,
     pub counter: u32,
@@ -108,6 +109,33 @@ pub struct VaultSyncRecord {
     pub data: serde_json::Value,
     pub hlc: RecordHlc,
     pub deleted: bool,
+}
+
+/// Summary of a persistent sync conflict.
+#[derive(Debug, Clone)]
+pub struct SyncConflictSummary {
+    pub id: String,
+    pub table_name: String,
+    pub record_id: String,
+    pub local_hlc_json: String,
+    pub remote_hlc_json: String,
+    pub winner: String,
+    pub created_at: String,
+}
+
+/// Full detail of a persistent sync conflict (includes remote data JSON).
+#[derive(Debug, Clone)]
+pub struct SyncConflictDetail {
+    pub id: String,
+    pub table_name: String,
+    pub record_id: String,
+    pub local_hlc_json: String,
+    pub remote_hlc_json: String,
+    pub local_data_json: String,
+    pub remote_data_json: String,
+    pub remote_deleted: bool,
+    pub winner: String,
+    pub created_at: String,
 }
 
 // ── Trash items (§23 回收站功能规范) ────────────────────────

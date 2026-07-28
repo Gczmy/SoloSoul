@@ -3,7 +3,7 @@
 use chrono::Utc;
 use rusqlite::{params, Connection};
 
-pub const CURRENT_SCHEMA_VERSION: u32 = 19;
+pub const CURRENT_SCHEMA_VERSION: u32 = 21;
 
 pub fn get_schema_version(conn: &Connection) -> Result<u32, String> {
     let version: String = conn
@@ -454,6 +454,52 @@ pub fn run_migrations(conn: &mut Connection) -> Result<(), String> {
                 params![19, now, "ignored_template_hash already present on objects (no-op)"],
             ).ok();
             set_schema_version(conn, 19)?;
+        }
+    }
+    if current < 20 {
+        apply_migration(
+            conn,
+            20,
+            "CREATE TABLE IF NOT EXISTS sync_conflicts (
+                id TEXT PRIMARY KEY,
+                table_name TEXT NOT NULL,
+                record_id TEXT NOT NULL,
+                local_hlc TEXT NOT NULL,
+                remote_hlc TEXT NOT NULL,
+                remote_data TEXT NOT NULL,
+                remote_deleted INTEGER NOT NULL DEFAULT 0,
+                winner TEXT NOT NULL,
+                created_at TEXT NOT NULL,
+                resolved INTEGER NOT NULL DEFAULT 0
+            );
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_sync_conflicts_record ON sync_conflicts(table_name, record_id);
+            CREATE INDEX IF NOT EXISTS idx_sync_conflicts_unresolved ON sync_conflicts(resolved);",
+            "Add sync_conflicts table for persistent sync conflict resolution UI",
+        )?;
+    }
+    if current < 21 {
+        let has_local_data: bool = conn
+            .query_row(
+                "SELECT COUNT(*) FROM pragma_table_info('sync_conflicts') WHERE name = 'local_data'",
+                [],
+                |r| r.get::<_, i32>(0),
+            )
+            .unwrap_or(0)
+            > 0;
+        if !has_local_data {
+            apply_migration(
+                conn,
+                21,
+                "ALTER TABLE sync_conflicts ADD COLUMN local_data TEXT NOT NULL DEFAULT '{}';",
+                "Add local_data snapshot to sync_conflicts for accurate diff UI",
+            )?;
+        } else {
+            let now = Utc::now().timestamp();
+            conn.execute(
+                "INSERT OR IGNORE INTO schema_migrations (version, applied_at, description) VALUES (?1, ?2, ?3)",
+                params![21, now, "local_data already present on sync_conflicts (no-op)"],
+            ).ok();
+            set_schema_version(conn, 21)?;
         }
     }
     Ok(())

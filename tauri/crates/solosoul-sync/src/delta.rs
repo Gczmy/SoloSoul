@@ -138,9 +138,9 @@ pub fn apply_sync_records(
             Ok(false) => {
                 stats.skipped += 1;
                 table_stats.skipped += 1;
-                // A skip is a conflict when the local record is at least as new as the remote one.
+                // A skip is a conflict when the local record is strictly newer than the remote one.
                 if let Some(local) = local_hlc {
-                    if local >= rec.hlc {
+                    if local > rec.hlc {
                         stats.conflicts.push(ConflictRecord {
                             table: rec.table.clone(),
                             id: rec.id.clone(),
@@ -148,6 +148,24 @@ pub fn apply_sync_records(
                             remote_hlc: rec.hlc,
                             winner: "local".to_string(),
                         });
+                        // 持久化冲突记录，供用户在冲突 UI 中查看并解决。
+                        let local_record_hlc = hlc_to_record_hlc(&local);
+                        let remote_record_hlc = hlc_to_record_hlc(&rec.hlc);
+                        let local_data = store
+                            .get_sync_conflict_local_data(&rec.table, &rec.id)
+                            .unwrap_or_default()
+                            .unwrap_or_else(|| serde_json::Value::Object(Default::default()));
+                        if let Err(e) = store.save_sync_conflict(
+                            &rec.table,
+                            &rec.id,
+                            &local_record_hlc,
+                            &remote_record_hlc,
+                            &local_data,
+                            &rec.data,
+                            rec.deleted,
+                        ) {
+                            tracing::warn!("save_sync_conflict failed: {}", e);
+                        }
                     }
                 }
             }

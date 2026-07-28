@@ -42,7 +42,7 @@ export function RecoveryHostDialog({ isOpen, onClose }: RecoveryHostDialogProps)
   const handleCancel = async () => {
     try {
       await invoke('recovery_host_cancel');
-    } catch (err) {
+    } catch {
       // ignore cleanup errors
     }
     setInfo(null);

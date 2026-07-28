@@ -19,6 +19,7 @@ import {
 import { useSyncStore } from '@/stores/syncStore';
 import { DeleteButton } from '@/components/ui/DeleteButton';
 import { RecoveryHostDialog } from '@/components/recovery/RecoveryHostDialog';
+import { SyncConflictDialog } from '@/components/sync/SyncConflictDialog';
 import type { SyncConflict } from '@/lib/ipc';
 import { ICON_SIZE } from '@/lib/constants';
 
@@ -40,6 +41,7 @@ export function SyncPage() {
   const [ignoredPeerIds, setIgnoredPeerIds] = useState<Set<string>>(new Set());
   const [activityOpen, setActivityOpen] = useState(false);
   const [hostDialogOpen, setHostDialogOpen] = useState(false);
+  const [conflictDialogOpen, setConflictDialogOpen] = useState(false);
 
   const pendingPeer = useMemo(() => {
     return (
@@ -52,6 +54,7 @@ export function SyncPage() {
     await store.loadStatus();
     await store.loadListenPort();
     await store.loadAutoSyncStatus();
+    await store.loadConflicts();
   }, [store]);
 
   useEffect(() => {
@@ -94,6 +97,10 @@ export function SyncPage() {
 
   const handleOpenHostDialog = () => {
     setHostDialogOpen(true);
+  };
+
+  const handleOpenConflictDialog = () => {
+    setConflictDialogOpen(true);
   };
 
   return (
@@ -145,6 +152,47 @@ export function SyncPage() {
             </button>
           </div>
         </Card>
+
+        {/* Conflicts card */}
+        {store.conflicts.length > 0 && (
+          <Card>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div>
+                <div style={{ fontSize: 'var(--text-card-title)', fontWeight: 600 }}>
+                  {t('settings:sync_conflicts_title', { defaultValue: 'Sync Conflicts' })}
+                </div>
+                <div style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
+                  {t('settings:sync_conflicts_desc', {
+                    defaultValue: `${store.conflicts.length} unresolved conflict(s) need your attention.`,
+                  })}
+                </div>
+              </div>
+              <button
+                onClick={handleOpenConflictDialog}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: 8,
+                  border: '1px solid #c0392b',
+                  background: 'rgba(192,57,43,0.08)',
+                  color: '#c0392b',
+                  fontSize: 'var(--text-body-sm)',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                  transition: 'all 0.15s ease',
+                  fontFamily: 'inherit',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.background = 'rgba(192,57,43,0.12)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.background = 'rgba(192,57,43,0.08)';
+                }}
+              >
+                {t('settings:sync_review_conflicts', { defaultValue: 'Review' })}
+              </button>
+            </div>
+          </Card>
+        )}
 
         {/* Status card */}
         <Card>
@@ -704,6 +752,14 @@ export function SyncPage() {
         onIgnore={handleIgnorePending}
       />
       <RecoveryHostDialog isOpen={hostDialogOpen} onClose={() => setHostDialogOpen(false)} />
+      <SyncConflictDialog
+        isOpen={conflictDialogOpen}
+        conflicts={store.conflicts}
+        detail={store.selectedConflict}
+        isLoading={store.isLoading}
+        onClose={() => setConflictDialogOpen(false)}
+        onResolve={(id, strategy) => store.resolveConflict(id, strategy)}
+      />
     </AppShell>
   );
 }

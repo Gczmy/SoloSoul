@@ -1139,6 +1139,18 @@ impl VaultStore {
         })
     }
 
+    /// 生成一个属于本地节点的新 HLC，用于覆盖本地版本（冲突解决时）。
+    fn new_local_hlc(&self) -> Result<crate::RecordHlc, String> {
+        let node_id = self.local_node_id();
+        let now = Self::parse_time_ms(&Self::now_rfc3339());
+        let max_existing = self.max_hlc_wall_time_for_node(&node_id)?;
+        Ok(crate::RecordHlc {
+            wall_time_ms: now.max(max_existing + 1),
+            counter: 0,
+            node_id,
+        })
+    }
+
     fn max_hlc_wall_time_for_node(&self, node_id: &str) -> Result<u64, String> {
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
@@ -1637,6 +1649,223 @@ impl VaultStore {
             || (remote.wall_time_ms == local.wall_time_ms
                 && (remote.counter > local.counter
                     || (remote.counter == local.counter && remote.node_id > local.node_id)))
+    }
+
+    // ── Sync conflict helpers ────────────────────────────────
+
+    /// 持久化一条同步冲突记录。
+    #[allow(clippy::too_many_arguments)]
+    pub fn save_sync_conflict(
+        &self,
+        table: &str,
+        record_id: &str,
+        local_hlc: &crate::RecordHlc,
+        remote_hlc: &crate::RecordHlc,
+        local_data: &serde_json::Value,
+        remote_data: &serde_json::Value,
+        remote_deleted: bool,
+    ) -> Result<(), String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        let local_hlc_json = serde_json::to_string(local_hlc).map_err(|e| e.to_string())?;
+        let remote_hlc_json = serde_json::to_string(remote_hlc).map_err(|e| e.to_string())?;
+        let local_data_json = serde_json::to_string(local_data).map_err(|e| e.to_string())?;
+        let remote_data_json = serde_json::to_string(remote_data).map_err(|e| e.to_string())?;
+        conn.execute(
+            "INSERT INTO sync_conflicts (id, table_name, record_id, local_hlc, remote_hlc, local_data, remote_data, remote_deleted, winner, created_at, resolved)
+             VALUES ((lower(hex(randomblob(16)))), ?1, ?2, ?3, ?4, ?5, ?6, ?7, 'local', ?8, 0)
+             ON CONFLICT(table_name, record_id) DO UPDATE SET
+                local_hlc = excluded.local_hlc,
+                remote_hlc = excluded.remote_hlc,
+                local_data = excluded.local_data,
+                remote_data = excluded.remote_data,
+                remote_deleted = excluded.remote_deleted,
+                winner = excluded.winner",
+            params![table, record_id, local_hlc_json, remote_hlc_json, local_data_json, remote_data_json, remote_deleted, Self::now_rfc3339()],
+        )
+        .map_err(|e| format!("save_sync_conflict: {}", e))?;
+        Ok(())
+    }
+
+    /// 列出所有未解决的同步冲突摘要。
+    pub fn list_sync_conflicts(&self) -> Result<Vec<crate::SyncConflictSummary>, String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        let mut stmt = conn
+            .prepare(
+                "SELECT id, table_name, record_id, local_hlc, remote_hlc, winner, created_at
+                 FROM sync_conflicts WHERE resolved = 0 ORDER BY created_at DESC",
+            )
+            .map_err(|e| format!("list_sync_conflicts: {}", e))?;
+        let rows = stmt
+            .query_map([], |row| {
+                Ok(crate::SyncConflictSummary {
+                    id: row.get(0)?,
+                    table_name: row.get(1)?,
+                    record_id: row.get(2)?,
+                    local_hlc_json: row.get(3)?,
+                    remote_hlc_json: row.get(4)?,
+                    winner: row.get(5)?,
+                    created_at: row.get(6)?,
+                })
+            })
+            .map_err(|e| format!("list_sync_conflicts query: {}", e))?
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|e| format!("list_sync_conflicts collect: {}", e))?;
+        Ok(rows)
+    }
+
+    /// 获取一条冲突的详情（含本地和远程数据）。
+    pub fn get_sync_conflict(&self, conflict_id: &str) -> Result<Option<crate::SyncConflictDetail>, String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        let result = conn
+            .query_row(
+                "SELECT id, table_name, record_id, local_hlc, remote_hlc, local_data, remote_data, remote_deleted, winner, created_at
+                 FROM sync_conflicts WHERE id = ?1 AND resolved = 0",
+                params![conflict_id],
+                |row| {
+                    Ok(crate::SyncConflictDetail {
+                        id: row.get(0)?,
+                        table_name: row.get(1)?,
+                        record_id: row.get(2)?,
+                        local_hlc_json: row.get(3)?,
+                        remote_hlc_json: row.get(4)?,
+                        local_data_json: row.get(5)?,
+                        remote_data_json: row.get(6)?,
+                        remote_deleted: row.get::<_, i32>(7)? != 0,
+                        winner: row.get(8)?,
+                        created_at: row.get(9)?,
+                    })
+                },
+            )
+            .optional()
+            .map_err(|e| format!("get_sync_conflict: {}", e))?;
+        Ok(result)
+    }
+
+    /// 获取当前本地记录的同步格式快照，用于在冲突 UI 中展示冲突发生时的本地状态。
+    pub fn get_sync_conflict_local_data(
+        &self,
+        table: &str,
+        record_id: &str,
+    ) -> Result<Option<serde_json::Value>, String> {
+        let value = match table {
+            "profiles" => {
+                if let Some(p) = self.load_profile(record_id)? {
+                    serde_json::to_value(&p).unwrap_or_default()
+                } else {
+                    return Ok(None);
+                }
+            }
+            "objects" => {
+                if let Some(obj) = self.load_object(record_id)? {
+                    serde_json::to_value(&obj).unwrap_or_default()
+                } else {
+                    return Ok(None);
+                }
+            }
+            "user_templates" => {
+                if let Some(tpl) = self.load_user_template(record_id)? {
+                    serde_json::to_value(&tpl).unwrap_or_default()
+                } else {
+                    return Ok(None);
+                }
+            }
+            "trash_items" => {
+                if let Some(item) = self.get_trash_item(record_id)? {
+                    serde_json::to_value(&item).unwrap_or_default()
+                } else {
+                    return Ok(None);
+                }
+            }
+            _ => return Ok(None),
+        };
+        Ok(Some(value))
+    }
+
+    /// 将冲突记录标记为已解决并删除。
+    pub fn delete_sync_conflict(&self, conflict_id: &str) -> Result<(), String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        conn.execute(
+            "DELETE FROM sync_conflicts WHERE id = ?1",
+            params![conflict_id],
+        )
+        .map_err(|e| format!("delete_sync_conflict: {}", e))?;
+        Ok(())
+    }
+
+    /// 根据策略解决冲突。
+    /// strategy: "keep_local" | "keep_remote" | "dismiss"
+    /// 返回是否应用了远程数据（keep_remote 时）。
+    pub fn resolve_sync_conflict(
+        &self,
+        conflict_id: &str,
+        strategy: &str,
+    ) -> Result<bool, String> {
+        let detail = match self.get_sync_conflict(conflict_id)? {
+            Some(d) => d,
+            None => return Err("Conflict not found or already resolved".to_string()),
+        };
+
+        let apply_remote = match strategy {
+            "keep_remote" => {
+                if detail.remote_deleted {
+                    // 远程为删除 tombstone，直接删除本地记录并记录 tombstone。
+                    self.hard_delete_record(&detail.table_name, &detail.record_id)?;
+                    true
+                } else {
+                    let remote_data: serde_json::Value =
+                        serde_json::from_str(&detail.remote_data_json)
+                            .map_err(|e| format!("Failed to parse remote_data: {}", e))?;
+                    let fresh_hlc = self.new_local_hlc()?;
+                    let vault_rec = crate::VaultSyncRecord {
+                        id: detail.record_id.clone(),
+                        table: detail.table_name.clone(),
+                        data: remote_data,
+                        hlc: fresh_hlc,
+                        deleted: false,
+                    };
+                    let local_node_id = self.local_node_id();
+                    self.apply_sync_record(&vault_rec, &local_node_id)?
+                }
+            }
+            "keep_local" | "dismiss" => false,
+            _ => return Err(format!("Unknown conflict resolution strategy: {}", strategy)),
+        };
+
+        self.delete_sync_conflict(conflict_id)?;
+        Ok(apply_remote)
+    }
+
+    /// 根据表名和记录 ID 硬删除本地记录（冲突解决 keep_remote 且远程为 tombstone 时使用）。
+    fn hard_delete_record(&self, table: &str, record_id: &str) -> Result<(), String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        match table {
+            "profiles" => {
+                conn.execute("DELETE FROM profiles WHERE id = ?1", params![record_id])
+                    .map_err(|e| e.to_string())?;
+            }
+            "objects" => {
+                conn.execute("DELETE FROM objects WHERE id = ?1", params![record_id])
+                    .map_err(|e| e.to_string())?;
+            }
+            "user_templates" => {
+                conn.execute("DELETE FROM user_templates WHERE id = ?1", params![record_id])
+                    .map_err(|e| e.to_string())?;
+            }
+            "trash_items" => {
+                conn.execute("DELETE FROM trash_items WHERE id = ?1", params![record_id])
+                    .map_err(|e| e.to_string())?;
+            }
+            _ => return Err(format!("Unsupported sync table: {}", table)),
+        }
+        drop(guard);
+        self.record_tombstone(table, record_id)?;
+        self.set_record_hlc(table, record_id, &self.new_tombstone_hlc()?)?;
+        Ok(())
     }
 
     fn apply_profile_sync_record(&self, record: &crate::VaultSyncRecord) -> Result<bool, String> {

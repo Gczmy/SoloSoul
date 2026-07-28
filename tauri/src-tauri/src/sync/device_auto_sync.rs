@@ -342,11 +342,7 @@ async fn run_device_sync(
     for peer in targets {
         let peer_id = peer.node_id.clone();
         if let Err(e) = sync_service.sync_with_device(peer_id.clone()).await {
-            tracing::warn!(
-                "[DeviceAutoSync] sync with {} failed: {}",
-                peer_id,
-                e
-            );
+            tracing::warn!("[DeviceAutoSync] sync with {} failed: {}", peer_id, e);
             last_error = Some(e);
             continue;
         }

@@ -186,7 +186,16 @@ pub async fn sync_set_auto_enabled(
     enabled: bool,
 ) -> Result<bool, String> {
     state.device_auto_sync.set_enabled(enabled);
-    log_sync_action(&state, if enabled { "auto_sync_enabled" } else { "auto_sync_disabled" }, None, None);
+    log_sync_action(
+        &state,
+        if enabled {
+            "auto_sync_enabled"
+        } else {
+            "auto_sync_disabled"
+        },
+        None,
+        None,
+    );
     Ok(enabled)
 }
 
@@ -197,7 +206,16 @@ pub async fn sync_set_auto_enabled(
     enabled: bool,
 ) -> Result<bool, String> {
     state.device_auto_sync.set_enabled(enabled);
-    log_sync_action(&state, if enabled { "auto_sync_enabled" } else { "auto_sync_disabled" }, None, None);
+    log_sync_action(
+        &state,
+        if enabled {
+            "auto_sync_enabled"
+        } else {
+            "auto_sync_disabled"
+        },
+        None,
+        None,
+    );
     Ok(enabled)
 }
 
@@ -224,6 +242,215 @@ pub async fn sync_get_status(state: State<'_, AppState>) -> Result<SyncStatus, S
 #[tauri::command]
 pub async fn sync_get_status(state: State<'_, AppState>) -> Result<SyncStatus, String> {
     sync_discover(state).await
+}
+
+/// 同步冲突摘要，前端列表使用。
+#[derive(Serialize)]
+pub struct ConflictSummary {
+    pub id: String,
+    pub table: String,
+    pub record_id: String,
+    pub local_hlc: ConflictHlc,
+    pub remote_hlc: ConflictHlc,
+    pub winner: String,
+    pub created_at: String,
+}
+
+/// 同步冲突 HLC。
+#[derive(Serialize)]
+pub struct ConflictHlc {
+    pub wall_time_ms: u64,
+    pub counter: u64,
+    pub node_id: String,
+}
+
+/// 同步冲突详情，前端 Diff 使用。
+#[derive(Serialize)]
+pub struct ConflictDetail {
+    pub id: String,
+    pub table: String,
+    pub record_id: String,
+    pub local_hlc: ConflictHlc,
+    pub remote_hlc: ConflictHlc,
+    pub local_data: serde_json::Value,
+    pub remote_data: serde_json::Value,
+    pub remote_deleted: bool,
+    pub winner: String,
+    pub created_at: String,
+}
+
+fn parse_hlc_json(s: &str) -> Result<ConflictHlc, String> {
+    let hlc: serde_json::Value = serde_json::from_str(s).map_err(|e| e.to_string())?;
+    Ok(ConflictHlc {
+        wall_time_ms: hlc["wall_time_ms"].as_u64().unwrap_or(0),
+        counter: hlc["counter"].as_u64().unwrap_or(0),
+        node_id: hlc["node_id"].as_str().unwrap_or("").to_string(),
+    })
+}
+
+async fn list_conflicts_impl(state: State<'_, AppState>) -> Result<Vec<ConflictSummary>, String> {
+    let vault = crate::commands::vault_handle(&state)?;
+    let rows = vault.list_sync_conflicts()?;
+    let summaries = rows
+        .into_iter()
+        .map(|c| {
+            let local_hlc = parse_hlc_json(&c.local_hlc_json).unwrap_or(ConflictHlc {
+                wall_time_ms: 0,
+                counter: 0,
+                node_id: String::new(),
+            });
+            let remote_hlc = parse_hlc_json(&c.remote_hlc_json).unwrap_or(ConflictHlc {
+                wall_time_ms: 0,
+                counter: 0,
+                node_id: String::new(),
+            });
+            ConflictSummary {
+                id: c.id,
+                table: c.table_name,
+                record_id: c.record_id,
+                local_hlc,
+                remote_hlc,
+                winner: c.winner,
+                created_at: c.created_at,
+            }
+        })
+        .collect();
+    Ok(summaries)
+}
+
+/// 获取当前所有未解决的同步冲突摘要。
+#[cfg(desktop)]
+#[tauri::command]
+pub async fn sync_list_conflicts(
+    state: State<'_, AppState>,
+) -> Result<Vec<ConflictSummary>, String> {
+    list_conflicts_impl(state).await
+}
+
+#[cfg(mobile)]
+#[tauri::command]
+pub async fn sync_list_conflicts(
+    state: State<'_, AppState>,
+) -> Result<Vec<ConflictSummary>, String> {
+    list_conflicts_impl(state).await
+}
+
+async fn get_conflict_detail_impl(
+    state: State<'_, AppState>,
+    conflict_id: String,
+) -> Result<ConflictDetail, String> {
+    let vault = crate::commands::vault_handle(&state)?;
+    let c = vault
+        .get_sync_conflict(&conflict_id)?
+        .ok_or("Conflict not found")?;
+    let local_hlc = parse_hlc_json(&c.local_hlc_json)?;
+    let remote_hlc = parse_hlc_json(&c.remote_hlc_json)?;
+    let remote_data: serde_json::Value =
+        serde_json::from_str(&c.remote_data_json).map_err(|e| e.to_string())?;
+    let local_data: serde_json::Value =
+        if !c.local_data_json.is_empty() && c.local_data_json != "{}" {
+            serde_json::from_str(&c.local_data_json).map_err(|e| e.to_string())?
+        } else {
+            match c.table_name.as_str() {
+                "profiles" => {
+                    if let Some(p) = vault.load_profile(&c.record_id)? {
+                        serde_json::to_value(&p).unwrap_or(serde_json::Value::Null)
+                    } else {
+                        serde_json::Value::Null
+                    }
+                }
+                "objects" => {
+                    if let Some(obj) = vault.load_object(&c.record_id)? {
+                        serde_json::to_value(&obj).unwrap_or(serde_json::Value::Null)
+                    } else {
+                        serde_json::Value::Null
+                    }
+                }
+                "user_templates" => {
+                    if let Some(tpl) = vault.load_user_template(&c.record_id)? {
+                        serde_json::to_value(&tpl).unwrap_or(serde_json::Value::Null)
+                    } else {
+                        serde_json::Value::Null
+                    }
+                }
+                "trash_items" => {
+                    if let Some(item) = vault.get_trash_item(&c.record_id)? {
+                        serde_json::json!(item)
+                    } else {
+                        serde_json::Value::Null
+                    }
+                }
+                _ => serde_json::Value::Null,
+            }
+        };
+    Ok(ConflictDetail {
+        id: c.id,
+        table: c.table_name,
+        record_id: c.record_id,
+        local_hlc,
+        remote_hlc,
+        remote_deleted: c.remote_deleted,
+        local_data,
+        remote_data,
+        winner: c.winner,
+        created_at: c.created_at,
+    })
+}
+
+/// 获取单个同步冲突详情。
+#[cfg(desktop)]
+#[tauri::command]
+pub async fn sync_get_conflict_detail(
+    state: State<'_, AppState>,
+    conflict_id: String,
+) -> Result<ConflictDetail, String> {
+    get_conflict_detail_impl(state, conflict_id).await
+}
+
+#[cfg(mobile)]
+#[tauri::command]
+pub async fn sync_get_conflict_detail(
+    state: State<'_, AppState>,
+    conflict_id: String,
+) -> Result<ConflictDetail, String> {
+    get_conflict_detail_impl(state, conflict_id).await
+}
+
+async fn resolve_conflict_impl(
+    state: State<'_, AppState>,
+    conflict_id: String,
+    strategy: String,
+) -> Result<bool, String> {
+    let vault = crate::commands::vault_handle(&state)?;
+    let applied_remote = vault.resolve_sync_conflict(&conflict_id, &strategy)?;
+    log_sync_action(
+        &state,
+        "sync_conflict_resolved",
+        Some(&conflict_id),
+        Some(&strategy),
+    );
+    Ok(applied_remote)
+}
+
+/// 按策略解决同步冲突。
+#[cfg(desktop)]
+#[tauri::command]
+pub async fn sync_resolve_conflict(
+    state: State<'_, AppState>,
+    conflict_id: String,
+    strategy: String,
+) -> Result<bool, String> {
+    resolve_conflict_impl(state, conflict_id, strategy).await
+}
+
+#[cfg(mobile)]
+#[tauri::command]
+pub async fn sync_resolve_conflict(
+    state: State<'_, AppState>,
+    conflict_id: String,
+    strategy: String,
+) -> Result<bool, String> {
+    resolve_conflict_impl(state, conflict_id, strategy).await
 }
 
 #[cfg(desktop)]

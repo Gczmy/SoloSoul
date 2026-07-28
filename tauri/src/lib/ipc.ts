@@ -14,6 +14,37 @@ export interface SyncConflict {
   winner: string;
 }
 
+export interface SyncConflictHlc {
+  wall_time_ms: number;
+  counter: number;
+  node_id: string;
+}
+
+export interface SyncConflictSummary {
+  id: string;
+  table: string;
+  record_id: string;
+  local_hlc: SyncConflictHlc;
+  remote_hlc: SyncConflictHlc;
+  winner: string;
+  created_at: string;
+}
+
+export interface SyncConflictDetail {
+  id: string;
+  table: string;
+  record_id: string;
+  local_hlc: SyncConflictHlc;
+  remote_hlc: SyncConflictHlc;
+  local_data: unknown;
+  remote_data: unknown;
+  remote_deleted: boolean;
+  winner: string;
+  created_at: string;
+}
+
+export type SyncConflictStrategy = 'keep_local' | 'keep_remote' | 'dismiss';
+
 export interface SyncTableResult {
   table: string;
   examined: number;

@@ -338,11 +338,8 @@ impl AppState {
         let sync_service = Arc::new(SyncService::new(vault_service.clone()));
 
         // ── DeviceAutoSyncManager（设备间自动同步，依赖 SyncService） ──
-        let device_auto_sync = DeviceAutoSyncManager::new(
-            sync_service.clone(),
-            vault_service.clone(),
-            handle.clone(),
-        );
+        let device_auto_sync =
+            DeviceAutoSyncManager::new(sync_service.clone(), vault_service.clone(), handle.clone());
 
         // ── AutoSyncManager（在 VaultService 初始化之后启动） ──
         let auto_sync = AutoSyncManager::new_for_vault(vault_service.clone(), handle.clone());

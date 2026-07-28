@@ -1,6 +1,11 @@
 import { create } from 'zustand';
 import { invoke } from '@tauri-apps/api/core';
-import type { SyncResult } from '@/lib/ipc';
+import type {
+  SyncResult,
+  SyncConflictSummary,
+  SyncConflictDetail,
+  SyncConflictStrategy,
+} from '@/lib/ipc';
 
 export interface SyncPeer {
   id: string;
@@ -34,6 +39,8 @@ interface SyncStoreState extends SyncStatus {
   discoveredDevices: DiscoveredDevice[];
   isDiscoveringDevices: boolean;
   listenPort: number;
+  conflicts: SyncConflictSummary[];
+  selectedConflict: SyncConflictDetail | null;
 
   loadStatus: () => Promise<void>;
   loadListenPort: () => Promise<void>;
@@ -45,6 +52,9 @@ interface SyncStoreState extends SyncStatus {
   loadAutoSyncStatus: () => Promise<void>;
   setAutoSyncEnabled: (enabled: boolean) => Promise<void>;
   triggerForegroundSync: () => Promise<void>;
+  loadConflicts: () => Promise<void>;
+  loadConflictDetail: (conflictId: string) => Promise<void>;
+  resolveConflict: (conflictId: string, strategy: SyncConflictStrategy) => Promise<void>;
 }
 
 export const useSyncStore = create<SyncStoreState>((set, get) => ({
@@ -60,6 +70,8 @@ export const useSyncStore = create<SyncStoreState>((set, get) => ({
   discoveredDevices: [],
   isDiscoveringDevices: false,
   listenPort: 0,
+  conflicts: [],
+  selectedConflict: null,
 
   loadStatus: async () => {
     try {
@@ -112,6 +124,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => ({
     try {
       const result = await invoke<SyncResult>('sync_with_device', { deviceId });
       await get().loadStatus();
+      await get().loadConflicts();
       set((state) => ({
         isLoading: false,
         lastResult: result,
@@ -168,6 +181,41 @@ export const useSyncStore = create<SyncStoreState>((set, get) => ({
       await invoke<void>('sync_trigger_foreground');
     } catch (err) {
       set({ error: String(err) });
+    }
+  },
+
+  loadConflicts: async () => {
+    try {
+      const conflicts = await invoke<SyncConflictSummary[]>('sync_list_conflicts');
+      set({ conflicts, error: null });
+    } catch (err) {
+      set({ error: String(err) });
+    }
+  },
+
+  loadConflictDetail: async (conflictId) => {
+    try {
+      const detail = await invoke<SyncConflictDetail>('sync_get_conflict_detail', {
+        conflictId,
+      });
+      set({ selectedConflict: detail, error: null });
+    } catch (err) {
+      set({ error: String(err) });
+    }
+  },
+
+  resolveConflict: async (conflictId, strategy) => {
+    set({ isLoading: true, error: null });
+    try {
+      await invoke<boolean>('sync_resolve_conflict', { conflictId, strategy });
+      await get().loadConflicts();
+      set((state) => ({
+        selectedConflict:
+          state.selectedConflict?.id === conflictId ? null : state.selectedConflict,
+        isLoading: false,
+      }));
+    } catch (err) {
+      set({ isLoading: false, error: String(err) });
     }
   },
 }));

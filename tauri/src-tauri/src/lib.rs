@@ -585,6 +585,9 @@ pub fn run() {
             commands::sync::sync_trigger_foreground,
             commands::sync::sync_set_auto_enabled,
             commands::sync::sync_get_auto_status,
+            commands::sync::sync_list_conflicts,
+            commands::sync::sync_get_conflict_detail,
+            commands::sync::sync_resolve_conflict,
             // Recovery commands
             commands::recovery::recovery_host_start,
             commands::recovery::recovery_host_cancel,

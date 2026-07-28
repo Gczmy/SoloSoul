@@ -52,7 +52,8 @@ pub async fn recovery_host_start(
     std::fs::create_dir_all(&tmp_dir).map_err(|e| e.to_string())?;
     let export_path = tmp_dir.join(format!(
         "solosoul_recovery_{}_{}.solosoul",
-        account_id, nanoid()
+        account_id,
+        nanoid()
     ));
 
     // 收集全部附件 ID，保证恢复包包含附件
@@ -195,7 +196,13 @@ pub async fn recovery_restore_from_host(
     std::fs::create_dir_all(&dest_dir).map_err(|e| e.to_string())?;
 
     let result = tokio::task::spawn_blocking(move || {
-        recover_from_host(&host_addr, &pin, &dest_dir, fingerprint.as_deref(), nonce.as_deref())
+        recover_from_host(
+            &host_addr,
+            &pin,
+            &dest_dir,
+            fingerprint.as_deref(),
+            nonce.as_deref(),
+        )
     })
     .await
     .map_err(|e| format!("Recovery task failed: {}", e))?;
@@ -216,8 +223,13 @@ pub async fn recovery_restore_from_host(
     }
 
     // 导入恢复包
-    let import_result =
-        import_execute(state.clone(), account_id.clone(), file_path.clone(), recovery_password).await;
+    let import_result = import_execute(
+        state.clone(),
+        account_id.clone(),
+        file_path.clone(),
+        recovery_password,
+    )
+    .await;
 
     // 清理下载的临时文件
     let _ = std::fs::remove_file(&file_path);
@@ -232,7 +244,10 @@ pub async fn recovery_restore_from_host(
                 .map_err(|_| "Vault service lock poisoned".to_string())
                 .and_then(|svc| svc.delete_account(&account_id))
             {
-                tracing::warn!("Failed to roll back partially created account during recovery: {}", del_err);
+                tracing::warn!(
+                    "Failed to roll back partially created account during recovery: {}",
+                    del_err
+                );
             }
             return Err(e);
         }
