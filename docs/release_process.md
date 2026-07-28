@@ -251,6 +251,21 @@ Release APK 使用 `signingConfigs.release`，从环境变量读取 keystore 信
 
 本地构建时若环境变量缺失，则回退为未签名（debug），不会报错；CI 发布时必须提供上述变量。
 
+#### APK 校验和（SHA-256）生成
+
+Android 客户端下载 APK 后会自动验证 SHA-256 校验和。发布前需要生成校验和文件并随 APK 一起上传到 GitHub Release。
+
+```bash
+# 为 Release APK 生成 SHA-256 校验和文件
+./docs/compute-apk-checksum.sh SoloSoul-Releases/SoloSoul_2.6.1_universal-release.apk
+
+# 产物：SoloSoul_2.6.1_universal-release.apk.sha256
+# 内容：64 位 hex 编码的 SHA-256 哈希
+```
+
+> `.sha256` 文件只有约 64 字节，必须与 APK 一同上传到 GitHub Release。
+> 如果上传时缺少该文件，Android 客户端仍可正常下载安装，但不会进行 SHA-256 校验。
+
 ---
 
 ## 阶段三：收集与发布（在 Mac 上执行）
@@ -261,11 +276,15 @@ Release APK 使用 `signingConfigs.release`，从环境变量读取 keystore 信
 
 ```
 /path/to/SoloSoul/SoloSoul-Releases
-├── SoloSoul_2.1.0_arm64.app.tar.gz     # macOS 自动更新包（必需）
-├── SoloSoul_2.1.0_arm64.dmg            # macOS 首次安装 DMG（可选但推荐）
-├── SoloSoul_2.1.0_x64-setup.exe        # Windows 安装包
-└── SoloSoul_2.1.0_universal-release.apk # Android 通用安装包
+├── SoloSoul_2.1.0_arm64.app.tar.gz          # macOS 自动更新包（必需）
+├── SoloSoul_2.1.0_arm64.dmg                 # macOS 首次安装 DMG（可选但推荐）
+├── SoloSoul_2.1.0_x64-setup.exe             # Windows 安装包
+├── SoloSoul_2.1.0_universal-release.apk      # Android 通用安装包
+└── SoloSoul_2.1.0_universal-release.apk.sha256 # Android APK SHA-256 校验和（推荐）
 ```
+
+> Android 校验和文件（`.sha256`）需在 Android 构建后通过 `./docs/compute-apk-checksum.sh` 生成。
+> 如果不包含此文件，Android 客户端在下载后不会进行 SHA-256 验证，但更新功能不受影响。
 
 ### 6. 统一签名（在 Mac 上执行）
 
@@ -325,16 +344,41 @@ node scripts/generate-latest-json.js \
 2. 选择或创建标签（如 `v2.1.0`）
 3. 填写 Release 标题和说明
 4. **上传以下附件**（应用内更新器依赖 `latest.json` 中的签名，`.sig` 文件本身不必上传）：
-   - `SoloSoul_2.1.0_arm64.app.tar.gz`  # macOS 自动更新包（必需）
-   - `SoloSoul_2.1.0_arm64.dmg`         # macOS 首次安装 DMG（推荐）
-   - `SoloSoul_2.1.0_x64-setup.exe`     # Windows 安装包
-   - `SoloSoul_2.1.0_universal-release.apk` # Android 通用安装包
+   - `SoloSoul_2.1.0_arm64.app.tar.gz`             # macOS 自动更新包（必需）
+   - `SoloSoul_2.1.0_arm64.dmg`                    # macOS 首次安装 DMG（推荐）
+   - `SoloSoul_2.1.0_x64-setup.exe`                # Windows 安装包
+   - `SoloSoul_2.1.0_universal-release.apk`         # Android 通用安装包
+   - `SoloSoul_2.1.0_universal-release.apk.sha256`  # Android APK SHA-256 校验和（推荐）
    - `latest.json`
 5. 点击 "Publish release"
 
 > 通过 GitHub Releases 上传，而不是通过 git 提交。GitHub Releases 允许上传附件，这些附件不存储在 git 仓库中。
 
 > **当前发布策略说明**：当前版本不进入 Google Play 商店或 Play Store 内部测试轨道，Android 产物以通用 APK 形式随 GitHub Release 发布，方便用户直接下载安装。如未来进入 Play Store，可额外构建 AAB 并提交 Play 商店后台。
+
+#### 强制更新标记 `[MANDATORY]`
+
+Android 客户端支持**强制更新**：在 Release body 中插入 `[MANDATORY]` 标记，用户打开「关于」页面后会看到不可关闭的全屏更新对话框，必须更新才能继续使用。
+
+```markdown
+## v2.7.0 安全修复
+
+[MANDATORY]
+
+- 修复加密库安全漏洞
+- 更新依赖项
+```
+
+**行为：**
+- `[MANDATORY]` 标记在 Release body 中出现任意位置均可被识别
+- 标记会在返回给客户端前自动清除，用户不会看到原始标记文本
+- 如果不需要强制更新，只需省略 `[MANDATORY]` 即可
+- 该标记**仅对 Android 客户端生效**，桌面端不受影响
+
+**适合使用场景：**
+- 安全漏洞修复（CVE）
+- 数据格式不兼容的版本
+- 紧急功能修复
 
 ### 10. 更新 CHANGELOG.md
 
