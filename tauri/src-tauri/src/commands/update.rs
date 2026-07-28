@@ -4,6 +4,7 @@
 //! 桌面端仍使用 `@tauri-apps/plugin-updater`，本模块仅对 Android 有效。
 
 use serde::{Deserialize, Serialize};
+use sha2::Digest;
 use std::path::PathBuf;
 use tauri::{Emitter, Manager};
 
@@ -36,6 +37,12 @@ pub struct AndroidUpdateInfo {
     pub latest_version: String,
     pub current_version: String,
     pub download_url: Option<String>,
+    /// SHA-256 校验和（hex 编码），用于下载后验证 APK 完整性。
+    /// 如果 Release 中没有对应的 `.sha256` 资产，则为空字符串。
+    pub checksum: String,
+    /// 是否为强制更新。当 Release body 包含 `[MANDATORY]` 标记时为 true。
+    /// 强制更新会显示不可关闭的对话框，用户必须更新才能继续使用。
+    pub mandatory: bool,
     pub release_notes: Option<String>,
     pub published_at: Option<String>,
     pub apk_size: Option<i64>,
@@ -129,15 +136,58 @@ pub async fn android_check_update(
         .to_string();
 
     // 查找 APK 资产
-    let apk_asset = release.assets.into_iter().find(|a| {
+    let apk_asset = release.assets.iter().find(|a| {
         a.name.ends_with(".apk") || a.name.contains("universal-release")
     });
+
+    // 查找对应的 .sha256 校验和资产，并下载其内容
+    let checksum = if let Some(checksum_asset) = release
+        .assets
+        .iter()
+        .find(|a| a.name.ends_with(".apk.sha256") || a.name.contains("sha256"))
+    {
+        // 使用已有的 async client 下载校验和文件（约 64 字节）
+        let url = &checksum_asset.browser_download_url;
+        match client.get(url).send().await {
+            Ok(resp) if resp.status().is_success() => {
+                // 格式: "<64位hex>  <文件名>" 或仅 "<64位hex>"
+                let body = resp.text().await.unwrap_or_default();
+                body.split_whitespace()
+                    .next()
+                    .filter(|token| token.len() == 64)
+                    .map(|s| s.to_string())
+            }
+            _ => None,
+        }
+    } else {
+        None
+    };
+
+    // 如果找到 checksum 但解析失败（如文件格式异常），也返回空字符串
+    // 客户端仍可正常下载，只是不进行校验
+
+    // 检测强制更新标记：Release body 中是否包含 [MANDATORY]
+    let mandatory = release
+        .body
+        .as_deref()
+        .map(|body| body.contains("[MANDATORY]"))
+        .unwrap_or(false);
+
+    // 如果 Release body 包含 [MANDATORY]，在返回前移除该标记
+    // 避免用户看到原始标记文本
+    let clean_body = release.body.map(|body| {
+        body.replace("[MANDATORY]", "")
+            .trim()
+            .to_string()
+    }).filter(|s| !s.is_empty());
 
     Ok(AndroidUpdateInfo {
         latest_version: latest,
         current_version: current,
-        download_url: apk_asset.as_ref().map(|a| a.browser_download_url.clone()),
-        release_notes: release.body,
+        download_url: apk_asset.map(|a| a.browser_download_url.clone()),
+        checksum: checksum.unwrap_or_default(),
+        mandatory,
+        release_notes: clean_body,
         published_at: release.published_at,
         apk_size: apk_asset.and_then(|a| a.size),
     })
@@ -147,11 +197,15 @@ pub async fn android_check_update(
 
 /// 从指定 URL 下载 APK 文件到缓存目录，并发送进度事件。
 ///
+/// 如果提供了 `expected_checksum`（非空字符串），下载完成后会计算
+/// SHA-256 并校验是否匹配。验证失败则删除临时文件并返回错误。
+///
 /// 事件名：`apk-download-progress`
 #[tauri::command]
 pub async fn android_download_apk(
     app: tauri::AppHandle,
     download_url: String,
+    expected_checksum: Option<String>,
 ) -> Result<(), String> {
     let dest = apk_cache_path(&app)?;
 
@@ -180,6 +234,17 @@ pub async fn android_download_apk(
     let mut file =
         std::fs::File::create(&tmp_path).map_err(|e| format!("创建临时文件失败: {e}"))?;
 
+    // 如果启用了校验，同时计算下载内容的 SHA-256
+    let should_verify = expected_checksum
+        .as_ref()
+        .map(|s| !s.is_empty())
+        .unwrap_or(false);
+    let mut hasher = if should_verify {
+        Some(sha2::Sha256::new())
+    } else {
+        None
+    };
+
     while let Some(chunk) = resp
         .chunk()
         .await
@@ -189,6 +254,11 @@ pub async fn android_download_apk(
         file.write_all(&chunk)
             .map_err(|e| format!("写入分块失败: {e}"))?;
         downloaded += chunk.len() as u64;
+
+        // 更新校验和哈希
+        if let Some(ref mut h) = hasher {
+            h.update(&chunk);
+        }
 
         if total > 0 {
             let pct = (downloaded as f64 / total as f64 * 100.0) as u32;
@@ -202,6 +272,19 @@ pub async fn android_download_apk(
                     error: None,
                 },
             );
+        }
+    }
+
+    // 校验 SHA-256（流式计算，无需二次读取文件）
+    if let (Some(h), Some(expected)) = (hasher, expected_checksum) {
+        let actual = format!("{:x}", h.finalize());
+        if !expected.eq_ignore_ascii_case(&actual) {
+            // 校验失败：删除临时文件并返回错误
+            let _ = std::fs::remove_file(&tmp_path);
+            return Err(format!(
+                "CHECKSUM_MISMATCH: expected {}, got {}",
+                expected, actual
+            ));
         }
     }
 

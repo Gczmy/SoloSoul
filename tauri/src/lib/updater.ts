@@ -75,6 +75,10 @@ export interface AndroidUpdateInfo {
   latestVersion: string;
   currentVersion: string;
   downloadUrl: string | null;
+  /** SHA-256 校验和（hex 编码），空字符串表示不可用 */
+  checksum: string;
+  /** 是否为强制更新（Release body 包含 [MANDATORY] 标记） */
+  mandatory: boolean;
   releaseNotes: string | null;
   publishedAt: string | null;
   apkSize: number | null;
@@ -114,10 +118,13 @@ export async function androidCheckForUpdate(): Promise<AndroidUpdateCheckResult>
 
 /**
  * 下载 Android APK 并监听进度事件。
+ * 如果提供了 `checksum`（非空），下载完成后自动验证 SHA-256。
+ *
  * 返回一个取消监听函数。
  */
 export async function androidDownloadApk(
   downloadUrl: string,
+  checksum: string,
   onProgress?: (progress: ApkDownloadProgress) => void,
 ): Promise<UnlistenFn> {
   const unlisten = await listen<ApkDownloadProgress>('apk-download-progress', (event) => {
@@ -125,7 +132,11 @@ export async function androidDownloadApk(
   });
 
   // 在后台启动下载（不 await，让事件驱动进度）
-  invoke<void>('android_download_apk', { downloadUrl }).catch((err) => {
+  // expectedChecksum: 传入空字符串或有效 hex；Rust 端根据非空决定是否校验
+  invoke<void>('android_download_apk', {
+    downloadUrl,
+    expectedChecksum: checksum || null,
+  }).catch((err) => {
     logger.error('[updater] android download failed:', err);
     onProgress?.({
       progress: 0,
