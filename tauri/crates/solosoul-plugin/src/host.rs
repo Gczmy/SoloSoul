@@ -24,7 +24,7 @@ use url::Url;
 use wasmtime::{Caller, Extern, Linker, Memory};
 
 /// Host Function 错误码（与 SDK `solosoul_plugin_sdk::PluginError` 保持一致）
-/// 
+///
 /// 公开导出，供 `src-tauri` 中的插件 Host 模块复用，避免错误码定义重复。
 pub mod code {
     pub const SUCCESS: i32 = 0;

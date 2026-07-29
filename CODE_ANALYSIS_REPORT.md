@@ -26,17 +26,17 @@
 
 | ID   | 优先级 | 类别       | 文件位置                                                   | 描述                                                                   | 状态      |
 |------|--------|------------|------------------------------------------------------------|------------------------------------------------------------------------|-----------|
-| P001 | P1     | 死代码     | `tauri/src/components/layout/AppBar.tsx:11,13`            | `@deprecated` 的 `titleBarOffset` prop 已无任何调用方传值，可安全删除   | `[ ]` 待修复 |
-| P002 | P1     | 代码重复   | `tauri/src-tauri/src/plugin/host/mod.rs:28` 与 `tauri/crates/solosoul-plugin/src/host.rs:28` | `mod code` 错误码常量块在两个 crate 中完全复制（10 个常量），应提取为共享定义 | `[ ]` 待修复 |
-| P003 | P1     | 死代码     | `tauri/src-tauri/src/services/llm_context.rs:17`          | `CachedPrompt.created_at` 字段标记 `#[allow(dead_code)]`，从未用于 TTL 驱逐，应移除或实现过期逻辑 | `[ ]` 待修复 |
-| P004 | P1     | 规范       | `tauri/src/pages/auth/LoginPage.tsx:342`                  | 直接使用 `console.error` 而非项目统一 `logger.error`，应替换为 logger 调用 | `[ ]` 待修复 |
-| P005 | P2     | 代码重复   | `tauri/src-tauri/src/services/llm_context.rs:351,378`     | `type_display_name` 与 `property_key_to_label` 两个函数逻辑几乎完全相同（驼峰/下划线转标题格式），可合并为一个通用 helper | `[ ]` 待修复 |
-| P006 | P2     | 死代码     | `tauri/src-tauri/src/commands/backup.rs:281-285`          | `RestoreManifest` 的 `version`、`created_at`、`profile_count` 字段标记 `#[allow(dead_code)]`，反序列化后从未读取，可精简 | `[ ]` 待修复 |
-| P007 | P2     | 规范       | `tauri/src-tauri/src/services/llm_context.rs:83-85`       | `build_section5_plugins()` 硬编码返回"（暂无已安装插件）"，注释说明"intentionally omitted"，应添加 TODO 跟踪或实现 | `[ ]` 待修复 |
+| P001 | P1     | 死代码     | `tauri/src/components/layout/AppBar.tsx:11,13`            | `@deprecated` 的 `titleBarOffset` prop 已无任何调用方传值，可安全删除   | `[x]` 已修复 |
+| P002 | P1     | 代码重复   | `tauri/src-tauri/src/plugin/host/mod.rs:28` 与 `tauri/crates/solosoul-plugin/src/host.rs:28` | `mod code` 错误码常量块在两个 crate 中完全复制（10 个常量），应提取为共享定义 | `[x]` 已修复 |
+| P003 | P1     | 死代码     | `tauri/src-tauri/src/services/llm_context.rs:17`          | `CachedPrompt.created_at` 字段标记 `#[allow(dead_code)]`，从未用于 TTL 驱逐，应移除或实现过期逻辑 | `[x]` 已修复 |
+| P004 | P1     | 规范       | `tauri/src/pages/auth/LoginPage.tsx:342`                  | 直接使用 `console.error` 而非项目统一 `logger.error`，应替换为 logger 调用 | `[x]` 已修复 |
+| P005 | P2     | 代码重复   | `tauri/src-tauri/src/services/llm_context.rs:351,378`     | `type_display_name` 与 `property_key_to_label` 两个函数逻辑几乎完全相同（驼峰/下划线转标题格式），可合并为一个通用 helper | `[x]` 已修复 |
+| P006 | P2     | 死代码     | `tauri/src-tauri/src/commands/backup.rs:281-285`          | `RestoreManifest` 的 `version`、`created_at`、`profile_count` 字段标记 `#[allow(dead_code)]`，反序列化后从未读取，可精简 | `[x]` 已修复 |
+| P007 | P2     | 规范       | `tauri/src-tauri/src/services/llm_context.rs:83-85`       | `build_section5_plugins()` 硬编码返回"（暂无已安装插件）"，注释说明"intentionally omitted"，应添加 TODO 跟踪或实现 | `[x]` 已修复 |
 
 ## 修复进度
 
-- 已完成：0 / 7
+- 已完成：7 / 7
 - 当前处理：无
 
 ---
