@@ -157,8 +157,9 @@ impl RecoveryHost {
             let _ = send_error(&mut session, &mut transport, "Invalid PIN or nonce");
             return Err("Invalid PIN or nonce".to_string());
         }
-        // 仅当认证成功后才标记为已服务，防止数据被重复下载
-        self.mark_served()?;
+        // 认证成功：重置速率限制，但**不**立即标记 served。
+        // served 标记延迟到文件传输完成后才设置，确保传输中途断开时
+        // 用户可以重试（否则会收到 "Recovery data has already been served" 而被拒绝）。
         reset_global_rate_limit();
 
         // 2. 发送恢复密码
@@ -190,6 +191,10 @@ impl RecoveryHost {
         send_binary(&mut session, &mut transport, &[])?;
 
         transport.close();
+
+        // 文件传输完成后才标记为已服务。若传输中途失败（网络断开等），
+        // served 仍为 false，用户可以重新连接并重试恢复。
+        self.mark_served()?;
         tracing::info!("Recovery transfer completed");
         Ok(())
     }
