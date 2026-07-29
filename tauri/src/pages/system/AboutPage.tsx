@@ -7,6 +7,7 @@ import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { ShieldLogo } from '@/components/ui/ShieldLogo';
 import { invoke } from '@tauri-apps/api/core';
+import { open } from '@tauri-apps/plugin-shell';
 import { ExternalLink, Code, Shield, Info, Download, AlertTriangle } from 'lucide-react';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { SafeMarkdown } from '@/components/ui/SafeMarkdown';
@@ -562,6 +563,13 @@ export function AboutPage() {
                       (e.currentTarget.style.background = 'rgba(128,128,128,0.06)')
                     }
                     onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      open(link.url).catch(() => {
+                        // 兜底：如果 shell open 失败，仍尝试默认打开方式
+                        window.open(link.url, '_blank', 'noopener,noreferrer');
+                      });
+                    }}
                   >
                     <span style={{ color: 'var(--text-tertiary)', display: 'flex' }}>
                       {link.icon}
