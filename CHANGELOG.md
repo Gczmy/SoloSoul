@@ -25,6 +25,31 @@ All notable changes to SoloSoul are documented in this file.
 - 版本号同步升级到 2.6.2。
 - 5 个 commit（`27babb67` → `2cf3f8af`）到 v2.6.2（`36a9ee93`）。
 
+## [2.6.3] - 2026-07-29
+
+### Added
+
+- **同步冲突事件通知** — 新增 `sync-conflicts-updated` 事件通知前端新冲突，支持徽章通知。
+- **协议版本协商** — 新增 Hello/HelloAck 协议版本协商字段，实现向后兼容的客户端互操作。
+
+### Fixed
+
+- **mDNS 账户隐私保护** — 哈希 account_id 在 mDNS TXT 记录中，防止局域网上明文账户标识泄露。
+- **HLC 时钟回跳检测** — 检测显著 HLC 时钟回跳并发出警告，防止 watermark 异常。
+- **离线 LAN 回退** — local_ip_address 在 UDP 探测 8.8.8.8 失败时自动降级为本地回环地址。
+- **mDNS 对端内存泄漏** — 定期清理过期 mDNS 发现的对端记录，防止 HashMap 无限增长。
+- **恢复重试修复** — 将 mark_served() 移到文件传输完成后执行，中断后可重试恢复。
+- **slowloris 攻击防护** — 添加 5 分钟会话级总超时，防止慢速攻击。
+- **Vault 写入保护** — 等待活跃同步会话完成后才停止同步服务，防止 Vault 写入中断。
+- **移动端 OOM 修复** — 附件分块流式写入临时文件，替代全内存缓冲，防止移动端内存溢出。
+- **跨账户同步防护** — 验证 initiator session 中的 responder account_id，防止跨账户数据同步。
+- **Android 构建修复** — 补全 sync.rs 中缺失的 `Manager` trait 导入，修复 Android 交叉编译错误。
+
+### Chores
+
+- 版本号同步升级到 2.6.3。
+- 12 个 commit 自 v2.6.2（`36a9ee93`）到 v2.6.3（`44a80b50`）。
+
 ## [2.6.1] - 2026-07-28
 
 ### Fixed
@@ -1779,7 +1804,9 @@ All notable changes to SoloSoul are documented in this file.
 - Multi-account support with independent vault directories
 - Comprehensive test suite
 
-[Unreleased]: https://github.com/Gczmy/SoloSoul/compare/v2.5.6...HEAD
+[Unreleased]: https://github.com/Gczmy/SoloSoul/compare/v2.6.3...HEAD
+[2.6.3]: https://github.com/Gczmy/SoloSoul/releases/tag/v2.6.3
+[2.6.2]: https://github.com/Gczmy/SoloSoul/releases/tag/v2.6.2
 [2.5.6]: https://github.com/Gczmy/SoloSoul/releases/tag/v2.5.6
 [2.5.5]: https://github.com/Gczmy/SoloSoul/releases/tag/v2.5.5
 [2.5.4]: https://github.com/Gczmy/SoloSoul/releases/tag/v2.5.4
