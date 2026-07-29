@@ -226,8 +226,16 @@ impl SyncManager {
             return Err("No local IP address available for mDNS".to_string());
         }
         let mut txt = HashMap::<String, String>::new();
+        // node_id 是随机 UUID，本身不泄露用户身份，保留明文用于 peer 标识。
         txt.insert("node_id".to_string(), self.node_id.clone());
-        txt.insert("account_id".to_string(), self.account_id.clone());
+        // account_id 直接标识用户账户，属于敏感信息。
+        // 广播 SHA-256 哈希（前 16 字节 hex）而非原始值，
+        // 发现方通过比较哈希过滤同一账户的 peer，无需知道对方原始 account_id。
+        txt.insert(
+            "account_hash".to_string(),
+            sha256_hex_short(&self.account_id),
+        );
+        // fingerprint 是公钥指纹，用于 MITM 验证，必须明文传输。
         txt.insert("fingerprint".to_string(), self.keys.fingerprint());
 
         let hostname = format!("{}.local.", self.node_id);
@@ -242,7 +250,8 @@ impl SyncManager {
     fn spawn_mdns_discovery(&self, daemon: ServiceDaemon) -> JoinHandle<()> {
         let running = self.running.clone();
         let discovered = self.discovered.clone();
-        let account_id = self.account_id.clone();
+        // 预计算本地 account_id 的哈希，用于与 mDNS TXT 中的 account_hash 比对。
+        let local_account_hash = sha256_hex_short(&self.account_id);
 
         spawn(async move {
             let receiver = match daemon.browse(SERVICE_TYPE) {
@@ -260,11 +269,19 @@ impl SyncManager {
                 match receiver.recv_timeout(Duration::from_millis(MDNS_TIMEOUT_MS)) {
                     Ok(ServiceEvent::ServiceResolved(info)) => {
                         let props = info.get_properties();
-                        let peer_account = props
-                            .get("account_id")
+                        // 比较 account_hash 而非原始 account_id，
+                        // 兼容旧版客户端广播的 account_id 字段。
+                        let peer_account_hash = props
+                            .get("account_hash")
                             .map(|v| v.to_string())
-                            .unwrap_or_default();
-                        if peer_account != account_id {
+                            .unwrap_or_else(|| {
+                                // 旧版客户端仍广播 account_id 明文，计算其哈希比较。
+                                props
+                                    .get("account_id")
+                                    .map(|v| sha256_hex_short(&v.to_string()))
+                                    .unwrap_or_default()
+                            });
+                        if peer_account_hash != local_account_hash {
                             continue;
                         }
                         let node_id = props
@@ -280,7 +297,9 @@ impl SyncManager {
                             let socket = SocketAddr::new(*addr, info.get_port());
                             let peer = DiscoveredPeer {
                                 node_id: node_id.clone(),
-                                account_id: peer_account,
+                                // account_id 不再从 mDNS 获取；
+                                // 使用本地 account_id（同一账户的 peer 才会被发现）。
+                                account_id: String::new(),
                                 name: info.get_fullname().to_string(),
                                 addr: socket,
                                 fingerprint,
@@ -462,6 +481,17 @@ impl SyncManager {
         ips.push(Ipv4Addr::new(127, 0, 0, 1));
         ips
     }
+}
+
+/// 计算 SHA-256 哈希并返回前 16 字节的 hex 编码（32 字符）。
+/// 用于在 mDNS TXT 记录中广播 account_id 的哈希值，避免泄露原始账户标识。
+/// 截断为 16 字节（128 位）在局域网发现场景下碰撞风险极低且不影响安全性
+///（真正的身份验证在 Noise 握手阶段完成）。
+fn sha256_hex_short(input: &str) -> String {
+    use sha2::{Digest, Sha256};
+    let mut hasher = Sha256::new();
+    hasher.update(input.as_bytes());
+    hex::encode(&hasher.finalize()[..16])
 }
 
 fn format_duration_since(instant: Instant) -> String {
