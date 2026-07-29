@@ -40,7 +40,6 @@ export function AppShell({ children, title, actions, onBack }: AppShellProps) {
         title={title}
         actions={actions}
         onBack={onBack}
-        topBarHeight={isTop ? FUNCTION_BAR_HEIGHT : 0}
         sidebarPosition={effectivePosition}
       />
       {isNarrowViewport ? (

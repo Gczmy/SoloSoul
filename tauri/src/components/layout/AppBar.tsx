@@ -7,10 +7,6 @@ interface AppBarProps {
   title: string;
   actions?: React.ReactNode;
   onBack?: () => void;
-  /** @deprecated 由 sidebarPosition 推导，保留以兼容旧调用 */
-  titleBarOffset?: number;
-  /** @deprecated 由 sidebarPosition 推导，保留以兼容旧调用 */
-  topBarHeight?: number;
   sidebarPosition?: 'left' | 'right' | 'top' | 'bottom';
 }
 
