@@ -2,6 +2,29 @@
 
 All notable changes to SoloSoul are documented in this file.
 
+## [2.6.2] - 2026-07-29
+
+### Added
+
+- **Android 应用内自更新机制** — 实现 Android 应用内自更新（GitHub API + APK 下载 + 系统安装器），支持后台下载 APK 并通过系统安装器静默更新。
+- **APK 断点续传** — 下载 APK 时支持 Range 请求头 + append 模式，网络中断后自动从中断处继续下载。
+- **Android 强制更新策略** — 支持 [MANDATORY] 标记，关键安全更新可强制用户立即升级后方可使用。
+- **Android 更新权限引导** — 引导用户开启「安装未知应用」权限，确保更新可正常安装。
+- **APK 完整性校验** — 下载完成后自动计算 SHA-256 哈希并与预期值比对，防止文件损坏或篡改。
+
+### Changed
+
+- **发布流程更新** — 流程新增 APK checksum 生成步骤，以及 [MANDATORY] 强制更新标记说明。
+
+### Fixed
+
+- **Android 更新功能 i18n 补全** — 补全 `need_install_unknown_apps`、`mandatory_update_title`、`mandatory_update_desc` 三个翻译 key。
+
+### Chores
+
+- 版本号同步升级到 2.6.2。
+- 5 个 commit 自 v2.6.1（`7fefe7ea`）到 v2.6.2（`36a9ee93`）。
+
 ## [2.6.1] - 2026-07-28
 
 ### Fixed
