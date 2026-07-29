@@ -1,6 +1,6 @@
 use crate::state::AppState;
 use serde::Serialize;
-use tauri::{Emitter, State};
+use tauri::{Emitter, Manager, State};
 
 /// 记录同步相关操作日志。Vault 未解锁时静默跳过（同步服务本身不依赖 Vault）。
 fn log_sync_action(
