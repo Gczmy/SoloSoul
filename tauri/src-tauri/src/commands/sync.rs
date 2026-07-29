@@ -1,8 +1,6 @@
 use crate::state::AppState;
 use serde::Serialize;
-#[cfg(mobile)]
-use tauri::Manager;
-use tauri::State;
+use tauri::{Emitter, State};
 
 /// 记录同步相关操作日志。Vault 未解锁时静默跳过（同步服务本身不依赖 Vault）。
 fn log_sync_action(
@@ -561,6 +559,15 @@ pub async fn sync_with_device(
     })
     .to_string();
     log_sync_action(&state, "sync_with_device", Some(&device_id), Some(&details));
+
+    // 当同步产生冲突时，向前端发送事件通知，让 UI 显示冲突徽章。
+    if !sync_result.conflicts.is_empty() {
+        let _ = state.handle.emit(
+            "sync-conflicts-updated",
+            serde_json::json!({ "count": sync_result.conflicts.len() }),
+        );
+    }
+
     Ok(sync_result)
 }
 
@@ -612,6 +619,21 @@ pub async fn sync_with_device(
     })
     .to_string();
     log_sync_action(&state, "sync_with_device", Some(&device_id), Some(&details));
+
+    // 当同步产生冲突时，向前端发送事件通知，让 UI 显示冲突徽章。
+    // 移动端 sync_result.conflicts 始终为空（移动端不回传 ConflictRecord），
+    // 但通过查询 Vault 中的冲突表确认是否有新冲突。
+    if let Ok(vault) = crate::commands::vault_handle(&state) {
+        if let Ok(conflicts) = vault.list_sync_conflicts() {
+            if !conflicts.is_empty() {
+                let _ = state.handle.emit(
+                    "sync-conflicts-updated",
+                    serde_json::json!({ "count": conflicts.len() }),
+                );
+            }
+        }
+    }
+
     Ok(sync_result)
 }
 

@@ -1,11 +1,13 @@
 import { create } from 'zustand';
 import { invoke } from '@tauri-apps/api/core';
+import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import type {
   SyncResult,
   SyncConflictSummary,
   SyncConflictDetail,
   SyncConflictStrategy,
 } from '@/lib/ipc';
+import { logger } from '@/lib/logger';
 
 export interface SyncPeer {
   id: string;
@@ -41,6 +43,8 @@ interface SyncStoreState extends SyncStatus {
   listenPort: number;
   conflicts: SyncConflictSummary[];
   selectedConflict: SyncConflictDetail | null;
+  /** 是否有未查看的冲突通知（由 sync-conflicts-updated 事件触发）。 */
+  hasUnreadConflicts: boolean;
 
   loadStatus: () => Promise<void>;
   loadListenPort: () => Promise<void>;
@@ -55,6 +59,8 @@ interface SyncStoreState extends SyncStatus {
   loadConflicts: () => Promise<void>;
   loadConflictDetail: (conflictId: string) => Promise<void>;
   resolveConflict: (conflictId: string, strategy: SyncConflictStrategy) => Promise<void>;
+  markConflictsRead: () => void;
+  initConflictListener: () => Promise<UnlistenFn>;
 }
 
 export const useSyncStore = create<SyncStoreState>((set, get) => ({
@@ -72,6 +78,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => ({
   listenPort: 0,
   conflicts: [],
   selectedConflict: null,
+  hasUnreadConflicts: false,
 
   loadStatus: async () => {
     try {
@@ -191,6 +198,26 @@ export const useSyncStore = create<SyncStoreState>((set, get) => ({
     } catch (err) {
       set({ error: String(err) });
     }
+  },
+
+  /** 标记冲突通知为已读（用户打开冲突对话框时调用）。 */
+  markConflictsRead: () => {
+    set({ hasUnreadConflicts: false });
+  },
+
+  /** 初始化 sync-conflicts-updated 事件监听器。
+   *  返回 unlisten 函数，调用方应在组件卸载时调用以清理。 */
+  initConflictListener: (): Promise<UnlistenFn> => {
+    return listen<{ count: number }>('sync-conflicts-updated', (event) => {
+      const count = event.payload?.count ?? 0;
+      if (count > 0) {
+        set({ hasUnreadConflicts: true });
+        // 自动刷新冲突列表，确保 UI 数据是最新的
+        get().loadConflicts().catch((err) =>
+          logger.warn('[syncStore] Failed to auto-reload conflicts after event:', err),
+        );
+      }
+    });
   },
 
   loadConflictDetail: async (conflictId) => {

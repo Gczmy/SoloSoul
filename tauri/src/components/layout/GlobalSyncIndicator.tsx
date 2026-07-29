@@ -2,7 +2,8 @@ import { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { listen } from '@tauri-apps/api/event';
 import { useUiStore } from '@/stores/uiStore';
-import { Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import { useSyncStore } from '@/stores/syncStore';
+import { Loader2, CheckCircle, AlertCircle, AlertTriangle } from 'lucide-react';
 import { ICON_SIZE, SAFE_AREA_TOP } from '@/lib/constants';
 
 interface SyncProgressPayload {
@@ -37,9 +38,14 @@ export function GlobalSyncIndicator() {
   } = useUiStore();
 
   const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const { hasUnreadConflicts, conflicts, initConflictListener, markConflictsRead } =
+    useSyncStore();
 
   useEffect(() => {
     const unlistens: Array<() => void> = [];
+
+    // 监听 sync-conflicts-updated 事件，自动刷新冲突列表并显示徽章。
+    initConflictListener().then((unlisten) => unlistens.push(unlisten));
 
     listen<SyncProgressPayload>('sync-progress', (event) => {
       const { phase, current = 0, total = 0, message, silent } = event.payload;
@@ -82,9 +88,13 @@ export function GlobalSyncIndicator() {
       unlistens.forEach((fn) => fn());
       if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
     };
-  }, [setSafSyncState, setSafSyncProgress, setSafSyncError, setSafAuthRevoked, t]);
+  }, [setSafSyncState, setSafSyncProgress, setSafSyncError, setSafAuthRevoked, t, initConflictListener]);
 
-  if (!safAuthRevoked && safSyncState === 'idle') {
+  // 冲突徽章：当有未读冲突通知时显示，点击后标记已读并跳转到冲突页面。
+  const conflictCount = conflicts.length;
+  const showConflictBadge = hasUnreadConflicts && conflictCount > 0;
+
+  if (!safAuthRevoked && safSyncState === 'idle' && !showConflictBadge) {
     return null;
   }
 
@@ -149,6 +159,45 @@ export function GlobalSyncIndicator() {
           <span>{safSyncError || t('common:error')}</span>
         </>
       ) : null}
+
+      {/* 冲突徽章 — 独立于同步进度状态显示 */}
+      {showConflictBadge && (
+        <button
+          onClick={() => markConflictsRead()}
+          style={{
+            position: 'fixed',
+            top: SAFE_AREA_TOP + 48,
+            right: 12,
+            zIndex: 10000,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 6,
+            padding: '6px 14px',
+            borderRadius: 20,
+            border: 'none',
+            background: 'rgba(234, 88, 12, 0.95)',
+            color: '#fff',
+            fontSize: 'var(--text-body-sm)',
+            fontWeight: 600,
+            cursor: 'pointer',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+            backdropFilter: 'blur(6px)',
+            WebkitBackdropFilter: 'blur(6px)',
+            transition: 'transform 0.2s ease',
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.05)')}
+          onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+        >
+          <AlertTriangle size={ICON_SIZE.sm} />
+          <span>
+            {t('settings:sync_conflicts_badge', {
+              defaultValue: '{{count}} conflict(s)',
+              count: conflictCount,
+            })}
+          </span>
+        </button>
+      )}
+
       <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     </div>
   );
