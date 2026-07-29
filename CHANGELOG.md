@@ -23,7 +23,7 @@ All notable changes to SoloSoul are documented in this file.
 ### Chores
 
 - 版本号同步升级到 2.6.2。
-- 5 个 commit 自 v2.6.1（`7fefe7ea`）到 v2.6.2（`36a9ee93`）。
+- 5 个 commit（`27babb67` → `2cf3f8af`）到 v2.6.2（`36a9ee93`）。
 
 ## [2.6.1] - 2026-07-28
 
