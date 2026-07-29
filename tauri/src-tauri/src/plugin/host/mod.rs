@@ -23,28 +23,8 @@ const MAX_PLUGIN_READ_LEN: usize = 64 * 1024;
 pub(crate) use tokio::sync::oneshot;
 pub(crate) use url::Url;
 
-/// Host Function 错误码（与 SDK `solosoul_plugin_sdk::PluginError` 保持一致）
-#[allow(dead_code)]
-mod code {
-    pub const SUCCESS: i32 = 0;
-    pub const PERMISSION_DENIED: i32 = -1;
-    pub const USER_DENIED: i32 = -2;
-    pub const TTL_EXPIRED: i32 = -3;
-    pub const BUFFER_TOO_SMALL: i32 = -4;
-    pub const INVALID_FIELD: i32 = -5;
-    pub const NETWORK_TIMEOUT: i32 = -6;
-    pub const VAULT_LOCKED: i32 = -7;
-    pub const RATE_LIMITED: i32 = -8;
-    pub const NOT_IMPLEMENTED: i32 = -9;
-    pub const DOMAIN_NOT_ALLOWED: i32 = -10;
-    pub const INVALID_ARGUMENT: i32 = -11;
-    pub const WASM_TRAP: i32 = -12;
-    pub const FILE_NOT_FOUND: i32 = -13;
-    pub const FILE_TOO_LARGE: i32 = -14;
-    pub const PROCESSING_FAILED: i32 = -15;
-    /// 异步 HTTP 请求仍在进行中（非错误，仅用于轮询）
-    pub const HTTP_PENDING: i32 = 1;
-}
+// Host Function 错误码复用 `solosoul_plugin::host::code`，避免跨 crate 重复定义。
+use solosoul_plugin::host::code;
 
 /// 传递给 Wasm Store 的状态，包含 WASI 上下文与自定义 Host 数据
 pub struct SoloHostState {
