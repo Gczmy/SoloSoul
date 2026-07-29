@@ -307,7 +307,9 @@ impl SyncManager {
                     last_cleanup = Instant::now();
                     if let Ok(mut map) = discovered.lock() {
                         let now = Instant::now();
-                        map.retain(|_, p| now.duration_since(p.last_seen).as_secs() <= PEER_MAX_AGE_SECS);
+                        map.retain(|_, p| {
+                            now.duration_since(p.last_seen).as_secs() <= PEER_MAX_AGE_SECS
+                        });
                     }
                 }
             }
@@ -433,7 +435,9 @@ impl SyncManager {
 
     fn local_ips() -> Vec<Ipv4Addr> {
         let mut ips = Vec::new();
-        // Best-effort primary local IP via UDP.
+        // Best-effort primary local IP via UDP connect to a public address.
+        // 这不发送任何数据包，仅利用内核路由表确定出口 IP。
+        // 但在离线局域网（无互联网连接）时此方法会失败。
         if let Ok(socket) = UdpSocket::bind("0.0.0.0:0") {
             if socket.connect("8.8.8.8:80").is_ok() {
                 if let Ok(local) = socket.local_addr() {
@@ -442,6 +446,15 @@ impl SyncManager {
                             ips.push(v4);
                         }
                     }
+                }
+            }
+        }
+        // Fallback：当 UDP 探测失败时（离线局域网、无默认路由），
+        // 通过 local_ip_address crate 枚举本地网卡获取非回环 IPv4。
+        if ips.is_empty() {
+            if let Ok(std::net::IpAddr::V4(v4)) = local_ip_address::local_ip() {
+                if !v4.is_loopback() {
+                    ips.push(v4);
                 }
             }
         }
