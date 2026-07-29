@@ -12,6 +12,7 @@ use solosoul_sync::SyncService;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::AtomicBool;
 use std::sync::{Arc, Mutex, RwLock};
+use std::time::{Duration, Instant};
 use tauri::{Emitter, Manager};
 
 /// `.solosoul_config` 文件名（存放在 SAF 目录根，用于重装后自动发现）。
@@ -30,6 +31,9 @@ pub struct AppState {
     pub trash_cleanup_running: Arc<AtomicBool>,
     /// 跨设备恢复主机状态（取消信号、后台线程、临时导出文件）。
     pub recovery_state: Arc<Mutex<RecoveryState>>,
+    /// 生物识别因失败次数过多进入临时锁定后的预计解除时间。
+    /// None 表示未锁定；用于在前端区分「不支持」和「暂时锁定」。
+    pub biometric_lockout_until: Arc<Mutex<Option<Instant>>>,
 }
 
 /// 跨设备恢复主机的运行时状态。
@@ -381,6 +385,7 @@ impl AppState {
             device_auto_sync,
             trash_cleanup_running: Arc::new(AtomicBool::new(false)),
             recovery_state: Arc::new(Mutex::new(RecoveryState::new())),
+            biometric_lockout_until: Arc::new(Mutex::new(None)),
         };
 
         // 若当前使用 SAF 远程 Vault，调度 WorkManager 兜底同步，
@@ -605,6 +610,68 @@ impl AppState {
             account_count,
             accounts,
         })
+    }
+
+    /// 设置生物识别临时锁定的到期时间（覆盖已有时间）。
+    /// 用于 Android 指纹/人脸失败次数过多后，前端可据此显示锁定状态。
+    pub fn set_biometric_lockout(&self, duration: Duration) {
+        let mut guard = self
+            .biometric_lockout_until
+            .lock()
+            .unwrap_or_else(|e| e.into_inner());
+        *guard = Some(Instant::now() + duration);
+    }
+
+    /// 检查当前是否仍处于生物识别临时锁定状态。
+    /// 若已过期则自动清除。
+    pub fn is_biometric_locked_out(&self) -> bool {
+        let mut guard = self
+            .biometric_lockout_until
+            .lock()
+            .unwrap_or_else(|e| e.into_inner());
+        if let Some(until) = *guard {
+            if Instant::now() < until {
+                return true;
+            }
+            *guard = None;
+        }
+        false
+    }
+
+    /// 返回生物识别锁定的剩余秒数（若已锁定）。
+    pub fn biometric_lockout_remaining(&self) -> Option<u64> {
+        let guard = self
+            .biometric_lockout_until
+            .lock()
+            .unwrap_or_else(|e| e.into_inner());
+        guard.map(|until| {
+            let now = Instant::now();
+            if now < until {
+                until.duration_since(now).as_secs()
+            } else {
+                0
+            }
+        })
+    }
+
+    /// 返回生物识别锁定的预计解除时间（Unix 秒）。
+    /// 用于向前端展示「多久后可重试」。
+    pub fn biometric_lockout_until_ts(&self) -> Option<i64> {
+        let remaining = self.biometric_lockout_remaining()?;
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap_or_default()
+            .as_secs() as i64;
+        Some(now + remaining as i64)
+    }
+
+    /// 手动清除生物识别锁定状态（成功验证或用户手动重试前调用）。
+    pub fn clear_biometric_lockout(&self) {
+        let mut guard = self
+            .biometric_lockout_until
+            .lock()
+            .unwrap_or_else(|e| e.into_inner());
+        *guard = None;
     }
 
     pub async fn init_saf_sync(&self) -> Result<(), String> {

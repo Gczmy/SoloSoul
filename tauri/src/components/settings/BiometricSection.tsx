@@ -27,6 +27,10 @@ interface BioAvailability {
   strongConfigured?: boolean;
   /** weak 槽已保存凭证（Face ID Class 2 开关状态） */
   weakConfigured?: boolean;
+  /** 是否因失败次数过多被系统临时锁定（主要 Android） */
+  lockout?: boolean;
+  /** 临时锁定的预计解除时间（Unix 秒） */
+  lockoutUntil?: number;
 }
 
 type BioMode = 'strong' | 'weak';
@@ -240,15 +244,24 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
             style={{
               padding: '12px 14px',
               borderRadius: 8,
-              background: 'color-mix(in srgb, var(--accent-primary) 6%, transparent)',
-              border: '1px solid color-mix(in srgb, var(--accent-primary) 20%, transparent)',
+              background: bioAvailable.lockout
+                ? 'rgba(212, 133, 10, 0.08)'
+                : 'color-mix(in srgb, var(--accent-primary) 6%, transparent)',
+              border: bioAvailable.lockout
+                ? '1px solid rgba(212, 133, 10, 0.25)'
+                : '1px solid color-mix(in srgb, var(--accent-primary) 20%, transparent)',
               fontSize: 'var(--text-body-sm)',
-              color: 'var(--text-secondary)',
+              color: bioAvailable.lockout ? '#D4850A' : 'var(--text-secondary)',
               lineHeight: 1.5,
             }}
           >
-            {t('settings:biometric_unavailable_desc') ??
-              '当前设备未设置或不支持生物识别（Touch ID / Face ID）。请先在系统设置中添加指纹或面容，然后重新打开此页面。'}
+            {bioAvailable.lockout
+              ? t('settings:biometric_lockout_desc', {
+                  defaultValue:
+                    '生物识别因失败次数过多被系统暂时锁定，请稍后再试。',
+                })
+              : t('settings:biometric_unavailable_desc') ??
+                '当前设备未设置或不支持生物识别（Touch ID / Face ID）。请先在系统设置中添加指纹或面容，然后重新打开此页面。'}
           </div>
         ) : (
           <>

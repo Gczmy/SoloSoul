@@ -27,7 +27,10 @@ fn map_keystore_error(e: String, operation: &str) -> String {
         map_bio_error(BiometricError::UserPresenceCancelled, operation)
     } else if e == "BIOMETRIC_NOT_ENROLLED" {
         map_bio_error(BiometricError::UserPresenceUnavailable, operation)
-    } else if e == "BIOMETRIC_LOCKOUT" || e == "BIOMETRIC_UNAVAILABLE" {
+    } else if e == "BIOMETRIC_LOCKOUT" {
+        // 临时锁定：保留独立错误码，让前端/调用方可以区分
+        bio_err("lockout")
+    } else if e == "BIOMETRIC_UNAVAILABLE" {
         map_bio_error(BiometricError::UserPresenceUnavailable, operation)
     } else if e.starts_with("BIOMETRIC_ERROR:") {
         map_bio_error(BiometricError::Other(e), operation)
@@ -259,6 +262,13 @@ pub async fn biometric_check_availability(
         None,
     );
 
+    let lockout = state.is_biometric_locked_out();
+    let lockout_until = if lockout {
+        state.biometric_lockout_until_ts()
+    } else {
+        None
+    };
+
     Ok(BiometricAvailability {
         available,
         configured,
@@ -269,6 +279,8 @@ pub async fn biometric_check_availability(
         strong_available,
         strong_configured,
         weak_configured,
+        lockout,
+        lockout_until,
     })
 }
 
@@ -378,7 +390,15 @@ pub async fn biometric_save_credential(
                 },
                 authenticator.as_deref(),
             )
-            .map_err(|e| map_keystore_error(e, "save"))?;
+            .map_err(|e| {
+                if e == "BIOMETRIC_LOCKOUT" {
+                    state.set_biometric_lockout(std::time::Duration::from_secs(30));
+                }
+                map_keystore_error(e, "save")
+            })?;
+
+        // 生物识别验证成功，清除可能存在的临时锁定状态
+        state.clear_biometric_lockout();
 
         // 双槽读改写：只更新本次选择的槽，保留另一种方式的凭证
         let path = svc.base_path().join(&account_id).join("keystore_data.json");
@@ -547,11 +567,21 @@ pub async fn biometric_unlock(
                         prompt,
                         Some("any"),
                     )
-                    .map_err(|e| map_keystore_error(e, "unlock"))?
+                    .map_err(|e| {
+                        if e == "BIOMETRIC_LOCKOUT" {
+                            state.set_biometric_lockout(std::time::Duration::from_secs(30));
+                        }
+                        map_keystore_error(e, "unlock")
+                    })?
             } else if let Some(slot) = &creds.strong {
                 keystore
                     .authenticate_and_read(&account_id, &slot.iv, &slot.ciphertext, prompt, None)
-                    .map_err(|e| map_keystore_error(e, "unlock"))?
+                    .map_err(|e| {
+                        if e == "BIOMETRIC_LOCKOUT" {
+                            state.set_biometric_lockout(std::time::Duration::from_secs(30));
+                        }
+                        map_keystore_error(e, "unlock")
+                    })?
             } else {
                 return Err(map_bio_error(
                     BiometricError::KeychainItemNotFound,
@@ -571,6 +601,9 @@ pub async fn biometric_unlock(
                 .map_err(|e| map_bio_error(e, "unlock"))?
         }
     };
+
+    // 生物识别验证成功，清除可能存在的临时锁定状态
+    state.clear_biometric_lockout();
 
     let key_bytes = hex::decode(&key_hex)
         .map_err(|_| map_bio_error(BiometricError::InvalidKeyFormat, "unlock"))?;
@@ -771,10 +804,15 @@ pub async fn biometric_test(_account_id: String) -> Result<bool, String> {
 
 #[cfg(all(mobile, any(target_os = "android", target_os = "ios")))]
 #[tauri::command]
-pub async fn biometric_test(app: tauri::AppHandle, _account_id: String) -> Result<bool, String> {
+pub async fn biometric_test(
+    app: tauri::AppHandle,
+    state: State<'_, AppState>,
+    _account_id: String,
+) -> Result<bool, String> {
     use tauri_plugin_biometric::{AuthOptions, BiometricExt};
 
-    app.biometric()
+    match app
+        .biometric()
         .authenticate(
             "Test biometric authentication for SoloSoul".to_string(),
             AuthOptions {
@@ -785,10 +823,20 @@ pub async fn biometric_test(app: tauri::AppHandle, _account_id: String) -> Resul
                 subtitle: Some("Test biometric authentication".to_string()),
                 confirmation_required: Some(false),
             },
-        )
-        .map_err(|e| e.to_string())?;
-
-    Ok(true)
+        ) {
+        Ok(()) => {
+            state.clear_biometric_lockout();
+            Ok(true)
+        }
+        Err(e) => {
+            let msg = e.to_string();
+            // tauri-plugin-biometric 在 Android/iOS 上的锁定错误通常包含 lockout/locked 字样
+            if msg.to_lowercase().contains("lockout") || msg.to_lowercase().contains("locked") {
+                state.set_biometric_lockout(std::time::Duration::from_secs(30));
+            }
+            Err(msg)
+        }
+    }
 }
 
 #[cfg(all(test, desktop))]

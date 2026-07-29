@@ -58,6 +58,12 @@ pub struct BiometricAvailability {
     /// weak 槽是否已保存凭证（Face ID Class 2 开关状态依据）
     #[serde(default)]
     pub weak_configured: bool,
+    /// 是否因失败次数过多而被系统临时锁定（主要见于 Android）。
+    #[serde(default)]
+    pub lockout: bool,
+    /// 临时锁定的预计解除时间（Unix 秒）。None 表示未锁定或已过期。
+    #[serde(default)]
+    pub lockout_until: Option<i64>,
 }
 
 /// 生物识别存储层返回的错误。
@@ -263,6 +269,8 @@ impl BiometricManager {
             strong_available: available,
             strong_configured: configured,
             weak_configured: false,
+            lockout: false,
+            lockout_until: None,
         }
     }
 
@@ -718,6 +726,8 @@ mod tests {
             strong_available: true,
             strong_configured: false,
             weak_configured: false,
+            lockout: false,
+            lockout_until: None,
         };
         let json = serde_json::to_string(&original).unwrap();
         assert!(json.contains("touchId"));
