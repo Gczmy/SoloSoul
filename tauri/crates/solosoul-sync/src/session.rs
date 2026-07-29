@@ -20,8 +20,24 @@ use crate::types::{ApplyStats, AttachmentSyncStats, SyncSessionResult};
 use solosoul_vault::{PeerSyncState, VaultStore};
 use std::path::Path;
 use std::sync::Arc;
+use std::time::{Duration, Instant};
 
 const DELTA_PAGE_LIMIT: usize = 100;
+/// 同步会话总超时（5 分钟）。防止恶意 peer 通过每隔 29 秒发送一个字节
+/// 来无限期保持连接（slowloris 攻击），占用 `spawn_blocking` 线程。
+const SESSION_TIMEOUT: Duration = Duration::from_secs(300);
+
+/// 检查会话是否已超过总超时。在每次 `recv_msg` 后调用。
+fn check_session_deadline(start: Instant) -> Result<(), String> {
+    if start.elapsed() > SESSION_TIMEOUT {
+        Err(format!(
+            "Sync session timed out after {}s",
+            SESSION_TIMEOUT.as_secs()
+        ))
+    } else {
+        Ok(())
+    }
+}
 
 /// 作为发起方与对端建立 Noise 会话并同步数据。
 pub fn run_initiator_session(
@@ -32,6 +48,7 @@ pub fn run_initiator_session(
     vault: Arc<VaultStore>,
     peer_addr: String,
 ) -> Result<SyncSessionResult, String> {
+    let session_start = Instant::now();
     let mut session = NoiseSession::handshake_initiator(transport, keys)?;
 
     send_msg(
@@ -51,6 +68,7 @@ pub fn run_initiator_session(
             trusted: t,
             public_key_fingerprint,
         } => {
+            check_session_deadline(session_start)?;
             // 校验响应方 account_id 与本地一致，防止已信任的 peer 被重新配置为
             // 不同账户后，发起方仍向其同步数据（违反账户隔离原则）。
             // 与 handle_inbound 中响应方校验发起方 account_id 的逻辑对称。
@@ -82,12 +100,14 @@ pub fn run_initiator_session(
         account_id,
         node_id,
         &peer_node_id,
+        session_start,
     )?;
 
     // 接收对端变更并逐批应用。
     let mut data_stats = ApplyStats::default();
     loop {
         let msg = recv_msg(&mut session, transport)?;
+        check_session_deadline(session_start)?;
         match msg {
             SyncMessage::Batch { table, records, .. } => {
                 let stats = crate::delta::apply_sync_records(&vault, &table, &records, node_id)?;
@@ -128,6 +148,9 @@ pub fn run_initiator_session(
                 }
             });
 
+    // 检查会话总超时（附件交换可能耗时较长）。
+    check_session_deadline(session_start)?;
+
     Ok(SyncSessionResult {
         data: data_stats,
         attachments: attachment_stats,
@@ -144,6 +167,7 @@ pub fn handle_inbound(
     vault: Arc<VaultStore>,
     peer_addr: String,
 ) -> Result<SyncSessionResult, String> {
+    let session_start = Instant::now();
     let mut session = NoiseSession::handshake_responder(transport, keys)?;
 
     let (peer_node_id, _peer_account, _fingerprint) = match recv_msg(&mut session, transport)? {
@@ -152,6 +176,7 @@ pub fn handle_inbound(
             account_id: pacc,
             public_key_fingerprint,
         } => {
+            check_session_deadline(session_start)?;
             if pacc != account_id {
                 send_msg(
                     &mut session,
@@ -199,6 +224,7 @@ pub fn handle_inbound(
     let mut apply_stats = ApplyStats::default();
     loop {
         let msg = recv_msg(&mut session, transport)?;
+        check_session_deadline(session_start)?;
         match msg {
             SyncMessage::Batch { table, records, .. } => {
                 let stats = crate::delta::apply_sync_records(&vault, &table, &records, node_id)?;
@@ -236,6 +262,7 @@ pub fn handle_inbound(
         account_id,
         node_id,
         &peer_node_id,
+        session_start,
     )?;
 
     let base = vault.base_path();
@@ -307,6 +334,7 @@ fn send_paginated_deltas(
     account_id: &str,
     node_id: &str,
     peer_node_id: &str,
+    session_start: Instant,
 ) -> Result<(), String> {
     for table in SYNC_TABLES {
         loop {
@@ -338,6 +366,7 @@ fn send_paginated_deltas(
             )?;
 
             let ack = recv_msg(session, transport)?;
+            check_session_deadline(session_start)?;
             if let SyncMessage::Ack {
                 table: ack_table, ..
             } = ack
