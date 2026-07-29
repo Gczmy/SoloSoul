@@ -344,34 +344,9 @@ fn save_public_data_version(
 
 // ── Helpers ─────────────────────────────────────────────────
 
-fn type_display_name(type_id: &str) -> String {
-    let clean = type_id.strip_prefix("__preset_").unwrap_or(type_id);
-    let mut result = String::new();
-    for (i, c) in clean.chars().enumerate() {
-        if i > 0 && c.is_uppercase() {
-            result.push(' ');
-        }
-        if c == '_' {
-            result.push(' ');
-        } else {
-            result.push(c);
-        }
-    }
-    result
-        .split_whitespace()
-        .map(|w| {
-            let mut chars = w.chars();
-            let first = chars
-                .next()
-                .map(|c| c.to_uppercase().to_string())
-                .unwrap_or_default();
-            first + &chars.as_str().to_lowercase()
-        })
-        .collect::<Vec<_>>()
-        .join(" ")
-}
-
-fn property_key_to_label(key: &str) -> String {
+/// 将驼峰或下划线命名的标识符转换为 Title Case 显示文本。
+/// 例如："travelDocument" → "Travel Document"，"date_of_birth" → "Date Of Birth"
+fn to_title_case(key: &str) -> String {
     let mut result = String::new();
     for (i, c) in key.chars().enumerate() {
         if i > 0 && c.is_uppercase() {
@@ -395,6 +370,14 @@ fn property_key_to_label(key: &str) -> String {
         })
         .collect::<Vec<_>>()
         .join(" ")
+}
+
+fn type_display_name(type_id: &str) -> String {
+    to_title_case(type_id.strip_prefix("__preset_").unwrap_or(type_id))
+}
+
+fn property_key_to_label(key: &str) -> String {
+    to_title_case(key)
 }
 
 fn trim_to_limit(text: &str, max_chars: usize) -> String {
