@@ -9,11 +9,34 @@ use crate::types::{SyncPeerInfo, SyncSessionResult};
 use solosoul_core::vault_service::VaultService;
 use solosoul_vault::{PeerSyncState, VaultStore};
 use std::net::{SocketAddr, TcpListener};
-use std::sync::atomic::{AtomicBool, AtomicU16, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU16, AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex as StdMutex};
-use std::time::Duration;
+use std::time::{Duration, Instant};
 use tokio::sync::Mutex;
 use tokio::task::{spawn_blocking, JoinHandle};
+
+/// `stop()` 等待正在进行的同步会话完成的最大时长（秒）。
+const STOP_GRACE_PERIOD_SECS: u64 = 30;
+/// `stop()` 轮询 `active_sessions` 的间隔。
+const STOP_POLL_INTERVAL_MS: u64 = 100;
+
+/// RAII guard：创建时递增 `active_sessions`，Drop 时递减。
+struct SessionGuard {
+    counter: Arc<AtomicUsize>,
+}
+
+impl SessionGuard {
+    fn new(counter: Arc<AtomicUsize>) -> Self {
+        counter.fetch_add(1, Ordering::SeqCst);
+        Self { counter }
+    }
+}
+
+impl Drop for SessionGuard {
+    fn drop(&mut self) {
+        self.counter.fetch_sub(1, Ordering::SeqCst);
+    }
+}
 
 /// 长周期 Noise 身份密钥，与桌面端实现一致。
 use crate::noise::NoiseKeys;
@@ -213,6 +236,9 @@ struct MobileSyncManager {
     listen_port: AtomicU16,
     running: Arc<AtomicBool>,
     worker_handles: StdMutex<Vec<JoinHandle<()>>>,
+    /// 正在进行的同步会话数量。`stop()` 会等待此计数归零后再终止 worker，
+    /// 避免中途 abort 正在写入 Vault 的会话导致数据不一致。
+    active_sessions: Arc<AtomicUsize>,
 }
 
 impl MobileSyncManager {
@@ -230,6 +256,7 @@ impl MobileSyncManager {
             listen_port: AtomicU16::new(0),
             running: Arc::new(AtomicBool::new(false)),
             worker_handles: StdMutex::new(Vec::new()),
+            active_sessions: Arc::new(AtomicUsize::new(0)),
         })
     }
 
@@ -262,6 +289,7 @@ impl MobileSyncManager {
         let account_id = self.account_id.clone();
         let keys = self.keys.clone();
         let vault = self.vault.clone();
+        let active_sessions = self.active_sessions.clone();
 
         let accept_handle = spawn_blocking(move || loop {
             if !running.load(Ordering::SeqCst) {
@@ -276,7 +304,9 @@ impl MobileSyncManager {
                     let account_id = account_id.clone();
                     let keys = keys.clone();
                     let vault = vault.clone();
+                    let guard = SessionGuard::new(active_sessions.clone());
                     spawn_blocking(move || {
+                        let _guard = guard; // 持有直到会话结束
                         let mut transport = SyncTransport::from_stream(stream);
                         let _ = handle_inbound(
                             &mut transport,
@@ -304,11 +334,28 @@ impl MobileSyncManager {
 
     fn stop(&self) {
         self.running.store(false, Ordering::SeqCst);
-        if let Ok(mut handles) = self.worker_handles.lock() {
-            let port = self.listen_port.load(Ordering::SeqCst);
-            if port != 0 {
-                let _ = std::net::TcpStream::connect(format!("127.0.0.1:{}", port));
+
+        // Unblock the blocking accept loop by connecting to ourselves.
+        let port = self.listen_port.load(Ordering::SeqCst);
+        if port != 0 {
+            let _ = std::net::TcpStream::connect(format!("127.0.0.1:{}", port));
+        }
+
+        // 等待正在进行的同步会话完成，避免 abort 中断 Vault 写入。
+        let deadline = Instant::now() + Duration::from_secs(STOP_GRACE_PERIOD_SECS);
+        while self.active_sessions.load(Ordering::SeqCst) > 0 {
+            if Instant::now() >= deadline {
+                tracing::warn!(
+                    "MobileSyncManager.stop(): {} session(s) still active after {}s grace period, forcing abort",
+                    self.active_sessions.load(Ordering::SeqCst),
+                    STOP_GRACE_PERIOD_SECS
+                );
+                break;
             }
+            std::thread::sleep(Duration::from_millis(STOP_POLL_INTERVAL_MS));
+        }
+
+        if let Ok(mut handles) = self.worker_handles.lock() {
             for h in handles.drain(..) {
                 h.abort();
             }
@@ -327,8 +374,10 @@ impl MobileSyncManager {
         let account_id = self.account_id.clone();
         let keys = self.keys.clone();
         let vault = self.vault.clone();
+        let active_sessions = self.active_sessions.clone();
 
         spawn_blocking(move || {
+            let _guard = SessionGuard::new(active_sessions);
             let stream = std::net::TcpStream::connect_timeout(&addr, Duration::from_secs(10))
                 .map_err(|e| format!("connect: {}", e))?;
             let mut transport = SyncTransport::from_stream(stream);

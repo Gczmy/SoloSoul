@@ -8,7 +8,7 @@ use mdns_sd::{ServiceDaemon, ServiceEvent, ServiceInfo};
 use solosoul_vault::{PeerSyncState, VaultStore};
 use std::collections::HashMap;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr, TcpListener, UdpSocket};
-use std::sync::atomic::{AtomicBool, AtomicU16, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU16, AtomicUsize, Ordering};
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 use tokio::task::{spawn, spawn_blocking, JoinHandle};
@@ -21,6 +21,30 @@ use tokio::task::{spawn, spawn_blocking, JoinHandle};
 const SERVICE_TYPE: &str = "_solosoul._tcp.local.";
 const MDNS_TIMEOUT_MS: u64 = 200;
 const PEER_MAX_AGE_SECS: u64 = 300;
+/// `stop()` 等待正在进行的同步会话完成的最大时长（秒）。
+/// 超时后仍会强制 abort，避免无限等待恶意/僵死的 peer。
+const STOP_GRACE_PERIOD_SECS: u64 = 30;
+/// `stop()` 轮询 `active_sessions` 的间隔。
+const STOP_POLL_INTERVAL_MS: u64 = 100;
+
+/// RAII guard：创建时递增 `active_sessions`，Drop 时递减。
+/// 确保 `stop()` 能感知当前有多少同步会话正在进行。
+struct SessionGuard {
+    counter: Arc<AtomicUsize>,
+}
+
+impl SessionGuard {
+    fn new(counter: Arc<AtomicUsize>) -> Self {
+        counter.fetch_add(1, Ordering::SeqCst);
+        Self { counter }
+    }
+}
+
+impl Drop for SessionGuard {
+    fn drop(&mut self) {
+        self.counter.fetch_sub(1, Ordering::SeqCst);
+    }
+}
 
 #[derive(Debug, Clone)]
 struct DiscoveredPeer {
@@ -44,6 +68,9 @@ pub struct SyncManager {
     discovered: Arc<Mutex<HashMap<String, DiscoveredPeer>>>,
     mdns_daemon: Mutex<Option<ServiceDaemon>>,
     worker_handles: Mutex<Vec<JoinHandle<()>>>,
+    /// 正在进行的同步会话数量。`stop()` 会等待此计数归零后再终止 worker，
+    /// 避免中途 abort 正在写入 Vault 的会话导致数据不一致。
+    active_sessions: Arc<AtomicUsize>,
 }
 
 impl SyncManager {
@@ -63,9 +90,9 @@ impl SyncManager {
             listen_port: AtomicU16::new(0),
             running: Arc::new(AtomicBool::new(false)),
             discovered: Arc::new(Mutex::new(HashMap::new())),
-
             mdns_daemon: Mutex::new(None),
             worker_handles: Mutex::new(Vec::new()),
+            active_sessions: Arc::new(AtomicUsize::new(0)),
         }
     }
 
@@ -101,6 +128,7 @@ impl SyncManager {
         let account_id = self.account_id.clone();
         let keys = self.keys.clone();
         let vault = self.vault.clone();
+        let active_sessions = self.active_sessions.clone();
         // TCP accept loop (blocking std listener)
         let accept_handle = spawn_blocking(move || loop {
             if !running.load(Ordering::SeqCst) {
@@ -115,7 +143,9 @@ impl SyncManager {
                     let account_id = account_id.clone();
                     let keys = keys.clone();
                     let vault = vault.clone();
+                    let guard = SessionGuard::new(active_sessions.clone());
                     spawn_blocking(move || {
+                        let _guard = guard; // 持有直到会话结束
                         let mut transport = SyncTransport::from_stream(stream);
                         let _ = handle_inbound(
                             &mut transport,
@@ -150,14 +180,35 @@ impl SyncManager {
     }
 
     /// Stop all background workers and mDNS.
+    ///
+    /// 先将 `running` 置为 false 阻止新会话进入，然后等待正在进行的同步会话
+    /// 完成（最多 `STOP_GRACE_PERIOD_SECS` 秒），最后才 abort worker 任务。
+    /// 这避免了在 `apply_sync_records` 写入 Vault 时被 `abort()` 中断而导致
+    /// 数据不一致的风险。
     pub fn stop(&self) {
         self.running.store(false, Ordering::SeqCst);
+
         // Unblock the blocking accept loop by connecting to ourselves.
-        if let Ok(mut handles) = self.worker_handles.lock() {
-            let port = self.listen_port.load(Ordering::SeqCst);
-            if port != 0 {
-                let _ = std::net::TcpStream::connect(format!("127.0.0.1:{}", port));
+        let port = self.listen_port.load(Ordering::SeqCst);
+        if port != 0 {
+            let _ = std::net::TcpStream::connect(format!("127.0.0.1:{}", port));
+        }
+
+        // 等待正在进行的同步会话完成，避免 abort 中断 Vault 写入。
+        let deadline = Instant::now() + Duration::from_secs(STOP_GRACE_PERIOD_SECS);
+        while self.active_sessions.load(Ordering::SeqCst) > 0 {
+            if Instant::now() >= deadline {
+                tracing::warn!(
+                    "SyncManager.stop(): {} session(s) still active after {}s grace period, forcing abort",
+                    self.active_sessions.load(Ordering::SeqCst),
+                    STOP_GRACE_PERIOD_SECS
+                );
+                break;
             }
+            std::thread::sleep(Duration::from_millis(STOP_POLL_INTERVAL_MS));
+        }
+
+        if let Ok(mut handles) = self.worker_handles.lock() {
             for h in handles.drain(..) {
                 h.abort();
             }
@@ -269,8 +320,10 @@ impl SyncManager {
         let account_id = self.account_id.clone();
         let keys = self.keys.clone();
         let vault = self.vault.clone();
+        let active_sessions = self.active_sessions.clone();
 
         let result = spawn_blocking(move || {
+            let _guard = SessionGuard::new(active_sessions);
             let stream = std::net::TcpStream::connect_timeout(&addr, Duration::from_secs(10))
                 .map_err(|e| format!("connect: {}", e))?;
             let mut transport = SyncTransport::from_stream(stream);
