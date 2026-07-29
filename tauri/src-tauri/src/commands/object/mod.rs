@@ -1511,51 +1511,62 @@ pub async fn object_delete(state: State<'_, AppState>, object_id: String) -> Res
     let period = load_trash_retention(&vault, &account_id);
     let retention_ms = retention_ms(&period);
 
-    if let Ok(Some(rec)) = vault.load_object(&object_id) {
-        let now_ms = chrono::Utc::now().timestamp_millis();
-        let obj_name = rec.name.clone();
-        let obj_section = rec.section_type.clone();
-        // Store complete ObjectRecord as data (§23.2.2)
-        let full_record = serde_json::json!({
-            "id": rec.id, "accountId": rec.account_id, "typeId": rec.type_id,
-            "sectionType": rec.section_type, "name": rec.name, "iconName": rec.icon_name,
-            "parentId": rec.parent_id, "childrenIds": rec.children_ids,
-            "properties": rec.properties, "propertyLabels": rec.property_labels,
-            "sensitivityLevel": rec.sensitivity_level, "tags": rec.tags_json,
-            "createdAt": rec.created_at, "updatedAt": rec.updated_at, "version": rec.version,
-            "templateId": rec.template_id, "templateType": rec.template_type,
-            "contractTypeId": rec.contract_type_id,
-            "templateHash": rec.template_hash,
-        });
-        let trash = solosoul_vault::TrashItem {
-            id: format!("trash_{}", uuid::Uuid::new_v4()),
-            item_type: "object".to_string(),
-            original_id: object_id.clone(),
-            original_parent_id: rec.parent_id.clone(),
-            original_section_type: Some(rec.section_type.clone()),
-            original_sort_order: None,
-            data: serde_json::to_vec(&full_record).unwrap_or_default(),
-            deleted_at: now_ms,
-            expires_at: Some(now_ms + retention_ms),
-            deleted_by: "user".to_string(),
-            name_snapshot: rec.name.clone(),
-            icon_snapshot: Some(rec.icon_name),
-        };
-        let _ = vault.save_trash_item(&trash);
-        vault.delete_object(&object_id, true)?;
-        let _ = vault.log_structured(
-            "object_delete",
-            "object",
-            Some(&object_id),
-            Some(&obj_name),
-            "user",
-            Some(&format!("section={}", obj_section)),
-        );
-        state.auto_sync.trigger_debounce();
-        state.device_auto_sync.trigger_data_change();
-        return Ok(());
+    match vault.load_object(&object_id) {
+        Ok(Some(rec)) => {
+            let now_ms = chrono::Utc::now().timestamp_millis();
+            let obj_name = rec.name.clone();
+            let obj_section = rec.section_type.clone();
+            // Store complete ObjectRecord as data (§23.2.2)
+            let full_record = serde_json::json!({
+                "id": rec.id, "accountId": rec.account_id, "typeId": rec.type_id,
+                "sectionType": rec.section_type, "name": rec.name, "iconName": rec.icon_name,
+                "parentId": rec.parent_id, "childrenIds": rec.children_ids,
+                "properties": rec.properties, "propertyLabels": rec.property_labels,
+                "sensitivityLevel": rec.sensitivity_level, "tags": rec.tags_json,
+                "createdAt": rec.created_at, "updatedAt": rec.updated_at, "version": rec.version,
+                "templateId": rec.template_id, "templateType": rec.template_type,
+                "contractTypeId": rec.contract_type_id,
+                "templateHash": rec.template_hash,
+            });
+            let trash = solosoul_vault::TrashItem {
+                id: format!("trash_{}", uuid::Uuid::new_v4()),
+                item_type: "object".to_string(),
+                original_id: object_id.clone(),
+                original_parent_id: rec.parent_id.clone(),
+                original_section_type: Some(rec.section_type.clone()),
+                original_sort_order: None,
+                data: serde_json::to_vec(&full_record).unwrap_or_default(),
+                deleted_at: now_ms,
+                expires_at: Some(now_ms + retention_ms),
+                deleted_by: "user".to_string(),
+                name_snapshot: rec.name.clone(),
+                icon_snapshot: Some(rec.icon_name),
+            };
+            let _ = vault.save_trash_item(&trash);
+            vault.delete_object(&object_id, true)?;
+            let _ = vault.log_structured(
+                "object_delete",
+                "object",
+                Some(&object_id),
+                Some(&obj_name),
+                "user",
+                Some(&format!("section={}", obj_section)),
+            );
+            state.auto_sync.trigger_debounce();
+            state.device_auto_sync.trigger_data_change();
+            Ok(())
+        }
+        Ok(None) => Err("Object not found".to_string()),
+        Err(e) => {
+            // load_object 返回错误通常意味着解密失败（如密码修改后 vault.db 未同步）。
+            // 返回更明确的错误信息，帮助用户诊断问题。
+            tracing::error!("object_delete: load_object failed for {}: {}", object_id, e);
+            Err(format!(
+                "Failed to load object for deletion: {}. This may indicate a data synchronization issue after password change. Please try restarting the app or syncing manually.",
+                e
+            ))
+        }
     }
-    Err("Object not found".to_string())
 }
 
 // ── Sub-modules ─────────────────────────────────────────────

@@ -3304,59 +3304,101 @@ impl VaultStore {
         let key = self.data_key()?;
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
+        // 先收集原始行数据（不在此处解密），避免单行解密失败导致整个查询失败。
+        // 这对于密码修改后部分审计日志可能用旧密钥加密的场景尤为重要。
         let mut stmt = conn.prepare(
             "SELECT id, timestamp, action, entity_type, entity_id, entity_name, performed_by, details
              FROM audit_log ORDER BY id DESC LIMIT ?1"
         ).map_err(|e| format!("list_audit_log prepare: {}", e))?;
-        let entries = stmt
+        // 原始审计日志行：id, timestamp, action, entity_type, entity_id, entity_name, performed_by, details
+        type RawAuditRow = (
+            i64,
+            String,
+            String,
+            Option<String>,
+            Option<String>,
+            Option<String>,
+            Option<String>,
+            Option<String>,
+        );
+        let raw_rows: Vec<RawAuditRow> = stmt
             .query_map(rusqlite::params![limit as i64], |row| {
-                let raw_name: Option<String> = row.get(5)?;
-                let raw_details: Option<String> = row.get(7)?;
-                let entity_name = raw_name
-                    .as_deref()
-                    .map(|n| decrypt_text_field(&key, n))
-                    .transpose()
-                    .map_err(|e| {
-                        rusqlite::Error::FromSqlConversionFailure(
-                            5,
-                            rusqlite::types::Type::Text,
-                            Box::new(std::io::Error::new(
-                                std::io::ErrorKind::InvalidData,
-                                format!("Audit entity_name decryption failed: {}", e),
-                            )),
-                        )
-                    })?;
-                let details = raw_details
-                    .as_deref()
-                    .map(|d| decrypt_text_field(&key, d))
-                    .transpose()
-                    .map_err(|e| {
-                        rusqlite::Error::FromSqlConversionFailure(
-                            7,
-                            rusqlite::types::Type::Text,
-                            Box::new(std::io::Error::new(
-                                std::io::ErrorKind::InvalidData,
-                                format!("Audit details decryption failed: {}", e),
-                            )),
-                        )
-                    })?;
-                Ok(crate::AuditLogEntry {
-                    id: row.get(0)?,
-                    timestamp: row.get(1)?,
-                    action_type: row.get(2)?,
-                    entity_type: row.get::<_, Option<String>>(3)?.unwrap_or_default(),
-                    entity_id: row.get::<_, Option<String>>(4)?,
-                    entity_name,
-                    performed_by: row
-                        .get::<_, Option<String>>(6)?
-                        .unwrap_or_else(|| "system".to_string()),
-                    details,
-                })
+                Ok((
+                    row.get(0)?,
+                    row.get(1)?,
+                    row.get(2)?,
+                    row.get::<_, Option<String>>(3)?,
+                    row.get::<_, Option<String>>(4)?,
+                    row.get::<_, Option<String>>(5)?,
+                    row.get::<_, Option<String>>(6)?,
+                    row.get::<_, Option<String>>(7)?,
+                ))
             })
-            .map_err(|e| format!("list_audit_log query: {}", e))?;
+            .map_err(|e| format!("list_audit_log query: {}", e))?
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|e| format!("list_audit_log collect: {}", e))?;
+        drop(stmt);
+        drop(guard);
+
+        // 逐行解密，解密失败的条目跳过而非中断整个列表。
         let mut result = Vec::new();
-        for entry in entries {
-            result.push(entry.map_err(|e| format!("list_audit_log row: {}", e))?);
+        let mut skip_count = 0u32;
+        for (
+            id,
+            timestamp,
+            action_type,
+            entity_type,
+            entity_id,
+            raw_name,
+            performed_by,
+            raw_details,
+        ) in raw_rows
+        {
+            let entity_name = match raw_name.as_deref() {
+                Some(n) => match decrypt_text_field(&key, n) {
+                    Ok(dec) => Some(dec),
+                    Err(e) => {
+                        tracing::warn!(
+                            "list_audit_log: entity_name decryption failed for entry id={}: {}",
+                            id,
+                            e
+                        );
+                        skip_count += 1;
+                        Some(format!("[decryption error: {}]", e))
+                    }
+                },
+                None => None,
+            };
+            let details = match raw_details.as_deref() {
+                Some(d) => match decrypt_text_field(&key, d) {
+                    Ok(dec) => Some(dec),
+                    Err(e) => {
+                        tracing::warn!(
+                            "list_audit_log: skipping details for entry id={}, decryption failed: {}",
+                            id, e
+                        );
+                        skip_count += 1;
+                        Some(format!("[decryption error: {}]", e))
+                    }
+                },
+                None => None,
+            };
+            result.push(crate::AuditLogEntry {
+                id,
+                timestamp,
+                action_type,
+                entity_type: entity_type.unwrap_or_default(),
+                entity_id,
+                entity_name,
+                performed_by: performed_by.unwrap_or_else(|| "system".to_string()),
+                details,
+            });
+        }
+        if skip_count > 0 {
+            tracing::warn!(
+                "list_audit_log: skipped {} field(s) due to decryption failures (possible stale encryption after password change)",
+                skip_count
+            );
         }
         Ok(result)
     }

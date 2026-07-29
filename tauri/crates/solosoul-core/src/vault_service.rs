@@ -966,6 +966,34 @@ impl VaultService {
             }
         }
 
+        // 关键修复：reencrypt_all 已将 vault.db 用新密钥重新加密到本地临时目录，
+        // 但在 Android SAF 模式下，本地临时目录与远端 SAF 存储是分离的。
+        // 若不主动 sync_to_remote，重新登录时 sync_from_remote 会用旧的 SAF 副本
+        // （仍用旧密钥加密）覆盖本地 vault.db，导致所有解密失败（object not found /
+        // audit details decryption failed）。
+        if self.is_remote_storage() {
+            if let Err(e) = self.sync_to_remote() {
+                tracing::error!(
+                    "Failed to sync re-encrypted vault.db to SAF after password change for {}: {}. \
+                     The local DB has been re-encrypted but the remote copy is stale. \
+                     Do NOT restart the app — that would overwrite the good local copy via sync_from_remote.",
+                    account_id,
+                    e
+                );
+                return Err(format!(
+                    "Password updated but failed to sync encrypted data to remote storage: {}. \
+                     The local database is correct but the remote copy is stale. \
+                     Please retry syncing from Settings — do NOT restart the app before syncing, \
+                     as that would overwrite the local data with the stale remote copy.",
+                    e
+                ));
+            }
+            tracing::info!(
+                "Successfully synced re-encrypted vault.db to SAF after password change for {}",
+                account_id
+            );
+        }
+
         Ok(())
     }
 
