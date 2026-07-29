@@ -47,10 +47,23 @@ pub fn run_initiator_session(
     let (peer_node_id, _trusted) = match recv_msg(&mut session, transport)? {
         SyncMessage::HelloAck {
             node_id: pid,
+            account_id: peer_account_id,
             trusted: t,
             public_key_fingerprint,
-            ..
         } => {
+            // 校验响应方 account_id 与本地一致，防止已信任的 peer 被重新配置为
+            // 不同账户后，发起方仍向其同步数据（违反账户隔离原则）。
+            // 与 handle_inbound 中响应方校验发起方 account_id 的逻辑对称。
+            if peer_account_id != account_id {
+                send_msg(
+                    &mut session,
+                    transport,
+                    &SyncMessage::Error {
+                        message: "Account mismatch".to_string(),
+                    },
+                )?;
+                return Err("Account mismatch".to_string());
+            }
             record_peer(&vault, &pid, &peer_addr, &public_key_fingerprint)?;
             if !t {
                 return Err("Peer is not trusted".to_string());
