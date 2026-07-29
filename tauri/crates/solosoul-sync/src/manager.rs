@@ -252,6 +252,10 @@ impl SyncManager {
                     return;
                 }
             };
+            // 记录上次清理过期 peer 的时间，避免每次迭代都扫描整个 map。
+            let mut last_cleanup = Instant::now();
+            const CLEANUP_INTERVAL_SECS: u64 = 60;
+
             while running.load(Ordering::SeqCst) {
                 match receiver.recv_timeout(Duration::from_millis(MDNS_TIMEOUT_MS)) {
                     Ok(ServiceEvent::ServiceResolved(info)) => {
@@ -293,6 +297,18 @@ impl SyncManager {
                         }
                     }
                     _ => {}
+                }
+
+                // 定期清理过期的 discovered peer 条目。
+                // peer 崩溃时不发送 mDNS goodbye，导致 ServiceRemoved 事件缺失，
+                // 条目会永远留在 map 中。这里每 60 秒扫描一次，移除超过
+                // PEER_MAX_AGE_SECS 未更新的条目，防止 HashMap 无限增长。
+                if last_cleanup.elapsed().as_secs() >= CLEANUP_INTERVAL_SECS {
+                    last_cleanup = Instant::now();
+                    if let Ok(mut map) = discovered.lock() {
+                        let now = Instant::now();
+                        map.retain(|_, p| now.duration_since(p.last_seen).as_secs() <= PEER_MAX_AGE_SECS);
+                    }
                 }
             }
         })
