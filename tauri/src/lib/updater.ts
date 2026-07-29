@@ -123,6 +123,7 @@ export async function androidCheckForUpdate(): Promise<AndroidUpdateCheckResult>
  * 返回一个取消监听函数。
  */
 export async function androidDownloadApk(
+  version: string,
   downloadUrl: string,
   checksum: string,
   onProgress?: (progress: ApkDownloadProgress) => void,
@@ -134,6 +135,7 @@ export async function androidDownloadApk(
   // 在后台启动下载（不 await，让事件驱动进度）
   // expectedChecksum: 传入空字符串或有效 hex；Rust 端根据非空决定是否校验
   invoke<void>('android_download_apk', {
+    version,
     downloadUrl,
     expectedChecksum: checksum || null,
   }).catch((err) => {
@@ -153,16 +155,16 @@ export async function androidDownloadApk(
 /**
  * 安装已下载的 Android APK（调用系统包安装器）。
  */
-export async function androidInstallApk(): Promise<void> {
-  const filePath = await invoke<string>('android_get_apk_path');
+export async function androidInstallApk(version: string): Promise<void> {
+  const filePath = await invoke<string>('android_get_apk_path', { version });
   await invoke('android_install_apk', { filePath });
 }
 
 /**
  * 检查 APK 是否已下载。
  */
-export async function androidIsApkDownloaded(): Promise<boolean> {
-  return invoke<boolean>('android_is_apk_downloaded');
+export async function androidIsApkDownloaded(version: string): Promise<boolean> {
+  return invoke<boolean>('android_is_apk_downloaded', { version });
 }
 
 export type { Update };

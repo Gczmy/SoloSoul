@@ -135,7 +135,7 @@ export function AppRoutes() {
           throw new Error('No download URL available');
         }
         // 如果 APK 已下载过，直接进入安装阶段
-        const alreadyDownloaded = await androidIsApkDownloaded();
+        const alreadyDownloaded = await androidIsApkDownloaded(updateState.version);
         if (alreadyDownloaded) {
           setUpdateState((prev) =>
             prev.kind === 'downloading'
@@ -150,7 +150,7 @@ export function AppRoutes() {
         const downloadUrl = info.downloadUrl;
         try {
           await new Promise<void>((resolve, reject) => {
-            androidDownloadApk(downloadUrl, info.checksum, (progress) => {
+            androidDownloadApk(updateState.version, downloadUrl, info.checksum, (progress) => {
               setUpdateState((prev) => {
                 if (prev.kind !== 'downloading') return prev;
                 return {
@@ -228,7 +228,7 @@ export function AppRoutes() {
     try {
       if (isMobilePlatform) {
         // Android：调用系统包安装器
-        await androidInstallApk();
+        await androidInstallApk(updateState.version);
       } else {
         // 桌面端：安装并重启
         if (!updateState.update) throw new Error('No update available');

@@ -67,26 +67,70 @@ fn current_version() -> String {
 
 // ── Helper: APK 缓存路径 ──────────────────────────────────────
 
-/// 获取 APK 最终文件路径（应用缓存目录下的 `update.apk`）。
-fn apk_cache_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
+/// 将版本号转换为安全的文件名字符串。
+fn version_to_file_part(version: &str) -> String {
+    version.replace(|c: char| !c.is_ascii_alphanumeric() && c != '.' && c != '-' && c != '_', "_")
+}
+
+/// 获取 APK 最终文件路径（应用缓存目录下的 `update_{version}.apk`）。
+fn apk_cache_path(app: &tauri::AppHandle, version: &str) -> Result<PathBuf, String> {
+    let file_name = format!("update_{}.apk", version_to_file_part(version));
     let cache = app
         .path()
-        .resolve("update.apk", tauri::path::BaseDirectory::Cache)
+        .resolve(file_name, tauri::path::BaseDirectory::Cache)
         .map_err(|e| format!("无法解析缓存目录: {e}"))?;
     Ok(cache)
 }
 
-/// 获取 APK 部分下载文件路径（`update.part`），用于断点续传。
-/// 下载完成后会重命名为 `update.apk`。
-fn apk_part_path(app: &tauri::AppHandle) -> Result<PathBuf, String> {
-    let mut path = apk_cache_path(app)?;
+/// 获取 APK 部分下载文件路径（`update_{version}.part`），用于断点续传。
+/// 下载完成后会重命名为 `update_{version}.apk`。
+fn apk_part_path(app: &tauri::AppHandle, version: &str) -> Result<PathBuf, String> {
+    let mut path = apk_cache_path(app, version)?;
     path.set_extension("part");
     Ok(path)
 }
 
+/// 清理非当前版本的 APK 缓存文件，避免旧版本安装包占用空间并被误用。
+fn cleanup_stale_apk_cache(app: &tauri::AppHandle, current_version: &str) -> Result<(), String> {
+    let cache_dir = app
+        .path()
+        .resolve("", tauri::path::BaseDirectory::Cache)
+        .map_err(|e| format!("无法解析缓存目录: {e}"))?;
+    let Ok(entries) = std::fs::read_dir(&cache_dir) else {
+        return Ok(());
+    };
+
+    let current_part = version_to_file_part(current_version);
+    for entry in entries.filter_map(Result::ok) {
+        let name = entry.file_name();
+        let name_str = name.to_string_lossy();
+        if name_str == "update.apk" || name_str == "update.part" {
+            // 旧版无版本缓存，直接删除
+            let _ = std::fs::remove_file(entry.path());
+            continue;
+        }
+        // 仅处理 update_<version>.apk / update_<version>.part 格式
+        let is_update_file = (name_str.starts_with("update_") && name_str.ends_with(".apk"))
+            || (name_str.starts_with("update_") && name_str.ends_with(".part"));
+        if !is_update_file {
+            continue;
+        }
+        if let Some(stripped) = name_str.strip_prefix("update_") {
+            let file_version = stripped
+                .strip_suffix(".apk")
+                .or_else(|| stripped.strip_suffix(".part"))
+                .unwrap_or(stripped);
+            if file_version != current_part {
+                let _ = std::fs::remove_file(entry.path());
+            }
+        }
+    }
+    Ok(())
+}
+
 /// 获取已下载完成的 APK 大小（字节），不存在则返回 0。
-pub fn apk_downloaded_size(app: &tauri::AppHandle) -> Result<u64, String> {
-    let path = apk_cache_path(app)?;
+pub fn apk_downloaded_size(app: &tauri::AppHandle, version: &str) -> Result<u64, String> {
+    let path = apk_cache_path(app, version)?;
     if path.exists() {
         Ok(std::fs::metadata(&path)
             .map_err(|e| format!("读取文件大小: {e}"))?
@@ -97,8 +141,8 @@ pub fn apk_downloaded_size(app: &tauri::AppHandle) -> Result<u64, String> {
 }
 
 /// 删除已下载的 APK 缓存（同时清理最终文件和部分文件）。
-pub fn delete_apk_cache(app: &tauri::AppHandle) -> Result<(), String> {
-    for path in [apk_cache_path(app)?, apk_part_path(app)?] {
+pub fn delete_apk_cache(app: &tauri::AppHandle, version: &str) -> Result<(), String> {
+    for path in [apk_cache_path(app, version)?, apk_part_path(app, version)?] {
         if path.exists() {
             std::fs::remove_file(&path)
                 .map_err(|e| format!("删除缓存失败 ({}): {e}", path.display()))?;
@@ -113,7 +157,7 @@ pub fn delete_apk_cache(app: &tauri::AppHandle) -> Result<(), String> {
 ///
 /// 仅在 Android 上有效；桌面端使用 `@tauri-apps/plugin-updater`。
 #[tauri::command]
-pub async fn android_check_update(_app: tauri::AppHandle) -> Result<AndroidUpdateInfo, String> {
+pub async fn android_check_update(app: tauri::AppHandle) -> Result<AndroidUpdateInfo, String> {
     let current = current_version();
     let client = reqwest::Client::builder()
         .user_agent(USER_AGENT)
@@ -189,6 +233,9 @@ pub async fn android_check_update(_app: tauri::AppHandle) -> Result<AndroidUpdat
         .map(|body| body.replace("[MANDATORY]", "").trim().to_string())
         .filter(|s| !s.is_empty());
 
+    // 检查到新版本后，立即清理旧版本缓存，避免旧 APK 被误当作已下载。
+    let _ = cleanup_stale_apk_cache(&app, &latest);
+
     Ok(AndroidUpdateInfo {
         latest_version: latest,
         current_version: current,
@@ -215,11 +262,15 @@ pub async fn android_check_update(_app: tauri::AppHandle) -> Result<AndroidUpdat
 #[tauri::command]
 pub async fn android_download_apk(
     app: tauri::AppHandle,
+    version: String,
     download_url: String,
     expected_checksum: Option<String>,
 ) -> Result<(), String> {
-    let dest = apk_cache_path(&app)?;
-    let part_path = apk_part_path(&app)?;
+    let dest = apk_cache_path(&app, &version)?;
+    let part_path = apk_part_path(&app, &version)?;
+
+    // 下载前再次清理旧版本缓存，确保不会把旧版本的 .part/.apk 混淆。
+    let _ = cleanup_stale_apk_cache(&app, &version);
     let should_verify = expected_checksum
         .as_ref()
         .map(|s| !s.is_empty())
@@ -380,8 +431,11 @@ fn parse_content_range_total(resp: &reqwest::Response) -> Option<u64> {
 
 /// 获取已下载的 APK 文件路径，用于安装。
 #[tauri::command]
-pub async fn android_get_apk_path(app: tauri::AppHandle) -> Result<String, String> {
-    let path = apk_cache_path(&app)?;
+pub async fn android_get_apk_path(
+    app: tauri::AppHandle,
+    version: String,
+) -> Result<String, String> {
+    let path = apk_cache_path(&app, &version)?;
     if !path.exists() {
         return Err("APK 文件不存在，请先下载".to_string());
     }
@@ -390,7 +444,10 @@ pub async fn android_get_apk_path(app: tauri::AppHandle) -> Result<String, Strin
 
 /// 检查 APK 是否已下载。
 #[tauri::command]
-pub async fn android_is_apk_downloaded(app: tauri::AppHandle) -> Result<bool, String> {
-    let path = apk_cache_path(&app)?;
+pub async fn android_is_apk_downloaded(
+    app: tauri::AppHandle,
+    version: String,
+) -> Result<bool, String> {
+    let path = apk_cache_path(&app, &version)?;
     Ok(path.exists())
 }

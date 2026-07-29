@@ -141,11 +141,15 @@ export function AboutPage() {
     try {
       if (isMobilePlatformSync()) {
         // Android 更新流程：下载 APK（如果尚未下载）→ 自动安装
-        const isDownloaded = await androidIsApkDownloaded();
+        const targetVersion = versionInfo?.latestVersion;
+        if (!targetVersion) {
+          throw new Error('No target version available');
+        }
+        const isDownloaded = await androidIsApkDownloaded(targetVersion);
         if (!isDownloaded && versionInfo?.downloadUrl) {
           // 启动下载（监听事件驱动进度），等待下载完成
           await new Promise<void>((resolve, reject) => {
-            androidDownloadApk(versionInfo.downloadUrl!, versionInfo.checksum || '', (progress) => {
+            androidDownloadApk(targetVersion, versionInfo.downloadUrl!, versionInfo.checksum || '', (progress) => {
               setDownloadProgress(progress);
               setDownloadedBytes(progress.downloaded);
               setTotalBytes(progress.total);
@@ -160,7 +164,7 @@ export function AboutPage() {
           });
         }
         // 安装已下载的 APK
-        await androidInstallApk();
+        await androidInstallApk(targetVersion);
         setDownloading(false);
       } else {
         // 桌面端更新流程
