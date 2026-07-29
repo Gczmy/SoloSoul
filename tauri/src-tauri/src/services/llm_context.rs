@@ -251,6 +251,7 @@ fn build_section4_preferences(vault: &VaultStore, account_id: &str) -> Result<St
 fn build_section5_plugins() -> String {
     // Plugin context is intentionally omitted until the installed plugin list
     // is exposed to the LLM context service.
+    // TODO: 查询已安装插件列表并注入 Section 5，让 AI 助手感知用户的插件环境。
     "（暂无已安装插件）".to_string()
 }
 
