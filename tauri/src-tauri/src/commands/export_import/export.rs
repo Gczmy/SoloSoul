@@ -245,7 +245,8 @@ pub async fn export_execute(
 
     // ── Collect objects ────────────────────────────────────────
     let records = collect_scope_objects(vault, &account_id, &req.scope)?;
-    if records.is_empty() {
+    // 全量导出（如恢复主机）时允许空对象列表，普通导出仍要求至少选择一个对象。
+    if records.is_empty() && !req.scope.include_all {
         return Err(export_err("NO_OBJECTS_SELECTED"));
     }
 

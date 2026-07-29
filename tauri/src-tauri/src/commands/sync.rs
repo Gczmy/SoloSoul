@@ -1,6 +1,6 @@
 use crate::state::AppState;
 use serde::Serialize;
-use tauri::{Emitter, Manager, State};
+use tauri::{Emitter, State};
 
 /// 记录同步相关操作日志。Vault 未解锁时静默跳过（同步服务本身不依赖 Vault）。
 fn log_sync_action(
@@ -480,10 +480,24 @@ pub async fn sync_enable(
     // 移动端：启用同步后自动注册 NSD 服务，让桌面端可以发现本机；
     // 关闭同步时注销 NSD 服务。
     if enable {
-        let handle = app.state::<crate::nsd_plugin::NsdPluginHandle<tauri::Wry>>();
-        handle.request_permissions()?;
-        let port = state.sync_service.listen_port().await;
-        if port != 0 {
+        // NSD 权限申请与注册可能阻塞命令（例如权限弹窗未立即返回），
+        // 放在后台任务中执行，避免前端陷入永久“加载中”。
+        let app = app.clone();
+        let state = state.clone();
+        tokio::spawn(async move {
+            let handle = app.state::<crate::nsd_plugin::NsdPluginHandle<tauri::Wry>>();
+            if let Err(e) = handle.request_permissions() {
+                tracing::warn!("NSD request_permissions failed: {}", e);
+                return;
+            }
+            let port = state.sync_service.listen_port().await;
+            if port == 0 {
+                return;
+            }
+            // 如果用户在此期间已关闭同步，则放弃注册，避免与 disable 逻辑竞合。
+            if !state.sync_service.is_enabled().await {
+                return;
+            }
             let fingerprint = state
                 .sync_service
                 .local_fingerprint()
@@ -497,14 +511,15 @@ pub async fn sync_enable(
             if let Err(e) =
                 crate::commands::discovery::register_sync_service(&app, device_name, port).await
             {
+                tracing::warn!("Failed to register NSD sync service: {}", e);
                 // NSD 注册失败时回滚同步状态，避免半开启。
                 let _ = state.sync_service.enable(false).await;
-                return Err(format!(
-                    "Failed to enable sync: NSD advertise failed: {}",
-                    e
-                ));
+                let _ = state.handle.emit(
+                    "sync-nsd-failed",
+                    serde_json::json!({ "error": e }),
+                );
             }
-        }
+        });
     } else {
         let handle = app.state::<crate::nsd_plugin::NsdPluginHandle<tauri::Wry>>();
         let _ = handle.unregister_service();

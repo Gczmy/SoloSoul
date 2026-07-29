@@ -83,6 +83,7 @@ pub async fn recovery_host_start(
             selected_attachment_ids: all_attachment_ids,
             include_preferences: true,
             include_behavioral: false,
+            include_all: true,
         },
         password: recovery_password.clone(),
         password_hint: Some("Recovery transfer".to_string()),

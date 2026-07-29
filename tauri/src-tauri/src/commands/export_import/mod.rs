@@ -100,6 +100,9 @@ pub struct ExportScope {
     pub selected_attachment_ids: Vec<String>, // P1: fine-grained attachment selection (empty = none)
     pub include_preferences: bool,            // P2: include user preferences
     pub include_behavioral: bool,             // future: include behavioral data
+    /// 导出全部对象（用于恢复主机等后端流程，前端普通导出保持 false）。
+    #[serde(default)]
+    pub include_all: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -250,6 +253,18 @@ pub(crate) fn collect_scope_objects(
     scope: &ExportScope,
 ) -> Result<Vec<solosoul_vault::ObjectRecord>, String> {
     let all = vault.list_objects(account_id, None, None, None, false, false)?;
+
+    // 后端全量导出（如恢复主机）直接包含所有对象，绕过前端选择逻辑。
+    if scope.include_all {
+        let mut records = Vec::new();
+        for summary in &all {
+            if let Ok(Some(rec)) = vault.load_object(&summary.id) {
+                records.push(rec);
+            }
+        }
+        return Ok(records);
+    }
+
     let mut selected_ids: BTreeSet<String> = scope.selected_object_ids.iter().cloned().collect();
 
     // Add all IDs belonging to selected pages
