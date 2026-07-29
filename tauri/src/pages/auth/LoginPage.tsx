@@ -339,7 +339,7 @@ export function LoginPage() {
       setTimeout(() => {
         import('@/lib/notification')
           .then((m) => m.checkBackupReminder())
-          .catch((err) => console.error('[LoginPage] backup reminder check failed:', err));
+          .catch((err) => logger.error('[LoginPage] backup reminder check failed:', err));
       }, 2000);
       // Navigate immediately to avoid showing the biometric UI after success
       navigate('/');
