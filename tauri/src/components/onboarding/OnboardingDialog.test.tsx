@@ -63,7 +63,11 @@ describe('OnboardingDialog', () => {
 
     expect(screen.queryByRole('button', { name: /onboarding_next/i })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /onboarding_done/i }));
-    expect(onComplete).toHaveBeenCalledTimes(1);
+    // The done button's onClick is async (awaits checkHasAccount before
+    // calling onComplete), so we need waitFor to let the microtask flush.
+    await waitFor(() => {
+      expect(onComplete).toHaveBeenCalledTimes(1);
+    });
   });
 
   it('goes back to the previous step when clicking back', async () => {
