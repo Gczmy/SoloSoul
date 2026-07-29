@@ -13,7 +13,7 @@ use serde_json::Value;
 use solosoul_vault::VaultStore;
 use std::collections::HashMap;
 use std::fs;
-use std::io::{Read, Write};
+use std::io::{Read, Seek, SeekFrom, Write};
 use std::path::{Path, PathBuf};
 
 const CHUNK_SIZE: usize = 64 * 1024;
@@ -338,7 +338,43 @@ pub fn send_requested_attachments(
     send_msg(session, transport, &SyncMessage::AttachmentDone)
 }
 
+/// Per-attachment streaming write state.
+///
+/// Each attachment's chunks are written to a temporary file as they arrive
+/// instead of buffering all chunks in memory. This keeps peak memory usage
+/// bounded by a single chunk (~64 KiB) regardless of total attachment size,
+/// preventing OOM on memory-constrained devices (mobile).
+struct StreamingAttachment {
+    /// Path of the final file — known up-front from the manifest.
+    final_path: PathBuf,
+    /// Temporary file being written; renamed to `final_path` on success.
+    tmp_path: PathBuf,
+    /// Open file handle for `tmp_path`.
+    file: fs::File,
+    /// Expected number of chunks (from the first chunk received).
+    total_chunks: u32,
+    /// Number of chunks received so far.
+    received_chunks: u32,
+    /// Chunk indices already seen (to detect duplicates).
+    seen_indices: std::collections::HashSet<u32>,
+    /// Expected SHA-256 hex string from the remote manifest.
+    expected_sha256: String,
+}
+
+impl Drop for StreamingAttachment {
+    fn drop(&mut self) {
+        // If the temp file still exists when the struct is dropped (error path
+        // or early return), clean it up to avoid orphaned `.tmp` files.
+        let _ = fs::remove_file(&self.tmp_path);
+    }
+}
+
 /// Receive attachment chunks until `AttachmentDone`, verify sha256, save files.
+///
+/// Chunks are **streamed directly to temporary files** on disk as they arrive
+/// rather than buffered entirely in memory. Peak memory stays at ~64 KiB (one
+/// chunk) regardless of how many large attachments are synced simultaneously,
+/// preventing OOM on memory-constrained devices (mobile).
 pub fn receive_attachments(
     session: &mut NoiseSession,
     transport: &mut SyncTransport,
@@ -353,8 +389,8 @@ pub fn receive_attachments(
         }
     }
 
-    type ChunkEntry = (u32, u32, Vec<u8>);
-    let mut chunks_by_attachment: HashMap<(String, String), Vec<ChunkEntry>> = HashMap::new();
+    // Streaming state: one entry per attachment being received.
+    let mut streams: HashMap<(String, String), StreamingAttachment> = HashMap::new();
 
     loop {
         match recv_msg(session, transport)? {
@@ -366,10 +402,77 @@ pub fn receive_attachments(
                 data,
             } => {
                 stats.bytes_transferred += data.len() as u64;
-                chunks_by_attachment
-                    .entry((object_id.clone(), attachment_id.clone()))
-                    .or_default()
-                    .push((chunk_index, total_chunks, data));
+                let key = (object_id.clone(), attachment_id.clone());
+
+                let stream = match streams.get_mut(&key) {
+                    Some(s) => s,
+                    None => {
+                        // First chunk for this attachment — open a temp file.
+                        let info = info_map.get(&key).ok_or_else(|| {
+                            format!(
+                                "Received unknown attachment {}:{}",
+                                object_id, attachment_id
+                            )
+                        })?;
+                        let path = attachment_file_path(
+                            base,
+                            &object_id,
+                            &attachment_id,
+                            &info.file_name,
+                        )?;
+                        if let Some(parent) = path.parent() {
+                            fs::create_dir_all(parent)
+                                .map_err(|e| format!("mkdir {}: {}", parent.display(), e))?;
+                        }
+                        let tmp = path.with_extension("tmp");
+                        let file = fs::File::create(&tmp)
+                            .map_err(|e| format!("create tmp {}: {}", tmp.display(), e))?;
+                        streams.insert(
+                            key.clone(),
+                            StreamingAttachment {
+                                final_path: path,
+                                tmp_path: tmp,
+                                file,
+                                total_chunks,
+                                received_chunks: 0,
+                                seen_indices: std::collections::HashSet::new(),
+                                expected_sha256: info.sha256.clone(),
+                            },
+                        );
+                        streams.get_mut(&key).unwrap()
+                    }
+                };
+
+                // Validate total_chunks consistency across chunks.
+                if total_chunks != stream.total_chunks {
+                    return Err(format!(
+                        "Attachment {}:{} total_chunks changed: {} -> {}",
+                        object_id, attachment_id, stream.total_chunks, total_chunks
+                    ));
+                }
+
+                // Detect duplicate chunk indices.
+                if !stream.seen_indices.insert(chunk_index) {
+                    return Err(format!(
+                        "Attachment {}:{} duplicate chunk index {}",
+                        object_id, attachment_id, chunk_index
+                    ));
+                }
+
+                // Write chunk data to the temp file at the correct offset.
+                // Chunks arrive sequentially in practice, but seeking to the
+                // correct offset makes the code robust against reordering.
+                let offset = (chunk_index as u64) * (CHUNK_SIZE as u64);
+                stream
+                    .file
+                    .seek(SeekFrom::Start(offset))
+                    .map_err(|e| format!("seek: {}", e))?;
+                stream
+                    .file
+                    .write_all(&data)
+                    .map_err(|e| format!("write: {}", e))?;
+                stream.received_chunks += 1;
+
                 send_msg(
                     session,
                     transport,
@@ -386,47 +489,35 @@ pub fn receive_attachments(
         }
     }
 
-    for ((object_id, att_id), chunks) in chunks_by_attachment {
-        let info = info_map
-            .get(&(object_id.clone(), att_id.clone()))
-            .ok_or_else(|| format!("Received unknown attachment {}:{}", object_id, att_id))?;
-        let path = attachment_file_path(base, &object_id, &att_id, &info.file_name)?;
-        if let Some(parent) = path.parent() {
-            fs::create_dir_all(parent).map_err(|e| format!("mkdir {}: {}", parent.display(), e))?;
-        }
-        let tmp = path.with_extension("tmp");
-        let mut file =
-            fs::File::create(&tmp).map_err(|e| format!("create tmp {}: {}", tmp.display(), e))?;
-        let total_chunks = chunks.first().map(|(_, total, _)| *total).unwrap_or(1);
-        if chunks.len() as u32 != total_chunks {
-            let _ = fs::remove_file(&tmp);
+    // All chunks received — finalize each attachment.
+    for ((object_id, att_id), mut stream) in streams {
+        // Flush and drop the file handle so sha256_file can re-open it.
+        stream.file.flush().map_err(|e| format!("flush: {}", e))?;
+        let total_chunks = stream.total_chunks;
+        let received = stream.received_chunks;
+        let tmp_path = stream.tmp_path.clone();
+        let final_path = stream.final_path.clone();
+        let expected_sha = stream.expected_sha256.clone();
+        drop(stream); // closes the file descriptor
+
+        if received != total_chunks {
+            let _ = fs::remove_file(&tmp_path);
             return Err(format!(
                 "Attachment {}:{} chunks mismatch: {} / {}",
-                object_id,
-                att_id,
-                chunks.len(),
-                total_chunks
+                object_id, att_id, received, total_chunks
             ));
         }
-        let mut sorted = chunks;
-        sorted.sort_by_key(|(idx, _, _)| *idx);
-        for (_, _, data) in &sorted {
-            file.write_all(data)
-                .map_err(|e| format!("write {}: {}", tmp.display(), e))?;
-        }
-        file.flush()
-            .map_err(|e| format!("flush {}: {}", tmp.display(), e))?;
-        drop(file);
 
-        let actual_sha = sha256_file(&tmp)?;
-        if actual_sha != info.sha256 {
-            let _ = fs::remove_file(&tmp);
+        let actual_sha = sha256_file(&tmp_path)?;
+        if actual_sha != expected_sha {
+            let _ = fs::remove_file(&tmp_path);
             return Err(format!(
                 "Attachment {}:{} sha256 mismatch (expected {} got {})",
-                object_id, att_id, info.sha256, actual_sha
+                object_id, att_id, expected_sha, actual_sha
             ));
         }
-        fs::rename(&tmp, &path).map_err(|e| format!("rename {}: {}", path.display(), e))?;
+        fs::rename(&tmp_path, &final_path)
+            .map_err(|e| format!("rename {}: {}", final_path.display(), e))?;
         stats.received += 1;
     }
 
