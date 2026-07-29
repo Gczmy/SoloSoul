@@ -23,6 +23,13 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 const DELTA_PAGE_LIMIT: usize = 100;
+/// 当前实现支持的同步协议版本。
+/// 版本 1：初始协议（Delta 同步 + 附件交换）。
+/// 版本 2：引入 account_id 双向校验 + 会话总超时 + 流式附件写入。
+/// 旧版客户端（v2.6.1 及更早）不发送 protocol_version 字段，默认为 1。
+const PROTOCOL_VERSION: u32 = 2;
+/// 允许的最低协议版本。低于此版本的 peer 将被拒绝，防止与不兼容的旧版客户端交互。
+const MIN_PROTOCOL_VERSION: u32 = 1;
 /// 同步会话总超时（5 分钟）。防止恶意 peer 通过每隔 29 秒发送一个字节
 /// 来无限期保持连接（slowloris 攻击），占用 `spawn_blocking` 线程。
 const SESSION_TIMEOUT: Duration = Duration::from_secs(300);
@@ -58,6 +65,7 @@ pub fn run_initiator_session(
             node_id: node_id.to_string(),
             account_id: account_id.to_string(),
             public_key_fingerprint: keys.fingerprint(),
+            protocol_version: PROTOCOL_VERSION,
         },
     )?;
 
@@ -67,8 +75,26 @@ pub fn run_initiator_session(
             account_id: peer_account_id,
             trusted: t,
             public_key_fingerprint,
+            protocol_version: peer_version,
         } => {
             check_session_deadline(session_start)?;
+            // 校验响应方协议版本是否兼容。
+            if peer_version < MIN_PROTOCOL_VERSION {
+                send_msg(
+                    &mut session,
+                    transport,
+                    &SyncMessage::Error {
+                        message: format!(
+                            "Unsupported protocol version {} (minimum required: {})",
+                            peer_version, MIN_PROTOCOL_VERSION
+                        ),
+                    },
+                )?;
+                return Err(format!(
+                    "Peer protocol version {} is below minimum supported {}",
+                    peer_version, MIN_PROTOCOL_VERSION
+                ));
+            }
             // 校验响应方 account_id 与本地一致，防止已信任的 peer 被重新配置为
             // 不同账户后，发起方仍向其同步数据（违反账户隔离原则）。
             // 与 handle_inbound 中响应方校验发起方 account_id 的逻辑对称。
@@ -175,8 +201,26 @@ pub fn handle_inbound(
             node_id: pid,
             account_id: pacc,
             public_key_fingerprint,
+            protocol_version: peer_version,
         } => {
             check_session_deadline(session_start)?;
+            // 校验发起方协议版本是否兼容。
+            if peer_version < MIN_PROTOCOL_VERSION {
+                send_msg(
+                    &mut session,
+                    transport,
+                    &SyncMessage::Error {
+                        message: format!(
+                            "Unsupported protocol version {} (minimum required: {})",
+                            peer_version, MIN_PROTOCOL_VERSION
+                        ),
+                    },
+                )?;
+                return Err(format!(
+                    "Peer protocol version {} is below minimum supported {}",
+                    peer_version, MIN_PROTOCOL_VERSION
+                ));
+            }
             if pacc != account_id {
                 send_msg(
                     &mut session,
@@ -206,6 +250,7 @@ pub fn handle_inbound(
             account_id: account_id.to_string(),
             public_key_fingerprint: keys.fingerprint(),
             trusted,
+            protocol_version: PROTOCOL_VERSION,
         },
     )?;
 

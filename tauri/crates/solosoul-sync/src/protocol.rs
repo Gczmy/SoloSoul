@@ -33,6 +33,11 @@ pub enum SyncMessage {
         node_id: String,
         account_id: String,
         public_key_fingerprint: String,
+        /// 协议版本号。旧版客户端不发送此字段，反序列化时默认为 1。
+        /// 发起方在 Hello 中声明自己的版本，响应方在 HelloAck 中回传其版本，
+        /// 双方取 min(发起方版本, 响应方版本) 作为本次会话使用的协议版本。
+        #[serde(default = "default_protocol_version")]
+        protocol_version: u32,
     },
     #[serde(rename = "hello_ack")]
     HelloAck {
@@ -40,6 +45,9 @@ pub enum SyncMessage {
         account_id: String,
         public_key_fingerprint: String,
         trusted: bool,
+        /// 响应方的协议版本号。旧版客户端不发送此字段，默认为 1。
+        #[serde(default = "default_protocol_version")]
+        protocol_version: u32,
     },
     #[serde(rename = "batch")]
     Batch {
@@ -83,6 +91,12 @@ pub enum SyncMessage {
     AttachmentDone,
     #[serde(rename = "error")]
     Error { message: String },
+}
+
+/// 旧版客户端不发送 `protocol_version` 字段时的默认值。
+/// 版本 1 是引入版本协商之前的初始协议。
+fn default_protocol_version() -> u32 {
+    1
 }
 
 impl SyncMessage {
