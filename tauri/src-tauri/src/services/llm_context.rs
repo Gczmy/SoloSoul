@@ -7,14 +7,11 @@ use solosoul_vault::{ObjectSummary, VaultStore};
 use std::collections::HashMap;
 use std::sync::LazyLock;
 use std::sync::Mutex;
-use std::time::Instant;
 
 // ── 缓存层（内存）────────────────────────────────────────────
 
 struct CachedPrompt {
     static_prompt: String, // Section 1-5（不含实时统计）
-    #[allow(dead_code)]
-    created_at: Instant,
 }
 
 static PROMPT_CACHE: LazyLock<Mutex<HashMap<String, CachedPrompt>>> =
@@ -70,7 +67,6 @@ pub fn build_context(
             cache_key,
             CachedPrompt {
                 static_prompt: static_prompt.clone(),
-                created_at: Instant::now(),
             },
         );
     }
