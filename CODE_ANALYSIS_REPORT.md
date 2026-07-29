@@ -1,137 +1,8 @@
 # 代码分析修复报告
 
-> 最后更新：2026-07-25
-> 当前分支：`master`
+> 最后更新：2026-07-29 20:05:00
+> 当前分支：`main`
 > 修复轮次：1（初始分析）
-
----
-
-## 问题清单（按优先级 P0 > P1 > P2）
-
-| ID   | 优先级 | 类别       | 文件位置                         | 描述                                           | 状态      |
-|------|--------|------------|----------------------------------|------------------------------------------------|-----------|
-| P001 | P0     | 测试失败   | `tauri/src/components/attachment/AttachmentPreviewOverlay.test.tsx` | 3 个测试用例失败：缺少 vaultPath / content URI 校验、onOpenExternal 调用 | `[x]` 已修复 |
-| P002 | P0     | 测试失败   | `tauri/src/components/onboarding/OnboardingDialog.test.tsx` | 2 个 Android 目录选择步骤测试失败 | `[x]` 已修复 |
-| P003 | P0     | 测试失败   | `tauri/src/components/ui/UpdateBanner.test.tsx` | 下载进度渲染测试失败 | `[x]` 已修复 |
-| P004 | P0     | 测试失败   | `tauri/src/pages/settings/SettingsPage.test.tsx` | Vault 大小徽章显示测试超时 | `[x]` 已修复 |
-| P005 | P1     | 规范       | `tauri/src/App/AppRoutes.tsx:218` | ESLint react-hooks/exhaustive-deps：useEffect 缺少依赖 `t` | `[x]` 已修复 |
-| P006 | P1     | 规范       | `tauri/src/components/onboarding/OnboardingDialog.tsx:118` | ESLint no-unused-vars：变量 `_e` 未使用 | `[x]` 已修复 |
-| P007 | P2     | 可优化     | 全仓（25 文件）              | 清理生产代码中的 console.warn / console.error，统一改用项目日志系统或移除调试日志 | `[x] 已完成` |
-
-## 修复进度
-
-- 已完成：7 / 7
-- 当前处理：无
-
-### 已修复问题说明（续）
-
-**P005: AppRoutes useEffect 依赖补全**
-- 在 `tauri/src/App/AppRoutes.tsx` 中，将 `t` 加入检查 SAF vault directory 有效性的 `useEffect` 依赖数组，消除 `react-hooks/exhaustive-deps` 警告。
-
-**P006: 移除未使用变量 `_e`**
-- 在 `tauri/src/components/onboarding/OnboardingDialog.tsx` 中，将 `catch (_e)` 改为 `catch`，消除 `no-unused-vars` 警告。
-
-### 已修复问题说明
-
-**P004 / P003: 测试 i18n 环境初始化**
-- 在 `tauri/src/test/setup.ts` 中初始化 i18next，并加载 en-US/zh-CN 的 `common` 命名空间资源。
-- 这解决了 `formatBytes` 等直接使用 `i18next.t` 的 helper 在测试环境下返回 `undefined` 的问题，从而修复 SettingsPage 的 vault size badge 测试和 UpdateBanner 的格式化测试。
-
-**P001: AttachmentPreviewOverlay 测试断言调整**
-- 由于 `react-i18next` mock 返回 translation key，测试中的文案断言需要从 fallback 字符串改为对应的 key：
-  - `common:attachment_not_in_vault`
-  - `common:attachment_open_system`
-
-**P002: OnboardingDialog 测试超时调整**
-- 组件在选择 SAF 目录后有 3000ms 的 `setTimeout` 延迟才显示已选路径，而默认 `waitFor` 超时为 1000ms。
-- 将两处相关 `waitFor` 的超时延长至 4000ms，使测试能等到状态更新。
-
----
-
-## 详细问题描述与修复指引
-
-### P001: AttachmentPreviewOverlay 测试失败
-
-**位置**：`tauri/src/components/attachment/AttachmentPreviewOverlay.test.tsx`
-
-**失败用例**：
-1. `shows error when vaultPath is missing`
-2. `shows error when vaultPath is a content URI`
-3. `calls onOpenExternal for unsupported types`
-
-**现象**：测试运行后这三个用例未能通过。
-
-**修复方向**：
-- 检查 `AttachmentPreviewOverlay` 组件对 `vaultPath` 为 `null` 或 `content://` 前缀的处理逻辑。
-- 确认文案 key 是否为 `common:attachment_preview_failed` 或已改为其他 i18n key。
-- 确认 `onOpenExternal` 回调在组件中的触发条件。
-
-### P002: OnboardingDialog Android 目录选择步骤测试失败
-
-**位置**：`tauri/src/components/onboarding/OnboardingDialog.test.tsx`
-
-**失败用例**：
-1. `shows selected external path and next button after picking SAF directory`
-2. `preserves selected external path when going back from the next step`
-
-**现象**：Android 步骤下选择 SAF 目录后，界面未出现预期的路径文本或下一步按钮。
-
-**修复方向**：
-- 检查 `OnboardingDialog` 中 `selectedSafUri` 状态的设置时机。
-- 确认 `onboarding_vault_dir_selected_label` 等 i18n key 是否已注册。
-- 检查 `pickVaultDirectory` 的 mock 返回值是否与组件逻辑匹配。
-
-### P003: UpdateBanner 下载进度测试失败
-
-**位置**：`tauri/src/components/ui/UpdateBanner.test.tsx`
-
-**失败用例**：`renders progress info when downloading`
-
-**现象**：`50.0 MB / 100.0 MB` 文本未能在测试 DOM 中定位到。
-
-**修复方向**：
-- 检查 `UpdateBanner` 组件在 `downloading` 状态下的大小格式化逻辑。
-- 确认是否缺少单位格式化函数调用或 i18n key 变更。
-
-### P004: SettingsPage Vault 大小徽章测试超时
-
-**位置**：`tauri/src/pages/settings/SettingsPage.test.tsx:113`
-
-**失败用例**：`displays vault size badge when loaded`
-
-**现象**：`waitFor` 在查找 `5.0 MB` 时超时。
-
-**修复方向**：
-- 检查 `get_vault_stats` command 的 mock 是否返回正确格式（`totalSizeBytes`）。
-- 确认 `SettingsPage` 中 Vault 大小格式化逻辑是否仍然正确显示 `5.0 MB`。
-
-### P005: AppRoutes useEffect 缺少依赖
-
-**位置**：`tauri/src/App/AppRoutes.tsx:218:6`
-
-**现象**：ESLint `react-hooks/exhaustive-deps` 警告 useEffect 缺少依赖 `t`。
-
-**修复方向**：将 `t` 加入 useEffect 依赖数组，或确认是否应使用 `useCallback` / `useMemo` 包裹相关逻辑。
-
-### P006: OnboardingDialog 未使用变量
-
-**位置**：`tauri/src/components/onboarding/OnboardingDialog.tsx:118:16`
-
-**现象**：变量 `_e` 声明后未使用。
-
-**修复方向**：
-- 若确实不需要错误对象，改为 `catch { ... }`。
-- 若需要日志，使用 `console.warn('[OnboardingDialog] ...', e)` 并移除未使用警告。
-
-### P007: 生产代码中的 console.warn / console.error
-
-**位置**：`tauri/src` 多处，如 `tauri/src/stores/settingsStore.ts`、`tauri/src/hooks/useAutoLock.ts`、`tauri/src/pages/settings/AppearanceSettingsPage.tsx` 等。
-
-**现象**：大量 `console.warn` / `console.error` 用于错误调试，可能污染生产环境日志。
-
-**修复方向**：
-- 短期：将错误日志替换为项目日志系统（如 `tauri-plugin-log`）或在生产构建中静默。
-- 长期：统一错误上报机制。
 
 ---
 
@@ -139,13 +10,185 @@
 
 | 检查项 | 状态 |
 |--------|------|
-| `cargo fmt --check` | ✅ 通过 |
+| `cargo fmt --check` | ✅ 通过（已修复 5 文件格式问题） |
 | `cargo clippy -- -D warnings` | ✅ 通过 |
 | `npx tsc --noEmit` | ✅ 通过 |
-| `npm run lint` | ⚠️ 2 个 warning |
-| `cargo test` | ✅ 通过（320 测试） |
-| `npm run test` | ❌ 7 个测试失败 |
+| `npm run lint` (ESLint) | ✅ 通过（0 warning） |
+| `cargo test` | ✅ 通过 |
+| `npm run test` (Vitest) | ✅ 通过（411 测试） |
+| `check_acl_consistency.py` | ✅ 通过（221 命令已登记） |
+
+> 基线阶段已修复 2 项问题：cargo fmt 格式化（5 文件）、OnboardingDialog 异步测试断言。
 
 ---
 
-*报告生成时间：2026-07-25*
+## 问题清单（按优先级 P0 > P1 > P2）
+
+| ID   | 优先级 | 类别       | 文件位置                                                   | 描述                                                                   | 状态      |
+|------|--------|------------|------------------------------------------------------------|------------------------------------------------------------------------|-----------|
+| P001 | P1     | 死代码     | `tauri/src/components/layout/AppBar.tsx:11,13`            | `@deprecated` 的 `titleBarOffset` prop 已无任何调用方传值，可安全删除   | `[ ]` 待修复 |
+| P002 | P1     | 代码重复   | `tauri/src-tauri/src/plugin/host/mod.rs:28` 与 `tauri/crates/solosoul-plugin/src/host.rs:28` | `mod code` 错误码常量块在两个 crate 中完全复制（10 个常量），应提取为共享定义 | `[ ]` 待修复 |
+| P003 | P1     | 死代码     | `tauri/src-tauri/src/services/llm_context.rs:17`          | `CachedPrompt.created_at` 字段标记 `#[allow(dead_code)]`，从未用于 TTL 驱逐，应移除或实现过期逻辑 | `[ ]` 待修复 |
+| P004 | P1     | 规范       | `tauri/src/pages/auth/LoginPage.tsx:342`                  | 直接使用 `console.error` 而非项目统一 `logger.error`，应替换为 logger 调用 | `[ ]` 待修复 |
+| P005 | P2     | 代码重复   | `tauri/src-tauri/src/services/llm_context.rs:351,378`     | `type_display_name` 与 `property_key_to_label` 两个函数逻辑几乎完全相同（驼峰/下划线转标题格式），可合并为一个通用 helper | `[ ]` 待修复 |
+| P006 | P2     | 死代码     | `tauri/src-tauri/src/commands/backup.rs:281-285`          | `RestoreManifest` 的 `version`、`created_at`、`profile_count` 字段标记 `#[allow(dead_code)]`，反序列化后从未读取，可精简 | `[ ]` 待修复 |
+| P007 | P2     | 规范       | `tauri/src-tauri/src/services/llm_context.rs:83-85`       | `build_section5_plugins()` 硬编码返回"（暂无已安装插件）"，注释说明"intentionally omitted"，应添加 TODO 跟踪或实现 | `[ ]` 待修复 |
+
+## 修复进度
+
+- 已完成：0 / 7
+- 当前处理：无
+
+---
+
+## 详细问题描述与修复指引
+
+### P001: AppBar 废弃 prop `titleBarOffset`
+
+**位置**：`tauri/src/components/layout/AppBar.tsx:11`
+
+**现象**：
+- `titleBarOffset?: number` 标记为 `@deprecated`，注释说明"由 sidebarPosition 推导"。
+- 全仓搜索确认无任何组件传递 `titleBarOffset`（`AppShell.tsx` 仅传 `topBarHeight`，而 `topBarHeight` 在 `AppBar` 组件中也未被解构使用——见下文）。
+- `titleBarOffset` 在 `AppBar` 函数参数解构中未被提取，属于纯死代码。
+
+**影响**：接口冗余，可能误导调用方。
+
+**修复方向**：
+- 删除 `titleBarOffset?: number` prop 定义。
+- 同时检查 `topBarHeight?: number`：虽然 `AppShell.tsx` 传了该 prop，但 `AppBar` 解构中未使用它（`sidebarPosition` 已用于推导布局），也应清理。
+
+---
+
+### P002: 插件错误码常量重复定义
+
+**位置**：
+- `tauri/src-tauri/src/plugin/host/mod.rs:28-39`
+- `tauri/crates/solosoul-plugin/src/host.rs:28-39`
+
+**现象**：
+两个文件各自定义了完全相同的 `mod code` 块，包含 10 个 `i32` 常量（`SUCCESS`、`PERMISSION_DENIED`、`USER_DENIED`、`TTL_EXPIRED`、`BUFFER_TOO_SMALL`、`INVALID_FIELD`、`NETWORK_TIMEOUT`、`VAULT_LOCKED`、`RATE_LIMITED`、`NOT_IMPLEMENTED`）。
+
+两个文件大量引用这些常量（`mod.rs` 内引用 ~20 处，`host.rs` 内引用 ~15 处）。
+
+**影响**：
+- 修改错误码时需同步两处，易遗漏导致不一致。
+- 违反 DRY 原则。
+
+**修复方向**：
+- 在 `solosoul-plugin` crate 中定义公开的 `pub mod code` 常量块。
+- `tauri/src-tauri/src/plugin/host/mod.rs` 中 `use solosoul_plugin::code`（或对应路径）替代本地 `mod code`。
+- 注意：需确认 crate 依赖方向——`tauri` 的 `src-tauri` 已依赖 `solosoul-plugin` crate，可安全复用。
+
+---
+
+### P003: `CachedPrompt.created_at` 未使用的死字段
+
+**位置**：`tauri/src-tauri/src/services/llm_context.rs:17`
+
+**现象**：
+```rust
+struct CachedPrompt {
+    static_prompt: String,
+    #[allow(dead_code)]
+    created_at: Instant,
+}
+```
+`created_at` 在 `build_context()` 中赋值为 `Instant::now()`，但从未被读取。缓存无 TTL 驱逐逻辑——缓存仅在 `clear_cache()` 被显式调用时清空。
+
+**影响**：
+- `#[allow(dead_code)]` 掩盖了潜在的设计意图缺失。
+- 缓存可能无限增长（每个 `account_id + public_data_version` 组合新增一条）。
+
+**修复方向**：
+- 方案 A（推荐）：移除 `created_at` 字段及 `Instant` import，简化结构体。
+- 方案 B：实现 TTL 驱逐——在缓存命中时检查 `created_at.elapsed() > TTL`，过期则重建。但这需引入过期时间常量，改动更大。
+
+---
+
+### P004: LoginPage 直接使用 `console.error`
+
+**位置**：`tauri/src/pages/auth/LoginPage.tsx:342`
+
+**现象**：
+```typescript
+.catch((err) => console.error('[LoginPage] backup reminder check failed:', err));
+```
+项目已有统一的 `logger` 模块（`tauri/src/lib/logger.ts`），`logger.error` 始终输出到 `console.error`，且后续可统一接入后端 log_write IPC。
+
+**影响**：违反项目日志规范（AGENTS.md 要求统一使用 logger）。
+
+**修复方向**：
+- 将 `console.error(...)` 替换为 `logger.error(...)`，并添加 `import { logger } from '@/lib/logger'`。
+- 注意：`authStore.ts` 中类似位置已使用 `logger.warn`，保持一致。
+
+---
+
+### P005: `type_display_name` 与 `property_key_to_label` 重复逻辑
+
+**位置**：`tauri/src-tauri/src/services/llm_context.rs:351-403`
+
+**现象**：
+两个函数都执行相同的"驼峰/下划线 → 标题格式"转换：
+1. 在大写字母前插入空格
+2. 将下划线替换为空格
+3. 按空格分词后首字母大写
+
+唯一差异：`type_display_name` 多了一步 `strip_prefix("__preset_")`。
+
+**影响**：代码重复，维护时需同步修改。
+
+**修复方向**：
+- 提取通用函数 `fn to_title_case(key: &str) -> String`，包含空格插入 + 分词大写逻辑。
+- `type_display_name` 调用 `to_title_case` 并前置 `strip_prefix`。
+- `property_key_to_label` 直接调用 `to_title_case`。
+
+---
+
+### P006: `RestoreManifest` 未使用的反序列化字段
+
+**位置**：`tauri/src-tauri/src/commands/backup.rs:281-285`
+
+**现象**：
+```rust
+#[allow(dead_code)]
+struct RestoreManifest {
+    version: String,
+    created_at: String,
+    profile_count: usize,
+    profiles: Vec<RestoreProfileEntry>,
+}
+```
+反序列化后仅读取 `manifest.profiles`，`version`、`created_at`、`profile_count` 从未使用。
+
+**影响**：`#[allow(dead_code)]` 掩盖未使用字段。
+
+**修复方向**：
+- 方案 A：移除未使用字段（`version`、`created_at`、`profile_count`），仅保留 `profiles`。serde 反序列化会自动忽略 JSON 中多余的字段。
+- 方案 B：在 `profile_count` 与 `profiles.len()` 不一致时添加校验告警。但这属于增强而非修复。
+
+---
+
+### P007: `build_section5_plugins()` 硬编码占位
+
+**位置**：`tauri/src-tauri/src/services/llm_context.rs:83-85`
+
+**现象**：
+```rust
+fn build_section5_plugins() -> String {
+    // Plugin context is intentionally omitted until the installed plugin list
+    // is exposed to the LLM context service.
+    "（暂无已安装插件）".to_string()
+}
+```
+该函数始终返回固定占位文本。注释说明是"intentionally omitted"，但缺少 TODO/FIXME 标记来跟踪后续实现。
+
+**影响**：LLM 系统提示词中插件信息始终缺失，降低了 AI 助手对用户环境的感知能力。
+
+**修复方向**：
+- 添加 `// TODO: 查询已安装插件列表并注入 Section 5` 标记，便于后续跟踪。
+- 或实现插件列表查询（需接入 `plugin_list_installed` 逻辑），但这属于功能增强，超出代码审查范围。
+
+---
+
+*报告生成时间：2026-07-29 20:05:00*
