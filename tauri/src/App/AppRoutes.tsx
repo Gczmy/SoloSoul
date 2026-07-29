@@ -17,7 +17,15 @@ import { UpdateBanner, type UpdateBannerState } from '@/components/ui/UpdateBann
 import { OcrInstallBanner, type OcrInstallPhase } from '@/components/ui/OcrInstallBanner';
 import { relaunch } from '@tauri-apps/plugin-process';
 import type { Update } from '@tauri-apps/plugin-updater';
-import { checkForUpdate } from '@/lib/updater';
+import {
+  checkForUpdate,
+  androidCheckForUpdate,
+  androidDownloadApk,
+  androidInstallApk,
+  androidIsApkDownloaded,
+  type AndroidUpdateInfo,
+} from '@/lib/updater';
+import type { UnlistenFn } from '@tauri-apps/api/event';
 import {
   useOcrInstallStore,
   isOcrFirstInstallDone,
@@ -46,14 +54,19 @@ export function AppRoutes() {
   const { t } = useTranslation(['ocr', 'settings']);
   const isMobilePlatform = isMobilePlatformSync();
   const { checkHasAccount, hasAccount, isAuthenticated } = useAuthStore();
+  // 统一更新状态：桌面端持有 Tauri Update 对象，Android 端持有 GitHub Release 信息。
+  // `platform` 区分两条下载/安装路径，`mandatory` 透传给 UpdateBanner 隐藏跳过/关闭按钮。
   const [updateState, setUpdateState] = useState<
     | { kind: 'hidden' }
     | {
         kind: 'available' | 'downloading' | 'downloaded' | 'error';
-        update: Update;
+        update: Update | null;
+        androidInfo: AndroidUpdateInfo | null;
         version: string;
         downloadedBytes: number;
         totalBytes: number;
+        progressPercent: number;
+        mandatory: boolean;
         error?: string;
       }
   >({ kind: 'hidden' });
@@ -63,61 +76,165 @@ export function AppRoutes() {
   // Derive OCR banner phase from store state for the new banner component.
   const ocrPhase: OcrInstallPhase = error ? 'error' : isInstalling ? 'installing' : 'completed';
 
-  // 启动时检查更新并显示非侵入式横幅（桌面端）
+  // 启动时检查更新并显示非侵入式横幅（桌面端 + Android）
   useEffect(() => {
-    if (isMobilePlatform) return;
-    checkForUpdate().then((result) => {
-      if (result.kind !== 'available') return;
-      const skipped = localStorage.getItem(ST_SKIPPED_VERSION);
-      if (skipped === result.info.version) return;
-      setUpdateState({
-        kind: 'available',
-        update: result.update,
-        version: result.info.version,
-        downloadedBytes: 0,
-        totalBytes: 0,
+    if (isMobilePlatform) {
+      androidCheckForUpdate().then((result) => {
+        if (result.kind !== 'available') return;
+        const info = result.info;
+        const skipped = localStorage.getItem(ST_SKIPPED_VERSION);
+        if (!info.mandatory && skipped === info.latestVersion) return;
+        setUpdateState({
+          kind: 'available',
+          update: null,
+          androidInfo: info,
+          version: info.latestVersion,
+          downloadedBytes: 0,
+          totalBytes: 0,
+          progressPercent: 0,
+          mandatory: info.mandatory,
+        });
       });
-    });
+    } else {
+      checkForUpdate().then((result) => {
+        if (result.kind !== 'available') return;
+        const skipped = localStorage.getItem(ST_SKIPPED_VERSION);
+        if (skipped === result.info.version) return;
+        setUpdateState({
+          kind: 'available',
+          update: result.update,
+          androidInfo: null,
+          version: result.info.version,
+          downloadedBytes: 0,
+          totalBytes: 0,
+          progressPercent: 0,
+          mandatory: false,
+        });
+      });
+    }
   }, [isMobilePlatform]);
 
   const startDownload = useCallback(async () => {
     if (updateState.kind !== 'available' && updateState.kind !== 'error') return;
-    const { update, version } = updateState;
-    setUpdateState({ kind: 'downloading', update, version, downloadedBytes: 0, totalBytes: 0 });
+    setUpdateState((prev) =>
+      prev.kind === 'available' || prev.kind === 'error'
+        ? {
+            ...prev,
+            kind: 'downloading' as const,
+            downloadedBytes: 0,
+            totalBytes: 0,
+            progressPercent: 0,
+          }
+        : prev,
+    );
     try {
-      await update.download((event) => {
-        setUpdateState((prev) => {
-          if (prev.kind !== 'downloading') return prev;
-          if (event.event === 'Started') {
-            return { ...prev, totalBytes: event.data.contentLength ?? 0 };
-          }
-          if (event.event === 'Progress') {
-            return { ...prev, downloadedBytes: prev.downloadedBytes + event.data.chunkLength };
-          }
-          if (event.event === 'Finished') {
+      if (isMobilePlatform) {
+        // Android：通过 GitHub Release 下载 APK，事件驱动进度
+        const info = updateState.androidInfo;
+        if (!info || !info.downloadUrl) {
+          throw new Error('No download URL available');
+        }
+        // 如果 APK 已下载过，直接进入安装阶段
+        const alreadyDownloaded = await androidIsApkDownloaded();
+        if (alreadyDownloaded) {
+          setUpdateState((prev) =>
+            prev.kind === 'downloading'
+              ? { ...prev, kind: 'downloaded' as const, progressPercent: 100 }
+              : prev,
+          );
+          return;
+        }
+        // 下载 APK，完成后 resolve；unlistenFn 用于在完成后移除事件监听器防止泄漏
+        let unlistenFn: UnlistenFn | undefined;
+        let settled = false;
+        const downloadUrl = info.downloadUrl;
+        try {
+          await new Promise<void>((resolve, reject) => {
+            androidDownloadApk(downloadUrl, info.checksum, (progress) => {
+              setUpdateState((prev) => {
+                if (prev.kind !== 'downloading') return prev;
+                return {
+                  ...prev,
+                  downloadedBytes: progress.downloaded,
+                  totalBytes: progress.total,
+                  progressPercent: progress.progress,
+                };
+              });
+              if (progress.done && !settled) {
+                settled = true;
+                if (progress.error) {
+                  reject(new Error(progress.error));
+                } else {
+                  resolve();
+                }
+              }
+            })
+              .then((fn) => {
+                unlistenFn = fn;
+              })
+              .catch((err) => {
+                if (!settled) {
+                  settled = true;
+                  reject(err);
+                }
+              });
+          });
+        } finally {
+          // 无论成功或失败，都移除 Tauri 事件监听器，防止累积泄漏
+          unlistenFn?.();
+        }
+        setUpdateState((prev) =>
+          prev.kind === 'downloading'
+            ? { ...prev, kind: 'downloaded' as const, progressPercent: 100 }
+            : prev,
+        );
+      } else {
+        // 桌面端：使用 Tauri plugin-updater 下载
+        const update = updateState.update;
+        if (!update) throw new Error('No update available');
+        await update.download((event) => {
+          setUpdateState((prev) => {
+            if (prev.kind !== 'downloading') return prev;
+            if (event.event === 'Started') {
+              return { ...prev, totalBytes: event.data.contentLength ?? 0 };
+            }
+            if (event.event === 'Progress') {
+              return { ...prev, downloadedBytes: prev.downloadedBytes + event.data.chunkLength };
+            }
+            if (event.event === 'Finished') {
+              return prev;
+            }
             return prev;
-          }
-          return prev;
+          });
         });
-      });
-      setUpdateState({ kind: 'downloaded', update, version, downloadedBytes: 0, totalBytes: 0 });
+        setUpdateState((prev) =>
+          prev.kind === 'downloading' ? { ...prev, kind: 'downloaded' as const } : prev,
+        );
+      }
     } catch (err) {
-      setUpdateState({
-        kind: 'error',
-        update,
-        version,
-        downloadedBytes: 0,
-        totalBytes: 0,
-        error: err instanceof Error ? err.message : String(err),
+      setUpdateState((prev) => {
+        if (prev.kind !== 'downloading') return prev;
+        return {
+          ...prev,
+          kind: 'error' as const,
+          error: err instanceof Error ? err.message : String(err),
+        };
       });
     }
-  }, [updateState]);
+  }, [updateState, isMobilePlatform]);
 
   const installUpdate = useCallback(async () => {
     if (updateState.kind !== 'downloaded') return;
     try {
-      await updateState.update.install();
-      await relaunch();
+      if (isMobilePlatform) {
+        // Android：调用系统包安装器
+        await androidInstallApk();
+      } else {
+        // 桌面端：安装并重启
+        if (!updateState.update) throw new Error('No update available');
+        await updateState.update.install();
+        await relaunch();
+      }
     } catch (err) {
       setUpdateState((prev) =>
         prev.kind === 'downloaded'
@@ -129,7 +246,7 @@ export function AppRoutes() {
           : prev,
       );
     }
-  }, [updateState]);
+  }, [updateState, isMobilePlatform]);
 
   // 首次启动时静默安装 bundled small OCR 模型（桌面端）
   const triggerOcrFirstInstall = useCallback(async () => {
@@ -292,7 +409,10 @@ export function AppRoutes() {
       import('@/stores/uiStore').then(({ useUiStore }) => {
         useUiStore.getState().showToast({
           type: 'warning',
-          message: t('settings:vault_directory_invalid_toast', 'SAF directory access revoked. Go to Settings > Vault Directory to re-select.'),
+          message: t(
+            'settings:vault_directory_invalid_toast',
+            'SAF directory access revoked. Go to Settings > Vault Directory to re-select.',
+          ),
           duration: 10000,
         });
       });
@@ -405,11 +525,15 @@ export function AppRoutes() {
               state={updateState.kind as UpdateBannerState}
               downloadedBytes={updateState.downloadedBytes}
               totalBytes={updateState.totalBytes}
+              progressPercent={updateState.progressPercent}
+              mandatory={updateState.mandatory}
               error={updateState.error}
               onUpdate={startDownload}
               onInstall={installUpdate}
               onSkip={() => {
-                localStorage.setItem(ST_SKIPPED_VERSION, updateState.version);
+                if (!updateState.mandatory) {
+                  localStorage.setItem(ST_SKIPPED_VERSION, updateState.version);
+                }
                 setUpdateState({ kind: 'hidden' });
               }}
               onClose={() => setUpdateState({ kind: 'hidden' })}

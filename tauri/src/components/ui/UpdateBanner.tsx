@@ -10,7 +10,11 @@ interface UpdateBannerProps {
   state: UpdateBannerState;
   downloadedBytes: number;
   totalBytes: number;
+  /** Android 下载进度百分比（0–100），totalBytes 为 0 时作为回退显示 */
+  progressPercent?: number;
   error?: string;
+  /** 强制更新时隐藏「跳过」与关闭按钮 */
+  mandatory?: boolean;
   onUpdate: () => void;
   onInstall: () => void;
   onSkip: () => void;
@@ -22,7 +26,9 @@ export function UpdateBanner({
   state,
   downloadedBytes,
   totalBytes,
+  progressPercent,
   error,
+  mandatory,
   onUpdate,
   onInstall,
   onSkip,
@@ -67,20 +73,22 @@ export function UpdateBanner({
             >
               <Download size={ICON_SIZE.xs} /> {t('update_now')}
             </button>
-            <button
-              onClick={onSkip}
-              style={{
-                padding: '5px 10px',
-                borderRadius: 6,
-                border: '1px solid rgba(255,255,255,0.35)',
-                background: 'transparent',
-                color: 'white',
-                fontSize: 'var(--text-caption)',
-                cursor: 'pointer',
-              }}
-            >
-              {t('skip_version')}
-            </button>
+            {!mandatory && (
+              <button
+                onClick={onSkip}
+                style={{
+                  padding: '5px 10px',
+                  borderRadius: 6,
+                  border: '1px solid rgba(255,255,255,0.35)',
+                  background: 'transparent',
+                  color: 'white',
+                  fontSize: 'var(--text-caption)',
+                  cursor: 'pointer',
+                }}
+              >
+                {t('skip_version')}
+              </button>
+            )}
           </div>
         </>
       )}
@@ -91,8 +99,8 @@ export function UpdateBanner({
             {t('update_downloading', { version })}
           </span>
           <progress
-            value={downloadedBytes}
-            max={totalBytes}
+            value={totalBytes > 0 ? downloadedBytes : (progressPercent ?? 0)}
+            max={totalBytes > 0 ? totalBytes : 100}
             style={{
               flex: 1,
               maxWidth: 240,
@@ -109,7 +117,9 @@ export function UpdateBanner({
               textAlign: 'right',
             }}
           >
-            {formatBytes(downloadedBytes)} / {formatBytes(totalBytes)}
+            {totalBytes > 0
+              ? `${formatBytes(downloadedBytes)} / ${formatBytes(totalBytes)}`
+              : `${progressPercent ?? 0}%`}
           </span>
         </>
       )}
@@ -170,7 +180,7 @@ export function UpdateBanner({
         </>
       )}
 
-      {state !== 'downloading' && (
+      {state !== 'downloading' && !mandatory && (
         <button
           onClick={onClose}
           style={{
