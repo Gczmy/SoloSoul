@@ -113,9 +113,7 @@ pub fn delete_apk_cache(app: &tauri::AppHandle) -> Result<(), String> {
 ///
 /// 仅在 Android 上有效；桌面端使用 `@tauri-apps/plugin-updater`。
 #[tauri::command]
-pub async fn android_check_update(
-    _app: tauri::AppHandle,
-) -> Result<AndroidUpdateInfo, String> {
+pub async fn android_check_update(_app: tauri::AppHandle) -> Result<AndroidUpdateInfo, String> {
     let current = current_version();
     let client = reqwest::Client::builder()
         .user_agent(USER_AGENT)
@@ -146,9 +144,10 @@ pub async fn android_check_update(
         .to_string();
 
     // 查找 APK 资产
-    let apk_asset = release.assets.iter().find(|a| {
-        a.name.ends_with(".apk") || a.name.contains("universal-release")
-    });
+    let apk_asset = release
+        .assets
+        .iter()
+        .find(|a| a.name.ends_with(".apk") || a.name.contains("universal-release"));
 
     // 查找对应的 .sha256 校验和资产，并下载其内容
     let checksum = if let Some(checksum_asset) = release
@@ -185,11 +184,10 @@ pub async fn android_check_update(
 
     // 如果 Release body 包含 [MANDATORY]，在返回前移除该标记
     // 避免用户看到原始标记文本
-    let clean_body = release.body.map(|body| {
-        body.replace("[MANDATORY]", "")
-            .trim()
-            .to_string()
-    }).filter(|s| !s.is_empty());
+    let clean_body = release
+        .body
+        .map(|body| body.replace("[MANDATORY]", "").trim().to_string())
+        .filter(|s| !s.is_empty());
 
     Ok(AndroidUpdateInfo {
         latest_version: latest,
@@ -229,8 +227,7 @@ pub async fn android_download_apk(
 
     // 检查是否有已下载的部分文件，用于断点续传
     let existing_size = if part_path.exists() {
-        let meta =
-            std::fs::metadata(&part_path).map_err(|e| format!("读取部分文件元数据: {e}"))?;
+        let meta = std::fs::metadata(&part_path).map_err(|e| format!("读取部分文件元数据: {e}"))?;
         let size = meta.len();
         // 部分文件体积异常（超过普通 APK 大小）时忽略
         if size > 0 && size < 300_000_000 {
@@ -280,8 +277,7 @@ pub async fn android_download_apk(
                 return Err(format!("APK 下载返回 HTTP {}", status));
             }
             let chunk_total = resp.content_length().unwrap_or(0);
-            let file = std::fs::File::create(&part_path)
-                .map_err(|e| format!("创建文件: {e}"))?;
+            let file = std::fs::File::create(&part_path).map_err(|e| format!("创建文件: {e}"))?;
             (file, 0u64, chunk_total)
         };
 
@@ -323,8 +319,8 @@ pub async fn android_download_apk(
     if should_verify {
         use std::io::Read;
         let expected = expected_checksum.unwrap_or_default();
-        let mut file = std::fs::File::open(&part_path)
-            .map_err(|e| format!("打开文件计算校验和: {e}"))?;
+        let mut file =
+            std::fs::File::open(&part_path).map_err(|e| format!("打开文件计算校验和: {e}"))?;
         let mut hasher = sha2::Sha256::new();
         let mut buf = [0u8; 8192];
         loop {

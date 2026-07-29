@@ -147,8 +147,7 @@ impl RecoveryHost {
         check_global_rate_limit()?;
 
         let mut transport = SyncTransport::from_stream(stream);
-        let mut session =
-            NoiseSession::handshake_responder(&mut transport, &self.keys)?;
+        let mut session = NoiseSession::handshake_responder(&mut transport, &self.keys)?;
 
         // 1. 接收 "nonce:pin"
         let auth = receive_text(&mut session, &mut transport)?;
@@ -177,8 +176,8 @@ impl RecoveryHost {
         }
         send_text(&mut session, &mut transport, &file_size.to_string())?;
 
-        let mut file = std::fs::File::open(&self.export_path)
-            .map_err(|e| format!("open export: {}", e))?;
+        let mut file =
+            std::fs::File::open(&self.export_path).map_err(|e| format!("open export: {}", e))?;
         let mut buf = [0u8; CHUNK_SIZE];
         loop {
             let n = file.read(&mut buf).map_err(|e| e.to_string())?;
@@ -231,8 +230,10 @@ pub fn recover_from_host(
             .remote_fingerprint()
             .ok_or("Host did not provide a static public key")?;
         if actual_fp != expected_fp {
-            return Err(format!("Host identity verification failed: expected {}, got {}. Possible MITM.",
-                expected_fp, actual_fp));
+            return Err(format!(
+                "Host identity verification failed: expected {}, got {}. Possible MITM.",
+                expected_fp, actual_fp
+            ));
         }
     }
 
@@ -265,8 +266,8 @@ pub fn recover_from_host(
     // 5. 接收文件内容
     std::fs::create_dir_all(dest_dir).map_err(|e| e.to_string())?;
     let dest_path = dest_dir.join(format!("recovery_{}.solosoul", nanoid()));
-    let mut file = std::fs::File::create(&dest_path)
-        .map_err(|e| format!("create dest file: {}", e))?;
+    let mut file =
+        std::fs::File::create(&dest_path).map_err(|e| format!("create dest file: {}", e))?;
 
     let mut received: u64 = 0;
     loop {

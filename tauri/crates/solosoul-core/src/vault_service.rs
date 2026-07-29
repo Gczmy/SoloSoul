@@ -347,21 +347,27 @@ impl VaultService {
         let mut result = Vec::new();
         for entry in &accounts {
             let config_rel = self.config_path_rel(&entry.id);
-            let (salt, verify_hash, password_hint, created_at, has_biometric_history, has_pin_history) =
-                match self.fs.read_file(&config_rel) {
-                    Ok(content) => match serde_json::from_slice::<AccountConfig>(&content) {
-                        Ok(cfg) => (
-                            Some(cfg.salt),
-                            Some(cfg.verify_hash),
-                            cfg.password_hint,
-                            Some(cfg.created_at),
-                            cfg.biometric_enabled,
-                            cfg.pin_enabled,
-                        ),
-                        Err(_) => (None, None, None, None, false, false),
-                    },
+            let (
+                salt,
+                verify_hash,
+                password_hint,
+                created_at,
+                has_biometric_history,
+                has_pin_history,
+            ) = match self.fs.read_file(&config_rel) {
+                Ok(content) => match serde_json::from_slice::<AccountConfig>(&content) {
+                    Ok(cfg) => (
+                        Some(cfg.salt),
+                        Some(cfg.verify_hash),
+                        cfg.password_hint,
+                        Some(cfg.created_at),
+                        cfg.biometric_enabled,
+                        cfg.pin_enabled,
+                    ),
                     Err(_) => (None, None, None, None, false, false),
-                };
+                },
+                Err(_) => (None, None, None, None, false, false),
+            };
 
             result.push(AccountSummary {
                 id: entry.id.clone(),
@@ -522,7 +528,12 @@ impl VaultService {
         drop(cache);
 
         // 如果该 account_id 已经存在，直接拒绝，避免覆盖已有数据
-        if self.accounts_cache.read().map_err(|e| e.to_string())?.contains_key(account_id) {
+        if self
+            .accounts_cache
+            .read()
+            .map_err(|e| e.to_string())?
+            .contains_key(account_id)
+        {
             return Err("Account ID already exists".to_string());
         }
 

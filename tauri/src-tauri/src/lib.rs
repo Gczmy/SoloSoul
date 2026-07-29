@@ -14,10 +14,10 @@ pub mod mobile_ocr_plugin;
 pub mod nsd_plugin;
 pub mod plugin;
 pub mod services;
-pub mod update_plugin;
 pub mod state;
 pub mod status_bar_plugin;
 pub mod sync;
+pub mod update_plugin;
 
 use state::AppState;
 

@@ -1716,7 +1716,10 @@ impl VaultStore {
     }
 
     /// 获取一条冲突的详情（含本地和远程数据）。
-    pub fn get_sync_conflict(&self, conflict_id: &str) -> Result<Option<crate::SyncConflictDetail>, String> {
+    pub fn get_sync_conflict(
+        &self,
+        conflict_id: &str,
+    ) -> Result<Option<crate::SyncConflictDetail>, String> {
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         let result = conn
@@ -1799,11 +1802,7 @@ impl VaultStore {
     /// 根据策略解决冲突。
     /// strategy: "keep_local" | "keep_remote" | "dismiss"
     /// 返回是否应用了远程数据（keep_remote 时）。
-    pub fn resolve_sync_conflict(
-        &self,
-        conflict_id: &str,
-        strategy: &str,
-    ) -> Result<bool, String> {
+    pub fn resolve_sync_conflict(&self, conflict_id: &str, strategy: &str) -> Result<bool, String> {
         let detail = match self.get_sync_conflict(conflict_id)? {
             Some(d) => d,
             None => return Err("Conflict not found or already resolved".to_string()),
@@ -1832,7 +1831,12 @@ impl VaultStore {
                 }
             }
             "keep_local" | "dismiss" => false,
-            _ => return Err(format!("Unknown conflict resolution strategy: {}", strategy)),
+            _ => {
+                return Err(format!(
+                    "Unknown conflict resolution strategy: {}",
+                    strategy
+                ))
+            }
         };
 
         self.delete_sync_conflict(conflict_id)?;
@@ -1853,8 +1857,11 @@ impl VaultStore {
                     .map_err(|e| e.to_string())?;
             }
             "user_templates" => {
-                conn.execute("DELETE FROM user_templates WHERE id = ?1", params![record_id])
-                    .map_err(|e| e.to_string())?;
+                conn.execute(
+                    "DELETE FROM user_templates WHERE id = ?1",
+                    params![record_id],
+                )
+                .map_err(|e| e.to_string())?;
             }
             "trash_items" => {
                 conn.execute("DELETE FROM trash_items WHERE id = ?1", params![record_id])
