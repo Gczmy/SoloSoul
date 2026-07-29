@@ -7,12 +7,20 @@ use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 use std::fmt;
 use std::str::FromStr;
-use std::sync::atomic::{AtomicU32, Ordering as AtomicOrdering};
+use std::sync::atomic::{AtomicBool, AtomicU32, Ordering as AtomicOrdering};
 use std::sync::Mutex;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 static GLOBAL_COUNTER: AtomicU32 = AtomicU32::new(0);
 static LAST_TIME_MS: Mutex<u64> = Mutex::new(0);
+/// 是否已对当前时钟回拨事件记录过警告。设为 true 后，只有在物理时钟
+/// 恢复超过 last 后才会重置为 false，避免每次 `now()` 调用都重复打印日志。
+static CLOCK_BACKWARD_WARNED: AtomicBool = AtomicBool::new(false);
+
+/// 时钟回拨检测阈值（毫秒）。当物理时钟相对于上次记录的时间回拨超过此值时，
+/// 记录警告日志。HLC 本身仍能正确运行（通过递增 logical counter 补偿），
+/// 但显著的回拨可能影响同步 watermark 和 LWW 冲突解决的正确性，需要告警。
+const CLOCK_BACKWARD_THRESHOLD_MS: u64 = 5_000; // 5 秒
 
 /// A Hybrid Logical Clock timestamp.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -33,13 +41,35 @@ impl Hlc {
     }
 
     /// Generate a fresh HLC timestamp for the local node.
+    ///
+    /// HLC 算法保证了即使物理时钟回拨，生成的 timestamp 仍然单调递增
+    ///（通过递增 logical counter 补偿）。但当检测到显著的时钟回拨
+    ///（超过 `CLOCK_BACKWARD_THRESHOLD_MS`）时，会记录警告日志，
+    /// 因为显著的回拨可能导致同步 watermark 异常和 LWW 冲突解决偏差。
     pub fn now(node_id: &str) -> Self {
         let physical = physical_now_ms();
         let mut last = LAST_TIME_MS.lock().expect("HLC 时间戳锁未 poison");
         let (wall, counter) = if physical > *last {
             *last = physical;
+            // 时钟已恢复/前进，重置回拨告警标志。
+            CLOCK_BACKWARD_WARNED.store(false, AtomicOrdering::Relaxed);
             (physical, 0)
         } else {
+            // 时钟未前进或回拨。HLC 通过递增 last + counter 保证单调性。
+            // 检测显著回拨并记录警告（仅首次触发，避免日志洪泛）。
+            let backward_ms = last.saturating_sub(physical);
+            if backward_ms > CLOCK_BACKWARD_THRESHOLD_MS
+                && !CLOCK_BACKWARD_WARNED.swap(true, AtomicOrdering::Relaxed)
+            {
+                tracing::warn!(
+                    "HLC clock backward detected: {}ms (physical={}, last={}). \
+                     HLC will compensate via logical counter, but sync watermarks \
+                     and LWW conflict resolution may be affected.",
+                    backward_ms,
+                    physical,
+                    *last
+                );
+            }
             *last += 1;
             (*last, GLOBAL_COUNTER.fetch_add(1, AtomicOrdering::Relaxed))
         };
