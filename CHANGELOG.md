@@ -2,6 +2,23 @@
 
 All notable changes to SoloSoul are documented in this file.
 
+## [2.6.4] - 2026-07-29
+
+### Added
+
+- **Android 全局更新横幅** — 新增应用内全局更新横幅，支持 Markdown 渲染 release notes，提升更新提示体验。
+
+### Fixed
+
+- **改密后 SAF 远程同步** — 修改主密码后，自动将重新加密的 `vault.db` 同步到远程 SAF 存储，避免下次解锁时旧远程副本覆盖本地数据导致解密失败。
+- **审计日志解密容错** — 审计日志列表对单字段解密失败进行容错，显示占位文本而不是整体查询失败。
+- **对象删除错误提示** — `object_delete` 增加明确的对象不存在和解密异常处理分支。
+
+### Chores
+
+- 版本号同步升级到 2.6.4。
+- 移除 `sync.rs` 中未使用的 `Manager` import 并重新生成 ACL manifests。
+
 ## [2.6.2] - 2026-07-29
 
 ### Added
