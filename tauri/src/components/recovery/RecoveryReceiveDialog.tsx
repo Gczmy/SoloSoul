@@ -32,7 +32,6 @@ interface ReverseListenInfo {
 export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryReceiveDialogProps) {
   const { t } = useTranslation(['common']);
   const navigate = useNavigate();
-  const [accountName, setAccountName] = useState('');
   const [password, setPassword] = useState('');
   const [hostAddr, setHostAddr] = useState('');
   const [pin, setPin] = useState('');
@@ -59,10 +58,6 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
   if (!isOpen) return null;
 
   const validateForm = (forReverse: boolean) => {
-    if (accountName.trim().length === 0) {
-      setError(t('common:account_name_required'));
-      return false;
-    }
     if (password.length < 8) {
       setError(t('common:password_length_requirement'));
       return false;
@@ -90,7 +85,6 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
     setLoading(true);
     try {
       const result = await invoke<RecoveryResultSummary>('recovery_restore_from_host', {
-        accountName,
         masterPassword: password,
         hostAddr,
         pin,
@@ -154,7 +148,6 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
       setReverseWaiting(true);
       try {
         const result = await invoke<RecoveryResultSummary>('recovery_receive_listen_wait', {
-          accountName,
           masterPassword: password,
         });
         if (!mountedRef.current) return;
@@ -377,17 +370,12 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
         ) : (
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <Input
-              label={t('common:recovery_receive_name_label')}
-              value={accountName}
-              onChange={(e) => setAccountName(e.target.value)}
-              autoFocus
-            />
-            <Input
               label={t('common:recovery_receive_password_label')}
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder={t('common:recovery_receive_password_hint')}
+              autoFocus
             />
             <Input
               label={t('common:recovery_receive_addr_label')}

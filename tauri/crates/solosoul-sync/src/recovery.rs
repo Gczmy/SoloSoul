@@ -40,6 +40,7 @@ pub struct RecoveryHost {
     recovery_password: String,
     export_path: PathBuf,
     account_id: String,
+    account_name: String,
     started_at: Instant,
     /// 标记是否已成功服务过一次恢复请求，防止同一 PIN 被多个客户端同时下载。
     served: AtomicBool,
@@ -51,6 +52,7 @@ pub struct RecoveryResult {
     pub downloaded_path: PathBuf,
     pub recovery_password: String,
     pub account_id: String,
+    pub account_name: String,
 }
 
 /// 反向恢复模式下，接收端最终获得的数据。
@@ -59,6 +61,7 @@ pub struct RecoveryTransferResult {
     pub downloaded_path: PathBuf,
     pub recovery_password: String,
     pub account_id: String,
+    pub account_name: String,
 }
 
 impl RecoveryHost {
@@ -69,6 +72,7 @@ impl RecoveryHost {
         export_path: PathBuf,
         recovery_password: String,
         account_id: String,
+        account_name: String,
     ) -> Result<Self, String> {
         let listener = TcpListener::bind(addr).map_err(|e| format!("bind failed: {}", e))?;
         let pin = generate_pin();
@@ -82,6 +86,7 @@ impl RecoveryHost {
             recovery_password,
             export_path,
             account_id,
+            account_name,
             started_at: Instant::now(),
             served: AtomicBool::new(false),
         })
@@ -177,7 +182,10 @@ impl RecoveryHost {
         // 3. 发送 account_id
         send_text(&mut session, &mut transport, &self.account_id)?;
 
-        // 4. 发送文件大小与内容
+        // 4. 发送 account_name
+        send_text(&mut session, &mut transport, &self.account_name)?;
+
+        // 5. 发送文件大小与内容
         let file_size = std::fs::metadata(&self.export_path)
             .map_err(|e| format!("metadata: {}", e))?
             .len();
@@ -258,17 +266,25 @@ pub fn recover_from_host(
     };
     send_text(&mut session, &mut transport, &auth)?;
 
-    // 2. 接收恢复密码（或错误）
+    // 2. 接收 OK 或错误
     let response = receive_text(&mut session, &mut transport)?;
     if response.starts_with("__ERROR__:") {
         return Err(response.trim_start_matches("__ERROR__:").to_string());
     }
-    let recovery_password = response;
+    if response != "OK" {
+        return Err(format!("Unexpected auth response: {}", response));
+    }
 
-    // 3. 接收 account_id
+    // 3. 接收恢复密码
+    let recovery_password = receive_text(&mut session, &mut transport)?;
+
+    // 4. 接收 account_id
     let account_id = receive_text(&mut session, &mut transport)?;
 
-    // 4. 接收文件大小
+    // 5. 接收 account_name
+    let account_name = receive_text(&mut session, &mut transport)?;
+
+    // 6. 接收文件大小
     let file_size_str = receive_text(&mut session, &mut transport)?;
     let file_size: u64 = file_size_str
         .parse()
@@ -308,6 +324,7 @@ pub fn recover_from_host(
         downloaded_path: dest_path,
         recovery_password,
         account_id,
+        account_name,
     })
 }
 
@@ -503,6 +520,7 @@ impl RecoveryReceiverServer {
             return Err("Invalid PIN or nonce".to_string());
         }
         reset_global_rate_limit();
+        send_text(&mut session, &mut transport, "OK")?;
 
         // 2. 接收恢复密码
         let recovery_password = receive_text(&mut session, &mut transport)?;
@@ -513,7 +531,10 @@ impl RecoveryReceiverServer {
         // 3. 接收 account_id
         let account_id = receive_text(&mut session, &mut transport)?;
 
-        // 4. 接收文件大小
+        // 4. 接收 account_name
+        let account_name = receive_text(&mut session, &mut transport)?;
+
+        // 5. 接收文件大小
         let file_size_str = receive_text(&mut session, &mut transport)?;
         let file_size: u64 = file_size_str
             .parse()
@@ -555,6 +576,7 @@ impl RecoveryReceiverServer {
             downloaded_path: dest_path,
             recovery_password,
             account_id,
+            account_name,
         })
     }
 }
@@ -574,6 +596,7 @@ pub fn push_to_receiver(
     export_path: &std::path::Path,
     recovery_password: String,
     account_id: String,
+    account_name: String,
 ) -> Result<(), String> {
     let stream = TcpStream::connect_timeout(
         &addr.parse().map_err(|e| format!("Invalid addr: {}", e))?,
@@ -617,10 +640,13 @@ pub fn push_to_receiver(
     // 3. 发送恢复密码
     send_text(&mut session, &mut transport, &recovery_password)?;
 
-    // 3. 发送 account_id
+    // 4. 发送 account_id
     send_text(&mut session, &mut transport, &account_id)?;
 
-    // 4. 发送文件大小和内容
+    // 5. 发送 account_name
+    send_text(&mut session, &mut transport, &account_name)?;
+
+    // 6. 发送文件大小和内容
     let file_size = std::fs::metadata(export_path)
         .map_err(|e| format!("metadata: {}", e))?
         .len();
@@ -715,6 +741,7 @@ mod tests {
             export_path.clone(),
             generate_recovery_password(),
             "acc_host".to_string(),
+            "Host Account".to_string(),
         )
         .unwrap();
         let info = host.connection_info();
@@ -739,6 +766,7 @@ mod tests {
         assert_eq!(received, "hello recovery payload");
         assert!(!result.recovery_password.is_empty());
         assert_eq!(result.account_id, "acc_host");
+        assert_eq!(result.account_name, "Host Account");
     }
 
     #[test]
@@ -752,6 +780,7 @@ mod tests {
             export_path.clone(),
             generate_recovery_password(),
             "acc_host".to_string(),
+            "Host Account".to_string(),
         )
         .unwrap();
         let info = host.connection_info();
@@ -778,6 +807,7 @@ mod tests {
             export_path.clone(),
             generate_recovery_password(),
             "acc_host".to_string(),
+            "Host Account".to_string(),
         )
         .unwrap();
         let cancel = Arc::new(AtomicBool::new(true));

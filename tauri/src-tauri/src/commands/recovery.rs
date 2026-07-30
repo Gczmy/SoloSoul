@@ -39,6 +39,20 @@ fn nanoid() -> String {
     uuid::Uuid::new_v4().to_string().replace("-", "")
 }
 
+/// 从 VaultService 读取当前解锁账户的名称。
+fn get_current_account_name(state: &AppState, account_id: &str) -> Result<String, String> {
+    let svc = state
+        .vault_service
+        .read()
+        .map_err(|_| "Vault service lock poisoned".to_string())?;
+    let accounts = svc.list_accounts();
+    accounts
+        .into_iter()
+        .find(|a| a.id == account_id)
+        .map(|a| a.name)
+        .ok_or_else(|| "Current account not found in account list".to_string())
+}
+
 /// 启动恢复主机。返回显示地址、PIN 和 QR  payload。
 #[tauri::command]
 pub async fn recovery_host_start(
@@ -47,6 +61,7 @@ pub async fn recovery_host_start(
 ) -> Result<RecoveryHostInfo, String> {
     let account_id = crate::commands::current_account_optional(&state)
         .ok_or("No account is currently unlocked")?;
+    let account_name = get_current_account_name(&state, &account_id)?;
 
     let recovery_password = generate_recovery_password();
 
@@ -116,6 +131,7 @@ pub async fn recovery_host_start(
         export_path.clone(),
         recovery_password,
         account_id,
+        account_name,
     )?;
     let info = host.connection_info();
     let host_cancel = Arc::new(AtomicBool::new(false));
@@ -231,12 +247,8 @@ pub async fn recovery_receive_listen_start(
 #[tauri::command]
 pub async fn recovery_receive_listen_wait(
     state: State<'_, AppState>,
-    account_name: String,
     master_password: String,
 ) -> Result<ImportResultSummary, String> {
-    if account_name.trim().is_empty() {
-        return Err("Account name is required".to_string());
-    }
     if master_password.len() < 8 {
         return Err("Password must be at least 8 characters".to_string());
     }
@@ -257,14 +269,14 @@ pub async fn recovery_receive_listen_wait(
         return Err("No recovery listener is running".to_string());
     };
 
-    // 使用主机的 account_id 创建本地账户
+    // 使用主机的 account_id 和 account_name 创建本地账户
     {
         let svc = state
             .vault_service
             .read()
             .map_err(|_| "Vault service lock poisoned".to_string())?;
         // 如果账户名冲突，让 create_account_with_id 返回错误，由前端提示
-        svc.create_account_with_id(&result.account_id, &account_name, &master_password, None)?;
+        svc.create_account_with_id(&result.account_id, &result.account_name, &master_password, None)?;
     }
 
     // 导入恢复包
@@ -325,6 +337,7 @@ pub async fn recovery_host_push(
 
     let account_id = crate::commands::current_account_optional(&state)
         .ok_or("No account is currently unlocked")?;
+    let account_name = get_current_account_name(&state, &account_id)?;
 
     let tmp_dir = std::env::temp_dir();
     std::fs::create_dir_all(&tmp_dir).map_err(|e| e.to_string())?;
@@ -385,6 +398,7 @@ pub async fn recovery_host_push(
             &export_path_for_push,
             recovery_password,
             account_id,
+            account_name,
         )
     })
     .await
@@ -400,16 +414,12 @@ pub async fn recovery_host_push(
 #[tauri::command]
 pub async fn recovery_restore_from_host(
     state: State<'_, AppState>,
-    account_name: String,
     master_password: String,
     host_addr: String,
     pin: String,
     fingerprint: Option<String>,
     nonce: Option<String>,
 ) -> Result<ImportResultSummary, String> {
-    if account_name.trim().is_empty() {
-        return Err("Account name is required".to_string());
-    }
     if master_password.len() < 8 {
         return Err("Password must be at least 8 characters".to_string());
     }
@@ -440,14 +450,14 @@ pub async fn recovery_restore_from_host(
     let file_path = result.downloaded_path.to_string_lossy().to_string();
     let recovery_password = result.recovery_password;
 
-    // 使用主机的 account_id 创建本地账户
+    // 使用主机的 account_id 和 account_name 创建本地账户
     {
         let svc = state
             .vault_service
             .read()
             .map_err(|_| "Vault service lock poisoned".to_string())?;
         // 如果账户名冲突，让 create_account_with_id 返回错误，由前端提示
-        svc.create_account_with_id(&account_id, &account_name, &master_password, None)?;
+        svc.create_account_with_id(&account_id, &result.account_name, &master_password, None)?;
     }
 
     // 导入恢复包
