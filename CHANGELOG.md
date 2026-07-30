@@ -2,6 +2,16 @@
 
 All notable changes to SoloSoul are documented in this file.
 
+## [2.6.5] - 2026-07-30
+
+### Fixed
+
+- **Android 同步 NSD 编译修复** — 补全 `sync.rs` 中缺失的 `Manager` trait 导入，并将 `AppState` 克隆后再移入 `tokio::spawn` 后台任务，修复 Android release 构建失败。
+
+### Chores
+
+- 版本号同步升级到 2.6.5。
+
 ## [2.6.4] - 2026-07-29
 
 ### Added
