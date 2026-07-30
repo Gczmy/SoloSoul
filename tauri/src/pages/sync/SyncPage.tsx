@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { invoke } from '@tauri-apps/api/core';
 import { AppShell } from '@/components/layout/AppShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
@@ -21,6 +22,8 @@ import { useSyncStore } from '@/stores/syncStore';
 import { DeleteButton } from '@/components/ui/DeleteButton';
 import { PageGuideButton } from '@/components/guide/PageGuideButton';
 import { SyncConflictDialog } from '@/components/sync/SyncConflictDialog';
+import { SyncShowQrDialog } from '@/components/sync/SyncShowQrDialog';
+import { SyncScanQrDialog } from '@/components/sync/SyncScanQrDialog';
 import type { SyncConflict } from '@/lib/ipc';
 import { ICON_SIZE } from '@/lib/constants';
 
@@ -42,6 +45,8 @@ export function SyncPage() {
   const [ignoredPeerIds, setIgnoredPeerIds] = useState<Set<string>>(new Set());
   const [activityOpen, setActivityOpen] = useState(false);
   const [conflictDialogOpen, setConflictDialogOpen] = useState(false);
+  const [showQrDialogOpen, setShowQrDialogOpen] = useState(false);
+  const [scanQrDialogOpen, setScanQrDialogOpen] = useState(false);
 
   const syncGuidePages = useMemo(
     () => [
@@ -143,6 +148,24 @@ export function SyncPage() {
 
   const handleOpenConflictDialog = () => {
     setConflictDialogOpen(true);
+  };
+
+  const handleScanSync = async (addr: string) => {
+    await store.syncWithDevice(addr);
+  };
+
+  const handleScanRecovery = async (payload: {
+    hostAddr: string;
+    pin: string;
+    fingerprint?: string;
+    nonce?: string;
+  }) => {
+    await invoke('recovery_host_push', {
+      hostAddr: payload.hostAddr,
+      pin: payload.pin,
+      fingerprint: payload.fingerprint,
+      nonce: payload.nonce,
+    });
   };
 
   return (
@@ -353,6 +376,88 @@ export function SyncPage() {
               {store.listenPort}
             </div>
           )}
+        </Card>
+
+        {/* QR pairing */}
+        <Card>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div>
+              <div style={{ fontSize: 'var(--text-card-title)', fontWeight: 600 }}>
+                {t('settings:sync_qr_pairing', { defaultValue: 'QR Pairing' })}
+              </div>
+              <div style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
+                {t('settings:sync_qr_pairing_desc', {
+                  defaultValue: 'Show a QR code for another device to scan, or scan another device.',
+                })}
+              </div>
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button
+                onClick={() => setShowQrDialogOpen(true)}
+                disabled={!store.syncEnabled || store.isLoading}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: 8,
+                  border: '1px solid var(--border-subtle)',
+                  background: 'var(--bg-toolbar)',
+                  color: 'var(--text-primary)',
+                  fontSize: 'var(--text-body-sm)',
+                  fontWeight: 500,
+                  cursor: !store.syncEnabled || store.isLoading ? 'default' : 'pointer',
+                  opacity: !store.syncEnabled || store.isLoading ? 0.6 : 1,
+                  transition: 'all 0.15s ease',
+                  fontFamily: 'inherit',
+                }}
+                onMouseEnter={(e) => {
+                  if (!store.syncEnabled || store.isLoading) return;
+                  e.currentTarget.style.background =
+                    'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
+                  e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                  e.currentTarget.style.color = 'var(--accent-primary)';
+                }}
+                onMouseLeave={(e) => {
+                  if (!store.syncEnabled || store.isLoading) return;
+                  e.currentTarget.style.background = 'var(--bg-toolbar)';
+                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                  e.currentTarget.style.color = 'var(--text-primary)';
+                }}
+              >
+                {t('settings:sync_qr_show', { defaultValue: 'Show QR' })}
+              </button>
+              <button
+                onClick={() => setScanQrDialogOpen(true)}
+                disabled={!store.syncEnabled || store.isLoading}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: 8,
+                  border: '1px solid var(--border-subtle)',
+                  background: 'var(--bg-toolbar)',
+                  color: 'var(--text-primary)',
+                  fontSize: 'var(--text-body-sm)',
+                  fontWeight: 500,
+                  cursor: !store.syncEnabled || store.isLoading ? 'default' : 'pointer',
+                  opacity: !store.syncEnabled || store.isLoading ? 0.6 : 1,
+                  transition: 'all 0.15s ease',
+                  fontFamily: 'inherit',
+                }}
+                onMouseEnter={(e) => {
+                  if (!store.syncEnabled || store.isLoading) return;
+                  e.currentTarget.style.background =
+                    'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
+                  e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                  e.currentTarget.style.color = 'var(--accent-primary)';
+                }}
+                onMouseLeave={(e) => {
+                  if (!store.syncEnabled || store.isLoading) return;
+                  e.currentTarget.style.background = 'var(--bg-toolbar)';
+                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                  e.currentTarget.style.color = 'var(--text-primary)';
+                }}
+              >
+                {t('settings:sync_qr_scan', { defaultValue: 'Scan QR' })}
+              </button>
+            </div>
+          </div>
         </Card>
 
         {/* Discovered devices */}
@@ -758,6 +863,13 @@ export function SyncPage() {
         isLoading={store.isLoading}
         onClose={() => setConflictDialogOpen(false)}
         onResolve={(id, strategy) => store.resolveConflict(id, strategy)}
+      />
+      <SyncShowQrDialog isOpen={showQrDialogOpen} onClose={() => setShowQrDialogOpen(false)} />
+      <SyncScanQrDialog
+        isOpen={scanQrDialogOpen}
+        onClose={() => setScanQrDialogOpen(false)}
+        onSync={handleScanSync}
+        onRecoveryPush={handleScanRecovery}
       />
     </AppShell>
   );

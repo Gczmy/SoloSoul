@@ -65,6 +65,7 @@ dirs = "6.0.0"
 semver = "1.0"
 url = "2.5"
 minisign-verify = "0.2"
+local-ip-address = "0.6"
 
 # 插件系统 (Wasmtime 沙箱 + Host Functions) — 全平台支持
 wasmtime = { version = "45.0.1", features = ["cranelift", "runtime", "component-model", "pulley"] }

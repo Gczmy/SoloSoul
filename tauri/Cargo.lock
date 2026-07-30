@@ -6073,6 +6073,7 @@ dependencies = [
  "dirs",
  "futures",
  "hex",
+ "local-ip-address",
  "mdns-sd",
  "minisign-verify",
  "ndarray",

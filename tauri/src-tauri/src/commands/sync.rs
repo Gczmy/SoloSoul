@@ -724,6 +724,53 @@ pub async fn sync_forget_peer(
     Ok(())
 }
 
+/// 尝试获取一个适合展示给用户的本地非回环 IPv4 地址。
+fn local_display_ip() -> Option<String> {
+    // 优先通过外联 UDP 获得路由选中的地址（不发送任何数据包）。
+    if let Ok(socket) = std::net::UdpSocket::bind("0.0.0.0:0") {
+        if socket.connect("8.8.8.8:80").is_ok() {
+            if let Ok(local) = socket.local_addr() {
+                if let std::net::IpAddr::V4(v4) = local.ip() {
+                    if !v4.is_loopback() {
+                        return Some(v4.to_string());
+                    }
+                }
+            }
+        }
+    }
+    // 离线局域网场景下，枚举本地网卡。
+    if let Ok(std::net::IpAddr::V4(v4)) = local_ip_address::local_ip() {
+        if !v4.is_loopback() {
+            return Some(v4.to_string());
+        }
+    }
+    None
+}
+
+/// 生成供其他设备扫描以建立同步的二维码 payload。
+/// Payload 格式：{"t":"sync","a":"host:port","f":"fingerprint","n":"deviceName"}
+#[tauri::command]
+pub async fn sync_generate_qr_payload(state: State<'_, AppState>) -> Result<String, String> {
+    let port = state.sync_service.listen_port().await;
+    if port == 0 {
+        return Err("Sync is not enabled or listen port is not ready".to_string());
+    }
+    let fingerprint = state.sync_service.local_fingerprint().await?;
+    let host = local_display_ip().unwrap_or_else(|| "127.0.0.1".to_string());
+    let device_name = if fingerprint.is_empty() {
+        format!("SoloSoul-{}", port)
+    } else {
+        format!("SoloSoul-{}", &fingerprint[..fingerprint.len().min(8)])
+    };
+    let payload = serde_json::json!({
+        "t": "sync",
+        "a": format!("{}:{}", host, port),
+        "f": fingerprint,
+        "n": device_name,
+    });
+    Ok(payload.to_string())
+}
+
 #[cfg(all(test, desktop))]
 mod tests {
     use super::*;
