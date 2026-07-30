@@ -20,6 +20,24 @@ vi.mock('@/lib/vaultDirectory', () => ({
   initVaultDirectory: vi.fn(),
 }));
 
+const mockCheckHasAccount = vi.fn().mockResolvedValue(undefined);
+
+vi.mock('@/stores/authStore', () => ({
+  useAuthStore: Object.assign(
+    vi.fn(() => ({
+      hasAccount: false,
+      checkHasAccount: mockCheckHasAccount,
+    })),
+    {
+      getState: () => ({
+        hasAccount: false,
+        checkHasAccount: mockCheckHasAccount,
+      }),
+      setState: vi.fn(),
+    },
+  ),
+}));
+
 describe('OnboardingDialog', () => {
   it('renders the first step by default', async () => {
     renderWithRouter(<OnboardingDialog onComplete={vi.fn()} onSkip={vi.fn()} />);
@@ -45,7 +63,7 @@ describe('OnboardingDialog', () => {
     });
   });
 
-  it('shows the done button on the last step and calls onComplete', async () => {
+  it('shows the recovery receive dialog when choosing sync from another device', async () => {
     const onComplete = vi.fn();
     renderWithRouter(<OnboardingDialog onComplete={onComplete} onSkip={vi.fn()} />);
 
@@ -63,8 +81,45 @@ describe('OnboardingDialog', () => {
 
     expect(screen.queryByRole('button', { name: /onboarding_next/i })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { name: /onboarding_done/i }));
-    // The done button's onClick is async (awaits checkHasAccount before
-    // calling onComplete), so we need waitFor to let the microtask flush.
+
+    // Decision card appears because no existing account is found
+    await waitFor(() => {
+      expect(screen.getByText(/onboarding_account_source_title/i)).toBeInTheDocument();
+    });
+
+    // Click sync from another device to open the recovery dialog
+    fireEvent.click(screen.getByText(/onboarding_account_source_sync/i));
+    await waitFor(() => {
+      expect(screen.getByText(/recovery_receive_title/i)).toBeInTheDocument();
+    });
+  });
+
+  it('shows the account source decision when no existing account is found', async () => {
+    const onComplete = vi.fn();
+    renderWithRouter(<OnboardingDialog onComplete={onComplete} onSkip={vi.fn()} />);
+
+    // Wait for platform to load
+    await waitFor(() => {
+      expect(screen.getByText(/onboarding_welcome_title/i)).toBeInTheDocument();
+    });
+
+    // Advance through all steps
+    const nextButton = screen.getByRole('button', { name: /onboarding_next/i });
+    fireEvent.click(nextButton);
+    fireEvent.click(screen.getByRole('button', { name: /onboarding_next/i }));
+    fireEvent.click(screen.getByRole('button', { name: /onboarding_next/i }));
+    fireEvent.click(screen.getByRole('button', { name: /onboarding_next/i }));
+
+    expect(screen.queryByRole('button', { name: /onboarding_next/i })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /onboarding_done/i }));
+
+    // Decision card appears because no existing account is found
+    await waitFor(() => {
+      expect(screen.getByText(/onboarding_account_source_title/i)).toBeInTheDocument();
+    });
+
+    // Click create new account to finish onboarding
+    fireEvent.click(screen.getByText(/onboarding_account_source_create/i));
     await waitFor(() => {
       expect(onComplete).toHaveBeenCalledTimes(1);
     });

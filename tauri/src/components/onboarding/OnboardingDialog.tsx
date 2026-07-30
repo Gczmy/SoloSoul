@@ -11,6 +11,7 @@ import {
   Folder,
   LogIn,
   UserPlus,
+  Smartphone,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import type { AccountInfo } from '@/lib/ipc';
@@ -18,6 +19,7 @@ import { ICON_SIZE, ST_ONBOARDING_SAF_URI } from '@/lib/constants';
 import { getPlatform } from '@/lib/platform';
 import { pickVaultDirectory, initVaultDirectory } from '@/lib/vaultDirectory';
 import { IndeterminateProgressBar } from '@/components/ui/IndeterminateProgressBar';
+import { RecoveryReceiveDialog } from '@/components/recovery/RecoveryReceiveDialog';
 
 interface OnboardingDialogProps {
   onComplete: () => void;
@@ -71,6 +73,9 @@ export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDial
   const [foundAccounts, setFoundAccounts] = useState<AccountInfo[]>([]);
   const [foundAccountCount, setFoundAccountCount] = useState(0);
   const [showAccountDecision, setShowAccountDecision] = useState(false);
+  // 完成引导后询问用户是否已有账户在其它设备上
+  const [showAccountSourceDecision, setShowAccountSourceDecision] = useState(false);
+  const [recoveryOpen, setRecoveryOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -864,6 +869,11 @@ export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDial
                   // （SAF 目录同步后账户可能已存在，需从后端重新查询）
                   await useAuthStore.getState().checkHasAccount();
                   const hasAccount = useAuthStore.getState().hasAccount;
+                  if (!hasAccount) {
+                    // 没有本地账户：询问用户是否已有账户在其它设备上
+                    setShowAccountSourceDecision(true);
+                    return;
+                  }
                   // 先执行 onComplete() 再 navigate，避免组件卸载后导航丢失
                   onComplete();
                   if (hasAccount) {
@@ -901,6 +911,178 @@ export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDial
             </button>
           </div>
         </div>
+
+        {/* 账户来源决策：新设备或从其它设备同步恢复 */}
+        {showAccountSourceDecision && (
+          <div
+            style={{
+              position: 'absolute',
+              inset: 0,
+              zIndex: 'calc(var(--z-onboarding) + 1)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'var(--bg-overlay)',
+              backdropFilter: 'blur(4px)',
+              padding: 16,
+              borderRadius: 18,
+            }}
+          >
+            <div
+              style={{
+                background: 'var(--bg-elevated)',
+                borderRadius: 18,
+                padding: '32px 36px',
+                maxWidth: 440,
+                width: '100%',
+                boxShadow: 'var(--shadow-lg)',
+                border: '1px solid var(--border-subtle)',
+                textAlign: 'center',
+              }}
+            >
+              <div
+                style={{
+                  width: 64,
+                  height: 64,
+                  borderRadius: 16,
+                  background: 'linear-gradient(135deg, var(--accent-primary), var(--accent-warm))',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  margin: '0 auto 20px',
+                }}
+              >
+                <Smartphone size={ICON_SIZE['3xl']} color="white" />
+              </div>
+
+              <h2
+                style={{
+                  fontSize: 'var(--text-page-title)',
+                  fontWeight: 700,
+                  margin: '0 0 10px',
+                  color: 'var(--text-primary)',
+                }}
+              >
+                {t('onboarding_account_source_title')}
+              </h2>
+              <p
+                style={{
+                  fontSize: 'var(--text-body)',
+                  color: 'var(--text-secondary)',
+                  lineHeight: 1.6,
+                  margin: '0 0 24px',
+                }}
+              >
+                {t('onboarding_account_source_desc')}
+              </p>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 16 }}>
+                <button
+                  type="button"
+                  onClick={() => setRecoveryOpen(true)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    padding: '14px 16px',
+                    borderRadius: 12,
+                    border: '1px solid var(--border-subtle)',
+                    background: 'var(--bg-toolbar)',
+                    color: 'var(--text-primary)',
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                    fontWeight: 500,
+                    fontSize: 'var(--text-body-sm)',
+                    transition: 'all 0.15s ease',
+                  }}
+                  className="interactive-toolbar"
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background =
+                      'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                    e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                    e.currentTarget.style.color = 'var(--accent-primary)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'var(--bg-toolbar)';
+                    e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                    e.currentTarget.style.color = 'var(--text-primary)';
+                  }}
+                >
+                  <Smartphone size={ICON_SIZE.md} />
+                  {t('onboarding_account_source_sync')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    onComplete();
+                    navigate('/bootstrap?mode=create', { replace: true });
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    padding: '14px 16px',
+                    borderRadius: 12,
+                    border: '1px solid var(--border-subtle)',
+                    background: 'var(--bg-toolbar)',
+                    color: 'var(--text-primary)',
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                    fontWeight: 500,
+                    fontSize: 'var(--text-body-sm)',
+                    transition: 'all 0.15s ease',
+                  }}
+                  className="interactive-toolbar"
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background =
+                      'color-mix(in srgb, var(--accent-warm) 10%, transparent)';
+                    e.currentTarget.style.borderColor = 'var(--accent-warm)';
+                    e.currentTarget.style.color = 'var(--accent-warm)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'var(--bg-toolbar)';
+                    e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                    e.currentTarget.style.color = 'var(--text-primary)';
+                  }}
+                >
+                  <UserPlus size={ICON_SIZE.md} />
+                  {t('onboarding_account_source_create')}
+                </button>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setShowAccountSourceDecision(false)}
+                style={{
+                  fontSize: 'var(--text-caption)',
+                  color: 'var(--text-tertiary)',
+                  background: 'transparent',
+                  border: 'none',
+                  padding: '6px 12px',
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  fontWeight: 500,
+                }}
+              >
+                {t('onboarding_account_source_back')}
+              </button>
+            </div>
+          </div>
+        )}
+
+        <RecoveryReceiveDialog
+          isOpen={recoveryOpen}
+          onClose={() => {
+            setRecoveryOpen(false);
+          }}
+          onSuccess={() => {
+            // 恢复成功后会写入账户，直接结束引导并跳转到登录页解锁新账户
+            onComplete();
+            navigate('/login', { replace: true });
+          }}
+        />
       </div>
     </div>
   );

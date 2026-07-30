@@ -11,6 +11,8 @@ import { useAuthStore } from '@/stores/authStore';
 interface RecoveryReceiveDialogProps {
   isOpen: boolean;
   onClose: () => void;
+  /** 恢复成功后调用；若提供则替代默认的 /home 导航 */
+  onSuccess?: () => void;
 }
 
 interface RecoveryResultSummary {
@@ -18,7 +20,7 @@ interface RecoveryResultSummary {
   attachmentCount: number;
 }
 
-export function RecoveryReceiveDialog({ isOpen, onClose }: RecoveryReceiveDialogProps) {
+export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryReceiveDialogProps) {
   const { t } = useTranslation(['common']);
   const navigate = useNavigate();
   const [accountName, setAccountName] = useState('');
@@ -76,7 +78,11 @@ export function RecoveryReceiveDialog({ isOpen, onClose }: RecoveryReceiveDialog
 
   const handleClose = () => {
     if (success) {
-      navigate('/home', { replace: true });
+      if (onSuccess) {
+        onSuccess();
+      } else {
+        navigate('/home', { replace: true });
+      }
     }
     onClose();
   };
