@@ -11,6 +11,7 @@ import { logger } from '@/lib/logger';
 import { ShieldLogo } from '@/components/ui/ShieldLogo';
 import { SecurePasswordInput } from '@/components/forms/PasswordInput';
 import { PinInput, type PinInputHandle } from '@/components/forms/PinInput';
+import { RecoveryReceiveDialog } from '@/components/recovery/RecoveryReceiveDialog';
 import { Fingerprint, KeyRound, ScanFace, ShieldCheck, Grip } from 'lucide-react';
 import styles from './LoginPage.module.css';
 import { ICON_SIZE } from '@/lib/constants';
@@ -69,6 +70,7 @@ export function LoginPage() {
   const [hoveredIcon, setHoveredIcon] = useState<string | null>(null);
   const [committedIcon, setCommittedIcon] = useState<string | null>(null);
   const commitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [recoveryOpen, setRecoveryOpen] = useState(false);
 
   // 移动端启动性能基线：登录页首个输入框获焦时记录 T1（MOB-P1-07）
   // 注意 T1 从 __SOLOSOUL_APP_START_TIME 开始算，记录首个输入框 focus 时刻。
@@ -763,11 +765,13 @@ export function LoginPage() {
           </div>
         )}
 
-        {/* 在已有账户的登录页提供创建新账户入口 */}
+        {/* 在已有账户的登录页提供创建新账户与从其他设备恢复入口 */}
         <div
           style={{
             display: 'flex',
-            justifyContent: 'center',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 8,
             marginTop: 16,
           }}
         >
@@ -792,6 +796,28 @@ export function LoginPage() {
             }}
           >
             {t('common:create_new_account_link')}
+          </button>
+          <button
+            type="button"
+            onClick={() => setRecoveryOpen(true)}
+            style={{
+              fontSize: 'var(--text-body-sm)',
+              color: 'var(--text-tertiary)',
+              background: 'transparent',
+              border: 'none',
+              padding: '6px 12px',
+              cursor: 'pointer',
+              fontFamily: 'inherit',
+              transition: 'all 0.15s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.color = 'var(--accent-primary)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.color = 'var(--text-tertiary)';
+            }}
+          >
+            {t('common:restore_from_device_link')}
           </button>
         </div>
 
@@ -882,6 +908,15 @@ export function LoginPage() {
             })}
           </div>
         )}
+
+        <RecoveryReceiveDialog
+          isOpen={recoveryOpen}
+          onClose={() => setRecoveryOpen(false)}
+          onSuccess={() => {
+            // 恢复成功后刷新账户列表，让登录页立即显示新恢复的账户
+            listAccounts();
+          }}
+        />
       </div>
     </div>
   );

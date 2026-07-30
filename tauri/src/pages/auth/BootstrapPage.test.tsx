@@ -126,4 +126,27 @@ describe('BootstrapPage', () => {
 
     expect(screen.getByText('some backend error')).toBeInTheDocument();
   });
+
+  it('shows back-to-login link when opened with mode=create', () => {
+    render(
+      <MemoryRouter initialEntries={['/bootstrap?mode=create']}>
+        <BootstrapPage />
+      </MemoryRouter>,
+    );
+
+    const backLink = screen.getByText('common:back_to_login_link');
+    expect(backLink).toBeInTheDocument();
+    fireEvent.click(backLink);
+    expect(navigate).toHaveBeenCalledWith('/login');
+  });
+
+  it('does not show back-to-login link without mode=create', () => {
+    render(
+      <MemoryRouter initialEntries={['/bootstrap']}>
+        <BootstrapPage />
+      </MemoryRouter>,
+    );
+
+    expect(screen.queryByText('common:back_to_login_link')).not.toBeInTheDocument();
+  });
 });

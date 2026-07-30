@@ -286,6 +286,8 @@
   "onboarding_action_login": "登录已有账户",
   "onboarding_action_create_new": "创建新账户",
   "create_new_account_link": "创建新账户",
+  "back_to_login_link": "返回登录",
+  "restore_from_device_link": "从其他设备恢复账户",
   "onboarding_vault_dir_selected_label": "已选外部存储位置",
   "onboarding_vault_dir_reselect": "重新选择",
   "onboarding_create_object_title": "创建第一个对象",

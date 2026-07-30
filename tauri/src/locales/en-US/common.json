@@ -287,6 +287,8 @@
   "onboarding_action_login": "Log in to existing account",
   "onboarding_action_create_new": "Create a new account",
   "create_new_account_link": "Create a new account",
+  "back_to_login_link": "Back to login",
+  "restore_from_device_link": "Restore from another device",
   "onboarding_vault_dir_selected_label": "Selected external storage location",
   "onboarding_vault_dir_reselect": "Reselect",
   "onboarding_create_object_title": "Create Your First Object",

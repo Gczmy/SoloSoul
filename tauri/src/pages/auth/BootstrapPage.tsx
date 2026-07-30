@@ -1,5 +1,5 @@
 import { useState, type CSSProperties } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import i18next from 'i18next';
 import { useAuthStore } from '@/stores/authStore';
@@ -19,6 +19,8 @@ export function BootstrapPage() {
   const [confirm, setConfirm] = useState('');
   const [passwordHint, setPasswordHint] = useState('');
   const [passwordMismatch, setPasswordMismatch] = useState(false);
+  const [searchParams] = useSearchParams();
+  const isCreateMode = searchParams.get('mode') === 'create';
   const { t } = useTranslation(['auth', 'common', 'settings']);
 
   const handleSubmit = async (e?: React.FormEvent) => {
@@ -145,6 +147,39 @@ export function BootstrapPage() {
             {t('auth:create_account')}
           </Button>
         </form>
+
+        {isCreateMode && (
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              marginTop: 16,
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => navigate('/login')}
+              style={{
+                fontSize: 'var(--text-body-sm)',
+                color: 'var(--text-tertiary)',
+                background: 'transparent',
+                border: 'none',
+                padding: '6px 12px',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                transition: 'all 0.15s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.color = 'var(--accent-primary)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.color = 'var(--text-tertiary)';
+              }}
+            >
+              {t('common:back_to_login_link')}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
