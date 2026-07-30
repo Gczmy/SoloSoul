@@ -1,6 +1,6 @@
 use crate::state::AppState;
 use serde::Serialize;
-use tauri::{Emitter, State};
+use tauri::{Emitter, Manager, State};
 
 /// 记录同步相关操作日志。Vault 未解锁时静默跳过（同步服务本身不依赖 Vault）。
 fn log_sync_action(
@@ -483,22 +483,23 @@ pub async fn sync_enable(
         // NSD 权限申请与注册可能阻塞命令（例如权限弹窗未立即返回），
         // 放在后台任务中执行，避免前端陷入永久“加载中”。
         let app = app.clone();
-        let state = state.clone();
+        // 克隆一份拥有的 AppState，使其可以在 'static 后台任务中使用。
+        let app_state: AppState = app.state::<AppState>().inner().clone();
         tokio::spawn(async move {
             let handle = app.state::<crate::nsd_plugin::NsdPluginHandle<tauri::Wry>>();
             if let Err(e) = handle.request_permissions() {
                 tracing::warn!("NSD request_permissions failed: {}", e);
                 return;
             }
-            let port = state.sync_service.listen_port().await;
+            let port = app_state.sync_service.listen_port().await;
             if port == 0 {
                 return;
             }
             // 如果用户在此期间已关闭同步，则放弃注册，避免与 disable 逻辑竞合。
-            if !state.sync_service.is_enabled().await {
+            if !app_state.sync_service.is_enabled().await {
                 return;
             }
-            let fingerprint = state
+            let fingerprint = app_state
                 .sync_service
                 .local_fingerprint()
                 .await
@@ -513,8 +514,8 @@ pub async fn sync_enable(
             {
                 tracing::warn!("Failed to register NSD sync service: {}", e);
                 // NSD 注册失败时回滚同步状态，避免半开启。
-                let _ = state.sync_service.enable(false).await;
-                let _ = state.handle.emit(
+                let _ = app_state.sync_service.enable(false).await;
+                let _ = app_state.handle.emit(
                     "sync-nsd-failed",
                     serde_json::json!({ "error": e }),
                 );
