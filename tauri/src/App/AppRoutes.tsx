@@ -236,17 +236,36 @@ export function AppRoutes() {
         await relaunch();
       }
     } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+
+      // Android 用户未授予「安装未知应用」权限时，Kotlin 端会打开系统设置页
+      // 并 reject 该错误。此时应保持「已下载」状态，让用户返回后再次点击安装，
+      // 而不是进入 error 状态导致必须重启应用。
+      if (isMobilePlatform && message.includes('NEED_INSTALL_UNKNOWN_APPS_PERMISSION')) {
+        import('@/stores/uiStore').then(({ useUiStore }) => {
+          useUiStore.getState().showToast({
+            type: 'warning',
+            message: t('settings:need_install_unknown_apps', {
+              defaultValue:
+                '请在系统设置中为 SoloSoul 开启「安装未知应用」权限，然后重新点击安装。',
+            }),
+            duration: 8000,
+          });
+        });
+        return;
+      }
+
       setUpdateState((prev) =>
         prev.kind === 'downloaded'
           ? {
               ...prev,
               kind: 'error' as const,
-              error: err instanceof Error ? err.message : String(err),
+              error: message,
             }
           : prev,
       );
     }
-  }, [updateState, isMobilePlatform]);
+  }, [updateState, isMobilePlatform, t]);
 
   // 首次启动时静默安装 bundled small OCR 模型（桌面端）
   const triggerOcrFirstInstall = useCallback(async () => {
