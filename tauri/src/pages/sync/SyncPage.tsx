@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import type { ReactNode } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
@@ -17,6 +18,8 @@ import {
   ChevronDown,
   ChevronUp,
   Info,
+  QrCode,
+  ScanLine,
 } from 'lucide-react';
 import { useSyncStore } from '@/stores/syncStore';
 import { DeleteButton } from '@/components/ui/DeleteButton';
@@ -29,6 +32,56 @@ import { ICON_SIZE } from '@/lib/constants';
 
 function formatNodeId(bytes: number[]): string {
   return bytes.map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+interface SyncIconButtonProps {
+  label: string;
+  icon: ReactNode;
+  onClick: () => void;
+  disabled: boolean;
+}
+
+function SyncIconButton({ label, icon, onClick, disabled }: SyncIconButtonProps) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      title={label}
+      aria-label={label}
+      style={{
+        width: 40,
+        height: 40,
+        borderRadius: 8,
+        border: '1px solid var(--border-subtle)',
+        background: 'var(--bg-toolbar)',
+        color: 'var(--text-primary)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: 0,
+        cursor: disabled ? 'default' : 'pointer',
+        opacity: disabled ? 0.6 : 1,
+        transition: 'all 0.15s ease',
+        fontFamily: 'inherit',
+      }}
+      onMouseEnter={(e) => {
+        if (disabled) return;
+        e.currentTarget.style.background =
+          'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
+        e.currentTarget.style.borderColor = 'var(--accent-primary)';
+        e.currentTarget.style.color = 'var(--accent-primary)';
+      }}
+      onMouseLeave={(e) => {
+        if (disabled) return;
+        e.currentTarget.style.background = 'var(--bg-toolbar)';
+        e.currentTarget.style.borderColor = 'var(--border-subtle)';
+        e.currentTarget.style.color = 'var(--text-primary)';
+      }}
+    >
+      {icon}
+    </button>
+  );
 }
 
 function formatHlc(hlc: SyncConflict['local_hlc']): string {
@@ -391,71 +444,19 @@ export function SyncPage() {
                 })}
               </div>
             </div>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              <SyncIconButton
+                label={t('settings:sync_qr_show', { defaultValue: 'Show QR' })}
+                icon={<QrCode size={ICON_SIZE.lg} />}
                 onClick={() => setShowQrDialogOpen(true)}
                 disabled={!store.syncEnabled || store.isLoading}
-                style={{
-                  padding: '8px 16px',
-                  borderRadius: 8,
-                  border: '1px solid var(--border-subtle)',
-                  background: 'var(--bg-toolbar)',
-                  color: 'var(--text-primary)',
-                  fontSize: 'var(--text-body-sm)',
-                  fontWeight: 500,
-                  cursor: !store.syncEnabled || store.isLoading ? 'default' : 'pointer',
-                  opacity: !store.syncEnabled || store.isLoading ? 0.6 : 1,
-                  transition: 'all 0.15s ease',
-                  fontFamily: 'inherit',
-                }}
-                onMouseEnter={(e) => {
-                  if (!store.syncEnabled || store.isLoading) return;
-                  e.currentTarget.style.background =
-                    'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
-                  e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                  e.currentTarget.style.color = 'var(--accent-primary)';
-                }}
-                onMouseLeave={(e) => {
-                  if (!store.syncEnabled || store.isLoading) return;
-                  e.currentTarget.style.background = 'var(--bg-toolbar)';
-                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                  e.currentTarget.style.color = 'var(--text-primary)';
-                }}
-              >
-                {t('settings:sync_qr_show', { defaultValue: 'Show QR' })}
-              </button>
-              <button
+              />
+              <SyncIconButton
+                label={t('settings:sync_qr_scan', { defaultValue: 'Scan QR' })}
+                icon={<ScanLine size={ICON_SIZE.lg} />}
                 onClick={() => setScanQrDialogOpen(true)}
                 disabled={!store.syncEnabled || store.isLoading}
-                style={{
-                  padding: '8px 16px',
-                  borderRadius: 8,
-                  border: '1px solid var(--border-subtle)',
-                  background: 'var(--bg-toolbar)',
-                  color: 'var(--text-primary)',
-                  fontSize: 'var(--text-body-sm)',
-                  fontWeight: 500,
-                  cursor: !store.syncEnabled || store.isLoading ? 'default' : 'pointer',
-                  opacity: !store.syncEnabled || store.isLoading ? 0.6 : 1,
-                  transition: 'all 0.15s ease',
-                  fontFamily: 'inherit',
-                }}
-                onMouseEnter={(e) => {
-                  if (!store.syncEnabled || store.isLoading) return;
-                  e.currentTarget.style.background =
-                    'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
-                  e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                  e.currentTarget.style.color = 'var(--accent-primary)';
-                }}
-                onMouseLeave={(e) => {
-                  if (!store.syncEnabled || store.isLoading) return;
-                  e.currentTarget.style.background = 'var(--bg-toolbar)';
-                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                  e.currentTarget.style.color = 'var(--text-primary)';
-                }}
-              >
-                {t('settings:sync_qr_scan', { defaultValue: 'Scan QR' })}
-              </button>
+              />
             </div>
           </div>
         </Card>
