@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
-import { X, QrCode, Link2, Loader2 } from 'lucide-react';
+import { X, QrCode, Link2, Loader2, Wifi } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/Card';
@@ -27,9 +27,18 @@ interface ReverseListenInfo {
   qrPayload: string;
 }
 
+interface RecoveryDiscoveredHost {
+  name: string;
+  addr: string;
+  pin: string;
+  fingerprint: string;
+  nonce: string;
+}
+
 type TabMode = 'manual' | 'reverse';
 
 const PIN_REGEX = /^\d{6}$/;
+const MDNS_DISCOVER_TIMEOUT_MS = 5000;
 
 export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryReceiveDialogProps) {
   const { t } = useTranslation(['common']);
@@ -51,6 +60,12 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
   const [masterPassword, setMasterPassword] = useState('');
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [statusText, setStatusText] = useState<string | null>(null);
+
+  // LAN discovery state
+  const [scanning, setScanning] = useState(false);
+  const [discoveredHosts, setDiscoveredHosts] = useState<RecoveryDiscoveredHost[]>([]);
+  const [scanError, setScanError] = useState<string | null>(null);
+  const [scanDone, setScanDone] = useState(false);
 
   // Reverse listen state
   const [reverseListenPassword, setReverseListenPassword] = useState('');
@@ -138,6 +153,43 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
     }
     resetState();
     setTab(newTab);
+  };
+
+  // ── 局域网扫描 ──
+  const handleScanLan = async () => {
+    if (scanning) return;
+    setScanning(true);
+    setScanError(null);
+    setDiscoveredHosts([]);
+    setScanDone(false);
+
+    try {
+      const hosts = await invoke<RecoveryDiscoveredHost[]>('recovery_discover_hosts', {
+        timeoutMs: MDNS_DISCOVER_TIMEOUT_MS,
+      });
+      if (!mountedRef.current) return;
+      setDiscoveredHosts(hosts);
+      setScanDone(true);
+      if (hosts.length === 0) {
+        setScanError(
+          t('common:recovery_scan_no_hosts', { defaultValue: 'No recovery hosts found on the network.' })
+        );
+      }
+    } catch (err) {
+      if (!mountedRef.current) return;
+      setScanError(String(err));
+    } finally {
+      setScanning(false);
+    }
+  };
+
+  const handleSelectHost = (host: RecoveryDiscoveredHost) => {
+    setHostAddr(host.addr);
+    setPin(host.pin);
+    setFingerprint(host.fingerprint);
+    setDiscoveredHosts([]);
+    setScanDone(false);
+    setScanError(null);
   };
 
   // ── 手动连接恢复 ──
@@ -492,6 +544,164 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
             >
               {t('common:recovery_receive_desc')}
             </p>
+
+            {/* ── 局域网扫描 ── */}
+            <div
+              style={{
+                padding: '10px 12px',
+                borderRadius: 8,
+                border: '1px dashed var(--border-subtle)',
+                marginBottom: 8,
+              }}
+            >
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: discoveredHosts.length > 0 || scanError ? 8 : 0,
+                }}
+              >
+                <span style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)' }}>
+                  {t('common:recovery_scan_lan_label', { defaultValue: 'LAN Discovery' })}
+                </span>
+                <button
+                  type="button"
+                  onClick={handleScanLan}
+                  disabled={scanning || loading}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 6,
+                    padding: '5px 10px',
+                    borderRadius: 6,
+                    border: scanning
+                      ? '1px solid var(--border-subtle)'
+                      : '1px solid transparent',
+                    background: scanning
+                      ? 'var(--bg-toolbar)'
+                      : 'color-mix(in srgb, var(--accent-primary) 8%, transparent)',
+                    color: scanning ? 'var(--text-tertiary)' : 'var(--accent-primary)',
+                    cursor: scanning || loading ? 'not-allowed' : 'pointer',
+                    fontFamily: 'inherit',
+                    fontSize: 'var(--text-caption)',
+                    fontWeight: 500,
+                    transition: 'all 0.15s ease',
+                    opacity: scanning || loading ? 0.6 : 1,
+                  }}
+                  onMouseEnter={(e) => {
+                    if (scanning || loading) return;
+                    e.currentTarget.style.background =
+                      'color-mix(in srgb, var(--accent-primary) 14%, transparent)';
+                  }}
+                  onMouseLeave={(e) => {
+                    if (scanning || loading) return;
+                    e.currentTarget.style.background =
+                      'color-mix(in srgb, var(--accent-primary) 8%, transparent)';
+                  }}
+                >
+                  {scanning ? (
+                    <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
+                  ) : (
+                    <Wifi size={14} />
+                  )}
+                  {scanning
+                    ? t('common:recovery_scan_scanning', { defaultValue: 'Scanning…' })
+                    : t('common:recovery_scan_button', { defaultValue: 'Scan LAN' })}
+                </button>
+              </div>
+
+              {/* 发现的设备列表 */}
+              {discoveredHosts.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {discoveredHosts.map((host, i) => (
+                    <button
+                      key={`${host.addr}-${i}`}
+                      type="button"
+                      onClick={() => handleSelectHost(host)}
+                      disabled={loading}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        padding: '8px 10px',
+                        borderRadius: 6,
+                        border: '1px solid var(--border-subtle)',
+                        background: 'var(--bg-elevated)',
+                        cursor: loading ? 'not-allowed' : 'pointer',
+                        fontFamily: 'inherit',
+                        textAlign: 'left',
+                        transition: 'all 0.15s ease',
+                        opacity: loading ? 0.6 : 1,
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!loading)
+                          e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!loading)
+                          e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                      }}
+                    >
+                      <div style={{ minWidth: 0 }}>
+                        <div
+                          style={{
+                            fontSize: 'var(--text-body-sm)',
+                            fontWeight: 500,
+                            color: 'var(--text-primary)',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {host.name}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: 'var(--text-caption)',
+                            color: 'var(--text-tertiary)',
+                            fontFamily: 'monospace',
+                          }}
+                        >
+                          {host.addr}
+                        </div>
+                      </div>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 4,
+                          padding: '2px 6px',
+                          borderRadius: 4,
+                          background: 'color-mix(in srgb, var(--accent-primary) 8%, transparent)',
+                          color: 'var(--accent-primary)',
+                          fontSize: 'var(--text-caption)',
+                          fontFamily: 'monospace',
+                          fontWeight: 600,
+                          letterSpacing: 2,
+                        }}
+                      >
+                        {host.pin}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {scanError && !scanning && (
+                <div
+                  style={{
+                    fontSize: 'var(--text-caption)',
+                    color: scanDone && discoveredHosts.length === 0
+                      ? 'var(--text-tertiary)'
+                      : '#e74c3c',
+                    padding: '2px 0',
+                  }}
+                >
+                  {scanError}
+                </div>
+              )}
+            </div>
 
             {/* 传输中的状态提示 */}
             {loading && statusText && (

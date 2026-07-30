@@ -146,11 +146,41 @@ pub async fn recovery_host_start(
         let _ = std::fs::remove_file(&export_path_for_thread);
     });
 
+    // 注册恢复主机的 mDNS 广告，让局域网内的新设备能自动发现本机
+    #[cfg(desktop)]
+    let mdns_instance_name = {
+        let daemon_state = app.state::<crate::commands::discovery::SharedDaemon>();
+        let daemon_arc = daemon_state.get().await?;
+        let guard = daemon_arc.lock().await;
+        if let Some(daemon) = guard.as_ref() {
+            let instance_name = format!("recovery-{}", &info.fingerprint[..info.fingerprint.len().min(8)]);
+            if let Err(e) = crate::commands::discovery::recovery_advertise(
+                daemon,
+                &instance_name,
+                info.display_addr.split(':').last().and_then(|p| p.parse::<u16>().ok()).unwrap_or(0),
+                &info.pin,
+                &info.fingerprint,
+                &info.nonce,
+                &info.display_addr,
+            ) {
+                tracing::warn!("Recovery mDNS advertise failed (non-fatal): {}", e);
+                None
+            } else {
+                Some(instance_name)
+            }
+        } else {
+            None
+        }
+    };
+    #[cfg(not(desktop))]
+    let mdns_instance_name: Option<String> = None;
+
     {
         let mut rec = state.recovery_state.lock().map_err(|e| e.to_string())?;
         rec.host_cancel = host_cancel;
         rec.host_thread = Some(thread);
         rec.export_path = Some(export_path);
+        rec.mdns_instance_name = mdns_instance_name;
     }
 
     let qr_payload = serde_json::json!({
@@ -174,7 +204,7 @@ pub async fn recovery_host_start(
 /// 取消当前正在运行的恢复主机。
 #[tauri::command]
 pub async fn recovery_host_cancel(state: State<'_, AppState>) -> Result<(), String> {
-    let (thread, path, receiver_thread) = {
+    let (thread, path, receiver_thread, mdns_name) = {
         let mut rec = state.recovery_state.lock().map_err(|e| e.to_string())?;
         rec.host_cancel.store(true, Ordering::SeqCst);
         rec.receiver_cancel.store(true, Ordering::SeqCst);
@@ -182,8 +212,26 @@ pub async fn recovery_host_cancel(state: State<'_, AppState>) -> Result<(), Stri
             rec.host_thread.take(),
             rec.export_path.take(),
             rec.receiver_thread.take(),
+            rec.mdns_instance_name.take(),
         )
     };
+
+    // 取消 mDNS 广告
+    if let Some(instance_name) = mdns_name {
+        #[cfg(desktop)]
+        {
+            use tauri::Manager;
+            if let Some(daemon_state) = state.handle.try_state::<crate::commands::discovery::SharedDaemon>() {
+                if let Ok(daemon_arc) = daemon_state.get().await {
+                    let guard = daemon_arc.lock().await;
+                    if let Some(daemon) = guard.as_ref() {
+                        let _ = crate::commands::discovery::recovery_stop_advertise(daemon, &instance_name);
+                    }
+                }
+            }
+        }
+    }
+
     if let Some(thread) = thread {
         let _ = thread.join();
     }

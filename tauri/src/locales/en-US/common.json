@@ -575,6 +575,11 @@
   "recovery_host_cancelled": "Link session cancelled.",
   "recovery_host_expires": "This session expires in 5 minutes.",
   "recovery_host_localhost_warning": "Could not detect your local network address. Please find this device's local IP manually and use it instead of 127.0.0.1.",
+  "recovery_host_qr_hint": "Scan with the other device to connect automatically",
+  "recovery_host_manual_show": "No camera? Enter details manually",
+  "recovery_host_manual_hide": "Hide manual entry guide",
+  "recovery_host_manual_desc": "On the other device, open \"Recover from another device\", choose the Manual tab, and enter:",
+  "recovery_host_manual_note": "Keep this app open until the transfer completes. The session expires in 5 minutes.",
   "sync_qr_show_title": "Sync QR Code",
   "sync_qr_show_desc": "Scan this code with another logged-in SoloSoul device to pair and sync.",
   "sync_qr_scan_title": "Scan QR Code",
@@ -621,5 +626,9 @@
   "recovery_advanced_hide": "Hide optional fingerprint",
   "recovery_fingerprint_placeholder": "e.g. abc123…",
   "recovery_connecting": "Connecting to host…",
-  "recovery_receive_addr_required": "Host address is required"
+  "recovery_receive_addr_required": "Host address is required",
+  "recovery_scan_lan_label": "LAN Discovery",
+  "recovery_scan_button": "Scan LAN",
+  "recovery_scan_scanning": "Scanning…",
+  "recovery_scan_no_hosts": "No recovery hosts found on the network."
 }

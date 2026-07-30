@@ -613,6 +613,7 @@ pub fn run() {
             // Discovery commands
             commands::discovery::mdns_advertise,
             commands::discovery::mdns_discover,
+            commands::discovery::recovery_discover_hosts,
             // Window chrome commands
             commands::window::set_titlebar_color,
             status_bar_plugin::set_status_bar_style,

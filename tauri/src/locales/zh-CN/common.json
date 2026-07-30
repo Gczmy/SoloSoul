@@ -574,6 +574,11 @@
   "recovery_host_cancelled": "已取消关联。",
   "recovery_host_expires": "此会话将在 5 分钟后过期。",
   "recovery_host_localhost_warning": "未能自动检测到本地网络地址。请手动查看本机局域网 IP，并替换 127.0.0.1 使用。",
+  "recovery_host_qr_hint": "用另一台设备扫描二维码即可自动连接",
+  "recovery_host_manual_show": "没有相机？手动输入信息",
+  "recovery_host_manual_hide": "收起手动输入指引",
+  "recovery_host_manual_desc": "在新设备上打开「从其他设备恢复」，选择「手动输入」标签页，然后输入：",
+  "recovery_host_manual_note": "在传输完成前请保持本应用打开。会话将在 5 分钟后过期。",
   "sync_qr_show_title": "同步二维码",
   "sync_qr_show_desc": "让其他已登录 SoloSoul 的设备扫描此二维码以配对并同步。",
   "sync_qr_scan_title": "扫描二维码",
@@ -620,5 +625,9 @@
   "recovery_advanced_hide": "隐藏可选的主机指纹",
   "recovery_fingerprint_placeholder": "例如 abc123…",
   "recovery_connecting": "正在连接主机…",
-  "recovery_receive_addr_required": "请输入主机地址"
+  "recovery_receive_addr_required": "请输入主机地址",
+  "recovery_scan_lan_label": "局域网发现",
+  "recovery_scan_button": "扫描局域网",
+  "recovery_scan_scanning": "扫描中…",
+  "recovery_scan_no_hosts": "未在局域网中找到恢复主机。"
 }

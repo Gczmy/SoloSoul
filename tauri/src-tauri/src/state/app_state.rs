@@ -48,6 +48,8 @@ pub struct RecoveryState {
     pub receiver_thread: Option<
         std::thread::JoinHandle<Result<solosoul_sync::recovery::RecoveryTransferResult, String>>,
     >,
+    /// 恢复主机注册的 mDNS 服务实例名（用于清理）。
+    pub mdns_instance_name: Option<String>,
 }
 
 impl RecoveryState {
@@ -58,6 +60,7 @@ impl RecoveryState {
             export_path: None,
             receiver_cancel: Arc::new(AtomicBool::new(false)),
             receiver_thread: None,
+            mdns_instance_name: None,
         }
     }
 }
