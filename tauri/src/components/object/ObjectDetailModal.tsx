@@ -181,7 +181,7 @@ export function ObjectDetailModal({
     invoke<{ available: boolean; configured: boolean; biometryType?: string }>(
       'biometric_check_availability',
       {
-        account_id: accountId,
+        accountId: accountId,
       },
     )
       .then((r) =>
@@ -224,7 +224,7 @@ export function ObjectDetailModal({
     async (password: string): Promise<boolean> => {
       if (!accountId) return false;
       try {
-        await invoke('unlock_with_password', { account_id: accountId, password });
+        await invoke('unlock_with_password', { accountId: accountId, password });
         return true;
       } catch {
         return false;
@@ -284,10 +284,10 @@ export function ObjectDetailModal({
     if (!accountId) return false;
     try {
       await invoke('biometric_unlock', {
-        account_id: accountId,
+        accountId: accountId,
         location: 'critical_data_access',
         action: 'unlock',
-        biometry_type: bioAvailable.biometryType,
+        biometryType: bioAvailable.biometryType,
       });
       const method =
         (bioAvailable.biometryType as 'touchId' | 'faceId' | 'windowsHello') || 'touchId';

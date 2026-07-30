@@ -119,7 +119,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => ({
   discoverDevices: async (timeoutMs = 5000) => {
     set({ isDiscoveringDevices: true, error: null });
     try {
-      const devices = await invoke<DiscoveredDevice[]>('mdns_discover', { timeout_ms: timeoutMs });
+      const devices = await invoke<DiscoveredDevice[]>('mdns_discover', { timeoutMs: timeoutMs });
       set({ discoveredDevices: devices, isDiscoveringDevices: false, error: null });
     } catch (err) {
       set({ isDiscoveringDevices: false, error: String(err) });
@@ -129,7 +129,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => ({
   syncWithDevice: async (deviceId) => {
     set({ isLoading: true, error: null, lastResult: null });
     try {
-      const result = await invoke<SyncResult>('sync_with_device', { device_id: deviceId });
+      const result = await invoke<SyncResult>('sync_with_device', { deviceId: deviceId });
       await get().loadStatus();
       await get().loadConflicts();
       set((state) => ({
@@ -145,7 +145,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => ({
   trustPeer: async (peerNodeId, trusted) => {
     set({ isLoading: true, error: null });
     try {
-      await invoke<void>('sync_trust_peer', { peer_node_id: peerNodeId, trusted });
+      await invoke<void>('sync_trust_peer', { peerNodeId: peerNodeId, trusted });
       await get().loadStatus();
       set({ isLoading: false });
     } catch (err) {
@@ -156,7 +156,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => ({
   forgetPeer: async (peerNodeId) => {
     set({ isLoading: true, error: null });
     try {
-      await invoke<void>('sync_forget_peer', { peer_node_id: peerNodeId });
+      await invoke<void>('sync_forget_peer', { peerNodeId: peerNodeId });
       await get().loadStatus();
       set({ isLoading: false });
     } catch (err) {
@@ -223,7 +223,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => ({
   loadConflictDetail: async (conflictId) => {
     try {
       const detail = await invoke<SyncConflictDetail>('sync_get_conflict_detail', {
-        conflict_id: conflictId,
+        conflictId: conflictId,
       });
       set({ selectedConflict: detail, error: null });
     } catch (err) {
@@ -234,7 +234,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => ({
   resolveConflict: async (conflictId, strategy) => {
     set({ isLoading: true, error: null });
     try {
-      await invoke<boolean>('sync_resolve_conflict', { conflict_id: conflictId, strategy });
+      await invoke<boolean>('sync_resolve_conflict', { conflictId: conflictId, strategy });
       await get().loadConflicts();
       set((state) => ({
         selectedConflict:

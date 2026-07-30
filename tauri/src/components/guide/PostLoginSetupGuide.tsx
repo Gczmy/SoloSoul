@@ -82,13 +82,13 @@ export function PostLoginSetupGuide() {
         bioConfigured = await invoke<{
           strongConfigured?: boolean;
           weakConfigured?: boolean;
-        }>('biometric_check_availability', { account_id: accountId })
+        }>('biometric_check_availability', { accountId: accountId })
           .then((r) => r.strongConfigured === true || r.weakConfigured === true)
           .catch(() => false);
       }
       if (hasPinHistory) {
         pinConfigured = await invoke<{ configured?: boolean }>('pin_check_availability', {
-          account_id: accountId,
+          accountId: accountId,
         })
           .then((r) => r.configured === true)
           .catch(() => false);

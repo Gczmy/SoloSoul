@@ -163,10 +163,10 @@ export async function uploadSingleAttachment(filePath: string, objectId: string)
     }
 
     vaultPath = await invoke<string>('attachment_copy_to_vault', {
-      src_path: uploadPath,
-      object_id: objectId,
-      attachment_id: id,
-      file_name: fileName,
+      srcPath: uploadPath,
+      objectId: objectId,
+      attachmentId: id,
+      fileName: fileName,
     }).catch(() => uploadPath);
 
     if (stagedPath) {
@@ -175,7 +175,7 @@ export async function uploadSingleAttachment(filePath: string, objectId: string)
   }
 
   await invoke('attachment_save', {
-    object_id: objectId,
+    objectId: objectId,
     meta: {
       id,
       objectId,

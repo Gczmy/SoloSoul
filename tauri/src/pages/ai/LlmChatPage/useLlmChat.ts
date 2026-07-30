@@ -71,8 +71,8 @@ export function useLlmChat(): UseLlmChatReturn {
   const refreshLists = useCallback(() => {
     if (!accountId) return;
     Promise.all([
-      invoke<ConversationSummary[]>('llm_list_conversations', { account_id: accountId }),
-      invoke<ConversationSummary[]>('llm_list_trash', { account_id: accountId }),
+      invoke<ConversationSummary[]>('llm_list_conversations', { accountId: accountId }),
+      invoke<ConversationSummary[]>('llm_list_trash', { accountId: accountId }),
     ])
       .then(([list, trash]) => {
         core?.setConversations(list);
@@ -116,8 +116,8 @@ export function useLlmChat(): UseLlmChatReturn {
     async (convId: string, newName: string) => {
       if (!accountId || !newName.trim()) return;
       await invoke('llm_rename_conversation', {
-        account_id: accountId,
-        conversation_id: convId,
+        accountId: accountId,
+        conversationId: convId,
         name: newName.trim(),
       });
       core.loadConversationList();
@@ -130,7 +130,7 @@ export function useLlmChat(): UseLlmChatReturn {
   const handleSoftDelete = useCallback(
     async (convId: string) => {
       if (!accountId) return;
-      await invoke('llm_soft_delete_conversation', { account_id: accountId, conversation_id: convId });
+      await invoke('llm_soft_delete_conversation', { accountId: accountId, conversationId: convId });
       if (core.currentConvId === convId) handleNewConversation();
       refreshLists();
     },
@@ -140,7 +140,7 @@ export function useLlmChat(): UseLlmChatReturn {
   const handleRestore = useCallback(
     async (convId: string) => {
       if (!accountId) return;
-      await invoke('llm_restore_conversation', { account_id: accountId, conversation_id: convId });
+      await invoke('llm_restore_conversation', { accountId: accountId, conversationId: convId });
       refreshLists();
     },
     [accountId, refreshLists],
@@ -149,7 +149,7 @@ export function useLlmChat(): UseLlmChatReturn {
   const handlePermanentDelete = useCallback(
     async (convId: string) => {
       if (!accountId) return;
-      await invoke('llm_permanent_delete', { account_id: accountId, conversation_id: convId });
+      await invoke('llm_permanent_delete', { accountId: accountId, conversationId: convId });
       setTrashList((prev) => prev.filter((c) => c.id !== convId));
       setConfirmPermanentDelete(null);
       setFloatingConv((prev) => (prev?.id === convId ? null : prev));
@@ -162,8 +162,8 @@ export function useLlmChat(): UseLlmChatReturn {
       if (!accountId) return;
       try {
         const conv = await invoke<Conversation>('llm_get_conversation', {
-          account_id: accountId,
-          conversation_id: convId,
+          accountId: accountId,
+          conversationId: convId,
         });
         setFloatingConv((prev) => (prev?.id === convId ? null : conv));
       } catch {

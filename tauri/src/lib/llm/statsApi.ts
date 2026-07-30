@@ -27,15 +27,15 @@ export interface LlmUsageStats {
 }
 
 export async function llmGetStats(accountId: string): Promise<LlmUsageStats> {
-  return invoke('llm_get_stats', { account_id: accountId });
+  return invoke('llm_get_stats', { accountId: accountId });
 }
 
 export async function llmResetStats(accountId: string): Promise<void> {
-  return invoke('llm_reset_stats', { account_id: accountId });
+  return invoke('llm_reset_stats', { accountId: accountId });
 }
 
 export async function llmPersistStats(accountId: string): Promise<void> {
-  return invoke('llm_persist_stats', { account_id: accountId });
+  return invoke('llm_persist_stats', { accountId: accountId });
 }
 
 const formatTokensFormatter = new Intl.NumberFormat(undefined, {

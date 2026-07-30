@@ -138,7 +138,7 @@ export function PasswordVerificationDialog({
 
     if (pinAccountId) {
       invoke<{ configured: boolean; locked: boolean }>('pin_check_availability', {
-        account_id: pinAccountId,
+        accountId: pinAccountId,
       })
         .then((r) => setPinAvailable(r.configured && !r.locked))
         .catch(() => setPinAvailable(false))
@@ -173,7 +173,7 @@ export function PasswordVerificationDialog({
       setPinError(null);
       try {
         await invoke('pin_unlock', {
-          account_id: pinAccountId,
+          accountId: pinAccountId,
           pin,
           location: 'critical_data_access',
           action: 'unlock',

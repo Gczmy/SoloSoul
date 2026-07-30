@@ -75,7 +75,7 @@ export function RecoveryHostDialog({ isOpen, onClose }: RecoveryHostDialogProps)
       }
       setLoading(true);
       invoke<void>('recovery_host_push', {
-        host_addr: parsed.a,
+        hostAddr: parsed.a,
         pin: String(parsed.p),
         fingerprint: parsed.f,
         nonce: parsed.n,

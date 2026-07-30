@@ -72,7 +72,7 @@ function ObjectDetailContent({
     setHistorySnapLoading((prev) => ({ ...prev, [detailId]: true }));
     try {
       const data = await invoke<Record<string, unknown> | null>('snapshot_get_data', {
-        snapshot_id: snapshotId,
+        snapshotId: snapshotId,
       });
       setHistorySnapData((prev) => ({ ...prev, [detailId]: data }));
     } catch {
@@ -677,7 +677,7 @@ export function TrashDetailPanel({
     setViewingChildId(child.id);
     setChildLoading(true);
     try {
-      const detail = await invoke<TrashDetail>('trash_get_detail', { trash_id: child.id });
+      const detail = await invoke<TrashDetail>('trash_get_detail', { trashId: child.id });
       setChildDetail(detail);
     } catch {
       setChildDetail(null);

@@ -99,7 +99,7 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
           activeProviderId?: string;
           aiFeaturesEnabled?: { chat: boolean };
           includeSystemPrompt?: boolean;
-        }>('llm_get_config', { account_id: accountId });
+        }>('llm_get_config', { accountId: accountId });
         setIsAiEnabled(cfg.aiFeaturesEnabled?.chat ?? false);
         if (!cfg.activeProviderId) {
           setIsConfigured(false);
@@ -108,7 +108,7 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
         }
         const providers = await invoke<
           Array<{ id: string; name: string; model: string; baseUrl: string; apiType: string }>
-        >('llm_get_providers', { account_id: accountId });
+        >('llm_get_providers', { accountId: accountId });
         const active = providers.find((p) => p.id === cfg.activeProviderId);
         if (active) {
           setActiveProvider({
@@ -137,7 +137,7 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
     const controller = new AbortController();
     abortRef.current = controller;
     try {
-      const list = await invoke<ConversationSummary[]>('llm_list_conversations', { account_id: accountId });
+      const list = await invoke<ConversationSummary[]>('llm_list_conversations', { accountId: accountId });
       if (!controller.signal.aborted) setConversations(list);
     } catch {
       /* ignore */
@@ -160,17 +160,17 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
         let key = '';
         try {
           key = await invoke<string>('llm_get_api_key', {
-            account_id: accountId,
-            provider_id: activeProvider.id,
+            accountId: accountId,
+            providerId: activeProvider.id,
           });
         } catch {
           /* may not have key */
         }
         const online = await invoke<boolean>('llm_check_connection', {
-          base_url: activeProvider.baseUrl,
-          api_key: key,
+          baseUrl: activeProvider.baseUrl,
+          apiKey: key,
           model: activeProvider.model,
-          api_type: activeProvider.apiType,
+          apiType: activeProvider.apiType,
         });
         if (!controller.signal.aborted) setIsOnline(online);
       } catch {
@@ -204,8 +204,8 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
       if (!accountId) return;
       try {
         const conv = await invoke<Conversation>('llm_get_conversation', {
-          account_id: accountId,
-          conversation_id: convId,
+          accountId: accountId,
+          conversationId: convId,
         });
         setCurrentConvId(conv.id);
         setMessages(conv.messages.map((m) => (m.id ? m : { ...m, id: generateId() })));
@@ -245,7 +245,7 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
           updatedAt: nowISO(),
         };
         invoke('llm_save_conversation', {
-          account_id: accountIdRef.current,
+          accountId: accountIdRef.current,
           conversation: finalConv,
         }).catch((err) => logger.warn('[useLlmChatCore] Save conversation failed:', err));
         onConversationSaved?.();
@@ -309,7 +309,7 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
         updatedAt: nowISO(),
       };
       try {
-        await invoke('llm_save_conversation', { account_id: accountId, conversation: partialConv });
+        await invoke('llm_save_conversation', { accountId: accountId, conversation: partialConv });
         onConversationSaved?.();
       } catch {
         /* continue */
@@ -328,8 +328,8 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
 
     try {
       const apiKey = await invoke<string>('llm_get_api_key', {
-        account_id: accountId,
-        provider_id: activeProvider.id,
+        accountId: accountId,
+        providerId: activeProvider.id,
       });
 
       let allMessages: Array<{ role: string; content: string }> = [];
@@ -352,12 +352,12 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
       markConversationPending(convId);
 
       invoke('llm_send_message_stream', {
-        account_id: accountId,
-        conversation_id: convId,
-        base_url: activeProvider.baseUrl,
-        api_key: apiKey,
+        accountId: accountId,
+        conversationId: convId,
+        baseUrl: activeProvider.baseUrl,
+        apiKey: apiKey,
         model: activeProvider.model,
-        api_type: activeProvider.apiType,
+        apiType: activeProvider.apiType,
         messages: allMessages,
       }).catch((err) => {
         llmStore.onChunk({
@@ -387,7 +387,7 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
         updatedAt: nowISO(),
       };
       try {
-        await invoke('llm_save_conversation', { account_id: accountId, conversation: errorConv });
+        await invoke('llm_save_conversation', { accountId: accountId, conversation: errorConv });
       } catch {
         /* best effort */
       }

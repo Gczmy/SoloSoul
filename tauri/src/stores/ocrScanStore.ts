@@ -80,7 +80,7 @@ export const useOcrScanStore = create<OcrScanState>()(
 
         try {
           if (state.scanMode === 'mrz') {
-            const res = await invoke<MrzResult | null>('ocr_scan_mrz', { file_path: filePath });
+            const res = await invoke<MrzResult | null>('ocr_scan_mrz', { filePath: filePath });
             if (res) {
               set((s) => ({
                 isScanning: false,
@@ -89,7 +89,7 @@ export const useOcrScanStore = create<OcrScanState>()(
               }));
             } else {
               // 未检测到 MRZ 时自动 fallback 到通用 OCR
-              const fallback = await invoke<OcrResult>('ocr_scan_image', { file_path: filePath });
+              const fallback = await invoke<OcrResult>('ocr_scan_image', { filePath: filePath });
               set((s) => ({
                 isScanning: false,
                 scanHistory: s.scanHistory.map((h) =>
@@ -99,7 +99,7 @@ export const useOcrScanStore = create<OcrScanState>()(
               }));
             }
           } else {
-            const res = await invoke<OcrResult>('ocr_scan_image', { file_path: filePath });
+            const res = await invoke<OcrResult>('ocr_scan_image', { filePath: filePath });
             set((s) => ({
               isScanning: false,
               scanHistory: s.scanHistory.map((h) => (h.id === id ? { ...h, result: res } : h)),

@@ -65,7 +65,7 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
     const wait = async () => {
       try {
         const result = await invoke<RecoveryResultSummary>('recovery_receive_listen_wait', {
-          master_password: reverseSession.password,
+          masterPassword: reverseSession.password,
         });
         if (!active || !mountedRef.current) return;
         setSuccess(result);
@@ -117,8 +117,8 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
     setLoading(true);
     try {
       const result = await invoke<RecoveryResultSummary>('recovery_restore_from_host', {
-        master_password: password,
-        host_addr: hostAddr,
+        masterPassword: password,
+        hostAddr: hostAddr,
         pin,
         fingerprint,
         nonce,

@@ -62,10 +62,10 @@ describe('templateStore', () => {
 
       expect(mockInvoke).toHaveBeenCalledWith('template_create', {
         name: 'My Template',
-        icon_id: 'star',
+        iconId: 'star',
         category: 'general',
         properties: [{ id: 'field1', name: 'Field 1', type: 'text' }],
-        contract_type_id: undefined,
+        contractTypeId: undefined,
       });
       expect(id).toBe('new-tpl-1');
     });
@@ -79,7 +79,7 @@ describe('templateStore', () => {
       expect(mockInvoke).toHaveBeenCalledWith(
         'template_create',
         expect.objectContaining({
-          contract_type_id: 'ct-123',
+          contractTypeId: 'ct-123',
         }),
       );
     });
@@ -94,9 +94,9 @@ describe('templateStore', () => {
       await useTemplateStore.getState().updateTemplate('t1', { name: 'Renamed' });
 
       expect(mockInvoke).toHaveBeenCalledWith('template_update', {
-        template_id: 't1',
+        templateId: 't1',
         name: 'Renamed',
-        icon_id: undefined,
+        iconId: undefined,
         category: undefined,
         properties: undefined,
       });
@@ -134,7 +134,7 @@ describe('templateStore', () => {
       });
       await useTemplateStore.getState().deleteTemplate('t1');
 
-      expect(mockInvoke).toHaveBeenCalledWith('template_delete', { template_id: 't1' });
+      expect(mockInvoke).toHaveBeenCalledWith('template_delete', { templateId: 't1' });
       expect(useTemplateStore.getState().templates).toHaveLength(1);
       expect(useTemplateStore.getState().templates[0].id).toBe('t2');
     });
@@ -176,9 +176,9 @@ describe('templateStore', () => {
       const id = await useTemplateStore.getState().saveFromObject('obj-1', 'From Object');
 
       expect(mockInvoke).toHaveBeenCalledWith('template_save_from_object', {
-        object_id: 'obj-1',
-        template_name: 'From Object',
-        icon_id: undefined,
+        objectId: 'obj-1',
+        templateName: 'From Object',
+        iconId: undefined,
       });
       expect(id).toBe('tpl-from-obj');
     });
@@ -191,8 +191,8 @@ describe('templateStore', () => {
       const { useTemplateStore } = await import('./templateStore');
       const result = await useTemplateStore.getState().checkFieldUsage('t1', 'field1');
       expect(mockInvoke).toHaveBeenCalledWith('template_check_field_usage', {
-        template_id: 't1',
-        field_key: 'field1',
+        templateId: 't1',
+        fieldKey: 'field1',
       });
       expect(result).toEqual({ active: 3, softDeleted: 1 });
     });

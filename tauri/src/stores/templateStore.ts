@@ -49,10 +49,10 @@ export const useTemplateStore = create<TemplateState>((set, get) => ({
   async createTemplate(name, iconId, category, properties, contractTypeId) {
     const id = await invoke<string>('template_create', {
       name,
-      icon_id: iconId,
+      iconId: iconId,
       category,
       properties,
-      contract_type_id: contractTypeId,
+      contractTypeId: contractTypeId,
     });
     await get().loadTemplates();
     return id;
@@ -60,18 +60,18 @@ export const useTemplateStore = create<TemplateState>((set, get) => ({
 
   async updateTemplate(id, updates) {
     await invoke('template_update', {
-      template_id: id,
+      templateId: id,
       name: updates.name,
-      icon_id: updates.iconId,
+      iconId: updates.iconId,
       category: updates.category,
       properties: updates.properties,
-      contract_type_id: updates.contractTypeId,
+      contractTypeId: updates.contractTypeId,
     });
     await get().loadTemplates();
   },
 
   async deleteTemplate(id) {
-    await invoke('template_delete', { template_id: id });
+    await invoke('template_delete', { templateId: id });
     set((state) => ({
       templates: state.templates.filter((t) => t.id !== id),
     }));
@@ -79,7 +79,7 @@ export const useTemplateStore = create<TemplateState>((set, get) => ({
 
   async getTemplate(id) {
     try {
-      return await invoke<UserTemplate>('template_get', { template_id: id });
+      return await invoke<UserTemplate>('template_get', { templateId: id });
     } catch {
       return null;
     }
@@ -87,9 +87,9 @@ export const useTemplateStore = create<TemplateState>((set, get) => ({
 
   async saveFromObject(objectId, name) {
     const id = await invoke<string>('template_save_from_object', {
-      object_id: objectId,
-      template_name: name,
-      icon_id: undefined,
+      objectId: objectId,
+      templateName: name,
+      iconId: undefined,
     });
     await get().loadTemplates();
     return id;
@@ -97,8 +97,8 @@ export const useTemplateStore = create<TemplateState>((set, get) => ({
 
   async checkFieldUsage(templateId, fieldKey) {
     return await invoke<{ active: number; softDeleted: number }>('template_check_field_usage', {
-      template_id: templateId,
-      field_key: fieldKey,
+      templateId: templateId,
+      fieldKey: fieldKey,
     });
   },
 }));

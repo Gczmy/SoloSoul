@@ -109,7 +109,7 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
 
   const refreshAvailability = useCallback(async (): Promise<BioAvailability | null> => {
     try {
-      const r = await invoke<BioAvailability>('biometric_check_availability', { account_id: accountId });
+      const r = await invoke<BioAvailability>('biometric_check_availability', { accountId: accountId });
       setBioAvailable(r);
       return r;
     } catch {
@@ -159,11 +159,11 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
       const rawType = bioMode === 'weak' ? 'faceId' : bioAvailable?.biometryType || 'touchId';
       if (bioAction === 'enable') {
         await invoke('biometric_save_credential', {
-          account_id: accountId,
+          accountId: accountId,
           password: bioPw,
           location: 'settings_page',
           action: 'enable',
-          biometry_type: rawType,
+          biometryType: rawType,
           authenticator: bioMode,
         });
         const r = await refreshAvailability();
@@ -172,11 +172,11 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
         onSuccess(t('settings:biometric_enabled_toast', { type: modeType }));
       } else {
         await invoke('biometric_delete_credential', {
-          account_id: accountId,
+          accountId: accountId,
           password: bioPw,
           location: 'settings_page',
           action: 'disable',
-          biometry_type: rawType,
+          biometryType: rawType,
           authenticator: bioMode,
         });
         const r = await refreshAvailability();
@@ -206,7 +206,7 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
     const { pause, resume } = useAutoLockPauseStore.getState();
     pause();
     try {
-      await invoke('biometric_test', { account_id: accountId });
+      await invoke('biometric_test', { accountId: accountId });
       onSuccess(t('settings:biometric_test_success', { type: strongType }));
     } catch (e) {
       onError(

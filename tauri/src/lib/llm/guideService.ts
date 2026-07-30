@@ -36,7 +36,7 @@ export async function searchGuideChunks(
     const chunks = await invoke<GuideChunk[]>('llm_search_guide_chunks', {
       query,
       language,
-      top_k: topK,
+      topK: topK,
     });
     return chunks;
   } catch {

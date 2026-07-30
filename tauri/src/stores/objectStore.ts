@@ -102,7 +102,7 @@ export const useObjectStore = create<ObjectState>((set) => ({
     set({ objects: [], isLoading: true, error: null });
     try {
       const objects = await invoke<ObjectSummary[]>('object_list', {
-        account_id: accountId,
+        accountId: accountId,
         filter: filter || null,
       });
       set({ objects, isLoading: false });
@@ -114,7 +114,7 @@ export const useObjectStore = create<ObjectState>((set) => ({
   getObject: async (accountId, objectId) => {
     set({ isLoading: true, error: null });
     try {
-      const obj = await invoke<ObjectData | null>('object_get', { account_id: accountId, object_id: objectId });
+      const obj = await invoke<ObjectData | null>('object_get', { accountId: accountId, objectId: objectId });
       set((s) => ({
         currentObjectCache: obj
           ? { ...s.currentObjectCache, [objectId]: obj }
@@ -158,7 +158,7 @@ export const useObjectStore = create<ObjectState>((set) => ({
   updateObject: async (objectId, input) => {
     set({ isLoading: true, error: null });
     try {
-      const obj = await invoke<ObjectData>('object_update', { object_id: objectId, input });
+      const obj = await invoke<ObjectData>('object_update', { objectId: objectId, input });
       set((s) => ({
         currentObjectCache: { ...s.currentObjectCache, [objectId]: obj },
         isLoading: false,
@@ -171,7 +171,7 @@ export const useObjectStore = create<ObjectState>((set) => ({
   deleteObject: async (objectId) => {
     set({ isLoading: true, error: null });
     try {
-      await invoke('object_delete', { object_id: objectId });
+      await invoke('object_delete', { objectId: objectId });
       set((s) => ({
         objects: s.objects.filter((o) => o.id !== objectId),
         isLoading: false,
@@ -186,7 +186,7 @@ export const useObjectStore = create<ObjectState>((set) => ({
   loadTrashObjects: async (accountId) => {
     set({ isLoading: true, error: null });
     try {
-      const items = await invoke<ObjectSummary[]>('object_trash_list', { account_id: accountId });
+      const items = await invoke<ObjectSummary[]>('object_trash_list', { accountId: accountId });
       set({ trashObjects: items, isLoading: false });
     } catch (err) {
       set({ error: String(err), isLoading: false });
@@ -209,7 +209,7 @@ export const useObjectStore = create<ObjectState>((set) => ({
   purgeObject: async (objectId) => {
     set({ isLoading: true, error: null });
     try {
-      await invoke('object_purge', { object_id: objectId });
+      await invoke('object_purge', { objectId: objectId });
       set((s) => ({
         trashObjects: s.trashObjects.filter((o) => o.id !== objectId),
         isLoading: false,
@@ -222,16 +222,16 @@ export const useObjectStore = create<ObjectState>((set) => ({
   previewSyncTemplate: async (accountId, objectId) => {
     return invoke<TemplateSyncResult>('object_sync_with_template', {
       accountId,
-      object_id: objectId,
-      dry_run: true,
+      objectId: objectId,
+      dryRun: true,
     });
   },
 
   applySyncTemplate: async (accountId, objectId) => {
     const result = await invoke<TemplateSyncResult>('object_sync_with_template', {
       accountId,
-      object_id: objectId,
-      dry_run: false,
+      objectId: objectId,
+      dryRun: false,
     });
     // 同步成功后刷新该对象缓存，使 UI 立即反映最新字段与敏感度。
     await useObjectStore.getState().getObject(accountId, objectId);
@@ -239,13 +239,13 @@ export const useObjectStore = create<ObjectState>((set) => ({
   },
 
   ignoreTemplateSync: async (objectId: string, hash: string) => {
-    await invoke('object_ignore_template_sync', { object_id: objectId, hash });
+    await invoke('object_ignore_template_sync', { objectId: objectId, hash });
   },
 
   loadDeprecatedFields: async (accountId, objectId) => {
     return invoke<DeprecatedField[]>('object_list_deprecated_fields', {
       accountId,
-      object_id: objectId,
+      objectId: objectId,
     });
   },
 

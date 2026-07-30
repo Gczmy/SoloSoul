@@ -48,7 +48,7 @@ export const useProfileStore = create<ProfileState>((set) => ({
     set({ isLoading: true, error: null });
     try {
       const profile = await invoke<{ accountId: string; data: number[] } | null>('profile_load', {
-        account_id: accountId,
+        accountId: accountId,
       });
       if (profile?.data) {
         const json = JSON.parse(new TextDecoder().decode(new Uint8Array(profile.data)));
@@ -75,8 +75,8 @@ export const useProfileStore = create<ProfileState>((set) => ({
   loadSection: async (accountId, sectionType) => {
     try {
       const section = await invoke<ProfileSectionData | null>('profile_get_section', {
-        account_id: accountId,
-        section_type: sectionType,
+        accountId: accountId,
+        sectionType: sectionType,
       });
       return section;
     } catch {
@@ -87,10 +87,10 @@ export const useProfileStore = create<ProfileState>((set) => ({
   updateField: async (accountId, sectionType, fieldKey, value) => {
     try {
       await invoke('profile_update_field', {
-        account_id: accountId,
-        section_type: sectionType,
-        field_key: fieldKey,
-        field_value: value,
+        accountId: accountId,
+        sectionType: sectionType,
+        fieldKey: fieldKey,
+        fieldValue: value,
       });
     } catch (err) {
       set({ error: String(err) });

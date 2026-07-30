@@ -238,7 +238,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   loadSettings: async (accountId) => {
     set({ isLoading: true });
     try {
-      const raw = await invoke<unknown>('user_data_get_preferences', { account_id: accountId });
+      const raw = await invoke<unknown>('user_data_get_preferences', { accountId: accountId });
       const parsedPrefsResult = accountPrefsSchema.safeParse(raw);
       const prefs: AccountPrefs = parsedPrefsResult.success ? parsedPrefsResult.data : {};
       const parsed = { ...DEFAULT_SETTINGS };
@@ -321,7 +321,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
           updatedAt: string;
           isDeleted?: boolean;
         }>
-      >('object_list', { account_id: accountId, filter: { collectionType: 'page', includeDeleted: true } });
+      >('object_list', { accountId: accountId, filter: { collectionType: 'page', includeDeleted: true } });
       if (objects.length > 0) {
         // New-format pages exist in objects table — use them (including deleted pages so
         // templates referencing deleted pages can still show the original page name)
@@ -332,7 +332,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
               try {
                 const detail = await invoke<{ properties?: Record<string, unknown> } | null>(
                   'object_get',
-                  { account_id: accountId, object_id: o.id },
+                  { accountId: accountId, objectId: o.id },
                 );
                 const desc = detail?.properties?.description;
                 if (typeof desc === 'string') {
@@ -466,7 +466,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       // sectionType must be the actual page UUID so that page_delete's sub-object
       // matching (section_type == section_type || collection_type == section_type)
       // correctly finds all child objects assigned to this custom page.
-      await invoke('page_delete', { account_id: accountId, section_type: pageId, page_object_id: pageId });
+      await invoke('page_delete', { accountId: accountId, sectionType: pageId, pageObjectId: pageId });
     } catch (e) {
       logger.warn('[settingsStore] Failed to remove custom page:', pageId, e);
       set((s) => ({ settings: { ...s.settings, customPages: prevPages } }));

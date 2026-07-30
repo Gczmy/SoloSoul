@@ -143,7 +143,7 @@ export function ExportImportPage() {
   const loadScope = useCallback(() => {
     if (!accountId) return;
     setScopeLoaded(false);
-    invoke<PageGroup[]>('export_get_scope_tree', { account_id: accountId })
+    invoke<PageGroup[]>('export_get_scope_tree', { accountId: accountId })
       .then((groups) => {
         setPageGroups(groups);
         setScopeLoaded(true);
@@ -269,7 +269,7 @@ export function ExportImportPage() {
       }
 
       const exportedPath = await invoke<string>('export_execute', {
-        account_id: accountId,
+        accountId: accountId,
         req: {
           scope: {
             selectedPageIds: Array.from(selectedPageIds),
@@ -311,7 +311,7 @@ export function ExportImportPage() {
     try {
       const sourcePath = await resolveImportSource();
       const preview = await invoke<ImportPreview>('import_parse_package', {
-        file_path: sourcePath,
+        filePath: sourcePath,
       });
       setImportPreview(preview);
       setDecryptedPreview(null);
@@ -328,7 +328,7 @@ export function ExportImportPage() {
     try {
       const sourcePath = await resolveImportSource();
       const preview = await invoke<DecryptedImportPreview>('import_decrypt_preview', {
-        file_path: sourcePath,
+        filePath: sourcePath,
         password: importPw,
       });
       setDecryptedPreview(preview);
@@ -385,7 +385,7 @@ export function ExportImportPage() {
 
       if (showStrategySelector && decryptedPreview) {
         const result = await invoke<ImportResult>('import_execute_advanced', {
-          account_id: accountId,
+          accountId: accountId,
           req: {
             selections,
             strategy: importStrategy,
@@ -405,7 +405,7 @@ export function ExportImportPage() {
       } else {
         // Quick Import: use SkipExisting strategy, respect selections
         const result = await invoke<ImportResult>('import_execute_advanced', {
-          account_id: accountId,
+          accountId: accountId,
           req: {
             selections,
             strategy: 'skipExisting',

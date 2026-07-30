@@ -256,9 +256,9 @@ describe('settingsStore', () => {
       expect(pages[0].deletedAt).toBeDefined();
       expect(pages[1].deletedAt).toBeUndefined();
       expect(invoke).toHaveBeenCalledWith('page_delete', {
-        account_id: 'acc-1',
-        section_type: 'p1',
-        page_object_id: 'p1',
+        accountId: 'acc-1',
+        sectionType: 'p1',
+        pageObjectId: 'p1',
       });
     });
 
@@ -341,7 +341,7 @@ describe('settingsStore', () => {
       expect(pages[0].name).toBe('Page A');
       expect(pages[1].sortOrder).toBe(1);
       expect(invoke).toHaveBeenCalledWith('object_list', {
-        account_id: 'acc-1',
+        accountId: 'acc-1',
         filter: { collectionType: 'page', includeDeleted: true },
       });
     });

@@ -136,8 +136,8 @@ export async function androidDownloadApk(
   // expectedChecksum: 传入空字符串或有效 hex；Rust 端根据非空决定是否校验
   invoke<void>('android_download_apk', {
     version,
-    download_url: downloadUrl,
-    expected_checksum: checksum || null,
+    downloadUrl: downloadUrl,
+    expectedChecksum: checksum || null,
   }).catch((err) => {
     logger.error('[updater] android download failed:', err);
     onProgress?.({

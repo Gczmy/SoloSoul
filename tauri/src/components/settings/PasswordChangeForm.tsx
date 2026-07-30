@@ -58,13 +58,13 @@ export function PasswordChangeForm({ accountId }: PasswordChangeFormProps) {
     try {
       if (isChangingPw) {
         await invoke('change_password', {
-          account_id: accountId || '',
-          old_password: oldPw,
-          new_password: newPw,
+          accountId: accountId || '',
+          oldPassword: oldPw,
+          newPassword: newPw,
         });
         if (hint.trim() || hintCleared) {
           await invoke('vault_update_hint', {
-            account_id: accountId || '',
+            accountId: accountId || '',
             password: newPw,
             hint: hint.trim(),
           });
@@ -78,7 +78,7 @@ export function PasswordChangeForm({ accountId }: PasswordChangeFormProps) {
         }
         if (hint.trim() || hintCleared) {
           await invoke('vault_update_hint', {
-            account_id: accountId || '',
+            accountId: accountId || '',
             password: oldPw,
             hint: hint.trim(),
           });

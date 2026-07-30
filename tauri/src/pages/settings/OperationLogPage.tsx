@@ -176,7 +176,7 @@ export function OperationLogPage() {
         await copyStagedFileToDest(exportedPath, filePath);
         onSuccess(`${t('common:export')} → ${filePath}`);
       } else {
-        const result = await invoke<string>('log_export', { export_path: filePath });
+        const result = await invoke<string>('log_export', { exportPath: filePath });
         onSuccess(`${t('common:export')} → ${result}`);
       }
     } catch (e) {

@@ -46,7 +46,7 @@ describe('objectStore', () => {
       await useObjectStore.getState().loadObjects('acc-1', { collectionType: 'address' });
 
       expect(mockInvoke).toHaveBeenCalledWith('object_list', {
-        account_id: 'acc-1',
+        accountId: 'acc-1',
         filter: { collectionType: 'address' },
       });
       expect(useObjectStore.getState().objects).toEqual(objects);
@@ -70,7 +70,7 @@ describe('objectStore', () => {
       const { useObjectStore } = await import('./objectStore');
       await useObjectStore.getState().loadObjects('acc-1');
 
-      expect(mockInvoke).toHaveBeenCalledWith('object_list', { account_id: 'acc-1', filter: null });
+      expect(mockInvoke).toHaveBeenCalledWith('object_list', { accountId: 'acc-1', filter: null });
     });
   });
 
@@ -91,7 +91,7 @@ describe('objectStore', () => {
       const { useObjectStore } = await import('./objectStore');
       await useObjectStore.getState().getObject('acc-1', '1');
 
-      expect(mockInvoke).toHaveBeenCalledWith('object_get', { account_id: 'acc-1', object_id: '1' });
+      expect(mockInvoke).toHaveBeenCalledWith('object_get', { accountId: 'acc-1', objectId: '1' });
       expect(useObjectStore.getState().currentObjectCache['1']).toEqual(obj);
     });
 
@@ -181,7 +181,7 @@ describe('objectStore', () => {
         .updateObject('1', { name: 'Updated', properties: { street: 'New St' } });
 
       expect(mockInvoke).toHaveBeenCalledWith('object_update', {
-        object_id: '1',
+        objectId: '1',
         input: { name: 'Updated', properties: { street: 'New St' } },
       });
       expect(useObjectStore.getState().currentObjectCache['1']).toEqual(updated);
@@ -216,7 +216,7 @@ describe('objectStore', () => {
       });
       await useObjectStore.getState().deleteObject('1');
 
-      expect(mockInvoke).toHaveBeenCalledWith('object_delete', { object_id: '1' });
+      expect(mockInvoke).toHaveBeenCalledWith('object_delete', { objectId: '1' });
       expect(useObjectStore.getState().objects).toHaveLength(1);
       expect(useObjectStore.getState().objects[0].id).toBe('2');
     });
@@ -240,7 +240,7 @@ describe('objectStore', () => {
       const { useObjectStore } = await import('./objectStore');
       await useObjectStore.getState().loadTrashObjects('acc-1');
 
-      expect(mockInvoke).toHaveBeenCalledWith('object_trash_list', { account_id: 'acc-1' });
+      expect(mockInvoke).toHaveBeenCalledWith('object_trash_list', { accountId: 'acc-1' });
       expect(useObjectStore.getState().trashObjects).toEqual(trash);
     });
 
@@ -284,7 +284,7 @@ describe('objectStore', () => {
       });
       await useObjectStore.getState().purgeObject('del-1');
 
-      expect(mockInvoke).toHaveBeenCalledWith('object_purge', { object_id: 'del-1' });
+      expect(mockInvoke).toHaveBeenCalledWith('object_purge', { objectId: 'del-1' });
       expect(useObjectStore.getState().trashObjects).toHaveLength(0);
     });
   });

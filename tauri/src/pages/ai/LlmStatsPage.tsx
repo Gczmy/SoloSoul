@@ -57,22 +57,22 @@ export function LlmStatsPage() {
     if (!accountId) return;
     (async () => {
       try {
-        const cfg = await invoke<{ activeProviderId?: string }>('llm_get_config', { account_id: accountId });
-        const providers = await invoke<ProviderConfig[]>('llm_get_providers', { account_id: accountId });
+        const cfg = await invoke<{ activeProviderId?: string }>('llm_get_config', { accountId: accountId });
+        const providers = await invoke<ProviderConfig[]>('llm_get_providers', { accountId: accountId });
         const active = providers.find((p) => p.id === cfg.activeProviderId);
         if (active) {
           setActiveProvider({ name: active.name, model: active.model, apiType: active.apiType });
           let key = '';
           try {
-            key = await invoke<string>('llm_get_api_key', { account_id: accountId, provider_id: active.id });
+            key = await invoke<string>('llm_get_api_key', { accountId: accountId, providerId: active.id });
           } catch {
             /* no key */
           }
           const online = await invoke<boolean>('llm_check_connection', {
-            base_url: active.baseUrl,
-            api_key: key,
+            baseUrl: active.baseUrl,
+            apiKey: key,
             model: active.model,
-            api_type: active.apiType,
+            apiType: active.apiType,
           });
           setIsOnline(online);
         }
