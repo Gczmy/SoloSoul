@@ -1,12 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { QRCodeSVG } from 'qrcode.react';
 import { invoke } from '@tauri-apps/api/core';
 import { Loader2, X } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { isMobilePlatform } from '@/lib/platform';
-import { RecoveryQrScanner } from './RecoveryQrScanner';
 
 interface RecoveryHostDialogProps {
   isOpen: boolean;
@@ -25,12 +23,6 @@ export function RecoveryHostDialog({ isOpen, onClose }: RecoveryHostDialogProps)
   const [info, setInfo] = useState<RecoveryHostInfo | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showScanner, setShowScanner] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    isMobilePlatform().then(setIsMobile).catch(() => setIsMobile(false));
-  }, []);
 
   if (!isOpen) return null;
 
@@ -63,35 +55,6 @@ export function RecoveryHostDialog({ isOpen, onClose }: RecoveryHostDialogProps)
     }
     setInfo(null);
     onClose();
-  };
-
-  const handleScanResult = (text: string) => {
-    setShowScanner(false);
-    try {
-      const parsed = JSON.parse(text);
-      if (parsed.t !== 'rev' || !parsed.a || !parsed.p) {
-        setError(t('common:recovery_qr_invalid_reverse'));
-        return;
-      }
-      setLoading(true);
-      invoke<void>('recovery_host_push', {
-        hostAddr: parsed.a,
-        pin: String(parsed.p),
-        fingerprint: parsed.f,
-        nonce: parsed.n,
-      })
-        .then(() => {
-          onClose();
-        })
-        .catch((err) => {
-          setError(String(err));
-        })
-        .finally(() => {
-          setLoading(false);
-        });
-    } catch {
-      setError(t('common:recovery_qr_invalid_reverse'));
-    }
   };
 
   return (
@@ -157,7 +120,7 @@ export function RecoveryHostDialog({ isOpen, onClose }: RecoveryHostDialogProps)
           {t('common:recovery_host_desc')}
         </p>
 
-        {!info && !showScanner ? (
+        {!info ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <Button onClick={handleStart} disabled={loading} style={{ width: '100%' }}>
               {loading ? (
@@ -169,35 +132,8 @@ export function RecoveryHostDialog({ isOpen, onClose }: RecoveryHostDialogProps)
                 t('common:recovery_link_new_device')
               )}
             </Button>
-            {isMobile && (
-              <Button
-                variant="secondary"
-                onClick={() => {
-                  setError(null);
-                  setShowScanner(true);
-                }}
-                style={{ width: '100%' }}
-              >
-                {t('common:recovery_scan_new_device')}
-              </Button>
-            )}
             {error && (
               <div style={{ color: '#e74c3c', fontSize: 'var(--text-body-sm)' }}>{error}</div>
-            )}
-          </div>
-        ) : showScanner ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            <RecoveryQrScanner
-              onScan={handleScanResult}
-              onError={(message) => {
-                setError(message);
-              }}
-              onCancel={() => setShowScanner(false)}
-            />
-            {error && (
-              <div style={{ color: '#e74c3c', fontSize: 'var(--text-body-sm)', textAlign: 'center' }}>
-                {error}
-              </div>
             )}
           </div>
         ) : info ? (

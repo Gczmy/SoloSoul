@@ -8,8 +8,7 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useAuthStore } from '@/stores/authStore';
-import { isMobilePlatform } from '@/lib/platform';
-import { RecoveryQrScanner } from './RecoveryQrScanner';
+
 
 interface RecoveryReceiveDialogProps {
   isOpen: boolean;
@@ -40,8 +39,6 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<RecoveryResultSummary | null>(null);
-  const [showScanner, setShowScanner] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
   const [reverseInfo, setReverseInfo] = useState<ReverseListenInfo | null>(null);
   const [reverseSession, setReverseSession] = useState<{
     info: ReverseListenInfo;
@@ -51,7 +48,6 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
 
   useEffect(() => {
     mountedRef.current = true;
-    isMobilePlatform().then(setIsMobile).catch(() => setIsMobile(false));
     return () => {
       mountedRef.current = false;
     };
@@ -386,11 +382,7 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
               type="button"
               onClick={() => {
                 setError(null);
-                if (isMobile) {
-                  setShowScanner(true);
-                } else {
-                  void handleStartReverseListen();
-                }
+                void handleStartReverseListen();
               }}
               disabled={loading}
               style={{
@@ -421,21 +413,8 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
               }}
             >
               <QrCode size={18} />
-              {isMobile ? t('common:recovery_qr_scan_button') : t('common:recovery_qr_show_button')}
+              {t('common:recovery_qr_show_button')}
             </button>
-
-            {showScanner && (
-              <RecoveryQrScanner
-                onScan={(text) => {
-                  setShowScanner(false);
-                  handleHostAddrChange(text);
-                }}
-                onError={(message) => {
-                  setError(message);
-                }}
-                onCancel={() => setShowScanner(false)}
-              />
-            )}
             <Input
               label={t('common:recovery_receive_pin_label')}
               value={pin}

@@ -10,7 +10,7 @@ Sync is completely optional. Your local data remains fully functional even when 
 
 ## 1. Before You Sync
 
-1. **Same account**: both devices must use the same `account_id`. The easiest way is to run two instances from the same account data; see `docs/sync-smoke-test.md`.
+1. **Same account**: both devices must use the same `account_id`. The easiest way is to run two instances from the same account data; see [Local Two-Instance Sync Smoke Test](sync-smoke-test.md).
 2. **Same LAN**: mDNS auto-discovery requires both devices to be on the same Wi-Fi or local network.
 3. **Same major version**: keep both apps on the same major version to avoid data-format mismatches.
 
@@ -171,7 +171,7 @@ The script:
 - Uses different `SOLOSOUL_VITE_PORT` / `SOLOSOUL_VITE_HMR_PORT` values to avoid port collisions.
 - Copies the same account into both directories so the `account_id` matches.
 
-See `docs/sync-smoke-test.md` for detailed steps.
+See [Local Two-Instance Sync Smoke Test](sync-smoke-test.md) for detailed steps.
 
 ---
 

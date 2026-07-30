@@ -22,7 +22,8 @@
       "device-sync"
     ],
     "127": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "168": [
       "device-sync"
@@ -34,12 +35,25 @@
       "PRIVACY_POLICY",
       "export_import"
     ],
+    "1420": [
+      "sync-smoke-test"
+    ],
+    "1421": [
+      "sync-smoke-test"
+    ],
+    "1430": [
+      "sync-smoke-test"
+    ],
+    "1431": [
+      "sync-smoke-test"
+    ],
     "2026": [
       "PRIVACY_POLICY",
       "TERMS_OF_SERVICE"
     ],
     "5353": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "11434": [
       "llm_config"
@@ -63,6 +77,7 @@
       "objects",
       "search",
       "snapshots",
+      "sync-smoke-test",
       "templates",
       "trash",
       "workspace"
@@ -75,6 +90,7 @@
       "getting_started",
       "objects",
       "search",
+      "sync-smoke-test",
       "templates",
       "workspace"
     ],
@@ -91,6 +107,7 @@
       "plugins",
       "search",
       "sensitivity",
+      "sync-smoke-test",
       "templates"
     ],
     "始": [
@@ -121,7 +138,8 @@
     ],
     "start": [
       "ai_chat",
-      "getting_started"
+      "getting_started",
+      "sync-smoke-test"
     ],
     "beginner": [
       "appearance",
@@ -129,13 +147,15 @@
     ],
     "guide": [
       "appearance",
-      "getting_started"
+      "getting_started",
+      "sync-smoke-test"
     ],
     "first": [
       "PRIVACY_POLICY",
       "TERMS_OF_SERVICE",
       "device-sync",
-      "getting_started"
+      "getting_started",
+      "sync-smoke-test"
     ],
     "欢迎使用": [
       "getting_started"
@@ -164,6 +184,7 @@
       "plugins",
       "search",
       "snapshots",
+      "sync-smoke-test",
       "templates"
     ],
     "用": [
@@ -187,6 +208,7 @@
       "security",
       "sensitivity",
       "snapshots",
+      "sync-smoke-test",
       "templates",
       "trash"
     ],
@@ -207,6 +229,7 @@
       "security",
       "sensitivity",
       "snapshots",
+      "sync-smoke-test",
       "templates",
       "workspace"
     ],
@@ -247,6 +270,7 @@
       "search",
       "security",
       "snapshots",
+      "sync-smoke-test",
       "templates",
       "trash"
     ],
@@ -263,6 +287,7 @@
       "llm_config",
       "ocr_scan",
       "search",
+      "sync-smoke-test",
       "templates"
     ],
     "优": [
@@ -276,7 +301,8 @@
       "PRIVACY_POLICY",
       "TERMS_OF_SERVICE",
       "device-sync",
-      "getting_started"
+      "getting_started",
+      "sync-smoke-test"
     ],
     "数": [
       "PRIVACY_POLICY",
@@ -295,6 +321,7 @@
       "security",
       "sensitivity",
       "snapshots",
+      "sync-smoke-test",
       "templates",
       "trash",
       "workspace"
@@ -313,6 +340,7 @@
       "security",
       "sensitivity",
       "snapshots",
+      "sync-smoke-test",
       "templates"
     ],
     "孪": [
@@ -329,7 +357,8 @@
       "plugins",
       "security",
       "sensitivity",
-      "snapshots"
+      "snapshots",
+      "sync-smoke-test"
     ],
     "引": [
       "getting_started",
@@ -356,7 +385,8 @@
       "export_import",
       "getting_started",
       "llm_config",
-      "security"
+      "security",
+      "sync-smoke-test"
     ],
     "创建账户": [
       "getting_started"
@@ -370,6 +400,7 @@
       "objects",
       "ocr_scan",
       "snapshots",
+      "sync-smoke-test",
       "templates",
       "workspace"
     ],
@@ -384,6 +415,7 @@
       "objects",
       "ocr_scan",
       "snapshots",
+      "sync-smoke-test",
       "templates",
       "workspace"
     ],
@@ -394,6 +426,7 @@
       "getting_started",
       "security",
       "sensitivity",
+      "sync-smoke-test",
       "templates"
     ],
     "户": [
@@ -405,6 +438,7 @@
       "getting_started",
       "llm_config",
       "security",
+      "sync-smoke-test",
       "templates"
     ],
     "首次启动": [
@@ -423,7 +457,8 @@
       "getting_started",
       "llm_config",
       "plugins",
-      "snapshots"
+      "snapshots",
+      "sync-smoke-test"
     ],
     "启": [
       "ai_chat",
@@ -435,7 +470,8 @@
       "llm_config",
       "plugins",
       "security",
-      "sensitivity"
+      "sensitivity",
+      "sync-smoke-test"
     ],
     "动": [
       "ai_chat",
@@ -451,6 +487,7 @@
       "plugins",
       "security",
       "snapshots",
+      "sync-smoke-test",
       "templates",
       "trash"
     ],
@@ -469,6 +506,7 @@
       "plugins",
       "security",
       "snapshots",
+      "sync-smoke-test",
       "templates",
       "trash"
     ],
@@ -490,6 +528,7 @@
       "security",
       "sensitivity",
       "snapshots",
+      "sync-smoke-test",
       "templates",
       "trash",
       "workspace"
@@ -512,6 +551,7 @@
       "security",
       "sensitivity",
       "snapshots",
+      "sync-smoke-test",
       "templates",
       "trash",
       "workspace"
@@ -549,6 +589,7 @@
       "security",
       "sensitivity",
       "snapshots",
+      "sync-smoke-test",
       "templates",
       "trash"
     ],
@@ -570,6 +611,7 @@
       "security",
       "sensitivity",
       "snapshots",
+      "sync-smoke-test",
       "templates",
       "trash"
     ],
@@ -587,6 +629,7 @@
       "ocr_scan",
       "security",
       "sensitivity",
+      "sync-smoke-test",
       "workspace"
     ],
     "密": [
@@ -602,7 +645,8 @@
       "llm_config",
       "security",
       "sensitivity",
-      "snapshots"
+      "snapshots",
+      "sync-smoke-test"
     ],
     "码": [
       "PRIVACY_POLICY",
@@ -615,6 +659,7 @@
       "security",
       "sensitivity",
       "snapshots",
+      "sync-smoke-test",
       "templates"
     ],
     "建议至少": [
@@ -630,12 +675,14 @@
     "至": [
       "PRIVACY_POLICY",
       "export_import",
-      "getting_started"
+      "getting_started",
+      "sync-smoke-test"
     ],
     "少": [
       "device-sync",
       "export_import",
-      "getting_started"
+      "getting_started",
+      "sync-smoke-test"
     ],
     "包含大小写字母和数字": [
       "getting_started"
@@ -652,7 +699,8 @@
       "ocr_scan",
       "search",
       "security",
-      "snapshots"
+      "snapshots",
+      "sync-smoke-test"
     ],
     "含": [
       "ai_chat",
@@ -666,7 +714,8 @@
       "ocr_scan",
       "search",
       "security",
-      "snapshots"
+      "snapshots",
+      "sync-smoke-test"
     ],
     "大": [
       "TERMS_OF_SERVICE",
@@ -714,6 +763,7 @@
       "security",
       "sensitivity",
       "snapshots",
+      "sync-smoke-test",
       "templates",
       "trash",
       "workspace"
@@ -754,6 +804,7 @@
       "ocr_scan",
       "security",
       "sensitivity",
+      "sync-smoke-test",
       "trash",
       "workspace"
     ],
@@ -773,6 +824,7 @@
       "security",
       "sensitivity",
       "snapshots",
+      "sync-smoke-test",
       "templates",
       "trash",
       "workspace"
@@ -812,6 +864,7 @@
       "security",
       "sensitivity",
       "snapshots",
+      "sync-smoke-test",
       "templates"
     ],
     "忆": [
@@ -841,6 +894,7 @@
       "security",
       "sensitivity",
       "snapshots",
+      "sync-smoke-test",
       "templates",
       "trash",
       "workspace"
@@ -879,7 +933,8 @@
     "待": [
       "backup_restore",
       "getting_started",
-      "ocr_scan"
+      "ocr_scan",
+      "sync-smoke-test"
     ],
     "初": [
       "getting_started"
@@ -890,7 +945,8 @@
       "getting_started",
       "objects",
       "plugins",
-      "sensitivity"
+      "sensitivity",
+      "sync-smoke-test"
     ],
     "完": [
       "ai_chat",
@@ -903,7 +959,8 @@
       "ocr_scan",
       "search",
       "security",
-      "snapshots"
+      "snapshots",
+      "sync-smoke-test"
     ],
     "成": [
       "TERMS_OF_SERVICE",
@@ -914,7 +971,8 @@
       "llm_config",
       "ocr_scan",
       "plugins",
-      "security"
+      "security",
+      "sync-smoke-test"
     ],
     "warning": [
       "ai_chat",
@@ -978,6 +1036,7 @@
       "getting_started",
       "objects",
       "sensitivity",
+      "sync-smoke-test",
       "templates",
       "trash"
     ],
@@ -990,6 +1049,7 @@
       "getting_started",
       "objects",
       "sensitivity",
+      "sync-smoke-test",
       "templates",
       "trash"
     ],
@@ -1005,6 +1065,7 @@
       "getting_started",
       "objects",
       "security",
+      "sync-smoke-test",
       "workspace"
     ],
     "请务必牢记或安全备份": [
@@ -1033,6 +1094,7 @@
       "objects",
       "ocr_scan",
       "plugins",
+      "sync-smoke-test",
       "templates",
       "workspace"
     ],
@@ -1041,6 +1103,7 @@
       "export_import",
       "getting_started",
       "ocr_scan",
+      "sync-smoke-test",
       "templates"
     ],
     "牢": [
@@ -1060,6 +1123,7 @@
       "search",
       "security",
       "snapshots",
+      "sync-smoke-test",
       "templates",
       "workspace"
     ],
@@ -1074,7 +1138,8 @@
       "getting_started",
       "plugins",
       "security",
-      "sensitivity"
+      "sensitivity",
+      "sync-smoke-test"
     ],
     "全": [
       "PRIVACY_POLICY",
@@ -1092,6 +1157,7 @@
       "search",
       "security",
       "sensitivity",
+      "sync-smoke-test",
       "trash"
     ],
     "备": [
@@ -1103,6 +1169,7 @@
       "export_import",
       "getting_started",
       "security",
+      "sync-smoke-test",
       "trash"
     ],
     "份": [
@@ -1148,6 +1215,7 @@
       "search",
       "sensitivity",
       "snapshots",
+      "sync-smoke-test",
       "templates",
       "trash",
       "workspace"
@@ -1169,6 +1237,7 @@
       "search",
       "sensitivity",
       "snapshots",
+      "sync-smoke-test",
       "templates",
       "trash",
       "workspace"
@@ -1189,6 +1258,7 @@
       "ocr_scan",
       "plugins",
       "snapshots",
+      "sync-smoke-test",
       "templates",
       "trash",
       "workspace"
@@ -1242,6 +1312,7 @@
       "plugins",
       "search",
       "sensitivity",
+      "sync-smoke-test",
       "templates",
       "trash",
       "workspace"
@@ -1291,6 +1362,7 @@
       "objects",
       "search",
       "security",
+      "sync-smoke-test",
       "templates",
       "trash",
       "workspace"
@@ -1303,6 +1375,7 @@
       "getting_started",
       "objects",
       "security",
+      "sync-smoke-test",
       "templates",
       "trash",
       "workspace"
@@ -1322,6 +1395,7 @@
       "search",
       "sensitivity",
       "snapshots",
+      "sync-smoke-test",
       "templates",
       "workspace"
     ],
@@ -1332,6 +1406,7 @@
       "objects",
       "ocr_scan",
       "sensitivity",
+      "sync-smoke-test",
       "templates",
       "workspace"
     ],
@@ -1346,6 +1421,7 @@
       "device-sync",
       "getting_started",
       "sensitivity",
+      "sync-smoke-test",
       "workspace"
     ],
     "如": [
@@ -1364,6 +1440,7 @@
       "security",
       "sensitivity",
       "snapshots",
+      "sync-smoke-test",
       "templates",
       "trash",
       "workspace"
@@ -1390,6 +1467,7 @@
       "search",
       "security",
       "sensitivity",
+      "sync-smoke-test",
       "templates"
     ],
     "息": [
@@ -1452,6 +1530,7 @@
       "getting_started",
       "sensitivity",
       "snapshots",
+      "sync-smoke-test",
       "trash",
       "workspace"
     ],
@@ -1466,6 +1545,7 @@
       "llm_config",
       "ocr_scan",
       "sensitivity",
+      "sync-smoke-test",
       "templates"
     ],
     "期": [
@@ -1512,6 +1592,7 @@
       "ocr_scan",
       "search",
       "snapshots",
+      "sync-smoke-test",
       "templates",
       "trash"
     ],
@@ -1574,6 +1655,7 @@
       "security",
       "sensitivity",
       "snapshots",
+      "sync-smoke-test",
       "templates",
       "trash",
       "workspace"
@@ -1648,6 +1730,7 @@
       "security",
       "sensitivity",
       "snapshots",
+      "sync-smoke-test",
       "templates",
       "trash"
     ],
@@ -1695,6 +1778,7 @@
       "objects",
       "security",
       "sensitivity",
+      "sync-smoke-test",
       "templates"
     ],
     "工": [
@@ -1773,6 +1857,7 @@
       "security",
       "sensitivity",
       "snapshots",
+      "sync-smoke-test",
       "templates",
       "trash",
       "workspace"
@@ -1811,6 +1896,7 @@
       "security",
       "sensitivity",
       "snapshots",
+      "sync-smoke-test",
       "templates",
       "trash"
     ],
@@ -1889,6 +1975,7 @@
       "security",
       "sensitivity",
       "snapshots",
+      "sync-smoke-test",
       "templates"
     ],
     "件": [
@@ -1907,6 +1994,7 @@
       "ocr_scan",
       "plugins",
       "search",
+      "sync-smoke-test",
       "templates",
       "trash",
       "workspace"
@@ -1940,6 +2028,7 @@
       "search",
       "security",
       "sensitivity",
+      "sync-smoke-test",
       "templates",
       "workspace"
     ],
@@ -2115,6 +2204,7 @@
       "security",
       "sensitivity",
       "snapshots",
+      "sync-smoke-test",
       "templates",
       "workspace"
     ],
@@ -2137,6 +2227,7 @@
       "plugins",
       "security",
       "snapshots",
+      "sync-smoke-test",
       "templates",
       "trash",
       "workspace"
@@ -2154,6 +2245,7 @@
       "plugins",
       "search",
       "security",
+      "sync-smoke-test",
       "templates",
       "trash",
       "workspace"
@@ -2166,6 +2258,7 @@
       "llm_config",
       "objects",
       "plugins",
+      "sync-smoke-test",
       "templates",
       "trash",
       "workspace"
@@ -2186,6 +2279,7 @@
       "security",
       "sensitivity",
       "snapshots",
+      "sync-smoke-test",
       "templates",
       "trash",
       "workspace"
@@ -2201,6 +2295,7 @@
       "export_import",
       "getting_started",
       "objects",
+      "sync-smoke-test",
       "templates"
     ],
     "意": [
@@ -2209,6 +2304,7 @@
       "getting_started",
       "llm_config",
       "objects",
+      "sync-smoke-test",
       "templates"
     ],
     "己": [
@@ -2234,6 +2330,7 @@
       "search",
       "sensitivity",
       "snapshots",
+      "sync-smoke-test",
       "templates",
       "trash",
       "workspace"
@@ -2285,6 +2382,7 @@
       "getting_started",
       "ocr_scan",
       "sensitivity",
+      "sync-smoke-test",
       "templates"
     ],
     "银行卡号": [
@@ -2316,6 +2414,7 @@
       "security",
       "sensitivity",
       "snapshots",
+      "sync-smoke-test",
       "templates",
       "trash",
       "workspace"
@@ -2349,6 +2448,7 @@
       "security",
       "sensitivity",
       "snapshots",
+      "sync-smoke-test",
       "templates",
       "trash"
     ],
@@ -2368,7 +2468,8 @@
       "search",
       "security",
       "sensitivity",
-      "snapshots"
+      "snapshots",
+      "sync-smoke-test"
     ],
     "部分高敏感度字段需要密码验证": [
       "getting_started"
@@ -2421,6 +2522,7 @@
       "security",
       "sensitivity",
       "snapshots",
+      "sync-smoke-test",
       "templates",
       "trash"
     ],
@@ -2433,7 +2535,8 @@
       "llm_config",
       "security",
       "sensitivity",
-      "snapshots"
+      "snapshots",
+      "sync-smoke-test"
     ],
     "离开电脑时点击侧边栏": [
       "getting_started"
@@ -2466,6 +2569,7 @@
       "search",
       "security",
       "sensitivity",
+      "sync-smoke-test",
       "workspace"
     ],
     "栏": [
@@ -2486,7 +2590,8 @@
       "biometric",
       "getting_started",
       "security",
-      "sensitivity"
+      "sensitivity",
+      "sync-smoke-test"
     ],
     "info": [
       "ai_chat",
@@ -2513,7 +2618,8 @@
       "PRIVACY_POLICY",
       "TERMS_OF_SERVICE",
       "ai_chat",
-      "getting_started"
+      "getting_started",
+      "sync-smoke-test"
     ],
     "识": [
       "PRIVACY_POLICY",
@@ -2596,6 +2702,7 @@
       "plugins",
       "sensitivity",
       "snapshots",
+      "sync-smoke-test",
       "templates"
     ],
     "者": [
@@ -2612,12 +2719,14 @@
       "llm_config",
       "ocr_scan",
       "plugins",
+      "sync-smoke-test",
       "templates"
     ],
     "端": [
       "PRIVACY_POLICY",
       "device-sync",
-      "getting_started"
+      "getting_started",
+      "sync-smoke-test"
     ],
     "无法访问": [
       "getting_started"
@@ -2645,6 +2754,7 @@
       "device-sync",
       "export_import",
       "getting_started",
+      "sync-smoke-test",
       "templates"
     ],
     "下一步": [
@@ -2662,6 +2772,7 @@
       "search",
       "security",
       "snapshots",
+      "sync-smoke-test",
       "templates",
       "workspace"
     ],
@@ -2834,7 +2945,8 @@
       "search",
       "security",
       "sensitivity",
-      "snapshots"
+      "snapshots",
+      "sync-smoke-test"
     ],
     "ai": [
       "PRIVACY_POLICY",
@@ -2867,7 +2979,8 @@
       "getting_started",
       "llm_config",
       "plugins",
-      "sensitivity"
+      "sensitivity",
+      "sync-smoke-test"
     ],
     "chat": [
       "PRIVACY_POLICY",
@@ -2913,7 +3026,8 @@
       "getting_started",
       "llm_config",
       "ocr_scan",
-      "security"
+      "security",
+      "sync-smoke-test"
     ],
     "功": [
       "PRIVACY_POLICY",
@@ -2960,7 +3074,8 @@
       "device-sync",
       "getting_started",
       "llm_config",
-      "ocr_scan"
+      "ocr_scan",
+      "sync-smoke-test"
     ],
     "personal": [
       "PRIVACY_POLICY",
@@ -2990,6 +3105,7 @@
       "getting_started",
       "objects",
       "ocr_scan",
+      "sync-smoke-test",
       "templates",
       "workspace"
     ],
@@ -3000,10 +3116,12 @@
       "getting_started",
       "security",
       "sensitivity",
+      "sync-smoke-test",
       "templates"
     ],
     "launch": [
-      "getting_started"
+      "getting_started",
+      "sync-smoke-test"
     ],
     "click": [
       "ai_chat",
@@ -3038,7 +3156,8 @@
       "biometric",
       "getting_started",
       "security",
-      "sensitivity"
+      "sensitivity",
+      "sync-smoke-test"
     ],
     "password": [
       "PRIVACY_POLICY",
@@ -3048,11 +3167,13 @@
       "getting_started",
       "security",
       "sensitivity",
-      "snapshots"
+      "snapshots",
+      "sync-smoke-test"
     ],
     "least": [
       "export_import",
-      "getting_started"
+      "getting_started",
+      "sync-smoke-test"
     ],
     "characters": [
       "export_import",
@@ -3099,12 +3220,14 @@
       "ocr_scan",
       "security",
       "sensitivity",
+      "sync-smoke-test",
       "trash"
     ],
     "wait": [
       "backup_restore",
       "getting_started",
-      "ocr_scan"
+      "ocr_scan",
+      "sync-smoke-test"
     ],
     "initialization": [
       "getting_started"
@@ -3154,6 +3277,7 @@
       "getting_started",
       "objects",
       "sensitivity",
+      "sync-smoke-test",
       "trash"
     ],
     "reset": [
@@ -3191,6 +3315,7 @@
       "search",
       "sensitivity",
       "snapshots",
+      "sync-smoke-test",
       "templates",
       "trash",
       "workspace"
@@ -3210,6 +3335,7 @@
       "ocr_scan",
       "plugins",
       "snapshots",
+      "sync-smoke-test",
       "templates",
       "trash",
       "workspace"
@@ -3243,6 +3369,7 @@
       "attachments",
       "getting_started",
       "objects",
+      "sync-smoke-test",
       "workspace"
     ],
     "choose": [
@@ -3259,6 +3386,7 @@
       "getting_started",
       "objects",
       "sensitivity",
+      "sync-smoke-test",
       "templates"
     ],
     "fill": [
@@ -3398,6 +3526,7 @@
       "security",
       "sensitivity",
       "snapshots",
+      "sync-smoke-test",
       "templates",
       "trash",
       "workspace"
@@ -3523,6 +3652,7 @@
       "security",
       "sensitivity",
       "snapshots",
+      "sync-smoke-test",
       "templates",
       "workspace"
     ],
@@ -3542,6 +3672,7 @@
       "security",
       "sensitivity",
       "snapshots",
+      "sync-smoke-test",
       "templates",
       "trash",
       "workspace"
@@ -3550,6 +3681,7 @@
       "device-sync",
       "export_import",
       "getting_started",
+      "sync-smoke-test",
       "trash"
     ],
     "custom": [
@@ -3568,6 +3700,7 @@
       "export_import",
       "getting_started",
       "objects",
+      "sync-smoke-test",
       "templates",
       "trash",
       "workspace"
@@ -3614,7 +3747,8 @@
       "getting_started",
       "ocr_scan",
       "security",
-      "sensitivity"
+      "sensitivity",
+      "sync-smoke-test"
     ],
     "numbers": [
       "getting_started"
@@ -3647,6 +3781,7 @@
       "search",
       "security",
       "sensitivity",
+      "sync-smoke-test",
       "templates"
     ],
     "reveal": [
@@ -3674,7 +3809,8 @@
       "getting_started",
       "security",
       "sensitivity",
-      "snapshots"
+      "snapshots",
+      "sync-smoke-test"
     ],
     "lock": [
       "getting_started",
@@ -3698,6 +3834,7 @@
       "security",
       "sensitivity",
       "snapshots",
+      "sync-smoke-test",
       "templates"
     ],
     "stepping": [
@@ -3711,7 +3848,8 @@
       "TERMS_OF_SERVICE",
       "device-sync",
       "getting_started",
-      "sensitivity"
+      "sensitivity",
+      "sync-smoke-test"
     ],
     "zero": [
       "PRIVACY_POLICY",
@@ -3757,6 +3895,7 @@
       "getting_started",
       "ocr_scan",
       "search",
+      "sync-smoke-test",
       "templates"
     ],
     "developers": [
@@ -3802,7 +3941,8 @@
     "steps": [
       "device-sync",
       "getting_started",
-      "llm_config"
+      "llm_config",
+      "sync-smoke-test"
     ],
     "explore": [
       "getting_started",
@@ -3840,7 +3980,8 @@
       "device-sync",
       "getting_started",
       "plugins",
-      "security"
+      "security",
+      "sync-smoke-test"
     ],
     "smart": [
       "collections",
@@ -3906,6 +4047,7 @@
       "attachments",
       "collections",
       "objects",
+      "sync-smoke-test",
       "templates"
     ],
     "modify": [
@@ -3920,6 +4062,7 @@
       "audit_log",
       "collections",
       "objects",
+      "sync-smoke-test",
       "templates",
       "trash",
       "workspace"
@@ -3950,6 +4093,7 @@
       "device-sync",
       "llm_config",
       "objects",
+      "sync-smoke-test",
       "templates"
     ],
     "元": [
@@ -3989,6 +4133,7 @@
       "objects",
       "plugins",
       "search",
+      "sync-smoke-test",
       "templates",
       "trash"
     ],
@@ -3998,6 +4143,7 @@
       "collections",
       "device-sync",
       "objects",
+      "sync-smoke-test",
       "trash",
       "workspace"
     ],
@@ -4017,6 +4163,7 @@
       "security",
       "sensitivity",
       "snapshots",
+      "sync-smoke-test",
       "templates"
     ],
     "如一份护照": [
@@ -4156,7 +4303,8 @@
     "值": [
       "objects",
       "ocr_scan",
-      "search"
+      "search",
+      "sync-smoke-test"
     ],
     "形": [
       "attachments",
@@ -4211,6 +4359,7 @@
       "security",
       "sensitivity",
       "snapshots",
+      "sync-smoke-test",
       "templates",
       "trash"
     ],
@@ -4220,7 +4369,8 @@
       "llm_config",
       "objects",
       "ocr_scan",
-      "security"
+      "security",
+      "sync-smoke-test"
     ],
     "索": [
       "appearance",
@@ -4246,6 +4396,7 @@
       "objects",
       "ocr_scan",
       "search",
+      "sync-smoke-test",
       "templates",
       "trash"
     ],
@@ -4257,6 +4408,7 @@
       "objects",
       "ocr_scan",
       "search",
+      "sync-smoke-test",
       "templates",
       "trash"
     ],
@@ -4283,6 +4435,7 @@
       "security",
       "sensitivity",
       "snapshots",
+      "sync-smoke-test",
       "templates",
       "trash",
       "workspace"
@@ -4293,6 +4446,7 @@
       "device-sync",
       "export_import",
       "objects",
+      "sync-smoke-test",
       "templates"
     ],
     "文": [
@@ -4315,6 +4469,7 @@
       "security",
       "sensitivity",
       "snapshots",
+      "sync-smoke-test",
       "templates",
       "trash",
       "workspace"
@@ -4403,6 +4558,7 @@
       "ocr_scan",
       "search",
       "security",
+      "sync-smoke-test",
       "templates"
     ],
     "避免遗漏重要信息": [
@@ -4433,6 +4589,7 @@
       "collections",
       "device-sync",
       "objects",
+      "sync-smoke-test",
       "templates"
     ],
     "辑": [
@@ -4452,6 +4609,7 @@
       "export_import",
       "objects",
       "snapshots",
+      "sync-smoke-test",
       "templates",
       "trash",
       "workspace"
@@ -4468,6 +4626,7 @@
       "objects",
       "ocr_scan",
       "security",
+      "sync-smoke-test",
       "templates",
       "trash",
       "workspace"
@@ -4497,6 +4656,7 @@
       "objects",
       "plugins",
       "snapshots",
+      "sync-smoke-test",
       "templates"
     ],
     "点击对象卡片上的垃圾桶图标": [
@@ -4521,6 +4681,7 @@
       "security",
       "sensitivity",
       "snapshots",
+      "sync-smoke-test",
       "trash"
     ],
     "移": [
@@ -4555,6 +4716,7 @@
       "llm_config",
       "objects",
       "snapshots",
+      "sync-smoke-test",
       "trash"
     ],
     "收": [
@@ -4566,6 +4728,7 @@
       "export_import",
       "objects",
       "snapshots",
+      "sync-smoke-test",
       "trash"
     ],
     "站": [
@@ -4628,6 +4791,7 @@
       "objects",
       "security",
       "snapshots",
+      "sync-smoke-test",
       "trash"
     ],
     "搜索对象": [
@@ -4672,6 +4836,7 @@
       "search",
       "security",
       "sensitivity",
+      "sync-smoke-test",
       "templates",
       "workspace"
     ],
@@ -4688,6 +4853,7 @@
       "ocr_scan",
       "plugins",
       "security",
+      "sync-smoke-test",
       "templates",
       "trash",
       "workspace"
@@ -4704,6 +4870,7 @@
       "ocr_scan",
       "plugins",
       "security",
+      "sync-smoke-test",
       "templates",
       "trash",
       "workspace"
@@ -4714,7 +4881,8 @@
       "device-sync",
       "llm_config",
       "objects",
-      "search"
+      "search",
+      "sync-smoke-test"
     ],
     "过": [
       "PRIVACY_POLICY",
@@ -4728,6 +4896,7 @@
       "plugins",
       "security",
       "snapshots",
+      "sync-smoke-test",
       "trash",
       "workspace"
     ],
@@ -4764,6 +4933,7 @@
       "plugins",
       "security",
       "sensitivity",
+      "sync-smoke-test",
       "templates",
       "trash",
       "workspace"
@@ -4787,6 +4957,7 @@
       "audit_log",
       "device-sync",
       "objects",
+      "sync-smoke-test",
       "trash"
     ],
     "无法恢复": [
@@ -4860,6 +5031,7 @@
       "security",
       "sensitivity",
       "snapshots",
+      "sync-smoke-test",
       "templates",
       "trash",
       "workspace"
@@ -4931,6 +5103,7 @@
       "plugins",
       "sensitivity",
       "snapshots",
+      "sync-smoke-test",
       "trash"
     ],
     "represents": [
@@ -4971,7 +5144,8 @@
     "contains": [
       "device-sync",
       "objects",
-      "snapshots"
+      "snapshots",
+      "sync-smoke-test"
     ],
     "display": [
       "attachments",
@@ -4993,7 +5167,8 @@
     ],
     "quick": [
       "biometric",
-      "objects"
+      "objects",
+      "sync-smoke-test"
     ],
     "categorization": [
       "objects"
@@ -5015,6 +5190,7 @@
       "export_import",
       "objects",
       "ocr_scan",
+      "sync-smoke-test",
       "templates"
     ],
     "images": [
@@ -5053,6 +5229,7 @@
       "search",
       "security",
       "sensitivity",
+      "sync-smoke-test",
       "templates",
       "workspace"
     ],
@@ -5076,7 +5253,8 @@
     "so": [
       "appearance",
       "device-sync",
-      "objects"
+      "objects",
+      "sync-smoke-test"
     ],
     "don": [
       "objects",
@@ -5227,6 +5405,7 @@
     ],
     "which": [
       "objects",
+      "sync-smoke-test",
       "templates"
     ],
     "they": [
@@ -5264,6 +5443,7 @@
       "security",
       "sensitivity",
       "snapshots",
+      "sync-smoke-test",
       "templates",
       "trash",
       "workspace"
@@ -5373,6 +5553,7 @@
       "search",
       "security",
       "snapshots",
+      "sync-smoke-test",
       "templates"
     ],
     "模板来源": [
@@ -5437,6 +5618,7 @@
       "device-sync",
       "search",
       "security",
+      "sync-smoke-test",
       "templates",
       "workspace"
     ],
@@ -5450,6 +5632,7 @@
       "device-sync",
       "plugins",
       "snapshots",
+      "sync-smoke-test",
       "templates"
     ],
     "新": [
@@ -5466,6 +5649,7 @@
       "security",
       "sensitivity",
       "snapshots",
+      "sync-smoke-test",
       "templates",
       "workspace"
     ],
@@ -5496,6 +5680,7 @@
       "security",
       "sensitivity",
       "snapshots",
+      "sync-smoke-test",
       "templates"
     ],
     "改": [
@@ -5507,6 +5692,7 @@
       "security",
       "sensitivity",
       "snapshots",
+      "sync-smoke-test",
       "templates"
     ],
     "用户模板": [
@@ -5539,6 +5725,7 @@
       "device-sync",
       "export_import",
       "ocr_scan",
+      "sync-smoke-test",
       "templates",
       "workspace"
     ],
@@ -5631,6 +5818,7 @@
       "plugins",
       "security",
       "sensitivity",
+      "sync-smoke-test",
       "templates",
       "workspace"
     ],
@@ -5645,6 +5833,7 @@
       "device-sync",
       "llm_config",
       "security",
+      "sync-smoke-test",
       "templates"
     ],
     "是否敏感": [
@@ -5693,6 +5882,7 @@
       "ocr_scan",
       "security",
       "sensitivity",
+      "sync-smoke-test",
       "templates",
       "trash",
       "workspace"
@@ -5705,6 +5895,7 @@
       "export_import",
       "security",
       "sensitivity",
+      "sync-smoke-test",
       "templates",
       "trash",
       "workspace"
@@ -5727,6 +5918,7 @@
       "device-sync",
       "ocr_scan",
       "security",
+      "sync-smoke-test",
       "templates"
     ],
     "保存自定义模板": [
@@ -5743,6 +5935,7 @@
       "ocr_scan",
       "search",
       "security",
+      "sync-smoke-test",
       "templates"
     ],
     "可以将其保存为模板": [
@@ -5765,12 +5958,14 @@
       "device-sync",
       "export_import",
       "search",
+      "sync-smoke-test",
       "templates"
     ],
     "该": [
       "device-sync",
       "llm_config",
       "search",
+      "sync-smoke-test",
       "templates",
       "workspace"
     ],
@@ -5797,6 +5992,7 @@
       "device-sync",
       "export_import",
       "ocr_scan",
+      "sync-smoke-test",
       "templates"
     ],
     "模板与对象的关联": [
@@ -5880,6 +6076,7 @@
       "collections",
       "device-sync",
       "search",
+      "sync-smoke-test",
       "templates",
       "workspace"
     ],
@@ -5964,6 +6161,7 @@
       "device-sync",
       "llm_config",
       "security",
+      "sync-smoke-test",
       "templates"
     ],
     "updates": [
@@ -5982,6 +6180,7 @@
       "backup_restore",
       "device-sync",
       "llm_config",
+      "sync-smoke-test",
       "templates"
     ],
     "saved": [
@@ -6011,6 +6210,7 @@
       "search",
       "security",
       "snapshots",
+      "sync-smoke-test",
       "templates",
       "workspace"
     ],
@@ -6055,6 +6255,7 @@
       "biometric",
       "device-sync",
       "snapshots",
+      "sync-smoke-test",
       "templates"
     ],
     "preview": [
@@ -6129,6 +6330,7 @@
       "export_import",
       "security",
       "sensitivity",
+      "sync-smoke-test",
       "templates",
       "trash",
       "workspace"
@@ -6147,6 +6349,7 @@
     ],
     "server": [
       "ai_chat",
+      "sync-smoke-test",
       "templates"
     ],
     "association": [
@@ -6160,6 +6363,7 @@
       "audit_log",
       "device-sync",
       "snapshots",
+      "sync-smoke-test",
       "templates"
     ],
     "recorded": [
@@ -6195,6 +6399,7 @@
       "ocr_scan",
       "search",
       "security",
+      "sync-smoke-test",
       "templates",
       "workspace"
     ],
@@ -6209,6 +6414,7 @@
       "device-sync",
       "ocr_scan",
       "search",
+      "sync-smoke-test",
       "templates",
       "trash"
     ],
@@ -6251,12 +6457,14 @@
       "device-sync",
       "llm_config",
       "sensitivity",
+      "sync-smoke-test",
       "trash",
       "workspace"
     ],
     "两": [
       "collections",
       "device-sync",
+      "sync-smoke-test",
       "workspace"
     ],
     "四个固定分区": [
@@ -6317,6 +6525,7 @@
       "collections",
       "export_import",
       "llm_config",
+      "sync-smoke-test",
       "trash",
       "workspace"
     ],
@@ -6328,6 +6537,7 @@
       "ocr_scan",
       "sensitivity",
       "snapshots",
+      "sync-smoke-test",
       "trash",
       "workspace"
     ],
@@ -6365,6 +6575,7 @@
       "device-sync",
       "search",
       "sensitivity",
+      "sync-smoke-test",
       "workspace"
     ],
     "添": [
@@ -6391,6 +6602,7 @@
     ],
     "双": [
       "device-sync",
+      "sync-smoke-test",
       "workspace"
     ],
     "进入该页面工作区": [
@@ -6404,6 +6616,7 @@
     ],
     "仍": [
       "device-sync",
+      "sync-smoke-test",
       "workspace"
     ],
     "管理您的数据对象": [
@@ -6462,6 +6675,7 @@
     "both": [
       "device-sync",
       "llm_config",
+      "sync-smoke-test",
       "workspace"
     ],
     "workspaces": [
@@ -6475,6 +6689,7 @@
       "device-sync",
       "llm_config",
       "ocr_scan",
+      "sync-smoke-test",
       "workspace"
     ],
     "filter": [
@@ -6496,6 +6711,7 @@
     ],
     "appears": [
       "device-sync",
+      "sync-smoke-test",
       "workspace"
     ],
     "my": [
@@ -6548,7 +6764,8 @@
       "PRIVACY_POLICY",
       "attachments",
       "backup_restore",
-      "export_import"
+      "export_import",
+      "sync-smoke-test"
     ],
     "file": [
       "PRIVACY_POLICY",
@@ -6557,7 +6774,8 @@
       "backup_restore",
       "device-sync",
       "export_import",
-      "ocr_scan"
+      "ocr_scan",
+      "sync-smoke-test"
     ],
     "image": [
       "appearance",
@@ -6585,7 +6803,8 @@
       "attachments",
       "llm_config",
       "ocr_scan",
-      "search"
+      "search",
+      "sync-smoke-test"
     ],
     "添加附件": [
       "attachments"
@@ -6622,7 +6841,8 @@
       "backup_restore",
       "device-sync",
       "llm_config",
-      "snapshots"
+      "snapshots",
+      "sync-smoke-test"
     ],
     "徽": [
       "appearance",
@@ -6647,6 +6867,7 @@
       "llm_config",
       "plugins",
       "search",
+      "sync-smoke-test",
       "trash"
     ],
     "支持的预览格式": [
@@ -6706,6 +6927,7 @@
       "device-sync",
       "llm_config",
       "sensitivity",
+      "sync-smoke-test",
       "trash"
     ],
     "明": [
@@ -6719,6 +6941,7 @@
       "ocr_scan",
       "security",
       "sensitivity",
+      "sync-smoke-test",
       "trash"
     ],
     "点击附件名称即可编辑": [
@@ -6746,7 +6969,8 @@
       "device-sync",
       "llm_config",
       "security",
-      "snapshots"
+      "snapshots",
+      "sync-smoke-test"
     ],
     "态": [
       "attachments",
@@ -6756,7 +6980,8 @@
       "llm_config",
       "plugins",
       "security",
-      "snapshots"
+      "snapshots",
+      "sync-smoke-test"
     ],
     "可恢复": [
       "attachments"
@@ -6771,7 +6996,8 @@
       "attachments",
       "biometric",
       "plugins",
-      "search"
+      "search",
+      "sync-smoke-test"
     ],
     "预览": [
       "attachments",
@@ -6786,7 +7012,8 @@
     "屏": [
       "attachments",
       "device-sync",
-      "security"
+      "security",
+      "sync-smoke-test"
     ],
     "永久删除的附件无法恢复": [
       "attachments"
@@ -6866,6 +7093,7 @@
       "device-sync",
       "plugins",
       "search",
+      "sync-smoke-test",
       "trash"
     ],
     "supported": [
@@ -6885,7 +7113,8 @@
       "attachments",
       "device-sync",
       "search",
-      "snapshots"
+      "snapshots",
+      "sync-smoke-test"
     ],
     "encryption": [
       "TERMS_OF_SERVICE",
@@ -6938,6 +7167,7 @@
       "audit_log",
       "llm_config",
       "sensitivity",
+      "sync-smoke-test",
       "trash"
     ],
     "soft": [
@@ -6960,7 +7190,8 @@
       "device-sync",
       "llm_config",
       "security",
-      "snapshots"
+      "snapshots",
+      "sync-smoke-test"
     ],
     "permanent": [
       "attachments",
@@ -6983,7 +7214,8 @@
     "under": [
       "TERMS_OF_SERVICE",
       "attachments",
-      "plugins"
+      "plugins",
+      "sync-smoke-test"
     ],
     "learn": [
       "attachments"
@@ -7052,7 +7284,8 @@
       "audit_log",
       "biometric",
       "sensitivity",
-      "snapshots"
+      "snapshots",
+      "sync-smoke-test"
     ],
     "快照包含对象的完整状态": [
       "snapshots"
@@ -7161,7 +7394,8 @@
       "device-sync",
       "llm_config",
       "sensitivity",
-      "snapshots"
+      "snapshots",
+      "sync-smoke-test"
     ],
     "退出历史浏览器": [
       "snapshots"
@@ -7201,7 +7435,8 @@
       "device-sync",
       "search",
       "security",
-      "snapshots"
+      "snapshots",
+      "sync-smoke-test"
     ],
     "critical": [
       "PRIVACY_POLICY",
@@ -7225,7 +7460,8 @@
       "biometric",
       "device-sync",
       "llm_config",
-      "snapshots"
+      "snapshots",
+      "sync-smoke-test"
     ],
     "字段需要密码验证": [
       "snapshots"
@@ -7238,7 +7474,8 @@
     ],
     "某": [
       "device-sync",
-      "snapshots"
+      "snapshots",
+      "sync-smoke-test"
     ],
     "数据管理": [
       "collections",
@@ -7253,6 +7490,7 @@
       "llm_config",
       "plugins",
       "snapshots",
+      "sync-smoke-test",
       "trash"
     ],
     "立": [
@@ -7277,6 +7515,7 @@
       "llm_config",
       "plugins",
       "snapshots",
+      "sync-smoke-test",
       "trash"
     ],
     "选择目标快照": [
@@ -7291,7 +7530,8 @@
     "占": [
       "llm_config",
       "ocr_scan",
-      "snapshots"
+      "snapshots",
+      "sync-smoke-test"
     ],
     "系统会自动管理": [
       "snapshots"
@@ -7320,7 +7560,8 @@
     ],
     "口": [
       "device-sync",
-      "snapshots"
+      "snapshots",
+      "sync-smoke-test"
     ],
     "creates": [
       "backup_restore",
@@ -7432,7 +7673,8 @@
       "snapshots"
     ],
     "close": [
-      "snapshots"
+      "snapshots",
+      "sync-smoke-test"
     ],
     "exit": [
       "snapshots"
@@ -7474,6 +7716,7 @@
       "security",
       "sensitivity",
       "snapshots",
+      "sync-smoke-test",
       "trash"
     ],
     "standalone": [
@@ -7561,7 +7804,8 @@
     ],
     "些": [
       "collections",
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "视": [
       "appearance",
@@ -7609,7 +7853,8 @@
       "export_import",
       "ocr_scan",
       "security",
-      "sensitivity"
+      "sensitivity",
+      "sync-smoke-test"
     ],
     "添加": [
       "collections"
@@ -7630,7 +7875,8 @@
       "llm_config",
       "plugins",
       "search",
-      "sensitivity"
+      "sensitivity",
+      "sync-smoke-test"
     ],
     "筛": [
       "audit_log",
@@ -7653,7 +7899,8 @@
     "根": [
       "ai_chat",
       "collections",
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "容": [
       "PRIVACY_POLICY",
@@ -7698,7 +7945,8 @@
     "未": [
       "collections",
       "device-sync",
-      "plugins"
+      "plugins",
+      "sync-smoke-test"
     ],
     "等动态视图": [
       "collections"
@@ -7736,7 +7984,8 @@
       "appearance",
       "collections",
       "device-sync",
-      "search"
+      "search",
+      "sync-smoke-test"
     ],
     "快速查找对象": [
       "collections"
@@ -7748,7 +7997,8 @@
       "collections"
     ],
     "provides": [
-      "collections"
+      "collections",
+      "sync-smoke-test"
     ],
     "views": [
       "collections"
@@ -7799,7 +8049,8 @@
     ],
     "manual": [
       "collections",
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "needed": [
       "backup_restore",
@@ -7943,7 +8194,8 @@
       "sensitivity"
     ],
     "默": [
-      "sensitivity"
+      "sensitivity",
+      "sync-smoke-test"
     ],
     "点击可查看": [
       "sensitivity"
@@ -8026,6 +8278,7 @@
       "plugins",
       "security",
       "sensitivity",
+      "sync-smoke-test",
       "trash"
     ],
     "已": [
@@ -8035,6 +8288,7 @@
       "device-sync",
       "export_import",
       "sensitivity",
+      "sync-smoke-test",
       "trash"
     ],
     "调整敏感度": [
@@ -8044,7 +8298,8 @@
       "appearance",
       "audit_log",
       "device-sync",
-      "sensitivity"
+      "sensitivity",
+      "sync-smoke-test"
     ],
     "如需修改字段的保护级别": [
       "sensitivity"
@@ -8107,7 +8362,8 @@
       "backup_restore",
       "device-sync",
       "export_import",
-      "sensitivity"
+      "sensitivity",
+      "sync-smoke-test"
     ],
     "变更无法无痕撤销": [
       "sensitivity"
@@ -8147,7 +8403,8 @@
       "llm_config",
       "ocr_scan",
       "security",
-      "sensitivity"
+      "sensitivity",
+      "sync-smoke-test"
     ],
     "系统提示词": [
       "ai_chat",
@@ -8177,7 +8434,8 @@
       "ai_chat",
       "device-sync",
       "llm_config",
-      "sensitivity"
+      "sensitivity",
+      "sync-smoke-test"
     ],
     "给": [
       "PRIVACY_POLICY",
@@ -8231,7 +8489,8 @@
       "backup_restore",
       "biometric",
       "device-sync",
-      "sensitivity"
+      "sensitivity",
+      "sync-smoke-test"
     ],
     "纹": [
       "biometric",
@@ -8261,7 +8520,8 @@
       "sensitivity"
     ],
     "default": [
-      "sensitivity"
+      "sensitivity",
+      "sync-smoke-test"
     ],
     "example": [
       "device-sync",
@@ -8281,7 +8541,8 @@
     "unlock": [
       "biometric",
       "security",
-      "sensitivity"
+      "sensitivity",
+      "sync-smoke-test"
     ],
     "substitute": [
       "sensitivity"
@@ -8349,7 +8610,8 @@
       "biometric",
       "llm_config",
       "security",
-      "sensitivity"
+      "sensitivity",
+      "sync-smoke-test"
     ],
     "injection": [
       "ai_chat",
@@ -8360,7 +8622,8 @@
       "ai_chat",
       "llm_config",
       "plugins",
-      "sensitivity"
+      "sensitivity",
+      "sync-smoke-test"
     ],
     "biometrics": [
       "PRIVACY_POLICY",
@@ -8371,7 +8634,8 @@
     "fingerprint": [
       "biometric",
       "device-sync",
-      "sensitivity"
+      "sensitivity",
+      "sync-smoke-test"
     ],
     "face": [
       "biometric",
@@ -8436,7 +8700,8 @@
       "PRIVACY_POLICY",
       "biometric",
       "device-sync",
-      "security"
+      "security",
+      "sync-smoke-test"
     ],
     "需要重新启用": [
       "biometric",
@@ -8510,7 +8775,8 @@
     "测": [
       "ai_chat",
       "llm_config",
-      "security"
+      "security",
+      "sync-smoke-test"
     ],
     "试": [
       "ai_chat",
@@ -8518,7 +8784,8 @@
       "device-sync",
       "llm_config",
       "ocr_scan",
-      "security"
+      "security",
+      "sync-smoke-test"
     ],
     "启用后": [
       "biometric",
@@ -8537,7 +8804,8 @@
       "device-sync",
       "ocr_scan",
       "plugins",
-      "security"
+      "security",
+      "sync-smoke-test"
     ],
     "自动锁定": [
       "security"
@@ -8652,7 +8920,8 @@
     ],
     "shown": [
       "device-sync",
-      "security"
+      "security",
+      "sync-smoke-test"
     ],
     "login": [
       "security"
@@ -8685,7 +8954,8 @@
       "biometric",
       "device-sync",
       "export_import",
-      "security"
+      "security",
+      "sync-smoke-test"
     ],
     "check": [
       "ai_chat",
@@ -8694,6 +8964,7 @@
       "export_import",
       "ocr_scan",
       "security",
+      "sync-smoke-test",
       "trash"
     ],
     "availability": [
@@ -8719,7 +8990,8 @@
       "security"
     ],
     "again": [
-      "security"
+      "security",
+      "sync-smoke-test"
     ],
     "testing": [
       "security"
@@ -8734,14 +9006,16 @@
       "ai_chat",
       "device-sync",
       "llm_config",
-      "security"
+      "security",
+      "sync-smoke-test"
     ],
     "verify": [
       "ai_chat",
       "biometric",
       "device-sync",
       "llm_config",
-      "security"
+      "security",
+      "sync-smoke-test"
     ],
     "feature": [
       "PRIVACY_POLICY",
@@ -8756,7 +9030,8 @@
       "security"
     ],
     "works": [
-      "security"
+      "security",
+      "sync-smoke-test"
     ],
     "locks": [
       "security"
@@ -8823,13 +9098,15 @@
       "biometric"
     ],
     "macos": [
-      "biometric"
+      "biometric",
+      "sync-smoke-test"
     ],
     "ios": [
       "biometric"
     ],
     "windows": [
-      "biometric"
+      "biometric",
+      "sync-smoke-test"
     ],
     "hello": [
       "biometric"
@@ -8874,6 +9151,7 @@
     "放": [
       "backup_restore",
       "biometric",
+      "sync-smoke-test",
       "trash"
     ],
     "传感器上": [
@@ -8927,15 +9205,18 @@
       "biometric"
     ],
     "故": [
-      "biometric"
+      "biometric",
+      "sync-smoke-test"
     ],
     "障": [
-      "biometric"
+      "biometric",
+      "sync-smoke-test"
     ],
     "排": [
       "audit_log",
       "biometric",
-      "search"
+      "search",
+      "sync-smoke-test"
     ],
     "问题": [
       "biometric"
@@ -8947,7 +9228,8 @@
       "audit_log",
       "backup_restore",
       "biometric",
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "生物识别不可用": [
       "biometric"
@@ -8968,7 +9250,8 @@
     ],
     "败": [
       "biometric",
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "系统会临时禁用生物识别": [
       "biometric"
@@ -9038,7 +9321,8 @@
     ],
     "once": [
       "appearance",
-      "biometric"
+      "biometric",
+      "sync-smoke-test"
     ],
     "used": [
       "PRIVACY_POLICY",
@@ -9046,7 +9330,8 @@
       "device-sync"
     ],
     "instead": [
-      "biometric"
+      "biometric",
+      "sync-smoke-test"
     ],
     "typing": [
       "biometric"
@@ -9067,7 +9352,8 @@
     ],
     "troubleshooting": [
       "biometric",
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "solution": [
       "backup_restore",
@@ -9098,7 +9384,8 @@
       "device-sync"
     ],
     "failed": [
-      "biometric"
+      "biometric",
+      "sync-smoke-test"
     ],
     "attempts": [
       "biometric",
@@ -9130,6 +9417,7 @@
     "冲": [
       "device-sync",
       "export_import",
+      "sync-smoke-test",
       "trash"
     ],
     "删除的对象": [
@@ -9332,6 +9620,7 @@
       "audit_log",
       "device-sync",
       "export_import",
+      "sync-smoke-test",
       "trash"
     ],
     "before": [
@@ -9377,6 +9666,7 @@
     ],
     "removed": [
       "PRIVACY_POLICY",
+      "sync-smoke-test",
       "trash"
     ],
     "migration": [
@@ -9530,11 +9820,13 @@
     ],
     "覆": [
       "backup_restore",
-      "export_import"
+      "export_import",
+      "sync-smoke-test"
     ],
     "盖": [
       "backup_restore",
-      "export_import"
+      "export_import",
+      "sync-smoke-test"
     ],
     "用导入数据替换所有现有数据": [
       "export_import"
@@ -9547,7 +9839,8 @@
     ],
     "突": [
       "device-sync",
-      "export_import"
+      "export_import",
+      "sync-smoke-test"
     ],
     "保留非冲突项": [
       "export_import"
@@ -9611,7 +9904,8 @@
     ],
     "须": [
       "device-sync",
-      "export_import"
+      "export_import",
+      "sync-smoke-test"
     ],
     "足": [
       "export_import"
@@ -9650,12 +9944,14 @@
     "设备同步": [
       "backup_restore",
       "device-sync",
-      "export_import"
+      "export_import",
+      "sync-smoke-test"
     ],
     "sync": [
       "backup_restore",
       "device-sync",
-      "export_import"
+      "export_import",
+      "sync-smoke-test"
     ],
     "跨设备传输": [
       "export_import"
@@ -9676,7 +9972,8 @@
       "search"
     ],
     "exchange": [
-      "export_import"
+      "export_import",
+      "sync-smoke-test"
     ],
     "format": [
       "backup_restore",
@@ -9712,7 +10009,8 @@
     "logs": [
       "audit_log",
       "backup_restore",
-      "export_import"
+      "export_import",
+      "sync-smoke-test"
     ],
     "selected": [
       "appearance",
@@ -9769,7 +10067,8 @@
     ],
     "conflicts": [
       "device-sync",
-      "export_import"
+      "export_import",
+      "sync-smoke-test"
     ],
     "non": [
       "export_import"
@@ -9787,7 +10086,8 @@
     ],
     "avoid": [
       "device-sync",
-      "export_import"
+      "export_import",
+      "sync-smoke-test"
     ],
     "overwriting": [
       "export_import"
@@ -10006,12 +10306,14 @@
     ],
     "directory": [
       "backup_restore",
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "profile": [
       "audit_log",
       "backup_restore",
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "major": [
       "backup_restore",
@@ -10159,11 +10461,13 @@
     ],
     "网": [
       "device-sync",
-      "search"
+      "search",
+      "sync-smoke-test"
     ],
     "络": [
       "device-sync",
-      "search"
+      "search",
+      "sync-smoke-test"
     ],
     "求": [
       "device-sync",
@@ -10208,11 +10512,13 @@
       "TERMS_OF_SERVICE",
       "audit_log",
       "llm_config",
-      "search"
+      "search",
+      "sync-smoke-test"
     ],
     "values": [
       "device-sync",
-      "search"
+      "search",
+      "sync-smoke-test"
     ],
     "looks": [
       "search"
@@ -10254,13 +10560,15 @@
       "device-sync"
     ],
     "mdns": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "配对": [
       "device-sync"
     ],
     "附件同步": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "冲突": [
       "device-sync"
@@ -10269,7 +10577,8 @@
       "device-sync"
     ],
     "lan": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "pairing": [
       "device-sync"
@@ -10284,7 +10593,8 @@
       "device-sync"
     ],
     "同一局域网": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "内的多台设备之间安全地同步档案": [
       "device-sync"
@@ -10298,10 +10608,12 @@
     "均": [
       "device-sync",
       "llm_config",
-      "ocr_scan"
+      "ocr_scan",
+      "sync-smoke-test"
     ],
     "noise": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "xx": [
       "device-sync"
@@ -10329,12 +10641,14 @@
     ],
     "依": [
       "TERMS_OF_SERVICE",
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "然": [
       "appearance",
       "device-sync",
-      "llm_config"
+      "llm_config",
+      "sync-smoke-test"
     ],
     "始终坚持本地优先": [
       "device-sync"
@@ -10380,14 +10694,17 @@
       "ocr_scan"
     ],
     "本地双实例联调指南": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "南": [
       "appearance",
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "smoke": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "自动发现要求设备处于同一": [
       "device-sync"
@@ -10418,10 +10735,12 @@
     ],
     "致": [
       "appearance",
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "启用同步": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "打开顶部的": [
       "device-sync"
@@ -10434,7 +10753,8 @@
       "device-sync"
     ],
     "机": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "a1b2c3d4": [
       "device-sync"
@@ -10458,7 +10778,8 @@
     ],
     "比": [
       "device-sync",
-      "llm_config"
+      "llm_config",
+      "sync-smoke-test"
     ],
     "绝对不要信任你不认识或无法物理核对的": [
       "device-sync"
@@ -10479,7 +10800,8 @@
       "device-sync"
     ],
     "信任并配对": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "配对与信任": [
       "device-sync"
@@ -10492,7 +10814,8 @@
       "device-sync"
     ],
     "trust": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "信任模型": [
       "device-sync"
@@ -10528,7 +10851,8 @@
       "device-sync"
     ],
     "播": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "同时监听其他设备": [
       "device-sync"
@@ -10592,7 +10916,8 @@
       "device-sync"
     ],
     "向": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "你也需要在对端设备上信任本机": [
       "device-sync"
@@ -10601,7 +10926,8 @@
       "device-sync"
     ],
     "如果": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "因企业网络": [
       "device-sync"
@@ -10616,13 +10942,16 @@
       "device-sync"
     ],
     "防": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "火": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "墙": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "可以使用手动地址兜底": [
       "device-sync"
@@ -10648,13 +10977,15 @@
       "ai_chat",
       "device-sync",
       "llm_config",
-      "ocr_scan"
+      "ocr_scan",
+      "sync-smoke-test"
     ],
     "系统同样会弹出配对对话框": [
       "device-sync"
     ],
     "确认": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "后信任": [
       "device-sync"
@@ -10668,31 +10999,39 @@
     "直": [
       "ai_chat",
       "device-sync",
-      "ocr_scan"
+      "ocr_scan",
+      "sync-smoke-test"
     ],
     "ui": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "双实例联调脚本": [
       "device-sync"
     ],
     "脚": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "scripts": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "dev": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "two": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "instances": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "sh": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "和日志输出会提供端口信息": [
       "device-sync"
@@ -10750,7 +11089,8 @@
       "device-sync"
     ],
     "tombstone": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "直接同步": [
       "device-sync"
@@ -10762,7 +11102,8 @@
       "device-sync"
     ],
     "再": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "64kb": [
       "device-sync"
@@ -10874,7 +11215,8 @@
       "device-sync"
     ],
     "本地": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "与远程": [
       "device-sync"
@@ -10911,10 +11253,12 @@
       "device-sync"
     ],
     "墓": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "碑": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "硬删除时会写入": [
       "device-sync"
@@ -10996,7 +11340,8 @@
       "device-sync"
     ],
     "table": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "冲突列表": [
       "device-sync"
@@ -11032,7 +11377,8 @@
       "device-sync"
     ],
     "达": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "大库分块流式同步": [
       "device-sync"
@@ -11086,7 +11432,8 @@
       "TERMS_OF_SERVICE",
       "ai_chat",
       "device-sync",
-      "llm_config"
+      "llm_config",
+      "sync-smoke-test"
     ],
     "发送方每发送一批后更新": [
       "device-sync"
@@ -11147,7 +11494,8 @@
       "device-sync"
     ],
     "握": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "transportstate": [
       "device-sync"
@@ -11225,7 +11573,8 @@
       "device-sync"
     ],
     "udp": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "未被防火墙拦截": [
       "device-sync"
@@ -11244,44 +11593,55 @@
       "ocr_scan"
     ],
     "host": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "port": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "手动同步": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "同步提示": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "peer": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "trusted": [
       "device-sync",
-      "plugins"
+      "plugins",
+      "sync-smoke-test"
     ],
     "先在接收方信任发送方的": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "再在发送方信任接收方": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "信任状态持久化在本地": [
       "device-sync"
     ],
     "peers": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "表中": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "应用重启后仍然有效": [
       "device-sync"
     ],
     "附件同步失败": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "检查对象": [
       "device-sync"
@@ -11290,19 +11650,23 @@
       "device-sync"
     ],
     "objectid": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "filename": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "sizebytes": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "检查附件文件是否存在于": [
       "device-sync"
     ],
     "dir": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "中的附件错误提示": [
       "device-sync"
@@ -11350,13 +11714,16 @@
       "device-sync"
     ],
     "bash": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "cd": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "tauri": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "该脚本会": [
       "device-sync"
@@ -11368,10 +11735,12 @@
       "device-sync"
     ],
     "vite": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "hmr": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "避免端口冲突": [
       "device-sync"
@@ -11390,7 +11759,8 @@
     ],
     "骤": [
       "device-sync",
-      "llm_config"
+      "llm_config",
+      "sync-smoke-test"
     ],
     "本地数据安全": [
       "device-sync"
@@ -11411,13 +11781,15 @@
       "device-sync"
     ],
     "devices": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "traffic": [
       "device-sync"
     ],
     "end": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "neither": [
       "device-sync"
@@ -11461,10 +11833,16 @@
     ],
     "run": [
       "device-sync",
-      "plugins"
+      "plugins",
+      "sync-smoke-test"
+    ],
+    "instance": [
+      "device-sync",
+      "sync-smoke-test"
     ],
     "discovery": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "apps": [
       "device-sync"
@@ -11474,7 +11852,8 @@
     ],
     "turn": [
       "ai_chat",
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "displayed": [
       "device-sync"
@@ -11510,17 +11889,20 @@
       "device-sync"
     ],
     "tap": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "pair": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "confirming": [
       "device-sync"
     ],
     "other": [
       "appearance",
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "seen": [
       "device-sync"
@@ -11535,7 +11917,8 @@
       "device-sync"
     ],
     "untrusted": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "discovered": [
       "device-sync"
@@ -11547,10 +11930,12 @@
       "device-sync"
     ],
     "what": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "then": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "mutual": [
       "device-sync"
@@ -11565,7 +11950,8 @@
       "device-sync"
     ],
     "firewall": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "fallback": [
       "device-sync"
@@ -11588,13 +11974,12 @@
     "directly": [
       "ai_chat",
       "device-sync",
-      "ocr_scan"
-    ],
-    "instance": [
-      "device-sync"
+      "ocr_scan",
+      "sync-smoke-test"
     ],
     "script": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "output": [
       "device-sync"
@@ -11604,7 +11989,8 @@
     ],
     "how": [
       "ai_chat",
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "resolved": [
       "device-sync"
@@ -11637,7 +12023,8 @@
       "device-sync"
     ],
     "receiver": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "flag": [
       "device-sync"
@@ -11707,7 +12094,8 @@
     ],
     "whether": [
       "device-sync",
-      "llm_config"
+      "llm_config",
+      "sync-smoke-test"
     ],
     "take": [
       "appearance",
@@ -11723,7 +12111,8 @@
       "device-sync"
     ],
     "copy": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "keeps": [
       "device-sync"
@@ -11761,7 +12150,8 @@
       "device-sync"
     ],
     "arrived": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "intact": [
       "device-sync"
@@ -11794,7 +12184,8 @@
       "device-sync"
     ],
     "sender": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "recording": [
       "device-sync"
@@ -11837,7 +12228,8 @@
       "device-sync"
     ],
     "already": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "transported": [
       "device-sync"
@@ -11872,37 +12264,46 @@
       "device-sync"
     ],
     "discover": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "sides": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "try": [
       "device-sync"
     ],
     "persisted": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "survives": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "restarts": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "fails": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "exists": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "some": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "arrive": [
       "device-sync"
     ],
     "look": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "normal": [
       "device-sync"
@@ -11921,7 +12322,8 @@
       "device-sync"
     ],
     "one": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "machine": [
       "device-sync"
@@ -11930,7 +12332,8 @@
       "device-sync"
     ],
     "different": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "collisions": [
       "device-sync"
@@ -11939,7 +12342,8 @@
       "device-sync"
     ],
     "directories": [
-      "device-sync"
+      "device-sync",
+      "sync-smoke-test"
     ],
     "detailed": [
       "device-sync"
@@ -11957,6 +12361,637 @@
       "ai_chat",
       "audit_log",
       "device-sync"
+    ],
+    "双实例": [
+      "sync-smoke-test"
+    ],
+    "联调": [
+      "sync-smoke-test"
+    ],
+    "冒烟测试": [
+      "sync-smoke-test"
+    ],
+    "two instances": [
+      "sync-smoke-test"
+    ],
+    "smoke test": [
+      "sync-smoke-test"
+    ],
+    "本文档描述如何在本地启动两个": [
+      "sync-smoke-test"
+    ],
+    "述": [
+      "llm_config",
+      "sync-smoke-test"
+    ],
+    "应用实例": [
+      "sync-smoke-test"
+    ],
+    "验证端到端设备同步": [
+      "sync-smoke-test"
+    ],
+    "发现": [
+      "sync-smoke-test"
+    ],
+    "握手": [
+      "sync-smoke-test"
+    ],
+    "双向数据同步": [
+      "sync-smoke-test"
+    ],
+    "删除墓碑传播": [
+      "sync-smoke-test"
+    ],
+    "前置条件": [
+      "sync-smoke-test"
+    ],
+    "开发环境已配置": [
+      "sync-smoke-test"
+    ],
+    "环": [
+      "plugins",
+      "sync-smoke-test"
+    ],
+    "境": [
+      "plugins",
+      "sync-smoke-test"
+    ],
+    "已执行": [
+      "sync-smoke-test"
+    ],
+    "npm": [
+      "sync-smoke-test"
+    ],
+    "install": [
+      "plugins",
+      "sync-smoke-test"
+    ],
+    "安装前端依赖": [
+      "sync-smoke-test"
+    ],
+    "装": [
+      "plugins",
+      "sync-smoke-test"
+    ],
+    "赖": [
+      "TERMS_OF_SERVICE",
+      "sync-smoke-test"
+    ],
+    "cargo": [
+      "sync-smoke-test"
+    ],
+    "build": [
+      "sync-smoke-test"
+    ],
+    "至少一次": [
+      "sync-smoke-test"
+    ],
+    "确保": [
+      "sync-smoke-test"
+    ],
+    "rust": [
+      "sync-smoke-test"
+    ],
+    "依赖已编译": [
+      "sync-smoke-test"
+    ],
+    "译": [
+      "sync-smoke-test"
+    ],
+    "本地回环即可": [
+      "sync-smoke-test"
+    ],
+    "可互通": [
+      "sync-smoke-test"
+    ],
+    "互": [
+      "sync-smoke-test"
+    ],
+    "快速启动": [
+      "sync-smoke-test"
+    ],
+    "项目已提供自动化脚本": [
+      "sync-smoke-test"
+    ],
+    "脚本会": [
+      "sync-smoke-test"
+    ],
+    "检测": [
+      "sync-smoke-test"
+    ],
+    "默认": [
+      "sync-smoke-test"
+    ],
+    "tmp": [
+      "sync-smoke-test"
+    ],
+    "下是否存在": [
+      "sync-smoke-test"
+    ],
+    "账号数据": [
+      "sync-smoke-test"
+    ],
+    "若不存在": [
+      "sync-smoke-test"
+    ],
+    "若": [
+      "sync-smoke-test"
+    ],
+    "先单独启动": [
+      "sync-smoke-test"
+    ],
+    "提示你创建账号": [
+      "sync-smoke-test"
+    ],
+    "创建后关闭窗口并按回车": [
+      "sync-smoke-test"
+    ],
+    "窗": [
+      "sync-smoke-test"
+    ],
+    "车": [
+      "sync-smoke-test"
+    ],
+    "数据复制到": [
+      "sync-smoke-test"
+    ],
+    "保证两边": [
+      "sync-smoke-test"
+    ],
+    "与主密码一致": [
+      "sync-smoke-test"
+    ],
+    "同时启动两个": [
+      "sync-smoke-test"
+    ],
+    "实例": [
+      "sync-smoke-test"
+    ],
+    "分别使用": [
+      "sync-smoke-test"
+    ],
+    "数据目录": [
+      "sync-smoke-test"
+    ],
+    "端口": [
+      "sync-smoke-test"
+    ],
+    "手动验证步骤": [
+      "sync-smoke-test"
+    ],
+    "解锁两个实例": [
+      "sync-smoke-test"
+    ],
+    "在两个窗口中使用同一主密码解锁同一账号": [
+      "sync-smoke-test"
+    ],
+    "在两个实例的": [
+      "sync-smoke-test"
+    ],
+    "页面中打开": [
+      "sync-smoke-test"
+    ],
+    "记录各自显示的": [
+      "sync-smoke-test"
+    ],
+    "各": [
+      "llm_config",
+      "sync-smoke-test"
+    ],
+    "信任对端": [
+      "sync-smoke-test"
+    ],
+    "正常": [
+      "sync-smoke-test"
+    ],
+    "未信任设备会出现在已知设备列表中": [
+      "sync-smoke-test"
+    ],
+    "对比对端": [
+      "sync-smoke-test"
+    ],
+    "是否与对端窗口显示的一致": [
+      "sync-smoke-test"
+    ],
+    "触发同步": [
+      "sync-smoke-test"
+    ],
+    "触": [
+      "sync-smoke-test"
+    ],
+    "在任一实例中": [
+      "sync-smoke-test"
+    ],
+    "输入对端": [
+      "sync-smoke-test"
+    ],
+    "页面中不直接显示": [
+      "sync-smoke-test"
+    ],
+    "可通过对端日志或": [
+      "sync-smoke-test"
+    ],
+    "获取": [
+      "sync-smoke-test"
+    ],
+    "获": [
+      "llm_config",
+      "ocr_scan",
+      "sync-smoke-test"
+    ],
+    "取": [
+      "PRIVACY_POLICY",
+      "ocr_scan",
+      "sync-smoke-test"
+    ],
+    "点击同步": [
+      "sync-smoke-test"
+    ],
+    "直接点击已知设备行的同步按钮": [
+      "sync-smoke-test"
+    ],
+    "已提供": [
+      "sync-smoke-test"
+    ],
+    "验证数据一致": [
+      "sync-smoke-test"
+    ],
+    "创建一个档案": [
+      "sync-smoke-test"
+    ],
+    "一个对象": [
+      "sync-smoke-test"
+    ],
+    "一个用户模板": [
+      "sync-smoke-test"
+    ],
+    "并上传一个附件": [
+      "sync-smoke-test"
+    ],
+    "等待同步完成": [
+      "sync-smoke-test"
+    ],
+    "刷新对应页面": [
+      "sync-smoke-test"
+    ],
+    "刷": [
+      "sync-smoke-test"
+    ],
+    "确认数据与附件均已到达": [
+      "sync-smoke-test"
+    ],
+    "删除该档案": [
+      "sync-smoke-test"
+    ],
+    "再次同步": [
+      "sync-smoke-test"
+    ],
+    "中该档案也被删除": [
+      "sync-smoke-test"
+    ],
+    "验证删除墓碑传播": [
+      "sync-smoke-test"
+    ],
+    "端口与数据目录自定义": [
+      "sync-smoke-test"
+    ],
+    "脚本使用以下环境变量": [
+      "sync-smoke-test"
+    ],
+    "可根据需要覆盖": [
+      "sync-smoke-test"
+    ],
+    "变量": [
+      "sync-smoke-test"
+    ],
+    "默认值": [
+      "sync-smoke-test"
+    ],
+    "测试数据根目录": [
+      "sync-smoke-test"
+    ],
+    "开发服务器端口": [
+      "sync-smoke-test"
+    ],
+    "websocket": [
+      "sync-smoke-test"
+    ],
+    "应用数据目录": [
+      "sync-smoke-test"
+    ],
+    "注意": [
+      "sync-smoke-test"
+    ],
+    "两个实例的": [
+      "sync-smoke-test"
+    ],
+    "必须不同": [
+      "sync-smoke-test"
+    ],
+    "否则会发生文件冲突": [
+      "sync-smoke-test"
+    ],
+    "故障排查": [
+      "sync-smoke-test"
+    ],
+    "两个实例无法发现对方": [
+      "sync-smoke-test"
+    ],
+    "确认两边": [
+      "sync-smoke-test"
+    ],
+    "完全一致": [
+      "sync-smoke-test"
+    ],
+    "通过复制同一账号数据实现": [
+      "sync-smoke-test"
+    ],
+    "某些网络环境会屏蔽": [
+      "sync-smoke-test"
+    ],
+    "蔽": [
+      "sync-smoke-test"
+    ],
+    "可直接使用": [
+      "sync-smoke-test"
+    ],
+    "检查防火墙是否放行": [
+      "sync-smoke-test"
+    ],
+    "以及随机": [
+      "sync-smoke-test"
+    ],
+    "tcp": [
+      "sync-smoke-test"
+    ],
+    "信任状态持久化在": [
+      "sync-smoke-test"
+    ],
+    "重新打开应用后仍然有效": [
+      "sync-smoke-test"
+    ],
+    "检查对象的": [
+      "sync-smoke-test"
+    ],
+    "字段是否包含正确": [
+      "sync-smoke-test"
+    ],
+    "确认附件文件存在于": [
+      "sync-smoke-test"
+    ],
+    "日志中的": [
+      "sync-smoke-test"
+    ],
+    "警告": [
+      "sync-smoke-test"
+    ],
+    "警": [
+      "sync-smoke-test"
+    ],
+    "告": [
+      "TERMS_OF_SERVICE",
+      "ai_chat",
+      "llm_config",
+      "sync-smoke-test"
+    ],
+    "端口冲突": [
+      "sync-smoke-test"
+    ],
+    "已被占用": [
+      "sync-smoke-test"
+    ],
+    "修改脚本中的端口或使用环境变量覆盖": [
+      "sync-smoke-test"
+    ],
+    "关联文件": [
+      "sync-smoke-test"
+    ],
+    "双实例启动脚本": [
+      "sync-smoke-test"
+    ],
+    "src": [
+      "sync-smoke-test"
+    ],
+    "services": [
+      "ocr_scan",
+      "sync-smoke-test"
+    ],
+    "service": [
+      "TERMS_OF_SERVICE",
+      "llm_config",
+      "plugins",
+      "sync-smoke-test"
+    ],
+    "rs": [
+      "sync-smoke-test"
+    ],
+    "环境变量支持": [
+      "sync-smoke-test"
+    ],
+    "ts": [
+      "sync-smoke-test"
+    ],
+    "端口支持": [
+      "sync-smoke-test"
+    ],
+    "crates": [
+      "sync-smoke-test"
+    ],
+    "manager": [
+      "sync-smoke-test"
+    ],
+    "同步会话": [
+      "sync-smoke-test"
+    ],
+    "syncpage": [
+      "sync-smoke-test"
+    ],
+    "tsx": [
+      "sync-smoke-test"
+    ],
+    "同步设置页面": [
+      "sync-smoke-test"
+    ],
+    "explains": [
+      "sync-smoke-test"
+    ],
+    "handshake": [
+      "sync-smoke-test"
+    ],
+    "bidirectional": [
+      "sync-smoke-test"
+    ],
+    "propagation": [
+      "sync-smoke-test"
+    ],
+    "prerequisites": [
+      "sync-smoke-test"
+    ],
+    "development": [
+      "llm_config",
+      "plugins",
+      "sync-smoke-test"
+    ],
+    "environment": [
+      "plugins",
+      "sync-smoke-test"
+    ],
+    "configured": [
+      "PRIVACY_POLICY",
+      "sync-smoke-test"
+    ],
+    "front": [
+      "sync-smoke-test"
+    ],
+    "dependencies": [
+      "sync-smoke-test"
+    ],
+    "installed": [
+      "sync-smoke-test"
+    ],
+    "compiled": [
+      "sync-smoke-test"
+    ],
+    "reach": [
+      "sync-smoke-test"
+    ],
+    "loopback": [
+      "sync-smoke-test"
+    ],
+    "sufficient": [
+      "sync-smoke-test"
+    ],
+    "automation": [
+      "plugins",
+      "sync-smoke-test"
+    ],
+    "provided": [
+      "sync-smoke-test"
+    ],
+    "alone": [
+      "sync-smoke-test"
+    ],
+    "window": [
+      "sync-smoke-test"
+    ],
+    "press": [
+      "ai_chat",
+      "sync-smoke-test"
+    ],
+    "done": [
+      "ocr_scan",
+      "sync-smoke-test"
+    ],
+    "share": [
+      "ai_chat",
+      "llm_config",
+      "sync-smoke-test"
+    ],
+    "simultaneously": [
+      "sync-smoke-test"
+    ],
+    "note": [
+      "sync-smoke-test"
+    ],
+    "known": [
+      "sync-smoke-test"
+    ],
+    "compare": [
+      "sync-smoke-test"
+    ],
+    "against": [
+      "sync-smoke-test"
+    ],
+    "trigger": [
+      "sync-smoke-test"
+    ],
+    "either": [
+      "sync-smoke-test"
+    ],
+    "found": [
+      "sync-smoke-test"
+    ],
+    "via": [
+      "TERMS_OF_SERVICE",
+      "ai_chat",
+      "sync-smoke-test"
+    ],
+    "row": [
+      "sync-smoke-test"
+    ],
+    "consistency": [
+      "sync-smoke-test"
+    ],
+    "upload": [
+      "ocr_scan",
+      "sync-smoke-test"
+    ],
+    "finish": [
+      "sync-smoke-test"
+    ],
+    "refresh": [
+      "sync-smoke-test"
+    ],
+    "relevant": [
+      "audit_log",
+      "sync-smoke-test"
+    ],
+    "verifying": [
+      "sync-smoke-test"
+    ],
+    "customizing": [
+      "sync-smoke-test"
+    ],
+    "ports": [
+      "sync-smoke-test"
+    ],
+    "variables": [
+      "sync-smoke-test"
+    ],
+    "override": [
+      "sync-smoke-test"
+    ],
+    "variable": [
+      "sync-smoke-test"
+    ],
+    "root": [
+      "sync-smoke-test"
+    ],
+    "exact": [
+      "sync-smoke-test"
+    ],
+    "achieved": [
+      "sync-smoke-test"
+    ],
+    "copying": [
+      "sync-smoke-test"
+    ],
+    "networks": [
+      "sync-smoke-test"
+    ],
+    "block": [
+      "sync-smoke-test"
+    ],
+    "allows": [
+      "plugins",
+      "sync-smoke-test"
+    ],
+    "random": [
+      "sync-smoke-test"
+    ],
+    "valid": [
+      "sync-smoke-test"
+    ],
+    "warnings": [
+      "sync-smoke-test"
+    ],
+    "support": [
+      "llm_config",
+      "plugins",
+      "sync-smoke-test"
+    ],
+    "sessions": [
+      "sync-smoke-test"
     ],
     "ocr": [
       "ocr_scan"
@@ -11986,10 +13021,6 @@
       "ocr_scan"
     ],
     "功能让您可以从图片中提取文字并创建对象": [
-      "ocr_scan"
-    ],
-    "取": [
-      "PRIVACY_POLICY",
       "ocr_scan"
     ],
     "从侧边栏或首页进入": [
@@ -12074,10 +13105,6 @@
     "为获得最佳识别效果": [
       "ocr_scan"
     ],
-    "获": [
-      "llm_config",
-      "ocr_scan"
-    ],
     "得": [
       "llm_config",
       "ocr_scan"
@@ -12158,9 +13185,6 @@
     "extract": [
       "ocr_scan"
     ],
-    "upload": [
-      "ocr_scan"
-    ],
     "containing": [
       "ocr_scan"
     ],
@@ -12234,12 +13258,6 @@
     "processing": [
       "PRIVACY_POLICY",
       "ai_chat",
-      "ocr_scan"
-    ],
-    "done": [
-      "ocr_scan"
-    ],
-    "services": [
       "ocr_scan"
     ],
     "scanned": [
@@ -12840,9 +13858,6 @@
     "clean": [
       "audit_log"
     ],
-    "relevant": [
-      "audit_log"
-    ],
     "聊天": [
       "ai_chat"
     ],
@@ -12869,11 +13884,6 @@
     ],
     "阅": [
       "ai_chat"
-    ],
-    "告": [
-      "TERMS_OF_SERVICE",
-      "ai_chat",
-      "llm_config"
     ],
     "我已了解风险": [
       "ai_chat"
@@ -13151,9 +14161,6 @@
       "ai_chat",
       "llm_config"
     ],
-    "press": [
-      "ai_chat"
-    ],
     "responds": [
       "ai_chat"
     ],
@@ -13185,10 +14192,6 @@
     "actively": [
       "ai_chat"
     ],
-    "share": [
-      "ai_chat",
-      "llm_config"
-    ],
     "thread": [
       "ai_chat"
     ],
@@ -13197,10 +14200,6 @@
       "llm_config"
     ],
     "streamed": [
-      "ai_chat"
-    ],
-    "via": [
-      "TERMS_OF_SERVICE",
       "ai_chat"
     ],
     "providers": [
@@ -13331,9 +14330,6 @@
     "配置页面可以单独控制各项": [
       "llm_config"
     ],
-    "各": [
-      "llm_config"
-    ],
     "助手聊天": [
       "llm_config"
     ],
@@ -13363,9 +14359,6 @@
       "llm_config"
     ],
     "用自然语言描述搜索意图": [
-      "llm_config"
-    ],
-    "述": [
       "llm_config"
     ],
     "系统提示词开关控制是否将软件信息注入": [
@@ -13478,11 +14471,6 @@
     "compatible": [
       "llm_config"
     ],
-    "service": [
-      "TERMS_OF_SERVICE",
-      "llm_config",
-      "plugins"
-    ],
     "base": [
       "llm_config"
     ],
@@ -13495,10 +14483,6 @@
     ],
     "typically": [
       "llm_config"
-    ],
-    "development": [
-      "llm_config",
-      "plugins"
     ],
     "command": [
       "llm_config"
@@ -13550,10 +14534,6 @@
     ],
     "parsing": [
       "llm_config"
-    ],
-    "support": [
-      "llm_config",
-      "plugins"
     ],
     "precise": [
       "llm_config"
@@ -13622,12 +14602,6 @@
     "盒": [
       "plugins"
     ],
-    "环": [
-      "plugins"
-    ],
-    "境": [
-      "plugins"
-    ],
     "插件需要显式授权才能访问数据字段": [
       "plugins"
     ],
@@ -13635,9 +14609,6 @@
       "plugins"
     ],
     "安装插件": [
-      "plugins"
-    ],
-    "装": [
       "plugins"
     ],
     "浏览可用插件列表": [
@@ -13709,9 +14680,6 @@
     "插件操作对象": [
       "plugins"
     ],
-    "allows": [
-      "plugins"
-    ],
     "extending": [
       "plugins"
     ],
@@ -13736,16 +14704,10 @@
     "sandboxed": [
       "plugins"
     ],
-    "environment": [
-      "plugins"
-    ],
     "authorization": [
       "plugins"
     ],
     "installing": [
-      "plugins"
-    ],
-    "install": [
       "plugins"
     ],
     "download": [
@@ -13793,9 +14755,6 @@
       "plugins"
     ],
     "integrations": [
-      "plugins"
-    ],
-    "automation": [
       "plugins"
     ],
     "workflows": [
@@ -13971,9 +14930,6 @@
     "lost": [
       "PRIVACY_POLICY"
     ],
-    "configured": [
-      "PRIVACY_POLICY"
-    ],
     "party": [
       "PRIVACY_POLICY",
       "TERMS_OF_SERVICE"
@@ -14093,9 +15049,6 @@
       "TERMS_OF_SERVICE"
     ],
     "对话功能依赖第三方服务商": [
-      "TERMS_OF_SERVICE"
-    ],
-    "赖": [
       "TERMS_OF_SERVICE"
     ],
     "其可用性和响应质量不受": [
@@ -14363,6 +15316,10 @@
     "device-sync": {
       "zh": "设备同步",
       "en": "Device Sync"
+    },
+    "sync-smoke-test": {
+      "zh": "本地双实例联调指南",
+      "en": "Local Two-Instance Sync Smoke Test"
     },
     "ocr_scan": {
       "zh": "OCR 与扫描",

@@ -392,10 +392,10 @@ class BiometricKeystorePlugin(private val activity: Activity): Plugin(activity) 
             val manager = BiometricManager.from(activity)
             val strongStatus = manager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)
             val weakStatus = manager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_WEAK)
-            strongStatus == BiometricManager.BIOMETRIC_ERROR_LOCKOUT ||
-                strongStatus == BiometricManager.BIOMETRIC_ERROR_LOCKOUT_PERMANENT ||
-                weakStatus == BiometricManager.BIOMETRIC_ERROR_LOCKOUT ||
-                weakStatus == BiometricManager.BIOMETRIC_ERROR_LOCKOUT_PERMANENT
+            strongStatus == BiometricPrompt.ERROR_LOCKOUT ||
+                strongStatus == BiometricPrompt.ERROR_LOCKOUT_PERMANENT ||
+                weakStatus == BiometricPrompt.ERROR_LOCKOUT ||
+                weakStatus == BiometricPrompt.ERROR_LOCKOUT_PERMANENT
         } catch (_: Exception) {
             false
         }
