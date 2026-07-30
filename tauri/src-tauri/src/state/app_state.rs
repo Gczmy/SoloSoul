@@ -38,17 +38,26 @@ pub struct AppState {
 
 /// 跨设备恢复主机的运行时状态。
 pub struct RecoveryState {
-    pub cancel: Arc<AtomicBool>,
+    /// 正向恢复（主机发送数据）的取消信号。
+    pub host_cancel: Arc<AtomicBool>,
     pub host_thread: Option<std::thread::JoinHandle<()>>,
     pub export_path: Option<PathBuf>,
+    /// 反向恢复（接收端等待数据）的取消信号。
+    pub receiver_cancel: Arc<AtomicBool>,
+    /// 反向恢复模式下接收端的后台线程。
+    pub receiver_thread: Option<
+        std::thread::JoinHandle<Result<solosoul_sync::recovery::RecoveryTransferResult, String>>
+    >,
 }
 
 impl RecoveryState {
     pub fn new() -> Self {
         Self {
-            cancel: Arc::new(AtomicBool::new(false)),
+            host_cancel: Arc::new(AtomicBool::new(false)),
             host_thread: None,
             export_path: None,
+            receiver_cancel: Arc::new(AtomicBool::new(false)),
+            receiver_thread: None,
         }
     }
 }

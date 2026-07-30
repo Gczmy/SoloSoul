@@ -593,6 +593,9 @@ pub fn run() {
             commands::recovery::recovery_host_start,
             commands::recovery::recovery_host_cancel,
             commands::recovery::recovery_restore_from_host,
+            commands::recovery::recovery_receive_listen_start,
+            commands::recovery::recovery_receive_listen_wait,
+            commands::recovery::recovery_host_push,
             // Plugin commands
             commands::plugin::plugin_list_all,
             commands::plugin::plugin_list_installed,

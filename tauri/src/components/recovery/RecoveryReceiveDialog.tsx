@@ -1,12 +1,15 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
-import { Loader2, X, ScanLine } from 'lucide-react';
+import { Loader2, X, ScanLine, QrCode } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useAuthStore } from '@/stores/authStore';
+import { isMobilePlatform } from '@/lib/platform';
+import { RecoveryQrScanner } from './RecoveryQrScanner';
 
 interface RecoveryReceiveDialogProps {
   isOpen: boolean;
@@ -18,6 +21,12 @@ interface RecoveryReceiveDialogProps {
 interface RecoveryResultSummary {
   objectCount: number;
   attachmentCount: number;
+}
+
+interface ReverseListenInfo {
+  displayAddr: string;
+  pin: string;
+  qrPayload: string;
 }
 
 export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryReceiveDialogProps) {
@@ -32,30 +41,51 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<RecoveryResultSummary | null>(null);
+  const [showScanner, setShowScanner] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [reverseInfo, setReverseInfo] = useState<ReverseListenInfo | null>(null);
+  const [reverseWaiting, setReverseWaiting] = useState(false);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    isMobilePlatform().then(setIsMobile).catch(() => setIsMobile(false));
+    return () => {
+      mountedRef.current = false;
+      // 组件卸载时取消可能仍在运行的反向恢复监听器
+      Promise.resolve(invoke('recovery_host_cancel')).catch(() => {});
+    };
+  }, []);
 
   if (!isOpen) return null;
+
+  const validateForm = (forReverse: boolean) => {
+    if (accountName.trim().length === 0) {
+      setError(t('common:account_name_required'));
+      return false;
+    }
+    if (password.length < 8) {
+      setError(t('common:password_length_requirement'));
+      return false;
+    }
+    if (!forReverse) {
+      if (hostAddr.trim().length === 0) {
+        setError(t('common:invalid_addr'));
+        return false;
+      }
+      if (!/^\d{6}$/.test(pin)) {
+        setError(t('common:recovery_receive_invalid_pin'));
+        return false;
+      }
+    }
+    return true;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setSuccess(null);
 
-    if (accountName.trim().length === 0) {
-      setError(t('common:account_name_required'));
-      return;
-    }
-    if (password.length < 8) {
-      setError(t('common:password_length_requirement'));
-      return;
-    }
-    if (hostAddr.trim().length === 0) {
-      setError(t('common:invalid_addr'));
-      return;
-    }
-    if (!/^\d{6}$/.test(pin)) {
-      setError(t('common:recovery_receive_invalid_pin'));
-      return;
-    }
+    if (!validateForm(false)) return;
 
     setLoading(true);
     try {
@@ -77,6 +107,9 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
   };
 
   const handleClose = () => {
+    if (reverseInfo) {
+      invoke('recovery_host_cancel').catch(() => {});
+    }
     if (success) {
       if (onSuccess) {
         onSuccess();
@@ -105,6 +138,50 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
       setFingerprint(undefined);
       setNonce(undefined);
     }
+  };
+
+  const handleStartReverseListen = async () => {
+    setError(null);
+    setSuccess(null);
+
+    if (!validateForm(true)) return;
+
+    setLoading(true);
+    try {
+      const info = await invoke<ReverseListenInfo>('recovery_receive_listen_start');
+      if (!mountedRef.current) return;
+      setReverseInfo(info);
+      setReverseWaiting(true);
+      try {
+        const result = await invoke<RecoveryResultSummary>('recovery_receive_listen_wait', {
+          accountName,
+          masterPassword: password,
+        });
+        if (!mountedRef.current) return;
+        setSuccess(result);
+        await useAuthStore.getState().checkHasAccount();
+      } catch (err) {
+        if (!mountedRef.current) return;
+        setError(String(err));
+      } finally {
+        if (mountedRef.current) {
+          setReverseWaiting(false);
+        }
+      }
+    } catch (err) {
+      if (!mountedRef.current) return;
+      setError(String(err));
+    } finally {
+      if (mountedRef.current) {
+        setLoading(false);
+      }
+    }
+  };
+
+  const handleCancelReverse = () => {
+    invoke('recovery_host_cancel').catch(() => {});
+    setReverseInfo(null);
+    setReverseWaiting(false);
   };
 
   return (
@@ -212,6 +289,91 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
               {t('common:onboarding_done')}
             </Button>
           </div>
+        ) : reverseInfo ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16, alignItems: 'center' }}>
+            <div
+              style={{
+                padding: 12,
+                background: '#fff',
+                borderRadius: 12,
+                border: '1px solid var(--border-subtle)',
+              }}
+            >
+              <QRCodeSVG value={reverseInfo.qrPayload} size={200} level="M" includeMargin />
+            </div>
+
+            <div style={{ width: '100%' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: '10px 12px',
+                  borderRadius: 8,
+                  background: 'var(--bg-toolbar)',
+                  marginBottom: 8,
+                }}
+              >
+                <span style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-body-sm)' }}>
+                  {t('common:recovery_host_pin_label')}
+                </span>
+                <span
+                  style={{
+                    fontFamily: 'monospace',
+                    fontSize: 'var(--text-body)',
+                    fontWeight: 700,
+                    letterSpacing: 4,
+                    color: 'var(--accent-primary)',
+                  }}
+                >
+                  {reverseInfo.pin}
+                </span>
+              </div>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: '10px 12px',
+                  borderRadius: 8,
+                  background: 'var(--bg-toolbar)',
+                }}
+              >
+                <span style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-body-sm)' }}>
+                  {t('common:recovery_host_addr_label')}
+                </span>
+                <span
+                  style={{
+                    fontFamily: 'monospace',
+                    fontSize: 'var(--text-body-sm)',
+                    color: 'var(--text-primary)',
+                  }}
+                >
+                  {reverseInfo.displayAddr}
+                </span>
+              </div>
+            </div>
+
+            {reverseWaiting && (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                  fontSize: 'var(--text-body-sm)',
+                  color: 'var(--text-secondary)',
+                }}
+              >
+                <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
+                {t('common:recovery_host_waiting')}
+              </div>
+            )}
+
+            <Button variant="secondary" onClick={handleCancelReverse} style={{ width: '100%' }}>
+              {t('common:recovery_host_cancel')}
+            </Button>
+          </div>
         ) : (
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <Input
@@ -233,6 +395,61 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
               onChange={(e) => handleHostAddrChange(e.target.value)}
               placeholder={t('common:recovery_receive_addr_placeholder')}
             />
+
+            <button
+              type="button"
+              onClick={() => {
+                setError(null);
+                if (isMobile) {
+                  setShowScanner(true);
+                } else {
+                  void handleStartReverseListen();
+                }
+              }}
+              disabled={loading}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 8,
+                padding: '10px 12px',
+                borderRadius: 8,
+                border: '1px dashed var(--border-subtle)',
+                background: 'transparent',
+                color: loading ? 'var(--text-tertiary)' : 'var(--text-secondary)',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                fontFamily: 'inherit',
+                fontSize: 'var(--text-body-sm)',
+                transition: 'all 0.15s ease',
+                opacity: loading ? 0.6 : 1,
+              }}
+              onMouseEnter={(e) => {
+                if (loading) return;
+                e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                e.currentTarget.style.color = 'var(--accent-primary)';
+              }}
+              onMouseLeave={(e) => {
+                if (loading) return;
+                e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                e.currentTarget.style.color = 'var(--text-secondary)';
+              }}
+            >
+              <QrCode size={18} />
+              {isMobile ? t('common:recovery_qr_scan_button') : t('common:recovery_qr_show_button')}
+            </button>
+
+            {showScanner && (
+              <RecoveryQrScanner
+                onScan={(text) => {
+                  setShowScanner(false);
+                  handleHostAddrChange(text);
+                }}
+                onError={(message) => {
+                  setError(message);
+                }}
+                onCancel={() => setShowScanner(false)}
+              />
+            )}
             <Input
               label={t('common:recovery_receive_pin_label')}
               value={pin}

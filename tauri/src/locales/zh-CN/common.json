@@ -589,6 +589,12 @@
   "recovery_receive_success_desc": "已导入 {{objects}} 个对象，{{attachments}} 个附件。",
   "recovery_receive_objects": "对象",
   "recovery_receive_attachments": "附件",
+  "recovery_qr_scan_button": "扫描二维码",
+  "recovery_qr_show_button": "显示二维码",
+  "recovery_scan_new_device": "扫描新设备二维码",
+  "recovery_qr_invalid_reverse": "无效的二维码，请扫描新设备上显示的二维码。",
+  "recovery_qr_hint": "将相机对准另一台设备上显示的二维码。",
+  "recovery_qr_no_camera": "未找到摄像头。请允许摄像头权限或手动输入信息。",
   "onboarding_recover_from_device": "从其他设备恢复",
   "onboarding_recover_from_device_desc": "从正在运行 SoloSoul 的手机或电脑恢复账户。"
 }

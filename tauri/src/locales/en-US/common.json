@@ -590,6 +590,12 @@
   "recovery_receive_success_desc": "Imported {{objects}} objects and {{attachments}} attachments.",
   "recovery_receive_objects": "objects",
   "recovery_receive_attachments": "attachments",
+  "recovery_qr_scan_button": "Scan QR code",
+  "recovery_qr_show_button": "Show QR code",
+  "recovery_scan_new_device": "Scan new device QR code",
+  "recovery_qr_invalid_reverse": "Invalid QR code. Please scan the QR code shown on the new device.",
+  "recovery_qr_hint": "Point your camera at the QR code shown on the other device.",
+  "recovery_qr_no_camera": "No camera found. Please allow camera access or enter the details manually.",
   "onboarding_recover_from_device": "Recover from another device",
   "onboarding_recover_from_device_desc": "Restore your account from a phone or computer running SoloSoul."
 }
