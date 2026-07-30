@@ -1,14 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
-import { Loader2, X, ScanLine, QrCode } from 'lucide-react';
+import { X, QrCode } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useAuthStore } from '@/stores/authStore';
-
 
 interface RecoveryReceiveDialogProps {
   isOpen: boolean;
@@ -32,10 +31,6 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
   const { t } = useTranslation(['common']);
   const navigate = useNavigate();
   const [password, setPassword] = useState('');
-  const [hostAddr, setHostAddr] = useState('');
-  const [pin, setPin] = useState('');
-  const [fingerprint, setFingerprint] = useState<string | undefined>(undefined);
-  const [nonce, setNonce] = useState<string | undefined>(undefined);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<RecoveryResultSummary | null>(null);
@@ -84,49 +79,6 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
 
   if (!isOpen) return null;
 
-  const validateForm = (forReverse: boolean) => {
-    if (password.length < 8) {
-      setError(t('common:password_length_requirement'));
-      return false;
-    }
-    if (!forReverse) {
-      if (hostAddr.trim().length === 0) {
-        setError(t('common:invalid_addr'));
-        return false;
-      }
-      if (!/^\d{6}$/.test(pin)) {
-        setError(t('common:recovery_receive_invalid_pin'));
-        return false;
-      }
-    }
-    return true;
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
-    setSuccess(null);
-
-    if (!validateForm(false)) return;
-
-    setLoading(true);
-    try {
-      const result = await invoke<RecoveryResultSummary>('recovery_restore_from_host', {
-        masterPassword: password,
-        hostAddr: hostAddr,
-        pin,
-        fingerprint,
-        nonce,
-      });
-      setSuccess(result);
-      await useAuthStore.getState().checkHasAccount();
-    } catch (err) {
-      setError(String(err));
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleClose = () => {
     if (reverseInfo) {
       invoke('recovery_host_cancel').catch(() => {});
@@ -141,31 +93,14 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
     onClose();
   };
 
-  const handleHostAddrChange = (value: string) => {
-    setHostAddr(value);
-    // 允许用户粘贴 QR payload JSON，自动解析出地址、PIN、nonce 和指纹
-    try {
-      const parsed = JSON.parse(value);
-      if (parsed.a) {
-        setHostAddr(parsed.a);
-        if (parsed.p && /^\d{6}$/.test(String(parsed.p))) {
-          setPin(String(parsed.p));
-        }
-        if (parsed.n) setNonce(String(parsed.n));
-        if (parsed.f) setFingerprint(String(parsed.f));
-      }
-    } catch {
-      // 普通地址输入：清除此前由 QR 解析带来的指纹/nonce，避免状态残留
-      setFingerprint(undefined);
-      setNonce(undefined);
-    }
-  };
-
   const handleStartReverseListen = async () => {
     setError(null);
     setSuccess(null);
 
-    if (!validateForm(true)) return;
+    if (password.length < 8) {
+      setError(t('common:password_length_requirement'));
+      return;
+    }
 
     setLoading(true);
     try {
@@ -362,7 +297,7 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
             </Button>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <Input
               label={t('common:recovery_receive_password_label')}
               type="password"
@@ -370,12 +305,6 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
               onChange={(e) => setPassword(e.target.value)}
               placeholder={t('common:recovery_receive_password_hint')}
               autoFocus
-            />
-            <Input
-              label={t('common:recovery_receive_addr_label')}
-              value={hostAddr}
-              onChange={(e) => handleHostAddrChange(e.target.value)}
-              placeholder={t('common:recovery_receive_addr_placeholder')}
             />
 
             <button
@@ -415,52 +344,11 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
               <QrCode size={18} />
               {t('common:recovery_qr_show_button')}
             </button>
-            <Input
-              label={t('common:recovery_receive_pin_label')}
-              value={pin}
-              onChange={(e) => setPin(e.target.value)}
-              maxLength={6}
-              placeholder="123456"
-            />
-
-            {fingerprint && (
-              <div
-                style={{
-                  padding: '8px 12px',
-                  borderRadius: 8,
-                  background: 'var(--bg-toolbar)',
-                  fontSize: 'var(--text-body-sm)',
-                  color: 'var(--text-secondary)',
-                }}
-              >
-                <span style={{ marginRight: 8 }}>
-                  <ScanLine size={14} style={{ verticalAlign: 'middle', marginRight: 4 }} />
-                  {t('common:recovery_receive_fingerprint_label')}
-                </span>
-                <code style={{ color: 'var(--text-primary)', fontFamily: 'monospace' }}>
-                  {fingerprint}
-                </code>
-              </div>
-            )}
 
             {error && (
               <div style={{ color: '#e74c3c', fontSize: 'var(--text-body-sm)' }}>{error}</div>
             )}
-
-            <Button type="submit" disabled={loading} style={{ width: '100%', marginTop: 8 }}>
-              {loading ? (
-                <>
-                  <Loader2
-                    size={16}
-                    style={{ marginRight: 8, animation: 'spin 1s linear infinite' }}
-                  />
-                  {t('common:loading')}
-                </>
-              ) : (
-                t('common:recovery_receive_start')
-              )}
-            </Button>
-          </form>
+          </div>
         )}
       </Card>
     </div>

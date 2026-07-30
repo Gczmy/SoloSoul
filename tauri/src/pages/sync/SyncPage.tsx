@@ -20,7 +20,6 @@ import {
 import { useSyncStore } from '@/stores/syncStore';
 import { DeleteButton } from '@/components/ui/DeleteButton';
 import { PageGuideButton } from '@/components/guide/PageGuideButton';
-import { RecoveryHostDialog } from '@/components/recovery/RecoveryHostDialog';
 import { SyncConflictDialog } from '@/components/sync/SyncConflictDialog';
 import type { SyncConflict } from '@/lib/ipc';
 import { ICON_SIZE } from '@/lib/constants';
@@ -42,7 +41,6 @@ export function SyncPage() {
   const [manualAddr, setManualAddr] = useState('');
   const [ignoredPeerIds, setIgnoredPeerIds] = useState<Set<string>>(new Set());
   const [activityOpen, setActivityOpen] = useState(false);
-  const [hostDialogOpen, setHostDialogOpen] = useState(false);
   const [conflictDialogOpen, setConflictDialogOpen] = useState(false);
 
   const syncGuidePages = useMemo(
@@ -143,10 +141,6 @@ export function SyncPage() {
     setIgnoredPeerIds((prev) => new Set(prev).add(pendingPeer.id));
   };
 
-  const handleOpenHostDialog = () => {
-    setHostDialogOpen(true);
-  };
-
   const handleOpenConflictDialog = () => {
     setConflictDialogOpen(true);
   };
@@ -158,50 +152,6 @@ export function SyncPage() {
       actions={<PageGuideButton pages={syncGuidePages} />}
     >
       <PageContainer variant="xs" gap="default">
-
-        {/* Link new device */}
-        <Card>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div>
-              <div style={{ fontSize: 'var(--text-card-title)', fontWeight: 600 }}>
-                {t('common:recovery_link_new_device')}
-              </div>
-              <div style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)', marginTop: 4 }}>
-                {t('common:onboarding_recover_from_device_desc')}
-              </div>
-            </div>
-            <button
-              onClick={handleOpenHostDialog}
-              disabled={store.isLoading}
-              style={{
-                padding: '8px 16px',
-                borderRadius: 8,
-                border: '1px solid var(--border-subtle)',
-                background: 'var(--bg-toolbar)',
-                color: 'var(--text-primary)',
-                fontSize: 'var(--text-body-sm)',
-                fontWeight: 500,
-                cursor: store.isLoading ? 'default' : 'pointer',
-                opacity: store.isLoading ? 0.6 : 1,
-                transition: 'all 0.15s ease',
-                fontFamily: 'inherit',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background =
-                  'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
-                e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                e.currentTarget.style.color = 'var(--accent-primary)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'var(--bg-toolbar)';
-                e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                e.currentTarget.style.color = 'var(--text-primary)';
-              }}
-            >
-              {t('common:recovery_link_new_device')}
-            </button>
-          </div>
-        </Card>
 
         {/* Conflicts card */}
         {store.conflicts.length > 0 && (
@@ -801,7 +751,6 @@ export function SyncPage() {
         onTrust={handleTrustPending}
         onIgnore={handleIgnorePending}
       />
-      <RecoveryHostDialog isOpen={hostDialogOpen} onClose={() => setHostDialogOpen(false)} />
       <SyncConflictDialog
         isOpen={conflictDialogOpen}
         conflicts={store.conflicts}

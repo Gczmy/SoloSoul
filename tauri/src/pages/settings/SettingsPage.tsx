@@ -119,12 +119,6 @@ export function SettingsPage() {
           path: '/sync',
           desc: t('settings:desc.sync') || '与其他设备同步数据',
         },
-        {
-          label: t('settings:items.scan_qr') || '扫描二维码',
-          icon: Scan,
-          path: '/settings/scan-qr',
-          desc: t('settings:desc.scan_qr') || '扫描新设备上的二维码以推送恢复数据',
-        },
       ],
     },
     {

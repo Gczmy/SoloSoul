@@ -26,7 +26,6 @@ import { ScanLocalPage } from '@/pages/scan/ScanLocalPage';
 import { OcrPage } from '@/pages/scan/OcrPage';
 import { HistoryPage } from '@/pages/editor/HistoryPage';
 import { SyncPage } from '@/pages/sync/SyncPage';
-import { ScanQrPage } from '@/pages/settings/ScanQrPage';
 import { useAuthStore } from '@/stores/authStore';
 import type { ReactNode } from 'react';
 
@@ -59,7 +58,6 @@ export const protectedRoutes: RouteConfig[] = [
   { path: '/settings/attachments', element: <GlobalAttachmentManager /> },
   { path: '/settings/vault-directory', element: <VaultDirectoryPage /> },
   { path: '/settings/ocr', element: <OcrSettingsPage /> },
-  { path: '/settings/scan-qr', element: <ScanQrPage /> },
   { path: '/settings/llm', element: <LlmConfigPage /> },
   { path: '/settings/llm/stats', element: <LlmStatsPage /> },
   { path: '/llm-chat', element: <LlmChatPage /> },
