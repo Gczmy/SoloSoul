@@ -492,7 +492,11 @@ impl RecoveryReceiverServer {
                     match self.handle_connection(stream) {
                         Ok(result) => return Ok(result),
                         Err(e) => {
-                            tracing::warn!("Reverse recovery connection from {} failed: {}", peer_addr, e);
+                            tracing::warn!(
+                                "Reverse recovery connection from {} failed: {}",
+                                peer_addr,
+                                e
+                            );
                             session_attempts += 1;
                         }
                     }
@@ -525,7 +529,9 @@ impl RecoveryReceiverServer {
         // 2. 接收恢复密码
         let recovery_password = receive_text(&mut session, &mut transport)?;
         if recovery_password.starts_with("__ERROR__:") {
-            return Err(recovery_password.trim_start_matches("__ERROR__:").to_string());
+            return Err(recovery_password
+                .trim_start_matches("__ERROR__:")
+                .to_string());
         }
 
         // 3. 接收 account_id
@@ -546,8 +552,8 @@ impl RecoveryReceiverServer {
         // 5. 接收文件内容
         std::fs::create_dir_all(dest_dir()).map_err(|e| e.to_string())?;
         let dest_path = dest_dir().join(format!("reverse_recovery_{}.solosoul", nanoid()));
-        let mut file = std::fs::File::create(&dest_path)
-            .map_err(|e| format!("create dest file: {}", e))?;
+        let mut file =
+            std::fs::File::create(&dest_path).map_err(|e| format!("create dest file: {}", e))?;
 
         let mut received: u64 = 0;
         loop {
