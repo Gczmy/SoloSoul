@@ -15,9 +15,11 @@ import {
   ShieldOff,
   ChevronDown,
   ChevronUp,
+  Info,
 } from 'lucide-react';
 import { useSyncStore } from '@/stores/syncStore';
 import { DeleteButton } from '@/components/ui/DeleteButton';
+import { PageGuideButton } from '@/components/guide/PageGuideButton';
 import { RecoveryHostDialog } from '@/components/recovery/RecoveryHostDialog';
 import { SyncConflictDialog } from '@/components/sync/SyncConflictDialog';
 import type { SyncConflict } from '@/lib/ipc';
@@ -42,6 +44,48 @@ export function SyncPage() {
   const [activityOpen, setActivityOpen] = useState(false);
   const [hostDialogOpen, setHostDialogOpen] = useState(false);
   const [conflictDialogOpen, setConflictDialogOpen] = useState(false);
+
+  const syncGuidePages = useMemo(
+    () => [
+      {
+        icon: Info,
+        title: t('common:guide_sync_title') ?? 'Device Sync Guide',
+        steps: [
+          {
+            icon: Wifi,
+            title: t('common:guide_sync_step1_title') ?? 'Enable Sync',
+            description:
+              t('common:guide_sync_step1_desc') ??
+              'Turn on sync to make your device discoverable and start listening on a local port. Both devices must be on the same Wi-Fi network.',
+          },
+          {
+            icon: RefreshCw,
+            title: t('common:guide_sync_step2_title') ?? 'Discover & Pair',
+            description:
+              t('common:guide_sync_step2_desc') ??
+              'Tap Discover to scan for nearby devices. Tap Sync on a discovered device to pair, then verify the fingerprint to trust it.',
+          },
+          {
+            icon: Smartphone,
+            title: t('common:guide_sync_step3_title') ?? 'Automatic Sync',
+            description:
+              t('common:guide_sync_step3_desc') ??
+              'Enable Automatic Sync to keep data in sync when the app is in the foreground, on data changes, and periodically.',
+          },
+        ],
+        helpLinks: [
+          {
+            title: t('common:guide_help_device_sync') ?? 'Device Sync',
+            description:
+              t('common:guide_help_device_sync_desc') ??
+              'Pair devices over LAN and keep data in sync',
+            href: '/help?id=device-sync',
+          },
+        ],
+      },
+    ],
+    [t],
+  );
 
   const pendingPeer = useMemo(() => {
     return (
@@ -111,8 +155,10 @@ export function SyncPage() {
     <AppShell
       title={t('settings:sync', { defaultValue: 'Device Sync' })}
       onBack={() => navigate(backTo || '/home', { replace: true })}
+      actions={<PageGuideButton pages={syncGuidePages} />}
     >
       <PageContainer variant="xs" gap="default">
+
         {/* Link new device */}
         <Card>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>

@@ -27,6 +27,8 @@ export interface GuidePage {
 interface PageGuideProps {
   pages: GuidePage[];
   label?: string;
+  /** 仅在移动端显示图标，隐藏文本标签 */
+  compact?: boolean;
 }
 
 /**
@@ -36,7 +38,7 @@ interface PageGuideProps {
  * 每页包含：步骤列表 + 相关帮助文档跳转卡片。
  * 支持上/下一页导航、页面指示小圆点、移动端左右滑动手势翻页（实时跟手滑动）。
  */
-export function PageGuide({ pages, label }: PageGuideProps) {
+export function PageGuide({ pages, label, compact }: PageGuideProps) {
   const { t } = useTranslation('common');
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
@@ -232,11 +234,14 @@ export function PageGuide({ pages, label }: PageGuideProps) {
         onClick={() => setOpen((prev) => !prev)}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
+        aria-label={compact ? displayLabel : undefined}
+        title={displayLabel}
         style={{
           display: 'inline-flex',
           alignItems: 'center',
-          gap: 6,
-          padding: '6px 10px',
+          justifyContent: 'center',
+          gap: compact ? 0 : 6,
+          padding: compact ? 6 : '6px 10px',
           borderRadius: 8,
           border: '1px solid var(--border-subtle)',
           borderColor: active ? 'var(--accent-primary)' : 'var(--border-subtle)',
@@ -248,10 +253,12 @@ export function PageGuide({ pages, label }: PageGuideProps) {
           fontSize: 'var(--text-badge)',
           fontWeight: 500,
           transition: 'all 0.15s ease',
+          minWidth: 32,
+          minHeight: 32,
         }}
       >
         <CircleHelp size={ICON_SIZE.sm} />
-        <span>{displayLabel}</span>
+        {!compact && <span>{displayLabel}</span>}
       </button>
 
       {/* 指南卡片 — 居中浮层 */}

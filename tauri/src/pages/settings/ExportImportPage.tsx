@@ -6,6 +6,7 @@ import { AppShell } from '@/components/layout/AppShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { useToastError } from '@/hooks/useToastError';
 import { resolveBackendErrorMessage } from '@/lib/backendError';
+import { PageGuideButton } from '@/components/guide/PageGuideButton';
 import {
   cleanupStagedFile,
   copyStagedFileToDest,
@@ -21,6 +22,7 @@ import { ImportSection } from '@/components/import/ImportSection';
 import { ExportImportTabBar } from '@/components/settings/ExportImportTabBar';
 import { useExportEstimate } from '@/hooks/useExportEstimate';
 import { useExportScope } from '@/hooks/useExportScope';
+import { Info, FolderOpen, Lock, GitCompare } from 'lucide-react';
 import type {
   PageGroup,
   ImportPreview,
@@ -38,6 +40,48 @@ export function ExportImportPage() {
   const accountId = useAuthStore((s) => s.currentAccount?.id ?? '');
 
   const [tab, setTab] = useState<TabKey>('export');
+
+  const exportImportGuidePages = useMemo(
+    () => [
+      {
+        icon: Info,
+        title: t('common:guide_export_import_title') ?? 'Export & Import Guide',
+        steps: [
+          {
+            icon: FolderOpen,
+            title: t('common:guide_export_import_step1_title') ?? 'Select Scope',
+            description:
+              t('common:guide_export_import_step1_desc') ??
+              'Choose the pages, objects, and tags you want to export. You can also include attachments, preferences, and behavioral data.',
+          },
+          {
+            icon: Lock,
+            title: t('common:guide_export_import_step2_title') ?? 'Set Password',
+            description:
+              t('common:guide_export_import_step2_desc') ??
+              'Exports are encrypted with a password you provide. Keep the password safe — you will need it to import the package later.',
+          },
+          {
+            icon: GitCompare,
+            title: t('common:guide_export_import_step3_title') ?? 'Import & Strategy',
+            description:
+              t('common:guide_export_import_step3_desc') ??
+              'When importing, preview the package and choose how to handle duplicate objects: skip existing, overwrite, or decide per object.',
+          },
+        ],
+        helpLinks: [
+          {
+            title: t('common:guide_help_export_import') ?? 'Export & Import',
+            description:
+              t('common:guide_help_export_import_desc') ??
+              'Encrypted export and import of your vault data',
+            href: '/help?id=export_import',
+          },
+        ],
+      },
+    ],
+    [t],
+  );
 
   // Export state
   const [pageGroups, setPageGroups] = useState<PageGroup[]>([]);
@@ -553,8 +597,13 @@ export function ExportImportPage() {
   );
 
   return (
-    <AppShell title={t('settings:export_import')} onBack={() => navigate('/settings')}>
+    <AppShell
+      title={t('settings:export_import')}
+      onBack={() => navigate('/settings')}
+      actions={<PageGuideButton pages={exportImportGuidePages} />}
+    >
       <PageContainer variant="medium" gap="default">
+
         <ExportImportTabBar tab={tab} onChange={setTab} />
 
         {tab === 'export' && scopeLoaded ? (

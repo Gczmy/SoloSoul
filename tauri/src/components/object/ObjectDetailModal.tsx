@@ -13,6 +13,8 @@ import {
   Check,
   Maximize2,
   Upload,
+  Info,
+  History,
 } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { useTemplateStore } from '@/stores/templateStore';
@@ -35,7 +37,8 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import type { PropertyType, TemplateProperty } from '@/types/template';
 import { useDragToAttach } from '@/hooks/useDragToAttach';
 import { DragUploadOverlay } from '@/components/object/DragUploadOverlay';
-import { PageGuide } from '@/components/guide/PageGuide';
+import { PageGuideButton } from '@/components/guide/PageGuideButton';
+import { isMobilePlatformSync } from '@/lib/platform';
 import { ICON_SIZE } from '@/lib/constants';
 import styles from './ObjectDetailModal.module.css';
 
@@ -390,6 +393,90 @@ export function ObjectDetailModal({
   const fieldOrder = templates.find((t) => t.id === obj?.templateId)?.properties.map((p) => p.id);
   const fields = flattenProperties(obj?.properties, fieldOrder, objFieldDefs);
 
+  const isMobilePlatform = isMobilePlatformSync();
+
+  const detailGuidePages = useMemo(
+    () =>
+      isMobilePlatform
+        ? [
+            {
+              icon: Info,
+              title: t('common:guide_detail_mobile_title') ?? '对象详情卡片',
+              steps: [
+                {
+                  icon: Eye,
+                  title: t('common:guide_detail_mobile_step1_title') ?? '字段与敏感等级',
+                  description:
+                    t('common:guide_detail_mobile_step1_desc') ??
+                    '详情卡片会列出对象的所有字段，显示字段名称、类型图标和敏感度标签。敏感/关键字段的值默认会被遮罩，以保护隐私。',
+                },
+                {
+                  icon: Lock,
+                  title: t('common:guide_detail_mobile_step2_title') ?? '显示与解锁',
+                  description:
+                    t('common:guide_detail_mobile_step2_desc') ??
+                    '点击敏感字段旁的「显示」图标可查看内容；关键字段旁会显示「解锁」图标，需通过主密码、PIN 或生物识别验证后才能临时查看。',
+                },
+                {
+                  icon: History,
+                  title: t('common:guide_detail_mobile_step3_title') ?? '操作按钮',
+                  description:
+                    t('common:guide_detail_mobile_step3_desc') ??
+                    '卡片底部提供四个常用操作：历史记录（时钟图标）查看版本快照、附件（回形针图标）管理文件、编辑（铅笔图标）进入编辑器、删除（垃圾桶图标）将对象移入回收站。',
+                },
+              ],
+              helpLinks: [
+                {
+                  title: t('common:guide_help_sensitivity') ?? '敏感度等级',
+                  description:
+                    t('common:guide_help_sensitivity_desc') ??
+                    '了解不同敏感度等级的含义与安全策略',
+                  href: '/help?id=sensitivity',
+                },
+                {
+                  title: t('common:guide_help_attachments') ?? '附件管理',
+                  description:
+                    t('common:guide_help_attachments_desc') ??
+                    '附件的上传、下载、重命名与回收站管理',
+                  href: '/help?id=attachments',
+                },
+              ],
+            },
+          ]
+        : [
+            {
+              icon: Upload,
+              title: t('common:drag_upload_guide_title') ?? '拖拽附件上传指南',
+              steps: [
+                {
+                  icon: Maximize2,
+                  title: t('common:guide_detail_step1_title') ?? '拖拽到此面板',
+                  description:
+                    t('common:guide_detail_step1_desc') ??
+                    '直接将文件从文件管理器拖入当前详情面板，即可为此对象添加附件。拖入时面板会高亮提示。',
+                },
+                {
+                  icon: Paperclip,
+                  title: t('common:guide_detail_step2_title') ?? '附件管理器',
+                  description:
+                    t('common:guide_detail_step2_desc') ??
+                    '点击「附件」按钮打开附件管理器，也可将文件直接拖入管理器窗口进行批量上传。',
+                },
+              ],
+              helpLinks: [
+                {
+                  title: t('common:guide_help_attachments') ?? '附件管理',
+                  description:
+                    t('common:guide_help_attachments_desc') ??
+                    '附件的上传、下载、重命名与回收站管理',
+                  href: '/help?id=attachments',
+                },
+              ],
+            },
+          ],
+    [t, isMobilePlatform],
+  );
+
   // 操作按钮样式已迁移至 ObjectDetailModal.module.css，避免 inline hover 在触屏残留高亮
 
   return (
@@ -706,39 +793,7 @@ export function ObjectDetailModal({
               <div className={styles.modalFooter}>
 
                 <div className={styles.guideWrapper}>
-                  <PageGuide
-                    pages={[
-                      {
-                        icon: Upload,
-                        title: t('common:drag_upload_guide_title') ?? '拖拽附件上传指南',
-                        steps: [
-                          {
-                            icon: Maximize2,
-                            title: t('common:guide_detail_step1_title') ?? '拖拽到此面板',
-                            description:
-                              t('common:guide_detail_step1_desc') ??
-                              '直接将文件从文件管理器拖入当前详情面板，即可为此对象添加附件。拖入时面板会高亮提示。',
-                          },
-                          {
-                            icon: Paperclip,
-                            title: t('common:guide_detail_step2_title') ?? '附件管理器',
-                            description:
-                              t('common:guide_detail_step2_desc') ??
-                              '点击「附件」按钮打开附件管理器，也可将文件直接拖入管理器窗口进行批量上传。',
-                          },
-                        ],
-                        helpLinks: [
-                          {
-                            title: t('common:guide_help_attachments') ?? '附件管理',
-                            description:
-                              t('common:guide_help_attachments_desc') ??
-                              '附件的上传、下载、重命名与回收站管理',
-                            href: '/help?id=attachments',
-                          },
-                        ],
-                      },
-                    ]}
-                  />
+                  <PageGuideButton pages={detailGuidePages} />
                 </div>
                 <div className={styles.footerActions}>
                   <button

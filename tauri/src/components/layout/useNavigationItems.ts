@@ -63,6 +63,7 @@ export const CUSTOMIZABLE_ACTION_IDS = [
   'plugins',
   'ocr',
   'import_export',
+  'sync',
   'help',
   'ai_chat',
 ] as const;
@@ -86,6 +87,7 @@ export const CUSTOMIZABLE_LINKS: Record<
     iconKey: 'import_export',
     labelKey: 'import_export',
   },
+  sync: { path: '/sync', iconKey: 'sync', labelKey: 'sync' },
 };
 
 export function useActiveCustomPages() {

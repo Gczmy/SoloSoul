@@ -258,7 +258,7 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
             {bioAvailable.lockout
               ? t('settings:biometric_lockout_desc', {
                   defaultValue:
-                    '生物识别因失败次数过多被系统暂时锁定，请稍后再试。',
+                    '生物识别因失败次数过多被系统锁定，请稍后再试；若长时间不可用，请前往系统设置重新录入。',
                 })
               : t('settings:biometric_unavailable_desc') ??
                 '当前设备未设置或不支持生物识别（Touch ID / Face ID）。请先在系统设置中添加指纹或面容，然后重新打开此页面。'}

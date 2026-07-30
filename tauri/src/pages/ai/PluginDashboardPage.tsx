@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, Info, LayoutGrid, Download, Settings } from 'lucide-react';
 import { AppShell } from '@/components/layout/AppShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
@@ -19,6 +19,7 @@ import { useUiStore } from '@/stores/uiStore';
 import { useToastError } from '@/hooks/useToastError';
 import styles from './PluginDashboardPage.module.css';
 import { ICON_SIZE } from '@/lib/constants';
+import { PageGuideButton } from '@/components/guide/PageGuideButton';
 
 type Tab = 'all' | 'installed' | 'running' | 'logs';
 const TIERS: PluginTier[] = ['p0', 'p1', 'p2', 'p3', 'p4'];
@@ -195,10 +196,53 @@ export function PluginDashboardPage() {
 
   const activeRunning = Object.entries(runningPlugins).filter(([, plugin]) => !plugin.completed);
 
+  const pluginGuidePages = useMemo(
+    () => [
+      {
+        icon: Info,
+        title: t('common:guide_plugin_title') ?? 'Plugin Guide',
+        steps: [
+          {
+            icon: LayoutGrid,
+            title: t('common:guide_plugin_step1_title') ?? 'Browse & Filter',
+            description:
+              t('common:guide_plugin_step1_desc') ??
+              'Use the tabs to view all, installed, running, or log entries. Tier filters help you find plugins by phase.',
+          },
+          {
+            icon: Download,
+            title: t('common:guide_plugin_step2_title') ?? 'Install & Run',
+            description:
+              t('common:guide_plugin_step2_desc') ??
+              'Install a plugin from the market, then run it. Some plugins require parameters or consent before execution.',
+          },
+          {
+            icon: Settings,
+            title: t('common:guide_plugin_step3_title') ?? 'Manage & Refresh',
+            description:
+              t('common:guide_plugin_step3_desc') ??
+              'Update, uninstall, or stop plugins as needed. Refresh the registry to see the latest available plugins.',
+          },
+        ],
+        helpLinks: [
+          {
+            title: t('common:guide_help_plugins') ?? 'Plugins',
+            description:
+              t('common:guide_help_plugins_desc') ??
+              'Discover, install, and run plugins in SoloSoul',
+            href: '/help?id=plugins',
+          },
+        ],
+      },
+    ],
+    [t],
+  );
+
   return (
     <AppShell
       title={t('settings:items.plugins', { defaultValue: 'Plugins' })}
       onBack={() => navigate('/settings')}
+      actions={<PageGuideButton pages={pluginGuidePages} />}
     >
       <PageContainer variant="wide" gap="section">
         <div className={styles.header}>

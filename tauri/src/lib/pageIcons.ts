@@ -48,6 +48,7 @@ import {
   Moon,
   Cloud,
   Scan,
+  RefreshCw,
   // Batch 1 — 通用扩展
   Award,
   BadgeCheck,
@@ -122,6 +123,7 @@ export const PAGE_ICON_MAP = {
   trash: Trash2,
   templates: LayoutTemplate,
   import_export: ArrowLeftRight,
+  sync: RefreshCw,
   ocr: Scan,
   attachments: Paperclip,
 } as const satisfies Record<string, LucideIcon>;

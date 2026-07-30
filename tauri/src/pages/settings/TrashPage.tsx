@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
@@ -15,7 +15,8 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { DeleteButton } from '@/components/ui/DeleteButton';
 import { useTemplateStore } from '@/stores/templateStore';
 import { invoke } from '@tauri-apps/api/core';
-import { Trash2, RotateCcw, FileText, Info, Folder, LayoutTemplate, Search } from 'lucide-react';
+import { Trash2, RotateCcw, FileText, Info, Folder, LayoutTemplate, Search, FileX } from 'lucide-react';
+import { PageGuideButton } from '@/components/guide/PageGuideButton';
 import { isMobilePlatformSync } from '@/lib/platform';
 import { logger } from '@/lib/logger';
 import { PluginBadge } from '@/components/template/PluginBadge';
@@ -83,6 +84,48 @@ export function TrashPage() {
   const { getTemplate } = useTemplateStore();
 
   const [confirmAction, setConfirmAction] = useState<TrashConfirmAction | null>(null);
+
+  const trashGuidePages = useMemo(
+    () => [
+      {
+        icon: Info,
+        title: t('common:guide_trash_title') ?? 'Trash Guide',
+        steps: [
+          {
+            icon: FileX,
+            title: t('common:guide_trash_step1_title') ?? 'Soft Delete',
+            description:
+              t('common:guide_trash_step1_desc') ??
+              'Deleting an object or page moves it to trash instead of removing it immediately. Use time and type filters to find items.',
+          },
+          {
+            icon: RotateCcw,
+            title: t('common:guide_trash_step2_title') ?? 'Restore',
+            description:
+              t('common:guide_trash_step2_desc') ??
+              'Select items and tap Restore to recover them. Restoring a page may also restore its related objects.',
+          },
+          {
+            icon: Trash2,
+            title: t('common:guide_trash_step3_title') ?? 'Permanent Delete',
+            description:
+              t('common:guide_trash_step3_desc') ??
+              'Use the trash can button to permanently remove selected items. This action cannot be undone.',
+          },
+        ],
+        helpLinks: [
+          {
+            title: t('common:guide_help_trash') ?? 'Trash',
+            description:
+              t('common:guide_help_trash_desc') ??
+              'Restore or permanently delete trashed items',
+            href: '/help?id=trash',
+          },
+        ],
+      },
+    ],
+    [t],
+  );
 
   useEffect(() => {
     setTypeFilter('all');
@@ -188,6 +231,7 @@ export function TrashPage() {
   return (
     <AppShell
       title={t('settings:trash')}
+      actions={<PageGuideButton pages={trashGuidePages} />}
       onBack={() => {
         const state = location.state as { fromHome?: boolean } | undefined;
         if (state?.fromHome) {
@@ -198,6 +242,7 @@ export function TrashPage() {
       }}
     >
       <PageContainer variant="medium" gap="default">
+
         <Input
           placeholder={t('settings:search_trash')}
           value={searchQuery}

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
@@ -9,12 +9,13 @@ import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { useToastError } from '@/hooks/useToastError';
 import { useConfirm } from '@/hooks/useConfirm';
 import { invoke } from '@tauri-apps/api/core';
-import { HardDrive, RotateCcw, Plus, Bell } from 'lucide-react';
+import { HardDrive, RotateCcw, Plus, Bell, Info } from 'lucide-react';
 import { DeleteButton } from '@/components/ui/DeleteButton';
 import { ICON_SIZE } from '@/lib/constants';
 import { formatBytes } from '@/lib/utils';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useAuthStore } from '@/stores/authStore';
+import { PageGuideButton } from '@/components/guide/PageGuideButton';
 
 interface BackupInfo {
   id: string;
@@ -37,6 +38,48 @@ export function BackupConfigPage() {
 
   const currentAccount = useAuthStore((s) => s.currentAccount);
   const { settings, updateSetting } = useSettingsStore();
+
+  const backupGuidePages = useMemo(
+    () => [
+      {
+        icon: Info,
+        title: t('common:guide_backup_title') ?? 'Backup & Restore Guide',
+        steps: [
+          {
+            icon: HardDrive,
+            title: t('common:guide_backup_step1_title') ?? 'Create Backup',
+            description:
+              t('common:guide_backup_step1_desc') ??
+              'Create a local backup of your current profile. Backups are stored on this device.',
+          },
+          {
+            icon: RotateCcw,
+            title: t('common:guide_backup_step2_title') ?? 'Restore Backup',
+            description:
+              t('common:guide_backup_step2_desc') ??
+              'Select a backup and restore it. Restoring may overwrite existing data in the current profile.',
+          },
+          {
+            icon: Bell,
+            title: t('common:guide_backup_step3_title') ?? 'Manage Backups',
+            description:
+              t('common:guide_backup_step3_desc') ??
+              'View backup details, delete old backups, or recover from a previous state.',
+          },
+        ],
+        helpLinks: [
+          {
+            title: t('common:guide_help_backup_restore') ?? 'Backup & Restore',
+            description:
+              t('common:guide_help_backup_restore_desc') ??
+              'Create and restore local profile backups',
+            href: '/help?id=backup_restore',
+          },
+        ],
+      },
+    ],
+    [t],
+  );
 
   const loadBackups = useCallback(async () => {
     setIsLoading(true);
@@ -107,7 +150,11 @@ export function BackupConfigPage() {
   };
 
   return (
-    <AppShell title={t('settings:backup_restore')} onBack={() => navigate('/settings')}>
+    <AppShell
+      title={t('settings:backup_restore')}
+      onBack={() => navigate('/settings')}
+      actions={<PageGuideButton pages={backupGuidePages} />}
+    >
       <PageContainer variant="xs" gap="section">
         {/* Create Backup */}
         <Card>

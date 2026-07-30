@@ -199,7 +199,7 @@ pub async fn biometric_check_availability(
     // 不再以 tauri-plugin-biometric 的 status 为唯一依据——旧 API 级别
     // （<30）其弱生物识别检查退化为指纹检查，会漏检 Class 2 人脸。
     #[cfg(target_os = "android")]
-    let (available, weak_available, strong_available, effective_type, debug) = {
+    let (available, weak_available, strong_available, effective_type, debug, system_lockout) = {
         use crate::keystore_plugin::KeystorePluginHandle;
         use tauri::Manager;
         // 记录完整调用结果以便区分：state 未注册（None）/ 桥接失败（Err）/ 正常
@@ -217,9 +217,10 @@ pub async fn biometric_check_availability(
             Some(Err(e)) => (format!("err:{e}"), None),
             Some(Ok(i)) => (
                 format!(
-                    "ok strong={} weak={} sdk={:?} faceFeature={:?} strongRaw={:?} weakRaw={:?}",
+                    "ok strong={} weak={} lockout={} sdk={:?} faceFeature={:?} strongRaw={:?} weakRaw={:?}",
                     i.strong_available,
                     i.weak_available,
+                    i.lockout,
                     i.sdk_int,
                     i.face_feature,
                     i.strong_raw,
@@ -230,10 +231,12 @@ pub async fn biometric_check_availability(
         };
         let strong = info.as_ref().map(|i| i.strong_available).unwrap_or(false);
         let weak = info.as_ref().map(|i| i.weak_available).unwrap_or(false);
+        let system_lockout = info.as_ref().map(|i| i.lockout).unwrap_or(false);
         tracing::info!(
-            "biometric_check_availability: strong={}, weak={}, plugin_status={}",
+            "biometric_check_availability: strong={}, weak={}, lockout={}, plugin_status={}",
             strong,
             weak,
+            system_lockout,
             status_available
         );
         let available = strong || weak || status_available;
@@ -250,7 +253,7 @@ pub async fn biometric_check_availability(
             "pluginStatus={} pluginType={:?} bridge={}",
             status_available, plugin_biometry_type, bridge_desc
         ));
-        (available, weak_available, strong, effective_type, debug)
+        (available, weak_available, strong, effective_type, debug, system_lockout)
     };
 
     #[cfg(target_os = "ios")]
@@ -261,8 +264,10 @@ pub async fn biometric_check_availability(
         plugin_biometry_type.clone(),
         None,
     );
+    #[cfg(target_os = "ios")]
+    let system_lockout = false;
 
-    let lockout = state.is_biometric_locked_out();
+    let lockout = state.is_biometric_locked_out() || system_lockout;
     let lockout_until = if lockout {
         state.biometric_lockout_until_ts()
     } else {

@@ -23,6 +23,9 @@ import {
   ChevronDown,
   Search,
   Download,
+  Info,
+  FolderTree,
+  Trash2,
 } from 'lucide-react';
 import { DEFAULT_CUSTOM_ICON, PAGE_ICON_MAP, CUSTOM_ICON_MAP } from '@/lib/pageIcons';
 import { pickFileToAttach, uploadSingleAttachment } from '@/lib/attachmentUpload';
@@ -42,6 +45,7 @@ import { ConfirmDialog } from '@/components/attachment/ConfirmDialog';
 import { ICON_SIZE } from '@/lib/constants';
 import buttonStyles from '@/components/ui/Button.module.css';
 import { isMobilePlatformSync } from '@/lib/platform';
+import { PageGuideButton } from '@/components/guide/PageGuideButton';
 
 /** Resolve icon from either PAGE_ICON_MAP (built-in) or CUSTOM_ICON_MAP (user-selectable). */
 function resolvePageIcon(iconKey?: string | null): LucideIcon {
@@ -1075,6 +1079,48 @@ export function GlobalAttachmentManager() {
     );
   };
 
+  const attachmentGuidePages = useMemo(
+    () => [
+      {
+        icon: Info,
+        title: t('common:guide_attachment_title') ?? 'Attachment Guide',
+        steps: [
+          {
+            icon: FolderTree,
+            title: t('common:guide_attachment_step1_title') ?? 'Browse Tree',
+            description:
+              t('common:guide_attachment_step1_desc') ??
+              'Attachments are grouped by page and object. Expand pages and objects to find the files you need.',
+          },
+          {
+            icon: Upload,
+            title: t('common:guide_attachment_step2_title') ?? 'Upload & Download',
+            description:
+              t('common:guide_attachment_step2_desc') ??
+              'Upload new attachments or download existing ones. On mobile, select files from your device.',
+          },
+          {
+            icon: Trash2,
+            title: t('common:guide_attachment_step3_title') ?? 'Delete & Restore',
+            description:
+              t('common:guide_attachment_step3_desc') ??
+              'Soft delete attachments to move them to trash, restore them later, or permanently delete them.',
+          },
+        ],
+        helpLinks: [
+          {
+            title: t('common:guide_help_attachments') ?? 'Attachment Management',
+            description:
+              t('common:guide_help_attachments_desc') ??
+              'Upload, download, rename, and manage attachments in trash',
+            href: '/help?id=attachments',
+          },
+        ],
+      },
+    ],
+    [t],
+  );
+
   // ── Main render ────────────────────────────────────────────
 
   return (
@@ -1085,6 +1131,7 @@ export function GlobalAttachmentManager() {
         if (state?.from === '/home') navigate('/home');
         else navigate('/settings');
       }}
+      actions={<PageGuideButton pages={attachmentGuidePages} />}
     >
       <PageContainer variant="medium" gap="default">
         {/* Search */}

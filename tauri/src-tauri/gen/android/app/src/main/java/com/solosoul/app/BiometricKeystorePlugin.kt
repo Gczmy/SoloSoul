@@ -340,10 +340,13 @@ class BiometricKeystorePlugin(private val activity: Activity): Plugin(activity) 
             // 弱生物识别（Class 2：前置摄像头人脸）独立上报，
             // 设备同时有 Class 3 时也可作为独立开关显示
             val weakAvailable = isWeakAvailable()
+            // 检测系统是否因失败次数过多而临时锁定生物识别
+            val lockout = isBiometricLockedOut()
 
             val result = JSObject()
             result.put("strongAvailable", strongAvailable)
             result.put("weakAvailable", weakAvailable)
+            result.put("lockout", lockout)
             // 诊断字段：排查 Class 2 人脸设备上的可用性判定（adb logcat -s SoloSoul 可见）
             result.put("sdkInt", Build.VERSION.SDK_INT)
             result.put(
@@ -378,6 +381,21 @@ class BiometricKeystorePlugin(private val activity: Activity): Plugin(activity) 
         return try {
             BiometricManager.from(activity).canAuthenticate(authenticators) ==
                 BiometricManager.BIOMETRIC_SUCCESS
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    /** 检测生物识别是否因失败次数过多被系统临时锁定（覆盖 strong 与 weak 两类）。 */
+    private fun isBiometricLockedOut(): Boolean {
+        return try {
+            val manager = BiometricManager.from(activity)
+            val strongStatus = manager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)
+            val weakStatus = manager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_WEAK)
+            strongStatus == BiometricManager.BIOMETRIC_ERROR_LOCKOUT ||
+                strongStatus == BiometricManager.BIOMETRIC_ERROR_LOCKOUT_PERMANENT ||
+                weakStatus == BiometricManager.BIOMETRIC_ERROR_LOCKOUT ||
+                weakStatus == BiometricManager.BIOMETRIC_ERROR_LOCKOUT_PERMANENT
         } catch (_: Exception) {
             false
         }

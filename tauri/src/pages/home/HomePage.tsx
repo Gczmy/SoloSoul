@@ -8,7 +8,7 @@ import { CardGrid } from '@/components/ui/CardGrid';
 import { PAGE_ICON_MAP, resolveCustomIcon } from '@/lib/pageIcons';
 import { useActiveCustomPages } from '@/components/layout/useNavigationItems';
 import { CustomPageEditPopover } from '@/components/layout/CustomPageEditPopover';
-import { PageGuide } from '@/components/guide/PageGuide';
+import { PageGuideButton } from '@/components/guide/PageGuideButton';
 import { useAuthStore } from '@/stores/authStore';
 
 import { useLongPress } from '@/hooks/useLongPress';
@@ -60,6 +60,18 @@ const quickCards: QuickCard[] = [
     labelKey: 'settings',
     icon: PAGE_ICON_MAP.settings,
     descKey: 'settings_desc',
+  },
+  {
+    path: '/settings/export-import',
+    labelKey: 'import_export',
+    icon: PAGE_ICON_MAP.import_export,
+    descKey: 'import_export_desc',
+  },
+  {
+    path: '/sync',
+    labelKey: 'sync',
+    icon: PAGE_ICON_MAP.sync,
+    descKey: 'sync_desc',
   },
   {
     path: '/settings/trash',
@@ -208,7 +220,7 @@ export function HomePage() {
     <AppShell
       title={t('common:home')}
       actions={
-        <PageGuide
+        <PageGuideButton
           pages={[
             {
               icon: LayoutGrid,

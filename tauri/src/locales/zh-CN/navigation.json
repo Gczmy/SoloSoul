@@ -16,6 +16,7 @@
   "templates": "模板管理",
   "attachments": "附件管理",
   "import_export": "导入导出",
+  "sync": "设备同步",
   "ocr": "OCR 扫描",
   "plugins": "插件",
   "add_page": "添加页面",

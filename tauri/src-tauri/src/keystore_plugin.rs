@@ -87,6 +87,9 @@ pub type KeystoreCiphertext = KeystoreSlot;
 pub struct AvailabilityInfo {
     pub strong_available: bool,
     pub weak_available: bool,
+    /// 是否因失败次数过多被系统临时锁定（主要 Android）。
+    #[serde(default)]
+    pub lockout: bool,
     /// 诊断字段（Kotlin 侧返回，排查 Class 2 人脸设备检测问题）
     #[serde(default)]
     pub sdk_int: Option<i64>,
@@ -229,6 +232,7 @@ impl<R: Runtime> KeystorePluginHandle<R> {
             Ok(AvailabilityInfo {
                 strong_available: false,
                 weak_available: false,
+                lockout: false,
                 sdk_int: None,
                 face_feature: None,
                 strong_raw: None,

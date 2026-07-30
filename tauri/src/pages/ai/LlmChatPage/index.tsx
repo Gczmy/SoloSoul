@@ -4,13 +4,15 @@ import { AppShell } from '@/components/layout/AppShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
-import { MessageSquare, Settings, BarChart3 } from 'lucide-react';
+import { useMemo } from 'react';
+import { MessageSquare, Settings, BarChart3, Info, Bot, MessageCircle, History } from 'lucide-react';
 import buttonStyles from '@/components/ui/Button.module.css';
 import { ConversationSidebar } from '@/components/llm/ConversationSidebar';
 import { MessageArea } from '@/components/llm/MessageArea';
 import { TrashConversationCard } from '@/components/llm/TrashConversationCard';
 import { useLlmChat } from './useLlmChat';
 import { ICON_SIZE } from '@/lib/constants';
+import { PageGuideButton } from '@/components/guide/PageGuideButton';
 
 export { useLlmChat } from './useLlmChat';
 export { type Conversation, type ConversationSummary } from './useLlmChat';
@@ -19,6 +21,48 @@ export function LlmChatPage() {
   const navigate = useNavigate();
   const { t } = useTranslation(['settings', 'common']);
   const chat = useLlmChat();
+
+  const aiChatGuidePages = useMemo(
+    () => [
+      {
+        icon: Info,
+        title: t('common:guide_ai_chat_title') ?? 'AI Chat Guide',
+        steps: [
+          {
+            icon: Bot,
+            title: t('common:guide_ai_chat_step1_title') ?? 'Select Provider',
+            description:
+              t('common:guide_ai_chat_step1_desc') ??
+              'Choose a configured AI provider or add a new one in settings. Local and remote providers are supported.',
+          },
+          {
+            icon: MessageCircle,
+            title: t('common:guide_ai_chat_step2_title') ?? 'Start Conversation',
+            description:
+              t('common:guide_ai_chat_step2_desc') ??
+              'Create a new conversation or continue an existing one. Ask questions based on your vault data.',
+          },
+          {
+            icon: History,
+            title: t('common:guide_ai_chat_step3_title') ?? 'Manage Conversations',
+            description:
+              t('common:guide_ai_chat_step3_desc') ??
+              'Rename, delete, or archive conversations. Review token usage and model statistics.',
+          },
+        ],
+        helpLinks: [
+          {
+            title: t('common:guide_help_ai_chat') ?? 'AI Chat',
+            description:
+              t('common:guide_help_ai_chat_desc') ??
+              'Chat with AI using your local vault data',
+            href: '/help?id=ai_chat',
+          },
+        ],
+      },
+    ],
+    [t],
+  );
 
   if (chat.loading) {
     return (
@@ -65,6 +109,8 @@ export function LlmChatPage() {
         title={t('settings:ai_chat')}
         onBack={() => navigate('/home')}
         actions={
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <PageGuideButton pages={aiChatGuidePages} />
           <button
             type="button"
             className={buttonStyles.hideLabelOnMobile}
@@ -99,7 +145,8 @@ export function LlmChatPage() {
             <Settings size={ICON_SIZE.sm} />{' '}
             <span className={buttonStyles.label}>{t('settings:ai_chat_configure')}</span>
           </button>
-        }
+        </div>
+      }
       >
         <PageContainer variant="small" gap="default">
           <div style={{ textAlign: 'center', paddingTop: 48, paddingBottom: 48 }}>
@@ -160,6 +207,7 @@ export function LlmChatPage() {
       onBack={() => navigate('/home')}
       actions={
         <div style={{ display: 'flex', gap: 8 }}>
+          <PageGuideButton pages={aiChatGuidePages} />
           <span className="tooltip-btn" data-tooltip={t('settings:llm_stats_title')}>
             <button
               onClick={() => navigate('/settings/llm/stats', { state: { from: '/llm-chat' } })}

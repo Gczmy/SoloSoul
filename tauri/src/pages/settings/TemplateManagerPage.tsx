@@ -13,7 +13,7 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useUiStore } from '@/stores/uiStore';
 import { useConfirm } from '@/hooks/useConfirm';
-import { LayoutTemplate, Pencil, Plus, BookOpen, Search } from 'lucide-react';
+import { LayoutTemplate, Pencil, Plus, BookOpen, Search, Info } from 'lucide-react';
 import buttonStyles from '@/components/ui/Button.module.css';
 import type {
   UserTemplate,
@@ -36,6 +36,7 @@ import { SensitivityBadges } from '@/components/template/SensitivityBadges';
 import { PluginBadge } from '@/components/template/PluginBadge';
 import { retentionPeriodDays } from '@/stores/trashStore';
 import { ICON_SIZE } from '@/lib/constants';
+import { PageGuideButton } from '@/components/guide/PageGuideButton';
 import { deriveContractBindings, type PluginManifest } from '@/lib/plugin';
 import { usePluginStore } from '@/stores/pluginStore';
 
@@ -466,6 +467,48 @@ export function TemplateManagerPage() {
     setEditProperties((prev) => [...prev, newProp]);
   };
 
+  const templateGuidePages = useMemo(
+    () => [
+      {
+        icon: Info,
+        title: t('common:guide_template_title') ?? 'Template Guide',
+        steps: [
+          {
+            icon: LayoutTemplate,
+            title: t('common:guide_template_step1_title') ?? 'View Templates',
+            description:
+              t('common:guide_template_step1_desc') ??
+              'Browse templates by page category. Use the search and page filters to find the template you need.',
+          },
+          {
+            icon: Pencil,
+            title: t('common:guide_template_step2_title') ?? 'Create & Edit',
+            description:
+              t('common:guide_template_step2_desc') ??
+              'Create a new template or edit an existing one. Define fields, types, and sensitivity levels.',
+          },
+          {
+            icon: BookOpen,
+            title: t('common:guide_template_step3_title') ?? 'Sample Templates',
+            description:
+              t('common:guide_template_step3_desc') ??
+              'Use the sample template gallery to quickly add commonly used templates to your vault.',
+          },
+        ],
+        helpLinks: [
+          {
+            title: t('common:guide_help_templates') ?? 'Template Management',
+            description:
+              t('common:guide_help_templates_desc') ??
+              'Create, edit, and manage object templates',
+            href: '/help?id=templates',
+          },
+        ],
+      },
+    ],
+    [t],
+  );
+
   const from = (location.state as { from?: string } | null)?.from;
   const handleBack = () => {
     if (from && from.startsWith('/editor')) {
@@ -483,6 +526,7 @@ export function TemplateManagerPage() {
       onBack={handleBack}
       actions={
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <PageGuideButton pages={templateGuidePages} />
           <Button
             variant="secondary"
             className={buttonStyles.hideLabelOnMobile}

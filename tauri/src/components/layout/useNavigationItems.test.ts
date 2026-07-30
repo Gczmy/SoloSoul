@@ -27,8 +27,8 @@ describe('useNavigationItems constants', () => {
     expect(SETTINGS_ITEM.iconKey).toBe('settings');
   });
 
-  it('CUSTOMIZABLE_ACTION_IDS has exactly 9 items', () => {
-    expect(CUSTOMIZABLE_ACTION_IDS).toHaveLength(9);
+  it('CUSTOMIZABLE_ACTION_IDS has exactly 10 items', () => {
+    expect(CUSTOMIZABLE_ACTION_IDS).toHaveLength(10);
     expect(CUSTOMIZABLE_ACTION_IDS).toEqual([
       'search',
       'trash',
@@ -37,6 +37,7 @@ describe('useNavigationItems constants', () => {
       'plugins',
       'ocr',
       'import_export',
+      'sync',
       'help',
       'ai_chat',
     ]);

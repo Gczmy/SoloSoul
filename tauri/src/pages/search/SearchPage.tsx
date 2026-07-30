@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
@@ -11,7 +11,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { useAuthStore } from '@/stores/authStore';
 import { useToastError } from '@/hooks/useToastError';
 import { ICON_SIZE } from '@/lib/constants';
-import { Search } from 'lucide-react';
+import { Search, Info, Type, FolderOpen } from 'lucide-react';
 import { ObjectDetailModal } from '@/components/object/ObjectDetailModal';
 import { AttachmentViewer } from '@/components/object/AttachmentViewer';
 import { PAGE_ICON_MAP, resolveCustomIcon } from '@/lib/pageIcons';
@@ -22,6 +22,7 @@ import { SensitivityBadge, SensitivityLevel } from '@/components/ui/SensitivityB
 import { DEBOUNCE_DELAY_MS } from '@/lib/constants';
 import { searchCache } from '@/lib/searchCache';
 import styles from './SearchPage.module.css';
+import { PageGuideButton } from '@/components/guide/PageGuideButton';
 
 const SENSITIVITY_ORDER: SensitivityLevel[] = ['public', 'internal', 'sensitive', 'critical'];
 const SYSTEM_PAGE_KEYS = ['identity', 'travel', 'financial', 'professional', 'document'] as const;
@@ -291,8 +292,54 @@ export function SearchPage() {
     }
   };
 
+  const searchGuidePages = useMemo(
+    () => [
+      {
+        icon: Info,
+        title: t('common:guide_search_title') ?? 'Search Guide',
+        steps: [
+          {
+            icon: Search,
+            title: t('common:guide_search_step1_title') ?? 'Enter Keywords',
+            description:
+              t('common:guide_search_step1_desc') ??
+              'Type keywords to search across objects, fields, and attachments. Use quoted phrases for exact matches.',
+          },
+          {
+            icon: Type,
+            title: t('common:guide_search_step2_title') ?? 'Filter Results',
+            description:
+              t('common:guide_search_step2_desc') ??
+              'Filter results by sensitivity, object type, or date to narrow down the matches.',
+          },
+          {
+            icon: FolderOpen,
+            title: t('common:guide_search_step3_title') ?? 'Open Objects',
+            description:
+              t('common:guide_search_step3_desc') ??
+              'Tap a result to open the object detail. You can edit or copy values from the detail view.',
+          },
+        ],
+        helpLinks: [
+          {
+            title: t('common:guide_help_search') ?? 'Global Search',
+            description:
+              t('common:guide_help_search_desc') ??
+              'Search objects, fields, and attachments across the vault',
+            href: '/help?id=search',
+          },
+        ],
+      },
+    ],
+    [t],
+  );
+
   return (
-    <AppShell title={t('navigation:search')} onBack={() => navigate('/home')}>
+    <AppShell
+      title={t('navigation:search')}
+      onBack={() => navigate('/home')}
+      actions={<PageGuideButton pages={searchGuidePages} />}
+    >
       <PageContainer variant="small" gap="default">
         <Input
           placeholder={t('common:search_placeholder')}

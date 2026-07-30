@@ -50,7 +50,7 @@ import { WorkspaceObjectCard } from './WorkspaceObjectCard';
 import { WorkspaceCategoryTabs } from '@/components/workspace/WorkspaceCategoryTabs';
 import { ConfirmDeleteDialog } from '@/components/workspace/ConfirmDeleteDialog';
 
-import { PageGuide } from '@/components/guide/PageGuide';
+import { PageGuideButton } from '@/components/guide/PageGuideButton';
 import { ICON_SIZE } from '@/lib/constants';
 import styles from './ObjectWorkspacePage.module.css';
 
@@ -576,7 +576,7 @@ export function ObjectWorkspacePage() {
       onBack={() => navigate('/home')}
       actions={
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <PageGuide
+          <PageGuideButton
             pages={[
               {
                 icon: LayoutList,

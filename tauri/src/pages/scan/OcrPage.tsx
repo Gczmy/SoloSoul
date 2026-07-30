@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AppShell } from '@/components/layout/AppShell';
@@ -16,8 +16,9 @@ import { OCR_MODEL_SERIES, OCR_MODEL_NOT_INSTALLED_PREFIX } from '@/lib/constant
 import { getTierLabel } from '@/lib/utils';
 import { MrzResultCard } from '@/components/ocr/MrzResultCard';
 import { PromptDialog } from '@/components/ui/PromptDialog';
-import { Scan, Upload, Download, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { Scan, Upload, Download, CheckCircle, AlertCircle, Loader2, Info, Layers, Import } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/constants';
+import { PageGuideButton } from '@/components/guide/PageGuideButton';
 
 type ScanMode = 'general' | 'mrz';
 
@@ -339,6 +340,48 @@ export function OcrPage() {
     }
   };
 
+  const ocrGuidePages = useMemo(
+    () => [
+      {
+        icon: Info,
+        title: t('common:guide_ocr_title') ?? 'OCR Scan Guide',
+        steps: [
+          {
+            icon: Scan,
+            title: t('common:guide_ocr_step1_title') ?? 'Choose Input',
+            description:
+              t('common:guide_ocr_step1_desc') ??
+              'Take a photo with the camera or select an image from your device. OCR extracts text from the image.',
+          },
+          {
+            icon: Layers,
+            title: t('common:guide_ocr_step2_title') ?? 'Select Tier',
+            description:
+              t('common:guide_ocr_step2_desc') ??
+              'Pick an OCR model tier based on accuracy and speed. Larger tiers are more accurate but slower.',
+          },
+          {
+            icon: Import,
+            title: t('common:guide_ocr_step3_title') ?? 'Extract & Import',
+            description:
+              t('common:guide_ocr_step3_desc') ??
+              'Review the recognized text and import it as a new object. You can also copy or edit the result.',
+          },
+        ],
+        helpLinks: [
+          {
+            title: t('common:guide_help_ocr_scan') ?? 'OCR & Scan',
+            description:
+              t('common:guide_help_ocr_scan_desc') ??
+              'Scan images and import recognized text as objects',
+            href: '/help?id=ocr_scan',
+          },
+        ],
+      },
+    ],
+    [t],
+  );
+
   return (
     <AppShell
       title={t('ocr:title')}
@@ -350,6 +393,7 @@ export function OcrPage() {
           navigate(-1);
         }
       }}
+      actions={<PageGuideButton pages={ocrGuidePages} />}
     >
       <PageContainer variant="wide" gap="default">
         {/* Model management（桌面端）；移动端使用系统 ML Kit，无需模型管理 */}
