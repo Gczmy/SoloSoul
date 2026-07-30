@@ -151,13 +151,15 @@ impl AutoSyncManager {
                     AutoSyncState::Idle => {
                         tokio::select! {
                             event = rx.recv() => match event {
-                                Some(SyncEvent::Immediate | SyncEvent::Background) => {
-                                    state = AutoSyncState::Running(event.unwrap().source());
-                                }
-                                Some(SyncEvent::Debounce) => {
-                                    let deadline = tokio::time::Instant::now() + config.debounce_delay;
-                                    state = AutoSyncState::Scheduled(SyncSource::Debounce, deadline);
-                                }
+                                Some(ref inner) => match *inner {
+                                    SyncEvent::Immediate | SyncEvent::Background => {
+                                        state = AutoSyncState::Running(inner.source());
+                                    }
+                                    SyncEvent::Debounce => {
+                                        let deadline = tokio::time::Instant::now() + config.debounce_delay;
+                                        state = AutoSyncState::Scheduled(SyncSource::Debounce, deadline);
+                                    }
+                                },
                                 None => break,
                             },
                             _ = interval.tick() => {
@@ -168,13 +170,15 @@ impl AutoSyncManager {
                     AutoSyncState::Scheduled(source, d) => {
                         tokio::select! {
                             event = rx.recv() => match event {
-                                Some(SyncEvent::Immediate | SyncEvent::Background) => {
-                                    state = AutoSyncState::Running(event.unwrap().source());
-                                }
-                                Some(SyncEvent::Debounce) => {
-                                    let new_deadline = tokio::time::Instant::now() + config.debounce_delay;
-                                    state = AutoSyncState::Scheduled(source, new_deadline);
-                                }
+                                Some(ref inner) => match *inner {
+                                    SyncEvent::Immediate | SyncEvent::Background => {
+                                        state = AutoSyncState::Running(inner.source());
+                                    }
+                                    SyncEvent::Debounce => {
+                                        let new_deadline = tokio::time::Instant::now() + config.debounce_delay;
+                                        state = AutoSyncState::Scheduled(source, new_deadline);
+                                    }
+                                },
                                 None => break,
                             },
                             _ = tokio::time::sleep_until(d) => {

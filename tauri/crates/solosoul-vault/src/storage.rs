@@ -2838,19 +2838,19 @@ impl VaultStore {
         if object_ids.is_empty() {
             return Ok(std::collections::HashMap::new());
         }
-        let placeholders: Vec<String> = object_ids
-            .iter()
-            .enumerate()
-            .map(|(i, _)| format!("?{}", i + 1))
-            .collect();
-        let sql = format!("SELECT object_id, COUNT(*) FROM object_snapshots WHERE object_id IN ({}) GROUP BY object_id", placeholders.join(","));
-        let params: Vec<&dyn rusqlite::types::ToSql> = object_ids
-            .iter()
-            .map(|s| s as &dyn rusqlite::types::ToSql)
-            .collect();
+        // 使用固定 "?" 占位符并通过参数绑定传递 ID，避免字符串拼接。
+        // IN 子句数量随输入变化，属于 SQLite 限制；此处仅查询本 Vault 内的 object_id，
+        // 不暴露 SQL 注入风险。
+        let placeholders = std::iter::repeat_n("?", object_ids.len())
+            .collect::<Vec<_>>()
+            .join(",");
+        let sql = format!(
+            "SELECT object_id, COUNT(*) FROM object_snapshots WHERE object_id IN ({}) GROUP BY object_id",
+            placeholders
+        );
         let mut stmt = conn.prepare(&sql).map_err(|e| e.to_string())?;
         let map: std::collections::HashMap<String, usize> = stmt
-            .query_map(params.as_slice(), |row| {
+            .query_map(rusqlite::params_from_iter(object_ids.iter()), |row| {
                 Ok((row.get::<_, String>(0)?, row.get::<_, i64>(1)? as usize))
             })
             .map_err(|e| e.to_string())?

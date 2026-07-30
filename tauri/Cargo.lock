@@ -6135,6 +6135,7 @@ dependencies = [
  "chrono",
  "core-foundation 0.10.1",
  "core-foundation-sys",
+ "dirs",
  "fs2",
  "hex",
  "image",

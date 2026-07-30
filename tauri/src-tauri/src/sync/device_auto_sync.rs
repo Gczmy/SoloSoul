@@ -169,13 +169,15 @@ impl DeviceAutoSyncManager {
                     DeviceAutoSyncState::Idle => {
                         tokio::select! {
                             event = rx.recv() => match event {
-                                Some(DeviceSyncEvent::Foreground | DeviceSyncEvent::Periodic) => {
-                                    state = DeviceAutoSyncState::Running(event.unwrap().source());
-                                }
-                                Some(DeviceSyncEvent::DataChange) => {
-                                    let deadline = tokio::time::Instant::now() + config.debounce_delay;
-                                    state = DeviceAutoSyncState::Scheduled(DeviceSyncSource::DataChange, deadline);
-                                }
+                                Some(ref inner) => match *inner {
+                                    DeviceSyncEvent::Foreground | DeviceSyncEvent::Periodic => {
+                                        state = DeviceAutoSyncState::Running(inner.source());
+                                    }
+                                    DeviceSyncEvent::DataChange => {
+                                        let deadline = tokio::time::Instant::now() + config.debounce_delay;
+                                        state = DeviceAutoSyncState::Scheduled(DeviceSyncSource::DataChange, deadline);
+                                    }
+                                },
                                 None => break,
                             },
                             _ = interval.tick() => {
@@ -188,13 +190,15 @@ impl DeviceAutoSyncManager {
                     DeviceAutoSyncState::Scheduled(source, d) => {
                         tokio::select! {
                             event = rx.recv() => match event {
-                                Some(DeviceSyncEvent::Foreground | DeviceSyncEvent::Periodic) => {
-                                    state = DeviceAutoSyncState::Running(event.unwrap().source());
-                                }
-                                Some(DeviceSyncEvent::DataChange) => {
-                                    let new_deadline = tokio::time::Instant::now() + config.debounce_delay;
-                                    state = DeviceAutoSyncState::Scheduled(source, new_deadline);
-                                }
+                                Some(ref inner) => match *inner {
+                                    DeviceSyncEvent::Foreground | DeviceSyncEvent::Periodic => {
+                                        state = DeviceAutoSyncState::Running(inner.source());
+                                    }
+                                    DeviceSyncEvent::DataChange => {
+                                        let new_deadline = tokio::time::Instant::now() + config.debounce_delay;
+                                        state = DeviceAutoSyncState::Scheduled(source, new_deadline);
+                                    }
+                                },
                                 None => break,
                             },
                             _ = tokio::time::sleep_until(d) => {

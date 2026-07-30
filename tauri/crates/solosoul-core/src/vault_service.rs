@@ -65,12 +65,10 @@ fn set_private_dir(path: &Path) -> Result<(), String> {
         .map_err(|_| "USERNAME environment variable not found".to_string())?;
     let username = sanitize_windows_username(&username)?;
     let status = std::process::Command::new("icacls")
-        .args([
-            path_str.as_ref(),
-            "/inheritance:r",
-            "/grant",
-            &format!("{username}:(OI)(CI)F"),
-        ])
+        .arg(path_str.as_ref())
+        .arg("/inheritance:r")
+        .arg("/grant")
+        .arg(format!("{username}:(OI)(CI)F"))
         .status()
         .map_err(|e| format!("icacls failed to start: {e}"))?;
     if !status.success() {
@@ -89,12 +87,10 @@ fn set_private_file(path: &Path) -> Result<(), String> {
         .map_err(|_| "USERNAME environment variable not found".to_string())?;
     let username = sanitize_windows_username(&username)?;
     let status = std::process::Command::new("icacls")
-        .args([
-            path_str.as_ref(),
-            "/inheritance:r",
-            "/grant",
-            &format!("{username}:F"),
-        ])
+        .arg(path_str.as_ref())
+        .arg("/inheritance:r")
+        .arg("/grant")
+        .arg(format!("{username}:F"))
         .status()
         .map_err(|e| format!("icacls failed to start: {e}"))?;
     if !status.success() {
