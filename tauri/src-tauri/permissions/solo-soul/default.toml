@@ -192,6 +192,7 @@ commands.allow = [
   "sync_discover",
   "sync_enable",
   "sync_forget_peer",
+  "sync_generate_qr_payload",
   "sync_get_auto_status",
   "sync_get_conflict_detail",
   "sync_get_status",
