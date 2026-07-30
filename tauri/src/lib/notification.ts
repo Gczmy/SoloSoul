@@ -181,7 +181,7 @@ export async function checkBackupReminder(): Promise<void> {
 
     // 直接读后端权威值，规避与 loadSettings 的竞态
     // （解锁后 2s 时内存 settings 可能还是默认值）
-    const prefs = await invoke<Record<string, unknown>>('user_data_get_preferences', { accountId });
+    const prefs = await invoke<Record<string, unknown>>('user_data_get_preferences', { account_id: accountId });
     const days =
       typeof prefs.backupReminderDays === 'number'
         ? prefs.backupReminderDays

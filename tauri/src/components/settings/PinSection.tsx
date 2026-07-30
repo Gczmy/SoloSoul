@@ -53,7 +53,7 @@ export function PinSection({ accountId }: PinSectionProps) {
         locked: boolean;
         remainingAttempts: number;
         lockedUntil: string | null;
-      }>('pin_check_availability', { accountId });
+      }>('pin_check_availability', { account_id: accountId });
       setPinStatus(status);
     } catch {
       setPinStatus(null);
@@ -79,7 +79,7 @@ export function PinSection({ accountId }: PinSectionProps) {
     setSetupError(null);
     try {
       const ok = await invoke<boolean>('verify_password', {
-        accountId,
+        account_id: accountId,
         password: setupPassword,
       });
       if (ok) {
@@ -109,7 +109,7 @@ export function PinSection({ accountId }: PinSectionProps) {
     setSetupError(null);
     try {
       await invoke('pin_setup', {
-        accountId,
+        account_id: accountId,
         password: setupPassword,
         pin,
       });
@@ -148,7 +148,7 @@ export function PinSection({ accountId }: PinSectionProps) {
     setPinLoading(true);
     setDisableError(null);
     try {
-      await invoke('pin_disable', { accountId, password: disablePassword });
+      await invoke('pin_disable', { account_id: accountId, password: disablePassword });
       onSuccess(t('settings:pin_disabled_toast'));
       setShowDisableConfirm(false);
       refreshStatus();

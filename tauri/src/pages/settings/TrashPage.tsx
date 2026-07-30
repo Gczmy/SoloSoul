@@ -213,7 +213,7 @@ export function TrashPage() {
   const openDetail = async (trashId: string) => {
     setLoadingDetail(true);
     try {
-      const d = await invoke<TrashDetail>('trash_get_detail', { trashId });
+      const d = await invoke<TrashDetail>('trash_get_detail', { trash_id: trashId });
       setDetailItem(d);
       if (d.templateId) {
         getTemplate(d.templateId).then((tpl) => setDetailTemplate(tpl));

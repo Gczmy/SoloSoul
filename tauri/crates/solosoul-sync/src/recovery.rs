@@ -588,6 +588,7 @@ fn dest_dir() -> &'static std::path::Path {
 
 /// 反向恢复模式：主机端主动连接接收端并推送导出包。
 /// 当前账户必须先解锁，调用方负责生成导出包与恢复密码。
+#[allow(clippy::too_many_arguments)]
 pub fn push_to_receiver(
     addr: &str,
     pin: &str,

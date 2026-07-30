@@ -110,7 +110,7 @@ export function OcrSettingsPage() {
       async () => {
         setDownloadingTier(tier);
         try {
-          await invoke<void>('ocr_download_model', { tier, baseUrl: downloadUrl.trim() });
+          await invoke<void>('ocr_download_model', { tier, base_url: downloadUrl.trim() });
           await loadTiersAndStatus();
           onSuccess(t('ocr:download_success', { tier }));
         } catch (e) {

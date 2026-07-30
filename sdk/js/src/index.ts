@@ -89,7 +89,7 @@ export class SoloSoulClient {
    */
   async installPlugin(pluginId: string): Promise<void> {
     const invoke = await getTauriInvoke();
-    await invoke('plugin_install', { pluginId });
+    await invoke('plugin_install', { plugin_id: pluginId });
   }
 
   /**
@@ -100,6 +100,6 @@ export class SoloSoulClient {
     params?: Record<string, string>,
   ): Promise<PluginRunResult> {
     const invoke = await getTauriInvoke();
-    return invoke<PluginRunResult>('plugin_run', { pluginId, params: params ?? {} });
+    return invoke<PluginRunResult>('plugin_run', { plugin_id: pluginId, params: params ?? {} });
   }
 }

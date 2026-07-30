@@ -253,7 +253,14 @@ pub async fn biometric_check_availability(
             "pluginStatus={} pluginType={:?} bridge={}",
             status_available, plugin_biometry_type, bridge_desc
         ));
-        (available, weak_available, strong, effective_type, debug, system_lockout)
+        (
+            available,
+            weak_available,
+            strong,
+            effective_type,
+            debug,
+            system_lockout,
+        )
     };
 
     #[cfg(target_os = "ios")]
@@ -793,7 +800,8 @@ pub async fn biometric_delete_credential(
 
 #[cfg(desktop)]
 #[tauri::command]
-pub async fn biometric_test(_account_id: String) -> Result<bool, String> {
+pub async fn biometric_test(account_id: String) -> Result<bool, String> {
+    let _ = account_id;
     if !solosoul_core::biometric::is_macos() && std::env::consts::OS != "windows" {
         return Ok(false);
     }
@@ -812,23 +820,22 @@ pub async fn biometric_test(_account_id: String) -> Result<bool, String> {
 pub async fn biometric_test(
     app: tauri::AppHandle,
     state: State<'_, AppState>,
-    _account_id: String,
+    account_id: String,
 ) -> Result<bool, String> {
+    let _ = account_id;
     use tauri_plugin_biometric::{AuthOptions, BiometricExt};
 
-    match app
-        .biometric()
-        .authenticate(
-            "Test biometric authentication for SoloSoul".to_string(),
-            AuthOptions {
-                allow_device_credential: false,
-                cancel_title: Some("Cancel".to_string()),
-                fallback_title: None,
-                title: Some("SoloSoul".to_string()),
-                subtitle: Some("Test biometric authentication".to_string()),
-                confirmation_required: Some(false),
-            },
-        ) {
+    match app.biometric().authenticate(
+        "Test biometric authentication for SoloSoul".to_string(),
+        AuthOptions {
+            allow_device_credential: false,
+            cancel_title: Some("Cancel".to_string()),
+            fallback_title: None,
+            title: Some("SoloSoul".to_string()),
+            subtitle: Some("Test biometric authentication".to_string()),
+            confirmation_required: Some(false),
+        },
+    ) {
         Ok(()) => {
             state.clear_biometric_lockout();
             Ok(true)

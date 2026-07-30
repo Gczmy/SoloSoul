@@ -110,7 +110,7 @@ export function CustomPageEditPopover({
     // Update the object in the objects table
     try {
       await invoke('object_update', {
-        objectId: page.id,
+        object_id: page.id,
         input: {
           name: trimmed,
           properties: descChanged ? { description: trimmedDesc || undefined } : {},

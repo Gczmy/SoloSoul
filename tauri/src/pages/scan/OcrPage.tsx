@@ -123,17 +123,17 @@ export function OcrPage() {
     setMrzResult(null);
     try {
       if (scanMode === 'mrz') {
-        const res = await invoke<MrzResult | null>('ocr_scan_mrz', { filePath: path });
+        const res = await invoke<MrzResult | null>('ocr_scan_mrz', { file_path: path });
         if (res) {
           setMrzResult(res);
         } else {
           // MRZ not detected: fall back to general OCR
-          const ocrRes = await invoke<OcrResult>('ocr_scan_image', { filePath: path });
+          const ocrRes = await invoke<OcrResult>('ocr_scan_image', { file_path: path });
           setResult(ocrRes);
           onSuccess(t('ocr:mrz_no_detected'));
         }
       } else {
-        const res = await invoke<OcrResult>('ocr_scan_image', { filePath: path });
+        const res = await invoke<OcrResult>('ocr_scan_image', { file_path: path });
         setResult(res);
       }
     } catch (e) {
@@ -154,16 +154,16 @@ export function OcrPage() {
       setMrzResult(null);
       try {
         if (scanMode === 'mrz') {
-          const res = await invoke<MrzResult | null>('ocr_scan_mrz', { filePath: initialFilePath });
+          const res = await invoke<MrzResult | null>('ocr_scan_mrz', { file_path: initialFilePath });
           if (cancelled) return;
           if (res) {
             setMrzResult(res);
           } else {
-            const ocrRes = await invoke<OcrResult>('ocr_scan_image', { filePath: initialFilePath });
+            const ocrRes = await invoke<OcrResult>('ocr_scan_image', { file_path: initialFilePath });
             if (!cancelled) setResult(ocrRes);
           }
         } else {
-          const res = await invoke<OcrResult>('ocr_scan_image', { filePath: initialFilePath });
+          const res = await invoke<OcrResult>('ocr_scan_image', { file_path: initialFilePath });
           if (!cancelled) setResult(res);
         }
       } catch (e) {
@@ -330,7 +330,7 @@ export function OcrPage() {
     }
     setDownloadingTier(tier);
     try {
-      await invoke<void>('ocr_download_model', { tier, baseUrl: downloadUrl.trim() });
+      await invoke<void>('ocr_download_model', { tier, base_url: downloadUrl.trim() });
       await loadTiersAndStatus();
       onSuccess(t('ocr:download_success', { tier }));
     } catch (e) {

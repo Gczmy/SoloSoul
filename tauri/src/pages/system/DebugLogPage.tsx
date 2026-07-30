@@ -60,7 +60,7 @@ export function DebugLogPage() {
         const exportedPath = await invoke<string>('log_export', {});
         await copyStagedFileToDest(exportedPath, filePath);
       } else {
-        await invoke<string>('log_export', { exportPath: filePath });
+        await invoke<string>('log_export', { export_path: filePath });
       }
     } catch {
       // silent

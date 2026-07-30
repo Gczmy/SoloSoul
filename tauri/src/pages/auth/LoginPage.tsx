@@ -102,7 +102,7 @@ export function LoginPage() {
     // Probe device biometry type early (do not set bioAvailable here — configured
     // status is account-specific and decided in the selectedAccountId effect).
     invoke<{ available: boolean; biometryType?: string }>('biometric_check_availability', {
-      accountId: '',
+      account_id: '',
     })
       .then((r) => {
         if (ctrl.signal.aborted) return;
@@ -198,7 +198,7 @@ export function LoginPage() {
     // Check biometric
     invoke<{ available: boolean; configured: boolean; biometryType?: string }>(
       'biometric_check_availability',
-      { accountId: selectedAccountId },
+      { account_id: selectedAccountId },
     )
       .then((r) => {
         if (controller.signal.aborted) return;
@@ -228,7 +228,7 @@ export function LoginPage() {
 
     // Check PIN
     invoke<{ configured: boolean; locked: boolean }>('pin_check_availability', {
-      accountId: selectedAccountId,
+      account_id: selectedAccountId,
     })
       .then((r) => {
         if (controller.signal.aborted) return;
@@ -279,7 +279,7 @@ export function LoginPage() {
       try {
         // pin_unlock 直接返回账户信息（id + name），省去额外 vault_list_accounts 调用
         const acc = await invoke<AccountInfo>('pin_unlock', {
-          accountId: selectedAccountId,
+          account_id: selectedAccountId,
           pin,
           location: 'login_page',
           action: 'unlock',
@@ -322,10 +322,10 @@ export function LoginPage() {
     const t0 = performance.now();
     try {
       await invoke('biometric_unlock', {
-        accountId: selectedAccountId,
+        account_id: selectedAccountId,
         location: 'login_page',
         action: 'unlock',
-        biometryType: biometryTypeRaw,
+        biometry_type: biometryTypeRaw,
       });
       // Vault already unlocked — set auth state directly
       const accs = (await invoke<AccountInfo[]>('vault_list_accounts')) || [];
@@ -377,7 +377,7 @@ export function LoginPage() {
     // 避免用户在安全设置中看到「已启用」但实际无法使用的状态。
     if (fromExisting) {
       try {
-        await invoke('reset_security_flags', { accountId: selectedAccountId });
+        await invoke('reset_security_flags', { account_id: selectedAccountId });
         // 刷新账户列表，让 currentAccount 反映新的 hasBiometricHistory/hasPinHistory 标志，
         // 同时让安全设置页在重新进入时读取到最新的可用性状态。
         await listAccounts();

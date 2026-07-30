@@ -90,7 +90,7 @@ export const useTrashStore = create<TrashState>((set, get) => ({
     try {
       const since = TIME_SINCE[get().timeFilter];
       const items = await invoke<TrashItemSummary[]>('object_trash_list', {
-        accountId: _accountId,
+        account_id: _accountId,
         ...(since && { since }),
       });
       set({ items, isLoading: false, selectedIds: new Set() });
@@ -106,13 +106,13 @@ export const useTrashStore = create<TrashState>((set, get) => ({
   restoreItem: async (trashId) => {
     const item = get().items.find((i) => i.id === trashId);
     if (item?.itemType === 'template') {
-      await invoke('template_restore', { trashId });
+      await invoke('template_restore', { trash_id: trashId });
       set((s) => ({ items: s.items.filter((i) => i.id !== trashId) }));
       return { restoredId: item.originalId, name: item.name, cascadedCount: 0 };
     }
     try {
       const outcome = await invoke<RestoreOutcome>('trash_restore', {
-        trashId,
+        trash_id: trashId,
         lang: i18next.language,
       });
       const consumed = outcome.consumedTrashIds ?? [trashId];
@@ -136,7 +136,7 @@ export const useTrashStore = create<TrashState>((set, get) => ({
 
   permanentDelete: async (trashIds) => {
     for (const id of trashIds) {
-      await invoke('trash_permanent_delete', { trashId: id });
+      await invoke('trash_permanent_delete', { trash_id: id });
     }
     set((s) => ({ items: s.items.filter((i) => !trashIds.includes(i.id)) }));
   },

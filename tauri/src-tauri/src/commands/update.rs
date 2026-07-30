@@ -69,7 +69,10 @@ fn current_version() -> String {
 
 /// 将版本号转换为安全的文件名字符串。
 fn version_to_file_part(version: &str) -> String {
-    version.replace(|c: char| !c.is_ascii_alphanumeric() && c != '.' && c != '-' && c != '_', "_")
+    version.replace(
+        |c: char| !c.is_ascii_alphanumeric() && c != '.' && c != '-' && c != '_',
+        "_",
+    )
 }
 
 /// 获取 APK 最终文件路径（应用缓存目录下的 `update_{version}.apk`）。

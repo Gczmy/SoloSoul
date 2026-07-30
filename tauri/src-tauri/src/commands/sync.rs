@@ -515,10 +515,9 @@ pub async fn sync_enable(
                 tracing::warn!("Failed to register NSD sync service: {}", e);
                 // NSD 注册失败时回滚同步状态，避免半开启。
                 let _ = app_state.sync_service.enable(false).await;
-                let _ = app_state.handle.emit(
-                    "sync-nsd-failed",
-                    serde_json::json!({ "error": e }),
-                );
+                let _ = app_state
+                    .handle
+                    .emit("sync-nsd-failed", serde_json::json!({ "error": e }));
             }
         });
     } else {

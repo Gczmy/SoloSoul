@@ -49,10 +49,10 @@ export const useTemplateStore = create<TemplateState>((set, get) => ({
   async createTemplate(name, iconId, category, properties, contractTypeId) {
     const id = await invoke<string>('template_create', {
       name,
-      iconId,
+      icon_id: iconId,
       category,
       properties,
-      contractTypeId,
+      contract_type_id: contractTypeId,
     });
     await get().loadTemplates();
     return id;
@@ -60,18 +60,18 @@ export const useTemplateStore = create<TemplateState>((set, get) => ({
 
   async updateTemplate(id, updates) {
     await invoke('template_update', {
-      templateId: id,
+      template_id: id,
       name: updates.name,
-      iconId: updates.iconId,
+      icon_id: updates.iconId,
       category: updates.category,
       properties: updates.properties,
-      contractTypeId: updates.contractTypeId,
+      contract_type_id: updates.contractTypeId,
     });
     await get().loadTemplates();
   },
 
   async deleteTemplate(id) {
-    await invoke('template_delete', { templateId: id });
+    await invoke('template_delete', { template_id: id });
     set((state) => ({
       templates: state.templates.filter((t) => t.id !== id),
     }));
@@ -79,7 +79,7 @@ export const useTemplateStore = create<TemplateState>((set, get) => ({
 
   async getTemplate(id) {
     try {
-      return await invoke<UserTemplate>('template_get', { templateId: id });
+      return await invoke<UserTemplate>('template_get', { template_id: id });
     } catch {
       return null;
     }
@@ -87,9 +87,9 @@ export const useTemplateStore = create<TemplateState>((set, get) => ({
 
   async saveFromObject(objectId, name) {
     const id = await invoke<string>('template_save_from_object', {
-      objectId,
-      templateName: name,
-      iconId: undefined,
+      object_id: objectId,
+      template_name: name,
+      icon_id: undefined,
     });
     await get().loadTemplates();
     return id;
@@ -97,8 +97,8 @@ export const useTemplateStore = create<TemplateState>((set, get) => ({
 
   async checkFieldUsage(templateId, fieldKey) {
     return await invoke<{ active: number; softDeleted: number }>('template_check_field_usage', {
-      templateId,
-      fieldKey,
+      template_id: templateId,
+      field_key: fieldKey,
     });
   },
 }));

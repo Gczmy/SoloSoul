@@ -137,7 +137,7 @@ export function GlobalAttachmentManager() {
     setLoading(true);
     try {
       const result = await invoke<AttachmentListAllResult>('attachment_list_all', {
-        accountId,
+        account_id: accountId,
       });
       setData(result);
     } catch {
@@ -229,9 +229,9 @@ export function GlobalAttachmentManager() {
     if (renamingId && renameValue.trim() && renameObjectId) {
       try {
         await invoke('attachment_rename', {
-          objectId: renameObjectId,
-          attachmentId: renamingId,
-          newName: renameValue.trim(),
+          object_id: renameObjectId,
+          attachment_id: renamingId,
+          new_name: renameValue.trim(),
         });
         await loadData();
       } catch (e) {
@@ -261,7 +261,7 @@ export function GlobalAttachmentManager() {
         `Delete "${truncateFileName(item.fileName)}"? It will be moved to trash.`,
       async () => {
         try {
-          await invoke('attachment_soft_delete', { objectId, attachmentId: item.id });
+          await invoke('attachment_soft_delete', { object_id: objectId, attachment_id: item.id });
           await loadData();
         } catch (e) {
           showToast({ type: 'error', message: `${t('common:delete_failed')}: ${e}` });
@@ -284,7 +284,7 @@ export function GlobalAttachmentManager() {
       });
       if (!destPath) return;
       await downloadViaStage(filePath, destPath, item.fileName, (src, dest) =>
-        invoke('attachment_download', { srcPath: src, destPath: dest }),
+        invoke('attachment_download', { src_path: src, dest_path: dest }),
       );
       showToast({
         type: 'success',
@@ -297,7 +297,7 @@ export function GlobalAttachmentManager() {
 
   const handleRestore = async (item: AttachmentMeta, objectId: string) => {
     try {
-      await invoke('attachment_restore', { objectId, attachmentId: item.id });
+      await invoke('attachment_restore', { object_id: objectId, attachment_id: item.id });
       await loadData();
     } catch (e) {
       showToast({ type: 'error', message: `${t('common:restore_failed')}: ${e}` });
@@ -317,8 +317,8 @@ export function GlobalAttachmentManager() {
     if (!permDeleteItem) return;
     try {
       await invoke('attachment_delete', {
-        objectId: permDeleteItem._objectId,
-        attachmentId: permDeleteItem.id,
+        object_id: permDeleteItem._objectId,
+        attachment_id: permDeleteItem.id,
       });
       await loadData();
     } catch (e) {
@@ -421,7 +421,7 @@ export function GlobalAttachmentManager() {
         if (!filePath) continue;
         const destPath = `${dirPath}/${item.fileName}`;
         try {
-          await invoke('attachment_download', { srcPath: filePath, destPath });
+          await invoke('attachment_download', { src_path: filePath, dest_path: destPath });
           successCount++;
         } catch {
           // continue with next file
@@ -458,7 +458,7 @@ export function GlobalAttachmentManager() {
     let successCount = 0;
     for (const [objectId, attachmentIds] of byObject) {
       try {
-        await invoke('attachment_batch_soft_delete', { objectId, attachmentIds });
+        await invoke('attachment_batch_soft_delete', { object_id: objectId, attachment_ids: attachmentIds });
         successCount += attachmentIds.length;
       } catch {
         // best effort per object
@@ -489,7 +489,7 @@ export function GlobalAttachmentManager() {
     let successCount = 0;
     for (const [objectId, attachmentIds] of byObject) {
       try {
-        await invoke('attachment_batch_delete', { objectId, attachmentIds });
+        await invoke('attachment_batch_delete', { object_id: objectId, attachment_ids: attachmentIds });
         successCount += attachmentIds.length;
       } catch {
         // best effort per object
@@ -521,7 +521,7 @@ export function GlobalAttachmentManager() {
     let successCount = 0;
     for (const [objectId, attachmentIds] of byObject) {
       try {
-        await invoke('attachment_batch_restore', { objectId, attachmentIds });
+        await invoke('attachment_batch_restore', { object_id: objectId, attachment_ids: attachmentIds });
         successCount += attachmentIds.length;
       } catch {
         // best effort per object

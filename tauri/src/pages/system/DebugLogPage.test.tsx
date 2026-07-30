@@ -157,7 +157,7 @@ describe('DebugLogPage', () => {
         }),
       );
     });
-    expect(invoke).toHaveBeenCalledWith('log_export', { exportPath: '/path/to/export.json' });
+    expect(invoke).toHaveBeenCalledWith('log_export', { export_path: '/path/to/export.json' });
   });
 
   it('handles export cancellation', async () => {

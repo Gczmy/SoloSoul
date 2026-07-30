@@ -23,25 +23,25 @@ describe('ipc interfaces', () => {
     it('bootstrap 传递 accountName / password / locale / passwordHint', async () => {
       mockInvoke.mockResolvedValue({ id: 'acc-1', name: 'Test' });
       const result = (await invoke('bootstrap', {
-        accountName: 'Test',
+        account_name: 'Test',
         password: 'pwd123',
         locale: 'zh',
-        passwordHint: 'hint',
+        password_hint: 'hint',
       })) as { id: string; name: string };
       expect(mockInvoke).toHaveBeenCalledWith('bootstrap', {
-        accountName: 'Test',
+        account_name: 'Test',
         password: 'pwd123',
         locale: 'zh',
-        passwordHint: 'hint',
+        password_hint: 'hint',
       });
       expect(result.name).toBe('Test');
     });
 
     it('bootstrap 可不传 passwordHint', async () => {
       mockInvoke.mockResolvedValue({ id: 'acc-1', name: 'Test' });
-      await invoke('bootstrap', { accountName: 'Test', password: 'pwd123', locale: 'en' });
+      await invoke('bootstrap', { account_name: 'Test', password: 'pwd123', locale: 'en' });
       expect(mockInvoke).toHaveBeenCalledWith('bootstrap', {
-        accountName: 'Test',
+        account_name: 'Test',
         password: 'pwd123',
         locale: 'en',
       });
@@ -49,8 +49,8 @@ describe('ipc interfaces', () => {
 
     it('login 传递 accountId + password', async () => {
       mockInvoke.mockResolvedValue(undefined);
-      await invoke('login', { accountId: 'acc-1', password: 'pwd123' });
-      expect(mockInvoke).toHaveBeenCalledWith('login', { accountId: 'acc-1', password: 'pwd123' });
+      await invoke('login', { account_id: 'acc-1', password: 'pwd123' });
+      expect(mockInvoke).toHaveBeenCalledWith('login', { account_id: 'acc-1', password: 'pwd123' });
     });
 
     it('logout 调用 invoke("logout")', async () => {
@@ -63,8 +63,8 @@ describe('ipc interfaces', () => {
   describe('Vault', () => {
     it('unlock 传递 accountId + password', async () => {
       mockInvoke.mockResolvedValue(undefined);
-      await invoke('unlock', { accountId: 'acc-1', password: 'pwd' });
-      expect(mockInvoke).toHaveBeenCalledWith('unlock', { accountId: 'acc-1', password: 'pwd' });
+      await invoke('unlock', { account_id: 'acc-1', password: 'pwd' });
+      expect(mockInvoke).toHaveBeenCalledWith('unlock', { account_id: 'acc-1', password: 'pwd' });
     });
 
     it('lock 调用 invoke("lock")', async () => {
@@ -82,22 +82,22 @@ describe('ipc interfaces', () => {
     it('change_password 传递旧/新密码', async () => {
       mockInvoke.mockResolvedValue(undefined);
       await invoke('change_password', {
-        accountId: 'acc-1',
-        oldPassword: 'old',
-        newPassword: 'new',
+        account_id: 'acc-1',
+        old_password: 'old',
+        new_password: 'new',
       });
       expect(mockInvoke).toHaveBeenCalledWith('change_password', {
-        accountId: 'acc-1',
-        oldPassword: 'old',
-        newPassword: 'new',
+        account_id: 'acc-1',
+        old_password: 'old',
+        new_password: 'new',
       });
     });
 
     it('delete_account 传递 accountId + password', async () => {
       mockInvoke.mockResolvedValue(undefined);
-      await invoke('delete_account', { accountId: 'acc-1', password: 'pwd' });
+      await invoke('delete_account', { account_id: 'acc-1', password: 'pwd' });
       expect(mockInvoke).toHaveBeenCalledWith('delete_account', {
-        accountId: 'acc-1',
+        account_id: 'acc-1',
         password: 'pwd',
       });
     });
@@ -148,11 +148,11 @@ describe('ipc interfaces', () => {
     it('ocr_scan_image 传递 filePath 和可选的 language', async () => {
       const result = { text: 'hello', confidence: 0.9, boxes: [] };
       mockInvoke.mockResolvedValue(result);
-      const res = (await invoke('ocr_scan_image', { filePath: '/img.png', language: 'en' })) as {
+      const res = (await invoke('ocr_scan_image', { file_path: '/img.png', language: 'en' })) as {
         text: string;
       };
       expect(mockInvoke).toHaveBeenCalledWith('ocr_scan_image', {
-        filePath: '/img.png',
+        file_path: '/img.png',
         language: 'en',
       });
       expect(res.text).toBe('hello');
@@ -160,7 +160,7 @@ describe('ipc interfaces', () => {
 
     it('ocr_scan_mrz 传递 filePath', async () => {
       mockInvoke.mockResolvedValue(null);
-      const result = await invoke('ocr_scan_mrz', { filePath: '/mrz.png' });
+      const result = await invoke('ocr_scan_mrz', { file_path: '/mrz.png' });
       expect(result).toBeNull();
     });
 
@@ -168,10 +168,10 @@ describe('ipc interfaces', () => {
       mockInvoke.mockResolvedValue(undefined);
       await invoke('ocr_install_bundled_model', { tier: 'small' });
       expect(mockInvoke).toHaveBeenCalledWith('ocr_install_bundled_model', { tier: 'small' });
-      await invoke('ocr_download_model', { tier: 'tiny', baseUrl: 'https://example.com/model' });
+      await invoke('ocr_download_model', { tier: 'tiny', base_url: 'https://example.com/model' });
       expect(mockInvoke).toHaveBeenCalledWith('ocr_download_model', {
         tier: 'tiny',
-        baseUrl: 'https://example.com/model',
+        base_url: 'https://example.com/model',
       });
     });
   });

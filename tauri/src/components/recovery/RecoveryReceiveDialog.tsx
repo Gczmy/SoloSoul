@@ -44,16 +44,47 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
   const [isMobile, setIsMobile] = useState(false);
   const [reverseInfo, setReverseInfo] = useState<ReverseListenInfo | null>(null);
   const [reverseWaiting, setReverseWaiting] = useState(false);
+  const [reverseSession, setReverseSession] = useState<{
+    info: ReverseListenInfo;
+    password: string;
+  } | null>(null);
   const mountedRef = useRef(true);
 
   useEffect(() => {
     isMobilePlatform().then(setIsMobile).catch(() => setIsMobile(false));
     return () => {
       mountedRef.current = false;
-      // 组件卸载时取消可能仍在运行的反向恢复监听器
-      Promise.resolve(invoke('recovery_host_cancel')).catch(() => {});
     };
   }, []);
+
+  // 二维码显示后立即在后台等待传输；避免把长轮询阻塞在按钮事件里导致 UI 不更新
+  useEffect(() => {
+    if (!reverseSession) return;
+    let active = true;
+    const wait = async () => {
+      try {
+        const result = await invoke<RecoveryResultSummary>('recovery_receive_listen_wait', {
+          master_password: reverseSession.password,
+        });
+        if (!active || !mountedRef.current) return;
+        setSuccess(result);
+        setReverseWaiting(false);
+        setReverseSession(null);
+        await useAuthStore.getState().checkHasAccount();
+      } catch (err) {
+        if (!active || !mountedRef.current) return;
+        setError(String(err));
+        setReverseInfo(null);
+        setReverseWaiting(false);
+        setReverseSession(null);
+      }
+    };
+    wait();
+    return () => {
+      active = false;
+      invoke('recovery_host_cancel').catch(() => {});
+    };
+  }, [reverseSession]);
 
   if (!isOpen) return null;
 
@@ -85,8 +116,8 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
     setLoading(true);
     try {
       const result = await invoke<RecoveryResultSummary>('recovery_restore_from_host', {
-        masterPassword: password,
-        hostAddr,
+        master_password: password,
+        host_addr: hostAddr,
         pin,
         fingerprint,
         nonce,
@@ -146,21 +177,7 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
       if (!mountedRef.current) return;
       setReverseInfo(info);
       setReverseWaiting(true);
-      try {
-        const result = await invoke<RecoveryResultSummary>('recovery_receive_listen_wait', {
-          masterPassword: password,
-        });
-        if (!mountedRef.current) return;
-        setSuccess(result);
-        await useAuthStore.getState().checkHasAccount();
-      } catch (err) {
-        if (!mountedRef.current) return;
-        setError(String(err));
-      } finally {
-        if (mountedRef.current) {
-          setReverseWaiting(false);
-        }
-      }
+      setReverseSession({ info, password });
     } catch (err) {
       if (!mountedRef.current) return;
       setError(String(err));
@@ -175,6 +192,7 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
     invoke('recovery_host_cancel').catch(() => {});
     setReverseInfo(null);
     setReverseWaiting(false);
+    setReverseSession(null);
   };
 
   return (

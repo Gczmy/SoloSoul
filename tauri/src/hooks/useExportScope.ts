@@ -88,7 +88,7 @@ export function useExportScope({
           if (unloadedIds.length > 0) {
             Promise.all(
               unloadedIds.map((id) =>
-                invoke<AttachmentInfo[]>('export_get_attachments', { accountId, objectId: id })
+                invoke<AttachmentInfo[]>('export_get_attachments', { accountId, object_id: id })
                   .then((atts) => ({ id, atts }))
                   .catch(() => ({ id, atts: [] as AttachmentInfo[] })),
               ),
@@ -139,7 +139,7 @@ export function useExportScope({
         });
 
         if (isAdding && includeAttachments && !objectAttachments.has(id)) {
-          invoke<AttachmentInfo[]>('export_get_attachments', { accountId, objectId: id })
+          invoke<AttachmentInfo[]>('export_get_attachments', { accountId, object_id: id })
             .then((atts) => {
               setObjectAttachments((prev) => {
                 const n = new Map(prev);
@@ -170,7 +170,7 @@ export function useExportScope({
         }
         next.add(objectId);
         if (!objectAttachments.has(objectId)) {
-          invoke<AttachmentInfo[]>('export_get_attachments', { accountId, objectId })
+          invoke<AttachmentInfo[]>('export_get_attachments', { accountId, object_id: objectId })
             .then((atts) => {
               setObjectAttachments((p) => {
                 const n = new Map(p);
@@ -222,7 +222,7 @@ export function useExportScope({
     if (unloadedIds.length === 0) return;
     Promise.all(
       unloadedIds.map((id) =>
-        invoke<AttachmentInfo[]>('export_get_attachments', { accountId, objectId: id })
+        invoke<AttachmentInfo[]>('export_get_attachments', { accountId, object_id: id })
           .then((atts) => ({ id, atts }))
           .catch(() => ({ id, atts: [] as AttachmentInfo[] })),
       ),
@@ -253,7 +253,7 @@ export function useExportScope({
           if (unloadedIds.length > 0) {
             Promise.all(
               unloadedIds.map((id) =>
-                invoke<AttachmentInfo[]>('export_get_attachments', { accountId, objectId: id })
+                invoke<AttachmentInfo[]>('export_get_attachments', { accountId, object_id: id })
                   .then((atts) => ({ id, atts }))
                   .catch(() => ({ id, atts: [] as AttachmentInfo[] })),
               ),

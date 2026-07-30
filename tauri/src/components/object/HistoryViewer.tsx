@@ -155,7 +155,7 @@ function SnapshotCard({
   const { t } = useTranslation(['common', 'editor']);
 
   useEffect(() => {
-    invoke<Record<string, unknown> | null>('snapshot_get_data', { snapshotId: snap.id }).then(
+    invoke<Record<string, unknown> | null>('snapshot_get_data', { snapshot_id: snap.id }).then(
       setSnapData,
     );
   }, [snap.id]);
@@ -482,7 +482,7 @@ export function HistoryViewer({
   };
 
   useEffect(() => {
-    invoke<SnapshotEntry[]>('snapshot_list', { objectId })
+    invoke<SnapshotEntry[]>('snapshot_list', { object_id: objectId })
       .then(setSnapshots)
       .finally(() => setLoading(false));
   }, [objectId]);

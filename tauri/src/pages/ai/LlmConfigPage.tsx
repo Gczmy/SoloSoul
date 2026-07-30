@@ -75,7 +75,7 @@ export function LlmConfigPage() {
   useEffect(() => {
     if (!accountId) return;
     Promise.all([
-      invoke<ProviderConfig[]>('llm_get_providers', { accountId }),
+      invoke<ProviderConfig[]>('llm_get_providers', { account_id: accountId }),
       invoke<{
         activeProviderId?: string;
         aiFeaturesEnabled?: { chat: boolean };
@@ -83,7 +83,7 @@ export function LlmConfigPage() {
         hasAcceptedRisk?: boolean;
         useLocalEmbedding?: boolean;
         localEmbedModelId?: string | null;
-      }>('llm_get_config', { accountId }),
+      }>('llm_get_config', { account_id: accountId }),
     ])
       .then(([provs, cfg]) => {
         setProviders(provs);
@@ -97,7 +97,7 @@ export function LlmConfigPage() {
       .catch((err) => logger.warn('[LLMConfig] Load providers failed:', err))
       .finally(() => setLoading(false));
 
-    invoke<boolean>('llm_check_embedding_available', { accountId })
+    invoke<boolean>('llm_check_embedding_available', { account_id: accountId })
       .then((avail) => setEmbeddingAvailable(avail))
       .catch(() => setEmbeddingAvailable(false));
 
@@ -133,13 +133,13 @@ export function LlmConfigPage() {
     setDownloadingId(modelId);
     setDownloadProgress(0);
     try {
-      await invoke('llm_download_embed_model', { modelId });
+      await invoke('llm_download_embed_model', { model_id: modelId });
       onSuccess(t('settings:llm_model_downloaded'));
       await loadEmbedModels();
       if (!localModelId) {
         setLocalModelId(modelId);
         if (accountId) {
-          await invoke('llm_set_local_embedding', { accountId, enabled: true, modelId });
+          await invoke('llm_set_local_embedding', { account_id: accountId, enabled: true, model_id: modelId });
           setUseLocalEmbedding(true);
         }
       }
@@ -157,14 +157,14 @@ export function LlmConfigPage() {
       t('settings:llm_confirm_delete_model') || 'Delete this local embedding model?',
       async () => {
         try {
-          await invoke('llm_delete_embed_model', { modelId });
+          await invoke('llm_delete_embed_model', { model_id: modelId });
           onSuccess(t('settings:llm_model_deleted'));
           await loadEmbedModels();
           if (localModelId === modelId) {
             setLocalModelId(null);
             setUseLocalEmbedding(false);
             if (accountId) {
-              await invoke('llm_set_local_embedding', { accountId, enabled: false, modelId: null });
+              await invoke('llm_set_local_embedding', { account_id: accountId, enabled: false, model_id: null });
             }
           }
         } catch (e) {
@@ -182,9 +182,9 @@ export function LlmConfigPage() {
       if (firstInstalled) {
         setLocalModelId(firstInstalled.info.id);
         await invoke('llm_set_local_embedding', {
-          accountId,
+          account_id: accountId,
           enabled: true,
-          modelId: firstInstalled.info.id,
+          model_id: firstInstalled.info.id,
         });
       } else {
         onError(
@@ -194,7 +194,7 @@ export function LlmConfigPage() {
         return;
       }
     } else {
-      await invoke('llm_set_local_embedding', { accountId, enabled, modelId: localModelId });
+      await invoke('llm_set_local_embedding', { account_id: accountId, enabled, model_id: localModelId });
     }
     setUseLocalEmbedding(enabled);
   };
@@ -203,7 +203,7 @@ export function LlmConfigPage() {
     if (!accountId) return;
     setLocalModelId(modelId);
     if (useLocalEmbedding) {
-      await invoke('llm_set_local_embedding', { accountId, enabled: true, modelId });
+      await invoke('llm_set_local_embedding', { account_id: accountId, enabled: true, model_id: modelId });
     }
   };
 
@@ -212,7 +212,7 @@ export function LlmConfigPage() {
     setRebuilding(true);
     try {
       const count = await invoke<number>('llm_rebuild_guide_embeddings', {
-        accountId,
+        account_id: accountId,
         language: i18n.language || 'zh-CN',
       });
       onSuccess(t('settings:llm_kb_rebuilt', { count: String(count) }));
@@ -226,7 +226,7 @@ export function LlmConfigPage() {
   const handleSetActive = async (id: string) => {
     if (!accountId) return;
     setActiveId(id);
-    await invoke('llm_set_active_provider', { accountId, providerId: id }).catch((err) =>
+    await invoke('llm_set_active_provider', { account_id: accountId, provider_id: id }).catch((err) =>
       logger.warn('[LLMConfig] Set active provider failed:', err),
     );
   };
@@ -240,21 +240,21 @@ export function LlmConfigPage() {
     setChatEnabled(next);
     if (accountId)
       await invoke('llm_set_ai_features', {
-        accountId,
+        account_id: accountId,
         features: { chat: next, ...ALWAYS_DISABLED_FEATURES },
       }).catch((err) => logger.warn('[LLMConfig] Set AI features failed:', err));
   };
 
   const handleAcceptRisk = async () => {
     if (!accountId) return;
-    await invoke('llm_accept_risk', { accountId }).catch((err) =>
+    await invoke('llm_accept_risk', { account_id: accountId }).catch((err) =>
       logger.warn('[LLMConfig] Accept risk failed:', err),
     );
     setHasAcceptedRisk(true);
     setShowRiskDialog(false);
     setChatEnabled(true);
     await invoke('llm_set_ai_features', {
-      accountId,
+      account_id: accountId,
       features: { chat: true, ...ALWAYS_DISABLED_FEATURES },
     }).catch((err) => logger.warn('[LLMConfig] Set features after risk accept failed:', err));
   };
@@ -263,14 +263,14 @@ export function LlmConfigPage() {
     const next = !includeSystemPrompt;
     setIncludeSystemPrompt(next);
     if (accountId)
-      await invoke('llm_set_system_prompt_switch', { accountId, enabled: next }).catch((err) =>
+      await invoke('llm_set_system_prompt_switch', { account_id: accountId, enabled: next }).catch((err) =>
         logger.warn('[LLMConfig] Set system prompt switch failed:', err),
       );
   };
 
   const handleSaveProvider = async (provider: ProviderConfig) => {
     if (!accountId) return;
-    await invoke('llm_save_provider', { accountId, provider }).catch((err) =>
+    await invoke('llm_save_provider', { account_id: accountId, provider }).catch((err) =>
       logger.warn('[LLMConfig] Save provider failed:', err),
     );
     setProviders((prev) => {
@@ -292,7 +292,7 @@ export function LlmConfigPage() {
       t('settings:llm_delete_provider_title') || 'Delete provider',
       t('settings:llm_delete_provider_body') || 'Delete this provider configuration?',
       async () => {
-        await invoke('llm_delete_provider', { accountId, providerId: id }).catch((err) =>
+        await invoke('llm_delete_provider', { account_id: accountId, provider_id: id }).catch((err) =>
           logger.warn('[LLMConfig] Delete provider failed:', err),
         );
         setProviders((prev) => prev.filter((p) => p.id !== id));
@@ -306,15 +306,15 @@ export function LlmConfigPage() {
     let key = provider.apiKey;
     if (key === '••••••••') {
       key = await invoke<string>('llm_get_api_key', {
-        accountId: accId,
-        providerId: provider.id,
+        account_id: accId,
+        provider_id: provider.id,
       });
     }
     const result = await invoke<string>('llm_test_provider', {
-      baseUrl: provider.baseUrl,
-      apiKey: key,
+      base_url: provider.baseUrl,
+      api_key: key,
       model: provider.model,
-      apiType: provider.apiType,
+      api_type: provider.apiType,
     });
     return t('settings:llm_test_ok') + ' "' + result.slice(0, 80) + '"';
   };

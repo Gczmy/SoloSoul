@@ -30,7 +30,7 @@ export const useVaultStore = create<VaultStoreState>((set, _get) => ({
   unlock: async (accountId, password) => {
     set({ isLoading: true, error: null });
     try {
-      await invoke<void>('unlock', { accountId, password });
+      await invoke<void>('unlock', { account_id: accountId, password });
       set({ vaultState: 'unlocked', isLoading: false });
     } catch (err) {
       set({ error: String(err), isLoading: false });

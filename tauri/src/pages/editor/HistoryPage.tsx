@@ -33,7 +33,7 @@ export function HistoryPage() {
 
   useEffect(() => {
     if (objectId) {
-      invoke<SnapshotEntry[]>('snapshot_list', { objectId })
+      invoke<SnapshotEntry[]>('snapshot_list', { object_id: objectId })
         .then(setSnapshots)
         .finally(() => setLoading(false));
     }
@@ -47,7 +47,7 @@ export function HistoryPage() {
       async () => {
         setRestoring(snapshot.id);
         try {
-          await invoke('snapshot_rollback', { snapshotId: snapshot.id, objectId });
+          await invoke('snapshot_rollback', { snapshot_id: snapshot.id, object_id: objectId });
           navigate(-1);
         } catch (e) {
           showToast({ type: 'error', message: `${t('common:rollback_failed')}: ${e}` });

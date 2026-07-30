@@ -93,10 +93,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ isLoading: true, error: null });
     try {
       const account = await invoke<AccountInfo>('bootstrap', {
-        accountName: name,
+        account_name: name,
         password,
         locale,
-        passwordHint,
+        password_hint: passwordHint,
       });
       saveLastAccountId(account.id);
       set({
@@ -115,7 +115,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   login: async (accountId, password) => {
     set({ isLoading: true, error: null });
     try {
-      await invoke<void>('login', { accountId, password });
+      await invoke<void>('login', { account_id: accountId, password });
       // Try to refresh account list, but do not fail authentication if the
       // refresh request errors (e.g. transient backend lock contention).
       let accounts: AccountInfo[] = [];

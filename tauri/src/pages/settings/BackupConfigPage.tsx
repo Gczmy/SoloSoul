@@ -119,7 +119,7 @@ export function BackupConfigPage() {
       async () => {
         setRestoringId(id);
         try {
-          const count = await invoke<number>('backup_restore', { backupId: id });
+          const count = await invoke<number>('backup_restore', { backup_id: id });
           onSuccess(t('settings:restored_from_backup', { count }));
           loadBackups();
         } catch (e) {
@@ -138,7 +138,7 @@ export function BackupConfigPage() {
       t('settings:backup_delete_confirm_body', { name }),
       async () => {
         try {
-          await invoke('backup_delete', { backupId: id });
+          await invoke('backup_delete', { backup_id: id });
           onSuccess(t('common:backup_deleted'));
           loadBackups();
         } catch (e) {

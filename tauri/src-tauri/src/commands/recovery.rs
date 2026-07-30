@@ -263,8 +263,8 @@ pub async fn recovery_receive_listen_wait(
             Ok(inner) => inner,
             Err(e) => Err(format!("Thread panicked: {:?}", e)),
         })
-            .await
-            .map_err(|e| e.to_string())??
+        .await
+        .map_err(|e| e.to_string())??
     } else {
         return Err("No recovery listener is running".to_string());
     };
@@ -276,7 +276,12 @@ pub async fn recovery_receive_listen_wait(
             .read()
             .map_err(|_| "Vault service lock poisoned".to_string())?;
         // 如果账户名冲突，让 create_account_with_id 返回错误，由前端提示
-        svc.create_account_with_id(&result.account_id, &result.account_name, &master_password, None)?;
+        svc.create_account_with_id(
+            &result.account_id,
+            &result.account_name,
+            &master_password,
+            None,
+        )?;
     }
 
     // 导入恢复包

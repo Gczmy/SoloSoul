@@ -46,7 +46,7 @@ pub struct RecoveryState {
     pub receiver_cancel: Arc<AtomicBool>,
     /// 反向恢复模式下接收端的后台线程。
     pub receiver_thread: Option<
-        std::thread::JoinHandle<Result<solosoul_sync::recovery::RecoveryTransferResult, String>>
+        std::thread::JoinHandle<Result<solosoul_sync::recovery::RecoveryTransferResult, String>>,
     >,
 }
 

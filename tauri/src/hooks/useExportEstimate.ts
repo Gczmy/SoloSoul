@@ -54,7 +54,7 @@ export function useExportEstimate(accountId: string, scope: ScopeState, totalSel
     const debounce = setTimeout(() => {
       setEstimating(true);
       invoke<ExportEstimate>('export_estimate_size', {
-        accountId,
+        account_id: accountId,
         scope: {
           selectedPageIds: Array.from(scope.selectedPageIds),
           selectedObjectIds: Array.from(scope.selectedObjectIds),

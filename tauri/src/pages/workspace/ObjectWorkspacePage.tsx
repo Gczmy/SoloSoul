@@ -109,8 +109,8 @@ export function ObjectWorkspacePage() {
       if (!accountId || detailObj?.id !== objectId) return;
       try {
         const obj = await invoke<ObjectData | null>('object_get', {
-          accountId,
-          objectId,
+          account_id: accountId,
+          object_id: objectId,
         });
         if (obj) setDetailObj(obj);
       } catch (err) {
@@ -176,7 +176,7 @@ export function ObjectWorkspacePage() {
   // Open object detail modal directly when navigated with ?objectId=... (e.g. from search)
   useEffect(() => {
     if (!detailObjectId || !accountId) return;
-    invoke('object_get', { objectId: detailObjectId })
+    invoke('object_get', { object_id: detailObjectId })
       .then((obj) => setDetailObj(obj as (typeof visibleObjects)[number]))
       .catch((err) => logger.warn('[Workspace] Fetch object detail failed:', err));
   }, [detailObjectId, accountId]);
@@ -211,7 +211,7 @@ export function ObjectWorkspacePage() {
   useEffect(() => {
     invoke<{ available: boolean; configured: boolean; biometryType?: string }>(
       'biometric_check_availability',
-      { accountId: accountId || '' },
+      { account_id: accountId || '' },
     )
       .then((r) =>
         setBioAvailable({ available: r.available && r.configured, biometryType: r.biometryType }),
@@ -243,7 +243,7 @@ export function ObjectWorkspacePage() {
     async (password: string): Promise<boolean> => {
       if (!accountId) return false;
       try {
-        await invoke('unlock_with_password', { accountId, password });
+        await invoke('unlock_with_password', { account_id: accountId, password });
         return true;
       } catch {
         return false;
@@ -256,10 +256,10 @@ export function ObjectWorkspacePage() {
     if (!accountId) return false;
     try {
       await invoke('biometric_unlock', {
-        accountId,
+        account_id: accountId,
         location: 'critical_data_access',
         action: 'unlock',
-        biometryType: bioAvailable.biometryType,
+        biometry_type: bioAvailable.biometryType,
       });
       const method = (bioAvailable.biometryType as 'touchId' | 'faceId') || 'touchId';
       pwResolveRef.current?.({ ok: true, method });
@@ -359,7 +359,7 @@ export function ObjectWorkspacePage() {
       return;
     }
     let cancelled = false;
-    invoke<Record<string, string>>('template_hash_map', { accountId })
+    invoke<Record<string, string>>('template_hash_map', { account_id: accountId })
       .then((map) => {
         if (cancelled) return;
         setTemplateHashMap(new Map(Object.entries(map)));
@@ -377,7 +377,7 @@ export function ObjectWorkspacePage() {
   const refreshTemplateHashMap = useCallback(async () => {
     if (!accountId) return;
     try {
-      const map = await invoke<Record<string, string>>('template_hash_map', { accountId });
+      const map = await invoke<Record<string, string>>('template_hash_map', { account_id: accountId });
       setTemplateHashMap(new Map(Object.entries(map)));
     } catch (err) {
       logger.warn('[Workspace] Refresh template hash map failed:', err);
@@ -390,7 +390,7 @@ export function ObjectWorkspacePage() {
     if (ids.length === 0) return;
     const reqId = ++snapshotReqRef.current;
     let mounted = true;
-    invoke<Record<string, number>>('snapshot_count_batch', { objectIds: ids })
+    invoke<Record<string, number>>('snapshot_count_batch', { object_ids: ids })
       .then((counts) => {
         if (!mounted || snapshotReqRef.current !== reqId) return; // stale response, discard
         // Ensure every visible object has a snapshot count (default 0)
@@ -416,7 +416,7 @@ export function ObjectWorkspacePage() {
     if (ids.length === 0) {
       return () => controller.abort();
     }
-    invoke<Record<string, number>>('attachment_count_batch', { objectIds: ids })
+    invoke<Record<string, number>>('attachment_count_batch', { object_ids: ids })
       .then((counts) => {
         if (!controller.signal.aborted) setAttachmentCounts(counts);
       })

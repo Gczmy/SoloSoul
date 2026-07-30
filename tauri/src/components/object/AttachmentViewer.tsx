@@ -107,8 +107,8 @@ export function AttachmentViewer({
     setLoading(true);
     try {
       const [active, deleted] = await Promise.all([
-        invoke<AttachmentItem[]>('attachment_list', { objectId, showDeleted: false }),
-        invoke<AttachmentItem[]>('attachment_list', { objectId, showDeleted: true }),
+        invoke<AttachmentItem[]>('attachment_list', { object_id: objectId, show_deleted: false }),
+        invoke<AttachmentItem[]>('attachment_list', { object_id: objectId, show_deleted: true }),
       ]);
       setItems(active);
       setTrashItems(deleted);
@@ -175,9 +175,9 @@ export function AttachmentViewer({
         prev.map((i) => (i.id === renamingId ? { ...i, fileName: renameValue.trim() } : i)),
       );
       invoke('attachment_rename', {
-        objectId,
-        attachmentId: renamingId,
-        newName: renameValue.trim(),
+        object_id: objectId,
+        attachment_id: renamingId,
+        new_name: renameValue.trim(),
       }).catch((err) => logger.warn('[AttachmentViewer] Rename failed:', err));
     }
     setRenamingId(null);
@@ -196,7 +196,7 @@ export function AttachmentViewer({
       });
       if (!destPath) return;
       await downloadViaStage(filePath, destPath, item.fileName, (src, dest) =>
-        invoke('attachment_download', { srcPath: src, destPath: dest }),
+        invoke('attachment_download', { src_path: src, dest_path: dest }),
       );
       showToast({
         type: 'success',
@@ -215,7 +215,7 @@ export function AttachmentViewer({
     if (!deleteItem) return;
     const item = deleteItem;
     setDeleteItem(null);
-    await invoke('attachment_soft_delete', { objectId, attachmentId: item.id }).catch((e) => {
+    await invoke('attachment_soft_delete', { object_id: objectId, attachment_id: item.id }).catch((e) => {
       showToast({
         type: 'error',
         message: t('common:delete_failed') || `Delete failed: ${e}`,
@@ -226,14 +226,14 @@ export function AttachmentViewer({
   };
 
   const handleRestore = async (item: AttachmentItem) => {
-    await invoke('attachment_restore', { objectId, attachmentId: item.id });
+    await invoke('attachment_restore', { object_id: objectId, attachment_id: item.id });
     await loadAttachments();
     onCountChange?.();
   };
 
   const handlePermanentDelete = async (item: AttachmentItem) => {
     setPermDeleteItem(null);
-    await invoke('attachment_delete', { objectId, attachmentId: item.id });
+    await invoke('attachment_delete', { object_id: objectId, attachment_id: item.id });
     await loadAttachments();
     onCountChange?.();
   };
@@ -264,7 +264,7 @@ export function AttachmentViewer({
     const keys = Array.from(selectedIds);
     const attachmentIds = keys.map((k) => k.split('::')[1]);
     try {
-      await invoke('attachment_batch_soft_delete', { objectId, attachmentIds });
+      await invoke('attachment_batch_soft_delete', { object_id: objectId, attachment_ids: attachmentIds });
       showToast({
         type: 'success',
         message: t('common:batch_delete_result', { success: keys.length, total: keys.length }),
@@ -285,7 +285,7 @@ export function AttachmentViewer({
     const keys = Array.from(selectedIds);
     const attachmentIds = keys.map((k) => k.split('::')[1]);
     try {
-      await invoke('attachment_batch_restore', { objectId, attachmentIds });
+      await invoke('attachment_batch_restore', { object_id: objectId, attachment_ids: attachmentIds });
       showToast({
         type: 'success',
         message: t('common:batch_restore_result', { success: keys.length, total: keys.length }),
@@ -361,7 +361,7 @@ export function AttachmentViewer({
         if (!filePath) continue;
         const destPath = `${dirPath}/${item.fileName}`;
         try {
-          await invoke('attachment_download', { srcPath: filePath, destPath });
+          await invoke('attachment_download', { src_path: filePath, dest_path: destPath });
           successCount++;
         } catch {
           // continue with next file
@@ -385,7 +385,7 @@ export function AttachmentViewer({
     const keys = Array.from(selectedIds);
     const attachmentIds = keys.map((k) => k.split('::')[1]);
     try {
-      await invoke('attachment_batch_delete', { objectId, attachmentIds });
+      await invoke('attachment_batch_delete', { object_id: objectId, attachment_ids: attachmentIds });
       showToast({
         type: 'success',
         message: t('common:batch_perm_delete_result', { success: keys.length, total: keys.length }),

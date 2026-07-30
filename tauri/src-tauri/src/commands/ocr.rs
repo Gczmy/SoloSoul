@@ -377,10 +377,11 @@ pub async fn ocr_scan_mrz(
 
 #[cfg(mobile)]
 #[tauri::command]
+#[allow(unused_variables)]
 pub async fn ocr_scan_mrz(
-    _app: tauri::AppHandle,
-    _state: tauri::State<'_, AppState>,
-    _file_path: String,
+    app: tauri::AppHandle,
+    state: tauri::State<'_, AppState>,
+    file_path: String,
 ) -> Result<Option<MrzResult>, String> {
     // 移动端 MRZ 识别暂由通用 OCR 流程兜底，此处返回 null 让前端走 ocr_scan_image 分支。
     Ok(None)
@@ -481,9 +482,10 @@ pub async fn ocr_set_active_tier(
 
 #[cfg(mobile)]
 #[tauri::command]
+#[allow(unused_variables)]
 pub async fn ocr_set_active_tier(
-    _state: tauri::State<'_, AppState>,
-    _tier: String,
+    state: tauri::State<'_, AppState>,
+    tier: String,
 ) -> Result<(), String> {
     mobile_not_supported()
 }
@@ -582,9 +584,10 @@ pub async fn ocr_install_bundled_model_with_progress(
 
 #[cfg(mobile)]
 #[tauri::command]
+#[allow(unused_variables)]
 pub async fn ocr_install_bundled_model_with_progress(
-    _state: tauri::State<'_, AppState>,
-    _tier: String,
+    state: tauri::State<'_, AppState>,
+    tier: String,
 ) -> Result<(), String> {
     mobile_not_supported()
 }
@@ -618,9 +621,10 @@ pub async fn ocr_install_bundled_model(
 
 #[cfg(mobile)]
 #[tauri::command]
+#[allow(unused_variables)]
 pub async fn ocr_install_bundled_model(
-    _state: tauri::State<'_, AppState>,
-    _tier: String,
+    state: tauri::State<'_, AppState>,
+    tier: String,
 ) -> Result<(), String> {
     mobile_not_supported()
 }
