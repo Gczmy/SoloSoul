@@ -2,6 +2,48 @@
 
 All notable changes to SoloSoul are documented in this file.
 
+## [2.6.6] - 2026-07-31
+
+### Added
+
+- **账户恢复 QR 配对（反向恢复）** — 新增反向恢复流程，新设备扫码旧设备的恢复二维码完成传输，支持密码 + 二维码两种配对方式。
+- **恢复发送端账户名传递** — 恢复时从发送端传递账户名，接收端自动填入，减少手动输入。
+- **非 QR 手动连接恢复** — 恢复接收对话框新增手动输入标签页，支持输入主机地址和端口手动连接，适用于无摄像头设备的恢复场景。
+- **mDNS 局域网恢复发现** — 新设备在恢复页面自动发现局域网内的主机设备，无需手动输入 IP 地址。
+- **iOS 生物识别 Keychain 迁移** — iOS 生物识别凭证存储从 `FileBiometricStorage` 迁移到系统 Keychain（`kSecAccessControlUserPresence`），安全性从文件权限 0o600 提升至硬件 Keychain。
+- **Android platform_storage 清理** — Android 的 `platform_storage()` 改为 `StubBiometricStorage`（实际凭证操作由 `KeystorePluginHandle` 处理）。
+- **设备同步 QR 配对** — 设备同步页面新增 QR 码配对功能，支持扫码类型自动检测。
+- **登录页恢复入口增强** — 新增「返回登录」和「从其他设备恢复」入口，新设备用户引导询问是否已有现有账户。
+
+### Fixed
+
+- **P0/P1 代码分析安全/稳定性修复（P001-P008）**：
+  - P001：macOS Vision OCR 外部二进制路径加固（SHA-256 哈希校验 + 确定性缓存目录）
+  - P002：Windows `icacls` 参数注入修复（链式 `.arg()` 替代 `format!` 拼接）
+  - P003/P004：同步/设备同步事件 `.unwrap()` → match 优雅处理
+  - P005：`storage.rs` 16+ 处静默吞没错误 → 向上传播
+  - P006：SQL IN 子句 `format!` 拼接 → `repeat_n("?")` + 参数绑定
+  - P007：AI 助手插件上下文注入（`build_section5_plugins()` 实际实现）
+  - P008：iOS Keychain 迁移 + Android platform_storage 清理
+- **Android 构建修复** — 补全缺失的 `Manager` trait 导入和死 `BiometricManager` 实例化移除。
+- **Mobile mDNS 状态注册** — 为 Android/iOS 注册 `SharedDaemon` 状态，修复 mDNS 命令在移动端的运行。
+- **恢复对话框错误处理** — 抑制预期的取消错误，补全缺失的命令权限和加载状态修复。
+- **Invoke payload key 统一** — 统一为 camelCase 以匹配 Tauri 默认命令命名。
+- **Android 更新横幅状态管理** — 在安装权限缺失时保持下载状态。
+
+### Code Quality
+
+- **P009: Clippy unwrap/expect 生产代码清零** — 消除 `aes.rs`、`hlc.rs`、`manager.rs`、`attachments.rs`、`field.rs`、`object/mod.rs`、`build.rs` 中所有 `unwrap_used`/`expect_used` 警告。
+- **P011: React useMemo 审计** — `SettingsPage.tsx`（`settingGroups` → `useMemo`）、`DataManagementPage.tsx`（`breakdownItems`/`pieSlices` → `useMemo`，`PieChartSvg` → `memo()`）。
+- **P012: unsafe FFI 测试补充** — `window.rs` 提取 `calculate_luminance` 纯函数（6 个单元测试）；`biometric/mod.rs` 新增 6 个 FFI 边界测试（CString、平台错误传播、Send+Sync 等）。
+- **P013: 死代码扫描（cargo-machete + knip）** — 移除 10 个 Rust 未使用依赖（6 个 Cargo.toml）、清理 13 个前端死代码导出（10 个文件）。
+
+### Chores
+
+- 版本号同步升级到 2.6.6。
+- 更新 CODE_ANALYSIS_REPORT.md 为全部 13 项完成状态。
+- 重新生成 ACL manifests。
+
 ## [2.6.5] - 2026-07-30
 
 ### Fixed
