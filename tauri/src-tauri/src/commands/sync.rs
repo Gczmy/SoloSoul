@@ -50,6 +50,7 @@ pub struct MobileHlc {
 }
 
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct SyncPeer {
     pub id: String,
     pub name: String,
@@ -60,6 +61,7 @@ pub struct SyncPeer {
 }
 
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct SyncStatus {
     pub is_discovering: bool,
     pub sync_enabled: bool,
@@ -788,8 +790,8 @@ mod tests {
             last_seen: "2024-06-01T12:00:00Z".to_string(),
         };
         let json = serde_json::to_string(&peer).unwrap();
-        // Structs use default serde (snake_case, no rename_all)
-        assert!(json.contains("last_seen"));
+        // Structs serialize with camelCase keys for the frontend.
+        assert!(json.contains("lastSeen"));
         assert!(json.contains("\"node-1\""));
     }
 
@@ -803,9 +805,9 @@ mod tests {
             connected_peers: vec![],
         };
         let json = serde_json::to_string(&status).unwrap();
-        assert!(json.contains("is_discovering"));
-        assert!(json.contains("sync_enabled"));
-        assert!(json.contains("auto_sync_enabled"));
+        assert!(json.contains("isDiscovering"));
+        assert!(json.contains("syncEnabled"));
+        assert!(json.contains("autoSyncEnabled"));
     }
 
     #[test]
@@ -907,11 +909,11 @@ mod tests {
         };
         let json = serde_json::to_string(&peer).unwrap();
         assert!(json.contains("\"trusted\":false"));
-        assert!(json.contains("\"last_seen\":\"\""));
+        assert!(json.contains("\"lastSeen\":\"\""));
     }
 
     #[test]
-    fn test_sync_peer_serialization_matches_snake_case() {
+    fn test_sync_peer_serialization_matches_camel_case() {
         let peer = SyncPeer {
             id: "p1".to_string(),
             name: "Device".to_string(),
@@ -921,8 +923,8 @@ mod tests {
             last_seen: "now".to_string(),
         };
         let json = serde_json::to_string(&peer).unwrap();
-        // Default serde uses snake_case (no rename_all on these structs)
-        assert!(json.contains("last_seen"));
-        assert!(!json.contains("lastSeen"), "should not contain camelCase");
+        // SyncPeer serializes with camelCase keys for the frontend.
+        assert!(json.contains("lastSeen"));
+        assert!(!json.contains("last_seen"), "should not contain snake_case");
     }
 }
