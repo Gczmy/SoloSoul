@@ -229,6 +229,7 @@ fn test_export_scope_serde_roundtrip() {
         selected_attachment_ids: vec!["att-1".to_string()],
         include_preferences: false,
         include_behavioral: true,
+        include_all: false,
     };
     let json = serde_json::to_string(&original).unwrap();
     let deserialized: ExportScope = serde_json::from_str(&json).unwrap();
@@ -264,6 +265,7 @@ fn test_export_request_serde_roundtrip() {
             selected_attachment_ids: vec![],
             include_preferences: false,
             include_behavioral: false,
+            include_all: false,
         },
         password: "Secret1!".to_string(),
         password_hint: Some("hint text".to_string()),

@@ -259,8 +259,7 @@ pub fn run() {
                 }
             }
 
-            // 5. 初始化桌面端发现服务（mDNS）— 移动端暂不提供
-            #[cfg(not(any(target_os = "android", target_os = "ios")))]
+            // 5. 初始化发现服务状态（桌面端 mDNS / 移动端 NSD 共用同一命令签名）
             {
                 app.manage(commands::discovery::SharedDaemon::new());
             }
