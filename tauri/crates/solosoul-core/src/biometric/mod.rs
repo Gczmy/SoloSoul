@@ -1028,4 +1028,117 @@ mod tests {
                 .is_err());
         });
     }
+
+    // ── Unsafe FFI boundary tests ───────────────────────────────────
+
+    /// trigger_system_biometric 在非 macOS/Windows 平台应返回 PlatformNotSupported。
+    /// 这个测试同时验证了 CString 边界（空/长/特殊字符 reason）不会 panic。
+    #[test]
+    fn test_trigger_system_biometric_unsupported_platform() {
+        // 非 macOS/Windows 时始终返回 Err(PlatformNotSupported)
+        #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+        {
+            let result = trigger_system_biometric("test reason", true);
+            assert!(
+                matches!(result, Err(BiometricError::PlatformNotSupported)),
+                "expected PlatformNotSupported, got {:?}",
+                result
+            );
+            let result = trigger_system_biometric("test reason", false);
+            assert!(
+                matches!(result, Err(BiometricError::PlatformNotSupported)),
+                "expected PlatformNotSupported, got {:?}",
+                result
+            );
+        }
+        // macOS/Windows 上，trigger_system_biometric 会尝试调用系统 API。
+        // 在 CI 无生物识别硬件时可能返回 UserPresenceUnavailable 或其他错误，
+        // 但不应 panic 或返回 PlatformNotSupported。
+        #[cfg(any(target_os = "macos", target_os = "windows"))]
+        {
+            let result = trigger_system_biometric("test reason", true);
+            assert!(
+                !matches!(result, Err(BiometricError::PlatformNotSupported)),
+                "on native platform, PlatformNotSupported should not be returned"
+            );
+        }
+    }
+
+    /// CString 边界测试：验证 reason 字符串的边界情况不会导致 trigger_system_biometric 内部的 CString::new 恐慌。
+    /// 不验证实际结果（因平台和硬件而异），只验证不会 panic。
+    #[test]
+    fn test_trigger_system_biometric_reason_boundaries() {
+        // 空 reason（CString 接受空字符串）
+        let _ = trigger_system_biometric("", true);
+        // 长 reason（超过缓冲区边界）
+        let long = "a".repeat(1024);
+        let _ = trigger_system_biometric(&long, true);
+        // Unicode reason
+        let _ = trigger_system_biometric("面容 ID 验证 Touch ID 指纹", true);
+        // Reason with special characters
+        let _ = trigger_system_biometric("hello\nworld\t!@#$%^&*()", true);
+    }
+
+    /// BiometricError Display 实现应返回非空字符串。
+    #[test]
+    fn test_biometric_error_display() {
+        let errors = [
+            BiometricError::UserPresenceCancelled,
+            BiometricError::UserPresenceUnavailable,
+            BiometricError::KeychainWriteFailed("disk full".into()),
+            BiometricError::KeychainReadFailed("item not found".into()),
+            BiometricError::KeychainItemNotFound,
+            BiometricError::MissingKeychainEntitlement,
+            BiometricError::InvalidKeyFormat,
+            BiometricError::LegacyMigrationFailed("permission denied".into()),
+            BiometricError::PlatformNotSupported,
+            BiometricError::Other("generic error".into()),
+        ];
+        for err in &errors {
+            let display = err.to_string();
+            assert!(!display.is_empty(), "Display for {:?} should not be empty", err);
+            let code = err.code();
+            assert!(!code.is_empty(), "code() for {:?} should not be empty", err);
+        }
+    }
+
+    /// BiometricError: Send + Sync 实现（用于多线程 FFI 边界）。
+    #[test]
+    fn test_biometric_error_send_sync() {
+        fn assert_send<T: Send>() {}
+        fn assert_sync<T: Sync>() {}
+        assert_send::<BiometricError>();
+        assert_sync::<BiometricError>();
+    }
+
+    /// 验证 derive_master_key 在缺少账户配置时返回正确的错误。
+    #[test]
+    fn test_derive_master_key_missing_config() {
+        with_temp_home(|path| {
+            let result = derive_master_key("password", "nonexistent", &path.join(".solosoul"));
+            assert!(result.is_err());
+            assert!(
+                matches!(result, Err(BiometricError::Other(_))),
+                "expected Other error, got {:?}",
+                result
+            );
+        });
+    }
+
+    /// BiometricStorage::uses_legacy_file 默认返回 false。
+    #[test]
+    fn test_default_uses_legacy_false() {
+        struct TestStorage;
+        impl BiometricStorage for TestStorage {
+            fn save(&self, _: &str, _: &str, _: &str) -> Result<(), BiometricError> { Ok(()) }
+            fn update(&self, _: &str, _: &str) -> Result<(), BiometricError> { Ok(()) }
+            fn read(&self, _: &str, _: &str) -> Result<String, BiometricError> {
+                Err(BiometricError::KeychainItemNotFound)
+            }
+            fn delete(&self, _: &str) -> Result<(), BiometricError> { Ok(()) }
+            fn exists(&self, _: &str) -> bool { false }
+        }
+        let storage = TestStorage;
+        assert!(!storage.uses_legacy_file());
+    }
 }

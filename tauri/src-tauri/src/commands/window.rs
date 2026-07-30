@@ -7,6 +7,14 @@ pub struct TitlebarColor {
     pub blue: u8,
 }
 
+/// 根据 sRGB 分量计算感知亮度（Rec. 601 luma）。
+/// 返回 0.0 ~ 255.0，用于判断标题栏使用深色还是浅色 appearance。
+pub(crate) fn calculate_luminance(color: &TitlebarColor) -> f64 {
+    0.299 * f64::from(color.red)
+        + 0.587 * f64::from(color.green)
+        + 0.114 * f64::from(color.blue)
+}
+
 /// 设置 macOS 原生窗口背景色（影响透明标题栏的交通灯区域）。
 /// 其他平台直接忽略，避免编译与运行时问题。
 #[tauri::command]
@@ -37,9 +45,7 @@ pub fn set_titlebar_color(window: tauri::Window, color: TitlebarColor) -> Result
         ns_window.setBackgroundColor(Some(&bg));
 
         // 根据标题栏背景亮度设置窗口 appearance，确保深色主题下标题文字为白色。
-        let luminance = 0.299 * f64::from(color.red)
-            + 0.587 * f64::from(color.green)
-            + 0.114 * f64::from(color.blue);
+        let luminance = calculate_luminance(&color);
         let appearance_name = if luminance < 128.0 {
             // SAFETY: NSAppearanceNameDarkAqua 是 AppKit 公开的全局 NSString 常量，
             // 从 ObjC extern 静态变量中读取不会产生数据竞争或内存安全问题。
@@ -131,4 +137,68 @@ mod tests {
         // u8 deserialization rejects values > 255
         assert!(result.is_err());
     }
+
+    #[test]
+    fn test_calculate_luminance_black() {
+        let color = TitlebarColor { red: 0, green: 0, blue: 0 };
+        assert_eq!(calculate_luminance(&color), 0.0);
+    }
+
+    #[test]
+    fn test_calculate_luminance_white() {
+        let color = TitlebarColor { red: 255, green: 255, blue: 255 };
+        assert_eq!(calculate_luminance(&color), 255.0);
+    }
+
+    #[test]
+    fn test_calculate_luminance_mid_gray() {
+        // 128,128,128 → luma ≈ 128（浮点误差），精确值 ≈ 127.99999999999999
+        let color = TitlebarColor { red: 128, green: 128, blue: 128 };
+        let luma = calculate_luminance(&color);
+        assert!(
+            (luma - 128.0).abs() < 1e-12,
+            "expected ~128.0, got {}",
+            luma
+        );
+    }
+
+    #[test]
+    fn test_calculate_luminance_dark_theme_threshold() {
+        // 纯红 (255,0,0) → luma = 0.299 * 255 ≈ 76.2 < 128 → 深色
+        let color = TitlebarColor { red: 255, green: 0, blue: 0 };
+        let luma = calculate_luminance(&color);
+        assert!(luma < 128.0, "red luma {} should be < 128", luma);
+    }
+
+    #[test]
+    fn test_calculate_luminance_light_theme_threshold() {
+        // 纯黄 (255,255,0) → luma = 0.299*255 + 0.587*255 ≈ 225.9 >= 128 → 浅色
+        let color = TitlebarColor { red: 255, green: 255, blue: 0 };
+        let luma = calculate_luminance(&color);
+        assert!(luma >= 128.0, "yellow luma {} should be >= 128", luma);
+    }
+
+    #[test]
+    fn test_calculate_luminance_blue_is_dark() {
+        // 纯蓝 (0,0,255) → luma = 0.114 * 255 ≈ 29.1 < 128 → 深色
+        let color = TitlebarColor { red: 0, green: 0, blue: 255 };
+        let luma = calculate_luminance(&color);
+        assert!(luma < 128.0, "blue luma {} should be < 128", luma);
+    }
+
+    #[test]
+    fn test_calculate_luminance_green_is_bright() {
+        // 纯绿 (0,255,0) → luma = 0.587 * 255 ≈ 149.7 >= 128 → 浅色
+        let color = TitlebarColor { red: 0, green: 255, blue: 0 };
+        let luma = calculate_luminance(&color);
+        assert!(luma >= 128.0, "green luma {} should be >= 128", luma);
+    }
+
+    #[test]
+    fn test_titlebar_color_rejects_empty() {
+        let json = r#"{}"#;
+        let result = serde_json::from_str::<TitlebarColor>(json);
+        assert!(result.is_err());
+    }
 }
+
