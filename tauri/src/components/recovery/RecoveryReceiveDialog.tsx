@@ -43,7 +43,6 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
   const [showScanner, setShowScanner] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [reverseInfo, setReverseInfo] = useState<ReverseListenInfo | null>(null);
-  const [reverseWaiting, setReverseWaiting] = useState(false);
   const [reverseSession, setReverseSession] = useState<{
     info: ReverseListenInfo;
     password: string;
@@ -69,14 +68,14 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
         });
         if (!active || !mountedRef.current) return;
         setSuccess(result);
-        setReverseWaiting(false);
         setReverseSession(null);
         await useAuthStore.getState().checkHasAccount();
       } catch (err) {
         if (!active || !mountedRef.current) return;
-        setError(String(err));
+        const msg = String(err);
+        if (msg.includes('Recovery session cancelled')) return;
+        setError(msg);
         setReverseInfo(null);
-        setReverseWaiting(false);
         setReverseSession(null);
       }
     };
@@ -177,7 +176,6 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
       const info = await invoke<ReverseListenInfo>('recovery_receive_listen_start');
       if (!mountedRef.current) return;
       setReverseInfo(info);
-      setReverseWaiting(true);
       setReverseSession({ info, password });
     } catch (err) {
       if (!mountedRef.current) return;
@@ -190,7 +188,6 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
   const handleCancelReverse = () => {
     invoke('recovery_host_cancel').catch(() => {});
     setReverseInfo(null);
-    setReverseWaiting(false);
     setReverseSession(null);
   };
 
@@ -363,22 +360,6 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
                 </span>
               </div>
             </div>
-
-            {reverseWaiting && (
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 8,
-                  fontSize: 'var(--text-body-sm)',
-                  color: 'var(--text-secondary)',
-                }}
-              >
-                <Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} />
-                {t('common:recovery_host_waiting')}
-              </div>
-            )}
 
             <Button variant="secondary" onClick={handleCancelReverse} style={{ width: '100%' }}>
               {t('common:recovery_host_cancel')}
