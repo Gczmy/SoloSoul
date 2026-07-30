@@ -550,8 +550,6 @@ pub async fn biometric_unlock(
         .vault_service
         .read()
         .map_err(|_| "Vault service lock poisoned".to_string())?;
-    let manager = BiometricManager::new(svc.base_path().clone());
-
     // 1. 读取已保存的主密钥（Android 通过生物识别提示保护）
     let key_hex = {
         #[cfg(target_os = "android")]
