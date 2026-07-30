@@ -34,10 +34,6 @@ export async function llmResetStats(accountId: string): Promise<void> {
   return invoke('llm_reset_stats', { accountId: accountId });
 }
 
-export async function llmPersistStats(accountId: string): Promise<void> {
-  return invoke('llm_persist_stats', { accountId: accountId });
-}
-
 const formatTokensFormatter = new Intl.NumberFormat(undefined, {
   notation: 'compact',
   maximumFractionDigits: 1,

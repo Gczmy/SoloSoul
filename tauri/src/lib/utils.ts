@@ -25,7 +25,7 @@ export function formatBytes(bytes: number): string {
 }
 
 /** 从字符串中提取前缀后的内容。 */
-export function tryParsePrefixedError(message: string, prefix: string): string | null {
+function tryParsePrefixedError(message: string, prefix: string): string | null {
   const idx = message.indexOf(prefix);
   if (idx === -1) return null;
   return message.slice(idx + prefix.length).trim();

@@ -31,13 +31,6 @@ export function truncateFileName(fileName: string, maxLen = 28): string {
 
 // ── MIME helpers ──────────────────────────────────────────────
 
-export function isImageMime(mimeType: string, fileName: string): boolean {
-  const ext = fileName.split('.').pop()?.toLowerCase() || '';
-  return (
-    mimeType.startsWith('image/') || ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'].includes(ext)
-  );
-}
-
 export function previewItemByMime(item: AttachmentItem): 'image' | 'pdf' | 'text' | 'other' {
   const ext = item.fileName.split('.').pop()?.toLowerCase() || '';
   if (

@@ -165,7 +165,7 @@ export interface ChatMessage {
   content: string;
 }
 
-export function buildMessagesWithSystemPrompt(
+function buildMessagesWithSystemPrompt(
   userPrompt: string,
   history: ChatMessage[],
   systemPrompt: string,

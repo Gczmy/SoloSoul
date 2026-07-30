@@ -517,7 +517,7 @@ export function applyScheme(id: string | null) {
 }
 
 /** Remove all scheme-specific overrides from the document root. */
-export function clearScheme() {
+function clearScheme() {
   const root = document.documentElement;
   const firstScheme = THEME_SCHEMES[0];
   if (!firstScheme) return;

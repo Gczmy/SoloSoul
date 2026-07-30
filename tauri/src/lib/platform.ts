@@ -13,14 +13,6 @@ export async function getPlatform(): Promise<Platform> {
 }
 
 /**
- * 判断当前是否为移动端（Android 或 iOS）。
- */
-export async function isMobilePlatform(): Promise<boolean> {
-  const p = await getPlatform();
-  return p === 'android' || p === 'ios';
-}
-
-/**
  * 同步判断是否为移动端（基于缓存）。
  * 若缓存未命中则返回 false，建议在应用初始化时调用一次 getPlatform()。
  */

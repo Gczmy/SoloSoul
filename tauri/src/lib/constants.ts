@@ -55,9 +55,6 @@ export const ST_ONBOARDING_SAF_URI = 'solosoul_onboarding_saf_uri';
 /** OCR 首次安装已完成标记 */
 export const ST_OCR_FIRST_INSTALL = 'solosoul_ocr_first_install_done';
 
-/** 语言偏好（与 i18next 格式兼容） */
-export const ST_I18NEXT_LANG = 'i18nextLng';
-
 /** 快速聊天会话存储键前缀 */
 export const ST_QUICK_CHAT_PREFIX = 'solosoul_quick_chat_conv_';
 

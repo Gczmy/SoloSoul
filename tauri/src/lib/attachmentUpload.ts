@@ -7,7 +7,7 @@ function isContentUri(path: string): boolean {
 }
 
 /** MIME 类型映射表（扩展名 → MIME type） */
-export const MIME_MAP: Record<string, string> = {
+const MIME_MAP: Record<string, string> = {
   jpg: 'image/jpeg',
   jpeg: 'image/jpeg',
   png: 'image/png',
@@ -23,7 +23,7 @@ export const MIME_MAP: Record<string, string> = {
 };
 
 /** 从文件路径或 URI 中提取文件名 */
-export function getFileName(filePath: string): string {
+function getFileName(filePath: string): string {
   if (!filePath) return 'file';
 
   try {
@@ -48,13 +48,13 @@ export function getFileName(filePath: string): string {
 }
 
 /** 从文件名获取 MIME type */
-export function getMimeType(fileName: string): string {
+function getMimeType(fileName: string): string {
   const ext = fileName.split('.').pop()?.toLowerCase() || '';
   return MIME_MAP[ext] || 'application/octet-stream';
 }
 
 /** 获取文件大小（字节），失败时返回 0 */
-export async function getFileSize(filePath: string): Promise<number> {
+async function getFileSize(filePath: string): Promise<number> {
   return invoke<number>('fs_get_file_size', { path: filePath }).catch(() => 0);
 }
 
@@ -62,7 +62,7 @@ export async function getFileSize(filePath: string): Promise<number> {
  * 检查指定路径是否为目录。
  * 通过 Tauri 命令 fs_is_dir 查询文件系统元数据。
  */
-export async function checkPathIsDir(filePath: string): Promise<boolean> {
+async function checkPathIsDir(filePath: string): Promise<boolean> {
   return invoke<boolean>('fs_is_dir', { path: filePath }).catch(() => false);
 }
 

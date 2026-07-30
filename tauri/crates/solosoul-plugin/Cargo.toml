@@ -28,7 +28,6 @@ serde_json = { workspace = true }
 
 # Errors
 thiserror = { workspace = true }
-anyhow = { workspace = true }
 
 # Time
 chrono = { workspace = true }
@@ -48,8 +47,7 @@ sys-locale = "0.3.2"
 # Platform directories
 dirs = "6.0"
 
-# Rand
-rand = { workspace = true }
+
 
 # Tracing
 tracing = { workspace = true }

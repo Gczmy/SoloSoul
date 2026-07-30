@@ -50,9 +50,6 @@ sys-locale = "0.3"
 tokio = { version = "1.42.0", features = ["rt-multi-thread", "macros", "time", "sync"] }
 
 # 错误处理
-# 加密导出/导入
-solosoul-crypto = { path = "../tauri/crates/solosoul-crypto" }
-zip = "2"
 # HTTP — /embed_model 从 SoloSoul/models registry 拉取模型清单与下载二进制
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
 

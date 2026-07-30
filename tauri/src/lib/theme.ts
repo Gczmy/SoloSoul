@@ -18,7 +18,7 @@ const ACCENT_COLORS: Record<AccentPreset, string> = {
 
 const SYSTEM_DARK_MQ = '(prefers-color-scheme: dark)';
 
-export function hexToRgb(hex: string): [number, number, number] | null {
+function hexToRgb(hex: string): [number, number, number] | null {
   const cleaned = hex.replace('#', '');
   if (cleaned.length !== 3 && cleaned.length !== 6) return null;
   const full =
@@ -70,7 +70,7 @@ export async function syncStatusBarStyle(theme: 'light' | 'dark') {
  *  Preset accents also set [data-accent] so themes.css can provide the
  *  matching hover/focus/selected tokens; custom accents compute a hover
  *  variant inline. */
-export function applyAccentColor(accent: AccentPreset, customHex?: string) {
+function applyAccentColor(accent: AccentPreset, customHex?: string) {
   const root = document.documentElement;
   if (accent === 'custom' && customHex) {
     root.setAttribute('data-accent', 'custom');
