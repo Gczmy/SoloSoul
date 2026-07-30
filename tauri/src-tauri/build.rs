@@ -1,3 +1,7 @@
+// build.rs 中 panic 是预期行为：构建脚本应在依赖缺失时失败，
+// 因此允许 unwrap/expect 不传播为 Result。
+#![allow(clippy::unwrap_used, clippy::expect_used)]
+
 fn main() {
     tauri_build::build();
     generate_app_level_names();

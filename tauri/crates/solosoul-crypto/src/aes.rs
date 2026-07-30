@@ -116,21 +116,15 @@ pub fn decrypt_chunked_blob(
         return Err(fmt_err("无效的 v3 密文"));
     }
 
-    let original_size = u64::from_be_bytes(
-        blob[5..13]
-            .try_into()
-            .expect("v3 头部长度已校验为 >= 21，切片长度必然为 8"),
-    );
-    let chunk_size = u32::from_be_bytes(
-        blob[13..17]
-            .try_into()
-            .expect("v3 头部长度已校验为 >= 21，切片长度必然为 4"),
-    ) as usize;
-    let chunk_count = u32::from_be_bytes(
-        blob[17..21]
-            .try_into()
-            .expect("v3 头部长度已校验为 >= 21，切片长度必然为 4"),
-    );
+    let mut orig_size = [0u8; 8];
+    orig_size.copy_from_slice(&blob[5..13]);
+    let original_size = u64::from_be_bytes(orig_size);
+    let mut chunk_size_raw = [0u8; 4];
+    chunk_size_raw.copy_from_slice(&blob[13..17]);
+    let chunk_size = u32::from_be_bytes(chunk_size_raw) as usize;
+    let mut chunk_count_raw = [0u8; 4];
+    chunk_count_raw.copy_from_slice(&blob[17..21]);
+    let chunk_count = u32::from_be_bytes(chunk_count_raw);
 
     let cipher = Aes256Gcm::new_from_slice(key).map_err(key_err)?;
     let mut plaintext = Vec::with_capacity(original_size as usize);
@@ -258,21 +252,15 @@ pub fn decrypt_chunked_stream<R: Read, W: Write>(
         return Err(fmt_err(format!("不支持的 Blob 版本: {}", header[4])));
     }
 
-    let original_size = u64::from_be_bytes(
-        header[5..13]
-            .try_into()
-            .expect("v3 头部固定为 21 字节，切片长度必然为 8"),
-    );
-    let chunk_size = u32::from_be_bytes(
-        header[13..17]
-            .try_into()
-            .expect("v3 头部固定为 21 字节，切片长度必然为 4"),
-    ) as usize;
-    let chunk_count = u32::from_be_bytes(
-        header[17..21]
-            .try_into()
-            .expect("v3 头部固定为 21 字节，切片长度必然为 4"),
-    );
+    let mut orig_size = [0u8; 8];
+    orig_size.copy_from_slice(&header[5..13]);
+    let original_size = u64::from_be_bytes(orig_size);
+    let mut chunk_size_raw = [0u8; 4];
+    chunk_size_raw.copy_from_slice(&header[13..17]);
+    let chunk_size = u32::from_be_bytes(chunk_size_raw) as usize;
+    let mut chunk_count_raw = [0u8; 4];
+    chunk_count_raw.copy_from_slice(&header[17..21]);
+    let chunk_count = u32::from_be_bytes(chunk_count_raw);
 
     let cipher = Aes256Gcm::new_from_slice(key).map_err(key_err)?;
     let mut nonce = [0u8; NONCE_SIZE];

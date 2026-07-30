@@ -11,6 +11,7 @@ use crate::transport::SyncTransport;
 use crate::types::AttachmentSyncStats;
 use serde_json::Value;
 use solosoul_vault::VaultStore;
+use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use std::fs;
 use std::io::{Read, Seek, SeekFrom, Write};
@@ -404,9 +405,9 @@ pub fn receive_attachments(
                 stats.bytes_transferred += data.len() as u64;
                 let key = (object_id.clone(), attachment_id.clone());
 
-                let stream = match streams.get_mut(&key) {
-                    Some(s) => s,
-                    None => {
+                let stream = match streams.entry(key.clone()) {
+                    Entry::Occupied(entry) => entry.into_mut(),
+                    Entry::Vacant(entry) => {
                         // First chunk for this attachment — open a temp file.
                         let info = info_map.get(&key).ok_or_else(|| {
                             format!(
@@ -427,19 +428,15 @@ pub fn receive_attachments(
                         let tmp = path.with_extension("tmp");
                         let file = fs::File::create(&tmp)
                             .map_err(|e| format!("create tmp {}: {}", tmp.display(), e))?;
-                        streams.insert(
-                            key.clone(),
-                            StreamingAttachment {
-                                final_path: path,
-                                tmp_path: tmp,
-                                file,
-                                total_chunks,
-                                received_chunks: 0,
-                                seen_indices: std::collections::HashSet::new(),
-                                expected_sha256: info.sha256.clone(),
-                            },
-                        );
-                        streams.get_mut(&key).unwrap()
+                        entry.insert(StreamingAttachment {
+                            final_path: path,
+                            tmp_path: tmp,
+                            file,
+                            total_chunks,
+                            received_chunks: 0,
+                            seen_indices: std::collections::HashSet::new(),
+                            expected_sha256: info.sha256.clone(),
+                        })
                     }
                 };
 

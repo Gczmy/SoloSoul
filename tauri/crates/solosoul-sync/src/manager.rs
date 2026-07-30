@@ -167,7 +167,7 @@ impl SyncManager {
         // mDNS
         let mdns_daemon = ServiceDaemon::new().map_err(|e| format!("mdns daemon: {}", e))?;
         self.register_mdns(&mdns_daemon, port)?;
-        *self.mdns_daemon.lock().expect("mdns_daemon 锁未 poison") = Some(mdns_daemon.clone());
+        *self.mdns_daemon.lock().unwrap_or_else(|e| e.into_inner()) = Some(mdns_daemon.clone());
 
         let mdns_handle = self.spawn_mdns_discovery(mdns_daemon);
 

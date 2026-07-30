@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
@@ -38,7 +38,7 @@ export function SettingsPage() {
       .catch(() => setVaultSize(null));
   }, []);
 
-  const settingGroups = [
+  const settingGroups = useMemo(() => [
     {
       title: t('settings:groups.appearance'),
       items: [
@@ -156,7 +156,7 @@ export function SettingsPage() {
         },
       ],
     },
-  ];
+  ], [t, vaultSize]);
 
   return (
     <AppShell title={t('settings:title')} onBack={() => navigate('/home')}>

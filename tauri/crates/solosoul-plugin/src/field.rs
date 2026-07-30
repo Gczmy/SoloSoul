@@ -142,12 +142,9 @@ impl FieldResolver {
                 .iter()
                 .find(|t| t.id == alias && t.contract_type_id.is_some())
             {
-                return Ok(Some((
-                    t.contract_type_id
-                        .clone()
-                        .expect("已按 contract_type_id.is_some() 过滤"),
-                    prop_path,
-                )));
+                if let Some(ctid) = t.contract_type_id.clone() {
+                    return Ok(Some((ctid, prop_path)));
+                }
             }
         }
 

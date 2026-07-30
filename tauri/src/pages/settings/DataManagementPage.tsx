@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo, memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { invoke } from '@tauri-apps/api/core';
@@ -43,7 +43,7 @@ interface PieSlice {
   label: string;
 }
 
-function PieChartSvg({ slices, size }: { slices: PieSlice[]; size: number }) {
+const PieChartSvg = memo(function PieChartSvg({ slices, size }: { slices: PieSlice[]; size: number }) {
   const total = slices.reduce((s, p) => s + p.value, 0);
   if (total === 0) return null;
   const cx = size / 2;
@@ -100,7 +100,7 @@ function PieChartSvg({ slices, size }: { slices: PieSlice[]; size: number }) {
       )}
     </svg>
   );
-}
+});
 
 // ── Component ────────────────────────────────────────────────
 
@@ -131,23 +131,31 @@ export function DataManagementPage() {
   }, [showBreakdown]);
 
   // ── Build breakdown items ────────────────────────────────────
-  const breakdownItems = !stats
-    ? []
-    : [
-        { key: 'profile', size: stats.profilesSize, labelKey: 'data_profile' },
-        { key: 'objects', size: stats.objectsSize, labelKey: 'data_objects' },
-        { key: 'trash', size: stats.trashSize, labelKey: 'data_trash' },
-        { key: 'snapshots', size: stats.snapshotsSize, labelKey: 'data_snapshots' },
-        { key: 'attachments', size: stats.attachmentsSize, labelKey: 'data_attachments' },
-        { key: 'ai', size: stats.aiConversationsSize, labelKey: 'data_ai_chat' },
-      ].filter((i) => i.size > 0);
+  const breakdownItems = useMemo(
+    () =>
+      !stats
+        ? []
+        : [
+            { key: 'profile', size: stats.profilesSize, labelKey: 'data_profile' },
+            { key: 'objects', size: stats.objectsSize, labelKey: 'data_objects' },
+            { key: 'trash', size: stats.trashSize, labelKey: 'data_trash' },
+            { key: 'snapshots', size: stats.snapshotsSize, labelKey: 'data_snapshots' },
+            { key: 'attachments', size: stats.attachmentsSize, labelKey: 'data_attachments' },
+            { key: 'ai', size: stats.aiConversationsSize, labelKey: 'data_ai_chat' },
+          ].filter((i) => i.size > 0),
+    [stats],
+  );
 
-  const pieSlices: PieSlice[] = breakdownItems.map((item, idx) => ({
-    key: item.key,
-    value: item.size,
-    color: PIE_COLORS[idx % PIE_COLORS.length],
-    label: t(`settings:${item.labelKey}`, item.key),
-  }));
+  const pieSlices: PieSlice[] = useMemo(
+    () =>
+      breakdownItems.map((item, idx) => ({
+        key: item.key,
+        value: item.size,
+        color: PIE_COLORS[idx % PIE_COLORS.length],
+        label: t(`settings:${item.labelKey}`, item.key),
+      })),
+    [breakdownItems, t],
+  );
 
   return (
     <AppShell title={t('settings:data_management')} onBack={() => navigate('/settings')}>

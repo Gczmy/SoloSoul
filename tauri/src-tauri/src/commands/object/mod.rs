@@ -798,21 +798,21 @@ fn deprecate_field(
     old_value: serde_json::Value,
     reason: &str,
 ) {
-    let deprecated_map = match properties
+    // 确保 __deprecatedFields 存在且为 Object
+    if !properties.contains_key("__deprecatedFields")
+        || !properties["__deprecatedFields"].is_object()
+    {
+        properties.insert(
+            "__deprecatedFields".to_string(),
+            serde_json::Value::Object(serde_json::Map::new()),
+        );
+    }
+    let Some(deprecated_map) = properties
         .get_mut("__deprecatedFields")
         .and_then(|v| v.as_object_mut())
-    {
-        Some(m) => m,
-        None => {
-            properties.insert(
-                "__deprecatedFields".to_string(),
-                serde_json::Value::Object(serde_json::Map::new()),
-            );
-            properties
-                .get_mut("__deprecatedFields")
-                .and_then(|v| v.as_object_mut())
-                .expect("__deprecatedFields should exist")
-        }
+    else {
+        // 不应到达此处：我们刚确保该键存在且为 Object。
+        return;
     };
     let mut entry = field_def.clone();
     entry.insert("value".to_string(), old_value);

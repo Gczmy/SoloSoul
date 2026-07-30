@@ -48,7 +48,7 @@ impl Hlc {
     /// 因为显著的回拨可能导致同步 watermark 异常和 LWW 冲突解决偏差。
     pub fn now(node_id: &str) -> Self {
         let physical = physical_now_ms();
-        let mut last = LAST_TIME_MS.lock().expect("HLC 时间戳锁未 poison");
+        let mut last = LAST_TIME_MS.lock().unwrap_or_else(|e| e.into_inner());
         let (wall, counter) = if physical > *last {
             *last = physical;
             // 时钟已恢复/前进，重置回拨告警标志。
@@ -113,7 +113,7 @@ impl Hlc {
     pub fn parse_node_id_bytes(node_id: &str) -> [u8; 16] {
         let mut out = [0u8; 16];
         let bytes = if node_id.len() == 32 {
-            hex::decode(node_id).unwrap_or_default()
+            hex::decode(node_id).unwrap_or_else(|_| Vec::new())
         } else {
             let mut buf = [0u8; 16];
             let src = node_id.as_bytes();
