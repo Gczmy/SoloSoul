@@ -613,5 +613,13 @@
   "recovery_qr_hint": "Point your camera at the QR code shown on the other device.",
   "recovery_qr_no_camera": "No camera found. Please allow camera access or enter the details manually.",
   "onboarding_recover_from_device": "Recover from another device",
-  "onboarding_recover_from_device_desc": "Restore your account from a phone or computer running SoloSoul."
+  "onboarding_recover_from_device_desc": "Restore your account from a phone or computer running SoloSoul.",
+  "recovery_manual_tab": "Manual",
+  "recovery_receive_reverse_desc": "Show this QR code to your other device, then scan it to push your data here.",
+  "recovery_receive_reverse_initial_desc": "Set a new master password for this device, then show the QR code to your other device to scan.",
+  "recovery_advanced_show": "Show optional fingerprint",
+  "recovery_advanced_hide": "Hide optional fingerprint",
+  "recovery_fingerprint_placeholder": "e.g. abc123…",
+  "recovery_connecting": "Connecting to host…",
+  "recovery_receive_addr_required": "Host address is required"
 }

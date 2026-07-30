@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
-import { X, QrCode } from 'lucide-react';
+import { X, QrCode, Link2, Loader2 } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/Card';
@@ -27,19 +27,38 @@ interface ReverseListenInfo {
   qrPayload: string;
 }
 
+type TabMode = 'manual' | 'reverse';
+
+const PIN_REGEX = /^\d{6}$/;
+
 export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryReceiveDialogProps) {
   const { t } = useTranslation(['common']);
   const navigate = useNavigate();
-  const [password, setPassword] = useState('');
+  const mountedRef = useRef(true);
+
+  // Tab state
+  const [tab, setTab] = useState<TabMode>('manual');
+
+  // Shared state
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<RecoveryResultSummary | null>(null);
+
+  // Manual connect form state
+  const [hostAddr, setHostAddr] = useState('');
+  const [pin, setPin] = useState('');
+  const [fingerprint, setFingerprint] = useState('');
+  const [masterPassword, setMasterPassword] = useState('');
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [statusText, setStatusText] = useState<string | null>(null);
+
+  // Reverse listen state
+  const [reverseListenPassword, setReverseListenPassword] = useState('');
   const [reverseInfo, setReverseInfo] = useState<ReverseListenInfo | null>(null);
   const [reverseSession, setReverseSession] = useState<{
     info: ReverseListenInfo;
     password: string;
   } | null>(null);
-  const mountedRef = useRef(true);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -68,19 +87,35 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
         setError(msg);
         setReverseInfo(null);
         setReverseSession(null);
+        setLoading(false);
       }
     };
     wait();
     return () => {
       active = false;
+      // 组件卸载时清理反向聆听监听线程
       invoke('recovery_host_cancel').catch(() => {});
     };
   }, [reverseSession]);
 
   if (!isOpen) return null;
 
+  // ── 重置所有状态 ──
+  const resetState = () => {
+    setError(null);
+    setSuccess(null);
+    setLoading(false);
+    setHostAddr('');
+    setPin('');
+    setFingerprint('');
+    setMasterPassword('');
+    setShowAdvanced(false);
+    setStatusText(null);
+    setReverseListenPassword('');
+  };
+
   const handleClose = () => {
-    if (reverseInfo) {
+    if (reverseInfo || reverseSession) {
       invoke('recovery_host_cancel').catch(() => {});
     }
     if (success) {
@@ -90,14 +125,69 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
         navigate('/home', { replace: true });
       }
     }
+    resetState();
     onClose();
   };
 
+  // ── Tab 切换 ──
+  const switchTab = (newTab: TabMode) => {
+    if (loading) return; // 传输中禁止切换
+    // 清理反向聆听状态
+    if (reverseInfo || reverseSession) {
+      invoke('recovery_host_cancel').catch(() => {});
+    }
+    resetState();
+    setTab(newTab);
+  };
+
+  // ── 手动连接恢复 ──
+  const handleManualRecovery = async () => {
+    setError(null);
+    setSuccess(null);
+
+    // 校验输入
+    if (!hostAddr.trim()) {
+      setError(t('common:recovery_receive_addr_required', { defaultValue: 'Host address is required' }));
+      return;
+    }
+    if (!PIN_REGEX.test(pin.trim())) {
+      setError(t('common:recovery_receive_invalid_pin', { defaultValue: 'PIN must be a 6-digit code' }));
+      return;
+    }
+    if (masterPassword.length < 8) {
+      setError(t('common:password_length_requirement'));
+      return;
+    }
+
+    setLoading(true);
+    setStatusText(t('common:recovery_connecting', { defaultValue: 'Connecting to host…' }));
+
+    try {
+      const result = await invoke<RecoveryResultSummary>('recovery_restore_from_host', {
+        hostAddr: hostAddr.trim(),
+        pin: pin.trim(),
+        masterPassword,
+        fingerprint: fingerprint.trim() || null,
+        nonce: null, // 手动模式不传 nonce，服务端兼容处理
+      });
+      if (!mountedRef.current) return;
+      setSuccess(result);
+      await useAuthStore.getState().checkHasAccount();
+    } catch (err) {
+      if (!mountedRef.current) return;
+      setError(String(err));
+    } finally {
+      setLoading(false);
+      setStatusText(null);
+    }
+  };
+
+  // ── 反向聆听（显示二维码） ──
   const handleStartReverseListen = async () => {
     setError(null);
     setSuccess(null);
 
-    if (password.length < 8) {
+    if (reverseListenPassword.length < 8) {
       setError(t('common:password_length_requirement'));
       return;
     }
@@ -107,7 +197,7 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
       const info = await invoke<ReverseListenInfo>('recovery_receive_listen_start');
       if (!mountedRef.current) return;
       setReverseInfo(info);
-      setReverseSession({ info, password });
+      setReverseSession({ info, password: reverseListenPassword });
     } catch (err) {
       if (!mountedRef.current) return;
       setError(String(err));
@@ -158,6 +248,9 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
             border: 'none',
             cursor: 'pointer',
             color: 'var(--text-tertiary)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
           }}
           aria-label={t('common:close')}
         >
@@ -170,22 +263,79 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
             fontWeight: 700,
             margin: '0 0 8px',
             color: 'var(--text-primary)',
+            paddingRight: 24,
           }}
         >
           {t('common:recovery_receive_title')}
         </h2>
-        <p
-          style={{
-            fontSize: 'var(--text-body-sm)',
-            color: 'var(--text-secondary)',
-            margin: '0 0 20px',
-            lineHeight: 1.5,
-          }}
-        >
-          {t('common:recovery_receive_desc')}
-        </p>
+
+        {/* Tab 切换 */}
+        {!success && !reverseInfo && (
+          <div
+            style={{
+              display: 'flex',
+              gap: 4,
+              marginBottom: 16,
+              background: 'var(--bg-toolbar)',
+              borderRadius: 10,
+              padding: 3,
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => switchTab('manual')}
+              style={{
+                flex: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+                padding: '8px 12px',
+                borderRadius: 8,
+                border: 'none',
+                background: tab === 'manual' ? 'var(--bg-elevated)' : 'transparent',
+                color: tab === 'manual' ? 'var(--accent-primary)' : 'var(--text-tertiary)',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                fontFamily: 'inherit',
+                fontSize: 'var(--text-body-sm)',
+                fontWeight: 500,
+                transition: 'all 0.15s ease',
+                opacity: loading ? 0.5 : 1,
+              }}
+            >
+              <Link2 size={16} />
+              {t('common:recovery_manual_tab', { defaultValue: 'Manual' })}
+            </button>
+            <button
+              type="button"
+              onClick={() => switchTab('reverse')}
+              style={{
+                flex: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+                padding: '8px 12px',
+                borderRadius: 8,
+                border: 'none',
+                background: tab === 'reverse' ? 'var(--bg-elevated)' : 'transparent',
+                color: tab === 'reverse' ? 'var(--accent-primary)' : 'var(--text-tertiary)',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                fontFamily: 'inherit',
+                fontSize: 'var(--text-body-sm)',
+                fontWeight: 500,
+                transition: 'all 0.15s ease',
+                opacity: loading ? 0.5 : 1,
+              }}
+            >
+              <QrCode size={16} />
+              {t('common:recovery_qr_show_button')}
+            </button>
+          </div>
+        )}
 
         {success ? (
+          /* ── 成功 ── */
           <div style={{ textAlign: 'center', padding: '12px 0' }}>
             <div
               style={{
@@ -228,7 +378,21 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
             </Button>
           </div>
         ) : reverseInfo ? (
+          /* ── 反向聆听（已显示二维码） ── */
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16, alignItems: 'center' }}>
+            <p
+              style={{
+                fontSize: 'var(--text-body-sm)',
+                color: 'var(--text-secondary)',
+                margin: 0,
+                lineHeight: 1.5,
+                textAlign: 'center',
+              }}
+            >
+              {t('common:recovery_receive_reverse_desc', {
+                defaultValue: 'Show this QR code to your other device, then scan it to push your data here.'
+              })}
+            </p>
             <div
               style={{
                 padding: 12,
@@ -292,58 +456,186 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
               </div>
             </div>
 
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                padding: '8px 12px',
+                borderRadius: 8,
+                background: 'rgba(241,196,15,0.08)',
+                border: '1px solid rgba(241,196,15,0.2)',
+                width: '100%',
+                boxSizing: 'border-box',
+              }}
+            >
+              <Loader2 size={14} style={{ animation: 'spin 1s linear infinite', flexShrink: 0 }} />
+              <span style={{ fontSize: 'var(--text-caption)', color: 'var(--text-secondary)' }}>
+                {t('common:recovery_host_waiting')}
+              </span>
+            </div>
+
             <Button variant="secondary" onClick={handleCancelReverse} style={{ width: '100%' }}>
               {t('common:recovery_host_cancel')}
             </Button>
           </div>
-        ) : (
+        ) : tab === 'manual' ? (
+          /* ── 手动连接表单 ── */
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <p
+              style={{
+                fontSize: 'var(--text-body-sm)',
+                color: 'var(--text-secondary)',
+                margin: '0 0 4px',
+                lineHeight: 1.5,
+              }}
+            >
+              {t('common:recovery_receive_desc')}
+            </p>
+
+            {/* 传输中的状态提示 */}
+            {loading && statusText && (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  padding: '10px 12px',
+                  borderRadius: 8,
+                  background: 'rgba(52,152,219,0.08)',
+                  border: '1px solid rgba(52,152,219,0.2)',
+                  width: '100%',
+                  boxSizing: 'border-box',
+                }}
+              >
+                <Loader2
+                  size={16}
+                  style={{ animation: 'spin 1s linear infinite', flexShrink: 0 }}
+                />
+                <span style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)' }}>
+                  {statusText}
+                </span>
+              </div>
+            )}
+
+            <Input
+              label={t('common:recovery_receive_addr_label')}
+              type="text"
+              value={hostAddr}
+              onChange={(e) => setHostAddr(e.target.value)}
+              placeholder={t('common:recovery_receive_addr_placeholder')}
+              disabled={loading}
+            />
+
+            <Input
+              label={t('common:recovery_receive_pin_label')}
+              type="text"
+              value={pin}
+              onChange={(e) => setPin(e.target.value.replace(/\D/g, '').slice(0, 6))}
+              placeholder="123456"
+              maxLength={6}
+              disabled={loading}
+              style={{ fontFamily: 'monospace', letterSpacing: 4, fontSize: 'var(--text-body)' }}
+            />
+
+            {/* 展开/收起高级选项（指纹） */}
+            <button
+              type="button"
+              onClick={() => setShowAdvanced(!showAdvanced)}
+              disabled={loading}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: 'var(--text-tertiary)',
+                fontSize: 'var(--text-caption)',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                fontFamily: 'inherit',
+                padding: '2px 0',
+                textAlign: 'left',
+                transition: 'color 0.15s ease',
+              }}
+              onMouseEnter={(e) => {
+                if (!loading) e.currentTarget.style.color = 'var(--accent-primary)';
+              }}
+              onMouseLeave={(e) => {
+                if (!loading) e.currentTarget.style.color = 'var(--text-tertiary)';
+              }}
+            >
+              {showAdvanced
+                ? t('common:recovery_advanced_hide', { defaultValue: 'Hide optional fingerprint' })
+                : t('common:recovery_advanced_show', { defaultValue: 'Show optional fingerprint' })}
+            </button>
+
+            {showAdvanced && (
+              <Input
+                label={t('common:recovery_receive_fingerprint_label')}
+                type="text"
+                value={fingerprint}
+                onChange={(e) => setFingerprint(e.target.value)}
+                placeholder={t('common:recovery_fingerprint_placeholder', { defaultValue: 'e.g. abc123…' })}
+                disabled={loading}
+              />
+            )}
+
             <Input
               label={t('common:recovery_receive_password_label')}
               type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              value={masterPassword}
+              onChange={(e) => setMasterPassword(e.target.value)}
+              placeholder={t('common:recovery_receive_password_hint')}
+              disabled={loading}
+            />
+
+            <Button
+              onClick={handleManualRecovery}
+              disabled={loading}
+              loading={loading}
+              style={{ width: '100%', marginTop: 4 }}
+            >
+              {loading
+                ? (statusText || t('common:loading'))
+                : t('common:recovery_receive_start')}
+            </Button>
+
+            {error && (
+              <div style={{ color: '#e74c3c', fontSize: 'var(--text-body-sm)' }}>{error}</div>
+            )}
+          </div>
+        ) : (
+          /* ── 反向聆听初始界面（二维码） ── */
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <p
+              style={{
+                fontSize: 'var(--text-body-sm)',
+                color: 'var(--text-secondary)',
+                margin: '0 0 4px',
+                lineHeight: 1.5,
+              }}
+            >
+              {t('common:recovery_receive_reverse_initial_desc', {
+                defaultValue: 'Set a new master password for this device, then show the QR code to your other device to scan.'
+              })}
+            </p>
+
+            <Input
+              label={t('common:recovery_receive_password_label')}
+              type="password"
+              value={reverseListenPassword}
+              onChange={(e) => setReverseListenPassword(e.target.value)}
               placeholder={t('common:recovery_receive_password_hint')}
               autoFocus
             />
 
-            <button
-              type="button"
-              onClick={() => {
-                setError(null);
-                void handleStartReverseListen();
-              }}
+            <Button
+              onClick={handleStartReverseListen}
               disabled={loading}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 8,
-                padding: '10px 12px',
-                borderRadius: 8,
-                border: '1px dashed var(--border-subtle)',
-                background: 'transparent',
-                color: loading ? 'var(--text-tertiary)' : 'var(--text-secondary)',
-                cursor: loading ? 'not-allowed' : 'pointer',
-                fontFamily: 'inherit',
-                fontSize: 'var(--text-body-sm)',
-                transition: 'all 0.15s ease',
-                opacity: loading ? 0.6 : 1,
-              }}
-              onMouseEnter={(e) => {
-                if (loading) return;
-                e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                e.currentTarget.style.color = 'var(--accent-primary)';
-              }}
-              onMouseLeave={(e) => {
-                if (loading) return;
-                e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                e.currentTarget.style.color = 'var(--text-secondary)';
-              }}
+              loading={loading}
+              style={{ width: '100%' }}
             >
-              <QrCode size={18} />
-              {t('common:recovery_qr_show_button')}
-            </button>
+              {loading
+                ? t('common:loading')
+                : t('common:recovery_qr_show_button')}
+            </Button>
 
             {error && (
               <div style={{ color: '#e74c3c', fontSize: 'var(--text-body-sm)' }}>{error}</div>
