@@ -101,9 +101,18 @@ export const useSyncStore = create<SyncStoreState>((set, get) => ({
   enable: async (enabled) => {
     set({ isLoading: true, error: null, lastResult: null });
     try {
-      await invoke<void>('sync_enable', { enable: enabled });
-      const status = await invoke<SyncStatus>('sync_get_status');
-      set({ ...status, isLoading: false, error: null });
+      // 超时保护：sync_enable + sync_get_status 总耗时超过 15 秒时自动重置 isLoading
+      const result = await Promise.race([
+        (async () => {
+          await invoke<void>('sync_enable', { enable: enabled });
+          const status = await invoke<SyncStatus>('sync_get_status');
+          return { status };
+        })(),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error('Sync enable timed out')), 15_000),
+        ),
+      ]);
+      set({ ...result.status, isLoading: false, error: null });
       // 启用后自动发现附近设备，同时刷新监听端口用于手动 fallback
       if (enabled) {
         void get().discoverDevices(5000);

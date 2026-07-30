@@ -727,20 +727,46 @@ pub async fn sync_forget_peer(
 }
 
 /// 尝试获取一个适合展示给用户的本地非回环 IPv4 地址。
-fn local_display_ip() -> Option<String> {
-    // 优先通过外联 UDP 获得路由选中的地址（不发送任何数据包）。
-    if let Ok(socket) = std::net::UdpSocket::bind("0.0.0.0:0") {
-        if socket.connect("8.8.8.8:80").is_ok() {
-            if let Ok(local) = socket.local_addr() {
-                if let std::net::IpAddr::V4(v4) = local.ip() {
-                    if !v4.is_loopback() {
-                        return Some(v4.to_string());
+/// 桌面端优先通过外联 UDP 获得路由选中的地址（不发送任何数据包）；
+/// 移动端跳过 UDP 连接（Android 上网络不可达时可能阻塞），仅枚举本地网卡。
+async fn local_display_ip() -> Option<String> {
+    // 桌面端优先通过外联 UDP 获得路由选中的地址
+    #[cfg(desktop)]
+    {
+        if let Ok(socket) = std::net::UdpSocket::bind("0.0.0.0:0") {
+            if socket.connect("8.8.8.8:80").is_ok() {
+                if let Ok(local) = socket.local_addr() {
+                    if let std::net::IpAddr::V4(v4) = local.ip() {
+                        if !v4.is_loopback() {
+                            return Some(v4.to_string());
+                        }
                     }
                 }
             }
         }
     }
-    // 离线局域网场景下，枚举本地网卡。
+
+    // 移动端：跳过 UDP 连接，使用 tokio::time::timeout 防止阻塞
+    #[cfg(mobile)]
+    {
+        let result = tokio::time::timeout(std::time::Duration::from_secs(3), async {
+            // 枚举本地网卡
+            if let Ok(std::net::IpAddr::V4(v4)) = local_ip_address::local_ip() {
+                if !v4.is_loopback() {
+                    return Some(v4.to_string());
+                }
+            }
+            None
+        })
+        .await
+        .unwrap_or(None);
+
+        if result.is_some() {
+            return result;
+        }
+    }
+
+    // 所有平台 fallback：枚举本地网卡
     if let Ok(std::net::IpAddr::V4(v4)) = local_ip_address::local_ip() {
         if !v4.is_loopback() {
             return Some(v4.to_string());
@@ -758,7 +784,7 @@ pub async fn sync_generate_qr_payload(state: State<'_, AppState>) -> Result<Stri
         return Err("Sync is not enabled or listen port is not ready".to_string());
     }
     let fingerprint = state.sync_service.local_fingerprint().await?;
-    let host = local_display_ip().unwrap_or_else(|| "127.0.0.1".to_string());
+    let host = local_display_ip().await.unwrap_or_else(|| "127.0.0.1".to_string());
     let device_name = if fingerprint.is_empty() {
         format!("SoloSoul-{}", port)
     } else {

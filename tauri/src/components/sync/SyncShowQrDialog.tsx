@@ -31,9 +31,18 @@ export function SyncShowQrDialog({ isOpen, onClose }: SyncShowQrDialogProps) {
       return;
     }
 
+    const TIMEOUT_MS = 10_000;
     setLoading(true);
+
+    // 超时保护：如果后端 10 秒无响应，自动取消 loading 并显示错误
+    const timeoutId = setTimeout(() => {
+      setError(t('common:sync_qr_timeout', { defaultValue: 'QR generation timed out. Please try again.' }));
+      setLoading(false);
+    }, TIMEOUT_MS);
+
     invoke<string>('sync_generate_qr_payload')
       .then((payload) => {
+        clearTimeout(timeoutId);
         try {
           const parsed = JSON.parse(payload);
           setInfo({
@@ -47,9 +56,11 @@ export function SyncShowQrDialog({ isOpen, onClose }: SyncShowQrDialogProps) {
         }
       })
       .catch((err) => {
+        clearTimeout(timeoutId);
         setError(String(err));
       })
       .finally(() => {
+        clearTimeout(timeoutId);
         setLoading(false);
       });
   }, [isOpen, t]);
