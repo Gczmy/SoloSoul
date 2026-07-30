@@ -51,6 +51,7 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
   const mountedRef = useRef(true);
 
   useEffect(() => {
+    mountedRef.current = true;
     isMobilePlatform().then(setIsMobile).catch(() => setIsMobile(false));
     return () => {
       mountedRef.current = false;
@@ -182,9 +183,7 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
       if (!mountedRef.current) return;
       setError(String(err));
     } finally {
-      if (mountedRef.current) {
-        setLoading(false);
-      }
+      setLoading(false);
     }
   };
 
