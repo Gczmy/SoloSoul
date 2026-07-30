@@ -448,11 +448,15 @@ pub async fn biometric_save_credential(
 
     #[cfg(target_os = "ios")]
     {
-        let reason = "verify your identity to enable biometric authentication for SoloSoul";
+        use solosoul_core::biometric::BiometricStorage;
         let storage =
-            solosoul_core::biometric::legacy::FileBiometricStorage::new(svc.base_path().clone());
+            solosoul_core::biometric::ios::IosBiometricStorage::new(svc.base_path().clone());
         storage
-            .save(&account_id, &key_hex, reason)
+            .save(
+                &account_id,
+                &key_hex,
+                "verify your identity to enable biometric authentication for SoloSoul",
+            )
             .map_err(|e| map_bio_error(e, "save"))?;
     }
 
@@ -602,12 +606,11 @@ pub async fn biometric_unlock(
 
         #[cfg(target_os = "ios")]
         {
-            use solosoul_core::biometric::legacy::FileBiometricStorage;
             use solosoul_core::biometric::BiometricStorage;
-            let reason = "unlock SoloSoul";
-            let storage = FileBiometricStorage::new(svc.base_path().clone());
+            let storage =
+                solosoul_core::biometric::ios::IosBiometricStorage::new(svc.base_path().clone());
             storage
-                .read(&account_id, reason)
+                .read(&account_id, "unlock SoloSoul")
                 .map_err(|e| map_bio_error(e, "unlock"))?
         }
     };
@@ -760,9 +763,9 @@ pub async fn biometric_delete_credential(
 
     #[cfg(target_os = "ios")]
     let remaining_any = {
-        use solosoul_core::biometric::legacy::FileBiometricStorage;
         use solosoul_core::biometric::BiometricStorage;
-        let storage = FileBiometricStorage::new(svc.base_path().clone());
+        let storage =
+            solosoul_core::biometric::ios::IosBiometricStorage::new(svc.base_path().clone());
         match storage.delete(&account_id) {
             Ok(()) | Err(BiometricError::KeychainItemNotFound) => false,
             Err(e) => return Err(map_bio_error(e, "delete")),

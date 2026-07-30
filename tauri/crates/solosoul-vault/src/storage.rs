@@ -14,6 +14,13 @@ use crate::{
     VaultState, VaultStats,
 };
 
+/// 高频查询共享列列表
+const OBJECT_COLUMNS: &str = "\
+    id, account_id, type_id, section_type, name, icon_name, parent_id, \
+    children_ids, properties, property_labels, sensitivity_level, \
+    is_deleted, deleted_at, tags_json, template_id, template_type, \
+    contract_type_id, template_hash, ignored_template_hash, created_at, updated_at, version";
+
 /// Vault store with SQLite backing
 pub struct VaultStore {
     conn: Mutex<Option<Connection>>,
@@ -862,7 +869,8 @@ impl VaultStore {
                     version: row.get(5)?,
                 })
             })
-            .ok();
+            .optional()
+            .map_err(|e| format!("Failed to load profile: {}", e))?;
         Ok(result)
     }
 
@@ -1371,13 +1379,10 @@ impl VaultStore {
             let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
             let conn = guard.as_mut().ok_or("Vault is locked")?;
             let mut stmt = conn
-                .prepare(
-                    "SELECT id, account_id, type_id, section_type, name, icon_name, parent_id,
-                     children_ids, properties, property_labels, sensitivity_level,
-                     is_deleted, deleted_at, tags_json, template_id, template_type,
-                     contract_type_id, template_hash, ignored_template_hash, created_at, updated_at, version
-                     FROM objects WHERE account_id = ?1",
-                )
+                .prepare(&format!(
+                    "SELECT {} FROM objects WHERE account_id = ?1",
+                    OBJECT_COLUMNS
+                ))
                 .map_err(|e| format!("list_object_changes: {}", e))?;
             let rows = stmt
                 .query_map(params![account_id], |row| {
@@ -1461,7 +1466,8 @@ impl VaultStore {
             out.push(crate::VaultSyncRecord {
                 id,
                 table: "objects".to_string(),
-                data: serde_json::to_value(&obj).unwrap_or_default(),
+                data: serde_json::to_value(&obj)
+                    .map_err(|e| format!("serialize object for sync: {}", e))?,
                 hlc,
                 deleted: obj.is_deleted,
             });
@@ -1531,7 +1537,8 @@ impl VaultStore {
             out.push(crate::VaultSyncRecord {
                 id,
                 table: "user_templates".to_string(),
-                data: serde_json::to_value(&tpl).unwrap_or_default(),
+                data: serde_json::to_value(&tpl)
+                    .map_err(|e| format!("serialize template for sync: {}", e))?,
                 hlc,
                 deleted: false,
             });
@@ -1608,7 +1615,8 @@ impl VaultStore {
             out.push(crate::VaultSyncRecord {
                 id,
                 table: "trash_items".to_string(),
-                data: serde_json::to_value(&item).unwrap_or_default(),
+                data: serde_json::to_value(&item)
+                    .map_err(|e| format!("serialize trash item for sync: {}", e))?,
                 hlc,
                 deleted: false,
             });
@@ -1756,28 +1764,29 @@ impl VaultStore {
         let value = match table {
             "profiles" => {
                 if let Some(p) = self.load_profile(record_id)? {
-                    serde_json::to_value(&p).unwrap_or_default()
+                    serde_json::to_value(&p).map_err(|e| format!("serialize profile: {}", e))?
                 } else {
                     return Ok(None);
                 }
             }
             "objects" => {
                 if let Some(obj) = self.load_object(record_id)? {
-                    serde_json::to_value(&obj).unwrap_or_default()
+                    serde_json::to_value(&obj).map_err(|e| format!("serialize object: {}", e))?
                 } else {
                     return Ok(None);
                 }
             }
             "user_templates" => {
                 if let Some(tpl) = self.load_user_template(record_id)? {
-                    serde_json::to_value(&tpl).unwrap_or_default()
+                    serde_json::to_value(&tpl).map_err(|e| format!("serialize template: {}", e))?
                 } else {
                     return Ok(None);
                 }
             }
             "trash_items" => {
                 if let Some(item) = self.get_trash_item(record_id)? {
-                    serde_json::to_value(&item).unwrap_or_default()
+                    serde_json::to_value(&item)
+                        .map_err(|e| format!("serialize trash item: {}", e))?
                 } else {
                     return Ok(None);
                 }
@@ -2051,20 +2060,23 @@ impl VaultStore {
                 }
             }
         }
-        let children_json = serde_json::to_string(&obj.children_ids).unwrap_or_default();
-        let props_json = serde_json::to_string(&properties).unwrap_or_default();
-        let labels_json = obj
-            .property_labels
-            .as_ref()
-            .map(|v| serde_json::to_string(v).unwrap_or_default())
-            .unwrap_or_default();
+        let children_json = serde_json::to_string(&obj.children_ids)
+            .map_err(|e| format!("serialize children_ids: {}", e))?;
+        let props_json = serde_json::to_string(&properties)
+            .map_err(|e| format!("serialize properties: {}", e))?;
+        let labels_json = if let Some(ref v) = obj.property_labels {
+            serde_json::to_string(v).map_err(|e| format!("serialize property_labels: {}", e))?
+        } else {
+            String::new()
+        };
         let encrypted_props = encrypt_text_field(&key, &props_json)?;
         let encrypted_labels = if labels_json.is_empty() {
             String::new()
         } else {
             encrypt_text_field(&key, &labels_json)?
         };
-        let tags_str = serde_json::to_string(&obj.tags_json).unwrap_or_default();
+        let tags_str =
+            serde_json::to_string(&obj.tags_json).map_err(|e| format!("serialize tags: {}", e))?;
         conn.execute(
             "INSERT INTO objects (id, account_id, type_id, section_type, name, icon_name, parent_id,
              children_ids, properties, property_labels, sensitivity_level,
@@ -2100,13 +2112,10 @@ impl VaultStore {
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         let mut stmt = conn
-            .prepare(
-                "SELECT id, account_id, type_id, section_type, name, icon_name, parent_id,
-                 children_ids, properties, property_labels, sensitivity_level,
-                 is_deleted, deleted_at, tags_json, template_id, template_type,
-                 contract_type_id, template_hash, ignored_template_hash, created_at, updated_at, version
-                 FROM objects WHERE id = ?1",
-            )
+            .prepare(&format!(
+                "SELECT {} FROM objects WHERE id = ?1",
+                OBJECT_COLUMNS
+            ))
             .map_err(|e| format!("load_object: {}", e))?;
         let result = stmt
             .query_row(params![id], |row| {
@@ -2170,7 +2179,8 @@ impl VaultStore {
                     version: row.get(21)?,
                 })
             })
-            .ok();
+            .optional()
+            .map_err(|e| format!("Failed to load object: {}", e))?;
         Ok(result)
     }
 
@@ -2190,11 +2200,8 @@ impl VaultStore {
         // Build placeholders: (?1,?2,...,?N)
         let placeholders: Vec<String> = (1..=ids.len()).map(|i| format!("?{}", i)).collect();
         let sql = format!(
-            "SELECT id, account_id, type_id, section_type, name, icon_name, parent_id,
-             children_ids, properties, property_labels, sensitivity_level,
-             is_deleted, deleted_at, tags_json, template_id, template_type,
-             contract_type_id, template_hash, ignored_template_hash, created_at, updated_at, version
-             FROM objects WHERE id IN ({})",
+            "SELECT {} FROM objects WHERE id IN ({})",
+            OBJECT_COLUMNS,
             placeholders.join(",")
         );
 
@@ -2315,7 +2322,8 @@ impl VaultStore {
         let mut result = Vec::new();
         for row in rows {
             let (id, decrypted) = row.map_err(|e| format!("list_object_attachment_ids: {}", e))?;
-            let props: serde_json::Value = serde_json::from_str(&decrypted).unwrap_or_default();
+            let props: serde_json::Value = serde_json::from_str(&decrypted)
+                .map_err(|e| format!("deserialize attachment props: {}", e))?;
             let att_ids: Vec<String> = props
                 .get("__attachments")
                 .and_then(|v| v.as_array())
@@ -2380,23 +2388,70 @@ impl VaultStore {
             param_values.iter().map(|p| p.as_ref()).collect();
 
         let objects = stmt
-            .query_map(params_refs.as_slice(), |row| {
+            .query_map(params_refs.as_slice(), |row: &rusqlite::Row<'_>| {
                 let deleted_int: i32 = row.get(7)?;
                 let props_str: String = row.get(8)?;
                 let tags_str: String = row.get(9)?;
-                let decrypted_props = decrypt_text_field(&key, &props_str).unwrap_or_default();
+                let decrypted_props = decrypt_text_field(&key, &props_str).map_err(|e| {
+                    rusqlite::Error::FromSqlConversionFailure(
+                        8,
+                        rusqlite::types::Type::Text,
+                        Box::new(std::io::Error::new(
+                            std::io::ErrorKind::InvalidData,
+                            format!("decrypt object props: {}", e),
+                        )),
+                    )
+                })?;
                 let labels_str: String = row.get::<_, String>(16).unwrap_or_default();
                 let decrypted_labels = if labels_str.is_empty() {
-                    Ok(String::new())
+                    String::new()
                 } else {
-                    decrypt_text_field(&key, &labels_str)
-                }
-                .unwrap_or_default();
+                    decrypt_text_field(&key, &labels_str).map_err(|e| {
+                        rusqlite::Error::FromSqlConversionFailure(
+                            16,
+                            rusqlite::types::Type::Text,
+                            Box::new(std::io::Error::new(
+                                std::io::ErrorKind::InvalidData,
+                                format!("decrypt object labels: {}", e),
+                            )),
+                        )
+                    })?
+                };
                 let property_labels: Option<serde_json::Value> = if decrypted_labels.is_empty() {
                     None
                 } else {
-                    serde_json::from_str(&decrypted_labels).ok()
+                    Some(serde_json::from_str(&decrypted_labels).map_err(|e| {
+                        rusqlite::Error::FromSqlConversionFailure(
+                            9,
+                            rusqlite::types::Type::Text,
+                            Box::new(std::io::Error::new(
+                                std::io::ErrorKind::InvalidData,
+                                format!("deserialize property_labels: {}", e),
+                            )),
+                        )
+                    })?)
                 };
+                let properties: serde_json::Value = serde_json::from_str(&decrypted_props)
+                    .map_err(|e| {
+                        rusqlite::Error::FromSqlConversionFailure(
+                            8,
+                            rusqlite::types::Type::Text,
+                            Box::new(std::io::Error::new(
+                                std::io::ErrorKind::InvalidData,
+                                format!("deserialize properties: {}", e),
+                            )),
+                        )
+                    })?;
+                let tags: Vec<String> = serde_json::from_str(&tags_str).map_err(|e| {
+                    rusqlite::Error::FromSqlConversionFailure(
+                        13,
+                        rusqlite::types::Type::Text,
+                        Box::new(std::io::Error::new(
+                            std::io::ErrorKind::InvalidData,
+                            format!("deserialize tags: {}", e),
+                        )),
+                    )
+                })?;
                 Ok(ObjectSummary {
                     id: row.get(0)?,
                     name: row.get(1)?,
@@ -2412,10 +2467,9 @@ impl VaultStore {
                     template_hash: row.get(13)?,
                     ignored_template_hash: row.get(14)?,
                     icon_name: row.get(15)?,
-                    properties: serde_json::from_str(&decrypted_props)
-                        .unwrap_or(serde_json::Value::Null),
+                    properties,
                     property_labels,
-                    tags: serde_json::from_str(&tags_str).unwrap_or_default(),
+                    tags,
                 })
             })
             .map_err(|e| format!("list_objects query: {}", e))?
@@ -2479,15 +2533,10 @@ impl VaultStore {
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         // properties 已加密，无法使用 SQL LIKE。所有匹配在解密后的内存数据上进行。
         let mut stmt = conn
-            .prepare(
-                "SELECT id, account_id, type_id, section_type, name, icon_name, parent_id,
-                 children_ids, properties, property_labels, sensitivity_level,
-                 is_deleted, deleted_at, tags_json, template_id, template_type,
-                 contract_type_id, template_hash, ignored_template_hash, created_at, updated_at, version
-                 FROM objects
-                 WHERE account_id = ?1 AND is_deleted = 0
-                 ORDER BY updated_at DESC",
-            )
+            .prepare(&format!(
+                "SELECT {} FROM objects WHERE account_id = ?1 AND is_deleted = 0 ORDER BY updated_at DESC",
+                OBJECT_COLUMNS
+            ))
             .map_err(|e| format!("search_objects: {}", e))?;
         let results = stmt
             .query_map(params![account_id], |row| {
@@ -2688,7 +2737,8 @@ impl VaultStore {
                     icon_snapshot: row.get(11)?,
                 })
             })
-            .ok();
+            .optional()
+            .map_err(|e| format!("Failed to get trash item: {}", e))?;
         Ok(result)
     }
 
@@ -2825,7 +2875,8 @@ impl VaultStore {
                     })
                 },
             )
-            .ok();
+            .optional()
+            .map_err(|e| format!("Failed to load snapshot: {}", e))?;
         Ok(result)
     }
 

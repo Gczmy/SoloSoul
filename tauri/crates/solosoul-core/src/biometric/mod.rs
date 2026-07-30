@@ -18,9 +18,11 @@ use serde::{Deserialize, Serialize};
 use std::fmt;
 use std::path::{Path, PathBuf};
 
+#[cfg(target_os = "ios")]
+pub mod ios;
 #[cfg(target_os = "macos")]
 mod macos;
-#[cfg(not(any(target_os = "macos", target_os = "windows")))]
+#[cfg(not(any(target_os = "macos", target_os = "windows", target_os = "ios")))]
 mod stub;
 #[cfg(target_os = "windows")]
 mod windows;
@@ -159,10 +161,18 @@ fn platform_storage(base_path: PathBuf) -> Box<dyn BiometricStorage + Send + Syn
     return Box::new(macos::MacOsBiometricStorage::new(base_path));
     #[cfg(target_os = "windows")]
     return Box::new(windows::WindowsBiometricStorage::new(base_path));
-    // 移动端（Android/iOS）使用加密本地文件作为 tauri-plugin-biometric 的凭证存储后端。
-    // TODO: 未来迁移到 Android Keystore / iOS Keychain 以获得硬件级安全。
-    #[cfg(any(target_os = "android", target_os = "ios"))]
-    return Box::new(legacy::FileBiometricStorage::new(base_path));
+    // iOS 使用 Security.framework Keychain（受 Face ID / Touch ID 保护）。
+    // 参见 `ios.rs` 中的 `IosBiometricStorage` 实现。
+    #[cfg(target_os = "ios")]
+    return Box::new(ios::IosBiometricStorage::new(base_path));
+
+    // Android 使用自定义 KeystorePluginHandle 通过 tauri-plugin-biometric 桥接 Android Keystore。
+    // commands/biometric.rs 中的移动端 code path 是实际入口，不经过 platform_storage。
+    #[cfg(target_os = "android")]
+    {
+        let _ = base_path;
+        return Box::new(stub::StubBiometricStorage);
+    }
     #[cfg(not(any(
         target_os = "macos",
         target_os = "windows",

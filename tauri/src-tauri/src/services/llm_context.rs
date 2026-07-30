@@ -3,6 +3,7 @@
 //! 负责在 Rust 端查询 Vault 数据、组装 7 Section 系统提示词。
 //! 隐私过滤在 Rust 端强制完成，不可被绕过。
 
+use solosoul_plugin::manifest::PluginManifest;
 use solosoul_vault::{ObjectSummary, VaultStore};
 use std::collections::HashMap;
 use std::sync::LazyLock;
@@ -26,6 +27,7 @@ const MAX_SYSTEM_PROMPT_CHARS: usize = 1500;
 
 // ── 主构建入口 ───────────────────────────────────────────────
 
+#[allow(clippy::too_many_arguments)]
 pub fn build_context(
     account_id: &str,
     vault: &VaultStore,
@@ -34,6 +36,7 @@ pub fn build_context(
     completion_tokens: u64,
     total_tokens: u64,
     language: &str,
+    plugins: &[PluginManifest],
 ) -> Result<String, String> {
     // 1. 读取 public_data_version
     let public_data_version = load_public_data_version(vault, account_id)?;
@@ -58,7 +61,7 @@ pub fn build_context(
     }
 
     // 4. 缓存未命中：重新构建静态部分（Section 1-5）
-    let static_prompt = build_static_prompt(account_id, vault, language)?;
+    let static_prompt = build_static_prompt(account_id, vault, language, plugins)?;
 
     // 5. 存入内存缓存
     {
@@ -92,6 +95,7 @@ fn build_static_prompt(
     account_id: &str,
     vault: &VaultStore,
     language: &str,
+    plugins: &[PluginManifest],
 ) -> Result<String, String> {
     let mut sections: Vec<String> = Vec::new();
 
@@ -116,7 +120,7 @@ fn build_static_prompt(
 
     sections.push(format!(
         "【Section 5: 已安装插件】\n{}",
-        build_section5_plugins()
+        build_section5_plugins(plugins)
     ));
 
     Ok(sections.join("\n\n"))
@@ -248,11 +252,24 @@ fn build_section4_preferences(vault: &VaultStore, account_id: &str) -> Result<St
     }
 }
 
-fn build_section5_plugins() -> String {
-    // Plugin context is intentionally omitted until the installed plugin list
-    // is exposed to the LLM context service.
-    // TODO: 查询已安装插件列表并注入 Section 5，让 AI 助手感知用户的插件环境。
-    "（暂无已安装插件）".to_string()
+fn build_section5_plugins(plugins: &[PluginManifest]) -> String {
+    if plugins.is_empty() {
+        return "（暂无已安装插件）".to_string();
+    }
+
+    let mut lines: Vec<String> = Vec::new();
+    for plugin in plugins {
+        let author_info = plugin
+            .author
+            .as_deref()
+            .map(|a| format!("（作者：{}）", a))
+            .unwrap_or_default();
+        lines.push(format!(
+            "- {} v{}：{}{}",
+            plugin.name, plugin.version, plugin.description, author_info
+        ));
+    }
+    lines.join("\n")
 }
 
 fn build_section6_stats(
@@ -431,9 +448,39 @@ mod tests {
     }
 
     #[test]
-    fn test_build_section5_plugins() {
-        let plugins = build_section5_plugins();
+    fn test_build_section5_plugins_empty() {
+        let plugins = build_section5_plugins(&[]);
         assert!(plugins.contains("暂无已安装插件"));
+    }
+
+    #[test]
+    fn test_build_section5_plugins_with_data() {
+        let plugin = PluginManifest {
+            id: "test.id".to_string(),
+            name: "Test Plugin".to_string(),
+            version: "1.0.0".to_string(),
+            description: "A test plugin".to_string(),
+            author: Some("Test Author".to_string()),
+            homepage: None,
+            permissions: vec![],
+            required_core_version: None,
+            wasm_hash_sha256: None,
+            data_ttl_seconds: 300,
+            network_policy: Default::default(),
+            require_user_confirmation: false,
+            tier: Default::default(),
+            category: "test".to_string(),
+            params: vec![],
+            contracts: vec![],
+            field_bindings: vec![],
+            i18n: None,
+            custom_ui: None,
+        };
+        let result = build_section5_plugins(&[plugin]);
+        assert!(result.contains("Test Plugin"));
+        assert!(result.contains("1.0.0"));
+        assert!(result.contains("A test plugin"));
+        assert!(result.contains("Test Author"));
     }
 
     #[test]
@@ -549,7 +596,7 @@ mod tests {
     #[test]
     fn test_build_static_prompt_with_empty_data() {
         let (vault, _dir) = setup_vault();
-        let prompt = build_static_prompt("test_account", &vault, "zh-CN").unwrap();
+        let prompt = build_static_prompt("test_account", &vault, "zh-CN", &[]).unwrap();
         assert!(prompt.contains("Section 1"));
         assert!(prompt.contains("Section 2"));
         assert!(prompt.contains("Section 5"));
@@ -585,7 +632,7 @@ mod tests {
         };
         vault.save_object(&obj).unwrap();
 
-        let prompt = build_static_prompt("test_account", &vault, "zh-CN").unwrap();
+        let prompt = build_static_prompt("test_account", &vault, "zh-CN", &[]).unwrap();
         assert!(prompt.contains("Section 3"));
         assert!(prompt.contains("My Note"));
     }

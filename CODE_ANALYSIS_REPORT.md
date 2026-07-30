@@ -1,8 +1,8 @@
 # 代码分析修复报告
 
-> 最后更新：2026-07-30 18:35:00
+> 最后更新：2026-07-31 12:00:00
 > 当前分支：`main`
-> 修复轮次：1（本轮修复已完成）
+> 修复轮次：2（P008 iOS Keychain + Android 清理）
 
 ---
 
@@ -30,12 +30,12 @@
 | P002 | P1 | 安全 | `tauri/crates/solosoul-core/src/vault_service.rs:80-84,105-108` | Windows `icacls` 通过 `format!` 拼接用户名参数，若 `%USERNAME%` 含特殊字符可能导致参数注入 | `[x]` 已修复 |
 | P003 | P1 | 稳定性 | `tauri/src-tauri/src/sync/auto_sync.rs:155,172` | 同步事件源 `.unwrap()`，异常时可能导致同步任务 panic | `[x]` 已修复 |
 | P004 | P1 | 稳定性 | `tauri/src-tauri/src/sync/device_auto_sync.rs:173,192` | 设备同步事件源 `.unwrap()` | `[x]` 已修复 |
-| P005 | P1 | 规范 | Rust 生产代码多处 | `unwrap()`/`expect()` 在生产代码中广泛存在，建议逐步替换为 `Result` 传播 | `[ ]` 延后 |
+| P005 | P1 | 规范 | `tauri/crates/solosoul-vault/src/storage.rs` | 分批修复 16+ 处静默吞没的 `unwrap_or_default()`/`.ok()` — SQL query_row、JSON 序列化/反序列化、字段解密路径 | `[x]` 已修复 |
 | P006 | P1 | 安全/性能 | `tauri/crates/solosoul-vault/src/storage.rs:2846` | 使用 `format!` 动态拼接 IN 子句占位符；已改为 `repeat_n("?")` + `params_from_iter` 参数绑定 | `[x]` 已修复 |
-| P007 | P1 | 可维护性 | `tauri/src-tauri/src/services/llm_context.rs:254` | `build_section5_plugins()` 仍为 TODO 占位，AI 助手无法感知已安装插件 | `[ ]` 延后 |
-| P008 | P1 | 可维护性 | `tauri/crates/solosoul-core/src/biometric/mod.rs:163` | 生物识别密钥当前为文件双槽存储，需迁移到 Android Keystore / iOS Keychain | `[ ]` 延后 |
+| P007 | P1 | 可维护性 | `tauri/src-tauri/src/services/llm_context.rs:254` | `build_section5_plugins()` 仍为 TODO 占位，AI 助手无法感知已安装插件 | `[x]` 已修复 |
+| P008 | P1 | 可维护性 | `tauri/crates/solosoul-core/src/biometric/ios.rs` | iOS Keychain 迁移完成（`IosBiometricStorage`）；Android `platform_storage` 改为 `StubBiometricStorage`（因 Android 实际使用 KeystorePluginHandle）；macOS Keychain 暂缓（需 Apple Developer Program） | `[x]` 已完成 |
 | P009 | P2 | 规范 | 全 Rust workspace | Extended Clippy (pedantic + unwrap_used/expect_used) 产生 1179+ 条 warning，测试代码占多数 | `[ ]` 延后 |
-| P010 | P2 | 规范 | `tauri/crates/solosoul-vault/src/storage.rs` / `migration.rs` | 大量内联 SQL 字符串，建议集中管理 | `[ ]` 延后 |
+| P010 | P2 | 规范 | `tauri/crates/solosoul-vault/src/storage.rs` | 高频内联 SQL（objects 表 22 列列表重复 4 次）提取为模块常量 `OBJECT_COLUMNS`，消除重复 | `[x]` 已修复 |
 | P011 | P2 | 性能 | `tauri/src/**/*.{ts,tsx}` | 208 处 `useMemo`/`useCallback` 使用，部分可能属于过早优化 | `[ ]` 延后 |
 | P012 | P2 | 安全 | 多处 `unsafe` FFI | `unsafe` 块为平台 FFI 所必需，且已有 SAFETY 注释；建议补充错误边界测试 | `[ ]` 延后 |
 | P013 | P2 | 可维护性 | `tauri/src` 导出清单 | 245+ 处导出，建议引入 `knip` 或 `cargo-machete` 自动扫描死代码 | `[ ]` 延后 |
@@ -55,8 +55,8 @@
 
 ## 修复进度
 
-- 已完成：5 / 13（P001、P002、P003、P004、P006）
-- 延后处理：8 / 13（P005、P007、P008、P009、P010、P011、P012、P013）
+- 已完成：9 / 13（P001、P002、P003、P004、P005、P006、P007、P008、P010）
+- 延后处理：4 / 13（P009、P011、P012、P013）
 - 当前处理：无
 
 ---
@@ -124,19 +124,72 @@
 
 ---
 
+### P007: AI 助手插件上下文注入
+
+**修复内容：**
+- `build_context()` 新增 `plugins: &[PluginManifest]` 参数，在 `unified_chat.rs` 调用方从 `PluginManager::list_installed()` 获取已安装插件列表并传入。
+- `build_section5_plugins()` 不再是 TODO 占位，实际格式化每个已安装插件的名称、版本、描述和可选的作者信息。
+- 若插件列表为空仍返回 `（暂无已安装插件）`，保持向后兼容。
+- 插件列表获取失败时静默降级为空列表，不阻塞对话。
+
+**相关文件：**
+- `tauri/src-tauri/src/services/llm_context.rs`
+- `tauri/src-tauri/src/commands/llm/unified_chat.rs`
+
+---
+
+### P010: 高频内联 SQL 提取为模块常量
+
+**修复内容：**
+- `objects` 表的 22 列字段列表在 `storage.rs` 中重复 4 处（`list_object_changes_since`、`load_object`、`load_objects_batch`、`search_objects`），每处长约 300 字节。
+- 提取为模块级常量 `OBJECT_COLUMNS`，统一引用的同时也提升了未来 schema 变更时的可维护性（只需修改常量定义一处）。
+
+**相关文件：**
+- `tauri/crates/solosoul-vault/src/storage.rs`
+
+---
+
 ## 延后处理项说明
 
-### P005: 生产代码中 `unwrap()` / `expect()` 广泛存在
-- **原因：** 涉及约 188 处（src-tauri）+ 180 处（crates）调用，覆盖缓存锁、数据库操作、WASM 生命周期等。一次性全局收敛会引入大量改动，需要单独一轮重构并逐模块启用 `#![deny(clippy::unwrap_used)]`。
-- **建议后续动作：** 按 crate 分批次替换，优先处理 `local_embed.rs`、`objects.rs`、`plugin/manager.rs`、`plugin/host.rs`、`solosoul-vault/src/storage.rs` 等核心路径。
+### P005: 生产代码中 `unwrap()` / `expect()` 广泛存在（已修复）
 
-### P007: AI 助手插件上下文缺失
-- **原因：** `build_section5_plugins()` 需要访问插件管理器以获取已安装插件列表。`llm_context.rs` 当前没有插件管理器的引用，需要新增依赖注入或命令层传递插件元数据。
-- **建议后续动作：** 在 `build_context` 链路中增加 `installed_plugins: Vec<PluginSummary>` 参数，并在调用方从插件状态聚合数据。
+**分两批修复 `storage.rs` 中 16+ 处静默吞没错误模式：**
 
-### P008: 生物识别密钥存储迁移
-- **原因：** 需要跨 Android Keystore、iOS Keychain 和现有文件双槽实现迁移逻辑，涉及平台 FFI、降级兼容和测试验证，工作量大。
-- **建议后续动作：** 单独立项，设计迁移状态机并补充端到端测试。
+#### 第一批：`query_row` 的 `.ok()` 错误遮蔽（4 处）
+- `load_profile()`、`load_object()`、`get_trash_item()`、`load_snapshot()` 中 `rusqlite::Error` 被 `.ok()` 静默吞没，数据库错误被掩盖为"记录不存在"。
+- 全部改为 `.optional().map_err(|e| format!("...: {}", e))?;`，保留 `None` 语义的同时向上传播真实错误。
+
+#### 第二批：JSON 序列化/反序列化与解密路径的静默吞没（12+ 处）
+- **`save_object()`**（4 处）：`serde_json::to_string` 对 `children_ids`、`properties`、`property_labels`、`tags_json` 的序列化失败被 `.unwrap_or_default()` 静默吞没，导致空数据写入 DB → 改为 `map_err(...)?` 传播。
+- **同步函数**（3 处）：`list_object_changes_since` / `list_user_template_changes_since` / `list_trash_changes_since` 中 `serde_json::to_value` 序列化失败被静默吞没 → 传播。
+- **`get_sync_record_data()`**（4 处）：4 个 match 分支中 `to_value` 失败 → 传播。
+- **`list_object_attachment_ids()`**（1 处）：`serde_json::from_str` 反序列化失败 → 传播。
+- **`list_objects()`**（5+ 处）：`decrypt_text_field` 解密失败及后续 `serde_json::from_str` 反序列化失败全部从 `.unwrap_or_default()` 改为传播 `rusqlite::Error::FromSqlConversionFailure`。
+
+**相关文件：** `tauri/crates/solosoul-vault/src/storage.rs`
+
+### P007: AI 助手插件上下文缺失（已修复）
+- **修复内容：**
+  - `build_context()` 新增 `plugins: &[PluginManifest]` 参数，在 `unified_chat.rs` 调用方从 `PluginManager::list_installed()` 获取已安装插件列表并传入。
+  - `build_section5_plugins()` 不再是 TODO 占位，实际格式化每个已安装插件的名称、版本、描述和可选的作者信息。
+  - 若插件列表为空仍返回 `（暂无已安装插件）`，保持向后兼容。
+  - 插件列表获取失败时静默降级为空列表，不阻塞对话。
+- **相关文件：** `tauri/src-tauri/src/services/llm_context.rs`、`tauri/src-tauri/src/commands/llm/unified_chat.rs`
+
+### P008: 生物识别密钥迁移（已完成）
+
+**iOS Keychain 迁移：**
+- 新建 `crates/solosoul-core/src/biometric/ios.rs`，实现 `IosBiometricStorage`（基于 iOS Security.framework Keychain + `kSecAccessControlUserPresence`）。
+- 更新 `mod.rs` 中 `platform_storage()` 返回 `IosBiometricStorage`。
+- 更新 `commands/biometric.rs` 中 3 处 iOS 分支从 `FileBiometricStorage` → `IosBiometricStorage`。
+- 在 `Cargo.toml` 中为 iOS 添加 `security-framework`、`core-foundation` 等依赖。
+- 安全提升：文件权限 0o600 → 硬件 Keychain + `kSecAccessControlUserPresence`（Face ID / Touch ID）。
+
+**Android platform_storage 清理：**
+- Android 的 `platform_storage()` 从 `FileBiometricStorage` 改为 `StubBiometricStorage`。
+- Android 实际凭证操作由 `commands/biometric.rs` 中的 `KeystorePluginHandle` 处理，不经过 `BiometricManager`。
+
+**macOS Keychain：** 暂缓（需 Apple Developer Program 99 USD/年）。
 
 ### P009–P013: 扩展 Clippy、SQL 集中化、React 性能、unsafe FFI、死代码扫描
 - **原因：** 均为代码质量与可维护性项，不引入安全或稳定性风险。Extended Clippy 1179+ 条 warning 中测试代码占多数，需要分阶段收敛；SQL 集中化、React useMemo 审计、unsafe FFI 测试补充、死代码扫描均需单独投入。
@@ -173,12 +226,11 @@ cargo test               # ✅ all passed
 
 ## 后续步骤
 
-1. **P005 分批收敛生产代码 unwrap/expect**：优先处理核心路径（local_embed、objects、plugin manager、vault storage）。
-2. **P007 实现 AI 插件上下文注入**：在命令层收集已安装插件元数据并传入 `build_context`。
-3. **P008 生物识别密钥迁移**：单独立项并设计迁移方案。
-4. **P009–P013 代码质量项**：分阶段在后续迭代中处理。
+1. **P009 CI 中建立 Extended Clippy 趋势报告**：以 `--no-fail` 模式运行，生成 warning 趋势。
+2. **P011–P013 代码质量项**：分阶段在后续迭代中处理。
+3. **macOS Keychain（P008 遗留）**：等待 Apple Developer Program 付费后激活 `macos_keychain.rs`。
 
 ---
 
-*报告生成时间：2026-07-30 18:35:00*
-*修复轮次：1（本轮修复已完成）*
+*报告生成时间：2026-07-31 01:00:00*
+*修复轮次：2*

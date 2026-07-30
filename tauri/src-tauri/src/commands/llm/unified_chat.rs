@@ -69,7 +69,7 @@ pub async fn llm_chat(
     // 3. 构建 messages 数组
     let mut messages: Vec<serde_json::Value> = Vec::new();
 
-    // 3a. 系统提示词（重新获取 vault）
+    // 3a. 系统提示词（重新获取 vault + 查询已安装插件）
     if request.include_system_prompt {
         let system_prompt = {
             let svc = state
@@ -78,6 +78,10 @@ pub async fn llm_chat(
                 .map_err(|_| "Vault service lock poisoned".to_string())?;
             let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
             let vault = vault_guard.as_ref();
+
+            // 获取已安装插件列表（失败时不阻塞对话，降至空列表）
+            let plugins = state.plugin_manager.list_installed().unwrap_or_default();
+
             crate::services::llm_context::build_context(
                 &request.account_id,
                 vault,
@@ -86,6 +90,7 @@ pub async fn llm_chat(
                 stats.completion_tokens,
                 stats.total_tokens,
                 &request.language,
+                &plugins,
             )?
         };
         if !system_prompt.is_empty() {
