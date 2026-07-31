@@ -277,63 +277,118 @@ pub async fn android_check_update(app: tauri::AppHandle) -> Result<AndroidUpdate
 
 /// 桌面端检查更新：版本检测复用 Tauri updater 插件（读取 latest.json），
 /// Release notes 通过 GitHub Release API 补全，行为与 Android 对齐。
+/// 从 GitHub Release API 结果构建桌面端更新信息（updater 插件兜底路径，与 Android 逻辑对齐）。
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+fn desktop_info_from_github_release(current: &str, release: &GitHubRelease) -> DesktopUpdateInfo {
+    let latest = release
+        .tag_name
+        .strip_prefix('v')
+        .unwrap_or(&release.tag_name)
+        .to_string();
+    let mandatory = release
+        .body
+        .as_deref()
+        .map(|body| body.contains("[MANDATORY]"))
+        .unwrap_or(false);
+    let clean_body = release
+        .body
+        .as_ref()
+        .map(|body| body.replace("[MANDATORY]", "").trim().to_string())
+        .filter(|s| !s.is_empty());
+    DesktopUpdateInfo {
+        latest_version: latest,
+        current_version: current.to_string(),
+        mandatory,
+        release_notes: clean_body,
+        published_at: release.published_at.clone(),
+    }
+}
+
+/// 桌面端检查更新：版本检测首选 Tauri updater 插件（latest.json + 签名校验）。
+///
+/// updater 插件路径依赖 `github.com` 的 release 下载端点（302 → release-assets），
+/// 在部分地区可能不稳定或不可达。失败时记录日志并回退到 GitHub Release API
+/// （与 Android 同路径，仅需 `api.github.com`），保证「关于页面」仍能给出版本信息。
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 #[tauri::command]
 pub async fn desktop_check_update(app: tauri::AppHandle) -> Result<DesktopUpdateInfo, String> {
     let current = current_version();
 
-    // 1. 通过 updater 插件检测是否有可用更新（latest.json 中的版本与签名）
-    let updater = app
-        .updater()
-        .map_err(|e| format!("初始化更新器失败: {e}"))?;
-    let update = updater
-        .check()
-        .await
-        .map_err(|e| format!("检查更新失败: {e}"))?;
-
-    let Some(update) = update else {
-        return Ok(DesktopUpdateInfo {
-            latest_version: current.clone(),
-            current_version: current,
-            mandatory: false,
-            release_notes: None,
-            published_at: None,
-        });
+    // 1. 首选：通过 updater 插件检测是否有可用更新（latest.json 中的版本与签名）
+    let updater_result = match app.updater() {
+        Ok(updater) => updater
+            .check()
+            .await
+            .map_err(|e| format!("检查更新失败: {e}")),
+        Err(e) => Err(format!("初始化更新器失败: {e}")),
     };
 
-    // 2. 通过 GitHub Release API 补全 release notes（失败不阻塞，仅缺 notes）
-    let (release_notes, mandatory, published_at) = match github_client() {
-        Ok(client) => match fetch_github_release(&client).await {
-            Ok(release) => {
-                let mandatory = release
-                    .body
-                    .as_deref()
-                    .map(|body| body.contains("[MANDATORY]"))
-                    .unwrap_or(false);
-                let clean_body = release
-                    .body
-                    .map(|body| body.replace("[MANDATORY]", "").trim().to_string())
-                    .filter(|s| !s.is_empty());
-                (clean_body, mandatory, release.published_at)
-            }
-            Err(e) => {
-                tracing::warn!("[updater] 获取 GitHub Release notes 失败: {e}");
-                (None, false, None)
-            }
-        },
-        Err(e) => {
-            tracing::warn!("[updater] 创建 GitHub 客户端失败: {e}");
-            (None, false, None)
+    match updater_result {
+        Ok(Some(update)) => {
+            tracing::info!(
+                "[updater] 检测到新版本 {}（当前 {}）",
+                update.version,
+                current
+            );
+            // 2. 通过 GitHub Release API 补全 release notes（失败不阻塞，仅缺 notes）
+            let (release_notes, mandatory, published_at) = match github_client() {
+                Ok(client) => match fetch_github_release(&client).await {
+                    Ok(release) => {
+                        let mandatory = release
+                            .body
+                            .as_deref()
+                            .map(|body| body.contains("[MANDATORY]"))
+                            .unwrap_or(false);
+                        let clean_body = release
+                            .body
+                            .map(|body| body.replace("[MANDATORY]", "").trim().to_string())
+                            .filter(|s| !s.is_empty());
+                        (clean_body, mandatory, release.published_at)
+                    }
+                    Err(e) => {
+                        tracing::warn!("[updater] 获取 GitHub Release notes 失败: {e}");
+                        (None, false, None)
+                    }
+                },
+                Err(e) => {
+                    tracing::warn!("[updater] 创建 GitHub 客户端失败: {e}");
+                    (None, false, None)
+                }
+            };
+            Ok(DesktopUpdateInfo {
+                latest_version: update.version,
+                current_version: current,
+                mandatory,
+                release_notes,
+                published_at,
+            })
         }
-    };
-
-    Ok(DesktopUpdateInfo {
-        latest_version: update.version,
-        current_version: current,
-        mandatory,
-        release_notes,
-        published_at,
-    })
+        Ok(None) => {
+            tracing::info!("[updater] 已是最新版本（{}）", current);
+            Ok(DesktopUpdateInfo {
+                latest_version: current.clone(),
+                current_version: current,
+                mandatory: false,
+                release_notes: None,
+                published_at: None,
+            })
+        }
+        Err(plugin_err) => {
+            // 3. 兜底：通过 GitHub Release API 检测版本（仅需 api.github.com）
+            tracing::error!("[updater] updater 插件检查失败，回退 GitHub API: {plugin_err}");
+            match github_client() {
+                Ok(client) => match fetch_github_release(&client).await {
+                    Ok(release) => Ok(desktop_info_from_github_release(&current, &release)),
+                    Err(fallback_err) => Err(format!(
+                        "检查更新失败: {plugin_err}（GitHub API 兜底失败: {fallback_err}）"
+                    )),
+                },
+                Err(client_err) => Err(format!(
+                    "检查更新失败: {plugin_err}（创建 HTTP 客户端失败: {client_err}）"
+                )),
+            }
+        }
+    }
 }
 
 // ── Command: 下载 APK ──────────────────────────────────────────

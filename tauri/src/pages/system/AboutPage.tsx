@@ -8,7 +8,7 @@ import { Card } from '@/components/ui/Card';
 import { ShieldLogo } from '@/components/ui/ShieldLogo';
 import { invoke } from '@tauri-apps/api/core';
 import { open } from '@tauri-apps/plugin-shell';
-import { ExternalLink, Code, Shield, Info, Download, AlertTriangle } from 'lucide-react';
+import { ExternalLink, Code, Shield, Info, Download, AlertTriangle, RefreshCw } from 'lucide-react';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { SafeMarkdown } from '@/components/ui/SafeMarkdown';
 import {
@@ -52,6 +52,7 @@ export function AboutPage() {
   const [info, setInfo] = useState<AppInfo | null>(null);
   const [versionInfo, setVersionInfo] = useState<VersionInfo | null>(null);
   const [loading, setLoading] = useState(true);
+  const [checking, setChecking] = useState(false);
   const { t, i18n } = useTranslation(['settings', 'common']);
   const docLang = i18n.language?.startsWith('zh') ? 'zh-CN' : 'en-US';
 
@@ -64,75 +65,83 @@ export function AboutPage() {
   const [totalBytes, setTotalBytes] = useState(0);
   const [downloadError, setDownloadError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const runCheck = useCallback(async () => {
+    setChecking(true);
     const isMobilePlatform = isMobilePlatformSync();
-    Promise.all([
-      invoke<AppInfo>('get_app_info'),
-      isMobilePlatform
-        ? androidCheckForUpdate().then((result) => {
-            if (result.kind === 'available') {
-              return {
-                currentVersion: '',
-                latestVersion: result.info.latestVersion,
-                downloadUrl: result.info.downloadUrl,
-                checksum: result.info.checksum,
-                mandatory: result.info.mandatory,
-                state: 'available' as const,
-                body: result.info.releaseNotes || undefined,
-              };
-            }
-            if (result.kind === 'error') {
-              return {
-                currentVersion: '',
-                latestVersion: null,
-                downloadUrl: null,
-                state: 'error' as const,
-                error: result.message,
-              };
-            }
-            return {
-              currentVersion: '',
-              latestVersion: null,
-              downloadUrl: null,
-              state: 'up-to-date' as const,
-            };
-          })
-        : desktopCheckForUpdate().then((result) => {
-            if (result.kind === 'available') {
-              return {
-                currentVersion: '',
-                latestVersion: result.info.latestVersion,
-                downloadUrl: null,
-                checksum: undefined,
-                mandatory: result.info.mandatory,
-                state: 'available' as const,
-                body: result.info.releaseNotes || undefined,
-              };
-            }
-            if (result.kind === 'error') {
+    try {
+      const [app, ver] = await Promise.all([
+        invoke<AppInfo>('get_app_info'),
+        isMobilePlatform
+          ? androidCheckForUpdate().then((result) => {
+              if (result.kind === 'available') {
+                return {
+                  currentVersion: '',
+                  latestVersion: result.info.latestVersion,
+                  downloadUrl: result.info.downloadUrl,
+                  checksum: result.info.checksum,
+                  mandatory: result.info.mandatory,
+                  state: 'available' as const,
+                  body: result.info.releaseNotes || undefined,
+                };
+              }
+              if (result.kind === 'error') {
+                return {
+                  currentVersion: '',
+                  latestVersion: null,
+                  downloadUrl: null,
+                  state: 'error' as const,
+                  error: result.message,
+                };
+              }
               return {
                 currentVersion: '',
                 latestVersion: null,
                 downloadUrl: null,
-                state: 'error' as const,
-                error: result.message,
+                state: 'up-to-date' as const,
               };
-            }
-            return {
-              currentVersion: '',
-              latestVersion: null,
-              downloadUrl: null,
-              state: 'up-to-date' as const,
-            };
-          }),
-    ])
-      .then(([app, ver]) => {
-        setInfo(app);
-        setVersionInfo({ ...ver, currentVersion: app.version });
-      })
-      .catch(() => setLoading(false))
-      .finally(() => setLoading(false));
+            })
+          : desktopCheckForUpdate().then((result) => {
+              if (result.kind === 'available') {
+                return {
+                  currentVersion: '',
+                  latestVersion: result.info.latestVersion,
+                  downloadUrl: null,
+                  checksum: undefined,
+                  mandatory: result.info.mandatory,
+                  state: 'available' as const,
+                  body: result.info.releaseNotes || undefined,
+                };
+              }
+              if (result.kind === 'error') {
+                return {
+                  currentVersion: '',
+                  latestVersion: null,
+                  downloadUrl: null,
+                  state: 'error' as const,
+                  error: result.message,
+                };
+              }
+              return {
+                currentVersion: '',
+                latestVersion: null,
+                downloadUrl: null,
+                state: 'up-to-date' as const,
+              };
+            }),
+      ]);
+      setInfo(app);
+      setVersionInfo({ ...ver, currentVersion: app.version });
+    } catch {
+      // get_app_info 失败：保留现有信息，仅结束加载态
+    } finally {
+      setChecking(false);
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    runCheck();
+  }, [runCheck]);
 
   const handleUpdate = useCallback(async () => {
     setDownloading(true);
@@ -266,6 +275,10 @@ export function AboutPage() {
           border-top: 1px solid var(--border-subtle);
           margin: 8px 0;
         }
+        @keyframes about-retry-spin {
+          to { transform: rotate(360deg); }
+        }
+        .about-retry-spin { animation: about-retry-spin 1s linear infinite; }
       `}</style>
       <AppShell
         title={t('settings:about')}
@@ -376,6 +389,84 @@ export function AboutPage() {
                       ) : null}
                     </div>
                   </div>
+
+                  {/* 检查失败 — 显示错误详情与重试入口 */}
+                  {versionInfo?.state === 'error' && (
+                    <>
+                      <div style={{ height: 1, background: 'var(--border-subtle)' }} />
+                      <div
+                        style={{
+                          padding: '14px 0',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: 10,
+                        }}
+                      >
+                        <div
+                          style={{
+                            fontSize: 'var(--text-caption)',
+                            color: 'var(--error)',
+                            display: 'flex',
+                            alignItems: 'flex-start',
+                            gap: 6,
+                            lineHeight: 1.5,
+                            wordBreak: 'break-word',
+                          }}
+                        >
+                          <AlertTriangle
+                            size={ICON_SIZE.xs}
+                            style={{ marginTop: 2, flexShrink: 0 }}
+                          />
+                          <span>
+                            {versionInfo.error || t('settings:update_check_failed')}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={runCheck}
+                          disabled={checking}
+                          style={{
+                            padding: '8px 16px',
+                            borderRadius: 8,
+                            border: '1px solid var(--border-subtle)',
+                            background: 'var(--bg-toolbar)',
+                            color: 'var(--text-primary)',
+                            fontSize: 'var(--text-body-sm)',
+                            fontWeight: 500,
+                            fontFamily: 'inherit',
+                            cursor: checking ? 'default' : 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 6,
+                            alignSelf: 'flex-start',
+                            opacity: checking ? 0.6 : 1,
+                            transition: 'all 0.15s ease',
+                          }}
+                          onMouseEnter={(e) => {
+                            if (checking) return;
+                            e.currentTarget.style.background =
+                              'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
+                            e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                            e.currentTarget.style.color = 'var(--accent-primary)';
+                          }}
+                          onMouseLeave={(e) => {
+                            if (checking) return;
+                            e.currentTarget.style.background = 'var(--bg-toolbar)';
+                            e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                            e.currentTarget.style.color = 'var(--text-primary)';
+                          }}
+                        >
+                          <RefreshCw
+                            size={ICON_SIZE.sm}
+                            className={checking ? 'about-retry-spin' : undefined}
+                          />
+                          {checking
+                            ? t('settings:update_checking') || 'Checking...'
+                            : t('settings:update_check_retry')}
+                        </button>
+                      </div>
+                    </>
+                  )}
 
                   {/* 更新卡片 — 有可用更新时显示 */}
                   {versionInfo?.state === 'available' && versionInfo.latestVersion && (

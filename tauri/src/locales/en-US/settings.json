@@ -190,6 +190,8 @@
   "could_not_load": "Could not load app info",
   "latest_version": "Latest",
   "update_check_failed": "Update check failed",
+  "update_check_retry": "Check Again",
+  "update_checking": "Checking...",
   "update_available": "Update: {{version}}",
   "update_now": "Update Now",
   "downloading": "Downloading...",
