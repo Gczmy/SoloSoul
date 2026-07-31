@@ -19,15 +19,15 @@ describe('DatePicker', () => {
     render(<DatePicker onChange={onChange} />);
     fireEvent.click(screen.getByRole('button', { expanded: false }));
 
-    // Open year dropdown and pick 2020
+    // Open year dropdown and pick 2020（限定到下拉选项，防止与触发器当前年份撞车）
     const yearSelect = screen.getByLabelText('选择年份');
     fireEvent.click(yearSelect);
-    fireEvent.click(screen.getByText('2020'));
+    fireEvent.click(screen.getByText('2020', { selector: '[data-dd-value="2020"]' }));
 
-    // Open month dropdown and pick February (1)
+    // Open month dropdown and pick February (index 1，限定到选项，防止 2 月运行时与触发器撞车）
     const monthSelect = screen.getByLabelText('选择月份');
     fireEvent.click(monthSelect);
-    fireEvent.click(screen.getByText('Feb'));
+    fireEvent.click(screen.getByText('Feb', { selector: '[data-dd-value="1"]' }));
 
     // Click day 15
     const dayButton = screen.getByLabelText('2020-02-15');
@@ -44,10 +44,11 @@ describe('DatePicker', () => {
     fireEvent.click(screen.getByRole('button', { expanded: false }));
 
     fireEvent.click(screen.getByLabelText('选择年份'));
-    fireEvent.click(screen.getByText('2021'));
-    // Use a month whose label doesn't collide with the trigger's current month
+    // 限定到下拉选项（触发器显示当前年份可能与之相同），消除时间依赖
+    fireEvent.click(screen.getByText('2021', { selector: '[data-dd-value="2021"]' }));
     fireEvent.click(screen.getByLabelText('选择月份'));
-    fireEvent.click(screen.getByText('Aug'));
+    // data-dd-value=7 为 8 月；触发器显示的当前月份可能与选项文本相同，必须限定到选项
+    fireEvent.click(screen.getByText('Aug', { selector: '[data-dd-value="7"]' }));
     fireEvent.click(screen.getByLabelText('2021-08-10'));
 
     // Time inputs should now be visible
