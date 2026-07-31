@@ -6,11 +6,6 @@ vi.mock('@tauri-apps/api/core', () => ({
   invoke: (...args: unknown[]) => mockInvoke(...args),
 }));
 
-// 模拟 i18next
-vi.mock('@/lib/i18n', () => ({
-  default: { language: 'en' },
-}));
-
 describe('objectStore', () => {
   beforeEach(() => {
     mockInvoke.mockReset();
@@ -222,73 +217,6 @@ describe('objectStore', () => {
     });
   });
 
-  describe('trash lifecycle', () => {
-    it('loadTrashObjects 加载回收站列表', async () => {
-      const trash = [
-        {
-          id: 'del-1',
-          name: 'Deleted',
-          collectionType: 'x',
-          sensitivityLevel: 'public',
-          createdAt: '',
-          updatedAt: '',
-          isDeleted: true,
-        },
-      ];
-      mockInvoke.mockResolvedValue(trash);
-
-      const { useObjectStore } = await import('./objectStore');
-      await useObjectStore.getState().loadTrashObjects('acc-1');
-
-      expect(mockInvoke).toHaveBeenCalledWith('object_trash_list', { accountId: 'acc-1' });
-      expect(useObjectStore.getState().trashObjects).toEqual(trash);
-    });
-
-    it('restoreObject 从回收站恢复并从 trashObjects 移除', async () => {
-      mockInvoke.mockResolvedValue(undefined);
-
-      const { useObjectStore } = await import('./objectStore');
-      useObjectStore.setState({
-        trashObjects: [
-          {
-            id: 'del-1',
-            name: 'Del1',
-            collectionType: 'x',
-            sensitivityLevel: 'public',
-            createdAt: '',
-            updatedAt: '',
-          },
-        ],
-      });
-      await useObjectStore.getState().restoreObject('del-1');
-
-      expect(mockInvoke).toHaveBeenCalledWith('object_restore', { objectId: 'del-1', lang: 'en' });
-      expect(useObjectStore.getState().trashObjects).toHaveLength(0);
-    });
-
-    it('purgeObject 永久删除并从 trashObjects 移除', async () => {
-      mockInvoke.mockResolvedValue(undefined);
-
-      const { useObjectStore } = await import('./objectStore');
-      useObjectStore.setState({
-        trashObjects: [
-          {
-            id: 'del-1',
-            name: 'Del1',
-            collectionType: 'x',
-            sensitivityLevel: 'public',
-            createdAt: '',
-            updatedAt: '',
-          },
-        ],
-      });
-      await useObjectStore.getState().purgeObject('del-1');
-
-      expect(mockInvoke).toHaveBeenCalledWith('object_purge', { objectId: 'del-1' });
-      expect(useObjectStore.getState().trashObjects).toHaveLength(0);
-    });
-  });
-
   describe('clearOnVaultLock', () => {
     it('清空所有敏感状态', async () => {
       const { useObjectStore } = await import('./objectStore');
@@ -297,16 +225,6 @@ describe('objectStore', () => {
           {
             id: '1',
             name: 'X',
-            collectionType: 'x',
-            sensitivityLevel: 'public',
-            createdAt: '',
-            updatedAt: '',
-          },
-        ],
-        trashObjects: [
-          {
-            id: '2',
-            name: 'Y',
             collectionType: 'x',
             sensitivityLevel: 'public',
             createdAt: '',
@@ -332,7 +250,6 @@ describe('objectStore', () => {
 
       const state = useObjectStore.getState();
       expect(state.objects).toHaveLength(0);
-      expect(state.trashObjects).toHaveLength(0);
       expect(state.currentObjectCache).toEqual({});
       expect(state.error).toBeNull();
     });

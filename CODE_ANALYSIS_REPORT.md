@@ -75,7 +75,7 @@
 | P053 | P2 | 性能 | `tauri/src/stores/settingsStore.ts:328-355` | `loadCustomPages` 对每个自定义页单独 `object_get`（N+1 IPC） | `[ ]` 待修复 |
 | P054 | P2 | 性能 | `GlobalAttachmentManager.tsx:419-425`、`AttachmentViewer.tsx:343-361` | 附件批量下载逐条串行 IPC+文件拷贝 | `[ ]` 待修复 |
 | P055 | P2 | 性能 | `ObjectEditorPage.tsx:36`、`TrashPage.tsx:79`、`TemplateManagerPage.tsx:75`、`ObjectDetailModal.tsx:136` | 多处 `useXxxStore()` 整店订阅（负载较小，同类于 P010） | `[ ]` 待修复 |
-| P056 | P2 | 架构 | `tauri/src/stores/objectStore.ts:184-220` | objectStore 的 trash 切片是死代码，与 trashStore 双轨调用不同后端命令 | `[ ]` 待修复 |
+| P056 | P2 | 架构 | `tauri/src/stores/objectStore.ts:184-220` | objectStore 的 trash 切片是死代码，与 trashStore 双轨调用不同后端命令 | `[x]` 已修复 |
 | P057 | P2 | 架构 | `tauri/src/stores/objectStore.ts:158-169` | `updateObject` 只更新缓存不同步 `objects` 摘要列表（潜伏性不一致） | `[ ]` 待修复 |
 | P058 | P2 | 架构 | `tauri/src/stores/profileStore.ts:75-98` | `loadSection`/`updateField` 无调用方死代码，且 updateField 写后不同步本地 | `[ ]` 待修复 |
 | P059 | P2 | 架构 | `HistoryPage.tsx:36-38`、`HistoryViewer.tsx:485-487`、`vaultStore.ts:40-43` | 3 处前端 invoke 链缺 `.catch`，锁定等场景下 unhandled rejection 且无提示 | `[ ]` 待修复 |
@@ -86,8 +86,8 @@
 
 ## 修复进度
 
-- 已完成：43 / 63（P001–P011、P013–P016、P019–P028、P029–P033、P034–P046；其中 P011 工作区部分完成）
-- 当前处理：P046 已完成，等待下一条指令
+- 已完成：44 / 63（P001–P011、P013–P016、P019–P028、P029–P033、P034–P046、P056；其中 P011 工作区部分完成）
+- 当前处理：P056 已完成，等待下一条指令
 
 ## 静态基线之外已检查且无发现的维度（误报排除记录）
 
@@ -295,6 +295,7 @@ sync crate manager（`manager.rs:168`）`sync_enable` 时自建 `ServiceDaemon`�
 ### P2 架构 / 规范
 
 **P056 | objectStore trash 死切片**：`objectStore.ts:184-220` 的 `trashObjects`/`loadTrashObjects`/`restoreObject`/`purgeObject` 无 UI 引用，且与 trashStore 调不同后端命令（`object_restore` vs `trash_restore`）操作同一后端数据。删除该切片及对应测试。
+`[x]` 已修复：删除 objectStore.ts 的 `trashObjects`/`loadTrashObjects`/`restoreObject`/`purgeObject`（interface+实现+clearOnVaultLock 中的 `trashObjects:[]`），连带清理仅 restoreObject 使用的 i18next import；测试文件删除 `trash lifecycle` describe 块（3 个测试）、clearOnVaultLock 测试移除 trashObjects 引用、并清理失效的 i18next mock。全仓库零残留引用（AttachmentToolbar 的 `trashObjects:number` 为无关的 summary 计数字段）。tsc/lint/Vitest 415 全部通过，审查通过。
 
 **P057 | updateObject 不同步列表**：`objectStore.ts:158-169` 只更新 `currentObjectCache`，`objects` 摘要保持旧值（现靠页面重挂载掩盖）。成功后同步更新 `objects` 对应项。
 

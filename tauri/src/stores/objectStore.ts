@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { invoke } from '@tauri-apps/api/core';
-import i18next from '@/lib/i18n';
 import type { DeprecatedField, TemplateSyncResult } from '@/lib/templateSync';
 
 export interface ObjectSummary {
@@ -76,9 +75,6 @@ interface ObjectState {
     input: { name: string; properties: Record<string, unknown> },
   ) => Promise<void>;
   deleteObject: (objectId: string) => Promise<void>;
-  loadTrashObjects: (accountId: string) => Promise<void>;
-  restoreObject: (objectId: string) => Promise<void>;
-  purgeObject: (objectId: string) => Promise<void>;
   /** 预览对象按当前模板同步后的变更（dryRun=true）。 */
   previewSyncTemplate: (accountId: string, objectId: string) => Promise<TemplateSyncResult>;
   /** 应用当前模板设置到对象。 */
@@ -87,7 +83,6 @@ interface ObjectState {
   ignoreTemplateSync: (objectId: string, hash: string) => Promise<void>;
   /** 列出对象中已归档的历史字段。 */
   loadDeprecatedFields: (accountId: string, objectId: string) => Promise<DeprecatedField[]>;
-  trashObjects: ObjectSummary[];
   clearOnVaultLock: () => void;
 }
 
@@ -181,44 +176,6 @@ export const useObjectStore = create<ObjectState>((set) => ({
     }
   },
 
-  trashObjects: [],
-
-  loadTrashObjects: async (accountId) => {
-    set({ isLoading: true, error: null });
-    try {
-      const items = await invoke<ObjectSummary[]>('object_trash_list', { accountId: accountId });
-      set({ trashObjects: items, isLoading: false });
-    } catch (err) {
-      set({ error: String(err), isLoading: false });
-    }
-  },
-
-  restoreObject: async (objectId) => {
-    set({ isLoading: true, error: null });
-    try {
-      await invoke('object_restore', { objectId, lang: i18next.language });
-      set((s) => ({
-        trashObjects: s.trashObjects.filter((o) => o.id !== objectId),
-        isLoading: false,
-      }));
-    } catch (err) {
-      set({ error: String(err), isLoading: false });
-    }
-  },
-
-  purgeObject: async (objectId) => {
-    set({ isLoading: true, error: null });
-    try {
-      await invoke('object_purge', { objectId: objectId });
-      set((s) => ({
-        trashObjects: s.trashObjects.filter((o) => o.id !== objectId),
-        isLoading: false,
-      }));
-    } catch (err) {
-      set({ error: String(err), isLoading: false });
-    }
-  },
-
   previewSyncTemplate: async (accountId, objectId) => {
     return invoke<TemplateSyncResult>('object_sync_with_template', {
       accountId,
@@ -249,6 +206,5 @@ export const useObjectStore = create<ObjectState>((set) => ({
     });
   },
 
-  clearOnVaultLock: () =>
-    set({ objects: [], trashObjects: [], currentObjectCache: {}, error: null }),
+  clearOnVaultLock: () => set({ objects: [], currentObjectCache: {}, error: null }),
 }));
