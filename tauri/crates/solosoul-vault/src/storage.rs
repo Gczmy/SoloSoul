@@ -3555,6 +3555,51 @@ impl VaultStore {
         Ok(())
     }
 
+    /// Batch-save guide embedding chunks in a single transaction (P051).
+    /// RAG 重建时逐条 `save_guide_embedding` 每次独立 autocommit + fsync；
+    /// 批量版本只开一次事务 + 复用 prepared statement，重建耗时大幅下降。
+    pub fn save_guide_embeddings(
+        &self,
+        chunks: &[crate::GuideEmbeddingChunk],
+    ) -> Result<(), String> {
+        if chunks.is_empty() {
+            return Ok(());
+        }
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        let tx = conn
+            .transaction()
+            .map_err(|e| format!("save_guide_embeddings begin: {}", e))?;
+        {
+            let mut stmt = tx
+                .prepare(
+                    "INSERT OR REPLACE INTO guide_embeddings (id, guide_id, chunk_index, chunk_text, embedding, model, created_at)
+                     VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+                )
+                .map_err(|e| format!("save_guide_embeddings prepare: {}", e))?;
+            for (idx, chunk) in chunks.iter().enumerate() {
+                let embedding_bytes: Vec<u8> = chunk
+                    .embedding
+                    .iter()
+                    .flat_map(|f| f.to_ne_bytes())
+                    .collect();
+                stmt.execute(params![
+                    chunk.id,
+                    chunk.guide_id,
+                    chunk.chunk_index,
+                    chunk.chunk_text,
+                    embedding_bytes,
+                    chunk.model,
+                    chunk.created_at
+                ])
+                .map_err(|e| format!("save_guide_embeddings chunk {}: {}", idx, e))?;
+            }
+        }
+        tx.commit()
+            .map_err(|e| format!("save_guide_embeddings commit: {}", e))?;
+        Ok(())
+    }
+
     /// Load all guide embedding chunks.
     pub fn list_guide_embeddings(&self) -> Result<Vec<crate::GuideEmbeddingChunk>, String> {
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;

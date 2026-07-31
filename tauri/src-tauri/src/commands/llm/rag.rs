@@ -800,21 +800,26 @@ pub async fn llm_rebuild_guide_embeddings(
         let vault = vault_handle(&state)?;
 
         let now = chrono::Utc::now().to_rfc3339();
-        for (i, (raw, mut vec)) in raw_chunks.into_iter().zip(embeddings).enumerate() {
-            normalize_vector(&mut vec);
-            let chunk = solosoul_vault::GuideEmbeddingChunk {
-                id: format!("{}_{}", raw.guide_id, raw.chunk_index),
-                guide_id: raw.guide_id,
-                chunk_index: raw.chunk_index as i32,
-                chunk_text: raw.text,
-                embedding: vec.to_vec(),
-                model: model_name.clone(),
-                created_at: now.clone(),
-            };
-            vault
-                .save_guide_embedding(&chunk)
-                .map_err(|e| format!("Save embedding {}: {}", i, e))?;
-        }
+        // P051: 先收集全部 chunk，再单事务批量写入，避免逐条 autocommit + fsync
+        let chunks: Vec<solosoul_vault::GuideEmbeddingChunk> = raw_chunks
+            .into_iter()
+            .zip(embeddings)
+            .map(|(raw, mut vec)| {
+                normalize_vector(&mut vec);
+                solosoul_vault::GuideEmbeddingChunk {
+                    id: format!("{}_{}", raw.guide_id, raw.chunk_index),
+                    guide_id: raw.guide_id,
+                    chunk_index: raw.chunk_index as i32,
+                    chunk_text: raw.text,
+                    embedding: vec.to_vec(),
+                    model: model_name.clone(),
+                    created_at: now.clone(),
+                }
+            })
+            .collect();
+        vault
+            .save_guide_embeddings(&chunks)
+            .map_err(|e| format!("Save embeddings ({} chunks): {}", chunks.len(), e))?;
 
         mark_rebuilt(&vault, &language)?;
         vault.count_guide_embeddings()?
