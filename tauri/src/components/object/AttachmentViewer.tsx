@@ -333,37 +333,28 @@ export function AttachmentViewer({
     }
     if (!dirPath) return;
 
-    let successCount = 0;
-    if (isMobilePlatformSync()) {
-      // 移动端 SAF 目录返回的是 content://tree/... URI，走 Android 专用命令
-      for (const item of selectedItems) {
-        const filePath = item.vaultPath || item.srcPath;
-        if (!filePath) continue;
-        try {
-          await invoke('attachment_export_tree_uri', {
+    // P054: 逐条串行 await 改为 Promise.allSettled 并发（各附件独立 IPC + 独立目标文件，
+    // 并发安全）；allSettled 不会因单项失败整体 reject，successCount 语义与串行一致。
+    // 平台检测只取一次（纯常量），避免逐项重复调用。
+    const isMobile = isMobilePlatformSync();
+    const downloadTasks = selectedItems
+      .filter((item) => !!(item.vaultPath || item.srcPath))
+      .map((item) => {
+        const filePath = item.vaultPath || (item.srcPath as string);
+        if (isMobile) {
+          // 移动端 SAF 目录返回的是 content://tree/... URI，走 Android 专用命令
+          return invoke('attachment_export_tree_uri', {
             srcPath: filePath,
             treeUri: dirPath,
             fileName: item.fileName,
             mimeType: item.mimeType,
           });
-          successCount++;
-        } catch {
-          // continue with next file
         }
-      }
-    } else {
-      for (const item of selectedItems) {
-        const filePath = item.vaultPath || item.srcPath;
-        if (!filePath) continue;
         const destPath = `${dirPath}/${item.fileName}`;
-        try {
-          await invoke('attachment_download', { srcPath: filePath, destPath: destPath });
-          successCount++;
-        } catch {
-          // continue with next file
-        }
-      }
-    }
+        return invoke('attachment_download', { srcPath: filePath, destPath: destPath });
+      });
+    const results = await Promise.allSettled(downloadTasks);
+    const successCount = results.filter((r) => r.status === 'fulfilled').length;
 
     showToast({
       type: successCount === selectedItems.length ? 'success' : 'warning',

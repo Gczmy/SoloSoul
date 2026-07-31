@@ -319,18 +319,18 @@ export function useAttachmentManager() {
         }
       }
 
-      let successCount = 0;
-      for (const item of selectedItems) {
-        const filePath = item.vaultPath || item.srcPath;
-        if (!filePath) continue;
-        const destPath = `${dirPath}/${item.fileName}`;
-        try {
-          await invoke('attachment_download', { srcPath: filePath, destPath: destPath });
-          successCount++;
-        } catch {
-          // continue with next file
-        }
-      }
+      // P054: 逐条串行 await 改为 Promise.allSettled 并发（各附件独立 IPC + 独立目标文件，
+      // 并发安全）；allSettled 不会因单项失败整体 reject，successCount 语义与串行一致。
+      const results = await Promise.allSettled(
+        selectedItems
+          .filter((item) => !!(item.vaultPath || item.srcPath))
+          .map((item) => {
+            const filePath = item.vaultPath || (item.srcPath as string);
+            const destPath = `${dirPath}/${item.fileName}`;
+            return invoke('attachment_download', { srcPath: filePath, destPath: destPath });
+          }),
+      );
+      const successCount = results.filter((r) => r.status === 'fulfilled').length;
 
       showToast({
         type: successCount === selectedItems.length ? 'success' : 'warning',
