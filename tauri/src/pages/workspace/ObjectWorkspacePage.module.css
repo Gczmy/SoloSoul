@@ -41,8 +41,10 @@
 }
 
 @media (max-width: 767px) {
-  /* 与页面右上角指南按钮一致的紧凑尺寸（32×32），仅保留 + 号 */
-  .createBtn {
+  /* 与页面右上角指南按钮一致的紧凑尺寸（32×32），仅保留 + 号。
+     双类选择器提升特异性（0,2,0），压过 AppBar 的 .actions button
+     44px 触控基线规则（0,1,1），否则移动端仍被覆盖为 44px */
+  .createBtn.createBtn {
     min-height: 32px;
     min-width: 32px;
     padding: 6px;

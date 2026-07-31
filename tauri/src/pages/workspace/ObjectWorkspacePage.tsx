@@ -740,7 +740,7 @@ export function ObjectWorkspacePage() {
             <Button
               variant="danger-outline"
               size="sm"
-              className={buttonStyles.hideLabelOnMobile}
+              className={`${buttonStyles.hideLabelOnMobile} ${buttonStyles.compactMobile}`}
               onClick={() => setConfirmPageDelete(true)}
               title={t('delete')}
             >
