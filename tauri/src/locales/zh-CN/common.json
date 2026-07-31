@@ -37,6 +37,8 @@
   "password_placeholder": "输入密码",
   "password_length_requirement": "密码长度不少于 8 位",
   "password_mismatch": "两次输入的密码不一致",
+  "master_password_required": "请输入主密码",
+  "confirm_password_required": "请输入确认密码",
   "password_hint_placeholder": "可选的密码提示，帮助您回忆密码",
   "show_password": "显示密码",
   "hide_password": "隐藏密码",

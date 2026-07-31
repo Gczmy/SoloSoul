@@ -92,6 +92,9 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
   const [masterPassword, setMasterPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordHint, setPasswordHint] = useState('');
+  // 空字段校验错误（按优先级：主密码 > 确认密码；提示词可选不校验）
+  const [masterPasswordError, setMasterPasswordError] = useState<string | null>(null);
+  const [confirmPasswordError, setConfirmPasswordError] = useState<string | null>(null);
 
   // 手动连接表单状态
   const [hostAddr, setHostAddr] = useState('');
@@ -152,6 +155,8 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
     setMasterPassword('');
     setConfirmPassword('');
     setPasswordHint('');
+    setMasterPasswordError(null);
+    setConfirmPasswordError(null);
     setHostAddr('');
     setPin('');
     setFingerprint('');
@@ -277,6 +282,15 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
     setError(null);
     setSuccess(null);
 
+    // 空字段校验（优先级：主密码 > 确认密码；密码提示词为可选字段）
+    if (!masterPassword) {
+      setMasterPasswordError(t('common:master_password_required'));
+      return;
+    }
+    if (!confirmPassword) {
+      setConfirmPasswordError(t('common:confirm_password_required'));
+      return;
+    }
     if (masterPassword.length < 8) {
       setError(t('common:password_length_requirement'));
       return;
@@ -318,6 +332,8 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
     setMasterPassword('');
     setConfirmPassword('');
     setPasswordHint('');
+    setMasterPasswordError(null);
+    setConfirmPasswordError(null);
     setError(null);
     setStep('collect');
   };
@@ -686,10 +702,12 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
               onChange={(e) => {
                 setMasterPassword(e.target.value);
                 setError(null);
+                if (masterPasswordError) setMasterPasswordError(null);
               }}
               placeholder={t('common:recovery_receive_password_hint')}
               disabled={loading}
               autoFocus
+              error={masterPasswordError ?? undefined}
             />
 
             <Input
@@ -699,9 +717,11 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
               onChange={(e) => {
                 setConfirmPassword(e.target.value);
                 setError(null);
+                if (confirmPasswordError) setConfirmPasswordError(null);
               }}
               placeholder={t('common:recovery_receive_password_hint')}
               disabled={loading}
+              error={confirmPasswordError ?? undefined}
             />
 
             <Input
