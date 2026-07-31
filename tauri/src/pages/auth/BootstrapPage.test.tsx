@@ -5,13 +5,18 @@ import { BootstrapPage } from './BootstrapPage';
 import { useAuthStore } from '@/stores/authStore';
 
 const bootstrapMock = vi.fn();
+// 模拟 store 错误状态（getState 由 handleSubmit 在 bootstrap 后读取，决定是否跳转）
+let mockStoreError: string | null = null;
 
 vi.mock('@/stores/authStore', () => ({
-  useAuthStore: vi.fn(() => ({
-    bootstrap: bootstrapMock,
-    isLoading: false,
-    error: null,
-  })),
+  useAuthStore: Object.assign(
+    vi.fn(() => ({
+      bootstrap: bootstrapMock,
+      isLoading: false,
+      error: mockStoreError,
+    })),
+    { getState: () => ({ error: mockStoreError }) },
+  ),
 }));
 
 vi.mock('react-router-dom', async () => {
@@ -27,6 +32,7 @@ describe('BootstrapPage', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockStoreError = null;
     vi.mocked(useNavigate).mockReturnValue(navigate);
     vi.mocked(useAuthStore).mockReturnValue({
       bootstrap: bootstrapMock,
@@ -179,6 +185,95 @@ describe('BootstrapPage', () => {
     await waitFor(() => {
       expect(bootstrapMock).not.toHaveBeenCalled();
     });
+  });
+
+  it('shows password too short error on master password when length < 8 (priority 3)', async () => {
+    render(
+      <MemoryRouter>
+        <BootstrapPage />
+      </MemoryRouter>,
+    );
+
+    const accountInput = screen.getByPlaceholderText('auth:account_name');
+    const passwordInputs = screen.getAllByPlaceholderText('common:password_placeholder');
+    fireEvent.change(accountInput, { target: { value: 'Alice' } });
+    fireEvent.change(passwordInputs[0], { target: { value: '1234' } });
+    fireEvent.change(passwordInputs[1], { target: { value: '1234' } });
+
+    const form = accountInput.closest('form') as HTMLFormElement;
+    fireEvent.submit(form);
+
+    expect(await screen.findByText('auth:password_too_short')).toBeInTheDocument();
+    expect(screen.queryByText('auth:confirm_password_required')).not.toBeInTheDocument();
+    expect(bootstrapMock).not.toHaveBeenCalled();
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it('password too short takes priority over empty confirm (priority 3 > 4)', async () => {
+    render(
+      <MemoryRouter>
+        <BootstrapPage />
+      </MemoryRouter>,
+    );
+
+    const accountInput = screen.getByPlaceholderText('auth:account_name');
+    const passwordInputs = screen.getAllByPlaceholderText('common:password_placeholder');
+    fireEvent.change(accountInput, { target: { value: 'Alice' } });
+    fireEvent.change(passwordInputs[0], { target: { value: '1234' } });
+    // 确认密码留空
+
+    const form = accountInput.closest('form') as HTMLFormElement;
+    fireEvent.submit(form);
+
+    expect(await screen.findByText('auth:password_too_short')).toBeInTheDocument();
+    expect(screen.queryByText('auth:confirm_password_required')).not.toBeInTheDocument();
+    expect(bootstrapMock).not.toHaveBeenCalled();
+  });
+
+  it('shows mismatch error on confirm input when passwords differ (priority 5)', async () => {
+    render(
+      <MemoryRouter>
+        <BootstrapPage />
+      </MemoryRouter>,
+    );
+
+    const accountInput = screen.getByPlaceholderText('auth:account_name');
+    const passwordInputs = screen.getAllByPlaceholderText('common:password_placeholder');
+    fireEvent.change(accountInput, { target: { value: 'Alice' } });
+    fireEvent.change(passwordInputs[0], { target: { value: 'password123' } });
+    fireEvent.change(passwordInputs[1], { target: { value: 'different' } });
+
+    const form = accountInput.closest('form') as HTMLFormElement;
+    fireEvent.submit(form);
+
+    expect(await screen.findByText('settings:password_mismatch')).toBeInTheDocument();
+    expect(bootstrapMock).not.toHaveBeenCalled();
+    expect(navigate).not.toHaveBeenCalled();
+  });
+
+  it('does not navigate when bootstrap fails (backend error stays on card)', async () => {
+    bootstrapMock.mockResolvedValue(undefined);
+    mockStoreError = 'some backend error';
+
+    render(
+      <MemoryRouter>
+        <BootstrapPage />
+      </MemoryRouter>,
+    );
+
+    const accountInput = screen.getByPlaceholderText('auth:account_name');
+    const passwordInputs = screen.getAllByPlaceholderText('common:password_placeholder');
+    fireEvent.change(accountInput, { target: { value: 'Alice' } });
+    fireEvent.change(passwordInputs[0], { target: { value: 'password123' } });
+    fireEvent.change(passwordInputs[1], { target: { value: 'password123' } });
+
+    const form = accountInput.closest('form') as HTMLFormElement;
+    fireEvent.submit(form);
+
+    await waitFor(() => {
+      expect(bootstrapMock).toHaveBeenCalled();
+    });
+    expect(navigate).not.toHaveBeenCalled();
   });
 
   it('displays error from authStore', () => {

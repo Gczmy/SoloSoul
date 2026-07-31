@@ -10,6 +10,9 @@ import { SecurePasswordInput } from '@/components/forms/PasswordInput';
 import { AlertTriangle } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/constants';
 
+// 主密码最小长度要求，与后端 vault_service 一致（Password must be at least 8 characters）
+const MIN_PASSWORD_LENGTH = 8;
+
 export function BootstrapPage() {
   useApplyThemeFromSettings();
   const navigate = useNavigate();
@@ -18,8 +21,7 @@ export function BootstrapPage() {
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [passwordHint, setPasswordHint] = useState('');
-  const [passwordMismatch, setPasswordMismatch] = useState(false);
-  // 空字段校验错误（按优先级：账户名称 > 主密码 > 确认密码）
+  // 空字段/长度/一致性校验错误（按优先级：账户名称 > 主密码未输入 > 主密码不符合要求 > 确认密码未输入 > 两次密码不一致）
   const [accountNameError, setAccountNameError] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [confirmError, setConfirmError] = useState<string | null>(null);
@@ -29,7 +31,7 @@ export function BootstrapPage() {
 
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
-    // 空字段校验（优先级：账户名称 > 主密码 > 确认密码）
+    // 校验优先级：账户名称未输入 > 主密码未输入 > 主密码不符合要求 > 确认密码未输入 > 两次密码不一致
     if (!accountName.trim()) {
       setAccountNameError(t('auth:account_name_required'));
       return;
@@ -38,20 +40,29 @@ export function BootstrapPage() {
       setPasswordError(t('auth:master_password_required'));
       return;
     }
+    if (password.length < MIN_PASSWORD_LENGTH) {
+      // 密码长度不足：抖动主密码输入框 + 红边 + 红字提示，不跳转
+      setPasswordError(t('auth:password_too_short'));
+      return;
+    }
     if (!confirm) {
       setConfirmError(t('auth:confirm_password_required'));
       return;
     }
     if (password !== confirm) {
-      setPasswordMismatch(true);
+      // 两次密码不一致：抖动确认密码输入框 + 红边 + 红字提示，不跳转
+      setConfirmError(t('settings:password_mismatch'));
       return;
     }
-    setPasswordMismatch(false);
     // Use the language currently active in i18next (detected via Rust IPC),
     // NOT navigator.language (which is unreliable on Windows WebView2)
     const locale = i18next.language?.startsWith('zh') ? 'zh' : 'en';
     await bootstrap(accountName.trim(), password, locale, passwordHint || undefined);
-    navigate('/');
+    // 仅创建成功（store 无错误）时才跳转，失败时停留在卡片展示后端错误
+    const state = useAuthStore.getState();
+    if (!state.error) {
+      navigate('/');
+    }
   };
 
   return (
@@ -121,7 +132,6 @@ export function BootstrapPage() {
             value={confirm}
             onChange={(v) => {
               setConfirm(v);
-              setPasswordMismatch(false);
               if (confirmError) setConfirmError(null);
             }}
             placeholder={t('common:password_placeholder')}
@@ -129,18 +139,13 @@ export function BootstrapPage() {
             onEnter={handleSubmit}
             error={confirmError}
           />
-          {passwordMismatch && !confirmError && (
-            <div style={{ color: '#e74c3c', fontSize: 'var(--text-body-sm)', marginTop: -8 }}>
-              {t('settings:password_mismatch')}
-            </div>
-          )}
           <Input
             label={t('auth:password_hint')}
             value={passwordHint}
             onChange={(e) => setPasswordHint(e.target.value)}
             placeholder={t('auth:password_hint_placeholder')}
           />
-          {error && !passwordMismatch && (
+          {error && (
             <div style={{ color: '#e74c3c', fontSize: 'var(--text-body-sm)' }}>
               {error.toLowerCase().includes('8 characters') || error.toLowerCase().includes('至少')
                 ? t('auth:password_too_short')
