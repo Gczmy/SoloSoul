@@ -10,6 +10,11 @@ use x25519_dalek::{PublicKey, StaticSecret};
 
 const PATTERN: &str = "Noise_XX_25519_ChaChaPoly_BLAKE2s";
 
+/// snow 0.9.x 单条加密消息的最大有效载荷（MAXMSGLEN 65535 - TAGLEN 16）。
+/// 超过此上限时 `TransportState::write_message` 返回 `Error::Input`。
+/// 分块大小（recovery.rs / attachments.rs 的 CHUNK_SIZE）必须小于该值。
+const MAX_NOISE_PAYLOAD: usize = 65535 - 16;
+
 /// Long-term Noise identity keys for this node.
 #[derive(Debug, Clone)]
 pub struct NoiseKeys {
@@ -139,6 +144,16 @@ impl NoiseSession {
 
     /// Send an encrypted payload.
     pub fn send(&mut self, transport: &mut SyncTransport, payload: &[u8]) -> Result<(), String> {
+        // snow 0.9.x 强制 payload.len() + TAGLEN(16) <= MAXMSGLEN(65535)，
+        // 超过时返回隐晦的 Error::Input（透传后表现为 "encrypt: input error"）。
+        // 显式检查并给出可诊断的错误信息，避免超限问题被误判为网络/对端故障。
+        if payload.len() > MAX_NOISE_PAYLOAD {
+            return Err(format!(
+                "payload too large for noise message: {} bytes (max {})",
+                payload.len(),
+                MAX_NOISE_PAYLOAD
+            ));
+        }
         let len = self
             .state
             .write_message(payload, &mut self.buffer)

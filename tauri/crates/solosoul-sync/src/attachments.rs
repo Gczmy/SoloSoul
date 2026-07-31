@@ -2,7 +2,7 @@
 //!
 //! Attachments are referenced from object `properties.__attachments`. Metadata
 //! (id, file_name, size) is synced as part of the object record; this module
-//! transfers the actual file bytes in 64 KiB chunks over the same encrypted
+//! transfers the actual file bytes in 32 KiB chunks over the same encrypted
 //! channel used for the main sync batch.
 
 use crate::noise::NoiseSession;
@@ -17,7 +17,14 @@ use std::fs;
 use std::io::{Read, Seek, SeekFrom, Write};
 use std::path::{Path, PathBuf};
 
-const CHUNK_SIZE: usize = 64 * 1024;
+/// 单次加密消息的最大有效载荷。
+///
+/// snow 0.9.x 的 `TransportState::write_message` 强制
+/// `payload.len() + TAGLEN(16) > MAXMSGLEN(65535)` 时返回 `Error::Input`，
+/// 因此分块必须小于 `65535 - 16 = 65519`。此前 64KB（65536 字节）分块加上
+/// `AttachmentChunk` 的序列化字段开销后必然超限，导致附件 ≥64KB 时同步失败
+/// （"encrypt: input error"，对端表现为读不到数据）。
+const CHUNK_SIZE: usize = 32 * 1024; // 32KB（低于 snow MAXMSGLEN - TAGLEN 上限）
 
 fn attachments_dir(base: &Path) -> PathBuf {
     base.join("attachments")
@@ -343,7 +350,7 @@ pub fn send_requested_attachments(
 ///
 /// Each attachment's chunks are written to a temporary file as they arrive
 /// instead of buffering all chunks in memory. This keeps peak memory usage
-/// bounded by a single chunk (~64 KiB) regardless of total attachment size,
+/// bounded by a single chunk (~32 KiB) regardless of total attachment size,
 /// preventing OOM on memory-constrained devices (mobile).
 struct StreamingAttachment {
     /// Path of the final file — known up-front from the manifest.
@@ -373,7 +380,7 @@ impl Drop for StreamingAttachment {
 /// Receive attachment chunks until `AttachmentDone`, verify sha256, save files.
 ///
 /// Chunks are **streamed directly to temporary files** on disk as they arrive
-/// rather than buffered entirely in memory. Peak memory stays at ~64 KiB (one
+/// rather than buffered entirely in memory. Peak memory stays at ~32 KiB (one
 /// chunk) regardless of how many large attachments are synced simultaneously,
 /// preventing OOM on memory-constrained devices (mobile).
 pub fn receive_attachments(

@@ -20,7 +20,16 @@ use std::time::{Duration, Instant};
 
 const PIN_LEN: usize = 6;
 const RECOVERY_PASSWORD_LEN: usize = 32;
-const CHUNK_SIZE: usize = 64 * 1024; // 64KB
+/// 单次加密消息的最大有效载荷。
+///
+/// snow 0.9.x 的 `TransportState::write_message` 强制
+/// `payload.len() + TAGLEN(16) > MAXMSGLEN(65535)` 时返回 `Error::Input`，
+/// 因此分块必须小于 `65535 - 16 = 65519`。此前 64KB（65536 字节）分块
+/// 加上 MAC 后 65552 > 65535，超出上限 17 字节：导出包 ≥64KB 时，主机发送
+/// 首个分块即报 "encrypt: input error" 并关闭连接，客户端表现为
+/// "read prefix failed: failed to fill whole buffer"（单测文件只有 22 字节
+/// 所以从未触发）。
+const CHUNK_SIZE: usize = 32 * 1024; // 32KB（低于 snow MAXMSGLEN - TAGLEN 上限）
 const MAX_FILE_SIZE: u64 = 1024 * 1024 * 1024; // 1GB
 const SESSION_TIMEOUT: Duration = Duration::from_secs(300); // 5 min
 const ACCEPT_POLL_MS: u64 = 100;
@@ -515,6 +524,48 @@ mod tests {
         assert!(!result.recovery_password.is_empty());
         assert_eq!(result.account_id, "acc_host");
         assert_eq!(result.account_name, "Host Account");
+    }
+
+    #[test]
+    fn test_recovery_transfer_large_file() {
+        // 回归测试：此前 CHUNK_SIZE = 64KB（65536 字节）恰好超过 snow
+        // MAXMSGLEN(65535) - TAGLEN(16) 上限，导出包 ≥64KB 时主机发送首个分块
+        // 即报 "encrypt: input error" 并关闭连接，客户端表现为
+        // "read prefix failed: failed to fill whole buffer"（小文件单测无法触发）。
+        let tmp = tempfile::tempdir().unwrap();
+        let export_path = tmp.path().join("export_big.solosoul");
+        let big_payload = vec![b'x'; 300 * 1024]; // 300KB > 64KB
+        std::fs::write(&export_path, &big_payload).unwrap();
+
+        let host = RecoveryHost::start(
+            "127.0.0.1:0",
+            export_path.clone(),
+            generate_recovery_password(),
+            "acc_host".to_string(),
+            "Host Account".to_string(),
+        )
+        .unwrap();
+        let info = host.connection_info();
+        let addr = host.local_addr().unwrap();
+        let cancel = Arc::new(AtomicBool::new(false));
+
+        thread::spawn(move || {
+            host.run(cancel).unwrap();
+        });
+
+        let dest_dir = tmp.path().join("dest");
+        let result = recover_from_host(
+            &addr,
+            &info.pin,
+            &dest_dir,
+            Some(&info.fingerprint),
+            Some(&info.nonce),
+        )
+        .unwrap();
+
+        let received = std::fs::read(&result.downloaded_path).unwrap();
+        assert_eq!(received.len(), big_payload.len());
+        assert_eq!(received, big_payload);
     }
 
     #[test]
