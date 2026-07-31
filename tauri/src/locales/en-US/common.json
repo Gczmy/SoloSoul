@@ -574,6 +574,7 @@
   "sync_qr_confirm_sync": "Start syncing with {{deviceName}}?",
   "sync_qr_confirm_sync_button": "Sync Now",
   "sync_qr_unrecognized": "Unrecognized QR code format.",
+  "sync_qr_is_recovery": "This is a recovery QR code. Please use it from the \"Restore from another device\" flow on the login page of a new device.",
   "sync_qr_invalid_payload": "Invalid QR code payload.",
   "sync_scan_unsupported": "This device does not support QR scanning. Use device discovery or manual input instead.",
   "sync_use_manual": "Use discovery or manual input",

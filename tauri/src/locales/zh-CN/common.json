@@ -573,6 +573,7 @@
   "sync_qr_confirm_sync": "开始与 {{deviceName}} 同步？",
   "sync_qr_confirm_sync_button": "立即同步",
   "sync_qr_unrecognized": "无法识别二维码格式。",
+  "sync_qr_is_recovery": "这是恢复二维码。请在新设备（未登录）的登录页选择「从其他设备恢复」来扫描它。",
   "sync_qr_invalid_payload": "二维码内容无效。",
   "sync_scan_unsupported": "本设备不支持扫描二维码功能，请使用设备发现或手动输入。",
   "sync_use_manual": "使用设备发现或手动输入",

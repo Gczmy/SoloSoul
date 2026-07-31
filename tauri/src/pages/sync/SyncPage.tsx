@@ -19,7 +19,6 @@ import {
   Info,
   QrCode,
   ScanLine,
-  LifeBuoy,
 } from 'lucide-react';
 import { useSyncStore } from '@/stores/syncStore';
 import { DeleteButton } from '@/components/ui/DeleteButton';
@@ -27,7 +26,6 @@ import { PageGuideButton } from '@/components/guide/PageGuideButton';
 import { SyncConflictDialog } from '@/components/sync/SyncConflictDialog';
 import { SyncShowQrDialog } from '@/components/sync/SyncShowQrDialog';
 import { SyncScanQrDialog } from '@/components/sync/SyncScanQrDialog';
-import { RecoveryHostDialog } from '@/components/recovery/RecoveryHostDialog';
 import type { SyncConflict } from '@/lib/ipc';
 import { ICON_SIZE } from '@/lib/constants';
 
@@ -101,7 +99,6 @@ export function SyncPage() {
   const [conflictDialogOpen, setConflictDialogOpen] = useState(false);
   const [showQrDialogOpen, setShowQrDialogOpen] = useState(false);
   const [scanQrDialogOpen, setScanQrDialogOpen] = useState(false);
-  const [recoveryHostOpen, setRecoveryHostOpen] = useState(false);
 
   const syncGuidePages = useMemo(
     () => [
@@ -440,23 +437,18 @@ export function SyncPage() {
               </div>
             </div>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              {/* 对话框内含恢复二维码 tab，恢复会话不依赖同步启用，故不限制 syncEnabled */}
               <SyncIconButton
                 label={t('settings:sync_qr_show', { defaultValue: 'Show QR' })}
                 icon={<QrCode size={ICON_SIZE.lg} />}
                 onClick={() => setShowQrDialogOpen(true)}
-                disabled={!store.syncEnabled || store.isLoading}
+                disabled={store.isLoading}
               />
               <SyncIconButton
                 label={t('settings:sync_qr_scan', { defaultValue: 'Scan QR' })}
                 icon={<ScanLine size={ICON_SIZE.lg} />}
                 onClick={() => setScanQrDialogOpen(true)}
                 disabled={!store.syncEnabled || store.isLoading}
-              />
-              <SyncIconButton
-                label={t('settings:sync_qr_recovery', { defaultValue: 'Show Recovery QR' })}
-                icon={<LifeBuoy size={ICON_SIZE.lg} />}
-                onClick={() => setRecoveryHostOpen(true)}
-                disabled={store.isLoading}
               />
             </div>
           </div>
@@ -871,10 +863,6 @@ export function SyncPage() {
         isOpen={scanQrDialogOpen}
         onClose={() => setScanQrDialogOpen(false)}
         onSync={handleScanSync}
-      />
-      <RecoveryHostDialog
-        isOpen={recoveryHostOpen}
-        onClose={() => setRecoveryHostOpen(false)}
       />
     </AppShell>
   );

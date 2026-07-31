@@ -40,7 +40,18 @@ export function SyncScanQrDialog({ isOpen, onClose, onSync }: SyncScanQrDialogPr
       const parsed = JSON.parse(text);
       const type = parsed.t === 'sync' ? 'sync' : 'unknown';
       if (type === 'unknown') {
-        setError(t('common:sync_qr_unrecognized'));
+        // 恢复二维码（t:"rec"）的消费端是登录页「从其他设备恢复」流程，
+        // 这里给出明确指引，替代笼统的「无法识别」提示。
+        if (parsed.t === 'rec') {
+          setError(
+            t('common:sync_qr_is_recovery', {
+              defaultValue:
+                'This is a recovery QR code. Please use it from the "Restore from another device" flow on the login page of a new device.',
+            }),
+          );
+        } else {
+          setError(t('common:sync_qr_unrecognized'));
+        }
         setSuccess(null);
         return;
       }
