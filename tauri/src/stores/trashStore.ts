@@ -135,9 +135,13 @@ export const useTrashStore = create<TrashState>((set, get) => ({
   },
 
   permanentDelete: async (trashIds) => {
-    for (const id of trashIds) {
-      await invoke('trash_permanent_delete', { trashId: id });
-    }
+    // P052: 原循环内串行 await 逐条 IPC；后端 rusqlite 连接已在 Mutex 内串行化，
+    // 并发 invoke 无数据竞争，改用 Promise.all 并发化减少总等待时间。
+    // 任一失败时 Promise.all 整体 reject（与串行首错中止语义一致），
+    // 未完成的其余删除在服务端仍会执行，本地列表保持至下次刷新。
+    await Promise.all(
+      trashIds.map((id) => invoke('trash_permanent_delete', { trashId: id })),
+    );
     set((s) => ({ items: s.items.filter((i) => !trashIds.includes(i.id)) }));
   },
 

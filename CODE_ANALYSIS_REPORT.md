@@ -71,7 +71,7 @@
 | P049 | P2 | 重复 | `TrashPage.tsx:254-345`（×2）、`OperationLogPage.tsx:280-323`、`TemplateManagerPage.tsx:597+`、`SampleTemplateGallery.tsx:282+` | 筛选 chip 按钮块（约 45 行）重复 5 处，可抽 FilterChipGroup | `[ ]` 待修复 |
 | P050 | P2 | 结构 | `tauri/src/pages/editor/ObjectEditorPage.tsx:300-360` | 动态组校验 switch 6 个 case 同一模式，应表驱动化（含 5 层嵌套） | `[ ]` 待修复 |
 | P051 | P2 | 性能 | `tauri/src-tauri/src/commands/llm/rag.rs:794-808,942` | 重建 embedding 逐条 `save_guide_embedding`，每条独立事务+fsync | `[ ]` 待修复 |
-| P052 | P2 | 性能 | `tauri/src/stores/trashStore.ts:137-140` | `permanentDelete` 循环内串行 await 逐条 IPC | `[ ]` 待修复 |
+| P052 | P2 | 性能 | `tauri/src/stores/trashStore.ts:137-140` | `permanentDelete` 循环内串行 await 逐条 IPC | `[x]` 已修复 |
 | P053 | P2 | 性能 | `tauri/src/stores/settingsStore.ts:328-355` | `loadCustomPages` 对每个自定义页单独 `object_get`（N+1 IPC） | `[ ]` 待修复 |
 | P054 | P2 | 性能 | `GlobalAttachmentManager.tsx:419-425`、`AttachmentViewer.tsx:343-361` | 附件批量下载逐条串行 IPC+文件拷贝 | `[ ]` 待修复 |
 | P055 | P2 | 性能 | `ObjectEditorPage.tsx:36`、`TrashPage.tsx:79`、`TemplateManagerPage.tsx:75`、`ObjectDetailModal.tsx:136` | 多处 `useXxxStore()` 整店订阅（负载较小，同类于 P010） | `[ ]` 待修复 |
@@ -86,8 +86,8 @@
 
 ## 修复进度
 
-- 已完成：51 / 63（P001–P011、P013–P016、P019–P028、P029–P033、P034–P046、P056–P063；其中 P011 工作区部分完成）
-- 当前处理：P063 已完成（设计如此，无改动），等待下一条指令
+- 已完成：52 / 63（P001–P011、P013–P016、P019–P028、P029–P033、P034–P046、P052、P056–P063；其中 P011 工作区部分完成）
+- 当前处理：P052 已完成，等待下一条指令
 
 ## 静态基线之外已检查且无发现的维度（误报排除记录）
 
@@ -285,6 +285,7 @@ sync crate manager（`manager.rs:168`）`sync_enable` 时自建 `ServiceDaemon`�
 **P051 | embedding 逐条事务**：`rag.rs:794-808,942` 重建时逐条 `save_guide_embedding`（每次抢锁+autocommit+fsync）。加批量接口：单事务+prepared statement 循环绑定。
 
 **P052 | 回收站批量删除串行 IPC**：`trashStore.ts:137-140` 循环内顺序 await。后端加 `trash_permanent_delete_batch` 或前端 `Promise.all`。
+`[x]` 已修复：按报告二选一中的最小改动方案，`permanentDelete` 改 `Promise.all(trashIds.map(...))` 并发化。并发安全已核验：后端 rusqlite 连接在 `Mutex<Option<Connection>>`（storage.rs:26）内串行化，并发 invoke 无数据竞争；后端无 batch 命令（已确认）。语义差异（串行首错中止后续不执行 vs Promise.all 已发起均执行）已注释说明并接受；任一失败整体 reject 与串行首错中止行为一致，本地列表保持至下次刷新。tsc/lint/Vitest 415 全部通过，审查通过。
 
 **P053 | loadCustomPages N+1**：`settingsStore.ts:328-355` 每页单独 `object_get` 拉 description（已 Promise.all 并发，页面数少）。可让 `object_list` 附带 description 或加批量命令。
 
