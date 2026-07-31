@@ -65,8 +65,16 @@ impl SyncService {
             *guard = Some(manager);
             Ok(())
         } else {
-            if let Some(m) = guard.take() {
-                m.stop();
+            let old_manager = guard.take();
+            // 先释放 manager 锁，再在 blocking 线程执行 stop()：
+            // stop() 可能等待活跃同步会话最多 STOP_GRACE_PERIOD_SECS（30 秒），
+            // 若在此处同步调用会阻塞 async 命令线程，并让 sync_get_status 等
+            // 需要 manager 锁的命令全部排队，前端表现为“禁用失败、所有按钮卡住”。
+            // manager 已从锁中取出，后续 is_enabled()/sync_get_status 立即返回 false。
+            drop(guard);
+            if let Some(m) = old_manager {
+                // 显式 drop JoinHandle 以分离任务（detach），命令立即返回
+                std::mem::drop(tokio::task::spawn_blocking(move || m.stop()));
             }
             if let Ok(svc) = self.vault_service.try_read() {
                 if let Some(vault) = svc.get_vault_store() {
@@ -309,5 +317,57 @@ mod tests {
         let (svc, _dir) = fresh_service();
         let r = svc.sync_with_device("127.0.0.1:12345".to_string()).await;
         assert!(r.is_err());
+    }
+
+    /// 回归测试：`enable(false)` 不应在 `stop()` 等待活跃会话时阻塞 async 命令线程。
+    /// 修复前 stop() 会在持有 manager 锁的情况下最多同步等待 30s，
+    /// 导致前端禁用同步超时、所有按钮卡住。
+    #[tokio::test]
+    async fn disable_returns_promptly_even_with_active_sessions() {
+        use solosoul_vault::{VaultConfig, VaultStore};
+        use std::sync::atomic::Ordering;
+
+        let dir = tempdir().expect("tempdir");
+        let vault = Arc::new(
+            VaultStore::open(VaultConfig {
+                path: dir.path().to_path_buf(),
+                account_id: "acct".to_string(),
+                data_key: Some([0u8; 32]),
+            })
+            .expect("open vault"),
+        );
+        let keys = NoiseKeys::generate();
+        let manager = SyncManager::new(
+            "node_test".to_string(),
+            "acct".to_string(),
+            keys,
+            vault,
+            "0.0.0.0:0",
+        );
+        // 模拟存在活跃同步会话：修复前的 stop() 会同步等待其结束（最长 30s）
+        let active_sessions = manager.active_sessions_counter();
+        manager.set_active_sessions_for_test(1);
+
+        let (svc, _dir2) = fresh_service();
+        {
+            let mut guard = svc.manager.lock().await;
+            *guard = Some(manager);
+        }
+
+        let start = std::time::Instant::now();
+        let result = svc.enable(false).await;
+        let elapsed = start.elapsed();
+
+        assert!(result.is_ok(), "enable(false) 应成功: {:?}", result.err());
+        // 修复前此调用会阻塞最多 30s；修复后应立即返回
+        assert!(
+            elapsed.as_secs() < 5,
+            "enable(false) 阻塞了 {:.1}s，manager 锁未及时释放",
+            elapsed.as_secs_f32()
+        );
+        assert!(!svc.is_enabled().await, "禁用后 is_enabled 应为 false");
+
+        // 复位活跃会话计数，让后台 stop() 尽快结束，避免测试收尾等待
+        active_sessions.store(0, Ordering::SeqCst);
     }
 }

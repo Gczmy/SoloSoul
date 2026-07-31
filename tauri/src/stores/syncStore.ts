@@ -63,7 +63,21 @@ interface SyncStoreState extends SyncStatus {
   initConflictListener: () => Promise<UnlistenFn>;
 }
 
-export const useSyncStore = create<SyncStoreState>((set, get) => ({
+export const useSyncStore = create<SyncStoreState>((set, get) => {
+  /** 串行化 enable 切换的队列尾（闭包内私有，不进 state，避免每次入队触发 re-render）。 */
+  let enableChain: Promise<void> = Promise.resolve();
+
+  /** 追加一个需要串行的 enable 任务，返回该任务完成后的 promise。 */
+  const enqueueEnable = (task: () => Promise<void>): Promise<void> => {
+    const next = enableChain.then(task).catch((err) => {
+      // 上游任务失败不应阻断后续任务；错误已在各自任务内处理
+      logger.warn('[syncStore] enable chain task failed:', err);
+    });
+    enableChain = next;
+    return next;
+  };
+
+  return {
   isDiscovering: false,
   syncEnabled: false,
   autoSyncEnabled: false,
@@ -99,38 +113,69 @@ export const useSyncStore = create<SyncStoreState>((set, get) => ({
   },
 
   enable: async (enabled) => {
-    set({ isLoading: true, error: null, lastResult: null });
-    try {
-      // 超时保护：sync_enable + sync_get_status 总耗时超过 15 秒时自动重置 isLoading
-      const result = await Promise.race([
-        (async () => {
-          await invoke<void>('sync_enable', { enable: enabled });
-          const status = await invoke<SyncStatus>('sync_get_status');
-          return { status };
-        })(),
-        new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error('Sync enable timed out')), 15_000),
-        ),
-      ]);
-      set({ ...result.status, isLoading: false, error: null });
-      // 启用后自动发现附近设备，同时刷新监听端口用于手动 fallback
-      if (enabled) {
-        void get().discoverDevices(5000);
-        void get().loadListenPort();
-      } else {
-        set({ discoveredDevices: [], listenPort: 0 });
+    // 串行化：若已有 enable 流程在途，排队等待其完成后再执行本次切换，
+    // 确保快速连点“启用→禁用”时最终状态与最后一次点击一致。
+    await enqueueEnable(async () => {
+      set({ isLoading: true, error: null, lastResult: null });
+      let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
+      try {
+        // 超时保护：sync_enable + sync_get_status 总耗时超过 15 秒时自动重置 isLoading
+        const result = await Promise.race([
+          (async () => {
+            await invoke<void>('sync_enable', { enable: enabled });
+            const status = await invoke<SyncStatus>('sync_get_status');
+            return { status };
+          })(),
+          new Promise<never>((_, reject) => {
+            timeoutHandle = setTimeout(
+              () => reject(new Error('Sync enable timed out')),
+              15_000,
+            );
+          }),
+        ]);
+        clearTimeout(timeoutHandle);
+        set({ ...result.status, isLoading: false, error: null });
+        // 启用后自动发现附近设备，同时刷新监听端口用于手动 fallback
+        if (enabled) {
+          void get().discoverDevices(5000);
+          void get().loadListenPort();
+        } else {
+          set({ discoveredDevices: [], listenPort: 0, isDiscoveringDevices: false });
+        }
+      } catch (err) {
+        clearTimeout(timeoutHandle);
+        set({ isLoading: false, error: String(err) });
       }
-    } catch (err) {
-      set({ isLoading: false, error: String(err) });
-    }
+    });
   },
 
   discoverDevices: async (timeoutMs = 5000) => {
+    // 已在发现中则忽略，避免 enable 成功回调与页面 useEffect 重复触发叠加
+    if (get().isDiscoveringDevices) {
+      return;
+    }
     set({ isDiscoveringDevices: true, error: null });
+    let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
     try {
-      const devices = await invoke<DiscoveredDevice[]>('mdns_discover', { timeoutMs: timeoutMs });
+      const devices = await Promise.race([
+        invoke<DiscoveredDevice[]>('mdns_discover', { timeoutMs: timeoutMs }),
+        new Promise<never>((_, reject) => {
+          // 兜底超时：移动端 request_permissions 弹窗未响应时 mdns_discover 可能挂起
+          timeoutHandle = setTimeout(
+            () => reject(new Error('Device discovery timed out')),
+            timeoutMs + 10_000,
+          );
+        }),
+      ]);
+      clearTimeout(timeoutHandle);
+      // 禁用同步后，在途发现结果不再回写，避免设备列表复活
+      if (!get().syncEnabled) {
+        set({ isDiscoveringDevices: false });
+        return;
+      }
       set({ discoveredDevices: devices, isDiscoveringDevices: false, error: null });
     } catch (err) {
+      clearTimeout(timeoutHandle);
       set({ isDiscoveringDevices: false, error: String(err) });
     }
   },
@@ -254,4 +299,5 @@ export const useSyncStore = create<SyncStoreState>((set, get) => ({
       set({ isLoading: false, error: String(err) });
     }
   },
-}));
+  };
+});

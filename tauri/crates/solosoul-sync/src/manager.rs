@@ -220,6 +220,18 @@ impl SyncManager {
         }
     }
 
+    /// 测试专用：模拟存在 N 个活跃同步会话，验证 `stop()` 的等待逻辑。
+    #[cfg(test)]
+    pub(crate) fn set_active_sessions_for_test(&self, n: usize) {
+        self.active_sessions.store(n, Ordering::SeqCst);
+    }
+
+    /// 测试专用：返回活跃会话计数器，便于测试在后台 `stop()` 期间复位。
+    #[cfg(test)]
+    pub(crate) fn active_sessions_counter(&self) -> Arc<AtomicUsize> {
+        self.active_sessions.clone()
+    }
+
     fn register_mdns(&self, daemon: &ServiceDaemon, port: u16) -> Result<(), String> {
         let ips: Vec<IpAddr> = Self::local_ips().into_iter().map(IpAddr::V4).collect();
         if ips.is_empty() {

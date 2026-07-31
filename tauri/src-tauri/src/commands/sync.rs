@@ -525,8 +525,15 @@ pub async fn sync_enable(
             }
         });
     } else {
-        let handle = app.state::<crate::nsd_plugin::NsdPluginHandle<tauri::Wry>>();
-        let _ = handle.unregister_service();
+        // unregister_service 走 run_mobile_plugin，是同步 IPC，主线程繁忙（例如
+        // 后台 NSD 注册任务正在申请权限）时可能阻塞；移入 blocking 线程执行，
+        // 避免禁用同步的命令卡住前端。
+        let app2 = app.clone();
+        // 显式 drop JoinHandle 以分离任务（detach），命令立即返回
+        std::mem::drop(tokio::task::spawn_blocking(move || {
+            let handle = app2.state::<crate::nsd_plugin::NsdPluginHandle<tauri::Wry>>();
+            let _ = handle.unregister_service();
+        }));
     }
     log_sync_action(
         &state,

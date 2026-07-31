@@ -87,8 +87,16 @@ impl SyncService {
             *guard = Some(manager);
             Ok(())
         } else {
-            if let Some(m) = guard.take() {
-                m.stop();
+            let old_manager = guard.take();
+            // 先释放 manager 锁，再在 blocking 线程执行 stop()：
+            // stop() 可能等待活跃同步会话最多 STOP_GRACE_PERIOD_SECS（30 秒），
+            // 若在此处同步调用会阻塞 async 命令线程，并让 sync_get_status 等
+            // 需要 manager 锁的命令全部排队，前端表现为“禁用失败、所有按钮卡住”。
+            // manager 已从锁中取出，后续 is_enabled()/sync_get_status 立即返回 false。
+            drop(guard);
+            if let Some(m) = old_manager {
+                // 显式 drop JoinHandle 以分离任务（detach），命令立即返回
+                std::mem::drop(tokio::task::spawn_blocking(move || m.stop()));
             }
             if let Ok(svc) = self.vault_service.try_read() {
                 if let Some(vault) = svc.get_vault_store() {

@@ -175,12 +175,19 @@ export function SyncPage() {
     }
   }, [syncEnabled]);
 
+  // 使用 getState() 读取最新状态 + isLoading 防抖：
+  // 1) 避免渲染闭包捕获的旧 syncEnabled 导致连点时目标值反转（点“禁用”实际执行“启用”）；
+  // 2) 上一个切换在途时忽略新点击，防止并发 enable 交错把 isLoading 卡在 true。
   const handleToggleSync = async () => {
-    await store.enable(!store.syncEnabled);
+    const s = useSyncStore.getState();
+    if (s.isLoading) return;
+    await s.enable(!s.syncEnabled);
   };
 
   const handleToggleAutoSync = async () => {
-    await store.setAutoSyncEnabled(!store.autoSyncEnabled);
+    const s = useSyncStore.getState();
+    if (s.isLoading) return;
+    await s.setAutoSyncEnabled(!s.autoSyncEnabled);
   };
 
   const handleDiscover = async () => {
