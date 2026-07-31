@@ -12,7 +12,7 @@ import { ShieldLogo } from '@/components/ui/ShieldLogo';
 import { SecurePasswordInput } from '@/components/forms/PasswordInput';
 import { PinInput, type PinInputHandle } from '@/components/forms/PinInput';
 import { RecoveryReceiveDialog } from '@/components/recovery/RecoveryReceiveDialog';
-import { Fingerprint, KeyRound, ScanFace, ShieldCheck, Grip } from 'lucide-react';
+import { Fingerprint, KeyRound, ScanFace, ShieldCheck, Grip, AlertTriangle } from 'lucide-react';
 import styles from './LoginPage.module.css';
 import { ICON_SIZE } from '@/lib/constants';
 
@@ -57,6 +57,8 @@ export function LoginPage() {
   const [bioLoading, setBioLoading] = useState(false);
   const [bioError, setBioError] = useState<string | null>(null);
   const [bioChecked, setBioChecked] = useState(false);
+  // 系统生物识别因失败次数过多被临时锁定（Android）：指纹项仍显示，但点击时提示警告
+  const [bioLockout, setBioLockout] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
@@ -183,6 +185,7 @@ export function LoginPage() {
       setPinChecked(true);
       setBioAvailable(false);
       setPinAvailable(false);
+      setBioLockout(false);
       return () => controller.abort();
     }
 
@@ -191,19 +194,29 @@ export function LoginPage() {
     setPinChecked(false);
     setBioAvailable(false);
     setPinAvailable(false);
+    setBioLockout(false);
     setBioError(null);
     setPinError(null);
     setSubmitError(null);
 
     // Check biometric
-    invoke<{ available: boolean; configured: boolean; biometryType?: string }>(
-      'biometric_check_availability',
-      { accountId: selectedAccountId },
-    )
+    // lockout 场景：系统因失败次数过多临时锁定生物识别（Android canAuthenticate 返回
+    // ERROR_LOCKOUT），此时后端 available 会变 false，但凭证仍已配置（configured=true）。
+    // 指纹项应继续显示，仅在解锁时提示“系统指纹识别未恢复”，而不是消失或显示“不支持”。
+    invoke<{
+      available: boolean;
+      configured: boolean;
+      biometryType?: string;
+      lockout?: boolean;
+    }>('biometric_check_availability', { accountId: selectedAccountId })
       .then((r) => {
         if (controller.signal.aborted) return;
-        if (r.available && r.configured) {
+        // 已配置凭证且（设备可用或系统临时锁定）→ 保留指纹项。
+        // lockout 以 !!r.lockout 为准：即使 available 与 lockout 同时成立
+        // （Android 插件 status() 在锁定期间可能仍报可用），也正确显示警告。
+        if (r.configured && (r.available || r.lockout)) {
           setBioAvailable(true);
+          setBioLockout(!!r.lockout);
           if (r.biometryType === 'touchId') {
             setBiometryType('Touch ID');
             setBiometryTypeRaw('touchId');
@@ -216,6 +229,7 @@ export function LoginPage() {
           }
         } else {
           setBioAvailable(false);
+          setBioLockout(false);
         }
       })
       .catch(() => {
@@ -316,6 +330,12 @@ export function LoginPage() {
 
   const handleBiometricUnlock = useCallback(async () => {
     if (!selectedAccountId || bioLoading) return;
+    // 系统生物识别处于临时锁定状态：不发起原生提示，直接显示警告并降级到主密码
+    if (bioLockout) {
+      setBioError(t('settings:biometric_lockout_desc'));
+      setLoginMethod('password');
+      return;
+    }
     setBioLoading(true);
     setBioError(null);
     let success = false;
@@ -353,6 +373,11 @@ export function LoginPage() {
         msg.includes('__BIO_ERR__:cancelled')
       ) {
         setLoginMethod('password');
+      } else if (msg.includes('__BIO_ERR__:lockout') || msg.toLowerCase().includes('lockout')) {
+        // 系统临时锁定：保留指纹项显示，标记锁定状态并展示警告
+        setBioLockout(true);
+        setBioError(t('settings:biometric_lockout_desc'));
+        setLoginMethod('password');
       } else {
         setBioError(getBiometricErrorMessage(e, t));
         setLoginMethod('password');
@@ -360,7 +385,7 @@ export function LoginPage() {
     } finally {
       if (!success) setBioLoading(false);
     }
-  }, [selectedAccountId, bioLoading, t, navigate, biometryTypeRaw]);
+  }, [selectedAccountId, bioLoading, t, navigate, biometryTypeRaw, bioLockout]);
 
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
@@ -559,6 +584,31 @@ export function LoginPage() {
               marginBottom: 16,
             }}
           >
+            {/* 系统生物识别临时锁定（失败次数过多）警告条 — 与设置页 BiometricSection 风格一致 */}
+            {bioLockout && (
+              <div
+                role="alert"
+                style={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: 8,
+                  padding: 10,
+                  borderRadius: 8,
+                  marginBottom: 10,
+                  background: 'rgba(212, 133, 10, 0.10)',
+                  border: '1px solid rgba(212, 133, 10, 0.25)',
+                  color: '#D4850A',
+                  fontSize: 'var(--text-caption)',
+                  lineHeight: 1.4,
+                }}
+              >
+                <AlertTriangle
+                  size={ICON_SIZE.md}
+                  style={{ flexShrink: 0, marginTop: 1 }}
+                />
+                <span>{t('settings:biometric_lockout_desc')}</span>
+              </div>
+            )}
             <button
               onClick={handleBiometricUnlock}
               disabled={bioLoading}
