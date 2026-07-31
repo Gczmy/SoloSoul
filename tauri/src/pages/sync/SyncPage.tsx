@@ -28,6 +28,7 @@ import { SyncShowQrDialog } from '@/components/sync/SyncShowQrDialog';
 import { SyncScanQrDialog } from '@/components/sync/SyncScanQrDialog';
 import type { SyncConflict } from '@/lib/ipc';
 import { ICON_SIZE } from '@/lib/constants';
+import { resolveBackendErrorMessage } from '@/lib/backendError';
 
 function formatNodeId(bytes: number[]): string {
   return bytes.map((b) => b.toString(16).padStart(2, '0')).join('');
@@ -641,7 +642,7 @@ export function SyncPage() {
           )}
           {store.error && (
             <p style={{ fontSize: 'var(--text-caption)', color: '#e74c3c', marginTop: 8 }}>
-              {store.error}
+              {resolveBackendErrorMessage(store.error)}
             </p>
           )}
         </Card>

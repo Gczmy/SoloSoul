@@ -94,6 +94,7 @@ const ERROR_PREFIXES: Array<{ prefix: string; kind: string }> = [
   { prefix: '__EXPORT_ERR__:', kind: 'export' },
   { prefix: '__IMPORT_ERR__:', kind: 'import' },
   { prefix: '__BIO_ERR__:', kind: 'biometric' },
+  { prefix: '__SYNC_ERR__:', kind: 'sync' },
 ];
 
 /**

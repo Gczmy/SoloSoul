@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { resolveBackendErrorMessage } from '@/lib/backendError';
 
 interface SyncShowQrDialogProps {
   isOpen: boolean;
@@ -104,7 +105,8 @@ export function SyncShowQrDialog({ isOpen, onClose }: SyncShowQrDialogProps) {
       })
       .catch((err) => {
         clearTimeout(timeoutId);
-        setError(String(err));
+        // 后端错误码（如 __SYNC_ERR__:not_enabled）经 resolveBackendErrorMessage 国际化
+        setError(resolveBackendErrorMessage(err));
       })
       .finally(() => {
         clearTimeout(timeoutId);

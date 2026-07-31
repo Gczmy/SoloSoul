@@ -128,7 +128,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
           })(),
           new Promise<never>((_, reject) => {
             timeoutHandle = setTimeout(
-              () => reject(new Error('Sync enable timed out')),
+              () => reject(new Error('__SYNC_ERR__:enable_timeout')),
               15_000,
             );
           }),
@@ -162,7 +162,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
         new Promise<never>((_, reject) => {
           // 兜底超时：移动端 request_permissions 弹窗未响应时 mdns_discover 可能挂起
           timeoutHandle = setTimeout(
-            () => reject(new Error('Device discovery timed out')),
+            () => reject(new Error('__SYNC_ERR__:discovery_timeout')),
             timeoutMs + 10_000,
           );
         }),

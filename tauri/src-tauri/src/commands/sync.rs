@@ -788,7 +788,8 @@ async fn local_display_ip() -> Option<String> {
 pub async fn sync_generate_qr_payload(state: State<'_, AppState>) -> Result<String, String> {
     let port = state.sync_service.listen_port().await;
     if port == 0 {
-        return Err("Sync is not enabled or listen port is not ready".to_string());
+        // 错误码供前端通过 resolveI18nPrefix 国际化（settings:sync_err_not_enabled）
+        return Err("__SYNC_ERR__:not_enabled".to_string());
     }
     let fingerprint = state.sync_service.local_fingerprint().await?;
     let host = local_display_ip().await.unwrap_or_else(|| "127.0.0.1".to_string());
