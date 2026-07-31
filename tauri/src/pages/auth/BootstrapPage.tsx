@@ -19,12 +19,29 @@ export function BootstrapPage() {
   const [confirm, setConfirm] = useState('');
   const [passwordHint, setPasswordHint] = useState('');
   const [passwordMismatch, setPasswordMismatch] = useState(false);
+  // 空字段校验错误（按优先级：账户名称 > 主密码 > 确认密码）
+  const [accountNameError, setAccountNameError] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [confirmError, setConfirmError] = useState<string | null>(null);
   const [searchParams] = useSearchParams();
   const isCreateMode = searchParams.get('mode') === 'create';
   const { t } = useTranslation(['auth', 'common', 'settings']);
 
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
+    // 空字段校验（优先级：账户名称 > 主密码 > 确认密码）
+    if (!accountName.trim()) {
+      setAccountNameError(t('auth:account_name_required'));
+      return;
+    }
+    if (!password) {
+      setPasswordError(t('auth:master_password_required'));
+      return;
+    }
+    if (!confirm) {
+      setConfirmError(t('auth:confirm_password_required'));
+      return;
+    }
     if (password !== confirm) {
       setPasswordMismatch(true);
       return;
@@ -33,7 +50,7 @@ export function BootstrapPage() {
     // Use the language currently active in i18next (detected via Rust IPC),
     // NOT navigator.language (which is unreliable on Windows WebView2)
     const locale = i18next.language?.startsWith('zh') ? 'zh' : 'en';
-    await bootstrap(accountName, password, locale, passwordHint || undefined);
+    await bootstrap(accountName.trim(), password, locale, passwordHint || undefined);
     navigate('/');
   };
 
@@ -75,16 +92,24 @@ export function BootstrapPage() {
           <Input
             label={t('auth:account_name')}
             value={accountName}
-            onChange={(e) => setAccountName(e.target.value)}
+            onChange={(e) => {
+              setAccountName(e.target.value);
+              if (accountNameError) setAccountNameError(null);
+            }}
             placeholder={t('auth:account_name')}
+            error={accountNameError ?? undefined}
           />
           <SecurePasswordInput
             label={t('auth:master_password')}
             value={password}
-            onChange={(v) => setPassword(v)}
+            onChange={(v) => {
+              setPassword(v);
+              if (passwordError) setPasswordError(null);
+            }}
             placeholder={t('common:password_placeholder')}
             autoComplete="new-password"
             onEnter={handleSubmit}
+            error={passwordError}
           />
           <div
             style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)', marginTop: -12 }}
@@ -97,12 +122,14 @@ export function BootstrapPage() {
             onChange={(v) => {
               setConfirm(v);
               setPasswordMismatch(false);
+              if (confirmError) setConfirmError(null);
             }}
             placeholder={t('common:password_placeholder')}
             autoComplete="new-password"
             onEnter={handleSubmit}
+            error={confirmError}
           />
-          {passwordMismatch && (
+          {passwordMismatch && !confirmError && (
             <div style={{ color: '#e74c3c', fontSize: 'var(--text-body-sm)', marginTop: -8 }}>
               {t('settings:password_mismatch')}
             </div>

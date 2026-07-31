@@ -89,6 +89,76 @@ describe('BootstrapPage', () => {
     expect(navigate).toHaveBeenCalledWith('/');
   });
 
+  it('shows account name error first when submitting empty form (priority 1)', async () => {
+    render(
+      <MemoryRouter>
+        <BootstrapPage />
+      </MemoryRouter>,
+    );
+
+    const accountInput = screen.getByPlaceholderText('auth:account_name');
+    const form = accountInput.closest('form') as HTMLFormElement;
+    fireEvent.submit(form);
+
+    expect(await screen.findByText('auth:account_name_required')).toBeInTheDocument();
+    expect(screen.queryByText('auth:master_password_required')).not.toBeInTheDocument();
+    expect(bootstrapMock).not.toHaveBeenCalled();
+  });
+
+  it('shows master password error when only account name is filled (priority 2)', async () => {
+    render(
+      <MemoryRouter>
+        <BootstrapPage />
+      </MemoryRouter>,
+    );
+
+    const accountInput = screen.getByPlaceholderText('auth:account_name');
+    fireEvent.change(accountInput, { target: { value: 'Alice' } });
+    const form = accountInput.closest('form') as HTMLFormElement;
+    fireEvent.submit(form);
+
+    expect(await screen.findByText('auth:master_password_required')).toBeInTheDocument();
+    expect(screen.queryByText('auth:account_name_required')).not.toBeInTheDocument();
+    expect(screen.queryByText('auth:confirm_password_required')).not.toBeInTheDocument();
+    expect(bootstrapMock).not.toHaveBeenCalled();
+  });
+
+  it('shows confirm password error when passwords are empty (priority 3)', async () => {
+    render(
+      <MemoryRouter>
+        <BootstrapPage />
+      </MemoryRouter>,
+    );
+
+    const accountInput = screen.getByPlaceholderText('auth:account_name');
+    const passwordInputs = screen.getAllByPlaceholderText('common:password_placeholder');
+    fireEvent.change(accountInput, { target: { value: 'Alice' } });
+    fireEvent.change(passwordInputs[0], { target: { value: 'password123' } });
+    // 确认密码留空
+    const form = accountInput.closest('form') as HTMLFormElement;
+    fireEvent.submit(form);
+
+    expect(await screen.findByText('auth:confirm_password_required')).toBeInTheDocument();
+    expect(screen.queryByText('auth:master_password_required')).not.toBeInTheDocument();
+    expect(bootstrapMock).not.toHaveBeenCalled();
+  });
+
+  it('clears field errors while typing', async () => {
+    render(
+      <MemoryRouter>
+        <BootstrapPage />
+      </MemoryRouter>,
+    );
+
+    const accountInput = screen.getByPlaceholderText('auth:account_name');
+    const form = accountInput.closest('form') as HTMLFormElement;
+    fireEvent.submit(form);
+    expect(await screen.findByText('auth:account_name_required')).toBeInTheDocument();
+
+    fireEvent.change(accountInput, { target: { value: 'Alice' } });
+    expect(screen.queryByText('auth:account_name_required')).not.toBeInTheDocument();
+  });
+
   it('does not call bootstrap when passwords do not match', async () => {
     render(
       <MemoryRouter>
