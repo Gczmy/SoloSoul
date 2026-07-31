@@ -61,7 +61,7 @@
 | P039 | P2 | 结构 | `tauri/src/components/import/ImportSection.tsx:71`、`tauri/src/components/import/ExportSection.tsx:88` | ImportSection 848 行 / ExportSection 751 行，结构高度对称可共享抽取 | `[x]` 已修复 |
 | P040 | P2 | 结构 | `tauri/src/pages/system/AboutPage.tsx:50` | 组件 834 行，双平台更新下载流程应抽 hook | `[x]` 已修复 |
 | P041 | P2 | 结构 | `TemplateEditor.tsx:81`(789)、`ObjectDetailModal.tsx:120`(783)、`AttachmentViewer.tsx:59`(763)、`SyncPage.tsx:91`(759) | 4 个 750+ 行大组件需拆分 | `[x]` 已修复 |
-| P042 | P2 | 结构 | `tauri/crates/solosoul-vault/src/migration.rs:31` | `run_migrations` 464 行，每版本重复「查列是否存在」样板 | `[ ]` 待修复 |
+| P042 | P2 | 结构 | `tauri/crates/solosoul-vault/src/migration.rs:31` | `run_migrations` 464 行，每版本重复「查列是否存在」样板 | `[x]` 已修复 |
 | P043 | P2 | 结构 | `tauri/src-tauri/src/lib.rs:135` | `run` 441 行，启动初始化 10+ 步全内联在一个 setup 闭包 | `[ ]` 待修复 |
 | P044 | P2 | 结构 | `export.rs:217`(258)、`object/snapshot.rs:210`(254)、`llm/stream.rs:76`(227) | 3 个 220+ 行多阶段函数需按阶段抽取 | `[ ]` 待修复 |
 | P045 | P2 | 结构 | `export_import/helpers.rs:173-232`、`import.rs:394-412`、`profile.rs:191-205`、`plugin.rs:80-107`、`llm/stream.rs:257-302` | 5 处 5-6 层深层嵌套 | `[ ]` 待修复 |
@@ -86,8 +86,8 @@
 
 ## 修复进度
 
-- 已完成：38 / 63（P001–P011、P013–P016、P019–P027、P028、P029、P030、P031、P032、P033–P039、P040、P041；其中 P011 工作区部分完成）
-- 当前处理：P039 已完成，等待下一条指令
+- 已完成：39 / 63（P001–P011、P013–P016、P019–P028、P029、P030、P031、P032、P033–P042；其中 P011 工作区部分完成）
+- 当前处理：P042 已完成，等待下一条指令
 
 ## 静态基线之外已检查且无发现的维度（误报排除记录）
 

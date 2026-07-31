@@ -27,10 +27,46 @@ pub fn set_schema_version(conn: &Connection, version: u32) -> Result<(), String>
     Ok(())
 }
 
+/// 查询某表是否已存在某列（migration 幂等性样板）。
+/// 表名/列名均为调用侧编译期常量，无注入风险。
+fn has_column(conn: &Connection, table: &str, column: &str) -> bool {
+    let sql = format!("SELECT COUNT(*) FROM pragma_table_info('{table}') WHERE name = '{column}'");
+    conn.query_row(&sql, [], |r| r.get::<_, i32>(0))
+        .unwrap_or(0)
+        > 0
+}
+
 /// Run all pending migrations
 pub fn run_migrations(conn: &mut Connection) -> Result<(), String> {
+    // `current` 在入口读取一次，后续所有版本判断均基于该快照，
+    // 与历史实现完全一致（各 migrate_vN 内 set_schema_version 不影响判断）。
     let current = get_schema_version(conn).unwrap_or(1);
 
+    migrate_v2(conn, current)?;
+    migrate_v3(conn, current)?;
+    migrate_v4(conn, current)?;
+    migrate_v5(conn, current)?;
+    migrate_v6(conn, current)?;
+    migrate_v7(conn, current)?;
+    migrate_v8(conn, current)?;
+    migrate_v9(conn, current)?;
+    migrate_v10(conn, current)?;
+    migrate_v11(conn, current)?;
+    migrate_v12(conn, current)?;
+    migrate_v13(conn, current)?;
+    migrate_v14(conn, current)?;
+    migrate_v15(conn, current)?;
+    migrate_v16(conn, current)?;
+    migrate_v17(conn, current)?;
+    migrate_v18(conn, current)?;
+    migrate_v19(conn, current)?;
+    migrate_v20(conn, current)?;
+    migrate_v21(conn, current)?;
+
+    Ok(())
+}
+
+fn migrate_v2(conn: &mut Connection, current: u32) -> Result<(), String> {
     if current < 2 {
         apply_migration(
             conn,
@@ -39,26 +75,14 @@ pub fn run_migrations(conn: &mut Connection) -> Result<(), String> {
             "Add extra_data column",
         )?;
     }
+    Ok(())
+}
+
+fn migrate_v3(conn: &mut Connection, current: u32) -> Result<(), String> {
     if current < 3 {
         // Ensure metadata table has updated_at column
-        let has_updated: bool = conn
-            .query_row(
-                "SELECT COUNT(*) FROM pragma_table_info('metadata') WHERE name = 'updated_at'",
-                [],
-                |r| r.get::<_, i32>(0),
-            )
-            .unwrap_or(0)
-            > 0;
-        if !has_updated {
-            let metadata_exists: bool = conn
-                .query_row(
-                    "SELECT COUNT(*) FROM pragma_table_info('metadata') WHERE name = 'key'",
-                    [],
-                    |r| r.get::<_, i32>(0),
-                )
-                .unwrap_or(0)
-                > 0;
-            if !metadata_exists {
+        if !has_column(conn, "metadata", "updated_at") {
+            if !has_column(conn, "metadata", "key") {
                 conn.execute("CREATE TABLE metadata (key TEXT PRIMARY KEY, value TEXT NOT NULL, updated_at TEXT)", [])
                     .map_err(|e| format!("Create metadata: {}", e))?;
             } else {
@@ -68,16 +92,12 @@ pub fn run_migrations(conn: &mut Connection) -> Result<(), String> {
         }
         set_schema_version(conn, 3)?;
     }
+    Ok(())
+}
+
+fn migrate_v4(conn: &mut Connection, current: u32) -> Result<(), String> {
     if current < 4 {
-        let has_section_type: bool = conn
-            .query_row(
-                "SELECT COUNT(*) FROM pragma_table_info('trash_items') WHERE name = 'original_section_type'",
-                [],
-                |r| r.get::<_, i32>(0),
-            )
-            .unwrap_or(0)
-            > 0;
-        if !has_section_type {
+        if !has_column(conn, "trash_items", "original_section_type") {
             apply_migration(
                 conn,
                 4,
@@ -93,17 +113,13 @@ pub fn run_migrations(conn: &mut Connection) -> Result<(), String> {
             set_schema_version(conn, 4)?;
         }
     }
+    Ok(())
+}
+
+fn migrate_v5(conn: &mut Connection, current: u32) -> Result<(), String> {
     if current < 5 {
         // Add structured audit log columns (may already exist from init_schema)
-        let has_entity_type: bool = conn
-            .query_row(
-                "SELECT COUNT(*) FROM pragma_table_info('audit_log') WHERE name = 'entity_type'",
-                [],
-                |r| r.get::<_, i32>(0),
-            )
-            .unwrap_or(0)
-            > 0;
-        if !has_entity_type {
+        if !has_column(conn, "audit_log", "entity_type") {
             let tx = conn.transaction().map_err(|e| format!("Begin tx: {}", e))?;
             tx.execute_batch(
                 "ALTER TABLE audit_log ADD COLUMN entity_type TEXT;
@@ -129,6 +145,10 @@ pub fn run_migrations(conn: &mut Connection) -> Result<(), String> {
         }
         set_schema_version(conn, 5)?;
     }
+    Ok(())
+}
+
+fn migrate_v6(conn: &mut Connection, current: u32) -> Result<(), String> {
     if current < 6 {
         apply_migration(
             conn,
@@ -146,6 +166,10 @@ pub fn run_migrations(conn: &mut Connection) -> Result<(), String> {
             "Add guide_embeddings table for RAG vector search",
         )?;
     }
+    Ok(())
+}
+
+fn migrate_v7(conn: &mut Connection, current: u32) -> Result<(), String> {
     if current < 7 {
         apply_migration(
             conn,
@@ -164,24 +188,14 @@ pub fn run_migrations(conn: &mut Connection) -> Result<(), String> {
             "Add user_templates table for custom object templates",
         )?;
     }
+    Ok(())
+}
+
+fn migrate_v8(conn: &mut Connection, current: u32) -> Result<(), String> {
     if current < 8 {
         // Idempotent: init_schema for new DBs already includes these columns.
-        let has_template_id: bool = conn
-            .query_row(
-                "SELECT COUNT(*) FROM pragma_table_info('objects') WHERE name = 'template_id'",
-                [],
-                |r| r.get::<_, i32>(0),
-            )
-            .unwrap_or(0)
-            > 0;
-        let has_template_type: bool = conn
-            .query_row(
-                "SELECT COUNT(*) FROM pragma_table_info('objects') WHERE name = 'template_type'",
-                [],
-                |r| r.get::<_, i32>(0),
-            )
-            .unwrap_or(0)
-            > 0;
+        let has_template_id = has_column(conn, "objects", "template_id");
+        let has_template_type = has_column(conn, "objects", "template_type");
         if !has_template_id && !has_template_type {
             apply_migration(
                 conn,
@@ -199,6 +213,10 @@ pub fn run_migrations(conn: &mut Connection) -> Result<(), String> {
             set_schema_version(conn, 8)?;
         }
     }
+    Ok(())
+}
+
+fn migrate_v9(conn: &mut Connection, current: u32) -> Result<(), String> {
     if current < 9 {
         apply_migration(
             conn,
@@ -207,6 +225,10 @@ pub fn run_migrations(conn: &mut Connection) -> Result<(), String> {
             "Add category to user_templates table",
         )?;
     }
+    Ok(())
+}
+
+fn migrate_v10(conn: &mut Connection, current: u32) -> Result<(), String> {
     if current < 10 {
         apply_migration(
             conn,
@@ -220,6 +242,10 @@ pub fn run_migrations(conn: &mut Connection) -> Result<(), String> {
             "Add sensitivity_map table for field-level sensitivity persistence",
         )?;
     }
+    Ok(())
+}
+
+fn migrate_v11(conn: &mut Connection, current: u32) -> Result<(), String> {
     if current < 11 {
         apply_migration(
             conn,
@@ -255,6 +281,10 @@ pub fn run_migrations(conn: &mut Connection) -> Result<(), String> {
             "Recreate trash_items without restrictive CHECK constraint",
         )?;
     }
+    Ok(())
+}
+
+fn migrate_v12(conn: &mut Connection, current: u32) -> Result<(), String> {
     if current < 12 {
         // §12 — 彻底重建 trash_items，丢弃全部旧数据（软件尚未分发，旧数据无保留价值）
         apply_migration(
@@ -281,6 +311,10 @@ pub fn run_migrations(conn: &mut Connection) -> Result<(), String> {
             "Rebuild trash_items from scratch — discard all legacy trash data",
         )?;
     }
+    Ok(())
+}
+
+fn migrate_v13(conn: &mut Connection, current: u32) -> Result<(), String> {
     if current < 13 {
         // §13 — 废弃 SensitivityMap，字段敏感度完全由模板定义
         apply_migration(
@@ -290,6 +324,10 @@ pub fn run_migrations(conn: &mut Connection) -> Result<(), String> {
             "Drop sensitivity_map — sensitivity now defined per-template",
         )?;
     }
+    Ok(())
+}
+
+fn migrate_v14(conn: &mut Connection, current: u32) -> Result<(), String> {
     if current < 14 {
         // §14 — TemplateProperty 支持 deprecated_at 字段（properties_json 是自由 JSON，无需表结构变更）
         let now = Utc::now().timestamp();
@@ -304,6 +342,10 @@ pub fn run_migrations(conn: &mut Connection) -> Result<(), String> {
         .ok();
         set_schema_version(conn, 14)?;
     }
+    Ok(())
+}
+
+fn migrate_v15(conn: &mut Connection, current: u32) -> Result<(), String> {
     if current < 15 {
         apply_migration(
             conn,
@@ -338,6 +380,10 @@ pub fn run_migrations(conn: &mut Connection) -> Result<(), String> {
             "Add sync peer, watermark and HLC tables",
         )?;
     }
+    Ok(())
+}
+
+fn migrate_v16(conn: &mut Connection, current: u32) -> Result<(), String> {
     if current < 16 {
         apply_migration(
             conn,
@@ -355,32 +401,20 @@ pub fn run_migrations(conn: &mut Connection) -> Result<(), String> {
             "Add sync tombstones table",
         )?;
     }
+    Ok(())
+}
+
+fn migrate_v17(conn: &mut Connection, current: u32) -> Result<(), String> {
     if current < 17 {
         // §17 — plugin-template compat: add contract_type_id to objects and user_templates.
         // Use two independent `pragma_table_info` booleans so the upgrade path is idempotent
         // for users with partially-migrated DBs. Each ALTER is only issued for the table
         // that does not yet have the column.
         let mut sql_parts: Vec<&str> = Vec::new();
-        let has_utpl_ctid: bool = conn
-            .query_row(
-                "SELECT COUNT(*) FROM pragma_table_info('user_templates') WHERE name = 'contract_type_id'",
-                [],
-                |r| r.get::<_, i32>(0),
-            )
-            .unwrap_or(0)
-            > 0;
-        if !has_utpl_ctid {
+        if !has_column(conn, "user_templates", "contract_type_id") {
             sql_parts.push("ALTER TABLE user_templates ADD COLUMN contract_type_id TEXT;");
         }
-        let has_objects_ctid: bool = conn
-            .query_row(
-                "SELECT COUNT(*) FROM pragma_table_info('objects') WHERE name = 'contract_type_id'",
-                [],
-                |r| r.get::<_, i32>(0),
-            )
-            .unwrap_or(0)
-            > 0;
-        if !has_objects_ctid {
+        if !has_column(conn, "objects", "contract_type_id") {
             sql_parts.push("ALTER TABLE objects ADD COLUMN contract_type_id TEXT;");
         }
         let tx = conn
@@ -406,16 +440,12 @@ pub fn run_migrations(conn: &mut Connection) -> Result<(), String> {
         set_schema_version(&tx, 17)?;
         tx.commit().map_err(|e| format!("Commit v17: {}", e))?;
     }
+    Ok(())
+}
+
+fn migrate_v18(conn: &mut Connection, current: u32) -> Result<(), String> {
     if current < 18 {
-        let has_template_hash: bool = conn
-            .query_row(
-                "SELECT COUNT(*) FROM pragma_table_info('objects') WHERE name = 'template_hash'",
-                [],
-                |r| r.get::<_, i32>(0),
-            )
-            .unwrap_or(0)
-            > 0;
-        if !has_template_hash {
+        if !has_column(conn, "objects", "template_hash") {
             apply_migration(
                 conn,
                 18,
@@ -431,16 +461,12 @@ pub fn run_migrations(conn: &mut Connection) -> Result<(), String> {
             set_schema_version(conn, 18)?;
         }
     }
+    Ok(())
+}
+
+fn migrate_v19(conn: &mut Connection, current: u32) -> Result<(), String> {
     if current < 19 {
-        let has_ignored: bool = conn
-            .query_row(
-                "SELECT COUNT(*) FROM pragma_table_info('objects') WHERE name = 'ignored_template_hash'",
-                [],
-                |r| r.get::<_, i32>(0),
-            )
-            .unwrap_or(0)
-            > 0;
-        if !has_ignored {
+        if !has_column(conn, "objects", "ignored_template_hash") {
             apply_migration(
                 conn,
                 19,
@@ -456,6 +482,10 @@ pub fn run_migrations(conn: &mut Connection) -> Result<(), String> {
             set_schema_version(conn, 19)?;
         }
     }
+    Ok(())
+}
+
+fn migrate_v20(conn: &mut Connection, current: u32) -> Result<(), String> {
     if current < 20 {
         apply_migration(
             conn,
@@ -477,16 +507,12 @@ pub fn run_migrations(conn: &mut Connection) -> Result<(), String> {
             "Add sync_conflicts table for persistent sync conflict resolution UI",
         )?;
     }
+    Ok(())
+}
+
+fn migrate_v21(conn: &mut Connection, current: u32) -> Result<(), String> {
     if current < 21 {
-        let has_local_data: bool = conn
-            .query_row(
-                "SELECT COUNT(*) FROM pragma_table_info('sync_conflicts') WHERE name = 'local_data'",
-                [],
-                |r| r.get::<_, i32>(0),
-            )
-            .unwrap_or(0)
-            > 0;
-        if !has_local_data {
+        if !has_column(conn, "sync_conflicts", "local_data") {
             apply_migration(
                 conn,
                 21,
