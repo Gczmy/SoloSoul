@@ -217,6 +217,10 @@ export function SyncShowQrDialog({ isOpen, onClose }: SyncShowQrDialogProps) {
           width: '100%',
           padding: 24,
           position: 'relative',
+          // 与 Dialog 组件一致：展开「手动模式」后内容较高，超出视口时允许卡片内滚动，
+          // 避免 flex 居中溢出导致上下内容（tab 切换/关闭/取消按钮）不可达。
+          maxHeight: 'min(85vh, calc(100% - 32px))',
+          overflowY: 'auto',
         }}
       >
         <button
