@@ -58,7 +58,7 @@
 | P036 | P2 | 死代码 | `tauri/src-tauri/src/sync/device_auto_sync.rs:148` | `trigger_periodic` 零调用，Periodic 事件分支不可达 | `[x]` 已修复 |
 | P037 | P2 | 死代码 | `lib/plugin.ts`（13 处）、`useNavigationItems.ts`（6 处）、`lib/updater.ts`（5 处）等 | 约 60 处"仅本文件内使用、export 多余"的类型导出 | `[x]` 已修复（热点批次 27 处） |
 | P038 | P2 | 结构 | `tauri/src/pages/auth/LoginPage.tsx:32,111-120,220-229` | 组件 846 行；biometryType→显示名 if-else 链同文件重复两份 | `[x]` 已修复 |
-| P039 | P2 | 结构 | `tauri/src/components/import/ImportSection.tsx:71`、`tauri/src/components/import/ExportSection.tsx:88` | ImportSection 848 行 / ExportSection 751 行，结构高度对称可共享抽取 | `[ ]` 待修复 |
+| P039 | P2 | 结构 | `tauri/src/components/import/ImportSection.tsx:71`、`tauri/src/components/import/ExportSection.tsx:88` | ImportSection 848 行 / ExportSection 751 行，结构高度对称可共享抽取 | `[x]` 已修复 |
 | P040 | P2 | 结构 | `tauri/src/pages/system/AboutPage.tsx:50` | 组件 834 行，双平台更新下载流程应抽 hook | `[x]` 已修复 |
 | P041 | P2 | 结构 | `TemplateEditor.tsx:81`(789)、`ObjectDetailModal.tsx:120`(783)、`AttachmentViewer.tsx:59`(763)、`SyncPage.tsx:91`(759) | 4 个 750+ 行大组件需拆分 | `[x]` 已修复 |
 | P042 | P2 | 结构 | `tauri/crates/solosoul-vault/src/migration.rs:31` | `run_migrations` 464 行，每版本重复「查列是否存在」样板 | `[ ]` 待修复 |
@@ -86,8 +86,8 @@
 
 ## 修复进度
 
-- 已完成：37 / 63（P001–P011、P013–P016、P019–P027、P028、P029、P030、P031、P032、P033–P037、P038、P040、P041；其中 P011 工作区部分完成）
-- 当前处理：P037 已完成，等待下一条指令
+- 已完成：38 / 63（P001–P011、P013–P016、P019–P027、P028、P029、P030、P031、P032、P033–P039、P040、P041；其中 P011 工作区部分完成）
+- 当前处理：P039 已完成，等待下一条指令
 
 ## 静态基线之外已检查且无发现的维度（误报排除记录）
 

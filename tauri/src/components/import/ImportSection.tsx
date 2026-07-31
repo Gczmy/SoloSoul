@@ -1,13 +1,9 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
-import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import { SecurePasswordInput } from '@/components/forms/PasswordInput';
-import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
-import { Paperclip } from 'lucide-react';
-import { formatBytes } from '@/lib/utils';
-import { ICON_SIZE } from '@/lib/constants';
-import type { SensitivityLevel } from '@/components/ui/SensitivityBadge';
+import { ObjectSelectionTree } from '@/components/transfer/ObjectSelectionTree';
+import { TransferButton } from '@/components/transfer/TransferButton';
 import type {
   AttachmentImportInfo,
   ImportStrategy,
@@ -170,8 +166,7 @@ export function ImportSection({
         >
           {importPath || t('settings:no_file_selected')}
         </div>
-        <button
-          type="button"
+        <TransferButton
           onClick={async () => {
             const { openWithPause } = await import('@/lib/dialog');
             const selected = await openWithPause({
@@ -186,71 +181,14 @@ export function ImportSection({
               onSetShowStrategySelector(false);
             }
           }}
-          style={{
-            fontSize: 'var(--text-caption)',
-            padding: '6px 12px',
-            borderRadius: 6,
-            border: '1px solid var(--border-subtle)',
-            background: 'var(--bg-toolbar)',
-            color: 'var(--text-primary)',
-            cursor: 'pointer',
-            fontFamily: 'inherit',
-            fontWeight: 500,
-            transition: 'all 0.15s ease',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background =
-              'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-            e.currentTarget.style.borderColor = 'var(--accent-primary)';
-            e.currentTarget.style.color = 'var(--accent-primary)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'var(--bg-toolbar)';
-            e.currentTarget.style.borderColor = 'var(--border-subtle)';
-            e.currentTarget.style.color = 'var(--text-primary)';
-          }}
         >
           {t('settings:select_file')}
-        </button>
+        </TransferButton>
         {importPath && !importPreview && (
           <div style={{ marginTop: 8 }}>
-            <button
-              type="button"
-              onClick={onPreview}
-              disabled={isPreviewing}
-              style={{
-                fontSize: 'var(--text-caption)',
-                padding: '6px 12px',
-                borderRadius: 6,
-                border: '1px solid var(--border-subtle)',
-                background: isPreviewing
-                  ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)'
-                  : 'var(--bg-toolbar)',
-                color: isPreviewing ? 'var(--accent-primary)' : 'var(--text-primary)',
-                cursor: isPreviewing ? 'default' : 'pointer',
-                fontFamily: 'inherit',
-                fontWeight: 500,
-                opacity: isPreviewing ? 0.6 : 1,
-                transition: 'all 0.15s ease',
-              }}
-              onMouseEnter={(e) => {
-                if (!isPreviewing) {
-                  e.currentTarget.style.background =
-                    'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-                  e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                  e.currentTarget.style.color = 'var(--accent-primary)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!isPreviewing) {
-                  e.currentTarget.style.background = 'var(--bg-toolbar)';
-                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                  e.currentTarget.style.color = 'var(--text-primary)';
-                }
-              }}
-            >
+            <TransferButton onClick={onPreview} disabled={isPreviewing} busy={isPreviewing}>
               {isPreviewing ? t('common:loading', { defaultValue: '...' }) : t('settings:preview')}
-            </button>
+            </TransferButton>
           </div>
         )}
       </Card>
@@ -313,45 +251,15 @@ export function ImportSection({
           </div>
           {!decryptedPreview && (
             <div style={{ marginTop: 8 }}>
-              <button
-                type="button"
+              <TransferButton
                 onClick={onDecrypt}
                 disabled={!importPw || isDecrypting}
-                style={{
-                  fontSize: 'var(--text-caption)',
-                  padding: '6px 12px',
-                  borderRadius: 6,
-                  border: '1px solid var(--border-subtle)',
-                  background: isDecrypting
-                    ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)'
-                    : 'var(--bg-toolbar)',
-                  color: isDecrypting ? 'var(--accent-primary)' : 'var(--text-primary)',
-                  cursor: !importPw || isDecrypting ? 'default' : 'pointer',
-                  fontFamily: 'inherit',
-                  fontWeight: 500,
-                  opacity: !importPw || isDecrypting ? 0.5 : 1,
-                  transition: 'all 0.15s ease',
-                }}
-                onMouseEnter={(e) => {
-                  if (importPw && !isDecrypting) {
-                    e.currentTarget.style.background =
-                      'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-                    e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                    e.currentTarget.style.color = 'var(--accent-primary)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (importPw && !isDecrypting) {
-                    e.currentTarget.style.background = 'var(--bg-toolbar)';
-                    e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                    e.currentTarget.style.color = 'var(--text-primary)';
-                  }
-                }}
+                busy={isDecrypting}
               >
                 {isDecrypting
                   ? t('common:loading', { defaultValue: '...' })
                   : t('settings:decrypt_and_preview')}
-              </button>
+              </TransferButton>
             </div>
           )}
 
@@ -369,280 +277,42 @@ export function ImportSection({
                 <h4 style={{ fontSize: 'var(--text-body-sm)', fontWeight: 600, marginBottom: 6 }}>
                   {t('settings:select_objects')}
                 </h4>
-                {importPageGroups.length > 0 && (
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 8,
-                      padding: '4px 0',
-                      cursor: 'pointer',
-                      userSelect: 'none',
-                      borderBottom: '1px solid var(--border-subtle)',
-                      marginBottom: 4,
-                    }}
-                    onClick={() =>
-                      onSelectAllImport(importTotalSelected < decryptedPreview.objects.length)
-                    }
-                  >
-                    <SelectCheckbox
-                      checked={
-                        importTotalSelected > 0 &&
-                        importTotalSelected === decryptedPreview.objects.length
-                      }
-                      indeterminate={
-                        importTotalSelected > 0 &&
-                        importTotalSelected < decryptedPreview.objects.length
-                      }
-                      onChange={() =>
-                        onSelectAllImport(importTotalSelected < decryptedPreview.objects.length)
-                      }
-                    />
-                    <span style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500, flex: 1 }}>
-                      {importTotalSelected === decryptedPreview.objects.length
-                        ? t('common:deselect_all')
-                        : t('common:select_all')}
-                    </span>
-                    <span
-                      style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}
-                    >
-                      {t('common:object_count', { n: importTotalSelected })}
-                    </span>
-                  </div>
-                )}
-
-                {importPageGroups.length === 0 ? (
-                  <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-tertiary)' }}>
-                    {t('common:no_data')}
-                  </p>
-                ) : (
-                  <div
-                    style={{ maxHeight: 320, overflowY: 'auto', fontSize: 'var(--text-body-sm)' }}
-                  >
-                    {importPageGroups.map((group) => {
-                      const allIds = group.objects.map((o) => o.id);
-                      const pageChecked = importSelectedPageIds.has(group.sectionType);
-                      const someChecked =
-                        !pageChecked && allIds.some((id) => importSelections.get(id) === true);
-                      const expanded = importExpandedPages.has(group.sectionType);
-                      return (
-                        <div key={group.sectionType}>
-                          {/* Page row */}
-                          <div
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              gap: 8,
-                              padding: '8px 0',
-                              cursor: 'pointer',
-                              userSelect: 'none',
-                            }}
-                          >
-                            <SelectCheckbox
-                              checked={pageChecked}
-                              indeterminate={someChecked && !pageChecked}
-                              onChange={() => onToggleImportPage(group.sectionType, allIds)}
-                            />
-                            <span
-                              onClick={() => onToggleExpandedImportPage(group.sectionType)}
-                              style={{
-                                fontSize: 'var(--text-body)',
-                                fontWeight: 600,
-                                flex: 1,
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: 4,
-                              }}
-                            >
-                              <span
-                                style={{
-                                  transform: expanded ? 'rotate(90deg)' : 'none',
-                                  transition: 'transform 0.15s',
-                                  fontSize: 'var(--text-badge)',
-                                }}
-                              >
-                                ▶
-                              </span>
-                              <span
-                                style={{
-                                  overflow: 'hidden',
-                                  textOverflow: 'ellipsis',
-                                  whiteSpace: 'nowrap',
-                                }}
-                              >
-                                {t(`navigation:${group.sectionType}`, group.sectionType)}
-                              </span>
-                            </span>
-                            <span
-                              style={{
-                                fontSize: 'var(--text-caption)',
-                                color: 'var(--text-tertiary)',
-                              }}
-                            >
-                              {t('common:object_count', { n: group.objects.length })}
-                            </span>
-                          </div>
-
-                          {/* Object rows (collapsible) */}
-                          {expanded &&
-                            group.objects.map((obj) => {
-                              const isConflict = conflictIds.has(obj.id);
-                              const isSelected = importSelections.get(obj.id) ?? true;
-                              const objAtts = attachmentsByObject.get(obj.id) ?? [];
-                              const hasAtts = objAtts.length > 0;
-                              return (
-                                <div key={obj.id}>
-                                  <label
-                                    style={{
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      gap: 8,
-                                      padding: '4px 0 4px 28px',
-                                      cursor: 'pointer',
-                                    }}
-                                  >
-                                    <SelectCheckbox
-                                      checked={isSelected}
-                                      onChange={() => onToggleSelection(obj.id)}
-                                    />
-                                    <span
-                                      style={{
-                                        fontSize: 'var(--text-body-sm)',
-                                        flex: 1,
-                                        overflow: 'hidden',
-                                        textOverflow: 'ellipsis',
-                                        whiteSpace: 'nowrap',
-                                      }}
-                                    >
-                                      {obj.name}
-                                    </span>
-                                    <SensitivityBadge
-                                      level={obj.sensitivityLevel as SensitivityLevel}
-                                    />
-                                    {isConflict &&
-                                      (() => {
-                                        const cinfo = conflictMap.get(obj.id);
-                                        return (
-                                          <span
-                                            title={cinfo ? conflictKindText(cinfo.kind) : ''}
-                                            style={{
-                                              fontSize: 'var(--text-badge)',
-                                              color: 'var(--warning)',
-                                              border: '1px solid var(--warning)',
-                                              borderRadius: 3,
-                                              padding: '0 4px',
-                                            }}
-                                          >
-                                            {t('settings:conflict')}
-                                          </span>
-                                        );
-                                      })()}
-                                    {hasAtts && (
-                                      <button
-                                        type="button"
-                                        onClick={(e) => {
-                                          e.preventDefault();
-                                          e.stopPropagation();
-                                          onToggleImportObjectExpanded(obj.id);
-                                        }}
-                                        style={{
-                                          fontSize: 'var(--text-badge)',
-                                          background: 'none',
-                                          border: 'none',
-                                          cursor: 'pointer',
-                                          padding: '0 4px',
-                                          transform: importExpandedObjects.has(obj.id)
-                                            ? 'rotate(90deg)'
-                                            : 'none',
-                                          transition: 'transform 0.15s',
-                                          color: 'var(--text-tertiary)',
-                                        }}
-                                      >
-                                        ▶
-                                      </button>
-                                    )}
-                                  </label>
-
-                                  {/* Attachment rows */}
-                                  {importExpandedObjects.has(obj.id) && (
-                                    <div style={{ paddingLeft: 52, paddingBottom: 4 }}>
-                                      {!hasAtts ? (
-                                        <span
-                                          style={{
-                                            fontSize: 'var(--text-caption)',
-                                            color: 'var(--text-tertiary)',
-                                          }}
-                                        >
-                                          {t('settings:no_attachments')}
-                                        </span>
-                                      ) : (
-                                        <>
-                                          <div
-                                            style={{
-                                              display: 'flex',
-                                              alignItems: 'center',
-                                              gap: 4,
-                                              padding: '2px 0',
-                                              fontSize: 'var(--text-badge)',
-                                              color: 'var(--text-tertiary)',
-                                              borderBottom: '1px solid var(--border-subtle)',
-                                              marginBottom: 2,
-                                            }}
-                                          >
-                                            <Paperclip size={ICON_SIZE['2xs']} />
-                                            <span>
-                                              {t('settings:attachments_label')} ({objAtts.length})
-                                            </span>
-                                          </div>
-                                          {objAtts.map((att) => (
-                                            <label
-                                              key={att.id}
-                                              style={{
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                gap: 6,
-                                                padding: '2px 0 2px 16px',
-                                                cursor: 'pointer',
-                                              }}
-                                            >
-                                              <SelectCheckbox
-                                                checked={importSelectedAttachmentIds.has(att.id)}
-                                                onChange={() => onToggleImportAttachment(att.id)}
-                                              />
-                                              <Paperclip
-                                                size={ICON_SIZE['2xs']}
-                                                style={{
-                                                  color: 'var(--text-tertiary)',
-                                                  flexShrink: 0,
-                                                }}
-                                              />
-                                              <span
-                                                style={{ fontSize: 'var(--text-caption)', flex: 1 }}
-                                              >
-                                                {att.fileName}
-                                              </span>
-                                              <span
-                                                style={{
-                                                  fontSize: 'var(--text-badge)',
-                                                  color: 'var(--text-tertiary)',
-                                                }}
-                                              >
-                                                {formatBytes(att.sizeBytes)}
-                                              </span>
-                                            </label>
-                                          ))}
-                                        </>
-                                      )}
-                                    </div>
-                                  )}
-                                </div>
-                              );
-                            })}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
+                <ObjectSelectionTree
+                  pageGroups={importPageGroups}
+                  selectedPageIds={importSelectedPageIds}
+                  expandedPages={importExpandedPages}
+                  expandedObjects={importExpandedObjects}
+                  selectedAttachmentIds={importSelectedAttachmentIds}
+                  objectAttachments={attachmentsByObject}
+                  totalSelected={importTotalSelected}
+                  showAttachmentExpand={(obj) => (attachmentsByObject.get(obj.id) ?? []).length > 0}
+                  isObjectSelected={(id) => importSelections.get(id) ?? true}
+                  onTogglePage={onToggleImportPage}
+                  onToggleObject={(id) => onToggleSelection(id)}
+                  onToggleObjectExpanded={onToggleImportObjectExpanded}
+                  onToggleAttachment={(attId) => onToggleImportAttachment(attId)}
+                  onToggleExpandedPage={onToggleExpandedImportPage}
+                  onSelectAll={onSelectAllImport}
+                  scrollable
+                  renderConflictBadge={(obj) => {
+                    if (!conflictIds.has(obj.id)) return null;
+                    const cinfo = conflictMap.get(obj.id);
+                    return (
+                      <span
+                        title={cinfo ? conflictKindText(cinfo.kind) : ''}
+                        style={{
+                          fontSize: 'var(--text-badge)',
+                          color: 'var(--warning)',
+                          border: '1px solid var(--warning)',
+                          borderRadius: 3,
+                          padding: '0 4px',
+                        }}
+                      >
+                        {t('settings:conflict')}
+                      </span>
+                    );
+                  }}
+                />
 
                 {decryptedPreview.conflicts.length > 0 && (
                   <div
@@ -728,77 +398,19 @@ export function ImportSection({
               {/* Action buttons */}
               {!showStrategySelector ? (
                 <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
-                  <button
-                    type="button"
-                    onClick={() => onSetShowStrategySelector(true)}
-                    style={{
-                      fontSize: 'var(--text-caption)',
-                      padding: '6px 12px',
-                      borderRadius: 6,
-                      border: '1px solid var(--border-subtle)',
-                      background: 'var(--bg-toolbar)',
-                      color: 'var(--text-primary)',
-                      cursor: 'pointer',
-                      fontFamily: 'inherit',
-                      fontWeight: 500,
-                      transition: 'all 0.15s ease',
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.background =
-                        'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-                      e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                      e.currentTarget.style.color = 'var(--accent-primary)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.background = 'var(--bg-toolbar)';
-                      e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                      e.currentTarget.style.color = 'var(--text-primary)';
-                    }}
-                  >
+                  <TransferButton onClick={() => onSetShowStrategySelector(true)}>
                     {t('settings:advanced_import')}
-                  </button>
-                  <button
-                    type="button"
+                  </TransferButton>
+                  <TransferButton
+                    variant="accent"
                     onClick={onImport}
                     disabled={!importPw || isImporting || importTotalSelected === 0}
-                    style={{
-                      fontSize: 'var(--text-caption)',
-                      padding: '6px 12px',
-                      borderRadius: 6,
-                      border: '1px solid var(--border-subtle)',
-                      background: isImporting
-                        ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)'
-                        : 'var(--bg-toolbar)',
-                      color: isImporting ? 'var(--accent-primary)' : 'var(--text-primary)',
-                      cursor:
-                        !importPw || isImporting || importTotalSelected === 0
-                          ? 'default'
-                          : 'pointer',
-                      fontFamily: 'inherit',
-                      fontWeight: 500,
-                      opacity: !importPw || isImporting || importTotalSelected === 0 ? 0.5 : 1,
-                      transition: 'all 0.15s ease',
-                    }}
-                    onMouseEnter={(e) => {
-                      if (importPw && !isImporting && importTotalSelected > 0) {
-                        e.currentTarget.style.background =
-                          'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-                        e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                        e.currentTarget.style.color = 'var(--accent-primary)';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (importPw && !isImporting && importTotalSelected > 0) {
-                        e.currentTarget.style.background = 'var(--bg-toolbar)';
-                        e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                        e.currentTarget.style.color = 'var(--text-primary)';
-                      }
-                    }}
+                    busy={isImporting}
                   >
                     {isImporting
                       ? t('common:loading', { defaultValue: '...' })
                       : `${t('settings:quick_import')} (${importTotalSelected})`}
-                  </button>
+                  </TransferButton>
                 </div>
               ) : (
                 <div
@@ -845,77 +457,19 @@ export function ImportSection({
                     </label>
                   ))}
                   <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
-                    <button
-                      type="button"
-                      onClick={() => onSetShowStrategySelector(false)}
-                      style={{
-                        fontSize: 'var(--text-caption)',
-                        padding: '6px 12px',
-                        borderRadius: 6,
-                        border: '1px solid var(--border-subtle)',
-                        background: 'var(--bg-toolbar)',
-                        color: 'var(--text-primary)',
-                        cursor: 'pointer',
-                        fontFamily: 'inherit',
-                        fontWeight: 500,
-                        transition: 'all 0.15s ease',
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background =
-                          'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-                        e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                        e.currentTarget.style.color = 'var(--accent-primary)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'var(--bg-toolbar)';
-                        e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                        e.currentTarget.style.color = 'var(--text-primary)';
-                      }}
-                    >
+                    <TransferButton onClick={() => onSetShowStrategySelector(false)}>
                       {t('common:cancel')}
-                    </button>
-                    <button
-                      type="button"
+                    </TransferButton>
+                    <TransferButton
+                      variant="accent"
                       onClick={onImport}
                       disabled={!importPw || isImporting || importTotalSelected === 0}
-                      style={{
-                        fontSize: 'var(--text-caption)',
-                        padding: '6px 12px',
-                        borderRadius: 6,
-                        border: '1px solid var(--border-subtle)',
-                        background: isImporting
-                          ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)'
-                          : 'var(--bg-toolbar)',
-                        color: isImporting ? 'var(--accent-primary)' : 'var(--text-primary)',
-                        cursor:
-                          !importPw || isImporting || importTotalSelected === 0
-                            ? 'default'
-                            : 'pointer',
-                        fontFamily: 'inherit',
-                        fontWeight: 500,
-                        opacity: !importPw || isImporting || importTotalSelected === 0 ? 0.5 : 1,
-                        transition: 'all 0.15s ease',
-                      }}
-                      onMouseEnter={(e) => {
-                        if (importPw && !isImporting && importTotalSelected > 0) {
-                          e.currentTarget.style.background =
-                            'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-                          e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                          e.currentTarget.style.color = 'var(--accent-primary)';
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (importPw && !isImporting && importTotalSelected > 0) {
-                          e.currentTarget.style.background = 'var(--bg-toolbar)';
-                          e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                          e.currentTarget.style.color = 'var(--text-primary)';
-                        }
-                      }}
+                      busy={isImporting}
                     >
                       {isImporting
                         ? t('common:loading', { defaultValue: '...' })
                         : `${t('settings:import_action')} (${importTotalSelected})`}
-                    </button>
+                    </TransferButton>
                   </div>
                 </div>
               )}

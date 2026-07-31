@@ -1,14 +1,12 @@
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
-import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import { SecurePasswordInput } from '@/components/forms/PasswordInput';
-import { Paperclip } from 'lucide-react';
 import { formatBytes } from '@/lib/utils';
-import type { SensitivityLevel } from '@/components/ui/SensitivityBadge';
 import { AttachmentLimitsInfo } from './AttachmentLimitsInfo';
 import { WarningCancelButton } from './WarningCancelButton';
 import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
-import { ICON_SIZE } from '@/lib/constants';
+import { ObjectSelectionTree } from '@/components/transfer/ObjectSelectionTree';
+import { TransferButton } from '@/components/transfer/TransferButton';
 import type { ExportEstimate } from '@/types/exportImport';
 
 interface PageGroup {
@@ -146,251 +144,23 @@ export function ExportSection({
         <h3 style={{ fontSize: 'var(--text-body)', fontWeight: 600, marginBottom: 8 }}>
           {t('settings:select_objects')}
         </h3>
-        {pageGroups.length > 0 && (
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              padding: '4px 0',
-              cursor: 'pointer',
-              userSelect: 'none',
-              borderBottom: '1px solid var(--border-subtle)',
-              marginBottom: 4,
-            }}
-            onClick={() =>
-              onSelectAllExport(
-                totalSelected < pageGroups.reduce((s, g) => s + g.objects.length, 0),
-              )
-            }
-          >
-            <SelectCheckbox
-              checked={
-                totalSelected > 0 &&
-                totalSelected === pageGroups.reduce((s, g) => s + g.objects.length, 0)
-              }
-              indeterminate={
-                totalSelected > 0 &&
-                totalSelected < pageGroups.reduce((s, g) => s + g.objects.length, 0)
-              }
-              onChange={() =>
-                onSelectAllExport(
-                  totalSelected < pageGroups.reduce((s, g) => s + g.objects.length, 0),
-                )
-              }
-            />
-            <span style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500, flex: 1 }}>
-              {totalSelected === pageGroups.reduce((s, g) => s + g.objects.length, 0)
-                ? t('common:deselect_all')
-                : t('common:select_all')}
-            </span>
-            <span style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
-              {t('common:object_count', { n: totalSelected })}
-            </span>
-          </div>
-        )}
-        {pageGroups.length === 0 ? (
-          <p style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-tertiary)' }}>
-            {t('common:no_data')}
-          </p>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            {pageGroups.map((group) => {
-              const allIds = group.objects.map((o) => o.id);
-              const pageChecked = selectedPageIds.has(group.sectionType);
-              const someChecked = !pageChecked && allIds.some((id) => selectedObjectIds.has(id));
-              const expanded = expandedPages.has(group.sectionType);
-              return (
-                <div key={group.sectionType}>
-                  {/* Page row */}
-                  <div
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 8,
-                      padding: '8px 0',
-                      cursor: 'pointer',
-                      userSelect: 'none',
-                    }}
-                  >
-                    <SelectCheckbox
-                      checked={pageChecked}
-                      indeterminate={someChecked && !pageChecked}
-                      onChange={() => onTogglePage(group.sectionType, allIds)}
-                    />
-                    <span
-                      onClick={() => {
-                        onToggleExpandedPage(group.sectionType);
-                        // Toggle expanded state via callback to parent
-                      }}
-                      style={{
-                        fontSize: 'var(--text-body)',
-                        fontWeight: 600,
-                        flex: 1,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 4,
-                      }}
-                    >
-                      <span
-                        style={{
-                          transform: expanded ? 'rotate(90deg)' : 'none',
-                          transition: 'transform 0.15s',
-                          fontSize: 'var(--text-badge)',
-                        }}
-                      >
-                        ▶
-                      </span>
-                      <span
-                        style={{
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {t(`navigation:${group.sectionType}`, group.pageName)}
-                      </span>
-                    </span>
-                    <span
-                      style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}
-                    >
-                      {t('common:object_count', { n: group.objectCount })}
-                    </span>
-                  </div>
-
-                  {/* Object rows (collapsible) */}
-                  {expanded &&
-                    group.objects.map((obj) => (
-                      <div key={obj.id}>
-                        <label
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 8,
-                            padding: '4px 0 4px 28px',
-                            cursor: 'pointer',
-                          }}
-                        >
-                          <SelectCheckbox
-                            checked={selectedObjectIds.has(obj.id)}
-                            onChange={() => onToggleObject(obj.id, group.sectionType, allIds)}
-                          />
-                          <span
-                            style={{
-                              fontSize: 'var(--text-body-sm)',
-                              flex: 1,
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap',
-                            }}
-                          >
-                            {obj.name}
-                          </span>
-                          <SensitivityBadge level={obj.sensitivityLevel as SensitivityLevel} />
-                          {includeAttachments && (
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                onToggleObjectExpanded(obj.id);
-                              }}
-                              style={{
-                                fontSize: 'var(--text-badge)',
-                                background: 'none',
-                                border: 'none',
-                                cursor: 'pointer',
-                                padding: '0 4px',
-                                transform: expandedObjects.has(obj.id) ? 'rotate(90deg)' : 'none',
-                                transition: 'transform 0.15s',
-                                color: 'var(--text-tertiary)',
-                              }}
-                            >
-                              ▶
-                            </button>
-                          )}
-                        </label>
-                        {includeAttachments && expandedObjects.has(obj.id) && (
-                          <div style={{ paddingLeft: 52, paddingBottom: 4 }}>
-                            {(objectAttachments.get(obj.id) || []).length === 0 ? (
-                              <span
-                                style={{
-                                  fontSize: 'var(--text-caption)',
-                                  color: 'var(--text-tertiary)',
-                                }}
-                              >
-                                {t('settings:no_attachments', 'No attachments')}
-                              </span>
-                            ) : (
-                              <>
-                                <div
-                                  style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: 4,
-                                    padding: '2px 0',
-                                    fontSize: 'var(--text-badge)',
-                                    color: 'var(--text-tertiary)',
-                                    borderBottom: '1px solid var(--border-subtle)',
-                                    marginBottom: 2,
-                                  }}
-                                >
-                                  <Paperclip size={ICON_SIZE['2xs']} />
-                                  <span>
-                                    {t('settings:attachments_label', 'Attachments')} (
-                                    {(objectAttachments.get(obj.id) || []).length})
-                                  </span>
-                                </div>
-                                {(objectAttachments.get(obj.id) || []).map((att) => (
-                                  <label
-                                    key={att.id}
-                                    style={{
-                                      display: 'flex',
-                                      alignItems: 'center',
-                                      gap: 6,
-                                      padding: '2px 0 2px 16px',
-                                      cursor: 'pointer',
-                                    }}
-                                  >
-                                    <SelectCheckbox
-                                      checked={selectedAttachmentIds.has(att.id)}
-                                      onChange={() =>
-                                        onToggleAttachment(
-                                          att.id,
-                                          obj.id,
-                                          group.sectionType,
-                                          allIds,
-                                        )
-                                      }
-                                    />
-                                    <Paperclip
-                                      size={ICON_SIZE['2xs']}
-                                      style={{ color: 'var(--text-tertiary)', flexShrink: 0 }}
-                                    />
-                                    <span style={{ fontSize: 'var(--text-caption)', flex: 1 }}>
-                                      {att.fileName}
-                                    </span>
-                                    <span
-                                      style={{
-                                        fontSize: 'var(--text-badge)',
-                                        color: 'var(--text-tertiary)',
-                                      }}
-                                    >
-                                      {formatBytes(att.sizeBytes)}
-                                    </span>
-                                  </label>
-                                ))}
-                              </>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                </div>
-              );
-            })}
-          </div>
-        )}
+        <ObjectSelectionTree
+          pageGroups={pageGroups}
+          selectedPageIds={selectedPageIds}
+          expandedPages={expandedPages}
+          expandedObjects={expandedObjects}
+          selectedAttachmentIds={selectedAttachmentIds}
+          objectAttachments={objectAttachments}
+          totalSelected={totalSelected}
+          showAttachmentExpand={() => includeAttachments}
+          isObjectSelected={(id) => selectedObjectIds.has(id)}
+          onTogglePage={onTogglePage}
+          onToggleObject={onToggleObject}
+          onToggleObjectExpanded={onToggleObjectExpanded}
+          onToggleAttachment={onToggleAttachment}
+          onToggleExpandedPage={onToggleExpandedPage}
+          onSelectAll={onSelectAllExport}
+        />
       </Card>
 
       {/* Tag filter */}
@@ -587,8 +357,7 @@ export function ExportSection({
         >
           {savePath || t('settings:no_file_selected')}
         </div>
-        <button
-          type="button"
+        <TransferButton
           onClick={async () => {
             const { saveWithPause } = await import('@/lib/dialog');
             const fp = await saveWithPause({
@@ -597,32 +366,9 @@ export function ExportSection({
             });
             if (fp) onSetSavePath(fp);
           }}
-          style={{
-            fontSize: 'var(--text-caption)',
-            padding: '6px 12px',
-            borderRadius: 6,
-            border: '1px solid var(--border-subtle)',
-            background: 'var(--bg-toolbar)',
-            color: 'var(--text-primary)',
-            cursor: 'pointer',
-            fontFamily: 'inherit',
-            fontWeight: 500,
-            transition: 'all 0.15s ease',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background =
-              'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-            e.currentTarget.style.borderColor = 'var(--accent-primary)';
-            e.currentTarget.style.color = 'var(--accent-primary)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'var(--bg-toolbar)';
-            e.currentTarget.style.borderColor = 'var(--border-subtle)';
-            e.currentTarget.style.color = 'var(--text-primary)';
-          }}
         >
           {t('common:browse')}
-        </button>
+        </TransferButton>
       </Card>
 
       {/* Encryption */}
@@ -731,32 +477,9 @@ export function ExportSection({
             <WarningCancelButton onClick={() => onSetShowWeakPasswordWarning(false)}>
               {t('common:cancel')}
             </WarningCancelButton>
-            <button
-              type="button"
-              onClick={onSetWeakPasswordExport}
-              style={{
-                fontSize: 'var(--text-caption)',
-                padding: '6px 12px',
-                borderRadius: 6,
-                border: '1px solid var(--warning)',
-                background: 'color-mix(in srgb, var(--bg-elevated) 85%, var(--warning-subtle) 15%)',
-                color: 'var(--warning)',
-                cursor: 'pointer',
-                fontFamily: 'inherit',
-                fontWeight: 500,
-                transition: 'all 0.15s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background =
-                  'color-mix(in srgb, var(--bg-elevated) 70%, var(--warning-subtle) 30%)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background =
-                  'color-mix(in srgb, var(--bg-elevated) 85%, var(--warning-subtle) 15%)';
-              }}
-            >
+            <TransferButton variant="warning" onClick={onSetWeakPasswordExport}>
               {t('settings:export_anyway')}
-            </button>
+            </TransferButton>
           </div>
         </div>
       )}
@@ -781,75 +504,23 @@ export function ExportSection({
             <WarningCancelButton onClick={() => onSetShowHintWarning(false)}>
               {t('common:cancel')}
             </WarningCancelButton>
-            <button
-              type="button"
-              onClick={onSetShowHintWarningAndExport}
-              style={{
-                fontSize: 'var(--text-caption)',
-                padding: '6px 12px',
-                borderRadius: 6,
-                border: '1px solid var(--warning)',
-                background: 'color-mix(in srgb, var(--bg-elevated) 85%, var(--warning-subtle) 15%)',
-                color: 'var(--warning)',
-                cursor: 'pointer',
-                fontFamily: 'inherit',
-                fontWeight: 500,
-                transition: 'all 0.15s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background =
-                  'color-mix(in srgb, var(--bg-elevated) 70%, var(--warning-subtle) 30%)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background =
-                  'color-mix(in srgb, var(--bg-elevated) 85%, var(--warning-subtle) 15%)';
-              }}
-            >
+            <TransferButton variant="warning" onClick={onSetShowHintWarningAndExport}>
               {t('settings:export_anyway')}
-            </button>
+            </TransferButton>
           </div>
         </div>
       )}
 
-      <button
-        type="button"
+      <TransferButton
+        variant="accent"
         onClick={onExport}
         disabled={totalSelected === 0 || !exportPassword || !savePath}
-        style={{
-          fontSize: 'var(--text-caption)',
-          padding: '6px 12px',
-          borderRadius: 6,
-          border: '1px solid var(--border-subtle)',
-          background: isExporting
-            ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)'
-            : 'var(--bg-toolbar)',
-          color: isExporting ? 'var(--accent-primary)' : 'var(--text-primary)',
-          cursor: totalSelected === 0 || !exportPassword || !savePath ? 'default' : 'pointer',
-          fontFamily: 'inherit',
-          fontWeight: 500,
-          opacity: totalSelected === 0 || !exportPassword || !savePath ? 0.5 : 1,
-          transition: 'all 0.15s ease',
-        }}
-        onMouseEnter={(e) => {
-          if (totalSelected > 0 && exportPassword && savePath && !isExporting) {
-            e.currentTarget.style.background =
-              'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-            e.currentTarget.style.borderColor = 'var(--accent-primary)';
-            e.currentTarget.style.color = 'var(--accent-primary)';
-          }
-        }}
-        onMouseLeave={(e) => {
-          if (totalSelected > 0 && exportPassword && savePath && !isExporting) {
-            e.currentTarget.style.background = 'var(--bg-toolbar)';
-            e.currentTarget.style.borderColor = 'var(--border-subtle)';
-            e.currentTarget.style.color = 'var(--text-primary)';
-          }
-        }}
+        busy={isExporting}
       >
         {isExporting
           ? t('common:loading', { defaultValue: '...' })
           : `${t('settings:export_selected')} (${totalSelected})`}
-      </button>
+      </TransferButton>
     </>
   );
 }
