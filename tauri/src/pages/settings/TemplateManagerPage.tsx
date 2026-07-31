@@ -10,6 +10,7 @@ import { Dialog } from '@/components/ui/Dialog';
 import { Input } from '@/components/ui/Input';
 import { useTemplateStore } from '@/stores/templateStore';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { FilterChipGroup } from '@/components/ui/FilterChipGroup';
 import { useAuthStore } from '@/stores/authStore';
 import { useUiStore } from '@/stores/uiStore';
 import { useConfirm } from '@/hooks/useConfirm';
@@ -565,53 +566,13 @@ export function TemplateManagerPage() {
               onClear={() => setSearchQuery('')}
               prefixIcon={<Search size={ICON_SIZE.sm} style={{ color: 'var(--text-tertiary)' }} />}
             />
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-              {pageOptions.map((opt) => {
-                const isActive = pageFilter === opt.id;
-                return (
-                  <button
-                    key={opt.id}
-                    type="button"
-                    onClick={() => setPageFilter(opt.id)}
-                    aria-pressed={isActive}
-                    onMouseEnter={
-                      !isActive
-                        ? (e) => {
-                            e.currentTarget.style.background =
-                              'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-                            e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                          }
-                        : undefined
-                    }
-                    onMouseLeave={
-                      !isActive
-                        ? (e) => {
-                            e.currentTarget.style.background = 'var(--bg-toolbar)';
-                            e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                          }
-                        : undefined
-                    }
-                    style={{
-                      padding: '5px 12px',
-                      borderRadius: 6,
-                      border: isActive
-                        ? '1px solid var(--accent-primary)'
-                        : '1px solid var(--border-subtle)',
-                      background: isActive
-                        ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)'
-                        : 'var(--bg-toolbar)',
-                      color: isActive ? 'var(--accent-primary)' : 'var(--text-primary)',
-                      boxShadow: isActive ? '0 0 0 1px var(--accent-primary)' : 'none',
-                      fontSize: 'var(--text-sm)',
-                      cursor: 'pointer',
-                      transition: 'background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s',
-                    }}
-                  >
-                    {opt.label}
-                  </button>
-                );
-              })}
-            </div>
+            <FilterChipGroup
+              options={pageOptions.map((opt) => ({ id: opt.id, label: opt.label }))}
+              value={pageFilter}
+              onChange={(v) => {
+                if (v) setPageFilter(v);
+              }}
+            />
           </div>
         )}
 

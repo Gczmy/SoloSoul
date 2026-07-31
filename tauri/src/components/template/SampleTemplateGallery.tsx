@@ -12,6 +12,7 @@ import { resolveCustomIcon } from '@/lib/pageIcons';
 import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import { PluginBadge } from './PluginBadge';
 import { Input } from '@/components/ui/Input';
+import { FilterChipGroup } from '@/components/ui/FilterChipGroup';
 import type { SensitivityLevel } from '@/types/template';
 import { ICON_SIZE } from '@/lib/constants';
 
@@ -249,54 +250,18 @@ export function SampleTemplateGallery({ isOpen, onClose, onSelect }: SampleTempl
             onClear={() => setSearchQuery('')}
             prefixIcon={<Search size={ICON_SIZE.sm} style={{ color: 'var(--text-tertiary)' }} />}
           />
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {pageOptions.map((opt) => {
-              const isActive = pageFilter === opt.id;
-              return (
-                <button
-                  key={opt.id}
-                  type="button"
-                  data-testid={`page-filter-${opt.id}`}
-                  onClick={() => setPageFilter(opt.id)}
-                  aria-pressed={isActive}
-                  onMouseEnter={
-                    !isActive
-                      ? (e) => {
-                          e.currentTarget.style.background =
-                            'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-                          e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                        }
-                      : undefined
-                  }
-                  onMouseLeave={
-                    !isActive
-                      ? (e) => {
-                          e.currentTarget.style.background = 'var(--bg-toolbar)';
-                          e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                        }
-                      : undefined
-                  }
-                  style={{
-                    padding: '5px 12px',
-                    borderRadius: 6,
-                    border: isActive
-                      ? '1px solid var(--accent-primary)'
-                      : '1px solid var(--border-subtle)',
-                    background: isActive
-                      ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)'
-                      : 'var(--bg-toolbar)',
-                    color: isActive ? 'var(--accent-primary)' : 'var(--text-primary)',
-                    boxShadow: isActive ? '0 0 0 1px var(--accent-primary)' : 'none',
-                    fontSize: 'var(--text-caption)',
-                    cursor: 'pointer',
-                    transition: 'background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s',
-                  }}
-                >
-                  {opt.label}
-                </button>
-              );
-            })}
-          </div>
+          <FilterChipGroup
+            size="caption"
+            options={pageOptions.map((opt) => ({
+              id: opt.id,
+              label: opt.label,
+              testId: `page-filter-${opt.id}`,
+            }))}
+            value={pageFilter}
+            onChange={(v) => {
+              if (v) setPageFilter(v);
+            }}
+          />
         </div>
 
         <div style={{ position: 'relative' }}>

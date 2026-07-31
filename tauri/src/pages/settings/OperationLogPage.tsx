@@ -13,6 +13,7 @@ import { saveWithPause } from '@/lib/dialog';
 import { Search, Download, X } from 'lucide-react';
 import { resolveCollectionLabel } from '@/lib/utils';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { FilterChipGroup } from '@/components/ui/FilterChipGroup';
 import { ICON_SIZE } from '@/lib/constants';
 import { isUriPath, copyStagedFileToDest } from '@/lib/mobileFileTransfer';
 import buttonStyles from '@/components/ui/Button.module.css';
@@ -278,50 +279,17 @@ export function OperationLogPage() {
         </div>
 
         {/* Row 2: Entity type filter — workspace style */}
-        <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-          {[null, ...ALL_ENTITY_TYPES].map((type) => {
-            const isActive = entityTypeFilter === type;
-            const label =
-              type === null ? t('settings:all') : t(`settings:log.entity.${type}`, type);
-            return (
-              <button
-                key={type ?? 'all'}
-                onClick={() => setEntityTypeFilter(type === entityTypeFilter ? null : type)}
-                onMouseEnter={(e) => {
-                  if (!isActive) {
-                    e.currentTarget.style.background =
-                      'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-                    e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isActive) {
-                    e.currentTarget.style.background = 'var(--bg-toolbar)';
-                    e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                  }
-                }}
-                style={{
-                  padding: '5px 12px',
-                  borderRadius: 8,
-                  border: isActive
-                    ? '1px solid var(--accent-primary)'
-                    : '1px solid var(--border-subtle)',
-                  background: isActive
-                    ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)'
-                    : 'var(--bg-toolbar)',
-                  color: isActive ? 'var(--accent-primary)' : 'var(--text-primary)',
-                  boxShadow: isActive ? '0 0 0 1px var(--accent-primary)' : 'none',
-                  cursor: 'pointer',
-                  fontSize: 'var(--text-sm)',
-                  fontWeight: 500,
-                  transition: 'all 0.15s ease',
-                }}
-              >
-                {label}
-              </button>
-            );
-          })}
-        </div>
+        <FilterChipGroup
+          toggle
+          radius={8}
+          gap={4}
+          options={[null, ...ALL_ENTITY_TYPES].map((type) => ({
+            id: type,
+            label: type === null ? t('settings:all') : t(`settings:log.entity.${type}`, type),
+          }))}
+          value={entityTypeFilter}
+          onChange={(v) => setEntityTypeFilter(v)}
+        />
 
         {/* Log entries */}
         {isLoading ? (

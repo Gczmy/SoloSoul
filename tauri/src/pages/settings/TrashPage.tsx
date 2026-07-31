@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/Input';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { Button } from '@/components/ui/Button';
 import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
+import { FilterChipGroup } from '@/components/ui/FilterChipGroup';
 import { useAuthStore } from '@/stores/authStore';
 import { useTrashStore, TrashTimeFilter, TrashTypeFilter } from '@/stores/trashStore';
 import { useToastError } from '@/hooks/useToastError';
@@ -251,96 +252,26 @@ export function TrashPage() {
         />
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {TIME_OPTIONS.map((opt) => {
-              const isActive = timeFilter === opt.value;
-              return (
-                <button
-                  key={opt.value}
-                  onClick={() => setTimeFilter(opt.value)}
-                  onMouseEnter={
-                    !isActive
-                      ? (e) => {
-                          e.currentTarget.style.background =
-                            'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-                          e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                        }
-                      : undefined
-                  }
-                  onMouseLeave={
-                    !isActive
-                      ? (e) => {
-                          e.currentTarget.style.background = 'var(--bg-toolbar)';
-                          e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                        }
-                      : undefined
-                  }
-                  style={{
-                    padding: '5px 12px',
-                    borderRadius: 6,
-                    border: isActive
-                      ? '1px solid var(--accent-primary)'
-                      : '1px solid var(--border-subtle)',
-                    background: isActive
-                      ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)'
-                      : 'var(--bg-toolbar)',
-                    color: isActive ? 'var(--accent-primary)' : 'var(--text-primary)',
-                    boxShadow: isActive ? '0 0 0 1px var(--accent-primary)' : 'none',
-                    fontSize: 'var(--text-sm)',
-                    cursor: 'pointer',
-                    transition: 'background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s',
-                  }}
-                >
-                  {t(`settings:${opt.labelKey}`, opt.labelKey)}
-                </button>
-              );
-            })}
-          </div>
-          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-            {TYPE_OPTIONS.map((opt) => {
-              const isActive = typeFilter === opt.value;
-              return (
-                <button
-                  key={opt.value}
-                  onClick={() => setTypeFilter(opt.value)}
-                  onMouseEnter={
-                    !isActive
-                      ? (e) => {
-                          e.currentTarget.style.background =
-                            'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-                          e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                        }
-                      : undefined
-                  }
-                  onMouseLeave={
-                    !isActive
-                      ? (e) => {
-                          e.currentTarget.style.background = 'var(--bg-toolbar)';
-                          e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                        }
-                      : undefined
-                  }
-                  style={{
-                    padding: '5px 12px',
-                    borderRadius: 6,
-                    border: isActive
-                      ? '1px solid var(--accent-primary)'
-                      : '1px solid var(--border-subtle)',
-                    background: isActive
-                      ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)'
-                      : 'var(--bg-toolbar)',
-                    color: isActive ? 'var(--accent-primary)' : 'var(--text-primary)',
-                    boxShadow: isActive ? '0 0 0 1px var(--accent-primary)' : 'none',
-                    fontSize: 'var(--text-sm)',
-                    cursor: 'pointer',
-                    transition: 'background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s',
-                  }}
-                >
-                  {t(`settings:trash_type_${opt.value}`)}
-                </button>
-              );
-            })}
-          </div>
+          <FilterChipGroup
+            options={TIME_OPTIONS.map((opt) => ({
+              id: opt.value,
+              label: t(`settings:${opt.labelKey}`, opt.labelKey),
+            }))}
+            value={timeFilter}
+            onChange={(v) => {
+              if (v) setTimeFilter(v);
+            }}
+          />
+          <FilterChipGroup
+            options={TYPE_OPTIONS.map((opt) => ({
+              id: opt.value,
+              label: t(`settings:trash_type_${opt.value}`),
+            }))}
+            value={typeFilter}
+            onChange={(v) => {
+              if (v) setTypeFilter(v);
+            }}
+          />
         </div>
 
         {filtered.length > 0 && (
