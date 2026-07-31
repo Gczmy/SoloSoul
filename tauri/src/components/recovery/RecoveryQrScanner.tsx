@@ -111,7 +111,10 @@ export function RecoveryQrScanner({ onScan, onError, onCancel }: RecoveryQrScann
       scanner
         .start(
           cameraIdOrConfig,
-          { fps: 10, qrbox: { width: 250, height: 250 } },
+          // 不传 qrbox：html5-qrcode 会以整个视频画面为扫描区域，且不会绘制
+          // 半透明灰遮罩和 250×250 的小扫描框（isShadedBoxEnabled 依赖 qrbox），
+          // 避免出现「大框灰遮罩 + 小框透明」的双框视觉问题。
+          { fps: 10 },
           (decodedText) => {
             onScanRef.current(decodedText);
           },
