@@ -156,6 +156,23 @@ export const useObjectStore = create<ObjectState>((set) => ({
       const obj = await invoke<ObjectData>('object_update', { objectId: objectId, input });
       set((s) => ({
         currentObjectCache: { ...s.currentObjectCache, [objectId]: obj },
+        // 同步更新摘要列表对应项，避免列表与详情缓存不一致（P057）。
+        objects: s.objects.map((o) =>
+          o.id === objectId
+            ? {
+                ...o,
+                name: obj.name,
+                sensitivityLevel: obj.sensitivityLevel,
+                updatedAt: obj.updatedAt,
+                templateId: obj.templateId,
+                templateType: obj.templateType,
+                templateHash: obj.templateHash,
+                contractTypeId: obj.contractTypeId,
+                tags: obj.tags,
+                propertyLabels: obj.propertyLabels,
+              }
+            : o,
+        ),
         isLoading: false,
       }));
     } catch (err) {

@@ -157,7 +157,7 @@ describe('objectStore', () => {
   });
 
   describe('updateObject', () => {
-    it('更新对象成功', async () => {
+    it('更新对象成功并同步缓存与摘要列表', async () => {
       const updated = {
         id: '1',
         accountId: 'acc-1',
@@ -171,6 +171,26 @@ describe('objectStore', () => {
       mockInvoke.mockResolvedValue(updated);
 
       const { useObjectStore } = await import('./objectStore');
+      useObjectStore.setState({
+        objects: [
+          {
+            id: '1',
+            name: 'Old',
+            collectionType: 'address',
+            sensitivityLevel: 'public',
+            createdAt: '',
+            updatedAt: '2026-01-01',
+          },
+          {
+            id: '2',
+            name: 'Obj2',
+            collectionType: 'address',
+            sensitivityLevel: 'public',
+            createdAt: '',
+            updatedAt: '2026-01-02',
+          },
+        ],
+      });
       await useObjectStore
         .getState()
         .updateObject('1', { name: 'Updated', properties: { street: 'New St' } });
@@ -180,6 +200,13 @@ describe('objectStore', () => {
         input: { name: 'Updated', properties: { street: 'New St' } },
       });
       expect(useObjectStore.getState().currentObjectCache['1']).toEqual(updated);
+      // 摘要列表同步更新，非目标对象不受影响
+      expect(useObjectStore.getState().objects[0]).toMatchObject({
+        id: '1',
+        name: 'Updated',
+        updatedAt: '2026-02-01',
+      });
+      expect(useObjectStore.getState().objects[1].name).toBe('Obj2');
     });
   });
 
