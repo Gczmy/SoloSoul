@@ -26,7 +26,7 @@ use solosoul_core::vault_service::VaultService;
 
 pub struct SyncService {
     vault_service: Arc<std::sync::RwLock<VaultService>>,
-    manager: Mutex<Option<SyncManager>>,
+    manager: Mutex<Option<Arc<SyncManager>>>,
 }
 
 impl SyncService {
@@ -62,7 +62,7 @@ impl SyncService {
                 None,
                 Some(&format!("fingerprint={}", manager.fingerprint())),
             );
-            *guard = Some(manager);
+            *guard = Some(Arc::new(manager));
             Ok(())
         } else {
             let old_manager = guard.take();
@@ -91,15 +91,19 @@ impl SyncService {
     }
 
     /// 手动同步一个已发现的 peer (按 node id) 或一个 `host:port` 地址.
+    ///
+    /// 锁内仅克隆 `Arc<SyncManager>` 后立即释放锁，再执行会话：整个会话可能耗时
+    /// 数十秒（10s 连接超时 + 数据交换），若持锁等待会让 `enable(false)` /
+    /// `sync_get_status` 等命令全部排队，前端表现为“禁用失败、按钮卡住”。
     pub async fn sync_with_device(
         &self,
         device_id_or_addr: String,
     ) -> Result<SyncSessionResult, String> {
-        let guard = self.manager.lock().await;
-        let result = match guard.as_ref() {
-            Some(m) => m.sync_with_peer(&device_id_or_addr).await,
-            None => Err("Sync is not enabled".to_string()),
-        }?;
+        let manager = {
+            let guard = self.manager.lock().await;
+            guard.as_ref().cloned().ok_or("Sync is not enabled")?
+        };
+        let result = manager.sync_with_peer(&device_id_or_addr).await?;
         let table_summary = result
             .data
             .per_table
@@ -351,7 +355,7 @@ mod tests {
         let (svc, _dir2) = fresh_service();
         {
             let mut guard = svc.manager.lock().await;
-            *guard = Some(manager);
+            *guard = Some(Arc::new(manager));
         }
 
         let start = std::time::Instant::now();
@@ -369,5 +373,65 @@ mod tests {
 
         // 复位活跃会话计数，让后台 stop() 尽快结束，避免测试收尾等待
         active_sessions.store(0, Ordering::SeqCst);
+    }
+
+    /// 回归测试：`sync_with_device` 会话进行中不应持有 manager 锁，
+    /// `is_enabled()` / `enable(false)` 应立即返回（与移动端 round 2 修复对齐）。
+    /// 修复前 guard 会跨整个会话（连接超时 10s + 数据交换）持有，
+    /// 导致同步进行中点“禁用”时前端 15s 超时失败。
+    #[tokio::test]
+    async fn sync_with_device_does_not_hold_manager_lock() {
+        use solosoul_vault::{VaultConfig, VaultStore};
+
+        let dir = tempdir().expect("tempdir");
+        let vault = Arc::new(
+            VaultStore::open(VaultConfig {
+                path: dir.path().to_path_buf(),
+                account_id: "acct".to_string(),
+                data_key: Some([0u8; 32]),
+            })
+            .expect("open vault"),
+        );
+        let manager = SyncManager::new(
+            "node_test".to_string(),
+            "acct".to_string(),
+            NoiseKeys::generate(),
+            vault,
+            "0.0.0.0:0",
+        );
+
+        let (svc, _dir2) = fresh_service();
+        let svc = Arc::new(svc);
+        {
+            let mut guard = svc.manager.lock().await;
+            *guard = Some(Arc::new(manager));
+        }
+
+        // 会话目标不可达（TEST-NET-1，RFC 5737），连接最长 10s 后才失败，
+        // 期间若持有 manager 锁，下面的调用会被阻塞。
+        let svc2 = svc.clone();
+        let sync_task =
+            tokio::spawn(async move { svc2.sync_with_device("192.0.2.1:9".to_string()).await });
+
+        // 给会话一点时间进入 connect 阶段
+        tokio::time::sleep(std::time::Duration::from_millis(200)).await;
+
+        let start = std::time::Instant::now();
+        assert!(svc.is_enabled().await);
+        assert!(
+            start.elapsed().as_secs() < 5,
+            "is_enabled() 被会话阻塞了 {:.1}s",
+            start.elapsed().as_secs_f32()
+        );
+
+        let start = std::time::Instant::now();
+        svc.enable(false).await.expect("enable(false) 应成功");
+        assert!(
+            start.elapsed().as_secs() < 5,
+            "enable(false) 被会话阻塞了 {:.1}s",
+            start.elapsed().as_secs()
+        );
+
+        sync_task.abort();
     }
 }

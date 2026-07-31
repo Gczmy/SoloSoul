@@ -124,6 +124,11 @@ pub async fn mdns_discover(
             });
         }
     }
+
+    // mDNS 可能对同一服务多次触发 ServiceResolved，按 host:port 去重，
+    // 避免前端设备列表出现重复条目。
+    let mut seen = std::collections::HashSet::new();
+    devices.retain(|d| seen.insert(format!("{}:{}", d.host, d.port)));
     Ok(devices)
 }
 
@@ -180,12 +185,7 @@ pub async fn mdns_discover(
     // 兜底超时：即使权限弹窗未响应导致内部阻塞，命令也会按时返回。
     // 注意类型嵌套：timeout 返回 Result<_, Elapsed>，JoinHandle 输出
     // Result<_, JoinError>，闭包返回 Result<Vec<_>, String>，共三层。
-    match tokio::time::timeout(
-        std::time::Duration::from_millis(timeout_ms + 10_000),
-        task,
-    )
-    .await
-    {
+    match tokio::time::timeout(std::time::Duration::from_millis(timeout_ms + 10_000), task).await {
         Ok(Ok(Ok(devices))) => Ok(devices),
         Ok(Ok(Err(e))) => Err(e),
         Ok(Err(e)) => Err(format!("discovery task failed: {e}")),
@@ -296,7 +296,10 @@ pub async fn recovery_discover_hosts(
             let props = info.get_properties();
             let pin = props.get("pin").map(|v| v.to_string()).unwrap_or_default();
             let fingerprint = props.get("fp").map(|v| v.to_string()).unwrap_or_default();
-            let nonce = props.get("nonce").map(|v| v.to_string()).unwrap_or_default();
+            let nonce = props
+                .get("nonce")
+                .map(|v| v.to_string())
+                .unwrap_or_default();
             let addr = props.get("addr").map(|v| v.to_string()).unwrap_or_default();
 
             if pin.is_empty() || addr.is_empty() {

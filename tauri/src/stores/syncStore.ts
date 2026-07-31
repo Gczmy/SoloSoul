@@ -61,6 +61,7 @@ interface SyncStoreState extends SyncStatus {
   resolveConflict: (conflictId: string, strategy: SyncConflictStrategy) => Promise<void>;
   markConflictsRead: () => void;
   initConflictListener: () => Promise<UnlistenFn>;
+  initNsdFailedListener: () => Promise<UnlistenFn>;
 }
 
 export const useSyncStore = create<SyncStoreState>((set, get) => {
@@ -277,6 +278,23 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
           logger.warn('[syncStore] Failed to auto-reload conflicts after event:', err),
         );
       }
+    });
+  },
+
+  /** 初始化 sync-nsd-failed 事件监听器（移动端 NSD 注册失败）。
+   *  后端失败时已回滚为禁用状态，这里重读后端状态并提示错误，
+   *  避免开关 UI 仍显示「已启用」与实际状态漂移。
+   *  返回 unlisten 函数，调用方应在组件卸载时调用以清理。 */
+  initNsdFailedListener: (): Promise<UnlistenFn> => {
+    return listen<{ error?: string }>('sync-nsd-failed', (event) => {
+      logger.warn('[syncStore] NSD registration failed:', event.payload?.error);
+      set({ isLoading: false });
+      // 先重读后端状态（后端已回滚为禁用），完成后再设置错误提示，
+      // 避免 loadStatus 成功路径的 error: null 把提示清掉。
+      get()
+        .loadStatus()
+        .catch((err) => logger.warn('[syncStore] status resync after nsd failure:', err))
+        .finally(() => set({ error: '__SYNC_ERR__:nsd_failed' }));
     });
   },
 

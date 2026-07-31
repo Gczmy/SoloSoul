@@ -518,6 +518,17 @@ pub async fn sync_enable(
             let _guard = crate::commands::discovery::NSD_LIFECYCLE_LOCK
                 .lock()
                 .unwrap_or_else(|e| e.into_inner());
+            // 持锁后复查：快速「禁用→启用」连点时，本注册任务可能排在注销任务
+            // 之后执行，若此时同步已被禁用则放弃注册，避免「已禁用但仍注册」。
+            let still_enabled = tauri::async_runtime::block_on(async {
+                app2.state::<crate::state::AppState>()
+                    .sync_service
+                    .is_enabled()
+                    .await
+            });
+            if !still_enabled {
+                return;
+            }
             let handle = app2.state::<crate::nsd_plugin::NsdPluginHandle<tauri::Wry>>();
             if let Err(e) = handle.request_permissions() {
                 tracing::warn!("NSD request_permissions failed: {}", e);
@@ -552,6 +563,17 @@ pub async fn sync_enable(
             let _guard = crate::commands::discovery::NSD_LIFECYCLE_LOCK
                 .lock()
                 .unwrap_or_else(|e| e.into_inner());
+            // 持锁后复查：快速「禁用→启用」连点时，本注销任务可能排在注册任务
+            // 之后执行，若此时同步已重新启用则放弃注销，避免「已启用但未注册」。
+            let still_disabled = !tauri::async_runtime::block_on(async {
+                app2.state::<crate::state::AppState>()
+                    .sync_service
+                    .is_enabled()
+                    .await
+            });
+            if !still_disabled {
+                return;
+            }
             let handle = app2.state::<crate::nsd_plugin::NsdPluginHandle<tauri::Wry>>();
             let _ = handle.unregister_service();
         }));
@@ -813,7 +835,9 @@ pub async fn sync_generate_qr_payload(state: State<'_, AppState>) -> Result<Stri
         return Err("__SYNC_ERR__:not_enabled".to_string());
     }
     let fingerprint = state.sync_service.local_fingerprint().await?;
-    let host = local_display_ip().await.unwrap_or_else(|| "127.0.0.1".to_string());
+    let host = local_display_ip()
+        .await
+        .unwrap_or_else(|| "127.0.0.1".to_string());
     let device_name = if fingerprint.is_empty() {
         format!("SoloSoul-{}", port)
     } else {

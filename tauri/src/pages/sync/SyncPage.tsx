@@ -165,6 +165,18 @@ export function SyncPage() {
     loadStatus();
   }, [loadStatus]);
 
+  // 监听移动端 NSD 注册失败事件：后端已回滚为禁用，重读状态避免开关 UI 漂移
+  useEffect(() => {
+    let unlisten: (() => void) | undefined;
+    useSyncStore
+      .getState()
+      .initNsdFailedListener()
+      .then((fn) => {
+        unlisten = fn;
+      });
+    return () => unlisten?.();
+  }, []);
+
   // 使用 selector 只监听 syncEnabled 变化，避免 store 全局变化时误触发
   const syncEnabled = useSyncStore((s) => s.syncEnabled);
   useEffect(() => {

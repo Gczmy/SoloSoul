@@ -811,6 +811,7 @@
   "sync_err_not_enabled": "Sync is not enabled or the listen port is not ready. Enable sync first.",
   "sync_err_enable_timeout": "Enabling sync timed out. Please try again.",
   "sync_err_discovery_timeout": "Device discovery timed out. Check your network and try again.",
+  "sync_err_nsd_failed": "Failed to register the network discovery service. Sync has been disabled. Please try again.",
   "sync_no_conflicts": "No unresolved conflicts.",
   "sync_conflict_record": "Record",
   "sync_conflict_table": "Table",
