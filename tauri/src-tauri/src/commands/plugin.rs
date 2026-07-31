@@ -222,21 +222,16 @@ pub async fn plugin_update_registry(state: State<'_, AppState>) -> Result<(), St
         .map_err(|e| e.to_string())
 }
 
-/// 打开插件生成的输出文件（P004）。
+/// 校验插件提供的输出文件路径并返回其 canonical 形式（P004/P060 共享）。
 ///
-/// 安全约束：插件返回的 `outputPath` 属于不可信数据，此前前端直接 `open(file://)`
-/// 任意路径，恶意插件可诱导用户打开 `.app`/脚本逃逸 WASM 沙箱。本命令强制校验：
+/// 安全约束：插件返回的 `path` 属于不可信数据。本助手强制校验：
 ///
-/// 1. `path` 必须真实存在且是普通文件；
-/// 2. `path` 的 canonical 形式必须位于插件声明的 `output_dir` 之内（防御纵深，
-///    结合前端输出目录选择器，插件无法写穿其运行时的输出目录）；
-/// 3. 通过校验后才用系统默认应用打开（`opener` crate，与附件预览一致）。
-///
-/// 同时 `tauri.conf.json` 的 shell.open 正则已移除 `file://` 与绝对路径项（P032），
-/// 即使绕过本命令也无法再经 plugin-shell 打开本地文件。
-#[command]
-pub fn plugin_open_output_file(output_dir: String, path: String) -> Result<(), String> {
-    let out_dir = std::path::Path::new(&output_dir);
+/// 1. `output_dir` 必须真实存在且是目录；
+/// 2. `path` 必须真实存在且是普通文件；
+/// 3. `path` 的 canonical 形式必须位于 `output_dir` 的 canonical 之内（防御纵深，
+///    结合前端输出目录选择器，插件无法写穿其运行时的输出目录）。
+fn resolve_output_file(output_dir: &str, path: &str) -> Result<std::path::PathBuf, String> {
+    let out_dir = std::path::Path::new(output_dir);
     let out_canon = out_dir
         .canonicalize()
         .map_err(|e| format!("无法解析输出目录: {}", e))?;
@@ -244,7 +239,7 @@ pub fn plugin_open_output_file(output_dir: String, path: String) -> Result<(), S
         return Err("输出目录不存在".to_string());
     }
 
-    let p = std::path::Path::new(&path);
+    let p = std::path::Path::new(path);
     let canon = p
         .canonicalize()
         .map_err(|e| format!("无法解析文件: {}", e))?;
@@ -252,8 +247,22 @@ pub fn plugin_open_output_file(output_dir: String, path: String) -> Result<(), S
         return Err("输出文件不存在".to_string());
     }
     if !canon.starts_with(&out_canon) {
-        return Err("输出文件位于插件输出目录之外，已拒绝打开".to_string());
+        return Err("输出文件位于插件输出目录之外，已拒绝访问".to_string());
     }
+    Ok(canon)
+}
+
+/// 打开插件生成的输出文件（P004）。
+///
+/// 安全约束：插件返回的 `outputPath` 属于不可信数据，此前前端直接 `open(file://)`
+/// 任意路径，恶意插件可诱导用户打开 `.app`/脚本逃逸 WASM 沙箱。本命令通过
+/// `resolve_output_file` 校验后，才用系统默认应用打开（`opener` crate，与附件预览一致）。
+///
+/// 同时 `tauri.conf.json` 的 shell.open 正则已移除 `file://` 与绝对路径项（P032），
+/// 即使绕过本命令也无法再经 plugin-shell 打开本地文件。
+#[command]
+pub fn plugin_open_output_file(output_dir: String, path: String) -> Result<(), String> {
+    let canon = resolve_output_file(&output_dir, &path)?;
 
     #[cfg(any(target_os = "android", target_os = "ios"))]
     {
@@ -265,4 +274,42 @@ pub fn plugin_open_output_file(output_dir: String, path: String) -> Result<(), S
         opener::open(&canon).map_err(|e| format!("打开文件失败: {}", e))?;
         Ok(())
     }
+}
+
+/// 将插件生成的输出文件复制到用户选择的目标目录（P060）。
+///
+/// 安全约束：此前前端直接用 plugin-fs `copyFile` 复制插件返回的 `path`，且失败静默吞错。
+/// 本命令强制校验：
+///
+/// 1. 源 `path` 的 canonical 形式必须位于插件声明的 `output_dir` 之内（与 `plugin_open_output_file` 一致）；
+/// 2. `file_name` 必须是单一文件名（不含路径分隔符、非 `.`/`..`、非空），
+///    防止插件返回的 `fileName` 携带路径遍历写穿用户所选目录；
+/// 3. `dest_dir` 必须是真实存在的目录（用户经保存/目录选择对话框提供）。
+#[command]
+pub fn plugin_copy_output_file(
+    output_dir: String,
+    path: String,
+    dest_dir: String,
+    file_name: String,
+) -> Result<(), String> {
+    let canon = resolve_output_file(&output_dir, &path)?;
+
+    if file_name.is_empty()
+        || file_name == "."
+        || file_name == ".."
+        || file_name.contains('/')
+        || file_name.contains('\\')
+    {
+        return Err("非法文件名".to_string());
+    }
+
+    let dir = std::path::Path::new(&dest_dir);
+    if !dir.is_dir() {
+        return Err("目标目录不存在".to_string());
+    }
+
+    let dest = dir.join(&file_name);
+    std::fs::copy(&canon, &dest)
+        .map(|_| ())
+        .map_err(|e| format!("复制文件失败: {}", e))
 }

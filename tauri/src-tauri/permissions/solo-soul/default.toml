@@ -144,6 +144,7 @@ commands.allow = [
   "plugin_list_installed",
   "plugin_list_sessions",
   "plugin_open_output_file",
+  "plugin_copy_output_file",
   "plugin_run",
   "plugin_uninstall",
   "plugin_update",

@@ -3,14 +3,14 @@ import { useTranslation } from 'react-i18next';
 import { Copy, Check, Eye, Download } from 'lucide-react';
 import { invoke } from '@tauri-apps/api/core';
 import { saveWithPause, openWithPause } from '@/lib/dialog';
-import { copyFile } from '@tauri-apps/plugin-fs';
-import { join } from '@tauri-apps/api/path';
+import { dirname, basename } from '@tauri-apps/api/path';
 import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
 import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import { Button } from '@/components/ui/Button';
 import styles from './PluginResultPanel.module.css';
 import type { PluginResultPayload, WatermarkResultItem } from '@/lib/plugin';
 import { ExpiryGuardianView } from '@/components/plugin-views/ExpiryGuardianView';
+import { useUiStore } from '@/stores/uiStore';
 import { ICON_SIZE } from '@/lib/constants';
 
 // ─── 国家名称 → ISO 3166-1 alpha-2 代码映射 ───────────────────────────────
@@ -342,14 +342,27 @@ function WatermarkResultContent({
     }
   };
 
+  const showToast = useUiStore((s) => s.showToast);
+
   const handleDownload = async (item: WatermarkResultItem) => {
     try {
       const dest = await saveWithPause({ defaultPath: item.fileName });
       if (dest) {
-        await copyFile(item.outputPath, dest);
+        // P060: 复制下沉到 Rust 命令（源路径 canonical 包含校验 + 文件名净化），
+        // 替代此前前端直接 plugin-fs copyFile 且静默吞错。
+        await invoke('plugin_copy_output_file', {
+          outputDir: payload.outputDir,
+          path: item.outputPath,
+          destDir: await dirname(dest),
+          fileName: await basename(dest),
+        });
+        showToast({ type: 'success', message: t('watermark.downloaded', { defaultValue: '已下载' }) });
       }
-    } catch {
-      // silent
+    } catch (err) {
+      showToast({
+        type: 'error',
+        message: `${t('watermark.download_failed', { defaultValue: '下载失败' })}: ${err}`,
+      });
     }
   };
 
@@ -361,12 +374,23 @@ function WatermarkResultContent({
       const selected = items.filter((item) => selectedIds.has(resultItemId(item)));
       await Promise.all(
         selected.map(async (item) => {
-          const dest = await join(dir, item.fileName);
-          await copyFile(item.outputPath, dest);
+          await invoke('plugin_copy_output_file', {
+            outputDir: payload.outputDir,
+            path: item.outputPath,
+            destDir: dir,
+            fileName: item.fileName,
+          });
         }),
       );
-    } catch {
-      // silent
+      showToast({
+        type: 'success',
+        message: t('watermark.downloaded_selected', { defaultValue: '已下载 {{count}} 项', count: selected.length }),
+      });
+    } catch (err) {
+      showToast({
+        type: 'error',
+        message: `${t('watermark.download_failed', { defaultValue: '下载失败' })}: ${err}`,
+      });
     }
   };
 

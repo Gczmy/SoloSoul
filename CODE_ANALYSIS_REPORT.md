@@ -79,15 +79,15 @@
 | P057 | P2 | 架构 | `tauri/src/stores/objectStore.ts:158-169` | `updateObject` 只更新缓存不同步 `objects` 摘要列表（潜伏性不一致） | `[x]` 已修复 |
 | P058 | P2 | 架构 | `tauri/src/stores/profileStore.ts:75-98` | `loadSection`/`updateField` 无调用方死代码，且 updateField 写后不同步本地 | `[x]` 已修复 |
 | P059 | P2 | 架构 | `HistoryPage.tsx:36-38`、`HistoryViewer.tsx:485-487`、`vaultStore.ts:40-43` | 3 处前端 invoke 链缺 `.catch`，锁定等场景下 unhandled rejection 且无提示 | `[x]` 已修复 |
-| P060 | P2 | 规范 | `tauri/src/components/plugin/PluginResultPanel.tsx:344,360` | UI 组件直接调 plugin-fs `copyFile` 且静默吞错，违反 IPC 封装约定 | `[ ]` 待修复 |
+| P060 | P2 | 规范 | `tauri/src/components/plugin/PluginResultPanel.tsx:344,360` | UI 组件直接调 plugin-fs `copyFile` 且静默吞错，违反 IPC 封装约定 | `[x]` 已修复 |
 | P061 | P2 | 架构 | `tauri/src/pages/settings/GlobalAttachmentManager.tsx`（12 处直接 invoke） | 页面组件承载附件树遍历/聚合/批量编排等重业务逻辑，应下沉 store/lib（与 P024 关联） | `[ ]` 待修复 |
 | P062 | P2 | 架构 | `tauri/src/stores/settingsStore.ts:154-307` | 主题/语言设置四副本（zustand+localStorage+ui_preferences.json+vault），需补写入路径矩阵注释或收敛 | `[ ]` 待修复 |
 | P063 | P2 | 架构 | `tauri/Cargo.toml:73` | release profile `panic = "abort"`：未来新增生产代码引入 unwrap 时代价大，保留认知即可 | `[ ]` 待修复 |
 
 ## 修复进度
 
-- 已完成：47 / 63（P001–P011、P013–P016、P019–P028、P029–P033、P034–P046、P056–P059；其中 P011 工作区部分完成）
-- 当前处理：P059 已完成，等待下一条指令
+- 已完成：48 / 63（P001–P011、P013–P016、P019–P028、P029–P033、P034–P046、P056–P060；其中 P011 工作区部分完成）
+- 当前处理：P060 已完成，等待下一条指令
 
 ## 静态基线之外已检查且无发现的维度（误报排除记录）
 
@@ -307,6 +307,7 @@ sync crate manager（`manager.rs:168`）`sync_enable` 时自建 `ServiceDaemon`�
 `[x]` 已修复：① HistoryPage `snapshot_list` 链补 `.catch`（`showToast` error + `t('common:history_load_failed', fallback)`）；② HistoryViewer `snapshot_list` 链补 `.catch`（新增 `useUiStore` showToast，同款提示）；③ 同文件 SnapshotCard 的 `snapshot_get_data` 补 `.catch`（`logger.warn` 记录，`snapData` 保持 null 优雅降级）；④ vaultStore.ts 项已随 **P015** 消除（文件删除、锁定收敛为 `authStore.lock`，自带 try/catch）。两处 useEffect 按项目既有惯例补 `// eslint-disable-next-line react-hooks/exhaustive-deps`（`showToast`/`t` 稳定引用，仅 objectId 变化重载）。tsc/lint（0 警告）/Vitest 415 全部通过，审查通过。
 
 **P060 | PluginResultPanel 直接 FS+吞错**：:344,360 组件内 `copyFile` 且 `catch{}` 静默。下沉 Rust command 或 lib 封装，失败 toast 提示（与 P004 同文件，建议同轮处理）。
+`[x]` 已修复：新增 Rust 命令 `plugin_copy_output_file(output_dir, path, dest_dir, file_name)`——复用 P004 的 canonical 包含校验（源必须位于插件 output_dir 内）+ `file_name` 严格净化（非空/非`.`/`..`、不含 `/` 与 `\`，防 Windows 路径遍历）+ `dest_dir` 必须存在目录；`std::fs::copy` 错误返回中文消息。**抽取共享助手 `resolve_output_file(output_dir, path) -> Result<PathBuf, String>`**，`plugin_open_output_file`（P004）与 `plugin_copy_output_file` 共用，消除 15 行重复（审查建议采纳）。前端 PluginResultPanel：移除 plugin-fs `copyFile` 与 `join` 导入，改 `dirname`/`basename`；`handleDownload`/`handleDownloadSelected` 改 `invoke('plugin_copy_output_file')`，成功/失败均 `showToast` 提示（新增 `useUiStore`）。已注册 lib.rs + ACL 白名单 default.toml（check_acl_consistency.py OK，197 命令）。cargo check/fmt/clippy、tsc/lint、Vitest 415 全部通过，两轮审查通过。
 
 **P061 | GlobalAttachmentManager 重业务下沉**：12 处直接 invoke+多层聚合统计（:556-589）在组件内。数据编排下沉 store/lib hook（与 P024 同设计）。
 

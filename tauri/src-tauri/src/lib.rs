@@ -615,6 +615,7 @@ pub fn run() {
             commands::plugin::plugin_audit_log,
             commands::plugin::plugin_update_registry,
             commands::plugin::plugin_open_output_file,
+            commands::plugin::plugin_copy_output_file,
             // Discovery commands
             commands::discovery::mdns_discover,
             commands::discovery::recovery_discover_hosts,
