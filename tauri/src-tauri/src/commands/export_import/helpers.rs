@@ -165,6 +165,42 @@ pub(crate) fn unique_object_name(
     }
 }
 
+/// 若 `obj[key]` 是字符串且在 id_map 中命中，则替换为新 ID。
+fn rewrite_str_ref(
+    obj: &mut serde_json::Map<String, serde_json::Value>,
+    key: &str,
+    id_map: &std::collections::HashMap<String, String>,
+) {
+    let Some(val) = obj.get_mut(key) else {
+        return;
+    };
+    let Some(s) = val.as_str() else {
+        return;
+    };
+    if let Some(new_id) = id_map.get(s) {
+        *val = serde_json::Value::String(new_id.clone());
+    }
+}
+
+/// 若 `obj[key]` 是字符串数组，则逐元素在 id_map 中命中后替换。
+fn rewrite_str_array_ref(
+    obj: &mut serde_json::Map<String, serde_json::Value>,
+    key: &str,
+    id_map: &std::collections::HashMap<String, String>,
+) {
+    let Some(arr) = obj.get_mut(key).and_then(|v| v.as_array_mut()) else {
+        return;
+    };
+    for item in arr.iter_mut() {
+        let Some(s) = item.as_str() else {
+            continue;
+        };
+        if let Some(new_id) = id_map.get(s) {
+            *item = serde_json::Value::String(new_id.clone());
+        }
+    }
+}
+
 /// 递归扫描 JSON 值，将旧 ID 引用替换为新 ID。
 /// 处理以下模式：
 /// - `"parentId"` 或 `"parent_id"` 字符串字段
@@ -185,39 +221,19 @@ pub(crate) fn rewrite_id_references(
                 == Some("relation");
             if is_relation {
                 for key in ["targetId", "id", "objectId"] {
-                    if let Some(val) = obj.get_mut(key) {
-                        if let Some(s) = val.as_str() {
-                            if let Some(new_id) = id_map.get(s) {
-                                *val = serde_json::Value::String(new_id.clone());
-                            }
-                        }
-                    }
+                    rewrite_str_ref(obj, key, id_map);
                 }
             }
             // 递归处理子对象
             let keys: Vec<String> = obj.keys().cloned().collect();
             for key in &keys {
-                if key == "parent_id" || key == "parentId" {
-                    if let Some(val) = obj.get_mut(key) {
-                        if let Some(s) = val.as_str() {
-                            if let Some(new_id) = id_map.get(s) {
-                                *val = serde_json::Value::String(new_id.clone());
-                            }
+                match key.as_str() {
+                    "parent_id" | "parentId" => rewrite_str_ref(obj, key, id_map),
+                    "children_ids" | "childrenIds" => rewrite_str_array_ref(obj, key, id_map),
+                    _ => {
+                        if let Some(val) = obj.get_mut(key) {
+                            rewrite_id_references(val, id_map);
                         }
-                    }
-                } else if key == "children_ids" || key == "childrenIds" {
-                    if let Some(arr) = obj.get_mut(key).and_then(|v| v.as_array_mut()) {
-                        for item in arr.iter_mut() {
-                            if let Some(s) = item.as_str() {
-                                if let Some(new_id) = id_map.get(s) {
-                                    *item = serde_json::Value::String(new_id.clone());
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    if let Some(val) = obj.get_mut(key) {
-                        rewrite_id_references(val, id_map);
                     }
                 }
             }

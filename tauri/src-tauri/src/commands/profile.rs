@@ -109,19 +109,24 @@ pub async fn profile_update_field(
     let mut data: serde_json::Value =
         serde_json::from_slice(&profile.data).map_err(|e| format!("Parse error: {}", e))?;
 
-    if let Some(sections) = data.get_mut("sections").and_then(|s| s.as_array_mut()) {
-        for sec in sections.iter_mut() {
-            if sec.get("type").and_then(|t| t.as_str()) == Some(&section_type) {
-                if let Some(fields) = sec.get_mut("fields").and_then(|f| f.as_array_mut()) {
-                    for field in fields.iter_mut() {
-                        if field.get("key").and_then(|k| k.as_str()) == Some(&field_key) {
-                            field["value"] = field_value;
-                            break;
-                        }
-                    }
-                }
-                break;
-            }
+    // 使用 find 组合子逐层定位 sections → section → fields → field，消除 5 层嵌套
+    if let Some(sec) = data
+        .get_mut("sections")
+        .and_then(|s| s.as_array_mut())
+        .and_then(|arr| {
+            arr.iter_mut()
+                .find(|sec| sec.get("type").and_then(|t| t.as_str()) == Some(&section_type))
+        })
+    {
+        if let Some(field) = sec
+            .get_mut("fields")
+            .and_then(|f| f.as_array_mut())
+            .and_then(|arr| {
+                arr.iter_mut()
+                    .find(|f| f.get("key").and_then(|k| k.as_str()) == Some(&field_key))
+            })
+        {
+            field["value"] = field_value;
         }
     }
 

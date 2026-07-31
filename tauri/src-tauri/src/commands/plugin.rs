@@ -59,6 +59,48 @@ fn extract_binding_candidates(manifest: &PluginManifest) -> Vec<(String, String,
     candidates
 }
 
+/// 安装成功后，对已解锁的 Vault 执行种子模板 contract_bindings 迁移。
+/// 任一前置条件（Vault 未解锁 / 无账户 / 插件未在已安装列表）不满足或迁移失败
+/// 仅告警，不阻断安装主流程（与原来的 if-let 链语义一致）。
+fn migrate_seed_bindings(state: &AppState, plugin_id: &str) {
+    let Ok(vault) = vault_handle(state) else {
+        return;
+    };
+    let Some(account_id) = current_account_optional(state) else {
+        return;
+    };
+    let Ok(installed) = state.plugin_manager.list_installed() else {
+        return;
+    };
+    let Some(manifest) = installed.iter().find(|m| m.id == plugin_id) else {
+        return;
+    };
+    let candidates = extract_binding_candidates(manifest);
+    if candidates.is_empty() {
+        return;
+    }
+    match solosoul_core::template_service::migrate_contract_bindings(
+        &vault,
+        &account_id,
+        &candidates,
+    ) {
+        Ok(count) => {
+            tracing::info!(
+                "Plugin install: migrated {} seed template field bindings for {}",
+                count,
+                plugin_id
+            );
+        }
+        Err(e) => {
+            tracing::warn!(
+                "Plugin install: seed template migration failed for {}: {}",
+                plugin_id,
+                e
+            );
+        }
+    }
+}
+
 #[command]
 pub async fn plugin_install(
     state: State<'_, AppState>,
@@ -75,37 +117,7 @@ pub async fn plugin_install(
     state.device_auto_sync.trigger_data_change();
 
     // 安装成功后，对已解锁的 Vault 执行种子模板 contract_bindings 迁移
-    if let Ok(vault) = vault_handle(&state) {
-        if let Some(account_id) = current_account_optional(&state) {
-            if let Ok(installed) = state.plugin_manager.list_installed() {
-                if let Some(manifest) = installed.iter().find(|m| m.id == plugin_id) {
-                    let candidates = extract_binding_candidates(manifest);
-                    if !candidates.is_empty() {
-                        match solosoul_core::template_service::migrate_contract_bindings(
-                            &vault,
-                            &account_id,
-                            &candidates,
-                        ) {
-                            Ok(count) => {
-                                tracing::info!(
-                                    "Plugin install: migrated {} seed template field bindings for {}",
-                                    count,
-                                    plugin_id
-                                );
-                            }
-                            Err(e) => {
-                                tracing::warn!(
-                                    "Plugin install: seed template migration failed for {}: {}",
-                                    plugin_id,
-                                    e
-                                );
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
+    migrate_seed_bindings(&state, &plugin_id);
 
     Ok(result)
 }

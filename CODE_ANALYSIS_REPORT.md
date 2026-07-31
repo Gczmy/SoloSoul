@@ -1,8 +1,8 @@
 # 代码分析修复报告
 
-> 最后更新：2026-07-31 21:20:00
+> 最后更新：2026-07-31 21:40:00
 > 当前分支：`main`
-> 修复轮次：3（已执行修复：P001–P011、P013–P016、P019–P028、P029–P033、P034–P044，共 41 项）
+> 修复轮次：3（已执行修复：P001–P011、P013–P016、P019–P028、P029–P033、P034–P045，共 42 项）
 > 分析范围：`tauri/`（Rust 后端 `src-tauri/` + `crates/`，React/TS 前端 `src/`）；`solosoul_cli/` 不在本轮范围
 
 ## 基线检查结果（阶段 0，全部通过）
@@ -64,7 +64,7 @@
 | P042 | P2 | 结构 | `tauri/crates/solosoul-vault/src/migration.rs:31` | `run_migrations` 464 行，每版本重复「查列是否存在」样板 | `[x]` 已修复 |
 | P043 | P2 | 结构 | `tauri/src-tauri/src/lib.rs:135` | `run` 441 行，启动初始化 10+ 步全内联在一个 setup 闭包 | `[x]` 已修复 |
 | P044 | P2 | 结构 | `export.rs:217`(258)、`object/snapshot.rs:210`(254)、`llm/stream.rs:76`(227) | 3 个 220+ 行多阶段函数需按阶段抽取 | `[x]` 已修复 |
-| P045 | P2 | 结构 | `export_import/helpers.rs:173-232`、`import.rs:394-412`、`profile.rs:191-205`、`plugin.rs:80-107`、`llm/stream.rs:257-302` | 5 处 5-6 层深层嵌套 | `[ ]` 待修复 |
+| P045 | P2 | 结构 | `export_import/helpers.rs:173-232`、`import.rs:394-412`、`profile.rs:191-205`、`plugin.rs:80-107`、`llm/stream.rs:257-302` | 5 处 5-6 层深层嵌套 | `[x]` 已修复 |
 | P046 | P2 | 重复 | `tauri/src-tauri/src/commands/attachment.rs:983-1027` vs `tauri/crates/solosoul-core/src/objects.rs:945-999` | `cleanup_orphan_attachments` GUI 端整体复制 core 实现 | `[ ]` 待修复 |
 | P047 | P2 | 重复 | `tauri/src-tauri/src/plugin/host/register.rs:763-812,838-890` | 两个 watermark 注册闭包除一行外完全相同；read_string 校验样板 20+ 次 | `[ ]` 待修复 |
 | P048 | P2 | 重复 | 全前端 30+ 文件（如 `ExportSection.tsx:600-622`、`OnboardingDialog.tsx` ×10、`SyncPage.tsx` ×5） | 109 处手写 onMouseEnter/Leave hover，应统一迁移到 `ui/Button` | `[ ]` 待修复 |
@@ -86,8 +86,8 @@
 
 ## 修复进度
 
-- 已完成：41 / 63（P001–P011、P013–P016、P019–P028、P029–P033、P034–P044；其中 P011 工作区部分完成）
-- 当前处理：P044 已完成，等待下一条指令
+- 已完成：42 / 63（P001–P011、P013–P016、P019–P028、P029–P033、P034–P045；其中 P011 工作区部分完成）
+- 当前处理：P045 已完成，等待下一条指令
 
 ## 静态基线之外已检查且无发现的维度（误报排除记录）
 
@@ -261,6 +261,13 @@ sync crate manager（`manager.rs:168`）`sync_enable` 时自建 `ServiceDaemon`�
 行为等价；fmt/clippy/322 测试全部通过，两轮审查通过。
 
 **P045 | 深层嵌套 ×5**：`helpers.rs:173-232` rewrite_id_references 三连 if-let（抽 `rewrite_str_ref`）；`import.rs:394-412` 模板 labels 合并 5 层（提前 return/and_then）；`profile.rs:191-205` 6 层（`iter_mut().find()` 组合子）；`plugin.rs:80-107` 5 层（抽 `migrate_seed_bindings` 用 `?`）；`llm/stream.rs:257-302` SSE 尾部 6 层（抽子函数+提前 continue）。
+`[x]` 已修复：
+- **helpers.rs**：`rewrite_id_references` 三连 if-let 抽 `rewrite_str_ref`（let-else 双早退）+ `rewrite_str_array_ref`（let-else + continue），主函数改 `match key.as_str()` 三分支，RelationProperty targetId/id/objectId 循环语义保留。
+- **import.rs**：模板 labels 合并 5 层抽 `merge_labels_into(tpl, existing)` 助手（`if let (Some, Some)` 双模式）；match 简化为三臂。
+- **profile.rs**：`profile_update_field` 5 层 if/for 改两层 `iter_mut().find()` 组合子（sections→section→fields→field），find 停止语义与 break 等价。
+- **plugin.rs**：`plugin_install` 5 层 if-let 链抽 `migrate_seed_bindings(state, plugin_id)`，let-else 链保持原告警不阻断语义。
+- **stream.rs**：SSE 尾部 6 层抽 `handle_remaining_data` 助手，`[DONE]`/解析失败早退镜像原条件跳过。
+行为等价；fmt/clippy/322 测试全部通过，审查通过。
 
 **P046 | cleanup_orphan_attachments 双份**：`attachment.rs:983-1027` 整体复制 `objects.rs:945-999`，仅多 audit/auto_sync 触发。GUI 改调 core 实现后再做日志与同步；附带的 `map(|mut d| d.next().is_none()).unwrap_or(false)` 可顺手改 `is_ok_and`。
 

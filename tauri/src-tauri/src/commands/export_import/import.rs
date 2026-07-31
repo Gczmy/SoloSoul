@@ -332,16 +332,7 @@ async fn import_execute_internal(
             // 合并 property_labels：payload 原有值优先，模板值作为兜底
             let tpl_labels = crate::commands::object::inherit_property_labels(vault, Some(tid));
             match (tpl_labels, &mut property_labels) {
-                (Some(tpl), Some(ref mut existing)) => {
-                    // 模板值作为兜底，不覆盖已有值
-                    if let Some(tpl_obj) = tpl.as_object() {
-                        if let Some(existing_obj) = existing.as_object_mut() {
-                            for (k, v) in tpl_obj {
-                                existing_obj.entry(k.clone()).or_insert_with(|| v.clone());
-                            }
-                        }
-                    }
-                }
+                (Some(tpl), Some(existing)) => merge_labels_into(&tpl, existing),
                 (Some(tpl), None) => {
                     property_labels = Some(tpl);
                 }
@@ -613,6 +604,15 @@ fn build_import_record(
         created_at: obj_val["created_at"].as_str().unwrap_or(now).to_string(),
         updated_at: now.to_string(),
         version: obj_val["version"].as_u64().unwrap_or(1) as u32,
+    }
+}
+
+/// 合并模板 property_labels 进现有 labels：模板值作为兜底，不覆盖已有值。
+fn merge_labels_into(tpl: &serde_json::Value, existing: &mut serde_json::Value) {
+    if let (Some(tpl_obj), Some(existing_obj)) = (tpl.as_object(), existing.as_object_mut()) {
+        for (k, v) in tpl_obj {
+            existing_obj.entry(k.clone()).or_insert_with(|| v.clone());
+        }
     }
 }
 

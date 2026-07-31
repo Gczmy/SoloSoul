@@ -214,40 +214,15 @@ async fn handle_sse_stream(
     }
 
     // 处理缓冲区中剩余的内容
-    let remaining = buffer.trim();
-    if let Some(data) = remaining.strip_prefix("data: ") {
-        if data != "[DONE]" {
-            if let Ok(json) = serde_json::from_str::<serde_json::Value>(data) {
-                let delta_text = extract_delta_text(&json, api_type);
-                if let Some(text) = delta_text {
-                    if !text.is_empty() {
-                        full_text.push_str(text);
-                        let _ = app.emit(
-                            "llm-stream-chunk",
-                            LlmStreamPayload {
-                                conversation_id: conversation_id.to_string(),
-                                chunk: text.to_string(),
-                                is_done: false,
-                                error: None,
-                            },
-                        );
-                    }
-                }
-                // 剩余内容也可能含 usage
-                if !is_anthropic(api_type) {
-                    if let Some(usage) = json.get("usage") {
-                        if let Some(prompt) = usage.get("prompt_tokens").and_then(|v| v.as_u64()) {
-                            token_usage.prompt_tokens = prompt;
-                        }
-                        if let Some(completion) =
-                            usage.get("completion_tokens").and_then(|v| v.as_u64())
-                        {
-                            token_usage.completion_tokens = completion;
-                        }
-                    }
-                }
-            }
-        }
+    if let Some(data) = buffer.trim().strip_prefix("data: ") {
+        handle_remaining_data(
+            data,
+            app,
+            conversation_id,
+            api_type,
+            &mut full_text,
+            &mut token_usage,
+        );
     }
 
     // 流正常结束
@@ -266,6 +241,48 @@ async fn handle_sse_stream(
         None
     };
     Ok((full_text, usage))
+}
+
+/// 处理流结束前缓冲区内最后一行（未换行）的 data 内容。
+fn handle_remaining_data(
+    data: &str,
+    app: &tauri::AppHandle,
+    conversation_id: &str,
+    api_type: &ApiType,
+    full_text: &mut String,
+    token_usage: &mut TokenUsage,
+) {
+    if data == "[DONE]" {
+        return;
+    }
+    let Ok(json) = serde_json::from_str::<serde_json::Value>(data) else {
+        return;
+    };
+    if let Some(text) = extract_delta_text(&json, api_type) {
+        if !text.is_empty() {
+            full_text.push_str(text);
+            let _ = app.emit(
+                "llm-stream-chunk",
+                LlmStreamPayload {
+                    conversation_id: conversation_id.to_string(),
+                    chunk: text.to_string(),
+                    is_done: false,
+                    error: None,
+                },
+            );
+        }
+    }
+    // 剩余内容也可能含 usage
+    if !is_anthropic(api_type) {
+        if let Some(usage) = json.get("usage") {
+            if let Some(prompt) = usage.get("prompt_tokens").and_then(|v| v.as_u64()) {
+                token_usage.prompt_tokens = prompt;
+            }
+            if let Some(completion) = usage.get("completion_tokens").and_then(|v| v.as_u64()) {
+                token_usage.completion_tokens = completion;
+            }
+        }
+    }
 }
 
 /// 非 SSE 响应：完整获取文本 + 打字机效果降级推送。
