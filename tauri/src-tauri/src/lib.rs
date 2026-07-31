@@ -131,6 +131,209 @@ fn init_tracing(log_dir: &PathBuf) {
     }
 }
 
+// ─────────────────────────────────────────────────────────────────────────
+// setup 初始化步骤（每步一个独立函数，便于阅读与单测）
+// ─────────────────────────────────────────────────────────────────────────
+
+/// 第 0 步：解析日志目录并初始化 tracing。失败为致命错误（中止启动）。
+fn setup_logging(app: &tauri::AppHandle) -> Result<(), String> {
+    let log_dir = match resolve_log_dir(app) {
+        Ok(dir) => dir,
+        Err(e) => {
+            eprintln!("[fatal] 无法解析日志目录: {e}");
+            return Err(format!("无法解析日志目录: {e}"));
+        }
+    };
+    let _ = std::fs::create_dir_all(&log_dir);
+    LOG_DIR.set(log_dir.clone()).ok();
+    init_tracing(&log_dir);
+
+    tracing::info!("[init] SoloSoul v{} 启动", env!("CARGO_PKG_VERSION"));
+    tracing::info!("[init] 日志目录: {}", log_dir.display());
+    tracing::info!("[init] 目标平台: {}", std::env::consts::OS);
+    Ok(())
+}
+
+/// 第 1 步：检查数据目录是否可写。
+fn setup_check_data_dir(app: &tauri::AppHandle) -> Result<(), String> {
+    let data_dir = match resolve_app_data_dir(app) {
+        Ok(dir) => dir,
+        Err(e) => {
+            tracing::error!("[setup] ❌ 无法解析数据目录: {}", e);
+            return Err(format!("无法解析数据目录: {e}"));
+        }
+    };
+    if let Err(e) = std::fs::create_dir_all(&data_dir) {
+        tracing::error!(
+            "[setup] ❌ 数据目录不可写: {} 错误: {}",
+            data_dir.display(),
+            e
+        );
+    }
+    Ok(())
+}
+
+/// 第 2 步：检查资源目录与关键子目录（仅记录日志，不中止启动）。
+fn setup_check_resource_dirs(app: &mut tauri::App) {
+    match app.path().resource_dir() {
+        Ok(resource_dir) => {
+            if !resource_dir.join("SoloSoul_plugin_market").exists() {
+                tracing::warn!(
+                    "[setup] ⚠️  插件市场目录不存在: {} （插件功能可能不可用）",
+                    resource_dir.join("SoloSoul_plugin_market").display()
+                );
+            }
+            if !resource_dir.join("docs").exists() {
+                tracing::warn!(
+                    "[setup] ⚠️  文档目录不存在: {}",
+                    resource_dir.join("docs").display()
+                );
+            }
+        }
+        Err(e) => {
+            tracing::error!("[setup] ❌ 无法获取资源目录: {}", e);
+        }
+    }
+}
+
+/// 第 4 步：初始化 AppState 并管理到应用状态（关键步骤，失败时中止启动）。
+/// 同时在 SAF 模式下触发一次冷启动同步。
+fn setup_init_state(app: &mut tauri::App) -> Result<(), String> {
+    tracing::debug!("[setup] 正在创建 AppState...");
+    let app_state = match AppState::new(app.handle().clone()) {
+        Ok(state) => state,
+        Err(e) => {
+            tracing::error!("[setup] ❌ AppState 创建失败: {:#}", e);
+            return Err(format!("AppState 创建失败: {:#}", e));
+        }
+    };
+    let has_saf_vault = app_state.has_saf_vault();
+    app.manage(app_state);
+
+    // 启动 AutoSyncManager，并在 SAF 模式下触发一次冷启动同步。
+    // AutoSyncManager 内部已包含 30 秒周期兜底和 30 秒防抖逻辑，
+    // 这里只需要在有 SAF 时触发一次即时同步，避免应用意外退出后数据丢失。
+    if has_saf_vault {
+        if let Some(state) = app.handle().try_state::<AppState>() {
+            state.auto_sync.trigger_immediate();
+            tracing::info!("[setup] SAF auto-sync manager started, cold-start sync triggered");
+        }
+    }
+    Ok(())
+}
+
+/// 第 6 步：初始化 RESOURCE_DIR。
+/// Android 上 Tauri 的 resource_dir 返回 asset:// URL，std::fs 无法直接读取。
+/// MainActivity 已在 onCreate 中将所需资源复制到 files/app_resources/，这里优先使用它。
+fn setup_init_resource_dir(app: &mut tauri::App) {
+    #[cfg(target_os = "android")]
+    let resource_dir: Result<PathBuf, String> = match resolve_app_data_dir(app.handle()) {
+        Ok(data_dir) => Ok(data_dir.join("app_resources")),
+        Err(e) => {
+            tracing::error!("[setup] ❌ 无法解析数据目录以设置 RESOURCE_DIR: {}", e);
+            Err(e)
+        }
+    };
+    #[cfg(not(target_os = "android"))]
+    let resource_dir = app.path().resource_dir();
+
+    match resource_dir {
+        Ok(dir) => {
+            tracing::info!("[setup] RESOURCE_DIR set to: {}", dir.display());
+            let _ = commands::llm::RESOURCE_DIR.set(dir.clone());
+        }
+        Err(e) => {
+            tracing::error!(
+                "[setup] ❌ 无法获取 resource_dir，RESOURCE_DIR 未设置: {}",
+                e
+            );
+        }
+    }
+}
+
+/// 第 7 步：应用启动时后台静默刷新插件注册表（不阻塞启动，失败仅记录日志）— 桌面端先行。
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+fn setup_spawn_registry_refresh(app: &tauri::AppHandle) {
+    let app_handle = app.clone();
+    tauri::async_runtime::spawn(async move {
+        // 若未配置公钥则跳过，避免每次启动都报错
+        if std::env::var("SOLOSOUL_REGISTRY_PUBKEY").is_err() {
+            tracing::debug!("[plugin] SOLOSOUL_REGISTRY_PUBKEY 未配置，跳过启动时注册表刷新");
+            return;
+        }
+        // 若 1 小时内已刷新过则跳过
+        let data_dir = match resolve_app_data_dir(&app_handle) {
+            Ok(dir) => dir,
+            Err(e) => {
+                tracing::warn!("[plugin] 无法解析数据目录，跳过注册表刷新: {}", e);
+                return;
+            }
+        };
+        let last_update_path = data_dir.join(".last_registry_update");
+        let should_refresh = if let Ok(meta) = std::fs::metadata(&last_update_path) {
+            meta.modified()
+                .ok()
+                .and_then(|t| t.elapsed().ok())
+                .map(|d| d.as_secs() > 3600)
+                .unwrap_or(true)
+        } else {
+            true
+        };
+        if !should_refresh {
+            tracing::debug!("[plugin] 注册表 1 小时内已刷新过，跳过");
+            return;
+        }
+        if let Some(state) = app_handle.try_state::<AppState>() {
+            match state.plugin_manager.update_registry().await {
+                Ok(()) => {
+                    tracing::info!("[plugin] 注册表后台刷新成功");
+                    let _ = std::fs::write(&last_update_path, b"");
+                }
+                Err(e) => {
+                    tracing::warn!(
+                        "[plugin] 注册表后台刷新失败（将在下次手动刷新时重试）: {}",
+                        e
+                    )
+                }
+            }
+        }
+    });
+}
+
+/// 第 8 步：检测系统 locale（前端通过 IPC get_system_locale + navigator.language 获取）。
+fn setup_detect_locale() {
+    let locale = commands::system::get_ui_language().unwrap_or_else(|| "en-US".to_string());
+    let locale_flag = if locale.starts_with("zh") || locale.starts_with("cmn") {
+        "zh-CN"
+    } else {
+        "en-US"
+    };
+    tracing::debug!(
+        "[setup] locale: get_ui_language()={}, resolved={}",
+        locale,
+        locale_flag
+    );
+}
+
+/// 第 9 步：启动系统主题轮询任务 — 桌面端先行，移动端使用前端 CSS media query。
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+fn setup_spawn_theme_polling(app: &tauri::AppHandle) {
+    let app_handle = app.clone();
+    tauri::async_runtime::spawn(async move {
+        use std::time::Duration;
+        let mut last_theme = String::new();
+        loop {
+            tokio::time::sleep(Duration::from_secs(1)).await;
+            if let Ok(theme) = commands::system::get_system_theme() {
+                if theme != last_theme {
+                    last_theme = theme.clone();
+                    let _ = app_handle.emit("system-theme-changed", theme);
+                }
+            }
+        }
+    });
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     // ── 第 0 步：注册 panic hook（在一切初始化之前）──
@@ -176,204 +379,37 @@ pub fn run() {
             // ════════════════════════════════════════════════════════
 
             // 0. 解析日志目录并初始化 tracing
-            let log_dir = match resolve_log_dir(app.handle()) {
-                Ok(dir) => dir,
-                Err(e) => {
-                    eprintln!("[fatal] 无法解析日志目录: {e}");
-                    return Err(format!("无法解析日志目录: {e}").into());
-                }
-            };
-            let _ = std::fs::create_dir_all(&log_dir);
-            LOG_DIR.set(log_dir.clone()).ok();
-            init_tracing(&log_dir);
-
-            tracing::info!("[init] SoloSoul v{} 启动", env!("CARGO_PKG_VERSION"));
-            tracing::info!("[init] 日志目录: {}", log_dir.display());
-            tracing::info!("[init] 目标平台: {}", std::env::consts::OS);
+            setup_logging(app.handle())?;
 
             // 1. 检查数据目录是否可写
-            {
-                let data_dir = match resolve_app_data_dir(app.handle()) {
-                    Ok(dir) => dir,
-                    Err(e) => {
-                        tracing::error!("[setup] ❌ 无法解析数据目录: {}", e);
-                        return Err(format!("无法解析数据目录: {e}").into());
-                    }
-                };
-                if let Err(e) = std::fs::create_dir_all(&data_dir) {
-                    tracing::error!(
-                        "[setup] ❌ 数据目录不可写: {} 错误: {}",
-                        data_dir.display(),
-                        e
-                    );
-                }
-            }
+            setup_check_data_dir(app.handle())?;
 
             // 2. 检查资源目录与关键子目录
-            match app.path().resource_dir() {
-                Ok(resource_dir) => {
-                    if !resource_dir.join("SoloSoul_plugin_market").exists() {
-                        tracing::warn!(
-                            "[setup] ⚠️  插件市场目录不存在: {} （插件功能可能不可用）",
-                            resource_dir.join("SoloSoul_plugin_market").display()
-                        );
-                    }
-                    if !resource_dir.join("docs").exists() {
-                        tracing::warn!(
-                            "[setup] ⚠️  文档目录不存在: {}",
-                            resource_dir.join("docs").display()
-                        );
-                    }
-                }
-                Err(e) => {
-                    tracing::error!("[setup] ❌ 无法获取资源目录: {}", e);
-                }
-            }
+            setup_check_resource_dirs(app);
 
             // 3. 为当前进程设置 PDFium 动态库路径（OCR 与水印共用）— 桌面端先行
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
             commands::ocr::ensure_pdfium_library_path(app.handle());
 
-            // 4. 初始化 AppState（关键步骤，失败时中止启动）
-            tracing::debug!("[setup] 正在创建 AppState...");
-            let app_state = match AppState::new(app.handle().clone()) {
-                Ok(state) => state,
-                Err(e) => {
-                    tracing::error!("[setup] ❌ AppState 创建失败: {:#}", e);
-                    return Err(format!("AppState 创建失败: {:#}", e).into());
-                }
-            };
-            let has_saf_vault = app_state.has_saf_vault();
-            app.manage(app_state);
-
-            // 4b. 启动 AutoSyncManager，并在 SAF 模式下触发一次冷启动同步。
-            // AutoSyncManager 内部已包含 30 秒周期兜底和 30 秒防抖逻辑，
-            // 这里只需要在有 SAF 时触发一次即时同步，避免应用意外退出后数据丢失。
-            if has_saf_vault {
-                if let Some(state) = app.handle().try_state::<AppState>() {
-                    state.auto_sync.trigger_immediate();
-                    tracing::info!(
-                        "[setup] SAF auto-sync manager started, cold-start sync triggered"
-                    );
-                }
-            }
+            // 4. 初始化 AppState（关键步骤，失败时中止启动）+ SAF 冷启动同步
+            setup_init_state(app)?;
 
             // 5. 初始化发现服务状态（桌面端 mDNS / 移动端 NSD 共用同一命令签名）
-            {
-                app.manage(commands::discovery::SharedDaemon::new());
-            }
+            app.manage(commands::discovery::SharedDaemon::new());
 
             // 6. 初始化 RESOURCE_DIR
-            // Android 上 Tauri 的 resource_dir 返回 asset:// URL，std::fs 无法直接读取。
-            // MainActivity 已在 onCreate 中将所需资源复制到 files/app_resources/，这里优先使用它。
-            #[cfg(target_os = "android")]
-            let resource_dir: Result<PathBuf, String> = {
-                match resolve_app_data_dir(app.handle()) {
-                    Ok(data_dir) => Ok(data_dir.join("app_resources")),
-                    Err(e) => {
-                        tracing::error!("[setup] ❌ 无法解析数据目录以设置 RESOURCE_DIR: {}", e);
-                        Err(e)
-                    }
-                }
-            };
-            #[cfg(not(target_os = "android"))]
-            let resource_dir = app.path().resource_dir();
+            setup_init_resource_dir(app);
 
-            match resource_dir {
-                Ok(dir) => {
-                    tracing::info!("[setup] RESOURCE_DIR set to: {}", dir.display());
-                    let _ = commands::llm::RESOURCE_DIR.set(dir.clone());
-                }
-                Err(e) => {
-                    tracing::error!(
-                        "[setup] ❌ 无法获取 resource_dir，RESOURCE_DIR 未设置: {}",
-                        e
-                    );
-                }
-            }
-
-            // 7. 应用启动时后台静默刷新插件注册表（不阻塞启动，失败仅记录日志）— 桌面端先行
+            // 7. 后台静默刷新插件注册表（不阻塞启动，失败仅记录日志）— 桌面端先行
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
-            {
-                let app_handle = app.handle().clone();
-                tauri::async_runtime::spawn(async move {
-                    // 若未配置公钥则跳过，避免每次启动都报错
-                    if std::env::var("SOLOSOUL_REGISTRY_PUBKEY").is_err() {
-                        tracing::debug!(
-                            "[plugin] SOLOSOUL_REGISTRY_PUBKEY 未配置，跳过启动时注册表刷新"
-                        );
-                        return;
-                    }
-                    // 若 1 小时内已刷新过则跳过
-                    let data_dir = match resolve_app_data_dir(&app_handle) {
-                        Ok(dir) => dir,
-                        Err(e) => {
-                            tracing::warn!("[plugin] 无法解析数据目录，跳过注册表刷新: {}", e);
-                            return;
-                        }
-                    };
-                    let last_update_path = data_dir.join(".last_registry_update");
-                    let should_refresh = if let Ok(meta) = std::fs::metadata(&last_update_path) {
-                        meta.modified()
-                            .ok()
-                            .and_then(|t| t.elapsed().ok())
-                            .map(|d| d.as_secs() > 3600)
-                            .unwrap_or(true)
-                    } else {
-                        true
-                    };
-                    if !should_refresh {
-                        tracing::debug!("[plugin] 注册表 1 小时内已刷新过，跳过");
-                        return;
-                    }
-                    if let Some(state) = app_handle.try_state::<AppState>() {
-                        match state.plugin_manager.update_registry().await {
-                            Ok(()) => {
-                                tracing::info!("[plugin] 注册表后台刷新成功");
-                                let _ = std::fs::write(&last_update_path, b"");
-                            }
-                            Err(e) => {
-                                tracing::warn!(
-                                    "[plugin] 注册表后台刷新失败（将在下次手动刷新时重试）: {}",
-                                    e
-                                )
-                            }
-                        }
-                    }
-                });
-            }
+            setup_spawn_registry_refresh(app.handle());
 
             // 8. 检测系统 locale（前端通过 IPC get_system_locale + navigator.language 获取）
-            let locale = commands::system::get_ui_language().unwrap_or_else(|| "en-US".to_string());
-            let locale_flag = if locale.starts_with("zh") || locale.starts_with("cmn") {
-                "zh-CN"
-            } else {
-                "en-US"
-            };
-            tracing::debug!(
-                "[setup] locale: get_ui_language()={}, resolved={}",
-                locale,
-                locale_flag
-            );
+            setup_detect_locale();
 
             // 9. 启动系统主题轮询任务 — 桌面端先行，移动端使用前端 CSS media query
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
-            {
-                let app_handle = app.handle().clone();
-                tauri::async_runtime::spawn(async move {
-                    use std::time::Duration;
-                    let mut last_theme = String::new();
-                    loop {
-                        tokio::time::sleep(Duration::from_secs(1)).await;
-                        if let Ok(theme) = commands::system::get_system_theme() {
-                            if theme != last_theme {
-                                last_theme = theme.clone();
-                                let _ = app_handle.emit("system-theme-changed", theme);
-                            }
-                        }
-                    }
-                });
-            }
+            setup_spawn_theme_polling(app.handle());
 
             Ok(())
         })
