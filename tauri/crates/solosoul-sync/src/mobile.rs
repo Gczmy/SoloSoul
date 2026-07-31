@@ -113,13 +113,50 @@ impl SyncService {
     }
 
     /// 手动同步一个 `host:port` 地址。
+    ///
+    /// 仅在锁内提取会话所需数据（短临界区），随后立即释放锁，并把实际会话交给
+    /// blocking 线程执行：整个会话可能耗时数秒到数十秒（连接超时 10s + 数据交换）。
+    /// 若在等待期间持有 manager 锁，enable(false) / sync_get_status 等命令会全部排队，
+    /// 前端表现为“禁用同步失败、所有按钮卡住”。
     pub async fn sync_with_device(
         &self,
         device_id_or_addr: String,
     ) -> Result<SyncSessionResult, String> {
-        let guard = self.manager.lock().await;
-        let manager = guard.as_ref().ok_or("Sync is not enabled")?;
-        manager.sync_with_peer(&device_id_or_addr).await
+        let (node_id, account_id, keys, vault, active_sessions, running) = {
+            let guard = self.manager.lock().await;
+            let manager = guard.as_ref().ok_or("Sync is not enabled")?;
+            (
+                manager.node_id.clone(),
+                manager.account_id.clone(),
+                manager.keys.clone(),
+                manager.vault.clone(),
+                manager.active_sessions.clone(),
+                manager.running.clone(),
+            )
+        };
+        if !running.load(Ordering::SeqCst) {
+            return Err("Sync manager is not running".to_string());
+        }
+        let addr: SocketAddr = device_id_or_addr
+            .parse()
+            .map_err(|e| format!("Invalid address: {}", e))?;
+
+        spawn_blocking(move || {
+            let _guard = SessionGuard::new(active_sessions);
+            let stream = std::net::TcpStream::connect_timeout(&addr, Duration::from_secs(10))
+                .map_err(|e| format!("connect: {}", e))?;
+            let mut transport = SyncTransport::from_stream(stream);
+            run_initiator_session(
+                &mut transport,
+                &node_id,
+                &account_id,
+                &keys,
+                vault,
+                addr.to_string(),
+            )
+        })
+        .await
+        .map_err(|e| format!("spawn blocking: {}", e))?
     }
 
     /// 列出已持久化的 peers（移动端发现由上层 NSD 插件维护，这里只返回持久化列表）。
@@ -368,38 +405,6 @@ impl MobileSyncManager {
                 h.abort();
             }
         }
-    }
-
-    async fn sync_with_peer(&self, device_id_or_addr: &str) -> Result<SyncSessionResult, String> {
-        if !self.running.load(Ordering::SeqCst) {
-            return Err("Sync manager is not running".to_string());
-        }
-        let addr: SocketAddr = device_id_or_addr
-            .parse()
-            .map_err(|e| format!("Invalid address: {}", e))?;
-
-        let node_id = self.node_id.clone();
-        let account_id = self.account_id.clone();
-        let keys = self.keys.clone();
-        let vault = self.vault.clone();
-        let active_sessions = self.active_sessions.clone();
-
-        spawn_blocking(move || {
-            let _guard = SessionGuard::new(active_sessions);
-            let stream = std::net::TcpStream::connect_timeout(&addr, Duration::from_secs(10))
-                .map_err(|e| format!("connect: {}", e))?;
-            let mut transport = SyncTransport::from_stream(stream);
-            run_initiator_session(
-                &mut transport,
-                &node_id,
-                &account_id,
-                &keys,
-                vault,
-                addr.to_string(),
-            )
-        })
-        .await
-        .map_err(|e| format!("spawn blocking: {}", e))?
     }
 
     fn trust_peer(&self, peer_node_id: &str, trusted: bool) -> Result<(), String> {

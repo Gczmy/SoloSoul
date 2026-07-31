@@ -145,6 +145,12 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
       } catch (err) {
         clearTimeout(timeoutHandle);
         set({ isLoading: false, error: String(err) });
+        // 超时/失败后主动重读后端状态：Android 上 sync_enable 可能因 NSD 权限弹窗
+        // 或命令排队导致超时，但服务端最终可能已切换成功。重读可让开关 UI 与
+        // 实际状态保持一致，避免“禁用失败但实际已禁用”的假卡死。
+        void get()
+          .loadStatus()
+          .catch((e2) => logger.warn('[syncStore] status resync after enable error:', e2));
       }
     });
   },

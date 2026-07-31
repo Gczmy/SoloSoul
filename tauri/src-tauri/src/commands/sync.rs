@@ -484,53 +484,74 @@ pub async fn sync_enable(
     // 移动端：启用同步后自动注册 NSD 服务，让桌面端可以发现本机；
     // 关闭同步时注销 NSD 服务。
     if enable {
-        // NSD 权限申请与注册可能阻塞命令（例如权限弹窗未立即返回），
-        // 放在后台任务中执行，避免前端陷入永久“加载中”。
-        let app = app.clone();
-        // 克隆一份拥有的 AppState，使其可以在 'static 后台任务中使用。
+        // NSD 权限申请与注册都是 run_mobile_plugin 同步 IPC，会阻塞调用线程等待
+        // Android 主线程响应；权限弹窗未响应时可能长时间阻塞。若在 tokio::spawn 的
+        // async 任务里执行会占住 Tokio worker，多次开关同步后 worker 被占满，
+        // sync_enable/sync_get_status 等命令全部排队，前端表现为“禁用后所有按钮卡住”。
+        // 因此这里先在 async 上下文收集注册所需参数（短暂持 manager 锁，不会阻塞），
+        // 再把同步 IPC 移入 spawn_blocking 阻塞线程池执行，命令本身立即返回。
         let app_state: AppState = app.state::<AppState>().inner().clone();
-        tokio::spawn(async move {
-            let handle = app.state::<crate::nsd_plugin::NsdPluginHandle<tauri::Wry>>();
+        let port = app_state.sync_service.listen_port().await;
+        if port == 0 {
+            return Ok(());
+        }
+        // 如果用户在此期间已关闭同步，则放弃注册，避免与 disable 逻辑竞合。
+        if !app_state.sync_service.is_enabled().await {
+            return Ok(());
+        }
+        let fingerprint = app_state
+            .sync_service
+            .local_fingerprint()
+            .await
+            .unwrap_or_default();
+        let account_id = crate::commands::current_account_optional(&app_state).unwrap_or_default();
+        let device_name = if fingerprint.is_empty() {
+            format!("SoloSoul-{}", port)
+        } else {
+            format!("SoloSoul-{}", &fingerprint[..fingerprint.len().min(8)])
+        };
+
+        let app2 = app.clone();
+        // 显式 drop JoinHandle 以分离任务（detach），命令立即返回
+        std::mem::drop(tokio::task::spawn_blocking(move || {
+            // 与 mdns_discover / 注销任务共用生命周期锁，串行化 NSD 操作
+            let _guard = crate::commands::discovery::NSD_LIFECYCLE_LOCK
+                .lock()
+                .unwrap_or_else(|e| e.into_inner());
+            let handle = app2.state::<crate::nsd_plugin::NsdPluginHandle<tauri::Wry>>();
             if let Err(e) = handle.request_permissions() {
                 tracing::warn!("NSD request_permissions failed: {}", e);
                 return;
             }
-            let port = app_state.sync_service.listen_port().await;
-            if port == 0 {
-                return;
-            }
-            // 如果用户在此期间已关闭同步，则放弃注册，避免与 disable 逻辑竞合。
-            if !app_state.sync_service.is_enabled().await {
-                return;
-            }
-            let fingerprint = app_state
-                .sync_service
-                .local_fingerprint()
-                .await
-                .unwrap_or_default();
-            let device_name = if fingerprint.is_empty() {
-                format!("SoloSoul-{}", port)
-            } else {
-                format!("SoloSoul-{}", &fingerprint[..fingerprint.len().min(8)])
-            };
-            if let Err(e) =
-                crate::commands::discovery::register_sync_service(&app, device_name, port).await
-            {
+            if let Err(e) = crate::commands::discovery::register_sync_service_blocking(
+                &app2,
+                device_name,
+                port,
+                account_id,
+                fingerprint,
+            ) {
                 tracing::warn!("Failed to register NSD sync service: {}", e);
                 // NSD 注册失败时回滚同步状态，避免半开启。
-                let _ = app_state.sync_service.enable(false).await;
-                let _ = app_state
-                    .handle
-                    .emit("sync-nsd-failed", serde_json::json!({ "error": e }));
+                let app3 = app2.clone();
+                tauri::async_runtime::spawn(async move {
+                    let state = app3.state::<crate::state::AppState>();
+                    let _ = state.sync_service.enable(false).await;
+                    let _ = state
+                        .handle
+                        .emit("sync-nsd-failed", serde_json::json!({ "error": e }));
+                });
             }
-        });
+        }));
     } else {
         // unregister_service 走 run_mobile_plugin，是同步 IPC，主线程繁忙（例如
         // 后台 NSD 注册任务正在申请权限）时可能阻塞；移入 blocking 线程执行，
-        // 避免禁用同步的命令卡住前端。
+        // 避免禁用同步的命令卡住前端。与注册任务共用生命周期锁，避免交错。
         let app2 = app.clone();
         // 显式 drop JoinHandle 以分离任务（detach），命令立即返回
         std::mem::drop(tokio::task::spawn_blocking(move || {
+            let _guard = crate::commands::discovery::NSD_LIFECYCLE_LOCK
+                .lock()
+                .unwrap_or_else(|e| e.into_inner());
             let handle = app2.state::<crate::nsd_plugin::NsdPluginHandle<tauri::Wry>>();
             let _ = handle.unregister_service();
         }));

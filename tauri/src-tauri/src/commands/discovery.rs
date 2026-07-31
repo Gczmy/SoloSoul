@@ -32,6 +32,15 @@ pub struct SharedDaemon(Arc<Mutex<Option<ServiceDaemon>>>);
 #[cfg(mobile)]
 pub struct SharedDaemon(Arc<Mutex<Option<()>>>);
 
+/// 移动端 NSD 生命周期操作（权限申请/注册/注销）的互斥锁。
+///
+/// `run_mobile_plugin` 是同步 IPC，会阻塞调用线程等待 Android 主线程响应。
+/// 多次快速切换“启用/禁用”时，后台注册任务与禁用注销任务可能并发执行，
+/// 在 Android 主线程串行排队时互相阻塞；用一把锁串行化 NSD 生命周期操作，
+/// 避免 register 与 unregister 交错导致半开启/半关闭状态。
+#[cfg(mobile)]
+pub(crate) static NSD_LIFECYCLE_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
 impl Default for SharedDaemon {
     fn default() -> Self {
         Self::new()
@@ -122,40 +131,66 @@ pub async fn mdns_discover(
 #[tauri::command]
 pub async fn mdns_discover(
     app: tauri::AppHandle,
-    daemon: tauri::State<'_, SharedDaemon>,
+    _daemon: tauri::State<'_, SharedDaemon>,
     timeout_ms: u64,
 ) -> Result<Vec<DiscoveredDevice>, String> {
-    let _ = daemon;
     let timeout_ms = timeout_ms.min(MDNS_MAX_TIMEOUT_MS);
-    let handle = app.state::<crate::nsd_plugin::NsdPluginHandle<tauri::Wry>>();
-    handle.request_permissions()?;
-    handle.start_discovery()?;
 
-    // 轮询等待 NSD 发现结果，避免立即读取返回空列表
-    let deadline = std::time::Instant::now() + std::time::Duration::from_millis(timeout_ms);
-    let mut last_count = 0usize;
-    loop {
-        tokio::time::sleep(std::time::Duration::from_millis(MDNS_POLL_INTERVAL_MS)).await;
-        let services = handle.get_discovered_services()?;
-        let count = services.len();
-        // 找到新服务或超时则退出
-        if count > last_count || std::time::Instant::now() >= deadline {
-            break;
+    // NSD 插件所有方法（request_permissions/start_discovery/get_discovered_services/
+    // stop_discovery）底层都是 run_mobile_plugin 同步 IPC，会阻塞调用线程等待 Android
+    // 主线程响应。若在 async 命令线程直接调用，权限弹窗未响应时 request_permissions
+    // 会一直阻塞并占住 Tokio worker；多次开关同步后 worker 被占满，sync_enable /
+    // sync_get_status 等命令全部排队，前端表现为“禁用同步后所有按钮卡住”。
+    // 因此整个 NSD 交互移入 spawn_blocking 阻塞线程池，并用兜底超时保证命令按时返回。
+    let app2 = app.clone();
+    let task = tokio::task::spawn_blocking(move || -> Result<Vec<DiscoveredDevice>, String> {
+        let handle = app2.state::<crate::nsd_plugin::NsdPluginHandle<tauri::Wry>>();
+        // 与 sync_enable 的注册/注销共用生命周期锁，串行化权限弹窗与注册流程
+        let _guard = NSD_LIFECYCLE_LOCK.lock().unwrap_or_else(|e| e.into_inner());
+        handle.request_permissions()?;
+        handle.start_discovery()?;
+
+        // 轮询等待 NSD 发现结果，避免立即读取返回空列表
+        let deadline = std::time::Instant::now() + std::time::Duration::from_millis(timeout_ms);
+        let mut last_count = 0usize;
+        loop {
+            std::thread::sleep(std::time::Duration::from_millis(MDNS_POLL_INTERVAL_MS));
+            let services = handle.get_discovered_services()?;
+            let count = services.len();
+            // 找到新服务或超时则退出
+            if count > last_count || std::time::Instant::now() >= deadline {
+                break;
+            }
+            last_count = count;
         }
-        last_count = count;
-    }
 
-    let services = handle.get_discovered_services()?;
-    handle.stop_discovery()?;
-    Ok(services
-        .into_iter()
-        .map(|s| DiscoveredDevice {
-            name: s.node_id.clone(),
-            host: s.host.clone(),
-            port: s.port,
-            addresses: vec![format!("{}:{}", s.host, s.port)],
-        })
-        .collect())
+        let services = handle.get_discovered_services()?;
+        handle.stop_discovery()?;
+        Ok(services
+            .into_iter()
+            .map(|s| DiscoveredDevice {
+                name: s.node_id.clone(),
+                host: s.host.clone(),
+                port: s.port,
+                addresses: vec![format!("{}:{}", s.host, s.port)],
+            })
+            .collect())
+    });
+
+    // 兜底超时：即使权限弹窗未响应导致内部阻塞，命令也会按时返回。
+    // 注意类型嵌套：timeout 返回 Result<_, Elapsed>，JoinHandle 输出
+    // Result<_, JoinError>，闭包返回 Result<Vec<_>, String>，共三层。
+    match tokio::time::timeout(
+        std::time::Duration::from_millis(timeout_ms + 10_000),
+        task,
+    )
+    .await
+    {
+        Ok(Ok(Ok(devices))) => Ok(devices),
+        Ok(Ok(Err(e))) => Err(e),
+        Ok(Err(e)) => Err(format!("discovery task failed: {e}")),
+        Err(_) => Err("__SYNC_ERR__:discovery_timeout".to_string()),
+    }
 }
 
 #[cfg(desktop)]
@@ -311,6 +346,29 @@ pub async fn recovery_discover_hosts(
     _timeout_ms: u64,
 ) -> Result<Vec<RecoveryDiscoveredHost>, String> {
     Ok(Vec::new()) // 移动端暂不支持
+}
+
+/// 移动端同步注册 NSD 服务的 blocking 版（供 sync_enable 的 spawn_blocking 任务调用，
+/// 避免在 async 上下文里执行 run_mobile_plugin 同步 IPC 占用 Tokio worker）。
+/// 与 async 版 `register_sync_service` 等价，但由调用方负责在获取参数后再调用。
+#[cfg(mobile)]
+pub fn register_sync_service_blocking(
+    app: &tauri::AppHandle,
+    device_name: String,
+    port: u16,
+    account_id: String,
+    fingerprint: String,
+) -> Result<(), String> {
+    if account_id.is_empty() {
+        return Err("Cannot advertise sync service: no unlocked account".to_string());
+    }
+    let handle = app.state::<crate::nsd_plugin::NsdPluginHandle<tauri::Wry>>();
+    handle.register_service(crate::nsd_plugin::RegisterServicePayload {
+        port,
+        node_id: device_name,
+        account_id,
+        fingerprint,
+    })
 }
 
 /// 移动端注册 NSD 服务（供 sync_enable 内部调用，避免命令间重复逻辑）。
