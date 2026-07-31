@@ -338,39 +338,27 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
           createdAt: string;
           updatedAt: string;
           isDeleted?: boolean;
+          // P053: object_list 的 ObjectSummary 已含完整解密 properties，
+          // 直接读取 description，消除对每个页面单独 object_get 的 N+1 IPC。
+          properties?: Record<string, unknown>;
         }>
       >('object_list', { accountId: accountId, filter: { collectionType: 'page', includeDeleted: true } });
       if (objects.length > 0) {
         // New-format pages exist in objects table — use them (including deleted pages so
         // templates referencing deleted pages can still show the original page name)
-        const pages: CustomPage[] = await Promise.all(
-          objects.map(async (o, i) => {
-            let description: string | undefined;
-            if (!o.isDeleted) {
-              try {
-                const detail = await invoke<{ properties?: Record<string, unknown> } | null>(
-                  'object_get',
-                  { accountId: accountId, objectId: o.id },
-                );
-                const desc = detail?.properties?.description;
-                if (typeof desc === 'string') {
-                  description = desc;
-                }
-              } catch (e) {
-                logger.warn('[settingsStore] Failed to load page description:', o.id, e);
-              }
-            }
-            return {
-              id: o.id,
-              name: o.name,
-              iconId: o.iconName || DEFAULT_CUSTOM_ICON,
-              description,
-              createdAt: o.createdAt,
-              sortOrder: i,
-              deletedAt: o.isDeleted ? o.updatedAt : undefined,
-            };
-          }),
-        );
+        const pages: CustomPage[] = objects.map((o, i) => {
+          // 原实现仅对非 deleted 页面拉取 description，保持行为等价
+          const desc = !o.isDeleted ? o.properties?.description : undefined;
+          return {
+            id: o.id,
+            name: o.name,
+            iconId: o.iconName || DEFAULT_CUSTOM_ICON,
+            description: typeof desc === 'string' ? desc : undefined,
+            createdAt: o.createdAt,
+            sortOrder: i,
+            deletedAt: o.isDeleted ? o.updatedAt : undefined,
+          };
+        });
         set((s) => ({ settings: { ...s.settings, customPages: pages } }));
         return;
       }

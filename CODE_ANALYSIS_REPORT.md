@@ -72,7 +72,7 @@
 | P050 | P2 | 结构 | `tauri/src/pages/editor/ObjectEditorPage.tsx:300-360` | 动态组校验 switch 6 个 case 同一模式，应表驱动化（含 5 层嵌套） | `[ ]` 待修复 |
 | P051 | P2 | 性能 | `tauri/src-tauri/src/commands/llm/rag.rs:794-808,942` | 重建 embedding 逐条 `save_guide_embedding`，每条独立事务+fsync | `[ ]` 待修复 |
 | P052 | P2 | 性能 | `tauri/src/stores/trashStore.ts:137-140` | `permanentDelete` 循环内串行 await 逐条 IPC | `[x]` 已修复 |
-| P053 | P2 | 性能 | `tauri/src/stores/settingsStore.ts:328-355` | `loadCustomPages` 对每个自定义页单独 `object_get`（N+1 IPC） | `[ ]` 待修复 |
+| P053 | P2 | 性能 | `tauri/src/stores/settingsStore.ts:328-355` | `loadCustomPages` 对每个自定义页单独 `object_get`（N+1 IPC） | `[x]` 已修复 |
 | P054 | P2 | 性能 | `GlobalAttachmentManager.tsx:419-425`、`AttachmentViewer.tsx:343-361` | 附件批量下载逐条串行 IPC+文件拷贝 | `[ ]` 待修复 |
 | P055 | P2 | 性能 | `ObjectEditorPage.tsx:36`、`TrashPage.tsx:79`、`TemplateManagerPage.tsx:75`、`ObjectDetailModal.tsx:136` | 多处 `useXxxStore()` 整店订阅（负载较小，同类于 P010） | `[ ]` 待修复 |
 | P056 | P2 | 架构 | `tauri/src/stores/objectStore.ts:184-220` | objectStore 的 trash 切片是死代码，与 trashStore 双轨调用不同后端命令 | `[x]` 已修复 |
@@ -86,8 +86,8 @@
 
 ## 修复进度
 
-- 已完成：52 / 63（P001–P011、P013–P016、P019–P028、P029–P033、P034–P046、P052、P056–P063；其中 P011 工作区部分完成）
-- 当前处理：P052 已完成，等待下一条指令
+- 已完成：53 / 63（P001–P011、P013–P016、P019–P028、P029–P033、P034–P046、P052–P053、P056–P063；其中 P011 工作区部分完成）
+- 当前处理：P053 已完成，等待下一条指令
 
 ## 静态基线之外已检查且无发现的维度（误报排除记录）
 
@@ -288,6 +288,7 @@ sync crate manager（`manager.rs:168`）`sync_enable` 时自建 `ServiceDaemon`�
 `[x]` 已修复：按报告二选一中的最小改动方案，`permanentDelete` 改 `Promise.all(trashIds.map(...))` 并发化。并发安全已核验：后端 rusqlite 连接在 `Mutex<Option<Connection>>`（storage.rs:26）内串行化，并发 invoke 无数据竞争；后端无 batch 命令（已确认）。语义差异（串行首错中止后续不执行 vs Promise.all 已发起均执行）已注释说明并接受；任一失败整体 reject 与串行首错中止行为一致，本地列表保持至下次刷新。tsc/lint/Vitest 415 全部通过，审查通过。
 
 **P053 | loadCustomPages N+1**：`settingsStore.ts:328-355` 每页单独 `object_get` 拉 description（已 Promise.all 并发，页面数少）。可让 `object_list` 附带 description 或加批量命令。
+`[x]` 已修复：核验发现 solosoul-vault 的 `ObjectSummary`（lib.rs:263）已含 `properties: serde_json::Value` 字段，且 `list_objects` SQL 已 SELECT properties 列并 `serde_json::from_str(&decrypted_props)` **全量解密反序列化**（storage.rs:2356,2415，非截断）——`object_list` 本就返回每个页面的完整 properties，无需新增批量命令。改动：类型注解补 `properties?: Record<string, unknown>`，`objects.map` 同步化（去掉 Promise.all + 每页 `object_get` + logger.warn 捕获块），description 直接从 `o.properties?.description` 读取，并补 `!o.isDeleted` 守卫恢复原实现「deleted 页面 description 恒为 undefined」语义（审查发现的行为漂移已修正）。N+1 IPC 完全消除。tsc/lint/Vitest 415 全部通过，两轮审查通过。
 
 **P054 | 附件批量下载串行**：`GlobalAttachmentManager.tsx:419-425`、`AttachmentViewer.tsx:343-361` 逐条 invoke+文件拷贝（同文件删除/恢复已有 batch 命令，下载没有）。加后端批量命令或并发化。
 
