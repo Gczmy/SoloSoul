@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { MIN_PASSWORD_LENGTH } from '@/lib/constants';
 import { useAuthStore } from '@/stores/authStore';
 import { useCameraCapability } from '@/hooks/useCameraCapability';
 import { RecoveryQrScanner } from '@/components/recovery/RecoveryQrScanner';
@@ -92,7 +93,7 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
   const [masterPassword, setMasterPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordHint, setPasswordHint] = useState('');
-  // 空字段校验错误（按优先级：主密码 > 确认密码；提示词可选不校验）
+  // 校验错误（按优先级：主密码 > 确认密码；提示词可选不校验）
   const [masterPasswordError, setMasterPasswordError] = useState<string | null>(null);
   const [confirmPasswordError, setConfirmPasswordError] = useState<string | null>(null);
 
@@ -282,21 +283,22 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
     setError(null);
     setSuccess(null);
 
-    // 空字段校验（优先级：主密码 > 确认密码；密码提示词为可选字段）
+    // 校验优先级（与创建账户页一致）：主密码未输入 > 主密码不符合要求 > 确认密码未输入 > 两次密码不一致；
+    // 密码提示词为可选字段不校验。长度不足/不一致设置对应输入框 error，触发抖动+红边+红字。
     if (!masterPassword) {
       setMasterPasswordError(t('common:master_password_required'));
+      return;
+    }
+    if (masterPassword.length < MIN_PASSWORD_LENGTH) {
+      setMasterPasswordError(t('common:password_length_requirement'));
       return;
     }
     if (!confirmPassword) {
       setConfirmPasswordError(t('common:confirm_password_required'));
       return;
     }
-    if (masterPassword.length < 8) {
-      setError(t('common:password_length_requirement'));
-      return;
-    }
     if (masterPassword !== confirmPassword) {
-      setError(t('common:password_mismatch'));
+      setConfirmPasswordError(t('common:password_mismatch'));
       return;
     }
 

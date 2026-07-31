@@ -8,10 +8,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { SecurePasswordInput } from '@/components/forms/PasswordInput';
 import { AlertTriangle } from 'lucide-react';
-import { ICON_SIZE } from '@/lib/constants';
-
-// 主密码最小长度要求，与后端 vault_service 一致（Password must be at least 8 characters）
-const MIN_PASSWORD_LENGTH = 8;
+import { ICON_SIZE, MIN_PASSWORD_LENGTH } from '@/lib/constants';
 
 export function BootstrapPage() {
   useApplyThemeFromSettings();

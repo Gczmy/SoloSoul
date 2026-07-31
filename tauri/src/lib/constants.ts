@@ -17,6 +17,13 @@ export const OCR_MODEL_NOT_INSTALLED_PREFIX = '__OCR_MODEL_NOT_INSTALLED__';
 /** TTL (ms) for search result cache — same keyword won't refetch within this window. */
 export const SEARCH_CACHE_TTL_MS = 30_000;
 
+/**
+ * 主密码最小长度要求，与后端 vault_service 一致
+ * （Password must be at least 8 characters）。
+ * 创建账户页（BootstrapPage）与从其他设备恢复（RecoveryReceiveDialog）共用。
+ */
+export const MIN_PASSWORD_LENGTH = 8;
+
 // ============================================================================
 // Icon sizes (from iconSizes.ts)
 // ============================================================================
