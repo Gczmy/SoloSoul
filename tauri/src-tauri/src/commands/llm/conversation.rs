@@ -1,4 +1,5 @@
 use crate::commands::vault_handle;
+use crate::services::profile_prefs::update_profile_prefs;
 use crate::state::AppState;
 use solosoul_vault::VaultStore;
 use tauri::State;
@@ -46,26 +47,13 @@ pub(crate) fn save_conversations(
         trim_conversation_messages(conv);
     }
 
-    let mut profile = match vault.load_profile(account_id) {
-        Ok(Some(p)) => p,
-        Ok(None) => solosoul_vault::Profile::new_with_id(account_id, account_id, Vec::new()),
-        Err(e) => return Err(format!("Load: {}", e)),
-    };
-    let mut data: serde_json::Value = if profile.data.is_empty() {
-        serde_json::Value::Object(serde_json::Map::new())
-    } else {
-        serde_json::from_slice(&profile.data).map_err(|e| format!("Parse: {}", e))?
-    };
-    let prefs = data
-        .as_object_mut()
-        .ok_or("Invalid")?
-        .entry("preferences".to_string())
-        .or_insert_with(|| serde_json::Value::Object(serde_json::Map::new()));
-    prefs["llmConversations"] = serde_json::to_value(&trimmed).map_err(|e| e.to_string())?;
-    profile.data = serde_json::to_vec(&data).map_err(|e| e.to_string())?;
-    profile.updated_at = chrono::Utc::now();
-    profile.version += 1;
-    vault.save_profile(&profile)
+    update_profile_prefs(vault, account_id, |prefs| {
+        prefs.insert(
+            "llmConversations".to_string(),
+            serde_json::to_value(&trimmed).map_err(|e| e.to_string())?,
+        );
+        Ok(())
+    })
 }
 
 pub(crate) fn now_iso() -> String {

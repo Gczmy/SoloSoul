@@ -1,4 +1,5 @@
 use crate::commands::vault_handle;
+use crate::services::profile_prefs::update_profile_prefs;
 use crate::state::AppState;
 use serde::{Deserialize, Serialize};
 use solosoul_vault::VaultStore;
@@ -151,26 +152,13 @@ pub fn save_stats_to_vault(
     account_id: &str,
     stats: &LlmUsageStats,
 ) -> Result<(), String> {
-    let mut profile = match vault.load_profile(account_id) {
-        Ok(Some(p)) => p,
-        Ok(None) => solosoul_vault::Profile::new_with_id(account_id, account_id, Vec::new()),
-        Err(e) => return Err(format!("Load: {}", e)),
-    };
-    let mut data: serde_json::Value = if profile.data.is_empty() {
-        serde_json::Value::Object(serde_json::Map::new())
-    } else {
-        serde_json::from_slice(&profile.data).map_err(|e| format!("Parse: {}", e))?
-    };
-    let prefs = data
-        .as_object_mut()
-        .ok_or("Invalid")?
-        .entry("preferences".to_string())
-        .or_insert_with(|| serde_json::Value::Object(serde_json::Map::new()));
-    prefs["llmUsageStats"] = serde_json::to_value(stats).map_err(|e| e.to_string())?;
-    profile.data = serde_json::to_vec(&data).map_err(|e| e.to_string())?;
-    profile.updated_at = chrono::Utc::now();
-    profile.version += 1;
-    vault.save_profile(&profile)
+    update_profile_prefs(vault, account_id, |prefs| {
+        prefs.insert(
+            "llmUsageStats".to_string(),
+            serde_json::to_value(stats).map_err(|e| e.to_string())?,
+        );
+        Ok(())
+    })
 }
 
 pub fn load_stats_from_vault(

@@ -2,7 +2,7 @@
 
 > 最后更新：2026-07-31 21:00:00
 > 当前分支：`main`
-> 修复轮次：2（已执行修复：P001–P011、P013–P016、P019–P022、P029、P033–P036，共 24 项）
+> 修复轮次：3（已执行修复：P001–P011、P013–P016、P019–P022、P028、P029、P033–P036，共 25 项）
 > 分析范围：`tauri/`（Rust 后端 `src-tauri/` + `crates/`，React/TS 前端 `src/`）；`solosoul_cli/` 不在本轮范围
 
 ## 基线检查结果（阶段 0，全部通过）
@@ -47,7 +47,7 @@
 | P025 | P1 | 结构 | `tauri/src/components/recovery/RecoveryReceiveDialog.tsx:57` | 组件 1001 行，QR 扫描+状态机+渲染一体 | `[ ]` 待修复 |
 | P026 | P1 | 结构 | `tauri/src/components/onboarding/OnboardingDialog.tsx:38` | 组件 989 行，多步向导+手写 hover 混杂 | `[ ]` 待修复 |
 | P027 | P1 | 结构 | `tauri/src/pages/workspace/ObjectWorkspacePage.tsx:57` | 组件 881 行，数据加载/模板同步/拖拽/渲染全职责 | `[ ]` 待修复 |
-| P028 | P1 | 重复 | `llm/mod.rs:210-231`、`llm/stats.rs:154-173`、`llm/conversation.rs:49-64`、`object/snapshot.rs:131-150`、`services/llm_context.rs:339-353`、`commands/settings.rs:260+` 等 | 「写 profile preferences」约 20 行整块复制 7 份 | `[ ]` 待修复 |
+| P028 | P1 | 重复 | `llm/mod.rs:210-231`、`llm/stats.rs:154-173`、`llm/conversation.rs:49-64`、`services/llm_context.rs:339-353`、`commands/settings.rs:260+` | 「写 profile preferences」约 20 行整块复制 6 处（报告原列 snapshot.rs 为过时行号，该文件只有读无写；llm/mod.rs 实为 2 处） | `[x]` 已修复 |
 | P029 | P2 | 漏洞 | `tauri/crates/solosoul-sync/src/recovery.rs:175` | 恢复 PIN+nonce 使用非常数时间字符串比较（违反项目安全约定） | `[x]` 已修复 |
 | P030 | P2 | 漏洞 | `tauri/src-tauri/capabilities/default.json` | capabilities 授权面过大（fs `**`、shell open `**`、allow-all-custom-commands） | `[ ]` 待修复 |
 | P031 | P2 | 漏洞 | `tauri/src-tauri/src/commands/auth.rs:37-46,77-89` | GUI 登录/建库密码以普通 String 经 IPC，未用 Zeroizing（CLI 已对齐） | `[ ]` 待修复 |
@@ -86,8 +86,8 @@
 
 ## 修复进度
 
-- 已完成：24 / 63（P001–P011、P013–P016、P019–P022、P029、P033–P036；其中 P011 工作区部分完成）
-- 当前处理：P030（capabilities 授权面收敛）/ P031（GUI 密码 Zeroizing）
+- 已完成：25 / 63（P001–P011、P013–P016、P019–P022、P028、P029、P033–P036；其中 P011 工作区部分完成）
+- 当前处理：P023（import_execute_internal 按阶段拆分）
 
 ## 静态基线之外已检查且无发现的维度（误报排除记录）
 
@@ -209,7 +209,8 @@ sync crate manager（`manager.rs:168`）`sync_enable` 时自建 `ServiceDaemon`�
 
 **P027 | `ObjectWorkspacePage` 881 行**：抽 `useWorkspaceData` hook + 列表/详情子组件（与 P010/P011 同文件，建议同一轮处理）。
 
-**P028 | profile preferences 写入块 ×7**：「load_profile→不存在则 new_with_id→解析 data→entry(preferences)→写 key→序列化→version+=1→save」约 20 行整块复制 7 份（位置见清单表）。抽 `update_profile_prefs(vault, account_id, |prefs| ...)` 共享函数。
+**P028 | profile preferences 写入块 ×6**：「load_profile→不存在则 new_with_id→解析 data→entry(preferences)→写 key→序列化→version+=1→save」约 20 行整块复制 6 份。抽共享函数 `update_profile_prefs(vault, account_id, |prefs| ...)` 于 `services/profile_prefs.rs`，全部替换完成。
+`[x]` 已修复：新建 `services/profile_prefs.rs`，6 处调用点改为闭包写法（llm/mod.rs `save_config`+`save_api_key`、llm/stats.rs、llm/conversation.rs、llm_context.rs、settings.rs）。行为等价；附带改进：原 5 处 LLM 站点 `prefs["key"]=...`（IndexMut）在 preferences 为非对象时会 panic，现先替换为空对象消除潜在 panic。`template.rs::cleanup_legacy_json` 为条件保存（仅移除键才写），不纳入。clippy/fmt/322 测试全部通过。
 
 ### P2 安全
 

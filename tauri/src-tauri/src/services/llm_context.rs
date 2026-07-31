@@ -3,6 +3,7 @@
 //! 负责在 Rust 端查询 Vault 数据、组装 7 Section 系统提示词。
 //! 隐私过滤在 Rust 端强制完成，不可被绕过。
 
+use super::profile_prefs::update_profile_prefs;
 use solosoul_plugin::manifest::PluginManifest;
 use solosoul_vault::{ObjectSummary, VaultStore};
 use std::collections::HashMap;
@@ -334,30 +335,13 @@ fn save_public_data_version(
     account_id: &str,
     version: u64,
 ) -> Result<(), String> {
-    let mut profile = match vault.load_profile(account_id) {
-        Ok(Some(p)) => p,
-        Ok(None) => solosoul_vault::Profile::new_with_id(account_id, account_id, Vec::new()),
-        Err(e) => return Err(format!("Load: {}", e)),
-    };
-
-    let mut data: serde_json::Value = if profile.data.is_empty() {
-        serde_json::Value::Object(serde_json::Map::new())
-    } else {
-        serde_json::from_slice(&profile.data).map_err(|e| format!("Parse: {}", e))?
-    };
-
-    let prefs = data
-        .as_object_mut()
-        .ok_or("Invalid")?
-        .entry("preferences".to_string())
-        .or_insert_with(|| serde_json::Value::Object(serde_json::Map::new()));
-
-    prefs["llmPublicDataVersion"] = serde_json::Value::Number(serde_json::Number::from(version));
-
-    profile.data = serde_json::to_vec(&data).map_err(|e| e.to_string())?;
-    profile.updated_at = chrono::Utc::now();
-    profile.version += 1;
-    vault.save_profile(&profile)
+    update_profile_prefs(vault, account_id, |prefs| {
+        prefs.insert(
+            "llmPublicDataVersion".to_string(),
+            serde_json::Value::Number(serde_json::Number::from(version)),
+        );
+        Ok(())
+    })
 }
 
 // ── Helpers ─────────────────────────────────────────────────

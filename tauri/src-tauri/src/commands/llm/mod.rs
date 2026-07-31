@@ -2,6 +2,7 @@
 //! Multi-provider model with encrypted API key storage.
 //! `llm_test_provider` and `llm_send_message` use reqwest for HTTP calls.
 
+use crate::services::profile_prefs::update_profile_prefs;
 use serde::{Deserialize, Serialize};
 use solosoul_vault::VaultStore;
 use std::collections::HashMap;
@@ -208,26 +209,13 @@ pub fn load_config(vault: &VaultStore, account_id: &str) -> Result<LlmConfig, St
 }
 
 pub fn save_config(vault: &VaultStore, account_id: &str, config: &LlmConfig) -> Result<(), String> {
-    let mut profile = match vault.load_profile(account_id) {
-        Ok(Some(p)) => p,
-        Ok(None) => solosoul_vault::Profile::new_with_id(account_id, account_id, Vec::new()),
-        Err(e) => return Err(format!("Load: {}", e)),
-    };
-    let mut data: serde_json::Value = if profile.data.is_empty() {
-        serde_json::Value::Object(serde_json::Map::new())
-    } else {
-        serde_json::from_slice(&profile.data).map_err(|e| format!("Parse: {}", e))?
-    };
-    let prefs = data
-        .as_object_mut()
-        .ok_or("Invalid")?
-        .entry("preferences".to_string())
-        .or_insert_with(|| serde_json::Value::Object(serde_json::Map::new()));
-    prefs["llmConfig"] = serde_json::to_value(config).map_err(|e| e.to_string())?;
-    profile.data = serde_json::to_vec(&data).map_err(|e| e.to_string())?;
-    profile.updated_at = chrono::Utc::now();
-    profile.version += 1;
-    vault.save_profile(&profile)
+    update_profile_prefs(vault, account_id, |prefs| {
+        prefs.insert(
+            "llmConfig".to_string(),
+            serde_json::to_value(config).map_err(|e| e.to_string())?,
+        );
+        Ok(())
+    })
 }
 
 pub fn load_api_keys(
@@ -254,31 +242,18 @@ pub fn save_api_key(
     provider_id: &str,
     api_key: &str,
 ) -> Result<(), String> {
-    let mut profile = match vault.load_profile(account_id) {
-        Ok(Some(p)) => p,
-        Ok(None) => solosoul_vault::Profile::new_with_id(account_id, account_id, Vec::new()),
-        Err(e) => return Err(format!("Load: {}", e)),
-    };
-    let mut data: serde_json::Value = if profile.data.is_empty() {
-        serde_json::Value::Object(serde_json::Map::new())
-    } else {
-        serde_json::from_slice(&profile.data).map_err(|e| format!("Parse: {}", e))?
-    };
-    let prefs = data
-        .as_object_mut()
-        .ok_or("Invalid")?
-        .entry("preferences".to_string())
-        .or_insert_with(|| serde_json::Value::Object(serde_json::Map::new()));
-    let mut keys: HashMap<String, String> = prefs
-        .get("llmApiKeys")
-        .and_then(|v| serde_json::from_value(v.clone()).ok())
-        .unwrap_or_default();
-    keys.insert(provider_id.to_string(), api_key.to_string());
-    prefs["llmApiKeys"] = serde_json::to_value(&keys).map_err(|e| e.to_string())?;
-    profile.data = serde_json::to_vec(&data).map_err(|e| e.to_string())?;
-    profile.updated_at = chrono::Utc::now();
-    profile.version += 1;
-    vault.save_profile(&profile)
+    update_profile_prefs(vault, account_id, |prefs| {
+        let mut keys: HashMap<String, String> = prefs
+            .get("llmApiKeys")
+            .and_then(|v| serde_json::from_value(v.clone()).ok())
+            .unwrap_or_default();
+        keys.insert(provider_id.to_string(), api_key.to_string());
+        prefs.insert(
+            "llmApiKeys".to_string(),
+            serde_json::to_value(&keys).map_err(|e| e.to_string())?,
+        );
+        Ok(())
+    })
 }
 
 // ── Sub-modules ─────────────────────────────────────────────
