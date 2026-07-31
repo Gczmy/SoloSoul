@@ -41,10 +41,11 @@
 }
 
 @media (max-width: 767px) {
+  /* 与页面右上角指南按钮一致的紧凑尺寸（32×32），仅保留 + 号 */
   .createBtn {
-    min-height: 44px;
-    min-width: 44px;
-    padding: 10px 14px;
+    min-height: 32px;
+    min-width: 32px;
+    padding: 6px;
   }
 }
 

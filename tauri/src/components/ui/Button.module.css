@@ -140,4 +140,11 @@
   .hideLabelOnMobile svg {
     margin-right: 0 !important;
   }
+
+  /* 与页面右上角指南按钮一致的紧凑图标按钮（移动端 32×32） */
+  .compactMobile.button {
+    min-height: 32px;
+    min-width: 32px;
+    padding: 6px;
+  }
 }

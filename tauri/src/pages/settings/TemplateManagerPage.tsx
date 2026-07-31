@@ -529,7 +529,7 @@ export function TemplateManagerPage() {
           <PageGuideButton pages={templateGuidePages} />
           <Button
             variant="secondary"
-            className={buttonStyles.hideLabelOnMobile}
+            className={`${buttonStyles.hideLabelOnMobile} ${buttonStyles.compactMobile}`}
             aria-label={t('settings:sample_templates') || 'Sample templates'}
             onClick={() => setShowSampleGallery(true)}
           >
@@ -540,7 +540,7 @@ export function TemplateManagerPage() {
           </Button>
           <Button
             variant="secondary"
-            className={buttonStyles.hideLabelOnMobile}
+            className={`${buttonStyles.hideLabelOnMobile} ${buttonStyles.compactMobile}`}
             aria-label={t('settings:new_template') || 'New template'}
             onClick={openCreate}
           >
