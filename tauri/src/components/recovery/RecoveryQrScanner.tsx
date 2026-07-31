@@ -15,11 +15,12 @@ export function RecoveryQrScanner({ onScan, onError, onCancel }: RecoveryQrScann
   const containerId = `recovery-qr-video-${scannerId}`;
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const [cameras, setCameras] = useState<CameraDevice[]>([]);
+  // '' 表示未指定具体设备：以 facingMode:'environment' 启动，移动端默认优先后置摄像头
   const [selectedCamera, setSelectedCamera] = useState<string>('');
-  // 部分 WebView（如 macOS WKWebView 未授予权限或枚举受限）中 getCameras()
-  // 会失败或返回空列表。此时回退到浏览器默认摄像头（facingMode: environment）
-  // 直接启动，避免用户看到 "Unable to query supported devices" 而无法使用。
-  const [fallbackStart, setFallbackStart] = useState(false);
+  // 是否直接以默认摄像头（facingMode: environment）启动：
+  // - 枚举失败/为空时置 true（无设备信息可用，直接尝试默认摄像头）
+  // - 枚举成功但用户未选择具体设备时也置 true（移动端默认优先后置）
+  const [useDefaultCamera, setUseDefaultCamera] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -65,18 +66,23 @@ export function RecoveryQrScanner({ onScan, onError, onCancel }: RecoveryQrScann
         if (!isMounted) return;
         if (devices.length === 0) {
           // 枚举为空：尝试默认摄像头启动
-          setFallbackStart(true);
+          setUseDefaultCamera(true);
           setLoading(false);
           return;
         }
         setCameras(devices);
-        setSelectedCamera(devices[0].id);
+        // 不自动选中具体设备：以 facingMode:'environment' 启动，移动端浏览器
+        // 会自动优先使用后置摄像头。注意 html5-qrcode 的 getCameras() 返回的
+        // 设备对象只有 id/label（无 facing 字段），无法从枚举结果判断前后置，
+        // 因此交给浏览器按 facingMode 约束选择最合适的摄像头。
+        setSelectedCamera('');
+        setUseDefaultCamera(true);
         setLoading(false);
       })
       .catch(() => {
         if (!isMounted) return;
         // 枚举失败：先尝试默认摄像头启动，不直接阻断
-        setFallbackStart(true);
+        setUseDefaultCamera(true);
         setLoading(false);
       });
 
@@ -86,7 +92,7 @@ export function RecoveryQrScanner({ onScan, onError, onCancel }: RecoveryQrScann
   }, [t]);
 
   useEffect(() => {
-    if (!selectedCamera && !fallbackStart) {
+    if (!selectedCamera && !useDefaultCamera) {
       setLoading(false);
       return;
     }
@@ -144,7 +150,7 @@ export function RecoveryQrScanner({ onScan, onError, onCancel }: RecoveryQrScann
         // 扫描器未启动（如权限被拒后直接切换），stop() 同步抛错，忽略即可
       }
     };
-  }, [selectedCamera, fallbackStart, containerId, friendlyError, t]);
+  }, [selectedCamera, useDefaultCamera, containerId, friendlyError, t]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%' }}>
@@ -163,6 +169,7 @@ export function RecoveryQrScanner({ onScan, onError, onCancel }: RecoveryQrScann
             fontFamily: 'inherit',
           }}
         >
+          <option value="">{t('common:recovery_qr_default_camera')}</option>
           {cameras.map((camera) => (
             <option key={camera.id} value={camera.id}>
               {camera.label}
