@@ -533,7 +533,9 @@ export function AppRoutes() {
             top: SAFE_AREA_TOP,
             left: 0,
             right: 0,
-            zIndex: 1000,
+            // 高于 AppBar（1000）：登录解锁后横幅不被顶部栏遮挡；
+            // 低于弹窗（--z-auth-modal: 8000）与 toast（--z-toast: 9000）
+            zIndex: 'var(--z-modal)',
             display: 'flex',
             flexDirection: 'column',
           }}
