@@ -6,10 +6,6 @@ import {
   Paperclip,
   X,
   RotateCw,
-  Eye,
-  Image,
-  FileText,
-  Edit2,
   Upload,
   Download,
 } from 'lucide-react';
@@ -26,11 +22,11 @@ import { DragUploadOverlay } from '@/components/object/DragUploadOverlay';
 
 import { pickFileToAttach, uploadSingleAttachment } from '@/lib/attachmentUpload';
 import { truncateFileName, previewItemByMime, type AttachmentItem } from '@/lib/attachmentUtils';
-import { formatBytes } from '@/lib/utils';
 import { DeleteButton } from '@/components/ui/DeleteButton';
 import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
 import { AttachmentPreviewOverlay } from '@/components/attachment/AttachmentPreviewOverlay';
 import { ConfirmDialog } from '@/components/attachment/ConfirmDialog';
+import { AttachmentListItem } from '@/components/object/AttachmentListItem';
 import { ICON_SIZE } from '@/lib/constants';
 import { logger } from '@/lib/logger';
 
@@ -646,138 +642,27 @@ export function AttachmentViewer({
                 const compositeKey = `${objectId}::${item.id}`;
                 const checked = selectedIds.has(compositeKey);
                 return (
-                  <div
+                  <AttachmentListItem
                     key={item.id}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 8,
-                      padding: '8px 12px',
-                      borderBottom:
-                        idx < displayItems.length - 1 ? '1px solid var(--border-subtle)' : 'none',
-                      fontSize: 'var(--text-body-sm)',
-                    }}
-                  >
-                    <SelectCheckbox
-                      checked={checked}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        toggleSelect(compositeKey);
-                      }}
-                    />
-                    {item.mimeType.startsWith('image/') ? (
-                      <Image
-                        size={ICON_SIZE.sm}
-                        style={{
-                          color: 'var(--text-tertiary)',
-                          flexShrink: 0,
-                          opacity: showTrash ? 0.5 : 1,
-                        }}
-                      />
-                    ) : item.mimeType === 'application/pdf' ? (
-                      <FileText
-                        size={ICON_SIZE.sm}
-                        style={{
-                          color: 'var(--text-tertiary)',
-                          flexShrink: 0,
-                          opacity: showTrash ? 0.5 : 1,
-                        }}
-                      />
-                    ) : (
-                      <Paperclip
-                        size={ICON_SIZE.sm}
-                        style={{
-                          color: 'var(--text-tertiary)',
-                          flexShrink: 0,
-                          opacity: showTrash ? 0.5 : 1,
-                        }}
-                      />
-                    )}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div
-                        style={{
-                          fontWeight: 500,
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                          textDecoration: showTrash ? 'line-through' : 'none',
-                          opacity: showTrash ? 0.5 : 1,
-                        }}
-                      >
-                        {truncateFileName(item.fileName)}
-                      </div>
-                      <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
-                        {formatBytes(item.sizeBytes)} ·{' '}
-                        {new Date(item.createdAt).toLocaleDateString()}
-                      </div>
-                    </div>
-                    {showTrash ? (
-                      <>
-                        <BadgeIconButton
-                          Icon={RotateCw}
-                          onClick={() => handleRestore(item)}
-                          title={t('common:restore')}
-                          iconSize={ICON_SIZE.sm}
-                        />
-                        <DeleteButton
-                          iconOnly
-                          onClick={() => setPermDeleteItem(item)}
-                          title={t('common:delete_permanently')}
-                        />
-                      </>
-                    ) : (
-                      <>
-                        {renamingId === item.id ? (
-                          <input
-                            ref={renameInputRef}
-                            value={renameValue}
-                            onChange={(e) => setRenameValue(e.target.value)}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') handleConfirmRename();
-                              if (e.key === 'Escape') setRenamingId(null);
-                            }}
-                            onBlur={handleConfirmRename}
-                            style={{
-                              width: 100,
-                              padding: '3px 6px',
-                              fontSize: 'var(--text-caption)',
-                              borderRadius: 4,
-                              border: '1px solid var(--accent-primary)',
-                              background: 'transparent',
-                              color: 'var(--text-primary)',
-                              outline: 'none',
-                            }}
-                          />
-                        ) : (
-                          <>
-                            <BadgeIconButton
-                              Icon={Eye}
-                              onClick={() => handlePreview(item)}
-                              title="Preview"
-                              iconSize={ICON_SIZE.sm}
-                            />
-                            <BadgeIconButton
-                              Icon={Edit2}
-                              onClick={() => handleStartRename(item)}
-                              title={t('common:rename')}
-                              iconSize={ICON_SIZE.sm}
-                            />
-                            <BadgeIconButton
-                              Icon={Download}
-                              onClick={() => handleDownload(item)}
-                              title={t('common:download')}
-                              iconSize={ICON_SIZE.sm}
-                            />
-                          </>
-                        )}
-                        <DeleteButton
-                          iconOnly
-                          onClick={() => handleDelete(item)}
-                          title={t('common:delete')}
-                        />
-                      </>
-                    )}
-                  </div>
+                    item={item}
+                    compositeKey={compositeKey}
+                    checked={checked}
+                    showTrash={showTrash}
+                    isLast={idx === displayItems.length - 1}
+                    renamingId={renamingId}
+                    renameValue={renameValue}
+                    renameInputRef={renameInputRef}
+                    onToggleSelect={toggleSelect}
+                    onRenameValueChange={setRenameValue}
+                    onConfirmRename={handleConfirmRename}
+                    onCancelRename={() => setRenamingId(null)}
+                    onRestore={handleRestore}
+                    onPreview={handlePreview}
+                    onStartRename={handleStartRename}
+                    onDownload={handleDownload}
+                    onDelete={handleDelete}
+                    onPermanentDelete={setPermDeleteItem}
+                  />
                 );
               })
             )}

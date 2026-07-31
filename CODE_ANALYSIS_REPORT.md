@@ -60,7 +60,7 @@
 | P038 | P2 | 结构 | `tauri/src/pages/auth/LoginPage.tsx:32,111-120,220-229` | 组件 846 行；biometryType→显示名 if-else 链同文件重复两份 | `[x]` 已修复 |
 | P039 | P2 | 结构 | `tauri/src/components/import/ImportSection.tsx:71`、`tauri/src/components/import/ExportSection.tsx:88` | ImportSection 848 行 / ExportSection 751 行，结构高度对称可共享抽取 | `[ ]` 待修复 |
 | P040 | P2 | 结构 | `tauri/src/pages/system/AboutPage.tsx:50` | 组件 834 行，双平台更新下载流程应抽 hook | `[x]` 已修复 |
-| P041 | P2 | 结构 | `TemplateEditor.tsx:81`(789)、`ObjectDetailModal.tsx:120`(783)、`AttachmentViewer.tsx:59`(763)、`SyncPage.tsx:91`(759) | 4 个 750+ 行大组件需拆分 | `[ ]` 待修复 |
+| P041 | P2 | 结构 | `TemplateEditor.tsx:81`(789)、`ObjectDetailModal.tsx:120`(783)、`AttachmentViewer.tsx:59`(763)、`SyncPage.tsx:91`(759) | 4 个 750+ 行大组件需拆分 | `[x]` 已修复 |
 | P042 | P2 | 结构 | `tauri/crates/solosoul-vault/src/migration.rs:31` | `run_migrations` 464 行，每版本重复「查列是否存在」样板 | `[ ]` 待修复 |
 | P043 | P2 | 结构 | `tauri/src-tauri/src/lib.rs:135` | `run` 441 行，启动初始化 10+ 步全内联在一个 setup 闭包 | `[ ]` 待修复 |
 | P044 | P2 | 结构 | `export.rs:217`(258)、`object/snapshot.rs:210`(254)、`llm/stream.rs:76`(227) | 3 个 220+ 行多阶段函数需按阶段抽取 | `[ ]` 待修复 |
@@ -86,8 +86,8 @@
 
 ## 修复进度
 
-- 已完成：32 / 63（P001–P011、P013–P016、P019–P027、P028、P029、P033–P036、P038、P040；其中 P011 工作区部分完成）
-- 当前处理：P041（750+ 行大组件拆分：TemplateEditor 789 / ObjectDetailModal 783 / AttachmentViewer 763 / SyncPage 759）
+- 已完成：33 / 63（P001–P011、P013–P016、P019–P027、P028、P029、P033–P036、P038、P040、P041；其中 P011 工作区部分完成）
+- 当前处理：P023（import_execute_internal 431 行按阶段拆分）
 
 ## 静态基线之外已检查且无发现的维度（误报排除记录）
 

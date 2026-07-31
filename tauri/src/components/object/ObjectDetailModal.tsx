@@ -9,8 +9,6 @@ import {
   Pencil,
   Lock,
   Eye,
-  Copy,
-  Check,
   Maximize2,
   Upload,
   Info,
@@ -21,8 +19,7 @@ import { useTemplateStore } from '@/stores/templateStore';
 import { logger } from '@/lib/logger';
 import { useObjectStore, type ObjectData, type ObjectSummary } from '@/stores/objectStore';
 import { useRevealState } from '@/hooks/useRevealState';
-import { SensitivityBadge, type SensitivityLevel } from '@/components/ui/SensitivityBadge';
-import { DeprecatedBadge } from '@/components/ui/DeprecatedBadge';
+import type { SensitivityLevel } from '@/components/ui/SensitivityBadge';
 import { DeleteButton } from '@/components/ui/DeleteButton';
 import { Button } from '@/components/ui/Button';
 import { PasswordVerificationDialog } from '@/components/forms/PasswordVerificationDialog';
@@ -30,11 +27,11 @@ import { PluginBadge } from '@/components/template/PluginBadge';
 import { HistoryViewer } from '@/components/object/HistoryViewer';
 import { AttachmentViewer } from '@/components/object/AttachmentViewer';
 import { PAGE_ICON_MAP, resolveCustomIcon } from '@/lib/pageIcons';
-import { FieldTypeIcon } from '@/components/ui/FieldTypeIcon';
+import { ObjectDetailFieldsList } from '@/components/object/ObjectDetailFieldsList';
 import { resolveCollectionLabel } from '@/lib/utils';
 import { COPY_FEEDBACK_DURATION_MS } from '@/lib/constants';
 import { useSettingsStore } from '@/stores/settingsStore';
-import type { PropertyType, TemplateProperty } from '@/types/template';
+import type { TemplateProperty } from '@/types/template';
 import { useDragToAttach } from '@/hooks/useDragToAttach';
 import { DragUploadOverlay } from '@/components/object/DragUploadOverlay';
 import { PageGuideButton } from '@/components/guide/PageGuideButton';
@@ -662,105 +659,21 @@ export function ObjectDetailModal({
                   {t('editor:no_properties')}
                 </p>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  {fields.map((f) => {
-                    const sens = getFieldSensitivity(f.key);
-                    const deprecated = isFieldDeprecated(f.key);
-                    const fieldId = f.fieldId || `${obj.collectionType}.${f.key}`;
-                    const revealed = isRevealed(fieldId);
-                    const needsReveal = sens === 'sensitive' || sens === 'critical';
-                    // 字段类型图标：模板定义优先，回退到对象内嵌 __fields，最后按 text 处理
-                    const fieldType = (getFieldProperty(f.key)?.type ||
-                      objFieldDefs?.[f.key]?.type ||
-                      'text') as PropertyType;
-                    return (
-                      <div
-                        key={f.key}
-                        className={styles.fieldRow}
-                        style={{ opacity: deprecated ? 0.7 : 1 }}
-                      >
-                        <div className={styles.fieldRowTop}>
-                          <div className={styles.fieldLabel}>
-                            <FieldTypeIcon type={fieldType} />
-                            <span
-                              style={{
-                                fontSize: 'var(--text-caption)',
-                                fontWeight: 600,
-                                color: 'var(--text-secondary)',
-                                textDecoration: deprecated ? 'line-through' : 'none',
-                              }}
-                            >
-                              {getFieldName(f.key, f.label)}
-                            </span>
-                            <SensitivityBadge level={sens} />
-                            {obj.contractTypeId && (
-                              <PluginBadge
-                                contractTypeId={obj.contractTypeId}
-                                size="sm"
-                                variant="full"
-                              />
-                            )}
-                            {deprecated && <DeprecatedBadge />}
-                          </div>
-                          <div className={styles.fieldActions}>
-                            {needsReveal && !revealed && (
-                              <button
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  const revealName = f.label
-                                    ? `${t('editor:field_types.dynamic_group')}: ${f.label}`
-                                    : getFieldName(f.key);
-                                  handleRevealField(fieldId, sens, revealName);
-                                }}
-                                className={`${styles.revealBtn} ${sens === 'critical' ? styles.revealBtnCritical : ''}`}
-                              >
-                                {sens === 'critical' ? (
-                                  <Lock size={ICON_SIZE.xs} />
-                                ) : (
-                                  <Eye size={ICON_SIZE.xs} />
-                                )}
-                                <span className={styles.btnLabel}>
-                                  {sens === 'critical' ? t('common:unlock') : t('common:reveal')}
-                                </span>
-                              </button>
-                            )}
-                            <button
-                              onMouseDown={(e) => e.preventDefault()}
-                              onClick={() =>
-                                handleCopy(
-                                  revealed ? f.value : maskValue(f.value, fieldId, sens),
-                                  f.key,
-                                )
-                              }
-                              className={`${styles.copyBtn} ${copiedField === f.key ? styles.copyBtnCopied : ''}`}
-                            >
-                              {copiedField === f.key ? (
-                                <Check size={ICON_SIZE.xs} />
-                              ) : (
-                                <Copy size={ICON_SIZE.xs} />
-                              )}
-                              <span className={styles.btnLabel}>
-                                {copiedField === f.key ? t('common:copied') : t('common:copy')}
-                              </span>
-                            </button>
-                          </div>
-                        </div>
-                        <div
-                          className={styles.fieldValue}
-                          style={{
-                            color:
-                              needsReveal && !revealed
-                                ? 'var(--text-tertiary)'
-                                : 'var(--text-primary)',
-                          }}
-                        >
-                          {revealed ? f.value : maskValue(f.value, fieldId, sens)}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                <ObjectDetailFieldsList
+                  fields={fields}
+                  collectionType={obj.collectionType}
+                  contractTypeId={obj.contractTypeId}
+                  objFieldDefs={objFieldDefs}
+                  getFieldProperty={getFieldProperty}
+                  getFieldSensitivity={getFieldSensitivity}
+                  isFieldDeprecated={isFieldDeprecated}
+                  getFieldName={getFieldName}
+                  isRevealed={isRevealed}
+                  maskValue={maskValue}
+                  handleRevealField={handleRevealField}
+                  handleCopy={handleCopy}
+                  copiedField={copiedField}
+                />
               )}
 
               {/* 拖拽上传覆盖层 */}

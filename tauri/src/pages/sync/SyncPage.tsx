@@ -1,5 +1,3 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import type { ReactNode } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AppShell } from '@/components/layout/AppShell';
@@ -16,215 +14,60 @@ import {
   ShieldOff,
   ChevronDown,
   ChevronUp,
-  Info,
   QrCode,
   ScanLine,
 } from 'lucide-react';
-import { useSyncStore } from '@/stores/syncStore';
 import { DeleteButton } from '@/components/ui/DeleteButton';
 import { PageGuideButton } from '@/components/guide/PageGuideButton';
 import { SyncConflictDialog } from '@/components/sync/SyncConflictDialog';
 import { SyncShowQrDialog } from '@/components/sync/SyncShowQrDialog';
 import { SyncScanQrDialog } from '@/components/sync/SyncScanQrDialog';
-import type { SyncConflict } from '@/lib/ipc';
-import { ICON_SIZE } from '@/lib/constants';
+import { useSyncPage } from './useSyncPage';
 import { resolveBackendErrorMessage } from '@/lib/backendError';
+import { ICON_SIZE } from '@/lib/constants';
+import type { SyncConflict } from '@/lib/ipc';
 
 function formatNodeId(bytes: number[]): string {
   return bytes.map((b) => b.toString(16).padStart(2, '0')).join('');
-}
-
-interface SyncIconButtonProps {
-  label: string;
-  icon: ReactNode;
-  onClick: () => void;
-  disabled: boolean;
-}
-
-function SyncIconButton({ label, icon, onClick, disabled }: SyncIconButtonProps) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      title={label}
-      aria-label={label}
-      style={{
-        width: 40,
-        height: 40,
-        borderRadius: 8,
-        border: '1px solid var(--border-subtle)',
-        background: 'var(--bg-toolbar)',
-        color: 'var(--text-primary)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexShrink: 0,
-        cursor: disabled ? 'default' : 'pointer',
-        opacity: disabled ? 0.6 : 1,
-        transition: 'all 0.15s ease',
-        fontFamily: 'inherit',
-      }}
-      onMouseEnter={(e) => {
-        if (disabled) return;
-        e.currentTarget.style.background =
-          'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
-        e.currentTarget.style.borderColor = 'var(--accent-primary)';
-        e.currentTarget.style.color = 'var(--accent-primary)';
-      }}
-      onMouseLeave={(e) => {
-        if (disabled) return;
-        e.currentTarget.style.background = 'var(--bg-toolbar)';
-        e.currentTarget.style.borderColor = 'var(--border-subtle)';
-        e.currentTarget.style.color = 'var(--text-primary)';
-      }}
-    >
-      {icon}
-    </button>
-  );
 }
 
 function formatHlc(hlc: SyncConflict['local_hlc']): string {
   return `${hlc.wall_time_ms}-${hlc.counter}-${formatNodeId(hlc.node_id)}`;
 }
 
+/**
+ * 设备同步页：渲染编排层。
+ * 状态机/事件处理器收敛于 useSyncPage hook；各卡片区块在下方内联渲染。
+ */
 export function SyncPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const backTo = (location.state as { from?: string } | null)?.from;
   const { t } = useTranslation(['settings', 'common']);
-  const store = useSyncStore();
-  const [manualAddr, setManualAddr] = useState('');
-  const [ignoredPeerIds, setIgnoredPeerIds] = useState<Set<string>>(new Set());
-  const [activityOpen, setActivityOpen] = useState(false);
-  const [conflictDialogOpen, setConflictDialogOpen] = useState(false);
-  const [showQrDialogOpen, setShowQrDialogOpen] = useState(false);
-  const [scanQrDialogOpen, setScanQrDialogOpen] = useState(false);
-
-  const syncGuidePages = useMemo(
-    () => [
-      {
-        icon: Info,
-        title: t('common:guide_sync_title') ?? 'Device Sync Guide',
-        steps: [
-          {
-            icon: Wifi,
-            title: t('common:guide_sync_step1_title') ?? 'Enable Sync',
-            description:
-              t('common:guide_sync_step1_desc') ??
-              'Turn on sync to make your device discoverable and start listening on a local port. Both devices must be on the same Wi-Fi network.',
-          },
-          {
-            icon: RefreshCw,
-            title: t('common:guide_sync_step2_title') ?? 'Discover & Pair',
-            description:
-              t('common:guide_sync_step2_desc') ??
-              'Tap Discover to scan for nearby devices. Tap Sync on a discovered device to pair, then verify the fingerprint to trust it.',
-          },
-          {
-            icon: Smartphone,
-            title: t('common:guide_sync_step3_title') ?? 'Automatic Sync',
-            description:
-              t('common:guide_sync_step3_desc') ??
-              'Enable Automatic Sync to keep data in sync when the app is in the foreground, on data changes, and periodically.',
-          },
-        ],
-        helpLinks: [
-          {
-            title: t('common:guide_help_device_sync') ?? 'Device Sync',
-            description:
-              t('common:guide_help_device_sync_desc') ??
-              'Pair devices over LAN and keep data in sync',
-            href: '/help?id=device-sync',
-          },
-        ],
-      },
-    ],
-    [t],
-  );
-
-  const pendingPeer = useMemo(() => {
-    return (
-      store.connectedPeers.find((p) => !p.trusted && !ignoredPeerIds.has(p.id) && p.fingerprint) ||
-      null
-    );
-  }, [store.connectedPeers, ignoredPeerIds]);
-
-  // ⚡ 使用 getState() 避免闭包捕获整个 store 导致无限重触发
-  const loadStatus = useCallback(async () => {
-    const s = useSyncStore.getState();
-    await Promise.all([
-      s.loadStatus(),
-      s.loadListenPort(),
-      s.loadAutoSyncStatus(),
-      s.loadConflicts(),
-    ]);
-  }, []);
-
-  useEffect(() => {
-    loadStatus();
-  }, [loadStatus]);
-
-  // 监听移动端 NSD 注册失败事件：后端已回滚为禁用，重读状态避免开关 UI 漂移
-  useEffect(() => {
-    let unlisten: (() => void) | undefined;
-    useSyncStore
-      .getState()
-      .initNsdFailedListener()
-      .then((fn) => {
-        unlisten = fn;
-      });
-    return () => unlisten?.();
-  }, []);
-
-  // 使用 selector 只监听 syncEnabled 变化，避免 store 全局变化时误触发
-  const syncEnabled = useSyncStore((s) => s.syncEnabled);
-  useEffect(() => {
-    if (syncEnabled) {
-      useSyncStore.getState().discoverDevices(5000);
-    }
-  }, [syncEnabled]);
-
-  // 使用 getState() 读取最新状态 + isLoading 防抖：
-  // 1) 避免渲染闭包捕获的旧 syncEnabled 导致连点时目标值反转（点“禁用”实际执行“启用”）；
-  // 2) 上一个切换在途时忽略新点击，防止并发 enable 交错把 isLoading 卡在 true。
-  const handleToggleSync = async () => {
-    const s = useSyncStore.getState();
-    if (s.isLoading) return;
-    await s.enable(!s.syncEnabled);
-  };
-
-  const handleToggleAutoSync = async () => {
-    const s = useSyncStore.getState();
-    if (s.isLoading) return;
-    await s.setAutoSyncEnabled(!s.autoSyncEnabled);
-  };
-
-  const handleDiscover = async () => {
-    await store.discoverDevices(5000);
-  };
-
-  const handleSyncWithDevice = async (deviceId: string) => {
-    await store.syncWithDevice(deviceId);
-  };
-
-  const handleTrustPending = async () => {
-    if (!pendingPeer) return;
-    await store.trustPeer(pendingPeer.id, true);
-  };
-
-  const handleIgnorePending = () => {
-    if (!pendingPeer) return;
-    setIgnoredPeerIds((prev) => new Set(prev).add(pendingPeer.id));
-  };
-
-  const handleOpenConflictDialog = () => {
-    setConflictDialogOpen(true);
-  };
-
-  const handleScanSync = async (addr: string) => {
-    await store.syncWithDevice(addr);
-  };
+  const {
+    store,
+    manualAddr,
+    setManualAddr,
+    pendingPeer,
+    activityOpen,
+    setActivityOpen,
+    conflictDialogOpen,
+    setConflictDialogOpen,
+    showQrDialogOpen,
+    setShowQrDialogOpen,
+    scanQrDialogOpen,
+    setScanQrDialogOpen,
+    syncGuidePages,
+    loadStatus,
+    handleToggleSync,
+    handleToggleAutoSync,
+    handleDiscover,
+    handleSyncWithDevice,
+    handleTrustPending,
+    handleIgnorePending,
+    handleOpenConflictDialog,
+    handleScanSync,
+  } = useSyncPage();
 
   return (
     <AppShell
@@ -233,7 +76,6 @@ export function SyncPage() {
       actions={<PageGuideButton pages={syncGuidePages} />}
     >
       <PageContainer variant="xs" gap="default">
-
         {/* Conflicts card */}
         {store.conflicts.length > 0 && (
           <Card>
@@ -451,18 +293,82 @@ export function SyncPage() {
             </div>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
               {/* 对话框内含恢复二维码 tab，恢复会话不依赖同步启用，故不限制 syncEnabled */}
-              <SyncIconButton
-                label={t('settings:sync_qr_show', { defaultValue: 'Show QR' })}
-                icon={<QrCode size={ICON_SIZE.lg} />}
+              <button
+                type="button"
                 onClick={() => setShowQrDialogOpen(true)}
                 disabled={store.isLoading}
-              />
-              <SyncIconButton
-                label={t('settings:sync_qr_scan', { defaultValue: 'Scan QR' })}
-                icon={<ScanLine size={ICON_SIZE.lg} />}
+                title={t('settings:sync_qr_show', { defaultValue: 'Show QR' })}
+                aria-label={t('settings:sync_qr_show', { defaultValue: 'Show QR' })}
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 8,
+                  border: '1px solid var(--border-subtle)',
+                  background: 'var(--bg-toolbar)',
+                  color: 'var(--text-primary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                  cursor: store.isLoading ? 'default' : 'pointer',
+                  opacity: store.isLoading ? 0.6 : 1,
+                  transition: 'all 0.15s ease',
+                  fontFamily: 'inherit',
+                }}
+                onMouseEnter={(e) => {
+                  if (store.isLoading) return;
+                  e.currentTarget.style.background =
+                    'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
+                  e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                  e.currentTarget.style.color = 'var(--accent-primary)';
+                }}
+                onMouseLeave={(e) => {
+                  if (store.isLoading) return;
+                  e.currentTarget.style.background = 'var(--bg-toolbar)';
+                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                  e.currentTarget.style.color = 'var(--text-primary)';
+                }}
+              >
+                <QrCode size={ICON_SIZE.lg} />
+              </button>
+              <button
+                type="button"
                 onClick={() => setScanQrDialogOpen(true)}
                 disabled={!store.syncEnabled || store.isLoading}
-              />
+                title={t('settings:sync_qr_scan', { defaultValue: 'Scan QR' })}
+                aria-label={t('settings:sync_qr_scan', { defaultValue: 'Scan QR' })}
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 8,
+                  border: '1px solid var(--border-subtle)',
+                  background: 'var(--bg-toolbar)',
+                  color: 'var(--text-primary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                  cursor: !store.syncEnabled || store.isLoading ? 'default' : 'pointer',
+                  opacity: !store.syncEnabled || store.isLoading ? 0.6 : 1,
+                  transition: 'all 0.15s ease',
+                  fontFamily: 'inherit',
+                }}
+                onMouseEnter={(e) => {
+                  if (!store.syncEnabled || store.isLoading) return;
+                  e.currentTarget.style.background =
+                    'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
+                  e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                  e.currentTarget.style.color = 'var(--accent-primary)';
+                }}
+                onMouseLeave={(e) => {
+                  if (!store.syncEnabled || store.isLoading) return;
+                  e.currentTarget.style.background = 'var(--bg-toolbar)';
+                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                  e.currentTarget.style.color = 'var(--text-primary)';
+                }}
+              >
+                <ScanLine size={ICON_SIZE.lg} />
+              </button>
             </div>
           </div>
         </Card>
@@ -510,57 +416,59 @@ export function SyncPage() {
           {store.discoveredDevices.length > 0 ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {store.discoveredDevices.map((device) => {
-                const deviceAddr =
-                    device.addresses[0] || `${device.host}:${device.port}`;
+                const deviceAddr = device.addresses[0] || `${device.host}:${device.port}`;
                 return (
-                <div
-                  key={deviceAddr}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 10,
-                    padding: '10px 12px',
-                    borderRadius: 8,
-                    background: 'var(--bg-toolbar)',
-                  }}
-                >
-                  <Smartphone size={ICON_SIZE.lg} style={{ color: 'var(--accent-primary)' }} />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500 }}>
-                      {device.name || t('settings:sync_unknown_device', { defaultValue: 'Unknown device' })}
-                    </div>
-                    <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
-                      {deviceAddr}
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => handleSyncWithDevice(deviceAddr)}
-                    disabled={store.isLoading}
+                  <div
+                    key={deviceAddr}
                     style={{
-                      padding: '6px 12px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 10,
+                      padding: '10px 12px',
                       borderRadius: 8,
-                      border: '1px solid var(--border-subtle)',
                       background: 'var(--bg-toolbar)',
-                      color: 'var(--text-primary)',
-                      fontSize: 'var(--text-body-sm)',
-                      fontWeight: 500,
-                      cursor: store.isLoading ? 'default' : 'pointer',
-                      opacity: store.isLoading ? 0.5 : 1,
-                      transition: 'all 0.15s ease',
-                      fontFamily: 'inherit',
-                      whiteSpace: 'nowrap',
                     }}
                   >
-                    {t('settings:sync_manual_sync', { defaultValue: 'Sync' })}
-                  </button>
-                </div>
-              );
+                    <Smartphone size={ICON_SIZE.lg} style={{ color: 'var(--accent-primary)' }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500 }}>
+                        {device.name ||
+                          t('settings:sync_unknown_device', { defaultValue: 'Unknown device' })}
+                      </div>
+                      <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
+                        {deviceAddr}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleSyncWithDevice(deviceAddr)}
+                      disabled={store.isLoading}
+                      style={{
+                        padding: '6px 12px',
+                        borderRadius: 8,
+                        border: '1px solid var(--border-subtle)',
+                        background: 'var(--bg-toolbar)',
+                        color: 'var(--text-primary)',
+                        fontSize: 'var(--text-body-sm)',
+                        fontWeight: 500,
+                        cursor: store.isLoading ? 'default' : 'pointer',
+                        opacity: store.isLoading ? 0.5 : 1,
+                        transition: 'all 0.15s ease',
+                        fontFamily: 'inherit',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {t('settings:sync_manual_sync', { defaultValue: 'Sync' })}
+                    </button>
+                  </div>
+                );
               })}
             </div>
           ) : (
             <>
               <p style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
-                {t('settings:sync_no_devices_found', { defaultValue: 'No devices found. Click Discover to scan.' })}
+                {t('settings:sync_no_devices_found', {
+                  defaultValue: 'No devices found. Click Discover to scan.',
+                })}
               </p>
               {store.syncEnabled && (
                 <p
@@ -572,7 +480,7 @@ export function SyncPage() {
                 >
                   {t('settings:sync_manual_fallback_hint', {
                     defaultValue:
-                      'If automatic discovery fails, ensure both devices are on the same Wi-Fi and enter the other device\'s IP address with port below.',
+                      "If automatic discovery fails, ensure both devices are on the same Wi-Fi and enter the other device's IP address with port below.",
                   })}
                 </p>
               )}
@@ -723,9 +631,9 @@ export function SyncPage() {
                           marginBottom: result.conflicts.length > 0 ? 8 : 0,
                         }}
                       >
-                        {result.per_table.map((t) => (
+                        {result.per_table.map((tbl) => (
                           <span
-                            key={t.table}
+                            key={tbl.table}
                             style={{
                               padding: '2px 8px',
                               borderRadius: 4,
@@ -733,7 +641,7 @@ export function SyncPage() {
                               color: 'var(--text-secondary)',
                             }}
                           >
-                            {t.table}: {t.applied}+{t.skipped}/{t.examined}
+                            {tbl.table}: {tbl.applied}+{tbl.skipped}/{tbl.examined}
                           </span>
                         ))}
                       </div>
