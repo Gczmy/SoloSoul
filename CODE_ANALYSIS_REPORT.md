@@ -2,7 +2,7 @@
 
 > 最后更新：2026-07-31 21:00:00
 > 当前分支：`main`
-> 修复轮次：3（已执行修复：P001–P011、P013–P016、P019–P022、P028、P029、P033–P036，共 25 项）
+> 修复轮次：3（已执行修复：P001–P011、P013–P016、P019–P023、P028、P029、P033–P036，共 26 项）
 > 分析范围：`tauri/`（Rust 后端 `src-tauri/` + `crates/`，React/TS 前端 `src/`）；`solosoul_cli/` 不在本轮范围
 
 ## 基线检查结果（阶段 0，全部通过）
@@ -42,7 +42,7 @@
 | P020 | P1 | 死代码 | 详见下文清单 | 18 个已注册但前端从未 invoke 的死 Tauri Commands（缩小 IPC 攻击面） | `[x]` 已修复 |
 | P021 | P1 | 死代码 | 详见下文清单 | 7 个零调用点 Rust 函数（含注释声称已接线但实际未调用的 `ensure_guide_embeddings_built`） | `[x]` 已修复 |
 | P022 | P1 | 死代码 | `tauri/package.json:28,38,47` | 3 个未被 import 的 npm 依赖（react-hook-form、@hookform/resolvers、plugin-window-state） | `[x]` 已修复 |
-| P023 | P1 | 结构 | `tauri/src-tauri/src/commands/export_import/import.rs:234` | `import_execute_internal` 单函数 431 行，多阶段逻辑混杂 | `[ ]` 待修复 |
+| P023 | P1 | 结构 | `tauri/src-tauri/src/commands/export_import/import.rs:234` | `import_execute_internal` 单函数 431 行，多阶段逻辑混杂 | `[x]` 已修复 |
 | P024 | P1 | 结构 | `tauri/src/pages/settings/GlobalAttachmentManager.tsx:116` | 组件 1202 行（全项目最大），过滤/预览/批量操作全塞一个函数体 | `[ ]` 待修复 |
 | P025 | P1 | 结构 | `tauri/src/components/recovery/RecoveryReceiveDialog.tsx:57` | 组件 1001 行，QR 扫描+状态机+渲染一体 | `[ ]` 待修复 |
 | P026 | P1 | 结构 | `tauri/src/components/onboarding/OnboardingDialog.tsx:38` | 组件 989 行，多步向导+手写 hover 混杂 | `[ ]` 待修复 |
@@ -86,8 +86,8 @@
 
 ## 修复进度
 
-- 已完成：25 / 63（P001–P011、P013–P016、P019–P022、P028、P029、P033–P036；其中 P011 工作区部分完成）
-- 当前处理：P023（import_execute_internal 按阶段拆分）
+- 已完成：26 / 63（P001–P011、P013–P016、P019–P023、P028、P029、P033–P036；其中 P011 工作区部分完成）
+- 当前处理：P024（GlobalAttachmentManager 拆分）
 
 ## 静态基线之外已检查且无发现的维度（误报排除记录）
 
@@ -200,6 +200,7 @@ sync crate manager（`manager.rs:168`）`sync_enable` 时自建 `ServiceDaemon`�
 ### P1 结构 / 重复
 
 **P023 | `import_execute_internal` 431 行**（import.rs:234）：单函数混合策略解析、ID 映射、模板继承、附件还原、审计等多阶段。按阶段抽 `resolve_strategy`/`inherit_template`/`rewrite_ids`/`build_record` 等私有函数。
+`[x]` 已修复：拆分为编排主函数 + 5 个阶段化私有函数——`decrypt_package`（阶段1 解密）、`rebuild_imported_templates`（阶段2 模板重建）、`build_import_record`（阶段4.1 记录构建，含 KeepBoth ID 重写）、`import_attachments`（阶段5 附件流式解密）、`import_preferences`（阶段6 偏好导入）；阶段3 KeepBoth 预映射与冲突检查保留在主函数并简化 match→if 条件（三分支语义等价）。新增 `use super::helpers::ManifestData` 导入。clippy/fmt/322 测试全部通过。
 
 **P024 | `GlobalAttachmentManager` 1202 行**：全项目最大组件。拆工具栏/列表项/预览面板子组件，状态逻辑抽 hook（与 P061 一并设计）。
 

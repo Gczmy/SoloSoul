@@ -1,3 +1,4 @@
+use super::helpers::ManifestData;
 use super::*;
 
 // ── Import commands ────────────────────────────────────────────
@@ -247,15 +248,8 @@ async fn import_execute_internal(
         return Err(import_err("PASSWORD_REQUIRED"));
     }
 
-    let manifest = read_manifest(&file_path)?;
-    let salt = hex::decode(&manifest.salt_hex).map_err(|e| format!("Invalid salt: {}", e))?;
-    let key = derive_export_key(&password, &salt)?;
-    let enc_bytes = read_file_from_zip(&file_path, "payload.enc")?;
-    let decrypted = solosoul_crypto::cipher::decrypt_chunked_from_bytes(&key, &enc_bytes)
-        .map_err(|_| import_err("DECRYPT_FAILED"))?;
-
-    let payload: serde_json::Value =
-        serde_json::from_slice(&decrypted).map_err(|e| format!("Invalid payload: {}", e))?;
+    // ── 阶段 1：解密包读取 ──
+    let (manifest, payload, key) = decrypt_package(&file_path, &password)?;
 
     // Build selection set if provided
     let selected_ids: Option<BTreeSet<String>> = selections.map(|sels| {
@@ -269,59 +263,16 @@ async fn import_execute_internal(
         .as_array()
         .ok_or("No objects array in payload")?;
     let package_ids = build_package_ids(&payload);
-    // ── Rebuild referenced templates (snapshot isolation by content hash) ──
-    let mut template_id_map: std::collections::HashMap<String, String> =
-        std::collections::HashMap::new();
-    if let Some(templates) = payload["templates"].as_array() {
-        let now = chrono::Utc::now().to_rfc3339();
-        for tpl_val in templates {
-            match serde_json::from_value::<solosoul_vault::UserTemplate>(tpl_val.clone()) {
-                Ok(mut tpl) => {
-                    let original_id = tpl.id.clone();
-                    let hash = solosoul_core::export_import::user_template_content_hash(&tpl);
 
-                    // 去重：检查是否有完全一致的已有模板（含系统预置模板）
-                    let local_id = if let Some(existing) =
-                        vault.find_user_template_by_content_hash(&account_id, &hash)?
-                    {
-                        existing.id
-                    } else {
-                        let imported_id =
-                            solosoul_core::export_import::imported_template_id(&original_id, &hash);
-                        if vault
-                            .load_user_template(&imported_id)
-                            .ok()
-                            .flatten()
-                            .is_none()
-                        {
-                            tpl.id = imported_id.clone();
-                            tpl.account_id = account_id.clone();
-                            tpl.created_at = now.clone();
-                            tpl.updated_at = Some(now.clone());
-                            let _ = vault.save_user_template(&tpl);
-                        }
-                        imported_id
-                    };
-
-                    template_id_map.insert(original_id, local_id);
-                }
-                Err(e) => {
-                    tracing::warn!(
-                        "[import] 模板反序列化失败，跳过: {}, 错误: {}",
-                        tpl_val["id"].as_str().unwrap_or("<unknown>"),
-                        e
-                    );
-                }
-            }
-        }
-    }
+    // ── 阶段 2：重建包内引用模板（快照隔离，按内容哈希去重）──
+    let template_id_map = rebuild_imported_templates(vault, &account_id, &payload)?;
 
     let mut imported = 0usize;
     let mut imported_object_ids: std::collections::HashSet<String> =
         std::collections::HashSet::new();
     let now = chrono::Utc::now().to_rfc3339();
 
-    // ── 预构建 KeepBoth ID 映射表（解决前向引用问题）────────────────
+    // ── 阶段 3：预构建 KeepBoth ID 映射表（解决前向引用问题）──
     let mut id_map: HashMap<String, String> = HashMap::new();
     for obj_val in objects {
         let id = obj_val["id"].as_str().unwrap_or("");
@@ -348,21 +299,13 @@ async fn import_execute_internal(
 
         // Check conflict & apply strategy (per-object override first, then global)
         let effective_strategy = object_strategies.get(id).copied().unwrap_or(strategy);
-        // 如果是 KeepBoth，不需要 load_object 做冲突判断（永远继续往下走）
-        if effective_strategy == ImportStrategy::KeepBoth {
-            // KeepBoth 分支：在此继续处理，不走 conflict skip/overwrite 逻辑
-        } else {
+        // KeepBoth 不需要冲突判断（永远继续往下走）；SkipExisting 遇非软删既有对象则跳过
+        if effective_strategy != ImportStrategy::KeepBoth {
             let existing = vault.load_object(id).ok().flatten();
-            match &effective_strategy {
-                ImportStrategy::SkipExisting => {
-                    // Soft-deleted objects are not considered existing; import will restore them.
-                    if existing.is_some_and(|e| !e.is_deleted) {
-                        continue;
-                    }
-                }
-                ImportStrategy::Overwrite => { /* always overwrite — fall through */ }
-
-                ImportStrategy::KeepBoth => { /* handled above */ }
+            if effective_strategy == ImportStrategy::SkipExisting
+                && existing.is_some_and(|e| !e.is_deleted)
+            {
+                continue;
             }
         }
 
@@ -437,65 +380,18 @@ async fn import_execute_internal(
                 )
             };
 
-        let record = solosoul_vault::ObjectRecord {
-            contract_type_id: obj_val["contract_type_id"].as_str().map(String::from),
-            id: final_id.clone(),
-            account_id: account_id.clone(),
-            type_id: obj_val["type_id"].as_str().unwrap_or("note").to_string(),
-            section_type: obj_val["section_type"]
-                .as_str()
-                .unwrap_or("identity")
-                .to_string(),
-            name: final_name,
-            icon_name: obj_val["icon_name"]
-                .as_str()
-                .unwrap_or("document")
-                .to_string(),
-            parent_id: obj_val["parent_id"].as_str().map(|pid| {
-                // 无条件重写引用：如果父对象被 KeepBoth 重写了 ID，使用新 ID
-                id_map.get(pid).cloned().unwrap_or_else(|| pid.to_string())
-            }),
-            children_ids: {
-                // 无条件重写 children_ids 引用
-                let mut cids: Vec<String> = obj_val["children_ids"]
-                    .as_array()
-                    .map(|a| {
-                        a.iter()
-                            .filter_map(|v| v.as_str().map(|s| s.to_string()))
-                            .collect()
-                    })
-                    .unwrap_or_default();
-                for cid in &mut cids {
-                    if let Some(new_cid) = id_map.get(cid) {
-                        *cid = new_cid.clone();
-                    }
-                }
-                cids
-            },
+        // ── 阶段 4.1：构建导入对象记录（含 KeepBoth ID 重写）──
+        let record = build_import_record(
+            obj_val,
+            &account_id,
+            &id_map,
+            resolved_template_id,
+            &final_id,
+            &final_name,
             properties,
             property_labels,
-            sensitivity_level: obj_val["sensitivity_level"]
-                .as_str()
-                .unwrap_or("internal")
-                .to_string(),
-            is_deleted: false,
-            deleted_at: None,
-            tags_json: obj_val["tags"]
-                .as_array()
-                .map(|a| {
-                    a.iter()
-                        .filter_map(|v| v.as_str().map(String::from))
-                        .collect()
-                })
-                .unwrap_or_default(),
-            template_id: resolved_template_id,
-            template_type: obj_val["template_type"].as_str().map(String::from),
-            template_hash: obj_val["template_hash"].as_str().map(String::from),
-            ignored_template_hash: obj_val["ignored_template_hash"].as_str().map(String::from),
-            created_at: obj_val["created_at"].as_str().unwrap_or(&now).to_string(),
-            updated_at: now.clone(),
-            version: obj_val["version"].as_u64().unwrap_or(1) as u32,
-        };
+            &now,
+        );
 
         vault
             .save_object(&record)
@@ -523,188 +419,26 @@ async fn import_execute_internal(
     let sel_att_ids_set: Option<std::collections::HashSet<String>> =
         selected_attachment_ids.map(|ids| ids.into_iter().collect());
 
-    let mut imported_attachments_count = 0usize;
-
-    // ── P1: Import attachments (encrypted) ─────────────────────
-    if manifest.has_attachments {
-        // Derive attachment key via HKDF
-        let att_key =
-            solosoul_crypto::hkdf_ext::derive_hkdf_key(&key, &salt, b"solosoul:attachments:v1")
-                .map_err(|e| format!("derive att key: {}", e))?;
-
-        // Build old att_id -> meta map from payload objects
-        let mut att_meta_map: std::collections::HashMap<(String, String), AttachmentMeta> =
-            std::collections::HashMap::new();
-        for obj_val in objects {
-            let obj_id = obj_val["id"].as_str().unwrap_or("");
-            if obj_id.is_empty() {
-                continue;
-            }
-            let empty_props = serde_json::Map::new();
-            let props = obj_val["properties"].as_object().unwrap_or(&empty_props);
-            let atts = load_attachments(&serde_json::Value::Object(props.clone()));
-            for att in &atts {
-                att_meta_map.insert((obj_id.to_string(), att.id.clone()), att.clone());
-            }
-        }
-
-        // Open ZIP and iterate attachments
-        let zip_file = File::open(&file_path).map_err(|e| format!("open zip: {}", e))?;
-        let mut archive = ZipArchive::new(zip_file).map_err(|e| format!("invalid zip: {}", e))?;
-        let att_prefix = "attachments/";
-        let mut imported_atts: std::collections::HashMap<String, Vec<AttachmentMeta>> =
-            std::collections::HashMap::new();
-        for i in 0..archive.len() {
-            let mut f = archive.by_index(i).map_err(|e| e.to_string())?;
-            let name = f.name().to_string();
-            if !name.starts_with(att_prefix) || name.ends_with('/') {
-                continue;
-            }
-            let rel = &name[att_prefix.len()..]; // "objId/attId.enc"
-            let parts: Vec<&str> = rel.split('/').collect();
-            if parts.len() != 2 {
-                continue;
-            }
-            let obj_id = parts[0];
-            let enc_name = parts[1];
-            let old_att_id = match enc_name.strip_suffix(".enc") {
-                Some(id) => id,
-                None => continue,
-            };
-            if validate_export_id(obj_id).is_err() || validate_export_id(old_att_id).is_err() {
-                continue;
-            }
-
-            // Skip if object was not imported (e.g. SkipExisting)
-            if !imported_object_ids.contains(obj_id) {
-                continue;
-            }
-
-            // 如果指定了附件选择，跳过未选中的附件
-            if let Some(ref sel_set) = sel_att_ids_set {
-                if !sel_set.contains(old_att_id) {
-                    continue;
-                }
-            }
-
-            let old_meta = match att_meta_map.get(&(obj_id.to_string(), old_att_id.to_string())) {
-                Some(m) => m,
-                None => continue,
-            };
-
-            // Use streaming decryption to avoid holding the full ciphertext
-            // and plaintext in memory simultaneously (P1-024).
-            let new_att_id = generate_id();
-            // KeepBoth 场景下附件目录应使用新对象 ID，否则后续 load_object 基于新 ID 查找会找不到
-            let att_obj_id = id_map
-                .get(obj_id)
-                .cloned()
-                .unwrap_or_else(|| obj_id.to_string());
-            let dest = svc
-                .base_path()
-                .join("attachments")
-                .join(&att_obj_id)
-                .join(&new_att_id);
-            std::fs::create_dir_all(&dest).map_err(|e| e.to_string())?;
-
-            // R008: sanitize imported file_name to prevent path traversal.
-            let safe_name = std::path::Path::new(&old_meta.file_name)
-                .file_name()
-                .ok_or("Invalid attachment file name in package")?
-                .to_string_lossy()
-                .to_string();
-            let file_path_dest = dest.join(&safe_name);
-            let mut out_file = File::create(&file_path_dest)
-                .map_err(|e| format!("create attachment file: {}", e))?;
-            solosoul_crypto::cipher::decrypt_chunked_stream(&att_key, &mut f, &mut out_file)
-                .map_err(|e| format!("decrypt attachment stream: {}", e))?;
-            let file_size = std::fs::metadata(&file_path_dest)
-                .map(|m| m.len())
-                .unwrap_or(0);
-
-            imported_atts
-                .entry(obj_id.to_string())
-                .or_default()
-                .push(AttachmentMeta {
-                    id: new_att_id,
-                    object_id: obj_id.to_string(),
-                    file_name: old_meta.file_name.clone(),
-                    mime_type: old_meta.mime_type.clone(),
-                    size_bytes: file_size,
-                    created_at: now.clone(),
-                    deleted_at: None,
-                    src_path: Some(file_path_dest.to_string_lossy().to_string()),
-                    vault_path: Some(file_path_dest.to_string_lossy().to_string()),
-                });
-        }
-
-        // 对于 KeepBoth 对象，将附件 key 从旧 ID 映射到新 ID
-        let mut remapped_atts: std::collections::HashMap<String, Vec<AttachmentMeta>> =
-            std::collections::HashMap::new();
-        for (old_obj_id, atts) in &imported_atts {
-            let actual_obj_id = id_map
-                .get(old_obj_id)
-                .cloned()
-                .unwrap_or_else(|| old_obj_id.clone());
-            let mut new_atts = atts.clone();
-            for att in &mut new_atts {
-                att.object_id = actual_obj_id.clone();
-            }
-            remapped_atts
-                .entry(actual_obj_id)
-                .or_default()
-                .append(&mut new_atts);
-        }
-
-        // Replace each imported object's __attachments with the newly imported list
-        for (obj_id, atts) in &remapped_atts {
-            let mut obj = vault
-                .load_object(obj_id)
-                .map_err(|e| format!("get object: {}", e))?
-                .ok_or_else(|| format!("object {} not found", obj_id))?;
-            let att_json = serde_json::to_value(atts).map_err(|e| e.to_string())?;
-            match &mut obj.properties {
-                serde_json::Value::Object(map) => {
-                    map.insert("__attachments".to_string(), att_json);
-                }
-                _ => {
-                    let mut map = serde_json::Map::new();
-                    map.insert("__attachments".to_string(), att_json);
-                    obj.properties = serde_json::Value::Object(map);
-                }
-            }
-            vault.save_object(&obj)?;
-        }
-
-        imported_attachments_count = imported_atts.values().map(|v| v.len()).sum();
-    }
-
-    // ── P2: Import preferences if present ──────────────────────
-    if manifest
-        .extra_files
-        .contains(&"preferences.enc".to_string())
-    {
-        let prefs_salt = hex::decode(&manifest.salt_hex)
-            .map_err(|e| format!("Invalid salt_hex in manifest: {}", e))?;
-        let prefs_key = solosoul_crypto::hkdf_ext::derive_hkdf_key(
+    // ── 阶段 5：导入附件（加密，流式解密）──
+    let imported_attachments_count = if manifest.has_attachments {
+        import_attachments(
+            vault,
+            svc.base_path(),
+            &file_path,
             &key,
-            &prefs_salt,
-            b"solosoul:preferences:v1",
-        )
-        .map_err(|e| format!("derive prefs key: {}", e))?;
-        if let Ok(prefs_enc) = read_file_from_zip(&file_path, "preferences.enc") {
-            if let Ok(prefs_dec) =
-                solosoul_crypto::cipher::decrypt_from_bytes(&prefs_key, &prefs_enc, None)
-            {
-                let profile = solosoul_vault::Profile::new_with_id(
-                    &account_id,
-                    &account_id,
-                    prefs_dec.to_vec(),
-                );
-                let _ = vault.save_profile(&profile);
-            }
-        }
-    }
+            &manifest,
+            objects,
+            &id_map,
+            &imported_object_ids,
+            sel_att_ids_set.as_ref(),
+            &now,
+        )?
+    } else {
+        0
+    };
+
+    // ── 阶段 6：导入偏好设置（如有）──
+    import_preferences(vault, &file_path, &key, &manifest, &account_id)?;
 
     let file_name = std::path::Path::new(&file_path)
         .file_name()
@@ -734,4 +468,347 @@ async fn import_execute_internal(
         object_count: imported,
         attachment_count: imported_attachments_count,
     })
+}
+
+// ── 阶段化辅助函数（P023 拆分）──────────────────────────────────
+
+/// 阶段 1：读取并解密导入包，返回 (manifest, payload, 派生密钥)。
+fn decrypt_package(
+    file_path: &str,
+    password: &str,
+) -> Result<(ManifestData, serde_json::Value, [u8; 32]), String> {
+    let manifest = read_manifest(file_path)?;
+    let salt = hex::decode(&manifest.salt_hex).map_err(|e| format!("Invalid salt: {}", e))?;
+    let key = derive_export_key(password, &salt)?;
+    let enc_bytes = read_file_from_zip(file_path, "payload.enc")?;
+    let decrypted = solosoul_crypto::cipher::decrypt_chunked_from_bytes(&key, &enc_bytes)
+        .map_err(|_| import_err("DECRYPT_FAILED"))?;
+    let payload: serde_json::Value =
+        serde_json::from_slice(&decrypted).map_err(|e| format!("Invalid payload: {}", e))?;
+    Ok((manifest, payload, key))
+}
+
+/// 阶段 2：重建包内引用的模板（快照隔离，按内容哈希去重），返回 原模板 ID → 本地模板 ID 映射。
+fn rebuild_imported_templates(
+    vault: &solosoul_vault::VaultStore,
+    account_id: &str,
+    payload: &serde_json::Value,
+) -> Result<std::collections::HashMap<String, String>, String> {
+    let mut template_id_map: std::collections::HashMap<String, String> =
+        std::collections::HashMap::new();
+    if let Some(templates) = payload["templates"].as_array() {
+        let now = chrono::Utc::now().to_rfc3339();
+        for tpl_val in templates {
+            match serde_json::from_value::<solosoul_vault::UserTemplate>(tpl_val.clone()) {
+                Ok(mut tpl) => {
+                    let original_id = tpl.id.clone();
+                    let hash = solosoul_core::export_import::user_template_content_hash(&tpl);
+
+                    // 去重：检查是否有完全一致的已有模板（含系统预置模板）
+                    let local_id = if let Some(existing) =
+                        vault.find_user_template_by_content_hash(account_id, &hash)?
+                    {
+                        existing.id
+                    } else {
+                        let imported_id =
+                            solosoul_core::export_import::imported_template_id(&original_id, &hash);
+                        if vault
+                            .load_user_template(&imported_id)
+                            .ok()
+                            .flatten()
+                            .is_none()
+                        {
+                            tpl.id = imported_id.clone();
+                            tpl.account_id = account_id.to_string();
+                            tpl.created_at = now.clone();
+                            tpl.updated_at = Some(now.clone());
+                            let _ = vault.save_user_template(&tpl);
+                        }
+                        imported_id
+                    };
+
+                    template_id_map.insert(original_id, local_id);
+                }
+                Err(e) => {
+                    tracing::warn!(
+                        "[import] 模板反序列化失败，跳过: {}, 错误: {}",
+                        tpl_val["id"].as_str().unwrap_or("<unknown>"),
+                        e
+                    );
+                }
+            }
+        }
+    }
+    Ok(template_id_map)
+}
+
+/// 阶段 4.1：构建导入对象记录（含 KeepBoth ID 引用重写）。
+#[allow(clippy::too_many_arguments)]
+fn build_import_record(
+    obj_val: &serde_json::Value,
+    account_id: &str,
+    id_map: &HashMap<String, String>,
+    resolved_template_id: Option<String>,
+    final_id: &str,
+    final_name: &str,
+    properties: serde_json::Value,
+    property_labels: Option<serde_json::Value>,
+    now: &str,
+) -> solosoul_vault::ObjectRecord {
+    solosoul_vault::ObjectRecord {
+        contract_type_id: obj_val["contract_type_id"].as_str().map(String::from),
+        id: final_id.to_string(),
+        account_id: account_id.to_string(),
+        type_id: obj_val["type_id"].as_str().unwrap_or("note").to_string(),
+        section_type: obj_val["section_type"]
+            .as_str()
+            .unwrap_or("identity")
+            .to_string(),
+        name: final_name.to_string(),
+        icon_name: obj_val["icon_name"]
+            .as_str()
+            .unwrap_or("document")
+            .to_string(),
+        parent_id: obj_val["parent_id"].as_str().map(|pid| {
+            // 无条件重写引用：如果父对象被 KeepBoth 重写了 ID，使用新 ID
+            id_map.get(pid).cloned().unwrap_or_else(|| pid.to_string())
+        }),
+        children_ids: {
+            // 无条件重写 children_ids 引用
+            let mut cids: Vec<String> = obj_val["children_ids"]
+                .as_array()
+                .map(|a| {
+                    a.iter()
+                        .filter_map(|v| v.as_str().map(|s| s.to_string()))
+                        .collect()
+                })
+                .unwrap_or_default();
+            for cid in &mut cids {
+                if let Some(new_cid) = id_map.get(cid) {
+                    *cid = new_cid.clone();
+                }
+            }
+            cids
+        },
+        properties,
+        property_labels,
+        sensitivity_level: obj_val["sensitivity_level"]
+            .as_str()
+            .unwrap_or("internal")
+            .to_string(),
+        is_deleted: false,
+        deleted_at: None,
+        tags_json: obj_val["tags"]
+            .as_array()
+            .map(|a| {
+                a.iter()
+                    .filter_map(|v| v.as_str().map(String::from))
+                    .collect()
+            })
+            .unwrap_or_default(),
+        template_id: resolved_template_id,
+        template_type: obj_val["template_type"].as_str().map(String::from),
+        template_hash: obj_val["template_hash"].as_str().map(String::from),
+        ignored_template_hash: obj_val["ignored_template_hash"].as_str().map(String::from),
+        created_at: obj_val["created_at"].as_str().unwrap_or(now).to_string(),
+        updated_at: now.to_string(),
+        version: obj_val["version"].as_u64().unwrap_or(1) as u32,
+    }
+}
+
+/// 阶段 5：导入附件（加密）。流式解密避免明文/密文同时驻留内存（P1-024）。
+#[allow(clippy::too_many_arguments)]
+fn import_attachments(
+    vault: &solosoul_vault::VaultStore,
+    base_path: &std::path::Path,
+    file_path: &str,
+    key: &[u8; 32],
+    manifest: &ManifestData,
+    objects: &[serde_json::Value],
+    id_map: &HashMap<String, String>,
+    imported_object_ids: &std::collections::HashSet<String>,
+    sel_att_ids_set: Option<&std::collections::HashSet<String>>,
+    now: &str,
+) -> Result<usize, String> {
+    // Derive attachment key via HKDF
+    let salt = hex::decode(&manifest.salt_hex).map_err(|e| format!("Invalid salt: {}", e))?;
+    let att_key =
+        solosoul_crypto::hkdf_ext::derive_hkdf_key(key, &salt, b"solosoul:attachments:v1")
+            .map_err(|e| format!("derive att key: {}", e))?;
+
+    // Build old att_id -> meta map from payload objects
+    let mut att_meta_map: std::collections::HashMap<(String, String), AttachmentMeta> =
+        std::collections::HashMap::new();
+    for obj_val in objects {
+        let obj_id = obj_val["id"].as_str().unwrap_or("");
+        if obj_id.is_empty() {
+            continue;
+        }
+        let empty_props = serde_json::Map::new();
+        let props = obj_val["properties"].as_object().unwrap_or(&empty_props);
+        let atts = load_attachments(&serde_json::Value::Object(props.clone()));
+        for att in &atts {
+            att_meta_map.insert((obj_id.to_string(), att.id.clone()), att.clone());
+        }
+    }
+
+    // Open ZIP and iterate attachments
+    let zip_file = File::open(file_path).map_err(|e| format!("open zip: {}", e))?;
+    let mut archive = ZipArchive::new(zip_file).map_err(|e| format!("invalid zip: {}", e))?;
+    let att_prefix = "attachments/";
+    let mut imported_atts: std::collections::HashMap<String, Vec<AttachmentMeta>> =
+        std::collections::HashMap::new();
+    for i in 0..archive.len() {
+        let mut f = archive.by_index(i).map_err(|e| e.to_string())?;
+        let name = f.name().to_string();
+        if !name.starts_with(att_prefix) || name.ends_with('/') {
+            continue;
+        }
+        let rel = &name[att_prefix.len()..]; // "objId/attId.enc"
+        let parts: Vec<&str> = rel.split('/').collect();
+        if parts.len() != 2 {
+            continue;
+        }
+        let obj_id = parts[0];
+        let enc_name = parts[1];
+        let old_att_id = match enc_name.strip_suffix(".enc") {
+            Some(id) => id,
+            None => continue,
+        };
+        if validate_export_id(obj_id).is_err() || validate_export_id(old_att_id).is_err() {
+            continue;
+        }
+
+        // Skip if object was not imported (e.g. SkipExisting)
+        if !imported_object_ids.contains(obj_id) {
+            continue;
+        }
+
+        // 如果指定了附件选择，跳过未选中的附件
+        if let Some(sel_set) = sel_att_ids_set {
+            if !sel_set.contains(old_att_id) {
+                continue;
+            }
+        }
+
+        let old_meta = match att_meta_map.get(&(obj_id.to_string(), old_att_id.to_string())) {
+            Some(m) => m,
+            None => continue,
+        };
+
+        // Use streaming decryption to avoid holding the full ciphertext
+        // and plaintext in memory simultaneously (P1-024).
+        let new_att_id = generate_id();
+        // KeepBoth 场景下附件目录应使用新对象 ID，否则后续 load_object 基于新 ID 查找会找不到
+        let att_obj_id = id_map
+            .get(obj_id)
+            .cloned()
+            .unwrap_or_else(|| obj_id.to_string());
+        let dest = base_path
+            .join("attachments")
+            .join(&att_obj_id)
+            .join(&new_att_id);
+        std::fs::create_dir_all(&dest).map_err(|e| e.to_string())?;
+
+        // R008: sanitize imported file_name to prevent path traversal.
+        let safe_name = std::path::Path::new(&old_meta.file_name)
+            .file_name()
+            .ok_or("Invalid attachment file name in package")?
+            .to_string_lossy()
+            .to_string();
+        let file_path_dest = dest.join(&safe_name);
+        let mut out_file =
+            File::create(&file_path_dest).map_err(|e| format!("create attachment file: {}", e))?;
+        solosoul_crypto::cipher::decrypt_chunked_stream(&att_key, &mut f, &mut out_file)
+            .map_err(|e| format!("decrypt attachment stream: {}", e))?;
+        let file_size = std::fs::metadata(&file_path_dest)
+            .map(|m| m.len())
+            .unwrap_or(0);
+
+        imported_atts
+            .entry(obj_id.to_string())
+            .or_default()
+            .push(AttachmentMeta {
+                id: new_att_id,
+                object_id: obj_id.to_string(),
+                file_name: old_meta.file_name.clone(),
+                mime_type: old_meta.mime_type.clone(),
+                size_bytes: file_size,
+                created_at: now.to_string(),
+                deleted_at: None,
+                src_path: Some(file_path_dest.to_string_lossy().to_string()),
+                vault_path: Some(file_path_dest.to_string_lossy().to_string()),
+            });
+    }
+
+    // 对于 KeepBoth 对象，将附件 key 从旧 ID 映射到新 ID
+    let mut remapped_atts: std::collections::HashMap<String, Vec<AttachmentMeta>> =
+        std::collections::HashMap::new();
+    for (old_obj_id, atts) in &imported_atts {
+        let actual_obj_id = id_map
+            .get(old_obj_id)
+            .cloned()
+            .unwrap_or_else(|| old_obj_id.clone());
+        let mut new_atts = atts.clone();
+        for att in &mut new_atts {
+            att.object_id = actual_obj_id.clone();
+        }
+        remapped_atts
+            .entry(actual_obj_id)
+            .or_default()
+            .append(&mut new_atts);
+    }
+
+    // Replace each imported object's __attachments with the newly imported list
+    for (obj_id, atts) in &remapped_atts {
+        let mut obj = vault
+            .load_object(obj_id)
+            .map_err(|e| format!("get object: {}", e))?
+            .ok_or_else(|| format!("object {} not found", obj_id))?;
+        let att_json = serde_json::to_value(atts).map_err(|e| e.to_string())?;
+        match &mut obj.properties {
+            serde_json::Value::Object(map) => {
+                map.insert("__attachments".to_string(), att_json);
+            }
+            _ => {
+                let mut map = serde_json::Map::new();
+                map.insert("__attachments".to_string(), att_json);
+                obj.properties = serde_json::Value::Object(map);
+            }
+        }
+        vault.save_object(&obj)?;
+    }
+
+    Ok(imported_atts.values().map(|v| v.len()).sum())
+}
+
+/// 阶段 6：导入偏好设置（如包内含 preferences.enc）。
+fn import_preferences(
+    vault: &solosoul_vault::VaultStore,
+    file_path: &str,
+    key: &[u8; 32],
+    manifest: &ManifestData,
+    account_id: &str,
+) -> Result<(), String> {
+    if !manifest
+        .extra_files
+        .contains(&"preferences.enc".to_string())
+    {
+        return Ok(());
+    }
+    let prefs_salt = hex::decode(&manifest.salt_hex)
+        .map_err(|e| format!("Invalid salt_hex in manifest: {}", e))?;
+    let prefs_key =
+        solosoul_crypto::hkdf_ext::derive_hkdf_key(key, &prefs_salt, b"solosoul:preferences:v1")
+            .map_err(|e| format!("derive prefs key: {}", e))?;
+    if let Ok(prefs_enc) = read_file_from_zip(file_path, "preferences.enc") {
+        if let Ok(prefs_dec) =
+            solosoul_crypto::cipher::decrypt_from_bytes(&prefs_key, &prefs_enc, None)
+        {
+            let profile =
+                solosoul_vault::Profile::new_with_id(account_id, account_id, prefs_dec.to_vec());
+            let _ = vault.save_profile(&profile);
+        }
+    }
+    Ok(())
 }
