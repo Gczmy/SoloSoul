@@ -150,22 +150,19 @@ pub struct TrashAttachmentInfo {
     pub deleted_at: Option<String>,
 }
 
-#[tauri::command]
-pub async fn trash_get_detail(
-    state: State<'_, AppState>,
-    trash_id: String,
-) -> Result<TrashDetail, String> {
-    let vault = vault_handle(&state)?;
-    let trash = vault
-        .get_trash_item(&trash_id)?
-        .ok_or("Trash item not found")?;
+// ── Trash detail helpers ──────────────────────────────────────
 
-    let remaining_days = trash.expires_at.map(|exp| {
+/// 计算回收站剩余保留天数。
+fn trash_remaining_days(expires_at: Option<i64>) -> Option<i64> {
+    expires_at.map(|exp| {
         let diff_ms = exp - chrono::Utc::now().timestamp_millis();
         std::cmp::max(0, diff_ms / MS_PER_DAY)
-    });
+    })
+}
 
-    let original_location = match trash.item_type.as_str() {
+/// 构造回收站条目的原始位置描述。
+fn trash_original_location(trash: &solosoul_vault::TrashItem) -> String {
+    match trash.item_type.as_str() {
         "page" => format!("Page: {}", trash.name_snapshot),
         "object" => trash
             .original_section_type
@@ -174,9 +171,16 @@ pub async fn trash_get_detail(
             .unwrap_or_else(|| "From unknown page".to_string()),
         "template" => format!("Template: {}", trash.name_snapshot),
         _ => "Unknown".to_string(),
-    };
+    }
+}
 
-    let preview_properties: Vec<serde_json::Value> = if trash.item_type == "template" {
+/// 构建 preview_properties：模板条目读取 properties 数组；
+/// 对象/页面条目基于 __fields/模板/属性顺序生成（模板删除后仍可显示正确本地化字段名）。
+fn build_preview_properties(
+    vault: &solosoul_vault::VaultStore,
+    trash: &solosoul_vault::TrashItem,
+) -> Vec<serde_json::Value> {
+    if trash.item_type == "template" {
         (|| -> Option<Vec<serde_json::Value>> {
             let data: serde_json::Value = serde_json::from_slice(&trash.data).ok()?;
             let props = data.get("properties")?.as_array()?;
@@ -331,9 +335,13 @@ pub async fn trash_get_detail(
             Some(result.into_iter().take(5).collect())
         })()
         .unwrap_or_default()
-    };
+    }
+}
 
-    // Parse attachments from stored data
+/// 从存储数据解析附件（活跃 + 软删除）。
+fn parse_trash_attachments(
+    trash: &solosoul_vault::TrashItem,
+) -> (Vec<TrashAttachmentInfo>, Vec<TrashAttachmentInfo>) {
     let parsed = (|| -> Option<(Vec<TrashAttachmentInfo>, Vec<TrashAttachmentInfo>)> {
         let data: serde_json::Value = serde_json::from_slice(&trash.data).ok()?;
         let props = data.get("properties")?;
@@ -364,42 +372,45 @@ pub async fn trash_get_detail(
         }
         Some((active, deleted))
     })();
-    let (attachments, deleted_attachments) = parsed.unwrap_or_default();
+    parsed.unwrap_or_default()
+}
 
-    // Fetch child items for page-type trash
-    let child_items: Vec<TrashChildSummary> = if trash.item_type == "page" {
-        let all = vault.list_trash_items(None, None).unwrap_or_default();
-        let page_id = &trash.original_id;
-        let mut children: Vec<TrashChildSummary> = all
-            .into_iter()
-            .filter(|t| {
-                t.item_type == "object" && t.original_section_type.as_deref() == Some(page_id)
-            })
-            .filter_map(|t| {
-                // Look up full TrashItem to get original_id
-                let item_id = t.id.clone();
-                match vault.get_trash_item(&item_id) {
-                    Ok(Some(full)) => Some(TrashChildSummary {
-                        id: item_id,
-                        original_id: full.original_id,
-                        name: t.name,
-                        item_type: t.item_type,
-                    }),
-                    _ => None,
-                }
-            })
-            .collect();
-        children.sort_by(|a, b| a.name.cmp(&b.name));
-        children
-    } else {
-        Vec::new()
-    };
+/// 拉取 page 类型回收站条目的子对象（非 page 返回空）。
+fn fetch_trash_child_items(
+    vault: &solosoul_vault::VaultStore,
+    trash: &solosoul_vault::TrashItem,
+) -> Vec<TrashChildSummary> {
+    if trash.item_type != "page" {
+        return Vec::new();
+    }
+    let all = vault.list_trash_items(None, None).unwrap_or_default();
+    let page_id = &trash.original_id;
+    let mut children: Vec<TrashChildSummary> = all
+        .into_iter()
+        .filter(|t| t.item_type == "object" && t.original_section_type.as_deref() == Some(page_id))
+        .filter_map(|t| {
+            // Look up full TrashItem to get original_id
+            let item_id = t.id.clone();
+            match vault.get_trash_item(&item_id) {
+                Ok(Some(full)) => Some(TrashChildSummary {
+                    id: item_id,
+                    original_id: full.original_id,
+                    name: t.name,
+                    item_type: t.item_type,
+                }),
+                _ => None,
+            }
+        })
+        .collect();
+    children.sort_by(|a, b| a.name.cmp(&b.name));
+    children
+}
 
-    // Fetch snapshots
-    let snapshots = vault.list_snapshots(&trash.original_id).unwrap_or_default();
-
-    // Extract template_id and property_labels from stored data
-    let (template_id, property_labels) = (|| -> Option<(String, Option<serde_json::Value>)> {
+/// 从存储数据提取 template_id 与 property_labels。
+fn extract_trash_metadata(
+    trash: &solosoul_vault::TrashItem,
+) -> (Option<String>, Option<serde_json::Value>) {
+    (|| -> Option<(String, Option<serde_json::Value>)> {
         let data: serde_json::Value = serde_json::from_slice(&trash.data).ok()?;
         let tpl_id = data
             .get("templateId")
@@ -413,7 +424,26 @@ pub async fn trash_get_detail(
         Some((tpl_id?, labels))
     })()
     .map(|(id, labels)| (Some(id), labels))
-    .unwrap_or((None, None));
+    .unwrap_or((None, None))
+}
+
+#[tauri::command]
+pub async fn trash_get_detail(
+    state: State<'_, AppState>,
+    trash_id: String,
+) -> Result<TrashDetail, String> {
+    let vault = vault_handle(&state)?;
+    let trash = vault
+        .get_trash_item(&trash_id)?
+        .ok_or("Trash item not found")?;
+
+    let remaining_days = trash_remaining_days(trash.expires_at);
+    let original_location = trash_original_location(&trash);
+    let preview_properties = build_preview_properties(&vault, &trash);
+    let (attachments, deleted_attachments) = parse_trash_attachments(&trash);
+    let child_items = fetch_trash_child_items(&vault, &trash);
+    let snapshots = vault.list_snapshots(&trash.original_id).unwrap_or_default();
+    let (template_id, property_labels) = extract_trash_metadata(&trash);
 
     Ok(TrashDetail {
         id: trash.id,

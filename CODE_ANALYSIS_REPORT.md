@@ -1,8 +1,8 @@
 # 代码分析修复报告
 
-> 最后更新：2026-07-31 21:00:00
+> 最后更新：2026-07-31 21:20:00
 > 当前分支：`main`
-> 修复轮次：3（已执行修复：P001–P011、P013–P016、P019–P027、P028、P029、P033–P036、P038、P040、P041，共 33 项）
+> 修复轮次：3（已执行修复：P001–P011、P013–P016、P019–P028、P029–P033、P034–P044，共 41 项）
 > 分析范围：`tauri/`（Rust 后端 `src-tauri/` + `crates/`，React/TS 前端 `src/`）；`solosoul_cli/` 不在本轮范围
 
 ## 基线检查结果（阶段 0，全部通过）
@@ -63,7 +63,7 @@
 | P041 | P2 | 结构 | `TemplateEditor.tsx:81`(789)、`ObjectDetailModal.tsx:120`(783)、`AttachmentViewer.tsx:59`(763)、`SyncPage.tsx:91`(759) | 4 个 750+ 行大组件需拆分 | `[x]` 已修复 |
 | P042 | P2 | 结构 | `tauri/crates/solosoul-vault/src/migration.rs:31` | `run_migrations` 464 行，每版本重复「查列是否存在」样板 | `[x]` 已修复 |
 | P043 | P2 | 结构 | `tauri/src-tauri/src/lib.rs:135` | `run` 441 行，启动初始化 10+ 步全内联在一个 setup 闭包 | `[x]` 已修复 |
-| P044 | P2 | 结构 | `export.rs:217`(258)、`object/snapshot.rs:210`(254)、`llm/stream.rs:76`(227) | 3 个 220+ 行多阶段函数需按阶段抽取 | `[ ]` 待修复 |
+| P044 | P2 | 结构 | `export.rs:217`(258)、`object/snapshot.rs:210`(254)、`llm/stream.rs:76`(227) | 3 个 220+ 行多阶段函数需按阶段抽取 | `[x]` 已修复 |
 | P045 | P2 | 结构 | `export_import/helpers.rs:173-232`、`import.rs:394-412`、`profile.rs:191-205`、`plugin.rs:80-107`、`llm/stream.rs:257-302` | 5 处 5-6 层深层嵌套 | `[ ]` 待修复 |
 | P046 | P2 | 重复 | `tauri/src-tauri/src/commands/attachment.rs:983-1027` vs `tauri/crates/solosoul-core/src/objects.rs:945-999` | `cleanup_orphan_attachments` GUI 端整体复制 core 实现 | `[ ]` 待修复 |
 | P047 | P2 | 重复 | `tauri/src-tauri/src/plugin/host/register.rs:763-812,838-890` | 两个 watermark 注册闭包除一行外完全相同；read_string 校验样板 20+ 次 | `[ ]` 待修复 |
@@ -86,8 +86,8 @@
 
 ## 修复进度
 
-- 已完成：40 / 63（P001–P011、P013–P016、P019–P028、P029、P030、P031、P032、P033–P043；其中 P011 工作区部分完成）
-- 当前处理：P043 已完成，等待下一条指令
+- 已完成：41 / 63（P001–P011、P013–P016、P019–P028、P029–P033、P034–P044；其中 P011 工作区部分完成）
+- 当前处理：P044 已完成，等待下一条指令
 
 ## 静态基线之外已检查且无发现的维度（误报排除记录）
 
@@ -254,6 +254,11 @@ sync crate manager（`manager.rs:168`）`sync_enable` 时自建 `ServiceDaemon`�
 **P043 | lib.rs run 441 行**：setup 闭包内联 10+ 初始化步骤。拆 `init_logging`/`init_data_dir`/`init_state` 等步骤函数。
 
 **P044 | 3 个 220+ 行函数**：`export_execute`（export.rs:217，258 行）按阶段抽私有函数；`trash_get_detail`（object/snapshot.rs:210，254 行）按 item_type 抽 preview 构建；`send_chat_stream`（llm/stream.rs:76，227 行）抽 `parse_sse_chunk`/`extract_delta` 纯函数。
+`[x]` 已修复：
+- **export.rs**：`export_execute`（原 315 行）拆为 6 个阶段函数——`validate_export_password`、`resolve_zip_path`、`collect_attachment_entries`（新增私有 `ExportAttachmentEntry` 结构，去掉未用的 file_name 字段）、`write_attachment_entries`（空 entries 早退，HKDF key 仅非空时派生）、`write_encrypted_extra`（统一 prefs/behavioral 两块加密附加文件写入）、`build_manifest_json`（`&ExportScope` 借代 + json! 引用序列化，返回 Value 而非永不失败的 Result）；`key` 参数类型按 `derive_hkdf_key` 签名修正为 `&[u8; 32]`。
+- **snapshot.rs**：`trash_get_detail`（原 286 行）拆为 6 个阶段函数——`trash_remaining_days`、`trash_original_location`、`build_preview_properties`（template/object 双分支闭包原样搬迁）、`parse_trash_attachments`、`fetch_trash_child_items`（非 page 提前 return）、`extract_trash_metadata`；辅助函数引用 `&VaultStore`/`&TrashItem`。
+- **stream.rs**：`send_chat_stream`（原 270 行）拆为 `extract_delta_text` 纯函数（消除循环与尾部两处 delta 提取重复）+ `handle_sse_stream`/`handle_json_response` 两个处理器，主函数降为请求构建+Content-Type 分发；`conversation_id` 由 `String` 改 `&str`（`clone()`→`to_string()`），`use futures::StreamExt` 移入 SSE 处理器。
+行为等价；fmt/clippy/322 测试全部通过，两轮审查通过。
 
 **P045 | 深层嵌套 ×5**：`helpers.rs:173-232` rewrite_id_references 三连 if-let（抽 `rewrite_str_ref`）；`import.rs:394-412` 模板 labels 合并 5 层（提前 return/and_then）；`profile.rs:191-205` 6 层（`iter_mut().find()` 组合子）；`plugin.rs:80-107` 5 层（抽 `migrate_seed_bindings` 用 `?`）；`llm/stream.rs:257-302` SSE 尾部 6 层（抽子函数+提前 continue）。
 

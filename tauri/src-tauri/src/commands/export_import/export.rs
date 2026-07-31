@@ -213,6 +213,215 @@ pub async fn export_estimate_size(
     })
 }
 
+// ── Export execution helpers ─────────────────────────────────
+
+/// 单个待写入 ZIP 的附件条目。
+struct ExportAttachmentEntry {
+    obj_id: String,
+    att_id: String,
+    src: std::path::PathBuf,
+}
+
+/// 校验导出密码：非空且与主密码不同。
+fn validate_export_password(
+    svc: &solosoul_core::vault_service::VaultService,
+    account_id: &str,
+    password: &str,
+) -> Result<(), String> {
+    // ── Validate password (any non-empty password is accepted, P0-008) ──
+    if password.is_empty() {
+        return Err(export_err("PASSWORD_EMPTY"));
+    }
+
+    // ── Verify export password is NOT the master password ──────
+    match svc.verify_password(account_id, password) {
+        Ok(true) => Err(export_err("SAME_AS_MASTER_PASSWORD")),
+        Ok(false) => Ok(()), // export password is different from master password — OK
+        Err(e) => Err(export_err_with_detail("MASTER_VERIFY_FAILED", &e)),
+    }
+}
+
+/// 解析保存路径（支持 ~/ 前缀）并追加 .solosoul 后缀，确保父目录存在。
+#[allow(unused_variables)]
+fn resolve_zip_path(app: &tauri::AppHandle, save_path: &str) -> Result<String, String> {
+    let resolved = if save_path.starts_with("~/") {
+        #[cfg(mobile)]
+        {
+            app.path()
+                .resolve(&save_path[2..], tauri::path::BaseDirectory::Data)
+                .map_err(|e| format!("无法解析应用数据目录: {e}"))?
+                .to_string_lossy()
+                .to_string()
+        }
+        #[cfg(desktop)]
+        {
+            let home = std::env::var("HOME").map_err(|_| {
+                "HOME environment variable not set; cannot resolve ~/ in save path".to_string()
+            })?;
+            home + &save_path[1..]
+        }
+    } else {
+        save_path.to_string()
+    };
+    let zip_path = if resolved.ends_with(".solosoul") {
+        resolved
+    } else {
+        format!("{resolved}.solosoul")
+    };
+    if let Some(parent) = std::path::Path::new(&zip_path).parent() {
+        let _ = std::fs::create_dir_all(parent);
+    }
+    Ok(zip_path)
+}
+
+const MAX_ATTACHMENT_BYTES: u64 = 100 * 1024 * 1024; // 100 MB
+const MAX_EXPORT_TOTAL_BYTES: u64 = 1024 * 1024 * 1024; // 1 GB
+
+/// 收集选中附件：校验大小上限与路径合法性，返回 (条目列表, 总字节数)。
+fn collect_attachment_entries(
+    svc: &solosoul_core::vault_service::VaultService,
+    records: &[solosoul_vault::ObjectRecord],
+    scope: &ExportScope,
+) -> Result<(Vec<ExportAttachmentEntry>, u64), String> {
+    let selected_attachment_ids: std::collections::HashSet<String> =
+        scope.selected_attachment_ids.iter().cloned().collect();
+    let mut entries: Vec<ExportAttachmentEntry> = Vec::new();
+    let mut total_bytes: u64 = 0;
+
+    for rec in records {
+        let atts = load_attachments(&rec.properties);
+        if atts.is_empty() {
+            continue;
+        }
+        let base_dir = svc.base_path().join("attachments").join(&rec.id);
+        for att in &atts {
+            if att.deleted_at.is_some() {
+                continue;
+            }
+            // Fine-grained selection: only export explicitly selected attachments
+            if !selected_attachment_ids.contains(&att.id) {
+                continue;
+            }
+            // Single attachment size limit
+            if att.size_bytes > MAX_ATTACHMENT_BYTES {
+                return Err(export_err_with_detail(
+                    "ATTACHMENT_TOO_LARGE",
+                    &att.file_name,
+                ));
+            }
+
+            let src = att
+                .vault_path
+                .as_ref()
+                .or(att.src_path.as_ref())
+                .map(|p| std::path::Path::new(p).to_path_buf())
+                .filter(|p| p.exists())
+                .or_else(|| {
+                    let fallback = base_dir.join(&att.id).join(&att.file_name);
+                    if fallback.exists() {
+                        Some(fallback)
+                    } else {
+                        None
+                    }
+                });
+
+            if let Some(src) = src {
+                validate_attachment_path(svc.base_path().join("attachments").as_path(), &src)?;
+                total_bytes += att.size_bytes;
+                entries.push(ExportAttachmentEntry {
+                    obj_id: rec.id.clone(),
+                    att_id: att.id.clone(),
+                    src,
+                });
+            }
+        }
+    }
+    Ok((entries, total_bytes))
+}
+
+/// 用 HKDF 派生附件密钥并流式加密写入 ZIP。返回是否写入过附件。
+fn write_attachment_entries(
+    zip: &mut ZipWriter<File>,
+    options: SimpleFileOptions,
+    key: &[u8; 32],
+    salt: &[u8],
+    entries: &[ExportAttachmentEntry],
+) -> Result<bool, String> {
+    if entries.is_empty() {
+        return Ok(false);
+    }
+    // Derive attachment key via HKDF
+    let att_key = solosoul_crypto::hkdf_ext::derive_hkdf_key(key, salt, b"solosoul:attachments:v1")
+        .map_err(|e| format!("derive att key: {e}"))?;
+    for entry in entries {
+        let file_size = std::fs::metadata(&entry.src).map(|m| m.len()).unwrap_or(0);
+        let zip_name = format!("attachments/{}/{}.enc", entry.obj_id, entry.att_id);
+        zip.start_file(&zip_name, options)
+            .map_err(|e| e.to_string())?;
+
+        // Always use streaming chunked encryption for attachments to avoid
+        // holding both plaintext and ciphertext in memory (P1-023).
+        let mut f = File::open(&entry.src).map_err(|e| format!("open attachment: {e}"))?;
+        let mut reader = std::io::BufReader::new(&mut f);
+        solosoul_crypto::cipher::encrypt_chunked_stream(&att_key, file_size, &mut reader, zip)
+            .map_err(|e| format!("encrypt attachment: {e}"))?;
+    }
+    Ok(true)
+}
+
+/// 写入一个加密的附加文件（preferences.enc / behavioral.enc），返回写入的 ZIP 条目名。
+fn write_encrypted_extra(
+    zip: &mut ZipWriter<File>,
+    options: SimpleFileOptions,
+    key: &[u8; 32],
+    salt: &[u8],
+    label: &[u8],
+    file_name: &str,
+    content: &[u8],
+) -> Result<String, String> {
+    let extra_key = solosoul_crypto::hkdf_ext::derive_hkdf_key(key, salt, label)
+        .map_err(|e| format!("derive {file_name} key: {e}"))?;
+    let enc = solosoul_crypto::cipher::encrypt_to_bytes(&extra_key, content, None)
+        .map_err(|e| format!("encrypt {file_name}: {e}"))?;
+    zip.start_file(file_name, options)
+        .map_err(|e| e.to_string())?;
+    zip.write_all(&enc).map_err(|e| e.to_string())?;
+    Ok(file_name.to_string())
+}
+
+/// 构建明文 manifest.json（export_scope 由选中 ID 是否为空推导）。
+#[allow(clippy::too_many_arguments)]
+fn build_manifest_json(
+    scope: &ExportScope,
+    object_count: usize,
+    has_attachments: bool,
+    has_preferences: bool,
+    has_behavioral: bool,
+    has_templates: bool,
+    extra_files: &[String],
+    password_hint: &Option<String>,
+    salt: &[u8],
+) -> serde_json::Value {
+    serde_json::json!({
+        "version": "2.0",
+        "export_scope": if scope.selected_page_ids.is_empty() && scope.selected_object_ids.is_empty() { "full" } else { "partial" },
+        "selected_pages": scope.selected_page_ids,
+        "selected_objects": scope.selected_object_ids,
+        "selected_tags": scope.selected_tags,
+        "object_count": object_count,
+        "export_time": chrono::Utc::now().to_rfc3339(),
+        "export_platform": std::env::consts::OS,
+        "export_app_version": env!("CARGO_PKG_VERSION"),
+        "has_attachments": has_attachments,
+        "has_preferences": has_preferences,
+        "has_behavioral": has_behavioral,
+        "has_templates": has_templates,
+        "extra_files": extra_files,
+        "password_hint": password_hint.clone().unwrap_or_default(),
+        "salt_hex": hex::encode(salt),
+    })
+}
+
 #[tauri::command]
 pub async fn export_execute(
     #[allow(unused_variables)] app: tauri::AppHandle,
@@ -227,21 +436,8 @@ pub async fn export_execute(
     let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
     let vault = vault_guard.as_ref();
 
-    // ── Validate password (any non-empty password is accepted, P0-008) ──
-    if req.password.is_empty() {
-        return Err(export_err("PASSWORD_EMPTY"));
-    }
-
-    // ── Verify export password is NOT the master password ──────
-    match svc.verify_password(&account_id, &req.password) {
-        Ok(true) => {
-            return Err(export_err("SAME_AS_MASTER_PASSWORD"));
-        }
-        Ok(false) => { /* export password is different from master password — OK */ }
-        Err(e) => {
-            return Err(export_err_with_detail("MASTER_VERIFY_FAILED", &e));
-        }
-    }
+    // ── 密码校验（非空 + 不得等于主密码）────────────────────
+    validate_export_password(&svc, &account_id, &req.password)?;
 
     // ── Collect objects ────────────────────────────────────────
     let records = collect_scope_objects(vault, &account_id, &req.scope)?;
@@ -280,108 +476,24 @@ pub async fn export_execute(
         })).collect::<Vec<_>>(),
         "templates": templates,
     });
-    let payload_bytes = serde_json::to_vec(&payload).map_err(|e| format!("serialize: {}", e))?;
+    let payload_bytes = serde_json::to_vec(&payload).map_err(|e| format!("serialize: {e}"))?;
 
     // ── Derive key & encrypt ──────────────────────────────────
     let salt = solosoul_crypto::kdf::generate_salt();
     let key = derive_export_key(&req.password, &salt)?;
-    // Payload is encrypted via streaming chunked cipher to avoid holding the full
-    // ciphertext in memory simultaneously with the plaintext (P1-023).
 
     // ── Build ZIP ──────────────────────────────────────────────
-    let save_path = if req.save_path.starts_with("~/") {
-        #[cfg(mobile)]
-        {
-            app.path()
-                .resolve(&req.save_path[2..], tauri::path::BaseDirectory::Data)
-                .map_err(|e| format!("无法解析应用数据目录: {e}"))?
-                .to_string_lossy()
-                .to_string()
-        }
-        #[cfg(desktop)]
-        {
-            let home = std::env::var("HOME").map_err(|_| {
-                "HOME environment variable not set; cannot resolve ~/ in save path".to_string()
-            })?;
-            home + &req.save_path[1..]
-        }
-    } else {
-        req.save_path.clone()
-    };
-    let zip_path = if save_path.ends_with(".solosoul") {
-        save_path
-    } else {
-        format!("{}.solosoul", save_path)
-    };
-    if let Some(parent) = std::path::Path::new(&zip_path).parent() {
-        let _ = std::fs::create_dir_all(parent);
-    }
-
-    let file = File::create(&zip_path).map_err(|e| format!("Create ZIP: {}", e))?;
+    let zip_path = resolve_zip_path(&app, &req.save_path)?;
+    let file = File::create(&zip_path).map_err(|e| format!("Create ZIP: {e}"))?;
     let mut zip = ZipWriter::new(file);
     let options = SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated);
 
     // ── P1: Attachments ────────────────────────────────────────
-    const MAX_ATTACHMENT_BYTES: u64 = 100 * 1024 * 1024; // 100 MB
-    const MAX_EXPORT_TOTAL_BYTES: u64 = 1024 * 1024 * 1024; // 1 GB
-
-    let mut has_attachments = false;
-    let selected_attachment_ids: std::collections::HashSet<String> =
-        req.scope.selected_attachment_ids.iter().cloned().collect();
-    let mut attachment_entries: Vec<(String, String, String, std::path::PathBuf)> = Vec::new();
-    let mut total_attachment_bytes: u64 = 0;
-
-    if req.scope.include_attachments {
-        for rec in &records {
-            let atts = load_attachments(&rec.properties);
-            if atts.is_empty() {
-                continue;
-            }
-            let base_dir = svc.base_path().join("attachments").join(&rec.id);
-            for att in &atts {
-                if att.deleted_at.is_some() {
-                    continue;
-                }
-                // Fine-grained selection: only export explicitly selected attachments
-                if !selected_attachment_ids.contains(&att.id) {
-                    continue;
-                }
-                // Single attachment size limit
-                if att.size_bytes > MAX_ATTACHMENT_BYTES {
-                    return Err(export_err_with_detail(
-                        "ATTACHMENT_TOO_LARGE",
-                        &att.file_name,
-                    ));
-                }
-
-                let src = att
-                    .vault_path
-                    .as_ref()
-                    .or(att.src_path.as_ref())
-                    .map(|p| std::path::Path::new(p).to_path_buf())
-                    .filter(|p| p.exists())
-                    .or_else(|| {
-                        let fallback = base_dir.join(&att.id).join(&att.file_name);
-                        if fallback.exists() {
-                            Some(fallback)
-                        } else {
-                            None
-                        }
-                    });
-
-                if let Some(src) = src {
-                    validate_attachment_path(svc.base_path().join("attachments").as_path(), &src)?;
-                    total_attachment_bytes += att.size_bytes;
-                    attachment_entries.push((
-                        rec.id.clone(),
-                        att.id.clone(),
-                        att.file_name.clone(),
-                        src,
-                    ));
-                }
-            }
-        }
-    }
+    let (attachment_entries, total_attachment_bytes) = if req.scope.include_attachments {
+        collect_attachment_entries(&svc, &records, &req.scope)?
+    } else {
+        (Vec::new(), 0)
+    };
 
     // Total export size limit (payload + attachments + ~28 bytes overhead per attachment for nonce/chunk_count)
     let payload_estimate = payload_bytes.len() as u64;
@@ -391,49 +503,23 @@ pub async fn export_execute(
         return Err(export_err("TOTAL_SIZE_EXCEEDED"));
     }
 
-    // Derive attachment key via HKDF
-    let att_key = if !attachment_entries.is_empty() {
-        Some(
-            solosoul_crypto::hkdf_ext::derive_hkdf_key(&key, &salt, b"solosoul:attachments:v1")
-                .map_err(|e| format!("derive att key: {}", e))?,
-        )
-    } else {
-        None
-    };
-
-    // Encrypt and write attachments
-    if let Some(ref ak) = att_key {
-        for (obj_id, att_id, _file_name, src_path) in &attachment_entries {
-            let file_size = std::fs::metadata(src_path).map(|m| m.len()).unwrap_or(0);
-            let zip_name = format!("attachments/{}/{}.enc", obj_id, att_id);
-            zip.start_file(&zip_name, options)
-                .map_err(|e| e.to_string())?;
-
-            // Always use streaming chunked encryption for attachments to avoid
-            // holding both plaintext and ciphertext in memory (P1-023).
-            let mut f = File::open(src_path).map_err(|e| format!("open attachment: {}", e))?;
-            let mut reader = std::io::BufReader::new(&mut f);
-            solosoul_crypto::cipher::encrypt_chunked_stream(ak, file_size, &mut reader, &mut zip)
-                .map_err(|e| format!("encrypt attachment: {}", e))?;
-            has_attachments = true;
-        }
-    }
+    let has_attachments =
+        write_attachment_entries(&mut zip, options, &key, &salt, &attachment_entries)?;
 
     // ── P2: Preferences ────────────────────────────────────────
     let mut extra_files: Vec<String> = Vec::new();
     let mut preferences_encrypted = false;
     if req.scope.include_preferences {
         if let Ok(Some(profile)) = vault.load_profile(&account_id) {
-            let prefs_key =
-                solosoul_crypto::hkdf_ext::derive_hkdf_key(&key, &salt, b"solosoul:preferences:v1")
-                    .map_err(|e| format!("derive prefs key: {}", e))?;
-            let prefs_enc =
-                solosoul_crypto::cipher::encrypt_to_bytes(&prefs_key, &profile.data, None)
-                    .map_err(|e| format!("encrypt prefs: {}", e))?;
-            zip.start_file("preferences.enc", options)
-                .map_err(|e| e.to_string())?;
-            zip.write_all(&prefs_enc).map_err(|e| e.to_string())?;
-            extra_files.push("preferences.enc".to_string());
+            extra_files.push(write_encrypted_extra(
+                &mut zip,
+                options,
+                &key,
+                &salt,
+                b"solosoul:preferences:v1",
+                "preferences.enc",
+                &profile.data,
+            )?);
             preferences_encrypted = true;
         }
     }
@@ -444,50 +530,39 @@ pub async fn export_execute(
         if let Ok(logs) = vault.list_audit_log(MAX_AUDIT_LOG_EXPORT) {
             let logs_json = serde_json::to_vec(&logs).unwrap_or_default();
             if !logs_json.is_empty() {
-                let behav_key = solosoul_crypto::hkdf_ext::derive_hkdf_key(
+                extra_files.push(write_encrypted_extra(
+                    &mut zip,
+                    options,
                     &key,
                     &salt,
                     b"solosoul:behavioral:v1",
-                )
-                .map_err(|e| format!("derive behavioral key: {}", e))?;
-                let behav_enc =
-                    solosoul_crypto::cipher::encrypt_to_bytes(&behav_key, &logs_json, None)
-                        .map_err(|e| format!("encrypt behavioral: {}", e))?;
-                zip.start_file("behavioral.enc", options)
-                    .map_err(|e| e.to_string())?;
-                zip.write_all(&behav_enc).map_err(|e| e.to_string())?;
-                extra_files.push("behavioral.enc".to_string());
+                    "behavioral.enc",
+                    &logs_json,
+                )?);
                 behavioral_encrypted = true;
             }
         }
     }
 
-    // manifest.json (plaintext)
+    // ── manifest.json (plaintext) ─────────────────────────────
     let has_templates = !templates.is_empty();
-    let manifest = serde_json::json!({
-        "version": "2.0",
-        "export_scope": if req.scope.selected_page_ids.is_empty() && req.scope.selected_object_ids.is_empty() { "full" } else { "partial" },
-        "selected_pages": req.scope.selected_page_ids,
-        "selected_objects": req.scope.selected_object_ids,
-        "selected_tags": req.scope.selected_tags,
-        "object_count": records.len(),
-        "export_time": chrono::Utc::now().to_rfc3339(),
-        "export_platform": std::env::consts::OS,
-        "export_app_version": env!("CARGO_PKG_VERSION"),
-        "has_attachments": has_attachments,
-        "has_preferences": preferences_encrypted,
-        "has_behavioral": behavioral_encrypted,
-        "has_templates": has_templates,
-        "extra_files": extra_files,
-        "password_hint": req.password_hint.unwrap_or_default(),
-        "salt_hex": hex::encode(salt),
-    });
+    let manifest = build_manifest_json(
+        &req.scope,
+        records.len(),
+        has_attachments,
+        preferences_encrypted,
+        behavioral_encrypted,
+        has_templates,
+        &extra_files,
+        &req.password_hint,
+        &salt,
+    );
     let manifest_bytes = serde_json::to_vec_pretty(&manifest).map_err(|e| e.to_string())?;
     zip.start_file("manifest.json", options)
         .map_err(|e| e.to_string())?;
     zip.write_all(&manifest_bytes).map_err(|e| e.to_string())?;
 
-    // payload.enc (encrypted via streaming chunked cipher — P1-023)
+    // ── payload.enc (encrypted via streaming chunked cipher — P1-023) ──
     zip.start_file("payload.enc", options)
         .map_err(|e| e.to_string())?;
     {
@@ -498,10 +573,10 @@ pub async fn export_execute(
             &mut cursor,
             &mut zip,
         )
-        .map_err(|e| format!("encrypt payload stream: {}", e))?;
+        .map_err(|e| format!("encrypt payload stream: {e}"))?;
     }
 
-    zip.finish().map_err(|e| format!("ZIP finish: {}", e))?;
+    zip.finish().map_err(|e| format!("ZIP finish: {e}"))?;
 
     let _ = vault.log_structured(
         "export_execute",
