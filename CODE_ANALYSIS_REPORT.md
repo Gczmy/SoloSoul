@@ -78,7 +78,7 @@
 | P056 | P2 | 架构 | `tauri/src/stores/objectStore.ts:184-220` | objectStore 的 trash 切片是死代码，与 trashStore 双轨调用不同后端命令 | `[x]` 已修复 |
 | P057 | P2 | 架构 | `tauri/src/stores/objectStore.ts:158-169` | `updateObject` 只更新缓存不同步 `objects` 摘要列表（潜伏性不一致） | `[x]` 已修复 |
 | P058 | P2 | 架构 | `tauri/src/stores/profileStore.ts:75-98` | `loadSection`/`updateField` 无调用方死代码，且 updateField 写后不同步本地 | `[x]` 已修复 |
-| P059 | P2 | 架构 | `HistoryPage.tsx:36-38`、`HistoryViewer.tsx:485-487`、`vaultStore.ts:40-43` | 3 处前端 invoke 链缺 `.catch`，锁定等场景下 unhandled rejection 且无提示 | `[ ]` 待修复 |
+| P059 | P2 | 架构 | `HistoryPage.tsx:36-38`、`HistoryViewer.tsx:485-487`、`vaultStore.ts:40-43` | 3 处前端 invoke 链缺 `.catch`，锁定等场景下 unhandled rejection 且无提示 | `[x]` 已修复 |
 | P060 | P2 | 规范 | `tauri/src/components/plugin/PluginResultPanel.tsx:344,360` | UI 组件直接调 plugin-fs `copyFile` 且静默吞错，违反 IPC 封装约定 | `[ ]` 待修复 |
 | P061 | P2 | 架构 | `tauri/src/pages/settings/GlobalAttachmentManager.tsx`（12 处直接 invoke） | 页面组件承载附件树遍历/聚合/批量编排等重业务逻辑，应下沉 store/lib（与 P024 关联） | `[ ]` 待修复 |
 | P062 | P2 | 架构 | `tauri/src/stores/settingsStore.ts:154-307` | 主题/语言设置四副本（zustand+localStorage+ui_preferences.json+vault），需补写入路径矩阵注释或收敛 | `[ ]` 待修复 |
@@ -86,8 +86,8 @@
 
 ## 修复进度
 
-- 已完成：46 / 63（P001–P011、P013–P016、P019–P028、P029–P033、P034–P046、P056–P058；其中 P011 工作区部分完成）
-- 当前处理：P058 已完成，等待下一条指令
+- 已完成：47 / 63（P001–P011、P013–P016、P019–P028、P029–P033、P034–P046、P056–P059；其中 P011 工作区部分完成）
+- 当前处理：P059 已完成，等待下一条指令
 
 ## 静态基线之外已检查且无发现的维度（误报排除记录）
 
@@ -304,6 +304,7 @@ sync crate manager（`manager.rs:168`）`sync_enable` 时自建 `ServiceDaemon`�
 `[x]` 已修复：全仓库确认 `loadSection`/`updateField` 零外部调用（仅 profileStore.ts 自引用，无测试文件），选择删除（零调用方下接入同步无意义）；接口+实现一并删除，`ProfileSectionData`/`RawProfileSection` 类型仍被 `loadProfile` 使用故保留。**顺带修复**：DatePicker 测试时间依赖 flaky（系统时间跨月到 8 月时 `getByText('Aug')`/`getByText('Feb')` 同时命中月份触发器与下拉选项，`Found multiple elements`），改用 `getByText(..., { selector: '[data-dd-value="..."]' })` 限定到下拉选项按钮（DropdownSelect 选项带 `data-dd-value`，触发器没有），消除月份/年份边界依赖。**观察记录（非 P058 范围）**：删除 store 函数后 Rust 命令 `profile_get_section`/`profile_update_field` 仍注册于 lib.rs:481-482，成为前端孤儿命令（后者另有 Rust 单测 `test_vault_profile_update_field_logic`），属 P020 风格后继清理候选。tsc/lint/Vitest 415 全部通过，审查通过。
 
 **P059 | invoke 缺 catch ×3**：`HistoryPage.tsx:36-38`、`HistoryViewer.tsx:485-487`、`vaultStore.ts:40-43`（导航栏直接作 onClick）。补 `.catch` 错误提示；可抽公共 hook。
+`[x]` 已修复：① HistoryPage `snapshot_list` 链补 `.catch`（`showToast` error + `t('common:history_load_failed', fallback)`）；② HistoryViewer `snapshot_list` 链补 `.catch`（新增 `useUiStore` showToast，同款提示）；③ 同文件 SnapshotCard 的 `snapshot_get_data` 补 `.catch`（`logger.warn` 记录，`snapData` 保持 null 优雅降级）；④ vaultStore.ts 项已随 **P015** 消除（文件删除、锁定收敛为 `authStore.lock`，自带 try/catch）。两处 useEffect 按项目既有惯例补 `// eslint-disable-next-line react-hooks/exhaustive-deps`（`showToast`/`t` 稳定引用，仅 objectId 变化重载）。tsc/lint（0 警告）/Vitest 415 全部通过，审查通过。
 
 **P060 | PluginResultPanel 直接 FS+吞错**：:344,360 组件内 `copyFile` 且 `catch{}` 静默。下沉 Rust command 或 lib 封装，失败 toast 提示（与 P004 同文件，建议同轮处理）。
 

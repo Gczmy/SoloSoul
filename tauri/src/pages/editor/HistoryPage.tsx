@@ -35,8 +35,17 @@ export function HistoryPage() {
     if (objectId) {
       invoke<SnapshotEntry[]>('snapshot_list', { objectId: objectId })
         .then(setSnapshots)
+        .catch((err) => {
+          // P059: 补齐 .catch，失败时给出提示而非 unhandled rejection
+          showToast({
+            type: 'error',
+            message: `${t('common:history_load_failed', 'Failed to load history')}: ${err}`,
+          });
+        })
         .finally(() => setLoading(false));
     }
+    // showToast/t 为稳定引用，仅需在 objectId 变化时重新加载
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [objectId]);
 
   const handleRollback = (snapshot: SnapshotEntry) => {

@@ -12,6 +12,8 @@ import { SnapshotVersionBadge } from '@/components/ui/SnapshotVersionBadge';
 import { useRevealState } from '@/hooks/useRevealState';
 import { resolveCollectionLabel } from '@/lib/utils';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { useUiStore } from '@/stores/uiStore';
+import { logger } from '@/lib/logger';
 import { ICON_SIZE } from '@/lib/constants';
 import { ValueContainer } from '@/components/ui/ValueContainer';
 
@@ -155,9 +157,12 @@ function SnapshotCard({
   const { t } = useTranslation(['common', 'editor']);
 
   useEffect(() => {
-    invoke<Record<string, unknown> | null>('snapshot_get_data', { snapshotId: snap.id }).then(
-      setSnapData,
-    );
+    invoke<Record<string, unknown> | null>('snapshot_get_data', { snapshotId: snap.id })
+      .then(setSnapData)
+      .catch((err) => {
+        // P059: 补齐 .catch；加载失败保持 snapData 为 null（快照体渲染为空），记录日志便于排查
+        logger.warn('[HistoryViewer] snapshot_get_data failed:', err);
+      });
   }, [snap.id]);
 
   const rawProps =
@@ -444,6 +449,7 @@ export function HistoryViewer({
   const navTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { t } = useTranslation(['common', 'editor', 'navigation']);
   const customPages = useSettingsStore((s) => s.settings.customPages);
+  const showToast = useUiStore((s) => s.showToast);
 
   const resolveCollectionLabelLocal = (collectionType: string) =>
     resolveCollectionLabel(collectionType, customPages, t);
@@ -484,7 +490,16 @@ export function HistoryViewer({
   useEffect(() => {
     invoke<SnapshotEntry[]>('snapshot_list', { objectId: objectId })
       .then(setSnapshots)
+      .catch((err) => {
+        // P059: 补齐 .catch，失败时给出提示而非 unhandled rejection
+        showToast({
+          type: 'error',
+          message: `${t('common:history_load_failed', 'Failed to load history')}: ${err}`,
+        });
+      })
       .finally(() => setLoading(false));
+    // showToast/t 为稳定引用，仅需在 objectId 变化时重新加载
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [objectId]);
 
   useEffect(() => {
