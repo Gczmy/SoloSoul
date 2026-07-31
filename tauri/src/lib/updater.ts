@@ -4,7 +4,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import { logger } from '@/lib/logger';
 
-export interface UpdateInfo {
+interface UpdateInfo {
   version: string;
   body?: string;
   date?: string;
@@ -12,7 +12,7 @@ export interface UpdateInfo {
 
 export type UpdateProgress = DownloadEvent;
 
-export type UpdateCheckResult =
+type UpdateCheckResult =
   | { kind: 'available'; info: UpdateInfo; update: Update }
   | { kind: 'up-to-date' }
   | { kind: 'error'; message?: string };
@@ -71,7 +71,7 @@ export async function downloadAndInstallUpdate(
 
 // ── Desktop check (updater plugin + GitHub Release notes) ─────
 
-export interface DesktopUpdateInfo {
+interface DesktopUpdateInfo {
   latestVersion: string;
   currentVersion: string;
   /** 是否为强制更新（Release body 包含 [MANDATORY] 标记） */
@@ -80,7 +80,7 @@ export interface DesktopUpdateInfo {
   publishedAt: string | null;
 }
 
-export type DesktopUpdateCheckResult =
+type DesktopUpdateCheckResult =
   | { kind: 'available'; info: DesktopUpdateInfo }
   | { kind: 'up-to-date' }
   | { kind: 'error'; message?: string };
@@ -130,7 +130,7 @@ export interface ApkDownloadProgress {
   error: string | null;
 }
 
-export type AndroidUpdateCheckResult =
+type AndroidUpdateCheckResult =
   | { kind: 'available'; info: AndroidUpdateInfo }
   | { kind: 'up-to-date' }
   | { kind: 'error'; message?: string };
@@ -205,4 +205,3 @@ export async function androidIsApkDownloaded(version: string): Promise<boolean> 
   return invoke<boolean>('android_is_apk_downloaded', { version });
 }
 
-export type { Update };

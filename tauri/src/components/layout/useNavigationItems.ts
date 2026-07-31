@@ -5,7 +5,7 @@ import { useOcrScanStore } from '@/stores/ocrScanStore';
 import { usePluginQuickStore } from '@/stores/pluginQuickStore';
 import type { PageIconKey } from '@/lib/pageIcons';
 
-export interface NavLink {
+interface NavLink {
   type: 'link';
   path: string;
   iconKey: PageIconKey;
@@ -19,7 +19,7 @@ export interface NavAction {
   action: () => void;
 }
 
-export type NavItem = NavLink | NavAction;
+type NavItem = NavLink | NavAction;
 
 export const SYSTEM_PAGE_KEYS = [
   'identity',
@@ -68,7 +68,7 @@ export const CUSTOMIZABLE_ACTION_IDS = [
   'ai_chat',
 ] as const;
 
-export type CustomizableActionId = (typeof CUSTOMIZABLE_ACTION_IDS)[number];
+type CustomizableActionId = (typeof CUSTOMIZABLE_ACTION_IDS)[number];
 
 /** 每个可变按钮的路由或动作工厂。
  *  lock / settings 永远固定，不在这里定义。
@@ -233,7 +233,7 @@ export function useMobileNavActions(): UseBoundNavActionsResult {
   return { items: mobileItems, showSearch, setShowSearch };
 }
 
-export type AiQuickChatPlacement = 'left' | 'right' | 'bottom' | 'top';
+type AiQuickChatPlacement = 'left' | 'right' | 'bottom' | 'top';
 
 interface UseAiQuickChatResult {
   showQuickChat: boolean;
@@ -281,7 +281,7 @@ export function useAiQuickChat(
   return { showQuickChat, setShowQuickChat, aiButtonRef, quickChatPos, updateQuickChatPos };
 }
 
-export type OcrQuickScanPlacement = 'left' | 'right' | 'bottom' | 'top';
+type OcrQuickScanPlacement = 'left' | 'right' | 'bottom' | 'top';
 
 interface UseOcrQuickScanResult {
   ocrButtonRef: RefObject<HTMLDivElement | null>;
@@ -327,7 +327,7 @@ export function useOcrQuickScan(
   return { ocrButtonRef, quickScanPos, updateQuickScanPos };
 }
 
-export type PluginQuickPanelPlacement = 'left' | 'right' | 'bottom' | 'top';
+type PluginQuickPanelPlacement = 'left' | 'right' | 'bottom' | 'top';
 
 interface UsePluginQuickPanelResult {
   pluginButtonRef: RefObject<HTMLDivElement | null>;

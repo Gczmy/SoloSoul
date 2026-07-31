@@ -56,7 +56,7 @@
 | P034 | P2 | 死代码 | `tauri/src-tauri/src/commands/object/mod.rs:710,745` | `object_backfill_property_labels`/`object_backfill_property_fields` 疑似一次性迁移工具，待确认后删除 | `[x]` 已修复 |
 | P035 | P2 | 死代码 | `commands/mod.rs:65`、`services/llm_context.rs:86`、`crates/solosoul-sync/src/manager.rs:225`、`tauri/package.json:32` | P2 死代码组：mobile_not_supported_with、clear_cache 未接线确认、set_active_sessions_for_test 应 cfg(test)、plugin-http npm 依赖 | `[x]` 已修复 |
 | P036 | P2 | 死代码 | `tauri/src-tauri/src/sync/device_auto_sync.rs:148` | `trigger_periodic` 零调用，Periodic 事件分支不可达 | `[x]` 已修复 |
-| P037 | P2 | 死代码 | `lib/plugin.ts`（13 处）、`useNavigationItems.ts`（6 处）、`lib/updater.ts`（5 处）等 | 约 60 处"仅本文件内使用、export 多余"的类型导出 | `[ ]` 待修复 |
+| P037 | P2 | 死代码 | `lib/plugin.ts`（13 处）、`useNavigationItems.ts`（6 处）、`lib/updater.ts`（5 处）等 | 约 60 处"仅本文件内使用、export 多余"的类型导出 | `[x]` 已修复（热点批次 27 处） |
 | P038 | P2 | 结构 | `tauri/src/pages/auth/LoginPage.tsx:32,111-120,220-229` | 组件 846 行；biometryType→显示名 if-else 链同文件重复两份 | `[x]` 已修复 |
 | P039 | P2 | 结构 | `tauri/src/components/import/ImportSection.tsx:71`、`tauri/src/components/import/ExportSection.tsx:88` | ImportSection 848 行 / ExportSection 751 行，结构高度对称可共享抽取 | `[ ]` 待修复 |
 | P040 | P2 | 结构 | `tauri/src/pages/system/AboutPage.tsx:50` | 组件 834 行，双平台更新下载流程应抽 hook | `[x]` 已修复 |
@@ -86,8 +86,8 @@
 
 ## 修复进度
 
-- 已完成：36 / 63（P001–P011、P013–P016、P019–P027、P028、P029、P030、P031、P032、P033–P036、P038、P040、P041；其中 P011 工作区部分完成）
-- 当前处理：无（等待用户指令）
+- 已完成：37 / 63（P001–P011、P013–P016、P019–P027、P028、P029、P030、P031、P032、P033–P037、P038、P040、P041；其中 P011 工作区部分完成）
+- 当前处理：P037 已完成，等待下一条指令
 
 ## 静态基线之外已检查且无发现的维度（误报排除记录）
 

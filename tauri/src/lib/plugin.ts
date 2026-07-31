@@ -2,7 +2,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { Channel } from '@tauri-apps/api/core';
 import type { ContractRoleBinding } from '@/types/template';
 
-export interface RegistryEntry {
+interface RegistryEntry {
   id: string;
   name: string;
   author: string;
@@ -19,9 +19,9 @@ export interface RegistryEntry {
 
 export type PluginTier = 'p0' | 'p1' | 'p2' | 'p3' | 'p4';
 
-export type PluginParamType = 'string' | 'number' | 'boolean' | 'select';
+type PluginParamType = 'string' | 'number' | 'boolean' | 'select';
 
-export interface PluginParamOption {
+interface PluginParamOption {
   value: string;
   label: string;
 }
@@ -46,7 +46,7 @@ export interface MarketPluginInfo {
   registryEntry: RegistryEntry;
 }
 
-export interface PluginContractRole {
+interface PluginContractRole {
   roleId: string;
   label?: string;
   required?: boolean;
@@ -83,7 +83,7 @@ export interface PluginManifest {
   customUi?: string;
 }
 
-export interface PluginLogLine {
+interface PluginLogLine {
   id: string;
   level: 'debug' | 'info' | 'warn' | 'error';
   message: string;
@@ -98,13 +98,13 @@ export interface WatermarkResultItem {
   outputPath: string;
 }
 
-export interface WatermarkResultPayload {
+interface WatermarkResultPayload {
   type: 'watermark_result';
   outputDir: string;
   items: WatermarkResultItem[];
 }
 
-export interface ExpiryGuardianItem {
+interface ExpiryGuardianItem {
   objectId: string;
   objectName: string;
   kind: string;
@@ -113,7 +113,7 @@ export interface ExpiryGuardianItem {
   urgency: 'expired' | 'critical' | 'warning' | 'notice' | 'safe';
 }
 
-export interface ExpiryGuardianSummary {
+interface ExpiryGuardianSummary {
   total: number;
   expired: number;
   critical: number;
@@ -122,7 +122,7 @@ export interface ExpiryGuardianSummary {
   safe: number;
 }
 
-export interface ExpiryGuardianPayload {
+interface ExpiryGuardianPayload {
   type: 'expiry_guardian';
   title: string;
   locale: string;
@@ -142,14 +142,14 @@ export type PluginResultPayload =
   | WatermarkResultPayload
   | ExpiryGuardianPayload;
 
-export interface PluginResult {
+interface PluginResult {
   exitCode: number;
   logs: PluginLogLine[];
   results: PluginResultPayload[];
   fuelConsumed: number;
 }
 
-export type DialogType = 'alert' | 'confirm' | 'radio_list' | 'checkbox_list' | 'input';
+type DialogType = 'alert' | 'confirm' | 'radio_list' | 'checkbox_list' | 'input';
 
 export interface DialogConfig {
   type: DialogType;
@@ -178,7 +178,7 @@ export interface ConsentRequestEvent {
   sensitivityLevel: string;
 }
 
-export interface PluginEvent {
+interface PluginEvent {
   eventType:
     | 'log'
     | 'result'
@@ -197,21 +197,21 @@ export interface PluginEvent {
   sensitivityLevel?: string;
 }
 
-export interface PluginSessionInfo {
+interface PluginSessionInfo {
   id: string;
   pluginId: string;
   createdAt: string;
   expiresAt: string;
 }
 
-export interface PluginAuditEntry {
+interface PluginAuditEntry {
   timestamp: string;
   pluginId: string;
   sessionId?: string;
   action: PluginAuditAction;
 }
 
-export type PluginAuditAction =
+type PluginAuditAction =
   | { action: 'plugin_installed'; version: string }
   | { action: 'plugin_uninstalled' }
   | { action: 'plugin_run_started' }
@@ -220,7 +220,7 @@ export type PluginAuditAction =
   | { action: 'consent_approved'; fieldId: string }
   | { action: 'consent_denied'; fieldId: string };
 
-export interface PluginInstallResult {
+interface PluginInstallResult {
   pluginId: string;
   version: string;
 }
