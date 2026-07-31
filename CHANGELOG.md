@@ -2,6 +2,27 @@
 
 All notable changes to SoloSoul are documented in this file.
 
+## [2.6.7] - 2026-07-31
+
+### Added
+
+- **恢复流程统一为「扫码优先 + 账户卡片」** — 重构「从其他设备恢复」流程：新设备默认使用摄像头扫描旧设备二维码，旧设备在登录解锁后于「设置 → 设备同步」页展示二维码；主密码输入时机统一为扫码/连接成功后弹出的账户卡片（显示账户名与账户 ID），手动模式与扫码走同一条恢复链路（`recovery_restore_from_host`），结果完全一致。
+- **摄像头能力自适应默认 Tab** — 应用启动时通过 `enumerateDevices()` 非侵入检测摄像头能力（不触发权限弹窗）：支持 → 默认「扫描二维码」Tab；不支持 → 默认「手动输入」Tab；无摄像头设备手动切到扫码 Tab 时显示「本设备不支持扫描二维码功能，请使用手动输入模式」提示。新增 `lib/cameraCapability.ts` + `hooks/useCameraCapability.ts`。
+- **SyncScanQrDialog 摄像头兜底** — 设备同步扫码对话框接入摄像头能力检测：无摄像头时显示提示并引导回页面使用设备发现/手动输入；扫码启动失败（权限被拒）时显示同样的手动兜底入口。
+- **macOS 摄像头权限声明** — Info.plist 新增 `NSCameraUsageDescription`，使 macOS 恢复扫码可正常弹出系统授权框并登记至 系统设置 → 隐私与安全性 → 摄像头。
+
+### Fixed
+
+- **扫码崩溃修复（页面消失）** — `html5-qrcode` 的 `stop()` 在扫描器未启动时**同步 throw**（`"Cannot stop, scanner is not running or paused."`），`.catch()` 无法捕获同步异常，导致异常逃逸 React 卸载流程、整页崩溃。`RecoveryQrScanner` cleanup 与 `start()` 均以 try/catch 包裹，并以回调 ref 消除父组件重渲染导致的扫描器反复 stop/restart。
+- **Android 同步页按钮锁死** — 为设备同步页操作增加超时保护，防止启用/禁用等操作异常时页面所有按钮不可用。
+- **恢复扫码错误文案细分** — `recovery_qr_no_camera` 拆分为「无摄像头设备」与「权限被拒」两种场景文案。
+- **ACL 权限补全** — 新增 `recovery_discover_hosts` 命令白名单。
+
+### Chores
+
+- 版本号同步升级到 2.6.7。
+- 9 个 commit 自 v2.6.6（`3a8be1f0`）到 v2.6.7（`38be0c52`）。
+
 ## [2.6.6] - 2026-07-31
 
 ### Added
