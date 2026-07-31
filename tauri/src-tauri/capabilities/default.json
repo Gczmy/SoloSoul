@@ -11,25 +11,48 @@
     "process:default",
     {
       "identifier": "shell:allow-open",
-      "allow": [{ "url": "**" }]
+      "allow": [
+        { "url": "https://**" },
+        { "url": "http://**" },
+        { "url": "mailto:**" },
+        { "url": "tel:**" }
+      ]
     },
     "dialog:default",
     "fs:default",
     {
       "identifier": "fs:allow-copy-file",
-      "allow": [{ "path": "**" }]
+      "allow": [
+        { "path": "$APPCACHE/**" },
+        { "path": "$TEMP/**" },
+        { "path": "$DESKTOP/**" },
+        { "path": "$DOCUMENT/**" },
+        { "path": "$DOWNLOAD/**" }
+      ]
     },
     {
       "identifier": "fs:allow-stat",
-      "allow": [{ "path": "**" }]
+      "allow": [
+        { "path": "$APPCACHE/**" },
+        { "path": "$TEMP/**" },
+        { "path": "$DESKTOP/**" },
+        { "path": "$DOCUMENT/**" },
+        { "path": "$DOWNLOAD/**" }
+      ]
     },
     {
       "identifier": "fs:allow-mkdir",
-      "allow": [{ "path": "**" }]
+      "allow": [
+        { "path": "$APPCACHE/**" },
+        { "path": "$TEMP/**" }
+      ]
     },
     {
       "identifier": "fs:allow-remove",
-      "allow": [{ "path": "**" }]
+      "allow": [
+        { "path": "$APPCACHE/**" },
+        { "path": "$TEMP/**" }
+      ]
     },
     "notification:default",
     "os:default",
