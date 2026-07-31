@@ -23,7 +23,7 @@ export function RecoveryQrScanner({ onScan, onError, onCancel }: RecoveryQrScann
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // 将底层错误映射为友好的提示（权限被拒等常见场景）。
+  // 将底层错误映射为友好的提示，区分「权限被拒」与「无摄像头设备」两种场景。
   const friendlyError = (raw: string): string => {
     const lower = raw.toLowerCase();
     if (
@@ -31,8 +31,20 @@ export function RecoveryQrScanner({ onScan, onError, onCancel }: RecoveryQrScann
       lower.includes('permission') ||
       lower.includes('denied') ||
       lower.includes('notreadable') ||
+      lower.includes('inuse') ||
       lower.includes('unable to query')
     ) {
+      // 权限被阻止/摄像头不可用（NotAllowedError / NotReadableError 等）
+      return t('common:recovery_qr_permission_denied');
+    }
+    if (
+      lower.includes('notfound') ||
+      lower.includes('no camera') ||
+      lower.includes('no device') ||
+      lower.includes('no video') ||
+      lower.includes('no supported devices')
+    ) {
+      // 未检测到摄像头设备（NotFoundError / 枚举为空等）
       return t('common:recovery_qr_no_camera');
     }
     return raw;
@@ -179,17 +191,19 @@ export function RecoveryQrScanner({ onScan, onError, onCancel }: RecoveryQrScann
         </div>
       )}
 
-      <p
-        style={{
-          fontSize: 'var(--text-body-sm)',
-          color: 'var(--text-secondary)',
-          textAlign: 'center',
-          margin: 0,
-          lineHeight: 1.5,
-        }}
-      >
-        {t('common:recovery_qr_hint')}
-      </p>
+      {!error && (
+        <p
+          style={{
+            fontSize: 'var(--text-body-sm)',
+            color: 'var(--text-secondary)',
+            textAlign: 'center',
+            margin: 0,
+            lineHeight: 1.5,
+          }}
+        >
+          {t('common:recovery_qr_hint')}
+        </p>
+      )}
 
       {onCancel && (
         <button
