@@ -136,6 +136,20 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
         // 连接被拒：主机端未在监听（会话过期/已取消）或端口不可达。
         return t('common:recovery_connect_refused');
       }
+      if (
+        lower.includes('read prefix failed') ||
+        lower.includes('failed to fill whole buffer') ||
+        lower.includes('unexpected eof') ||
+        lower.includes('invalid magic prefix')
+      ) {
+        // 主机在发送任何数据前就关闭了连接（EOF）：会话可能已结束（超时/被取消/已被使用），
+        // 或主机在握手前发生了内部错误。引导用户在旧设备上重新生成恢复二维码后重试。
+        return t('common:recovery_host_closed_early');
+      }
+      if (lower.includes('too many failed recovery attempts')) {
+        // 全局限流：短时间内失败次数过多，恢复服务暂时拒绝新连接。
+        return t('common:recovery_too_many_attempts');
+      }
       return raw;
     },
     [t],

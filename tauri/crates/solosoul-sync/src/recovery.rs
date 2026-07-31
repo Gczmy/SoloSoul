@@ -148,10 +148,17 @@ impl RecoveryHost {
     }
 
     fn handle_connection(&self, stream: TcpStream) -> Result<(), String> {
-        check_global_rate_limit()?;
-
         let mut transport = SyncTransport::from_stream(stream);
+        // 先完成 Noise 握手，使被拒绝时（如全局限流）能通过加密会话发送明确的
+        // `__ERROR__` 帧；若在握手前拒绝，客户端只会收到 EOF 而显示晦涩的
+        // "read prefix failed: failed to fill whole buffer"。
         let mut session = NoiseSession::handshake_responder(&mut transport, &self.keys)?;
+
+        // 全局限流检查（握手之后）：达到上限时发送错误帧而非静默关闭连接。
+        if let Err(e) = check_global_rate_limit() {
+            let _ = send_error(&mut session, &mut transport, &e);
+            return Err(e);
+        }
 
         // 1. 接收 "nonce:pin"
         let auth = receive_text(&mut session, &mut transport)?;
