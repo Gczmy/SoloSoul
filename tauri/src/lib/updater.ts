@@ -69,6 +69,44 @@ export async function downloadAndInstallUpdate(
   await relaunch();
 }
 
+// ── Desktop check (updater plugin + GitHub Release notes) ─────
+
+export interface DesktopUpdateInfo {
+  latestVersion: string;
+  currentVersion: string;
+  /** 是否为强制更新（Release body 包含 [MANDATORY] 标记） */
+  mandatory: boolean;
+  releaseNotes: string | null;
+  publishedAt: string | null;
+}
+
+export type DesktopUpdateCheckResult =
+  | { kind: 'available'; info: DesktopUpdateInfo }
+  | { kind: 'up-to-date' }
+  | { kind: 'error'; message?: string };
+
+/**
+ * 检查桌面端更新（版本检测走 Tauri updater 插件，release notes 通过 GitHub API 补全）。
+ * - 'available': 有新版本可更新
+ * - 'up-to-date': 当前已是最新版
+ * - 'error': 检查失败（如网络异常、端点不可达）
+ */
+export async function desktopCheckForUpdate(): Promise<DesktopUpdateCheckResult> {
+  try {
+    const info = await invoke<DesktopUpdateInfo>('desktop_check_update');
+    if (info.latestVersion === info.currentVersion) {
+      return { kind: 'up-to-date' };
+    }
+    return { kind: 'available', info };
+  } catch (error) {
+    logger.warn('[updater] desktop check failed:', error);
+    return {
+      kind: 'error',
+      message: error instanceof Error ? error.message : String(error),
+    };
+  }
+}
+
 // ── Android self-update (GitHub API + APK download + install) ──
 
 export interface AndroidUpdateInfo {

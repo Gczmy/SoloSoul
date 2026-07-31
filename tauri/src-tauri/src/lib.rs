@@ -622,6 +622,9 @@ pub fn run() {
             commands::update::android_get_apk_path,
             commands::update::android_is_apk_downloaded,
             update_plugin::android_install_apk,
+            // 桌面端更新检查命令（仅桌面端编译）
+            #[cfg(not(any(target_os = "android", target_os = "ios")))]
+            commands::update::desktop_check_update,
             // Embedding model commands
             commands::embed_model::llm_get_embed_models,
             commands::embed_model::llm_download_embed_model,

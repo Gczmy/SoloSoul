@@ -7,6 +7,8 @@ use serde::{Deserialize, Serialize};
 use sha2::Digest;
 use std::path::PathBuf;
 use tauri::{Emitter, Manager};
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+use tauri_plugin_updater::UpdaterExt;
 
 const GITHUB_API: &str = "https://api.github.com/repos/Gczmy/SoloSoul/releases/latest";
 const USER_AGENT: &str = "SoloSoul/2.6.1";
@@ -57,6 +59,18 @@ pub struct ApkDownloadProgress {
     pub total: u64,
     pub done: bool,
     pub error: Option<String>,
+}
+
+/// 桌面端更新检查结果。
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DesktopUpdateInfo {
+    pub latest_version: String,
+    pub current_version: String,
+    /// 是否为强制更新（Release body 包含 `[MANDATORY]` 标记）。
+    pub mandatory: bool,
+    pub release_notes: Option<String>,
+    pub published_at: Option<String>,
 }
 
 // ── Helper: 获取当前版本号 ──────────────────────────────────────
@@ -156,18 +170,17 @@ pub fn delete_apk_cache(app: &tauri::AppHandle, version: &str) -> Result<(), Str
 
 // ── Command: 检查更新 ──────────────────────────────────────────
 
-/// 检查 GitHub Release 是否有新版本。
-///
-/// 仅在 Android 上有效；桌面端使用 `@tauri-apps/plugin-updater`。
-#[tauri::command]
-pub async fn android_check_update(app: tauri::AppHandle) -> Result<AndroidUpdateInfo, String> {
-    let current = current_version();
-    let client = reqwest::Client::builder()
+/// 创建 GitHub API 请求客户端（带 UA 与 15s 超时）。
+fn github_client() -> Result<reqwest::Client, String> {
+    reqwest::Client::builder()
         .user_agent(USER_AGENT)
         .timeout(std::time::Duration::from_secs(15))
         .build()
-        .map_err(|e| format!("创建 HTTP 客户端失败: {e}"))?;
+        .map_err(|e| format!("创建 HTTP 客户端失败: {e}"))
+}
 
+/// 请求 GitHub Release API 并解析最新 Release。
+async fn fetch_github_release(client: &reqwest::Client) -> Result<GitHubRelease, String> {
     let resp = client
         .get(GITHUB_API)
         .send()
@@ -178,10 +191,19 @@ pub async fn android_check_update(app: tauri::AppHandle) -> Result<AndroidUpdate
         return Err(format!("GitHub API 返回 HTTP {}", resp.status()));
     }
 
-    let release: GitHubRelease = resp
-        .json()
+    resp.json()
         .await
-        .map_err(|e| format!("解析 GitHub Release 响应失败: {e}"))?;
+        .map_err(|e| format!("解析 GitHub Release 响应失败: {e}"))
+}
+
+/// 检查 GitHub Release 是否有新版本。
+///
+/// 仅在 Android 上有效；桌面端使用 `desktop_check_update`。
+#[tauri::command]
+pub async fn android_check_update(app: tauri::AppHandle) -> Result<AndroidUpdateInfo, String> {
+    let current = current_version();
+    let client = github_client()?;
+    let release = fetch_github_release(&client).await?;
 
     // tag_name 格式为 "v2.6.1"，去掉 v 前缀
     let latest = release
@@ -248,6 +270,69 @@ pub async fn android_check_update(app: tauri::AppHandle) -> Result<AndroidUpdate
         release_notes: clean_body,
         published_at: release.published_at,
         apk_size: apk_asset.and_then(|a| a.size),
+    })
+}
+
+// ── Command: 桌面端检查更新 ─────────────────────────────────────
+
+/// 桌面端检查更新：版本检测复用 Tauri updater 插件（读取 latest.json），
+/// Release notes 通过 GitHub Release API 补全，行为与 Android 对齐。
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+#[tauri::command]
+pub async fn desktop_check_update(app: tauri::AppHandle) -> Result<DesktopUpdateInfo, String> {
+    let current = current_version();
+
+    // 1. 通过 updater 插件检测是否有可用更新（latest.json 中的版本与签名）
+    let updater = app
+        .updater()
+        .map_err(|e| format!("初始化更新器失败: {e}"))?;
+    let update = updater
+        .check()
+        .await
+        .map_err(|e| format!("检查更新失败: {e}"))?;
+
+    let Some(update) = update else {
+        return Ok(DesktopUpdateInfo {
+            latest_version: current.clone(),
+            current_version: current,
+            mandatory: false,
+            release_notes: None,
+            published_at: None,
+        });
+    };
+
+    // 2. 通过 GitHub Release API 补全 release notes（失败不阻塞，仅缺 notes）
+    let (release_notes, mandatory, published_at) = match github_client() {
+        Ok(client) => match fetch_github_release(&client).await {
+            Ok(release) => {
+                let mandatory = release
+                    .body
+                    .as_deref()
+                    .map(|body| body.contains("[MANDATORY]"))
+                    .unwrap_or(false);
+                let clean_body = release
+                    .body
+                    .map(|body| body.replace("[MANDATORY]", "").trim().to_string())
+                    .filter(|s| !s.is_empty());
+                (clean_body, mandatory, release.published_at)
+            }
+            Err(e) => {
+                tracing::warn!("[updater] 获取 GitHub Release notes 失败: {e}");
+                (None, false, None)
+            }
+        },
+        Err(e) => {
+            tracing::warn!("[updater] 创建 GitHub 客户端失败: {e}");
+            (None, false, None)
+        }
+    };
+
+    Ok(DesktopUpdateInfo {
+        latest_version: update.version,
+        current_version: current,
+        mandatory,
+        release_notes,
+        published_at,
     })
 }
 

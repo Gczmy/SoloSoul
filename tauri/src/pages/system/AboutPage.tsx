@@ -12,7 +12,7 @@ import { ExternalLink, Code, Shield, Info, Download, AlertTriangle } from 'lucid
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { SafeMarkdown } from '@/components/ui/SafeMarkdown';
 import {
-  checkForUpdate,
+  desktopCheckForUpdate,
   downloadAndInstallUpdate,
   androidCheckForUpdate,
   androidDownloadApk,
@@ -97,14 +97,16 @@ export function AboutPage() {
               state: 'up-to-date' as const,
             };
           })
-        : checkForUpdate().then((result) => {
+        : desktopCheckForUpdate().then((result) => {
             if (result.kind === 'available') {
               return {
                 currentVersion: '',
-                latestVersion: result.info.version,
+                latestVersion: result.info.latestVersion,
                 downloadUrl: null,
+                checksum: undefined,
+                mandatory: result.info.mandatory,
                 state: 'available' as const,
-                body: result.info.body,
+                body: result.info.releaseNotes || undefined,
               };
             }
             if (result.kind === 'error') {

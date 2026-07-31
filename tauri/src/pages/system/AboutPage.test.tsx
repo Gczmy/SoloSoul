@@ -16,9 +16,9 @@ vi.mock('@tauri-apps/api/core', () => ({
   invoke: vi.fn(),
 }));
 
-const mockCheckForUpdate = vi.fn();
+const mockDesktopCheckForUpdate = vi.fn();
 vi.mock('@/lib/updater', () => ({
-  checkForUpdate: () => mockCheckForUpdate(),
+  desktopCheckForUpdate: () => mockDesktopCheckForUpdate(),
   downloadAndInstallUpdate: vi.fn(),
 }));
 
@@ -29,7 +29,7 @@ describe('AboutPage', () => {
 
   it('renders loading placeholder initially', () => {
     vi.mocked(invoke).mockImplementation(() => new Promise(() => {}));
-    mockCheckForUpdate.mockImplementation(() => new Promise(() => {}));
+    mockDesktopCheckForUpdate.mockImplementation(() => new Promise(() => {}));
     render(
       <MemoryRouter>
         <AboutPage />
@@ -46,7 +46,7 @@ describe('AboutPage', () => {
       os: 'macos',
       arch: 'aarch64',
     });
-    mockCheckForUpdate.mockResolvedValue({ kind: 'up-to-date' });
+    mockDesktopCheckForUpdate.mockResolvedValue({ kind: 'up-to-date' });
 
     render(
       <MemoryRouter>
@@ -70,9 +70,15 @@ describe('AboutPage', () => {
       os: 'windows',
       arch: 'x86_64',
     });
-    mockCheckForUpdate.mockResolvedValue({
+    mockDesktopCheckForUpdate.mockResolvedValue({
       kind: 'available',
-      info: { version: '1.2.0', body: 'New features' },
+      info: {
+        latestVersion: '1.2.0',
+        currentVersion: '1.0.0',
+        mandatory: false,
+        releaseNotes: 'New features',
+        publishedAt: null,
+      },
     });
 
     render(
@@ -95,7 +101,7 @@ describe('AboutPage', () => {
       os: 'linux',
       arch: 'x86_64',
     });
-    mockCheckForUpdate.mockResolvedValue({ kind: 'up-to-date' });
+    mockDesktopCheckForUpdate.mockResolvedValue({ kind: 'up-to-date' });
 
     render(
       <MemoryRouter>
@@ -113,7 +119,7 @@ describe('AboutPage', () => {
 
   it('handles fetch errors gracefully', async () => {
     vi.mocked(invoke).mockRejectedValue(new Error('backend offline'));
-    mockCheckForUpdate.mockResolvedValue({ kind: 'error', message: 'network error' });
+    mockDesktopCheckForUpdate.mockResolvedValue({ kind: 'error', message: 'network error' });
 
     render(
       <MemoryRouter>
@@ -133,7 +139,7 @@ describe('AboutPage', () => {
       os: 'macos',
       arch: 'aarch64',
     });
-    mockCheckForUpdate.mockResolvedValue({ kind: 'error', message: 'network error' });
+    mockDesktopCheckForUpdate.mockResolvedValue({ kind: 'error', message: 'network error' });
 
     render(
       <MemoryRouter>
