@@ -145,6 +145,24 @@ const DEFAULT_SETTINGS: AppSettings = {
   trashRetention: '30d',
 };
 
+// ─── P062: 设置四副本写入路径矩阵 ────────────────────────────────────────
+// 主题/语言/accent 等 UI 设置在以下四个存储位置各存一份，任一写入遗漏都会
+// 造成「登录页主题正确但解锁后主题跳变」类 bug。改动任一写入时请对照本矩阵。
+//
+// | 副本                     | 位置                                        | 写入点                                              |
+// |--------------------------|---------------------------------------------|-----------------------------------------------------|
+// | ① zustand store（主态）  | settingsStore.settings                     | loadUiPreferences / loadSettings / updateSetting /  |
+// |                          |                                             | addCustomPage / removeCustomPage / clearOnVaultLock |
+// | ② localStorage 缓存     | ST_UI_PREFS（theme/accent/…）              | loadUiPreferences Step2（setItem）；i18nextLng      |
+// |                          |                                             | 在 updateSetting(language) setItem                 |
+// | ③ ui_preferences.json   | 明文文件（登录前即可读，修复登录页主题）    | loadSettings 同步块（theme/accent/language/…）      |
+// |  （明文）               |                                             | updateSetting(language) → ui_update_preference     |
+// | ④ vault 加密 preferences| 账户级加密 JSON（user_data_get/update）     | updateSetting → user_data_update_preference         |
+// |                          |                                             | loadCustomPages 迁移清理 customPages 也走此命令     |
+//
+// 读取优先级：登录前 loadUiPreferences（②③）保证主题正确；解锁后 loadSettings
+// （④）以账户级加密偏好为准覆盖本地态。语言的实际生效由 initI18n() 经 Rust IPC
+// 确认（zh-CN 验证通过），updateSetting 只负责用户显式切换。
 export const useSettingsStore = create<SettingsState>((set, get) => ({
   settings: DEFAULT_SETTINGS,
   isLoading: false,
