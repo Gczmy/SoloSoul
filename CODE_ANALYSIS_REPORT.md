@@ -80,14 +80,14 @@
 | P058 | P2 | 架构 | `tauri/src/stores/profileStore.ts:75-98` | `loadSection`/`updateField` 无调用方死代码，且 updateField 写后不同步本地 | `[x]` 已修复 |
 | P059 | P2 | 架构 | `HistoryPage.tsx:36-38`、`HistoryViewer.tsx:485-487`、`vaultStore.ts:40-43` | 3 处前端 invoke 链缺 `.catch`，锁定等场景下 unhandled rejection 且无提示 | `[x]` 已修复 |
 | P060 | P2 | 规范 | `tauri/src/components/plugin/PluginResultPanel.tsx:344,360` | UI 组件直接调 plugin-fs `copyFile` 且静默吞错，违反 IPC 封装约定 | `[x]` 已修复 |
-| P061 | P2 | 架构 | `tauri/src/pages/settings/GlobalAttachmentManager.tsx`（12 处直接 invoke） | 页面组件承载附件树遍历/聚合/批量编排等重业务逻辑，应下沉 store/lib（与 P024 关联） | `[ ]` 待修复 |
+| P061 | P2 | 架构 | `tauri/src/pages/settings/GlobalAttachmentManager.tsx`（12 处直接 invoke） | 页面组件承载附件树遍历/聚合/批量编排等重业务逻辑，应下沉 store/lib（与 P024 关联） | `[x]` 已修复 |
 | P062 | P2 | 架构 | `tauri/src/stores/settingsStore.ts:154-307` | 主题/语言设置四副本（zustand+localStorage+ui_preferences.json+vault），需补写入路径矩阵注释或收敛 | `[ ]` 待修复 |
 | P063 | P2 | 架构 | `tauri/Cargo.toml:73` | release profile `panic = "abort"`：未来新增生产代码引入 unwrap 时代价大，保留认知即可 | `[ ]` 待修复 |
 
 ## 修复进度
 
-- 已完成：48 / 63（P001–P011、P013–P016、P019–P028、P029–P033、P034–P046、P056–P060；其中 P011 工作区部分完成）
-- 当前处理：P060 已完成，等待下一条指令
+- 已完成：49 / 63（P001–P011、P013–P016、P019–P028、P029–P033、P034–P046、P056–P061；其中 P011 工作区部分完成）
+- 当前处理：P061 已完成（由 P024 连带完成），等待下一条指令
 
 ## 静态基线之外已检查且无发现的维度（误报排除记录）
 
@@ -310,6 +310,7 @@ sync crate manager（`manager.rs:168`）`sync_enable` 时自建 `ServiceDaemon`�
 `[x]` 已修复：新增 Rust 命令 `plugin_copy_output_file(output_dir, path, dest_dir, file_name)`——复用 P004 的 canonical 包含校验（源必须位于插件 output_dir 内）+ `file_name` 严格净化（非空/非`.`/`..`、不含 `/` 与 `\`，防 Windows 路径遍历）+ `dest_dir` 必须存在目录；`std::fs::copy` 错误返回中文消息。**抽取共享助手 `resolve_output_file(output_dir, path) -> Result<PathBuf, String>`**，`plugin_open_output_file`（P004）与 `plugin_copy_output_file` 共用，消除 15 行重复（审查建议采纳）。前端 PluginResultPanel：移除 plugin-fs `copyFile` 与 `join` 导入，改 `dirname`/`basename`；`handleDownload`/`handleDownloadSelected` 改 `invoke('plugin_copy_output_file')`，成功/失败均 `showToast` 提示（新增 `useUiStore`）。已注册 lib.rs + ACL 白名单 default.toml（check_acl_consistency.py OK，197 命令）。cargo check/fmt/clippy、tsc/lint、Vitest 415 全部通过，两轮审查通过。
 
 **P061 | GlobalAttachmentManager 重业务下沉**：12 处直接 invoke+多层聚合统计（:556-589）在组件内。数据编排下沉 store/lib hook（与 P024 同设计）。
+`[x]` 已修复：**由 P024 连带完成**（核验确认，无需额外改动）。页面 `GlobalAttachmentManager.tsx` 已从报告时的 1202 行降至 **311 行**、**零直接 invoke**；数据加载（`loadData`/`attachment_list_all`）、附件树遍历（`displayPages`/`allVisibleKeys`）、10 处 invoke（open/rename/soft_delete/download/restore/delete/batch_*）、聚合统计（`summaryStats`）全部下沉至 `src/hooks/useAttachmentManager.ts`（552 行），页面降为纯编排层（子组件 + ConfirmDialog + 指南配置）。tsc/lint/Vitest 415 通过（无代码改动，仅核验）。
 
 **P062 | 设置四副本**：zustand+localStorage+ui_preferences.json+vault 加密 preferences（settingsStore.ts:154-307），为「登录前主题正确」的有意设计但任一写入遗漏即产生主题跳变 bug。补「写入路径矩阵」注释；长期收敛单副本+登录前只读快照。
 
