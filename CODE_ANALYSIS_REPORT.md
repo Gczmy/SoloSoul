@@ -50,7 +50,7 @@
 | P028 | P1 | 重复 | `llm/mod.rs:210-231`、`llm/stats.rs:154-173`、`llm/conversation.rs:49-64`、`services/llm_context.rs:339-353`、`commands/settings.rs:260+` | 「写 profile preferences」约 20 行整块复制 6 处（报告原列 snapshot.rs 为过时行号，该文件只有读无写；llm/mod.rs 实为 2 处） | `[x]` 已修复 |
 | P029 | P2 | 漏洞 | `tauri/crates/solosoul-sync/src/recovery.rs:175` | 恢复 PIN+nonce 使用非常数时间字符串比较（违反项目安全约定） | `[x]` 已修复 |
 | P030 | P2 | 漏洞 | `tauri/src-tauri/capabilities/default.json` | capabilities 授权面过大（fs `**`、shell open `**`、allow-all-custom-commands） | `[x]` 已修复 |
-| P031 | P2 | 漏洞 | `tauri/src-tauri/src/commands/auth.rs:37-46,77-89` | GUI 登录/建库密码以普通 String 经 IPC，未用 Zeroizing（CLI 已对齐） | `[ ]` 待修复 |
+| P031 | P2 | 漏洞 | `tauri/src-tauri/src/commands/auth.rs:37-46,77-89` | GUI 登录/建库密码以普通 String 经 IPC，未用 Zeroizing（CLI 已对齐） | `[x]` 已修复 |
 | P032 | P2 | 漏洞 | `tauri/src-tauri/tauri.conf.json:78` | shell.open 正则允许 `file://` 与绝对路径 `/…` | `[x]` 已修复 |
 | P033 | P2 | 死代码 | 详见下文清单 | 9 个"命令注册多余"的 Tauri Commands（有内部调用或仅测试用，建议取消注册） | `[x]` 已修复 |
 | P034 | P2 | 死代码 | `tauri/src-tauri/src/commands/object/mod.rs:710,745` | `object_backfill_property_labels`/`object_backfill_property_fields` 疑似一次性迁移工具，待确认后删除 | `[x]` 已修复 |
@@ -86,8 +86,8 @@
 
 ## 修复进度
 
-- 已完成：35 / 63（P001–P011、P013–P016、P019–P027、P028、P029、P030、P032、P033–P036、P038、P040、P041；其中 P011 工作区部分完成）
-- 当前处理：P031（GUI 登录/建库密码 Zeroizing 对齐）
+- 已完成：36 / 63（P001–P011、P013–P016、P019–P027、P028、P029、P030、P031、P032、P033–P036、P038、P040、P041；其中 P011 工作区部分完成）
+- 当前处理：无（等待用户指令）
 
 ## 静态基线之外已检查且无发现的维度（误报排除记录）
 

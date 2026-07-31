@@ -5,6 +5,7 @@ use solosoul_core::auth::verify_password_core;
 use solosoul_core::template_service::seed_default_templates;
 use solosoul_core::AccountConfig;
 use tauri::State;
+use zeroize::Zeroizing;
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -38,11 +39,13 @@ pub async fn bootstrap(
     locale: String,
     password_hint: Option<String>,
 ) -> Result<AccountInfo, String> {
+    // P031: 密码以 Zeroizing<String> 接收，使用完毕后立即安全清零。
+    let password = Zeroizing::new(password);
     let svc = state
         .vault_service
         .read()
         .map_err(|_| "Vault service lock poisoned".to_string())?;
-    let result = svc.create_account(&account_name, &password, password_hint.as_deref())?;
+    let result = svc.create_account(&account_name, password.as_ref(), password_hint.as_deref())?;
     let account_id = result["id"].as_str().unwrap_or("").to_string();
 
     // 首个账户创建成功后，立即触发一次 SAF 同步，消除首次数据丢失窗口。
@@ -78,6 +81,8 @@ pub async fn login(
     account_id: String,
     password: String,
 ) -> Result<(), String> {
+    // P031: 密码以 Zeroizing<String> 接收，使用完毕后立即安全清零。
+    let password = Zeroizing::new(password);
     // Run the CPU-intensive KDF and synchronous vault IO on the blocking pool
     // so the async runtime worker threads are not starved (R018 follow-up).
     let vault_service = state.vault_service.clone();
@@ -85,7 +90,7 @@ pub async fn login(
         let svc = vault_service
             .read()
             .map_err(|_| "Vault service lock poisoned".to_string())?;
-        svc.unlock(&account_id, &password)?;
+        svc.unlock_secure(&account_id, &password)?;
         if let Some(vg) = svc.get_vault_store() {
             let vault = vg.as_ref();
             {
@@ -140,12 +145,14 @@ pub async fn unlock_with_password(
     account_id: String,
     password: String,
 ) -> Result<(), String> {
+    // P031: 密码以 Zeroizing<String> 接收，使用完毕后立即安全清零。
+    let password = Zeroizing::new(password);
     let vault_service = state.vault_service.clone();
     tokio::task::spawn_blocking(move || {
         let svc = vault_service
             .read()
             .map_err(|_| "Vault service lock poisoned".to_string())?;
-        svc.unlock(&account_id, &password)?;
+        svc.unlock_secure(&account_id, &password)?;
         Ok::<_, String>(())
     })
     .await
@@ -163,6 +170,8 @@ pub async fn verify_password(
     account_id: String,
     password: String,
 ) -> Result<bool, String> {
+    // P031: 密码以 Zeroizing<String> 接收，使用完毕后立即安全清零。
+    let password = Zeroizing::new(password);
     let svc = state
         .vault_service
         .read()
@@ -173,7 +182,7 @@ pub async fn verify_password(
     let config: AccountConfig =
         serde_json::from_str(&content).map_err(|_| "Parse error".to_string())?;
 
-    verify_password_core(&password, &config)
+    verify_password_core(password.as_ref(), &config)
 }
 
 #[tauri::command]
