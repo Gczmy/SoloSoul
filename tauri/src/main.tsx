@@ -7,9 +7,15 @@ import './styles/themes.css';
 import './styles/animations.css';
 import { initI18n } from './lib/i18n';
 import { initPlatform } from '@/lib/platform';
+import { preloadCameraCapability } from '@/lib/cameraCapability';
 import { logger } from '@/lib/logger';
 // 预加载平台信息，供 isMobilePlatformSync 等同步判定使用（非阻塞）
 initPlatform().catch((err) => logger.warn('[main] Platform init failed:', err));
+// 启动即检测设备摄像头能力（非阻塞、非侵入，不触发权限弹窗），
+// 供「从其他设备恢复」流程自适应默认 tab（支持→扫码，不支持→手动输入）
+preloadCameraCapability().catch((err) =>
+  logger.warn('[main] Camera capability check failed:', err),
+);
 
 // 移动端启动性能基线：记录应用启动时刻（MOB-P1-07）
 const appStartTime = performance.now();

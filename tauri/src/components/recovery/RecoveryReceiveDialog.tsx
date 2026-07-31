@@ -1,12 +1,13 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
-import { X, QrCode, Link2, Loader2, Wifi, CheckCircle2 } from 'lucide-react';
+import { X, QrCode, Link2, Loader2, Wifi, CheckCircle2, CameraOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useAuthStore } from '@/stores/authStore';
+import { useCameraCapability } from '@/hooks/useCameraCapability';
 import { RecoveryQrScanner } from '@/components/recovery/RecoveryQrScanner';
 
 interface RecoveryReceiveDialogProps {
@@ -56,10 +57,28 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
   const { t } = useTranslation(['common']);
   const navigate = useNavigate();
   const mountedRef = useRef(true);
+  // 设备摄像头能力（启动时预加载，模块级缓存）。
+  // 支持 → 默认「扫描二维码」；不支持 → 默认「手动输入」。
+  const cameraCapability = useCameraCapability();
+  // 用户在本次打开期间是否手动切换过 tab（手动切换后不再被默认 tab 覆盖）
+  const userSwitchedTabRef = useRef(false);
+
+  // 按设备能力计算默认 tab（支持/未知 → 扫码；不支持 → 手动输入）
+  const getDefaultTab = useCallback(
+    (): TabMode => (cameraCapability === 'unsupported' ? 'manual' : 'scan'),
+    [cameraCapability],
+  );
 
   // 流程状态
   const [step, setStep] = useState<Step>('collect');
-  const [tab, setTab] = useState<TabMode>('scan');
+  const [tab, setTab] = useState<TabMode>(getDefaultTab);
+
+  // 打开对话框时按设备能力设置默认 tab（尊重用户手动选择）
+  useEffect(() => {
+    if (isOpen && cameraCapability !== 'unknown' && !userSwitchedTabRef.current) {
+      setTab(getDefaultTab());
+    }
+  }, [isOpen, cameraCapability, getDefaultTab]);
 
   // 共享状态
   const [loading, setLoading] = useState(false);
@@ -95,7 +114,8 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
   // ── 重置所有状态 ──
   const resetState = () => {
     setStep('collect');
-    setTab('scan');
+    setTab(getDefaultTab());
+    userSwitchedTabRef.current = false;
     setError(null);
     setSuccess(null);
     setLoading(false);
@@ -126,6 +146,7 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
   // ── Tab 切换 ──
   const switchTab = (newTab: TabMode) => {
     if (loading) return; // 传输中禁止切换
+    userSwitchedTabRef.current = true;
     setError(null);
     setTab(newTab);
   };
@@ -654,7 +675,7 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
             )}
           </div>
         ) : tab === 'scan' ? (
-          /* ── 扫码 tab（默认）：新设备摄像头扫描旧设备恢复二维码 ── */
+          /* ── 扫码 tab：新设备摄像头扫描旧设备恢复二维码 ── */
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <p
               style={{
@@ -670,7 +691,63 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
               })}
             </p>
 
-            <RecoveryQrScanner onScan={handleScan} />
+            {cameraCapability === 'unsupported' ? (
+              /* 设备无摄像头：扫码位置显示提示，引导使用手动输入 */
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 10,
+                  padding: '28px 16px',
+                  borderRadius: 12,
+                  border: '1px dashed var(--border-subtle)',
+                  background: 'var(--bg-toolbar)',
+                  textAlign: 'center',
+                }}
+              >
+                <CameraOff size={28} color="var(--text-tertiary)" />
+                <span
+                  style={{
+                    fontSize: 'var(--text-body-sm)',
+                    color: 'var(--text-secondary)',
+                    lineHeight: 1.5,
+                  }}
+                >
+                  {t('common:recovery_scan_unsupported', {
+                    defaultValue: 'This device does not support QR scanning. Please use manual input mode.',
+                  })}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => switchTab('manual')}
+                  style={{
+                    marginTop: 4,
+                    padding: '8px 16px',
+                    borderRadius: 8,
+                    border: '1px solid var(--border-subtle)',
+                    background: 'var(--bg-elevated)',
+                    color: 'var(--accent-primary)',
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                    fontSize: 'var(--text-body-sm)',
+                    fontWeight: 500,
+                    transition: 'all 0.15s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                  }}
+                >
+                  {t('common:recovery_manual_tab', { defaultValue: 'Manual' })}
+                </button>
+              </div>
+            ) : (
+              <RecoveryQrScanner onScan={handleScan} />
+            )}
 
             {error && (
               <div

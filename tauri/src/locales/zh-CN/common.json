@@ -601,6 +601,7 @@
   "recovery_qr_hint": "将相机对准另一台设备上显示的二维码。",
   "recovery_qr_no_camera": "未检测到摄像头设备。您可以使用手动输入方式连接旧设备。",
   "recovery_qr_permission_denied": "摄像头权限被阻止。请在系统设置中允许 SoloSoul 使用摄像头后重试。",
+  "recovery_scan_unsupported": "本设备不支持扫描二维码功能，请使用手动输入模式",
   "onboarding_recover_from_device": "从其他设备恢复",
   "onboarding_recover_from_device_desc": "从正在运行 SoloSoul 的手机或电脑恢复账户。",
   "recovery_manual_tab": "手动输入",
