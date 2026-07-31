@@ -69,7 +69,7 @@
 | P047 | P2 | 重复 | `tauri/src-tauri/src/plugin/host/register.rs:763-812,838-890` | 两个 watermark 注册闭包除一行外完全相同；read_string 校验样板 20+ 次 | `[ ]` 待修复 |
 | P048 | P2 | 重复 | 全前端 30+ 文件（如 `ExportSection.tsx:600-622`、`OnboardingDialog.tsx` ×10、`SyncPage.tsx` ×5） | 109 处手写 onMouseEnter/Leave hover，应统一迁移到 `ui/Button` | `[ ]` 待修复 |
 | P049 | P2 | 重复 | `TrashPage.tsx:254-345`（×2）、`OperationLogPage.tsx:280-323`、`TemplateManagerPage.tsx:597+`、`SampleTemplateGallery.tsx:282+` | 筛选 chip 按钮块（约 45 行）重复 5 处，可抽 FilterChipGroup | `[x]` 已修复 |
-| P050 | P2 | 结构 | `tauri/src/pages/editor/ObjectEditorPage.tsx:300-360` | 动态组校验 switch 6 个 case 同一模式，应表驱动化（含 5 层嵌套） | `[ ]` 待修复 |
+| P050 | P2 | 结构 | `tauri/src/pages/editor/ObjectEditorPage.tsx:300-360` | 动态组校验 switch 6 个 case 同一模式，应表驱动化（含 5 层嵌套） | `[x]` 已修复 |
 | P051 | P2 | 性能 | `tauri/src-tauri/src/commands/llm/rag.rs:794-808,942` | 重建 embedding 逐条 `save_guide_embedding`，每条独立事务+fsync | `[x]` 已修复 |
 | P052 | P2 | 性能 | `tauri/src/stores/trashStore.ts:137-140` | `permanentDelete` 循环内串行 await 逐条 IPC | `[x]` 已修复 |
 | P053 | P2 | 性能 | `tauri/src/stores/settingsStore.ts:328-355` | `loadCustomPages` 对每个自定义页单独 `object_get`（N+1 IPC） | `[x]` 已修复 |
@@ -86,8 +86,8 @@
 
 ## 修复进度
 
-- 已完成：57 / 63（P001–P011、P013–P016、P019–P028、P029–P033、P034–P046、P049、P051–P055、P056–P063；其中 P011 工作区部分完成）
-- 当前处理：P049 已完成，等待下一条指令
+- 已完成：58 / 63（P001–P011、P013–P016、P019–P028、P029–P033、P034–P046、P049–P055、P056–P063；其中 P011 工作区部分完成）
+- 当前处理：P050 已完成，等待下一条指令
 
 ## 静态基线之外已检查且无发现的维度（误报排除记录）
 
@@ -297,6 +297,8 @@ sync crate manager（`manager.rs:168`）`sync_enable` 时自建 `ServiceDaemon`�
 **P051 | embedding 重建逐条事务**：`rag.rs:794-808` 重建循环逐条 `save_guide_embedding`（每次抢锁 + autocommit + fsync）。已在 vault crate 新增批量方法 `save_guide_embeddings`（单次 conn.lock + 单事务 + prepared statement 循环绑定 + commit），rag.rs 重建改为先 collect 全部 chunk 再一次性批量写入；错误消息带 chunk 索引恢复逐条可调试性。单条 `save_guide_embedding` 保留（pub API，测试仍用）。cargo check/fmt/clippy 全绿，guide_embedding 4 测试通过，两轮审查通过。
 
 **P049 | 筛选 chip 块 ×5**：`TrashPage`（×2）、`OperationLogPage`、`TemplateManagerPage`、`SampleTemplateGallery` 的「isActive 三态 style + hover 双事件 + map」重复块（约 45 行 ×5）收敛为共享组件 `src/components/ui/FilterChipGroup.tsx`（泛型，props = options/value/onChange/toggle/size/radius/gap/fontWeight/testId）。激活态 accent 边框+淡色底+阴影，非激活 hover accent 描边预览；`toggle` 模式支持 OperationLog 的「点击激活项取消」语义；`testId` 透传保留 SampleTemplateGallery 测试依赖（`page-filter-*`）；OperationLog 保留 radius 8/gap 4 原观感，SampleGallery 保留 caption 字号。字重统一 500（P049 收敛目标，OperationLog 原 500、其余原浏览器默认）。tsc/lint/Vitest 415 全绿，审查通过。
+
+**P050 | ObjectEditorPage 校验 switch 表驱动化**：动态组子字段校验与普通字段校验各一份「switch 六 case」（email/url/phone/date/number）同一模式，且动态组版存在 5 层嵌套。已抽模块级常量 `FIELD_TYPE_VALIDATORS: Partial<Record<PropertyType, { hintKey, isValid }>>`（isValid 返回布尔），两处校验改查表（`validator && !validator.isValid(strVal)` 时写 error），URL 校验保留「无协议头补 https:// 再 new URL」原语义，unknown 类型短路跳过与原 switch 无 case 匹配一致，hintKey 路径 `editor:validation_*` 不变。tsc/lint/Vitest 415 全绿，审查通过。
 `[x]` 已修复：两处批量下载按报告「并发化」选项改为 `Promise.allSettled` 并发（各附件独立 IPC + 独立目标文件，并发安全；allSettled 不因单项失败整体 reject，successCount 语义与串行一致）。① `useAttachmentManager.ts handleBatchDownload`：桌面端串行 for-await → filter（去无 path 项）+ map + allSettled；② `AttachmentViewer.tsx handleBatchDownload`：移动端 SAF（`attachment_export_tree_uri`）与桌面端（`attachment_download`）双串行循环合并为 downloadTasks 数组 + allSettled，平台检测 `isMobilePlatformSync()` 上提为 map 外单次求值（审查建议采纳）。tsc/lint/Vitest 415 全部通过，两轮审查通过。
 
 **P055 | 其余整店订阅**：`ObjectEditorPage.tsx:36`、`TrashPage.tsx:79`、`TemplateManagerPage.tsx:75`、`ObjectDetailModal.tsx:136` 分字段 selector（负载小于 P010）。

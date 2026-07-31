@@ -22,6 +22,42 @@ import styles from './ObjectEditorPage.module.css';
 // collectionType is the section (for filtering), not the template name.
 type TemplateCategory = 'identity' | 'travel' | 'financial' | 'professional';
 
+// P050: 字段类型值校验表驱动化。动态组子字段与普通字段共用同一套校验，
+// 替代原先两份「switch 六 case」重复逻辑。返回 isValid=false 表示校验失败。
+const FIELD_TYPE_VALIDATORS: Partial<
+  Record<PropertyType, { hintKey: string; isValid: (value: string) => boolean }>
+> = {
+  email: {
+    hintKey: 'editor:validation_email',
+    isValid: (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v),
+  },
+  url: {
+    hintKey: 'editor:validation_url',
+    // 接受带或不带协议头的 URL；缺失时补 https:// 再验证
+    isValid: (v) => {
+      const urlStr = /^https?:\/\//i.test(v) ? v : `https://${v}`;
+      try {
+        new URL(urlStr);
+        return true;
+      } catch {
+        return false;
+      }
+    },
+  },
+  phone: {
+    hintKey: 'editor:validation_phone',
+    isValid: (v) => /^[\d\s\-+()]{3,20}$/.test(v),
+  },
+  date: {
+    hintKey: 'editor:validation_date',
+    isValid: (v) => /^\d{4}-\d{2}-\d{2}$/.test(v),
+  },
+  number: {
+    hintKey: 'editor:validation_number',
+    isValid: (v) => !Number.isNaN(Number(v)),
+  },
+};
+
 export function ObjectEditorPage() {
   const { objectId } = useParams();
   const navigate = useNavigate();
@@ -308,63 +344,17 @@ export function ObjectEditorPage() {
             });
             break;
           }
-          // 按子字段类型做值校验
+          // 按子字段类型做值校验（表驱动，替代原 switch 六 case）
           const strVal = String(value ?? '').trim();
           if (!strVal) continue;
-          switch (type as PropertyType) {
-            case 'email': {
-              const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-              if (!emailRe.test(strVal)) {
-                errors[field.key] = t('editor:dynamic_group_invalid_value', {
-                  index: i + 1,
-                  hint: t('editor:validation_email'),
-                });
-              }
-              break;
-            }
-            case 'url': {
-              const urlStr = /^https?:\/\//i.test(strVal) ? strVal : `https://${strVal}`;
-              try {
-                new URL(urlStr);
-              } catch {
-                errors[field.key] = t('editor:dynamic_group_invalid_value', {
-                  index: i + 1,
-                  hint: t('editor:validation_url'),
-                });
-              }
-              break;
-            }
-            case 'phone': {
-              const phoneRe = /^[\d\s\-+()]{3,20}$/;
-              if (!phoneRe.test(strVal)) {
-                errors[field.key] = t('editor:dynamic_group_invalid_value', {
-                  index: i + 1,
-                  hint: t('editor:validation_phone'),
-                });
-              }
-              break;
-            }
-            case 'date': {
-              const dateRe = /^\d{4}-\d{2}-\d{2}$/;
-              if (!dateRe.test(strVal)) {
-                errors[field.key] = t('editor:dynamic_group_invalid_value', {
-                  index: i + 1,
-                  hint: t('editor:validation_date'),
-                });
-              }
-              break;
-            }
-            case 'number': {
-              if (Number.isNaN(Number(strVal))) {
-                errors[field.key] = t('editor:dynamic_group_invalid_value', {
-                  index: i + 1,
-                  hint: t('editor:validation_number'),
-                });
-              }
-              break;
-            }
+          const validator = FIELD_TYPE_VALIDATORS[type as PropertyType];
+          if (validator && !validator.isValid(strVal)) {
+            errors[field.key] = t('editor:dynamic_group_invalid_value', {
+              index: i + 1,
+              hint: t(validator.hintKey),
+            });
+            break;
           }
-          if (errors[field.key]) break;
         }
         continue;
       }
@@ -377,44 +367,10 @@ export function ObjectEditorPage() {
       }
       if (!strVal) continue;
 
-      switch (field.type) {
-        case 'email': {
-          const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-          if (!emailRe.test(strVal)) {
-            errors[field.key] = t('editor:validation_email');
-          }
-          break;
-        }
-        case 'url': {
-          // Accept URLs with or without protocol; prepend https:// if missing
-          const urlStr = /^https?:\/\//i.test(strVal) ? strVal : `https://${strVal}`;
-          try {
-            new URL(urlStr);
-          } catch {
-            errors[field.key] = t('editor:validation_url');
-          }
-          break;
-        }
-        case 'phone': {
-          const phoneRe = /^[\d\s\-+()]{3,20}$/;
-          if (!phoneRe.test(strVal)) {
-            errors[field.key] = t('editor:validation_phone');
-          }
-          break;
-        }
-        case 'date': {
-          const dateRe = /^\d{4}-\d{2}-\d{2}$/;
-          if (!dateRe.test(strVal)) {
-            errors[field.key] = t('editor:validation_date');
-          }
-          break;
-        }
-        case 'number': {
-          if (Number.isNaN(Number(strVal))) {
-            errors[field.key] = t('editor:validation_number');
-          }
-          break;
-        }
+      // 字段类型值校验（表驱动，替代原 switch 六 case）
+      const validator = FIELD_TYPE_VALIDATORS[field.type as PropertyType];
+      if (validator && !validator.isValid(strVal)) {
+        errors[field.key] = t(validator.hintKey);
       }
     }
     setValidationErrors(errors);
