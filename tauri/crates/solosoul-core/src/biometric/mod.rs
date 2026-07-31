@@ -1096,7 +1096,11 @@ mod tests {
         ];
         for err in &errors {
             let display = err.to_string();
-            assert!(!display.is_empty(), "Display for {:?} should not be empty", err);
+            assert!(
+                !display.is_empty(),
+                "Display for {:?} should not be empty",
+                err
+            );
             let code = err.code();
             assert!(!code.is_empty(), "code() for {:?} should not be empty", err);
         }
@@ -1130,13 +1134,21 @@ mod tests {
     fn test_default_uses_legacy_false() {
         struct TestStorage;
         impl BiometricStorage for TestStorage {
-            fn save(&self, _: &str, _: &str, _: &str) -> Result<(), BiometricError> { Ok(()) }
-            fn update(&self, _: &str, _: &str) -> Result<(), BiometricError> { Ok(()) }
+            fn save(&self, _: &str, _: &str, _: &str) -> Result<(), BiometricError> {
+                Ok(())
+            }
+            fn update(&self, _: &str, _: &str) -> Result<(), BiometricError> {
+                Ok(())
+            }
             fn read(&self, _: &str, _: &str) -> Result<String, BiometricError> {
                 Err(BiometricError::KeychainItemNotFound)
             }
-            fn delete(&self, _: &str) -> Result<(), BiometricError> { Ok(()) }
-            fn exists(&self, _: &str) -> bool { false }
+            fn delete(&self, _: &str) -> Result<(), BiometricError> {
+                Ok(())
+            }
+            fn exists(&self, _: &str) -> bool {
+                false
+            }
         }
         let storage = TestStorage;
         assert!(!storage.uses_legacy_file());

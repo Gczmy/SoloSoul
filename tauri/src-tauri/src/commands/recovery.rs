@@ -8,9 +8,7 @@ use crate::commands::export_import::export::export_execute;
 use crate::commands::export_import::import::import_execute;
 use crate::commands::export_import::{ExportRequest, ExportScope};
 use crate::state::AppState;
-use solosoul_sync::recovery::{
-    generate_recovery_password, recover_from_host, RecoveryHost,
-};
+use solosoul_sync::recovery::{generate_recovery_password, recover_from_host, RecoveryHost};
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use tauri::{Manager, State};
@@ -156,11 +154,18 @@ pub async fn recovery_host_start(
         let daemon_arc = daemon_state.get().await?;
         let guard = daemon_arc.lock().await;
         if let Some(daemon) = guard.as_ref() {
-            let instance_name = format!("recovery-{}", &info.fingerprint[..info.fingerprint.len().min(8)]);
+            let instance_name = format!(
+                "recovery-{}",
+                &info.fingerprint[..info.fingerprint.len().min(8)]
+            );
             if let Err(e) = crate::commands::discovery::recovery_advertise(
                 daemon,
                 &instance_name,
-                info.display_addr.split(':').last().and_then(|p| p.parse::<u16>().ok()).unwrap_or(0),
+                info.display_addr
+                    .split(':')
+                    .next_back()
+                    .and_then(|p| p.parse::<u16>().ok())
+                    .unwrap_or(0),
                 &info.pin,
                 &info.fingerprint,
                 &info.nonce,
@@ -225,11 +230,17 @@ pub async fn recovery_host_cancel(state: State<'_, AppState>) -> Result<(), Stri
         #[cfg(desktop)]
         {
             use tauri::Manager;
-            if let Some(daemon_state) = state.handle.try_state::<crate::commands::discovery::SharedDaemon>() {
+            if let Some(daemon_state) = state
+                .handle
+                .try_state::<crate::commands::discovery::SharedDaemon>()
+            {
                 if let Ok(daemon_arc) = daemon_state.get().await {
                     let guard = daemon_arc.lock().await;
                     if let Some(daemon) = guard.as_ref() {
-                        let _ = crate::commands::discovery::recovery_stop_advertise(daemon, &instance_name);
+                        let _ = crate::commands::discovery::recovery_stop_advertise(
+                            daemon,
+                            &instance_name,
+                        );
                     }
                 }
             }
