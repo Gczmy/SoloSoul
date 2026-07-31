@@ -74,14 +74,6 @@ export interface AccountInfo {
   hasPinHistory?: boolean;
 }
 
-export interface ProfileSummary {
-  id: string;
-  name: string;
-  createdAt: string;
-  updatedAt: string;
-  version: number;
-}
-
 export interface Profile {
   id: string;
   name: string;

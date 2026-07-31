@@ -5,13 +5,6 @@
  * 避免前后端序列化细节不一致导致误判。
  */
 
-export interface TemplateSyncStatus {
-  needsSync: boolean;
-  currentHash?: string;
-  latestHash?: string;
-  templateExists: boolean;
-}
-
 export interface SyncFieldInfo {
   id: string;
   name: string;

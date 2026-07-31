@@ -51,28 +51,3 @@ pub async fn llm_test_provider(
     let text = request::extract_response_text(&result, &api_type).unwrap_or("ok".to_string());
     Ok(text)
 }
-
-#[tauri::command]
-pub async fn llm_send_message(
-    base_url: String,
-    api_key: String,
-    model: String,
-    api_type: ApiType,
-    messages: Vec<serde_json::Value>,
-) -> Result<String, String> {
-    let client = reqwest::Client::builder()
-        .timeout(std::time::Duration::from_secs(30))
-        .build()
-        .map_err(|e| format!("Client: {}", e))?;
-
-    let url = request::build_api_url(&base_url, &api_type);
-    let body = request::build_request_body(&model, messages, &api_type, DEFAULT_MAX_TOKENS, false);
-    let result = request::send_json_request(&client, &url, &body, &api_key, &api_type).await?;
-    request::extract_response_text(&result, &api_type).ok_or_else(|| {
-        let raw = result.to_string();
-        format!(
-            "No response — raw: {}",
-            &raw[..MAX_PREVIEW_CHARS.min(raw.len())]
-        )
-    })
-}

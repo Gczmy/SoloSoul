@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { downloadDir } from '@tauri-apps/api/path';
-import { open as openDialog } from '@tauri-apps/plugin-dialog';
+import { openWithPause } from '@/lib/dialog';
 import { FolderOpen } from 'lucide-react';
 import { invoke } from '@tauri-apps/api/core';
 import { ExpandableSection } from './shared/ExpandableSection';
@@ -189,8 +189,8 @@ export function WatermarkPluginConfig({ onParamsChange }: WatermarkPluginConfigP
   };
 
   const handleChangeOutputDir = async () => {
-    const dir = await openDialog({ directory: true });
-    if (dir) setOutputDir(dir);
+    const dir = await openWithPause({ directory: true });
+    if (dir && typeof dir === 'string') setOutputDir(dir);
   };
 
   const handleColorChange = (index: number, value: number) => {

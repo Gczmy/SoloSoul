@@ -21,7 +21,10 @@ ACL_TOML = ROOT / "src-tauri" / "permissions" / "solo-soul" / "default.toml"
 
 def extract_handler_commands() -> set[str]:
     text = LIB_RS.read_text(encoding="utf-8")
-    m = re.search(r"generate_handler!\s*\[(.*?)\]", text, re.S)
+    # 平衡括号匹配：handler 块内可能含 `#[cfg(...)]` 属性（其中有 `]`），
+    # 非贪婪 `(.*?)\]` 会提前截断导致后续命令（如 desktop_check_update）
+    # 被误判为未注册。这里允许一层嵌套的 `[...]`（属性/数组字面量）。
+    m = re.search(r"generate_handler!\s*\[((?:[^\[\]]|\[[^\[\]]*\])*)\]", text, re.S)
     if not m:
         print("ERROR: 未在 lib.rs 中找到 generate_handler! 块", file=sys.stderr)
         sys.exit(2)

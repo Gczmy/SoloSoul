@@ -156,18 +156,6 @@ pub async fn llm_save_conversation(
 }
 
 #[tauri::command]
-pub async fn llm_delete_conversation(
-    state: State<'_, AppState>,
-    account_id: String,
-    conversation_id: String,
-) -> Result<(), String> {
-    let vault = vault_handle(&state)?;
-    let mut convs = load_conversations(&vault, &account_id)?;
-    convs.retain(|c| c.id != conversation_id);
-    save_conversations(&vault, &account_id, &convs)
-}
-
-#[tauri::command]
 pub async fn llm_soft_delete_conversation(
     state: State<'_, AppState>,
     account_id: String,

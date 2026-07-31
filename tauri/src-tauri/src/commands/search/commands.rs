@@ -1,6 +1,10 @@
 use super::*;
 use solosoul_core::{collect_protected_field_keys, is_protected_sensitivity};
 
+/// 高级搜索实现。
+///
+/// 返回 `(SearchResult, 全量已解密 records)`：调用方（`search_unified`）可复用
+/// 第二次全表扫描进行模板归属过滤，避免对全部对象做两次 AES 解密（P007）。
 async fn search_advanced_impl(
     state: &AppState,
     account_id: &str,
@@ -8,16 +12,23 @@ async fn search_advanced_impl(
     collection_type: Option<String>,
     sensitivity_level: Option<String>,
     limit: Option<usize>,
-) -> Result<SearchResult, String> {
-    if query.trim().is_empty() {
-        return Ok(SearchResult {
-            items: vec![],
-            total: 0,
-            has_more: false,
-        });
-    }
-
+) -> Result<(SearchResult, Vec<solosoul_vault::ObjectRecord>), String> {
     let vault = vault_handle(state)?;
+
+    // 空查询时仅返回空结果，但保留全量 records 供调用方模板展开（行为与旧实现一致：
+    // 旧代码在空查询时也会走 list_objects 全表扫描做模板归属过滤）。
+    let q = query.to_lowercase();
+    if q.is_empty() {
+        let all_records = vault.list_object_records(account_id)?;
+        return Ok((
+            SearchResult {
+                items: vec![],
+                total: 0,
+                has_more: false,
+            },
+            all_records,
+        ));
+    }
 
     // Pre-load user templates so we can aggregate field-level sensitivities
     // and resolve field labels without N+1 queries.
@@ -27,11 +38,14 @@ async fn search_advanced_impl(
         .map(|t| (t.id.clone(), t))
         .collect();
 
-    let q = query.to_lowercase();
-    let records = vault.search_objects(account_id, &q)?;
+    // 单次全表解密扫描：内存过滤出查询命中项，同时把全量 records 交回调用方复用。
+    let all_records = vault.list_object_records(account_id)?;
+
     let mut items: Vec<SearchResultItem> = Vec::new();
 
-    for rec in &records {
+    for rec in all_records.iter().filter(|r| {
+        r.name.to_lowercase().contains(&q) || r.properties.to_string().to_lowercase().contains(&q)
+    }) {
         // Apply collection_type filter
         if let Some(ref filter_ct) = collection_type {
             if &rec.type_id != filter_ct {
@@ -153,31 +167,14 @@ async fn search_advanced_impl(
     let has_more = items.len() > limit;
     items.truncate(limit);
     let total = items.len();
-    Ok(SearchResult {
-        items,
-        total,
-        has_more,
-    })
-}
-
-#[tauri::command]
-pub async fn search_advanced(
-    state: State<'_, AppState>,
-    account_id: String,
-    query: String,
-    collection_type: Option<String>,
-    sensitivity_level: Option<String>,
-    limit: Option<usize>,
-) -> Result<SearchResult, String> {
-    search_advanced_impl(
-        &state,
-        &account_id,
-        &query,
-        collection_type,
-        sensitivity_level,
-        limit,
-    )
-    .await
+    Ok((
+        SearchResult {
+            items,
+            total,
+            has_more,
+        },
+        all_records,
+    ))
 }
 
 #[tauri::command]
@@ -269,8 +266,10 @@ pub async fn search_unified(
         });
     }
 
-    // 有关键词时走高级搜索（返回对象），再合并页面结果
-    let mut object_result = search_advanced_impl(
+    // 有关键词时走高级搜索（返回对象），再合并页面结果。
+    // `all_records` 为已解密的全量对象记录，模板归属过滤直接复用它，
+    // 避免对全部对象做第二次全表解密（P007）。
+    let (mut object_result, all_records) = search_advanced_impl(
         &state,
         &account_id,
         &query,
@@ -301,46 +300,44 @@ pub async fn search_unified(
             object_result.items.extend(templates);
         }
 
-        // 如果模板匹配，查找使用这些模板的对象（即使名称/字段不包含查询词）
-        if !matched_templates.is_empty() {
-            if let Ok(all_objects) = vault.list_objects(&account_id, None, None, None, false, false)
-            {
-                let existing_ids: std::collections::HashSet<String> = object_result
-                    .items
-                    .iter()
-                    .map(|i| i.object_id.clone())
-                    .collect();
+        // 如果模板匹配，查找使用这些模板的对象（即使名称/字段不包含查询词）。
+        // 复用 search_advanced_impl 已解密的全量 records，不再二次 list_objects。
+        if !matched_templates.is_empty() && !all_records.is_empty() {
+            let existing_ids: std::collections::HashSet<String> = object_result
+                .items
+                .iter()
+                .map(|i| i.object_id.clone())
+                .collect();
 
-                for obj in all_objects {
-                    if existing_ids.contains(&obj.id) {
+            for obj in &all_records {
+                if existing_ids.contains(&obj.id) {
+                    continue;
+                }
+                // 如果指定了 collectionType 过滤，仅添加属于该页面的对象
+                if let Some(ref ct) = collection_type {
+                    if obj.type_id != *ct {
                         continue;
                     }
-                    // 如果指定了 collectionType 过滤，仅添加属于该页面的对象
-                    if let Some(ref ct) = collection_type {
-                        if obj.collection_type != *ct {
-                            continue;
-                        }
-                    }
-                    if let Some(ref tid) = obj.template_id {
-                        if let Some(tpl_name) = matched_templates.get(tid) {
-                            let field_count = count_object_fields(&obj.properties);
-                            object_result.items.push(SearchResultItem {
-                                object_id: obj.id,
-                                name: obj.name,
-                                collection_type: obj.collection_type,
-                                template_name: Some(tpl_name.clone()),
-                                template_deleted: false,
-                                item_type: "object".to_string(),
-                                parent_id: None,
-                                field_count: Some(field_count),
-                                sensitivity_levels: Some(vec![obj.sensitivity_level]),
-                                object_count: None,
-                                matched_field: Some("template".to_string()),
-                                matched_value: Some(tpl_name.clone()),
-                                match_type: Some("template".to_string()),
-                                relevance: SCORE_PARTIAL_NAME,
-                            });
-                        }
+                }
+                if let Some(ref tid) = obj.template_id {
+                    if let Some(tpl_name) = matched_templates.get(tid) {
+                        let field_count = count_object_fields(&obj.properties);
+                        object_result.items.push(SearchResultItem {
+                            object_id: obj.id.clone(),
+                            name: obj.name.clone(),
+                            collection_type: obj.type_id.clone(),
+                            template_name: Some(tpl_name.clone()),
+                            template_deleted: false,
+                            item_type: "object".to_string(),
+                            parent_id: obj.parent_id.clone(),
+                            field_count: Some(field_count),
+                            sensitivity_levels: Some(vec![obj.sensitivity_level.clone()]),
+                            object_count: None,
+                            matched_field: Some("template".to_string()),
+                            matched_value: Some(tpl_name.clone()),
+                            match_type: Some("template".to_string()),
+                            relevance: SCORE_PARTIAL_NAME,
+                        });
                     }
                 }
             }

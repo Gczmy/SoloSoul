@@ -2522,13 +2522,41 @@ impl VaultStore {
         Ok(())
     }
 
-    pub fn search_objects(
+    /// Count non-deleted objects for an account, optionally filtered by type or parent.
+    /// Pure SQL COUNT — does not decrypt any payload (search pagination N+1 fix).
+    pub fn count_objects(
         &self,
         account_id: &str,
-        query: &str,
-    ) -> Result<Vec<ObjectRecord>, String> {
+        type_id: Option<&str>,
+        parent_id: Option<&str>,
+    ) -> Result<usize, String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        let mut sql =
+            String::from("SELECT COUNT(*) FROM objects WHERE account_id = ?1 AND is_deleted = 0");
+        let mut params: Vec<String> = vec![account_id.to_string()];
+        if let Some(t) = type_id {
+            params.push(t.to_string());
+            sql.push_str(" AND type_id = ?");
+            sql.push_str(&params.len().to_string());
+        }
+        if let Some(p) = parent_id {
+            params.push(p.to_string());
+            sql.push_str(" AND parent_id = ?");
+            sql.push_str(&params.len().to_string());
+        }
+        let count: i64 = conn
+            .query_row(&sql, rusqlite::params_from_iter(params.iter()), |r| {
+                r.get(0)
+            })
+            .map_err(|e| format!("count_objects: {}", e))?;
+        Ok(count as usize)
+    }
+
+    /// Load full object records (decrypted) for an account without query filtering.
+    /// Single full-table scan shared by advanced search and template-membership expansion.
+    pub fn list_object_records(&self, account_id: &str) -> Result<Vec<ObjectRecord>, String> {
         let key = self.data_key()?;
-        let lower_query = query.to_lowercase();
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         // properties 已加密，无法使用 SQL LIKE。所有匹配在解密后的内存数据上进行。
@@ -2537,7 +2565,7 @@ impl VaultStore {
                 "SELECT {} FROM objects WHERE account_id = ?1 AND is_deleted = 0 ORDER BY updated_at DESC",
                 OBJECT_COLUMNS
             ))
-            .map_err(|e| format!("search_objects: {}", e))?;
+            .map_err(|e| format!("list_object_records: {}", e))?;
         let results = stmt
             .query_map(params![account_id], |row| {
                 let children_str: String = row.get(7)?;
@@ -2599,11 +2627,22 @@ impl VaultStore {
                     version: row.get(21)?,
                 })
             })
-            .map_err(|e| format!("search_objects query: {}", e))?
+            .map_err(|e| format!("list_object_records query: {}", e))?
             .collect::<Result<Vec<_>, _>>()
-            .map_err(|e| format!("search_objects collect: {}", e))?;
+            .map_err(|e| format!("list_object_records collect: {}", e))?;
+        Ok(results)
+    }
 
-        let filtered: Vec<ObjectRecord> = results
+    /// Search objects by name or serialized properties (case-insensitive).
+    /// Performs one full scan via [`Self::list_object_records`] and filters in memory.
+    pub fn search_objects(
+        &self,
+        account_id: &str,
+        query: &str,
+    ) -> Result<Vec<ObjectRecord>, String> {
+        let lower_query = query.to_lowercase();
+        let results = self.list_object_records(account_id)?;
+        Ok(results
             .into_iter()
             .filter(|r| {
                 r.name.to_lowercase().contains(&lower_query)
@@ -2612,8 +2651,7 @@ impl VaultStore {
                         .to_lowercase()
                         .contains(&lower_query)
             })
-            .collect();
-        Ok(filtered)
+            .collect())
     }
 
     // ── Trash CRUD (§23) ────────────────────────────────────

@@ -354,12 +354,21 @@ pub async fn llm_search_guide_chunks(
 
     scored.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap_or(std::cmp::Ordering::Equal));
 
+    // 一次性读取指南文件并建立 guide_id → title 映射，避免在 top_k 循环内
+    // 反复 chunk_all_guides（每条结果都把全部指南文件完整读一遍）。
+    let titles: std::collections::HashMap<String, String> = chunk_all_guides(&language)
+        .map(|raws| {
+            raws.into_iter()
+                .map(|r| (r.guide_id, r.guide_title))
+                .collect()
+        })
+        .unwrap_or_default();
+
     let mut results = Vec::new();
     for (sim, chunk) in scored.into_iter().take(top_k) {
-        let guide_title = chunk_all_guides(&language)
-            .ok()
-            .and_then(|raws| raws.into_iter().find(|r| r.guide_id == chunk.guide_id))
-            .map(|r| r.guide_title)
+        let guide_title = titles
+            .get(&chunk.guide_id)
+            .cloned()
             .unwrap_or_else(|| chunk.guide_id.clone());
 
         results.push(GuideChunk {
@@ -870,86 +879,5 @@ pub async fn llm_check_embedding_available(
             eprintln!("[RAG] No embedding source: {}", e);
             Ok(false)
         }
-    }
-}
-
-/// Ensure guide embeddings are built on app startup.
-/// Called from app setup. Non-blocking, errors are logged only.
-#[allow(clippy::await_holding_lock)]
-pub async fn ensure_guide_embeddings_built(state: &AppState, account_id: &str, language: &str) {
-    let result = async {
-        let models_dir = state
-            .handle
-            .path()
-            .resolve("models", tauri::path::BaseDirectory::LocalData)
-            .map_err(|e| format!("Resolve models dir: {}", e))?;
-
-        let svc = state
-            .vault_service
-            .read()
-            .map_err(|_| "Vault service lock poisoned".to_string())?;
-        let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
-        let vault = vg.as_ref();
-
-        if !needs_rebuild(vault, language)? {
-            return Ok::<(), String>(());
-        }
-
-        let source = match get_embedding_source(vault, account_id, &models_dir) {
-            Ok(s) => s,
-            Err(e) => {
-                eprintln!("[RAG] Cannot build embeddings: {}", e);
-                return Ok(());
-            }
-        };
-
-        let model_name = match &source {
-            EmbeddingSource::Cloud { model, .. } => model.clone(),
-            EmbeddingSource::Local { model_id } => model_id.clone(),
-        };
-
-        let raw_chunks = chunk_all_guides(language)?;
-        if raw_chunks.is_empty() {
-            return Ok(());
-        }
-
-        vault.clear_guide_embeddings()?;
-        drop(vg);
-        drop(svc);
-
-        let texts: Vec<String> = raw_chunks.iter().map(|c| c.text.clone()).collect();
-        let embeddings = embed_texts(source, models_dir, texts).await?;
-
-        let svc = state
-            .vault_service
-            .read()
-            .map_err(|_| "Vault service lock poisoned".to_string())?;
-        let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
-        let vault = vg.as_ref();
-
-        let now = chrono::Utc::now().to_rfc3339();
-        for (raw, mut vec) in raw_chunks.into_iter().zip(embeddings) {
-            normalize_vector(&mut vec);
-            let chunk = solosoul_vault::GuideEmbeddingChunk {
-                id: format!("{}_{}", raw.guide_id, raw.chunk_index),
-                guide_id: raw.guide_id,
-                chunk_index: raw.chunk_index as i32,
-                chunk_text: raw.text,
-                embedding: vec.to_vec(),
-                model: model_name.clone(),
-                created_at: now.clone(),
-            };
-            vault.save_guide_embedding(&chunk)?;
-        }
-
-        mark_rebuilt(vault, language)?;
-        let count = vault.count_guide_embeddings()?;
-        eprintln!("[RAG] Built {} guide embeddings", count);
-        Ok(())
-    }
-    .await;
-
-    if let Err(e) = result {
-        eprintln!("[RAG] Failed to build embeddings: {}", e);
     }
 }

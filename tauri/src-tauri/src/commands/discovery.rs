@@ -69,6 +69,11 @@ impl SharedDaemon {
 }
 
 /// 通过 mDNS 发现的恢复主机信息。
+///
+/// 安全约束：mDNS TXT 广播**不携带** PIN 与 nonce（二者仅经 QR 码/手动输入
+/// 带外传递）。此前将 PIN+nonce 写入明文 TXT，局域网内任意主机浏览
+/// `_solosoul_recovery._tcp.local.` 即可直接通过认证下载恢复包（完整 Vault
+/// 失陷）。发现到主机后，PIN 由用户从主机屏幕/QR 手动输入。
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct RecoveryDiscoveredHost {
@@ -76,12 +81,8 @@ pub struct RecoveryDiscoveredHost {
     pub name: String,
     /// 连接地址（host:port）。
     pub addr: String,
-    /// 6 位数字 PIN。
-    pub pin: String,
     /// 主机公钥指纹（用于 MITM 验证）。
     pub fingerprint: String,
-    /// 一次性 nonce（用于认证）。
-    pub nonce: String,
 }
 
 #[derive(Serialize)]
@@ -193,53 +194,25 @@ pub async fn mdns_discover(
     }
 }
 
-#[cfg(desktop)]
-#[tauri::command]
-pub async fn mdns_advertise(
-    daemon: tauri::State<'_, SharedDaemon>,
-    device_name: String,
-    port: u16,
-) -> Result<(), String> {
-    let daemon_arc = daemon.get().await?;
-    let guard = daemon_arc.lock().await;
-    let daemon = guard.as_ref().ok_or("mDNS daemon not initialized")?;
-
-    let service = ServiceInfo::new(
-        MDNS_SERVICE_TYPE,
-        &device_name,
-        &format!("{}.local.", device_name),
-        "",
-        port,
-        std::collections::HashMap::<String, String>::new(),
-    )
-    .map_err(|e| format!("ServiceInfo: {}", e))?;
-
-    daemon
-        .register(service)
-        .map_err(|e| format!("Register: {}", e))?;
-    Ok(())
-}
-
 // ── 恢复 mDNS 广告与发现 ────────────────────────────────────────────────────
 
 /// 注册恢复主机的 mDNS 广告（让新设备能通过局域网发现本机）。
 ///
 /// 广告的服务类型为 `_solosoul_recovery._tcp.local.`，与同步服务区分。
-/// TXT 记录包含 addr、PIN、fingerprint 和 nonce，供接收端直接连接。
+/// TXT 记录**只包含 addr 与 fingerprint**——PIN 与 nonce 属于认证凭证，
+/// 仅经 QR 码/手动输入带外传递。此前把 pin+nonce 明文广播到局域网，
+/// 任何浏览 `_solosoul_recovery._tcp.local.` 的主机都能直接通过认证并
+/// 下载整个 Vault 的恢复包（P001）。
 #[cfg(desktop)]
 pub fn recovery_advertise(
     daemon: &ServiceDaemon,
     instance_name: &str,
     port: u16,
-    pin: &str,
     fingerprint: &str,
-    nonce: &str,
     addr: &str,
 ) -> Result<(), String> {
     let mut txt = std::collections::HashMap::<String, String>::new();
-    txt.insert("pin".to_string(), pin.to_string());
     txt.insert("fp".to_string(), fingerprint.to_string());
-    txt.insert("nonce".to_string(), nonce.to_string());
     txt.insert("addr".to_string(), addr.to_string());
 
     let service = ServiceInfo::new(
@@ -269,8 +242,9 @@ pub fn recovery_stop_advertise(daemon: &ServiceDaemon, instance_name: &str) -> R
 
 /// 发现局域网中的恢复主机。
 ///
-/// 返回按名称排序的 `RecoveryDiscoveredHost` 列表，每个元素包含从 TXT 记录解析的
-/// addr、PIN、fingerprint 和 nonce，接收端可直接用于 `recovery_restore_from_host`。
+/// 返回按名称排序的 `RecoveryDiscoveredHost` 列表。TXT 记录只携带
+/// addr 与 fingerprint（P001：不再广播 PIN/nonce），因此接收端需要
+/// 用户手动输入主机屏幕/QR 上的 6 位 PIN 后才能发起 `recovery_restore_from_host`。
 #[cfg(desktop)]
 #[tauri::command]
 pub async fn recovery_discover_hosts(
@@ -294,17 +268,8 @@ pub async fn recovery_discover_hosts(
             receiver.recv_timeout(std::time::Duration::from_millis(MDNS_POLL_INTERVAL_MS))
         {
             let props = info.get_properties();
-            let pin = props.get("pin").map(|v| v.to_string()).unwrap_or_default();
             let fingerprint = props.get("fp").map(|v| v.to_string()).unwrap_or_default();
-            let nonce = props
-                .get("nonce")
-                .map(|v| v.to_string())
-                .unwrap_or_default();
             let addr = props.get("addr").map(|v| v.to_string()).unwrap_or_default();
-
-            if pin.is_empty() || addr.is_empty() {
-                continue; // 不完整的信息，跳过
-            }
 
             let addresses: Vec<String> =
                 info.get_addresses().iter().map(|a| a.to_string()).collect();
@@ -326,9 +291,7 @@ pub async fn recovery_discover_hosts(
             hosts.push(RecoveryDiscoveredHost {
                 name: display_name,
                 addr: connect_addr,
-                pin,
                 fingerprint,
-                nonce,
             });
         }
     }
@@ -372,52 +335,6 @@ pub fn register_sync_service_blocking(
         account_id,
         fingerprint,
     })
-}
-
-/// 移动端注册 NSD 服务（供 sync_enable 内部调用，避免命令间重复逻辑）。
-#[cfg(mobile)]
-pub async fn register_sync_service(
-    app: &tauri::AppHandle,
-    device_name: String,
-    port: u16,
-) -> Result<(), String> {
-    use crate::commands::current_account_optional;
-    use tauri::Manager;
-
-    let (account_id, fingerprint) = {
-        let state = app.state::<crate::state::AppState>();
-        let account_id = current_account_optional(&state).unwrap_or_default();
-        let fp = state
-            .sync_service
-            .local_fingerprint()
-            .await
-            .unwrap_or_default();
-        (account_id, fp)
-    };
-
-    if account_id.is_empty() {
-        return Err("Cannot advertise sync service: no unlocked account".to_string());
-    }
-
-    let handle = app.state::<crate::nsd_plugin::NsdPluginHandle<tauri::Wry>>();
-    handle.register_service(crate::nsd_plugin::RegisterServicePayload {
-        port,
-        node_id: device_name,
-        account_id,
-        fingerprint,
-    })?;
-    Ok(())
-}
-
-#[cfg(mobile)]
-#[tauri::command]
-pub async fn mdns_advertise(
-    app: tauri::AppHandle,
-    _daemon: tauri::State<'_, SharedDaemon>,
-    device_name: String,
-    port: u16,
-) -> Result<(), String> {
-    register_sync_service(&app, device_name, port).await
 }
 
 #[cfg(test)]

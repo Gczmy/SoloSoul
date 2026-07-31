@@ -23,7 +23,7 @@ import {
 import { useOcrScanStore } from '@/stores/ocrScanStore';
 import { usePluginQuickStore } from '@/stores/pluginQuickStore';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { useVaultStore } from '@/stores/vaultStore';
+import { useAuthStore } from '@/stores/authStore';
 import { useSidebarHoverStore } from '@/stores/sidebarHoverStore';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
 import type { CustomPage } from '@/stores/settingsStore';
@@ -44,7 +44,7 @@ export function TopFunctionBar({
   const { t } = useTranslation('navigation');
   const activeCustomPages = useActiveCustomPages();
   const { items, showSearch, setShowSearch } = useBoundNavActions();
-  const vaultLock = useVaultStore((s) => s.lock);
+  const vaultLock = useAuthStore((s) => s.lock);
 
   // ── Card states ─────────────────────────────────────────────────
   const isOcrCardOpen = useOcrScanStore((s) => s.isCardOpen);

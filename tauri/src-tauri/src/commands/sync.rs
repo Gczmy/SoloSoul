@@ -1,8 +1,6 @@
 use crate::state::AppState;
 use serde::Serialize;
-#[cfg(mobile)]
-use tauri::Manager;
-use tauri::{Emitter, State};
+use tauri::{Emitter, Manager, State};
 
 /// 记录同步相关操作日志。Vault 未解锁时静默跳过（同步服务本身不依赖 Vault）。
 fn log_sync_action(
@@ -458,7 +456,22 @@ pub async fn sync_resolve_conflict(
 #[cfg(desktop)]
 #[tauri::command]
 pub async fn sync_enable(state: State<'_, AppState>, enable: bool) -> Result<(), String> {
-    state.sync_service.enable(enable).await?;
+    // P013：进程内只保留一个 mDNS daemon。把 discovery 命令共用的 SharedDaemon
+    // 注入 SyncService，避免 SyncManager 再自建一个 daemon 造成双 daemon 并存。
+    let shared_daemon = if enable {
+        let daemon_state = state
+            .handle
+            .state::<crate::commands::discovery::SharedDaemon>();
+        let daemon_arc = daemon_state.get().await?;
+        let guard = daemon_arc.lock().await;
+        guard.as_ref().cloned()
+    } else {
+        None
+    };
+    state
+        .sync_service
+        .enable_with_daemon(enable, shared_daemon)
+        .await?;
     log_sync_action(
         &state,
         if enable {

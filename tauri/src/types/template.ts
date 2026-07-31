@@ -59,14 +59,3 @@ export interface UserTemplate {
   contractTypeId?: string;
 }
 
-/** Frontend-only helper: map from backend snake_case to frontend camelCase */
-export interface UserTemplateRaw {
-  id: string;
-  account_id: string;
-  name: string;
-  icon_id?: string;
-  properties: TemplateProperty[];
-  category?: string;
-  created_at: string;
-  updated_at?: string;
-}

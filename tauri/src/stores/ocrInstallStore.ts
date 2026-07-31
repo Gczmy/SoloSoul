@@ -23,9 +23,6 @@ interface OcrInstallState {
   reset: () => void;
 }
 
-// P215: centralized in @/lib/storageKeys
-export const OCR_STORAGE_KEY = ST_OCR_FIRST_INSTALL;
-
 export function isOcrFirstInstallDone(): boolean {
   try {
     return localStorage.getItem(ST_OCR_FIRST_INSTALL) === 'true';

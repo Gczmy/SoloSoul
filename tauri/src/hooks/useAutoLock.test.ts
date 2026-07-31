@@ -16,7 +16,6 @@ import { invoke, addPluginListener } from '@tauri-apps/api/core';
 import { useAutoLock } from './useAutoLock';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { useVaultStore } from '@/stores/vaultStore';
 import { useAutoLockPauseStore } from '@/stores/autoLockPauseStore';
 
 const MIN = 60_000;
@@ -39,7 +38,6 @@ describe('useAutoLock', () => {
     vi.mocked(invoke).mockResolvedValue(undefined);
     vi.mocked(addPluginListener).mockResolvedValue({ unregister: vi.fn() } as never);
     useAuthStore.setState({ isAuthenticated: true });
-    useVaultStore.setState({ vaultState: 'unlocked' });
     useAutoLockPauseStore.setState({ pauseCount: 0 });
     setTimeoutMinutes(5);
     setAutoLockOnBackground(true);

@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Copy, Check, Eye, Download } from 'lucide-react';
-import { open } from '@tauri-apps/plugin-shell';
+import { invoke } from '@tauri-apps/api/core';
 import { saveWithPause, openWithPause } from '@/lib/dialog';
 import { copyFile } from '@tauri-apps/plugin-fs';
 import { join } from '@tauri-apps/api/path';
@@ -329,9 +329,14 @@ function WatermarkResultContent({
   };
 
   const handlePreview = async (path: string) => {
+    // P004：插件返回的 outputPath 属不可信数据，不能直接 shell open（可执行任意
+    // 本地文件）。改由 Rust 命令 `plugin_open_output_file` 做 canonical 路径包含
+    // 校验（须位于 payload.outputDir 之内）后才用系统默认应用打开。
     try {
-      const fileUrl = new URL(path.replace(/\\/g, '/'), 'file://').href;
-      await open(fileUrl);
+      await invoke('plugin_open_output_file', {
+        outputDir: payload.outputDir,
+        path,
+      });
     } catch {
       // silent in sidebar
     }

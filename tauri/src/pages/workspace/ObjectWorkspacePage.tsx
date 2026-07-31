@@ -25,6 +25,11 @@ import { logger } from '@/lib/logger';
 
 // Labels resolved at render time via t() so they support i18n
 import { DEBOUNCE_DELAY_MS } from '@/lib/constants';
+
+// P011: 对象卡片列表分页大小。注意：分页仅优化 DOM 挂载，
+// snapshot/attachment 计数 IPC 仍对全量 visibleObjects 批量请求（单次 batch，成本可控）。
+const OBJECT_PAGE_SIZE = 50;
+
 import { HistoryViewer } from '@/components/object/HistoryViewer';
 import { AttachmentViewer } from '@/components/object/AttachmentViewer';
 import { TemplateSyncConfirmDialog } from '@/components/object/TemplateSyncConfirmDialog';
@@ -145,17 +150,23 @@ export function ObjectWorkspacePage() {
   }, [detailHashNeedsSync, detailObj, accountId]);
 
   const { t } = useTranslation(['common', 'navigation', 'editor']);
-  const {
-    objects,
-    loadObjects,
-    deleteObject,
-    previewSyncTemplate,
-    applySyncTemplate,
-    ignoreTemplateSync,
-    loadDeprecatedFields,
-    isLoading,
-    error,
-  } = useObjectStore();
+  // P010: 字段级 selector 订阅，避免整店订阅导致任何 store 变化都触发整页重渲染。
+  const objects = useObjectStore((s) => s.objects);
+  const isLoading = useObjectStore((s) => s.isLoading);
+  const error = useObjectStore((s) => s.error);
+  const loadObjects = useObjectStore((s) => s.loadObjects);
+  const deleteObject = useObjectStore((s) => s.deleteObject);
+  const previewSyncTemplate = useObjectStore((s) => s.previewSyncTemplate);
+  const applySyncTemplate = useObjectStore((s) => s.applySyncTemplate);
+  const ignoreTemplateSync = useObjectStore((s) => s.ignoreTemplateSync);
+  const loadDeprecatedFields = useObjectStore((s) => s.loadDeprecatedFields);
+
+  // P011: 对象卡片列表分页「加载更多」，避免数百个对象一次全量挂载。
+  const [visibleLimit, setVisibleLimit] = useState(OBJECT_PAGE_SIZE);
+  // 搜索词或页面变化时重置分页游标。
+  useEffect(() => {
+    setVisibleLimit(OBJECT_PAGE_SIZE);
+  }, [debouncedSearchQuery, pageId, sectionFilter]);
   const customPages = useSettingsStore((s) => s.settings.customPages);
   const activeCustomPages = customPages.filter((p) => !p.deletedAt);
   const removeCustomPage = useSettingsStore((s) => s.removeCustomPage);
@@ -800,7 +811,7 @@ export function ObjectWorkspacePage() {
           )}
           {!isLoading && visibleObjects.length > 0 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--card-gap-sm)' }}>
-              {visibleObjects.map((obj) => (
+              {visibleObjects.slice(0, visibleLimit).map((obj) => (
                 <WorkspaceObjectCard
                   key={obj.id}
                   obj={obj}
@@ -833,6 +844,16 @@ export function ObjectWorkspacePage() {
                   }
                 />
               ))}
+              {visibleObjects.length > visibleLimit && (
+                <Button
+                  variant="tertiary"
+                  size="sm"
+                  onClick={() => setVisibleLimit((n) => n + OBJECT_PAGE_SIZE)}
+                  style={{ marginTop: 4 }}
+                >
+                  {t('load_more', { defaultValue: '加载更多' })}
+                </Button>
+              )}
             </div>
           )}
 

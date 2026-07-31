@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { useVaultStore } from '@/stores/vaultStore';
 import { useAutoLockPauseStore } from '@/stores/autoLockPauseStore';
 import { sendSystemNotificationWithFallback } from '@/lib/notification';
 import { addPluginListener, type PluginListener } from '@tauri-apps/api/core';
@@ -19,8 +18,8 @@ const ACTIVITY_THROTTLE_MS = 1_000;
 /**
  * 自动锁定 —— 已认证且 `autoLockTimeoutMinutes > 0` 时生效。
  *
- * - 无用户活动超过阈值后调用 `vaultStore.lock()`，后续清理由
- *   Rust 端 `vault-locked` 事件的既有监听链（AppRoutes）完成。
+ * - 无用户活动超过阈值后调用 `authStore.lock()`，乐观重置认证状态；
+ *   后续清理由 Rust 端 `vault-locked` 事件的既有监听链（AppRoutes）兜底完成。
  * - 移动端切后台 / 系统休眠期间定时器可能被挂起，因此在
  *   `visibilitychange` 回到前台时立即结算一次，隐藏时间计入闲置。
  * - `autoLockPauseStore` 计数 > 0（如密码验证框打开）期间暂停闲置累计。
@@ -66,7 +65,7 @@ export function useAutoLock(): void {
           );
         }
 
-        useVaultStore
+        useAuthStore
           .getState()
           .lock()
           .catch((err) => logger.error('[useAutoLock] lock failed:', err));
@@ -90,7 +89,7 @@ export function useAutoLock(): void {
           logger.error('[useAutoLock] notification failed:', err),
         );
       }
-      useVaultStore
+      useAuthStore
         .getState()
         .lock()
         .catch((err) => logger.error('[useAutoLock] lock failed:', err));
@@ -109,7 +108,7 @@ export function useAutoLock(): void {
           if (pending) {
             if (lockInitiated) return;
             lockInitiated = true;
-            useVaultStore.getState().lock().catch((err) =>
+            useAuthStore.getState().lock().catch((err) =>
               logger.error('[useAutoLock] lock failed:', err),
             );
             invoke('dismiss_lock_mask').catch((err) =>
@@ -168,7 +167,7 @@ export function useAutoLock(): void {
     if (!isAuthenticated) return;
 
     const handleScreenLocked = () => {
-      useVaultStore
+      useAuthStore
         .getState()
         .lock()
         .catch((err) => logger.error('[useAutoLock] lock failed:', err));

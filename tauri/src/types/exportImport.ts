@@ -68,11 +68,6 @@ export interface ConflictInfo {
 
 export type ImportStrategy = 'skipExisting' | 'overwrite' | 'keepBoth';
 
-export interface ImportSelection {
-  objectId: string;
-  selected: boolean;
-}
-
 export interface ImportResult {
   objectCount: number;
   attachmentCount: number;

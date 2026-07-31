@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
-import { open } from '@tauri-apps/plugin-dialog';
+import { openWithPause } from '@/lib/dialog';
 import { AppShell } from '@/components/layout/AppShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
@@ -57,7 +57,7 @@ export function ScanLocalPage() {
 
   const handleSelectDir = async () => {
     try {
-      const dir = await open({
+      const dir = await openWithPause({
         directory: true,
         multiple: false,
         title: t('settings:scan_select_dir_title'),

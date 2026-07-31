@@ -33,6 +33,23 @@ const MAX_EXPORT_TOTAL_BYTES: u64 = 1024 * 1024 * 1024; // 1 GB
 /// ZIP 条目的最大解压大小限制（100 MB），防止 ZIP 炸弹 / OOM。
 const MAX_ZIP_ENTRY_SIZE: u64 = 100 * 1024 * 1024;
 
+/// 附件 ID 与对象 ID 允许使用的字符集，防止路径遍历（P002）。
+/// 与 `tauri/src-tauri/src/commands/attachment.rs` 的 `validate_attachment_id` 保持一致。
+fn validate_import_id(id: &str) -> Result<(), ExportError> {
+    if id.is_empty()
+        || id.len() > 64
+        || !id
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_')
+    {
+        return Err(ExportError::Msg(format!(
+            "无效的对象/附件 ID（仅允许字母数字与 -_）: {}",
+            id
+        )));
+    }
+    Ok(())
+}
+
 // ── Existing helper functions ──────────────────────────────
 
 /// 计算 UserTemplate 的内容哈希，用于判断是否是同一份"快照模板"。
@@ -820,6 +837,12 @@ fn import_attachments(
             None => continue,
         };
 
+        // P002：对象 ID 与附件 ID 来自攻击者可控的解密 payload，必须做字符集
+        // 校验后才能用于 `base_path.join("attachments").join(obj_id)`，否则 Windows
+        // 上 `..\..\evil` 可写出 Vault 目录（路径遍历）。
+        validate_import_id(obj_id)?;
+        validate_import_id(old_att_id)?;
+
         if !imported_object_ids.contains(obj_id) {
             continue;
         }
@@ -833,11 +856,10 @@ fn import_attachments(
         let dest = base_path.join("attachments").join(obj_id).join(&new_att_id);
         std::fs::create_dir_all(&dest)?;
 
-        let safe_name = Path::new(&old_meta.file_name)
-            .file_name()
-            .ok_or("附件文件名无效")?
-            .to_string_lossy()
-            .to_string();
+        // P003：落盘文件名取末段安全名，并**写回元数据**——此前元数据保留原始
+        // `file_name`（如 `../../evil.txt`），后续插件主机 `copy_attachment_to_workspace`
+        // 用原始名 join 目标目录造成存储型路径遍历。
+        let safe_name = sanitize_import_file_name(&old_meta.file_name)?;
         let file_path_dest = dest.join(&safe_name);
         let mut out_file = File::create(&file_path_dest)?;
         solosoul_crypto::cipher::decrypt_chunked_stream(&att_key, &mut f, &mut out_file)
@@ -852,7 +874,7 @@ fn import_attachments(
             .push(AttachmentMeta {
                 id: new_att_id,
                 object_id: obj_id.to_string(),
-                file_name: old_meta.file_name.clone(),
+                file_name: safe_name.clone(),
                 mime_type: old_meta.mime_type.clone(),
                 size_bytes: file_size,
                 created_at: chrono::Utc::now().to_rfc3339(),
@@ -882,6 +904,26 @@ fn import_attachments(
     }
 
     Ok(())
+}
+
+/// 净化导入附件的文件名（P003）。
+///
+/// 显式拒绝包含路径分隔符的名字（`/` 与 `\\`）——Unix 上 `\\` 不是分隔符，
+/// 仅靠 `Path::file_name()` 无法剥离 `..\\..\\evil.txt` 中的反斜杠，
+/// 因此必须平台无关地拒绝，再取末段组件作为兜底。
+fn sanitize_import_file_name(file_name: &str) -> Result<String, ExportError> {
+    if file_name.contains('/') || file_name.contains('\\') {
+        return Err(ExportError::Msg(format!("附件文件名无效: {}", file_name)));
+    }
+    let base = Path::new(file_name)
+        .file_name()
+        .ok_or("附件文件名无效")?
+        .to_string_lossy()
+        .to_string();
+    if base.is_empty() || base == "." || base == ".." {
+        return Err(ExportError::Msg(format!("附件文件名无效: {}", file_name)));
+    }
+    Ok(base)
 }
 
 /// 导入偏好设置。

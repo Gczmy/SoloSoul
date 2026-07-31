@@ -1,11 +1,8 @@
-use crate::state::AppState;
 use serde::Serialize;
 use std::fs::{self as fs_std};
-use std::io::Read;
 use std::path::{Path, PathBuf};
 #[cfg(mobile)]
 use tauri::Manager;
-use tauri::State;
 
 /// Maximum file size that can be read into memory for a data URL preview (10 MiB).
 const MAX_DATA_URL_SIZE: u64 = 10 * 1024 * 1024;
@@ -15,9 +12,6 @@ const MAX_SCAN_FILES: usize = 1_000;
 
 /// Maximum recursion depth for `fs_scan_directory`.
 const MAX_SCAN_DEPTH: u32 = 8;
-
-/// Number of objects sampled from a backup for the type-id preview.
-const BACKUP_PREVIEW_SAMPLE: usize = 30;
 
 /// Return the allowed base directory for filesystem commands.
 /// - 桌面端：优先使用 `SOLOSOUL_FS_BASE` 环境变量，否则使用用户 home 目录。
@@ -100,76 +94,6 @@ fn resolve_allowed_path<R: tauri::Runtime>(
 ) -> Result<PathBuf, String> {
     let base = allowed_fs_base(app)?;
     resolve_within(&base, path)
-}
-
-/// Inspect a backup file and return metadata about its contents
-///
-/// # OOM protection
-/// 使用流式解密（`decrypt_blob_stream`）逐块处理，避免将整个备份文件读入内存。
-/// 同时限制预览样本数为 `BACKUP_PREVIEW_SAMPLE`（30 条）。
-#[tauri::command]
-pub async fn inspect_backup<R: tauri::Runtime>(
-    #[allow(unused_variables)] app: tauri::AppHandle<R>,
-    state: State<'_, AppState>,
-    backup_path: String,
-) -> Result<String, String> {
-    let svc = state
-        .vault_service
-        .read()
-        .map_err(|_| "Vault service lock poisoned".to_string())?;
-    let session_key = svc.get_session_key().ok_or("Vault not unlocked")?;
-    let key: [u8; 32] = session_key
-        .as_slice()
-        .try_into()
-        .map_err(|_| "Invalid key")?;
-
-    let base = svc.base_path();
-    let backup = resolve_within(base, &backup_path)?;
-
-    // 文件大小上限检查（500MB 安全阈值）
-    let meta = backup.metadata().map_err(|e| format!("Metadata: {}", e))?;
-    if meta.len() > 500 * 1024 * 1024 {
-        return Err("Backup file too large (> 500 MB)".to_string());
-    }
-
-    // ── 流式读取并解密，避免将备份文件全量读入内存 ──
-    let max_read = std::cmp::min(meta.len(), 50 * 1024 * 1024) as u64;
-    let mut encrypted_reader = {
-        let file =
-            std::fs::File::open(&backup).map_err(|e| format!("Open backup failed: {}", e))?;
-        std::io::BufReader::new(file).take(max_read)
-    };
-
-    // 使用流式解密降低内存峰值。backup 的体积通常远小于 50 MB。
-    let mut decrypted_buf = Vec::new();
-    solosoul_crypto::aes::decrypt_chunked_stream(&key, &mut encrypted_reader, &mut decrypted_buf)
-        .map_err(|e| format!("Decryption failed: {}", e))?;
-    let json_str = String::from_utf8(decrypted_buf).map_err(|e| format!("Invalid UTF-8: {}", e))?;
-
-    let mut obj_count = 0;
-    let mut type_ids: Vec<String> = Vec::new();
-
-    if let Ok(val) = serde_json::from_str::<serde_json::Value>(&json_str) {
-        if let Some(arr) = val
-            .get("unified_objects")
-            .and_then(|u| u.get("objects"))
-            .and_then(|o| o.as_array())
-        {
-            obj_count = arr.len();
-            for obj in arr.iter().take(BACKUP_PREVIEW_SAMPLE) {
-                if let Some(tid) = obj.get("typeId").and_then(|t| t.as_str()) {
-                    type_ids.push(tid.to_string());
-                }
-            }
-        }
-    }
-
-    Ok(format!(
-        "BACKUP: file_size={}, obj_count={}, type_ids={:?}",
-        meta.len(),
-        obj_count,
-        type_ids
-    ))
 }
 
 // ── Directory scanning for local import ────────────────────

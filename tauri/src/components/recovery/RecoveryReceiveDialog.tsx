@@ -30,9 +30,7 @@ interface RecoveryResultSummary {
 interface RecoveryDiscoveredHost {
   name: string;
   addr: string;
-  pin: string;
   fingerprint: string;
-  nonce: string;
 }
 
 /** 从 `t:"rec"` 二维码解析出的恢复连接信息。 */
@@ -263,8 +261,10 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
   };
 
   const handleSelectHost = (host: RecoveryDiscoveredHost) => {
+    // 安全约束（P001）：mDNS TXT 不再广播 PIN/nonce，仅提供地址与指纹。
+    // 选中主机后地址/指纹自动填充，PIN 需由用户在主机屏幕/QR 上查看后手动输入。
     setHostAddr(host.addr);
-    setPin(host.pin);
+    setPin('');
     setFingerprint(host.fingerprint);
     setDiscoveredHosts([]);
     setScanDone(false);
@@ -1035,12 +1035,12 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
                           background: 'color-mix(in srgb, var(--accent-primary) 8%, transparent)',
                           color: 'var(--accent-primary)',
                           fontSize: 'var(--text-caption)',
-                          fontFamily: 'monospace',
-                          fontWeight: 600,
-                          letterSpacing: 2,
+                          fontWeight: 500,
                         }}
                       >
-                        {host.pin}
+                        {t('common:recovery_need_pin', {
+                          defaultValue: '需输入 PIN',
+                        })}
                       </div>
                     </button>
                   ))}

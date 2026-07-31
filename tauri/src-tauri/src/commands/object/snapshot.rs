@@ -1,4 +1,4 @@
-use crate::commands::{current_account, vault_handle};
+use crate::commands::vault_handle;
 use crate::state::AppState;
 use serde::Serialize;
 
@@ -100,62 +100,6 @@ pub async fn snapshot_rollback(
         )),
     );
     state.auto_sync.trigger_debounce();
-    Ok(())
-}
-
-/// Get trash retention preferences for the current account.
-#[tauri::command]
-pub async fn trash_get_retention(state: State<'_, AppState>) -> Result<String, String> {
-    let vault = vault_handle(&state)?;
-    let account_id = current_account(&state)?;
-    if let Ok(Some(profile)) = vault.load_profile(&account_id) {
-        if !profile.data.is_empty() {
-            if let Ok(data) = serde_json::from_slice::<serde_json::Value>(&profile.data) {
-                if let Some(ret) = data
-                    .pointer("/preferences/trashRetention")
-                    .and_then(|v| v.as_str())
-                {
-                    return Ok(ret.to_string());
-                }
-            }
-        }
-    }
-    Ok(DEFAULT_RETENTION.to_string())
-}
-
-/// Set trash retention period.
-#[tauri::command]
-pub async fn trash_set_retention(state: State<'_, AppState>, period: String) -> Result<(), String> {
-    let vault = vault_handle(&state)?;
-    let account_id = current_account(&state)?;
-    let mut profile = match vault.load_profile(&account_id) {
-        Ok(Some(p)) => p,
-        Ok(None) => solosoul_vault::Profile::new_with_id(&account_id, &account_id, Vec::new()),
-        Err(e) => return Err(format!("Load: {}", e)),
-    };
-    let mut data: serde_json::Value = if profile.data.is_empty() {
-        serde_json::Value::Object(serde_json::Map::new())
-    } else {
-        serde_json::from_slice(&profile.data).map_err(|e| format!("Parse: {}", e))?
-    };
-    let prefs = data
-        .as_object_mut()
-        .ok_or("Invalid")?
-        .entry("preferences".to_string())
-        .or_insert_with(|| serde_json::Value::Object(serde_json::Map::new()));
-    prefs["trashRetention"] = serde_json::Value::String(period.clone());
-    profile.data = serde_json::to_vec(&data).map_err(|e| e.to_string())?;
-    profile.updated_at = chrono::Utc::now();
-    profile.version += 1;
-    vault.save_profile(&profile)?;
-    let _ = vault.log_structured(
-        "trash_set_retention",
-        "preference",
-        None,
-        None,
-        "user",
-        Some(&format!("period={}", period)),
-    );
     Ok(())
 }
 

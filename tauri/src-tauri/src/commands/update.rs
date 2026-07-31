@@ -145,29 +145,6 @@ fn cleanup_stale_apk_cache(app: &tauri::AppHandle, current_version: &str) -> Res
     Ok(())
 }
 
-/// 获取已下载完成的 APK 大小（字节），不存在则返回 0。
-pub fn apk_downloaded_size(app: &tauri::AppHandle, version: &str) -> Result<u64, String> {
-    let path = apk_cache_path(app, version)?;
-    if path.exists() {
-        Ok(std::fs::metadata(&path)
-            .map_err(|e| format!("读取文件大小: {e}"))?
-            .len())
-    } else {
-        Ok(0)
-    }
-}
-
-/// 删除已下载的 APK 缓存（同时清理最终文件和部分文件）。
-pub fn delete_apk_cache(app: &tauri::AppHandle, version: &str) -> Result<(), String> {
-    for path in [apk_cache_path(app, version)?, apk_part_path(app, version)?] {
-        if path.exists() {
-            std::fs::remove_file(&path)
-                .map_err(|e| format!("删除缓存失败 ({}): {e}", path.display()))?;
-        }
-    }
-    Ok(())
-}
-
 // ── Command: 检查更新 ──────────────────────────────────────────
 
 /// 创建 GitHub API 请求客户端（带 UA 与 15s 超时）。

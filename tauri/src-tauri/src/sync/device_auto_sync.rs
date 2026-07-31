@@ -26,10 +26,12 @@ pub enum DeviceSyncSource {
 }
 
 /// 自动同步触发事件。
+///
+/// 注：周期性同步不经过事件通道，由 `start_loop` 内 `interval.tick()` 直接触发
+/// （P036），因此这里只保留外部可触发的事件变体。
 pub enum DeviceSyncEvent {
     Foreground,
     DataChange,
-    Periodic,
 }
 
 impl DeviceSyncEvent {
@@ -37,7 +39,6 @@ impl DeviceSyncEvent {
         match self {
             DeviceSyncEvent::Foreground => DeviceSyncSource::Foreground,
             DeviceSyncEvent::DataChange => DeviceSyncSource::DataChange,
-            DeviceSyncEvent::Periodic => DeviceSyncSource::Periodic,
         }
     }
 }
@@ -144,11 +145,6 @@ impl DeviceAutoSyncManager {
         let _ = self.tx.try_send(DeviceSyncEvent::DataChange);
     }
 
-    /// 触发一次周期性同步。
-    pub fn trigger_periodic(&self) {
-        let _ = self.tx.try_send(DeviceSyncEvent::Periodic);
-    }
-
     fn start_loop(
         &self,
         mut rx: mpsc::Receiver<DeviceSyncEvent>,
@@ -170,7 +166,7 @@ impl DeviceAutoSyncManager {
                         tokio::select! {
                             event = rx.recv() => match event {
                                 Some(ref inner) => match *inner {
-                                    DeviceSyncEvent::Foreground | DeviceSyncEvent::Periodic => {
+                                    DeviceSyncEvent::Foreground => {
                                         state = DeviceAutoSyncState::Running(inner.source());
                                     }
                                     DeviceSyncEvent::DataChange => {
@@ -191,7 +187,7 @@ impl DeviceAutoSyncManager {
                         tokio::select! {
                             event = rx.recv() => match event {
                                 Some(ref inner) => match *inner {
-                                    DeviceSyncEvent::Foreground | DeviceSyncEvent::Periodic => {
+                                    DeviceSyncEvent::Foreground => {
                                         state = DeviceAutoSyncState::Running(inner.source());
                                     }
                                     DeviceSyncEvent::DataChange => {

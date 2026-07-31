@@ -1,4 +1,3 @@
-use crate::commands::current_account_optional;
 use crate::commands::object::trash::run_expired_trash_cleanup;
 use crate::state::AppState;
 use serde::Serialize;
@@ -179,17 +178,14 @@ pub async fn verify_password(
 
 #[tauri::command]
 pub async fn logout(state: State<'_, AppState>) -> Result<(), String> {
+    // P035：登出同样锁定 Vault，需与 lock 命令一致清空 LLM 系统提示缓存。
+    crate::services::llm_context::clear_cache();
     let svc = state
         .vault_service
         .read()
         .map_err(|_| "Vault service lock poisoned".to_string())?;
     svc.lock();
     Ok(())
-}
-
-#[tauri::command]
-pub async fn get_current_account(state: State<'_, AppState>) -> Result<Option<String>, String> {
-    Ok(current_account_optional(&state))
 }
 
 #[cfg(test)]

@@ -440,6 +440,8 @@ pub async fn attachment_copy_to_vault(
 
 /// Collect all attachment IDs that are currently referenced in any object's __attachments.
 /// P110: Uses existing `list_object_attachment_ids` batch method instead of N+1 load_object calls.
+/// 仅供测试使用（唯一生产调用方 `attachment_cleanup_orphans` 命令已删除，P020）。
+#[cfg(test)]
 fn load_all_referenced_attachment_ids(
     vault: &solosoul_vault::VaultStore,
     account_id: &str,
@@ -956,74 +958,6 @@ pub async fn attachment_open<R: Runtime>(
         opener::open(&path).map_err(|e| format!("Failed to open file: {}", e))?;
         Ok(())
     }
-}
-
-/// Scan attachments directory and remove files not referenced in any object's metadata.
-#[tauri::command]
-pub async fn attachment_cleanup_orphans(
-    state: State<'_, AppState>,
-    account_id: String,
-) -> Result<usize, String> {
-    let svc = state
-        .vault_service
-        .read()
-        .map_err(|_| "Vault service lock poisoned".to_string())?;
-    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref();
-
-    let active_ids = load_all_referenced_attachment_ids(vault, &account_id)?;
-    let base_dir = svc.base_path().join("attachments");
-
-    if !base_dir.exists() {
-        return Ok(0);
-    }
-
-    let mut removed = 0usize;
-    let mut total_freed = 0u64;
-    if let Ok(object_entries) = std::fs::read_dir(&base_dir) {
-        for obj_entry in object_entries.flatten() {
-            let obj_path = obj_entry.path();
-            if !obj_path.is_dir() {
-                continue;
-            }
-            if let Ok(att_entries) = std::fs::read_dir(&obj_path) {
-                for att_entry in att_entries.flatten() {
-                    let att_path = att_entry.path();
-                    let att_id = att_entry.file_name().to_string_lossy().to_string();
-                    if !active_ids.contains(&att_id) {
-                        // Orphaned — delete it
-                        if let Ok(meta) = att_path.metadata() {
-                            total_freed += meta.len();
-                        }
-                        let _ = std::fs::remove_dir_all(&att_path);
-                        removed += 1;
-                    }
-                }
-            }
-            // Remove empty object directories too
-            if std::fs::read_dir(&obj_path)
-                .map(|mut d| d.next().is_none())
-                .unwrap_or(false)
-            {
-                let _ = std::fs::remove_dir(&obj_path);
-            }
-        }
-    }
-
-    let _ = vault.log_structured(
-        "attachment_cleanup",
-        "attachment",
-        None,
-        None,
-        "system",
-        Some(&format!(
-            "removed {} orphaned attachments, freed {} bytes",
-            removed, total_freed
-        )),
-    );
-    state.auto_sync.trigger_debounce();
-    state.device_auto_sync.trigger_data_change();
-    Ok(removed)
 }
 
 #[cfg(test)]

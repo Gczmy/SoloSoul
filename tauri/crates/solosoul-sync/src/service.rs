@@ -37,8 +37,29 @@ impl SyncService {
         }
     }
 
-    /// 启用或关闭后台同步守护进程.
+    /// 启用或关闭后台同步守护进程（由 `SyncManager` 自建 mDNS daemon）。
     pub async fn enable(&self, enable: bool) -> Result<(), String> {
+        self.enable_inner(enable, None).await
+    }
+
+    /// 启用或关闭后台同步守护进程，并注入外部共享的 mDNS daemon。
+    ///
+    /// GUI 桌面端传入 discovery 命令共用的 `SharedDaemon`，使进程内只存在一个
+    /// `ServiceDaemon`，避免双 daemon 同时存活导致发现结果不一致（P013）。
+    /// 传 `None` 时与 `enable()` 行为一致（CLI / 测试场景自建 daemon）。
+    pub async fn enable_with_daemon(
+        &self,
+        enable: bool,
+        shared_daemon: Option<mdns_sd::ServiceDaemon>,
+    ) -> Result<(), String> {
+        self.enable_inner(enable, shared_daemon).await
+    }
+
+    async fn enable_inner(
+        &self,
+        enable: bool,
+        shared_daemon: Option<mdns_sd::ServiceDaemon>,
+    ) -> Result<(), String> {
         let mut guard = self.manager.lock().await;
         if enable {
             if guard.is_some() {
@@ -55,7 +76,10 @@ impl SyncService {
             };
             let (node_id, keys) = get_or_create_sync_identity(&vault)?;
             let manager = SyncManager::new(node_id, account_id, keys, vault.clone(), "0.0.0.0:0");
-            manager.start().await?;
+            match shared_daemon {
+                Some(d) => manager.start_with_daemon(d).await?,
+                None => manager.start().await?,
+            };
             audit_log(
                 &vault,
                 "sync_enabled",

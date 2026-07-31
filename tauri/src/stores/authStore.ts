@@ -34,6 +34,8 @@ interface AuthState {
   ) => Promise<void>;
   login: (accountId: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  /** 锁定 Vault（收敛自 vaultStore.lock）。无论后端调用成功与否都重置认证状态。 */
+  lock: () => Promise<void>;
   clearError: () => void;
 }
 
@@ -152,15 +154,39 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   logout: async () => {
-    await invoke<void>('logout');
-    // 登出仅重置认证状态，hasAccount 保持为 null（未知），
-    // 由 BootstrapGuard 重新调用 checkHasAccount 确认后端账户状态。
+    // P014: 状态重置必须无条件执行。先清前端认证状态，再尽力通知后端——
+    // 即使后端 invoke 失败（如 Vault 已锁定或后端正在重新初始化），
+    // 也不会出现半认证僵尸态（AuthGuard 继续放行受保护路由）。
     set({
       isAuthenticated: false,
       currentAccount: null,
       accounts: [],
+      // hasAccount 保持为 null（未知），由 BootstrapGuard 重新调用
+      // checkHasAccount 确认后端账户状态。
       hasAccount: null,
     });
+    try {
+      await invoke<void>('logout');
+    } catch (err) {
+      logger.warn('[authStore] logout invoke failed (auth state already reset):', err);
+    }
+  },
+
+  lock: async () => {
+    // P015: 锁定收敛为 authStore action（替代 vaultStore.lock）。
+    // 先清前端认证状态，再尽力通知后端。
+    // 锁定不改变账户存在性，因此保留 hasAccount/accounts——
+    // 否则 vault-locked 事件丢失（本修复针对的场景）时 /login 会卡在
+    // hasAccount===null 的 Connecting... 分支上。
+    set({
+      isAuthenticated: false,
+      currentAccount: null,
+    });
+    try {
+      await invoke<void>('lock');
+    } catch (err) {
+      logger.warn('[authStore] lock invoke failed (auth state already reset):', err);
+    }
   },
 
   clearError: () => set({ error: null }),

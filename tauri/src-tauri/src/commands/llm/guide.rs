@@ -519,11 +519,6 @@ pub fn find_relevant_guides_internal(
     Ok(results)
 }
 
-#[tauri::command]
-pub async fn llm_find_guides(query: String, language: String) -> Result<Vec<GuideContent>, String> {
-    find_relevant_guides_internal(&query, &language)
-}
-
 // =============================================================================
 // Guide System Commands (§18)
 // =============================================================================
@@ -629,9 +624,4 @@ pub async fn guide_search(query: String, language: String) -> Result<Vec<GuideCo
 pub struct SearchIndex {
     pub words: std::collections::HashMap<String, Vec<String>>,
     pub titles: std::collections::HashMap<String, GuideTitle>,
-}
-
-#[tauri::command]
-pub async fn guide_load_search_index() -> Result<SearchIndex, String> {
-    load_search_index_impl()
 }

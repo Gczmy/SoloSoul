@@ -151,19 +151,17 @@ pub(crate) fn object_sensitivity_levels(
     levels.into_iter().collect()
 }
 
-/// Count non-deleted child objects for a page.
+/// Count non-deleted child objects for a page (pure SQL COUNT, no decryption).
 pub(crate) fn count_page_objects(vault: &VaultStore, account_id: &str, page_id: &str) -> usize {
     vault
-        .list_objects(account_id, None, Some(page_id), None, false, false)
-        .map(|v| v.len())
+        .count_objects(account_id, None, Some(page_id))
         .unwrap_or(0)
 }
 
 /// Count non-deleted objects that belong to a system section (identity/travel/etc.).
 pub(crate) fn count_section_objects(vault: &VaultStore, account_id: &str, section: &str) -> usize {
     vault
-        .list_objects(account_id, Some(section), None, None, false, false)
-        .map(|v| v.len())
+        .count_objects(account_id, Some(section), None)
         .unwrap_or(0)
 }
 

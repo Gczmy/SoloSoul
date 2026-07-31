@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { useVaultStore } from '@/stores/vaultStore';
+import { useAuthStore } from '@/stores/authStore';
 import styles from './SideNavigation.module.css';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { ShieldLogo } from '@/components/ui/ShieldLogo';
@@ -24,7 +24,7 @@ export function SideNavigation() {
   const sidebarPosition = useSettingsStore((s) => s.settings.sidebarPosition);
   const isHorizontal = sidebarPosition === 'top' || sidebarPosition === 'bottom';
   const { t } = useTranslation('navigation');
-  const vaultLock = useVaultStore((s) => s.lock);
+  const vaultLock = useAuthStore((s) => s.lock);
 
   const handleLock = useCallback(() => vaultLock(), [vaultLock]);
 

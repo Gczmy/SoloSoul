@@ -169,10 +169,16 @@ impl RecoveryHost {
             return Err(e);
         }
 
-        // 1. 接收 "nonce:pin"
+        // 1. 接收 "nonce:pin"（P001 之后 PIN/nonce 不再经 mDNS 广播，
+        //    只可能来自 QR 扫码或用户手动输入，认证闸门仍然有效）
         let auth = receive_text(&mut session, &mut transport)?;
         let expected = format!("{}:{}", self.nonce, self.pin);
-        if auth != expected {
+        // 兼容两种认证形态：
+        // - `nonce:pin`：扫码/带 nonce 的客户端（标准路径）
+        // - 裸 `pin`：手动输入模式（客户端 `recover_from_host` 在 nonce=None 时只发 PIN，
+        //   见下方调用方注释"兼容旧版手动输入"）。P001 移除 mDNS 中的 nonce 后，
+        //   局域网发现的主机只会填充 addr+fingerprint，用户手动输入 PIN 时即走此路径。
+        if !constant_time_eq(&auth, &expected) && !constant_time_eq(&auth, &self.pin) {
             record_global_failure();
             let _ = send_error(&mut session, &mut transport, "Invalid PIN or nonce");
             return Err("Invalid PIN or nonce".to_string());
@@ -355,6 +361,23 @@ fn generate_pin() -> String {
         pin.push((b'0' + n) as char);
     }
     pin
+}
+
+/// 常数时间字符串比较（P029：避免 PIN+nonce 校验的计时侧信道）。
+///
+/// 长度不相等时提前返回（长度本身非机密，且协议固定为 `nonce:pin`），
+/// 相等长度时逐字节 XOR 累加，不因首个不同字节提前退出。
+fn constant_time_eq(a: &str, b: &str) -> bool {
+    if a.len() != b.len() {
+        return false;
+    }
+    let a = a.as_bytes();
+    let b = b.as_bytes();
+    let mut diff: u8 = 0;
+    for (x, y) in a.iter().zip(b.iter()) {
+        diff |= x ^ y;
+    }
+    diff == 0
 }
 
 /// 生成随机恢复密码（Base64，用于加密导出包）。

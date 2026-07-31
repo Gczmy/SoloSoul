@@ -22,8 +22,51 @@ use solosoul_core::ocr::model::{is_model_installed, resolve_model_bundle};
 use solosoul_core::ocr::types::{MrzResult, OcrModelTier, OcrResult};
 use std::path::{Path, PathBuf};
 #[cfg(desktop)]
+use std::sync::{Arc, Mutex};
+#[cfg(desktop)]
 use tauri::Emitter;
 use tauri::Manager;
+
+/// 全局 OCR 引擎缓存：避免每次 OCR 命令重新加载 ONNX 引擎（数百 ms）。
+/// 缓存当前档位的引擎实例；档位切换时自动重新加载，删除模型时手动清空。
+/// 内层 Mutex 用于适配 `OcrEngine` 的 `&mut self` 扫描方法。
+#[cfg(desktop)]
+static OCR_ENGINE_CACHE: Mutex<Option<(OcrModelTier, Arc<Mutex<OcrEngine>>)>> = Mutex::new(None);
+
+/// 获取指定档位的 OCR 引擎（带全局缓存）。
+/// 与 `local_embed::EMBEDDER_CACHE` 模式一致：先查缓存（短锁），
+/// 未命中时释放锁再加载 ONNX session，最后重新加锁写入，
+/// 避免并发 OCR 在首次加载时全部串行等待。
+#[cfg(desktop)]
+pub(crate) fn get_ocr_engine(
+    models_dir: &Path,
+    tier: OcrModelTier,
+) -> Result<Arc<Mutex<OcrEngine>>, String> {
+    {
+        let cache = OCR_ENGINE_CACHE.lock().map_err(|e| e.to_string())?;
+        if let Some((cached_tier, engine)) = cache.as_ref() {
+            if *cached_tier == tier {
+                return Ok(Arc::clone(engine));
+            }
+        }
+    }
+
+    // 未命中或档位变化：释放锁后加载（数百 ms 的 ONNX session 初始化）。
+    let engine = OcrEngine::load(models_dir, tier)?;
+    let mut cache = OCR_ENGINE_CACHE.lock().map_err(|e| e.to_string())?;
+    *cache = Some((tier, Arc::new(Mutex::new(engine))));
+    match cache.as_ref() {
+        Some((_, engine)) => Ok(Arc::clone(engine)),
+        None => Err("OCR engine cache empty after load".to_string()),
+    }
+}
+
+/// 清空 OCR 引擎缓存（删除模型后调用，使下次加载重新读取磁盘）。
+#[cfg(desktop)]
+pub(crate) fn clear_ocr_engine_cache() {
+    let mut cache = OCR_ENGINE_CACHE.lock().unwrap_or_else(|e| e.into_inner());
+    *cache = None;
+}
 
 // Re-export core types so callers can rely on a stable Tauri-facing name.
 pub use solosoul_core::ocr::types::{OcrBox, OcrResult as OcrScanResult};
@@ -255,7 +298,10 @@ pub async fn ocr_scan_image(
         return Err("文件路径不在允许的目录中（Desktop/Documents/Downloads）".to_string());
     }
 
-    let mut engine = OcrEngine::load(&models_dir, tier)?;
+    let engine_arc = get_ocr_engine(&models_dir, tier)?;
+    let mut engine = engine_arc
+        .lock()
+        .map_err(|e| format!("OCR engine lock poisoned: {e}"))?;
     let ext = path
         .extension()
         .and_then(|e| e.to_str())
@@ -353,7 +399,10 @@ pub async fn ocr_scan_mrz(
         return Err("文件路径不在允许的目录中（Desktop/Documents/Downloads）".to_string());
     }
 
-    let mut engine = OcrEngine::load(&models_dir, tier)?;
+    let engine_arc = get_ocr_engine(&models_dir, tier)?;
+    let mut engine = engine_arc
+        .lock()
+        .map_err(|e| format!("OCR engine lock poisoned: {e}"))?;
     let result = engine.scan_mrz(&path)?;
 
     let file_name = path.file_name().map(|n| n.to_string_lossy().to_string());
@@ -566,6 +615,8 @@ pub async fn ocr_install_bundled_model_with_progress(
 
     let result =
         install_model_from_bundled_with_progress(&bundled_dir, &models_dir, tier, emit_progress);
+    // 同档位覆盖安装时清空缓存，避免旧 session 残留。
+    clear_ocr_engine_cache();
 
     if let Err(ref e) = result {
         let _ = state.handle.emit(
@@ -606,6 +657,8 @@ pub async fn ocr_install_bundled_model(
     let models_dir = models_dir(&state.handle)?;
     let bundled_dir = bundled_models_dir()?;
     install_model_from_bundled(&bundled_dir, &models_dir, tier)?;
+    // 同档位覆盖安装时清空缓存，避免旧 session 残留。
+    clear_ocr_engine_cache();
 
     let details = json!({ "tier": tier.to_string() }).to_string();
     let _ = vault.log_structured(
@@ -649,6 +702,8 @@ pub async fn ocr_download_model(
     let tier: OcrModelTier = tier.parse()?;
     let models_dir = models_dir(&state.handle)?;
     download_model_files(&base_url, &models_dir, tier).await?;
+    // 同档位覆盖下载时清空缓存，避免旧 session 残留。
+    clear_ocr_engine_cache();
 
     let details = json!({ "baseUrl": base_url, "tier": tier.to_string() }).to_string();
     let _ = vault.log_structured(
@@ -689,6 +744,8 @@ pub async fn ocr_delete_model(
     let tier: OcrModelTier = tier.parse()?;
     let models_dir = models_dir(&state.handle)?;
     remove_model_dir(&models_dir, tier)?;
+    // 模型文件已删除，清空缓存使下次 OCR 重新从磁盘加载。
+    clear_ocr_engine_cache();
 
     let details = json!({ "tier": tier.to_string() }).to_string();
     let _ = vault.log_structured(

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { open } from '@tauri-apps/plugin-dialog';
+import { openWithPause } from '@/lib/dialog';
 import { useOcrScanStore, type OcrScanEntry } from '@/stores/ocrScanStore';
 import { invoke } from '@tauri-apps/api/core';
 import type { OcrTierInfo, OcrModelStatus } from '@/lib/ipc';
@@ -136,7 +136,7 @@ export function OcrQuickScanPopover({
                 extensions: ['png', 'jpg', 'jpeg', 'webp', 'bmp', 'tiff', 'pdf'],
               },
             ];
-      const path = await open({
+      const path = await openWithPause({
         filters,
         multiple: false,
         title: store.scanMode === 'mrz' ? t('ocr:select_image_title') : t('ocr:select_file_title'),

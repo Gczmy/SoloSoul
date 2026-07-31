@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Home, Settings, Lock, ChevronDown } from 'lucide-react';
 import styles from './MobileBottomNav.module.css';
-import { useVaultStore } from '@/stores/vaultStore';
+import { useAuthStore } from '@/stores/authStore';
 import { AddPageButton } from './AddPageButton';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
 import { useMobileNavActions } from './useNavigationItems';
@@ -18,7 +18,7 @@ export function MobileBottomNav() {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation('navigation');
-  const lock = useVaultStore((s) => s.lock);
+  const lock = useAuthStore((s) => s.lock);
   const [expanded, setExpanded] = useState(false);
 
   const { items } = useMobileNavActions();

@@ -209,3 +209,48 @@ pub async fn plugin_update_registry(state: State<'_, AppState>) -> Result<(), St
         .await
         .map_err(|e| e.to_string())
 }
+
+/// 打开插件生成的输出文件（P004）。
+///
+/// 安全约束：插件返回的 `outputPath` 属于不可信数据，此前前端直接 `open(file://)`
+/// 任意路径，恶意插件可诱导用户打开 `.app`/脚本逃逸 WASM 沙箱。本命令强制校验：
+///
+/// 1. `path` 必须真实存在且是普通文件；
+/// 2. `path` 的 canonical 形式必须位于插件声明的 `output_dir` 之内（防御纵深，
+///    结合前端输出目录选择器，插件无法写穿其运行时的输出目录）；
+/// 3. 通过校验后才用系统默认应用打开（`opener` crate，与附件预览一致）。
+///
+/// 同时 `tauri.conf.json` 的 shell.open 正则已移除 `file://` 与绝对路径项（P032），
+/// 即使绕过本命令也无法再经 plugin-shell 打开本地文件。
+#[command]
+pub fn plugin_open_output_file(output_dir: String, path: String) -> Result<(), String> {
+    let out_dir = std::path::Path::new(&output_dir);
+    let out_canon = out_dir
+        .canonicalize()
+        .map_err(|e| format!("无法解析输出目录: {}", e))?;
+    if !out_canon.is_dir() {
+        return Err("输出目录不存在".to_string());
+    }
+
+    let p = std::path::Path::new(&path);
+    let canon = p
+        .canonicalize()
+        .map_err(|e| format!("无法解析文件: {}", e))?;
+    if !canon.is_file() {
+        return Err("输出文件不存在".to_string());
+    }
+    if !canon.starts_with(&out_canon) {
+        return Err("输出文件位于插件输出目录之外，已拒绝打开".to_string());
+    }
+
+    #[cfg(any(target_os = "android", target_os = "ios"))]
+    {
+        let _ = canon;
+        Err("当前平台暂不支持".to_string())
+    }
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    {
+        opener::open(&canon).map_err(|e| format!("打开文件失败: {}", e))?;
+        Ok(())
+    }
+}

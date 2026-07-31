@@ -57,10 +57,3 @@ export interface TrashConfirmAction {
   callback: () => Promise<void>;
 }
 
-export interface TrashItem {
-  id: string;
-  itemType: string;
-  name: string;
-  deletedAt: number;
-  expiresAt?: number;
-}

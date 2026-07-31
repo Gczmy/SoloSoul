@@ -68,12 +68,6 @@ pub async fn import_parse_package(file_path: String) -> Result<ImportPreview, St
 }
 
 #[tauri::command]
-pub async fn import_get_password_hint(file_path: String) -> Result<Option<String>, String> {
-    let preview = import_parse_package(file_path).await?;
-    Ok(preview.password_hint)
-}
-
-#[tauri::command]
 pub async fn import_decrypt_preview(
     state: State<'_, AppState>,
     file_path: String,

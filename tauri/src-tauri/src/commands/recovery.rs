@@ -166,9 +166,7 @@ pub async fn recovery_host_start(
                     .next_back()
                     .and_then(|p| p.parse::<u16>().ok())
                     .unwrap_or(0),
-                &info.pin,
                 &info.fingerprint,
-                &info.nonce,
                 &info.display_addr,
             ) {
                 tracing::warn!("Recovery mDNS advertise failed (non-fatal): {}", e);

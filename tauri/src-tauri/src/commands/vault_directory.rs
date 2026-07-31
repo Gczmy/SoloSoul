@@ -335,20 +335,6 @@ pub async fn vault_sync_background(state: State<'_, AppState>) -> Result<(), Str
     Ok(())
 }
 
-/// 调度 WorkManager 后台 SAF 同步兜底任务。
-/// 仅在 Android 且当前使用 SAF 远程 Vault 时生效。
-#[tauri::command]
-pub async fn schedule_saf_fallback_sync(state: State<'_, AppState>) -> Result<(), String> {
-    state.schedule_saf_fallback_sync()
-}
-
-/// 取消 WorkManager 后台 SAF 同步兜底任务。
-/// 仅在 Android 且当前使用 SAF 远程 Vault 时生效。
-#[tauri::command]
-pub async fn cancel_saf_fallback_sync(state: State<'_, AppState>) -> Result<(), String> {
-    state.cancel_saf_fallback_sync()
-}
-
 /// 检查 SAF tree URI 是否仍然可访问。
 fn check_saf_uri_validity<R: Runtime>(app: &AppHandle<R>, tree_uri: &str) -> bool {
     let handle = app.state::<AttachmentImportPluginHandle<R>>();

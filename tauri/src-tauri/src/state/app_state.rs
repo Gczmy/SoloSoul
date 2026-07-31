@@ -2,7 +2,6 @@ use crate::attachment_import_plugin::AttachmentImportPluginHandle;
 use crate::fs::normalize_path;
 use crate::fs::saf_sync_driver::TauriSafSyncDriver;
 use crate::plugin::PluginManager;
-use crate::sync::auto_sync;
 use crate::sync::auto_sync::AutoSyncManager;
 use crate::sync::device_auto_sync::DeviceAutoSyncManager;
 use solosoul_core::vault_file_system::{SafVaultFileSystem, VaultFileSystem};
@@ -401,19 +400,6 @@ impl AppState {
         }
 
         Ok(app_state)
-    }
-
-    /// 执行一次到 SAF 远端的同步，并向前端发射进度事件。
-    ///
-    /// 非 SAF 模式下会快速返回，不执行任何 I/O。
-    pub async fn sync_to_remote_with_progress(&self) -> Result<(), String> {
-        // 手动/显式同步始终显示提示。
-        auto_sync::run_sync(
-            &self.vault_service,
-            &self.handle,
-            auto_sync::SyncSource::Immediate,
-        )
-        .await
     }
 
     /// 判断当前是否使用了 SAF 远程存储。

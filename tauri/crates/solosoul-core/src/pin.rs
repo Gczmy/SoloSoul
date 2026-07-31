@@ -96,10 +96,15 @@ impl PinError {
     }
 }
 
-/// PIN 的 KDF 配置：与主密码解锁保持一致，由环境变量控制。
-/// - 开发模式（默认）：8 MiB, 2 iter（通过 `SOLOSOUL_SECURE=1` 切换生产模式）
+/// PIN 的 KDF 配置：**强制生产级参数**（P005）。
+///
+/// PIN 空间仅 10^4~10^6，且 `pin_credential` 连同 salt 落在数据目录中，
+/// 攻击者拿到数据目录副本后可离线爆破。若沿用开发模式低参数（8 MiB / 2 iter），
+/// 数小时即可穷举全部 6 位 PIN 解开 Vault；生产参数（64 MiB / 3 iter）将
+/// 每次派生成本提升到 ~1s，使离线爆破不可行。因此 PIN 凭证**不随
+/// `SOLOSOUL_SECURE` 降级**，始终使用 `KdfConfig::production()`。
 fn pin_kdf_config() -> KdfConfig {
-    KdfConfig::from_env()
+    KdfConfig::production()
 }
 
 /// 管理 PIN 凭证的创建、验证、锁定状态等。
@@ -280,78 +285,120 @@ impl PinManager {
             .try_into()
             .map_err(|_| PinError::ParseError)?;
 
-        // 从 PIN + salt 派生 KEK
-        let kdf_cfg = pin_kdf_config();
-        let kek = derive_key(pin, &salt_arr, &kdf_cfg)
-            .map_err(|e| PinError::UnlockFailed(format!("kdf: {e}")))?;
+        // 尝试 AES-GCM 解密。P005：优先使用生产级参数；若解密失败则回退到
+        // 旧参数（`from_env()` 开发参数）重试一次——兼容**存量** PIN 凭证
+        // （旧凭证由开发参数加密，直接切换生产参数会导致无法解锁并递增失败计数
+        // 直至锁死账户）。旧参数解锁成功后会用生产参数重新加密凭证完成就地升级。
+        let ciphertext_bytes =
+            hex::decode(&credential.ciphertext).map_err(|_| PinError::ParseError)?;
+        let (session_key_bytes, upgraded) =
+            match decrypt_session_key_with_fallback(pin, &salt_arr, &ciphertext_bytes) {
+                Ok(pair) => pair,
+                Err(_) => {
+                    // PIN 错误：递增失败计数
+                    let attempts = config.pin_failed_attempts + 1;
+                    let lockout_secs = Self::compute_lockout_seconds(attempts);
+                    let locked_until = if lockout_secs > 0 {
+                        Some(
+                            (chrono::Utc::now() + chrono::Duration::seconds(lockout_secs as i64))
+                                .to_rfc3339(),
+                        )
+                    } else {
+                        None
+                    };
+
+                    self.update_config_field(account_id, |c| {
+                        c.pin_failed_attempts = attempts;
+                        c.pin_locked_until = locked_until;
+                    })?;
+
+                    return Err(PinError::Incorrect);
+                }
+            };
+
+        self.update_config_field(account_id, |c| {
+            c.pin_failed_attempts = 0;
+            c.pin_locked_until = None;
+        })?;
+
+        // 旧参数解锁成功 → 用生产级参数重新加密凭证（就地升级，P005）
+        if upgraded {
+            if let Err(e) = self.upgrade_credential(account_id, pin, &salt_arr, &session_key_bytes)
+            {
+                tracing::warn!("Failed to upgrade PIN credential KDF params: {}", e);
+            }
+        }
+
+        let key: [u8; 32] = session_key_bytes
+            .as_slice()
+            .try_into()
+            .map_err(|_| PinError::UnlockFailed("key must be 32 bytes".into()))?;
+
+        vault_service
+            .unlock_with_session_key(account_id, &key)
+            .map_err(PinError::UnlockFailed)?;
+
+        // 关键数据访问场景由前端写 critical_field_login 审计日志，此处跳过通用日志避免重复。
+        // 与 biometric.rs 中 `location != "critical_data_access"` 的跳过逻辑一致。
+        if location != Some("critical_data_access") {
+            let details = format!(
+                "method=pin location={} action={}",
+                location.unwrap_or("unknown"),
+                action.unwrap_or("unlock")
+            );
+            if let Some(vg) = vault_service.get_vault_store() {
+                let _ = vg.as_ref().log_structured(
+                    "pin_unlock",
+                    "auth",
+                    Some(account_id),
+                    None,
+                    "user",
+                    Some(&details),
+                );
+            }
+        }
+
+        Ok(())
+    }
+
+    /// 用生产级 KDF 参数重新加密 PIN 凭证（就地升级，P005）。
+    fn upgrade_credential(
+        &self,
+        account_id: &str,
+        pin: &str,
+        salt: &[u8; 16],
+        session_key: &[u8],
+    ) -> Result<(), PinError> {
+        let kek = derive_key(pin, salt, &KdfConfig::production())
+            .map_err(|e| PinError::SetupFailed(format!("kdf: {e}")))?;
         let kek_arr: [u8; 32] = kek
             .as_slice()
             .try_into()
-            .map_err(|_| PinError::UnlockFailed("kek must be 32 bytes".into()))?;
-
-        // 尝试 AES-GCM 解密
-        let ciphertext_bytes =
-            hex::decode(&credential.ciphertext).map_err(|_| PinError::ParseError)?;
-        match decrypt_from_bytes(&kek_arr, &ciphertext_bytes, None) {
-            Ok(session_key_zw) => {
-                let session_key_bytes = session_key_zw;
-                self.update_config_field(account_id, |c| {
-                    c.pin_failed_attempts = 0;
-                    c.pin_locked_until = None;
-                })?;
-
-                let key: [u8; 32] = session_key_bytes
-                    .as_slice()
-                    .try_into()
-                    .map_err(|_| PinError::UnlockFailed("key must be 32 bytes".into()))?;
-
-                vault_service
-                    .unlock_with_session_key(account_id, &key)
-                    .map_err(PinError::UnlockFailed)?;
-
-                // 关键数据访问场景由前端写 critical_field_login 审计日志，此处跳过通用日志避免重复。
-                // 与 biometric.rs 中 `location != "critical_data_access"` 的跳过逻辑一致。
-                if location != Some("critical_data_access") {
-                    let details = format!(
-                        "method=pin location={} action={}",
-                        location.unwrap_or("unknown"),
-                        action.unwrap_or("unlock")
-                    );
-                    if let Some(vg) = vault_service.get_vault_store() {
-                        let _ = vg.as_ref().log_structured(
-                            "pin_unlock",
-                            "auth",
-                            Some(account_id),
-                            None,
-                            "user",
-                            Some(&details),
-                        );
-                    }
-                }
-
-                Ok(())
-            }
-            Err(_) => {
-                // PIN 错误：递增失败计数
-                let attempts = config.pin_failed_attempts + 1;
-                let lockout_secs = Self::compute_lockout_seconds(attempts);
-                let locked_until = if lockout_secs > 0 {
-                    Some(
-                        (chrono::Utc::now() + chrono::Duration::seconds(lockout_secs as i64))
-                            .to_rfc3339(),
-                    )
-                } else {
-                    None
-                };
-
-                self.update_config_field(account_id, |c| {
-                    c.pin_failed_attempts = attempts;
-                    c.pin_locked_until = locked_until;
-                })?;
-
-                Err(PinError::Incorrect)
-            }
+            .map_err(|_| PinError::SetupFailed("kek must be 32 bytes".into()))?;
+        let ciphertext_bytes = encrypt_to_bytes(&kek_arr, session_key, None)
+            .map_err(|e| PinError::SetupFailed(format!("encrypt: {e}")))?;
+        let credential = PinCredential {
+            version: 1,
+            salt: base64::Engine::encode(
+                &base64::engine::general_purpose::STANDARD,
+                salt.as_slice(),
+            ),
+            ciphertext: hex::encode(ciphertext_bytes),
+        };
+        let cred_path = self.pin_credential_path(account_id);
+        if let Some(parent) = cred_path.parent() {
+            std::fs::create_dir_all(parent)
+                .map_err(|e| PinError::SetupFailed(format!("mkdir: {e}")))?;
         }
+        let cred_json = serde_json::to_string_pretty(&credential)
+            .map_err(|e| PinError::SetupFailed(format!("serialize: {e}")))?;
+        std::fs::write(&cred_path, cred_json)
+            .map_err(|e| PinError::SetupFailed(format!("write: {e}")))?;
+        // 设置文件权限为私有（Unix 0600）
+        if let Err(e) = set_private_file(&cred_path) {
+            tracing::warn!("Failed to set private permissions on PIN credential: {}", e);
+        }
+        Ok(())
     }
 
     /// 禁用 PIN（需要验证主密码）。
@@ -512,6 +559,47 @@ fn set_private_file(path: &Path) -> Result<(), String> {
     {
         let _ = path;
         Ok(())
+    }
+}
+
+/// 尝试解密 PIN 会话密钥（P005）：先使用生产级 KDF 参数；失败时回退到
+/// `from_env()`（旧凭证的开发参数）重试。
+///
+/// 返回 `(会话密钥, 是否回退了旧参数)`。两个参数都解密失败时返回 Err（PIN 错误）。
+/// 注意：生产参数与 `SOLOSOUL_SECURE=1` 下的 from_env 相同，此时仅尝试一次。
+fn decrypt_session_key_with_fallback(
+    pin: &str,
+    salt: &[u8; 16],
+    ciphertext: &[u8],
+) -> Result<(Vec<u8>, bool), PinError> {
+    let production = KdfConfig::production();
+    let kek = derive_key(pin, salt, &production)
+        .map_err(|e| PinError::UnlockFailed(format!("kdf: {e}")))?;
+    let kek_arr: [u8; 32] = kek
+        .as_slice()
+        .try_into()
+        .map_err(|_| PinError::UnlockFailed("kek must be 32 bytes".into()))?;
+    if let Ok(key) = decrypt_from_bytes(&kek_arr, ciphertext, None) {
+        return Ok((key.to_vec(), false));
+    }
+
+    // 回退旧参数（开发模式 8 MiB / 2 iter，仅当与生产参数不同时才有意义）
+    let legacy = KdfConfig::from_env();
+    if legacy.memory_kb == production.memory_kb
+        && legacy.iterations == production.iterations
+        && legacy.parallelism == production.parallelism
+    {
+        return Err(PinError::Incorrect);
+    }
+    let kek =
+        derive_key(pin, salt, &legacy).map_err(|e| PinError::UnlockFailed(format!("kdf: {e}")))?;
+    let kek_arr: [u8; 32] = kek
+        .as_slice()
+        .try_into()
+        .map_err(|_| PinError::UnlockFailed("kek must be 32 bytes".into()))?;
+    match decrypt_from_bytes(&kek_arr, ciphertext, None) {
+        Ok(key) => Ok((key.to_vec(), true)),
+        Err(_) => Err(PinError::Incorrect),
     }
 }
 

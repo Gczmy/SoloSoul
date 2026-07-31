@@ -67,6 +67,10 @@ pub struct SyncManager {
     running: Arc<AtomicBool>,
     discovered: Arc<Mutex<HashMap<String, DiscoveredPeer>>>,
     mdns_daemon: Mutex<Option<ServiceDaemon>>,
+    /// 当前 mDNS daemon 是否为外部共享实例（GUI 复用 discovery 的 SharedDaemon）。
+    /// true 时 `stop()` 只注销本节点服务注册，不调用 `shutdown()`，避免关掉
+    /// 供发现/恢复命令共用的 app 生命周期 daemon（P013：进程内只保留一个）。
+    shared_daemon: AtomicBool,
     worker_handles: Mutex<Vec<JoinHandle<()>>>,
     /// 正在进行的同步会话数量。`stop()` 会等待此计数归零后再终止 worker，
     /// 避免中途 abort 正在写入 Vault 的会话导致数据不一致。
@@ -91,6 +95,7 @@ impl SyncManager {
             running: Arc::new(AtomicBool::new(false)),
             discovered: Arc::new(Mutex::new(HashMap::new())),
             mdns_daemon: Mutex::new(None),
+            shared_daemon: AtomicBool::new(false),
             worker_handles: Mutex::new(Vec::new()),
             active_sessions: Arc::new(AtomicUsize::new(0)),
         }
@@ -105,12 +110,29 @@ impl SyncManager {
         self.listen_port.load(Ordering::SeqCst)
     }
 
-    /// Start the TCP listener and mDNS discovery/advertisement.
+    /// Start the TCP listener and mDNS discovery/advertisement,
+    /// creating a process-private `ServiceDaemon`（CLI / 无共享 daemon 场景）。
     pub async fn start(&self) -> Result<u16, String> {
+        let mdns_daemon = ServiceDaemon::new().map_err(|e| format!("mdns daemon: {}", e))?;
+        self.start_inner(mdns_daemon, false).await
+    }
+
+    /// Start using an externally owned (shared) mDNS daemon, so the whole process
+    /// only ever has one `ServiceDaemon` alive.
+    ///
+    /// GUI 场景：`sync_enable` 把 discovery 命令共用的 `SharedDaemon` 传入，
+    /// 避免 `SyncManager` 自建第二个 daemon 与发现命令同时运行导致结果不一致
+    /// （P013）。`stop()` 对共享 daemon 只注销本节点服务，不调用 `shutdown()`。
+    pub async fn start_with_daemon(&self, mdns_daemon: ServiceDaemon) -> Result<u16, String> {
+        self.start_inner(mdns_daemon, true).await
+    }
+
+    async fn start_inner(&self, mdns_daemon: ServiceDaemon, shared: bool) -> Result<u16, String> {
         if self.running.load(Ordering::SeqCst) {
             return Ok(self.listen_port.load(Ordering::SeqCst));
         }
         self.running.store(true, Ordering::SeqCst);
+        self.shared_daemon.store(shared, Ordering::SeqCst);
 
         let listener =
             TcpListener::bind(&self.listen_addr).map_err(|e| format!("bind failed: {}", e))?;
@@ -165,7 +187,6 @@ impl SyncManager {
         });
 
         // mDNS
-        let mdns_daemon = ServiceDaemon::new().map_err(|e| format!("mdns daemon: {}", e))?;
         self.register_mdns(&mdns_daemon, port)?;
         *self.mdns_daemon.lock().unwrap_or_else(|e| e.into_inner()) = Some(mdns_daemon.clone());
 
@@ -187,6 +208,23 @@ impl SyncManager {
     /// 数据不一致的风险。
     pub fn stop(&self) {
         self.running.store(false, Ordering::SeqCst);
+
+        // 立即注销/关闭 mDNS daemon：必须在会话优雅等待之前执行。
+        // 共享 daemon 场景下，若等到 30s 优雅期结束才 unregister，快速「禁用→启用」
+        // 时新 manager 会在同一 daemon 上注册同名实例名，触发 duplicate 错误
+        // （P013 审查反馈）。daemon 的 unregister/register 经内部通道串行，先提交
+        // unregister 即可消除竞态窗口。
+        if let Ok(mut daemon) = self.mdns_daemon.lock() {
+            if let Some(d) = daemon.take() {
+                if self.shared_daemon.load(Ordering::SeqCst) {
+                    // 共享 daemon 属于 discovery/恢复层，只注销本节点的同步服务注册，
+                    // 保留 daemon 供 `mdns_discover` 等命令继续使用。
+                    let _ = d.unregister(&format!("{}.{}", self.node_id, SERVICE_TYPE));
+                } else {
+                    let _ = d.shutdown();
+                }
+            }
+        }
 
         // Unblock the blocking accept loop by connecting to ourselves.
         let port = self.listen_port.load(Ordering::SeqCst);
@@ -211,11 +249,6 @@ impl SyncManager {
         if let Ok(mut handles) = self.worker_handles.lock() {
             for h in handles.drain(..) {
                 h.abort();
-            }
-        }
-        if let Ok(mut daemon) = self.mdns_daemon.lock() {
-            if let Some(d) = daemon.take() {
-                let _ = d.shutdown();
             }
         }
     }
@@ -251,12 +284,40 @@ impl SyncManager {
         txt.insert("fingerprint".to_string(), self.keys.fingerprint());
 
         let hostname = format!("{}.local.", self.node_id);
-        let service = ServiceInfo::new(SERVICE_TYPE, &self.node_id, &hostname, &ips[..], port, txt)
-            .map_err(|e| format!("ServiceInfo: {}", e))?;
-        daemon
-            .register(service)
-            .map_err(|e| format!("mDNS register: {}", e))?;
-        Ok(())
+        let service = ServiceInfo::new(
+            SERVICE_TYPE,
+            &self.node_id,
+            &hostname,
+            &ips[..],
+            port,
+            txt.clone(),
+        )
+        .map_err(|e| format!("ServiceInfo: {}", e))?;
+        let fullname = format!("{}.{}", self.node_id, SERVICE_TYPE);
+        match daemon.register(service) {
+            Ok(_) => Ok(()),
+            // 共享 daemon 场景下，快速「禁用→启用」时旧实例的 unregister 可能尚未落地，
+            // mdns-sd 对同名实例重复注册会报 already registered。幂等处理：先注销再重试一次。
+            Err(e) => {
+                tracing::debug!("mDNS register failed ({e}), retrying after unregister");
+                if let Err(ue) = daemon.unregister(&fullname) {
+                    // 保留原始 register 错误，避免 pre-unregister 错误掩盖根因
+                    tracing::warn!(
+                        "mDNS pre-unregister failed ({ue}); original register error: {e}"
+                    );
+                    return Err(format!(
+                        "mDNS register: {} (pre-unregister failed: {})",
+                        e, ue
+                    ));
+                }
+                let service =
+                    ServiceInfo::new(SERVICE_TYPE, &self.node_id, &hostname, &ips[..], port, txt)
+                        .map_err(|e| format!("ServiceInfo: {}", e))?;
+                daemon
+                    .register(service)
+                    .map_err(|e| format!("mDNS register (retry): {}", e))
+            }
+        }
     }
 
     fn spawn_mdns_discovery(&self, daemon: ServiceDaemon) -> JoinHandle<()> {

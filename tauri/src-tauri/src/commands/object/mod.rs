@@ -187,15 +187,6 @@ pub struct ObjectFilter {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct TemplateSyncStatus {
-    pub needs_sync: bool,
-    pub current_hash: Option<String>,
-    pub latest_hash: Option<String>,
-    pub template_exists: bool,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
 pub struct SyncFieldInfo {
     pub id: String,
     pub name: String,
@@ -701,93 +692,6 @@ pub async fn object_update(
     state.auto_sync.trigger_debounce();
     state.device_auto_sync.trigger_data_change();
     Ok(record_to_data(&record))
-}
-
-/// 为已有对象补齐 `property_labels`（适用于模板删除前创建的对象）。
-/// 扫描所有活跃对象，若其有 `template_id` 但 `property_labels` 为 None，
-/// 则从模板继承字段敏感度。
-#[tauri::command]
-pub async fn object_backfill_property_labels(
-    state: State<'_, AppState>,
-    account_id: String,
-) -> Result<usize, String> {
-    let vault = vault_handle(&state)?;
-    let objects = vault.list_objects(&account_id, None, None, None, false, false)?;
-    let mut count = 0usize;
-    for obj in &objects {
-        // 只处理有 template_id 但缺少 property_labels 的对象
-        if obj.template_id.is_none() {
-            continue;
-        }
-        let mut record = match vault.load_object(&obj.id)? {
-            Some(r) => r,
-            None => continue,
-        };
-        if record.property_labels.is_some() {
-            continue;
-        }
-        if let Some(labels) = inherit_property_labels(&vault, record.template_id.as_deref()) {
-            record.property_labels = Some(labels);
-            record.updated_at = chrono::Utc::now().to_rfc3339();
-            record.version += 1;
-            vault.save_object(&record)?;
-            count += 1;
-        }
-    }
-    tracing::info!("[migrate] backfilled property_labels for {} objects", count);
-    Ok(count)
-}
-
-/// 为已有对象补齐 `__fields`（适用于模板删除前创建的对象，或 __fields 功能上线前创建的对象）。
-/// 扫描所有活跃对象，若其有 `template_id` 但 `properties` 中缺少 `__fields` 键，
-/// 则从模板继承字段定义并注入。
-#[tauri::command]
-pub async fn object_backfill_property_fields(
-    state: State<'_, AppState>,
-    account_id: String,
-) -> Result<usize, String> {
-    let vault = vault_handle(&state)?;
-    let objects = vault.list_objects(&account_id, None, None, None, false, false)?;
-    let mut count = 0usize;
-    for obj in &objects {
-        if obj.template_id.is_none() {
-            continue;
-        }
-        let mut record = match vault.load_object(&obj.id)? {
-            Some(r) => r,
-            None => continue,
-        };
-        // 已有 __fields 则跳过
-        if record.properties.get("__fields").is_some() {
-            continue;
-        }
-        let fields = inherit_property_fields(&vault, record.template_id.as_deref());
-        if !fields.is_null() {
-            inject_property_fields(&mut record.properties, &fields);
-            // §Bugfix: 同时补齐 __templateName
-            inject_template_meta(
-                &vault,
-                record.template_id.as_deref(),
-                &mut record.properties,
-            );
-            record.updated_at = chrono::Utc::now().to_rfc3339();
-            record.version += 1;
-            vault.save_object(&record)?;
-            count += 1;
-        }
-    }
-    tracing::info!("[migrate] backfilled __fields for {} objects", count);
-    Ok(count)
-}
-
-/// 获取对象当前保存的模板指纹，优先从根字段 template_hash 读取，否则回退到 properties.__templateHash。
-fn get_object_template_hash(record: &ObjectRecord) -> Option<String> {
-    record.template_hash.clone().or_else(|| {
-        record
-            .properties
-            .get("__templateHash")
-            .and_then(|v| v.as_str().map(|s| s.to_string()))
-    })
 }
 
 /// 将旧字段定义与值移入 properties.__deprecatedFields。
@@ -1306,51 +1210,6 @@ fn rebuild_property_labels(record: &mut ObjectRecord, tpl: &solosoul_vault::User
     } else {
         Some(serde_json::Value::Object(labels_map))
     };
-}
-
-#[tauri::command]
-pub async fn object_get_template_sync_status(
-    state: State<'_, AppState>,
-    object_id: String,
-) -> Result<TemplateSyncStatus, String> {
-    let vault = vault_handle(&state)?;
-    let record = vault
-        .load_object(&object_id)?
-        .ok_or("Object not found".to_string())?;
-
-    let template_id = match record.template_id.as_deref() {
-        Some(tid) => tid,
-        None => {
-            return Ok(TemplateSyncStatus {
-                needs_sync: false,
-                current_hash: None,
-                latest_hash: None,
-                template_exists: false,
-            });
-        }
-    };
-
-    let current_hash = get_object_template_hash(&record);
-    let tpl = vault.load_user_template(template_id).ok().flatten();
-
-    match tpl {
-        Some(tpl) => {
-            let latest_hash = template_fingerprint(&tpl);
-            let needs_sync = current_hash.as_ref() != Some(&latest_hash);
-            Ok(TemplateSyncStatus {
-                needs_sync,
-                current_hash,
-                latest_hash: Some(latest_hash),
-                template_exists: true,
-            })
-        }
-        None => Ok(TemplateSyncStatus {
-            needs_sync: false,
-            current_hash,
-            latest_hash: None,
-            template_exists: false,
-        }),
-    }
 }
 
 #[tauri::command]

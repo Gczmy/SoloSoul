@@ -228,27 +228,3 @@ pub async fn llm_reset_stats(state: State<'_, AppState>, account_id: String) -> 
     let vault = vault_handle(&state)?;
     save_stats_to_vault(&vault, &account_id, &LlmUsageStats::default())
 }
-
-/// 将指定账户的统计持久化到 Vault（debounce 保存由调用方管理）
-pub async fn persist_stats(account_id: &str, vault: &VaultStore) -> Result<(), String> {
-    let stats: LlmUsageStats = {
-        let map: tokio::sync::RwLockReadGuard<'_, HashMap<String, LlmUsageStats>> =
-            STATS_MAP.read().await;
-        map.get(account_id).cloned().unwrap_or_default()
-    };
-    save_stats_to_vault(vault, account_id, &stats)
-}
-
-#[tauri::command]
-pub async fn llm_persist_stats(
-    state: State<'_, AppState>,
-    account_id: String,
-) -> Result<(), String> {
-    let stats: LlmUsageStats = {
-        let map: tokio::sync::RwLockReadGuard<'_, HashMap<String, LlmUsageStats>> =
-            STATS_MAP.read().await;
-        map.get(&account_id).cloned().unwrap_or_default()
-    };
-    let vault = vault_handle(&state)?;
-    save_stats_to_vault(&vault, &account_id, &stats)
-}
