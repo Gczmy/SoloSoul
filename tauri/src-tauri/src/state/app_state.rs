@@ -42,12 +42,6 @@ pub struct RecoveryState {
     pub host_cancel: Arc<AtomicBool>,
     pub host_thread: Option<std::thread::JoinHandle<()>>,
     pub export_path: Option<PathBuf>,
-    /// 反向恢复（接收端等待数据）的取消信号。
-    pub receiver_cancel: Arc<AtomicBool>,
-    /// 反向恢复模式下接收端的后台线程。
-    pub receiver_thread: Option<
-        std::thread::JoinHandle<Result<solosoul_sync::recovery::RecoveryTransferResult, String>>,
-    >,
     /// 恢复主机注册的 mDNS 服务实例名（用于清理）。
     pub mdns_instance_name: Option<String>,
 }
@@ -58,8 +52,6 @@ impl RecoveryState {
             host_cancel: Arc::new(AtomicBool::new(false)),
             host_thread: None,
             export_path: None,
-            receiver_cancel: Arc::new(AtomicBool::new(false)),
-            receiver_thread: None,
             mdns_instance_name: None,
         }
     }

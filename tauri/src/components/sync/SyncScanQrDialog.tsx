@@ -5,14 +5,12 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { RecoveryQrScanner } from '@/components/recovery/RecoveryQrScanner';
 
-type QrType = 'sync' | 'recovery' | 'unknown';
+type QrType = 'sync' | 'unknown';
 
 interface ParsedQr {
   type: QrType;
   addr: string;
   fingerprint?: string;
-  pin?: string;
-  nonce?: string;
   deviceName?: string;
   raw: string;
 }
@@ -21,20 +19,9 @@ interface SyncScanQrDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onSync?: (addr: string, fingerprint: string) => void | Promise<void>;
-  onRecoveryPush?: (payload: {
-    hostAddr: string;
-    pin: string;
-    fingerprint?: string;
-    nonce?: string;
-  }) => void | Promise<void>;
 }
 
-export function SyncScanQrDialog({
-  isOpen,
-  onClose,
-  onSync,
-  onRecoveryPush,
-}: SyncScanQrDialogProps) {
+export function SyncScanQrDialog({ isOpen, onClose, onSync }: SyncScanQrDialogProps) {
   const { t } = useTranslation(['common']);
   const [error, setError] = useState<string | null>(null);
   const [scanned, setScanned] = useState<ParsedQr | null>(null);
@@ -46,7 +33,7 @@ export function SyncScanQrDialog({
   const handleScan = (text: string) => {
     try {
       const parsed = JSON.parse(text);
-      const type = parsed.t === 'sync' ? 'sync' : parsed.t === 'rev' ? 'recovery' : 'unknown';
+      const type = parsed.t === 'sync' ? 'sync' : 'unknown';
       if (type === 'unknown') {
         setError(t('common:sync_qr_unrecognized'));
         setSuccess(null);
@@ -58,8 +45,6 @@ export function SyncScanQrDialog({
         type,
         addr: parsed.a || '',
         fingerprint: parsed.f,
-        pin: parsed.p,
-        nonce: parsed.n,
         deviceName: parsed.n,
         raw: text,
       });
@@ -83,29 +68,6 @@ export function SyncScanQrDialog({
     try {
       await onSync(scanned.addr, scanned.fingerprint || '');
       setSuccess(t('common:sync_qr_success_sync') ?? 'Sync completed');
-    } catch (err) {
-      setError(String(err));
-    } finally {
-      setProcessing(false);
-    }
-  };
-
-  const handleConfirmRecovery = async () => {
-    if (!scanned || scanned.type !== 'recovery' || !onRecoveryPush) return;
-    if (!scanned.pin || !scanned.addr) {
-      setError(t('common:sync_qr_invalid_payload'));
-      return;
-    }
-    setProcessing(true);
-    setError(null);
-    try {
-      await onRecoveryPush({
-        hostAddr: scanned.addr,
-        pin: scanned.pin,
-        fingerprint: scanned.fingerprint,
-        nonce: scanned.nonce,
-      });
-      setSuccess(t('common:sync_qr_success_recovery') ?? 'Account data pushed');
     } catch (err) {
       setError(String(err));
     } finally {
@@ -217,87 +179,43 @@ export function SyncScanQrDialog({
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {scanned.type === 'sync' ? (
-              <>
-                <p
-                  style={{
-                    fontSize: 'var(--text-body-sm)',
-                    color: 'var(--text-secondary)',
-                    margin: 0,
-                    lineHeight: 1.5,
-                  }}
-                >
-                  {t('common:sync_qr_confirm_sync', { deviceName: scanned.deviceName || scanned.addr })}
-                </p>
-                <div
-                  style={{
-                    padding: '10px 12px',
-                    borderRadius: 8,
-                    background: 'var(--bg-toolbar)',
-                    fontSize: 'var(--text-body-sm)',
-                    color: 'var(--text-secondary)',
-                  }}
-                >
-                  <div>
-                    <strong>{t('common:sync_qr_addr')}:</strong>{' '}
-                    <span style={{ fontFamily: 'monospace', color: 'var(--text-primary)' }}>
-                      {scanned.addr}
-                    </span>
-                  </div>
-                  {scanned.fingerprint && (
-                    <div style={{ marginTop: 4 }}>
-                      <strong>{t('common:sync_qr_fingerprint')}:</strong>{' '}
-                      <span style={{ fontFamily: 'monospace', color: 'var(--text-primary)' }}>
-                        {scanned.fingerprint}
-                      </span>
-                    </div>
-                  )}
+            <p
+              style={{
+                fontSize: 'var(--text-body-sm)',
+                color: 'var(--text-secondary)',
+                margin: 0,
+                lineHeight: 1.5,
+              }}
+            >
+              {t('common:sync_qr_confirm_sync', { deviceName: scanned.deviceName || scanned.addr })}
+            </p>
+            <div
+              style={{
+                padding: '10px 12px',
+                borderRadius: 8,
+                background: 'var(--bg-toolbar)',
+                fontSize: 'var(--text-body-sm)',
+                color: 'var(--text-secondary)',
+              }}
+            >
+              <div>
+                <strong>{t('common:sync_qr_addr')}:</strong>{' '}
+                <span style={{ fontFamily: 'monospace', color: 'var(--text-primary)' }}>
+                  {scanned.addr}
+                </span>
+              </div>
+              {scanned.fingerprint && (
+                <div style={{ marginTop: 4 }}>
+                  <strong>{t('common:sync_qr_fingerprint')}:</strong>{' '}
+                  <span style={{ fontFamily: 'monospace', color: 'var(--text-primary)' }}>
+                    {scanned.fingerprint}
+                  </span>
                 </div>
-                <Button onClick={handleConfirmSync} disabled={processing} style={{ width: '100%' }}>
-                  {processing ? t('common:loading') : t('common:sync_qr_confirm_sync_button')}
-                </Button>
-              </>
-            ) : (
-              <>
-                <p
-                  style={{
-                    fontSize: 'var(--text-body-sm)',
-                    color: 'var(--text-secondary)',
-                    margin: 0,
-                    lineHeight: 1.5,
-                  }}
-                >
-                  {t('common:sync_qr_confirm_recovery')}
-                </p>
-                <div
-                  style={{
-                    padding: '10px 12px',
-                    borderRadius: 8,
-                    background: 'var(--bg-toolbar)',
-                    fontSize: 'var(--text-body-sm)',
-                    color: 'var(--text-secondary)',
-                  }}
-                >
-                  <div>
-                    <strong>{t('common:sync_qr_addr')}:</strong>{' '}
-                    <span style={{ fontFamily: 'monospace', color: 'var(--text-primary)' }}>
-                      {scanned.addr}
-                    </span>
-                  </div>
-                  {scanned.pin && (
-                    <div style={{ marginTop: 4 }}>
-                      <strong>{t('common:sync_qr_pin')}:</strong>{' '}
-                      <span style={{ fontFamily: 'monospace', color: 'var(--text-primary)' }}>
-                        {scanned.pin}
-                      </span>
-                    </div>
-                  )}
-                </div>
-                <Button onClick={handleConfirmRecovery} disabled={processing} style={{ width: '100%' }}>
-                  {processing ? t('common:loading') : t('common:sync_qr_confirm_recovery_button')}
-                </Button>
-              </>
-            )}
+              )}
+            </div>
+            <Button onClick={handleConfirmSync} disabled={processing} style={{ width: '100%' }}>
+              {processing ? t('common:loading') : t('common:sync_qr_confirm_sync_button')}
+            </Button>
             {error && (
               <div style={{ color: '#e74c3c', fontSize: 'var(--text-body-sm)', textAlign: 'center' }}>
                 {error}

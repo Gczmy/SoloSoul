@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { ReactNode } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { invoke } from '@tauri-apps/api/core';
 import { AppShell } from '@/components/layout/AppShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
@@ -20,6 +19,7 @@ import {
   Info,
   QrCode,
   ScanLine,
+  LifeBuoy,
 } from 'lucide-react';
 import { useSyncStore } from '@/stores/syncStore';
 import { DeleteButton } from '@/components/ui/DeleteButton';
@@ -27,6 +27,7 @@ import { PageGuideButton } from '@/components/guide/PageGuideButton';
 import { SyncConflictDialog } from '@/components/sync/SyncConflictDialog';
 import { SyncShowQrDialog } from '@/components/sync/SyncShowQrDialog';
 import { SyncScanQrDialog } from '@/components/sync/SyncScanQrDialog';
+import { RecoveryHostDialog } from '@/components/recovery/RecoveryHostDialog';
 import type { SyncConflict } from '@/lib/ipc';
 import { ICON_SIZE } from '@/lib/constants';
 
@@ -100,6 +101,7 @@ export function SyncPage() {
   const [conflictDialogOpen, setConflictDialogOpen] = useState(false);
   const [showQrDialogOpen, setShowQrDialogOpen] = useState(false);
   const [scanQrDialogOpen, setScanQrDialogOpen] = useState(false);
+  const [recoveryHostOpen, setRecoveryHostOpen] = useState(false);
 
   const syncGuidePages = useMemo(
     () => [
@@ -205,20 +207,6 @@ export function SyncPage() {
 
   const handleScanSync = async (addr: string) => {
     await store.syncWithDevice(addr);
-  };
-
-  const handleScanRecovery = async (payload: {
-    hostAddr: string;
-    pin: string;
-    fingerprint?: string;
-    nonce?: string;
-  }) => {
-    await invoke('recovery_host_push', {
-      hostAddr: payload.hostAddr,
-      pin: payload.pin,
-      fingerprint: payload.fingerprint,
-      nonce: payload.nonce,
-    });
   };
 
   return (
@@ -456,6 +444,12 @@ export function SyncPage() {
                 icon={<ScanLine size={ICON_SIZE.lg} />}
                 onClick={() => setScanQrDialogOpen(true)}
                 disabled={!store.syncEnabled || store.isLoading}
+              />
+              <SyncIconButton
+                label={t('settings:sync_qr_recovery', { defaultValue: 'Show Recovery QR' })}
+                icon={<LifeBuoy size={ICON_SIZE.lg} />}
+                onClick={() => setRecoveryHostOpen(true)}
+                disabled={store.isLoading}
               />
             </div>
           </div>
@@ -870,7 +864,10 @@ export function SyncPage() {
         isOpen={scanQrDialogOpen}
         onClose={() => setScanQrDialogOpen(false)}
         onSync={handleScanSync}
-        onRecoveryPush={handleScanRecovery}
+      />
+      <RecoveryHostDialog
+        isOpen={recoveryHostOpen}
+        onClose={() => setRecoveryHostOpen(false)}
       />
     </AppShell>
   );

@@ -803,6 +803,7 @@
   "sync_qr_pairing": "QR Pairing",
   "sync_qr_pairing_desc": "Show a QR code for another device to scan, or scan another device.",
   "sync_qr_show": "Show QR",
+  "sync_qr_recovery": "Show Recovery QR",
   "sync_qr_scan": "Scan QR",
   "sync_no_conflicts": "No unresolved conflicts.",
   "sync_conflict_record": "Record",
