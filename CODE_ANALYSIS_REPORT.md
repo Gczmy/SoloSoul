@@ -43,7 +43,7 @@
 | P021 | P1 | 死代码 | 详见下文清单 | 7 个零调用点 Rust 函数（含注释声称已接线但实际未调用的 `ensure_guide_embeddings_built`） | `[x]` 已修复 |
 | P022 | P1 | 死代码 | `tauri/package.json:28,38,47` | 3 个未被 import 的 npm 依赖（react-hook-form、@hookform/resolvers、plugin-window-state） | `[x]` 已修复 |
 | P023 | P1 | 结构 | `tauri/src-tauri/src/commands/export_import/import.rs:234` | `import_execute_internal` 单函数 431 行，多阶段逻辑混杂 | `[x]` 已修复 |
-| P024 | P1 | 结构 | `tauri/src/pages/settings/GlobalAttachmentManager.tsx:116` | 组件 1202 行（全项目最大），过滤/预览/批量操作全塞一个函数体 | `[ ]` 待修复 |
+| P024 | P1 | 结构 | `tauri/src/pages/settings/GlobalAttachmentManager.tsx:116` | 组件 1202 行（全项目最大），过滤/预览/批量操作全塞一个函数体 | `[x]` 已修复 |
 | P025 | P1 | 结构 | `tauri/src/components/recovery/RecoveryReceiveDialog.tsx:57` | 组件 1001 行，QR 扫描+状态机+渲染一体 | `[ ]` 待修复 |
 | P026 | P1 | 结构 | `tauri/src/components/onboarding/OnboardingDialog.tsx:38` | 组件 989 行，多步向导+手写 hover 混杂 | `[ ]` 待修复 |
 | P027 | P1 | 结构 | `tauri/src/pages/workspace/ObjectWorkspacePage.tsx:57` | 组件 881 行，数据加载/模板同步/拖拽/渲染全职责 | `[ ]` 待修复 |
@@ -86,8 +86,8 @@
 
 ## 修复进度
 
-- 已完成：26 / 63（P001–P011、P013–P016、P019–P023、P028、P029、P033–P036；其中 P011 工作区部分完成）
-- 当前处理：P024（GlobalAttachmentManager 拆分）
+- 已完成：27 / 63（P001–P011、P013–P016、P019–P024、P028、P029、P033–P036；其中 P011 工作区部分完成）
+- 当前处理：P025（RecoveryReceiveDialog 1001 行拆分）
 
 ## 静态基线之外已检查且无发现的维度（误报排除记录）
 
