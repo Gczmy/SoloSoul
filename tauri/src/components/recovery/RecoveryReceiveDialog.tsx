@@ -113,6 +113,30 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
     };
   }, []);
 
+  // ── 连接失败：把底层错误映射为带诊断引导的友好提示 ──
+  // 注意：必须是 hook（useCallback），且需位于 `if (!isOpen) return null;` 之前，
+  // 否则 isOpen 切换时 hook 数量不一致会违反 Rules of Hooks 导致崩溃。
+  const friendlyConnectError = useCallback(
+    (raw: string): string => {
+      const lower = raw.toLowerCase();
+      if (lower.includes('timed out') || lower.includes('timeout')) {
+        // 连接超时：最常见原因是 macOS/Windows 防火墙拦截入站连接，
+        // 或两台设备不在同一网络。给出可操作的排查步骤。
+        return t('common:recovery_connect_timeout');
+      }
+      if (lower.includes('unreachable') || lower.includes('no route')) {
+        // 目标网络不可达：典型为跨网段/不在同一网络。
+        return t('common:recovery_connect_unreachable');
+      }
+      if (lower.includes('refused') || lower.includes('connection reset')) {
+        // 连接被拒：主机端未在监听（会话过期/已取消）或端口不可达。
+        return t('common:recovery_connect_refused');
+      }
+      return raw;
+    },
+    [t],
+  );
+
   if (!isOpen) return null;
 
   // ── 重置所有状态 ──
@@ -280,7 +304,7 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
       await useAuthStore.getState().checkHasAccount();
     } catch (err) {
       if (!mountedRef.current) return;
-      setError(String(err));
+      setError(friendlyConnectError(String(err)));
     } finally {
       setLoading(false);
       setStatusText(null);
