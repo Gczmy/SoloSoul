@@ -82,12 +82,12 @@
 | P060 | P2 | 规范 | `tauri/src/components/plugin/PluginResultPanel.tsx:344,360` | UI 组件直接调 plugin-fs `copyFile` 且静默吞错，违反 IPC 封装约定 | `[x]` 已修复 |
 | P061 | P2 | 架构 | `tauri/src/pages/settings/GlobalAttachmentManager.tsx`（12 处直接 invoke） | 页面组件承载附件树遍历/聚合/批量编排等重业务逻辑，应下沉 store/lib（与 P024 关联） | `[x]` 已修复 |
 | P062 | P2 | 架构 | `tauri/src/stores/settingsStore.ts:154-307` | 主题/语言设置四副本（zustand+localStorage+ui_preferences.json+vault），需补写入路径矩阵注释或收敛 | `[x]` 已修复 |
-| P063 | P2 | 架构 | `tauri/Cargo.toml:73` | release profile `panic = "abort"`：未来新增生产代码引入 unwrap 时代价大，保留认知即可 | `[ ]` 待修复 |
+| P063 | P2 | 架构 | `tauri/Cargo.toml:73` | release profile `panic = "abort"`：未来新增生产代码引入 unwrap 时代价大，保留认知即可 | `[x]` 已处理（标记为「设计如此」，无需改动） |
 
 ## 修复进度
 
-- 已完成：50 / 63（P001–P011、P013–P016、P019–P028、P029–P033、P034–P046、P056–P062；其中 P011 工作区部分完成）
-- 当前处理：P062 已完成，等待下一条指令
+- 已完成：51 / 63（P001–P011、P013–P016、P019–P028、P029–P033、P034–P046、P056–P063；其中 P011 工作区部分完成）
+- 当前处理：P063 已完成（设计如此，无改动），等待下一条指令
 
 ## 静态基线之外已检查且无发现的维度（误报排除记录）
 
@@ -316,6 +316,7 @@ sync crate manager（`manager.rs:168`）`sync_enable` 时自建 `ServiceDaemon`�
 `[x]` 已修复：settingsStore.ts 顶部新增「四副本写入路径矩阵」注释块——① zustand store（loadUiPreferences/loadSettings/updateSetting/addCustomPage/removeCustomPage/clearOnVaultLock）、② localStorage（loadUiPreferences Step2 setItem ST_UI_PREFS、updateSetting(language) setItem i18nextLng）、③ ui_preferences.json 明文（loadSettings 同步块 + updateSetting(language) 走 ui_update_preference）、④ vault 加密 preferences（updateSetting → user_data_update_preference、loadCustomPages 迁移清理 customPages）；并标注读取优先级（登录前 ②③ → 解锁后 ④ 覆盖）与语言实际生效路径。审查逐项核对矩阵与实现一致。tsc/lint/Vitest 415 全部通过，审查通过。
 
 **P063 | panic=abort 认知**：`tauri/Cargo.toml:73` release `panic="abort"`，任何遗漏 panic 都是无清理整进程终止。当前生产 unwrap 仅 2 处可证安全，风险低；作为评审认知保留，无需改动（可标记为「设计如此」）。
+`[x]` 已处理（设计如此，无改动）：核验确认全 workspace 的 unwrap/expect 命中（local_embed.rs、profile.rs、log.rs、embed_model.rs、discovery.rs、window.rs、auth.rs、sync.rs、plugin/registry.rs）**全部位于各自 `#[cfg(test)] mod tests` 块内**（行号逐一对照），生产路径仅报告基线 settings.rs:73,80 两处可证明非空，无新增滥用。`panic="abort"` 作为既有发布配置保留，维持认知。
 
 ---
 
