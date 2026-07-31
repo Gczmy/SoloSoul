@@ -90,6 +90,8 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
   // 已收集的连接信息（扫码或手动输入后统一进入账户卡阶段）
   const [pending, setPending] = useState<ScannedRecoveryQr | null>(null);
   const [masterPassword, setMasterPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordHint, setPasswordHint] = useState('');
 
   // 手动连接表单状态
   const [hostAddr, setHostAddr] = useState('');
@@ -124,6 +126,8 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
     setLoading(false);
     setPending(null);
     setMasterPassword('');
+    setConfirmPassword('');
+    setPasswordHint('');
     setHostAddr('');
     setPin('');
     setFingerprint('');
@@ -253,6 +257,10 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
       setError(t('common:password_length_requirement'));
       return;
     }
+    if (masterPassword !== confirmPassword) {
+      setError(t('common:password_mismatch'));
+      return;
+    }
 
     setLoading(true);
     setStatusText(t('common:recovery_connecting', { defaultValue: 'Connecting to host…' }));
@@ -262,6 +270,7 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
         hostAddr: pending.addr,
         pin: pending.pin,
         masterPassword,
+        passwordHint: passwordHint.trim() || null,
         fingerprint: pending.fingerprint || null,
         nonce: pending.nonce,
       });
@@ -283,6 +292,8 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
     if (loading) return;
     setPending(null);
     setMasterPassword('');
+    setConfirmPassword('');
+    setPasswordHint('');
     setError(null);
     setStep('collect');
   };
@@ -648,10 +659,34 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
               label={t('common:recovery_receive_password_label')}
               type="password"
               value={masterPassword}
-              onChange={(e) => setMasterPassword(e.target.value)}
+              onChange={(e) => {
+                setMasterPassword(e.target.value);
+                setError(null);
+              }}
               placeholder={t('common:recovery_receive_password_hint')}
               disabled={loading}
               autoFocus
+            />
+
+            <Input
+              label={t('common:confirm_password')}
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => {
+                setConfirmPassword(e.target.value);
+                setError(null);
+              }}
+              placeholder={t('common:recovery_receive_password_hint')}
+              disabled={loading}
+            />
+
+            <Input
+              label={t('common:password_hint')}
+              type="text"
+              value={passwordHint}
+              onChange={(e) => setPasswordHint(e.target.value)}
+              placeholder={t('common:password_hint_placeholder')}
+              disabled={loading}
             />
 
             <Button

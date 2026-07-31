@@ -254,6 +254,7 @@ pub async fn recovery_restore_from_host(
     pin: String,
     fingerprint: Option<String>,
     nonce: Option<String>,
+    password_hint: Option<String>,
 ) -> Result<ImportResultSummary, String> {
     if master_password.len() < 8 {
         return Err("Password must be at least 8 characters".to_string());
@@ -293,7 +294,12 @@ pub async fn recovery_restore_from_host(
             .read()
             .map_err(|_| "Vault service lock poisoned".to_string())?;
         // 如果账户名冲突，让 create_account_with_id 返回错误，由前端提示
-        svc.create_account_with_id(&account_id, &account_name, &master_password, None)?;
+        svc.create_account_with_id(
+            &account_id,
+            &account_name,
+            &master_password,
+            password_hint.as_deref(),
+        )?;
     }
 
     // 导入恢复包
