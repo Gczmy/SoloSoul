@@ -575,6 +575,8 @@
   "sync_qr_confirm_sync_button": "Sync Now",
   "sync_qr_unrecognized": "Unrecognized QR code format.",
   "sync_qr_invalid_payload": "Invalid QR code payload.",
+  "sync_scan_unsupported": "This device does not support QR scanning. Use device discovery or manual input instead.",
+  "sync_use_manual": "Use discovery or manual input",
   "sync_qr_localhost_warning": "Could not detect your local network address. The other device may need to use your actual local IP.",
   "sync_qr_success_sync": "Sync completed successfully.",
   "recovery_receive_title": "Recover from Another Device",

@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X, CheckCircle2 } from 'lucide-react';
+import { X, CheckCircle2, CameraOff } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { useCameraCapability } from '@/hooks/useCameraCapability';
 import { RecoveryQrScanner } from '@/components/recovery/RecoveryQrScanner';
 
 type QrType = 'sync' | 'unknown';
@@ -23,10 +24,14 @@ interface SyncScanQrDialogProps {
 
 export function SyncScanQrDialog({ isOpen, onClose, onSync }: SyncScanQrDialogProps) {
   const { t } = useTranslation(['common']);
+  // 设备摄像头能力（启动时预加载，模块级缓存）：无摄像头时扫码位直接提示
+  const cameraCapability = useCameraCapability();
   const [error, setError] = useState<string | null>(null);
   const [scanned, setScanned] = useState<ParsedQr | null>(null);
   const [processing, setProcessing] = useState(false);
   const [success, setSuccess] = useState<string | null>(null);
+  // 扫码器启动失败（如权限被拒）时置位，展示「使用设备发现/手动输入」兜底
+  const [scannerError, setScannerError] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
@@ -58,6 +63,7 @@ export function SyncScanQrDialog({ isOpen, onClose, onSync }: SyncScanQrDialogPr
     setScanned(null);
     setProcessing(false);
     setSuccess(null);
+    setScannerError(null);
     onClose();
   };
 
@@ -140,7 +146,101 @@ export function SyncScanQrDialog({ isOpen, onClose, onSync }: SyncScanQrDialogPr
             >
               {t('common:sync_qr_scan_desc')}
             </p>
-            <RecoveryQrScanner onScan={handleScan} onCancel={handleClose} />
+            {cameraCapability === 'unsupported' ? (
+              /* 设备无摄像头：扫码位置显示提示，引导使用设备发现/手动输入 */
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 10,
+                  padding: '28px 16px',
+                  borderRadius: 12,
+                  border: '1px dashed var(--border-subtle)',
+                  background: 'var(--bg-toolbar)',
+                  textAlign: 'center',
+                }}
+              >
+                <CameraOff size={28} color="var(--text-tertiary)" />
+                <span
+                  style={{
+                    fontSize: 'var(--text-body-sm)',
+                    color: 'var(--text-secondary)',
+                    lineHeight: 1.5,
+                  }}
+                >
+                  {t('common:sync_scan_unsupported', {
+                    defaultValue:
+                      'This device does not support QR scanning. Use device discovery or manual input instead.',
+                  })}
+                </span>
+                <button
+                  type="button"
+                  onClick={handleClose}
+                  style={{
+                    marginTop: 4,
+                    padding: '8px 16px',
+                    borderRadius: 8,
+                    border: '1px solid var(--border-subtle)',
+                    background: 'var(--bg-elevated)',
+                    color: 'var(--accent-primary)',
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                    fontSize: 'var(--text-body-sm)',
+                    fontWeight: 500,
+                    transition: 'all 0.15s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                  }}
+                >
+                  {t('common:sync_use_manual', {
+                    defaultValue: 'Use discovery or manual input',
+                  })}
+                </button>
+              </div>
+            ) : (
+              <RecoveryQrScanner
+                onScan={handleScan}
+                onError={setScannerError}
+                onCancel={handleClose}
+              />
+            )}
+
+            {/* 扫码启动失败（权限被拒）时，提供关闭对话框、回页面使用发现/手动输入的兜底 */}
+            {scannerError && cameraCapability !== 'unsupported' && (
+              <button
+                type="button"
+                onClick={handleClose}
+                style={{
+                  padding: '10px 12px',
+                  borderRadius: 8,
+                  border: '1px solid var(--border-subtle)',
+                  background: 'var(--bg-toolbar)',
+                  color: 'var(--accent-primary)',
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  fontSize: 'var(--text-body-sm)',
+                  fontWeight: 500,
+                  transition: 'all 0.15s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                }}
+              >
+                {t('common:sync_use_manual', {
+                  defaultValue: 'Use discovery or manual input',
+                })}
+              </button>
+            )}
+
             {error && (
               <div style={{ color: '#e74c3c', fontSize: 'var(--text-body-sm)', textAlign: 'center' }}>
                 {error}

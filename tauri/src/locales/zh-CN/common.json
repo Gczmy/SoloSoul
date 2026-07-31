@@ -574,6 +574,8 @@
   "sync_qr_confirm_sync_button": "立即同步",
   "sync_qr_unrecognized": "无法识别二维码格式。",
   "sync_qr_invalid_payload": "二维码内容无效。",
+  "sync_scan_unsupported": "本设备不支持扫描二维码功能，请使用设备发现或手动输入。",
+  "sync_use_manual": "使用设备发现或手动输入",
   "sync_qr_localhost_warning": "未能自动检测到本地网络地址。对方设备可能需要使用您的真实局域网 IP。",
   "sync_qr_success_sync": "同步完成。",
   "recovery_receive_title": "从其他设备恢复",
