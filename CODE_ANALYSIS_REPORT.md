@@ -1,8 +1,8 @@
 # 代码分析修复报告
 
-> 最后更新：2026-07-31 21:40:00
+> 最后更新：2026-07-31 21:50:00
 > 当前分支：`main`
-> 修复轮次：3（已执行修复：P001–P011、P013–P016、P019–P028、P029–P033、P034–P045，共 42 项）
+> 修复轮次：3（已执行修复：P001–P011、P013–P016、P019–P028、P029–P033、P034–P046，共 43 项）
 > 分析范围：`tauri/`（Rust 后端 `src-tauri/` + `crates/`，React/TS 前端 `src/`）；`solosoul_cli/` 不在本轮范围
 
 ## 基线检查结果（阶段 0，全部通过）
@@ -65,7 +65,7 @@
 | P043 | P2 | 结构 | `tauri/src-tauri/src/lib.rs:135` | `run` 441 行，启动初始化 10+ 步全内联在一个 setup 闭包 | `[x]` 已修复 |
 | P044 | P2 | 结构 | `export.rs:217`(258)、`object/snapshot.rs:210`(254)、`llm/stream.rs:76`(227) | 3 个 220+ 行多阶段函数需按阶段抽取 | `[x]` 已修复 |
 | P045 | P2 | 结构 | `export_import/helpers.rs:173-232`、`import.rs:394-412`、`profile.rs:191-205`、`plugin.rs:80-107`、`llm/stream.rs:257-302` | 5 处 5-6 层深层嵌套 | `[x]` 已修复 |
-| P046 | P2 | 重复 | `tauri/src-tauri/src/commands/attachment.rs:983-1027` vs `tauri/crates/solosoul-core/src/objects.rs:945-999` | `cleanup_orphan_attachments` GUI 端整体复制 core 实现 | `[ ]` 待修复 |
+| P046 | P2 | 重复 | `tauri/src-tauri/src/commands/attachment.rs:983-1027` vs `tauri/crates/solosoul-core/src/objects.rs:945-999` | `cleanup_orphan_attachments` GUI 端整体复制 core 实现 | `[x]` 已修复 |
 | P047 | P2 | 重复 | `tauri/src-tauri/src/plugin/host/register.rs:763-812,838-890` | 两个 watermark 注册闭包除一行外完全相同；read_string 校验样板 20+ 次 | `[ ]` 待修复 |
 | P048 | P2 | 重复 | 全前端 30+ 文件（如 `ExportSection.tsx:600-622`、`OnboardingDialog.tsx` ×10、`SyncPage.tsx` ×5） | 109 处手写 onMouseEnter/Leave hover，应统一迁移到 `ui/Button` | `[ ]` 待修复 |
 | P049 | P2 | 重复 | `TrashPage.tsx:254-345`（×2）、`OperationLogPage.tsx:280-323`、`TemplateManagerPage.tsx:597+`、`SampleTemplateGallery.tsx:282+` | 筛选 chip 按钮块（约 45 行）重复 5 处，可抽 FilterChipGroup | `[ ]` 待修复 |
@@ -86,8 +86,8 @@
 
 ## 修复进度
 
-- 已完成：42 / 63（P001–P011、P013–P016、P019–P028、P029–P033、P034–P045；其中 P011 工作区部分完成）
-- 当前处理：P045 已完成，等待下一条指令
+- 已完成：43 / 63（P001–P011、P013–P016、P019–P028、P029–P033、P034–P046；其中 P011 工作区部分完成）
+- 当前处理：P046 已完成，等待下一条指令
 
 ## 静态基线之外已检查且无发现的维度（误报排除记录）
 
@@ -270,6 +270,7 @@ sync crate manager（`manager.rs:168`）`sync_enable` 时自建 `ServiceDaemon`�
 行为等价；fmt/clippy/322 测试全部通过，审查通过。
 
 **P046 | cleanup_orphan_attachments 双份**：`attachment.rs:983-1027` 整体复制 `objects.rs:945-999`，仅多 audit/auto_sync 触发。GUI 改调 core 实现后再做日志与同步；附带的 `map(|mut d| d.next().is_none()).unwrap_or(false)` 可顺手改 `is_ok_and`。
+`[x]` 已修复：GUI 端重复实现整体已在 **P020** 连带删除（死命令 `attachment_cleanup_orphans` 删除时移除，附件 `attachment.rs:983-1027` 已不存在）；core 版本仍被 CLI `solosoul_cli/src/commands/attachment.rs:308` 使用，非死代码。本轮补齐报告附带的 `is_ok_and` 改进：`objects.rs:981` 空目录判断 `map(|mut d| d.next().is_none()).unwrap_or(false)` → `is_ok_and(|mut d| d.next().is_none())`（语义等价，Err→false 一致）。GUI 遗留 `#[cfg(test)]` 的 `load_all_referenced_attachment_ids` 测试助手保留（测试 vault 批量 API，core 版路径不同）。fmt/clippy/core 145 测试全部通过，审查通过。
 
 **P047 | watermark 注册闭包重复**：`register.rs:763-812` vs `:838-890` 除 `apply_to_image`/`apply_to_pdf` 一行外完全相同；抽 `register_watermark_fn(linker, name, apply)` 泛型注册；read_string 参数校验样板 20+ 次可抽帮助函数/宏。**注意：本项依附于 P012 的取舍结果，应先定 P012 方向再动。**
 

@@ -977,10 +977,7 @@ pub fn cleanup_orphan_attachments(
                 }
             }
             // 删除空对象目录
-            if std::fs::read_dir(&obj_path)
-                .map(|mut d| d.next().is_none())
-                .unwrap_or(false)
-            {
+            if std::fs::read_dir(&obj_path).is_ok_and(|mut d| d.next().is_none()) {
                 let _ = std::fs::remove_dir(&obj_path);
             }
         }
