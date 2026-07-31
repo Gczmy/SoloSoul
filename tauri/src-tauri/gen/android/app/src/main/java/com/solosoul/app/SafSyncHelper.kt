@@ -434,9 +434,14 @@ object SafSyncHelper {
      * 设备绑定凭证文件：Keystore 密钥随卸载/换机即被系统擦除，
      * 跨设备/跨安装同步只会制造"幽灵开启"的陈旧状态（安全设置显示已开启但无法解锁），
      * 双向同步均排除，且不限于根级（这些文件位于账户子目录内）。
+     *
+     * 注意：PIN 凭证的实际文件名为 `pin_credential`（无扩展名，见 PinManager），
+     * 不能仅依赖 `pin_*.cred` 后缀模式——那会漏掉该文件，导致重装后
+     * 从 SAF 恢复出旧 PIN 凭证，登录页错误地显示 PIN 解锁选项。
      */
     private fun isDeviceBoundCredential(name: String): Boolean =
         name == "keystore_data.json" || name == "biometric_key" ||
+            name == "pin_credential" ||
             (name.startsWith("pin_") && name.endsWith(".cred"))
 
     private fun getMimeType(fileName: String): String {

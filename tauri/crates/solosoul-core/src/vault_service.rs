@@ -1063,7 +1063,9 @@ impl VaultService {
     /// 的 biometric_enabled/pin_enabled=true，但实际 KeyStore 凭证与 PIN 文件已被卸载清除。
     /// 此方法将这些标志复位，避免用户进入安全设置后看到"已启用"但实际无法使用的状态。
     ///
-    /// 同时清理 `keystore_data.json`、`biometric_key`、`pin_*.cred` 等凭证残留文件。
+    /// 同时清理 `keystore_data.json`、`biometric_key`、`pin_credential` 等凭证残留文件。
+    /// 注意：PIN 凭证实际文件名为 `pin_credential`（无扩展名，见 PinManager），
+    /// 旧的 `pin_*.cred` 后缀模式不匹配该文件，会残留凭证导致重装后误显示 PIN 解锁。
     pub fn reset_security_flags(&self, account_id: &str) -> Result<(), String> {
         let config_rel = self.config_path_rel(account_id);
         let content = self
@@ -1096,14 +1098,16 @@ impl VaultService {
         if self.fs.exists(&bio_key_rel).unwrap_or(false) {
             let _ = self.fs.remove_file(&bio_key_rel);
         }
-        // PIN 凭证文件（pin_<hash>.cred）
-        // 通过本地路径枚举删除
+        // PIN 凭证文件：精确删除 pin_credential（无扩展名，PinManager 实际文件名），
+        // 同时兼容历史遗留的 pin_*.cred 命名，通过本地路径枚举删除。
         if let Some(local_dir) = self.fs.local_path(&dir_rel) {
             if let Ok(entries) = std::fs::read_dir(&local_dir) {
                 for entry in entries.flatten() {
                     let name = entry.file_name();
                     let name_str = name.to_string_lossy();
-                    if name_str.starts_with("pin_") && name_str.ends_with(".cred") {
+                    if name_str == "pin_credential"
+                        || (name_str.starts_with("pin_") && name_str.ends_with(".cred"))
+                    {
                         let _ = std::fs::remove_file(entry.path());
                     }
                 }
