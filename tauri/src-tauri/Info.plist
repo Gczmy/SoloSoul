@@ -8,5 +8,7 @@
   <string>SoloSoul</string>
   <key>NSFaceIDUsageDescription</key>
   <string>验证身份以解锁 SoloSoul</string>
+  <key>NSCameraUsageDescription</key>
+  <string>SoloSoul 使用摄像头扫描二维码，用于设备配对与从其他设备恢复账户。</string>
 </dict>
 </plist>
