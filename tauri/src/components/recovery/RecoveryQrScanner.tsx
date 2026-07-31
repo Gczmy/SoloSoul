@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Html5Qrcode, type CameraDevice } from 'html5-qrcode';
 import { Loader2 } from 'lucide-react';
@@ -23,8 +23,15 @@ export function RecoveryQrScanner({ onScan, onError, onCancel }: RecoveryQrScann
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // 回调引用：父组件每次渲染都会产生新的 onScan/onError 引用，
+  // 若直接作为 effect 依赖会导致扫描器反复卸载/重启（并触发 stop() 崩溃路径）。
+  const onScanRef = useRef(onScan);
+  onScanRef.current = onScan;
+  const onErrorRef = useRef(onError);
+  onErrorRef.current = onError;
+
   // 将底层错误映射为友好的提示，区分「权限被拒」与「无摄像头设备」两种场景。
-  const friendlyError = (raw: string): string => {
+  const friendlyError = useCallback((raw: string): string => {
     const lower = raw.toLowerCase();
     if (
       lower.includes('notallowed') ||
@@ -48,7 +55,7 @@ export function RecoveryQrScanner({ onScan, onError, onCancel }: RecoveryQrScann
       return t('common:recovery_qr_no_camera');
     }
     return raw;
-  };
+  }, [t]);
 
   useEffect(() => {
     let isMounted = true;
@@ -66,7 +73,7 @@ export function RecoveryQrScanner({ onScan, onError, onCancel }: RecoveryQrScann
         setSelectedCamera(devices[0].id);
         setLoading(false);
       })
-      .catch((err) => {
+      .catch(() => {
         if (!isMounted) return;
         // 枚举失败：先尝试默认摄像头启动，不直接阻断
         setFallbackStart(true);
@@ -94,34 +101,50 @@ export function RecoveryQrScanner({ onScan, onError, onCancel }: RecoveryQrScann
     const cameraIdOrConfig: string | MediaTrackConstraints =
       selectedCamera || { facingMode: 'environment' };
 
-    scanner
-      .start(
-        cameraIdOrConfig,
-        { fps: 10, qrbox: { width: 250, height: 250 } },
-        (decodedText) => {
-          onScan(decodedText);
-        },
-        () => {
-          // 每一帧都可能触发但无二维码，忽略
-        },
-      )
-      .then(() => {
-        setLoading(false);
-      })
-      .catch((err) => {
-        setLoading(false);
-        const msg = String(err);
-        setError(friendlyError(msg));
-        onError?.(msg);
-      });
+    try {
+      scanner
+        .start(
+          cameraIdOrConfig,
+          { fps: 10, qrbox: { width: 250, height: 250 } },
+          (decodedText) => {
+            onScanRef.current(decodedText);
+          },
+          () => {
+            // 每一帧都可能触发但无二维码，忽略
+          },
+        )
+        .then(() => {
+          setLoading(false);
+        })
+        .catch((err) => {
+          setLoading(false);
+          const msg = String(err);
+          setError(friendlyError(msg));
+          onErrorRef.current?.(msg);
+        });
+    } catch (err) {
+      // start() 也可能同步 throw（例如容器不可用），同样需要保护
+      setLoading(false);
+      const msg = String(err);
+      setError(friendlyError(msg));
+      onErrorRef.current?.(msg);
+    }
 
     return () => {
-      scanner
-        .stop()
-        .then(() => scanner.clear())
-        .catch(() => {});
+      // html5-qrcode 的 stop() 在扫描器从未成功启动时是同步 throw
+      // （throw "Cannot stop, scanner is not running or paused."，而非 promise
+      // rejection），.catch 接不住同步异常。若不 try/catch 包裹，异常会逃逸出
+      // React 的 effect cleanup，导致整棵组件树崩溃（页面消失）。
+      try {
+        scanner
+          .stop()
+          .then(() => scanner.clear())
+          .catch(() => {});
+      } catch {
+        // 扫描器未启动（如权限被拒后直接切换），stop() 同步抛错，忽略即可
+      }
     };
-  }, [onScan, onError, selectedCamera, fallbackStart, containerId, t]);
+  }, [selectedCamera, fallbackStart, containerId, friendlyError, t]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%' }}>

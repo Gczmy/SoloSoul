@@ -84,6 +84,8 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<RecoveryResultSummary | null>(null);
+  // 扫码器启动失败（如权限被拒）时置位，用于展示「使用手动输入」兜底按钮
+  const [scannerError, setScannerError] = useState<string | null>(null);
 
   // 已收集的连接信息（扫码或手动输入后统一进入账户卡阶段）
   const [pending, setPending] = useState<ScannedRecoveryQr | null>(null);
@@ -118,6 +120,7 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
     userSwitchedTabRef.current = false;
     setError(null);
     setSuccess(null);
+    setScannerError(null);
     setLoading(false);
     setPending(null);
     setMasterPassword('');
@@ -148,6 +151,7 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
     if (loading) return; // 传输中禁止切换
     userSwitchedTabRef.current = true;
     setError(null);
+    setScannerError(null);
     setTab(newTab);
   };
 
@@ -746,7 +750,37 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
                 </button>
               </div>
             ) : (
-              <RecoveryQrScanner onScan={handleScan} />
+              <RecoveryQrScanner onScan={handleScan} onError={setScannerError} />
+            )}
+
+            {/* 扫码启动失败（权限被拒/无摄像头）时，提供手动输入的兜底入口 */}
+            {scannerError && cameraCapability !== 'unsupported' && (
+              <button
+                type="button"
+                onClick={() => switchTab('manual')}
+                style={{
+                  padding: '10px 12px',
+                  borderRadius: 8,
+                  border: '1px solid var(--border-subtle)',
+                  background: 'var(--bg-toolbar)',
+                  color: 'var(--accent-primary)',
+                  cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  fontSize: 'var(--text-body-sm)',
+                  fontWeight: 500,
+                  transition: 'all 0.15s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--accent-primary)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
+                }}
+              >
+                {t('common:recovery_use_manual', {
+                  defaultValue: 'Use manual input mode',
+                })}
+              </button>
             )}
 
             {error && (
