@@ -33,10 +33,15 @@ export function ObjectEditorPage() {
   const isNew = !objectId;
   const accountId = useAuthStore((s) => s.currentAccount?.id);
   const { t } = useTranslation(['common', 'editor', 'navigation']);
-  const { getObject, createObject, updateObject, currentObjectCache } = useObjectStore();
+  // P055: 分字段 selector，避免 store 任何变化触发整页重渲染（函数引用稳定）
+  const getObject = useObjectStore((s) => s.getObject);
+  const createObject = useObjectStore((s) => s.createObject);
+  const updateObject = useObjectStore((s) => s.updateObject);
+  const currentObjectCache = useObjectStore((s) => s.currentObjectCache);
   const currentObject = objectId ? (currentObjectCache[objectId] ?? null) : null;
   const { onError, onSuccess } = useToastError();
-  const { templates: userTemplates, loadTemplates: loadUserTemplates } = useTemplateStore();
+  const userTemplates = useTemplateStore((s) => s.templates);
+  const loadUserTemplates = useTemplateStore((s) => s.loadTemplates);
   const customPages = useSettingsStore((s) => s.settings.customPages);
 
   const handleFieldChange = useCallback((key: string, val: unknown) => {

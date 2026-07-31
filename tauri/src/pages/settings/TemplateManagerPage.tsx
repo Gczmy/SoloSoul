@@ -63,17 +63,17 @@ export function TemplateManagerPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation(['common', 'settings', 'editor']);
-  const {
-    templates,
-    isLoading,
-    error,
-    loadTemplates,
-    deleteTemplate,
-    updateTemplate,
-    createTemplate,
-    checkFieldUsage,
-  } = useTemplateStore();
-  const { settings, loadCustomPages } = useSettingsStore();
+  // P055: 分字段 selector，避免 store 任何变化触发整页重渲染（函数引用稳定）
+  const templates = useTemplateStore((s) => s.templates);
+  const isLoading = useTemplateStore((s) => s.isLoading);
+  const error = useTemplateStore((s) => s.error);
+  const loadTemplates = useTemplateStore((s) => s.loadTemplates);
+  const deleteTemplate = useTemplateStore((s) => s.deleteTemplate);
+  const updateTemplate = useTemplateStore((s) => s.updateTemplate);
+  const createTemplate = useTemplateStore((s) => s.createTemplate);
+  const checkFieldUsage = useTemplateStore((s) => s.checkFieldUsage);
+  const settings = useSettingsStore((s) => s.settings);
+  const loadCustomPages = useSettingsStore((s) => s.loadCustomPages);
   const trashRetention = settings.trashRetention;
   const accountId = useAuthStore((s) => s.currentAccount?.id) || '';
   const showToast = useUiStore((s) => s.showToast);

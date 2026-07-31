@@ -130,7 +130,9 @@ export function ObjectDetailModal({
 }: ObjectDetailModalProps) {
   const accountId = useAuthStore((s) => s.currentAccount?.id);
   const { t } = useTranslation(['common', 'navigation', 'editor']);
-  const { templates, loadTemplates } = useTemplateStore();
+  // P055: 分字段 selector，避免 store 任何变化触发整页重渲染（函数引用稳定）
+  const templates = useTemplateStore((s) => s.templates);
+  const loadTemplates = useTemplateStore((s) => s.loadTemplates);
   const customPages = useSettingsStore((s) => s.settings.customPages);
   const { maskValue, isRevealed, reveal } = useRevealState();
   const [fetchedObj, setFetchedObj] = useState<ObjectData | null>(null);

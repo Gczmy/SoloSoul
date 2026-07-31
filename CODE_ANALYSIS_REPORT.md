@@ -74,7 +74,7 @@
 | P052 | P2 | 性能 | `tauri/src/stores/trashStore.ts:137-140` | `permanentDelete` 循环内串行 await 逐条 IPC | `[x]` 已修复 |
 | P053 | P2 | 性能 | `tauri/src/stores/settingsStore.ts:328-355` | `loadCustomPages` 对每个自定义页单独 `object_get`（N+1 IPC） | `[x]` 已修复 |
 | P054 | P2 | 性能 | `GlobalAttachmentManager.tsx:419-425`、`AttachmentViewer.tsx:343-361` | 附件批量下载逐条串行 IPC+文件拷贝 | `[x]` 已修复 |
-| P055 | P2 | 性能 | `ObjectEditorPage.tsx:36`、`TrashPage.tsx:79`、`TemplateManagerPage.tsx:75`、`ObjectDetailModal.tsx:136` | 多处 `useXxxStore()` 整店订阅（负载较小，同类于 P010） | `[ ]` 待修复 |
+| P055 | P2 | 性能 | `ObjectEditorPage.tsx:36`、`TrashPage.tsx:79`、`TemplateManagerPage.tsx:75`、`ObjectDetailModal.tsx:136` | 多处 `useXxxStore()` 整店订阅（负载较小，同类于 P010） | `[x]` 已修复 |
 | P056 | P2 | 架构 | `tauri/src/stores/objectStore.ts:184-220` | objectStore 的 trash 切片是死代码，与 trashStore 双轨调用不同后端命令 | `[x]` 已修复 |
 | P057 | P2 | 架构 | `tauri/src/stores/objectStore.ts:158-169` | `updateObject` 只更新缓存不同步 `objects` 摘要列表（潜伏性不一致） | `[x]` 已修复 |
 | P058 | P2 | 架构 | `tauri/src/stores/profileStore.ts:75-98` | `loadSection`/`updateField` 无调用方死代码，且 updateField 写后不同步本地 | `[x]` 已修复 |
@@ -86,8 +86,8 @@
 
 ## 修复进度
 
-- 已完成：54 / 63（P001–P011、P013–P016、P019–P028、P029–P033、P034–P046、P052–P054、P056–P063；其中 P011 工作区部分完成）
-- 当前处理：P054 已完成，等待下一条指令
+- 已完成：55 / 63（P001–P011、P013–P016、P019–P028、P029–P033、P034–P046、P052–P055、P056–P063；其中 P011 工作区部分完成）
+- 当前处理：P055 已完成，等待下一条指令
 
 ## 静态基线之外已检查且无发现的维度（误报排除记录）
 
@@ -291,6 +291,8 @@ sync crate manager（`manager.rs:168`）`sync_enable` 时自建 `ServiceDaemon`�
 `[x]` 已修复：核验发现 solosoul-vault 的 `ObjectSummary`（lib.rs:263）已含 `properties: serde_json::Value` 字段，且 `list_objects` SQL 已 SELECT properties 列并 `serde_json::from_str(&decrypted_props)` **全量解密反序列化**（storage.rs:2356,2415，非截断）——`object_list` 本就返回每个页面的完整 properties，无需新增批量命令。改动：类型注解补 `properties?: Record<string, unknown>`，`objects.map` 同步化（去掉 Promise.all + 每页 `object_get` + logger.warn 捕获块），description 直接从 `o.properties?.description` 读取，并补 `!o.isDeleted` 守卫恢复原实现「deleted 页面 description 恒为 undefined」语义（审查发现的行为漂移已修正）。N+1 IPC 完全消除。tsc/lint/Vitest 415 全部通过，两轮审查通过。
 
 **P054 | 附件批量下载串行**：`GlobalAttachmentManager.tsx:419-425`、`AttachmentViewer.tsx:343-361` 逐条 invoke+文件拷贝（同文件删除/恢复已有 batch 命令，下载没有）。加后端批量命令或并发化。
+
+**P055 | 其余整店订阅**：`ObjectEditorPage.tsx:36`、`TrashPage.tsx:79`、`TemplateManagerPage.tsx:75`、`ObjectDetailModal.tsx:136` 多处 `useXxxStore()` 裸调用。已全部改为分字段 selector：ObjectEditorPage（objectStore 4 字段 + templateStore 2）、TrashPage（trashStore 16 字段 + getTemplate）、TemplateManagerPage（templateStore 8 字段 + settingsStore 2）、ObjectDetailModal（templateStore 2）。函数字段引用稳定不再触发重渲，值字段按引用比较（store 全部不可变更新），无无限重渲风险；变量名不变故 useEffect 依赖数组无需改。tsc/lint/Vitest 415 全绿，审查通过。
 `[x]` 已修复：两处批量下载按报告「并发化」选项改为 `Promise.allSettled` 并发（各附件独立 IPC + 独立目标文件，并发安全；allSettled 不因单项失败整体 reject，successCount 语义与串行一致）。① `useAttachmentManager.ts handleBatchDownload`：桌面端串行 for-await → filter（去无 path 项）+ map + allSettled；② `AttachmentViewer.tsx handleBatchDownload`：移动端 SAF（`attachment_export_tree_uri`）与桌面端（`attachment_download`）双串行循环合并为 downloadTasks 数组 + allSettled，平台检测 `isMobilePlatformSync()` 上提为 map 外单次求值（审查建议采纳）。tsc/lint/Vitest 415 全部通过，两轮审查通过。
 
 **P055 | 其余整店订阅**：`ObjectEditorPage.tsx:36`、`TrashPage.tsx:79`、`TemplateManagerPage.tsx:75`、`ObjectDetailModal.tsx:136` 分字段 selector（负载小于 P010）。

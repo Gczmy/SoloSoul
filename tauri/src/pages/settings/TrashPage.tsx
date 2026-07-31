@@ -59,29 +59,28 @@ export function TrashPage() {
   const { t } = useTranslation(['settings', 'common', 'editor']);
   const { onSuccess, onError } = useToastError();
   const accountId = useAuthStore((s) => s.currentAccount?.id);
-  const {
-    items,
-    timeFilter,
-    typeFilter,
-    searchQuery,
-    loadItems,
-    setTimeFilter,
-    setTypeFilter,
-    setSearchQuery,
-    restoreItem,
-    permanentDelete,
-    isLoading,
-    error,
-    selectedIds,
-    toggleSelection,
-    selectAll,
-    clearSelection,
-  } = useTrashStore();
+  // P055: 分字段 selector，避免 store 任何变化触发整页重渲染（函数引用稳定）
+  const items = useTrashStore((s) => s.items);
+  const timeFilter = useTrashStore((s) => s.timeFilter);
+  const typeFilter = useTrashStore((s) => s.typeFilter);
+  const searchQuery = useTrashStore((s) => s.searchQuery);
+  const loadItems = useTrashStore((s) => s.loadItems);
+  const setTimeFilter = useTrashStore((s) => s.setTimeFilter);
+  const setTypeFilter = useTrashStore((s) => s.setTypeFilter);
+  const setSearchQuery = useTrashStore((s) => s.setSearchQuery);
+  const restoreItem = useTrashStore((s) => s.restoreItem);
+  const permanentDelete = useTrashStore((s) => s.permanentDelete);
+  const isLoading = useTrashStore((s) => s.isLoading);
+  const error = useTrashStore((s) => s.error);
+  const selectedIds = useTrashStore((s) => s.selectedIds);
+  const toggleSelection = useTrashStore((s) => s.toggleSelection);
+  const selectAll = useTrashStore((s) => s.selectAll);
+  const clearSelection = useTrashStore((s) => s.clearSelection);
 
   const [detailItem, setDetailItem] = useState<TrashDetail | null>(null);
   const [detailTemplate, setDetailTemplate] = useState<UserTemplate | null>(null);
   const [, setLoadingDetail] = useState(false);
-  const { getTemplate } = useTemplateStore();
+  const getTemplate = useTemplateStore((s) => s.getTemplate);
 
   const [confirmAction, setConfirmAction] = useState<TrashConfirmAction | null>(null);
 
