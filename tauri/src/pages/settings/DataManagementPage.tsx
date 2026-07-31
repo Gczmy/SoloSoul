@@ -6,7 +6,7 @@ import { AppShell } from '@/components/layout/AppShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 
-import { HardDrive, PieChart, X, FolderTree } from 'lucide-react';
+import { HardDrive, PieChart, X } from 'lucide-react';
 import { formatBytes } from '@/lib/utils';
 import { isMobilePlatformSync } from '@/lib/platform';
 import { ICON_SIZE } from '@/lib/constants';
@@ -353,41 +353,8 @@ export function DataManagementPage() {
         )}
 
         {/* Vault directory (mobile only) — inline content */}
-        {isMobile && (
-          <div>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 12,
-                marginBottom: 12,
-              }}
-            >
-              <div
-                style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: 10,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  background: 'rgba(91,124,153,0.1)',
-                }}
-              >
-                <FolderTree size={ICON_SIZE['2xl']} style={{ color: 'var(--accent-primary)' }} />
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500 }}>
-                  {t('settings:items.vault_directory') || '保险库目录'}
-                </div>
-                <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)', marginTop: 2 }}>
-                  {t('settings:desc.vault_directory') || '选择保险库数据存储位置'}
-                </div>
-              </div>
-            </div>
-            <VaultDirectorySection />
-          </div>
-        )}
+        {/* 说明：VaultDirectorySection 自身已含「当前存储类型」卡片，此处不再重复标题 */}
+        {isMobile && <VaultDirectorySection />}
 
         {/* Quick actions */}
         <Card>
