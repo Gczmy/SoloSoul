@@ -9,18 +9,21 @@ import { getBiometricErrorMessage } from '@/lib/biometricError';
 import { logger } from '@/lib/logger';
 
 import { ShieldLogo } from '@/components/ui/ShieldLogo';
-import { SecurePasswordInput } from '@/components/forms/PasswordInput';
-import { PinInput, type PinInputHandle } from '@/components/forms/PinInput';
+import type { PinInputHandle } from '@/components/forms/PinInput';
 import { RecoveryReceiveDialog } from '@/components/recovery/RecoveryReceiveDialog';
-import { Fingerprint, KeyRound, ScanFace, ShieldCheck, Grip, AlertTriangle } from 'lucide-react';
+import { Fingerprint, KeyRound, ScanFace, ShieldCheck, Grip } from 'lucide-react';
 import styles from './LoginPage.module.css';
 import { ICON_SIZE } from '@/lib/constants';
 
-/** 生物识别类型的可读标签映射 */
-const BIOMETRIC_LABEL: Record<string, string> = {
-  faceId: 'Face ID',
-  touchId: 'Touch ID',
-  windowsHello: 'Windows Hello',
+import { LoginBiometricView } from './LoginBiometricView';
+import { LoginPinView } from './LoginPinView';
+import { LoginPasswordView } from './LoginPasswordView';
+
+/** P038: 受支持的生物识别类型白名单（显示名由 LoginBiometricView 的查表负责） */
+const BIOMETRIC_INFO: Record<string, string> = {
+  faceId: 'faceId',
+  touchId: 'touchId',
+  windowsHello: 'windowsHello',
 };
 
 /** DEBUG: 设为 true 时，底部图标栏始终显示全部 5 种解锁方式，且生物识别卡片可切换显示全部 3 种 */
@@ -52,7 +55,6 @@ export function LoginPage() {
 
   // Biometric state
   const [bioAvailable, setBioAvailable] = useState(false);
-  const [biometryType, setBiometryType] = useState('Touch ID');
   const [biometryTypeRaw, setBiometryTypeRaw] = useState('touchId');
   const [bioLoading, setBioLoading] = useState(false);
   const [bioError, setBioError] = useState<string | null>(null);
@@ -108,15 +110,9 @@ export function LoginPage() {
     })
       .then((r) => {
         if (ctrl.signal.aborted) return;
-        if (r.biometryType === 'touchId') {
-          setBiometryType('Touch ID');
-          setBiometryTypeRaw('touchId');
-        } else if (r.biometryType === 'faceId') {
-          setBiometryType('Face ID');
-          setBiometryTypeRaw('faceId');
-        } else if (r.biometryType === 'windowsHello') {
-          setBiometryType('Windows Hello');
-          setBiometryTypeRaw('windowsHello');
+        const info = r.biometryType ? BIOMETRIC_INFO[r.biometryType] : undefined;
+        if (info) {
+          setBiometryTypeRaw(info);
         }
       })
       .catch(() => {
@@ -202,7 +198,7 @@ export function LoginPage() {
     // Check biometric
     // lockout 场景：系统因失败次数过多临时锁定生物识别（Android canAuthenticate 返回
     // ERROR_LOCKOUT），此时后端 available 会变 false，但凭证仍已配置（configured=true）。
-    // 指纹项应继续显示，仅在解锁时提示“系统指纹识别未恢复”，而不是消失或显示“不支持”。
+    // 指纹项应继续显示，仅在解锁时提示"系统指纹识别未恢复"，而不是消失或显示"不支持"。
     invoke<{
       available: boolean;
       configured: boolean;
@@ -217,15 +213,9 @@ export function LoginPage() {
         if (r.configured && (r.available || r.lockout)) {
           setBioAvailable(true);
           setBioLockout(!!r.lockout);
-          if (r.biometryType === 'touchId') {
-            setBiometryType('Touch ID');
-            setBiometryTypeRaw('touchId');
-          } else if (r.biometryType === 'faceId') {
-            setBiometryType('Face ID');
-            setBiometryTypeRaw('faceId');
-          } else if (r.biometryType === 'windowsHello') {
-            setBiometryType('Windows Hello');
-            setBiometryTypeRaw('windowsHello');
+          const info = r.biometryType ? BIOMETRIC_INFO[r.biometryType] : undefined;
+          if (info) {
+            setBiometryTypeRaw(info);
           }
         } else {
           setBioAvailable(false);
@@ -299,9 +289,9 @@ export function LoginPage() {
           action: 'unlock',
         });
         (window as typeof window & { __SOLOSOUL_UNLOCK_TIME?: number }).__SOLOSOUL_UNLOCK_TIME = t0;
-      saveLastAccountId(acc.id);
-      useAuthStore.setState({ isAuthenticated: true, currentAccount: acc });
-      // PIN 解锁后延迟检查备份提醒
+        saveLastAccountId(acc.id);
+        useAuthStore.setState({ isAuthenticated: true, currentAccount: acc });
+        // PIN 解锁后延迟检查备份提醒
         setTimeout(() => {
           import('@/lib/notification')
             .then((m) => m.checkBackupReminder())
@@ -495,6 +485,9 @@ export function LoginPage() {
     }
   };
 
+  const isBiometricMethod =
+    loginMethod === 'faceId' || loginMethod === 'touchId' || loginMethod === 'windowsHello';
+
   return (
     <div className={styles.loginWrapper}>
       <div className={styles.loginCard}>
@@ -572,247 +565,50 @@ export function LoginPage() {
         </div>
 
         {/* Biometric unlock — highest-priority method */}
-        {(loginMethod === 'faceId' ||
-          loginMethod === 'touchId' ||
-          loginMethod === 'windowsHello') && (
-          <div
-            style={{
-              minHeight: 152,
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              marginBottom: 16,
-            }}
-          >
-            {/* 系统生物识别临时锁定（失败次数过多）警告条 — 与设置页 BiometricSection 风格一致 */}
-            {bioLockout && (
-              <div
-                role="alert"
-                style={{
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: 8,
-                  padding: 10,
-                  borderRadius: 8,
-                  marginBottom: 10,
-                  background: 'rgba(212, 133, 10, 0.10)',
-                  border: '1px solid rgba(212, 133, 10, 0.25)',
-                  color: '#D4850A',
-                  fontSize: 'var(--text-caption)',
-                  lineHeight: 1.4,
-                }}
-              >
-                <AlertTriangle
-                  size={ICON_SIZE.md}
-                  style={{ flexShrink: 0, marginTop: 1 }}
-                />
-                <span>{t('settings:biometric_lockout_desc')}</span>
-              </div>
-            )}
-            <button
-              onClick={handleBiometricUnlock}
-              disabled={bioLoading}
-              className={styles.loginFloatButton}
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 12,
-                padding: '20px 24px',
-                borderRadius: 14,
-                border: '1px solid var(--border-subtle)',
-                background: bioLoading ? 'var(--bg-toolbar)' : 'transparent',
-                cursor: bioLoading ? 'wait' : 'pointer',
-                width: '100%',
-              }}
-            >
-              {loginMethod === 'faceId' && (
-                <ScanFace
-                  size={ICON_SIZE['4xl']}
-                  color="var(--accent-primary)"
-                  style={{ opacity: bioLoading ? 0.5 : 1 }}
-                />
-              )}
-              {loginMethod === 'touchId' && (
-                <Fingerprint
-                  size={ICON_SIZE['4xl']}
-                  color="var(--accent-primary)"
-                  style={{ opacity: bioLoading ? 0.5 : 1 }}
-                />
-              )}
-              {loginMethod === 'windowsHello' && (
-                <ShieldCheck
-                  size={ICON_SIZE['4xl']}
-                  color="var(--accent-primary)"
-                  style={{ opacity: bioLoading ? 0.5 : 1 }}
-                />
-              )}
-              <span
-                style={{
-                  fontSize: 'var(--text-card-title)',
-                  fontWeight: 500,
-                  color: 'var(--text-primary)',
-                }}
-              >
-                {bioLoading
-                  ? t('auth:bio_verifying')
-                  : t('auth:bio_unlock_reason', {
-                      type:
-                        loginMethod === 'faceId' ||
-                        loginMethod === 'touchId' ||
-                        loginMethod === 'windowsHello'
-                          ? BIOMETRIC_LABEL[loginMethod] || loginMethod
-                          : biometryType,
-                    })}
-              </span>
-            </button>
-          </div>
+        {isBiometricMethod && loginMethod && (
+          <LoginBiometricView
+            loginMethod={loginMethod}
+            bioLoading={bioLoading}
+            bioLockout={bioLockout}
+            onUnlock={handleBiometricUnlock}
+          />
         )}
 
         {/* PIN unlock — shown when PIN is the highest available method or user chose it */}
         {loginMethod === 'pin' && (
-          <div
-            style={{
-              minHeight: 152,
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              marginBottom: 16,
-            }}
-            onClick={() => pinInputRef.current?.focus()}
-          >
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 12,
-                padding: '16px 24px 20px',
-                borderRadius: 14,
-                border: '1px solid var(--border-subtle)',
-                background: 'transparent',
-                width: '100%',
-              }}
-            >
-              <Grip size={ICON_SIZE['2xl']} color="var(--accent-primary)" />
-              <span
-                style={{
-                  fontSize: 'var(--text-card-title)',
-                  fontWeight: 500,
-                  color: 'var(--text-primary)',
-                }}
-              >
-                {t('auth:pin_enter_title')}
-              </span>
-              <PinInput
-                ref={pinInputRef}
-                key={pinInputKey}
-                length={6}
-                onComplete={handlePinComplete}
-                disabled={pinUnlocking}
-                error={!!pinError}
-                verifying={pinUnlocking}
-              />
-              {pinError && (
-                <div style={{ color: '#dc2626', fontSize: 'var(--text-body-sm)' }}>{pinError}</div>
-              )}
-            </div>
-          </div>
+          <LoginPinView
+            pinUnlocking={pinUnlocking}
+            pinError={pinError}
+            pinInputKey={pinInputKey}
+            pinInputRef={pinInputRef}
+            onPinComplete={handlePinComplete}
+          />
         )}
 
         {/* Password input — 最低优先级；初始化或缓存回退时也显示，避免白屏 */}
         {(loginMethod === 'password' || loginMethod === null) && (
-          <div
-            style={{
-              minHeight: 152,
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              marginBottom: 16,
+          <LoginPasswordView
+            password={password}
+            onPasswordChange={setPassword}
+            isLoading={isLoading}
+            error={error}
+            bioError={bioError}
+            submitError={submitError}
+            pinError={pinError}
+            passwordHint={selectedAccount?.passwordHint || null}
+            onSubmit={handleSubmit}
+            onFocus={() => {
+              // T1：首个输入框获焦时记录，仅一次
+              if (t1FiredRef.current) return;
+              t1FiredRef.current = true;
+              const start = (
+                window as typeof window & { __SOLOSOUL_APP_START_TIME?: number }
+              ).__SOLOSOUL_APP_START_TIME;
+              if (typeof start === 'number') {
+                // T1 timing is captured internally; no console output in production
+              }
             }}
-          >
-            <form
-              onSubmit={handleSubmit}
-              style={{ display: 'flex', flexDirection: 'column', gap: 16 }}
-            >
-              <SecurePasswordInput
-                value={password}
-                onChange={(v) => setPassword(v)}
-                placeholder={t('common:password_placeholder')}
-                hint={selectedAccount?.passwordHint || null}
-                autoComplete="current-password"
-                onEnter={handleSubmit}
-                onFocus={() => {
-                  // T1：首个输入框获焦时记录，仅一次
-                  if (t1FiredRef.current) return;
-                  t1FiredRef.current = true;
-                  const start = (
-                    window as typeof window & { __SOLOSOUL_APP_START_TIME?: number }
-                  ).__SOLOSOUL_APP_START_TIME;
-                  if (typeof start === 'number') {
-                    // T1 timing is captured internally; no console output in production
-                  }
-                }}
-              />
-              {(error || bioError || submitError || pinError) && (
-                <div style={{ color: '#dc2626', fontSize: 'var(--text-body-sm)' }}>
-                  {pinError ||
-                    submitError ||
-                    bioError ||
-                    (error
-                      ? error.toLowerCase().includes('8 characters') ||
-                        error.toLowerCase().includes('至少')
-                        ? t('auth:password_too_short')
-                        : error.toLowerCase().includes('password') ||
-                            error.toLowerCase().includes('invalid')
-                          ? t('auth:incorrect_password')
-                          : error.toLowerCase().includes('required')
-                            ? t('auth:password_required')
-                            : error
-                      : '')}
-                </div>
-              )}
-              <button
-                type="submit"
-                disabled={isLoading}
-                style={{
-                  width: '100%',
-                  padding: '8px 16px',
-                  borderRadius: 8,
-                  border: '1px solid var(--border-subtle)',
-                  background: isLoading
-                    ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)'
-                    : 'var(--bg-toolbar)',
-                  color: isLoading ? 'var(--accent-primary)' : 'var(--text-primary)',
-                  fontSize: 'var(--text-body-sm)',
-                  fontWeight: 500,
-                  fontFamily: 'inherit',
-                  cursor: isLoading ? 'default' : 'pointer',
-                  opacity: isLoading ? 0.6 : 1,
-                  transition: 'all 0.15s ease',
-                }}
-                onMouseEnter={(e) => {
-                  if (!isLoading) {
-                    e.currentTarget.style.background =
-                      'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-                    e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                    e.currentTarget.style.color = 'var(--accent-primary)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isLoading) {
-                    e.currentTarget.style.background = 'var(--bg-toolbar)';
-                    e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                    e.currentTarget.style.color = 'var(--text-primary)';
-                  }
-                }}
-              >
-                {isLoading ? t('common:loading', { defaultValue: '...' }) : t('auth:login_button')}
-              </button>
-            </form>
-          </div>
+          />
         )}
 
         {/* 在已有账户的登录页提供创建新账户与从其他设备恢复入口 */}
