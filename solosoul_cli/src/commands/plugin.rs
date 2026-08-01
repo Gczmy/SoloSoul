@@ -155,7 +155,7 @@ pub fn run_plugin(app: &mut App, plugin_id: Option<&str>, raw_params: &[&str]) -
                 };
 
             // 安装插件到本地
-            if let Err(e) = manager.install_from_registry(&plugin_id_clone, &version) {
+            if let Err(e) = manager.install_from_registry(&plugin_id_clone, &version).await {
                 return format!("安装插件 {} 失败: {}", plugin_id_clone, e);
             }
 
@@ -212,7 +212,15 @@ pub fn install_plugin(app: &mut App, plugin_id: Option<&str>) -> Result<()> {
         Err(_) => "latest".to_string(),
     };
 
-    match manager.install_from_registry(&plugin_id, &version) {
+    let rt = match tokio::runtime::Runtime::new() {
+        Ok(rt) => rt,
+        Err(e) => {
+            app.error_message = Some(t!(app.i18n, "cmd-plugin-init-failed", err = e));
+            return Ok(());
+        }
+    };
+
+    match rt.block_on(manager.install_from_registry(&plugin_id, &version)) {
         Ok(result) => {
             app.error_message = Some(t!(
                 app.i18n,
@@ -247,7 +255,15 @@ pub fn update_plugin(app: &mut App, plugin_id: Option<&str>) -> Result<()> {
         return Ok(());
     };
 
-    match manager.update(&plugin_id) {
+    let rt = match tokio::runtime::Runtime::new() {
+        Ok(rt) => rt,
+        Err(e) => {
+            app.error_message = Some(t!(app.i18n, "cmd-plugin-init-failed", err = e));
+            return Ok(());
+        }
+    };
+
+    match rt.block_on(manager.update(&plugin_id)) {
         Ok(result) => {
             app.error_message = Some(t!(
                 app.i18n,

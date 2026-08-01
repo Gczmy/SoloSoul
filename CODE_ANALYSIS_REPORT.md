@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-01 13:49:00
+> 最后更新：2026-08-01 14:01:11
 > 当前分支：`main`
 > 修复轮次：3 + 复核轮次 1（58 项修复声明已独立核验）+ 决策轮次（剩余 5 项方案与用户决策已记录，见各条目「决策记录」）
 > 分析范围：`tauri/`（Rust 后端 `src-tauri/` + `crates/`，React/TS 前端 `src/`）；`solosoul_cli/` 不在本轮范围
@@ -31,7 +31,7 @@
 | P009 | P1 | 性能 | `tauri/src-tauri/src/commands/ocr.rs:258,356` | 每次 OCR 命令重新加载 ONNX 引擎（数百 ms），无缓存 | `[x]` 已修复 |
 | P010 | P1 | 性能 | `tauri/src/pages/workspace/ObjectWorkspacePage.tsx:148-158` | `useObjectStore()` 无 selector 整店订阅，store 任何变化触发整页重渲染 | `[x]` 已修复（复核补改：`useObjectWorkspaceData.ts:141` 残留的 templateStore 裸订阅已分字段化） |
 | P011 | P1 | 性能 | `tauri/src/pages/workspace/ObjectWorkspacePage.tsx:803`、`tauri/src/pages/settings/GlobalAttachmentManager.tsx:1077` | 大列表无虚拟滚动/分页，对象数百+ 时首屏与重渲染成本高 | `[x]` 已修复（复核补改：GlobalAttachmentManager 顶层页面列表补「加载更多」分页） |
-| P012 | P1 | 架构/重复 | `tauri/src-tauri/src/plugin/` vs `tauri/crates/solosoul-plugin/src/` | 插件运行时双份平行实现：GUI 用本地版（功能超集），CLI 用 crate 版（见详情事实修正） | `[>]` 执行中（方向 B 第①步已完成：删 6 个 orphan mobile 文件 + version 三份去重；余第②~⑥步待执行） |
+| P012 | P1 | 架构/重复 | `tauri/src-tauri/src/plugin/` vs `tauri/crates/solosoul-plugin/src/` | 插件运行时双份平行实现：GUI 用本地版（功能超集），CLI 用 crate 版（见详情事实修正） | `[>]` 执行中（方向 B 第①②步已完成：删 orphan mobile + version 去重 + 功能移植进 crate；余第③~⑥步待执行） |
 | P013 | P1 | 架构 | `tauri/src-tauri/src/commands/discovery.rs:30`、`tauri/crates/solosoul-sync/src/manager.rs:168` | mDNS ServiceDaemon 在两个层各起一个实例，可同时存活导致结果不一致 | `[x]` 已修复 |
 | P014 | P1 | 架构 | `tauri/src/stores/authStore.ts:154-155` | `logout` invoke 失败时前端认证状态永不重置，出现半认证僵尸态 | `[x]` 已修复 |
 | P015 | P1 | 架构 | `tauri/src/stores/vaultStore.ts:15-44`、`tauri/src/stores/authStore.ts` | 认证/锁定状态双 store 平行维护，`vaultState` 只写不读，存在三种写入路径 | `[x]` 已修复（复核补改：LoginPage PIN/生物识别两条裸 setState 收敛为 authStore.completeUnlock） |
@@ -88,8 +88,8 @@
 
 - 已完成：61 / 63（经 2026-08-01 复核确认 + P048 四批迁移确认通过的项）
 - 部分完成 `[~]`：0 项
-- 已决策待执行 `[>]`：1 项——P012（方向 B 统一到 crate，P047 并入；**唯一剩余工作项**，第①步已完成，执行中）
-- 当前处理：P012 方向 B 第①步完成（2026-08-01，13:49）——删除两侧 6 个 orphan mobile 文件（511 行）+ `version.rs` 三份去重（registry.rs/manager.rs 内联逻辑委托 `solosoul_plugin::version`）。验证：cargo check/check --tests/fmt/clippy（基线）/test 全绿，三轮审查通过。下一轮：P012 第②步（功能移植进 crate）
+- 已决策待执行 `[>]`：1 项——P012（方向 B 统一到 crate，P047 并入；**唯一剩余工作项**，第①②步已完成，执行中）
+- 当前处理：P012 方向 B 第②步完成（2026-08-01，14:01）——crate registry 双路径+pubkey 容错、crate manager async install 全流程移植、new_with_dirs 显式注入、CLI 调用点异步适配。验证：crate/CLI/GUI 三侧 check + fmt + clippy + crate test 全绿，审查通过。下一轮：P012 第③步（host 对齐 + P047）
 
 ## 静态基线之外已检查且无发现的维度（误报排除记录）
 
@@ -215,6 +215,13 @@
 - **语义安全确认**：src-tauri 与 crate 均 `version.workspace = true` = 2.6.8，`env!("CARGO_PKG_VERSION")` 数值一致，委托后语义不变。
 - **审查修正两轮**：① `RegistryVersion` 从 registry.rs 顶层 import 移除后非测试构建报 unused import → 测试模块改 `use solosoul_plugin::manifest::RegistryVersion`（顶层 `use super::{...}` 去掉该名）；② 测试模块 `use semver::Version` 保留。
 - **验证**：`cargo check -p solo_soul` ✅、`cargo check --tests` ✅（含测试目标编译）、`cargo fmt --check` ✅、`cargo clippy --workspace -- -D warnings`（基线）✅、`cargo test`（solosoul-plugin 46 + solo_soul 322 + 等）全部通过。注：`cargo clippy --all-targets` 在 `solosoul-core`/`settings.rs` 测试代码报既有 `unneeded return`/`needless_borrow`，非本次改动引入（本次仅改 plugin 目录），基线命令不受影响。
+
+**第②步修复记录（2026-08-01，状态更新为 `[>]` 执行中）**：
+- **crate `registry.rs` 重写**：单路径 `path` → `bundled_path + cache_path` 双路径 + `active_path()`（优先缓存，其次 bundled）+ 新增 `new_with_dirs(market_dir, data_dir)` 显式注入 + pubkey 缺失优雅跳过（warn + 返回 Ok，不再硬失败）+ 原子写缓存路径（create_dir_all + tmp rename）。`load`/`get_entry` 改读 `active_path()`；`from_path` 兼容保留；`new()` fallback 链（data_dir 失败回退 current_dir）与本地版一致。
+- **crate `manager.rs` 重写**：同步 install → 移植本地全流程 `async install_from_registry`——get_entry → 版本兼容 → validate id → 已安装 hash 短路直接返回 → 远程 manifest 下载 + bundled 回退 → bundled 版本不匹配时降级安装（bundled wasm 读盘 + 对 bundled_version_info.sha256 校验）→ 远程 wasm 下载 + bundled 回退 → SHA256 校验 → effective_roles 回填 → save + audit。新增私有 `fetch_manifest`/`fetch_wasm`（30s/60s 超时），`update` 改 async，`run` 启动消息改 locale 感知（`plugin_start_message`，从 params 取 locale 默认 zh-CN），新增 `new_with_dirs(market_dir, data_dir)`（store/registry/audit 均从 data_dir 派生）。
+- **CLI 调用点异步适配**（`solosoul_cli/src/commands/plugin.rs`）：`run_plugin` 内 async 块加 `.await`；`install_plugin`/`update_plugin` 用 `tokio::runtime::Runtime::new()` + `rt.block_on` 同步适配（block_on 不要求 Send，借用 `&manager` 安全）。
+- **审查通过**（1 轮，声明取舍）：CLI `install_plugin`/`update_plugin` 的 block_on 同步适配会使无网络环境 TUI 冻结最多 ~90s（30s manifest + 60s wasm 超时）——远程优先下载新流程使阻塞成本上升；与 `update_registry`/`run_plugin` 的 thread+polling 模式不一致。属计划「CLI 调用点同步适配」的字面落实，如实声明，后续可改用 thread+polling 模式优化。
+- **验证**：`cargo check`（solosoul-plugin ✅ / solosoul_cli lib-bin ✅ / solo_soul ✅）、`cargo fmt` ✅（registry.rs unwrap_or_else 链已格式化）、`cargo clippy`（crate --all-targets ✅ / workspace 基线 ✅ / CLI ✅）、`cargo test -p solosoul-plugin`（46 通过 ✅）。注：`solosoul_cli cargo test` 报 `screens/unlock.rs:230` E0063（`AccountSummary` 缺 `has_biometric_history`/`has_pin_history`）为**既有问题**——P008 生物识别新增字段后未更新 CLI 测试夹具，该文件与 solosoul-core 相对 HEAD 零改动，与本次无关；CLI `cargo check`/`clippy`（lib/bin）均通过。
 
 **P013 | mDNS 双 daemon**
 sync crate manager（`manager.rs:168`）`sync_enable` 时自建 `ServiceDaemon`；`discovery.rs:30,55-60` 另有 app 生命周期常驻 `SharedDaemon`。前端 `syncStore.enable` 成功后立即 `discoverDevices`（`syncStore.ts:140-141`），两个 daemon 同时运行，缓存各自为政。

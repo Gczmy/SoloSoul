@@ -2,7 +2,7 @@
 //!
 //! 解析 `SoloSoul_plugin_market/registry.json`，提供与当前应用版本的兼容性判断。
 
-use super::{MarketPluginInfo, PluginError, PluginManifest, RegistryEntry};
+use super::{MarketPluginInfo, PluginError, PluginManifest, PluginStore, RegistryEntry};
 use minisign_verify::{PublicKey, Signature};
 use serde::Deserialize;
 use std::collections::HashMap;
@@ -20,7 +20,10 @@ struct RegistryFile {
 
 /// 插件注册表
 pub struct PluginRegistry {
-    path: PathBuf,
+    /// 打包的原始注册表路径（Release 时为只读资源目录）
+    bundled_path: PathBuf,
+    /// 可写的缓存注册表路径（应用数据目录）
+    cache_path: PathBuf,
 }
 
 impl Default for PluginRegistry {
@@ -32,22 +35,42 @@ impl Default for PluginRegistry {
 impl PluginRegistry {
     /// 创建注册表加载器（开发模式回退到源码路径）
     pub fn new() -> Self {
-        let path = super::paths::default_market_dir().join("registry.json");
-        Self { path }
+        Self::new_with_dirs(
+            super::paths::default_market_dir(),
+            PluginStore::data_dir()
+                .unwrap_or_else(|_| std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."))),
+        )
     }
 
     /// 使用 resource_dir 创建注册表加载器
     pub fn new_with_resource_dir(resource_dir: &std::path::PathBuf) -> Result<Self, PluginError> {
         let market_dir = super::paths::resolve_market_dir(Some(resource_dir))?;
-        Ok(Self {
-            path: market_dir.join("registry.json"),
-        })
+        Ok(Self::new_with_dirs(market_dir, PluginStore::data_dir()?))
+    }
+
+    /// 显式注入市场目录与数据目录（由调用方负责解析，crate 不反向依赖 tauri）
+    pub fn new_with_dirs(market_dir: PathBuf, data_dir: PathBuf) -> Self {
+        Self {
+            bundled_path: market_dir.join("registry.json"),
+            cache_path: data_dir.join("registry.json"),
+        }
     }
 
     /// 从指定路径加载注册表
     pub fn from_path(path: impl AsRef<Path>) -> Self {
+        let p = path.as_ref().to_path_buf();
         Self {
-            path: path.as_ref().to_path_buf(),
+            bundled_path: p.clone(),
+            cache_path: p,
+        }
+    }
+
+    /// 获取当前实际使用的注册表路径（优先缓存，其次 bundled）
+    fn active_path(&self) -> &PathBuf {
+        if self.cache_path.exists() {
+            &self.cache_path
+        } else {
+            &self.bundled_path
         }
     }
 
@@ -57,13 +80,19 @@ impl PluginRegistry {
     /// 2. 读取环境变量 `SOLOSOUL_REGISTRY_PUBKEY`（必需）
     /// 3. 下载注册表文件与对应的 `.minisig` 签名
     /// 4. 使用 Minisign 验证签名
-    /// 5. 校验 JSON 结构后原子写入本地 `registry.json`
+    /// 5. 校验 JSON 结构后原子写入缓存路径（数据目录，可写）
     pub async fn update_from_remote(&self) -> Result<(), PluginError> {
         let url = std::env::var("SOLOSOUL_REGISTRY_URL")
             .unwrap_or_else(|_| DEFAULT_REGISTRY_URL.to_string());
-        let pubkey_b64 = std::env::var("SOLOSOUL_REGISTRY_PUBKEY").map_err(|_| {
-            PluginError::RegistryError("未配置 SOLOSOUL_REGISTRY_PUBKEY".to_string())
-        })?;
+        let pubkey_b64 = match std::env::var("SOLOSOUL_REGISTRY_PUBKEY") {
+            Ok(k) => k,
+            Err(_) => {
+                tracing::warn!(
+                    "SOLOSOUL_REGISTRY_PUBKEY 未配置，跳过注册表远程更新，使用本地 bundled 注册表"
+                );
+                return Ok(());
+            }
+        };
         let public_key = PublicKey::from_base64(&pubkey_b64)
             .map_err(|e| PluginError::RegistryError(format!("注册表公钥解析失败: {}", e)))?;
 
@@ -102,11 +131,14 @@ impl PluginRegistry {
         let _: RegistryFile = serde_json::from_slice(&registry_bytes)
             .map_err(|e| PluginError::RegistryError(format!("注册表 JSON 非法: {}", e)))?;
 
-        // 原子写入本地文件
-        let tmp_path = self.path.with_extension("tmp");
+        // 原子写入缓存路径（数据目录，可写）
+        if let Some(parent) = self.cache_path.parent() {
+            let _ = std::fs::create_dir_all(parent);
+        }
+        let tmp_path = self.cache_path.with_extension("tmp");
         std::fs::write(&tmp_path, &registry_bytes)
             .map_err(|e| PluginError::StoreError(format!("写入注册表临时文件失败: {}", e)))?;
-        std::fs::rename(&tmp_path, &self.path)
+        std::fs::rename(&tmp_path, &self.cache_path)
             .map_err(|e| PluginError::StoreError(format!("替换注册表文件失败: {}", e)))?;
 
         Ok(())
@@ -114,7 +146,8 @@ impl PluginRegistry {
 
     /// 加载注册表并转换为前端可用的市场插件信息列表
     pub fn load(&self, installed: &[PluginManifest]) -> Result<Vec<MarketPluginInfo>, PluginError> {
-        let content = std::fs::read_to_string(&self.path)
+        let path = self.active_path();
+        let content = std::fs::read_to_string(path)
             .map_err(|e| PluginError::RegistryError(format!("读取注册表失败: {}", e)))?;
         let file: RegistryFile = serde_json::from_str(&content)?;
         let app_version = crate::version::current_app_version()?;
@@ -154,7 +187,8 @@ impl PluginRegistry {
 
     /// 获取某个插件的注册表条目
     pub fn get_entry(&self, plugin_id: &str) -> Result<RegistryEntry, PluginError> {
-        let content = std::fs::read_to_string(&self.path)
+        let path = self.active_path();
+        let content = std::fs::read_to_string(path)
             .map_err(|e| PluginError::RegistryError(format!("读取注册表失败: {}", e)))?;
         let file: RegistryFile = serde_json::from_str(&content)?;
         file.plugins
