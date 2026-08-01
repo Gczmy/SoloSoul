@@ -710,12 +710,20 @@ fn import_attachments(
             .join(&new_att_id);
         std::fs::create_dir_all(&dest).map_err(|e| e.to_string())?;
 
-        // R008: sanitize imported file_name to prevent path traversal.
-        let safe_name = std::path::Path::new(&old_meta.file_name)
+        // R008/P003: 净化导入文件名——显式拒绝路径分隔符（Unix 上 `\\` 不是分隔符，
+        // 仅靠 Path::file_name() 无法剥离 `..\\..\\evil.txt` 中的反斜杠），再取末段组件兜底。
+        let raw_name = &old_meta.file_name;
+        if raw_name.contains('/') || raw_name.contains('\\') {
+            return Err("Invalid attachment file name in package".to_string());
+        }
+        let safe_name = std::path::Path::new(raw_name)
             .file_name()
             .ok_or("Invalid attachment file name in package")?
             .to_string_lossy()
             .to_string();
+        if safe_name.is_empty() || safe_name == "." || safe_name == ".." {
+            return Err("Invalid attachment file name in package".to_string());
+        }
         let file_path_dest = dest.join(&safe_name);
         let mut out_file =
             File::create(&file_path_dest).map_err(|e| format!("create attachment file: {}", e))?;
@@ -731,7 +739,8 @@ fn import_attachments(
             .push(AttachmentMeta {
                 id: new_att_id,
                 object_id: obj_id.to_string(),
-                file_name: old_meta.file_name.clone(),
+                // P003: 元数据写回净化后的 safe_name，防止后续插件主机 join 时存储型路径遍历
+                file_name: safe_name.clone(),
                 mime_type: old_meta.mime_type.clone(),
                 size_bytes: file_size,
                 created_at: now.to_string(),
