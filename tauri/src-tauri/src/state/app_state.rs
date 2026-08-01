@@ -389,8 +389,8 @@ impl AppState {
                         // 插件初始化失败绝不中止应用启动——Android Release 构建
                         // 使用 panic=abort，AppState::new 返回 Err 会导致 setup 失败
                         // 直接闪退（曾因迁移误删 app_resources 触发此路径）。
-                        let fallback_dir = std::env::temp_dir()
-                            .join(format!("solosoul_plugin_fallback_{}", std::process::id()));
+                        // 固定目录名复用：每次兜底不再新建 <pid> 后缀目录（避免残留堆积）。
+                        let fallback_dir = std::env::temp_dir().join("solosoul_plugin_fallback");
                         let _ = std::fs::create_dir_all(&fallback_dir);
                         match PluginManager::new_with_dirs(
                             fallback_dir.clone(),
