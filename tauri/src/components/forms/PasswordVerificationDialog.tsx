@@ -331,23 +331,6 @@ export function PasswordVerificationDialog({
     return loginMethod === methodId;
   };
 
-  // ===== 统一的悬停事件处理器 =====
-
-  // 主卡片按钮悬停（与 LoginPage .loginFloatButton 对齐）
-  const cardBtnEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
-    if (e.currentTarget.disabled) return;
-    e.currentTarget.style.transform = 'translateY(-1px)';
-    e.currentTarget.style.boxShadow =
-      '0 0 0 2px var(--accent-primary), 0 8px 24px color-mix(in srgb, var(--accent-primary) 25%, transparent)';
-    e.currentTarget.style.borderColor = 'var(--accent-primary)';
-  };
-  const cardBtnLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
-    if (e.currentTarget.disabled) return;
-    e.currentTarget.style.transform = 'translateY(0)';
-    e.currentTarget.style.boxShadow = 'none';
-    e.currentTarget.style.borderColor = 'var(--border-subtle)';
-  };
-
   return (
     <Dialog isOpen={open} onClose={handleClose} dialogStyle={{ maxWidth: 360 }} priority="auth">
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16, minWidth: 320 }}>
@@ -376,8 +359,7 @@ export function PasswordVerificationDialog({
             <button
               onClick={handleBiometric}
               disabled={bioLoading}
-              onMouseEnter={cardBtnEnter}
-              onMouseLeave={cardBtnLeave}
+              className="interactive-card-lift"
               style={{
                 display: 'flex',
                 flexDirection: 'column',
@@ -386,13 +368,12 @@ export function PasswordVerificationDialog({
                 gap: 12,
                 padding: '20px 24px',
                 borderRadius: 14,
-                border: '1px solid var(--border-subtle)',
+                borderWidth: 1,
+                borderStyle: 'solid',
                 background: bioLoading ? 'var(--bg-toolbar)' : 'transparent',
                 cursor: bioLoading ? 'wait' : 'pointer',
                 width: '100%',
                 fontFamily: 'inherit',
-                transition:
-                  'box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease, background 0.15s ease',
               }}
             >
               {loginMethod === 'faceId' && (

@@ -189,24 +189,19 @@ export function SyncScanQrDialog({ isOpen, onClose, onSync }: SyncScanQrDialogPr
                 <button
                   type="button"
                   onClick={handleClose}
+                  className="interactive-outline"
                   style={{
                     marginTop: 4,
                     padding: '8px 16px',
                     borderRadius: 8,
-                    border: '1px solid var(--border-subtle)',
+                    borderWidth: 1,
+                    borderStyle: 'solid',
                     background: 'var(--bg-elevated)',
                     color: 'var(--accent-primary)',
                     cursor: 'pointer',
                     fontFamily: 'inherit',
                     fontSize: 'var(--text-body-sm)',
                     fontWeight: 500,
-                    transition: 'all 0.15s ease',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = 'var(--border-subtle)';
                   }}
                 >
                   {t('common:sync_use_manual', {
@@ -227,23 +222,18 @@ export function SyncScanQrDialog({ isOpen, onClose, onSync }: SyncScanQrDialogPr
               <button
                 type="button"
                 onClick={handleClose}
+                className="interactive-outline"
                 style={{
                   padding: '10px 12px',
                   borderRadius: 8,
-                  border: '1px solid var(--border-subtle)',
+                  borderWidth: 1,
+                  borderStyle: 'solid',
                   background: 'var(--bg-toolbar)',
                   color: 'var(--accent-primary)',
                   cursor: 'pointer',
                   fontFamily: 'inherit',
                   fontSize: 'var(--text-body-sm)',
                   fontWeight: 500,
-                  transition: 'all 0.15s ease',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
                 }}
               >
                 {t('common:sync_use_manual', {

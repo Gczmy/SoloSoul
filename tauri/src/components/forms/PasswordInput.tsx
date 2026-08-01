@@ -270,8 +270,8 @@ export function SecurePasswordInput({
               aria-label={visible ? t('common:hide_password') : t('common:show_password')}
               aria-pressed={visible}
               tabIndex={-1}
+              className="interactive-icon"
               style={{
-                background: 'none',
                 border: 'none',
                 cursor: 'pointer',
                 padding: 4,
@@ -279,17 +279,6 @@ export function SecurePasswordInput({
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: 'var(--text-tertiary)',
-                transition: 'all 0.15s',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background =
-                  'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
-                e.currentTarget.style.color = 'var(--accent-primary)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'none';
-                e.currentTarget.style.color = 'var(--text-tertiary)';
               }}
             >
               {visible ? <EyeOff size={ICON_SIZE.md} /> : <Eye size={ICON_SIZE.md} />}
@@ -309,8 +298,8 @@ export function SecurePasswordInput({
                 type="button"
                 aria-label={t('common:password_hint_tooltip')}
                 tabIndex={-1}
+                className="interactive-icon"
                 style={{
-                  background: 'none',
                   border: 'none',
                   cursor: 'pointer',
                   padding: 4,
@@ -319,16 +308,6 @@ export function SecurePasswordInput({
                   alignItems: 'center',
                   justifyContent: 'center',
                   color: isHintHovered ? 'var(--accent-primary)' : 'var(--text-tertiary)',
-                  transition: 'all 0.15s',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background =
-                    'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
-                  e.currentTarget.style.color = 'var(--accent-primary)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'none';
-                  e.currentTarget.style.color = 'var(--text-tertiary)';
                 }}
               >
                 <HelpCircle size={ICON_SIZE.md} />

@@ -40,6 +40,7 @@ export function DeprecatedFieldsViewer({
       <div style={{ position: 'relative' }}>
         <button
           onClick={onClose}
+          className="interactive-icon"
           style={{
             position: 'absolute',
             top: -40,
@@ -47,19 +48,7 @@ export function DeprecatedFieldsViewer({
             padding: 6,
             borderRadius: 8,
             border: 'none',
-            background: 'transparent',
             cursor: 'pointer',
-            color: 'var(--text-tertiary)',
-            transition: 'all 0.15s ease',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background =
-              'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
-            e.currentTarget.style.color = 'var(--accent-primary)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'transparent';
-            e.currentTarget.style.color = 'var(--text-tertiary)';
           }}
           aria-label={t('common:close')}
         >

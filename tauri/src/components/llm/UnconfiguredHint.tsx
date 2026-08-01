@@ -42,27 +42,17 @@ export function UnconfiguredHint({ onClose }: UnconfiguredHintProps) {
           onClose();
           navigate('/settings/llm');
         }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.background =
-            'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-          e.currentTarget.style.borderColor = 'var(--accent-primary)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.background = 'var(--bg-toolbar)';
-          e.currentTarget.style.borderColor = 'var(--border-subtle)';
-        }}
+        className="interactive-toolbar"
         style={{
           padding: '8px 16px',
           borderRadius: 8,
-          border: '1px solid var(--border-subtle)',
-          background: 'var(--bg-toolbar)',
-          color: 'var(--text-primary)',
+          borderWidth: 1,
+          borderStyle: 'solid',
           fontSize: 'var(--text-body-sm)',
           cursor: 'pointer',
           display: 'flex',
           alignItems: 'center',
           gap: 6,
-          transition: 'background 0.2s, border-color 0.2s',
         }}
       >
         <Settings size={ICON_SIZE.sm} /> {t('settings:ai_chat_configure')}

@@ -269,12 +269,12 @@ export function AboutPage() {
                           type="button"
                           onClick={runCheck}
                           disabled={checking}
+                          className="interactive-toolbar"
                           style={{
                             padding: '8px 16px',
                             borderRadius: 8,
-                            border: '1px solid var(--border-subtle)',
-                            background: 'var(--bg-toolbar)',
-                            color: 'var(--text-primary)',
+                            borderWidth: 1,
+                            borderStyle: 'solid',
                             fontSize: 'var(--text-body-sm)',
                             fontWeight: 500,
                             fontFamily: 'inherit',
@@ -284,20 +284,6 @@ export function AboutPage() {
                             gap: 6,
                             alignSelf: 'flex-start',
                             opacity: checking ? 0.6 : 1,
-                            transition: 'all 0.15s ease',
-                          }}
-                          onMouseEnter={(e) => {
-                            if (checking) return;
-                            e.currentTarget.style.background =
-                              'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-                            e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                            e.currentTarget.style.color = 'var(--accent-primary)';
-                          }}
-                          onMouseLeave={(e) => {
-                            if (checking) return;
-                            e.currentTarget.style.background = 'var(--bg-toolbar)';
-                            e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                            e.currentTarget.style.color = 'var(--text-primary)';
                           }}
                         >
                           <RefreshCw
@@ -390,23 +376,12 @@ export function AboutPage() {
                           <button
                             type="button"
                             onClick={handleUpdate}
-                            onMouseEnter={(e) => {
-                              e.currentTarget.style.background =
-                                'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-                              e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                              e.currentTarget.style.color = 'var(--accent-primary)';
-                            }}
-                            onMouseLeave={(e) => {
-                              e.currentTarget.style.background = 'var(--bg-toolbar)';
-                              e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                              e.currentTarget.style.color = 'var(--text-primary)';
-                            }}
+                            className="interactive-toolbar"
                             style={{
                               padding: '8px 16px',
                               borderRadius: 8,
-                              border: '1px solid var(--border-subtle)',
-                              background: 'var(--bg-toolbar)',
-                              color: 'var(--text-primary)',
+                              borderWidth: 1,
+                              borderStyle: 'solid',
                               fontSize: 'var(--text-body-sm)',
                               fontWeight: 500,
                               fontFamily: 'inherit',
@@ -415,7 +390,6 @@ export function AboutPage() {
                               alignItems: 'center',
                               gap: 6,
                               alignSelf: 'flex-start',
-                              transition: 'all 0.15s ease',
                             }}
                           >
                             <Download size={ICON_SIZE.sm} />
@@ -489,6 +463,7 @@ export function AboutPage() {
                     href={link.url}
                     target="_blank"
                     rel="noopener noreferrer"
+                    className="interactive-link-row"
                     style={{
                       display: 'flex',
                       alignItems: 'center',
@@ -498,12 +473,7 @@ export function AboutPage() {
                       color: 'var(--text-primary)',
                       fontSize: 'var(--text-sm)',
                       textDecoration: 'none',
-                      transition: 'background 0.12s',
                     }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.background = 'rgba(128,128,128,0.06)')
-                    }
-                    onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                     onClick={(e) => {
                       e.preventDefault();
                       open(link.url).catch(() => {

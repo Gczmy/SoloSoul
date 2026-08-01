@@ -68,31 +68,17 @@ export function ObjectTemplateSelector({
               <button
                 key={type}
                 onClick={() => onSelect(type)}
-                onMouseEnter={(e) => {
-                  if (selectedType !== type) {
-                    e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                    e.currentTarget.style.background =
-                      'color-mix(in srgb, var(--accent-primary) 6%, transparent)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (selectedType !== type) {
-                    e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                    e.currentTarget.style.background = 'var(--bg-elevated)';
-                  }
-                }}
+                className={selectedType === type ? undefined : 'interactive-elevated'}
                 style={{
                   padding: '10px 16px',
                   borderRadius: 8,
-                  border:
-                    selectedType === type
-                      ? '1px solid var(--accent-primary)'
-                      : '1px solid var(--border-subtle)',
-                  background: 'var(--bg-elevated)',
-                  color: selectedType === type ? 'var(--accent-primary)' : 'var(--text-primary)',
+                  borderWidth: 1,
+                  borderStyle: 'solid',
+                  background: selectedType === type ? 'var(--bg-elevated)' : undefined,
+                  borderColor: selectedType === type ? 'var(--accent-primary)' : undefined,
+                  color: selectedType === type ? 'var(--accent-primary)' : undefined,
                   fontSize: 'var(--text-body-sm)',
                   cursor: 'pointer',
-                  transition: 'all 0.15s ease',
                   whiteSpace: 'normal',
                   wordBreak: 'break-word',
                   maxWidth: '100%',
@@ -115,19 +101,7 @@ export function ObjectTemplateSelector({
                 state: { from: location.pathname + location.search },
               })
             }
-            onMouseEnter={(e) => {
-              e.currentTarget.style.borderColor = 'var(--accent-primary)';
-              e.currentTarget.style.borderStyle = 'solid';
-              e.currentTarget.style.color = 'var(--accent-primary)';
-              e.currentTarget.style.background =
-                'color-mix(in srgb, var(--accent-primary) 6%, transparent)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.borderColor = 'var(--border-strong)';
-              e.currentTarget.style.borderStyle = 'dashed';
-              e.currentTarget.style.color = 'var(--text-secondary)';
-              e.currentTarget.style.background = 'transparent';
-            }}
+            className="interactive-dashed-solid"
             style={{
               marginLeft: 'auto',
               display: 'flex',
@@ -135,12 +109,8 @@ export function ObjectTemplateSelector({
               gap: 6,
               padding: '8px 12px',
               borderRadius: 8,
-              border: '1px dashed var(--border-strong)',
-              background: 'transparent',
-              color: 'var(--text-secondary)',
               fontSize: 'var(--text-caption)',
               cursor: 'pointer',
-              transition: 'all 0.15s ease',
               whiteSpace: 'normal',
               wordBreak: 'break-word',
               maxWidth: '100%',

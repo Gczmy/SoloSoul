@@ -111,6 +111,7 @@ export function AttachmentToolbar({
               variant="secondary"
               size="sm"
               onClick={onShowTrash}
+              className="interactive-danger-tab"
               style={
                 showTrash
                   ? {
@@ -121,16 +122,6 @@ export function AttachmentToolbar({
                     }
                   : undefined
               }
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = '#e74c3c';
-                e.currentTarget.style.background = 'color-mix(in srgb, #e74c3c 10%, transparent)';
-              }}
-              onMouseLeave={(e) => {
-                if (!showTrash) {
-                  e.currentTarget.style.borderColor = '';
-                  e.currentTarget.style.background = '';
-                }
-              }}
             >
               {t('common:attachments_trash', { n: trashAttachments }) || `Trash (${trashAttachments})`}
               <span style={{ marginLeft: 4, fontSize: 'var(--text-caption)', opacity: 0.7 }}>

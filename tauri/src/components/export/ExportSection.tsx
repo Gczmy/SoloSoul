@@ -421,39 +421,18 @@ export function ExportSection({
             onChange={(e) => onSetExportHint(e.target.value)}
             placeholder={t('common:password_hint')}
             maxLength={200}
+            className="interactive-field"
             style={{
               width: '100%',
               padding: '10px 14px',
               fontSize: 'var(--text-body)',
-              border: '1px solid var(--border-subtle)',
+              borderWidth: 1,
+              borderStyle: 'solid',
               borderRadius: 8,
               background: 'var(--bg-elevated)',
               color: 'var(--text-primary)',
               fontFamily: 'inherit',
               outline: 'none',
-              transition: 'border-color 0.2s, box-shadow 0.2s',
-            }}
-            onMouseEnter={(e) => {
-              if (e.currentTarget !== document.activeElement) {
-                e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                e.currentTarget.style.boxShadow =
-                  '0 0 0 2px color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (e.currentTarget !== document.activeElement) {
-                e.currentTarget.style.borderColor = '';
-                e.currentTarget.style.boxShadow = '';
-              }
-            }}
-            onFocus={(e) => {
-              e.currentTarget.style.borderColor = 'var(--accent-primary)';
-              e.currentTarget.style.boxShadow =
-                '0 0 0 2px color-mix(in srgb, var(--accent-primary) 15%, transparent)';
-            }}
-            onBlur={(e) => {
-              e.currentTarget.style.borderColor = '';
-              e.currentTarget.style.boxShadow = '';
             }}
           />
         </div>

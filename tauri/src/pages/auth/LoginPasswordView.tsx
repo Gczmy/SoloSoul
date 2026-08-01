@@ -71,36 +71,23 @@ export function LoginPasswordView({
         <button
           type="submit"
           disabled={isLoading}
+          className="interactive-toolbar"
           style={{
             width: '100%',
             padding: '8px 16px',
             borderRadius: 8,
-            border: '1px solid var(--border-subtle)',
-            background: isLoading
-              ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)'
-              : 'var(--bg-toolbar)',
-            color: isLoading ? 'var(--accent-primary)' : 'var(--text-primary)',
+            borderWidth: 1,
+            borderStyle: 'solid',
             fontSize: 'var(--text-body-sm)',
             fontWeight: 500,
             fontFamily: 'inherit',
             cursor: isLoading ? 'default' : 'pointer',
             opacity: isLoading ? 0.6 : 1,
-            transition: 'all 0.15s ease',
-          }}
-          onMouseEnter={(e) => {
-            if (!isLoading) {
-              e.currentTarget.style.background =
-                'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-              e.currentTarget.style.borderColor = 'var(--accent-primary)';
-              e.currentTarget.style.color = 'var(--accent-primary)';
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (!isLoading) {
-              e.currentTarget.style.background = 'var(--bg-toolbar)';
-              e.currentTarget.style.borderColor = 'var(--border-subtle)';
-              e.currentTarget.style.color = 'var(--text-primary)';
-            }
+            // 加载态保留 accent 底色（disabled 时无 hover，类仅管 idle 态）
+            background: isLoading
+              ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)'
+              : undefined,
+            color: isLoading ? 'var(--accent-primary)' : undefined,
           }}
         >
           {isLoading ? t('common:loading', { defaultValue: '...' }) : t('auth:login_button')}

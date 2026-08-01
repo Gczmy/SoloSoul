@@ -58,34 +58,16 @@ export function FilterChipGroup<T extends string = string>({
                 onChange(opt.id);
               }
             }}
-            onMouseEnter={(e) => {
-              if (!isActive) {
-                e.currentTarget.style.background =
-                  'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-                e.currentTarget.style.borderColor = 'var(--accent-primary)';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!isActive) {
-                e.currentTarget.style.background = 'var(--bg-toolbar)';
-                e.currentTarget.style.borderColor = 'var(--border-subtle)';
-              }
-            }}
+            className={`interactive-toolbar ${isActive ? 'selected-accent' : ''}`}
             style={{
               padding: '5px 12px',
               borderRadius: radius,
-              border: isActive
-                ? '1px solid var(--accent-primary)'
-                : '1px solid var(--border-subtle)',
-              background: isActive
-                ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)'
-                : 'var(--bg-toolbar)',
-              color: isActive ? 'var(--accent-primary)' : 'var(--text-primary)',
+              borderWidth: 1,
+              borderStyle: 'solid',
               boxShadow: isActive ? '0 0 0 1px var(--accent-primary)' : 'none',
               fontSize: size === 'caption' ? 'var(--text-caption)' : 'var(--text-sm)',
               fontWeight,
               cursor: 'pointer',
-              transition: 'background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s',
             }}
           >
             {opt.label}

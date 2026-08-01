@@ -67,7 +67,7 @@
 | P045 | P2 | 结构 | `export_import/helpers.rs:173-232`、`import.rs:394-412`、`profile.rs:191-205`、`plugin.rs:80-107`、`llm/stream.rs:257-302` | 5 处 5-6 层深层嵌套 | `[x]` 已修复 |
 | P046 | P2 | 重复 | `tauri/src-tauri/src/commands/attachment.rs:983-1027` vs `tauri/crates/solosoul-core/src/objects.rs:945-999` | `cleanup_orphan_attachments` GUI 端整体复制 core 实现 | `[x]` 已修复 |
 | P047 | P2 | 重复 | `tauri/src-tauri/src/plugin/host/register.rs:763-812,838-890` | 两个 watermark 注册闭包除一行外完全相同；read_string 校验样板 20+ 次 | `[>]` 已决策待执行（并入 P012 方向 B 第③步，在统一后的 crate host.rs 上只做一次） |
-| P048 | P2 | 重复 | 54 文件 119 处 onMouseEnter、57 文件 128 处 onMouseLeave（内联样式改写 471 处/49 文件） | 手写 onMouseEnter/Leave hover，应统一迁移到 `ui/Button` 或视觉等价 CSS hover | `[~]` 部分完成（第一+二+三批 28 文件 72 处已迁移，2026-08-01） |
+| P048 | P2 | 重复 | 54 文件 119 处 onMouseEnter、57 文件 128 处 onMouseLeave（内联样式改写 471 处/49 文件） | 手写 onMouseEnter/Leave hover，应统一迁移到 `ui/Button` 或视觉等价 CSS hover | `[~]` 部分完成（第一~四批 41 文件 90+ 处已迁移，2026-08-01） |
 | P049 | P2 | 重复 | `TrashPage.tsx:254-345`（×2）、`OperationLogPage.tsx:280-323`、`TemplateManagerPage.tsx:597+`、`SampleTemplateGallery.tsx:282+` | 筛选 chip 按钮块（约 45 行）重复 5 处，可抽 FilterChipGroup | `[x]` 已修复 |
 | P050 | P2 | 结构 | `tauri/src/pages/editor/ObjectEditorPage.tsx:300-360` | 动态组校验 switch 6 个 case 同一模式，应表驱动化（含 5 层嵌套） | `[x]` 已修复 |
 | P051 | P2 | 性能 | `tauri/src-tauri/src/commands/llm/rag.rs:794-808,942` | 重建 embedding 逐条 `save_guide_embedding`，每条独立事务+fsync | `[x]` 已修复 |
@@ -87,9 +87,9 @@
 ## 修复进度
 
 - 已完成：60 / 63（经 2026-08-01 复核确认通过的项）
-- 部分完成 `[~]`：1 项——P048（第一+二+三批 28 文件 72 处已迁移，2026-08-01）
+- 部分完成 `[~]`：1 项——P048（第一~四批 41 文件 90+ 处已迁移，2026-08-01）
 - 已决策待执行 `[>]`：2 项——P012（方向 B 统一到 crate，P047 并入）
-- 当前处理：P048 第三批已完成（2026-08-01），待后续批次（onboarding/template/recovery/layout 已全覆盖；剩余 ~47 处在 pages 其余目录与功能性鼠标事件）
+- 当前处理：P048 第四批已完成（2026-08-01），pages 其余目录与剩余组件已覆盖；残余 13 处均为功能性鼠标事件（tooltip 显隐、延迟展开、状态驱动、layout 展开折叠、共享组件 TransferButton）
 
 ## 静态基线之外已检查且无发现的维度（误报排除记录）
 
@@ -352,6 +352,22 @@ sync crate manager（`manager.rs:168`）`sync_enable` 时自建 `ServiceDaemon`�
 *需如实声明的静止态微差*（审查确认接受，超出 hover 容差范畴）：① IconPicker 分类 tab inactive 由透明边框+text-secondary 变 border-subtle+text-primary（静止态出现可见边框、文字变深）；② AQP 关闭按钮 base 由 text-tertiary 变 text-secondary（变亮一级）；③ AQP history 按钮激活态（showHistory）新增 10% accent 底 tint（原静止态透明底，属激活态反馈改善）。
 
 *功能性鼠标事件保留不迁移*：layout 目录 TopFunctionBar/AddPageButton/NavButton/SecondaryActionBar 的 `handleMouseEnter` 是展开/折叠行为逻辑（CSS module 驱动），非样式 hover。
+
+**第四批实施记录（2026-08-01，提交后补充）**
+
+*迁移 22 处（16 文件，pages 其余目录 + 剩余组件）*：
+- 共享组件内部：FilterChipGroup 1（chip→toolbar+selected-accent，删 data-active 守卫逻辑）、WorkspaceCategoryTabs 3（分类 tab/custom tab→toolbar+selected-accent、clear 筛选→clear）、ObjectTemplateSelector 2（模板 chip→elevated 条件类、管理模板链接→dashed-solid）、TransferButton 保留（共享组件本身，含 busy/warning 条件态）
+- forms/object/attachment：PasswordVerificationDialog 1（生物识别卡→card-lift，删 cardBtnEnter/Leave helper）、PasswordInput 2（eye/hint 按钮→icon，保留 isHintHovered 功能态）、DeprecatedFieldsViewer 1（X→icon）、AttachmentToolbar 1 + AttachmentViewer 1（回收站 tab→danger-tab，共享 Button 上 !important 覆盖 secondary hover）
+- 导出/同步：ExportSection 1（hint input 四处理器→field，activeElement 守卫等价 :hover:not(:focus)）、SyncScanQrDialog 2（use-manual 按钮→outline）
+- pages：LoginPage 2（create/restore 链接→accent-link）、BootstrapPage 1（back→accent-link）、LoginPasswordView 1（submit→toolbar，加载态条件内联 bg 保留）、LlmChatPage 2（configure 按钮→toolbar）、AboutPage 3（retry/update→toolbar、链接行→link-row）
+
+*CSS 新增 6 变体*：`interactive-card-lift`（translateY(-1px)+accent 双层 ring）/ `interactive-danger-tab`（回收站 tab 红色预览 !important 压过 Button.module.css secondary hover）/ `interactive-clear`（透明底+inset ring）/ `interactive-elevated`（bg-elevated+accent6% hover）/ `interactive-dashed-solid`（虚线→实线+accent hover）/ `interactive-link-row`（灰色 6% 底）。
+
+*审查采纳的修正*：① LoginPasswordView submit 恢复加载态条件内联 background/color（idle 态 undefined 不覆盖类 hover）；② `interactive-clear` base 补 `border-color: var(--border-subtle)`（此前缺省回退 currentcolor=text-tertiary）。
+
+*已知轻微差异*（审查确认接受，与 batch 3 先例一致）：icon/toolbar 类 base 文字色 tertiary→secondary、非激活 chip/tab hover 时文字变 accent（原保持 text-primary）、WorkspaceCategoryTabs `data-active` 属性移除守卫后成无害死属性。
+
+*功能性鼠标事件保留*：PVD/LoginPage 底部图标栏 `handleIconEnter`（200ms 延迟展开）、PasswordInput `setIsHovered`/`handleHintEnter`（tooltip）、AttachmentLimitsInfo/WarningCancelButton/PageGuide/layout 目录 `setHovered`（状态驱动）。
 
 **第二批实施记录（2026-08-01，提交后补充）**
 

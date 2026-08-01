@@ -188,21 +188,14 @@ export function BootstrapPage() {
             <button
               type="button"
               onClick={() => navigate('/login')}
+              className="interactive-accent-link"
               style={{
                 fontSize: 'var(--text-body-sm)',
-                color: 'var(--text-tertiary)',
                 background: 'transparent',
                 border: 'none',
                 padding: '6px 12px',
                 cursor: 'pointer',
                 fontFamily: 'inherit',
-                transition: 'all 0.15s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = 'var(--accent-primary)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = 'var(--text-tertiary)';
               }}
             >
               {t('common:back_to_login_link')}

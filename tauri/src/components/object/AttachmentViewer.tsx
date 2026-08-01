@@ -495,6 +495,7 @@ export function AttachmentViewer({
                     setShowTrash(true);
                     clearSelection();
                   }}
+                  className="interactive-danger-tab"
                   style={{
                     fontSize: 'var(--text-caption)',
                     ...(showTrash
@@ -505,17 +506,6 @@ export function AttachmentViewer({
                           boxShadow: '0 0 0 1px #e74c3c',
                         }
                       : {}),
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = '#e74c3c';
-                    e.currentTarget.style.background =
-                      'color-mix(in srgb, #e74c3c 10%, transparent)';
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!showTrash) {
-                      e.currentTarget.style.borderColor = '';
-                      e.currentTarget.style.background = '';
-                    }
                   }}
                 >
                   {t('common:attachments_trash', { n: trashItems.length })}

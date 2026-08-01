@@ -113,33 +113,20 @@ export function LlmChatPage() {
           <PageGuideButton pages={aiChatGuidePages} />
           <button
             type="button"
-            className={buttonStyles.hideLabelOnMobile}
+            className={`interactive-toolbar ${buttonStyles.hideLabelOnMobile}`}
             onClick={() => navigate('/settings/llm', { state: { from: '/llm-chat' } })}
             style={{
               fontSize: 'var(--text-caption)',
               padding: '6px 12px',
               borderRadius: 6,
-              border: '1px solid var(--border-subtle)',
-              background: 'var(--bg-toolbar)',
-              color: 'var(--text-primary)',
+              borderWidth: 1,
+              borderStyle: 'solid',
               cursor: 'pointer',
               fontFamily: 'inherit',
               fontWeight: 500,
               display: 'inline-flex',
               alignItems: 'center',
               gap: 4,
-              transition: 'all 0.15s ease',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background =
-                'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-              e.currentTarget.style.borderColor = 'var(--accent-primary)';
-              e.currentTarget.style.color = 'var(--accent-primary)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'var(--bg-toolbar)';
-              e.currentTarget.style.borderColor = 'var(--border-subtle)';
-              e.currentTarget.style.color = 'var(--text-primary)';
             }}
           >
             <Settings size={ICON_SIZE.sm} />{' '}
@@ -169,28 +156,16 @@ export function LlmChatPage() {
             <button
               type="button"
               onClick={() => navigate('/settings/llm', { state: { from: '/llm-chat' } })}
+              className="interactive-toolbar"
               style={{
                 fontSize: 'var(--text-caption)',
                 padding: '6px 12px',
                 borderRadius: 6,
-                border: '1px solid var(--border-subtle)',
-                background: 'var(--bg-toolbar)',
-                color: 'var(--text-primary)',
+                borderWidth: 1,
+                borderStyle: 'solid',
                 cursor: 'pointer',
                 fontFamily: 'inherit',
                 fontWeight: 500,
-                transition: 'all 0.15s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background =
-                  'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-                e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                e.currentTarget.style.color = 'var(--accent-primary)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'var(--bg-toolbar)';
-                e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                e.currentTarget.style.color = 'var(--text-primary)';
               }}
             >
               {t('settings:ai_chat_configure')}
