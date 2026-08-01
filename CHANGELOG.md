@@ -2,6 +2,61 @@
 
 All notable changes to SoloSoul are documented in this file.
 
+## [2.7.0] - 2026-08-01
+
+### Added
+
+- **首页快捷入口重排** — 快捷入口卡片调整为：设置 → 回收站 → 搜索 → 模板管理 → 附件管理 → 插件 → OCR → 导入导出 → 设备同步 → 帮助 → AI 对话，并新增「模板管理」「附件管理」两张入口卡片；帮助文案同步更新。
+
+### Security
+
+- **恢复凭证不再经 mDNS 明文广播（P001）** — 恢复会话的 PIN/nonce 不再写入 mDNS TXT 广播，仅经二维码/手动输入带外传递，局域网攻击者无法再凭广播信息直接劫持恢复会话。
+- **导入包附件路径遍历修复（P002/P003）** — 导入附件时校验对象/附件 ID 字符集并净化文件名校验，杜绝 Windows 下经构造 payload 任意目录写；附件元数据写回净化后的 `safe_name`，插件工作区拷贝前增加末段净化兜底。
+- **插件输出路径校验信任锚闭环（P004）** — 插件返回的路径在 host 侧以真实输出目录盖章后才允许打开/拷贝，前端不再直接打开未经验证的任意本地路径。
+- **PIN 离线爆破加固（P005）** — PIN 凭证派生强制生产级 KDF 参数，不随开发模式降级。
+- **capabilities 授权面收敛（P030）** — 收缩 fs/shell 授权到数据目录与用户常用目录，自定义命令按模块拆分权限。
+- **GUI 登录/建库密码 Zeroizing 对齐（P031）** — 登录与建库密码以 `Zeroizing<String>` 经 IPC 传递，失败后立即安全擦除。
+- **shell open 正则收紧（P032）** — 移除 `file://` 与绝对路径的宽松匹配，本地文件预览改走路径白名单。
+
+### Performance
+
+- **搜索计数免全量解密（P006）** — 分页计数改为 `COUNT(*)` 查询，不再逐行 AES 解密取长度。
+- **模板命中复用已解密记录（P007）** — 高级搜索消除第二次全表解密扫描。
+- **指南分块提升出循环（P008）** — RAG top_k 循环不再重复读取指南文件。
+- **OCR 引擎按档位缓存（P009）** — 每次 OCR 命令不再重新加载 ONNX 引擎。
+- **工作区整店订阅分字段化（P010/P055）** — 首页/工作区/编辑器等页面避免 store 任意变化触发整页重渲染。
+- **附件管理器分页（P011）** — 顶层页面列表支持「加载更多」。
+- **embedding 重建批量单事务（P051）** — 消除逐条独立事务+fsync。
+- **回收站批量删除/附件批量下载并发化（P052/P054）** — 消除串行 IPC。
+- **loadCustomPages 消除 N+1 IPC（P053）**。
+
+### Refactor
+
+- **插件运行时双份实现收敛（P012）** — 删除 `src-tauri` 侧平行实现，统一使用 `solosoul-plugin` crate 薄封装；wasmtime 依赖收敛，watermark 注册闭包去重（P047）。
+- **mDNS 双 daemon 收敛（P013）** — 进程内仅保留单一 ServiceDaemon。
+- **认证状态双 store 收敛（P014/P015）** — logout 状态重置移至 `finally`，解锁写入路径收敛为 `authStore.completeUnlock`。
+- **大函数/大组件拆分（P023-P027、P038-P041、P043/P044）** — import 执行、迁移脚本、setup 闭包、工作区/恢复/引导/附件/登录/关于等 750+ 行大组件全部按职责拆分。
+- **profile preferences 写入块收敛（P028）** — 7 处重复块抽为共享函数。
+- **手写 hover 迁移（P048）** — 全项目 109 处手写 `onMouseEnter/Leave` 统一迁移到共享 `interactive-*` 工具类，视觉等价。
+- **FilterChipGroup 收敛（P049）** — 5 处筛选 chip 块抽取共享组件。
+- **校验 switch 表驱动化（P050）** — 对象编辑器动态组校验改查表循环。
+- **对象 store trash 死切片删除（P056）** — 与 trashStore 双轨操作同一后端数据的冗余实现移除。
+- **updateObject 同步列表（P057）** — 成功后同步更新对象摘要列表，消除潜伏性不一致。
+- **死代码清理（P017-P022、P033-P037、P058）** — 删除 liquid-glass 死样式、死 barrel、死导出符号、18 个死 Tauri Commands、未用 npm 依赖等，缩小 IPC 攻击面。
+
+### Fixed
+
+- **三处裸调 plugin-dialog（P016）** — 改用 `openWithPause` 封装，避免文件选择器触发自动锁定误锁。
+- **invoke 链缺 `.catch`（P059）** — 历史页/快照查看/导航栏三处补齐错误处理。
+- **插件下载静默吞错（P060）** — 下载下沉 Rust 命令并增加前端错误提示。
+- **恢复 PIN 非常数时间比较（P029）** — 改为常数时间字节比较。
+- **CLI 测试恢复（P064）** — 修复夹具字段缺失与 fmt 漂移，恢复 CLI cargo test。
+
+### Chore
+
+- **acl-manifests.json 同步** — 补登 `plugin_copy_output_file` 命令，ACL 一致性检查 197 命令全部登记。
+- **依赖同步** — Cargo.lock 同步（zeroize 依赖进 solo_soul 包）；wasmtime async feature 确认不可移除（wasmtime 45 default features 与 wasmtime-wasi p1 均传递依赖）。
+
 ## [2.6.8] - 2026-07-31
 
 ### Added
