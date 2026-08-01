@@ -133,8 +133,14 @@ impl<R: Runtime> NsdPluginHandle<R> {
     pub fn request_permissions(&self) -> Result<(), String> {
         #[cfg(target_os = "android")]
         {
+            // 命令名必须与 Kotlin 侧 @Command 方法名对齐：NsdPlugin.kt 暴露的是
+            // requestNsdPermissions（不是 requestPermissions）。命令名不匹配时
+            // run_mobile_plugin 直接报错 → Android 扫不到设备（Bug B）。
             self.handle
-                .run_mobile_plugin::<serde_json::Value>("requestPermissions", serde_json::json!({}))
+                .run_mobile_plugin::<serde_json::Value>(
+                    "requestNsdPermissions",
+                    serde_json::json!({}),
+                )
                 .map(|_| ())
                 .map_err(|e| e.to_string())
         }

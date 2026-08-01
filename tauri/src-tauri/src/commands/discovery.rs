@@ -115,8 +115,10 @@ pub async fn mdns_discover(
         if let Ok(ServiceEvent::ServiceResolved(info)) =
             receiver.recv_timeout(std::time::Duration::from_millis(MDNS_POLL_INTERVAL_MS))
         {
-            let addresses: Vec<String> =
-                info.get_addresses().iter().map(|a| a.to_string()).collect();
+            // 桌面端 addresses 统一为 ip:port 形状（与移动端一致），
+            // 前端 SyncPage 直接取 addresses[0] 传给 sync_with_device，
+            // 裸 IP 无法被 SyncManager 解析为 SocketAddr 导致 "Peer not discovered"。
+            let addresses = format_discovered_addresses(info.get_addresses(), info.get_port());
             devices.push(DiscoveredDevice {
                 name: info.get_fullname().to_string(),
                 host: info.get_hostname().to_string(),
@@ -314,6 +316,19 @@ pub async fn recovery_discover_hosts(
     Ok(Vec::new()) // 移动端暂不支持
 }
 
+/// 把 mDNS 解析出的地址列表格式化为 `ip:port`（IPv6 自动带方括号）。
+/// 桌面端与移动端（discovery.rs 移动版）保持同一形状，供前端直接使用。
+#[cfg(desktop)]
+fn format_discovered_addresses(
+    addrs: &std::collections::HashSet<std::net::IpAddr>,
+    port: u16,
+) -> Vec<String> {
+    addrs
+        .iter()
+        .map(|a| std::net::SocketAddr::new(*a, port).to_string())
+        .collect()
+}
+
 /// 移动端同步注册 NSD 服务的 blocking 版（供 sync_enable 的 spawn_blocking 任务调用，
 /// 避免在 async 上下文里执行 run_mobile_plugin 同步 IPC 占用 Tokio worker）。
 /// 与 async 版 `register_sync_service` 等价，但由调用方负责在获取参数后再调用。
@@ -347,14 +362,37 @@ mod tests {
             name: "Alice-MacBook".to_string(),
             host: "Alice-MacBook.local.".to_string(),
             port: 42069,
-            addresses: vec!["192.168.1.5".to_string(), "fe80::1".to_string()],
+            addresses: vec![
+                "192.168.1.5:42069".to_string(),
+                "[fe80::1]:42069".to_string(),
+            ],
         };
         let json = serde_json::to_string(&device).unwrap();
         assert!(json.contains("\"Alice-MacBook\""));
-        assert!(json.contains("\"192.168.1.5\""));
+        assert!(json.contains("\"192.168.1.5:42069\""));
         // Verify camelCase field naming
         assert!(json.contains("\"name\":\"Alice-MacBook\""));
         assert!(json.contains("\"addresses\""));
+    }
+    #[test]
+    #[cfg(desktop)]
+    fn test_format_discovered_addresses_includes_port() {
+        let mut addrs = std::collections::HashSet::new();
+        addrs.insert(std::net::IpAddr::V4(std::net::Ipv4Addr::new(
+            192, 168, 1, 5,
+        )));
+        addrs.insert(std::net::IpAddr::V6(std::net::Ipv6Addr::new(
+            0xfe80, 0, 0, 0, 0, 0, 0, 1,
+        )));
+        let mut formatted = format_discovered_addresses(&addrs, 42069);
+        formatted.sort();
+        assert_eq!(
+            formatted,
+            vec![
+                "192.168.1.5:42069".to_string(),
+                "[fe80::1]:42069".to_string()
+            ]
+        );
     }
 
     #[test]

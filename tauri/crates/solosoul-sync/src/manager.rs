@@ -420,10 +420,7 @@ impl SyncManager {
             socket
         } else {
             let map = self.discovered.lock().map_err(|e| e.to_string())?;
-            let peer = map
-                .get(device_id_or_addr)
-                .ok_or_else(|| format!("Peer not discovered: {}", device_id_or_addr))?;
-            peer.addr
+            resolve_peer_addr(&map, device_id_or_addr)?
         };
 
         let node_id = self.node_id.clone();
@@ -556,6 +553,28 @@ impl SyncManager {
     }
 }
 
+/// 解析 peer 连接地址：支持 `node_id`（discovered map 按键）与裸 IP（无端口）。
+///
+/// 桌面端旧版 mDNS 广播裸 IP（无端口），前端把 `addresses[0]` 原样传入；
+/// 裸 IP 无法解析为 SocketAddr，若直接查 discovered map 会因键不匹配报
+/// "Peer not discovered"（Bug A）。这里在裸 IP 场景下按 `peer.addr.ip()`
+/// 匹配 discovered map 中任意地址相同的 peer，命中则使用其完整 `addr`（含端口）。
+fn resolve_peer_addr(
+    discovered: &HashMap<String, DiscoveredPeer>,
+    device_id_or_addr: &str,
+) -> Result<SocketAddr, String> {
+    // 输入是裸 IP（无端口）时，按 IP 匹配 discovered peer
+    if let Ok(ip) = device_id_or_addr.parse::<IpAddr>() {
+        if let Some(peer) = discovered.values().find(|p| p.addr.ip() == ip) {
+            return Ok(peer.addr);
+        }
+    }
+    discovered
+        .get(device_id_or_addr)
+        .map(|p| p.addr)
+        .ok_or_else(|| format!("__SYNC_ERR__:peer_not_discovered:{}", device_id_or_addr))
+}
+
 /// 计算 SHA-256 哈希并返回前 16 字节的 hex 编码（32 字符）。
 /// 用于在 mDNS TXT 记录中广播 account_id 的哈希值，避免泄露原始账户标识。
 /// 截断为 16 字节（128 位）在局域网发现场景下碰撞风险极低且不影响安全性
@@ -575,5 +594,97 @@ fn format_duration_since(instant: Instant) -> String {
         format!("{}m ago", secs / 60)
     } else {
         format!("{}h ago", secs / 3600)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn peer(node_id: &str, ip: [u8; 4], port: u16) -> (String, DiscoveredPeer) {
+        (
+            node_id.to_string(),
+            DiscoveredPeer {
+                node_id: node_id.to_string(),
+                account_id: String::new(),
+                name: node_id.to_string(),
+                addr: SocketAddr::new(IpAddr::V4(Ipv4Addr::new(ip[0], ip[1], ip[2], ip[3])), port),
+                fingerprint: String::new(),
+                last_seen: Instant::now(),
+            },
+        )
+    }
+
+    fn insert_peer(
+        map: &mut HashMap<String, DiscoveredPeer>,
+        node_id: &str,
+        ip: [u8; 4],
+        port: u16,
+    ) {
+        let (id, p) = peer(node_id, ip, port);
+        map.insert(id, p);
+    }
+
+    #[test]
+    fn test_resolve_peer_addr_by_node_id() {
+        let mut map = HashMap::new();
+        insert_peer(&mut map, "node-a", [192, 168, 0, 33], 42069);
+        insert_peer(&mut map, "node-b", [192, 168, 0, 34], 42070);
+
+        let addr = resolve_peer_addr(&map, "node-b").unwrap();
+        assert_eq!(addr, "192.168.0.34:42070".parse::<SocketAddr>().unwrap());
+    }
+
+    /// Bug A 回归：桌面端旧版广播裸 IP（无端口），应按 IP 匹配 discovered peer。
+    #[test]
+    fn test_resolve_peer_addr_by_bare_ip_fallback() {
+        let mut map = HashMap::new();
+        insert_peer(&mut map, "node-a", [192, 168, 0, 33], 42069);
+        insert_peer(&mut map, "node-b", [192, 168, 0, 34], 42070);
+
+        let addr = resolve_peer_addr(&map, "192.168.0.34").unwrap();
+        assert_eq!(addr, "192.168.0.34:42070".parse::<SocketAddr>().unwrap());
+    }
+
+    #[test]
+    fn test_resolve_peer_addr_unknown_returns_i18n_error() {
+        let mut map = HashMap::new();
+        insert_peer(&mut map, "node-a", [192, 168, 0, 33], 42069);
+
+        let err = resolve_peer_addr(&map, "10.0.0.99").unwrap_err();
+        assert!(
+            err.starts_with("__SYNC_ERR__:peer_not_discovered:"),
+            "got: {}",
+            err
+        );
+        assert!(err.contains("10.0.0.99"));
+
+        let err2 = resolve_peer_addr(&map, "no-such-node").unwrap_err();
+        assert!(
+            err2.starts_with("__SYNC_ERR__:peer_not_discovered:"),
+            "got: {}",
+            err2
+        );
+    }
+
+    #[test]
+    fn test_resolve_peer_addr_ipv6_bare_ip_fallback() {
+        let mut map = HashMap::new();
+        map.insert(
+            "node-v6".to_string(),
+            DiscoveredPeer {
+                node_id: "node-v6".to_string(),
+                account_id: String::new(),
+                name: "node-v6".to_string(),
+                addr: "[fe80::1]:42069".parse::<SocketAddr>().unwrap(),
+                fingerprint: String::new(),
+                last_seen: Instant::now(),
+            },
+        );
+
+        // 裸 IPv6 按 IP 回退（ip:port 直连在 sync_with_peer 的 SocketAddr 分支处理，
+        // resolve_peer_addr 只负责裸 IP / node_id）
+        let addr2 = resolve_peer_addr(&map, "fe80::1").unwrap();
+        assert_eq!(addr2, "[fe80::1]:42069".parse::<SocketAddr>().unwrap());
     }
 }

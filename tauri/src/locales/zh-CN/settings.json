@@ -811,6 +811,7 @@
   "sync_err_enable_timeout": "启用同步超时，请重试",
   "sync_err_discovery_timeout": "设备发现超时，请检查网络后重试",
   "sync_err_nsd_failed": "网络发现服务注册失败，同步已自动关闭，请重试",
+  "sync_err_peer_not_discovered": "无法连接设备：{{detail}}，请重新扫描后重试",
   "sync_no_conflicts": "没有未解决的冲突。",
   "sync_conflict_record": "记录",
   "sync_conflict_table": "表",
