@@ -290,7 +290,8 @@ export function LoginPage() {
         });
         (window as typeof window & { __SOLOSOUL_UNLOCK_TIME?: number }).__SOLOSOUL_UNLOCK_TIME = t0;
         saveLastAccountId(acc.id);
-        useAuthStore.setState({ isAuthenticated: true, currentAccount: acc });
+        // P015: 收敛到 authStore action，不再直改 setState
+        useAuthStore.getState().completeUnlock(acc);
         // PIN 解锁后延迟检查备份提醒
         setTimeout(() => {
           import('@/lib/notification')
@@ -344,7 +345,8 @@ export function LoginPage() {
         name: selectedAccountId,
       };
       saveLastAccountId(acc.id);
-      useAuthStore.setState({ isAuthenticated: true, currentAccount: acc, accounts: accs });
+      // P015: 收敛到 authStore action，不再直改 setState
+      useAuthStore.getState().completeUnlock(acc, accs);
       success = true;
       (window as typeof window & { __SOLOSOUL_UNLOCK_TIME?: number }).__SOLOSOUL_UNLOCK_TIME = t0;
       // 生物识别解锁后延迟检查备份提醒

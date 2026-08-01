@@ -34,7 +34,7 @@
 | P012 | P1 | 架构/重复 | `tauri/src-tauri/src/plugin/` vs `tauri/crates/solosoul-plugin/src/` | 插件运行时双份平行实现：GUI 用本地版（功能超集），CLI 用 crate 版（见详情事实修正） | `[>]` 已决策待执行（方向 B：统一到 crate，6 步计划见详情） |
 | P013 | P1 | 架构 | `tauri/src-tauri/src/commands/discovery.rs:30`、`tauri/crates/solosoul-sync/src/manager.rs:168` | mDNS ServiceDaemon 在两个层各起一个实例，可同时存活导致结果不一致 | `[x]` 已修复 |
 | P014 | P1 | 架构 | `tauri/src/stores/authStore.ts:154-155` | `logout` invoke 失败时前端认证状态永不重置，出现半认证僵尸态 | `[x]` 已修复 |
-| P015 | P1 | 架构 | `tauri/src/stores/vaultStore.ts:15-44`、`tauri/src/stores/authStore.ts` | 认证/锁定状态双 store 平行维护，`vaultState` 只写不读，存在三种写入路径 | `[~]` 部分修复（vaultStore 已删除；LoginPage 两处裸 setState 写入路径未收敛，见详情） |
+| P015 | P1 | 架构 | `tauri/src/stores/vaultStore.ts:15-44`、`tauri/src/stores/authStore.ts` | 认证/锁定状态双 store 平行维护，`vaultState` 只写不读，存在三种写入路径 | `[x]` 已修复（复核补改：LoginPage PIN/生物识别两条裸 setState 收敛为 authStore.completeUnlock） |
 | P016 | P1 | 规范 | `tauri/src/pages/scan/ScanLocalPage.tsx:60`、`tauri/src/components/plugin/WatermarkPluginConfig.tsx:192`、`tauri/src/components/layout/OcrQuickScanPopover.tsx:139` | 三处裸调 plugin-dialog `open`，违反 dialog.ts 封装约定，可致自动锁定误触发 | `[x]` 已修复 |
 | P017 | P1 | 死代码 | `tauri/src/components/liquid-glass/`、`tauri/src/styles/liquid-glass.css` | 整套玻璃拟态组件与样式零引用 | `[>]` 已决策待执行（2026-08-01 复核零引用，用户已确认删除） |
 | P018 | P1 | 死代码 | `tauri/src/stores/index.ts`、`tauri/src/components/guide/index.ts` | 两个 barrel 文件无任何导入方 | `[>]` 已决策待执行（2026-08-01 复核零导入方，用户已确认删除） |
@@ -86,8 +86,8 @@
 
 ## 修复进度
 
-- 已完成：55 / 63（经 2026-08-01 复核确认通过的项）
-- 部分完成 `[~]`：3 项——P015、P041（残留漏点）、P011（工作区已分页，GlobalAttachmentManager 虚拟化待补）
+- 已完成：56 / 63（经 2026-08-01 复核确认通过的项）
+- 部分完成 `[~]`：2 项——P041（残留漏点）、P011（工作区已分页，GlobalAttachmentManager 虚拟化待补）
 - 已决策待执行 `[>]`：5 项——P012（方向 B 统一到 crate，P047 并入）、P017/P018（已确认删除）、P048（分批视觉等价重构）
 - 当前处理：决策已确认（2026-08-01），等待执行指令
 
@@ -220,6 +220,8 @@ sync crate manager（`manager.rs:168`）`sync_enable` 时自建 `ServiceDaemon`�
 修复方案：删除 `vaultState` 死状态，lock/unlock 收敛为 authStore action，vaultStore 降级为薄封装或删除。与 P014 一并处理。
 
 **复核发现（2026-08-01，状态降为 `[~]`）**：主体完成属实——`vaultStore.ts` 已删除、全仓无代码残留；`lock` 收敛为 `authStore.lock`（自带 try/catch），导航/自动锁定全部改用它。**但原问题点名的「三种写入路径」中，LoginPage 两条直接 setState 路径仍然存在**：PIN 解锁 `LoginPage.tsx:293` 与生物识别解锁 `LoginPage.tsx:347` 仍 `useAuthStore.setState({ isAuthenticated: true, ... })`，解锁写入路径仍有 3 条（`authStore.login` + 2 处裸 setState），未收敛为 authStore action。当前两条路径写入内容一致、暂无实际分歧，但与「收敛写入路径」的修复目标不符，修复说明也未记录此残留。建议补 `authStore.completeUnlock(acc)` 统一入口。
+
+**修复记录（2026-08-01，状态恢复 `[x]`）**：新增 `authStore.completeUnlock(account, accounts?)` action（set isAuthenticated/currentAccount、accounts ?? 保留现有、error=null、isLoading=false），LoginPage PIN 解锁与生物识别解锁两条路径改 `useAuthStore.getState().completeUnlock(...)`——解锁写入路径收敛为 `authStore.login` + `authStore.completeUnlock` 两个 action，再无裸 setState。语义与原 setState 等价（PIN 路径 accounts 保留、生物识别路径显式传入 accs）；error/isLoading 清零属合理卫生处理（登录页错误走组件本地 state）。tsc/lint/Vitest 415 全绿，审查通过。
 
 **P016 | 裸调 plugin-dialog（违反明确约定）**
 `lib/dialog.ts:9` 明文禁止裸调，但 `ScanLocalPage.tsx:60`、`WatermarkPluginConfig.tsx:192`、`OcrQuickScanPopover.tsx:139` 三处直接 `open()`；开启「切后台锁定」时文件选择器触发 `visibilitychange:hidden` → Vault 被误锁，选完文件后流程失败。
@@ -407,7 +409,7 @@ sync crate manager（`manager.rs:168`）`sync_enable` 时自建 `ServiceDaemon`�
 ## 剩余工作执行建议（2026-08-01 更新）
 
 1. **安全残留（小改动，优先）**：~~P004（host 侧盖章真实 `output_dir`，连带 `plugin_copy_output_file`）~~ 已修复（2026-08-01）；~~P003（GUI 导入路径写回 `safe_name`）~~ 已修复（2026-08-01）。
-2. **快速收敛（几行改动）**：P010（`useObjectWorkspaceData.ts:141` 分字段化）、P015（LoginPage 两处 setState 收敛为 `authStore.completeUnlock(acc)`）。
+2. **快速收敛（几行改动）**：~~P010（`useObjectWorkspaceData.ts:141` 分字段化）~~ 已修复（2026-08-01）；~~P015（LoginPage 两处 setState 收敛为 `authStore.completeUnlock(acc)`）~~ 已修复（2026-08-01）。
 3. **死文件删除**：P017 + P018（已确认，独立 commit）。
 4. **P041 继续拆分**：ObjectDetailModal、SyncPage 按标签页/阶段拆视图子组件至阈值以下。
 5. **P011 收尾**：GlobalAttachmentManager 附件树虚拟化或分页。

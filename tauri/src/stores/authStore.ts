@@ -36,6 +36,10 @@ interface AuthState {
   logout: () => Promise<void>;
   /** 锁定 Vault（收敛自 vaultStore.lock）。无论后端调用成功与否都重置认证状态。 */
   lock: () => Promise<void>;
+  /** 完成解锁（P015：收敛 LoginPage PIN/生物识别两条直改 setState 的路径）。
+   *  accounts 可选——PIN 解锁后端直接返回账户信息，无需二次拉取；
+   *  生物识别路径已拉取账户列表，可传入一并更新。 */
+  completeUnlock: (account: AccountInfo, accounts?: AccountInfo[]) => void;
   clearError: () => void;
 }
 
@@ -187,6 +191,18 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     } catch (err) {
       logger.warn('[authStore] lock invoke failed (auth state already reset):', err);
     }
+  },
+
+  completeUnlock: (account, accounts) => {
+    // P015: 统一解锁状态写入路径（PIN/生物识别不再各自直改 setState）。
+    // accounts 可选：未提供时保留现有列表，避免 PIN 路径额外拉取。
+    set((state) => ({
+      isAuthenticated: true,
+      currentAccount: account,
+      accounts: accounts ?? state.accounts,
+      error: null,
+      isLoading: false,
+    }));
   },
 
   clearError: () => set({ error: null }),
