@@ -6,6 +6,7 @@ import { useAuthStore, saveLastAccountId, LAST_ACCOUNT_KEY } from '@/stores/auth
 import { useApplyThemeFromSettings } from '@/hooks/useApplyThemeFromSettings';
 import type { AccountInfo } from '@/lib/ipc';
 import { getBiometricErrorMessage } from '@/lib/biometricError';
+import { translateRustError } from '@/lib/rustErrors';
 import { logger } from '@/lib/logger';
 
 import { ShieldLogo } from '@/components/ui/ShieldLogo';
@@ -42,7 +43,6 @@ export function LoginPage() {
     hasAccount,
     isAuthenticated,
     isLoading,
-    error,
     accounts,
     clearError,
   } = useAuthStore();
@@ -62,6 +62,10 @@ export function LoginPage() {
   // 系统生物识别因失败次数过多被临时锁定（Android）：指纹项仍显示，但点击时提示警告
   const [bioLockout, setBioLockout] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  /** 主密码输入框行内错误（空密码 / 后端密码错误），红边 + 抖动。 */
+  const [passwordFieldError, setPasswordFieldError] = useState<string | null>(null);
+  /** 密码错误自增计数：同串错误（Invalid password）重复提交时也重新抖动。 */
+  const [passwordErrorTick, setPasswordErrorTick] = useState(0);
   const abortRef = useRef<AbortController | null>(null);
 
   // PIN state
@@ -384,11 +388,33 @@ export function LoginPage() {
     clearError();
     setBioError(null);
     setSubmitError(null);
+    // 注意：此处不清除 passwordFieldError —— 重复提交同串错误时靠 errorTick 重抖；
+    // 若在提交开头清除，Argon2 校验期间行内错误会闪烁消失（用户报的闪烁问题）。
     if (!selectedAccountId) {
       setSubmitError(t('auth:no_account_selected'));
       return;
     }
+    // 空密码前置校验：不发后端请求，输入框行内必填错误（消除 Argon2 往返与 div 切换闪烁）
+    if (!password) {
+      setPasswordFieldError(t('auth:password_required'));
+      setPasswordErrorTick((n) => n + 1);
+      return;
+    }
     await login(selectedAccountId, password);
+    // 后端密码类错误（Invalid password / Verify failed）：i18n 后挂到输入框行内；
+    // 其他后端错误回退到 submitError（独立错误区展示），避免被静默丢弃
+    const state = useAuthStore.getState();
+    if (state.error) {
+      const translated = translateRustError(state.error);
+      if (translated === 'common:invalid_password' || translated === 'common:verify_failed') {
+        setPasswordFieldError(t(translated));
+        setPasswordErrorTick((n) => n + 1);
+      } else {
+        // 非密码错误：清除可能残留的主密码行内错误，避免与 submitError 同时展示
+        setPasswordFieldError(null);
+        setSubmitError(translated ? t(translated) : state.error);
+      }
+    }
     // 从已有外部目录登录后，config.json 中可能残留旧的安全标志（biometric/pin enabled），
     // 但实际 KeyStore 凭证和 PIN 文件已被卸载清除。立即复位这些标志，
     // 避免用户在安全设置中看到「已启用」但实际无法使用的状态。
@@ -591,12 +617,17 @@ export function LoginPage() {
         {(loginMethod === 'password' || loginMethod === null) && (
           <LoginPasswordView
             password={password}
-            onPasswordChange={setPassword}
+            onPasswordChange={(v) => {
+              setPassword(v);
+              // 用户修改密码时清除行内错误，避免旧错误残留
+              if (passwordFieldError) setPasswordFieldError(null);
+            }}
             isLoading={isLoading}
-            error={error}
             bioError={bioError}
             submitError={submitError}
             pinError={pinError}
+            passwordFieldError={passwordFieldError}
+            passwordErrorTick={passwordErrorTick}
             passwordHint={selectedAccount?.passwordHint || null}
             onSubmit={handleSubmit}
             onFocus={() => {

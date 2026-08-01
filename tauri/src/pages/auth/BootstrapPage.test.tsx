@@ -276,6 +276,34 @@ describe('BootstrapPage', () => {
     expect(navigate).not.toHaveBeenCalled();
   });
 
+  it('shows localized account-name-taken error on the account name input (i18n)', async () => {
+    bootstrapMock.mockResolvedValue(undefined);
+    mockStoreError = 'Account name already taken';
+
+    render(
+      <MemoryRouter>
+        <BootstrapPage />
+      </MemoryRouter>,
+    );
+
+    const accountInput = screen.getByPlaceholderText('auth:account_name');
+    const passwordInputs = screen.getAllByPlaceholderText('common:password_placeholder');
+    fireEvent.change(accountInput, { target: { value: 'Alice' } });
+    fireEvent.change(passwordInputs[0], { target: { value: 'password123' } });
+    fireEvent.change(passwordInputs[1], { target: { value: 'password123' } });
+
+    const form = accountInput.closest('form') as HTMLFormElement;
+    fireEvent.submit(form);
+
+    await waitFor(() => {
+      expect(bootstrapMock).toHaveBeenCalled();
+    });
+    expect(navigate).not.toHaveBeenCalled();
+    // 重名错误 i18n 后挂在账户名输入框行内（红边 + 抖动），不再走独立错误 div
+    expect(await screen.findByText('common:account_name_taken')).toBeInTheDocument();
+    expect(screen.queryByText('Account name already taken')).not.toBeInTheDocument();
+  });
+
   it('displays error from authStore', () => {
     vi.mocked(useAuthStore).mockReturnValue({
       bootstrap: bootstrapMock,

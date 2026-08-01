@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/Input';
 import { SecurePasswordInput } from '@/components/forms/PasswordInput';
 import { AlertTriangle } from 'lucide-react';
 import { ICON_SIZE, MIN_PASSWORD_LENGTH } from '@/lib/constants';
+import { translateRustError } from '@/lib/rustErrors';
 
 export function BootstrapPage() {
   useApplyThemeFromSettings();
@@ -21,6 +22,8 @@ export function BootstrapPage() {
   const [passwordHint, setPasswordHint] = useState('');
   // 空字段/长度/一致性校验错误（按优先级：账户名称 > 主密码未输入 > 主密码不符合要求 > 确认密码未输入 > 两次密码不一致）
   const [accountNameError, setAccountNameError] = useState<string | null>(null);
+  /** 账户名重名失败自增计数：同串错误（Account name already taken）重复提交时也重新抖动。 */
+  const [nameErrorTick, setNameErrorTick] = useState(0);
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [confirmError, setConfirmError] = useState<string | null>(null);
   const [searchParams] = useSearchParams();
@@ -29,6 +32,8 @@ export function BootstrapPage() {
 
   const handleSubmit = async (e?: React.FormEvent) => {
     e?.preventDefault();
+    // 在途保护：Button disabled 挡不住 Enter 键/form submit，防止并发 bootstrap 导致 error/isLoading 高频交替闪烁
+    if (useAuthStore.getState().isLoading) return;
     // 校验优先级：账户名称未输入 > 主密码未输入 > 主密码不符合要求 > 确认密码未输入 > 两次密码不一致
     if (!accountName.trim()) {
       setAccountNameError(t('auth:account_name_required'));
@@ -60,8 +65,31 @@ export function BootstrapPage() {
     const state = useAuthStore.getState();
     if (!state.error) {
       navigate('/');
+      return;
+    }
+    // 重名错误：i18n 后挂到账户名输入框（红边 + 抖动），不再走独立错误 div
+    if (translateRustError(state.error) === 'common:account_name_taken') {
+      setAccountNameError(t('common:account_name_taken'));
+      setNameErrorTick((n) => n + 1);
     }
   };
+
+  // 后端错误展示文本：translateRustError 映射优先（返回 i18n key，需 t() 转译），未命中保留启发式兜底；
+  // 重名错误已挂到账户名输入框行内（accountNameError），不再在此重复展示
+  const translatedError = error ? translateRustError(error) : null;
+  const isNameTakenError = translatedError === 'common:account_name_taken';
+  const backendErrorText =
+    error && !isNameTakenError
+      ? (translatedError
+          ? t(translatedError)
+          : error.toLowerCase().includes('8 characters') || error.toLowerCase().includes('至少')
+            ? t('auth:password_too_short')
+            : error.toLowerCase().includes('password') || error.toLowerCase().includes('invalid')
+              ? t('auth:incorrect_password')
+              : error.toLowerCase().includes('required')
+                ? t('auth:password_required')
+                : error)
+      : null;
 
   return (
     <div
@@ -107,6 +135,8 @@ export function BootstrapPage() {
             }}
             placeholder={t('auth:account_name')}
             error={accountNameError ?? undefined}
+            errorTick={nameErrorTick}
+            reserveErrorSpace
           />
           <SecurePasswordInput
             label={t('auth:master_password')}
@@ -143,18 +173,10 @@ export function BootstrapPage() {
             onChange={(e) => setPasswordHint(e.target.value)}
             placeholder={t('auth:password_hint_placeholder')}
           />
-          {error && (
-            <div style={{ color: '#e74c3c', fontSize: 'var(--text-body-sm)' }}>
-              {error.toLowerCase().includes('8 characters') || error.toLowerCase().includes('至少')
-                ? t('auth:password_too_short')
-                : error.toLowerCase().includes('password') ||
-                    error.toLowerCase().includes('invalid')
-                  ? t('auth:incorrect_password')
-                  : error.toLowerCase().includes('required')
-                    ? t('auth:password_required')
-                    : error}
-            </div>
-          )}
+          {/* 后端错误区：minHeight 固定占位，错误出现/消失不改变卡片高度（防闪烁） */}
+          <div style={{ color: '#e74c3c', fontSize: 'var(--text-body-sm)', minHeight: 20 }}>
+            {backendErrorText}
+          </div>
           <div
             style={{
               display: 'flex',

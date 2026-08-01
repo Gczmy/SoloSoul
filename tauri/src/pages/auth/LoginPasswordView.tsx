@@ -6,10 +6,13 @@ interface LoginPasswordViewProps {
   password: string;
   onPasswordChange: (v: string) => void;
   isLoading: boolean;
-  error: string | null;
   bioError: string | null;
   submitError: string | null;
   pinError: string | null;
+  /** 主密码输入框行内错误（空密码 / 后端密码类错误），已 i18n。 */
+  passwordFieldError: string | null;
+  /** 密码错误抖动重触发计数（同串错误重复抖动）。 */
+  passwordErrorTick: number;
   passwordHint: string | null;
   onSubmit: (e?: FormEvent) => void;
   onFocus?: () => void;
@@ -20,30 +23,20 @@ export function LoginPasswordView({
   password,
   onPasswordChange,
   isLoading,
-  error,
   bioError,
   submitError,
   pinError,
+  passwordFieldError,
+  passwordErrorTick,
   passwordHint,
   onSubmit,
   onFocus,
 }: LoginPasswordViewProps) {
   const { t } = useTranslation(['auth', 'common']);
 
-  // 错误优先级与原件一致：PIN > 提交 > 生物识别 > 主密码（仅主密码需要错误文案转换）
-  const displayError =
-    pinError ||
-    submitError ||
-    bioError ||
-    (error
-      ? error.toLowerCase().includes('8 characters') || error.toLowerCase().includes('至少')
-        ? t('auth:password_too_short')
-        : error.toLowerCase().includes('password') || error.toLowerCase().includes('invalid')
-          ? t('auth:incorrect_password')
-          : error.toLowerCase().includes('required')
-            ? t('auth:password_required')
-            : error
-      : '');
+  // 主密码错误已改由输入框行内展示（passwordFieldError，红边 + 抖动 + 行内红字），
+  // 独立错误区仅保留非密码类错误：PIN > 提交 > 生物识别
+  const displayError = pinError || submitError || bioError || '';
 
   return (
     <div
@@ -64,10 +57,14 @@ export function LoginPasswordView({
           autoComplete="current-password"
           onEnter={onSubmit}
           onFocus={onFocus}
+          error={passwordFieldError}
+          errorTick={passwordErrorTick}
+          reserveErrorSpace
         />
-        {displayError && (
-          <div style={{ color: '#dc2626', fontSize: 'var(--text-body-sm)' }}>{displayError}</div>
-        )}
+        {/* 非密码错误区：minHeight 固定占位，错误出现/消失不改变表单高度（防闪烁） */}
+        <div style={{ color: '#dc2626', fontSize: 'var(--text-body-sm)', minHeight: 20 }}>
+          {displayError}
+        </div>
         <button
           type="submit"
           disabled={isLoading}

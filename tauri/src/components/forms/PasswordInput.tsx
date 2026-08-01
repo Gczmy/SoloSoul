@@ -23,6 +23,10 @@ interface SecurePasswordInputProps {
   /** Whether to show the hint button. Defaults to true.
    *  Set false for new/confirm password fields (8.3). */
   showHintButton?: boolean;
+  /** 错误抖动重触发计数器：error 字符串相同但 tick 变化时也重新抖动（可选）。 */
+  errorTick?: number;
+  /** 为错误行预留固定高度，error 出现/消失不改变表单布局（可选，防闪烁）。 */
+  reserveErrorSpace?: boolean;
 }
 
 export function SecurePasswordInput({
@@ -33,6 +37,8 @@ export function SecurePasswordInput({
   className = '',
   label,
   error,
+  errorTick = 0,
+  reserveErrorSpace = false,
   autoComplete,
   hint,
   showHintButton = true,
@@ -46,6 +52,7 @@ export function SecurePasswordInput({
   const [isFocused, setIsFocused] = useState(false);
   const [shouldShake, setShouldShake] = useState(false);
   const prevErrorRef = useRef(error);
+  const prevTickRef = useRef(errorTick);
   const hintBtnRef = useRef<HTMLButtonElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const touchActiveRef = useRef(false);
@@ -66,16 +73,18 @@ export function SecurePasswordInput({
     setIsFocused(false);
   }, []);
 
-  // Shake on new error
+  // Shake on new error（或 errorTick 变化时重复抖动）
   useEffect(() => {
-    if (error && error !== prevErrorRef.current) {
+    if (error && (error !== prevErrorRef.current || errorTick !== prevTickRef.current)) {
       setShouldShake(true);
       const timer = setTimeout(() => setShouldShake(false), 300);
       prevErrorRef.current = error;
+      prevTickRef.current = errorTick;
       return () => clearTimeout(timer);
     }
     prevErrorRef.current = error;
-  }, [error]);
+    prevTickRef.current = errorTick;
+  }, [error, errorTick]);
 
   const updateHintCardPos = useCallback(() => {
     if (hintBtnRef.current) {
@@ -347,18 +356,36 @@ export function SecurePasswordInput({
           )}
         </div>
       </div>
-      {error && (
-        <span
-          role="alert"
-          key={error}
-          style={{
-            fontSize: 'var(--text-caption)',
-            color: 'var(--accent-danger, #dc2626)',
-            animation: 'fadeInSlideDown 0.25s ease-out',
-          }}
-        >
-          {error}
-        </span>
+      {reserveErrorSpace ? (
+        <div style={{ minHeight: 16 }}>
+          {error && (
+            <span
+              role="alert"
+              key={`${error}-${errorTick}`}
+              style={{
+                fontSize: 'var(--text-caption)',
+                color: 'var(--accent-danger, #dc2626)',
+                animation: 'fadeInSlideDown 0.25s ease-out',
+              }}
+            >
+              {error}
+            </span>
+          )}
+        </div>
+      ) : (
+        error && (
+          <span
+            role="alert"
+            key={error}
+            style={{
+              fontSize: 'var(--text-caption)',
+              color: 'var(--accent-danger, #dc2626)',
+              animation: 'fadeInSlideDown 0.25s ease-out',
+            }}
+          >
+            {error}
+          </span>
+        )
       )}
     </div>
   );
