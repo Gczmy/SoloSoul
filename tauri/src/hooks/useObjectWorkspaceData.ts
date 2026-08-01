@@ -138,7 +138,9 @@ export function useObjectWorkspaceData({
   const customPages = useSettingsStore((s) => s.settings.customPages);
   const activeCustomPages = customPages.filter((p) => !p.deletedAt);
   const removeCustomPage = useSettingsStore((s) => s.removeCustomPage);
-  const { templates: userTemplates, loadTemplates: loadUserTemplates } = useTemplateStore();
+  // P010: 分字段 selector 订阅，避免整店订阅导致 store 任何变化触发整页重渲染。
+  const userTemplates = useTemplateStore((s) => s.templates);
+  const loadUserTemplates = useTemplateStore((s) => s.loadTemplates);
   const abortRef = useRef<AbortController | null>(null);
 
   // 组件卸载时清理 store 中的陈旧对象，防止重新挂载时首帧闪烁上个页面的内容。

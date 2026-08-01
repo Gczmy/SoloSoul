@@ -29,7 +29,7 @@
 | P007 | P1 | 性能 | `tauri/src-tauri/src/commands/search/commands.rs:305-346` | 模板命中时第二次全表解密扫描，单次搜索最多 2 次全表解密 | `[x]` 已修复 |
 | P008 | P1 | 性能 | `tauri/src-tauri/src/commands/llm/rag.rs:358-363` | top_k 循环内反复 `chunk_all_guides`，每条聊天消息把指南文件完整读 3 遍 | `[x]` 已修复 |
 | P009 | P1 | 性能 | `tauri/src-tauri/src/commands/ocr.rs:258,356` | 每次 OCR 命令重新加载 ONNX 引擎（数百 ms），无缓存 | `[x]` 已修复 |
-| P010 | P1 | 性能 | `tauri/src/pages/workspace/ObjectWorkspacePage.tsx:148-158` | `useObjectStore()` 无 selector 整店订阅，store 任何变化触发整页重渲染 | `[~]` 部分修复（objectStore 已分字段化；`useObjectWorkspaceData.ts:141` 残留 `useTemplateStore()` 裸整店订阅） |
+| P010 | P1 | 性能 | `tauri/src/pages/workspace/ObjectWorkspacePage.tsx:148-158` | `useObjectStore()` 无 selector 整店订阅，store 任何变化触发整页重渲染 | `[x]` 已修复（复核补改：`useObjectWorkspaceData.ts:141` 残留的 templateStore 裸订阅已分字段化） |
 | P011 | P1 | 性能 | `tauri/src/pages/workspace/ObjectWorkspacePage.tsx:803`、`tauri/src/pages/settings/GlobalAttachmentManager.tsx:1077` | 大列表无虚拟滚动/分页，对象数百+ 时首屏与重渲染成本高 | `[~]` 部分完成（工作区分页「加载更多」已实现；GlobalAttachmentManager 虚拟化/分页待补） |
 | P012 | P1 | 架构/重复 | `tauri/src-tauri/src/plugin/` vs `tauri/crates/solosoul-plugin/src/` | 插件运行时双份平行实现：GUI 用本地版（功能超集），CLI 用 crate 版（见详情事实修正） | `[>]` 已决策待执行（方向 B：统一到 crate，6 步计划见详情） |
 | P013 | P1 | 架构 | `tauri/src-tauri/src/commands/discovery.rs:30`、`tauri/crates/solosoul-sync/src/manager.rs:168` | mDNS ServiceDaemon 在两个层各起一个实例，可同时存活导致结果不一致 | `[x]` 已修复 |
@@ -86,8 +86,8 @@
 
 ## 修复进度
 
-- 已完成：54 / 63（经 2026-08-01 复核确认通过的项）
-- 部分完成 `[~]`：4 项——P010、P015、P041（残留漏点）、P011（工作区已分页，GlobalAttachmentManager 虚拟化待补）
+- 已完成：55 / 63（经 2026-08-01 复核确认通过的项）
+- 部分完成 `[~]`：3 项——P015、P041（残留漏点）、P011（工作区已分页，GlobalAttachmentManager 虚拟化待补）
 - 已决策待执行 `[>]`：5 项——P012（方向 B 统一到 crate，P047 并入）、P017/P018（已确认删除）、P048（分批视觉等价重构）
 - 当前处理：决策已确认（2026-08-01），等待执行指令
 
@@ -169,6 +169,8 @@
 修复方案：分字段 selector（`s=>s.objects`、`s=>s.isLoading` 等）。P055 为同类低负载页面。
 
 **复核发现（2026-08-01，状态降为 `[~]`）**：objectStore 已分字段化——P027 拆分后订阅收敛到 `hooks/useObjectWorkspaceData.ts:121-129`，9 个分字段 selector，页面已无裸 `useObjectStore()`。**但同一 hook 的 `:141` 仍残留 `const { templates: userTemplates, loadTemplates: loadUserTemplates } = useTemplateStore();` 裸整店订阅**，templateStore 任何变化（如 `isLoading` 翻转）仍触发整个工作区页重渲染，与本项要消除的问题同类同处。对照 P055 中 ObjectDetailModal 的 templateStore 都已改为分字段 selector，此处属漏改。
+
+**修复记录（2026-08-01，状态恢复 `[x]`）**：`useObjectWorkspaceData.ts` 的 `useTemplateStore()` 裸订阅已拆为 `useTemplateStore((s) => s.templates)` 与 `useTemplateStore((s) => s.loadTemplates)` 两个分字段 selector——templates 值字段按引用比较、loadTemplates 函数引用稳定，templateStore 的 `isLoading`/`error` 翻转不再触发工作区页重渲染，与同 hook 中 objectStore 的分字段化完全对齐。tsc/lint/Vitest 415 全绿。
 
 **P011 | 大列表无虚拟化**
 全项目无 windowing 库；工作区一次挂载全部对象卡片，附件管理器全量渲染对象×附件树。
