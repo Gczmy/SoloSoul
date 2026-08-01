@@ -159,7 +159,8 @@ impl SyncService {
             .map_err(wrap_session_error)
         })
         .await
-        .map_err(|e| format!("spawn blocking: {}", e))?
+        // spawn_blocking join 失败（任务 panic/abort）：前端经 resolveBackendErrorMessage 翻译
+        .map_err(|e| format!("__SYNC_ERR__:session_failed:{}", e))?
     }
 
     /// 列出已持久化的 peers（移动端发现由上层 NSD 插件维护，这里只返回持久化列表）。

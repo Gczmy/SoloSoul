@@ -447,7 +447,8 @@ impl SyncManager {
             .map_err(wrap_session_error)
         })
         .await
-        .map_err(|e| format!("spawn blocking: {}", e))?;
+        // spawn_blocking join 失败（任务 panic/abort）：前端经 resolveBackendErrorMessage 翻译
+        .map_err(|e| format!("__SYNC_ERR__:session_failed:{}", e))?;
 
         result
     }
