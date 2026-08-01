@@ -8,8 +8,8 @@ use super::{
     PluginRegistry, PluginResult, PluginSession, PluginSessionManager, PluginStore, PluginTier,
     RateLimiter, WasmSandbox,
 };
-use semver::Version;
 use serde::Deserialize;
+use solosoul_plugin::version::{current_app_version, is_version_compatible};
 use solosoul_vault::VaultStore;
 use std::collections::HashMap;
 use std::path::PathBuf;
@@ -669,21 +669,4 @@ impl PluginManager {
     }
 }
 
-/// 当前应用版本
-fn current_app_version() -> Result<Version, PluginError> {
-    let s = env!("CARGO_PKG_VERSION");
-    Version::parse(s).map_err(|e| PluginError::RegistryError(format!("版本解析失败: {}", e)))
-}
-
-/// 解析注册表版本兼容性
-fn is_version_compatible(version: &super::RegistryVersion, app_version: &Version) -> bool {
-    let min = match Version::parse(&version.min_app_version) {
-        Ok(v) => v,
-        Err(_) => return false,
-    };
-    let max = match Version::parse(&version.max_app_version) {
-        Ok(v) => v,
-        Err(_) => return false,
-    };
-    app_version >= &min && app_version <= &max
-}
+// 版本解析/兼容性判断委托 `solosoul_plugin::version`（单一实现，避免双份漂移）

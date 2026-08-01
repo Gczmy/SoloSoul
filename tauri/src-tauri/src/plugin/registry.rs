@@ -2,10 +2,10 @@
 //!
 //! 解析 `SoloSoul_plugin_market/registry.json`，提供与当前应用版本的兼容性判断。
 
-use super::{MarketPluginInfo, PluginError, PluginManifest, RegistryEntry, RegistryVersion};
+use super::{MarketPluginInfo, PluginError, PluginManifest, RegistryEntry};
 use minisign_verify::{PublicKey, Signature};
-use semver::Version;
 use serde::Deserialize;
+use solosoul_plugin::version::{current_app_version, is_version_compatible, parse_version};
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
@@ -199,34 +199,13 @@ impl PluginRegistry {
     }
 }
 
-/// 当前应用版本
-fn current_app_version() -> Result<Version, PluginError> {
-    parse_version(env!("CARGO_PKG_VERSION"))
-        .map_err(|e| PluginError::RegistryError(format!("应用版本解析失败: {}", e)))
-}
-
-/// 解析 semver 版本，忽略可能的前缀 `v`
-fn parse_version(s: &str) -> Result<Version, PluginError> {
-    let s = s.strip_prefix('v').unwrap_or(s);
-    Version::parse(s).map_err(|e| PluginError::InvalidManifest(format!("版本解析失败: {}", e)))
-}
-
-/// 判断注册表版本是否与当前应用版本兼容
-fn is_version_compatible(version: &RegistryVersion, app_version: &Version) -> bool {
-    let min = match parse_version(&version.min_app_version) {
-        Ok(v) => v,
-        Err(_) => return false,
-    };
-    let max = match parse_version(&version.max_app_version) {
-        Ok(v) => v,
-        Err(_) => return false,
-    };
-    app_version >= &min && app_version <= &max
-}
+// 版本解析/兼容性判断委托 `solosoul_plugin::version`（单一实现，避免双份漂移）
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use semver::Version;
+    use solosoul_plugin::manifest::RegistryVersion;
 
     fn version(min: &str, max: &str) -> RegistryVersion {
         RegistryVersion {

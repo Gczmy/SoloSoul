@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-01 13:34:36
+> 最后更新：2026-08-01 13:49:00
 > 当前分支：`main`
 > 修复轮次：3 + 复核轮次 1（58 项修复声明已独立核验）+ 决策轮次（剩余 5 项方案与用户决策已记录，见各条目「决策记录」）
 > 分析范围：`tauri/`（Rust 后端 `src-tauri/` + `crates/`，React/TS 前端 `src/`）；`solosoul_cli/` 不在本轮范围
@@ -31,7 +31,7 @@
 | P009 | P1 | 性能 | `tauri/src-tauri/src/commands/ocr.rs:258,356` | 每次 OCR 命令重新加载 ONNX 引擎（数百 ms），无缓存 | `[x]` 已修复 |
 | P010 | P1 | 性能 | `tauri/src/pages/workspace/ObjectWorkspacePage.tsx:148-158` | `useObjectStore()` 无 selector 整店订阅，store 任何变化触发整页重渲染 | `[x]` 已修复（复核补改：`useObjectWorkspaceData.ts:141` 残留的 templateStore 裸订阅已分字段化） |
 | P011 | P1 | 性能 | `tauri/src/pages/workspace/ObjectWorkspacePage.tsx:803`、`tauri/src/pages/settings/GlobalAttachmentManager.tsx:1077` | 大列表无虚拟滚动/分页，对象数百+ 时首屏与重渲染成本高 | `[x]` 已修复（复核补改：GlobalAttachmentManager 顶层页面列表补「加载更多」分页） |
-| P012 | P1 | 架构/重复 | `tauri/src-tauri/src/plugin/` vs `tauri/crates/solosoul-plugin/src/` | 插件运行时双份平行实现：GUI 用本地版（功能超集），CLI 用 crate 版（见详情事实修正） | `[>]` 已决策待执行（方向 B：统一到 crate，6 步计划见详情；P048 完成后为唯一剩余工作项，下一轮执行） |
+| P012 | P1 | 架构/重复 | `tauri/src-tauri/src/plugin/` vs `tauri/crates/solosoul-plugin/src/` | 插件运行时双份平行实现：GUI 用本地版（功能超集），CLI 用 crate 版（见详情事实修正） | `[>]` 执行中（方向 B 第①步已完成：删 6 个 orphan mobile 文件 + version 三份去重；余第②~⑥步待执行） |
 | P013 | P1 | 架构 | `tauri/src-tauri/src/commands/discovery.rs:30`、`tauri/crates/solosoul-sync/src/manager.rs:168` | mDNS ServiceDaemon 在两个层各起一个实例，可同时存活导致结果不一致 | `[x]` 已修复 |
 | P014 | P1 | 架构 | `tauri/src/stores/authStore.ts:154-155` | `logout` invoke 失败时前端认证状态永不重置，出现半认证僵尸态 | `[x]` 已修复 |
 | P015 | P1 | 架构 | `tauri/src/stores/vaultStore.ts:15-44`、`tauri/src/stores/authStore.ts` | 认证/锁定状态双 store 平行维护，`vaultState` 只写不读，存在三种写入路径 | `[x]` 已修复（复核补改：LoginPage PIN/生物识别两条裸 setState 收敛为 authStore.completeUnlock） |
@@ -88,8 +88,8 @@
 
 - 已完成：61 / 63（经 2026-08-01 复核确认 + P048 四批迁移确认通过的项）
 - 部分完成 `[~]`：0 项
-- 已决策待执行 `[>]`：2 项——P012（方向 B 统一到 crate，P047 并入；**唯一剩余工作项**，下一轮执行）
-- 当前处理：P048 全部完成（2026-08-01，四批共迁移 41 文件 90+ 处样式 hover）；残余 13 处 `onMouseEnter` 均为功能性鼠标事件（tooltip 显隐、延迟展开、状态驱动、layout 展开折叠、共享组件 TransferButton），不属于样式 hover，保留。下一轮：P012 方向 B（含 P047）
+- 已决策待执行 `[>]`：1 项——P012（方向 B 统一到 crate，P047 并入；**唯一剩余工作项**，第①步已完成，执行中）
+- 当前处理：P012 方向 B 第①步完成（2026-08-01，13:49）——删除两侧 6 个 orphan mobile 文件（511 行）+ `version.rs` 三份去重（registry.rs/manager.rs 内联逻辑委托 `solosoul_plugin::version`）。验证：cargo check/check --tests/fmt/clippy（基线）/test 全绿，三轮审查通过。下一轮：P012 第②步（功能移植进 crate）
 
 ## 静态基线之外已检查且无发现的维度（误报排除记录）
 
@@ -208,6 +208,13 @@
 6. **全量回归**：`cargo test`（workspace + CLI）→ 4 个插件集成测试 → 前端 pluginStore 测试 → 手工回归清单：市场列表/搜索 → 安装（远程/bundled 回退/hash 重装三路径）→ 更新 → 卸载 → 运行 hello_world/address-fmt/phone-fmt → 水印插件（图片+PDF）→ consent 通过/拒绝/300s 超时 → host HTTP → 审计日志/会话 TTL → Android 端插件运行 → CLI 全部 12 个插件命令。
 
 *净效果*：删 ~2900 行、crate 增 ~350 行，全项目只剩一份插件运行时。注意：crate 内 `env!("CARGO_PKG_VERSION")` 语义在统一后会改变（当前数值巧合一致），移植时需显式处理。
+
+**第①步修复记录（2026-08-01，状态更新为 `[>]` 执行中）**：
+- **删除 6 个 orphan mobile 文件**（511 行）：`src-tauri/src/plugin/{host,manager,sandbox}_mobile.rs` 与 `crates/solosoul-plugin/src/{host,manager,sandbox}_mobile.rs`。删除前核实：两侧 mod.rs 均未声明 `mod`（无编译引用），全仓库 grep（rs/toml/ts/tsx）零引用，git 跟踪确认无其他消费点。
+- **`version.rs` 三份去重**：crate `solosoul-plugin/src/version.rs` 为唯一实现；`registry.rs` 删除私有 `current_app_version`/`parse_version`/`is_version_compatible` 三函数改 `use solosoul_plugin::version::{...}`；`manager.rs` 删除私有 `current_app_version`/`is_version_compatible` 两函数同样委托。调用点 `registry::load`（current_app_version/parse_version/is_version_compatible）与 `manager::install_from_registry`（is_version_compatible/current_app_version）均改走 crate 实现。
+- **语义安全确认**：src-tauri 与 crate 均 `version.workspace = true` = 2.6.8，`env!("CARGO_PKG_VERSION")` 数值一致，委托后语义不变。
+- **审查修正两轮**：① `RegistryVersion` 从 registry.rs 顶层 import 移除后非测试构建报 unused import → 测试模块改 `use solosoul_plugin::manifest::RegistryVersion`（顶层 `use super::{...}` 去掉该名）；② 测试模块 `use semver::Version` 保留。
+- **验证**：`cargo check -p solo_soul` ✅、`cargo check --tests` ✅（含测试目标编译）、`cargo fmt --check` ✅、`cargo clippy --workspace -- -D warnings`（基线）✅、`cargo test`（solosoul-plugin 46 + solo_soul 322 + 等）全部通过。注：`cargo clippy --all-targets` 在 `solosoul-core`/`settings.rs` 测试代码报既有 `unneeded return`/`needless_borrow`，非本次改动引入（本次仅改 plugin 目录），基线命令不受影响。
 
 **P013 | mDNS 双 daemon**
 sync crate manager（`manager.rs:168`）`sync_enable` 时自建 `ServiceDaemon`；`discovery.rs:30,55-60` 另有 app 生命周期常驻 `SharedDaemon`。前端 `syncStore.enable` 成功后立即 `discoverDevices`（`syncStore.ts:140-141`），两个 daemon 同时运行，缓存各自为政。
