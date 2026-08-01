@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-01 01:20:00
+> 最后更新：2026-08-01 13:34:36
 > 当前分支：`main`
 > 修复轮次：3 + 复核轮次 1（58 项修复声明已独立核验）+ 决策轮次（剩余 5 项方案与用户决策已记录，见各条目「决策记录」）
 > 分析范围：`tauri/`（Rust 后端 `src-tauri/` + `crates/`，React/TS 前端 `src/`）；`solosoul_cli/` 不在本轮范围
@@ -31,7 +31,7 @@
 | P009 | P1 | 性能 | `tauri/src-tauri/src/commands/ocr.rs:258,356` | 每次 OCR 命令重新加载 ONNX 引擎（数百 ms），无缓存 | `[x]` 已修复 |
 | P010 | P1 | 性能 | `tauri/src/pages/workspace/ObjectWorkspacePage.tsx:148-158` | `useObjectStore()` 无 selector 整店订阅，store 任何变化触发整页重渲染 | `[x]` 已修复（复核补改：`useObjectWorkspaceData.ts:141` 残留的 templateStore 裸订阅已分字段化） |
 | P011 | P1 | 性能 | `tauri/src/pages/workspace/ObjectWorkspacePage.tsx:803`、`tauri/src/pages/settings/GlobalAttachmentManager.tsx:1077` | 大列表无虚拟滚动/分页，对象数百+ 时首屏与重渲染成本高 | `[x]` 已修复（复核补改：GlobalAttachmentManager 顶层页面列表补「加载更多」分页） |
-| P012 | P1 | 架构/重复 | `tauri/src-tauri/src/plugin/` vs `tauri/crates/solosoul-plugin/src/` | 插件运行时双份平行实现：GUI 用本地版（功能超集），CLI 用 crate 版（见详情事实修正） | `[>]` 已决策待执行（方向 B：统一到 crate，6 步计划见详情） |
+| P012 | P1 | 架构/重复 | `tauri/src-tauri/src/plugin/` vs `tauri/crates/solosoul-plugin/src/` | 插件运行时双份平行实现：GUI 用本地版（功能超集），CLI 用 crate 版（见详情事实修正） | `[>]` 已决策待执行（方向 B：统一到 crate，6 步计划见详情；P048 完成后为唯一剩余工作项，下一轮执行） |
 | P013 | P1 | 架构 | `tauri/src-tauri/src/commands/discovery.rs:30`、`tauri/crates/solosoul-sync/src/manager.rs:168` | mDNS ServiceDaemon 在两个层各起一个实例，可同时存活导致结果不一致 | `[x]` 已修复 |
 | P014 | P1 | 架构 | `tauri/src/stores/authStore.ts:154-155` | `logout` invoke 失败时前端认证状态永不重置，出现半认证僵尸态 | `[x]` 已修复 |
 | P015 | P1 | 架构 | `tauri/src/stores/vaultStore.ts:15-44`、`tauri/src/stores/authStore.ts` | 认证/锁定状态双 store 平行维护，`vaultState` 只写不读，存在三种写入路径 | `[x]` 已修复（复核补改：LoginPage PIN/生物识别两条裸 setState 收敛为 authStore.completeUnlock） |
@@ -66,8 +66,8 @@
 | P044 | P2 | 结构 | `export.rs:217`(258)、`object/snapshot.rs:210`(254)、`llm/stream.rs:76`(227) | 3 个 220+ 行多阶段函数需按阶段抽取 | `[x]` 已修复 |
 | P045 | P2 | 结构 | `export_import/helpers.rs:173-232`、`import.rs:394-412`、`profile.rs:191-205`、`plugin.rs:80-107`、`llm/stream.rs:257-302` | 5 处 5-6 层深层嵌套 | `[x]` 已修复 |
 | P046 | P2 | 重复 | `tauri/src-tauri/src/commands/attachment.rs:983-1027` vs `tauri/crates/solosoul-core/src/objects.rs:945-999` | `cleanup_orphan_attachments` GUI 端整体复制 core 实现 | `[x]` 已修复 |
-| P047 | P2 | 重复 | `tauri/src-tauri/src/plugin/host/register.rs:763-812,838-890` | 两个 watermark 注册闭包除一行外完全相同；read_string 校验样板 20+ 次 | `[>]` 已决策待执行（并入 P012 方向 B 第③步，在统一后的 crate host.rs 上只做一次） |
-| P048 | P2 | 重复 | 54 文件 119 处 onMouseEnter、57 文件 128 处 onMouseLeave（内联样式改写 471 处/49 文件） | 手写 onMouseEnter/Leave hover，应统一迁移到 `ui/Button` 或视觉等价 CSS hover | `[~]` 部分完成（第一~四批 41 文件 90+ 处已迁移，2026-08-01） |
+| P047 | P2 | 重复 | `tauri/src-tauri/src/plugin/host/register.rs:763-812,838-890` | 两个 watermark 注册闭包除一行外完全相同；read_string 校验样板 20+ 次 | `[>]` 已决策待执行（并入 P012 方向 B 第③步，在统一后的 crate host.rs 上只做一次；随 P012 一并执行） |
+| P048 | P2 | 重复 | 54 文件 119 处 onMouseEnter、57 文件 128 处 onMouseLeave（内联样式改写 471 处/49 文件） | 手写 onMouseEnter/Leave hover，应统一迁移到 `ui/Button` 或视觉等价 CSS hover | `[x]` 已完成（第一~四批迁移 41 文件 90+ 处样式 hover；残余 13 处均为功能性鼠标事件，2026-08-01） |
 | P049 | P2 | 重复 | `TrashPage.tsx:254-345`（×2）、`OperationLogPage.tsx:280-323`、`TemplateManagerPage.tsx:597+`、`SampleTemplateGallery.tsx:282+` | 筛选 chip 按钮块（约 45 行）重复 5 处，可抽 FilterChipGroup | `[x]` 已修复 |
 | P050 | P2 | 结构 | `tauri/src/pages/editor/ObjectEditorPage.tsx:300-360` | 动态组校验 switch 6 个 case 同一模式，应表驱动化（含 5 层嵌套） | `[x]` 已修复 |
 | P051 | P2 | 性能 | `tauri/src-tauri/src/commands/llm/rag.rs:794-808,942` | 重建 embedding 逐条 `save_guide_embedding`，每条独立事务+fsync | `[x]` 已修复 |
@@ -86,10 +86,10 @@
 
 ## 修复进度
 
-- 已完成：60 / 63（经 2026-08-01 复核确认通过的项）
-- 部分完成 `[~]`：1 项——P048（第一~四批 41 文件 90+ 处已迁移，2026-08-01）
-- 已决策待执行 `[>]`：2 项——P012（方向 B 统一到 crate，P047 并入）
-- 当前处理：P048 第四批已完成（2026-08-01），pages 其余目录与剩余组件已覆盖；残余 13 处均为功能性鼠标事件（tooltip 显隐、延迟展开、状态驱动、layout 展开折叠、共享组件 TransferButton）
+- 已完成：61 / 63（经 2026-08-01 复核确认 + P048 四批迁移确认通过的项）
+- 部分完成 `[~]`：0 项
+- 已决策待执行 `[>]`：2 项——P012（方向 B 统一到 crate，P047 并入；**唯一剩余工作项**，下一轮执行）
+- 当前处理：P048 全部完成（2026-08-01，四批共迁移 41 文件 90+ 处样式 hover）；残余 13 处 `onMouseEnter` 均为功能性鼠标事件（tooltip 显隐、延迟展开、状态驱动、layout 展开折叠、共享组件 TransferButton），不属于样式 hover，保留。下一轮：P012 方向 B（含 P047）
 
 ## 静态基线之外已检查且无发现的维度（误报排除记录）
 
@@ -470,8 +470,8 @@ sync crate manager（`manager.rs:168`）`sync_enable` 时自建 `ServiceDaemon`�
 3. **死文件删除**：P017 + P018（已确认，独立 commit）。
 4. **P041 继续拆分**：~~ObjectDetailModal、SyncPage 按标签页/阶段拆视图子组件至阈值以下~~ 已修复（2026-08-01，主组件 632/596 行）。
 5. **P011 收尾**：~~GlobalAttachmentManager 附件树虚拟化或分页~~ 已修复（2026-08-01，顶层页面列表「加载更多」分页）。
-6. **P012 方向 B（单独一轮，含 P047）**：按详情 6 步计划执行，每步独立 commit，第⑥步全量回归。
-7. **P048 分批重构**：按详情策略逐批执行，可与上述小项穿插。
+6. **P012 方向 B（下一轮，含 P047）**：P048 完成后为**唯一剩余工作项**；按详情 6 步计划执行，每步独立 commit，第⑥步全量回归。
+7. ~~**P048 分批重构**~~ 已完成（2026-08-01 四批迁移全部样式 hover，残余均为功能性鼠标事件）。
 
 ---
 
