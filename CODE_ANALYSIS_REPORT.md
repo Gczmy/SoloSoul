@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-01 14:01:11
+> 最后更新：2026-08-01 14:29:55
 > 当前分支：`main`
 > 修复轮次：3 + 复核轮次 1（58 项修复声明已独立核验）+ 决策轮次（剩余 5 项方案与用户决策已记录，见各条目「决策记录」）
 > 分析范围：`tauri/`（Rust 后端 `src-tauri/` + `crates/`，React/TS 前端 `src/`）；`solosoul_cli/` 不在本轮范围
@@ -31,7 +31,7 @@
 | P009 | P1 | 性能 | `tauri/src-tauri/src/commands/ocr.rs:258,356` | 每次 OCR 命令重新加载 ONNX 引擎（数百 ms），无缓存 | `[x]` 已修复 |
 | P010 | P1 | 性能 | `tauri/src/pages/workspace/ObjectWorkspacePage.tsx:148-158` | `useObjectStore()` 无 selector 整店订阅，store 任何变化触发整页重渲染 | `[x]` 已修复（复核补改：`useObjectWorkspaceData.ts:141` 残留的 templateStore 裸订阅已分字段化） |
 | P011 | P1 | 性能 | `tauri/src/pages/workspace/ObjectWorkspacePage.tsx:803`、`tauri/src/pages/settings/GlobalAttachmentManager.tsx:1077` | 大列表无虚拟滚动/分页，对象数百+ 时首屏与重渲染成本高 | `[x]` 已修复（复核补改：GlobalAttachmentManager 顶层页面列表补「加载更多」分页） |
-| P012 | P1 | 架构/重复 | `tauri/src-tauri/src/plugin/` vs `tauri/crates/solosoul-plugin/src/` | 插件运行时双份平行实现：GUI 用本地版（功能超集），CLI 用 crate 版（见详情事实修正） | `[>]` 执行中（方向 B 第①②步已完成：删 orphan mobile + version 去重 + 功能移植进 crate；余第③~⑥步待执行） |
+| P012 | P1 | 架构/重复 | `tauri/src-tauri/src/plugin/` vs `tauri/crates/solosoul-plugin/src/` | 插件运行时双份平行实现：GUI 用本地版（功能超集），CLI 用 crate 版（见详情事实修正） | `[>]` 执行中（方向 B 第①②③步已完成：删 orphan mobile + version 去重 + 功能移植进 crate + host 对齐；余第④~⑥步待执行） |
 | P013 | P1 | 架构 | `tauri/src-tauri/src/commands/discovery.rs:30`、`tauri/crates/solosoul-sync/src/manager.rs:168` | mDNS ServiceDaemon 在两个层各起一个实例，可同时存活导致结果不一致 | `[x]` 已修复 |
 | P014 | P1 | 架构 | `tauri/src/stores/authStore.ts:154-155` | `logout` invoke 失败时前端认证状态永不重置，出现半认证僵尸态 | `[x]` 已修复 |
 | P015 | P1 | 架构 | `tauri/src/stores/vaultStore.ts:15-44`、`tauri/src/stores/authStore.ts` | 认证/锁定状态双 store 平行维护，`vaultState` 只写不读，存在三种写入路径 | `[x]` 已修复（复核补改：LoginPage PIN/生物识别两条裸 setState 收敛为 authStore.completeUnlock） |
@@ -66,7 +66,7 @@
 | P044 | P2 | 结构 | `export.rs:217`(258)、`object/snapshot.rs:210`(254)、`llm/stream.rs:76`(227) | 3 个 220+ 行多阶段函数需按阶段抽取 | `[x]` 已修复 |
 | P045 | P2 | 结构 | `export_import/helpers.rs:173-232`、`import.rs:394-412`、`profile.rs:191-205`、`plugin.rs:80-107`、`llm/stream.rs:257-302` | 5 处 5-6 层深层嵌套 | `[x]` 已修复 |
 | P046 | P2 | 重复 | `tauri/src-tauri/src/commands/attachment.rs:983-1027` vs `tauri/crates/solosoul-core/src/objects.rs:945-999` | `cleanup_orphan_attachments` GUI 端整体复制 core 实现 | `[x]` 已修复 |
-| P047 | P2 | 重复 | `tauri/src-tauri/src/plugin/host/register.rs:763-812,838-890` | 两个 watermark 注册闭包除一行外完全相同；read_string 校验样板 20+ 次 | `[>]` 已决策待执行（并入 P012 方向 B 第③步，在统一后的 crate host.rs 上只做一次；随 P012 一并执行） |
+| P047 | P2 | 重复 | `tauri/src-tauri/src/plugin/host/register.rs:763-812,838-890` | 两个 watermark 注册闭包除一行外完全相同；read_string 校验样板 20+ 次 | `[x]` 已修复（并入 P012 方向 B 第③步，在统一后的 crate host.rs 上完成） |
 | P048 | P2 | 重复 | 54 文件 119 处 onMouseEnter、57 文件 128 处 onMouseLeave（内联样式改写 471 处/49 文件） | 手写 onMouseEnter/Leave hover，应统一迁移到 `ui/Button` 或视觉等价 CSS hover | `[x]` 已完成（第一~四批迁移 41 文件 90+ 处样式 hover；残余 13 处均为功能性鼠标事件，2026-08-01） |
 | P049 | P2 | 重复 | `TrashPage.tsx:254-345`（×2）、`OperationLogPage.tsx:280-323`、`TemplateManagerPage.tsx:597+`、`SampleTemplateGallery.tsx:282+` | 筛选 chip 按钮块（约 45 行）重复 5 处，可抽 FilterChipGroup | `[x]` 已修复 |
 | P050 | P2 | 结构 | `tauri/src/pages/editor/ObjectEditorPage.tsx:300-360` | 动态组校验 switch 6 个 case 同一模式，应表驱动化（含 5 层嵌套） | `[x]` 已修复 |
@@ -86,10 +86,10 @@
 
 ## 修复进度
 
-- 已完成：61 / 63（经 2026-08-01 复核确认 + P048 四批迁移确认通过的项）
+- 已完成：62 / 63（经 2026-08-01 复核确认 + P048 四批迁移 + P047 确认通过的项）
 - 部分完成 `[~]`：0 项
-- 已决策待执行 `[>]`：1 项——P012（方向 B 统一到 crate，P047 并入；**唯一剩余工作项**，第①②步已完成，执行中）
-- 当前处理：P012 方向 B 第②步完成（2026-08-01，14:01）——crate registry 双路径+pubkey 容错、crate manager async install 全流程移植、new_with_dirs 显式注入、CLI 调用点异步适配。验证：crate/CLI/GUI 三侧 check + fmt + clippy + crate test 全绿，审查通过。下一轮：P012 第③步（host 对齐 + P047）
+- 已决策待执行 `[>]`：1 项——P012（方向 B 统一到 crate；**唯一剩余工作项**，第①②③步已完成，执行中）
+- 当前处理：P012 方向 B 第③步完成（2026-08-01，14:29）——crate host.rs `write_handle`→`write_u32` 重命名、watermark 双闭包抽 `register_watermark_fn` 泛型（P047）、`read_required_string` 样板收敛 13 处。验证：crate/GUI 两侧 check + fmt + clippy + crate test（46）全绿，审查通过。下一轮：P012 第④步（GUI 切换）
 
 ## 静态基线之外已检查且无发现的维度（误报排除记录）
 
@@ -223,6 +223,13 @@
 - **审查通过**（1 轮，声明取舍）：CLI `install_plugin`/`update_plugin` 的 block_on 同步适配会使无网络环境 TUI 冻结最多 ~90s（30s manifest + 60s wasm 超时）——远程优先下载新流程使阻塞成本上升；与 `update_registry`/`run_plugin` 的 thread+polling 模式不一致。属计划「CLI 调用点同步适配」的字面落实，如实声明，后续可改用 thread+polling 模式优化。
 - **验证**：`cargo check`（solosoul-plugin ✅ / solosoul_cli lib-bin ✅ / solo_soul ✅）、`cargo fmt` ✅（registry.rs unwrap_or_else 链已格式化）、`cargo clippy`（crate --all-targets ✅ / workspace 基线 ✅ / CLI ✅）、`cargo test -p solosoul-plugin`（46 通过 ✅）。注：`solosoul_cli cargo test` 报 `screens/unlock.rs:230` E0063（`AccountSummary` 缺 `has_biometric_history`/`has_pin_history`）为**既有问题**——P008 生物识别新增字段后未更新 CLI 测试夹具，该文件与 solosoul-core 相对 HEAD 零改动，与本次无关；CLI `cargo check`/`clippy`（lib/bin）均通过。
 
+**第③步修复记录（2026-08-01，状态更新为 `[>]` 执行中，P047 随本步完成）**：
+- **`write_handle` → `write_u32` 命名统一**（crate `host.rs` 定义 1 处 + 调用 1 处）：与本地 `register.rs:4` 导入的 `write_u32` 命名对齐，消除 P012 详情报到的 `write_u32` vs `write_handle` 行为分歧命名差。
+- **P047 watermark 双闭包 → `register_watermark_fn` 泛型**（crate `host.rs`）：image/pdf 两个 ~70 行闭包（仅 apply 函数与错误 log 前缀不同）抽取为泛型帮助函数，签名 `(linker, func_name: &str, label: &'static str, apply: fn(&Path,&Path,&WatermarkConfig)->Result<(),String>)`；闭包以 `move` 捕获 `label`/`apply`（均为 Copy + 'static，满足 wasmtime `func_wrap` 的 `Fn + Send + Sync + 'static` 约束）；两处调用点各收敛为 4 行。语义等价：workspace 校验 → `WatermarkConfig::from_json` → apply → label 前缀错误 log → SUCCESS/PROCESSING_FAILED。
+- **`read_required_string` 样板收敛**：新增帮助函数（`read_string` 失败或空串返回 `None`），13 处「`Ok(s) if !s.is_empty() => s, _ => INVALID_ARGUMENT`」样板收敛为「`Some(s) => s, None => INVALID_ARGUMENT`」；4 处允许空串站点（field_id/body×2/key）与 5 处 `.unwrap_or_default()` 站点语义不同，保留原 `read_string` 调用。
+- **审查**（2 轮）：首轮 E0373（闭包需 move 捕获 'static）→ 修复后复审 approved；移动端两个 `#[cfg(android|ios)]` NOT_IMPLEMENTED watermark stub 仅名字不同且仅在移动端编译，保留未抽（低优先级，已记录）。
+- **验证**：`cargo check -p solosoul-plugin` ✅ / `cargo fmt --check` ✅ / `cargo clippy -p solosoul-plugin --all-targets -- -D warnings` ✅（0 警告）/ `cargo test -p solosoul-plugin`（46 通过）✅ / `cargo check -p solo_soul`（GUI）✅。改动仅 crate host.rs（+133/−147）。
+
 **P013 | mDNS 双 daemon**
 sync crate manager（`manager.rs:168`）`sync_enable` 时自建 `ServiceDaemon`；`discovery.rs:30,55-60` 另有 app 生命周期常驻 `SharedDaemon`。前端 `syncStore.enable` 成功后立即 `discoverDevices`（`syncStore.ts:140-141`），两个 daemon 同时运行，缓存各自为政。
 修复方案：进程内只保留一个 ServiceDaemon（discovery 命令复用 sync crate 实例或反之）。运行时端口冲突未做动态验证，修复时实测。
@@ -348,6 +355,8 @@ sync crate manager（`manager.rs:168`）`sync_enable` 时自建 `ServiceDaemon`�
 `[x]` 已修复：GUI 端重复实现整体已在 **P020** 连带删除（死命令 `attachment_cleanup_orphans` 删除时移除，附件 `attachment.rs:983-1027` 已不存在）；core 版本仍被 CLI `solosoul_cli/src/commands/attachment.rs:308` 使用，非死代码。本轮补齐报告附带的 `is_ok_and` 改进：`objects.rs:981` 空目录判断 `map(|mut d| d.next().is_none()).unwrap_or(false)` → `is_ok_and(|mut d| d.next().is_none())`（语义等价，Err→false 一致）。GUI 遗留 `#[cfg(test)]` 的 `load_all_referenced_attachment_ids` 测试助手保留（测试 vault 批量 API，core 版路径不同）。fmt/clippy/core 145 测试全部通过，审查通过。
 
 **P047 | watermark 注册闭包重复**：`register.rs:763-812` vs `:838-890` 除 `apply_to_image`/`apply_to_pdf` 一行外完全相同；抽 `register_watermark_fn(linker, name, apply)` 泛型注册；read_string 参数校验样板 20+ 次可抽帮助函数/宏。**注意：本项依附于 P012 的取舍结果，应先定 P012 方向再动。**
+
+**修复记录（2026-08-01，随 P012 方向 B 第③步完成）**：在统一后的 crate `host.rs` 上执行一次——新增 `register_watermark_fn` 泛型（`apply: fn(&Path,&Path,&WatermarkConfig)->Result<(),String>` + `label: &'static str`，闭包 `move` 捕获满足 wasmtime `func_wrap` 的 'static 约束），image/pdf 两个 ~70 行闭包各收敛为 4 行调用；新增 `read_required_string` 帮助函数（read_string 失败/空串返回 None），13 处「非空校验」样板收敛；同时完成 `write_handle`→`write_u32` 命名统一（第③步 host 对齐项）。移动端两个 `#[cfg(android|ios)]` NOT_IMPLEMENTED stub 因仅名字不同且仅在移动端编译，保留未抽（低优先级）。验证：crate check/fmt/clippy + test（46）+ GUI check 全绿，两轮审查通过。
 
 **决策记录（2026-08-01）**：P012 已定为方向 B（统一到 crate），且重复代码在两侧同构存在（本地 `register.rs` 与 crate `host.rs:937-1008/1012-1083`）。先在本地做会在方向 B 第④步删除本地 host 时被整体丢弃，故**本项并入 P012 第③步**，在统一后的 crate `host.rs` 上只做一次，顺带统一 `write_u32`/`write_handle` 命名。
 

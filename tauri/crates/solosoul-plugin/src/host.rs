@@ -189,6 +189,77 @@ impl SoloHostFunctions {
     }
 }
 
+/// 注册水印宿主函数（桌面端）：图片/PDF 共用同一套校验与执行逻辑
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+fn register_watermark_fn(
+    linker: &mut Linker<SoloHostState>,
+    func_name: &str,
+    label: &'static str,
+    apply: fn(&Path, &Path, &solosoul_core::watermark::WatermarkConfig) -> Result<(), String>,
+) -> Result<(), PluginError> {
+    linker
+        .func_wrap(
+            "env",
+            func_name,
+            move |mut caller: Caller<'_, SoloHostState>,
+                  input_path_ptr: i32,
+                  input_path_len: i32,
+                  output_path_ptr: i32,
+                  output_path_len: i32,
+                  config_json_ptr: i32,
+                  config_json_len: i32|
+                  -> i32 {
+                let input_path =
+                    match read_required_string(&mut caller, input_path_ptr, input_path_len) {
+                        Some(s) => PathBuf::from(s),
+                        None => return code::INVALID_ARGUMENT,
+                    };
+                let output_path =
+                    match read_required_string(&mut caller, output_path_ptr, output_path_len) {
+                        Some(s) => PathBuf::from(s),
+                        None => return code::INVALID_ARGUMENT,
+                    };
+                let config_json =
+                    match read_required_string(&mut caller, config_json_ptr, config_json_len) {
+                        Some(s) => s,
+                        None => return code::INVALID_ARGUMENT,
+                    };
+
+                if !is_under_workspace(&caller.data().host, &input_path)
+                    || !is_under_workspace(&caller.data().host, &output_path)
+                {
+                    return code::PERMISSION_DENIED;
+                }
+
+                let config =
+                    match solosoul_core::watermark::WatermarkConfig::from_json(&config_json) {
+                        Ok(c) => c,
+                        Err(e) => {
+                            let _ = caller.data().host.channel.send(PluginEvent::log(
+                                "error",
+                                format!("{} 配置解析失败: {}", label, e),
+                            ));
+                            return code::INVALID_ARGUMENT;
+                        }
+                    };
+
+                match apply(&input_path, &output_path, &config) {
+                    Ok(()) => code::SUCCESS,
+                    Err(e) => {
+                        let _ = caller
+                            .data()
+                            .host
+                            .channel
+                            .send(PluginEvent::log("error", format!("{} 失败: {}", label, e)));
+                        code::PROCESSING_FAILED
+                    }
+                }
+            },
+        )
+        .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
+    Ok(())
+}
+
 /// 注册所有 Host Functions 到 linker
 pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(), PluginError> {
     // solosoul_request_field —— 请求字段
@@ -243,9 +314,9 @@ pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(),
              out_ptr: i32,
              out_cap: i32|
              -> i32 {
-                let type_id = match read_string(&mut caller, type_id_ptr, type_id_len) {
-                    Ok(s) if !s.is_empty() => s,
-                    _ => return code::INVALID_ARGUMENT,
+                let type_id = match read_required_string(&mut caller, type_id_ptr, type_id_len) {
+                    Some(s) => s,
+                    None => return code::INVALID_ARGUMENT,
                 };
                 let (plugin_id, session_id) = {
                     let host = &caller.data().host;
@@ -281,9 +352,9 @@ pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(),
              out_ptr: i32,
              out_len: i32|
              -> i32 {
-                let url = match read_string(&mut caller, url_ptr, url_len) {
-                    Ok(s) if !s.is_empty() => s,
-                    _ => return code::INVALID_ARGUMENT,
+                let url = match read_required_string(&mut caller, url_ptr, url_len) {
+                    Some(s) => s,
+                    None => return code::INVALID_ARGUMENT,
                 };
                 let body = match read_string(&mut caller, body_ptr, body_len) {
                     Ok(s) => s,
@@ -350,13 +421,13 @@ pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(),
              body_len: i32,
              out_handle_ptr: i32|
              -> i32 {
-                let method = match read_string(&mut caller, method_ptr, method_len) {
-                    Ok(s) if !s.is_empty() => s.to_uppercase(),
-                    _ => return code::INVALID_ARGUMENT,
+                let method = match read_required_string(&mut caller, method_ptr, method_len) {
+                    Some(s) => s.to_uppercase(),
+                    None => return code::INVALID_ARGUMENT,
                 };
-                let url = match read_string(&mut caller, url_ptr, url_len) {
-                    Ok(s) if !s.is_empty() => s,
-                    _ => return code::INVALID_ARGUMENT,
+                let url = match read_required_string(&mut caller, url_ptr, url_len) {
+                    Some(s) => s,
+                    None => return code::INVALID_ARGUMENT,
                 };
                 let body = match read_string(&mut caller, body_ptr, body_len) {
                     Ok(s) => s,
@@ -427,7 +498,7 @@ pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(),
                     )
                 };
 
-                if write_handle(&mut caller, out_handle_ptr, handle) != code::SUCCESS {
+                if write_u32(&mut caller, out_handle_ptr, handle) != code::SUCCESS {
                     return code::INVALID_ARGUMENT;
                 }
 
@@ -670,9 +741,9 @@ pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(),
              out_ptr: i32,
              out_len: i32|
              -> i32 {
-                let config = match read_string(&mut caller, config_ptr, config_len) {
-                    Ok(s) if !s.is_empty() => s,
-                    _ => return code::INVALID_ARGUMENT,
+                let config = match read_required_string(&mut caller, config_ptr, config_len) {
+                    Some(s) => s,
+                    None => return code::INVALID_ARGUMENT,
                 };
                 if config.len() > 4096 {
                     return code::INVALID_ARGUMENT;
@@ -893,14 +964,15 @@ pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(),
              out_path_ptr: i32,
              out_path_cap: i32|
              -> i32 {
-                let object_id = match read_string(&mut caller, object_id_ptr, object_id_len) {
-                    Ok(s) if !s.is_empty() => s,
-                    _ => return code::INVALID_ARGUMENT,
-                };
+                let object_id =
+                    match read_required_string(&mut caller, object_id_ptr, object_id_len) {
+                        Some(s) => s,
+                        None => return code::INVALID_ARGUMENT,
+                    };
                 let attachment_id =
-                    match read_string(&mut caller, attachment_id_ptr, attachment_id_len) {
-                        Ok(s) if !s.is_empty() => s,
-                        _ => return code::INVALID_ARGUMENT,
+                    match read_required_string(&mut caller, attachment_id_ptr, attachment_id_len) {
+                        Some(s) => s,
+                        None => return code::INVALID_ARGUMENT,
                     };
 
                 let workspace = match caller.data().host.workspace_dir.as_ref() {
@@ -936,62 +1008,12 @@ pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(),
 
     // solosoul_image_watermark —— 为图片添加水印
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
-    linker
-        .func_wrap(
-            "env",
-            "solosoul_image_watermark",
-            |mut caller: Caller<'_, SoloHostState>,
-             input_path_ptr: i32,
-             input_path_len: i32,
-             output_path_ptr: i32,
-             output_path_len: i32,
-             config_json_ptr: i32,
-             config_json_len: i32|
-             -> i32 {
-                let input_path = match read_string(&mut caller, input_path_ptr, input_path_len) {
-                    Ok(s) if !s.is_empty() => PathBuf::from(s),
-                    _ => return code::INVALID_ARGUMENT,
-                };
-                let output_path = match read_string(&mut caller, output_path_ptr, output_path_len) {
-                    Ok(s) if !s.is_empty() => PathBuf::from(s),
-                    _ => return code::INVALID_ARGUMENT,
-                };
-                let config_json = match read_string(&mut caller, config_json_ptr, config_json_len) {
-                    Ok(s) if !s.is_empty() => s,
-                    _ => return code::INVALID_ARGUMENT,
-                };
-
-                if !is_under_workspace(&caller.data().host, &input_path)
-                    || !is_under_workspace(&caller.data().host, &output_path)
-                {
-                    return code::PERMISSION_DENIED;
-                }
-
-                let config =
-                    match solosoul_core::watermark::WatermarkConfig::from_json(&config_json) {
-                        Ok(c) => c,
-                        Err(e) => {
-                            let _ = caller.data().host.channel.send(PluginEvent::log(
-                                "error",
-                                format!("image_watermark 配置解析失败: {}", e),
-                            ));
-                            return code::INVALID_ARGUMENT;
-                        }
-                    };
-
-                match solosoul_core::watermark::apply_to_image(&input_path, &output_path, &config) {
-                    Ok(()) => code::SUCCESS,
-                    Err(e) => {
-                        let _ = caller.data().host.channel.send(PluginEvent::log(
-                            "error",
-                            format!("image_watermark 失败: {}", e),
-                        ));
-                        code::PROCESSING_FAILED
-                    }
-                }
-            },
-        )
-        .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
+    register_watermark_fn(
+        linker,
+        "solosoul_image_watermark",
+        "image_watermark",
+        solosoul_core::watermark::apply_to_image,
+    )?;
 
     #[cfg(any(target_os = "android", target_os = "ios"))]
     linker
@@ -1011,62 +1033,12 @@ pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(),
 
     // solosoul_pdf_watermark —— 为 PDF 添加水印
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
-    linker
-        .func_wrap(
-            "env",
-            "solosoul_pdf_watermark",
-            |mut caller: Caller<'_, SoloHostState>,
-             input_path_ptr: i32,
-             input_path_len: i32,
-             output_path_ptr: i32,
-             output_path_len: i32,
-             config_json_ptr: i32,
-             config_json_len: i32|
-             -> i32 {
-                let input_path = match read_string(&mut caller, input_path_ptr, input_path_len) {
-                    Ok(s) if !s.is_empty() => PathBuf::from(s),
-                    _ => return code::INVALID_ARGUMENT,
-                };
-                let output_path = match read_string(&mut caller, output_path_ptr, output_path_len) {
-                    Ok(s) if !s.is_empty() => PathBuf::from(s),
-                    _ => return code::INVALID_ARGUMENT,
-                };
-                let config_json = match read_string(&mut caller, config_json_ptr, config_json_len) {
-                    Ok(s) if !s.is_empty() => s,
-                    _ => return code::INVALID_ARGUMENT,
-                };
-
-                if !is_under_workspace(&caller.data().host, &input_path)
-                    || !is_under_workspace(&caller.data().host, &output_path)
-                {
-                    return code::PERMISSION_DENIED;
-                }
-
-                let config =
-                    match solosoul_core::watermark::WatermarkConfig::from_json(&config_json) {
-                        Ok(c) => c,
-                        Err(e) => {
-                            let _ = caller.data().host.channel.send(PluginEvent::log(
-                                "error",
-                                format!("pdf_watermark 配置解析失败: {}", e),
-                            ));
-                            return code::INVALID_ARGUMENT;
-                        }
-                    };
-
-                match solosoul_core::watermark::apply_to_pdf(&input_path, &output_path, &config) {
-                    Ok(()) => code::SUCCESS,
-                    Err(e) => {
-                        let _ = caller.data().host.channel.send(PluginEvent::log(
-                            "error",
-                            format!("pdf_watermark 失败: {}", e),
-                        ));
-                        code::PROCESSING_FAILED
-                    }
-                }
-            },
-        )
-        .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
+    register_watermark_fn(
+        linker,
+        "solosoul_pdf_watermark",
+        "pdf_watermark",
+        solosoul_core::watermark::apply_to_pdf,
+    )?;
 
     #[cfg(any(target_os = "android", target_os = "ios"))]
     linker
@@ -1097,10 +1069,11 @@ pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(),
              out_path_ptr: i32,
              out_path_cap: i32|
              -> i32 {
-                let file_name = match read_string(&mut caller, file_name_ptr, file_name_len) {
-                    Ok(s) if !s.is_empty() => s,
-                    _ => return code::INVALID_ARGUMENT,
-                };
+                let file_name =
+                    match read_required_string(&mut caller, file_name_ptr, file_name_len) {
+                        Some(s) => s,
+                        None => return code::INVALID_ARGUMENT,
+                    };
                 if bytes_len < 0 || bytes_len as usize > 256 * 1024 * 1024 {
                     return code::FILE_TOO_LARGE;
                 }
@@ -1154,14 +1127,15 @@ pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(),
              out_path_ptr: i32,
              out_path_cap: i32|
              -> i32 {
-                let src_path = match read_string(&mut caller, src_path_ptr, src_path_len) {
-                    Ok(s) if !s.is_empty() => PathBuf::from(s),
-                    _ => return code::INVALID_ARGUMENT,
+                let src_path = match read_required_string(&mut caller, src_path_ptr, src_path_len) {
+                    Some(s) => PathBuf::from(s),
+                    None => return code::INVALID_ARGUMENT,
                 };
-                let file_name = match read_string(&mut caller, file_name_ptr, file_name_len) {
-                    Ok(s) if !s.is_empty() => s,
-                    _ => return code::INVALID_ARGUMENT,
-                };
+                let file_name =
+                    match read_required_string(&mut caller, file_name_ptr, file_name_len) {
+                        Some(s) => s,
+                        None => return code::INVALID_ARGUMENT,
+                    };
 
                 if !is_under_workspace(&caller.data().host, &src_path) {
                     return code::PERMISSION_DENIED;
@@ -1384,6 +1358,18 @@ fn read_string(
     String::from_utf8(buf).map_err(|_| PluginError::InvalidManifest("非法 UTF-8".to_string()))
 }
 
+/// 读取必填字符串参数；空串或读取失败返回 `None`，调用方应返回 `code::INVALID_ARGUMENT`
+fn read_required_string(
+    caller: &mut Caller<'_, SoloHostState>,
+    ptr: i32,
+    len: i32,
+) -> Option<String> {
+    match read_string(caller, ptr, len) {
+        Ok(s) if !s.is_empty() => Some(s),
+        _ => None,
+    }
+}
+
 /// 将 UTF-8 字符串写入 Wasm 内存，并以 `\0` 结尾
 ///
 /// `written_ptr` 为 -1 时不回写已写入长度
@@ -1438,7 +1424,7 @@ fn plugin_error_code(err: &PluginError) -> i32 {
 }
 
 /// 将 u32 handle 值以 little-endian 写入 Wasm 内存
-fn write_handle(caller: &mut Caller<'_, SoloHostState>, ptr: i32, value: u32) -> i32 {
+fn write_u32(caller: &mut Caller<'_, SoloHostState>, ptr: i32, value: u32) -> i32 {
     if ptr < 0 {
         return code::INVALID_ARGUMENT;
     }
