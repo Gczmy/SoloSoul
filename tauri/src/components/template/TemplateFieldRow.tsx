@@ -246,14 +246,16 @@ export function TemplateFieldRow({
         <button
           type="button"
           onClick={() => onToggleBindingExpanded(fieldKey, idx)}
+          className="interactive-ghost"
           style={{
             display: 'flex',
             alignItems: 'center',
             gap: 6,
             padding: '4px 8px',
             borderRadius: 6,
-            border: '1px solid transparent',
-            background: 'transparent',
+            borderWidth: 1,
+            borderStyle: 'solid',
+            borderColor: 'transparent',
             cursor: 'pointer',
             fontSize: 'var(--text-body-sm)',
             fontWeight: 500,
@@ -261,13 +263,6 @@ export function TemplateFieldRow({
             fontFamily: 'inherit',
             textAlign: 'left',
             width: '100%',
-            transition: 'background 0.15s',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'var(--bg-toolbar)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'transparent';
           }}
         >
           <span
@@ -369,6 +364,7 @@ export function TemplateFieldRow({
                         <button
                           type="button"
                           onClick={() => handleRemoveBinding(b.contractTypeId, b.roleId)}
+                          className="interactive-fade"
                           style={{
                             background: 'none',
                             border: 'none',
@@ -377,14 +373,6 @@ export function TemplateFieldRow({
                             color: 'var(--accent-primary)',
                             fontSize: 14,
                             lineHeight: 1,
-                            opacity: 0.7,
-                            transition: 'opacity 0.15s',
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.opacity = '1';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.opacity = '0.7';
                           }}
                           title={t('common:remove') || '移除'}
                         >

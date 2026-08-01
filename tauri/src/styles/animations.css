@@ -780,6 +780,82 @@
   color: var(--text-secondary);
 }
 
+/* ── Accent-warm toolbar hover (onboarding action cards) ── */
+.interactive-toolbar-warm {
+  background: var(--bg-toolbar);
+  border-color: var(--border-subtle);
+  color: var(--text-primary);
+  transition:
+    background var(--duration-fast, 150ms) var(--ease-smooth, ease),
+    border-color var(--duration-fast, 150ms) var(--ease-smooth, ease),
+    color var(--duration-fast, 150ms) var(--ease-smooth, ease);
+}
+.interactive-toolbar-warm:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent-warm) 10%, var(--bg-toolbar));
+  border-color: var(--accent-warm);
+  color: var(--accent-warm);
+}
+
+/* ── Soft accent tint (scan LAN / highlighted option) ───── */
+.interactive-accent-soft {
+  background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
+  color: var(--accent-primary);
+  transition:
+    background var(--duration-fast, 150ms) var(--ease-smooth, ease),
+    color var(--duration-fast, 150ms) var(--ease-smooth, ease);
+}
+.interactive-accent-soft:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent-primary) 14%, transparent);
+}
+
+/* ── Icon tile hover (picker grids) ─────────────────────── */
+.interactive-tile {
+  background: transparent;
+  border-color: var(--border-subtle);
+  transition:
+    background var(--duration-fast, 150ms) var(--ease-smooth, ease),
+    border-color var(--duration-fast, 150ms) var(--ease-smooth, ease);
+}
+.interactive-tile:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+  border-color: var(--accent-primary);
+}
+
+/* ── Outline-only hover (border → accent) ───────────────── */
+.interactive-outline {
+  border-color: var(--border-subtle);
+  transition: border-color var(--duration-fast, 150ms) var(--ease-smooth, ease);
+}
+.interactive-outline:hover:not(:disabled) {
+  border-color: var(--accent-primary);
+}
+
+/* ── Text-link hover (tertiary → accent) ────────────────── */
+.interactive-accent-link {
+  color: var(--text-tertiary);
+  transition: color var(--duration-fast, 150ms) var(--ease-smooth, ease);
+}
+.interactive-accent-link:hover:not(:disabled) {
+  color: var(--accent-primary);
+}
+
+/* ── Opacity fade hover (remove ✕ buttons) ──────────────── */
+.interactive-fade {
+  opacity: 0.7;
+  transition: opacity var(--duration-fast, 150ms) var(--ease-smooth, ease);
+}
+.interactive-fade:hover:not(:disabled) {
+  opacity: 1;
+}
+
+/* ── Scale hover (floating conflict badge) ──────────────── */
+.interactive-scale {
+  transition: transform 0.2s ease;
+}
+.interactive-scale:hover:not(:disabled) {
+  transform: scale(1.05);
+}
+
 /* ── Selected state (composable with interactive-*) ─────── */
 .selected-accent {
   background: color-mix(in srgb, var(--accent-primary) 10%, transparent) !important;

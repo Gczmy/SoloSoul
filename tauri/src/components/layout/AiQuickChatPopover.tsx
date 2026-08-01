@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -133,15 +133,6 @@ export function AiQuickChatPopover({
     if (quickChatStorageKey) localStorage.setItem(quickChatStorageKey, convId);
   };
 
-  const hoverBtnEnter = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.currentTarget.style.background = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-    e.currentTarget.style.color = 'var(--accent-primary)';
-  };
-  const hoverBtnLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.currentTarget.style.background = 'transparent';
-    e.currentTarget.style.color = 'var(--text-secondary)';
-  };
-
   const isFloating = placement === 'bottom' || placement === 'top';
   const isRight = placement === 'right';
 
@@ -188,16 +179,12 @@ export function AiQuickChatPopover({
               <button
                 onClick={handleNewConversation}
                 title={t('settings:ai_new_conv')}
-                onMouseEnter={hoverBtnEnter}
-                onMouseLeave={hoverBtnLeave}
+                className="interactive-icon"
                 style={{
                   padding: 4,
                   borderRadius: 6,
                   border: 'none',
-                  background: 'transparent',
                   cursor: 'pointer',
-                  color: 'var(--text-secondary)',
-                  transition: 'all 0.15s ease',
                 }}
               >
                 <Plus size={ICON_SIZE.sm} />
@@ -205,23 +192,14 @@ export function AiQuickChatPopover({
               <button
                 onClick={() => setShowHistory((prev) => !prev)}
                 title={t('settings:ai_history')}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background =
-                    'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-                  if (!showHistory) e.currentTarget.style.color = 'var(--accent-primary)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'transparent';
-                  if (!showHistory) e.currentTarget.style.color = 'var(--text-secondary)';
-                }}
+                className={
+                  showHistory ? 'interactive-icon selected-accent' : 'interactive-icon'
+                }
                 style={{
                   padding: 4,
                   borderRadius: 6,
                   border: 'none',
-                  background: 'transparent',
                   cursor: 'pointer',
-                  color: showHistory ? 'var(--accent-primary)' : 'var(--text-secondary)',
-                  transition: 'all 0.15s ease',
                 }}
               >
                 <History size={ICON_SIZE.sm} />
@@ -234,16 +212,12 @@ export function AiQuickChatPopover({
               navigate('/llm-chat');
             }}
             title={t('settings:ai_quick_chat_go_full')}
-            onMouseEnter={hoverBtnEnter}
-            onMouseLeave={hoverBtnLeave}
+            className="interactive-icon"
             style={{
               padding: 4,
               borderRadius: 6,
               border: 'none',
-              background: 'transparent',
               cursor: 'pointer',
-              color: 'var(--text-secondary)',
-              transition: 'all 0.15s ease',
             }}
           >
             <ArrowUpRight size={ICON_SIZE.sm} />
@@ -251,23 +225,12 @@ export function AiQuickChatPopover({
           <button
             onClick={onClose}
             title={t('common:close')}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background =
-                'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-              e.currentTarget.style.color = 'var(--accent-primary)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.color = 'var(--text-tertiary)';
-            }}
+            className="interactive-icon"
             style={{
               padding: 4,
               borderRadius: 6,
               border: 'none',
-              background: 'transparent',
               cursor: 'pointer',
-              color: 'var(--text-tertiary)',
-              transition: 'all 0.15s ease',
             }}
           >
             <X size={ICON_SIZE.sm} />

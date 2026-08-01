@@ -183,10 +183,8 @@ export function GlobalSyncIndicator() {
             boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
             backdropFilter: 'blur(6px)',
             WebkitBackdropFilter: 'blur(6px)',
-            transition: 'transform 0.2s ease',
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.05)')}
-          onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
+          className="interactive-scale"
         >
           <AlertTriangle size={ICON_SIZE.sm} />
           <span>

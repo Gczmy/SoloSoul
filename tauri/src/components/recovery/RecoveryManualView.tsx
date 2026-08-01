@@ -83,35 +83,23 @@ export function RecoveryManualView({
             type="button"
             onClick={onScanLan}
             disabled={scanning || loading}
+            className="interactive-accent-soft"
             style={{
               display: 'flex',
               alignItems: 'center',
               gap: 6,
               padding: '5px 10px',
               borderRadius: 6,
-              border: scanning
-                ? '1px solid var(--border-subtle)'
-                : '1px solid transparent',
-              background: scanning
-                ? 'var(--bg-toolbar)'
-                : 'color-mix(in srgb, var(--accent-primary) 8%, transparent)',
-              color: scanning ? 'var(--text-tertiary)' : 'var(--accent-primary)',
+              borderWidth: 1,
+              borderStyle: 'solid',
+              borderColor: scanning ? 'var(--border-subtle)' : 'transparent',
+              background: scanning ? 'var(--bg-toolbar)' : undefined,
+              color: scanning ? 'var(--text-tertiary)' : undefined,
               cursor: scanning || loading ? 'not-allowed' : 'pointer',
               fontFamily: 'inherit',
               fontSize: 'var(--text-caption)',
               fontWeight: 500,
-              transition: 'all 0.15s ease',
               opacity: scanning || loading ? 0.6 : 1,
-            }}
-            onMouseEnter={(e) => {
-              if (scanning || loading) return;
-              e.currentTarget.style.background =
-                'color-mix(in srgb, var(--accent-primary) 14%, transparent)';
-            }}
-            onMouseLeave={(e) => {
-              if (scanning || loading) return;
-              e.currentTarget.style.background =
-                'color-mix(in srgb, var(--accent-primary) 8%, transparent)';
             }}
           >
             {scanning ? (
@@ -134,27 +122,20 @@ export function RecoveryManualView({
                 type="button"
                 onClick={() => onSelectHost(host)}
                 disabled={loading}
+                className="interactive-outline"
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
                   padding: '8px 10px',
                   borderRadius: 6,
-                  border: '1px solid var(--border-subtle)',
+                  borderWidth: 1,
+                  borderStyle: 'solid',
                   background: 'var(--bg-elevated)',
                   cursor: loading ? 'not-allowed' : 'pointer',
                   fontFamily: 'inherit',
                   textAlign: 'left',
-                  transition: 'all 0.15s ease',
                   opacity: loading ? 0.6 : 1,
-                }}
-                onMouseEnter={(e) => {
-                  if (!loading)
-                    e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                }}
-                onMouseLeave={(e) => {
-                  if (!loading)
-                    e.currentTarget.style.borderColor = 'var(--border-subtle)';
                 }}
               >
                 <div style={{ minWidth: 0 }}>
@@ -242,22 +223,15 @@ export function RecoveryManualView({
         type="button"
         onClick={onToggleAdvanced}
         disabled={loading}
+        className="interactive-accent-link"
         style={{
           background: 'none',
           border: 'none',
-          color: 'var(--text-tertiary)',
           fontSize: 'var(--text-caption)',
           cursor: loading ? 'not-allowed' : 'pointer',
           fontFamily: 'inherit',
           padding: '2px 0',
           textAlign: 'left',
-          transition: 'color 0.15s ease',
-        }}
-        onMouseEnter={(e) => {
-          if (!loading) e.currentTarget.style.color = 'var(--accent-primary)';
-        }}
-        onMouseLeave={(e) => {
-          if (!loading) e.currentTarget.style.color = 'var(--text-tertiary)';
         }}
       >
         {showAdvanced

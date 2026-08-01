@@ -24,32 +24,15 @@ export function OnboardingAccountSourceDecision({
       gap: 8,
       padding: '14px 16px',
       borderRadius: 12,
-      border: '1px solid var(--border-subtle)',
-      background: 'var(--bg-toolbar)',
-      color: 'var(--text-primary)',
+      borderWidth: 1,
+      borderStyle: 'solid',
       cursor: 'pointer',
       fontFamily: 'inherit',
       fontWeight: 500,
       fontSize: 'var(--text-body-sm)',
-      transition: 'all 0.15s ease',
     },
-    className: 'interactive-toolbar',
+    className: accent === 'primary' ? 'interactive-toolbar' : 'interactive-toolbar-warm',
     onClick,
-    onMouseEnter: (e: React.MouseEvent<HTMLButtonElement>) => {
-      e.currentTarget.style.background =
-        accent === 'primary'
-          ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)'
-          : 'color-mix(in srgb, var(--accent-warm) 10%, transparent)';
-      e.currentTarget.style.borderColor =
-        accent === 'primary' ? 'var(--accent-primary)' : 'var(--accent-warm)';
-      e.currentTarget.style.color =
-        accent === 'primary' ? 'var(--accent-primary)' : 'var(--accent-warm)';
-    },
-    onMouseLeave: (e: React.MouseEvent<HTMLButtonElement>) => {
-      e.currentTarget.style.background = 'var(--bg-toolbar)';
-      e.currentTarget.style.borderColor = 'var(--border-subtle)';
-      e.currentTarget.style.color = 'var(--text-primary)';
-    },
   });
 
   return (

@@ -431,29 +431,19 @@ export function TemplateEditor({
           <button
             type="button"
             onClick={onAddProperty}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background =
-                'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-              e.currentTarget.style.borderColor = 'var(--accent-primary)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'var(--bg-toolbar)';
-              e.currentTarget.style.borderColor = 'var(--border-subtle)';
-            }}
+            className="interactive-toolbar"
             style={{
               height: 36,
               padding: '0 14px',
               borderRadius: 6,
-              border: '1px solid var(--border-subtle)',
-              background: 'var(--bg-toolbar)',
-              color: 'var(--text-primary)',
+              borderWidth: 1,
+              borderStyle: 'solid',
               fontSize: 'var(--text-body-sm)',
               cursor: 'pointer',
               display: 'flex',
               alignItems: 'center',
               gap: 6,
               whiteSpace: 'nowrap',
-              transition: 'background 0.2s, border-color 0.2s',
             }}
           >
             <Plus size={ICON_SIZE.sm} />

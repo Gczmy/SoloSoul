@@ -55,33 +55,15 @@ export function IconPicker({ value, onChange }: IconPickerProps) {
               key={cat}
               type="button"
               onClick={() => setCategoryFilter(cat)}
-              onMouseEnter={(e) => {
-                if (!isActive) {
-                  e.currentTarget.style.background =
-                    'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-                  e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!isActive) {
-                  e.currentTarget.style.background = 'var(--bg-toolbar)';
-                  e.currentTarget.style.borderColor = 'transparent';
-                }
-              }}
+              className={isActive ? 'interactive-toolbar selected-accent' : 'interactive-toolbar'}
               style={{
                 padding: '4px 10px',
                 fontSize: 'var(--text-caption)',
                 fontWeight: isActive ? 600 : 400,
                 borderRadius: 6,
-                border: isActive
-                  ? '1px solid color-mix(in srgb, var(--accent-primary) 40%, transparent)'
-                  : '1px solid transparent',
-                background: isActive
-                  ? 'color-mix(in srgb, var(--accent-primary) 15%, transparent)'
-                  : 'var(--bg-toolbar)',
-                color: isActive ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                borderWidth: 1,
+                borderStyle: 'solid',
                 cursor: 'pointer',
-                transition: 'all 0.12s ease',
                 whiteSpace: 'nowrap',
               }}
             >
@@ -106,6 +88,9 @@ export function IconPicker({ value, onChange }: IconPickerProps) {
             type="button"
             onClick={() => onChange(id)}
             title={id}
+            className={
+              currentId === id ? 'interactive-tile selected-accent' : 'interactive-tile'
+            }
             style={{
               width: 32,
               height: 32,
@@ -113,29 +98,9 @@ export function IconPicker({ value, onChange }: IconPickerProps) {
               alignItems: 'center',
               justifyContent: 'center',
               borderRadius: 6,
-              border:
-                currentId === id
-                  ? '2px solid var(--accent-primary)'
-                  : '1px solid var(--border-subtle)',
-              background:
-                currentId === id
-                  ? 'var(--accent-primary-soft, rgba(91,124,153,0.08))'
-                  : 'transparent',
+              borderWidth: currentId === id ? 2 : 1,
+              borderStyle: 'solid',
               cursor: 'pointer',
-              transition: 'all 0.1s ease',
-            }}
-            onMouseEnter={(e) => {
-              if (currentId !== id) {
-                e.currentTarget.style.background =
-                  'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
-                e.currentTarget.style.borderColor = 'var(--accent-primary)';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (currentId !== id) {
-                e.currentTarget.style.background = 'transparent';
-                e.currentTarget.style.borderColor = 'var(--border-subtle)';
-              }
             }}
           >
             <IconComp

@@ -67,7 +67,7 @@
 | P045 | P2 | 结构 | `export_import/helpers.rs:173-232`、`import.rs:394-412`、`profile.rs:191-205`、`plugin.rs:80-107`、`llm/stream.rs:257-302` | 5 处 5-6 层深层嵌套 | `[x]` 已修复 |
 | P046 | P2 | 重复 | `tauri/src-tauri/src/commands/attachment.rs:983-1027` vs `tauri/crates/solosoul-core/src/objects.rs:945-999` | `cleanup_orphan_attachments` GUI 端整体复制 core 实现 | `[x]` 已修复 |
 | P047 | P2 | 重复 | `tauri/src-tauri/src/plugin/host/register.rs:763-812,838-890` | 两个 watermark 注册闭包除一行外完全相同；read_string 校验样板 20+ 次 | `[>]` 已决策待执行（并入 P012 方向 B 第③步，在统一后的 crate host.rs 上只做一次） |
-| P048 | P2 | 重复 | 54 文件 119 处 onMouseEnter、57 文件 128 处 onMouseLeave（内联样式改写 471 处/49 文件） | 手写 onMouseEnter/Leave hover，应统一迁移到 `ui/Button` 或视觉等价 CSS hover | `[~]` 部分完成（第一+二批 13 文件 43 处已迁移，2026-08-01） |
+| P048 | P2 | 重复 | 54 文件 119 处 onMouseEnter、57 文件 128 处 onMouseLeave（内联样式改写 471 处/49 文件） | 手写 onMouseEnter/Leave hover，应统一迁移到 `ui/Button` 或视觉等价 CSS hover | `[~]` 部分完成（第一+二+三批 28 文件 72 处已迁移，2026-08-01） |
 | P049 | P2 | 重复 | `TrashPage.tsx:254-345`（×2）、`OperationLogPage.tsx:280-323`、`TemplateManagerPage.tsx:597+`、`SampleTemplateGallery.tsx:282+` | 筛选 chip 按钮块（约 45 行）重复 5 处，可抽 FilterChipGroup | `[x]` 已修复 |
 | P050 | P2 | 结构 | `tauri/src/pages/editor/ObjectEditorPage.tsx:300-360` | 动态组校验 switch 6 个 case 同一模式，应表驱动化（含 5 层嵌套） | `[x]` 已修复 |
 | P051 | P2 | 性能 | `tauri/src-tauri/src/commands/llm/rag.rs:794-808,942` | 重建 embedding 逐条 `save_guide_embedding`，每条独立事务+fsync | `[x]` 已修复 |
@@ -87,9 +87,9 @@
 ## 修复进度
 
 - 已完成：60 / 63（经 2026-08-01 复核确认通过的项）
-- 部分完成 `[~]`：1 项——P048（第一+二批 13 文件 43 处已迁移，2026-08-01）
+- 部分完成 `[~]`：1 项——P048（第一+二+三批 28 文件 72 处已迁移，2026-08-01）
 - 已决策待执行 `[>]`：2 项——P012（方向 B 统一到 crate，P047 并入）
-- 当前处理：P048 第二批已完成（2026-08-01），待后续批次（settings/guide/ocr 已全覆盖）
+- 当前处理：P048 第三批已完成（2026-08-01），待后续批次（onboarding/template/recovery/layout 已全覆盖；剩余 ~47 处在 pages 其余目录与功能性鼠标事件）
 
 ## 静态基线之外已检查且无发现的维度（误报排除记录）
 
@@ -338,6 +338,20 @@ sync crate manager（`manager.rs:168`）`sync_enable` 时自建 `ServiceDaemon`�
 **决策记录（2026-08-01）**：P012 已定为方向 B（统一到 crate），且重复代码在两侧同构存在（本地 `register.rs` 与 crate `host.rs:937-1008/1012-1083`）。先在本地做会在方向 B 第④步删除本地 host 时被整体丢弃，故**本项并入 P012 第③步**，在统一后的 crate `host.rs` 上只做一次，顺带统一 `write_u32`/`write_handle` 命名。
 
 **P048 | 手写 hover**：项目已有带 CSS hover 的 `ui/Button`，但大量页面仍内联 style + 双事件手写 hover，样式不一致且无法随主题统一调整。
+
+**第三批实施记录（2026-08-01，提交后补充）**
+
+*迁移 29 处（15 文件，onboarding/template/recovery/layout 四目录全覆盖）*：
+- onboarding：OnboardingVaultDirStep 3（actionCard factory→条件类 toolbar/toolbar-warm、Local 卡→toolbar、SAF 卡→accent-soft）、OnboardingAccountSourceDecision 1（actionCard factory 同 VDS）、OnboardingFrame 2（back/next→toolbar）
+- template：TemplateTypeSelect 1 + TemplatePageSelect 1（select 去 4 处理器→interactive-field，hover/focus ring 由类接管）、TemplateEditor 1（add→toolbar）、TemplateFieldRow 2（展开→ghost+内联 color 阻断变色、✕→fade）、IconPicker 2（分类 tab→toolbar+selected-accent、图标网格→tile+selected-accent）、SampleTemplateGallery 3（locale 双 tab→toolbar+selected-accent+boxShadow 内联、模板卡→outline）
+- recovery：RecoveryScanView 2（manual tab/use-manual→outline）、RecoveryQrScanner 1（cancel→toolbar）、RecoveryManualView 3（Scan LAN→accent-soft+条件内联 bg、账户行→outline、高级选项链接→accent-link）
+- layout：GlobalSyncIndicator 1（冲突徽标→scale）、CustomPageEditPopover 2（取消链接→accent-link、图标网格→tile+selected-accent）、AiQuickChatPopover 4（四图标按钮→icon/selected-accent，**删除 hoverBtnEnter/Leave helper + React 默认 import 改具名**）
+
+*CSS 新增 7 变体*：`interactive-toolbar-warm`（accent-warm 工具栏 hover，onboarding 双色 actionCard）/ `interactive-accent-soft`（accent 8%→14% 淡底）/ `interactive-tile`（图标网格透明底+border-subtle，hover 12%+accent 边框）/ `interactive-outline`（仅边框 accent hover）/ `interactive-accent-link`（tertiary→accent 文字链接）/ `interactive-fade`（opacity 0.7→1）/ `interactive-scale`（scale 1.05）。
+
+*需如实声明的静止态微差*（审查确认接受，超出 hover 容差范畴）：① IconPicker 分类 tab inactive 由透明边框+text-secondary 变 border-subtle+text-primary（静止态出现可见边框、文字变深）；② AQP 关闭按钮 base 由 text-tertiary 变 text-secondary（变亮一级）；③ AQP history 按钮激活态（showHistory）新增 10% accent 底 tint（原静止态透明底，属激活态反馈改善）。
+
+*功能性鼠标事件保留不迁移*：layout 目录 TopFunctionBar/AddPageButton/NavButton/SecondaryActionBar 的 `handleMouseEnter` 是展开/折叠行为逻辑（CSS module 驱动），非样式 hover。
 
 **第二批实施记录（2026-08-01，提交后补充）**
 

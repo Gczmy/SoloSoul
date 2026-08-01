@@ -157,41 +157,19 @@ export function SampleTemplateGallery({ isOpen, onClose, onSelect }: SampleTempl
             data-testid="locale-tab-zh"
             aria-pressed={localeTab === 'zh'}
             onClick={() => switchLocale('zh')}
-            onMouseEnter={
-              localeTab !== 'zh'
-                ? (e) => {
-                    e.currentTarget.style.background =
-                      'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-                    e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                  }
-                : undefined
-            }
-            onMouseLeave={
-              localeTab !== 'zh'
-                ? (e) => {
-                    e.currentTarget.style.background = 'var(--bg-toolbar)';
-                    e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                  }
-                : undefined
+            className={
+              localeTab === 'zh' ? 'interactive-toolbar selected-accent' : 'interactive-toolbar'
             }
             style={{
               flex: 1,
               padding: '8px 12px',
               borderRadius: 8,
-              border:
-                localeTab === 'zh'
-                  ? '1px solid var(--accent-primary)'
-                  : '1px solid var(--border-subtle)',
-              background:
-                localeTab === 'zh'
-                  ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)'
-                  : 'var(--bg-toolbar)',
-              color: localeTab === 'zh' ? 'var(--accent-primary)' : 'var(--text-primary)',
+              borderWidth: 1,
+              borderStyle: 'solid',
               boxShadow: localeTab === 'zh' ? '0 0 0 1px var(--accent-primary)' : 'none',
               fontSize: 'var(--text-body-sm)',
               fontWeight: 500,
               cursor: 'pointer',
-              transition: 'background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s',
             }}
           >
             {t('settings:locale_zh')}
@@ -201,41 +179,19 @@ export function SampleTemplateGallery({ isOpen, onClose, onSelect }: SampleTempl
             data-testid="locale-tab-en"
             aria-pressed={localeTab === 'en'}
             onClick={() => switchLocale('en')}
-            onMouseEnter={
-              localeTab !== 'en'
-                ? (e) => {
-                    e.currentTarget.style.background =
-                      'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-                    e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                  }
-                : undefined
-            }
-            onMouseLeave={
-              localeTab !== 'en'
-                ? (e) => {
-                    e.currentTarget.style.background = 'var(--bg-toolbar)';
-                    e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                  }
-                : undefined
+            className={
+              localeTab === 'en' ? 'interactive-toolbar selected-accent' : 'interactive-toolbar'
             }
             style={{
               flex: 1,
               padding: '8px 12px',
               borderRadius: 8,
-              border:
-                localeTab === 'en'
-                  ? '1px solid var(--accent-primary)'
-                  : '1px solid var(--border-subtle)',
-              background:
-                localeTab === 'en'
-                  ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)'
-                  : 'var(--bg-toolbar)',
-              color: localeTab === 'en' ? 'var(--accent-primary)' : 'var(--text-primary)',
+              borderWidth: 1,
+              borderStyle: 'solid',
               boxShadow: localeTab === 'en' ? '0 0 0 1px var(--accent-primary)' : 'none',
               fontSize: 'var(--text-body-sm)',
               fontWeight: 500,
               cursor: 'pointer',
-              transition: 'background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s',
             }}
           >
             {t('settings:locale_en')}
@@ -286,17 +242,18 @@ export function SampleTemplateGallery({ isOpen, onClose, onSelect }: SampleTempl
                   aria-hidden={visible ? 'false' : 'true'}
                   tabIndex={visible ? 0 : -1}
                   onClick={() => visible && onSelect(tpl)}
+                  className="interactive-outline"
                   style={{
                     display: 'flex',
                     flexDirection: 'column',
                     gap: 10,
                     padding: 16,
                     borderRadius: 12,
-                    border: '1px solid var(--border-subtle)',
+                    borderWidth: 1,
+                    borderStyle: 'solid',
                     background: 'var(--bg-toolbar)',
                     cursor: visible ? 'pointer' : 'default',
                     textAlign: 'left',
-                    transition: 'border-color 0.15s, transform 0.1s',
                     // 关键：
                     // 1) visibility:hidden 让不可见卡仍占据网格位置，保持弹卡高度不变。
                     // 2) order:-1 让可见卡排在网格第一项，避免空出 1、2 位。
@@ -305,13 +262,6 @@ export function SampleTemplateGallery({ isOpen, onClose, onSelect }: SampleTempl
                     visibility: visible ? 'visible' : 'hidden',
                     pointerEvents: visible ? 'auto' : 'none',
                     order: visible ? -1 : 0,
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!visible) return;
-                    e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = 'var(--border-subtle)';
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>

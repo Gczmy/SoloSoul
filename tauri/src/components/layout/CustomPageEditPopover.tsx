@@ -293,20 +293,13 @@ export function CustomPageEditPopover({
                   </span>
                   <button
                     onClick={handleCancel}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.color = 'var(--accent-primary)';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.color = 'var(--text-tertiary)';
-                    }}
+                    className="interactive-accent-link"
                     style={{
                       fontSize: 'var(--text-badge)',
-                      color: 'var(--text-tertiary)',
                       background: 'none',
                       border: 'none',
                       cursor: 'pointer',
                       padding: 0,
-                      transition: 'color 0.15s ease',
                     }}
                   >
                     {t('common:cancel')}
@@ -374,19 +367,11 @@ export function CustomPageEditPopover({
                             setSelectedIconId(id);
                             setShowIconPicker(false);
                           }}
-                          onMouseEnter={(e) => {
-                            if (id !== selectedIconId) {
-                              e.currentTarget.style.background =
-                                'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
-                              e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                            }
-                          }}
-                          onMouseLeave={(e) => {
-                            if (id !== selectedIconId) {
-                              e.currentTarget.style.background = 'transparent';
-                              e.currentTarget.style.borderColor = 'transparent';
-                            }
-                          }}
+                          className={
+                            selectedIconId === id
+                              ? 'interactive-tile selected-accent'
+                              : 'interactive-tile'
+                          }
                           style={{
                             width: 32,
                             height: 32,
@@ -394,14 +379,9 @@ export function CustomPageEditPopover({
                             alignItems: 'center',
                             justifyContent: 'center',
                             borderRadius: 6,
-                            border:
-                              selectedIconId === id
-                                ? '2px solid var(--accent-primary)'
-                                : '1px solid transparent',
-                            background:
-                              selectedIconId === id ? 'rgba(91,124,153,0.08)' : 'transparent',
+                            borderWidth: selectedIconId === id ? 2 : 1,
+                            borderStyle: 'solid',
                             cursor: 'pointer',
-                            transition: 'all 0.1s ease',
                           }}
                         >
                           <IconComp
