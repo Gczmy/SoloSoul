@@ -1,27 +1,25 @@
-import { useState } from 'react';
-
 interface WarningCancelButtonProps {
   onClick: () => void;
   children: string;
 }
 
+/**
+ * 弱密码/提示弹窗的「取消」按钮：warning 描边按钮。
+ * hover 由 `interactive-warning-cancel` 工具类（CSS :hover）表达，
+ * 替代此前 state 版手写 hover（useState hovered 仅切换 background）。
+ */
 export function WarningCancelButton({ onClick, children }: WarningCancelButtonProps) {
-  const [hovered, setHovered] = useState(false);
   return (
     <button
       type="button"
       onClick={onClick}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      className="interactive-warning-cancel"
       style={{
         padding: '6px 12px',
         fontSize: 'var(--text-body-sm)',
         borderRadius: 6,
-        border: '1px solid var(--warning)',
-        background: hovered
-          ? 'color-mix(in srgb, var(--bg-elevated) 70%, var(--warning-subtle) 30%)'
-          : 'color-mix(in srgb, var(--bg-elevated) 85%, var(--warning-subtle) 15%)',
-        color: 'var(--warning)',
+        borderStyle: 'solid',
+        borderWidth: 1,
         cursor: 'pointer',
         fontWeight: 500,
         transition: 'background 0.15s',

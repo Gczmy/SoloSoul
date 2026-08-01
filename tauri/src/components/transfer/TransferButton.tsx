@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 
 interface TransferButtonProps {
   onClick: () => void;
@@ -11,7 +11,9 @@ interface TransferButtonProps {
 
 /**
  * 导出/导入共用按钮：统一 plain/accent/warning 三态样式与 hover 微交互。
- * 替代两处组件中重复的手写 hover（onMouseEnter/Leave 内联改样式）。
+ * 基态与 hover 颜色经内联 CSS 变量（--transfer-*）驱动 `interactive-transfer`
+ * 工具类（:hover:not(:disabled)），替代手写 onMouseEnter/Leave 内联改样式；
+ * busy/warning 条件态逻辑保留在组件内（busy 时 hover 变量与基值相同 → 视觉无变化）。
  */
 export function TransferButton({
   onClick,
@@ -23,55 +25,52 @@ export function TransferButton({
   const isWarning = variant === 'warning';
   const enabled = !disabled && !busy;
 
-  const restStyle = {
+  const baseBg = busy
+    ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)'
+    : isWarning
+      ? 'color-mix(in srgb, var(--bg-elevated) 85%, var(--warning-subtle) 15%)'
+      : 'var(--bg-toolbar)';
+  const baseBorder = isWarning ? 'var(--warning)' : 'var(--border-subtle)';
+  const baseColor = busy
+    ? 'var(--accent-primary)'
+    : isWarning
+      ? 'var(--warning)'
+      : 'var(--text-primary)';
+  // hover 仅对 enabled（非 disabled 非 busy）生效；busy 时 hover 变量等于基值
+  const hoverBg = enabled
+    ? isWarning
+      ? 'color-mix(in srgb, var(--bg-elevated) 70%, var(--warning-subtle) 30%)'
+      : 'color-mix(in srgb, var(--accent-primary) 10%, transparent)'
+    : baseBg;
+  const hoverBorder = enabled ? (isWarning ? 'var(--warning)' : 'var(--accent-primary)') : baseBorder;
+  const hoverColor = enabled ? (isWarning ? 'var(--warning)' : 'var(--accent-primary)') : baseColor;
+
+  const style = {
     fontSize: 'var(--text-caption)',
     padding: '6px 12px',
     borderRadius: 6,
-    border: `1px solid ${isWarning ? 'var(--warning)' : 'var(--border-subtle)'}`,
-    background: busy
-      ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)'
-      : isWarning
-        ? 'color-mix(in srgb, var(--bg-elevated) 85%, var(--warning-subtle) 15%)'
-        : 'var(--bg-toolbar)',
-    color: busy
-      ? 'var(--accent-primary)'
-      : isWarning
-        ? 'var(--warning)'
-        : 'var(--text-primary)',
+    borderStyle: 'solid',
+    borderWidth: 1,
     cursor: disabled ? 'default' : 'pointer',
     fontFamily: 'inherit',
     fontWeight: 500,
     opacity: disabled ? 0.5 : 1,
     transition: 'all 0.15s ease',
-  } as const;
+    '--transfer-bg': baseBg,
+    '--transfer-border': baseBorder,
+    '--transfer-color': baseColor,
+    '--transfer-hover-bg': hoverBg,
+    '--transfer-hover-border': hoverBorder,
+    '--transfer-hover-color': hoverColor,
+  } as CSSProperties;
 
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
-      style={restStyle}
-      onMouseEnter={(e) => {
-        if (!enabled) return;
-        e.currentTarget.style.background = isWarning
-          ? 'color-mix(in srgb, var(--bg-elevated) 70%, var(--warning-subtle) 30%)'
-          : 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-        e.currentTarget.style.borderColor = isWarning ? 'var(--warning)' : 'var(--accent-primary)';
-        e.currentTarget.style.color = isWarning ? 'var(--warning)' : 'var(--accent-primary)';
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.background = busy
-          ? 'color-mix(in srgb, var(--accent-primary) 10%, transparent)'
-          : isWarning
-            ? 'color-mix(in srgb, var(--bg-elevated) 85%, var(--warning-subtle) 15%)'
-            : 'var(--bg-toolbar)';
-        e.currentTarget.style.borderColor = isWarning ? 'var(--warning)' : 'var(--border-subtle)';
-        e.currentTarget.style.color = busy
-          ? 'var(--accent-primary)'
-          : isWarning
-            ? 'var(--warning)'
-            : 'var(--text-primary)';
-      }}
+      className="interactive-transfer"
+      style={style}
     >
       {children}
     </button>

@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-01 15:45:00
+> 最后更新：2026-08-01 15:52:00
 > 当前分支：`main`
 > 修复轮次：3 + 复核轮次 1 + 决策轮次 + 复核轮次 2（2026-08-01 对「63/63 闭环」声明做了独立核验：**P004 因 P012 第④步回归重新打开**，P048 降级部分完成，新增 P064；见文末「复核记录（轮次 2）」）
 > 分析范围：`tauri/`（Rust 后端 `src-tauri/` + `crates/`，React/TS 前端 `src/`）；`solosoul_cli/` 不在本轮范围
@@ -67,7 +67,7 @@
 | P045 | P2 | 结构 | `export_import/helpers.rs:173-232`、`import.rs:394-412`、`profile.rs:191-205`、`plugin.rs:80-107`、`llm/stream.rs:257-302` | 5 处 5-6 层深层嵌套 | `[x]` 已修复 |
 | P046 | P2 | 重复 | `tauri/src-tauri/src/commands/attachment.rs:983-1027` vs `tauri/crates/solosoul-core/src/objects.rs:945-999` | `cleanup_orphan_attachments` GUI 端整体复制 core 实现 | `[x]` 已修复 |
 | P047 | P2 | 重复 | `tauri/src-tauri/src/plugin/host/register.rs:763-812,838-890` | 两个 watermark 注册闭包除一行外完全相同；read_string 校验样板 20+ 次 | `[x]` 已修复（并入 P012 方向 B 第③步，在统一后的 crate host.rs 上完成） |
-| P048 | P2 | 重复 | 54 文件 119 处 onMouseEnter、57 文件 128 处 onMouseLeave（内联样式改写 471 处/49 文件） | 手写 onMouseEnter/Leave hover，应统一迁移到 `ui/Button` 或视觉等价 CSS hover | `[~]` 部分完成（复核轮次 2：迁移本体视觉等价性成立，但「残余 13 处均为功能性」不实——3 处纯样式 hover 未迁移，见详情） |
+| P048 | P2 | 重复 | 54 文件 119 处 onMouseEnter、57 文件 128 处 onMouseLeave（内联样式改写 471 处/49 文件） | 手写 onMouseEnter/Leave hover，应统一迁移到 `ui/Button` 或视觉等价 CSS hover | `[x]` 已修复（四批迁移 + 收尾补齐 3 处纯样式 hover——TransferButton/WarningCancelButton/PageGuide trigger，64/64 闭环，见详情） |
 | P049 | P2 | 重复 | `TrashPage.tsx:254-345`（×2）、`OperationLogPage.tsx:280-323`、`TemplateManagerPage.tsx:597+`、`SampleTemplateGallery.tsx:282+` | 筛选 chip 按钮块（约 45 行）重复 5 处，可抽 FilterChipGroup | `[x]` 已修复 |
 | P050 | P2 | 结构 | `tauri/src/pages/editor/ObjectEditorPage.tsx:300-360` | 动态组校验 switch 6 个 case 同一模式，应表驱动化（含 5 层嵌套） | `[x]` 已修复 |
 | P051 | P2 | 性能 | `tauri/src-tauri/src/commands/llm/rag.rs:794-808,942` | 重建 embedding 逐条 `save_guide_embedding`，每条独立事务+fsync | `[x]` 已修复 |
@@ -87,10 +87,10 @@
 
 ## 修复进度
 
-- 已完成：**63 / 64**（复核轮次 2 确认：P003、P010、P011、P015、P017、P018、P041、P047、P012 六步均真实落地；P012 第⑥步声称的「plugin 49 测试」经复跑证实为 49 通过/2 忽略，数字属实；**P004 回归修复完成**、**P064 CLI 测试夹具修复完成**，见详情）
-- 部分完成 `[~]`：1 项——P048（3 处纯样式 hover 误归为「功能性」未迁移）
+- 已完成：**64 / 64**（复核轮次 2 确认：P003、P010、P011、P015、P017、P018、P041、P047、P012 六步均真实落地；P012 第⑥步声称的「plugin 49 测试」经复跑证实为 49 通过/2 忽略，数字属实；**P004 回归修复完成**、**P064 CLI 测试夹具修复完成**、**P048 收尾补齐**，见详情）
+- 部分完成 `[~]`：0 项
 - 待修复 `[ ]`：0 项
-- 当前处理：P064 修复完成（2026-08-01 15:45），剩余 P048 收尾
+- 当前处理：全部 64 项闭环（2026-08-01 15:52）
 - 复核轮次 2 基线：workspace `cargo fmt`/`clippy`/`test`（665 通过 0 失败，含 plugin 49+2 ignored）✅ / 前端 `tsc`+`eslint`+Vitest（44 文件 415 测试）✅ / **CLI `cargo test` 编译失败（E0063，见 P064）** ❌ / CLI `cargo clippy` ✅
 
 ## 静态基线之外已检查且无发现的维度（误报排除记录）
@@ -433,6 +433,8 @@ sync crate manager（`manager.rs:168`）`sync_enable` 时自建 `ServiceDaemon`�
 3. `tauri/src/components/guide/PageGuide.tsx:235-251` — 批 2 称 trigger 的 `setHovered` 是「功能性状态」，但 `active = hovered`（:178）只驱动 trigger 按钮的 borderColor/background/color（:247-251），无其他行为作用。
 
 其余 9 处确为行为性保留（tooltip 显隐、长按、200ms 延迟展开、展开/折叠行为），核实无误。**收尾建议**：迁移 TransferButton/WarningCancelButton/PageGuide trigger 三处至工具类或 CSS hover（TransferButton 的 busy/warning 条件态逻辑保留），或将报告声称修正为「残余 9 处功能性 + 3 处样式 hover 保留」。
+
+**收尾修复记录（2026-08-01 15:52，状态恢复 `[x]`，64/64 闭环）**：三处纯样式 hover 全部迁移至共享 `interactive-*` 工具类（animations.css 新增 3 变体）：① `TransferButton`——手写 onMouseEnter/Leave（直接改写 `currentTarget.style`）替换为 `interactive-transfer` 类 + 内联 CSS 变量（`--transfer-bg/border/color` 基态、`--transfer-hover-*` hover 态），busy/warning 条件态逻辑保留在组件内（busy 时 hover 变量等于基值 → 视觉无变化，disabled 走 `:not(:disabled)`），与原 `enabled` 守卫语义逐分支等价；② `WarningCancelButton`——删除 `useState hovered`，改 `interactive-warning-cancel` 类（纯 CSS `:hover` 切换 background）；③ `PageGuide` trigger——删除 `hovered` state 与 `active` 派生变量，改 `interactive-guide-trigger` 类（透明→accent 6% 淡染）。首轮审查发现 `interactive-transfer` 基态规则漏写基色（仅 transition）会丢按钮非 hover 基色，已修复为基态消费 `--transfer-*` 变量，复审通过。验证：`tsc` ✅ / `eslint` ✅ / Vitest 44 文件 415 测试 ✅，两轮审查通过。至此报告全部 64 项闭环（P001-P063 + 复核新增 P064），全仓库验证矩阵（Rust workspace/CLI 测试/前端三件套）全绿。
 
 *功能性鼠标事件保留*：PVD/LoginPage 底部图标栏 `handleIconEnter`（200ms 延迟展开）、PasswordInput `setIsHovered`/`handleHintEnter`（tooltip）、AttachmentLimitsInfo/WarningCancelButton/PageGuide/layout 目录 `setHovered`（状态驱动）。
 

@@ -42,7 +42,6 @@ export function PageGuide({ pages, label, compact }: PageGuideProps) {
   const { t } = useTranslation('common');
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
-  const [hovered, setHovered] = useState(false);
   const [pageIndex, setPageIndex] = useState(0);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -175,7 +174,6 @@ export function PageGuide({ pages, label, compact }: PageGuideProps) {
   }, [open, pageIndex, pages.length]);
 
   const displayLabel = label ?? t('guide') ?? '指南';
-  const active = hovered;
   const currentPage = pages[pageIndex];
   const isFirst = pageIndex === 0;
   const isLast = pageIndex === pages.length - 1;
@@ -232,10 +230,9 @@ export function PageGuide({ pages, label, compact }: PageGuideProps) {
       <button
         ref={triggerRef}
         onClick={() => setOpen((prev) => !prev)}
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
         aria-label={compact ? displayLabel : undefined}
         title={displayLabel}
+        className="interactive-guide-trigger"
         style={{
           display: 'inline-flex',
           alignItems: 'center',
@@ -243,12 +240,8 @@ export function PageGuide({ pages, label, compact }: PageGuideProps) {
           gap: compact ? 0 : 6,
           padding: compact ? 6 : '6px 10px',
           borderRadius: 8,
-          border: '1px solid var(--border-subtle)',
-          borderColor: active ? 'var(--accent-primary)' : 'var(--border-subtle)',
-          background: active
-            ? 'color-mix(in srgb, var(--accent-primary) 6%, transparent)'
-            : 'transparent',
-          color: active ? 'var(--accent-primary)' : 'var(--text-tertiary)',
+          borderStyle: 'solid',
+          borderWidth: 1,
           cursor: 'pointer',
           fontSize: 'var(--text-badge)',
           fontWeight: 500,

@@ -938,6 +938,51 @@
   background: rgba(128, 128, 128, 0.06);
 }
 
+/* ── Transfer button (import/export 共用，plain/accent/warning 三态) ──
+   基态与 hover 颜色由内联 CSS 变量（--transfer-*）注入，组件内保留
+   busy/warning 条件态逻辑：busy 时 hover 变量等于基值 → 视觉无变化。 */
+.interactive-transfer {
+  background: var(--transfer-bg);
+  border-color: var(--transfer-border);
+  color: var(--transfer-color);
+  transition:
+    background var(--duration-fast, 150ms) var(--ease-smooth, ease),
+    border-color var(--duration-fast, 150ms) var(--ease-smooth, ease),
+    color var(--duration-fast, 150ms) var(--ease-smooth, ease);
+}
+.interactive-transfer:hover:not(:disabled) {
+  background: var(--transfer-hover-bg);
+  border-color: var(--transfer-hover-border);
+  color: var(--transfer-hover-color);
+}
+
+/* ── Warning outline cancel button（弱密码/提示弹窗）────── */
+.interactive-warning-cancel {
+  background: color-mix(in srgb, var(--bg-elevated) 85%, var(--warning-subtle) 15%);
+  border-color: var(--warning);
+  color: var(--warning);
+  transition: background var(--duration-fast, 150ms) var(--ease-smooth, ease);
+}
+.interactive-warning-cancel:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--bg-elevated) 70%, var(--warning-subtle) 30%);
+}
+
+/* ── PageGuide trigger（透明 → accent 6% 淡染）──────────── */
+.interactive-guide-trigger {
+  background: transparent;
+  border-color: var(--border-subtle);
+  color: var(--text-tertiary);
+  transition:
+    background var(--duration-fast, 150ms) var(--ease-smooth, ease),
+    border-color var(--duration-fast, 150ms) var(--ease-smooth, ease),
+    color var(--duration-fast, 150ms) var(--ease-smooth, ease);
+}
+.interactive-guide-trigger:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent-primary) 6%, transparent);
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
 /* ── Selected state (composable with interactive-*) ─────── */
 .selected-accent {
   background: color-mix(in srgb, var(--accent-primary) 10%, transparent) !important;
