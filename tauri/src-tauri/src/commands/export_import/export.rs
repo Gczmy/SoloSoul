@@ -188,11 +188,12 @@ pub async fn export_estimate_size(
     }
 
     // Estimate snapshots payload（历史记录，恢复包保证历史数量一致）
+    // 按实际加密后字节数估算（snapshots_size_batch 为 LENGTH(data) 之和），
+    // base64 编码后再膨胀约 1/3，此处按 1.4x 折算。
     if !records.is_empty() {
         let ids: Vec<String> = records.iter().map(|r| r.id.clone()).collect();
-        if let Ok(counts) = vault.count_snapshots_batch(&ids) {
-            let total: usize = counts.values().sum();
-            estimated_bytes += (total as u64) * 256; // 每条快照约 256B（name/props/labels）
+        if let Ok(bytes) = vault.snapshots_size_batch(&ids) {
+            estimated_bytes += (bytes as f64 * 1.4) as u64;
         }
     }
 

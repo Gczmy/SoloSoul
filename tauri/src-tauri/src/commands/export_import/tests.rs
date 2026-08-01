@@ -969,6 +969,191 @@ fn test_restore_package_snapshots_empty_falls_back() -> Result<(), String> {
     Ok(())
 }
 
+// ── 14. P2：本地无同 ID 模板时保留原始模板 ID（预置种子模板 key）──
+
+#[test]
+fn test_rebuild_templates_keeps_original_id_when_free() -> Result<(), String> {
+    let account_id = "acc_tpl_keep_id";
+    let (_tmp, vault) = test_vault(account_id);
+    let now = chrono::Utc::now().to_rfc3339();
+
+    // 包内含 passport 模板，本地无同 ID 模板 → 应保留原始 ID "passport"
+    let payload = json!({
+        "templates": [{
+            "id": "passport",
+            "accountId": "acc_export",
+            "name": "护照",
+            "iconId": "passport",
+            "properties": [{
+                "id": "fullName",
+                "name": "姓名",
+                "type": "text",
+                "sensitivityLevel": "internal"
+            }],
+            "category": "travel",
+            "createdAt": now,
+            "updatedAt": null
+        }]
+    });
+
+    let map = rebuild_imported_templates(&vault, account_id, &payload)?;
+    assert_eq!(map.get("passport").map(|s| s.as_str()), Some("passport"));
+    // 本地应真实存在该 ID 的模板
+    assert!(vault.load_user_template("passport")?.is_some());
+    Ok(())
+}
+
+#[test]
+fn test_rebuild_templates_derives_id_on_local_conflict() -> Result<(), String> {
+    let account_id = "acc_tpl_derive";
+    let (_tmp, vault) = test_vault(account_id);
+    let now = chrono::Utc::now().to_rfc3339();
+
+    // 本地已存在同 ID 但内容不同的模板 → 应派生新 ID（快照隔离，避免覆盖本地模板）
+    let local_tpl = UserTemplate {
+        contract_type_id: None,
+        id: "passport".to_string(),
+        account_id: account_id.to_string(),
+        name: "本地自定义护照".to_string(),
+        icon_id: None,
+        properties: vec![],
+        category: None,
+        created_at: now.clone(),
+        updated_at: Some(now.clone()),
+    };
+    vault.save_user_template(&local_tpl)?;
+
+    let payload = json!({
+        "templates": [{
+            "id": "passport",
+            "accountId": "acc_export",
+            "name": "护照",
+            "iconId": "passport",
+            "properties": [{
+                "id": "fullName",
+                "name": "姓名",
+                "type": "text",
+                "sensitivityLevel": "internal"
+            }],
+            "category": "travel",
+            "createdAt": now,
+            "updatedAt": null
+        }]
+    });
+
+    let map = rebuild_imported_templates(&vault, account_id, &payload)?;
+    let mapped = map.get("passport").ok_or("no mapping")?;
+    assert_ne!(mapped, "passport", "本地已有同 ID 模板时应派生新 ID");
+    // 本地模板未被覆盖
+    let local = vault.load_user_template("passport")?.ok_or("local gone")?;
+    assert_eq!(local.name, "本地自定义护照");
+    Ok(())
+}
+
+// ── 15. P1：Overwrite 覆盖导入时清空旧快照，防止历史叠加 ──
+
+#[test]
+fn test_overwrite_clears_local_snapshots_before_restore() -> Result<(), String> {
+    let account_id = "acc_overwrite";
+    let (_tmp, vault) = test_vault(account_id);
+
+    // 本地对象已有 2 条历史
+    vault
+        .save_snapshot("obj_ow", "user_edit", b"old1", "diff_created")
+        .unwrap();
+    vault
+        .save_snapshot("obj_ow", "user_edit", b"old2", "diff_updated")
+        .unwrap();
+
+    // 包内快照 2 条
+    let snap_data =
+        serde_json::to_vec(&serde_json::json!({ "name": "新" })).map_err(|e| e.to_string())?;
+    let snaps = serde_json::json!([
+        {
+            "object_id": "obj_ow",
+            "timestamp": 1_700_000_000_000i64,
+            "triggered_by": "user_edit",
+            "diff_summary": "diff_created",
+            "data": base64::Engine::encode(&base64::engine::general_purpose::STANDARD, &snap_data)
+        },
+        {
+            "object_id": "obj_ow",
+            "timestamp": 1_700_000_001_000i64,
+            "triggered_by": "user_edit",
+            "diff_summary": "diff_updated",
+            "data": base64::Engine::encode(&base64::engine::general_purpose::STANDARD, &snap_data)
+        }
+    ]);
+    let arr = snaps.as_array().ok_or("no array")?;
+
+    // Overwrite 语义：先清空本地历史再恢复包内快照 → 最终 2 条（而非 2+2=4）
+    vault.delete_snapshots("obj_ow").unwrap();
+    let restored = restore_package_snapshots(&vault, "obj_ow", arr);
+    assert_eq!(restored, 2);
+    let list = vault.list_snapshots("obj_ow")?;
+    assert_eq!(list.len(), 2, "旧历史应被清空，避免历史数量翻倍");
+    // 时间戳按包内原值恢复
+    let ts: Vec<i64> = list
+        .iter()
+        .filter_map(|s| s["timestamp"].as_i64())
+        .collect();
+    assert_eq!(ts, vec![1_700_000_001_000i64, 1_700_000_000_000i64]);
+    Ok(())
+}
+
+/// 回归测试：损坏包（快照 base64 全部解码失败）时 P1 门控应判定无可恢复快照，
+/// 从而跳过 delete_snapshots，保留本地历史（避免误删后仅剩一条 diff_imported）。
+#[test]
+fn test_snapshots_any_restorable_gates_delete_on_valid_package() -> Result<(), String> {
+    let account_id = "acc_corrupt_pkg";
+    let (_tmp, vault) = test_vault(account_id);
+
+    // 本地对象已有 2 条历史
+    vault
+        .save_snapshot("obj_cp", "user_edit", b"old1", "diff_created")
+        .unwrap();
+    vault
+        .save_snapshot("obj_cp", "user_edit", b"old2", "diff_updated")
+        .unwrap();
+
+    // 损坏包：快照 base64 全部非法 / 缺失 data / 空数据
+    let corrupt = serde_json::json!([
+        {"object_id": "obj_cp", "timestamp": 1, "data": "!!!not-base64!!!"},
+        {"object_id": "obj_cp", "timestamp": 2, "data": null},
+        {"object_id": "obj_cp", "timestamp": 3, "data": ""}
+    ]);
+    let corrupt_arr = corrupt.as_array().ok_or("no array")?;
+    // 门控：无可恢复快照 → 不应清空本地历史
+    assert!(!snapshots_any_restorable(corrupt_arr));
+
+    // 模拟 import 逻辑：仅当存在可恢复快照时才清空旧历史
+    if snapshots_any_restorable(corrupt_arr) {
+        vault.delete_snapshots("obj_cp").unwrap();
+    }
+    let restored = restore_package_snapshots(&vault, "obj_cp", corrupt_arr);
+    assert_eq!(restored, 0);
+    // 本地历史应完整保留（未被误删）
+    assert_eq!(
+        vault.list_snapshots("obj_cp")?.len(),
+        2,
+        "损坏包不应清空本地历史"
+    );
+
+    // 有效包：存在可恢复快照 → 门控放行
+    let good = base64::Engine::encode(
+        &base64::engine::general_purpose::STANDARD,
+        b"{\"name\":\"\"}",
+    );
+    let valid = serde_json::json!([
+        {"object_id": "obj_cp", "timestamp": 4, "data": good}
+    ]);
+    assert!(snapshots_any_restorable(
+        valid.as_array().ok_or("no array")?
+    ));
+
+    Ok(())
+}
+
 /// 回归测试：无模板对象导入后不受影响
 #[test]
 fn test_import_no_template_object_unchanged() {

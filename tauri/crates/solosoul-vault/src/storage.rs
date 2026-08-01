@@ -2948,6 +2948,42 @@ impl VaultStore {
         Ok(map)
     }
 
+    /// 删除某对象的全部历史快照。
+    /// 导入 Overwrite 覆盖场景用于先清空本地旧历史，防止包内快照叠加导致历史数量翻倍。
+    pub fn delete_snapshots(&self, object_id: &str) -> Result<(), String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        conn.execute(
+            "DELETE FROM object_snapshots WHERE object_id = ?1",
+            rusqlite::params![object_id],
+        )
+        .map_err(|e| format!("delete_snapshots: {}", e))?;
+        Ok(())
+    }
+
+    /// 批量统计多个对象的快照数据总字节数（`LENGTH(data)`，加密后大小）。
+    /// 仅用于导出体积估算，不涉及解密。
+    pub fn snapshots_size_batch(&self, object_ids: &[String]) -> Result<u64, String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        if object_ids.is_empty() {
+            return Ok(0);
+        }
+        let placeholders = std::iter::repeat_n("?", object_ids.len())
+            .collect::<Vec<_>>()
+            .join(",");
+        let sql = format!(
+            "SELECT COALESCE(SUM(LENGTH(data)), 0) FROM object_snapshots WHERE object_id IN ({})",
+            placeholders
+        );
+        let total: i64 = conn
+            .query_row(&sql, rusqlite::params_from_iter(object_ids.iter()), |row| {
+                row.get(0)
+            })
+            .map_err(|e| e.to_string())?;
+        Ok(total as u64)
+    }
+
     /// 一次性迁移：为当前 Vault 中没有 snapshot 的活跃对象补一条初始 snapshot。
     /// 通过 sys_config 标记避免重复执行。
     pub fn backfill_missing_snapshots(&self) -> Result<usize, String> {
@@ -5075,6 +5111,60 @@ mod tests {
         // 再次调用应被标记跳过
         let created2 = vault.backfill_missing_snapshots().unwrap();
         assert_eq!(created2, 0);
+    }
+
+    #[test]
+    fn test_delete_snapshots() {
+        let (vault, _dir) = setup();
+        vault
+            .save_snapshot("obj-del", "user_edit", b"data1", "summary1")
+            .unwrap();
+        vault
+            .save_snapshot("obj-del", "user_edit", b"data2", "summary2")
+            .unwrap();
+        assert_eq!(vault.list_snapshots("obj-del").unwrap().len(), 2);
+
+        vault.delete_snapshots("obj-del").unwrap();
+        assert_eq!(vault.list_snapshots("obj-del").unwrap().len(), 0);
+
+        // 不存在的对象删除也是幂等成功
+        vault.delete_snapshots("no-such-obj").unwrap();
+    }
+
+    #[test]
+    fn test_snapshots_size_batch() {
+        let (vault, _dir) = setup();
+        vault
+            .save_snapshot("obj-sz", "user_edit", b"small", "")
+            .unwrap();
+        vault
+            .save_snapshot("obj-sz", "user_edit", b"a bit longer snapshot data", "")
+            .unwrap();
+        vault
+            .save_snapshot("obj-sz2", "user_edit", b"x", "")
+            .unwrap();
+
+        // 空列表返回 0
+        assert_eq!(vault.snapshots_size_batch(&[]).unwrap(), 0);
+
+        // obj-sz 有 2 条，obj-sz2 有 1 条，长度应等于加密前字节数之和（LENGTH(data) 为密文，非明文；
+        // 只验证非零且单对象 ≥ 另一对象，不做明文长度断言）。
+        let size1 = vault.snapshots_size_batch(&["obj-sz".to_string()]).unwrap();
+        let size2 = vault
+            .snapshots_size_batch(&["obj-sz2".to_string()])
+            .unwrap();
+        let both = vault
+            .snapshots_size_batch(&["obj-sz".to_string(), "obj-sz2".to_string()])
+            .unwrap();
+        assert!(size1 > 0);
+        assert!(size2 > 0);
+        assert_eq!(both, size1 + size2);
+
+        // 不存在的对象贡献 0
+        let none = vault
+            .snapshots_size_batch(&["no-such-obj".to_string()])
+            .unwrap();
+        assert_eq!(none, 0);
     }
 
     #[test]

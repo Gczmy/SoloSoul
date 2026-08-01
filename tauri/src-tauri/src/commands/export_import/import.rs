@@ -412,6 +412,19 @@ async fn import_execute_internal(
             id
         };
         let restored = if let Some(snaps) = package_snapshots.get(id) {
+            // P1: Overwrite 覆盖导入时，仅在包内确实携带【可恢复】的快照时先清空本地旧历史，
+            // 防止包内快照叠加导致历史数量翻倍；损坏包（快照 base64 全部解码失败）保留本地
+            // 历史，避免本地历史被误删后仅剩一条 diff_imported 的数据丢失。
+            // SkipExisting 遇既有对象会跳过；KeepBoth 使用新 ID 天然无旧历史，均不受影响。
+            if effective_strategy == ImportStrategy::Overwrite && snapshots_any_restorable(snaps) {
+                if let Err(e) = vault.delete_snapshots(snapshot_key) {
+                    tracing::warn!(
+                        "[import] 覆盖导入清空旧快照失败: object={} err={}",
+                        snapshot_key,
+                        e
+                    );
+                }
+            }
             restore_package_snapshots(vault, snapshot_key, snaps)
         } else {
             0
@@ -506,6 +519,18 @@ fn decrypt_package(
 
 /// 阶段 1.5 helper：按原时间戳恢复对象历史快照（base64 解码 → 加密写入）。
 /// 返回成功恢复的快照条数；快照为空/解码失败返回 0（调用方回退到 diff_imported 初始快照）。
+/// P1 辅助：判断包内快照列表中是否存在至少一条可恢复的快照（base64 可解码且非空）。
+/// 覆盖导入仅在确有可恢复快照时才清空本地旧历史，防止损坏包（快照全部解码失败）
+/// 误删本地历史后仅回退为一条 diff_imported 快照。
+pub(crate) fn snapshots_any_restorable(snaps: &[serde_json::Value]) -> bool {
+    snaps.iter().any(|snap| match snap["data"].as_str() {
+        Some(b64) => base64::Engine::decode(&base64::engine::general_purpose::STANDARD, b64)
+            .map(|d| !d.is_empty())
+            .unwrap_or(false),
+        None => false,
+    })
+}
+
 pub(crate) fn restore_package_snapshots(
     vault: &solosoul_vault::VaultStore,
     object_id: &str,
@@ -521,8 +546,19 @@ pub(crate) fn restore_package_snapshots(
         let triggered_by = snap["triggered_by"].as_str().unwrap_or("import");
         let diff_summary = snap["diff_summary"].as_str().unwrap_or("diff_imported");
         let data = match snap["data"].as_str() {
-            Some(b64) => base64::Engine::decode(&base64::engine::general_purpose::STANDARD, b64)
-                .unwrap_or_default(),
+            Some(b64) => {
+                match base64::Engine::decode(&base64::engine::general_purpose::STANDARD, b64) {
+                    Ok(d) => d,
+                    Err(e) => {
+                        tracing::warn!(
+                            "[import] 快照 base64 解码失败，跳过: object={} err={}",
+                            object_id,
+                            e
+                        );
+                        continue;
+                    }
+                }
+            }
             None => continue,
         };
         if data.is_empty() {
@@ -539,7 +575,7 @@ pub(crate) fn restore_package_snapshots(
 }
 
 /// 阶段 2：重建包内引用的模板（快照隔离，按内容哈希去重），返回 原模板 ID → 本地模板 ID 映射。
-fn rebuild_imported_templates(
+pub(crate) fn rebuild_imported_templates(
     vault: &solosoul_vault::VaultStore,
     account_id: &str,
     payload: &serde_json::Value,
@@ -559,7 +595,22 @@ fn rebuild_imported_templates(
                         vault.find_user_template_by_content_hash(account_id, &hash)?
                     {
                         existing.id
+                    } else if vault
+                        .load_user_template(&original_id)
+                        .ok()
+                        .flatten()
+                        .is_none()
+                    {
+                        // P2: 本地无同 ID 模板 → 保留原始 ID（预置种子模板 key 如 passport 得以保留，
+                        // 恢复后模板 ID 与旧设备一致）。
+                        tpl.id = original_id.clone();
+                        tpl.account_id = account_id.to_string();
+                        tpl.created_at = now.clone();
+                        tpl.updated_at = Some(now.clone());
+                        let _ = vault.save_user_template(&tpl);
+                        original_id.clone()
                     } else {
+                        // 本地已有同 ID 但内容不同的模板 → 派生 ID（快照隔离，避免覆盖本地模板）
                         let imported_id =
                             solosoul_core::export_import::imported_template_id(&original_id, &hash);
                         if vault
