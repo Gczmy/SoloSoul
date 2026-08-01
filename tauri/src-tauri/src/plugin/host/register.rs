@@ -469,11 +469,43 @@ pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(),
                 let json = read_string(&mut caller, data_ptr, data_len).unwrap_or_default();
                 let value = serde_json::from_str(&json).unwrap_or(serde_json::Value::Null);
                 let host = &caller.data().host;
+                // P004：盖章——`watermark_result` 载荷中的 `outputDir` 属插件可控数据，
+                // 恶意插件可上报 `outputDir: "/"` 使 `resolve_output_file` 的 starts_with
+                // 包含校验恒真（canonical(path).starts_with("/") 对任意路径成立），从而经
+                // `plugin_open_output_file`/`plugin_copy_output_file` 打开/复制任意本地文件。
+                // 此处用宿主已知的 run 参数 `outputDir`（用户配置的输出目录）覆写该字段，
+                // 使后续校验的信任基准不再受插件控制。
+                let stamped = match value {
+                    serde_json::Value::Object(mut map)
+                        if map.get("type").and_then(|t| t.as_str()) == Some("watermark_result") =>
+                    {
+                        match host.params.get("outputDir").filter(|s| !s.is_empty()) {
+                            Some(real_dir) => {
+                                map.insert(
+                                    "outputDir".to_string(),
+                                    serde_json::Value::String(real_dir.clone()),
+                                );
+                            }
+                            // 宿主无真实输出目录（前端未配置/为空串）：写空串使后续
+                            // resolve_output_file 对空串 canonicalize 失败 → 安全拒绝，
+                            // 绝不透传插件自报的 outputDir。
+                            None => {
+                                map.insert(
+                                    "outputDir".to_string(),
+                                    serde_json::Value::String(String::new()),
+                                );
+                            }
+                        }
+                        serde_json::Value::Object(map)
+                    }
+                    other => other,
+                };
+                let stamped_json = serde_json::to_string(&stamped).unwrap_or(json);
                 {
                     let mut guard = host.results.lock().unwrap_or_else(|e| e.into_inner());
-                    guard.push(PluginResultPayload(value));
+                    guard.push(PluginResultPayload(stamped));
                 }
-                let _ = host.channel.send(PluginEvent::result(json));
+                let _ = host.channel.send(PluginEvent::result(stamped_json));
                 code::SUCCESS
             },
         )

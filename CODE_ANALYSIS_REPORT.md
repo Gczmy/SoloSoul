@@ -23,7 +23,7 @@
 | P001 | P0 | 漏洞 | `tauri/src-tauri/src/commands/discovery.rs:239-243`、`tauri/crates/solosoul-sync/src/recovery.rs:172-187` | 恢复凭证（PIN+nonce）经 mDNS TXT 明文广播，局域网攻击者可窃取整个 Vault | `[x]` 已修复 |
 | P002 | P1 | 漏洞 | `tauri/crates/solosoul-core/src/export_import.rs:811-833` | 加密导入包附件路径遍历（Windows 可任意目录写） | `[x]` 已修复 |
 | P003 | P1 | 漏洞 | `tauri/crates/solosoul-core/src/export_import.rs:836-855`、`tauri/crates/solosoul-plugin/src/host.rs:1284-1285` | 导入时附件元数据 `file_name` 未净化，形成存储型路径遍历 | `[x]` 已修复（复核补改：GUI 导入路径净化对齐 core 并写回 safe_name） |
-| P004 | P1 | 漏洞 | `tauri/src/components/plugin/PluginResultPanel.tsx:331-337` | 前端用插件提供的路径直接 shell open，可打开/执行任意本地文件 | `[~]` 部分修复（复核发现校验信任锚未闭环，见详情） |
+| P004 | P1 | 漏洞 | `tauri/src/components/plugin/PluginResultPanel.tsx:331-337` | 前端用插件提供的路径直接 shell open，可打开/执行任意本地文件 | `[x]` 已修复（复核补改：host 侧盖章真实 output_dir 闭环信任锚） |
 | P005 | P1 | 漏洞 | `tauri/crates/solosoul-core/src/pin.rs:188-197,336-350` | PIN 解锁将 Vault 安全性降为 6 位离线爆破，锁定计数可被绕过 | `[x]` 已修复 |
 | P006 | P1 | 性能 | `tauri/src-tauri/src/commands/search/query.rs:155-168,238,261` | 搜索分页计数用 `list_objects` 全量解密后取长度，N+1 次 AES 解密 | `[x]` 已修复 |
 | P007 | P1 | 性能 | `tauri/src-tauri/src/commands/search/commands.rs:305-346` | 模板命中时第二次全表解密扫描，单次搜索最多 2 次全表解密 | `[x]` 已修复 |
@@ -86,8 +86,8 @@
 
 ## 修复进度
 
-- 已完成：53 / 63（经 2026-08-01 复核确认通过的项）
-- 部分完成 `[~]`：5 项——P004（安全，见详情「复核发现」）、P010、P015、P041（残留漏点）、P011（工作区已分页，GlobalAttachmentManager 虚拟化待补）
+- 已完成：54 / 63（经 2026-08-01 复核确认通过的项）
+- 部分完成 `[~]`：4 项——P010、P015、P041（残留漏点）、P011（工作区已分页，GlobalAttachmentManager 虚拟化待补）
 - 已决策待执行 `[>]`：5 项——P012（方向 B 统一到 crate，P047 并入）、P017/P018（已确认删除）、P048（分批视觉等价重构）
 - 当前处理：决策已确认（2026-08-01），等待执行指令
 
@@ -135,6 +135,8 @@
 修复方案：仅允许打开经工作区/插件输出目录校验的路径；或改"在文件夹中显示"；配合 P032 收紧 open 正则。
 
 **复核发现（2026-08-01，状态降为 `[~]`）**：前端已改 `invoke('plugin_open_output_file')`（`PluginResultPanel.tsx:331-343`），Rust 侧 `plugin.rs:233-253` 的 `resolve_output_file` 有 canonical 化 + `starts_with` 包含校验。**但包含校验的基准目录 `outputDir` 本身来自插件可控数据**——`payload.outputDir` 取自插件自行构造的 `watermark_result` 结果 JSON（host 透传不盖章，`pluginStore.ts:44-45` 仅校验形状）。恶意插件上报 `outputDir: "/"` + `outputPath: "/Applications/xxx.app"` 时，`canonical(path).starts_with("/")` 恒真，校验形同虚设，`opener::open` 仍可打开/执行任意本地文件，原始「沙箱逃逸获得本机执行」威胁对恶意插件**依然成立**。且 `opener` crate 直接调系统打开，不经 plugin-shell，P032 的正则收缩对此路径无防御作用。P060 新增的 `plugin_copy_output_file` 共用 `resolve_output_file`，同一缺陷同样存在。**修复建议**：host 侧在收集结果时用运行参数中宿主已知的真实 `output_dir` 覆写/盖章结果 payload（或前端从运行上下文而非插件 payload 取 `outputDir`），使校验基准不受插件控制。
+
+**修复记录（2026-08-01，状态恢复 `[x]`）**：host 侧盖章已落实——`register.rs` 的 `solosoul_result` 函数对 `watermark_result` 载荷用宿主已知的 run param `outputDir`（`WatermarkPluginConfig` 用户所选目录）覆写 `outputDir` 字段；宿主无真实目录（未配置/空串）时写空串使 `resolve_output_file` 对空串 canonicalize 失败而安全拒绝，绝不透传插件自报值。盖章发生在结果存入 `host.results` 与事件发送前的同一处，`plugin_open_output_file`/`plugin_copy_output_file` 的校验基准（`plugin.rs` `resolve_output_file`）不再受插件控制，恶意插件上报 `outputDir:"/"` 的绕过路径已闭合。注记：`crates/solosoul-plugin/src/host.rs` 平行死实现（P012 待删）存在同一漏洞，随 P012 一并消除。
 
 **P005 | PIN 离线爆破短路主密码**
 `pin.rs:188-197`：`derive_key(pin,...)` 派生 KEK 加密会话密钥写入 `pin_credential`；防爆破的 `pin_failed_attempts`/`pin_locked_until`（`:336-350`）只是数据目录 JSON 字段，攻击者拿到数据目录副本后可离线爆破 6 位 PIN（10⁶ 组合，开发 KDF 参数下约数小时）解开全库。
@@ -402,7 +404,7 @@ sync crate manager（`manager.rs:168`）`sync_enable` 时自建 `ServiceDaemon`�
 
 ## 剩余工作执行建议（2026-08-01 更新）
 
-1. **安全残留（小改动，优先）**：P004（host 侧盖章真实 `output_dir`，连带 `plugin_copy_output_file`）。~~P003（GUI 导入路径写回 `safe_name`）~~ 已修复（2026-08-01）。
+1. **安全残留（小改动，优先）**：~~P004（host 侧盖章真实 `output_dir`，连带 `plugin_copy_output_file`）~~ 已修复（2026-08-01）；~~P003（GUI 导入路径写回 `safe_name`）~~ 已修复（2026-08-01）。
 2. **快速收敛（几行改动）**：P010（`useObjectWorkspaceData.ts:141` 分字段化）、P015（LoginPage 两处 setState 收敛为 `authStore.completeUnlock(acc)`）。
 3. **死文件删除**：P017 + P018（已确认，独立 commit）。
 4. **P041 继续拆分**：ObjectDetailModal、SyncPage 按标签页/阶段拆视图子组件至阈值以下。
