@@ -36,7 +36,7 @@
 | P014 | P1 | 架构 | `tauri/src/stores/authStore.ts:154-155` | `logout` invoke 失败时前端认证状态永不重置，出现半认证僵尸态 | `[x]` 已修复 |
 | P015 | P1 | 架构 | `tauri/src/stores/vaultStore.ts:15-44`、`tauri/src/stores/authStore.ts` | 认证/锁定状态双 store 平行维护，`vaultState` 只写不读，存在三种写入路径 | `[x]` 已修复（复核补改：LoginPage PIN/生物识别两条裸 setState 收敛为 authStore.completeUnlock） |
 | P016 | P1 | 规范 | `tauri/src/pages/scan/ScanLocalPage.tsx:60`、`tauri/src/components/plugin/WatermarkPluginConfig.tsx:192`、`tauri/src/components/layout/OcrQuickScanPopover.tsx:139` | 三处裸调 plugin-dialog `open`，违反 dialog.ts 封装约定，可致自动锁定误触发 | `[x]` 已修复 |
-| P017 | P1 | 死代码 | `tauri/src/components/liquid-glass/`、`tauri/src/styles/liquid-glass.css` | 整套玻璃拟态组件与样式零引用 | `[>]` 已决策待执行（2026-08-01 复核零引用，用户已确认删除） |
+| P017 | P1 | 死代码 | `tauri/src/components/liquid-glass/`、`tauri/src/styles/liquid-glass.css` | 整套玻璃拟态组件与样式零引用 | `[x]` 已删除（2026-08-01） |
 | P018 | P1 | 死代码 | `tauri/src/stores/index.ts`、`tauri/src/components/guide/index.ts` | 两个 barrel 文件无任何导入方 | `[>]` 已决策待执行（2026-08-01 复核零导入方，用户已确认删除） |
 | P019 | P1 | 死代码 | `ocrInstallStore.ts:27`、`trash/types.ts:60`、`ipc.ts:77`、`templateSync.ts:8`、`exportImport.ts:71`、`template.ts:63` | 6 个零引用导出符号（OCR_STORAGE_KEY、TrashItem、ProfileSummary、TemplateSyncStatus、ImportSelection、UserTemplateRaw） | `[x]` 已修复 |
 | P020 | P1 | 死代码 | 详见下文清单 | 18 个已注册但前端从未 invoke 的死 Tauri Commands（缩小 IPC 攻击面） | `[x]` 已修复 |
@@ -86,10 +86,10 @@
 
 ## 修复进度
 
-- 已完成：58 / 63（经 2026-08-01 复核确认通过的项）
+- 已完成：59 / 63（经 2026-08-01 复核确认通过的项）
 - 部分完成 `[~]`：0 项（复核降级项全部补齐）
-- 已决策待执行 `[>]`：5 项——P012（方向 B 统一到 crate，P047 并入）、P017/P018（已确认删除）、P048（分批视觉等价重构）
-- 当前处理：决策已确认（2026-08-01），等待执行指令
+- 已决策待执行 `[>]`：4 项——P012（方向 B 统一到 crate，P047 并入）、P018（已确认删除）、P048（分批视觉等价重构）
+- 当前处理：P017 已删（2026-08-01），继续 P018
 
 ## 静态基线之外已检查且无发现的维度（误报排除记录）
 
@@ -233,6 +233,8 @@ sync crate manager（`manager.rs:168`）`sync_enable` 时自建 `ServiceDaemon`�
 
 **P017 | liquid-glass 整套死样式**
 `components/liquid-glass/GlassCard.tsx` + `GlassCard.module.css` + `styles/liquid-glass.css` 全文件零引用（`main.tsx` 只导入 tokens/global/themes/animations）。**（2026-08-01 复核仍零引用，用户已确认删除：整个目录 + CSS 文件，独立 commit）**
+
+**修复记录（2026-08-01，状态 `[x]`）**：三个文件已删除（`GlassCard.tsx`、`GlassCard.module.css`、`liquid-glass.css`）。删除前 grep 确认 `src/`+`main.tsx`+`App.tsx` 全零引用（含 CSS import），删除后 tsc/lint/Vitest 415 全绿。
 
 **P018 | 死 barrel ×2**：`stores/index.ts`、`components/guide/index.ts` 零导入方。**（2026-08-01 复核仍零导入方，用户已确认删除，两个文件各一 commit 或与 P017 合并为「删除死文件」一组）**
 
