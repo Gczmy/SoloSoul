@@ -1,8 +1,8 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-01 15:16:00
+> 最后更新：2026-08-01 15:36:00
 > 当前分支：`main`
-> 修复轮次：3 + 复核轮次 1（58 项修复声明已独立核验）+ 决策轮次（剩余 5 项方案与用户决策已记录，见各条目「决策记录」）
+> 修复轮次：3 + 复核轮次 1 + 决策轮次 + 复核轮次 2（2026-08-01 对「63/63 闭环」声明做了独立核验：**P004 因 P012 第④步回归重新打开**，P048 降级部分完成，新增 P064；见文末「复核记录（轮次 2）」）
 > 分析范围：`tauri/`（Rust 后端 `src-tauri/` + `crates/`，React/TS 前端 `src/`）；`solosoul_cli/` 不在本轮范围
 
 ## 基线检查结果（阶段 0，全部通过）
@@ -23,7 +23,7 @@
 | P001 | P0 | 漏洞 | `tauri/src-tauri/src/commands/discovery.rs:239-243`、`tauri/crates/solosoul-sync/src/recovery.rs:172-187` | 恢复凭证（PIN+nonce）经 mDNS TXT 明文广播，局域网攻击者可窃取整个 Vault | `[x]` 已修复 |
 | P002 | P1 | 漏洞 | `tauri/crates/solosoul-core/src/export_import.rs:811-833` | 加密导入包附件路径遍历（Windows 可任意目录写） | `[x]` 已修复 |
 | P003 | P1 | 漏洞 | `tauri/crates/solosoul-core/src/export_import.rs:836-855`、`tauri/crates/solosoul-plugin/src/host.rs:1284-1285` | 导入时附件元数据 `file_name` 未净化，形成存储型路径遍历 | `[x]` 已修复（复核补改：GUI 导入路径净化对齐 core 并写回 safe_name） |
-| P004 | P1 | 漏洞 | `tauri/src/components/plugin/PluginResultPanel.tsx:331-337` | 前端用插件提供的路径直接 shell open，可打开/执行任意本地文件 | `[x]` 已修复（复核补改：host 侧盖章真实 output_dir 闭环信任锚） |
+| P004 | P1 | 漏洞 | `tauri/src/components/plugin/PluginResultPanel.tsx:331-337`、`tauri/crates/solosoul-plugin/src/host.rs:714-731` | 前端用插件提供的路径直接 shell open，可打开/执行任意本地文件 | `[x]` 已修复（复核轮次 2 回归修复完成：盖章逻辑移植进 crate host.rs 并抽为纯函数 `stamp_result_payload` + 防回归单测×4，见详情） |
 | P005 | P1 | 漏洞 | `tauri/crates/solosoul-core/src/pin.rs:188-197,336-350` | PIN 解锁将 Vault 安全性降为 6 位离线爆破，锁定计数可被绕过 | `[x]` 已修复 |
 | P006 | P1 | 性能 | `tauri/src-tauri/src/commands/search/query.rs:155-168,238,261` | 搜索分页计数用 `list_objects` 全量解密后取长度，N+1 次 AES 解密 | `[x]` 已修复 |
 | P007 | P1 | 性能 | `tauri/src-tauri/src/commands/search/commands.rs:305-346` | 模板命中时第二次全表解密扫描，单次搜索最多 2 次全表解密 | `[x]` 已修复 |
@@ -31,7 +31,7 @@
 | P009 | P1 | 性能 | `tauri/src-tauri/src/commands/ocr.rs:258,356` | 每次 OCR 命令重新加载 ONNX 引擎（数百 ms），无缓存 | `[x]` 已修复 |
 | P010 | P1 | 性能 | `tauri/src/pages/workspace/ObjectWorkspacePage.tsx:148-158` | `useObjectStore()` 无 selector 整店订阅，store 任何变化触发整页重渲染 | `[x]` 已修复（复核补改：`useObjectWorkspaceData.ts:141` 残留的 templateStore 裸订阅已分字段化） |
 | P011 | P1 | 性能 | `tauri/src/pages/workspace/ObjectWorkspacePage.tsx:803`、`tauri/src/pages/settings/GlobalAttachmentManager.tsx:1077` | 大列表无虚拟滚动/分页，对象数百+ 时首屏与重渲染成本高 | `[x]` 已修复（复核补改：GlobalAttachmentManager 顶层页面列表补「加载更多」分页） |
-| P012 | P1 | 架构/重复 | `tauri/src-tauri/src/plugin/` vs `tauri/crates/solosoul-plugin/src/` | 插件运行时双份平行实现：GUI 用本地版（功能超集），CLI 用 crate 版（见详情事实修正） | `[x]` 已修复（方向 B 六步全部完成：删 orphan mobile + version 去重 + 功能移植进 crate + host 对齐 + GUI 切换 + wasmtime 收敛 + 全量回归） |
+| P012 | P1 | 架构/重复 | `tauri/src-tauri/src/plugin/` vs `tauri/crates/solosoul-plugin/src/` | 插件运行时双份平行实现：GUI 用本地版（功能超集），CLI 用 crate 版（见详情事实修正） | `[x]` 已修复（复核轮次 2 确认六步落地；注记：第⑤步 wasmtime `async` feature 未按计划删除，属已声明偏差——**但第④步造成 P004 回归，见 P004**） |
 | P013 | P1 | 架构 | `tauri/src-tauri/src/commands/discovery.rs:30`、`tauri/crates/solosoul-sync/src/manager.rs:168` | mDNS ServiceDaemon 在两个层各起一个实例，可同时存活导致结果不一致 | `[x]` 已修复 |
 | P014 | P1 | 架构 | `tauri/src/stores/authStore.ts:154-155` | `logout` invoke 失败时前端认证状态永不重置，出现半认证僵尸态 | `[x]` 已修复 |
 | P015 | P1 | 架构 | `tauri/src/stores/vaultStore.ts:15-44`、`tauri/src/stores/authStore.ts` | 认证/锁定状态双 store 平行维护，`vaultState` 只写不读，存在三种写入路径 | `[x]` 已修复（复核补改：LoginPage PIN/生物识别两条裸 setState 收敛为 authStore.completeUnlock） |
@@ -67,7 +67,7 @@
 | P045 | P2 | 结构 | `export_import/helpers.rs:173-232`、`import.rs:394-412`、`profile.rs:191-205`、`plugin.rs:80-107`、`llm/stream.rs:257-302` | 5 处 5-6 层深层嵌套 | `[x]` 已修复 |
 | P046 | P2 | 重复 | `tauri/src-tauri/src/commands/attachment.rs:983-1027` vs `tauri/crates/solosoul-core/src/objects.rs:945-999` | `cleanup_orphan_attachments` GUI 端整体复制 core 实现 | `[x]` 已修复 |
 | P047 | P2 | 重复 | `tauri/src-tauri/src/plugin/host/register.rs:763-812,838-890` | 两个 watermark 注册闭包除一行外完全相同；read_string 校验样板 20+ 次 | `[x]` 已修复（并入 P012 方向 B 第③步，在统一后的 crate host.rs 上完成） |
-| P048 | P2 | 重复 | 54 文件 119 处 onMouseEnter、57 文件 128 处 onMouseLeave（内联样式改写 471 处/49 文件） | 手写 onMouseEnter/Leave hover，应统一迁移到 `ui/Button` 或视觉等价 CSS hover | `[x]` 已完成（第一~四批迁移 41 文件 90+ 处样式 hover；残余 13 处均为功能性鼠标事件，2026-08-01） |
+| P048 | P2 | 重复 | 54 文件 119 处 onMouseEnter、57 文件 128 处 onMouseLeave（内联样式改写 471 处/49 文件） | 手写 onMouseEnter/Leave hover，应统一迁移到 `ui/Button` 或视觉等价 CSS hover | `[~]` 部分完成（复核轮次 2：迁移本体视觉等价性成立，但「残余 13 处均为功能性」不实——3 处纯样式 hover 未迁移，见详情） |
 | P049 | P2 | 重复 | `TrashPage.tsx:254-345`（×2）、`OperationLogPage.tsx:280-323`、`TemplateManagerPage.tsx:597+`、`SampleTemplateGallery.tsx:282+` | 筛选 chip 按钮块（约 45 行）重复 5 处，可抽 FilterChipGroup | `[x]` 已修复 |
 | P050 | P2 | 结构 | `tauri/src/pages/editor/ObjectEditorPage.tsx:300-360` | 动态组校验 switch 6 个 case 同一模式，应表驱动化（含 5 层嵌套） | `[x]` 已修复 |
 | P051 | P2 | 性能 | `tauri/src-tauri/src/commands/llm/rag.rs:794-808,942` | 重建 embedding 逐条 `save_guide_embedding`，每条独立事务+fsync | `[x]` 已修复 |
@@ -83,13 +83,15 @@
 | P061 | P2 | 架构 | `tauri/src/pages/settings/GlobalAttachmentManager.tsx`（12 处直接 invoke） | 页面组件承载附件树遍历/聚合/批量编排等重业务逻辑，应下沉 store/lib（与 P024 关联） | `[x]` 已修复 |
 | P062 | P2 | 架构 | `tauri/src/stores/settingsStore.ts:154-307` | 主题/语言设置四副本（zustand+localStorage+ui_preferences.json+vault），需补写入路径矩阵注释或收敛 | `[x]` 已修复 |
 | P063 | P2 | 架构 | `tauri/Cargo.toml:73` | release profile `panic = "abort"`：未来新增生产代码引入 unwrap 时代价大，保留认知即可 | `[x]` 已处理（标记为「设计如此」，无需改动） |
+| P064 | P1 | 测试 | `solosoul_cli/src/screens/unlock.rs:230` | CLI `cargo test` 编译失败：测试夹具 `AccountSummary` 缺 `has_biometric_history`/`has_pin_history` 两字段（E0063），CLI 测试套件整体不可运行 | `[ ]` 待修复 |
 
 ## 修复进度
 
-- 已完成：**63 / 63**（经 2026-08-01 复核确认 + P048 四批迁移 + P047 + P012 方向 B 六步全部闭环）
-- 部分完成 `[~]`：0 项
-- 已决策待执行 `[>]`：0 项
-- 当前处理：P012 方向 B 第⑥步完成（2026-08-01，15:16）——**P012 全部完成，P047 并入其中，项目 63/63 项代码项全部闭环**。全量回归：workspace `cargo test`（core 145 + vault 99 + plugin 49 + 集成 8 等全绿）✅ / 前端 `tsc` + `eslint` + Vitest（44 文件 415 测试）✅ / CLI `cargo test` 仅剩既有 P008 夹具问题（`unlock.rs:230` E0063，与 P012 无关，另行跟进）
+- 已完成：**62 / 64**（复核轮次 2 确认：P003、P010、P011、P015、P017、P018、P041、P047、P012 六步均真实落地；P012 第⑥步声称的「plugin 49 测试」经复跑证实为 49 通过/2 忽略，数字属实；**P004 回归修复完成**，见详情）
+- 部分完成 `[~]`：1 项——P048（3 处纯样式 hover 误归为「功能性」未迁移）
+- 待修复 `[ ]`：1 项——P064（CLI 测试夹具编译失败）
+- 当前处理：P004 回归修复完成（2026-08-01 15:36），剩余 P064、P048 收尾
+- 复核轮次 2 基线：workspace `cargo fmt`/`clippy`/`test`（665 通过 0 失败，含 plugin 49+2 ignored）✅ / 前端 `tsc`+`eslint`+Vitest（44 文件 415 测试）✅ / **CLI `cargo test` 编译失败（E0063，见 P064）** ❌ / CLI `cargo clippy` ✅
 
 ## 静态基线之外已检查且无发现的维度（误报排除记录）
 
@@ -137,6 +139,10 @@
 **复核发现（2026-08-01，状态降为 `[~]`）**：前端已改 `invoke('plugin_open_output_file')`（`PluginResultPanel.tsx:331-343`），Rust 侧 `plugin.rs:233-253` 的 `resolve_output_file` 有 canonical 化 + `starts_with` 包含校验。**但包含校验的基准目录 `outputDir` 本身来自插件可控数据**——`payload.outputDir` 取自插件自行构造的 `watermark_result` 结果 JSON（host 透传不盖章，`pluginStore.ts:44-45` 仅校验形状）。恶意插件上报 `outputDir: "/"` + `outputPath: "/Applications/xxx.app"` 时，`canonical(path).starts_with("/")` 恒真，校验形同虚设，`opener::open` 仍可打开/执行任意本地文件，原始「沙箱逃逸获得本机执行」威胁对恶意插件**依然成立**。且 `opener` crate 直接调系统打开，不经 plugin-shell，P032 的正则收缩对此路径无防御作用。P060 新增的 `plugin_copy_output_file` 共用 `resolve_output_file`，同一缺陷同样存在。**修复建议**：host 侧在收集结果时用运行参数中宿主已知的真实 `output_dir` 覆写/盖章结果 payload（或前端从运行上下文而非插件 payload 取 `outputDir`），使校验基准不受插件控制。
 
 **修复记录（2026-08-01，状态恢复 `[x]`）**：host 侧盖章已落实——`register.rs` 的 `solosoul_result` 函数对 `watermark_result` 载荷用宿主已知的 run param `outputDir`（`WatermarkPluginConfig` 用户所选目录）覆写 `outputDir` 字段；宿主无真实目录（未配置/空串）时写空串使 `resolve_output_file` 对空串 canonicalize 失败而安全拒绝，绝不透传插件自报值。盖章发生在结果存入 `host.results` 与事件发送前的同一处，`plugin_open_output_file`/`plugin_copy_output_file` 的校验基准（`plugin.rs` `resolve_output_file`）不再受插件控制，恶意插件上报 `outputDir:"/"` 的绕过路径已闭合。注记：`crates/solosoul-plugin/src/host.rs` 平行死实现（P012 待删）存在同一漏洞，随 P012 一并消除。
+
+**复核发现（复核轮次 2，2026-08-01 16:05，状态重新打开 `[ ]`）**：上述「随 P012 一并消除」的注记**事实相反**——P012 第④步（commit `4ab6416f`）删除的是含盖章修复的 GUI 本地 `plugin/host/register.rs`（-1188 行），而**带漏洞的 crate 实现反而成为唯一生产实现**，盖章逻辑未移植。当前唯一实现 `crates/solosoul-plugin/src/host.rs:714-731` 的 `solosoul_result` 仅把插件原始 JSON 原样 push 进 `host.results` 并原样经 channel 发送，全函数无 `watermark_result`/`outputDir` 覆写（`git log -S` 对该文件零命中）。攻击链在当前代码逐步可走通：恶意插件上报 `{"type":"watermark_result","outputDir":"/","items":[{"outputPath":"/Applications/x.app"}]}` → host.rs 原样透传 → `pluginStore.ts:44-45` 仅形状校验 → `PluginResultPanel.tsx:336-338` 以插件可控的 `payload.outputDir` 调 `plugin_open_output_file` → `plugin.rs:237-253` 的 `resolve_output_file` 中 `canon.starts_with("/")` 恒真 → `opener::open` 打开/执行任意本地文件；`plugin_copy_output_file`（:294-299，P060）共用同一助手，可盗读任意文件到用户所选目录。回归未被 P012 第⑥步「全量回归」捕获的原因：**盖章逻辑从无测试**（74687cb7 未新增测试，host.rs 测试模块仅 2 个 HTTP 用例）。**修复方向**：把 74687cb7 的 stamping 块移植进 crate `host.rs` 的 `solosoul_result`（`host.params.get("outputDir")` 在 crate 中同样可得，见 :1090/:1148 既有用法），并补「插件自报 outputDir 被宿主值覆写/空串安全拒绝」的单元测试防再回归。
+
+**修复记录（2026-08-01 15:36，回归修复完成，状态恢复 `[x]`）**：盖章逻辑已移植进 crate `solosoul-plugin/src/host.rs` 的 `solosoul_result`，并抽为纯函数 `stamp_result_payload(value, &host.params)`（host 的 `params: HashMap<String,String>` 直接取 run param `outputDir`，无需额外注入）。语义与 74687cb7 原实现逐分支等价：`watermark_result` 载荷用宿主 outputDir 覆写（有真实值写真实值；键缺失或空串写空串使 `resolve_output_file` canonicalize 失败而安全拒绝）；其余类型透传。盖章发生在结果 push 进 `host.results` 与 channel 发送前的同一处，前端 `PluginResultPanel.tsx:336-338/:353-358` 以盖章后的 `payload.outputDir` 调用 `plugin_open_output_file`/`plugin_copy_output_file`，canonical 包含校验基准不再受插件控制。**防回归单测 4 条**（该逻辑此前从无测试，正是回归漏网根因）：宿主目录覆写 / 键缺失写空串 / `outputDir:""` 空串边界（`.filter(|s| !s.is_empty())`）/ 非 watermark 透传。验证：crate+GUI `check` ✅ / `fmt` ✅ / `clippy --all-targets`（0 警告）✅ / crate test 53 通过 2 忽略 ✅，审查通过。
 
 **P005 | PIN 离线爆破短路主密码**
 `pin.rs:188-197`：`derive_key(pin,...)` 派生 KEK 加密会话密钥写入 `pin_credential`；防爆破的 `pin_failed_attempts`/`pin_locked_until`（`:336-350`）只是数据目录 JSON 字段，攻击者拿到数据目录副本后可离线爆破 6 位 PIN（10⁶ 组合，开发 KDF 参数下约数小时）解开全库。
@@ -415,6 +421,19 @@ sync crate manager（`manager.rs:168`）`sync_enable` 时自建 `ServiceDaemon`�
 
 *已知轻微差异*（审查确认接受，与 batch 3 先例一致）：icon/toolbar 类 base 文字色 tertiary→secondary、非激活 chip/tab hover 时文字变 accent（原保持 text-primary）、WorkspaceCategoryTabs `data-active` 属性移除守卫后成无害死属性。
 
+**复核发现（复核轮次 2，2026-08-01 16:05，状态降为 `[~]`）**
+
+迁移本体视觉等价性**基本成立**：抽查 6 个迁移点（DataManagementPage、TrashDetailPanel、SyncPage、PageGuide、PasswordChangeForm、OnboardingFrame，覆盖四个批次），绝大多数颜色/圆角/位移值与旧内联样式逐项一致，`:hover:not(:disabled)` 接管 loading 守卫正确。工具类定义在 `styles/animations.css:501-939`（30+ 参数化变体）。
+
+*未声明的轻微视觉差（3 处，均小）*：① SyncPage QR/scan/manual 旧 hover tint 12% → `interactive-toolbar` 10%；② TrashDetailPanel 关闭 X 旧 12% → `interactive-accent` 10%；③ PageGuide prev 禁用态由 `text-disabled` 颜色改为 opacity 0.4，渲染色不同。另 TrashDetailPanel 附件 tab 的「hover 时文字变 accent」差异批 1 未声明（批 4 才对同类差异做了声明）。
+
+*主要出入——「残余 13 处均为功能性鼠标事件」声称不实*：实测 `onMouseEnter` 恰剩 13 处/11 文件，逐一核验后 **3 处（4 个出现点）是纯样式 hover，被误归为功能性**：
+1. `tauri/src/components/transfer/TransferButton.tsx:54-69` — onMouseEnter/Leave 直接改写 `currentTarget.style` 的 background/borderColor/color，是全 `src/` **仅存**的 7 处 `currentTarget.style` 内联样式改写，即本项原始统计的「内联样式改写」本体。批 4 记录称「TransferButton 保留（共享组件本身，含 busy/warning 条件态）」，但保留理由（条件态）与样式 hover 可分离——条件态保留、样式 hover 仍可迁移。
+2. `tauri/src/components/export/WarningCancelButton.tsx:14-23` — `hovered` state 唯一用途是切换 background，是 state 版样式 hover，可直接用 CSS `:hover` 表达。
+3. `tauri/src/components/guide/PageGuide.tsx:235-251` — 批 2 称 trigger 的 `setHovered` 是「功能性状态」，但 `active = hovered`（:178）只驱动 trigger 按钮的 borderColor/background/color（:247-251），无其他行为作用。
+
+其余 9 处确为行为性保留（tooltip 显隐、长按、200ms 延迟展开、展开/折叠行为），核实无误。**收尾建议**：迁移 TransferButton/WarningCancelButton/PageGuide trigger 三处至工具类或 CSS hover（TransferButton 的 busy/warning 条件态逻辑保留），或将报告声称修正为「残余 9 处功能性 + 3 处样式 hover 保留」。
+
 *功能性鼠标事件保留*：PVD/LoginPage 底部图标栏 `handleIconEnter`（200ms 延迟展开）、PasswordInput `setIsHovered`/`handleHintEnter`（tooltip）、AttachmentLimitsInfo/WarningCancelButton/PageGuide/layout 目录 `setHovered`（状态驱动）。
 
 **第二批实施记录（2026-08-01，提交后补充）**
@@ -511,15 +530,12 @@ sync crate manager（`manager.rs:168`）`sync_enable` 时自建 `ServiceDaemon`�
 - 以下「疑似未接线而非真死代码」的函数已在复核轮次 1 判定完毕：`ensure_guide_embeddings_built`（已删，功能被 `llm_rebuild_guide_embeddings` 覆盖）、`clear_cache`（已接线到 lock/logout）、`object_backfill_*`（已删，迁移窗口已过）、`trigger_periodic`（已删，周期同步机制本身保留）。
 - P012 方向 B 第④步删除本地插件模块（2894 行）属大规模代码删除，已随方向 B 决策一并确认。
 
-## 剩余工作执行建议（2026-08-01 更新）
+## 剩余工作执行建议（复核轮次 2 后更新，2026-08-01 16:05）
 
-1. **安全残留（小改动，优先）**：~~P004（host 侧盖章真实 `output_dir`，连带 `plugin_copy_output_file`）~~ 已修复（2026-08-01）；~~P003（GUI 导入路径写回 `safe_name`）~~ 已修复（2026-08-01）。
-2. **快速收敛（几行改动）**：~~P010（`useObjectWorkspaceData.ts:141` 分字段化）~~ 已修复（2026-08-01）；~~P015（LoginPage 两处 setState 收敛为 `authStore.completeUnlock(acc)`）~~ 已修复（2026-08-01）。
-3. **死文件删除**：P017 + P018（已确认，独立 commit）。
-4. **P041 继续拆分**：~~ObjectDetailModal、SyncPage 按标签页/阶段拆视图子组件至阈值以下~~ 已修复（2026-08-01，主组件 632/596 行）。
-5. **P011 收尾**：~~GlobalAttachmentManager 附件树虚拟化或分页~~ 已修复（2026-08-01，顶层页面列表「加载更多」分页）。
-6. **P012 方向 B（下一轮，含 P047）**：P048 完成后为**唯一剩余工作项**；按详情 6 步计划执行，每步独立 commit，第⑥步全量回归。
-7. ~~**P048 分批重构**~~ 已完成（2026-08-01 四批迁移全部样式 hover，残余均为功能性鼠标事件）。
+1. **P004 回归修复（最高优先，安全漏洞当前成立）**：把 commit `74687cb7` 的 stamping 块移植进 crate `solosoul-plugin/src/host.rs` 的 `solosoul_result`（用 `host.params.get("outputDir")` 覆写插件自报值，空串安全拒绝），并补单元测试（该逻辑此前从无测试，是回归漏网之根因）。
+2. **P064（CLI 测试编译失败）**：`solosoul_cli/src/screens/unlock.rs:230` 测试夹具 `AccountSummary` 补 `has_biometric_history`/`has_pin_history` 两字段，恢复 CLI `cargo test` 可运行。
+3. **P048 收尾（3 处误归）**：迁移 TransferButton（保留 busy/warning 条件态）/WarningCancelButton/PageGuide trigger 的纯样式 hover；或在报告中修正声称口径。
+4. **可选小项**：P012 第⑤步 wasmtime `async` feature 删除（已声明偏差，仅影响编译体积）；P003/P004 相关净化逻辑补防回归测试；`acl-manifests.json`（仅新增 `plugin_copy_output_file` 一条的自动生成改动）提交或纳入忽略策略。
 
 ---
 
@@ -552,3 +568,36 @@ sync crate manager（`manager.rs:168`）`sync_enable` 时自建 `ServiceDaemon`�
 - P010、P015 残留均为几行内的收敛改动。
 - P041 两个组件需继续拆分方能达标。
 - 待修复项不变：P012（插件双份实现）、P017/P018（暂缓删文件）、P047、P048。
+
+---
+
+## 复核记录（复核轮次 2，2026-08-01 16:05）
+
+针对「63/63 全部闭环」声明（commit `8a44c2fa`），对本轮声称完成的 11 项修复（P003、P004、P010、P011、P015、P017、P018、P041、P048、P012 六步含 P047）做了独立代码核验，并复跑了全部基线检查。
+
+### 基线复跑结果
+
+- workspace `cargo fmt --check` / `cargo clippy -- -D warnings` ✅；`cargo test` 665 通过 0 失败（含 solosoul-plugin 49 通过/2 ignored——第⑥步声称的「plugin 49」数字属实，测试属性计数 51 = 49 运行 + 2 忽略，此前存疑点消除）。
+- 前端 `tsc --noEmit` / `eslint` / Vitest 44 文件 415 测试 ✅（「415」声称属实）。
+- **CLI `cargo test` 编译失败 ❌**（E0063，见新增 P064）；CLI `cargo clippy` ✅。
+
+### 复核结论
+
+- **通过：9 项**——P003（GUI 路径 `import.rs:715-726,743` 三层净化闭环；建议补防回归测试，非阻塞）、P010（`useObjectWorkspaceData.ts:142-143` 已分字段化）、P011（顶层分页实现正确；页内二级列表仍全量 map 但懒挂载，属已声明范围）、P015（`authStore.completeUnlock` 收敛成立；注：`LoginPage.tsx:88` 仍有一处非解锁语义的裸 setState，commit「再无裸 setState」措辞略夸大）、P017/P018（删除干净零残留）、P041（ODM 主组件 632 行、SyncPage 538 行，均达标且行为等价抽查通过）、P012 第①②③④步与 P047（orphan 删除、version 单源、功能移植、CLI async 适配无嵌套 block_on 风险、watermark 公共闭包经 diff 逐行比对语义等价、`env!("CARGO_PKG_VERSION")` 隐患已通过 workspace version 单源绑定结构性消除、GUI 切换与适配器/集成测试/前端 customType 容忍均落实）。
+- **未修复（重新打开）：1 项——P004（安全）**。P012 第④步删除了含盖章修复的 register.rs，盖章未移植到 crate host.rs，`outputDir:"/"` 绕过在当前代码重新成立；第⑥步「全量回归」未捕获，因为该逻辑从无测试。详见 P004 条目「复核发现（轮次 2）」。
+- **有出入（降级 `[~]`）：1 项——P048**。迁移本体视觉等价性基本成立，但「残余 13 处均为功能性」不实：TransferButton.tsx:54-69（全 src 仅存 7 处 `currentTarget.style`）、WarningCancelButton.tsx:14-23、PageGuide.tsx:235-251 共 3 处纯样式 hover 未迁移；另有 3 处未声明的轻微视觉差（12%→10% tint ×2、PageGuide prev 禁用态颜色改 opacity）。详见 P048 条目。
+- **已声明偏差（不改判定）**：P012 第⑤步 crate wasmtime features 保留 `async`（期望删除，grep 确认无代码使用，仅影响编译体积/时间）。
+
+### 新增问题
+
+**P064（P1，测试）**：`solosoul_cli/src/screens/unlock.rs:230` 测试夹具 `AccountSummary` 初始化缺 `has_biometric_history`/`has_pin_history` 两字段（`solosoul-core/src/vault_service.rs:181,184` 确有此二字段），E0063 导致 CLI 整个测试套件编译失败、不可运行。归因：安全轮次为 `AccountSummary` 新增字段后未同步 CLI 夹具。修复：夹具补两字段即可。
+
+### 其他注记
+
+- P012 第⑥步为纯文档 commit（仅报告改动），「全量回归」数字本轮已复跑证实（见基线复跑）。
+- `tauri/src-tauri/gen/schemas/acl-manifests.json` 工作区未提交改动：仅 `allow-all-custom-commands` 新增 `plugin_copy_output_file` 一条（Tauri 自动生成），无风险，建议提交或纳入忽略策略。
+- 非本次引入的既有瑕疵（不阻塞，记录在案）：`app_state.rs:362-377` 第二、三次 PluginManager 回退为相同确定性调用（第三次必失败）；`solosoul_cli/src/commands/plugin.rs:449` 重复错位 doc comment、`:575` 注释笔误、`manager.rs:257` 变量名 `bunded_version` 拼写。
+
+### 后续建议
+
+按「剩余工作执行建议」顺序：① P004 盖章移植 + 补测试（最高优先）；② P064 夹具修复；③ P048 三处收尾。

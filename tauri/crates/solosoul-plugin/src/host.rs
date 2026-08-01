@@ -720,11 +720,20 @@ pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(),
                 let json = read_string(&mut caller, data_ptr, data_len).unwrap_or_default();
                 let value = serde_json::from_str(&json).unwrap_or(serde_json::Value::Null);
                 let host = &caller.data().host;
+                // P004：盖章——`watermark_result` 载荷中的 `outputDir` 属插件可控数据，
+                // 恶意插件可上报 `outputDir: "/"` 使 `resolve_output_file` 的 starts_with
+                // 包含校验恒真（canonical(path).starts_with("/") 对任意路径成立），从而经
+                // `plugin_open_output_file`/`plugin_copy_output_file` 打开/复制任意本地文件。
+                // 此处用宿主已知的 run 参数 `outputDir`（用户配置的输出目录）覆写该字段，
+                // 使后续校验的信任基准不再受插件控制。
+                // P004：盖章逻辑已抽为纯函数 `stamp_result_payload`（可单测，防回归）。
+                let stamped = stamp_result_payload(value, &host.params);
+                let stamped_json = serde_json::to_string(&stamped).unwrap_or(json);
                 {
                     let mut guard = host.results.lock().unwrap_or_else(|e| e.into_inner());
-                    guard.push(PluginResultPayload(value));
+                    guard.push(PluginResultPayload(stamped));
                 }
-                let _ = host.channel.send(PluginEvent::result(json));
+                let _ = host.channel.send(PluginEvent::result(stamped_json));
                 code::SUCCESS
             },
         )
@@ -1282,6 +1291,44 @@ fn sanitize_attachment_file_name(file_name: &str) -> Result<String, String> {
     Ok(safe)
 }
 
+/// P004：对插件 `solosoul_result` 载荷做「盖章」处理。
+///
+/// `watermark_result` 载荷中的 `outputDir` 属插件可控数据，恶意插件可上报
+/// `outputDir: "/"` 使前端 `resolve_output_file` 的 `starts_with("/")` 包含校验
+/// 恒真，从而经 `plugin_open_output_file`/`plugin_copy_output_file` 打开/复制任意
+/// 本地文件。此处用宿主已知的 run 参数 `outputDir`（用户配置的输出目录）覆写该
+/// 字段，使后续校验的信任基准不再受插件控制。纯函数便于单元测试防回归。
+fn stamp_result_payload(
+    value: serde_json::Value,
+    params: &HashMap<String, String>,
+) -> serde_json::Value {
+    match value {
+        serde_json::Value::Object(mut map)
+            if map.get("type").and_then(|t| t.as_str()) == Some("watermark_result") =>
+        {
+            match params.get("outputDir").filter(|s| !s.is_empty()) {
+                Some(real_dir) => {
+                    map.insert(
+                        "outputDir".to_string(),
+                        serde_json::Value::String(real_dir.clone()),
+                    );
+                }
+                // 宿主无真实输出目录（前端未配置/为空串）：写空串使后续
+                // resolve_output_file 对空串 canonicalize 失败 → 安全拒绝，
+                // 绝不透传插件自报的 outputDir。
+                None => {
+                    map.insert(
+                        "outputDir".to_string(),
+                        serde_json::Value::String(String::new()),
+                    );
+                }
+            }
+            serde_json::Value::Object(map)
+        }
+        other => other,
+    }
+}
+
 fn write_output_file(output_dir: &Path, file_name: &str, bytes: &[u8]) -> Result<PathBuf, String> {
     if file_name.contains('/') || file_name.contains('\\') || file_name == "." || file_name == ".."
     {
@@ -1544,6 +1591,57 @@ fn perform_http_post(client: &reqwest::Client, url: &str, body: &str) -> Result<
 mod tests {
     use super::*;
     use tokio::io::{AsyncReadExt, AsyncWriteExt};
+
+    #[test]
+    fn test_stamp_result_payload_watermark_overrides_with_host_dir() {
+        let payload = serde_json::json!({
+            "type": "watermark_result",
+            "outputDir": "/",
+            "file": "doc.pdf"
+        });
+        let params = HashMap::from([("outputDir".to_string(), "/Users/me/Desktop".to_string())]);
+        let stamped = stamp_result_payload(payload, &params);
+        assert_eq!(stamped["outputDir"], "/Users/me/Desktop");
+        assert_eq!(stamped["type"], "watermark_result");
+        assert_eq!(stamped["file"], "doc.pdf");
+    }
+
+    #[test]
+    fn test_stamp_result_payload_watermark_empty_host_dir_writes_empty() {
+        let payload = serde_json::json!({
+            "type": "watermark_result",
+            "outputDir": "/etc"
+        });
+        // 宿主未配置 outputDir：写空串使后续 resolve_output_file 失败 → 安全拒绝
+        let params = HashMap::new();
+        let stamped = stamp_result_payload(payload, &params);
+        assert_eq!(stamped["outputDir"], "");
+    }
+
+    #[test]
+    fn test_stamp_result_payload_watermark_empty_string_host_dir_writes_empty() {
+        let payload = serde_json::json!({
+            "type": "watermark_result",
+            "outputDir": "/etc"
+        });
+        // params 含 outputDir 但为空串：`.filter(|s| !s.is_empty())` 边界 → 同 None 分支写空串
+        let params = HashMap::from([("outputDir".to_string(), String::new())]);
+        let stamped = stamp_result_payload(payload, &params);
+        assert_eq!(stamped["outputDir"], "");
+    }
+
+    #[test]
+    fn test_stamp_result_payload_non_watermark_passthrough() {
+        let payload = serde_json::json!({
+            "type": "chat_result",
+            "outputDir": "/whatever"
+        });
+        let params = HashMap::new();
+        let stamped = stamp_result_payload(payload, &params);
+        // 非 watermark_result 载荷原样透传，不盖章
+        assert_eq!(stamped["outputDir"], "/whatever");
+        assert_eq!(stamped["type"], "chat_result");
+    }
 
     #[tokio::test]
     async fn test_perform_http_async_get() {
