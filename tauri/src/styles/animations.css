@@ -771,6 +771,19 @@
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 15%, transparent);
 }
 
+/* ── Password field container hover ring (CSS vars) ───────
+   容器 div 非可聚焦元素，focus 态仍由 JS 驱动；
+   error/focus 分支由组件内联写 --pif-* 变量值（内联优先于类 hover），
+   disabled 由组件内联写基值双重守卫。 */
+.interactive-password-field {
+  --pif-border-color: var(--border-subtle);
+  --pif-ring: none;
+}
+.interactive-password-field:hover {
+  --pif-border-color: var(--accent-primary);
+  --pif-ring: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 10%, transparent);
+}
+
 /* ── Color-only muted hover (dismiss link) ──────────────── */
 .interactive-color-secondary {
   color: var(--text-tertiary);

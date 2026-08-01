@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useId } from 'react';
-import type { ReactNode } from 'react';
+import type { ReactNode, CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import { Lock, Eye, EyeOff, HelpCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -44,7 +44,6 @@ export function SecurePasswordInput({
   const [isHintHovered, setIsHintHovered] = useState(false);
   const [hintCardPos, setHintCardPos] = useState<{ top: number; left: number } | null>(null);
   const [isFocused, setIsFocused] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
   const [shouldShake, setShouldShake] = useState(false);
   const prevErrorRef = useRef(error);
   const hintBtnRef = useRef<HTMLButtonElement>(null);
@@ -178,31 +177,34 @@ export function SecurePasswordInput({
         }
       `}</style>
       <div
-        className={className}
-        onMouseEnter={() => !disabled && setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
+        className={`interactive-password-field${className ? ` ${className}` : ''}`}
         style={{
           position: 'relative',
           display: 'flex',
           alignItems: 'center',
-          border: error
-            ? '1px solid var(--accent-danger, #dc2626)'
+          // hover 由 interactive-password-field 类经 CSS 变量驱动；error > focus 态在此内联写变量值，
+          // 内联变量赋值压过类 hover 赋值，四态优先级（error > focus > hover > default）与旧 isHovered 逻辑等价；
+          // disabled 内联写基值作守卫（div 无 :disabled 伪类），hover 视觉不生效。
+          '--pif-border-color': error
+            ? 'var(--accent-danger, #dc2626)'
             : isFocused
-              ? '1px solid var(--accent-primary)'
-              : isHovered && !disabled
-                ? '1px solid var(--accent-primary)'
-                : '1px solid var(--border-subtle)',
-          borderRadius: 8,
-          boxShadow: isFocused
+              ? 'var(--accent-primary)'
+              : disabled
+                ? 'var(--border-subtle)'
+                : undefined,
+          '--pif-ring': isFocused
             ? '0 0 0 2px color-mix(in srgb, var(--accent-primary) 15%, transparent)'
-            : isHovered && !disabled
-              ? '0 0 0 2px color-mix(in srgb, var(--accent-primary) 10%, transparent)'
-              : 'none',
+            : disabled
+              ? 'none'
+              : undefined,
+          border: '1px solid var(--pif-border-color)',
+          borderRadius: 8,
+          boxShadow: 'var(--pif-ring)',
           transition: 'border-color 0.2s, box-shadow 0.2s',
           backgroundColor: 'var(--bg-input)',
           cursor: disabled ? 'not-allowed' : undefined,
           animation: shouldShake ? 'shake 0.3s ease-in-out' : 'none',
-        }}
+        } as CSSProperties}
       >
         <Lock
           size={ICON_SIZE.sm}
