@@ -154,12 +154,9 @@ pub async fn export_estimate_size(
 
     // 与导出执行（export_execute）共用同一收集逻辑，
     // 保证「导出前展示的模板清单」与最终包内 templates 一致
-    let referenced_templates = collect_referenced_templates(&vault, &records);
-    let template_count = referenced_templates.len();
-    let template_names: Vec<String> = referenced_templates
-        .iter()
-        .map(|t| t.name.clone())
-        .collect();
+    let templates = collect_export_templates(&vault, &account_id, &scope, &records)?;
+    let template_count = templates.len();
+    let template_names: Vec<String> = templates.iter().map(|t| t.name.clone()).collect();
     let mut estimated_bytes: u64 = records
         .iter()
         .map(|r| {
@@ -187,6 +184,15 @@ pub async fn export_estimate_size(
                     estimated_bytes += att.size_bytes;
                 }
             }
+        }
+    }
+
+    // Estimate snapshots payload（历史记录，恢复包保证历史数量一致）
+    if !records.is_empty() {
+        let ids: Vec<String> = records.iter().map(|r| r.id.clone()).collect();
+        if let Ok(counts) = vault.count_snapshots_batch(&ids) {
+            let total: usize = counts.values().sum();
+            estimated_bytes += (total as u64) * 256; // 每条快照约 256B（name/props/labels）
         }
     }
 
@@ -446,10 +452,40 @@ pub async fn export_execute(
         return Err(export_err("NO_OBJECTS_SELECTED"));
     }
 
-    // ── Collect referenced templates ────────────────────────────
-    let templates: Vec<serde_json::Value> = collect_referenced_templates(vault, &records)
+    // ── Collect templates ───────────────────────────────────────
+    // 全量导出（include_all，如恢复主机）打包账户全部模板（含预置种子模板）；
+    // 部分导出仅打包被对象引用的模板（快照隔离）。
+    let templates: Vec<serde_json::Value> =
+        collect_export_templates(vault, &account_id, &req.scope, &records)?
+            .iter()
+            .filter_map(|tpl| serde_json::to_value(tpl).ok())
+            .collect();
+
+    // ── Collect object snapshots（历史记录）──────────────────────
+    // 携带每个对象的全部历史快照（含原时间戳），恢复后历史数量与旧设备一致。
+    let snapshots: Vec<serde_json::Value> = records
         .iter()
-        .filter_map(|tpl| serde_json::to_value(tpl).ok())
+        .flat_map(|r| {
+            let object_id = r.id.clone();
+            vault
+                .list_snapshots(&object_id)
+                .unwrap_or_default()
+                .into_iter()
+                .filter_map(move |meta| {
+                    let snap_id = meta["id"].as_str()?.to_string();
+                    let data = vault.get_snapshot(&snap_id).ok().flatten()?;
+                    Some(serde_json::json!({
+                        "object_id": object_id,
+                        "timestamp": meta["timestamp"],
+                        "triggered_by": meta["triggeredBy"],
+                        "diff_summary": meta["diffSummary"],
+                        "data": base64::Engine::encode(
+                            &base64::engine::general_purpose::STANDARD,
+                            &data
+                        ),
+                    }))
+                })
+        })
         .collect();
 
     // ── Serialise payload ──────────────────────────────────────
@@ -475,6 +511,7 @@ pub async fn export_execute(
             "template_type": r.template_type,
         })).collect::<Vec<_>>(),
         "templates": templates,
+        "snapshots": snapshots,
     });
     let payload_bytes = serde_json::to_vec(&payload).map_err(|e| format!("serialize: {e}"))?;
 

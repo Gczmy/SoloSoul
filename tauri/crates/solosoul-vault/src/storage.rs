@@ -3189,7 +3189,7 @@ impl VaultStore {
         Ok(filled)
     }
 
-    /// §25.5 — Save an object snapshot for history
+    /// §25.5 — Save an object snapshot for history（使用当前时间戳）。
     pub fn save_snapshot(
         &self,
         object_id: &str,
@@ -3197,17 +3197,43 @@ impl VaultStore {
         data: &[u8],
         diff_summary: &str,
     ) -> Result<(), String> {
+        self.save_snapshot_at(
+            object_id,
+            triggered_by,
+            data,
+            diff_summary,
+            chrono::Utc::now().timestamp_millis(),
+        )
+    }
+
+    /// §25.5 — Save an object snapshot for history with an explicit timestamp。
+    /// 导入/恢复时用于保留原设备上的历史顺序（跨设备恢复后历史记录保持一致）。
+    pub fn save_snapshot_at(
+        &self,
+        object_id: &str,
+        triggered_by: &str,
+        data: &[u8],
+        diff_summary: &str,
+        timestamp_ms: i64,
+    ) -> Result<(), String> {
         let key = self.data_key()?;
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         let id = uuid::Uuid::new_v4().to_string();
-        let now = chrono::Utc::now().timestamp_millis();
         let encrypted_data = encrypt_field(&key, data)?;
         conn.execute(
             "INSERT INTO object_snapshots (id, object_id, timestamp, triggered_by, data, diff_summary)
              VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
-            rusqlite::params![id, object_id, now, triggered_by, encrypted_data, diff_summary],
-        ).map_err(|e| format!("save_snapshot: {}", e))?;
+            rusqlite::params![
+                id,
+                object_id,
+                timestamp_ms,
+                triggered_by,
+                encrypted_data,
+                diff_summary
+            ],
+        )
+        .map_err(|e| format!("save_snapshot: {}", e))?;
         Ok(())
     }
 
@@ -4914,6 +4940,62 @@ mod tests {
     fn test_get_snapshot_nonexistent() {
         let (vault, _dir) = setup();
         assert!(vault.get_snapshot("nonexistent-id").unwrap().is_none());
+    }
+
+    #[test]
+    fn test_save_snapshot_at_preserves_timestamp() {
+        let (vault, _dir) = setup();
+        // 跨设备恢复需要保留旧设备上的原始时间戳，保证历史顺序一致
+        let original_ts = 1_700_000_000_000i64; // 2023-11-14T22:13:20Z
+        vault
+            .save_snapshot_at(
+                "obj-1",
+                "user_edit",
+                b"snap data",
+                "diff_updated",
+                original_ts,
+            )
+            .unwrap();
+
+        let snapshots = vault.list_snapshots("obj-1").unwrap();
+        assert_eq!(snapshots.len(), 1);
+        assert_eq!(snapshots[0]["timestamp"], original_ts);
+        assert_eq!(snapshots[0]["triggeredBy"], "user_edit");
+        assert_eq!(snapshots[0]["diffSummary"], "diff_updated");
+
+        // 数据仍可解密读取
+        let snapshot_id = snapshots[0]["id"].as_str().unwrap();
+        let loaded = vault.get_snapshot(snapshot_id).unwrap().unwrap();
+        assert_eq!(loaded, b"snap data");
+    }
+
+    #[test]
+    fn test_save_snapshot_at_multiple_preserves_order() {
+        let (vault, _dir) = setup();
+        // 旧时间戳在后写入，仍应排在列表最前（timestamp DESC）
+        vault
+            .save_snapshot_at(
+                "obj-1",
+                "user_edit",
+                b"newer",
+                "diff_updated",
+                2_000_000_000_000i64,
+            )
+            .unwrap();
+        vault
+            .save_snapshot_at(
+                "obj-1",
+                "user_edit",
+                b"older",
+                "diff_created",
+                1_000_000_000_000i64,
+            )
+            .unwrap();
+
+        let snapshots = vault.list_snapshots("obj-1").unwrap();
+        assert_eq!(snapshots.len(), 2);
+        assert_eq!(snapshots[0]["timestamp"], 2_000_000_000_000i64);
+        assert_eq!(snapshots[1]["timestamp"], 1_000_000_000_000i64);
     }
 
     #[test]

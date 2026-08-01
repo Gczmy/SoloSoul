@@ -264,6 +264,22 @@ async fn import_execute_internal(
         .ok_or("No objects array in payload")?;
     let package_ids = build_package_ids(&payload);
 
+    // ── 阶段 1.5：解析包内对象历史快照（object_id → 快照列表）──
+    // 导出端携带每个对象的全部历史快照（含原时间戳），导入时按原时间线恢复，
+    // 保证跨设备恢复后历史记录数量与旧设备一致。
+    let package_snapshots: HashMap<String, Vec<serde_json::Value>> = payload["snapshots"]
+        .as_array()
+        .map(|arr| {
+            let mut map: HashMap<String, Vec<serde_json::Value>> = HashMap::new();
+            for snap in arr {
+                if let Some(oid) = snap["object_id"].as_str() {
+                    map.entry(oid.to_string()).or_default().push(snap.clone());
+                }
+            }
+            map
+        })
+        .unwrap_or_default();
+
     // ── 阶段 2：重建包内引用模板（快照隔离，按内容哈希去重）──
     let template_id_map = rebuild_imported_templates(vault, &account_id, &payload)?;
 
@@ -388,15 +404,24 @@ async fn import_execute_internal(
             .save_object(&record)
             .map_err(|e| format!("save: {}", e))?;
 
-        // 为导入对象创建初始 snapshot，使历史记录 badge 正常显示
-        let snapshot_data =
-            serde_json::to_vec(&record).map_err(|e| format!("snapshot ser: {}", e))?;
+        // 恢复包内历史快照（若有），否则创建初始 snapshot 使历史 badge 正常显示。
+        // KeepBoth 场景下对象获得新 ID，快照随之挂到新 ID 上。
         let snapshot_key = if effective_strategy == ImportStrategy::KeepBoth {
             &final_id
         } else {
             id
         };
-        let _ = vault.save_snapshot(snapshot_key, "import", &snapshot_data, "diff_imported");
+        let restored = if let Some(snaps) = package_snapshots.get(id) {
+            restore_package_snapshots(vault, snapshot_key, snaps)
+        } else {
+            0
+        };
+        if restored == 0 {
+            // 旧包或对象无历史时，保持既有行为：创建 diff_imported 初始快照
+            let snapshot_data =
+                serde_json::to_vec(&record).map_err(|e| format!("snapshot ser: {}", e))?;
+            let _ = vault.save_snapshot(snapshot_key, "import", &snapshot_data, "diff_imported");
+        }
 
         imported += 1;
         imported_object_ids.insert(final_id.clone());
@@ -477,6 +502,40 @@ fn decrypt_package(
     let payload: serde_json::Value =
         serde_json::from_slice(&decrypted).map_err(|e| format!("Invalid payload: {}", e))?;
     Ok((manifest, payload, key))
+}
+
+/// 阶段 1.5 helper：按原时间戳恢复对象历史快照（base64 解码 → 加密写入）。
+/// 返回成功恢复的快照条数；快照为空/解码失败返回 0（调用方回退到 diff_imported 初始快照）。
+pub(crate) fn restore_package_snapshots(
+    vault: &solosoul_vault::VaultStore,
+    object_id: &str,
+    snaps: &[serde_json::Value],
+) -> usize {
+    let mut restored = 0usize;
+    for snap in snaps {
+        // 原时间戳缺失/非法时回退到当前时间，避免 0 时间戳破坏历史排序
+        let timestamp = snap["timestamp"]
+            .as_i64()
+            .filter(|t| *t > 0)
+            .unwrap_or_else(|| chrono::Utc::now().timestamp_millis());
+        let triggered_by = snap["triggered_by"].as_str().unwrap_or("import");
+        let diff_summary = snap["diff_summary"].as_str().unwrap_or("diff_imported");
+        let data = match snap["data"].as_str() {
+            Some(b64) => base64::Engine::decode(&base64::engine::general_purpose::STANDARD, b64)
+                .unwrap_or_default(),
+            None => continue,
+        };
+        if data.is_empty() {
+            continue;
+        }
+        if vault
+            .save_snapshot_at(object_id, triggered_by, &data, diff_summary, timestamp)
+            .is_ok()
+        {
+            restored += 1;
+        }
+    }
+    restored
 }
 
 /// 阶段 2：重建包内引用的模板（快照隔离，按内容哈希去重），返回 原模板 ID → 本地模板 ID 映射。

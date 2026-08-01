@@ -794,6 +794,181 @@ fn test_unique_object_name_chinese_increment() -> Result<(), String> {
     Ok(())
 }
 
+// ── 12. 全量导出包含全部模板（含预置种子模板，跨设备恢复）──
+
+#[test]
+fn test_collect_export_templates_include_all() -> Result<(), String> {
+    let account_id = "acc_tpl_all";
+    let (_tmp, vault) = test_vault(account_id);
+    let now = chrono::Utc::now().to_rfc3339();
+
+    // 两个模板：一个被对象引用，一个未被引用（模拟预置种子模板）
+    for (tid, name) in [("passport", "护照"), ("visa", "签证")] {
+        let tpl = UserTemplate {
+            contract_type_id: None,
+            id: tid.to_string(),
+            account_id: account_id.to_string(),
+            name: name.to_string(),
+            icon_id: Some("document".to_string()),
+            properties: vec![],
+            category: Some("travel".to_string()),
+            created_at: now.clone(),
+            updated_at: Some(now.clone()),
+        };
+        vault.save_user_template(&tpl)?;
+    }
+
+    // 对象只引用 passport
+    let record = ObjectRecord {
+        contract_type_id: None,
+        id: "obj_ref_passport".to_string(),
+        account_id: account_id.to_string(),
+        type_id: "passport".to_string(),
+        section_type: "travel".to_string(),
+        name: "护照".to_string(),
+        icon_name: "passport".to_string(),
+        parent_id: None,
+        children_ids: vec![],
+        properties: serde_json::json!({}),
+        property_labels: None,
+        sensitivity_level: "internal".to_string(),
+        is_deleted: false,
+        deleted_at: None,
+        tags_json: vec![],
+        template_id: Some("passport".to_string()),
+        template_type: None,
+        template_hash: None,
+        created_at: now.clone(),
+        updated_at: now,
+        version: 1,
+        ..Default::default()
+    };
+    vault.save_object(&record)?;
+
+    // include_all=true（恢复主机路径）：全部模板都进包
+    let scope_all = ExportScope {
+        selected_page_ids: vec![],
+        selected_object_ids: vec![],
+        selected_tags: vec![],
+        include_attachments: false,
+        selected_attachment_ids: vec![],
+        include_preferences: false,
+        include_behavioral: false,
+        include_all: true,
+    };
+    let all = collect_export_templates(
+        &vault,
+        account_id,
+        &scope_all,
+        std::slice::from_ref(&record),
+    )?;
+    let ids: Vec<String> = all.iter().map(|t| t.id.clone()).collect();
+    assert!(ids.contains(&"passport".to_string()));
+    assert!(
+        ids.contains(&"visa".to_string()),
+        "未被引用的预置模板也应打包"
+    );
+
+    // include_all=false（普通导出）：仅打包被引用模板（快照隔离）
+    let scope_partial = ExportScope {
+        selected_page_ids: vec![],
+        selected_object_ids: vec![],
+        selected_tags: vec![],
+        include_attachments: false,
+        selected_attachment_ids: vec![],
+        include_preferences: false,
+        include_behavioral: false,
+        include_all: false,
+    };
+    let partial = collect_export_templates(
+        &vault,
+        account_id,
+        &scope_partial,
+        std::slice::from_ref(&record),
+    )?;
+    let ids: Vec<String> = partial.iter().map(|t| t.id.clone()).collect();
+    assert_eq!(ids, vec!["passport".to_string()]);
+    assert!(!ids.contains(&"visa".to_string()));
+
+    Ok(())
+}
+
+// ── 13. 快照恢复（跨设备恢复后历史数量一致）──
+
+#[test]
+fn test_restore_package_snapshots_preserves_history() -> Result<(), String> {
+    let account_id = "acc_snap_restore";
+    let (_tmp, vault) = test_vault(account_id);
+
+    // 模拟导出包中的快照列表（base64 编码的加密前 JSON 数据 + 原时间戳）
+    let snap_data = serde_json::to_vec(&serde_json::json!({
+        "name": "护照",
+        "tags": [],
+        "properties": {"fullName": "张三"},
+        "propertyLabels": {}
+    }))
+    .map_err(|e| e.to_string())?;
+    let snaps = serde_json::json!([
+        {
+            "object_id": "obj_1",
+            "timestamp": 1_700_000_000_000i64,
+            "triggered_by": "user_edit",
+            "diff_summary": "diff_created",
+            "data": base64::Engine::encode(&base64::engine::general_purpose::STANDARD, &snap_data)
+        },
+        {
+            "object_id": "obj_1",
+            "timestamp": 1_700_000_001_000i64,
+            "triggered_by": "user_edit",
+            "diff_summary": "diff_updated",
+            "data": base64::Engine::encode(&base64::engine::general_purpose::STANDARD, &snap_data)
+        }
+    ]);
+    let arr = snaps.as_array().ok_or("no array")?;
+
+    // 恢复后对象历史应为 2 条，且时间戳按原值保留（新 ID 挂载）
+    let restored = restore_package_snapshots(&vault, "obj_1", arr);
+    assert_eq!(restored, 2);
+
+    let list = vault.list_snapshots("obj_1")?;
+    assert_eq!(list.len(), 2);
+    let ts: Vec<i64> = list
+        .iter()
+        .filter_map(|s| s["timestamp"].as_i64())
+        .collect();
+    assert_eq!(ts, vec![1_700_000_001_000i64, 1_700_000_000_000i64]);
+
+    // 数据可解密读取
+    let snap_id = list[0]["id"].as_str().ok_or("no id")?;
+    let data = vault.get_snapshot(snap_id)?.ok_or("no snapshot data")?;
+    let parsed: serde_json::Value = serde_json::from_slice(&data).map_err(|e| e.to_string())?;
+    assert_eq!(parsed["name"], "护照");
+
+    Ok(())
+}
+
+#[test]
+fn test_restore_package_snapshots_empty_falls_back() -> Result<(), String> {
+    let account_id = "acc_snap_empty";
+    let (_tmp, vault) = test_vault(account_id);
+
+    // 空快照列表 → 返回 0，调用方回退到 diff_imported 初始快照
+    let restored = restore_package_snapshots(&vault, "obj_1", &[]);
+    assert_eq!(restored, 0);
+
+    // 非法 base64 / 缺失 data → 跳过该条
+    let snaps = serde_json::json!([
+        {"object_id": "obj_1", "timestamp": 1, "data": "!!!not-base64!!!"},
+        {"object_id": "obj_1", "timestamp": 2, "data": null}
+    ]);
+    let arr = snaps.as_array().unwrap();
+    let restored = restore_package_snapshots(&vault, "obj_1", arr);
+    assert_eq!(restored, 0);
+    assert_eq!(vault.list_snapshots("obj_1")?.len(), 0);
+
+    Ok(())
+}
+
 /// 回归测试：无模板对象导入后不受影响
 #[test]
 fn test_import_no_template_object_unchanged() {

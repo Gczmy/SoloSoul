@@ -310,6 +310,28 @@ pub(crate) fn collect_referenced_templates(
         .collect()
 }
 
+/// Collect the user templates to be packaged in the export.
+///
+/// - 全量导出（`include_all`，如恢复主机）：打包账户**全部**用户模板（含预置种子模板，
+///   以及未被任何对象引用的模板），保证跨设备恢复后模板数量与旧设备一致。
+/// - 部分导出：仅打包被导出对象引用的模板（快照隔离，保持既有语义）。
+///
+/// 体积估算与导出执行共用此逻辑，保证「导出前展示的模板清单」与最终包内 templates 口径一致。
+pub(crate) fn collect_export_templates(
+    vault: &solosoul_vault::VaultStore,
+    account_id: &str,
+    scope: &ExportScope,
+    records: &[solosoul_vault::ObjectRecord],
+) -> Result<Vec<solosoul_vault::UserTemplate>, String> {
+    if scope.include_all {
+        let mut all = vault.list_user_templates(account_id)?;
+        all.sort_by(|a, b| a.id.cmp(&b.id));
+        Ok(all)
+    } else {
+        Ok(collect_referenced_templates(vault, records))
+    }
+}
+
 // ── Sub-modules ─────────────────────────────────────────────
 
 pub mod export;
