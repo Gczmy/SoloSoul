@@ -225,7 +225,9 @@ export function SyncShowQrDialog({ isOpen, onClose }: SyncShowQrDialogProps) {
             position: 'relative',
             // 与 Dialog 组件一致：展开「手动模式」后内容较高，超出视口时允许卡片内滚动，
             // 避免 flex 居中溢出导致上下内容（tab 切换/关闭/取消按钮）不可达。
-            maxHeight: 'min(85vh, calc(100% - 32px))',
+            // 注意：必须用视口单位 100vh 而非百分比 100% —— 父级 motion.div 高度为 auto，
+            // 百分比无法解析会使整个 min() 失效，导致 max-height 不生效、内容全高溢出。
+            maxHeight: 'min(85vh, calc(100vh - 32px))',
             overflowY: 'auto',
           }}
         >
