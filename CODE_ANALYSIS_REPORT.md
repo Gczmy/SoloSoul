@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-01 15:52:00
+> 最后更新：2026-08-01 15:58:00
 > 当前分支：`main`
 > 修复轮次：3 + 复核轮次 1 + 决策轮次 + 复核轮次 2（2026-08-01 对「63/63 闭环」声明做了独立核验：**P004 因 P012 第④步回归重新打开**，P048 降级部分完成，新增 P064；见文末「复核记录（轮次 2）」）
 > 分析范围：`tauri/`（Rust 后端 `src-tauri/` + `crates/`，React/TS 前端 `src/`）；`solosoul_cli/` 不在本轮范围
@@ -538,6 +538,11 @@ sync crate manager（`manager.rs:168`）`sync_enable` 时自建 `ServiceDaemon`�
 2. **P064（CLI 测试编译失败）**：`solosoul_cli/src/screens/unlock.rs:230` 测试夹具 `AccountSummary` 补 `has_biometric_history`/`has_pin_history` 两字段，恢复 CLI `cargo test` 可运行。
 3. **P048 收尾（3 处误归）**：迁移 TransferButton（保留 busy/warning 条件态）/WarningCancelButton/PageGuide trigger 的纯样式 hover；或在报告中修正声称口径。
 4. **可选小项**：P012 第⑤步 wasmtime `async` feature 删除（已声明偏差，仅影响编译体积）；P003/P004 相关净化逻辑补防回归测试；`acl-manifests.json`（仅新增 `plugin_copy_output_file` 一条的自动生成改动）提交或纳入忽略策略。
+
+**可选小项执行记录（2026-08-01 15:58）**：
+- ① **wasmtime `async` feature → 确认不可行**（有证据）：wasmtime 45 的 default features 本身含 `async`（`Cargo.toml:106`），仅从显式列表删除是 no-op；且 `wasmtime-wasi` p1 feature 传递依赖 `wasmtime/async`（wasmtime-wasi Cargo.toml:58），而 crate `sandbox.rs:63` 使用 `p1::add_to_linker_sync`——即使 `default-features=false` 也会被重新拉起。结论：该项维持「声明偏差」并已在 `solosoul-plugin/Cargo.toml` 落注释说明（pulley 移动端必需非默认、cranelift 桌面 JIT 默认含）。
+- ② **P003/P004 净化逻辑补防回归测试**：P004 盖章逻辑已有 4 条单测（前轮）；本轮补 P003 双净化函数单测 6 条——`host.rs` `sanitize_attachment_file_name` 与 `export_import.rs` `sanitize_import_file_name` 各 3 条（正常名接受、含 `/`/`\` 分隔符拒绝、空/`.`/`..` 拒绝；`...` 为合法文件名应接受）。首轮审查发现 `"..."` 误入拒绝组（Path::file_name 对 `...` 返回 Some 且非空非点，函数本就接受）已移入接受组；顺带修复 `macos_vision.rs:151` 既有 clippy needless_return（此前 core all-targets 未覆盖）。验证：plugin test 56+2 ✅ / core test 148 ✅ / crate+GUI check ✅ / fmt ✅ / clippy 0 ✅，两轮审查通过。
+- ③ **`acl-manifests.json`** 自动生成改动仍未提交（仅 `plugin_copy_output_file` 一条），继续保留工作区，另行决策。
 
 ---
 

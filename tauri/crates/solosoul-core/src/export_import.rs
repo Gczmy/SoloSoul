@@ -998,6 +998,30 @@ mod tests {
     }
 
     #[test]
+    fn test_sanitize_import_file_name_accepts_normal_name() {
+        let result = sanitize_import_file_name("doc.pdf");
+        assert_eq!(result.unwrap(), "doc.pdf");
+        // "..." 是合法文件名（非空、非 . 非 ..），应被接受
+        assert_eq!(sanitize_import_file_name("...").unwrap(), "...");
+    }
+
+    #[test]
+    fn test_sanitize_import_file_name_rejects_path_separators() {
+        // P003 平台无关拒绝：正斜杠与反斜杠（Windows 反斜杠分隔符）
+        assert!(sanitize_import_file_name("../../evil.txt").is_err());
+        assert!(sanitize_import_file_name("..\\..\\evil.txt").is_err());
+        assert!(sanitize_import_file_name("a/b.txt").is_err());
+        assert!(sanitize_import_file_name("a\\b.txt").is_err());
+    }
+
+    #[test]
+    fn test_sanitize_import_file_name_rejects_dot_and_empty() {
+        assert!(sanitize_import_file_name("").is_err());
+        assert!(sanitize_import_file_name(".").is_err());
+        assert!(sanitize_import_file_name("..").is_err());
+    }
+
+    #[test]
     fn test_export_full_creates_valid_package() {
         let (vault, account_id, dir) = test_setup();
         vault

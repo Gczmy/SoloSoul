@@ -148,7 +148,7 @@ fn vision_cli_cache_root() -> Result<PathBuf, String> {
         let dir = std::env::temp_dir().join(format!("solosoul-vision-test-{}", std::process::id()));
         std::fs::create_dir_all(&dir)
             .map_err(|e| format!("创建 Vision CLI 测试缓存目录失败: {e}"))?;
-        return Ok(dir);
+        Ok(dir)
     }
     #[cfg(not(test))]
     {

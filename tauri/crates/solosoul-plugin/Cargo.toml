@@ -60,6 +60,10 @@ sha2 = { workspace = true }
 hex = { workspace = true }
 
 # Wasm runtime — 全平台支持
+# 注：`async` 不可移除——wasmtime 45 的 default features 已含 async，且 wasmtime-wasi
+# 的 p1 feature 传递依赖 wasmtime/async（sandbox.rs 使用 p1::add_to_linker_sync），
+# 即使 default-features=false 也会被重新拉起。`pulley` 为移动端 sandbox pulley64
+# target 必需、非默认；`cranelift` 为桌面 JIT（默认已含，显式声明保持自文档化）。
 wasmtime = { version = "45.0.1", features = ["async", "cranelift", "pulley"] }
 wasmtime-wasi = { version = "45.0.1", features = ["p1"] }
 
