@@ -12,6 +12,7 @@ pub mod types;
 // 共享模块：协议、Noise、传输、Delta、附件同步逻辑在所有平台可用。
 pub mod attachments;
 pub mod delta;
+pub mod identity;
 pub mod noise;
 pub mod recovery;
 pub mod session;
@@ -36,6 +37,9 @@ pub use types::{
 pub use manager::SyncManager;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 pub use service::SyncService;
+
+// 账户哈希计算（mDNS TXT account_hash 广播/比对），供 GUI 发现层过滤复用。
+pub use identity::sha256_hex_short;
 
 #[cfg(any(target_os = "android", target_os = "ios"))]
 pub use mobile::SyncService;

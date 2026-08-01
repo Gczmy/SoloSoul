@@ -6,10 +6,13 @@
 #[cfg(desktop)]
 use mdns_sd::{ServiceDaemon, ServiceEvent, ServiceInfo};
 use serde::Serialize;
+use solosoul_sync::sha256_hex_short;
 use std::sync::Arc;
 #[cfg(mobile)]
 use tauri::Manager;
 use tokio::sync::Mutex;
+
+use crate::state::AppState;
 
 /// 桌面端 mDNS 服务类型（完整域名后缀）。
 ///
@@ -96,10 +99,20 @@ pub struct DiscoveredDevice {
 #[cfg(desktop)]
 #[tauri::command]
 pub async fn mdns_discover(
+    state: tauri::State<'_, AppState>,
     daemon: tauri::State<'_, SharedDaemon>,
     timeout_ms: u64,
 ) -> Result<Vec<DiscoveredDevice>, String> {
     let timeout_ms = timeout_ms.min(MDNS_MAX_TIMEOUT_MS);
+    // P2：发现层过滤——只展示同一账户且非本机的设备，避免用户点击
+    // 其他账户的设备或本机触发无意义的 TCP 直连与英文握手报错。
+    // Vault 未解锁时无法确定本地身份，退化为不过滤（保持旧行为）。
+    let local_account_hash =
+        crate::commands::current_account_optional(&state).map(|id| sha256_hex_short(&id));
+    let local_node_id = crate::commands::vault_handle(&state)
+        .ok()
+        .and_then(|v| v.get_sync_node_id().ok().flatten());
+
     let daemon_arc = daemon.get().await?;
     let guard = daemon_arc.lock().await;
     let daemon = guard.as_ref().ok_or("mDNS daemon not initialized")?;
@@ -115,6 +128,30 @@ pub async fn mdns_discover(
         if let Ok(ServiceEvent::ServiceResolved(info)) =
             receiver.recv_timeout(std::time::Duration::from_millis(MDNS_POLL_INTERVAL_MS))
         {
+            // P2：解析 TXT 属性做账户/本机过滤（与 SyncManager 内部 account_hash 过滤一致）
+            let props = info.get_properties();
+            let peer_account_hash = props
+                .get("account_hash")
+                .map(|v| v.to_string())
+                .unwrap_or_default();
+            let peer_account_id = props
+                .get("account_id")
+                .map(|v| v.to_string())
+                .unwrap_or_default();
+            let peer_node_id = props
+                .get("node_id")
+                .map(|v| v.to_string())
+                .unwrap_or_default();
+            if !should_show_device(
+                &peer_account_hash,
+                &peer_account_id,
+                &peer_node_id,
+                local_account_hash.as_deref(),
+                local_node_id.as_deref(),
+            ) {
+                continue;
+            }
+
             // 桌面端 addresses 统一为 ip:port 形状（与移动端一致），
             // 前端 SyncPage 直接取 addresses[0] 传给 sync_with_device，
             // 裸 IP 无法被 SyncManager 解析为 SocketAddr 导致 "Peer not discovered"。
@@ -135,6 +172,37 @@ pub async fn mdns_discover(
     Ok(devices)
 }
 
+/// P2：判断发现的设备是否应展示给用户——同一账户（account_hash 比对，兼容旧版
+/// 明文 account_id 广播）且非本机（node_id 不相同）。本地身份未知时不过滤。
+#[cfg(desktop)]
+fn should_show_device(
+    peer_account_hash: &str,
+    peer_account_id: &str,
+    peer_node_id: &str,
+    local_account_hash: Option<&str>,
+    local_node_id: Option<&str>,
+) -> bool {
+    // 账户过滤：本地账户未知（Vault 未解锁）时不过滤
+    if let Some(local_hash) = local_account_hash {
+        let peer_hash = if !peer_account_hash.is_empty() {
+            peer_account_hash.to_string()
+        } else {
+            // 旧版客户端广播明文 account_id，取其哈希比对
+            sha256_hex_short(peer_account_id)
+        };
+        if peer_hash != local_hash {
+            return false;
+        }
+    }
+    // 本机过滤：peer 有 node_id 且与本地相同则跳过
+    if let (Some(local_node), peer_node) = (local_node_id, peer_node_id) {
+        if !peer_node.is_empty() && peer_node == local_node {
+            return false;
+        }
+    }
+    true
+}
+
 #[cfg(mobile)]
 #[tauri::command]
 pub async fn mdns_discover(
@@ -143,6 +211,20 @@ pub async fn mdns_discover(
     timeout_ms: u64,
 ) -> Result<Vec<DiscoveredDevice>, String> {
     let timeout_ms = timeout_ms.min(MDNS_MAX_TIMEOUT_MS);
+
+    // P2：发现层过滤——本机账户/节点身份。Vault 未解锁时无法确定本地身份，
+    // 退化为不过滤（保持旧行为）。
+    let app_state = app.state::<AppState>();
+    let local_account_id = crate::commands::current_account_optional(&app_state);
+    // 本地账户哈希：桌面端广播 account_hash，移动端 NSD 广播明文 account_id。
+    // 发现过滤需要同时兼容两种来源（Android 扫 macOS / Android 互扫）。
+    let local_account_hash = local_account_id.as_deref().map(sha256_hex_short);
+    // 移动端广播的 node_id 是设备名（SoloSoul-{fingerprint 前 8 位}），非 vault node id，
+    // 用于排除本机。指纹未知时跳过本机过滤。
+    let local_device_name = match app_state.sync_service.local_fingerprint().await {
+        Ok(fp) if !fp.is_empty() => Some(format!("SoloSoul-{}", &fp[..fp.len().min(8)])),
+        _ => None,
+    };
 
     // NSD 插件所有方法（request_permissions/start_discovery/get_discovered_services/
     // stop_discovery）底层都是 run_mobile_plugin 同步 IPC，会阻塞调用线程等待 Android
@@ -176,6 +258,29 @@ pub async fn mdns_discover(
         handle.stop_discovery()?;
         Ok(services
             .into_iter()
+            .filter(|s| {
+                // P2：同一账户（本地账户已知时才过滤）+ 非本机
+                let same_account = local_account_id
+                    .as_deref()
+                    .zip(local_account_hash.as_deref())
+                    .map(|(acc, acc_hash)| {
+                        // 桌面端 mDNS 广播 account_hash（无 account_id），移动端 NSD 广播
+                        // 明文 account_id（无 account_hash）。两种来源都兼容：有 account_hash
+                        // 按哈希比对（Android 扫 macOS），否则回退明文 account_id 比对（
+                        // Android 互扫）。不匹配任一来源的旧版服务（无账户信息）会被隐藏。
+                        if !s.account_hash.is_empty() {
+                            s.account_hash == acc_hash
+                        } else {
+                            s.account_id == acc
+                        }
+                    })
+                    .unwrap_or(true);
+                let not_self = local_device_name
+                    .as_deref()
+                    .map(|name| s.node_id != name)
+                    .unwrap_or(true);
+                same_account && not_self
+            })
             .map(|s| DiscoveredDevice {
                 name: s.node_id.clone(),
                 host: s.host.clone(),
@@ -393,6 +498,92 @@ mod tests {
                 "[fe80::1]:42069".to_string()
             ]
         );
+    }
+
+    #[test]
+    #[cfg(desktop)]
+    fn test_should_show_device_same_account_not_self() {
+        let local_hash = sha256_hex_short("acc-1");
+        // 同账户 + 非本机 → 展示
+        assert!(should_show_device(
+            &local_hash,
+            "",
+            "node-other",
+            Some(&local_hash),
+            Some("node-self")
+        ));
+    }
+
+    #[test]
+    #[cfg(desktop)]
+    fn test_should_show_device_filters_other_account() {
+        let local_hash = sha256_hex_short("acc-1");
+        let other_hash = sha256_hex_short("acc-2");
+        // 其他账户 → 隐藏
+        assert!(!should_show_device(
+            &other_hash,
+            "",
+            "node-other",
+            Some(&local_hash),
+            None
+        ));
+    }
+
+    #[test]
+    #[cfg(desktop)]
+    fn test_should_show_device_filters_self() {
+        let local_hash = sha256_hex_short("acc-1");
+        // 本机（node_id 相同）→ 隐藏
+        assert!(!should_show_device(
+            &local_hash,
+            "",
+            "node-self",
+            Some(&local_hash),
+            Some("node-self")
+        ));
+    }
+
+    #[test]
+    #[cfg(desktop)]
+    fn test_should_show_device_legacy_account_id_fallback() {
+        let local_hash = sha256_hex_short("acc-1");
+        // 旧版客户端广播明文 account_id（无 account_hash）→ 取其哈希比对
+        assert!(should_show_device(
+            "",
+            "acc-1",
+            "node-other",
+            Some(&local_hash),
+            None
+        ));
+        assert!(!should_show_device(
+            "",
+            "acc-2",
+            "node-other",
+            Some(&local_hash),
+            None
+        ));
+    }
+
+    #[test]
+    #[cfg(desktop)]
+    fn test_should_show_device_unknown_local_identity_passes() {
+        // 本地账户未知（Vault 未解锁）→ 不过滤账户；本机 node_id 已知时仍排除本机
+        assert!(should_show_device(
+            "",
+            "",
+            "node-other",
+            None,
+            Some("node-self")
+        ));
+        assert!(!should_show_device(
+            "",
+            "",
+            "node-self",
+            None,
+            Some("node-self")
+        ));
+        // 本地身份完全未知 → 全部展示（保持旧行为）
+        assert!(should_show_device("", "", "any-node", None, None));
     }
 
     #[test]

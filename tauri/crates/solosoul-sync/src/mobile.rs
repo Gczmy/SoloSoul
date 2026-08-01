@@ -3,7 +3,7 @@
 //! 移动端不使用桌面端的 mdns-sd，发现层由 Android NSD / iOS Bonjour 插件负责。
 //! 本模块仅负责启动 TCP 监听、接受入站同步连接、以及作为发起方与指定地址同步。
 
-use crate::session::{handle_inbound, run_initiator_session};
+use crate::session::{handle_inbound, run_initiator_session, wrap_session_error};
 use crate::transport::SyncTransport;
 use crate::types::{SyncPeerInfo, SyncSessionResult};
 use solosoul_core::vault_service::VaultService;
@@ -139,12 +139,12 @@ impl SyncService {
         }
         let addr: SocketAddr = device_id_or_addr
             .parse()
-            .map_err(|e| format!("Invalid address: {}", e))?;
+            .map_err(|e| format!("__SYNC_ERR__:invalid_address:{}", e))?;
 
         spawn_blocking(move || {
             let _guard = SessionGuard::new(active_sessions);
             let stream = std::net::TcpStream::connect_timeout(&addr, Duration::from_secs(10))
-                .map_err(|e| format!("connect: {}", e))?;
+                .map_err(|e| format!("__SYNC_ERR__:connect_failed:{}", e))?;
             let mut transport = SyncTransport::from_stream(stream);
             run_initiator_session(
                 &mut transport,
@@ -154,6 +154,7 @@ impl SyncService {
                 vault,
                 addr.to_string(),
             )
+            .map_err(wrap_session_error)
         })
         .await
         .map_err(|e| format!("spawn blocking: {}", e))?

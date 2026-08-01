@@ -21,6 +21,9 @@ const PLUGIN_IDENTIFIER: &str = "com.solosoul.app";
 pub struct NsdServiceInfo {
     pub node_id: String,
     pub account_id: String,
+    /// 桌面端广播的 account_hash（旧版/移动端可能缺失，默认空串）。
+    #[serde(default)]
+    pub account_hash: String,
     pub fingerprint: String,
     pub host: String,
     pub port: u16,

@@ -207,11 +207,13 @@ class NsdPlugin(private val activity: Activity): Plugin(activity) {
                 val txt = info.attributes
                 val nodeId = txt?.get("node_id")?.let { String(it) } ?: ""
                 val accountId = txt?.get("account_id")?.let { String(it) } ?: ""
+                val accountHash = txt?.get("account_hash")?.let { String(it) } ?: ""
                 val fingerprint = txt?.get("fingerprint")?.let { String(it) } ?: ""
 
                 val obj = JSONObject().apply {
                     put("nodeId", nodeId)
                     put("accountId", accountId)
+                    put("accountHash", accountHash)
                     put("fingerprint", fingerprint)
                     put("host", host)
                     put("port", port)

@@ -1,7 +1,8 @@
 //! SyncManager: mDNS discovery, TCP listener, and encrypted sync sessions.
 
+use crate::identity::sha256_hex_short;
 use crate::noise::NoiseKeys;
-use crate::session::{handle_inbound, run_initiator_session};
+use crate::session::{handle_inbound, run_initiator_session, wrap_session_error};
 use crate::transport::SyncTransport;
 use crate::types::{SyncPeerInfo, SyncSessionResult};
 use mdns_sd::{ServiceDaemon, ServiceEvent, ServiceInfo};
@@ -432,7 +433,7 @@ impl SyncManager {
         let result = spawn_blocking(move || {
             let _guard = SessionGuard::new(active_sessions);
             let stream = std::net::TcpStream::connect_timeout(&addr, Duration::from_secs(10))
-                .map_err(|e| format!("connect: {}", e))?;
+                .map_err(|e| format!("__SYNC_ERR__:connect_failed:{}", e))?;
             let mut transport = SyncTransport::from_stream(stream);
             run_initiator_session(
                 &mut transport,
@@ -442,6 +443,7 @@ impl SyncManager {
                 vault,
                 addr.to_string(),
             )
+            .map_err(wrap_session_error)
         })
         .await
         .map_err(|e| format!("spawn blocking: {}", e))?;
@@ -565,7 +567,12 @@ fn resolve_peer_addr(
 ) -> Result<SocketAddr, String> {
     // 输入是裸 IP（无端口）时，按 IP 匹配 discovered peer
     if let Ok(ip) = device_id_or_addr.parse::<IpAddr>() {
-        if let Some(peer) = discovered.values().find(|p| p.addr.ip() == ip) {
+        // P3：同一 IP 可能命中多个 peer（如同机多实例），按 node_id 排序后取第一个，
+        // 保证选择结果确定性，避免 HashMap 迭代顺序导致行为漂移。
+        let mut matches: Vec<&DiscoveredPeer> =
+            discovered.values().filter(|p| p.addr.ip() == ip).collect();
+        matches.sort_by(|a, b| a.node_id.cmp(&b.node_id));
+        if let Some(peer) = matches.first() {
             return Ok(peer.addr);
         }
     }
@@ -573,17 +580,6 @@ fn resolve_peer_addr(
         .get(device_id_or_addr)
         .map(|p| p.addr)
         .ok_or_else(|| format!("__SYNC_ERR__:peer_not_discovered:{}", device_id_or_addr))
-}
-
-/// 计算 SHA-256 哈希并返回前 16 字节的 hex 编码（32 字符）。
-/// 用于在 mDNS TXT 记录中广播 account_id 的哈希值，避免泄露原始账户标识。
-/// 截断为 16 字节（128 位）在局域网发现场景下碰撞风险极低且不影响安全性
-///（真正的身份验证在 Noise 握手阶段完成）。
-fn sha256_hex_short(input: &str) -> String {
-    use sha2::{Digest, Sha256};
-    let mut hasher = Sha256::new();
-    hasher.update(input.as_bytes());
-    hex::encode(&hasher.finalize()[..16])
 }
 
 fn format_duration_since(instant: Instant) -> String {
@@ -665,6 +661,23 @@ mod tests {
             "got: {}",
             err2
         );
+    }
+
+    /// P3：同一 IP 存在多个 peer（如同机多实例）时，按 node_id 排序保证确定性选择。
+    #[test]
+    fn test_resolve_peer_addr_same_ip_multiple_peers_deterministic() {
+        let mut map = HashMap::new();
+        insert_peer(&mut map, "node-b", [192, 168, 0, 33], 42069);
+        insert_peer(&mut map, "node-a", [192, 168, 0, 33], 42070);
+        insert_peer(&mut map, "node-c", [192, 168, 0, 34], 42071);
+
+        // 同 IP 两个 peer：应稳定命中 node_id 字典序最小的 node-a
+        let addr = resolve_peer_addr(&map, "192.168.0.33").unwrap();
+        assert_eq!(addr, "192.168.0.33:42070".parse::<SocketAddr>().unwrap());
+
+        // 重复调用结果一致（确定性）
+        let addr2 = resolve_peer_addr(&map, "192.168.0.33").unwrap();
+        assert_eq!(addr, addr2);
     }
 
     #[test]

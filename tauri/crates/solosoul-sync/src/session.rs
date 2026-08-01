@@ -46,6 +46,17 @@ fn check_session_deadline(start: Instant) -> Result<(), String> {
     }
 }
 
+/// 把同步会话/连接阶段返回的英文错误包装为 `__SYNC_ERR__:` 前缀，
+/// 供前端 `resolveBackendErrorMessage` 翻译（P2：握手/连接错误 i18n）。
+/// 已带 `__SYNC_ERR__:` 前缀的错误原样透传，避免二次包装。
+/// 桌面（manager.rs）与移动（mobile.rs）共用。
+pub(crate) fn wrap_session_error(err: String) -> String {
+    if err.starts_with("__SYNC_ERR__:") {
+        return err;
+    }
+    format!("__SYNC_ERR__:handshake_failed:{}", err)
+}
+
 /// 作为发起方与对端建立 Noise 会话并同步数据。
 pub fn run_initiator_session(
     transport: &mut SyncTransport,
