@@ -286,7 +286,9 @@ impl AppState {
                         .state::<AttachmentImportPluginHandle<tauri::Wry>>()
                         .cancel_fallback_sync();
                     // 清除已失效的 SAF 配置，避免下次启动重复进入此路径。
-                    let _ = Self::save_saf_uri(&data_dir, None);                    // 迁移 SAF temp cache 到本地目录，保全用户缓存数据。
+                    let _ = Self::save_saf_uri(&data_dir, None);
+
+                    // 迁移 SAF temp cache 到本地目录，保全用户缓存数据。
                     // 迁移失败不阻止降级（仅打日志）。
                     //
                     // 注意：这里必须用合并模式（clear_dst=false）！
@@ -296,17 +298,26 @@ impl AppState {
                     // 首次启动直接闪退（插件管理器初始化失败导致 AppState::new 报错）。
                     let temp_cache = data_dir.join("saf_vault_temp");
                     if temp_cache.exists() {
-                        tracing::info!(
-                            "[AppState] migrating SAF temp cache to local vault"
-                        );
-                        if let Err(e) = crate::commands::vault_directory::migrate_vault_data(
+                        tracing::info!("[AppState] migrating SAF temp cache to local vault");
+                        match crate::commands::vault_directory::migrate_vault_data(
                             &temp_cache,
                             &data_dir,
                             false,
                         ) {
-                            tracing::error!(
-                                "[AppState] temp cache migration failed (non-fatal): {e}"
-                            );
+                            Ok(()) => {
+                                // 合并迁移是 copy 而非 move，成功后删除残留副本，
+                                // 避免加密数据双份占用磁盘；失败仅打日志，不影响降级。
+                                if let Err(e) = std::fs::remove_dir_all(&temp_cache) {
+                                    tracing::warn!(
+                                        "[AppState] failed to clean up SAF temp cache: {e}"
+                                    );
+                                }
+                            }
+                            Err(e) => {
+                                tracing::error!(
+                                    "[AppState] temp cache migration failed (non-fatal): {e}"
+                                );
+                            }
                         }
                     }
                     // 降级到本地 vault
@@ -378,10 +389,8 @@ impl AppState {
                         // 插件初始化失败绝不中止应用启动——Android Release 构建
                         // 使用 panic=abort，AppState::new 返回 Err 会导致 setup 失败
                         // 直接闪退（曾因迁移误删 app_resources 触发此路径）。
-                        let fallback_dir = std::env::temp_dir().join(format!(
-                            "solosoul_plugin_fallback_{}",
-                            std::process::id()
-                        ));
+                        let fallback_dir = std::env::temp_dir()
+                            .join(format!("solosoul_plugin_fallback_{}", std::process::id()));
                         let _ = std::fs::create_dir_all(&fallback_dir);
                         match PluginManager::new_with_dirs(
                             fallback_dir.clone(),
@@ -396,7 +405,8 @@ impl AppState {
                                 // 极端情况（临时目录也不可写）下仍不中止启动，
                                 // 使用当前目录作为最后兜底；若仍失败仅打日志。
                                 match PluginManager::new_with_dirs(
-                                    std::env::current_dir().unwrap_or_else(|_| fallback_dir.clone()),
+                                    std::env::current_dir()
+                                        .unwrap_or_else(|_| fallback_dir.clone()),
                                     fallback_dir,
                                 ) {
                                     Ok(pm) => Arc::new(pm),

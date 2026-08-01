@@ -261,6 +261,7 @@ pub async fn recovery_host_cancel(state: State<'_, AppState>) -> Result<(), Stri
 /// - `overwrite` 为 false/None：由 `create_account_with_id` 返回 "Account ID already exists"，前端据此提示冲突。
 ///
 /// 覆盖仅发生在恢复包下载成功之后，网络/握手失败不会损毁本地数据。
+#[allow(clippy::too_many_arguments)]
 #[tauri::command]
 pub async fn recovery_restore_from_host(
     state: State<'_, AppState>,

@@ -1227,13 +1227,13 @@ mod tests {
         let account_a_id = account_a["id"].as_str().unwrap().to_string();
 
         // 恢复场景：同名（大小写不同）但 account_id 不同 → 允许（身份是 account_id）
-        let result = svc.create_account_with_id(
-            "acc_restore_same_name",
-            "zzc",
-            "password456",
-            None,
+        let result =
+            svc.create_account_with_id("acc_restore_same_name", "zzc", "password456", None);
+        assert!(
+            result.is_ok(),
+            "同名校验不应对恢复场景生效: {:?}",
+            result.err()
         );
-        assert!(result.is_ok(), "同名校验不应对恢复场景生效: {:?}", result.err());
         let account_b = result.unwrap();
         assert_eq!(account_b["name"], "zzc");
         assert_eq!(account_b["id"], "acc_restore_same_name");
@@ -1252,16 +1252,9 @@ mod tests {
         let account_id = account["id"].as_str().unwrap().to_string();
 
         // 相同 account_id → 拒绝，错误字符串稳定供前端识别冲突
-        let result = svc.create_account_with_id(
-            &account_id,
-            "Zzc",
-            "password456",
-            None,
-        );
+        let result = svc.create_account_with_id(&account_id, "Zzc", "password456", None);
         assert!(result.is_err());
-        assert!(result
-            .unwrap_err()
-            .contains("Account ID already exists"));
+        assert!(result.unwrap_err().contains("Account ID already exists"));
     }
 
     #[test]
