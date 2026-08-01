@@ -67,9 +67,7 @@ url = "2.5"
 minisign-verify = "0.2"
 local-ip-address = "0.6"
 
-# 插件系统 (Wasmtime 沙箱 + Host Functions) — 全平台支持
-wasmtime = { version = "45.0.1", features = ["cranelift", "runtime", "component-model", "pulley"] }
-wasmtime-wasi = { version = "45.0.1", default-features = false, features = ["p1"] }
+# 插件系统 (Wasmtime 沙箱 + Host Functions) — 全平台支持（wasmtime 依赖在 solosoul-plugin crate 内声明；P012 方向 B 第④步后 src-tauri 已无直接使用，第⑤步移除死依赖）
 
 # 平台专属：移动端（Android/iOS）
 [target.'cfg(any(target_os = "android", target_os = "ios"))'.dependencies]

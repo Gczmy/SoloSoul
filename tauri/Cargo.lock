@@ -6020,8 +6020,6 @@ dependencies = [
  "tracing-subscriber",
  "url",
  "uuid",
- "wasmtime",
- "wasmtime-wasi",
  "wat",
  "windows 0.61.3",
  "zeroize",
