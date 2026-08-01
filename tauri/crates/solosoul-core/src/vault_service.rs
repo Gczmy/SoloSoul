@@ -334,6 +334,16 @@ impl VaultService {
             .unwrap_or(false)
     }
 
+    /// 判断指定 `account_id` 的账户是否存在。
+    /// 仅查内存缓存（accounts_cache），不做任何文件 IO，
+    /// 适合需要高频判断但无需账户详情（如恢复覆盖前的存在性检查）的场景。
+    pub fn has_account(&self, account_id: &str) -> bool {
+        self.accounts_cache
+            .read()
+            .map(|c| c.contains_key(account_id))
+            .unwrap_or(false)
+    }
+
     pub fn list_accounts(&self) -> Vec<AccountSummary> {
         let cache = self.accounts_cache.read().ok();
         let accounts = match cache {
@@ -1375,6 +1385,23 @@ mod tests {
         svc.delete_account(account_id).unwrap();
         assert!(!svc.has_any_account());
         assert!(!svc.base_path().join(account_id).exists());
+    }
+
+    #[test]
+    fn test_has_account() {
+        let (svc, _dir) = setup_service();
+        // 无账户时返回 false
+        assert!(!svc.has_account("acc_nonexistent"));
+
+        // 创建账户后可按 account_id 命中（纯内存查询，无文件 IO）
+        let account = svc.create_account("Helen", "password123", None).unwrap();
+        let account_id = account["id"].as_str().unwrap().to_string();
+        assert!(svc.has_account(&account_id));
+        assert!(!svc.has_account("acc_other"));
+
+        // 删除后不再命中
+        svc.delete_account(&account_id).unwrap();
+        assert!(!svc.has_account(&account_id));
     }
 
     #[test]

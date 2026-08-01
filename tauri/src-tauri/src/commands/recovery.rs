@@ -311,14 +311,8 @@ pub async fn recovery_restore_from_host(
             .vault_service
             .read()
             .map_err(|_| "Vault service lock poisoned".to_string())?;
-        if overwrite.unwrap_or(false) {
-            let exists = svc
-                .list_accounts()
-                .iter()
-                .any(|a| a.id == account_id);
-            if exists {
-                svc.delete_account(&account_id)?;
-            }
+        if overwrite.unwrap_or(false) && svc.has_account(&account_id) {
+            svc.delete_account(&account_id)?;
         }
         svc.create_account_with_id(
             &account_id,
