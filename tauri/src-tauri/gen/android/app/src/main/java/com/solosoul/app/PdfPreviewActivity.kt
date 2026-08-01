@@ -11,6 +11,7 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.core.view.doOnLayout
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -77,7 +78,12 @@ class PdfPreviewActivity : AppCompatActivity() {
             return
         }
         openRenderer()
-        showPage(0)
+        // 关键：必须等首次布局完成后才能读取 pageImage.width。
+        // 若在 onCreate 中立即 showPage(0)，此时 width==0，会渲染出 1×1 位图，
+        // fitCenter 拉伸后显示为黑色块（PdfRenderer 经典时序 bug）。
+        pageImage.doOnLayout {
+            showPage(0)
+        }
     }
 
     override fun onDestroy() {
@@ -155,7 +161,9 @@ class PdfPreviewActivity : AppCompatActivity() {
         currentIndex = index
 
         // 按视图宽度等比缩放，避免内存浪费。
-        val viewWidth = pageImage.width.coerceAtLeast(1)
+        // 兜底：极端时序下 width 可能仍为 0（如布局未完成），回退到屏幕宽度，
+        // 保证位图尺寸有效，绝不渲染 1×1 位图。
+        val viewWidth = if (pageImage.width > 0) pageImage.width else resources.displayMetrics.widthPixels
         val scale = viewWidth.toFloat() / page.width.coerceAtLeast(1)
         val bitmapWidth = (page.width * scale).toInt().coerceAtLeast(1)
         val bitmapHeight = (page.height * scale).toInt().coerceAtLeast(1)
