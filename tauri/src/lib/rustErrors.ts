@@ -16,6 +16,7 @@ const RUST_ERROR_MAP: Record<string, string> = {
   'Account ID already exists': 'common:account_id_exists',
   'Account not found': 'common:account_not_found',
   'Password must be at least 8 characters': 'common:password_too_short',
+  'No account is currently unlocked': 'common:no_account_unlocked',
 
   // Backup
   'Backup name cannot be empty': 'common:backup_name_empty',

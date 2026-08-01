@@ -121,6 +121,34 @@ export function useRecoveryReceive({ isOpen, onClose, onSuccess }: UseRecoveryRe
         // 全局限流：短时间内失败次数过多，恢复服务暂时拒绝新连接。
         return t('common:recovery_too_many_attempts');
       }
+      if (lower.includes('invalid pin') || lower.includes('invalid nonce')) {
+        // PIN/二维码随机数不匹配：二维码可能已过期、已被使用，或 PIN 输入有误。
+        return t('common:recovery_invalid_pin');
+      }
+      if (lower.includes('identity verification failed') || lower.includes('possible mitm')) {
+        // 指纹校验失败：可能为中间人攻击，或指纹输入与旧设备屏幕不一致。
+        return t('common:recovery_mitm');
+      }
+      if (
+        lower.includes('read handshake') ||
+        lower.includes('unexpected auth response') ||
+        lower.includes('did not provide a static public key')
+      ) {
+        // 握手中断 / 协议异常：会话可能已中断或失效。
+        return t('common:recovery_handshake_failed');
+      }
+      if (lower.includes('incomplete transfer') || lower.includes('received more data than expected')) {
+        // 传输中断：连接在传输过程中断开。
+        return t('common:recovery_transfer_failed');
+      }
+      if (lower.includes('export file too large') || lower.includes('invalid file size')) {
+        // 恢复包超过大小限制。
+        return t('common:recovery_package_too_large');
+      }
+      if (lower.includes('recovery task failed')) {
+        // spawn_blocking join 失败（任务 panic/abort 时的内部错误）。
+        return t('common:recovery_task_failed');
+      }
       // 兜底：未命中的已知 Rust 错误先尝试 i18n 映射（如 Account ID already exists），
       // 命中则返回本地化文案，未命中才返回原始错误。
       const translated = translateRustError(raw);

@@ -7,6 +7,7 @@ import { X, Loader2, Copy, Check, ChevronDown, ChevronUp, QrCode, LifeBuoy } fro
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { resolveBackendErrorMessage } from '@/lib/backendError';
+import { translateRustError } from '@/lib/rustErrors';
 
 interface SyncShowQrDialogProps {
   isOpen: boolean;
@@ -135,7 +136,11 @@ export function SyncShowQrDialog({ isOpen, onClose }: SyncShowQrDialogProps) {
       const result = await invoke<RecoveryHostInfo>('recovery_host_start');
       setRecoveryInfo(result);
     } catch (err) {
-      setRecoveryError(String(err));
+      // 后端错误码（如 __SYNC_ERR__:not_enabled）经 resolveBackendErrorMessage 国际化；
+      // 静态 Rust 错误串（如 No account is currently unlocked）经 translateRustError 映射兜底。
+      const raw = String(err);
+      const translated = translateRustError(raw);
+      setRecoveryError(translated ? t(translated) : resolveBackendErrorMessage(raw));
       recoveryStartedRef.current = false;
     } finally {
       setRecoveryLoading(false);
