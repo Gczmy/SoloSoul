@@ -62,22 +62,28 @@ const quickCards: QuickCard[] = [
     descKey: 'settings_desc',
   },
   {
-    path: '/settings/export-import',
-    labelKey: 'import_export',
-    icon: PAGE_ICON_MAP.import_export,
-    descKey: 'import_export_desc',
-  },
-  {
-    path: '/sync',
-    labelKey: 'sync',
-    icon: PAGE_ICON_MAP.sync,
-    descKey: 'sync_desc',
-  },
-  {
     path: '/settings/trash',
     labelKey: 'trash',
     icon: PAGE_ICON_MAP.trash,
     descKey: 'trash_desc',
+  },
+  {
+    path: '/search',
+    labelKey: 'search',
+    icon: PAGE_ICON_MAP.search,
+    descKey: 'search_desc',
+  },
+  {
+    path: '/settings/templates',
+    labelKey: 'templates',
+    icon: PAGE_ICON_MAP.templates,
+    descKey: 'templates_desc',
+  },
+  {
+    path: '/settings/attachments',
+    labelKey: 'attachments',
+    icon: PAGE_ICON_MAP.attachments,
+    descKey: 'attachments_desc',
   },
   {
     path: '/plugins',
@@ -92,22 +98,28 @@ const quickCards: QuickCard[] = [
     descKey: 'ocr_desc',
   },
   {
-    path: '/search',
-    labelKey: 'search',
-    icon: PAGE_ICON_MAP.search,
-    descKey: 'search_desc',
+    path: '/settings/export-import',
+    labelKey: 'import_export',
+    icon: PAGE_ICON_MAP.import_export,
+    descKey: 'import_export_desc',
   },
   {
-    path: '/llm-chat',
-    labelKey: 'ai_chat',
-    icon: PAGE_ICON_MAP.ai_chat,
-    descKey: 'ai_chat_desc',
+    path: '/sync',
+    labelKey: 'sync',
+    icon: PAGE_ICON_MAP.sync,
+    descKey: 'sync_desc',
   },
   {
     path: '/help',
     labelKey: 'help',
     icon: PAGE_ICON_MAP.help,
     descKey: 'help_desc',
+  },
+  {
+    path: '/llm-chat',
+    labelKey: 'ai_chat',
+    icon: PAGE_ICON_MAP.ai_chat,
+    descKey: 'ai_chat_desc',
   },
 ];
 
