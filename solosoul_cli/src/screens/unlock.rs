@@ -234,6 +234,8 @@ mod tests {
             verify_hash: None,
             password_hint: None,
             created_at: None,
+            has_biometric_history: false,
+            has_pin_history: false,
         }];
         let i18n = I18n::new("zh-CN");
         terminal

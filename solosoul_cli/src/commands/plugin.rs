@@ -155,7 +155,10 @@ pub fn run_plugin(app: &mut App, plugin_id: Option<&str>, raw_params: &[&str]) -
                 };
 
             // 安装插件到本地
-            if let Err(e) = manager.install_from_registry(&plugin_id_clone, &version).await {
+            if let Err(e) = manager
+                .install_from_registry(&plugin_id_clone, &version)
+                .await
+            {
                 return format!("安装插件 {} 失败: {}", plugin_id_clone, e);
             }
 

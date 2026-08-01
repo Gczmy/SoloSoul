@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-01 15:36:00
+> 最后更新：2026-08-01 15:45:00
 > 当前分支：`main`
 > 修复轮次：3 + 复核轮次 1 + 决策轮次 + 复核轮次 2（2026-08-01 对「63/63 闭环」声明做了独立核验：**P004 因 P012 第④步回归重新打开**，P048 降级部分完成，新增 P064；见文末「复核记录（轮次 2）」）
 > 分析范围：`tauri/`（Rust 后端 `src-tauri/` + `crates/`，React/TS 前端 `src/`）；`solosoul_cli/` 不在本轮范围
@@ -83,14 +83,14 @@
 | P061 | P2 | 架构 | `tauri/src/pages/settings/GlobalAttachmentManager.tsx`（12 处直接 invoke） | 页面组件承载附件树遍历/聚合/批量编排等重业务逻辑，应下沉 store/lib（与 P024 关联） | `[x]` 已修复 |
 | P062 | P2 | 架构 | `tauri/src/stores/settingsStore.ts:154-307` | 主题/语言设置四副本（zustand+localStorage+ui_preferences.json+vault），需补写入路径矩阵注释或收敛 | `[x]` 已修复 |
 | P063 | P2 | 架构 | `tauri/Cargo.toml:73` | release profile `panic = "abort"`：未来新增生产代码引入 unwrap 时代价大，保留认知即可 | `[x]` 已处理（标记为「设计如此」，无需改动） |
-| P064 | P1 | 测试 | `solosoul_cli/src/screens/unlock.rs:230` | CLI `cargo test` 编译失败：测试夹具 `AccountSummary` 缺 `has_biometric_history`/`has_pin_history` 两字段（E0063），CLI 测试套件整体不可运行 | `[ ]` 待修复 |
+| P064 | P1 | 测试 | `solosoul_cli/src/screens/unlock.rs:230` | CLI `cargo test` 编译失败：测试夹具 `AccountSummary` 缺 `has_biometric_history`/`has_pin_history` 两字段（E0063），CLI 测试套件整体不可运行 | `[x]` 已修复（夹具补两字段 + 消除 P012 遗留 fmt 漂移，CLI test 146+2 全绿） |
 
 ## 修复进度
 
-- 已完成：**62 / 64**（复核轮次 2 确认：P003、P010、P011、P015、P017、P018、P041、P047、P012 六步均真实落地；P012 第⑥步声称的「plugin 49 测试」经复跑证实为 49 通过/2 忽略，数字属实；**P004 回归修复完成**，见详情）
+- 已完成：**63 / 64**（复核轮次 2 确认：P003、P010、P011、P015、P017、P018、P041、P047、P012 六步均真实落地；P012 第⑥步声称的「plugin 49 测试」经复跑证实为 49 通过/2 忽略，数字属实；**P004 回归修复完成**、**P064 CLI 测试夹具修复完成**，见详情）
 - 部分完成 `[~]`：1 项——P048（3 处纯样式 hover 误归为「功能性」未迁移）
-- 待修复 `[ ]`：1 项——P064（CLI 测试夹具编译失败）
-- 当前处理：P004 回归修复完成（2026-08-01 15:36），剩余 P064、P048 收尾
+- 待修复 `[ ]`：0 项
+- 当前处理：P064 修复完成（2026-08-01 15:45），剩余 P048 收尾
 - 复核轮次 2 基线：workspace `cargo fmt`/`clippy`/`test`（665 通过 0 失败，含 plugin 49+2 ignored）✅ / 前端 `tsc`+`eslint`+Vitest（44 文件 415 测试）✅ / **CLI `cargo test` 编译失败（E0063，见 P064）** ❌ / CLI `cargo clippy` ✅
 
 ## 静态基线之外已检查且无发现的维度（误报排除记录）
@@ -591,6 +591,8 @@ sync crate manager（`manager.rs:168`）`sync_enable` 时自建 `ServiceDaemon`�
 ### 新增问题
 
 **P064（P1，测试）**：`solosoul_cli/src/screens/unlock.rs:230` 测试夹具 `AccountSummary` 初始化缺 `has_biometric_history`/`has_pin_history` 两字段（`solosoul-core/src/vault_service.rs:181,184` 确有此二字段），E0063 导致 CLI 整个测试套件编译失败、不可运行。归因：安全轮次为 `AccountSummary` 新增字段后未同步 CLI 夹具。修复：夹具补两字段即可。
+
+**修复记录（2026-08-01 15:45，状态恢复 `[x]`）**：夹具初始化补 `has_biometric_history: false` / `has_pin_history: false` 两行（与 `AccountSummary` 的 `#[serde(default)]` bool 语义一致；该夹具是全 CLI 唯一的 `AccountSummary` 结构体字面量初始化，其余均为签名/类型标注，无连带遗漏）。顺带消除 P012 第②步（`0eb6ca28`）遗留的 `commands/plugin.rs:155` fmt 漂移（`.await` 链未格式化）。验证：CLI `cargo test` 146+2 全绿 ✅ / `fmt --check` ✅ / `clippy` 0 警告 ✅，审查通过。
 
 ### 其他注记
 
