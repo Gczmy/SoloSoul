@@ -40,14 +40,21 @@ interface SyncStoreState extends SyncStatus {
   recentResults: SyncResult[];
   discoveredDevices: DiscoveredDevice[];
   isDiscoveringDevices: boolean;
-  listenPort: number;
+  /** 本地监听地址（host:port，未启用时为空串）。 */
+  listenAddr: string;
   conflicts: SyncConflictSummary[];
   selectedConflict: SyncConflictDetail | null;
   /** 是否有未查看的冲突通知（由 sync-conflicts-updated 事件触发）。 */
   hasUnreadConflicts: boolean;
+  /** 配对中（A 侧发起方）：等待对端确认配对的 peer。 */
+  pairingPendingPeerId: string | null;
+  /** 配对中（A 侧发起方）：发起同步时使用的地址，用于确认信任后自动重试。 */
+  pairingPendingAddr: string | null;
+  /** 入站配对请求（B 侧响应方）：AppShell 全局监听后弹出确认对话框。 */
+  incomingPairingRequest: SyncPeer | null;
 
   loadStatus: () => Promise<void>;
-  loadListenPort: () => Promise<void>;
+  loadListenAddr: () => Promise<void>;
   enable: (enabled: boolean) => Promise<void>;
   discoverDevices: (timeoutMs?: number) => Promise<void>;
   syncWithDevice: (deviceId: string) => Promise<void>;
@@ -62,6 +69,12 @@ interface SyncStoreState extends SyncStatus {
   markConflictsRead: () => void;
   initConflictListener: () => Promise<UnlistenFn>;
   initNsdFailedListener: () => Promise<UnlistenFn>;
+  /** 监听入站配对请求事件（sync-pairing-request），B 用户任意页面都能收到。 */
+  initPairingRequestListener: () => Promise<UnlistenFn>;
+  /** 清除 A 侧配对中状态（取消等待 / 配对完成）。 */
+  clearPairingPending: () => void;
+  /** 清除 B 侧入站配对请求。 */
+  clearIncomingPairingRequest: () => void;
 }
 
 export const useSyncStore = create<SyncStoreState>((set, get) => {
@@ -90,10 +103,13 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
   recentResults: [],
   discoveredDevices: [],
   isDiscoveringDevices: false,
-  listenPort: 0,
+  listenAddr: '',
   conflicts: [],
   selectedConflict: null,
   hasUnreadConflicts: false,
+  pairingPendingPeerId: null,
+  pairingPendingAddr: null,
+  incomingPairingRequest: null,
 
   loadStatus: async () => {
     try {
@@ -104,10 +120,10 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
     }
   },
 
-  loadListenPort: async () => {
+  loadListenAddr: async () => {
     try {
-      const port = await invoke<number>('sync_listen_port');
-      set({ listenPort: port });
+      const addr = await invoke<string>('sync_listen_addr');
+      set({ listenAddr: addr });
     } catch (err) {
       set({ error: String(err) });
     }
@@ -136,12 +152,12 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
         ]);
         clearTimeout(timeoutHandle);
         set({ ...result.status, isLoading: false, error: null });
-        // 启用后自动发现附近设备，同时刷新监听端口用于手动 fallback
+        // 启用后自动发现附近设备，同时刷新监听地址用于手动 fallback
         if (enabled) {
           void get().discoverDevices(5000);
-          void get().loadListenPort();
+          void get().loadListenAddr();
         } else {
-          set({ discoveredDevices: [], listenPort: 0, isDiscoveringDevices: false });
+          set({ discoveredDevices: [], listenAddr: '', isDiscoveringDevices: false });
         }
       } catch (err) {
         clearTimeout(timeoutHandle);
@@ -199,7 +215,22 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
         recentResults: [result, ...state.recentResults].slice(0, 10),
       }));
     } catch (err) {
-      set({ isLoading: false, error: String(err) });
+      const raw = String(err);
+      // 对端尚未信任本设备 → 进入双侧确认配对流程（A 侧发起方）。
+      // B 已被 record_peer 持久化（含指纹），重读状态后弹配对卡片。
+      const pairingMatch = raw.match(/^__SYNC_ERR__:pairing_pending:(.+)$/);
+      if (pairingMatch) {
+        const peerId = pairingMatch[1];
+        await get().loadStatus();
+        set({
+          isLoading: false,
+          error: null,
+          pairingPendingPeerId: peerId,
+          pairingPendingAddr: deviceId,
+        });
+        return;
+      }
+      set({ isLoading: false, error: raw });
     }
   },
 
@@ -279,6 +310,42 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
         );
       }
     });
+  },
+
+  /** 初始化 sync-pairing-request 事件监听器（入站配对请求）。
+   *  后端在响应方落库一条新的未信任 peer 记录时触发；
+   *  AppShell 全局挂载后，B 用户不在同步页也能收到配对确认对话框。
+   *  返回 unlisten 函数，调用方应在组件卸载时调用以清理。 */
+  initPairingRequestListener: (): Promise<UnlistenFn> => {
+    return listen<{ nodeId: string; fingerprint: string; addr: string; deviceName: string }>(
+      'sync-pairing-request',
+      (event) => {
+        const p = event.payload;
+        const deviceName =
+          p.deviceName ||
+          (p.fingerprint ? `SoloSoul-${p.fingerprint.slice(0, 8)}` : p.nodeId);
+        set({
+          incomingPairingRequest: {
+            id: p.nodeId,
+            name: deviceName,
+            addr: p.addr || '',
+            fingerprint: p.fingerprint || '',
+            trusted: false,
+            lastSeen: '',
+          },
+        });
+      },
+    );
+  },
+
+  /** 清除 A 侧配对中状态（取消等待 / 配对完成 / 忽略）。 */
+  clearPairingPending: () => {
+    set({ pairingPendingPeerId: null, pairingPendingAddr: null });
+  },
+
+  /** 清除 B 侧入站配对请求（确认或忽略后）。 */
+  clearIncomingPairingRequest: () => {
+    set({ incomingPairingRequest: null });
   },
 
   /** 初始化 sync-nsd-failed 事件监听器（移动端 NSD 注册失败）。

@@ -1,9 +1,12 @@
+import { useEffect } from 'react';
 import styles from './AppShell.module.css';
 import { SideNavigation } from './SideNavigation';
 import { TopFunctionBar } from './TopFunctionBar';
 import { MobileBottomNav } from './MobileBottomNav';
 import { AppBar } from './AppBar';
+import { PairingDialog } from '@/components/sync/PairingDialog';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { useSyncStore } from '@/stores/syncStore';
 import { useIsNarrowViewport } from '@/hooks/useIsNarrowViewport';
 
 const FUNCTION_BAR_HEIGHT = 48;
@@ -22,6 +25,33 @@ export function AppShell({ children, title, actions, onBack }: AppShellProps) {
   const effectivePosition = isNarrowViewport ? 'bottom' : sidebarPosition;
   const isTop = effectivePosition === 'top';
   const isHorizontal = isTop || effectivePosition === 'bottom';
+
+  // B 侧入站配对请求：全局挂载监听（响应方用户不在同步页也能弹出配对确认对话框）。
+  // 入站 Hello 落库一条新的未信任 peer 记录时，后端 emit sync-pairing-request。
+  // 使用 selector 只订阅 incomingPairingRequest，避免整个 store 变化导致全页面重渲染。
+  const incomingPairingRequest = useSyncStore((s) => s.incomingPairingRequest);
+  useEffect(() => {
+    let unlisten: (() => void) | undefined;
+    useSyncStore
+      .getState()
+      .initPairingRequestListener()
+      .then((fn) => {
+        unlisten = fn;
+      });
+    return () => unlisten?.();
+  }, []);
+
+  const handleIncomingTrust = async () => {
+    const s = useSyncStore.getState();
+    if (!s.incomingPairingRequest) return;
+    await s.trustPeer(s.incomingPairingRequest.id, true);
+    await s.loadStatus();
+    s.clearIncomingPairingRequest();
+  };
+
+  const handleIncomingIgnore = () => {
+    useSyncStore.getState().clearIncomingPairingRequest();
+  };
 
   return (
     <div
@@ -61,6 +91,13 @@ export function AppShell({ children, title, actions, onBack }: AppShellProps) {
       >
         <main className={styles.content}>{children}</main>
       </div>
+      {/* B 侧入站配对请求全局对话框（任意页面可弹出） */}
+      <PairingDialog
+        isOpen={!!incomingPairingRequest}
+        peer={incomingPairingRequest}
+        onTrust={handleIncomingTrust}
+        onIgnore={handleIncomingIgnore}
+      />
     </div>
   );
 }

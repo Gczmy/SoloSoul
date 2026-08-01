@@ -11,6 +11,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { Fingerprint, ShieldCheck, ScanFace, AlertTriangle } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/constants';
 import { useAutoLockPauseStore } from '@/stores/autoLockPauseStore';
+import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 
 interface BiometricSectionProps {
   accountId: string;
@@ -34,60 +35,6 @@ interface BioAvailability {
 }
 
 type BioMode = 'strong' | 'weak';
-
-/** 开关滑块（抽取以避免两行重复） */
-function ToggleSwitch({
-  checked,
-  onChange,
-  disabled = false,
-}: {
-  checked: boolean;
-  onChange: () => void;
-  disabled?: boolean;
-}) {
-  return (
-    <label
-      style={{
-        position: 'relative',
-        display: 'inline-block',
-        width: 44,
-        height: 24,
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        flexShrink: 0,
-        opacity: 1,
-      }}
-    >
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={disabled ? () => {} : onChange}
-        style={{ opacity: 0, width: 0, height: 0 }}
-      />
-      <span
-        style={{
-          position: 'absolute',
-          inset: 0,
-          background: checked ? 'var(--accent-primary)' : 'var(--border-subtle)',
-          borderRadius: 12,
-          transition: '0.2s',
-        }}
-      />
-      <span
-        style={{
-          position: 'absolute',
-          top: 2,
-          left: checked ? 22 : 2,
-          width: 20,
-          height: 20,
-          borderRadius: '50%',
-          background: 'white',
-          transition: '0.2s',
-          boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
-        }}
-      />
-    </label>
-  );
-}
 
 export function BiometricSection({ accountId }: BiometricSectionProps) {
   const { t } = useTranslation(['settings', 'common']);

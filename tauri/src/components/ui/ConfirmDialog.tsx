@@ -12,6 +12,8 @@ interface ConfirmDialogProps {
   onConfirm: () => void;
   onCancel: () => void;
   priority?: 'default' | 'important' | 'auth';
+  /** 可选插槽：渲染在 message 与按钮之间（如「忘记设备」确认框中的设备信息块）。 */
+  children?: React.ReactNode;
 }
 
 export function ConfirmDialog({
@@ -23,12 +25,14 @@ export function ConfirmDialog({
   onConfirm,
   onCancel,
   priority = 'default',
+  children,
 }: ConfirmDialogProps) {
   const { t } = useTranslation('common');
 
   return (
     <Dialog isOpen={isOpen} onClose={onCancel} title={title} priority={priority}>
       <p className={styles.message}>{message}</p>
+      {children}
       <div className={styles.actions}>
         <Button variant="secondary" onClick={onCancel}>
           {cancelLabel ?? t('cancel', { defaultValue: 'Cancel' })}

@@ -363,6 +363,25 @@ impl AppState {
         // ── SyncService ──
         let sync_service = Arc::new(SyncService::new(vault_service.clone()));
 
+        // 装配入站新 peer 回调 → 全局事件 sync-pairing-request。
+        // 响应方在入站 Hello 落库一条新的未信任 peer 记录时触发，前端任意页面
+        // （AppShell 全局挂载）都能弹出配对确认对话框，无需用户停留在同步页。
+        {
+            use solosoul_sync::types::NewPeerInfo;
+            let emit_handle = handle.clone();
+            sync_service.set_peer_callback(Some(Arc::new(move |info: NewPeerInfo| {
+                let _ = emit_handle.emit(
+                    "sync-pairing-request",
+                    serde_json::json!({
+                        "nodeId": info.node_id,
+                        "fingerprint": info.fingerprint,
+                        "addr": info.addr,
+                        "deviceName": info.device_name,
+                    }),
+                );
+            })));
+        }
+
         // ── DeviceAutoSyncManager（设备间自动同步，依赖 SyncService） ──
         let device_auto_sync =
             DeviceAutoSyncManager::new(sync_service.clone(), vault_service.clone(), handle.clone());

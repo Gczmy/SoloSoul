@@ -16,7 +16,7 @@ use crate::hlc::{Hlc, SyncWatermark};
 use crate::noise::{NoiseKeys, NoiseSession};
 use crate::protocol::SyncMessage;
 use crate::transport::SyncTransport;
-use crate::types::{ApplyStats, AttachmentSyncStats, SyncSessionResult};
+use crate::types::{ApplyStats, AttachmentSyncStats, NewPeerInfo, PeerCallback, SyncSessionResult};
 use solosoul_vault::{PeerSyncState, VaultStore};
 use std::path::Path;
 use std::sync::Arc;
@@ -121,7 +121,9 @@ pub fn run_initiator_session(
             }
             record_peer(&vault, &pid, &peer_addr, &public_key_fingerprint)?;
             if !t {
-                return Err("Peer is not trusted".to_string());
+                // 发起方侧：响应方尚未信任本设备。返回带 peer_node_id 的配对中错误码，
+                // 前端据此进入「双侧确认配对」流程（不裸报英文，走 __SYNC_ERR__ 前缀 i18n）。
+                return Err(format!("__SYNC_ERR__:pairing_pending:{}", pid));
             }
             (pid, t)
         }
@@ -195,6 +197,9 @@ pub fn run_initiator_session(
 }
 
 /// 作为响应方处理入站同步连接。
+///
+/// `peer_callback`：入站 Hello 落库一条**新的未信任** peer 记录时触发，
+/// 供 GUI 向所有页面广播配对请求（B 用户不在同步页也能收到配对确认对话框）。
 #[allow(clippy::too_many_arguments)]
 pub fn handle_inbound(
     transport: &mut SyncTransport,
@@ -203,50 +208,66 @@ pub fn handle_inbound(
     keys: &NoiseKeys,
     vault: Arc<VaultStore>,
     peer_addr: String,
+    peer_callback: Option<PeerCallback>,
 ) -> Result<SyncSessionResult, String> {
     let session_start = Instant::now();
     let mut session = NoiseSession::handshake_responder(transport, keys)?;
 
-    let (peer_node_id, _peer_account, _fingerprint) = match recv_msg(&mut session, transport)? {
-        SyncMessage::Hello {
-            node_id: pid,
-            account_id: pacc,
-            public_key_fingerprint,
-            protocol_version: peer_version,
-        } => {
-            check_session_deadline(session_start)?;
-            // 校验发起方协议版本是否兼容。
-            if peer_version < MIN_PROTOCOL_VERSION {
-                send_msg(
-                    &mut session,
-                    transport,
-                    &SyncMessage::Error {
-                        message: format!(
-                            "Unsupported protocol version {} (minimum required: {})",
-                            peer_version, MIN_PROTOCOL_VERSION
-                        ),
-                    },
-                )?;
-                return Err(format!(
-                    "Peer protocol version {} is below minimum supported {}",
-                    peer_version, MIN_PROTOCOL_VERSION
-                ));
+    let (peer_node_id, _peer_account, peer_fingerprint, is_new_peer) =
+        match recv_msg(&mut session, transport)? {
+            SyncMessage::Hello {
+                node_id: pid,
+                account_id: pacc,
+                public_key_fingerprint,
+                protocol_version: peer_version,
+            } => {
+                check_session_deadline(session_start)?;
+                // 校验发起方协议版本是否兼容。
+                if peer_version < MIN_PROTOCOL_VERSION {
+                    send_msg(
+                        &mut session,
+                        transport,
+                        &SyncMessage::Error {
+                            message: format!(
+                                "Unsupported protocol version {} (minimum required: {})",
+                                peer_version, MIN_PROTOCOL_VERSION
+                            ),
+                        },
+                    )?;
+                    return Err(format!(
+                        "Peer protocol version {} is below minimum supported {}",
+                        peer_version, MIN_PROTOCOL_VERSION
+                    ));
+                }
+                if pacc != account_id {
+                    send_msg(
+                        &mut session,
+                        transport,
+                        &SyncMessage::Error {
+                            message: "Account mismatch".to_string(),
+                        },
+                    )?;
+                    return Err("Account mismatch".to_string());
+                }
+                let is_new = record_peer(&vault, &pid, &peer_addr, &public_key_fingerprint)?;
+                (pid, pacc, public_key_fingerprint, is_new)
             }
-            if pacc != account_id {
-                send_msg(
-                    &mut session,
-                    transport,
-                    &SyncMessage::Error {
-                        message: "Account mismatch".to_string(),
-                    },
-                )?;
-                return Err("Account mismatch".to_string());
-            }
-            record_peer(&vault, &pid, &peer_addr, &public_key_fingerprint)?;
-            (pid, pacc, public_key_fingerprint)
+            _ => return Err("Expected Hello".to_string()),
+        };
+
+    // 入站 Hello 落库了一条新的未信任记录 → 触发配对请求回调。
+    // 已信任的旧记录（重新握手）不重复弹窗；新记录默认 trusted=false。
+    if is_new_peer {
+        if let Some(cb) = &peer_callback {
+            let device_name = peer_display_name(&peer_fingerprint, &peer_addr);
+            cb(NewPeerInfo {
+                node_id: peer_node_id.clone(),
+                fingerprint: peer_fingerprint,
+                addr: peer_addr.clone(),
+                device_name,
+            });
         }
-        _ => return Err("Expected Hello".to_string()),
-    };
+    }
 
     let trusted = vault
         .load_peer_state(&peer_node_id)?
@@ -450,28 +471,42 @@ fn send_paginated_deltas(
     send_msg(session, transport, &SyncMessage::Done)
 }
 
+/// 派生对端显示名：fingerprint 非空 → SoloSoul-<fp 前 8 位>，否则回退到地址。
+/// 与移动端 NSD 注册 / QR 卡片的设备名规则保持一致。
+fn peer_display_name(fingerprint: &str, addr: &str) -> String {
+    if fingerprint.is_empty() {
+        addr.to_string()
+    } else {
+        format!("SoloSoul-{}", &fingerprint[..fingerprint.len().min(8)])
+    }
+}
+
+/// 记录 peer。返回该 peer 是否为**新**记录（此前不存在）。
+/// 新记录的设备名改为 SoloSoul-<fp 前 8 位>（老数据由前端 formatPeerName 派生兼容，无需迁移）。
 fn record_peer(
     vault: &VaultStore,
     peer_node_id: &str,
     addr: &str,
     fingerprint: &str,
-) -> Result<(), String> {
+) -> Result<bool, String> {
     let now = chrono::Utc::now().to_rfc3339();
     let existing = vault.load_peer_state(peer_node_id)?;
+    let is_new = existing.is_none();
     let mut peer = existing.unwrap_or_else(|| PeerSyncState {
         peer_node_id: peer_node_id.to_string(),
-        peer_name: Some(addr.to_string()),
+        peer_name: Some(peer_display_name(fingerprint, addr)),
         trusted: false,
         public_key_fingerprint: Some(fingerprint.to_string()),
         last_seen: Some(chrono::Utc::now().timestamp()),
         created_at: now.clone(),
         updated_at: now.clone(),
     });
-    peer.peer_name = Some(addr.to_string());
+    // 已有记录不覆盖名字（可能被用户重命名），仅刷新指纹与最近在线时间。
     peer.public_key_fingerprint = Some(fingerprint.to_string());
     peer.last_seen = Some(chrono::Utc::now().timestamp());
     peer.updated_at = now;
-    vault.save_peer_state(&peer)
+    vault.save_peer_state(&peer)?;
+    Ok(is_new)
 }
 
 fn send_msg(
@@ -496,5 +531,45 @@ fn vault_to_watermark(wm: &solosoul_vault::SyncWatermark) -> SyncWatermark {
         wall_time_ms: wm.wall_time_ms,
         counter: wm.counter,
         node_id: Hlc::parse_node_id_bytes(&wm.node_id),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_peer_display_name_uses_fingerprint_prefix() {
+        assert_eq!(
+            peer_display_name("a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6", "192.168.0.1:42069"),
+            "SoloSoul-a1b2c3d4"
+        );
+    }
+
+    #[test]
+    fn test_peer_display_name_short_fingerprint() {
+        assert_eq!(peer_display_name("ab12", "10.0.0.2:42069"), "SoloSoul-ab12");
+    }
+
+    #[test]
+    fn test_peer_display_name_empty_fingerprint_falls_back_to_addr() {
+        assert_eq!(
+            peer_display_name("", "192.168.0.1:42069"),
+            "192.168.0.1:42069"
+        );
+    }
+
+    /// P2：pairing_pending 错误走 `__SYNC_ERR__:` 前缀，不被 wrap_session_error 二次包装。
+    #[test]
+    fn test_wrap_session_error_passes_through_pairing_pending() {
+        let err = "__SYNC_ERR__:pairing_pending:node-abc".to_string();
+        assert_eq!(wrap_session_error(err.clone()), err);
+    }
+
+    #[test]
+    fn test_wrap_session_error_wraps_plain_error() {
+        let wrapped = wrap_session_error("Peer is not trusted".to_string());
+        assert!(wrapped.starts_with("__SYNC_ERR__:handshake_failed:"));
+        assert!(wrapped.ends_with("Peer is not trusted"));
     }
 }

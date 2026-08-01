@@ -18,8 +18,8 @@
 
 use crate::manager::SyncManager;
 use crate::noise::NoiseKeys;
-use crate::types::{SyncPeerInfo, SyncSessionResult};
-use std::sync::Arc;
+use crate::types::{PeerCallback, SyncPeerInfo, SyncSessionResult};
+use std::sync::{Arc, RwLock};
 use tokio::sync::Mutex;
 
 use solosoul_core::vault_service::VaultService;
@@ -27,6 +27,8 @@ use solosoul_core::vault_service::VaultService;
 pub struct SyncService {
     vault_service: Arc<std::sync::RwLock<VaultService>>,
     manager: Mutex<Option<Arc<SyncManager>>>,
+    /// 入站新 peer 回调钩子（创建 manager 时注入）。
+    peer_callback: Arc<RwLock<Option<PeerCallback>>>,
 }
 
 impl SyncService {
@@ -34,6 +36,14 @@ impl SyncService {
         Self {
             vault_service,
             manager: Mutex::new(None),
+            peer_callback: Arc::new(RwLock::new(None)),
+        }
+    }
+
+    /// 设置入站新 peer 回调钩子（GUI 装配 `sync-pairing-request` 事件推送用）。
+    pub fn set_peer_callback(&self, callback: Option<PeerCallback>) {
+        if let Ok(mut guard) = self.peer_callback.write() {
+            *guard = callback;
         }
     }
 
@@ -76,6 +86,8 @@ impl SyncService {
             };
             let (node_id, keys) = get_or_create_sync_identity(&vault)?;
             let manager = SyncManager::new(node_id, account_id, keys, vault.clone(), "0.0.0.0:0");
+            // 注入入站新 peer 回调（配对请求事件推送）
+            manager.set_peer_callback(self.peer_callback.read().ok().and_then(|g| g.clone()));
             match shared_daemon {
                 Some(d) => manager.start_with_daemon(d).await?,
                 None => manager.start().await?,

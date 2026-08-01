@@ -5,6 +5,7 @@
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::sync::Arc;
 
 /// Information about a discovered or known peer.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -62,3 +63,16 @@ pub struct SyncSessionResult {
     pub data: ApplyStats,
     pub attachments: AttachmentSyncStats,
 }
+
+/// 新 peer 配对请求信息（响应方在入站 Hello 落库一条新的未信任记录时触发）。
+#[derive(Debug, Clone)]
+pub struct NewPeerInfo {
+    pub node_id: String,
+    pub fingerprint: String,
+    pub addr: String,
+    pub device_name: String,
+}
+
+/// 新 peer 回调钩子：入站 Hello record_peer 落库一条新的未信任记录时触发。
+/// 供 GUI 装配 `sync-pairing-request` 事件推送（B 用户不在同步页也能收到配对请求）。
+pub type PeerCallback = Arc<dyn Fn(NewPeerInfo) + Send + Sync>;

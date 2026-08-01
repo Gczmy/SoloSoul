@@ -4,13 +4,13 @@ use crate::identity::sha256_hex_short;
 use crate::noise::NoiseKeys;
 use crate::session::{handle_inbound, run_initiator_session, wrap_session_error};
 use crate::transport::SyncTransport;
-use crate::types::{SyncPeerInfo, SyncSessionResult};
+use crate::types::{PeerCallback, SyncPeerInfo, SyncSessionResult};
 use mdns_sd::{ServiceDaemon, ServiceEvent, ServiceInfo};
 use solosoul_vault::{PeerSyncState, VaultStore};
 use std::collections::HashMap;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr, TcpListener, UdpSocket};
 use std::sync::atomic::{AtomicBool, AtomicU16, AtomicUsize, Ordering};
-use std::sync::{Arc, Mutex};
+use std::sync::{Arc, Mutex, RwLock};
 use std::time::{Duration, Instant};
 use tokio::task::{spawn, spawn_blocking, JoinHandle};
 
@@ -76,6 +76,9 @@ pub struct SyncManager {
     /// 正在进行的同步会话数量。`stop()` 会等待此计数归零后再终止 worker，
     /// 避免中途 abort 正在写入 Vault 的会话导致数据不一致。
     active_sessions: Arc<AtomicUsize>,
+    /// 入站新 peer 回调钩子：响应方落库新的未信任记录时触发。
+    /// GUI 用它向前端推送 `sync-pairing-request` 事件（B 用户不在同步页也能收到配对请求）。
+    peer_callback: Arc<RwLock<Option<PeerCallback>>>,
 }
 
 impl SyncManager {
@@ -99,6 +102,7 @@ impl SyncManager {
             shared_daemon: AtomicBool::new(false),
             worker_handles: Mutex::new(Vec::new()),
             active_sessions: Arc::new(AtomicUsize::new(0)),
+            peer_callback: Arc::new(RwLock::new(None)),
         }
     }
 
@@ -152,6 +156,7 @@ impl SyncManager {
         let keys = self.keys.clone();
         let vault = self.vault.clone();
         let active_sessions = self.active_sessions.clone();
+        let peer_callback = self.peer_callback.clone();
         // TCP accept loop (blocking std listener)
         let accept_handle = spawn_blocking(move || loop {
             if !running.load(Ordering::SeqCst) {
@@ -167,6 +172,7 @@ impl SyncManager {
                     let keys = keys.clone();
                     let vault = vault.clone();
                     let guard = SessionGuard::new(active_sessions.clone());
+                    let cb = peer_callback.read().ok().and_then(|g| g.clone());
                     spawn_blocking(move || {
                         let _guard = guard; // 持有直到会话结束
                         let mut transport = SyncTransport::from_stream(stream);
@@ -177,6 +183,7 @@ impl SyncManager {
                             &keys,
                             vault,
                             addr.to_string(),
+                            cb,
                         );
                     });
                 }
@@ -524,6 +531,13 @@ impl SyncManager {
     /// Remove a peer from persisted state.
     pub fn forget_peer(&self, peer_node_id: &str) -> Result<(), String> {
         self.vault.delete_peer(peer_node_id)
+    }
+
+    /// 设置入站新 peer 回调钩子（GUI 装配 `sync-pairing-request` 事件推送用）。
+    pub fn set_peer_callback(&self, callback: Option<PeerCallback>) {
+        if let Ok(mut guard) = self.peer_callback.write() {
+            *guard = callback;
+        }
     }
 
     fn local_ips() -> Vec<Ipv4Addr> {

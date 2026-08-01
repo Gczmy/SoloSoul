@@ -617,6 +617,34 @@ pub async fn sync_listen_port(state: State<'_, AppState>) -> Result<u16, String>
     Ok(state.sync_service.listen_port().await)
 }
 
+/// 返回本地监听地址（`host:port`），与移动端形状一致，供前端状态卡完整展示。
+/// 未启用（端口 0）时返回空串，前端据此隐藏地址行。
+#[cfg(mobile)]
+#[tauri::command]
+pub async fn sync_listen_addr(state: State<'_, AppState>) -> Result<String, String> {
+    let port = state.sync_service.listen_port().await;
+    if port == 0 {
+        return Ok(String::new());
+    }
+    let host = local_display_ip()
+        .await
+        .unwrap_or_else(|| "127.0.0.1".to_string());
+    Ok(format!("{}:{}", host, port))
+}
+
+#[cfg(desktop)]
+#[tauri::command]
+pub async fn sync_listen_addr(state: State<'_, AppState>) -> Result<String, String> {
+    let port = state.sync_service.listen_port().await;
+    if port == 0 {
+        return Ok(String::new());
+    }
+    let host = local_display_ip()
+        .await
+        .unwrap_or_else(|| "127.0.0.1".to_string());
+    Ok(format!("{}:{}", host, port))
+}
+
 #[cfg(desktop)]
 #[tauri::command]
 pub async fn sync_with_device(

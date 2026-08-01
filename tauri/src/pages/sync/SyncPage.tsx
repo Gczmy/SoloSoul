@@ -12,6 +12,7 @@ import {
   WifiOff,
   RefreshCw,
   ShieldOff,
+  ShieldCheck,
   ChevronDown,
   ChevronUp,
   QrCode,
@@ -22,8 +23,11 @@ import { PageGuideButton } from '@/components/guide/PageGuideButton';
 import { SyncConflictDialog } from '@/components/sync/SyncConflictDialog';
 import { SyncShowQrDialog } from '@/components/sync/SyncShowQrDialog';
 import { SyncScanQrDialog } from '@/components/sync/SyncScanQrDialog';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
+import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import { useSyncPage } from './useSyncPage';
 import { resolveBackendErrorMessage } from '@/lib/backendError';
+import { formatPeerName } from '@/lib/syncPeer';
 import { ICON_SIZE } from '@/lib/constants';
 import type { SyncConflict } from '@/lib/ipc';
 
@@ -49,6 +53,10 @@ export function SyncPage() {
     manualAddr,
     setManualAddr,
     pendingPeer,
+    pairingPendingPeer,
+    pairWaitState,
+    pairTarget,
+    forgetTarget,
     activityOpen,
     setActivityOpen,
     conflictDialogOpen,
@@ -65,9 +73,19 @@ export function SyncPage() {
     handleSyncWithDevice,
     handleTrustPending,
     handleIgnorePending,
+    handleConfirmPairing,
+    handleCancelPairing,
+    handleOpenPairTarget,
+    handleForgetRequest,
+    handleForgetConfirm,
+    handleForgetCancel,
     handleOpenConflictDialog,
     handleScanSync,
   } = useSyncPage();
+
+  // 配对对话框目标：A 侧等待流程优先（pairingPendingPeer），否则「去配对」手动目标，否则自动检测
+  const activePairPeer = pairingPendingPeer || pairTarget || pendingPeer;
+  const isWaitingFlow = !!pairingPendingPeer;
 
   return (
     <AppShell
@@ -483,59 +501,116 @@ export function SyncPage() {
               <RefreshCw size={ICON_SIZE.sm} />
             </Button>
           </div>
+          <p
+            style={{
+              fontSize: 'var(--text-caption)',
+              color: 'var(--text-tertiary)',
+              marginTop: 8,
+              marginBottom: 12,
+            }}
+          >
+            {t('settings:sync_known_devices_hint', {
+              defaultValue: 'Devices you have discovered or connected to before; only trusted devices can sync.',
+            })}
+          </p>
 
           {store.connectedPeers.length > 0 ? (
             <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {store.connectedPeers.map((peer) => (
-                <div
-                  key={peer.id}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 10,
-                    padding: '10px 12px',
-                    borderRadius: 8,
-                    background: 'var(--bg-toolbar)',
-                  }}
-                >
-                  <Smartphone size={ICON_SIZE.lg} style={{ color: 'var(--accent-primary)' }} />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500 }}>
-                      {peer.name || peer.id}
-                    </div>
-                    <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
-                      {peer.addr || 'offline'} · {peer.lastSeen || 'never'}
-                    </div>
-                    <div
-                      style={{
-                        fontSize: 'var(--text-badge)',
-                        color: 'var(--text-tertiary)',
-                        fontFamily: 'monospace',
-                        wordBreak: 'break-all',
-                      }}
-                    >
-                      {peer.fingerprint}
-                    </div>
-                  </div>
-                  <div style={{ display: 'flex', gap: 6 }}>
-                    {peer.trusted && (
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        onClick={() => store.trustPeer(peer.id, false)}
-                        title={t('settings:sync_revoke', { defaultValue: 'Revoke' })}
+              {store.connectedPeers.map((peer) => {
+                const displayName = formatPeerName(peer);
+                return (
+                  <div
+                    key={peer.id}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 10,
+                      padding: '10px 12px',
+                      borderRadius: 8,
+                      background: 'var(--bg-toolbar)',
+                    }}
+                  >
+                    <Smartphone size={ICON_SIZE.lg} style={{ color: 'var(--accent-primary)' }} />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div
+                        style={{
+                          fontSize: 'var(--text-body-sm)',
+                          fontWeight: 500,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 8,
+                        }}
                       >
-                        <ShieldOff size={ICON_SIZE.sm} />
-                      </Button>
-                    )}
-                    <DeleteButton
-                      onClick={() => store.forgetPeer(peer.id)}
-                      title={t('settings:sync_forget', { defaultValue: 'Forget' })}
-                      iconOnly
-                    />
+                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {displayName}
+                        </span>
+                        <span
+                          style={{
+                            fontSize: 'var(--text-badge)',
+                            padding: '2px 8px',
+                            borderRadius: 999,
+                            flexShrink: 0,
+                            background: peer.trusted
+                              ? 'rgba(39,174,96,0.12)'
+                              : 'rgba(128,128,128,0.1)',
+                            color: peer.trusted ? '#27ae60' : 'var(--text-tertiary)',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {peer.trusted
+                            ? t('settings:sync_trusted_badge', { defaultValue: 'Trusted' })
+                            : t('settings:sync_untrusted_badge', { defaultValue: 'Not trusted' })}
+                        </span>
+                      </div>
+                      <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
+                        {peer.addr || 'offline'} · {peer.lastSeen || 'never'}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 'var(--text-badge)',
+                          color: 'var(--text-tertiary)',
+                          fontFamily: 'monospace',
+                          wordBreak: 'break-all',
+                        }}
+                      >
+                        {peer.fingerprint}
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      {peer.trusted ? (
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => store.trustPeer(peer.id, false)}
+                          title={t('settings:sync_revoke_tooltip', {
+                            defaultValue: 'Revoke trust: keep the record, reject its syncs',
+                          })}
+                        >
+                          <ShieldOff size={ICON_SIZE.sm} />
+                        </Button>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => handleOpenPairTarget(peer)}
+                          title={t('settings:sync_pair_tooltip', {
+                            defaultValue: 'Pair this device',
+                          })}
+                        >
+                          <ShieldCheck size={ICON_SIZE.sm} />
+                        </Button>
+                      )}
+                      <DeleteButton
+                        onClick={() => handleForgetRequest(peer)}
+                        title={t('settings:sync_forget_tooltip', {
+                          defaultValue: 'Forget: delete the record, you will need to re-pair',
+                        })}
+                        iconOnly
+                      />
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <p
@@ -554,12 +629,69 @@ export function SyncPage() {
         </Card>
       </PageContainer>
 
+      {/* 配对对话框：A 侧等待流程 / 去配对 / 自动检测 */}
       <PairingDialog
-        isOpen={!!pendingPeer}
-        peer={pendingPeer}
-        onTrust={handleTrustPending}
-        onIgnore={handleIgnorePending}
+        isOpen={!!activePairPeer}
+        peer={activePairPeer}
+        waiting={isWaitingFlow && pairWaitState === 'waiting'}
+        waitFailed={isWaitingFlow && pairWaitState === 'failed'}
+        onTrust={isWaitingFlow ? handleConfirmPairing : handleTrustPending}
+        onIgnore={isWaitingFlow ? handleCancelPairing : handleIgnorePending}
+        onCancelWaiting={handleCancelPairing}
+        confirmLabel={
+          isWaitingFlow
+            ? t('settings:sync_pairing_confirm_wait', { defaultValue: 'Confirm & Wait' })
+            : undefined
+        }
       />
+      {/* 忘记设备二次确认（ConfirmDialog children 插槽展示设备信息） */}
+      <ConfirmDialog
+        isOpen={!!forgetTarget}
+        title={t('settings:sync_forget_confirm_title', { defaultValue: 'Forget device?' })}
+        message={t('settings:sync_forget_confirm_desc', {
+          defaultValue:
+            'The connection record will be deleted. You will need to pair again to sync.',
+        })}
+        confirmLabel={t('settings:sync_forget_confirm_ok', { defaultValue: 'Forget' })}
+        onConfirm={handleForgetConfirm}
+        onCancel={handleForgetCancel}
+      >
+        {forgetTarget && (
+          <div
+            style={{
+              marginBottom: 12,
+              padding: 12,
+              borderRadius: 8,
+              background: 'var(--bg-toolbar)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 6,
+              fontSize: 'var(--text-caption)',
+            }}
+          >
+            <div>
+              <strong>{t('settings:sync_forget_confirm_device', { defaultValue: 'Device' })}:</strong>{' '}
+              {formatPeerName(forgetTarget)}
+            </div>
+            <div>
+              <strong>{t('settings:sync_forget_confirm_addr', { defaultValue: 'Address' })}:</strong>{' '}
+              {forgetTarget.addr || 'offline'}
+            </div>
+            <div>
+              <strong>{t('settings:sync_forget_confirm_fp', { defaultValue: 'Fingerprint' })}:</strong>{' '}
+              <span style={{ fontFamily: 'monospace', wordBreak: 'break-all' }}>
+                {forgetTarget.fingerprint || '-'}
+              </span>
+            </div>
+            <div>
+              <strong>{t('settings:sync_forget_confirm_trust', { defaultValue: 'Trust status' })}:</strong>{' '}
+              {forgetTarget.trusted
+                ? t('settings:sync_trusted_badge', { defaultValue: 'Trusted' })
+                : t('settings:sync_untrusted_badge', { defaultValue: 'Not trusted' })}
+            </div>
+          </div>
+        )}
+      </ConfirmDialog>
       <SyncConflictDialog
         isOpen={conflictDialogOpen}
         conflicts={store.conflicts}
@@ -671,29 +803,11 @@ function SyncStatusCard({
             })}
           </div>
         </div>
-        <button
-          onClick={onToggleAutoSync}
+        <ToggleSwitch
+          checked={store.autoSyncEnabled}
+          onChange={onToggleAutoSync}
           disabled={!store.syncEnabled || store.isLoading}
-          style={{
-            padding: '8px 16px',
-            borderRadius: 8,
-            border: store.autoSyncEnabled
-              ? '1px solid var(--accent-primary)'
-              : '1px solid var(--border-subtle)',
-            background: 'var(--bg-elevated)',
-            color: store.autoSyncEnabled ? 'var(--accent-primary)' : 'var(--text-primary)',
-            fontSize: 'var(--text-body-sm)',
-            fontWeight: 500,
-            cursor: !store.syncEnabled || store.isLoading ? 'default' : 'pointer',
-            opacity: !store.syncEnabled || store.isLoading ? 0.6 : 1,
-            transition: 'all 0.15s ease',
-            fontFamily: 'inherit',
-          }}
-        >
-          {store.autoSyncEnabled
-            ? t('settings:sync_auto_on', { defaultValue: 'On' })
-            : t('settings:sync_auto_off', { defaultValue: 'Off' })}
-        </button>
+        />
       </div>
 
       {store.localFingerprint && (
@@ -712,7 +826,7 @@ function SyncStatusCard({
           {store.localFingerprint}
         </div>
       )}
-      {store.syncEnabled && store.listenPort !== 0 && (
+      {store.syncEnabled && store.listenAddr && (
         <div
           style={{
             marginTop: 8,
@@ -721,10 +835,12 @@ function SyncStatusCard({
             background: 'var(--bg-toolbar)',
             fontSize: 'var(--text-caption)',
             color: 'var(--text-secondary)',
+            fontFamily: 'monospace',
+            wordBreak: 'break-all',
           }}
         >
-          <strong>{t('settings:sync_your_port', { defaultValue: 'Your listen port' })}:</strong>{' '}
-          {store.listenPort}
+          <strong>{t('settings:sync_your_addr', { defaultValue: 'Your listen address' })}:</strong>{' '}
+          {store.listenAddr}
         </div>
       )}
     </Card>

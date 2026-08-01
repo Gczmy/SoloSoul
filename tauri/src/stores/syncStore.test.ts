@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+// 注意：以下 mock 必须在使用 useSyncStore 之前声明（hoisted）。
+
 const mockInvoke = vi.fn();
 vi.mock('@tauri-apps/api/core', () => ({
   invoke: (...args: unknown[]) => mockInvoke(...args),
@@ -16,6 +18,83 @@ vi.mock('@tauri-apps/api/event', () => ({
 }));
 
 import { useSyncStore } from './syncStore';
+
+describe('syncStore pairing_pending detection', () => {
+  beforeEach(() => {
+    handlers.clear();
+    mockInvoke.mockReset();
+    mockUnlisten.mockClear();
+    useSyncStore.setState({
+      isLoading: false,
+      error: null,
+      lastResult: null,
+      pairingPendingPeerId: null,
+      pairingPendingAddr: null,
+      incomingPairingRequest: null,
+    });
+  });
+
+  it('detects pairing_pending error and enters A-side pairing flow', async () => {
+    // 首次 sync_with_device 返回 pairing_pending；随后 loadStatus 返回状态
+    mockInvoke
+      .mockImplementationOnce(() =>
+        Promise.reject('__SYNC_ERR__:pairing_pending:node-B'),
+      )
+      .mockResolvedValueOnce({
+        isDiscovering: false,
+        syncEnabled: true,
+        autoSyncEnabled: false,
+        localFingerprint: 'fp',
+        connectedPeers: [
+          { id: 'node-B', name: 'SoloSoul-ab12cd34', addr: '10.0.0.2:42069', fingerprint: 'ab12cd34', trusted: false, lastSeen: 'now' },
+        ],
+      });
+
+    await useSyncStore.getState().syncWithDevice('10.0.0.2:42069');
+
+    const s = useSyncStore.getState();
+    expect(s.pairingPendingPeerId).toBe('node-B');
+    expect(s.pairingPendingAddr).toBe('10.0.0.2:42069');
+    expect(s.error).toBeNull();
+    expect(s.isLoading).toBe(false);
+  });
+
+  it('keeps generic error for non-pairing failures', async () => {
+    mockInvoke.mockImplementationOnce(() => Promise.reject('__SYNC_ERR__:connect_failed:timeout'));
+
+    await useSyncStore.getState().syncWithDevice('10.0.0.99:42069');
+
+    const s = useSyncStore.getState();
+    expect(s.pairingPendingPeerId).toBeNull();
+    expect(s.error).toContain('__SYNC_ERR__:connect_failed');
+  });
+
+  it('clearPairingPending resets A-side flow', () => {
+    useSyncStore.setState({ pairingPendingPeerId: 'node-B', pairingPendingAddr: '10.0.0.2:42069' });
+    useSyncStore.getState().clearPairingPending();
+    expect(useSyncStore.getState().pairingPendingPeerId).toBeNull();
+    expect(useSyncStore.getState().pairingPendingAddr).toBeNull();
+  });
+
+  it('initPairingRequestListener sets incomingPairingRequest on event', async () => {
+    const unlisten = await useSyncStore.getState().initPairingRequestListener();
+    const handler = handlers.get('sync-pairing-request');
+    expect(handler).toBeDefined();
+
+    handler!({ payload: { nodeId: 'node-A', fingerprint: 'aabbccdd11223344', addr: '10.0.0.1:42069', deviceName: 'SoloSoul-aabbccdd' } });
+
+    const req = useSyncStore.getState().incomingPairingRequest;
+    expect(req).not.toBeNull();
+    expect(req!.id).toBe('node-A');
+    expect(req!.name).toBe('SoloSoul-aabbccdd');
+    expect(req!.fingerprint).toBe('aabbccdd11223344');
+    expect(req!.trusted).toBe(false);
+
+    useSyncStore.getState().clearIncomingPairingRequest();
+    expect(useSyncStore.getState().incomingPairingRequest).toBeNull();
+    expect(unlisten).toBe(mockUnlisten);
+  });
+});
 
 describe('syncStore initNsdFailedListener', () => {
   beforeEach(() => {
