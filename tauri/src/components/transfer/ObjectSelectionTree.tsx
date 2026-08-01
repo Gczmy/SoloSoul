@@ -115,10 +115,27 @@ export function ObjectSelectionTree({
             indeterminate={totalSelected > 0 && totalSelected < totalObjects}
             onChange={() => onSelectAll(selectAll)}
           />
-          <span style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500, flex: 1 }}>
+          <span
+            style={{
+              fontSize: 'var(--text-body-sm)',
+              fontWeight: 500,
+              flex: 1,
+              minWidth: 0,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
             {totalSelected === totalObjects ? t('common:deselect_all') : t('common:select_all')}
           </span>
-          <span style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
+          <span
+            style={{
+              fontSize: 'var(--text-caption)',
+              color: 'var(--text-tertiary)',
+              flexShrink: 0,
+              whiteSpace: 'nowrap',
+            }}
+          >
             {t('common:object_count', { n: totalSelected })}
           </span>
         </div>
@@ -159,6 +176,8 @@ export function ObjectSelectionTree({
                     fontSize: 'var(--text-body)',
                     fontWeight: 600,
                     flex: 1,
+                    minWidth: 0,
+                    overflow: 'hidden',
                     display: 'flex',
                     alignItems: 'center',
                     gap: 4,
@@ -169,12 +188,14 @@ export function ObjectSelectionTree({
                       transform: expanded ? 'rotate(90deg)' : 'none',
                       transition: 'transform 0.15s',
                       fontSize: 'var(--text-badge)',
+                      flexShrink: 0,
                     }}
                   >
                     ▶
                   </span>
                   <span
                     style={{
+                      minWidth: 0,
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
                       whiteSpace: 'nowrap',
@@ -183,7 +204,14 @@ export function ObjectSelectionTree({
                     {t(`navigation:${group.sectionType}`, group.pageName ?? group.sectionType)}
                   </span>
                 </span>
-                <span style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
+                <span
+                  style={{
+                    fontSize: 'var(--text-caption)',
+                    color: 'var(--text-tertiary)',
+                    flexShrink: 0,
+                    whiteSpace: 'nowrap',
+                  }}
+                >
                   {t('common:object_count', { n: group.objectCount ?? group.objects.length })}
                 </span>
               </div>
@@ -209,6 +237,7 @@ export function ObjectSelectionTree({
                         style={{
                           fontSize: 'var(--text-body-sm)',
                           flex: 1,
+                          minWidth: 0,
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
                           whiteSpace: 'nowrap',
@@ -235,6 +264,7 @@ export function ObjectSelectionTree({
                             transform: expandedObjects.has(obj.id) ? 'rotate(90deg)' : 'none',
                             transition: 'transform 0.15s',
                             color: 'var(--text-tertiary)',
+                            flexShrink: 0,
                           }}
                         >
                           ▶
@@ -293,13 +323,24 @@ export function ObjectSelectionTree({
                                   size={ICON_SIZE['2xs']}
                                   style={{ color: 'var(--text-tertiary)', flexShrink: 0 }}
                                 />
-                                <span style={{ fontSize: 'var(--text-caption)', flex: 1 }}>
+                                <span
+                                  style={{
+                                    fontSize: 'var(--text-caption)',
+                                    flex: 1,
+                                    minWidth: 0,
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    whiteSpace: 'nowrap',
+                                  }}
+                                >
                                   {att.fileName}
                                 </span>
                                 <span
                                   style={{
                                     fontSize: 'var(--text-badge)',
                                     color: 'var(--text-tertiary)',
+                                    flexShrink: 0,
+                                    whiteSpace: 'nowrap',
                                   }}
                                 >
                                   {formatBytes(att.sizeBytes)}
