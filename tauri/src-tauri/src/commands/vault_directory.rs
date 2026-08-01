@@ -207,7 +207,7 @@ pub async fn vault_set_directory(
                     "sync-progress",
                     serde_json::json!({"phase": "migrate", "current": 1, "total": 3}),
                 );
-                migrate_vault_data(&local_dir, &temp_dir_inner)?;
+                migrate_vault_data(&local_dir, &temp_dir_inner, true)?;
                 let _ = handle.emit(
                     "sync-progress",
                     serde_json::json!({"phase": "migrate", "current": 2, "total": 3}),
@@ -374,20 +374,35 @@ pub async fn vault_check_directory<R: Runtime>(app: AppHandle<R>) -> Result<bool
 include!(concat!(env!("OUT_DIR"), "/app_level_names.rs"));
 
 /// 把 src 目录下的 Vault 数据迁移到 dst 目录。
+///
+/// - `clear_dst = true`：迁移前清空 dst 顶层（用于全新目标目录，如首次
+///   切换到 SAF 时把本地数据迁入空的 `saf_vault_temp`）。
+/// - `clear_dst = false`：不清空 dst，仅把 src 内容合并进 dst（用于 SAF
+///   降级场景——此时 src（`saf_vault_temp`）位于 dst（应用数据目录）内部，
+///   若清空 dst 会连带删除源目录本身与应用级目录，导致数据丢失与启动闪退）。
+///
 /// 仅顶层跳过应用级配置、资源、缓存和 SAF 临时目录本身，避免循环/冲突；
 /// 嵌套目录中的同名文件夹仍正常迁移，避免误删用户 Vault 数据。
 pub(crate) fn migrate_vault_data(
     src: &std::path::Path,
     dst: &std::path::Path,
+    clear_dst: bool,
 ) -> Result<(), String> {
-    fn inner(src: &std::path::Path, dst: &std::path::Path, depth: usize) -> Result<(), String> {
+    fn inner(
+        src: &std::path::Path,
+        dst: &std::path::Path,
+        depth: usize,
+        clear_dst: bool,
+    ) -> Result<(), String> {
         if src == dst {
             return Ok(());
         }
         std::fs::create_dir_all(dst).map_err(|e| format!("创建目标目录失败: {e}"))?;
 
-        // 仅在顶层目录清空目标，避免嵌套时误删已迁移的兄弟目录。
-        if depth == 0 {
+        // 仅在顶层且要求清空时清空目标，避免嵌套时误删已迁移的兄弟目录。
+        // 注意：SAF 降级场景（src 位于 dst 内部）必须传 false，
+        // 否则会先删除源目录本身及应用级目录（logs/app_resources/models）。
+        if depth == 0 && clear_dst {
             if let Ok(entries) = std::fs::read_dir(dst) {
                 for entry in entries {
                     let entry = entry.map_err(|e| format!("读取目标目录项失败: {e}"))?;
@@ -417,7 +432,7 @@ pub(crate) fn migrate_vault_data(
             let dst_path = dst.join(&name);
 
             if entry.file_type().map_err(|e| e.to_string())?.is_dir() {
-                inner(&src_path, &dst_path, depth + 1)?;
+                inner(&src_path, &dst_path, depth + 1, clear_dst)?;
             } else {
                 std::fs::copy(&src_path, &dst_path).map_err(|e| format!("复制文件失败: {e}"))?;
             }
@@ -426,7 +441,7 @@ pub(crate) fn migrate_vault_data(
         Ok(())
     }
 
-    inner(src, dst, 0)
+    inner(src, dst, 0, clear_dst)
 }
 
 #[cfg(test)]
@@ -454,7 +469,7 @@ mod tests {
             }
         }
 
-        migrate_vault_data(src.path(), dst.path()).unwrap();
+        migrate_vault_data(src.path(), dst.path(), true).unwrap();
 
         // Vault 数据应被迁移
         assert!(dst.path().join("vault.db").exists());
@@ -477,7 +492,7 @@ mod tests {
         std::fs::create_dir_all(&user_resources).unwrap();
         std::fs::write(user_resources.join("object.txt"), "user data").unwrap();
 
-        migrate_vault_data(src.path(), dst.path()).unwrap();
+        migrate_vault_data(src.path(), dst.path(), true).unwrap();
 
         // 顶层的 "resources" 目录不存在（因为 src 顶层没有），
         // 但 Vault 内部的 "objects/resources" 应该被保留
@@ -494,8 +509,64 @@ mod tests {
         let src = tempfile::TempDir::new().unwrap();
         std::fs::write(src.path().join("vault.db"), "vault data").unwrap();
 
-        migrate_vault_data(src.path(), src.path()).unwrap();
+        migrate_vault_data(src.path(), src.path(), true).unwrap();
 
         assert!(src.path().join("vault.db").exists());
+    }
+
+    /// 回归测试：SAF 降级场景 src（saf_vault_temp）位于 dst（应用数据目录）内部。
+    /// 使用合并模式（clear_dst=false）时不得清空 dst——否则会连同源目录本身
+    /// 以及 logs/app_resources/models 等应用级目录一起删除，
+    /// 导致用户数据被毁并触发插件管理器初始化失败（启动闪退）。
+    #[test]
+    fn test_migrate_vault_data_merge_keeps_src_inside_dst() {
+        let root = tempfile::TempDir::new().unwrap();
+        let dst = root.path().to_path_buf();
+        let src = dst.join("saf_vault_temp");
+        std::fs::create_dir_all(&src).unwrap();
+
+        // src 中的 Vault 数据
+        std::fs::write(src.join("accounts.json"), "[]").unwrap();
+        std::fs::create_dir_all(src.join("acc_1")).unwrap();
+        std::fs::write(src.join("acc_1").join("config.json"), "{}").unwrap();
+
+        // dst 中的应用级目录（合并模式下必须保留）
+        std::fs::create_dir_all(dst.join("logs")).unwrap();
+        std::fs::write(dst.join("logs").join("app.log"), "log").unwrap();
+        std::fs::create_dir_all(dst.join("app_resources")).unwrap();
+        std::fs::write(dst.join("app_resources").join("f.txt"), "f").unwrap();
+
+        // 合并迁移：不清空 dst
+        migrate_vault_data(&src, &dst, false).unwrap();
+
+        // Vault 数据应合并到 dst 顶层
+        assert!(dst.join("accounts.json").exists());
+        assert!(dst.join("acc_1").join("config.json").exists());
+
+        // 应用级目录应保留，且 src 本身不被删除
+        assert!(dst.join("logs").join("app.log").exists());
+        assert!(dst.join("app_resources").join("f.txt").exists());
+        assert!(src.join("accounts.json").exists(), "源目录不应被清空");
+    }
+
+    /// 与上面合并模式对称：clear_dst=true 时仍会清空目标顶层（切换 SAF 场景），
+    /// 确保新增参数没有破坏既有清空语义。
+    #[test]
+    fn test_migrate_vault_data_clear_dst_still_clears_dst() {
+        let src = tempfile::TempDir::new().unwrap();
+        let dst = tempfile::TempDir::new().unwrap();
+        std::fs::write(src.path().join("accounts.json"), "[]").unwrap();
+
+        // dst 中残留旧数据
+        std::fs::write(dst.path().join("old.db"), "old").unwrap();
+        std::fs::create_dir_all(dst.path().join("old_dir")).unwrap();
+        std::fs::write(dst.path().join("old_dir").join("x.txt"), "x").unwrap();
+
+        migrate_vault_data(src.path(), dst.path(), true).unwrap();
+
+        // 清空模式：旧数据被清除，新数据写入
+        assert!(!dst.path().join("old.db").exists());
+        assert!(!dst.path().join("old_dir").exists());
+        assert!(dst.path().join("accounts.json").exists());
     }
 }

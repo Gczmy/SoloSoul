@@ -286,15 +286,23 @@ impl AppState {
                         .state::<AttachmentImportPluginHandle<tauri::Wry>>()
                         .cancel_fallback_sync();
                     // 清除已失效的 SAF 配置，避免下次启动重复进入此路径。
-                    let _ = Self::save_saf_uri(&data_dir, None);
-                    // 迁移 SAF temp cache 到本地目录，保全用户缓存数据。
+                    let _ = Self::save_saf_uri(&data_dir, None);                    // 迁移 SAF temp cache 到本地目录，保全用户缓存数据。
                     // 迁移失败不阻止降级（仅打日志）。
+                    //
+                    // 注意：这里必须用合并模式（clear_dst=false）！
+                    // src（saf_vault_temp）位于 dst（data_dir）内部，若按默认
+                    // 模式先清空 dst，会连带删除源目录本身以及 logs / app_resources
+                    // / models 等应用级目录——用户数据被毁、插件市场目录被删，
+                    // 首次启动直接闪退（插件管理器初始化失败导致 AppState::new 报错）。
                     let temp_cache = data_dir.join("saf_vault_temp");
                     if temp_cache.exists() {
-                        tracing::info!("[AppState] migrating SAF temp cache to local vault");
+                        tracing::info!(
+                            "[AppState] migrating SAF temp cache to local vault"
+                        );
                         if let Err(e) = crate::commands::vault_directory::migrate_vault_data(
                             &temp_cache,
                             &data_dir,
+                            false,
                         ) {
                             tracing::error!(
                                 "[AppState] temp cache migration failed (non-fatal): {e}"
@@ -366,12 +374,46 @@ impl AppState {
                             "[AppState] PluginManager 回退构造也失败: {:#}（将继续无插件启动）",
                             fallback_err
                         );
-                        match PluginManager::new() {
+                        // 最终兜底：使用系统临时目录构造空插件管理器。
+                        // 插件初始化失败绝不中止应用启动——Android Release 构建
+                        // 使用 panic=abort，AppState::new 返回 Err 会导致 setup 失败
+                        // 直接闪退（曾因迁移误删 app_resources 触发此路径）。
+                        let fallback_dir = std::env::temp_dir().join(format!(
+                            "solosoul_plugin_fallback_{}",
+                            std::process::id()
+                        ));
+                        let _ = std::fs::create_dir_all(&fallback_dir);
+                        match PluginManager::new_with_dirs(
+                            fallback_dir.clone(),
+                            fallback_dir.clone(),
+                        ) {
                             Ok(pm) => Arc::new(pm),
-                            Err(_) => {
-                                return Err(anyhow::anyhow!(
-                                    "PluginManager 无法初始化（三次尝试均失败）"
-                                ));
+                            Err(final_err) => {
+                                tracing::error!(
+                                    "[AppState] PluginManager 最终兜底也失败: {:#}（继续无插件启动）",
+                                    final_err
+                                );
+                                // 极端情况（临时目录也不可写）下仍不中止启动，
+                                // 使用当前目录作为最后兜底；若仍失败仅打日志。
+                                match PluginManager::new_with_dirs(
+                                    std::env::current_dir().unwrap_or_else(|_| fallback_dir.clone()),
+                                    fallback_dir,
+                                ) {
+                                    Ok(pm) => Arc::new(pm),
+                                    Err(last_err) => {
+                                        // 仅当临时目录与当前目录均不可写（文件系统级异常）
+                                        // 才中止启动——此时任何目录都无法构造 PluginManager，
+                                        // 保留错误仅作为最后防线，Android 上 temp_dir 指向
+                                        // 可写的应用缓存目录，实际不可达。
+                                        tracing::error!(
+                                            "[AppState] PluginManager 最后兜底失败: {:#}（无插件模式）",
+                                            last_err
+                                        );
+                                        return Err(anyhow::anyhow!(
+                                            "PluginManager 无法初始化（多次兜底均失败）"
+                                        ));
+                                    }
+                                }
                             }
                         }
                     }
