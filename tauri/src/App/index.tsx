@@ -10,6 +10,7 @@ import { PluginQuickNotificationListener } from '@/components/plugin/PluginQuick
 import { OnboardingDialog } from '@/components/onboarding/OnboardingDialog';
 import { AppRoutes } from './AppRoutes';
 import { useSyncStore } from '@/stores/syncStore';
+import { useUiStore } from '@/stores/uiStore';
 
 import { initPlatform } from '@/lib/platform';
 
@@ -21,6 +22,8 @@ function App() {
       return true;
     }
   });
+  // 从「创建新账户」页点击「返回账户来源选择」时置位，重新挂载引导并直接显示账户来源卡片。
+  const reopenAccountSource = useUiStore((s) => s.reopenAccountSource);
 
   useEffect(() => {
     initPlatform().catch(() => {
@@ -88,6 +91,8 @@ function App() {
     invoke('ui_update_preference', { key: 'hasSeenOnboarding', value: 'true' }).catch(() => {
       /* ignore persistence errors; localStorage fallback is already set */
     });
+    // 清除「返回账户来源选择」标志，避免引导结束后重新挂载
+    useUiStore.getState().setReopenAccountSource(false);
     setHasSeenOnboarding(true);
   };
 
@@ -98,8 +103,12 @@ function App() {
       <GlobalSyncIndicator />
       <OcrScanNotificationListener />
       <PluginQuickNotificationListener />
-      {!hasSeenOnboarding && (
-        <OnboardingDialog onComplete={finishOnboarding} onSkip={finishOnboarding} />
+      {(!hasSeenOnboarding || reopenAccountSource) && (
+        <OnboardingDialog
+          initialShowAccountSource={reopenAccountSource}
+          onComplete={finishOnboarding}
+          onSkip={finishOnboarding}
+        />
       )}
     </BrowserRouter>
   );

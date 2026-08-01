@@ -289,6 +289,7 @@
   "onboarding_action_create_new": "Create a new account",
   "create_new_account_link": "Create a new account",
   "back_to_login_link": "Back to login",
+  "back_to_account_source_link": "Back to account source",
   "restore_from_device_link": "Restore from another device",
   "onboarding_vault_dir_selected_label": "Selected external storage location",
   "onboarding_vault_dir_reselect": "Reselect",

@@ -94,6 +94,50 @@ describe('OnboardingDialog', () => {
     });
   });
 
+  it('hides the account source card and directly shows the recovery dialog when choosing sync (P-bug 1)', async () => {
+    const onComplete = vi.fn();
+    renderWithRouter(<OnboardingDialog onComplete={onComplete} onSkip={vi.fn()} />);
+
+    // Wait for platform to load
+    await waitFor(() => {
+      expect(screen.getByText(/onboarding_welcome_title/i)).toBeInTheDocument();
+    });
+
+    // Advance through all steps
+    const nextButton = screen.getByRole('button', { name: /onboarding_next/i });
+    fireEvent.click(nextButton);
+    fireEvent.click(screen.getByRole('button', { name: /onboarding_next/i }));
+    fireEvent.click(screen.getByRole('button', { name: /onboarding_next/i }));
+    fireEvent.click(screen.getByRole('button', { name: /onboarding_next/i }));
+
+    expect(screen.queryByRole('button', { name: /onboarding_next/i })).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /onboarding_done/i }));
+
+    // Decision card appears because no existing account is found
+    await waitFor(() => {
+      expect(screen.getByText(/onboarding_account_source_title/i)).toBeInTheDocument();
+    });
+
+    // Click sync from another device: account source card must disappear immediately
+    fireEvent.click(screen.getByText(/onboarding_account_source_sync/i));
+    await waitFor(() => {
+      expect(screen.getByText(/recovery_receive_title/i)).toBeInTheDocument();
+    });
+    expect(screen.queryByText(/onboarding_account_source_title/i)).not.toBeInTheDocument();
+  });
+
+  it('shows the account source decision immediately when initialShowAccountSource is set (P-bug 2)', async () => {
+    renderWithRouter(
+      <OnboardingDialog onComplete={vi.fn()} onSkip={vi.fn()} initialShowAccountSource />,
+    );
+
+    // Wait for platform to load
+    await waitFor(() => {
+      expect(screen.getByText(/onboarding_account_source_title/i)).toBeInTheDocument();
+    });
+    expect(screen.getByText(/onboarding_account_source_create/i)).toBeInTheDocument();
+  });
+
   it('shows the account source decision when no existing account is found', async () => {
     const onComplete = vi.fn();
     renderWithRouter(<OnboardingDialog onComplete={onComplete} onSkip={vi.fn()} />);

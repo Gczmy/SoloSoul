@@ -32,6 +32,8 @@ interface UiState {
   safSyncError: string | null;
   /** SAF 授权是否已被撤销。 */
   safAuthRevoked: boolean;
+  /** 从「创建新账户」页返回时重新打开 onboarding 账户来源决策卡片的标志。 */
+  reopenAccountSource: boolean;
 
   toggleSidebar: () => void;
   showToast: (toast: Omit<Toast, 'id'>) => void;
@@ -41,6 +43,7 @@ interface UiState {
   setSafSyncProgress: (progress: SafSyncProgress) => void;
   setSafSyncError: (error: string | null) => void;
   setSafAuthRevoked: (revoked: boolean) => void;
+  setReopenAccountSource: (reopen: boolean) => void;
 }
 
 let toastCounter = 0;
@@ -53,6 +56,7 @@ export const useUiStore = create<UiState>((set) => ({
   safSyncProgress: { current: 0, total: 0 },
   safSyncError: null,
   safAuthRevoked: false,
+  reopenAccountSource: false,
 
   toggleSidebar: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
 
@@ -79,4 +83,5 @@ export const useUiStore = create<UiState>((set) => ({
   setSafSyncProgress: (progress) => set({ safSyncProgress: progress }),
   setSafSyncError: (error) => set({ safSyncError: error }),
   setSafAuthRevoked: (revoked) => set({ safAuthRevoked: revoked }),
+  setReopenAccountSource: (reopen) => set({ reopenAccountSource: reopen }),
 }));

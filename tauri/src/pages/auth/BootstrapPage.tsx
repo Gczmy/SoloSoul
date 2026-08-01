@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import i18next from 'i18next';
 import { useAuthStore } from '@/stores/authStore';
+import { useUiStore } from '@/stores/uiStore';
 import { useApplyThemeFromSettings } from '@/hooks/useApplyThemeFromSettings';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -181,10 +182,28 @@ export function BootstrapPage() {
           <div
             style={{
               display: 'flex',
-              justifyContent: 'center',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: 4,
               marginTop: 16,
             }}
           >
+            {/* 从引导「账户来源」卡片进入创建页时，可返回重新选择「从其他设备恢复账户」 */}
+            <button
+              type="button"
+              onClick={() => useUiStore.getState().setReopenAccountSource(true)}
+              className="interactive-accent-link"
+              style={{
+                fontSize: 'var(--text-body-sm)',
+                background: 'transparent',
+                border: 'none',
+                padding: '6px 12px',
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+              }}
+            >
+              {t('common:back_to_account_source_link')}
+            </button>
             <button
               type="button"
               onClick={() => navigate('/login')}

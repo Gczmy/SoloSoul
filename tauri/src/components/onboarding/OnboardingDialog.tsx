@@ -13,10 +13,14 @@ import { RecoveryReceiveDialog } from '@/components/recovery/RecoveryReceiveDial
  * - 完成引导后若本地无账户，弹「账户来源」浮层询问恢复或新建
  * 状态机与业务逻辑收敛在 useOnboarding hook，本组件仅编排视图。
  */
-export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDialogProps) {
+export function OnboardingDialog({
+  onComplete,
+  onSkip: _onSkip,
+  initialShowAccountSource,
+}: OnboardingDialogProps) {
   const { t } = useTranslation('common');
   const navigate = useNavigate();
-  const ob = useOnboarding({ onComplete, onSkip: _onSkip });
+  const ob = useOnboarding({ onComplete, onSkip: _onSkip, initialShowAccountSource });
 
   // Show only the vault directory step when we need to display it
   if (ob.current.key === 'vault_directory') {
@@ -69,7 +73,13 @@ export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDial
       {/* 账户来源决策：新设备或从其它设备同步恢复 */}
       {ob.showAccountSourceDecision && (
         <OnboardingAccountSourceDecision
-          onRecovery={() => ob.setRecoveryOpen(true)}
+          onRecovery={() => {
+            // 隐藏账户来源卡片，让恢复对话框直接可见。
+            // 此前仅 setRecoveryOpen(true) 时，恢复对话框(z-modal) 被
+            // 账户来源卡片(z-onboarding+1) 盖住，必须点"返回"才露出。
+            ob.setShowAccountSourceDecision(false);
+            ob.setRecoveryOpen(true);
+          }}
           onCreateNew={() => {
             onComplete();
             navigate('/bootstrap?mode=create', { replace: true });
@@ -81,7 +91,9 @@ export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDial
       <RecoveryReceiveDialog
         isOpen={ob.recoveryOpen}
         onClose={() => {
+          // 关闭恢复对话框后回到账户来源卡片，用户仍可改选"创建新账户"。
           ob.setRecoveryOpen(false);
+          ob.setShowAccountSourceDecision(true);
         }}
         onSuccess={() => {
           // 恢复成功后会写入账户，直接结束引导并跳转到登录页解锁新账户
