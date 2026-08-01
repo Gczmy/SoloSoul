@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-01 14:29:55
+> 最后更新：2026-08-01 15:01:36
 > 当前分支：`main`
 > 修复轮次：3 + 复核轮次 1（58 项修复声明已独立核验）+ 决策轮次（剩余 5 项方案与用户决策已记录，见各条目「决策记录」）
 > 分析范围：`tauri/`（Rust 后端 `src-tauri/` + `crates/`，React/TS 前端 `src/`）；`solosoul_cli/` 不在本轮范围
@@ -31,7 +31,7 @@
 | P009 | P1 | 性能 | `tauri/src-tauri/src/commands/ocr.rs:258,356` | 每次 OCR 命令重新加载 ONNX 引擎（数百 ms），无缓存 | `[x]` 已修复 |
 | P010 | P1 | 性能 | `tauri/src/pages/workspace/ObjectWorkspacePage.tsx:148-158` | `useObjectStore()` 无 selector 整店订阅，store 任何变化触发整页重渲染 | `[x]` 已修复（复核补改：`useObjectWorkspaceData.ts:141` 残留的 templateStore 裸订阅已分字段化） |
 | P011 | P1 | 性能 | `tauri/src/pages/workspace/ObjectWorkspacePage.tsx:803`、`tauri/src/pages/settings/GlobalAttachmentManager.tsx:1077` | 大列表无虚拟滚动/分页，对象数百+ 时首屏与重渲染成本高 | `[x]` 已修复（复核补改：GlobalAttachmentManager 顶层页面列表补「加载更多」分页） |
-| P012 | P1 | 架构/重复 | `tauri/src-tauri/src/plugin/` vs `tauri/crates/solosoul-plugin/src/` | 插件运行时双份平行实现：GUI 用本地版（功能超集），CLI 用 crate 版（见详情事实修正） | `[>]` 执行中（方向 B 第①②③步已完成：删 orphan mobile + version 去重 + 功能移植进 crate + host 对齐；余第④~⑥步待执行） |
+| P012 | P1 | 架构/重复 | `tauri/src-tauri/src/plugin/` vs `tauri/crates/solosoul-plugin/src/` | 插件运行时双份平行实现：GUI 用本地版（功能超集），CLI 用 crate 版（见详情事实修正） | `[>]` 执行中（方向 B 第①②③④步已完成：删 orphan mobile + version 去重 + 功能移植进 crate + host 对齐 + GUI 切换到 crate 薄封装；余第⑤⑥步待执行） |
 | P013 | P1 | 架构 | `tauri/src-tauri/src/commands/discovery.rs:30`、`tauri/crates/solosoul-sync/src/manager.rs:168` | mDNS ServiceDaemon 在两个层各起一个实例，可同时存活导致结果不一致 | `[x]` 已修复 |
 | P014 | P1 | 架构 | `tauri/src/stores/authStore.ts:154-155` | `logout` invoke 失败时前端认证状态永不重置，出现半认证僵尸态 | `[x]` 已修复 |
 | P015 | P1 | 架构 | `tauri/src/stores/vaultStore.ts:15-44`、`tauri/src/stores/authStore.ts` | 认证/锁定状态双 store 平行维护，`vaultState` 只写不读，存在三种写入路径 | `[x]` 已修复（复核补改：LoginPage PIN/生物识别两条裸 setState 收敛为 authStore.completeUnlock） |
@@ -88,8 +88,8 @@
 
 - 已完成：62 / 63（经 2026-08-01 复核确认 + P048 四批迁移 + P047 确认通过的项）
 - 部分完成 `[~]`：0 项
-- 已决策待执行 `[>]`：1 项——P012（方向 B 统一到 crate；**唯一剩余工作项**，第①②③步已完成，执行中）
-- 当前处理：P012 方向 B 第③步完成（2026-08-01，14:29）——crate host.rs `write_handle`→`write_u32` 重命名、watermark 双闭包抽 `register_watermark_fn` 泛型（P047）、`read_required_string` 样板收敛 13 处。验证：crate/GUI 两侧 check + fmt + clippy + crate test（46）全绿，审查通过。下一轮：P012 第④步（GUI 切换）
+- 已决策待执行 `[>]`：1 项——P012（方向 B 统一到 crate；**唯一剩余工作项**，第①②③④步已完成，执行中）
+- 当前处理：P012 方向 B 第④步完成（2026-08-01，15:01）——GUI 切换到 crate 薄封装（plugin/mod.rs 重导出 + TauriChannelSink 适配器 + 删本地 6 组模块 + app_state/commands/集成测试适配），附带修复 crate `paths.rs` 开发回退路径 bug。验证：GUI/crate/CLI 三侧 check + fmt + clippy（0 警告）+ crate test（49）+ 集成测试（8）全绿，审查通过。下一轮：P012 第⑤步（wasmtime features 统一）
 
 ## 静态基线之外已检查且无发现的维度（误报排除记录）
 
@@ -229,6 +229,17 @@
 - **`read_required_string` 样板收敛**：新增帮助函数（`read_string` 失败或空串返回 `None`），13 处「`Ok(s) if !s.is_empty() => s, _ => INVALID_ARGUMENT`」样板收敛为「`Some(s) => s, None => INVALID_ARGUMENT`」；4 处允许空串站点（field_id/body×2/key）与 5 处 `.unwrap_or_default()` 站点语义不同，保留原 `read_string` 调用。
 - **审查**（2 轮）：首轮 E0373（闭包需 move 捕获 'static）→ 修复后复审 approved；移动端两个 `#[cfg(android|ios)]` NOT_IMPLEMENTED watermark stub 仅名字不同且仅在移动端编译，保留未抽（低优先级，已记录）。
 - **验证**：`cargo check -p solosoul-plugin` ✅ / `cargo fmt --check` ✅ / `cargo clippy -p solosoul-plugin --all-targets -- -D warnings` ✅（0 警告）/ `cargo test -p solosoul-plugin`（46 通过）✅ / `cargo check -p solo_soul`（GUI）✅。改动仅 crate host.rs（+133/−147）。
+
+**第④步修复记录（2026-08-01，GUI 切换到 crate 薄封装，状态保持 `[>]` 执行中）**：
+- **`plugin/mod.rs` 重写为薄封装**（+TauriChannelSink + resolve_market_dir + new_plugin_manager）：全部共享类型/逻辑从 crate 重导出（含模块路径 `plugin::registry::PluginRegistry` 等），仅保留 Tauri 特有适配层——`TauriChannelSink`（`tauri::ipc::Channel<PluginEvent>` → `Arc<dyn PluginEventSink>`，`send` 经 `map_err(|e| e.to_string())`）、`resolve_market_dir(app_handle)`（Android `Data/app_resources` vs 桌面 `resource_dir()` + debug 回退）、`new_plugin_manager(app_handle)`（移动端 `Data/.solosoul` vs 桌面 `PluginStore::data_dir()` → `new_with_dirs`）。
+- **删除本地 6 组模块**：`plugin/{event,manager,paths,registry,sandbox}.rs` + `plugin/host/` 目录（约 3000 行），crate 侧成为插件运行时唯一实现源，双份漂移风险归零。
+- **app_state.rs**：`PluginManager::new_with_app_handle(&handle)` → `crate::plugin::new_plugin_manager(&handle)`（fallback 链保留 crate `PluginManager::new()`）。
+- **commands/plugin.rs** `plugin_run`：`Channel<PluginEvent>` → `Arc<dyn PluginEventSink>`（TauriChannelSink 包装）。
+- **集成测试适配**：`plugin_sandbox.rs`/`plugin_address_fmt.rs` `dummy_channel()` → `dummy_sink()`（TauriChannelSink 包装 `Channel::new(|_| Ok(()))`）；`plugin_install.rs`/`plugin_registry_update.rs` 直接使用 crate API 无需改动。
+- **crate version.rs 补版本兼容测试 ×3**（迁移自本地 registry.rs 测试，避免删文件损失覆盖）。
+- **附带修复**：a) `use tauri::Manager;` 无条件导入（桌面分支 `app.path().resource_dir()` 也需 Manager trait，首次审查发现编译错误）；b) `settings.rs` 2 处 `needless_borrow`（`&app.handle()`→`app.handle()`，clippy --all-targets 阻塞项）；c) **crate `paths.rs` 开发回退路径 bug**：crate 位于 `tauri/crates/solosoul-plugin`，`default_market_dir`/`resolve_market_dir` 回退原用两级 `..` 解析到 `tauri/SoloSoul_plugin_market`（不存在），改三级 `..` 到项目根——该 bug 使 `plugin_install.rs` 集成测试（用 `PluginManager::new()` + crate registry）报「读取注册表失败」，修复后通过。
+- **审查**（2 轮）：首轮发现 Manager cfg 导入 bug + wasmtime 直连依赖待第⑤步核实；修复后复审 approved（确认 Send+Sync 约束、Channel 静态工厂可测、桌面分支等价、perform_http_async 测试在 crate host.rs 有等价覆盖、crate paths 修复无 CI 风险）。
+- **验证**：GUI/crate/CLI 三侧 check ✅ / `cargo fmt --check` ✅ / `cargo clippy -p solo_soul --all-targets -- -D warnings` ✅（0 警告）/ `cargo test -p solosoul-plugin`（49 通过）✅ / 集成测试 4 文件 8 项全通过 ✅。
 
 **P013 | mDNS 双 daemon**
 sync crate manager（`manager.rs:168`）`sync_enable` 时自建 `ServiceDaemon`；`discovery.rs:30,55-60` 另有 app 生命周期常驻 `SharedDaemon`。前端 `syncStore.enable` 成功后立即 `discoverDevices`（`syncStore.ts:140-141`），两个 daemon 同时运行，缓存各自为政。

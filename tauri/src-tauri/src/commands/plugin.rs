@@ -158,9 +158,13 @@ pub async fn plugin_run(
     let vault_store = vault_handle(&state).ok();
     let account_id = current_account_optional(&state);
 
+    // 将 Tauri IPC Channel 适配为 crate 的 PluginEventSink（P012 方向 B 第④步）
+    let sink: std::sync::Arc<dyn crate::plugin::PluginEventSink> =
+        std::sync::Arc::new(crate::plugin::TauriChannelSink::new(channel));
+
     state
         .plugin_manager
-        .run(&plugin_id, params, channel, vault_store, account_id)
+        .run(&plugin_id, params, sink, vault_store, account_id)
         .await
         .map_err(|e| e.to_string())
 }

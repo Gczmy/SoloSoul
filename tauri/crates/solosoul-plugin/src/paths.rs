@@ -19,7 +19,9 @@ pub fn resolve_market_dir(resource_dir: Option<&PathBuf>) -> Result<PathBuf, Plu
 
     #[cfg(debug_assertions)]
     {
+        // crate 位于 tauri/crates/solosoul-plugin，需三级 `..` 才到项目根
         let dev = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("..")
             .join("..")
             .join("..")
             .join("SoloSoul_plugin_market");
@@ -36,7 +38,9 @@ pub fn resolve_market_dir(resource_dir: Option<&PathBuf>) -> Result<PathBuf, Plu
 /// 默认市场目录（用于测试与无 app_handle 的场景）
 #[cfg(debug_assertions)]
 pub fn default_market_dir() -> PathBuf {
+    // crate 位于 tauri/crates/solosoul-plugin，需三级 `..` 才到项目根
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("..")
         .join("..")
         .join("..")
         .join("SoloSoul_plugin_market")

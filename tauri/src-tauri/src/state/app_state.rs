@@ -352,7 +352,7 @@ impl AppState {
         let auto_sync = AutoSyncManager::new_for_vault(vault_service.clone(), handle.clone());
 
         // ── PluginManager（初始化失败不阻止应用启动） ──
-        let plugin_manager = match PluginManager::new_with_app_handle(&handle) {
+        let plugin_manager = match crate::plugin::new_plugin_manager(&handle) {
             Ok(pm) => Arc::new(pm),
             Err(e) => {
                 tracing::warn!(

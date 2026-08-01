@@ -449,7 +449,7 @@ mod tests {
         std::fs::create_dir_all(&base).unwrap();
         let svc = solosoul_core::vault_service::VaultService::with_base_path(base.clone());
 
-        let path = resolve_ui_prefs_path(&app.handle(), &svc).unwrap();
+        let path = resolve_ui_prefs_path(app.handle(), &svc).unwrap();
 
         // 桌面端应继续使用 Vault base 目录，保证 Vault 目录可移植
         assert_eq!(path, base.join("ui_preferences.json"));
@@ -463,7 +463,7 @@ mod tests {
         std::fs::create_dir_all(&base).unwrap();
         let svc = solosoul_core::vault_service::VaultService::with_base_path(base);
 
-        let path = resolve_ui_prefs_path(&app.handle(), &svc).unwrap();
+        let path = resolve_ui_prefs_path(app.handle(), &svc).unwrap();
         let original = UiPreferences {
             theme: "dark".to_string(),
             accent_color: "ocean".to_string(),

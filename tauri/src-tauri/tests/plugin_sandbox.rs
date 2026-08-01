@@ -19,9 +19,11 @@ fn wasm_path() -> std::path::PathBuf {
         .join("hello_world.wasm")
 }
 
-fn dummy_channel() -> Channel<solo_soul::plugin::PluginEvent> {
-    // 测试中使用一个无需接收者的 Channel；Tauri Channel 在测试中可直接 new。
-    Channel::new(|_| Ok(()))
+fn dummy_sink() -> Arc<dyn solo_soul::plugin::PluginEventSink> {
+    // 测试中使用一个无需接收者的 Tauri Channel，包装为 PluginEventSink
+    Arc::new(solo_soul::plugin::TauriChannelSink::new(Channel::new(
+        |_| Ok(()),
+    )))
 }
 
 /// 需要先编译 `SoloSoul_plugin_market/examples/hello_world` 下的 wasm 产物。
@@ -77,7 +79,7 @@ async fn test_hello_world_plugin_runs() {
         rate_limiter,
         consent_manager,
         field_resolver,
-        dummy_channel(),
+        dummy_sink(),
     );
 
     let result = sandbox
@@ -149,7 +151,7 @@ async fn test_plugin_trap_is_isolated() {
         rate_limiter,
         consent_manager,
         field_resolver,
-        dummy_channel(),
+        dummy_sink(),
     );
 
     let result = sandbox.execute(&module, host, &session, &ConsentManager::new());

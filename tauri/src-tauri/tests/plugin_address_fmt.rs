@@ -17,8 +17,11 @@ fn wasm_path() -> std::path::PathBuf {
         .join("plugin.wasm")
 }
 
-fn dummy_channel() -> Channel<solo_soul::plugin::PluginEvent> {
-    Channel::new(|_| Ok(()))
+fn dummy_sink() -> Arc<dyn solo_soul::plugin::PluginEventSink> {
+    // 测试中使用一个无需接收者的 Tauri Channel，包装为 PluginEventSink
+    Arc::new(solo_soul::plugin::TauriChannelSink::new(Channel::new(
+        |_| Ok(()),
+    )))
 }
 
 fn open_test_vault(path: &std::path::Path, account_id: &str) -> VaultStore {
@@ -149,7 +152,7 @@ async fn test_address_fmt_plugin_reads_vault_fields() {
         rate_limiter,
         consent_manager,
         field_resolver,
-        dummy_channel(),
+        dummy_sink(),
     );
 
     let result = sandbox

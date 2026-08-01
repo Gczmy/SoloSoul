@@ -30,3 +30,45 @@ pub fn is_version_compatible(version: &crate::RegistryVersion, app_version: &Ver
     };
     app_version >= &min && app_version <= &max
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::manifest::RegistryVersion;
+    use semver::Version;
+
+    fn version(min: &str, max: &str) -> RegistryVersion {
+        RegistryVersion {
+            sha256: "00".to_string(),
+            plugin_api_version: None,
+            min_app_version: min.to_string(),
+            max_app_version: max.to_string(),
+            download_url: None,
+            raw_url: None,
+            released_at: None,
+            changelog: None,
+        }
+    }
+
+    #[test]
+    fn test_is_version_compatible_within_range() {
+        let app = Version::parse("2.1.0").unwrap();
+        let v = version("1.0.0", "3.0.0");
+        assert!(is_version_compatible(&v, &app));
+    }
+
+    #[test]
+    fn test_is_version_compatible_out_of_range() {
+        let app = Version::parse("0.5.0").unwrap();
+        let v = version("1.0.0", "3.0.0");
+        assert!(!is_version_compatible(&v, &app));
+    }
+
+    #[test]
+    fn test_parse_version_strips_v_prefix() {
+        assert_eq!(
+            parse_version("v1.2.3").unwrap(),
+            Version::parse("1.2.3").unwrap()
+        );
+    }
+}
