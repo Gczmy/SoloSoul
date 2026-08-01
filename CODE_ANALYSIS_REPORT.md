@@ -30,7 +30,7 @@
 | P008 | P1 | 性能 | `tauri/src-tauri/src/commands/llm/rag.rs:358-363` | top_k 循环内反复 `chunk_all_guides`，每条聊天消息把指南文件完整读 3 遍 | `[x]` 已修复 |
 | P009 | P1 | 性能 | `tauri/src-tauri/src/commands/ocr.rs:258,356` | 每次 OCR 命令重新加载 ONNX 引擎（数百 ms），无缓存 | `[x]` 已修复 |
 | P010 | P1 | 性能 | `tauri/src/pages/workspace/ObjectWorkspacePage.tsx:148-158` | `useObjectStore()` 无 selector 整店订阅，store 任何变化触发整页重渲染 | `[x]` 已修复（复核补改：`useObjectWorkspaceData.ts:141` 残留的 templateStore 裸订阅已分字段化） |
-| P011 | P1 | 性能 | `tauri/src/pages/workspace/ObjectWorkspacePage.tsx:803`、`tauri/src/pages/settings/GlobalAttachmentManager.tsx:1077` | 大列表无虚拟滚动/分页，对象数百+ 时首屏与重渲染成本高 | `[~]` 部分完成（工作区分页「加载更多」已实现；GlobalAttachmentManager 虚拟化/分页待补） |
+| P011 | P1 | 性能 | `tauri/src/pages/workspace/ObjectWorkspacePage.tsx:803`、`tauri/src/pages/settings/GlobalAttachmentManager.tsx:1077` | 大列表无虚拟滚动/分页，对象数百+ 时首屏与重渲染成本高 | `[x]` 已修复（复核补改：GlobalAttachmentManager 顶层页面列表补「加载更多」分页） |
 | P012 | P1 | 架构/重复 | `tauri/src-tauri/src/plugin/` vs `tauri/crates/solosoul-plugin/src/` | 插件运行时双份平行实现：GUI 用本地版（功能超集），CLI 用 crate 版（见详情事实修正） | `[>]` 已决策待执行（方向 B：统一到 crate，6 步计划见详情） |
 | P013 | P1 | 架构 | `tauri/src-tauri/src/commands/discovery.rs:30`、`tauri/crates/solosoul-sync/src/manager.rs:168` | mDNS ServiceDaemon 在两个层各起一个实例，可同时存活导致结果不一致 | `[x]` 已修复 |
 | P014 | P1 | 架构 | `tauri/src/stores/authStore.ts:154-155` | `logout` invoke 失败时前端认证状态永不重置，出现半认证僵尸态 | `[x]` 已修复 |
@@ -86,8 +86,8 @@
 
 ## 修复进度
 
-- 已完成：57 / 63（经 2026-08-01 复核确认通过的项）
-- 部分完成 `[~]`：1 项——P011（工作区已分页，GlobalAttachmentManager 虚拟化待补）
+- 已完成：58 / 63（经 2026-08-01 复核确认通过的项）
+- 部分完成 `[~]`：0 项（复核降级项全部补齐）
 - 已决策待执行 `[>]`：5 项——P012（方向 B 统一到 crate，P047 并入）、P017/P018（已确认删除）、P048（分批视觉等价重构）
 - 当前处理：决策已确认（2026-08-01），等待执行指令
 
@@ -175,6 +175,8 @@
 **P011 | 大列表无虚拟化**
 全项目无 windowing 库；工作区一次挂载全部对象卡片，附件管理器全量渲染对象×附件树。
 修复方案：引入 `@tanstack/react-virtual` 或分页/「加载更多」。
+
+**修复记录（2026-08-01，状态恢复 `[x]`）**：GlobalAttachmentManager 顶层页面列表补「加载更多」分页——模块级 `VISIBLE_PAGE_SIZE = 20`，`visiblePages = displayPages.slice(0, visiblePageLimit)`，搜索词/回收站视图切换时重置游标，列表尾部超出时显示 `Button`「加载更多」逐批展开（与工作区 ObjectWorkspacePage 既有 P011 模式一致）。折叠状态（expandedPages/expandedObjects）与选中状态按 key 记录，slice 后未渲染页的状态保留无行为差异。tsc/lint/Vitest 415 全绿，两轮审查通过。
 
 ### P1 架构 / 规范
 
@@ -414,7 +416,7 @@ sync crate manager（`manager.rs:168`）`sync_enable` 时自建 `ServiceDaemon`�
 2. **快速收敛（几行改动）**：~~P010（`useObjectWorkspaceData.ts:141` 分字段化）~~ 已修复（2026-08-01）；~~P015（LoginPage 两处 setState 收敛为 `authStore.completeUnlock(acc)`）~~ 已修复（2026-08-01）。
 3. **死文件删除**：P017 + P018（已确认，独立 commit）。
 4. **P041 继续拆分**：~~ObjectDetailModal、SyncPage 按标签页/阶段拆视图子组件至阈值以下~~ 已修复（2026-08-01，主组件 632/596 行）。
-5. **P011 收尾**：GlobalAttachmentManager 附件树虚拟化或分页。
+5. **P011 收尾**：~~GlobalAttachmentManager 附件树虚拟化或分页~~ 已修复（2026-08-01，顶层页面列表「加载更多」分页）。
 6. **P012 方向 B（单独一轮，含 P047）**：按详情 6 步计划执行，每步独立 commit，第⑥步全量回归。
 7. **P048 分批重构**：按详情策略逐批执行，可与上述小项穿插。
 

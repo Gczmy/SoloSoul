@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
@@ -6,6 +6,7 @@ import { Paperclip, Info, FolderTree, Upload, Trash2 } from 'lucide-react';
 import { AppShell } from '@/components/layout/AppShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
 import { useAttachmentManager } from '@/hooks/useAttachmentManager';
 import { AttachmentToolbar } from '@/components/attachment/AttachmentToolbar';
 import { AttachmentPageCard } from '@/components/attachment/AttachmentPageCard';
@@ -16,6 +17,9 @@ import { ConfirmDialog } from '@/components/attachment/ConfirmDialog';
 import { PageGuideButton } from '@/components/guide/PageGuideButton';
 import { ICON_SIZE } from '@/lib/constants';
 import { truncateFileName } from '@/lib/attachmentUtils';
+
+/** P011: 顶层页面列表单次渲染上限（「加载更多」步进量）。 */
+const VISIBLE_PAGE_SIZE = 20;
 
 /** 全局附件管理器页面（P024 拆分：编排层 + useAttachmentManager hook + 子组件）。 */
 export function GlobalAttachmentManager() {
@@ -75,6 +79,14 @@ export function GlobalAttachmentManager() {
     handleBatchRestore,
     summaryStats,
   } = useAttachmentManager();
+
+  // P011: 顶层页面列表分页「加载更多」，避免页面/对象多时一次全量挂载。
+  const [visiblePageLimit, setVisiblePageLimit] = useState(VISIBLE_PAGE_SIZE);
+  // 搜索词或回收站视图切换时重置分页游标。
+  useEffect(() => {
+    setVisiblePageLimit(VISIBLE_PAGE_SIZE);
+  }, [searchQuery, showTrash]);
+  const visiblePages = displayPages.slice(0, visiblePageLimit);
 
   const attachmentGuidePages = useMemo(
     () => [
@@ -182,7 +194,7 @@ export function GlobalAttachmentManager() {
               <div
                 style={{ display: 'flex', flexDirection: 'column', gap: 'var(--card-gap-md)' }}
               >
-                {displayPages.map((page) => {
+                {visiblePages.map((page) => {
                   const pageKey = page.pageId || page.pageName;
                   return (
                     <AttachmentPageCard
@@ -236,6 +248,16 @@ export function GlobalAttachmentManager() {
                     />
                   );
                 })}
+                {displayPages.length > visiblePageLimit && (
+                  <Button
+                    variant="tertiary"
+                    size="sm"
+                    onClick={() => setVisiblePageLimit((n) => n + VISIBLE_PAGE_SIZE)}
+                    style={{ marginTop: 4 }}
+                  >
+                    {t('load_more', { defaultValue: '加载更多' })}
+                  </Button>
+                )}
               </div>
             )}
           </motion.div>
