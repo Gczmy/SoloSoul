@@ -124,7 +124,8 @@ impl SyncService {
     ) -> Result<SyncSessionResult, String> {
         let (node_id, account_id, keys, vault, active_sessions, running) = {
             let guard = self.manager.lock().await;
-            let manager = guard.as_ref().ok_or("Sync is not enabled")?;
+            // 前端经 resolveBackendErrorMessage 翻译（settings:sync_err_not_enabled）
+            let manager = guard.as_ref().ok_or("__SYNC_ERR__:not_enabled")?;
             (
                 manager.node_id.clone(),
                 manager.account_id.clone(),
@@ -135,7 +136,8 @@ impl SyncService {
             )
         };
         if !running.load(Ordering::SeqCst) {
-            return Err("Sync manager is not running".to_string());
+            // 前端经 resolveBackendErrorMessage 翻译（settings:sync_err_not_running）
+            return Err("__SYNC_ERR__:not_running".to_string());
         }
         let addr: SocketAddr = device_id_or_addr
             .parse()

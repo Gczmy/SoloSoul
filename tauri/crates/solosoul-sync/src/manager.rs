@@ -415,7 +415,8 @@ impl SyncManager {
         device_id_or_addr: &str,
     ) -> Result<SyncSessionResult, String> {
         if !self.running.load(Ordering::SeqCst) {
-            return Err("Sync manager is not running".to_string());
+            // 前端经 resolveBackendErrorMessage 翻译（settings:sync_err_not_running）
+            return Err("__SYNC_ERR__:not_running".to_string());
         }
         let addr = if let Ok(socket) = device_id_or_addr.parse::<SocketAddr>() {
             socket

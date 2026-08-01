@@ -184,13 +184,13 @@ fn should_show_device(
 ) -> bool {
     // 账户过滤：本地账户未知（Vault 未解锁）时不过滤
     if let Some(local_hash) = local_account_hash {
-        let peer_hash = if !peer_account_hash.is_empty() {
-            peer_account_hash.to_string()
-        } else {
+        if peer_account_hash.is_empty() {
             // 旧版客户端广播明文 account_id，取其哈希比对
-            sha256_hex_short(peer_account_id)
-        };
-        if peer_hash != local_hash {
+            if sha256_hex_short(peer_account_id) != local_hash {
+                return false;
+            }
+        } else if peer_account_hash != local_hash {
+            // 直接比较 &str，避免 peer_account_hash.to_string() 多余分配
             return false;
         }
     }

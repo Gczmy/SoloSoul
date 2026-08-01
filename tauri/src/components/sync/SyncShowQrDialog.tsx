@@ -2,16 +2,8 @@ import { useEffect, useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { QRCodeSVG } from 'qrcode.react';
 import { invoke } from '@tauri-apps/api/core';
-import {
-  X,
-  Loader2,
-  Copy,
-  Check,
-  ChevronDown,
-  ChevronUp,
-  QrCode,
-  LifeBuoy,
-} from 'lucide-react';
+import { motion } from 'framer-motion';
+import { X, Loader2, Copy, Check, ChevronDown, ChevronUp, QrCode, LifeBuoy } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { resolveBackendErrorMessage } from '@/lib/backendError';
@@ -213,624 +205,667 @@ export function SyncShowQrDialog({ isOpen, onClose }: SyncShowQrDialogProps) {
         if (e.target === e.currentTarget) handleClose();
       }}
     >
-      <Card
-        style={{
-          maxWidth: 420,
-          width: '100%',
-          padding: 24,
-          position: 'relative',
-          // 与 Dialog 组件一致：展开「手动模式」后内容较高，超出视口时允许卡片内滚动，
-          // 避免 flex 居中溢出导致上下内容（tab 切换/关闭/取消按钮）不可达。
-          maxHeight: 'min(85vh, calc(100% - 32px))',
-          overflowY: 'auto',
-        }}
+      {/* 卡片进场淡入：消除手写模态的硬弹出闪烁（与共享 Dialog 的 dialogIn 动画对齐） */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.2 }}
+        style={{ width: '100%', maxWidth: 420 }}
       >
-        <button
-          type="button"
-          onClick={handleClose}
+        <Card
           style={{
-            position: 'absolute',
-            top: 12,
-            right: 12,
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            color: 'var(--text-tertiary)',
-          }}
-          aria-label={t('common:close')}
-        >
-          <X size={20} />
-        </button>
-
-        {/* 二维码类型切换 */}
-        <div
-          style={{
-            display: 'flex',
-            gap: 4,
-            padding: 4,
-            borderRadius: 10,
-            background: 'var(--bg-toolbar)',
-            marginBottom: 16,
+            // 宽度由外层 motion.div（width:100% + maxWidth:420）约束，这里只填满，避免双重 maxWidth
+            width: '100%',
+            padding: 24,
+            position: 'relative',
+            // 与 Dialog 组件一致：展开「手动模式」后内容较高，超出视口时允许卡片内滚动，
+            // 避免 flex 居中溢出导致上下内容（tab 切换/关闭/取消按钮）不可达。
+            maxHeight: 'min(85vh, calc(100% - 32px))',
+            overflowY: 'auto',
           }}
         >
           <button
             type="button"
-            onClick={() => switchMode('sync')}
+            onClick={handleClose}
             style={{
-              flex: 1,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 6,
-              padding: '8px 0',
-              borderRadius: 8,
+              position: 'absolute',
+              top: 12,
+              right: 12,
+              background: 'none',
               border: 'none',
-              background: !isRecovery ? 'var(--bg-elevated)' : 'transparent',
-              color: !isRecovery ? 'var(--accent-primary)' : 'var(--text-secondary)',
-              fontSize: 'var(--text-body-sm)',
-              fontWeight: 500,
               cursor: 'pointer',
-              fontFamily: 'inherit',
-              transition: 'all 0.15s ease',
+              color: 'var(--text-tertiary)',
             }}
+            aria-label={t('common:close')}
           >
-            <QrCode size={16} />
-            {t('settings:sync_qr_tab_sync', { defaultValue: 'Sync QR' })}
+            <X size={20} />
           </button>
-          <button
-            type="button"
-            onClick={() => switchMode('recovery')}
-            style={{
-              flex: 1,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 6,
-              padding: '8px 0',
-              borderRadius: 8,
-              border: 'none',
-              background: isRecovery ? 'var(--bg-elevated)' : 'transparent',
-              color: isRecovery ? 'var(--accent-primary)' : 'var(--text-secondary)',
-              fontSize: 'var(--text-body-sm)',
-              fontWeight: 500,
-              cursor: 'pointer',
-              fontFamily: 'inherit',
-              transition: 'all 0.15s ease',
-            }}
-          >
-            <LifeBuoy size={16} />
-            {t('settings:sync_qr_tab_recovery', { defaultValue: 'Recovery QR' })}
-          </button>
-        </div>
 
-        {isRecovery ? (
-          <>
-            <h2
+          {/* 二维码类型切换 */}
+          <div
+            style={{
+              display: 'flex',
+              gap: 4,
+              padding: 4,
+              borderRadius: 10,
+              background: 'var(--bg-toolbar)',
+              marginBottom: 16,
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => switchMode('sync')}
               style={{
-                fontSize: 'var(--text-card-title)',
-                fontWeight: 700,
-                margin: '0 0 8px',
-                color: 'var(--text-primary)',
-              }}
-            >
-              {t('common:recovery_host_title')}
-            </h2>
-            <p
-              style={{
+                flex: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+                padding: '8px 0',
+                borderRadius: 8,
+                border: 'none',
+                background: !isRecovery ? 'var(--bg-elevated)' : 'transparent',
+                color: !isRecovery ? 'var(--accent-primary)' : 'var(--text-secondary)',
                 fontSize: 'var(--text-body-sm)',
-                color: 'var(--text-secondary)',
-                margin: '0 0 20px',
-                lineHeight: 1.5,
+                fontWeight: 500,
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                transition: 'all 0.15s ease',
               }}
             >
-              {t('common:recovery_host_desc')}
-            </p>
+              <QrCode size={16} />
+              {t('settings:sync_qr_tab_sync', { defaultValue: 'Sync QR' })}
+            </button>
+            <button
+              type="button"
+              onClick={() => switchMode('recovery')}
+              style={{
+                flex: 1,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+                padding: '8px 0',
+                borderRadius: 8,
+                border: 'none',
+                background: isRecovery ? 'var(--bg-elevated)' : 'transparent',
+                color: isRecovery ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                fontSize: 'var(--text-body-sm)',
+                fontWeight: 500,
+                cursor: 'pointer',
+                fontFamily: 'inherit',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              <LifeBuoy size={16} />
+              {t('settings:sync_qr_tab_recovery', { defaultValue: 'Recovery QR' })}
+            </button>
+          </div>
 
-            {recoveryLoading ? (
-              <div
+          {isRecovery ? (
+            <>
+              <h2
                 style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 12,
-                  padding: '32px 0',
+                  fontSize: 'var(--text-card-title)',
+                  fontWeight: 700,
+                  margin: '0 0 8px',
+                  color: 'var(--text-primary)',
                 }}
               >
-                <Loader2 size={32} style={{ animation: 'spin 1s linear infinite' }} />
-                <span style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)' }}>
-                  {t('common:loading')}
-                </span>
-              </div>
-            ) : recoveryError ? (
-              <div style={{ color: '#e74c3c', fontSize: 'var(--text-body-sm)', padding: '12px 0' }}>
-                {recoveryError}
-              </div>
-            ) : recoveryInfo ? (
-              <div
+                {t('common:recovery_host_title')}
+              </h2>
+              <p
                 style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 16,
-                  alignItems: 'center',
+                  fontSize: 'var(--text-body-sm)',
+                  color: 'var(--text-secondary)',
+                  margin: '0 0 20px',
+                  lineHeight: 1.5,
                 }}
               >
-                {/* QR 码 */}
+                {t('common:recovery_host_desc')}
+              </p>
+
+              {recoveryLoading ? (
+                // 数据未就绪时渲染固定高度的加载占位，与内容区同高 → 卡片高度不再突变
                 <div
                   style={{
-                    padding: 12,
-                    background: '#fff',
-                    borderRadius: 12,
-                    border: '1px solid var(--border-subtle)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 12,
+                    minHeight: 360,
                   }}
                 >
-                  <QRCodeSVG value={recoveryInfo.qrPayload} size={200} level="M" includeMargin />
+                  <Loader2 size={32} style={{ animation: 'spin 1s linear infinite' }} />
+                  <span style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)' }}>
+                    {t('common:loading')}
+                  </span>
                 </div>
-                <p
+              ) : recoveryError ? (
+                <div
                   style={{
-                    fontSize: 'var(--text-caption)',
-                    color: 'var(--text-tertiary)',
-                    margin: 0,
-                    textAlign: 'center',
+                    color: '#e74c3c',
+                    fontSize: 'var(--text-body-sm)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    minHeight: 360,
                   }}
                 >
-                  {t('common:recovery_host_qr_hint', {
-                    defaultValue: 'Scan with the other device to connect automatically',
-                  })}
-                </p>
-
-                {/* 网络信息 */}
-                <div style={{ width: '100%' }}>
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      padding: '10px 12px',
-                      borderRadius: 8,
-                      background: 'var(--bg-toolbar)',
-                      marginBottom: 8,
-                    }}
-                  >
-                    <span
-                      style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-body-sm)' }}
-                    >
-                      {t('common:recovery_host_pin_label')}
-                    </span>
-                    <span
-                      style={{
-                        fontFamily: 'monospace',
-                        fontSize: 'var(--text-body)',
-                        fontWeight: 700,
-                        letterSpacing: 4,
-                        color: 'var(--accent-primary)',
-                      }}
-                    >
-                      {recoveryInfo.pin}
-                    </span>
-                  </div>
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      padding: '10px 12px',
-                      borderRadius: 8,
-                      background: 'var(--bg-toolbar)',
-                    }}
-                  >
-                    <span
-                      style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-body-sm)' }}
-                    >
-                      {t('common:recovery_host_addr_label')}
-                    </span>
-                    <span
-                      style={{
-                        fontFamily: 'monospace',
-                        fontSize: 'var(--text-body-sm)',
-                        color: 'var(--text-primary)',
-                      }}
-                    >
-                      {recoveryInfo.displayAddr}
-                    </span>
-                  </div>
+                  {recoveryError}
                 </div>
-
-                {/* localhost 警告 */}
-                {/^(127\.|::1|\[::1\])/.test(recoveryInfo.displayAddr) && (
+              ) : recoveryInfo ? (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.2 }}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 16,
+                    alignItems: 'center',
+                    minHeight: 360,
+                  }}
+                >
+                  {/* QR 码 */}
+                  <div
+                    style={{
+                      padding: 12,
+                      background: '#fff',
+                      borderRadius: 12,
+                      border: '1px solid var(--border-subtle)',
+                    }}
+                  >
+                    <QRCodeSVG value={recoveryInfo.qrPayload} size={200} level="M" includeMargin />
+                  </div>
                   <p
                     style={{
                       fontSize: 'var(--text-caption)',
-                      color: 'var(--warning)',
-                      textAlign: 'center',
+                      color: 'var(--text-tertiary)',
                       margin: 0,
+                      textAlign: 'center',
                     }}
                   >
-                    {t('common:recovery_host_localhost_warning')}
+                    {t('common:recovery_host_qr_hint', {
+                      defaultValue: 'Scan with the other device to connect automatically',
+                    })}
                   </p>
-                )}
 
-                {/* 手动输入指引 — 折叠面板 */}
-                <div style={{ width: '100%' }}>
-                  <button
-                    type="button"
-                    onClick={() => setManualOpen(!manualOpen)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      width: '100%',
-                      padding: '8px 10px',
-                      borderRadius: 8,
-                      border: '1px solid var(--border-subtle)',
-                      background: manualOpen
-                        ? 'color-mix(in srgb, var(--accent-primary) 6%, transparent)'
-                        : 'transparent',
-                      color: 'var(--text-secondary)',
-                      cursor: 'pointer',
-                      fontFamily: 'inherit',
-                      fontSize: 'var(--text-body-sm)',
-                      transition: 'all 0.15s ease',
-                    }}
-                  >
-                    <span style={{ fontWeight: 500 }}>
-                      {manualOpen
-                        ? t('common:recovery_host_manual_hide', {
-                            defaultValue: 'Hide manual entry guide',
-                          })
-                        : t('common:recovery_host_manual_show', {
-                            defaultValue: 'No camera? Enter details manually',
-                          })}
-                    </span>
-                    {manualOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                  </button>
-
-                  {manualOpen && (
+                  {/* 网络信息 */}
+                  <div style={{ width: '100%' }}>
                     <div
                       style={{
-                        marginTop: 10,
-                        padding: '12px 14px',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        padding: '10px 12px',
                         borderRadius: 8,
                         background: 'var(--bg-toolbar)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 10,
+                        marginBottom: 8,
                       }}
                     >
-                      <p
+                      <span
+                        style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-body-sm)' }}
+                      >
+                        {t('common:recovery_host_pin_label')}
+                      </span>
+                      <span
                         style={{
-                          fontSize: 'var(--text-body-sm)',
-                          color: 'var(--text-secondary)',
-                          margin: 0,
-                          lineHeight: 1.5,
+                          fontFamily: 'monospace',
+                          fontSize: 'var(--text-body)',
+                          fontWeight: 700,
+                          letterSpacing: 4,
+                          color: 'var(--accent-primary)',
                         }}
                       >
-                        {t('common:recovery_host_manual_desc', {
-                          defaultValue:
-                            'On the other device, open "Restore from another device", choose the Manual tab, and enter:',
-                        })}
-                      </p>
-
-                      {/* 可复制地址 */}
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          padding: '8px 10px',
-                          borderRadius: 6,
-                          background: 'var(--bg-elevated)',
-                          border: '1px solid var(--border-subtle)',
-                        }}
-                      >
-                        <div style={{ minWidth: 0 }}>
-                          <div
-                            style={{
-                              fontSize: 'var(--text-caption)',
-                              color: 'var(--text-tertiary)',
-                              marginBottom: 2,
-                            }}
-                          >
-                            {t('common:recovery_host_addr_label')}
-                          </div>
-                          <div
-                            style={{
-                              fontFamily: 'monospace',
-                              fontSize: 'var(--text-body-sm)',
-                              color: 'var(--text-primary)',
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap',
-                            }}
-                          >
-                            {recoveryInfo.displayAddr}
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => copyToClipboard(recoveryInfo.displayAddr, setCopiedAddr)}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 4,
-                            padding: '4px 8px',
-                            borderRadius: 4,
-                            border: 'none',
-                            background: copiedAddr
-                              ? 'rgba(39,174,96,0.1)'
-                              : 'color-mix(in srgb, var(--accent-primary) 8%, transparent)',
-                            color: copiedAddr ? '#27ae60' : 'var(--accent-primary)',
-                            cursor: 'pointer',
-                            fontFamily: 'inherit',
-                            fontSize: 'var(--text-caption)',
-                            flexShrink: 0,
-                            transition: 'all 0.15s ease',
-                          }}
-                        >
-                          {copiedAddr ? <Check size={14} /> : <Copy size={14} />}
-                          {copiedAddr ? t('common:copied') : t('common:copy')}
-                        </button>
-                      </div>
-
-                      {/* 可复制 PIN */}
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          padding: '8px 10px',
-                          borderRadius: 6,
-                          background: 'var(--bg-elevated)',
-                          border: '1px solid var(--border-subtle)',
-                        }}
-                      >
-                        <div>
-                          <div
-                            style={{
-                              fontSize: 'var(--text-caption)',
-                              color: 'var(--text-tertiary)',
-                              marginBottom: 2,
-                            }}
-                          >
-                            {t('common:recovery_host_pin_label')}
-                          </div>
-                          <div
-                            style={{
-                              fontFamily: 'monospace',
-                              fontSize: 'var(--text-body-sm)',
-                              fontWeight: 700,
-                              letterSpacing: 4,
-                              color: 'var(--accent-primary)',
-                            }}
-                          >
-                            {recoveryInfo.pin}
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => copyToClipboard(recoveryInfo.pin, setCopiedPin)}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 4,
-                            padding: '4px 8px',
-                            borderRadius: 4,
-                            border: 'none',
-                            background: copiedPin
-                              ? 'rgba(39,174,96,0.1)'
-                              : 'color-mix(in srgb, var(--accent-primary) 8%, transparent)',
-                            color: copiedPin ? '#27ae60' : 'var(--accent-primary)',
-                            cursor: 'pointer',
-                            fontFamily: 'inherit',
-                            fontSize: 'var(--text-caption)',
-                            flexShrink: 0,
-                            transition: 'all 0.15s ease',
-                          }}
-                        >
-                          {copiedPin ? <Check size={14} /> : <Copy size={14} />}
-                          {copiedPin ? t('common:copied') : t('common:copy')}
-                        </button>
-                      </div>
-
-                      <p
-                        style={{
-                          fontSize: 'var(--text-caption)',
-                          color: 'var(--text-tertiary)',
-                          margin: '2px 0 0',
-                          lineHeight: 1.4,
-                        }}
-                      >
-                        {t('common:recovery_host_manual_note', {
-                          defaultValue:
-                            'Keep this app open until the transfer completes. The session expires in 5 minutes.',
-                        })}
-                      </p>
+                        {recoveryInfo.pin}
+                      </span>
                     </div>
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        padding: '10px 12px',
+                        borderRadius: 8,
+                        background: 'var(--bg-toolbar)',
+                      }}
+                    >
+                      <span
+                        style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-body-sm)' }}
+                      >
+                        {t('common:recovery_host_addr_label')}
+                      </span>
+                      <span
+                        style={{
+                          fontFamily: 'monospace',
+                          fontSize: 'var(--text-body-sm)',
+                          color: 'var(--text-primary)',
+                        }}
+                      >
+                        {recoveryInfo.displayAddr}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* localhost 警告 */}
+                  {/^(127\.|::1|\[::1\])/.test(recoveryInfo.displayAddr) && (
+                    <p
+                      style={{
+                        fontSize: 'var(--text-caption)',
+                        color: 'var(--warning)',
+                        textAlign: 'center',
+                        margin: 0,
+                      }}
+                    >
+                      {t('common:recovery_host_localhost_warning')}
+                    </p>
                   )}
-                </div>
 
-                {/* 过期时间提示 */}
-                <p
-                  style={{
-                    fontSize: 'var(--text-caption)',
-                    color: 'var(--text-tertiary)',
-                    textAlign: 'center',
-                    margin: 0,
-                  }}
-                >
-                  {t('common:recovery_host_expires')}
-                </p>
-
-                <Button
-                  variant="secondary"
-                  onClick={() => switchMode('sync')}
-                  style={{ width: '100%' }}
-                >
-                  {t('common:recovery_host_cancel')}
-                </Button>
-              </div>
-            ) : null}
-          </>
-        ) : (
-          <>
-            <h2
-              style={{
-                fontSize: 'var(--text-card-title)',
-                fontWeight: 700,
-                margin: '0 0 8px',
-                color: 'var(--text-primary)',
-              }}
-            >
-              {t('common:sync_qr_show_title')}
-            </h2>
-            <p
-              style={{
-                fontSize: 'var(--text-body-sm)',
-                color: 'var(--text-secondary)',
-                margin: '0 0 20px',
-                lineHeight: 1.5,
-              }}
-            >
-              {t('common:sync_qr_show_desc')}
-            </p>
-
-            {loading ? (
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 12,
-                  padding: '32px 0',
-                }}
-              >
-                <Loader2 size={32} style={{ animation: 'spin 1s linear infinite' }} />
-                <span style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)' }}>
-                  {t('common:loading')}
-                </span>
-              </div>
-            ) : error ? (
-              <div style={{ color: '#e74c3c', fontSize: 'var(--text-body-sm)', padding: '12px 0' }}>
-                {error}
-              </div>
-            ) : info ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 16, alignItems: 'center' }}>
-                <div
-                  style={{
-                    padding: 12,
-                    background: '#fff',
-                    borderRadius: 12,
-                    border: '1px solid var(--border-subtle)',
-                  }}
-                >
-                  <QRCodeSVG value={info.payload} size={200} level="M" includeMargin />
-                </div>
-
-                <div style={{ width: '100%' }}>
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      padding: '10px 12px',
-                      borderRadius: 8,
-                      background: 'var(--bg-toolbar)',
-                      marginBottom: 8,
-                    }}
-                  >
-                    <span
-                      style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-body-sm)' }}
-                    >
-                      {t('common:sync_qr_device_name')}
-                    </span>
-                    <span
+                  {/* 手动输入指引 — 折叠面板 */}
+                  <div style={{ width: '100%' }}>
+                    <button
+                      type="button"
+                      onClick={() => setManualOpen(!manualOpen)}
                       style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        width: '100%',
+                        padding: '8px 10px',
+                        borderRadius: 8,
+                        border: '1px solid var(--border-subtle)',
+                        background: manualOpen
+                          ? 'color-mix(in srgb, var(--accent-primary) 6%, transparent)'
+                          : 'transparent',
+                        color: 'var(--text-secondary)',
+                        cursor: 'pointer',
+                        fontFamily: 'inherit',
                         fontSize: 'var(--text-body-sm)',
-                        fontWeight: 500,
-                        color: 'var(--text-primary)',
+                        transition: 'all 0.15s ease',
                       }}
                     >
-                      {info.deviceName}
-                    </span>
-                  </div>
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      padding: '10px 12px',
-                      borderRadius: 8,
-                      background: 'var(--bg-toolbar)',
-                      marginBottom: 8,
-                    }}
-                  >
-                    <span
-                      style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-body-sm)' }}
-                    >
-                      {t('common:sync_qr_addr')}
-                    </span>
-                    <span
-                      style={{
-                        fontFamily: 'monospace',
-                        fontSize: 'var(--text-body-sm)',
-                        color: 'var(--text-primary)',
-                      }}
-                    >
-                      {info.addr}
-                    </span>
-                  </div>
-                  <div
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      padding: '10px 12px',
-                      borderRadius: 8,
-                      background: 'var(--bg-toolbar)',
-                    }}
-                  >
-                    <span
-                      style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-body-sm)' }}
-                    >
-                      {t('common:sync_qr_fingerprint')}
-                    </span>
-                    <span
-                      style={{
-                        fontFamily: 'monospace',
-                        fontSize: 'var(--text-body-sm)',
-                        color: 'var(--text-primary)',
-                        wordBreak: 'break-all',
-                        maxWidth: '60%',
-                        textAlign: 'right',
-                      }}
-                    >
-                      {info.fingerprint}
-                    </span>
-                  </div>
-                </div>
+                      <span style={{ fontWeight: 500 }}>
+                        {manualOpen
+                          ? t('common:recovery_host_manual_hide', {
+                              defaultValue: 'Hide manual entry guide',
+                            })
+                          : t('common:recovery_host_manual_show', {
+                              defaultValue: 'No camera? Enter details manually',
+                            })}
+                      </span>
+                      {manualOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                    </button>
 
-                {info.addr.startsWith('127.') && (
+                    {manualOpen && (
+                      <div
+                        style={{
+                          marginTop: 10,
+                          padding: '12px 14px',
+                          borderRadius: 8,
+                          background: 'var(--bg-toolbar)',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: 10,
+                        }}
+                      >
+                        <p
+                          style={{
+                            fontSize: 'var(--text-body-sm)',
+                            color: 'var(--text-secondary)',
+                            margin: 0,
+                            lineHeight: 1.5,
+                          }}
+                        >
+                          {t('common:recovery_host_manual_desc', {
+                            defaultValue:
+                              'On the other device, open "Restore from another device", choose the Manual tab, and enter:',
+                          })}
+                        </p>
+
+                        {/* 可复制地址 */}
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '8px 10px',
+                            borderRadius: 6,
+                            background: 'var(--bg-elevated)',
+                            border: '1px solid var(--border-subtle)',
+                          }}
+                        >
+                          <div style={{ minWidth: 0 }}>
+                            <div
+                              style={{
+                                fontSize: 'var(--text-caption)',
+                                color: 'var(--text-tertiary)',
+                                marginBottom: 2,
+                              }}
+                            >
+                              {t('common:recovery_host_addr_label')}
+                            </div>
+                            <div
+                              style={{
+                                fontFamily: 'monospace',
+                                fontSize: 'var(--text-body-sm)',
+                                color: 'var(--text-primary)',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap',
+                              }}
+                            >
+                              {recoveryInfo.displayAddr}
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => copyToClipboard(recoveryInfo.displayAddr, setCopiedAddr)}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 4,
+                              padding: '4px 8px',
+                              borderRadius: 4,
+                              border: 'none',
+                              background: copiedAddr
+                                ? 'rgba(39,174,96,0.1)'
+                                : 'color-mix(in srgb, var(--accent-primary) 8%, transparent)',
+                              color: copiedAddr ? '#27ae60' : 'var(--accent-primary)',
+                              cursor: 'pointer',
+                              fontFamily: 'inherit',
+                              fontSize: 'var(--text-caption)',
+                              flexShrink: 0,
+                              transition: 'all 0.15s ease',
+                            }}
+                          >
+                            {copiedAddr ? <Check size={14} /> : <Copy size={14} />}
+                            {copiedAddr ? t('common:copied') : t('common:copy')}
+                          </button>
+                        </div>
+
+                        {/* 可复制 PIN */}
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '8px 10px',
+                            borderRadius: 6,
+                            background: 'var(--bg-elevated)',
+                            border: '1px solid var(--border-subtle)',
+                          }}
+                        >
+                          <div>
+                            <div
+                              style={{
+                                fontSize: 'var(--text-caption)',
+                                color: 'var(--text-tertiary)',
+                                marginBottom: 2,
+                              }}
+                            >
+                              {t('common:recovery_host_pin_label')}
+                            </div>
+                            <div
+                              style={{
+                                fontFamily: 'monospace',
+                                fontSize: 'var(--text-body-sm)',
+                                fontWeight: 700,
+                                letterSpacing: 4,
+                                color: 'var(--accent-primary)',
+                              }}
+                            >
+                              {recoveryInfo.pin}
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => copyToClipboard(recoveryInfo.pin, setCopiedPin)}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 4,
+                              padding: '4px 8px',
+                              borderRadius: 4,
+                              border: 'none',
+                              background: copiedPin
+                                ? 'rgba(39,174,96,0.1)'
+                                : 'color-mix(in srgb, var(--accent-primary) 8%, transparent)',
+                              color: copiedPin ? '#27ae60' : 'var(--accent-primary)',
+                              cursor: 'pointer',
+                              fontFamily: 'inherit',
+                              fontSize: 'var(--text-caption)',
+                              flexShrink: 0,
+                              transition: 'all 0.15s ease',
+                            }}
+                          >
+                            {copiedPin ? <Check size={14} /> : <Copy size={14} />}
+                            {copiedPin ? t('common:copied') : t('common:copy')}
+                          </button>
+                        </div>
+
+                        <p
+                          style={{
+                            fontSize: 'var(--text-caption)',
+                            color: 'var(--text-tertiary)',
+                            margin: '2px 0 0',
+                            lineHeight: 1.4,
+                          }}
+                        >
+                          {t('common:recovery_host_manual_note', {
+                            defaultValue:
+                              'Keep this app open until the transfer completes. The session expires in 5 minutes.',
+                          })}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* 过期时间提示 */}
                   <p
                     style={{
                       fontSize: 'var(--text-caption)',
-                      color: 'var(--warning)',
+                      color: 'var(--text-tertiary)',
                       textAlign: 'center',
                       margin: 0,
                     }}
                   >
-                    {t('common:sync_qr_localhost_warning')}
+                    {t('common:recovery_host_expires')}
                   </p>
-                )}
 
-                <Button variant="secondary" onClick={handleClose} style={{ width: '100%' }}>
-                  {t('common:close')}
-                </Button>
-              </div>
-            ) : null}
-          </>
-        )}
-      </Card>
+                  <Button
+                    variant="secondary"
+                    onClick={() => switchMode('sync')}
+                    style={{ width: '100%' }}
+                  >
+                    {t('common:recovery_host_cancel')}
+                  </Button>
+                </motion.div>
+              ) : null}
+            </>
+          ) : (
+            <>
+              <h2
+                style={{
+                  fontSize: 'var(--text-card-title)',
+                  fontWeight: 700,
+                  margin: '0 0 8px',
+                  color: 'var(--text-primary)',
+                }}
+              >
+                {t('common:sync_qr_show_title')}
+              </h2>
+              <p
+                style={{
+                  fontSize: 'var(--text-body-sm)',
+                  color: 'var(--text-secondary)',
+                  margin: '0 0 20px',
+                  lineHeight: 1.5,
+                }}
+              >
+                {t('common:sync_qr_show_desc')}
+              </p>
+
+              {loading ? (
+                // 数据未就绪时渲染固定高度的加载占位，与内容区同高 → 卡片高度不再突变
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 12,
+                    minHeight: 360,
+                  }}
+                >
+                  <Loader2 size={32} style={{ animation: 'spin 1s linear infinite' }} />
+                  <span style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)' }}>
+                    {t('common:loading')}
+                  </span>
+                </div>
+              ) : error ? (
+                <div
+                  style={{
+                    color: '#e74c3c',
+                    fontSize: 'var(--text-body-sm)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    minHeight: 360,
+                  }}
+                >
+                  {error}
+                </div>
+              ) : info ? (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.2 }}
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 16,
+                    alignItems: 'center',
+                    minHeight: 360,
+                  }}
+                >
+                  <div
+                    style={{
+                      padding: 12,
+                      background: '#fff',
+                      borderRadius: 12,
+                      border: '1px solid var(--border-subtle)',
+                    }}
+                  >
+                    <QRCodeSVG value={info.payload} size={200} level="M" includeMargin />
+                  </div>
+
+                  <div style={{ width: '100%' }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        padding: '10px 12px',
+                        borderRadius: 8,
+                        background: 'var(--bg-toolbar)',
+                        marginBottom: 8,
+                      }}
+                    >
+                      <span
+                        style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-body-sm)' }}
+                      >
+                        {t('common:sync_qr_device_name')}
+                      </span>
+                      <span
+                        style={{
+                          fontSize: 'var(--text-body-sm)',
+                          fontWeight: 500,
+                          color: 'var(--text-primary)',
+                        }}
+                      >
+                        {info.deviceName}
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        padding: '10px 12px',
+                        borderRadius: 8,
+                        background: 'var(--bg-toolbar)',
+                        marginBottom: 8,
+                      }}
+                    >
+                      <span
+                        style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-body-sm)' }}
+                      >
+                        {t('common:sync_qr_addr')}
+                      </span>
+                      <span
+                        style={{
+                          fontFamily: 'monospace',
+                          fontSize: 'var(--text-body-sm)',
+                          color: 'var(--text-primary)',
+                        }}
+                      >
+                        {info.addr}
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        padding: '10px 12px',
+                        borderRadius: 8,
+                        background: 'var(--bg-toolbar)',
+                      }}
+                    >
+                      <span
+                        style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-body-sm)' }}
+                      >
+                        {t('common:sync_qr_fingerprint')}
+                      </span>
+                      <span
+                        style={{
+                          fontFamily: 'monospace',
+                          fontSize: 'var(--text-body-sm)',
+                          color: 'var(--text-primary)',
+                          wordBreak: 'break-all',
+                          maxWidth: '60%',
+                          textAlign: 'right',
+                        }}
+                      >
+                        {info.fingerprint}
+                      </span>
+                    </div>
+                  </div>
+
+                  {info.addr.startsWith('127.') && (
+                    <p
+                      style={{
+                        fontSize: 'var(--text-caption)',
+                        color: 'var(--warning)',
+                        textAlign: 'center',
+                        margin: 0,
+                      }}
+                    >
+                      {t('common:sync_qr_localhost_warning')}
+                    </p>
+                  )}
+
+                  <Button variant="secondary" onClick={handleClose} style={{ width: '100%' }}>
+                    {t('common:close')}
+                  </Button>
+                </motion.div>
+              ) : null}
+            </>
+          )}
+        </Card>
+      </motion.div>
     </div>
   );
 }

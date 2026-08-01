@@ -809,6 +809,7 @@
   "sync_qr_tab_recovery": "Recovery QR",
   "sync_qr_scan": "Scan QR",
   "sync_err_not_enabled": "Sync is not enabled or the listen port is not ready. Enable sync first.",
+  "sync_err_not_running": "Sync service is not running. Please enable sync and try again.",
   "sync_err_enable_timeout": "Enabling sync timed out. Please try again.",
   "sync_err_discovery_timeout": "Device discovery timed out. Check your network and try again.",
   "sync_err_nsd_failed": "Failed to register the network discovery service. Sync has been disabled. Please try again.",

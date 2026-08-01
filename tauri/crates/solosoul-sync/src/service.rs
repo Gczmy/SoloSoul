@@ -13,7 +13,7 @@
 //
 // 模式上, 所有需要访问 manager 的方法统一沿用:
 //   let guard = self.manager.lock().await;
-//   let manager = guard.as_ref().ok_or("Sync is not enabled")?;
+//   let manager = guard.as_ref().ok_or("__SYNC_ERR__:not_enabled")?;
 //   // manager: &SyncManager, 调用方法 .await / .x() 全部明确
 
 use crate::manager::SyncManager;
@@ -125,7 +125,8 @@ impl SyncService {
     ) -> Result<SyncSessionResult, String> {
         let manager = {
             let guard = self.manager.lock().await;
-            guard.as_ref().cloned().ok_or("Sync is not enabled")?
+            // 前端经 resolveBackendErrorMessage 翻译（settings:sync_err_not_enabled）
+            guard.as_ref().cloned().ok_or("__SYNC_ERR__:not_enabled")?
         };
         let result = manager.sync_with_peer(&device_id_or_addr).await?;
         let table_summary = result
