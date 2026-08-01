@@ -187,25 +187,15 @@ export function PostLoginSetupGuide() {
           onClick={handleDismiss}
           aria-label={t('common:close', { defaultValue: '关闭' })}
           style={{
-            background: 'transparent',
             border: 'none',
             cursor: 'pointer',
-            color: 'var(--text-tertiary)',
             padding: 4,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             borderRadius: 6,
-            transition: 'all 0.15s ease',
           }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'var(--bg-toolbar)';
-            e.currentTarget.style.color = 'var(--text-primary)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'transparent';
-            e.currentTarget.style.color = 'var(--text-tertiary)';
-          }}
+          className="interactive-ghost"
         >
           <X size={ICON_SIZE.md} />
         </button>
@@ -236,24 +226,15 @@ export function PostLoginSetupGuide() {
             width: '100%',
             padding: '10px 14px',
             borderRadius: 10,
-            border: '1px solid var(--border-subtle)',
-            background: 'var(--bg-toolbar)',
+            borderWidth: 1,
+            borderStyle: 'solid',
             cursor: 'pointer',
             fontFamily: 'inherit',
             fontSize: 'var(--text-body)',
             color: 'var(--text-primary)',
             marginBottom: 8,
-            transition: 'all 0.15s ease',
           }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = 'var(--accent-primary)';
-            e.currentTarget.style.background =
-              'color-mix(in srgb, var(--accent-primary) 6%, transparent)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = 'var(--border-subtle)';
-            e.currentTarget.style.background = 'var(--bg-toolbar)';
-          }}
+          className="interactive-toolbar"
         >
           <Fingerprint size={ICON_SIZE.lg} color="var(--accent-primary)" />
           <span
@@ -290,23 +271,14 @@ export function PostLoginSetupGuide() {
             width: '100%',
             padding: '10px 14px',
             borderRadius: 10,
-            border: '1px solid var(--border-subtle)',
-            background: 'var(--bg-toolbar)',
+            borderWidth: 1,
+            borderStyle: 'solid',
             cursor: 'pointer',
             fontFamily: 'inherit',
             fontSize: 'var(--text-body)',
             color: 'var(--text-primary)',
-            transition: 'all 0.15s ease',
           }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = 'var(--accent-primary)';
-            e.currentTarget.style.background =
-              'color-mix(in srgb, var(--accent-primary) 6%, transparent)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = 'var(--border-subtle)';
-            e.currentTarget.style.background = 'var(--bg-toolbar)';
-          }}
+          className="interactive-toolbar"
         >
           <Grip size={ICON_SIZE.lg} color="var(--accent-primary)" />
           <span
@@ -340,21 +312,14 @@ export function PostLoginSetupGuide() {
       >
         <button
           onClick={handleDismiss}
+          className="interactive-color-secondary"
           style={{
             background: 'transparent',
             border: 'none',
             fontSize: 'var(--text-badge)',
-            color: 'var(--text-tertiary)',
             cursor: 'pointer',
             fontFamily: 'inherit',
             padding: '4px 8px',
-            transition: 'color 0.15s ease',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.color = 'var(--text-secondary)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.color = 'var(--text-tertiary)';
           }}
         >
           {t('common:not_now', { defaultValue: '暂不' })}

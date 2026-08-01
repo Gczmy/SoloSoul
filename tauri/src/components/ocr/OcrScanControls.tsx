@@ -50,37 +50,16 @@ export function OcrScanControls({
           value={activeTier}
           onChange={(e) => onTierChange(e.target.value)}
           disabled={loadingStatus || isScanning}
-          onMouseEnter={(e) => {
-            if (!e.currentTarget.disabled) {
-              e.currentTarget.style.borderColor = 'var(--accent-primary)';
-              e.currentTarget.style.boxShadow =
-                '0 0 0 2px color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (document.activeElement !== e.currentTarget) {
-              e.currentTarget.style.borderColor = 'var(--border-subtle)';
-              e.currentTarget.style.boxShadow = 'none';
-            }
-          }}
-          onFocus={(e) => {
-            e.currentTarget.style.borderColor = 'var(--accent-primary)';
-            e.currentTarget.style.boxShadow =
-              '0 0 0 2px color-mix(in srgb, var(--accent-primary) 15%, transparent)';
-          }}
-          onBlur={(e) => {
-            e.currentTarget.style.borderColor = 'var(--border-subtle)';
-            e.currentTarget.style.boxShadow = 'none';
-          }}
+          className="interactive-field"
           style={{
             width: '100%',
             padding: '8px 10px',
             fontSize: 'var(--text-body-sm)',
             borderRadius: 8,
-            border: '1px solid var(--border-subtle)',
+            borderWidth: 1,
+            borderStyle: 'solid',
             background: 'var(--bg-elevated)',
             color: 'var(--text-primary)',
-            transition: 'border-color 0.2s, box-shadow 0.2s',
           }}
         >
           {tiers.map((tier) => {
@@ -109,36 +88,19 @@ export function OcrScanControls({
         <button
           onClick={() => onScanModeChange('general')}
           disabled={isScanning}
-          onMouseEnter={(e) => {
-            if (scanMode !== 'general' && !isScanning) {
-              e.currentTarget.style.background =
-                'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-              e.currentTarget.style.color = 'var(--accent-primary)';
-            }
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background =
-              scanMode === 'general'
-                ? 'color-mix(in srgb, var(--accent-primary) 15%, transparent)'
-                : 'transparent';
-            e.currentTarget.style.color =
-              scanMode === 'general' ? 'var(--accent-primary)' : 'var(--text-primary)';
-            e.currentTarget.style.fontWeight = scanMode === 'general' ? '600' : '400';
-          }}
+          className={
+            scanMode === 'general'
+              ? 'interactive-segmented segmented-active'
+              : 'interactive-segmented'
+          }
           style={{
             padding: '6px 14px',
             borderRadius: 6,
             border: 'none',
             fontSize: 'var(--text-body-sm)',
             cursor: 'pointer',
-            background:
-              scanMode === 'general'
-                ? 'color-mix(in srgb, var(--accent-primary) 15%, transparent)'
-                : 'transparent',
-            color: scanMode === 'general' ? 'var(--accent-primary)' : 'var(--text-primary)',
             fontWeight: scanMode === 'general' ? 600 : 400,
             opacity: isScanning ? 0.6 : 1,
-            transition: 'background 0.15s, color 0.15s',
           }}
         >
           {t('ocr:scan_mode_general')}
@@ -146,36 +108,17 @@ export function OcrScanControls({
         <button
           onClick={() => onScanModeChange('mrz')}
           disabled={isScanning}
-          onMouseEnter={(e) => {
-            if (scanMode !== 'mrz' && !isScanning) {
-              e.currentTarget.style.background =
-                'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-              e.currentTarget.style.color = 'var(--accent-primary)';
-            }
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background =
-              scanMode === 'mrz'
-                ? 'color-mix(in srgb, var(--accent-primary) 15%, transparent)'
-                : 'transparent';
-            e.currentTarget.style.color =
-              scanMode === 'mrz' ? 'var(--accent-primary)' : 'var(--text-primary)';
-            e.currentTarget.style.fontWeight = scanMode === 'mrz' ? '600' : '400';
-          }}
+          className={
+            scanMode === 'mrz' ? 'interactive-segmented segmented-active' : 'interactive-segmented'
+          }
           style={{
             padding: '6px 14px',
             borderRadius: 6,
             border: 'none',
             fontSize: 'var(--text-body-sm)',
             cursor: 'pointer',
-            background:
-              scanMode === 'mrz'
-                ? 'color-mix(in srgb, var(--accent-primary) 15%, transparent)'
-                : 'transparent',
-            color: scanMode === 'mrz' ? 'var(--accent-primary)' : 'var(--text-primary)',
             fontWeight: scanMode === 'mrz' ? 600 : 400,
             opacity: isScanning ? 0.6 : 1,
-            transition: 'background 0.15s, color 0.15s',
           }}
         >
           {t('ocr:scan_mode_mrz')}
@@ -187,22 +130,12 @@ export function OcrScanControls({
         <button
           onClick={onSelectFile}
           disabled={isScanning}
-          onMouseEnter={(e) => {
-            if (!isScanning) {
-              e.currentTarget.style.background =
-                'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-              e.currentTarget.style.borderColor = 'var(--accent-primary)';
-            }
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'var(--bg-toolbar)';
-            e.currentTarget.style.borderColor = 'var(--border-subtle)';
-          }}
+          className="interactive-toolbar"
           style={{
             padding: '10px 20px',
             borderRadius: 10,
-            border: '1px solid var(--border-subtle)',
-            background: 'var(--bg-toolbar)',
+            borderWidth: 1,
+            borderStyle: 'solid',
             color: 'var(--text-primary)',
             fontSize: 'var(--text-body)',
             fontWeight: 500,
@@ -211,7 +144,6 @@ export function OcrScanControls({
             alignItems: 'center',
             gap: 8,
             opacity: isScanning ? 0.7 : 1,
-            transition: 'background 0.2s, border-color 0.2s, opacity 0.15s ease',
           }}
         >
           <FileText size={ICON_SIZE.md} />

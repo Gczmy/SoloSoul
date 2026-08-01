@@ -212,32 +212,16 @@ export function OcrSettingsPage() {
                         <button
                           onClick={() => handleInstallBundled(tier.tier)}
                           disabled={isInstalling}
-                          onMouseEnter={(e) => {
-                            if (!isInstalling) {
-                              e.currentTarget.style.background =
-                                'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
-                              e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                              e.currentTarget.style.color = 'var(--accent-primary)';
-                            }
-                          }}
-                          onMouseLeave={(e) => {
-                            if (!isInstalling) {
-                              e.currentTarget.style.background = 'var(--bg-toolbar)';
-                              e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                              e.currentTarget.style.color = 'var(--text-primary)';
-                            }
-                          }}
+                          className="interactive-toolbar"
                           style={{
                             padding: '6px 12px',
                             borderRadius: 8,
-                            border: '1px solid var(--border-subtle)',
-                            background: 'var(--bg-toolbar)',
-                            color: 'var(--text-primary)',
+                            borderWidth: 1,
+                            borderStyle: 'solid',
                             fontSize: 'var(--text-caption)',
                             fontWeight: 500,
                             cursor: isInstalling ? 'default' : 'pointer',
                             opacity: isInstalling ? 0.6 : 1,
-                            transition: 'all 0.15s ease',
                             fontFamily: 'inherit',
                             display: 'inline-flex',
                             alignItems: 'center',
@@ -254,32 +238,16 @@ export function OcrSettingsPage() {
                         <button
                           onClick={() => handleDownload(tier.tier)}
                           disabled={isDownloading}
-                          onMouseEnter={(e) => {
-                            if (!isDownloading) {
-                              e.currentTarget.style.background =
-                                'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
-                              e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                              e.currentTarget.style.color = 'var(--accent-primary)';
-                            }
-                          }}
-                          onMouseLeave={(e) => {
-                            if (!isDownloading) {
-                              e.currentTarget.style.background = 'var(--bg-toolbar)';
-                              e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                              e.currentTarget.style.color = 'var(--text-primary)';
-                            }
-                          }}
+                          className="interactive-toolbar"
                           style={{
                             padding: '6px 12px',
                             borderRadius: 8,
-                            border: '1px solid var(--border-subtle)',
-                            background: 'var(--bg-toolbar)',
-                            color: 'var(--text-primary)',
+                            borderWidth: 1,
+                            borderStyle: 'solid',
                             fontSize: 'var(--text-caption)',
                             fontWeight: 500,
                             cursor: isDownloading ? 'default' : 'pointer',
                             opacity: isDownloading ? 0.6 : 1,
-                            transition: 'all 0.15s ease',
                             fontFamily: 'inherit',
                             display: 'inline-flex',
                             alignItems: 'center',
@@ -301,32 +269,16 @@ export function OcrSettingsPage() {
                         <button
                           onClick={() => handleDelete(tier.tier)}
                           disabled={isDeleting}
-                          onMouseEnter={(e) => {
-                            if (!isDeleting) {
-                              e.currentTarget.style.background =
-                                'color-mix(in srgb, var(--error) 12%, transparent)';
-                              e.currentTarget.style.borderColor = 'var(--error)';
-                              e.currentTarget.style.color = 'var(--error)';
-                            }
-                          }}
-                          onMouseLeave={(e) => {
-                            if (!isDeleting) {
-                              e.currentTarget.style.background = 'var(--bg-toolbar)';
-                              e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                              e.currentTarget.style.color = 'var(--text-primary)';
-                            }
-                          }}
+                          className="interactive-danger"
                           style={{
                             padding: '6px 12px',
                             borderRadius: 8,
-                            border: '1px solid var(--border-subtle)',
-                            background: 'var(--bg-toolbar)',
-                            color: 'var(--text-primary)',
+                            borderWidth: 1,
+                            borderStyle: 'solid',
                             fontSize: 'var(--text-caption)',
                             fontWeight: 500,
                             cursor: isDeleting ? 'default' : 'pointer',
                             opacity: isDeleting ? 0.6 : 1,
-                            transition: 'all 0.15s ease',
                             fontFamily: 'inherit',
                             display: 'inline-flex',
                             alignItems: 'center',

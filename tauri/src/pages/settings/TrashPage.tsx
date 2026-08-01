@@ -448,23 +448,12 @@ export function TrashPage() {
                             e.stopPropagation();
                             openDetail(item.id);
                           }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.color = 'var(--accent-primary)';
-                            e.currentTarget.style.background =
-                              'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.color = 'var(--text-tertiary)';
-                            e.currentTarget.style.background = 'none';
-                          }}
+                          className="interactive-accent"
                           style={{
-                            background: 'none',
                             border: 'none',
                             cursor: 'pointer',
                             padding: 4,
                             borderRadius: 4,
-                            color: 'var(--text-tertiary)',
-                            transition: 'background 0.15s, color 0.15s',
                           }}
                           title={t('common:details')}
                         >

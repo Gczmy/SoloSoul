@@ -67,7 +67,7 @@
 | P045 | P2 | 结构 | `export_import/helpers.rs:173-232`、`import.rs:394-412`、`profile.rs:191-205`、`plugin.rs:80-107`、`llm/stream.rs:257-302` | 5 处 5-6 层深层嵌套 | `[x]` 已修复 |
 | P046 | P2 | 重复 | `tauri/src-tauri/src/commands/attachment.rs:983-1027` vs `tauri/crates/solosoul-core/src/objects.rs:945-999` | `cleanup_orphan_attachments` GUI 端整体复制 core 实现 | `[x]` 已修复 |
 | P047 | P2 | 重复 | `tauri/src-tauri/src/plugin/host/register.rs:763-812,838-890` | 两个 watermark 注册闭包除一行外完全相同；read_string 校验样板 20+ 次 | `[>]` 已决策待执行（并入 P012 方向 B 第③步，在统一后的 crate host.rs 上只做一次） |
-| P048 | P2 | 重复 | 54 文件 119 处 onMouseEnter、57 文件 128 处 onMouseLeave（内联样式改写 471 处/49 文件） | 手写 onMouseEnter/Leave hover，应统一迁移到 `ui/Button` 或视觉等价 CSS hover | `[~]` 部分完成（第一批 3 文件 19 处已迁移，2026-08-01） |
+| P048 | P2 | 重复 | 54 文件 119 处 onMouseEnter、57 文件 128 处 onMouseLeave（内联样式改写 471 处/49 文件） | 手写 onMouseEnter/Leave hover，应统一迁移到 `ui/Button` 或视觉等价 CSS hover | `[~]` 部分完成（第一+二批 13 文件 43 处已迁移，2026-08-01） |
 | P049 | P2 | 重复 | `TrashPage.tsx:254-345`（×2）、`OperationLogPage.tsx:280-323`、`TemplateManagerPage.tsx:597+`、`SampleTemplateGallery.tsx:282+` | 筛选 chip 按钮块（约 45 行）重复 5 处，可抽 FilterChipGroup | `[x]` 已修复 |
 | P050 | P2 | 结构 | `tauri/src/pages/editor/ObjectEditorPage.tsx:300-360` | 动态组校验 switch 6 个 case 同一模式，应表驱动化（含 5 层嵌套） | `[x]` 已修复 |
 | P051 | P2 | 性能 | `tauri/src-tauri/src/commands/llm/rag.rs:794-808,942` | 重建 embedding 逐条 `save_guide_embedding`，每条独立事务+fsync | `[x]` 已修复 |
@@ -87,9 +87,9 @@
 ## 修复进度
 
 - 已完成：60 / 63（经 2026-08-01 复核确认通过的项）
-- 部分完成 `[~]`：1 项——P048（第一批 3 文件 19 处已迁移，2026-08-01）
+- 部分完成 `[~]`：1 项——P048（第一+二批 13 文件 43 处已迁移，2026-08-01）
 - 已决策待执行 `[>]`：2 项——P012（方向 B 统一到 crate，P047 并入）
-- 当前处理：P048 第一批已完成（2026-08-01），待后续批次
+- 当前处理：P048 第二批已完成（2026-08-01），待后续批次（settings/guide/ocr 已全覆盖）
 
 ## 静态基线之外已检查且无发现的维度（误报排除记录）
 
@@ -338,6 +338,23 @@ sync crate manager（`manager.rs:168`）`sync_enable` 时自建 `ServiceDaemon`�
 **决策记录（2026-08-01）**：P012 已定为方向 B（统一到 crate），且重复代码在两侧同构存在（本地 `register.rs` 与 crate `host.rs:937-1008/1012-1083`）。先在本地做会在方向 B 第④步删除本地 host 时被整体丢弃，故**本项并入 P012 第③步**，在统一后的 crate `host.rs` 上只做一次，顺带统一 `write_u32`/`write_handle` 命名。
 
 **P048 | 手写 hover**：项目已有带 CSS hover 的 `ui/Button`，但大量页面仍内联 style + 双事件手写 hover，样式不一致且无法随主题统一调整。
+
+**第二批实施记录（2026-08-01，提交后补充）**
+
+*策略修正*：实际走的是共享 `interactive-*` 工具类（animations.css）而非 `ui/Button`/CSS module——batch 1 已确认工具类路线（`:not(:disabled)` 接管 loading 守卫，`selected-*` 处理选中态），本批延续。
+
+*CSS 新增 8 变体 + 1 token 修复*：
+- `interactive-lift-strong`（GuideCards -3px+shadow+border）/ `interactive-ghost`（透明→bg-toolbar 中性 hover）/ `interactive-dashed`（虚线边框按钮）/ `interactive-danger-solid`（实心红 清除提示 确认态）/ `interactive-segmented`+`.segmented-active`（扫描模式 segmented 控件）/ `interactive-field`（表单字段 hover/focus ring 10%/15%）/ `interactive-color-secondary`（文字 tertiary→secondary）/ `selected-neutral`（bg-toolbar+text-primary 无 hover 反应的激活 tab）
+- **修复 batch 1 遗留 bug**：`--bg-elevated-hover` 被 `interactive-row` 引用但从未定义（此前=transparent），现补 light `#f6f5f2` / dark `#322d26`。
+
+*迁移 24 处（10 文件，settings/guide/ocr 三目录全覆盖）*：
+- settings：BackupConfigPage 2（create/restore→toolbar）、OcrSettingsPage 3（install/download→toolbar、delete→danger）、OperationLogPage 1（X→accent）、AppearanceSettingsPage 2（more→dashed、label 行→neutral）、TrashPage 1（Info→accent）、ThemeSchemePanel 1（→lift）、PasswordChangeForm 2（hint 条件类、save→toolbar）
+- guide：PostLoginSetupGuide 4（X→ghost、biometric/pin→toolbar+内联 color 阻断变色、dismiss→color-secondary）、PageGuide 5（close X→accent、help link→row、prev/next/close footer→toolbar）、GuideCards 1（→lift-strong）
+- ocr：OcrPopoverHeader 3（history/full-page→icon+条件 color、close→accent）、OcrScanControls 4（select→field、2 模式按钮→segmented、scan→toolbar）、OcrHistoryTrashDropdown 3（双 tab→toolbar/selected-neutral 或 accent、restore→icon）
+
+*审查采纳的修正*：PageGuide prev/next/close 底部按钮移除内联 `color`（原实现 hover 文字变 accent，内联 color 会阻断变色反馈；base 文字色 text-secondary→text-primary 轻微变亮，接受）。
+
+*已知轻微差异*（审查确认接受）：help-link 静止态 base 变 bg-elevated-hover+透明边框（共享类设计）；OcrSettings delete/PasswordChange hint base 文字色 ±1 级；restore 图标 base 变亮。
 
 **决策记录（2026-08-01，用户已确认：分批视觉等价重构）**
 

@@ -190,32 +190,16 @@ export function BackupConfigPage() {
             <button
               onClick={handleCreate}
               disabled={!backupName.trim() || isCreating}
-              onMouseEnter={(e) => {
-                if (backupName.trim() && !isCreating) {
-                  e.currentTarget.style.background =
-                    'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
-                  e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                  e.currentTarget.style.color = 'var(--accent-primary)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (backupName.trim() && !isCreating) {
-                  e.currentTarget.style.background = 'var(--bg-toolbar)';
-                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                  e.currentTarget.style.color = 'var(--text-primary)';
-                }
-              }}
+              className="interactive-toolbar"
               style={{
                 padding: '8px 16px',
                 borderRadius: 8,
-                border: '1px solid var(--border-subtle)',
-                background: 'var(--bg-toolbar)',
-                color: 'var(--text-primary)',
+                borderWidth: 1,
+                borderStyle: 'solid',
                 fontSize: 'var(--text-body-sm)',
                 fontWeight: 500,
                 cursor: !backupName.trim() || isCreating ? 'default' : 'pointer',
                 opacity: !backupName.trim() || isCreating ? 0.5 : 1,
-                transition: 'all 0.15s ease',
                 fontFamily: 'inherit',
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -332,21 +316,7 @@ export function BackupConfigPage() {
                       onClick={() => handleRestore(backup.id, backup.name)}
                       disabled={restoringId === backup.id}
                       title={t('settings:restore_title')}
-                      onMouseEnter={(e) => {
-                        if (restoringId !== backup.id) {
-                          e.currentTarget.style.background =
-                            'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
-                          e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                          e.currentTarget.style.color = 'var(--accent-primary)';
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (restoringId !== backup.id) {
-                          e.currentTarget.style.background = 'var(--bg-toolbar)';
-                          e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                          e.currentTarget.style.color = 'var(--text-secondary)';
-                        }
-                      }}
+                      className="interactive-toolbar"
                       style={{
                         width: 32,
                         height: 32,
@@ -354,12 +324,10 @@ export function BackupConfigPage() {
                         alignItems: 'center',
                         justifyContent: 'center',
                         borderRadius: 8,
-                        border: '1px solid var(--border-subtle)',
-                        background: 'var(--bg-toolbar)',
-                        color: 'var(--text-secondary)',
+                        borderWidth: 1,
+                        borderStyle: 'solid',
                         cursor: restoringId === backup.id ? 'default' : 'pointer',
                         opacity: restoringId === backup.id ? 0.5 : 1,
-                        transition: 'all 0.15s ease',
                         padding: 0,
                       }}
                     >

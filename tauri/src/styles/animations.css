@@ -648,6 +648,138 @@
   color: var(--accent-primary);
 }
 
+/* ── Toolbar selected (accent border/color, toolbar bg) ─── */
+.interactive-toolbar-selected {
+  background: var(--bg-toolbar);
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+  transition:
+    background var(--duration-fast, 150ms) var(--ease-smooth, ease),
+    border-color var(--duration-fast, 150ms) var(--ease-smooth, ease),
+    color var(--duration-fast, 150ms) var(--ease-smooth, ease);
+}
+.interactive-toolbar-selected:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
+/* ── Neutral bg hover (toolbar → hover, list rows) ──────── */
+.interactive-neutral {
+  background: var(--bg-toolbar);
+  transition: background var(--duration-fast, 150ms) var(--ease-smooth, ease);
+}
+.interactive-neutral:hover:not(:disabled) {
+  background: var(--bg-hover);
+}
+
+/* ── Lift on hover (transform cards / scheme previews) ──── */
+.interactive-lift {
+  transition: transform var(--duration-fast, 150ms) var(--ease-smooth, ease);
+}
+.interactive-lift:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+/* ── Strong lift (guide cards: -3px + shadow + accent border) */
+.interactive-lift-strong {
+  border-color: var(--border-subtle);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color var(--duration-fast, 150ms) var(--ease-smooth, ease);
+}
+.interactive-lift-strong:hover:not(:disabled) {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+  border-color: var(--accent-primary);
+}
+
+/* ── Ghost icon (transparent → toolbar tint, neutral) ──── */
+.interactive-ghost {
+  background: transparent;
+  color: var(--text-tertiary);
+  transition:
+    background var(--duration-fast, 150ms) var(--ease-smooth, ease),
+    color var(--duration-fast, 150ms) var(--ease-smooth, ease);
+}
+.interactive-ghost:hover:not(:disabled) {
+  background: var(--bg-toolbar);
+  color: var(--text-primary);
+}
+
+/* ── Dashed border button (more appearances) ────────────── */
+.interactive-dashed {
+  background: transparent;
+  border-color: var(--border-strong);
+  color: var(--text-secondary);
+  transition:
+    border-color var(--duration-fast, 150ms) var(--ease-smooth, ease),
+    color var(--duration-fast, 150ms) var(--ease-smooth, ease);
+}
+.interactive-dashed:hover:not(:disabled) {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
+/* ── Solid danger (clear-hint confirmed state) ──────────── */
+.interactive-danger-solid {
+  background: #e74c3c;
+  border-color: #e74c3c;
+  color: #fff;
+  transition:
+    background var(--duration-fast, 150ms) var(--ease-smooth, ease),
+    box-shadow var(--duration-fast, 150ms) var(--ease-smooth, ease);
+}
+.interactive-danger-solid:hover:not(:disabled) {
+  background: #c0392b;
+  box-shadow: 0 1px 4px rgba(231, 76, 60, 0.35);
+}
+
+/* ── Segmented control option (scan mode tabs) ──────────── */
+.interactive-segmented {
+  background: transparent;
+  color: var(--text-primary);
+  transition:
+    background var(--duration-fast, 150ms) var(--ease-smooth, ease),
+    color var(--duration-fast, 150ms) var(--ease-smooth, ease);
+}
+.interactive-segmented:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  color: var(--accent-primary);
+}
+.interactive-segmented.segmented-active {
+  background: color-mix(in srgb, var(--accent-primary) 15%, transparent) !important;
+  color: var(--accent-primary) !important;
+}
+
+/* ── Form field hover/focus ring (selects) ──────────────── */
+.interactive-field {
+  border-color: var(--border-subtle);
+  box-shadow: none;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s;
+}
+.interactive-field:hover:not(:disabled):not(:focus) {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 10%, transparent);
+}
+.interactive-field:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 15%, transparent);
+}
+
+/* ── Color-only muted hover (dismiss link) ──────────────── */
+.interactive-color-secondary {
+  color: var(--text-tertiary);
+  transition: color var(--duration-fast, 150ms) var(--ease-smooth, ease);
+}
+.interactive-color-secondary:hover:not(:disabled) {
+  color: var(--text-secondary);
+}
+
 /* ── Selected state (composable with interactive-*) ─────── */
 .selected-accent {
   background: color-mix(in srgb, var(--accent-primary) 10%, transparent) !important;
@@ -660,6 +792,13 @@
   border-color: #e74c3c !important;
   color: #e74c3c !important;
   box-shadow: 0 0 0 1px #e74c3c !important;
+}
+
+/* ── Neutral selected (toolbar bg, no hover reaction) ───── */
+.selected-neutral {
+  background: var(--bg-toolbar) !important;
+  border-color: var(--border-subtle) !important;
+  color: var(--text-primary) !important;
 }
 
 /* ── Dimmed state (tab not hovered + not active) ────────── */

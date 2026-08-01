@@ -54,56 +54,26 @@ export function OcrHistoryTrashDropdown({
       >
         <button
           onClick={() => onShowTrashChange(false)}
-          onMouseEnter={(e) => {
-            if (showTrash) {
-              e.currentTarget.style.background =
-                'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-              e.currentTarget.style.color = 'var(--accent-primary)';
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (showTrash) {
-              e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.color = 'var(--text-tertiary)';
-            }
-          }}
+          className={!showTrash ? 'interactive-toolbar selected-neutral' : 'interactive-accent'}
           style={{
             fontSize: 'var(--text-caption)',
             padding: '4px 8px',
             borderRadius: 6,
             border: 'none',
-            background: !showTrash ? 'var(--bg-toolbar)' : 'transparent',
-            color: !showTrash ? 'var(--text-primary)' : 'var(--text-tertiary)',
             cursor: 'pointer',
-            transition: 'all 0.15s ease',
           }}
         >
           {t('ocr:history_tab')} ({activeHistory.length})
         </button>
         <button
           onClick={() => onShowTrashChange(true)}
-          onMouseEnter={(e) => {
-            if (!showTrash) {
-              e.currentTarget.style.background =
-                'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-              e.currentTarget.style.color = 'var(--accent-primary)';
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (!showTrash) {
-              e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.color = 'var(--text-tertiary)';
-            }
-          }}
+          className={showTrash ? 'interactive-toolbar selected-neutral' : 'interactive-accent'}
           style={{
             fontSize: 'var(--text-caption)',
             padding: '4px 8px',
             borderRadius: 6,
             border: 'none',
-            background: showTrash ? 'var(--bg-toolbar)' : 'transparent',
-            color: showTrash ? 'var(--text-primary)' : 'var(--text-tertiary)',
             cursor: 'pointer',
-            transition: 'all 0.15s ease',
           }}
         >
           {t('ocr:trash_tab')} ({trash.length})
@@ -253,21 +223,13 @@ export function OcrHistoryTrashDropdown({
               <button
                 onClick={() => store.restoreEntry(entry.id)}
                 title={t('ocr:restore')}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background =
-                    'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'transparent';
-                }}
+                className="interactive-icon"
                 style={{
                   padding: 2,
                   borderRadius: 4,
                   border: 'none',
-                  background: 'transparent',
                   cursor: 'pointer',
                   color: 'var(--accent-primary)',
-                  transition: 'all 0.15s ease',
                 }}
               >
                 <RotateCcw size={ICON_SIZE.xs} />

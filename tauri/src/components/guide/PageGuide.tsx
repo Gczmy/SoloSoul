@@ -332,23 +332,12 @@ export function PageGuide({ pages, label, compact }: PageGuideProps) {
               </div>
               <button
                 onClick={handleClose}
+                className="interactive-accent"
                 style={{
                   padding: 6,
                   borderRadius: 8,
                   border: 'none',
-                  background: 'transparent',
                   cursor: 'pointer',
-                  color: 'var(--text-tertiary)',
-                  transition: 'all 0.15s ease',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background =
-                    'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
-                  e.currentTarget.style.color = 'var(--accent-primary)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'transparent';
-                  e.currentTarget.style.color = 'var(--text-tertiary)';
                 }}
               >
                 <X size={ICON_SIZE.xl} />
@@ -563,28 +552,19 @@ export function PageGuide({ pages, label, compact }: PageGuideProps) {
                             <button
                               key={i}
                               onClick={() => handleHelpLinkClick(link.href)}
+                              className="interactive-row"
                               style={{
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: 10,
                                 padding: '8px 10px',
                                 borderRadius: 8,
-                                border: '1px solid var(--border-subtle)',
-                                background: 'var(--bg-elevated)',
+                                borderWidth: 1,
+                                borderStyle: 'solid',
                                 cursor: 'pointer',
                                 textAlign: 'left',
                                 width: '100%',
-                                transition: 'all 0.15s ease',
                                 fontFamily: 'inherit',
-                              }}
-                              onMouseEnter={(e) => {
-                                e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                                e.currentTarget.style.background =
-                                  'color-mix(in srgb, var(--accent-primary) 4%, transparent)';
-                              }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                                e.currentTarget.style.background = 'var(--bg-elevated)';
                               }}
                             >
                               <div style={{ flex: 1, minWidth: 0 }}>
@@ -642,36 +622,20 @@ export function PageGuide({ pages, label, compact }: PageGuideProps) {
               <button
                 onClick={handlePrev}
                 disabled={isFirst}
+                className="interactive-toolbar"
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: 4,
                   padding: '6px 12px',
                   borderRadius: 8,
-                  border: '1px solid var(--border-subtle)',
-                  background: 'var(--bg-toolbar)',
-                  color: isFirst ? 'var(--text-disabled)' : 'var(--text-secondary)',
+                  borderWidth: 1,
+                  borderStyle: 'solid',
                   cursor: isFirst ? 'default' : 'pointer',
                   fontSize: 'var(--text-badge)',
                   fontWeight: 500,
                   opacity: isFirst ? 0.4 : 1,
-                  transition: 'all 0.15s ease',
                   fontFamily: 'inherit',
-                }}
-                onMouseEnter={(e) => {
-                  if (!isFirst) {
-                    e.currentTarget.style.background =
-                      'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-                    e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                    e.currentTarget.style.color = 'var(--accent-primary)';
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'var(--bg-toolbar)';
-                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                  e.currentTarget.style.color = isFirst
-                    ? 'var(--text-disabled)'
-                    : 'var(--text-secondary)';
                 }}
               >
                 <ChevronLeft size={ICON_SIZE.xs} />
@@ -693,31 +657,19 @@ export function PageGuide({ pages, label, compact }: PageGuideProps) {
               {!isLast ? (
                 <button
                   onClick={handleNext}
+                  className="interactive-toolbar"
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: 4,
                     padding: '6px 12px',
                     borderRadius: 8,
-                    border: '1px solid var(--border-subtle)',
-                    background: 'var(--bg-toolbar)',
-                    color: 'var(--text-secondary)',
+                    borderWidth: 1,
+                    borderStyle: 'solid',
                     cursor: 'pointer',
                     fontSize: 'var(--text-badge)',
                     fontWeight: 500,
-                    transition: 'all 0.15s ease',
                     fontFamily: 'inherit',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background =
-                      'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-                    e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                    e.currentTarget.style.color = 'var(--accent-primary)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'var(--bg-toolbar)';
-                    e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                    e.currentTarget.style.color = 'var(--text-secondary)';
                   }}
                 >
                   {t('next') ?? '下一页'}
@@ -726,31 +678,19 @@ export function PageGuide({ pages, label, compact }: PageGuideProps) {
               ) : (
                 <button
                   onClick={handleClose}
+                  className="interactive-toolbar"
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: 4,
                     padding: '6px 14px',
                     borderRadius: 8,
-                    border: '1px solid var(--border-subtle)',
-                    background: 'var(--bg-toolbar)',
-                    color: 'var(--text-secondary)',
+                    borderWidth: 1,
+                    borderStyle: 'solid',
                     cursor: 'pointer',
                     fontSize: 'var(--text-badge)',
                     fontWeight: 500,
-                    transition: 'all 0.15s ease',
                     fontFamily: 'inherit',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background =
-                      'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-                    e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                    e.currentTarget.style.color = 'var(--accent-primary)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'var(--bg-toolbar)';
-                    e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                    e.currentTarget.style.color = 'var(--text-secondary)';
                   }}
                 >
                   {t('got_it') ?? '知道了'}

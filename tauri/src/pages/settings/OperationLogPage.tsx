@@ -237,6 +237,7 @@ export function OperationLogPage() {
                 onClick={() => setSearchQuery('')}
                 aria-label={t('common:clear')}
                 tabIndex={-1}
+                className="interactive-accent"
                 style={{
                   flexShrink: 0,
                   width: 22,
@@ -246,20 +247,8 @@ export function OperationLogPage() {
                   justifyContent: 'center',
                   border: 'none',
                   borderRadius: 4,
-                  background: 'transparent',
-                  color: 'var(--text-tertiary)',
                   cursor: 'pointer',
                   padding: 0,
-                  transition: 'all 0.15s ease',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background =
-                    'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-                  e.currentTarget.style.color = 'var(--accent-primary)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'transparent';
-                  e.currentTarget.style.color = 'var(--text-tertiary)';
                 }}
               >
                 <X size={ICON_SIZE.sm} />

@@ -215,38 +215,15 @@ export function PasswordChangeForm({ accountId }: PasswordChangeFormProps) {
                   setError(null);
                 }
               }}
-              onMouseEnter={(e) => {
-                if (hintCleared) {
-                  e.currentTarget.style.background = '#c0392b';
-                  e.currentTarget.style.boxShadow = '0 1px 4px rgba(231,76,60,0.35)';
-                } else {
-                  e.currentTarget.style.background =
-                    'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
-                  e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                  e.currentTarget.style.color = 'var(--accent-primary)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (hintCleared) {
-                  e.currentTarget.style.background = '#e74c3c';
-                  e.currentTarget.style.boxShadow = 'none';
-                } else {
-                  e.currentTarget.style.background = 'var(--bg-toolbar)';
-                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                  e.currentTarget.style.color = 'var(--text-tertiary)';
-                }
-              }}
+              className={hintCleared ? 'interactive-danger-solid' : 'interactive-toolbar'}
               style={{
                 padding: '3px 10px',
                 borderRadius: 6,
-                border: '1px solid',
-                borderColor: hintCleared ? '#e74c3c' : 'var(--border-subtle)',
-                background: hintCleared ? '#e74c3c' : 'var(--bg-toolbar)',
+                borderWidth: 1,
+                borderStyle: 'solid',
                 cursor: 'pointer',
                 fontSize: 'var(--text-badge)',
                 fontWeight: 500,
-                color: hintCleared ? 'white' : 'var(--text-tertiary)',
-                transition: 'all 0.15s ease',
               }}
             >
               {hintCleared ? t('common:undo') : t('common:clear_hint')}
@@ -299,32 +276,16 @@ export function PasswordChangeForm({ accountId }: PasswordChangeFormProps) {
         <button
           onClick={handleChangePassword}
           disabled={shouldDisableSave}
-          onMouseEnter={(e) => {
-            if (!shouldDisableSave) {
-              e.currentTarget.style.background =
-                'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
-              e.currentTarget.style.borderColor = 'var(--accent-primary)';
-              e.currentTarget.style.color = 'var(--accent-primary)';
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (!shouldDisableSave) {
-              e.currentTarget.style.background = 'var(--bg-toolbar)';
-              e.currentTarget.style.borderColor = 'var(--border-subtle)';
-              e.currentTarget.style.color = 'var(--text-primary)';
-            }
-          }}
+          className="interactive-toolbar"
           style={{
             padding: '8px 16px',
             borderRadius: 8,
-            border: '1px solid var(--border-subtle)',
-            background: 'var(--bg-toolbar)',
-            color: 'var(--text-primary)',
+            borderWidth: 1,
+            borderStyle: 'solid',
             fontSize: 'var(--text-body-sm)',
             fontWeight: 500,
             cursor: shouldDisableSave ? 'default' : 'pointer',
             opacity: shouldDisableSave ? 0.5 : 1,
-            transition: 'all 0.15s ease',
             fontFamily: 'inherit',
             alignSelf: 'flex-end',
           }}

@@ -221,6 +221,7 @@ export function AppearanceSettingsPage() {
               {/* More appearances button */}
               <button
                 onClick={() => setIsPanelOpen((open) => !open)}
+                className="interactive-dashed"
                 style={{
                   marginTop: 16,
                   display: 'flex',
@@ -230,21 +231,11 @@ export function AppearanceSettingsPage() {
                   width: '100%',
                   padding: '10px 0',
                   borderRadius: 8,
-                  border: '1px dashed var(--border-strong)',
-                  background: 'transparent',
-                  color: 'var(--text-secondary)',
+                  borderWidth: 1,
+                  borderStyle: 'dashed',
                   fontSize: 'var(--text-body-sm)',
                   fontWeight: 500,
                   cursor: 'pointer',
-                  transition: 'all 0.15s',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                  e.currentTarget.style.color = 'var(--accent-primary)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor = 'var(--border-strong)';
-                  e.currentTarget.style.color = 'var(--text-secondary)';
                 }}
               >
                 <Palette size={ICON_SIZE.md} />
@@ -387,21 +378,14 @@ export function AppearanceSettingsPage() {
                     return (
                       <label
                         key={id}
+                        className="interactive-neutral"
                         style={{
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'space-between',
                           padding: '8px 10px',
                           borderRadius: 8,
-                          background: 'var(--bg-toolbar)',
                           cursor: 'pointer',
-                          transition: 'background 0.12s',
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.background = 'var(--bg-hover)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.background = 'var(--bg-toolbar)';
                         }}
                       >
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

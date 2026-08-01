@@ -628,36 +628,18 @@ function SyncStatusCard({
         <button
           onClick={onToggleSync}
           disabled={store.isLoading}
-          onMouseEnter={(e) => {
-            if (!store.isLoading) {
-              e.currentTarget.style.background =
-                'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
-              e.currentTarget.style.borderColor = 'var(--accent-primary)';
-              e.currentTarget.style.color = 'var(--accent-primary)';
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (!store.isLoading) {
-              e.currentTarget.style.background = 'var(--bg-toolbar)';
-              e.currentTarget.style.borderColor = 'var(--border-subtle)';
-              e.currentTarget.style.color = store.syncEnabled
-                ? 'var(--accent-primary)'
-                : 'var(--text-primary)';
-            }
-          }}
+          className={
+            store.syncEnabled ? 'interactive-toolbar-selected' : 'interactive-toolbar'
+          }
           style={{
             padding: '8px 16px',
             borderRadius: 8,
-            border: store.syncEnabled
-              ? '1px solid var(--accent-primary)'
-              : '1px solid var(--border-subtle)',
-            background: 'var(--bg-toolbar)',
-            color: store.syncEnabled ? 'var(--accent-primary)' : 'var(--text-primary)',
+            borderWidth: 1,
+            borderStyle: 'solid',
             fontSize: 'var(--text-body-sm)',
             fontWeight: 500,
             cursor: store.isLoading ? 'default' : 'pointer',
             opacity: store.isLoading ? 0.6 : 1,
-            transition: 'all 0.15s ease',
             fontFamily: 'inherit',
           }}
         >

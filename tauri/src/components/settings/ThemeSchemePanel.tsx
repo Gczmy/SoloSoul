@@ -169,9 +169,9 @@ function SchemeThumbnail({
 }) {
   const { t } = useTranslation('settings');
 
-  return (
-    <button
+  return (      <button
       onClick={onClick}
+      className="interactive-lift"
       style={{
         display: 'flex',
         flexDirection: 'column',
@@ -184,15 +184,9 @@ function SchemeThumbnail({
         borderColor: isActive ? 'var(--accent-primary)' : 'transparent',
         background: 'var(--bg-base)',
         cursor: 'pointer',
-        transition: 'transform 0.15s, box-shadow 0.15s',
         position: 'relative',
       }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.transform = 'translateY(-2px)';
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform = 'translateY(0)';
-      }}
+
     >
       {/* Thumbnail preview */}
       <div
