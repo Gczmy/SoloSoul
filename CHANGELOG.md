@@ -2,6 +2,31 @@
 
 All notable changes to SoloSoul are documented in this file.
 
+## [2.7.1] - 2026-08-01
+
+### Fixed
+
+- **跨设备恢复同名账户误判** — `create_account_with_id` 移除大小写不敏感的账户名唯一性检查（恢复场景允许同名，身份以 `account_id` 为准）；相同 `account_id` 不再直接报错，恢复对话框提供「覆盖恢复」（删除本端账户并用旧设备数据替换，可重设本端密码）与「取消」选择，配套二次确认弹窗与错误 i18n。
+- **恢复包模板与历史快照丢失** — 恢复包（include_all）携带全部模板与对象历史快照（base64 + 原时间戳），解决预置模板丢失与历史记录变 1；`save_snapshot_at` 按原时间戳恢复，旧包向后兼容；Overwrite 策略快照去重防叠加；恢复保留原模板 ID；导出体积按实际字节估算。
+- **Android SAF 目录删除后启动闪退** — `migrate_vault_data` 新增 `clear_dst` 参数，SAF 降级迁移（src 位于 dst 内部）不再清空目标目录，避免删除源数据与应用级目录导致 PluginManager 初始化失败闪退；迁移成功后清理临时缓存目录。
+- **Android PDF 附件黑色块** — `PdfPreviewActivity` 首屏渲染延迟到布局完成，避免 1×1 位图拉伸成黑色块。
+- **Android 导出/导入页溢出** — `ObjectSelectionTree` 长页面名/文件名 flex 截断防溢出卡片。
+- **onboarding 账户来源卡片交互** — 点击「是的，从其他设备恢复账户」后直接跳转扫码页；创建新账户页补回「已在其他设备上有账户」返回入口。
+- **设备同步错误 i18n 与发现修复** — 桌面 addresses 统一为 `ip:port` 形状；裸 IP 回退匹配；NSD 权限命令名对齐（Android 可正常发现设备）；守卫/握手/spawn_blocking join 错误全部纳入 `__SYNC_ERR__` 前缀机制。
+- **同步二维码弹窗闪烁** — `SyncShowQrDialog`/`SyncScanQrDialog` 卡片进场淡入 + 固定高度加载占位，消除高度突变闪烁；Card 冗余 maxWidth 清理；`should_show_device` 去多余分配。
+- **恢复流程英文错误 i18n** — `friendlyConnectError` 新增 PIN 不匹配/MITM/握手中断/传输失败/包超限/任务失败 6 类诊断文案；主机端错误走 `translateRustError` + `resolveBackendErrorMessage` 双级兜底。
+
+### Refactor
+
+- **`has_account` 公共方法** — 恢复覆盖检查改用 `has_account(id)`，减少文件 IO。
+
+### Chore
+
+- **兜底插件目录复用** — `solosoul_plugin_fallback` 固定目录名复用，避免 pid 后缀目录残留堆积。
+- **构建产物解跟踪** — `gen/schemas` 取消 git 跟踪；Cargo.lock 同步。
+- 版本号同步升级到 2.7.1。
+- 17 个 commit 自 v2.7.0（`46c4ea08`）到 v2.7.1。
+
 ## [2.7.0] - 2026-08-01
 
 ### Added
