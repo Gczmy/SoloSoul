@@ -108,28 +108,17 @@ function ObjectDetailContent({
       {showBackButton && onBack && (
         <button
           onClick={onBack}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.color = 'var(--accent-primary)';
-            e.currentTarget.style.background =
-              'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.color = 'var(--text-secondary)';
-            e.currentTarget.style.background = 'none';
-          }}
+          className="interactive-icon"
           style={{
             display: 'flex',
             alignItems: 'center',
             gap: 6,
-            background: 'none',
             border: 'none',
             borderRadius: 6,
             cursor: 'pointer',
             padding: '4px 8px',
-            color: 'var(--text-secondary)',
             fontSize: 'var(--text-body-sm)',
             fontFamily: 'inherit',
-            transition: 'background 0.15s, color 0.15s',
             marginBottom: 8,
           }}
         >
@@ -164,23 +153,12 @@ function ObjectDetailContent({
         </div>
         <button
           onClick={onClose}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.color = 'var(--accent-primary)';
-            e.currentTarget.style.background =
-              'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.color = 'var(--text-tertiary)';
-            e.currentTarget.style.background = 'none';
-          }}
+          className="interactive-accent"
           style={{
-            background: 'none',
             border: 'none',
             borderRadius: 6,
             cursor: 'pointer',
             padding: 4,
-            color: 'var(--text-tertiary)',
-            transition: 'background 0.15s, color 0.15s',
           }}
         >
           <X size={ICON_SIZE.lg} />
@@ -404,34 +382,16 @@ function ObjectDetailContent({
                   <div style={{ display: 'flex', gap: 4, marginBottom: 8 }}>
                     <button
                       onClick={() => setShowTrashAttachments(false)}
-                      onMouseEnter={
-                        !showTrashAttachments
-                          ? undefined
-                          : (e) => {
-                              e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                              e.currentTarget.style.background =
-                                'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-                            }
-                      }
-                      onMouseLeave={
-                        !showTrashAttachments
-                          ? undefined
-                          : (e) => {
-                              e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                              e.currentTarget.style.background = 'var(--bg-toolbar)';
-                            }
+                      className={
+                        showTrashAttachments ? 'interactive-toolbar' : 'selected-accent'
                       }
                       style={{
                         padding: '4px 10px',
                         borderRadius: 6,
                         fontSize: 'var(--text-badge)',
                         fontWeight: 500,
-                        border: showTrashAttachments
-                          ? '1px solid var(--border-subtle)'
-                          : '1px solid var(--accent-primary)',
-                        background: showTrashAttachments
-                          ? 'var(--bg-toolbar)'
-                          : 'color-mix(in srgb, var(--accent-primary) 10%, transparent)',
+                        borderWidth: 1,
+                        borderStyle: 'solid',
                         color: showTrashAttachments
                           ? 'var(--text-primary)'
                           : 'var(--accent-primary)',
@@ -447,36 +407,17 @@ function ObjectDetailContent({
                     </button>
                     <button
                       onClick={() => setShowTrashAttachments(true)}
-                      onMouseEnter={
-                        showTrashAttachments
-                          ? undefined
-                          : (e) => {
-                              e.currentTarget.style.borderColor = '#e74c3c';
-                              e.currentTarget.style.background =
-                                'color-mix(in srgb, #e74c3c 10%, transparent)';
-                            }
-                      }
-                      onMouseLeave={
-                        showTrashAttachments
-                          ? undefined
-                          : (e) => {
-                              e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                              e.currentTarget.style.background = 'var(--bg-toolbar)';
-                            }
+                      className={
+                        showTrashAttachments ? 'selected-danger' : 'interactive-danger'
                       }
                       style={{
                         padding: '4px 10px',
                         borderRadius: 6,
                         fontSize: 'var(--text-badge)',
                         fontWeight: 500,
-                        border: showTrashAttachments
-                          ? '1px solid #e74c3c'
-                          : '1px solid var(--border-subtle)',
-                        background: showTrashAttachments
-                          ? 'color-mix(in srgb, #e74c3c 10%, transparent)'
-                          : 'var(--bg-toolbar)',
+                        borderWidth: 1,
+                        borderStyle: 'solid',
                         color: showTrashAttachments ? '#e74c3c' : 'var(--text-primary)',
-                        boxShadow: showTrashAttachments ? '0 0 0 1px #e74c3c' : 'none',
                         cursor: 'pointer',
                         transition:
                           'background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s',
@@ -509,27 +450,17 @@ function ObjectDetailContent({
                       return (
                         <div
                           key={a.id}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background =
-                              'color-mix(in srgb, var(--accent-primary) 6%, transparent)';
-                            e.currentTarget.style.borderColor =
-                              'color-mix(in srgb, var(--accent-primary) 20%, transparent)';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.background = 'var(--bg-elevated-hover)';
-                            e.currentTarget.style.borderColor = 'transparent';
-                          }}
+                          className="interactive-row"
                           style={{
                             display: 'flex',
                             alignItems: 'center',
                             gap: 8,
                             fontSize: 'var(--text-caption)',
                             padding: '8px 10px',
-                            background: 'var(--bg-elevated-hover)',
                             borderRadius: 6,
-                            border: '1px solid transparent',
+                            borderWidth: 1,
+                            borderStyle: 'solid',
                             cursor: 'default',
-                            transition: 'background 0.15s, border-color 0.15s',
                           }}
                         >
                           <AttachIcon
@@ -777,31 +708,21 @@ export function TrashDetailPanel({
                     <button
                       key={child.id}
                       onClick={() => handleViewChild(child)}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.background =
-                          'color-mix(in srgb, var(--accent-primary) 8%, transparent)';
-                        e.currentTarget.style.borderColor =
-                          'color-mix(in srgb, var(--accent-primary) 25%, transparent)';
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.background = 'var(--bg-elevated-hover)';
-                        e.currentTarget.style.borderColor = 'transparent';
-                      }}
+                      className="interactive-row"
                       style={{
                         display: 'flex',
                         alignItems: 'center',
                         gap: 8,
                         padding: '8px 10px',
                         borderRadius: 6,
-                        border: '1px solid transparent',
-                        background: 'var(--bg-elevated-hover)',
+                        borderWidth: 1,
+                        borderStyle: 'solid',
                         cursor: 'pointer',
                         fontFamily: 'inherit',
                         fontSize: 'var(--text-body-sm)',
                         color: 'var(--text-primary)',
                         textAlign: 'left',
                         width: '100%',
-                        transition: 'background 0.15s, border-color 0.15s',
                       }}
                     >
                       <span
@@ -877,38 +798,21 @@ function SnapshotContent({
           <button
             disabled={clampedIdx >= snapshots.length - 1}
             onClick={() => onChangeSnapshot(clampedIdx + 1)}
+            className="interactive-nav"
             style={{
               width: 28,
               height: 28,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              border: '1px solid var(--border-subtle)',
+              borderWidth: 1,
+              borderStyle: 'solid',
               borderRadius: 6,
               cursor: clampedIdx >= snapshots.length - 1 ? 'default' : 'pointer',
               fontSize: 'var(--text-badge)',
-              background: 'transparent',
               color:
-                clampedIdx >= snapshots.length - 1
-                  ? 'var(--text-tertiary)'
-                  : 'var(--text-secondary)',
+                clampedIdx >= snapshots.length - 1 ? 'var(--text-tertiary)' : undefined,
               opacity: clampedIdx >= snapshots.length - 1 ? 0.35 : 1,
-              transition: 'all 0.15s ease',
-            }}
-            onMouseEnter={(e) => {
-              if (clampedIdx < snapshots.length - 1) {
-                e.currentTarget.style.background = 'var(--bg-toolbar)';
-                e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                e.currentTarget.style.color = 'var(--accent-primary)';
-              }
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.borderColor = 'var(--border-subtle)';
-              e.currentTarget.style.color =
-                clampedIdx >= snapshots.length - 1
-                  ? 'var(--text-tertiary)'
-                  : 'var(--text-secondary)';
             }}
           >
             <ChevronLeft size={ICON_SIZE.sm} />
@@ -939,33 +843,20 @@ function SnapshotContent({
           <button
             disabled={clampedIdx <= 0}
             onClick={() => onChangeSnapshot(Math.max(0, clampedIdx - 1))}
+            className="interactive-nav"
             style={{
               width: 28,
               height: 28,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              border: '1px solid var(--border-subtle)',
+              borderWidth: 1,
+              borderStyle: 'solid',
               borderRadius: 6,
               cursor: clampedIdx <= 0 ? 'default' : 'pointer',
               fontSize: 'var(--text-badge)',
-              background: 'transparent',
-              color: clampedIdx <= 0 ? 'var(--text-tertiary)' : 'var(--text-secondary)',
+              color: clampedIdx <= 0 ? 'var(--text-tertiary)' : undefined,
               opacity: clampedIdx <= 0 ? 0.35 : 1,
-              transition: 'all 0.15s ease',
-            }}
-            onMouseEnter={(e) => {
-              if (clampedIdx > 0) {
-                e.currentTarget.style.background = 'var(--bg-toolbar)';
-                e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                e.currentTarget.style.color = 'var(--accent-primary)';
-              }
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent';
-              e.currentTarget.style.borderColor = 'var(--border-subtle)';
-              e.currentTarget.style.color =
-                clampedIdx <= 0 ? 'var(--text-tertiary)' : 'var(--text-secondary)';
             }}
           >
             <ChevronRight size={ICON_SIZE.sm} />

@@ -191,23 +191,12 @@ export function DataManagementPage() {
             </div>
             <button
               onClick={() => setShowBreakdown(!showBreakdown)}
+              className="interactive-accent"
               style={{
-                background: 'transparent',
                 border: 'none',
                 cursor: 'pointer',
                 padding: 6,
                 borderRadius: 6,
-                color: 'var(--text-tertiary)',
-                transition: 'all 0.15s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background =
-                  'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-                e.currentTarget.style.color = 'var(--accent-primary)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'transparent';
-                e.currentTarget.style.color = 'var(--text-tertiary)';
               }}
               title={t('settings:view_breakdown')}
             >
@@ -374,28 +363,16 @@ export function DataManagementPage() {
             <button
               type="button"
               onClick={() => navigate('/settings/backup')}
+              className="interactive-toolbar"
               style={{
                 fontSize: 'var(--text-caption)',
                 padding: '6px 12px',
                 borderRadius: 6,
-                border: '1px solid var(--border-subtle)',
-                background: 'var(--bg-toolbar)',
-                color: 'var(--text-primary)',
+                borderWidth: 1,
+                borderStyle: 'solid',
                 cursor: 'pointer',
                 fontFamily: 'inherit',
                 fontWeight: 500,
-                transition: 'all 0.15s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background =
-                  'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-                e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                e.currentTarget.style.color = 'var(--accent-primary)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'var(--bg-toolbar)';
-                e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                e.currentTarget.style.color = 'var(--text-primary)';
               }}
             >
               {t('settings:create_backup')}
@@ -403,28 +380,16 @@ export function DataManagementPage() {
             <button
               type="button"
               onClick={() => navigate('/settings/backup')}
+              className="interactive-toolbar"
               style={{
                 fontSize: 'var(--text-caption)',
                 padding: '6px 12px',
                 borderRadius: 6,
-                border: '1px solid var(--border-subtle)',
-                background: 'var(--bg-toolbar)',
-                color: 'var(--text-primary)',
+                borderWidth: 1,
+                borderStyle: 'solid',
                 cursor: 'pointer',
                 fontFamily: 'inherit',
                 fontWeight: 500,
-                transition: 'all 0.15s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background =
-                  'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-                e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                e.currentTarget.style.color = 'var(--accent-primary)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'var(--bg-toolbar)';
-                e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                e.currentTarget.style.color = 'var(--text-primary)';
               }}
             >
               {t('settings:restore')}
@@ -449,28 +414,16 @@ export function DataManagementPage() {
             <button
               type="button"
               onClick={() => navigate('/settings/export-import')}
+              className="interactive-toolbar"
               style={{
                 fontSize: 'var(--text-caption)',
                 padding: '6px 12px',
                 borderRadius: 6,
-                border: '1px solid var(--border-subtle)',
-                background: 'var(--bg-toolbar)',
-                color: 'var(--text-primary)',
+                borderWidth: 1,
+                borderStyle: 'solid',
                 cursor: 'pointer',
                 fontFamily: 'inherit',
                 fontWeight: 500,
-                transition: 'all 0.15s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background =
-                  'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-                e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                e.currentTarget.style.color = 'var(--accent-primary)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'var(--bg-toolbar)';
-                e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                e.currentTarget.style.color = 'var(--text-primary)';
               }}
             >
               {t('settings:export')}
@@ -478,28 +431,16 @@ export function DataManagementPage() {
             <button
               type="button"
               onClick={() => navigate('/settings/export-import')}
+              className="interactive-toolbar"
               style={{
                 fontSize: 'var(--text-caption)',
                 padding: '6px 12px',
                 borderRadius: 6,
-                border: '1px solid var(--border-subtle)',
-                background: 'var(--bg-toolbar)',
-                color: 'var(--text-primary)',
+                borderWidth: 1,
+                borderStyle: 'solid',
                 cursor: 'pointer',
                 fontFamily: 'inherit',
                 fontWeight: 500,
-                transition: 'all 0.15s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.background =
-                  'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-                e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                e.currentTarget.style.color = 'var(--accent-primary)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'var(--bg-toolbar)';
-                e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                e.currentTarget.style.color = 'var(--text-primary)';
               }}
             >
               {t('settings:import')}
@@ -523,28 +464,16 @@ export function DataManagementPage() {
           <button
             type="button"
             onClick={() => navigate('/settings/trash')}
+            className="interactive-toolbar"
             style={{
               fontSize: 'var(--text-caption)',
               padding: '6px 12px',
               borderRadius: 6,
-              border: '1px solid var(--border-subtle)',
-              background: 'var(--bg-toolbar)',
-              color: 'var(--text-primary)',
+              borderWidth: 1,
+              borderStyle: 'solid',
               cursor: 'pointer',
               fontFamily: 'inherit',
               fontWeight: 500,
-              transition: 'all 0.15s ease',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background =
-                'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
-              e.currentTarget.style.borderColor = 'var(--accent-primary)';
-              e.currentTarget.style.color = 'var(--accent-primary)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'var(--bg-toolbar)';
-              e.currentTarget.style.borderColor = 'var(--border-subtle)';
-              e.currentTarget.style.color = 'var(--text-primary)';
             }}
           >
             {t('settings:trash')}

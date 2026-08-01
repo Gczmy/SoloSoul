@@ -92,23 +92,16 @@ export function SyncPage() {
               </div>
               <button
                 onClick={handleOpenConflictDialog}
+                className="interactive-danger-soft"
                 style={{
                   padding: '8px 16px',
                   borderRadius: 8,
-                  border: '1px solid #c0392b',
-                  background: 'rgba(192,57,43,0.08)',
-                  color: '#c0392b',
+                  borderWidth: 1,
+                  borderStyle: 'solid',
                   fontSize: 'var(--text-body-sm)',
                   fontWeight: 500,
                   cursor: 'pointer',
-                  transition: 'all 0.15s ease',
                   fontFamily: 'inherit',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'rgba(192,57,43,0.12)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'rgba(192,57,43,0.08)';
                 }}
               >
                 {t('settings:sync_review_conflicts', { defaultValue: 'Review' })}
@@ -146,34 +139,20 @@ export function SyncPage() {
                 disabled={store.isLoading}
                 title={t('settings:sync_qr_show', { defaultValue: 'Show QR' })}
                 aria-label={t('settings:sync_qr_show', { defaultValue: 'Show QR' })}
+                className="interactive-toolbar"
                 style={{
                   width: 40,
                   height: 40,
                   borderRadius: 8,
-                  border: '1px solid var(--border-subtle)',
-                  background: 'var(--bg-toolbar)',
-                  color: 'var(--text-primary)',
+                  borderWidth: 1,
+                  borderStyle: 'solid',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   flexShrink: 0,
                   cursor: store.isLoading ? 'default' : 'pointer',
                   opacity: store.isLoading ? 0.6 : 1,
-                  transition: 'all 0.15s ease',
                   fontFamily: 'inherit',
-                }}
-                onMouseEnter={(e) => {
-                  if (store.isLoading) return;
-                  e.currentTarget.style.background =
-                    'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
-                  e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                  e.currentTarget.style.color = 'var(--accent-primary)';
-                }}
-                onMouseLeave={(e) => {
-                  if (store.isLoading) return;
-                  e.currentTarget.style.background = 'var(--bg-toolbar)';
-                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                  e.currentTarget.style.color = 'var(--text-primary)';
                 }}
               >
                 <QrCode size={ICON_SIZE.lg} />
@@ -184,34 +163,20 @@ export function SyncPage() {
                 disabled={!store.syncEnabled || store.isLoading}
                 title={t('settings:sync_qr_scan', { defaultValue: 'Scan QR' })}
                 aria-label={t('settings:sync_qr_scan', { defaultValue: 'Scan QR' })}
+                className="interactive-toolbar"
                 style={{
                   width: 40,
                   height: 40,
                   borderRadius: 8,
-                  border: '1px solid var(--border-subtle)',
-                  background: 'var(--bg-toolbar)',
-                  color: 'var(--text-primary)',
+                  borderWidth: 1,
+                  borderStyle: 'solid',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   flexShrink: 0,
                   cursor: !store.syncEnabled || store.isLoading ? 'default' : 'pointer',
                   opacity: !store.syncEnabled || store.isLoading ? 0.6 : 1,
-                  transition: 'all 0.15s ease',
                   fontFamily: 'inherit',
-                }}
-                onMouseEnter={(e) => {
-                  if (!store.syncEnabled || store.isLoading) return;
-                  e.currentTarget.style.background =
-                    'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
-                  e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                  e.currentTarget.style.color = 'var(--accent-primary)';
-                }}
-                onMouseLeave={(e) => {
-                  if (!store.syncEnabled || store.isLoading) return;
-                  e.currentTarget.style.background = 'var(--bg-toolbar)';
-                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                  e.currentTarget.style.color = 'var(--text-primary)';
                 }}
               >
                 <ScanLine size={ICON_SIZE.lg} />
@@ -361,32 +326,16 @@ export function SyncPage() {
             <button
               onClick={() => handleSyncWithDevice(manualAddr)}
               disabled={!manualAddr.trim() || store.isLoading}
-              onMouseEnter={(e) => {
-                if (manualAddr.trim() && !store.isLoading) {
-                  e.currentTarget.style.background =
-                    'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
-                  e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                  e.currentTarget.style.color = 'var(--accent-primary)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (manualAddr.trim() && !store.isLoading) {
-                  e.currentTarget.style.background = 'var(--bg-toolbar)';
-                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                  e.currentTarget.style.color = 'var(--text-primary)';
-                }
-              }}
+              className="interactive-toolbar"
               style={{
                 padding: '8px 16px',
                 borderRadius: 8,
-                border: '1px solid var(--border-subtle)',
-                background: 'var(--bg-toolbar)',
-                color: 'var(--text-primary)',
+                borderWidth: 1,
+                borderStyle: 'solid',
                 fontSize: 'var(--text-body-sm)',
                 fontWeight: 500,
                 cursor: !manualAddr.trim() || store.isLoading ? 'default' : 'pointer',
                 opacity: !manualAddr.trim() || store.isLoading ? 0.5 : 1,
-                transition: 'all 0.15s ease',
                 fontFamily: 'inherit',
                 whiteSpace: 'nowrap',
               }}
@@ -420,12 +369,7 @@ export function SyncPage() {
             <button
               type="button"
               onClick={() => setActivityOpen((v) => !v)}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.color = 'var(--accent-primary)';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.color = 'inherit';
-              }}
+              className="interactive-color-accent"
               style={{
                 width: '100%',
                 display: 'flex',
@@ -435,8 +379,6 @@ export function SyncPage() {
                 border: 'none',
                 padding: '4px 0',
                 cursor: 'pointer',
-                color: 'inherit',
-                transition: 'color 0.15s ease',
               }}
             >
               <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>

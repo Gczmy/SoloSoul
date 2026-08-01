@@ -67,7 +67,7 @@
 | P045 | P2 | 结构 | `export_import/helpers.rs:173-232`、`import.rs:394-412`、`profile.rs:191-205`、`plugin.rs:80-107`、`llm/stream.rs:257-302` | 5 处 5-6 层深层嵌套 | `[x]` 已修复 |
 | P046 | P2 | 重复 | `tauri/src-tauri/src/commands/attachment.rs:983-1027` vs `tauri/crates/solosoul-core/src/objects.rs:945-999` | `cleanup_orphan_attachments` GUI 端整体复制 core 实现 | `[x]` 已修复 |
 | P047 | P2 | 重复 | `tauri/src-tauri/src/plugin/host/register.rs:763-812,838-890` | 两个 watermark 注册闭包除一行外完全相同；read_string 校验样板 20+ 次 | `[>]` 已决策待执行（并入 P012 方向 B 第③步，在统一后的 crate host.rs 上只做一次） |
-| P048 | P2 | 重复 | 54 文件 119 处 onMouseEnter、57 文件 128 处 onMouseLeave（内联样式改写 471 处/49 文件） | 手写 onMouseEnter/Leave hover，应统一迁移到 `ui/Button` 或视觉等价 CSS hover | `[>]` 已决策待执行（分批视觉等价重构，策略见详情） |
+| P048 | P2 | 重复 | 54 文件 119 处 onMouseEnter、57 文件 128 处 onMouseLeave（内联样式改写 471 处/49 文件） | 手写 onMouseEnter/Leave hover，应统一迁移到 `ui/Button` 或视觉等价 CSS hover | `[~]` 部分完成（第一批 3 文件 19 处已迁移，2026-08-01） |
 | P049 | P2 | 重复 | `TrashPage.tsx:254-345`（×2）、`OperationLogPage.tsx:280-323`、`TemplateManagerPage.tsx:597+`、`SampleTemplateGallery.tsx:282+` | 筛选 chip 按钮块（约 45 行）重复 5 处，可抽 FilterChipGroup | `[x]` 已修复 |
 | P050 | P2 | 结构 | `tauri/src/pages/editor/ObjectEditorPage.tsx:300-360` | 动态组校验 switch 6 个 case 同一模式，应表驱动化（含 5 层嵌套） | `[x]` 已修复 |
 | P051 | P2 | 性能 | `tauri/src-tauri/src/commands/llm/rag.rs:794-808,942` | 重建 embedding 逐条 `save_guide_embedding`，每条独立事务+fsync | `[x]` 已修复 |
@@ -87,9 +87,9 @@
 ## 修复进度
 
 - 已完成：60 / 63（经 2026-08-01 复核确认通过的项）
-- 部分完成 `[~]`：0 项（复核降级项全部补齐）
-- 已决策待执行 `[>]`：3 项——P012（方向 B 统一到 crate，P047 并入）、P048（分批视觉等价重构）
-- 当前处理：P018 已删（2026-08-01），继续 P048
+- 部分完成 `[~]`：1 项——P048（第一批 3 文件 19 处已迁移，2026-08-01）
+- 已决策待执行 `[>]`：2 项——P012（方向 B 统一到 crate，P047 并入）
+- 当前处理：P048 第一批已完成（2026-08-01），待后续批次
 
 ## 静态基线之外已检查且无发现的维度（误报排除记录）
 
@@ -350,6 +350,8 @@ sync crate manager（`manager.rs:168`）`sync_enable` 时自建 `ServiceDaemon`�
 2. 每处二选一：**样式匹配处迁移 `ui/Button`**（必要时补 variant）；**不匹配处将内联 hover 改为同文件 CSS module 的 `:hover` 类，颜色/圆角/位移值逐一保留**，保证视觉零差异。
 3. 每批验证：`npx tsc --noEmit` + `npm run lint` + `npm run test` + 相关 Playwright e2e；一批一 commit。
 4. 行为性鼠标事件（长按、tooltip 显隐等）不动，仅迁移纯样式 hover。
+
+*第一批实施（2026-08-01，已提交）*：实际走**既有 `interactive-*` 工具类**路线（比原计划的 `ui/Button`/CSS module 更轻）——`src/styles/animations.css` 已有 `.interactive-accent/-light/-toolbar/-danger/-icon` 等共享类，本次新增 4 个变体（`.interactive-danger-soft` 红底、`.interactive-row` 行 hover、`.interactive-nav` 箭头、`.interactive-color-accent` 纯色）并给全部 11 个类的 `:hover` 加 `:not(:disabled)`（与 JS `if (loading) return` 守卫等价，disabled 时不再 hover）。迁移 3 文件 19 处：`DataManagementPage.tsx` 6 处（view-breakdown→accent，5 工具栏按钮→toolbar）、`SyncPage.tsx` 5 处（review→danger-soft，QR/scan/manual→toolbar+disabled 守卫，activity→color-accent）、`TrashDetailPanel.tsx` 8 处（back→icon，close→accent，tab1/tab2→toolbar/danger+selected-* 组合，行/子行→row，快照箭头→nav）。内联 `borderWidth/borderStyle` 保留（类仅提供 border-color）。**SyncPage sync 开关**（border/color 依赖 syncEnabled 动态状态）暂缓，留后续批次。tsc/lint/Vitest 415 全绿，两轮审查通过。
 
 **P049 | 筛选 chip 块 ×5**：约 45 行「isActive 三态 style+hover 双事件+map」重复 5 处，抽 `FilterChipGroup({options,value,onChange})`。
 

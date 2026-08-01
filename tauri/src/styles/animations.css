@@ -506,7 +506,7 @@
     border-color var(--duration-fast, 150ms) var(--ease-smooth, ease),
     color var(--duration-fast, 150ms) var(--ease-smooth, ease);
 }
-.interactive-accent:hover {
+.interactive-accent:hover:not(:disabled) {
   background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
   border-color: var(--accent-primary);
   color: var(--accent-primary);
@@ -520,7 +520,7 @@
     border-color var(--duration-fast, 150ms) var(--ease-smooth, ease),
     color var(--duration-fast, 150ms) var(--ease-smooth, ease);
 }
-.interactive-accent-light:hover {
+.interactive-accent-light:hover:not(:disabled) {
   background: color-mix(in srgb, var(--accent-primary) 6%, transparent);
   border-color: var(--accent-primary);
   color: var(--accent-primary);
@@ -537,7 +537,7 @@
     border-color var(--duration-fast, 150ms) var(--ease-smooth, ease),
     color var(--duration-fast, 150ms) var(--ease-smooth, ease);
 }
-.interactive-toolbar:hover {
+.interactive-toolbar:hover:not(:disabled) {
   background: color-mix(in srgb, var(--accent-primary) 10%, var(--bg-toolbar));
   border-color: var(--accent-primary);
   color: var(--accent-primary);
@@ -553,7 +553,7 @@
     border-color var(--duration-fast, 150ms) var(--ease-smooth, ease),
     color var(--duration-fast, 150ms) var(--ease-smooth, ease);
 }
-.interactive-danger:hover {
+.interactive-danger:hover:not(:disabled) {
   background: rgba(231, 76, 60, 0.1);
   border-color: #e74c3c;
   color: #e74c3c;
@@ -569,7 +569,7 @@
     border-color var(--duration-fast, 150ms) var(--ease-smooth, ease),
     color var(--duration-fast, 150ms) var(--ease-smooth, ease);
 }
-.interactive-danger-transparent:hover {
+.interactive-danger-transparent:hover:not(:disabled) {
   background: color-mix(in srgb, #e74c3c 12%, transparent);
   border-color: #e74c3c;
   color: #e74c3c;
@@ -583,7 +583,7 @@
     background var(--duration-fast, 150ms) var(--ease-smooth, ease),
     color var(--duration-fast, 150ms) var(--ease-smooth, ease);
 }
-.interactive-icon:hover {
+.interactive-icon:hover:not(:disabled) {
   background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
   color: var(--accent-primary);
 }
@@ -592,8 +592,60 @@
 .interactive-icon-danger {
   transition: background var(--duration-fast, 150ms) var(--ease-smooth, ease);
 }
-.interactive-icon-danger:hover {
+.interactive-icon-danger:hover:not(:disabled) {
   background: color-mix(in srgb, #e74c3c 12%, transparent);
+}
+
+/* ── Danger soft tint (review-conflicts button) ─────────── */
+.interactive-danger-soft {
+  background: rgba(192, 57, 43, 0.08);
+  border-color: #c0392b;
+  color: #c0392b;
+  transition:
+    background var(--duration-fast, 150ms) var(--ease-smooth, ease),
+    border-color var(--duration-fast, 150ms) var(--ease-smooth, ease),
+    color var(--duration-fast, 150ms) var(--ease-smooth, ease);
+}
+.interactive-danger-soft:hover:not(:disabled) {
+  background: rgba(192, 57, 43, 0.12);
+}
+
+/* ── Elevated row hover (attachment / child list rows) ──── */
+.interactive-row {
+  background: var(--bg-elevated-hover);
+  border-color: transparent;
+  transition:
+    background var(--duration-fast, 150ms) var(--ease-smooth, ease),
+    border-color var(--duration-fast, 150ms) var(--ease-smooth, ease);
+}
+.interactive-row:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
+  border-color: color-mix(in srgb, var(--accent-primary) 25%, transparent);
+}
+
+/* ── Nav arrow hover (transparent base → toolbar tint) ──── */
+.interactive-nav {
+  background: transparent;
+  border-color: var(--border-subtle);
+  color: var(--text-secondary);
+  transition:
+    background var(--duration-fast, 150ms) var(--ease-smooth, ease),
+    border-color var(--duration-fast, 150ms) var(--ease-smooth, ease),
+    color var(--duration-fast, 150ms) var(--ease-smooth, ease);
+}
+.interactive-nav:hover:not(:disabled) {
+  background: var(--bg-toolbar);
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
+/* ── Color-only accent hover (activity header toggle) ───── */
+.interactive-color-accent {
+  color: inherit;
+  transition: color var(--duration-fast, 150ms) var(--ease-smooth, ease);
+}
+.interactive-color-accent:hover:not(:disabled) {
+  color: var(--accent-primary);
 }
 
 /* ── Selected state (composable with interactive-*) ─────── */
