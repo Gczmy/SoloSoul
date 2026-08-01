@@ -497,7 +497,9 @@ impl VaultService {
     }
 
     /// 使用指定的 account_id 创建账户（用于跨设备恢复等场景）。
-    /// 调用方需保证 `account_id` 在本机唯一；`name` 若与已有账户重复会返回错误。
+    /// 账户身份以 `account_id` 为准：恢复场景允许同名账户（如大小写不同）共存，
+    /// 因此不做账户名唯一性检查；仅当 `account_id` 在本机已存在时返回错误
+    /// （"Account ID already exists"），由调用方决定是否覆盖恢复。
     pub fn create_account_with_id(
         &self,
         account_id: &str,
@@ -513,15 +515,6 @@ impl VaultService {
         }
 
         let _create_guard = self.create_lock.lock().map_err(|e| e.to_string())?;
-
-        let cache = self.accounts_cache.read().map_err(|e| e.to_string())?;
-        if cache
-            .values()
-            .any(|a| a.name.to_lowercase() == name.to_lowercase())
-        {
-            return Err("Account name already taken".to_string());
-        }
-        drop(cache);
 
         // 如果该 account_id 已经存在，直接拒绝，避免覆盖已有数据
         if self
@@ -1214,6 +1207,51 @@ mod tests {
         let result = svc.create_account("alice", "password456", None);
         assert!(result.is_err());
         assert!(result.unwrap_err().contains("already taken"));
+    }
+
+    #[test]
+    fn test_create_account_with_id_same_name_different_id_succeeds() {
+        let (svc, _dir) = setup_service();
+        // 正常创建账户 A（account_id 随机生成）
+        let account_a = svc.create_account("Zzc", "password123", None).unwrap();
+        let account_a_id = account_a["id"].as_str().unwrap().to_string();
+
+        // 恢复场景：同名（大小写不同）但 account_id 不同 → 允许（身份是 account_id）
+        let result = svc.create_account_with_id(
+            "acc_restore_same_name",
+            "zzc",
+            "password456",
+            None,
+        );
+        assert!(result.is_ok(), "同名校验不应对恢复场景生效: {:?}", result.err());
+        let account_b = result.unwrap();
+        assert_eq!(account_b["name"], "zzc");
+        assert_eq!(account_b["id"], "acc_restore_same_name");
+
+        // 两个同名账户均可列出（登录页按 account_id 区分）
+        let accounts = svc.list_accounts();
+        assert_eq!(accounts.len(), 2);
+        assert!(accounts.iter().any(|a| a.id == account_a_id));
+        assert!(accounts.iter().any(|a| a.id == "acc_restore_same_name"));
+    }
+
+    #[test]
+    fn test_create_account_with_id_duplicate_id_fails() {
+        let (svc, _dir) = setup_service();
+        let account = svc.create_account("Zzc", "password123", None).unwrap();
+        let account_id = account["id"].as_str().unwrap().to_string();
+
+        // 相同 account_id → 拒绝，错误字符串稳定供前端识别冲突
+        let result = svc.create_account_with_id(
+            &account_id,
+            "Zzc",
+            "password456",
+            None,
+        );
+        assert!(result.is_err());
+        assert!(result
+            .unwrap_err()
+            .contains("Account ID already exists"));
     }
 
     #[test]

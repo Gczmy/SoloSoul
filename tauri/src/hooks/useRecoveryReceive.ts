@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { useNavigate } from 'react-router-dom';
 import { MIN_PASSWORD_LENGTH } from '@/lib/constants';
+import { translateRustError } from '@/lib/rustErrors';
 import { useAuthStore } from '@/stores/authStore';
 import { useCameraCapability } from '@/hooks/useCameraCapability';
 import type {
@@ -61,6 +62,10 @@ export function useRecoveryReceive({ isOpen, onClose, onSuccess }: UseRecoveryRe
   const [masterPassword, setMasterPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordHint, setPasswordHint] = useState('');
+  // 账户 ID 冲突（本设备已存在相同 account_id）→ 展示覆盖恢复选项
+  const [idConflict, setIdConflict] = useState(false);
+  // 二次确认覆盖弹窗是否打开
+  const [confirmingOverwrite, setConfirmingOverwrite] = useState(false);
   // 校验错误（按优先级：主密码 > 确认密码；提示词可选不校验）
   const [masterPasswordError, setMasterPasswordError] = useState<string | null>(null);
   const [confirmPasswordError, setConfirmPasswordError] = useState<string | null>(null);
@@ -116,6 +121,10 @@ export function useRecoveryReceive({ isOpen, onClose, onSuccess }: UseRecoveryRe
         // 全局限流：短时间内失败次数过多，恢复服务暂时拒绝新连接。
         return t('common:recovery_too_many_attempts');
       }
+      // 兜底：未命中的已知 Rust 错误先尝试 i18n 映射（如 Account ID already exists），
+      // 命中则返回本地化文案，未命中才返回原始错误。
+      const translated = translateRustError(raw);
+      if (translated) return t(translated);
       return raw;
     },
     [t],
@@ -136,6 +145,8 @@ export function useRecoveryReceive({ isOpen, onClose, onSuccess }: UseRecoveryRe
     setPasswordHint('');
     setMasterPasswordError(null);
     setConfirmPasswordError(null);
+    setIdConflict(false);
+    setConfirmingOverwrite(false);
     setHostAddr('');
     setPin('');
     setFingerprint('');
@@ -241,12 +252,14 @@ export function useRecoveryReceive({ isOpen, onClose, onSuccess }: UseRecoveryRe
   const handleMasterPasswordChange = (v: string) => {
     setMasterPassword(v);
     setError(null);
+    if (idConflict) setIdConflict(false);
     if (masterPasswordError) setMasterPasswordError(null);
   };
 
   const handleConfirmPasswordChange = (v: string) => {
     setConfirmPassword(v);
     setError(null);
+    if (idConflict) setIdConflict(false);
     if (confirmPasswordError) setConfirmPasswordError(null);
   };
 
@@ -313,11 +326,72 @@ export function useRecoveryReceive({ isOpen, onClose, onSuccess }: UseRecoveryRe
       await useAuthStore.getState().checkHasAccount();
     } catch (err) {
       if (!mountedRef.current) return;
-      setError(friendlyConnectError(String(err)));
+      const raw = String(err);
+      if (raw.includes('Account ID already exists')) {
+        // 本设备已存在相同 account_id → 进入冲突状态，展示覆盖恢复选项（不显示普通错误）
+        setIdConflict(true);
+      } else {
+        setError(friendlyConnectError(raw));
+      }
     } finally {
       setLoading(false);
       setStatusText(null);
     }
+  };
+
+  // ── 覆盖恢复：本设备已存在相同 account_id 时，删除本端账户并用旧设备数据替换 ──
+  // 复用同一 pending 与已输入的密码，重新下载恢复包；后端在下载成功后先删除本地账户。
+  const handleOverwriteRecovery = async () => {
+    if (!pending) return;
+    setError(null);
+    setSuccess(null);
+    setConfirmingOverwrite(false);
+
+    setLoading(true);
+    setStatusText(t('common:recovery_connecting', { defaultValue: 'Connecting to host…' }));
+
+    try {
+      const result = await invoke<RecoveryResultSummary>('recovery_restore_from_host', {
+        hostAddr: pending.addr,
+        pin: pending.pin,
+        masterPassword,
+        passwordHint: passwordHint.trim() || null,
+        fingerprint: pending.fingerprint || null,
+        nonce: pending.nonce,
+        overwrite: true,
+      });
+      if (!mountedRef.current) return;
+      setSuccess(result);
+      setStep('success');
+      await useAuthStore.getState().checkHasAccount();
+    } catch (err) {
+      if (!mountedRef.current) return;
+      const raw = String(err);
+      if (raw.includes('Account ID already exists')) {
+        setIdConflict(true);
+      } else {
+        // 覆盖失败但非冲突（如重连超时）：清除冲突态以展示错误，避免被 idConflict 遮蔽
+        setIdConflict(false);
+        setError(friendlyConnectError(raw));
+      }
+    } finally {
+      setLoading(false);
+      setStatusText(null);
+    }
+  };
+
+  // ── 冲突处理：打开/关闭覆盖二次确认 ──
+  const handleRequestOverwrite = () => {
+    if (loading) return;
+    setConfirmingOverwrite(true);
+  };
+
+  const handleCancelConflict = () => {
+    setIdConflict(false);
+  };
+
+  const handleCancelOverwriteConfirm = () => {
+    setConfirmingOverwrite(false);
   };
 
   // ── 账户卡：返回重新获取连接信息 ──
@@ -329,6 +403,8 @@ export function useRecoveryReceive({ isOpen, onClose, onSuccess }: UseRecoveryRe
     setPasswordHint('');
     setMasterPasswordError(null);
     setConfirmPasswordError(null);
+    setIdConflict(false);
+    setConfirmingOverwrite(false);
     setError(null);
     setStep('collect');
   };
@@ -372,5 +448,11 @@ export function useRecoveryReceive({ isOpen, onClose, onSuccess }: UseRecoveryRe
     handleManualNext,
     handleStartRecovery,
     handleBackToCollect,
+    idConflict,
+    confirmingOverwrite,
+    handleOverwriteRecovery,
+    handleRequestOverwrite,
+    handleCancelConflict,
+    handleCancelOverwriteConfirm,
   };
 }

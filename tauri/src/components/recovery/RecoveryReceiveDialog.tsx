@@ -108,6 +108,12 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
             onPasswordHintChange={rcv.setPasswordHint}
             onStartRecovery={rcv.handleStartRecovery}
             onBackToCollect={rcv.handleBackToCollect}
+            idConflict={rcv.idConflict}
+            confirmingOverwrite={rcv.confirmingOverwrite}
+            onRequestOverwrite={rcv.handleRequestOverwrite}
+            onCancelConflict={rcv.handleCancelConflict}
+            onCancelOverwriteConfirm={rcv.handleCancelOverwriteConfirm}
+            onConfirmOverwrite={rcv.handleOverwriteRecovery}
           />
         ) : rcv.tab === 'scan' ? (
           <RecoveryScanView

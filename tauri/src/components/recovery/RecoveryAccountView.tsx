@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
-import { Loader2 } from 'lucide-react';
+import { AlertTriangle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { Input } from '@/components/ui/Input';
 import type { ScannedRecoveryQr } from '@/components/recovery/recoveryReceiveTypes';
 
@@ -19,6 +20,14 @@ interface RecoveryAccountViewProps {
   onPasswordHintChange: (v: string) => void;
   onStartRecovery: () => void;
   onBackToCollect: () => void;
+  /** 本设备已存在相同 account_id（账户 ID 冲突）→ 展示覆盖恢复警示框 */
+  idConflict: boolean;
+  /** 二次确认覆盖弹窗是否打开 */
+  confirmingOverwrite: boolean;
+  onRequestOverwrite: () => void;
+  onCancelConflict: () => void;
+  onCancelOverwriteConfirm: () => void;
+  onConfirmOverwrite: () => void;
 }
 
 /** 账户卡：确认账户/连接信息 + 设置主密码（连接前）。 */
@@ -37,6 +46,12 @@ export function RecoveryAccountView({
   onPasswordHintChange,
   onStartRecovery,
   onBackToCollect,
+  idConflict,
+  confirmingOverwrite,
+  onRequestOverwrite,
+  onCancelConflict,
+  onCancelOverwriteConfirm,
+  onConfirmOverwrite,
 }: RecoveryAccountViewProps) {
   const { t } = useTranslation(['common']);
 
@@ -210,29 +225,113 @@ export function RecoveryAccountView({
         disabled={loading}
       />
 
-      <Button
-        onClick={onStartRecovery}
-        disabled={loading}
-        loading={loading}
-        style={{ width: '100%', marginTop: 4 }}
-      >
-        {loading
-          ? (statusText || t('common:loading'))
-          : t('common:recovery_receive_start')}
-      </Button>
+      {idConflict ? (
+        <>
+          {/* 账户 ID 冲突警示框：本设备已有相同 account_id */}
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 10,
+              padding: '12px 14px',
+              borderRadius: 8,
+              background: 'rgba(231,76,60,0.08)',
+              border: '1px solid rgba(231,76,60,0.35)',
+              width: '100%',
+              boxSizing: 'border-box',
+            }}
+          >
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                color: '#e74c3c',
+                fontWeight: 700,
+                fontSize: 'var(--text-body)',
+              }}
+            >
+              <AlertTriangle size={16} style={{ flexShrink: 0 }} />
+              {t('common:recovery_id_conflict_title')}
+            </div>
+            <p
+              style={{
+                margin: 0,
+                fontSize: 'var(--text-body-sm)',
+                color: 'var(--text-secondary)',
+                lineHeight: 1.5,
+              }}
+            >
+              {t('common:recovery_id_conflict_desc')}
+            </p>
+            <div style={{ display: 'flex', gap: 8, marginTop: 2 }}>
+              <Button
+                variant="danger"
+                onClick={onRequestOverwrite}
+                disabled={loading}
+                style={{ flex: 1 }}
+              >
+                {t('common:recovery_overwrite_confirm')}
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={onCancelConflict}
+                disabled={loading}
+                style={{ flex: 1 }}
+              >
+                {t('common:cancel')}
+              </Button>
+            </div>
+          </div>
 
-      <Button
-        variant="secondary"
-        onClick={onBackToCollect}
-        disabled={loading}
-        style={{ width: '100%' }}
-      >
-        {t('common:back')}
-      </Button>
+          <Button
+            variant="secondary"
+            onClick={onBackToCollect}
+            disabled={loading}
+            style={{ width: '100%' }}
+          >
+            {t('common:back')}
+          </Button>
+        </>
+      ) : (
+        <>
+          <Button
+            onClick={onStartRecovery}
+            disabled={loading}
+            loading={loading}
+            style={{ width: '100%', marginTop: 4 }}
+          >
+            {loading
+              ? (statusText || t('common:loading'))
+              : t('common:recovery_receive_start')}
+          </Button>
 
-      {error && (
+          <Button
+            variant="secondary"
+            onClick={onBackToCollect}
+            disabled={loading}
+            style={{ width: '100%' }}
+          >
+            {t('common:back')}
+          </Button>
+        </>
+      )}
+
+      {error && !idConflict && (
         <div style={{ color: '#e74c3c', fontSize: 'var(--text-body-sm)' }}>{error}</div>
       )}
+
+      {/* 二次确认覆盖弹窗：确认后执行不可逆的覆盖恢复 */}
+      <ConfirmDialog
+        isOpen={confirmingOverwrite}
+        title={t('common:recovery_overwrite_confirm_title')}
+        message={t('common:recovery_overwrite_confirm_desc')}
+        confirmLabel={t('common:recovery_overwrite_confirm_ok')}
+        cancelLabel={t('common:cancel')}
+        priority="important"
+        onConfirm={onConfirmOverwrite}
+        onCancel={onCancelOverwriteConfirm}
+      />
     </div>
   );
 }

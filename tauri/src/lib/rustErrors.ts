@@ -13,6 +13,7 @@ const RUST_ERROR_MAP: Record<string, string> = {
   'Verify failed': 'common:verify_failed',
   'Account name is required': 'common:account_name_required',
   'Account name already taken': 'common:account_name_taken',
+  'Account ID already exists': 'common:account_id_exists',
   'Account not found': 'common:account_not_found',
   'Password must be at least 8 characters': 'common:password_too_short',
 

@@ -629,5 +629,12 @@
   "recovery_scan_lan_label": "局域网发现",
   "recovery_scan_button": "扫描局域网",
   "recovery_scan_scanning": "扫描中…",
-  "recovery_scan_no_hosts": "未在局域网中找到恢复主机。"
+  "recovery_scan_no_hosts": "未在局域网中找到恢复主机。",
+  "account_id_exists": "账户 ID 已存在，请登录后使用同步功能",
+  "recovery_id_conflict_title": "本设备已存在同一账户",
+  "recovery_id_conflict_desc": "覆盖恢复将永久删除本设备上该账户的全部数据，并用旧设备数据替换（可用于重设本端密码）。如需保留本设备数据，请取消并登录后使用设备同步。",
+  "recovery_overwrite_confirm": "覆盖恢复",
+  "recovery_overwrite_confirm_title": "确认覆盖本端数据？",
+  "recovery_overwrite_confirm_desc": "本设备上该账户的全部数据将被覆盖，且无法恢复。旧设备数据将在覆盖后导入。此操作不可撤销。",
+  "recovery_overwrite_confirm_ok": "确认覆盖"
 }

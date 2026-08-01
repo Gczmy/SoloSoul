@@ -255,6 +255,12 @@ pub async fn recovery_host_cancel(state: State<'_, AppState>) -> Result<(), Stri
 }
 
 /// 从恢复主机下载加密恢复包，创建与主机相同 account_id 的账户，并导入数据。
+///
+/// 当本机已存在相同 `account_id` 的账户时：
+/// - `overwrite == true`：先删除本机该账户，再用旧设备数据覆盖（覆盖恢复，可用于重设本端密码）。
+/// - `overwrite` 为 false/None：由 `create_account_with_id` 返回 "Account ID already exists"，前端据此提示冲突。
+///
+/// 覆盖仅发生在恢复包下载成功之后，网络/握手失败不会损毁本地数据。
 #[tauri::command]
 pub async fn recovery_restore_from_host(
     state: State<'_, AppState>,
@@ -264,6 +270,7 @@ pub async fn recovery_restore_from_host(
     fingerprint: Option<String>,
     nonce: Option<String>,
     password_hint: Option<String>,
+    overwrite: Option<bool>,
 ) -> Result<ImportResultSummary, String> {
     if master_password.len() < 8 {
         return Err("Password must be at least 8 characters".to_string());
@@ -296,13 +303,23 @@ pub async fn recovery_restore_from_host(
     let file_path = result.downloaded_path.to_string_lossy().to_string();
     let recovery_password = result.recovery_password;
 
-    // 使用主机的 account_id 和 account_name 创建本地账户
+    // 使用主机的 account_id 和 account_name 创建本地账户。
+    // 恢复场景允许同名账户共存（身份是 account_id）；
+    // 覆盖模式下若本机已存在相同 account_id，先删除再创建（不可逆，前端已二次确认）。
     {
         let svc = state
             .vault_service
             .read()
             .map_err(|_| "Vault service lock poisoned".to_string())?;
-        // 如果账户名冲突，让 create_account_with_id 返回错误，由前端提示
+        if overwrite.unwrap_or(false) {
+            let exists = svc
+                .list_accounts()
+                .iter()
+                .any(|a| a.id == account_id);
+            if exists {
+                svc.delete_account(&account_id)?;
+            }
+        }
         svc.create_account_with_id(
             &account_id,
             &account_name,

@@ -630,5 +630,12 @@
   "recovery_scan_lan_label": "LAN Discovery",
   "recovery_scan_button": "Scan LAN",
   "recovery_scan_scanning": "Scanning…",
-  "recovery_scan_no_hosts": "No recovery hosts found on the network."
+  "recovery_scan_no_hosts": "No recovery hosts found on the network.",
+  "account_id_exists": "This account already exists on this device. Please log in and use Device Sync instead.",
+  "recovery_id_conflict_title": "This account already exists on this device",
+  "recovery_id_conflict_desc": "Overwrite restore will permanently delete all data for this account on this device and replace it with the old device's data (can be used to reset this device's password). To keep this device's data, cancel and log in to use Device Sync instead.",
+  "recovery_overwrite_confirm": "Overwrite & Restore",
+  "recovery_overwrite_confirm_title": "Overwrite local data?",
+  "recovery_overwrite_confirm_desc": "All data for this account on this device will be overwritten and cannot be recovered. The old device's data will be imported after overwriting. This action cannot be undone.",
+  "recovery_overwrite_confirm_ok": "Confirm Overwrite"
 }
