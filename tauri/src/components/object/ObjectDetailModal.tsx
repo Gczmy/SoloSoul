@@ -35,6 +35,7 @@ import type { TemplateProperty } from '@/types/template';
 import { useDragToAttach } from '@/hooks/useDragToAttach';
 import { DragUploadOverlay } from '@/components/object/DragUploadOverlay';
 import { PageGuideButton } from '@/components/guide/PageGuideButton';
+import type { GuidePage } from '@/components/guide/PageGuide';
 import { isMobilePlatformSync } from '@/lib/platform';
 import { ICON_SIZE } from '@/lib/constants';
 import styles from './ObjectDetailModal.module.css';
@@ -112,6 +113,90 @@ function flattenProperties(
     });
   }
   return entries;
+}
+
+/** P041: 指南内容数据从组件内提出为纯函数，缩短主组件体积。 */
+function buildDetailGuidePages(
+  t: ReturnType<typeof useTranslation>['t'],
+  isMobilePlatform: boolean,
+): GuidePage[] {
+  return isMobilePlatform
+    ? [
+        {
+          icon: Info,
+          title: t('common:guide_detail_mobile_title') ?? '对象详情卡片',
+          steps: [
+            {
+              icon: Eye,
+              title: t('common:guide_detail_mobile_step1_title') ?? '字段与敏感等级',
+              description:
+                t('common:guide_detail_mobile_step1_desc') ??
+                '详情卡片会列出对象的所有字段，显示字段名称、类型图标和敏感度标签。敏感/关键字段的值默认会被遮罩，以保护隐私。',
+            },
+            {
+              icon: Lock,
+              title: t('common:guide_detail_mobile_step2_title') ?? '显示与解锁',
+              description:
+                t('common:guide_detail_mobile_step2_desc') ??
+                '点击敏感字段旁的「显示」图标可查看内容；关键字段旁会显示「解锁」图标，需通过主密码、PIN 或生物识别验证后才能临时查看。',
+            },
+            {
+              icon: History,
+              title: t('common:guide_detail_mobile_step3_title') ?? '操作按钮',
+              description:
+                t('common:guide_detail_mobile_step3_desc') ??
+                '卡片底部提供四个常用操作：历史记录（时钟图标）查看版本快照、附件（回形针图标）管理文件、编辑（铅笔图标）进入编辑器、删除（垃圾桶图标）将对象移入回收站。',
+            },
+          ],
+          helpLinks: [
+            {
+              title: t('common:guide_help_sensitivity') ?? '敏感度等级',
+              description:
+                t('common:guide_help_sensitivity_desc') ??
+                '了解不同敏感度等级的含义与安全策略',
+              href: '/help?id=sensitivity',
+            },
+            {
+              title: t('common:guide_help_attachments') ?? '附件管理',
+              description:
+                t('common:guide_help_attachments_desc') ??
+                '附件的上传、下载、重命名与回收站管理',
+              href: '/help?id=attachments',
+            },
+          ],
+        },
+      ]
+    : [
+        {
+          icon: Upload,
+          title: t('common:drag_upload_guide_title') ?? '拖拽附件上传指南',
+          steps: [
+            {
+              icon: Maximize2,
+              title: t('common:guide_detail_step1_title') ?? '拖拽到此面板',
+              description:
+                t('common:guide_detail_step1_desc') ??
+                '直接将文件从文件管理器拖入当前详情面板，即可为此对象添加附件。拖入时面板会高亮提示。',
+            },
+            {
+              icon: Paperclip,
+              title: t('common:guide_detail_step2_title') ?? '附件管理器',
+              description:
+                t('common:guide_detail_step2_desc') ??
+                '点击「附件」按钮打开附件管理器，也可将文件直接拖入管理器窗口进行批量上传。',
+            },
+          ],
+          helpLinks: [
+            {
+              title: t('common:guide_help_attachments') ?? '附件管理',
+              description:
+                t('common:guide_help_attachments_desc') ??
+                '附件的上传、下载、重命名与回收站管理',
+              href: '/help?id=attachments',
+            },
+          ],
+        },
+      ];
 }
 
 export function ObjectDetailModal({
@@ -395,84 +480,7 @@ export function ObjectDetailModal({
   const isMobilePlatform = isMobilePlatformSync();
 
   const detailGuidePages = useMemo(
-    () =>
-      isMobilePlatform
-        ? [
-            {
-              icon: Info,
-              title: t('common:guide_detail_mobile_title') ?? '对象详情卡片',
-              steps: [
-                {
-                  icon: Eye,
-                  title: t('common:guide_detail_mobile_step1_title') ?? '字段与敏感等级',
-                  description:
-                    t('common:guide_detail_mobile_step1_desc') ??
-                    '详情卡片会列出对象的所有字段，显示字段名称、类型图标和敏感度标签。敏感/关键字段的值默认会被遮罩，以保护隐私。',
-                },
-                {
-                  icon: Lock,
-                  title: t('common:guide_detail_mobile_step2_title') ?? '显示与解锁',
-                  description:
-                    t('common:guide_detail_mobile_step2_desc') ??
-                    '点击敏感字段旁的「显示」图标可查看内容；关键字段旁会显示「解锁」图标，需通过主密码、PIN 或生物识别验证后才能临时查看。',
-                },
-                {
-                  icon: History,
-                  title: t('common:guide_detail_mobile_step3_title') ?? '操作按钮',
-                  description:
-                    t('common:guide_detail_mobile_step3_desc') ??
-                    '卡片底部提供四个常用操作：历史记录（时钟图标）查看版本快照、附件（回形针图标）管理文件、编辑（铅笔图标）进入编辑器、删除（垃圾桶图标）将对象移入回收站。',
-                },
-              ],
-              helpLinks: [
-                {
-                  title: t('common:guide_help_sensitivity') ?? '敏感度等级',
-                  description:
-                    t('common:guide_help_sensitivity_desc') ??
-                    '了解不同敏感度等级的含义与安全策略',
-                  href: '/help?id=sensitivity',
-                },
-                {
-                  title: t('common:guide_help_attachments') ?? '附件管理',
-                  description:
-                    t('common:guide_help_attachments_desc') ??
-                    '附件的上传、下载、重命名与回收站管理',
-                  href: '/help?id=attachments',
-                },
-              ],
-            },
-          ]
-        : [
-            {
-              icon: Upload,
-              title: t('common:drag_upload_guide_title') ?? '拖拽附件上传指南',
-              steps: [
-                {
-                  icon: Maximize2,
-                  title: t('common:guide_detail_step1_title') ?? '拖拽到此面板',
-                  description:
-                    t('common:guide_detail_step1_desc') ??
-                    '直接将文件从文件管理器拖入当前详情面板，即可为此对象添加附件。拖入时面板会高亮提示。',
-                },
-                {
-                  icon: Paperclip,
-                  title: t('common:guide_detail_step2_title') ?? '附件管理器',
-                  description:
-                    t('common:guide_detail_step2_desc') ??
-                    '点击「附件」按钮打开附件管理器，也可将文件直接拖入管理器窗口进行批量上传。',
-                },
-              ],
-              helpLinks: [
-                {
-                  title: t('common:guide_help_attachments') ?? '附件管理',
-                  description:
-                    t('common:guide_help_attachments_desc') ??
-                    '附件的上传、下载、重命名与回收站管理',
-                  href: '/help?id=attachments',
-                },
-              ],
-            },
-          ],
+    () => buildDetailGuidePages(t, isMobilePlatform),
     [t, isMobilePlatform],
   );
 
@@ -764,60 +772,15 @@ export function ObjectDetailModal({
         )}
       </div>
 
-      {confirmDelete && obj && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 'var(--z-modal-important)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: 'var(--bg-overlay)',
-            backdropFilter: 'blur(4px)',
-          }}
-          onClick={() => setConfirmDelete(false)}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              background: 'var(--bg-elevated)',
-              borderRadius: 12,
-              padding: '24px 28px',
-              maxWidth: 360,
-              width: '90%',
-              boxShadow: 'var(--shadow-lg)',
-              border: '1px solid var(--border-subtle)',
-            }}
-          >
-            <h3
-              style={{ margin: '0 0 8px', fontSize: 'var(--text-section-title)', fontWeight: 600 }}
-            >
-              {t('common:object_delete_confirm_title')}
-            </h3>
-            <p
-              style={{
-                margin: '0 0 20px',
-                fontSize: 'var(--text-body)',
-                color: 'var(--text-secondary)',
-                lineHeight: 1.5,
-              }}
-            >
-              {t('common:object_delete_confirm_body', {
-                name: obj.name.length > 28 ? obj.name.slice(0, 27) + '…' : obj.name,
-              })}
-            </p>
-            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-              <Button variant="secondary" onClick={() => setConfirmDelete(false)}>
-                {t('common:cancel')}
-              </Button>
-              <Button variant="danger-outline" onClick={handleDelete} disabled={deleting}>
-                {t('common:delete')}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* P041: 删除确认对话框提取为子组件 */}
+      <ObjectDetailDeleteDialog
+        open={confirmDelete && !!obj}
+        objectName={obj?.name ?? ''}
+        deleting={deleting}
+        t={t}
+        onCancel={() => setConfirmDelete(false)}
+        onConfirm={handleDelete}
+      />
 
       {showHistory && obj && (
         <HistoryViewer
@@ -866,5 +829,78 @@ export function ObjectDetailModal({
         onBiometric={bioAvailable.available ? handleBiometricUnlock : undefined}
       />
     </>
+  );
+}
+
+/** P041: 删除确认对话框——从主组件提取，缩短主组件体积。 */
+function ObjectDetailDeleteDialog({
+  open,
+  objectName,
+  deleting,
+  t,
+  onCancel,
+  onConfirm,
+}: {
+  open: boolean;
+  objectName: string;
+  deleting: boolean;
+  t: ReturnType<typeof useTranslation>['t'];
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  if (!open) return null;
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 'var(--z-modal-important)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        background: 'var(--bg-overlay)',
+        backdropFilter: 'blur(4px)',
+      }}
+      onClick={onCancel}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: 'var(--bg-elevated)',
+          borderRadius: 12,
+          padding: '24px 28px',
+          maxWidth: 360,
+          width: '90%',
+          boxShadow: 'var(--shadow-lg)',
+          border: '1px solid var(--border-subtle)',
+        }}
+      >
+        <h3
+          style={{ margin: '0 0 8px', fontSize: 'var(--text-section-title)', fontWeight: 600 }}
+        >
+          {t('common:object_delete_confirm_title')}
+        </h3>
+        <p
+          style={{
+            margin: '0 0 20px',
+            fontSize: 'var(--text-body)',
+            color: 'var(--text-secondary)',
+            lineHeight: 1.5,
+          }}
+        >
+          {t('common:object_delete_confirm_body', {
+            name: objectName.length > 28 ? objectName.slice(0, 27) + '…' : objectName,
+          })}
+        </p>
+        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+          <Button variant="secondary" onClick={onCancel}>
+            {t('common:cancel')}
+          </Button>
+          <Button variant="danger-outline" onClick={onConfirm} disabled={deleting}>
+            {t('common:delete')}
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 }

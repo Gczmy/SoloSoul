@@ -60,7 +60,7 @@
 | P038 | P2 | 结构 | `tauri/src/pages/auth/LoginPage.tsx:32,111-120,220-229` | 组件 846 行；biometryType→显示名 if-else 链同文件重复两份 | `[x]` 已修复 |
 | P039 | P2 | 结构 | `tauri/src/components/import/ImportSection.tsx:71`、`tauri/src/components/import/ExportSection.tsx:88` | ImportSection 848 行 / ExportSection 751 行，结构高度对称可共享抽取 | `[x]` 已修复 |
 | P040 | P2 | 结构 | `tauri/src/pages/system/AboutPage.tsx:50` | 组件 834 行，双平台更新下载流程应抽 hook | `[x]` 已修复 |
-| P041 | P2 | 结构 | `TemplateEditor.tsx:81`(789)、`ObjectDetailModal.tsx:120`(783)、`AttachmentViewer.tsx:59`(763)、`SyncPage.tsx:91`(759) | 4 个 750+ 行大组件需拆分 | `[~]` 部分修复（TemplateEditor/AttachmentViewer 达标；ObjectDetailModal/SyncPage 仍 750+ 行，见详情） |
+| P041 | P2 | 结构 | `TemplateEditor.tsx:81`(789)、`ObjectDetailModal.tsx:120`(783)、`AttachmentViewer.tsx:59`(763)、`SyncPage.tsx:91`(759) | 4 个 750+ 行大组件需拆分 | `[x]` 已修复（复核补改：ObjectDetailModal/SyncPage 继续拆分至阈值以下） |
 | P042 | P2 | 结构 | `tauri/crates/solosoul-vault/src/migration.rs:31` | `run_migrations` 464 行，每版本重复「查列是否存在」样板 | `[x]` 已修复 |
 | P043 | P2 | 结构 | `tauri/src-tauri/src/lib.rs:135` | `run` 441 行，启动初始化 10+ 步全内联在一个 setup 闭包 | `[x]` 已修复 |
 | P044 | P2 | 结构 | `export.rs:217`(258)、`object/snapshot.rs:210`(254)、`llm/stream.rs:76`(227) | 3 个 220+ 行多阶段函数需按阶段抽取 | `[x]` 已修复 |
@@ -86,8 +86,8 @@
 
 ## 修复进度
 
-- 已完成：56 / 63（经 2026-08-01 复核确认通过的项）
-- 部分完成 `[~]`：2 项——P041（残留漏点）、P011（工作区已分页，GlobalAttachmentManager 虚拟化待补）
+- 已完成：57 / 63（经 2026-08-01 复核确认通过的项）
+- 部分完成 `[~]`：1 项——P011（工作区已分页，GlobalAttachmentManager 虚拟化待补）
 - 已决策待执行 `[>]`：5 项——P012（方向 B 统一到 crate，P047 并入）、P017/P018（已确认删除）、P048（分批视觉等价重构）
 - 当前处理：决策已确认（2026-08-01），等待执行指令
 
@@ -302,6 +302,8 @@ sync crate manager（`manager.rs:168`）`sync_enable` 时自建 `ServiceDaemon`�
 
 **复核发现（2026-08-01，状态降为 `[~]`）**：实测行数——TemplateEditor 475 行 ✅、AttachmentViewer 732 行 ✅（均降至阈值以下）；**ObjectDetailModal 现 870 行（主组件函数体 754 行）、SyncPage 现 790 行（主组件函数体 749 行）**，虽分别抽了 ObjectDetailFieldsList 与 useSyncPage hook，主组件仍为 750+ 行单函数大组件，且两文件均超过报告基线行数（中间功能提交曾涨到 955/882）。「750+ 行大组件」问题在这两处未解决，需继续按标签页/阶段拆视图子组件。
 
+**修复记录（2026-08-01，状态恢复 `[x]`）**：两处继续拆分到位——① ObjectDetailModal：指南数据提取为模块级纯函数 `buildDetailGuidePages`（-77 行）、删除确认对话框提取为 `ObjectDetailDeleteDialog` 子组件（-49 行），主组件函数体降至 **632 行**；② SyncPage：同步状态卡片（开关+自动同步+指纹+端口，约 180 行）提取为 `SyncStatusCard` 子组件，主组件函数体降至 **596 行**。两文件主组件均低于 750 行阈值。tsc/lint/Vitest 415 全绿，两轮审查通过。
+
 **P042 | run_migrations 464 行**（solosoul-vault/migration.rs:31）：11+ 版本迁移顺序堆叠，每段重复 `pragma_table_info` 查列样板。抽 `has_column()` 帮助函数 + 每版本 `migrate_vN()`，主函数改版本列表驱动。
 
 **P043 | lib.rs run 441 行**：setup 闭包内联 10+ 初始化步骤。拆 `init_logging`/`init_data_dir`/`init_state` 等步骤函数。
@@ -411,7 +413,7 @@ sync crate manager（`manager.rs:168`）`sync_enable` 时自建 `ServiceDaemon`�
 1. **安全残留（小改动，优先）**：~~P004（host 侧盖章真实 `output_dir`，连带 `plugin_copy_output_file`）~~ 已修复（2026-08-01）；~~P003（GUI 导入路径写回 `safe_name`）~~ 已修复（2026-08-01）。
 2. **快速收敛（几行改动）**：~~P010（`useObjectWorkspaceData.ts:141` 分字段化）~~ 已修复（2026-08-01）；~~P015（LoginPage 两处 setState 收敛为 `authStore.completeUnlock(acc)`）~~ 已修复（2026-08-01）。
 3. **死文件删除**：P017 + P018（已确认，独立 commit）。
-4. **P041 继续拆分**：ObjectDetailModal、SyncPage 按标签页/阶段拆视图子组件至阈值以下。
+4. **P041 继续拆分**：~~ObjectDetailModal、SyncPage 按标签页/阶段拆视图子组件至阈值以下~~ 已修复（2026-08-01，主组件 632/596 行）。
 5. **P011 收尾**：GlobalAttachmentManager 附件树虚拟化或分页。
 6. **P012 方向 B（单独一轮，含 P047）**：按详情 6 步计划执行，每步独立 commit，第⑥步全量回归。
 7. **P048 分批重构**：按详情策略逐批执行，可与上述小项穿插。

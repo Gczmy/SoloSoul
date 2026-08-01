@@ -117,166 +117,13 @@ export function SyncPage() {
           </Card>
         )}
 
-        {/* Status card */}
-        <Card>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 10,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  background: store.syncEnabled ? 'rgba(39,174,96,0.12)' : 'rgba(128,128,128,0.1)',
-                }}
-              >
-                {store.syncEnabled ? (
-                  <Wifi size={ICON_SIZE.xl} color="#27ae60" />
-                ) : (
-                  <WifiOff size={ICON_SIZE.xl} color="#888" />
-                )}
-              </div>
-              <div>
-                <div style={{ fontSize: 'var(--text-card-title)', fontWeight: 600 }}>
-                  {store.syncEnabled
-                    ? t('settings:sync_enabled', { defaultValue: 'Sync Enabled' })
-                    : t('settings:sync_disabled', { defaultValue: 'Sync Disabled' })}
-                </div>
-                <div style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
-                  {t('settings:sync_known_devices', {
-                    count: store.connectedPeers.length,
-                    defaultValue: `${store.connectedPeers.length} device(s) known`,
-                  })}
-                </div>
-              </div>
-            </div>
-            <button
-              onClick={handleToggleSync}
-              disabled={store.isLoading}
-              onMouseEnter={(e) => {
-                if (!store.isLoading) {
-                  e.currentTarget.style.background =
-                    'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
-                  e.currentTarget.style.borderColor = 'var(--accent-primary)';
-                  e.currentTarget.style.color = 'var(--accent-primary)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!store.isLoading) {
-                  e.currentTarget.style.background = 'var(--bg-toolbar)';
-                  e.currentTarget.style.borderColor = 'var(--border-subtle)';
-                  e.currentTarget.style.color = store.syncEnabled
-                    ? 'var(--accent-primary)'
-                    : 'var(--text-primary)';
-                }
-              }}
-              style={{
-                padding: '8px 16px',
-                borderRadius: 8,
-                border: store.syncEnabled
-                  ? '1px solid var(--accent-primary)'
-                  : '1px solid var(--border-subtle)',
-                background: 'var(--bg-toolbar)',
-                color: store.syncEnabled ? 'var(--accent-primary)' : 'var(--text-primary)',
-                fontSize: 'var(--text-body-sm)',
-                fontWeight: 500,
-                cursor: store.isLoading ? 'default' : 'pointer',
-                opacity: store.isLoading ? 0.6 : 1,
-                transition: 'all 0.15s ease',
-                fontFamily: 'inherit',
-              }}
-            >
-              {store.syncEnabled
-                ? t('settings:sync_disable', { defaultValue: 'Disable' })
-                : t('settings:sync_enable', { defaultValue: 'Enable' })}
-            </button>
-          </div>
-
-          {/* Auto-sync toggle */}
-          <div
-            style={{
-              marginTop: 12,
-              padding: 10,
-              borderRadius: 8,
-              background: 'var(--bg-toolbar)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-            }}
-          >
-            <div>
-              <div style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500 }}>
-                {t('settings:sync_auto', { defaultValue: 'Automatic Sync' })}
-              </div>
-              <div style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
-                {t('settings:sync_auto_desc', {
-                  defaultValue: 'Sync automatically on foreground, data changes, and periodically.',
-                })}
-              </div>
-            </div>
-            <button
-              onClick={handleToggleAutoSync}
-              disabled={!store.syncEnabled || store.isLoading}
-              style={{
-                padding: '8px 16px',
-                borderRadius: 8,
-                border: store.autoSyncEnabled
-                  ? '1px solid var(--accent-primary)'
-                  : '1px solid var(--border-subtle)',
-                background: 'var(--bg-elevated)',
-                color: store.autoSyncEnabled ? 'var(--accent-primary)' : 'var(--text-primary)',
-                fontSize: 'var(--text-body-sm)',
-                fontWeight: 500,
-                cursor: !store.syncEnabled || store.isLoading ? 'default' : 'pointer',
-                opacity: !store.syncEnabled || store.isLoading ? 0.6 : 1,
-                transition: 'all 0.15s ease',
-                fontFamily: 'inherit',
-              }}
-            >
-              {store.autoSyncEnabled
-                ? t('settings:sync_auto_on', { defaultValue: 'On' })
-                : t('settings:sync_auto_off', { defaultValue: 'Off' })}
-            </button>
-          </div>
-
-          {store.localFingerprint && (
-            <div
-              style={{
-                marginTop: 12,
-                padding: 10,
-                borderRadius: 8,
-                background: 'var(--bg-toolbar)',
-                fontSize: 'var(--text-caption)',
-                fontFamily: 'monospace',
-                wordBreak: 'break-all',
-              }}
-            >
-              <strong>
-                {t('settings:sync_your_fingerprint', { defaultValue: 'Your fingerprint' })}:
-              </strong>{' '}
-              {store.localFingerprint}
-            </div>
-          )}
-          {store.syncEnabled && store.listenPort !== 0 && (
-            <div
-              style={{
-                marginTop: 8,
-                padding: 10,
-                borderRadius: 8,
-                background: 'var(--bg-toolbar)',
-                fontSize: 'var(--text-caption)',
-                color: 'var(--text-secondary)',
-              }}
-            >
-              <strong>
-                {t('settings:sync_your_port', { defaultValue: 'Your listen port' })}:
-              </strong>{' '}
-              {store.listenPort}
-            </div>
-          )}
-        </Card>
+        {/* Status card（P041: 提取为子组件） */}
+        <SyncStatusCard
+          store={store}
+          t={t}
+          onToggleSync={handleToggleSync}
+          onToggleAutoSync={handleToggleAutoSync}
+        />
 
         {/* QR pairing */}
         <Card>
@@ -786,5 +633,176 @@ export function SyncPage() {
         onSync={handleScanSync}
       />
     </AppShell>
+  );
+}
+
+/** P041: 同步状态卡片——从主组件提取，缩短主组件体积。 */
+function SyncStatusCard({
+  store,
+  t,
+  onToggleSync,
+  onToggleAutoSync,
+}: {
+  store: ReturnType<typeof useSyncPage>['store'];
+  t: ReturnType<typeof useTranslation>['t'];
+  onToggleSync: () => void;
+  onToggleAutoSync: () => void;
+}) {
+  return (
+    <Card>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 10,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: store.syncEnabled ? 'rgba(39,174,96,0.12)' : 'rgba(128,128,128,0.1)',
+            }}
+          >
+            {store.syncEnabled ? (
+              <Wifi size={ICON_SIZE.xl} color="#27ae60" />
+            ) : (
+              <WifiOff size={ICON_SIZE.xl} color="#888" />
+            )}
+          </div>
+          <div>
+            <div style={{ fontSize: 'var(--text-card-title)', fontWeight: 600 }}>
+              {store.syncEnabled
+                ? t('settings:sync_enabled', { defaultValue: 'Sync Enabled' })
+                : t('settings:sync_disabled', { defaultValue: 'Sync Disabled' })}
+            </div>
+            <div style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
+              {t('settings:sync_known_devices', {
+                count: store.connectedPeers.length,
+                defaultValue: `${store.connectedPeers.length} device(s) known`,
+              })}
+            </div>
+          </div>
+        </div>
+        <button
+          onClick={onToggleSync}
+          disabled={store.isLoading}
+          onMouseEnter={(e) => {
+            if (!store.isLoading) {
+              e.currentTarget.style.background =
+                'color-mix(in srgb, var(--accent-primary) 12%, transparent)';
+              e.currentTarget.style.borderColor = 'var(--accent-primary)';
+              e.currentTarget.style.color = 'var(--accent-primary)';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!store.isLoading) {
+              e.currentTarget.style.background = 'var(--bg-toolbar)';
+              e.currentTarget.style.borderColor = 'var(--border-subtle)';
+              e.currentTarget.style.color = store.syncEnabled
+                ? 'var(--accent-primary)'
+                : 'var(--text-primary)';
+            }
+          }}
+          style={{
+            padding: '8px 16px',
+            borderRadius: 8,
+            border: store.syncEnabled
+              ? '1px solid var(--accent-primary)'
+              : '1px solid var(--border-subtle)',
+            background: 'var(--bg-toolbar)',
+            color: store.syncEnabled ? 'var(--accent-primary)' : 'var(--text-primary)',
+            fontSize: 'var(--text-body-sm)',
+            fontWeight: 500,
+            cursor: store.isLoading ? 'default' : 'pointer',
+            opacity: store.isLoading ? 0.6 : 1,
+            transition: 'all 0.15s ease',
+            fontFamily: 'inherit',
+          }}
+        >
+          {store.syncEnabled
+            ? t('settings:sync_disable', { defaultValue: 'Disable' })
+            : t('settings:sync_enable', { defaultValue: 'Enable' })}
+        </button>
+      </div>
+
+      {/* Auto-sync toggle */}
+      <div
+        style={{
+          marginTop: 12,
+          padding: 10,
+          borderRadius: 8,
+          background: 'var(--bg-toolbar)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}
+      >
+        <div>
+          <div style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500 }}>
+            {t('settings:sync_auto', { defaultValue: 'Automatic Sync' })}
+          </div>
+          <div style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
+            {t('settings:sync_auto_desc', {
+              defaultValue: 'Sync automatically on foreground, data changes, and periodically.',
+            })}
+          </div>
+        </div>
+        <button
+          onClick={onToggleAutoSync}
+          disabled={!store.syncEnabled || store.isLoading}
+          style={{
+            padding: '8px 16px',
+            borderRadius: 8,
+            border: store.autoSyncEnabled
+              ? '1px solid var(--accent-primary)'
+              : '1px solid var(--border-subtle)',
+            background: 'var(--bg-elevated)',
+            color: store.autoSyncEnabled ? 'var(--accent-primary)' : 'var(--text-primary)',
+            fontSize: 'var(--text-body-sm)',
+            fontWeight: 500,
+            cursor: !store.syncEnabled || store.isLoading ? 'default' : 'pointer',
+            opacity: !store.syncEnabled || store.isLoading ? 0.6 : 1,
+            transition: 'all 0.15s ease',
+            fontFamily: 'inherit',
+          }}
+        >
+          {store.autoSyncEnabled
+            ? t('settings:sync_auto_on', { defaultValue: 'On' })
+            : t('settings:sync_auto_off', { defaultValue: 'Off' })}
+        </button>
+      </div>
+
+      {store.localFingerprint && (
+        <div
+          style={{
+            marginTop: 12,
+            padding: 10,
+            borderRadius: 8,
+            background: 'var(--bg-toolbar)',
+            fontSize: 'var(--text-caption)',
+            fontFamily: 'monospace',
+            wordBreak: 'break-all',
+          }}
+        >
+          <strong>{t('settings:sync_your_fingerprint', { defaultValue: 'Your fingerprint' })}:</strong>{' '}
+          {store.localFingerprint}
+        </div>
+      )}
+      {store.syncEnabled && store.listenPort !== 0 && (
+        <div
+          style={{
+            marginTop: 8,
+            padding: 10,
+            borderRadius: 8,
+            background: 'var(--bg-toolbar)',
+            fontSize: 'var(--text-caption)',
+            color: 'var(--text-secondary)',
+          }}
+        >
+          <strong>{t('settings:sync_your_port', { defaultValue: 'Your listen port' })}:</strong>{' '}
+          {store.listenPort}
+        </div>
+      )}
+    </Card>
   );
 }
