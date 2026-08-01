@@ -215,6 +215,8 @@ export PATH="$HOME/.rustup/toolchains/stable-aarch64-apple-darwin/bin:$PATH"
 - Debug：`tauri/src-tauri/gen/android/app/build/outputs/apk/universal/debug/app-universal-debug.apk`
 - Release：`tauri/src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release.apk`
 
+**`gen/schemas/` 注意：**`tauri/src-tauri/gen/schemas/` 下的 ACL schema 文件由构建按目标平台重新生成，macOS/Android 构建会互相覆盖。该目录已被 `.gitignore` 忽略且不再被 git 跟踪，跨平台构建后的覆盖属正常现象，**无需也不应提交**。
+
 ### Rust Workspace（Tauri）
 
 ```bash
