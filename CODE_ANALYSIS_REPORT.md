@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-01 15:08:45
+> 最后更新：2026-08-01 15:16:00
 > 当前分支：`main`
 > 修复轮次：3 + 复核轮次 1（58 项修复声明已独立核验）+ 决策轮次（剩余 5 项方案与用户决策已记录，见各条目「决策记录」）
 > 分析范围：`tauri/`（Rust 后端 `src-tauri/` + `crates/`，React/TS 前端 `src/`）；`solosoul_cli/` 不在本轮范围
@@ -31,7 +31,7 @@
 | P009 | P1 | 性能 | `tauri/src-tauri/src/commands/ocr.rs:258,356` | 每次 OCR 命令重新加载 ONNX 引擎（数百 ms），无缓存 | `[x]` 已修复 |
 | P010 | P1 | 性能 | `tauri/src/pages/workspace/ObjectWorkspacePage.tsx:148-158` | `useObjectStore()` 无 selector 整店订阅，store 任何变化触发整页重渲染 | `[x]` 已修复（复核补改：`useObjectWorkspaceData.ts:141` 残留的 templateStore 裸订阅已分字段化） |
 | P011 | P1 | 性能 | `tauri/src/pages/workspace/ObjectWorkspacePage.tsx:803`、`tauri/src/pages/settings/GlobalAttachmentManager.tsx:1077` | 大列表无虚拟滚动/分页，对象数百+ 时首屏与重渲染成本高 | `[x]` 已修复（复核补改：GlobalAttachmentManager 顶层页面列表补「加载更多」分页） |
-| P012 | P1 | 架构/重复 | `tauri/src-tauri/src/plugin/` vs `tauri/crates/solosoul-plugin/src/` | 插件运行时双份平行实现：GUI 用本地版（功能超集），CLI 用 crate 版（见详情事实修正） | `[>]` 执行中（方向 B 第①②③④⑤步已完成：删 orphan mobile + version 去重 + 功能移植进 crate + host 对齐 + GUI 切换 + wasmtime 依赖收敛；余第⑥步全量回归） |
+| P012 | P1 | 架构/重复 | `tauri/src-tauri/src/plugin/` vs `tauri/crates/solosoul-plugin/src/` | 插件运行时双份平行实现：GUI 用本地版（功能超集），CLI 用 crate 版（见详情事实修正） | `[x]` 已修复（方向 B 六步全部完成：删 orphan mobile + version 去重 + 功能移植进 crate + host 对齐 + GUI 切换 + wasmtime 收敛 + 全量回归） |
 | P013 | P1 | 架构 | `tauri/src-tauri/src/commands/discovery.rs:30`、`tauri/crates/solosoul-sync/src/manager.rs:168` | mDNS ServiceDaemon 在两个层各起一个实例，可同时存活导致结果不一致 | `[x]` 已修复 |
 | P014 | P1 | 架构 | `tauri/src/stores/authStore.ts:154-155` | `logout` invoke 失败时前端认证状态永不重置，出现半认证僵尸态 | `[x]` 已修复 |
 | P015 | P1 | 架构 | `tauri/src/stores/vaultStore.ts:15-44`、`tauri/src/stores/authStore.ts` | 认证/锁定状态双 store 平行维护，`vaultState` 只写不读，存在三种写入路径 | `[x]` 已修复（复核补改：LoginPage PIN/生物识别两条裸 setState 收敛为 authStore.completeUnlock） |
@@ -86,10 +86,10 @@
 
 ## 修复进度
 
-- 已完成：62 / 63（经 2026-08-01 复核确认 + P048 四批迁移 + P047 确认通过的项）
+- 已完成：**63 / 63**（经 2026-08-01 复核确认 + P048 四批迁移 + P047 + P012 方向 B 六步全部闭环）
 - 部分完成 `[~]`：0 项
-- 已决策待执行 `[>]`：1 项——P012（方向 B 统一到 crate；**唯一剩余工作项**，第①②③④步已完成，执行中）
-- 当前处理：P012 方向 B 第⑤步完成（2026-08-01，15:08）——wasmtime 依赖收敛：删除 src-tauri Cargo.toml 中两行死依赖（wasmtime/wasmtime-wasi，本地 host 删除后已无任何直接使用），wasmtime 声明统一归入 crate（pulley 移动端/cranelift 桌面 JIT 均完备）。验证：GUI/crate/CLI 三侧 check + fmt + clippy（0 警告）+ crate test（49）全绿，审查通过。下一轮：P012 第⑥步（全量回归）
+- 已决策待执行 `[>]`：0 项
+- 当前处理：P012 方向 B 第⑥步完成（2026-08-01，15:16）——**P012 全部完成，P047 并入其中，项目 63/63 项代码项全部闭环**。全量回归：workspace `cargo test`（core 145 + vault 99 + plugin 49 + 集成 8 等全绿）✅ / 前端 `tsc` + `eslint` + Vitest（44 文件 415 测试）✅ / CLI `cargo test` 仅剩既有 P008 夹具问题（`unlock.rs:230` E0063，与 P012 无关，另行跟进）
 
 ## 静态基线之外已检查且无发现的维度（误报排除记录）
 
@@ -247,6 +247,13 @@
 - **Cargo.lock**：wasmtime 仍被 crate 依赖，lock 条目保留，仅移除 src-tauri→wasmtime 边（无 lock 变更）。
 - **审查**：approved（确认零残留引用、crate features 完备、无跨成员传递影响；注释措辞微调采纳）。
 - **验证**：GUI/crate/CLI 三侧 check ✅ / `cargo fmt --check` ✅ / `cargo clippy -p solo_soul --all-targets -- -D warnings` ✅（0 警告）/ `cargo test -p solosoul-plugin`（49 通过）✅。改动仅 src-tauri Cargo.toml 两行。
+
+**第⑥步修复记录（2026-08-01，全量回归 + P012 全部完成，状态 `[x]` 已修复）**：
+- **workspace `cargo test` 全绿**：solosoul-core（145）、solosoul-vault（99）、solosoul-plugin（49，含新增 version 兼容测试×3）、solosoul-crypto/sync 等全部通过；插件集成测试 4 文件 8 项（plugin_sandbox/plugin_address_fmt/plugin_install/plugin_registry_update）全通过——GUI→crate 切换的端到端实测点（TauriChannelSink + new_plugin_manager + crate registry 路径修复）验证无回归。
+- **前端全绿**：`npx tsc --noEmit` ✅ / `npm run lint`（eslint）✅ / `npm run test`（Vitest 44 文件 415 测试）✅。
+- **CLI 测试**：`cargo test` 仅报 `unlock.rs:230` E0063（`AccountSummary` 测试夹具缺 P008 生物识别新增 `has_biometric_history`/`has_pin_history` 字段）——**既有已知问题**（P012 第②步审查已记录，与本次无关），待 P008 相关夹具补齐后单独处理。
+- **审查**：终审 approved——累积 ①~⑤ 步改动（5 提交）无遗漏连带影响；ACL 按命令名授权不依赖实现层，capabilities 无影响（`acl-manifests.json` 为自动生成遗留改动，全程排除在提交外）；CLI block_on 声明项已记录。
+- **P012 方向 B 全流程闭环**：①删 orphan mobile + version 去重 → ②功能移植进 crate + new_with_dirs → ③host 对齐 + P047 → ④GUI 切薄封装（删本地 2900 行）→ ⑤wasmtime 依赖收敛 → ⑥全量回归。插件运行时双份实现归零，crate 为唯一实现源。
 
 **P013 | mDNS 双 daemon**
 sync crate manager（`manager.rs:168`）`sync_enable` 时自建 `ServiceDaemon`；`discovery.rs:30,55-60` 另有 app 生命周期常驻 `SharedDaemon`。前端 `syncStore.enable` 成功后立即 `discoverDevices`（`syncStore.ts:140-141`），两个 daemon 同时运行，缓存各自为政。
