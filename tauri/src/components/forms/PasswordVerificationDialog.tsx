@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { invoke } from '@tauri-apps/api/core';
+import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { Dialog } from '@/components/ui/Dialog';
 import { SecurePasswordInput } from '@/components/forms/PasswordInput';
 import { PinInput } from '@/components/forms/PinInput';

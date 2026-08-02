@@ -4,7 +4,7 @@ import { Card } from '@/components/ui/Card';
 import { SecurePasswordInput } from '@/components/forms/PasswordInput';
 import { useAuthStore } from '@/stores/authStore';
 import { useToastError } from '@/hooks/useToastError';
-import { invoke } from '@tauri-apps/api/core';
+import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { Info, AlertTriangle } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/constants';
 

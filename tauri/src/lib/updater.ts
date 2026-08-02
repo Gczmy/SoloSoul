@@ -1,6 +1,6 @@
 import { check, type Update, type DownloadEvent } from '@tauri-apps/plugin-updater';
 import { relaunch } from '@tauri-apps/plugin-process';
-import { invoke } from '@tauri-apps/api/core';
+import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
 import { logger } from '@/lib/logger';
 

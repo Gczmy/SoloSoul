@@ -4,7 +4,7 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { useAutoLockPauseStore } from '@/stores/autoLockPauseStore';
 import { sendSystemNotificationWithFallback } from '@/lib/notification';
 import { addPluginListener, type PluginListener } from '@tauri-apps/api/core';
-import { invoke } from '@tauri-apps/api/core';
+import { invokeCommand as invoke } from '@/lib/ipcClient';
 import i18next from '@/lib/i18n';
 import { logger } from '@/lib/logger';
 

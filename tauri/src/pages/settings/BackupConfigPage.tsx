@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/Input';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { useToastError } from '@/hooks/useToastError';
 import { useConfirm } from '@/hooks/useConfirm';
-import { invoke } from '@tauri-apps/api/core';
+import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { HardDrive, RotateCcw, Plus, Bell, Info } from 'lucide-react';
 import { DeleteButton } from '@/components/ui/DeleteButton';
 import { ICON_SIZE } from '@/lib/constants';

@@ -7,7 +7,7 @@ import { AppShell } from '@/components/layout/AppShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
-import { invoke } from '@tauri-apps/api/core';
+import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { useAuthStore } from '@/stores/authStore';
 import { useToastError } from '@/hooks/useToastError';
 import { ICON_SIZE } from '@/lib/constants';

@@ -5,7 +5,7 @@
 // Fallback 到关键词检索当 embedding 不可用时。
 // =============================================================================
 
-import { invoke } from '@tauri-apps/api/core';
+import { invokeCommand as invoke } from '@/lib/ipcClient';
 
 export interface GuideContent {
   id: string;

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { invoke } from '@tauri-apps/api/core';
+import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { motion } from 'framer-motion';
 import { Clock, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { SensitivityBadge, type SensitivityLevel } from '@/components/ui/SensitivityBadge';

@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { QRCodeSVG } from 'qrcode.react';
-import { invoke } from '@tauri-apps/api/core';
+import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { motion } from 'framer-motion';
 import { X, Loader2, Copy, Check, ChevronDown, ChevronUp, QrCode, LifeBuoy } from 'lucide-react';
 import { Card } from '@/components/ui/Card';

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { invoke } from '@tauri-apps/api/core';
+import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { DEBOUNCE_DELAY_MS } from '@/lib/constants';
 import type { ExportEstimate } from '@/types/exportImport';
 

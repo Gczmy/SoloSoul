@@ -8,7 +8,7 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { useToastError } from '@/hooks/useToastError';
-import { invoke } from '@tauri-apps/api/core';
+import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { saveWithPause } from '@/lib/dialog';
 import { Search, Download, X } from 'lucide-react';
 import { resolveCollectionLabel } from '@/lib/utils';

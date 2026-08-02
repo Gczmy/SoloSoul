@@ -6,7 +6,7 @@ import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 
-import { invoke } from '@tauri-apps/api/core';
+import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { saveWithPause } from '@/lib/dialog';
 import { useToastError } from '@/hooks/useToastError';
 import { logger } from '@/lib/logger';

@@ -15,7 +15,7 @@ import {
   prepareStagedDownloadPath,
   stageImportPackage,
 } from '@/lib/mobileFileTransfer';
-import { invoke } from '@tauri-apps/api/core';
+import { invokeCommand as invoke } from '@/lib/ipcClient';
 
 import { useAuthStore } from '@/stores/authStore';
 import { ExportSection } from '@/components/export/ExportSection';

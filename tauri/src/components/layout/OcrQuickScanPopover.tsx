@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { openWithPause } from '@/lib/dialog';
 import { useOcrScanStore, type OcrScanEntry } from '@/stores/ocrScanStore';
-import { invoke } from '@tauri-apps/api/core';
+import { invokeCommand as invoke } from '@/lib/ipcClient';
 import type { OcrTierInfo, OcrModelStatus } from '@/lib/ipc';
 import { useToastError } from '@/hooks/useToastError';
 import { isMobilePlatformSync } from '@/lib/platform';

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/authStore';
 import { useNavigate } from 'react-router-dom';
-import { invoke } from '@tauri-apps/api/core';
+import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { Fingerprint, Grip, X } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/constants';
 

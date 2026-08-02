@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { invoke } from '@tauri-apps/api/core';
+import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { X, ZoomIn, ZoomOut, RotateCcw, ExternalLink } from 'lucide-react';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import type { AttachmentItem } from '@/lib/attachmentUtils';

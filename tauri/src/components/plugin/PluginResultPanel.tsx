@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Copy, Check, Eye, Download } from 'lucide-react';
-import { invoke } from '@tauri-apps/api/core';
+import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { saveWithPause, openWithPause } from '@/lib/dialog';
 import { dirname, basename } from '@tauri-apps/api/path';
 import { BadgeIconButton } from '@/components/ui/BadgeIconButton';

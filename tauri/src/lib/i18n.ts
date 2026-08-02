@@ -1,6 +1,6 @@
 import i18next from 'i18next';
 import { initReactI18next } from 'react-i18next';
-import { invoke } from '@tauri-apps/api/core';
+import { invokeCommand as invoke } from '@/lib/ipcClient';
 
 import enCommon from '@/locales/en-US/common.json';
 import enNav from '@/locales/en-US/navigation.json';

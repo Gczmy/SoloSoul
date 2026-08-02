@@ -14,7 +14,7 @@ import {
   FileText,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import { invoke } from '@tauri-apps/api/core';
+import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { createPortal } from 'react-dom';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';

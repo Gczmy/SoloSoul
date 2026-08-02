@@ -15,7 +15,7 @@ import { useToastError } from '@/hooks/useToastError';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { DeleteButton } from '@/components/ui/DeleteButton';
 import { useTemplateStore } from '@/stores/templateStore';
-import { invoke } from '@tauri-apps/api/core';
+import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { Trash2, RotateCcw, Info, Search, FileX } from 'lucide-react';
 import { PageGuideButton } from '@/components/guide/PageGuideButton';
 import { logger } from '@/lib/logger';

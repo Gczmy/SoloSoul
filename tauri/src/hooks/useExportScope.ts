@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { invoke } from '@tauri-apps/api/core';
+import { invokeCommand as invoke } from '@/lib/ipcClient';
 import type { AttachmentInfo } from '@/types/exportImport';
 import { logger } from '@/lib/logger';
 

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { invoke } from '@tauri-apps/api/core';
+import { invokeCommand as invoke } from '@/lib/ipcClient';
 import i18next from '@/lib/i18n';
 
 export type TrashRetentionPeriod = '30d' | '60d' | 'half_year' | 'one_year' | 'never';

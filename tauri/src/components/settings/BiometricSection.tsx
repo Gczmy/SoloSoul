@@ -7,7 +7,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useToastError } from '@/hooks/useToastError';
 import { getBiometricErrorMessage } from '@/lib/biometricError';
-import { invoke } from '@tauri-apps/api/core';
+import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { Fingerprint, ShieldCheck, ScanFace, AlertTriangle } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/constants';
 import { useAutoLockPauseStore } from '@/stores/autoLockPauseStore';

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { invoke } from '@tauri-apps/api/core';
+import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { useObjectStore, type ObjectSummary, type ObjectData } from '@/stores/objectStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useTemplateStore } from '@/stores/templateStore';

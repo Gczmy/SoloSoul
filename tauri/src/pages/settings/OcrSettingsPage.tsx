@@ -6,7 +6,7 @@ import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { useToastError } from '@/hooks/useToastError';
 import { useConfirm } from '@/hooks/useConfirm';
-import { invoke } from '@tauri-apps/api/core';
+import { invokeCommand as invoke } from '@/lib/ipcClient';
 import type { OcrTierInfo, OcrModelStatus } from '@/lib/ipc';
 import { getTierLabel } from '@/lib/utils';
 import { Download, CheckCircle, AlertCircle, Trash2 } from 'lucide-react';

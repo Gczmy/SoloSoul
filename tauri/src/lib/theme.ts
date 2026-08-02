@@ -4,7 +4,7 @@
 
 import type { AccentPreset, ThemeConfig } from '@/types';
 import { applyScheme, resolveActiveScheme, getSchemeById } from './themeSchemes';
-import { invoke } from '@tauri-apps/api/core';
+import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { logger } from './logger';
 
 const ACCENT_COLORS: Record<AccentPreset, string> = {

@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { downloadDir } from '@tauri-apps/api/path';
 import { openWithPause } from '@/lib/dialog';
 import { FolderOpen } from 'lucide-react';
-import { invoke } from '@tauri-apps/api/core';
+import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { ExpandableSection } from './shared/ExpandableSection';
 import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import { BadgeIconButton } from '@/components/ui/BadgeIconButton';

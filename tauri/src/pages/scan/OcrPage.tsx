@@ -10,7 +10,7 @@ import { useObjectStore } from '@/stores/objectStore';
 import { useToastError } from '@/hooks/useToastError';
 import { isMobilePlatformSync } from '@/lib/platform';
 
-import { invoke } from '@tauri-apps/api/core';
+import { invokeCommand as invoke } from '@/lib/ipcClient';
 import type { OcrResult, OcrTierInfo, OcrModelStatus, MrzResult } from '@/lib/ipc';
 import { OCR_MODEL_SERIES, OCR_MODEL_NOT_INSTALLED_PREFIX } from '@/lib/constants';
 import { getTierLabel } from '@/lib/utils';

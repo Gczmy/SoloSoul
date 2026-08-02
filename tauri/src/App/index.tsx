@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { BrowserRouter } from 'react-router-dom';
-import { invoke } from '@tauri-apps/api/core';
+import { invokeCommand as invoke } from '@/lib/ipcClient';
 import type { AccountInfo } from '@/lib/ipc';
 import { ST_ONBOARDING_SEEN, ST_ONBOARDING_SAF_URI } from '@/lib/constants';
 import { ToastContainer } from '@/components/ui/ToastContainer';

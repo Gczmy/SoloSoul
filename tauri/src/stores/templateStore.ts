@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { invoke } from '@tauri-apps/api/core';
+import { invokeCommand as invoke } from '@/lib/ipcClient';
 import type { UserTemplate, TemplateProperty } from '@/types/template';
 
 interface TemplateState {

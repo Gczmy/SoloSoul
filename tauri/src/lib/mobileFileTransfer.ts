@@ -10,7 +10,7 @@
  *   `attachment_export_content_uri` 复制到目标 URI。
  */
 
-import { invoke } from '@tauri-apps/api/core';
+import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { copyFile, mkdir, remove, stat } from '@tauri-apps/plugin-fs';
 import { appCacheDir, join } from '@tauri-apps/api/path';
 

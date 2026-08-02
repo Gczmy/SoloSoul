@@ -5,7 +5,7 @@
 // 纯本地调用，无网络依赖。
 // =============================================================================
 
-import { invoke } from '@tauri-apps/api/core';
+import { invokeCommand as invoke } from '@/lib/ipcClient';
 
 /** 检测当前是否在 Tauri 运行环境中 */
 function isTauriEnv(): boolean {

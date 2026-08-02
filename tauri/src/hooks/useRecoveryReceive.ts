@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { invoke } from '@tauri-apps/api/core';
+import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { useNavigate } from 'react-router-dom';
 import { MIN_PASSWORD_LENGTH } from '@/lib/constants';
 import { translateRustError } from '@/lib/rustErrors';

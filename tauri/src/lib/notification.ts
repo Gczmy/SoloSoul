@@ -8,7 +8,7 @@ import { useUiStore } from '@/stores/uiStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useAutoLockPauseStore } from '@/stores/autoLockPauseStore';
-import { invoke } from '@tauri-apps/api/core';
+import { invokeCommand as invoke } from '@/lib/ipcClient';
 import i18next from '@/lib/i18n';
 import { navigateTo } from '@/lib/navigation';
 import { logger } from '@/lib/logger';

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { invoke } from '@tauri-apps/api/core';
+import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { useAuthStore, saveLastAccountId, LAST_ACCOUNT_KEY } from '@/stores/authStore';
 import { useApplyThemeFromSettings } from '@/hooks/useApplyThemeFromSettings';
 import type { AccountInfo } from '@/lib/ipc';

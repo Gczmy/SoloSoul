@@ -1,4 +1,4 @@
-import { invoke } from '@tauri-apps/api/core';
+import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { Channel } from '@tauri-apps/api/core';
 import type { ContractRoleBinding } from '@/types/template';
 

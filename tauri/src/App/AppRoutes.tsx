@@ -33,7 +33,7 @@ import {
   isOcrFirstInstallDone,
   markOcrFirstInstallDone,
 } from '@/stores/ocrInstallStore';
-import { invoke } from '@tauri-apps/api/core';
+import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { ST_SKIPPED_VERSION, SAFE_AREA_TOP } from '@/lib/constants';
 import { logger } from '@/lib/logger';
 import { setGlobalNavigate } from '@/lib/navigation';
