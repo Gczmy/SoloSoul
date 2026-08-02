@@ -297,10 +297,11 @@ export function LoginPage() {
         saveLastAccountId(acc.id);
         // P015: 收敛到 authStore action，不再直改 setState
         useAuthStore.getState().completeUnlock(acc);
-        // PIN 解锁后延迟检查备份提醒
+        // PIN 解锁后延迟检查备份提醒（P228: accountId 注入，避免循环依赖）
+        const pinUnlockedAccountId = acc.id;
         setTimeout(() => {
           import('@/lib/notification')
-            .then((m) => m.checkBackupReminder())
+            .then((m) => m.checkBackupReminder(pinUnlockedAccountId))
             .catch((err) => logger.warn('[LoginPage] backup reminder check failed:', err));
         }, 2000);
         navigate('/');
@@ -354,10 +355,11 @@ export function LoginPage() {
       useAuthStore.getState().completeUnlock(acc, accs);
       success = true;
       (window as typeof window & { __SOLOSOUL_UNLOCK_TIME?: number }).__SOLOSOUL_UNLOCK_TIME = t0;
-      // 生物识别解锁后延迟检查备份提醒
+      // 生物识别解锁后延迟检查备份提醒（P228: accountId 注入，避免循环依赖）
+      const bioUnlockedAccountId = acc.id;
       setTimeout(() => {
         import('@/lib/notification')
-          .then((m) => m.checkBackupReminder())
+          .then((m) => m.checkBackupReminder(bioUnlockedAccountId))
           .catch((err) => logger.error('[LoginPage] backup reminder check failed:', err));
       }, 2000);
       // Navigate immediately to avoid showing the biometric UI after success

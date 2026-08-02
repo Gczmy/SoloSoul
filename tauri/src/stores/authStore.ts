@@ -150,9 +150,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       });
 
       // 解锁后延迟检查备份提醒，避免启动时立即弹权限/通知
+      // P228: accountId 注入，避免静态依赖 notification 形成循环
+      const unlockedAccountId = account.id;
       setTimeout(() => {
         import('@/lib/notification')
-          .then((m) => m.checkBackupReminder())
+          .then((m) => m.checkBackupReminder(unlockedAccountId))
           .catch((err) => logger.warn('[authStore] backup reminder check failed:', err));
       }, 2000);
     } catch (err) {

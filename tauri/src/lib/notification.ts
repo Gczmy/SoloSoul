@@ -6,7 +6,6 @@ import {
 } from '@tauri-apps/plugin-notification';
 import { useUiStore } from '@/stores/uiStore';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { useAuthStore } from '@/stores/authStore';
 import { useAutoLockPauseStore } from '@/stores/autoLockPauseStore';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import i18next from '@/lib/i18n';
@@ -171,10 +170,12 @@ interface BackupInfo {
  * 检查备份提醒。若用户未备份或距上次备份超过 `backupReminderDays` 天，
  * 则发送系统通知 + 应用内 toast 引导用户前往备份页。
  * 在 Vault 解锁后延迟调用，避免启动时权限弹窗干扰。
+ *
+ * P228: accountId 由调用方注入（authStore/LoginPage 解锁流程），
+ * 不再静态依赖 useAuthStore——断开 notification ↔ authStore 循环依赖。
  */
-export async function checkBackupReminder(): Promise<void> {
+export async function checkBackupReminder(accountId: string | undefined): Promise<void> {
   try {
-    const accountId = useAuthStore.getState().currentAccount?.id;
     if (!accountId) return;
 
     const store = useSettingsStore.getState();

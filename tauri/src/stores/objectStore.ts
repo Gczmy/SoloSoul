@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
-import type { DeprecatedField, TemplateSyncResult } from '@/lib/templateSync';
+// P228: 从 types/ 导入共享类型，断开 objectStore ↔ templateSync 循环依赖
+// （templateSync 运行时引用 objectStore，objectStore 仅需类型层）。
+import type { DeprecatedField, TemplateSyncResult } from '@/types/templateSync';
 
 export interface ObjectSummary {
   id: string;
