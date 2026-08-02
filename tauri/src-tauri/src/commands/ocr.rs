@@ -300,27 +300,35 @@ pub async fn ocr_scan_image(
         return Err("文件路径不在允许的目录中（Desktop/Documents/Downloads）".to_string());
     }
 
-    let engine_arc = get_ocr_engine(&models_dir, tier)?;
-    let mut engine = engine_arc
-        .lock()
-        .map_err(|e| format!("OCR engine lock poisoned: {e}"))?;
     let ext = path
         .extension()
         .and_then(|e| e.to_str())
         .map(|e| e.to_lowercase());
-    let file_type = ext.as_deref();
+    let file_type = ext;
+    let is_pdf = file_type.as_deref() == Some("pdf");
+    if is_pdf {
+        ensure_pdfium_library_path(app);
+    }
 
-    let result = match file_type {
-        Some("pdf") => {
-            ensure_pdfium_library_path(app);
-            engine.scan_pdf(&path)?
+    // P113: 秒级 ONNX 推理（含首次引擎加载）放到 spawn_blocking，避免阻塞 tokio worker。
+    let scan_path = path.clone();
+    let result = tokio::task::spawn_blocking(move || {
+        let engine_arc = get_ocr_engine(&models_dir, tier)?;
+        let mut engine = engine_arc
+            .lock()
+            .map_err(|e| format!("OCR engine lock poisoned: {e}"))?;
+        if is_pdf {
+            engine.scan_pdf(&scan_path)
+        } else {
+            engine.scan_image(&scan_path)
         }
-        _ => engine.scan_image(&path)?,
-    };
+    })
+    .await
+    .map_err(|e| format!("OCR task join error: {e}"))??;
 
     let file_name = path.file_name().map(|n| n.to_string_lossy().to_string());
     let details = json!({
-        "fileType": file_type.unwrap_or("unknown"),
+        "fileType": file_type.as_deref().unwrap_or("unknown"),
         "tier": tier.to_string(),
         "boxCount": result.boxes.len(),
         "textLength": result.text.len(),
