@@ -563,7 +563,8 @@ fn set_private_file(path: &Path) -> Result<(), String> {
 }
 
 /// 尝试解密 PIN 会话密钥（P005）：先使用生产级 KDF 参数；失败时回退到
-/// `from_env()`（旧凭证的开发参数）重试。
+/// `KdfConfig::development()`（旧凭证的开发参数，显式指定——P003 后 release
+/// 构建的 `from_env()` 已返回生产参数，不可再作为旧参数回退源）重试。
 ///
 /// 返回 `(会话密钥, 是否回退了旧参数)`。两个参数都解密失败时返回 Err（PIN 错误）。
 /// 注意：生产参数与 `SOLOSOUL_SECURE=1` 下的 from_env 相同，此时仅尝试一次。
@@ -583,8 +584,10 @@ fn decrypt_session_key_with_fallback(
         return Ok((key.to_vec(), false));
     }
 
-    // 回退旧参数（开发模式 8 MiB / 2 iter，仅当与生产参数不同时才有意义）
-    let legacy = KdfConfig::from_env();
+    // 回退旧参数（开发模式 8 MiB / 2 iter，仅当与生产参数不同时才有意义）。
+    // 注意：不能用 `KdfConfig::from_env()`——P003 后 release 构建的 from_env
+    // 已返回生产参数，会导致存量旧凭证（由开发参数加密）永远无法解锁。
+    let legacy = KdfConfig::development();
     if legacy.memory_kb == production.memory_kb
         && legacy.iterations == production.iterations
         && legacy.parallelism == production.parallelism

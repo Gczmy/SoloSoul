@@ -38,21 +38,27 @@ impl KdfConfig {
         }
     }
 
-    /// 根据环境变量选择 KDF 参数：
-    /// - `SOLOSOUL_SECURE=1` → production (64 MiB / 3 iter)
-    /// - 未设置或为其他值 → development (8 MiB / 2 iter)
+    /// 根据构建类型与环境变量选择 KDF 参数（P003）：
+    /// - `SOLOSOUL_SECURE=1` → 强制 production (64 MiB / 3 iter)
+    /// - release 构建（未设置 SOLOSOUL_SECURE）→ production，OWASP 推荐参数。
+    ///   此前默认 development 而 `SOLOSOUL_SECURE` 在终端设备上从未被设置，
+    ///   导致所有真实用户都以开发档参数派生主密钥（P003）。
+    /// - debug 构建 → development (8 MiB / 2 iter)，保证本地开发/测试快速。
     pub fn from_env() -> Self {
         if std::env::var("SOLOSOUL_SECURE").as_deref() == Ok("1") {
-            Self::production()
-        } else {
+            return Self::production();
+        }
+        if cfg!(debug_assertions) {
             Self::development()
+        } else {
+            Self::production()
         }
     }
 }
 
 impl Default for KdfConfig {
     fn default() -> Self {
-        Self::development()
+        Self::from_env()
     }
 }
 

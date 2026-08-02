@@ -694,6 +694,13 @@ impl VaultService {
         }
         self.save_accounts().ok();
 
+        // P003: 已有账户若使用低于生产档的 KDF 参数（开发档 8MiB/2iter 或平衡档
+        // 16MiB/3iter），在 release 构建下解锁成功后透明升级到生产参数并重加密
+        // 整个 Vault。debug 构建保持开发档以加速本地开发/测试。
+        if !cfg!(debug_assertions) && config.kdf_config() != KdfConfig::production() {
+            return self.unlock_with_kdf_upgrade(account_id, password, &master_key);
+        }
+
         // Store session key
         let master_key_arr: [u8; 32] = master_key
             .as_slice()
@@ -726,6 +733,155 @@ impl VaultService {
             tracing::warn!("Failed to reset PIN attempts after unlock: {}", e);
         }
 
+        Ok(())
+    }
+
+    /// P003：将账户 KDF 参数透明升级到生产档并重加密整个 Vault。
+    ///
+    /// 仅在 `unlock` 成功验证密码后调用（release 构建、存储参数低于生产档时）。
+    /// 流程与 `change_password` 一致：用旧密钥打开 Vault → `reencrypt_all` 重加密
+    /// 全部数据 → 更新 config（新 salt / 新 verify hash / 生产参数）→ 用新密钥重开
+    /// Vault → 同步更新生物识别凭证、清除 PIN 凭证（其保存的旧密钥已失效）。
+    fn unlock_with_kdf_upgrade(
+        &self,
+        account_id: &str,
+        password: &str,
+        old_master_key: &Zeroizing<Vec<u8>>,
+    ) -> Result<(), String> {
+        // 旧密钥（已验证通过）。
+        let old_key_arr: [u8; 32] = old_master_key
+            .as_slice()
+            .try_into()
+            .map_err(|_| "Master key must be 32 bytes".to_string())?;
+        let old_key = solosoul_vault::DataEncryptionKey::new(old_key_arr);
+
+        // 新 salt + 生产参数派生新主密钥。
+        let salt = generate_salt();
+        let new_kdf_config = KdfConfig::production();
+        let new_key = derive_key(password, &salt, &new_kdf_config)
+            .map_err(|e| format!("New key derivation failed: {}", e))?;
+        let new_key_arr: [u8; 32] = new_key
+            .as_slice()
+            .try_into()
+            .map_err(|_| "Key derivation output must be 32 bytes".to_string())?;
+        let new_key_enc = solosoul_vault::DataEncryptionKey::new(new_key_arr);
+
+        // 用旧密钥打开 Vault 并重加密全部数据。
+        {
+            let account_dir_path = self
+                .fs
+                .local_path(&self.account_dir_rel(account_id))
+                .ok_or("无法解析账户本地目录")?;
+            let vault_config =
+                VaultConfig::new(account_id, account_dir_path).with_data_key(old_key_arr);
+            let vault = VaultStore::open(vault_config)
+                .map_err(|e| format!("Failed to open vault for KDF upgrade: {}", e))?;
+            vault.reencrypt_all(&old_key, &new_key_enc)?;
+        }
+
+        // 更新 config：新 salt、新 verify hash、生产参数。
+        // 注意：reencrypt_all 在事务内执行（失败整体回滚，数据保持旧密钥），
+        // config 写入在其后。与 change_password 的既有顺序一致——若 reencrypt 成功
+        // 但 config 写入失败，账户会处于"数据已换新钥、config 仍记旧参数"的不可用态，
+        // 此窗口极小且与既有改密流程风险对等，故保持该顺序。
+        let config_rel = self.config_path_rel(account_id);
+        let content = self
+            .fs
+            .read_file(&config_rel)
+            .map_err(|_| "Account not found".to_string())?;
+        let content =
+            String::from_utf8(content).map_err(|_| "Config encoding error".to_string())?;
+        let mut config: AccountConfig =
+            serde_json::from_str(&content).map_err(|_| "Config parse error".to_string())?;
+        config.crypto_version = 3; // P2-010: HKDF-based verify hash
+        config.salt =
+            base64::Engine::encode(&base64::engine::general_purpose::STANDARD, salt.as_slice());
+        let mk: [u8; 32] = new_key_arr;
+        config.verify_hash = hex::encode(
+            solosoul_crypto::hkdf_ext::derive_hkdf_key(&mk, &salt, b"SOLOSOUL_VAULT_VERIFY_v1")
+                .map_err(|e| format!("Verify HKDF failed: {}", e))?,
+        );
+        config.kdf_memory_kb = Some(new_kdf_config.memory_kb);
+        config.kdf_iterations = Some(new_kdf_config.iterations);
+        config.kdf_parallelism = Some(new_kdf_config.parallelism);
+        let config_json = serde_json::to_string_pretty(&config).map_err(|e| e.to_string())?;
+        self.fs.write_file(&config_rel, config_json.as_bytes())?;
+
+        // 更新会话密钥并重开 Vault（新密钥）。
+        {
+            if let Ok(mut key) = self.session_key.write() {
+                *key = Some(Zeroizing::new(new_key_arr));
+            }
+        }
+        if let Ok(mut ua) = self.unlocked_account.write() {
+            *ua = Some(account_id.to_string());
+        }
+        if let Ok(mut store) = self.vault_store.write() {
+            *store = None;
+        }
+        let account_dir_path = self
+            .fs
+            .local_path(&self.account_dir_rel(account_id))
+            .ok_or("无法解析账户本地目录")?;
+        let vault_config =
+            VaultConfig::new(account_id, account_dir_path).with_data_key(new_key_arr);
+        match VaultStore::open(vault_config) {
+            Ok(vault) => {
+                if let Ok(mut store) = self.vault_store.write() {
+                    *store = Some(Arc::new(vault));
+                }
+            }
+            Err(e) => {
+                return Err(format!("KDF upgrade succeeded but vault reopen failed: {}", e));
+            }
+        }
+
+        // 此路径不再单独调用 pin_manager.reset_attempts：clear_credential 已
+        // 将 pin_failed_attempts 归零并清除 pin_locked_until，与 unlock 尾部的
+        // reset_attempts 效果等价。
+
+        // 生物识别凭证保存的是旧主密钥，需同步更新。
+        {
+            let bio_manager = make_biometric_manager(self.base_path().clone());
+            let new_key_hex = hex::encode(new_key_arr.as_slice());
+            if let Err(e) = bio_manager.update_credential(account_id, &new_key_hex) {
+                tracing::warn!(
+                    "Failed to update biometric credential after KDF upgrade for {}: {}",
+                    account_id,
+                    e
+                );
+            }
+        }
+
+        // PIN 凭证保存的是旧主密钥，且重加密需要 PIN 输入（不可用），清除后由用户重新设置。
+        {
+            let pin_manager = PinManager::new(self.base_path().clone());
+            if let Err(e) = pin_manager.clear_credential(account_id) {
+                tracing::warn!(
+                    "Failed to clear PIN credential after KDF upgrade for {}: {}",
+                    account_id,
+                    e
+                );
+            }
+        }
+
+        // SAF 远端存储：本地 vault.db 已用新密钥重加密，同步到远端避免
+        // 下次 sync_from_remote 用旧副本覆盖。
+        if self.is_remote_storage() {
+            if let Err(e) = self.sync_to_remote() {
+                tracing::error!(
+                    "Failed to sync re-encrypted vault.db to SAF after KDF upgrade for {}: {}",
+                    account_id,
+                    e
+                );
+                return Err(format!(
+                    "KDF upgrade failed to sync encrypted data to remote storage: {}",
+                    e
+                ));
+            }
+        }
+
+        tracing::info!("KDF params upgraded to production for {}", account_id);
         Ok(())
     }
 
@@ -1426,5 +1582,66 @@ mod tests {
         let account_id = account["id"].as_str().unwrap();
         svc.unlock(account_id, "password123").unwrap();
         assert!(svc.get_vault_store().is_some());
+    }
+
+    /// P003：`unlock_with_kdf_upgrade` 应将存储的开发档 KDF 参数透明升级到生产档，
+    /// 重加密全部数据（写入一条审计日志后升级，仍可解密读出），并更新 config 中的
+    /// verify hash 与参数。
+    #[test]
+    fn test_unlock_with_kdf_upgrade_reencrypts_and_upgrades_params() {
+        let (svc, _dir) = setup_service();
+        let account = svc.create_account("KdfUpgrade", "password123", None).unwrap();
+        let account_id = account["id"].as_str().unwrap();
+
+        // 写入一条审计日志（加密数据），用于验证升级后仍可解密。
+        {
+            let vault = svc.get_vault_store().expect("vault open after create");
+            vault
+                .log_structured(
+                    "test_kdf_upgrade",
+                    "test",
+                    Some(account_id),
+                    None,
+                    "user",
+                    Some("before-upgrade"),
+                )
+                .unwrap();
+        }
+
+        // 模拟旧账户：将 config 的 KDF 参数改为开发档（8 MiB / 2 iter）。
+        let config_path = svc.base_path().join(account_id).join("config.json");
+        let mut raw: serde_json::Value =
+            serde_json::from_str(&fs::read_to_string(&config_path).unwrap()).unwrap();
+        raw["kdfMemoryKb"] = serde_json::Value::from(8 * 1024u32);
+        raw["kdfIterations"] = serde_json::Value::from(2u32);
+        raw["kdfParallelism"] = serde_json::Value::from(4u32);
+        fs::write(&config_path, serde_json::to_string_pretty(&raw).unwrap()).unwrap();
+
+        // 用旧（开发档）参数派生旧密钥并执行透明升级。
+        let old_kdf = KdfConfig::development();
+        let salt_bytes =
+            base64::Engine::decode(&base64::engine::general_purpose::STANDARD, &raw["salt"]
+                .as_str()
+                .unwrap())
+            .unwrap();
+        let salt_arr: [u8; 16] = salt_bytes.as_slice().try_into().unwrap();
+        let old_key = derive_key("password123", &salt_arr, &old_kdf).unwrap();
+        svc.unlock_with_kdf_upgrade(account_id, "password123", &old_key)
+            .unwrap();
+
+        // config 应已升级为生产参数。
+        let content = fs::read_to_string(&config_path).unwrap();
+        let config: AccountConfig = serde_json::from_str(&content).unwrap();
+        assert_eq!(config.kdf_config(), KdfConfig::production());
+
+        // 旧参数派生的密钥应不再匹配 verify hash（新密钥来自生产参数）。
+        let old_verify = derive_key("password123", &salt_arr, &old_kdf).unwrap();
+        assert_ne!(config.verify_hash, hex::encode(old_verify.as_slice()));
+
+        // 用新会话密钥（生产参数）打开 Vault 后，升级前的加密数据仍可解密。
+        let vault = svc.get_vault_store().expect("vault open after upgrade");
+        let logs = vault.list_audit_log(10).unwrap();
+        assert!(!logs.is_empty());
+        assert!(logs.iter().any(|l| l.details.as_deref() == Some("before-upgrade")));
     }
 }
