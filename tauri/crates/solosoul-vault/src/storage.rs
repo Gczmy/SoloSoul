@@ -4,6 +4,8 @@ use rusqlite::{params, Connection, OptionalExtension};
 use std::sync::Mutex;
 use zeroize::Zeroize;
 
+use serde::Deserialize;
+
 use crate::encryption::{
     decrypt_field, decrypt_text_field, encrypt_field, encrypt_text_field, ensure_encrypted_text,
     DataEncryptionKey,
@@ -813,8 +815,17 @@ impl VaultStore {
         let key = self.data_key()?;
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
+        Self::save_profile_tx(conn, &key, profile)
+    }
+
+    /// P115: 事务内保存 Profile（连接由调用方持有，批量应用单事务内复用）。
+    fn save_profile_tx(
+        conn: &Connection,
+        key: &DataEncryptionKey,
+        profile: &Profile,
+    ) -> Result<(), String> {
         let now = chrono::Utc::now().to_rfc3339();
-        let encrypted_data = encrypt_field(&key, &profile.data)?;
+        let encrypted_data = encrypt_field(key, &profile.data)?;
         conn.execute(
             "INSERT INTO profiles (id, name, data, created_at, updated_at, version)
              VALUES (?1, ?2, ?3, ?4, ?5, ?6)
@@ -907,6 +918,15 @@ impl VaultStore {
     ) -> Result<Option<crate::RecordHlc>, String> {
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
+        Self::get_record_hlc_tx(conn, table, record_id)
+    }
+
+    /// P115: 事务内 HLC 查询（连接由调用方持有，批量应用单事务内复用）。
+    fn get_record_hlc_tx(
+        conn: &Connection,
+        table: &str,
+        record_id: &str,
+    ) -> Result<Option<crate::RecordHlc>, String> {
         let result = conn
             .query_row(
                 "SELECT wall_time_ms, counter, node_id FROM sync_hlc WHERE table_name = ?1 AND record_id = ?2",
@@ -932,6 +952,16 @@ impl VaultStore {
     ) -> Result<(), String> {
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
+        Self::set_record_hlc_tx(conn, table, record_id, hlc)
+    }
+
+    /// P115: 事务内 HLC 写入（连接由调用方持有）。
+    fn set_record_hlc_tx(
+        conn: &Connection,
+        table: &str,
+        record_id: &str,
+        hlc: &crate::RecordHlc,
+    ) -> Result<(), String> {
         conn.execute(
             "INSERT INTO sync_hlc (table_name, record_id, wall_time_ms, counter, node_id, updated_at)
              VALUES (?1, ?2, ?3, ?4, ?5, ?6)
@@ -1732,31 +1762,107 @@ impl VaultStore {
     }
 
     /// Apply a single incoming sync record. Returns true if the local state changed.
+    /// 单条记录应用（单事务语义：HLC 预检 + 写入 + HLC 更新全部在一个事务内）。
     pub fn apply_sync_record(
         &self,
         record: &crate::VaultSyncRecord,
         local_node_id: &str,
     ) -> Result<bool, String> {
+        let borrowed = crate::BorrowedSyncRecord {
+            id: &record.id,
+            table: &record.table,
+            data: &record.data,
+            hlc: &record.hlc,
+            deleted: record.deleted,
+        };
+        let key = self.data_key()?;
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        let tx = conn
+            .transaction()
+            .map_err(|e| format!("apply_sync_record begin: {}", e))?;
+        let outcome = Self::apply_sync_record_tx(&tx, &key, &borrowed, local_node_id)?;
+        tx.commit()
+            .map_err(|e| format!("apply_sync_record commit: {}", e))?;
+        Ok(outcome.applied)
+    }
+
+    /// P115: 事务内应用单条同步记录（连接由调用方持有）。
+    ///
+    /// 与 `apply_sync_record` 的差异：不获取/持有连接，适用于批量事务循环；
+    /// 返回 [`crate::SyncApplyOutcome`]，包含写前本地 HLC 供冲突报告复用。
+    fn apply_sync_record_tx(
+        conn: &Connection,
+        key: &DataEncryptionKey,
+        record: &crate::BorrowedSyncRecord,
+        local_node_id: &str,
+    ) -> Result<crate::SyncApplyOutcome, String> {
         // Conflict resolution: only accept records with HLC greater than the local HLC.
-        let current = self.get_record_hlc(&record.table, &record.id)?;
-        if let Some(ref cur) = current {
-            if !Self::record_hlc_is_newer(&record.hlc, cur) {
-                return Ok(false);
+        let local_hlc = Self::get_record_hlc_tx(conn, record.table, record.id)?;
+        if let Some(ref cur) = local_hlc {
+            if !Self::record_hlc_is_newer(record.hlc, cur) {
+                return Ok(crate::SyncApplyOutcome {
+                    applied: false,
+                    local_hlc,
+                    error: None,
+                });
             }
         }
 
-        let applied = match record.table.as_str() {
-            "profiles" => self.apply_profile_sync_record(record),
-            "objects" => self.apply_object_sync_record(record, local_node_id),
-            "user_templates" => self.apply_user_template_sync_record(record),
-            "trash_items" => self.apply_trash_sync_record(record),
+        let applied = match record.table {
+            "profiles" => Self::apply_profile_sync_record_tx(conn, key, record),
+            "objects" => Self::apply_object_sync_record_tx(conn, key, record, local_node_id),
+            "user_templates" => Self::apply_user_template_sync_record_tx(conn, key, record),
+            "trash_items" => Self::apply_trash_sync_record_tx(conn, key, record),
             _ => Err(format!("Unsupported sync table: {}", record.table)),
         }?;
 
         if applied {
-            self.set_record_hlc(&record.table, &record.id, &record.hlc)?;
+            Self::set_record_hlc_tx(conn, record.table, record.id, record.hlc)?;
         }
-        Ok(applied)
+        Ok(crate::SyncApplyOutcome {
+            applied,
+            local_hlc,
+            error: None,
+        })
+    }
+
+    /// P115: 整批应用同步记录——单连接 + 单事务 + 借用视图（零克隆）。
+    ///
+    /// 相比旧实现（`apply_sync_records` 逐条 `apply_sync_record`）：
+    ///   - 整批包一个事务：所有 INSERT/UPDATE/DELETE + sync_hlc 更新一次 commit；
+    ///   - HLC 重复查询 ×2 → ×1：每条记录只查一次本地 HLC，结果带写前本地 HLC
+    ///     供调用方冲突报告复用，不再二次查询；
+    ///   - `data` 传引用：接收 [`crate::BorrowedSyncRecord`] 借用视图，不再逐条克隆 JSON。
+    ///
+    /// 返回每条记录的应用结果；单条记录失败不中断整批（错误落入 `SyncApplyOutcome.error`），
+    /// 整批事务最终统一 commit/rollback。
+    pub fn apply_sync_records_batch(
+        &self,
+        records: &[crate::BorrowedSyncRecord],
+        local_node_id: &str,
+    ) -> Result<Vec<crate::SyncApplyOutcome>, String> {
+        let key = self.data_key()?;
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        let tx = conn
+            .transaction()
+            .map_err(|e| format!("apply batch begin: {}", e))?;
+        let mut outcomes = Vec::with_capacity(records.len());
+        for record in records {
+            // 单条失败不中断整批：错误落入 outcome，事务最终统一 commit/rollback。
+            match Self::apply_sync_record_tx(&tx, &key, record, local_node_id) {
+                Ok(outcome) => outcomes.push(outcome),
+                Err(e) => outcomes.push(crate::SyncApplyOutcome {
+                    applied: false,
+                    local_hlc: None,
+                    error: Some(e),
+                }),
+            }
+        }
+        tx.commit()
+            .map_err(|e| format!("apply batch commit: {}", e))?;
+        Ok(outcomes)
     }
 
     fn record_hlc_is_newer(remote: &crate::RecordHlc, local: &crate::RecordHlc) -> bool {
@@ -1991,13 +2097,16 @@ impl VaultStore {
         Ok(())
     }
 
-    fn apply_profile_sync_record(&self, record: &crate::VaultSyncRecord) -> Result<bool, String> {
+    /// P115: 事务内应用单条 Profile 同步记录（连接由调用方持有）。
+    fn apply_profile_sync_record_tx(
+        conn: &Connection,
+        key: &DataEncryptionKey,
+        record: &crate::BorrowedSyncRecord,
+    ) -> Result<bool, String> {
         if record.deleted {
             // Apply remote tombstone directly without creating a local tombstone,
             // so the remote HLC remains the authoritative deletion timestamp.
-            let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
-            let conn = guard.as_mut().ok_or("Vault is locked")?;
-            conn.execute("DELETE FROM profiles WHERE id = ?1", params![&record.id])
+            conn.execute("DELETE FROM profiles WHERE id = ?1", params![record.id])
                 .map_err(|e| format!("delete profile: {}", e))?;
             return Ok(true);
         }
@@ -2020,7 +2129,7 @@ impl VaultStore {
             .and_then(|v| v.as_str())
             .unwrap_or(&now);
         let profile = crate::Profile {
-            id: record.id.clone(),
+            id: record.id.to_string(),
             name: record
                 .data
                 .get("name")
@@ -2040,38 +2149,38 @@ impl VaultStore {
                 .and_then(|v| v.as_u64())
                 .unwrap_or(1) as u32,
         };
-        self.save_profile(&profile)?;
+        Self::save_profile_tx(conn, key, &profile)?;
         Ok(true)
     }
 
-    fn apply_object_sync_record(
-        &self,
-        record: &crate::VaultSyncRecord,
+    /// P115: 事务内应用单条对象同步记录（连接由调用方持有）。
+    fn apply_object_sync_record_tx(
+        conn: &Connection,
+        key: &DataEncryptionKey,
+        record: &crate::BorrowedSyncRecord,
         local_node_id: &str,
     ) -> Result<bool, String> {
-        let mut obj: crate::ObjectRecord = serde_json::from_value(record.data.clone())
+        let mut obj: crate::ObjectRecord = crate::ObjectRecord::deserialize(record.data)
             .map_err(|e| format!("object decode: {}", e))?;
         // Bump version if the local node is modifying an existing object.
-        if self.load_object(&obj.id)?.is_some() {
+        if Self::load_object_tx(conn, key, &obj.id)?.is_some() {
             obj.version += 1;
             obj.updated_at = Self::now_rfc3339();
         }
         // Re-encrypt properties locally.
-        self.save_object(&obj)?;
-        // Update HLC with the remote value.
-        self.set_record_hlc("objects", &record.id, &record.hlc)?;
+        Self::save_object_tx(conn, key, &obj)?;
         let _ = local_node_id;
         Ok(true)
     }
 
-    fn apply_user_template_sync_record(
-        &self,
-        record: &crate::VaultSyncRecord,
+    /// P115: 事务内应用单条模板同步记录（连接由调用方持有）。
+    fn apply_user_template_sync_record_tx(
+        conn: &Connection,
+        key: &DataEncryptionKey,
+        record: &crate::BorrowedSyncRecord,
     ) -> Result<bool, String> {
         if record.deleted {
-            let _ = self.load_user_template(&record.id); // ensure vault is accessible
-            let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
-            let conn = guard.as_mut().ok_or("Vault is locked")?;
+            let _ = Self::load_user_template_tx(conn, key, record.id); // ensure vault is accessible
             conn.execute(
                 "DELETE FROM user_templates WHERE id = ?1",
                 params![record.id],
@@ -2079,16 +2188,21 @@ impl VaultStore {
             .map_err(|e| format!("delete template: {}", e))?;
             return Ok(true);
         }
-        let tpl: crate::UserTemplate = serde_json::from_value(record.data.clone())
+        let tpl: crate::UserTemplate = crate::UserTemplate::deserialize(record.data)
             .map_err(|e| format!("template decode: {}", e))?;
-        self.save_user_template(&tpl)?;
+        Self::save_user_template_tx(conn, key, &tpl)?;
         Ok(true)
     }
 
-    fn apply_trash_sync_record(&self, record: &crate::VaultSyncRecord) -> Result<bool, String> {
-        let item: crate::TrashItem = serde_json::from_value(record.data.clone())
+    /// P115: 事务内应用单条回收站同步记录（连接由调用方持有）。
+    fn apply_trash_sync_record_tx(
+        conn: &Connection,
+        key: &DataEncryptionKey,
+        record: &crate::BorrowedSyncRecord,
+    ) -> Result<bool, String> {
+        let item: crate::TrashItem = crate::TrashItem::deserialize(record.data)
             .map_err(|e| format!("trash decode: {}", e))?;
-        self.save_trash_item(&item)?;
+        Self::save_trash_item_tx(conn, key, &item)?;
         Ok(true)
     }
 
@@ -2150,6 +2264,15 @@ impl VaultStore {
         let key = self.data_key()?;
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
+        Self::save_object_tx(conn, &key, obj)
+    }
+
+    /// P115: 事务内保存对象（连接由调用方持有，批量应用单事务内复用）。
+    fn save_object_tx(
+        conn: &Connection,
+        key: &DataEncryptionKey,
+        obj: &ObjectRecord,
+    ) -> Result<(), String> {
         // 保存模板名称到 properties，用于模板被删除后仍能显示原始模板名
         let mut properties = obj.properties.clone();
         if let Some(ref tid) = obj.template_id {
@@ -2176,11 +2299,11 @@ impl VaultStore {
         } else {
             String::new()
         };
-        let encrypted_props = encrypt_text_field(&key, &props_json)?;
+        let encrypted_props = encrypt_text_field(key, &props_json)?;
         let encrypted_labels = if labels_json.is_empty() {
             String::new()
         } else {
-            encrypt_text_field(&key, &labels_json)?
+            encrypt_text_field(key, &labels_json)?
         };
         let tags_str =
             serde_json::to_string(&obj.tags_json).map_err(|e| format!("serialize tags: {}", e))?;
@@ -2218,6 +2341,15 @@ impl VaultStore {
         let key = self.data_key()?;
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
+        Self::load_object_tx(conn, &key, id)
+    }
+
+    /// P115: 事务内加载对象（连接由调用方持有，批量应用单事务内复用）。
+    fn load_object_tx(
+        conn: &Connection,
+        key: &DataEncryptionKey,
+        id: &str,
+    ) -> Result<Option<ObjectRecord>, String> {
         let mut stmt = conn
             .prepare(&format!(
                 "SELECT {} FROM objects WHERE id = ?1",
@@ -2231,7 +2363,7 @@ impl VaultStore {
                 let labels_str: String = row.get(9)?;
                 let tags_str: String = row.get(13)?;
                 let deleted: i32 = row.get(11)?;
-                let decrypted_props = decrypt_text_field(&key, &props_str).map_err(|e| {
+                let decrypted_props = decrypt_text_field(key, &props_str).map_err(|e| {
                     rusqlite::Error::FromSqlConversionFailure(
                         8,
                         rusqlite::types::Type::Text,
@@ -2244,7 +2376,7 @@ impl VaultStore {
                 let decrypted_labels = if labels_str.is_empty() {
                     Ok(String::new())
                 } else {
-                    decrypt_text_field(&key, &labels_str)
+                    decrypt_text_field(key, &labels_str)
                 }
                 .map_err(|e| {
                     rusqlite::Error::FromSqlConversionFailure(
@@ -2767,7 +2899,16 @@ impl VaultStore {
         let key = self.data_key()?;
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
-        let encrypted_data = encrypt_field(&key, &item.data)?;
+        Self::save_trash_item_tx(conn, &key, item)
+    }
+
+    /// P115: 事务内保存回收站条目（连接由调用方持有，批量应用单事务内复用）。
+    fn save_trash_item_tx(
+        conn: &Connection,
+        key: &DataEncryptionKey,
+        item: &TrashItem,
+    ) -> Result<(), String> {
+        let encrypted_data = encrypt_field(key, &item.data)?;
         conn.execute(
             "INSERT INTO trash_items (id, item_type, original_id, original_parent_id,
              original_section_type, original_sort_order, data, deleted_at, expires_at, deleted_by,
@@ -3871,9 +4012,18 @@ impl VaultStore {
         let key = self.data_key()?;
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
+        Self::save_user_template_tx(conn, &key, template)
+    }
+
+    /// P115: 事务内保存用户模板（连接由调用方持有，批量应用单事务内复用）。
+    fn save_user_template_tx(
+        conn: &Connection,
+        key: &DataEncryptionKey,
+        template: &crate::UserTemplate,
+    ) -> Result<(), String> {
         let props_json = serde_json::to_string(&template.properties)
             .map_err(|e| format!("serialize properties: {}", e))?;
-        let encrypted_props = encrypt_text_field(&key, &props_json)?;
+        let encrypted_props = encrypt_text_field(key, &props_json)?;
         conn.execute(
             "INSERT INTO user_templates (id, account_id, name, icon_id, properties_json, category, contract_type_id, created_at, updated_at)
              VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)
@@ -3908,6 +4058,15 @@ impl VaultStore {
         let key = self.data_key()?;
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
+        Self::load_user_template_tx(conn, &key, template_id)
+    }
+
+    /// P115: 事务内加载用户模板（连接由调用方持有）。
+    fn load_user_template_tx(
+        conn: &Connection,
+        key: &DataEncryptionKey,
+        template_id: &str,
+    ) -> Result<Option<crate::UserTemplate>, String> {
         let mut stmt = conn.prepare(
             "SELECT id, account_id, name, icon_id, properties_json, category, contract_type_id, created_at, updated_at
              FROM user_templates WHERE id = ?1"
@@ -3915,7 +4074,7 @@ impl VaultStore {
 
         let result = stmt.query_row(params![template_id], |row| {
             let props_json: String = row.get(4)?;
-            let decrypted = decrypt_text_field(&key, &props_json).map_err(|e| {
+            let decrypted = decrypt_text_field(key, &props_json).map_err(|e| {
                 rusqlite::Error::FromSqlConversionFailure(
                     4,
                     rusqlite::types::Type::Text,
@@ -6172,6 +6331,96 @@ mod tests {
             .unwrap());
         let loaded = vault.load_profile("p1").unwrap().unwrap();
         assert_eq!(loaded.name, "Newer");
+    }
+
+    /// P115 回归：`apply_sync_records_batch` 单事务批量应用语义与逐条 `apply_sync_record` 等价。
+    /// 覆盖：整批多条成功、HLC 较旧跳过、单条记录失败不中断整批（错误入 outcome）、
+    /// 写前本地 HLC 供冲突报告复用。
+    #[test]
+    fn test_apply_sync_records_batch_matches_single_semantics() {
+        let (vault, _dir) = setup();
+        let mk_hlc = |wall: u64, counter: u32| crate::RecordHlc {
+            wall_time_ms: wall,
+            counter,
+            node_id: "node_a".to_string(),
+        };
+        let mk_record = |id: &str, hlc: crate::RecordHlc, name: &str| crate::VaultSyncRecord {
+            id: id.to_string(),
+            table: "profiles".to_string(),
+            data: serde_json::json!({
+                "id": id,
+                "name": name,
+                "data": base64::Engine::encode(&base64::engine::general_purpose::STANDARD, b"x"),
+                "createdAt": chrono::Utc::now().to_rfc3339(),
+                "updatedAt": chrono::Utc::now().to_rfc3339(),
+                "version": 1,
+            }),
+            hlc,
+            deleted: false,
+        };
+        // 构造借用视图（零克隆入口）
+        let records = vec![
+            mk_record("p1", mk_hlc(1000, 0), "First"),
+            mk_record("p2", mk_hlc(1000, 0), "Second"),
+        ];
+        let hlcs: Vec<crate::RecordHlc> = records.iter().map(|r| r.hlc.clone()).collect();
+        let borrowed: Vec<crate::BorrowedSyncRecord> = records
+            .iter()
+            .zip(hlcs.iter())
+            .map(|(r, hlc)| crate::BorrowedSyncRecord {
+                id: &r.id,
+                table: &r.table,
+                data: &r.data,
+                hlc,
+                deleted: r.deleted,
+            })
+            .collect();
+
+        let outcomes = vault.apply_sync_records_batch(&borrowed, "node_b").unwrap();
+        assert_eq!(outcomes.len(), 2);
+        assert!(outcomes[0].applied);
+        assert!(outcomes[1].applied);
+        // 写前本地 HLC 应为 None（新记录）
+        assert!(outcomes[0].local_hlc.is_none());
+        assert!(outcomes[0].error.is_none());
+
+        // 再批：同 HLC 应全部跳过（false），并携带写前本地 HLC 供冲突报告
+        let outcomes2 = vault.apply_sync_records_batch(&borrowed, "node_b").unwrap();
+        assert!(!outcomes2[0].applied);
+        assert_eq!(outcomes2[0].local_hlc, Some(mk_hlc(1000, 0)));
+
+        // 单条记录解码失败不中断整批：p1 旧 HLC 跳过、p2 数据非法（更新 HLC 通过检查后解码失败）→ p2 错误入 outcome
+        let mut bad = records.clone();
+        bad[1].data = serde_json::json!({ "no": "data" });
+        // 关键：p2 必须携带比本地更新的 HLC，才能越过 HLC 跳过分支进入解码路径；
+        // 若与本地 HLC 相等（1000）则被跳过、不产生错误。
+        bad[1].hlc = mk_hlc(2000, 0);
+        let hlcs_bad: Vec<crate::RecordHlc> = bad.iter().map(|r| r.hlc.clone()).collect();
+        let borrowed_bad: Vec<crate::BorrowedSyncRecord> = bad
+            .iter()
+            .zip(hlcs_bad.iter())
+            .map(|(r, hlc)| crate::BorrowedSyncRecord {
+                id: &r.id,
+                table: &r.table,
+                data: &r.data,
+                hlc,
+                deleted: r.deleted,
+            })
+            .collect();
+        // p1 已是旧 HLC（跳过），p2 解码失败
+        let outcomes3 = vault
+            .apply_sync_records_batch(&borrowed_bad, "node_b")
+            .unwrap();
+        assert!(!outcomes3[0].applied);
+        assert!(!outcomes3[1].applied);
+        assert!(outcomes3[1].error.is_some());
+        // 整批未因单条失败而中断（返回 Ok 且无 panic）
+        assert_eq!(outcomes3.len(), 2);
+
+        let loaded1 = vault.load_profile("p1").unwrap().unwrap();
+        assert_eq!(loaded1.name, "First");
+        let loaded2 = vault.load_profile("p2").unwrap().unwrap();
+        assert_eq!(loaded2.name, "Second");
     }
 
     /// P109 回归：list_object_changes_since 的水印过滤下推到 SQL 后语义不变。

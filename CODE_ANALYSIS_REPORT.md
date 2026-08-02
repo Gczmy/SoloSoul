@@ -48,7 +48,7 @@
 | P112 | 性能 | `src-tauri/src/commands/attachment.rs:505-526,548,593-596` | `attachment_list_all` 同一数据约 4 轮全量解密（list_objects + load_objects_batch 重复 + build 两次 + 每页面再查） | `[ ]` |
 | P113 | 性能 | `src-tauri/src/commands/ocr.rs:301-317` | `ocr_scan_image` 在 tokio worker 上同步执行秒级 ONNX 推理，无 `spawn_blocking` | `[ ]` |
 | P114 | 性能 | `src-tauri/src/commands/object/mod.rs:459-484` 等 | 所有 vault async command（list/update/search 等）直接在 runtime 上同步做 rusqlite+AES-GCM 解密，重路径未 `spawn_blocking` | `[ ]` |
-| P115 | 性能 | `crates/solosoul-sync/src/delta.rs:117-179`、`storage.rs:1628-1653` | `apply_sync_records` 每条记录约 4 条 auto-commit SQL（HLC 重复查询 ×2）且整批无事务、逐条克隆 JSON | `[ ]` |
+| P115 | 性能 | `crates/solosoul-sync/src/delta.rs:117-179`、`storage.rs:1628-1653` | `apply_sync_records` 每条记录约 4 条 auto-commit SQL（HLC 重复查询 ×2）且整批无事务、逐条克隆 JSON | `[x]` 已修复（2026-08-02：同步应用路径**单事务批量化**。storage.rs 抽出 `_tx` 连接作用域助手（get/set_record_hlc、save/load_profile、save/load_object、save/load_user_template、save_trash_item 各成对，公共方法变薄锁包装），4 个 `apply_*_sync_record` 改静态 `_tx` 变体（顺带修掉对象路径双写 `set_record_hlc`）；`apply_sync_record` 单条公共语义不变但包进单事务；新增 `apply_sync_records_batch(&[BorrowedSyncRecord])`——一次加锁 + 整批单事务，HLC 只查一次、写一次，逐条克隆消除（lib.rs 新增零克隆借用视图 `BorrowedSyncRecord` + `SyncApplyOutcome`，serde `Deserializer for &Value` 借值解码）。delta.rs `apply_sync_records` 构建零克隆借用视图一次调用批接口，冲突报告直接用 outcome.local_hlc（跳过路径也在 `apply_sync_record_tx` 入口查一次 HLC 携带）免重查。**单条记录失败不中断整批**：错误入 outcome 继续后续记录；写序保证先写数据后写 HLC（失败自愈可重同步，不会永久跳过）。防回归单测 ×1（批/单语义等价：多条成功、旧 HLC 跳过、解码失败不中断整批且失败记录未部分写入、写前本地 HLC 携带）。solosoul-vault 106 测试 + solosoul-sync 47 测试全绿、clippy/fmt 干净） |
 | P116 | 前端性能 | `src/components/llm/ChatMessageList.tsx:74-124`、`src/hooks/useLlmChatCore.ts:220-230` | 流式期间每个 token 对整个会话所有消息重新 Markdown 解析+语法高亮（消息项未 memo），CPU 随消息数线性放大 | `[ ]` |
 | P117 | 前端性能 | `src/hooks/useLlmChatCore.ts:66` | `useLlmStore()` 整店订阅 + effect deps 含整个 store，每个 token 整页（含会话列表）重渲染、effect 重跑 | `[ ]` |
 | P118 | 前端性能 | `src/pages/workspace/ObjectWorkspacePage.tsx:123-155` | `WorkspaceObjectCard` 的 memo 被父组件每次新建的内联回调击穿，搜索框每次击键触发最多 50 张卡片全量重渲染 | `[ ]` |
@@ -115,8 +115,8 @@
 
 ## 修复进度
 
-- 已完成：16 / 69（P001-P007、P101-P110；其中 P104 为部分闭环）
-- 当前处理：P111（list_objects metadata-only 查询，P1 性能高）
+- 已完成：17 / 69（P001-P007、P101-P115；其中 P104 为部分闭环）
+- 当前处理：P112（attachment_list_all 去重复全量解密，P1 性能高）
 
 ## 审查通过项（已排查，无需修改）
 
@@ -173,7 +173,7 @@ Windows 生产路径用 `FileBiometricStorage` 存主密钥（`derive_master_key
 - **P111**：拆出 metadata-only 查询（不 SELECT properties 列），或按 keyword 是否为空延迟解密。
 - **P112**：复用已解密的 `summary.properties` 做 `load_attachments`，删掉批量重载；页面 children 一次查询按 parent_id 分组。
 - **P113/P114**：重 CPU/IO 路径（OCR 推理、全表解密、search/sync）统一 `tokio::task::spawn_blocking`。
-- **P115**：整批包一个事务；`apply_sync_record` 接收已查出的 HLC 避免重复查询；`data` 传引用。
+- **P115**：整批包一个事务；`apply_sync_record` 接收已查出的 HLC 避免重复查询；`data` 传引用。（2026-08-02 已修复：`apply_sync_records_batch` 单事务 + `BorrowedSyncRecord` 零克隆借用视图 + HLC 只查写一次 + 逐条错误入 outcome 不中断整批。）
 
 ### 五、P1 前端性能高
 

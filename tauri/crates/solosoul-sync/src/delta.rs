@@ -6,7 +6,7 @@
 use crate::hlc::Hlc;
 use crate::protocol::SyncRecord;
 use crate::types::{ApplyStats, ConflictRecord};
-use solosoul_vault::{RecordHlc, SyncWatermark, VaultStore, VaultSyncRecord};
+use solosoul_vault::{BorrowedSyncRecord, RecordHlc, SyncWatermark, VaultStore};
 use std::collections::HashMap;
 
 /// Tables synchronized in the first milestone (attachments excluded).
@@ -106,6 +106,9 @@ pub fn max_record_hlc(records: &[SyncRecord]) -> Option<Hlc> {
 }
 
 /// Apply a batch of records for a single table.
+///
+/// P115: 整批单事务应用——借用视图零克隆传给 `apply_sync_records_batch`，
+/// 每条记录只查一次 HLC（结果带写前本地 HLC 供冲突报告复用），不再逐条克隆 JSON。
 pub fn apply_sync_records(
     store: &VaultStore,
     table: &str,
@@ -114,65 +117,68 @@ pub fn apply_sync_records(
 ) -> Result<ApplyStats, String> {
     let mut stats = ApplyStats::default();
     let table_stats = stats.per_table.entry(table.to_string()).or_default();
-    for rec in records {
+
+    // 借用视图需要持有被引用的 `RecordHlc`，先批量转换一次。
+    let hlcs: Vec<RecordHlc> = records.iter().map(|r| hlc_to_record_hlc(&r.hlc)).collect();
+    let borrowed: Vec<BorrowedSyncRecord> = records
+        .iter()
+        .zip(hlcs.iter())
+        .map(|(rec, hlc)| BorrowedSyncRecord {
+            id: &rec.id,
+            table: &rec.table,
+            data: &rec.data,
+            hlc,
+            deleted: rec.deleted,
+        })
+        .collect();
+
+    let outcomes = store.apply_sync_records_batch(&borrowed, local_node_id)?;
+
+    for (rec, outcome) in records.iter().zip(outcomes.iter()) {
         stats.examined += 1;
         table_stats.examined += 1;
-        let vault_rec = VaultSyncRecord {
-            id: rec.id.clone(),
-            table: rec.table.clone(),
-            data: rec.data.clone(),
-            hlc: hlc_to_record_hlc(&rec.hlc),
-            deleted: rec.deleted,
-        };
-
-        // Capture local HLC before applying so we can report conflicts.
-        let local_hlc = store
-            .get_record_hlc(&rec.table, &rec.id)?
-            .map(|hlc| record_hlc_to_hlc(&hlc));
-
-        match store.apply_sync_record(&vault_rec, local_node_id) {
-            Ok(true) => {
-                stats.applied += 1;
-                table_stats.applied += 1;
-            }
-            Ok(false) => {
-                stats.skipped += 1;
-                table_stats.skipped += 1;
-                // A skip is a conflict when the local record is strictly newer than the remote one.
-                if let Some(local) = local_hlc {
-                    if local > rec.hlc {
-                        stats.conflicts.push(ConflictRecord {
-                            table: rec.table.clone(),
-                            id: rec.id.clone(),
-                            local_hlc: local,
-                            remote_hlc: rec.hlc,
-                            winner: "local".to_string(),
-                        });
-                        // 持久化冲突记录，供用户在冲突 UI 中查看并解决。
-                        let local_record_hlc = hlc_to_record_hlc(&local);
-                        let remote_record_hlc = hlc_to_record_hlc(&rec.hlc);
-                        let local_data = store
-                            .get_sync_conflict_local_data(&rec.table, &rec.id)
-                            .unwrap_or_default()
-                            .unwrap_or_else(|| serde_json::Value::Object(Default::default()));
-                        if let Err(e) = store.save_sync_conflict(
-                            &rec.table,
-                            &rec.id,
-                            &local_record_hlc,
-                            &remote_record_hlc,
-                            &local_data,
-                            &rec.data,
-                            rec.deleted,
-                        ) {
-                            tracing::warn!("save_sync_conflict failed: {}", e);
-                        }
-                    }
+        if let Some(err) = &outcome.error {
+            stats.skipped += 1;
+            table_stats.skipped += 1;
+            stats.errors.push(format!("{}: {}", rec.id, err));
+            continue;
+        }
+        if outcome.applied {
+            stats.applied += 1;
+            table_stats.applied += 1;
+            continue;
+        }
+        stats.skipped += 1;
+        table_stats.skipped += 1;
+        // A skip is a conflict when the local record is strictly newer than the remote one.
+        if let Some(local) = &outcome.local_hlc {
+            let local = record_hlc_to_hlc(local);
+            if local > rec.hlc {
+                stats.conflicts.push(ConflictRecord {
+                    table: rec.table.clone(),
+                    id: rec.id.clone(),
+                    local_hlc: local,
+                    remote_hlc: rec.hlc,
+                    winner: "local".to_string(),
+                });
+                // 持久化冲突记录，供用户在冲突 UI 中查看并解决。
+                let local_record_hlc = hlc_to_record_hlc(&local);
+                let remote_record_hlc = hlc_to_record_hlc(&rec.hlc);
+                let local_data = store
+                    .get_sync_conflict_local_data(&rec.table, &rec.id)
+                    .unwrap_or_default()
+                    .unwrap_or_else(|| serde_json::Value::Object(Default::default()));
+                if let Err(e) = store.save_sync_conflict(
+                    &rec.table,
+                    &rec.id,
+                    &local_record_hlc,
+                    &remote_record_hlc,
+                    &local_data,
+                    &rec.data,
+                    rec.deleted,
+                ) {
+                    tracing::warn!("save_sync_conflict failed: {}", e);
                 }
-            }
-            Err(e) => {
-                stats.skipped += 1;
-                table_stats.skipped += 1;
-                stats.errors.push(format!("{}: {}", rec.id, e));
             }
         }
     }

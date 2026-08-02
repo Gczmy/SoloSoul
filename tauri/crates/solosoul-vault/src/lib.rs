@@ -111,6 +111,31 @@ pub struct VaultSyncRecord {
     pub deleted: bool,
 }
 
+/// P115: 同步记录的借用视图——批量应用时避免逐条克隆 JSON `data`。
+///
+/// `apply_sync_records_batch` 接收该借用视图切片，调用方（sync crate）将
+/// 线格式 `SyncRecord` 零克隆地映射为借用视图，仅在需要处持有转换后的 `RecordHlc`。
+#[derive(Debug, Clone, Copy)]
+pub struct BorrowedSyncRecord<'a> {
+    pub id: &'a str,
+    pub table: &'a str,
+    pub data: &'a serde_json::Value,
+    pub hlc: &'a RecordHlc,
+    pub deleted: bool,
+}
+
+/// P115: 单条同步记录的应用结果（含写前本地 HLC，供调用方冲突报告复用）。
+#[derive(Debug, Clone, Default)]
+pub struct SyncApplyOutcome {
+    /// 是否已应用（false = 因 HLC 不新而跳过）。
+    pub applied: bool,
+    /// 写前本地 HLC（本地无该记录时为 None）。
+    /// 当 `applied == false` 且本地 HLC 严格新于远端时构成冲突。
+    pub local_hlc: Option<RecordHlc>,
+    /// 单条记录级错误（不中断整批事务）。
+    pub error: Option<String>,
+}
+
 /// Summary of a persistent sync conflict.
 #[derive(Debug, Clone)]
 pub struct SyncConflictSummary {
