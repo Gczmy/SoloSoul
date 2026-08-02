@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { X, CheckCircle2, CameraOff } from 'lucide-react';
+import { X, CheckCircle2 } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { useCameraCapability } from '@/hooks/useCameraCapability';
+import { QrScanFallback } from '@/components/recovery/QrScanFallback';
 import { RecoveryQrScanner } from '@/components/recovery/RecoveryQrScanner';
 
 type QrType = 'sync' | 'unknown';
@@ -165,90 +166,27 @@ export function SyncScanQrDialog({ isOpen, onClose, onSync }: SyncScanQrDialogPr
               >
                 {t('common:sync_qr_scan_desc')}
               </p>
-              {cameraCapability === 'unsupported' ? (
-                /* 设备无摄像头：扫码位置显示提示，引导使用设备发现/手动输入 */
-                <div
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 10,
-                    padding: '28px 16px',
-                    borderRadius: 12,
-                    border: '1px dashed var(--border-subtle)',
-                    background: 'var(--bg-toolbar)',
-                    textAlign: 'center',
-                  }}
-                >
-                  <CameraOff size={28} color="var(--text-tertiary)" />
-                  <span
-                    style={{
-                      fontSize: 'var(--text-body-sm)',
-                      color: 'var(--text-secondary)',
-                      lineHeight: 1.5,
-                    }}
-                  >
-                    {t('common:sync_scan_unsupported', {
-                      defaultValue:
-                        'This device does not support QR scanning. Use device discovery or manual input instead.',
-                    })}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={handleClose}
-                    className="interactive-outline"
-                    style={{
-                      marginTop: 4,
-                      padding: '8px 16px',
-                      borderRadius: 8,
-                      borderWidth: 1,
-                      borderStyle: 'solid',
-                      background: 'var(--bg-elevated)',
-                      color: 'var(--accent-primary)',
-                      cursor: 'pointer',
-                      fontFamily: 'inherit',
-                      fontSize: 'var(--text-body-sm)',
-                      fontWeight: 500,
-                    }}
-                  >
-                    {t('common:sync_use_manual', {
-                      defaultValue: 'Use discovery or manual input',
-                    })}
-                  </button>
-                </div>
-              ) : (
+              <QrScanFallback
+                cameraCapability={cameraCapability}
+                scannerError={scannerError}
+                unsupportedText={t('common:sync_scan_unsupported', {
+                  defaultValue:
+                    'This device does not support QR scanning. Use device discovery or manual input instead.',
+                })}
+                unsupportedButtonLabel={t('common:sync_use_manual', {
+                  defaultValue: 'Use discovery or manual input',
+                })}
+                scannerErrorButtonLabel={t('common:sync_use_manual', {
+                  defaultValue: 'Use discovery or manual input',
+                })}
+                onAction={handleClose}
+              >
                 <RecoveryQrScanner
                   onScan={handleScan}
                   onError={setScannerError}
                   onCancel={handleClose}
                 />
-              )}
-
-              {/* 扫码启动失败（权限被拒）时，提供关闭对话框、回页面使用发现/手动输入的兜底 */}
-              {scannerError && cameraCapability !== 'unsupported' && (
-                <button
-                  type="button"
-                  onClick={handleClose}
-                  className="interactive-outline"
-                  style={{
-                    padding: '10px 12px',
-                    borderRadius: 8,
-                    borderWidth: 1,
-                    borderStyle: 'solid',
-                    background: 'var(--bg-toolbar)',
-                    color: 'var(--accent-primary)',
-                    cursor: 'pointer',
-                    fontFamily: 'inherit',
-                    fontSize: 'var(--text-body-sm)',
-                    fontWeight: 500,
-                  }}
-                >
-                  {t('common:sync_use_manual', {
-                    defaultValue: 'Use discovery or manual input',
-                  })}
-                </button>
-              )}
+              </QrScanFallback>
 
               {error && (
                 <div

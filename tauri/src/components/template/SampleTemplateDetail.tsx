@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/Button';
 import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import { PluginBadge } from './PluginBadge';
-import { FieldTypeIcon } from '@/components/ui/FieldTypeIcon';
+import { TemplateFieldRowItem } from './TemplateFieldRowItem';
 import type { SampleTemplate } from '@/lib/sampleTemplates';
 import { deriveSampleTemplateBindings } from '@/lib/sampleTemplates';
 import type { SensitivityLevel } from '@/types/template';
@@ -132,55 +132,23 @@ export function SampleTemplateDetail({ template, onBack, onUse }: SampleTemplate
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
-          {derivedProperties.map((prop) => {
-            return (
-              <div
-                key={prop.id}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: 12,
-                  padding: '10px 14px',
-                  borderRadius: 8,
-                  background: 'var(--bg-toolbar)',
-                  border: '1px solid var(--border-subtle)',
-                }}
-              >
-                <div
-                  style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, minWidth: 0 }}
-                >
-                  <span
-                    style={{ color: 'var(--text-tertiary)', display: 'flex', alignItems: 'center' }}
-                  >
-                    <FieldTypeIcon type={prop.type} size={ICON_SIZE.sm} />
-                  </span>
-                  <span
-                    style={{
-                      fontSize: 'var(--text-body)',
-                      fontWeight: 500,
-                      color: 'var(--text-primary)',
-                    }}
-                  >
-                    {prop.name}
-                  </span>
-                  {prop.contractField ? (
-                    <PluginBadge
-                      contractTypeId={template.contractTypeId}
-                      size="sm"
-                      variant="icon"
-                    />
-                  ) : null}
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+          {derivedProperties.map((prop) => (
+            <TemplateFieldRowItem
+              key={prop.id}
+              type={prop.type}
+              name={prop.name}
+              contractField={prop.contractField}
+              contractTypeId={template.contractTypeId}
+              right={
+                <>
                   <span style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
                     {t(`editor:field_types.${prop.type}`, prop.type)}
                   </span>
                   <SensitivityBadge level={prop.sensitivityLevel as SensitivityLevel} />
-                </div>
-              </div>
-            );
-          })}
+                </>
+              }
+            />
+          ))}
         </div>
 
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>

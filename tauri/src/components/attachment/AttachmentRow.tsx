@@ -1,20 +1,11 @@
 import { memo, useRef, useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import {
-  Paperclip,
-  RotateCcw,
-  Eye,
-  Edit2,
-  Download,
-} from 'lucide-react';
-import { DeleteButton } from '@/components/ui/DeleteButton';
-import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
+import { Paperclip } from 'lucide-react';
 import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
+import { AttachmentFileNameBlock } from './AttachmentFileNameBlock';
+import { AttachmentActions } from './AttachmentActions';
 import { ICON_SIZE } from '@/lib/constants';
-import { truncateFileName } from '@/lib/attachmentUtils';
-import { formatBytes } from '@/lib/utils';
 import { isMobilePlatformSync } from '@/lib/platform';
-import type { AttachmentMeta } from '@/components/attachment/attachmentManagerTypes';
+import type { AttachmentMeta } from './attachmentManagerTypes';
 
 interface AttachmentRowProps {
   item: AttachmentMeta;
@@ -106,8 +97,6 @@ function AttachmentRowBase({
   onRestore,
   onPermanentDelete,
 }: AttachmentRowProps) {
-  const { t } = useTranslation(['settings', 'common', 'navigation']);
-
   const compositeKey = `${objectId}::${item.id}`;
   const isMobile = isMobilePlatformSync();
 
@@ -119,72 +108,16 @@ function AttachmentRowBase({
     />
   );
 
-  const fileNameBlock = (
-    <div style={{ flex: 1, minWidth: 0 }}>
-      <div
-        style={{
-          fontWeight: 500,
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-          textDecoration: showTrash ? 'line-through' : 'none',
-          opacity: showTrash ? 0.5 : 1,
-        }}
-      >
-        {truncateFileName(item.fileName)}
-      </div>
-      <div
-        style={{
-          fontSize: 'var(--text-caption)',
-          color: 'var(--text-tertiary)',
-          marginTop: 1,
-        }}
-      >
-        {formatBytes(item.sizeBytes)} · {new Date(item.createdAt).toLocaleDateString()}
-      </div>
-    </div>
-  );
-
-  const actionButtons = showTrash ? (
-    <>
-      <BadgeIconButton
-        Icon={RotateCcw}
-        onClick={() => onRestore(item, objectId)}
-        title={t('common:restore')}
-        iconSize={ICON_SIZE.sm}
-      />
-      <DeleteButton
-        iconOnly
-        onClick={() => onPermanentDelete(item, objectId)}
-        title={t('common:delete_permanently')}
-      />
-    </>
-  ) : (
-    <>
-      <BadgeIconButton
-        Icon={Eye}
-        onClick={() => onPreview(item)}
-        title={t('common:preview')}
-        iconSize={ICON_SIZE.sm}
-      />
-      <BadgeIconButton
-        Icon={Edit2}
-        onClick={() => onStartRename(item, objectId)}
-        title={t('common:rename')}
-        iconSize={ICON_SIZE.sm}
-      />
-      <BadgeIconButton
-        Icon={Download}
-        onClick={() => onDownload(item)}
-        title={t('common:download')}
-        iconSize={ICON_SIZE.sm}
-      />
-      <DeleteButton
-        iconOnly
-        onClick={() => onSoftDelete(item, objectId)}
-        title={t('common:delete')}
-      />
-    </>
+  const actions = (
+    <AttachmentActions
+      showTrash={showTrash}
+      onPreview={() => onPreview(item)}
+      onStartRename={() => onStartRename(item, objectId)}
+      onDownload={() => onDownload(item)}
+      onSoftDelete={() => onSoftDelete(item, objectId)}
+      onRestore={() => onRestore(item, objectId)}
+      onPermanentDelete={() => onPermanentDelete(item, objectId)}
+    />
   );
 
   // 移动端：多行布局 — 第1行 勾选框+图标+文件名，第2行 大小·时间，第3行 操作按钮
@@ -213,28 +146,13 @@ function AttachmentRowBase({
           renameInput
         ) : (
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div
-              style={{
-                fontWeight: 500,
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-                textDecoration: showTrash ? 'line-through' : 'none',
-                opacity: showTrash ? 0.5 : 1,
-              }}
-            >
-              {truncateFileName(item.fileName)}
-            </div>
-            <div
-              style={{
-                fontSize: 'var(--text-caption)',
-                color: 'var(--text-tertiary)',
-                marginTop: 1,
-              }}
-            >
-              {formatBytes(item.sizeBytes)} · {new Date(item.createdAt).toLocaleDateString()}
-            </div>
-            <div style={{ display: 'flex', gap: 4, marginTop: 4 }}>{actionButtons}</div>
+            <AttachmentFileNameBlock
+              fileName={item.fileName}
+              sizeBytes={item.sizeBytes}
+              createdAt={item.createdAt}
+              showTrash={showTrash}
+            />
+            <div style={{ display: 'flex', gap: 4, marginTop: 4 }}>{actions}</div>
           </div>
         )}
       </div>
@@ -263,10 +181,17 @@ function AttachmentRowBase({
       />
       <Paperclip size={ICON_SIZE.sm} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
 
-      {isRenaming ? renameInput : fileNameBlock}
+      {isRenaming ? renameInput : (
+        <AttachmentFileNameBlock
+          fileName={item.fileName}
+          sizeBytes={item.sizeBytes}
+          createdAt={item.createdAt}
+          showTrash={showTrash}
+        />
+      )}
 
       <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
-        {showTrash ? actionButtons : !isRenaming && actionButtons}
+        {showTrash || !isRenaming ? actions : null}
       </div>
     </div>
   );

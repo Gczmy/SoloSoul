@@ -7,7 +7,7 @@ import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import { DeprecatedBadge } from '@/components/ui/DeprecatedBadge';
 import { SensitivityBadges } from './SensitivityBadges';
 import { PluginBadge } from './PluginBadge';
-import { FieldTypeIcon } from '@/components/ui/FieldTypeIcon';
+import { TemplateFieldRowItem } from './TemplateFieldRowItem';
 import { resolveCustomIcon } from '@/lib/pageIcons';
 import type {
   PropertyType,
@@ -175,65 +175,22 @@ export function TemplateDetailModal({
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
             {detailTemplate.properties.map((prop) => (
-              <div
+              <TemplateFieldRowItem
                 key={prop.id}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: 12,
-                  padding: '10px 14px',
-                  borderRadius: 8,
-                  background: 'var(--bg-toolbar)',
-                  border: '1px solid var(--border-subtle)',
-                  opacity: prop.deprecatedAt ? 0.7 : 1,
-                }}
-              >
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    flex: 1,
-                    minWidth: 0,
-                  }}
-                >
-                  <span
-                    style={{
-                      color: 'var(--text-tertiary)',
-                      display: 'flex',
-                      alignItems: 'center',
-                    }}
-                  >
-                    <FieldTypeIcon type={prop.type as PropertyType} size={ICON_SIZE.sm} />
-                  </span>
-                  <span
-                    style={{
-                      fontSize: 'var(--text-body)',
-                      fontWeight: 500,
-                      color: 'var(--text-primary)',
-                      textDecoration: prop.deprecatedAt ? 'line-through' : 'none',
-                    }}
-                  >
-                    {prop.name === '__dynamic_group__'
-                      ? t('editor:field_types.dynamic_group')
-                      : prop.name}
-                  </span>
-                  {prop.contractField ? (
-                    <PluginBadge
-                      contractTypeId={detailTemplate.contractTypeId}
-                      size="sm"
-                      variant="icon"
+                type={prop.type as PropertyType}
+                name={prop.name}
+                deprecated={Boolean(prop.deprecatedAt)}
+                contractField={prop.contractField}
+                contractTypeId={detailTemplate.contractTypeId}
+                right={
+                  <>
+                    <SensitivityBadge
+                      level={(prop.sensitivityLevel || 'internal') as SensitivityLevel}
                     />
-                  ) : null}
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                  <SensitivityBadge
-                    level={(prop.sensitivityLevel || 'internal') as SensitivityLevel}
-                  />
-                  {prop.deprecatedAt && <DeprecatedBadge />}
-                </div>
-              </div>
+                    {prop.deprecatedAt && <DeprecatedBadge />}
+                  </>
+                }
+              />
             ))}
           </div>
         )}

@@ -1,11 +1,9 @@
-import { useTranslation } from 'react-i18next';
 import type { RefObject } from 'react';
-import { Paperclip, Image, FileText, RotateCw, Eye, Edit2, Download } from 'lucide-react';
-import { DeleteButton } from '@/components/ui/DeleteButton';
-import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
+import { Paperclip, Image, FileText } from 'lucide-react';
 import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
-import { truncateFileName, type AttachmentItem } from '@/lib/attachmentUtils';
-import { formatBytes } from '@/lib/utils';
+import { AttachmentFileNameBlock } from '@/components/attachment/AttachmentFileNameBlock';
+import { AttachmentActions } from '@/components/attachment/AttachmentActions';
+import { type AttachmentItem } from '@/lib/attachmentUtils';
 import { ICON_SIZE } from '@/lib/constants';
 
 interface AttachmentListItemProps {
@@ -68,7 +66,6 @@ export function AttachmentListItem({
   onDelete,
   onPermanentDelete,
 }: AttachmentListItemProps) {
-  const { t } = useTranslation(['common', 'editor']);
   const isRenaming = renamingId === item.id;
 
   return (
@@ -90,89 +87,45 @@ export function AttachmentListItem({
         }}
       />
       <TypeIcon item={item} showTrash={showTrash} />
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div
-          style={{
-            fontWeight: 500,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-            textDecoration: showTrash ? 'line-through' : 'none',
-            opacity: showTrash ? 0.5 : 1,
+      <AttachmentFileNameBlock
+        fileName={item.fileName}
+        sizeBytes={item.sizeBytes}
+        createdAt={item.createdAt}
+        showTrash={showTrash}
+        metaStyle={{ fontSize: 'var(--text-badge)' }}
+      />
+      {isRenaming && !showTrash ? (
+        <input
+          ref={renameInputRef}
+          value={renameValue}
+          onChange={(e) => onRenameValueChange(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') onConfirmRename();
+            if (e.key === 'Escape') onCancelRename();
           }}
-        >
-          {truncateFileName(item.fileName)}
-        </div>
-        <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
-          {formatBytes(item.sizeBytes)} · {new Date(item.createdAt).toLocaleDateString()}
-        </div>
-      </div>
-      {showTrash ? (
-        <>
-          <BadgeIconButton
-            Icon={RotateCw}
-            onClick={() => onRestore(item)}
-            title={t('common:restore')}
-            iconSize={ICON_SIZE.sm}
-          />
-          <DeleteButton
-            iconOnly
-            onClick={() => onPermanentDelete(item)}
-            title={t('common:delete_permanently')}
-          />
-        </>
-      ) : (
-        <>
-          {isRenaming ? (
-            <input
-              ref={renameInputRef}
-              value={renameValue}
-              onChange={(e) => onRenameValueChange(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') onConfirmRename();
-                if (e.key === 'Escape') onCancelRename();
-              }}
-              onBlur={onConfirmRename}
-              style={{
-                width: 100,
-                padding: '3px 6px',
-                fontSize: 'var(--text-caption)',
-                borderRadius: 4,
-                border: '1px solid var(--accent-primary)',
-                background: 'transparent',
-                color: 'var(--text-primary)',
-                outline: 'none',
-              }}
-            />
-          ) : (
-            <>
-              <BadgeIconButton
-                Icon={Eye}
-                onClick={() => onPreview(item)}
-                title="Preview"
-                iconSize={ICON_SIZE.sm}
-              />
-              <BadgeIconButton
-                Icon={Edit2}
-                onClick={() => onStartRename(item)}
-                title={t('common:rename')}
-                iconSize={ICON_SIZE.sm}
-              />
-              <BadgeIconButton
-                Icon={Download}
-                onClick={() => onDownload(item)}
-                title={t('common:download')}
-                iconSize={ICON_SIZE.sm}
-              />
-            </>
-          )}
-          <DeleteButton
-            iconOnly
-            onClick={() => onDelete(item)}
-            title={t('common:delete')}
-          />
-        </>
-      )}
+          onBlur={onConfirmRename}
+          style={{
+            width: 100,
+            padding: '3px 6px',
+            fontSize: 'var(--text-caption)',
+            borderRadius: 4,
+            border: '1px solid var(--accent-primary)',
+            background: 'transparent',
+            color: 'var(--text-primary)',
+            outline: 'none',
+          }}
+        />
+      ) : null}
+      <AttachmentActions
+        showTrash={showTrash}
+        isRenaming={isRenaming}
+        onPreview={() => onPreview(item)}
+        onStartRename={() => onStartRename(item)}
+        onDownload={() => onDownload(item)}
+        onSoftDelete={() => onDelete(item)}
+        onRestore={() => onRestore(item)}
+        onPermanentDelete={() => onPermanentDelete(item)}
+      />
     </div>
   );
 }
