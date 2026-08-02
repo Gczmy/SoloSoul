@@ -382,6 +382,24 @@ pub async fn llm_send_message_stream(
     api_type: ApiType,
     messages: Vec<serde_json::Value>,
 ) -> Result<(), String> {
+    // P102：网络出口收窄——base_url 必须通过 scheme/host 校验，且必须属于
+    // 当前账户已登记的 provider（内置默认 ∪ 设置中保存过的地址）。
+    // 防止聊天内容（可能含敏感数据）被 XSS 借 LLM 通道外传到任意地址。
+    request::validate_llm_base_url(&base_url)?;
+    {
+        let svc = state
+            .vault_service
+            .read()
+            .map_err(|_| "Vault service lock poisoned".to_string())?;
+        let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
+        let config = super::load_config(vg.as_ref(), &account_id)?;
+        if !super::is_registered_provider_url(&config, &base_url) {
+            return Err(format!(
+                "base_url 未在当前账户登记，已拒绝请求: {}",
+                base_url
+            ));
+        }
+    }
     let prompt_text: String = messages
         .iter()
         .filter_map(|m| {

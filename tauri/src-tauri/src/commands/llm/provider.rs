@@ -59,6 +59,8 @@ pub async fn llm_save_provider(
     account_id: String,
     provider: ProviderWithKey,
 ) -> Result<(), String> {
+    // P102：保存前校验 base_url 的 scheme/host，拒绝向非法地址登记 provider。
+    super::request::validate_llm_base_url(&provider.base_url)?;
     let vault = vault_handle(&state)?;
     let mut config = load_config(&vault, &account_id)?;
     let api_key = if provider.is_built_in && provider.api_key == "••••••••" {

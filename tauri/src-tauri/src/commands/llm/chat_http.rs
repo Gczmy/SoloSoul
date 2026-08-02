@@ -8,6 +8,9 @@ pub async fn llm_check_connection(
     model: String,
     api_type: ApiType,
 ) -> Result<bool, String> {
+    // P102：网络出口收窄——scheme/host 校验（此命令仅发送固定问候，不携带 Vault 数据，
+    // 只需 URL 合法即可，允许测试未保存的新 provider）。
+    request::validate_llm_base_url(&base_url)?;
     let client = reqwest::Client::builder()
         .timeout(std::time::Duration::from_secs(5))
         .build()
@@ -34,6 +37,8 @@ pub async fn llm_test_provider(
     model: String,
     api_type: ApiType,
 ) -> Result<String, String> {
+    // P102：网络出口收窄——scheme/host 校验（仅发送固定问候，允许测试未保存的新 provider）。
+    request::validate_llm_base_url(&base_url)?;
     let client = reqwest::Client::builder()
         .timeout(std::time::Duration::from_secs(10))
         .build()

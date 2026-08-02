@@ -144,3 +144,86 @@ pub fn extract_openai_usage(result: &serde_json::Value) -> (u64, u64) {
     let completion = result["usage"]["completion_tokens"].as_u64().unwrap_or(0);
     (prompt, completion)
 }
+
+/// P102：校验 LLM 请求目标 `base_url`，收窄后端网络出口。
+///
+/// 仅允许 http/https scheme 且含非空 host，拒绝 userinfo 与其它 scheme
+/// （`javascript:`、`data:`、`file:` 等）。调用方在发起任何外连前必须先通过本校验，
+/// 防止被 XSS 当作任意 URL 数据外传通道（CSP 已禁 webview 直连，后端是唯一出口）。
+pub(crate) fn validate_llm_base_url(base_url: &str) -> Result<(), String> {
+    let url = url::Url::parse(base_url).map_err(|e| format!("Invalid base_url: {e}"))?;
+    let scheme = url.scheme();
+    if scheme != "http" && scheme != "https" {
+        return Err(format!(
+            "base_url scheme must be http or https, got: {scheme}"
+        ));
+    }
+    let host = url.host_str().unwrap_or("");
+    if host.is_empty() {
+        return Err("base_url must contain a host".to_string());
+    }
+    if !url.username().is_empty() || url.password().is_some() {
+        return Err("base_url must not contain userinfo".to_string());
+    }
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_validate_base_url_accepts_https() {
+        assert!(validate_llm_base_url("https://api.openai.com/v1").is_ok());
+    }
+
+    #[test]
+    fn test_validate_base_url_accepts_localhost_http() {
+        // Ollama 本地端点允许 http + localhost。
+        assert!(validate_llm_base_url("http://localhost:11434/v1").is_ok());
+        assert!(validate_llm_base_url("http://127.0.0.1:11434/v1").is_ok());
+    }
+
+    #[test]
+    fn test_validate_base_url_rejects_non_http_schemes() {
+        for bad in [
+            "javascript:alert(1)",
+            "data:text/html,<script>alert(1)</script>",
+            "file:///etc/passwd",
+            "ftp://example.com/v1",
+            "gopher://example.com/x",
+        ] {
+            assert!(
+                validate_llm_base_url(bad).is_err(),
+                "should reject scheme: {bad}"
+            );
+        }
+    }
+
+    #[test]
+    fn test_validate_base_url_rejects_missing_host() {
+        // `https:///path` 会被 WHATWG URL 规范化为主机 "path"（非空），不算缺失 host。
+        for bad in ["https://", "http://", "https:// ", "http:// "] {
+            assert!(
+                validate_llm_base_url(bad).is_err(),
+                "should reject missing host: {bad:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn test_validate_base_url_rejects_userinfo() {
+        assert!(validate_llm_base_url("https://user:pass@evil.com/v1").is_err());
+        assert!(validate_llm_base_url("https://user@evil.com/v1").is_err());
+    }
+
+    #[test]
+    fn test_validate_base_url_rejects_garbage() {
+        for bad in ["", "   ", "not-a-url", "https://exa mple.com"] {
+            assert!(
+                validate_llm_base_url(bad).is_err(),
+                "should reject garbage: {bad:?}"
+            );
+        }
+    }
+}
