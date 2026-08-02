@@ -1,8 +1,13 @@
 use serde::Serialize;
 use std::fs::{self as fs_std};
 use std::path::{Path, PathBuf};
-#[cfg(mobile)]
+// `Manager`（`AppHandle::try_state`/`path`）与 `AppState` 仅在非测试构建中使用：
+// 测试变体的 `allowed_fs_bases` 直接返回文件系统根目录，不触碰 App 状态。
+#[cfg(not(test))]
 use tauri::Manager;
+// P107：桌面端访问 AppState 以读取 Vault 附件目录；仅桌面端需要。
+#[cfg(all(not(test), desktop))]
+use crate::state::AppState;
 
 /// Maximum file size that can be read into memory for a data URL preview (10 MiB).
 const MAX_DATA_URL_SIZE: u64 = 10 * 1024 * 1024;
@@ -13,36 +18,74 @@ const MAX_SCAN_FILES: usize = 1_000;
 /// Maximum recursion depth for `fs_scan_directory`.
 const MAX_SCAN_DEPTH: u32 = 8;
 
-/// Return the allowed base directory for filesystem commands.
-/// - 桌面端：优先使用 `SOLOSOUL_FS_BASE` 环境变量，否则使用用户 home 目录。
+/// Return the allowed base directories for filesystem commands.
+///
+/// - 桌面端：优先使用 `SOLOSOUL_FS_BASE` 环境变量（单一根目录，供高级用户/测试
+///   显式放宽）；否则默认收窄到 **Desktop/Documents/Downloads + Vault 附件目录**（P107）——
+///   与 OCR `is_path_in_allowed_dir` 的用户目录范围一致，杜绝 XSS 经
+///   `fs_read_file_as_text/data_url` 读取 home 下任意文件（含 `~/.solosoul/**`）。
+///   Vault 附件目录必须放行：附件预览（`AttachmentPreviewOverlay`）读取的是
+///   `vaultPath` 指向的落库副本（`{base}/attachments/...`），不放行则预览功能失效；
+///   仅放行 `attachments/` 子目录，`config.json`/`vault.db`/`accounts.json` 等
+///   仍不可经 fs 命令读取。
 /// - 移动端：使用 Tauri 应用私有数据目录，避免访问任意文件系统路径。
 #[cfg(not(test))]
-fn allowed_fs_base<R: tauri::Runtime>(
+fn allowed_fs_bases<R: tauri::Runtime>(
     #[allow(unused_variables)] app: &tauri::AppHandle<R>,
-) -> Result<PathBuf, String> {
+) -> Result<Vec<PathBuf>, String> {
     #[cfg(mobile)]
     {
-        app.path()
+        Ok(vec![app
+            .path()
             .resolve(".", tauri::path::BaseDirectory::Data)
-            .map_err(|e| format!("无法解析应用数据目录: {e}"))
+            .map_err(|e| format!("无法解析应用数据目录: {e}"))?])
     }
     #[cfg(desktop)]
     {
         if let Ok(base) = std::env::var("SOLOSOUL_FS_BASE") {
-            return Ok(PathBuf::from(base));
+            return Ok(vec![PathBuf::from(base)]);
         }
         let home_key = if cfg!(windows) { "USERPROFILE" } else { "HOME" };
-        std::env::var(home_key).map(PathBuf::from).map_err(|_| {
+        let home = PathBuf::from(std::env::var(home_key).map_err(|_| {
             "Could not determine user home directory; set SOLOSOUL_FS_BASE".to_string()
-        })
+        })?);
+        // 在单个闭包内消费 guard 并克隆出 PathBuf，避免 guard 借用 State 逃逸。
+        let vault_base = app.try_state::<AppState>().and_then(|s| {
+            s.vault_service
+                .read()
+                .ok()
+                .map(|svc| svc.base_path().clone())
+        });
+        Ok(desktop_fs_bases(&home, vault_base.as_deref()))
     }
+}
+
+/// 桌面端默认允许基目录集合：Desktop/Documents/Downloads + Vault 附件目录。
+/// 抽为纯函数便于单测；Vault 附件目录放行是为了附件预览（`vaultPath` 指向
+/// `{base}/attachments/...` 落库副本），而 vault 根目录本身（config.json、
+/// vault.db、accounts.json 等）不在集合内。
+#[cfg(desktop)]
+fn desktop_fs_bases(home: &Path, vault_base: Option<&Path>) -> Vec<PathBuf> {
+    let mut bases = vec![
+        home.join("Desktop"),
+        home.join("Documents"),
+        home.join("Downloads"),
+    ];
+    if let Some(vault) = vault_base {
+        bases.push(vault.join("attachments"));
+    }
+    bases
 }
 
 /// During tests, allow any absolute path by using the filesystem root as the
 /// base. This keeps unit tests simple while still exercising path logic.
 #[cfg(test)]
-fn allowed_fs_base<R: tauri::Runtime>(_app: &tauri::AppHandle<R>) -> Result<PathBuf, String> {
-    Ok(PathBuf::from(if cfg!(windows) { "C:\\" } else { "/" }))
+fn allowed_fs_bases<R: tauri::Runtime>(_app: &tauri::AppHandle<R>) -> Result<Vec<PathBuf>, String> {
+    Ok(vec![PathBuf::from(if cfg!(windows) {
+        "C:\\"
+    } else {
+        "/"
+    })])
 }
 
 /// R012: reject paths that contain parent-dir references, which could escape the
@@ -86,14 +129,44 @@ fn resolve_within(base: &Path, path: &str) -> Result<PathBuf, String> {
     Ok(abs)
 }
 
-/// Resolve `path` within the allowed filesystem base directory. Filesystem
+/// Resolve `path` within any allowed filesystem base directory. Filesystem
 /// commands that operate on user-selected paths must use this helper.
+///
+/// 逐个允许基目录尝试 `resolve_within`；任一命中即返回（匹配时返回原路径而非
+/// 规范化路径，保持与旧行为一致）。若某基目录不存在（canonicalize 失败），
+/// 视为该基目录不可用并继续尝试下一个。
 fn resolve_allowed_path<R: tauri::Runtime>(
     app: &tauri::AppHandle<R>,
     path: &str,
 ) -> Result<PathBuf, String> {
-    let base = allowed_fs_base(app)?;
-    resolve_within(&base, path)
+    let bases = allowed_fs_bases(app)?;
+    let mut last_err: Option<String> = None;
+    let mut any_base_exists = false;
+    let mut traversal_rejected = false;
+    for base in &bases {
+        match resolve_within(base, path) {
+            Ok(abs) => return Ok(abs),
+            Err(e) => {
+                // 基目录存在与否决定「越界」语义：若所有基目录都不存在
+                // （如首启、目录被删），透传真实错误便于诊断。
+                if base.exists() {
+                    any_base_exists = true;
+                }
+                // R012：路径穿越是显式安全拒绝，优先透传而非被越界文案掩盖。
+                if e == "Path traversal is not allowed" {
+                    traversal_rejected = true;
+                }
+                last_err = Some(e);
+            }
+        }
+    }
+    if traversal_rejected {
+        Err("Path traversal is not allowed".to_string())
+    } else if any_base_exists {
+        Err("Path is outside the allowed directory".to_string())
+    } else {
+        Err(last_err.unwrap_or_else(|| "Path is outside the allowed directory".to_string()))
+    }
 }
 
 // ── Directory scanning for local import ────────────────────
@@ -304,6 +377,34 @@ mod tests {
         let mut files = Vec::new();
         let result = scan_dir_recursive(&file_path, &mut files, 3);
         assert!(result.is_err());
+    }
+
+    // ── P107 allowed_fs_bases 收窄 ────────────────────────────────
+
+    #[cfg(desktop)]
+    #[test]
+    fn test_desktop_fs_bases_includes_user_dirs_and_vault_attachments() {
+        let home = Path::new("/Users/testuser");
+        let bases = desktop_fs_bases(home, Some(Path::new("/Users/testuser/.solosoul")));
+        assert!(bases.contains(&home.join("Desktop")));
+        assert!(bases.contains(&home.join("Documents")));
+        assert!(bases.contains(&home.join("Downloads")));
+        // 附件预览需要 vaultPath 指向的附件目录。
+        assert!(bases.contains(&Path::new("/Users/testuser/.solosoul").join("attachments")));
+        // vault 根目录本身（config.json/vault.db/accounts.json）不得在集合内。
+        assert!(!bases.contains(&PathBuf::from("/Users/testuser/.solosoul")));
+        assert_eq!(bases.len(), 4);
+    }
+
+    #[cfg(desktop)]
+    #[test]
+    fn test_desktop_fs_bases_without_vault() {
+        let home = Path::new("/Users/testuser");
+        let bases = desktop_fs_bases(home, None);
+        assert_eq!(bases.len(), 3);
+        assert!(!bases
+            .iter()
+            .any(|b| b.to_string_lossy().contains("attachments")));
     }
 
     #[test]

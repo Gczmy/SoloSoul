@@ -40,7 +40,7 @@
 | P104 | 安全 | `src-tauri/src/commands/ocr.rs:694-882` | OCR 模型下载 `base_url` 完全由前端传入，无哈希/签名校验、无大小上限，下载后被原生 `ort` 加载执行 | `[x]` 部分闭环（2026-08-02：`validate_model_base_url` 收窄下载出口——仅 http/https、非空 host、无 userinfo、无 query/fragment；非回环地址强制 https（IPv6 方括号剥离），回环保留 http 供本地镜像；reqwest 客户端 `Policy::custom` 重定向——显式白名单 http/https（拒 file:/data:/ftp:）、拒绝 https→http 降级（`previous()` 取链末元素）、回环保留 http→http。`download_single_file` 改**流式下载**（`bytes_stream()` + Content-Length 预检 + 流内字节计数），按档位限制单文件大小（yml 5MB / onnx：tiny 32MB、small 64MB、medium 256MB），超限即中止并清理；流错误/写错误/哈希不匹配路径均删临时文件，校验通过后原子 rename。**内置 sha256 清单校验**：`PINNED_MODEL_SHA256` 收录 small 档 4 文件真实哈希（与 `resources/models/pp-ocr-v6-small/` 逐字节一致，防回归单测守护），下载后强制比对，不匹配拒绝落盘——防镜像被篡改后由 `ort` 执行。单测 ×13（URL 校验 ×8 + 大小上限 ×2 + 清单 ×3）。**部分闭环**：tiny/medium 档无官方基准哈希，仍接受任意 https 主机内容（仅 URL+大小防护），待官方哈希发布后补充清单；另顺手修复 `unified_chat.rs` clippy `items after a test module` warning（`load_providers_with_keys` 移到 `mod tests` 前，`--all-targets` 归零）。22 个 OCR 测试全绿，clippy/fmt 干净） |
 | P105 | 安全 | `crates/solosoul-crypto/src/cipher.rs:120-128,210-258` | 自有分块格式的 `chunk_count` 头部不参与 GCM 认证，篡改头部可让导入包/附件静默截断解密而不报错 | `[x]` 已修复（2026-08-02：分块格式升级 **v2 头部认证**——新增 `SOLC` 魔数(4)+版本(1)+nonce(12)+chunk_count(8) 头部，`chunk_count` 作为 AAD 纳入每个 chunk 的 GCM（`chunked_aad` = nonce‖chunk_count），篡改头部任一字节即整体解密失败；`encrypt_chunked_to_bytes`/`encrypt_chunked_stream` 写新格式。解密端 `decrypt_chunked_from_bytes`/`decrypt_chunked_stream` 按魔数自动探测：SOLC 走 v2（校验版本 + AAD 认证），否则回退遗留 v1 格式（头部不认证，兼容既有导出包/附件，流式回退时已读 4 字节正确拼回 nonce 前段）。防回归单测 ×8：v2 字节/流式往返、空明文（字节+流式）、头部篡改检测（chunk_count 与 magic 翻转，字节+流式）、手工构造 v1 遗留 blob 向后兼容解密（字节+流式）。solosoul-crypto 29 测试全绿、export_import 集成测试 34 全绿、clippy/fmt 干净。**已知权衡**：v2 包仅新版可读，旧版应用无法降级读取（头部不认证漏洞修复的固有代价）） |
 | P106 | 安全 | `crates/solosoul-crypto/src/aes.rs:119-130` | `decrypt_chunked_blob` 用攻击者可控的 `original_size` 做 `Vec::with_capacity`，篡改头部可致巨额分配 DoS | `[x]` 已修复（2026-08-02：头部字段（original_size/chunk_size/chunk_count）全部由输入控制，新增共享校验助手 `validate_chunked_header`（blob 版与流式版共用，防漂移）——① chunk_size 非 0；② 分块网格自洽（`(count-1)*chunk_size < original_size <= count*chunk_size`，count=0 时 original_size 必须为 0，`saturating_mul` 防溢出）。`decrypt_chunked_blob` 另加 chunk_count ≤ 密文容量上限（每 chunk 至少 nonce+tag=28 字节）并在 `with_capacity` 前把容量封顶 `min(original_size, blob.len())`——明文总量不可能超过密文长度。`decrypt_chunked_stream` 每块密文改按实际读取**增量扩展**（64KB 分块读入）而非按头部声明 chunk_size 预分配，末块用 `checked_mul` + 边界检查替代无条件减法。防回归单测 ×5（巨值 original_size / 巨值 chunk_count / chunk_size=0 ×2 / 自相矛盾头），全部命中一致性校验提前拒绝。solosoul-crypto 34 测试全绿、clippy/fmt 干净。注：aes.rs v3 分块函数生产零调用（仅 lib.rs 再导出 + 内部测试），此修复属纵深防御） |
-| P107 | 安全 | `src-tauri/src/commands/fs.rs:31-38,180-215` | 桌面端 `allowed_fs_base` 默认为整个 `$HOME`，`fs_read_file_as_text/data_url` 可读 home 下任意文件（含 `~/.solosoul/**`）回传前端 | `[ ]` |
+| P107 | 安全 | `src-tauri/src/commands/fs.rs:31-38,180-215` | 桌面端 `allowed_fs_base` 默认为整个 `$HOME`，`fs_read_file_as_text/data_url` 可读 home 下任意文件（含 `~/.solosoul/**`）回传前端 | `[x]` 已修复（2026-08-02：`allowed_fs_base` 改 `allowed_fs_bases` 返回**基目录集合**——桌面默认收窄到 Desktop/Documents/Downloads（与 OCR `is_path_in_allowed_dir` 一致）+ **Vault 附件目录**（`{base}/attachments`，附件预览 `AttachmentPreviewOverlay` 读取 `vaultPath` 落库副本，不放行则预览失效；vault 根本身——config.json/vault.db/accounts.json——不在集合内）；`SOLOSOUL_FS_BASE` 环境变量仍可单根覆盖，移动端不变（应用私有数据目录）。`resolve_allowed_path` 逐基目录 `resolve_within` 尝试、任一命中即返回，不存在/不可用的基目录跳过；多基目录兜底优先级：R012 路径穿越拒绝 > 存在可用基目录时的稳定「越界」文案（避免非存在基目录如首启时的 vault 附件目录泄漏裸 OS 错误）> 全部基目录缺失时透传真实错误。`desktop_fs_bases` 抽纯函数便于单测，单测 ×2（含用户目录 + vault 附件、不含 vault 根；无 vault 时仅 3 项）。fs 命令 lib 测试 13 全绿、clippy/fmt 干净。**已知权衡**：`fs_scan_directory`/`fs_get_file_size`/`fs_is_dir`/`fs_read_file_as_text/data_url` 现拒绝 Desktop/Documents/Downloads + vault 附件之外的路径（外部磁盘/自定义目录），`filterOutDirectories` 可能把拖入的外部目录误判为文件——与报告指引及 OCR 先例一致，属既定收窄） |
 | P108 | 安全 | `src-tauri/capabilities/default.json:23-55` | fs capabilities 允许在 `$DESKTOP/$DOCUMENT/$DOWNLOAD/$TEMP/$APPCACHE/**` 间任意 copy/stat | `[ ]` |
 | P109 | 性能 | `crates/solosoul-vault/src/storage.rs:1371-1475` | `list_object_changes_since` 无水印过滤全表解密 + 逐对象一次 HLC SELECT，每轮同步 O(N) 解密 + O(N) 查询 | `[ ]` |
 | P110 | 性能 | `crates/solosoul-vault/src/storage.rs:1289-1299` | `list_sync_changes_since_paginated` 名为分页实为全量解密后 `skip/take`，大库同步分页无效 | `[ ]` |
@@ -115,8 +115,8 @@
 
 ## 修复进度
 
-- 已完成：12 / 69（P001-P007、P101-P106；其中 P104 为部分闭环）
-- 当前处理：P107（`allowed_fs_base` 默认收窄，P1 安全中危）
+- 已完成：13 / 69（P001-P007、P101-P107；其中 P104 为部分闭环）
+- 当前处理：P108（fs capabilities 收窄，P1 安全中危）
 
 ## 审查通过项（已排查，无需修改）
 
@@ -161,7 +161,7 @@ Windows 生产路径用 `FileBiometricStorage` 存主密钥（`derive_master_key
 - **P104**：固定官方模型源或校验内置 sha256 清单；流式下载并限制单文件大小。（2026-08-02 已部分闭环：URL 校验 + 流式大小上限 + small 档内置 sha256 清单；tiny/medium 待官方哈希发布后补充。）
 - **P105**：把分块头部作为 AAD 纳入每个 chunk 的 GCM，或末尾加整体摘要块；解密后校验总字节数。（2026-08-02 已修复：v2 头部认证 + v1 遗留回退。）
 - **P106**：`with_capacity` 前对 `original_size` 设上限，或改增量扩展。（2026-08-02 已修复：头部一致性校验 + 容量封顶 + 流式增量读取。）
-- **P107**：`allowed_fs_base` 默认收窄到 Desktop/Documents/Downloads（与 ocr.rs:216-238 的 `is_path_in_allowed_dir` 一致）。
+- **P107**：`allowed_fs_base` 默认收窄到 Desktop/Documents/Downloads（与 ocr.rs:216-238 的 `is_path_in_allowed_dir` 一致）。（2026-08-02 已修复：Desktop/Documents/Downloads + Vault 附件目录多基目录集合，含 R012 穿越保留与首启裸错误防护。）
 - **P108**：fs capabilities 收窄到 `$APPCACHE`+`$TEMP`，其余经 Rust command 中转校验。
 
 ### 四、P1 性能高（Rust）
