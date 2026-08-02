@@ -66,6 +66,26 @@ function parseSegments(markdown: string): Segment[] {
   return segments;
 }
 
+/**
+ * P229: 显式 URL 白名单——只允许 http/https/mailto 三种协议。
+ *
+ * 此前依赖 react-markdown 默认 urlTransform 拦截 `javascript:` 等危险协议，
+ * 属隐式依赖：一旦调用方传入自定义 urlTransform（SafeMarkdown 透传 props），
+ * 自定义 a 组件直渲 href 即可成为 XSS 出口。此处显式白名单兜底：
+ * 非白名单协议一律降级为纯文本（不渲染可点击链接）。
+ */
+export function isSafeExternalUrl(href: string): boolean {
+  const trimmed = href.trim();
+  if (!trimmed) return false;
+  const colonIdx = trimmed.indexOf(':');
+  if (colonIdx === -1) {
+    // 无协议头：相对链接允许（内部导航等场景）。
+    return !trimmed.startsWith('//');
+  }
+  const scheme = trimmed.slice(0, colonIdx).toLowerCase();
+  return scheme === 'http' || scheme === 'https' || scheme === 'mailto';
+}
+
 function createMarkdownComponents(onLinkClick?: (href: string) => void) {
   return {
     code: GuideCodeBlock,
@@ -92,6 +112,10 @@ function createMarkdownComponents(onLinkClick?: (href: string) => void) {
             {children}
           </button>
         );
+      }
+      // P229: 显式白名单校验，非安全协议降级为纯文本。
+      if (!isSafeExternalUrl(href)) {
+        return <span>{children}</span>;
       }
       return (
         <a
