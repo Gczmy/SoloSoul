@@ -832,7 +832,10 @@ impl VaultService {
                 }
             }
             Err(e) => {
-                return Err(format!("KDF upgrade succeeded but vault reopen failed: {}", e));
+                return Err(format!(
+                    "KDF upgrade succeeded but vault reopen failed: {}",
+                    e
+                ));
             }
         }
 
@@ -1590,7 +1593,9 @@ mod tests {
     #[test]
     fn test_unlock_with_kdf_upgrade_reencrypts_and_upgrades_params() {
         let (svc, _dir) = setup_service();
-        let account = svc.create_account("KdfUpgrade", "password123", None).unwrap();
+        let account = svc
+            .create_account("KdfUpgrade", "password123", None)
+            .unwrap();
         let account_id = account["id"].as_str().unwrap();
 
         // 写入一条审计日志（加密数据），用于验证升级后仍可解密。
@@ -1619,11 +1624,11 @@ mod tests {
 
         // 用旧（开发档）参数派生旧密钥并执行透明升级。
         let old_kdf = KdfConfig::development();
-        let salt_bytes =
-            base64::Engine::decode(&base64::engine::general_purpose::STANDARD, &raw["salt"]
-                .as_str()
-                .unwrap())
-            .unwrap();
+        let salt_bytes = base64::Engine::decode(
+            &base64::engine::general_purpose::STANDARD,
+            &raw["salt"].as_str().unwrap(),
+        )
+        .unwrap();
         let salt_arr: [u8; 16] = salt_bytes.as_slice().try_into().unwrap();
         let old_key = derive_key("password123", &salt_arr, &old_kdf).unwrap();
         svc.unlock_with_kdf_upgrade(account_id, "password123", &old_key)
@@ -1642,6 +1647,8 @@ mod tests {
         let vault = svc.get_vault_store().expect("vault open after upgrade");
         let logs = vault.list_audit_log(10).unwrap();
         assert!(!logs.is_empty());
-        assert!(logs.iter().any(|l| l.details.as_deref() == Some("before-upgrade")));
+        assert!(logs
+            .iter()
+            .any(|l| l.details.as_deref() == Some("before-upgrade")));
     }
 }

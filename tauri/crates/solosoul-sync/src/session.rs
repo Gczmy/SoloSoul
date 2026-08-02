@@ -68,6 +68,12 @@ pub fn run_initiator_session(
 ) -> Result<SyncSessionResult, String> {
     let session_start = Instant::now();
     let mut session = NoiseSession::handshake_initiator(transport, keys)?;
+    // P001: Noise 握手完成后，对端静态公钥指纹已由握手密码学认证。
+    // 后续所有身份比对一律以它为准，而非 Hello/HelloAck 中的自报值
+    // （自报值可被攻击者伪造）。
+    let remote_fingerprint = session
+        .remote_fingerprint()
+        .ok_or("Peer did not present a static public key during handshake")?;
 
     send_msg(
         &mut session,
@@ -119,7 +125,20 @@ pub fn run_initiator_session(
                 )?;
                 return Err("Account mismatch".to_string());
             }
-            record_peer(&vault, &pid, &peer_addr, &public_key_fingerprint)?;
+            // P001: 校验对端身份（自报指纹 == 握手派生指纹；已信任 peer 必须
+            // 使用与配对时相同的静态公钥）。失败时回 Error 帧并中止。
+            if let Err(e) =
+                verify_peer_identity(&vault, &pid, &public_key_fingerprint, &remote_fingerprint)
+            {
+                send_msg(
+                    &mut session,
+                    transport,
+                    &SyncMessage::Error { message: e.clone() },
+                )?;
+                return Err(e);
+            }
+            // P001: 落库以握手认证指纹为准（不再信任对端自报值）。
+            record_peer(&vault, &pid, &peer_addr, &remote_fingerprint)?;
             if !t {
                 // 发起方侧：响应方尚未信任本设备。返回带 peer_node_id 的配对中错误码，
                 // 前端据此进入「双侧确认配对」流程（不裸报英文，走 __SYNC_ERR__ 前缀 i18n）。
@@ -212,6 +231,11 @@ pub fn handle_inbound(
 ) -> Result<SyncSessionResult, String> {
     let session_start = Instant::now();
     let mut session = NoiseSession::handshake_responder(transport, keys)?;
+    // P001: Noise 握手完成后，对端静态公钥指纹已由握手密码学认证。
+    // 后续所有身份比对一律以它为准（自报值可被攻击者伪造）。
+    let remote_fingerprint = session
+        .remote_fingerprint()
+        .ok_or("Peer did not present a static public key during handshake")?;
 
     let (peer_node_id, _peer_account, peer_fingerprint, is_new_peer) =
         match recv_msg(&mut session, transport)? {
@@ -249,8 +273,21 @@ pub fn handle_inbound(
                     )?;
                     return Err("Account mismatch".to_string());
                 }
-                let is_new = record_peer(&vault, &pid, &peer_addr, &public_key_fingerprint)?;
-                (pid, pacc, public_key_fingerprint, is_new)
+                // P001: 校验对端身份（自报指纹 == 握手派生指纹；已信任 peer 必须
+                // 使用与配对时相同的静态公钥）。失败时回 Error 帧并中止。
+                if let Err(e) =
+                    verify_peer_identity(&vault, &pid, &public_key_fingerprint, &remote_fingerprint)
+                {
+                    send_msg(
+                        &mut session,
+                        transport,
+                        &SyncMessage::Error { message: e.clone() },
+                    )?;
+                    return Err(e);
+                }
+                // P001: 落库以握手认证指纹为准。
+                let is_new = record_peer(&vault, &pid, &peer_addr, &remote_fingerprint)?;
+                (pid, pacc, remote_fingerprint, is_new)
             }
             _ => return Err("Expected Hello".to_string()),
         };
@@ -481,6 +518,44 @@ fn peer_display_name(fingerprint: &str, addr: &str) -> String {
     }
 }
 
+/// P001: 校验对端身份（握手密码学认证后调用）。
+///
+/// ① 对端在 Hello/HelloAck 中**自报**的指纹必须与 Noise 握手派生的指纹一致——
+///    自报值在加密通道内由对端书写、可被攻击者伪造，一律以握手认证值为准；
+/// ② 已信任 peer 必须使用与配对时相同的静态公钥：其落库指纹必须与本次
+///    握手指纹一致，防止 LAN 攻击者复用 node_id 冒充已信任节点拉取数据。
+///
+/// 历史记录无指纹（升级前配对）时不做比对，放行并由 record_peer 本次绑定。
+/// 失败时返回错误（调用方回 Error 帧并中止），不落任何 peer 记录。
+fn verify_peer_identity(
+    vault: &VaultStore,
+    peer_node_id: &str,
+    reported_fingerprint: &str,
+    handshake_fingerprint: &str,
+) -> Result<(), String> {
+    // ① 自报指纹必须与握手认证指纹一致。
+    if reported_fingerprint != handshake_fingerprint {
+        return Err(format!(
+            "__SYNC_ERR__:handshake_failed:Peer fingerprint mismatch (reported {} != handshake {})",
+            reported_fingerprint, handshake_fingerprint
+        ));
+    }
+    // ② 已信任 peer 必须保持配对时的静态公钥不变。
+    if let Some(peer) = vault.load_peer_state(peer_node_id)? {
+        if peer.trusted {
+            if let Some(stored) = &peer.public_key_fingerprint {
+                if stored != handshake_fingerprint {
+                    return Err(format!(
+                        "__SYNC_ERR__:handshake_failed:Peer key changed since pairing (stored {} != handshake {}); re-pair required",
+                        stored, handshake_fingerprint
+                    ));
+                }
+            }
+        }
+    }
+    Ok(())
+}
+
 /// 记录 peer。返回该 peer 是否为**新**记录（此前不存在）。
 /// 新记录的设备名改为 SoloSoul-<fp 前 8 位>（老数据由前端 formatPeerName 派生兼容，无需迁移）。
 fn record_peer(
@@ -571,5 +646,115 @@ mod tests {
         let wrapped = wrap_session_error("Peer is not trusted".to_string());
         assert!(wrapped.starts_with("__SYNC_ERR__:handshake_failed:"));
         assert!(wrapped.ends_with("Peer is not trusted"));
+    }
+
+    // ---------------------------------------------------------------------
+    // P001 防回归单测：verify_peer_identity 身份绑定。
+    // ---------------------------------------------------------------------
+
+    fn test_vault() -> (Arc<solosoul_vault::VaultStore>, tempfile::TempDir) {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let vault = Arc::new(
+            solosoul_vault::VaultStore::open(solosoul_vault::VaultConfig {
+                path: dir.path().to_path_buf(),
+                account_id: "acct".to_string(),
+                data_key: Some([0u8; 32]),
+            })
+            .expect("open vault"),
+        );
+        (vault, dir)
+    }
+
+    fn save_peer(
+        vault: &solosoul_vault::VaultStore,
+        node_id: &str,
+        trusted: bool,
+        fingerprint: Option<&str>,
+    ) {
+        let now = chrono::Utc::now().to_rfc3339();
+        let peer = solosoul_vault::PeerSyncState {
+            peer_node_id: node_id.to_string(),
+            peer_name: Some(format!("SoloSoul-{}", &node_id[..node_id.len().min(8)])),
+            trusted,
+            public_key_fingerprint: fingerprint.map(|f| f.to_string()),
+            last_seen: Some(chrono::Utc::now().timestamp()),
+            created_at: now.clone(),
+            updated_at: now,
+        };
+        vault.save_peer_state(&peer).expect("save peer");
+    }
+
+    /// ① 自报指纹与握手派生指纹不一致必须拒绝（自报值可被伪造）。
+    #[test]
+    fn test_verify_peer_identity_rejects_reported_mismatch() {
+        let (vault, _dir) = test_vault();
+        let err = verify_peer_identity(&vault, "node-a", "reported-fake", "handshake-real")
+            .expect_err("reported != handshake 应失败");
+        assert!(err.contains("fingerprint mismatch"), "got: {}", err);
+        assert!(
+            err.starts_with("__SYNC_ERR__:handshake_failed:"),
+            "got: {}",
+            err
+        );
+    }
+
+    /// ② 已信任 peer 的静态公钥变化必须拒绝（防冒充已信任节点）。
+    #[test]
+    fn test_verify_peer_identity_rejects_trusted_key_change() {
+        let (vault, _dir) = test_vault();
+        save_peer(&vault, "node-trusted", true, Some("stored-key-aaaa"));
+        // 自报 == 握手（通过检查①），但落库指纹与握手指纹不同（触发检查②）。
+        let err = verify_peer_identity(&vault, "node-trusted", "new-key-bbbb", "new-key-bbbb")
+            .expect_err("已信任 peer 换钥应失败");
+        assert!(err.contains("key changed since pairing"), "got: {}", err);
+        assert!(
+            err.starts_with("__SYNC_ERR__:handshake_failed:"),
+            "got: {}",
+            err
+        );
+    }
+
+    /// ③ 已信任 peer 指纹一致（自报 == 握手 == 落库）必须通过。
+    #[test]
+    fn test_verify_peer_identity_accepts_trusted_matching_key() {
+        let (vault, _dir) = test_vault();
+        save_peer(&vault, "node-trusted", true, Some("stable-key-1111"));
+        verify_peer_identity(&vault, "node-trusted", "stable-key-1111", "stable-key-1111")
+            .expect("指纹一致应通过");
+    }
+
+    /// ④ 未信任/未记录的 peer：仅校验自报 == 握手，不校验落库。
+    #[test]
+    fn test_verify_peer_identity_accepts_new_peer() {
+        let (vault, _dir) = test_vault();
+        // 无任何记录的新 peer
+        verify_peer_identity(&vault, "node-new", "fp-ok", "fp-ok").expect("新 peer 应通过");
+        // 已记录但未信任（配对中）的 peer
+        save_peer(&vault, "node-pending", false, Some("fp-old"));
+        verify_peer_identity(&vault, "node-pending", "fp-ok", "fp-ok").expect("配对中 peer 应通过");
+    }
+
+    /// ⑤ 历史记录无指纹（升级前配对）放行，由 record_peer 本次绑定。
+    #[test]
+    fn test_verify_peer_identity_accepts_trusted_without_stored_fingerprint() {
+        let (vault, _dir) = test_vault();
+        save_peer(&vault, "node-legacy", true, None);
+        verify_peer_identity(&vault, "node-legacy", "fp-first", "fp-first")
+            .expect("无落库指纹的历史 peer 应通过");
+    }
+
+    /// record_peer 必须落库握手认证指纹（而非对端自报值）。
+    #[test]
+    fn test_record_peer_stores_handshake_fingerprint() {
+        let (vault, _dir) = test_vault();
+        let is_new =
+            record_peer(&vault, "node-a", "10.0.0.1:42069", "handshake-fp").expect("record");
+        assert!(is_new, "首次记录应为新 peer");
+        let peer = vault
+            .load_peer_state("node-a")
+            .expect("load")
+            .expect("peer 应存在");
+        assert_eq!(peer.public_key_fingerprint.as_deref(), Some("handshake-fp"));
+        assert!(!peer.trusted);
     }
 }

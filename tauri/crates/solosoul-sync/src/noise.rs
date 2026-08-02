@@ -221,4 +221,43 @@ mod tests {
         server_thread.join().unwrap();
         client_thread.join().unwrap();
     }
+
+    /// P001 防回归：握手后双方对端指纹必须与对端 `keys.fingerprint()` 一致。
+    /// 若 `remote_fingerprint()` 与 `fingerprint()` 的格式/算法漂移，
+    /// 所有诚实 peer 的会话都会在 verify_peer_identity 检查①处失败。
+    #[test]
+    fn test_handshake_remote_fingerprint_matches_peer_fingerprint() {
+        let listener = TcpListener::bind("127.0.0.1:0").unwrap();
+        let addr = listener.local_addr().unwrap().to_string();
+        let server_keys = NoiseKeys::generate();
+        let client_keys = NoiseKeys::generate();
+        // 预先计算指纹，避免 keys 被两个线程闭包同时 move（E0382 双 move）。
+        let server_fp = server_keys.fingerprint();
+        let client_fp = client_keys.fingerprint();
+
+        let server_thread = thread::spawn(move || {
+            let (stream, _) = listener.accept().unwrap();
+            let mut transport = SyncTransport::from_stream(stream);
+            let session = NoiseSession::handshake_responder(&mut transport, &server_keys).unwrap();
+            // 响应方看到的对端指纹 == 发起方 keys.fingerprint()
+            assert_eq!(
+                session.remote_fingerprint().as_deref(),
+                Some(client_fp.as_str())
+            );
+        });
+
+        let client_thread = thread::spawn(move || {
+            let stream = std::net::TcpStream::connect(&addr).unwrap();
+            let mut transport = SyncTransport::from_stream(stream);
+            let session = NoiseSession::handshake_initiator(&mut transport, &client_keys).unwrap();
+            // 发起方看到的对端指纹 == 响应方 keys.fingerprint()
+            assert_eq!(
+                session.remote_fingerprint().as_deref(),
+                Some(server_fp.as_str())
+            );
+        });
+
+        server_thread.join().unwrap();
+        client_thread.join().unwrap();
+    }
 }
