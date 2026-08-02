@@ -58,7 +58,7 @@
 | P122 | 错误处理 | `src/pages/settings/TrashPage.tsx:223` | `trash_get_detail` 失败静默 `setDetailItem(null)`，无法区分"无数据"与"加载失败" | `[x]` 已修复（2026-08-02：`openDetail` catch 增加 `logger.warn` + `onError` toast（`trash_detail_load_failed` 兜底文案「加载回收站详情失败」），加载失败不再与无数据混淆；`getTemplate` 调用补 `.catch`（与 P126 抛出语义前向兼容），deps 补 `onError`/`t`） |
 | P123 | 错误处理 | `src/components/settings/PinSection.tsx:90` | 验证当前密码的任何异常（含后端崩溃/锁定）统一报"当前密码不正确"，误导用户 | `[x]` 已修复（2026-08-02：`verify_password` 对错误密码返回 false（不抛异常），走到 catch 的是真实后端故障——改为 `logger.warn` 记录 + 显示 `pin_error_setup_failed` 通用失败文案，不再误导为密码错误） |
 | P124 | 错误处理 | `src/hooks/useObjectWorkspaceData.ts:229,248`、`ObjectDetailModal.tsx:313,380` | unlock 失败统一 return false，密码错误与后端异常不可区分，错误细节全丢 | `[x]` 已修复（2026-08-02：`verifyVaultPassword`/`unlockVaultWithPassword` 对后端 `Invalid password` 类消息返回 false（对话框显示「密码不正确」），其余真实后端异常 `logger.warn` 记录后抛出——`PasswordVerificationDialog` 的 try/catch 会走 `onError` toast，错误细节不再丢失也不误导；生物识别 catch 补 `logger.warn`） |
-| P125 | 错误处理 | `src/pages/system/DebugLogPage.tsx:65` | `log_export` 失败完全静默，点击"导出诊断包"无任何反馈 | `[ ]` |
+| P125 | 错误处理 | `src/pages/system/DebugLogPage.tsx:65` | `log_export` 失败完全静默，点击"导出诊断包"无任何反馈 | `[x]` 已修复（2026-08-02：`handleExport` catch 增加 `logger.warn` + `onError` toast（`debug_log_export_failed` 兜底文案），成功路径补 `onSuccess` toast（`debug_log_exported`）——点击导出必有反馈） |
 | P126 | 错误处理 | `src/stores/templateStore.ts:83` | `template_get` 失败返回 null，与"模板不存在"语义混淆 | `[ ]` |
 | P127 | 架构 | `src/App/AppRoutes.tsx:396` | `loadCustomPages(account.id)` 未 await 也无 catch，失败产生 unhandled rejection 且自定义页面静默缺失 | `[ ]` |
 | P128 | 架构 | `src/pages/settings/AppearanceSettingsPage.tsx:72-83` | 直接 `localStorage.setItem` 写主题缓存绕过 settingsStore，与"四副本写入矩阵"产生第 5 个写入点易漂移 | `[ ]` |
@@ -115,8 +115,8 @@
 
 ## 修复进度
 
-- 已完成：30 / 69（P001-P007、P101-P124；其中 P104 为部分闭环）
-- 当前处理：P125（DebugLogPage log_export 失败静默，P1 错误处理）
+- 已完成：31 / 69（P001-P007、P101-P125；其中 P104 为部分闭环）
+- 当前处理：P126（templateStore getTemplate 语义混淆，P1 错误处理）
 
 ## 审查通过项（已排查，无需修改）
 

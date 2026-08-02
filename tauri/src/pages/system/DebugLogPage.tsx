@@ -8,6 +8,8 @@ import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 
 import { invoke } from '@tauri-apps/api/core';
 import { saveWithPause } from '@/lib/dialog';
+import { useToastError } from '@/hooks/useToastError';
+import { logger } from '@/lib/logger';
 import { Bug, Download, RefreshCw } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/constants';
 import { isUriPath, copyStagedFileToDest } from '@/lib/mobileFileTransfer';
@@ -29,6 +31,7 @@ export function DebugLogPage() {
   const [levelFilter] = useState<string>('all');
   const [isLoading, setIsLoading] = useState(true);
   const { t } = useTranslation(['settings', 'common']);
+  const { onError, onSuccess } = useToastError();
 
   const loadLogs = async () => {
     setIsLoading(true);
@@ -62,8 +65,11 @@ export function DebugLogPage() {
       } else {
         await invoke<string>('log_export', { exportPath: filePath });
       }
-    } catch {
-      // silent
+      onSuccess(t('settings:debug_log_exported', { defaultValue: '诊断包已导出' }));
+    } catch (e) {
+      // P125: 导出失败不再静默——无任何反馈会让人误以为已导出
+      logger.warn('[DebugLogPage] Export debug log failed:', e);
+      onError(e, t('settings:debug_log_export_failed', { defaultValue: '导出诊断包失败' }));
     }
   };
 
