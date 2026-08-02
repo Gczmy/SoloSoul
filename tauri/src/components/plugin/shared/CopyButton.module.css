@@ -13,10 +13,12 @@
   white-space: nowrap;
 }
 
-.copyBtn:hover {
-  background: var(--accent-subtle);
-  color: var(--accent);
-  border-color: transparent;
+@media (hover: hover) and (pointer: fine) {
+  .copyBtn:hover {
+    background: var(--accent-subtle);
+    color: var(--accent);
+    border-color: transparent;
+  }
 }
 
 .glow {

@@ -11,6 +11,7 @@ import { AiQuickChatPopover } from './AiQuickChatPopover';
 import { SearchPopover } from './SearchPopover';
 import { OcrQuickScanPopover } from './OcrQuickScanPopover';
 import { PluginQuickPanel } from '@/components/plugin/PluginQuickPanel';
+import { supportsHover } from '@/lib/platform';
 import {
   useActiveCustomPages,
   useBoundNavActions,
@@ -117,7 +118,11 @@ export function TopFunctionBar({
 
   // Only wrapperRef triggers expansion (arrow toggle is inside it).
   // AddPageButton is outside wrapperRef, so hovering the + button alone never expands.
-  const handleMouseEnter = useCallback(() => setHovering(true), [setHovering]);
+  const handleMouseEnter = useCallback(() => {
+    // 触屏设备不触发展开（Android WebView hover 会粘住）
+    if (!supportsHover()) return;
+    setHovering(true);
+  }, [setHovering]);
 
   // hoverZone wraps AddPageButton + wrapperRef, so moving between them stays inside
   // the zone and never triggers collapse. Only leaving to Lock/Settings or outside

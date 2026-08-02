@@ -58,8 +58,10 @@
   min-width: 0;
 }
 
-.nameButton:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
+@media (hover: hover) and (pointer: fine) {
+  .nameButton:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
+  }
 }
 
 .nameButton:disabled {

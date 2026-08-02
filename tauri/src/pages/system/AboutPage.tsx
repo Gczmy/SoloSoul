@@ -107,7 +107,9 @@ export function AboutPage() {
           color: var(--accent-primary);
           text-decoration: none;
         }
-        .release-notes-md a:hover { text-decoration: underline; }
+        @media (hover: hover) and (pointer: fine) {
+          .release-notes-md a:hover { text-decoration: underline; }
+        }
         .release-notes-md blockquote {
           border-left: 3px solid var(--accent-primary);
           margin: 6px 0;

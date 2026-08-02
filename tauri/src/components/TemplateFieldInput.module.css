@@ -37,11 +37,13 @@
     box-shadow 0.2s;
 }
 
-.input:hover:not(:disabled),
-.textarea:hover:not(:disabled),
-.select:hover:not(:disabled) {
-  border-color: var(--accent-primary);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 10%, transparent);
+@media (hover: hover) and (pointer: fine) {
+  .input:hover:not(:disabled),
+  .textarea:hover:not(:disabled),
+  .select:hover:not(:disabled) {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  }
 }
 
 .input:focus,
@@ -72,8 +74,10 @@
   transition: background 0.15s;
 }
 
-.checkboxLabel:hover {
-  background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
+@media (hover: hover) and (pointer: fine) {
+  .checkboxLabel:hover {
+    background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
+  }
 }
 
 .multiSelect {

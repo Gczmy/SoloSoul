@@ -79,8 +79,10 @@
   transition: background 0.15s ease;
 }
 
-.option:hover {
-  background: var(--bg-hover);
+@media (hover: hover) and (pointer: fine) {
+  .option:hover {
+    background: var(--bg-hover);
+  }
 }
 
 .optionSelected {
@@ -120,9 +122,11 @@
   color: var(--text-secondary);
 }
 
-.cancelBtn:hover {
-  background: var(--danger-subtle);
-  color: var(--danger);
+@media (hover: hover) and (pointer: fine) {
+  .cancelBtn:hover {
+    background: var(--danger-subtle);
+    color: var(--danger);
+  }
 }
 
 .confirmBtn {
@@ -130,6 +134,8 @@
   color: white;
 }
 
-.confirmBtn:hover {
-  background: var(--accent-hover);
+@media (hover: hover) and (pointer: fine) {
+  .confirmBtn:hover {
+    background: var(--accent-hover);
+  }
 }

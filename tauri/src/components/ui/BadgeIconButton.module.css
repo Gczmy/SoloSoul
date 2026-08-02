@@ -35,15 +35,19 @@
 }
 
 /* Accent variant — default blue/slate hover */
-.accent:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
-  color: var(--accent-primary);
+@media (hover: hover) and (pointer: fine) {
+  .accent:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+    color: var(--accent-primary);
+  }
 }
 
 /* Danger variant — red hover */
-.danger:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--accent-danger) 12%, transparent);
-  color: var(--accent-danger);
+@media (hover: hover) and (pointer: fine) {
+  .danger:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--accent-danger) 12%, transparent);
+    color: var(--accent-danger);
+  }
 }
 
 /* Danger-outline variant — matches Button danger-outline */
@@ -51,9 +55,11 @@
   background: color-mix(in srgb, #ef4444 10%, transparent);
   color: #ef4444;
 }
-.dangerOutline:hover:not(:disabled) {
-  background: #ef4444;
-  color: #ffffff;
+@media (hover: hover) and (pointer: fine) {
+  .dangerOutline:hover:not(:disabled) {
+    background: #ef4444;
+    color: #ffffff;
+  }
 }
 
 /* ── Badge ─────────────────────────────────────────────── */

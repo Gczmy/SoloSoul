@@ -28,11 +28,13 @@ vi.mock('@tauri-apps/api/event', () => ({
   listen: vi.fn(() => Promise.resolve(() => {})),
 }));
 
-// Mock matchMedia
+// Mock matchMedia —— 测试环境默认模拟桌面精确指针设备：
+// (hover: hover) and (pointer: fine) 查询命中返回 true（支持悬停），
+// 其余查询（窄视口、主题等）保持 false，与既有测试语义一致。
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
   value: vi.fn().mockImplementation((query: string) => ({
-    matches: false,
+    matches: query.includes('hover: hover'),
     media: query,
     onchange: null,
     addEventListener: vi.fn(),

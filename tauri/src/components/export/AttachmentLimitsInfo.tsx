@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { Info } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/constants';
+import { supportsHover } from '@/lib/platform';
 
 export function AttachmentLimitsInfo() {
   const { t } = useTranslation('settings');
@@ -22,7 +23,11 @@ export function AttachmentLimitsInfo() {
       <button
         ref={btnRef}
         type="button"
-        onMouseEnter={() => setShow(true)}
+        onMouseEnter={() => {
+          // 触屏设备不弹 hover 提示（Android WebView hover 会粘住）
+          if (!supportsHover()) return;
+          setShow(true);
+        }}
         onMouseLeave={() => setShow(false)}
         aria-label={t('attachment_limits_title')}
         style={{

@@ -274,8 +274,10 @@ export function LlmChatPage() {
 
       <style>{`
         .sidebar-action-btn { transition: opacity 0.1s; }
-        .sidebar-action-btn:hover { opacity: 1 !important; }
-        div[style*="cursor: pointer"]:hover .sidebar-action-btn { opacity: 0.5; }
+        @media (hover: hover) and (pointer: fine) {
+          .sidebar-action-btn:hover { opacity: 1 !important; }
+          div[style*="cursor: pointer"]:hover .sidebar-action-btn { opacity: 0.5; }
+        }
         .markdown-content pre {
           background: var(--bg-toolbar); border: 1px solid var(--border-subtle); border-radius: 8px;
           padding: 10px 14px; overflow-x: auto; font-size: 13px; line-height: 1.5; margin: 8px 0;

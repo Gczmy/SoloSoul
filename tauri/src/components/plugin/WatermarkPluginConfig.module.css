@@ -137,8 +137,10 @@
   transition: background 0.12s ease;
 }
 
-.treeItem:hover {
-  background: var(--bg-hover);
+@media (hover: hover) and (pointer: fine) {
+  .treeItem:hover {
+    background: var(--bg-hover);
+  }
 }
 
 .treeItemName {

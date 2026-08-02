@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import { Lock, Eye, EyeOff, HelpCircle } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { ICON_SIZE } from '@/lib/constants';
+import { supportsHover } from '@/lib/platform';
 
 interface SecurePasswordInputProps {
   value: string;
@@ -101,6 +102,8 @@ export function SecurePasswordInput({
   }, []);
 
   const handleHintEnter = useCallback(() => {
+    // 非精确指针设备（触屏）不触发悬停样式，避免点击后残留
+    if (!supportsHover()) return;
     // 触屏操作后浏览器可能合成 mouseenter，跳过以避免重新打开已关闭的卡片
     if (touchActiveRef.current) return;
     setIsHintHovered(true);

@@ -7,6 +7,7 @@ import { useApplyThemeFromSettings } from '@/hooks/useApplyThemeFromSettings';
 import type { AccountInfo } from '@/lib/ipc';
 import { getBiometricErrorMessage } from '@/lib/biometricError';
 import { translateRustError } from '@/lib/rustErrors';
+import { supportsHover } from '@/lib/platform';
 import { logger } from '@/lib/logger';
 
 import { ShieldLogo } from '@/components/ui/ShieldLogo';
@@ -496,6 +497,8 @@ export function LoginPage() {
 
   // 两阶段悬停：边框/颜色立即高亮，文字/展开延迟 300ms 后触发
   const handleIconEnter = (id: string) => {
+    // 触屏设备不触发悬停展开（Android WebView hover 会粘住）
+    if (!supportsHover()) return;
     setHoveredIcon(id);
     if (commitTimerRef.current) clearTimeout(commitTimerRef.current);
     commitTimerRef.current = setTimeout(() => {

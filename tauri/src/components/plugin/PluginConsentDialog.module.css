@@ -126,9 +126,11 @@
   color: var(--text-secondary);
 }
 
-.denyBtn:hover {
-  background: var(--danger-subtle);
-  color: var(--danger);
+@media (hover: hover) and (pointer: fine) {
+  .denyBtn:hover {
+    background: var(--danger-subtle);
+    color: var(--danger);
+  }
 }
 
 .approveBtn {
@@ -136,6 +138,8 @@
   color: white;
 }
 
-.approveBtn:hover {
-  background: var(--accent-hover);
+@media (hover: hover) and (pointer: fine) {
+  .approveBtn:hover {
+    background: var(--accent-hover);
+  }
 }

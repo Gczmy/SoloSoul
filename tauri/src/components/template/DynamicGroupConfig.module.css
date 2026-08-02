@@ -26,9 +26,11 @@
   box-sizing: border-box;
 }
 
-.triggerBtn:hover {
-  border-color: var(--border-hover);
-  background: var(--bg-subtle);
+@media (hover: hover) and (pointer: fine) {
+  .triggerBtn:hover {
+    border-color: var(--border-hover);
+    background: var(--bg-subtle);
+  }
 }
 
 .triggerBtn:focus-visible {
@@ -109,8 +111,10 @@
   transition: border-color 0.12s;
 }
 
-.typeChip:hover {
-  border-color: var(--border-hover);
+@media (hover: hover) and (pointer: fine) {
+  .typeChip:hover {
+    border-color: var(--border-hover);
+  }
 }
 
 .typeChip input {
@@ -127,8 +131,10 @@
   cursor: pointer;
 }
 
-.toggleAll:hover {
-  text-decoration: underline;
+@media (hover: hover) and (pointer: fine) {
+  .toggleAll:hover {
+    text-decoration: underline;
+  }
 }
 
 .stepperRow {
@@ -170,9 +176,11 @@
   border-radius: 0 6px 6px 0;
 }
 
-.stepperBtn:hover:not(:disabled) {
-  background: var(--bg-subtle);
-  border-color: var(--border-hover);
+@media (hover: hover) and (pointer: fine) {
+  .stepperBtn:hover:not(:disabled) {
+    background: var(--bg-subtle);
+    border-color: var(--border-hover);
+  }
 }
 
 .stepperBtn:disabled {
@@ -221,8 +229,10 @@
   margin-left: 8px;
 }
 
-.unlimitedBtn:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
+@media (hover: hover) and (pointer: fine) {
+  .unlimitedBtn:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
+  }
 }
 
 .unlimitedBtn:disabled {

@@ -13,6 +13,7 @@ import { AiQuickChatPopover } from './AiQuickChatPopover';
 import { OcrQuickScanPopover } from './OcrQuickScanPopover';
 import { PluginQuickPanel } from '@/components/plugin/PluginQuickPanel';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
+import { supportsHover } from '@/lib/platform';
 import {
   useBoundNavActions,
   useAiQuickChat,
@@ -96,7 +97,11 @@ export function SecondaryActionBar({
     }
   }, [expanded]);
 
-  const handleMouseEnter = useCallback(() => setHovering(true), [setHovering]);
+  const handleMouseEnter = useCallback(() => {
+    // 触屏设备不触发展开（Android WebView hover 会粘住）
+    if (!supportsHover()) return;
+    setHovering(true);
+  }, [setHovering]);
   const handleMouseLeave = useCallback(
     (e: MouseEvent) => {
       if (wrapperRef.current && !wrapperRef.current.contains(e.relatedTarget as Node)) {

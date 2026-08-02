@@ -28,10 +28,12 @@
   align-self: stretch;
 }
 
-.refreshBtn:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
-  border-color: var(--accent-primary);
-  color: var(--accent-primary);
+@media (hover: hover) and (pointer: fine) {
+  .refreshBtn:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+  }
 }
 
 .refreshBtn:disabled {
@@ -79,10 +81,12 @@
   transition: all 0.15s ease;
 }
 
-.tierChip:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
-  border-color: var(--accent-primary);
-  color: var(--accent-primary);
+@media (hover: hover) and (pointer: fine) {
+  .tierChip:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+  }
 }
 
 .tierChipActive {
@@ -122,9 +126,11 @@
   transition: all 0.15s ease;
 }
 
-.tab:hover {
-  background: color-mix(in srgb, var(--accent-primary) 6%, transparent);
-  color: var(--text-primary);
+@media (hover: hover) and (pointer: fine) {
+  .tab:hover {
+    background: color-mix(in srgb, var(--accent-primary) 6%, transparent);
+    color: var(--text-primary);
+  }
 }
 
 .tabActive {
@@ -247,10 +253,12 @@
   cursor: pointer;
 }
 
-.stopBtn:hover {
-  background: var(--color-error-bg);
-  color: var(--color-error-text);
-  border-color: var(--color-error-border);
+@media (hover: hover) and (pointer: fine) {
+  .stopBtn:hover {
+    background: var(--color-error-bg);
+    color: var(--color-error-text);
+    border-color: var(--color-error-border);
+  }
 }
 
 .clearBtn {
@@ -264,9 +272,11 @@
   cursor: pointer;
 }
 
-.clearBtn:hover {
-  background: var(--bg-hover);
-  color: var(--text-primary);
+@media (hover: hover) and (pointer: fine) {
+  .clearBtn:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+  }
 }
 
 .completedStatus {

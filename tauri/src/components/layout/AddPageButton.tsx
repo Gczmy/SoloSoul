@@ -8,6 +8,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import type { CustomPage } from '@/stores/settingsStore';
 import styles from './SideNavigation.module.css';
+import { supportsHover } from '@/lib/platform';
 import {
   CUSTOM_ICON_MAP,
   DEFAULT_CUSTOM_ICON,
@@ -197,6 +198,8 @@ export function AddPageButton({
   }, [isHorizontal, isBottom, isRight]);
 
   const handleMouseEnter = useCallback(() => {
+    // 触屏设备不触发悬停卡片（Android WebView hover 会粘住）
+    if (!supportsHover()) return;
     setIsHovered(true);
     updateCardPosition();
   }, [updateCardPosition]);

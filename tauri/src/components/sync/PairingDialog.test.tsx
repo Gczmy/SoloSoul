@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { PairingDialog } from './PairingDialog';
+import { formatPeerName } from '@/lib/syncPeer';
 import type { SyncPeer } from '@/stores/syncStore';
 
 const mockPeer: SyncPeer = {
@@ -20,7 +21,8 @@ describe('PairingDialog', () => {
 
   it('renders peer name and fingerprint when open', () => {
     render(<PairingDialog isOpen={true} peer={mockPeer} onTrust={vi.fn()} onIgnore={vi.fn()} />);
-    expect(screen.getByText(mockPeer.name)).toBeInTheDocument();
+    // 设备名经 formatPeerName 派生为 SoloSoul-<fp 前 8 位>
+    expect(screen.getByText(formatPeerName(mockPeer))).toBeInTheDocument();
     expect(screen.getByText(mockPeer.fingerprint)).toBeInTheDocument();
   });
 
@@ -49,5 +51,7 @@ describe('PairingDialog', () => {
       />,
     );
     expect(screen.getByText(/no fingerprint available/i)).toBeInTheDocument();
+    // fingerprint 缺失时设备名回退到 peer.name（formatPeerName 的 name 分支）
+    expect(screen.getByText(formatPeerName(peerWithoutFingerprint))).toBeInTheDocument();
   });
 });

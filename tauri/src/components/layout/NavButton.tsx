@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import type { LucideIcon } from 'lucide-react';
 import styles from './NavButton.module.css';
 import { ICON_SIZE } from '@/lib/constants';
+import { supportsHover } from '@/lib/platform';
 
 export type NavPosition = 'left' | 'right' | 'top' | 'bottom';
 
@@ -72,6 +73,8 @@ export function NavButton({
   }, [isHorizontal, isBottom, isRight]);
 
   const handleMouseEnter = useCallback(() => {
+    // 触屏设备不触发悬停卡片（Android WebView hover 会粘住）
+    if (!supportsHover()) return;
     setIsHovered(true);
     updatePosition();
   }, [updatePosition]);

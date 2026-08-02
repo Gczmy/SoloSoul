@@ -506,11 +506,6 @@
     border-color var(--duration-fast, 150ms) var(--ease-smooth, ease),
     color var(--duration-fast, 150ms) var(--ease-smooth, ease);
 }
-.interactive-accent:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
-  border-color: var(--accent-primary);
-  color: var(--accent-primary);
-}
 
 /* ── Accent lighter hover — 6% tint ─────────────────────── */
 .interactive-accent-light {
@@ -519,11 +514,6 @@
     background var(--duration-fast, 150ms) var(--ease-smooth, ease),
     border-color var(--duration-fast, 150ms) var(--ease-smooth, ease),
     color var(--duration-fast, 150ms) var(--ease-smooth, ease);
-}
-.interactive-accent-light:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--accent-primary) 6%, transparent);
-  border-color: var(--accent-primary);
-  color: var(--accent-primary);
 }
 
 /* ── Toolbar bg hover — bg-toolbar default ──────────────── */
@@ -537,11 +527,6 @@
     border-color var(--duration-fast, 150ms) var(--ease-smooth, ease),
     color var(--duration-fast, 150ms) var(--ease-smooth, ease);
 }
-.interactive-toolbar:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--accent-primary) 10%, var(--bg-toolbar));
-  border-color: var(--accent-primary);
-  color: var(--accent-primary);
-}
 
 /* ── Danger hover — red tint ────────────────────────────── */
 .interactive-danger {
@@ -552,11 +537,6 @@
     background var(--duration-fast, 150ms) var(--ease-smooth, ease),
     border-color var(--duration-fast, 150ms) var(--ease-smooth, ease),
     color var(--duration-fast, 150ms) var(--ease-smooth, ease);
-}
-.interactive-danger:hover:not(:disabled) {
-  background: rgba(231, 76, 60, 0.1);
-  border-color: #e74c3c;
-  color: #e74c3c;
 }
 
 /* ── Danger variant on transparent bg ───────────────────── */
@@ -569,11 +549,6 @@
     border-color var(--duration-fast, 150ms) var(--ease-smooth, ease),
     color var(--duration-fast, 150ms) var(--ease-smooth, ease);
 }
-.interactive-danger-transparent:hover:not(:disabled) {
-  background: color-mix(in srgb, #e74c3c 12%, transparent);
-  border-color: #e74c3c;
-  color: #e74c3c;
-}
 
 /* ── Icon button hover (attachmentUtils pattern) ────────── */
 .interactive-icon {
@@ -583,17 +558,10 @@
     background var(--duration-fast, 150ms) var(--ease-smooth, ease),
     color var(--duration-fast, 150ms) var(--ease-smooth, ease);
 }
-.interactive-icon:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
-  color: var(--accent-primary);
-}
 
 /* ── Icon danger hover ──────────────────────────────────── */
 .interactive-icon-danger {
   transition: background var(--duration-fast, 150ms) var(--ease-smooth, ease);
-}
-.interactive-icon-danger:hover:not(:disabled) {
-  background: color-mix(in srgb, #e74c3c 12%, transparent);
 }
 
 /* ── Danger soft tint (review-conflicts button) ─────────── */
@@ -606,9 +574,6 @@
     border-color var(--duration-fast, 150ms) var(--ease-smooth, ease),
     color var(--duration-fast, 150ms) var(--ease-smooth, ease);
 }
-.interactive-danger-soft:hover:not(:disabled) {
-  background: rgba(192, 57, 43, 0.12);
-}
 
 /* ── Elevated row hover (attachment / child list rows) ──── */
 .interactive-row {
@@ -617,10 +582,6 @@
   transition:
     background var(--duration-fast, 150ms) var(--ease-smooth, ease),
     border-color var(--duration-fast, 150ms) var(--ease-smooth, ease);
-}
-.interactive-row:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
-  border-color: color-mix(in srgb, var(--accent-primary) 25%, transparent);
 }
 
 /* ── Nav arrow hover (transparent base → toolbar tint) ──── */
@@ -633,19 +594,11 @@
     border-color var(--duration-fast, 150ms) var(--ease-smooth, ease),
     color var(--duration-fast, 150ms) var(--ease-smooth, ease);
 }
-.interactive-nav:hover:not(:disabled) {
-  background: var(--bg-toolbar);
-  border-color: var(--accent-primary);
-  color: var(--accent-primary);
-}
 
 /* ── Color-only accent hover (activity header toggle) ───── */
 .interactive-color-accent {
   color: inherit;
   transition: color var(--duration-fast, 150ms) var(--ease-smooth, ease);
-}
-.interactive-color-accent:hover:not(:disabled) {
-  color: var(--accent-primary);
 }
 
 /* ── Toolbar selected (accent border/color, toolbar bg) ─── */
@@ -658,27 +611,16 @@
     border-color var(--duration-fast, 150ms) var(--ease-smooth, ease),
     color var(--duration-fast, 150ms) var(--ease-smooth, ease);
 }
-.interactive-toolbar-selected:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
-  border-color: var(--accent-primary);
-  color: var(--accent-primary);
-}
 
 /* ── Neutral bg hover (toolbar → hover, list rows) ──────── */
 .interactive-neutral {
   background: var(--bg-toolbar);
   transition: background var(--duration-fast, 150ms) var(--ease-smooth, ease);
 }
-.interactive-neutral:hover:not(:disabled) {
-  background: var(--bg-hover);
-}
 
 /* ── Lift on hover (transform cards / scheme previews) ──── */
 .interactive-lift {
   transition: transform var(--duration-fast, 150ms) var(--ease-smooth, ease);
-}
-.interactive-lift:hover:not(:disabled) {
-  transform: translateY(-2px);
 }
 
 /* ── Strong lift (guide cards: -3px + shadow + accent border) */
@@ -690,11 +632,6 @@
     box-shadow 0.2s ease,
     border-color var(--duration-fast, 150ms) var(--ease-smooth, ease);
 }
-.interactive-lift-strong:hover:not(:disabled) {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
-  border-color: var(--accent-primary);
-}
 
 /* ── Ghost icon (transparent → toolbar tint, neutral) ──── */
 .interactive-ghost {
@@ -703,10 +640,6 @@
   transition:
     background var(--duration-fast, 150ms) var(--ease-smooth, ease),
     color var(--duration-fast, 150ms) var(--ease-smooth, ease);
-}
-.interactive-ghost:hover:not(:disabled) {
-  background: var(--bg-toolbar);
-  color: var(--text-primary);
 }
 
 /* ── Dashed border button (more appearances) ────────────── */
@@ -718,10 +651,6 @@
     border-color var(--duration-fast, 150ms) var(--ease-smooth, ease),
     color var(--duration-fast, 150ms) var(--ease-smooth, ease);
 }
-.interactive-dashed:hover:not(:disabled) {
-  border-color: var(--accent-primary);
-  color: var(--accent-primary);
-}
 
 /* ── Solid danger (clear-hint confirmed state) ──────────── */
 .interactive-danger-solid {
@@ -732,10 +661,6 @@
     background var(--duration-fast, 150ms) var(--ease-smooth, ease),
     box-shadow var(--duration-fast, 150ms) var(--ease-smooth, ease);
 }
-.interactive-danger-solid:hover:not(:disabled) {
-  background: #c0392b;
-  box-shadow: 0 1px 4px rgba(231, 76, 60, 0.35);
-}
 
 /* ── Segmented control option (scan mode tabs) ──────────── */
 .interactive-segmented {
@@ -744,10 +669,6 @@
   transition:
     background var(--duration-fast, 150ms) var(--ease-smooth, ease),
     color var(--duration-fast, 150ms) var(--ease-smooth, ease);
-}
-.interactive-segmented:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
-  color: var(--accent-primary);
 }
 .interactive-segmented.segmented-active {
   background: color-mix(in srgb, var(--accent-primary) 15%, transparent) !important;
@@ -762,10 +683,6 @@
     border-color 0.2s,
     box-shadow 0.2s;
 }
-.interactive-field:hover:not(:disabled):not(:focus) {
-  border-color: var(--accent-primary);
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 10%, transparent);
-}
 .interactive-field:focus {
   border-color: var(--accent-primary);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 15%, transparent);
@@ -779,18 +696,11 @@
   --pif-border-color: var(--border-subtle);
   --pif-ring: none;
 }
-.interactive-password-field:hover {
-  --pif-border-color: var(--accent-primary);
-  --pif-ring: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 10%, transparent);
-}
 
 /* ── Color-only muted hover (dismiss link) ──────────────── */
 .interactive-color-secondary {
   color: var(--text-tertiary);
   transition: color var(--duration-fast, 150ms) var(--ease-smooth, ease);
-}
-.interactive-color-secondary:hover:not(:disabled) {
-  color: var(--text-secondary);
 }
 
 /* ── Accent-warm toolbar hover (onboarding action cards) ── */
@@ -803,11 +713,6 @@
     border-color var(--duration-fast, 150ms) var(--ease-smooth, ease),
     color var(--duration-fast, 150ms) var(--ease-smooth, ease);
 }
-.interactive-toolbar-warm:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--accent-warm) 10%, var(--bg-toolbar));
-  border-color: var(--accent-warm);
-  color: var(--accent-warm);
-}
 
 /* ── Soft accent tint (scan LAN / highlighted option) ───── */
 .interactive-accent-soft {
@@ -816,9 +721,6 @@
   transition:
     background var(--duration-fast, 150ms) var(--ease-smooth, ease),
     color var(--duration-fast, 150ms) var(--ease-smooth, ease);
-}
-.interactive-accent-soft:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--accent-primary) 14%, transparent);
 }
 
 /* ── Icon tile hover (picker grids) ─────────────────────── */
@@ -829,18 +731,11 @@
     background var(--duration-fast, 150ms) var(--ease-smooth, ease),
     border-color var(--duration-fast, 150ms) var(--ease-smooth, ease);
 }
-.interactive-tile:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
-  border-color: var(--accent-primary);
-}
 
 /* ── Outline-only hover (border → accent) ───────────────── */
 .interactive-outline {
   border-color: var(--border-subtle);
   transition: border-color var(--duration-fast, 150ms) var(--ease-smooth, ease);
-}
-.interactive-outline:hover:not(:disabled) {
-  border-color: var(--accent-primary);
 }
 
 /* ── Text-link hover (tertiary → accent) ────────────────── */
@@ -848,25 +743,16 @@
   color: var(--text-tertiary);
   transition: color var(--duration-fast, 150ms) var(--ease-smooth, ease);
 }
-.interactive-accent-link:hover:not(:disabled) {
-  color: var(--accent-primary);
-}
 
 /* ── Opacity fade hover (remove ✕ buttons) ──────────────── */
 .interactive-fade {
   opacity: 0.7;
   transition: opacity var(--duration-fast, 150ms) var(--ease-smooth, ease);
 }
-.interactive-fade:hover:not(:disabled) {
-  opacity: 1;
-}
 
 /* ── Scale hover (floating conflict badge) ──────────────── */
 .interactive-scale {
   transition: transform 0.2s ease;
-}
-.interactive-scale:hover:not(:disabled) {
-  transform: scale(1.05);
 }
 
 /* ── Card lift with accent ring (biometric verify card) ─── */
@@ -876,23 +762,12 @@
     box-shadow 0.2s ease,
     border-color 0.2s ease;
 }
-.interactive-card-lift:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow:
-    0 0 0 2px var(--accent-primary),
-    0 8px 24px color-mix(in srgb, var(--accent-primary) 25%, transparent);
-  border-color: var(--accent-primary);
-}
 
 /* ── Red preview hover (trash tab on shared Button) ─────── */
 .interactive-danger-tab {
   transition:
     background var(--duration-fast, 150ms) var(--ease-smooth, ease),
     border-color var(--duration-fast, 150ms) var(--ease-smooth, ease);
-}
-.interactive-danger-tab:hover:not(:disabled) {
-  background: color-mix(in srgb, #e74c3c 10%, transparent) !important;
-  border-color: #e74c3c !important;
 }
 
 /* ── Clear-filter chip (transparent → accent ring) ──────── */
@@ -905,11 +780,6 @@
     box-shadow 0.2s,
     color 0.2s;
 }
-.interactive-clear:hover:not(:disabled) {
-  border-color: var(--accent-primary);
-  color: var(--text-primary);
-  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--accent-primary) 10%, transparent);
-}
 
 /* ── Elevated base + accent 6% hover (template type chips) */
 .interactive-elevated {
@@ -919,10 +789,6 @@
   transition:
     background 0.15s ease,
     border-color 0.15s ease;
-}
-.interactive-elevated:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--accent-primary) 6%, transparent);
-  border-color: var(--accent-primary);
 }
 
 /* ── Dashed → solid accent hover (manage-templates link) ── */
@@ -936,19 +802,10 @@
     border-color 0.15s ease,
     color 0.15s ease;
 }
-.interactive-dashed-solid:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--accent-primary) 6%, transparent);
-  border-style: solid;
-  border-color: var(--accent-primary);
-  color: var(--accent-primary);
-}
 
 /* ── Subtle neutral row hover (about page link rows) ────── */
 .interactive-link-row {
   transition: background var(--duration-fast, 150ms) var(--ease-smooth, ease);
-}
-.interactive-link-row:hover {
-  background: rgba(128, 128, 128, 0.06);
 }
 
 /* ── Transfer button (import/export 共用，plain/accent/warning 三态) ──
@@ -963,11 +820,6 @@
     border-color var(--duration-fast, 150ms) var(--ease-smooth, ease),
     color var(--duration-fast, 150ms) var(--ease-smooth, ease);
 }
-.interactive-transfer:hover:not(:disabled) {
-  background: var(--transfer-hover-bg);
-  border-color: var(--transfer-hover-border);
-  color: var(--transfer-hover-color);
-}
 
 /* ── Warning outline cancel button（弱密码/提示弹窗）────── */
 .interactive-warning-cancel {
@@ -975,9 +827,6 @@
   border-color: var(--warning);
   color: var(--warning);
   transition: background var(--duration-fast, 150ms) var(--ease-smooth, ease);
-}
-.interactive-warning-cancel:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--bg-elevated) 70%, var(--warning-subtle) 30%);
 }
 
 /* ── PageGuide trigger（透明 → accent 6% 淡染）──────────── */
@@ -990,10 +839,208 @@
     border-color var(--duration-fast, 150ms) var(--ease-smooth, ease),
     color var(--duration-fast, 150ms) var(--ease-smooth, ease);
 }
-.interactive-guide-trigger:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--accent-primary) 6%, transparent);
-  border-color: var(--accent-primary);
-  color: var(--accent-primary);
+
+/* ── Hover 状态守卫：仅真正支持悬停的精确指针设备生效 ──
+   Android/iOS WebView 触屏会合成 hover 事件且不自动移除，
+   点击后悬停样式会"粘住"，误以为按钮处于选中态。
+   用 @media (hover: hover) and (pointer: fine) 将全部
+   interactive-* 的 :hover 规则收拢于此 —— 触屏设备完全不
+   应用这些规则，桌面鼠标行为不变。
+   :focus / :active / selected-* 等非 hover 规则保持在块外。 */
+@media (hover: hover) and (pointer: fine) {
+  .interactive-accent:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+  }
+
+  .interactive-accent-light:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--accent-primary) 6%, transparent);
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+  }
+
+  .interactive-toolbar:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--accent-primary) 10%, var(--bg-toolbar));
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+  }
+
+  .interactive-danger:hover:not(:disabled) {
+    background: rgba(231, 76, 60, 0.1);
+    border-color: #e74c3c;
+    color: #e74c3c;
+  }
+
+  .interactive-danger-transparent:hover:not(:disabled) {
+    background: color-mix(in srgb, #e74c3c 12%, transparent);
+    border-color: #e74c3c;
+    color: #e74c3c;
+  }
+
+  .interactive-icon:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+    color: var(--accent-primary);
+  }
+
+  .interactive-icon-danger:hover:not(:disabled) {
+    background: color-mix(in srgb, #e74c3c 12%, transparent);
+  }
+
+  .interactive-danger-soft:hover:not(:disabled) {
+    background: rgba(192, 57, 43, 0.12);
+  }
+
+  .interactive-row:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
+    border-color: color-mix(in srgb, var(--accent-primary) 25%, transparent);
+  }
+
+  .interactive-nav:hover:not(:disabled) {
+    background: var(--bg-toolbar);
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+  }
+
+  .interactive-color-accent:hover:not(:disabled) {
+    color: var(--accent-primary);
+  }
+
+  .interactive-toolbar-selected:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+  }
+
+  .interactive-neutral:hover:not(:disabled) {
+    background: var(--bg-hover);
+  }
+
+  .interactive-lift:hover:not(:disabled) {
+    transform: translateY(-2px);
+  }
+
+  .interactive-lift-strong:hover:not(:disabled) {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    border-color: var(--accent-primary);
+  }
+
+  .interactive-ghost:hover:not(:disabled) {
+    background: var(--bg-toolbar);
+    color: var(--text-primary);
+  }
+
+  .interactive-dashed:hover:not(:disabled) {
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+  }
+
+  .interactive-danger-solid:hover:not(:disabled) {
+    background: #c0392b;
+    box-shadow: 0 1px 4px rgba(231, 76, 60, 0.35);
+  }
+
+  .interactive-segmented:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+    color: var(--accent-primary);
+  }
+
+  .interactive-field:hover:not(:disabled):not(:focus) {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  }
+
+  .interactive-password-field:hover {
+    --pif-border-color: var(--accent-primary);
+    --pif-ring: 0 0 0 2px color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  }
+
+  .interactive-color-secondary:hover:not(:disabled) {
+    color: var(--text-secondary);
+  }
+
+  .interactive-toolbar-warm:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--accent-warm) 10%, var(--bg-toolbar));
+    border-color: var(--accent-warm);
+    color: var(--accent-warm);
+  }
+
+  .interactive-accent-soft:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--accent-primary) 14%, transparent);
+  }
+
+  .interactive-tile:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+    border-color: var(--accent-primary);
+  }
+
+  .interactive-outline:hover:not(:disabled) {
+    border-color: var(--accent-primary);
+  }
+
+  .interactive-accent-link:hover:not(:disabled) {
+    color: var(--accent-primary);
+  }
+
+  .interactive-fade:hover:not(:disabled) {
+    opacity: 1;
+  }
+
+  .interactive-scale:hover:not(:disabled) {
+    transform: scale(1.05);
+  }
+
+  .interactive-card-lift:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow:
+      0 0 0 2px var(--accent-primary),
+      0 8px 24px color-mix(in srgb, var(--accent-primary) 25%, transparent);
+    border-color: var(--accent-primary);
+  }
+
+  .interactive-danger-tab:hover:not(:disabled) {
+    background: color-mix(in srgb, #e74c3c 10%, transparent) !important;
+    border-color: #e74c3c !important;
+  }
+
+  .interactive-clear:hover:not(:disabled) {
+    border-color: var(--accent-primary);
+    color: var(--text-primary);
+    box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--accent-primary) 10%, transparent);
+  }
+
+  .interactive-elevated:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--accent-primary) 6%, transparent);
+    border-color: var(--accent-primary);
+  }
+
+  .interactive-dashed-solid:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--accent-primary) 6%, transparent);
+    border-style: solid;
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+  }
+
+  .interactive-link-row:hover {
+    background: rgba(128, 128, 128, 0.06);
+  }
+
+  .interactive-transfer:hover:not(:disabled) {
+    background: var(--transfer-hover-bg);
+    border-color: var(--transfer-hover-border);
+    color: var(--transfer-hover-color);
+  }
+
+  .interactive-warning-cancel:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--bg-elevated) 70%, var(--warning-subtle) 30%);
+  }
+
+  .interactive-guide-trigger:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--accent-primary) 6%, transparent);
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+  }
 }
 
 /* ── Selected state (composable with interactive-*) ─────── */

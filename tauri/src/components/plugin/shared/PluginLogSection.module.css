@@ -67,10 +67,12 @@
   transition: all 0.15s ease;
 }
 
-.stopBtn:hover {
-  background: var(--danger-subtle);
-  color: var(--danger);
-  border-color: transparent;
+@media (hover: hover) and (pointer: fine) {
+  .stopBtn:hover {
+    background: var(--danger-subtle);
+    color: var(--danger);
+    border-color: transparent;
+  }
 }
 
 .clearBtn {
@@ -90,10 +92,12 @@
   white-space: nowrap;
 }
 
-.clearBtn:hover {
-  background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
-  border-color: var(--accent-primary);
-  color: var(--accent-primary);
+@media (hover: hover) and (pointer: fine) {
+  .clearBtn:hover {
+    background: color-mix(in srgb, var(--accent-primary) 8%, transparent);
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+  }
 }
 
 /* ─── Log content ─────────────────────────────────────────────────── */
@@ -120,8 +124,10 @@
   transition: background 0.12s ease;
 }
 
-.logLine:hover {
-  background: var(--bg-hover);
+@media (hover: hover) and (pointer: fine) {
+  .logLine:hover {
+    background: var(--bg-hover);
+  }
 }
 
 .logLevel {

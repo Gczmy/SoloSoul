@@ -63,12 +63,14 @@
     transform 0.2s ease;
 }
 
-.loginFloatButton:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow:
-    0 0 0 2px var(--accent-primary),
-    0 8px 24px color-mix(in srgb, var(--accent-primary) 25%, transparent);
-  border-color: var(--accent-primary);
+@media (hover: hover) and (pointer: fine) {
+  .loginFloatButton:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow:
+      0 0 0 2px var(--accent-primary),
+      0 8px 24px color-mix(in srgb, var(--accent-primary) 25%, transparent);
+    border-color: var(--accent-primary);
+  }
 }
 
 .loginFloatButton:active:not(:disabled) {
@@ -85,7 +87,9 @@
     background 0.2s ease;
 }
 
-.loginTextButton:hover {
-  color: var(--accent-primary);
-  box-shadow: 0 0 0 1.5px var(--accent-primary);
+@media (hover: hover) and (pointer: fine) {
+  .loginTextButton:hover {
+    color: var(--accent-primary);
+    box-shadow: 0 0 0 1.5px var(--accent-primary);
+  }
 }

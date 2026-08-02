@@ -24,8 +24,10 @@
   content: '';
 }
 
-.summary:hover {
-  background: var(--bg-hover);
+@media (hover: hover) and (pointer: fine) {
+  .summary:hover {
+    background: var(--bg-hover);
+  }
 }
 
 .summary:focus-visible {

@@ -46,8 +46,10 @@
   line-height: 1.4;
 }
 
-.pairRow:hover {
-  background: var(--bg-hover);
+@media (hover: hover) and (pointer: fine) {
+  .pairRow:hover {
+    background: var(--bg-hover);
+  }
 }
 
 .pairRow {
@@ -107,10 +109,12 @@
   }
 }
 
-.pairCopyBtn:hover {
-  background: var(--accent-subtle);
-  color: var(--accent);
-  opacity: 1;
+@media (hover: hover) and (pointer: fine) {
+  .pairCopyBtn:hover {
+    background: var(--accent-subtle);
+    color: var(--accent);
+    opacity: 1;
+  }
 }
 
 .pairCopyBtn:focus-visible {
@@ -126,11 +130,13 @@
   opacity: 1;
 }
 
-.pairCopyBtnActive:hover {
-  border-color: var(--accent-primary);
-  box-shadow: 0 0 10px color-mix(in srgb, var(--accent-primary) 35%, transparent);
-  color: var(--accent-primary);
-  opacity: 1;
+@media (hover: hover) and (pointer: fine) {
+  .pairCopyBtnActive:hover {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 10px color-mix(in srgb, var(--accent-primary) 35%, transparent);
+    color: var(--accent-primary);
+    opacity: 1;
+  }
 }
 
 .tableWrapper {
@@ -203,8 +209,10 @@
   transition: background 0.12s ease;
 }
 
-.watermarkSelectAllLeft:hover {
-  background: var(--bg-hover);
+@media (hover: hover) and (pointer: fine) {
+  .watermarkSelectAllLeft:hover {
+    background: var(--bg-hover);
+  }
 }
 
 .watermarkSelectAllRight {
@@ -240,9 +248,11 @@
   transition: all 0.12s ease;
 }
 
-.watermarkClearSelection:hover {
-  color: var(--danger);
-  background: var(--danger-subtle);
+@media (hover: hover) and (pointer: fine) {
+  .watermarkClearSelection:hover {
+    color: var(--danger);
+    background: var(--danger-subtle);
+  }
 }
 
 /* ─── Watermark result items ───────────────────────────────────────── */
@@ -263,8 +273,10 @@
   transition: background 0.12s ease;
 }
 
-.watermarkItem:hover {
-  background: var(--bg-hover);
+@media (hover: hover) and (pointer: fine) {
+  .watermarkItem:hover {
+    background: var(--bg-hover);
+  }
 }
 
 .watermarkMain {
