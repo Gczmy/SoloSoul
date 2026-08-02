@@ -242,62 +242,22 @@ pub async fn page_delete(
 ) -> Result<usize, String> {
     let vault = vault_handle(&state)?;
 
-    // P114: 全表筛选 + 逐对象二次解密 + 回收站写入移入 spawn_blocking。
+    // P114/P211: 全表筛选 + 批量加载 + 单事务批量入回收站/软删移入 spawn_blocking。
+    // P211: 候选对象一次 list_object_metadata（metadata-only）筛选 + 一次 load_objects_batch
+    // （单条 IN 查询 + 单轮解密，替代逐对象 load_object 的 N 次解密），回收站写入与
+    // 软删收敛为 trash_and_soft_delete_batch 单事务（替代 N×2 次 auto-commit）。
     let count = tokio::task::spawn_blocking(move || -> Result<usize, String> {
         let now_ms = chrono::Utc::now().timestamp_millis();
         let period = load_trash_retention(&vault, &account_id);
         let retention_ms = retention_ms(&period);
-        let mut count = 0usize;
 
         let mut page_name = String::new();
 
-        // Delete the custom page object itself if provided
+        // 收集目标对象 ID：自定义页对象（如提供）+ 同 section/collection 的全部对象。
+        let mut target_ids: Vec<String> = Vec::new();
         if let Some(pid) = &page_object_id {
-            if let Ok(Some(rec)) = vault.load_object(pid) {
-                page_name = rec.name.clone();
-                let trash = solosoul_vault::TrashItem {
-                    id: format!("trash_{}", uuid::Uuid::new_v4()),
-                    item_type: "page".to_string(),
-                    original_id: rec.id.clone(),
-                    original_parent_id: None,
-                    original_section_type: Some(rec.section_type.clone()),
-                    original_sort_order: None,
-                    data: serde_json::to_vec(&serde_json::json!({
-                        "id": rec.id,
-                        "accountId": rec.account_id,
-                        "typeId": rec.type_id,
-                        "sectionType": rec.section_type,
-                        "name": rec.name,
-                        "iconName": rec.icon_name,
-                        "parentId": rec.parent_id,
-                        "childrenIds": rec.children_ids,
-                        "properties": rec.properties,
-                        "propertyLabels": rec.property_labels,
-                        "sensitivityLevel": rec.sensitivity_level,
-                        "tags": rec.tags_json,
-                        "createdAt": rec.created_at,
-                        "updatedAt": rec.updated_at,
-                        "version": rec.version,
-                        "templateId": rec.template_id,
-                        "templateType": rec.template_type,
-                        "contractTypeId": rec.contract_type_id,
-                        "templateHash": rec.template_hash,
-                    }))
-                    .unwrap_or_default(),
-                    deleted_at: now_ms,
-                    expires_at: Some(now_ms + retention_ms),
-                    deleted_by: "user".to_string(),
-                    name_snapshot: rec.name.clone(),
-                    icon_snapshot: Some(rec.icon_name),
-                };
-                let _ = vault.save_trash_item(&trash);
-                vault.delete_object(pid, true)?;
-                count += 1;
-            }
+            target_ids.push(pid.clone());
         }
-
-        // Delete all objects in this section_type
-        // P111: 仅需 section_type/collection_type/id 筛选候选，随后逐个 load_object，走 metadata-only 查询。
         let objects = vault
             .list_object_metadata(&account_id, None, None, false, false)
             .map_err(|e| format!("list: {}", e))?;
@@ -306,50 +266,76 @@ pub async fn page_delete(
                 if page_name.is_empty() {
                     page_name = section_type.clone();
                 }
-                if let Ok(Some(rec)) = vault.load_object(&obj.id) {
-                    let full_record = serde_json::json!({
-                        "id": rec.id,
-                        "accountId": rec.account_id,
-                        "typeId": rec.type_id,
-                        "sectionType": rec.section_type,
-                        "name": rec.name,
-                        "iconName": rec.icon_name,
-                        "parentId": rec.parent_id,
-                        "childrenIds": rec.children_ids,
-                        "properties": rec.properties,
-                        "propertyLabels": rec.property_labels,
-                        "sensitivityLevel": rec.sensitivity_level,
-                        "tags": rec.tags_json,
-                        "createdAt": rec.created_at,
-                        "updatedAt": rec.updated_at,
-                        "version": rec.version,
-                        "templateId": rec.template_id,
-                        "templateType": rec.template_type,
-                        "contractTypeId": rec.contract_type_id,
-                        "templateHash": rec.template_hash,
-                        "parentPageName": page_name,
-                        "parentPageIcon": rec.icon_name,
-                    });
-                    let trash = solosoul_vault::TrashItem {
-                        id: format!("trash_{}", uuid::Uuid::new_v4()),
-                        item_type: "object".to_string(),
-                        original_id: rec.id.clone(),
-                        original_parent_id: rec.parent_id.clone(),
-                        original_section_type: Some(rec.section_type.clone()),
-                        original_sort_order: None,
-                        data: serde_json::to_vec(&full_record).unwrap_or_default(),
-                        deleted_at: now_ms,
-                        expires_at: Some(now_ms + retention_ms),
-                        deleted_by: "user".to_string(),
-                        name_snapshot: rec.name.clone(),
-                        icon_snapshot: Some(rec.icon_name.clone()),
-                    };
-                    let _ = vault.save_trash_item(&trash);
-                    vault.delete_object(&obj.id, true)?;
-                    count += 1;
-                }
+                target_ids.push(obj.id.clone());
             }
         }
+
+        // 去重：页对象可能同时命中 section 扫描（原实现先软删页对象再列对象，扫描天然
+        // 排除；新实现先收集后删除，需显式去重，否则页对象会重复入回收站/重复计数）。
+        let mut seen = std::collections::HashSet::new();
+        target_ids.retain(|id| seen.insert(id.clone()));
+
+        // 一次批量加载（单条 IN 查询 + 单轮解密）。
+        let loaded = vault.load_objects_batch(&target_ids)?;
+
+        // 按收集顺序重建条目（页对象优先；名称用于审计）。
+        let mut trash_items: Vec<solosoul_vault::TrashItem> = Vec::new();
+        let mut soft_delete_ids: Vec<String> = Vec::new();
+        for id in &target_ids {
+            let Some(rec) = loaded.get(id) else {
+                continue;
+            };
+            let is_page = page_object_id.as_ref() == Some(id);
+            let record = serde_json::json!({
+                "id": rec.id,
+                "accountId": rec.account_id,
+                "typeId": rec.type_id,
+                "sectionType": rec.section_type,
+                "name": rec.name,
+                "iconName": rec.icon_name,
+                "parentId": rec.parent_id,
+                "childrenIds": rec.children_ids,
+                "properties": rec.properties,
+                "propertyLabels": rec.property_labels,
+                "sensitivityLevel": rec.sensitivity_level,
+                "tags": rec.tags_json,
+                "createdAt": rec.created_at,
+                "updatedAt": rec.updated_at,
+                "version": rec.version,
+                "templateId": rec.template_id,
+                "templateType": rec.template_type,
+                "contractTypeId": rec.contract_type_id,
+                "templateHash": rec.template_hash,
+            });
+            let mut data = record;
+            if is_page {
+                if page_name.is_empty() {
+                    page_name = rec.name.clone();
+                }
+            } else {
+                data["parentPageName"] = serde_json::Value::String(page_name.clone());
+                data["parentPageIcon"] = serde_json::Value::String(rec.icon_name.clone());
+            }
+            trash_items.push(solosoul_vault::TrashItem {
+                id: format!("trash_{}", uuid::Uuid::new_v4()),
+                item_type: if is_page { "page" } else { "object" }.to_string(),
+                original_id: rec.id.clone(),
+                original_parent_id: if is_page { None } else { rec.parent_id.clone() },
+                original_section_type: Some(rec.section_type.clone()),
+                original_sort_order: None,
+                data: serde_json::to_vec(&data).unwrap_or_default(),
+                deleted_at: now_ms,
+                expires_at: Some(now_ms + retention_ms),
+                deleted_by: "user".to_string(),
+                name_snapshot: rec.name.clone(),
+                icon_snapshot: Some(rec.icon_name.clone()),
+            });
+            soft_delete_ids.push(id.clone());
+        }
+
+        // 单事务批量写入：回收站条目 + 对象软删，任一步失败整体回滚。
+        vault.trash_and_soft_delete_batch(&trash_items, &soft_delete_ids)?;
+        let count = trash_items.len();
 
         let _ = vault.log_structured(
             "page_delete",

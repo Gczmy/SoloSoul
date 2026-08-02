@@ -3021,6 +3021,47 @@ impl VaultStore {
         Self::save_trash_item_tx(conn, &key, item)
     }
 
+    /// P211: 单事务批量「入回收站 + 软删对象」。
+    ///
+    /// page_delete 等批量删除场景使用：替代「逐条 `save_trash_item` + 逐条
+    /// `delete_object(soft)`」的 N×2 次 auto-commit 写事务（每次 save/delete 各自
+    /// 获取连接锁并提交）。所有 `items` 插入与 `soft_delete_ids` 软删在同一事务内
+    /// 完成——任一步失败整体回滚，回收站条目与对象软删不会产生半成品。
+    /// 软删 `updated_at`/`deleted_at` 统一取一次时间戳，与 `delete_object(soft)`
+    /// 语义一致（HLC 回退沿用 updated_at）。
+    pub fn trash_and_soft_delete_batch(
+        &self,
+        items: &[TrashItem],
+        soft_delete_ids: &[String],
+    ) -> Result<(), String> {
+        let key = self.data_key()?;
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        let tx = conn
+            .transaction()
+            .map_err(|e| format!("Failed to begin transaction: {e}"))?;
+
+        for item in items {
+            Self::save_trash_item_tx(&tx, &key, item)?;
+        }
+        if !soft_delete_ids.is_empty() {
+            let now = chrono::Utc::now().to_rfc3339();
+            let mut stmt = tx
+                .prepare(
+                    "UPDATE objects SET is_deleted = 1, deleted_at = ?1, updated_at = ?1 WHERE id = ?2",
+                )
+                .map_err(|e| format!("Failed to prepare soft delete: {e}"))?;
+            for id in soft_delete_ids {
+                stmt.execute(params![&now, id])
+                    .map_err(|e| format!("Failed to soft delete: {e}"))?;
+            }
+        }
+
+        tx.commit()
+            .map_err(|e| format!("Failed to commit transaction: {e}"))?;
+        Ok(())
+    }
+
     /// P115: 事务内保存回收站条目（连接由调用方持有，批量应用单事务内复用）。
     fn save_trash_item_tx(
         conn: &Connection,
@@ -5439,6 +5480,73 @@ mod tests {
 
         vault.delete_trash_item("trash-1").unwrap();
         assert!(vault.get_trash_item("trash-1").unwrap().is_none());
+    }
+
+    #[test]
+    fn test_trash_and_soft_delete_batch() {
+        let (vault, _dir) = setup();
+        let obj_ids: Vec<String> = (0..2).map(|i| format!("batch-obj-{}", i)).collect();
+        for (i, id) in obj_ids.iter().enumerate() {
+            let obj = ObjectRecord {
+                id: id.clone(),
+                account_id: "acc-1".to_string(),
+                name: format!("Batch Object {}", i),
+                properties: serde_json::json!({ "k": "v" }),
+                ..Default::default()
+            };
+            vault.save_object(&obj).unwrap();
+        }
+
+        let items: Vec<TrashItem> = (0..2)
+            .map(|i| TrashItem {
+                id: format!("trash-batch-{}", i),
+                item_type: "object".to_string(),
+                original_id: format!("batch-obj-{}", i),
+                original_parent_id: None,
+                original_section_type: Some("identity".to_string()),
+                original_sort_order: None,
+                data: vec![1, 2, 3],
+                deleted_at: 1,
+                expires_at: Some(2),
+                deleted_by: "user".to_string(),
+                name_snapshot: format!("Batch Object {}", i),
+                icon_snapshot: None,
+            })
+            .collect();
+
+        vault.trash_and_soft_delete_batch(&items, &obj_ids).unwrap();
+
+        // 回收站两条（含数据往返）
+        let list = vault.list_trash_items(None, None).unwrap();
+        assert_eq!(list.len(), 2);
+        for i in 0..2 {
+            let loaded = vault
+                .get_trash_item(&format!("trash-batch-{}", i))
+                .unwrap()
+                .unwrap();
+            assert_eq!(loaded.data, vec![1, 2, 3]);
+        }
+        // 对象已软删
+        let deleted = vault
+            .list_object_metadata("acc-1", None, None, true, true)
+            .unwrap();
+        assert_eq!(deleted.len(), 2);
+        let id_set: std::collections::HashSet<String> = obj_ids.iter().cloned().collect();
+        for d in &deleted {
+            assert!(id_set.contains(&d.id));
+        }
+        // 非软删列表中不再出现
+        let live = vault
+            .list_object_metadata("acc-1", None, None, false, false)
+            .unwrap();
+        assert!(live.is_empty());
+    }
+
+    #[test]
+    fn test_trash_and_soft_delete_batch_empty() {
+        let (vault, _dir) = setup();
+        vault.trash_and_soft_delete_batch(&[], &[]).unwrap();
+        assert!(vault.list_trash_items(None, None).unwrap().is_empty());
     }
 
     #[test]
