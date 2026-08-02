@@ -57,6 +57,9 @@
 .textarea {
   resize: vertical;
   font-family: inherit;
+  /* 多行文本编辑框：比默认 rows 略高，便于长文本编辑（行高 + 内边距保证） */
+  min-height: 132px;
+  line-height: 1.6;
 }
 
 .select {

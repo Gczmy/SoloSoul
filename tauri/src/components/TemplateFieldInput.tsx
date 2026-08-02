@@ -86,7 +86,7 @@ export function TemplateFieldInput({
             value={String(value || '')}
             onChange={(e) => onChange(e.target.value)}
             disabled={disabled}
-            rows={4}
+            rows={6}
           />
         </div>
       );
