@@ -13,18 +13,28 @@ import {
   Briefcase,
   FileText,
 } from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { createPortal } from 'react-dom';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
-import type { CustomPage } from '@/stores/settingsStore';
 import { useToastError } from '@/hooks/useToastError';
-import { PAGE_ICON_MAP, resolveCustomIcon } from '@/lib/pageIcons';
+import { PAGE_ICON_MAP } from '@/lib/pageIcons';
 import { DEBOUNCE_DELAY_MS } from '@/lib/constants';
 import { searchCache } from '@/lib/searchCache';
 import { ObjectDetailModal } from '@/components/object/ObjectDetailModal';
-import { SensitivityBadge, SensitivityLevel } from '@/components/ui/SensitivityBadge';
+import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
+import {
+  Highlight,
+  MatchHint,
+  SearchItem,
+  buildSearchCacheParams,
+  buildSearchPayload,
+  ensurePageResultExists,
+  matchPageTranslation,
+  resolveResultIcon,
+  resolveResultName,
+  sortSensitivityLevels,
+} from '@/lib/searchShared';
 import styles from './SearchPopover.module.css';
 import { ICON_SIZE } from '@/lib/constants';
 
@@ -35,23 +45,6 @@ const FILTER_PAGES = [
   { key: 'professional', labelKey: 'navigation:professional', icon: Briefcase },
   { key: 'document', labelKey: 'navigation:document', icon: FileText },
 ];
-
-interface SearchItem {
-  objectId: string;
-  name: string;
-  collectionType: string;
-  itemType: 'object' | 'page' | 'template';
-  parentId?: string;
-  templateName?: string;
-  templateDeleted?: boolean;
-  fieldCount?: number;
-  sensitivityLevels?: string[];
-  objectCount?: number;
-  matchedField?: string;
-  matchedValue?: string;
-  matchType?: 'fieldName' | 'fieldValue' | 'name' | 'template';
-  relevance: number;
-}
 
 interface SearchPopoverProps {
   onClose: () => void;
@@ -73,45 +66,6 @@ function saveRecent(query: string) {
   localStorage.setItem(RECENT_KEY, JSON.stringify(next));
 }
 
-/** Split a text into segments and bold the ones that match the query (case-insensitive). */
-const SENSITIVITY_ORDER: SensitivityLevel[] = ['public', 'internal', 'sensitive', 'critical'];
-
-function sortSensitivityLevels(levels: string[]): SensitivityLevel[] {
-  return levels
-    .filter((lvl): lvl is SensitivityLevel => SENSITIVITY_ORDER.includes(lvl as SensitivityLevel))
-    .sort((a, b) => SENSITIVITY_ORDER.indexOf(a) - SENSITIVITY_ORDER.indexOf(b));
-}
-
-function Highlight({ text, query }: { text: string; query: string }) {
-  if (!query.trim()) return <>{text}</>;
-  const lowerQuery = query.toLowerCase();
-  const lowerText = text.toLowerCase();
-  const parts: React.ReactNode[] = [];
-  let i = 0;
-  while (i < text.length) {
-    const idx = lowerText.indexOf(lowerQuery, i);
-    if (idx === -1) {
-      parts.push(text.slice(i));
-      break;
-    }
-    if (idx > i) parts.push(text.slice(i, idx));
-    parts.push(
-      <mark
-        key={`${idx}-${query}`}
-        style={{
-          fontWeight: 700,
-          color: 'var(--accent-primary)',
-          background: 'transparent',
-        }}
-      >
-        {text.slice(idx, idx + query.length)}
-      </mark>,
-    );
-    i = idx + query.length;
-  }
-  return <>{parts}</>;
-}
-
 export function SearchPopover({ onClose }: SearchPopoverProps) {
   const navigate = useNavigate();
   const accountId = useAuthStore((s) => s.currentAccount?.id);
@@ -119,58 +73,6 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
   const activeCustomPages = customPages.filter((p) => !p.deletedAt);
   const { onError } = useToastError();
   const { t } = useTranslation(['common', 'navigation', 'settings', 'sensitivity', 'editor']);
-
-  /** Resolve display name: translate system page keys via i18n. */
-  function resolveResultName(item: { itemType: string; objectId: string; name: string }): string {
-    if (item.itemType === 'page') {
-      const system = FILTER_PAGES.find((f) => f.key === item.objectId);
-      if (system) return t(system.labelKey);
-      const cp = customPages.find((p) => p.id === item.objectId);
-      if (cp) return cp.name;
-    }
-    return item.name;
-  }
-
-  /** Detect if the query matches a translated system page name. */
-  const matchPageTranslation = useCallback(
-    (q: string): string | null => {
-      const trimmed = q.toLowerCase().trim();
-      const systemKeys = ['identity', 'travel', 'financial', 'professional', 'document'] as const;
-      for (const key of systemKeys) {
-        const label = t(`navigation:${key}`).toLowerCase();
-        if (label === trimmed || label.includes(trimmed) || trimmed.includes(label)) {
-          return key;
-        }
-      }
-      return null;
-    },
-    [t],
-  );
-
-  /** Resolve icon for a search result item. */
-  function resolveResultIcon(
-    item: { itemType: string; collectionType: string; objectId: string },
-    pages: CustomPage[],
-  ): LucideIcon {
-    if (item.itemType === 'page') {
-      if (item.objectId in PAGE_ICON_MAP) {
-        return PAGE_ICON_MAP[item.objectId as keyof typeof PAGE_ICON_MAP];
-      }
-      const cp = pages.find((p) => p.id === item.objectId);
-      if (cp) {
-        return resolveCustomIcon(cp.iconId);
-      }
-      return PAGE_ICON_MAP.custom;
-    }
-    if (item.collectionType in PAGE_ICON_MAP) {
-      return PAGE_ICON_MAP[item.collectionType as keyof typeof PAGE_ICON_MAP];
-    }
-    const cp = pages.find((p) => p.id === item.collectionType);
-    if (cp) {
-      return resolveCustomIcon(cp.iconId);
-    }
-    return PAGE_ICON_MAP.custom;
-  }
 
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchItem[]>([]);
@@ -206,13 +108,8 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
         return;
       }
 
-      // Build cache key with the same params that will go into the payload
-      const isCustom = filter ? activeCustomPages.some((p) => p.id === filter) : false;
-      const pageKey = !filter ? matchPageTranslation(q) : null;
-      const effectiveCollectionType = pageKey ?? (filter && !isCustom ? filter : null);
-      const parentId = filter && isCustom ? filter : null;
-
-      const cacheKey = searchCache.buildKey(accountId, q, effectiveCollectionType, parentId);
+      const pageKey = !filter ? matchPageTranslation(q, t) : null;
+      const { cacheKey } = buildSearchCacheParams(accountId, q, pageKey, filter, customPages);
       const cached = searchCache.get<SearchItem[]>(cacheKey);
       if (cached) {
         setResults(cached);
@@ -223,44 +120,12 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
       setIsSearching(true);
       setHasSearched(true);
       try {
-        const payload: Record<string, unknown> = { accountId, query: q, limit: 50 };
-
-        if (pageKey) {
-          payload.collectionType = pageKey;
-        }
-        if (filter) {
-          if (isCustom) {
-            payload.parentId = filter;
-          } else {
-            payload.collectionType = filter;
-          }
-        }
         const res = await invoke<{ items: SearchItem[]; total: number; hasMore: boolean }>(
           'search_unified',
-          payload,
+          buildSearchPayload(accountId, q, pageKey, filter, customPages),
         );
 
-        let items = res.items;
-        if (pageKey) {
-          const pageExists = items.some((i) => i.itemType === 'page' && i.objectId === pageKey);
-          if (!pageExists) {
-            items = [
-              {
-                objectId: pageKey,
-                name: pageKey,
-                collectionType: pageKey,
-                itemType: 'page',
-                objectCount: undefined,
-                matchedField: undefined,
-                matchedValue: undefined,
-                matchType: undefined,
-                sensitivityLevels: undefined,
-                relevance: 99,
-              } as SearchItem,
-              ...items,
-            ];
-          }
-        }
+        const items = pageKey ? ensurePageResultExists(res.items, pageKey) : res.items;
 
         searchCache.set(cacheKey, items);
         setResults(items);
@@ -270,7 +135,7 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
         setIsSearching(false);
       }
     },
-    [accountId, activeCustomPages, onError, t, matchPageTranslation],
+    [accountId, customPages, onError, t],
   );
 
   const handleChange = (val: string) => {
@@ -307,45 +172,6 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
     const system = FILTER_PAGES.find((f) => f.key === item.collectionType);
     if (system) return t(system.labelKey);
     return item.collectionType;
-  };
-
-  const resolveFieldLabel = (fieldPath?: string): string => {
-    if (!fieldPath) return '';
-    const lastSegment = fieldPath.split('.').pop() || fieldPath;
-    return t(`editor:fields.${lastSegment}`, lastSegment);
-  };
-
-  const renderMatchHint = (item: SearchItem): React.ReactNode => {
-    if (!item.matchedField || item.itemType === 'page' || item.matchType === 'name') return null;
-    const fieldLabel = resolveFieldLabel(item.matchedField);
-    if (item.matchType === 'fieldName' && item.matchedValue) {
-      return (
-        <span>
-          {' · '}
-          {t('settings:search_field_label', '字段名')}：
-          <Highlight text={fieldLabel} query={query} />
-        </span>
-      );
-    }
-    if (item.matchType === 'fieldValue' && item.matchedValue) {
-      return (
-        <span>
-          {' · '}
-          <Highlight text={fieldLabel} query={query} />
-          {': '}
-          <Highlight text={item.matchedValue} query={query} />
-        </span>
-      );
-    }
-    if (item.matchType === 'template' && item.matchedValue) {
-      return (
-        <span>
-          {' · '}
-          {t('settings:search_type_template')}：<Highlight text={item.matchedValue} query={query} />
-        </span>
-      );
-    }
-    return null;
   };
 
   const handleClickResult = (item: SearchItem) => {
@@ -492,9 +318,9 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
                           {item.itemType === 'page' ||
                           item.itemType === 'template' ||
                           item.matchType === 'template' ? (
-                            <Highlight text={resolveResultName(item)} query={query} />
+                            <Highlight text={resolveResultName(item, customPages, t)} query={query} />
                           ) : (
-                            resolveResultName(item)
+                            resolveResultName(item, customPages, t)
                           )}
                         </div>
                         <div className={styles.resultMeta}>
@@ -574,7 +400,7 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
                               )}
                             </>
                           )}
-                          {renderMatchHint(item)}
+                          <MatchHint item={item} query={query} t={t} />
                         </div>
                       </div>
                     </button>

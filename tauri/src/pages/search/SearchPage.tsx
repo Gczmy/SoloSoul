@@ -1,8 +1,6 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import type { TFunction } from 'i18next';
-import type { LucideIcon } from 'lucide-react';
 import { AppShell } from '@/components/layout/AppShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
@@ -14,138 +12,25 @@ import { ICON_SIZE } from '@/lib/constants';
 import { Search, Info, Type, FolderOpen } from 'lucide-react';
 import { ObjectDetailModal } from '@/components/object/ObjectDetailModal';
 import { AttachmentViewer } from '@/components/object/AttachmentViewer';
-import { PAGE_ICON_MAP, resolveCustomIcon } from '@/lib/pageIcons';
 import { resolveCollectionLabel } from '@/lib/utils';
 import { useSettingsStore } from '@/stores/settingsStore';
-import type { CustomPage } from '@/stores/settingsStore';
-import { SensitivityBadge, SensitivityLevel } from '@/components/ui/SensitivityBadge';
 import { DEBOUNCE_DELAY_MS } from '@/lib/constants';
 import { searchCache } from '@/lib/searchCache';
+import {
+  Highlight,
+  MatchHint,
+  SearchItem,
+  buildSearchCacheParams,
+  buildSearchPayload,
+  ensurePageResultExists,
+  matchPageTranslation,
+  resolveResultIcon,
+  resolveResultName,
+  sortSensitivityLevels,
+} from '@/lib/searchShared';
+import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import styles from './SearchPage.module.css';
 import { PageGuideButton } from '@/components/guide/PageGuideButton';
-
-const SENSITIVITY_ORDER: SensitivityLevel[] = ['public', 'internal', 'sensitive', 'critical'];
-const SYSTEM_PAGE_KEYS = ['identity', 'travel', 'financial', 'professional', 'document'] as const;
-
-function sortSensitivityLevels(levels: string[]): SensitivityLevel[] {
-  return levels
-    .filter((lvl): lvl is SensitivityLevel => SENSITIVITY_ORDER.includes(lvl as SensitivityLevel))
-    .sort((a, b) => SENSITIVITY_ORDER.indexOf(a) - SENSITIVITY_ORDER.indexOf(b));
-}
-
-function Highlight({ text, query }: { text: string; query: string }) {
-  if (!query.trim()) return <>{text}</>;
-  const lowerQuery = query.toLowerCase();
-  const lowerText = text.toLowerCase();
-  const parts: React.ReactNode[] = [];
-  let i = 0;
-  while (i < text.length) {
-    const idx = lowerText.indexOf(lowerQuery, i);
-    if (idx === -1) {
-      parts.push(text.slice(i));
-      break;
-    }
-    if (idx > i) parts.push(text.slice(i, idx));
-    parts.push(
-      <mark
-        key={`${idx}-${query}`}
-        style={{
-          fontWeight: 700,
-          color: 'var(--accent-primary)',
-          background: 'transparent',
-        }}
-      >
-        {text.slice(idx, idx + query.length)}
-      </mark>,
-    );
-    i = idx + query.length;
-  }
-  return <>{parts}</>;
-}
-
-/** Detect if the query matches a translated system page name.
- *  Returns the English page key if matched, null otherwise. */
-function matchPageTranslation(query: string, t: TFunction): string | null {
-  const q = query.toLowerCase().trim();
-  for (const key of SYSTEM_PAGE_KEYS) {
-    const label = t(`navigation:${key}`).toLowerCase();
-    if (label === q || label.includes(q) || q.includes(label)) {
-      return key;
-    }
-  }
-  return null;
-}
-
-/** Resolve display name for a search result item.
- *  System pages return English key from backend — translate via i18n.
- *  Custom pages and objects use their stored name directly. */
-function resolveResultName(
-  item: { itemType?: string; objectId: string; name: string },
-  customPages: CustomPage[],
-  t: TFunction,
-): string {
-  if (item.itemType === 'page') {
-    // System page — translate via navigation namespace
-    const systemKey = (SYSTEM_PAGE_KEYS as readonly string[]).includes(item.objectId)
-      ? item.objectId
-      : null;
-    if (systemKey) {
-      return t(`navigation:${systemKey}`);
-    }
-    // Custom page — use stored name
-    const cp = customPages.find((p) => p.id === item.objectId);
-    if (cp) return cp.name;
-  }
-  return item.name;
-}
-
-/** Resolve icon for a search result item based on its type and collection. */
-function resolveResultIcon(
-  item: { itemType?: string; collectionType: string; objectId: string },
-  customPages: CustomPage[],
-): LucideIcon {
-  if (item.itemType === 'page') {
-    // System page — check PAGE_ICON_MAP by objectId (e.g. "travel" → Plane)
-    if (item.objectId in PAGE_ICON_MAP) {
-      return PAGE_ICON_MAP[item.objectId as keyof typeof PAGE_ICON_MAP];
-    }
-    // Custom page — look up its iconId
-    const cp = customPages.find((p) => p.id === item.objectId);
-    if (cp) {
-      return resolveCustomIcon(cp.iconId);
-    }
-    return PAGE_ICON_MAP.custom;
-  }
-
-  // Object — use collectionType to determine icon
-  if (item.collectionType in PAGE_ICON_MAP) {
-    return PAGE_ICON_MAP[item.collectionType as keyof typeof PAGE_ICON_MAP];
-  }
-  // Check if collectionType is a custom page ID
-  const cp = customPages.find((p) => p.id === item.collectionType);
-  if (cp) {
-    return resolveCustomIcon(cp.iconId);
-  }
-  return PAGE_ICON_MAP.custom;
-}
-
-interface SearchItem {
-  objectId: string;
-  name: string;
-  collectionType: string;
-  /** "object" | "page" | "template" */
-  itemType?: string;
-  parentId?: string;
-  templateName?: string;
-  templateDeleted?: boolean;
-  objectCount?: number;
-  fieldCount?: number;
-  matchedField?: string;
-  matchedValue?: string;
-  matchType?: 'fieldName' | 'fieldValue' | 'name' | 'template';
-  sensitivityLevels?: string[];
-  relevance: number;
-}
 
 export function SearchPage() {
   const navigate = useNavigate();
@@ -178,7 +63,7 @@ export function SearchPage() {
       }
 
       const pageKey = matchPageTranslation(q, t);
-      const cacheKey = searchCache.buildKey(accountId, q, pageKey ?? undefined);
+      const { cacheKey } = buildSearchCacheParams(accountId, q, pageKey, null, customPages);
       const cached = searchCache.get<SearchItem[]>(cacheKey);
       if (cached) {
         setResults(cached);
@@ -189,38 +74,12 @@ export function SearchPage() {
       setIsSearching(true);
       setHasSearched(true);
       try {
-        const payload: Record<string, unknown> = { accountId, query: q, limit: 50 };
-        if (pageKey) {
-          payload.collectionType = pageKey;
-        }
-
         const res = await invoke<{ items: SearchItem[]; total: number; hasMore: boolean }>(
           'search_unified',
-          payload,
+          buildSearchPayload(accountId, q, pageKey, null, customPages),
         );
 
-        let items = res.items;
-
-        if (pageKey) {
-          const pageExists = items.some((i) => i.itemType === 'page' && i.objectId === pageKey);
-          if (!pageExists) {
-            items = [
-              {
-                objectId: pageKey,
-                name: pageKey,
-                collectionType: pageKey,
-                itemType: 'page',
-                objectCount: undefined,
-                matchedField: undefined,
-                matchedValue: undefined,
-                matchType: undefined,
-                sensitivityLevels: undefined,
-                relevance: 99,
-              } as SearchItem,
-              ...items,
-            ];
-          }
-        }
+        const items = pageKey ? ensurePageResultExists(res.items, pageKey) : res.items;
 
         searchCache.set(cacheKey, items);
         setResults(items);
@@ -230,52 +89,13 @@ export function SearchPage() {
         setIsSearching(false);
       }
     },
-    [accountId, onError, t],
+    [accountId, onError, t, customPages],
   );
 
   const handleChange = (val: string) => {
     setQuery(val);
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
     timeoutRef.current = setTimeout(() => doSearch(val), DEBOUNCE_DELAY_MS);
-  };
-
-  const resolveFieldLabel = (fieldPath?: string): string => {
-    if (!fieldPath) return '';
-    const lastSegment = fieldPath.split('.').pop() || fieldPath;
-    return t(`editor:fields.${lastSegment}`, lastSegment);
-  };
-
-  const renderMatchHint = (item: SearchItem): React.ReactNode => {
-    if (!item.matchedField || item.itemType === 'page' || item.matchType === 'name') return null;
-    const fieldLabel = resolveFieldLabel(item.matchedField);
-    if (item.matchType === 'fieldName' && item.matchedValue) {
-      return (
-        <span>
-          {' · '}
-          {t('settings:search_field_label', '字段名')}：
-          <Highlight text={fieldLabel} query={query} />
-        </span>
-      );
-    }
-    if (item.matchType === 'fieldValue' && item.matchedValue) {
-      return (
-        <span>
-          {' · '}
-          <Highlight text={fieldLabel} query={query} />
-          {': '}
-          <Highlight text={item.matchedValue} query={query} />
-        </span>
-      );
-    }
-    if (item.matchType === 'template' && item.matchedValue) {
-      return (
-        <span>
-          {' · '}
-          {t('settings:search_type_template')}：<Highlight text={item.matchedValue} query={query} />
-        </span>
-      );
-    }
-    return null;
   };
 
   const handleClickResult = (item: SearchItem) => {
@@ -431,7 +251,7 @@ export function SearchPage() {
                               ))}
                             </>
                           )}
-                        {renderMatchHint(item)}
+                        <MatchHint item={item} query={query} t={t} />
                       </div>
                     </div>
                   </div>
