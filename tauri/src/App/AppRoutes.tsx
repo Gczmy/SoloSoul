@@ -6,9 +6,11 @@ import { useAuthStore } from '@/stores/authStore';
 import { useObjectStore } from '@/stores/objectStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useProfileStore } from '@/stores/profileStore';
+import { useTrashStore } from '@/stores/trashStore';
 import { useApplyThemeFromSettings } from '@/hooks/useApplyThemeFromSettings';
 import { useAutoLock } from '@/hooks/useAutoLock';
 import { initLlmNotificationListener } from '@/lib/notification';
+import { searchCache } from '@/lib/searchCache';
 import { applyTheme, getSystemTheme, listenForSystemTheme } from '@/lib/theme';
 import { isMobilePlatformSync } from '@/lib/platform';
 import { getCurrentWindow } from '@tauri-apps/api/window';
@@ -471,6 +473,10 @@ export function AppRoutes() {
       useObjectStore.getState().clearOnVaultLock();
       useSettingsStore.getState().clearOnVaultLock();
       useProfileStore.getState().clear();
+      // P004/P005: 锁定后立即清理回收站解密摘要与搜索明文缓存，
+      // 避免解密数据残留在内存直至 TTL 自然过期。
+      useTrashStore.getState().clearOnVaultLock();
+      searchCache.clear();
       useAuthStore.getState().logout();
       // Re-check account state so hasAccount resolves from null → true/false
       // (otherwise /login route stays on "Connecting...")
