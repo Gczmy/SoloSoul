@@ -111,12 +111,12 @@
 | P228 | 架构 | `src/stores/authStore.ts:151 ↔ lib/notification.ts:9`、`objectStore.ts:3 ↔ lib/templateSync.ts:56` | 2 处循环依赖（靠动态 import / import type 勉强化解，脆弱） | `[ ]` |
 | P229 | 安全 | `src/components/guide/GuideRenderer.tsx:96-105` | 自定义 a 组件直渲 href，当前依赖 react-markdown 默认 urlTransform 拦截 `javascript:`，属隐式依赖应显式白名单 | `[x]` 已修复（2026-08-02：显式 URL 白名单，见下文） |
 | P230 | 安全 | `src/stores/ocrScanStore.ts:44-117` | OCR 结果（含 MRZ 证件号）常驻 Zustand 内存，无锁定/退出清理路径（persist 已正确排除） | `[x]` 已修复（2026-08-02：新增 clearOnVaultLock 并接入 vault-locked 链） |
-| P231 | 杂项 | `src/pages/system/AboutPage.tsx:481-483` | `window.open` 兜底在 Tauri webview 中无效，应删除或改 toast | `[ ]` |
+| P231 | 杂项 | `src/pages/system/AboutPage.tsx:481-483` | `window.open` 兜底在 Tauri webview 中无效，应删除或改 toast | `[x]` 已修复（2026-08-02：shell 打开失败改应用内 toast 反馈） |
 
 ## 修复进度
 
-- 已完成：72 / 73（P001-P007、P101-P142、P201-P222、P229、P230；其中 P104 为部分闭环、P206 部分修复、P209 为用户决策保留）
-- 当前处理：P231（AboutPage window.open 兜底）
+- 已完成：73 / 74（P001-P007、P101-P142、P201-P222、P229-P231；其中 P104 为部分闭环、P206 部分修复、P209 为用户决策保留）
+- 当前处理：P227（低危错误吞没 10 处，补 logger.warn/错误占位）
 
 ## 审查通过项（已排查，无需修改）
 
@@ -194,6 +194,7 @@ Windows 生产路径用 `FileBiometricStorage` 存主密钥（`derive_master_key
 ### 七、P2 指引（择要）
 
 - **性能**：P213 热点语句 `prepare_cached` + SQL 常量化；P214 先按明文列 SQL 筛 public 再解密。
+- **P231（已修复）**：AboutPage `window.open` 兜底。Tauri webview 中 `window.open` 无效（外壳接管原生链接打开），原 `open(link.url).catch(() => window.open(...))` 的兜底路径永远静默失效。改为：shell 打开失败时通过 `useUiStore.showToast` 展示应用内错误 toast（含 `settings:link_open_failed` i18n 键，`defaultValue: 无法打开链接`），并附底层错误串便于诊断。tsc 0 / eslint 0。
 - **P230（已修复）**：OCR 扫描结果内存清理。`ocrScanStore` 的 `scanHistory`（含 result/mrzResult/filePath，MRZ 证件号等敏感明文）常驻 Zustand 内存且无清理路径。新增 `clearOnVaultLock()`——清空 `scanHistory`/`currentScanId`/`lastScanError`/`isScanning`/`isCardOpen`，保留只读 UI 偏好（activeTier/scanMode，persist `partialize` 本就不持久化结果）；`AppRoutes.tsx` vault-locked 事件链（P004/P005 处）接入 `useOcrScanStore.getState().clearOnVaultLock()`。防回归单测 ×1（含 MRZ 明文的历史锁定后清零、UI 偏好保留）。tsc 0 / eslint 0 / vitest 20 通过。
 - **P229（已修复）**：指南渲染链接显式 URL 白名单。`GuideRenderer` 自定义 `a` 组件此前直渲 href，拦截 `javascript:` 依赖 react-markdown 默认 urlTransform——属隐式依赖，调用方传入自定义 urlTransform 即可失效。新增导出 `isSafeExternalUrl`：仅放行 `http/https/mailto` 与无协议相对链接，拒绝 `javascript:/data:/file:/vbscript:/ftp:` 及协议相对 `//` 链接；非白名单协议降级为纯文本（不渲染可点击 `<a>`），`.md` 内部导航逻辑不受影响。防回归单测 ×7。tsc 0 / eslint 0 / vitest 20 通过。
 - **P222（已修复）**：OCR 模块 pub 可见性收敛。按「外部（src-tauri/CLI）零消费者 → 按跨模块/同模块/测试独占三档降级」逐一核验：① **postprocess.rs**——`extract_text_boxes`/`ctc_decode_enhanced`/`build_ocr_result` 降 `pub(crate)`（engine.rs:6 消费）；`ctc_decode_detailed`/`filter_low_confidence_chars`/`correct_ocr_b_mrz` 降私有 `fn`（同模块内 253/367/368/369 行消费）；`ctc_decode` 降私有 `#[cfg(test)]`（仅 `test_ctc_decode_basic` 使用——`pub(crate)` 会触发非测试构建 dead_code，`#[cfg(test)]` 是测试独占工具的标准模式）。② **mrz.rs**——`parse_mrz`/`verify_checksums_lenient`/`preprocess_for_mrz`/`locate_mrz_region`/`split_text_lines`/`icao_normalize` 降 `pub(crate)`（engine.rs:252/412 消费）；`detect_mrz_region`/`to_grayscale`/`otsu_binarize`/`apply_clahe` 降私有 `fn`（mrz.rs 内 21/22/130/131/1147 行消费）。③ **engine.rs**——`scan_rgb`/`scan_rgb_with_threshold`/`recognize_line_rgb` 降私有 `fn`（内部 50/56/319 行消费）；`scan_image`/`scan_pdf`/`scan_mrz`/`load` 保持 `pub`（src-tauri `commands/ocr.rs` 真实调用）。④ **preprocess.rs**——4 函数降 `pub(crate)`（engine.rs:8/165 消费）；另发现并删除**完全死项** `apply_adaptive_threshold`（全 workspace 含测试零调用，P221 按行号清单漏网，属 OCR 模块内顺手清理，范围透明标注）。⑤ **pdf.rs**——4 函数全部降 `pub(crate)`（engine.rs:165 消费）。报告行号范围全部覆盖（postprocess 252-317 / mrz 14-372 / engine 55-136），「等」延展到 preprocess/pdf 同模块子项。验证：非测试构建 0 warning（`#[cfg(test)]` 方案生效）/ `cargo clippy --all-targets` 0 / core 152 测试全绿 / solo_soul+CLI check 0 错误。

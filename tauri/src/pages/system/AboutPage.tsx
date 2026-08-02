@@ -10,6 +10,7 @@ import { ExternalLink, Code, Shield, Info, Download, AlertTriangle, RefreshCw } 
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { SafeMarkdown } from '@/components/ui/SafeMarkdown';
 import { useUpdateChecker } from '@/hooks/useUpdateChecker';
+import { useUiStore } from '@/stores/uiStore';
 import { formatBytes } from '@/lib/utils';
 import { ICON_SIZE } from '@/lib/constants';
 
@@ -25,6 +26,7 @@ function friendlyPlatform(os: string, _arch: string): string {
 export function AboutPage() {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation(['settings', 'common']);
+  const showToast = useUiStore((s) => s.showToast);
   const docLang = i18n.language?.startsWith('zh') ? 'zh-CN' : 'en-US';
   const updater = useUpdateChecker();
   const {
@@ -478,9 +480,15 @@ export function AboutPage() {
                     }}
                     onClick={(e) => {
                       e.preventDefault();
-                      open(link.url).catch(() => {
-                        // 兜底：如果 shell open 失败，仍尝试默认打开方式
-                        window.open(link.url, '_blank', 'noopener,noreferrer');
+                      // P231: Tauri webview 中 window.open 无效，shell 打开失败时
+                      // 以应用内 toast 反馈，不再使用无效的 window.open 兜底。
+                      open(link.url).catch((err) => {
+                        showToast({
+                          type: 'error',
+                          message: t('settings:link_open_failed', {
+                            defaultValue: '无法打开链接',
+                          }) + (err ? `: ${err}` : ''),
+                        });
                       });
                     }}
                   >
