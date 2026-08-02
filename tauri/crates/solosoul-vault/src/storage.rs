@@ -2592,7 +2592,7 @@ impl VaultStore {
 
         let lower_kw = keyword.map(|k| k.to_lowercase());
         let mut sql = String::from(
-            "SELECT id, name, type_id, section_type, sensitivity_level, created_at, updated_at, is_deleted, properties, tags_json, template_id, template_type, contract_type_id, template_hash, ignored_template_hash, icon_name, property_labels
+            "SELECT id, name, type_id, section_type, sensitivity_level, created_at, updated_at, is_deleted, properties, tags_json, template_id, template_type, contract_type_id, template_hash, ignored_template_hash, icon_name, property_labels, parent_id
              FROM objects WHERE account_id = ?1",
         );
         let mut param_idx = 2;
@@ -2706,6 +2706,7 @@ impl VaultStore {
                     template_hash: row.get(13)?,
                     ignored_template_hash: row.get(14)?,
                     icon_name: row.get(15)?,
+                    parent_id: row.get(17)?,
                     properties,
                     property_labels,
                     tags,

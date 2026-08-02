@@ -502,14 +502,50 @@ pub async fn attachment_list_all(
     account_id: String,
 ) -> Result<AttachmentListAllResult, String> {
     let vault = vault_handle(&state)?;
+    // P112: 单次 list_objects 已解密全部 properties 并返回 summary.properties，
+    // 下方直接复用，不再 load_objects_batch / 逐页 list_objects 重复解密。
     let objects = vault.list_objects(&account_id, None, None, None, false, false)?;
 
     // Separate page objects from other objects
+    let (page_objects, section_groups, children_by_parent) =
+        group_objects_for_attachment_tree(&objects);
+
+    let pages = build_attachment_tree_pages(
+        &vault,
+        &page_objects,
+        &section_groups,
+        &children_by_parent,
+        false,
+    )?;
+    let trash_pages = build_attachment_tree_pages(
+        &vault,
+        &page_objects,
+        &section_groups,
+        &children_by_parent,
+        true,
+    )?;
+
+    Ok(AttachmentListAllResult { pages, trash_pages })
+}
+
+/// P112: 附件树分组结果——页面对象、按 section_type 分组的内置区段对象、
+/// 按 parent_id 分组的子对象（单次 list_objects 解密后一次成型，替代每页面 N+1 次查询）。
+type AttachmentTreeGroups = (
+    Vec<solosoul_vault::ObjectSummary>,
+    std::collections::BTreeMap<String, Vec<solosoul_vault::ObjectSummary>>,
+    HashMap<String, Vec<solosoul_vault::ObjectSummary>>,
+);
+
+/// P112: 单次 list_objects 已解密全部 properties，这里按 parent_id 一次性预分组子对象
+/// （替代每页面 N+1 次解密查询），并分离页面对象与按 section_type 分组的内置区段对象。
+fn group_objects_for_attachment_tree(objects: &[solosoul_vault::ObjectSummary]) -> AttachmentTreeGroups {
     let mut page_objects: Vec<solosoul_vault::ObjectSummary> = Vec::new();
     let mut section_groups: std::collections::BTreeMap<String, Vec<solosoul_vault::ObjectSummary>> =
         std::collections::BTreeMap::new();
+    let mut children_by_parent: HashMap<String, Vec<solosoul_vault::ObjectSummary>> =
+        HashMap::new();
 
-    for obj in &objects {
+    for obj in objects {
         if obj.collection_type == "page" {
             page_objects.push(obj.clone());
         } else {
@@ -518,41 +554,35 @@ pub async fn attachment_list_all(
                 .or_default()
                 .push(obj.clone());
         }
+        if let Some(pid) = &obj.parent_id {
+            children_by_parent
+                .entry(pid.clone())
+                .or_default()
+                .push(obj.clone());
+        }
     }
 
-    let pages =
-        build_attachment_tree_pages(&vault, &account_id, &page_objects, &section_groups, false)?;
-    let trash_pages =
-        build_attachment_tree_pages(&vault, &account_id, &page_objects, &section_groups, true)?;
-
-    Ok(AttachmentListAllResult { pages, trash_pages })
+    (page_objects, section_groups, children_by_parent)
 }
 
 /// Build attachment tree pages for a given filter (active vs trash).
-/// P110: Batch-loads all objects at once instead of N+1 load_object calls.
+/// P112: 直接复用已解密的 `summary.properties` 解析附件（不再 load_objects_batch 重复解密）；
+/// 子对象由调用方按 parent_id 一次性预分组传入（不再每页面 N+1 次解密查询）。
 fn build_attachment_tree_pages(
     vault: &solosoul_vault::VaultStore,
-    account_id: &str,
     page_objects: &[solosoul_vault::ObjectSummary],
     section_groups: &std::collections::BTreeMap<String, Vec<solosoul_vault::ObjectSummary>>,
+    children_by_parent: &HashMap<String, Vec<solosoul_vault::ObjectSummary>>,
     only_deleted: bool,
 ) -> Result<Vec<AttachmentTreePage>, String> {
     let template_cache: std::cell::RefCell<std::collections::HashMap<String, Option<String>>> =
         std::cell::RefCell::new(std::collections::HashMap::new());
-    // P110: Pre-load all referenced object records in one batch query
-    let all_summaries: Vec<_> = page_objects
-        .iter()
-        .chain(section_groups.values().flat_map(|v| v.iter()))
-        .collect();
-    let all_ids: Vec<String> = all_summaries.iter().map(|s| s.id.clone()).collect();
-    let records_batch = vault.load_objects_batch(&all_ids).ok().unwrap_or_default();
     let build_objects_with_attachments = |objs: &[solosoul_vault::ObjectSummary],
                                           only_del: bool|
      -> Vec<AttachmentTreeObject> {
         objs.iter()
             .filter_map(|summary| {
-                let record = records_batch.get(&summary.id)?;
-                let all_atts = load_attachments(&record.properties);
+                let all_atts = load_attachments(&summary.properties);
                 let filtered: Vec<AttachmentMeta> = all_atts
                     .into_iter()
                     .filter(|a| {
@@ -566,7 +596,7 @@ fn build_attachment_tree_pages(
                 if filtered.is_empty() {
                     None
                 } else {
-                    let template_name = record.template_id.as_ref().and_then(|tid| {
+                    let template_name = summary.template_id.as_ref().and_then(|tid| {
                         let mut cache = template_cache.borrow_mut();
                         cache.get(tid).cloned().unwrap_or_else(|| {
                             let name = vault.load_user_template(tid).ok().flatten().map(|t| t.name);
@@ -589,10 +619,11 @@ fn build_attachment_tree_pages(
     let mut child_ids_assigned: std::collections::HashSet<String> =
         std::collections::HashSet::new();
 
-    // For custom pages: find children via parent_id
+    // For custom pages: find children via pre-grouped parent map
     for page_obj in page_objects {
-        let children = vault
-            .list_objects(account_id, None, Some(&page_obj.id), None, false, false)
+        let children = children_by_parent
+            .get(&page_obj.id)
+            .cloned()
             .unwrap_or_default();
         for child in &children {
             child_ids_assigned.insert(child.id.clone());
@@ -1225,6 +1256,146 @@ mod tests {
         let atts2 = load_attachments(&rec2.properties);
         assert_eq!(atts2.iter().filter(|a| a.deleted_at.is_none()).count(), 0);
         assert_eq!(atts2.iter().filter(|a| a.deleted_at.is_some()).count(), 2);
+    }
+
+    /// P112 回归：`attachment_list_all` 数据流不再重复解密——子对象按 parent_id 预分组
+    /// 一次完成（替代每页面 N+1 次解密查询），且 `build_attachment_tree_pages` 直接复用
+    /// 已解密的 `summary.properties`（不再 load_objects_batch 二次全量解密）。
+    /// 覆盖：页面含子对象附件、无附件对象不出现在树中、独立对象按 section 分组、
+    /// 回收站视图只含已删除附件、分组 map 幂等（活动视图与回收站视图共享同一分组）。
+    #[test]
+    fn test_attachment_list_all_groups_children_and_reuses_summary_properties() {
+        let (vault, _dir) = setup_vault();
+        let account_id = "acc-1";
+
+        let mk_meta = |id: &str, obj_id: &str, deleted: bool| AttachmentMeta {
+            id: id.to_string(),
+            object_id: obj_id.to_string(),
+            file_name: format!("{}.pdf", id),
+            mime_type: "application/pdf".to_string(),
+            size_bytes: 100,
+            created_at: "2024-01-01T00:00:00Z".to_string(),
+            deleted_at: deleted.then(|| "2024-02-01T00:00:00Z".to_string()),
+            src_path: None,
+            vault_path: None,
+        };
+        let mk_record = |id: &str,
+                         type_id: &str,
+                         section_type: &str,
+                         parent: Option<&str>,
+                         atts: Vec<AttachmentMeta>|
+         -> ObjectRecord {
+            ObjectRecord {
+                contract_type_id: None,
+                id: id.to_string(),
+                account_id: account_id.to_string(),
+                type_id: type_id.to_string(),
+                section_type: section_type.to_string(),
+                name: id.to_string(),
+                icon_name: "document".to_string(),
+                parent_id: parent.map(String::from),
+                children_ids: vec![],
+                properties: serde_json::json!({ "__attachments": atts }),
+                property_labels: None,
+                sensitivity_level: "internal".to_string(),
+                is_deleted: false,
+                deleted_at: None,
+                tags_json: vec![],
+                template_id: None,
+                template_type: None,
+                template_hash: None,
+                ignored_template_hash: None,
+                created_at: "2024-01-01T00:00:00Z".to_string(),
+                updated_at: "2024-01-01T00:00:00Z".to_string(),
+                version: 1,
+            }
+        };
+
+        // 自定义页面 + 子对象（带附件）
+        vault
+            .save_object(&mk_record("page-1", "page", "", None, vec![]))
+            .unwrap();
+        vault
+            .save_object(&mk_record(
+                "obj-child",
+                "note",
+                "custom",
+                Some("page-1"),
+                vec![mk_meta("att-child", "obj-child", false)],
+            ))
+            .unwrap();
+        // 独立对象（内置 section，带一个活动附件 + 一个已删除附件）
+        vault
+            .save_object(&mk_record(
+                "obj-standalone",
+                "note",
+                "identity",
+                None,
+                vec![
+                    mk_meta("att-act", "obj-standalone", false),
+                    mk_meta("att-del", "obj-standalone", true),
+                ],
+            ))
+            .unwrap();
+        // 无附件的独立对象（不应出现在树中）
+        vault
+            .save_object(&mk_record("obj-empty", "note", "identity", None, vec![]))
+            .unwrap();
+
+        let objects = vault
+            .list_objects(account_id, None, None, None, false, false)
+            .unwrap();
+        let (page_objects, section_groups, children_by_parent) =
+            group_objects_for_attachment_tree(&objects);
+
+        // 子对象按 parent_id 一次性分组（每页面无需再查）
+        assert_eq!(children_by_parent.len(), 1);
+        let child_summaries = children_by_parent.get("page-1").unwrap();
+        assert_eq!(child_summaries.len(), 1);
+        assert_eq!(child_summaries[0].id, "obj-child");
+
+        // 活动视图：页面树含子对象附件，section 树含独立对象活动附件（无附件对象被过滤）
+        let pages = build_attachment_tree_pages(
+            &vault,
+            &page_objects,
+            &section_groups,
+            &children_by_parent,
+            false,
+        )
+        .unwrap();
+        let page_tree = pages
+            .iter()
+            .find(|p| p.page_id.as_deref() == Some("page-1"))
+            .expect("page-1 tree exists");
+        assert_eq!(page_tree.objects.len(), 1);
+        assert_eq!(page_tree.objects[0].object_id, "obj-child");
+        assert_eq!(page_tree.objects[0].attachments.len(), 1);
+        assert_eq!(page_tree.objects[0].attachments[0].id, "att-child");
+
+        let section_tree = pages
+            .iter()
+            .find(|p| p.page_id.is_none())
+            .expect("section tree exists");
+        assert_eq!(section_tree.objects.len(), 1);
+        assert_eq!(section_tree.objects[0].object_id, "obj-standalone");
+        assert_eq!(section_tree.objects[0].attachments.len(), 1);
+        assert_eq!(section_tree.objects[0].attachments[0].id, "att-act");
+
+        // 回收站视图：只含已删除附件
+        let trash_pages = build_attachment_tree_pages(
+            &vault,
+            &page_objects,
+            &section_groups,
+            &children_by_parent,
+            true,
+        )
+        .unwrap();
+        let trash_tree = trash_pages
+            .iter()
+            .find(|p| p.page_id.is_none())
+            .expect("trash section tree exists");
+        assert_eq!(trash_tree.objects[0].attachments.len(), 1);
+        assert_eq!(trash_tree.objects[0].attachments[0].id, "att-del");
     }
 
     #[test]

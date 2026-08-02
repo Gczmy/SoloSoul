@@ -325,6 +325,9 @@ pub struct ObjectSummary {
     pub ignored_template_hash: Option<String>,
     #[serde(rename = "iconName")]
     pub icon_name: String,
+    /// 所属父对象 ID（自定义页面子对象），无父级时为 None（P112 附件树按 parent 分组用）。
+    #[serde(rename = "parentId", default, skip_serializing_if = "Option::is_none")]
+    pub parent_id: Option<String>,
     /// First few property key-value pairs for card previews
     pub properties: serde_json::Value,
     /// Per-field sensitivity overrides: field_name -> sensitivity_level

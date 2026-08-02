@@ -45,7 +45,7 @@
 | P109 | 性能 | `crates/solosoul-vault/src/storage.rs:1371-1475` | `list_object_changes_since` 无水印过滤全表解密 + 逐对象一次 HLC SELECT，每轮同步 O(N) 解密 + O(N) 查询 | `[x]` 已修复（2026-08-02：**一次 LEFT JOIN `sync_hlc`** 批量取回全部 HLC，消除逐对象 HLC SELECT（O(N) 查询 → O(1)）；**水印过滤下推到 SQL**——有 HLC 记录的行按 HLC 三元组（wall/counter/node）在 SQL 层精确过滤，无 HLC 记录的行以 watermark 所在**整秒下界**的 RFC3339 字符串做安全粗筛（`(wall/1000)*1000` 取整，跨小数位格式证明不误杀候选），仅对候选行解密。精确判定仍由 Rust `hlc_after_watermark` 兜底，语义与旧实现逐字节等价。防回归单测 ×1（`test_list_object_changes_since_watermark_pushdown`：有 HLC 精确三元组过滤 ×5 + 无 HLC updated_at 回退 ×2 + HLC 返回值与落库一致）。solosoul-vault 104 测试全绿、clippy/fmt 干净） |
 | P110 | 性能 | `crates/solosoul-vault/src/storage.rs:1289-1299` | `list_sync_changes_since_paginated` 名为分页实为全量解密后 `skip/take`，大库同步分页无效 | `[x]` 已修复（2026-08-02：objects 表改走新增 `list_object_changes_since_limited`——**SQL 级 ORDER BY 有效 HLC 三元组升序 + LIMIT/OFFSET**（有 HLC 行用落库三元组；无 HLC 回退行用 `julianday(updated_at)` 归一化 unix-ms + counter=0 + node=local，与 Rust `parse_time_ms`/回退 HLC 构造逐字节一致），不再全量解密后内存 skip/take。**排序是分页正确性关键**：会话层 `send_paginated_deltas` 每页把 peer watermark 推进到本页最大 HLC 后重查，旧实现页面乱序会导致页边界间记录被永久跳过（潜在漏发），现保证“本页恒为 HLC 最小的 limit 条”。小表（profiles/user_templates/trash_items）数据量小维持内存分页，但先按 HLC 三元组升序排序修复同一潜在 bug。`list_object_changes_since` 改为薄包装（`usize::MAX`→SQL `LIMIT -1` 不限制），行为与 P109 等价。`usize::MAX`/offset 类型修正（原误传 `as i64` 会编译失败）+ 移除死 `#[allow(clippy::too_many_arguments)]`（6 参数 < 8 阈值）。防回归单测 ×1（`test_list_object_changes_paginated_ordering_and_completeness`：5 对象 HLC 交错含 wall=counter 平局 node 裁决，断言非分页升序 [p_e,p_b,p_c,p_d,p_a]、页内严格升序、逐页拼接==非分页无缺漏无重复）。solosoul-vault 105 测试全绿、clippy/fmt 干净。**遗留边界**（非阻塞，经复核确认不新增风险）：SQL LIMIT 先于 Rust 精确过滤，边界秒内 >limit 条无 HLC 回退行的极端场景可能整页被拒——但该场景下同秒同值 HLC 本就破坏严格大于水印推进（旧实现同样漏发），属既有语义） |
 | P111 | 性能 | `crates/solosoul-vault/src/storage.rs:2390-2477` | `list_objects` 对结果集每行解密 properties+labels 并完整 JSON 解析，即使调用方只要元数据（主列表/page_delete/attachment_list_all/llm_context 公共路径） | `[ ]` |
-| P112 | 性能 | `src-tauri/src/commands/attachment.rs:505-526,548,593-596` | `attachment_list_all` 同一数据约 4 轮全量解密（list_objects + load_objects_batch 重复 + build 两次 + 每页面再查） | `[ ]` |
+| P112 | 性能 | `src-tauri/src/commands/attachment.rs:505-526,548,593-596` | `attachment_list_all` 同一数据约 4 轮全量解密（list_objects + load_objects_batch 重复 + build 两次 + 每页面再查） | `[x]` 已修复（2026-08-02：解密收敛到**单轮**。① `ObjectSummary` 新增 `parent_id` 字段（serde default/skip_serializing_if，`list_objects` SELECT 追加第 18 列 `parent_id`，`row.get(17)` 映射，import.rs 字面量同步补齐）——`list_objects` 本就解密返回 `summary.properties`，现同时携带父关系；② `attachment_list_all` 抽 `group_objects_for_attachment_tree` 助手，从单次 `list_objects` 结果按 `parent_id` **一次性预分组子对象**（替代每页面 N+1 次 `list_objects(parent_id)` 解密查询），返回值抽 `AttachmentTreeGroups` 类型别名消 clippy type_complexity；③ `build_attachment_tree_pages` 直接复用已解密 `summary.properties` 做 `load_attachments`（删除 `load_objects_batch` 全量重复解密，×2：活动视图 + 回收站视图各一次），签名去掉 `account_id`，`vault` 保留供模板名缓存；子对象仍同时保留在 `section_groups`（child_ids_assigned 排除逻辑不变），页面型子对象双落入语义与旧逐页查询逐字节一致。防回归单测 ×1（页面含子对象附件 + 独立对象按 section 分组 + 无附件对象过滤 + 回收站视图只含已删除附件 + 分组 map 幂等两视图共享）。solo_soul attachment 12 测试 + solosoul-vault 106 测试全绿、clippy/fmt 干净、solosoul_cli cargo check 通过） |
 | P113 | 性能 | `src-tauri/src/commands/ocr.rs:301-317` | `ocr_scan_image` 在 tokio worker 上同步执行秒级 ONNX 推理，无 `spawn_blocking` | `[ ]` |
 | P114 | 性能 | `src-tauri/src/commands/object/mod.rs:459-484` 等 | 所有 vault async command（list/update/search 等）直接在 runtime 上同步做 rusqlite+AES-GCM 解密，重路径未 `spawn_blocking` | `[ ]` |
 | P115 | 性能 | `crates/solosoul-sync/src/delta.rs:117-179`、`storage.rs:1628-1653` | `apply_sync_records` 每条记录约 4 条 auto-commit SQL（HLC 重复查询 ×2）且整批无事务、逐条克隆 JSON | `[x]` 已修复（2026-08-02：同步应用路径**单事务批量化**。storage.rs 抽出 `_tx` 连接作用域助手（get/set_record_hlc、save/load_profile、save/load_object、save/load_user_template、save_trash_item 各成对，公共方法变薄锁包装），4 个 `apply_*_sync_record` 改静态 `_tx` 变体（顺带修掉对象路径双写 `set_record_hlc`）；`apply_sync_record` 单条公共语义不变但包进单事务；新增 `apply_sync_records_batch(&[BorrowedSyncRecord])`——一次加锁 + 整批单事务，HLC 只查一次、写一次，逐条克隆消除（lib.rs 新增零克隆借用视图 `BorrowedSyncRecord` + `SyncApplyOutcome`，serde `Deserializer for &Value` 借值解码）。delta.rs `apply_sync_records` 构建零克隆借用视图一次调用批接口，冲突报告直接用 outcome.local_hlc（跳过路径也在 `apply_sync_record_tx` 入口查一次 HLC 携带）免重查。**单条记录失败不中断整批**：错误入 outcome 继续后续记录；写序保证先写数据后写 HLC（失败自愈可重同步，不会永久跳过）。防回归单测 ×1（批/单语义等价：多条成功、旧 HLC 跳过、解码失败不中断整批且失败记录未部分写入、写前本地 HLC 携带）。solosoul-vault 106 测试 + solosoul-sync 47 测试全绿、clippy/fmt 干净） |
@@ -115,8 +115,8 @@
 
 ## 修复进度
 
-- 已完成：17 / 69（P001-P007、P101-P115；其中 P104 为部分闭环）
-- 当前处理：P112（attachment_list_all 去重复全量解密，P1 性能高）
+- 已完成：18 / 69（P001-P007、P101-P115；其中 P104 为部分闭环）
+- 当前处理：P113/P114（重路径 spawn_blocking 化，P1 性能高）
 
 ## 审查通过项（已排查，无需修改）
 
@@ -171,7 +171,7 @@ Windows 生产路径用 `FileBiometricStorage` 存主密钥（`derive_master_key
 - **P109**：watermark 下推到 SQL（updated_at/HLC 表 JOIN），HLC 一次批量查出。（2026-08-02 已修复：LEFT JOIN sync_hlc 批量取 HLC + 水印过滤下推 SQL——有 HLC 行精确三元组过滤、无 HLC 行整秒下界粗筛，Rust 精确裁决兜底，语义不变。）
 - **P110**：真正的 SQL LIMIT/OFFSET + 水印下推。（2026-08-02 已修复：objects 表 ORDER BY 有效 HLC + LIMIT/OFFSET 下推 SQL，小表内存排序修复同源页边界漏发 bug，防回归单测覆盖页序与完整性。）
 - **P111**：拆出 metadata-only 查询（不 SELECT properties 列），或按 keyword 是否为空延迟解密。
-- **P112**：复用已解密的 `summary.properties` 做 `load_attachments`，删掉批量重载；页面 children 一次查询按 parent_id 分组。
+- **P112**：复用已解密的 `summary.properties` 做 `load_attachments`，删掉批量重载；页面 children 一次查询按 parent_id 分组。（2026-08-02 已修复：`ObjectSummary` 携带 `parent_id`，`group_objects_for_attachment_tree` 单次解密后预分组子对象，`build_attachment_tree_pages` 直用 `summary.properties`，删除 `load_objects_batch` 重复解密，解密收敛到单轮。）
 - **P113/P114**：重 CPU/IO 路径（OCR 推理、全表解密、search/sync）统一 `tokio::task::spawn_blocking`。
 - **P115**：整批包一个事务；`apply_sync_record` 接收已查出的 HLC 避免重复查询；`data` 传引用。（2026-08-02 已修复：`apply_sync_records_batch` 单事务 + `BorrowedSyncRecord` 零克隆借用视图 + HLC 只查写一次 + 逐条错误入 outcome 不中断整批。）
 

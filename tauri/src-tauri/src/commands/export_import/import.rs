@@ -111,6 +111,7 @@ pub async fn import_decrypt_preview(
                             .as_str()
                             .map(String::from),
                         icon_name: o["icon_name"].as_str().unwrap_or("document").to_string(),
+                        parent_id: o["parent_id"].as_str().map(String::from),
                         properties: o["properties"].clone(),
                         property_labels: None,
                         tags: o["tags"]
