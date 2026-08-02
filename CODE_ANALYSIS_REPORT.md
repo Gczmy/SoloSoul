@@ -61,7 +61,7 @@
 | P125 | 错误处理 | `src/pages/system/DebugLogPage.tsx:65` | `log_export` 失败完全静默，点击"导出诊断包"无任何反馈 | `[x]` 已修复（2026-08-02：`handleExport` catch 增加 `logger.warn` + `onError` toast（`debug_log_export_failed` 兜底文案），成功路径补 `onSuccess` toast（`debug_log_exported`）——点击导出必有反馈） |
 | P126 | 错误处理 | `src/stores/templateStore.ts:83` | `template_get` 失败返回 null，与"模板不存在"语义混淆 | `[x]` 已修复（2026-08-02：`getTemplate` 仅对后端「模板不存在」/not found 消息返回 null（合法语义），其余真实后端异常（无权访问/后端故障）抛出保留细节；TrashPage 调用方已补 `.catch`。防回归单测 ×1：真实异常 `rejects.toThrow` 而非返回 null） |
 | P127 | 架构 | `src/App/AppRoutes.tsx:396` | `loadCustomPages(account.id)` 未 await 也无 catch，失败产生 unhandled rejection 且自定义页面静默缺失 | `[x]` 已修复（2026-08-02：补 await + try/catch，失败 logger.warn 记录不再 unhandled rejection） |
-| P128 | 架构 | `src/pages/settings/AppearanceSettingsPage.tsx:72-83` | 直接 `localStorage.setItem` 写主题缓存绕过 settingsStore，与"四副本写入矩阵"产生第 5 个写入点易漂移 | `[ ]` |
+| P128 | 架构 | `src/pages/settings/AppearanceSettingsPage.tsx:72-83` | 直接 `localStorage.setItem` 写主题缓存绕过 settingsStore，与"四副本写入矩阵"产生第 5 个写入点易漂移 | `[x]` 已修复（2026-08-02：移除页面本地 `syncUiCache` 与 4 处冗余 `ui_update_preference` invoke，②③ 副本写入统一交回 settingsStore 的 P129 helper） |
 | P129 | 架构 | `src/stores/settingsStore.ts:152-165` | 设置存在 4 份副本（zustand/localStorage/ui_preferences.json/vault 加密 preferences）靠注释矩阵人工维持一致 | `[x]` 已修复（2026-08-02：②③ 副本写入收敛为唯一 helper `writeUiPrefsCache`/`syncPlaintextPref`，updateSetting 对 UI 键自动同步、loadSettings 循环复用，注释矩阵同步标注代码级集中） |
 | P130 | 架构 | `src/App/AppRoutes.tsx:15,345` | 裸调 plugin-dialog `confirm`（SAF 目录失效警告），原生对话框触发 visibilitychange 可致误锁定；封装仅覆盖 open/save | `[ ]` |
 | P131 | 架构 | `src/lib/ipc.ts`（全局） | AGENTS.md 约定的"IPC 封装"实为纯类型定义文件，73 个文件全部裸调 `invoke`，无统一错误规范化/未解锁守卫层 | `[ ]` |
@@ -115,8 +115,8 @@
 
 ## 修复进度
 
-- 已完成：34 / 69（P001-P007、P101-P127、P129；其中 P104 为部分闭环）
-- 当前处理：P128（AppearanceSettingsPage 主题缓存第 5 写入点，P1 架构）
+- 已完成：35 / 69（P001-P007、P101-P129；其中 P104 为部分闭环）
+- 当前处理：P130（AppRoutes 裸调 dialog confirm，P1 架构）
 
 ## 审查通过项（已排查，无需修改）
 

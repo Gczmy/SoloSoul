@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
-import { invoke } from '@tauri-apps/api/core';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useAuthStore } from '@/stores/authStore';
 import { applyTheme, getSystemTheme } from '@/lib/theme';
@@ -13,11 +12,9 @@ import { ThemeSchemePanel } from '@/components/settings/ThemeSchemePanel';
 import type { AccentPreset } from '@/types';
 import type { SupportedLang } from '@/lib/i18n';
 import { isMobilePlatformSync } from '@/lib/platform';
-import { logger } from '@/lib/logger';
 import { Palette, PanelTop, PanelBottom, PanelLeft, PanelRight } from 'lucide-react';
 import type { ThemeScheme } from '@/lib/themeSchemes';
 import type { AppSettings } from '@/stores/settingsStore';
-import { ST_UI_PREFS } from '@/lib/constants';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
 import { ICON_SIZE } from '@/lib/constants';
 
@@ -66,28 +63,10 @@ export function AppearanceSettingsPage() {
     getSchemeById(settings.defaultDarkTheme)?.nameKey.replace('settings:', '') as string,
   );
 
-  const syncUiCache = () => {
-    const s = useSettingsStore.getState().settings;
-    try {
-      localStorage.setItem(
-        ST_UI_PREFS,
-        JSON.stringify({
-          theme: s.theme,
-          accentColor: s.accentColor,
-          defaultLightTheme: s.defaultLightTheme,
-          defaultDarkTheme: s.defaultDarkTheme,
-        }),
-      );
-    } catch {
-      /* ignore */
-    }
-  };
-
+  // P128: ②③ 副本写入统一由 settingsStore.updateSetting（P129 集中化 helper）负责，
+  // 本页不再直接写 localStorage / ui_update_preference，杜绝第 5 个漂移写入点。
   const handlePresetChange = async (preset: 'light' | 'dark' | 'system') => {
     updateSetting(accountId, 'theme', preset);
-    invoke('ui_update_preference', { key: 'theme', value: preset }).catch((err) =>
-      logger.warn('[Appearance] Update theme pref failed:', err),
-    );
     const resolvedSystemTheme = preset === 'system' ? await getSystemTheme() : undefined;
     await applyTheme({
       preset:
@@ -99,14 +78,10 @@ export function AppearanceSettingsPage() {
       defaultDarkTheme: settings.defaultDarkTheme,
       resolvedSystemTheme,
     });
-    syncUiCache();
   };
 
   const handleAccentChange = async (accent: AccentPreset) => {
     updateSetting(accountId, 'accentColor', accent);
-    invoke('ui_update_preference', { key: 'accentColor', value: accent }).catch((err) =>
-      logger.warn('[Appearance] Update accent pref failed:', err),
-    );
     const resolvedSystemTheme = settings.theme === 'system' ? await getSystemTheme() : undefined;
     await applyTheme({
       preset:
@@ -122,7 +97,6 @@ export function AppearanceSettingsPage() {
       defaultDarkTheme: settings.defaultDarkTheme,
       resolvedSystemTheme,
     });
-    syncUiCache();
   };
 
   const handleSelectScheme = async (scheme: ThemeScheme) => {
@@ -132,9 +106,6 @@ export function AppearanceSettingsPage() {
     if (scheme.mode !== currentMode) {
       const newTheme = scheme.mode;
       updateSetting(accountId, 'theme', newTheme);
-      invoke('ui_update_preference', { key: 'theme', value: newTheme }).catch((err) =>
-        logger.warn('[Appearance] Update theme during scheme select failed:', err),
-      );
       await applyTheme({
         preset: newTheme === 'dark' ? 'warm-stone-dark' : 'warm-stone-light',
         accentColor: settings.accentColor as AccentPreset,
@@ -150,10 +121,6 @@ export function AppearanceSettingsPage() {
     // Persist as default for the scheme's mode
     const key = scheme.mode === 'light' ? 'defaultLightTheme' : 'defaultDarkTheme';
     updateSetting(accountId, key, scheme.id);
-    invoke('ui_update_preference', { key, value: scheme.id }).catch((err) =>
-      logger.warn('[Appearance] Update scheme pref failed:', err),
-    );
-    syncUiCache();
   };
 
   return (
