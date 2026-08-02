@@ -42,7 +42,7 @@
 | P106 | 安全 | `crates/solosoul-crypto/src/aes.rs:119-130` | `decrypt_chunked_blob` 用攻击者可控的 `original_size` 做 `Vec::with_capacity`，篡改头部可致巨额分配 DoS | `[x]` 已修复（2026-08-02：头部字段（original_size/chunk_size/chunk_count）全部由输入控制，新增共享校验助手 `validate_chunked_header`（blob 版与流式版共用，防漂移）——① chunk_size 非 0；② 分块网格自洽（`(count-1)*chunk_size < original_size <= count*chunk_size`，count=0 时 original_size 必须为 0，`saturating_mul` 防溢出）。`decrypt_chunked_blob` 另加 chunk_count ≤ 密文容量上限（每 chunk 至少 nonce+tag=28 字节）并在 `with_capacity` 前把容量封顶 `min(original_size, blob.len())`——明文总量不可能超过密文长度。`decrypt_chunked_stream` 每块密文改按实际读取**增量扩展**（64KB 分块读入）而非按头部声明 chunk_size 预分配，末块用 `checked_mul` + 边界检查替代无条件减法。防回归单测 ×5（巨值 original_size / 巨值 chunk_count / chunk_size=0 ×2 / 自相矛盾头），全部命中一致性校验提前拒绝。solosoul-crypto 34 测试全绿、clippy/fmt 干净。注：aes.rs v3 分块函数生产零调用（仅 lib.rs 再导出 + 内部测试），此修复属纵深防御） |
 | P107 | 安全 | `src-tauri/src/commands/fs.rs:31-38,180-215` | 桌面端 `allowed_fs_base` 默认为整个 `$HOME`，`fs_read_file_as_text/data_url` 可读 home 下任意文件（含 `~/.solosoul/**`）回传前端 | `[x]` 已修复（2026-08-02：`allowed_fs_base` 改 `allowed_fs_bases` 返回**基目录集合**——桌面默认收窄到 Desktop/Documents/Downloads（与 OCR `is_path_in_allowed_dir` 一致）+ **Vault 附件目录**（`{base}/attachments`，附件预览 `AttachmentPreviewOverlay` 读取 `vaultPath` 落库副本，不放行则预览失效；vault 根本身——config.json/vault.db/accounts.json——不在集合内）；`SOLOSOUL_FS_BASE` 环境变量仍可单根覆盖，移动端不变（应用私有数据目录）。`resolve_allowed_path` 逐基目录 `resolve_within` 尝试、任一命中即返回，不存在/不可用的基目录跳过；多基目录兜底优先级：R012 路径穿越拒绝 > 存在可用基目录时的稳定「越界」文案（避免非存在基目录如首启时的 vault 附件目录泄漏裸 OS 错误）> 全部基目录缺失时透传真实错误。`desktop_fs_bases` 抽纯函数便于单测，单测 ×2（含用户目录 + vault 附件、不含 vault 根；无 vault 时仅 3 项）。fs 命令 lib 测试 13 全绿、clippy/fmt 干净。**已知权衡**：`fs_scan_directory`/`fs_get_file_size`/`fs_is_dir`/`fs_read_file_as_text/data_url` 现拒绝 Desktop/Documents/Downloads + vault 附件之外的路径（外部磁盘/自定义目录），`filterOutDirectories` 可能把拖入的外部目录误判为文件——与报告指引及 OCR 先例一致，属既定收窄） |
 | P108 | 安全 | `src-tauri/capabilities/default.json:23-55` | fs capabilities 允许在 `$DESKTOP/$DOCUMENT/$DOWNLOAD/$TEMP/$APPCACHE/**` 间任意 copy/stat | `[x]` 已修复（2026-08-02：`fs:allow-copy-file` 与 `fs:allow-stat` 作用域从 `$APPCACHE/$TEMP/$DESKTOP/$DOCUMENT/$DOWNLOAD` 收窄到 `$APPCACHE/$TEMP`，移除全部用户目录 copy/stat 面。**安全性分析**：plugin-fs 调用点全库仅 `lib/mobileFileTransfer.ts`（`copyFile`/`stat`/`mkdir`/`remove`），且全部服务于 Android `content://` URI 原生中转与 `$APPCACHE` 内暂存——桌面导出/导入/日志导出/附件下载/上传全部经 Rust command（`export_execute`/`import_parse_package`/`log_export`/`attachment_download`/`attachment_copy_to_vault`）处理对话框返回的普通路径，桌面对话框不产生 `file://` URI，故 `$DESKTOP/$DOCUMENT/$DOWNLOAD` 作用域双端均无合法使用点，只会放大 XSS 拷贝敏感文件回读的破坏半径。`fs:default`（tauri-plugin-fs 2.5.1）仅授应用私有目录读 + `create-app-specific-dirs`，不受影响。JSON 校验通过、作用域内无残留用户目录引用） |
-| P109 | 性能 | `crates/solosoul-vault/src/storage.rs:1371-1475` | `list_object_changes_since` 无水印过滤全表解密 + 逐对象一次 HLC SELECT，每轮同步 O(N) 解密 + O(N) 查询 | `[ ]` |
+| P109 | 性能 | `crates/solosoul-vault/src/storage.rs:1371-1475` | `list_object_changes_since` 无水印过滤全表解密 + 逐对象一次 HLC SELECT，每轮同步 O(N) 解密 + O(N) 查询 | `[x]` 已修复（2026-08-02：**一次 LEFT JOIN `sync_hlc`** 批量取回全部 HLC，消除逐对象 HLC SELECT（O(N) 查询 → O(1)）；**水印过滤下推到 SQL**——有 HLC 记录的行按 HLC 三元组（wall/counter/node）在 SQL 层精确过滤，无 HLC 记录的行以 watermark 所在**整秒下界**的 RFC3339 字符串做安全粗筛（`(wall/1000)*1000` 取整，跨小数位格式证明不误杀候选），仅对候选行解密。精确判定仍由 Rust `hlc_after_watermark` 兜底，语义与旧实现逐字节等价。防回归单测 ×1（`test_list_object_changes_since_watermark_pushdown`：有 HLC 精确三元组过滤 ×5 + 无 HLC updated_at 回退 ×2 + HLC 返回值与落库一致）。solosoul-vault 104 测试全绿、clippy/fmt 干净） |
 | P110 | 性能 | `crates/solosoul-vault/src/storage.rs:1289-1299` | `list_sync_changes_since_paginated` 名为分页实为全量解密后 `skip/take`，大库同步分页无效 | `[ ]` |
 | P111 | 性能 | `crates/solosoul-vault/src/storage.rs:2390-2477` | `list_objects` 对结果集每行解密 properties+labels 并完整 JSON 解析，即使调用方只要元数据（主列表/page_delete/attachment_list_all/llm_context 公共路径） | `[ ]` |
 | P112 | 性能 | `src-tauri/src/commands/attachment.rs:505-526,548,593-596` | `attachment_list_all` 同一数据约 4 轮全量解密（list_objects + load_objects_batch 重复 + build 两次 + 每页面再查） | `[ ]` |
@@ -115,8 +115,8 @@
 
 ## 修复进度
 
-- 已完成：14 / 69（P001-P007、P101-P108；其中 P104 为部分闭环）
-- 当前处理：P109（同步链路 watermark 下推，P1 性能高）
+- 已完成：15 / 69（P001-P007、P101-P109；其中 P104 为部分闭环）
+- 当前处理：P110（同步分页下推 SQL，P1 性能高）
 
 ## 审查通过项（已排查，无需修改）
 
@@ -168,7 +168,7 @@ Windows 生产路径用 `FileBiometricStorage` 存主密钥（`derive_master_key
 
 修复顺序建议：同步链路（P109/P110/P115）→ attachment_list_all（P112）→ spawn_blocking 化（P113/P114）→ list_objects metadata-only（P111）→ prepare_cached（P213）。
 
-- **P109**：watermark 下推到 SQL（updated_at/HLC 表 JOIN），HLC 一次批量查出。
+- **P109**：watermark 下推到 SQL（updated_at/HLC 表 JOIN），HLC 一次批量查出。（2026-08-02 已修复：LEFT JOIN sync_hlc 批量取 HLC + 水印过滤下推 SQL——有 HLC 行精确三元组过滤、无 HLC 行整秒下界粗筛，Rust 精确裁决兜底，语义不变。）
 - **P110**：真正的 SQL LIMIT/OFFSET + 水印下推。
 - **P111**：拆出 metadata-only 查询（不 SELECT properties 列），或按 keyword 是否为空延迟解密。
 - **P112**：复用已解密的 `summary.properties` 做 `load_attachments`，删掉批量重载；页面 children 一次查询按 parent_id 分组。
