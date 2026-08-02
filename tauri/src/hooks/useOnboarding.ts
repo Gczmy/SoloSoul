@@ -128,7 +128,6 @@ export function useOnboarding({
     if (initialShowAccountSource && steps.length > 0) {
       setStep(steps.length - 1);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialShowAccountSource, steps.length]);
 
   // 进入 vault_directory 步骤时重置 loading/error 状态，但不重置已选路径，
