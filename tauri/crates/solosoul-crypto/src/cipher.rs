@@ -116,8 +116,28 @@ pub fn decrypt_from_bytes(
 
 const CHUNK_SIZE: usize = 64 * 1024; // 64 KB
 
-/// Encrypt a large file in chunks.
-/// Format: nonce(12) || chunk_count(8, big-endian u64) || chunk1_ct+tag || chunk2_ct+tag || ...
+/// 分块格式魔数与版本（P105：头部纳入 GCM 认证）。
+///
+/// - v2（当前）：`magic(4="SOLC") || version(1=0x02) || nonce(12) || chunk_count(8) || chunks`，
+///   每个 chunk 的 GCM 以 `nonce || chunk_count` 作为 AAD——篡改任意头部字节即整体解密失败。
+/// - v1（遗留）：`nonce(12) || chunk_count(8) || chunks`，头部不参与认证，仅作向后兼容读取。
+const CHUNKED_MAGIC: [u8; 4] = [0x53, 0x4F, 0x4C, 0x43]; // "SOLC"
+const CHUNKED_VERSION: u8 = 0x02;
+/// 新格式完整头部长度：magic(4)+version(1)+nonce(12)+chunk_count(8)=25。
+const NEW_HEADER_LEN: usize = 25;
+/// 旧格式头部长度：nonce(12)+chunk_count(8)=20。
+const LEGACY_HEADER_LEN: usize = 20;
+
+/// 构造新格式每个 chunk 的 AAD（`nonce || chunk_count`，共 20 字节）。
+fn chunked_aad(base_nonce: &[u8; 12], chunk_count: u64) -> [u8; 20] {
+    let mut aad = [0u8; 20];
+    aad[..12].copy_from_slice(base_nonce);
+    aad[12..].copy_from_slice(&chunk_count.to_be_bytes());
+    aad
+}
+
+/// Encrypt a large file in chunks (v2, header-authenticated).
+/// Format: magic(4) || version(1) || nonce(12) || chunk_count(8) || chunk1_ct+tag || ...
 pub fn encrypt_chunked_to_bytes(key: &[u8; 32], plaintext: &[u8]) -> Result<Vec<u8>, CipherError> {
     let cipher = Aes256Gcm::new_from_slice(key).map_err(|_| CipherError::InvalidKeyLength)?;
     let base_nonce = Aes256Gcm::generate_nonce(&mut OsRng);
@@ -130,10 +150,16 @@ pub fn encrypt_chunked_to_bytes(key: &[u8; 32], plaintext: &[u8]) -> Result<Vec<
     if total_chunks > u64::MAX as usize {
         return Err(CipherError::EncryptionFailed);
     }
+    let chunk_count = total_chunks as u64;
 
-    let mut result = Vec::with_capacity(12 + 8 + plaintext.len() + total_chunks * 16);
+    let mut result = Vec::with_capacity(NEW_HEADER_LEN + plaintext.len() + total_chunks * 16);
+    result.extend_from_slice(&CHUNKED_MAGIC);
+    result.push(CHUNKED_VERSION);
     result.extend_from_slice(&base_nonce_bytes);
-    result.extend_from_slice(&(total_chunks as u64).to_be_bytes());
+    result.extend_from_slice(&chunk_count.to_be_bytes());
+
+    // P105：头部（nonce||chunk_count）作为 AAD 纳入每个 chunk 的 GCM。
+    let aad = chunked_aad(&base_nonce_bytes, chunk_count);
 
     for i in 0..total_chunks {
         let start = i * CHUNK_SIZE;
@@ -148,7 +174,13 @@ pub fn encrypt_chunked_to_bytes(key: &[u8; 32], plaintext: &[u8]) -> Result<Vec<
         let nonce = Nonce::from_slice(&nonce_bytes);
 
         let ct = cipher
-            .encrypt(nonce, chunk)
+            .encrypt(
+                nonce,
+                Payload {
+                    msg: chunk,
+                    aad: &aad,
+                },
+            )
             .map_err(|_| CipherError::EncryptionFailed)?;
         result.extend_from_slice(&ct);
     }
@@ -156,7 +188,8 @@ pub fn encrypt_chunked_to_bytes(key: &[u8; 32], plaintext: &[u8]) -> Result<Vec<
     Ok(result)
 }
 
-/// Encrypt a large stream in chunks, writing the same chunked format directly to `writer`.
+/// Encrypt a large stream in chunks, writing the chunked format (v2, header-authenticated)
+/// directly to `writer`.
 /// `total_size` must be the exact number of plaintext bytes that `reader` will yield.
 pub fn encrypt_chunked_stream<R: Read, W: Write>(
     key: &[u8; 32],
@@ -173,11 +206,20 @@ pub fn encrypt_chunked_stream<R: Read, W: Write>(
 
     let total_chunks = total_size.div_ceil(CHUNK_SIZE as u64);
     writer
+        .write_all(&CHUNKED_MAGIC)
+        .map_err(|e| CipherError::Io(e.to_string()))?;
+    writer
+        .write_all(&[CHUNKED_VERSION])
+        .map_err(|e| CipherError::Io(e.to_string()))?;
+    writer
         .write_all(&base_nonce_bytes)
         .map_err(|e| CipherError::Io(e.to_string()))?;
     writer
         .write_all(&total_chunks.to_be_bytes())
         .map_err(|e| CipherError::Io(e.to_string()))?;
+
+    // P105：头部（nonce||chunk_count）作为 AAD 纳入每个 chunk 的 GCM。
+    let aad = chunked_aad(&base_nonce_bytes, total_chunks);
 
     let mut buf = vec![0u8; CHUNK_SIZE];
     for i in 0..total_chunks as usize {
@@ -196,7 +238,13 @@ pub fn encrypt_chunked_stream<R: Read, W: Write>(
         }
         let nonce = Nonce::from_slice(&nonce_bytes);
         let ct = cipher
-            .encrypt(nonce, &buf[..chunk_len])
+            .encrypt(
+                nonce,
+                Payload {
+                    msg: &buf[..chunk_len],
+                    aad: &aad,
+                },
+            )
             .map_err(|_| CipherError::EncryptionFailed)?;
         writer
             .write_all(&ct)
@@ -206,26 +254,52 @@ pub fn encrypt_chunked_stream<R: Read, W: Write>(
 }
 
 /// Decrypt a chunked file.
-/// Expects format: nonce(12) || chunk_count(8) || chunk_ct+tag ...
+///
+/// Auto-detects the format by leading magic:
+/// - v2（当前，P105）：`SOLC(4) || version(1) || nonce(12) || chunk_count(8) || chunks`，
+///   每个 chunk 以 `nonce || chunk_count` 为 AAD 认证——篡改头部即解密失败。
+/// - v1（遗留）：`nonce(12) || chunk_count(8) || chunks`，头部不参与认证，仅向后兼容读取。
 pub fn decrypt_chunked_from_bytes(
     key: &[u8; 32],
     ciphertext: &[u8],
 ) -> Result<Zeroizing<Vec<u8>>, CipherError> {
-    if ciphertext.len() < 20 {
+    if ciphertext.len() < LEGACY_HEADER_LEN {
         return Err(CipherError::InvalidCiphertext);
     }
     let cipher = Aes256Gcm::new_from_slice(key).map_err(|_| CipherError::InvalidKeyLength)?;
 
-    let mut base_nonce = [0u8; 12];
-    base_nonce.copy_from_slice(&ciphertext[..12]);
-    let chunk_count = u64::from_be_bytes(
-        ciphertext[12..20]
-            .try_into()
-            .map_err(|_| CipherError::InvalidCiphertext)?,
-    ) as usize;
+    let (is_v2, base_nonce, chunk_count, offset) =
+        if ciphertext.len() >= NEW_HEADER_LEN && ciphertext[..4] == CHUNKED_MAGIC {
+            if ciphertext[4] != CHUNKED_VERSION {
+                return Err(CipherError::BlobFormat(format!(
+                    "不支持的分块版本: {}",
+                    ciphertext[4]
+                )));
+            }
+            let mut nonce = [0u8; 12];
+            nonce.copy_from_slice(&ciphertext[5..17]);
+            let count = u64::from_be_bytes(
+                ciphertext[17..25]
+                    .try_into()
+                    .map_err(|_| CipherError::InvalidCiphertext)?,
+            ) as usize;
+            (true, nonce, count, NEW_HEADER_LEN)
+        } else {
+            let mut nonce = [0u8; 12];
+            nonce.copy_from_slice(&ciphertext[..12]);
+            let count = u64::from_be_bytes(
+                ciphertext[12..20]
+                    .try_into()
+                    .map_err(|_| CipherError::InvalidCiphertext)?,
+            ) as usize;
+            (false, nonce, count, LEGACY_HEADER_LEN)
+        };
+
+    // P105：v2 格式的 AAD = nonce || chunk_count，篡改头部任一字节即整体认证失败。
+    let aad = chunked_aad(&base_nonce, chunk_count as u64);
 
     let mut result = Vec::new();
-    let mut offset = 20;
+    let mut cursor = offset;
 
     for i in 0..chunk_count {
         let mut nonce_bytes = base_nonce;
@@ -238,27 +312,40 @@ pub fn decrypt_chunked_from_bytes(
         // Each chunk is at least 16 bytes (auth tag). For all but the last,
         // plaintext was exactly CHUNK_SIZE, so ciphertext is CHUNK_SIZE + 16.
         let expected_chunk_ct_len = if i == chunk_count - 1 {
-            ciphertext.len() - offset
+            ciphertext.len() - cursor
         } else {
             CHUNK_SIZE + 16
         };
 
-        if offset + expected_chunk_ct_len > ciphertext.len() {
+        if cursor + expected_chunk_ct_len > ciphertext.len() {
             return Err(CipherError::InvalidCiphertext);
         }
-        let chunk_ct = &ciphertext[offset..offset + expected_chunk_ct_len];
+        let chunk_ct = &ciphertext[cursor..cursor + expected_chunk_ct_len];
+        let payload = if is_v2 {
+            Payload {
+                msg: chunk_ct,
+                aad: &aad,
+            }
+        } else {
+            Payload {
+                msg: chunk_ct,
+                aad: &[],
+            }
+        };
         let pt = cipher
-            .decrypt(nonce, chunk_ct)
+            .decrypt(nonce, payload)
             .map_err(|_| CipherError::DecryptionFailed)?;
         result.extend_from_slice(&pt);
-        offset += expected_chunk_ct_len;
+        cursor += expected_chunk_ct_len;
     }
 
     Ok(Zeroizing::new(result))
 }
 
 /// Decrypt a chunked stream, writing decrypted plaintext directly to `writer`.
-/// Expects format: nonce(12) || chunk_count(8) || chunk_ct+tag ...
+///
+/// Auto-detects the format by leading magic (v2 `SOLC` / v1 legacy), see
+/// [`decrypt_chunked_from_bytes`].
 pub fn decrypt_chunked_stream<R: Read, W: Write>(
     key: &[u8; 32],
     reader: &mut R,
@@ -266,17 +353,47 @@ pub fn decrypt_chunked_stream<R: Read, W: Write>(
 ) -> Result<(), CipherError> {
     let cipher = Aes256Gcm::new_from_slice(key).map_err(|_| CipherError::InvalidKeyLength)?;
 
-    let mut header = [0u8; 20];
+    // 先读 4 字节判断格式。
+    let mut magic = [0u8; 4];
     reader
-        .read_exact(&mut header)
+        .read_exact(&mut magic)
         .map_err(|_| CipherError::InvalidCiphertext)?;
-    let mut base_nonce = [0u8; 12];
-    base_nonce.copy_from_slice(&header[..12]);
-    let chunk_count = u64::from_be_bytes(
-        header[12..20]
-            .try_into()
-            .map_err(|_| CipherError::InvalidCiphertext)?,
-    ) as usize;
+    let is_v2 = magic == CHUNKED_MAGIC;
+
+    let (base_nonce, chunk_count, aad): ([u8; 12], usize, Option<[u8; 20]>) = if is_v2 {
+        let mut rest = [0u8; 21]; // version(1) + nonce(12) + chunk_count(8)
+        reader
+            .read_exact(&mut rest)
+            .map_err(|_| CipherError::InvalidCiphertext)?;
+        if rest[0] != CHUNKED_VERSION {
+            return Err(CipherError::BlobFormat(format!(
+                "不支持的分块版本: {}",
+                rest[0]
+            )));
+        }
+        let mut nonce = [0u8; 12];
+        nonce.copy_from_slice(&rest[1..13]);
+        let count = u64::from_be_bytes(
+            rest[13..21]
+                .try_into()
+                .map_err(|_| CipherError::InvalidCiphertext)?,
+        ) as usize;
+        let aad = chunked_aad(&nonce, count as u64);
+        (nonce, count, Some(aad))
+    } else {
+        // 遗留格式：已读的 4 字节是 nonce 的前 4 字节。
+        let mut nonce = [0u8; 12];
+        nonce[..4].copy_from_slice(&magic);
+        reader
+            .read_exact(&mut nonce[4..])
+            .map_err(|_| CipherError::InvalidCiphertext)?;
+        let mut count_buf = [0u8; 8];
+        reader
+            .read_exact(&mut count_buf)
+            .map_err(|_| CipherError::InvalidCiphertext)?;
+        let count = u64::from_be_bytes(count_buf) as usize;
+        (nonce, count, None)
+    };
 
     let mut chunk_buf = vec![0u8; CHUNK_SIZE + 16]; // plaintext + auth tag
     for i in 0..chunk_count {
@@ -298,8 +415,18 @@ pub fn decrypt_chunked_stream<R: Read, W: Write>(
             if remaining.is_empty() {
                 return Err(CipherError::InvalidCiphertext);
             }
+            let payload = match &aad {
+                Some(a) => Payload {
+                    msg: remaining.as_slice(),
+                    aad: a,
+                },
+                None => Payload {
+                    msg: remaining.as_slice(),
+                    aad: &[],
+                },
+            };
             let pt = cipher
-                .decrypt(nonce, remaining.as_slice())
+                .decrypt(nonce, payload)
                 .map_err(|_| CipherError::DecryptionFailed)?;
             writer
                 .write_all(&pt)
@@ -312,8 +439,18 @@ pub fn decrypt_chunked_stream<R: Read, W: Write>(
         reader
             .read_exact(&mut chunk_buf[..expected])
             .map_err(|_| CipherError::InvalidCiphertext)?;
+        let payload = match &aad {
+            Some(a) => Payload {
+                msg: &chunk_buf[..expected],
+                aad: a,
+            },
+            None => Payload {
+                msg: &chunk_buf[..expected],
+                aad: &[],
+            },
+        };
         let pt = cipher
-            .decrypt(nonce, &chunk_buf[..expected])
+            .decrypt(nonce, payload)
             .map_err(|_| CipherError::DecryptionFailed)?;
         writer
             .write_all(&pt)
@@ -387,5 +524,119 @@ mod tests {
         let bytes = encrypt_to_bytes(&key, plaintext, None).unwrap();
         let decrypted = decrypt_from_bytes(&key, &bytes, None).unwrap();
         assert_eq!(decrypted.as_slice(), plaintext);
+    }
+
+    // ── P105 分块格式头部认证 ──────────────────────────────────────────
+
+    #[test]
+    fn test_chunked_v2_roundtrip_bytes() {
+        let key = [0x51u8; 32];
+        // 3 个完整 chunk + 1 个尾 chunk，覆盖多分块路径。
+        let plaintext: Vec<u8> = (0..CHUNK_SIZE * 3 + 1234)
+            .map(|i| (i % 251) as u8)
+            .collect();
+        let enc = encrypt_chunked_to_bytes(&key, &plaintext).unwrap();
+        assert_eq!(&enc[..4], &CHUNKED_MAGIC);
+        assert_eq!(enc[4], CHUNKED_VERSION);
+        let dec = decrypt_chunked_from_bytes(&key, &enc).unwrap();
+        assert_eq!(dec.as_slice(), plaintext.as_slice());
+    }
+
+    #[test]
+    fn test_chunked_v2_roundtrip_stream() {
+        let key = [0x52u8; 32];
+        let plaintext: Vec<u8> = (0..CHUNK_SIZE * 5 + 777).map(|i| (i % 251) as u8).collect();
+        let mut enc = Vec::new();
+        encrypt_chunked_stream(
+            &key,
+            plaintext.len() as u64,
+            &mut plaintext.as_slice(),
+            &mut enc,
+        )
+        .unwrap();
+        let mut dec = Vec::new();
+        decrypt_chunked_stream(&key, &mut enc.as_slice(), &mut dec).unwrap();
+        assert_eq!(dec, plaintext);
+    }
+
+    #[test]
+    fn test_chunked_v2_empty_plaintext() {
+        let key = [0x53u8; 32];
+        let enc = encrypt_chunked_to_bytes(&key, b"").unwrap();
+        let dec = decrypt_chunked_from_bytes(&key, &enc).unwrap();
+        assert!(dec.is_empty());
+
+        // 流式路径同样应支持空明文（chunk_count=0，循环不执行）。
+        let mut enc2 = Vec::new();
+        encrypt_chunked_stream(&key, 0, &mut [].as_slice(), &mut enc2).unwrap();
+        let mut dec2 = Vec::new();
+        decrypt_chunked_stream(&key, &mut enc2.as_slice(), &mut dec2).unwrap();
+        assert!(dec2.is_empty());
+    }
+
+    #[test]
+    fn test_chunked_header_tamper_detected_bytes() {
+        let key = [0x54u8; 32];
+        let plaintext: Vec<u8> = (0..CHUNK_SIZE * 2 + 100).map(|i| (i % 251) as u8).collect();
+        let mut enc = encrypt_chunked_to_bytes(&key, &plaintext).unwrap();
+        // 篡改 chunk_count 头部字段（偏移 17..25）。
+        enc[NEW_HEADER_LEN - 1] ^= 0x01;
+        assert!(decrypt_chunked_from_bytes(&key, &enc).is_err());
+        // 篡改 magic。
+        let mut enc2 = encrypt_chunked_to_bytes(&key, &plaintext).unwrap();
+        enc2[0] ^= 0x01;
+        assert!(decrypt_chunked_from_bytes(&key, &enc2).is_err());
+    }
+
+    #[test]
+    fn test_chunked_header_tamper_detected_stream() {
+        let key = [0x55u8; 32];
+        let plaintext: Vec<u8> = (0..CHUNK_SIZE * 2 + 100).map(|i| (i % 251) as u8).collect();
+        let mut enc = Vec::new();
+        encrypt_chunked_stream(
+            &key,
+            plaintext.len() as u64,
+            &mut plaintext.as_slice(),
+            &mut enc,
+        )
+        .unwrap();
+        // 篡改 chunk_count 头部（偏移 17..25）。
+        enc[NEW_HEADER_LEN - 1] ^= 0x01;
+        let mut dec = Vec::new();
+        assert!(decrypt_chunked_stream(&key, &mut enc.as_slice(), &mut dec).is_err());
+    }
+
+    /// 手工构造遗留 v1 格式（无魔数、头部不认证），验证向后兼容解密。
+    #[test]
+    fn test_chunked_v1_legacy_backward_compat() {
+        let key = [0x56u8; 32];
+        let cipher = Aes256Gcm::new_from_slice(&key).unwrap();
+        let base_nonce = [0xAAu8; 12];
+        let plaintext: Vec<u8> = (0..CHUNK_SIZE * 2 + 55).map(|i| (i % 251) as u8).collect();
+        let chunk_count = plaintext.len().div_ceil(CHUNK_SIZE) as u64;
+
+        let mut enc = Vec::new();
+        enc.extend_from_slice(&base_nonce);
+        enc.extend_from_slice(&chunk_count.to_be_bytes());
+        for i in 0..chunk_count as usize {
+            let start = i * CHUNK_SIZE;
+            let end = ((i + 1) * CHUNK_SIZE).min(plaintext.len());
+            let mut nonce_bytes = base_nonce;
+            let idx_bytes = (i as u64).to_be_bytes();
+            for j in 0..8 {
+                nonce_bytes[4 + j] ^= idx_bytes[j];
+            }
+            let ct = cipher
+                .encrypt(Nonce::from_slice(&nonce_bytes), &plaintext[start..end])
+                .unwrap();
+            enc.extend_from_slice(&ct);
+        }
+
+        let dec = decrypt_chunked_from_bytes(&key, &enc).unwrap();
+        assert_eq!(dec.as_slice(), plaintext.as_slice());
+
+        let mut dec2 = Vec::new();
+        decrypt_chunked_stream(&key, &mut enc.as_slice(), &mut dec2).unwrap();
+        assert_eq!(dec2, plaintext);
     }
 }
