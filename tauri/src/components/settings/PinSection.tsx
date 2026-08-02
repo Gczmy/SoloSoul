@@ -7,6 +7,7 @@ import { PinInput } from '@/components/forms/PinInput';
 import { SecurePasswordInput } from '@/components/forms/PasswordInput';
 import { useAuthStore } from '@/stores/authStore';
 import { useToastError } from '@/hooks/useToastError';
+import { logger } from '@/lib/logger';
 import { Grip, KeyRound, Lock, Unlock, AlertTriangle } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/constants';
 
@@ -87,8 +88,11 @@ export function PinSection({ accountId }: PinSectionProps) {
       } else {
         setSetupError(t('settings:current_password_incorrect'));
       }
-    } catch {
-      setSetupError(t('settings:current_password_incorrect'));
+    } catch (e) {
+      // P123: 后端异常≠密码错误——verify_password 对错误密码返回 false（不抛异常），
+      // 走到 catch 的是真实后端故障（锁定/崩溃等），统一报「密码不正确」会误导用户。
+      logger.warn('[PinSection] verify_password failed:', e);
+      setSetupError(t('settings:pin_error_setup_failed'));
     }
   };
 
