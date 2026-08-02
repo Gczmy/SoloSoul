@@ -7,7 +7,7 @@ use ndarray::ArrayView4;
 /// 从检测模型输出中提取文本框。
 ///
 /// 输入 `scores` 形状为 `[1, 1, H, W]`，输出为按阅读顺序排序的 4 角点。
-pub fn extract_text_boxes(
+pub(crate) fn extract_text_boxes(
     scores: &ArrayView4<f32>,
     scale: f32,
     original_size: (u32, u32),
@@ -249,7 +249,9 @@ fn box_size(points: &[(f32, f32); 4]) -> (f32, f32) {
 ///
 /// `pred` 形状为 `[T, C]`。索引 0 为 blank，最后一个索引通常忽略。
 /// 返回 (text, 平均置信度)。
-pub fn ctc_decode(pred: &ndarray::ArrayView2<f32>, char_list: &[String]) -> (String, f64) {
+/// 简易解码入口（仅测试使用，避免非测试构建的 dead_code 告警）。
+#[cfg(test)]
+fn ctc_decode(pred: &ndarray::ArrayView2<f32>, char_list: &[String]) -> (String, f64) {
     let (text, _, avg) = ctc_decode_detailed(pred, char_list);
     (text, avg)
 }
@@ -257,7 +259,7 @@ pub fn ctc_decode(pred: &ndarray::ArrayView2<f32>, char_list: &[String]) -> (Str
 /// CTC 解码，返回每个字符的置信度。
 ///
 /// 返回 (decoded_text, per_char_confidences, average_confidence)。
-pub fn ctc_decode_detailed(
+fn ctc_decode_detailed(
     pred: &ndarray::ArrayView2<f32>,
     char_list: &[String],
 ) -> (String, Vec<f64>, f64) {
@@ -298,7 +300,7 @@ pub fn ctc_decode_detailed(
 }
 
 /// 置信度阈值过滤：低于 `threshold` 的字符替换为 `?`。
-pub fn filter_low_confidence_chars(text: &str, confidences: &[f64], threshold: f64) -> String {
+fn filter_low_confidence_chars(text: &str, confidences: &[f64], threshold: f64) -> String {
     text.chars()
         .zip(confidences.iter().copied())
         .map(|(c, conf)| if conf < threshold { '?' } else { c })
@@ -314,7 +316,7 @@ pub fn filter_low_confidence_chars(text: &str, confidences: &[f64], threshold: f
 ///
 /// 注意：I、Z、S、B 等字母都是有效的 MRZ 字符（姓名、证件号），
 /// 不做全局替换。校验位级别的修正由 verify_checksums_lenient 处理。
-pub fn correct_ocr_b_mrz(text: &str) -> String {
+fn correct_ocr_b_mrz(text: &str) -> String {
     // 第一遍：字符级修正
     let corrected: String = text
         .chars()
@@ -359,7 +361,7 @@ pub fn correct_ocr_b_mrz(text: &str) -> String {
 }
 
 /// 增强型 CTC 解码：解码 + 置信度过滤 + OCR-B 校正。
-pub fn ctc_decode_enhanced(
+pub(crate) fn ctc_decode_enhanced(
     pred: &ndarray::ArrayView2<f32>,
     char_list: &[String],
     confidence_threshold: f64,
@@ -371,7 +373,7 @@ pub fn ctc_decode_enhanced(
 }
 
 /// 构建最终的 `OcrResult`。
-pub fn build_ocr_result(
+pub(crate) fn build_ocr_result(
     boxes: Vec<[(f32, f32); 4]>,
     texts: Vec<String>,
     confidences: Vec<f64>,

@@ -52,12 +52,12 @@ impl OcrEngine {
 
     /// 对已加载的 RGB 图像执行 OCR（使用增强型 CTC 解码：置信度过滤 + OCR-B 校正）。
     /// 默认置信度阈值 0.5。
-    pub fn scan_rgb(&mut self, img: &image::RgbImage) -> Result<OcrResult, String> {
+    fn scan_rgb(&mut self, img: &image::RgbImage) -> Result<OcrResult, String> {
         self.scan_rgb_with_threshold(img, 0.5)
     }
 
     /// 对已加载的 RGB 图像执行 OCR，使用指定的置信度阈值。
-    pub fn scan_rgb_with_threshold(
+    fn scan_rgb_with_threshold(
         &mut self,
         img: &image::RgbImage,
         confidence_threshold: f64,
@@ -133,10 +133,7 @@ impl OcrEngine {
 
     /// 对单行文字图直接运行 rec 模型（跳过 det 模型）。
     /// 输入应为包含单行文字的 RGB 图像（如 MRZ 行切分后的图像）。
-    pub fn recognize_line_rgb(
-        &mut self,
-        line_img: &image::RgbImage,
-    ) -> Result<(String, f64), String> {
+    fn recognize_line_rgb(&mut self, line_img: &image::RgbImage) -> Result<(String, f64), String> {
         let rec_input = preprocess_for_recognition(line_img);
         let rec_tensor = ndarray_to_ort_tensor(&rec_input.tensor.view())?;
         let rec_outputs = self

@@ -11,7 +11,7 @@ use image::{imageops::FilterType, Luma, Rgb, RgbImage};
 /// 3. 每个窗口：Otsu 二值化 + 水平膨胀 + 投影分析
 /// 4. 对每个候选按行数/间距均匀度/行高评分
 /// 5. 返回最佳候选（评分 >= 0.5），否则 None 触发下游兜底
-pub fn detect_mrz_region(image: &RgbImage) -> Option<[(f32, f32); 4]> {
+fn detect_mrz_region(image: &RgbImage) -> Option<[(f32, f32); 4]> {
     let (w, h) = (image.width(), image.height());
     if h < 100 || w < 300 {
         return None;
@@ -225,13 +225,13 @@ fn try_detect_mrz_scored(
     ))
 }
 
-pub fn to_grayscale(img: &RgbImage) -> image::GrayImage {
+fn to_grayscale(img: &RgbImage) -> image::GrayImage {
     image::imageops::grayscale(img)
 }
 
 /// Otsu 阈值二值化（自动寻找最佳阈值）。
 /// `offset` 允许微调阈值（正值 → 更亮，保留更多像素）。
-pub fn otsu_binarize(img: &image::GrayImage, offset: i32) -> image::GrayImage {
+fn otsu_binarize(img: &image::GrayImage, offset: i32) -> image::GrayImage {
     let (w, h) = (img.width(), img.height());
     let total = (w * h) as usize;
     if total == 0 {
@@ -369,7 +369,7 @@ fn find_text_lines_from_bands(
 ///
 /// - `clip_limit`：对比度裁剪限值（越大对比度越强，典型值 2.0–4.0）
 /// - `grid_rows x grid_cols`：分块网格数（越大局部细节越丰富）
-pub fn apply_clahe(
+fn apply_clahe(
     img: &image::GrayImage,
     clip_limit: f32,
     grid_rows: u32,
@@ -507,7 +507,7 @@ fn sanitize_mrz_line(s: &str) -> String {
 /// 解析 MRZ 文本行。
 /// 支持 TD-1（3 行 × 30 字符）和 TD-3（护照，2 行 × 44 字符）。
 /// 自动处理 Vision Framework 将多行合并或拆分的情况。
-pub fn parse_mrz(lines_raw: &[String]) -> Result<MrzResult, String> {
+pub(crate) fn parse_mrz(lines_raw: &[String]) -> Result<MrzResult, String> {
     // 先清理每行：转大写 + 非 MRZ 字符替换为 <
     let lines: Vec<String> = lines_raw.iter().map(|l| sanitize_mrz_line(l)).collect();
 
@@ -746,7 +746,7 @@ fn parse_td1(lines: &[String]) -> Result<MrzResult, String> {
 /// 宽松校验：对 check digit 应用字符修正后重算 checksum。
 ///
 /// 解决 OCR 将 check digit 本身读错的情况（如 B→8, S→5）。
-pub fn verify_checksums_lenient(mrz: &MrzResult) -> bool {
+pub(crate) fn verify_checksums_lenient(mrz: &MrzResult) -> bool {
     let correct = |c: char| -> char {
         match c {
             'O' | 'D' | 'Q' => '0',
@@ -789,7 +789,7 @@ fn mrz_char_value(c: char) -> u32 {
 }
 
 /// MRZ 预处理：缩放到长边 ≤ 2048 → 灰度 → 高斯模糊
-pub fn preprocess_for_mrz(img: &RgbImage) -> image::GrayImage {
+pub(crate) fn preprocess_for_mrz(img: &RgbImage) -> image::GrayImage {
     let (w, h) = (img.width(), img.height());
 
     // 缩放到长边 ≤ 2048
@@ -1141,7 +1141,10 @@ fn locate_by_fixed_layout(img: &RgbImage) -> Option<(u32, u32, u32, u32)> {
 
 /// 四遍定位主函数
 /// 依次尝试：滑窗扫描(推荐) → 连通域 → 投影法 → 固定布局
-pub fn locate_mrz_region(binary: &image::GrayImage, img: &RgbImage) -> Option<[(f32, f32); 4]> {
+pub(crate) fn locate_mrz_region(
+    binary: &image::GrayImage,
+    img: &RgbImage,
+) -> Option<[(f32, f32); 4]> {
     // 策略 D：滑窗扫描（优先推荐）
     // CLAHE + Otsu + 多窗口评分，覆盖各种证件类型
     if let Some(region) = detect_mrz_region(img) {
@@ -1221,7 +1224,7 @@ pub fn locate_mrz_region(binary: &image::GrayImage, img: &RgbImage) -> Option<[(
 }
 
 /// 在 MRZ 区域内按水平投影切分为单行文本图像
-pub fn split_text_lines(
+pub(crate) fn split_text_lines(
     binary: &image::GrayImage,
     region: &[(f32, f32); 4],
 ) -> Vec<image::GrayImage> {
@@ -1313,7 +1316,7 @@ fn detect_line_peaks(proj: &[u32], min_peak_height: u32, min_gap: u32) -> Vec<(u
 /// ICAO 字符标准化
 /// - O → 0, I → 1, 空格 → <
 /// - 小写转大写，非法字符 → <
-pub fn icao_normalize(text: &str) -> String {
+pub(crate) fn icao_normalize(text: &str) -> String {
     text.chars()
         .map(|c| match c {
             // O 不是有效 MRZ 字符（ICAO 9303），常见 OCR 混淆 → 转 0

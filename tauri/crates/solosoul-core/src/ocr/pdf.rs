@@ -4,7 +4,7 @@ use pdfium_render::prelude::*;
 use std::path::{Path, PathBuf};
 
 /// 提取 PDF 文本层，返回每页文本。
-pub fn extract_pdf_text(path: &Path) -> Result<Vec<String>, String> {
+pub(crate) fn extract_pdf_text(path: &Path) -> Result<Vec<String>, String> {
     let pdfium = crate::pdfium::init_pdfium()?;
     let document = pdfium
         .load_pdf_from_file(path, None)
@@ -34,7 +34,7 @@ pub fn extract_pdf_text(path: &Path) -> Result<Vec<String>, String> {
 
 /// 判断文本层是否"有意义"。
 /// 规则：平均每页字符数 ≥ min_chars_per_page（默认 20），且至少有一页非空。
-pub fn has_meaningful_text(pages: &[String], min_chars_per_page: usize) -> bool {
+pub(crate) fn has_meaningful_text(pages: &[String], min_chars_per_page: usize) -> bool {
     if pages.is_empty() {
         return false;
     }
@@ -50,7 +50,11 @@ pub fn has_meaningful_text(pages: &[String], min_chars_per_page: usize) -> bool 
 
 /// 将 PDF 每页渲染为临时 PNG 图片。
 /// 返回按页排序的图片路径列表。调用方负责删除临时文件。
-pub fn render_pdf_pages(path: &Path, dpi: u32, temp_dir: &Path) -> Result<Vec<PathBuf>, String> {
+pub(crate) fn render_pdf_pages(
+    path: &Path,
+    dpi: u32,
+    temp_dir: &Path,
+) -> Result<Vec<PathBuf>, String> {
     let pdfium = crate::pdfium::init_pdfium()?;
     let document = pdfium
         .load_pdf_from_file(path, None)
@@ -95,7 +99,7 @@ pub fn render_pdf_pages(path: &Path, dpi: u32, temp_dir: &Path) -> Result<Vec<Pa
 }
 
 /// 清理渲染产生的临时图片。
-pub fn cleanup_rendered_pages(paths: &[PathBuf]) {
+pub(crate) fn cleanup_rendered_pages(paths: &[PathBuf]) {
     for path in paths {
         let _ = std::fs::remove_file(path);
     }
