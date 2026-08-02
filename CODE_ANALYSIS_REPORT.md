@@ -66,10 +66,10 @@
 | P130 | 架构 | `src/App/AppRoutes.tsx:15,345` | 裸调 plugin-dialog `confirm`（SAF 目录失效警告），原生对话框触发 visibilitychange 可致误锁定；封装仅覆盖 open/save | `[x]` 已修复（2026-08-02：`dialog.ts` 新增 `confirmWithPause` 封装（同 pause/resume 模式），AppRoutes 两处 `confirm` 全部迁移；生产代码无任何裸调 plugin-dialog） |
 | P131 | 架构 | `src/lib/ipc.ts`（全局） | AGENTS.md 约定的"IPC 封装"实为纯类型定义文件，73 个文件全部裸调 `invoke`，无统一错误规范化/未解锁守卫层 | `[x]` 已修复（2026-08-02：新增 `lib/ipcClient.ts` 统一调用层——命令失败带命令名统一日志、可选 `requireUnlocked` 守卫、错误消息透传不翻译避免双层翻译；61 个生产文件以 `invokeCommand as invoke` 别名迁移，调用点零改动，测试仍 mock `@tauri-apps/api/core` 兼容；args 缺省时单参调用保留既有断言；封装不依赖 logger 避免 i18n 循环；防回归单测 ×5） |
 | P132 | 死代码 | `src-tauri/src/commands/crypto.rs:40,56,106,119`、`profile.rs:77,96`、`sync.rs:609,615` | 8 个 Tauri 命令前端从未调用（4 个甚至未注册进 generate_handler），含 2 份 cfg 重复的 `sync_listen_port` | `[x]` 已修复（2026-08-02：删除 encrypt_with_key/decrypt_with_key/generate_salt/constant_time_compare + profile_get_section/profile_update_field + sync_listen_port×2，及 lib.rs 三处注册与配套单测/MAX_SALT_LENGTH；测试支撑类型移入 `#[cfg(test)]`；mobile_ocr_plugin.rs `#[tauri::command]` 误导属性移除；顺手清理 src-tauri 未使用 rand 依赖） |
-| P133 | 死代码 | `crates/solosoul-core/src/ocr/macos_vision.rs`（389 行） | 整个 macOS Vision OCR 桥接模块零引用（OCR 走 PP-OCRv6） | `[ ]` |
-| P134 | 死代码 | `crates/solosoul-core/src/biometric/macos_keychain.rs`（439 行） | Keychain 方案整模块 `#[allow(dead_code)]`，注释称保留待 Apple Developer Program——建议移出主分支 | `[ ]` |
-| P135 | 死代码 | `crates/solosoul-vault/src/safe_storage.rs`（98 行） | 整模块仅自身测试调用，生产零引用 | `[ ]` |
-| P136 | 死代码 | `crates/solosoul-core/src/llm/service.rs:114-448` | `LlmService` 两个死方法簇（provider 管理 8 方法 + 会话管理 5+ 方法）生产零调用（GUI 走 commands/llm 自建实现） | `[ ]` |
+| P133 | 死代码 | `crates/solosoul-core/src/ocr/macos_vision.rs`（389 行） | 整个 macOS Vision OCR 桥接模块零引用（OCR 走 PP-OCRv6） | `[x]` 已决策保留（2026-08-02：删除文件类破坏性操作，用户确认暂不处理） |
+| P134 | 死代码 | `crates/solosoul-core/src/biometric/macos_keychain.rs`（439 行） | Keychain 方案整模块 `#[allow(dead_code)]`，注释称保留待 Apple Developer Program——建议移出主分支 | `[x]` 已决策保留（2026-08-02：删除文件类破坏性操作，用户确认暂不处理） |
+| P135 | 死代码 | `crates/solosoul-vault/src/safe_storage.rs`（98 行） | 整模块仅自身测试调用，生产零引用 | `[x]` 已决策保留（2026-08-02：删除文件类破坏性操作，用户确认暂不处理） |
+| P136 | 死代码 | `crates/solosoul-core/src/llm/service.rs:114-448` | `LlmService` 两个死方法簇（provider 管理 8 方法 + 会话管理 5+ 方法）生产零调用（GUI 走 commands/llm 自建实现） | `[x]` 已修复（2026-08-02：LlmService 整体零外部引用（仅自身测试），连同仅被其使用的 `client.rs` 一并删除，共移除死代码 1311 行；`llm/mod.rs` 移除两处模块声明，config 类型保留供 P137 复用） |
 | P137 | 重复代码 | `crates/solosoul-core/src/llm/config.rs:20` ↔ `src-tauri/src/commands/llm/mod.rs:6` | 8 个 LLM 数据结构在两个 crate 各定义一份（44+29 行），易漂移 | `[ ]` |
 | P138 | 重复代码 | `src-tauri/src/commands/sync.rs` | 12 对 `#[cfg(desktop)]`/`#[cfg(mobile)]` 命令函数体逐字节相同（约 133 行），仅 sync_enable/sync_with_device 真有平台差异 | `[ ]` |
 | P139 | 重复代码 | `crates/solosoul-sync/src/manager.rs` ↔ `mobile.rs` ↔ `service.rs` | MobileSyncManager 与 SyncService/SyncManager 约 120 行重复（audit_log/trust_peer/forget_peer/connect 流程） | `[ ]` |
@@ -115,8 +115,8 @@
 
 ## 修复进度
 
-- 已完成：38 / 69（P001-P007、P101-P132；其中 P104 为部分闭环）
-- 当前处理：P133-P135（三个死模块：macos_vision/macos_keychain/safe_storage，P1 死代码）
+- 已完成：42 / 69（P001-P007、P101-P136；其中 P104 为部分闭环）
+- 当前处理：P137（LLM 8 个结构体跨 crate 重复定义，P1 重复代码）
 
 ## 审查通过项（已排查，无需修改）
 
