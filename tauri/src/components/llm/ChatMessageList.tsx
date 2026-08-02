@@ -19,6 +19,110 @@ function allowedUrl(url: string): string {
   return '';
 }
 
+interface ChatMessageItemProps {
+  msg: ChatMsg;
+  index: number;
+  copiedIndex: number | null;
+  onCopy: (content: string, index: number) => void;
+  errorPrefix: string;
+}
+
+/**
+ * 单条消息气泡。memo 化后流式期间只有最后一条 assistant 消息的
+ * content 变化，其余消息（对象引用稳定）跳过重渲染，避免每次 token
+ * 都对整段会话重新 Markdown 解析 + 语法高亮。
+ */
+const ChatMessageItem = memo(function ChatMessageItem({
+  msg,
+  index,
+  copiedIndex,
+  onCopy,
+  errorPrefix,
+}: ChatMessageItemProps) {
+  const { t } = useTranslation(['settings', 'common']);
+  return (
+    <div style={{ marginBottom: 6 }}>
+      <div
+        style={{
+          textAlign: 'center',
+          fontSize: 'var(--text-badge)',
+          color: 'var(--text-tertiary)',
+          padding: '4px 0 1px',
+        }}
+      >
+        {formatTimestamp(msg.createdAt)}
+      </div>
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start',
+          padding: '0 10px',
+        }}
+      >
+        <div
+          style={{
+            maxWidth: msg.role === 'user' ? '75%' : '90%',
+            padding: '8px 10px',
+            borderRadius: msg.role === 'user' ? '12px 12px 2px 12px' : '12px 12px 12px 2px',
+            background:
+              msg.role === 'user'
+                ? 'var(--accent-primary)'
+                : msg.content.startsWith(errorPrefix)
+                  ? 'rgba(231,76,60,0.12)'
+                  : 'var(--bg-toolbar)',
+            color: msg.role === 'user' ? 'white' : 'var(--text-primary)',
+            fontSize: 'var(--text-body-sm)',
+            lineHeight: 1.55,
+          }}
+        >
+          {msg.role === 'user' ? (
+            <div style={{ whiteSpace: 'pre-wrap' }}>{msg.content}</div>
+          ) : msg.content.startsWith(errorPrefix) ? (
+            <div style={{ color: '#e74c3c', whiteSpace: 'pre-wrap' }}>{msg.content}</div>
+          ) : (
+            <SafeMarkdown
+              rehypePlugins={[rehypeHighlight]}
+              urlTransform={allowedUrl}
+              className="quick-chat-markdown"
+            >
+              {msg.content}
+            </SafeMarkdown>
+          )}
+        </div>
+      </div>
+      {msg.role !== 'user' && (
+        <div style={{ display: 'flex', justifyContent: 'flex-start', padding: '2px 14px' }}>
+          <button
+            onClick={() => onCopy(msg.content, index)}
+            style={{
+              padding: '2px 6px',
+              borderRadius: 4,
+              border: 'none',
+              background: 'transparent',
+              cursor: 'pointer',
+              fontSize: 'var(--text-badge)',
+              color: copiedIndex === index ? '#27ae60' : 'var(--text-tertiary)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 3,
+            }}
+          >
+            {copiedIndex === index ? (
+              <>
+                <Check size={ICON_SIZE['2xs']} /> {t('settings:ai_copied')}
+              </>
+            ) : (
+              <>
+                <Copy size={ICON_SIZE['2xs']} /> {t('settings:ai_copy')}
+              </>
+            )}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+});
+
 interface ChatMessageListProps {
   messages: ChatMsg[];
   isSending: boolean;
@@ -72,88 +176,14 @@ export const ChatMessageList = memo(function ChatMessageList({
         </div>
       )}
       {messages.map((msg, i) => (
-        <div
+        <ChatMessageItem
           key={msg.id ?? `msg-${msg.createdAt}-${msg.role}-${msg.content.slice(0, 16)}`}
-          style={{ marginBottom: 6 }}
-        >
-          <div
-            style={{
-              textAlign: 'center',
-              fontSize: 'var(--text-badge)',
-              color: 'var(--text-tertiary)',
-              padding: '4px 0 1px',
-            }}
-          >
-            {formatTimestamp(msg.createdAt)}
-          </div>
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start',
-              padding: '0 10px',
-            }}
-          >
-            <div
-              style={{
-                maxWidth: msg.role === 'user' ? '75%' : '90%',
-                padding: '8px 10px',
-                borderRadius: msg.role === 'user' ? '12px 12px 2px 12px' : '12px 12px 12px 2px',
-                background:
-                  msg.role === 'user'
-                    ? 'var(--accent-primary)'
-                    : msg.content.startsWith(errorPrefix)
-                      ? 'rgba(231,76,60,0.12)'
-                      : 'var(--bg-toolbar)',
-                color: msg.role === 'user' ? 'white' : 'var(--text-primary)',
-                fontSize: 'var(--text-body-sm)',
-                lineHeight: 1.55,
-              }}
-            >
-              {msg.role === 'user' ? (
-                <div style={{ whiteSpace: 'pre-wrap' }}>{msg.content}</div>
-              ) : msg.content.startsWith(errorPrefix) ? (
-                <div style={{ color: '#e74c3c', whiteSpace: 'pre-wrap' }}>{msg.content}</div>
-              ) : (
-                <SafeMarkdown
-                  rehypePlugins={[rehypeHighlight]}
-                  urlTransform={allowedUrl}
-                  className="quick-chat-markdown"
-                >
-                  {msg.content}
-                </SafeMarkdown>
-              )}
-            </div>
-          </div>
-          {msg.role !== 'user' && (
-            <div style={{ display: 'flex', justifyContent: 'flex-start', padding: '2px 14px' }}>
-              <button
-                onClick={() => onCopy(msg.content, i)}
-                style={{
-                  padding: '2px 6px',
-                  borderRadius: 4,
-                  border: 'none',
-                  background: 'transparent',
-                  cursor: 'pointer',
-                  fontSize: 'var(--text-badge)',
-                  color: copiedIndex === i ? '#27ae60' : 'var(--text-tertiary)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 3,
-                }}
-              >
-                {copiedIndex === i ? (
-                  <>
-                    <Check size={ICON_SIZE['2xs']} /> {t('settings:ai_copied')}
-                  </>
-                ) : (
-                  <>
-                    <Copy size={ICON_SIZE['2xs']} /> {t('settings:ai_copy')}
-                  </>
-                )}
-              </button>
-            </div>
-          )}
-        </div>
+          msg={msg}
+          index={i}
+          copiedIndex={copiedIndex}
+          onCopy={onCopy}
+          errorPrefix={errorPrefix}
+        />
       ))}
       {isSending && (
         <div
