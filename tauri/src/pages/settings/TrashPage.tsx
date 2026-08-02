@@ -234,18 +234,23 @@ export function TrashPage() {
         const d = await invoke<TrashDetail>('trash_get_detail', { trashId: trashId });
         setDetailItem(d);
         if (d.templateId) {
-          getTemplate(d.templateId).then((tpl) => setDetailTemplate(tpl));
+          getTemplate(d.templateId)
+            .then((tpl) => setDetailTemplate(tpl))
+            .catch((err) => logger.warn('[TrashPage] Load detail template failed:', err));
         } else {
           setDetailTemplate(null);
         }
-      } catch {
+      } catch (e) {
+        // P122: 加载失败不再静默——toast 区分「无数据」与「加载失败」
+        logger.warn('[TrashPage] Load trash detail failed:', e);
+        onError(e, t('settings:trash_detail_load_failed', { defaultValue: '加载回收站详情失败' }));
         setDetailItem(null);
         setDetailTemplate(null);
       } finally {
         setLoadingDetail(false);
       }
     },
-    [getTemplate],
+    [getTemplate, onError, t],
   );
 
   return (
