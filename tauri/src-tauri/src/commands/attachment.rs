@@ -504,28 +504,33 @@ pub async fn attachment_list_all(
     let vault = vault_handle(&state)?;
     // P112: 单次 list_objects 已解密全部 properties 并返回 summary.properties，
     // 下方直接复用，不再 load_objects_batch / 逐页 list_objects 重复解密。
-    let objects = vault.list_objects(&account_id, None, None, None, false, false)?;
+    // P114: 全表 AES 解密 + 附件树构建移入 spawn_blocking，避免阻塞 tokio worker。
+    tokio::task::spawn_blocking(move || {
+        let objects = vault.list_objects(&account_id, None, None, None, false, false)?;
 
-    // Separate page objects from other objects
-    let (page_objects, section_groups, children_by_parent) =
-        group_objects_for_attachment_tree(&objects);
+        // Separate page objects from other objects
+        let (page_objects, section_groups, children_by_parent) =
+            group_objects_for_attachment_tree(&objects);
 
-    let pages = build_attachment_tree_pages(
-        &vault,
-        &page_objects,
-        &section_groups,
-        &children_by_parent,
-        false,
-    )?;
-    let trash_pages = build_attachment_tree_pages(
-        &vault,
-        &page_objects,
-        &section_groups,
-        &children_by_parent,
-        true,
-    )?;
+        let pages = build_attachment_tree_pages(
+            &vault,
+            &page_objects,
+            &section_groups,
+            &children_by_parent,
+            false,
+        )?;
+        let trash_pages = build_attachment_tree_pages(
+            &vault,
+            &page_objects,
+            &section_groups,
+            &children_by_parent,
+            true,
+        )?;
 
-    Ok(AttachmentListAllResult { pages, trash_pages })
+        Ok(AttachmentListAllResult { pages, trash_pages })
+    })
+    .await
+    .map_err(|e| format!("attachment_list_all task failed: {e}"))?
 }
 
 /// P112: 附件树分组结果——页面对象、按 section_type 分组的内置区段对象、
@@ -538,7 +543,9 @@ type AttachmentTreeGroups = (
 
 /// P112: 单次 list_objects 已解密全部 properties，这里按 parent_id 一次性预分组子对象
 /// （替代每页面 N+1 次解密查询），并分离页面对象与按 section_type 分组的内置区段对象。
-fn group_objects_for_attachment_tree(objects: &[solosoul_vault::ObjectSummary]) -> AttachmentTreeGroups {
+fn group_objects_for_attachment_tree(
+    objects: &[solosoul_vault::ObjectSummary],
+) -> AttachmentTreeGroups {
     let mut page_objects: Vec<solosoul_vault::ObjectSummary> = Vec::new();
     let mut section_groups: std::collections::BTreeMap<String, Vec<solosoul_vault::ObjectSummary>> =
         std::collections::BTreeMap::new();

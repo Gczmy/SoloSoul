@@ -463,24 +463,28 @@ pub async fn object_list(
 ) -> Result<Vec<solosoul_vault::ObjectSummary>, String> {
     let vault = vault_handle(&state)?;
 
-    let type_id = filter.as_ref().and_then(|f| f.collection_type.as_deref());
-    let parent_id = filter.as_ref().and_then(|f| f.parent_id.as_deref());
-    let keyword = filter.as_ref().and_then(|f| f.keyword.as_deref());
-
+    let type_id = filter.as_ref().and_then(|f| f.collection_type.clone());
+    let parent_id = filter.as_ref().and_then(|f| f.parent_id.clone());
+    let keyword = filter.as_ref().and_then(|f| f.keyword.clone());
     let include_deleted = filter
         .as_ref()
         .and_then(|f| f.include_deleted)
         .unwrap_or(false);
 
-    // Keyword search is done at SQL level — no N+1 queries
-    vault.list_objects(
-        &account_id,
-        type_id,
-        parent_id,
-        keyword,
-        include_deleted,
-        false,
-    )
+    // P114: 全表 AES 解密 + JSON 解析移入 spawn_blocking，避免阻塞 tokio worker。
+    tokio::task::spawn_blocking(move || {
+        // Keyword search is done at SQL level — no N+1 queries
+        vault.list_objects(
+            &account_id,
+            type_id.as_deref(),
+            parent_id.as_deref(),
+            keyword.as_deref(),
+            include_deleted,
+            false,
+        )
+    })
+    .await
+    .map_err(|e| format!("object_list task failed: {e}"))?
 }
 
 #[tauri::command]
@@ -491,7 +495,8 @@ pub async fn object_get(
 ) -> Result<Option<ObjectData>, String> {
     let vault = vault_handle(&state)?;
 
-    match vault.load_object(&object_id)? {
+    // P114: load_object（AES-GCM 解密）移入 spawn_blocking。
+    tokio::task::spawn_blocking(move || match vault.load_object(&object_id)? {
         Some(rec) => {
             if rec.account_id != account_id || rec.is_deleted {
                 Ok(None)
@@ -500,7 +505,9 @@ pub async fn object_get(
             }
         }
         None => Ok(None),
-    }
+    })
+    .await
+    .map_err(|e| format!("object_get task failed: {e}"))?
 }
 
 #[tauri::command]
@@ -510,111 +517,118 @@ pub async fn object_create(
 ) -> Result<ObjectData, String> {
     let vault = vault_handle(&state)?;
 
-    let now = chrono::Utc::now().to_rfc3339();
-    let id = input
-        .id
-        .clone()
-        .unwrap_or_else(|| Uuid::new_v4().to_string());
+    // P114: 模板继承查询 + save_object 写入（AES 加密）移入 spawn_blocking。
+    let data = tokio::task::spawn_blocking(move || -> Result<ObjectData, String> {
+        let now = chrono::Utc::now().to_rfc3339();
+        let id = input
+            .id
+            .clone()
+            .unwrap_or_else(|| Uuid::new_v4().to_string());
 
-    // R025: 禁止客户端指定已存在活跃对象的 ID 进行覆盖
-    if input.id.is_some() {
-        if let Ok(Some(existing)) = vault.load_object(&id) {
-            if !existing.is_deleted {
-                return Err(format!("Object with ID '{}' already exists", id));
+        // R025: 禁止客户端指定已存在活跃对象的 ID 进行覆盖
+        if input.id.is_some() {
+            if let Ok(Some(existing)) = vault.load_object(&id) {
+                if !existing.is_deleted {
+                    return Err(format!("Object with ID '{}' already exists", id));
+                }
             }
         }
-    }
 
-    // §13.10.3: 从模板继承 contract_type_id
-    let contract_type_id = inherit_contract_type_id(&vault, input.template_id.as_deref());
-    // §Bugfix: 从模板继承字段级敏感度，确保模板删除后对象仍保留敏感度信息
-    let property_labels = inherit_property_labels(&vault, input.template_id.as_deref());
-    // §Bugfix: 从模板继承字段定义（名称+类型），确保模板删除后对象仍保留字段名和类型
-    let property_fields = inherit_property_fields(&vault, input.template_id.as_deref());
-    let mut properties = input.properties.clone();
-    inject_property_fields(&mut properties, &property_fields);
-    // §Bugfix: 保存模板名称，模板删除后仍可显示
-    inject_template_meta(&vault, input.template_id.as_deref(), &mut properties);
-    // 计算并保存模板指纹，用于后续检测模板是否更新
-    let template_hash = input
-        .template_id
-        .as_deref()
-        .and_then(|tid| vault.load_user_template(tid).ok().flatten())
-        .map(|tpl| template_fingerprint(&tpl));
-    if let Some(ref hash) = template_hash {
-        if let Some(obj) = properties.as_object_mut() {
-            obj.insert(
-                "__templateHash".to_string(),
-                serde_json::Value::String(hash.clone()),
-            );
-        }
-    }
-    // 校验 dynamic_group 字段
-    validate_dynamic_groups(&properties)?;
-
-    let record = ObjectRecord {
-        contract_type_id,
-        id: id.clone(),
-        account_id: input.account_id.clone(),
-        type_id: input.collection_type.clone(),
-        section_type: input.collection_type.clone(), // §25.1.3: page affiliation (currently mirrors type_id)
-        name: input.name.clone(),
-        icon_name: input.icon_name.unwrap_or_else(|| "document".to_string()),
-        parent_id: input.parent_id.clone(),
-        children_ids: vec![],
-        properties,
-        property_labels,
-        sensitivity_level: "internal".to_string(),
-        is_deleted: false,
-        deleted_at: None,
-        tags_json: vec![],
-        template_id: input.template_id.clone(),
-        template_type: input.template_type.clone(),
-        template_hash,
-        ignored_template_hash: None,
-        created_at: now.clone(),
-        updated_at: now,
-        version: 1,
-    };
-
-    // If parent specified, update parent's children_ids
-    if let Some(ref pid) = input.parent_id {
-        if let Ok(Some(mut parent)) = vault.load_object(pid) {
-            if !parent.children_ids.contains(&id) {
-                parent.children_ids.push(id.clone());
-                parent.updated_at = chrono::Utc::now().to_rfc3339();
-                parent.version += 1;
-                vault.save_object(&parent)?;
+        // §13.10.3: 从模板继承 contract_type_id
+        let contract_type_id = inherit_contract_type_id(&vault, input.template_id.as_deref());
+        // §Bugfix: 从模板继承字段级敏感度，确保模板删除后对象仍保留敏感度信息
+        let property_labels = inherit_property_labels(&vault, input.template_id.as_deref());
+        // §Bugfix: 从模板继承字段定义（名称+类型），确保模板删除后对象仍保留字段名和类型
+        let property_fields = inherit_property_fields(&vault, input.template_id.as_deref());
+        let mut properties = input.properties.clone();
+        inject_property_fields(&mut properties, &property_fields);
+        // §Bugfix: 保存模板名称，模板删除后仍可显示
+        inject_template_meta(&vault, input.template_id.as_deref(), &mut properties);
+        // 计算并保存模板指纹，用于后续检测模板是否更新
+        let template_hash = input
+            .template_id
+            .as_deref()
+            .and_then(|tid| vault.load_user_template(tid).ok().flatten())
+            .map(|tpl| template_fingerprint(&tpl));
+        if let Some(ref hash) = template_hash {
+            if let Some(obj) = properties.as_object_mut() {
+                obj.insert(
+                    "__templateHash".to_string(),
+                    serde_json::Value::String(hash.clone()),
+                );
             }
         }
-    }
+        // 校验 dynamic_group 字段
+        validate_dynamic_groups(&properties)?;
 
-    vault.save_object(&record)?;
-    // §25.5 — Initial snapshot on create
-    let snapshot_data = serde_json::to_vec(&serde_json::json!({
-        "name": record.name,
-        "tags": record.tags_json,
-        "properties": record.properties,
-        "propertyLabels": record.property_labels,
-    }))
-    .unwrap_or_default();
-    let _ = vault.save_snapshot(&id, "user_edit", &snapshot_data, "diff_created");
-    let is_page = input.collection_type == "page";
-    let _ = vault.log_structured(
-        if is_page {
-            "page_create"
-        } else {
-            "object_create"
-        },
-        if is_page { "page" } else { "object" },
-        Some(&id),
-        Some(&input.name),
-        "user",
-        Some(&format!("section={}", input.collection_type)),
-    );
+        let record = ObjectRecord {
+            contract_type_id,
+            id: id.clone(),
+            account_id: input.account_id.clone(),
+            type_id: input.collection_type.clone(),
+            section_type: input.collection_type.clone(), // §25.1.3: page affiliation (currently mirrors type_id)
+            name: input.name.clone(),
+            icon_name: input.icon_name.unwrap_or_else(|| "document".to_string()),
+            parent_id: input.parent_id.clone(),
+            children_ids: vec![],
+            properties,
+            property_labels,
+            sensitivity_level: "internal".to_string(),
+            is_deleted: false,
+            deleted_at: None,
+            tags_json: vec![],
+            template_id: input.template_id.clone(),
+            template_type: input.template_type.clone(),
+            template_hash,
+            ignored_template_hash: None,
+            created_at: now.clone(),
+            updated_at: now,
+            version: 1,
+        };
+
+        // If parent specified, update parent's children_ids
+        if let Some(ref pid) = input.parent_id {
+            if let Ok(Some(mut parent)) = vault.load_object(pid) {
+                if !parent.children_ids.contains(&id) {
+                    parent.children_ids.push(id.clone());
+                    parent.updated_at = chrono::Utc::now().to_rfc3339();
+                    parent.version += 1;
+                    vault.save_object(&parent)?;
+                }
+            }
+        }
+
+        vault.save_object(&record)?;
+        // §25.5 — Initial snapshot on create
+        let snapshot_data = serde_json::to_vec(&serde_json::json!({
+            "name": record.name,
+            "tags": record.tags_json,
+            "properties": record.properties,
+            "propertyLabels": record.property_labels,
+        }))
+        .unwrap_or_default();
+        let _ = vault.save_snapshot(&id, "user_edit", &snapshot_data, "diff_created");
+        let is_page = input.collection_type == "page";
+        let _ = vault.log_structured(
+            if is_page {
+                "page_create"
+            } else {
+                "object_create"
+            },
+            if is_page { "page" } else { "object" },
+            Some(&id),
+            Some(&input.name),
+            "user",
+            Some(&format!("section={}", input.collection_type)),
+        );
+        Ok(record_to_data(&record))
+    })
+    .await
+    .map_err(|e| format!("object_create task failed: {e}"))??;
+
     state.auto_sync.trigger_debounce();
     state.device_auto_sync.trigger_data_change();
-    Ok(record_to_data(&record))
+    Ok(data)
 }
 
 #[tauri::command]
@@ -625,73 +639,80 @@ pub async fn object_update(
 ) -> Result<ObjectData, String> {
     let vault = vault_handle(&state)?;
 
-    let mut record = vault
-        .load_object(&object_id)?
-        .ok_or("Object not found".to_string())?;
+    // P114: load_object 解密 + save_object 加密写入 + 快照/日志移入 spawn_blocking。
+    let data = tokio::task::spawn_blocking(move || -> Result<ObjectData, String> {
+        let mut record = vault
+            .load_object(&object_id)?
+            .ok_or("Object not found".to_string())?;
 
-    let old_sensitivity = record.sensitivity_level.clone();
-    // Preserve old __fields and __templateName before overwriting properties (前端不发送这两项)
-    let old_fields = record.properties.get("__fields").cloned();
-    let old_tpl_name = record.properties.get("__templateName").cloned();
-    record.name = input.name;
-    record.properties = input.properties;
-    if let Some(sl) = input.sensitivity_level {
-        record.sensitivity_level = sl;
-    }
-    if let Some(icon_name) = input.icon_name {
-        record.icon_name = icon_name;
-    }
-    // 普通更新不再自动同步模板字段定义与敏感度；仅在用户主动同步时更新。
-    // 这里只恢复前端未发送的 __fields 与 __templateName，确保对象结构完整。
-    if record.properties.get("__fields").is_none() {
-        if let Some(f) = old_fields {
-            inject_property_fields(&mut record.properties, &f);
+        let old_sensitivity = record.sensitivity_level.clone();
+        // Preserve old __fields and __templateName before overwriting properties (前端不发送这两项)
+        let old_fields = record.properties.get("__fields").cloned();
+        let old_tpl_name = record.properties.get("__templateName").cloned();
+        record.name = input.name;
+        record.properties = input.properties;
+        if let Some(sl) = input.sensitivity_level {
+            record.sensitivity_level = sl;
         }
-    }
-    if record.properties.get("__templateName").is_none() {
-        if let Some(name) = old_tpl_name {
-            if let Some(obj) = record.properties.as_object_mut() {
-                obj.insert("__templateName".to_string(), name);
+        if let Some(icon_name) = input.icon_name {
+            record.icon_name = icon_name;
+        }
+        // 普通更新不再自动同步模板字段定义与敏感度；仅在用户主动同步时更新。
+        // 这里只恢复前端未发送的 __fields 与 __templateName，确保对象结构完整。
+        if record.properties.get("__fields").is_none() {
+            if let Some(f) = old_fields {
+                inject_property_fields(&mut record.properties, &f);
             }
         }
-    }
-    // 校验 dynamic_group 字段
-    validate_dynamic_groups(&record.properties)?;
-    record.updated_at = chrono::Utc::now().to_rfc3339();
-    record.version += 1;
+        if record.properties.get("__templateName").is_none() {
+            if let Some(name) = old_tpl_name {
+                if let Some(obj) = record.properties.as_object_mut() {
+                    obj.insert("__templateName".to_string(), name);
+                }
+            }
+        }
+        // 校验 dynamic_group 字段
+        validate_dynamic_groups(&record.properties)?;
+        record.updated_at = chrono::Utc::now().to_rfc3339();
+        record.version += 1;
 
-    vault.save_object(&record)?;
+        vault.save_object(&record)?;
 
-    // §28: bump public_data_version when sensitivity changes to/from public
-    let new_sensitivity = &record.sensitivity_level;
-    if old_sensitivity != *new_sensitivity
-        && (old_sensitivity == "public" || new_sensitivity == "public")
-    {
-        let account_id = record.account_id.clone();
-        let _ = crate::services::llm_context::bump_public_data_version(&vault, &account_id);
-    }
+        // §28: bump public_data_version when sensitivity changes to/from public
+        let new_sensitivity = &record.sensitivity_level;
+        if old_sensitivity != *new_sensitivity
+            && (old_sensitivity == "public" || new_sensitivity == "public")
+        {
+            let account_id = record.account_id.clone();
+            let _ = crate::services::llm_context::bump_public_data_version(&vault, &account_id);
+        }
 
-    // §25.5 — Save snapshot for history
-    let snapshot_data = serde_json::to_vec(&serde_json::json!({
-        "name": record.name,
-        "tags": record.tags_json,
-        "properties": record.properties,
-        "propertyLabels": record.property_labels,
-    }))
-    .unwrap_or_default();
-    let _ = vault.save_snapshot(&object_id, "user_edit", &snapshot_data, "diff_updated");
+        // §25.5 — Save snapshot for history
+        let snapshot_data = serde_json::to_vec(&serde_json::json!({
+            "name": record.name,
+            "tags": record.tags_json,
+            "properties": record.properties,
+            "propertyLabels": record.property_labels,
+        }))
+        .unwrap_or_default();
+        let _ = vault.save_snapshot(&object_id, "user_edit", &snapshot_data, "diff_updated");
 
-    let _ = vault.log_structured(
-        "object_update",
-        "object",
-        Some(&object_id),
-        Some(&record.name),
-        "user",
-        Some(&format!("section={}", record.section_type)),
-    );
+        let _ = vault.log_structured(
+            "object_update",
+            "object",
+            Some(&object_id),
+            Some(&record.name),
+            "user",
+            Some(&format!("section={}", record.section_type)),
+        );
+        Ok(record_to_data(&record))
+    })
+    .await
+    .map_err(|e| format!("object_update task failed: {e}"))??;
+
     state.auto_sync.trigger_debounce();
     state.device_auto_sync.trigger_data_change();
-    Ok(record_to_data(&record))
+    Ok(data)
 }
 
 /// 将旧字段定义与值移入 properties.__deprecatedFields。
@@ -1370,62 +1391,69 @@ pub async fn object_delete(state: State<'_, AppState>, object_id: String) -> Res
     let period = load_trash_retention(&vault, &account_id);
     let retention_ms = retention_ms(&period);
 
-    match vault.load_object(&object_id) {
-        Ok(Some(rec)) => {
-            let now_ms = chrono::Utc::now().timestamp_millis();
-            let obj_name = rec.name.clone();
-            let obj_section = rec.section_type.clone();
-            // Store complete ObjectRecord as data (§23.2.2)
-            let full_record = serde_json::json!({
-                "id": rec.id, "accountId": rec.account_id, "typeId": rec.type_id,
-                "sectionType": rec.section_type, "name": rec.name, "iconName": rec.icon_name,
-                "parentId": rec.parent_id, "childrenIds": rec.children_ids,
-                "properties": rec.properties, "propertyLabels": rec.property_labels,
-                "sensitivityLevel": rec.sensitivity_level, "tags": rec.tags_json,
-                "createdAt": rec.created_at, "updatedAt": rec.updated_at, "version": rec.version,
-                "templateId": rec.template_id, "templateType": rec.template_type,
-                "contractTypeId": rec.contract_type_id,
-                "templateHash": rec.template_hash,
-            });
-            let trash = solosoul_vault::TrashItem {
-                id: format!("trash_{}", uuid::Uuid::new_v4()),
-                item_type: "object".to_string(),
-                original_id: object_id.clone(),
-                original_parent_id: rec.parent_id.clone(),
-                original_section_type: Some(rec.section_type.clone()),
-                original_sort_order: None,
-                data: serde_json::to_vec(&full_record).unwrap_or_default(),
-                deleted_at: now_ms,
-                expires_at: Some(now_ms + retention_ms),
-                deleted_by: "user".to_string(),
-                name_snapshot: rec.name.clone(),
-                icon_snapshot: Some(rec.icon_name),
-            };
-            let _ = vault.save_trash_item(&trash);
-            vault.delete_object(&object_id, true)?;
-            let _ = vault.log_structured(
-                "object_delete",
-                "object",
-                Some(&object_id),
-                Some(&obj_name),
-                "user",
-                Some(&format!("section={}", obj_section)),
-            );
-            state.auto_sync.trigger_debounce();
-            state.device_auto_sync.trigger_data_change();
-            Ok(())
+    // P114: load_object 解密 + 回收站写入 + 删除移入 spawn_blocking。
+    tokio::task::spawn_blocking(move || -> Result<(), String> {
+        match vault.load_object(&object_id) {
+            Ok(Some(rec)) => {
+                let now_ms = chrono::Utc::now().timestamp_millis();
+                let obj_name = rec.name.clone();
+                let obj_section = rec.section_type.clone();
+                // Store complete ObjectRecord as data (§23.2.2)
+                let full_record = serde_json::json!({
+                    "id": rec.id, "accountId": rec.account_id, "typeId": rec.type_id,
+                    "sectionType": rec.section_type, "name": rec.name, "iconName": rec.icon_name,
+                    "parentId": rec.parent_id, "childrenIds": rec.children_ids,
+                    "properties": rec.properties, "propertyLabels": rec.property_labels,
+                    "sensitivityLevel": rec.sensitivity_level, "tags": rec.tags_json,
+                    "createdAt": rec.created_at, "updatedAt": rec.updated_at, "version": rec.version,
+                    "templateId": rec.template_id, "templateType": rec.template_type,
+                    "contractTypeId": rec.contract_type_id,
+                    "templateHash": rec.template_hash,
+                });
+                let trash = solosoul_vault::TrashItem {
+                    id: format!("trash_{}", uuid::Uuid::new_v4()),
+                    item_type: "object".to_string(),
+                    original_id: object_id.clone(),
+                    original_parent_id: rec.parent_id.clone(),
+                    original_section_type: Some(rec.section_type.clone()),
+                    original_sort_order: None,
+                    data: serde_json::to_vec(&full_record).unwrap_or_default(),
+                    deleted_at: now_ms,
+                    expires_at: Some(now_ms + retention_ms),
+                    deleted_by: "user".to_string(),
+                    name_snapshot: rec.name.clone(),
+                    icon_snapshot: Some(rec.icon_name),
+                };
+                let _ = vault.save_trash_item(&trash);
+                vault.delete_object(&object_id, true)?;
+                let _ = vault.log_structured(
+                    "object_delete",
+                    "object",
+                    Some(&object_id),
+                    Some(&obj_name),
+                    "user",
+                    Some(&format!("section={}", obj_section)),
+                );
+                Ok(())
+            }
+            Ok(None) => Err("Object not found".to_string()),
+            Err(e) => {
+                // load_object 返回错误通常意味着解密失败（如密码修改后 vault.db 未同步）。
+                // 返回更明确的错误信息，帮助用户诊断问题。
+                tracing::error!("object_delete: load_object failed for {}: {}", object_id, e);
+                Err(format!(
+                    "Failed to load object for deletion: {}. This may indicate a data synchronization issue after password change. Please try restarting the app or syncing manually.",
+                    e
+                ))
+            }
         }
-        Ok(None) => Err("Object not found".to_string()),
-        Err(e) => {
-            // load_object 返回错误通常意味着解密失败（如密码修改后 vault.db 未同步）。
-            // 返回更明确的错误信息，帮助用户诊断问题。
-            tracing::error!("object_delete: load_object failed for {}: {}", object_id, e);
-            Err(format!(
-                "Failed to load object for deletion: {}. This may indicate a data synchronization issue after password change. Please try restarting the app or syncing manually.",
-                e
-            ))
-        }
-    }
+    })
+    .await
+    .map_err(|e| format!("object_delete task failed: {e}"))??;
+
+    state.auto_sync.trigger_debounce();
+    state.device_auto_sync.trigger_data_change();
+    Ok(())
 }
 
 // ── Sub-modules ─────────────────────────────────────────────

@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-02 02:40:00
+> 最后更新：2026-08-02 03:00:00
 > 当前分支：`main`
 > 修复轮次：1（初始分析，全新报告）
 > 分析范围：`tauri/src/`、`tauri/src-tauri/src/`、`tauri/crates/`（约 6.4 万行 Rust + 323 个前端文件）；按流程忽略 `node_modules/`、`.git/`、`target/`、`dist/`、`.vite/`。
@@ -47,7 +47,7 @@
 | P111 | 性能 | `crates/solosoul-vault/src/storage.rs:2390-2477` | `list_objects` 对结果集每行解密 properties+labels 并完整 JSON 解析，即使调用方只要元数据（主列表/page_delete/attachment_list_all/llm_context 公共路径） | `[ ]` |
 | P112 | 性能 | `src-tauri/src/commands/attachment.rs:505-526,548,593-596` | `attachment_list_all` 同一数据约 4 轮全量解密（list_objects + load_objects_batch 重复 + build 两次 + 每页面再查） | `[x]` 已修复（2026-08-02：解密收敛到**单轮**。① `ObjectSummary` 新增 `parent_id` 字段（serde default/skip_serializing_if，`list_objects` SELECT 追加第 18 列 `parent_id`，`row.get(17)` 映射，import.rs 字面量同步补齐）——`list_objects` 本就解密返回 `summary.properties`，现同时携带父关系；② `attachment_list_all` 抽 `group_objects_for_attachment_tree` 助手，从单次 `list_objects` 结果按 `parent_id` **一次性预分组子对象**（替代每页面 N+1 次 `list_objects(parent_id)` 解密查询），返回值抽 `AttachmentTreeGroups` 类型别名消 clippy type_complexity；③ `build_attachment_tree_pages` 直接复用已解密 `summary.properties` 做 `load_attachments`（删除 `load_objects_batch` 全量重复解密，×2：活动视图 + 回收站视图各一次），签名去掉 `account_id`，`vault` 保留供模板名缓存；子对象仍同时保留在 `section_groups`（child_ids_assigned 排除逻辑不变），页面型子对象双落入语义与旧逐页查询逐字节一致。防回归单测 ×1（页面含子对象附件 + 独立对象按 section 分组 + 无附件对象过滤 + 回收站视图只含已删除附件 + 分组 map 幂等两视图共享）。solo_soul attachment 12 测试 + solosoul-vault 106 测试全绿、clippy/fmt 干净、solosoul_cli cargo check 通过） |
 | P113 | 性能 | `src-tauri/src/commands/ocr.rs:301-317` | `ocr_scan_image` 在 tokio worker 上同步执行秒级 ONNX 推理，无 `spawn_blocking` | `[x]` 已修复（2026-08-02：`ocr_scan_image` 的 ONNX 推理（含首次引擎加载）整体移入 `tokio::task::spawn_blocking`——闭包内先 `get_ocr_engine`（数百 ms session 初始化）+ 锁引擎 + `scan_pdf`/`scan_image`，tokio worker 不再被秒级推理阻塞；锁在闭包内获取，无 MutexGuard 跨 await；`OcrModelTier` 为 Copy（已验证 derive），闭包后 `tier.to_string()` 正常；join 错误 `.map_err("OCR task join error")??` 双层解包，内层 String 错误原样透传；`file_type` 不捕获入闭包（仅捕获 Copy 的 `is_pdf`），日志 json 用 `file_type.as_deref()` 等价旧行为。solo_soul OCR 22 测试全绿、clippy/fmt 干净） |
-| P114 | 性能 | `src-tauri/src/commands/object/mod.rs:459-484` 等 | 所有 vault async command（list/update/search 等）直接在 runtime 上同步做 rusqlite+AES-GCM 解密，重路径未 `spawn_blocking` | `[ ]` |
+| P114 | 性能 | `src-tauri/src/commands/object/mod.rs:459-484` 等 | 所有 vault async command（list/update/search 等）直接在 runtime 上同步做 rusqlite+AES-GCM 解密，重路径未 `spawn_blocking` | `[x]` 已修复（2026-08-02：重路径 vault 命令统一移入 `tokio::task::spawn_blocking`（沿用 recovery.rs/discovery.rs 既有模式，`Arc<VaultStore>` 克隆入闭包）。**object/mod.rs**：`object_list`（全表 AES 解密 + SQL 级关键词过滤）、`object_get`（load_object）、`object_create`/`object_update`（模板继承 + save_object + 快照/审计日志）、`object_delete`（load + 回收站写入 + delete）全部移入 blocking 闭包，filter 字段先克隆为 owned `Option<String>` 再捕获；`??` 双层解包拿内层值后触发 auto_sync，闭包显式 `-> Result<...>` 返回类型注解消除 E0282/E0283。**object/trash.rs**：`object_trash_list`、`page_delete`（全表筛选 + 逐对象二次解密 + 回收站写入）移入。**search/commands.rs**：`search_advanced_impl` 零 `.await`（纯同步全表解密扫描）降为普通 `fn` 接收 `&VaultStore`；`search_unified` 整个搜索体（空查询列表 / 高级搜索 / search_pages / search_templates / 模板归属展开 / 排序截断）包入单次 spawn_blocking。**attachment.rs**：`attachment_list_all`（list_objects + 附件树构建 ×2 视图）移入。join 错误统一 `.map_err("xxx task failed: {e}")`；闭包仅捕获 owned/'static+Send 数据（Arc、String、Option、usize、bool），无 `&state` 引用泄漏；`object_delete` 的 Err 分支 tracing::error 在闭包内；auto_sync/device_auto_sync 触发均移至 await 之后且仅成功路径（`??` 先传播错误）。solo_soul object 48 + search 17 + attachment 12 测试全绿、clippy 0 警告、fmt 干净。**范围注记**：单对象轻量命令（`object_purge`/`trash_permanent_delete`/`object_sync_with_template`/`object_ignore_template_sync`/`object_list_deprecated_fields`/`object_restore`）仍为同步执行，属单对象轻路径，未在重路径清单内） |
 | P115 | 性能 | `crates/solosoul-sync/src/delta.rs:117-179`、`storage.rs:1628-1653` | `apply_sync_records` 每条记录约 4 条 auto-commit SQL（HLC 重复查询 ×2）且整批无事务、逐条克隆 JSON | `[x]` 已修复（2026-08-02：同步应用路径**单事务批量化**。storage.rs 抽出 `_tx` 连接作用域助手（get/set_record_hlc、save/load_profile、save/load_object、save/load_user_template、save_trash_item 各成对，公共方法变薄锁包装），4 个 `apply_*_sync_record` 改静态 `_tx` 变体（顺带修掉对象路径双写 `set_record_hlc`）；`apply_sync_record` 单条公共语义不变但包进单事务；新增 `apply_sync_records_batch(&[BorrowedSyncRecord])`——一次加锁 + 整批单事务，HLC 只查一次、写一次，逐条克隆消除（lib.rs 新增零克隆借用视图 `BorrowedSyncRecord` + `SyncApplyOutcome`，serde `Deserializer for &Value` 借值解码）。delta.rs `apply_sync_records` 构建零克隆借用视图一次调用批接口，冲突报告直接用 outcome.local_hlc（跳过路径也在 `apply_sync_record_tx` 入口查一次 HLC 携带）免重查。**单条记录失败不中断整批**：错误入 outcome 继续后续记录；写序保证先写数据后写 HLC（失败自愈可重同步，不会永久跳过）。防回归单测 ×1（批/单语义等价：多条成功、旧 HLC 跳过、解码失败不中断整批且失败记录未部分写入、写前本地 HLC 携带）。solosoul-vault 106 测试 + solosoul-sync 47 测试全绿、clippy/fmt 干净） |
 | P116 | 前端性能 | `src/components/llm/ChatMessageList.tsx:74-124`、`src/hooks/useLlmChatCore.ts:220-230` | 流式期间每个 token 对整个会话所有消息重新 Markdown 解析+语法高亮（消息项未 memo），CPU 随消息数线性放大 | `[ ]` |
 | P117 | 前端性能 | `src/hooks/useLlmChatCore.ts:66` | `useLlmStore()` 整店订阅 + effect deps 含整个 store，每个 token 整页（含会话列表）重渲染、effect 重跑 | `[ ]` |
@@ -115,8 +115,8 @@
 
 ## 修复进度
 
-- 已完成：19 / 69（P001-P007、P101-P115；其中 P104 为部分闭环）
-- 当前处理：P114（vault async command spawn_blocking 化，P1 性能高）
+- 已完成：20 / 69（P001-P007、P101-P115；其中 P104 为部分闭环）
+- 当前处理：P111（list_objects metadata-only 查询，P1 性能高）
 
 ## 审查通过项（已排查，无需修改）
 
@@ -172,7 +172,7 @@ Windows 生产路径用 `FileBiometricStorage` 存主密钥（`derive_master_key
 - **P110**：真正的 SQL LIMIT/OFFSET + 水印下推。（2026-08-02 已修复：objects 表 ORDER BY 有效 HLC + LIMIT/OFFSET 下推 SQL，小表内存排序修复同源页边界漏发 bug，防回归单测覆盖页序与完整性。）
 - **P111**：拆出 metadata-only 查询（不 SELECT properties 列），或按 keyword 是否为空延迟解密。
 - **P112**：复用已解密的 `summary.properties` 做 `load_attachments`，删掉批量重载；页面 children 一次查询按 parent_id 分组。（2026-08-02 已修复：`ObjectSummary` 携带 `parent_id`，`group_objects_for_attachment_tree` 单次解密后预分组子对象，`build_attachment_tree_pages` 直用 `summary.properties`，删除 `load_objects_batch` 重复解密，解密收敛到单轮。）
-- **P113/P114**：重 CPU/IO 路径（OCR 推理、全表解密、search/sync）统一 `tokio::task::spawn_blocking`。（2026-08-02 P113 已修复：OCR 推理含引擎加载移入 spawn_blocking；P114 待做：object/trash/search/attachment 命令。）
+- **P113/P114**：重 CPU/IO 路径（OCR 推理、全表解密、search/sync）统一 `tokio::task::spawn_blocking`。（2026-08-02 全部已修复：P113 OCR 推理含引擎加载移入 spawn_blocking；P114 object/trash/search/attachment 重路径命令统一移入 spawn_blocking，`Arc<VaultStore>` 克隆入闭包，`search_advanced_impl` 降为同步 fn。）
 - **P115**：整批包一个事务；`apply_sync_record` 接收已查出的 HLC 避免重复查询；`data` 传引用。（2026-08-02 已修复：`apply_sync_records_batch` 单事务 + `BorrowedSyncRecord` 零克隆借用视图 + HLC 只查写一次 + 逐条错误入 outcome 不中断整批。）
 
 ### 五、P1 前端性能高

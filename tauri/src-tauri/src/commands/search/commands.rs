@@ -5,16 +5,17 @@ use solosoul_core::{collect_protected_field_keys, is_protected_sensitivity};
 ///
 /// 返回 `(SearchResult, 全量已解密 records)`：调用方（`search_unified`）可复用
 /// 第二次全表扫描进行模板归属过滤，避免对全部对象做两次 AES 解密（P007）。
-async fn search_advanced_impl(
-    state: &AppState,
+///
+/// P114: 本函数无任何 `.await`（纯同步 rusqlite + AES 解密），因此降为普通 fn，
+/// 由 `search_unified` 在 `spawn_blocking` 中调用，避免阻塞 tokio worker。
+fn search_advanced_impl(
+    vault: &solosoul_vault::VaultStore,
     account_id: &str,
     query: &str,
     collection_type: Option<String>,
     sensitivity_level: Option<String>,
     limit: Option<usize>,
 ) -> Result<(SearchResult, Vec<solosoul_vault::ObjectRecord>), String> {
-    let vault = vault_handle(state)?;
-
     // 空查询时仅返回空结果，但保留全量 records 供调用方模板展开（行为与旧实现一致：
     // 旧代码在空查询时也会走 list_objects 全表扫描做模板归属过滤）。
     let q = query.to_lowercase();
@@ -186,13 +187,15 @@ pub async fn search_unified(
     parent_id: Option<String>,
     limit: Option<usize>,
 ) -> Result<SearchResult, String> {
-    let limit = limit.unwrap_or(DEFAULT_SEARCH_LIMIT);
-    let trimmed = query.trim();
+    let vault = vault_handle(&state)?;
 
-    // 仅按页面筛选时（无搜索关键词），列出该页面下全部对象
-    if trimmed.is_empty() && (collection_type.is_some() || parent_id.is_some()) {
-        let (summaries, templates) = {
-            let vault = vault_handle(&state)?;
+    // P114: 全表 AES 解密 + 过滤/排序移入 spawn_blocking，避免阻塞 tokio worker。
+    tokio::task::spawn_blocking(move || {
+        let limit = limit.unwrap_or(DEFAULT_SEARCH_LIMIT);
+        let trimmed = query.trim();
+
+        // 仅按页面筛选时（无搜索关键词），列出该页面下全部对象
+        if trimmed.is_empty() && (collection_type.is_some() || parent_id.is_some()) {
             let summaries = if let Some(ref ct) = collection_type {
                 vault.list_objects(&account_id, Some(ct), None, None, false, false)?
             } else if let Some(ref pid) = parent_id {
@@ -205,155 +208,153 @@ pub async fn search_unified(
                 .into_iter()
                 .map(|t| (t.id.clone(), t))
                 .collect();
-            (summaries, templates)
-        };
 
-        let items: Vec<SearchResultItem> = summaries
-            .into_iter()
-            .map(|s| {
-                let mut levels = HashSet::new();
-                levels.insert(s.sensitivity_level.clone());
-                if let Some(ref tid) = s.template_id {
-                    if let Some(tpl) = templates.get(tid) {
-                        for prop in &tpl.properties {
-                            if let Some(ref sl) = prop.sensitivity_level {
-                                levels.insert(sl.clone());
+            let items: Vec<SearchResultItem> = summaries
+                .into_iter()
+                .map(|s| {
+                    let mut levels = HashSet::new();
+                    levels.insert(s.sensitivity_level.clone());
+                    if let Some(ref tid) = s.template_id {
+                        if let Some(tpl) = templates.get(tid) {
+                            for prop in &tpl.properties {
+                                if let Some(ref sl) = prop.sensitivity_level {
+                                    levels.insert(sl.clone());
+                                }
                             }
                         }
                     }
-                }
-                let tpl_from_cache = s
-                    .template_id
-                    .as_ref()
-                    .and_then(|tid| templates.get(tid))
-                    .map(|t| t.name.clone());
-                let tpl_from_props = s
-                    .properties
-                    .get("__templateName")
-                    .and_then(|v| v.as_str().map(String::from));
-                let (tpl_name, tpl_deleted) =
-                    match (s.template_id.as_ref(), tpl_from_cache, tpl_from_props) {
-                        (Some(_), Some(name), _) => (Some(name), false),
-                        (Some(_), None, Some(name)) => (Some(name), true),
-                        (Some(_), None, None) => (s.template_id.clone(), true),
-                        _ => (None, false),
-                    };
-                SearchResultItem {
-                    object_id: s.id,
-                    name: s.name,
-                    collection_type: s.collection_type,
-                    template_name: tpl_name,
-                    template_deleted: tpl_deleted,
-                    item_type: "object".to_string(),
-                    parent_id: parent_id.clone(),
-                    field_count: Some(count_object_fields(&s.properties)),
-                    sensitivity_levels: Some(levels.into_iter().collect()),
-                    object_count: None,
-                    matched_field: None,
-                    matched_value: None,
-                    match_type: None,
-                    relevance: 0.0,
-                }
-            })
-            .collect();
-
-        let total = items.len();
-        let has_more = items.len() > limit;
-        return Ok(SearchResult {
-            items: items.into_iter().take(limit).collect(),
-            total,
-            has_more,
-        });
-    }
-
-    // 有关键词时走高级搜索（返回对象），再合并页面结果。
-    // `all_records` 为已解密的全量对象记录，模板归属过滤直接复用它，
-    // 避免对全部对象做第二次全表解密（P007）。
-    let (mut object_result, all_records) = search_advanced_impl(
-        &state,
-        &account_id,
-        &query,
-        collection_type.clone(),
-        None,
-        Some(limit),
-    )
-    .await?;
-
-    // 搜索页面和模板（不受 collectionType 影响）
-    if parent_id.is_none() {
-        let vault = vault_handle(&state)?;
-
-        // 未按具体页面筛选时，额外搜索页面（系统分区 + 自定义页面）
-        if collection_type.is_none() {
-            if let Ok(pages) = search_pages(&vault, &account_id, &query) {
-                object_result.items.extend(pages);
-            }
-        }
-
-        // 始终搜索模板 — 模板不归属于页面，不受 collectionType 影响
-        let mut matched_templates: std::collections::HashMap<String, String> =
-            std::collections::HashMap::new();
-        if let Ok(templates) = search_templates(&vault, &account_id, &query) {
-            for t in &templates {
-                matched_templates.insert(t.object_id.clone(), t.name.clone());
-            }
-            object_result.items.extend(templates);
-        }
-
-        // 如果模板匹配，查找使用这些模板的对象（即使名称/字段不包含查询词）。
-        // 复用 search_advanced_impl 已解密的全量 records，不再二次 list_objects。
-        if !matched_templates.is_empty() && !all_records.is_empty() {
-            let existing_ids: std::collections::HashSet<String> = object_result
-                .items
-                .iter()
-                .map(|i| i.object_id.clone())
+                    let tpl_from_cache = s
+                        .template_id
+                        .as_ref()
+                        .and_then(|tid| templates.get(tid))
+                        .map(|t| t.name.clone());
+                    let tpl_from_props = s
+                        .properties
+                        .get("__templateName")
+                        .and_then(|v| v.as_str().map(String::from));
+                    let (tpl_name, tpl_deleted) =
+                        match (s.template_id.as_ref(), tpl_from_cache, tpl_from_props) {
+                            (Some(_), Some(name), _) => (Some(name), false),
+                            (Some(_), None, Some(name)) => (Some(name), true),
+                            (Some(_), None, None) => (s.template_id.clone(), true),
+                            _ => (None, false),
+                        };
+                    SearchResultItem {
+                        object_id: s.id,
+                        name: s.name,
+                        collection_type: s.collection_type,
+                        template_name: tpl_name,
+                        template_deleted: tpl_deleted,
+                        item_type: "object".to_string(),
+                        parent_id: parent_id.clone(),
+                        field_count: Some(count_object_fields(&s.properties)),
+                        sensitivity_levels: Some(levels.into_iter().collect()),
+                        object_count: None,
+                        matched_field: None,
+                        matched_value: None,
+                        match_type: None,
+                        relevance: 0.0,
+                    }
+                })
                 .collect();
 
-            for obj in &all_records {
-                if existing_ids.contains(&obj.id) {
-                    continue;
+            let total = items.len();
+            let has_more = items.len() > limit;
+            return Ok(SearchResult {
+                items: items.into_iter().take(limit).collect(),
+                total,
+                has_more,
+            });
+        }
+
+        // 有关键词时走高级搜索（返回对象），再合并页面结果。
+        // `all_records` 为已解密的全量对象记录，模板归属过滤直接复用它，
+        // 避免对全部对象做第二次全表解密（P007）。
+        let (mut object_result, all_records) = search_advanced_impl(
+            &vault,
+            &account_id,
+            &query,
+            collection_type.clone(),
+            None,
+            Some(limit),
+        )?;
+
+        // 搜索页面和模板（不受 collectionType 影响）
+        if parent_id.is_none() {
+            // 未按具体页面筛选时，额外搜索页面（系统分区 + 自定义页面）
+            if collection_type.is_none() {
+                if let Ok(pages) = search_pages(&vault, &account_id, &query) {
+                    object_result.items.extend(pages);
                 }
-                // 如果指定了 collectionType 过滤，仅添加属于该页面的对象
-                if let Some(ref ct) = collection_type {
-                    if obj.type_id != *ct {
+            }
+
+            // 始终搜索模板 — 模板不归属于页面，不受 collectionType 影响
+            let mut matched_templates: std::collections::HashMap<String, String> =
+                std::collections::HashMap::new();
+            if let Ok(templates) = search_templates(&vault, &account_id, &query) {
+                for t in &templates {
+                    matched_templates.insert(t.object_id.clone(), t.name.clone());
+                }
+                object_result.items.extend(templates);
+            }
+
+            // 如果模板匹配，查找使用这些模板的对象（即使名称/字段不包含查询词）。
+            // 复用 search_advanced_impl 已解密的全量 records，不再二次 list_objects。
+            if !matched_templates.is_empty() && !all_records.is_empty() {
+                let existing_ids: std::collections::HashSet<String> = object_result
+                    .items
+                    .iter()
+                    .map(|i| i.object_id.clone())
+                    .collect();
+
+                for obj in &all_records {
+                    if existing_ids.contains(&obj.id) {
                         continue;
                     }
-                }
-                if let Some(ref tid) = obj.template_id {
-                    if let Some(tpl_name) = matched_templates.get(tid) {
-                        let field_count = count_object_fields(&obj.properties);
-                        object_result.items.push(SearchResultItem {
-                            object_id: obj.id.clone(),
-                            name: obj.name.clone(),
-                            collection_type: obj.type_id.clone(),
-                            template_name: Some(tpl_name.clone()),
-                            template_deleted: false,
-                            item_type: "object".to_string(),
-                            parent_id: obj.parent_id.clone(),
-                            field_count: Some(field_count),
-                            sensitivity_levels: Some(vec![obj.sensitivity_level.clone()]),
-                            object_count: None,
-                            matched_field: Some("template".to_string()),
-                            matched_value: Some(tpl_name.clone()),
-                            match_type: Some("template".to_string()),
-                            relevance: SCORE_PARTIAL_NAME,
-                        });
+                    // 如果指定了 collectionType 过滤，仅添加属于该页面的对象
+                    if let Some(ref ct) = collection_type {
+                        if obj.type_id != *ct {
+                            continue;
+                        }
+                    }
+                    if let Some(ref tid) = obj.template_id {
+                        if let Some(tpl_name) = matched_templates.get(tid) {
+                            let field_count = count_object_fields(&obj.properties);
+                            object_result.items.push(SearchResultItem {
+                                object_id: obj.id.clone(),
+                                name: obj.name.clone(),
+                                collection_type: obj.type_id.clone(),
+                                template_name: Some(tpl_name.clone()),
+                                template_deleted: false,
+                                item_type: "object".to_string(),
+                                parent_id: obj.parent_id.clone(),
+                                field_count: Some(field_count),
+                                sensitivity_levels: Some(vec![obj.sensitivity_level.clone()]),
+                                object_count: None,
+                                matched_field: Some("template".to_string()),
+                                matched_value: Some(tpl_name.clone()),
+                                match_type: Some("template".to_string()),
+                                relevance: SCORE_PARTIAL_NAME,
+                            });
+                        }
                     }
                 }
             }
+
+            // 重新排序和截断
+            object_result.items.sort_by(|a, b| {
+                b.relevance
+                    .partial_cmp(&a.relevance)
+                    .unwrap_or(std::cmp::Ordering::Equal)
+            });
+            let has_more = object_result.items.len() > limit;
+            object_result.items.truncate(limit);
+            object_result.has_more = has_more;
+            object_result.total = object_result.items.len();
         }
 
-        // 重新排序和截断
-        object_result.items.sort_by(|a, b| {
-            b.relevance
-                .partial_cmp(&a.relevance)
-                .unwrap_or(std::cmp::Ordering::Equal)
-        });
-        let has_more = object_result.items.len() > limit;
-        object_result.items.truncate(limit);
-        object_result.has_more = has_more;
-        object_result.total = object_result.items.len();
-    }
-
-    Ok(object_result)
+        Ok(object_result)
+    })
+    .await
+    .map_err(|e| format!("search_unified task failed: {e}"))?
 }

@@ -40,7 +40,10 @@ pub async fn object_trash_list(
 ) -> Result<Vec<solosoul_vault::TrashItemSummary>, String> {
     let _ = account_id;
     let vault = vault_handle(&state)?;
-    vault.list_trash_items(None, since)
+    // P114: 回收站全量解密移入 spawn_blocking，避免阻塞 tokio worker。
+    tokio::task::spawn_blocking(move || vault.list_trash_items(None, since))
+        .await
+        .map_err(|e| format!("object_trash_list task failed: {e}"))?
 }
 
 /// Read the user's language setting from plaintext UI preferences.
@@ -239,124 +242,131 @@ pub async fn page_delete(
 ) -> Result<usize, String> {
     let vault = vault_handle(&state)?;
 
-    let now_ms = chrono::Utc::now().timestamp_millis();
-    let period = load_trash_retention(&vault, &account_id);
-    let retention_ms = retention_ms(&period);
-    let mut count = 0usize;
+    // P114: 全表筛选 + 逐对象二次解密 + 回收站写入移入 spawn_blocking。
+    let count = tokio::task::spawn_blocking(move || -> Result<usize, String> {
+        let now_ms = chrono::Utc::now().timestamp_millis();
+        let period = load_trash_retention(&vault, &account_id);
+        let retention_ms = retention_ms(&period);
+        let mut count = 0usize;
 
-    let mut page_name = String::new();
+        let mut page_name = String::new();
 
-    // Delete the custom page object itself if provided
-    if let Some(pid) = &page_object_id {
-        if let Ok(Some(rec)) = vault.load_object(pid) {
-            page_name = rec.name.clone();
-            let trash = solosoul_vault::TrashItem {
-                id: format!("trash_{}", uuid::Uuid::new_v4()),
-                item_type: "page".to_string(),
-                original_id: rec.id.clone(),
-                original_parent_id: None,
-                original_section_type: Some(rec.section_type.clone()),
-                original_sort_order: None,
-                data: serde_json::to_vec(&serde_json::json!({
-                    "id": rec.id,
-                    "accountId": rec.account_id,
-                    "typeId": rec.type_id,
-                    "sectionType": rec.section_type,
-                    "name": rec.name,
-                    "iconName": rec.icon_name,
-                    "parentId": rec.parent_id,
-                    "childrenIds": rec.children_ids,
-                    "properties": rec.properties,
-                    "propertyLabels": rec.property_labels,
-                    "sensitivityLevel": rec.sensitivity_level,
-                    "tags": rec.tags_json,
-                    "createdAt": rec.created_at,
-                    "updatedAt": rec.updated_at,
-                    "version": rec.version,
-                    "templateId": rec.template_id,
-                    "templateType": rec.template_type,
-                    "contractTypeId": rec.contract_type_id,
-                    "templateHash": rec.template_hash,
-                }))
-                .unwrap_or_default(),
-                deleted_at: now_ms,
-                expires_at: Some(now_ms + retention_ms),
-                deleted_by: "user".to_string(),
-                name_snapshot: rec.name.clone(),
-                icon_snapshot: Some(rec.icon_name),
-            };
-            let _ = vault.save_trash_item(&trash);
-            vault.delete_object(pid, true)?;
-            count += 1;
-        }
-    }
-
-    // Delete all objects in this section_type
-    let objects = vault
-        .list_objects(&account_id, None, None, None, false, false)
-        .map_err(|e| format!("list: {}", e))?;
-    for obj in &objects {
-        if obj.section_type == section_type || obj.collection_type == section_type {
-            if page_name.is_empty() {
-                page_name = section_type.clone();
-            }
-            if let Ok(Some(rec)) = vault.load_object(&obj.id) {
-                let full_record = serde_json::json!({
-                    "id": rec.id,
-                    "accountId": rec.account_id,
-                    "typeId": rec.type_id,
-                    "sectionType": rec.section_type,
-                    "name": rec.name,
-                    "iconName": rec.icon_name,
-                    "parentId": rec.parent_id,
-                    "childrenIds": rec.children_ids,
-                    "properties": rec.properties,
-                    "propertyLabels": rec.property_labels,
-                    "sensitivityLevel": rec.sensitivity_level,
-                    "tags": rec.tags_json,
-                    "createdAt": rec.created_at,
-                    "updatedAt": rec.updated_at,
-                    "version": rec.version,
-                    "templateId": rec.template_id,
-                    "templateType": rec.template_type,
-                    "contractTypeId": rec.contract_type_id,
-                    "templateHash": rec.template_hash,
-                    "parentPageName": page_name,
-                    "parentPageIcon": rec.icon_name,
-                });
+        // Delete the custom page object itself if provided
+        if let Some(pid) = &page_object_id {
+            if let Ok(Some(rec)) = vault.load_object(pid) {
+                page_name = rec.name.clone();
                 let trash = solosoul_vault::TrashItem {
                     id: format!("trash_{}", uuid::Uuid::new_v4()),
-                    item_type: "object".to_string(),
+                    item_type: "page".to_string(),
                     original_id: rec.id.clone(),
-                    original_parent_id: rec.parent_id.clone(),
+                    original_parent_id: None,
                     original_section_type: Some(rec.section_type.clone()),
                     original_sort_order: None,
-                    data: serde_json::to_vec(&full_record).unwrap_or_default(),
+                    data: serde_json::to_vec(&serde_json::json!({
+                        "id": rec.id,
+                        "accountId": rec.account_id,
+                        "typeId": rec.type_id,
+                        "sectionType": rec.section_type,
+                        "name": rec.name,
+                        "iconName": rec.icon_name,
+                        "parentId": rec.parent_id,
+                        "childrenIds": rec.children_ids,
+                        "properties": rec.properties,
+                        "propertyLabels": rec.property_labels,
+                        "sensitivityLevel": rec.sensitivity_level,
+                        "tags": rec.tags_json,
+                        "createdAt": rec.created_at,
+                        "updatedAt": rec.updated_at,
+                        "version": rec.version,
+                        "templateId": rec.template_id,
+                        "templateType": rec.template_type,
+                        "contractTypeId": rec.contract_type_id,
+                        "templateHash": rec.template_hash,
+                    }))
+                    .unwrap_or_default(),
                     deleted_at: now_ms,
                     expires_at: Some(now_ms + retention_ms),
                     deleted_by: "user".to_string(),
                     name_snapshot: rec.name.clone(),
-                    icon_snapshot: Some(rec.icon_name.clone()),
+                    icon_snapshot: Some(rec.icon_name),
                 };
                 let _ = vault.save_trash_item(&trash);
-                vault.delete_object(&obj.id, true)?;
+                vault.delete_object(pid, true)?;
                 count += 1;
             }
         }
-    }
 
-    let _ = vault.log_structured(
-        "page_delete",
-        "page",
-        Some(&section_type),
-        if page_name.is_empty() {
-            None
-        } else {
-            Some(&page_name)
-        },
-        "user",
-        Some(&format!("count={}", count)),
-    );
+        // Delete all objects in this section_type
+        let objects = vault
+            .list_objects(&account_id, None, None, None, false, false)
+            .map_err(|e| format!("list: {}", e))?;
+        for obj in &objects {
+            if obj.section_type == section_type || obj.collection_type == section_type {
+                if page_name.is_empty() {
+                    page_name = section_type.clone();
+                }
+                if let Ok(Some(rec)) = vault.load_object(&obj.id) {
+                    let full_record = serde_json::json!({
+                        "id": rec.id,
+                        "accountId": rec.account_id,
+                        "typeId": rec.type_id,
+                        "sectionType": rec.section_type,
+                        "name": rec.name,
+                        "iconName": rec.icon_name,
+                        "parentId": rec.parent_id,
+                        "childrenIds": rec.children_ids,
+                        "properties": rec.properties,
+                        "propertyLabels": rec.property_labels,
+                        "sensitivityLevel": rec.sensitivity_level,
+                        "tags": rec.tags_json,
+                        "createdAt": rec.created_at,
+                        "updatedAt": rec.updated_at,
+                        "version": rec.version,
+                        "templateId": rec.template_id,
+                        "templateType": rec.template_type,
+                        "contractTypeId": rec.contract_type_id,
+                        "templateHash": rec.template_hash,
+                        "parentPageName": page_name,
+                        "parentPageIcon": rec.icon_name,
+                    });
+                    let trash = solosoul_vault::TrashItem {
+                        id: format!("trash_{}", uuid::Uuid::new_v4()),
+                        item_type: "object".to_string(),
+                        original_id: rec.id.clone(),
+                        original_parent_id: rec.parent_id.clone(),
+                        original_section_type: Some(rec.section_type.clone()),
+                        original_sort_order: None,
+                        data: serde_json::to_vec(&full_record).unwrap_or_default(),
+                        deleted_at: now_ms,
+                        expires_at: Some(now_ms + retention_ms),
+                        deleted_by: "user".to_string(),
+                        name_snapshot: rec.name.clone(),
+                        icon_snapshot: Some(rec.icon_name.clone()),
+                    };
+                    let _ = vault.save_trash_item(&trash);
+                    vault.delete_object(&obj.id, true)?;
+                    count += 1;
+                }
+            }
+        }
+
+        let _ = vault.log_structured(
+            "page_delete",
+            "page",
+            Some(&section_type),
+            if page_name.is_empty() {
+                None
+            } else {
+                Some(&page_name)
+            },
+            "user",
+            Some(&format!("count={}", count)),
+        );
+        Ok(count)
+    })
+    .await
+    .map_err(|e| format!("page_delete task failed: {e}"))??;
+
     state.auto_sync.trigger_debounce();
     state.device_auto_sync.trigger_data_change();
     Ok(count)
