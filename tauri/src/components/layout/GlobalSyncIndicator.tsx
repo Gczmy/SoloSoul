@@ -26,20 +26,22 @@ const AUTO_HIDE_MS = 3000;
  */
 export function GlobalSyncIndicator() {
   const { t } = useTranslation(['common', 'settings']);
-  const {
-    safSyncState,
-    safSyncProgress,
-    safSyncError,
-    safAuthRevoked,
-    setSafSyncState,
-    setSafSyncProgress,
-    setSafSyncError,
-    setSafAuthRevoked,
-  } = useUiStore();
+  // P215: 字段级选择器——指示器只关心 SAF 同步状态与冲突徽章，
+  // 避免 uiStore/syncStore 任意字段变化（toast、peer 列表、进度等）都触发重渲染。
+  const safSyncState = useUiStore((s) => s.safSyncState);
+  const safSyncProgress = useUiStore((s) => s.safSyncProgress);
+  const safSyncError = useUiStore((s) => s.safSyncError);
+  const safAuthRevoked = useUiStore((s) => s.safAuthRevoked);
+  const setSafSyncState = useUiStore((s) => s.setSafSyncState);
+  const setSafSyncProgress = useUiStore((s) => s.setSafSyncProgress);
+  const setSafSyncError = useUiStore((s) => s.setSafSyncError);
+  const setSafAuthRevoked = useUiStore((s) => s.setSafAuthRevoked);
 
   const hideTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const { hasUnreadConflicts, conflicts, initConflictListener, markConflictsRead } =
-    useSyncStore();
+  const hasUnreadConflicts = useSyncStore((s) => s.hasUnreadConflicts);
+  const conflicts = useSyncStore((s) => s.conflicts);
+  const initConflictListener = useSyncStore((s) => s.initConflictListener);
+  const markConflictsRead = useSyncStore((s) => s.markConflictsRead);
 
   useEffect(() => {
     const unlistens: Array<() => void> = [];

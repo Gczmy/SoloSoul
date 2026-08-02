@@ -2,7 +2,9 @@ import { useUiStore } from '@/stores/uiStore';
 import styles from './ToastContainer.module.css';
 
 export function ToastContainer() {
-  const { toasts, dismissToast } = useUiStore();
+  // P215: 字段级选择器——仅订阅 toasts/dismissToast，避免 uiStore 任意字段变化重渲染容器。
+  const toasts = useUiStore((s) => s.toasts);
+  const dismissToast = useUiStore((s) => s.dismissToast);
 
   if (toasts.length === 0) return null;
 

@@ -195,4 +195,45 @@ describe('pluginStore Toast behavior', () => {
     // 验证严格只有 1 个 Toast
     expect(toastCalls).toHaveLength(1);
   });
+
+  it('P215 — 事件通道日志/结果环形截断到上限，避免 O(n²) 不可变累积', async () => {
+    const { usePluginStore, MAX_PLUGIN_LOGS, MAX_PLUGIN_RESULTS } = await import('./pluginStore');
+    mockRun.mockImplementation(
+      async (
+        _id: string,
+        _params: Record<string, string>,
+        onEvent: (event: { eventType: string; jsonData: string }) => void,
+      ) => {
+        // 一次性塞入远超上限的日志与结果事件
+        for (let i = 0; i < MAX_PLUGIN_LOGS + 50; i++) {
+          onEvent({
+            eventType: 'log',
+            jsonData: JSON.stringify({
+              id: `log-${i}`,
+              level: 'info',
+              message: `line ${i}`,
+              timestamp: Date.now(),
+            }),
+          });
+        }
+        for (let i = 0; i < MAX_PLUGIN_RESULTS + 20; i++) {
+          onEvent({
+            eventType: 'result',
+            jsonData: JSON.stringify({ type: 'text', content: `result ${i}` }),
+          });
+        }
+        onEvent({ eventType: 'completed', jsonData: JSON.stringify({ exitCode: 0 }) });
+        return { exitCode: 0, logs: [], results: [], fuelConsumed: 100 };
+      },
+    );
+
+    await usePluginStore.getState().runPlugin('addr-fmt', 'Address Formatter');
+
+    const plugin = usePluginStore.getState().runningPlugins['addr-fmt'];
+    expect(plugin?.logs.length).toBe(MAX_PLUGIN_LOGS);
+    expect(plugin?.logs[0]?.id).toBe('log-50'); // 保留最新 MAX 条，丢弃最旧 50 条
+    expect(plugin?.results.length).toBe(MAX_PLUGIN_RESULTS);
+    expect(plugin?.results[0]).toEqual({ type: 'text', content: 'result 20' });
+    expect(plugin?.completed).toBe(true);
+  });
 });

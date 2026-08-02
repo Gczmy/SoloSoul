@@ -27,7 +27,14 @@ export function OcrQuickScanPopover({
 }) {
   const { t } = useTranslation(['ocr', 'common']);
   const { onError } = useToastError();
-  const store = useOcrScanStore();
+  // P215: 字段级选择器订阅数据（扫描进度/历史/错误），动作走 getState()——
+  // 避免整店订阅让本浮层在 store 任意字段变化时都重渲染。
+  const scanMode = useOcrScanStore((s) => s.scanMode);
+  const currentScanId = useOcrScanStore((s) => s.currentScanId);
+  const isScanning = useOcrScanStore((s) => s.isScanning);
+  const activeTier = useOcrScanStore((s) => s.activeTier);
+  const lastScanError = useOcrScanStore((s) => s.lastScanError);
+  const scanHistory = useOcrScanStore((s) => s.scanHistory);
 
   const [tiers, setTiers] = useState<OcrTierInfo[]>([]);
   const [statusMap, setStatusMap] = useState<Record<string, OcrModelStatus>>({});
@@ -74,11 +81,11 @@ export function OcrQuickScanPopover({
   useEffect(() => {
     if (restoredCurrentScanRef.current) return;
     restoredCurrentScanRef.current = true;
-    const activeHistory = store.getActiveHistory();
-    if (!store.currentScanId && activeHistory.length > 0) {
+    const activeHistory = useOcrScanStore.getState().scanHistory.filter((h) => !h.isDeleted);
+    if (!currentScanId && activeHistory.length > 0) {
       useOcrScanStore.setState({ currentScanId: activeHistory[0].id });
     }
-    // P212: mount-only — store.getActiveHistory/useOcrScanStore.setState are stable refs.
+    // P215: mount-only — getState/currentScanId are stable refs.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -128,7 +135,7 @@ export function OcrQuickScanPopover({
   const handleSelectFile = async () => {
     try {
       const filters =
-        store.scanMode === 'mrz' || isMobilePlatform
+        scanMode === 'mrz' || isMobilePlatform
           ? [{ name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'webp', 'bmp', 'tiff'] }]
           : [
               {
@@ -139,10 +146,10 @@ export function OcrQuickScanPopover({
       const path = await openWithPause({
         filters,
         multiple: false,
-        title: store.scanMode === 'mrz' ? t('ocr:select_image_title') : t('ocr:select_file_title'),
+        title: scanMode === 'mrz' ? t('ocr:select_image_title') : t('ocr:select_file_title'),
       });
       if (path && typeof path === 'string') {
-        await store.performScan(path);
+        await useOcrScanStore.getState().performScan(path);
       }
     } catch (e) {
       onError(e, t('ocr:select_image_failed'));
@@ -152,14 +159,14 @@ export function OcrQuickScanPopover({
   const handleTierChange = async (tier: string) => {
     try {
       await invoke<void>('ocr_set_active_tier', { tier });
-      store.setActiveTier(tier);
+      useOcrScanStore.getState().setActiveTier(tier);
     } catch (e) {
       onError(e, t('ocr:set_tier_failed'));
     }
   };
 
   const handleLoadHistoryEntry = (entry: OcrScanEntry) => {
-    store.setCardOpen(true);
+    useOcrScanStore.getState().setCardOpen(true);
     useOcrScanStore.setState((_s) => ({ currentScanId: entry.id }));
     setShowHistory(false);
     requestAnimationFrame(() => {
@@ -168,9 +175,9 @@ export function OcrQuickScanPopover({
     });
   };
 
-  const activeHistory = store.getActiveHistory();
-  const trash = store.getTrash();
-  const currentEntry = store.getCurrentEntry();
+  const activeHistory = scanHistory.filter((h) => !h.isDeleted);
+  const trash = scanHistory.filter((h) => h.isDeleted);
+  const currentEntry = scanHistory.find((h) => h.id === currentScanId) || null;
 
   const isFloating = placement === 'bottom' || placement === 'top';
   const isRight = placement === 'right';
@@ -223,22 +230,22 @@ export function OcrQuickScanPopover({
         }}
       >
         <OcrScanControls
-          activeTier={store.activeTier}
-          scanMode={store.scanMode}
-          isScanning={store.isScanning}
+          activeTier={activeTier}
+          scanMode={scanMode}
+          isScanning={isScanning}
           loadingStatus={loadingStatus}
           tiers={tiers}
           statusMap={statusMap}
           onTierChange={handleTierChange}
-          onScanModeChange={(mode) => store.setScanMode(mode)}
+          onScanModeChange={(mode) => useOcrScanStore.getState().setScanMode(mode)}
           onSelectFile={handleSelectFile}
           isMobile={isMobilePlatform}
         />
 
         <OcrResultPanel
           currentEntry={currentEntry}
-          isScanning={store.isScanning}
-          lastScanError={store.lastScanError}
+          isScanning={isScanning}
+          lastScanError={lastScanError}
         />
       </div>
 

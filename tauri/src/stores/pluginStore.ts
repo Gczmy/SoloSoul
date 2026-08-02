@@ -19,6 +19,12 @@ export interface PluginLogLine {
   timestamp: number;
 }
 
+/** P215: 单插件运行日志上限——环形截断，避免不可变累积 `[...logs, x]` 的 O(n²) 拷贝与内存膨胀。 */
+export const MAX_PLUGIN_LOGS = 200;
+
+/** P215: 单插件结果上限。 */
+export const MAX_PLUGIN_RESULTS = 50;
+
 export function isPluginLogLine(value: unknown): value is PluginLogLine {
   if (typeof value !== 'object' || value === null) return false;
   const v = value as Record<string, unknown>;
@@ -223,7 +229,8 @@ export const usePluginStore = create<PluginState>()((set, get) => ({
               try {
                 const parsed = JSON.parse(event.jsonData);
                 if (isPluginLogLine(parsed)) {
-                  next.logs = [...next.logs, parsed];
+                  // P215: 环形截断到上限，每次 append 的拷贝成本从 O(当前长度) 收敛为 O(上限)。
+                  next.logs = [...next.logs, parsed].slice(-MAX_PLUGIN_LOGS);
                 }
               } catch {
                 // ignore malformed log
@@ -233,7 +240,7 @@ export const usePluginStore = create<PluginState>()((set, get) => ({
               try {
                 const parsed = JSON.parse(event.jsonData);
                 if (isPluginResultPayload(parsed)) {
-                  next.results = [...next.results, parsed];
+                  next.results = [...next.results, parsed].slice(-MAX_PLUGIN_RESULTS);
                 }
               } catch {
                 // ignore malformed result

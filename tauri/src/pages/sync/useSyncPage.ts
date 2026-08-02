@@ -1,16 +1,51 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Wifi, RefreshCw, Smartphone, Info } from 'lucide-react';
+import { useShallow } from 'zustand/react/shallow';
 import { useSyncStore } from '@/stores/syncStore';
 import type { SyncPeer } from '@/stores/syncStore';
 
 /**
  * 设备同步页状态机：同步开关/自动同步/发现/信任/忽略/配对等待/忘记确认/QR 对话/冲突对话 + 指南内容。
  * 从 SyncPage 抽出，页面降为纯渲染编排层。
+ *
+ * P215: 改为字段级选择器（useShallow）订阅——避免整个 store 任意字段变化（如
+ * isDiscoveringDevices / lastResult / conflicts）都触发本钩子与 SyncPage 整页重渲染。
  */
 export function useSyncPage() {
   const { t } = useTranslation(['settings', 'common']);
-  const store = useSyncStore();
+  const store = useSyncStore(
+    useShallow((s) => ({
+      isDiscovering: s.isDiscovering,
+      syncEnabled: s.syncEnabled,
+      autoSyncEnabled: s.autoSyncEnabled,
+      localFingerprint: s.localFingerprint,
+      connectedPeers: s.connectedPeers,
+      isLoading: s.isLoading,
+      error: s.error,
+      lastResult: s.lastResult,
+      recentResults: s.recentResults,
+      discoveredDevices: s.discoveredDevices,
+      isDiscoveringDevices: s.isDiscoveringDevices,
+      listenAddr: s.listenAddr,
+      conflicts: s.conflicts,
+      selectedConflict: s.selectedConflict,
+      pairingPendingPeerId: s.pairingPendingPeerId,
+      discoverDevices: s.discoverDevices,
+      syncWithDevice: s.syncWithDevice,
+      trustPeer: s.trustPeer,
+      forgetPeer: s.forgetPeer,
+      enable: s.enable,
+      setAutoSyncEnabled: s.setAutoSyncEnabled,
+      loadStatus: s.loadStatus,
+      loadListenAddr: s.loadListenAddr,
+      loadAutoSyncStatus: s.loadAutoSyncStatus,
+      loadConflicts: s.loadConflicts,
+      resolveConflict: s.resolveConflict,
+      clearPairingPending: s.clearPairingPending,
+      initNsdFailedListener: s.initNsdFailedListener,
+    })),
+  );
   const [manualAddr, setManualAddr] = useState('');
   const [ignoredPeerIds, setIgnoredPeerIds] = useState<Set<string>>(new Set());
   const [activityOpen, setActivityOpen] = useState(false);

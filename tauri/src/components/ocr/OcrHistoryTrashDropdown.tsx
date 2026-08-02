@@ -22,7 +22,12 @@ export function OcrHistoryTrashDropdown({
   onSelectEntry,
 }: OcrHistoryTrashDropdownProps) {
   const { t } = useTranslation(['ocr', 'common']);
-  const store = useOcrScanStore();
+  // P215: 仅订阅用到的动作（zustand 动作引用稳定）——本组件数据全由 props 传入，
+  // 整店订阅会因扫描进度/历史更新等任意变化导致本下拉重复重渲染。
+  const softDeleteEntry = useOcrScanStore((s) => s.softDeleteEntry);
+  const restoreEntry = useOcrScanStore((s) => s.restoreEntry);
+  const permanentlyDeleteEntry = useOcrScanStore((s) => s.permanentlyDeleteEntry);
+  const clearTrash = useOcrScanStore((s) => s.clearTrash);
 
   return (
     <div
@@ -160,7 +165,7 @@ export function OcrHistoryTrashDropdown({
                   <DeleteButton
                     onClick={(e) => {
                       e.stopPropagation();
-                      store.softDeleteEntry(entry.id);
+                      softDeleteEntry(entry.id);
                     }}
                     title={t('common:delete')}
                     iconOnly
@@ -221,7 +226,7 @@ export function OcrHistoryTrashDropdown({
                 </div>
               </div>
               <button
-                onClick={() => store.restoreEntry(entry.id)}
+                onClick={() => restoreEntry(entry.id)}
                 title={t('ocr:restore')}
                 className="interactive-icon"
                 style={{
@@ -235,14 +240,14 @@ export function OcrHistoryTrashDropdown({
                 <RotateCcw size={ICON_SIZE.xs} />
               </button>
               <DeleteButton
-                onClick={() => store.permanentlyDeleteEntry(entry.id)}
+                onClick={() => permanentlyDeleteEntry(entry.id)}
                 title={t('ocr:permanently_delete')}
                 iconOnly
               />
             </div>
           ))}
           {trash.length > 1 && (
-            <DeleteButton onClick={() => store.clearTrash()} title={t('ocr:clear_trash')}>
+            <DeleteButton onClick={() => clearTrash()} title={t('ocr:clear_trash')}>
               {t('ocr:clear_trash')}
             </DeleteButton>
           )}

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Puzzle, RefreshCw, X, Play, Download, Loader2, ArrowUpRight } from 'lucide-react';
@@ -31,6 +32,7 @@ export function PluginQuickPanel({ position, onClose, placement = 'left' }: Plug
   // 存储插件运行参数（用于水印插件等的侧边栏配置）
   const pluginRunParamsRef = useRef<Record<string, Record<string, string>>>({});
 
+  // P215: useShallow 字段级选择——侧边栏消费大部分字段，但避免 isLoading* 单字段翻转整面板重渲染。
   const {
     marketPlugins,
     installedPlugins,
@@ -45,7 +47,23 @@ export function PluginQuickPanel({ position, onClose, placement = 'left' }: Plug
     stopPlugin,
     clearPluginOutput,
     refreshRegistry,
-  } = usePluginStore();
+  } = usePluginStore(
+    useShallow((s) => ({
+      marketPlugins: s.marketPlugins,
+      installedPlugins: s.installedPlugins,
+      runningPlugins: s.runningPlugins,
+      isLoadingMarket: s.isLoadingMarket,
+      isLoadingInstalled: s.isLoadingInstalled,
+      loadMarket: s.loadMarket,
+      loadInstalled: s.loadInstalled,
+      installPlugin: s.installPlugin,
+      uninstallPlugin: s.uninstallPlugin,
+      runPlugin: s.runPlugin,
+      stopPlugin: s.stopPlugin,
+      clearPluginOutput: s.clearPluginOutput,
+      refreshRegistry: s.refreshRegistry,
+    })),
+  );
 
   const cardRef = useRef<HTMLDivElement>(null);
   const outsideClickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);

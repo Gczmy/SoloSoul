@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { RefreshCw, Info, LayoutGrid, Download, Settings } from 'lucide-react';
@@ -34,6 +35,8 @@ export function PluginDashboardPage() {
     params: PluginParam[];
   } | null>(null);
 
+  // P215: useShallow 字段级选择——本页虽消费大部分字段，但避免 isLoadingMarket/
+  // isLoadingInstalled/error 等单一字段翻转时整页重渲染（浅比较仅字段值变化触发）。
   const {
     marketPlugins,
     installedPlugins,
@@ -55,7 +58,30 @@ export function PluginDashboardPage() {
     resolveDialog,
     clearError,
     refreshRegistry,
-  } = usePluginStore();
+  } = usePluginStore(
+    useShallow((s) => ({
+      marketPlugins: s.marketPlugins,
+      installedPlugins: s.installedPlugins,
+      runningPlugins: s.runningPlugins,
+      selectedTier: s.selectedTier,
+      enabledTiers: s.enabledTiers,
+      isLoadingMarket: s.isLoadingMarket,
+      isLoadingInstalled: s.isLoadingInstalled,
+      error: s.error,
+      loadMarket: s.loadMarket,
+      loadInstalled: s.loadInstalled,
+      setSelectedTier: s.setSelectedTier,
+      installPlugin: s.installPlugin,
+      updatePlugin: s.updatePlugin,
+      uninstallPlugin: s.uninstallPlugin,
+      runPlugin: s.runPlugin,
+      stopPlugin: s.stopPlugin,
+      clearPluginOutput: s.clearPluginOutput,
+      resolveDialog: s.resolveDialog,
+      clearError: s.clearError,
+      refreshRegistry: s.refreshRegistry,
+    })),
+  );
 
   const { onError } = useToastError();
 
