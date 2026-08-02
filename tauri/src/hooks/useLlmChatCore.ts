@@ -132,7 +132,9 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
         } else {
           setIsConfigured(false);
         }
-      } catch {
+      } catch (err) {
+        // P227: 配置加载失败静默降级为未配置，留痕便于排查。
+        logger.warn('[useLlmChatCore] Load config failed:', err);
         setIsConfigured(false);
       } finally {
         setLoading(false);
@@ -149,8 +151,9 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
     try {
       const list = await invoke<ConversationSummary[]>('llm_list_conversations', { accountId: accountId });
       if (!controller.signal.aborted) setConversations(list);
-    } catch {
-      /* ignore */
+    } catch (err) {
+      // P227: 会话列表加载失败静默降级（列表留空），留痕。
+      logger.warn('[useLlmChatCore] Load conversation list failed:', err);
     }
   }, [accountId, isAiEnabled, isConfigured]);
 
@@ -183,7 +186,9 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
           apiType: activeProvider.apiType,
         });
         if (!controller.signal.aborted) setIsOnline(online);
-      } catch {
+      } catch (err) {
+        // P227: 在线检查失败视为离线（可接受降级），留痕。
+        logger.warn('[useLlmChatCore] Online check failed:', err);
         if (!controller.signal.aborted) setIsOnline(false);
       } finally {
         if (!controller.signal.aborted) setCheckingOnline(false);
@@ -219,8 +224,9 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
         });
         setCurrentConvId(conv.id);
         setMessages(conv.messages.map((m) => (m.id ? m : { ...m, id: generateId() })));
-      } catch {
-        /* may be deleted */
+      } catch (err) {
+        // P227: 会话可能已被删除（可接受降级），留痕。
+        logger.warn('[useLlmChatCore] Load conversation failed:', err);
       }
     },
     [accountId],
@@ -451,8 +457,9 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
       setCopiedIndex(index);
       if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
       copyTimeoutRef.current = setTimeout(() => setCopiedIndex(null), COPY_FEEDBACK_DURATION_MS);
-    } catch {
-      /* fallback */
+    } catch (err) {
+      // P227: 剪贴板写入失败（权限拒绝等）静默降级，留痕。
+      logger.warn('[useLlmChatCore] Copy to clipboard failed:', err);
     }
   }, []);
 

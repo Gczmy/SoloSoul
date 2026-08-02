@@ -10,6 +10,7 @@ import {
 } from '@/lib/plugin';
 import { useUiStore } from '@/stores/uiStore';
 import { useTemplateStore } from '@/stores/templateStore';
+import { logger } from '@/lib/logger';
 import i18next from '@/lib/i18n';
 
 export interface PluginLogLine {
@@ -167,7 +168,7 @@ export const usePluginStore = create<PluginState>()((set, get) => ({
       useTemplateStore
         .getState()
         .loadTemplates()
-        .catch(() => {});
+        .catch((err) => logger.warn('[pluginStore] installPlugin: template reload failed:', err));
     } catch (err) {
       set({ error: String(err) });
     }
@@ -182,7 +183,7 @@ export const usePluginStore = create<PluginState>()((set, get) => ({
       useTemplateStore
         .getState()
         .loadTemplates()
-        .catch(() => {});
+        .catch((err) => logger.warn('[pluginStore] updatePlugin: template reload failed:', err));
     } catch (err) {
       set({ error: String(err) });
     }

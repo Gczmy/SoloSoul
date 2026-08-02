@@ -90,8 +90,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       if (refreshed) {
         set({ currentAccount: refreshed, accounts });
       }
-    } catch {
-      // silent
+    } catch (err) {
+      // P227: 刷新失败静默降级可接受，但需留痕便于排查。
+      logger.warn('[authStore] refreshCurrentAccount failed:', err);
     }
   },
 
@@ -127,8 +128,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       let accounts: AccountInfo[] = [];
       try {
         accounts = (await invoke<AccountInfo[]>('vault_list_accounts')) || [];
-      } catch {
+      } catch (err) {
         // Keep authentication state even if the account-list refresh fails.
+        // P227: 登录后的账户列表刷新失败属可接受降级，但留痕便于排查。
+        logger.warn('[authStore] account list refresh after login failed:', err);
       }
       const account = accounts.find((a) => a.id === accountId) || {
         id: accountId,

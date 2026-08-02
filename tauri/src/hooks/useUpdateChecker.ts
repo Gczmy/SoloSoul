@@ -11,6 +11,7 @@ import {
   type ApkDownloadProgress,
 } from '@/lib/updater';
 import { isMobilePlatformSync } from '@/lib/platform';
+import { logger } from '@/lib/logger';
 
 export interface AppInfo {
   appName: string;
@@ -112,8 +113,10 @@ export function useUpdateChecker() {
       ]);
       setInfo(app);
       setVersionInfo({ ...ver, currentVersion: app.version });
-    } catch {
-      // get_app_info 失败：保留现有信息，仅结束加载态
+    } catch (err) {
+      // get_app_info 失败：保留现有信息，仅结束加载态。
+      // P227: 更新检查静默失败可接受（非关键路径），但需留痕。
+      logger.warn('[useUpdateChecker] Initial check failed:', err);
     } finally {
       setChecking(false);
       setLoading(false);

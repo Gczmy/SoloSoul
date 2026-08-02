@@ -222,14 +222,32 @@ export function AttachmentViewer({
   };
 
   const handleRestore = async (item: AttachmentItem) => {
-    await invoke('attachment_restore', { objectId: objectId, attachmentId: item.id });
+    try {
+      await invoke('attachment_restore', { objectId: objectId, attachmentId: item.id });
+    } catch (err) {
+      // P227: 单条恢复失败原为未捕获 rejection（无任何 UI 反馈），补 toast + 留痕。
+      logger.warn('[AttachmentViewer] Restore failed:', err);
+      showToast({
+        type: 'error',
+        message: `${t('common:restore_failed') || 'Restore failed'}: ${err}`,
+      });
+    }
     await loadAttachments();
     onCountChange?.();
   };
 
   const handlePermanentDelete = async (item: AttachmentItem) => {
     setPermDeleteItem(null);
-    await invoke('attachment_delete', { objectId: objectId, attachmentId: item.id });
+    try {
+      await invoke('attachment_delete', { objectId: objectId, attachmentId: item.id });
+    } catch (err) {
+      // P227: 永久删除失败原为未捕获 rejection，补 toast + 留痕。
+      logger.warn('[AttachmentViewer] Permanent delete failed:', err);
+      showToast({
+        type: 'error',
+        message: `${t('common:perm_delete_failed') || 'Delete failed'}: ${err}`,
+      });
+    }
     await loadAttachments();
     onCountChange?.();
   };
@@ -265,7 +283,8 @@ export function AttachmentViewer({
         type: 'success',
         message: t('common:batch_delete_result', { success: keys.length, total: keys.length }),
       });
-    } catch {
+    } catch (err) {
+      logger.warn('[AttachmentViewer] Batch soft delete failed:', err);
       showToast({
         type: 'warning',
         message: t('common:batch_delete_result', { success: 0, total: keys.length }),
@@ -286,7 +305,8 @@ export function AttachmentViewer({
         type: 'success',
         message: t('common:batch_restore_result', { success: keys.length, total: keys.length }),
       });
-    } catch {
+    } catch (err) {
+      logger.warn('[AttachmentViewer] Batch restore failed:', err);
       showToast({
         type: 'warning',
         message: t('common:batch_restore_result', { success: 0, total: keys.length }),
@@ -377,7 +397,8 @@ export function AttachmentViewer({
         type: 'success',
         message: t('common:batch_perm_delete_result', { success: keys.length, total: keys.length }),
       });
-    } catch {
+    } catch (err) {
+      logger.warn('[AttachmentViewer] Batch permanent delete failed:', err);
       showToast({
         type: 'warning',
         message: t('common:batch_perm_delete_result', { success: 0, total: keys.length }),

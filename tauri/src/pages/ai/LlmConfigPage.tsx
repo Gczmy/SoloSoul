@@ -122,8 +122,9 @@ export function LlmConfigPage() {
     try {
       const models = await invoke<EmbedModelWithStatus[]>('llm_get_embed_models');
       setEmbedModels(models);
-    } catch {
-      /* silently ignore */
+    } catch (err) {
+      // P227: 模型列表加载失败静默降级可接受（UI 仍有重试入口），但留痕。
+      logger.warn('[LLMConfig] loadEmbedModels failed:', err);
     } finally {
       setModelsLoading(false);
     }

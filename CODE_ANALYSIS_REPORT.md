@@ -107,7 +107,7 @@
 | P224 | 结构 | `src/components/trash/TrashDetailPanel.tsx`（1282 行）、`OcrPage.tsx`（714 行函数）、`TemplateManagerPage.tsx`（688）、`AboutPage.tsx`（682）、`SyncPage.tsx`（650）等 | 前端巨型组件：15 个 >300 行函数、5 个 >800 行文件，JSX 嵌套最深 11（PageGuide/SearchPopover） | `[ ]` |
 | P225 | 重复代码 | `crates/solosoul-vault/src/storage.rs:2122,2220,2597`、`vault_service.rs:634,759`、`export_import` 附件收集双份、`pin.rs:202,379` 等 | Rust 中小重复块 10 处（22-60 行）：行解密闭包三份、unlock/verify_password 45 行、附件收集 core/GUI 双份等 | `[ ]` |
 | P226 | 重复代码 | `TemplateDetailModal ↔ SampleTemplateDetail`、`AttachmentRow ↔ AttachmentListItem`、`RecoveryScanView ↔ SyncScanQrDialog` | 前端组件重复 3 对（模态外壳/附件行/QR 扫描视图） | `[ ]` |
-| P227 | 错误处理 | `authStore.ts:93`、`useUpdateChecker.ts:115`、`LlmConfigPage.tsx:125`、`pluginStore.ts:164,179`、`AttachmentViewer.tsx:268-380`、`useLlmChatCore.ts:142-391` | 低危错误吞没 10 处（静默降级可接受但应补 logger.warn / 错误占位） | `[ ]` |
+| P227 | 错误处理 | `authStore.ts:93`、`useUpdateChecker.ts:115`、`LlmConfigPage.tsx:125`、`pluginStore.ts:164,179`、`AttachmentViewer.tsx:268-380`、`useLlmChatCore.ts:142-391` | 低危错误吞没 10 处（静默降级可接受但应补 logger.warn / 错误占位） | `[x]` 已修复（2026-08-02：10 处静默 catch 补 logger.warn + 2 处未捕获 rejection 补 toast，见下文） |
 | P228 | 架构 | `src/stores/authStore.ts:151 ↔ lib/notification.ts:9`、`objectStore.ts:3 ↔ lib/templateSync.ts:56` | 2 处循环依赖（靠动态 import / import type 勉强化解，脆弱） | `[ ]` |
 | P229 | 安全 | `src/components/guide/GuideRenderer.tsx:96-105` | 自定义 a 组件直渲 href，当前依赖 react-markdown 默认 urlTransform 拦截 `javascript:`，属隐式依赖应显式白名单 | `[x]` 已修复（2026-08-02：显式 URL 白名单，见下文） |
 | P230 | 安全 | `src/stores/ocrScanStore.ts:44-117` | OCR 结果（含 MRZ 证件号）常驻 Zustand 内存，无锁定/退出清理路径（persist 已正确排除） | `[x]` 已修复（2026-08-02：新增 clearOnVaultLock 并接入 vault-locked 链） |
@@ -115,8 +115,8 @@
 
 ## 修复进度
 
-- 已完成：73 / 74（P001-P007、P101-P142、P201-P222、P229-P231；其中 P104 为部分闭环、P206 部分修复、P209 为用户决策保留）
-- 当前处理：P227（低危错误吞没 10 处，补 logger.warn/错误占位）
+- 已完成：74 / 75（P001-P007、P101-P142、P201-P222、P227、P229-P231；其中 P104 为部分闭环、P206 部分修复、P209 为用户决策保留）
+- 当前处理：P225（Rust 中小重复块 10 处收敛）
 
 ## 审查通过项（已排查，无需修改）
 
@@ -194,6 +194,7 @@ Windows 生产路径用 `FileBiometricStorage` 存主密钥（`derive_master_key
 ### 七、P2 指引（择要）
 
 - **性能**：P213 热点语句 `prepare_cached` + SQL 常量化；P214 先按明文列 SQL 筛 public 再解密。
+- **P227（已修复）**：低危错误吞没 10 处补 `logger.warn`。六文件逐一核验：① **authStore.ts**——`refreshCurrentAccount` 的 `catch { // silent }` 补 warn；登录后账户列表刷新失败（best-effort 保留认证态）补 warn。② **useUpdateChecker.ts**——`runCheck` 初始检查 catch（保留现有信息仅结束加载态）补 warn。③ **LlmConfigPage.tsx**——`loadEmbedModels` 的 `/* silently ignore */` 补 warn。④ **pluginStore.ts**——installPlugin/updatePlugin 后 `loadTemplates().catch(() => {})` 两处补 warn。⑤ **AttachmentViewer.tsx**——批量软删/恢复/永久删除三处 catch 原本仅降级 toast（success:0）不留痕，补 `logger.warn` 记录真实错误；另修复 `handleRestore`/`handlePermanentDelete` 两处**完全无 catch 的未捕获 rejection**（invoke 失败直接 unhandled rejection，无任何 UI 反馈）——补 try/catch + 错误 toast + `logger.warn`。⑥ **useLlmChatCore.ts**——配置加载失败（静默置未配置）、会话列表加载失败（`/* ignore */`）、在线检查失败（视为离线）、加载单会话失败（`/* may be deleted */`）、剪贴板复制失败（`/* fallback */`）五处补 warn。全部为静默降级可接受路径，仅补日志不改变用户可见行为。tsc 0 / eslint 0 / vitest 21 通过。
 - **P231（已修复）**：AboutPage `window.open` 兜底。Tauri webview 中 `window.open` 无效（外壳接管原生链接打开），原 `open(link.url).catch(() => window.open(...))` 的兜底路径永远静默失效。改为：shell 打开失败时通过 `useUiStore.showToast` 展示应用内错误 toast（含 `settings:link_open_failed` i18n 键，`defaultValue: 无法打开链接`），并附底层错误串便于诊断。tsc 0 / eslint 0。
 - **P230（已修复）**：OCR 扫描结果内存清理。`ocrScanStore` 的 `scanHistory`（含 result/mrzResult/filePath，MRZ 证件号等敏感明文）常驻 Zustand 内存且无清理路径。新增 `clearOnVaultLock()`——清空 `scanHistory`/`currentScanId`/`lastScanError`/`isScanning`/`isCardOpen`，保留只读 UI 偏好（activeTier/scanMode，persist `partialize` 本就不持久化结果）；`AppRoutes.tsx` vault-locked 事件链（P004/P005 处）接入 `useOcrScanStore.getState().clearOnVaultLock()`。防回归单测 ×1（含 MRZ 明文的历史锁定后清零、UI 偏好保留）。tsc 0 / eslint 0 / vitest 20 通过。
 - **P229（已修复）**：指南渲染链接显式 URL 白名单。`GuideRenderer` 自定义 `a` 组件此前直渲 href，拦截 `javascript:` 依赖 react-markdown 默认 urlTransform——属隐式依赖，调用方传入自定义 urlTransform 即可失效。新增导出 `isSafeExternalUrl`：仅放行 `http/https/mailto` 与无协议相对链接，拒绝 `javascript:/data:/file:/vbscript:/ftp:` 及协议相对 `//` 链接；非白名单协议降级为纯文本（不渲染可点击 `<a>`），`.md` 内部导航逻辑不受影响。防回归单测 ×7。tsc 0 / eslint 0 / vitest 20 通过。
