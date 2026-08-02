@@ -64,11 +64,28 @@ export function SecondaryActionBar({
     }
   }, [expanded, verticalScrollTop]);
 
-  // Save scroll position on every scroll
-  const handleContentScroll = useCallback(() => {
-    if (contentRef.current) {
+  // P216: 折叠时保存滚动位置（而非每帧 onScroll 写 store）。
+  // foldableContent 常驻 DOM（仅父容器 max-height 归零），scrollTop 不丢失，
+  // 故只需在展开→折叠的瞬间持久化一次，重新展开时由上面的 useLayoutEffect 恢复。
+  // 注意：必须只在 true→false 转换时保存——初始挂载（未展开）时 DOM 的 scrollTop 为 0，
+  // 若直接写会清掉上次会话持久化的滚动位置（sidebarHoverStore 跨路由持久化的目的）。
+  const prevExpandedRef = useRef(expanded);
+  useEffect(() => {
+    const wasExpanded = prevExpandedRef.current;
+    prevExpandedRef.current = expanded;
+    if (wasExpanded && !expanded && contentRef.current) {
       setVerticalScrollTop(contentRef.current.scrollTop);
     }
+  }, [expanded, setVerticalScrollTop]);
+
+  // 卸载兜底：展开态下直接切换路由时组件卸载，保存当前滚动位置。
+  useEffect(() => {
+    const el = contentRef.current;
+    return () => {
+      if (el) {
+        setVerticalScrollTop(el.scrollTop);
+      }
+    };
   }, [setVerticalScrollTop]);
 
   // Suppress name card tooltips during the 180ms expand CSS transition (buttons moving → flicker).
@@ -184,7 +201,6 @@ export function SecondaryActionBar({
         <div
           ref={contentRef}
           className={styles.foldableContent}
-          onScroll={handleContentScroll}
           style={isTransitioning ? { pointerEvents: 'none' as const } : undefined}
         >
           {items.map((item) => {

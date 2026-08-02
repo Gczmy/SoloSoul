@@ -23,7 +23,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useSidebarHoverStore } from '@/stores/sidebarHoverStore';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
 import type { CustomPage } from '@/stores/settingsStore';
-import type { WheelEvent, UIEvent } from 'react';
+import type { WheelEvent } from 'react';
 import { ICON_SIZE } from '@/lib/constants';
 
 const FUNCTION_BAR_HEIGHT = 48;
@@ -88,13 +88,28 @@ export function TopFunctionBar({
     }
   }, [expanded, horizontalScrollLeft]);
 
-  // Save horizontal scroll position on every scroll
-  const handleFuncScroll = useCallback(
-    (e: UIEvent<HTMLDivElement>) => {
-      setHorizontalScrollLeft((e.target as HTMLDivElement).scrollLeft);
-    },
-    [setHorizontalScrollLeft],
-  );
+  // P216: 折叠时保存水平滚动位置（而非每帧 onScroll 写 store）。
+  // horizontalButtonScroll 常驻 DOM，scrollLeft 不丢失，展开→折叠瞬间持久化一次即可。
+  // 注意：必须只在 true→false 转换时保存——初始挂载（未展开）时 DOM 的 scrollLeft 为 0，
+  // 若直接写会清掉上次会话持久化的滚动位置（sidebarHoverStore 跨路由持久化的目的）。
+  const prevExpandedRef = useRef(expanded);
+  useEffect(() => {
+    const wasExpanded = prevExpandedRef.current;
+    prevExpandedRef.current = expanded;
+    if (wasExpanded && !expanded && funcScrollRef.current) {
+      setHorizontalScrollLeft(funcScrollRef.current.scrollLeft);
+    }
+  }, [expanded, setHorizontalScrollLeft]);
+
+  // 卸载兜底：展开态下直接切换路由时组件卸载，保存当前滚动位置。
+  useEffect(() => {
+    const el = funcScrollRef.current;
+    return () => {
+      if (el) {
+        setHorizontalScrollLeft(el.scrollLeft);
+      }
+    };
+  }, [setHorizontalScrollLeft]);
 
   // Suppress name card tooltips during the 180ms expand CSS transition (buttons moving → flicker).
   // Use setTimeout rather than onTransitionEnd because React re-renders during the animation
@@ -288,7 +303,6 @@ export function TopFunctionBar({
                 ref={funcScrollRef}
                 className={styles.horizontalButtonScroll}
                 onWheel={handleFuncWheel}
-                onScroll={handleFuncScroll}
                 style={isTransitioning ? { pointerEvents: 'none' as const } : undefined}
               >
                 {items.map((item) => {

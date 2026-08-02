@@ -96,7 +96,7 @@
 | P213 | 性能 | `crates/solosoul-vault/src/storage.rs`（全库） | 无一处 `prepare_cached`；`load_object` 每次 `format!` 分配 SQL 字符串再 prepare | `[x]` 已修复（2026-08-02：SQL 常量化 + 热点语句 prepare_cached + with_tx 手动事务） |
 | P214 | 性能 | `src-tauri/src/services/llm_context.rs:155-169` | `build_section3` 全量解密所有对象只为筛 public 级（sensitivity_level 是明文列可先 SQL 筛） | `[x]` 已修复（2026-08-02：metadata-only 预筛 + 仅 public 子集批量加载） |
 | P215 | 前端性能 | `src/pages/sync/useSyncPage.ts:13`、`src/components/llm/`、`src/stores/pluginStore.ts:226,236` 等 | 多处整店订阅（sync/plugin/ocr/ui store）致过度重渲染；pluginStore 日志不可变累积 O(n²) | `[x]` 已修复（2026-08-02：整店订阅改字段级选择器 + 插件日志环形截断） |
-| P216 | 前端性能 | `src/components/layout/SecondaryActionBar.tsx:80-84` | onScroll 每帧写 Zustand store 并触发自身 layout effect 重渲染 | `[ ]` |
+| P216 | 前端性能 | `src/components/layout/SecondaryActionBar.tsx:80-84` | onScroll 每帧写 Zustand store 并触发自身 layout effect 重渲染 | `[x]` 已修复（2026-08-02：折叠瞬间持久化滚动位置，弃用每帧 onScroll 写入） |
 | P217 | 前端性能 | `src/components/attachment/AttachmentRow.tsx:39`、`AttachmentObjectGroup.tsx:42`、`AttachmentPageCard.tsx:29` | 附件三级列表组件未 memo，rename 状态置顶致每击键整树重渲染 | `[ ]` |
 | P218 | 前端性能 | `src/pages/settings/OperationLogPage.tsx:188-200,299` | 200 条审计日志 `filteredLogs` 未 memo 且全量渲染，搜索每击键重建全部卡片 | `[ ]` |
 | P219 | 死代码 | `src/lib/sampleTemplates.ts:456`、`useNavigationItems.ts:98,105`、`lib/ipc.ts:86`、`attachmentManagerTypes.ts:36`、`LlmChatPage/index.tsx:17-18` | 前端死导出：`SAMPLE_TEMPLATES`、`LOCK_ITEM`/`SETTINGS_ITEM`、`VaultStateStr`、`AttachmentCompositeKey`、LlmChatPage 冗余再导出 | `[ ]` |
@@ -116,7 +116,7 @@
 ## 修复进度
 
 - 已完成：60 / 69（P001-P007、P101-P142、P201-P212；其中 P104 为部分闭环、P206 部分修复、P209 为用户决策保留）
-- 当前处理：P216（SecondaryActionBar onScroll 每帧写 Zustand store 并触发自身重渲染）
+- 当前处理：P217（附件三级列表组件未 memo，rename 状态置顶致每击键整树重渲染）
 
 ## 审查通过项（已排查，无需修改）
 
