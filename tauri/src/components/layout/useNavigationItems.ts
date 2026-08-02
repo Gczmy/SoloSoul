@@ -95,20 +95,6 @@ export function useActiveCustomPages() {
   return customPages.filter((p) => !p.deletedAt);
 }
 
-export const LOCK_ITEM: NavAction = {
-  type: 'action',
-  iconKey: 'lock',
-  labelKey: 'lock_vault',
-  action: () => {},
-};
-
-export const SETTINGS_ITEM: NavLink = {
-  type: 'link',
-  path: '/settings',
-  iconKey: 'settings',
-  labelKey: 'settings',
-};
-
 /**
  * All customizable function-button IDs shown in the foldable sidebar area.
  * ID is also the PAGE_ICON_MAP key and i18n navigation namespace key.

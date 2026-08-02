@@ -1,10 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { SampleTemplateDetail } from './SampleTemplateDetail';
-import { SAMPLE_TEMPLATES } from '@/lib/sampleTemplates';
+import { SAMPLE_TEMPLATES_ZH } from '@/lib/sampleTemplates';
 
 describe('SampleTemplateDetail', () => {
-  const template = SAMPLE_TEMPLATES[0];
+  const template = SAMPLE_TEMPLATES_ZH[0];
 
   it('renders template name, category and field count', () => {
     render(<SampleTemplateDetail template={template} onBack={vi.fn()} onUse={vi.fn()} />);

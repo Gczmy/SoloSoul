@@ -452,9 +452,6 @@ export const SAMPLE_TEMPLATES_BY_LOCALE: Record<SampleTemplateLocale, SampleTemp
   en: SAMPLE_TEMPLATES_EN,
 };
 
-/** 全部示例模板，仅在需要一次性遍历全部场景时使用；UI 默认按 locale 分组展示。 */
-export const SAMPLE_TEMPLATES: SampleTemplate[] = [...SAMPLE_TEMPLATES_ZH, ...SAMPLE_TEMPLATES_EN];
-
 export function getDefaultLocaleTab(language?: string): SampleTemplateLocale {
   if (language && language.toLowerCase().startsWith('zh')) return 'zh';
   return 'en';

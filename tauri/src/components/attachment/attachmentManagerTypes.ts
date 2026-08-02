@@ -32,8 +32,5 @@ export interface AttachmentListAllResult {
   trashPages: AttachmentTreePage[];
 }
 
-/** 批量/单选操作使用的复合键：`objectId::attachmentId`。 */
-export type AttachmentCompositeKey = string;
-
 /** 需要永久删除的附件（携带来源对象 ID）。 */
 export type AttachmentToPurge = AttachmentMeta & { _objectId: string };

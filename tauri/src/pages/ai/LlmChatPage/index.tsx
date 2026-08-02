@@ -14,9 +14,6 @@ import { useLlmChat } from './useLlmChat';
 import { ICON_SIZE } from '@/lib/constants';
 import { PageGuideButton } from '@/components/guide/PageGuideButton';
 
-export { useLlmChat } from './useLlmChat';
-export { type Conversation, type ConversationSummary } from './useLlmChat';
-
 export function LlmChatPage() {
   const navigate = useNavigate();
   const { t } = useTranslation(['settings', 'common']);

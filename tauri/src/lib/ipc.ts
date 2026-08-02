@@ -83,8 +83,6 @@ export interface Profile {
   version: number;
 }
 
-export type VaultStateStr = 'uninitialized' | 'locked' | 'unlocked';
-
 export interface OcrBox {
   text: string;
   confidence: number;
