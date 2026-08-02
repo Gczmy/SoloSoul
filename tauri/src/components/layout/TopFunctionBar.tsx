@@ -1,5 +1,4 @@
 import { useState, useRef, useCallback, useEffect, useLayoutEffect, type MouseEvent } from 'react';
-import { createPortal } from 'react-dom';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ChevronRight } from 'lucide-react';
@@ -7,10 +6,7 @@ import styles from './TopFunctionBar.module.css';
 import { ShieldLogo } from '@/components/ui/ShieldLogo';
 import { NavButton } from './NavButton';
 import { RenameableNavButton, AddPageButton } from './SideNavigation';
-import { AiQuickChatPopover } from './AiQuickChatPopover';
-import { SearchPopover } from './SearchPopover';
-import { OcrQuickScanPopover } from './OcrQuickScanPopover';
-import { PluginQuickPanel } from '@/components/plugin/PluginQuickPanel';
+import { useNavButtonCards } from './navButtonCards';
 import { supportsHover } from '@/lib/platform';
 import {
   useActiveCustomPages,
@@ -23,7 +19,6 @@ import {
 } from './useNavigationItems';
 import { useOcrScanStore } from '@/stores/ocrScanStore';
 import { usePluginQuickStore } from '@/stores/pluginQuickStore';
-import { useSettingsStore } from '@/stores/settingsStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useSidebarHoverStore } from '@/stores/sidebarHoverStore';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
@@ -50,7 +45,6 @@ export function TopFunctionBar({
   // ── Card states ─────────────────────────────────────────────────
   const isOcrCardOpen = useOcrScanStore((s) => s.isCardOpen);
   const isPluginPanelOpen = usePluginQuickStore((s) => s.isOpen);
-  const aiChatMode = useSettingsStore((s) => s.settings.sidebarButtonModes['ai_chat']);
 
   // ── Card positioning hooks (single calls) ───────────────────────
   const {
@@ -177,142 +171,27 @@ export function TopFunctionBar({
     navigate(`/workspace/custom/${page.id}`);
   };
 
-  // ── Render helpers for function buttons ─────────────────────────
-  const renderButtonWithCard = (item: (typeof items)[number]) => {
-    // Page mode (type === 'link'): render as plain navigation button.
-    // Note: ai_chat always returns type: 'link' even in card mode, so exclude it.
-    if (item.type === 'link' && item.iconKey !== 'ai_chat') {
-      return renderPlainButton(item);
-    }
-
-    if (item.iconKey === 'plugins') {
-      return (
-        <div ref={pluginButtonRef} key="plugins" data-plugin-button="true">
-          <NavButton
-            Icon={PAGE_ICON_MAP[item.iconKey]}
-            label={t(item.labelKey)}
-            isActive={isPluginPanelOpen}
-            onClick={
-              item.type === 'action'
-                ? (item as import('./useNavigationItems').NavAction).action
-                : () => {}
-            }
-            position={POSITION}
-          />
-          {isPluginPanelOpen &&
-            createPortal(
-              <PluginQuickPanel
-                position={quickPanelPos}
-                onClose={() => usePluginQuickStore.getState().setOpen(false)}
-                placement="bottom"
-              />,
-              document.body,
-            )}
-        </div>
-      );
-    }
-    if (item.iconKey === 'ocr') {
-      return (
-        <div ref={ocrButtonRef} key="ocr" data-ocr-button="true">
-          <NavButton
-            Icon={PAGE_ICON_MAP[item.iconKey]}
-            label={t(item.labelKey)}
-            isActive={isOcrCardOpen}
-            onClick={
-              item.type === 'action'
-                ? (item as import('./useNavigationItems').NavAction).action
-                : () => {}
-            }
-            position={POSITION}
-          />
-          {isOcrCardOpen &&
-            createPortal(
-              <OcrQuickScanPopover
-                position={quickScanPos}
-                onClose={() => useOcrScanStore.getState().setCardOpen(false)}
-                placement="bottom"
-              />,
-              document.body,
-            )}
-        </div>
-      );
-    }
-    if (item.iconKey === 'search') {
-      return (
-        <div key="search" style={{ position: 'relative' }}>
-          <NavButton
-            Icon={PAGE_ICON_MAP[item.iconKey]}
-            label={t(item.labelKey)}
-            isActive={showSearch}
-            onClick={
-              item.type === 'action'
-                ? (item as import('./useNavigationItems').NavAction).action
-                : () => {}
-            }
-            position={POSITION}
-          />
-          {showSearch &&
-            createPortal(<SearchPopover onClose={() => setShowSearch(false)} />, document.body)}
-        </div>
-      );
-    }
-    if (item.iconKey === 'ai_chat') {
-      return (
-        <div ref={aiButtonRef} key="ai_chat" data-ai-button="true">
-          <NavButton
-            Icon={PAGE_ICON_MAP[item.iconKey]}
-            label={t(item.labelKey)}
-            isActive={showQuickChat || location.pathname.startsWith('/llm-chat')}
-            onClick={() => {
-              if (aiChatMode === 'page') {
-                navigate('/llm-chat');
-              } else if (!location.pathname.startsWith('/llm-chat')) {
-                setShowQuickChat((prev) => !prev);
-              }
-            }}
-            position={POSITION}
-          />
-          {showQuickChat &&
-            createPortal(
-              <AiQuickChatPopover
-                position={quickChatPos}
-                onClose={() => setShowQuickChat(false)}
-                placement="bottom"
-              />,
-              document.body,
-            )}
-        </div>
-      );
-    }
-    return null;
-  };
-
-  const renderPlainButton = (item: (typeof items)[number]) => {
-    if (item.type === 'action') {
-      return (
-        <NavButton
-          key={item.iconKey}
-          Icon={PAGE_ICON_MAP[item.iconKey]}
-          label={t(item.labelKey)}
-          onClick={item.action}
-          position={POSITION}
-        />
-      );
-    }
-    const isActive =
-      item.path === '/' ? location.pathname === '/' : location.pathname.startsWith(item.path);
-    return (
-      <NavButton
-        key={item.path}
-        path={item.path}
-        Icon={PAGE_ICON_MAP[item.iconKey]}
-        label={t(item.labelKey)}
-        isActive={isActive}
-        onClick={() => navigate(item.path)}
-        position={POSITION}
-      />
-    );
-  };
+  // ── Render helpers for function buttons (shared with SecondaryActionBar) ──
+  const { renderButtonWithCard, renderPlainButton } = useNavButtonCards({
+    position: POSITION,
+    navigate,
+    location,
+    showSearch,
+    setShowSearch,
+    showQuickChat,
+    setShowQuickChat,
+    pluginButtonRef,
+    ocrButtonRef,
+    aiButtonRef,
+    quickChatPos,
+    quickScanPos,
+    quickPanelPos,
+    placements: {
+      quickChat: 'bottom',
+      quickScan: 'bottom',
+      pluginPanel: 'bottom',
+    },
+  });
 
   const isBottom = sidebarPosition === 'bottom';
 

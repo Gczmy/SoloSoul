@@ -1,0 +1,212 @@
+// 导航按钮卡片渲染共享 hook（P142）。
+// TopFunctionBar 与 SecondaryActionBar 的 renderButtonWithCard（plugins/ocr/search/
+// ai_chat 四类卡片按钮 + 弹层 portal）与 renderPlainButton 此前逐字重复，此处收敛。
+// 差异点经参数注入：position、quick-chat setter、各按钮 ref 与弹层位置、placement 方向。
+
+import { createPortal } from 'react-dom';
+import { useTranslation } from 'react-i18next';
+import type { NavigateFunction, Location } from 'react-router-dom';
+import type { Dispatch, MutableRefObject, ReactNode, SetStateAction } from 'react';
+import { NavButton } from './NavButton';
+import { SearchPopover } from './SearchPopover';
+import { AiQuickChatPopover } from './AiQuickChatPopover';
+import { OcrQuickScanPopover } from './OcrQuickScanPopover';
+import { PluginQuickPanel } from '@/components/plugin/PluginQuickPanel';
+import { PAGE_ICON_MAP } from '@/lib/pageIcons';
+import { useOcrScanStore } from '@/stores/ocrScanStore';
+import { usePluginQuickStore } from '@/stores/pluginQuickStore';
+import { useSettingsStore } from '@/stores/settingsStore';
+import type { PageIconKey } from '@/lib/pageIcons';
+import type { NavPosition } from './NavButton';
+
+/** 与 useNavigationItems 的 NavItem 兼容的共享形状（该类型为模块私有）。 */
+export interface SharedNavLink {
+  type: 'link';
+  iconKey: PageIconKey;
+  labelKey: string;
+  path: string;
+}
+export interface SharedNavAction {
+  type: 'action';
+  iconKey: PageIconKey;
+  labelKey: string;
+  action: () => void;
+}
+export type SharedNavItem = SharedNavLink | SharedNavAction;
+
+/** 弹层放置方向（与 AiQuickChatPopover/OcrQuickScanPopover/PluginQuickPanel 兼容）。 */
+export type PopoverPlacement = 'top' | 'right' | 'bottom' | 'left';
+
+export interface NavButtonCardInput {
+  position: NavPosition;
+  navigate: NavigateFunction;
+  location: Location;
+  showSearch: boolean;
+  setShowSearch: (v: boolean) => void;
+  showQuickChat: boolean;
+  setShowQuickChat: Dispatch<SetStateAction<boolean>>;
+  pluginButtonRef: MutableRefObject<HTMLDivElement | null>;
+  ocrButtonRef: MutableRefObject<HTMLDivElement | null>;
+  aiButtonRef: MutableRefObject<HTMLDivElement | null>;
+  quickChatPos: { top: number } | null;
+  quickScanPos: { top: number } | null;
+  quickPanelPos: { top: number } | null;
+  placements: {
+    quickChat: PopoverPlacement;
+    quickScan: PopoverPlacement;
+    pluginPanel: PopoverPlacement;
+  };
+}
+
+/** 提供导航卡片/普通按钮渲染逻辑（消除两处导航栏的逐字重复）。 */
+export function useNavButtonCards(input: NavButtonCardInput) {
+  const { t } = useTranslation('navigation');
+  const {
+    position,
+    navigate,
+    location,
+    showSearch,
+    setShowSearch,
+    showQuickChat,
+    setShowQuickChat,
+    pluginButtonRef,
+    ocrButtonRef,
+    aiButtonRef,
+    quickChatPos,
+    quickScanPos,
+    quickPanelPos,
+    placements,
+  } = input;
+  const isPluginPanelOpen = usePluginQuickStore((s) => s.isOpen);
+  const isOcrCardOpen = useOcrScanStore((s) => s.isCardOpen);
+  const aiChatMode = useSettingsStore((s) => s.settings.sidebarButtonModes['ai_chat']);
+
+  /** 渲染带卡片弹层的功能按钮；非卡片项转发给 renderPlainButton。 */
+  const renderButtonWithCard = (item: SharedNavItem): ReactNode => {
+    // Page mode (type === 'link'): render as plain navigation button.
+    // Note: ai_chat always returns type: 'link' even in card mode, so exclude it.
+    if (item.type === 'link' && item.iconKey !== 'ai_chat') {
+      return renderPlainButton(item);
+    }
+
+    if (item.iconKey === 'plugins') {
+      return (
+        <div ref={pluginButtonRef} key="plugins" data-plugin-button="true">
+          <NavButton
+            Icon={PAGE_ICON_MAP[item.iconKey]}
+            label={t(item.labelKey)}
+            isActive={isPluginPanelOpen}
+            onClick={item.type === 'action' ? item.action : () => {}}
+            position={position}
+          />
+          {isPluginPanelOpen &&
+            createPortal(
+              <PluginQuickPanel
+                position={quickPanelPos}
+                onClose={() => usePluginQuickStore.getState().setOpen(false)}
+                placement={placements.pluginPanel}
+              />,
+              document.body,
+            )}
+        </div>
+      );
+    }
+    if (item.iconKey === 'ocr') {
+      return (
+        <div ref={ocrButtonRef} key="ocr" data-ocr-button="true">
+          <NavButton
+            Icon={PAGE_ICON_MAP[item.iconKey]}
+            label={t(item.labelKey)}
+            isActive={isOcrCardOpen}
+            onClick={item.type === 'action' ? item.action : () => {}}
+            position={position}
+          />
+          {isOcrCardOpen &&
+            createPortal(
+              <OcrQuickScanPopover
+                position={quickScanPos}
+                onClose={() => useOcrScanStore.getState().setCardOpen(false)}
+                placement={placements.quickScan}
+              />,
+              document.body,
+            )}
+        </div>
+      );
+    }
+    if (item.iconKey === 'search') {
+      return (
+        <div key="search" style={{ position: 'relative' }}>
+          <NavButton
+            Icon={PAGE_ICON_MAP[item.iconKey]}
+            label={t(item.labelKey)}
+            isActive={showSearch}
+            onClick={item.type === 'action' ? item.action : () => {}}
+            position={position}
+          />
+          {showSearch &&
+            createPortal(<SearchPopover onClose={() => setShowSearch(false)} />, document.body)}
+        </div>
+      );
+    }
+    // ai_chat
+    if (item.iconKey === 'ai_chat') {
+      return (
+        <div ref={aiButtonRef} key="ai_chat" data-ai-button="true">
+          <NavButton
+            Icon={PAGE_ICON_MAP[item.iconKey]}
+            label={t(item.labelKey)}
+            isActive={showQuickChat || location.pathname.startsWith('/llm-chat')}
+            onClick={() => {
+              if (aiChatMode === 'page') {
+                navigate('/llm-chat');
+              } else if (!location.pathname.startsWith('/llm-chat')) {
+                setShowQuickChat((prev) => !prev);
+              }
+            }}
+            position={position}
+          />
+          {showQuickChat &&
+            createPortal(
+              <AiQuickChatPopover
+                position={quickChatPos}
+                onClose={() => setShowQuickChat(false)}
+                placement={placements.quickChat}
+              />,
+              document.body,
+            )}
+        </div>
+      );
+    }
+    return null;
+  };
+
+  /** 渲染普通导航按钮（非卡片模式）。 */
+  const renderPlainButton = (item: SharedNavItem): ReactNode => {
+    if (item.type === 'action') {
+      return (
+        <NavButton
+          key={item.iconKey}
+          Icon={PAGE_ICON_MAP[item.iconKey]}
+          label={t(item.labelKey)}
+          onClick={item.action}
+          position={position}
+        />
+      );
+    }
+    const isActive =
+      item.path === '/' ? location.pathname === '/' : location.pathname.startsWith(item.path);
+    return (
+      <NavButton
+        key={item.path}
+        path={item.path}
+        Icon={PAGE_ICON_MAP[item.iconKey]}
+        label={t(item.labelKey)}
+        isActive={isActive}
+        onClick={() => navigate(item.path)}
+        position={position}
+      />
+    );
+  };
+
+  return { renderButtonWithCard, renderPlainButton };
+}
