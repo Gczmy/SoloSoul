@@ -80,8 +80,14 @@ export const useTemplateStore = create<TemplateState>((set, get) => ({
   async getTemplate(id) {
     try {
       return await invoke<UserTemplate>('template_get', { templateId: id });
-    } catch {
-      return null;
+    } catch (err) {
+      // P126: 仅「模板不存在」返回 null（合法语义）；其余为真实后端异常（如
+      // 无权访问、后端故障），抛出保留错误细节，不再与「不存在」混为一谈。
+      const msg = typeof err === 'string' ? err : err instanceof Error ? err.message : String(err);
+      if (msg.includes('模板不存在') || /not found/i.test(msg)) {
+        return null;
+      }
+      throw err;
     }
   },
 

@@ -165,6 +165,12 @@ describe('templateStore', () => {
       const result = await useTemplateStore.getState().getTemplate('missing');
       expect(result).toBeNull();
     });
+
+    it('P126: 真实后端异常抛出而非返回 null（与「模板不存在」区分）', async () => {
+      mockInvoke.mockRejectedValue(new Error('database locked'));
+      const { useTemplateStore } = await import('./templateStore');
+      await expect(useTemplateStore.getState().getTemplate('t1')).rejects.toThrow('database locked');
+    });
   });
 
   describe('saveFromObject', () => {
