@@ -58,7 +58,8 @@ interface SyncStoreState extends SyncStatus {
   enable: (enabled: boolean) => Promise<void>;
   discoverDevices: (timeoutMs?: number) => Promise<void>;
   syncWithDevice: (deviceId: string) => Promise<void>;
-  trustPeer: (peerNodeId: string, trusted: boolean) => Promise<void>;
+  /** 标记 peer 信任状态。fingerprint（可选）：配对确认时绑定握手认证指纹（P001/P103）。 */
+  trustPeer: (peerNodeId: string, trusted: boolean, fingerprint?: string) => Promise<void>;
   forgetPeer: (peerNodeId: string) => Promise<void>;
   loadAutoSyncStatus: () => Promise<void>;
   setAutoSyncEnabled: (enabled: boolean) => Promise<void>;
@@ -234,10 +235,14 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
     }
   },
 
-  trustPeer: async (peerNodeId, trusted) => {
+  trustPeer: async (peerNodeId, trusted, fingerprint) => {
     set({ isLoading: true, error: null });
     try {
-      await invoke<void>('sync_trust_peer', { peerNodeId: peerNodeId, trusted });
+      await invoke<void>('sync_trust_peer', {
+        peerNodeId: peerNodeId,
+        trusted,
+        fingerprint: fingerprint ?? null,
+      });
       await get().loadStatus();
       set({ isLoading: false });
     } catch (err) {
@@ -321,6 +326,12 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
       'sync-pairing-request',
       (event) => {
         const p = event.payload;
+        // P103: 未信任 peer 不再落库，同一 peer 重连会重复触发本事件。
+        // 若已展示同一 peer 的配对请求则忽略，避免 A 侧自动重试（多次连接）
+        // 导致 B 侧对话框/事件重复刷新。用户确认或忽略清除后，新请求可重新弹出。
+        if (get().incomingPairingRequest?.id === p.nodeId) {
+          return;
+        }
         const deviceName =
           p.deviceName ||
           (p.fingerprint ? `SoloSoul-${p.fingerprint.slice(0, 8)}` : p.nodeId);

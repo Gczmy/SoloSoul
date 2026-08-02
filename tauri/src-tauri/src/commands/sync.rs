@@ -753,10 +753,11 @@ pub async fn sync_trust_peer(
     state: State<'_, AppState>,
     peer_node_id: String,
     trusted: bool,
+    fingerprint: Option<String>,
 ) -> Result<(), String> {
     state
         .sync_service
-        .trust_peer(peer_node_id.clone(), trusted)
+        .trust_peer(peer_node_id.clone(), trusted, fingerprint)
         .await?;
     log_sync_action(
         &state,
@@ -777,10 +778,11 @@ pub async fn sync_trust_peer(
     state: State<'_, AppState>,
     peer_node_id: String,
     trusted: bool,
+    fingerprint: Option<String>,
 ) -> Result<(), String> {
     state
         .sync_service
-        .trust_peer(peer_node_id.clone(), trusted)
+        .trust_peer(peer_node_id.clone(), trusted, fingerprint)
         .await?;
     log_sync_action(
         &state,

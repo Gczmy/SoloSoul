@@ -44,7 +44,12 @@ export function AppShell({ children, title, actions, onBack }: AppShellProps) {
   const handleIncomingTrust = async () => {
     const s = useSyncStore.getState();
     if (!s.incomingPairingRequest) return;
-    await s.trustPeer(s.incomingPairingRequest.id, true);
+    // P103: 入站配对确认时绑定握手认证指纹（B 侧配对请求来自握手认证值）
+    await s.trustPeer(
+      s.incomingPairingRequest.id,
+      true,
+      s.incomingPairingRequest.fingerprint || undefined,
+    );
     await s.loadStatus();
     s.clearIncomingPairingRequest();
   };

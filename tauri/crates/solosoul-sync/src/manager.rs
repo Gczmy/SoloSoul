@@ -509,7 +509,16 @@ impl SyncManager {
     }
 
     /// Mark a peer as trusted or untrusted.
-    pub fn trust_peer(&self, peer_node_id: &str, trusted: bool) -> Result<(), String> {
+    ///
+    /// P103: 未信任 peer 不再于握手期预落库，配对确认（本方法）时若记录不存在
+    /// 则新建；`fingerprint`（可选）用于在新建/信任时绑定握手认证指纹，
+    /// 保证 P001 的「已信任 peer 必须使用配对时静态公钥」检查始终有效。
+    pub fn trust_peer(
+        &self,
+        peer_node_id: &str,
+        trusted: bool,
+        fingerprint: Option<&str>,
+    ) -> Result<(), String> {
         let now = chrono::Utc::now().to_rfc3339();
         let mut peer = self
             .vault
@@ -518,11 +527,20 @@ impl SyncManager {
                 peer_node_id: peer_node_id.to_string(),
                 peer_name: None,
                 trusted: false,
-                public_key_fingerprint: None,
+                public_key_fingerprint: fingerprint
+                    .filter(|f| !f.is_empty())
+                    .map(|f| f.to_string()),
                 last_seen: None,
                 created_at: now.clone(),
                 updated_at: now.clone(),
             });
+        // 已有记录但无指纹时（历史记录/握手期未绑定）补绑，保证 P001 可比对。
+        // 空串视为无指纹（旧记录可能带默认空值），避免绑定 "" 导致后续握手被 P001 拒绝。
+        if trusted && peer.public_key_fingerprint.is_none() {
+            if let Some(f) = fingerprint.filter(|f| !f.is_empty()) {
+                peer.public_key_fingerprint = Some(f.to_string());
+            }
+        }
         peer.trusted = trusted;
         peer.updated_at = now;
         self.vault.save_peer_state(&peer)
@@ -715,5 +733,83 @@ mod tests {
         // resolve_peer_addr 只负责裸 IP / node_id）
         let addr2 = resolve_peer_addr(&map, "fe80::1").unwrap();
         assert_eq!(addr2, "[fe80::1]:42069".parse::<SocketAddr>().unwrap());
+    }
+
+    // ---------------------------------------------------------------------
+    // P103 防回归单测：trust_peer 新建记录时绑定握手认证指纹。
+    // ---------------------------------------------------------------------
+
+    fn test_manager() -> (
+        SyncManager,
+        Arc<solosoul_vault::VaultStore>,
+        tempfile::TempDir,
+    ) {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let vault = Arc::new(
+            solosoul_vault::VaultStore::open(solosoul_vault::VaultConfig {
+                path: dir.path().to_path_buf(),
+                account_id: "acct".to_string(),
+                data_key: Some([0u8; 32]),
+            })
+            .expect("open vault"),
+        );
+        let manager = SyncManager::new(
+            "node-test".to_string(),
+            "acct".to_string(),
+            NoiseKeys::generate(),
+            vault.clone(),
+            "0.0.0.0:0",
+        );
+        (manager, vault, dir)
+    }
+
+    /// P103: 配对确认（trust_peer）时新建记录必须绑定握手认证指纹，
+    /// 保证 P001 的「已信任 peer 使用配对时静态公钥」检查有据可依。
+    #[test]
+    fn test_trust_peer_creates_record_with_fingerprint() {
+        let (manager, vault, _dir) = test_manager();
+        manager
+            .trust_peer("node-peer", true, Some("handshake-fp"))
+            .expect("trust_peer");
+        let peer = vault
+            .load_peer_state("node-peer")
+            .expect("load")
+            .expect("peer 应已创建");
+        assert!(peer.trusted);
+        assert_eq!(peer.public_key_fingerprint.as_deref(), Some("handshake-fp"));
+    }
+
+    /// P103: 已有记录但无指纹时（历史记录/握手期未绑定），信任时补绑指纹。
+    #[test]
+    fn test_trust_peer_backfills_fingerprint_on_existing_record() {
+        let (manager, vault, _dir) = test_manager();
+        // 先无指纹记录（模拟旧版 pre-P001 数据）
+        manager
+            .trust_peer("node-old", false, None)
+            .expect("trust_peer");
+        // 信任时补绑指纹
+        manager
+            .trust_peer("node-old", true, Some("handshake-fp"))
+            .expect("trust_peer");
+        let peer = vault
+            .load_peer_state("node-old")
+            .expect("load")
+            .expect("peer 应存在");
+        assert!(peer.trusted);
+        assert_eq!(peer.public_key_fingerprint.as_deref(), Some("handshake-fp"));
+    }
+
+    /// 已绑定指纹的记录在撤销/再信任时不覆盖指纹（防漂移）。
+    #[test]
+    fn test_trust_peer_keeps_existing_fingerprint() {
+        let (manager, vault, _dir) = test_manager();
+        manager
+            .trust_peer("node-p", true, Some("fp-original"))
+            .expect("trust_peer");
+        // 撤销再信任，未提供新指纹 → 保留原指纹
+        manager.trust_peer("node-p", false, None).expect("revoke");
+        manager.trust_peer("node-p", true, None).expect("re-trust");
+        let peer = vault.load_peer_state("node-p").expect("load").unwrap();
+        assert_eq!(peer.public_key_fingerprint.as_deref(), Some("fp-original"));
     }
 }

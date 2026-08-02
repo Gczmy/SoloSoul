@@ -159,7 +159,7 @@ fn trust_peer(app: &mut App, peer_node_id: &str, trusted: bool) {
         return;
     }
     let result = build_manager_for_manage(&app.vault_service)
-        .and_then(|mgr| mgr.trust_peer(peer_node_id, trusted));
+        .and_then(|mgr| mgr.trust_peer(peer_node_id, trusted, None));
     match result {
         Ok(()) => {
             app.error_message = Some(if trusted {

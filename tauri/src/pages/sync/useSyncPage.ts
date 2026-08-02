@@ -160,7 +160,8 @@ export function useSyncPage() {
   const handleTrustPending = async () => {
     const peer = pairTarget || pendingPeer;
     if (!peer) return;
-    await store.trustPeer(peer.id, true);
+    // P103: 配对确认时绑定握手认证指纹（peer.fingerprint 来自握手认证值）
+    await store.trustPeer(peer.id, true, peer.fingerprint || undefined);
     setPairTarget(null);
   };
 
@@ -181,7 +182,8 @@ export function useSyncPage() {
     if (!s.pairingPendingPeerId) {
       return;
     }
-    await s.trustPeer(s.pairingPendingPeerId, true);
+    // P103: A 侧配对确认时绑定握手认证指纹（pairingPendingPeer 来自连接记录/握手认证值）
+    await s.trustPeer(s.pairingPendingPeerId, true, pairingPendingPeer?.fingerprint || undefined);
     setPairWaitState('waiting');
 
     const addr = s.pairingPendingAddr || pairingPendingPeer?.addr || '';

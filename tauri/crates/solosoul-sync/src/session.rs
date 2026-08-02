@@ -46,6 +46,20 @@ fn check_session_deadline(start: Instant) -> Result<(), String> {
     }
 }
 
+/// P103: 构造 pairing_pending 最小错误帧——只含对端 node_id，
+/// 不含本地 account_id 与指纹（信任确认前不泄露敏感信息）。
+fn pairing_pending_message(node_id: &str) -> String {
+    format!("__SYNC_ERR__:pairing_pending:{}", node_id)
+}
+
+/// P103: 从错误帧中解析 pairing_pending 携带的对端 node_id。
+/// 非 pairing_pending 帧或空 id 返回 None。
+fn parse_pairing_pending(message: &str) -> Option<&str> {
+    message
+        .strip_prefix("__SYNC_ERR__:pairing_pending:")
+        .filter(|s| !s.is_empty())
+}
+
 /// 把同步会话/连接阶段返回的英文错误包装为 `__SYNC_ERR__:` 前缀，
 /// 供前端 `resolveBackendErrorMessage` 翻译（P2：握手/连接错误 i18n）。
 /// 已带 `__SYNC_ERR__:` 前缀的错误原样透传，避免二次包装。
@@ -142,11 +156,21 @@ pub fn run_initiator_session(
             if !t {
                 // 发起方侧：响应方尚未信任本设备。返回带 peer_node_id 的配对中错误码，
                 // 前端据此进入「双侧确认配对」流程（不裸报英文，走 __SYNC_ERR__ 前缀 i18n）。
-                return Err(format!("__SYNC_ERR__:pairing_pending:{}", pid));
+                return Err(pairing_pending_message(&pid));
             }
             (pid, t)
         }
-        SyncMessage::Error { message } => return Err(message),
+        SyncMessage::Error { message } => {
+            // P103: 响应方未信任本设备时只回最小错误帧（pairing_pending + node_id）。
+            // 发起方连接是用户显式发起（非入站洪水向量），仍以握手认证指纹落库对端，
+            // 使前端配对对话框能展示对端信息，并保证 P001 指纹绑定。
+            // 落库失败不阻断配对信号：记录在用户确认时由 trust_peer 重新创建，
+            // 此处吞掉避免 DB 错误掩盖 __SYNC_ERR__:pairing_pending 让前端无法进入配对流程。
+            if let Some(pid) = parse_pairing_pending(&message) {
+                let _ = record_peer(&vault, pid, &peer_addr, &remote_fingerprint);
+            }
+            return Err(message);
+        }
         _ => return Err("Unexpected message during handshake".to_string()),
     };
 
@@ -237,80 +261,94 @@ pub fn handle_inbound(
         .remote_fingerprint()
         .ok_or("Peer did not present a static public key during handshake")?;
 
-    let (peer_node_id, _peer_account, peer_fingerprint, is_new_peer) =
-        match recv_msg(&mut session, transport)? {
-            SyncMessage::Hello {
-                node_id: pid,
-                account_id: pacc,
-                public_key_fingerprint,
-                protocol_version: peer_version,
-            } => {
-                check_session_deadline(session_start)?;
-                // 校验发起方协议版本是否兼容。
-                if peer_version < MIN_PROTOCOL_VERSION {
-                    send_msg(
-                        &mut session,
-                        transport,
-                        &SyncMessage::Error {
-                            message: format!(
-                                "Unsupported protocol version {} (minimum required: {})",
-                                peer_version, MIN_PROTOCOL_VERSION
-                            ),
-                        },
-                    )?;
-                    return Err(format!(
-                        "Peer protocol version {} is below minimum supported {}",
-                        peer_version, MIN_PROTOCOL_VERSION
-                    ));
-                }
-                if pacc != account_id {
-                    send_msg(
-                        &mut session,
-                        transport,
-                        &SyncMessage::Error {
-                            message: "Account mismatch".to_string(),
-                        },
-                    )?;
-                    return Err("Account mismatch".to_string());
-                }
-                // P001: 校验对端身份（自报指纹 == 握手派生指纹；已信任 peer 必须
-                // 使用与配对时相同的静态公钥）。失败时回 Error 帧并中止。
-                if let Err(e) =
-                    verify_peer_identity(&vault, &pid, &public_key_fingerprint, &remote_fingerprint)
-                {
-                    send_msg(
-                        &mut session,
-                        transport,
-                        &SyncMessage::Error { message: e.clone() },
-                    )?;
-                    return Err(e);
-                }
-                // P001: 落库以握手认证指纹为准。
-                let is_new = record_peer(&vault, &pid, &peer_addr, &remote_fingerprint)?;
-                (pid, pacc, remote_fingerprint, is_new)
+    let (peer_node_id, is_new_peer) = match recv_msg(&mut session, transport)? {
+        SyncMessage::Hello {
+            node_id: pid,
+            account_id: pacc,
+            public_key_fingerprint,
+            protocol_version: peer_version,
+        } => {
+            check_session_deadline(session_start)?;
+            // 校验发起方协议版本是否兼容。
+            if peer_version < MIN_PROTOCOL_VERSION {
+                send_msg(
+                    &mut session,
+                    transport,
+                    &SyncMessage::Error {
+                        message: format!(
+                            "Unsupported protocol version {} (minimum required: {})",
+                            peer_version, MIN_PROTOCOL_VERSION
+                        ),
+                    },
+                )?;
+                return Err(format!(
+                    "Peer protocol version {} is below minimum supported {}",
+                    peer_version, MIN_PROTOCOL_VERSION
+                ));
             }
-            _ => return Err("Expected Hello".to_string()),
-        };
-
-    // 入站 Hello 落库了一条新的未信任记录 → 触发配对请求回调。
-    // 已信任的旧记录（重新握手）不重复弹窗；新记录默认 trusted=false。
-    if is_new_peer {
-        if let Some(cb) = &peer_callback {
-            let device_name = peer_display_name(&peer_fingerprint, &peer_addr);
-            cb(NewPeerInfo {
-                node_id: peer_node_id.clone(),
-                fingerprint: peer_fingerprint,
-                addr: peer_addr.clone(),
-                device_name,
-            });
+            if pacc != account_id {
+                send_msg(
+                    &mut session,
+                    transport,
+                    &SyncMessage::Error {
+                        message: "Account mismatch".to_string(),
+                    },
+                )?;
+                return Err("Account mismatch".to_string());
+            }
+            // P001: 校验对端身份（自报指纹 == 握手派生指纹；已信任 peer 必须
+            // 使用与配对时相同的静态公钥）。失败时回 Error 帧并中止。
+            if let Err(e) =
+                verify_peer_identity(&vault, &pid, &public_key_fingerprint, &remote_fingerprint)
+            {
+                send_msg(
+                    &mut session,
+                    transport,
+                    &SyncMessage::Error { message: e.clone() },
+                )?;
+                return Err(e);
+            }
+            // P103: 信任检查前**不落库**——仅只读判断是否为新 peer（用于配对请求回调），
+            // 防止任意 LAN 主机连接即刷写 peer 表。
+            let is_new = vault.load_peer_state(&pid)?.is_none();
+            (pid, is_new)
         }
-    }
+        _ => return Err("Expected Hello".to_string()),
+    };
 
     let trusted = vault
         .load_peer_state(&peer_node_id)?
         .map(|p| p.trusted)
         .unwrap_or(false);
 
+    if !trusted {
+        // P103: 未信任 peer——不落库、不回 HelloAck（不回 account_id 与指纹）。
+        // 仅对新 peer 触发配对请求回调（数据取自握手认证值，纯内存传递），
+        // 并回最小错误帧让发起方进入「双侧确认配对」流程。
+        if is_new_peer {
+            if let Some(cb) = &peer_callback {
+                let device_name = peer_display_name(&remote_fingerprint, &peer_addr);
+                cb(NewPeerInfo {
+                    node_id: peer_node_id.clone(),
+                    fingerprint: remote_fingerprint.clone(),
+                    addr: peer_addr.clone(),
+                    device_name,
+                });
+            }
+        }
+        send_msg(
+            &mut session,
+            transport,
+            &SyncMessage::Error {
+                message: pairing_pending_message(node_id),
+            },
+        )?;
+        return Err("Peer not trusted".to_string());
+    }
+
+    // 已信任：此刻才刷新 last_seen/指纹落库（信任已确认，落库安全），
+    // 并回 HelloAck 进入同步。
+    record_peer(&vault, &peer_node_id, &peer_addr, &remote_fingerprint)?;
     send_msg(
         &mut session,
         transport,
@@ -322,17 +360,6 @@ pub fn handle_inbound(
             protocol_version: PROTOCOL_VERSION,
         },
     )?;
-
-    if !trusted {
-        send_msg(
-            &mut session,
-            transport,
-            &SyncMessage::Error {
-                message: "Peer is not trusted".to_string(),
-            },
-        )?;
-        return Err("Peer not trusted".to_string());
-    }
 
     // 先接收对端变更。
     let mut apply_stats = ApplyStats::default();
@@ -639,6 +666,40 @@ mod tests {
     fn test_wrap_session_error_passes_through_pairing_pending() {
         let err = "__SYNC_ERR__:pairing_pending:node-abc".to_string();
         assert_eq!(wrap_session_error(err.clone()), err);
+    }
+
+    // ---------------------------------------------------------------------
+    // P103 防回归单测：最小错误帧构造/解析。
+    // ---------------------------------------------------------------------
+
+    /// pairing_pending 错误帧只含 node_id，不含 account_id 与指纹（信任确认前不泄露敏感信息）。
+    #[test]
+    fn test_pairing_pending_message_contains_only_node_id() {
+        let msg = pairing_pending_message("node-b");
+        assert_eq!(msg, "__SYNC_ERR__:pairing_pending:node-b");
+        // 不应包含 account_id 或指纹片段
+        assert!(!msg.contains("account"));
+        assert!(!msg.contains("fingerprint"));
+    }
+
+    /// parse_pairing_pending 正确解析最小错误帧中的 node_id。
+    #[test]
+    fn test_parse_pairing_pending_extracts_node_id() {
+        assert_eq!(
+            parse_pairing_pending("__SYNC_ERR__:pairing_pending:node-b"),
+            Some("node-b")
+        );
+    }
+
+    /// 非 pairing_pending 错误（如密钥不匹配）不解析出 node_id，避免误落库。
+    #[test]
+    fn test_parse_pairing_pending_rejects_other_errors() {
+        assert_eq!(
+            parse_pairing_pending("__SYNC_ERR__:handshake_failed:Peer fingerprint mismatch"),
+            None
+        );
+        assert_eq!(parse_pairing_pending("Peer is not trusted"), None);
+        assert_eq!(parse_pairing_pending("__SYNC_ERR__:pairing_pending:"), None);
     }
 
     #[test]

@@ -205,10 +205,16 @@ impl SyncService {
     }
 
     /// 标记 peer 信任状态。
-    pub async fn trust_peer(&self, peer_node_id: String, trusted: bool) -> Result<(), String> {
+    /// `fingerprint`（可选）：配对确认时绑定握手认证指纹（P001/P103）。
+    pub async fn trust_peer(
+        &self,
+        peer_node_id: String,
+        trusted: bool,
+        fingerprint: Option<String>,
+    ) -> Result<(), String> {
         let guard = self.manager.lock().await;
         let result = if let Some(m) = guard.as_ref() {
-            m.trust_peer(&peer_node_id, trusted)
+            m.trust_peer(&peer_node_id, trusted, fingerprint.as_deref())
         } else {
             let svc = self
                 .vault_service
@@ -216,17 +222,23 @@ impl SyncService {
                 .map_err(|_| "Vault service lock poisoned".to_string())?;
             let vault = svc.get_vault_store().ok_or("Vault is not unlocked")?;
             let now = chrono::Utc::now().to_rfc3339();
+            let fp = fingerprint.filter(|f| !f.is_empty());
             let mut peer = vault.load_peer_state(&peer_node_id)?.unwrap_or_else(|| {
                 solosoul_vault::PeerSyncState {
                     peer_node_id: peer_node_id.clone(),
                     peer_name: None,
                     trusted: false,
-                    public_key_fingerprint: None,
+                    public_key_fingerprint: fp.clone(),
                     last_seen: None,
                     created_at: now.clone(),
                     updated_at: now.clone(),
                 }
             });
+            // 已有记录但无指纹时补绑（历史记录/握手期未绑定）。
+            // 空串视为无指纹，避免绑定 "" 导致后续握手被 P001 拒绝。
+            if trusted && peer.public_key_fingerprint.is_none() {
+                peer.public_key_fingerprint = fp;
+            }
             peer.trusted = trusted;
             peer.updated_at = now;
             vault.save_peer_state(&peer)
@@ -435,7 +447,12 @@ impl MobileSyncManager {
         }
     }
 
-    fn trust_peer(&self, peer_node_id: &str, trusted: bool) -> Result<(), String> {
+    fn trust_peer(
+        &self,
+        peer_node_id: &str,
+        trusted: bool,
+        fingerprint: Option<&str>,
+    ) -> Result<(), String> {
         let now = chrono::Utc::now().to_rfc3339();
         let mut peer = self
             .vault
@@ -444,11 +461,20 @@ impl MobileSyncManager {
                 peer_node_id: peer_node_id.to_string(),
                 peer_name: None,
                 trusted: false,
-                public_key_fingerprint: None,
+                public_key_fingerprint: fingerprint
+                    .filter(|f| !f.is_empty())
+                    .map(|f| f.to_string()),
                 last_seen: None,
                 created_at: now.clone(),
                 updated_at: now.clone(),
             });
+        // 已有记录但无指纹时补绑（历史记录/握手期未绑定）。
+        // 空串视为无指纹，避免绑定 "" 导致后续握手被 P001 拒绝。
+        if trusted && peer.public_key_fingerprint.is_none() {
+            if let Some(f) = fingerprint.filter(|f| !f.is_empty()) {
+                peer.public_key_fingerprint = Some(f.to_string());
+            }
+        }
         peer.trusted = trusted;
         peer.updated_at = now;
         self.vault.save_peer_state(&peer)
