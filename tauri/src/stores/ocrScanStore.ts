@@ -37,6 +37,9 @@ interface OcrScanState {
   getActiveHistory: () => OcrScanEntry[];
   getTrash: () => OcrScanEntry[];
   getCurrentEntry: () => OcrScanEntry | null;
+
+  /** P230: Vault 锁定/退出时清空扫描结果明文（含 MRZ 证件号），仅保留持久化元数据。 */
+  clearOnVaultLock: () => void;
 }
 
 const HISTORY_LIMIT = 50;
@@ -146,6 +149,17 @@ export const useOcrScanStore = create<OcrScanState>()(
         const s = get();
         return s.scanHistory.find((h) => h.id === s.currentScanId) || null;
       },
+
+      // P230: 锁定/退出后清空含解密明文的内存态（result/mrzResult/filePath 均含敏感内容）。
+      // 只读 UI 偏好（activeTier/scanMode）不受影响；persist partialize 本就不持久化结果。
+      clearOnVaultLock: () =>
+        set({
+          scanHistory: [],
+          currentScanId: null,
+          lastScanError: null,
+          isScanning: false,
+          isCardOpen: false,
+        }),
     }),
     {
       name: 'solosoul-ocr-scan-history',

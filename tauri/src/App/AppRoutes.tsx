@@ -7,6 +7,7 @@ import { useObjectStore } from '@/stores/objectStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useProfileStore } from '@/stores/profileStore';
 import { useTrashStore } from '@/stores/trashStore';
+import { useOcrScanStore } from '@/stores/ocrScanStore';
 import { useApplyThemeFromSettings } from '@/hooks/useApplyThemeFromSettings';
 import { useAutoLock } from '@/hooks/useAutoLock';
 import { initLlmNotificationListener } from '@/lib/notification';
@@ -481,6 +482,8 @@ export function AppRoutes() {
       // P004/P005: 锁定后立即清理回收站解密摘要与搜索明文缓存，
       // 避免解密数据残留在内存直至 TTL 自然过期。
       useTrashStore.getState().clearOnVaultLock();
+      // P230: 锁定后清空 OCR 扫描结果内存态（含 MRZ 证件号）。
+      useOcrScanStore.getState().clearOnVaultLock();
       searchCache.clear();
       useAuthStore.getState().logout();
       // Re-check account state so hasAccount resolves from null → true/false

@@ -253,4 +253,43 @@ describe('ocrScanStore', () => {
       expect(parsed.state.scanMode).toBe('mrz');
     });
   });
+
+  // P230: Vault 锁定/退出后必须清空含解密明文的内存态（MRZ 证件号等）。
+  describe('clearOnVaultLock', () => {
+    it('清空扫描历史/当前条目/错误态，且保留持久化元数据', async () => {
+      const mrzResult = {
+        documentType: 'P',
+        documentNumber: 'AB123',
+        rawLines: [],
+        confidence: 0.95,
+        checksumValid: true,
+      };
+      mockInvoke.mockImplementation(async (cmd: string) => {
+        if (cmd === 'ocr_scan_mrz') return mrzResult;
+        return undefined;
+      });
+
+      const mod = await import('./ocrScanStore');
+      mod.useOcrScanStore.getState().setScanMode('mrz');
+      mod.useOcrScanStore.getState().setActiveTier('tiny');
+      await mod.useOcrScanStore.getState().performScan('/passport.png');
+
+      // 锁定前：历史含 MRZ 明文
+      const before = mod.useOcrScanStore.getState();
+      expect(before.scanHistory).toHaveLength(1);
+      expect(before.scanHistory[0].mrzResult?.documentNumber).toBe('AB123');
+
+      mod.useOcrScanStore.getState().clearOnVaultLock();
+
+      const after = mod.useOcrScanStore.getState();
+      expect(after.scanHistory).toEqual([]);
+      expect(after.currentScanId).toBeNull();
+      expect(after.lastScanError).toBeNull();
+      expect(after.isScanning).toBe(false);
+      expect(after.isCardOpen).toBe(false);
+      // 只读 UI 偏好不被清空（clearOnVaultLock 只清敏感内存态）
+      expect(after.scanMode).toBe('mrz');
+      expect(after.activeTier).toBe('tiny');
+    });
+  });
 });
