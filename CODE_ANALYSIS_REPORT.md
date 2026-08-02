@@ -90,7 +90,7 @@
 | P207 | 安全 | `src-tauri/src/commands/embed_model.rs:11,195-233` | Embedding 模型 registry 与 sha256 同通道下发无独立签名（对比插件注册表有 minisign） | `[x]` 已修复（2026-08-02：注册表 minisign 签名校验 + 编译期公钥常量 + 环境变量注入 + 7 条防回归单测，见下文） |
 | P208 | 安全 | `crates/solosoul-plugin/src/sandbox.rs:71` | 插件 WASI `inherit_stdio()` 可向宿主日志注入伪造内容 | `[x]` 已修复（2026-08-02：移除 inherit_stdio，stdio 改默认空槽黑洞，见下文） |
 | P209 | 安全 | `crates/solosoul-core/src/biometric/legacy.rs:32` | `LEGACY_XOR_KEY` 硬编码 XOR 密钥（仅旧凭证迁移用，迁移窗口关闭后应删除整个模块） | `[x]` 已评估保留（2026-08-02 用户决策：迁移窗口未关闭，保留 XOR 路径；见下文） |
-| P210 | 性能 | `crates/solosoul-vault/src/storage.rs:2480-2487,2647-2653` | 关键词过滤每次把整个 JSON Value 重新 `to_string().to_lowercase()`，Value→String 往返浪费 | `[ ]` |
+| P210 | 性能 | `crates/solosoul-vault/src/storage.rs:2480-2487,2647-2653` | 关键词过滤每次把整个 JSON Value 重新 `to_string().to_lowercase()`，Value→String 往返浪费 | `[x]` 已修复（2026-08-02：递归值树匹配替代整值序列化，见下文） |
 | P211 | 性能 | `src-tauri/src/commands/object/trash.rs:295-340` | `page_delete` 全量解密筛选 + 逐对象二次解密 + 逐条 auto-commit 写入 | `[ ]` |
 | P212 | 性能 | `crates/solosoul-core/src/export_import.rs:365,369-448` | `import_vault` 整体克隆对象数组、循环内逐对象解密判存在 + auto-commit 写入，无事务 | `[ ]` |
 | P213 | 性能 | `crates/solosoul-vault/src/storage.rs`（全库） | 无一处 `prepare_cached`；`load_object` 每次 `format!` 分配 SQL 字符串再 prepare | `[ ]` |
@@ -115,8 +115,8 @@
 
 ## 修复进度
 
-- 已完成：57 / 69（P001-P007、P101-P142、P201-P209；其中 P104 为部分闭环、P206 部分修复、P209 为用户决策保留）
-- 当前处理：P210（关键词过滤 Value→String 往返浪费）
+- 已完成：58 / 69（P001-P007、P101-P142、P201-P210；其中 P104 为部分闭环、P206 部分修复、P209 为用户决策保留）
+- 当前处理：P211（page_delete 全量解密筛选 + 逐对象二次解密 + 逐条 auto-commit）
 
 ## 审查通过项（已排查，无需修改）
 
@@ -193,7 +193,8 @@ Windows 生产路径用 `FileBiometricStorage` 存主密钥（`derive_master_key
 
 ### 七、P2 指引（择要）
 
-- **性能**：P210 解密后缓存原始字符串做匹配；P211 用 metadata-only 列表 + 批量加载 + 事务；P212 存在性判断改轻量预查 + 导入循环包事务；P213 热点语句 `prepare_cached` + SQL 常量化；P214 先按明文列 SQL 筛 public 再解密。
+- **性能**：P211 用 metadata-only 列表 + 批量加载 + 事务；P212 存在性判断改轻量预查 + 导入循环包事务；P213 热点语句 `prepare_cached` + SQL 常量化；P214 先按明文列 SQL 筛 public 再解密。
+- **P210（已修复）**：关键词过滤 Value→String 往返浪费。新增 `solosoul_vault::storage::json_contains_ignore_case`（pub）递归匹配 JSON 值树——对象键 + 字符串值（未转义原文）+ 数字 + 布尔，needle 由调用方统一小写一次（查询级而非对象级）。替换 3 处 `properties.to_string().to_lowercase().contains()`：vault `list_objects` 关键词过滤、vault `search_objects`、GUI `search/commands.rs` `search_advanced_impl` 预筛（`solosoul_vault::storage::` 全路径，风格与既有 `solosoul_vault::VaultStore` 一致）；CLI `/search` 走 vault `search_objects`/`list_objects` 自动受益。语义差异（已注释）：字符串按未转义原文匹配（旧实现匹配 JSON 转义形态如 `\n`，属序列化偶然产物）、null 不再命中字面 null（病态用例）、JSON 标点不再命中。commands.rs 预筛为宽松 gate——精确匹配由 `search_properties_for_matches` 在解析树上裁决，预筛面（键+未转义值）是 body 匹配面的超集，不会漏放。字符串叶加长度快速失败避免无谓 lowercase 分配。防回归单测 ×7（值大小写不敏感/键命中/嵌套数组对象/数字文本/Unicode/空 needle/非文本标量 + search_objects 嵌套属性集成）。vault 114 + solo_soul 347 测试全绿、clippy 0、fmt 干净。
 - **死代码/规范**：P219-P221 直接删除（P220 同时修复基线 lint warning）；P222 降可见性。
 - **P209（已决策保留）**：`LEGACY_XOR_KEY` 仅用于 `legacy_xor_decrypt` 一键解密 <2.0 旧版 XOR 凭证文件并原子迁移为 AES-256-GCM。模块 `legacy.rs` 本身不可删——`FileBiometricStorage` 是 macOS（macos.rs:16）/iOS 回退（ios.rs:46）/macos_keychain 回退/vault_service 的活动存储后端与测试 mock；当前 `save`/`update` 已只写新格式，XOR 路径为零写入面。威胁面：攻击者需同时持有编译产物与 0600 权限的旧文件，且内容为会话密钥非主密钥。2026-08-02 用户决策：迁移窗口未关闭，保留 XOR 路径，接受已充分记录的低危风险（原代码注释即含完整风险分析）。
 - **结构**：P223/P224 为长期重构项，建议随功能迭代顺带拆分，不单独安排修复轮次。

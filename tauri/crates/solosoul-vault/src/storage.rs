@@ -23,6 +23,41 @@ const OBJECT_COLUMNS: &str = "\
     is_deleted, deleted_at, tags_json, template_id, template_type, \
     contract_type_id, template_hash, ignored_template_hash, created_at, updated_at, version";
 
+/// P210: 大小写不敏感子串匹配整个 JSON Value（对象键 + 字符串值 + 数字 + 布尔）。
+///
+/// 旧实现 `value.to_string().to_lowercase()` 每次对每个对象重新序列化 JSON
+/// （含引号/花括号/转义/格式化）并整体复制一份小写字符串，属 Value→String 往返浪费。
+/// 本函数递归遍历值树，仅对文本片段做小写匹配：
+///   - 对象键与字符串值均参与匹配（保持旧实现“键也可命中”的搜索面）；
+///   - 数字/布尔按文本形式匹配（与旧序列化结果一致）；
+///   - 字符串值按未转义原文匹配——旧实现匹配的是 JSON 转义形态（如值含真实换行时搜索
+///     `\\n` 会命中反斜杠+n），新实现匹配真实文本，更符合用户直觉（转义形态命中是
+///     序列化的偶然产物，非产品意图）；
+///   - null 不再命中字面 `null`（旧序列化为 `null` 文本可命中，搜索 null 属病态用例，
+///     缺失可接受）。
+///
+/// `needle_lower` 必须已小写（调用方统一处理，避免重复 lowercase）。
+pub fn json_contains_ignore_case(value: &serde_json::Value, needle_lower: &str) -> bool {
+    if needle_lower.is_empty() {
+        return true;
+    }
+    match value {
+        serde_json::Value::String(s) => {
+            // 长度快速失败，避免短值无谓的 to_lowercase 分配
+            s.len() >= needle_lower.len() && s.to_lowercase().contains(needle_lower)
+        }
+        serde_json::Value::Number(n) => n.to_string().contains(needle_lower),
+        serde_json::Value::Bool(b) => b.to_string().contains(needle_lower),
+        serde_json::Value::Null => false,
+        serde_json::Value::Array(items) => items
+            .iter()
+            .any(|v| json_contains_ignore_case(v, needle_lower)),
+        serde_json::Value::Object(map) => map.iter().any(|(k, v)| {
+            k.to_lowercase().contains(needle_lower) || json_contains_ignore_case(v, needle_lower)
+        }),
+    }
+}
+
 /// Vault store with SQLite backing
 pub struct VaultStore {
     conn: Mutex<Option<Connection>>,
@@ -2717,12 +2752,13 @@ impl VaultStore {
             .map_err(|e| format!("list_objects collect: {}", e))?;
 
         // Memory-level keyword filtering on decrypted name and properties.
+        // P210: properties 用 json_contains_ignore_case 递归匹配，避免整值 to_string() 往返。
         if let Some(kw) = lower_kw {
             let filtered: Vec<ObjectSummary> = objects
                 .into_iter()
                 .filter(|o| {
                     o.name.to_lowercase().contains(&kw)
-                        || o.properties.to_string().to_lowercase().contains(&kw)
+                        || json_contains_ignore_case(&o.properties, &kw)
                 })
                 .collect();
             Ok(filtered)
@@ -2966,14 +3002,12 @@ impl VaultStore {
     ) -> Result<Vec<ObjectRecord>, String> {
         let lower_query = query.to_lowercase();
         let results = self.list_object_records(account_id)?;
+        // P210: properties 用 json_contains_ignore_case 递归匹配，避免整值 to_string() 往返。
         Ok(results
             .into_iter()
             .filter(|r| {
                 r.name.to_lowercase().contains(&lower_query)
-                    || r.properties
-                        .to_string()
-                        .to_lowercase()
-                        .contains(&lower_query)
+                    || json_contains_ignore_case(&r.properties, &lower_query)
             })
             .collect())
     }
@@ -4974,6 +5008,102 @@ mod tests {
             .list_objects("acc-1", None, None, Some("你好"), false, false)
             .unwrap();
         assert_eq!(by_prop.len(), 1);
+    }
+
+    // ── P210 json_contains_ignore_case 单测 ──────────────────
+
+    #[test]
+    fn test_json_contains_string_value_case_insensitive() {
+        let v = serde_json::json!({"content": "Hello World"});
+        assert!(json_contains_ignore_case(&v, "hello"));
+        assert!(json_contains_ignore_case(&v, "world"));
+        assert!(!json_contains_ignore_case(&v, "xyz"));
+    }
+
+    #[test]
+    fn test_json_contains_matches_object_key() {
+        let v = serde_json::json!({"emailAddress": "a@b.c"});
+        // 键命中（旧 to_string() 序列化也含键，保持搜索面）；needle 须已小写
+        assert!(json_contains_ignore_case(&v, "email"));
+        assert!(json_contains_ignore_case(&v, "address"));
+    }
+
+    #[test]
+    fn test_json_contains_nested() {
+        let v = serde_json::json!({
+            "a": {
+                "b": [
+                    {"c": "deep value"},
+                    "plain",
+                    123
+                ]
+            }
+        });
+        assert!(json_contains_ignore_case(&v, "deep"));
+        assert!(json_contains_ignore_case(&v, "plain"));
+        // 数字按文本匹配
+        assert!(json_contains_ignore_case(&v, "123"));
+        assert!(!json_contains_ignore_case(&v, "nothing"));
+    }
+
+    #[test]
+    fn test_json_contains_unicode() {
+        let v = serde_json::json!({"内容": "你好世界"});
+        assert!(json_contains_ignore_case(&v, "你好"));
+        assert!(json_contains_ignore_case(&v, "世界"));
+    }
+
+    #[test]
+    fn test_json_contains_empty_needle() {
+        let v = serde_json::json!({"a": "b"});
+        assert!(json_contains_ignore_case(&v, ""));
+    }
+
+    #[test]
+    fn test_json_contains_non_text_scalars() {
+        // 布尔/null 语义：布尔可文本匹配，null 不命中
+        assert!(json_contains_ignore_case(&serde_json::json!(true), "true"));
+        assert!(!json_contains_ignore_case(&serde_json::json!(null), "null"));
+        assert!(!json_contains_ignore_case(&serde_json::json!(42), "forty"));
+    }
+
+    #[test]
+    fn test_search_objects_matches_property_value_case_insensitive() {
+        let (vault, _dir) = setup();
+        let obj = ObjectRecord {
+            contract_type_id: None,
+            id: "obj-p210".to_string(),
+            account_id: "acc-1".to_string(),
+            type_id: "note".to_string(),
+            section_type: "identity".to_string(),
+            name: "No Match Here".to_string(),
+            icon_name: "doc".to_string(),
+            parent_id: None,
+            children_ids: vec![],
+            properties: serde_json::json!({"card": {"number": "SHADOW-2024"}}),
+            property_labels: None,
+            sensitivity_level: "internal".to_string(),
+            is_deleted: false,
+            deleted_at: None,
+            tags_json: vec![],
+            template_id: None,
+            template_type: None,
+            template_hash: None,
+            created_at: chrono::Utc::now().to_rfc3339(),
+            updated_at: chrono::Utc::now().to_rfc3339(),
+            version: 1,
+            ..Default::default()
+        };
+        vault.save_object(&obj).unwrap();
+
+        // 嵌套属性值命中（大小写不敏感）；旧 to_string() 实现同样命中
+        let results = vault.search_objects("acc-1", "shadow").unwrap();
+        assert_eq!(results.len(), 1);
+        assert_eq!(results[0].id, "obj-p210");
+
+        // 对象键命中
+        let by_key = vault.search_objects("acc-1", "card").unwrap();
+        assert_eq!(by_key.len(), 1);
     }
 
     #[test]

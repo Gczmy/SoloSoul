@@ -44,8 +44,11 @@ fn search_advanced_impl(
 
     let mut items: Vec<SearchResultItem> = Vec::new();
 
+    // P210: 预筛 properties 用 json_contains_ignore_case 递归匹配，
+    // 避免整值 to_string() 往返；精确字段匹配由下方 search_properties_for_matches 裁决。
     for rec in all_records.iter().filter(|r| {
-        r.name.to_lowercase().contains(&q) || r.properties.to_string().to_lowercase().contains(&q)
+        r.name.to_lowercase().contains(&q)
+            || solosoul_vault::storage::json_contains_ignore_case(&r.properties, &q)
     }) {
         // Apply collection_type filter
         if let Some(ref filter_ct) = collection_type {
