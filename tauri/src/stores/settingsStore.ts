@@ -153,16 +153,69 @@ const DEFAULT_SETTINGS: AppSettings = {
 // |--------------------------|---------------------------------------------|-----------------------------------------------------|
 // | ① zustand store（主态）  | settingsStore.settings                     | loadUiPreferences / loadSettings / updateSetting /  |
 // |                          |                                             | addCustomPage / removeCustomPage / clearOnVaultLock |
-// | ② localStorage 缓存     | ST_UI_PREFS（theme/accent/…）              | loadUiPreferences Step2（setItem）；i18nextLng      |
-// |                          |                                             | 在 updateSetting(language) setItem                 |
-// | ③ ui_preferences.json   | 明文文件（登录前即可读，修复登录页主题）    | loadSettings 同步块（theme/accent/language/…）      |
-// |  （明文）               |                                             | updateSetting(language) → ui_update_preference     |
+// | ② localStorage 缓存     | ST_UI_PREFS（theme/accent/…）              | writeUiPrefsCache()（唯一写入点，P129 集中化：       |
+// |                          |                                             |  loadUiPreferences Step2 + updateSetting 共用）；   |
+// |                          |                                             | i18nextLng 在 updateSetting(language) setItem       |
+// | ③ ui_preferences.json   | 明文文件（登录前即可读，修复登录页主题）    | syncPlaintextPref()（唯一写入点，P129 集中化：      |
+// |  （明文）               |                                             |  loadSettings 循环 + updateSetting UI 键共用）      |
 // | ④ vault 加密 preferences| 账户级加密 JSON（user_data_get/update）     | updateSetting → user_data_update_preference         |
 // |                          |                                             | loadCustomPages 迁移清理 customPages 也走此命令     |
 //
 // 读取优先级：登录前 loadUiPreferences（②③）保证主题正确；解锁后 loadSettings
 // （④）以账户级加密偏好为准覆盖本地态。语言的实际生效由 initI18n() 经 Rust IPC
 // 确认（zh-CN 验证通过），updateSetting 只负责用户显式切换。
+//
+// P129: ②③ 副本写入已代码级集中——任何页面/组件不再直接写 localStorage 或
+// ui_preferences.json，统一走下方两个 helper，杜绝第 5 个漂移写入点。
+
+/** ③ ui_preferences.json 明文副本涉及的键（含 language——initI18n 也读它）。 */
+const PLAINTEXT_PREF_KEYS = new Set<string>([
+  'theme',
+  'accentColor',
+  'language',
+  'defaultLightTheme',
+  'defaultDarkTheme',
+]);
+
+/** ② localStorage ST_UI_PREFS 缓存副本涉及的键（无 language——schema 不含）。 */
+const CACHE_PREF_KEYS = new Set<string>([
+  'theme',
+  'accentColor',
+  'defaultLightTheme',
+  'defaultDarkTheme',
+]);
+
+/**
+ * ② 写入 localStorage ST_UI_PREFS 缓存（P129 唯一写入点）。
+ * 缓存缺失/损坏仅影响登录页首帧主题，不得影响主流程。
+ */
+function writeUiPrefsCache(settings: AppSettings): void {
+  try {
+    localStorage.setItem(
+      ST_UI_PREFS,
+      JSON.stringify({
+        theme: settings.theme,
+        accentColor: settings.accentColor,
+        defaultLightTheme: settings.defaultLightTheme,
+        defaultDarkTheme: settings.defaultDarkTheme,
+      }),
+    );
+  } catch (e) {
+    logger.warn('[settingsStore] Failed to cache UI prefs:', e);
+  }
+}
+
+/**
+ * ③ 写入 ui_preferences.json 明文副本（P129 唯一写入点）。
+ * 明文副本缺失仅影响登录页主题预加载，失败记日志即可，不阻断主流程。
+ */
+async function syncPlaintextPref(key: string, value: unknown): Promise<void> {
+  try {
+    await invoke('ui_update_preference', { key, value });
+  } catch (e) {
+    logger.warn('[settingsStore] Failed to sync UI pref:', key, e);
+  }
+}
 export const useSettingsStore = create<SettingsState>((set, get) => ({
   settings: DEFAULT_SETTINGS,
   isLoading: false,
@@ -231,19 +284,8 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         defaultDarkTheme: parsed.defaultDarkTheme,
       });
       set({ settings: parsed });
-      try {
-        localStorage.setItem(
-          ST_UI_PREFS,
-          JSON.stringify({
-            theme: parsed.theme,
-            accentColor: parsed.accentColor,
-            defaultLightTheme: parsed.defaultLightTheme,
-            defaultDarkTheme: parsed.defaultDarkTheme,
-          }),
-        );
-      } catch (e) {
-        logger.warn('[settingsStore] Failed to cache UI prefs:', e);
-      }
+      // P129: ② 副本写入收敛到 writeUiPrefsCache（唯一写入点）
+      writeUiPrefsCache(parsed);
       // Language is set by initI18n() via Rust IPC (confirmed working = zh-CN).
       // User changes via settings are applied in updateSetting() — skip here to avoid
       // overwriting correct IPC detection with stale/stored values from vault.
@@ -297,26 +339,13 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       // Once loaded, also try the new objects-table source via loadCustomPages().
       if (prefs.customPages) parsed.customPages = prefs.customPages;
       set({ settings: parsed, isLoading: false });
-      // Sync UI prefs to plaintext file so next startup shows correct theme
-      try {
-        if (parsed.theme)
-          await invoke('ui_update_preference', { key: 'theme', value: parsed.theme });
-        if (parsed.accentColor)
-          await invoke('ui_update_preference', { key: 'accentColor', value: parsed.accentColor });
-        if (parsed.language)
-          await invoke('ui_update_preference', { key: 'language', value: parsed.language });
-        if (parsed.defaultLightTheme)
-          await invoke('ui_update_preference', {
-            key: 'defaultLightTheme',
-            value: parsed.defaultLightTheme,
-          });
-        if (parsed.defaultDarkTheme)
-          await invoke('ui_update_preference', {
-            key: 'defaultDarkTheme',
-            value: parsed.defaultDarkTheme,
-          });
-      } catch (e) {
-        logger.warn('[settingsStore] Failed to sync UI prefs:', e);
+      // Sync UI prefs to plaintext file so next startup shows correct theme.
+      // P129: ③ 副本写入收敛到 syncPlaintextPref（唯一写入点），原 5 段顺序 if 收敛为循环。
+      for (const key of PLAINTEXT_PREF_KEYS) {
+        const v = parsed[key as keyof AppSettings];
+        if (v !== undefined && v !== '') {
+          await syncPlaintextPref(key, v);
+        }
       }
     } catch (e) {
       logger.error('[settingsStore] Failed to load settings:', e);
@@ -408,13 +437,17 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       await invoke('user_data_update_preference', {
         payload: { accountId, preferences: { [key]: value } },
       });
+      // P129: UI 键变更时同步 ②③ 副本（唯一写入点，页面不再各自写）。
+      // ④ vault 写入成功后才触发，失败回滚时不会产生副本漂移。
+      if (PLAINTEXT_PREF_KEYS.has(key)) {
+        void syncPlaintextPref(key, value);
+        if (CACHE_PREF_KEYS.has(key)) {
+          writeUiPrefsCache(get().settings);
+        }
+      }
       if (key === 'language' && typeof value === 'string') {
         await i18next.changeLanguage(value);
-        // Sync to plaintext UI prefs so backend can read the current language immediately
-        invoke('ui_update_preference', { key: 'language', value }).catch((e) =>
-          logger.warn('[settingsStore] Failed to sync language:', e),
-        );
-        // Persist to localStorage for next cold launch
+        // ③ 已由上方 PLAINTEXT_PREF_KEYS 分支同步；此处仅补 ② i18nextLng 冷启动缓存。
         try {
           localStorage.setItem('i18nextLng', value);
         } catch (e) {
