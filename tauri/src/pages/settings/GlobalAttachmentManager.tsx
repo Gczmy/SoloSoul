@@ -10,8 +10,6 @@ import { Button } from '@/components/ui/Button';
 import { useAttachmentManager } from '@/hooks/useAttachmentManager';
 import { AttachmentToolbar } from '@/components/attachment/AttachmentToolbar';
 import { AttachmentPageCard } from '@/components/attachment/AttachmentPageCard';
-import { AttachmentObjectGroup } from '@/components/attachment/AttachmentObjectGroup';
-import { AttachmentRow } from '@/components/attachment/AttachmentRow';
 import { AttachmentPreviewOverlay } from '@/components/attachment/AttachmentPreviewOverlay';
 import { ConfirmDialog } from '@/components/attachment/ConfirmDialog';
 import { PageGuideButton } from '@/components/guide/PageGuideButton';
@@ -41,10 +39,7 @@ export function GlobalAttachmentManager() {
     setPreviewItem,
     renamingId,
     setRenamingId,
-    renameValue,
-    setRenameValue,
     setRenameObjectId,
-    renameInputRef,
     permDeleteItem,
     setPermDeleteItem,
     searchQuery,
@@ -200,51 +195,28 @@ export function GlobalAttachmentManager() {
                     <AttachmentPageCard
                       key={pageKey}
                       page={page}
+                      pageKey={pageKey}
                       isExpanded={expandedPages.has(pageKey)}
+                      showTrash={showTrash}
+                      selectedIds={selectedIds}
+                      renamingId={renamingId}
+                      expandedObjects={expandedObjects}
                       onToggle={() => togglePage(pageKey)}
-                      renderObjects={() =>
-                        page.objects.map((obj) => {
-                          const objKey = `${pageKey}::${obj.objectId}`;
-                          return (
-                            <AttachmentObjectGroup
-                              key={obj.objectId}
-                              obj={obj}
-                              isExpanded={expandedObjects.has(objKey)}
-                              showTrash={showTrash}
-                              loadData={loadData}
-                              onToggle={() => toggleObject(objKey)}
-                              onUpload={handleUpload}
-                              renderAttachments={() =>
-                                obj.attachments.map((att) => (
-                                  <AttachmentRow
-                                    key={att.id}
-                                    item={att}
-                                    objectId={obj.objectId}
-                                    showTrash={showTrash}
-                                    isChecked={selectedIds.has(`${obj.objectId}::${att.id}`)}
-                                    isRenaming={renamingId === att.id}
-                                    renameValue={renameValue}
-                                    renameInputRef={renameInputRef}
-                                    onToggleSelect={toggleSelect}
-                                    onRenameChange={setRenameValue}
-                                    onRenameConfirm={handleConfirmRename}
-                                    onRenameCancel={() => {
-                                      setRenamingId(null);
-                                      setRenameObjectId('');
-                                    }}
-                                    onPreview={handlePreview}
-                                    onStartRename={handleStartRename}
-                                    onDownload={handleDownload}
-                                    onSoftDelete={handleSoftDelete}
-                                    onRestore={handleRestore}
-                                    onPermanentDelete={handlePermanentDelete}
-                                  />
-                                ))
-                              }
-                            />
-                          );
-                        })
-                      }
+                      onToggleObject={toggleObject}
+                      onUpload={handleUpload}
+                      loadData={loadData}
+                      onToggleSelect={toggleSelect}
+                      onRenameConfirm={handleConfirmRename}
+                      onRenameCancel={() => {
+                        setRenamingId(null);
+                        setRenameObjectId('');
+                      }}
+                      onPreview={handlePreview}
+                      onStartRename={handleStartRename}
+                      onDownload={handleDownload}
+                      onSoftDelete={handleSoftDelete}
+                      onRestore={handleRestore}
+                      onPermanentDelete={handlePermanentDelete}
                     />
                   );
                 })}

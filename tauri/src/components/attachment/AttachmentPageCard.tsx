@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ChevronRight, ChevronDown } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
@@ -5,10 +6,13 @@ import { ICON_SIZE } from '@/lib/constants';
 import { formatBytes } from '@/lib/utils';
 import { isMobilePlatformSync } from '@/lib/platform';
 import { DEFAULT_CUSTOM_ICON, PAGE_ICON_MAP, CUSTOM_ICON_MAP } from '@/lib/pageIcons';
-import type { ReactNode } from 'react';
+import { AttachmentObjectGroup } from '@/components/attachment/AttachmentObjectGroup';
 import type { PageIconKey, CustomIconId } from '@/lib/pageIcons';
 import type { LucideIcon } from 'lucide-react';
-import type { AttachmentTreePage } from '@/components/attachment/attachmentManagerTypes';
+import type {
+  AttachmentMeta,
+  AttachmentTreePage,
+} from '@/components/attachment/attachmentManagerTypes';
 
 /** Resolve icon from either PAGE_ICON_MAP (built-in) or CUSTOM_ICON_MAP (user-selectable). */
 function resolvePageIcon(iconKey?: string | null): LucideIcon {
@@ -20,17 +24,52 @@ function resolvePageIcon(iconKey?: string | null): LucideIcon {
 
 interface AttachmentPageCardProps {
   page: AttachmentTreePage;
+  pageKey: string;
   isExpanded: boolean;
+  showTrash: boolean;
+  /** 当前选中附件复合键集合（`objectId::attachmentId`）。 */
+  selectedIds: Set<string>;
+  /** 当前重命名附件 ID。 */
+  renamingId: string | null;
+  /** 当前展开对象键集合（`pageKey::objectId`）。 */
+  expandedObjects: Set<string>;
   onToggle: () => void;
-  renderObjects: () => ReactNode;
+  onToggleObject: (key: string) => void;
+  onUpload: (objectId: string) => void;
+  loadData: () => void;
+  onToggleSelect: (compositeKey: string) => void;
+  onRenameConfirm: (newName: string) => void;
+  onRenameCancel: () => void;
+  onPreview: (item: AttachmentMeta) => void;
+  onStartRename: (item: AttachmentMeta, objectId: string) => void;
+  onDownload: (item: AttachmentMeta) => void;
+  onSoftDelete: (item: AttachmentMeta, objectId: string) => void;
+  onRestore: (item: AttachmentMeta, objectId: string) => void;
+  onPermanentDelete: (item: AttachmentMeta, objectId: string) => void;
 }
 
 /** 页面分组卡片，展开时渲染其下的对象分组。 */
-export function AttachmentPageCard({
+function AttachmentPageCardBase({
   page,
+  pageKey,
   isExpanded,
+  showTrash,
+  selectedIds,
+  renamingId,
+  expandedObjects,
   onToggle,
-  renderObjects,
+  onToggleObject,
+  onUpload,
+  loadData,
+  onToggleSelect,
+  onRenameConfirm,
+  onRenameCancel,
+  onPreview,
+  onStartRename,
+  onDownload,
+  onSoftDelete,
+  onRestore,
+  onPermanentDelete,
 }: AttachmentPageCardProps) {
   const { t } = useTranslation(['settings', 'common', 'navigation']);
   const PageIconComp = resolvePageIcon(page.pageIcon);
@@ -120,7 +159,57 @@ export function AttachmentPageCard({
           </>
         )}
       </div>
-      {isExpanded && renderObjects()}
+      {isExpanded && (
+        <>
+          {page.objects.map((obj) => {
+            const objKey = `${pageKey}::${obj.objectId}`;
+            return (
+              <AttachmentObjectGroup
+                key={obj.objectId}
+                obj={obj}
+                isExpanded={expandedObjects.has(objKey)}
+                showTrash={showTrash}
+                selectedIds={selectedIds}
+                renamingId={renamingId}
+                loadData={loadData}
+                onToggle={() => onToggleObject(objKey)}
+                onUpload={onUpload}
+                onToggleSelect={onToggleSelect}
+                onRenameConfirm={onRenameConfirm}
+                onRenameCancel={onRenameCancel}
+                onPreview={onPreview}
+                onStartRename={onStartRename}
+                onDownload={onDownload}
+                onSoftDelete={onSoftDelete}
+                onRestore={onRestore}
+                onPermanentDelete={onPermanentDelete}
+              />
+            );
+          })}
+        </>
+      )}
     </Card>
   );
 }
+
+/**
+ * P217：memo 化——比较器只比较数据 props（page/pageKey/isExpanded/showTrash/selectedIds/
+ * renamingId/expandedObjects），忽略全部回调身份。对象展开/选中/编辑态作为数据集合
+ * 透传，变化时精确触发对应层级重渲染；回调持旧引用无害（显式参数 + 函数式 setState）。
+ */
+function attachmentPageCardPropsEqual(
+  prev: AttachmentPageCardProps,
+  next: AttachmentPageCardProps,
+): boolean {
+  return (
+    prev.page === next.page &&
+    prev.pageKey === next.pageKey &&
+    prev.isExpanded === next.isExpanded &&
+    prev.showTrash === next.showTrash &&
+    prev.selectedIds === next.selectedIds &&
+    prev.renamingId === next.renamingId &&
+    prev.expandedObjects === next.expandedObjects
+  );
+}
+
+export const AttachmentPageCard = memo(AttachmentPageCardBase, attachmentPageCardPropsEqual);

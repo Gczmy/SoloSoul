@@ -1,3 +1,4 @@
+import { memo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Paperclip,
@@ -21,11 +22,8 @@ interface AttachmentRowProps {
   showTrash: boolean;
   isChecked: boolean;
   isRenaming: boolean;
-  renameValue: string;
-  renameInputRef: React.RefObject<HTMLInputElement | null>;
   onToggleSelect: (compositeKey: string) => void;
-  onRenameChange: (value: string) => void;
-  onRenameConfirm: () => void;
+  onRenameConfirm: (newName: string) => void;
   onRenameCancel: () => void;
   onPreview: (item: AttachmentMeta) => void;
   onStartRename: (item: AttachmentMeta, objectId: string) => void;
@@ -35,17 +33,70 @@ interface AttachmentRowProps {
   onPermanentDelete: (item: AttachmentMeta, objectId: string) => void;
 }
 
+/**
+ * 自包含的重命名输入框（P217）。
+ *
+ * 输入值作为组件本地 state，由行内自行管理——击键只重渲染当前行，
+ * 不再逐字驱动顶层 `GlobalAttachmentManager` 整树重建。仅在 `isRenaming`
+ * 为真时挂载（autoFocus 聚焦），确认/取消后随 isRenaming 翻转卸载。
+ */
+function RenameInput({
+  initialName,
+  onConfirm,
+  onCancel,
+}: {
+  initialName: string;
+  onConfirm: (newName: string) => void;
+  onCancel: () => void;
+}) {
+  const [value, setValue] = useState(initialName);
+  // 防 Enter→blur 双触发重复提交
+  const submittedRef = useRef(false);
+
+  const confirm = () => {
+    if (submittedRef.current) return;
+    submittedRef.current = true;
+    onConfirm(value);
+  };
+
+  const cancel = () => {
+    submittedRef.current = true;
+    onCancel();
+  };
+
+  return (
+    <input
+      autoFocus
+      value={value}
+      onChange={(e) => setValue(e.target.value)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') confirm();
+        if (e.key === 'Escape') cancel();
+      }}
+      onBlur={confirm}
+      style={{
+        flex: 1,
+        minWidth: 0,
+        padding: '2px 6px',
+        fontSize: 'var(--text-sm)',
+        borderRadius: 4,
+        border: '1px solid var(--accent-primary)',
+        background: 'transparent',
+        color: 'var(--text-primary)',
+        outline: 'none',
+      }}
+    />
+  );
+}
+
 /** 附件单行（移动端多行布局 / 桌面端单行布局）。 */
-export function AttachmentRow({
+function AttachmentRowBase({
   item,
   objectId,
   showTrash,
   isChecked,
   isRenaming,
-  renameValue,
-  renameInputRef,
   onToggleSelect,
-  onRenameChange,
   onRenameConfirm,
   onRenameCancel,
   onPreview,
@@ -61,26 +112,10 @@ export function AttachmentRow({
   const isMobile = isMobilePlatformSync();
 
   const renameInput = (
-    <input
-      ref={renameInputRef}
-      value={renameValue}
-      onChange={(e) => onRenameChange(e.target.value)}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter') onRenameConfirm();
-        if (e.key === 'Escape') onRenameCancel();
-      }}
-      onBlur={onRenameConfirm}
-      style={{
-        flex: 1,
-        minWidth: 0,
-        padding: '2px 6px',
-        fontSize: 'var(--text-sm)',
-        borderRadius: 4,
-        border: '1px solid var(--accent-primary)',
-        background: 'transparent',
-        color: 'var(--text-primary)',
-        outline: 'none',
-      }}
+    <RenameInput
+      initialName={item.fileName}
+      onConfirm={onRenameConfirm}
+      onCancel={onRenameCancel}
     />
   );
 
@@ -236,3 +271,22 @@ export function AttachmentRow({
     </div>
   );
 }
+
+/**
+ * P217：memo 化——比较器只比较数据 props（item/objectId/showTrash/isChecked/isRenaming），
+ * 忽略全部回调身份。安全性依据：① 回调要么接收显式参数（item/objectId/新文件名），
+ * 要么使用函数式 setState，持旧引用无害；② 唯一闭包捕获 hook 状态的是
+ * onRenameConfirm（依赖 renamingId/renameObjectId），但其正确性由 isRenaming 保证——
+ * renamingId 一旦变化，目标行 isRenaming 必翻转并重渲染拿到新闭包，非目标行不会调用。
+ */
+function attachmentRowPropsEqual(prev: AttachmentRowProps, next: AttachmentRowProps): boolean {
+  return (
+    prev.item === next.item &&
+    prev.objectId === next.objectId &&
+    prev.showTrash === next.showTrash &&
+    prev.isChecked === next.isChecked &&
+    prev.isRenaming === next.isRenaming
+  );
+}
+
+export const AttachmentRow = memo(AttachmentRowBase, attachmentRowPropsEqual);

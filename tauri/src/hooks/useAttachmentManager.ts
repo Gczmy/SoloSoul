@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { useAuthStore } from '@/stores/authStore';
@@ -39,9 +39,7 @@ export function useAttachmentManager() {
   const [expandedObjects, setExpandedObjects] = useState<Set<string>>(new Set());
   const [previewItem, setPreviewItem] = useState<AttachmentMeta | null>(null);
   const [renamingId, setRenamingId] = useState<string | null>(null);
-  const [renameValue, setRenameValue] = useState('');
   const [renameObjectId, setRenameObjectId] = useState<string>('');
-  const renameInputRef = useRef<HTMLInputElement>(null);
   const [permDeleteItem, setPermDeleteItem] = useState<AttachmentToPurge | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -128,20 +126,21 @@ export function useAttachmentManager() {
     setPreviewItem(item);
   };
 
+  // P217: 重命名输入值由 AttachmentRow 内自包含的 RenameInput 本地管理，
+  // 此处仅记录「正在重命名哪个附件」，确认时接收行内提交的新文件名。
   const handleStartRename = (item: AttachmentMeta, objectId: string) => {
     setRenamingId(item.id);
     setRenameObjectId(objectId);
-    setRenameValue(item.fileName);
-    setTimeout(() => renameInputRef.current?.focus(), 50);
   };
 
-  const handleConfirmRename = async () => {
-    if (renamingId && renameValue.trim() && renameObjectId) {
+  const handleConfirmRename = async (newName: string) => {
+    const trimmed = newName.trim();
+    if (renamingId && trimmed && renameObjectId) {
       try {
         await invoke('attachment_rename', {
           objectId: renameObjectId,
           attachmentId: renamingId,
-          newName: renameValue.trim(),
+          newName: trimmed,
         });
         await loadData();
       } catch (e) {
@@ -547,11 +546,8 @@ export function useAttachmentManager() {
     setPreviewItem,
     renamingId,
     setRenamingId,
-    renameValue,
-    setRenameValue,
     renameObjectId,
     setRenameObjectId,
-    renameInputRef,
     permDeleteItem,
     setPermDeleteItem,
     searchQuery,

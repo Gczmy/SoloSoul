@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ChevronRight, ChevronDown, Upload } from 'lucide-react';
 import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
@@ -6,8 +7,12 @@ import { formatBytes } from '@/lib/utils';
 import { isMobilePlatformSync } from '@/lib/platform';
 import { useDragToAttach } from '@/hooks/useDragToAttach';
 import { DragUploadOverlay } from '@/components/object/DragUploadOverlay';
+import { AttachmentRow } from '@/components/attachment/AttachmentRow';
 import type { ReactNode } from 'react';
-import type { AttachmentTreeObject } from '@/components/attachment/attachmentManagerTypes';
+import type {
+  AttachmentMeta,
+  AttachmentTreeObject,
+} from '@/components/attachment/attachmentManagerTypes';
 
 /** 为单个对象行提供拖拽上传的 drop zone */
 function ObjectDropTarget({
@@ -32,21 +37,43 @@ interface AttachmentObjectGroupProps {
   obj: AttachmentTreeObject;
   isExpanded: boolean;
   showTrash: boolean;
+  /** 当前选中附件复合键集合（`objectId::attachmentId`），用于行内勾选态。 */
+  selectedIds: Set<string>;
+  /** 当前重命名附件 ID，仅命中的行进入编辑态。 */
+  renamingId: string | null;
   loadData: () => void;
   onToggle: () => void;
   onUpload: (objectId: string) => void;
-  renderAttachments: () => ReactNode;
+  onToggleSelect: (compositeKey: string) => void;
+  onRenameConfirm: (newName: string) => void;
+  onRenameCancel: () => void;
+  onPreview: (item: AttachmentMeta) => void;
+  onStartRename: (item: AttachmentMeta, objectId: string) => void;
+  onDownload: (item: AttachmentMeta) => void;
+  onSoftDelete: (item: AttachmentMeta, objectId: string) => void;
+  onRestore: (item: AttachmentMeta, objectId: string) => void;
+  onPermanentDelete: (item: AttachmentMeta, objectId: string) => void;
 }
 
 /** 对象分组行（移动端多行 / 桌面端单行），展开时渲染附件行。 */
-export function AttachmentObjectGroup({
+function AttachmentObjectGroupBase({
   obj,
   isExpanded,
   showTrash,
+  selectedIds,
+  renamingId,
   loadData,
   onToggle,
   onUpload,
-  renderAttachments,
+  onToggleSelect,
+  onRenameConfirm,
+  onRenameCancel,
+  onPreview,
+  onStartRename,
+  onDownload,
+  onSoftDelete,
+  onRestore,
+  onPermanentDelete,
 }: AttachmentObjectGroupProps) {
   const { t } = useTranslation(['settings', 'common', 'navigation']);
   const isMobile = isMobilePlatformSync();
@@ -164,7 +191,29 @@ export function AttachmentObjectGroup({
           </>
         )}
       </div>
-      {isExpanded && renderAttachments()}
+      {isExpanded && (
+        <>
+          {obj.attachments.map((att) => (
+            <AttachmentRow
+              key={att.id}
+              item={att}
+              objectId={obj.objectId}
+              showTrash={showTrash}
+              isChecked={selectedIds.has(`${obj.objectId}::${att.id}`)}
+              isRenaming={renamingId === att.id}
+              onToggleSelect={onToggleSelect}
+              onRenameConfirm={onRenameConfirm}
+              onRenameCancel={onRenameCancel}
+              onPreview={onPreview}
+              onStartRename={onStartRename}
+              onDownload={onDownload}
+              onSoftDelete={onSoftDelete}
+              onRestore={onRestore}
+              onPermanentDelete={onPermanentDelete}
+            />
+          ))}
+        </>
+      )}
     </div>
   );
 
@@ -176,3 +225,26 @@ export function AttachmentObjectGroup({
     </ObjectDropTarget>
   );
 }
+
+/**
+ * P217：memo 化——比较器只比较数据 props（obj/isExpanded/showTrash/selectedIds/renamingId），
+ * 忽略全部回调身份。selectedIds/renamingId 作为数据透传，选中态/编辑态变化精确触发
+ * 对应层级重渲染；回调持旧引用无害（显式参数 + 函数式 setState）。
+ */
+function attachmentObjectGroupPropsEqual(
+  prev: AttachmentObjectGroupProps,
+  next: AttachmentObjectGroupProps,
+): boolean {
+  return (
+    prev.obj === next.obj &&
+    prev.isExpanded === next.isExpanded &&
+    prev.showTrash === next.showTrash &&
+    prev.selectedIds === next.selectedIds &&
+    prev.renamingId === next.renamingId
+  );
+}
+
+export const AttachmentObjectGroup = memo(
+  AttachmentObjectGroupBase,
+  attachmentObjectGroupPropsEqual,
+);
