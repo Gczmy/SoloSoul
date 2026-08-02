@@ -315,12 +315,16 @@ pub async fn biometric_save_credential(
     let manager = BiometricManager::new(svc.base_path().clone());
 
     // 保存前校验即将写入的密钥与当前 Vault 会话密钥一致，避免钥匙串/文件访问问题导致回读失败。
+    // P204: 会话密钥 hex 与派生密钥 hex 均以 Zeroizing<String> 持有，函数返回即安全擦除，
+    // 避免主密钥明文 hex 长期残留在普通 String 堆内存中。
     if let Some(session_key) = svc.get_session_key() {
-        let expected = hex::encode(session_key.as_slice());
-        let derived = manager
-            .derive_key_hex(&password, &account_id)
-            .map_err(|e| map_bio_error(e, "save"))?;
-        if derived != expected {
+        let expected = zeroize::Zeroizing::new(hex::encode(session_key.as_slice()));
+        let derived = zeroize::Zeroizing::new(
+            manager
+                .derive_key_hex(&password, &account_id)
+                .map_err(|e| map_bio_error(e, "save"))?,
+        );
+        if *derived != *expected {
             return Err(bio_err("credential_mismatch"));
         }
     }
