@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
@@ -16,14 +16,13 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { DeleteButton } from '@/components/ui/DeleteButton';
 import { useTemplateStore } from '@/stores/templateStore';
 import { invoke } from '@tauri-apps/api/core';
-import { Trash2, RotateCcw, FileText, Info, Folder, LayoutTemplate, Search, FileX } from 'lucide-react';
+import { Trash2, RotateCcw, Info, Search, FileX } from 'lucide-react';
 import { PageGuideButton } from '@/components/guide/PageGuideButton';
-import { isMobilePlatformSync } from '@/lib/platform';
 import { logger } from '@/lib/logger';
-import { PluginBadge } from '@/components/template/PluginBadge';
 import type { UserTemplate } from '@/types/template';
 import { TrashDetailPanel } from '@/components/trash/TrashDetailPanel';
 import { TrashConfirmDialog } from '@/components/trash/TrashConfirmDialog';
+import { TrashItemCard } from '@/components/trash/TrashItemCard';
 import type { TrashDetail, TrashConfirmAction } from '@/components/trash/types';
 import { ICON_SIZE } from '@/lib/constants';
 
@@ -43,16 +42,8 @@ const TYPE_OPTIONS: { value: TrashTypeFilter; i18nKey: string }[] = [
   { value: 'template', i18nKey: 'template' },
 ];
 
-function timeAgo(ms: number, t: (k: string) => string): string {
-  const diff = Date.now() - ms;
-  const mins = Math.floor(diff / 60000);
-  if (mins < 60) return t('time_minutes_ago').replace('{n}', String(mins));
-  const hours = Math.floor(mins / 60);
-  if (hours < 24) return t('time_hours_ago').replace('{n}', String(hours));
-  const days = Math.floor(hours / 24);
-  if (days < 30) return t('time_days_ago').replace('{n}', String(days));
-  return t('time_months_ago').replace('{n}', String(Math.floor(days / 30)));
-}
+// P119: 回收站分页大小（参照 ObjectWorkspacePage 的 OBJECT_PAGE_SIZE=50 模式）
+const TRASH_PAGE_SIZE = 50;
 
 export function TrashPage() {
   const navigate = useNavigate();
@@ -84,6 +75,13 @@ export function TrashPage() {
   const getTemplate = useTemplateStore((s) => s.getTemplate);
 
   const [confirmAction, setConfirmAction] = useState<TrashConfirmAction | null>(null);
+
+  // P119: 分页游标——回收站可达数百条，仅挂载前 TRASH_PAGE_SIZE 条，
+  // 「加载更多」追加；搜索词/类型过滤/条目集变化时重置。
+  const [visibleLimit, setVisibleLimit] = useState(TRASH_PAGE_SIZE);
+  useEffect(() => {
+    setVisibleLimit(TRASH_PAGE_SIZE);
+  }, [searchQuery, typeFilter, items]);
 
   const trashGuidePages = useMemo(
     () => [
@@ -135,98 +133,120 @@ export function TrashPage() {
     if (accountId) loadItems(accountId);
   }, [accountId, timeFilter, loadItems]);
 
-  const filtered = items
-    .filter((i) => typeFilter === 'all' || i.itemType === typeFilter)
-    .filter((i) => !searchQuery || i.name.toLowerCase().includes(searchQuery.toLowerCase()));
+  // P119: filtered useMemo——搜索击键/过滤切换不再每次渲染重建过滤数组
+  const filtered = useMemo(
+    () =>
+      items
+        .filter((i) => typeFilter === 'all' || i.itemType === typeFilter)
+        .filter((i) => !searchQuery || i.name.toLowerCase().includes(searchQuery.toLowerCase())),
+    [items, typeFilter, searchQuery],
+  );
 
   const allFilteredSelected = filtered.length > 0 && filtered.every((i) => selectedIds.has(i.id));
   const hasSelection = selectedIds.size > 0;
 
-  const doRestore = (ids: string[]) => {
-    setConfirmAction({
-      type: 'restore',
-      ids,
-      count: ids.length,
-      callback: async () => {
-        try {
-          for (const id of ids) {
-            const outcome = await restoreItem(id);
-            if (outcome.cascadedPageName) {
-              // 恢复对象触发了页面级联恢复：同时显示两条 toast
-              onSuccess(t('settings:trash_restored', { name: outcome.name }));
-              onSuccess(
-                t('settings:trash_restored_with_cascaded_page', { page: outcome.cascadedPageName }),
-              );
-            } else if (outcome.rebuiltPageName) {
-              onSuccess(
-                t('settings:trash_restored_with_rebuilt_page', { page: outcome.rebuiltPageName }),
-              );
-            } else if ((outcome.cascadedCount ?? 0) > 0) {
-              onSuccess(
-                t('settings:trash_restored_with_count', { count: outcome.cascadedCount }),
-              );
-            } else {
-              onSuccess(t('settings:trash_restored', { name: outcome.name }));
+  // P119: 回调 useCallback 稳定化——父级重新渲染时不再新建卡片闭包
+  const doRestore = useCallback(
+    (ids: string[]) => {
+      setConfirmAction({
+        type: 'restore',
+        ids,
+        count: ids.length,
+        callback: async () => {
+          try {
+            for (const id of ids) {
+              const outcome = await restoreItem(id);
+              if (outcome.cascadedPageName) {
+                // 恢复对象触发了页面级联恢复：同时显示两条 toast
+                onSuccess(t('settings:trash_restored', { name: outcome.name }));
+                onSuccess(
+                  t('settings:trash_restored_with_cascaded_page', {
+                    page: outcome.cascadedPageName,
+                  }),
+                );
+              } else if (outcome.rebuiltPageName) {
+                onSuccess(
+                  t('settings:trash_restored_with_rebuilt_page', {
+                    page: outcome.rebuiltPageName,
+                  }),
+                );
+              } else if ((outcome.cascadedCount ?? 0) > 0) {
+                onSuccess(
+                  t('settings:trash_restored_with_count', { count: outcome.cascadedCount }),
+                );
+              } else {
+                onSuccess(t('settings:trash_restored', { name: outcome.name }));
+              }
             }
-          }
-          clearSelection();
-          if (accountId)
-            useSettingsStore
-              .getState()
-              .loadCustomPages(accountId)
-              .catch((err) =>
+            clearSelection();
+            if (accountId)
+              useSettingsStore
+                .getState()
+                .loadCustomPages(accountId)
+                .catch((err) =>
                   logger.warn('[TrashPage] Load custom pages after restore failed:', err),
                 );
-        } catch (err) {
-          onError(err, t('common:restore_failed'));
-        }
-      },
-    });
-  };
+          } catch (err) {
+            onError(err, t('common:restore_failed'));
+          }
+        },
+      });
+    },
+    [restoreItem, onSuccess, onError, t, clearSelection, accountId],
+  );
 
-  const doDelete = (ids: string[]) => {
-    const selectedItems = items.filter((i) => ids.includes(i.id));
-    const pageSectionTypes = new Set(
-      selectedItems
-        .filter((i) => i.itemType === 'page' && i.originalSectionType)
-        .map((i) => i.originalSectionType as string),
-    );
-    let pageChildCount: number | undefined;
-    if (pageSectionTypes.size > 0) {
-      const count = items.filter(
-        (i) => i.itemType === 'object' && pageSectionTypes.has(i.originalSectionType ?? ''),
-      ).length;
-      if (count > 0) pageChildCount = count;
-    }
-    setConfirmAction({
-      type: 'delete',
-      ids,
-      count: ids.length,
-      pageChildCount,
-      callback: async () => {
-        await permanentDelete(ids);
-        clearSelection();
-      },
-    });
-  };
-
-  const openDetail = async (trashId: string) => {
-    setLoadingDetail(true);
-    try {
-      const d = await invoke<TrashDetail>('trash_get_detail', { trashId: trashId });
-      setDetailItem(d);
-      if (d.templateId) {
-        getTemplate(d.templateId).then((tpl) => setDetailTemplate(tpl));
-      } else {
-        setDetailTemplate(null);
+  const doDelete = useCallback(
+    (ids: string[]) => {
+      const selectedItems = items.filter((i) => ids.includes(i.id));
+      const pageSectionTypes = new Set(
+        selectedItems
+          .filter((i) => i.itemType === 'page' && i.originalSectionType)
+          .map((i) => i.originalSectionType as string),
+      );
+      let pageChildCount: number | undefined;
+      if (pageSectionTypes.size > 0) {
+        const count = items.filter(
+          (i) => i.itemType === 'object' && pageSectionTypes.has(i.originalSectionType ?? ''),
+        ).length;
+        if (count > 0) pageChildCount = count;
       }
-    } catch {
-      setDetailItem(null);
-      setDetailTemplate(null);
-    } finally {
-      setLoadingDetail(false);
-    }
-  };
+      setConfirmAction({
+        type: 'delete',
+        ids,
+        count: ids.length,
+        pageChildCount,
+        callback: async () => {
+          await permanentDelete(ids);
+          clearSelection();
+        },
+      });
+    },
+    [items, permanentDelete, clearSelection],
+  );
+
+  const handleRestoreOne = useCallback((trashId: string) => doRestore([trashId]), [doRestore]);
+  const handleDeleteOne = useCallback((trashId: string) => doDelete([trashId]), [doDelete]);
+
+  const openDetail = useCallback(
+    async (trashId: string) => {
+      setLoadingDetail(true);
+      try {
+        const d = await invoke<TrashDetail>('trash_get_detail', { trashId: trashId });
+        setDetailItem(d);
+        if (d.templateId) {
+          getTemplate(d.templateId).then((tpl) => setDetailTemplate(tpl));
+        } else {
+          setDetailTemplate(null);
+        }
+      } catch {
+        setDetailItem(null);
+        setDetailTemplate(null);
+      } finally {
+        setLoadingDetail(false);
+      }
+    },
+    [getTemplate],
+  );
 
   return (
     <AppShell
@@ -366,156 +386,29 @@ export function TrashPage() {
                 </div>
               </Card>
             ) : (
-              filtered.map((item) => (
-                <Card
-                  key={item.id}
-                  interactive
-                  onClick={() => openDetail(item.id)}
-                  style={{
-                    cursor: 'pointer',
-                    transition: 'transform 0.15s ease, box-shadow 0.15s ease',
-                  }}
-                >
-                  {(() => {
-                    const isMobile = isMobilePlatformSync();
-                    const icon = (() => {
-                      const Icon =
-                        item.itemType === 'template'
-                          ? LayoutTemplate
-                          : item.itemType === 'page'
-                            ? Folder
-                            : FileText;
-                      return (
-                        <Icon
-                          size={ICON_SIZE.xl}
-                          style={{ color: 'var(--text-tertiary)', flexShrink: 0 }}
-                        />
-                      );
-                    })();
-
-                    const meta = (
-                      <div style={{ minWidth: 0, flex: 1 }}>
-                        <div
-                          style={{
-                            fontSize: 'var(--text-body)',
-                            fontWeight: 500,
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
-                          }}
-                        >
-                          {item.name}
-                        </div>
-                        <div
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 4,
-                            fontSize: 'var(--text-caption)',
-                            color: 'var(--text-tertiary)',
-                          }}
-                        >
-                          {t(`settings:trash_type_${item.itemType}`)} · {timeAgo(item.deletedAt, t)}
-                          {item.expiresAt &&
-                            ` · ${t('settings:trash_expires_in', { days: Math.max(0, Math.floor((item.expiresAt - Date.now()) / 86400000)) })}`}
-                          <PluginBadge contractTypeId={item.contractTypeId} size="sm" />
-                        </div>
-                      </div>
-                    );
-
-                    const actions = (
-                      <>
-                        <Button
-                          size="sm"
-                          variant="tertiary"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            doRestore([item.id]);
-                          }}
-                          title={t('common:restore')}
-                        >
-                          <RotateCcw size={ICON_SIZE.sm} />
-                        </Button>
-                        <DeleteButton
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            doDelete([item.id]);
-                          }}
-                          title={t('common:delete_permanently')}
-                        />
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            openDetail(item.id);
-                          }}
-                          className="interactive-accent"
-                          style={{
-                            border: 'none',
-                            cursor: 'pointer',
-                            padding: 4,
-                            borderRadius: 4,
-                          }}
-                          title={t('common:details')}
-                        >
-                          <Info size={ICON_SIZE.lg} />
-                        </button>
-                      </>
-                    );
-
-                    return isMobile ? (
-                      <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-                        <SelectCheckbox
-                          checked={selectedIds.has(item.id)}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleSelection(item.id);
-                          }}
-                        />
-                        <div
-                          style={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            gap: 8,
-                            flex: 1,
-                            minWidth: 0,
-                          }}
-                        >
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                            {icon}
-                            {meta}
-                          </div>
-                          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-                            {actions}
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <SelectCheckbox
-                          checked={selectedIds.has(item.id)}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleSelection(item.id);
-                          }}
-                        />
-                        <div
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 10,
-                            flex: 1,
-                            minWidth: 0,
-                          }}
-                        >
-                          {icon}
-                          {meta}
-                        </div>
-                        {actions}
-                      </div>
-                    );
-                  })()}
-                </Card>
-              ))
+              <>
+                {filtered.slice(0, visibleLimit).map((item) => (
+                  <TrashItemCard
+                    key={item.id}
+                    item={item}
+                    isSelected={selectedIds.has(item.id)}
+                    onOpenDetail={openDetail}
+                    onRestore={handleRestoreOne}
+                    onDelete={handleDeleteOne}
+                    onToggle={toggleSelection}
+                  />
+                ))}
+                {filtered.length > visibleLimit && (
+                  <Button
+                    variant="tertiary"
+                    size="sm"
+                    onClick={() => setVisibleLimit((n) => n + TRASH_PAGE_SIZE)}
+                    style={{ marginTop: 4 }}
+                  >
+                    {t('common:load_more', { defaultValue: '加载更多' })}
+                  </Button>
+                )}
+              </>
             )}
           </div>
         )}
