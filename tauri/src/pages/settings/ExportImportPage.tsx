@@ -6,6 +6,7 @@ import { AppShell } from '@/components/layout/AppShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { useToastError } from '@/hooks/useToastError';
 import { resolveBackendErrorMessage } from '@/lib/backendError';
+import { logger } from '@/lib/logger';
 import { PageGuideButton } from '@/components/guide/PageGuideButton';
 import {
   cleanupStagedFile,
@@ -148,10 +149,17 @@ export function ExportImportPage() {
         setPageGroups(groups);
         setScopeLoaded(true);
       })
-      .catch(() => {
+      .catch((err) => {
+        // P120: 失败不得静默——用户看到空导出范围会误以为数据丢失。
+        logger.warn('[ExportImportPage] Load export scope tree failed:', err);
+        onError(
+          new Error(resolveBackendErrorMessage(err)),
+          t('settings:export_scope_load_failed', { defaultValue: '导出范围加载失败，请重试' }),
+        );
+        setPageGroups([]);
         setScopeLoaded(true);
       });
-  }, [accountId]);
+  }, [accountId, onError, t]);
 
   useEffect(() => {
     loadScope();
