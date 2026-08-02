@@ -125,14 +125,6 @@ impl SystemTemplateRegistry {
         self.templates.values().cloned().collect()
     }
 
-    pub fn list_by_category(&self, category: &str) -> Vec<SystemTemplate> {
-        self.templates
-            .values()
-            .filter(|t| t.category == category)
-            .cloned()
-            .collect()
-    }
-
     pub fn version(&self) -> u32 {
         self.version
     }
@@ -320,35 +312,6 @@ pub fn migrate_contract_bindings(
 }
 
 // ---------------------------------------------------------------------------
-// detect_for_object — now a pure function over a slice of UserTemplates
-// ---------------------------------------------------------------------------
-
-pub fn detect_for_object(
-    user_templates: &[solosoul_vault::UserTemplate],
-    properties: &serde_json::Map<String, serde_json::Value>,
-) -> Option<String> {
-    let keys: std::collections::HashSet<&str> = properties.keys().map(|k| k.as_str()).collect();
-
-    let mut best_match: Option<(String, usize)> = None;
-    for tpl in user_templates {
-        let tpl_keys: std::collections::HashSet<&str> =
-            tpl.properties.iter().map(|p| p.id.as_str()).collect();
-        let match_count = keys.intersection(&tpl_keys).count();
-        let threshold = (tpl_keys.len() as f32 * 0.5).ceil() as usize;
-
-        if match_count >= threshold
-            && best_match
-                .as_ref()
-                .is_none_or(|(_, count)| match_count > *count)
-        {
-            best_match = Some((tpl.id.clone(), match_count));
-        }
-    }
-
-    best_match.map(|(id, _)| id)
-}
-
-// ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
 
@@ -372,103 +335,5 @@ mod tests {
         assert!(registry.templates.contains_key("passport"));
         let passport = registry.get("passport").unwrap();
         assert_eq!(passport.name_fallback, "Passport");
-    }
-
-    #[test]
-    fn test_list_by_category() {
-        let registry = SystemTemplateRegistry::load_for_locale("en").unwrap();
-        let travel = registry.list_by_category("travel");
-        assert!(!travel.is_empty());
-        assert!(travel.iter().any(|t| t.key == "passport"));
-        assert!(travel.iter().any(|t| t.key == "visa"));
-    }
-
-    #[test]
-    fn test_detect_for_object() {
-        // Build a fake user template list to test detection
-        let user_tpls = vec![solosoul_vault::UserTemplate {
-            contract_type_id: None,
-            id: "passport".to_string(),
-            account_id: "acc_1".to_string(),
-            name: "Passport".to_string(),
-            icon_id: None,
-            properties: vec![
-                solosoul_vault::TemplateProperty {
-                    contract_field: None,
-                    contract_bindings: None,
-                    id: "fullName".to_string(),
-                    name: "Full Name".to_string(),
-                    prop_type: solosoul_vault::PropertyType::Text,
-                    sensitivity_level: None,
-                    options: None,
-                    sensitive: None,
-                    deprecated_at: None,
-                    allowed_types: None,
-                    max_items: None,
-                },
-                solosoul_vault::TemplateProperty {
-                    contract_field: None,
-                    contract_bindings: None,
-                    id: "passportNumber".to_string(),
-                    name: "Passport Number".to_string(),
-                    prop_type: solosoul_vault::PropertyType::Text,
-                    sensitivity_level: None,
-                    options: None,
-                    sensitive: None,
-                    deprecated_at: None,
-                    allowed_types: None,
-                    max_items: None,
-                },
-                solosoul_vault::TemplateProperty {
-                    contract_field: None,
-                    contract_bindings: None,
-                    id: "nationality".to_string(),
-                    name: "Nationality".to_string(),
-                    prop_type: solosoul_vault::PropertyType::Text,
-                    sensitivity_level: None,
-                    options: None,
-                    sensitive: None,
-                    deprecated_at: None,
-                    allowed_types: None,
-                    max_items: None,
-                },
-                solosoul_vault::TemplateProperty {
-                    contract_field: None,
-                    contract_bindings: None,
-                    id: "dateOfBirth".to_string(),
-                    name: "Date of Birth".to_string(),
-                    prop_type: solosoul_vault::PropertyType::Text,
-                    sensitivity_level: None,
-                    options: None,
-                    sensitive: None,
-                    deprecated_at: None,
-                    allowed_types: None,
-                    max_items: None,
-                },
-            ],
-            category: Some("travel".to_string()),
-            created_at: "2024-01-01T00:00:00Z".to_string(),
-            updated_at: None,
-        }];
-
-        let mut props = serde_json::Map::new();
-        props.insert("fullName".to_string(), serde_json::json!("张三"));
-        props.insert("passportNumber".to_string(), serde_json::json!("E12345678"));
-        props.insert("nationality".to_string(), serde_json::json!("CN"));
-        props.insert("expiryDate".to_string(), serde_json::json!("2030-01-01"));
-
-        let detected = detect_for_object(&user_tpls, &props);
-        assert_eq!(detected, Some("passport".to_string()));
-    }
-
-    #[test]
-    fn test_detect_no_match() {
-        let user_tpls: Vec<solosoul_vault::UserTemplate> = vec![];
-        let mut props = serde_json::Map::new();
-        props.insert("foo".to_string(), serde_json::json!("bar"));
-        props.insert("baz".to_string(), serde_json::json!("qux"));
-
-        let detected = detect_for_object(&user_tpls, &props);
-        assert!(detected.is_none());
     }
 }

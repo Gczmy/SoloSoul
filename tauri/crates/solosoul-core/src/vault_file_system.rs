@@ -78,18 +78,6 @@ pub trait VaultFileSystem: Send + Sync {
     }
 }
 
-/// SAF-backed VaultFileSystem 的同步策略枚举。
-///
-/// 由于 SQLite 无法直接在 SAF `content://` URI 上工作，本实现将所有数据
-/// 读写先落在本地临时目录，再根据策略与 SAF 目录同步。
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum SafSyncStrategy {
-    /// 仅在显式调用 sync_to_saf/sync_from_saf 时同步。
-    Manual,
-    /// 每次写操作后自动同步到 SAF（未完成，预留）。
-    AutoOnWrite,
-}
-
 /// SAF 同步驱动 trait。
 ///
 /// 由于 `solosoul-core` 不依赖 Tauri/移动端桥接，具体同步逻辑由上层（Tauri app）

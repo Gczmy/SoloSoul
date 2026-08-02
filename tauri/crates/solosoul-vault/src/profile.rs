@@ -51,18 +51,6 @@ impl Profile {
     }
 }
 
-impl ProfileSummary {
-    pub fn from_profile(profile: &Profile) -> Self {
-        Self {
-            id: profile.id.clone(),
-            name: profile.name.clone(),
-            created_at: profile.created_at,
-            updated_at: profile.updated_at,
-            version: profile.version,
-        }
-    }
-}
-
 /// Forward-compatible profile data envelope
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct VersionedProfileData {

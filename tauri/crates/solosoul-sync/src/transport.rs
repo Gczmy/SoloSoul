@@ -4,7 +4,7 @@
 //! between discovered peers.
 
 use std::io::{Read, Write};
-use std::net::{TcpListener, TcpStream};
+use std::net::TcpStream;
 use std::time::Duration;
 
 const DEFAULT_TIMEOUT: Duration = Duration::from_secs(30);
@@ -107,42 +107,6 @@ impl SyncTransport {
     }
 }
 
-/// Listen for incoming sync connections
-pub struct SyncListener {
-    listener: TcpListener,
-}
-
-impl SyncListener {
-    pub fn bind(addr: &str) -> Result<Self, String> {
-        let listener = TcpListener::bind(addr).map_err(|e| format!("Bind failed: {}", e))?;
-        listener.set_nonblocking(true).ok();
-        Ok(Self { listener })
-    }
-
-    /// Accept a pending connection (non-blocking)
-    pub fn accept(&self) -> Result<Option<SyncTransport>, String> {
-        match self.listener.accept() {
-            Ok((stream, addr)) => {
-                stream.set_read_timeout(Some(DEFAULT_TIMEOUT)).ok();
-                stream.set_write_timeout(Some(DEFAULT_TIMEOUT)).ok();
-                Ok(Some(SyncTransport {
-                    peer_addr: addr.to_string(),
-                    stream: Some(stream),
-                }))
-            }
-            Err(ref e) if e.kind() == std::io::ErrorKind::WouldBlock => Ok(None),
-            Err(e) => Err(format!("Accept failed: {}", e)),
-        }
-    }
-
-    pub fn local_addr(&self) -> Result<String, String> {
-        self.listener
-            .local_addr()
-            .map(|a| a.to_string())
-            .map_err(|e| e.to_string())
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -153,13 +117,6 @@ mod tests {
         let transport = SyncTransport::new("127.0.0.1:9999".to_string());
         assert_eq!(transport.peer_addr, "127.0.0.1:9999");
         assert!(transport.stream.is_none());
-    }
-
-    #[test]
-    fn test_sync_listener_bind_and_local_addr() {
-        let listener = SyncListener::bind("127.0.0.1:0").unwrap();
-        let addr = listener.local_addr().unwrap();
-        assert!(addr.starts_with("127.0.0.1:"));
     }
 
     #[test]

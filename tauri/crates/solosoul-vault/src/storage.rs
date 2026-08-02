@@ -3835,22 +3835,6 @@ impl VaultStore {
         Ok(())
     }
 
-    /// Write an audit log entry with structured fields.
-    /// Backward-compatible: old entries log_action(action, details) will have entity_type/entity_id/entity_name/performed_by as NULL.
-    pub fn log_action(&self, action: &str, details: &str) -> Result<(), String> {
-        let key = self.data_key()?;
-        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
-        let conn = guard.as_mut().ok_or("Vault is locked")?;
-        let now = chrono::Utc::now().to_rfc3339();
-        let encrypted_details = encrypt_text_field(&key, details)?;
-        conn.execute(
-            "INSERT INTO audit_log (timestamp, action, performed_by, details) VALUES (?1, ?2, 'system', ?3)",
-            rusqlite::params![now, action, encrypted_details],
-        )
-        .map_err(|e| format!("log_action: {}", e))?;
-        Ok(())
-    }
-
     /// 将 details 字符串规范化为 JSON 对象（如果它是 `key=value ...` 格式）或保留原样。
     /// 这样前端可以直接解析结构化字段，而无需再用正则拆分 key=value。
     fn normalize_details_text(details: Option<&str>) -> Option<String> {
@@ -4117,28 +4101,7 @@ impl VaultStore {
 
     // ── Guide embeddings for RAG (§RAG-1) ────────────────────────
 
-    /// Save a guide embedding chunk. Overwrites if id already exists.
-    pub fn save_guide_embedding(&self, chunk: &crate::GuideEmbeddingChunk) -> Result<(), String> {
-        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
-        let conn = guard.as_mut().ok_or("Vault is locked")?;
-        let embedding_bytes: Vec<u8> = chunk
-            .embedding
-            .iter()
-            .flat_map(|f| f.to_ne_bytes())
-            .collect();
-        conn.execute(
-            "INSERT OR REPLACE INTO guide_embeddings (id, guide_id, chunk_index, chunk_text, embedding, model, created_at)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
-            params![
-                chunk.id, chunk.guide_id, chunk.chunk_index,
-                chunk.chunk_text, embedding_bytes, chunk.model, chunk.created_at
-            ],
-        ).map_err(|e| format!("save_guide_embedding: {}", e))?;
-        Ok(())
-    }
-
     /// Batch-save guide embedding chunks in a single transaction (P051).
-    /// RAG 重建时逐条 `save_guide_embedding` 每次独立 autocommit + fsync；
     /// 批量版本只开一次事务 + 复用 prepared statement，重建耗时大幅下降。
     pub fn save_guide_embeddings(
         &self,
@@ -4215,18 +4178,6 @@ impl VaultStore {
             result.push(row.map_err(|e| format!("list_guide_embeddings row: {}", e))?);
         }
         Ok(result)
-    }
-
-    /// Delete all embeddings for a specific guide.
-    pub fn delete_guide_embeddings(&self, guide_id: &str) -> Result<(), String> {
-        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
-        let conn = guard.as_mut().ok_or("Vault is locked")?;
-        conn.execute(
-            "DELETE FROM guide_embeddings WHERE guide_id = ?1",
-            params![guide_id],
-        )
-        .map_err(|e| format!("delete_guide_embeddings: {}", e))?;
-        Ok(())
     }
 
     /// Clear all guide embeddings (used for rebuild).
@@ -4435,20 +4386,6 @@ impl VaultStore {
             }
         }
         Ok(None)
-    }
-
-    /// Check if a user template exists (any account).
-    pub fn user_template_exists(&self, template_id: &str) -> Result<bool, String> {
-        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
-        let conn = guard.as_mut().ok_or("Vault is locked")?;
-        let mut stmt = conn
-            .prepare("SELECT 1 FROM user_templates WHERE id = ?1 LIMIT 1")
-            .map_err(|e| format!("prepare user_template_exists: {}", e))?;
-        let exists: Option<i32> = stmt
-            .query_row(params![template_id], |row| row.get(0))
-            .optional()
-            .map_err(|e| format!("user_template_exists query: {}", e))?;
-        Ok(exists.is_some())
     }
 
     /// Delete a user template by ID.
@@ -6012,18 +5949,6 @@ mod tests {
     // ── Audit log ─────────────────────────────────────────────
 
     #[test]
-    fn test_log_action_and_list() {
-        let (vault, _dir) = setup();
-        vault.log_action("create", "created profile").unwrap();
-        vault.log_action("update", "updated profile").unwrap();
-
-        let logs = vault.list_audit_log(10).unwrap();
-        assert!(logs.len() >= 2);
-        assert_eq!(logs[0].action_type, "update");
-        assert_eq!(logs[1].action_type, "create");
-    }
-
-    #[test]
     fn test_log_structured_and_list() {
         let (vault, _dir) = setup();
         vault
@@ -6062,44 +5987,12 @@ mod tests {
             model: "test-model".to_string(),
             created_at: chrono::Utc::now().to_rfc3339(),
         };
-        vault.save_guide_embedding(&chunk).unwrap();
+        vault.save_guide_embeddings(&[chunk]).unwrap();
 
         let list = vault.list_guide_embeddings().unwrap();
         assert_eq!(list.len(), 1);
         assert_eq!(list[0].chunk_text, "Hello world");
         assert_eq!(list[0].embedding, vec![0.1f32, 0.2, 0.3, 0.4]);
-    }
-
-    #[test]
-    fn test_delete_guide_embeddings() {
-        let (vault, _dir) = setup();
-        for i in 0..3 {
-            let chunk = crate::GuideEmbeddingChunk {
-                id: format!("chunk-{}", i),
-                guide_id: "guide-a".to_string(),
-                chunk_index: i,
-                chunk_text: format!("text {}", i),
-                embedding: vec![i as f32],
-                model: "model".to_string(),
-                created_at: chrono::Utc::now().to_rfc3339(),
-            };
-            vault.save_guide_embedding(&chunk).unwrap();
-        }
-        let chunk_other = crate::GuideEmbeddingChunk {
-            id: "chunk-other".to_string(),
-            guide_id: "guide-b".to_string(),
-            chunk_index: 0,
-            chunk_text: "other".to_string(),
-            embedding: vec![99.0],
-            model: "model".to_string(),
-            created_at: chrono::Utc::now().to_rfc3339(),
-        };
-        vault.save_guide_embedding(&chunk_other).unwrap();
-
-        vault.delete_guide_embeddings("guide-a").unwrap();
-        let remaining = vault.list_guide_embeddings().unwrap();
-        assert_eq!(remaining.len(), 1);
-        assert_eq!(remaining[0].guide_id, "guide-b");
     }
 
     #[test]
@@ -6114,7 +6007,7 @@ mod tests {
             model: "model".to_string(),
             created_at: chrono::Utc::now().to_rfc3339(),
         };
-        vault.save_guide_embedding(&chunk).unwrap();
+        vault.save_guide_embeddings(&[chunk]).unwrap();
         assert_eq!(vault.count_guide_embeddings().unwrap(), 1);
 
         vault.clear_guide_embeddings().unwrap();
@@ -6136,7 +6029,7 @@ mod tests {
                 model: "m".to_string(),
                 created_at: chrono::Utc::now().to_rfc3339(),
             };
-            vault.save_guide_embedding(&chunk).unwrap();
+            vault.save_guide_embeddings(&[chunk]).unwrap();
         }
         assert_eq!(vault.count_guide_embeddings().unwrap(), 5);
     }

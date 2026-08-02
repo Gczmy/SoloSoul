@@ -7,7 +7,6 @@ use crate::hlc::Hlc;
 use crate::protocol::SyncRecord;
 use crate::types::{ApplyStats, ConflictRecord};
 use solosoul_vault::{BorrowedSyncRecord, RecordHlc, SyncWatermark, VaultStore};
-use std::collections::HashMap;
 
 /// Tables synchronized in the first milestone (attachments excluded).
 pub const SYNC_TABLES: &[&str] = &["profiles", "objects", "user_templates", "trash_items"];
@@ -45,26 +44,6 @@ pub fn watermark_to_vault(wm: &crate::hlc::SyncWatermark) -> SyncWatermark {
 pub struct DeltaPage {
     pub records: Vec<SyncRecord>,
     pub finished: bool,
-}
-
-/// Generate the set of records for a table that are newer than the peer watermark.
-pub fn generate_delta(
-    store: &VaultStore,
-    table: &str,
-    watermark: &crate::hlc::SyncWatermark,
-    account_id: &str,
-    local_node_id: &str,
-) -> Result<Vec<SyncRecord>, String> {
-    Ok(generate_delta_paginated(
-        store,
-        table,
-        watermark,
-        account_id,
-        local_node_id,
-        usize::MAX,
-        0,
-    )?
-    .records)
 }
 
 /// Generate a paginated page of records for a table that are newer than the peer watermark.
@@ -185,31 +164,11 @@ pub fn apply_sync_records(
     Ok(stats)
 }
 
-/// Apply records grouped by table in the canonical order.
-pub fn apply_sync_batch(
-    store: &VaultStore,
-    records_by_table: HashMap<String, Vec<SyncRecord>>,
-    local_node_id: &str,
-) -> Result<ApplyStats, String> {
-    let mut total = ApplyStats::default();
-    for table in SYNC_TABLES {
-        if let Some(records) = records_by_table.get(*table) {
-            let stats = apply_sync_records(store, table, records, local_node_id)?;
-            total.examined += stats.examined;
-            total.applied += stats.applied;
-            total.skipped += stats.skipped;
-            total.errors.extend(stats.errors);
-        }
-    }
-    Ok(total)
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::hlc::Hlc;
     use solosoul_vault::{Profile, VaultConfig, VaultStore};
-    use std::collections::HashMap;
     use tempfile::TempDir;
 
     fn open_test_vault(account_id: &str, path: std::path::PathBuf) -> VaultStore {
@@ -244,13 +203,19 @@ mod tests {
         vault_a.save_profile(&profile).unwrap();
 
         let watermark = crate::hlc::SyncWatermark::zero();
-        let records =
-            generate_delta(&vault_a, "profiles", &watermark, "acc_delta", "node_a").unwrap();
-        assert_eq!(records.len(), 1);
+        let page = generate_delta_paginated(
+            &vault_a,
+            "profiles",
+            &watermark,
+            "acc_delta",
+            "node_a",
+            usize::MAX,
+            0,
+        )
+        .unwrap();
+        assert_eq!(page.records.len(), 1);
 
-        let mut batch = HashMap::new();
-        batch.insert("profiles".to_string(), records);
-        let stats = apply_sync_batch(&vault_b, batch, "node_b").unwrap();
+        let stats = apply_sync_records(&vault_b, "profiles", &page.records, "node_b").unwrap();
         assert_eq!(stats.applied, 1);
 
         let synced = vault_b.load_profile("p1").unwrap().unwrap();

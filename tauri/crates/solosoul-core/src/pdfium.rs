@@ -3,7 +3,7 @@
 //! 供 OCR、PDF 水印等需要 PDFium 的功能复用。
 
 use pdfium_render::prelude::*;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::sync::Mutex;
 
 static PDFIUM: Mutex<Option<&'static Pdfium>> = Mutex::new(None);
@@ -97,20 +97,6 @@ pub fn init_pdfium() -> Result<&'static Pdfium, String> {
     }
     let pdfium = do_init_pdfium()?;
     let leaked = store_pdfium(pdfium);
-    *guard = Some(leaked);
-    Ok(leaked)
-}
-
-/// 根据给定路径初始化 PDFium（用于测试或显式指定动态库位置）。
-/// 仅在尚未初始化时生效；已初始化时返回已有实例。
-pub fn init_pdfium_at(path: &Path) -> Result<&'static Pdfium, String> {
-    let mut guard = PDFIUM.lock().map_err(|_| "PDFium 锁被污染".to_string())?;
-    if let Some(pdfium) = *guard {
-        return Ok(pdfium);
-    }
-    let bindings = Pdfium::bind_to_library(path)
-        .map_err(|e| format!("无法加载 PDFium {}: {e}", path.display()))?;
-    let leaked = store_pdfium(Pdfium::new(bindings));
     *guard = Some(leaked);
     Ok(leaked)
 }

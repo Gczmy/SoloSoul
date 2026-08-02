@@ -47,10 +47,6 @@ impl NoiseKeys {
         &self.secret
     }
 
-    pub fn public_key(&self) -> &[u8; 32] {
-        &self.public
-    }
-
     /// Short hex fingerprint suitable for manual peer verification.
     pub fn fingerprint(&self) -> String {
         hex::encode(&self.public[..16])
