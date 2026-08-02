@@ -59,7 +59,8 @@ impl WasmSandbox {
         // 注册 SoloSoul 自定义 Host Functions
         super::register_host_functions(&mut linker)?;
 
-        // 注册 WASI Preview1（仅继承 stdio）
+        // 注册 WASI Preview1（stdio 默认空槽——插件 stdout/stderr 写入静默丢弃，
+        // 不继承宿主终端，杜绝向宿主日志注入伪造内容的注入面，见 P208）
         wasmtime_wasi::p1::add_to_linker_sync(&mut linker, |s: &mut SoloHostState| &mut s.wasi)
             .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
 
@@ -68,7 +69,10 @@ impl WasmSandbox {
         let plugin_name = host.plugin_name.clone();
         let channel = host.channel.clone();
 
-        let wasi = wasmtime_wasi::WasiCtx::builder().inherit_stdio().build_p1();
+        // 不调用 inherit_stdio：WasiCtxBuilder 默认将 stdin/stdout/stderr 接为
+        // tokio::io::empty() 黑洞——插件写 stdout/stderr 静默丢弃而非进入宿主终端。
+        // 插件输出应走 Host Functions 的 log/result 通道（受 Consent 约束）。
+        let wasi = wasmtime_wasi::WasiCtx::builder().build_p1();
         let state = SoloHostState { wasi, host };
         let mut store = Store::new(&engine, state);
         store
