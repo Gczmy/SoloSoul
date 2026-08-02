@@ -27,7 +27,7 @@
 | P003 | 安全 | `crates/solosoul-crypto/src/kdf.rs:44-50`、`crates/solosoul-core/src/vault_service.rs:423,540` | `SOLOSOUL_SECURE` 全代码库无任何地方设置，所有真实用户的 Vault 主密钥实际用开发档 Argon2id（8MiB/2iter）派生，低于 OWASP 最低建议 | `[x]` 已修复（2026-08-02：`from_env()` release 构建默认 production，仅 debug 用开发档；`unlock` 解锁成功后对低于生产档的旧账户透明升级 KDF 参数并重加密整个 Vault（新 salt/verify hash/参数落盘、生物识别凭证同步、PIN 凭证清除、SAF 远端同步）；pin.rs 旧凭证回退改用显式 development() 避免 release 下无法解锁） |
 | P004 | 安全 | `src/stores/trashStore.ts:165`、`src/App/AppRoutes.tsx:470-474` | `trashStore.clearOnVaultLock` 已定义但 vault-locked 清理链从未调用，锁定后回收站解密摘要残留内存 | `[x]` 已修复（2026-08-02：vault-locked 清理链补调 `useTrashStore.getState().clearOnVaultLock()`，与 P005 同 commit） |
 | P005 | 安全 | `src/lib/searchCache.ts:12-55`、`src/App/AppRoutes.tsx:470` | 模块级 searchCache 缓存解密后搜索结果明文，全项目无一处调用 `clear()`，锁定后仅靠 30s TTL 自然过期 | `[x]` 已修复（2026-08-02：vault-locked 清理链补调 `searchCache.clear()`，与 P004 同 commit） |
-| P006 | 错误处理 | `src/components/object/ObjectDetailModal.tsx:463` | 删除对象失败被静默（`catch { /* ignore */ }`），用户看到弹窗关闭以为删除成功 | `[ ]` |
+| P006 | 错误处理 | `src/components/object/ObjectDetailModal.tsx:463` | 删除对象失败被静默（`catch { /* ignore */ }`），用户看到弹窗关闭以为删除成功 | `[x]` 已修复（2026-08-02：catch 改为错误 toast + `logger.warn`，确认弹窗仅在成功后关闭，失败时保持打开可重试） |
 | P007 | 错误处理 | `src/hooks/useLlmChatCore.ts:314` | `llm_save_conversation` 失败静默（`catch { /* continue */ }`），整段聊天记录可丢失且无提示 | `[ ]` |
 
 ### P1（中等：安全中危 / 性能高 / 错误吞没 / 大面积死代码与重复）
@@ -115,8 +115,8 @@
 
 ## 修复进度
 
-- 已完成：3 / 69（P003、P004、P005）
-- 当前处理：P006（ObjectDetailModal 删除失败静默）
+- 已完成：4 / 69（P003、P004、P005、P006）
+- 当前处理：P007（useLlmChatCore 保存会话失败静默）
 
 ## 审查通过项（已排查，无需修改）
 

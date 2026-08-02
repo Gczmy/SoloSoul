@@ -460,11 +460,20 @@ export function ObjectDetailModal({
     try {
       await useObjectStore.getState().deleteObject(obj.id);
       onClose();
-    } catch {
-      /* ignore */
+      setConfirmDelete(false);
+    } catch (err) {
+      // P006: 删除失败不得静默——保持确认弹窗打开并提示，避免用户
+      // 以为删除成功而对象仍存在。
+      import('@/stores/uiStore').then(({ useUiStore }) => {
+        useUiStore.getState().showToast({
+          type: 'error',
+          message: `${t('common:delete_failed')}: ${err}`, // 具体错误便于诊断
+          duration: 5000,
+        });
+      });
+      logger.warn('[ObjectDetail] Delete object failed:', err);
     } finally {
       setDeleting(false);
-      setConfirmDelete(false);
     }
   };
 
