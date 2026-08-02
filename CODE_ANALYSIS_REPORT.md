@@ -50,7 +50,7 @@
 | P114 | 性能 | `src-tauri/src/commands/object/mod.rs:459-484` 等 | 所有 vault async command（list/update/search 等）直接在 runtime 上同步做 rusqlite+AES-GCM 解密，重路径未 `spawn_blocking` | `[x]` 已修复（2026-08-02：重路径 vault 命令统一移入 `tokio::task::spawn_blocking`（沿用 recovery.rs/discovery.rs 既有模式，`Arc<VaultStore>` 克隆入闭包）。**object/mod.rs**：`object_list`（全表 AES 解密 + SQL 级关键词过滤）、`object_get`（load_object）、`object_create`/`object_update`（模板继承 + save_object + 快照/审计日志）、`object_delete`（load + 回收站写入 + delete）全部移入 blocking 闭包，filter 字段先克隆为 owned `Option<String>` 再捕获；`??` 双层解包拿内层值后触发 auto_sync，闭包显式 `-> Result<...>` 返回类型注解消除 E0282/E0283。**object/trash.rs**：`object_trash_list`、`page_delete`（全表筛选 + 逐对象二次解密 + 回收站写入）移入。**search/commands.rs**：`search_advanced_impl` 零 `.await`（纯同步全表解密扫描）降为普通 `fn` 接收 `&VaultStore`；`search_unified` 整个搜索体（空查询列表 / 高级搜索 / search_pages / search_templates / 模板归属展开 / 排序截断）包入单次 spawn_blocking。**attachment.rs**：`attachment_list_all`（list_objects + 附件树构建 ×2 视图）移入。join 错误统一 `.map_err("xxx task failed: {e}")`；闭包仅捕获 owned/'static+Send 数据（Arc、String、Option、usize、bool），无 `&state` 引用泄漏；`object_delete` 的 Err 分支 tracing::error 在闭包内；auto_sync/device_auto_sync 触发均移至 await 之后且仅成功路径（`??` 先传播错误）。solo_soul object 48 + search 17 + attachment 12 测试全绿、clippy 0 警告、fmt 干净。**范围注记**：单对象轻量命令（`object_purge`/`trash_permanent_delete`/`object_sync_with_template`/`object_ignore_template_sync`/`object_list_deprecated_fields`/`object_restore`）仍为同步执行，属单对象轻路径，未在重路径清单内） |
 | P115 | 性能 | `crates/solosoul-sync/src/delta.rs:117-179`、`storage.rs:1628-1653` | `apply_sync_records` 每条记录约 4 条 auto-commit SQL（HLC 重复查询 ×2）且整批无事务、逐条克隆 JSON | `[x]` 已修复（2026-08-02：同步应用路径**单事务批量化**。storage.rs 抽出 `_tx` 连接作用域助手（get/set_record_hlc、save/load_profile、save/load_object、save/load_user_template、save_trash_item 各成对，公共方法变薄锁包装），4 个 `apply_*_sync_record` 改静态 `_tx` 变体（顺带修掉对象路径双写 `set_record_hlc`）；`apply_sync_record` 单条公共语义不变但包进单事务；新增 `apply_sync_records_batch(&[BorrowedSyncRecord])`——一次加锁 + 整批单事务，HLC 只查一次、写一次，逐条克隆消除（lib.rs 新增零克隆借用视图 `BorrowedSyncRecord` + `SyncApplyOutcome`，serde `Deserializer for &Value` 借值解码）。delta.rs `apply_sync_records` 构建零克隆借用视图一次调用批接口，冲突报告直接用 outcome.local_hlc（跳过路径也在 `apply_sync_record_tx` 入口查一次 HLC 携带）免重查。**单条记录失败不中断整批**：错误入 outcome 继续后续记录；写序保证先写数据后写 HLC（失败自愈可重同步，不会永久跳过）。防回归单测 ×1（批/单语义等价：多条成功、旧 HLC 跳过、解码失败不中断整批且失败记录未部分写入、写前本地 HLC 携带）。solosoul-vault 106 测试 + solosoul-sync 47 测试全绿、clippy/fmt 干净） |
 | P116 | 前端性能 | `src/components/llm/ChatMessageList.tsx:74-124`、`src/hooks/useLlmChatCore.ts:220-230` | 流式期间每个 token 对整个会话所有消息重新 Markdown 解析+语法高亮（消息项未 memo），CPU 随消息数线性放大 | `[x]` 已修复（2026-08-02：`ChatMessageList` 抽出 `ChatMessageItem` 用 `memo` 包裹——流式期间仅最后一条 assistant 消息 content 变化（useLlmChatCore 的 `[...prev]` 展开保持非末条对象引用稳定），memo 浅比较命中跳过其余消息的 SafeMarkdown 重解析+语法高亮；key 优先 `msg.id`（发送/加载时均以 `generateId()` 补全，流式期间稳定）。防回归单测 ×1（ChatMessageList.test.tsx 用渲染计数 SafeMarkdown stub：两条 assistant 消息，仅末条 content 变化重渲染时前条渲染计数保持 1）） |
-| P117 | 前端性能 | `src/hooks/useLlmChatCore.ts:66` | `useLlmStore()` 整店订阅 + effect deps 含整个 store，每个 token 整页（含会话列表）重渲染、effect 重跑 | `[ ]` |
+| P117 | 前端性能 | `src/hooks/useLlmChatCore.ts:66` | `useLlmStore()` 整店订阅 + effect deps 含整个 store，每个 token 整页（含会话列表）重渲染、effect 重跑 | `[x]` 已修复（2026-08-02：`useLlmChatCore` 改字段级选择器——streamBuffer/isStreaming/streamingConvId/streamError 逐字段订阅，action（startStream/onChunk/reset）引用稳定；三个流式 effect 的 deps 去掉整店对象（finalize/error effect 不再随每次 token 更新空跑），sendMessage useCallback deps 改用稳定 action 引用不再逐 token 失效；`useLlmStore.getState().reset()` 收归 selector。整店订阅仅剩测试文件，生产零处） |
 | P118 | 前端性能 | `src/pages/workspace/ObjectWorkspacePage.tsx:123-155` | `WorkspaceObjectCard` 的 memo 被父组件每次新建的内联回调击穿，搜索框每次击键触发最多 50 张卡片全量重渲染 | `[ ]` |
 | P119 | 前端性能 | `src/pages/settings/TrashPage.tsx:138-140,369-518` | 回收站可达数百条但无分页、`filtered` 未 useMemo、条目为非 memo 内联 JSX，任何状态变化重建全部卡片 | `[ ]` |
 | P120 | 错误处理 | `src/pages/settings/ExportImportPage.tsx:151` | `export_get_scope_tree` 失败被吞，用户看到"空导出范围"误以为数据丢失 | `[ ]` |
@@ -115,8 +115,8 @@
 
 ## 修复进度
 
-- 已完成：22 / 69（P001-P007、P101-P116；其中 P104 为部分闭环）
-- 当前处理：P117（useLlmChatCore 字段级选择器，P1 前端性能高）
+- 已完成：23 / 69（P001-P007、P101-P117；其中 P104 为部分闭环）
+- 当前处理：P118（WorkspaceObjectCard memo 击穿修复，P1 前端性能高）
 
 ## 审查通过项（已排查，无需修改）
 
@@ -178,7 +178,7 @@ Windows 生产路径用 `FileBiometricStorage` 存主密钥（`derive_master_key
 ### 五、P1 前端性能高
 
 - **P116**：抽 `ChatMessageItem` 用 `memo` 包裹，仅最后一条 assistant 消息在流式期间重渲染。（2026-08-02 已修复：`ChatMessageItem` memo 化 + 防回归单测验证前条消息渲染计数保持 1。）
-- **P117**：改字段级选择器 `useLlmStore((s) => s.streamBuffer)`；effect deps 去掉整个 store 对象。同类中低危整店订阅见 P215。
+- **P117**：改字段级选择器 `useLlmStore((s) => s.streamBuffer)`；effect deps 去掉整个 store 对象。同类中低危整店订阅见 P215。（2026-08-02 已修复：字段级选择器 + 稳定 action 引用，effect/useCallback deps 不再含整店对象。）
 - **P118**：卡片内部接收 `obj` 后自行分发，或父级 `useCallback` + 传 id 而非闭包。
 - **P119**：加"加载更多"分页（参照 OBJECT_PAGE_SIZE 模式）；`filtered` 用 useMemo；抽 memo 的 `TrashItemCard`。
 

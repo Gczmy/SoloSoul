@@ -64,7 +64,16 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
   const { t } = useTranslation(['settings', 'common']);
   const accountId = useAuthStore((s) => s.currentAccount?.id);
   const abortRef = useRef<AbortController | null>(null);
-  const llmStore = useLlmStore();
+  // P117: 字段级选择器——避免整店订阅导致每次 token 更新整页重渲染；
+  // action（startStream/onChunk/reset）在 store 中定义一次，引用稳定，
+  // 使 useCallback 依赖不随 store 更新而漂移。
+  const streamBuffer = useLlmStore((s) => s.streamBuffer);
+  const isStreaming = useLlmStore((s) => s.isStreaming);
+  const streamingConvId = useLlmStore((s) => s.streamingConvId);
+  const streamError = useLlmStore((s) => s.streamError);
+  const startStream = useLlmStore((s) => s.startStream);
+  const onChunk = useLlmStore((s) => s.onChunk);
+  const reset = useLlmStore((s) => s.reset);
 
   const [activeProvider, setActiveProvider] = useState<ActiveProvider | null>(null);
   const [isConfigured, setIsConfigured] = useState(false);
@@ -219,21 +228,21 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
 
   /* Stream: update assistant message buffer */
   useEffect(() => {
-    if (!llmStore.isStreaming || !llmStore.streamingConvId) return;
+    if (!isStreaming || !streamingConvId) return;
     setMessages((prev) => {
       if (prev.length === 0) return prev;
       const lastIdx = prev.length - 1;
       if (prev[lastIdx].role !== 'assistant') return prev;
       const updated = [...prev];
-      updated[lastIdx] = { ...updated[lastIdx], content: llmStore.streamBuffer };
+      updated[lastIdx] = { ...updated[lastIdx], content: streamBuffer };
       return updated;
     });
-  }, [llmStore.streamBuffer, llmStore.isStreaming, llmStore.streamingConvId]);
+  }, [streamBuffer, isStreaming, streamingConvId]);
 
   /* Stream: finalize after done */
   useEffect(() => {
-    if (!llmStore.isStreaming && llmStore.streamingConvId && llmStore.streamBuffer) {
-      const convId = llmStore.streamingConvId;
+    if (!isStreaming && streamingConvId && streamBuffer) {
+      const convId = streamingConvId;
       const currentMsgs = messagesRef.current;
       if (currentMsgs.length > 0 && currentMsgs[currentMsgs.length - 1].role === 'assistant') {
         const firstUser = currentMsgs.find((m) => m.role === 'user');
@@ -261,22 +270,22 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
         });
         onConversationSaved?.();
       }
-      llmStore.reset();
+      reset();
       setIsSending(false);
     }
   }, [
-    llmStore,
-    llmStore.isStreaming,
-    llmStore.streamingConvId,
-    llmStore.streamBuffer,
+    isStreaming,
+    streamingConvId,
+    streamBuffer,
     onConversationSaved,
     t,
+    reset,
   ]);
 
   /* Stream: error handling */
   useEffect(() => {
-    if (llmStore.streamError) {
-      const errMsg = llmStore.streamError;
+    if (streamError) {
+      const errMsg = streamError;
       setMessages((prev) => {
         if (prev.length === 0) return prev;
         const lastIdx = prev.length - 1;
@@ -289,10 +298,10 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
         };
         return updated;
       });
-      useLlmStore.getState().reset();
+      reset();
       setIsSending(false);
     }
-  }, [llmStore, llmStore.streamError, t]);
+  }, [streamError, t, reset]);
 
   /* Send message */
   const sendMessage = useCallback(async () => {
@@ -344,7 +353,7 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
     };
     const streamingMessages = [...updatedMessages, assistantMsg];
     setMessages(streamingMessages);
-    llmStore.startStream(convId);
+    startStream(convId);
 
     try {
       const apiKey = await invoke<string>('llm_get_api_key', {
@@ -380,7 +389,7 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
         apiType: activeProvider.apiType,
         messages: allMessages,
       }).catch((err) => {
-        llmStore.onChunk({
+        onChunk({
           conversationId: convId,
           chunk: '',
           isDone: false,
@@ -419,7 +428,7 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
           duration: 5000,
         });
       }
-      llmStore.reset();
+      reset();
       setIsSending(false);
     }
   }, [
@@ -429,7 +438,9 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
     messages,
     currentConvId,
     optIncludeSystemPrompt,
-    llmStore,
+    startStream,
+    onChunk,
+    reset,
     onConversationSaved,
     t,
   ]);
@@ -462,7 +473,7 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
     copiedIndex,
     isLocal,
     currentConvId,
-    streamBuffer: llmStore.streamBuffer,
+    streamBuffer,
     setInput,
     setMessages,
     setCurrentConvId,
