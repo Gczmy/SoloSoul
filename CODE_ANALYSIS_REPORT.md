@@ -23,7 +23,7 @@
 | ID | 类别 | 文件位置 | 描述 | 状态 |
 |----|------|----------|------|------|
 | P001 | 安全 | `crates/solosoul-sync/src/session.rs:83-132,204-298` | 同步握手未校验对端静态公钥，`record_peer` 存的指纹来自加密通道内自报消息且每次会话被覆盖；mDNS 明文广播 node_id；信任检查前 HelloAck 已回 account_id——LAN 攻击者可冒充已信任 peer 拉取全量同步数据（含明文附件） | `[x]` 已修复（2026-08-02：`session.rs` 新增 `verify_peer_identity` 助手——① 自报指纹必须与 Noise 握手派生指纹一致；② 已信任 peer 落库指纹必须与握手指纹一致，换钥报 re-pair 错误；`record_peer` 改落库握手认证指纹而非自报值；防回归单测 ×6（session.rs）+ 1（noise.rs 握手对指纹一致性）。mDNS node_id 明文广播与 HelloAck 信任检查前回包两子项按指引**延后到 P103**，不重复计数） |
-| P002 | 安全 | `crates/solosoul-core/src/biometric/legacy.rs:88-103`、`windows.rs:16-52`、`mod.rs:299` | Windows 生产路径生物识别凭证文件仅用 `SHA256(account_id)` 派生密钥保护，任何用户态进程可重算密钥还原主密钥，完全绕过 Windows Hello，打破零知识模型 | `[ ]` |
+| P002 | 安全 | `crates/solosoul-core/src/biometric/legacy.rs:88-103`、`windows.rs:16-52`、`mod.rs:299` | Windows 生产路径生物识别凭证文件仅用 `SHA256(account_id)` 派生密钥保护，任何用户态进程可重算密钥还原主密钥，完全绕过 Windows Hello，打破零知识模型 | `[x]` 已修复（2026-08-02：`windows.rs` 的 `WindowsBiometricStorage` 改用 **DPAPI**（`CryptProtectData`/`CryptUnprotectData`，`CRYPTPROTECT_UI_FORBIDDEN`）加密存储 `biometric_key` 文件，密钥绑定当前 Windows 用户登录凭据，公开值不可再还原；新格式带 `SOLOSOUL_DPAPI_V1\0` 魔数头，读取时透明迁移旧版文件（临时文件 `.key.new` + 原子 rename，迁移失败 fail-soft 下轮重试）；FFI 空输入 null 守卫、`LocalFree` 释放输出缓冲与描述指针；`uses_legacy_file()` 保持 true 防 BiometricManager 误删；防回归单测 ×2（Windows-gated，DPAPI 往返 + 旧版迁移）。DPAPI 签名逐一对照 vendored windows-0.58 源码，并经 x86_64-pc-windows-gnu 交叉编译验证） |
 | P003 | 安全 | `crates/solosoul-crypto/src/kdf.rs:44-50`、`crates/solosoul-core/src/vault_service.rs:423,540` | `SOLOSOUL_SECURE` 全代码库无任何地方设置，所有真实用户的 Vault 主密钥实际用开发档 Argon2id（8MiB/2iter）派生，低于 OWASP 最低建议 | `[x]` 已修复（2026-08-02：`from_env()` release 构建默认 production，仅 debug 用开发档；`unlock` 解锁成功后对低于生产档的旧账户透明升级 KDF 参数并重加密整个 Vault（新 salt/verify hash/参数落盘、生物识别凭证同步、PIN 凭证清除、SAF 远端同步）；pin.rs 旧凭证回退改用显式 development() 避免 release 下无法解锁） |
 | P004 | 安全 | `src/stores/trashStore.ts:165`、`src/App/AppRoutes.tsx:470-474` | `trashStore.clearOnVaultLock` 已定义但 vault-locked 清理链从未调用，锁定后回收站解密摘要残留内存 | `[x]` 已修复（2026-08-02：vault-locked 清理链补调 `useTrashStore.getState().clearOnVaultLock()`，与 P005 同 commit） |
 | P005 | 安全 | `src/lib/searchCache.ts:12-55`、`src/App/AppRoutes.tsx:470` | 模块级 searchCache 缓存解密后搜索结果明文，全项目无一处调用 `clear()`，锁定后仅靠 30s TTL 自然过期 | `[x]` 已修复（2026-08-02：vault-locked 清理链补调 `searchCache.clear()`，与 P004 同 commit） |
@@ -115,8 +115,8 @@
 
 ## 修复进度
 
-- 已完成：5 / 69（P003-P007）
-- 当前处理：P001（同步握手身份绑定，最高优先安全项）
+- 已完成：6 / 69（P001-P007）
+- 当前处理：P101（command allowlist 收窄，P1 安全中危）
 
 ## 审查通过项（已排查，无需修改）
 

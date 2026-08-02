@@ -70,4 +70,6 @@ core-foundation = "0.10"
 core-foundation-sys = "0.8"
 
 [target.'cfg(target_os = "windows")'.dependencies]
-windows = { version = "0.58", features = ["Security_Credentials_UI", "Foundation", "Win32_System_Com"] }
+# P002: 新增 Win32_Security_Cryptography（DPAPI CryptProtectData/UnprotectData）特性；
+# LocalFree/HLOCAL 位于 Foundation（已启用），无需额外 feature。
+windows = { version = "0.58", features = ["Security_Credentials_UI", "Foundation", "Win32_System_Com", "Win32_Security_Cryptography"] }
