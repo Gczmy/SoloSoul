@@ -604,19 +604,6 @@ pub async fn sync_enable(
     Ok(())
 }
 
-#[cfg(mobile)]
-#[tauri::command]
-pub async fn sync_listen_port(state: State<'_, AppState>) -> Result<u16, String> {
-    Ok(state.sync_service.listen_port().await)
-}
-
-#[cfg(desktop)]
-#[tauri::command]
-pub async fn sync_listen_port(state: State<'_, AppState>) -> Result<u16, String> {
-    // 桌面端同样返回实际监听端口，方便用户在自动发现失败时通过 host:port 手动连接。
-    Ok(state.sync_service.listen_port().await)
-}
-
 /// 返回本地监听地址（`host:port`），与移动端形状一致，供前端状态卡完整展示。
 /// 未启用（端口 0）时返回空串，前端据此隐藏地址行。
 #[cfg(mobile)]

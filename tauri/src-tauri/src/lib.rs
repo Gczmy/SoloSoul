@@ -478,8 +478,6 @@ pub fn run() {
             commands::vault::vault_update_hint,
             // Profile commands
             commands::profile::profile_load,
-            commands::profile::profile_get_section,
-            commands::profile::profile_update_field,
             // Crypto commands
             commands::crypto::encrypt_bytes,
             commands::crypto::decrypt_bytes,
@@ -586,7 +584,6 @@ pub fn run() {
             // Sync commands
             commands::sync::sync_get_status,
             commands::sync::sync_enable,
-            commands::sync::sync_listen_port,
             commands::sync::sync_listen_addr,
             commands::sync::sync_generate_qr_payload,
             commands::sync::sync_with_device,

@@ -35,43 +35,10 @@ pub async fn decrypt_bytes(state: State<'_, AppState>, data: Vec<u8>) -> Result<
         .map_err(|e| e.to_string())
 }
 
-/// Encrypt data with an explicit 32-byte key (no vault needed)
-#[tauri::command]
-pub async fn encrypt_with_key(key: Vec<u8>, plaintext: Vec<u8>) -> Result<Vec<u8>, String> {
-    let key_arr: [u8; solosoul_crypto::aes::KEY_SIZE] =
-        key.as_slice().try_into().map_err(|_| {
-            format!(
-                "Key must be {} bytes, got {}",
-                solosoul_crypto::aes::KEY_SIZE,
-                key.len()
-            )
-        })?;
-    solosoul_crypto::aes::encrypt_blob(&key_arr, &plaintext)
-        .map(|b| b.to_vec())
-        .map_err(|e| e.to_string())
-}
-
-/// Decrypt data with an explicit 32-byte key (no vault needed)
-#[tauri::command]
-pub async fn decrypt_with_key(key: Vec<u8>, ciphertext: Vec<u8>) -> Result<Vec<u8>, String> {
-    let key_arr: [u8; solosoul_crypto::aes::KEY_SIZE] =
-        key.as_slice().try_into().map_err(|_| {
-            format!(
-                "Key must be {} bytes, got {}",
-                solosoul_crypto::aes::KEY_SIZE,
-                key.len()
-            )
-        })?;
-    solosoul_crypto::aes::decrypt_blob(&key_arr, &ciphertext)
-        .map(|b| b.to_vec())
-        .map_err(|e| e.to_string())
-}
-
 /// Maximum Argon2 parameters accepted from the frontend to prevent DoS.
 const MAX_MEMORY_KB: u32 = 64 * 1024;
 const MAX_ITERATIONS: u32 = 10;
 const MAX_PARALLELISM: u32 = 16;
-const MAX_SALT_LENGTH: u32 = 64;
 
 /// Derive a key from password and salt using Argon2id
 #[tauri::command]
@@ -99,25 +66,6 @@ pub async fn derive_key(
     solosoul_crypto::derive_key(&password, &salt, &config)
         .map(|k| k.to_vec())
         .map_err(|e| format!("Key derivation failed: {}", e))
-}
-
-/// Generate cryptographically secure random bytes
-#[tauri::command]
-pub async fn generate_salt(length: u32) -> Vec<u8> {
-    use rand::rngs::OsRng;
-    use rand::RngCore;
-    if length == 0 || length > MAX_SALT_LENGTH {
-        return vec![];
-    }
-    let mut salt = vec![0u8; length as usize];
-    OsRng.fill_bytes(&mut salt);
-    salt
-}
-
-/// Constant-time comparison of two byte slices
-#[tauri::command]
-pub async fn constant_time_compare(a: Vec<u8>, b: Vec<u8>) -> bool {
-    solosoul_crypto::secure::secure_compare(&a, &b)
 }
 
 #[cfg(test)]
@@ -190,97 +138,5 @@ mod tests {
         );
         let key = result.unwrap();
         assert_eq!(key.len(), 32, "Derived key must be 32 bytes");
-    }
-
-    #[tokio::test]
-    async fn test_generate_salt_zero_length_returns_empty() {
-        let result = generate_salt(0).await;
-        assert!(result.is_empty());
-    }
-
-    #[tokio::test]
-    async fn test_generate_salt_exceeds_max_returns_empty() {
-        let result = generate_salt(MAX_SALT_LENGTH + 1).await;
-        assert!(result.is_empty());
-    }
-
-    #[tokio::test]
-    async fn test_generate_salt_valid_length() {
-        let result = generate_salt(32).await;
-        assert_eq!(result.len(), 32);
-        assert!(
-            result.iter().any(|&b| b != 0),
-            "salt should have non-zero bytes"
-        );
-    }
-
-    #[tokio::test]
-    async fn test_generate_salt_max_length() {
-        let result = generate_salt(MAX_SALT_LENGTH).await;
-        assert_eq!(result.len(), MAX_SALT_LENGTH as usize);
-    }
-
-    #[tokio::test]
-    async fn test_constant_time_compare_equal() {
-        assert!(constant_time_compare(vec![1, 2, 3], vec![1, 2, 3]).await);
-    }
-
-    #[tokio::test]
-    async fn test_constant_time_compare_different() {
-        assert!(!constant_time_compare(vec![1, 2, 3], vec![1, 2, 4]).await);
-    }
-
-    #[tokio::test]
-    async fn test_constant_time_compare_different_lengths() {
-        assert!(!constant_time_compare(vec![1, 2, 3], vec![1, 2]).await);
-    }
-
-    #[tokio::test]
-    async fn test_constant_time_compare_empty() {
-        assert!(constant_time_compare(vec![], vec![]).await);
-    }
-
-    #[tokio::test]
-    async fn test_constant_time_compare_one_empty() {
-        assert!(!constant_time_compare(vec![1], vec![]).await);
-    }
-
-    #[tokio::test]
-    async fn test_encrypt_with_key_wrong_size_rejected() {
-        let result = encrypt_with_key(vec![0u8; 16], vec![1, 2, 3]).await;
-        assert!(result.is_err());
-        assert!(result.unwrap_err().contains("Key must be"));
-    }
-
-    #[tokio::test]
-    async fn test_encrypt_with_key_empty_key_rejected() {
-        let result = encrypt_with_key(vec![], vec![1, 2, 3]).await;
-        assert!(result.is_err());
-    }
-
-    #[tokio::test]
-    async fn test_encrypt_decrypt_with_key_roundtrip() {
-        let key = vec![0xABu8; 32];
-        let plaintext = b"Hello, encrypted world!".to_vec();
-
-        let ciphertext = encrypt_with_key(key.clone(), plaintext.clone())
-            .await
-            .unwrap();
-        assert!(!ciphertext.is_empty());
-        assert_ne!(ciphertext, plaintext);
-
-        let decrypted = decrypt_with_key(key, ciphertext).await.unwrap();
-        assert_eq!(decrypted, plaintext);
-    }
-
-    #[tokio::test]
-    async fn test_decrypt_with_key_wrong_key_fails() {
-        let key = vec![0xABu8; 32];
-        let wrong_key = vec![0xBAu8; 32];
-        let plaintext = b"secret data".to_vec();
-
-        let ciphertext = encrypt_with_key(key, plaintext).await.unwrap();
-        let result = decrypt_with_key(wrong_key, ciphertext).await;
-        assert!(result.is_err());
     }
 }

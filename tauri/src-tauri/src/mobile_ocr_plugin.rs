@@ -151,7 +151,8 @@ fn register_plugin<R: Runtime>(
 }
 
 /// 识别图片中的文字（移动端入口）。
-#[tauri::command]
+/// 注意：本函数由 ocr.rs 直接作为普通 Rust 函数调用，不注册为 Tauri 命令，
+/// 故不带 #[tauri::command] 属性。
 pub async fn mobile_ocr_scan_image<R: Runtime>(
     app: AppHandle<R>,
     file_path: String,
