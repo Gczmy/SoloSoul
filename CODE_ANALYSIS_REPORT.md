@@ -89,7 +89,7 @@
 | P206 | 安全 | `src-tauri/tauri.conf.json:30` | CSP `frame-src data:` 无明确必要；`style-src 'unsafe-inline'` 留 CSS 注入口 | `[x]` 部分修复 + 结构性依赖保留（2026-08-02）：**frame-src 收紧**——`frame-src 'self' data:` → `frame-src 'self'`（全前端零 iframe/srcdoc/frame 使用，SafeMarkdown 甚至显式禁 iframe/object/embed，`data:` 属死授权；保留显式 `'self'` 作注入纵深防御）。**style-src 'unsafe-inline' 保留（结构性必需）**：全库 227+ 处 React 内联 `style={{}}` 属性 + 12 处源码内静态 keyframe `<style>` 注入，移除需 P048 级全量 CSS 重构（远超 P2 范围）；残留风险已被多重防线压制——无 `dangerouslySetInnerHTML`、markdown 全走净化、`default-src 'self'` 阻断远程样式加载。`img-src data:`（附件预览 data URL 必需）与 `connect-src localhost:11434`（Ollama）未动。**遗留观察**：`AttachmentPreviewOverlay` 的 PDF `<embed src=data:>` 受 `object-src`（缺省继承 `default-src 'self'`）管辖，现行 CSP 下本就被拦截——属既有行为非本项引入，待确认该路径是否预期失效（需 `object-src data:`）或本就弃用） |
 | P207 | 安全 | `src-tauri/src/commands/embed_model.rs:11,195-233` | Embedding 模型 registry 与 sha256 同通道下发无独立签名（对比插件注册表有 minisign） | `[x]` 已修复（2026-08-02：注册表 minisign 签名校验 + 编译期公钥常量 + 环境变量注入 + 7 条防回归单测，见下文） |
 | P208 | 安全 | `crates/solosoul-plugin/src/sandbox.rs:71` | 插件 WASI `inherit_stdio()` 可向宿主日志注入伪造内容 | `[x]` 已修复（2026-08-02：移除 inherit_stdio，stdio 改默认空槽黑洞，见下文） |
-| P209 | 安全 | `crates/solosoul-core/src/biometric/legacy.rs:32` | `LEGACY_XOR_KEY` 硬编码 XOR 密钥（仅旧凭证迁移用，迁移窗口关闭后应删除整个模块） | `[ ]` |
+| P209 | 安全 | `crates/solosoul-core/src/biometric/legacy.rs:32` | `LEGACY_XOR_KEY` 硬编码 XOR 密钥（仅旧凭证迁移用，迁移窗口关闭后应删除整个模块） | `[x]` 已评估保留（2026-08-02 用户决策：迁移窗口未关闭，保留 XOR 路径；见下文） |
 | P210 | 性能 | `crates/solosoul-vault/src/storage.rs:2480-2487,2647-2653` | 关键词过滤每次把整个 JSON Value 重新 `to_string().to_lowercase()`，Value→String 往返浪费 | `[ ]` |
 | P211 | 性能 | `src-tauri/src/commands/object/trash.rs:295-340` | `page_delete` 全量解密筛选 + 逐对象二次解密 + 逐条 auto-commit 写入 | `[ ]` |
 | P212 | 性能 | `crates/solosoul-core/src/export_import.rs:365,369-448` | `import_vault` 整体克隆对象数组、循环内逐对象解密判存在 + auto-commit 写入，无事务 | `[ ]` |
@@ -115,8 +115,8 @@
 
 ## 修复进度
 
-- 已完成：56 / 69（P001-P007、P101-P142、P201-P208；其中 P104 为部分闭环、P206 部分修复）
-- 当前处理：P209（硬编码 legacy XOR 密钥迁移窗口关闭后删除）
+- 已完成：57 / 69（P001-P007、P101-P142、P201-P209；其中 P104 为部分闭环、P206 部分修复、P209 为用户决策保留）
+- 当前处理：P210（关键词过滤 Value→String 往返浪费）
 
 ## 审查通过项（已排查，无需修改）
 
@@ -195,6 +195,7 @@ Windows 生产路径用 `FileBiometricStorage` 存主密钥（`derive_master_key
 
 - **性能**：P210 解密后缓存原始字符串做匹配；P211 用 metadata-only 列表 + 批量加载 + 事务；P212 存在性判断改轻量预查 + 导入循环包事务；P213 热点语句 `prepare_cached` + SQL 常量化；P214 先按明文列 SQL 筛 public 再解密。
 - **死代码/规范**：P219-P221 直接删除（P220 同时修复基线 lint warning）；P222 降可见性。
+- **P209（已决策保留）**：`LEGACY_XOR_KEY` 仅用于 `legacy_xor_decrypt` 一键解密 <2.0 旧版 XOR 凭证文件并原子迁移为 AES-256-GCM。模块 `legacy.rs` 本身不可删——`FileBiometricStorage` 是 macOS（macos.rs:16）/iOS 回退（ios.rs:46）/macos_keychain 回退/vault_service 的活动存储后端与测试 mock；当前 `save`/`update` 已只写新格式，XOR 路径为零写入面。威胁面：攻击者需同时持有编译产物与 0600 权限的旧文件，且内容为会话密钥非主密钥。2026-08-02 用户决策：迁移窗口未关闭，保留 XOR 路径，接受已充分记录的低危风险（原代码注释即含完整风险分析）。
 - **结构**：P223/P224 为长期重构项，建议随功能迭代顺带拆分，不单独安排修复轮次。
 - **循环依赖（P228）**：notification 依赖注入；共享类型抽到 `types/`。
 
