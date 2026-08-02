@@ -1626,7 +1626,7 @@ mod tests {
         let old_kdf = KdfConfig::development();
         let salt_bytes = base64::Engine::decode(
             &base64::engine::general_purpose::STANDARD,
-            &raw["salt"].as_str().unwrap(),
+            raw["salt"].as_str().unwrap(),
         )
         .unwrap();
         let salt_arr: [u8; 16] = salt_bytes.as_slice().try_into().unwrap();

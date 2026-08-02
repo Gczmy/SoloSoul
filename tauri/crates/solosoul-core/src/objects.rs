@@ -29,7 +29,8 @@ pub fn create_page(
         return Err("页面名称不能为空".to_string());
     }
 
-    let pages = vault.list_objects(account_id, Some("page"), None, None, false, false)?;
+    // P111: 仅需页面名称做重名校验，走 metadata-only 查询免全表解密。
+    let pages = vault.list_object_metadata(account_id, Some("page"), None, false, false)?;
     if pages.iter().any(|p| p.name.eq_ignore_ascii_case(name)) {
         return Err(format!("页面 '{}' 已存在", name));
     }
@@ -548,15 +549,9 @@ fn restore_single_object(
         .unwrap_or("identity");
 
     let account_id = read_str(&record_data, "account_id", "accountId").unwrap_or("imported");
+    // P111: 仅需 name+section 判断同名冲突，走 metadata-only 查询免全表解密。
     let objects = vault
-        .list_objects(
-            account_id,
-            None,
-            None,
-            Some(&trash.name_snapshot),
-            false,
-            false,
-        )
+        .list_object_metadata(account_id, None, None, false, false)
         .unwrap_or_default();
     let exists = objects
         .iter()
@@ -1084,7 +1079,8 @@ fn load_all_referenced_attachment_ids(
     vault: &VaultStore,
     account_id: &str,
 ) -> Result<HashSet<String>, String> {
-    let objects = vault.list_objects(account_id, None, None, None, false, false)?;
+    // P111: 只需对象 ID 集合，随后 load_objects_batch 拉全量，走 metadata-only 查询。
+    let objects = vault.list_object_metadata(account_id, None, None, false, false)?;
     let ids: Vec<String> = objects.iter().map(|s| s.id.clone()).collect();
     let loaded = vault.load_objects_batch(&ids)?;
 

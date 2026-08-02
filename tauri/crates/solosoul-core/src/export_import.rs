@@ -527,7 +527,8 @@ fn collect_scope_objects(
     account_id: &str,
     scope: &ExportScope,
 ) -> Result<Vec<ObjectRecord>, ExportError> {
-    let all = vault.list_objects(account_id, None, None, None, false, false)?;
+    // P111: 仅需 id/section_type 做范围收集，随后 load_objects_batch 拉全量，走 metadata-only 查询。
+    let all = vault.list_object_metadata(account_id, None, None, false, false)?;
 
     let ids: Vec<String> = if scope.full {
         all.iter().map(|s| s.id.clone()).collect()

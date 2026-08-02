@@ -297,8 +297,9 @@ pub async fn page_delete(
         }
 
         // Delete all objects in this section_type
+        // P111: 仅需 section_type/collection_type/id 筛选候选，随后逐个 load_object，走 metadata-only 查询。
         let objects = vault
-            .list_objects(&account_id, None, None, None, false, false)
+            .list_object_metadata(&account_id, None, None, false, false)
             .map_err(|e| format!("list: {}", e))?;
         for obj in &objects {
             if obj.section_type == section_type || obj.collection_type == section_type {

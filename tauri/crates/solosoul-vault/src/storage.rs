@@ -2731,6 +2731,90 @@ impl VaultStore {
         }
     }
 
+    /// P111: metadata-only listing —— 不 SELECT/解密 `properties`/`property_labels`/`tags`。
+    ///
+    /// 返回的 `ObjectSummary` 中 `properties = Null`、`property_labels = None`、`tags = []`，
+    /// 其余身份/排序/分区/敏感度字段与 `list_objects` 一致（`ORDER BY created_at ASC, id ASC`）。
+    /// 适用于只需元数据、随后单独 `load_object`/`load_objects_batch` 的调用方
+    /// （page_delete、模板迁移、附件清单收集、导出范围收集、回收站重名检查等），
+    /// 避免主列表公共路径上的全表 AES-GCM 解密 + JSON 解析。
+    pub fn list_object_metadata(
+        &self,
+        account_id: &str,
+        type_id: Option<&str>,
+        parent_id: Option<&str>,
+        include_deleted: bool,
+        only_deleted: bool,
+    ) -> Result<Vec<ObjectSummary>, String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+
+        let mut sql = String::from(
+            "SELECT id, name, type_id, section_type, sensitivity_level, created_at, updated_at, is_deleted, template_id, template_type, contract_type_id, template_hash, ignored_template_hash, icon_name, parent_id
+             FROM objects WHERE account_id = ?1",
+        );
+        let mut param_idx = 2;
+        let mut param_values: Vec<Box<dyn rusqlite::types::ToSql>> =
+            vec![Box::new(account_id.to_string())];
+
+        if only_deleted {
+            sql.push_str(" AND is_deleted = 1");
+        } else if !include_deleted {
+            sql.push_str(" AND is_deleted = 0");
+        }
+
+        if let Some(tid) = type_id {
+            sql.push_str(&format!(" AND type_id = ?{}", param_idx));
+            param_values.push(Box::new(tid.to_string()));
+            param_idx += 1;
+        }
+
+        if let Some(pid) = parent_id {
+            sql.push_str(&format!(" AND parent_id = ?{}", param_idx));
+            param_values.push(Box::new(pid.to_string()));
+        }
+
+        sql.push_str(" ORDER BY created_at ASC, id ASC");
+
+        let mut stmt = conn
+            .prepare(&sql)
+            .map_err(|e| format!("list_object_metadata: {}", e))?;
+
+        let params_refs: Vec<&dyn rusqlite::types::ToSql> =
+            param_values.iter().map(|p| p.as_ref()).collect();
+
+        let objects = stmt
+            .query_map(params_refs.as_slice(), |row: &rusqlite::Row<'_>| {
+                let deleted_int: i32 = row.get(7)?;
+                Ok(ObjectSummary {
+                    id: row.get(0)?,
+                    name: row.get(1)?,
+                    collection_type: row.get(2)?,
+                    section_type: row.get(3)?,
+                    sensitivity_level: row.get(4)?,
+                    created_at: row.get(5)?,
+                    updated_at: row.get(6)?,
+                    is_deleted: deleted_int != 0,
+                    template_id: row.get(8)?,
+                    template_type: row.get(9)?,
+                    contract_type_id: row.get(10)?,
+                    template_hash: row.get(11)?,
+                    ignored_template_hash: row.get(12)?,
+                    icon_name: row.get(13)?,
+                    parent_id: row.get(14)?,
+                    // P111: 不解密负载列，占位值（调用方不得依赖）
+                    properties: serde_json::Value::Null,
+                    property_labels: None,
+                    tags: vec![],
+                })
+            })
+            .map_err(|e| format!("list_object_metadata query: {}", e))?
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|e| format!("list_object_metadata collect: {}", e))?;
+
+        Ok(objects)
+    }
+
     pub fn delete_object(&self, id: &str, soft: bool) -> Result<(), String> {
         if soft {
             let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
@@ -4510,6 +4594,95 @@ mod tests {
             .unwrap();
         assert_eq!(restored.len(), 1);
         assert!(!restored[0].is_deleted);
+    }
+
+    #[test]
+    fn test_list_object_metadata_no_decrypt_but_identity_fields() {
+        // P111: metadata-only 查询返回身份字段，负载列置占位值（不解密）。
+        let (vault, _dir) = setup();
+        let obj = ObjectRecord {
+            contract_type_id: None,
+            id: "obj-meta-1".to_string(),
+            account_id: "acc-1".to_string(),
+            type_id: "note".to_string(),
+            section_type: "note".to_string(),
+            name: "元数据测试对象".to_string(),
+            icon_name: "document".to_string(),
+            parent_id: None,
+            children_ids: vec![],
+            properties: serde_json::json!({"title": "解密内容不应出现"}),
+            property_labels: Some(serde_json::json!({"title": "sensitive"})),
+            sensitivity_level: "internal".to_string(),
+            is_deleted: false,
+            deleted_at: None,
+            tags_json: vec!["tag-a".to_string()],
+            template_id: Some("tpl-1".to_string()),
+            template_type: Some("user".to_string()),
+            template_hash: Some("hash-1".to_string()),
+            ignored_template_hash: None,
+            created_at: "2026-01-01T00:00:00Z".to_string(),
+            updated_at: "2026-01-01T00:00:00Z".to_string(),
+            version: 1,
+        };
+        vault.save_object(&obj).unwrap();
+
+        let metas = vault
+            .list_object_metadata("acc-1", None, None, false, false)
+            .unwrap();
+        assert_eq!(metas.len(), 1);
+        let m = &metas[0];
+        // 身份字段完整
+        assert_eq!(m.id, "obj-meta-1");
+        assert_eq!(m.name, "元数据测试对象");
+        assert_eq!(m.collection_type, "note");
+        assert_eq!(m.section_type, "note");
+        assert_eq!(m.sensitivity_level, "internal");
+        assert_eq!(m.template_id.as_deref(), Some("tpl-1"));
+        assert_eq!(m.icon_name, "document");
+        assert!(!m.is_deleted);
+        // 负载列占位：不返回解密内容
+        assert_eq!(m.properties, serde_json::Value::Null);
+        assert!(m.property_labels.is_none());
+        assert!(m.tags.is_empty());
+
+        // 与全量 list_objects 的身份字段一致
+        let full = vault
+            .list_objects("acc-1", None, None, None, false, false)
+            .unwrap();
+        assert_eq!(full.len(), 1);
+        assert_eq!(full[0].id, m.id);
+        assert_eq!(full[0].name, m.name);
+        assert_eq!(full[0].sensitivity_level, m.sensitivity_level);
+        assert_eq!(full[0].template_id, m.template_id);
+        // 全量版本仍返回真实 properties
+        assert_eq!(
+            full[0].properties["title"],
+            serde_json::Value::String("解密内容不应出现".to_string())
+        );
+
+        // type_id / parent_id 过滤生效
+        assert!(vault
+            .list_object_metadata("acc-1", Some("page"), None, false, false)
+            .unwrap()
+            .is_empty());
+        assert!(
+            vault
+                .list_object_metadata("acc-1", Some("note"), None, false, false)
+                .unwrap()
+                .len()
+                == 1
+        );
+        // 软删对象在 only_deleted=true 时才出现
+        vault.delete_object("obj-meta-1", true).unwrap();
+        assert!(vault
+            .list_object_metadata("acc-1", None, None, false, false)
+            .unwrap()
+            .is_empty());
+        let deleted = vault
+            .list_object_metadata("acc-1", None, None, false, true)
+            .unwrap();
+        assert_eq!(deleted.len(), 1);
+        assert!(deleted[0].is_deleted);
     }
 
     #[test]

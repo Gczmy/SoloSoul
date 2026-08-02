@@ -84,9 +84,10 @@ pub fn collect_attachment_manifests(
     vault: &VaultStore,
     account_id: &str,
 ) -> Result<Vec<(String, Vec<AttachmentInfo>)>, String> {
+    // P111: 仅需对象 ID 候选，随后逐个 load_object 读全量，走 metadata-only 查询。
     let objects = vault
-        .list_objects(account_id, None, None, None, false, false)
-        .map_err(|e| format!("list_objects: {}", e))?;
+        .list_object_metadata(account_id, None, None, false, false)
+        .map_err(|e| format!("list_object_metadata: {}", e))?;
     let base = vault.base_path();
     let mut manifests = Vec::new();
     for summary in objects {

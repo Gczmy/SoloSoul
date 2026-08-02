@@ -295,7 +295,8 @@ pub fn migrate_contract_bindings(
             vault.save_user_template(&tpl)?;
 
             // 同步更新所有使用该模板且指纹等于旧指纹的对象
-            let objects = vault.list_objects(account_id, None, None, None, false, false)?;
+            // P111: 仅需 template_id 筛选候选，随后逐个 load_object，走 metadata-only 查询。
+            let objects = vault.list_object_metadata(account_id, None, None, false, false)?;
             for obj in objects {
                 if obj.template_id.as_deref() != Some(&tpl.id) {
                     continue;
