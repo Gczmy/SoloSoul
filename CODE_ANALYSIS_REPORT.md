@@ -86,7 +86,7 @@
 | P203 | 安全 | `src-tauri/src/commands/attachment.rs:892-899,921-925,934-938` | `attachment_open` 每次以 `error!` 记录完整 vault 路径/object_id/mime，属残留调试日志 | `[x]` 已修复（2026-08-02：`attachment_open` 移除全部 4 处残留 `error!` 调试日志——成功路径的 object_id/attachment_id/vault_path/src_path/mime 全量记录直接删除；路径解析失败仅记 io 错误（不含 path_str）；越界拒绝改静态文案；Android 打开路径+mime 日志删除。剩余两处 `error!` 仅含 io 错误/静态文本，无路径/文件名/对象 ID/mime 泄漏；用户可见错误文案不变。solo_soul 345 测试全绿、clippy 0、fmt 干净） |
 | P204 | 安全 | `src-tauri/src/commands/biometric.rs:318-321` | session key hex 放进普通 String 长期残留堆内存 | `[x]` 已修复（2026-08-02：桌面端 `biometric_save_credential` 的会话密钥 hex（`expected`）与派生主密钥 hex（`derived`）均改 `zeroize::Zeroizing<String>` 持有——仅用于比对，函数返回即安全擦除，不再以普通 String 在堆中长期残留主密钥明文；比对改 `*derived != *expected`（Deref），语义逐字节等价。命令层唯一 `get_session_key()`→`hex::encode` 点；移动端 `key_hex` 需持久化至 keystore 不在本项范围。zeroize 为既有 workspace 依赖，全限定调用不加 import。solo_soul 16 个 biometric 测试全绿、clippy 0、fmt 干净） |
 | P205 | 安全 | `src-tauri/src/commands/crypto.rs:77-102` | `derive_key` command 密码入参与返回密钥均不 zeroize，密钥明文经 IPC 进前端 JS 堆 | `[x]` 已修复（2026-08-02：**直接删除整份 `commands/crypto.rs`**（`encrypt_bytes`/`decrypt_bytes`/`derive_key` 三个 crypto oracle 命令 + 其 5 个参数校验单测）——P101 已将它们移出 ACL allowlist（前端零调用、不可达），本项彻底清除代码层：`commands/mod.rs` 删 `pub mod crypto;`，`lib.rs` 删 generate_handler 三处注册。不再存在任何「密码/密钥经 IPC 进出前端 JS 堆」的命令面，比零化改造成本更低且与 P132 死命令删除先例一致。solo_soul 340 测试全绿（-5 为已删 crypto 测试）、clippy 0、fmt 干净） |
-| P206 | 安全 | `src-tauri/tauri.conf.json:30` | CSP `frame-src data:` 无明确必要；`style-src 'unsafe-inline'` 留 CSS 注入口 | `[ ]` |
+| P206 | 安全 | `src-tauri/tauri.conf.json:30` | CSP `frame-src data:` 无明确必要；`style-src 'unsafe-inline'` 留 CSS 注入口 | `[x]` 部分修复 + 结构性依赖保留（2026-08-02）：**frame-src 收紧**——`frame-src 'self' data:` → `frame-src 'self'`（全前端零 iframe/srcdoc/frame 使用，SafeMarkdown 甚至显式禁 iframe/object/embed，`data:` 属死授权；保留显式 `'self'` 作注入纵深防御）。**style-src 'unsafe-inline' 保留（结构性必需）**：全库 227+ 处 React 内联 `style={{}}` 属性 + 12 处源码内静态 keyframe `<style>` 注入，移除需 P048 级全量 CSS 重构（远超 P2 范围）；残留风险已被多重防线压制——无 `dangerouslySetInnerHTML`、markdown 全走净化、`default-src 'self'` 阻断远程样式加载。`img-src data:`（附件预览 data URL 必需）与 `connect-src localhost:11434`（Ollama）未动。**遗留观察**：`AttachmentPreviewOverlay` 的 PDF `<embed src=data:>` 受 `object-src`（缺省继承 `default-src 'self'`）管辖，现行 CSP 下本就被拦截——属既有行为非本项引入，待确认该路径是否预期失效（需 `object-src data:`）或本就弃用） |
 | P207 | 安全 | `src-tauri/src/commands/embed_model.rs:11,195-233` | Embedding 模型 registry 与 sha256 同通道下发无独立签名（对比插件注册表有 minisign） | `[ ]` |
 | P208 | 安全 | `crates/solosoul-plugin/src/sandbox.rs:71` | 插件 WASI `inherit_stdio()` 可向宿主日志注入伪造内容 | `[ ]` |
 | P209 | 安全 | `crates/solosoul-core/src/biometric/legacy.rs:32` | `LEGACY_XOR_KEY` 硬编码 XOR 密钥（仅旧凭证迁移用，迁移窗口关闭后应删除整个模块） | `[ ]` |
@@ -115,8 +115,8 @@
 
 ## 修复进度
 
-- 已完成：53 / 69（P001-P007、P101-P142、P201-P205；其中 P104 为部分闭环）
-- 当前处理：P206（CSP frame-src data: / style-src unsafe-inline 收紧）
+- 已完成：54 / 69（P001-P007、P101-P142、P201-P206；其中 P104 为部分闭环、P206 部分修复）
+- 当前处理：P207（Embedding 模型 sha256 清单校验）
 
 ## 审查通过项（已排查，无需修改）
 
