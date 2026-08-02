@@ -3,7 +3,6 @@
 //! `llm_test_provider` and `llm_send_message` use reqwest for HTTP calls.
 
 use crate::services::profile_prefs::update_profile_prefs;
-use serde::{Deserialize, Serialize};
 use solosoul_vault::VaultStore;
 use std::collections::HashMap;
 
@@ -15,107 +14,12 @@ pub const MAX_GUIDE_SUMMARY_BYTES: usize = 200;
 pub const DEFAULT_MAX_TOKENS: u32 = 4096;
 
 // ── Data models ─────────────────────────────────────────────
-
-/// API protocol type for the provider
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Default)]
-#[serde(rename_all = "camelCase")]
-pub enum ApiType {
-    #[default]
-    OpenAI,
-    Anthropic,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct ProviderConfig {
-    pub id: String,
-    pub name: String,
-    pub base_url: String,
-    pub model: String,
-    pub is_enabled: bool,
-    pub is_built_in: bool,
-    #[serde(default)]
-    pub api_type: ApiType,
-    #[serde(default)]
-    pub embedding_model: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct ProviderWithKey {
-    pub id: String,
-    pub name: String,
-    pub base_url: String,
-    pub model: String,
-    pub is_enabled: bool,
-    pub is_built_in: bool,
-    pub api_key: String,
-    #[serde(default)]
-    pub api_type: ApiType,
-    #[serde(default)]
-    pub embedding_model: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
-#[serde(rename_all = "camelCase")]
-pub struct AiFeatures {
-    pub chat: bool,
-    pub smart_fill: bool,
-    pub command_gen: bool,
-    pub natural_language_search: bool,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct LlmConfig {
-    pub providers: Vec<ProviderConfig>,
-    pub active_provider_id: Option<String>,
-    pub ai_features_enabled: AiFeatures,
-    pub has_accepted_risk: bool,
-    #[serde(default = "default_true")]
-    pub include_system_prompt: bool,
-    #[serde(default)]
-    pub use_local_embedding: bool,
-    #[serde(default)]
-    pub local_embed_model_id: Option<String>,
-}
-
-pub fn default_true() -> bool {
-    true
-}
-
-// ── Conversation data models ────────────────────────────────
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct ChatMessage {
-    pub role: String,
-    pub content: String,
-    pub created_at: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct Conversation {
-    pub id: String,
-    pub name: String,
-    pub is_temporary: bool,
-    pub messages: Vec<ChatMessage>,
-    pub updated_at: String,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub deleted_at: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct ConversationSummary {
-    pub id: String,
-    pub name: String,
-    pub updated_at: String,
-    pub message_count: usize,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub deleted_at: Option<String>,
-}
+// P137: 类型定义统一复用 `solosoul_core::llm::config`（唯一真理来源），
+// 消除跨 crate 重复（原两份 8 结构体定义易漂移）。
+pub use solosoul_core::llm::config::{
+    AiFeatures, ApiType, ChatMessage, Conversation, ConversationSummary, LlmConfig, ProviderConfig,
+    ProviderWithKey,
+};
 
 pub fn default_providers() -> Vec<ProviderWithKey> {
     vec![

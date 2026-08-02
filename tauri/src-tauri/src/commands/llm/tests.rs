@@ -14,11 +14,6 @@ fn setup_vault() -> (VaultStore, TempDir) {
 // ── Trivial helpers ─────────────────────────────────────────
 
 #[test]
-fn test_default_true() {
-    assert!(default_true());
-}
-
-#[test]
 fn test_default_providers() {
     let providers = default_providers();
     assert!(!providers.is_empty());
