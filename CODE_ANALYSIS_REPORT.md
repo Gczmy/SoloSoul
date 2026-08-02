@@ -28,7 +28,7 @@
 | P004 | 安全 | `src/stores/trashStore.ts:165`、`src/App/AppRoutes.tsx:470-474` | `trashStore.clearOnVaultLock` 已定义但 vault-locked 清理链从未调用，锁定后回收站解密摘要残留内存 | `[x]` 已修复（2026-08-02：vault-locked 清理链补调 `useTrashStore.getState().clearOnVaultLock()`，与 P005 同 commit） |
 | P005 | 安全 | `src/lib/searchCache.ts:12-55`、`src/App/AppRoutes.tsx:470` | 模块级 searchCache 缓存解密后搜索结果明文，全项目无一处调用 `clear()`，锁定后仅靠 30s TTL 自然过期 | `[x]` 已修复（2026-08-02：vault-locked 清理链补调 `searchCache.clear()`，与 P004 同 commit） |
 | P006 | 错误处理 | `src/components/object/ObjectDetailModal.tsx:463` | 删除对象失败被静默（`catch { /* ignore */ }`），用户看到弹窗关闭以为删除成功 | `[x]` 已修复（2026-08-02：catch 改为错误 toast + `logger.warn`，确认弹窗仅在成功后关闭，失败时保持打开可重试） |
-| P007 | 错误处理 | `src/hooks/useLlmChatCore.ts:314` | `llm_save_conversation` 失败静默（`catch { /* continue */ }`），整段聊天记录可丢失且无提示 | `[ ]` |
+| P007 | 错误处理 | `src/hooks/useLlmChatCore.ts:314` | `llm_save_conversation` 失败静默（`catch { /* continue */ }`），整段聊天记录可丢失且无提示 | `[x]` 已修复（2026-08-02：三处保存失败路径均补 `showToast(error)` + `logger.warn`，新增 `settings:ai_save_conversation_failed` 双语 key；finalize effect 补 `t` 依赖） |
 
 ### P1（中等：安全中危 / 性能高 / 错误吞没 / 大面积死代码与重复）
 
@@ -115,8 +115,8 @@
 
 ## 修复进度
 
-- 已完成：4 / 69（P003、P004、P005、P006）
-- 当前处理：P007（useLlmChatCore 保存会话失败静默）
+- 已完成：5 / 69（P003-P007）
+- 当前处理：P001（同步握手身份绑定，最高优先安全项）
 
 ## 审查通过项（已排查，无需修改）
 

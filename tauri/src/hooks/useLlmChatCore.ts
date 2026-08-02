@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { useAuthStore } from '@/stores/authStore';
 import { useLlmStore } from '@/stores/llmStore';
+import { useUiStore } from '@/stores/uiStore';
 import i18n from '@/lib/i18n';
 import { COPY_FEEDBACK_DURATION_MS } from '@/lib/constants';
 import { logger } from '@/lib/logger';
@@ -247,7 +248,17 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
         invoke('llm_save_conversation', {
           accountId: accountIdRef.current,
           conversation: finalConv,
-        }).catch((err) => logger.warn('[useLlmChatCore] Save conversation failed:', err));
+        }).catch((err) => {
+          // P007: 保存失败不得静默——提示用户记录可能丢失，避免丢失后无感知。
+          logger.warn('[useLlmChatCore] Save conversation failed:', err);
+          useUiStore.getState().showToast({
+            type: 'error',
+            message: t('settings:ai_save_conversation_failed', {
+              defaultValue: '对话保存失败，记录可能丢失，请重试',
+            }),
+            duration: 5000,
+          });
+        });
         onConversationSaved?.();
       }
       llmStore.reset();
@@ -259,6 +270,7 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
     llmStore.streamingConvId,
     llmStore.streamBuffer,
     onConversationSaved,
+    t,
   ]);
 
   /* Stream: error handling */
@@ -311,8 +323,16 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
       try {
         await invoke('llm_save_conversation', { accountId: accountId, conversation: partialConv });
         onConversationSaved?.();
-      } catch {
-        /* continue */
+      } catch (err) {
+        // P007: 首次保存失败若静默，整段新对话将不会被持久化且无提示。
+        logger.warn('[useLlmChatCore] First conversation save failed:', err);
+        useUiStore.getState().showToast({
+          type: 'error',
+          message: t('settings:ai_save_conversation_failed', {
+            defaultValue: '对话保存失败，记录可能丢失，请重试',
+          }),
+          duration: 5000,
+        });
       }
     }
 
@@ -388,8 +408,16 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
       };
       try {
         await invoke('llm_save_conversation', { accountId: accountId, conversation: errorConv });
-      } catch {
-        /* best effort */
+      } catch (err) {
+        // P007: 错误会话的保存失败同样不应静默。
+        logger.warn('[useLlmChatCore] Save error conversation failed:', err);
+        useUiStore.getState().showToast({
+          type: 'error',
+          message: t('settings:ai_save_conversation_failed', {
+            defaultValue: '对话保存失败，记录可能丢失，请重试',
+          }),
+          duration: 5000,
+        });
       }
       llmStore.reset();
       setIsSending(false);

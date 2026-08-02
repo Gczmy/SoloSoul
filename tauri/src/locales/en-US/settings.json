@@ -391,6 +391,7 @@
   "ai_chat_configure": "Configure LLM",
   "ai_chat_thinking": "Thinking...",
   "ai_chat_error_prefix": "Error",
+  "ai_save_conversation_failed": "Failed to save conversation. Data may be lost. Please retry.",
   "ai_chat_input_placeholder": "Type a message... (Enter to send)",
   "ai_new_conv": "New Conversation",
   "ai_no_convs": "No conversations yet",
