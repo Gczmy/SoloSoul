@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { WorkspaceObjectCard } from './WorkspaceObjectCard';
 import type { ObjectSummary } from '@/stores/objectStore';
 import type { UserTemplate } from '@/types/template';
@@ -83,5 +83,30 @@ describe('WorkspaceObjectCard', () => {
 
     expect(screen.queryByTestId('count-badge-history')).not.toBeInTheDocument();
     expect(screen.queryByTestId('count-badge-attachments')).not.toBeInTheDocument();
+  });
+
+  it('P118: passes the object to card callbacks (stable handler contract)', () => {
+    const onClick = vi.fn();
+    const onDelete = vi.fn();
+    render(
+      <WorkspaceObjectCard
+        obj={baseObj}
+        collectionLabel="Identity"
+        userTemplates={userTemplates}
+        onClick={onClick}
+        onHistory={vi.fn()}
+        onAttachments={vi.fn()}
+        onEdit={vi.fn()}
+        onDelete={onDelete}
+      />,
+    );
+
+    // 点击卡片主体 → onClick 收到 obj
+    fireEvent.click(screen.getByText('Test Object'));
+    expect(onClick).toHaveBeenCalledWith(baseObj);
+
+    // 点击删除按钮 → onDelete 收到 obj（移动端/桌面端两处按钮任意一个）
+    fireEvent.click(screen.getAllByTitle('Move to trash')[0]);
+    expect(onDelete).toHaveBeenCalledWith(baseObj);
   });
 });

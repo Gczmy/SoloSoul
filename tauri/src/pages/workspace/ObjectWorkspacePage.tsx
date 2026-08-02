@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
 import { PageContainer } from '@/components/layout/PageContainer';
@@ -15,6 +16,7 @@ import { PasswordVerificationDialog } from '@/components/forms/PasswordVerificat
 import { ObjectDetailModal } from '@/components/object/ObjectDetailModal';
 import { useObjectWorkspaceData } from '@/hooks/useObjectWorkspaceData';
 import { WorkspaceObjectCard } from './WorkspaceObjectCard';
+import type { ObjectSummary, ObjectData } from '@/stores/objectStore';
 import { WorkspaceCategoryTabs } from '@/components/workspace/WorkspaceCategoryTabs';
 import { ConfirmDeleteDialog } from '@/components/workspace/ConfirmDeleteDialog';
 import { PageGuideButton } from '@/components/guide/PageGuideButton';
@@ -40,6 +42,60 @@ export function ObjectWorkspacePage() {
   const { t } = ws;
   // 本地别名：属性访问无法在 JSX 守卫中做类型收窄，解构后可对 nullable 值正常 narrow。
   const { detailObj, historyObj, OBJECT_PAGE_SIZE } = ws;
+  // P118: 解构出稳定引用供 useCallback 使用——直接引用 ws 会让 linter 把整个
+  // ws 对象列为依赖（ws 每次渲染都是新对象，会把回调打成不稳定）。
+  const {
+    setDetailObj,
+    setHistoryObj,
+    setAttachmentObjId,
+    setConfirmDelete,
+    templateHashMap,
+    handleStartSync,
+    handleRequestDismissSync,
+  } = ws;
+
+  // P118: WorkspaceObjectCard 回调统一接收 obj 参数，父级以 useCallback
+  // 提供稳定引用——搜索框每次击键不再新建全部卡片的闭包，memo 不再被击穿
+  // （visibleObjects 在防抖期间对象引用稳定，卡片可整体跳过重渲染）。
+  const handleCardClick = useCallback(
+    (obj: ObjectSummary | ObjectData) => setDetailObj(obj),
+    [setDetailObj],
+  );
+  const handleCardHistory = useCallback(
+    (obj: ObjectSummary | ObjectData) =>
+      setHistoryObj({
+        id: obj.id,
+        name: obj.name,
+        collectionType: obj.collectionType,
+        templateId: obj.templateId || undefined,
+      }),
+    [setHistoryObj],
+  );
+  const handleCardAttachments = useCallback(
+    (obj: ObjectSummary | ObjectData) => setAttachmentObjId(obj.id),
+    [setAttachmentObjId],
+  );
+  const handleCardEdit = useCallback(
+    (obj: ObjectSummary | ObjectData) => navigate(`/editor/${obj.id}`),
+    [navigate],
+  );
+  const handleCardDelete = useCallback(
+    (obj: ObjectSummary | ObjectData) => setConfirmDelete({ id: obj.id, name: obj.name }),
+    [setConfirmDelete],
+  );
+  const handleCardSync = useCallback(
+    (obj: ObjectSummary | ObjectData) => handleStartSync(obj.id, obj.name),
+    [handleStartSync],
+  );
+  const handleCardDismissSync = useCallback(
+    (obj: ObjectSummary | ObjectData) =>
+      handleRequestDismissSync(
+        obj.id,
+        obj.name,
+        obj.templateId ? templateHashMap.get(obj.templateId) : undefined,
+      ),
+    [handleRequestDismissSync, templateHashMap],
+  );
 
   return (
     <AppShell
@@ -130,27 +186,14 @@ export function ObjectWorkspacePage() {
                   attachmentCount={ws.attachmentCounts[obj.id]}
                   templateHashMap={ws.templateHashMap}
                   isSyncDialogOpen={ws.syncDialogOpenForObjectId === obj.id}
-                  onClick={() => ws.setDetailObj(obj)}
-                  onHistory={() =>
-                    ws.setHistoryObj({
-                      id: obj.id,
-                      name: obj.name,
-                      collectionType: obj.collectionType,
-                      templateId: obj.templateId || undefined,
-                    })
-                  }
+                  onClick={handleCardClick}
+                  onHistory={handleCardHistory}
                   onUploadComplete={ws.refreshAttachmentCounts}
-                  onAttachments={() => ws.setAttachmentObjId(obj.id)}
-                  onEdit={() => navigate(`/editor/${obj.id}`)}
-                  onDelete={() => ws.setConfirmDelete({ id: obj.id, name: obj.name })}
-                  onSync={() => ws.handleStartSync(obj.id, obj.name)}
-                  onDismissSync={() =>
-                    ws.handleRequestDismissSync(
-                      obj.id,
-                      obj.name,
-                      obj.templateId ? ws.templateHashMap.get(obj.templateId) : undefined,
-                    )
-                  }
+                  onAttachments={handleCardAttachments}
+                  onEdit={handleCardEdit}
+                  onDelete={handleCardDelete}
+                  onSync={handleCardSync}
+                  onDismissSync={handleCardDismissSync}
                 />
               ))}
               {ws.visibleObjects.length > ws.visibleLimit && (

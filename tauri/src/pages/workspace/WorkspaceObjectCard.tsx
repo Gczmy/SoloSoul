@@ -79,15 +79,17 @@ interface WorkspaceObjectCardProps {
   templateHashMap?: Map<string, string>;
   /** 当前对象是否正在打开模板同步确认弹窗；打开期间临时隐藏提示条。 */
   isSyncDialogOpen?: boolean;
-  onClick: () => void;
-  onHistory: () => void;
-  onAttachments: () => void;
-  onEdit: () => void;
-  onDelete: () => void;
+  // P118: 回调统一接收 obj 参数，父级即可用 useCallback 提供稳定引用，
+  // 避免搜索框每次击键重建全部卡片的内联闭包击穿 memo。
+  onClick: (obj: ObjectSummary | ObjectData) => void;
+  onHistory: (obj: ObjectSummary | ObjectData) => void;
+  onAttachments: (obj: ObjectSummary | ObjectData) => void;
+  onEdit: (obj: ObjectSummary | ObjectData) => void;
+  onDelete: (obj: ObjectSummary | ObjectData) => void;
   /** 用户确认应用模板更新。 */
-  onSync?: () => void;
+  onSync?: (obj: ObjectSummary | ObjectData) => void;
   /** 用户选择暂不应用模板更新。 */
-  onDismissSync?: () => void;
+  onDismissSync?: (obj: ObjectSummary | ObjectData) => void;
   /** 拖拽文件上传完成后的回调，用于刷新附件计数 */
   onUploadComplete?: () => void;
 }
@@ -172,7 +174,7 @@ export const WorkspaceObjectCard = memo(function WorkspaceObjectCard({
 
   return (
     <div ref={dragRef} style={{ position: 'relative' }} data-testid="workspace-object-card">
-      <Card interactive onClick={onClick}>
+      <Card interactive onClick={() => onClick(obj)}>
         {/* 模板更新提示条 */}
         {needsSync && onSync && (
           <div
@@ -194,7 +196,7 @@ export const WorkspaceObjectCard = memo(function WorkspaceObjectCard({
             </span>
             <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
               <button
-                onClick={onSync}
+                onClick={() => onSync?.(obj)}
                 style={{
                   padding: '4px 10px',
                   borderRadius: 6,
@@ -209,7 +211,7 @@ export const WorkspaceObjectCard = memo(function WorkspaceObjectCard({
                 {t('common:yes')}
               </button>
               <button
-                onClick={onDismissSync}
+                onClick={() => onDismissSync?.(obj)}
                 style={{
                   padding: '4px 10px',
                   borderRadius: 6,
@@ -267,19 +269,24 @@ export const WorkspaceObjectCard = memo(function WorkspaceObjectCard({
               <BadgeIconButton
                 Icon={Clock}
                 count={snapshotCount}
-                onClick={onHistory}
+                onClick={() => onHistory(obj)}
                 title="History"
               />
               <BadgeIconButton
                 Icon={Paperclip}
                 count={attachmentCount}
-                onClick={onAttachments}
+                onClick={() => onAttachments(obj)}
                 title="Attachments"
               />
             </div>
             <div className={styles.actionRow}>
-              <BadgeIconButton Icon={Pencil} onClick={onEdit} title="Edit" />
-              <BadgeIconButton Icon={Trash2} onClick={onDelete} title="Move to trash" dangerOutline />
+              <BadgeIconButton Icon={Pencil} onClick={() => onEdit(obj)} title="Edit" />
+              <BadgeIconButton
+                Icon={Trash2}
+                onClick={() => onDelete(obj)}
+                title="Move to trash"
+                dangerOutline
+              />
             </div>
           </div>
           {/* 桌面端：所有操作按钮在一行（headerActions） */}
@@ -287,18 +294,23 @@ export const WorkspaceObjectCard = memo(function WorkspaceObjectCard({
             <BadgeIconButton
               Icon={Clock}
               count={snapshotCount}
-              onClick={onHistory}
+              onClick={() => onHistory(obj)}
               title="History"
             />
             <BadgeIconButton
               Icon={Paperclip}
               count={attachmentCount}
-              onClick={onAttachments}
+              onClick={() => onAttachments(obj)}
               title="Attachments"
             />
             <div className={styles.actionsDivider} />
-            <BadgeIconButton Icon={Pencil} onClick={onEdit} title="Edit" />
-            <BadgeIconButton Icon={Trash2} onClick={onDelete} title="Move to trash" dangerOutline />
+            <BadgeIconButton Icon={Pencil} onClick={() => onEdit(obj)} title="Edit" />
+            <BadgeIconButton
+              Icon={Trash2}
+              onClick={() => onDelete(obj)}
+              title="Move to trash"
+              dangerOutline
+            />
           </div>
         </div>
         {/* Property chips — label always visible, value blurred when masked */}
