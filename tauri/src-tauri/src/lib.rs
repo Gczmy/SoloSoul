@@ -478,10 +478,6 @@ pub fn run() {
             commands::vault::vault_update_hint,
             // Profile commands
             commands::profile::profile_load,
-            // Crypto commands
-            commands::crypto::encrypt_bytes,
-            commands::crypto::decrypt_bytes,
-            commands::crypto::derive_key,
             commands::vault::get_vault_stats,
             // File System commands
             commands::fs::fs_scan_directory,

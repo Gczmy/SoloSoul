@@ -2,7 +2,6 @@ pub mod attachment;
 pub mod auth;
 pub mod backup;
 pub mod biometric;
-pub mod crypto;
 pub mod discovery;
 pub mod embed_model;
 pub mod export_import;

@@ -85,7 +85,7 @@
 | P202 | 安全 | `src-tauri/src/commands/export_import/mod.rs:229-235` | 导出包密钥固定 balanced 档（16MiB/3iter）低于 OWASP 推荐；导出包是最可能的离线攻击目标 | `[x]` 已修复（2026-08-02：导出密钥派生由硬编码 `balanced()` 改 `KdfConfig::from_env()`——release 为 production（64MiB/3iter，OWASP），debug 为 development（测试快速），与 P003 主密钥哲学一致；实际参数随包写入 manifest 新增 `kdf` 字段（`{algo:argon2id, memory_kb, iterations, parallelism}`），GUI 导出（`build_manifest_json`）与核心导出（`build_manifest`）双端都写。导入端（GUI `import_decrypt_preview`/`decrypt_package`、核心 `import_vault`）一律按 `manifest.kdf_config()` 派生：声明参数优先，**旧格式包（无 kdf 字段）回退 balanced 向后兼容**，非法/超限声明直接拒绝（不静默降级）。编解码助手 `kdf_to_manifest_value`/`kdf_from_manifest_value` 收敛在 `solosoul-core::export_import`（GUI 复用，两处 manifest 读取器共享不漂移）。**评审补强**：`kdf_from_manifest_value` 上限防御——manifest 攻击者可控，参数无上界会让导入端按声明跑巨量 Argon2（OOM/挂起），上限收紧为 memory ≤ 1GiB（production 16 倍）、iterations ≤ 10、parallelism ≤ 64。防回归单测 ×7（核心 4：往返 ×3 档/缺失与非法拒绝/旧格式 balanced 回退解密/声明参数优先解密；GUI 1：ManifestData 新旧坏三态解析）+ 超限参数拒绝 ×3 断言并入非法测试。**已知权衡**（与 P105 v2 头部同类）：新版本导出的包带 kdf 字段，旧版本应用打开会忽略该字段按 balanced 派生导致解密失败（错误提示为通用解密失败）——前向不兼容为一次性、需在发布说明注明。solo_soul 345 + solosoul-core 154 + solosoul-crypto 34 测试全绿、clippy 0、fmt 干净、CLI 编译通过） |
 | P203 | 安全 | `src-tauri/src/commands/attachment.rs:892-899,921-925,934-938` | `attachment_open` 每次以 `error!` 记录完整 vault 路径/object_id/mime，属残留调试日志 | `[x]` 已修复（2026-08-02：`attachment_open` 移除全部 4 处残留 `error!` 调试日志——成功路径的 object_id/attachment_id/vault_path/src_path/mime 全量记录直接删除；路径解析失败仅记 io 错误（不含 path_str）；越界拒绝改静态文案；Android 打开路径+mime 日志删除。剩余两处 `error!` 仅含 io 错误/静态文本，无路径/文件名/对象 ID/mime 泄漏；用户可见错误文案不变。solo_soul 345 测试全绿、clippy 0、fmt 干净） |
 | P204 | 安全 | `src-tauri/src/commands/biometric.rs:318-321` | session key hex 放进普通 String 长期残留堆内存 | `[x]` 已修复（2026-08-02：桌面端 `biometric_save_credential` 的会话密钥 hex（`expected`）与派生主密钥 hex（`derived`）均改 `zeroize::Zeroizing<String>` 持有——仅用于比对，函数返回即安全擦除，不再以普通 String 在堆中长期残留主密钥明文；比对改 `*derived != *expected`（Deref），语义逐字节等价。命令层唯一 `get_session_key()`→`hex::encode` 点；移动端 `key_hex` 需持久化至 keystore 不在本项范围。zeroize 为既有 workspace 依赖，全限定调用不加 import。solo_soul 16 个 biometric 测试全绿、clippy 0、fmt 干净） |
-| P205 | 安全 | `src-tauri/src/commands/crypto.rs:77-102` | `derive_key` command 密码入参与返回密钥均不 zeroize，密钥明文经 IPC 进前端 JS 堆 | `[ ]` |
+| P205 | 安全 | `src-tauri/src/commands/crypto.rs:77-102` | `derive_key` command 密码入参与返回密钥均不 zeroize，密钥明文经 IPC 进前端 JS 堆 | `[x]` 已修复（2026-08-02：**直接删除整份 `commands/crypto.rs`**（`encrypt_bytes`/`decrypt_bytes`/`derive_key` 三个 crypto oracle 命令 + 其 5 个参数校验单测）——P101 已将它们移出 ACL allowlist（前端零调用、不可达），本项彻底清除代码层：`commands/mod.rs` 删 `pub mod crypto;`，`lib.rs` 删 generate_handler 三处注册。不再存在任何「密码/密钥经 IPC 进出前端 JS 堆」的命令面，比零化改造成本更低且与 P132 死命令删除先例一致。solo_soul 340 测试全绿（-5 为已删 crypto 测试）、clippy 0、fmt 干净） |
 | P206 | 安全 | `src-tauri/tauri.conf.json:30` | CSP `frame-src data:` 无明确必要；`style-src 'unsafe-inline'` 留 CSS 注入口 | `[ ]` |
 | P207 | 安全 | `src-tauri/src/commands/embed_model.rs:11,195-233` | Embedding 模型 registry 与 sha256 同通道下发无独立签名（对比插件注册表有 minisign） | `[ ]` |
 | P208 | 安全 | `crates/solosoul-plugin/src/sandbox.rs:71` | 插件 WASI `inherit_stdio()` 可向宿主日志注入伪造内容 | `[ ]` |
@@ -115,8 +115,8 @@
 
 ## 修复进度
 
-- 已完成：52 / 69（P001-P007、P101-P142、P201-P204；其中 P104 为部分闭环）
-- 当前处理：P205（derive_key 密码/密钥 zeroize）
+- 已完成：53 / 69（P001-P007、P101-P142、P201-P205；其中 P104 为部分闭环）
+- 当前处理：P206（CSP frame-src data: / style-src unsafe-inline 收紧）
 
 ## 审查通过项（已排查，无需修改）
 
