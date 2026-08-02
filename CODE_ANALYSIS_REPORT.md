@@ -73,7 +73,7 @@
 | P137 | 重复代码 | `crates/solosoul-core/src/llm/config.rs:20` ↔ `src-tauri/src/commands/llm/mod.rs:6` | 8 个 LLM 数据结构在两个 crate 各定义一份（44+29 行），易漂移 | `[x]` 已修复（2026-08-02：commands/llm/mod.rs 本地 8 类型与 default_true 删除，改 `pub use solosoul_core::llm::config::{...}` 复用唯一真理来源；本地 default_true 测试随之删除，serde 格式逐字段一致由 48 个 LLM 测试确认） |
 | P138 | 重复代码 | `src-tauri/src/commands/sync.rs` | 12 对 `#[cfg(desktop)]`/`#[cfg(mobile)]` 命令函数体逐字节相同（约 133 行），仅 sync_enable/sync_with_device 真有平台差异 | `[x]` 已修复（2026-08-02：11 对逐字节相同命令（sync_discover/trigger_foreground/set_auto_enabled/get_auto_status/get_status/list_conflicts/get_conflict_detail/resolve_conflict/listen_addr/trust_peer/forget_peer）合并为单一定义；sync_enable 与 sync_with_device 两对真平台差异保留，cfg 类型声明与 local_display_ip 内部块不变；剩余 cfg 标记仅存类型与差异函数） |
 | P139 | 重复代码 | `crates/solosoul-sync/src/manager.rs` ↔ `mobile.rs` ↔ `service.rs` | MobileSyncManager 与 SyncService/SyncManager 约 120 行重复（audit_log/trust_peer/forget_peer/connect 流程） | `[x]` 已修复（2026-08-02：新增 `shared.rs`（pub(crate)）收敛三处重复——audit_log、get_or_create_sync_identity、known_peers_from_vault、trust_peer_fallback（含 P001/P103 指纹补绑语义）、forget_peer_fallback、local_fingerprint_fallback；mobile.rs/service.rs/manager.rs 的 vault 兜底分支改为调用共享 helper，三处仅保留 manager 已启动分支。变更 +108/-178 行，manager.rs 的 trust_peer/forget_peer 委托 shared（P001 补绑逻辑逐分支等价），并清理随之未使用的 PeerSyncState import） |
-| P140 | 重复代码 | `src/pages/settings/OcrSettingsPage.tsx` ↔ `src/pages/scan/OcrPage.tsx` | OCR 模型安装/下载/tier 切换逻辑约 70 行逐字重复 | `[ ]` |
+| P140 | 重复代码 | `src/pages/settings/OcrSettingsPage.tsx` ↔ `src/pages/scan/OcrPage.tsx` | OCR 模型安装/下载/tier 切换逻辑约 70 行逐字重复 | `[x]` 已修复（2026-08-02：新增 `hooks/useOcrModelManager.ts` 收敛 tier/status 加载（ocr_list_available_tiers + ocr_get_active_tier + 逐档 ocr_get_model_status）、档位切换/安装/下载/删除处理与 downloadUrl 校验；页面差异经可选回调注入——Settings 传 onTierChangeSuccess/onDeleteSuccess 与 confirmDownload（requestConfirm 包装），OcrPage 仅 install/download 成功回调且直接下载，行为逐分支等价；`enabled` 控制挂载加载（Settings 移动端 false），loading 初值 useState(enabled) 复现原语义。两页合计净减约 90 行；新增防回归单测 ×10） |
 | P141 | 重复代码 | `src/pages/search/SearchPage.tsx` ↔ `src/components/layout/SearchPopover.tsx` | 搜索 state 四件套 + 缓存 + 过滤排序 + 结果行渲染约 80 行重复 | `[ ]` |
 | P142 | 重复代码 | `src/components/layout/TopFunctionBar.tsx:181` ↔ `SecondaryActionBar.tsx:158` | hover 展开/收起 + `renderButtonWithCard` 约 58 行几乎相同 | `[ ]` |
 
@@ -115,8 +115,8 @@
 
 ## 修复进度
 
-- 已完成：45 / 69（P001-P007、P101-P139；其中 P104 为部分闭环）
-- 当前处理：P140（OCR 模型管理逻辑抽 useOcrModelManager hook，P1 重复代码）
+- 已完成：46 / 69（P001-P007、P101-P140；其中 P104 为部分闭环）
+- 当前处理：P141（搜索逻辑共享——SearchPage ↔ SearchPopover，P1 重复代码）
 
 ## 审查通过项（已排查，无需修改）
 

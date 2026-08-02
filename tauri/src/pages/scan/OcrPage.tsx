@@ -8,10 +8,11 @@ import { Button } from '@/components/ui/Button';
 import { useAuthStore } from '@/stores/authStore';
 import { useObjectStore } from '@/stores/objectStore';
 import { useToastError } from '@/hooks/useToastError';
+import { useOcrModelManager } from '@/hooks/useOcrModelManager';
 import { isMobilePlatformSync } from '@/lib/platform';
 
 import { invokeCommand as invoke } from '@/lib/ipcClient';
-import type { OcrResult, OcrTierInfo, OcrModelStatus, MrzResult } from '@/lib/ipc';
+import type { OcrResult, MrzResult } from '@/lib/ipc';
 import { OCR_MODEL_SERIES, OCR_MODEL_NOT_INSTALLED_PREFIX } from '@/lib/constants';
 import { getTierLabel } from '@/lib/utils';
 import { MrzResultCard } from '@/components/ocr/MrzResultCard';
@@ -41,13 +42,6 @@ export function OcrPage() {
   const [pendingImportSource, setPendingImportSource] = useState<'ocr' | 'mrz' | null>(null);
   const [scanMode, setScanMode] = useState<ScanMode>('general');
 
-  const [tiers, setTiers] = useState<OcrTierInfo[]>([]);
-  const [activeTier, setActiveTier] = useState('small');
-  const [statusMap, setStatusMap] = useState<Record<string, OcrModelStatus>>({});
-  const [loadingStatus, setLoadingStatus] = useState(true);
-  const [installingTier, setInstallingTier] = useState<string | null>(null);
-  const [downloadingTier, setDownloadingTier] = useState<string | null>(null);
-  const [downloadUrl, setDownloadUrl] = useState('');
   const isMobilePlatform = isMobilePlatformSync();
 
   /** 处理扫描错误：将后端返回的「模型未安装」前缀解析为国际化提示。 */
@@ -74,37 +68,24 @@ export function OcrPage() {
     return true;
   };
 
-  const loadTiersAndStatus = async () => {
-    try {
-      setLoadingStatus(true);
-      const [tierList, currentTier] = await Promise.all([
-        invoke<OcrTierInfo[]>('ocr_list_available_tiers'),
-        invoke<string>('ocr_get_active_tier'),
-      ]);
-      setTiers(tierList);
-      setActiveTier(currentTier);
-
-      const statuses: Record<string, OcrModelStatus> = {};
-      await Promise.all(
-        tierList.map(async (tier) => {
-          const status = await invoke<OcrModelStatus>('ocr_get_model_status', { tier: tier.tier });
-          statuses[tier.tier] = status;
-        }),
-      );
-      setStatusMap(statuses);
-    } catch (e) {
-      onError(e, t('ocr:load_status_failed'));
-    } finally {
-      setLoadingStatus(false);
-    }
-  };
-
-  // P212: mount-only — intentionally omitting loadTiersAndStatus/onError/t to avoid re-run.
-  // All deps are stable refs or setState setters; stale closures not an issue for this init call.
-  useEffect(() => {
-    loadTiersAndStatus();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const {
+    tiers,
+    activeTier,
+    statusMap,
+    loading: loadingStatus,
+    installingTier,
+    downloadingTier,
+    downloadUrl,
+    setDownloadUrl,
+    handleTierChange,
+    handleInstallBundled,
+    handleDownload,
+  } = useOcrModelManager({
+    t,
+    onError,
+    onInstallSuccess: onSuccess,
+    onDownloadSuccess: onSuccess,
+  });
 
   const getFileFilters = () => {
     // MRZ 与移动端均只支持图片格式（移动端 ML Kit 无法处理 PDF）
@@ -298,45 +279,6 @@ export function OcrPage() {
     } finally {
       setIsImporting(false);
       setPendingImportSource(null);
-    }
-  };
-
-  const handleTierChange = async (tier: string) => {
-    try {
-      await invoke<void>('ocr_set_active_tier', { tier });
-      setActiveTier(tier);
-    } catch (e) {
-      onError(e, t('ocr:set_tier_failed'));
-    }
-  };
-
-  const handleInstallBundled = async (tier: string) => {
-    setInstallingTier(tier);
-    try {
-      await invoke<void>('ocr_install_bundled_model', { tier });
-      await loadTiersAndStatus();
-      onSuccess(t('ocr:install_success', { tier }));
-    } catch (e) {
-      onError(e, t('ocr:install_failed', { tier }));
-    } finally {
-      setInstallingTier(null);
-    }
-  };
-
-  const handleDownload = async (tier: string) => {
-    if (!downloadUrl.trim()) {
-      onError(new Error(t('ocr:download_url_required')), t('ocr:download_url_required'));
-      return;
-    }
-    setDownloadingTier(tier);
-    try {
-      await invoke<void>('ocr_download_model', { tier, baseUrl: downloadUrl.trim() });
-      await loadTiersAndStatus();
-      onSuccess(t('ocr:download_success', { tier }));
-    } catch (e) {
-      onError(e, t('ocr:download_failed', { tier }));
-    } finally {
-      setDownloadingTier(null);
     }
   };
 

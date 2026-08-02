@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AppShell } from '@/components/layout/AppShell';
@@ -6,8 +5,7 @@ import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { useToastError } from '@/hooks/useToastError';
 import { useConfirm } from '@/hooks/useConfirm';
-import { invokeCommand as invoke } from '@/lib/ipcClient';
-import type { OcrTierInfo, OcrModelStatus } from '@/lib/ipc';
+import { useOcrModelManager } from '@/hooks/useOcrModelManager';
 import { getTierLabel } from '@/lib/utils';
 import { Download, CheckCircle, AlertCircle, Trash2 } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/constants';
@@ -20,108 +18,36 @@ export function OcrSettingsPage() {
   const { requestConfirm, dialog: confirmDialog } = useConfirm();
   const isMobilePlatform = isMobilePlatformSync();
 
-  const [tiers, setTiers] = useState<OcrTierInfo[]>([]);
-  const [activeTier, setActiveTier] = useState('small');
-  const [statusMap, setStatusMap] = useState<Record<string, OcrModelStatus>>({});
-  const [loading, setLoading] = useState(!isMobilePlatform);
-  const [installingTier, setInstallingTier] = useState<string | null>(null);
-  const [downloadingTier, setDownloadingTier] = useState<string | null>(null);
-  const [deletingTier, setDeletingTier] = useState<string | null>(null);
-  const [downloadUrl, setDownloadUrl] = useState('');
-
-  const loadTiersAndStatus = async () => {
-    try {
-      setLoading(true);
-      const [tierList, currentTier] = await Promise.all([
-        invoke<OcrTierInfo[]>('ocr_list_available_tiers'),
-        invoke<string>('ocr_get_active_tier'),
-      ]);
-      setTiers(tierList);
-      setActiveTier(currentTier);
-
-      const statuses: Record<string, OcrModelStatus> = {};
-      await Promise.all(
-        tierList.map(async (tier) => {
-          const status = await invoke<OcrModelStatus>('ocr_get_model_status', { tier: tier.tier });
-          statuses[tier.tier] = status;
-        }),
-      );
-      setStatusMap(statuses);
-    } catch (e) {
-      onError(e, t('ocr:load_status_failed'));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // P212: mount-only init — loadTiersAndStatus/onError/t are stable, omitted intentionally.
-  useEffect(() => {
-    if (!isMobilePlatform) {
-      loadTiersAndStatus();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const handleTierChange = async (tier: string) => {
-    try {
-      await invoke<void>('ocr_set_active_tier', { tier });
-      setActiveTier(tier);
-      onSuccess(t('ocr:set_tier_success', { tier }));
-    } catch (e) {
-      onError(e, t('ocr:set_tier_failed'));
-    }
-  };
-
-  const handleInstallBundled = async (tier: string) => {
-    setInstallingTier(tier);
-    try {
-      await invoke<void>('ocr_install_bundled_model', { tier });
-      await loadTiersAndStatus();
-      onSuccess(t('ocr:install_success', { tier }));
-    } catch (e) {
-      onError(e, t('ocr:install_failed', { tier }));
-    } finally {
-      setInstallingTier(null);
-    }
-  };
-
-  const handleDelete = async (tier: string) => {
-    setDeletingTier(tier);
-    try {
-      await invoke<void>('ocr_delete_model', { tier });
-      await loadTiersAndStatus();
-      onSuccess(t('ocr:delete_success', { tier }));
-    } catch (e) {
-      onError(e, t('ocr:delete_failed', { tier }));
-    } finally {
-      setDeletingTier(null);
-    }
-  };
-
-  const handleDownload = async (tier: string) => {
-    if (!downloadUrl.trim()) {
-      onError(new Error(t('ocr:download_url_required')), t('ocr:download_url_required'));
-      return;
-    }
-    const size = tier === 'tiny' ? '1.5MB' : tier === 'medium' ? '132MB' : '30MB';
-    requestConfirm(
-      t('ocr:confirm_download_title'),
-      t('ocr:confirm_download_message', { tier, size }),
-      async () => {
-        setDownloadingTier(tier);
-        try {
-          await invoke<void>('ocr_download_model', { tier, baseUrl: downloadUrl.trim() });
-          await loadTiersAndStatus();
-          onSuccess(t('ocr:download_success', { tier }));
-        } catch (e) {
-          onError(e, t('ocr:download_failed', { tier }));
-        } finally {
-          setDownloadingTier(null);
-        }
-      },
-      { confirmLabel: t('ocr:confirm_download_ok'), cancelLabel: t('common:cancel') },
-    );
-  };
+  const {
+    tiers,
+    activeTier,
+    statusMap,
+    loading,
+    installingTier,
+    downloadingTier,
+    deletingTier,
+    downloadUrl,
+    setDownloadUrl,
+    handleTierChange,
+    handleInstallBundled,
+    handleDelete,
+    handleDownload,
+  } = useOcrModelManager({
+    enabled: !isMobilePlatform,
+    t,
+    onError,
+    onTierChangeSuccess: onSuccess,
+    onInstallSuccess: onSuccess,
+    onDeleteSuccess: onSuccess,
+    onDownloadSuccess: onSuccess,
+    confirmDownload: ({ message, confirmLabel, cancelLabel, onConfirm }) =>
+      requestConfirm(
+        t('ocr:confirm_download_title'),
+        message,
+        onConfirm,
+        { confirmLabel, cancelLabel },
+      ),
+  });
 
   return (
     <AppShell title={t('ocr:settings_title')} onBack={() => navigate('/settings')}>
