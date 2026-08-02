@@ -10,6 +10,12 @@ use tauri::{path::BaseDirectory, AppHandle, Emitter, Manager};
 
 const REGISTRY_URL: &str = "https://raw.githubusercontent.com/SoloSoul/models/main/registry.json";
 
+/// P207: 编译期固化的 Embedding 注册表 minisign 公钥（base64：2 字节算法前缀 + 8 字节
+/// key_id + 32 字节 Ed25519 公钥）。维护者在 SoloSoul/models 仓库的签名体系就绪后填入；
+/// 在此之前可经环境变量 `SOLOSOUL_EMBED_REGISTRY_PUBKEY` 注入（优先级更高）。
+/// 未配置任何公钥时与插件注册表行为一致：告警并按旧行为继续（注册表同通道下发）。
+const EMBED_REGISTRY_PUBKEY_B64: Option<&str> = None;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EmbedModelInfo {
     pub id: String,
@@ -27,6 +33,12 @@ pub struct EmbedRegistry {
 }
 
 /// Fetch the remote model registry.
+///
+/// P207: 注册表 minisign 签名校验（与插件注册表 `SOLOSOUL_REGISTRY_PUBKEY` 同模式）——
+/// 注册表 JSON 与其中 `download_url`/`checksum` 同通道下发，若无独立签名则仓库被攻破时
+/// 攻击者可直接替换注册表并伪造匹配的 checksum。公钥来源优先级：
+/// `SOLOSOUL_EMBED_REGISTRY_PUBKEY` 环境变量 > 编译期常量 `EMBED_REGISTRY_PUBKEY_B64`。
+/// 未配置时告警并继续（插件注册表先例）；配置后校验失败即硬失败，绝不含糊。
 pub async fn fetch_registry() -> Result<EmbedRegistry, String> {
     let client = reqwest::Client::builder()
         .timeout(std::time::Duration::from_secs(30))
@@ -42,13 +54,50 @@ pub async fn fetch_registry() -> Result<EmbedRegistry, String> {
     if !resp.status().is_success() {
         return Err(format!("Registry HTTP {}", resp.status()));
     }
-
-    let registry: EmbedRegistry = resp
-        .json()
+    let registry_bytes = resp
+        .bytes()
         .await
-        .map_err(|e| format!("Parse registry: {}", e))?;
+        .map_err(|e| format!("Read registry: {}", e))?;
+
+    let pubkey_b64 = std::env::var("SOLOSOUL_EMBED_REGISTRY_PUBKEY")
+        .ok()
+        .or_else(|| EMBED_REGISTRY_PUBKEY_B64.map(str::to_string));
+    if let Some(key_b64) = pubkey_b64 {
+        let sig_url = format!("{}.minisig", REGISTRY_URL);
+        let sig_text = client
+            .get(&sig_url)
+            .send()
+            .await
+            .map_err(|e| format!("Fetch registry signature: {}", e))?
+            .text()
+            .await
+            .map_err(|e| format!("Read registry signature: {}", e))?;
+        verify_registry_signature(&registry_bytes, &key_b64, &sig_text)?;
+    } else {
+        tracing::warn!("SOLOSOUL_EMBED_REGISTRY_PUBKEY 未配置，Embedding 注册表不校验签名");
+    }
+
+    let registry: EmbedRegistry =
+        serde_json::from_slice(&registry_bytes).map_err(|e| format!("Parse registry: {}", e))?;
 
     Ok(registry)
+}
+
+/// P207: 用 minisign 公钥校验注册表字节与签名文本（解耦自网络层，便于单测）。
+/// `pubkey_b64` 为 minisign 公钥 base64（含 ED 前缀与 key_id），`sig_text` 为 `.minisig` 文件内容。
+/// 仅模块内使用（fetch_registry + 同模块单测），保持私有避免 P222 类可见性过度。
+fn verify_registry_signature(
+    registry_bytes: &[u8],
+    pubkey_b64: &str,
+    sig_text: &str,
+) -> Result<(), String> {
+    let public_key = minisign_verify::PublicKey::from_base64(pubkey_b64)
+        .map_err(|e| format!("Registry public key parse failed: {}", e))?;
+    let signature = minisign_verify::Signature::decode(sig_text)
+        .map_err(|e| format!("Registry signature decode failed: {}", e))?;
+    public_key
+        .verify(registry_bytes, &signature, false)
+        .map_err(|e| format!("Registry signature verification failed: {}", e))
 }
 
 // ── Local model storage ──────────────────────────────────────
@@ -508,5 +557,139 @@ mod tests {
             std::fs::remove_dir_all(dir).map_err(|e| format!("Remove: {}", e))?;
         }
         Ok(())
+    }
+
+    // ── P207 注册表签名校验（纯函数单测，无网络） ──────────────
+    // 用 ring + blake2 构造 Minisign 预哈希签名，与插件注册表测试同模式。
+    use base64::engine::general_purpose::STANDARD as BASE64;
+    use base64::Engine;
+    use blake2::{Blake2b512, Digest};
+    use ring::rand::SystemRandom;
+    use ring::signature::{Ed25519KeyPair, KeyPair};
+
+    fn gen_minisign_keypair() -> ([u8; 8], Vec<u8>, Ed25519KeyPair) {
+        let rng = SystemRandom::new();
+        let pkcs8 = Ed25519KeyPair::generate_pkcs8(&rng).expect("生成 Ed25519 密钥对失败");
+        let keypair = Ed25519KeyPair::from_pkcs8(pkcs8.as_ref()).expect("解析 PKCS#8 失败");
+        let public_key = keypair.public_key().as_ref().to_vec();
+        let key_id = [0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08];
+        (key_id, public_key, keypair)
+    }
+
+    fn pubkey_b64(key_id: [u8; 8], public_key: &[u8]) -> String {
+        let mut buf = Vec::with_capacity(42);
+        buf.extend_from_slice(&[0x45, 0x44]); // "ED" 预哈希模式
+        buf.extend_from_slice(&key_id);
+        buf.extend_from_slice(public_key);
+        assert_eq!(buf.len(), 42);
+        BASE64.encode(&buf)
+    }
+
+    fn sign_data(data: &[u8], key_id: [u8; 8], keypair: &Ed25519KeyPair) -> String {
+        let mut hasher = Blake2b512::new();
+        hasher.update(data);
+        let hash = hasher.finalize();
+        let sig = keypair.sign(&hash);
+        let sig_bytes = sig.as_ref();
+
+        let trusted_comment = "timestamp:0\tfile:registry.json";
+        let mut global_msg = Vec::with_capacity(sig_bytes.len() + trusted_comment.len());
+        global_msg.extend_from_slice(sig_bytes);
+        global_msg.extend_from_slice(trusted_comment.as_bytes());
+        let global_sig = keypair.sign(&global_msg);
+
+        let mut sig_bin = Vec::with_capacity(74);
+        sig_bin.extend_from_slice(&[0x45, 0x44]);
+        sig_bin.extend_from_slice(&key_id);
+        sig_bin.extend_from_slice(sig_bytes);
+        assert_eq!(sig_bin.len(), 74);
+
+        format!(
+            "untrusted comment: test signature\n{}\ntrusted comment: {}\n{}",
+            BASE64.encode(&sig_bin),
+            trusted_comment,
+            BASE64.encode(global_sig.as_ref()),
+        )
+    }
+
+    fn sample_registry_bytes() -> Vec<u8> {
+        br#"{"models":[{"id":"all-MiniLM-L6-v2","download_url":"https://example.com/m.zip","checksum":"sha256:abc"}]}"#
+            .to_vec()
+    }
+
+    #[test]
+    fn test_verify_registry_signature_accepts_valid() {
+        let (key_id, public_key, keypair) = gen_minisign_keypair();
+        let data = sample_registry_bytes();
+        let sig = sign_data(&data, key_id, &keypair);
+        verify_registry_signature(&data, &pubkey_b64(key_id, &public_key), &sig).unwrap();
+    }
+
+    #[test]
+    fn test_verify_registry_signature_rejects_corrupted_sig() {
+        let (key_id, public_key, keypair) = gen_minisign_keypair();
+        let data = sample_registry_bytes();
+        let sig = sign_data(&data, key_id, &keypair);
+        // 破坏 global signature（最后一行）——无论解码失败还是校验失败都必须被拒绝
+        let mut lines: Vec<&str> = sig.lines().collect();
+        *lines.last_mut().unwrap() = "A";
+        let corrupted = lines.join("\n");
+        assert!(
+            verify_registry_signature(&data, &pubkey_b64(key_id, &public_key), &corrupted).is_err()
+        );
+    }
+    #[test]
+    fn test_verify_registry_signature_rejects_tampered_data() {
+        let (key_id, public_key, keypair) = gen_minisign_keypair();
+        let data = sample_registry_bytes();
+        let sig = sign_data(&data, key_id, &keypair);
+        // 篡改注册表内容（如替换 checksum）
+        let mut tampered = data.clone();
+        let needle: &[u8] = b"sha256:abc";
+        let pos = tampered
+            .windows(needle.len())
+            .position(|w| w == needle)
+            .expect("needle in fixture");
+        tampered[pos + 7] = b'x'; // abc -> xbc
+        assert!(
+            verify_registry_signature(&tampered, &pubkey_b64(key_id, &public_key), &sig).is_err()
+        );
+    }
+
+    #[test]
+    fn test_verify_registry_signature_rejects_mismatched_key() {
+        let (key_id, _public_key, keypair) = gen_minisign_keypair();
+        let data = sample_registry_bytes();
+        let sig = sign_data(&data, key_id, &keypair);
+        let (_, other_pk, _) = gen_minisign_keypair();
+        assert!(verify_registry_signature(&data, &pubkey_b64(key_id, &other_pk), &sig).is_err());
+    }
+
+    #[test]
+    fn test_verify_registry_signature_rejects_bad_pubkey() {
+        let (key_id, _public_key, keypair) = gen_minisign_keypair();
+        let data = sample_registry_bytes();
+        let sig = sign_data(&data, key_id, &keypair);
+        let err = verify_registry_signature(&data, "not-base64!!!", &sig).unwrap_err();
+        assert!(err.contains("public key parse failed"));
+    }
+
+    #[test]
+    fn test_verify_registry_signature_rejects_bad_sig_text() {
+        let (key_id, public_key, _keypair) = gen_minisign_keypair();
+        let data = sample_registry_bytes();
+        let err = verify_registry_signature(&data, &pubkey_b64(key_id, &public_key), "garbage")
+            .unwrap_err();
+        assert!(err.contains("signature decode failed"));
+    }
+
+    #[test]
+    fn test_verify_registry_signature_no_pubkey_path() {
+        // 未配置公钥时 fetch_registry 不校验（走 env 分支逻辑）；此处直接验证
+        // verify_registry_signature 在空字符串公钥下报 parse 失败，不会误通过。
+        let (key_id, _public_key, keypair) = gen_minisign_keypair();
+        let data = sample_registry_bytes();
+        let sig = sign_data(&data, key_id, &keypair);
+        assert!(verify_registry_signature(&data, "", &sig).is_err());
     }
 }

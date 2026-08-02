@@ -87,7 +87,7 @@
 | P204 | 安全 | `src-tauri/src/commands/biometric.rs:318-321` | session key hex 放进普通 String 长期残留堆内存 | `[x]` 已修复（2026-08-02：桌面端 `biometric_save_credential` 的会话密钥 hex（`expected`）与派生主密钥 hex（`derived`）均改 `zeroize::Zeroizing<String>` 持有——仅用于比对，函数返回即安全擦除，不再以普通 String 在堆中长期残留主密钥明文；比对改 `*derived != *expected`（Deref），语义逐字节等价。命令层唯一 `get_session_key()`→`hex::encode` 点；移动端 `key_hex` 需持久化至 keystore 不在本项范围。zeroize 为既有 workspace 依赖，全限定调用不加 import。solo_soul 16 个 biometric 测试全绿、clippy 0、fmt 干净） |
 | P205 | 安全 | `src-tauri/src/commands/crypto.rs:77-102` | `derive_key` command 密码入参与返回密钥均不 zeroize，密钥明文经 IPC 进前端 JS 堆 | `[x]` 已修复（2026-08-02：**直接删除整份 `commands/crypto.rs`**（`encrypt_bytes`/`decrypt_bytes`/`derive_key` 三个 crypto oracle 命令 + 其 5 个参数校验单测）——P101 已将它们移出 ACL allowlist（前端零调用、不可达），本项彻底清除代码层：`commands/mod.rs` 删 `pub mod crypto;`，`lib.rs` 删 generate_handler 三处注册。不再存在任何「密码/密钥经 IPC 进出前端 JS 堆」的命令面，比零化改造成本更低且与 P132 死命令删除先例一致。solo_soul 340 测试全绿（-5 为已删 crypto 测试）、clippy 0、fmt 干净） |
 | P206 | 安全 | `src-tauri/tauri.conf.json:30` | CSP `frame-src data:` 无明确必要；`style-src 'unsafe-inline'` 留 CSS 注入口 | `[x]` 部分修复 + 结构性依赖保留（2026-08-02）：**frame-src 收紧**——`frame-src 'self' data:` → `frame-src 'self'`（全前端零 iframe/srcdoc/frame 使用，SafeMarkdown 甚至显式禁 iframe/object/embed，`data:` 属死授权；保留显式 `'self'` 作注入纵深防御）。**style-src 'unsafe-inline' 保留（结构性必需）**：全库 227+ 处 React 内联 `style={{}}` 属性 + 12 处源码内静态 keyframe `<style>` 注入，移除需 P048 级全量 CSS 重构（远超 P2 范围）；残留风险已被多重防线压制——无 `dangerouslySetInnerHTML`、markdown 全走净化、`default-src 'self'` 阻断远程样式加载。`img-src data:`（附件预览 data URL 必需）与 `connect-src localhost:11434`（Ollama）未动。**遗留观察**：`AttachmentPreviewOverlay` 的 PDF `<embed src=data:>` 受 `object-src`（缺省继承 `default-src 'self'`）管辖，现行 CSP 下本就被拦截——属既有行为非本项引入，待确认该路径是否预期失效（需 `object-src data:`）或本就弃用） |
-| P207 | 安全 | `src-tauri/src/commands/embed_model.rs:11,195-233` | Embedding 模型 registry 与 sha256 同通道下发无独立签名（对比插件注册表有 minisign） | `[ ]` |
+| P207 | 安全 | `src-tauri/src/commands/embed_model.rs:11,195-233` | Embedding 模型 registry 与 sha256 同通道下发无独立签名（对比插件注册表有 minisign） | `[x]` 已修复（2026-08-02：注册表 minisign 签名校验 + 编译期公钥常量 + 环境变量注入 + 7 条防回归单测，见下文） |
 | P208 | 安全 | `crates/solosoul-plugin/src/sandbox.rs:71` | 插件 WASI `inherit_stdio()` 可向宿主日志注入伪造内容 | `[ ]` |
 | P209 | 安全 | `crates/solosoul-core/src/biometric/legacy.rs:32` | `LEGACY_XOR_KEY` 硬编码 XOR 密钥（仅旧凭证迁移用，迁移窗口关闭后应删除整个模块） | `[ ]` |
 | P210 | 性能 | `crates/solosoul-vault/src/storage.rs:2480-2487,2647-2653` | 关键词过滤每次把整个 JSON Value 重新 `to_string().to_lowercase()`，Value→String 往返浪费 | `[ ]` |
@@ -115,8 +115,8 @@
 
 ## 修复进度
 
-- 已完成：54 / 69（P001-P007、P101-P142、P201-P206；其中 P104 为部分闭环、P206 部分修复）
-- 当前处理：P207（Embedding 模型 sha256 清单校验）
+- 已完成：55 / 69（P001-P007、P101-P142、P201-P207；其中 P104 为部分闭环、P206 部分修复）
+- 当前处理：P208（插件 WASI inherit_stdio 日志注入面）
 
 ## 审查通过项（已排查，无需修改）
 
@@ -163,6 +163,7 @@ Windows 生产路径用 `FileBiometricStorage` 存主密钥（`derive_master_key
 - **P106**：`with_capacity` 前对 `original_size` 设上限，或改增量扩展。（2026-08-02 已修复：头部一致性校验 + 容量封顶 + 流式增量读取。）
 - **P107**：`allowed_fs_base` 默认收窄到 Desktop/Documents/Downloads（与 ocr.rs:216-238 的 `is_path_in_allowed_dir` 一致）。（2026-08-02 已修复：Desktop/Documents/Downloads + Vault 附件目录多基目录集合，含 R012 穿越保留与首启裸错误防护。）
 - **P108**：fs capabilities 收窄到 `$APPCACHE`+`$TEMP`，其余经 Rust command 中转校验。（2026-08-02 已修复：copy-file/stat 作用域移除 `$DESKTOP/$DOCUMENT/$DOWNLOAD`，仅保留 `$APPCACHE/$TEMP`——全库唯一 plugin-fs 调用点 `mobileFileTransfer.ts` 仅用应用私有目录，桌面流程全走 Rust command，无合法使用点受影响。）
+- **P207**：Embedding 模型 registry 与 sha256 同通道下发无独立签名（对比插件注册表有 minisign）。（2026-08-02 已修复：注册表 minisign 签名校验。新增 `EMBED_REGISTRY_PUBKEY_B64` 编译期公钥常量（SoloSoul/models 签名体系就绪后填入）与 `SOLOSOUL_EMBED_REGISTRY_PUBKEY` 环境变量注入（优先级更高）；`fetch_registry` 配置公钥后拉取 `registry.json.minisig` 并硬校验、失败即拒（同插件注册表 `SOLOSOUL_REGISTRY_PUBKEY` 模式），未配置时告警并按旧行为继续（与插件默认行为一致，零回归）。校验函数 `verify_registry_signature` 解耦网络层且保持私有（P222 可见性考量）。防回归单测 ×7：合法签名接受 / 破坏 global sig 拒绝 / 篡改数据拒绝 / 密钥不匹配拒绝 / 坏公钥 base64 / 垃圾签名文本 / 空公钥，用 ring+blake2 构造真实 ED 预哈希 minisign 签名。solo_soul 347 测试全绿、clippy 0、fmt 干净。）
 
 ### 四、P1 性能高（Rust）
 
