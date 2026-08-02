@@ -373,90 +373,103 @@ pub fn import_vault(
         }
     }
 
-    let objects = payload["objects"].as_array().cloned().unwrap_or_default();
+    // P212: 存在性预查（仅 SkipExisting 需要）——一次 metadata-only 查询收集
+    // 现存非删除对象 ID，替代逐对象 load_object 的 N 次解密。VaultStore 按账户
+    // 分库，账户内 ID 唯一，集合判定与 load_object+!is_deleted 语义等价。
+    let existing_ids: HashSet<String> = match strategy {
+        ImportStrategy::SkipExisting => vault
+            .list_object_metadata(account_id, None, None, false, false)?
+            .into_iter()
+            .map(|s| s.id)
+            .collect(),
+        _ => HashSet::new(),
+    };
+
     let mut imported = 0usize;
     let mut imported_object_ids: HashSet<String> = HashSet::new();
+    // P212: 收集待写对象，末尾 save_objects_batch 单事务批量落库（替代逐条 auto-commit）。
+    let mut records_to_save: Vec<ObjectRecord> = Vec::new();
 
-    for obj_val in &objects {
-        let id = obj_val["id"].as_str().unwrap_or("");
-        if id.is_empty() {
-            continue;
-        }
-
-        let existing = vault.load_object(id).ok().flatten();
-        match strategy {
-            ImportStrategy::SkipExisting => {
-                if existing.is_some_and(|e| !e.is_deleted) {
-                    continue;
-                }
+    // P212: 借用 payload 数组迭代（避免整数组克隆）。
+    if let Some(objects) = payload["objects"].as_array() {
+        for obj_val in objects {
+            let id = obj_val["id"].as_str().unwrap_or("");
+            if id.is_empty() {
+                continue;
             }
-            ImportStrategy::Overwrite | ImportStrategy::Merge => { /* 覆盖 */ }
+
+            if matches!(strategy, ImportStrategy::SkipExisting) && existing_ids.contains(id) {
+                continue;
+            }
+
+            let mut properties = obj_val["properties"].clone();
+            resolve_cross_scope_references(&mut properties, &package_ids);
+
+            let record = ObjectRecord {
+                id: id.to_string(),
+                account_id: account_id.to_string(),
+                type_id: obj_val["type_id"].as_str().unwrap_or("note").to_string(),
+                section_type: obj_val["section_type"]
+                    .as_str()
+                    .unwrap_or("identity")
+                    .to_string(),
+                name: obj_val["name"].as_str().unwrap_or("Imported").to_string(),
+                icon_name: obj_val["icon_name"]
+                    .as_str()
+                    .unwrap_or("document")
+                    .to_string(),
+                parent_id: obj_val["parent_id"].as_str().map(String::from),
+                children_ids: obj_val["children_ids"]
+                    .as_array()
+                    .map(|a| {
+                        a.iter()
+                            .filter_map(|v| v.as_str().map(String::from))
+                            .collect()
+                    })
+                    .unwrap_or_default(),
+                properties,
+                property_labels: if obj_val["property_labels"].is_null() {
+                    None
+                } else {
+                    Some(obj_val["property_labels"].clone())
+                },
+                sensitivity_level: obj_val["sensitivity_level"]
+                    .as_str()
+                    .unwrap_or("internal")
+                    .to_string(),
+                is_deleted: false,
+                deleted_at: None,
+                tags_json: obj_val["tags"]
+                    .as_array()
+                    .map(|a| {
+                        a.iter()
+                            .filter_map(|v| v.as_str().map(String::from))
+                            .collect()
+                    })
+                    .unwrap_or_default(),
+                contract_type_id: obj_val["contract_type_id"].as_str().map(String::from),
+                template_id: obj_val["template_id"].as_str().map(|tid| {
+                    template_id_map
+                        .get(tid)
+                        .cloned()
+                        .unwrap_or_else(|| tid.to_string())
+                }),
+                template_type: obj_val["template_type"].as_str().map(String::from),
+                template_hash: obj_val["template_hash"].as_str().map(String::from),
+                ignored_template_hash: obj_val["ignored_template_hash"].as_str().map(String::from),
+                created_at: obj_val["created_at"].as_str().unwrap_or(&now).to_string(),
+                updated_at: now.clone(),
+                version: obj_val["version"].as_u64().unwrap_or(1) as u32,
+            };
+
+            records_to_save.push(record);
+            imported += 1;
+            imported_object_ids.insert(id.to_string());
         }
-
-        let mut properties = obj_val["properties"].clone();
-        resolve_cross_scope_references(&mut properties, &package_ids);
-
-        let record = ObjectRecord {
-            id: id.to_string(),
-            account_id: account_id.to_string(),
-            type_id: obj_val["type_id"].as_str().unwrap_or("note").to_string(),
-            section_type: obj_val["section_type"]
-                .as_str()
-                .unwrap_or("identity")
-                .to_string(),
-            name: obj_val["name"].as_str().unwrap_or("Imported").to_string(),
-            icon_name: obj_val["icon_name"]
-                .as_str()
-                .unwrap_or("document")
-                .to_string(),
-            parent_id: obj_val["parent_id"].as_str().map(String::from),
-            children_ids: obj_val["children_ids"]
-                .as_array()
-                .map(|a| {
-                    a.iter()
-                        .filter_map(|v| v.as_str().map(String::from))
-                        .collect()
-                })
-                .unwrap_or_default(),
-            properties,
-            property_labels: if obj_val["property_labels"].is_null() {
-                None
-            } else {
-                Some(obj_val["property_labels"].clone())
-            },
-            sensitivity_level: obj_val["sensitivity_level"]
-                .as_str()
-                .unwrap_or("internal")
-                .to_string(),
-            is_deleted: false,
-            deleted_at: None,
-            tags_json: obj_val["tags"]
-                .as_array()
-                .map(|a| {
-                    a.iter()
-                        .filter_map(|v| v.as_str().map(String::from))
-                        .collect()
-                })
-                .unwrap_or_default(),
-            contract_type_id: obj_val["contract_type_id"].as_str().map(String::from),
-            template_id: obj_val["template_id"].as_str().map(|tid| {
-                template_id_map
-                    .get(tid)
-                    .cloned()
-                    .unwrap_or_else(|| tid.to_string())
-            }),
-            template_type: obj_val["template_type"].as_str().map(String::from),
-            template_hash: obj_val["template_hash"].as_str().map(String::from),
-            ignored_template_hash: obj_val["ignored_template_hash"].as_str().map(String::from),
-            created_at: obj_val["created_at"].as_str().unwrap_or(&now).to_string(),
-            updated_at: now.clone(),
-            version: obj_val["version"].as_u64().unwrap_or(1) as u32,
-        };
-
-        vault.save_object(&record)?;
-        imported += 1;
-        imported_object_ids.insert(id.to_string());
     }
+
+    // P212: 单事务批量写入（替代逐条 save_object 的 N 次 auto-commit）。
+    vault.save_objects_batch(&records_to_save)?;
 
     // 导入附件。
     if manifest.has_attachments {
@@ -1213,6 +1226,59 @@ mod tests {
             dir.path(),
         );
         assert!(result.is_err(), "应返回密码错误: {:?}", result);
+    }
+
+    #[test]
+    fn test_import_skip_existing_semantics() {
+        // P212 回归：SkipExisting 存在性判定由逐对象 load_object 改为一次
+        // metadata-only 预查，语义必须等价——活动对象跳过、软删对象重新导入。
+        let (vault, account_id, dir) = test_setup();
+        vault
+            .save_object(&make_test_record(&account_id, "skip_me", "Local Name"))
+            .unwrap();
+
+        let path = dir.path().join("test_skip_existing.solosoul");
+        let salt = solosoul_crypto::kdf::generate_salt();
+        let key = derive_export_key(TEST_EXPORT_PASSWORD, &salt).unwrap();
+        let payload = serde_json::json!({
+            "objects": [{
+                "id": "skip_me", "name": "Imported Name", "account_id": account_id,
+                "type_id": "note", "section_type": "identity", "icon_name": "document",
+                "properties": {}, "sensitivity_level": "internal", "tags": [],
+                "created_at": "2024-01-01T00:00:00Z",
+                "updated_at": "2024-06-01T00:00:00Z", "version": 1
+            }]
+        });
+        write_test_package(&path, &payload, &key, &salt).unwrap();
+
+        // 活动对象存在 → 跳过，保留本地
+        let imported = import_vault(
+            &vault,
+            &account_id,
+            &path,
+            TEST_EXPORT_PASSWORD,
+            ImportStrategy::SkipExisting,
+            dir.path(),
+        )
+        .unwrap();
+        assert_eq!(imported, 0);
+        let local = vault.load_object("skip_me").unwrap().unwrap();
+        assert_eq!(local.name, "Local Name");
+
+        // 软删后 → 非活动，重新导入（覆盖软删行）
+        vault.delete_object("skip_me", true).unwrap();
+        let imported2 = import_vault(
+            &vault,
+            &account_id,
+            &path,
+            TEST_EXPORT_PASSWORD,
+            ImportStrategy::SkipExisting,
+            dir.path(),
+        )
+        .unwrap();
+        assert_eq!(imported2, 1);
+        let restored = vault.load_object("skip_me").unwrap().unwrap();
+        assert_eq!(restored.name, "Imported Name");
     }
 
     #[test]

@@ -2302,6 +2302,23 @@ impl VaultStore {
         Self::save_object_tx(conn, &key, obj)
     }
 
+    /// P212: 单事务批量保存对象（导入等批量场景），替代逐条 `save_object` 的
+    /// N 次 auto-commit 写事务。任一条失败整体回滚，不产生半导入。
+    pub fn save_objects_batch(&self, objects: &[ObjectRecord]) -> Result<(), String> {
+        let key = self.data_key()?;
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        let tx = conn
+            .transaction()
+            .map_err(|e| format!("Failed to begin transaction: {e}"))?;
+        for obj in objects {
+            Self::save_object_tx(&tx, &key, obj)?;
+        }
+        tx.commit()
+            .map_err(|e| format!("Failed to commit transaction: {e}"))?;
+        Ok(())
+    }
+
     /// P115: 事务内保存对象（连接由调用方持有，批量应用单事务内复用）。
     fn save_object_tx(
         conn: &Connection,
@@ -5547,6 +5564,30 @@ mod tests {
         let (vault, _dir) = setup();
         vault.trash_and_soft_delete_batch(&[], &[]).unwrap();
         assert!(vault.list_trash_items(None, None).unwrap().is_empty());
+    }
+
+    #[test]
+    fn test_save_objects_batch() {
+        let (vault, _dir) = setup();
+        let objs: Vec<ObjectRecord> = (0..3)
+            .map(|i| ObjectRecord {
+                id: format!("batch-save-{}", i),
+                account_id: "acc-1".to_string(),
+                name: format!("Batch Save {}", i),
+                properties: serde_json::json!({ "n": i }),
+                ..Default::default()
+            })
+            .collect();
+
+        vault.save_objects_batch(&objs).unwrap();
+
+        for o in &objs {
+            let loaded = vault.load_object(&o.id).unwrap().unwrap();
+            assert_eq!(loaded.name, o.name);
+            assert_eq!(loaded.properties["n"], o.properties["n"]);
+        }
+        // 空批量 no-op
+        vault.save_objects_batch(&[]).unwrap();
     }
 
     #[test]
