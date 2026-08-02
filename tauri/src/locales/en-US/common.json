@@ -343,6 +343,7 @@
   "batch_perm_delete_title": "Permanently delete selected?",
   "batch_perm_delete_body": "Permanently delete {{n}} selected attachment(s)? This cannot be undone.",
   "batch_perm_delete_result": "Permanently deleted {{success}}/{{total}} attachments",
+  "batch_op_failed_suffix": " ({{count}} failed)",
   "install": "Install",
   "uninstall": "Uninstall",
   "run": "Run",

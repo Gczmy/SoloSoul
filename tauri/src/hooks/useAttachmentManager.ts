@@ -8,6 +8,7 @@ import { useAttachmentPageSort } from '@/hooks/useAttachmentPageSort';
 import { useBatchSelect } from '@/hooks/useBatchSelect';
 import { pickFileToAttach, uploadSingleAttachment } from '@/lib/attachmentUpload';
 import { downloadViaStage, isUriPath } from '@/lib/mobileFileTransfer';
+import { logger } from '@/lib/logger';
 import { previewItemByMime, truncateFileName } from '@/lib/attachmentUtils';
 import { isMobilePlatformSync } from '@/lib/platform';
 import type {
@@ -360,20 +361,32 @@ export function useAttachmentManager() {
     }
 
     let successCount = 0;
+    let failedCount = 0;
     for (const [objectId, attachmentIds] of byObject) {
       try {
         await invoke('attachment_batch_soft_delete', { objectId: objectId, attachmentIds: attachmentIds });
         successCount += attachmentIds.length;
-      } catch {
-        // best effort per object
+      } catch (e) {
+        // P121: 逐对象失败不再静默吞错——记录真实错误，批量结果提示失败数
+        failedCount += attachmentIds.length;
+        logger.warn('[AttachmentManager] Batch soft delete failed for object', objectId, ':', e);
       }
     }
 
     clearSelection();
     await loadData();
+    const base =
+      t('common:batch_delete_result', { success: successCount, total: entries.length }) ||
+      `Deleted ${successCount}/${entries.length} attachments`;
     showToast({
-      type: 'info',
-      message: `${t('common:batch_delete_result', { success: successCount, total: entries.length }) || `Deleted ${successCount}/${entries.length} attachments`}`,
+      type: failedCount > 0 ? 'warning' : 'info',
+      message:
+        failedCount > 0
+          ? `${base}${t('common:batch_op_failed_suffix', {
+              count: failedCount,
+              defaultValue: `（${failedCount} 项失败）`,
+            })}`
+          : base,
     });
   };
 
@@ -391,20 +404,32 @@ export function useAttachmentManager() {
     }
 
     let successCount = 0;
+    let failedCount = 0;
     for (const [objectId, attachmentIds] of byObject) {
       try {
         await invoke('attachment_batch_delete', { objectId: objectId, attachmentIds: attachmentIds });
         successCount += attachmentIds.length;
-      } catch {
-        // best effort per object
+      } catch (e) {
+        // P121: 逐对象失败不再静默吞错——记录真实错误，批量结果提示失败数
+        failedCount += attachmentIds.length;
+        logger.warn('[AttachmentManager] Batch permanent delete failed for object', objectId, ':', e);
       }
     }
 
     clearSelection();
     await loadData();
+    const base =
+      t('common:batch_perm_delete_result', { success: successCount, total: entries.length }) ||
+      `Permanently deleted ${successCount}/${entries.length} attachments`;
     showToast({
-      type: 'info',
-      message: `${t('common:batch_perm_delete_result', { success: successCount, total: entries.length }) || `Permanently deleted ${successCount}/${entries.length} attachments`}`,
+      type: failedCount > 0 ? 'warning' : 'info',
+      message:
+        failedCount > 0
+          ? `${base}${t('common:batch_op_failed_suffix', {
+              count: failedCount,
+              defaultValue: `（${failedCount} 项失败）`,
+            })}`
+          : base,
     });
   };
 
@@ -423,19 +448,31 @@ export function useAttachmentManager() {
     }
 
     let successCount = 0;
+    let failedCount = 0;
     for (const [objectId, attachmentIds] of byObject) {
       try {
         await invoke('attachment_batch_restore', { objectId: objectId, attachmentIds: attachmentIds });
         successCount += attachmentIds.length;
-      } catch {
-        // best effort per object
+      } catch (e) {
+        // P121: 逐对象失败不再静默吞错——记录真实错误，批量结果提示失败数
+        failedCount += attachmentIds.length;
+        logger.warn('[AttachmentManager] Batch restore failed for object', objectId, ':', e);
       }
     }
     clearSelection();
     await loadData();
+    const base =
+      t('common:batch_restore_result', { success: successCount, total: entries.length }) ||
+      `Restored ${successCount}/${entries.length} attachments`;
     showToast({
-      type: 'info',
-      message: `${t('common:batch_restore_result', { success: successCount, total: entries.length }) || `Restored ${successCount}/${entries.length} attachments`}`,
+      type: failedCount > 0 ? 'warning' : 'info',
+      message:
+        failedCount > 0
+          ? `${base}${t('common:batch_op_failed_suffix', {
+              count: failedCount,
+              defaultValue: `（${failedCount} 项失败）`,
+            })}`
+          : base,
     });
   };
 

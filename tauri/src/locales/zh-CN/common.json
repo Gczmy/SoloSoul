@@ -342,6 +342,7 @@
   "batch_perm_delete_title": "批量永久删除？",
   "batch_perm_delete_body": "确定要永久删除选中的 {{n}} 个附件吗？此操作不可撤销。",
   "batch_perm_delete_result": "已永久删除 {{success}}/{{total}} 个附件",
+  "batch_op_failed_suffix": "（{{count}} 项失败）",
   "install": "安装",
   "uninstall": "卸载",
   "run": "运行",

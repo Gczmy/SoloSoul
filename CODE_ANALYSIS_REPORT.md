@@ -54,7 +54,7 @@
 | P118 | 前端性能 | `src/pages/workspace/ObjectWorkspacePage.tsx:123-155` | `WorkspaceObjectCard` 的 memo 被父组件每次新建的内联回调击穿，搜索框每次击键触发最多 50 张卡片全量重渲染 | `[x]` 已修复（2026-08-02：卡片 7 个回调签名改为接收 `obj` 参数，父级以 `useCallback` 提供稳定引用——`handleCardClick/History/Attachments/Edit/Delete/Sync/DismissSync` 依赖解构出的稳定 setter（useState setter 稳定；`handleStartSync`/`handleRequestDismissSync` 为 hook 内 useCallback），搜索击键不再重建全部卡片闭包，memo 不再被击穿（`visibleObjects` 防抖期间对象引用稳定，卡片整体跳过重渲染）。防回归单测 ×1：点击卡片主体与删除按钮断言回调收到 `baseObj`） |
 | P119 | 前端性能 | `src/pages/settings/TrashPage.tsx:138-140,369-518` | 回收站可达数百条但无分页、`filtered` 未 useMemo、条目为非 memo 内联 JSX，任何状态变化重建全部卡片 | `[x]` 已修复（2026-08-02：`filtered` 包 useMemo（deps items/typeFilter/searchQuery）；新增 `TrashItemCard` memo 组件（内联 JSX 抽出，`timeAgo`/`isMobilePlatformSync`/`PluginBadge` 随迁），卡片回调改为父级稳定 useCallback（doRestore/doDelete/openDetail 依赖均为稳定引用，handleRestoreOne/DeleteOne 包装单条）；分页 TRASH_PAGE_SIZE=50「加载更多」（搜索/类型/条目变化重置游标，全选语义仍基于完整 filtered）。防回归单测 ×3：渲染、稳定回调契约传 trashId、checkbox 反映 isSelected） |
 | P120 | 错误处理 | `src/pages/settings/ExportImportPage.tsx:151` | `export_get_scope_tree` 失败被吞，用户看到"空导出范围"误以为数据丢失 | `[x]` 已修复（2026-08-02：`loadScope` catch 不再静默——`logger.warn` 记录 + `onError` toast（`export_scope_load_failed` 兜底文案「导出范围加载失败，请重试」）+ 显式 `setPageGroups([])`；deps 补 `onError`/`t`） |
-| P121 | 错误处理 | `src/hooks/useAttachmentManager.ts:367,398,430` | 批量软删/永久删/恢复 best-effort 吞错，失败对象真实错误丢失只报成功计数 | `[ ]` |
+| P121 | 错误处理 | `src/hooks/useAttachmentManager.ts:367,398,430` | 批量软删/永久删/恢复 best-effort 吞错，失败对象真实错误丢失只报成功计数 | `[x]` 已修复（2026-08-02：三个批量操作逐对象失败不再静默吞错——`logger.warn` 记录真实错误，`failedCount` 累积后 toast 由 info 升级为 warning 并追加 `batch_op_failed_suffix`（{{count}} 项失败，zh/en 双语已加 locale key）） |
 | P122 | 错误处理 | `src/pages/settings/TrashPage.tsx:223` | `trash_get_detail` 失败静默 `setDetailItem(null)`，无法区分"无数据"与"加载失败" | `[ ]` |
 | P123 | 错误处理 | `src/components/settings/PinSection.tsx:90` | 验证当前密码的任何异常（含后端崩溃/锁定）统一报"当前密码不正确"，误导用户 | `[ ]` |
 | P124 | 错误处理 | `src/hooks/useObjectWorkspaceData.ts:229,248`、`ObjectDetailModal.tsx:313,380` | unlock 失败统一 return false，密码错误与后端异常不可区分，错误细节全丢 | `[ ]` |
@@ -115,8 +115,8 @@
 
 ## 修复进度
 
-- 已完成：26 / 69（P001-P007、P101-P120；其中 P104 为部分闭环）
-- 当前处理：P121（useAttachmentManager 批量操作吞错，P1 错误处理）
+- 已完成：27 / 69（P001-P007、P101-P121；其中 P104 为部分闭环）
+- 当前处理：P122（TrashPage trash_get_detail 失败静默，P1 错误处理）
 
 ## 审查通过项（已排查，无需修改）
 
