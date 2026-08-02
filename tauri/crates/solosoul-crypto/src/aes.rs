@@ -22,6 +22,33 @@ pub const BLOB_VERSION: u8 = 0x02;
 pub const BLOB_VERSION_V3: u8 = 0x03;
 pub const DEFAULT_CHUNK_SIZE: usize = 1024 * 1024;
 
+/// P106：校验 v3 分块头部字段的自洽性（全部由输入控制，杜绝巨额分配 DoS）。
+///
+/// 规则：`chunk_size != 0`；`original_size` 必须落在分块网格内，即
+/// `(count-1)*chunk_size < original_size <= count*chunk_size`
+/// （`count == 0` 时 `original_size` 必须为 0）。
+fn validate_chunked_header(
+    original_size: u64,
+    chunk_size: usize,
+    chunk_count: u32,
+) -> Result<(), CipherError> {
+    if chunk_size == 0 {
+        return Err(fmt_err("无效的分块大小（0）"));
+    }
+    let chunks = chunk_count as u64;
+    let chunk_sz = chunk_size as u64;
+    if chunks > 0 {
+        let max_plain = chunks.saturating_mul(chunk_sz);
+        let min_plain = (chunks - 1).saturating_mul(chunk_sz);
+        if original_size > max_plain || original_size <= min_plain {
+            return Err(fmt_err("头部声明的明文大小与分块参数不符"));
+        }
+    } else if original_size != 0 {
+        return Err(fmt_err("头部声明的明文大小与分块参数不符"));
+    }
+    Ok(())
+}
+
 fn key_err(e: impl std::fmt::Display) -> CipherError {
     CipherError::BlobFormat(format!("密钥无效: {}", e))
 }
@@ -126,8 +153,20 @@ pub fn decrypt_chunked_blob(
     chunk_count_raw.copy_from_slice(&blob[17..21]);
     let chunk_count = u32::from_be_bytes(chunk_count_raw);
 
+    // P106：头部字段（original_size/chunk_size/chunk_count）全部由输入控制，
+    // 先做一致性校验再分配，杜绝攻击者以 `with_capacity(original_size)` 触发
+    // 巨额内存分配 DoS。
+    validate_chunked_header(original_size, chunk_size, chunk_count)?;
+    // 每个 chunk 至少 NONCE_SIZE+TAG_SIZE 字节，chunk_count 必须与密文长度自洽。
+    let max_chunks = (blob.len() - 21) / (NONCE_SIZE + TAG_SIZE);
+    if chunk_count as usize > max_chunks {
+        return Err(fmt_err("分块数量与密文长度不符"));
+    }
+    // 明文总量不可能超过密文长度（每块均有 nonce+tag 开销），据此封顶初始容量。
+    let capacity = (original_size.min(blob.len() as u64)) as usize;
+
     let cipher = Aes256Gcm::new_from_slice(key).map_err(key_err)?;
-    let mut plaintext = Vec::with_capacity(original_size as usize);
+    let mut plaintext = Vec::with_capacity(capacity);
     let mut offset = 21;
 
     for i in 0..chunk_count as usize {
@@ -262,6 +301,12 @@ pub fn decrypt_chunked_stream<R: Read, W: Write>(
     chunk_count_raw.copy_from_slice(&header[17..21]);
     let chunk_count = u32::from_be_bytes(chunk_count_raw);
 
+    // P106：流式版与 blob 版同类的头部校验（chunk_size 非 0 + 分块网格自洽）；
+    // 每块密文改为按实际读取增量扩展，而非按头部声明的 chunk_size 预分配，
+    // 防止攻击者以巨值头字段触发巨额分配（若流中并无对应数据，read_exact
+    // 会在分配显著增长前即失败）。
+    validate_chunked_header(original_size, chunk_size, chunk_count)?;
+
     let cipher = Aes256Gcm::new_from_slice(key).map_err(key_err)?;
     let mut nonce = [0u8; NONCE_SIZE];
 
@@ -270,15 +315,27 @@ pub fn decrypt_chunked_stream<R: Read, W: Write>(
             .read_exact(&mut nonce)
             .map_err(|e| CipherError::Io(format!("读取 Nonce 失败: {}", e)))?;
         let expected_plain = if i == chunk_count as usize - 1 {
-            (original_size - (i as u64 * chunk_size as u64)) as usize
+            let consumed = (i as u64).checked_mul(chunk_size as u64);
+            match consumed {
+                Some(c) if c <= original_size => (original_size - c) as usize,
+                _ => return Err(fmt_err("头部声明的明文大小与分块参数不符")),
+            }
         } else {
             chunk_size
         };
         let expected_cipher = expected_plain + TAG_SIZE;
-        let mut ciphertext = vec![0u8; expected_cipher];
-        reader
-            .read_exact(&mut ciphertext)
-            .map_err(|e| CipherError::Io(format!("读取密文失败: {}", e)))?;
+        // P106：增量读取，避免按攻击者控制的 expected_cipher 巨额预分配。
+        let mut ciphertext = Vec::new();
+        let mut remaining = expected_cipher;
+        let mut buf = [0u8; 64 * 1024];
+        while remaining > 0 {
+            let n = remaining.min(buf.len());
+            reader
+                .read_exact(&mut buf[..n])
+                .map_err(|e| CipherError::Io(format!("读取密文失败: {}", e)))?;
+            ciphertext.extend_from_slice(&buf[..n]);
+            remaining -= n;
+        }
         let decrypted = cipher
             .decrypt(Nonce::from_slice(&nonce), ciphertext.as_slice())
             .map_err(|e| enc_err(format!("分块 {} 解密失败: {}", i, e)))?;
@@ -369,5 +426,64 @@ mod tests {
         let mut decrypted = Vec::new();
         decrypt_chunked_stream(&key, &mut encrypted.as_slice(), &mut decrypted).unwrap();
         assert_eq!(decrypted.as_slice(), data.as_slice());
+    }
+
+    // ── P106 头部驱动巨额分配 DoS 防护 ────────────────────────────────
+
+    /// 篡改 original_size 头字段为巨值：with_capacity 不得触发巨额分配，
+    /// 必须被一致性校验拒绝。
+    #[test]
+    fn test_decrypt_chunked_blob_rejects_huge_original_size() {
+        let key = [0x42u8; 32];
+        let data = vec![0xABu8; 5000];
+        let mut blob = encrypt_chunked_blob(&key, &data, 1024).unwrap();
+        // 头部布局：magic(4)+ver(1)+orig(8)+chunk_size(4)+chunk_count(4)
+        blob[5..13].copy_from_slice(&u64::MAX.to_be_bytes());
+        assert!(decrypt_chunked_blob(&key, &blob).is_err());
+    }
+
+    /// 篡改 chunk_count 头字段为巨值：必须在进入循环分配前被拒绝。
+    #[test]
+    fn test_decrypt_chunked_blob_rejects_huge_chunk_count() {
+        let key = [0x42u8; 32];
+        let data = vec![0xABu8; 5000];
+        let mut blob = encrypt_chunked_blob(&key, &data, 1024).unwrap();
+        blob[17..21].copy_from_slice(&u32::MAX.to_be_bytes());
+        assert!(decrypt_chunked_blob(&key, &blob).is_err());
+    }
+
+    /// chunk_size = 0：拒绝，避免除零/异常路径。
+    #[test]
+    fn test_decrypt_chunked_blob_rejects_zero_chunk_size() {
+        let key = [0x42u8; 32];
+        let data = vec![0xABu8; 5000];
+        let mut blob = encrypt_chunked_blob(&key, &data, 1024).unwrap();
+        blob[13..17].copy_from_slice(&0u32.to_be_bytes());
+        assert!(decrypt_chunked_blob(&key, &blob).is_err());
+    }
+
+    /// 流式版：chunk_size = 0 直接拒绝。
+    #[test]
+    fn test_decrypt_chunked_stream_rejects_zero_chunk_size() {
+        let key = [0x42u8; 32];
+        let data = vec![0xABu8; 5000];
+        let mut blob = Vec::new();
+        encrypt_chunked_stream(&key, &mut std::io::Cursor::new(&data), &mut blob, 1024).unwrap();
+        blob[13..17].copy_from_slice(&0u32.to_be_bytes());
+        let mut out = Vec::new();
+        assert!(decrypt_chunked_stream(&key, &mut blob.as_slice(), &mut out).is_err());
+    }
+
+    /// 流式版：chunk_count = 0 但 original_size 非零（自相矛盾）——增量读取在
+    /// 首个 read_exact 即失败，不得分配巨量内存。
+    #[test]
+    fn test_decrypt_chunked_stream_rejects_inconsistent_header() {
+        let key = [0x42u8; 32];
+        let data = vec![0xABu8; 5000];
+        let mut blob = Vec::new();
+        encrypt_chunked_stream(&key, &mut std::io::Cursor::new(&data), &mut blob, 1024).unwrap();
+        blob[17..21].copy_from_slice(&0u32.to_be_bytes()); // chunk_count = 0
+        let mut out = Vec::new();
+        assert!(decrypt_chunked_stream(&key, &mut blob.as_slice(), &mut out).is_err());
     }
 }
