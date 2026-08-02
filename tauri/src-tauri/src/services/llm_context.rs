@@ -5,7 +5,7 @@
 
 use super::profile_prefs::update_profile_prefs;
 use solosoul_plugin::manifest::PluginManifest;
-use solosoul_vault::{ObjectSummary, VaultStore};
+use solosoul_vault::VaultStore;
 use std::collections::HashMap;
 use std::sync::LazyLock;
 use std::sync::Mutex;
@@ -151,26 +151,35 @@ fn build_section2_software_info(language: &str) -> String {
 }
 
 fn build_section3_public_objects(vault: &VaultStore, account_id: &str) -> Result<String, String> {
-    let objects = vault
-        .list_objects(account_id, None, None, None, false, false)
-        .map_err(|e| format!("List objects: {}", e))?;
+    // P214: sensitivity_level 是明文列——先用 metadata-only 列表（零解密）筛出 public 子集，
+    // 再仅对该子集批量加载（单条 IN 查询 + 单轮解密），避免全库解密只为筛级别。
+    let summaries = vault
+        .list_object_metadata(account_id, None, None, false, false)
+        .map_err(|e| format!("List object metadata: {}", e))?;
 
-    let public_objects: Vec<&ObjectSummary> = objects
+    let public_ids: Vec<String> = summaries
         .iter()
-        .filter(|o| o.sensitivity_level == "public" && !o.is_deleted)
+        .filter(|s| s.sensitivity_level == "public")
+        .map(|s| s.id.clone())
         .collect();
 
-    if public_objects.is_empty() {
+    if public_ids.is_empty() {
         return Ok("（用户尚未公开任何对象数据）".to_string());
     }
 
-    // 按 collection_type 分组
-    let mut by_type: HashMap<String, Vec<&ObjectSummary>> = HashMap::new();
-    for obj in public_objects {
-        by_type
-            .entry(obj.collection_type.clone())
-            .or_default()
-            .push(obj);
+    let loaded = vault
+        .load_objects_batch(&public_ids)
+        .map_err(|e| format!("Load public objects: {}", e))?;
+
+    // 按 collection_type 分组（保留 metadata 列表的 created_at 排序，输出确定性）
+    let mut by_type: HashMap<String, Vec<(String, serde_json::Value)>> = HashMap::new();
+    for s in summaries.iter().filter(|s| s.sensitivity_level == "public") {
+        if let Some(rec) = loaded.get(&s.id) {
+            by_type
+                .entry(s.collection_type.clone())
+                .or_default()
+                .push((rec.name.clone(), rec.properties.clone()));
+        }
     }
 
     let mut lines: Vec<String> = Vec::new();
@@ -179,13 +188,13 @@ fn build_section3_public_objects(vault: &VaultStore, account_id: &str) -> Result
         let display_name = type_display_name(type_name);
         let mut type_lines: Vec<String> = Vec::new();
 
-        for obj in objs.iter().take(MAX_OBJECTS_PER_TYPE) {
+        for (name, properties) in objs.iter().take(MAX_OBJECTS_PER_TYPE) {
             // 每类型最多 3 个对象
-            let prop_entries = extract_properties(&obj.properties);
+            let prop_entries = extract_properties(properties);
             if prop_entries.is_empty() {
-                type_lines.push(format!("  - {}（无属性）", obj.name));
+                type_lines.push(format!("  - {}（无属性）", name));
             } else {
-                type_lines.push(format!("  - {}：{}", obj.name, prop_entries.join("、")));
+                type_lines.push(format!("  - {}：{}", name, prop_entries.join("、")));
             }
         }
 
@@ -585,6 +594,71 @@ mod tests {
         assert!(prompt.contains("Section 2"));
         assert!(prompt.contains("Section 5"));
         // No public objects, Section 3 may be omitted
+    }
+
+    #[test]
+    fn test_build_section3_filters_non_public_without_loading_them() {
+        // P214: 只有 public 级对象进入 Section 3，非 public 级（含更高级别）不出现。
+        let (vault, _dir) = setup_vault();
+        let base = |id: &str, level: &str| solosoul_vault::ObjectRecord {
+            contract_type_id: None,
+            id: id.to_string(),
+            account_id: "test_account".to_string(),
+            type_id: "note".to_string(),
+            section_type: "identity".to_string(),
+            name: format!("Object {}", id),
+            icon_name: "document".to_string(),
+            parent_id: None,
+            children_ids: vec![],
+            properties: serde_json::json!({"content": format!("secret-{}", id)}),
+            property_labels: None,
+            sensitivity_level: level.to_string(),
+            is_deleted: false,
+            deleted_at: None,
+            tags_json: vec![],
+            template_id: None,
+            template_type: None,
+            template_hash: None,
+            created_at: chrono::Utc::now().to_rfc3339(),
+            updated_at: chrono::Utc::now().to_rfc3339(),
+            version: 1,
+            ..Default::default()
+        };
+        vault.save_object(&base("obj-public", "public")).unwrap();
+        vault
+            .save_object(&base("obj-internal", "internal"))
+            .unwrap();
+        vault
+            .save_object(&base("obj-critical", "critical"))
+            .unwrap();
+        // 软删对象也不应进入（即便级别为 public）
+        let mut deleted_public = base("obj-deleted", "public");
+        deleted_public.is_deleted = true;
+        vault.save_object(&deleted_public).unwrap();
+
+        let section3 = build_section3_public_objects(&vault, "test_account").unwrap();
+        assert!(
+            section3.contains("Object obj-public"),
+            "public object missing: {}",
+            section3
+        );
+        assert!(section3.contains("secret-obj-public"));
+        assert!(
+            !section3.contains("Object obj-internal"),
+            "internal leaked: {}",
+            section3
+        );
+        assert!(!section3.contains("secret-obj-internal"));
+        assert!(
+            !section3.contains("Object obj-critical"),
+            "critical leaked: {}",
+            section3
+        );
+        assert!(
+            !section3.contains("Object obj-deleted"),
+            "deleted leaked: {}",
+            section3
+        );
     }
 
     #[test]
