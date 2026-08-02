@@ -63,7 +63,8 @@ pub async fn import_decrypt_preview(
 
     let manifest = read_manifest(&file_path)?;
     let salt = hex::decode(&manifest.salt_hex).map_err(|e| format!("Invalid salt: {}", e))?;
-    let key = derive_export_key(&password, &salt)?;
+    // P202: 按 manifest 声明参数派生（旧格式包无 kdf 字段回退 balanced 兼容）。
+    let key = derive_export_key_cfg(&password, &salt, &manifest.kdf_config())?;
     let enc_bytes = read_file_from_zip(&file_path, "payload.enc")?;
     let decrypted = solosoul_crypto::cipher::decrypt_chunked_from_bytes(&key, &enc_bytes)
         .map_err(|_| import_err("DECRYPT_FAILED"))?;
@@ -494,7 +495,8 @@ fn decrypt_package(
 ) -> Result<(ManifestData, serde_json::Value, [u8; 32]), String> {
     let manifest = read_manifest(file_path)?;
     let salt = hex::decode(&manifest.salt_hex).map_err(|e| format!("Invalid salt: {}", e))?;
-    let key = derive_export_key(password, &salt)?;
+    // P202: 按 manifest 声明参数派生（旧格式包无 kdf 字段回退 balanced 兼容）。
+    let key = derive_export_key_cfg(password, &salt, &manifest.kdf_config())?;
     let enc_bytes = read_file_from_zip(file_path, "payload.enc")?;
     let decrypted = solosoul_crypto::cipher::decrypt_chunked_from_bytes(&key, &enc_bytes)
         .map_err(|_| import_err("DECRYPT_FAILED"))?;

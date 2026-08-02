@@ -82,7 +82,7 @@
 | ID | 类别 | 文件位置 | 描述 | 状态 |
 |----|------|----------|------|------|
 | P201 | 安全 | `src-tauri/src/commands/export_import/import.rs:20-23` | zip 内 `manifest.json` 读取无大小上限，构造的 zip 炸弹可耗尽内存 | `[x]` 已修复（2026-08-02：helpers.rs 新增 `read_manifest_json`（pub(crate)）收敛两条生产读取路径——`read_manifest` 与 `import_parse_package` 均不再裸 `read_to_end`，统一走 `read_manifest_json_limited` 三重防线：① 读取前检查 `entry.size() > max_size` 拒绝；② `.take(max_size+1)` 限制实际读取字节；③ 读后复核 `buf.len() > max_size`（防声明大小虚报）。上限参数化便于单测以极小值触发拒绝路径。`read_file_from_zip`（payload.enc/preferences.enc）此前已有 MAX_ZIP_ENTRY_SIZE 守卫，无需改动。防回归单测 ×1（正常解析 + 超限拒绝）。solo_soul 344 测试全绿、clippy 0、fmt 干净。注：非 JSON manifest 的错误文案由 `Invalid manifest JSON` 变为 `Invalid manifest`，无 `__IMPORT_ERR__` 前缀、作原始文本展示，无功能影响） |
-| P202 | 安全 | `src-tauri/src/commands/export_import/mod.rs:229-235` | 导出包密钥固定 balanced 档（16MiB/3iter）低于 OWASP 推荐；导出包是最可能的离线攻击目标 | `[ ]` |
+| P202 | 安全 | `src-tauri/src/commands/export_import/mod.rs:229-235` | 导出包密钥固定 balanced 档（16MiB/3iter）低于 OWASP 推荐；导出包是最可能的离线攻击目标 | `[x]` 已修复（2026-08-02：导出密钥派生由硬编码 `balanced()` 改 `KdfConfig::from_env()`——release 为 production（64MiB/3iter，OWASP），debug 为 development（测试快速），与 P003 主密钥哲学一致；实际参数随包写入 manifest 新增 `kdf` 字段（`{algo:argon2id, memory_kb, iterations, parallelism}`），GUI 导出（`build_manifest_json`）与核心导出（`build_manifest`）双端都写。导入端（GUI `import_decrypt_preview`/`decrypt_package`、核心 `import_vault`）一律按 `manifest.kdf_config()` 派生：声明参数优先，**旧格式包（无 kdf 字段）回退 balanced 向后兼容**，非法/超限声明直接拒绝（不静默降级）。编解码助手 `kdf_to_manifest_value`/`kdf_from_manifest_value` 收敛在 `solosoul-core::export_import`（GUI 复用，两处 manifest 读取器共享不漂移）。**评审补强**：`kdf_from_manifest_value` 上限防御——manifest 攻击者可控，参数无上界会让导入端按声明跑巨量 Argon2（OOM/挂起），上限收紧为 memory ≤ 1GiB（production 16 倍）、iterations ≤ 10、parallelism ≤ 64。防回归单测 ×7（核心 4：往返 ×3 档/缺失与非法拒绝/旧格式 balanced 回退解密/声明参数优先解密；GUI 1：ManifestData 新旧坏三态解析）+ 超限参数拒绝 ×3 断言并入非法测试。**已知权衡**（与 P105 v2 头部同类）：新版本导出的包带 kdf 字段，旧版本应用打开会忽略该字段按 balanced 派生导致解密失败（错误提示为通用解密失败）——前向不兼容为一次性、需在发布说明注明。solo_soul 345 + solosoul-core 154 + solosoul-crypto 34 测试全绿、clippy 0、fmt 干净、CLI 编译通过） |
 | P203 | 安全 | `src-tauri/src/commands/attachment.rs:892-899,921-925,934-938` | `attachment_open` 每次以 `error!` 记录完整 vault 路径/object_id/mime，属残留调试日志 | `[ ]` |
 | P204 | 安全 | `src-tauri/src/commands/biometric.rs:318-321` | session key hex 放进普通 String 长期残留堆内存 | `[ ]` |
 | P205 | 安全 | `src-tauri/src/commands/crypto.rs:77-102` | `derive_key` command 密码入参与返回密钥均不 zeroize，密钥明文经 IPC 进前端 JS 堆 | `[ ]` |
@@ -115,8 +115,8 @@
 
 ## 修复进度
 
-- 已完成：49 / 69（P001-P007、P101-P142、P201；其中 P104 为部分闭环）
-- 当前处理：P202（导出包 KDF 参数提升）
+- 已完成：50 / 69（P001-P007、P101-P142、P201-P202；其中 P104 为部分闭环）
+- 当前处理：P203（attachment_open 残留 error! 日志清理）
 
 ## 审查通过项（已排查，无需修改）
 

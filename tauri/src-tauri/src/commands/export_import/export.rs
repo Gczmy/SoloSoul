@@ -426,6 +426,11 @@ fn build_manifest_json(
         "extra_files": extra_files,
         "password_hint": password_hint.clone().unwrap_or_default(),
         "salt_hex": hex::encode(salt),
+        // P202: 导出包携带实际 KDF 参数，导入端按声明派生（旧包无此字段回退 balanced）。
+        // from_env()：release 为 production（OWASP 推荐 64MiB/3iter），debug 为 development。
+        "kdf": solosoul_core::export_import::kdf_to_manifest_value(
+            &solosoul_crypto::kdf::KdfConfig::from_env(),
+        ),
     })
 }
 

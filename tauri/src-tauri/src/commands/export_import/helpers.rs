@@ -6,6 +6,16 @@ pub struct ManifestData {
     pub salt_hex: String,
     pub has_attachments: bool,
     pub extra_files: Vec<String>,
+    /// manifest 声明的 KDF 参数；`None` = 旧格式包（未声明），按 balanced 兜底。
+    pub kdf: Option<solosoul_crypto::kdf::KdfConfig>,
+}
+
+impl ManifestData {
+    /// 用于解包/加密的 KDF 参数：manifest 声明优先，旧格式包回退 balanced（向后兼容）。
+    pub fn kdf_config(&self) -> solosoul_crypto::kdf::KdfConfig {
+        self.kdf
+            .unwrap_or_else(solosoul_crypto::kdf::KdfConfig::balanced)
+    }
 }
 
 // ── Cross-scope reference resolution ─────────────────────────
@@ -147,6 +157,7 @@ pub fn read_manifest(file_path: &str) -> Result<ManifestData, String> {
             .to_string(),
         has_attachments: v["has_attachments"].as_bool().unwrap_or(false),
         extra_files,
+        kdf: solosoul_core::export_import::kdf_from_manifest_value(v.get("kdf"))?,
     })
 }
 

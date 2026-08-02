@@ -23,6 +23,7 @@ use serde::{Deserialize, Serialize};
 use zip::write::SimpleFileOptions;
 use zip::{ZipArchive, ZipWriter};
 
+use solosoul_crypto::kdf::KdfConfig;
 use solosoul_vault::{ObjectRecord, UserTemplate, VaultStore};
 
 // ── Constants ────────────────────────────────────────────
@@ -160,6 +161,15 @@ struct ManifestData {
     pub version: String,
     pub object_count: usize,
     pub password_hint: Option<String>,
+    /// manifest 声明的 KDF 参数；`None` = 旧格式包（未声明），按 balanced 兜底。
+    pub kdf: Option<KdfConfig>,
+}
+
+impl ManifestData {
+    /// 用于解包/加密的 KDF 参数：manifest 声明优先，旧格式包回退 balanced（向后兼容）。
+    fn kdf_config(&self) -> KdfConfig {
+        self.kdf.unwrap_or_else(KdfConfig::balanced)
+    }
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -308,7 +318,8 @@ pub fn import_vault(
 
     let manifest = read_manifest(path)?;
     let salt = hex::decode(&manifest.salt_hex).map_err(|e| format!("salt 解码失败: {}", e))?;
-    let key = derive_export_key(password, &salt)?;
+    // P202: 按 manifest 声明参数派生（旧格式包无 kdf 字段回退 balanced 兼容）。
+    let key = derive_export_key_cfg(password, &salt, &manifest.kdf_config())?;
 
     let enc_bytes = read_file_from_zip(path, "payload.enc")?;
     let decrypted = solosoul_crypto::cipher::decrypt_chunked_from_bytes(&key, &enc_bytes)
@@ -504,13 +515,85 @@ pub fn import_preview(path: &Path) -> Result<ImportPreviewData, ExportError> {
 // ════════════════════════════════════════════════════════════════
 
 /// 使用 Argon2id 从导出密码与 salt 派生 32 字节密钥。
+///
+/// 导出端（P202）：与主密钥派生一致走 `KdfConfig::from_env()`——release 为
+/// OWASP 推荐 production（64MiB/3iter），debug 为 development（测试快速）。
+/// 实际参数随导出写入 manifest 的 `kdf` 字段，导入端按声明参数派生。
 fn derive_export_key(password: &str, salt: &[u8]) -> Result<[u8; 32], ExportError> {
-    use solosoul_crypto::kdf::{derive_key, KdfConfig};
-    let key_vec = derive_key(password, salt, &KdfConfig::balanced())
-        .map_err(|e| format!("密钥派生失败: {}", e))?;
+    use solosoul_crypto::kdf::KdfConfig;
+    derive_export_key_cfg(password, salt, &KdfConfig::from_env())
+}
+
+/// 以指定 KDF 参数派生导出密钥（导入端按 manifest 声明参数调用）。
+fn derive_export_key_cfg(
+    password: &str,
+    salt: &[u8],
+    config: &KdfConfig,
+) -> Result<[u8; 32], ExportError> {
+    use solosoul_crypto::kdf::derive_key;
+    let key_vec = derive_key(password, salt, config).map_err(|e| format!("密钥派生失败: {}", e))?;
     let mut key = [0u8; 32];
     key.copy_from_slice(&key_vec);
     Ok(key)
+}
+
+/// 将 KDF 参数编码为 manifest 的 `kdf` 字段（自描述 JSON，供导入端复用）。
+/// 导出包是最可能的离线攻击目标，参数必须随包携带，导入端按声明派生。
+pub fn kdf_to_manifest_value(config: &KdfConfig) -> serde_json::Value {
+    serde_json::json!({
+        "algo": "argon2id",
+        "memory_kb": config.memory_kb,
+        "iterations": config.iterations,
+        "parallelism": config.parallelism,
+    })
+}
+
+/// 从 manifest 的 `kdf` 字段解析 KDF 参数。
+/// - 字段缺失（`None`）→ 旧格式包，返回 `None`，调用方按 balanced 兜底。
+/// - 字段存在但非法/不完整 → `Err`（拒绝静默降级到弱参数，防参数降级攻击）。
+pub fn kdf_from_manifest_value(v: Option<&serde_json::Value>) -> Result<Option<KdfConfig>, String> {
+    let Some(val) = v else {
+        return Ok(None);
+    };
+    let Some(obj) = val.as_object() else {
+        return Err("manifest 的 kdf 字段必须为对象".to_string());
+    };
+    let algo = obj
+        .get("algo")
+        .and_then(|x| x.as_str())
+        .ok_or("manifest 的 kdf 字段缺少 algo")?;
+    if algo != "argon2id" {
+        return Err(format!("不支持的 KDF 算法: {}", algo));
+    }
+    let memory_kb = obj
+        .get("memory_kb")
+        .and_then(|x| x.as_u64())
+        .ok_or("manifest 的 kdf 字段缺少 memory_kb")?;
+    let iterations = obj
+        .get("iterations")
+        .and_then(|x| x.as_u64())
+        .ok_or("manifest 的 kdf 字段缺少 iterations")?;
+    let parallelism = obj
+        .get("parallelism")
+        .and_then(|x| x.as_u64())
+        .ok_or("manifest 的 kdf 字段缺少 parallelism")?;
+    // 上限防御（P202 评审）：manifest 是攻击者可控的，参数无上界会让导入端
+    // 按声明跑巨量 Argon2（OOM/挂起）。上限取生产档的合理放大量：
+    // memory 1 GiB（production 的 16 倍）、iterations 10、parallelism 64。
+    if memory_kb == 0
+        || memory_kb > 1_048_576
+        || iterations == 0
+        || iterations > 10
+        || parallelism == 0
+        || parallelism > 64
+    {
+        return Err("manifest 的 kdf 参数非法".to_string());
+    }
+    Ok(Some(KdfConfig {
+        memory_kb: memory_kb as u32,
+        iterations: iterations as u32,
+        parallelism: parallelism as u32,
+    }))
 }
 
 /// 从对象属性中读取附件列表。
@@ -660,6 +743,8 @@ fn build_manifest(
         "extra_files": [],
         "password_hint": "",
         "salt_hex": hex::encode(salt),
+        // P202: 导出包携带实际 KDF 参数，导入端按声明派生（旧包无此字段回退 balanced）。
+        "kdf": kdf_to_manifest_value(&KdfConfig::from_env()),
     })
 }
 
@@ -698,6 +783,7 @@ fn read_manifest(path: &Path) -> Result<ManifestData, ExportError> {
             .and_then(|x| x.as_str())
             .filter(|s| !s.is_empty())
             .map(|s| s.to_string()),
+        kdf: kdf_from_manifest_value(v.get("kdf"))?,
     })
 }
 
@@ -1492,7 +1578,9 @@ mod tests {
             "salt_hex": hex::encode(salt),
             "has_attachments": false,
             "has_templates": true,
-            "extra_files": []
+            "extra_files": [],
+            // 测试助手与 derive_export_key（from_env）保持一致，导入端按声明派生。
+            "kdf": kdf_to_manifest_value(&KdfConfig::from_env()),
         });
 
         zip.start_file("manifest.json", options)
@@ -1512,5 +1600,209 @@ mod tests {
 
         zip.finish()?;
         Ok(())
+    }
+
+    /// 手动构建含指定 manifest kdf 字段的包（用于 P202 参数化测试）。
+    /// `manifest_kdf`：`None` = 旧格式包（无 kdf 字段）；`Some(v)` = 携带该 kdf 声明。
+    fn write_test_package_raw(
+        path: &Path,
+        payload: &serde_json::Value,
+        key: &[u8; 32],
+        salt: &[u8; 16],
+        manifest_kdf: Option<serde_json::Value>,
+    ) -> Result<(), ExportError> {
+        let payload_bytes = serde_json::to_vec(payload)?;
+        let file = File::create(path)?;
+        let mut zip = ZipWriter::new(file);
+        let options =
+            SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated);
+
+        let mut manifest = serde_json::json!({
+            "version": "2.0",
+            "salt_hex": hex::encode(salt),
+            "has_attachments": false,
+            "has_templates": false,
+            "extra_files": []
+        });
+        if let Some(kdf) = manifest_kdf {
+            manifest["kdf"] = kdf;
+        }
+
+        zip.start_file("manifest.json", options)
+            .map_err(|e| format!("写入 manifest 条目失败: {}", e))?;
+        zip.write_all(manifest.to_string().as_bytes())
+            .map_err(|e| format!("写入 manifest 失败: {}", e))?;
+
+        zip.start_file("payload.enc", options)
+            .map_err(|e| format!("写入 payload 条目失败: {}", e))?;
+        solosoul_crypto::cipher::encrypt_chunked_stream(
+            key,
+            payload_bytes.len() as u64,
+            &mut std::io::Cursor::new(&payload_bytes),
+            &mut zip,
+        )
+        .map_err(|e| format!("加密 payload 流失败: {}", e))?;
+
+        zip.finish()?;
+        Ok(())
+    }
+
+    // ── P202：KDF 参数随 manifest 携带 ──────────────────────
+
+    #[test]
+    fn test_kdf_manifest_value_roundtrip() {
+        for cfg in [
+            KdfConfig::production(),
+            KdfConfig::balanced(),
+            KdfConfig::development(),
+        ] {
+            let v = kdf_to_manifest_value(&cfg);
+            let parsed = kdf_from_manifest_value(Some(&v)).unwrap().unwrap();
+            assert_eq!(parsed, cfg, "kdf 往返不一致: {:?}", cfg);
+        }
+    }
+
+    #[test]
+    fn test_kdf_from_manifest_absent_and_invalid() {
+        // 字段缺失 → None（旧格式包，调用方按 balanced 兜底）
+        assert!(kdf_from_manifest_value(None).unwrap().is_none());
+        // 非对象 / 缺字段 / 非法算法 / 非法参数 → Err（拒绝静默降级）
+        assert!(kdf_from_manifest_value(Some(&serde_json::json!("argon2id"))).is_err());
+        assert!(kdf_from_manifest_value(Some(&serde_json::json!({ "algo": "argon2id" }))).is_err());
+        assert!(kdf_from_manifest_value(Some(&serde_json::json!({
+            "algo": "scrypt",
+            "memory_kb": 1,
+            "iterations": 1,
+            "parallelism": 1
+        })))
+        .is_err());
+        assert!(kdf_from_manifest_value(Some(&serde_json::json!({
+            "algo": "argon2id",
+            "memory_kb": 0,
+            "iterations": 1,
+            "parallelism": 1
+        })))
+        .is_err());
+        // 超上限参数（攻击者可控 → 导入 DoS 面）：巨量 memory / iterations / parallelism 一律拒绝
+        assert!(kdf_from_manifest_value(Some(&serde_json::json!({
+            "algo": "argon2id",
+            "memory_kb": 1_048_577,
+            "iterations": 1,
+            "parallelism": 1
+        })))
+        .is_err());
+        assert!(kdf_from_manifest_value(Some(&serde_json::json!({
+            "algo": "argon2id",
+            "memory_kb": 65536,
+            "iterations": 100_000_000,
+            "parallelism": 64
+        })))
+        .is_err());
+        assert!(kdf_from_manifest_value(Some(&serde_json::json!({
+            "algo": "argon2id",
+            "memory_kb": 65536,
+            "iterations": 3,
+            "parallelism": 1024
+        })))
+        .is_err());
+        // 边界内合法值仍接受
+        assert!(kdf_from_manifest_value(Some(&serde_json::json!({
+            "algo": "argon2id",
+            "memory_kb": 1_048_576,
+            "iterations": 10,
+            "parallelism": 64
+        })))
+        .is_ok());
+    }
+
+    #[test]
+    fn test_import_old_format_falls_back_to_balanced() {
+        // 模拟 P202 之前的旧格式包：manifest 无 kdf 字段，payload 用 balanced 加密。
+        // 导入端必须回退 balanced 才能解密（向后兼容）。
+        let (vault, account_id, dir) = test_setup();
+        let path = dir.path().join("test_old_balanced.solosoul");
+        let salt = solosoul_crypto::kdf::generate_salt();
+        let key =
+            derive_export_key_cfg(TEST_EXPORT_PASSWORD, &salt, &KdfConfig::balanced()).unwrap();
+
+        let payload = serde_json::json!({
+            "objects": [{
+                "id": "obj_old_bal",
+                "name": "Old Balanced",
+                "account_id": account_id,
+                "type_id": "note",
+                "section_type": "identity",
+                "icon_name": "document",
+                "properties": {},
+                "sensitivity_level": "internal",
+                "tags": [],
+                "created_at": "2024-01-01T00:00:00Z",
+                "updated_at": "2024-06-01T00:00:00Z",
+                "version": 1
+            }]
+        });
+        write_test_package_raw(&path, &payload, &key, &salt, None).unwrap();
+
+        let imported = import_vault(
+            &vault,
+            &account_id,
+            &path,
+            TEST_EXPORT_PASSWORD,
+            ImportStrategy::Overwrite,
+            dir.path(),
+        )
+        .unwrap();
+        assert_eq!(imported, 1);
+        let obj = vault.load_object("obj_old_bal").unwrap().unwrap();
+        assert_eq!(obj.name, "Old Balanced");
+    }
+
+    #[test]
+    fn test_import_new_format_uses_declared_kdf() {
+        // 新格式包：manifest 声明 balanced，payload 用 balanced 加密。
+        // 即使 debug 构建下 from_env()=development，导入端也必须按声明（balanced）派生。
+        let (vault, account_id, dir) = test_setup();
+        let path = dir.path().join("test_new_declared.solosoul");
+        let salt = solosoul_crypto::kdf::generate_salt();
+        let key =
+            derive_export_key_cfg(TEST_EXPORT_PASSWORD, &salt, &KdfConfig::balanced()).unwrap();
+
+        let payload = serde_json::json!({
+            "objects": [{
+                "id": "obj_new_decl",
+                "name": "Declared Balanced",
+                "account_id": account_id,
+                "type_id": "note",
+                "section_type": "identity",
+                "icon_name": "document",
+                "properties": {},
+                "sensitivity_level": "internal",
+                "tags": [],
+                "created_at": "2024-01-01T00:00:00Z",
+                "updated_at": "2024-06-01T00:00:00Z",
+                "version": 1
+            }]
+        });
+        write_test_package_raw(
+            &path,
+            &payload,
+            &key,
+            &salt,
+            Some(kdf_to_manifest_value(&KdfConfig::balanced())),
+        )
+        .unwrap();
+
+        let imported = import_vault(
+            &vault,
+            &account_id,
+            &path,
+            TEST_EXPORT_PASSWORD,
+            ImportStrategy::Overwrite,
+            dir.path(),
+        )
+        .unwrap();
+        assert_eq!(imported, 1);
+        let obj = vault.load_object("obj_new_decl").unwrap().unwrap();
+        assert_eq!(obj.name, "Declared Balanced");
     }
 }

@@ -219,6 +219,102 @@ fn test_read_manifest_json_parses_normal() -> Result<(), String> {
     Ok(())
 }
 
+// ── 6c. manifest kdf 字段解析（P202 导出包 KDF 参数随包携带）─
+
+#[test]
+fn test_manifest_kdf_field_parsing() -> Result<(), String> {
+    let temp_dir = TempDir::new().map_err(|e| e.to_string())?;
+
+    // 旧格式包（无 kdf 字段）→ 回退 balanced（向后兼容）
+    let old_zip = temp_dir.path().join("old.solosoul");
+    {
+        let file = File::create(&old_zip).map_err(|e| e.to_string())?;
+        let mut zip = ZipWriter::new(file);
+        let options =
+            SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated);
+        zip.start_file("manifest.json", options)
+            .map_err(|e| e.to_string())?;
+        zip.write_all(
+            json!({
+                "version": "2.0",
+                "salt_hex": "deadbeef",
+                "has_attachments": false,
+                "extra_files": []
+            })
+            .to_string()
+            .as_bytes(),
+        )
+        .map_err(|e| e.to_string())?;
+        zip.finish().map_err(|e| e.to_string())?;
+    }
+    let old_manifest = read_manifest(old_zip.to_str().unwrap())?;
+    assert_eq!(old_manifest.kdf, None);
+    assert_eq!(
+        old_manifest.kdf_config(),
+        solosoul_crypto::kdf::KdfConfig::balanced()
+    );
+
+    // 新格式包（kdf=production 声明）→ 按声明返回
+    let new_zip = temp_dir.path().join("new.solosoul");
+    {
+        let file = File::create(&new_zip).map_err(|e| e.to_string())?;
+        let mut zip = ZipWriter::new(file);
+        let options =
+            SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated);
+        zip.start_file("manifest.json", options)
+            .map_err(|e| e.to_string())?;
+        zip.write_all(
+            json!({
+                "version": "2.0",
+                "salt_hex": "deadbeef",
+                "has_attachments": false,
+                "extra_files": [],
+                "kdf": solosoul_core::export_import::kdf_to_manifest_value(
+                    &solosoul_crypto::kdf::KdfConfig::production()
+                )
+            })
+            .to_string()
+            .as_bytes(),
+        )
+        .map_err(|e| e.to_string())?;
+        zip.finish().map_err(|e| e.to_string())?;
+    }
+    let new_manifest = read_manifest(new_zip.to_str().unwrap())?;
+    assert_eq!(
+        new_manifest.kdf_config(),
+        solosoul_crypto::kdf::KdfConfig::production()
+    );
+
+    // 非法 kdf 声明 → 拒绝（不静默降级）
+    let bad_zip = temp_dir.path().join("bad.solosoul");
+    {
+        let file = File::create(&bad_zip).map_err(|e| e.to_string())?;
+        let mut zip = ZipWriter::new(file);
+        let options =
+            SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated);
+        zip.start_file("manifest.json", options)
+            .map_err(|e| e.to_string())?;
+        zip.write_all(
+            json!({
+                "version": "2.0",
+                "salt_hex": "deadbeef",
+                "has_attachments": false,
+                "extra_files": [],
+                "kdf": { "algo": "scrypt", "memory_kb": 1, "iterations": 1, "parallelism": 1 }
+            })
+            .to_string()
+            .as_bytes(),
+        )
+        .map_err(|e| e.to_string())?;
+        zip.finish().map_err(|e| e.to_string())?;
+    }
+    assert!(
+        read_manifest(bad_zip.to_str().unwrap()).is_err(),
+        "非法 kdf 声明应被拒绝"
+    );
+    Ok(())
+}
+
 // ── 7. read_file_from_zip ───────────────────────────────────
 
 #[test]
