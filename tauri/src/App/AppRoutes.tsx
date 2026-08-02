@@ -395,7 +395,12 @@ export function AppRoutes() {
           // P0-1: Load custom pages from objects table (separate from profile preferences)
           // Must run AFTER loadSettings finishes to avoid race condition where
           // loadSettings overwrites customPages with DEFAULT_SETTINGS.
-          useSettingsStore.getState().loadCustomPages(account.id);
+          // P127: await + catch——失败不再产生 unhandled rejection 或自定义页面静默缺失。
+          try {
+            await useSettingsStore.getState().loadCustomPages(account.id);
+          } catch (err) {
+            logger.warn('[AppRoutes] Failed to load custom pages:', err);
+          }
         });
     }
   }, [isAuthenticated]);
