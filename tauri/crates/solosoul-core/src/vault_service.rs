@@ -209,6 +209,9 @@ fn make_biometric_manager(base_path: PathBuf) -> BiometricManager {
     )
 }
 
+/// P225: unlock / verify_password 共享派生结果的元组别名（(config, salt_arr, mk, master_key)）。
+type DerivedMasterKey = (AccountConfig, [u8; 16], [u8; 32], Zeroizing<Vec<u8>>);
+
 impl VaultService {
     pub fn new() -> Self {
         let base_path = Self::default_base_path();
@@ -622,15 +625,13 @@ impl VaultService {
     }
 
     /// 安全解锁：接受 Zeroizing<String> 主密码，避免调用侧额外明文拷贝。
-    pub fn unlock_secure(
+    /// P225: 加载账户配置并派生主密钥（unlock / verify_password 共享前缀收敛）。
+    /// 返回 (config, salt_arr, mk, master_key)。
+    fn load_config_and_derive_master_key(
         &self,
         account_id: &str,
-        password: &Zeroizing<String>,
-    ) -> Result<(), String> {
-        self.unlock(account_id, password.as_ref())
-    }
-
-    pub fn unlock(&self, account_id: &str, password: &str) -> Result<(), String> {
+        password: &str,
+    ) -> Result<DerivedMasterKey, String> {
         let config_rel = self.config_path_rel(account_id);
         let content = self
             .fs
@@ -657,10 +658,19 @@ impl VaultService {
             .as_slice()
             .try_into()
             .map_err(|_| "Master key must be 32 bytes".to_string())?;
-        // Backward compat: crypto_version < 3 uses old Argon2id verify hash
-        let computed_hash = if config.crypto_version < 3 {
+        Ok((config, salt_arr, mk, master_key))
+    }
+
+    /// P225: 计算 verify hash（crypto_version<3 旧 Argon2id 路径，否则 HKDF）。
+    fn compute_verify_hash(
+        config: &AccountConfig,
+        mk: &[u8; 32],
+        salt_arr: &[u8; 16],
+        master_key: &[u8],
+    ) -> Result<String, String> {
+        if config.crypto_version < 3 {
             let verify_key = derive_key(
-                &hex::encode(master_key.as_slice()),
+                &hex::encode(master_key),
                 b"SOLOSOUL_VAULT_VERIFY_v1",
                 &KdfConfig {
                     memory_kb: 8192,
@@ -669,17 +679,33 @@ impl VaultService {
                 },
             )
             .map_err(|_| "Verify failed".to_string())?;
-            hex::encode(verify_key.as_slice())
+            Ok(hex::encode(verify_key.as_slice()))
         } else {
-            hex::encode(
+            Ok(hex::encode(
                 solosoul_crypto::hkdf_ext::derive_hkdf_key(
-                    &mk,
-                    &salt_arr,
+                    mk,
+                    salt_arr,
                     b"SOLOSOUL_VAULT_VERIFY_v1",
                 )
                 .map_err(|_| "Verify HKDF failed".to_string())?,
-            )
-        };
+            ))
+        }
+    }
+
+    pub fn unlock_secure(
+        &self,
+        account_id: &str,
+        password: &Zeroizing<String>,
+    ) -> Result<(), String> {
+        self.unlock(account_id, password.as_ref())
+    }
+
+    pub fn unlock(&self, account_id: &str, password: &str) -> Result<(), String> {
+        let (config, salt_arr, mk, master_key) =
+            self.load_config_and_derive_master_key(account_id, password)?;
+        // Backward compat: crypto_version < 3 uses old Argon2id verify hash
+        let computed_hash =
+            Self::compute_verify_hash(&config, &mk, &salt_arr, master_key.as_slice())?;
 
         if !secure_compare(computed_hash.as_bytes(), config.verify_hash.as_bytes()) {
             return Err("Invalid password".to_string());
@@ -915,55 +941,11 @@ impl VaultService {
     /// Does NOT modify any state (no unlocking, no session key storage).
     /// Verify hash is derived from the Argon2id master key using HKDF-SHA256 (P2-010).
     pub fn verify_password(&self, account_id: &str, password: &str) -> Result<bool, String> {
-        let config_rel = self.config_path_rel(account_id);
-        let content = self
-            .fs
-            .read_file(&config_rel)
-            .map_err(|_| "Account not found".to_string())?;
-        let content =
-            String::from_utf8(content).map_err(|_| "Config encoding error".to_string())?;
-        let config: AccountConfig =
-            serde_json::from_str(&content).map_err(|_| "Config parse error".to_string())?;
-
-        let salt_bytes =
-            base64::Engine::decode(&base64::engine::general_purpose::STANDARD, &config.salt)
-                .map_err(|_| "Invalid salt".to_string())?;
-        let salt_arr: [u8; 16] = salt_bytes
-            .as_slice()
-            .try_into()
-            .map_err(|_| "Invalid salt length".to_string())?;
-
-        let kdf_config = config.kdf_config();
-        let master_key = derive_key(password, &salt_arr, &kdf_config)
-            .map_err(|_| "Key derivation failed".to_string())?;
-
-        let mk: [u8; 32] = master_key
-            .as_slice()
-            .try_into()
-            .map_err(|_| "Master key must be 32 bytes".to_string())?;
+        let (config, salt_arr, mk, master_key) =
+            self.load_config_and_derive_master_key(account_id, password)?;
         // Backward compat: crypto_version < 3 uses old Argon2id verify hash
-        let computed_hash = if config.crypto_version < 3 {
-            let verify_key = derive_key(
-                &hex::encode(master_key.as_slice()),
-                b"SOLOSOUL_VAULT_VERIFY_v1",
-                &KdfConfig {
-                    memory_kb: 8192,
-                    iterations: 1,
-                    parallelism: 1,
-                },
-            )
-            .map_err(|_| "Verify failed".to_string())?;
-            hex::encode(verify_key.as_slice())
-        } else {
-            hex::encode(
-                solosoul_crypto::hkdf_ext::derive_hkdf_key(
-                    &mk,
-                    &salt_arr,
-                    b"SOLOSOUL_VAULT_VERIFY_v1",
-                )
-                .map_err(|_| "Verify HKDF failed".to_string())?,
-            )
-        };
+        let computed_hash =
+            Self::compute_verify_hash(&config, &mk, &salt_arr, master_key.as_slice())?;
 
         Ok(secure_compare(
             computed_hash.as_bytes(),

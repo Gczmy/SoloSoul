@@ -2488,6 +2488,72 @@ impl VaultStore {
         Ok(())
     }
 
+    /// P225: 行 → ObjectRecord 映射（load_object_tx / load_objects_batch / list_object_records
+    /// 三处重复闭包收敛为单一实现；错误文案统一为 Object 前缀，原 search 路径前缀为 Search）。
+    fn object_row_to_record(
+        key: &DataEncryptionKey,
+        row: &rusqlite::Row,
+    ) -> rusqlite::Result<ObjectRecord> {
+        let children_str: String = row.get(7)?;
+        let props_str: String = row.get(8)?;
+        let labels_str: String = row.get(9)?;
+        let tags_str: String = row.get(13)?;
+        let deleted: i32 = row.get(11)?;
+        let decrypted_props = decrypt_text_field(key, &props_str).map_err(|e| {
+            rusqlite::Error::FromSqlConversionFailure(
+                8,
+                rusqlite::types::Type::Text,
+                Box::new(std::io::Error::new(
+                    std::io::ErrorKind::InvalidData,
+                    format!("Object properties decryption failed: {}", e),
+                )),
+            )
+        })?;
+        let decrypted_labels = if labels_str.is_empty() {
+            Ok(String::new())
+        } else {
+            decrypt_text_field(key, &labels_str)
+        }
+        .map_err(|e| {
+            rusqlite::Error::FromSqlConversionFailure(
+                9,
+                rusqlite::types::Type::Text,
+                Box::new(std::io::Error::new(
+                    std::io::ErrorKind::InvalidData,
+                    format!("Object labels decryption failed: {}", e),
+                )),
+            )
+        })?;
+        Ok(ObjectRecord {
+            id: row.get(0)?,
+            account_id: row.get(1)?,
+            type_id: row.get(2)?,
+            section_type: row.get(3)?,
+            name: row.get(4)?,
+            icon_name: row.get(5)?,
+            parent_id: row.get(6)?,
+            children_ids: serde_json::from_str(&children_str).unwrap_or_default(),
+            properties: serde_json::from_str(&decrypted_props).unwrap_or(serde_json::Value::Null),
+            property_labels: if decrypted_labels.is_empty() {
+                None
+            } else {
+                serde_json::from_str(&decrypted_labels).ok()
+            },
+            sensitivity_level: row.get(10)?,
+            is_deleted: deleted != 0,
+            deleted_at: row.get(12)?,
+            tags_json: serde_json::from_str(&tags_str).unwrap_or_default(),
+            template_id: row.get(14)?,
+            template_type: row.get(15)?,
+            contract_type_id: row.get(16)?,
+            template_hash: row.get(17)?,
+            ignored_template_hash: row.get(18)?,
+            created_at: row.get(19)?,
+            updated_at: row.get(20)?,
+            version: row.get(21)?,
+        })
+    }
+
     pub fn load_object(&self, id: &str) -> Result<Option<ObjectRecord>, String> {
         let key = self.data_key()?;
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
@@ -2505,67 +2571,7 @@ impl VaultStore {
             .prepare_cached(OBJECT_LOAD_SQL)
             .map_err(|e| format!("load_object: {}", e))?;
         let result = stmt
-            .query_row(params![id], |row| {
-                let children_str: String = row.get(7)?;
-                let props_str: String = row.get(8)?;
-                let labels_str: String = row.get(9)?;
-                let tags_str: String = row.get(13)?;
-                let deleted: i32 = row.get(11)?;
-                let decrypted_props = decrypt_text_field(key, &props_str).map_err(|e| {
-                    rusqlite::Error::FromSqlConversionFailure(
-                        8,
-                        rusqlite::types::Type::Text,
-                        Box::new(std::io::Error::new(
-                            std::io::ErrorKind::InvalidData,
-                            format!("Object properties decryption failed: {}", e),
-                        )),
-                    )
-                })?;
-                let decrypted_labels = if labels_str.is_empty() {
-                    Ok(String::new())
-                } else {
-                    decrypt_text_field(key, &labels_str)
-                }
-                .map_err(|e| {
-                    rusqlite::Error::FromSqlConversionFailure(
-                        9,
-                        rusqlite::types::Type::Text,
-                        Box::new(std::io::Error::new(
-                            std::io::ErrorKind::InvalidData,
-                            format!("Object labels decryption failed: {}", e),
-                        )),
-                    )
-                })?;
-                Ok(ObjectRecord {
-                    id: row.get(0)?,
-                    account_id: row.get(1)?,
-                    type_id: row.get(2)?,
-                    section_type: row.get(3)?,
-                    name: row.get(4)?,
-                    icon_name: row.get(5)?,
-                    parent_id: row.get(6)?,
-                    children_ids: serde_json::from_str(&children_str).unwrap_or_default(),
-                    properties: serde_json::from_str(&decrypted_props)
-                        .unwrap_or(serde_json::Value::Null),
-                    property_labels: if decrypted_labels.is_empty() {
-                        None
-                    } else {
-                        serde_json::from_str(&decrypted_labels).ok()
-                    },
-                    sensitivity_level: row.get(10)?,
-                    is_deleted: deleted != 0,
-                    deleted_at: row.get(12)?,
-                    tags_json: serde_json::from_str(&tags_str).unwrap_or_default(),
-                    template_id: row.get(14)?,
-                    template_type: row.get(15)?,
-                    contract_type_id: row.get(16)?,
-                    template_hash: row.get(17)?,
-                    ignored_template_hash: row.get(18)?,
-                    created_at: row.get(19)?,
-                    updated_at: row.get(20)?,
-                    version: row.get(21)?,
-                })
-            })
+            .query_row(params![id], |row| Self::object_row_to_record(key, row))
             .optional()
             .map_err(|e| format!("Failed to load object: {}", e))?;
         Ok(result)
@@ -2606,65 +2612,7 @@ impl VaultStore {
 
         let rows = stmt
             .query_map(params_refs.as_slice(), |row| {
-                let children_str: String = row.get(7)?;
-                let props_str: String = row.get(8)?;
-                let labels_str: String = row.get(9)?;
-                let tags_str: String = row.get(13)?;
-                let deleted: i32 = row.get(11)?;
-                let decrypted_props = decrypt_text_field(&key, &props_str).map_err(|e| {
-                    rusqlite::Error::FromSqlConversionFailure(
-                        8,
-                        rusqlite::types::Type::Text,
-                        Box::new(std::io::Error::new(
-                            std::io::ErrorKind::InvalidData,
-                            format!("Object properties decryption failed: {}", e),
-                        )),
-                    )
-                })?;
-                let decrypted_labels = if labels_str.is_empty() {
-                    Ok(String::new())
-                } else {
-                    decrypt_text_field(&key, &labels_str)
-                }
-                .map_err(|e| {
-                    rusqlite::Error::FromSqlConversionFailure(
-                        9,
-                        rusqlite::types::Type::Text,
-                        Box::new(std::io::Error::new(
-                            std::io::ErrorKind::InvalidData,
-                            format!("Object labels decryption failed: {}", e),
-                        )),
-                    )
-                })?;
-                Ok(ObjectRecord {
-                    id: row.get(0)?,
-                    account_id: row.get(1)?,
-                    type_id: row.get(2)?,
-                    section_type: row.get(3)?,
-                    name: row.get(4)?,
-                    icon_name: row.get(5)?,
-                    parent_id: row.get(6)?,
-                    children_ids: serde_json::from_str(&children_str).unwrap_or_default(),
-                    properties: serde_json::from_str(&decrypted_props)
-                        .unwrap_or(serde_json::Value::Null),
-                    property_labels: if decrypted_labels.is_empty() {
-                        None
-                    } else {
-                        serde_json::from_str(&decrypted_labels).ok()
-                    },
-                    sensitivity_level: row.get(10)?,
-                    is_deleted: deleted != 0,
-                    deleted_at: row.get(12)?,
-                    tags_json: serde_json::from_str(&tags_str).unwrap_or_default(),
-                    template_id: row.get(14)?,
-                    template_type: row.get(15)?,
-                    contract_type_id: row.get(16)?,
-                    template_hash: row.get(17)?,
-                    ignored_template_hash: row.get(18)?,
-                    created_at: row.get(19)?,
-                    updated_at: row.get(20)?,
-                    version: row.get(21)?,
-                })
+                Self::object_row_to_record(&key, row)
             })
             .map_err(|e| format!("load_objects_batch query: {}", e))?
             .collect::<Result<Vec<_>, _>>()
@@ -3044,64 +2992,7 @@ impl VaultStore {
             .map_err(|e| format!("list_object_records: {}", e))?;
         let results = stmt
             .query_map(params![account_id], |row| {
-                let children_str: String = row.get(7)?;
-                let props_str: String = row.get(8)?;
-                let labels_str: String = row.get(9)?;
-                let deleted: i32 = row.get(11)?;
-                let decrypted_props = decrypt_text_field(&key, &props_str).map_err(|e| {
-                    rusqlite::Error::FromSqlConversionFailure(
-                        8,
-                        rusqlite::types::Type::Text,
-                        Box::new(std::io::Error::new(
-                            std::io::ErrorKind::InvalidData,
-                            format!("Search properties decryption failed: {}", e),
-                        )),
-                    )
-                })?;
-                let decrypted_labels = if labels_str.is_empty() {
-                    Ok(String::new())
-                } else {
-                    decrypt_text_field(&key, &labels_str)
-                }
-                .map_err(|e| {
-                    rusqlite::Error::FromSqlConversionFailure(
-                        9,
-                        rusqlite::types::Type::Text,
-                        Box::new(std::io::Error::new(
-                            std::io::ErrorKind::InvalidData,
-                            format!("Search labels decryption failed: {}", e),
-                        )),
-                    )
-                })?;
-                Ok(ObjectRecord {
-                    id: row.get(0)?,
-                    account_id: row.get(1)?,
-                    type_id: row.get(2)?,
-                    section_type: row.get(3)?,
-                    name: row.get(4)?,
-                    icon_name: row.get(5)?,
-                    parent_id: row.get(6)?,
-                    children_ids: serde_json::from_str(&children_str).unwrap_or_default(),
-                    properties: serde_json::from_str(&decrypted_props)
-                        .unwrap_or(serde_json::Value::Null),
-                    property_labels: if decrypted_labels.is_empty() {
-                        None
-                    } else {
-                        serde_json::from_str(&decrypted_labels).ok()
-                    },
-                    sensitivity_level: row.get(10)?,
-                    is_deleted: deleted != 0,
-                    deleted_at: row.get(12)?,
-                    tags_json: serde_json::from_str(&row.get::<_, String>(13)?).unwrap_or_default(),
-                    template_id: row.get(14)?,
-                    template_type: row.get(15)?,
-                    contract_type_id: row.get(16)?,
-                    template_hash: row.get(17)?,
-                    ignored_template_hash: row.get(18)?,
-                    created_at: row.get(19)?,
-                    updated_at: row.get(20)?,
-                    version: row.get(21)?,
-                })
+                Self::object_row_to_record(&key, row)
             })
             .map_err(|e| format!("list_object_records query: {}", e))?
             .collect::<Result<Vec<_>, _>>()

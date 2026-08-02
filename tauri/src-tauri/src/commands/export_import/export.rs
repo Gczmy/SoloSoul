@@ -317,20 +317,13 @@ fn collect_attachment_entries(
                 ));
             }
 
-            let src = att
-                .vault_path
-                .as_ref()
-                .or(att.src_path.as_ref())
-                .map(|p| std::path::Path::new(p).to_path_buf())
-                .filter(|p| p.exists())
-                .or_else(|| {
-                    let fallback = base_dir.join(&att.id).join(&att.file_name);
-                    if fallback.exists() {
-                        Some(fallback)
-                    } else {
-                        None
-                    }
-                });
+            let src = solosoul_core::export_import::resolve_attachment_src(
+                &base_dir,
+                att.vault_path.as_deref(),
+                att.src_path.as_deref(),
+                &att.id,
+                &att.file_name,
+            );
 
             if let Some(src) = src {
                 validate_attachment_path(svc.base_path().join("attachments").as_path(), &src)?;

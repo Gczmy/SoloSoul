@@ -617,6 +617,29 @@ fn load_attachments(props: &serde_json::Value) -> Vec<AttachmentMeta> {
         .unwrap_or_default()
 }
 
+/// P225: 解析附件实际源文件路径（vault 落库副本 > 原始路径 > 附件目录回退）。
+/// core 导出与 GUI 导出共用，消除双份实现（字段级参数化以兼容两侧 AttachmentMeta）。
+pub fn resolve_attachment_src(
+    base_dir: &std::path::Path,
+    vault_path: Option<&str>,
+    src_path: Option<&str>,
+    att_id: &str,
+    file_name: &str,
+) -> Option<std::path::PathBuf> {
+    vault_path
+        .or(src_path)
+        .map(|p| std::path::Path::new(p).to_path_buf())
+        .filter(|p| p.exists())
+        .or_else(|| {
+            let fallback = base_dir.join(att_id).join(file_name);
+            if fallback.exists() {
+                Some(fallback)
+            } else {
+                None
+            }
+        })
+}
+
 /// 根据范围收集对象记录。
 fn collect_scope_objects(
     vault: &VaultStore,
@@ -708,20 +731,13 @@ fn collect_attachment_entries(
                 return Err(ExportError::Msg(format!("附件过大: {}", att.file_name)));
             }
 
-            let src = att
-                .vault_path
-                .as_ref()
-                .or(att.src_path.as_ref())
-                .map(|p| Path::new(p).to_path_buf())
-                .filter(|p| p.exists())
-                .or_else(|| {
-                    let fallback = base_dir.join(&att.id).join(&att.file_name);
-                    if fallback.exists() {
-                        Some(fallback)
-                    } else {
-                        None
-                    }
-                });
+            let src = resolve_attachment_src(
+                &base_dir,
+                att.vault_path.as_deref(),
+                att.src_path.as_deref(),
+                &att.id,
+                &att.file_name,
+            );
 
             if let Some(src) = src {
                 entries.push((rec.id.clone(), att.id.clone(), att.file_name.clone(), src));

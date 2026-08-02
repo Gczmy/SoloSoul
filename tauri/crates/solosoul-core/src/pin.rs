@@ -189,40 +189,7 @@ impl PinManager {
         let salt = solosoul_crypto::kdf::generate_salt();
         let kdf_cfg = pin_kdf_config();
 
-        // 从 PIN + salt 派生 KEK
-        let kek = derive_key(pin, &salt, &kdf_cfg)
-            .map_err(|e| PinError::SetupFailed(format!("kdf: {e}")))?;
-        let kek_arr: [u8; 32] = kek
-            .as_slice()
-            .try_into()
-            .map_err(|_| PinError::SetupFailed("kek must be 32 bytes".into()))?;
-
-        // 用 KEK 加密会话密钥
-        let ciphertext_bytes = encrypt_to_bytes(&kek_arr, session_key.as_slice(), None)
-            .map_err(|e| PinError::SetupFailed(format!("encrypt: {e}")))?;
-
-        // 写入凭证文件
-        let credential = PinCredential {
-            version: 1,
-            salt: base64::Engine::encode(
-                &base64::engine::general_purpose::STANDARD,
-                salt.as_slice(),
-            ),
-            ciphertext: hex::encode(ciphertext_bytes),
-        };
-        let cred_path = self.pin_credential_path(account_id);
-        if let Some(parent) = cred_path.parent() {
-            std::fs::create_dir_all(parent)
-                .map_err(|e| PinError::SetupFailed(format!("mkdir: {e}")))?;
-        }
-        let cred_json = serde_json::to_string_pretty(&credential)
-            .map_err(|e| PinError::SetupFailed(format!("serialize: {e}")))?;
-        std::fs::write(&cred_path, cred_json)
-            .map_err(|e| PinError::SetupFailed(format!("write: {e}")))?;
-        // 设置文件权限为私有（Unix 0600）
-        if let Err(e) = set_private_file(&cred_path) {
-            tracing::warn!("Failed to set private permissions on PIN credential: {}", e);
-        }
+        self.write_pin_credential(account_id, pin, &salt, session_key.as_slice(), &kdf_cfg)?;
 
         // 更新 config
         self.update_config_field(account_id, |c| {
@@ -362,14 +329,16 @@ impl PinManager {
     }
 
     /// 用生产级 KDF 参数重新加密 PIN 凭证（就地升级，P005）。
-    fn upgrade_credential(
+    /// P225: 派生 KEK 并写入 PIN 凭证文件（setup_pin / upgrade_credential 尾部收敛）。
+    fn write_pin_credential(
         &self,
         account_id: &str,
         pin: &str,
         salt: &[u8; 16],
         session_key: &[u8],
+        kdf_cfg: &KdfConfig,
     ) -> Result<(), PinError> {
-        let kek = derive_key(pin, salt, &KdfConfig::production())
+        let kek = derive_key(pin, salt, kdf_cfg)
             .map_err(|e| PinError::SetupFailed(format!("kdf: {e}")))?;
         let kek_arr: [u8; 32] = kek
             .as_slice()
@@ -399,6 +368,16 @@ impl PinManager {
             tracing::warn!("Failed to set private permissions on PIN credential: {}", e);
         }
         Ok(())
+    }
+
+    fn upgrade_credential(
+        &self,
+        account_id: &str,
+        pin: &str,
+        salt: &[u8; 16],
+        session_key: &[u8],
+    ) -> Result<(), PinError> {
+        self.write_pin_credential(account_id, pin, salt, session_key, &KdfConfig::production())
     }
 
     /// 禁用 PIN（需要验证主密码）。
