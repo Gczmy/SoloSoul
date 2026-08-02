@@ -115,31 +115,7 @@ impl From<&ApplyStats> for SyncResult {
     }
 }
 
-#[cfg(desktop)]
-#[tauri::command]
-pub async fn sync_discover(state: State<'_, AppState>) -> Result<SyncStatus, String> {
-    let peers = state.sync_service.known_peers().await?;
-    let local_fingerprint = state.sync_service.local_fingerprint().await?;
-    Ok(SyncStatus {
-        is_discovering: state.sync_service.is_enabled().await,
-        sync_enabled: state.sync_service.is_enabled().await,
-        auto_sync_enabled: state.device_auto_sync.enabled(),
-        local_fingerprint,
-        connected_peers: peers
-            .into_iter()
-            .map(|p| SyncPeer {
-                id: p.node_id,
-                name: p.name,
-                addr: p.addr,
-                fingerprint: p.fingerprint,
-                trusted: p.trusted,
-                last_seen: p.last_seen,
-            })
-            .collect(),
-    })
-}
-
-#[cfg(mobile)]
+/// 发现局域网内已知的同步对端并返回状态。
 #[tauri::command]
 pub async fn sync_discover(state: State<'_, AppState>) -> Result<SyncStatus, String> {
     let peers = state.sync_service.known_peers().await?;
@@ -164,14 +140,6 @@ pub async fn sync_discover(state: State<'_, AppState>) -> Result<SyncStatus, Str
 }
 
 /// 触发一次前台自动同步。
-#[cfg(desktop)]
-#[tauri::command]
-pub async fn sync_trigger_foreground(state: State<'_, AppState>) -> Result<(), String> {
-    state.device_auto_sync.trigger_foreground();
-    Ok(())
-}
-
-#[cfg(mobile)]
 #[tauri::command]
 pub async fn sync_trigger_foreground(state: State<'_, AppState>) -> Result<(), String> {
     state.device_auto_sync.trigger_foreground();
@@ -179,27 +147,6 @@ pub async fn sync_trigger_foreground(state: State<'_, AppState>) -> Result<(), S
 }
 
 /// 设置是否启用设备自动同步。
-#[cfg(desktop)]
-#[tauri::command]
-pub async fn sync_set_auto_enabled(
-    state: State<'_, AppState>,
-    enabled: bool,
-) -> Result<bool, String> {
-    state.device_auto_sync.set_enabled(enabled);
-    log_sync_action(
-        &state,
-        if enabled {
-            "auto_sync_enabled"
-        } else {
-            "auto_sync_disabled"
-        },
-        None,
-        None,
-    );
-    Ok(enabled)
-}
-
-#[cfg(mobile)]
 #[tauri::command]
 pub async fn sync_set_auto_enabled(
     state: State<'_, AppState>,
@@ -220,25 +167,12 @@ pub async fn sync_set_auto_enabled(
 }
 
 /// 获取设备自动同步开关状态。
-#[cfg(desktop)]
 #[tauri::command]
 pub async fn sync_get_auto_status(state: State<'_, AppState>) -> Result<bool, String> {
     Ok(state.device_auto_sync.enabled())
 }
 
-#[cfg(mobile)]
-#[tauri::command]
-pub async fn sync_get_auto_status(state: State<'_, AppState>) -> Result<bool, String> {
-    Ok(state.device_auto_sync.enabled())
-}
-
-#[cfg(desktop)]
-#[tauri::command]
-pub async fn sync_get_status(state: State<'_, AppState>) -> Result<SyncStatus, String> {
-    sync_discover(state).await
-}
-
-#[cfg(mobile)]
+/// 获取同步状态（发现对端 + 开关状态）。
 #[tauri::command]
 pub async fn sync_get_status(state: State<'_, AppState>) -> Result<SyncStatus, String> {
     sync_discover(state).await
@@ -319,15 +253,6 @@ async fn list_conflicts_impl(state: State<'_, AppState>) -> Result<Vec<ConflictS
 }
 
 /// 获取当前所有未解决的同步冲突摘要。
-#[cfg(desktop)]
-#[tauri::command]
-pub async fn sync_list_conflicts(
-    state: State<'_, AppState>,
-) -> Result<Vec<ConflictSummary>, String> {
-    list_conflicts_impl(state).await
-}
-
-#[cfg(mobile)]
 #[tauri::command]
 pub async fn sync_list_conflicts(
     state: State<'_, AppState>,
@@ -398,16 +323,6 @@ async fn get_conflict_detail_impl(
 }
 
 /// 获取单个同步冲突详情。
-#[cfg(desktop)]
-#[tauri::command]
-pub async fn sync_get_conflict_detail(
-    state: State<'_, AppState>,
-    conflict_id: String,
-) -> Result<ConflictDetail, String> {
-    get_conflict_detail_impl(state, conflict_id).await
-}
-
-#[cfg(mobile)]
 #[tauri::command]
 pub async fn sync_get_conflict_detail(
     state: State<'_, AppState>,
@@ -433,17 +348,6 @@ async fn resolve_conflict_impl(
 }
 
 /// 按策略解决同步冲突。
-#[cfg(desktop)]
-#[tauri::command]
-pub async fn sync_resolve_conflict(
-    state: State<'_, AppState>,
-    conflict_id: String,
-    strategy: String,
-) -> Result<bool, String> {
-    resolve_conflict_impl(state, conflict_id, strategy).await
-}
-
-#[cfg(mobile)]
 #[tauri::command]
 pub async fn sync_resolve_conflict(
     state: State<'_, AppState>,
@@ -606,20 +510,6 @@ pub async fn sync_enable(
 
 /// 返回本地监听地址（`host:port`），与移动端形状一致，供前端状态卡完整展示。
 /// 未启用（端口 0）时返回空串，前端据此隐藏地址行。
-#[cfg(mobile)]
-#[tauri::command]
-pub async fn sync_listen_addr(state: State<'_, AppState>) -> Result<String, String> {
-    let port = state.sync_service.listen_port().await;
-    if port == 0 {
-        return Ok(String::new());
-    }
-    let host = local_display_ip()
-        .await
-        .unwrap_or_else(|| "127.0.0.1".to_string());
-    Ok(format!("{}:{}", host, port))
-}
-
-#[cfg(desktop)]
 #[tauri::command]
 pub async fn sync_listen_addr(state: State<'_, AppState>) -> Result<String, String> {
     let port = state.sync_service.listen_port().await;
@@ -734,7 +624,7 @@ pub async fn sync_with_device(
     Ok(sync_result)
 }
 
-#[cfg(desktop)]
+/// 信任/撤销信任一个同步对端。
 #[tauri::command]
 pub async fn sync_trust_peer(
     state: State<'_, AppState>,
@@ -759,43 +649,7 @@ pub async fn sync_trust_peer(
     Ok(())
 }
 
-#[cfg(mobile)]
-#[tauri::command]
-pub async fn sync_trust_peer(
-    state: State<'_, AppState>,
-    peer_node_id: String,
-    trusted: bool,
-    fingerprint: Option<String>,
-) -> Result<(), String> {
-    state
-        .sync_service
-        .trust_peer(peer_node_id.clone(), trusted, fingerprint)
-        .await?;
-    log_sync_action(
-        &state,
-        if trusted {
-            "sync_peer_trusted"
-        } else {
-            "sync_peer_revoked"
-        },
-        Some(&peer_node_id),
-        None,
-    );
-    Ok(())
-}
-
-#[cfg(desktop)]
-#[tauri::command]
-pub async fn sync_forget_peer(
-    state: State<'_, AppState>,
-    peer_node_id: String,
-) -> Result<(), String> {
-    state.sync_service.forget_peer(peer_node_id.clone()).await?;
-    log_sync_action(&state, "sync_peer_forgotten", Some(&peer_node_id), None);
-    Ok(())
-}
-
-#[cfg(mobile)]
+/// 忘记一个同步对端。
 #[tauri::command]
 pub async fn sync_forget_peer(
     state: State<'_, AppState>,

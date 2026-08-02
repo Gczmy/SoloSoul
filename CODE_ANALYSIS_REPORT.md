@@ -71,7 +71,7 @@
 | P135 | 死代码 | `crates/solosoul-vault/src/safe_storage.rs`（98 行） | 整模块仅自身测试调用，生产零引用 | `[x]` 已决策保留（2026-08-02：删除文件类破坏性操作，用户确认暂不处理） |
 | P136 | 死代码 | `crates/solosoul-core/src/llm/service.rs:114-448` | `LlmService` 两个死方法簇（provider 管理 8 方法 + 会话管理 5+ 方法）生产零调用（GUI 走 commands/llm 自建实现） | `[x]` 已修复（2026-08-02：LlmService 整体零外部引用（仅自身测试），连同仅被其使用的 `client.rs` 一并删除，共移除死代码 1311 行；`llm/mod.rs` 移除两处模块声明，config 类型保留供 P137 复用） |
 | P137 | 重复代码 | `crates/solosoul-core/src/llm/config.rs:20` ↔ `src-tauri/src/commands/llm/mod.rs:6` | 8 个 LLM 数据结构在两个 crate 各定义一份（44+29 行），易漂移 | `[x]` 已修复（2026-08-02：commands/llm/mod.rs 本地 8 类型与 default_true 删除，改 `pub use solosoul_core::llm::config::{...}` 复用唯一真理来源；本地 default_true 测试随之删除，serde 格式逐字段一致由 48 个 LLM 测试确认） |
-| P138 | 重复代码 | `src-tauri/src/commands/sync.rs` | 12 对 `#[cfg(desktop)]`/`#[cfg(mobile)]` 命令函数体逐字节相同（约 133 行），仅 sync_enable/sync_with_device 真有平台差异 | `[ ]` |
+| P138 | 重复代码 | `src-tauri/src/commands/sync.rs` | 12 对 `#[cfg(desktop)]`/`#[cfg(mobile)]` 命令函数体逐字节相同（约 133 行），仅 sync_enable/sync_with_device 真有平台差异 | `[x]` 已修复（2026-08-02：11 对逐字节相同命令（sync_discover/trigger_foreground/set_auto_enabled/get_auto_status/get_status/list_conflicts/get_conflict_detail/resolve_conflict/listen_addr/trust_peer/forget_peer）合并为单一定义；sync_enable 与 sync_with_device 两对真平台差异保留，cfg 类型声明与 local_display_ip 内部块不变；剩余 cfg 标记仅存类型与差异函数） |
 | P139 | 重复代码 | `crates/solosoul-sync/src/manager.rs` ↔ `mobile.rs` ↔ `service.rs` | MobileSyncManager 与 SyncService/SyncManager 约 120 行重复（audit_log/trust_peer/forget_peer/connect 流程） | `[ ]` |
 | P140 | 重复代码 | `src/pages/settings/OcrSettingsPage.tsx` ↔ `src/pages/scan/OcrPage.tsx` | OCR 模型安装/下载/tier 切换逻辑约 70 行逐字重复 | `[ ]` |
 | P141 | 重复代码 | `src/pages/search/SearchPage.tsx` ↔ `src/components/layout/SearchPopover.tsx` | 搜索 state 四件套 + 缓存 + 过滤排序 + 结果行渲染约 80 行重复 | `[ ]` |
@@ -115,8 +115,8 @@
 
 ## 修复进度
 
-- 已完成：43 / 69（P001-P007、P101-P137；其中 P104 为部分闭环）
-- 当前处理：P138（sync.rs 12 对 cfg 重复命令，P1 重复代码）
+- 已完成：44 / 69（P001-P007、P101-P138；其中 P104 为部分闭环）
+- 当前处理：P139（同步管理器 3 处约 120 行重复，P1 重复代码）
 
 ## 审查通过项（已排查，无需修改）
 
