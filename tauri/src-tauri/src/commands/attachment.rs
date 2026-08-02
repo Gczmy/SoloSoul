@@ -927,15 +927,8 @@ pub async fn attachment_open<R: Runtime>(
         .or(att.src_path.as_ref())
         .ok_or("Attachment has no file path")?;
 
-    tracing::error!(
-        "attachment_open debug: object_id={}, attachment_id={}, vault_path={:?}, src_path={:?}, mime_type={}",
-        object_id,
-        attachment_id,
-        att.vault_path,
-        att.src_path,
-        att.mime_type
-    );
-
+    // P203: 移除残留调试日志——此前以 error! 记录完整 vault 路径/object_id/mime，
+    // 属敏感数据泄漏面；错误路径仅保留脱敏日志（不含路径/文件名/对象 ID）。
     let vault_base = svc
         .base_path()
         .canonicalize()
@@ -956,11 +949,8 @@ pub async fn attachment_open<R: Runtime>(
             }
         })
         .map_err(|e| {
-            tracing::error!(
-                "attachment_open debug: resolve failed for {}: {}",
-                path_str,
-                e
-            );
+            // 脱敏：不记录 path_str（可能含 vault 绝对路径）
+            tracing::error!("attachment_open: failed to resolve attachment file: {}", e);
             format!("Cannot access attachment file: {}", e)
         })?;
     let attachments_canon = attachments_dir
@@ -969,21 +959,12 @@ pub async fn attachment_open<R: Runtime>(
     if !path.starts_with(&attachments_canon)
         && !path_str.starts_with(attachments_canon.to_string_lossy().as_ref())
     {
-        tracing::error!(
-            "attachment_open debug: path {} is outside attachments_dir {}",
-            path.display(),
-            attachments_canon.display()
-        );
+        tracing::error!("attachment_open: attachment path is outside vault storage");
         return Err("Attachment path is outside vault storage".to_string());
     }
 
     #[cfg(target_os = "android")]
     {
-        tracing::error!(
-            "attachment_open debug: using Android plugin to open {} with mime {}",
-            path.display(),
-            att.mime_type
-        );
         let handle = app.state::<AttachmentImportPluginHandle<R>>();
         handle.open_file(OpenFilePayload {
             path: path.to_string_lossy().to_string(),
