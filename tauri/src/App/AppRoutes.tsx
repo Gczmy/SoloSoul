@@ -14,7 +14,7 @@ import { searchCache } from '@/lib/searchCache';
 import { applyTheme, getSystemTheme, listenForSystemTheme } from '@/lib/theme';
 import { isMobilePlatformSync } from '@/lib/platform';
 import { getCurrentWindow } from '@tauri-apps/api/window';
-import { confirm } from '@tauri-apps/plugin-dialog';
+import { confirmWithPause } from '@/lib/dialog';
 import { UpdateBanner, type UpdateBannerState } from '@/components/ui/UpdateBanner';
 import { OcrInstallBanner, type OcrInstallPhase } from '@/components/ui/OcrInstallBanner';
 import { relaunch } from '@tauri-apps/plugin-process';
@@ -312,7 +312,7 @@ export function AppRoutes() {
     appWindow
       .onCloseRequested(async (event) => {
         event.preventDefault();
-        const confirmed = await confirm(t('quit_while_installing_message'), {
+        const confirmed = await confirmWithPause(t('quit_while_installing_message'), {
           title: t('quit_while_installing_title'),
           kind: 'warning',
         });
@@ -344,7 +344,7 @@ export function AppRoutes() {
         if (!valid) {
           // SAF 目录失效（用户手动删除了外部目录），弹确认对话框引导用户
           logger.warn('[AppRoutes] SAF vault directory access revoked');
-          await confirm(
+          await confirmWithPause(
             t(
               'settings:vault_directory_invalid_message',
               '您之前使用的外部存储目录已被删除或无法访问。\n\nSoloSoul 已将您的数据保留在本地应用存储中，您可以继续正常使用。\n\n如需重新选择外部目录，请前往「设置 > 保险库目录」。',

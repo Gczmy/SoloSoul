@@ -8,8 +8,12 @@
  *
  * 约定：凡调用系统文件选择器必须使用本封装，禁止裸调 plugin-dialog。
  */
-import { save as tauriSave, open as tauriOpen } from '@tauri-apps/plugin-dialog';
-import type { SaveDialogOptions, OpenDialogOptions } from '@tauri-apps/plugin-dialog';
+import { save as tauriSave, open as tauriOpen, confirm as tauriConfirm } from '@tauri-apps/plugin-dialog';
+import type {
+  SaveDialogOptions,
+  OpenDialogOptions,
+  ConfirmDialogOptions,
+} from '@tauri-apps/plugin-dialog';
 
 /**
  * 封装 `save()`，调用前暂停自动锁定，调用后恢复。
@@ -38,6 +42,28 @@ export async function openWithPause(options?: OpenDialogOptions): Promise<string
   pause();
   try {
     return await tauriOpen(options);
+  } finally {
+    resume();
+  }
+}
+
+/**
+ * 封装 `confirm()`，调用前暂停自动锁定，调用后恢复。
+ * 行为与裸 `confirm()` 完全一致，仅增加自动锁定暂停。
+ *
+ * P130: 原生确认对话框同样触发 visibilitychange → hidden，若用户开启
+ * 「切后台锁定」会中断流程或误锁 Vault，故与 open/save 同等封装。
+ */
+export async function confirmWithPause(
+  message: string,
+  options?: ConfirmDialogOptions,
+): Promise<boolean> {
+  const { pause, resume } = await import('@/stores/autoLockPauseStore').then(
+    (m) => m.useAutoLockPauseStore.getState(),
+  );
+  pause();
+  try {
+    return await tauriConfirm(message, options);
   } finally {
     resume();
   }

@@ -63,7 +63,7 @@
 | P127 | 架构 | `src/App/AppRoutes.tsx:396` | `loadCustomPages(account.id)` 未 await 也无 catch，失败产生 unhandled rejection 且自定义页面静默缺失 | `[x]` 已修复（2026-08-02：补 await + try/catch，失败 logger.warn 记录不再 unhandled rejection） |
 | P128 | 架构 | `src/pages/settings/AppearanceSettingsPage.tsx:72-83` | 直接 `localStorage.setItem` 写主题缓存绕过 settingsStore，与"四副本写入矩阵"产生第 5 个写入点易漂移 | `[x]` 已修复（2026-08-02：移除页面本地 `syncUiCache` 与 4 处冗余 `ui_update_preference` invoke，②③ 副本写入统一交回 settingsStore 的 P129 helper） |
 | P129 | 架构 | `src/stores/settingsStore.ts:152-165` | 设置存在 4 份副本（zustand/localStorage/ui_preferences.json/vault 加密 preferences）靠注释矩阵人工维持一致 | `[x]` 已修复（2026-08-02：②③ 副本写入收敛为唯一 helper `writeUiPrefsCache`/`syncPlaintextPref`，updateSetting 对 UI 键自动同步、loadSettings 循环复用，注释矩阵同步标注代码级集中） |
-| P130 | 架构 | `src/App/AppRoutes.tsx:15,345` | 裸调 plugin-dialog `confirm`（SAF 目录失效警告），原生对话框触发 visibilitychange 可致误锁定；封装仅覆盖 open/save | `[ ]` |
+| P130 | 架构 | `src/App/AppRoutes.tsx:15,345` | 裸调 plugin-dialog `confirm`（SAF 目录失效警告），原生对话框触发 visibilitychange 可致误锁定；封装仅覆盖 open/save | `[x]` 已修复（2026-08-02：`dialog.ts` 新增 `confirmWithPause` 封装（同 pause/resume 模式），AppRoutes 两处 `confirm` 全部迁移；生产代码无任何裸调 plugin-dialog） |
 | P131 | 架构 | `src/lib/ipc.ts`（全局） | AGENTS.md 约定的"IPC 封装"实为纯类型定义文件，73 个文件全部裸调 `invoke`，无统一错误规范化/未解锁守卫层 | `[ ]` |
 | P132 | 死代码 | `src-tauri/src/commands/crypto.rs:40,56,106,119`、`profile.rs:77,96`、`sync.rs:609,615` | 8 个 Tauri 命令前端从未调用（4 个甚至未注册进 generate_handler），含 2 份 cfg 重复的 `sync_listen_port` | `[ ]` |
 | P133 | 死代码 | `crates/solosoul-core/src/ocr/macos_vision.rs`（389 行） | 整个 macOS Vision OCR 桥接模块零引用（OCR 走 PP-OCRv6） | `[ ]` |
@@ -115,8 +115,8 @@
 
 ## 修复进度
 
-- 已完成：35 / 69（P001-P007、P101-P129；其中 P104 为部分闭环）
-- 当前处理：P130（AppRoutes 裸调 dialog confirm，P1 架构）
+- 已完成：36 / 69（P001-P007、P101-P130；其中 P104 为部分闭环）
+- 当前处理：P131（IPC 裸调 invoke 统一错误处理层，P1 架构）
 
 ## 审查通过项（已排查，无需修改）
 
