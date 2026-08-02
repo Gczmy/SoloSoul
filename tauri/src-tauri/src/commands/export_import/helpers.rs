@@ -77,7 +77,22 @@ pub fn resolve_cross_scope_references(
     }
 }
 
-pub fn read_manifest(file_path: &str) -> Result<ManifestData, String> {
+/// 读取 ZIP 包内 manifest.json 并解析为 JSON 值。
+///
+/// # 安全（P201）
+/// - 读取前检查条目声明的未压缩大小，超过 `MAX_ZIP_ENTRY_SIZE`（100 MB）则拒绝；
+/// - 使用 `.take()` 限制实际读取字节数作为第二道防线，即使 `size()` 不可信（返回 0/伪造）
+///   也不会一次性读入超大块内存导致 OOM。
+pub(crate) fn read_manifest_json(file_path: &str) -> Result<serde_json::Value, String> {
+    read_manifest_json_limited(file_path, MAX_ZIP_ENTRY_SIZE)
+}
+
+/// `read_manifest_json` 的带参版本：以 `max_size` 为上限读取并解析 manifest.json。
+/// 上限参数化便于单测用极小值触发拒绝路径，无需在测试中构造 100MB 真实包。
+pub(crate) fn read_manifest_json_limited(
+    file_path: &str,
+    max_size: u64,
+) -> Result<serde_json::Value, String> {
     let path = std::path::Path::new(file_path);
     if !path.exists() {
         return Err(import_err_with_detail("FILE_NOT_FOUND", file_path));
@@ -85,16 +100,35 @@ pub fn read_manifest(file_path: &str) -> Result<ManifestData, String> {
     let file = File::open(path).map_err(|e| format!("Cannot open: {}", e))?;
     let mut archive = ZipArchive::new(file).map_err(|_| import_err("INVALID_PACKAGE"))?;
 
-    let mut entry = archive
+    let entry = archive
         .by_name("manifest.json")
         .map_err(|_| import_err("MISSING_MANIFEST"))?;
+    if entry.size() > max_size {
+        return Err(format!(
+            "manifest.json is too large ({} bytes, max {} bytes)",
+            entry.size(),
+            max_size
+        ));
+    }
     let mut buf = Vec::new();
     entry
+        .take(max_size + 1)
         .read_to_end(&mut buf)
         .map_err(|e| format!("Read manifest: {}", e))?;
+    // 第二道防线：即使条目声明的 size() 不可信（偏小），实际读取字节数超限也拒绝。
+    if buf.len() as u64 > max_size {
+        return Err(format!(
+            "manifest.json exceeds size limit ({} bytes, max {} bytes)",
+            buf.len(),
+            max_size
+        ));
+    }
     let s = String::from_utf8_lossy(&buf);
-    let v: serde_json::Value =
-        serde_json::from_str(&s).map_err(|e| format!("Invalid manifest: {}", e))?;
+    serde_json::from_str(&s).map_err(|e| format!("Invalid manifest: {}", e))
+}
+
+pub fn read_manifest(file_path: &str) -> Result<ManifestData, String> {
+    let v = read_manifest_json(file_path)?;
 
     let extra_files: Vec<String> = v
         .get("extra_files")

@@ -179,6 +179,46 @@ fn test_read_manifest() -> Result<(), String> {
     Ok(())
 }
 
+// ── 6b. read_manifest_json 大小上限（P201 防 ZIP 炸弹）─────
+
+#[test]
+fn test_read_manifest_json_parses_normal() -> Result<(), String> {
+    let temp_dir = TempDir::new().map_err(|e| e.to_string())?;
+    let zip_path = temp_dir.path().join("normal.solosoul");
+
+    let file = File::create(&zip_path).map_err(|e| e.to_string())?;
+    let mut zip = ZipWriter::new(file);
+    let options = SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated);
+
+    let manifest = json!({
+        "version": "2.0",
+        "salt_hex": "deadbeef",
+        "has_attachments": false,
+        "extra_files": ["preferences.enc"]
+    });
+    zip.start_file("manifest.json", options)
+        .map_err(|e| e.to_string())?;
+    zip.write_all(manifest.to_string().as_bytes())
+        .map_err(|e| e.to_string())?;
+    zip.finish().map_err(|e| e.to_string())?;
+
+    // 正常大小：可解析且字段齐全
+    let v = read_manifest_json(zip_path.to_str().unwrap())?;
+    assert_eq!(v["version"], "2.0");
+    assert_eq!(v["salt_hex"], "deadbeef");
+    assert_eq!(v["extra_files"][0], "preferences.enc");
+
+    // 极小上限触发拒绝（第一道防线：声明的 size() 超限）
+    let err = super::read_manifest_json_limited(zip_path.to_str().unwrap(), 10)
+        .expect_err("oversized manifest should be rejected");
+    assert!(
+        err.contains("too large") || err.contains("exceeds size limit"),
+        "unexpected error: {}",
+        err
+    );
+    Ok(())
+}
+
 // ── 7. read_file_from_zip ───────────────────────────────────
 
 #[test]

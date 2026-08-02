@@ -81,7 +81,7 @@
 
 | ID | 类别 | 文件位置 | 描述 | 状态 |
 |----|------|----------|------|------|
-| P201 | 安全 | `src-tauri/src/commands/export_import/import.rs:20-23` | zip 内 `manifest.json` 读取无大小上限，构造的 zip 炸弹可耗尽内存 | `[ ]` |
+| P201 | 安全 | `src-tauri/src/commands/export_import/import.rs:20-23` | zip 内 `manifest.json` 读取无大小上限，构造的 zip 炸弹可耗尽内存 | `[x]` 已修复（2026-08-02：helpers.rs 新增 `read_manifest_json`（pub(crate)）收敛两条生产读取路径——`read_manifest` 与 `import_parse_package` 均不再裸 `read_to_end`，统一走 `read_manifest_json_limited` 三重防线：① 读取前检查 `entry.size() > max_size` 拒绝；② `.take(max_size+1)` 限制实际读取字节；③ 读后复核 `buf.len() > max_size`（防声明大小虚报）。上限参数化便于单测以极小值触发拒绝路径。`read_file_from_zip`（payload.enc/preferences.enc）此前已有 MAX_ZIP_ENTRY_SIZE 守卫，无需改动。防回归单测 ×1（正常解析 + 超限拒绝）。solo_soul 344 测试全绿、clippy 0、fmt 干净。注：非 JSON manifest 的错误文案由 `Invalid manifest JSON` 变为 `Invalid manifest`，无 `__IMPORT_ERR__` 前缀、作原始文本展示，无功能影响） |
 | P202 | 安全 | `src-tauri/src/commands/export_import/mod.rs:229-235` | 导出包密钥固定 balanced 档（16MiB/3iter）低于 OWASP 推荐；导出包是最可能的离线攻击目标 | `[ ]` |
 | P203 | 安全 | `src-tauri/src/commands/attachment.rs:892-899,921-925,934-938` | `attachment_open` 每次以 `error!` 记录完整 vault 路径/object_id/mime，属残留调试日志 | `[ ]` |
 | P204 | 安全 | `src-tauri/src/commands/biometric.rs:318-321` | session key hex 放进普通 String 长期残留堆内存 | `[ ]` |
@@ -115,8 +115,8 @@
 
 ## 修复进度
 
-- 已完成：48 / 69（P001-P007、P101-P142；其中 P104 为部分闭环）
-- 当前处理：P1 全部闭环——下一优先级为 P2（P201 起）
+- 已完成：49 / 69（P001-P007、P101-P142、P201；其中 P104 为部分闭环）
+- 当前处理：P202（导出包 KDF 参数提升）
 
 ## 审查通过项（已排查，无需修改）
 

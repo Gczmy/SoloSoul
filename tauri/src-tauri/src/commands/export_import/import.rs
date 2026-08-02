@@ -7,23 +7,8 @@ use super::*;
 pub async fn import_parse_package(file_path: String) -> Result<ImportPreview, String> {
     let fp = file_path.clone();
     let result = tokio::task::spawn_blocking(move || {
-        let path = std::path::Path::new(&fp);
-        if !path.exists() {
-            return Err(import_err_with_detail("FILE_NOT_FOUND", &fp));
-        }
-        let file = File::open(path).map_err(|e| format!("Cannot open: {}", e))?;
-        let mut archive = ZipArchive::new(file).map_err(|_| import_err("INVALID_PACKAGE"))?;
-
-        let mut entry = archive
-            .by_name("manifest.json")
-            .map_err(|_| import_err("MISSING_MANIFEST"))?;
-        let mut buf = Vec::new();
-        entry
-            .read_to_end(&mut buf)
-            .map_err(|e| format!("Read: {}", e))?;
-        let s = String::from_utf8_lossy(&buf).to_string();
-        let v: serde_json::Value =
-            serde_json::from_str(&s).map_err(|e| format!("Invalid manifest JSON: {}", e))?;
+        // P201: 统一经 read_manifest_json 读取（含 100MB 大小上限，防 ZIP 炸弹 OOM）
+        let v = read_manifest_json(&fp)?;
 
         let extra_files: Vec<String> = v
             .get("extra_files")
