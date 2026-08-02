@@ -4,6 +4,10 @@
 //! 本模块仅负责启动 TCP 监听、接受入站同步连接、以及作为发起方与指定地址同步。
 
 use crate::session::{handle_inbound, run_initiator_session, wrap_session_error};
+use crate::shared::{
+    audit_log, forget_peer_fallback, get_or_create_sync_identity, known_peers_from_vault,
+    local_fingerprint_fallback, trust_peer_fallback,
+};
 use crate::transport::SyncTransport;
 use crate::types::{PeerCallback, SyncPeerInfo, SyncSessionResult};
 use solosoul_core::vault_service::VaultService;
@@ -183,25 +187,7 @@ impl SyncService {
             .map_err(|_| "Vault service lock poisoned".to_string())?;
         let vault = svc.get_vault_store().ok_or("Vault is not unlocked")?;
         let account_id = svc.get_current_account().unwrap_or_default();
-        let persisted = vault.list_peers()?;
-        Ok(persisted
-            .into_iter()
-            .map(|p| SyncPeerInfo {
-                node_id: p.peer_node_id.clone(),
-                account_id: account_id.clone(),
-                name: p
-                    .peer_name
-                    .clone()
-                    .unwrap_or_else(|| p.peer_node_id.clone()),
-                addr: String::new(),
-                fingerprint: p.public_key_fingerprint.clone().unwrap_or_default(),
-                trusted: p.trusted,
-                last_seen: p
-                    .last_seen
-                    .map(|ts| format!("{}s ago", chrono::Utc::now().timestamp() - ts))
-                    .unwrap_or_default(),
-            })
-            .collect())
+        known_peers_from_vault(&vault, &account_id)
     }
 
     /// 标记 peer 信任状态。
@@ -221,27 +207,7 @@ impl SyncService {
                 .read()
                 .map_err(|_| "Vault service lock poisoned".to_string())?;
             let vault = svc.get_vault_store().ok_or("Vault is not unlocked")?;
-            let now = chrono::Utc::now().to_rfc3339();
-            let fp = fingerprint.filter(|f| !f.is_empty());
-            let mut peer = vault.load_peer_state(&peer_node_id)?.unwrap_or_else(|| {
-                solosoul_vault::PeerSyncState {
-                    peer_node_id: peer_node_id.clone(),
-                    peer_name: None,
-                    trusted: false,
-                    public_key_fingerprint: fp.clone(),
-                    last_seen: None,
-                    created_at: now.clone(),
-                    updated_at: now.clone(),
-                }
-            });
-            // 已有记录但无指纹时补绑（历史记录/握手期未绑定）。
-            // 空串视为无指纹，避免绑定 "" 导致后续握手被 P001 拒绝。
-            if trusted && peer.public_key_fingerprint.is_none() {
-                peer.public_key_fingerprint = fp;
-            }
-            peer.trusted = trusted;
-            peer.updated_at = now;
-            vault.save_peer_state(&peer)
+            trust_peer_fallback(&vault, &peer_node_id, trusted, fingerprint)
         };
         if result.is_ok() {
             if let Ok(svc) = self.vault_service.try_read() {
@@ -273,7 +239,7 @@ impl SyncService {
                 .read()
                 .map_err(|_| "Vault service lock poisoned".to_string())?;
             let vault = svc.get_vault_store().ok_or("Vault is not unlocked")?;
-            vault.delete_peer(&peer_node_id)
+            forget_peer_fallback(&vault, &peer_node_id)
         }
     }
 
@@ -288,8 +254,7 @@ impl SyncService {
                 .read()
                 .map_err(|_| "Vault service lock poisoned".to_string())?;
             let vault = svc.get_vault_store().ok_or("Vault is not unlocked")?;
-            let (_node_id, keys) = get_or_create_sync_identity(&vault)?;
-            Ok(keys.fingerprint())
+            local_fingerprint_fallback(&vault)
         }
     }
 
@@ -483,35 +448,4 @@ impl MobileSyncManager {
     fn forget_peer(&self, peer_node_id: &str) -> Result<(), String> {
         self.vault.delete_peer(peer_node_id)
     }
-}
-
-fn audit_log(
-    vault: &solosoul_vault::VaultStore,
-    action: &str,
-    entity_id: Option<&str>,
-    details: Option<&str>,
-) {
-    let _ = vault.log_structured(action, "sync", entity_id, None, "user", details);
-}
-
-fn get_or_create_sync_identity(
-    vault: &solosoul_vault::VaultStore,
-) -> Result<(String, NoiseKeys), String> {
-    let node_id = match vault.get_sync_node_id()? {
-        Some(id) => id,
-        None => {
-            let id = format!("node_{}", uuid::Uuid::new_v4().to_string().replace("-", ""));
-            vault.set_sync_node_id(&id)?;
-            id
-        }
-    };
-    let keys = match vault.get_sync_secret_key()? {
-        Some(secret) => NoiseKeys::from_secret(secret),
-        None => {
-            let keys = NoiseKeys::generate();
-            vault.set_sync_secret_key(keys.secret_key())?;
-            keys
-        }
-    };
-    Ok((node_id, keys))
 }

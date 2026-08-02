@@ -72,7 +72,7 @@
 | P136 | 死代码 | `crates/solosoul-core/src/llm/service.rs:114-448` | `LlmService` 两个死方法簇（provider 管理 8 方法 + 会话管理 5+ 方法）生产零调用（GUI 走 commands/llm 自建实现） | `[x]` 已修复（2026-08-02：修正轮——初版误删整个 service.rs/client.rs，复核发现 CLI LLM 聊天（`solosoul_cli/src/commands/llm.rs`、`app.rs:2376` `send_message_stream` 链路）为真实生产依赖，已恢复文件并改为精确删除死方法簇：provider 管理 8 方法（save_config/get_providers/save_provider/set_active_provider/set_ai_features/set_system_prompt_switch/set_local_embedding/accept_risk/delete_provider）+ 会话管理 5 方法（soft_delete/restore/delete/rename_conversation 与 save_conversations 冗余路径）+ reset_stats + 非流式 send_message，保留 CLI 依赖链 load_config/get_provider_with_key/load+save_conversations/list+get+save_conversation/load+save_stats/send_message_stream 及 client.rs 全模块；裁剪测试 4→2 并去掉未使用 import；评审补充：client.rs 非流式 send_chat（随 send_message 一同成为零引用孤儿，process_non_streaming 仍被 send_chat_stream else 分支引用故保留）一并删除） |
 | P137 | 重复代码 | `crates/solosoul-core/src/llm/config.rs:20` ↔ `src-tauri/src/commands/llm/mod.rs:6` | 8 个 LLM 数据结构在两个 crate 各定义一份（44+29 行），易漂移 | `[x]` 已修复（2026-08-02：commands/llm/mod.rs 本地 8 类型与 default_true 删除，改 `pub use solosoul_core::llm::config::{...}` 复用唯一真理来源；本地 default_true 测试随之删除，serde 格式逐字段一致由 48 个 LLM 测试确认） |
 | P138 | 重复代码 | `src-tauri/src/commands/sync.rs` | 12 对 `#[cfg(desktop)]`/`#[cfg(mobile)]` 命令函数体逐字节相同（约 133 行），仅 sync_enable/sync_with_device 真有平台差异 | `[x]` 已修复（2026-08-02：11 对逐字节相同命令（sync_discover/trigger_foreground/set_auto_enabled/get_auto_status/get_status/list_conflicts/get_conflict_detail/resolve_conflict/listen_addr/trust_peer/forget_peer）合并为单一定义；sync_enable 与 sync_with_device 两对真平台差异保留，cfg 类型声明与 local_display_ip 内部块不变；剩余 cfg 标记仅存类型与差异函数） |
-| P139 | 重复代码 | `crates/solosoul-sync/src/manager.rs` ↔ `mobile.rs` ↔ `service.rs` | MobileSyncManager 与 SyncService/SyncManager 约 120 行重复（audit_log/trust_peer/forget_peer/connect 流程） | `[ ]` |
+| P139 | 重复代码 | `crates/solosoul-sync/src/manager.rs` ↔ `mobile.rs` ↔ `service.rs` | MobileSyncManager 与 SyncService/SyncManager 约 120 行重复（audit_log/trust_peer/forget_peer/connect 流程） | `[x]` 已修复（2026-08-02：新增 `shared.rs`（pub(crate)）收敛三处重复——audit_log、get_or_create_sync_identity、known_peers_from_vault、trust_peer_fallback（含 P001/P103 指纹补绑语义）、forget_peer_fallback、local_fingerprint_fallback；mobile.rs/service.rs/manager.rs 的 vault 兜底分支改为调用共享 helper，三处仅保留 manager 已启动分支。变更 +108/-178 行，manager.rs 的 trust_peer/forget_peer 委托 shared（P001 补绑逻辑逐分支等价），并清理随之未使用的 PeerSyncState import） |
 | P140 | 重复代码 | `src/pages/settings/OcrSettingsPage.tsx` ↔ `src/pages/scan/OcrPage.tsx` | OCR 模型安装/下载/tier 切换逻辑约 70 行逐字重复 | `[ ]` |
 | P141 | 重复代码 | `src/pages/search/SearchPage.tsx` ↔ `src/components/layout/SearchPopover.tsx` | 搜索 state 四件套 + 缓存 + 过滤排序 + 结果行渲染约 80 行重复 | `[ ]` |
 | P142 | 重复代码 | `src/components/layout/TopFunctionBar.tsx:181` ↔ `SecondaryActionBar.tsx:158` | hover 展开/收起 + `renderButtonWithCard` 约 58 行几乎相同 | `[ ]` |
@@ -115,8 +115,8 @@
 
 ## 修复进度
 
-- 已完成：44 / 69（P001-P007、P101-P138；其中 P104 为部分闭环）
-- 当前处理：P139（同步管理器 3 处约 120 行重复，P1 重复代码）
+- 已完成：45 / 69（P001-P007、P101-P139；其中 P104 为部分闭环）
+- 当前处理：P140（OCR 模型管理逻辑抽 useOcrModelManager hook，P1 重复代码）
 
 ## 审查通过项（已排查，无需修改）
 

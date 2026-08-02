@@ -6,7 +6,7 @@ use crate::session::{handle_inbound, run_initiator_session, wrap_session_error};
 use crate::transport::SyncTransport;
 use crate::types::{PeerCallback, SyncPeerInfo, SyncSessionResult};
 use mdns_sd::{ServiceDaemon, ServiceEvent, ServiceInfo};
-use solosoul_vault::{PeerSyncState, VaultStore};
+use solosoul_vault::VaultStore;
 use std::collections::HashMap;
 use std::net::{IpAddr, Ipv4Addr, SocketAddr, TcpListener, UdpSocket};
 use std::sync::atomic::{AtomicBool, AtomicU16, AtomicUsize, Ordering};
@@ -519,36 +519,17 @@ impl SyncManager {
         trusted: bool,
         fingerprint: Option<&str>,
     ) -> Result<(), String> {
-        let now = chrono::Utc::now().to_rfc3339();
-        let mut peer = self
-            .vault
-            .load_peer_state(peer_node_id)?
-            .unwrap_or_else(|| PeerSyncState {
-                peer_node_id: peer_node_id.to_string(),
-                peer_name: None,
-                trusted: false,
-                public_key_fingerprint: fingerprint
-                    .filter(|f| !f.is_empty())
-                    .map(|f| f.to_string()),
-                last_seen: None,
-                created_at: now.clone(),
-                updated_at: now.clone(),
-            });
-        // 已有记录但无指纹时（历史记录/握手期未绑定）补绑，保证 P001 可比对。
-        // 空串视为无指纹（旧记录可能带默认空值），避免绑定 "" 导致后续握手被 P001 拒绝。
-        if trusted && peer.public_key_fingerprint.is_none() {
-            if let Some(f) = fingerprint.filter(|f| !f.is_empty()) {
-                peer.public_key_fingerprint = Some(f.to_string());
-            }
-        }
-        peer.trusted = trusted;
-        peer.updated_at = now;
-        self.vault.save_peer_state(&peer)
+        crate::shared::trust_peer_fallback(
+            &self.vault,
+            peer_node_id,
+            trusted,
+            fingerprint.map(|f| f.to_string()),
+        )
     }
 
     /// Remove a peer from persisted state.
     pub fn forget_peer(&self, peer_node_id: &str) -> Result<(), String> {
-        self.vault.delete_peer(peer_node_id)
+        crate::shared::forget_peer_fallback(&self.vault, peer_node_id)
     }
 
     /// 设置入站新 peer 回调钩子（GUI 装配 `sync-pairing-request` 事件推送用）。
