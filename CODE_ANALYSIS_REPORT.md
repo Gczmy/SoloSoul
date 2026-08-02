@@ -37,7 +37,7 @@
 | P101 | 安全 | `src-tauri/capabilities/default.json:59`、`src-tauri/src/commands/crypto.rs:5-102` | `allow-all-custom-commands` 使前端可调用全部 200+ command，含 session key 加解密 oracle 与任意密码 Argon2 派生 oracle（入参/回传均不 zeroize）；一旦 XSS 等同 Vault 失陷 | `[x]` 已修复（2026-08-02：`permissions/solo-soul/default.toml` 以显式 least-privilege allowlist `allow-app-commands` 替代 `allow-all-custom-commands`——词边界逐命令核对前端生产源码，197→188 条；移除零生产用量的 crypto oracle `encrypt_bytes`/`decrypt_bytes`/`derive_key` 及死命令 `delete_account`/`get_state`/`object_purge`/`object_restore`/`profile_get_section`/`profile_update_field`/`sync_listen_port`，补入被前端 `syncStore.ts` 实际调用但缺失的 `sync_listen_addr`（顺带修复潜在运行时 ACL 拒绝 bug）；`capabilities/default.json` 同步改引用新权限。经 `cargo check -p solo_soul` 验证 tauri-build ACL 校验通过，`acl-manifests.json` 再生成确认 188 条 / 旧标识清零；Vitest 46 文件 430 用例全过） |
 | P102 | 安全 | `src-tauri/src/commands/llm/chat_http.rs:5-50` | LLM command 接收任意 `base_url`+`api_key` 由后端发 POST；CSP 禁止 webview 外连使其成为唯一网络出口，XSS 可借此外传数据 | `[x]` 已修复（2026-08-02：新增 `request::validate_llm_base_url`——仅 http/https scheme、非空 host、拒绝 userinfo，所有 base_url 入口强制执行；`stream.rs` 的 `llm_send_message_stream`（携带会话内容的数据路径）额外要求 base_url 必须属于当前账户已登记 provider（内置默认 ∪ 已保存 config，尾斜杠归一化比对），XSS 无法再借 LLM 通道把 Vault 数据外传到任意地址；`llm_check_connection`/`llm_test_provider` 仅做 scheme 校验（只发固定问候语，且须接受未保存的新 provider 以便先测后存）；`llm_save_provider` 保存前校验。单测 x9（validate_llm_base_url x6 + is_registered_provider_url x3）全部通过，49 个 LLM 测试全绿） |
 | P103 | 安全 | `crates/solosoul-sync/src/session.rs:252,277-287` | 入站连接认证前即 `record_peer` 落库（任意 LAN 主机可刷 peer 表）且 HelloAck 明文回传 account_id 与指纹 | `[x]` 已修复（2026-08-02：`handle_inbound` 重排——Noise 握手 + P001 校验后先以 `load_peer_state` 只读判定新 peer（不再 `record_peer` 落库）；**未信任 peer 不写 peer 表**（消除任意 LAN 主机刷表向量）、**不回 HelloAck**（不再泄露 account_id 与指纹），仅对新 peer 以握手认证值触发配对请求回调（纯内存），并回最小错误帧 `__SYNC_ERR__:pairing_pending:{node_id}`；已信任 peer 才 `record_peer` + HelloAck 进入同步。`run_initiator_session` 新增 `SyncMessage::Error` 的 pairing_pending 解析分支（A 侧用户显式发起，仍以握手指纹落库对端供配对对话框展示，落库失败吞掉不掩盖配对信号）。**peer 落库延迟到配对确认后**：`trust_peer` 全链路（manager/service/mobile/command/CLI）新增可选 `fingerprint` 参数，配对确认时绑定握手认证指纹（空串过滤 + 已有指纹不覆盖，保证 P001 不变式），前端三处信任入口（AppShell 入站/useSyncPage 去配对/确认配对）均透传指纹；`initPairingRequestListener` 按 nodeId 去重防未信任 peer 重连重复弹窗。防回归单测 ×6（parse_pairing_pending×3 + trust_peer 指纹绑定×3）。solosoul-sync 47 测试全绿，clippy/fmt 干净；Vitest 430 全过） |
-| P104 | 安全 | `src-tauri/src/commands/ocr.rs:694-882` | OCR 模型下载 `base_url` 完全由前端传入，无哈希/签名校验、无大小上限，下载后被原生 `ort` 加载执行 | `[ ]` |
+| P104 | 安全 | `src-tauri/src/commands/ocr.rs:694-882` | OCR 模型下载 `base_url` 完全由前端传入，无哈希/签名校验、无大小上限，下载后被原生 `ort` 加载执行 | `[x]` 部分闭环（2026-08-02：`validate_model_base_url` 收窄下载出口——仅 http/https、非空 host、无 userinfo、无 query/fragment；非回环地址强制 https（IPv6 方括号剥离），回环保留 http 供本地镜像；reqwest 客户端 `Policy::custom` 重定向——显式白名单 http/https（拒 file:/data:/ftp:）、拒绝 https→http 降级（`previous()` 取链末元素）、回环保留 http→http。`download_single_file` 改**流式下载**（`bytes_stream()` + Content-Length 预检 + 流内字节计数），按档位限制单文件大小（yml 5MB / onnx：tiny 32MB、small 64MB、medium 256MB），超限即中止并清理；流错误/写错误/哈希不匹配路径均删临时文件，校验通过后原子 rename。**内置 sha256 清单校验**：`PINNED_MODEL_SHA256` 收录 small 档 4 文件真实哈希（与 `resources/models/pp-ocr-v6-small/` 逐字节一致，防回归单测守护），下载后强制比对，不匹配拒绝落盘——防镜像被篡改后由 `ort` 执行。单测 ×13（URL 校验 ×8 + 大小上限 ×2 + 清单 ×3）。**部分闭环**：tiny/medium 档无官方基准哈希，仍接受任意 https 主机内容（仅 URL+大小防护），待官方哈希发布后补充清单；另顺手修复 `unified_chat.rs` clippy `items after a test module` warning（`load_providers_with_keys` 移到 `mod tests` 前，`--all-targets` 归零）。22 个 OCR 测试全绿，clippy/fmt 干净） |
 | P105 | 安全 | `crates/solosoul-crypto/src/cipher.rs:120-128,210-258` | 自有分块格式的 `chunk_count` 头部不参与 GCM 认证，篡改头部可让导入包/附件静默截断解密而不报错 | `[ ]` |
 | P106 | 安全 | `crates/solosoul-crypto/src/aes.rs:119-130` | `decrypt_chunked_blob` 用攻击者可控的 `original_size` 做 `Vec::with_capacity`，篡改头部可致巨额分配 DoS | `[ ]` |
 | P107 | 安全 | `src-tauri/src/commands/fs.rs:31-38,180-215` | 桌面端 `allowed_fs_base` 默认为整个 `$HOME`，`fs_read_file_as_text/data_url` 可读 home 下任意文件（含 `~/.solosoul/**`）回传前端 | `[ ]` |
@@ -115,8 +115,8 @@
 
 ## 修复进度
 
-- 已完成：9 / 69（P001-P007、P101-P103）
-- 当前处理：P104（OCR 模型下载源校验，P1 安全中危）
+- 已完成：10 / 69（P001-P007、P101-P104；其中 P104 为部分闭环）
+- 当前处理：P105（分块格式头部认证，P1 安全中危）
 
 ## 审查通过项（已排查，无需修改）
 
@@ -158,7 +158,7 @@ Windows 生产路径用 `FileBiometricStorage` 存主密钥（`derive_master_key
 - **P101**：用显式 command allowlist 替代 `allow-all-custom-commands`；评估 `encrypt_bytes`/`decrypt_bytes`/`derive_key` 是否仍需暴露，密码参数改 Zeroizing 包装。
 - **P102**：对 base_url 做 scheme/host 校验，仅允许用户在设置中登记过的 provider URL。
 - **P103**：信任检查前只回最小错误帧；peer 落库延迟到配对确认后。
-- **P104**：固定官方模型源或校验内置 sha256 清单；流式下载并限制单文件大小。
+- **P104**：固定官方模型源或校验内置 sha256 清单；流式下载并限制单文件大小。（2026-08-02 已部分闭环：URL 校验 + 流式大小上限 + small 档内置 sha256 清单；tiny/medium 待官方哈希发布后补充。）
 - **P105**：把分块头部作为 AAD 纳入每个 chunk 的 GCM，或末尾加整体摘要块；解密后校验总字节数。
 - **P106**：`with_capacity` 前对 `original_size` 设上限，或改增量扩展。
 - **P107**：`allowed_fs_base` 默认收窄到 Desktop/Documents/Downloads（与 ocr.rs:216-238 的 `is_path_in_allowed_dir` 一致）。

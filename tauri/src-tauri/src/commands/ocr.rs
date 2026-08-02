@@ -18,6 +18,8 @@ use solosoul_core::ocr::model::{
     install_model_from_bundled, install_model_from_bundled_with_progress,
 };
 // types 和 model 子模块现在在所有平台上均可用
+use futures::StreamExt;
+use sha2::Digest;
 use solosoul_core::ocr::model::{is_model_installed, resolve_model_bundle};
 use solosoul_core::ocr::types::{MrzResult, OcrModelTier, OcrResult};
 use std::path::{Path, PathBuf};
@@ -781,12 +783,113 @@ const MAX_RETRIES: u32 = 3;
 /// 指数退避的初始等待时间（毫秒）。
 const BASE_BACKOFF_MS: u64 = 1_000;
 
+/// P104：内置 OCR 模型 sha256 校验清单（键为 `{tier}/{rel_path}`，值为小写十六进制）。
+///
+/// 仅收录随包发布、有官方基准的档位（当前为 `small`，哈希与
+/// `resources/models/pp-ocr-v6-small/` 逐字节一致）。命中清单的文件下载后必须
+/// sha256 完全匹配，否则拒绝落盘——防止镜像被篡改后由本地 `ort` 加载执行。
+/// 未收录档位（tiny/medium）仍执行 URL 校验 + 流式大小上限（见下方辅助函数）。
+const PINNED_MODEL_SHA256: &[(&str, &str)] = &[
+    (
+        "small/det/inference.onnx",
+        "d73e0058b7a8086bbd57f3d10b8bcd4ff95363f67e06e2762b5e814fe9c9410e",
+    ),
+    (
+        "small/det/inference.yml",
+        "193f435274bf9f0b5f71a929bbfbcf148282df7e633b34e7c373e8f44741b516",
+    ),
+    (
+        "small/rec/inference.onnx",
+        "5435fd747c9e0efe15a96d0b378d5bd157e9492ed8fd80edf08f30d02fa24634",
+    ),
+    (
+        "small/rec/inference.yml",
+        "ab078671bb49f06228eadccd34f1bb501e157f7a047095ffb943ba81512c77d1",
+    ),
+];
+
+/// P104：校验模型下载 `base_url`，收窄下载出口。
+///
+/// 仅允许 http/https + 非空 host + 无 userinfo；非回环地址强制 https，
+/// 防止明文镜像被中间人篡改后再由本地 `ort` 加载执行（回环保留 http 供本地镜像）。
+fn validate_model_base_url(base_url: &str) -> Result<(), String> {
+    let url = url::Url::parse(base_url).map_err(|e| format!("Invalid model base_url: {e}"))?;
+    let scheme = url.scheme();
+    if scheme != "http" && scheme != "https" {
+        return Err(format!(
+            "model base_url scheme must be http or https, got: {scheme}"
+        ));
+    }
+    let host = url.host_str().unwrap_or("");
+    if host.is_empty() {
+        return Err("model base_url must contain a host".to_string());
+    }
+    if !url.username().is_empty() || url.password().is_some() {
+        return Err("model base_url must not contain userinfo".to_string());
+    }
+    // 拒绝 query/fragment：base_url 会与 `/{tier}/{rel_path}` 拼接，
+    // 携带 `?`/`#` 会使后续路径段落入 query/fragment 而失效（并掩盖真实下载地址）。
+    if url.query().is_some() {
+        return Err("model base_url must not contain a query string".to_string());
+    }
+    if url.fragment().is_some() {
+        return Err("model base_url must not contain a fragment".to_string());
+    }
+    // `url` crate 对 IPv6 host 返回带方括号形式（如 "[::1]"），剥离后比较。
+    let host_norm = host.trim_start_matches('[').trim_end_matches(']');
+    let loopback = host_norm == "localhost" || host_norm == "127.0.0.1" || host_norm == "::1";
+    if scheme == "http" && !loopback {
+        return Err("model base_url over http is only allowed for loopback hosts".to_string());
+    }
+    Ok(())
+}
+
+/// P104：单个模型文件的大小上限（字节），防 zip 炸弹/超大文件耗尽内存与磁盘。
+///
+/// - `inference.yml`：配置文本，统一 5MB 上限。
+/// - `inference.onnx`：按档位给余量（small 实际 det≈9.4MB/rec≈20MB；medium 总量约 132MB）。
+fn model_file_size_limit(tier: OcrModelTier, rel_path: &str) -> u64 {
+    if rel_path.ends_with(".yml") {
+        return 5 * 1024 * 1024;
+    }
+    match tier {
+        OcrModelTier::Tiny => 32 * 1024 * 1024,
+        OcrModelTier::Small => 64 * 1024 * 1024,
+        OcrModelTier::Medium => 256 * 1024 * 1024,
+    }
+}
+
 async fn download_model_files(
     base_url: &str,
     models_dir: &Path,
     tier: OcrModelTier,
 ) -> Result<(), String> {
-    let client = reqwest::Client::new();
+    // P104：发起任何请求前先校验下载源。
+    validate_model_base_url(base_url)?;
+
+    // P104：自定义重定向策略——显式白名单 http/https（拒绝 file:/data:/ftp: 等
+    // 非 web scheme 重定向，不留隐式依赖），并拒绝 https→http 降级（TLS 源被
+    // 301/302 降级为明文后再加载执行属于 MITM 面）。回环保留 http→http
+    // （本地镜像可重定向）；因 validate_model_base_url 已拒绝非回环 http 源，
+    // 能到达此处的 http 起始源均为回环。
+    // 注：`previous()` 返回重定向历史链切片（`&[Url]`），取末元素即上一个 URL。
+    let client = reqwest::Client::builder()
+        .redirect(reqwest::redirect::Policy::custom(|attempt| {
+            let target = attempt.url().scheme();
+            let prev_is_https = attempt
+                .previous()
+                .last()
+                .is_some_and(|p| p.scheme() == "https");
+            let ok =
+                (target == "http" || target == "https") && !(target == "http" && prev_is_https);
+            if ok {
+                attempt.follow()
+            } else {
+                attempt.stop()
+            }
+        }))
+        .build()
+        .map_err(|e| format!("构建下载客户端失败: {e}"))?;
     let tier_name = tier.remote_name();
     let files = [
         ("det/inference.onnx", "检测模型"),
@@ -815,7 +918,7 @@ async fn download_model_files(
                 let _ = std::fs::remove_file(&dst);
             }
 
-            match download_single_file(&client, &url, &dst, label).await {
+            match download_single_file(&client, &url, &dst, tier, rel_path, label).await {
                 Ok(()) => {
                     success = true;
                     break;
@@ -849,11 +952,17 @@ async fn download_model_files(
     Ok(())
 }
 
-/// 下载单个文件并写入磁盘，如果写入失败则清理残留。
+/// P104：流式下载单个模型文件，带大小上限与 sha256 清单校验。
+///
+/// - 流式写入临时文件（不再整包载入内存），超过档位上限立即中止并清理残留。
+/// - 命中内置清单的文件下载后逐字节校验 sha256，失败则删除临时文件并报错。
+/// - 校验通过后原子重命名落位，避免半成品残留。
 async fn download_single_file(
     client: &reqwest::Client,
     url: &str,
     dst: &Path,
+    tier: OcrModelTier,
+    rel_path: &str,
     label: &str,
 ) -> Result<(), String> {
     let resp = client
@@ -866,14 +975,61 @@ async fn download_single_file(
         return Err(format!("下载 {label} 失败: HTTP {}", resp.status()));
     }
 
-    let bytes = resp
-        .bytes()
-        .await
-        .map_err(|e| format!("读取 {label} 响应失败: {e}"))?;
+    // P104：优先用 Content-Length 快速拒绝超限响应。
+    let limit = model_file_size_limit(tier, rel_path);
+    if let Some(len) = resp.content_length() {
+        if len > limit {
+            return Err(format!("{label} 超过大小上限（{len} > {limit} 字节）"));
+        }
+    }
 
-    // 写入前先写入临时文件，避免进程崩溃导致半成品残留
     let temp_path = dst.with_extension("tmp");
-    std::fs::write(&temp_path, &bytes).map_err(|e| format!("写入 {label} 临时文件失败: {e}"))?;
+    let mut hasher = sha2::Sha256::new();
+    {
+        use std::io::Write;
+        let mut file = std::fs::File::create(&temp_path)
+            .map_err(|e| format!("写入 {label} 临时文件失败: {e}"))?;
+        let mut stream = resp.bytes_stream();
+        let mut written: u64 = 0;
+        while let Some(chunk) = stream.next().await {
+            let chunk = match chunk {
+                Ok(c) => c,
+                Err(e) => {
+                    drop(file);
+                    let _ = std::fs::remove_file(&temp_path);
+                    return Err(format!("读取 {label} 响应失败: {e}"));
+                }
+            };
+            written += chunk.len() as u64;
+            if written > limit {
+                drop(file);
+                let _ = std::fs::remove_file(&temp_path);
+                return Err(format!("{label} 超过大小上限（{written} > {limit} 字节）"));
+            }
+            hasher.update(&chunk);
+            if let Err(e) = file.write_all(&chunk) {
+                drop(file);
+                let _ = std::fs::remove_file(&temp_path);
+                return Err(format!("写入 {label} 临时文件失败: {e}"));
+            }
+        }
+    }
+
+    // P104：sha256 清单校验（命中内置清单的档位必须逐字节匹配）。
+    let manifest_key = format!("{}/{}", tier.remote_name(), rel_path);
+    if let Some(expected) = PINNED_MODEL_SHA256
+        .iter()
+        .find(|(key, _)| *key == manifest_key)
+        .map(|(_, hash)| *hash)
+    {
+        let actual = format!("{:x}", hasher.finalize());
+        if actual != expected {
+            let _ = std::fs::remove_file(&temp_path);
+            return Err(format!(
+                "{label} sha256 校验失败（文件可能被篡改或来源非官方镜像）：期望 {expected}，实际 {actual}"
+            ));
+        }
+    }
 
     // 原子重命名：临时文件确认写入后再替换目标文件
     std::fs::rename(&temp_path, dst).map_err(|e| format!("重命名 {label} 文件失败: {e}"))?;
@@ -1017,5 +1173,158 @@ mod tests {
             OcrModelTier::Medium
         );
         assert!("unknown".parse::<OcrModelTier>().is_err());
+    }
+
+    // ── P104 安全加固：下载源校验 ──────────────────────────────────
+
+    #[test]
+    fn test_validate_model_base_url_accepts_https() {
+        assert!(validate_model_base_url("https://models.example.com/ocr").is_ok());
+        assert!(validate_model_base_url("https://example.com/pp-ocr-v6").is_ok());
+    }
+
+    #[test]
+    fn test_validate_model_base_url_accepts_loopback_http() {
+        // 回环地址允许 http（本地镜像）。
+        assert!(validate_model_base_url("http://localhost:8080/models").is_ok());
+        assert!(validate_model_base_url("http://127.0.0.1/models").is_ok());
+        assert!(validate_model_base_url("http://[::1]/models").is_ok());
+    }
+
+    #[test]
+    fn test_validate_model_base_url_rejects_remote_http() {
+        // 非回环 http 拒绝：防中间人篡改模型后由 ort 加载执行。
+        assert!(validate_model_base_url("http://models.example.com/ocr").is_err());
+        assert!(validate_model_base_url("http://192.168.1.10/models").is_err());
+    }
+
+    #[test]
+    fn test_validate_model_base_url_rejects_non_http_schemes() {
+        for bad in [
+            "javascript:alert(1)",
+            "data:text/html,<script>x</script>",
+            "file:///etc/passwd",
+            "ftp://example.com/models",
+            "gopher://example.com/x",
+        ] {
+            assert!(
+                validate_model_base_url(bad).is_err(),
+                "should reject scheme: {bad}"
+            );
+        }
+    }
+
+    #[test]
+    fn test_validate_model_base_url_rejects_missing_host() {
+        for bad in ["https://", "http://", "https:// ", "http:// "] {
+            assert!(
+                validate_model_base_url(bad).is_err(),
+                "should reject missing host: {bad:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn test_validate_model_base_url_rejects_userinfo() {
+        assert!(validate_model_base_url("https://user:pass@evil.com/models").is_err());
+        assert!(validate_model_base_url("https://user@evil.com/models").is_err());
+    }
+
+    #[test]
+    fn test_validate_model_base_url_rejects_garbage() {
+        for bad in ["", "   ", "not-a-url", "https://exa mple.com"] {
+            assert!(
+                validate_model_base_url(bad).is_err(),
+                "should reject garbage: {bad:?}"
+            );
+        }
+    }
+
+    #[test]
+    fn test_validate_model_base_url_rejects_query_and_fragment() {
+        // query/fragment 会使后续路径拼接失效并掩盖真实下载地址。
+        assert!(validate_model_base_url("https://example.com/models?v=2").is_err());
+        assert!(validate_model_base_url("https://example.com/models#frag").is_err());
+        assert!(validate_model_base_url("https://localhost:8080/models?x=1").is_err());
+    }
+
+    // ── P104 安全加固：大小上限 ───────────────────────────────────
+
+    #[test]
+    fn test_model_file_size_limit_yml_is_small() {
+        for tier in [
+            OcrModelTier::Tiny,
+            OcrModelTier::Small,
+            OcrModelTier::Medium,
+        ] {
+            assert_eq!(
+                model_file_size_limit(tier, "det/inference.yml"),
+                5 * 1024 * 1024
+            );
+            assert_eq!(
+                model_file_size_limit(tier, "rec/inference.yml"),
+                5 * 1024 * 1024
+            );
+        }
+    }
+
+    #[test]
+    fn test_model_file_size_limit_scales_with_tier() {
+        let tiny = model_file_size_limit(OcrModelTier::Tiny, "rec/inference.onnx");
+        let small = model_file_size_limit(OcrModelTier::Small, "rec/inference.onnx");
+        let medium = model_file_size_limit(OcrModelTier::Medium, "rec/inference.onnx");
+        assert!(tiny < small && small < medium);
+        assert_eq!(medium, 256 * 1024 * 1024);
+    }
+
+    // ── P104 安全加固：内置 sha256 清单 ───────────────────────────
+
+    #[test]
+    fn test_pinned_manifest_covers_small_downloads() {
+        // small 档 4 个文件全部命中清单。
+        for rel in [
+            "det/inference.onnx",
+            "det/inference.yml",
+            "rec/inference.onnx",
+            "rec/inference.yml",
+        ] {
+            let key = format!("small/{rel}");
+            assert!(
+                PINNED_MODEL_SHA256.iter().any(|(k, _)| *k == key),
+                "missing pinned hash for {key}"
+            );
+        }
+    }
+
+    #[test]
+    fn test_pinned_manifest_hashes_are_64_hex() {
+        for (key, hash) in PINNED_MODEL_SHA256 {
+            assert_eq!(hash.len(), 64, "hash length for {key}");
+            assert!(
+                hash.chars().all(|c| c.is_ascii_hexdigit()),
+                "non-hex char in {key}"
+            );
+        }
+    }
+
+    #[test]
+    fn test_pinned_manifest_hashes_match_bundled_resources() {
+        // 回归守护：内置清单哈希必须与随包发布的 small 档模型逐字节一致，
+        // 否则下载校验将拒绝官方镜像（说明资源或清单需要同步更新）。
+        let resources_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("resources/models");
+        if !resources_dir.join("pp-ocr-v6-small").exists() {
+            // 开发环境可能未检出模型资源，跳过。
+            return;
+        }
+        for (key, expected) in PINNED_MODEL_SHA256 {
+            let rel = key.strip_prefix("small/").expect("key prefix");
+            let path = resources_dir.join("pp-ocr-v6-small").join(rel);
+            if !path.exists() {
+                continue;
+            }
+            let bytes = std::fs::read(&path).unwrap_or_default();
+            let actual = format!("{:x}", sha2::Sha256::digest(&bytes));
+            assert_eq!(actual, *expected, "pinned hash mismatch for {key}");
+        }
     }
 }
