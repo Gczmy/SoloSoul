@@ -23,6 +23,113 @@ const OBJECT_COLUMNS: &str = "\
     is_deleted, deleted_at, tags_json, template_id, template_type, \
     contract_type_id, template_hash, ignored_template_hash, created_at, updated_at, version";
 
+/// P213: 对象表 SELECT 前缀常量（load_objects_batch 等动态拼接场景复用，避免每次 format! 分配）。
+const OBJECT_SELECT_BASE: &str = "SELECT id, account_id, type_id, section_type, name, icon_name, \
+    parent_id, children_ids, properties, property_labels, sensitivity_level, \
+    is_deleted, deleted_at, tags_json, template_id, template_type, \
+    contract_type_id, template_hash, ignored_template_hash, created_at, updated_at, version \
+    FROM objects";
+
+/// P213: load_object 的完整常量 SQL（唯一主键查询，最高频语句）。
+const OBJECT_LOAD_SQL: &str = "SELECT id, account_id, type_id, section_type, name, icon_name, \
+    parent_id, children_ids, properties, property_labels, sensitivity_level, \
+    is_deleted, deleted_at, tags_json, template_id, template_type, \
+    contract_type_id, template_hash, ignored_template_hash, created_at, updated_at, version \
+    FROM objects WHERE id = ?1";
+
+/// P213: save_object 的 UPSERT 常量 SQL（写对象最高频语句）。
+const OBJECT_SAVE_SQL: &str = "INSERT INTO objects (id, account_id, type_id, section_type, name, icon_name, parent_id, \
+     children_ids, properties, property_labels, sensitivity_level, \
+     is_deleted, deleted_at, tags_json, template_id, template_type, \
+     contract_type_id, template_hash, ignored_template_hash, created_at, updated_at, version) \
+     VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18,?19,?20,?21,?22) \
+     ON CONFLICT(id) DO UPDATE SET \
+       type_id=excluded.type_id, section_type=excluded.section_type, name=excluded.name, icon_name=excluded.icon_name, \
+       parent_id=excluded.parent_id, children_ids=excluded.children_ids, \
+       properties=excluded.properties, property_labels=excluded.property_labels, \
+       sensitivity_level=excluded.sensitivity_level, \
+       is_deleted=excluded.is_deleted, deleted_at=excluded.deleted_at, \
+       tags_json=excluded.tags_json, \
+       template_id=excluded.template_id, template_type=excluded.template_type, \
+       contract_type_id=excluded.contract_type_id, template_hash=excluded.template_hash, \
+       ignored_template_hash=excluded.ignored_template_hash, \
+       updated_at=excluded.updated_at, version=excluded.version";
+
+/// P213: load_profile 常量 SQL。
+const PROFILE_LOAD_SQL: &str =
+    "SELECT id, name, data, created_at, updated_at, version FROM profiles WHERE id = ?1";
+
+/// P213: save_profile 的 UPSERT 常量 SQL。
+const PROFILE_SAVE_SQL: &str =
+    "INSERT INTO profiles (id, name, data, created_at, updated_at, version) \
+     VALUES (?1, ?2, ?3, ?4, ?5, ?6) \
+     ON CONFLICT(id) DO UPDATE SET \
+        name = excluded.name, data = excluded.data, \
+        updated_at = excluded.updated_at, version = excluded.version";
+
+/// P213: HLC 读写常量 SQL（同步热路径）。
+const HLC_GET_SQL: &str =
+    "SELECT wall_time_ms, counter, node_id FROM sync_hlc WHERE table_name = ?1 AND record_id = ?2";
+const HLC_SET_SQL: &str =
+    "INSERT INTO sync_hlc (table_name, record_id, wall_time_ms, counter, node_id, updated_at) \
+     VALUES (?1, ?2, ?3, ?4, ?5, ?6) \
+     ON CONFLICT(table_name, record_id) DO UPDATE SET \
+        wall_time_ms = excluded.wall_time_ms, \
+        counter = excluded.counter, \
+        node_id = excluded.node_id, \
+        updated_at = excluded.updated_at";
+
+/// P213: 回收站/用户模板读写常量 SQL。
+const TRASH_SAVE_SQL: &str =
+    "INSERT INTO trash_items (id, item_type, original_id, original_parent_id, \
+     original_section_type, original_sort_order, data, deleted_at, expires_at, deleted_by, \
+     name_snapshot, icon_snapshot) \
+     VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12)";
+const USER_TEMPLATE_SAVE_SQL: &str = "INSERT INTO user_templates (id, account_id, name, icon_id, properties_json, category, contract_type_id, created_at, updated_at) \
+     VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9) \
+     ON CONFLICT(id) DO UPDATE SET \
+         name = excluded.name, \
+         icon_id = excluded.icon_id, \
+         properties_json = excluded.properties_json, \
+         category = excluded.category, \
+         contract_type_id = excluded.contract_type_id, \
+         updated_at = excluded.updated_at";
+const USER_TEMPLATE_LOAD_SQL: &str = "SELECT id, account_id, name, icon_id, properties_json, category, contract_type_id, created_at, updated_at \
+     FROM user_templates WHERE id = ?1";
+
+/// P213: 对象软删常量 SQL（回收站批量入站/单删共用）。
+const OBJECT_SOFT_DELETE_SQL: &str =
+    "UPDATE objects SET is_deleted = 1, deleted_at = ?1, updated_at = ?1 WHERE id = ?2";
+
+/// P213: 手动事务封装——BEGIN/COMMIT/ROLLBACK 三件套。
+///
+/// rusqlite 的 [`rusqlite::Transaction`] 只实现不可变 Deref（无法获得 `&mut Connection`，
+/// 因而无法在其上使用 `prepare_cached`）。本助手改为在调用方持有的 `&mut Connection` 上
+/// 手动 BEGIN/COMMIT/ROLLBACK：回调内可直接 `prepare_cached` 复用预编译语句，
+/// 失败自动 ROLLBACK，成功 COMMIT。语义与 `conn.transaction()` 等价。
+///
+/// 注意：与 `Transaction` 不同，回调 panic 时不会自动回滚（无法在 unwind 中持有借用）。
+/// 调用方应确保回调内无 panic 操作；本库约定错误一律经 `Result` 返回，故可接受。
+fn with_tx<T>(
+    conn: &mut Connection,
+    begin_err: &'static str,
+    commit_err: &'static str,
+    f: impl FnOnce(&mut Connection) -> Result<T, String>,
+) -> Result<T, String> {
+    conn.execute_batch("BEGIN")
+        .map_err(|e| format!("{begin_err}: {e}"))?;
+    let result = f(conn);
+    match &result {
+        Ok(_) => conn
+            .execute_batch("COMMIT")
+            .map_err(|e| format!("{commit_err}: {e}"))?,
+        Err(_) => {
+            let _ = conn.execute_batch("ROLLBACK");
+        }
+    }
+    result
+}
+
 /// P210: 大小写不敏感子串匹配整个 JSON Value（对象键 + 字符串值 + 数字 + 布尔）。
 ///
 /// 旧实现 `value.to_string().to_lowercase()` 每次对每个对象重新序列化 JSON
@@ -854,28 +961,25 @@ impl VaultStore {
     }
 
     /// P115: 事务内保存 Profile（连接由调用方持有，批量应用单事务内复用）。
+    /// P213: 事务内保存 Profile（连接由调用方持有，批量应用单事务内复用）。
     fn save_profile_tx(
-        conn: &Connection,
+        conn: &mut Connection,
         key: &DataEncryptionKey,
         profile: &Profile,
     ) -> Result<(), String> {
         let now = chrono::Utc::now().to_rfc3339();
         let encrypted_data = encrypt_field(key, &profile.data)?;
-        conn.execute(
-            "INSERT INTO profiles (id, name, data, created_at, updated_at, version)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6)
-             ON CONFLICT(id) DO UPDATE SET
-                name = excluded.name, data = excluded.data,
-                updated_at = excluded.updated_at, version = excluded.version",
-            params![
-                profile.id,
-                profile.name,
-                encrypted_data,
-                profile.created_at.to_rfc3339(),
-                now,
-                profile.version
-            ],
-        )
+        let mut stmt = conn
+            .prepare_cached(PROFILE_SAVE_SQL)
+            .map_err(|e| format!("Failed to prepare save_profile: {}", e))?;
+        stmt.execute(params![
+            profile.id,
+            profile.name,
+            encrypted_data,
+            profile.created_at.to_rfc3339(),
+            now,
+            profile.version
+        ])
         .map_err(|e| format!("Failed to save profile: {}", e))?;
         Ok(())
     }
@@ -884,9 +988,9 @@ impl VaultStore {
         let key = self.data_key()?;
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
-        let mut stmt = conn.prepare(
-            "SELECT id, name, data, created_at, updated_at, version FROM profiles WHERE id = ?1"
-        ).map_err(|e| format!("Failed to prepare: {}", e))?;
+        let mut stmt = conn
+            .prepare_cached(PROFILE_LOAD_SQL)
+            .map_err(|e| format!("Failed to prepare: {}", e))?;
         let result = stmt
             .query_row(params![id], |row| {
                 let created_str: String = row.get(3)?;
@@ -958,22 +1062,20 @@ impl VaultStore {
 
     /// P115: 事务内 HLC 查询（连接由调用方持有，批量应用单事务内复用）。
     fn get_record_hlc_tx(
-        conn: &Connection,
+        conn: &mut Connection,
         table: &str,
         record_id: &str,
     ) -> Result<Option<crate::RecordHlc>, String> {
         let result = conn
-            .query_row(
-                "SELECT wall_time_ms, counter, node_id FROM sync_hlc WHERE table_name = ?1 AND record_id = ?2",
-                params![table, record_id],
-                |row| {
-                    Ok(crate::RecordHlc {
-                        wall_time_ms: row.get(0)?,
-                        counter: row.get::<_, i32>(1)? as u32,
-                        node_id: row.get(2)?,
-                    })
-                },
-            )
+            .prepare_cached(HLC_GET_SQL)
+            .map_err(|e| format!("get_record_hlc prepare: {}", e))?
+            .query_row(params![table, record_id], |row| {
+                Ok(crate::RecordHlc {
+                    wall_time_ms: row.get(0)?,
+                    counter: row.get::<_, i32>(1)? as u32,
+                    node_id: row.get(2)?,
+                })
+            })
             .optional()
             .map_err(|e| format!("get_record_hlc: {}", e))?;
         Ok(result)
@@ -992,28 +1094,22 @@ impl VaultStore {
 
     /// P115: 事务内 HLC 写入（连接由调用方持有）。
     fn set_record_hlc_tx(
-        conn: &Connection,
+        conn: &mut Connection,
         table: &str,
         record_id: &str,
         hlc: &crate::RecordHlc,
     ) -> Result<(), String> {
-        conn.execute(
-            "INSERT INTO sync_hlc (table_name, record_id, wall_time_ms, counter, node_id, updated_at)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6)
-             ON CONFLICT(table_name, record_id) DO UPDATE SET
-                wall_time_ms = excluded.wall_time_ms,
-                counter = excluded.counter,
-                node_id = excluded.node_id,
-                updated_at = excluded.updated_at",
-            params![
-                table,
-                record_id,
-                hlc.wall_time_ms,
-                hlc.counter as i32,
-                &hlc.node_id,
-                Self::now_rfc3339(),
-            ],
-        )
+        let mut stmt = conn
+            .prepare_cached(HLC_SET_SQL)
+            .map_err(|e| format!("set_record_hlc prepare: {}", e))?;
+        stmt.execute(params![
+            table,
+            record_id,
+            hlc.wall_time_ms,
+            hlc.counter as i32,
+            &hlc.node_id,
+            Self::now_rfc3339(),
+        ])
         .map_err(|e| format!("set_record_hlc: {}", e))?;
         Ok(())
     }
@@ -1508,8 +1604,9 @@ impl VaultStore {
             } else {
                 limit as i64
             };
+            // P213: prepare_cached 按 SQL 文本缓存（o. 前缀列拼接结果稳定），避免每次重编译。
             let mut stmt = conn
-                .prepare(&format!(
+                .prepare_cached(&format!(
                     "SELECT {cols}, h.wall_time_ms AS hlc_wall, h.counter AS hlc_counter, h.node_id AS hlc_node
                      FROM objects o
                      LEFT JOIN sync_hlc h ON h.table_name = 'objects' AND h.record_id = o.id
@@ -1813,12 +1910,13 @@ impl VaultStore {
         let key = self.data_key()?;
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
-        let tx = conn
-            .transaction()
-            .map_err(|e| format!("apply_sync_record begin: {}", e))?;
-        let outcome = Self::apply_sync_record_tx(&tx, &key, &borrowed, local_node_id)?;
-        tx.commit()
-            .map_err(|e| format!("apply_sync_record commit: {}", e))?;
+        // P213: 手动事务（Transaction 无 DerefMut，prepare_cached 需要 &mut Connection）。
+        let outcome = with_tx(
+            conn,
+            "apply_sync_record begin",
+            "apply_sync_record commit",
+            |c| Self::apply_sync_record_tx(c, &key, &borrowed, local_node_id),
+        )?;
         Ok(outcome.applied)
     }
 
@@ -1827,7 +1925,7 @@ impl VaultStore {
     /// 与 `apply_sync_record` 的差异：不获取/持有连接，适用于批量事务循环；
     /// 返回 [`crate::SyncApplyOutcome`]，包含写前本地 HLC 供冲突报告复用。
     fn apply_sync_record_tx(
-        conn: &Connection,
+        conn: &mut Connection,
         key: &DataEncryptionKey,
         record: &crate::BorrowedSyncRecord,
         local_node_id: &str,
@@ -1879,25 +1977,22 @@ impl VaultStore {
     ) -> Result<Vec<crate::SyncApplyOutcome>, String> {
         let key = self.data_key()?;
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
-        let conn = guard.as_mut().ok_or("Vault is locked")?;
-        let tx = conn
-            .transaction()
-            .map_err(|e| format!("apply batch begin: {}", e))?;
-        let mut outcomes = Vec::with_capacity(records.len());
-        for record in records {
-            // 单条失败不中断整批：错误落入 outcome，事务最终统一 commit/rollback。
-            match Self::apply_sync_record_tx(&tx, &key, record, local_node_id) {
-                Ok(outcome) => outcomes.push(outcome),
-                Err(e) => outcomes.push(crate::SyncApplyOutcome {
-                    applied: false,
-                    local_hlc: None,
-                    error: Some(e),
-                }),
+        let conn = guard.as_mut().ok_or("Vault is locked")?; // P213: 手动事务（Transaction 无 DerefMut，prepare_cached 需要 &mut Connection）。
+        with_tx(conn, "apply batch begin", "apply batch commit", |c| {
+            let mut outcomes = Vec::with_capacity(records.len());
+            for record in records {
+                // 单条失败不中断整批：错误落入 outcome，事务最终统一 commit/rollback。
+                match Self::apply_sync_record_tx(c, &key, record, local_node_id) {
+                    Ok(outcome) => outcomes.push(outcome),
+                    Err(e) => outcomes.push(crate::SyncApplyOutcome {
+                        applied: false,
+                        local_hlc: None,
+                        error: Some(e),
+                    }),
+                }
             }
-        }
-        tx.commit()
-            .map_err(|e| format!("apply batch commit: {}", e))?;
-        Ok(outcomes)
+            Ok(outcomes)
+        })
     }
 
     fn record_hlc_is_newer(remote: &crate::RecordHlc, local: &crate::RecordHlc) -> bool {
@@ -2134,7 +2229,7 @@ impl VaultStore {
 
     /// P115: 事务内应用单条 Profile 同步记录（连接由调用方持有）。
     fn apply_profile_sync_record_tx(
-        conn: &Connection,
+        conn: &mut Connection,
         key: &DataEncryptionKey,
         record: &crate::BorrowedSyncRecord,
     ) -> Result<bool, String> {
@@ -2190,7 +2285,7 @@ impl VaultStore {
 
     /// P115: 事务内应用单条对象同步记录（连接由调用方持有）。
     fn apply_object_sync_record_tx(
-        conn: &Connection,
+        conn: &mut Connection,
         key: &DataEncryptionKey,
         record: &crate::BorrowedSyncRecord,
         local_node_id: &str,
@@ -2210,7 +2305,7 @@ impl VaultStore {
 
     /// P115: 事务内应用单条模板同步记录（连接由调用方持有）。
     fn apply_user_template_sync_record_tx(
-        conn: &Connection,
+        conn: &mut Connection,
         key: &DataEncryptionKey,
         record: &crate::BorrowedSyncRecord,
     ) -> Result<bool, String> {
@@ -2231,7 +2326,7 @@ impl VaultStore {
 
     /// P115: 事务内应用单条回收站同步记录（连接由调用方持有）。
     fn apply_trash_sync_record_tx(
-        conn: &Connection,
+        conn: &mut Connection,
         key: &DataEncryptionKey,
         record: &crate::BorrowedSyncRecord,
     ) -> Result<bool, String> {
@@ -2308,20 +2403,23 @@ impl VaultStore {
         let key = self.data_key()?;
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
-        let tx = conn
-            .transaction()
-            .map_err(|e| format!("Failed to begin transaction: {e}"))?;
-        for obj in objects {
-            Self::save_object_tx(&tx, &key, obj)?;
-        }
-        tx.commit()
-            .map_err(|e| format!("Failed to commit transaction: {e}"))?;
-        Ok(())
+        // P213: 手动事务（Transaction 无 DerefMut，prepare_cached 需要 &mut Connection）。
+        with_tx(
+            conn,
+            "Failed to begin transaction",
+            "Failed to commit transaction",
+            |c| {
+                for obj in objects {
+                    Self::save_object_tx(c, &key, obj)?;
+                }
+                Ok(())
+            },
+        )
     }
 
     /// P115: 事务内保存对象（连接由调用方持有，批量应用单事务内复用）。
     fn save_object_tx(
-        conn: &Connection,
+        conn: &mut Connection,
         key: &DataEncryptionKey,
         obj: &ObjectRecord,
     ) -> Result<(), String> {
@@ -2359,32 +2457,33 @@ impl VaultStore {
         };
         let tags_str =
             serde_json::to_string(&obj.tags_json).map_err(|e| format!("serialize tags: {}", e))?;
-        conn.execute(
-            "INSERT INTO objects (id, account_id, type_id, section_type, name, icon_name, parent_id,
-             children_ids, properties, property_labels, sensitivity_level,
-             is_deleted, deleted_at, tags_json, template_id, template_type,
-             contract_type_id, template_hash, ignored_template_hash, created_at, updated_at, version)
-             VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18,?19,?20,?21,?22)
-             ON CONFLICT(id) DO UPDATE SET
-               type_id=excluded.type_id, section_type=excluded.section_type, name=excluded.name, icon_name=excluded.icon_name,
-               parent_id=excluded.parent_id, children_ids=excluded.children_ids,
-               properties=excluded.properties, property_labels=excluded.property_labels,
-               sensitivity_level=excluded.sensitivity_level,
-               is_deleted=excluded.is_deleted, deleted_at=excluded.deleted_at,
-               tags_json=excluded.tags_json,
-               template_id=excluded.template_id, template_type=excluded.template_type,
-               contract_type_id=excluded.contract_type_id, template_hash=excluded.template_hash,
-               ignored_template_hash=excluded.ignored_template_hash,
-               updated_at=excluded.updated_at, version=excluded.version",
-            params![
-                obj.id, obj.account_id, obj.type_id, obj.section_type, obj.name, obj.icon_name,
-                obj.parent_id, children_json, encrypted_props, encrypted_labels,
-                obj.sensitivity_level, obj.is_deleted as i32, obj.deleted_at,
-                tags_str, obj.template_id, obj.template_type,
-                obj.contract_type_id.clone(), obj.template_hash.clone(), obj.ignored_template_hash.clone(),
-                obj.created_at, obj.updated_at, obj.version,
-            ],
-        )
+        let mut stmt = conn
+            .prepare_cached(OBJECT_SAVE_SQL)
+            .map_err(|e| format!("save_object prepare: {}", e))?;
+        stmt.execute(params![
+            obj.id,
+            obj.account_id,
+            obj.type_id,
+            obj.section_type,
+            obj.name,
+            obj.icon_name,
+            obj.parent_id,
+            children_json,
+            encrypted_props,
+            encrypted_labels,
+            obj.sensitivity_level,
+            obj.is_deleted as i32,
+            obj.deleted_at,
+            tags_str,
+            obj.template_id,
+            obj.template_type,
+            obj.contract_type_id.clone(),
+            obj.template_hash.clone(),
+            obj.ignored_template_hash.clone(),
+            obj.created_at,
+            obj.updated_at,
+            obj.version,
+        ])
         .map_err(|e| format!("save_object: {}", e))?;
         Ok(())
     }
@@ -2398,15 +2497,12 @@ impl VaultStore {
 
     /// P115: 事务内加载对象（连接由调用方持有，批量应用单事务内复用）。
     fn load_object_tx(
-        conn: &Connection,
+        conn: &mut Connection,
         key: &DataEncryptionKey,
         id: &str,
     ) -> Result<Option<ObjectRecord>, String> {
         let mut stmt = conn
-            .prepare(&format!(
-                "SELECT {} FROM objects WHERE id = ?1",
-                OBJECT_COLUMNS
-            ))
+            .prepare_cached(OBJECT_LOAD_SQL)
             .map_err(|e| format!("load_object: {}", e))?;
         let result = stmt
             .query_row(params![id], |row| {
@@ -2490,14 +2586,16 @@ impl VaultStore {
 
         // Build placeholders: (?1,?2,...,?N)
         let placeholders: Vec<String> = (1..=ids.len()).map(|i| format!("?{}", i)).collect();
+        // P213: 复用 OBJECT_SELECT_BASE 前缀常量，避免每次 format! 拼接整段列清单。
         let sql = format!(
-            "SELECT {} FROM objects WHERE id IN ({})",
-            OBJECT_COLUMNS,
+            "{} WHERE id IN ({})",
+            OBJECT_SELECT_BASE,
             placeholders.join(",")
         );
 
+        // P213: prepare_cached 按 SQL 文本缓存（同批量大小命中），避免每次重编译。
         let mut stmt = conn
-            .prepare(&sql)
+            .prepare_cached(&sql)
             .map_err(|e| format!("load_objects_batch: {}", e))?;
 
         // Convert IDs to a slice of &dyn ToSql
@@ -2829,8 +2927,9 @@ impl VaultStore {
 
         sql.push_str(" ORDER BY created_at ASC, id ASC");
 
+        // P213: prepare_cached 按 SQL 文本缓存（同过滤器组合命中），避免每次重编译。
         let mut stmt = conn
-            .prepare(&sql)
+            .prepare_cached(&sql)
             .map_err(|e| format!("list_object_metadata: {}", e))?;
 
         let params_refs: Vec<&dyn rusqlite::types::ToSql> =
@@ -3054,58 +3153,54 @@ impl VaultStore {
         let key = self.data_key()?;
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
-        let tx = conn
-            .transaction()
-            .map_err(|e| format!("Failed to begin transaction: {e}"))?;
-
-        for item in items {
-            Self::save_trash_item_tx(&tx, &key, item)?;
-        }
-        if !soft_delete_ids.is_empty() {
-            let now = chrono::Utc::now().to_rfc3339();
-            let mut stmt = tx
-                .prepare(
-                    "UPDATE objects SET is_deleted = 1, deleted_at = ?1, updated_at = ?1 WHERE id = ?2",
-                )
-                .map_err(|e| format!("Failed to prepare soft delete: {e}"))?;
-            for id in soft_delete_ids {
-                stmt.execute(params![&now, id])
-                    .map_err(|e| format!("Failed to soft delete: {e}"))?;
-            }
-        }
-
-        tx.commit()
-            .map_err(|e| format!("Failed to commit transaction: {e}"))?;
-        Ok(())
+        // P213: 手动事务（Transaction 无 DerefMut，prepare_cached 需要 &mut Connection）。
+        with_tx(
+            conn,
+            "Failed to begin transaction",
+            "Failed to commit transaction",
+            |c| {
+                for item in items {
+                    Self::save_trash_item_tx(c, &key, item)?;
+                }
+                if !soft_delete_ids.is_empty() {
+                    let now = chrono::Utc::now().to_rfc3339();
+                    let mut stmt = c
+                        .prepare_cached(OBJECT_SOFT_DELETE_SQL)
+                        .map_err(|e| format!("Failed to prepare soft delete: {e}"))?;
+                    for id in soft_delete_ids {
+                        stmt.execute(params![&now, id])
+                            .map_err(|e| format!("Failed to soft delete: {e}"))?;
+                    }
+                }
+                Ok(())
+            },
+        )
     }
 
     /// P115: 事务内保存回收站条目（连接由调用方持有，批量应用单事务内复用）。
     fn save_trash_item_tx(
-        conn: &Connection,
+        conn: &mut Connection,
         key: &DataEncryptionKey,
         item: &TrashItem,
     ) -> Result<(), String> {
         let encrypted_data = encrypt_field(key, &item.data)?;
-        conn.execute(
-            "INSERT INTO trash_items (id, item_type, original_id, original_parent_id,
-             original_section_type, original_sort_order, data, deleted_at, expires_at, deleted_by,
-             name_snapshot, icon_snapshot)
-             VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12)",
-            rusqlite::params![
-                item.id,
-                item.item_type,
-                item.original_id,
-                item.original_parent_id,
-                item.original_section_type,
-                item.original_sort_order,
-                encrypted_data,
-                item.deleted_at,
-                item.expires_at,
-                item.deleted_by,
-                item.name_snapshot,
-                item.icon_snapshot,
-            ],
-        )
+        let mut stmt = conn
+            .prepare_cached(TRASH_SAVE_SQL)
+            .map_err(|e| format!("save_trash_item prepare: {}", e))?;
+        stmt.execute(rusqlite::params![
+            item.id,
+            item.item_type,
+            item.original_id,
+            item.original_parent_id,
+            item.original_section_type,
+            item.original_sort_order,
+            encrypted_data,
+            item.deleted_at,
+            item.expires_at,
+            item.deleted_by,
+            item.name_snapshot,
+            item.icon_snapshot,
+        ])
         .map_err(|e| format!("save_trash_item: {}", e))?;
         Ok(())
     }
@@ -4194,35 +4289,27 @@ impl VaultStore {
 
     /// P115: 事务内保存用户模板（连接由调用方持有，批量应用单事务内复用）。
     fn save_user_template_tx(
-        conn: &Connection,
+        conn: &mut Connection,
         key: &DataEncryptionKey,
         template: &crate::UserTemplate,
     ) -> Result<(), String> {
         let props_json = serde_json::to_string(&template.properties)
             .map_err(|e| format!("serialize properties: {}", e))?;
         let encrypted_props = encrypt_text_field(key, &props_json)?;
-        conn.execute(
-            "INSERT INTO user_templates (id, account_id, name, icon_id, properties_json, category, contract_type_id, created_at, updated_at)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)
-             ON CONFLICT(id) DO UPDATE SET
-                 name = excluded.name,
-                 icon_id = excluded.icon_id,
-                 properties_json = excluded.properties_json,
-                 category = excluded.category,
-                 contract_type_id = excluded.contract_type_id,
-                 updated_at = excluded.updated_at",
-            params![
-                &template.id,
-                &template.account_id,
-                &template.name,
-                &template.icon_id,
-                encrypted_props,
-                &template.category,
-                &template.contract_type_id,
-                &template.created_at,
-                &template.updated_at,
-            ],
-        )
+        let mut stmt = conn
+            .prepare_cached(USER_TEMPLATE_SAVE_SQL)
+            .map_err(|e| format!("save_user_template prepare: {}", e))?;
+        stmt.execute(params![
+            &template.id,
+            &template.account_id,
+            &template.name,
+            &template.icon_id,
+            encrypted_props,
+            &template.category,
+            &template.contract_type_id,
+            &template.created_at,
+            &template.updated_at,
+        ])
         .map_err(|e| format!("save_user_template: {}", e))?;
         Ok(())
     }
@@ -4240,14 +4327,13 @@ impl VaultStore {
 
     /// P115: 事务内加载用户模板（连接由调用方持有）。
     fn load_user_template_tx(
-        conn: &Connection,
+        conn: &mut Connection,
         key: &DataEncryptionKey,
         template_id: &str,
     ) -> Result<Option<crate::UserTemplate>, String> {
-        let mut stmt = conn.prepare(
-            "SELECT id, account_id, name, icon_id, properties_json, category, contract_type_id, created_at, updated_at
-             FROM user_templates WHERE id = ?1"
-        ).map_err(|e| format!("prepare load_user_template: {}", e))?;
+        let mut stmt = conn
+            .prepare_cached(USER_TEMPLATE_LOAD_SQL)
+            .map_err(|e| format!("prepare load_user_template: {}", e))?;
 
         let result = stmt.query_row(params![template_id], |row| {
             let props_json: String = row.get(4)?;
