@@ -2,17 +2,24 @@
 
 [default]
 description = """
-SoloSoul 应用默认权限集。
+SoloSoul 应用默认权限集（P101 收窄后）。
 
-允许所有应用自定义 command（账户、Vault、对象、附件、搜索、设置等），
-以及 Android 状态栏/导航栏样式控制。
+显式列出前端实际调用的自定义 command（账户、Vault、对象、附件、搜索、设置等）。
+已移除零生产用量的 crypto oracle（encrypt_bytes/decrypt_bytes/derive_key）与
+死命令（profile_get_section/profile_update_field/sync_listen_port 等），
+并补上遗漏的 sync_listen_addr。
 """
-permissions = ["allow-all-custom-commands"]
+permissions = ["allow-app-commands"]
 
 [[permission]]
-identifier = "allow-all-custom-commands"
-description = "允许所有 SoloSoul 自定义 command（用于桌面端与移动端核心功能）。"
+identifier = "allow-app-commands"
+description = "显式允许前端实际使用的 SoloSoul 自定义 command（least-privilege allowlist）。"
 commands.allow = [
+  "android_check_update",
+  "android_download_apk",
+  "android_get_apk_path",
+  "android_install_apk",
+  "android_is_apk_downloaded",
   "attachment_batch_delete",
   "attachment_batch_restore",
   "attachment_batch_soft_delete",
@@ -44,12 +51,8 @@ commands.allow = [
   "change_password",
   "check_has_account",
   "copy_content_uri_to_path",
-  "decrypt_bytes",
-  "delete_account",
-  "derive_key",
   "desktop_check_update",
   "dismiss_lock_mask",
-  "encrypt_bytes",
   "export_estimate_size",
   "export_execute",
   "export_get_attachments",
@@ -61,7 +64,6 @@ commands.allow = [
   "fs_scan_directory",
   "get_app_info",
   "get_lock_pending",
-  "get_state",
   "get_system_locale",
   "get_system_theme",
   "get_vault_stats",
@@ -115,8 +117,6 @@ commands.allow = [
   "object_ignore_template_sync",
   "object_list",
   "object_list_deprecated_fields",
-  "object_purge",
-  "object_restore",
   "object_sync_with_template",
   "object_trash_list",
   "object_update",
@@ -137,6 +137,7 @@ commands.allow = [
   "pin_unlock",
   "plugin_audit_log",
   "plugin_consent_response",
+  "plugin_copy_output_file",
   "plugin_dialog_response",
   "plugin_install",
   "plugin_list_all",
@@ -144,14 +145,11 @@ commands.allow = [
   "plugin_list_installed",
   "plugin_list_sessions",
   "plugin_open_output_file",
-  "plugin_copy_output_file",
   "plugin_run",
   "plugin_uninstall",
   "plugin_update",
   "plugin_update_registry",
-  "profile_get_section",
   "profile_load",
-  "profile_update_field",
   "recovery_discover_hosts",
   "recovery_host_cancel",
   "recovery_host_start",
@@ -171,7 +169,7 @@ commands.allow = [
   "sync_get_conflict_detail",
   "sync_get_status",
   "sync_list_conflicts",
-  "sync_listen_port",
+  "sync_listen_addr",
   "sync_resolve_conflict",
   "sync_set_auto_enabled",
   "sync_trigger_foreground",
@@ -205,10 +203,4 @@ commands.allow = [
   "vault_sync_to_remote",
   "vault_update_hint",
   "verify_password",
-  # Android 更新
-  "android_check_update",
-  "android_download_apk",
-  "android_get_apk_path",
-  "android_install_apk",
-  "android_is_apk_downloaded"
 ]

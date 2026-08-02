@@ -56,6 +56,6 @@
     },
     "notification:default",
     "os:default",
-    "allow-all-custom-commands"
+    "allow-app-commands"
   ]
 }

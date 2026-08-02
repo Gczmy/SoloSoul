@@ -34,7 +34,7 @@
 
 | ID | 类别 | 文件位置 | 描述 | 状态 |
 |----|------|----------|------|------|
-| P101 | 安全 | `src-tauri/capabilities/default.json:59`、`src-tauri/src/commands/crypto.rs:5-102` | `allow-all-custom-commands` 使前端可调用全部 200+ command，含 session key 加解密 oracle 与任意密码 Argon2 派生 oracle（入参/回传均不 zeroize）；一旦 XSS 等同 Vault 失陷 | `[ ]` |
+| P101 | 安全 | `src-tauri/capabilities/default.json:59`、`src-tauri/src/commands/crypto.rs:5-102` | `allow-all-custom-commands` 使前端可调用全部 200+ command，含 session key 加解密 oracle 与任意密码 Argon2 派生 oracle（入参/回传均不 zeroize）；一旦 XSS 等同 Vault 失陷 | `[x]` 已修复（2026-08-02：`permissions/solo-soul/default.toml` 以显式 least-privilege allowlist `allow-app-commands` 替代 `allow-all-custom-commands`——词边界逐命令核对前端生产源码，197→188 条；移除零生产用量的 crypto oracle `encrypt_bytes`/`decrypt_bytes`/`derive_key` 及死命令 `delete_account`/`get_state`/`object_purge`/`object_restore`/`profile_get_section`/`profile_update_field`/`sync_listen_port`，补入被前端 `syncStore.ts` 实际调用但缺失的 `sync_listen_addr`（顺带修复潜在运行时 ACL 拒绝 bug）；`capabilities/default.json` 同步改引用新权限。经 `cargo check -p solo_soul` 验证 tauri-build ACL 校验通过，`acl-manifests.json` 再生成确认 188 条 / 旧标识清零；Vitest 46 文件 430 用例全过） |
 | P102 | 安全 | `src-tauri/src/commands/llm/chat_http.rs:5-50` | LLM command 接收任意 `base_url`+`api_key` 由后端发 POST；CSP 禁止 webview 外连使其成为唯一网络出口，XSS 可借此外传数据 | `[ ]` |
 | P103 | 安全 | `crates/solosoul-sync/src/session.rs:252,277-287` | 入站连接认证前即 `record_peer` 落库（任意 LAN 主机可刷 peer 表）且 HelloAck 明文回传 account_id 与指纹 | `[ ]` |
 | P104 | 安全 | `src-tauri/src/commands/ocr.rs:694-882` | OCR 模型下载 `base_url` 完全由前端传入，无哈希/签名校验、无大小上限，下载后被原生 `ort` 加载执行 | `[ ]` |
@@ -115,8 +115,8 @@
 
 ## 修复进度
 
-- 已完成：6 / 69（P001-P007）
-- 当前处理：P101（command allowlist 收窄，P1 安全中危）
+- 已完成：7 / 69（P001-P007、P101）
+- 当前处理：P102（LLM base_url 网络出口校验，P1 安全中危）
 
 ## 审查通过项（已排查，无需修改）
 
