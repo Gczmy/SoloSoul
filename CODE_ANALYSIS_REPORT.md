@@ -27,7 +27,7 @@
   1. **P223/P224**：长函数/巨型组件长期重构（唯一进行中工作项，§4.1 详述；**P224-①②③④⑤ TrashDetailPanel/SyncPage/TemplateManagerPage/AboutPage/OcrPage 与 P223-① host.rs 六簇分簇、P223-② objects/trash/snapshots/sync_meta/sync_changes/sync_apply/metadata/profile 八域、P223-③ lib.rs 收尾均已完成拆分** `bc395973`/`8c74253c`/`2bdc5fdd`/`084cfdd0`/`fd70cc77`/`0f0a37ff`/`005fbfdf`/`ae030551`/`ad244d7c`/`22e1a20f`/`14eff424`/`89446aeb`/`508f9445`/`cef5776c`/`a7d5925d`）；
   2. **R-3/R-4①**：已声明残余窗口（§4.2，低风险工程取舍）；
   3. **P209**：legacy XOR 迁移窗口保留（§4.3，决策保留）；
-  4. **P206**：PDF embed 与 object-src CSP 遗留观察（§4.4，待核实）。
+  4. ~~**P206**：PDF embed 与 object-src CSP 遗留观察~~（§4.4，✅ 已闭环 `d446dc0e`，不再属于遗留）。
 - **归档说明**：N-10/P207 与 P133/P134/P135 等已闭环项的详细修复记录已压缩至 §3（一行要点 + commit 指针），不再保留 §4 详节。
 
 ## §3 已通过复核项归档（清理版）
@@ -65,7 +65,7 @@
 | P203 | ✅ | `attachment_open` 调试日志删除/脱敏，剩余 error! 仅含 io 错误/静态文本 |
 | P204 | ✅ | session key/派生主密钥 Zeroizing 包裹，语义不变 |
 | P205 | ✅* | `commands/crypto.rs` 整文件删除，命令面彻底清除；N-9 清理 ipc.test.ts 陈旧 mock 测试 |
-| P206 | ✅* | frame-src `data:` 移除（零 iframe）；style-src `'unsafe-inline'` 结构性保留（227+ 处内联 style，P048 级重构才可移除），残留风险被无 innerHTML + markdown 净化压制。**遗留观察**（PDF embed 与 object-src，见 §4.4） |
+| P206 | ✅ | frame-src `data:` 移除（零 iframe）；style-src `'unsafe-inline'` 结构性保留（227+ 处内联 style，P048 级重构才可移除）；**PDF 预览修复**：CSP 增加 `object-src data:`（`d446dc0e`，方案 A），桌面端 PDF 附件预览恢复，XSS 面评估见 §4.4 |
 | P207 | ✅（N-10 已闭环，70e766ee） | minisign 校验逻辑 + **独立专用公钥已注入**（`EMBED_REGISTRY_PUBKEY_B64`，key_id `3C233881DD7399DE`，与 updater 密钥隔离）+ registry/minisig/zip 托管主仓库 + 3 防漂移测试；签名防护正式激活。专用私钥 2026-08-03 迁入本机 `~/SoloSoul/signing/embed-registry/`（9837a81f） |
 | P208 | ✅ | WASI stdio 改默认空槽黑洞，插件输出收敛到 Consent 约束的 host 通道 |
 | P209 | ✅（决策保留） | LEGACY_XOR_KEY 仅用于 <2.0 旧凭证一键迁移，零写入面；用户决策保留，关闭条件见 §4.3 |
@@ -352,10 +352,11 @@
 - **决策（2026-08-02 用户确认）**：迁移窗口未关闭，保留 XOR 路径，接受已充分记录的低危风险。
 - **关闭条件**：迁移窗口关闭（<2.0 凭证全部完成迁移）后删除整个 `legacy.rs`——建议在下个大版本发布后评估（届时可加「启动时扫描旧凭证数量」日志辅助决策）。
 
-### 4.4 P206 遗留观察：PDF embed 与 object-src CSP（待确认）
+### 4.4 P206 遗留观察：PDF embed 与 object-src CSP（✅ 已闭环，方案 A）
 
-- **问题**：`AttachmentPreviewOverlay` 的 PDF `<embed src=data:>` 受 `object-src`（缺省继承 `default-src 'self'`）管辖，现行 CSP 下**本就被拦截**——PDF 附件预览在现行 CSP 中预期不生效。
-- **待决策**：① 该路径是否本就弃用（附件预览走其他路径）→ 若是，清理 embed 代码；② 若预期支持 PDF 预览 → 需在 CSP 增加 `object-src data:`（有 XSS 面放大，需评估）。**建议在下一轮 UI 清理时核实附件预览实际路径后决策**，不单独安排修复。
+- **问题**：`AttachmentPreviewOverlay` 的 PDF `<embed src=data:>` 受 `object-src`（缺省继承 `default-src 'self'`）管辖，现行 CSP 下本就被拦截——桌面端 PDF 附件预览实际不可用（2026-08-03 核实为真实功能缺陷：桌面端 `AttachmentPreviewOverlay.tsx:223` 以 `<embed src=data:>` 渲染 PDF，移动端已正确走系统打开）。
+- **决策（2026-08-03 用户选择方案 A）**：CSP 增加 `object-src data:`（`d446dc0e`），桌面端 PDF 应用内预览恢复。XSS 面评估：`src` 全部来自 `fs_read_file_as_data_url` 读取的本机附件文件，全库无 dangerouslySetInnerHTML/innerHTML、markdown 统一 SafeMarkdown 净化，风险被现有面压制。
+- 备选方案 B（弃用 embed 改系统打开）已评估未采用；R-3/R-4①/P209 维持现状（见 §4.2/§4.3）。
 
 ---
 
@@ -366,7 +367,7 @@
    - **P223/P224**：长函数/巨型组件长期重构（唯一进行中工作项，§4.1 含逐文件分解预案与执行顺序）；不单独安排修复轮次，随功能迭代顺带执行。**P224-①②③④⑤ TrashDetailPanel/SyncPage/TemplateManagerPage/AboutPage/OcrPage（`bc395973`/`8c74253c`/`2bdc5fdd`/`084cfdd0`/`fd70cc77`）、P223-① host.rs 六簇（`0f0a37ff`）、P223-② objects/trash/snapshots/sync_meta/sync_changes/sync_apply/metadata 域（`005fbfdf`/`ae030551`/`ad244d7c`/`22e1a20f`/`14eff424`/`89446aeb`/`508f9445`）与 P223-③ lib.rs 收尾（`a7d5925d`）已完成**，P223 剩余未拆域（Profile）随触碰顺带。
    - **R-3/R-4①**：已声明残余窗口，可接受工程取舍，登记长期改进（等值组尾部回扫 / config journal，见 §4.2）。
    - **P209**：legacy XOR 迁移窗口保留，建议下个大版本发布后评估关闭（见 §4.3）。
-   - **P206**：PDF embed 与 object-src CSP 遗留观察，待附件预览路径核实后决策（见 §4.4）。
+   - **P206**：PDF embed 与 object-src CSP 遗留观察——✅ 已于 2026-08-03 按方案 A 闭环（CSP 增加 `object-src data:`，`d446dc0e`），桌面端 PDF 附件预览恢复（见 §4.4）。
 3. **验证指针**：本报告 §3 归档表含全部修复 commit（`f1970c67` 起，N/R 项见 §3.2；P133=`6e74f691`、P134=`f75605ae`、P135=`b721270c`、N-10=`70e766ee`）；完整修复细节与两轮验证记录在 git 历史中可追溯。
 
 ## §6 测试基线参考（当前 HEAD）
