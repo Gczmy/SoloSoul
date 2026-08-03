@@ -1,6 +1,7 @@
 use crate::commands::vault_handle;
 use crate::state::AppState;
 use tauri::State;
+use tauri_plugin_dialog::{DialogExt, MessageDialogButtons};
 
 // ── Commands ───────────────────────────────────────────────
 
@@ -55,6 +56,7 @@ pub async fn llm_get_providers(
 
 #[tauri::command]
 pub async fn llm_save_provider(
+    app: tauri::AppHandle,
     state: State<'_, AppState>,
     account_id: String,
     provider: ProviderWithKey,
@@ -63,6 +65,33 @@ pub async fn llm_save_provider(
     super::request::validate_llm_base_url(&provider.base_url)?;
     let vault = vault_handle(&state)?;
     let mut config = load_config(&vault, &account_id)?;
+
+    // N-4：登记门禁闭环——**未登记**的外部 URL（非内置默认 ∪ 非已保存 config）
+    // 必须经原生确认对话框（`app.dialog()` 为系统级原生对话框，webview 内 XSS
+    // 无法程序化点击，彻底杜绝「先登记恶意 provider 再外传」两步绕过）。
+    // 已登记地址的再次保存（编辑）与内置默认直接放行。
+    if !super::is_registered_provider_url(&config, &provider.base_url) {
+        let (tx, rx) = tokio::sync::oneshot::channel::<bool>();
+        let url = provider.base_url.clone();
+        app.dialog()
+            .message(format!(
+                "确认将此地址登记为 AI Provider？\n\n{}\n\n仅登记后，该地址才会被用于发送聊天 / 嵌入请求。",
+                url
+            ))
+            .title("AI Provider 登记确认")
+            .buttons(MessageDialogButtons::OkCancelCustom("确认登记".to_string(), "取消".to_string()))
+            .show(move |confirmed| {
+                let _ = tx.send(confirmed);
+            });
+        // 超时兜底：对话框异常未回调时不得永久挂起命令（等待用户输入通常秒级）。
+        let confirmed = tokio::time::timeout(std::time::Duration::from_secs(120), rx)
+            .await
+            .map_err(|_| "登记确认等待超时".to_string())?
+            .map_err(|_| "登记确认对话框未响应".to_string())?;
+        if !confirmed {
+            return Err("已取消 AI Provider 登记".to_string());
+        }
+    }
     let api_key = if provider.is_built_in && provider.api_key == "••••••••" {
         String::new()
     } else {

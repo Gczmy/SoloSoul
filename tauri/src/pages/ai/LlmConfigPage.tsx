@@ -271,9 +271,19 @@ export function LlmConfigPage() {
 
   const handleSaveProvider = async (provider: ProviderConfig) => {
     if (!accountId) return;
-    await invoke('llm_save_provider', { accountId: accountId, provider }).catch((err) =>
-      logger.warn('[LLMConfig] Save provider failed:', err),
-    );
+    try {
+      await invoke('llm_save_provider', { accountId: accountId, provider });
+    } catch (err) {
+      // N-4: 新外部 URL 登记需原生确认对话框；用户取消或校验失败时
+      // 后端返回 Err——本地列表不得误报「保存成功」。取消属预期路径，
+      // 其余失败给出 toast 提示（避免点击保存后无任何反馈）。
+      logger.warn('[LLMConfig] Save provider failed:', err);
+      const msg = err instanceof Error ? err.message : String(err);
+      if (!msg.includes('已取消')) {
+        onError(err, t('settings:llm_save_provider_failed'));
+      }
+      return;
+    }
     setProviders((prev) => {
       const idx = prev.findIndex((p) => p.id === provider.id);
       const updated = { ...provider, apiKey: provider.apiKey ? '••••••••' : '' };

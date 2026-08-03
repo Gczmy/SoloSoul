@@ -37,6 +37,23 @@ enum EmbeddingSource {
     },
 }
 
+/// N-4：embedding 通道发送前的 URL 门禁——base_url 必须通过 scheme/host 校验
+/// 且属于当前账户「已登记」的 provider（内置默认 ∪ 已保存 config）。
+/// 供 `get_embedding_source` 使用，抽为纯函数便于单测。
+pub(crate) fn validate_embedding_base_url(
+    config: &LlmConfig,
+    base_url: &str,
+) -> Result<(), String> {
+    super::request::validate_llm_base_url(base_url)?;
+    if !super::is_registered_provider_url(config, base_url) {
+        return Err(format!(
+            "Embedding base_url 未在当前账户登记，已拒绝请求: {}",
+            base_url
+        ));
+    }
+    Ok(())
+}
+
 /// Get the embedding source for the active account.
 /// Checks local embedding preference first, then falls back to cloud provider.
 fn get_embedding_source(
@@ -58,7 +75,12 @@ fn get_embedding_source(
     }
 
     // 2. Fall back to cloud provider
-    let active_id = config.active_provider_id.ok_or("No active provider")?;
+    // 注：clone 而非 `ok_or` 直接移动字段——下方 `validate_embedding_base_url`
+    // 需要借整份 `config`（N-4），避免 active_provider_id 被部分移动。
+    let active_id = config
+        .active_provider_id
+        .clone()
+        .ok_or("No active provider")?;
     let providers = load_providers_with_keys(vault, account_id)?;
     let active = providers
         .into_iter()
@@ -92,6 +114,12 @@ fn get_embedding_source(
             _ => None,
         })
         .ok_or("No embedding model configured for this provider")?;
+
+    // N-4：embedding 通道发送前同样校验——base_url 必须通过 scheme/host 校验
+    // 且属于当前账户「已登记」的 provider（内置默认 ∪ 已保存 config）。
+    // 防止配置被异常值污染（或历史版本绕过校验写入）后，借 embedding 通道
+    // 把指南/查询内容外传到任意地址。
+    validate_embedding_base_url(&config, &active.base_url)?;
 
     Ok(EmbeddingSource::Cloud {
         base_url: active.base_url,
@@ -700,6 +728,60 @@ fn get_overlap(text: &str, len: usize) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn cfg_with(providers: Vec<ProviderConfig>) -> LlmConfig {
+        LlmConfig {
+            providers,
+            active_provider_id: None,
+            ai_features_enabled: AiFeatures::default(),
+            has_accepted_risk: false,
+            include_system_prompt: true,
+            use_local_embedding: false,
+            local_embed_model_id: None,
+        }
+    }
+
+    #[test]
+    fn test_validate_embedding_base_url_accepts_builtin() {
+        // 内置默认 provider 的地址应通过校验。
+        let cfg = cfg_with(vec![]);
+        assert!(validate_embedding_base_url(&cfg, "https://api.openai.com/v1").is_ok());
+        assert!(validate_embedding_base_url(&cfg, "http://localhost:11434/v1").is_ok());
+    }
+
+    #[test]
+    fn test_validate_embedding_base_url_accepts_saved() {
+        // 已保存进 config 的自定义 provider 地址应通过校验。
+        let cfg = cfg_with(vec![ProviderConfig {
+            id: "custom".into(),
+            name: "Custom".into(),
+            base_url: "https://my-proxy.example.com/v1".into(),
+            model: "m".into(),
+            is_enabled: true,
+            is_built_in: false,
+            api_type: ApiType::OpenAI,
+            embedding_model: None,
+        }]);
+        assert!(validate_embedding_base_url(&cfg, "https://my-proxy.example.com/v1").is_ok());
+        // 尾斜杠归一化
+        assert!(validate_embedding_base_url(&cfg, "https://my-proxy.example.com/v1/").is_ok());
+    }
+
+    #[test]
+    fn test_validate_embedding_base_url_rejects_unregistered() {
+        // 未登记的任意 https 地址必须拒绝——这是 N-4 的核心门禁。
+        let cfg = cfg_with(vec![]);
+        assert!(validate_embedding_base_url(&cfg, "https://evil.example.com/v1").is_err());
+        assert!(validate_embedding_base_url(&cfg, "https://api.openai.com/v2").is_err());
+    }
+
+    #[test]
+    fn test_validate_embedding_base_url_rejects_bad_scheme() {
+        let cfg = cfg_with(vec![]);
+        assert!(validate_embedding_base_url(&cfg, "javascript:alert(1)").is_err());
+        assert!(validate_embedding_base_url(&cfg, "file:///etc/passwd").is_err());
+        assert!(validate_embedding_base_url(&cfg, "https://user:pass@evil.com/v1").is_err());
+    }
 
     #[test]
     fn test_chunk_markdown_simple() {

@@ -858,6 +858,7 @@
   "llm_delete_model_title": "删除模型",
   "llm_delete_provider_body": "确定要删除此提供商吗？",
   "llm_delete_provider_title": "删除提供商",
+  "llm_save_provider_failed": "保存提供商失败，请重试",
   "local_import": "本地导入",
   "scan_select_dir_title": "选择扫描目录",
   "scan_select_dir_desc": "选择要扫描文档的文件夹",

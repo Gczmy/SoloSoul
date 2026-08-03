@@ -56,6 +56,21 @@
 
 **已声明残余限制**：会话**中断**（断网/崩溃/退出）时，已持久化水印停在等值组最大值而页游标丢失，重启以 NULL 游标重查会跳过三元组 == 水印的组尾行（at-least-once 缺口）。需同时满足「会话中断」+「在飞等 ms 组」才触发；修复前每次同步都丢/循环，属严格改善。后续可把页游标 id 并入 peer watermark 持久化彻底关闭。
 
+## N-4 修复记录（2026-08-03）
+
+**修复方案**（登记门禁原生确认 + embedding 通道对齐，三处配合）：
+
+1. **provider.rs `llm_save_provider` 登记门禁闭环**：
+   - 原残余：P102 的「已登记」检查含**保存进 config 的任意 https URL**——XSS 可两步绕过：① `llm_save_provider` 登记恶意 URL（仅 scheme/host 校验），② `llm_send_message_stream` 借已登记地址外传会话数据。
+   - 修复：命令新增 `app: tauri::AppHandle` 参数；保存前 `!is_registered_provider_url(config, base_url)`（非内置默认 ∪ 非已保存 config）时弹出**系统级原生确认对话框**（`app.dialog()` + `OkCancelCustom("确认登记"/"取消")` + oneshot 回调桥接），用户取消返回 Err「已取消 AI Provider 登记」——webview 内 XSS 无法程序化点击原生对话框，两步绕过被彻底堵死。已登记地址的再次保存（编辑内置/既有 provider）不弹窗，正常路径零打扰。
+   - 评审补强：对话框等待加 120s 超时兜底（对话框异常未回调时命令不再永久挂起）。
+2. **rag.rs embedding 通道 URL 门禁**：
+   - 原残余：`get_embedding_source` 直接以 `active.base_url` 构造 Cloud source，`embed_text`/`embed_texts` 发送前无任何校验——配置被异常值污染后借 embedding 通道（指南/查询内容）外传。
+   - 修复：新增 `pub(crate) validate_embedding_base_url(config, base_url)` 纯函数（`validate_llm_base_url` + `is_registered_provider_url` 双检），`get_embedding_source` 构造 Cloud source 前调用——三条入口（`llm_search_guide_chunks`/`llm_rebuild_guide_embeddings`/`llm_check_embedding_available`）全覆盖。原 `config.active_provider_id.ok_or` 改 `clone().ok_or` 避免部分移动（下方需借整份 config）。
+3. **前端 `LlmConfigPage.tsx` `handleSaveProvider`**：原 `.catch` 吞错后仍无条件 `setProviders` + `onSuccess`（用户取消登记会误报「保存成功」）——改 try/catch：失败（含取消）仅 `logger.warn` + 非取消类失败 toast `llm_save_provider_failed`（zh/en 双语 key 已入 locale），本地列表仅成功后更新。
+
+**验证**：fmt 干净 / clippy 0 / 新增 4 测试全绿（内置默认接受/已保存接受含尾斜杠/未登记拒绝/非法 scheme+userinfo 拒绝）/ cargo check 通过 / solo_soul 全测试通过 / tsc+eslint 干净 / locale JSON 校验通过。
+
 ## N-3 修复记录（2026-08-03）
 
 **修复方案**：`llmStore.streamBuffer` 纳入 vault-locked 清理链。
@@ -211,7 +226,7 @@
 | N-1 | ✅ 已修复 | storage.rs:1613-1639 + delta.rs:68 | P110 引入的同步永久停滞已闭环（keyset 分页 + 回退行 SQL 精确过滤 + 会话层节点编码对齐，2026-08-03 提交，见下方修复记录）；残余：会话中断时等值组尾部 at-least-once 缺口（已声明） |
 | N-2 | ✅ 已修复 | storage.rs:952-953 + vault_service.rs | `reencrypt_all` 无条件 commit 与 reencrypt→config 两阶段非原子已闭环（事务化 reencrypt + config 前置备份 + 写失败自动回滚，2026-08-03 提交，见下方修复记录） |
 | N-3 | ✅ 已修复 | stores/llmStore.ts:16 + AppRoutes.tsx | streamBuffer 未纳入 vault-locked 清理链已闭环（`useLlmStore.getState().reset()` 接入清理链：清空 streamBuffer/streamError 并取消 llm-stream-chunk 订阅，2026-08-03 提交，见下方修复记录） |
-| N-4 | 中 | commands/llm/provider.rs:62 | P102 残余：provider 注册门禁可两步绕过；embedding 通道发送时无 URL 校验 |
+| N-4 | ✅ 已修复 | commands/llm/provider.rs:62 + rag.rs | P102 残余已闭环：① `llm_save_provider` 对未登记新 URL 强制**原生确认对话框**（XSS 无法程序化点击，杜绝两步绕过，2026-08-03 提交，见下方修复记录）；② embedding 通道发送前强制已登记地址校验 |
 | N-5 | 中 | commands/ocr.rs:800-813 | P104 残余：sha256 清单仅 small 档，tiny/medium 下载无哈希校验（commit 已自认） |
 | N-6 | 中 | commands/ocr.rs:412-416 | P113 残余：`ocr_scan_mrz` 未移入 spawn_blocking |
 | N-7 | 低 | ExportImportPage/TrashPage/DebugLogPage | P120/P122/P125 新增文案 key 未入 locale 文件，英文 UI 显示中文 defaultValue |
@@ -223,7 +238,7 @@
 ## 结论与建议
 
 1. **修复质量整体很高**：60/70 项完全正确，去重类（G 组 8 项）与性能类（E 组）全部 ✅，多数修复带防回归测试；测试用例较修复前净增 52 个。
-2. **N-1/N-2/N-3 已于 2026-08-03 修复并提交**（见上方修复记录）：N-1 keyset 分页替代 OFFSET、回退行 SQL 精确过滤、会话层节点编码对齐（残余的「会话中断时等值组尾部跳过」缺口已声明，建议后续把页游标 id 并入 peer watermark 持久化彻底关闭）；N-2 `reencrypt_all` 事务化全有或全无 + config 前置备份 + 写失败自动回滚（评审补强：`change_password` 的 config 备份读取移至 reencrypt 之前）；N-3 llmStore.streamBuffer 接入 vault-locked 清理链（清明文 + 退订 llm-stream-chunk）。
-3. **⚠️ 项的残余差距均已被 commit 声明或属低危**，可按优先级排期：N-4/N-5/N-6 为中危跟进项，N-7 至 N-11 为小项。
+2. **N-1/N-2/N-3/N-4 已于 2026-08-03 修复并提交**（见上方修复记录）：N-1 keyset 分页替代 OFFSET、回退行 SQL 精确过滤、会话层节点编码对齐（残余的「会话中断时等值组尾部跳过」缺口已声明，建议后续把页游标 id 并入 peer watermark 持久化彻底关闭）；N-2 `reencrypt_all` 事务化全有或全无 + config 前置备份 + 写失败自动回滚（评审补强：`change_password` 的 config 备份读取移至 reencrypt 之前）；N-3 llmStore.streamBuffer 接入 vault-locked 清理链（清明文 + 退订 llm-stream-chunk）；N-4 provider 登记原生确认对话框（XSS 无法点击，堵死两步绕过）+ embedding 通道发送前强制已登记校验。
+3. **⚠️ 项的残余差距均已被 commit 声明或属低危**，可按优先级排期：N-5/N-6 为中危跟进项，N-7 至 N-11 为小项。
 4. **暂缓项决策待用户确认**：P133-P135（死模块删除）、P223/P224（结构性拆分）建议维持暂缓；P226/P228 可排入下一轮；P225 修复人正在进行中。
 5. P227/P231 提交于验证之后，未在本次审查范围内，建议下一轮补验。
