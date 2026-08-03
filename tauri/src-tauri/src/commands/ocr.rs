@@ -409,11 +409,18 @@ pub async fn ocr_scan_mrz(
         return Err("文件路径不在允许的目录中（Desktop/Documents/Downloads）".to_string());
     }
 
-    let engine_arc = get_ocr_engine(&models_dir, tier)?;
-    let mut engine = engine_arc
-        .lock()
-        .map_err(|e| format!("OCR engine lock poisoned: {e}"))?;
-    let result = engine.scan_mrz(&path)?;
+    // N-6: 秒级 ONNX 推理（含首次引擎加载）放到 spawn_blocking，避免阻塞 tokio worker。
+    // 与 P113 的 ocr_scan_image 同一模式。
+    let scan_path = path.clone();
+    let result = tokio::task::spawn_blocking(move || {
+        let engine_arc = get_ocr_engine(&models_dir, tier)?;
+        let mut engine = engine_arc
+            .lock()
+            .map_err(|e| format!("OCR engine lock poisoned: {e}"))?;
+        engine.scan_mrz(&scan_path)
+    })
+    .await
+    .map_err(|e| format!("OCR MRZ task join error: {e}"))??;
 
     let file_name = path.file_name().map(|n| n.to_string_lossy().to_string());
     let has_mrz = result.is_some();
