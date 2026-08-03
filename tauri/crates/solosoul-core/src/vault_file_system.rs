@@ -20,6 +20,22 @@ pub trait VaultFileSystem: Send + Sync {
     /// 写入文件（覆盖）。父目录不存在时会自动创建。
     fn write_file(&self, relative_path: &str, data: &[u8]) -> Result<(), String>;
 
+    /// 原子写入文件（.tmp + rename）。父目录不存在时会自动创建。
+    ///
+    /// P135：供关键配置写入（config.json）使用——避免进程在写入中途崩溃导致
+    /// 目标文件被截断/损坏。默认实现基于 `local_path()` + `solosoul_vault` 的
+    /// `safe_storage::write_atomic`；非本地文件系统（如 SAF）可自行覆盖。
+    fn write_file_atomic(&self, relative_path: &str, data: &[u8]) -> Result<(), String> {
+        let path = self
+            .local_path(relative_path)
+            .ok_or_else(|| "当前文件系统不支持原子写入（无法解析本地路径）".to_string())?;
+        if let Some(parent) = path.parent() {
+            std::fs::create_dir_all(parent).map_err(|e| format!("创建父目录失败: {e}"))?;
+        }
+        solosoul_vault::safe_storage::write_atomic(&path, data)
+            .map_err(|e| format!("原子写入失败: {e}"))
+    }
+
     /// 删除文件。
     fn remove_file(&self, relative_path: &str) -> Result<(), String>;
 
@@ -163,6 +179,17 @@ impl VaultFileSystem for SafVaultFileSystem {
             std::fs::create_dir_all(parent).map_err(|e| format!("创建父目录失败: {e}"))?;
         }
         std::fs::write(&path, data).map_err(|e| format!("写入文件失败: {e}"))?;
+        self.dirty.store(true, Ordering::Release);
+        Ok(())
+    }
+
+    fn write_file_atomic(&self, relative_path: &str, data: &[u8]) -> Result<(), String> {
+        let path = self.resolve(relative_path)?;
+        if let Some(parent) = path.parent() {
+            std::fs::create_dir_all(parent).map_err(|e| format!("创建父目录失败: {e}"))?;
+        }
+        solosoul_vault::safe_storage::write_atomic(&path, data)
+            .map_err(|e| format!("原子写入失败: {e}"))?;
         self.dirty.store(true, Ordering::Release);
         Ok(())
     }
@@ -502,5 +529,51 @@ mod tests {
         // local_path 应与构造时传入的路径一致
         assert_eq!(fs.local_path("").unwrap(), dir.path());
         assert_eq!(fs.local_path("sub").unwrap(), dir.path().join("sub"));
+    }
+
+    // ── P135：原子写入 ─────────────────────────────────────────
+
+    #[test]
+    fn test_local_write_file_atomic_creates_file() {
+        let (fs, _dir) = setup_local();
+
+        fs.write_file_atomic("acc_1/config.json", b"{\"k\":1}")
+            .unwrap();
+        assert_eq!(
+            fs.read_file("acc_1/config.json").unwrap(),
+            b"{\"k\":1}".to_vec()
+        );
+        // 原子写不应残留 .tmp 文件。
+        let tmp = fs
+            .local_path("acc_1/config.json")
+            .unwrap()
+            .with_extension("tmp");
+        assert!(!tmp.exists(), "atomic write must not leave orphan .tmp");
+    }
+
+    #[test]
+    fn test_local_write_file_atomic_recovers_orphan_tmp() {
+        // 模拟进程在 .tmp 写完后、rename 前崩溃：孤儿 .tmp 存在、主文件缺失。
+        let (fs, _dir) = setup_local();
+        let main = fs.local_path("acc_1/config.json").unwrap();
+        std::fs::create_dir_all(main.parent().unwrap()).unwrap();
+        std::fs::write(main.with_extension("tmp"), b"{\"recovered\":true}").unwrap();
+
+        let content = solosoul_vault::safe_storage::recover_or_load(&main);
+        assert!(content.is_some());
+        assert!(content.unwrap().contains("recovered"));
+        assert!(main.exists(), "orphan .tmp should be promoted to main file");
+    }
+
+    #[test]
+    fn test_saf_write_file_atomic_sets_dirty() {
+        let (fs, _dir) = setup_saf();
+
+        fs.write_file_atomic("acc_1/config.json", b"{}").unwrap();
+        assert!(
+            fs.is_dirty(),
+            "SAF atomic write must mark dirty for later sync"
+        );
+        assert_eq!(fs.read_file("acc_1/config.json").unwrap(), b"{}".to_vec());
     }
 }

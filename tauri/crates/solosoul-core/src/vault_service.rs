@@ -275,6 +275,74 @@ impl VaultService {
         format!("{id}/config.json")
     }
 
+    /// P135：原子写账户 config（.tmp + rename）。
+    ///
+    /// 与 R-4① 协同：reencrypt→config 两阶段中 config 写入是最后一步，
+    /// 原子写保证「写一半/进程崩溃」时目标文件要么是旧内容要么是新内容，
+    /// 不会出现截断/损坏的 config（崩溃后残留孤儿 .tmp 由读取侧
+    /// `recover_config_or_load` 或下次原子写覆盖）。
+    fn write_config_atomic(&self, account_id: &str, content: &[u8]) -> Result<(), String> {
+        let config_rel = self.config_path_rel(account_id);
+        self.fs.write_file_atomic(&config_rel, content)?;
+        self.ensure_private_file(&config_rel)?;
+        // 评审补强：write_atomic 的 fs::copy 生成的 .bak 权限为 umask 默认（0644），
+        // 与主文件 0600 不一致——.bak 含 salt/verify_hash/hint 同敏感级，
+        // 需同等收紧（目录 0700 仅是纵深兜底）。
+        if let Some(path) = self.fs.local_path(&config_rel) {
+            let bak_path = path.with_extension("bak");
+            if bak_path.exists() {
+                set_private_file(&bak_path).map_err(|e| format!("收紧 .bak 权限失败: {e}"))?;
+            }
+        }
+        Ok(())
+    }
+
+    /// P135：读取 config，优先恢复孤儿 .tmp/.bak（配合原子写）。
+    ///
+    /// 正常路径 = 直接读主文件；主文件缺失/非法时回退到
+    /// `safe_storage::recover_or_load`（提升孤儿 .tmp、回退 .bak）。
+    /// 读取 config，优先恢复孤儿 .tmp/.bak（配合原子写）。
+    ///
+    /// 原子写保证主文件「要么旧要么新」不会截断，但外部因素（磁盘损坏/
+    /// 旧版本残留/手工改动）仍可能留下非法 JSON——此时也回退到
+    /// `safe_storage::recover_or_load`（提升孤儿 .tmp、回退 .bak）。
+    fn read_config_with_recovery(&self, account_id: &str) -> Result<Vec<u8>, String> {
+        let config_rel = self.config_path_rel(account_id);
+        let recover = |path: &std::path::Path| -> Option<Vec<u8>> {
+            if let Some(content) = solosoul_vault::safe_storage::recover_or_load(path) {
+                // 评审补强：提升/回退直接改写本地文件，SAF 场景需标脏以便同步到远端。
+                let _ = self.fs.sync_if_dirty();
+                return Some(content.into_bytes());
+            }
+            None
+        };
+        match self.fs.read_file(&config_rel) {
+            Ok(content) => {
+                // 主文件可读且为合法 JSON → 直接使用。
+                if serde_json::from_slice::<serde_json::Value>(&content).is_ok() {
+                    return Ok(content);
+                }
+                // 主文件损坏 → 尝试恢复（孤儿 .tmp 或 .bak）。
+                if let Some(path) = self.fs.local_path(&config_rel) {
+                    if let Some(recovered) = recover(&path) {
+                        return Ok(recovered);
+                    }
+                }
+                // 恢复失败仍返回原内容，调用方按 parse error 处理（语义不变）。
+                Ok(content)
+            }
+            Err(_) => {
+                // 主文件缺失（可能是崩溃时 rename 前的孤儿 .tmp 未被提升）。
+                if let Some(path) = self.fs.local_path(&config_rel) {
+                    if let Some(recovered) = recover(&path) {
+                        return Ok(recovered);
+                    }
+                }
+                Err("Account not found".to_string())
+            }
+        }
+    }
+
     fn ensure_private_dir(&self, rel: &str) -> Result<(), String> {
         if let Some(path) = self.fs.local_path(rel) {
             set_private_dir(&path)?;
@@ -325,7 +393,8 @@ impl VaultService {
         self.fs.create_dir_all("")?;
         self.ensure_private_dir("")?;
         let rel = self.accounts_file_rel();
-        self.fs.write_file(rel, content.as_bytes())?;
+        // P135: 账户清单同样关键——原子写避免截断后 load_accounts 静默清空。
+        self.fs.write_file_atomic(rel, content.as_bytes())?;
         self.ensure_private_file(rel)?;
         Ok(())
     }
@@ -464,10 +533,9 @@ impl VaultService {
             last_operation_at: None,
             last_operation_desc: None,
         };
-        let config_rel = self.config_path_rel(&account_id);
         let config_json = serde_json::to_string_pretty(&config_data).map_err(|e| e.to_string())?;
-        self.fs.write_file(&config_rel, config_json.as_bytes())?;
-        self.ensure_private_file(&config_rel)?;
+        // P135: 原子写（.tmp + rename）——create_account 为关键写入路径。
+        self.write_config_atomic(&account_id, config_json.as_bytes())?;
 
         // Add to cache
         let entry = AccountEntry {
@@ -581,10 +649,9 @@ impl VaultService {
             last_operation_at: None,
             last_operation_desc: None,
         };
-        let config_rel = self.config_path_rel(account_id);
         let config_json = serde_json::to_string_pretty(&config_data).map_err(|e| e.to_string())?;
-        self.fs.write_file(&config_rel, config_json.as_bytes())?;
-        self.ensure_private_file(&config_rel)?;
+        // P135: 原子写（.tmp + rename）——create_account_with_id 为关键写入路径。
+        self.write_config_atomic(account_id, config_json.as_bytes())?;
 
         let entry = AccountEntry {
             id: account_id.to_string(),
@@ -632,10 +699,9 @@ impl VaultService {
         account_id: &str,
         password: &str,
     ) -> Result<DerivedMasterKey, String> {
-        let config_rel = self.config_path_rel(account_id);
+        // P135: 带孤儿 .tmp/.bak 恢复的读取（配合原子写）。
         let content = self
-            .fs
-            .read_file(&config_rel)
+            .read_config_with_recovery(account_id)
             .map_err(|_| "Account not found".to_string())?;
         let content =
             String::from_utf8(content).map_err(|_| "Config encoding error".to_string())?;
@@ -777,9 +843,10 @@ impl VaultService {
         old_key: &solosoul_vault::DataEncryptionKey,
         new_key: &solosoul_vault::DataEncryptionKey,
     ) -> Result<(), String> {
-        // 1) 恢复旧 config（盐/参数/verify_hash 与旧密钥一致）
+        // 1) 恢复旧 config（盐/参数/verify_hash 与旧密钥一致）——原子写，
+        //    避免回滚自身再次写坏 config。
         self.fs
-            .write_file(&self.config_path_rel(account_id), old_config_content)
+            .write_file_atomic(&self.config_path_rel(account_id), old_config_content)
             .map_err(|e| format!("rollback: failed to restore config: {}", e))?;
         // 2) 数据重加密回旧密钥：同一 store 先切内存密钥为新钥读回，再以旧钥写回
         vault.set_data_key(new_key.clone());
@@ -862,7 +929,8 @@ impl VaultService {
         config.kdf_iterations = Some(new_kdf_config.iterations);
         config.kdf_parallelism = Some(new_kdf_config.parallelism);
         let config_json = serde_json::to_string_pretty(&config).map_err(|e| e.to_string())?;
-        if let Err(e) = self.fs.write_file(&config_rel, config_json.as_bytes()) {
+        // P135: 原子写——config 更新为关键写入路径。
+        if let Err(e) = self.write_config_atomic(account_id, config_json.as_bytes()) {
             // N-2：config 写入失败 → 回滚（恢复旧 config + 数据重加密回旧密钥），
             // 保持账户一致可用，并把失败原因上抛。
             // R-4：回滚自身失败（磁盘满等共同根因）必须并入上抛文案。
@@ -1107,7 +1175,8 @@ impl VaultService {
         config.kdf_iterations = Some(new_kdf_config.iterations);
         config.kdf_parallelism = Some(new_kdf_config.parallelism);
         let config_json = serde_json::to_string_pretty(&config).map_err(|e| e.to_string())?;
-        if let Err(e) = self.fs.write_file(&config_rel, config_json.as_bytes()) {
+        // P135: 原子写——config 更新为关键写入路径。
+        if let Err(e) = self.write_config_atomic(account_id, config_json.as_bytes()) {
             // N-2：config 写入失败 → 回滚（恢复旧 config + 数据重加密回旧密钥），
             // 避免账户不可用；会话密钥尚未切换，回滚后当前会话仍以旧密钥工作。
             // R-4：回滚自身失败（磁盘满等共同根因）必须并入上抛文案。
@@ -1306,7 +1375,8 @@ impl VaultService {
         config.pin_locked_until = None;
 
         let json = serde_json::to_string_pretty(&config).map_err(|e| e.to_string())?;
-        self.fs.write_file(&config_rel, json.as_bytes())?;
+        // P135: 原子写——安全标志复位同样避免写坏 config。
+        self.write_config_atomic(account_id, json.as_bytes())?;
 
         // 清理可能残留的凭证文件
         let dir_rel = self.account_dir_rel(account_id);
@@ -1379,7 +1449,8 @@ impl VaultService {
             serde_json::from_str(&content).map_err(|_| "Config parse error".to_string())?;
         config.password_hint = Some(hint.to_string());
         let config_json = serde_json::to_string_pretty(&config).map_err(|e| e.to_string())?;
-        self.fs.write_file(&config_rel, config_json.as_bytes())?;
+        // P135: 原子写——密码提示更新同样避免写坏 config。
+        self.write_config_atomic(account_id, config_json.as_bytes())?;
         Ok(())
     }
 }
@@ -1591,6 +1662,15 @@ mod tests {
             }
             self.inner.write_file(relative_path, data)
         }
+        // P135: config 写入已切换为原子写路径——mock 需同样注入才能触发回滚。
+        fn write_file_atomic(&self, relative_path: &str, data: &[u8]) -> Result<(), String> {
+            if self.fail_config_writes.load(Ordering::SeqCst)
+                && relative_path.ends_with("config.json")
+            {
+                return Err("mock config write failure (injected)".to_string());
+            }
+            self.inner.write_file_atomic(relative_path, data)
+        }
         fn remove_file(&self, relative_path: &str) -> Result<(), String> {
             self.inner.remove_file(relative_path)
         }
@@ -1791,5 +1871,71 @@ mod tests {
         assert!(logs
             .iter()
             .any(|l| l.details.as_deref() == Some("before-upgrade")));
+    }
+
+    // ── P135: 原子写 + 崩溃恢复端到端 ──────────────────────────
+
+    #[test]
+    fn test_unlock_recovers_orphan_config_tmp() {
+        // R-4① 崩溃故事：reencrypt 已提交、config 写入中进程崩溃——
+        // 孤儿 .tmp（新 config）存在、主 config.json 缺失。
+        // 下次 unlock 经 read_config_with_recovery → recover_or_load 提升 .tmp。
+        let (svc, _dir) = setup_service();
+        let account = svc.create_account("Orphan", "password123", None).unwrap();
+        let account_id = account["id"].as_str().unwrap();
+
+        // 模拟崩溃：删主 config.json，仅留孤儿 .tmp（内容=原 config）。
+        let config_path = svc.base_path().join(account_id).join("config.json");
+        let content = fs::read(&config_path).unwrap();
+        fs::write(config_path.with_extension("tmp"), &content).unwrap();
+        fs::remove_file(&config_path).unwrap();
+
+        // unlock 应经恢复路径成功（而非 "Account not found"）。
+        svc.unlock(account_id, "password123").unwrap();
+        assert!(config_path.exists(), "orphan .tmp 应被提升回主 config.json");
+        assert!(
+            !config_path.with_extension("tmp").exists(),
+            "提升后孤儿 .tmp 应被清除"
+        );
+        assert!(svc.verify_password(account_id, "password123").unwrap());
+    }
+
+    #[test]
+    fn test_unlock_recovers_backup_bak() {
+        // 主文件损坏（非 JSON）但 .bak 完好 → recover_or_load 回退 .bak。
+        let (svc, _dir) = setup_service();
+        let account = svc.create_account("BakUser", "password123", None).unwrap();
+        let account_id = account["id"].as_str().unwrap();
+
+        let config_path = svc.base_path().join(account_id).join("config.json");
+        let content = fs::read(&config_path).unwrap();
+        fs::write(config_path.with_extension("bak"), &content).unwrap();
+        fs::write(&config_path, b"{corrupted json").unwrap();
+
+        svc.unlock(account_id, "password123").unwrap();
+        assert!(svc.verify_password(account_id, "password123").unwrap());
+    }
+
+    #[test]
+    fn test_write_config_atomic_tightens_bak_permissions() {
+        // 评审补强：write_atomic 的 .bak 经 fs::copy 生成，权限为 umask 默认——
+        // write_config_atomic 应对 .bak 变体收紧到 0600（与主 config 一致）。
+        let (svc, _dir) = setup_service();
+        let account = svc.create_account("BakPerm", "password123", None).unwrap();
+        let account_id = account["id"].as_str().unwrap();
+
+        // 触发第二次 config 写（产生 .bak）。
+        svc.update_password_hint(account_id, "hint").unwrap();
+
+        let config_path = svc.base_path().join(account_id).join("config.json");
+        let bak_path = config_path.with_extension("bak");
+        if bak_path.exists() {
+            #[cfg(unix)]
+            {
+                use std::os::unix::fs::PermissionsExt;
+                let mode = fs::metadata(&bak_path).unwrap().permissions().mode() & 0o777;
+                assert_eq!(mode, 0o600, ".bak 权限应收紧为 0600，实际 {mode:o}");
+            }
+        }
     }
 }

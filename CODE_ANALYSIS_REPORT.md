@@ -17,16 +17,15 @@
 | `cargo fmt --check` | ✅ 通过 | ✅ 通过 |
 | `cargo clippy --workspace --all-targets` | ✅ 零警告 | ✅ 零警告 |
 | 前端测试 | ✅ 46 文件 / 430 用例 | ✅ 55 文件 / 484 用例（较修复前 +54） |
-| Rust 测试 | ✅ 全部通过 | ✅ 全部通过（solo_soul 361 / core 150（默认；`future-keychain` 开启时 +4）/ crypto 34 / plugin 56 / sync 47 / vault 123） |
+| Rust 测试 | ✅ 全部通过 | ✅ 全部通过（solo_soul 361 / core 156（默认；`future-keychain` 开启时 +4）/ crypto 34 / plugin 56 / sync 47 / vault 123） |
 
 ## §2 总览：80 项问题处置结果
 
 - **审计问题清单共 80 项**（P001-P007、P101-P142、P201-P231）。
-- **80 项中 79 项已闭环并经独立复核验证**（78 项可执行修复 + P133 用户决策接入 + P134 用户决策门控），其中 P104/P206 为部分修复/部分保留，P209 为用户决策保留。
-- **遗留未完成 3 类**（§4 详细讨论）：
+- **80 项问题全部闭环**（78 项可执行修复 + P133 用户决策接入 + P134 用户决策门控 + P135 用户决策反向接入），其中 P104/P206 为部分修复/部分保留，P209 为用户决策保留。
+- **遗留未完成 2 类**（§4 详细讨论）：
   1. **N-10 / P207 残余**：Embedding 注册表 minisign 公钥未注入，默认构建防护未激活（⏸ 用户决策暂缓）。
-  2. **P135**：safe_storage 与 R-4① 有协同关系（建议反向接入原子写而非删除），见 §4.2。
-  3. **P223/P224**：长函数/巨型组件长期重构（有意留待迭代）。
+  2. **P223/P224**：长函数/巨型组件长期重构（有意留待迭代）。
 - 另有两项「有意保留但需后续跟进」记录在案：P209（legacy XOR 迁移窗口）、P206 遗留观察（PDF embed 与 CSP）。
 
 ## §3 已通过复核项归档（清理版）
@@ -128,7 +127,7 @@
 | P132 | ✅ | 8 个死命令删除（含 crypto oracle），注册与 allowlist 同步清理，前端/CLI 零残留 |
 | P133 | ✅ | 按用户决策**接入为 macOS 默认 OCR 引擎**：新增 `OcrModelTier::Vision` 档位（仅 macOS `ocr_list_available_tiers` 返回、置于首位），`OcrPreferences` 默认档 macOS 为 Vision；扫描走 `macos_vision::scan_image`（spawn_blocking + `#[cfg(target_os="macos")]` 属性剪裁，非 macOS 编译不引用门控模块）；MRZ 回退 small 档；前端仅 macOS 显示该档、默认选中、隐藏安装/下载/删除（builtin 标记）、按图片-only 过滤；详见 §4.2.1 |
 | P134 | ✅ | 按用户决策升级为 `feature = "future-keychain"` 门控（默认关闭，`#[cfg(all(target_os="macos", feature="future-keychain"))]`），移除 `#[allow(dead_code)]` 脱离默认编译面；启用时 10 个 dead_code 警告为「尚未接入 platform_storage()」的预期提醒；详见 §4.2.2 |
-| P135 | ⏸ | 已决策保留（safe_storage 原子写工具，破坏性删除暂缓）——**与 R-4① 存在协同，见 §4.2** |
+| P135 | ✅ | 按用户决策**反向接入**（不删）：`VaultFileSystem::write_file_atomic`（trait 默认实现 + SAF 覆盖带 dirty）；7 处 config 写入 + `save_accounts` 全部切原子写，`write_config_atomic` 同步收紧 .bak 权限；`read_config_with_recovery` 接 unlock/verify 读取路径（孤儿 .tmp 提升 + .bak 回退）；R-4① 的「config 写一半」风险降为近乎不可达；详见 §4.2.3 |
 | P136 | ✅ | 自我纠错正确：CLI 依赖方法全部恢复，最终仅删 15 个零调用方法（provider 管理 8 + 会话管理 5 + reset_stats + 非流式 send_message） |
 | P137 | ✅ | LLM 8 结构体统一复用 `solosoul_core::llm::config` 唯一真理来源，serde 字段逐字段一致 |
 | P138 | ✅ | 11 对 cfg 命令合并，真有差异的 2 对保留；附带发现 `sync_discover` 系历史遗留未注册死命令（非本次引入） |
@@ -220,9 +219,9 @@
 2. **路径 1 随签名体系就绪随时激活**（一行常量 + 发布流程）；路径 2 作为中间态的 CI 接线。
 3. 在此之前维持暂缓登记，风险等级「低」由 P104 叠加缓解支撑。
 
-### 4.2 P135：死模块处置（P133/P134 已闭环，余 P135 待决策）
+### 4.2 死模块处置（P133/P134/P135 全部闭环）
 
-三模块原合计约 926 行，均确认零生产引用（grep 仅命中模块声明自身）。原报告建议删除属破坏性操作，2026-08-02 用户确认暂缓。**P133 已于 2026-08-03 按用户决策接入为 macOS 默认 OCR 引擎并闭环**（见 4.2.1）；**P134 已于 2026-08-03 按用户决策升级为 feature 门控并闭环**（见 4.2.2）；P135 与 R-4① 协同建议反向接入（见 4.2.3）。
+三模块原合计约 926 行，均确认零生产引用（grep 仅命中模块声明自身）。原报告建议删除属破坏性操作，2026-08-02 用户确认暂缓。**P133 已于 2026-08-03 按用户决策接入为 macOS 默认 OCR 引擎并闭环**（见 4.2.1）；**P134 已于 2026-08-03 按用户决策升级为 feature 门控并闭环**（见 4.2.2）；**P135 已于 2026-08-03 按用户决策反向接入原子写并闭环**（见 4.2.3）。
 
 #### 4.2.1 P133 `crates/solosoul-core/src/ocr/macos_vision.rs`（389 行）—— ✅ 已闭环（2026-08-03）
 
@@ -262,16 +261,23 @@
 
 **已声明取舍**（评审确认）：feature 关闭后 macOS target 段 `security-framework`/`core-foundation` 等 4 依赖无引用仍被编译（Cargo 对 target 级声明依赖总是编译）——轻微编译开销、无警告；若追求严格按需可后续改 `optional = true` 挂 feature，但不建议现在做（churn > 收益）。
 
-#### 4.2.3 P135 `crates/solosoul-vault/src/safe_storage.rs`（98 行）——**新发现：与 R-4① 协同**
-- **内容**：原子文件写入工具 `write_atomic`（`.tmp` + rename）+ `recover_or_load`（孤儿 tmp 恢复），自带 3 条测试。
-- **引用**：零生产调用（仅 `lib.rs:16 pub mod` + `lib.rs:8` 文档提及 + 自身测试）。
-- **新发现（本次合并复核）**：`vault_service.rs` 的 **6 处 config 写入全部是非原子 `fs.write_file`**（:469/:586/:782/:865/:1074/:1110，无 `.tmp`+rename）——这正是 R-4①「reencrypt commit 后 config 写一半/进程崩溃 → 账户不可用」毫秒级窗口的根源。`safe_storage::write_atomic` 恰好提供现成的原子写 + 孤儿恢复方案。
-- **建议**：**不删，反向接入**——将 config 写入路径（至少 `change_password`/`unlock_with_kdf_upgrade`/`create_account` 三处关键路径）切换到 `write_atomic` 语义：
-  1. 直接让 `VaultFileSystem` trait 增加原子写方法（或新增 `write_config_atomic` 助手），6 处调用收敛；
-  2. 崩溃恢复在启动时调用 `recover_or_load` 清理孤儿 tmp；
-  3. 一举两得：P135 从死代码变为被消费代码，R-4① 的「写一半」风险从「毫秒级窗口」降为「近乎不可达」（tmp 文件残留 + 恢复读取）。
-  - 注意点：`vault_service` 走 `VaultFileSystem` trait 抽象（测试用 mock fs），原子写语义需纳入 trait 或作为 trait 方法，接入成本可控（98 行工具 + 6 处调用点）。
-- 若最终仍决定删除，也应先完成上述接入后删除（届时不再有 R-4① 同源缺口）。
+#### 4.2.3 P135 `crates/solosoul-vault/src/safe_storage.rs`（98 行）—— ✅ 已闭环（2026-08-03，反向接入）
+
+**用户决策**：不删，反向接入——将 config 写入路径（至少 `change_password`/`unlock_with_kdf_upgrade`/`create_account` 三处关键路径）切换到 `write_atomic` 语义，P135 从死代码变为被消费代码，R-4① 的「config 写一半」风险降为近乎不可达。
+
+**修复内容**：
+
+| 层 | 改动 |
+|----|------|
+| `vault_file_system.rs` | `VaultFileSystem` trait 新增 `write_file_atomic`（默认实现：`local_path()` + 父目录 + `solosoul_vault::safe_storage::write_atomic`）；`SafVaultFileSystem` 覆盖（resolve + 原子写 + **置 dirty 标记**保证后续同步远端） |
+| `vault_service.rs` | 新增 `write_config_atomic` 助手（原子写 + `ensure_private_file` + **评审补强：同步收紧 `.bak` 权限到 0600**——`fs::copy` 生成 .bak 为 umask 默认 0644，含同敏感级数据）；新增 `read_config_with_recovery`（主文件合法 JSON 直接用；**缺失或损坏（非 JSON）均回退 `recover_or_load`**：提升孤儿 .tmp、回退 .bak，SAF 场景恢复后置 dirty） |
+| 写入切换 | **7 处 config 写入全部切原子**：create_account / create_account_with_id / rollback_reencrypt_and_config（恢复旧 config）/ change_password / unlock_with_kdf_upgrade / reset_security_flags / update_password_hint；另按评审建议把 `save_accounts`（accounts.json 账户清单）一并切原子 |
+| 读取接线 | `load_config_and_derive_master_key`（unlock/verify_password 共用前缀）改用 `read_config_with_recovery` |
+| 测试 | 新增 6 条：fs 层原子写不残留 .tmp / 孤儿 .tmp 提升 / SAF 原子写置 dirty；service 层端到端「孤儿 .tmp + 主文件缺失 → unlock 恢复成功」/「主文件损坏 .bak 完好 → unlock 回退 .bak」/「.bak 权限收紧 0600」；R-4 mock（FailConfigWriteFs）同步覆盖 `write_file_atomic` 注入 |
+
+**验证**：fmt 干净 / clippy workspace 0 / workspace check 0 / core 156（+3）全绿 / solo_soul 361 / vault 123 / CLI 0。
+
+**已声明取舍**（评审确认）：① 原子写每次产生 `.bak`（一账户一个，随 `remove_dir_all` 清理，非泄漏）；② `read_config_with_recovery` 恢复路径对 SAF 通过 `local_path`（本地临时目录）工作——恢复后已置 dirty 待同步；③ 残余窗口见 §4.4.2——reencrypt 提交后、新 config 落盘前崩溃仍回退旧钥（需 reencrypt 侧 journal 才完全关闭），但账户不再出现**截断/损坏**的 config。
 
 ### 4.3 P223/P224：长函数与巨型组件长期重构
 
@@ -310,7 +316,7 @@
 #### 4.4.2 R-4①：reencrypt commit 后、config 写前进程崩溃（低）
 
 - **窗口**：`reencrypt_all` 事务提交成功、config.json 写入完成前进程崩溃 → 账户「数据已换新钥、config 仍记旧参数」不可用（毫秒级窗口，彻底解需 journal/双 config）。
-- **协同解法（与 P135 联动）**：见 §4.2.3——接入 `safe_storage::write_atomic`（.tmp+rename）后，config 写入本身具备原子性，「写一半」→「要么旧、要么新」，崩溃后孤儿 tmp 由 `recover_or_load` 恢复；残余为「reencrypt 提交后、新 config 落盘前崩溃」仍回退旧钥（reencrypt 侧需 journal 才完全关闭），但账户不再出现**截断/损坏**的 config——风险从「账户不可用」降为「下次解锁重新升级」。
+- **协同解法（与 P135 联动，已实施）**：见 §4.2.3——config 写入已全部接入 `safe_storage::write_atomic`（.tmp+rename），「写一半」→「要么旧、要么新」，崩溃后孤儿 tmp / 损坏主文件由 `read_config_with_recovery` → `recover_or_load` 恢复；残余为「reencrypt 提交后、新 config 落盘前崩溃」仍回退旧钥（reencrypt 侧需 journal 才完全关闭），但账户不再出现**截断/损坏**的 config——风险从「账户不可用」降为「下次解锁重新升级」。
 
 ### 4.5 P209：LEGACY_XOR_KEY（已决策保留）
 
@@ -328,17 +334,15 @@
 
 ## §5 结论与后续建议
 
-1. **审计闭环状态**：80 项问题中 79 项可执行项已修复并经两轮独立复核（70 项首轮 + 16 项二轮补验 + P133 用户决策接入）验证，测试用例较修复前净增 54 个；**所有 N/R 项复核发现均已闭环**。
-2. **遗留未完成 3 类**（本报告 §4）：
+1. **审计闭环状态**：80 项问题**全部闭环**并经两轮独立复核（70 项首轮 + 16 项二轮补验 + P133/P134/P135 三项用户决策处置）验证，测试用例较修复前净增 60+；**所有 N/R 项复核发现均已闭环**。
+2. **遗留未完成 2 类**（本报告 §4）：
    - N-10/P207（公钥注入）：建议下一发布周期实施**路径 3（bundled 兜底 + fail-closed）**——唯一不依赖外部密钥即可关闭缺口的路径；路径 1（真实公钥）随签名体系就绪随时激活。
-   - P135：**建议由「删除」改为「接入 config 原子写」**（与 R-4① 协同，一举两得）；P134 已按用户决策门控闭环。
    - P223/P224：长期重构，建议从 `TrashDetailPanel`（P224）与 storage.rs 按表域拆分（P223）开始，沿用 P048/P217 的等价重构 + 防回归测试先例。
    - R-3/R-4① 残余：可接受工程取舍，登记长期改进（等值组尾部回扫 / config journal，见 §4.4）。
-3. **验证指针**：本报告 §3 归档表含全部修复 commit（`f1970c67` 起，N/R 项见 §3.2）；完整修复细节与两轮验证记录在 git 历史中可追溯。
 3. **验证指针**：本报告 §3 归档表含全部修复 commit（`f1970c67` 起，N/R 项见 §3.2）；完整修复细节与两轮验证记录在 git 历史中可追溯。
 
 ## §6 测试基线参考（当前 HEAD）
 
 - 前端：tsc 0 错误 / eslint 0 警告 / vitest 55 文件 484 用例全绿。
-- Rust：`cargo fmt --check` 通过 / `cargo clippy --workspace --all-targets` 零警告 / `cargo test --workspace` 全绿（solo_soul 361、core 150 默认（`future-keychain` 开启时 +4）、crypto 34、plugin 56、sync 47、vault 123）；`solosoul_cli` cargo check 0 错误。
+- Rust：`cargo fmt --check` 通过 / `cargo clippy --workspace --all-targets` 零警告 / `cargo test --workspace` 全绿（solo_soul 361、core 156 默认（`future-keychain` 开启时 +4）、crypto 34、plugin 56、sync 47、vault 123）；`solosoul_cli` cargo check 0 错误。
 - 工作区干净，当前分支 `main` 与 `origin/main` 同步。
