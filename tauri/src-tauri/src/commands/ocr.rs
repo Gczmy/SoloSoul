@@ -793,11 +793,35 @@ const BASE_BACKOFF_MS: u64 = 1_000;
 
 /// P104：内置 OCR 模型 sha256 校验清单（键为 `{tier}/{rel_path}`，值为小写十六进制）。
 ///
-/// 仅收录随包发布、有官方基准的档位（当前为 `small`，哈希与
-/// `resources/models/pp-ocr-v6-small/` 逐字节一致）。命中清单的文件下载后必须
-/// sha256 完全匹配，否则拒绝落盘——防止镜像被篡改后由本地 `ort` 加载执行。
-/// 未收录档位（tiny/medium）仍执行 URL 校验 + 流式大小上限（见下方辅助函数）。
+/// 收录全部三档（tiny/small/medium）共 12 个文件。哈希来源：
+/// - `small`：与随包资源 `resources/models/pp-ocr-v6-small/` 逐字节一致；
+/// - `tiny`/`medium`：取自官方 Hugging Face 仓库 `PaddlePaddle/PP-OCRv6_*_onnx`
+///   （`resolve/main/inference.onnx` / `inference.yml`），下载于 2026-06-18 修订版：
+///   tiny_det `2ba1506c`、tiny_rec `2612ab37`、medium_det `61323801`、medium_rec `50c7eaca`。
+///   来源可靠性经交叉验证：同一官方仓库下载的 small 四文件哈希与代码中已钉
+///   死（并获随包资源回归守护）的 small 哈希**完全一致**，证明该仓库即权威源。
+///
+/// 命中清单的文件下载后必须 sha256 完全匹配，否则拒绝落盘——防止镜像被
+/// 篡改后由本地 `ort` 加载执行。注意：此清单是官方 `main` 分支的**时间点快照**，
+/// 若官方日后更新模型文件，合法下载会报「sha256 校验失败」，需同步更新清单；
+/// 同时意味着指向重导出/重优化 ONNX 构建的自定义镜像会被拒绝（钉死语义的既定取舍）。
 const PINNED_MODEL_SHA256: &[(&str, &str)] = &[
+    (
+        "tiny/det/inference.onnx",
+        "193bab7a04fca699a6c82e6abb5b81bdb28177f0abd4062552b04908dafb19f8",
+    ),
+    (
+        "tiny/det/inference.yml",
+        "3ac018be6f97499a08faa3bbdeb33640968d9307f6736d152902747a9f259593",
+    ),
+    (
+        "tiny/rec/inference.onnx",
+        "9ef676d6ed3c88256a2d92c640c44f25b0c40947e111b14b8be8f594091563e6",
+    ),
+    (
+        "tiny/rec/inference.yml",
+        "66170210bad538e83fff3c4a3867e547d6bf20b50d64b20347c4b913f3034ea1",
+    ),
     (
         "small/det/inference.onnx",
         "d73e0058b7a8086bbd57f3d10b8bcd4ff95363f67e06e2762b5e814fe9c9410e",
@@ -813,6 +837,22 @@ const PINNED_MODEL_SHA256: &[(&str, &str)] = &[
     (
         "small/rec/inference.yml",
         "ab078671bb49f06228eadccd34f1bb501e157f7a047095ffb943ba81512c77d1",
+    ),
+    (
+        "medium/det/inference.onnx",
+        "eb13b44b25bb36f89528b68720af8a61d9cf381176107f465db1757b65d086e1",
+    ),
+    (
+        "medium/det/inference.yml",
+        "7298d5ead546584af2504d03355f881ac7a7bc0eb1e282d3e159277c1d0af871",
+    ),
+    (
+        "medium/rec/inference.onnx",
+        "9c09abf0957f7968c7586464b7397b84ad2387a0497a351af40e9acc71b673ba",
+    ),
+    (
+        "medium/rec/inference.yml",
+        "991b700facf5b50a7de193468207d5f4255b538dde0d312ae3b7c7a9b6873129",
     ),
 ];
 
@@ -1288,19 +1328,23 @@ mod tests {
     // ── P104 安全加固：内置 sha256 清单 ───────────────────────────
 
     #[test]
-    fn test_pinned_manifest_covers_small_downloads() {
-        // small 档 4 个文件全部命中清单。
-        for rel in [
-            "det/inference.onnx",
-            "det/inference.yml",
-            "rec/inference.onnx",
-            "rec/inference.yml",
-        ] {
-            let key = format!("small/{rel}");
-            assert!(
-                PINNED_MODEL_SHA256.iter().any(|(k, _)| *k == key),
-                "missing pinned hash for {key}"
-            );
+    fn test_pinned_manifest_covers_all_tiers_downloads() {
+        // N-5: 三档（tiny/small/medium）各 4 个文件全部命中清单——
+        // tiny/medium 哈希取自官方 Hugging Face 仓库（PaddlePaddle/PP-OCRv6_*_onnx），
+        // 经 small 交叉验证（官方源 small 哈希 == 代码钉死哈希）确认来源权威。
+        for tier in ["tiny", "small", "medium"] {
+            for rel in [
+                "det/inference.onnx",
+                "det/inference.yml",
+                "rec/inference.onnx",
+                "rec/inference.yml",
+            ] {
+                let key = format!("{tier}/{rel}");
+                assert!(
+                    PINNED_MODEL_SHA256.iter().any(|(k, _)| *k == key),
+                    "missing pinned hash for {key}"
+                );
+            }
         }
     }
 
@@ -1319,13 +1363,17 @@ mod tests {
     fn test_pinned_manifest_hashes_match_bundled_resources() {
         // 回归守护：内置清单哈希必须与随包发布的 small 档模型逐字节一致，
         // 否则下载校验将拒绝官方镜像（说明资源或清单需要同步更新）。
+        // 仅校验随包存在的 small 档；tiny/medium 未随包（哈希取自官方 HF 仓库，
+        // 见清单注释与 test_pinned_manifest_covers_all_tiers_downloads 的交叉验证说明）。
         let resources_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("resources/models");
         if !resources_dir.join("pp-ocr-v6-small").exists() {
             // 开发环境可能未检出模型资源，跳过。
             return;
         }
         for (key, expected) in PINNED_MODEL_SHA256 {
-            let rel = key.strip_prefix("small/").expect("key prefix");
+            let Some(rel) = key.strip_prefix("small/") else {
+                continue; // tiny/medium 不随包，无本地资源可比对。
+            };
             let path = resources_dir.join("pp-ocr-v6-small").join(rel);
             if !path.exists() {
                 continue;

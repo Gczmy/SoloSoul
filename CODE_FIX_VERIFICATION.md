@@ -56,6 +56,18 @@
 
 **已声明残余限制**：会话**中断**（断网/崩溃/退出）时，已持久化水印停在等值组最大值而页游标丢失，重启以 NULL 游标重查会跳过三元组 == 水印的组尾行（at-least-once 缺口）。需同时满足「会话中断」+「在飞等 ms 组」才触发；修复前每次同步都丢/循环，属严格改善。后续可把页游标 id 并入 peer watermark 持久化彻底关闭。
 
+## N-5 修复记录（2026-08-03）
+
+**修复方案**：P104 残余的 tiny/medium 档 sha256 清单补全。
+
+1. **清单扩至三档 12 文件**（ocr.rs `PINNED_MODEL_SHA256` 4→12 条）：
+   - tiny/medium 哈希由下载官方 Hugging Face 仓库 `PaddlePaddle/PP-OCRv6_{tiny,medium}_{det,rec}_onnx` 的 `resolve/main/inference.onnx`/`inference.yml` 计算（8 文件，共约 145MB，尺寸与官方 content-length 逐字节一致）。
+   - **权威性交叉验证**：同一官方仓库下载的 small 四文件哈希与代码中已钉死（并获随包资源回归守护）的 small 哈希**完全一致**——证明 HF 即 P104 假设的权威源，tiny/medium 哈希可信。
+   - 清单注释记录来源修订号（2026-06-18：tiny_det `2ba1506c`、tiny_rec `2612ab37`、medium_det `61323801`、medium_rec `50c7eaca`）及两个既定取舍：官方 main 更新后合法下载会报校验失败（需同步更新清单）；重导出/重优化 ONNX 的自定义镜像会被拒绝。
+2. **测试更新**：`test_pinned_manifest_covers_small_downloads` 更名 `test_pinned_manifest_covers_all_tiers_downloads`（三档 × 4 文件全覆盖断言）；`test_pinned_manifest_hashes_match_bundled_resources` 跳过非 small key（tiny/medium 不随包，无本地资源可比对）；64-hex 测试自动覆盖 12 条。
+
+**验证**：fmt 干净 / clippy 0 / 3 个 pinned 测试全绿 / solo_soul 全测试无失败。
+
 ## N-4 修复记录（2026-08-03）
 
 **修复方案**（登记门禁原生确认 + embedding 通道对齐，三处配合）：
@@ -227,7 +239,7 @@
 | N-2 | ✅ 已修复 | storage.rs:952-953 + vault_service.rs | `reencrypt_all` 无条件 commit 与 reencrypt→config 两阶段非原子已闭环（事务化 reencrypt + config 前置备份 + 写失败自动回滚，2026-08-03 提交，见下方修复记录） |
 | N-3 | ✅ 已修复 | stores/llmStore.ts:16 + AppRoutes.tsx | streamBuffer 未纳入 vault-locked 清理链已闭环（`useLlmStore.getState().reset()` 接入清理链：清空 streamBuffer/streamError 并取消 llm-stream-chunk 订阅，2026-08-03 提交，见下方修复记录） |
 | N-4 | ✅ 已修复 | commands/llm/provider.rs:62 + rag.rs | P102 残余已闭环：① `llm_save_provider` 对未登记新 URL 强制**原生确认对话框**（XSS 无法程序化点击，杜绝两步绕过，2026-08-03 提交，见下方修复记录）；② embedding 通道发送前强制已登记地址校验 |
-| N-5 | 中 | commands/ocr.rs:800-813 | P104 残余：sha256 清单仅 small 档，tiny/medium 下载无哈希校验（commit 已自认） |
+| N-5 | ✅ 已修复 | commands/ocr.rs:800-813 | P104 残余已闭环：sha256 清单扩至三档共 12 文件（tiny/medium 哈希取自官方 HF 仓库并经 small 交叉验证，2026-08-03 提交，见下方修复记录） |
 | N-6 | 中 | commands/ocr.rs:412-416 | P113 残余：`ocr_scan_mrz` 未移入 spawn_blocking |
 | N-7 | 低 | ExportImportPage/TrashPage/DebugLogPage | P120/P122/P125 新增文案 key 未入 locale 文件，英文 UI 显示中文 defaultValue |
 | N-8 | 低 | App/index.tsx:91、lib/notification.ts:50 | P129 残余：两处绕过 helper 直写③（实际无漂移风险） |
@@ -239,6 +251,6 @@
 
 1. **修复质量整体很高**：60/70 项完全正确，去重类（G 组 8 项）与性能类（E 组）全部 ✅，多数修复带防回归测试；测试用例较修复前净增 52 个。
 2. **N-1/N-2/N-3/N-4 已于 2026-08-03 修复并提交**（见上方修复记录）：N-1 keyset 分页替代 OFFSET、回退行 SQL 精确过滤、会话层节点编码对齐（残余的「会话中断时等值组尾部跳过」缺口已声明，建议后续把页游标 id 并入 peer watermark 持久化彻底关闭）；N-2 `reencrypt_all` 事务化全有或全无 + config 前置备份 + 写失败自动回滚（评审补强：`change_password` 的 config 备份读取移至 reencrypt 之前）；N-3 llmStore.streamBuffer 接入 vault-locked 清理链（清明文 + 退订 llm-stream-chunk）；N-4 provider 登记原生确认对话框（XSS 无法点击，堵死两步绕过）+ embedding 通道发送前强制已登记校验。
-3. **⚠️ 项的残余差距均已被 commit 声明或属低危**，可按优先级排期：N-5/N-6 为中危跟进项，N-7 至 N-11 为小项。
+3. **⚠️ 项的残余差距均已被 commit 声明或属低危**，可按优先级排期：N-6 为中危跟进项，N-7 至 N-11 为小项。
 4. **暂缓项决策待用户确认**：P133-P135（死模块删除）、P223/P224（结构性拆分）建议维持暂缓；P226/P228 可排入下一轮；P225 修复人正在进行中。
 5. P227/P231 提交于验证之后，未在本次审查范围内，建议下一轮补验。
