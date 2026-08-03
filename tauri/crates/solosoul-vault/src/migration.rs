@@ -3,7 +3,7 @@
 use chrono::Utc;
 use rusqlite::{params, Connection};
 
-pub const CURRENT_SCHEMA_VERSION: u32 = 21;
+pub const CURRENT_SCHEMA_VERSION: u32 = 22;
 
 pub fn get_schema_version(conn: &Connection) -> Result<u32, String> {
     let version: String = conn
@@ -62,6 +62,7 @@ pub fn run_migrations(conn: &mut Connection) -> Result<(), String> {
     migrate_v19(conn, current)?;
     migrate_v20(conn, current)?;
     migrate_v21(conn, current)?;
+    migrate_v22(conn, current)?;
 
     Ok(())
 }
@@ -526,6 +527,39 @@ fn migrate_v21(conn: &mut Connection, current: u32) -> Result<(), String> {
                 params![21, now, "local_data already present on sync_conflicts (no-op)"],
             ).ok();
             set_schema_version(conn, 21)?;
+        }
+    }
+    Ok(())
+}
+
+fn migrate_v22(conn: &mut Connection, current: u32) -> Result<(), String> {
+    if current < 22 {
+        // R-3: sync_watermarks 增加页游标列——会话中断后 keyset 游标随水印持久化，
+        // 等值 HLC 组尾部跨会话续传（不再从 NULL 游标重查而跳过组尾行）。
+        // 表存在性守卫：部分态迁移 fixture（v17 partial state）可能无 sync 表；
+        // 生产路径 storage.rs 的 CREATE TABLE IF NOT EXISTS 已含 cursor_id。
+        let has_table = conn
+            .query_row(
+                "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='sync_watermarks'",
+                [],
+                |r| r.get::<_, i64>(0),
+            )
+            .unwrap_or(0)
+            > 0;
+        if has_table && !has_column(conn, "sync_watermarks", "cursor_id") {
+            apply_migration(
+                conn,
+                22,
+                "ALTER TABLE sync_watermarks ADD COLUMN cursor_id TEXT;",
+                "R-3: persist pagination cursor alongside peer watermark",
+            )?;
+        } else {
+            let now = Utc::now().timestamp();
+            conn.execute(
+                "INSERT OR IGNORE INTO schema_migrations (version, applied_at, description) VALUES (?1, ?2, ?3)",
+                params![22, now, "cursor_id already present (or sync table absent) on sync_watermarks (no-op)"],
+            ).ok();
+            set_schema_version(conn, 22)?;
         }
     }
     Ok(())

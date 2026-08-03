@@ -283,6 +283,7 @@ impl VaultStore {
                 wall_time_ms INTEGER NOT NULL DEFAULT 0,
                 counter INTEGER NOT NULL DEFAULT 0,
                 node_id TEXT NOT NULL DEFAULT '',
+                cursor_id TEXT,
                 updated_at TEXT NOT NULL,
                 PRIMARY KEY (peer_node_id, table_name)
             );
@@ -1261,15 +1262,30 @@ impl VaultStore {
         table: &str,
         watermark: &crate::SyncWatermark,
     ) -> Result<(), String> {
+        // R-3: 无游标语义 = 仅更新水印（清空游标）。
+        self.update_peer_watermark_with_cursor(peer_node_id, table, watermark, None)
+    }
+
+    /// R-3: 水印与页游标同事务/同刻落库——会话中断后从持久化水印旁恢复游标，
+    /// 等值 HLC 组跨会话续传（`cursor=None` 即清空游标，用于表同步完成时
+    /// 保持严格 `>` 语义，防陈旧游标跳过未来同 ms 行）。
+    pub fn update_peer_watermark_with_cursor(
+        &self,
+        peer_node_id: &str,
+        table: &str,
+        watermark: &crate::SyncWatermark,
+        cursor: Option<&str>,
+    ) -> Result<(), String> {
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         conn.execute(
-            "INSERT INTO sync_watermarks (peer_node_id, table_name, wall_time_ms, counter, node_id, updated_at)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6)
+            "INSERT INTO sync_watermarks (peer_node_id, table_name, wall_time_ms, counter, node_id, cursor_id, updated_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
              ON CONFLICT(peer_node_id, table_name) DO UPDATE SET
                 wall_time_ms = excluded.wall_time_ms,
                 counter = excluded.counter,
                 node_id = excluded.node_id,
+                cursor_id = excluded.cursor_id,
                 updated_at = excluded.updated_at",
             params![
                 peer_node_id,
@@ -1277,11 +1293,30 @@ impl VaultStore {
                 watermark.wall_time_ms,
                 watermark.counter as i32,
                 &watermark.node_id,
+                cursor,
                 Self::now_rfc3339(),
             ],
         )
         .map_err(|e| format!("update_peer_watermark: {}", e))?;
         Ok(())
+    }
+
+    /// R-3: 读取持久化页游标（无记录返回 None）。
+    pub fn get_peer_watermark_cursor(
+        &self,
+        peer_node_id: &str,
+        table: &str,
+    ) -> Result<Option<String>, String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        conn.query_row(
+            "SELECT cursor_id FROM sync_watermarks WHERE peer_node_id = ?1 AND table_name = ?2",
+            params![peer_node_id, table],
+            |row| row.get::<_, Option<String>>(0),
+        )
+        .optional()
+        .map(|opt| opt.flatten())
+        .map_err(|e| format!("get_peer_watermark_cursor: {}", e))
     }
 
     pub fn get_peer_watermark(
@@ -5921,6 +5956,138 @@ mod tests {
             last_row_id = page.last().map(|r| r.id.clone());
         }
         out
+    }
+
+    // ── R-3: 页游标持久化——会话中断后等值 HLC 组尾部跨会话续传 ───────────
+    //
+    // N-1 已声明残余：keyset 页游标仅存内存，会话中断（断网/崩溃/退出）后已持久化
+    // 水印停在等值组最大值而游标丢失，重启以 NULL 游标重查会跳过三元组 == 水印的
+    // 组尾行（at-least-once 缺口）。R-3 把游标并入 sync_watermarks.cursor_id，
+    // 中断后从 get_peer_watermark_cursor 恢复续传。
+    #[test]
+    fn test_peer_watermark_cursor_roundtrip() {
+        let (vault, _dir) = setup();
+        let wm = crate::SyncWatermark {
+            wall_time_ms: 1704067200123,
+            counter: 0,
+            node_id: "local_node".to_string(),
+        };
+        assert_eq!(
+            vault.get_peer_watermark_cursor("peer1", "objects").unwrap(),
+            None
+        );
+
+        vault
+            .update_peer_watermark_with_cursor("peer1", "objects", &wm, Some("obj_05"))
+            .unwrap();
+        assert_eq!(
+            vault.get_peer_watermark_cursor("peer1", "objects").unwrap(),
+            Some("obj_05".to_string())
+        );
+        // 读回水印不受游标污染
+        assert_eq!(vault.get_peer_watermark("peer1", "objects").unwrap(), wm);
+
+        // 清空游标
+        vault
+            .update_peer_watermark_with_cursor("peer1", "objects", &wm, None)
+            .unwrap();
+        assert_eq!(
+            vault.get_peer_watermark_cursor("peer1", "objects").unwrap(),
+            None
+        );
+    }
+
+    #[test]
+    fn test_peer_watermark_cursor_resume_delivers_equal_hlc_tail() {
+        let (vault, _dir) = setup();
+        let ts = "2026-08-01T12:00:00.000+00:00";
+        // 5 个同 updated_at 回退行（等值 HLC 组，模拟 page_delete 同 ms 批量删除）
+        for i in 1..=5usize {
+            vault
+                .save_object(&crate::ObjectRecord {
+                    id: format!("resume_{:02}", i),
+                    account_id: "test_account".to_string(),
+                    name: format!("resume_{:02}", i),
+                    section_type: "identity".to_string(),
+                    properties: serde_json::json!({ "k": i }),
+                    sensitivity_level: "internal".to_string(),
+                    created_at: ts.to_string(),
+                    updated_at: ts.to_string(),
+                    ..Default::default()
+                })
+                .unwrap();
+        }
+
+        let local_hlc_node = "local_node";
+        let peer = "peer_r3";
+
+        // 会话 1：只同步第 1 页（limit=2）→ 水印推进到组最大值 T、游标 = 本页最后一条
+        let watermark = crate::SyncWatermark::default();
+        let page1 = vault
+            .list_sync_changes_since_paginated(
+                "objects",
+                &watermark,
+                "test_account",
+                local_hlc_node,
+                2,
+                None,
+            )
+            .unwrap();
+        assert_eq!(page1.len(), 2);
+        let max1 = page1
+            .iter()
+            .map(|r| (r.hlc.wall_time_ms, r.hlc.counter, r.hlc.node_id.clone()))
+            .max()
+            .unwrap();
+        let wm1 = crate::SyncWatermark {
+            wall_time_ms: max1.0,
+            counter: max1.1,
+            node_id: max1.2,
+        };
+        let cursor1 = page1.last().map(|r| r.id.clone()).unwrap();
+        vault
+            .update_peer_watermark_with_cursor(peer, "objects", &wm1, Some(&cursor1))
+            .unwrap();
+        let mut all: Vec<String> = page1.iter().map(|r| r.id.clone()).collect();
+
+        // 会话 2（模拟中断恢复）：从持久化水印 + 游标续传剩余记录
+        let wm2 = vault.get_peer_watermark(peer, "objects").unwrap();
+        let mut last_row_id = vault.get_peer_watermark_cursor(peer, "objects").unwrap();
+        loop {
+            let page = vault
+                .list_sync_changes_since_paginated(
+                    "objects",
+                    &wm2,
+                    "test_account",
+                    local_hlc_node,
+                    2,
+                    last_row_id.as_deref(),
+                )
+                .unwrap();
+            if page.is_empty() {
+                break;
+            }
+            for rec in &page {
+                all.push(rec.id.clone());
+            }
+            last_row_id = page.last().map(|r| r.id.clone());
+        }
+
+        // 全部 5 条无缺漏无重复（修复前：NULL 游标重查严格 > 水印 → 组尾 3 条永久跳过）
+        assert_eq!(all.len(), 5, "会话中断后等值 HLC 组尾部必须续传，不得漏发");
+        let uniq: std::collections::HashSet<&str> = all.iter().map(|s| s.as_str()).collect();
+        assert_eq!(uniq.len(), 5, "续传不得重复投递");
+        assert_eq!(
+            all,
+            vec![
+                "resume_01".to_string(),
+                "resume_02".to_string(),
+                "resume_03".to_string(),
+                "resume_04".to_string(),
+                "resume_05".to_string(),
+            ],
+            "续传必须从游标后按 id 升序继续"
+        );
     }
 
     #[test]

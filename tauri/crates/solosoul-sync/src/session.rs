@@ -484,7 +484,10 @@ fn send_paginated_deltas(
     for table in SYNC_TABLES {
         // N-1: keyset 页游标——推进到本页最后一条记录的 id。等值 HLC 组跨页时，
         // 水印虽推进到组最大值，游标仍保证组尾行被下一页继续投递（不重不漏）。
-        let mut last_row_id: Option<String> = None;
+        // R-3: 游标不再仅存内存——从持久化水印旁恢复（会话中断后等值 HLC 组
+        // 尾部跨会话续传，不再从 NULL 游标重查而跳过三元组 == 水印的组尾行）。
+        let mut last_row_id: Option<String> =
+            vault.get_peer_watermark_cursor(peer_node_id, table)?;
         loop {
             let watermark = vault_to_watermark(&vault.get_peer_watermark(peer_node_id, table)?);
             let page = generate_delta_paginated(
@@ -497,6 +500,13 @@ fn send_paginated_deltas(
                 last_row_id.as_deref(),
             )?;
             if page.records.is_empty() && page.finished {
+                // 无新记录：清空残留游标，保持严格 > 语义（防陈旧游标跳过未来同 ms 行）
+                vault.update_peer_watermark_with_cursor(
+                    peer_node_id,
+                    table,
+                    &watermark_to_vault(&watermark),
+                    None,
+                )?;
                 break;
             }
 
@@ -530,10 +540,18 @@ fn send_paginated_deltas(
             }
 
             if let Some(max) = max_hlc {
-                vault.update_peer_watermark(
+                // R-3: 水印与页游标同刻落库（游标 = 本页最后一条 id；finished 时
+                // 清空游标——表已同步完，下一会话从严格 > 开始）。
+                let cursor = if finished {
+                    None
+                } else {
+                    last_row_id.as_deref()
+                };
+                vault.update_peer_watermark_with_cursor(
                     peer_node_id,
                     table,
                     &watermark_to_vault(&hlc_to_sync_watermark(&max)),
+                    cursor,
                 )?;
             }
 

@@ -66,6 +66,19 @@
 
 **验证**：tsc 0 错误 / eslint 2 文件 0 警告 / settings 目录 vitest 9 用例全绿。
 
+## R-3 修复记录（2026-08-03）
+
+**修复方案**：N-1 已声明的「会话中断后内存游标丢失，等值 HLC 组尾部被永久跳过」缺口——页游标并入 peer watermark 持久化。
+
+1. **迁移 v22**（solosoul-vault migration.rs，CURRENT_SCHEMA_VERSION 21→22）：`sync_watermarks` 增 `cursor_id TEXT` 列（表存在性 + has_column 双守卫，生产路径 storage.rs 的 CREATE TABLE 同步含该列）。
+2. **存储层**：`update_peer_watermark` 改为薄包装 → 新增 `update_peer_watermark_with_cursor(peer, table, wm, cursor)`（水印与游标**同一条 UPSERT** 原子落库，cursor=None 即清空）；`get_peer_watermark_cursor` 读取（`Option<String>` 列 + `.optional()` flatten，NULL 列与无记录均返回 None）。
+3. **会话层**（session.rs `send_paginated_deltas`）：循环起始从持久化水印旁恢复游标（不再从 None 起步）；ack 后 `update_peer_watermark_with_cursor` 同刻写入本页最大 HLC + 页游标（`finished` 时清空游标）；空页时以当前水印 + None 清掉残留游标（保持严格 > 语义）。
+4. **回归测试 ×2**：`test_peer_watermark_cursor_roundtrip`（读写/清空/水印不污染）；`test_peer_watermark_cursor_resume_delivers_equal_hlc_tail`（objects 表 5 个同 HLC 回退行：会话 1 只同步第 1 页并落库水印+游标 → 模拟中断 → 会话 2 从持久化游标续传，全部 5 条无缺漏无重复按 id 序）。
+
+**评审确认的残余窗口**（已在代码注释与本文声明）：会话中断后、续传前若出现**同毫秒新行且 id < 旧游标**（如等值组所在 ms 内新建行），该行会被永久跳过——需「同毫秒」+「随机 UUID 序逆序」双条件，天文概率，且仅影响回退等值组；中断时已存在的行均按 id 序投递完毕，不受影响。
+
+**验证**：fmt 干净 / clippy 0 / solosoul-vault 123（+2）/ solosoul-sync 47 / workspace check 0 / CLI check 0。
+
 ## R-4 修复记录（2026-08-03）
 
 **修复方案**：N-2 残余的②③（回滚失败并入上抛文案 + 失败注入测试）；①（进程崩溃毫秒级窗口）维持已声明长期改进（需 config journal/双 config）。
@@ -399,13 +412,12 @@
 |------|--------|------|------|
 | R-1 | ✅ 已修复 | `crates/solosoul-vault/src/storage.rs:1494-1502` | **trash_items 残留 P110 同构缺陷已闭环**（2026-08-03 提交，见下方修复记录）：新增 `list_trash_changes_since_limited` SQL 级 keyset（LEFT JOIN sync_hlc + (有效 HLC, t.id) 全序 + 等值组尾部放行），通用分页路径不再对 trash 走「严格 > + take(limit)」 |
 | R-2 | ✅ 已修复 | `crates/solosoul-vault/src/storage.rs:1914` | **秒/毫秒错配已修复**（2026-08-03 提交，见下方修复记录）：`from_timestamp` 按毫秒解释 deleted_at、测试写入单位对齐、回归测试锁定回退 HLC wall == deleted_at 毫秒值 |
-| R-3 | 低 | `solosoul-sync/src/session.rs:487` | N-1 已声明残余：会话中断后内存游标丢失，等值 HLC 组尾部未发记录被永久跳过（窄窗口：等值组 >100 且至少一页已 ack 后崩溃）。解法：页游标并入 peer watermark 持久化 |
+| R-3 | ✅ 已修复 | `solosoul-sync/src/session.rs:487` | **页游标已并入 peer watermark 持久化**（2026-08-03 提交，见下方修复记录）：迁移 v22 加 sync_watermarks.cursor_id，会话层恢复游标续传、水印与游标同刻落库；残余窗口（中断后同毫秒新行 id < 旧游标）已声明 |
 | R-4 | ✅ 已修复（②③） | `solosoul-core/src/vault_service.rs:769-790` | ②③ 已闭环（2026-08-03 提交，见下方修复记录）：回滚助手返回 Result，调用方并入「automatic rollback FAILED」上抛文案 + toggleable mock fs 失败注入测试；①（reencrypt commit 后进程崩溃的毫秒级窗口）仍为已声明长期改进（需 config journal/双 config） |
 | R-5 | ✅ 已修复 | AboutPage.tsx:485-491 | P231 的 `settings:link_open_failed` locale key 已补入 zh-CN/en-US（2026-08-03 提交，见下方修复记录） |
 
 ## 结论
 
 1. **本轮 16 项：15 ✅ + 1 ⚠️（仅 locale 小项）**，N-1/N-2 两个关键修复的核心逻辑均正确且有真实回归测试。
-2. **高危项 R-1 已闭环**：trash_items 同构缺陷（删除 >100 对象页面 → 剩余回收站条目永久不同步）已 keyset 化修复，回归测试 ×2（见下方 R-1 修复记录）。**R-2 秒/毫秒错配也已闭环**（见下方 R-2 修复记录）。
-3. **R-4 的②③已闭环**（回滚失败上抛文案 + 失败注入测试）；R-4①（reencrypt commit 后进程崩溃的毫秒级窗口）与 R-3 属已声明的窄窗口长期改进（watermark 持久化游标、config journal）——R-3 立案评估见下方 R-3 决策记录。
+2. **高危项 R-1 已闭环**：trash_items 同构缺陷（删除 >100 对象页面 → 剩余回收站条目永久不同步）已 keyset 化修复，回归测试 ×2（见下方 R-1 修复记录）。**R-2 秒/毫秒错配也已闭环**（见下方 R-2 修复记录）。3. **R-3 已闭环**（页游标并入 watermark 持久化，会话中断后续传等值 HLC 组尾部，见下方 R-3 修复记录）；**R-4②③已闭环**（回滚失败上抛文案 + 失败注入测试）；R-4①（reencrypt commit 后进程崩溃的毫秒级窗口）为已声明长期改进（需 config journal/双 config）。
 4. 至此报告全部可执行项已闭环：70 项首轮验证 + 16 项二轮验证，仅剩 P133-P135（破坏性删除暂缓）、P223/P224（长期重构，修复人已声明留待迭代）为有意保留项。
