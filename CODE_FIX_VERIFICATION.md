@@ -125,14 +125,14 @@
 **现状（已实现，待接线）**：
 
 - `fetch_registry` 的 minisign 签名校验逻辑**已完整实现**（embed_model.rs）：公钥优先级 `SOLOSOUL_EMBED_REGISTRY_PUBKEY` 环境变量 > 编译期常量 `EMBED_REGISTRY_PUBKEY_B64`；配置公钥后拉取 `registry.json.minisig` 并硬校验、失败即拒；`verify_registry_signature` 解耦网络层，7 条防回归单测全绿（合法签名接受 / 破坏 global sig 拒绝 / 篡改数据拒绝 / 密钥不匹配拒绝 / 坏公钥 base64 / 垃圾签名文本 / 空公钥）。
-- **缺口**：`EMBED_REGISTRY_PUBKEY_B64` 仍为 `None`，且无任何 CI/构建脚本注入 env——**默认构建下防护未激活（仅 warn，注册表 JSON 与 download_url/checksum 仍同通道明文下发）**。与插件注册表不同，Embedding 注册表无 bundled 本地兕底，故未配置公钥时按旧行为继续（避免功能不可用）。
+- **缺口**：`EMBED_REGISTRY_PUBKEY_B64` 仍为 `None`，且无任何 CI/构建脚本注入 env——**默认构建下防护未激活（仅 warn，注册表 JSON 与 download_url/checksum 仍同通道明文下发）**。与插件注册表不同，Embedding 注册表无 bundled 本地兜底，故未配置公钥时按旧行为继续（避免功能不可用）。
 
 **暂缓理由（用户 2026-08-03 决策）**：公钥是 SoloSoul/models 仓库维护者持有的秘密（对应私钥），无法凭空编造；填入错误/占位公钥反而制造「已签名」的虚假安全感。暂缓等待维护者正式签名体系就绪。
 
 **关闭条件（满足其一即可闭环）**：
 1. 维护者提供真实公钥 → 填入 `EMBED_REGISTRY_PUBKEY_B64` 常量（或设 env）；或
 2. 实现「构建时注入接线」：`option_env!` 编译期注入 + CI/release 脚本透传 `SOLOSOUL_EMBED_REGISTRY_PUBKEY` + 维护者操作文档；或
-3. 增加 bundled 本地兕底注册表后改「未配置即跳过远程拉取」（fail-closed，同插件注册表）。
+3. 增加 bundled 本地兜底注册表后改「未配置即跳过远程拉取」（fail-closed，同插件注册表）。
 
 **当前风险等级**：低——`download_url`/`checksum` 仍受 HTTPS 传输层保护，且校验逻辑就绪可随时激活；同通道风险仅在仓库被攻破或 DNS/证书链被攻破时暴露。
 
