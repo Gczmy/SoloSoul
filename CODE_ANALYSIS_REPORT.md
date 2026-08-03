@@ -23,9 +23,12 @@
 
 - **审计问题清单共 80 项**（P001-P007、P101-P142、P201-P231）。
 - **80 项问题全部闭环**（78 项可执行修复 + P133 用户决策接入 + P134 用户决策门控 + P135 用户决策反向接入 + **N-10/P207 路径 1 公钥注入闭环**），其中 P104/P206 为部分修复/部分保留，P209 为用户决策保留。
-- **遗留未完成 1 类**（§4 详细讨论）：
-  1. **P223/P224**：长函数/巨型组件长期重构（有意留待迭代）。
-- 另有两项「有意保留但需后续跟进」记录在案：P209（legacy XOR 迁移窗口）、P206 遗留观察（PDF embed 与 CSP）。
+- **遗留未完成/待跟进 4 类**（§4 详细讨论）：
+  1. **P223/P224**：长函数/巨型组件长期重构（唯一进行中工作项，§4.1 详述）；
+  2. **R-3/R-4①**：已声明残余窗口（§4.2，低风险工程取舍）；
+  3. **P209**：legacy XOR 迁移窗口保留（§4.3，决策保留）；
+  4. **P206**：PDF embed 与 object-src CSP 遗留观察（§4.4，待核实）。
+- **归档说明**：N-10/P207 与 P133/P134/P135 等已闭环项的详细修复记录已压缩至 §3（一行要点 + commit 指针），不再保留 §4 详节。
 
 ## §3 已通过复核项归档（清理版）
 
@@ -62,10 +65,10 @@
 | P203 | ✅ | `attachment_open` 调试日志删除/脱敏，剩余 error! 仅含 io 错误/静态文本 |
 | P204 | ✅ | session key/派生主密钥 Zeroizing 包裹，语义不变 |
 | P205 | ✅* | `commands/crypto.rs` 整文件删除，命令面彻底清除；N-9 清理 ipc.test.ts 陈旧 mock 测试 |
-| P206 | ✅* | frame-src `data:` 移除（零 iframe）；style-src `'unsafe-inline'` 结构性保留（227+ 处内联 style，P048 级重构才可移除），残留风险被无 innerHTML + markdown 净化压制。**遗留观察**（PDF embed 与 object-src，见 §4.6） |
-| P207 | ✅（N-10 已闭环） | minisign 校验逻辑 + **独立专用公钥已注入**（`EMBED_REGISTRY_PUBKEY_B64`，与 updater 密钥隔离）+ 真实签名端到端防漂移测试；签名防护正式激活，详见 §4.1 |
+| P206 | ✅* | frame-src `data:` 移除（零 iframe）；style-src `'unsafe-inline'` 结构性保留（227+ 处内联 style，P048 级重构才可移除），残留风险被无 innerHTML + markdown 净化压制。**遗留观察**（PDF embed 与 object-src，见 §4.4） |
+| P207 | ✅（N-10 已闭环，70e766ee） | minisign 校验逻辑 + **独立专用公钥已注入**（`EMBED_REGISTRY_PUBKEY_B64`，key_id `3C233881DD7399DE`，与 updater 密钥隔离）+ registry/minisig/zip 托管主仓库 + 3 防漂移测试；签名防护正式激活。专用私钥 2026-08-03 迁入本机 `~/SoloSoul/signing/embed-registry/`（9837a81f） |
 | P208 | ✅ | WASI stdio 改默认空槽黑洞，插件输出收敛到 Consent 约束的 host 通道 |
-| P209 | ✅（决策保留） | LEGACY_XOR_KEY 仅用于 <2.0 旧凭证一键迁移，零写入面；用户决策保留，关闭条件见 §4.5 |
+| P209 | ✅（决策保留） | LEGACY_XOR_KEY 仅用于 <2.0 旧凭证一键迁移，零写入面；用户决策保留，关闭条件见 §4.3 |
 | P229 | ✅ | `isSafeExternalUrl` 显式白名单（http/https/mailto/相对路径），javascript:/data: 等变体全覆盖，4 组 7 断言 |
 | P230 | ✅ | `ocrScanStore.clearOnVaultLock` 清空结果数据保留 UI 偏好，清理链风格与 P004/P005 一致，无复活窗口 |
 
@@ -124,9 +127,9 @@
 | ID | 判定 | 验证要点 |
 |----|------|----------|
 | P132 | ✅ | 8 个死命令删除（含 crypto oracle），注册与 allowlist 同步清理，前端/CLI 零残留 |
-| P133 | ✅ | 按用户决策**接入为 macOS 默认 OCR 引擎**：新增 `OcrModelTier::Vision` 档位（仅 macOS `ocr_list_available_tiers` 返回、置于首位），`OcrPreferences` 默认档 macOS 为 Vision；扫描走 `macos_vision::scan_image`（spawn_blocking + `#[cfg(target_os="macos")]` 属性剪裁，非 macOS 编译不引用门控模块）；MRZ 回退 small 档；前端仅 macOS 显示该档、默认选中、隐藏安装/下载/删除（builtin 标记）、按图片-only 过滤；详见 §4.2.1 |
-| P134 | ✅ | 按用户决策升级为 `feature = "future-keychain"` 门控（默认关闭，`#[cfg(all(target_os="macos", feature="future-keychain"))]`），移除 `#[allow(dead_code)]` 脱离默认编译面；启用时 10 个 dead_code 警告为「尚未接入 platform_storage()」的预期提醒；详见 §4.2.2 |
-| P135 | ✅ | 按用户决策**反向接入**（不删）：`VaultFileSystem::write_file_atomic`（trait 默认实现 + SAF 覆盖带 dirty）；7 处 config 写入 + `save_accounts` 全部切原子写，`write_config_atomic` 同步收紧 .bak 权限；`read_config_with_recovery` 接 unlock/verify 读取路径（孤儿 .tmp 提升 + .bak 回退）；R-4① 的「config 写一半」风险降为近乎不可达；详见 §4.2.3 |
+| P133 | ✅ | 按用户决策**接入为 macOS 默认 OCR 引擎**：新增 `OcrModelTier::Vision` 档位（仅 macOS `ocr_list_available_tiers` 返回、置于首位），`OcrPreferences` 默认档 macOS 为 Vision；扫描走 `macos_vision::scan_image`（spawn_blocking + `#[cfg(target_os="macos")]` 属性剪裁，非 macOS 编译不引用门控模块）；MRZ 回退 small 档；前端仅 macOS 显示该档、默认选中、隐藏安装/下载/删除（builtin 标记）、按图片-only 过滤。commit `6e74f691` |
+| P134 | ✅ | 按用户决策升级为 `feature = "future-keychain"` 门控（默认关闭，`#[cfg(all(target_os="macos", feature="future-keychain"))]`），移除 `#[allow(dead_code)]` 脱离默认编译面；启用时 10 个 dead_code 警告为「尚未接入 platform_storage()」的预期提醒。commit `f75605ae` |
+| P135 | ✅ | 按用户决策**反向接入**（不删）：`VaultFileSystem::write_file_atomic`（trait 默认实现 + SAF 覆盖带 dirty）；7 处 config 写入 + `save_accounts` 全部切原子写，`write_config_atomic` 同步收紧 .bak 权限；`read_config_with_recovery` 接 unlock/verify 读取路径（孤儿 .tmp 提升 + .bak 回退）；R-4① 的「config 写一半」风险降为近乎不可达。commit `b721270c` |
 | P136 | ✅ | 自我纠错正确：CLI 依赖方法全部恢复，最终仅删 15 个零调用方法（provider 管理 8 + 会话管理 5 + reset_stats + 非流式 send_message） |
 | P137 | ✅ | LLM 8 结构体统一复用 `solosoul_core::llm::config` 唯一真理来源，serde 字段逐字段一致 |
 | P138 | ✅ | 11 对 cfg 命令合并，真有差异的 2 对保留；附带发现 `sync_discover` 系历史遗留未注册死命令（非本次引入） |
@@ -138,8 +141,8 @@
 | P220 | ✅ | 2 处未用 React 导入 + 1 处失效 eslint-disable 删除，基线 lint warning 清零 |
 | P221 | ✅ | 13 项死函数/类型删除（delta/transport/noise/pdfium/template_service/vault_file_system/profile/storage），按调用图逐项核验 |
 | P222 | ✅ | 25 处 pub 可见性收敛 + 1 处死项删除，消费关系一致 |
-| P223 | ⏸ | 长函数长期重构（host.rs 主 handler / storage.rs 表域拆分 / AppState::new）——有意留待迭代，详见 §4.3 |
-| P224 | ⏸ | 巨型组件长期重构（TrashDetailPanel 1282 行 / SyncPage 848 等）——有意留待迭代，详见 §4.3 |
+| P223 | ⏸ | 长函数长期重构（host.rs 主 handler / storage.rs 表域拆分 / lib.rs run() 编排）——进行中工作项，分解预案见 §4.1 |
+| P224 | ⏸ | 巨型组件长期重构（TrashDetailPanel 1282 行 / SyncPage 848 等）——进行中工作项，分解预案见 §4.1 |
 | P225 | ✅ | 四大簇收敛（行解密闭包/unlock 共享前缀/PIN 凭证写入/附件源路径解析）；唯一错误文案前缀变化（Search→Object）确认无消费方 |
 | P226 | ✅ | 三对前端组件收敛为 4 个共享组件（净 -236 行），微差均已声明核实 |
 
@@ -147,7 +150,7 @@
 
 | 项 | commit | 判定 | 要点 |
 |----|--------|------|------|
-| N-1 keyset 分页 | 62ee122a | ✅ | P110 引入的同步永久停滞闭环：游标 (有效 HLC, o.id) 全序 + 回退行 SQL 精确过滤 + 会话层节点编码对齐，3 回归测试；残余见 §4.4（R-3） |
+| N-1 keyset 分页 | 62ee122a | ✅ | P110 引入的同步永久停滞闭环：游标 (有效 HLC, o.id) 全序 + 回退行 SQL 精确过滤 + 会话层节点编码对齐，3 回归测试；残余见 §4.2（R-3） |
 | N-2 reencrypt 事务化 | 4d7d75c6 | ✅ | `reencrypt_all` 失败整体回滚（match result，Err 即 drop tx）；config 前置备份 + 写失败自动回滚，CLI 同受益 |
 | N-3 streamBuffer 清理 | b9552f25 | ✅ | `llmStore.reset()` 接入 vault-locked 清理链，在途 chunk 竞态闭环 |
 | N-4 provider 登记确认 | f493ef3c | ✅ | 原生确认对话框（XSS 不可绕过）+ embedding 通道登记校验；test/check 通道任意 URL 为已声明取舍（固定负载） |
@@ -156,147 +159,139 @@
 | N-7 locale key | 9687ab71 | ✅ | P120/P122/P125 新增 4 key 双语补齐 |
 | N-8 直写③收敛 | cda265d0 | ✅ | `syncPlaintextPref` 导出强制，两处迁移行为等价 |
 | N-9 陈旧测试 | 07d84276 | ✅ | 已删命令 mock 测试移除 |
-| N-10 P207 闭环 | 70e766ee | ✅ | 路径 1（真实公钥）实施：专用密钥对 + registry/minisig/zip 托管主仓库 + 公钥注入 + 3 防漂移测试，见 §4.1 |
+| N-10 P207 闭环 | 70e766ee | ✅ | 路径 1（真实公钥）实施：专用密钥对 + registry/minisig/zip 托管主仓库 + 公钥注入 + 3 防漂移测试（归档见 §3.1 P207） |
 | N-11 失败态/重试 UI | 87a6507c | ✅ | 两处错误占位 Card + 重试，三态可区分 |
 | R-1 trash keyset | 5fc032cb | ✅ | trash_items 表 SQL 级 keyset 分页，消除 P110 同构缺陷，回归测试 ×2 |
 | R-2 秒/毫秒错配 | 40b5ecd9 | ✅ | `list_trash_changes_since` 按毫秒解释 deleted_at，回归测试锁定 wall == deleted_at ms |
-| R-3 游标持久化 | fbe7d945 | ✅ | 迁移 v22 `sync_watermarks.cursor_id`，会话层恢复游标续传，回归测试 ×2；残余窗口见 §4.4 |
-| R-4 回滚上抛 | 4ad8e9a8 | ✅（②③） | 回滚助手返回 Result + 调用方并入「automatic rollback FAILED」文案 + toggleable mock fs 失败注入测试；①见 §4.4 |
+| R-3 游标持久化 | fbe7d945 | ✅ | 迁移 v22 `sync_watermarks.cursor_id`，会话层恢复游标续传，回归测试 ×2；残余窗口见 §4.2 |
+| R-4 回滚上抛 | 4ad8e9a8 | ✅（②③） | 回滚助手返回 Result + 调用方并入「automatic rollback FAILED」文案 + toggleable mock fs 失败注入测试；①见 §4.2 |
 | R-5 locale | 397f6d84 | ✅ | `settings:link_open_failed` 补入双语 |
 
 ---
 
 ## §4 未完成项详细讨论
 
-> 本节为合并版报告的核心内容。按影响面排序：N-10（安全面，已闭环）→ P135（死模块处置）→ P223/P224（长期重构）→ 已声明残余窗口（R-3/R-4①）→ 有意保留记录（P209/P206 遗留观察）。
+> 本节仅保留**未完成/有意保留**项。已闭环项（N-10/P207、P133/P134/P135 等全部 80 项）的详细修复与验证已压缩归档至 §3（一行要点 + commit 指针），完整细节见 git 各修复 commit。
+> 排序：P223/P224（长期重构，唯一进行中工作项）→ R-3/R-4①（已声明残余窗口）→ P209（决策保留）→ P206（遗留观察）。
 
-### 4.1 N-10 / P207：Embedding 注册表 minisign 公钥注入 —— ✅ 已闭环（2026-08-03，路径 1）
+### 4.1 P223/P224：长函数与巨型组件长期重构（唯一未完成工作项）
 
-**用户决策**：实施路径 1（真实公钥）——生成**独立专用密钥对**（与 Tauri updater 密钥 `~/SoloSoul/signing/tauri-updater/secret.key`（原 `~/.tauri/secret.key`，2026-08-03 迁入 `~/SoloSoul/signing/`）隔离，避免单点信任域扩张）；**不新建仓库/组织**，registry + 签名 + 模型 zip 托管于主仓库现有 `resources/models/` 目录（raw.githubusercontent 直接可下载）。
+**定位**：原报告明确「结构性拆分建议随功能迭代顺带、不单独安排修复轮次」——维持该定位。两轮复核（2026-08-02~03）未发现新增阻断缺陷，本版补齐**当前实测数据**与**逐文件分解预案**，供后续迭代直接取用。
 
-**修复内容**：
+#### 4.1.1 P223 Rust 长函数（实测：host.rs 1711 / storage.rs 7922 / lib.rs 649）
 
-| 组件 | 改动 |
-|------|------|
-| 密钥体系 | `cargo tauri signer generate` 生成专用密钥对（key_id `3C233881DD7399DE`）；私钥已迁至本机 `~/SoloSoul/signing/embed-registry/embed-registry.key`（2026-08-03 统一迁入 `~/SoloSoul/signing/`，目录 700 / 私钥 600，不入库；再签名流程：`cargo tauri signer sign -f <key> -p '' registry.json`） |
-| `embed_model.rs` | `REGISTRY_URL` → `https://raw.githubusercontent.com/Gczmy/SoloSoul/main/tauri/src-tauri/resources/models/registry.json`；`EMBED_REGISTRY_PUBKEY_B64`：`None` → `Some("RWTemXPdgTgjPGuPgRxV+e3ng0NH2lgS8HzRbmi0XSlyjYXKI6zGkvXD")`——配置公钥后校验失败即硬失败，**签名防护正式激活** |
-| `.gitignore` | `models/*` → `**/models/*`（任意层级前缀，`models/*` 只匹配 .gitignore 所在目录的 models/，无法匹配 `resources/models/`）+ 白名单 `!**/models/registry.json` / `.minisig` / `*.zip`（onnx 仍忽略；git add -n 确认恰好 3 文件入库） |
-| 资源入库 | `resources/models/registry.json`（all-MiniLM-L6-v2，download_url 指向同仓库 zip，checksum `sha256:2d07de44...baca4e`）、`registry.json.minisig`（tauri signer 输出，**外层 base64 解包为明文 minisign 格式**——`Signature::decode` 需要明文 untrusted comment + base64 行结构）、`all-MiniLM-L6-v2.zip`（16MB，顶层 model.onnx+tokenizer.json+config.json，与 `download_model` 解压结构一致） |
-| 测试 | 新增 3 条：`test_real_registry_signature_end_to_end`（读实际 registry+minisig+编译期公钥真实验证；篡改注册表/换公钥/坏签名均拒绝）、`test_compiled_public_key_is_valid_minisign`（公钥+签名可解析）、`test_committed_zip_checksum_matches_registry`（zip sha256 与 registry checksum 一致性，评审建议防 zip/registry 漂移） |
+**① `crates/solosoul-plugin/src/host.rs`（1711 行）——主拆分对象**
 
-**关键兼容性结论**（决定发布链路可行性的核心）：tauri signer 产出 **ED 前缀（Blake2b 预哈希）签名**；`minisign_verify::verify(data, sig, false)` 的第三参数是 **`allow_legacy`** 而非 prehashed 标志——签名 `is_prehashed=true` 时自动 Blake2b 数据再验证，与既有 `sign_data` 测试助手（ED+Blake2b）模式逐字一致，故真实签名路径与已测试路径完全吻合。
+- 当前结构：`SoloHostState`（98-193）→ `register_watermark_fn`（194-263）→ **`register_host_functions`（264-1186，约 923 行，全库最大函数）** → 独立助手函数 18 个（1187-1595）→ 测试（1596-1711）。
+- `register_host_functions` 内连续注册 **22 个 `solosoul_*` host 函数**，按功能天然分 6 簇：
 
-**验证**：fmt 干净 / workspace check 0 / clippy workspace 0 / embed_model 21 测试全绿 / solo_soul 364 全绿；**远程全链路实测**：raw.githubusercontent 三文件（registry/minisig/zip）可下载，zip sha256 与 registry checksum 一致，minisig 格式（ED 前缀、key_id `de9973dd8138233c`）与编译期公钥匹配。提交 `70e766ee` 已推送。
+  | 簇 | host 函数 | 依赖助手 |
+  |----|-----------|----------|
+  | 字段/数据访问 | `request_field` / `list_objects` / `list_attachments` / `get_data_structure_tree` / `get_param` | `read_string`/`read_required_string`（共享，rate_limiter 检查模式一致） |
+  | HTTP | `http_request` / `http_poll` / `http_read` / `http_close` | `perform_http_async`/`write_http_poll_result`（1522-1595 已独立） |
+  | 输出/附件 | `prepare_attachment_copy` / `copy_output_file` / `write_output_file` | `is_under_workspace`/`sanitize_attachment_file_name`/`stamp_result_payload` |
+  | 水印 | `image_watermark` / `pdf_watermark` | 独立簇 |
+  | 交互 | `request_consent` / `show_dialog` / `log` | 独立簇 |
+  | 工具 | `get_timestamp` / `get_locale` / `sleep` / `result` / `post_data` | 独立簇 |
 
-**已声明取舍**（评审确认）：① 主仓库体积 +16MB（zip 随版本演进，用户决策接受）；② 私钥在 /tmp 待迁移离线保管（操作事项非代码问题）；③ e2e 测试的维护负担（每次更新 registry.json 需重新签名）已在测试注释中明示。
+- **分解方案**：抽 6 个 `fn register_<cluster>_fns(linker: &mut Linker<SoloHostState>) -> Result<(), PluginError>`，各自承载对应 `.func_wrap` 链（每个约 100-160 行）；`register_host_functions` 退化为 6 行调度器。rate_limiter 检查抽 `check_rate(host, name)` 助手消除重复。
+- **风险**：`Linker<SoloHostState>` 泛型签名逐簇复制；注册顺序与闭包体**只移动不修改**。
+- **测试**：既有 host 单测（sanitize/stamp/http，1596-1711）不依赖注册顺序；crate 级集成测试守护插件运行，提取后全量回归即可。
+- **产出**：最大函数 923 行 → 6×~140 行 + 调度器 ≤10 行。
 
-### 4.2 死模块处置（P133/P134/P135 全部闭环）
+**② `crates/solosoul-vault/src/storage.rs`（7922 行 = 生产约 4500 + 测试约 3400）——按表域拆模块（收益最大）**
 
-三模块原合计约 926 行，均确认零生产引用（grep 仅命中模块声明自身）。原报告建议删除属破坏性操作，2026-08-02 用户确认暂缓。**P133 已于 2026-08-03 按用户决策接入为 macOS 默认 OCR 引擎并闭环**（见 4.2.1）；**P134 已于 2026-08-03 按用户决策升级为 feature 门控并闭环**（见 4.2.2）；**P135 已于 2026-08-03 按用户决策反向接入原子写并闭环**（见 4.2.3）。
+- **前提**：当前 ~100 个 `impl VaultStore` 方法已按业务聚簇、域边界清晰，拆分可机械化：
 
-#### 4.2.1 P133 `crates/solosoul-core/src/ocr/macos_vision.rs`（389 行）—— ✅ 已闭环（2026-08-03）
+  | 域 | 生产行区间 | 代表方法 | 子模块建议 |
+  |----|-----------|----------|-----------|
+  | 基础/连接/迁移 | 178-505 | `open` / `init_schema` / `migrate_to_encrypted_format` / `reencrypt_all` / `lock` | 留 storage.rs 根（VaultStore 结构体 + SQL 常量 + 建表/迁移） |
+  | Profile | 978-1064 | `save_profile(_tx)` / `load` / `delete` / `list` | `profile.rs` |
+  | HLC + Peer 水印 | 1065-1482 | `record_hlc_or_fallback` / peer state / watermark / tombstone | `sync_meta.rs` |
+  | 同步变更清单 | 1483-2060 | `list_sync_changes_since(_paginated)` ×4 表域 + keyset | `sync_changes.rs` |
+  | 同步应用/冲突 | 2061-2501 | `apply_sync_records_batch` / conflicts / `hard_delete` | `sync_apply.rs` |
+  | 对象 | 2526-3186 | `list_objects` / `list_object_metadata` / `save_object(_tx)` / `search` | `objects.rs` |
+  | 回收站 | 3187-3446 | `trash_and_soft_delete_batch` / `list_trash_items` / `cleanup_expired_trash` | `trash.rs` |
+  | 快照 | 3447-3893 | `save_snapshot(_at)` / `list_snapshots` / `backfill` / `copy` | `snapshots.rs` |
+  | 审计/元数据/embeddings/sys_config | 3894-4287 | `log_structured` / `list_audit_log` / `guide_embeddings` / `read|write_metadata` | `metadata.rs` |
+  | 用户模板 | 4288-4500 | `save_user_template` / `list` / `check_field_usage` | `templates.rs` |
 
-**用户决策**：macOS 版本加入 macOS Vision Framework 原生 OCR 桥接，**设为 macOS 端默认档位**（仅 macOS 显示该选项，其他端不显示）。
+- **分解方案**（Rust 同 crate 多 impl 块天然支持）：每域抽 `mod objects;` 等，`impl VaultStore { … }` 连同域内私有助手整体平移；跨域共享助手（`with_tx`、`data_key`、`record_hlc_or_fallback`、`object_row_to_record`）改 `pub(crate)` 或下沉到所属域模块。
+- **风险点**：① VaultStore 字段需 `pub(crate)` 或 accessor（子模块跨文件访问私有字段的边界）；② 测试 3400 行**留在 storage.rs 根**（跨域集成测试集中更易维护），域内单测随模块走；③ `#[cfg(test)]` 的 `test_key`/`setup` 助手需 `pub(crate)` 供子模块测试复用。
+- **产出**：7922 行 → 根（连接/迁移/测试）约 2500 行 + 9 个域模块各 300-900 行。
+- **收益**：后续 P109/P110/P213 类同步/对象性能优化与表结构变更的 diff 面缩小约 10×；`reencrypt_all`（740-972）等重函数随迁移收编。
 
-**修复内容**：
+**③ `src-tauri/src/lib.rs`（649 行）——已基本达标，仅收尾**
 
-| 层 | 改动 |
-|----|------|
-| core `types.rs` | 新增 `OcrModelTier::Vision` 变体（`dir_name=macos-vision`、`remote_name=vision`、Display/FromStr/serde lowercase `"vision"`），单测覆盖往返 |
-| `commands/ocr.rs` | `OcrPreferences::default()` macOS 默认 Vision 否则 Small；`ocr_list_available_tiers` macOS 将 vision 插入首位（共 4 档）其余平台 3 档；`ocr_get_model_status` Vision 恒 builtin（installed+bundled=true）；`ocr_set_active_tier`/`ocr_install_bundled_model`/`ocr_download_model`/`ocr_delete_model` 对 Vision 加平台与「系统内置」守卫；`model_file_size_limit` Vision=>0 |
-| `ocr_scan_image` | Vision 分支在 `#[cfg(target_os="macos")]` 属性下调用 `macos_vision::scan_image`（返回 `(String, f64)`，spawn_blocking 包裹，拒绝 PDF）；**注意点：必须用 cfg 属性而非运行时 `cfg!` 剪裁**——`macos_vision` 模块本身 cfg 门控，运行时判断仍会在非 macOS 编译期引用不存在模块（E0432）；`#[cfg(not(target_os="macos"))]` 分支防御性拒绝 |
-| `ocr_scan_mrz` | Vision 不产出 MRZ 框线 → 激活为 Vision 时回退 small 档引擎，保证 macOS 默认档位下 MRZ 功能可用 |
-| CLI | `tier_size_mb` 穷尽匹配补 `Vision=>0.0`（CLI 模型清单不含该档） |
-| 前端 | `platform.ts` 新增 `isMacOSSync()`（缓存判断，未命中返回 false，权威值仍以后端 `ocr_get_active_tier` 为准）；`ipc.ts` `OcrModelStatus.builtin?`；`ocrScanStore`/`useOcrModelManager` 默认 `activeTier` macOS 为 `'vision'`；`OcrSettingsPage` 显示 `status_builtin`、隐藏删除按钮、存储占用空；`OcrPage`/`OcrScanControls` 按图片-only 过滤（Vision 无 PDF 管线）；zh-CN/en-US `ocr.json` 新增 `tier_vision_name`/`tier_vision_description`/`status_builtin` |
-| 测试 | `test_ocr_preferences_default_tier` 平台感知；`test_ocr_model_status_camelcase_serde` 补 builtin；新增 `test_ocr_list_available_tiers_platform_aware`（真实调用命令：macOS 首项 vision 共 4 档 / 非 macOS 3 档无 vision）；core `test_vision_tier_parse_display_and_serde` |
+- 已拆出 9 个 `setup_*` 助手（panic/logging/data_dir/resources/init_state/registry_refresh/locale/theme_polling），`run()`（338-649，约 311 行）为 Tauri Builder 链编排器。
+- **剩余工作**：Builder 链可按插件组抽 `build_app(app)`（核心 / 同步 / OCR / LLM / 插件市场分组注册），或维持现状（命名清晰的 setup_* + 311 行编排器已可维护）。**建议优先级最低**，仅在触碰该文件时顺手。
 
-**验证**：fmt 干净 / clippy workspace 0 / workspace check 0 / solosoul-core ocr 测试 28 全绿 / solo_soul ocr 测试 23 全绿 / CLI check 0 / tsc 0 / eslint 0 / vitest 484 全绿。
+#### 4.1.2 P224 前端巨型组件（实测 5 文件）
 
-**已声明取舍**（评审确认）：① `_language` 参数对 Vision 分支未透传（Swift 桥接恒为自动语言，如需指定语言需在 `macos_vision.rs` 扩展 `recognitionLanguages`——既定为后续改进）；② 老 macOS 用户若 `ocr_preferences.json` 已存旧档位，升级后保留原选择（尊重既有偏好），全新用户默认 Vision；③ Android target 交叉编译检查受 `ring` NDK 工具链环境限制（非代码问题），但 cfg 属性剪裁已保证非 macOS 不引用门控模块，Windows/Android 编译面无此引用。
+**① `src/components/trash/TrashDetailPanel.tsx`（1282 行）——推荐首个试点（纯展示拆分）**
 
-#### 4.2.2 P134 `crates/solosoul-core/src/biometric/macos_keychain.rs`（439 行）—— ✅ 已闭环（2026-08-03）
+- 已是 5 个组件：`ObjectDetailContent`（40-594，约 554 行，最大）、`TrashDetailPanel`（595-778）、`SnapshotContent`（779-928）、`SnapshotDataView`（939-1185）、`DynamicGroupSnapshotRow`（1217-1282）。
+- **拆分方案**：`ObjectDetailContent` 按渲染区块抽 3 个纯展示子组件——`TrashFieldList`（动态字段/多行/敏感项渲染）、`TrashAttachmentsSection`（复用既有附件组件）、`SnapshotSummaryRow`（快照入口）；props 透传、零新逻辑。
+- **风险最低**（纯展示拆分，行为可逐区块目检），产出：最大组件 554 → 3×~180 行。
 
-**用户决策**：保留，将 `#[allow(dead_code)]` 升级为**显式规划注释 + `#[cfg(feature = "future-keychain")]` 门控**（脱离默认编译面，消除 dead_code 豁免）。
+**② `src/pages/sync/SyncPage.tsx`（848 行）**
 
-**修复内容**：
+- `SyncPage`（46-713，约 667 行）已消费 `useSyncPage` hook（数据层已收敛）；`SyncStatusCard`（714-848）独立。
+- **拆分方案**：按 UI 区块抽 4 个展示组件——`PairingPanel`（二维码/手动码/配对流程）、`DeviceListPanel`（已知设备/信任操作）、`ConflictPanel`（冲突列表/解决）、`SyncHistoryPanel`（历史记录）；数据经 `useSyncPage` 返回对象透传，hooks 不动。复用 P142 已确立的「hook 收敛 + 组件化」模式。
+- 产出：667 行主组件 → 编排器 ~120 行 + 4×~130 行。
 
-| 文件 | 改动 |
-|------|------|
-| `Cargo.toml` | 新增 `[features] future-keychain = []`（空 feature，依赖已按 target 门控；注释明示启用前提：Apple Developer Program + Developer ID 签名 + entitlements 声明 keychain-access-groups） |
-| `biometric/mod.rs` | 模块声明 `#[cfg(target_os="macos")] #[allow(dead_code)]` → `#[cfg(all(target_os="macos", feature="future-keychain"))]`（移除 dead_code 豁免）；文档注释说明门控语义 |
-| `macos_keychain.rs` | 顶部文档补充 P134 门控说明 |
+**③ `src/pages/settings/TemplateManagerPage.tsx`（810 行）**
 
-**验证**：
-- **feature 关闭（默认）**：workspace check 0 / clippy workspace 0 / CLI 0；core 默认测试 154→150（4 个 macos_keychain 测试随 feature 脱离默认编译面，符合预期）。
-- **feature 开启**（`--features future-keychain`）：模块编译通过，biometric 22 测试全绿；**10 个 dead_code 警告全部为「模块尚未接入 platform_storage()」的预期提醒**（struct never constructed / 自由函数与常量 never used / associated items never used），文档已明示该语义；CI 只跑默认 feature 不受污染。
+- 单组件 747 行，状态密集（20+ useState/useMemo/useCallback），已复用 `DynamicGroupConfig`、`useConfirm`、模板 store。
+- **拆分方案**：抽 `TemplateListSection`（列表/搜索/过滤）、`TemplateEditorModal`（编辑器模态，含动态组/字段/废弃字段面板，编辑器内部状态随之内聚）、`SampleGalleryModal`（示例库）、`ImportExportPanel`（导入导出/复制）。主组件仅保留列表态与「打开哪个模态」。
+- 产出：747 → 主组件 ~200 行 + 4 子组件各 100-180 行。**状态内聚是难点**，编辑器相关 state 全部随模态迁移。
 
-**已声明取舍**（评审确认）：feature 关闭后 macOS target 段 `security-framework`/`core-foundation` 等 4 依赖无引用仍被编译（Cargo 对 target 级声明依赖总是编译）——轻微编译开销、无警告；若追求严格按需可后续改 `optional = true` 挂 feature，但不建议现在做（churn > 收益）。
+**④ `src/pages/system/AboutPage.tsx`（738 行）**
 
-#### 4.2.3 P135 `crates/solosoul-vault/src/safe_storage.rs`（98 行）—— ✅ 已闭环（2026-08-03，反向接入）
+- 单组件 712 行（数据来自 `useUpdateChecker` 与系统命令）。各卡片区块（版本/更新、统计、链接、法律、加密说明、致谢）彼此零耦合。
+- **拆分方案**：抽 `AboutCard` 通用壳 + `VersionCard` / `StatsCard` / `LinksCard` / `LegalCard`，区块数据经 props 传入。产出：712 → 编排器 ~150 行 + 5×~110 行。**收益最低、风险最低**，适合练手轮。
 
-**用户决策**：不删，反向接入——将 config 写入路径（至少 `change_password`/`unlock_with_kdf_upgrade`/`create_account` 三处关键路径）切换到 `write_atomic` 语义，P135 从死代码变为被消费代码，R-4① 的「config 写一半」风险降为近乎不可达。
+**⑤ `src/pages/scan/OcrPage.tsx`（738 行）**
 
-**修复内容**：
+- 单组件 712 行；P140 已把模型安装/下载/tier 逻辑收敛进 `useOcrModelManager`，剩余为扫描流程 UI 与设置面板。
+- **拆分方案**：抽 `ScanDropZone`（文件选择/拖拽/导入入口）、`OcrResultList`（识别结果/导入为对象/命名对话框）、`OcrScanSettingsPanel`（档位/语言/模型状态，直接消费 useOcrModelManager）。产出：712 → 编排器 ~150 行 + 3×~180 行。
 
-| 层 | 改动 |
-|----|------|
-| `vault_file_system.rs` | `VaultFileSystem` trait 新增 `write_file_atomic`（默认实现：`local_path()` + 父目录 + `solosoul_vault::safe_storage::write_atomic`）；`SafVaultFileSystem` 覆盖（resolve + 原子写 + **置 dirty 标记**保证后续同步远端） |
-| `vault_service.rs` | 新增 `write_config_atomic` 助手（原子写 + `ensure_private_file` + **评审补强：同步收紧 `.bak` 权限到 0600**——`fs::copy` 生成 .bak 为 umask 默认 0644，含同敏感级数据）；新增 `read_config_with_recovery`（主文件合法 JSON 直接用；**缺失或损坏（非 JSON）均回退 `recover_or_load`**：提升孤儿 .tmp、回退 .bak，SAF 场景恢复后置 dirty） |
-| 写入切换 | **7 处 config 写入全部切原子**：create_account / create_account_with_id / rollback_reencrypt_and_config（恢复旧 config）/ change_password / unlock_with_kdf_upgrade / reset_security_flags / update_password_hint；另按评审建议把 `save_accounts`（accounts.json 账户清单）一并切原子 |
-| 读取接线 | `load_config_and_derive_master_key`（unlock/verify_password 共用前缀）改用 `read_config_with_recovery` |
-| 测试 | 新增 6 条：fs 层原子写不残留 .tmp / 孤儿 .tmp 提升 / SAF 原子写置 dirty；service 层端到端「孤儿 .tmp + 主文件缺失 → unlock 恢复成功」/「主文件损坏 .bak 完好 → unlock 回退 .bak」/「.bak 权限收紧 0600」；R-4 mock（FailConfigWriteFs）同步覆盖 `write_file_atomic` 注入 |
+#### 4.1.3 重构流程与验收标准（沿用 P048/P217 先例）
 
-**验证**：fmt 干净 / clippy workspace 0 / workspace check 0 / core 156（+3）全绿 / solo_soul 361 / vault 123 / CLI 0。
+1. **等价重构铁律**：每个拆分**不改变任何行为**——纯移动代码 + props 透传，禁止顺手改逻辑；行为差异一律单独 commit。
+2. **防回归测试**：前端拆分后跑 `npx tsc --noEmit` + `npx eslint` + `npx vitest run`（现 55 文件 484 用例全绿为基线）；Rust 拆分后跑 `cargo fmt --check` + `cargo clippy --workspace --all-targets` + `cargo test --workspace`（现 675+ 全绿为基线）。目标：**拆分前后测试零变化**。
+3. **执行顺序建议（风险隔离从高到低）**：
+   - 试点：**P224-① TrashDetailPanel**（纯展示拆分、无状态迁移）→ 建立前端拆分节奏；
+   - 其次：**P223-② storage.rs 表域拆分**（机械性最强、收益最大，先拆 `objects.rs` 单域验证模式）；
+   - 然后：P224-②⑤（SyncPage/OcrPage，数据层已有 hook）；P223-① host.rs 分簇；
+   - 最后：P224-③④（TemplateManager 状态密集、AboutPage 收益低）与 P223-③ lib.rs（已达标，收尾项）。
+4. **产出约束**：每个拆分**单独 commit**（一项一提交），commit message 注明「纯移动/等价重构」；本报告 §3 归档表随拆分补充新行。
 
-**已声明取舍**（评审确认）：① 原子写每次产生 `.bak`（一账户一个，随 `remove_dir_all` 清理，非泄漏）；② `read_config_with_recovery` 恢复路径对 SAF 通过 `local_path`（本地临时目录）工作——恢复后已置 dirty 待同步；③ 残余窗口见 §4.4.2——reencrypt 提交后、新 config 落盘前崩溃仍回退旧钥（需 reencrypt 侧 journal 才完全关闭），但账户不再出现**截断/损坏**的 config。
+**当前建议**：不单独安排修复轮次；下次触碰任一文件时按上述预案顺带执行，优先 P224-① 与 P223-②。
 
-### 4.3 P223/P224：长函数与巨型组件长期重构
-
-原报告定位为长期重构项，建议随功能迭代顺带拆分、不单独安排修复轮次——维持该定位。合并复核补充**当前实测量**与分解优先级建议：
-
-#### 4.3.1 P223 Rust 长函数（当前实测）
-
-| 文件 | 当前行数 | 候选长函数 | 分解建议 |
-|------|----------|------------|----------|
-| `crates/solosoul-plugin/src/host.rs` | 1711 | 主执行 handler（起始 :264，含 `process_sse` 深度 9） | 按协议帧类型拆分 handler；SSE 解析抽独立模块（此前已抽出部分测试辅助） |
-| `crates/solosoul-vault/src/storage.rs` | 7922 | `list_objects`（:2841）、`apply_sync_records_batch`（:2136）、`reencrypt_all`（:740） | 按表域拆模块（objects/profiles/templates/trash/sync_hlc），或抽「行解码」「记录应用」助手簇 |
-| `src-tauri/src/lib.rs` | 649 | `AppState::new`（原 :338，重构后位置漂移） | 按依赖组抽 builder（vault/ocr/embedding/sync/plugin 各组初始化独立函数） |
-
-#### 4.3.2 P224 前端巨型组件（当前实测）
-
-| 文件 | 当前行数 | 分解建议 |
-|------|----------|----------|
-| `src/components/trash/TrashDetailPanel.tsx` | 1282 | 按区块抽子组件（详情头/字段列表/附件区/审计日志区），超大 JSX 拆纯展示组件 |
-| `src/pages/sync/SyncPage.tsx` | 848 | 配对流程/设备列表/冲突面板/历史记录各抽独立组件（可复用 P142 hook 模式） |
-| `src/pages/settings/TemplateManagerPage.tsx` | 810 | 模板列表/编辑器模态/导入导出面板分离 |
-| `src/pages/system/AboutPage.tsx` | 738 | 各卡片区块抽数据驱动子组件 |
-| `src/pages/scan/OcrPage.tsx` | 735 | 扫描视图/结果列表/设置面板分离（P140 hook 已收敛模型逻辑，剩 UI 拆分） |
-
-**方法论参考**：P048（手写 hover 全量迁移工具类）与 P217（render-props 改数据透传 + 自定义 memo 比较器）已确立「逐组件等价重构 + 防回归测试」先例，P223/P224 沿用同流程即可。建议**从 P224 的 `TrashDetailPanel` 与 P223 的 storage.rs 按表域拆分开始**（风险隔离最清晰），每个拆分单独 commit + 测试。
-
-### 4.4 已声明残余窗口：R-3 / R-4①
+### 4.2 已声明残余窗口：R-3 / R-4①
 
 两处均为修复人已声明的窄窗口，属可接受的工程取舍；彻底解法已登记长期改进。
 
-#### 4.4.1 R-3：同步中断后等值组尾部 at-least-once 缺口（低）
+#### 4.2.1 R-3：同步中断后等值组尾部 at-least-once 缺口（低）
 
 - **窗口**：N-1/R-3 修复后，会话**中断**（断网/崩溃/退出）时已持久化水印停在等值组最大值而页游标随同落库（R-3 已修）；残余为——中断后、续传前出现**同毫秒新行且 id < 旧游标**时该行被永久跳过。
 - **概率**：需「同毫秒」+「随机 UUID 序逆序」双条件，天文概率，仅影响回退等值组；中断时已存在的行均按 id 序投递完毕。
 - **彻底解法**：等值组尾部回扫（续传时对 == 水印组做 id < 游标 的补查）——收益极低，不优先。
 
-#### 4.4.2 R-4①：reencrypt commit 后、config 写前进程崩溃（低）
+#### 4.2.2 R-4①：reencrypt commit 后、config 写前进程崩溃（低）
 
 - **窗口**：`reencrypt_all` 事务提交成功、config.json 写入完成前进程崩溃 → 账户「数据已换新钥、config 仍记旧参数」不可用（毫秒级窗口，彻底解需 journal/双 config）。
-- **协同解法（与 P135 联动，已实施）**：见 §4.2.3——config 写入已全部接入 `safe_storage::write_atomic`（.tmp+rename），「写一半」→「要么旧、要么新」，崩溃后孤儿 tmp / 损坏主文件由 `read_config_with_recovery` → `recover_or_load` 恢复；残余为「reencrypt 提交后、新 config 落盘前崩溃」仍回退旧钥（reencrypt 侧需 journal 才完全关闭），但账户不再出现**截断/损坏**的 config——风险从「账户不可用」降为「下次解锁重新升级」。
+- **协同解法（与 P135 联动，已实施）**：见 §3.1 P135 归档——config 写入已全部接入 `safe_storage::write_atomic`（.tmp+rename），「写一半」→「要么旧、要么新」，崩溃后孤儿 tmp / 损坏主文件由 `read_config_with_recovery` → `recover_or_load` 恢复；残余为「reencrypt 提交后、新 config 落盘前崩溃」仍回退旧钥（reencrypt 侧需 journal 才完全关闭），但账户不再出现**截断/损坏**的 config——风险从「账户不可用」降为「下次解锁重新升级」。
 
-### 4.5 P209：LEGACY_XOR_KEY（已决策保留）
+### 4.3 P209：LEGACY_XOR_KEY（已决策保留）
 
 - **现状**：`LEGACY_XOR_KEY` 仅用于 `legacy_xor_decrypt` 一键解密 <2.0 旧版 XOR 凭证文件并原子迁移为 AES-256-GCM；`legacy.rs` 不可删（`FileBiometricStorage` 为 macOS/iOS 回退的活动存储后端）；当前 `save`/`update` 已只写新格式，**XOR 路径零写入面**。
 - **威胁面**：攻击者需同时持有编译产物与 0600 权限的旧文件，且内容为会话密钥非主密钥。
 - **决策（2026-08-02 用户确认）**：迁移窗口未关闭，保留 XOR 路径，接受已充分记录的低危风险。
 - **关闭条件**：迁移窗口关闭（<2.0 凭证全部完成迁移）后删除整个 `legacy.rs`——建议在下个大版本发布后评估（届时可加「启动时扫描旧凭证数量」日志辅助决策）。
 
-### 4.6 P206 遗留观察：PDF embed 与 object-src CSP（待确认）
+### 4.4 P206 遗留观察：PDF embed 与 object-src CSP（待确认）
 
 - **问题**：`AttachmentPreviewOverlay` 的 PDF `<embed src=data:>` 受 `object-src`（缺省继承 `default-src 'self'`）管辖，现行 CSP 下**本就被拦截**——PDF 附件预览在现行 CSP 中预期不生效。
 - **待决策**：① 该路径是否本就弃用（附件预览走其他路径）→ 若是，清理 embed 代码；② 若预期支持 PDF 预览 → 需在 CSP 增加 `object-src data:`（有 XSS 面放大，需评估）。**建议在下一轮 UI 清理时核实附件预览实际路径后决策**，不单独安排修复。
@@ -306,11 +301,12 @@
 ## §5 结论与后续建议
 
 1. **审计闭环状态**：80 项问题**全部闭环**并经两轮独立复核（70 项首轮 + 16 项二轮补验 + P133/P134/P135 三项用户决策处置）验证，测试用例较修复前净增 60+；**所有 N/R 项复核发现均已闭环**。
-2. **遗留未完成 1 类**（本报告 §4）：
-   - P223/P224：长期重构，建议从 `TrashDetailPanel`（P224）与 storage.rs 按表域拆分（P223）开始，沿用 P048/P217 的等价重构 + 防回归测试先例。
-   - R-3/R-4① 残余：可接受工程取舍，登记长期改进（等值组尾部回扫 / config journal，见 §4.4）。
-   - N-10/P207 已于 2026-08-03 按路径 1 闭环（独立专用公钥注入 + 托管 + 防漂移测试，见 §4.1）——此前建议的路径 3（bundled 兜底）不再需要（公钥已就绪）。
-3. **验证指针**：本报告 §3 归档表含全部修复 commit（`f1970c67` 起，N/R 项见 §3.2）；完整修复细节与两轮验证记录在 git 历史中可追溯。
+2. **遗留未完成/待跟进 4 类**（本报告 §4）：
+   - **P223/P224**：长函数/巨型组件长期重构（唯一进行中工作项，§4.1 含逐文件分解预案与执行顺序）；不单独安排修复轮次，随功能迭代顺带执行，优先 P224-① TrashDetailPanel 与 P223-② storage.rs 表域拆分。
+   - **R-3/R-4①**：已声明残余窗口，可接受工程取舍，登记长期改进（等值组尾部回扫 / config journal，见 §4.2）。
+   - **P209**：legacy XOR 迁移窗口保留，建议下个大版本发布后评估关闭（见 §4.3）。
+   - **P206**：PDF embed 与 object-src CSP 遗留观察，待附件预览路径核实后决策（见 §4.4）。
+3. **验证指针**：本报告 §3 归档表含全部修复 commit（`f1970c67` 起，N/R 项见 §3.2；P133=`6e74f691`、P134=`f75605ae`、P135=`b721270c`、N-10=`70e766ee`）；完整修复细节与两轮验证记录在 git 历史中可追溯。
 
 ## §6 测试基线参考（当前 HEAD）
 
