@@ -66,6 +66,21 @@
 
 **验证**：tsc 0 错误 / eslint 2 文件 0 警告 / settings 目录 vitest 9 用例全绿。
 
+## R-1 修复记录（2026-08-03）
+
+**修复方案**：trash_items 表 keyset 分页化（镜像 N-1 的 objects 修复），消除 P110 同构同步停滞。
+
+1. **新实现** `list_trash_changes_since_limited(watermark, local_node_id, limit, last_row_id)`：
+   - LEFT JOIN sync_hlc 一次取回真实 HLC（对端应用写入的行有真实 HLC，不再逐行 `record_hlc_or_fallback` 查询）；
+   - 有无 HLC 两类行均按 (有效 HLC, t.id) 全序 > (水印, 游标) **SQL 精确过滤**——无 HLC 回退行 wall == deleted_at 毫秒值（R-2 修复后无浮点推导，比 objects 的 julianday 更简洁）；
+   - 等值组尾部（三元组 == 水印 且 id > 游标）放行，跨页不重不漏；`last_row_id=None` 时退化为严格三元组 >（非分页语义）；Rust 最终裁决与 SQL 谓词逐字一致。
+2. **分发**：`list_sync_changes_since_paginated` 增 `trash_items` 分支走新实现；`list_trash_changes_since`（非分页）改为薄包装（usize::MAX + None）。
+3. **回归测试 ×2**：
+   - `test_paginated_trash_keyset_equal_deleted_at_completeness`：7 个同 deleted_at 毫秒回退行（page_delete 生产场景）逐页 limit=2 收集——无缺漏、无重复、组内按 id 升序（修复前第 2 页空页 break，剩余永久漏发）；
+   - `test_paginated_trash_keyset_mixed_real_hlc_ordering`：真实 HLC 行（set_record_hlc 模拟对端应用）与回退行混合，按有效 HLC 全序稳定分页。
+
+**验证**：fmt 干净 / clippy 0 / solosoul-vault 121（+2）全绿 / solosoul-sync 47 全绿。
+
 ## R-2 修复记录（2026-08-03）
 
 **修复方案**：`list_trash_changes_since` 秒/毫秒错配修复 + 测试写入单位对齐 + 回归测试。
@@ -366,7 +381,7 @@
 
 | 编号 | 严重度 | 位置 | 问题 |
 |------|--------|------|------|
-| R-1 | 高 | `crates/solosoul-vault/src/storage.rs:1494-1502` | **trash_items 表残留 P110 同构缺陷**：小表分页忽略游标（严格 > + take(limit)），而 page_delete 给每个对象的 trash_item 同一个 deleted_at 毫秒值，删除含 >100 对象的页面 → 第 2 页空页 break → 剩余 trash_items 永久不同步。建议对非 objects 表做同等 keyset 化 |
+| R-1 | ✅ 已修复 | `crates/solosoul-vault/src/storage.rs:1494-1502` | **trash_items 残留 P110 同构缺陷已闭环**（2026-08-03 提交，见下方修复记录）：新增 `list_trash_changes_since_limited` SQL 级 keyset（LEFT JOIN sync_hlc + (有效 HLC, t.id) 全序 + 等值组尾部放行），通用分页路径不再对 trash 走「严格 > + take(limit)」 |
 | R-2 | ✅ 已修复 | `crates/solosoul-vault/src/storage.rs:1914` | **秒/毫秒错配已修复**（2026-08-03 提交，见下方修复记录）：`from_timestamp` 按毫秒解释 deleted_at、测试写入单位对齐、回归测试锁定回退 HLC wall == deleted_at 毫秒值 |
 | R-3 | 低 | `solosoul-sync/src/session.rs:487` | N-1 已声明残余：会话中断后内存游标丢失，等值 HLC 组尾部未发记录被永久跳过（窄窗口：等值组 >100 且至少一页已 ack 后崩溃）。解法：页游标并入 peer watermark 持久化 |
 | R-4 | 低 | `solosoul-core/src/vault_service.rs:769-790` | N-2 已声明残余：① reencrypt commit 后、config 写完前进程崩溃 → 永久"Invalid password"（毫秒级窗口，彻底解需 journal/双 config）；② 磁盘满等共同根因下回滚级联失败可致 config 截断（回滚失败应并入上抛错误文案）；③ 回滚助手无失败注入测试 |
@@ -375,6 +390,6 @@
 ## 结论
 
 1. **本轮 16 项：15 ✅ + 1 ⚠️（仅 locale 小项）**，N-1/N-2 两个关键修复的核心逻辑均正确且有真实回归测试。
-2. **唯一需要修复人跟进的高危项是 R-1**：trash_items 同构缺陷与已修的 P110 触发条件相同（删除 >100 对象的页面），建议同等 keyset 化——已立案修复（见下方 R-1 修复记录）。**R-2 秒/毫秒错配已随 R-1 立案一并闭环**（见下方 R-2 修复记录）。
+2. **高危项 R-1 已闭环**：trash_items 同构缺陷（删除 >100 对象页面 → 剩余回收站条目永久不同步）已 keyset 化修复，回归测试 ×2（见下方 R-1 修复记录）。**R-2 秒/毫秒错配也已闭环**（见下方 R-2 修复记录）。
 3. R-3/R-4 均为修复人已声明的窄窗口，属可接受的工程取舍，建议登记长期改进（watermark 持久化游标、config journal）。
 4. 至此报告全部可执行项已闭环：70 项首轮验证 + 16 项二轮验证，仅剩 P133-P135（破坏性删除暂缓）、P223/P224（长期重构，修复人已声明留待迭代）为有意保留项。

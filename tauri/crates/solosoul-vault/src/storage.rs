@@ -1471,7 +1471,9 @@ impl VaultStore {
     /// without loading the entire result set into a single message.
     ///
     /// N-1: objects 走 SQL 级 keyset 分页（(有效 HLC, o.id) 全序 + 游标推进）；
-    /// 其余小表（profiles/user_templates/trash_items）维持内存分页（先按有效 HLC
+    /// R-1: trash_items 同构——SQL 级 keyset（LEFT JOIN sync_hlc，无 HLC 回退行
+    /// wall == deleted_at 毫秒值，见 `list_trash_changes_since_limited`）；
+    /// 其余小表（profiles/user_templates）数据量小维持内存分页（先按有效 HLC
     /// 升序排序再 take），游标参数忽略。
     pub fn list_sync_changes_since_paginated(
         &self,
@@ -1486,6 +1488,16 @@ impl VaultStore {
             return self.list_object_changes_since_limited(
                 watermark,
                 account_id,
+                local_node_id,
+                limit,
+                last_row_id,
+            );
+        }
+        if table == "trash_items" {
+            // R-1: trash_items 同构 keyset 化——page_delete 整页同 ms 批量删除
+            // 不再因「严格 > + take(limit)」在第 2 页空页 break 而永久漏发。
+            return self.list_trash_changes_since_limited(
+                watermark,
                 local_node_id,
                 limit,
                 last_row_id,
@@ -1862,47 +1874,123 @@ impl VaultStore {
         watermark: &crate::SyncWatermark,
         local_node_id: &str,
     ) -> Result<Vec<crate::VaultSyncRecord>, String> {
+        // R-1: 非分页语义 = LIMIT 不限制 + 无游标（严格三元组 >）。
+        self.list_trash_changes_since_limited(watermark, local_node_id, usize::MAX, None)
+    }
+
+    /// R-1: trash_items 表 SQL 级 keyset 分页（镜像 list_object_changes_since_limited）。
+    ///
+    /// 背景：小表通用分页路径此前是「严格 hlc_after_watermark 过滤 + 内存
+    /// take(limit)」——page_delete 给整页对象同一个 deleted_at 毫秒值（回退 HLC
+    /// 三元组完全相同），删除含 >limit 对象的页面时第 2 页空页 break，剩余
+    /// trash_items 永久不同步（P110 同构缺陷）。本实现：
+    ///   - LEFT JOIN sync_hlc 一次取回真实 HLC（对端应用写入的行有真实 HLC）；
+    ///   - 有无 HLC 两类行均按 (有效 HLC, t.id) 全序 > (水印, 游标) 精确过滤——
+    ///     无 HLC 回退行 wall == deleted_at 毫秒值（R-2 修复后无浮点推导）；
+    ///   - 等值组尾部（三元组 == 水印 且 id > 游标）放行，跨页不重不漏。
+    ///
+    /// `last_row_id=None` 时退化为严格三元组 >（非分页语义）。
+    fn list_trash_changes_since_limited(
+        &self,
+        watermark: &crate::SyncWatermark,
+        local_node_id: &str,
+        limit: usize,
+        last_row_id: Option<&str>,
+    ) -> Result<Vec<crate::VaultSyncRecord>, String> {
         let key = self.data_key()?;
         let rows = {
             let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
             let conn = guard.as_mut().ok_or("Vault is locked")?;
+            // 分页：LIMIT 传 usize::MAX 时按 SQLite 语义（LIMIT -1）不限制行数。
+            let limit_param = if limit == usize::MAX {
+                -1i64
+            } else {
+                limit as i64
+            };
+            // R-1: keyset——游标 ?4 为 NULL（未分页）时仅严格三元组 >；为字符串时
+            // 允许 (三元组 == 水印) 且 id > 游标的等值组尾部行通过（跨页不重不漏）。
             let mut stmt = conn
-                .prepare(
-                    "SELECT id, item_type, original_id, original_parent_id, original_section_type,
-                     original_sort_order, data, deleted_at, expires_at, deleted_by, name_snapshot, icon_snapshot
-                     FROM trash_items",
+                .prepare_cached(
+                    "SELECT t.id, t.item_type, t.original_id, t.original_parent_id, t.original_section_type,
+                     t.original_sort_order, t.data, t.deleted_at, t.expires_at, t.deleted_by, t.name_snapshot, t.icon_snapshot,
+                     h.wall_time_ms AS hlc_wall, h.counter AS hlc_counter, h.node_id AS hlc_node
+                     FROM trash_items t
+                     LEFT JOIN sync_hlc h ON h.table_name = 'trash_items' AND h.record_id = t.id
+                     WHERE (
+                        (h.wall_time_ms IS NOT NULL AND (
+                            (h.wall_time_ms, COALESCE(h.counter, 0), COALESCE(h.node_id, ?5)) > (?1, ?2, ?3)
+                            OR ((h.wall_time_ms, COALESCE(h.counter, 0), COALESCE(h.node_id, ?5)) = (?1, ?2, ?3)
+                                AND ?4 IS NOT NULL AND t.id > ?4)
+                        ))
+                        OR (h.wall_time_ms IS NULL AND (
+                            (t.deleted_at, 0, ?5) > (?1, ?2, ?3)
+                            OR ((t.deleted_at, 0, ?5) = (?1, ?2, ?3)
+                                AND ?4 IS NOT NULL AND t.id > ?4)
+                        ))
+                     )
+                     ORDER BY
+                       COALESCE(h.wall_time_ms, t.deleted_at) ASC,
+                       COALESCE(h.counter, 0) ASC,
+                       COALESCE(h.node_id, ?5) ASC,
+                       t.id ASC
+                     LIMIT ?6",
                 )
                 .map_err(|e| format!("list_trash_changes: {}", e))?;
             let rows = stmt
-                .query_map([], |row| {
-                    let raw_data: Vec<u8> = row.get(6)?;
-                    let data = decrypt_field(&key, &raw_data).map_err(|e| {
-                        rusqlite::Error::FromSqlConversionFailure(
-                            6,
-                            rusqlite::types::Type::Blob,
-                            Box::new(std::io::Error::new(
-                                std::io::ErrorKind::InvalidData,
-                                format!("Trash data decryption failed: {}", e),
-                            )),
-                        )
-                    })?;
-                    let deleted_at: i64 = row.get(7)?;
-                    let item = crate::TrashItem {
-                        id: row.get(0)?,
-                        item_type: row.get(1)?,
-                        original_id: row.get(2)?,
-                        original_parent_id: row.get(3)?,
-                        original_section_type: row.get(4)?,
-                        original_sort_order: row.get(5)?,
-                        data,
-                        deleted_at,
-                        expires_at: row.get(8)?,
-                        deleted_by: row.get(9)?,
-                        name_snapshot: row.get(10)?,
-                        icon_snapshot: row.get(11)?,
-                    };
-                    Ok((item, deleted_at))
-                })
+                .query_map(
+                    params![
+                        watermark.wall_time_ms as i64,
+                        watermark.counter as i32,
+                        &watermark.node_id,
+                        last_row_id.map(str::to_owned),
+                        local_node_id,
+                        limit_param,
+                    ],
+                    |row| {
+                        let raw_data: Vec<u8> = row.get(6)?;
+                        let data = decrypt_field(&key, &raw_data).map_err(|e| {
+                            rusqlite::Error::FromSqlConversionFailure(
+                                6,
+                                rusqlite::types::Type::Blob,
+                                Box::new(std::io::Error::new(
+                                    std::io::ErrorKind::InvalidData,
+                                    format!("Trash data decryption failed: {}", e),
+                                )),
+                            )
+                        })?;
+                        let deleted_at: i64 = row.get(7)?;
+                        let item = crate::TrashItem {
+                            id: row.get(0)?,
+                            item_type: row.get(1)?,
+                            original_id: row.get(2)?,
+                            original_parent_id: row.get(3)?,
+                            original_section_type: row.get(4)?,
+                            original_sort_order: row.get(5)?,
+                            data,
+                            deleted_at,
+                            expires_at: row.get(8)?,
+                            deleted_by: row.get(9)?,
+                            name_snapshot: row.get(10)?,
+                            icon_snapshot: row.get(11)?,
+                        };
+                        // 有效 HLC：有 HLC 行用落库三元组，否则回退 deleted_at(毫秒)
+                        let hlc_wall: Option<i64> = row.get(12)?;
+                        let hlc = if let Some(wall) = hlc_wall {
+                            crate::RecordHlc {
+                                wall_time_ms: wall as u64,
+                                counter: row.get::<_, Option<i32>>(13)?.unwrap_or(0) as u32,
+                                node_id: row.get::<_, Option<String>>(14)?.unwrap_or_default(),
+                            }
+                        } else {
+                            crate::RecordHlc {
+                                wall_time_ms: deleted_at as u64,
+                                counter: 0,
+                                node_id: local_node_id.to_string(),
+                            }
+                        };
+                        Ok((item, hlc))
+                    },
+                )
                 .map_err(|e| format!("list_trash_changes query: {}", e))?
                 .collect::<Result<Vec<_>, _>>()
                 .map_err(|e| format!("list_trash_changes collect: {}", e))?;
@@ -1910,20 +1998,14 @@ impl VaultStore {
         };
 
         let mut out = Vec::new();
-        for (item, deleted_at) in rows {
-            // R-2: deleted_at 为毫秒（生产写入 `Utc::now().timestamp_millis()`，
-            // 见 commands/object/trash.rs、solosoul-core/objects.rs、commands/template.rs）。
-            // from_timestamp 的 secs 参数须先整除 1000、余数转纳秒——修复前按秒解释
-            // 会得到放大 1000× 的垃圾 wall_time（约 58534 年），使 HLC 水印比较失真
-            // 并污染对端 trash 表水印（后续真实删除行永远 < 垃圾水印而不再同步）。
-            let secs = deleted_at.div_euclid(1000);
-            let nanos = (deleted_at.rem_euclid(1000) * 1_000_000) as u32;
-            let updated = chrono::DateTime::from_timestamp(secs, nanos)
-                .map(|d| d.to_rfc3339())
-                .unwrap_or_default();
-            let hlc =
-                self.record_hlc_or_fallback("trash_items", &item.id, &updated, local_node_id)?;
-            if !Self::hlc_after_watermark(&hlc, watermark) {
+        for (item, hlc) in rows {
+            // 最终裁决（与 SQL 谓词逐字一致）：严格 > 水印，或（keyset 游标存在且
+            // 三元组 == 水印且 id > 游标）的等值组尾部行。
+            let equal_watermark = hlc.wall_time_ms == watermark.wall_time_ms
+                && hlc.counter == watermark.counter
+                && hlc.node_id == watermark.node_id;
+            let keyset_tail = equal_watermark && last_row_id.is_some_and(|c| c < item.id.as_str());
+            if !Self::hlc_after_watermark(&hlc, watermark) && !keyset_tail {
                 continue;
             }
             let id = item.id.clone();
@@ -5662,6 +5744,183 @@ mod tests {
             records[0].hlc.wall_time_ms, deleted_ms as u64,
             "trash HLC 回退 wall 必须精确等于 deleted_at 毫秒值"
         );
+    }
+
+    // ── R-1: trash_items keyset 分页——同 deleted_at 回退行跨页不得漏发 ──────
+    //
+    // P110 同构缺陷：page_delete 给整页对象同一个 deleted_at 毫秒值，通用小表分页
+    // 「严格 hlc_after_watermark + 内存 take(limit)」在删除含 >limit 对象的页面时
+    // 第 2 页空页 break——剩余 trash_items 永久不同步。keyset 化后（(有效 HLC,
+    // t.id) 全序 + 游标推进 + 等值组尾部放行）跨页不重不漏。
+    #[test]
+    fn test_paginated_trash_keyset_equal_deleted_at_completeness() {
+        let (vault, _dir) = setup();
+        // page_delete 生产场景：整页对象同一个 deleted_at 毫秒值
+        let deleted_ms = 1704067200123i64;
+        let watermark = crate::SyncWatermark {
+            wall_time_ms: (deleted_ms - 1000) as u64,
+            counter: 0,
+            node_id: "peer_x".to_string(),
+        };
+        for i in 1..=7usize {
+            vault
+                .save_trash_item(&TrashItem {
+                    id: format!("trash_{:02}", i),
+                    item_type: "object".to_string(),
+                    original_id: format!("orig_{:02}", i),
+                    original_parent_id: None,
+                    original_section_type: None,
+                    original_sort_order: None,
+                    data: vec![i as u8],
+                    deleted_at: deleted_ms,
+                    expires_at: None,
+                    deleted_by: "user".to_string(),
+                    name_snapshot: format!("trash_{:02}", i),
+                    icon_snapshot: None,
+                })
+                .unwrap();
+        }
+
+        let paged_ids = collect_paginated_trash_ids(&vault, watermark.clone(), "local_node", 2);
+
+        // 全部 7 条必须无缺漏、无重复
+        assert_eq!(paged_ids.len(), 7, "等值 HLC 回退行不得因页边界漏发");
+        let uniq: std::collections::HashSet<&str> = paged_ids.iter().map(|s| s.as_str()).collect();
+        assert_eq!(uniq.len(), 7, "keyset 分页不得重复投递");
+        // 同 HLC 组内按 id 升序（trash_01..trash_07 字典序 == 数字序）
+        assert_eq!(
+            paged_ids,
+            vec![
+                "trash_01".to_string(),
+                "trash_02".to_string(),
+                "trash_03".to_string(),
+                "trash_04".to_string(),
+                "trash_05".to_string(),
+                "trash_06".to_string(),
+                "trash_07".to_string(),
+            ],
+            "等值 HLC 组内必须按 id 升序稳定分页"
+        );
+    }
+
+    // ── R-1: 真实 HLC 行（对端应用写入）与回退行混合时按有效 HLC 排序分页 ──
+    #[test]
+    fn test_paginated_trash_keyset_mixed_real_hlc_ordering() {
+        let (vault, _dir) = setup();
+        // 回退行：本地删除，无 sync_hlc 行，有效 HLC wall == deleted_at 毫秒
+        let local_ms = 1704067200123i64;
+        // 真实 HLC 行：模拟对端应用写入（wall 更早、counter 更高）
+        let peer_wall = 1704066000000u64;
+        for i in 1..=3usize {
+            vault
+                .save_trash_item(&TrashItem {
+                    id: format!("local_{:02}", i),
+                    item_type: "object".to_string(),
+                    original_id: format!("orig_l{:02}", i),
+                    original_parent_id: None,
+                    original_section_type: None,
+                    original_sort_order: None,
+                    data: vec![i as u8],
+                    deleted_at: local_ms,
+                    expires_at: None,
+                    deleted_by: "user".to_string(),
+                    name_snapshot: format!("local_{:02}", i),
+                    icon_snapshot: None,
+                })
+                .unwrap();
+        }
+        for i in 1..=3usize {
+            let id = format!("peer_{:02}", i);
+            vault
+                .save_trash_item(&TrashItem {
+                    id: id.clone(),
+                    item_type: "object".to_string(),
+                    original_id: format!("orig_p{:02}", i),
+                    original_parent_id: None,
+                    original_section_type: None,
+                    original_sort_order: None,
+                    data: vec![(i + 10) as u8],
+                    deleted_at: local_ms,
+                    expires_at: None,
+                    deleted_by: "peer".to_string(),
+                    name_snapshot: format!("peer_{:02}", i),
+                    icon_snapshot: None,
+                })
+                .unwrap();
+            // 对端行写入真实 HLC（wall 更早 → 有效排序应在本地回退行之前）
+            vault
+                .set_record_hlc(
+                    "trash_items",
+                    &id,
+                    &crate::RecordHlc {
+                        wall_time_ms: peer_wall,
+                        counter: i as u32,
+                        node_id: "peer_node".to_string(),
+                    },
+                )
+                .unwrap();
+        }
+
+        let watermark = crate::SyncWatermark::default();
+        let paged_ids = collect_paginated_trash_ids(&vault, watermark.clone(), "local_node", 2);
+
+        // 有效 HLC 排序：真实 HLC（peer_wall 早）在前，回退行（local_ms 晚）在后
+        assert_eq!(
+            paged_ids,
+            vec![
+                "peer_01".to_string(),
+                "peer_02".to_string(),
+                "peer_03".to_string(),
+                "local_01".to_string(),
+                "local_02".to_string(),
+                "local_03".to_string(),
+            ],
+            "真实 HLC 行与回退行必须按有效 HLC 全序稳定分页"
+        );
+    }
+
+    /// R-1 回归测试共用：以会话层同款 keyset 迭代（每页把水印推进到本页最大有效
+    /// HLC、页游标推进到本页最后一条 id）逐页收集 trash_items 变更 id。
+    fn collect_paginated_trash_ids(
+        vault: &VaultStore,
+        mut watermark: crate::SyncWatermark,
+        local_node_id: &str,
+        limit: usize,
+    ) -> Vec<String> {
+        let mut out = Vec::new();
+        let mut last_row_id: Option<String> = None;
+        loop {
+            let page = vault
+                .list_sync_changes_since_paginated(
+                    "trash_items",
+                    &watermark,
+                    "acc",
+                    local_node_id,
+                    limit,
+                    last_row_id.as_deref(),
+                )
+                .unwrap();
+            if page.is_empty() {
+                break;
+            }
+            for rec in &page {
+                out.push(rec.id.clone());
+            }
+            // 水印推进到本页最大有效 HLC（与会话层 update_peer_watermark(max) 一致）
+            if let Some((w, c, n)) = page
+                .iter()
+                .map(|r| (r.hlc.wall_time_ms, r.hlc.counter, r.hlc.node_id.clone()))
+                .max()
+            {
+                watermark = crate::SyncWatermark {
+                    wall_time_ms: w,
+                    counter: c,
+                    node_id: n,
+                };
+            }
+            last_row_id = page.last().map(|r| r.id.clone());
+        }
+        out
     }
 
     #[test]
