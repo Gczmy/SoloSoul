@@ -113,36 +113,9 @@ describe('ipc interfaces', () => {
     });
   });
 
-  describe('Crypto', () => {
-    it('encrypt_bytes / decrypt_bytes 传递 data', async () => {
-      mockInvoke.mockResolvedValue([1, 2, 3]);
-      const enc = await invoke('encrypt_bytes', { data: [10, 20] });
-      expect(mockInvoke).toHaveBeenCalledWith('encrypt_bytes', { data: [10, 20] });
-      expect(enc).toEqual([1, 2, 3]);
-
-      mockInvoke.mockResolvedValue([10, 20]);
-      const dec = await invoke('decrypt_bytes', { data: [1, 2, 3] });
-      expect(dec).toEqual([10, 20]);
-    });
-
-    it('deriveKey 传递所有 KDF 参数', async () => {
-      mockInvoke.mockResolvedValue([1, 2, 3]);
-      await invoke('derive_key', {
-        password: 'pwd',
-        salt: [1, 2],
-        memoryKib: 8192,
-        iterations: 3,
-        parallelism: 4,
-      });
-      expect(mockInvoke).toHaveBeenCalledWith('derive_key', {
-        password: 'pwd',
-        salt: [1, 2],
-        memoryKib: 8192,
-        iterations: 3,
-        parallelism: 4,
-      });
-    });
-  });
+  // N-9: Crypto 块已整体移除——encrypt_bytes / decrypt_bytes / derive_key
+  // 命令在 P132/P205 中已从后端删除（crypto.rs 整文件删除），这些 mock 测试
+  // 针对的已是不存在的命令面。
 
   describe('OCR', () => {
     it('ocr_scan_image 传递 filePath 和可选的 language', async () => {
