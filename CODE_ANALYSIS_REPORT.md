@@ -338,7 +338,11 @@
 
 - **窗口**：N-1/R-3 修复后，会话**中断**（断网/崩溃/退出）时已持久化水印停在等值组最大值而页游标随同落库（R-3 已修）；残余为——中断后、续传前出现**同毫秒新行且 id < 旧游标**时该行被永久跳过。
 - **概率**：需「同毫秒」+「随机 UUID 序逆序」双条件，天文概率，仅影响回退等值组；中断时已存在的行均按 id 序投递完毕。
-- **彻底解法**：等值组尾部回扫（续传时对 == 水印组做 id < 游标 的补查）——收益极低，不优先。
+- **彻底解法（方案 B，已立项 2026-08-03）**：**本地写入统一写 HLC**——`new_local_hlc()`/`new_tombstone_hlc()`（sync_meta.rs:311/327，`wall = now.max(本节点最大HLC+1)` 严格递增）已存在，只需在各域写方法事务内调用 `set_record_hlc_tx`。回退路径退休后等值组概念消失（HLC 单调递增），R-3 窗口自然关闭。
+  - **影响面（实测）**：objects 域（`save_object_tx`/`delete_object`/`restore_object`，墓碑用 `new_tombstone_hlc`）+ trash 域（`trash_and_soft_delete_batch`/`save_trash_item_tx`/`delete_trash_item`）+ metadata 域（`save_user_template_tx`/`delete_user_template`）+ profile 域（`save_profile_tx`/`delete_profile`）；snapshots 域不参与同步可不动。**commands/CLI 层零改动**（全部经 vault 层方法间接调用）。
+  - **成本**：1–2 天。分三阶段：① objects 域验证模式；② trash/profile/user_template 域；③ 回退路径退休（sync_changes.rs:133/424 的 `record_hlc_or_fallback` fallback 分支与 SQL `h.wall_time_ms IS NULL` 分支简化）。风险点：`delete_object` 墓碑与 `trash_and_soft_delete_batch` 的 HLC 生成时序、25+ 既有同步测试适配（部分断言依赖回退行为）。
+  - **备选方案 A（等值组尾部回扫）成本 4–6h（基础）/ 8–10h（含防重复投递设计），已否决**——回扫会把已投递行重复投递，需额外记录已投递 id 集合，收益低于成本；方案 B 是根治方向。
+  - **当前状态**：⏸ 已立项待实施（用户 2026-08-03 决策「先出计划再执行」，计划见 §4.2.1，实施另行启动）。
 
 #### 4.2.2 R-4①：reencrypt commit 后、config 写前进程崩溃（低）
 
