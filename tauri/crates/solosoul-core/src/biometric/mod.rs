@@ -259,6 +259,33 @@ impl BiometricManager {
         Ok(())
     }
 
+    /// 扫描 `base_path` 下仍为 legacy XOR 格式（<2.0）的 `biometric_key` 文件数量。
+    ///
+    /// 仅用于 P209 迁移窗口关闭决策的**启动时诊断**（tel 级日志，`RUST_LOG=
+    /// solo_soul=trace` 可见，由调用方记录）：当该计数持续为 0 时，可安全关闭
+    /// legacy XOR 迁移路径（删除 `legacy.rs` 的 XOR 三件套）。不读取/解密任何
+    /// 密钥内容，仅按文件内容特征（64 hex）判定。注意：base_path 不存在或
+    /// 不可枚举时同样返回 0（与“真为 0”同态，仅供诊断参考，勿据此断言窗口关闭）。
+    pub fn count_legacy_key_files(&self) -> usize {
+        let Ok(entries) = std::fs::read_dir(&self.base_path) else {
+            return 0;
+        };
+        let mut count = 0usize;
+        for entry in entries.flatten() {
+            if !entry.file_type().map(|t| t.is_dir()).unwrap_or(false) {
+                continue;
+            }
+            let key_path = entry.path().join("biometric_key");
+            let Ok(content) = std::fs::read_to_string(&key_path) else {
+                continue;
+            };
+            if legacy::is_legacy_key_file(content.trim()) {
+                count += 1;
+            }
+        }
+        count
+    }
+
     /// Check whether biometric authentication is available and configured for
     /// the given account. `available` refers to the device/platform; `configured`
     /// refers to whether this account has a stored credential.
@@ -885,6 +912,29 @@ mod tests {
             let target_storage = legacy::FileBiometricStorage::new(target_base);
             assert_eq!(target_storage.read(account_id, "").unwrap(), legacy_key);
             assert!(manager.is_configured(account_id));
+        });
+    }
+
+    #[test]
+    fn test_count_legacy_key_files() {
+        with_temp_home(|path| {
+            let base = path.join(".solosoul");
+
+            // 无 base_path：计数为 0（不存在目录）。
+            let manager = BiometricManager::new(base.clone());
+            assert_eq!(manager.count_legacy_key_files(), 0);
+
+            // 三个账户目录：acc-a 为 legacy XOR（64 hex），acc-b 为新格式
+            // （hex 长度 ≠ 64，如 32 字节 AES blob 的 128 hex 前缀截断不适用，
+            // 这里直接用 128 hex 模拟新格式），acc-c 无 biometric_key。
+            std::fs::create_dir_all(base.join("acc-a")).unwrap();
+            std::fs::create_dir_all(base.join("acc-b")).unwrap();
+            std::fs::create_dir_all(base.join("acc-c")).unwrap();
+            std::fs::write(base.join("acc-a/biometric_key"), "00".repeat(32)).unwrap();
+            std::fs::write(base.join("acc-b/biometric_key"), "ab".repeat(64)).unwrap();
+
+            let manager = BiometricManager::new(base);
+            assert_eq!(manager.count_legacy_key_files(), 1);
         });
     }
 

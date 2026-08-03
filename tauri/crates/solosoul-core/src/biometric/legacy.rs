@@ -110,7 +110,7 @@ fn file_encryption_key(account_id: &str) -> Result<Zeroizing<Vec<u8>>, Biometric
     Ok(key)
 }
 
-fn is_legacy_key_file(content: &str) -> bool {
+pub(crate) fn is_legacy_key_file(content: &str) -> bool {
     content.len() == LEGACY_KEY_HEX_LEN && content.chars().all(|c| c.is_ascii_hexdigit())
 }
 
