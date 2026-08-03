@@ -765,7 +765,10 @@ impl VaultService {
     /// N-2：reencrypt→config 两阶段失败回滚。reencrypt_all 成功后若 config 写入失败，
     /// 账户会处于“数据已换新钥、config 仍记旧参数”的不可用态。本方法恢复旧 config，
     /// 并在调用方持有的同一 VaultStore 上切换内存密钥为新钥读回数据、再重加密回旧钥，
-    /// 保持账户一致可用。best-effort：任一步失败仅记录日志。
+    /// 保持账户一致可用。
+    ///
+    /// R-4：返回 `Result<(), String>`——回滚自身失败（磁盘满等共同根因）必须上抛，
+    /// 由调用方并入错误文案，不再以「已尝试自动回滚」掩盖回滚未生效的事实。
     fn rollback_reencrypt_and_config(
         &self,
         account_id: &str,
@@ -773,20 +776,23 @@ impl VaultService {
         old_config_content: &[u8],
         old_key: &solosoul_vault::DataEncryptionKey,
         new_key: &solosoul_vault::DataEncryptionKey,
-    ) {
+    ) -> Result<(), String> {
         // 1) 恢复旧 config（盐/参数/verify_hash 与旧密钥一致）
-        if let Err(e) = self
-            .fs
+        self.fs
             .write_file(&self.config_path_rel(account_id), old_config_content)
-        {
-            tracing::error!("N-2 rollback: failed to restore config: {}", e);
-        }
+            .map_err(|e| format!("rollback: failed to restore config: {}", e))?;
         // 2) 数据重加密回旧密钥：同一 store 先切内存密钥为新钥读回，再以旧钥写回
         vault.set_data_key(new_key.clone());
         if let Err(e) = vault.reencrypt_all(new_key, old_key) {
-            tracing::error!("N-2 rollback: re-encrypt back to old key failed: {}", e);
+            // 先恢复内存密钥再上抛，避免调用方在回滚失败后仍持有错误的内存密钥
+            vault.set_data_key(old_key.clone());
+            return Err(format!(
+                "rollback: re-encrypt back to old key failed: {}",
+                e
+            ));
         }
         vault.set_data_key(old_key.clone());
+        Ok(())
     }
 
     /// P003：将账户 KDF 参数透明升级到生产档并重加密整个 Vault。
@@ -859,14 +865,21 @@ impl VaultService {
         if let Err(e) = self.fs.write_file(&config_rel, config_json.as_bytes()) {
             // N-2：config 写入失败 → 回滚（恢复旧 config + 数据重加密回旧密钥），
             // 保持账户一致可用，并把失败原因上抛。
-            self.rollback_reencrypt_and_config(
+            // R-4：回滚自身失败（磁盘满等共同根因）必须并入上抛文案。
+            let rollback_note = match self.rollback_reencrypt_and_config(
                 account_id,
                 &vault,
                 &old_config_content,
                 &old_key,
                 &new_key_enc,
-            );
-            return Err(format!("KDF upgrade failed to update config: {}", e));
+            ) {
+                Ok(_) => "an automatic rollback to the previous key was attempted.".to_string(),
+                Err(rb) => format!("automatic rollback FAILED: {}", rb),
+            };
+            return Err(format!(
+                "KDF upgrade failed to update config: {}; {}",
+                e, rollback_note
+            ));
         }
         // 释放临时 Vault 连接，随后以新密钥重开（避免同一 DB 双连接）
         drop(vault);
@@ -1097,18 +1110,24 @@ impl VaultService {
         if let Err(e) = self.fs.write_file(&config_rel, config_json.as_bytes()) {
             // N-2：config 写入失败 → 回滚（恢复旧 config + 数据重加密回旧密钥），
             // 避免账户不可用；会话密钥尚未切换，回滚后当前会话仍以旧密钥工作。
-            if let Some(vault_guard) = self.get_vault_store() {
-                self.rollback_reencrypt_and_config(
+            // R-4：回滚自身失败（磁盘满等共同根因）必须并入上抛文案。
+            let rollback_note = if let Some(vault_guard) = self.get_vault_store() {
+                match self.rollback_reencrypt_and_config(
                     account_id,
                     vault_guard.as_ref(),
                     &old_config_content,
                     &old_key,
                     &new_key_enc,
-                );
-            }
+                ) {
+                    Ok(_) => "an automatic rollback to the previous key was attempted.".to_string(),
+                    Err(rb) => format!("automatic rollback FAILED: {}", rb),
+                }
+            } else {
+                "automatic rollback skipped (vault unavailable)".to_string()
+            };
             return Err(format!(
-                "Password updated but config write failed: {}; an automatic rollback to the previous key was attempted.",
-                e
+                "Password updated but config write failed: {}; {}",
+                e, rollback_note
             ));
         }
 
@@ -1374,6 +1393,7 @@ impl Default for VaultService {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::sync::atomic::{AtomicBool, Ordering};
     use tempfile::TempDir;
 
     fn setup_service() -> (VaultService, TempDir) {
@@ -1545,6 +1565,86 @@ mod tests {
             .read_stored_key_hex(account_id, "verify after change")
             .unwrap();
         assert_eq!(stored_hex, expected_hex);
+    }
+
+    // ── R-4: 回滚失败必须并入上抛文案（而非「已尝试自动回滚」掩盖）──────────
+    //
+    // N-2 残余：rollback_reencrypt_and_config 失败时仅记日志，调用方文案仍写
+    // 「已尝试自动回滚」——磁盘满等共同根因下 config 可能被截断且用户无感知。
+    // 本测试用 toggleable mock fs：仅对 config.json 写入注入失败 → 改密的 config
+    // 写入失败触发回滚 → 回滚的 config 恢复同样失败 → 错误文案必须明示
+    // 「automatic rollback FAILED」并带底层原因（修复前失败仅记日志，文案无此信息）。
+    struct FailConfigWriteFs {
+        inner: LocalVaultFileSystem,
+        fail_config_writes: Arc<AtomicBool>,
+    }
+
+    impl VaultFileSystem for FailConfigWriteFs {
+        fn read_file(&self, relative_path: &str) -> Result<Vec<u8>, String> {
+            self.inner.read_file(relative_path)
+        }
+        fn write_file(&self, relative_path: &str, data: &[u8]) -> Result<(), String> {
+            if self.fail_config_writes.load(Ordering::SeqCst)
+                && relative_path.ends_with("config.json")
+            {
+                return Err("mock config write failure (injected)".to_string());
+            }
+            self.inner.write_file(relative_path, data)
+        }
+        fn remove_file(&self, relative_path: &str) -> Result<(), String> {
+            self.inner.remove_file(relative_path)
+        }
+        fn exists(&self, relative_path: &str) -> Result<bool, String> {
+            self.inner.exists(relative_path)
+        }
+        fn create_dir_all(&self, relative_path: &str) -> Result<(), String> {
+            self.inner.create_dir_all(relative_path)
+        }
+        fn remove_dir_all(&self, relative_path: &str) -> Result<(), String> {
+            self.inner.remove_dir_all(relative_path)
+        }
+        fn list_dir(&self, relative_path: &str) -> Result<Vec<String>, String> {
+            self.inner.list_dir(relative_path)
+        }
+        fn local_path(&self, relative_path: &str) -> Option<PathBuf> {
+            self.inner.local_path(relative_path)
+        }
+    }
+
+    #[test]
+    fn test_change_password_rollback_failure_surfaced() {
+        let dir = TempDir::new().unwrap();
+        let base = dir.path().join(".solosoul");
+        std::fs::create_dir_all(&base).unwrap();
+        let fail_flag = Arc::new(AtomicBool::new(false));
+        let mock = Arc::new(FailConfigWriteFs {
+            inner: LocalVaultFileSystem::new(base.clone()),
+            fail_config_writes: fail_flag.clone(),
+        });
+        let svc = VaultService::with_file_system(base, mock);
+
+        let account = svc.create_account("R4", "oldpassword", None).unwrap();
+        let account_id = account["id"].as_str().unwrap();
+        svc.unlock(account_id, "oldpassword").unwrap();
+
+        // 注入失败：此后对 config.json 的写（改密写入 + 回滚恢复）都失败。
+        // change_password 内部 unlock 只写 accounts.json，不受影响。
+        fail_flag.store(true, Ordering::SeqCst);
+
+        let err = svc
+            .change_password(account_id, "oldpassword", "newpassword")
+            .unwrap_err();
+        // R-4：错误文案必须明示回滚失败，而非「已尝试自动回滚」
+        assert!(
+            err.contains("automatic rollback FAILED"),
+            "错误文案必须明示回滚失败，实际: {}",
+            err
+        );
+        assert!(
+            err.contains("mock config write failure"),
+            "错误文案须带底层原因，实际: {}",
+            err
+        );
     }
 
     #[test]

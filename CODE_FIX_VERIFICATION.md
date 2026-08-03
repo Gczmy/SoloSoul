@@ -66,6 +66,16 @@
 
 **验证**：tsc 0 错误 / eslint 2 文件 0 警告 / settings 目录 vitest 9 用例全绿。
 
+## R-4 修复记录（2026-08-03）
+
+**修复方案**：N-2 残余的②③（回滚失败并入上抛文案 + 失败注入测试）；①（进程崩溃毫秒级窗口）维持已声明长期改进（需 config journal/双 config）。
+
+1. **回滚助手返回 Result**：`rollback_reencrypt_and_config` 由 `-> ()`（失败仅 `tracing::error!`）改为 `-> Result<(), String>`——config 恢复失败即返回 `rollback: failed to restore config: …`；`reencrypt_all(new, old)` 重加密回旧钥失败先恢复内存密钥再返回 `rollback: re-encrypt back to old key failed: …`。
+2. **两个调用方并入失败文案**：`change_password` 与 `unlock_with_kdf_upgrade` 的 config 写失败分支改为 match 回滚结果——成功仍提示「an automatic rollback … was attempted」；失败改为「automatic rollback FAILED: {原因}」（不再以「已尝试自动回滚」掩盖回滚未生效的事实）；vault 不可用时提示 skipped。
+3. **失败注入测试** `test_change_password_rollback_failure_surfaced`：toggleable mock fs（FailConfigWriteFs，8 个 trait 方法委托 + 仅对 `config.json` 写入注入失败）——改密的 config 写入失败触发回滚、回滚的 config 恢复同样失败 → 断言错误文案包含「automatic rollback FAILED」与「mock config write failure」；注入仅定向 config.json，内部 unlock 的 accounts.json 写入不受影响，路径真实落盘。
+
+**验证**：fmt 干净 / clippy 0 / solosoul-core 153（+1）全绿。
+
 ## R-5 修复记录（2026-08-03）
 
 **修复方案**：P231（window.open 移除）的 `settings:link_open_failed` 缺失 locale key——英文 UI 回退到 defaultValue 中文「无法打开链接」。已在 zh-CN/en-US settings.json 的 `github_repo` 旁补入：中文「无法打开链接」/ 英文「Failed to open link」。defaultValue 中文兜底保留作双重保险。
@@ -390,12 +400,12 @@
 | R-1 | ✅ 已修复 | `crates/solosoul-vault/src/storage.rs:1494-1502` | **trash_items 残留 P110 同构缺陷已闭环**（2026-08-03 提交，见下方修复记录）：新增 `list_trash_changes_since_limited` SQL 级 keyset（LEFT JOIN sync_hlc + (有效 HLC, t.id) 全序 + 等值组尾部放行），通用分页路径不再对 trash 走「严格 > + take(limit)」 |
 | R-2 | ✅ 已修复 | `crates/solosoul-vault/src/storage.rs:1914` | **秒/毫秒错配已修复**（2026-08-03 提交，见下方修复记录）：`from_timestamp` 按毫秒解释 deleted_at、测试写入单位对齐、回归测试锁定回退 HLC wall == deleted_at 毫秒值 |
 | R-3 | 低 | `solosoul-sync/src/session.rs:487` | N-1 已声明残余：会话中断后内存游标丢失，等值 HLC 组尾部未发记录被永久跳过（窄窗口：等值组 >100 且至少一页已 ack 后崩溃）。解法：页游标并入 peer watermark 持久化 |
-| R-4 | 低 | `solosoul-core/src/vault_service.rs:769-790` | N-2 已声明残余：① reencrypt commit 后、config 写完前进程崩溃 → 永久"Invalid password"（毫秒级窗口，彻底解需 journal/双 config）；② 磁盘满等共同根因下回滚级联失败可致 config 截断（回滚失败应并入上抛错误文案）；③ 回滚助手无失败注入测试 |
+| R-4 | ✅ 已修复（②③） | `solosoul-core/src/vault_service.rs:769-790` | ②③ 已闭环（2026-08-03 提交，见下方修复记录）：回滚助手返回 Result，调用方并入「automatic rollback FAILED」上抛文案 + toggleable mock fs 失败注入测试；①（reencrypt commit 后进程崩溃的毫秒级窗口）仍为已声明长期改进（需 config journal/双 config） |
 | R-5 | ✅ 已修复 | AboutPage.tsx:485-491 | P231 的 `settings:link_open_failed` locale key 已补入 zh-CN/en-US（2026-08-03 提交，见下方修复记录） |
 
 ## 结论
 
 1. **本轮 16 项：15 ✅ + 1 ⚠️（仅 locale 小项）**，N-1/N-2 两个关键修复的核心逻辑均正确且有真实回归测试。
 2. **高危项 R-1 已闭环**：trash_items 同构缺陷（删除 >100 对象页面 → 剩余回收站条目永久不同步）已 keyset 化修复，回归测试 ×2（见下方 R-1 修复记录）。**R-2 秒/毫秒错配也已闭环**（见下方 R-2 修复记录）。
-3. R-3/R-4 均为修复人已声明的窄窗口，属可接受的工程取舍，建议登记长期改进（watermark 持久化游标、config journal）。
+3. **R-4 的②③已闭环**（回滚失败上抛文案 + 失败注入测试）；R-4①（reencrypt commit 后进程崩溃的毫秒级窗口）与 R-3 属已声明的窄窗口长期改进（watermark 持久化游标、config journal）——R-3 立案评估见下方 R-3 决策记录。
 4. 至此报告全部可执行项已闭环：70 项首轮验证 + 16 项二轮验证，仅剩 P133-P135（破坏性删除暂缓）、P223/P224（长期重构，修复人已声明留待迭代）为有意保留项。
