@@ -24,7 +24,7 @@
 - **审计问题清单共 80 项**（P001-P007、P101-P142、P201-P231）。
 - **80 项问题全部闭环**（78 项可执行修复 + P133 用户决策接入 + P134 用户决策门控 + P135 用户决策反向接入 + **N-10/P207 路径 1 公钥注入闭环**），其中 P104/P206 为部分修复/部分保留，P209 为用户决策保留。
 - **遗留未完成/待跟进 4 类**（§4 详细讨论）：
-  1. **P223/P224**：长函数/巨型组件长期重构（唯一进行中工作项，§4.1 详述；**P224-①②③④⑤ TrashDetailPanel/SyncPage/TemplateManagerPage/AboutPage/OcrPage 与 P223-② objects/trash/snapshots 域均已于 2026-08-03 完成拆分** `bc395973`/`8c74253c`/`2bdc5fdd`/`084cfdd0`/`fd70cc77`/`005fbfdf`/`ae030551`/`ad244d7c`）；
+  1. **P223/P224**：长函数/巨型组件长期重构（唯一进行中工作项，§4.1 详述；**P224-①②③④⑤ TrashDetailPanel/SyncPage/TemplateManagerPage/AboutPage/OcrPage 与 P223-② objects/trash/snapshots/sync_meta 域均已于 2026-08-03 完成拆分** `bc395973`/`8c74253c`/`2bdc5fdd`/`084cfdd0`/`fd70cc77`/`005fbfdf`/`ae030551`/`ad244d7c`/`22e1a20f`）；
   2. **R-3/R-4①**：已声明残余窗口（§4.2，低风险工程取舍）；
   3. **P209**：legacy XOR 迁移窗口保留（§4.3，决策保留）；
   4. **P206**：PDF embed 与 object-src CSP 遗留观察（§4.4，待核实）。
@@ -141,7 +141,7 @@
 | P220 | ✅ | 2 处未用 React 导入 + 1 处失效 eslint-disable 删除，基线 lint warning 清零 |
 | P221 | ✅ | 13 项死函数/类型删除（delta/transport/noise/pdfium/template_service/vault_file_system/profile/storage），按调用图逐项核验 |
 | P222 | ✅ | 25 处 pub 可见性收敛 + 1 处死项删除，消费关系一致 |
-| P223 | ⏸（② objects/trash/snapshots 已闭环） | 长函数长期重构——**storage.rs 表域拆分已完成三域**：objects 域抽至 `src/storage/objects.rs`（15 方法，7922→7293 行，`005fbfdf`）+ trash 域抽至 `src/storage/trash.rs`（7 方法，7296→7033 行，`ae030551`）+ snapshots 域抽至 `src/storage/snapshots.rs`（11 方法，7034→6589 行，`ad244d7c`）；host.rs 分簇与 lib.rs 收尾见 §4.1 |
+| P223 | ⏸（② objects/trash/snapshots/sync_meta 已闭环） | 长函数长期重构——**storage.rs 表域拆分已完成四域**：objects 域抽至 `src/storage/objects.rs`（15 方法，7922→7293 行，`005fbfdf`）+ trash 域抽至 `src/storage/trash.rs`（7 方法，7296→7033 行，`ae030551`）+ snapshots 域抽至 `src/storage/snapshots.rs`（11 方法，7034→6589 行，`ad244d7c`）+ sync_meta 域抽至 `src/storage/sync_meta.rs`（22 方法，6589→6170 行，`22e1a20f`）；host.rs 分簇与 lib.rs 收尾见 §4.1 |
 | P224 | ⏸（①②③④⑤已闭环） | 巨型组件长期重构——**① TrashDetailPanel**（1282→313 + TrashDetailSections 575 + TrashSnapshotView 526，`bc395973`）、**② SyncPage**（848→276 + ConflictPanel 76 + PairingPanel 135 + DeviceListPanel 440 + SyncHistoryPanel 143，`8c74253c`）、**③ TemplateManagerPage**（810→328 + useTemplateEditor hook 371 + TemplateListSection 198 + TemplateEditorModal 100 + SampleGallerySection 50，`2bdc5fdd`）、**④ AboutPage**（738→195 + UpdateInfoCard 331 + LinksCard 75 + LegalFooter 19 + MandatoryUpdateOverlay 249，`084cfdd0`）与 **⑤ OcrPage**（738→385 + ScanDropZone 127 + OcrResultList 170 + OcrScanSettingsPanel 203，`fd70cc77`）全部完成，等价重构零行为变更 |
 | P225 | ✅ | 四大簇收敛（行解密闭包/unlock 共享前缀/PIN 凭证写入/附件源路径解析）；唯一错误文案前缀变化（Search→Object）确认无消费方 |
 | P226 | ✅ | 三对前端组件收敛为 4 个共享组件（净 -236 行），微差均已声明核实 |
@@ -176,9 +176,9 @@
 
 ### 4.1 P223/P224：长函数与巨型组件长期重构（唯一未完成工作项）
 
-**定位**：原报告明确「结构性拆分建议随功能迭代顺带、不单独安排修复轮次」——维持该定位。两轮复核（2026-08-02~03）未发现新增阻断缺陷，本版补齐**当前实测数据**与**逐文件分解预案**，供后续迭代直接取用。**进度**：P224-① TrashDetailPanel（`bc395973`）、P224-② SyncPage（`8c74253c`）、P224-③ TemplateManagerPage（`2bdc5fdd`）、P224-④ AboutPage（`084cfdd0`）、P224-⑤ OcrPage（`fd70cc77`）（分别见 4.1.2 ①-⑤）与 P223-② objects/trash/snapshots 域（`005fbfdf`/`ae030551`/`ad244d7c`，见 4.1.1 ②）均已于 2026-08-03 完成拆分。
+**定位**：原报告明确「结构性拆分建议随功能迭代顺带、不单独安排修复轮次」——维持该定位。两轮复核（2026-08-02~03）未发现新增阻断缺陷，本版补齐**当前实测数据**与**逐文件分解预案**，供后续迭代直接取用。**进度**：P224-① TrashDetailPanel（`bc395973`）、P224-② SyncPage（`8c74253c`）、P224-③ TemplateManagerPage（`2bdc5fdd`）、P224-④ AboutPage（`084cfdd0`）、P224-⑤ OcrPage（`fd70cc77`）（分别见 4.1.2 ①-⑤）与 P223-② objects/trash/snapshots/sync_meta 域（`005fbfdf`/`ae030551`/`ad244d7c`/`22e1a20f`，见 4.1.1 ②）均已于 2026-08-03 完成拆分。
 
-#### 4.1.1 P223 Rust 长函数（实测：host.rs 1711 / storage.rs 6589（已拆 objects/trash/snapshots 域）+ objects.rs 653 + trash.rs 281 + snapshots.rs 467 / lib.rs 649）
+#### 4.1.1 P223 Rust 长函数（实测：host.rs 1711 / storage.rs 6170（已拆 objects/trash/snapshots/sync_meta 域）+ objects.rs 653 + trash.rs 281 + snapshots.rs 467 + sync_meta.rs 438 / lib.rs 649）
 
 **① `crates/solosoul-plugin/src/host.rs`（1711 行）——主拆分对象**
 
@@ -207,7 +207,7 @@
   |----|-----------|----------|-----------|
   | 基础/连接/迁移 | 178-505 | `open` / `init_schema` / `migrate_to_encrypted_format` / `reencrypt_all` / `lock` | 留 storage.rs 根（VaultStore 结构体 + SQL 常量 + 建表/迁移） |
   | Profile | 978-1064 | `save_profile(_tx)` / `load` / `delete` / `list` | `profile.rs` |
-  | HLC + Peer 水印 | 1065-1482 | `record_hlc_or_fallback` / peer state / watermark / tombstone | `sync_meta.rs` |
+  | HLC + Peer 水印 | ✅ 1068-1486（已拆） | `record_hlc_or_fallback` / peer state / watermark / tombstone | **`sync_meta.rs`（已实施 `22e1a20f`）** |
   | 同步变更清单 | 1483-2060 | `list_sync_changes_since(_paginated)` ×4 表域 + keyset | `sync_changes.rs` |
   | 同步应用/冲突 | 2061-2501 | `apply_sync_records_batch` / conflicts / `hard_delete` | `sync_apply.rs` |
   | 对象 | ✅ 2526-3186（已拆） | `list_objects` / `list_object_metadata` / `save_object(_tx)` / `search` | **`objects.rs`（已实施 `005fbfdf`）** |
@@ -233,7 +233,12 @@
   - **边界决策**：`normalize_details_text` 有意留在根模块（仅被审计日志域 `log_structured` 3100 调用，非快照域方法）；跨域助手（`data_key()`/`get_sys_config`/`set_sys_config`/objects 域 `load_object`/`save_object`/模板域 `load_user_template`）均为固有方法或 storage 子树内可见，经 self. 直接调用。
   - 测试零改动：根测试模块直接调用全部 pub 快照方法（返回类型在签名中全限定，无需类型导入）。
   - **验证**：逐行保留性 diff 0 行丢失 / fmt 干净 / clippy 0 警告 / solosoul-vault 123 测试全绿 / workspace + CLI check 0 错误 / code-reviewer GO。
-- **产出（实测校准）**：7922 行 → 6589 根 + 653 objects + 281 trash + 467 snapshots 模块；后续 6 域各 300-900 行。
+- **✅ sync_meta 域实施（2026-08-03，`22e1a20f`）——同步元数据域抽至 `src/storage/sync_meta.rs`**：
+  - 22 个方法（HLC 读写 `get|set_record_hlc(_tx)`/`record_hlc_or_fallback` + Peer 状态 `save|load_peer_state`/`list_peers`/`set_peer_trusted`/`delete_peer` + 水印 `update_peer_watermark(_with_cursor)`/`get_peer_watermark_cursor`/`get_peer_watermark` + 墓碑 `new_tombstone|local_hlc`/`max_hlc_wall_time_for_node`/`record_tombstone`/`list_tombstones_since` + `hlc_after_watermark`）逐行搬运，storage.rs 6589→6170 行。
+  - **最高耦合域实证：12 个跨域私有助手提 `pub(crate)`**（隐私只向下可见，父模块必须 pub(crate) 才能访问子模块私有）——根模块 sync_changes（`record_hlc_or_fallback`/`parse_time_ms`/`list_tombstones_since`/`hlc_after_watermark`）、sync-apply（`get|set_record_hlc_tx`/`set_record_hlc`/`local_node_id`/`new_tombstone|local_hlc`/`record_tombstone`）、delete_profile 与模板删除（`record_tombstone`）跨域复用；`max_hlc_wall_time_for_node` 仅域内调用保持私有；9 个 pub API 可见性不变（solosoul-sync/CLI 跨 crate 调用）。
+  - 共享常量经 `super::` 引用（HLC_GET_SQL/HLC_SET_SQL）；域内自调用（`record_tombstone`→`set_record_hlc`）pub(crate) 自洽。
+  - **验证**：逐行保留性 diff 0 行丢失（12 处差异全为 pub(crate) 提升签名 + fmt 换行）/ fmt 干净 / clippy 0 警告 / solosoul-vault 123 测试全绿 / workspace + CLI check 0 错误 / code-reviewer GO。
+- **产出（实测校准）**：7922 行 → 6170 根 + 653 objects + 281 trash + 467 snapshots + 438 sync_meta 模块；后续 5 域各 300-900 行。
 - **收益**：后续 P109/P110/P213 类同步/对象性能优化与表结构变更的 diff 面缩小约 10×；`reencrypt_all`（740-972）等重函数随迁移收编。
 
 **③ `src-tauri/src/lib.rs`（649 行）——已基本达标，仅收尾**
@@ -302,12 +307,12 @@
 2. **防回归测试**：前端拆分后跑 `npx tsc --noEmit` + `npx eslint` + `npx vitest run`（现 55 文件 484 用例全绿为基线）；Rust 拆分后跑 `cargo fmt --check` + `cargo clippy --workspace --all-targets` + `cargo test --workspace`（现 675+ 全绿为基线）。目标：**拆分前后测试零变化**。
 3. **执行顺序建议（风险隔离从高到低）**：
    - 试点：✅ **P224-① TrashDetailPanel**（`bc395973`，2026-08-03 完成）→ 前端拆分节奏已确立；
-   - 其次：✅ **P223-② storage.rs 表域拆分**（`005fbfdf` objects 域试点 + `ae030551` trash 域 + `ad244d7c` snapshots 域，2026-08-03 完成 → 模式已确立，下一域 sync_meta/metadata 按此推进）；
+   - 其次：✅ **P223-② storage.rs 表域拆分**（`005fbfdf` objects 域试点 + `ae030551` trash 域 + `ad244d7c` snapshots 域 + `22e1a20f` sync_meta 域，2026-08-03 完成 → 模式已确立，下一域 sync_changes/sync_apply/metadata 按此推进）；
    - 然后：✅ **P224-② SyncPage 四面板**（`8c74253c`）、✅ **P224-④ AboutPage 四面板**（`084cfdd0`）与 ✅ **P224-⑤ OcrPage 三面板**（`fd70cc77`，均 2026-08-03 完成）→ 编排层 + 数据经 hook/props 透传模式已确立；
    - 最后：✅ **P224-③ TemplateManagerPage（hook + 三面板）**（`2bdc5fdd`，2026-08-03 完成，状态密集型拆分节奏已确立）→ 剩余 P223-① host.rs 分簇与 P223-③ lib.rs（已达标，收尾项）。
 4. **产出约束**：每个拆分**单独 commit**（一项一提交），commit message 注明「纯移动/等价重构」；本报告 §3 归档表随拆分补充新行。
 
-**当前建议**：不单独安排修复轮次；**P224-①②③④⑤ 与 P223-②（objects/trash/snapshots）已完成**（`bc395973`/`8c74253c`/`2bdc5fdd`/`084cfdd0`/`fd70cc77`/`005fbfdf`/`ae030551`/`ad244d7c`），剩余前端巨型组件清零；下次触碰任一文件时按上述预案顺带执行，优先 P223-② 下一域（sync_meta/metadata）与 P223-① host.rs 分簇。
+**当前建议**：不单独安排修复轮次；**P224-①②③④⑤ 与 P223-②（objects/trash/snapshots/sync_meta）已完成**（`bc395973`/`8c74253c`/`2bdc5fdd`/`084cfdd0`/`fd70cc77`/`005fbfdf`/`ae030551`/`ad244d7c`/`22e1a20f`），剩余前端巨型组件清零；下次触碰任一文件时按上述预案顺带执行，优先 P223-② 下一域（sync_changes/sync_apply/metadata）与 P223-① host.rs 分簇。
 
 ### 4.2 已声明残余窗口：R-3 / R-4①
 
@@ -342,7 +347,7 @@
 
 1. **审计闭环状态**：80 项问题**全部闭环**并经两轮独立复核（70 项首轮 + 16 项二轮补验 + P133/P134/P135 三项用户决策处置）验证，测试用例较修复前净增 60+；**所有 N/R 项复核发现均已闭环**。
 2. **遗留未完成/待跟进 4 类**（本报告 §4）：
-   - **P223/P224**：长函数/巨型组件长期重构（唯一进行中工作项，§4.1 含逐文件分解预案与执行顺序）；不单独安排修复轮次，随功能迭代顺带执行。**P224-①②③④⑤ TrashDetailPanel/SyncPage/TemplateManagerPage/AboutPage/OcrPage（`bc395973`/`8c74253c`/`2bdc5fdd`/`084cfdd0`/`fd70cc77`）与 P223-② objects/trash/snapshots 域（`005fbfdf`/`ae030551`/`ad244d7c`）已完成**，当前优先 P223-② 下一域（sync_meta/metadata）与 P223-① host.rs 分簇。
+   - **P223/P224**：长函数/巨型组件长期重构（唯一进行中工作项，§4.1 含逐文件分解预案与执行顺序）；不单独安排修复轮次，随功能迭代顺带执行。**P224-①②③④⑤ TrashDetailPanel/SyncPage/TemplateManagerPage/AboutPage/OcrPage（`bc395973`/`8c74253c`/`2bdc5fdd`/`084cfdd0`/`fd70cc77`）与 P223-② objects/trash/snapshots/sync_meta 域（`005fbfdf`/`ae030551`/`ad244d7c`/`22e1a20f`）已完成**，当前优先 P223-② 下一域（sync_changes/sync_apply/metadata）与 P223-① host.rs 分簇。
    - **R-3/R-4①**：已声明残余窗口，可接受工程取舍，登记长期改进（等值组尾部回扫 / config journal，见 §4.2）。
    - **P209**：legacy XOR 迁移窗口保留，建议下个大版本发布后评估关闭（见 §4.3）。
    - **P206**：PDF embed 与 object-src CSP 遗留观察，待附件预览路径核实后决策（见 §4.4）。
