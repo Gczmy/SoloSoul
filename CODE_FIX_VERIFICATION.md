@@ -56,6 +56,16 @@
 
 **已声明残余限制**：会话**中断**（断网/崩溃/退出）时，已持久化水印停在等值组最大值而页游标丢失，重启以 NULL 游标重查会跳过三元组 == 水印的组尾行（at-least-once 缺口）。需同时满足「会话中断」+「在飞等 ms 组」才触发；修复前每次同步都丢/循环，属严格改善。后续可把页游标 id 并入 peer watermark 持久化彻底关闭。
 
+## N-11 修复记录（2026-08-03）
+
+**修复方案**：P120/P122 期望的错误态/重试 UI——失败不再与「无数据」同态。
+
+1. **ExportImportPage.tsx（P120）**：新增 `scopeError` state。`loadScope` 失败时记录错误消息，渲染分支改为三态：`scopeLoaded && scopeError` → 错误占位 Card（图标 + 文案 `export_scope_load_failed` + 具体错误 + `common:retry` 按钮重新 `loadScope`）；`scopeLoaded` → 正常导出树；否则不渲染。用户不再看到「空导出范围」误以为数据丢失。新增 `Card`/`Button`/`ICON_SIZE` 导入。
+2. **TrashPage.tsx（P122）**：新增 `detailError: { trashId, message }` state。`openDetail` 失败时记录失败态（保留原 trashId 供重试），渲染时若 `detailError && !detailItem` 显示错误占位 Card + 重试按钮（`onClick={() => openDetail(detailError.trashId)}`）；面板关闭时同步清空错误态。详情面板正常路径与既有组件复用不变。
+3. 文案复用既有 `common:retry` 与 N-7 已入 locale 的 `export_scope_load_failed`/`trash_detail_load_failed`，无新增 key。
+
+**验证**：tsc 0 错误 / eslint 2 文件 0 警告 / settings 目录 vitest 9 用例全绿。
+
 ## N-10 暂缓决策记录（2026-08-03）
 
 **现状（已实现，待接线）**：
@@ -303,13 +313,13 @@
 | N-8 | ✅ 已修复 | App/index.tsx:91、lib/notification.ts:50 | P129 残余已闭环：两处直写③收敛到导出的 `syncPlaintextPref`（2026-08-03 提交，见下方修复记录） |
 | N-9 | ✅ 已修复 | src/lib/ipc.test.ts:116-145 | P205 残余已闭环：Crypto 块整体移除（2026-08-03 提交，见下方修复记录） |
 | N-10 | ⏸ 暂缓（用户决策） | commands/embed_model.rs:18 | P207 残余：minisign 公钥未注入，默认构建防护未激活——**决策记录：2026-08-03 用户选择暂缓**，具体细节与关闭条件见下方「N-10 暂缓决策记录」 |
-| N-11 | 低 | ExportImportPage.tsx:152-161、TrashPage.tsx:243-251 | P120/P122 期望的错误态/重试 UI 未实现，失败与"无数据"同态 |
+| N-11 | ✅ 已修复 | ExportImportPage.tsx:152-161、TrashPage.tsx:243-251 | P120/P122 期望的错误态/重试 UI 已实现（2026-08-03 提交，见下方修复记录） |
 
 ## 结论与建议
 
 1. **修复质量整体很高**：60/70 项完全正确，去重类（G 组 8 项）与性能类（E 组）全部 ✅，多数修复带防回归测试；测试用例较修复前净增 52 个。
 2. **N-1/N-2/N-3/N-4 已于 2026-08-03 修复并提交**（见上方修复记录）：N-1 keyset 分页替代 OFFSET、回退行 SQL 精确过滤、会话层节点编码对齐（残余的「会话中断时等值组尾部跳过」缺口已声明，建议后续把页游标 id 并入 peer watermark 持久化彻底关闭）；N-2 `reencrypt_all` 事务化全有或全无 + config 前置备份 + 写失败自动回滚（评审补强：`change_password` 的 config 备份读取移至 reencrypt 之前）；N-3 llmStore.streamBuffer 接入 vault-locked 清理链（清明文 + 退订 llm-stream-chunk）；N-4 provider 登记原生确认对话框（XSS 无法点击，堵死两步绕过）+ embedding 通道发送前强制已登记校验。
-3. **⚠️ 项的残余差距均已被 commit 声明或属低危**：N-6（中危）已修复；N-7 至 N-9、N-11 为小项；**N-10 用户决策暂缓**（详见 N-10 暂缓决策记录）。
+3. **⚠️ 项的残余差距均已处理**：N-6（中危）已修复；N-7 至 N-9、N-11 已修复；**N-10 用户决策暂缓**（详见 N-10 暂缓决策记录）。N 项跟进全部关闭或登记决策。
 6. **N-5/N-6/N-7/N-8/N-9 已于 2026-08-03 修复并提交**：N-5 sha256 清单补全 tiny/medium 档（官方 HF 仓库哈希 + small 交叉验证）；N-6 `ocr_scan_mrz` 移入 spawn_blocking（P113 残余闭环）；N-7 P120/P122/P125 新增文案 key 补入 zh-CN/en-US locale；N-8 App/index.tsx 与 notification.ts 两处直写③收敛到导出的 `syncPlaintextPref`（P129 唯一写入点代码级强制）；N-9 ipc.test.ts 中针对已删命令（encrypt_bytes/decrypt_bytes/derive_key）的陈旧 mock 测试整体移除。
 4. **暂缓项决策待用户确认**：P133-P135（死模块删除）、P223/P224（结构性拆分）建议维持暂缓；P226/P228 可排入下一轮；P225 修复人正在进行中。
 5. P227/P231 提交于验证之后，未在本次审查范围内，建议下一轮补验。

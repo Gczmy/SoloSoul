@@ -72,6 +72,10 @@ export function TrashPage() {
   const [detailItem, setDetailItem] = useState<TrashDetail | null>(null);
   const [detailTemplate, setDetailTemplate] = useState<UserTemplate | null>(null);
   const [, setLoadingDetail] = useState(false);
+  // N-11: 详情加载失败态——与「无数据」区分，失败时显示错误占位 + 重试。
+  const [detailError, setDetailError] = useState<{ trashId: string; message: string } | null>(
+    null,
+  );
   const getTemplate = useTemplateStore((s) => s.getTemplate);
 
   const [confirmAction, setConfirmAction] = useState<TrashConfirmAction | null>(null);
@@ -230,6 +234,7 @@ export function TrashPage() {
   const openDetail = useCallback(
     async (trashId: string) => {
       setLoadingDetail(true);
+      setDetailError(null);
       try {
         const d = await invoke<TrashDetail>('trash_get_detail', { trashId: trashId });
         setDetailItem(d);
@@ -246,6 +251,11 @@ export function TrashPage() {
         onError(e, t('settings:trash_detail_load_failed', { defaultValue: '加载回收站详情失败' }));
         setDetailItem(null);
         setDetailTemplate(null);
+        // N-11: 记录失败态（含原 trashId 供重试），UI 不再与「无数据」同态。
+        setDetailError({
+          trashId,
+          message: typeof e === 'string' ? e : e instanceof Error ? e.message : String(e),
+        });
       } finally {
         setLoadingDetail(false);
       }
@@ -422,10 +432,50 @@ export function TrashPage() {
           <TrashDetailPanel
             detailItem={detailItem}
             detailTemplate={detailTemplate}
-            onClose={() => setDetailItem(null)}
+            onClose={() => {
+              setDetailItem(null);
+              setDetailError(null);
+            }}
             onRequestRestore={(id) => doRestore([id])}
             onRequestDelete={(id) => doDelete([id])}
           />
+        )}
+
+        {detailError && !detailItem && (
+          <Card>
+            <div
+              style={{
+                textAlign: 'center',
+                padding: '32px 24px',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                gap: 12,
+              }}
+            >
+              <Info size={ICON_SIZE['2xl']} style={{ opacity: 0.4, color: 'var(--text-tertiary)' }} />
+              <p style={{ fontSize: 'var(--text-body)', color: 'var(--text-secondary)' }}>
+                {t('settings:trash_detail_load_failed', { defaultValue: '加载回收站详情失败' })}
+              </p>
+              <p
+                style={{
+                  fontSize: 'var(--text-caption)',
+                  color: 'var(--text-tertiary)',
+                  maxWidth: 420,
+                  wordBreak: 'break-word',
+                }}
+              >
+                {detailError.message}
+              </p>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => openDetail(detailError.trashId)}
+              >
+                {t('common:retry')}
+              </Button>
+            </div>
+          </Card>
         )}
 
         {confirmAction && (

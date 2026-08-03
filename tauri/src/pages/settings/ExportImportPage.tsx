@@ -18,6 +18,9 @@ import {
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 
 import { useAuthStore } from '@/stores/authStore';
+import { Card } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { ICON_SIZE } from '@/lib/constants';
 import { ExportSection } from '@/components/export/ExportSection';
 import { ImportSection } from '@/components/import/ImportSection';
 import { ExportImportTabBar } from '@/components/settings/ExportImportTabBar';
@@ -141,9 +144,12 @@ export function ExportImportPage() {
 
   // Load scope tree
   const [scopeLoaded, setScopeLoaded] = useState(false);
+  // N-11: 加载失败态与「无数据」区分——失败时渲染错误占位 + 重试，不渲染空导出树。
+  const [scopeError, setScopeError] = useState<string | null>(null);
   const loadScope = useCallback(() => {
     if (!accountId) return;
     setScopeLoaded(false);
+    setScopeError(null);
     invoke<PageGroup[]>('export_get_scope_tree', { accountId: accountId })
       .then((groups) => {
         setPageGroups(groups);
@@ -152,11 +158,13 @@ export function ExportImportPage() {
       .catch((err) => {
         // P120: 失败不得静默——用户看到空导出范围会误以为数据丢失。
         logger.warn('[ExportImportPage] Load export scope tree failed:', err);
+        const message = resolveBackendErrorMessage(err);
         onError(
-          new Error(resolveBackendErrorMessage(err)),
+          new Error(message),
           t('settings:export_scope_load_failed', { defaultValue: '导出范围加载失败，请重试' }),
         );
         setPageGroups([]);
+        setScopeError(message);
         setScopeLoaded(true);
       });
   }, [accountId, onError, t]);
@@ -614,7 +622,31 @@ export function ExportImportPage() {
 
         <ExportImportTabBar tab={tab} onChange={setTab} />
 
-        {tab === 'export' && scopeLoaded ? (
+        {tab === 'export' && scopeLoaded && scopeError ? (
+          // N-11: 加载失败态与「空数据」同态问题——失败时显示错误占位 + 重试，
+          // 不再渲染空导出树（用户误以为数据丢失）。
+          <Card style={{ padding: '48px 24px', textAlign: 'center' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+              <Info size={ICON_SIZE['2xl']} style={{ opacity: 0.4, color: 'var(--text-tertiary)' }} />
+              <p style={{ fontSize: 'var(--text-body)', color: 'var(--text-secondary)' }}>
+                {t('settings:export_scope_load_failed', { defaultValue: '导出范围加载失败，请重试' })}
+              </p>
+              <p
+                style={{
+                  fontSize: 'var(--text-caption)',
+                  color: 'var(--text-tertiary)',
+                  maxWidth: 420,
+                  wordBreak: 'break-word',
+                }}
+              >
+                {scopeError}
+              </p>
+              <Button variant="primary" size="sm" onClick={loadScope}>
+                {t('common:retry')}
+              </Button>
+            </div>
+          </Card>
+        ) : tab === 'export' && scopeLoaded ? (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
