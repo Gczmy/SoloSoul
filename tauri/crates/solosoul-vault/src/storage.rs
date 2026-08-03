@@ -1,6 +1,6 @@
 //! Vault store - SQLite storage with app-layer AES-256-GCM encryption
 
-use rusqlite::{params, Connection, OptionalExtension};
+use rusqlite::{params, Connection};
 use std::sync::Mutex;
 use zeroize::Zeroize;
 
@@ -9,7 +9,7 @@ use crate::encryption::{
     DataEncryptionKey,
 };
 use crate::migration::run_migrations;
-use crate::{Profile, ProfileSummary, VaultConfig, VaultState, VaultStats};
+use crate::{VaultConfig, VaultState, VaultStats};
 
 // 表域拆分（P223-②）：objects 域（试点）、snapshots 域、sync_meta 域与 trash 域已抽至子模块。
 // 后续 sync_changes / sync_apply / metadata / templates 等域按此模式拆分：
@@ -17,6 +17,7 @@ use crate::{Profile, ProfileSummary, VaultConfig, VaultState, VaultStats};
 // 跨域被根模块调用的私有助手提升为 `pub(crate)`，其余保持私有。
 mod metadata;
 mod objects;
+mod profile;
 mod snapshots;
 mod sync_apply;
 mod sync_changes;
@@ -982,91 +983,6 @@ impl VaultStore {
         }
     }
 
-    pub fn save_profile(&self, profile: &Profile) -> Result<(), String> {
-        let key = self.data_key()?;
-        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
-        let conn = guard.as_mut().ok_or("Vault is locked")?;
-        Self::save_profile_tx(conn, &key, profile)
-    }
-
-    /// P115: 事务内保存 Profile（连接由调用方持有，批量应用单事务内复用）。
-    /// P213: 事务内保存 Profile（连接由调用方持有，批量应用单事务内复用）。
-    fn save_profile_tx(
-        conn: &mut Connection,
-        key: &DataEncryptionKey,
-        profile: &Profile,
-    ) -> Result<(), String> {
-        let now = chrono::Utc::now().to_rfc3339();
-        let encrypted_data = encrypt_field(key, &profile.data)?;
-        let mut stmt = conn
-            .prepare_cached(PROFILE_SAVE_SQL)
-            .map_err(|e| format!("Failed to prepare save_profile: {}", e))?;
-        stmt.execute(params![
-            profile.id,
-            profile.name,
-            encrypted_data,
-            profile.created_at.to_rfc3339(),
-            now,
-            profile.version
-        ])
-        .map_err(|e| format!("Failed to save profile: {}", e))?;
-        Ok(())
-    }
-
-    pub fn load_profile(&self, id: &str) -> Result<Option<Profile>, String> {
-        let key = self.data_key()?;
-        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
-        let conn = guard.as_mut().ok_or("Vault is locked")?;
-        let mut stmt = conn
-            .prepare_cached(PROFILE_LOAD_SQL)
-            .map_err(|e| format!("Failed to prepare: {}", e))?;
-        let result = stmt
-            .query_row(params![id], |row| {
-                let created_str: String = row.get(3)?;
-                let updated_str: String = row.get(4)?;
-                let raw_data: Vec<u8> = row.get(2)?;
-                let data = decrypt_field(&key, &raw_data).map_err(|e| {
-                    rusqlite::Error::FromSqlConversionFailure(
-                        2,
-                        rusqlite::types::Type::Blob,
-                        Box::new(std::io::Error::new(
-                            std::io::ErrorKind::InvalidData,
-                            format!("Profile decryption failed: {}", e),
-                        )),
-                    )
-                })?;
-                Ok(Profile {
-                    id: row.get(0)?,
-                    name: row.get(1)?,
-                    data,
-                    created_at: chrono::DateTime::parse_from_rfc3339(&created_str)
-                        .map(|d| d.with_timezone(&chrono::Utc))
-                        .unwrap_or_else(|_| chrono::Utc::now()),
-                    updated_at: chrono::DateTime::parse_from_rfc3339(&updated_str)
-                        .map(|d| d.with_timezone(&chrono::Utc))
-                        .unwrap_or_else(|_| chrono::Utc::now()),
-                    version: row.get(5)?,
-                })
-            })
-            .optional()
-            .map_err(|e| format!("Failed to load profile: {}", e))?;
-        Ok(result)
-    }
-
-    pub fn delete_profile(&self, id: &str) -> Result<(), String> {
-        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
-        let conn = guard.as_mut().ok_or("Vault is locked")?;
-        let affected = conn
-            .execute("DELETE FROM profiles WHERE id = ?1", params![id])
-            .map_err(|e| format!("Failed to delete: {}", e))?;
-        if affected == 0 {
-            return Err("Profile not found".to_string());
-        }
-        drop(guard);
-        self.record_tombstone("profiles", id)?;
-        Ok(())
-    }
-
     pub fn get_sync_node_id(&self) -> Result<Option<String>, String> {
         self.read_metadata("node_id", "sync")
             .map(|b| b.and_then(|v| String::from_utf8(v).ok()))
@@ -1089,34 +1005,6 @@ impl VaultStore {
 
     pub fn set_sync_secret_key(&self, key: &[u8; 32]) -> Result<(), String> {
         self.write_metadata("secret_key", "sync", key)
-    }
-
-    pub fn list_profiles(&self) -> Result<Vec<ProfileSummary>, String> {
-        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
-        let conn = guard.as_mut().ok_or("Vault is locked")?;
-        let mut stmt = conn.prepare(
-            "SELECT id, name, created_at, updated_at, version FROM profiles ORDER BY updated_at DESC"
-        ).map_err(|e| format!("Failed to prepare: {}", e))?;
-        let profiles = stmt
-            .query_map([], |row| {
-                let created_str: String = row.get(2)?;
-                let updated_str: String = row.get(3)?;
-                Ok(ProfileSummary {
-                    id: row.get(0)?,
-                    name: row.get(1)?,
-                    created_at: chrono::DateTime::parse_from_rfc3339(&created_str)
-                        .map(|d| d.with_timezone(&chrono::Utc))
-                        .unwrap_or_else(|_| chrono::Utc::now()),
-                    updated_at: chrono::DateTime::parse_from_rfc3339(&updated_str)
-                        .map(|d| d.with_timezone(&chrono::Utc))
-                        .unwrap_or_else(|_| chrono::Utc::now()),
-                    version: row.get(4)?,
-                })
-            })
-            .map_err(|e| format!("Failed to query: {}", e))?
-            .collect::<Result<Vec<_>, _>>()
-            .map_err(|e| format!("Failed to collect: {}", e))?;
-        Ok(profiles)
     }
 }
 
