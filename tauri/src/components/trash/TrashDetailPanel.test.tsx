@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeAll, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { initReactI18next } from 'react-i18next';
-import { SnapshotDataView } from './TrashDetailPanel';
-import type { SnapshotDataViewProps } from './TrashDetailPanel';
+import { SnapshotDataView } from './TrashSnapshotView';
+import type { SnapshotDataViewProps } from './TrashSnapshotView';
 import type { UserTemplate } from '@/types/template';
 import i18n from '@/lib/i18n';
 
