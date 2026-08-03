@@ -17,15 +17,14 @@
 | `cargo fmt --check` | ✅ 通过 | ✅ 通过 |
 | `cargo clippy --workspace --all-targets` | ✅ 零警告 | ✅ 零警告 |
 | 前端测试 | ✅ 46 文件 / 430 用例 | ✅ 55 文件 / 484 用例（较修复前 +54） |
-| Rust 测试 | ✅ 全部通过 | ✅ 全部通过（solo_soul 361 / core 156（默认；`future-keychain` 开启时 +4）/ crypto 34 / plugin 56 / sync 47 / vault 123） |
+| Rust 测试 | ✅ 全部通过 | ✅ 全部通过（solo_soul 364 / core 156（默认；`future-keychain` 开启时 +4）/ crypto 34 / plugin 56 / sync 47 / vault 123） |
 
 ## §2 总览：80 项问题处置结果
 
 - **审计问题清单共 80 项**（P001-P007、P101-P142、P201-P231）。
-- **80 项问题全部闭环**（78 项可执行修复 + P133 用户决策接入 + P134 用户决策门控 + P135 用户决策反向接入），其中 P104/P206 为部分修复/部分保留，P209 为用户决策保留。
-- **遗留未完成 2 类**（§4 详细讨论）：
-  1. **N-10 / P207 残余**：Embedding 注册表 minisign 公钥未注入，默认构建防护未激活（⏸ 用户决策暂缓）。
-  2. **P223/P224**：长函数/巨型组件长期重构（有意留待迭代）。
+- **80 项问题全部闭环**（78 项可执行修复 + P133 用户决策接入 + P134 用户决策门控 + P135 用户决策反向接入 + **N-10/P207 路径 1 公钥注入闭环**），其中 P104/P206 为部分修复/部分保留，P209 为用户决策保留。
+- **遗留未完成 1 类**（§4 详细讨论）：
+  1. **P223/P224**：长函数/巨型组件长期重构（有意留待迭代）。
 - 另有两项「有意保留但需后续跟进」记录在案：P209（legacy XOR 迁移窗口）、P206 遗留观察（PDF embed 与 CSP）。
 
 ## §3 已通过复核项归档（清理版）
@@ -64,7 +63,7 @@
 | P204 | ✅ | session key/派生主密钥 Zeroizing 包裹，语义不变 |
 | P205 | ✅* | `commands/crypto.rs` 整文件删除，命令面彻底清除；N-9 清理 ipc.test.ts 陈旧 mock 测试 |
 | P206 | ✅* | frame-src `data:` 移除（零 iframe）；style-src `'unsafe-inline'` 结构性保留（227+ 处内联 style，P048 级重构才可移除），残留风险被无 innerHTML + markdown 净化压制。**遗留观察**（PDF embed 与 object-src，见 §4.6） |
-| P207 | ✅*（⏸ N-10） | minisign 校验逻辑已实现 + 7 条真实签名测试；**公钥未注入，默认构建防护未激活**——N-10 用户决策暂缓，详见 §4.1 |
+| P207 | ✅（N-10 已闭环） | minisign 校验逻辑 + **独立专用公钥已注入**（`EMBED_REGISTRY_PUBKEY_B64`，与 updater 密钥隔离）+ 真实签名端到端防漂移测试；签名防护正式激活，详见 §4.1 |
 | P208 | ✅ | WASI stdio 改默认空槽黑洞，插件输出收敛到 Consent 约束的 host 通道 |
 | P209 | ✅（决策保留） | LEGACY_XOR_KEY 仅用于 <2.0 旧凭证一键迁移，零写入面；用户决策保留，关闭条件见 §4.5 |
 | P229 | ✅ | `isSafeExternalUrl` 显式白名单（http/https/mailto/相对路径），javascript:/data: 等变体全覆盖，4 组 7 断言 |
@@ -157,7 +156,7 @@
 | N-7 locale key | 9687ab71 | ✅ | P120/P122/P125 新增 4 key 双语补齐 |
 | N-8 直写③收敛 | cda265d0 | ✅ | `syncPlaintextPref` 导出强制，两处迁移行为等价 |
 | N-9 陈旧测试 | 07d84276 | ✅ | 已删命令 mock 测试移除 |
-| N-10 P207 暂缓 | 430fc912 | ⏸ | 纯文档记录决策 + 关闭条件；**未完成项，见 §4.1** |
+| N-10 P207 闭环 | 70e766ee | ✅ | 路径 1（真实公钥）实施：专用密钥对 + registry/minisig/zip 托管主仓库 + 公钥注入 + 3 防漂移测试，见 §4.1 |
 | N-11 失败态/重试 UI | 87a6507c | ✅ | 两处错误占位 Card + 重试，三态可区分 |
 | R-1 trash keyset | 5fc032cb | ✅ | trash_items 表 SQL 级 keyset 分页，消除 P110 同构缺陷，回归测试 ×2 |
 | R-2 秒/毫秒错配 | 40b5ecd9 | ✅ | `list_trash_changes_since` 按毫秒解释 deleted_at，回归测试锁定 wall == deleted_at ms |
@@ -169,55 +168,27 @@
 
 ## §4 未完成项详细讨论
 
-> 本节为合并版报告的核心内容。按影响面排序：N-10（安全面，暂缓待决策）→ P135（死模块处置）→ P223/P224（长期重构）→ 已声明残余窗口（R-3/R-4①）→ 有意保留记录（P209/P206 遗留观察）。
+> 本节为合并版报告的核心内容。按影响面排序：N-10（安全面，已闭环）→ P135（死模块处置）→ P223/P224（长期重构）→ 已声明残余窗口（R-3/R-4①）→ 有意保留记录（P209/P206 遗留观察）。
 
-### 4.1 N-10 / P207 残余：Embedding 注册表 minisign 公钥注入（⏸ 暂缓待决策）
+### 4.1 N-10 / P207：Embedding 注册表 minisign 公钥注入 —— ✅ 已闭环（2026-08-03，路径 1）
 
-**核心位置**：`tauri/src-tauri/src/commands/embed_model.rs`
+**用户决策**：实施路径 1（真实公钥）——生成**独立专用密钥对**（与 Tauri updater 密钥 `~/.tauri/secret.key` 隔离，避免单点信任域扩张）；**不新建仓库/组织**，registry + 签名 + 模型 zip 托管于主仓库现有 `resources/models/` 目录（raw.githubusercontent 直接可下载）。
 
-#### 4.1.1 现状（已实现，待接线）
+**修复内容**：
 
-| 组件 | 状态 |
+| 组件 | 改动 |
 |------|------|
-| `EMBED_REGISTRY_PUBKEY_B64: Option<&str> = None`（:17 编译期常量） | ⚠️ 空 |
-| 运行时环境变量 `SOLOSOUL_EMBED_REGISTRY_PUBKEY`（:62，优先级高于常量） | ✅ 已支持 |
-| `fetch_registry()`（:42）——配置公钥 → 拉 `{REGISTRY_URL}.minisig` → `verify_registry_signature` 硬校验，失败即 Err；未配置 → `tracing::warn!` 按旧行为继续（:77） | ✅ 逻辑完整 |
-| `verify_registry_signature`（:89，解耦网络层） | ✅ 7 条真实 ED 签名单测全绿 |
-| CI/构建脚本注入 env | ❌ 全仓库零命中 |
-| `REGISTRY_URL` = `https://raw.githubusercontent.com/SoloSoul/models/main/registry.json`（:11） | 同通道下发 registry.json + `.minisig` + `download_url`/`checksum` |
+| 密钥体系 | `cargo tauri signer generate` 生成专用密钥对（key_id `3C233881DD7399DE`）；私钥 `/tmp/solosoul-embed-sign/embed-registry.key` 待迁移离线保管（commit message 已注明再签名流程：`cargo tauri signer sign -f <key> -p '' registry.json`） |
+| `embed_model.rs` | `REGISTRY_URL` → `https://raw.githubusercontent.com/Gczmy/SoloSoul/main/tauri/src-tauri/resources/models/registry.json`；`EMBED_REGISTRY_PUBKEY_B64`：`None` → `Some("RWTemXPdgTgjPGuPgRxV+e3ng0NH2lgS8HzRbmi0XSlyjYXKI6zGkvXD")`——配置公钥后校验失败即硬失败，**签名防护正式激活** |
+| `.gitignore` | `models/*` → `**/models/*`（任意层级前缀，`models/*` 只匹配 .gitignore 所在目录的 models/，无法匹配 `resources/models/`）+ 白名单 `!**/models/registry.json` / `.minisig` / `*.zip`（onnx 仍忽略；git add -n 确认恰好 3 文件入库） |
+| 资源入库 | `resources/models/registry.json`（all-MiniLM-L6-v2，download_url 指向同仓库 zip，checksum `sha256:2d07de44...baca4e`）、`registry.json.minisig`（tauri signer 输出，**外层 base64 解包为明文 minisign 格式**——`Signature::decode` 需要明文 untrusted comment + base64 行结构）、`all-MiniLM-L6-v2.zip`（16MB，顶层 model.onnx+tokenizer.json+config.json，与 `download_model` 解压结构一致） |
+| 测试 | 新增 3 条：`test_real_registry_signature_end_to_end`（读实际 registry+minisig+编译期公钥真实验证；篡改注册表/换公钥/坏签名均拒绝）、`test_compiled_public_key_is_valid_minisign`（公钥+签名可解析）、`test_committed_zip_checksum_matches_registry`（zip sha256 与 registry checksum 一致性，评审建议防 zip/registry 漂移） |
 
-**结论**：默认构建下公钥为空、无注入，**签名防护未激活**——注册表 JSON 与 `download_url`/`checksum` 仍同通道明文下发，仅告警不拦截。
+**关键兼容性结论**（决定发布链路可行性的核心）：tauri signer 产出 **ED 前缀（Blake2b 预哈希）签名**；`minisign_verify::verify(data, sig, false)` 的第三参数是 **`allow_legacy`** 而非 prehashed 标志——签名 `is_prehashed=true` 时自动 Blake2b 数据再验证，与既有 `sign_data` 测试助手（ED+Blake2b）模式逐字一致，故真实签名路径与已测试路径完全吻合。
 
-#### 4.1.2 与插件注册表的关键模式差异（决定关闭路径的关键）
+**验证**：fmt 干净 / workspace check 0 / clippy workspace 0 / embed_model 21 测试全绿 / solo_soul 364 全绿；**远程全链路实测**：raw.githubusercontent 三文件（registry/minisig/zip）可下载，zip sha256 与 registry checksum 一致，minisig 格式（ED 前缀、key_id `de9973dd8138233c`）与编译期公钥匹配。提交 `70e766ee` 已推送。
 
-插件注册表（`crates/solosoul-plugin/src/registry.rs` + `src-tauri/src/lib.rs:260`）与 Embedding 注册表**行为不对称**：
-
-- **插件注册表**：公钥未配置（`SOLOSOUL_REGISTRY_PUBKEY` 缺失）时**跳过远程更新**，使用 **bundled 本地 `registry.json`**（随包携带 `SoloSoul_plugin_market/registry.json`，registry.rs:54-55）——公钥缺失天然降级为「本地静态源」，**无远程信任链缺口**（fail-closed）。
-- **Embedding 注册表**：**无 bundled 兜底**，公钥缺失时 warn-and-continue 走远程——信任链缺口在公钥未配置期间**实际存在**（fail-open）。
-
-这是 N-10 暂缓决策中「与插件注册表不同，Embedding 注册表无 bundled 本地兜底」的代码级依据，也是关闭条件 3 的落点。
-
-#### 4.1.3 威胁模型与残余风险（与 P104 的叠加缓解）
-
-理论攻击链：仓库被攻破 / DNS 劫持 / TLS 证书链被攻破 → 替换 `registry.json` 与匹配 checksum → 诱导下载被篡改的 ONNX 模型（随后被原生 `ort` 加载执行）。
-
-**但 P104 提供了关键叠加缓解**：内置 `PINNED_MODEL_SHA256` 三档 12 文件清单（下载后强制比对，与 registry 声明的 checksum 无关）——即使 registry 被替换，**已知三档模型字节仍被内置清单约束**，攻击者只能让用户下载「合法字节」或无法通过校验。残余暴露面收窄到：registry 引入**清单外的新模型条目**（新档位/新 id）且 P104 校验未覆盖的情形。
-
-**当前风险等级：低**。`download_url`/`checksum` 受 HTTPS 传输层 + P104 内置清单双重约束；同通道风险仅在仓库/DNS/证书链被攻破**且**攻击者能引入清单外条目时暴露。
-
-#### 4.1.4 三条关闭路径详细对比
-
-| 路径 | 做法 | 优点 | 代价/前提 | 行为变化 |
-|------|------|------|-----------|----------|
-| **1. 维护者提供真实公钥**（最终解） | 在 `EMBED_REGISTRY_PUBKEY_B64` 填入 SoloSoul/models 维护者持有的 minisign 公钥（或设 env） | 零运行时行为变化；与插件注册表同模式 | 需建立 minisign 签名体系（生成密钥对、私钥离线保管、发布流程签名 registry.json）；公钥是维护者秘密，无法凭空编造 | 无（仅防护从「未激活」变「激活」） |
-| **2. 构建时注入接线**（过渡） | `option_env!("SOLOSOUL_EMBED_REGISTRY_PUBKEY")` 编译期注入 + CI（`ci_cd.yml`/`build_macos_release.sh`/`build_windows_release.sh`）透传 `${{ secrets.EMBED_REGISTRY_PUBKEY }}` + 维护者操作文档 | 无需改默认常量；发布构建由 CI 注入、本地开发走运行时 env 两全 | 需维护 CI secret；`option_env!` 固化在编译产物中，公钥轮换需重新构建；本质仍是路径 1 的前置步骤 | 无（防护在 CI 配置后激活） |
-| **3. bundled 兜底 + fail-closed**（最对齐哲学） | 将当前三档模型清单固化为随包 `registry.json`（数据源可直接取 `PINNED_MODEL_SHA256`）；未配置公钥时**跳过远程拉取**用本地兜底 | 与插件注册表行为完全对齐；零知识/本地优先哲学最一致；彻底消除公钥缺失期的信任链缺口 | 行为变化最大：未配置公钥时不再拉取远程注册表，新模型更新需随应用版本发布 | 未配置公钥时从「远程拉取」变「本地兜底」（fail-closed） |
-
-#### 4.1.5 建议
-
-1. **路径 3（bundled 兜底 + fail-closed）可在下一个发布周期实施**——它以现有 `PINNED_MODEL_SHA256` 为数据源、代码量小、行为与插件注册表对齐，且**不需要等待维护者私钥**即可把「未配置期」的信任链缺口关闭（这是唯一不依赖外部密钥的闭环路径）。
-2. **路径 1 随签名体系就绪随时激活**（一行常量 + 发布流程）；路径 2 作为中间态的 CI 接线。
-3. 在此之前维持暂缓登记，风险等级「低」由 P104 叠加缓解支撑。
+**已声明取舍**（评审确认）：① 主仓库体积 +16MB（zip 随版本演进，用户决策接受）；② 私钥在 /tmp 待迁移离线保管（操作事项非代码问题）；③ e2e 测试的维护负担（每次更新 registry.json 需重新签名）已在测试注释中明示。
 
 ### 4.2 死模块处置（P133/P134/P135 全部闭环）
 
@@ -335,14 +306,14 @@
 ## §5 结论与后续建议
 
 1. **审计闭环状态**：80 项问题**全部闭环**并经两轮独立复核（70 项首轮 + 16 项二轮补验 + P133/P134/P135 三项用户决策处置）验证，测试用例较修复前净增 60+；**所有 N/R 项复核发现均已闭环**。
-2. **遗留未完成 2 类**（本报告 §4）：
-   - N-10/P207（公钥注入）：建议下一发布周期实施**路径 3（bundled 兜底 + fail-closed）**——唯一不依赖外部密钥即可关闭缺口的路径；路径 1（真实公钥）随签名体系就绪随时激活。
+2. **遗留未完成 1 类**（本报告 §4）：
    - P223/P224：长期重构，建议从 `TrashDetailPanel`（P224）与 storage.rs 按表域拆分（P223）开始，沿用 P048/P217 的等价重构 + 防回归测试先例。
    - R-3/R-4① 残余：可接受工程取舍，登记长期改进（等值组尾部回扫 / config journal，见 §4.4）。
+   - N-10/P207 已于 2026-08-03 按路径 1 闭环（独立专用公钥注入 + 托管 + 防漂移测试，见 §4.1）——此前建议的路径 3（bundled 兜底）不再需要（公钥已就绪）。
 3. **验证指针**：本报告 §3 归档表含全部修复 commit（`f1970c67` 起，N/R 项见 §3.2）；完整修复细节与两轮验证记录在 git 历史中可追溯。
 
 ## §6 测试基线参考（当前 HEAD）
 
 - 前端：tsc 0 错误 / eslint 0 警告 / vitest 55 文件 484 用例全绿。
-- Rust：`cargo fmt --check` 通过 / `cargo clippy --workspace --all-targets` 零警告 / `cargo test --workspace` 全绿（solo_soul 361、core 156 默认（`future-keychain` 开启时 +4）、crypto 34、plugin 56、sync 47、vault 123）；`solosoul_cli` cargo check 0 错误。
+- Rust：`cargo fmt --check` 通过 / `cargo clippy --workspace --all-targets` 零警告 / `cargo test --workspace` 全绿（solo_soul 364、core 156 默认（`future-keychain` 开启时 +4）、crypto 34、plugin 56、sync 47、vault 123）；`solosoul_cli` cargo check 0 错误。
 - 工作区干净，当前分支 `main` 与 `origin/main` 同步。
