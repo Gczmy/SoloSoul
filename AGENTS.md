@@ -217,6 +217,15 @@ export PATH="$HOME/.rustup/toolchains/stable-aarch64-apple-darwin/bin:$PATH"
 
 **`gen/schemas/` 注意：**`tauri/src-tauri/gen/schemas/` 下的 ACL schema 文件由构建按目标平台重新生成，macOS/Android 构建会互相覆盖。该目录已被 `.gitignore` 忽略且不再被 git 跟踪，跨平台构建后的覆盖属正常现象，**无需也不应提交**。
 
+#### 签名密钥（本机保管，不入库）
+
+| 用途 | 位置 | 说明 |
+|------|------|------|
+| Tauri updater 签名 | `~/SoloSoul/signing/tauri-updater/secret.key`（+`.pub`） | Release 包 `.sig` 签名。构建脚本默认读取（`docs/build_macos_release.sh`、`docs/sign_artifacts.sh`），可被环境变量 `TAURI_SIGNING_PRIVATE_KEY` 覆盖；公钥同步于 `tauri/src-tauri/tauri.conf.json` 的 `plugins.updater.pubkey` |
+| Embedding 注册表签名 | `~/SoloSoul/signing/embed-registry/embed-registry.key`（+`.pub`、`registry.json`、`registry.json.minisig`） | N-10/P207 专用密钥对（key_id `3C233881DD7399DE`，与 updater 密钥隔离）。更新 `tauri/src-tauri/resources/models/registry.json` 后须用其重新签名并同步 `.minisig`：`cargo tauri signer sign -f <key> -p '' registry.json` |
+
+> 2026-08-03 从 `~/.tauri/` 与 `/tmp/solosoul-embed-sign/` 迁入 `~/SoloSoul/signing/`，目录 700 / 私钥 600。密钥**不入库**，泄露即伪造签名，请离线备份。
+
 ### Rust Workspace（Tauri）
 
 ```bash

@@ -145,7 +145,7 @@ if [[ ! -d "${PDFIUM_DIR}" || -z "$(find "${PDFIUM_DIR}" -maxdepth 1 -type f 2>/
 fi
 
 # 解析 Tauri 自动更新器签名密钥
-TAURI_KEY_FILE="${HOME}/.tauri/secret.key"
+TAURI_KEY_FILE="${HOME}/SoloSoul/signing/tauri-updater/secret.key"
 if [[ -z "${TAURI_SIGNING_PRIVATE_KEY:-}" && -f "${TAURI_KEY_FILE}" ]]; then
     log_info "从 ${TAURI_KEY_FILE} 读取 Tauri 签名私钥"
     TAURI_SIGNING_PRIVATE_KEY=$(cat "${TAURI_KEY_FILE}")
@@ -271,10 +271,10 @@ log_info "Created ${APP_TAR_OUTPUT}"
 # DMG 仅用于手动安装，不需要 updater 签名；只有 .app.tar.gz 需要。
 log_step "Signing updater archive..."
 if [[ -z "${TAURI_SIGNING_PRIVATE_KEY:-}" ]]; then
-    log_error "未设置 TAURI_SIGNING_PRIVATE_KEY，且未找到 ~/.tauri/secret.key"
+    log_error "未设置 TAURI_SIGNING_PRIVATE_KEY，且未找到 ${HOME}/SoloSoul/signing/tauri-updater/secret.key"
     log_error "请设置环境变量：export TAURI_SIGNING_PRIVATE_KEY='...'"
-    log_error "或生成并保存密钥到 ~/.tauri/secret.key："
-    log_error "  cd tauri && npx tauri signer generate -w ~/.tauri/secret.key"
+    log_error "或生成并保存密钥到 ${HOME}/SoloSoul/signing/tauri-updater/secret.key："
+    log_error "  cd tauri && npx tauri signer generate -w ${HOME}/SoloSoul/signing/tauri-updater/secret.key"
     log_error "然后将公钥更新到 tauri/src-tauri/tauri.conf.json 的 updater.pubkey"
     exit 1
 fi

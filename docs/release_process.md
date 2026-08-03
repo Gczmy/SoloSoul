@@ -38,17 +38,17 @@ bash tauri/scripts/download-pdfium.sh
 
 应用内「检查更新」依赖 Tauri Updater，要求 Release 包附带 Ed25519 签名文件（`.sig`）以及 `latest.json`。构建前必须配置私钥。
 
-本项目默认将私钥保存在 Mac 构建机的：
+本项目默认将私钥保存在本机 `/Users/zzc/SoloSoul/`（不入库）：
 
 ```
-~/.tauri/secret.key
-~/.tauri/secret.key.pub
+~/SoloSoul/signing/tauri-updater/secret.key
+~/SoloSoul/signing/tauri-updater/secret.key.pub
 ```
 
 构建脚本会自动从该位置读取（无密码），也可手动导出为环境变量：
 
 ```bash
-export TAURI_SIGNING_PRIVATE_KEY="$(cat ~/.tauri/secret.key)"
+export TAURI_SIGNING_PRIVATE_KEY="$(cat ~/SoloSoul/signing/tauri-updater/secret.key)"
 ```
 
 > 私钥 **绝对不要** 提交到 Git。建议同时备份到密码管理器或 CI Secrets（GitHub Secret 名：`TAURI_SIGNING_PRIVATE_KEY`）。
@@ -57,7 +57,7 @@ export TAURI_SIGNING_PRIVATE_KEY="$(cat ~/.tauri/secret.key)"
 
 ```bash
 cd tauri
-npx tauri signer generate -w ~/.tauri/secret.key
+npx tauri signer generate -w ~/SoloSoul/signing/tauri-updater/secret.key
 ```
 
 生成后会输出公钥，将其更新到 `tauri/src-tauri/tauri.conf.json`：
@@ -295,7 +295,7 @@ cd /path/to/SoloSoul
 ./docs/sign_artifacts.sh
 ```
 
-脚本会读取 `~/.tauri/secret.key`（或环境变量 `TAURI_SIGNING_PRIVATE_KEY`），为 `SoloSoul-Releases/` 中的 `.dmg`、`.exe` 和 `.AppImage` 生成同名 `.sig` 文件。
+脚本会读取 `~/SoloSoul/signing/tauri-updater/secret.key`（或环境变量 `TAURI_SIGNING_PRIVATE_KEY`），为 `SoloSoul-Releases/` 中的 `.dmg`、`.exe` 和 `.AppImage` 生成同名 `.sig` 文件。
 
 > Android AAB 签名由 Gradle 构建时完成，不需要在此步骤额外签名。
 

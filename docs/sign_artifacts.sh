@@ -14,7 +14,7 @@
 # 默认产物目录: ./SoloSoul-Releases
 # 私钥读取优先级:
 #   1. TAURI_SIGNING_PRIVATE_KEY 环境变量
-#   2. ~/.tauri/secret.key
+#   2. ~/SoloSoul/signing/tauri-updater/secret.key
 # ============================================================
 
 set -euo pipefail
@@ -55,14 +55,14 @@ log_info "版本号: ${VERSION}"
 log_info "产物目录: ${ARTIFACTS_DIR}"
 
 # --- 解析签名私钥 ---
-TAURI_KEY_FILE="${HOME}/.tauri/secret.key"
+TAURI_KEY_FILE="${HOME}/SoloSoul/signing/tauri-updater/secret.key"
 if [[ -z "${TAURI_SIGNING_PRIVATE_KEY:-}" && -f "${TAURI_KEY_FILE}" ]]; then
     log_info "从 ${TAURI_KEY_FILE} 读取 Tauri 签名私钥"
     TAURI_SIGNING_PRIVATE_KEY=$(cat "${TAURI_KEY_FILE}")
 fi
 
 if [[ -z "${TAURI_SIGNING_PRIVATE_KEY:-}" ]]; then
-    log_error "未设置 TAURI_SIGNING_PRIVATE_KEY，且未找到 ~/.tauri/secret.key"
+    log_error "未设置 TAURI_SIGNING_PRIVATE_KEY，且未找到 ${HOME}/SoloSoul/signing/tauri-updater/secret.key"
     log_error "请在 macOS 上配置私钥后重试。"
     exit 1
 fi

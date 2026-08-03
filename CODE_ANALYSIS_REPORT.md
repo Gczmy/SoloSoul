@@ -172,13 +172,13 @@
 
 ### 4.1 N-10 / P207：Embedding 注册表 minisign 公钥注入 —— ✅ 已闭环（2026-08-03，路径 1）
 
-**用户决策**：实施路径 1（真实公钥）——生成**独立专用密钥对**（与 Tauri updater 密钥 `~/.tauri/secret.key` 隔离，避免单点信任域扩张）；**不新建仓库/组织**，registry + 签名 + 模型 zip 托管于主仓库现有 `resources/models/` 目录（raw.githubusercontent 直接可下载）。
+**用户决策**：实施路径 1（真实公钥）——生成**独立专用密钥对**（与 Tauri updater 密钥 `~/SoloSoul/signing/tauri-updater/secret.key`（原 `~/.tauri/secret.key`，2026-08-03 迁入 `~/SoloSoul/signing/`）隔离，避免单点信任域扩张）；**不新建仓库/组织**，registry + 签名 + 模型 zip 托管于主仓库现有 `resources/models/` 目录（raw.githubusercontent 直接可下载）。
 
 **修复内容**：
 
 | 组件 | 改动 |
 |------|------|
-| 密钥体系 | `cargo tauri signer generate` 生成专用密钥对（key_id `3C233881DD7399DE`）；私钥 `/tmp/solosoul-embed-sign/embed-registry.key` 待迁移离线保管（commit message 已注明再签名流程：`cargo tauri signer sign -f <key> -p '' registry.json`） |
+| 密钥体系 | `cargo tauri signer generate` 生成专用密钥对（key_id `3C233881DD7399DE`）；私钥已迁至本机 `~/SoloSoul/signing/embed-registry/embed-registry.key`（2026-08-03 统一迁入 `~/SoloSoul/signing/`，目录 700 / 私钥 600，不入库；再签名流程：`cargo tauri signer sign -f <key> -p '' registry.json`） |
 | `embed_model.rs` | `REGISTRY_URL` → `https://raw.githubusercontent.com/Gczmy/SoloSoul/main/tauri/src-tauri/resources/models/registry.json`；`EMBED_REGISTRY_PUBKEY_B64`：`None` → `Some("RWTemXPdgTgjPGuPgRxV+e3ng0NH2lgS8HzRbmi0XSlyjYXKI6zGkvXD")`——配置公钥后校验失败即硬失败，**签名防护正式激活** |
 | `.gitignore` | `models/*` → `**/models/*`（任意层级前缀，`models/*` 只匹配 .gitignore 所在目录的 models/，无法匹配 `resources/models/`）+ 白名单 `!**/models/registry.json` / `.minisig` / `*.zip`（onnx 仍忽略；git add -n 确认恰好 3 文件入库） |
 | 资源入库 | `resources/models/registry.json`（all-MiniLM-L6-v2，download_url 指向同仓库 zip，checksum `sha256:2d07de44...baca4e`）、`registry.json.minisig`（tauri signer 输出，**外层 base64 解包为明文 minisign 格式**——`Signature::decode` 需要明文 untrusted comment + base64 行结构）、`all-MiniLM-L6-v2.zip`（16MB，顶层 model.onnx+tokenizer.json+config.json，与 `download_model` 解压结构一致） |
