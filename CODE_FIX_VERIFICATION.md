@@ -56,6 +56,22 @@
 
 **已声明残余限制**：会话**中断**（断网/崩溃/退出）时，已持久化水印停在等值组最大值而页游标丢失，重启以 NULL 游标重查会跳过三元组 == 水印的组尾行（at-least-once 缺口）。需同时满足「会话中断」+「在飞等 ms 组」才触发；修复前每次同步都丢/循环，属严格改善。后续可把页游标 id 并入 peer watermark 持久化彻底关闭。
 
+## N-10 暂缓决策记录（2026-08-03）
+
+**现状（已实现，待接线）**：
+
+- `fetch_registry` 的 minisign 签名校验逻辑**已完整实现**（embed_model.rs）：公钥优先级 `SOLOSOUL_EMBED_REGISTRY_PUBKEY` 环境变量 > 编译期常量 `EMBED_REGISTRY_PUBKEY_B64`；配置公钥后拉取 `registry.json.minisig` 并硬校验、失败即拒；`verify_registry_signature` 解耦网络层，7 条防回归单测全绿（合法签名接受 / 破坏 global sig 拒绝 / 篡改数据拒绝 / 密钥不匹配拒绝 / 坏公钥 base64 / 垃圾签名文本 / 空公钥）。
+- **缺口**：`EMBED_REGISTRY_PUBKEY_B64` 仍为 `None`，且无任何 CI/构建脚本注入 env——**默认构建下防护未激活（仅 warn，注册表 JSON 与 download_url/checksum 仍同通道明文下发）**。与插件注册表不同，Embedding 注册表无 bundled 本地兕底，故未配置公钥时按旧行为继续（避免功能不可用）。
+
+**暂缓理由（用户 2026-08-03 决策）**：公钥是 SoloSoul/models 仓库维护者持有的秘密（对应私钥），无法凭空编造；填入错误/占位公钥反而制造「已签名」的虚假安全感。暂缓等待维护者正式签名体系就绪。
+
+**关闭条件（满足其一即可闭环）**：
+1. 维护者提供真实公钥 → 填入 `EMBED_REGISTRY_PUBKEY_B64` 常量（或设 env）；或
+2. 实现「构建时注入接线」：`option_env!` 编译期注入 + CI/release 脚本透传 `SOLOSOUL_EMBED_REGISTRY_PUBKEY` + 维护者操作文档；或
+3. 增加 bundled 本地兕底注册表后改「未配置即跳过远程拉取」（fail-closed，同插件注册表）。
+
+**当前风险等级**：低——`download_url`/`checksum` 仍受 HTTPS 传输层保护，且校验逻辑就绪可随时激活；同通道风险仅在仓库被攻破或 DNS/证书链被攻破时暴露。
+
 ## N-9 修复记录（2026-08-03）
 
 **修复方案**：P205 残余——ipc.test.ts 中针对已删命令的陈旧 mock 测试。
@@ -286,14 +302,14 @@
 | N-7 | ✅ 已修复 | ExportImportPage/TrashPage/DebugLogPage | P120/P122/P125 新增文案 key 已入 zh-CN/en-US locale（2026-08-03 提交，见下方修复记录） |
 | N-8 | ✅ 已修复 | App/index.tsx:91、lib/notification.ts:50 | P129 残余已闭环：两处直写③收敛到导出的 `syncPlaintextPref`（2026-08-03 提交，见下方修复记录） |
 | N-9 | ✅ 已修复 | src/lib/ipc.test.ts:116-145 | P205 残余已闭环：Crypto 块整体移除（2026-08-03 提交，见下方修复记录） |
-| N-10 | 低 | commands/embed_model.rs:18 | P207 残余：minisign 公钥未注入，默认构建防护未激活 |
+| N-10 | ⏸ 暂缓（用户决策） | commands/embed_model.rs:18 | P207 残余：minisign 公钥未注入，默认构建防护未激活——**决策记录：2026-08-03 用户选择暂缓**，具体细节与关闭条件见下方「N-10 暂缓决策记录」 |
 | N-11 | 低 | ExportImportPage.tsx:152-161、TrashPage.tsx:243-251 | P120/P122 期望的错误态/重试 UI 未实现，失败与"无数据"同态 |
 
 ## 结论与建议
 
 1. **修复质量整体很高**：60/70 项完全正确，去重类（G 组 8 项）与性能类（E 组）全部 ✅，多数修复带防回归测试；测试用例较修复前净增 52 个。
 2. **N-1/N-2/N-3/N-4 已于 2026-08-03 修复并提交**（见上方修复记录）：N-1 keyset 分页替代 OFFSET、回退行 SQL 精确过滤、会话层节点编码对齐（残余的「会话中断时等值组尾部跳过」缺口已声明，建议后续把页游标 id 并入 peer watermark 持久化彻底关闭）；N-2 `reencrypt_all` 事务化全有或全无 + config 前置备份 + 写失败自动回滚（评审补强：`change_password` 的 config 备份读取移至 reencrypt 之前）；N-3 llmStore.streamBuffer 接入 vault-locked 清理链（清明文 + 退订 llm-stream-chunk）；N-4 provider 登记原生确认对话框（XSS 无法点击，堵死两步绕过）+ embedding 通道发送前强制已登记校验。
-3. **⚠️ 项的残余差距均已被 commit 声明或属低危**：N-6（中危）已修复，N-7 至 N-11 为小项。
+3. **⚠️ 项的残余差距均已被 commit 声明或属低危**：N-6（中危）已修复；N-7 至 N-9、N-11 为小项；**N-10 用户决策暂缓**（详见 N-10 暂缓决策记录）。
 6. **N-5/N-6/N-7/N-8/N-9 已于 2026-08-03 修复并提交**：N-5 sha256 清单补全 tiny/medium 档（官方 HF 仓库哈希 + small 交叉验证）；N-6 `ocr_scan_mrz` 移入 spawn_blocking（P113 残余闭环）；N-7 P120/P122/P125 新增文案 key 补入 zh-CN/en-US locale；N-8 App/index.tsx 与 notification.ts 两处直写③收敛到导出的 `syncPlaintextPref`（P129 唯一写入点代码级强制）；N-9 ipc.test.ts 中针对已删命令（encrypt_bytes/decrypt_bytes/derive_key）的陈旧 mock 测试整体移除。
 4. **暂缓项决策待用户确认**：P133-P135（死模块删除）、P223/P224（结构性拆分）建议维持暂缓；P226/P228 可排入下一轮；P225 修复人正在进行中。
 5. P227/P231 提交于验证之后，未在本次审查范围内，建议下一轮补验。
