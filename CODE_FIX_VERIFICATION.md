@@ -56,6 +56,22 @@
 
 **已声明残余限制**：会话**中断**（断网/崩溃/退出）时，已持久化水印停在等值组最大值而页游标丢失，重启以 NULL 游标重查会跳过三元组 == 水印的组尾行（at-least-once 缺口）。需同时满足「会话中断」+「在飞等 ms 组」才触发；修复前每次同步都丢/循环，属严格改善。后续可把页游标 id 并入 peer watermark 持久化彻底关闭。
 
+## N-2 修复记录（2026-08-03）
+
+**修复方案**（storage 事务化 + 调用方两阶段回滚，两处配合）：
+
+1. **storage.rs `reencrypt_all` 事务化**：
+   - 历史 bug：闭包内任一行解密/重加密失败返回 Err 时，函数仍**无条件 `tx.commit()`**——失败前已处理的行用新钥落库、失败行仍为旧钥的混态，改密/KDF 升级后账户部分数据永久不可解密。
+   - 修复：闭包结果捕获为 `let result: Result<(), String> = (|| {...})();`，随后 `match result`——Ok 才 `tx.commit()`；Err 仅记日志并返回 Err（drop tx 自动回滚，整体保持旧密钥）。
+   - 新增 `pub fn set_data_key(DataEncryptionKey)`：替换内存密钥（不改磁盘），供回滚时先读回再写回，与既有 roundtrip 测试内部手动替换行为一致。
+   - 新增回归测试 `test_reencrypt_all_failure_rolls_back`：破坏一个对象行密文（GCM 认证失败）→ 断言返回 Err、事务整体回滚（profile 仍以旧钥解密、损坏行密文字节未被写入）。
+2. **vault_service.rs 两阶段原子性（`change_password` + `unlock_with_kdf_upgrade`）**：
+   - 两阶段风险：reencrypt 成功后 config 写入失败 → 账户「数据已换新钥、config 仍记旧参数」不可用。
+   - 修复：两调用方在 reencrypt **之前**读取并解析旧 config（备份 + 校验）；config 写失败时调用新助手 `rollback_reencrypt_and_config`——恢复旧 config 内容 → `set_data_key(new)` → `reencrypt_all(new, old)` 重加密回旧钥 → `set_data_key(old)`，保持账户一致可用（当前会话未换钥，回滚后继续以旧钥工作），随后上抛失败原因。
+   - **评审补强**：`change_password` 的 config 备份读取原置于 reencrypt 之后（读取失败会留下混态），已移至 reencrypt 之前与 `unlock_with_kdf_upgrade` 一致；回滚错误文案改为「已尝试自动回滚」避免过度承诺。
+
+**验证**：fmt 干净 / clippy 0 / solosoul-vault 118（+1）+ solosoul-core 152 全绿 / workspace + CLI check 0 错误。
+
 ## 逐项判定表
 
 ### P0 安全（A 组）
@@ -184,7 +200,7 @@
 | 编号 | 严重度 | 位置 | 问题 |
 |------|--------|------|------|
 | N-1 | ✅ 已修复 | storage.rs:1613-1639 + delta.rs:68 | P110 引入的同步永久停滞已闭环（keyset 分页 + 回退行 SQL 精确过滤 + 会话层节点编码对齐，2026-08-03 提交，见下方修复记录）；残余：会话中断时等值组尾部 at-least-once 缺口（已声明） |
-| N-2 | 高 | storage.rs:952-953 | `reencrypt_all` 闭包失败仍无条件 commit（历史 bug），P003 将其暴露面扩大到每次旧账户解锁；另 reencrypt→config 两阶段非原子可致账户不可用 |
+| N-2 | ✅ 已修复 | storage.rs:952-953 + vault_service.rs | `reencrypt_all` 无条件 commit 与 reencrypt→config 两阶段非原子已闭环（事务化 reencrypt + config 前置备份 + 写失败自动回滚，2026-08-03 提交，见下方修复记录） |
 | N-3 | 中 | stores/llmStore.ts:16 | streamBuffer 未纳入 vault-locked 清理链，流式中锁定残留解密明文 |
 | N-4 | 中 | commands/llm/provider.rs:62 | P102 残余：provider 注册门禁可两步绕过；embedding 通道发送时无 URL 校验 |
 | N-5 | 中 | commands/ocr.rs:800-813 | P104 残余：sha256 清单仅 small 档，tiny/medium 下载无哈希校验（commit 已自认） |
@@ -198,7 +214,7 @@
 ## 结论与建议
 
 1. **修复质量整体很高**：60/70 项完全正确，去重类（G 组 8 项）与性能类（E 组）全部 ✅，多数修复带防回归测试；测试用例较修复前净增 52 个。
-2. **N-1 已于 2026-08-03 修复并提交**（见上方修复记录）：keyset 分页替代 OFFSET、回退行 SQL 精确过滤、会话层节点编码对齐，附 3 个回归测试；残余的「会话中断时等值组尾部跳过」缺口已声明，建议后续把页游标 id 并入 peer watermark 持久化彻底关闭。N-2 建议顺手修（一行级改动消除最坏场景）。
+2. **N-1 与 N-2 已于 2026-08-03 修复并提交**（见上方修复记录）：N-1 keyset 分页替代 OFFSET、回退行 SQL 精确过滤、会话层节点编码对齐（残余的「会话中断时等值组尾部跳过」缺口已声明，建议后续把页游标 id 并入 peer watermark 持久化彻底关闭）；N-2 `reencrypt_all` 事务化全有或全无 + config 前置备份 + 写失败自动回滚（评审补强：`change_password` 的 config 备份读取移至 reencrypt 之前）。
 3. **⚠️ 项的残余差距均已被 commit 声明或属低危**，可按优先级排期：N-3/N-4/N-5/N-6 为中危跟进项，N-7 至 N-11 为小项。
 4. **暂缓项决策待用户确认**：P133-P135（死模块删除）、P223/P224（结构性拆分）建议维持暂缓；P226/P228 可排入下一轮；P225 修复人正在进行中。
 5. P227/P231 提交于验证之后，未在本次审查范围内，建议下一轮补验。

@@ -762,6 +762,33 @@ impl VaultService {
         Ok(())
     }
 
+    /// N-2：reencrypt→config 两阶段失败回滚。reencrypt_all 成功后若 config 写入失败，
+    /// 账户会处于“数据已换新钥、config 仍记旧参数”的不可用态。本方法恢复旧 config，
+    /// 并在调用方持有的同一 VaultStore 上切换内存密钥为新钥读回数据、再重加密回旧钥，
+    /// 保持账户一致可用。best-effort：任一步失败仅记录日志。
+    fn rollback_reencrypt_and_config(
+        &self,
+        account_id: &str,
+        vault: &VaultStore,
+        old_config_content: &[u8],
+        old_key: &solosoul_vault::DataEncryptionKey,
+        new_key: &solosoul_vault::DataEncryptionKey,
+    ) {
+        // 1) 恢复旧 config（盐/参数/verify_hash 与旧密钥一致）
+        if let Err(e) = self
+            .fs
+            .write_file(&self.config_path_rel(account_id), old_config_content)
+        {
+            tracing::error!("N-2 rollback: failed to restore config: {}", e);
+        }
+        // 2) 数据重加密回旧密钥：同一 store 先切内存密钥为新钥读回，再以旧钥写回
+        vault.set_data_key(new_key.clone());
+        if let Err(e) = vault.reencrypt_all(new_key, old_key) {
+            tracing::error!("N-2 rollback: re-encrypt back to old key failed: {}", e);
+        }
+        vault.set_data_key(old_key.clone());
+    }
+
     /// P003：将账户 KDF 参数透明升级到生产档并重加密整个 Vault。
     ///
     /// 仅在 `unlock` 成功验证密码后调用（release 构建、存储参数低于生产档时）。
@@ -792,31 +819,29 @@ impl VaultService {
             .map_err(|_| "Key derivation output must be 32 bytes".to_string())?;
         let new_key_enc = solosoul_vault::DataEncryptionKey::new(new_key_arr);
 
-        // 用旧密钥打开 Vault 并重加密全部数据。
-        {
-            let account_dir_path = self
-                .fs
-                .local_path(&self.account_dir_rel(account_id))
-                .ok_or("无法解析账户本地目录")?;
-            let vault_config =
-                VaultConfig::new(account_id, account_dir_path).with_data_key(old_key_arr);
-            let vault = VaultStore::open(vault_config)
-                .map_err(|e| format!("Failed to open vault for KDF upgrade: {}", e))?;
-            vault.reencrypt_all(&old_key, &new_key_enc)?;
-        }
-
-        // 更新 config：新 salt、新 verify hash、生产参数。
-        // 注意：reencrypt_all 在事务内执行（失败整体回滚，数据保持旧密钥），
-        // config 写入在其后。与 change_password 的既有顺序一致——若 reencrypt 成功
-        // 但 config 写入失败，账户会处于"数据已换新钥、config 仍记旧参数"的不可用态，
-        // 此窗口极小且与既有改密流程风险对等，故保持该顺序。
+        // N-2：备份旧 config——reencrypt 成功后若 config 写入失败，恢复旧 config 并
+        // 把数据重加密回旧密钥，避免“数据已换新钥、config 仍记旧参数”的账户不可用态。
         let config_rel = self.config_path_rel(account_id);
-        let content = self
+        let old_config_content = self
             .fs
             .read_file(&config_rel)
             .map_err(|_| "Account not found".to_string())?;
-        let content =
-            String::from_utf8(content).map_err(|_| "Config encoding error".to_string())?;
+
+        // 用旧密钥打开 Vault 并重加密全部数据。
+        // N-2：reencrypt_all 事务内全有或全无（任一行失败整体回滚，数据保持旧密钥）。
+        let account_dir_path = self
+            .fs
+            .local_path(&self.account_dir_rel(account_id))
+            .ok_or("无法解析账户本地目录")?;
+        let vault_config =
+            VaultConfig::new(account_id, account_dir_path).with_data_key(old_key_arr);
+        let vault = VaultStore::open(vault_config)
+            .map_err(|e| format!("Failed to open vault for KDF upgrade: {}", e))?;
+        vault.reencrypt_all(&old_key, &new_key_enc)?;
+
+        // 更新 config：新 salt、新 verify hash、生产参数。
+        let content = String::from_utf8(old_config_content.clone())
+            .map_err(|_| "Config encoding error".to_string())?;
         let mut config: AccountConfig =
             serde_json::from_str(&content).map_err(|_| "Config parse error".to_string())?;
         config.crypto_version = 3; // P2-010: HKDF-based verify hash
@@ -831,7 +856,20 @@ impl VaultService {
         config.kdf_iterations = Some(new_kdf_config.iterations);
         config.kdf_parallelism = Some(new_kdf_config.parallelism);
         let config_json = serde_json::to_string_pretty(&config).map_err(|e| e.to_string())?;
-        self.fs.write_file(&config_rel, config_json.as_bytes())?;
+        if let Err(e) = self.fs.write_file(&config_rel, config_json.as_bytes()) {
+            // N-2：config 写入失败 → 回滚（恢复旧 config + 数据重加密回旧密钥），
+            // 保持账户一致可用，并把失败原因上抛。
+            self.rollback_reencrypt_and_config(
+                account_id,
+                &vault,
+                &old_config_content,
+                &old_key,
+                &new_key_enc,
+            );
+            return Err(format!("KDF upgrade failed to update config: {}", e));
+        }
+        // 释放临时 Vault 连接，随后以新密钥重开（避免同一 DB 双连接）
+        drop(vault);
 
         // 更新会话密钥并重开 Vault（新密钥）。
         {
@@ -1017,7 +1055,20 @@ impl VaultService {
             .map_err(|_| "Key derivation output must be 32 bytes".to_string())?;
         let new_key_enc = solosoul_vault::DataEncryptionKey::new(new_key_arr);
 
-        // Re-encrypt all sensitive data with the new key.
+        // N-2：在 reencrypt 之前读取并解析旧 config（备份 + 校验）。任何读取/解析失败
+        // 都发生在数据改动之前——若失败直接返回，杜绝"数据已换新钥、config 仍记旧参数"
+        // 的混态（旧实现把读取放在 reencrypt 之后，读取失败会留下混态）。
+        let config_rel = self.config_path_rel(account_id);
+        let old_config_content = self
+            .fs
+            .read_file(&config_rel)
+            .map_err(|_| "Account not found".to_string())?;
+        let content = String::from_utf8(old_config_content.clone())
+            .map_err(|_| "Config encoding error".to_string())?;
+        let old_config: AccountConfig =
+            serde_json::from_str(&content).map_err(|_| "Config parse error".to_string())?;
+
+        // Re-encrypt all sensitive data with the new key（reencrypt_all 事务内全有或全无）。
         {
             let vault_guard = self
                 .get_vault_store()
@@ -1033,16 +1084,8 @@ impl VaultService {
                 .map_err(|e| format!("Verify HKDF failed: {}", e))?,
         );
 
-        // Update config
-        let config_rel = self.config_path_rel(account_id);
-        let content = self
-            .fs
-            .read_file(&config_rel)
-            .map_err(|_| "Account not found".to_string())?;
-        let content =
-            String::from_utf8(content).map_err(|_| "Config encoding error".to_string())?;
-        let mut config: AccountConfig =
-            serde_json::from_str(&content).map_err(|_| "Config parse error".to_string())?;
+        // 基于 reencrypt 前解析的旧 config 派生新 config。
+        let mut config = old_config;
         config.crypto_version = 3; // P2-010: HKDF-based verify hash
         config.salt =
             base64::Engine::encode(&base64::engine::general_purpose::STANDARD, salt.as_slice());
@@ -1051,7 +1094,23 @@ impl VaultService {
         config.kdf_iterations = Some(new_kdf_config.iterations);
         config.kdf_parallelism = Some(new_kdf_config.parallelism);
         let config_json = serde_json::to_string_pretty(&config).map_err(|e| e.to_string())?;
-        self.fs.write_file(&config_rel, config_json.as_bytes())?;
+        if let Err(e) = self.fs.write_file(&config_rel, config_json.as_bytes()) {
+            // N-2：config 写入失败 → 回滚（恢复旧 config + 数据重加密回旧密钥），
+            // 避免账户不可用；会话密钥尚未切换，回滚后当前会话仍以旧密钥工作。
+            if let Some(vault_guard) = self.get_vault_store() {
+                self.rollback_reencrypt_and_config(
+                    account_id,
+                    vault_guard.as_ref(),
+                    &old_config_content,
+                    &old_key,
+                    &new_key_enc,
+                );
+            }
+            return Err(format!(
+                "Password updated but config write failed: {}; an automatic rollback to the previous key was attempted.",
+                e
+            ));
+        }
 
         // Update session key and reopen vault with new data key.
         {

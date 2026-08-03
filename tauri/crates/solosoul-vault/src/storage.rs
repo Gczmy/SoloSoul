@@ -949,8 +949,29 @@ impl VaultStore {
             Ok(())
         })();
 
-        tx.commit().map_err(|e| e.to_string())?;
-        result
+        // N-2: 仅在全部解密+重加密成功时提交；任一行失败则整体回滚（丢弃 tx 触发），
+        // 避免“部分行已换新钥、失败行仍为旧钥”的混态——混态会令改密/KDF 升级后
+        // 账户部分数据永久不可解密。
+        match result {
+            Ok(()) => {
+                tx.commit().map_err(|e| e.to_string())?;
+                tracing::info!("Vault re-encryption completed successfully");
+                Ok(())
+            }
+            Err(e) => {
+                tracing::error!("Vault re-encryption failed, transaction rolled back: {}", e);
+                Err(e)
+            }
+        }
+    }
+
+    /// N-2: 替换内存中的数据加密密钥（不改写磁盘，仅影响后续读写）。
+    /// 供改密/KDF 升级回滚时先读回再写回；调用方负责保持与磁盘数据一致。
+    /// 与 `test_reencrypt_all_roundtrip` 内部手动替换行为一致。
+    pub fn set_data_key(&self, key: DataEncryptionKey) {
+        if let Ok(mut guard) = self.data_key.lock() {
+            *guard = Some(key);
+        }
     }
 
     pub fn save_profile(&self, profile: &Profile) -> Result<(), String> {
@@ -6578,6 +6599,94 @@ mod tests {
 
         let loaded_obj = vault.load_object("obj-reenc").unwrap().unwrap();
         assert_eq!(loaded_obj.properties, serde_json::json!({"k": "v"}));
+    }
+
+    // ── N-2: reencrypt_all 失败必须整体回滚 ──────────────────────────────
+    //
+    // 历史 bug：闭包内任一行解密失败返回 Err 时，函数仍无条件 tx.commit()，导致
+    // 失败前已处理的行用新钥落库、失败行仍为旧钥的混态——改密/KDF 升级后账户部分
+    // 数据永久不可解密。本测试破坏一个对象的密文（GCM 认证失败）后调用
+    // reencrypt_all，断言返回 Err 且全部数据仍以旧密钥可解密、内容不变。
+    #[test]
+    fn test_reencrypt_all_failure_rolls_back() {
+        let (vault, _dir) = setup();
+        let profile = Profile::new_with_id("reenc-roll", "Roll", b"data".to_vec());
+        vault.save_profile(&profile).unwrap();
+        vault
+            .save_object(&ObjectRecord {
+                id: "obj-roll".to_string(),
+                account_id: "acc".to_string(),
+                type_id: "note".to_string(),
+                section_type: "identity".to_string(),
+                name: "Roll".to_string(),
+                icon_name: "doc".to_string(),
+                properties: serde_json::json!({ "k": "v" }),
+                sensitivity_level: "internal".to_string(),
+                ..Default::default()
+            })
+            .unwrap();
+
+        let old_key = DataEncryptionKey::new(test_key());
+        let new_key = DataEncryptionKey::new([0x99u8; 32]);
+
+        // 破坏 obj-roll 的 properties 密文（翻转 solo: 前缀之后的字节 → GCM 认证失败）
+        {
+            let mut guard = vault.conn.lock().unwrap();
+            let conn = guard.as_mut().unwrap();
+            let raw: String = conn
+                .query_row(
+                    "SELECT properties FROM objects WHERE id = ?1",
+                    ["obj-roll"],
+                    |r| r.get(0),
+                )
+                .unwrap();
+            let mut bytes = raw.into_bytes();
+            let mid = bytes.len() / 2;
+            bytes[mid] ^= 0x01;
+            conn.execute(
+                "UPDATE objects SET properties = ?1 WHERE id = ?2",
+                params![String::from_utf8_lossy(&bytes), "obj-roll"],
+            )
+            .unwrap();
+        }
+
+        // 记录损坏后的原始密文（验证失败事务不得部分写入任何行）
+        let raw_before: String = {
+            let mut guard = vault.conn.lock().unwrap();
+            let conn = guard.as_mut().unwrap();
+            conn.query_row(
+                "SELECT properties FROM objects WHERE id = ?1",
+                ["obj-roll"],
+                |r| r.get(0),
+            )
+            .unwrap()
+        };
+
+        // 损坏行必须令 reencrypt_all 失败
+        assert!(
+            vault.reencrypt_all(&old_key, &new_key).is_err(),
+            "损坏行应导致 reencrypt_all 失败"
+        );
+
+        // 事务必须整体回滚：profile（在损坏对象之前已重加密）仍以旧密钥可解密、
+        // 内容不变——若存在“失败仍无条件 commit”的混态，profile 已被换为新钥。
+        let loaded_profile = vault.load_profile("reenc-roll").unwrap().unwrap();
+        assert_eq!(
+            loaded_profile.data, b"data",
+            "失败后 profile 仍应以旧钥解密"
+        );
+        // 损坏行的原始密文字节未被写入（整个事务回滚）
+        let raw_after: String = {
+            let mut guard = vault.conn.lock().unwrap();
+            let conn = guard.as_mut().unwrap();
+            conn.query_row(
+                "SELECT properties FROM objects WHERE id = ?1",
+                ["obj-roll"],
+                |r| r.get(0),
+            )
+            .unwrap()
+        };
+        assert_eq!(raw_after, raw_before, "失败事务不得部分写入任何行");
     }
 
     // ── Sync helpers ──────────────────────────────────────────
