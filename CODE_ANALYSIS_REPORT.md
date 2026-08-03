@@ -24,7 +24,7 @@
 - **审计问题清单共 80 项**（P001-P007、P101-P142、P201-P231）。
 - **80 项问题全部闭环**（78 项可执行修复 + P133 用户决策接入 + P134 用户决策门控 + P135 用户决策反向接入 + **N-10/P207 路径 1 公钥注入闭环**），其中 P104/P206 为部分修复/部分保留，P209 为用户决策保留。
 - **遗留未完成/待跟进 4 类**（§4 详细讨论）：
-  1. **P223/P224**：长函数/巨型组件长期重构（唯一进行中工作项，§4.1 详述；**P224-①②④⑤ TrashDetailPanel/SyncPage/AboutPage/OcrPage 与 P223-② objects/trash/snapshots 域均已于 2026-08-03 完成拆分** `bc395973`/`8c74253c`/`084cfdd0`/`fd70cc77`/`005fbfdf`/`ae030551`/`ad244d7c`）；
+  1. **P223/P224**：长函数/巨型组件长期重构（唯一进行中工作项，§4.1 详述；**P224-①②③④⑤ TrashDetailPanel/SyncPage/TemplateManagerPage/AboutPage/OcrPage 与 P223-② objects/trash/snapshots 域均已于 2026-08-03 完成拆分** `bc395973`/`8c74253c`/`2bdc5fdd`/`084cfdd0`/`fd70cc77`/`005fbfdf`/`ae030551`/`ad244d7c`）；
   2. **R-3/R-4①**：已声明残余窗口（§4.2，低风险工程取舍）；
   3. **P209**：legacy XOR 迁移窗口保留（§4.3，决策保留）；
   4. **P206**：PDF embed 与 object-src CSP 遗留观察（§4.4，待核实）。
@@ -142,7 +142,7 @@
 | P221 | ✅ | 13 项死函数/类型删除（delta/transport/noise/pdfium/template_service/vault_file_system/profile/storage），按调用图逐项核验 |
 | P222 | ✅ | 25 处 pub 可见性收敛 + 1 处死项删除，消费关系一致 |
 | P223 | ⏸（② objects/trash/snapshots 已闭环） | 长函数长期重构——**storage.rs 表域拆分已完成三域**：objects 域抽至 `src/storage/objects.rs`（15 方法，7922→7293 行，`005fbfdf`）+ trash 域抽至 `src/storage/trash.rs`（7 方法，7296→7033 行，`ae030551`）+ snapshots 域抽至 `src/storage/snapshots.rs`（11 方法，7034→6589 行，`ad244d7c`）；host.rs 分簇与 lib.rs 收尾见 §4.1 |
-| P224 | ⏸（①②④⑤已闭环） | 巨型组件长期重构——**① TrashDetailPanel**（1282→313 + TrashDetailSections 575 + TrashSnapshotView 526，`bc395973`）、**② SyncPage**（848→276 + ConflictPanel 76 + PairingPanel 135 + DeviceListPanel 440 + SyncHistoryPanel 143，`8c74253c`）、**④ AboutPage**（738→195 + UpdateInfoCard 331 + LinksCard 75 + LegalFooter 19 + MandatoryUpdateOverlay 249，`084cfdd0`）与 **⑤ OcrPage**（738→385 + ScanDropZone 127 + OcrResultList 170 + OcrScanSettingsPanel 203，`fd70cc77`）均已完成，等价重构零行为变更；③（TemplateManager）分解预案见 §4.1 |
+| P224 | ⏸（①②③④⑤已闭环） | 巨型组件长期重构——**① TrashDetailPanel**（1282→313 + TrashDetailSections 575 + TrashSnapshotView 526，`bc395973`）、**② SyncPage**（848→276 + ConflictPanel 76 + PairingPanel 135 + DeviceListPanel 440 + SyncHistoryPanel 143，`8c74253c`）、**③ TemplateManagerPage**（810→328 + useTemplateEditor hook 371 + TemplateListSection 198 + TemplateEditorModal 100 + SampleGallerySection 50，`2bdc5fdd`）、**④ AboutPage**（738→195 + UpdateInfoCard 331 + LinksCard 75 + LegalFooter 19 + MandatoryUpdateOverlay 249，`084cfdd0`）与 **⑤ OcrPage**（738→385 + ScanDropZone 127 + OcrResultList 170 + OcrScanSettingsPanel 203，`fd70cc77`）全部完成，等价重构零行为变更 |
 | P225 | ✅ | 四大簇收敛（行解密闭包/unlock 共享前缀/PIN 凭证写入/附件源路径解析）；唯一错误文案前缀变化（Search→Object）确认无消费方 |
 | P226 | ✅ | 三对前端组件收敛为 4 个共享组件（净 -236 行），微差均已声明核实 |
 
@@ -176,7 +176,7 @@
 
 ### 4.1 P223/P224：长函数与巨型组件长期重构（唯一未完成工作项）
 
-**定位**：原报告明确「结构性拆分建议随功能迭代顺带、不单独安排修复轮次」——维持该定位。两轮复核（2026-08-02~03）未发现新增阻断缺陷，本版补齐**当前实测数据**与**逐文件分解预案**，供后续迭代直接取用。**进度**：P224-① TrashDetailPanel（`bc395973`，见 4.1.2 ①）、P224-② SyncPage（`8c74253c`，见 4.1.2 ②）、P224-④ AboutPage（`084cfdd0`，见 4.1.2 ④）、P224-⑤ OcrPage（`fd70cc77`，见 4.1.2 ⑤）与 P223-② objects/trash/snapshots 域（`005fbfdf`/`ae030551`/`ad244d7c`，见 4.1.1 ②）均已于 2026-08-03 完成拆分。
+**定位**：原报告明确「结构性拆分建议随功能迭代顺带、不单独安排修复轮次」——维持该定位。两轮复核（2026-08-02~03）未发现新增阻断缺陷，本版补齐**当前实测数据**与**逐文件分解预案**，供后续迭代直接取用。**进度**：P224-① TrashDetailPanel（`bc395973`）、P224-② SyncPage（`8c74253c`）、P224-③ TemplateManagerPage（`2bdc5fdd`）、P224-④ AboutPage（`084cfdd0`）、P224-⑤ OcrPage（`fd70cc77`）（分别见 4.1.2 ①-⑤）与 P223-② objects/trash/snapshots 域（`005fbfdf`/`ae030551`/`ad244d7c`，见 4.1.1 ②）均已于 2026-08-03 完成拆分。
 
 #### 4.1.1 P223 Rust 长函数（实测：host.rs 1711 / storage.rs 6589（已拆 objects/trash/snapshots 域）+ objects.rs 653 + trash.rs 281 + snapshots.rs 467 / lib.rs 649）
 
@@ -264,11 +264,16 @@
 - **验证**：tsc 0 错误 / eslint 0 警告 / 全量 vitest 55 文件 484 用例全绿（基线不变）/ prettier 规范化；逐行保留性 diff 0 行丢失（74 处差异全为 import 再分配/doc 改写/const 行过滤伪报/prop 改名/对话框重写）；code-reviewer GO。
 - **有意视觉取舍**：同步活动卡片移至已知设备之后（设备管理聚合语义归组），无功能影响；SyncHistoryPanel 早退 null 后移除块内冗余条件（reviewer 建议）。
 
-**③ `src/pages/settings/TemplateManagerPage.tsx`（810 行）**
+**③ `src/pages/settings/TemplateManagerPage.tsx`（810 行）——✅ 已于 2026-08-03 完成拆分（`2bdc5fdd`）**
 
-- 单组件 747 行，状态密集（20+ useState/useMemo/useCallback），已复用 `DynamicGroupConfig`、`useConfirm`、模板 store。
-- **拆分方案**：抽 `TemplateListSection`（列表/搜索/过滤）、`TemplateEditorModal`（编辑器模态，含动态组/字段/废弃字段面板，编辑器内部状态随之内聚）、`SampleGalleryModal`（示例库）、`ImportExportPanel`（导入导出/复制）。主组件仅保留列表态与「打开哪个模态」。
-- 产出：747 → 主组件 ~200 行 + 4 子组件各 100-180 行。**状态内聚是难点**，编辑器相关 state 全部随模态迁移。
+- 原结构：单组件 747 行，状态密集（20+ useState/useMemo/useCallback），已复用 `DynamicGroupConfig`、`useConfirm`、模板 store；编辑器状态（20 项）与操作（字段增删改/动态组/废弃确认/命名校验）交错在页面中。
+- **拆分结果（等价重构，零行为变更，数据与回调经编排层透传）**：
+  - **`hooks/useTemplateEditor.ts`（新，371 行）**：编辑器全部状态与操作收敛（字段增删改/动态组×4/废弃字段确认/命名校验），废弃确认 `useConfirm` 随迁（渲染位置与原 `{confirmDialog}` 一致），返回含 5 个基础 setter；`removeProperty` 的废弃确认/直接删除/降级废弃三分支逐字保留。
+  - **`TemplateListSection.tsx`（新，198 行）**：搜索 + FilterChipGroup + 卡片列表 + 三态空位（加载/无模板/无筛选命中），导出 `ListTemplate`/`PageLabel` 类型（规范出处）。
+  - **`TemplateEditorModal.tsx`（新，100 行）**：Dialog + TemplateEditor 外壳，props 为 `editor: ReturnType<typeof useTemplateEditor>`（类型安全、零 prop 漂移），标题随 isNewTemplate 切换。
+  - **`SampleGallerySection.tsx`（新，50 行）**：SampleTemplateGallery + SampleTemplateDetail，`selectedSample` 为内部 state；onUse 失败保持详情打开（编排层 toast 后 rethrow，section 吞掉）与原语义逐字等价。
+  - **`TemplateManagerPage.tsx`（810→328 行）**：缩为编排层——store 选择器/启动 effect/allTemplates/resolvePageLabel/pageOptions/filteredTemplates/删除确认流/详情弹窗/示例 `handleUseSample`/AppShell actions 全部保留；`pageFilter` 变更的 `if (v)` 守卫原样保留。
+- **验证**：tsc 0 错误 / eslint 0 警告 / 全量 vitest 55 文件 484 用例全绿（基线不变）/ prettier 规范化；逐行保留性 diff 0 行丢失（24 处差异全为 prop 改名/prettier 行合并/参数改名 sample，grep 逐条核实）；code-reviewer GO（① hook 与页面各自 select 同一 store 无行为差异 ② async fn 赋 void 回调可赋 ③ confirmDialog 渲染位置一致 ④ 详情弹窗 onEdit 闭包不变）。
 
 **④ `src/pages/system/AboutPage.tsx`（738 行）——✅ 已于 2026-08-03 完成拆分（`084cfdd0`）**
 
@@ -298,11 +303,11 @@
 3. **执行顺序建议（风险隔离从高到低）**：
    - 试点：✅ **P224-① TrashDetailPanel**（`bc395973`，2026-08-03 完成）→ 前端拆分节奏已确立；
    - 其次：✅ **P223-② storage.rs 表域拆分**（`005fbfdf` objects 域试点 + `ae030551` trash 域 + `ad244d7c` snapshots 域，2026-08-03 完成 → 模式已确立，下一域 sync_meta/metadata 按此推进）；
-   - 然后：✅ **P224-② SyncPage 四面板**（`8c74253c`）、✅ **P224-④ AboutPage 四面板**（`084cfdd0`）与 ✅ **P224-⑤ OcrPage 三面板**（`fd70cc77`，均 2026-08-03 完成）→ 编排层 + 数据经 hook/props 透传模式已确立；剩余 P223-① host.rs 分簇；
-   - 最后：P224-③（TemplateManager 状态密集，剩余唯一前端巨型组件）与 P223-③ lib.rs（已达标，收尾项）。
+   - 然后：✅ **P224-② SyncPage 四面板**（`8c74253c`）、✅ **P224-④ AboutPage 四面板**（`084cfdd0`）与 ✅ **P224-⑤ OcrPage 三面板**（`fd70cc77`，均 2026-08-03 完成）→ 编排层 + 数据经 hook/props 透传模式已确立；
+   - 最后：✅ **P224-③ TemplateManagerPage（hook + 三面板）**（`2bdc5fdd`，2026-08-03 完成，状态密集型拆分节奏已确立）→ 剩余 P223-① host.rs 分簇与 P223-③ lib.rs（已达标，收尾项）。
 4. **产出约束**：每个拆分**单独 commit**（一项一提交），commit message 注明「纯移动/等价重构」；本报告 §3 归档表随拆分补充新行。
 
-**当前建议**：不单独安排修复轮次；**P224-①②④⑤ 与 P223-②（objects/trash/snapshots）已完成**（`bc395973`/`8c74253c`/`084cfdd0`/`fd70cc77`/`005fbfdf`/`ae030551`/`ad244d7c`），下次触碰任一文件时按上述预案顺带执行，优先 P223-② 下一域（sync_meta/metadata）与 P224-③（TemplateManager）。
+**当前建议**：不单独安排修复轮次；**P224-①②③④⑤ 与 P223-②（objects/trash/snapshots）已完成**（`bc395973`/`8c74253c`/`2bdc5fdd`/`084cfdd0`/`fd70cc77`/`005fbfdf`/`ae030551`/`ad244d7c`），剩余前端巨型组件清零；下次触碰任一文件时按上述预案顺带执行，优先 P223-② 下一域（sync_meta/metadata）与 P223-① host.rs 分簇。
 
 ### 4.2 已声明残余窗口：R-3 / R-4①
 
@@ -337,7 +342,7 @@
 
 1. **审计闭环状态**：80 项问题**全部闭环**并经两轮独立复核（70 项首轮 + 16 项二轮补验 + P133/P134/P135 三项用户决策处置）验证，测试用例较修复前净增 60+；**所有 N/R 项复核发现均已闭环**。
 2. **遗留未完成/待跟进 4 类**（本报告 §4）：
-   - **P223/P224**：长函数/巨型组件长期重构（唯一进行中工作项，§4.1 含逐文件分解预案与执行顺序）；不单独安排修复轮次，随功能迭代顺带执行。**P224-①②④⑤ TrashDetailPanel/SyncPage/AboutPage/OcrPage（`bc395973`/`8c74253c`/`084cfdd0`/`fd70cc77`）与 P223-② objects/trash/snapshots 域（`005fbfdf`/`ae030551`/`ad244d7c`）已完成**，当前优先 P223-② 下一域（sync_meta/metadata）与 P224-③（TemplateManager）。
+   - **P223/P224**：长函数/巨型组件长期重构（唯一进行中工作项，§4.1 含逐文件分解预案与执行顺序）；不单独安排修复轮次，随功能迭代顺带执行。**P224-①②③④⑤ TrashDetailPanel/SyncPage/TemplateManagerPage/AboutPage/OcrPage（`bc395973`/`8c74253c`/`2bdc5fdd`/`084cfdd0`/`fd70cc77`）与 P223-② objects/trash/snapshots 域（`005fbfdf`/`ae030551`/`ad244d7c`）已完成**，当前优先 P223-② 下一域（sync_meta/metadata）与 P223-① host.rs 分簇。
    - **R-3/R-4①**：已声明残余窗口，可接受工程取舍，登记长期改进（等值组尾部回扫 / config journal，见 §4.2）。
    - **P209**：legacy XOR 迁移窗口保留，建议下个大版本发布后评估关闭（见 §4.3）。
    - **P206**：PDF embed 与 object-src CSP 遗留观察，待附件预览路径核实后决策（见 §4.4）。
