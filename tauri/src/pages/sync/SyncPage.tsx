@@ -3,45 +3,20 @@ import { useTranslation } from 'react-i18next';
 import { AppShell } from '@/components/layout/AppShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { PairingDialog } from '@/components/sync/PairingDialog';
-import {
-  Smartphone,
-  Wifi,
-  WifiOff,
-  RefreshCw,
-  ShieldOff,
-  ShieldCheck,
-  ChevronDown,
-  ChevronUp,
-  QrCode,
-  ScanLine,
-} from 'lucide-react';
-import { DeleteButton } from '@/components/ui/DeleteButton';
-import { PageGuideButton } from '@/components/guide/PageGuideButton';
-import { SyncConflictDialog } from '@/components/sync/SyncConflictDialog';
-import { SyncShowQrDialog } from '@/components/sync/SyncShowQrDialog';
-import { SyncScanQrDialog } from '@/components/sync/SyncScanQrDialog';
-import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
+import { Wifi, WifiOff } from 'lucide-react';
+import { PageGuideButton } from '@/components/guide/PageGuideButton';
 import { useSyncPage } from './useSyncPage';
-import { resolveBackendErrorMessage } from '@/lib/backendError';
-import { formatPeerName } from '@/lib/syncPeer';
 import { ICON_SIZE } from '@/lib/constants';
-import type { SyncConflict } from '@/lib/ipc';
-
-function formatNodeId(bytes: number[]): string {
-  return bytes.map((b) => b.toString(16).padStart(2, '0')).join('');
-}
-
-function formatHlc(hlc: SyncConflict['local_hlc']): string {
-  return `${hlc.wall_time_ms}-${hlc.counter}-${formatNodeId(hlc.node_id)}`;
-}
+import { ConflictPanel } from './ConflictPanel';
+import { PairingPanel } from './PairingPanel';
+import { DeviceListPanel } from './DeviceListPanel';
+import { SyncHistoryPanel } from './SyncHistoryPanel';
 
 /**
  * 设备同步页：渲染编排层。
- * 状态机/事件处理器收敛于 useSyncPage hook；各卡片区块在下方内联渲染。
+ * 状态机/事件处理器收敛于 useSyncPage hook；四面板（Conflict/Pairing/DeviceList/SyncHistory）
+ * 为纯展示组件，数据与回调经本页从 useSyncPage 透传。
  */
 export function SyncPage() {
   const navigate = useNavigate();
@@ -86,6 +61,9 @@ export function SyncPage() {
   // 配对对话框目标：A 侧等待流程优先（pairingPendingPeer），否则「去配对」手动目标，否则自动检测
   const activePairPeer = pairingPendingPeer || pairTarget || pendingPeer;
   const isWaitingFlow = !!pairingPendingPeer;
+  const confirmLabel = isWaitingFlow
+    ? t('settings:sync_pairing_confirm_wait', { defaultValue: 'Confirm & Wait' })
+    : undefined;
 
   return (
     <AppShell
@@ -94,39 +72,15 @@ export function SyncPage() {
       actions={<PageGuideButton pages={syncGuidePages} />}
     >
       <PageContainer variant="xs" gap="default">
-        {/* Conflicts card */}
-        {store.conflicts.length > 0 && (
-          <Card>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div>
-                <div style={{ fontSize: 'var(--text-card-title)', fontWeight: 600 }}>
-                  {t('settings:sync_conflicts_title', { defaultValue: 'Sync Conflicts' })}
-                </div>
-                <div style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
-                  {t('settings:sync_conflicts_desc', {
-                    defaultValue: `${store.conflicts.length} unresolved conflict(s) need your attention.`,
-                  })}
-                </div>
-              </div>
-              <button
-                onClick={handleOpenConflictDialog}
-                className="interactive-danger-soft"
-                style={{
-                  padding: '8px 16px',
-                  borderRadius: 8,
-                  borderWidth: 1,
-                  borderStyle: 'solid',
-                  fontSize: 'var(--text-body-sm)',
-                  fontWeight: 500,
-                  cursor: 'pointer',
-                  fontFamily: 'inherit',
-                }}
-              >
-                {t('settings:sync_review_conflicts', { defaultValue: 'Review' })}
-              </button>
-            </div>
-          </Card>
-        )}
+        <ConflictPanel
+          conflicts={store.conflicts}
+          selectedConflict={store.selectedConflict}
+          dialogOpen={conflictDialogOpen}
+          isLoading={store.isLoading}
+          onOpenDialog={handleOpenConflictDialog}
+          onCloseDialog={() => setConflictDialogOpen(false)}
+          onResolve={(id, strategy) => store.resolveConflict(id, strategy)}
+        />
 
         {/* Status card（P041: 提取为子组件） */}
         <SyncStatusCard
@@ -136,576 +90,50 @@ export function SyncPage() {
           onToggleAutoSync={handleToggleAutoSync}
         />
 
-        {/* QR pairing */}
-        <Card>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div>
-              <div style={{ fontSize: 'var(--text-card-title)', fontWeight: 600 }}>
-                {t('settings:sync_qr_pairing', { defaultValue: 'QR Pairing' })}
-              </div>
-              <div style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
-                {t('settings:sync_qr_pairing_desc', {
-                  defaultValue: 'Show a QR code for another device to scan, or scan another device.',
-                })}
-              </div>
-            </div>
-            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              {/* 对话框内含恢复二维码 tab，恢复会话不依赖同步启用，故不限制 syncEnabled */}
-              <button
-                type="button"
-                onClick={() => setShowQrDialogOpen(true)}
-                disabled={store.isLoading}
-                title={t('settings:sync_qr_show', { defaultValue: 'Show QR' })}
-                aria-label={t('settings:sync_qr_show', { defaultValue: 'Show QR' })}
-                className="interactive-toolbar"
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 8,
-                  borderWidth: 1,
-                  borderStyle: 'solid',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                  cursor: store.isLoading ? 'default' : 'pointer',
-                  opacity: store.isLoading ? 0.6 : 1,
-                  fontFamily: 'inherit',
-                }}
-              >
-                <QrCode size={ICON_SIZE.lg} />
-              </button>
-              <button
-                type="button"
-                onClick={() => setScanQrDialogOpen(true)}
-                disabled={!store.syncEnabled || store.isLoading}
-                title={t('settings:sync_qr_scan', { defaultValue: 'Scan QR' })}
-                aria-label={t('settings:sync_qr_scan', { defaultValue: 'Scan QR' })}
-                className="interactive-toolbar"
-                style={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 8,
-                  borderWidth: 1,
-                  borderStyle: 'solid',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                  cursor: !store.syncEnabled || store.isLoading ? 'default' : 'pointer',
-                  opacity: !store.syncEnabled || store.isLoading ? 0.6 : 1,
-                  fontFamily: 'inherit',
-                }}
-              >
-                <ScanLine size={ICON_SIZE.lg} />
-              </button>
-            </div>
-          </div>
-        </Card>
+        <PairingPanel
+          syncEnabled={store.syncEnabled}
+          isLoading={store.isLoading}
+          pairPeer={activePairPeer}
+          isWaitingFlow={isWaitingFlow}
+          pairWaitState={pairWaitState}
+          confirmLabel={confirmLabel}
+          showQrOpen={showQrDialogOpen}
+          scanQrOpen={scanQrDialogOpen}
+          onShowQrOpen={setShowQrDialogOpen}
+          onScanQrOpen={setScanQrDialogOpen}
+          onScanSync={handleScanSync}
+          onTrust={isWaitingFlow ? handleConfirmPairing : handleTrustPending}
+          onIgnore={isWaitingFlow ? handleCancelPairing : handleIgnorePending}
+          onCancelWaiting={handleCancelPairing}
+        />
 
-        {/* Discovered devices */}
-        <Card>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>
-              {t('settings:sync_discovered_devices', { defaultValue: 'Discovered Devices' })}
-            </h3>
-            <button
-              onClick={handleDiscover}
-              disabled={!store.syncEnabled || store.isDiscoveringDevices}
-              style={{
-                padding: '6px 12px',
-                borderRadius: 8,
-                border: '1px solid var(--border-subtle)',
-                background: 'var(--bg-toolbar)',
-                color: 'var(--text-primary)',
-                fontSize: 'var(--text-body-sm)',
-                fontWeight: 500,
-                cursor: !store.syncEnabled || store.isDiscoveringDevices ? 'default' : 'pointer',
-                opacity: !store.syncEnabled || store.isDiscoveringDevices ? 0.5 : 1,
-                transition: 'all 0.15s ease',
-                fontFamily: 'inherit',
-              }}
-            >
-              {store.isDiscoveringDevices
-                ? t('common:loading', { defaultValue: 'Loading...' })
-                : t('settings:sync_discover', { defaultValue: 'Discover' })}
-            </button>
-          </div>
-          <p
-            style={{
-              fontSize: 'var(--text-caption)',
-              color: 'var(--text-tertiary)',
-              marginTop: 8,
-              marginBottom: 12,
-            }}
-          >
-            {t('settings:sync_discovered_hint', {
-              defaultValue: 'Nearby devices advertising SoloSoul sync will appear here.',
-            })}
-          </p>
-          {store.discoveredDevices.length > 0 ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {store.discoveredDevices.map((device) => {
-                const deviceAddr = device.addresses[0] || `${device.host}:${device.port}`;
-                return (
-                  <div
-                    key={deviceAddr}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 10,
-                      padding: '10px 12px',
-                      borderRadius: 8,
-                      background: 'var(--bg-toolbar)',
-                    }}
-                  >
-                    <Smartphone size={ICON_SIZE.lg} style={{ color: 'var(--accent-primary)' }} />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500 }}>
-                        {device.name ||
-                          t('settings:sync_unknown_device', { defaultValue: 'Unknown device' })}
-                      </div>
-                      <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
-                        {deviceAddr}
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => handleSyncWithDevice(deviceAddr)}
-                      disabled={store.isLoading}
-                      style={{
-                        padding: '6px 12px',
-                        borderRadius: 8,
-                        border: '1px solid var(--border-subtle)',
-                        background: 'var(--bg-toolbar)',
-                        color: 'var(--text-primary)',
-                        fontSize: 'var(--text-body-sm)',
-                        fontWeight: 500,
-                        cursor: store.isLoading ? 'default' : 'pointer',
-                        opacity: store.isLoading ? 0.5 : 1,
-                        transition: 'all 0.15s ease',
-                        fontFamily: 'inherit',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {t('settings:sync_manual_sync', { defaultValue: 'Sync' })}
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <>
-              <p style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
-                {t('settings:sync_no_devices_found', {
-                  defaultValue: 'No devices found. Click Discover to scan.',
-                })}
-              </p>
-              {store.syncEnabled && (
-                <p
-                  style={{
-                    fontSize: 'var(--text-caption)',
-                    color: 'var(--text-tertiary)',
-                    marginTop: 8,
-                  }}
-                >
-                  {t('settings:sync_manual_fallback_hint', {
-                    defaultValue:
-                      "If automatic discovery fails, ensure both devices are on the same Wi-Fi and enter the other device's IP address with port below.",
-                  })}
-                </p>
-              )}
-            </>
-          )}
-        </Card>
+        <DeviceListPanel
+          syncEnabled={store.syncEnabled}
+          isLoading={store.isLoading}
+          isDiscoveringDevices={store.isDiscoveringDevices}
+          discoveredDevices={store.discoveredDevices}
+          connectedPeers={store.connectedPeers}
+          manualAddr={manualAddr}
+          lastResult={store.lastResult}
+          error={store.error}
+          forgetTarget={forgetTarget}
+          onManualAddrChange={setManualAddr}
+          onDiscover={handleDiscover}
+          onSyncWithDevice={handleSyncWithDevice}
+          onTrustPeer={(id) => store.trustPeer(id, false)}
+          onOpenPairTarget={handleOpenPairTarget}
+          onForgetRequest={handleForgetRequest}
+          onForgetConfirm={handleForgetConfirm}
+          onForgetCancel={handleForgetCancel}
+          onRefresh={loadStatus}
+        />
 
-        {/* Manual sync */}
-        <Card>
-          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 12 }}>
-            {t('settings:sync_with_device', { defaultValue: 'Sync with Device' })}
-          </h3>
-          <p
-            style={{
-              fontSize: 'var(--text-caption)',
-              color: 'var(--text-tertiary)',
-              marginBottom: 12,
-            }}
-          >
-            {t('settings:sync_device_input_hint', {
-              defaultValue: 'Enter a discovered device ID or a host:port address.',
-            })}
-          </p>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <Input
-              placeholder="host:port"
-              value={manualAddr}
-              onChange={(e) => setManualAddr(e.target.value)}
-              style={{ flex: 1 }}
-            />
-            <button
-              onClick={() => handleSyncWithDevice(manualAddr)}
-              disabled={!manualAddr.trim() || store.isLoading}
-              className="interactive-toolbar"
-              style={{
-                padding: '8px 16px',
-                borderRadius: 8,
-                borderWidth: 1,
-                borderStyle: 'solid',
-                fontSize: 'var(--text-body-sm)',
-                fontWeight: 500,
-                cursor: !manualAddr.trim() || store.isLoading ? 'default' : 'pointer',
-                opacity: !manualAddr.trim() || store.isLoading ? 0.5 : 1,
-                fontFamily: 'inherit',
-                whiteSpace: 'nowrap',
-              }}
-            >
-              {store.isLoading
-                ? t('common:loading', { defaultValue: 'Loading...' })
-                : t('settings:sync_manual_sync', { defaultValue: 'Sync' })}
-            </button>
-          </div>
-          {store.lastResult && (
-            <p
-              style={{
-                fontSize: 'var(--text-caption)',
-                color: 'var(--text-secondary)',
-                marginTop: 8,
-              }}
-            >
-              {t('settings:sync_result', { defaultValue: 'Result' })}: {store.lastResult.summary}
-            </p>
-          )}
-          {store.error && (
-            <p style={{ fontSize: 'var(--text-caption)', color: '#e74c3c', marginTop: 8 }}>
-              {resolveBackendErrorMessage(store.error)}
-            </p>
-          )}
-        </Card>
-
-        {/* Sync activity */}
-        {store.recentResults.length > 0 && (
-          <Card>
-            <button
-              type="button"
-              onClick={() => setActivityOpen((v) => !v)}
-              className="interactive-color-accent"
-              style={{
-                width: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                background: 'none',
-                border: 'none',
-                padding: '4px 0',
-                cursor: 'pointer',
-              }}
-            >
-              <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>
-                {t('settings:sync_activity_title', { defaultValue: 'Sync Activity' })}
-              </h3>
-              {activityOpen ? (
-                <ChevronUp size={ICON_SIZE.lg} />
-              ) : (
-                <ChevronDown size={ICON_SIZE.lg} />
-              )}
-            </button>
-
-            {activityOpen && (
-              <div
-                style={{
-                  marginTop: 12,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 12,
-                }}
-              >
-                {store.recentResults.map((result, idx) => (
-                  <div
-                    key={idx}
-                    style={{
-                      padding: 12,
-                      borderRadius: 8,
-                      background: 'var(--bg-toolbar)',
-                      fontSize: 'var(--text-caption)',
-                    }}
-                  >
-                    <div style={{ fontWeight: 500, marginBottom: 6 }}>{result.summary}</div>
-                    {result.per_table.length > 0 && (
-                      <div
-                        style={{
-                          display: 'flex',
-                          flexWrap: 'wrap',
-                          gap: 6,
-                          marginBottom: result.conflicts.length > 0 ? 8 : 0,
-                        }}
-                      >
-                        {result.per_table.map((tbl) => (
-                          <span
-                            key={tbl.table}
-                            style={{
-                              padding: '2px 8px',
-                              borderRadius: 4,
-                              background: 'var(--bg-elevated)',
-                              color: 'var(--text-secondary)',
-                            }}
-                          >
-                            {tbl.table}: {tbl.applied}+{tbl.skipped}/{tbl.examined}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                    {result.conflicts.length > 0 && (
-                      <div style={{ marginTop: 6 }}>
-                        <div style={{ color: '#c0392b', marginBottom: 4 }}>
-                          {t('settings:sync_conflicts', { defaultValue: 'Conflicts' })}:{' '}
-                          {result.conflicts.length}
-                        </div>
-                        <ul
-                          style={{
-                            margin: 0,
-                            paddingLeft: 16,
-                            color: 'var(--text-secondary)',
-                          }}
-                        >
-                          {result.conflicts.map((c, cidx) => (
-                            <li key={cidx}>
-                              {c.table}/{c.id} —{' '}
-                              {t('settings:sync_winner', { defaultValue: 'winner' })}: {c.winner}
-                              <div
-                                style={{
-                                  fontFamily: 'monospace',
-                                  fontSize: 'var(--text-badge)',
-                                  color: 'var(--text-tertiary)',
-                                }}
-                              >
-                                local: {formatHlc(c.local_hlc)} / remote: {formatHlc(c.remote_hlc)}
-                              </div>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </Card>
-        )}
-
-        {/* Known peers */}
-        <Card>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>
-              {t('settings:sync_known_devices_title', { defaultValue: 'Known Devices' })}
-            </h3>
-            <Button size="sm" variant="tertiary" onClick={loadStatus} loading={store.isLoading}>
-              <RefreshCw size={ICON_SIZE.sm} />
-            </Button>
-          </div>
-          <p
-            style={{
-              fontSize: 'var(--text-caption)',
-              color: 'var(--text-tertiary)',
-              marginTop: 8,
-              marginBottom: 12,
-            }}
-          >
-            {t('settings:sync_known_devices_hint', {
-              defaultValue: 'Devices you have discovered or connected to before; only trusted devices can sync.',
-            })}
-          </p>
-
-          {store.connectedPeers.length > 0 ? (
-            <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {store.connectedPeers.map((peer) => {
-                const displayName = formatPeerName(peer);
-                return (
-                  <div
-                    key={peer.id}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 10,
-                      padding: '10px 12px',
-                      borderRadius: 8,
-                      background: 'var(--bg-toolbar)',
-                    }}
-                  >
-                    <Smartphone size={ICON_SIZE.lg} style={{ color: 'var(--accent-primary)' }} />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div
-                        style={{
-                          fontSize: 'var(--text-body-sm)',
-                          fontWeight: 500,
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 8,
-                        }}
-                      >
-                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                          {displayName}
-                        </span>
-                        <span
-                          style={{
-                            fontSize: 'var(--text-badge)',
-                            padding: '2px 8px',
-                            borderRadius: 999,
-                            flexShrink: 0,
-                            background: peer.trusted
-                              ? 'rgba(39,174,96,0.12)'
-                              : 'rgba(128,128,128,0.1)',
-                            color: peer.trusted ? '#27ae60' : 'var(--text-tertiary)',
-                            whiteSpace: 'nowrap',
-                          }}
-                        >
-                          {peer.trusted
-                            ? t('settings:sync_trusted_badge', { defaultValue: 'Trusted' })
-                            : t('settings:sync_untrusted_badge', { defaultValue: 'Not trusted' })}
-                        </span>
-                      </div>
-                      <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
-                        {peer.addr || 'offline'} · {peer.lastSeen || 'never'}
-                      </div>
-                      <div
-                        style={{
-                          fontSize: 'var(--text-badge)',
-                          color: 'var(--text-tertiary)',
-                          fontFamily: 'monospace',
-                          wordBreak: 'break-all',
-                        }}
-                      >
-                        {peer.fingerprint}
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', gap: 6 }}>
-                      {peer.trusted ? (
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          onClick={() => store.trustPeer(peer.id, false)}
-                          title={t('settings:sync_revoke_tooltip', {
-                            defaultValue: 'Revoke trust: keep the record, reject its syncs',
-                          })}
-                        >
-                          <ShieldOff size={ICON_SIZE.sm} />
-                        </Button>
-                      ) : (
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          onClick={() => handleOpenPairTarget(peer)}
-                          title={t('settings:sync_pair_tooltip', {
-                            defaultValue: 'Pair this device',
-                          })}
-                        >
-                          <ShieldCheck size={ICON_SIZE.sm} />
-                        </Button>
-                      )}
-                      <DeleteButton
-                        onClick={() => handleForgetRequest(peer)}
-                        title={t('settings:sync_forget_tooltip', {
-                          defaultValue: 'Forget: delete the record, you will need to re-pair',
-                        })}
-                        iconOnly
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <p
-              style={{
-                fontSize: 'var(--text-caption)',
-                color: 'var(--text-tertiary)',
-                marginTop: 8,
-              }}
-            >
-              {t('settings:sync_no_devices', {
-                defaultValue:
-                  'No devices known yet. Enable sync and sync with another device to add it.',
-              })}
-            </p>
-          )}
-        </Card>
+        <SyncHistoryPanel
+          activityOpen={activityOpen}
+          recentResults={store.recentResults}
+          onToggleActivity={() => setActivityOpen((v) => !v)}
+        />
       </PageContainer>
-
-      {/* 配对对话框：A 侧等待流程 / 去配对 / 自动检测 */}
-      <PairingDialog
-        isOpen={!!activePairPeer}
-        peer={activePairPeer}
-        waiting={isWaitingFlow && pairWaitState === 'waiting'}
-        waitFailed={isWaitingFlow && pairWaitState === 'failed'}
-        onTrust={isWaitingFlow ? handleConfirmPairing : handleTrustPending}
-        onIgnore={isWaitingFlow ? handleCancelPairing : handleIgnorePending}
-        onCancelWaiting={handleCancelPairing}
-        confirmLabel={
-          isWaitingFlow
-            ? t('settings:sync_pairing_confirm_wait', { defaultValue: 'Confirm & Wait' })
-            : undefined
-        }
-      />
-      {/* 忘记设备二次确认（ConfirmDialog children 插槽展示设备信息） */}
-      <ConfirmDialog
-        isOpen={!!forgetTarget}
-        title={t('settings:sync_forget_confirm_title', { defaultValue: 'Forget device?' })}
-        message={t('settings:sync_forget_confirm_desc', {
-          defaultValue:
-            'The connection record will be deleted. You will need to pair again to sync.',
-        })}
-        confirmLabel={t('settings:sync_forget_confirm_ok', { defaultValue: 'Forget' })}
-        onConfirm={handleForgetConfirm}
-        onCancel={handleForgetCancel}
-      >
-        {forgetTarget && (
-          <div
-            style={{
-              marginBottom: 12,
-              padding: 12,
-              borderRadius: 8,
-              background: 'var(--bg-toolbar)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 6,
-              fontSize: 'var(--text-caption)',
-            }}
-          >
-            <div>
-              <strong>{t('settings:sync_forget_confirm_device', { defaultValue: 'Device' })}:</strong>{' '}
-              {formatPeerName(forgetTarget)}
-            </div>
-            <div>
-              <strong>{t('settings:sync_forget_confirm_addr', { defaultValue: 'Address' })}:</strong>{' '}
-              {forgetTarget.addr || 'offline'}
-            </div>
-            <div>
-              <strong>{t('settings:sync_forget_confirm_fp', { defaultValue: 'Fingerprint' })}:</strong>{' '}
-              <span style={{ fontFamily: 'monospace', wordBreak: 'break-all' }}>
-                {forgetTarget.fingerprint || '-'}
-              </span>
-            </div>
-            <div>
-              <strong>{t('settings:sync_forget_confirm_trust', { defaultValue: 'Trust status' })}:</strong>{' '}
-              {forgetTarget.trusted
-                ? t('settings:sync_trusted_badge', { defaultValue: 'Trusted' })
-                : t('settings:sync_untrusted_badge', { defaultValue: 'Not trusted' })}
-            </div>
-          </div>
-        )}
-      </ConfirmDialog>
-      <SyncConflictDialog
-        isOpen={conflictDialogOpen}
-        conflicts={store.conflicts}
-        detail={store.selectedConflict}
-        isLoading={store.isLoading}
-        onClose={() => setConflictDialogOpen(false)}
-        onResolve={(id, strategy) => store.resolveConflict(id, strategy)}
-      />
-      <SyncShowQrDialog isOpen={showQrDialogOpen} onClose={() => setShowQrDialogOpen(false)} />
-      <SyncScanQrDialog
-        isOpen={scanQrDialogOpen}
-        onClose={() => setScanQrDialogOpen(false)}
-        onSync={handleScanSync}
-      />
     </AppShell>
   );
 }
@@ -760,9 +188,7 @@ function SyncStatusCard({
         <button
           onClick={onToggleSync}
           disabled={store.isLoading}
-          className={
-            store.syncEnabled ? 'interactive-toolbar-selected' : 'interactive-toolbar'
-          }
+          className={store.syncEnabled ? 'interactive-toolbar-selected' : 'interactive-toolbar'}
           style={{
             padding: '8px 16px',
             borderRadius: 8,
@@ -822,7 +248,9 @@ function SyncStatusCard({
             wordBreak: 'break-all',
           }}
         >
-          <strong>{t('settings:sync_your_fingerprint', { defaultValue: 'Your fingerprint' })}:</strong>{' '}
+          <strong>
+            {t('settings:sync_your_fingerprint', { defaultValue: 'Your fingerprint' })}:
+          </strong>{' '}
           {store.localFingerprint}
         </div>
       )}
