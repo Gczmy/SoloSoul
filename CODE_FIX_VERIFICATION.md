@@ -66,6 +66,12 @@
 
 **验证**：tsc 0 错误 / eslint 2 文件 0 警告 / settings 目录 vitest 9 用例全绿。
 
+## R-5 修复记录（2026-08-03）
+
+**修复方案**：P231（window.open 移除）的 `settings:link_open_failed` 缺失 locale key——英文 UI 回退到 defaultValue 中文「无法打开链接」。已在 zh-CN/en-US settings.json 的 `github_repo` 旁补入：中文「无法打开链接」/ 英文「Failed to open link」。defaultValue 中文兜底保留作双重保险。
+
+**验证**：两 locale JSON 解析通过。
+
 ## R-1 修复记录（2026-08-03）
 
 **修复方案**：trash_items 表 keyset 分页化（镜像 N-1 的 objects 修复），消除 P110 同构同步停滞。
@@ -385,7 +391,7 @@
 | R-2 | ✅ 已修复 | `crates/solosoul-vault/src/storage.rs:1914` | **秒/毫秒错配已修复**（2026-08-03 提交，见下方修复记录）：`from_timestamp` 按毫秒解释 deleted_at、测试写入单位对齐、回归测试锁定回退 HLC wall == deleted_at 毫秒值 |
 | R-3 | 低 | `solosoul-sync/src/session.rs:487` | N-1 已声明残余：会话中断后内存游标丢失，等值 HLC 组尾部未发记录被永久跳过（窄窗口：等值组 >100 且至少一页已 ack 后崩溃）。解法：页游标并入 peer watermark 持久化 |
 | R-4 | 低 | `solosoul-core/src/vault_service.rs:769-790` | N-2 已声明残余：① reencrypt commit 后、config 写完前进程崩溃 → 永久"Invalid password"（毫秒级窗口，彻底解需 journal/双 config）；② 磁盘满等共同根因下回滚级联失败可致 config 截断（回滚失败应并入上抛错误文案）；③ 回滚助手无失败注入测试 |
-| R-5 | 低 | AboutPage.tsx:485-491 | P231 的 `settings:link_open_failed` 缺 locale key |
+| R-5 | ✅ 已修复 | AboutPage.tsx:485-491 | P231 的 `settings:link_open_failed` locale key 已补入 zh-CN/en-US（2026-08-03 提交，见下方修复记录） |
 
 ## 结论
 

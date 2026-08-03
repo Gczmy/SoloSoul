@@ -185,6 +185,7 @@
   "sensitivity_desc": "Manage field-level sensitivity. Downgrading a field's protection requires password verification. Changes are audited and cannot be reverted without trace.",
   "backup_restore": "Backup & Restore",
   "github_repo": "GitHub Repository",
+  "link_open_failed": "Failed to open link",
   "privacy_policy": "Privacy Policy",
   "terms_of_service": "Terms of Service",
   "loading": "Loading...",

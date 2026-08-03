@@ -185,6 +185,7 @@
   "sensitivity_desc": "管理字段级别敏感度。降低字段保护级别需要密码验证。变更将被审计且无法无痕撤销。",
   "backup_restore": "备份与恢复",
   "github_repo": "GitHub 仓库",
+  "link_open_failed": "无法打开链接",
   "privacy_policy": "隐私政策",
   "terms_of_service": "服务条款",
   "loading": "加载中...",
