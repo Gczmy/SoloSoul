@@ -350,7 +350,7 @@
 - **现状**：`LEGACY_XOR_KEY` 仅用于 `legacy_xor_decrypt` 一键解密 <2.0 旧版 XOR 凭证文件并原子迁移为 AES-256-GCM；`legacy.rs` 不可删（`FileBiometricStorage` 为 macOS/iOS 回退的活动存储后端）；当前 `save`/`update` 已只写新格式，**XOR 路径零写入面**。
 - **威胁面**：攻击者需同时持有编译产物与 0600 权限的旧文件，且内容为会话密钥非主密钥。
 - **决策（2026-08-02 用户确认）**：迁移窗口未关闭，保留 XOR 路径，接受已充分记录的低危风险。
-- **关闭条件**：迁移窗口关闭（<2.0 凭证全部完成迁移）后删除整个 `legacy.rs`——建议在下个大版本发布后评估（届时可加「启动时扫描旧凭证数量」日志辅助决策）。
+- **关闭条件**：迁移窗口关闭（<2.0 凭证全部完成迁移）后删除 `legacy.rs` 的 XOR 三件套（`LEGACY_XOR_KEY`/`legacy_xor_decrypt`/`is_legacy_key_file`；`FileBiometricStorage` 是活动后端需保留）——建议在下个大版本发布后评估。**诊断日志已就位（`066fa785`）**：`BiometricManager::count_legacy_key_files()` + `setup_app` 步骤 1.5 启动扫描，`RUST_LOG=solo_soul=trace` 输出存量计数（0 即窗口关闭信号），含四态防回归测试。
 
 ### 4.4 P206 遗留观察：PDF embed 与 object-src CSP（✅ 已闭环，方案 A）
 
