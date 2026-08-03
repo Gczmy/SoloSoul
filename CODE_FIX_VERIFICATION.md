@@ -1,0 +1,204 @@
+# 修复验证报告（CODE_FIX_VERIFICATION）
+
+> 生成时间：2026-08-02
+> 验证对象：`CODE_ANALYSIS_REPORT.md` 各问题的修复 commit（`f1970c67` 起）
+> 验证方式：9 组并行代码审查（diff + 修复后完整代码 + 编译/测试佐证），逐项对照原报告修复期望
+> 说明：修复人仍在进行中，本文档为独立验证结论，**不修改原报告**
+
+## 基线验证（当前 HEAD）
+
+| 检查 | 结果 |
+|------|------|
+| `npx tsc --noEmit` | ✅ 0 错误 |
+| `npm run lint` | ✅ 0 错误 0 警告（原 warning 已随 P220 消除） |
+| `npm run test` | ✅ 54 文件 / 482 用例全部通过（较修复前 +52 用例） |
+| `cargo fmt --check` / `cargo clippy --workspace --all-targets` | ✅ 零警告 |
+| `cargo test --workspace` | ✅ 全部通过 |
+
+## 总览
+
+- **已验证 70 项**：✅ 修复正确 60 项 · ⚠️ 部分修复 9 项 · 🔺 修复引入新问题 1 项（N-1 已于 2026-08-03 修复闭环，见下方修复记录）
+- **已提交未验证 2 项**：P227、P231（验证期间提交，`66e9c259`、`03336ffb`）
+- **修复进行中（未提交）1 项**：P225（工作区 5 个 Rust 文件，行解密闭包/重复块收敛）
+- **未修复/暂缓 7 项**：P133-P135（死模块删除，原报告注明破坏性操作暂缓）、P223/P224（长函数/巨型组件，原报告建议随迭代顺带）、P226（前端组件重复 3 对）、P228（2 处循环依赖）
+
+## 🔺 必须优先处理：P110 修复引入同步永久停滞缺陷
+
+**位置**：`crates/solosoul-vault/src/storage.rs:1613-1639` + `1729-1733`、`crates/solosoul-sync/src/delta.rs:68`、`session.rs:492-494`
+
+**缺陷链条**：P110 把 `LIMIT/OFFSET` 下推到 SQL 层，但 P109 的回退行粗筛是"宁多勿漏"——同一秒内 ≤ 水印的已同步记录也会通过 SQL WHERE，设计上靠 **LIMIT 之后**的 Rust 精确过滤兜底：
+
+1. 本地写入从不写 `sync_hlc` 行，几乎所有本地对象永久走回退路径（wall=updated_at, counter=0, node=local）。
+2. **触发场景一（稳定复现）**：删除一个含 >100 对象的页面（`trash_and_soft_delete_batch` 给全部软删行同一个 `now`，storage.rs:3166-3173）→ 第 1 页同步 100 条、水印推进到 `(T,0,local)`；第 2 页 LIMIT 100 取回的全是平局记录，Rust 严格 `>` 判定**全部丢弃** → 空页 → `finished=true` → break。**剩余删除记录永远不会同步到对端**，之后每次会话都同样停滞。
+3. **触发场景二**：一秒内批量创建/更新 >100 个对象（批量导入/模板迁移/开户播种），同样空页 break 永久停滞。
+4. 旧实现先全量 Rust 过滤再内存 skip/take，不存在此问题——**是 P110 新引入的回归**。现有回归测试全部使用显式 `set_record_hlc` 的互异 HLC，未覆盖回退假阳性 + LIMIT 组合。
+
+**修复方向**：回退行过滤做成 SQL 精确（WHERE 中用 `julianday(updated_at)` 推导 wall 做完整三元组比较）；或空页时按"SQL 原始行数 < limit"判定 finished；或 LIMIT 改在 Rust 过滤后施加。**建议修复并补回归测试后再发布。**
+
+## N-1 修复记录（2026-08-03）
+
+**修复方案**（三处配合，keyset 分页替代 OFFSET）：
+
+1. **storage.rs `list_object_changes_since_limited` / `list_sync_changes_since_paginated`**：
+   - 签名 `offset: usize` → `last_row_id: Option<&str>`（页游标 = 本页最后一条 id），`ORDER BY` 增加 `o.id` 末位决胜，构成 (有效 HLC, o.id) 全序。
+   - WHERE 以 (三元组, o.id) > (水印, 游标) 推进：有 HLC 行按 (wall, counter, node) 三元组，无 HLC 回退行按 `(CAST(julianday(updated_at) ms), 0, local)` 三元组**精确过滤**（替代 P109 的整秒粗筛 + Rust 兜底）——假阳性不再占用 LIMIT 预算，空页即真结束，消除「空页但 finished=false、max_hlc=None、水印永不推进」死循环。
+   - 等值组尾部（三元组 == 水印 且 id > 游标）允许通过，解决同 ms 批量行跨页边界被严格 `>` 永久跳过的问题。
+   - 非分页 wrapper `list_object_changes_since` 传 `None` 退化为严格三元组 `>`，语义不变。Rust 最终裁决与 SQL 谓词逐字一致（`hlc_after_watermark || (等值水印 && is_some_and(|c| c < id))`）。
+2. **session.rs `send_paginated_deltas` 节点编码对齐**（修复后经独立复核确认的必要补充）：
+   - 存储层回退行节点必须与 peer watermark 落库格式一致（hex 编码的 16 字节节点）。原先传原始随机 UUID，经 `parse_node_id_bytes` + `watermark_to_vault` 的 hex 往返后与 UUID 字符串永不相等 → keyset 等值组分支在生产编码下永不触发（等 ms 回退行组依旧死循环或静默漏发）。
+   - 修复：`let local_hlc_node = hex::encode(Hlc::parse_node_id_bytes(node_id));` 作为 local_node_id 传入——与落库水印节点逐字节一致，keyset 分支正式生效；对 32 位 hex 节点幂等、对 UUID 有确定规范化，对端水印比较保持对称一致。
+3. **回归测试 ×3**：
+   - storage.rs `test_paginated_keyset_fallback_equal_hlc_completeness`：7 个同 updated_at 回退行逐页无缺漏无重复、组内按 id 升序；
+   - storage.rs `test_paginated_keyset_fallback_false_positive_isolation`：同秒假阳性排除、真阳性全投递、循环必然终止；
+   - delta.rs `test_generate_delta_paginated_keyset_production_encoding`：完整生产路径（generate_delta_paginated → watermark_to_vault 落库 → get_peer_watermark 读回 → vault_to_watermark，UUID 节点规范化后 7 条全投递）。
+
+**验证**：fmt 干净 / clippy 0 / solosoul-vault 117（+2）+ solosoul-sync 47（+1）全绿 / workspace + CLI check 0 错误。
+
+**已声明残余限制**：会话**中断**（断网/崩溃/退出）时，已持久化水印停在等值组最大值而页游标丢失，重启以 NULL 游标重查会跳过三元组 == 水印的组尾行（at-least-once 缺口）。需同时满足「会话中断」+「在飞等 ms 组」才触发；修复前每次同步都丢/循环，属严格改善。后续可把页游标 id 并入 peer watermark 持久化彻底关闭。
+
+## 逐项判定表
+
+### P0 安全（A 组）
+
+| ID | 判定 | 说明 |
+|----|------|------|
+| P001 | ✅ | 指纹取自 Noise 握手认证值（noise.rs:171-175 `get_remote_static`），双角色握手后强制比对（session.rs:557-584），不覆盖已有绑定；旧无指纹 peer 走 TOFU 放行（注释明示的兼容性权衡：升级后首次同步先连先绑，存在理论抢占窗口）；mDNS 明文广播 node_id 为有意保留 |
+| P002 | ✅ | 真 DPAPI（windows.rs:157-236），魔数检测+原子迁移旧凭证，升级后生物识别不失效；残余为 DPAPI 固有限制（同用户上下文进程可自行解密，非 TPM 绑定） |
+| P003 | ⚠️ | 主逻辑正确：debug/release 判定正确（kdf.rs:47-52），旧账户按落库参数验证再升级不会锁死，CLI 兼容。**但放大两处原子性隐患**：① `reencrypt_all` 失败仍无条件 commit（storage.rs:952-953，6 月引入的历史 bug，现在每次旧账户解锁自动触发）；② 重加密与 config 写入两阶段非原子，中间崩溃可致永久"Invalid password"。建议优先修 ①（一行级改动） |
+
+### P0 前端（B 组）
+
+| ID | 判定 | 说明 |
+|----|------|------|
+| P004 | ✅ | 清理链接入 trashStore.clearOnVaultLock（AppRoutes.tsx:484），真实清空，无竞态 |
+| P005 | ✅ | searchCache.clear() 挂接（:487），Map 立即清空；其他模块级缓存排查无敏感明文 |
+| P006 | ✅ | toast + logger + 弹窗保持打开，i18n key 双语齐全，正常路径无误伤 |
+| P007 | ✅ | 三处保存失败统一 toast + 日志，i18n 双语 + defaultValue 兜底 |
+
+**B 组新发现（潜在问题 N-3）**：`llmStore.streamBuffer`（llmStore.ts:16）未纳入锁定清理链——流式进行中触发自动锁定，解密 LLM 输出明文残留全局 Zustand。属 P005 同类遗漏。
+
+### 安全中危（C 组）
+
+| ID | 判定 | 说明 |
+|----|------|------|
+| P101 | ✅ | 188 条显式 allowlist，与前端全部 invoke 命令比对零缺失（6 个缺失均为测试 mock/注释） |
+| P102 | ⚠️ | URL 校验与登记检查存在，但**注册门禁可绕过**：`llm_save_provider` 接受任意 https URL 且在 allowlist 中，XSS 可先登记恶意 provider 再发送；embedding 通道（rag.rs:96-100）发送时无校验。若要闭环需对登记加用户确认或限定内置白名单 |
+| P103 | ✅ | 信任检查前仅回错误帧、peer 落库延迟，配对事件链完整；46 测试通过。小瑕疵：syncStore.ts:321 注释与新行为不符 |
+| P104 | ⚠️ | URL 校验+重定向白名单+流式双限+原子 rename 齐全，**但 sha256 清单仅 small 档 4 文件，tiny/medium 无哈希校验**（commit 已自认，待官方哈希） |
+| P105 | ✅ | SOLC v2 头部纳入 AAD，v1 自动探测回退，旧导出包/附件可解密，34 测试通过 |
+| P106 | ✅ | 头部一致性校验正确；备注：SOLO v3 blob 格式当前无生产调用方（理论面加固） |
+| P107 | ✅ | 基目录收窄正确，核心流程无破坏；两处轻微降级：目录外选附件 sizeBytes=0、遗留外部 vaultPath 预览报错（有优雅错误 UI） |
+| P108 | ✅ | copy/stat 仅 $APPCACHE/$TEMP，所有调用点核实无破坏 |
+
+### Rust 性能（D 组）
+
+| ID | 判定 | 说明 |
+|----|------|------|
+| P109 | ✅ | 水印下推语义逐字节等价，边界不漏不重；隐含假设：updated_at 恒为 UTC `+00:00` 格式 |
+| P110 | 🔺 | **见上方专节——同步永久停滞缺陷** |
+| P111 | ✅ | 7 处切换调用方全部核实无误用，metadata 字段覆盖全部消费场景 |
+| P112 | ✅ | 附件树输出与旧实现等价，边界处理正确且更健壮 |
+| P113 | ⚠️ | 本项正确（引擎缓存跨线程安全），**但 `ocr_scan_mrz`（ocr.rs:412-416）遗漏未移入 spawn_blocking**，阻塞问题在该路径完整保留 |
+| P114 | ✅ | VaultStore 全 Mutex 字段线程安全，错误回传正确，auto_sync 触发时机正确 |
+| P115 | ✅ | 事务语义正确，单条失败语义与旧实现逐字节等价，无部分提交风险 |
+
+### 前端性能（E 组）
+
+| ID | 判定 | 说明 |
+|----|------|------|
+| P116 | ✅ | memo props 稳定，复制功能正常；小瑕疵：rehypePlugins 内联数组致复制点击时全量重解析（严格优于修复前，可改模块常量） |
+| P117 | ✅ | 字段无漏订阅，effect 逻辑逐字等价，生产代码整店订阅清零 |
+| P118 | ✅ | 7 个 useCallback deps 正确，卡片行为逐项等价 |
+| P119 | ✅ | 过滤→分页顺序正确，批量操作仍作用于全部 filtered；注意：加载更多后 items 变化游标回缩（commit 声明的有意设计） |
+
+### 错误处理/架构（F 组）
+
+| ID | 判定 | 说明 |
+|----|------|------|
+| P120 | ⚠️ | toast 已有，但期望的错误态/重试 UI 未实现（失败仍渲染空树）；locale key 缺失 |
+| P121 | ✅ | 失败计数 toast + 日志，i18n 双语齐全 |
+| P122 | ⚠️ | toast 已有，但错误占位+重试未实现（与"无数据"同态）；locale key 缺失 |
+| P123 | ✅ | verify 失败与 invoke 异常正确区分，key 双语存在 |
+| P124 | ✅ | 异常细节保留并上抛；备注：靠错误消息正则匹配，轻微脆弱 |
+| P125 | ✅ | 成功/失败均有 toast，取消路径不误报；locale key 缺失（defaultValue 中文兜底） |
+| P126 | ✅ | 仅 not-found 返回 null，调用方已适配，有防回归测试 |
+| P127 | ✅ | await + catch 补齐 |
+| P128 | ✅ | 第 5 写入点消除，ST_UI_PREFS 唯一写入点收敛 |
+| P129 | ⚠️ | helper 中央化正确（vault 写成功后才同步②③，失败回滚），但 `App/index.tsx:91`、`lib/notification.ts:50` 仍绕过 helper 直写③，「唯一写入点」非代码级强制（两 key 不在四副本矩阵内，实际无漂移风险） |
+| P130 | ✅ | confirmWithPause try/finally，取消/异常路径均正确 resume；无残留裸调 |
+| P131 | ✅ | invokeClient 错误原样透传不改变调用方预期，无漏迁；备注：统一日志仅 dev 生效、`requireUnlocked` 守卫暂无调用方（预留） |
+
+**F 组共性问题**：P120/P122/P125 三个新增文案 key 未入 zh-CN/en-US locale 文件，英文 UI 显示中文 defaultValue。
+
+### 死代码/去重（G 组）
+
+| ID | 判定 | 说明 |
+|----|------|------|
+| P132 | ✅ | 8 命令前端/CLI 零残留，注册与 allowlist 同步清理 |
+| P136 | ✅ | 自我纠错正确：CLI 依赖方法全部恢复，最终仅删 15 个零调用方法，与原文件对比恢复完整 |
+| P137 | ✅ | serde 字段逐字段一致（camelCase/default/skip 全保留），config 反序列化兼容 |
+| P138 | ✅ | 11 对合并正确，真有差异的 2 对保留；附带发现：`sync_discover` 系历史遗留未注册死命令（非本次引入） |
+| P139 | ✅ | shared.rs 与三处原函数逐字节一致，语义等价 |
+| P140 | ✅ | 两页行为逐分支等价，10 个防回归测试；边角：切换语言后错误文案语言滞后（仅文案） |
+| P141 | ✅ | 防抖/缓存/过滤/渲染逐分支一致 |
+| P142 | ✅ | 删除的两处与 hook 实现逐字一致，placement 参数化正确 |
+
+### 低危/杂项（H 组）
+
+| ID | 判定 | 说明 |
+|----|------|------|
+| P201 | ✅ | 三重防线齐全 |
+| P202 | ✅ | 旧包 balanced 回退兼容有真实测试，新包声明参数优先；已知前向不兼容（新包旧应用打不开）已声明 |
+| P203 | ✅ | 调试日志删除/脱敏 |
+| P204 | ✅ | Zeroizing 包裹，语义不变 |
+| P205 | ⚠️ | 后端命令面清除彻底零调用，**但 `ipc.test.ts:116-145` 残留 3 个针对已删命令的 mock 测试**，应清理 |
+| P206 | ✅ | frame-src data: 移除，零 iframe 确认 |
+| P207 | ⚠️ | 校验逻辑正确（硬拒+7 个真实签名测试），**但编译期公钥为 None 且无任何环境注入，默认构建下防护未激活（warn-only）**，待 `EMBED_REGISTRY_PUBKEY_B64` 填入才闭环 |
+| P208 | ✅ | stdio 黑洞，无消费方回归 |
+| P209 | ✅ | 纯文档决策记录 |
+| P210 | ✅ | 递归匹配为旧预筛超集不漏放，数字/布尔/嵌套覆盖；理论 Unicode 边角可忽略 |
+| P211 | ✅ | 删除语义等价，失败语义从"部分成功"变"整体回滚"属改进 |
+| P212 | ✅ | SkipExisting/Overwrite 语义等价，事务正确；两处已声明边界（同包重复 id 末条胜、损坏行跳过） |
+| P213 | ✅ | SQL 常量逐字等价，with_tx 回滚正确 |
+| P214 | ✅ | public 筛选输出与旧全量解密筛选等价，有防泄漏测试 |
+| P215 | ✅ | 环形截断 UI 完整，选择器覆盖一致 |
+| P216 | ✅ | 折叠/卸载双路径持久化，滚动恢复功能正常 |
+| P217 | ✅ | 重命名等价且优于旧实现（防双提交），8 个防回归测试 |
+| P218 | ✅ | memo/useMemo/分页正确 |
+| P219 | ✅ | 零残留，测试同步删除 |
+| P220 | ✅ | 基线 lint warning 已消除 |
+| P221 | ✅ | 抽查 4 项均零调用 |
+| P222 | ✅ | 25 处降级与消费关系一致 |
+
+### 未提交改动审查（I 组）
+
+验证期间 P229/P230 已分别提交（`5f0967f6`、`c67f71c4`），工作区转为干净后又出现 P225 的在途改动。
+
+| ID | 判定 | 说明 |
+|----|------|------|
+| P229 | ✅ | `isSafeExternalUrl` 显式白名单（GuideRenderer.tsx:77-87），javascript:/data:/vbscript:/协议相对/控制符变体全覆盖，锚点/相对路径无误伤，4 组 7 断言测试 |
+| P230 | ✅ | `clearOnVaultLock` 清空全部结果数据保留 UI 偏好（ocrScanStore.ts:155-162），清理链注册位置/风格与 P004/P005 一致，在途扫描无复活窗口 |
+
+## 潜在问题清单（新发现，供修复人跟进）
+
+| 编号 | 严重度 | 位置 | 问题 |
+|------|--------|------|------|
+| N-1 | ✅ 已修复 | storage.rs:1613-1639 + delta.rs:68 | P110 引入的同步永久停滞已闭环（keyset 分页 + 回退行 SQL 精确过滤 + 会话层节点编码对齐，2026-08-03 提交，见下方修复记录）；残余：会话中断时等值组尾部 at-least-once 缺口（已声明） |
+| N-2 | 高 | storage.rs:952-953 | `reencrypt_all` 闭包失败仍无条件 commit（历史 bug），P003 将其暴露面扩大到每次旧账户解锁；另 reencrypt→config 两阶段非原子可致账户不可用 |
+| N-3 | 中 | stores/llmStore.ts:16 | streamBuffer 未纳入 vault-locked 清理链，流式中锁定残留解密明文 |
+| N-4 | 中 | commands/llm/provider.rs:62 | P102 残余：provider 注册门禁可两步绕过；embedding 通道发送时无 URL 校验 |
+| N-5 | 中 | commands/ocr.rs:800-813 | P104 残余：sha256 清单仅 small 档，tiny/medium 下载无哈希校验（commit 已自认） |
+| N-6 | 中 | commands/ocr.rs:412-416 | P113 残余：`ocr_scan_mrz` 未移入 spawn_blocking |
+| N-7 | 低 | ExportImportPage/TrashPage/DebugLogPage | P120/P122/P125 新增文案 key 未入 locale 文件，英文 UI 显示中文 defaultValue |
+| N-8 | 低 | App/index.tsx:91、lib/notification.ts:50 | P129 残余：两处绕过 helper 直写③（实际无漂移风险） |
+| N-9 | 低 | src/lib/ipc.test.ts:116-145 | P205 残余：3 个针对已删命令的陈旧 mock 测试 |
+| N-10 | 低 | commands/embed_model.rs:18 | P207 残余：minisign 公钥未注入，默认构建防护未激活 |
+| N-11 | 低 | ExportImportPage.tsx:152-161、TrashPage.tsx:243-251 | P120/P122 期望的错误态/重试 UI 未实现，失败与"无数据"同态 |
+
+## 结论与建议
+
+1. **修复质量整体很高**：60/70 项完全正确，去重类（G 组 8 项）与性能类（E 组）全部 ✅，多数修复带防回归测试；测试用例较修复前净增 52 个。
+2. **N-1 已于 2026-08-03 修复并提交**（见上方修复记录）：keyset 分页替代 OFFSET、回退行 SQL 精确过滤、会话层节点编码对齐，附 3 个回归测试；残余的「会话中断时等值组尾部跳过」缺口已声明，建议后续把页游标 id 并入 peer watermark 持久化彻底关闭。N-2 建议顺手修（一行级改动消除最坏场景）。
+3. **⚠️ 项的残余差距均已被 commit 声明或属低危**，可按优先级排期：N-3/N-4/N-5/N-6 为中危跟进项，N-7 至 N-11 为小项。
+4. **暂缓项决策待用户确认**：P133-P135（死模块删除）、P223/P224（结构性拆分）建议维持暂缓；P226/P228 可排入下一轮；P225 修复人正在进行中。
+5. P227/P231 提交于验证之后，未在本次审查范围内，建议下一轮补验。

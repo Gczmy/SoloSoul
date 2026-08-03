@@ -1444,9 +1444,14 @@ impl VaultStore {
 
     /// Paginated version of `list_sync_changes_since`.
     ///
-    /// Returns at most `limit` records starting from `offset`. This allows the sync
-    /// engine to stream large tables in multiple `Batch` messages without loading
-    /// the entire result set into a single message.
+    /// Returns at most `limit` records newer than `watermark`, using keyset pagination:
+    /// `last_row_id` is the id of the last record returned on the previous page (the page
+    /// cursor). This lets the sync engine stream large tables in multiple `Batch` messages
+    /// without loading the entire result set into a single message.
+    ///
+    /// N-1: objects 走 SQL 级 keyset 分页（(有效 HLC, o.id) 全序 + 游标推进）；
+    /// 其余小表（profiles/user_templates/trash_items）维持内存分页（先按有效 HLC
+    /// 升序排序再 take），游标参数忽略。
     pub fn list_sync_changes_since_paginated(
         &self,
         table: &str,
@@ -1454,19 +1459,15 @@ impl VaultStore {
         account_id: &str,
         local_node_id: &str,
         limit: usize,
-        offset: usize,
+        last_row_id: Option<&str>,
     ) -> Result<Vec<crate::VaultSyncRecord>, String> {
-        // P110: objects 是大表，走 SQL 级分页（ORDER BY 有效 HLC + LIMIT/OFFSET），
-        // 避免全量解密后内存 skip/take。其余小表（profiles/user_templates/trash_items）
-        // 数据量小，维持内存分页，但先按有效 HLC 升序排序——会话层每页把 peer watermark
-        // 推进到本页最大 HLC 后重查，排序保证“本页恒为 HLC 最小的 limit 条”，不漏发记录。
         if table == "objects" {
             return self.list_object_changes_since_limited(
                 watermark,
                 account_id,
                 local_node_id,
                 limit,
-                offset,
+                last_row_id,
             );
         }
         let mut all = self.list_sync_changes_since(table, watermark, account_id, local_node_id)?;
@@ -1477,7 +1478,7 @@ impl VaultStore {
                 &b.hlc.node_id,
             ))
         });
-        Ok(all.into_iter().skip(offset).take(limit).collect())
+        Ok(all.into_iter().take(limit).collect())
     }
 
     fn list_profile_changes_since(
@@ -1555,17 +1556,30 @@ impl VaultStore {
         account_id: &str,
         local_node_id: &str,
     ) -> Result<Vec<crate::VaultSyncRecord>, String> {
-        self.list_object_changes_since_limited(watermark, account_id, local_node_id, usize::MAX, 0)
+        self.list_object_changes_since_limited(
+            watermark,
+            account_id,
+            local_node_id,
+            usize::MAX,
+            None,
+        )
     }
 
     /// P110: objects 表的 SQL 级分页实现。
     ///
     /// 与 P109 相同的水印下推 + HLC 批量 JOIN，另加：
-    ///   - `ORDER BY` 有效 HLC 三元组升序（有 HLC 行用落库三元组；无 HLC 回退行用
-    ///     `julianday(updated_at)` 推导的 wall_time，counter=0，node=local）——这是分页
-    ///     正确性的关键：会话层每页把 peer watermark 推进到“本页最大 HLC”，若页面未按
-    ///     HLC 升序返回，落在页边界之间的记录会被永久跳过。
-    ///   - `LIMIT ? OFFSET ?` 真正的 SQL 分页，避免全量解密后内存 skip/take。
+    ///   - `ORDER BY` 有效 HLC 三元组 + `o.id` 升序（有 HLC 行用落库三元组；无 HLC
+    ///     回退行用 `julianday(updated_at)` 推导的 wall_time，counter=0，node=local）——
+    ///     这是分页正确性的关键：会话层每页把 peer watermark 推进到“本页最大 HLC”。
+    ///   - N-1 修复：keyset 分页替代 OFFSET——`last_row_id` 作为页游标，WHERE 以
+    ///     (有效 HLC, o.id) 全序 > (水印, 游标) 推进，解决 P110 遗留两类问题：
+    ///     ① 与页面最大 HLC 相同的回退行（同 ms 批量写入）在严格 > 下被下一页永久跳过
+    ///     （数据漏发）；
+    ///     ② 同秒回退假阳性（updated_at 在 [整秒下界, 水印] 区间）填满 LIMIT 预算，
+    ///     被 Rust 精确过滤后形成“空页但 finished=false、max_hlc=None、水印永不推进”
+    ///     的死循环。
+    ///     修复后 SQL 对有无 HLC 两类行都做 (三元组, id) 全序精确过滤，假阳性不再
+    ///     占用 LIMIT 预算；`last_row_id=None` 时退化为严格三元组 >（非分页语义）。
     ///
     /// `limit=usize::MAX` 时等价于 P109 的非分页行为（LIMIT 不生效）。
     fn list_object_changes_since_limited(
@@ -1574,7 +1588,7 @@ impl VaultStore {
         account_id: &str,
         local_node_id: &str,
         limit: usize,
-        offset: usize,
+        last_row_id: Option<&str>,
     ) -> Result<Vec<crate::VaultSyncRecord>, String> {
         let key = self.data_key()?;
         let rows = {
@@ -1583,21 +1597,14 @@ impl VaultStore {
             // P109: 一次 LEFT JOIN sync_hlc 批量取回 HLC（消除逐对象 HLC SELECT），
             // 同时把水印过滤下推到 SQL：
             //   - 有 HLC 记录的行：按 HLC 三元组精确过滤（与 hlc_after_watermark 等价）
-            //   - 无 HLC 记录的行（回退 updated_at）：以 watermark 所在秒的整秒下界
-            //     做安全粗筛（宁多勿漏），精确判定仍由下方 Rust 兜底
+            //   - 无 HLC 记录的行（回退 updated_at）：同样按 (CAST(ms), 0, local) 三元组
+            //     精确过滤——julianday→ms 的浮点精度（~86µs）远低于 1ms，与 Rust
+            //     parse_time_ms 逐字节一致（P110 断言），故可安全下推，不再粗筛。
             let o_columns = OBJECT_COLUMNS
                 .split(',')
                 .map(|c| format!("o.{}", c.trim()))
                 .collect::<Vec<_>>()
                 .join(", ");
-            // 下界取 watermark 所在秒的整秒起点：任何 wall_time >= watermark 的行
-            // 其字符串必然 >= 该下界（无论小数位如何书写，跨格式保证不误杀），
-            // 多包含的候选由下方 Rust 精确裁决兜底。
-            let threshold = chrono::DateTime::from_timestamp_millis(
-                ((watermark.wall_time_ms / 1000) * 1000) as i64,
-            )
-            .map(|d| d.to_rfc3339())
-            .unwrap_or_else(|| "1970-01-01T00:00:00+00:00".to_string());
             // 分页：LIMIT 传 usize::MAX 时按 SQLite 语义（LIMIT -1）不限制行数。
             let limit_param = if limit == usize::MAX {
                 -1i64
@@ -1605,6 +1612,8 @@ impl VaultStore {
                 limit as i64
             };
             // P213: prepare_cached 按 SQL 文本缓存（o. 前缀列拼接结果稳定），避免每次重编译。
+            // keyset：游标 ?7 为 NULL（未分页）时仅严格三元组 >；为字符串时允许
+            // (三元组 == 水印) 且 id > 游标的等值组尾部行通过（跨页不重不漏）。
             let mut stmt = conn
                 .prepare_cached(&format!(
                     "SELECT {cols}, h.wall_time_ms AS hlc_wall, h.counter AS hlc_counter, h.node_id AS hlc_node
@@ -1612,17 +1621,22 @@ impl VaultStore {
                      LEFT JOIN sync_hlc h ON h.table_name = 'objects' AND h.record_id = o.id
                      WHERE o.account_id = ?1 AND (
                         (h.wall_time_ms IS NOT NULL AND (
-                            h.wall_time_ms > ?2 OR (h.wall_time_ms = ?2 AND (
-                                h.counter > ?3 OR (h.counter = ?3 AND h.node_id > ?4)
-                            ))
+                            (h.wall_time_ms, COALESCE(h.counter, 0), COALESCE(h.node_id, ?5)) > (?2, ?3, ?4)
+                            OR ((h.wall_time_ms, COALESCE(h.counter, 0), COALESCE(h.node_id, ?5)) = (?2, ?3, ?4)
+                                AND ?7 IS NOT NULL AND o.id > ?7)
                         ))
-                        OR (h.wall_time_ms IS NULL AND o.updated_at >= ?5)
+                        OR (h.wall_time_ms IS NULL AND (
+                            (CAST((julianday(o.updated_at) - 2440587.5) * 86400000.0 AS INTEGER), 0, ?5) > (?2, ?3, ?4)
+                            OR ((CAST((julianday(o.updated_at) - 2440587.5) * 86400000.0 AS INTEGER), 0, ?5) = (?2, ?3, ?4)
+                                AND ?7 IS NOT NULL AND o.id > ?7)
+                        ))
                      )
                      ORDER BY
                        COALESCE(h.wall_time_ms, CAST((julianday(o.updated_at) - 2440587.5) * 86400000.0 AS INTEGER)) ASC,
                        COALESCE(h.counter, 0) ASC,
-                       COALESCE(h.node_id, ?6) ASC
-                     LIMIT ?7 OFFSET ?8",
+                       COALESCE(h.node_id, ?5) ASC,
+                       o.id ASC
+                     LIMIT ?6",
                     cols = o_columns,
                 ))
                 .map_err(|e| format!("list_object_changes: {}", e))?;
@@ -1633,10 +1647,9 @@ impl VaultStore {
                         watermark.wall_time_ms as i64,
                         watermark.counter as i32,
                         &watermark.node_id,
-                        &threshold,
                         local_node_id,
                         limit_param,
-                        offset as i64,
+                        last_row_id.map(str::to_owned),
                     ],
                     |row| {
                         let props_str: String = row.get(8)?;
@@ -1727,8 +1740,13 @@ impl VaultStore {
 
         let mut out = Vec::new();
         for (obj, hlc) in rows {
-            // 精确水印判定兜底（无 HLC 回退行靠 updated_at 粗筛后的最终裁决）
-            if !Self::hlc_after_watermark(&hlc, watermark) {
+            // 最终裁决（与 SQL 谓词逐字一致）：严格 > 水印，或（keyset 游标存在且
+            // 三元组 == 水印且 id > 游标）的等值组尾部行。
+            let equal_watermark = hlc.wall_time_ms == watermark.wall_time_ms
+                && hlc.counter == watermark.counter
+                && hlc.node_id == watermark.node_id;
+            let keyset_tail = equal_watermark && last_row_id.is_some_and(|c| c < obj.id.as_str());
+            if !Self::hlc_after_watermark(&hlc, watermark) && !keyset_tail {
                 continue;
             }
             let id = obj.id.clone();
@@ -6897,38 +6915,15 @@ mod tests {
             "非分页结果必须按有效 HLC 升序"
         );
 
-        // 分页逐页收集，limit=2
-        let mut paged_ids: Vec<String> = Vec::new();
-        let mut offset = 0usize;
-        loop {
-            let page = vault
-                .list_sync_changes_since_paginated(
-                    "objects",
-                    &watermark,
-                    "test_account",
-                    "local_node",
-                    2,
-                    offset,
-                )
-                .unwrap();
-            if page.is_empty() {
-                break;
-            }
-            // 页内必须严格升序（HLC 三元组）
-            for w in page.windows(2) {
-                assert!(
-                    (w[0].hlc.wall_time_ms, &w[0].hlc.counter, &w[0].hlc.node_id)
-                        < (w[1].hlc.wall_time_ms, &w[1].hlc.counter, &w[1].hlc.node_id),
-                    "页内必须按 HLC 升序: {} < {}",
-                    w[0].id,
-                    w[1].id
-                );
-            }
-            for rec in page {
-                paged_ids.push(rec.id.clone());
-            }
-            offset += 2;
-        }
+        // 分页逐页收集（会话层同款 keyset：每页把水印推进到最大 HLC + 游标推进到最后
+        // 一条 id），limit=2。拼接 == 非分页全量即隐式保证逐页升序（每页都是全序切片）。
+        let paged_ids = collect_paginated_object_ids(
+            &vault,
+            watermark.clone(),
+            "test_account",
+            "local_node",
+            2,
+        );
 
         // 逐页拼接 == 非分页结果，无缺漏无重复
         assert_eq!(
@@ -6938,6 +6933,170 @@ mod tests {
         );
         let uniq: std::collections::HashSet<&str> = paged_ids.iter().map(|s| s.as_str()).collect();
         assert_eq!(uniq.len(), all.len(), "分页结果不得有重复");
+    }
+
+    /// N-1 回归测试共用：以会话层同款 keyset 迭代（每页把水印推进到本页最大有效 HLC、
+    /// 页游标推进到本页最后一条 id）逐页收集 objects 变更 id。
+    fn collect_paginated_object_ids(
+        vault: &VaultStore,
+        mut watermark: crate::SyncWatermark,
+        account_id: &str,
+        local_node_id: &str,
+        limit: usize,
+    ) -> Vec<String> {
+        let mut out = Vec::new();
+        let mut last_row_id: Option<String> = None;
+        loop {
+            let page = vault
+                .list_sync_changes_since_paginated(
+                    "objects",
+                    &watermark,
+                    account_id,
+                    local_node_id,
+                    limit,
+                    last_row_id.as_deref(),
+                )
+                .unwrap();
+            if page.is_empty() {
+                break;
+            }
+            for rec in &page {
+                out.push(rec.id.clone());
+            }
+            // 水印推进到本页最大有效 HLC（与会话层 update_peer_watermark(max) 一致）
+            if let Some((w, c, n)) = page
+                .iter()
+                .map(|r| (r.hlc.wall_time_ms, r.hlc.counter, r.hlc.node_id.clone()))
+                .max()
+            {
+                watermark = crate::SyncWatermark {
+                    wall_time_ms: w,
+                    counter: c,
+                    node_id: n,
+                };
+            }
+            last_row_id = page.last().map(|r| r.id.clone());
+        }
+        out
+    }
+
+    // ── N-1: keyset 分页——同 HLC 回退行跨页边界不得漏发 ─────────────────
+    //
+    // P110 引入 SQL 级分页后，会话层把 peer watermark 推进到“本页最大 HLC”再严格 >
+    // 重查。同 ms 批量写入的无 HLC 回退行（有效 HLC 三元组完全相同，counter=0、
+    // node=local）落在页边界时会被下一页永久跳过（严格 > 排除 hlc == watermark 的
+    // 等值组尾部）。本测试构造 7 个同 updated_at 的回退行，以 keyset（last_row_id
+    // 游标）逐页收集，断言无缺漏、无重复、组内按 id 稳定升序。
+    #[test]
+    fn test_paginated_keyset_fallback_equal_hlc_completeness() {
+        let (vault, _dir) = setup();
+        let ts = "2026-08-01T12:00:00.000+00:00";
+        let wm_wall = VaultStore::parse_time_ms(ts);
+        let watermark = crate::SyncWatermark {
+            wall_time_ms: wm_wall - 1000,
+            counter: 0,
+            node_id: "peer_x".to_string(),
+        };
+        for i in 1..=7usize {
+            vault
+                .save_object(&crate::ObjectRecord {
+                    id: format!("fallback_{:02}", i),
+                    account_id: "test_account".to_string(),
+                    name: format!("fallback_{:02}", i),
+                    section_type: "identity".to_string(),
+                    properties: serde_json::json!({ "k": i }),
+                    sensitivity_level: "internal".to_string(),
+                    created_at: ts.to_string(),
+                    updated_at: ts.to_string(),
+                    ..Default::default()
+                })
+                .unwrap();
+        }
+
+        let paged_ids = collect_paginated_object_ids(
+            &vault,
+            watermark.clone(),
+            "test_account",
+            "local_node",
+            2,
+        );
+
+        // 全部 7 条必须无缺漏、无重复
+        assert_eq!(paged_ids.len(), 7, "等值 HLC 回退行不得因页边界漏发");
+        let uniq: std::collections::HashSet<&str> = paged_ids.iter().map(|s| s.as_str()).collect();
+        assert_eq!(uniq.len(), 7, "keyset 分页不得重复投递");
+        // 同 HLC 组内按 id 升序（fallback_01..fallback_07 字典序 == 数字序）
+        assert_eq!(
+            paged_ids,
+            vec![
+                "fallback_01".to_string(),
+                "fallback_02".to_string(),
+                "fallback_03".to_string(),
+                "fallback_04".to_string(),
+                "fallback_05".to_string(),
+                "fallback_06".to_string(),
+                "fallback_07".to_string(),
+            ],
+            "等值 HLC 组内必须按 id 升序稳定分页"
+        );
+    }
+
+    // ── N-1: 回退假阳性不得填满 LIMIT 预算导致死循环 ──────────────────
+    //
+    // P110 对无 HLC 回退行以“watermark 所在秒整秒下界”粗筛（宁多勿漏），同秒内
+    // updated_at <= watermark 的假阳性会进入 SQL LIMIT 预算，被 Rust 精确过滤后形成
+    // “空页但 finished=false、max_hlc=None、水印永不推进”的死循环。修复后 SQL 按
+    // (有效 HLC, id) 全序精确过滤，假阳性不再占用 LIMIT 预算，同步必然前进并终止。
+    #[test]
+    fn test_paginated_keyset_fallback_false_positive_isolation() {
+        let (vault, _dir) = setup();
+        let wm_wall = VaultStore::parse_time_ms("2026-08-01T12:00:00.500+00:00");
+        let watermark = crate::SyncWatermark {
+            wall_time_ms: wm_wall,
+            counter: 5,
+            node_id: "peer_x".to_string(),
+        };
+        let mk = |id: &str, updated_at: &str| crate::ObjectRecord {
+            id: id.to_string(),
+            account_id: "test_account".to_string(),
+            name: id.to_string(),
+            section_type: "identity".to_string(),
+            properties: serde_json::json!({ "k": id }),
+            sensitivity_level: "internal".to_string(),
+            created_at: updated_at.to_string(),
+            updated_at: updated_at.to_string(),
+            ..Default::default()
+        };
+        // 假阳性：同秒但早于 watermark（旧粗筛会放行，精确过滤后应被排除）
+        for (id, ts) in [
+            ("fp_1", "2026-08-01T12:00:00.100+00:00"),
+            ("fp_2", "2026-08-01T12:00:00.200+00:00"),
+            ("fp_3", "2026-08-01T12:00:00.300+00:00"),
+        ] {
+            vault.save_object(&mk(id, ts)).unwrap();
+        }
+        // 真阳性：晚于 watermark
+        vault
+            .save_object(&mk("tp_1", "2026-08-01T12:00:00.600+00:00"))
+            .unwrap();
+        vault
+            .save_object(&mk("tp_2", "2026-08-01T12:00:00.700+00:00"))
+            .unwrap();
+
+        let paged_ids = collect_paginated_object_ids(
+            &vault,
+            watermark.clone(),
+            "test_account",
+            "local_node",
+            2,
+        );
+
+        // 假阳性被排除、真阳性全部投递、循环必然终止
+        assert_eq!(
+            paged_ids,
+            vec!["tp_1".to_string(), "tp_2".to_string()],
+            "同秒回退假阳性不得进入结果集，真阳性必须全部投递"
+        );
     }
 
     // ── §30 plugin-template Stage 2 — contract_type_id roundtrip ─────────

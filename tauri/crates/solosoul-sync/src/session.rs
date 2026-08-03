@@ -477,7 +477,14 @@ fn send_paginated_deltas(
     peer_node_id: &str,
     session_start: Instant,
 ) -> Result<(), String> {
+    // N-1：回退行节点必须与 peer watermark 落库格式一致（hex 编码的 16 字节节点）。
+    // 原始 node_id（随机 UUID）与 hex 字节串永不相等，会让存储层 keyset 等值组分支
+    // 永远不触发——等 ms 回退行组在页边界处要么死循环、要么静默漏发。
+    let local_hlc_node = hex::encode(Hlc::parse_node_id_bytes(node_id));
     for table in SYNC_TABLES {
+        // N-1: keyset 页游标——推进到本页最后一条记录的 id。等值 HLC 组跨页时，
+        // 水印虽推进到组最大值，游标仍保证组尾行被下一页继续投递（不重不漏）。
+        let mut last_row_id: Option<String> = None;
         loop {
             let watermark = vault_to_watermark(&vault.get_peer_watermark(peer_node_id, table)?);
             let page = generate_delta_paginated(
@@ -485,9 +492,9 @@ fn send_paginated_deltas(
                 table,
                 &watermark,
                 account_id,
-                node_id,
+                &local_hlc_node,
                 DELTA_PAGE_LIMIT,
-                0,
+                last_row_id.as_deref(),
             )?;
             if page.records.is_empty() && page.finished {
                 break;
@@ -495,6 +502,9 @@ fn send_paginated_deltas(
 
             let finished = page.finished;
             let max_hlc = max_record_hlc(&page.records);
+            if let Some(last) = page.records.last() {
+                last_row_id = Some(last.id.clone());
+            }
 
             send_msg(
                 session,
@@ -628,7 +638,7 @@ fn recv_msg(
     SyncMessage::decode(&bytes)
 }
 
-fn vault_to_watermark(wm: &solosoul_vault::SyncWatermark) -> SyncWatermark {
+pub(crate) fn vault_to_watermark(wm: &solosoul_vault::SyncWatermark) -> SyncWatermark {
     SyncWatermark {
         wall_time_ms: wm.wall_time_ms,
         counter: wm.counter,

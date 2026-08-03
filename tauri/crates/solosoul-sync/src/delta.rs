@@ -54,7 +54,7 @@ pub fn generate_delta_paginated(
     account_id: &str,
     local_node_id: &str,
     limit: usize,
-    offset: usize,
+    last_row_id: Option<&str>,
 ) -> Result<DeltaPage, String> {
     let vault_watermark = watermark_to_vault(watermark);
     let changes = store.list_sync_changes_since_paginated(
@@ -63,7 +63,7 @@ pub fn generate_delta_paginated(
         account_id,
         local_node_id,
         limit,
-        offset,
+        last_row_id,
     )?;
     let finished = changes.len() < limit;
     let records = changes
@@ -210,7 +210,7 @@ mod tests {
             "acc_delta",
             "node_a",
             usize::MAX,
-            0,
+            None,
         )
         .unwrap();
         assert_eq!(page.records.len(), 1);
@@ -221,5 +221,86 @@ mod tests {
         let synced = vault_b.load_profile("p1").unwrap().unwrap();
         assert_eq!(synced.name, "Travel");
         assert_eq!(synced.data, b"encrypted payload");
+    }
+
+    // ── N-1: 生产编码路径下 keyset 分页必须无缺漏 ────────────────────────
+    //
+    // 会话层把本地节点规范化为 hex(parse_node_id_bytes(node_id)) 传入存储层，与
+    // peer watermark 落库格式一致；否则 keyset 等值组分支永不触发（原始 UUID 与
+    // hex 字节串不等），等 ms 回退行组跨页时会死循环或静默漏发。本测试走完整生产
+    // 路径：generate_delta_paginated → watermark_to_vault 落库 → get_peer_watermark
+    // 读回 → 解析回 sync 层，逐页收集 7 个同 updated_at 回退行，断言无缺漏、无重复。
+    #[test]
+    fn test_generate_delta_paginated_keyset_production_encoding() {
+        let dir = TempDir::new().unwrap();
+        let vault = open_test_vault("acc_n1", dir.path().to_path_buf());
+        let ts = "2026-08-01T12:00:00.000+00:00";
+        for i in 1..=7usize {
+            vault
+                .save_object(&solosoul_vault::ObjectRecord {
+                    id: format!("n1_{:02}", i),
+                    account_id: "acc_n1".to_string(),
+                    name: format!("n1_{:02}", i),
+                    section_type: "identity".to_string(),
+                    properties: serde_json::json!({ "k": i }),
+                    sensitivity_level: "internal".to_string(),
+                    created_at: ts.to_string(),
+                    updated_at: ts.to_string(),
+                    ..Default::default()
+                })
+                .unwrap();
+        }
+
+        // 与 send_paginated_deltas 相同的节点规范化（生产编码路径）
+        let node_id = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
+        let local_hlc_node = hex::encode(Hlc::parse_node_id_bytes(node_id));
+        let peer_node_id = "peer_x";
+
+        let mut watermark = crate::hlc::SyncWatermark::zero();
+        let mut last_row_id: Option<String> = None;
+        let mut paged_ids: Vec<String> = Vec::new();
+        loop {
+            let page = generate_delta_paginated(
+                &vault,
+                "objects",
+                &watermark,
+                "acc_n1",
+                &local_hlc_node,
+                2,
+                last_row_id.as_deref(),
+            )
+            .unwrap();
+            if page.records.is_empty() && page.finished {
+                break;
+            }
+            for rec in &page.records {
+                paged_ids.push(rec.id.clone());
+            }
+            if let Some(max) = max_record_hlc(&page.records) {
+                // 与会话层同款：落库 watermark_to_vault(hlc_to_sync_watermark(max))
+                let vwm = watermark_to_vault(&hlc_to_sync_watermark(&max));
+                vault
+                    .update_peer_watermark(peer_node_id, "objects", &vwm)
+                    .unwrap();
+                // 读回并转回 sync 层（复用 session.rs 的 vault_to_watermark，防漂移）
+                let stored = vault.get_peer_watermark(peer_node_id, "objects").unwrap();
+                watermark = crate::session::vault_to_watermark(&stored);
+            }
+            last_row_id = page.records.last().map(|r| r.id.clone());
+        }
+
+        assert_eq!(
+            paged_ids,
+            vec![
+                "n1_01".to_string(),
+                "n1_02".to_string(),
+                "n1_03".to_string(),
+                "n1_04".to_string(),
+                "n1_05".to_string(),
+                "n1_06".to_string(),
+                "n1_07".to_string(),
+            ],
+            "生产编码路径（hex 规范化节点）下等 ms 回退行组必须无缺漏、无重复、组内按 id 稳定升序"
+        );
     }
 }
