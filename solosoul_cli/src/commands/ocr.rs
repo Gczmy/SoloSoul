@@ -145,6 +145,8 @@ fn tier_size_mb(tier: OcrModelTier) -> f32 {
         OcrModelTier::Tiny => 4.5,
         OcrModelTier::Small => 30.0,
         OcrModelTier::Medium => 132.0,
+        // P133: Vision 为 macOS 系统内置引擎（GUI 专用），CLI 模型清单不包含该档位。
+        OcrModelTier::Vision => 0.0,
     }
 }
 

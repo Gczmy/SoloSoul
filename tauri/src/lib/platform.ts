@@ -22,6 +22,16 @@ export function isMobilePlatformSync(): boolean {
 }
 
 /**
+ * P133: 同步判断是否为 macOS（基于缓存）。
+ * 若缓存未命中则返回 false（非 macOS 默认行为），建议在应用初始化时调用一次 getPlatform()。
+ * 用于 macOS 端 OCR 默认档位（Vision 引擎）的本地兜底，权威值仍以 `ocr_get_active_tier` 为准。
+ */
+export function isMacOSSync(): boolean {
+  if (!cachedPlatform) return false;
+  return cachedPlatform === 'macos';
+}
+
+/**
  * 在应用初始化时预加载平台信息。
  */
 export async function initPlatform(): Promise<void> {

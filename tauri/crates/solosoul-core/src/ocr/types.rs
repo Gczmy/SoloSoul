@@ -37,6 +37,10 @@ pub enum OcrModelTier {
     Small,
     /// 高精度档位，约 132MB，适合复杂文档。
     Medium,
+    /// P133：macOS 专用——Apple Vision Framework 原生 OCR（系统内置，无模型文件）。
+    /// 仅 macOS 提供该档位（`ocr_list_available_tiers` 在非 macOS 不返回）；
+    /// 序列化为 "vision"。
+    Vision,
 }
 
 impl OcrModelTier {
@@ -46,6 +50,8 @@ impl OcrModelTier {
             OcrModelTier::Tiny => "pp-ocr-v6-tiny",
             OcrModelTier::Small => "pp-ocr-v6-small",
             OcrModelTier::Medium => "pp-ocr-v6-medium",
+            // Vision 为系统内置引擎，无模型目录（此值不会被模型操作使用）。
+            OcrModelTier::Vision => "macos-vision",
         }
     }
 
@@ -55,6 +61,8 @@ impl OcrModelTier {
             OcrModelTier::Tiny => "tiny",
             OcrModelTier::Small => "small",
             OcrModelTier::Medium => "medium",
+            // Vision 不参与远程下载。
+            OcrModelTier::Vision => "vision",
         }
     }
 }
@@ -65,6 +73,7 @@ impl std::fmt::Display for OcrModelTier {
             OcrModelTier::Tiny => write!(f, "tiny"),
             OcrModelTier::Small => write!(f, "small"),
             OcrModelTier::Medium => write!(f, "medium"),
+            OcrModelTier::Vision => write!(f, "vision"),
         }
     }
 }
@@ -77,6 +86,7 @@ impl std::str::FromStr for OcrModelTier {
             "tiny" => Ok(OcrModelTier::Tiny),
             "small" => Ok(OcrModelTier::Small),
             "medium" => Ok(OcrModelTier::Medium),
+            "vision" => Ok(OcrModelTier::Vision),
             _ => Err(format!("Unknown OCR model tier: {s}")),
         }
     }
@@ -102,4 +112,29 @@ pub struct MrzResult {
     pub raw_lines: Vec<String>,
     pub confidence: f64,
     pub checksum_valid: bool,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_vision_tier_parse_display_and_serde() {
+        // P133: Vision 档位全链路往返（Display / FromStr / serde lowercase）。
+        assert_eq!(OcrModelTier::Vision.to_string(), "vision");
+        assert_eq!(
+            "vision".parse::<OcrModelTier>().unwrap(),
+            OcrModelTier::Vision
+        );
+        assert_eq!(
+            serde_json::to_string(&OcrModelTier::Vision).unwrap(),
+            "\"vision\""
+        );
+        assert_eq!(
+            serde_json::from_str::<OcrModelTier>("\"vision\"").unwrap(),
+            OcrModelTier::Vision
+        );
+        // 既有三档不受影响。
+        assert_eq!("tiny".parse::<OcrModelTier>().unwrap(), OcrModelTier::Tiny);
+    }
 }

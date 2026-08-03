@@ -96,8 +96,15 @@ export function OcrSettingsPage() {
                 const isInstalling = installingTier === tier.tier;
                 const isDownloading = downloadingTier === tier.tier;
                 const isDeleting = deletingTier === tier.tier;
+                // P133: Vision 为系统内置引擎，无存储占用（tierSize 空串）。
                 const tierSize =
-                  tier.tier === 'tiny' ? '1.5MB' : tier.tier === 'medium' ? '132MB' : '30MB';
+                  tier.tier === 'tiny'
+                    ? '1.5MB'
+                    : tier.tier === 'medium'
+                      ? '132MB'
+                      : tier.tier === 'vision'
+                        ? ''
+                        : '30MB';
                 return (
                   <div
                     key={tier.tier}
@@ -125,11 +132,13 @@ export function OcrSettingsPage() {
                         <div
                           style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}
                         >
-                          {status?.installed
-                            ? `${t('ocr:status_installed')} · ${t('ocr:storage_usage_value', { size: tierSize })}`
-                            : status?.bundled
-                              ? t('ocr:status_bundled')
-                              : t('ocr:status_not_installed')}
+                          {status?.builtin
+                            ? t('ocr:status_builtin')
+                            : status?.installed
+                              ? `${t('ocr:status_installed')} · ${t('ocr:storage_usage_value', { size: tierSize })}`
+                              : status?.bundled
+                                ? t('ocr:status_bundled')
+                                : t('ocr:status_not_installed')}
                         </div>
                       </div>
                     </div>
@@ -191,7 +200,8 @@ export function OcrSettingsPage() {
                           )}
                         </button>
                       )}
-                      {status?.installed && (
+                      {/* P133: 系统内置引擎（Vision）不可删除 */}
+                      {status?.installed && !status?.builtin && (
                         <button
                           onClick={() => handleDelete(tier.tier)}
                           disabled={isDeleting}

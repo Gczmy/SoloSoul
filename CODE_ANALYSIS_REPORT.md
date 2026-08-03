@@ -17,17 +17,16 @@
 | `cargo fmt --check` | ✅ 通过 | ✅ 通过 |
 | `cargo clippy --workspace --all-targets` | ✅ 零警告 | ✅ 零警告 |
 | 前端测试 | ✅ 46 文件 / 430 用例 | ✅ 55 文件 / 484 用例（较修复前 +54） |
-| Rust 测试 | ✅ 全部通过 | ✅ 全部通过（solo_soul 352 / core 153 / crypto 34 / plugin 56 / sync 47 / vault 123） |
+| Rust 测试 | ✅ 全部通过 | ✅ 全部通过（solo_soul 361 / core 154 / crypto 34 / plugin 56 / sync 47 / vault 123） |
 
 ## §2 总览：80 项问题处置结果
 
 - **审计问题清单共 80 项**（P001-P007、P101-P142、P201-P231）。
-- **78 项可执行项已修复并经独立复核验证**（60 项首轮 ✅ + 部分修复 9 项经 N 项跟进闭环 + 复核新发现 N-1~N-11 与 R-1~R-5 全部闭环），其中 P104/P206 为部分修复/部分保留，P209 为用户决策保留。
-- **遗留未完成 4 类**（§4 详细讨论）：
+- **79 项可执行项已修复并经独立复核验证**（60 项首轮 ✅ + 部分修复 9 项经 N 项跟进闭环 + 复核新发现 N-1~N-11 与 R-1~R-5 全部闭环 + P133 按用户决策接入 macOS 默认引擎），其中 P104/P206 为部分修复/部分保留，P209 为用户决策保留。
+- **遗留未完成 3 类**（§4 详细讨论）：
   1. **N-10 / P207 残余**：Embedding 注册表 minisign 公钥未注入，默认构建防护未激活（⏸ 用户决策暂缓）。
-  2. **P133-P135**：三个死模块删除（⏸ 破坏性操作暂缓；P135 与 R-4① 有协同关系，见 §4.2）。
+  2. **P134-P135**：两个死模块处置（P134 Keychain 规划代码保留；P135 safe_storage 与 R-4① 有协同关系，见 §4.2）。
   3. **P223/P224**：长函数/巨型组件长期重构（有意留待迭代）。
-  4. **已声明残余窗口**：R-3（同步中断等值组尾部）、R-4①（reencrypt→config 崩溃毫秒级窗口）——均为可接受工程取舍，彻底解法已登记。
 - 另有两项「有意保留但需后续跟进」记录在案：P209（legacy XOR 迁移窗口）、P206 遗留观察（PDF embed 与 CSP）。
 
 ## §3 已通过复核项归档（清理版）
@@ -127,7 +126,7 @@
 | ID | 判定 | 验证要点 |
 |----|------|----------|
 | P132 | ✅ | 8 个死命令删除（含 crypto oracle），注册与 allowlist 同步清理，前端/CLI 零残留 |
-| P133 | ⏸ | 已决策保留（macOS Vision OCR 桥接，破坏性删除暂缓）——详见 §4.2 |
+| P133 | ✅ | 按用户决策**接入为 macOS 默认 OCR 引擎**：新增 `OcrModelTier::Vision` 档位（仅 macOS `ocr_list_available_tiers` 返回、置于首位），`OcrPreferences` 默认档 macOS 为 Vision；扫描走 `macos_vision::scan_image`（spawn_blocking + `#[cfg(target_os="macos")]` 属性剪裁，非 macOS 编译不引用门控模块）；MRZ 回退 small 档；前端仅 macOS 显示该档、默认选中、隐藏安装/下载/删除（builtin 标记）、按图片-only 过滤；详见 §4.2.1 |
 | P134 | ⏸ | 已决策保留（macOS Keychain 未来方案，破坏性删除暂缓）——详见 §4.2 |
 | P135 | ⏸ | 已决策保留（safe_storage 原子写工具，破坏性删除暂缓）——**与 R-4① 存在协同，见 §4.2** |
 | P136 | ✅ | 自我纠错正确：CLI 依赖方法全部恢复，最终仅删 15 个零调用方法（provider 管理 8 + 会话管理 5 + reset_stats + 非流式 send_message） |
@@ -171,7 +170,7 @@
 
 ## §4 未完成项详细讨论
 
-> 本节为合并版报告的核心内容。按影响面排序：N-10（安全面，暂缓待决策）→ P133-P135（破坏性删除，暂缓）→ P223/P224（长期重构）→ 已声明残余窗口（R-3/R-4①）→ 有意保留记录（P209/P206 遗留观察）。
+> 本节为合并版报告的核心内容。按影响面排序：N-10（安全面，暂缓待决策）→ P134-P135（死模块处置）→ P223/P224（长期重构）→ 已声明残余窗口（R-3/R-4①）→ 有意保留记录（P209/P206 遗留观察）。
 
 ### 4.1 N-10 / P207 残余：Embedding 注册表 minisign 公钥注入（⏸ 暂缓待决策）
 
@@ -221,26 +220,37 @@
 2. **路径 1 随签名体系就绪随时激活**（一行常量 + 发布流程）；路径 2 作为中间态的 CI 接线。
 3. 在此之前维持暂缓登记，风险等级「低」由 P104 叠加缓解支撑。
 
-### 4.2 P133-P135：死模块删除（⏸ 破坏性操作暂缓）
+### 4.2 P134-P135：死模块处置（P133 已闭环，余两项待决策）
 
-三模块合计约 926 行，均确认零生产引用（grep 仅命中模块声明自身）。原报告建议删除属破坏性操作，2026-08-02 用户确认暂缓。**本次合并复核补充了关键新发现（P135）**，建议重新评估处置方向。
+三模块原合计约 926 行，均确认零生产引用（grep 仅命中模块声明自身）。原报告建议删除属破坏性操作，2026-08-02 用户确认暂缓。**P133 已于 2026-08-03 按用户决策接入为 macOS 默认 OCR 引擎并闭环**（见 4.2.1）；P134 维持规划代码保留、P135 与 R-4① 协同建议反向接入（见 4.2.2/4.2.3）。
 
-#### 4.2.1 P133 `crates/solosoul-core/src/ocr/macos_vision.rs`（389 行）
+#### 4.2.1 P133 `crates/solosoul-core/src/ocr/macos_vision.rs`（389 行）—— ✅ 已闭环（2026-08-03）
 
-- **内容**：macOS Vision Framework 原生 OCR 桥接（内嵌 Swift 源码，首调编译临时二进制缓存到 `{tmp}/solosoul-ocr-vision/`）。注释称「精度通常优于 PP-OCRv6 small，且通过 ANE 硬件加速」。
-- **引用**：零（`ocr/mod.rs:22` 模块声明 + 文档提及）。
-- **保留价值**：未来 macOS 本地 OCR 精度升级的备选方案；但 Swift 运行时编译方案（首次调用 `swiftc` 编译 → 临时目录执行）本身有安全与延迟考量，且当前 OCR 全走 PP-OCRv6 已具备三档模型。
-- **建议**：若短期无 macOS 专用 OCR 精度计划，可**移出主分支**（归档到 `docs/` 或独立分支）而非硬删——保留代码但脱离编译面，比「带病保留」更符合零死代码门闩；`pub mod` → 注释引用。属低优先。
+**用户决策**：macOS 版本加入 macOS Vision Framework 原生 OCR 桥接，**设为 macOS 端默认档位**（仅 macOS 显示该选项，其他端不显示）。
+
+**修复内容**：
+
+| 层 | 改动 |
+|----|------|
+| core `types.rs` | 新增 `OcrModelTier::Vision` 变体（`dir_name=macos-vision`、`remote_name=vision`、Display/FromStr/serde lowercase `"vision"`），单测覆盖往返 |
+| `commands/ocr.rs` | `OcrPreferences::default()` macOS 默认 Vision 否则 Small；`ocr_list_available_tiers` macOS 将 vision 插入首位（共 4 档）其余平台 3 档；`ocr_get_model_status` Vision 恒 builtin（installed+bundled=true）；`ocr_set_active_tier`/`ocr_install_bundled_model`/`ocr_download_model`/`ocr_delete_model` 对 Vision 加平台与「系统内置」守卫；`model_file_size_limit` Vision=>0 |
+| `ocr_scan_image` | Vision 分支在 `#[cfg(target_os="macos")]` 属性下调用 `macos_vision::scan_image`（返回 `(String, f64)`，spawn_blocking 包裹，拒绝 PDF）；**注意点：必须用 cfg 属性而非运行时 `cfg!` 剪裁**——`macos_vision` 模块本身 cfg 门控，运行时判断仍会在非 macOS 编译期引用不存在模块（E0432）；`#[cfg(not(target_os="macos"))]` 分支防御性拒绝 |
+| `ocr_scan_mrz` | Vision 不产出 MRZ 框线 → 激活为 Vision 时回退 small 档引擎，保证 macOS 默认档位下 MRZ 功能可用 |
+| CLI | `tier_size_mb` 穷尽匹配补 `Vision=>0.0`（CLI 模型清单不含该档） |
+| 前端 | `platform.ts` 新增 `isMacOSSync()`（缓存判断，未命中返回 false，权威值仍以后端 `ocr_get_active_tier` 为准）；`ipc.ts` `OcrModelStatus.builtin?`；`ocrScanStore`/`useOcrModelManager` 默认 `activeTier` macOS 为 `'vision'`；`OcrSettingsPage` 显示 `status_builtin`、隐藏删除按钮、存储占用空；`OcrPage`/`OcrScanControls` 按图片-only 过滤（Vision 无 PDF 管线）；zh-CN/en-US `ocr.json` 新增 `tier_vision_name`/`tier_vision_description`/`status_builtin` |
+| 测试 | `test_ocr_preferences_default_tier` 平台感知；`test_ocr_model_status_camelcase_serde` 补 builtin；新增 `test_ocr_list_available_tiers_platform_aware`（真实调用命令：macOS 首项 vision 共 4 档 / 非 macOS 3 档无 vision）；core `test_vision_tier_parse_display_and_serde` |
+
+**验证**：fmt 干净 / clippy workspace 0 / workspace check 0 / solosoul-core ocr 测试 28 全绿 / solo_soul ocr 测试 23 全绿 / CLI check 0 / tsc 0 / eslint 0 / vitest 484 全绿。
+
+**已声明取舍**（评审确认）：① `_language` 参数对 Vision 分支未透传（Swift 桥接恒为自动语言，如需指定语言需在 `macos_vision.rs` 扩展 `recognitionLanguages`——既定为后续改进）；② 老 macOS 用户若 `ocr_preferences.json` 已存旧档位，升级后保留原选择（尊重既有偏好），全新用户默认 Vision；③ Android target 交叉编译检查受 `ring` NDK 工具链环境限制（非代码问题），但 cfg 属性剪裁已保证非 macOS 不引用门控模块，Windows/Android 编译面无此引用。
 
 #### 4.2.2 P134 `crates/solosoul-core/src/biometric/macos_keychain.rs`（439 行）
-
 - **内容**：macOS Keychain UserPresence 生物识别凭证存储**未来实施方案**（`#[allow(dead_code)]`，注释明示启用前提：Apple Developer Program 付费会员 + Team ID + Developer ID 签名 + entitlements 声明 keychain-access-groups）。
 - **引用**：零（`biometric/mod.rs:38` 私有模块声明）。
 - **保留价值**：Apple 生态正式分发后的生物识别增强（当前 macOS 走 `FileBiometricStorage`，Keychain UserPresence 是更安全的升级路径，且 P002 修复后 Windows 已用 DPAPI——Keychain 是跨平台安全对齐的对称物）。
 - **建议**：这是**「有意保留的规划代码」**，与死代码清理的目标（消除误导/漂移）矛盾最小——建议保留但将 `#[allow(dead_code)]` 升级为**显式规划注释 + `#[cfg(feature = "future-keychain")]` 门控**（脱离默认编译面，消除 dead_code 豁免），或维持现状。属低优先。
 
 #### 4.2.3 P135 `crates/solosoul-vault/src/safe_storage.rs`（98 行）——**新发现：与 R-4① 协同**
-
 - **内容**：原子文件写入工具 `write_atomic`（`.tmp` + rename）+ `recover_or_load`（孤儿 tmp 恢复），自带 3 条测试。
 - **引用**：零生产调用（仅 `lib.rs:16 pub mod` + `lib.rs:8` 文档提及 + 自身测试）。
 - **新发现（本次合并复核）**：`vault_service.rs` 的 **6 处 config 写入全部是非原子 `fs.write_file`**（:469/:586/:782/:865/:1074/:1110，无 `.tmp`+rename）——这正是 R-4①「reencrypt commit 后 config 写一半/进程崩溃 → 账户不可用」毫秒级窗口的根源。`safe_storage::write_atomic` 恰好提供现成的原子写 + 孤儿恢复方案。
@@ -306,16 +316,17 @@
 
 ## §5 结论与后续建议
 
-1. **审计闭环状态**：80 项问题中 78 项可执行项已修复并经两轮独立复核（70 项首轮 + 16 项二轮补验）验证，测试用例较修复前净增 54 个；**所有 N/R 项复核发现均已闭环**。
-2. **遗留未完成 4 类**（本报告 §4）：
+1. **审计闭环状态**：80 项问题中 79 项可执行项已修复并经两轮独立复核（70 项首轮 + 16 项二轮补验 + P133 用户决策接入）验证，测试用例较修复前净增 54 个；**所有 N/R 项复核发现均已闭环**。
+2. **遗留未完成 3 类**（本报告 §4）：
    - N-10/P207（公钥注入）：建议下一发布周期实施**路径 3（bundled 兜底 + fail-closed）**——唯一不依赖外部密钥即可关闭缺口的路径；路径 1（真实公钥）随签名体系就绪随时激活。
-   - P133-P135：维持暂缓；**P135 建议由「删除」改为「接入 config 原子写」**（与 R-4① 协同，一举两得）；P133 可考虑移出主分支归档。
+   - P134-P135：P134 维持规划代码保留（建议 `#[cfg(feature)]` 门控脱离默认编译面）；**P135 建议由「删除」改为「接入 config 原子写」**（与 R-4① 协同，一举两得）。
    - P223/P224：长期重构，建议从 `TrashDetailPanel`（P224）与 storage.rs 按表域拆分（P223）开始，沿用 P048/P217 的等价重构 + 防回归测试先例。
-   - R-3/R-4① 残余：可接受工程取舍，登记长期改进（等值组尾部回扫 / config journal）。
+   - R-3/R-4① 残余：可接受工程取舍，登记长期改进（等值组尾部回扫 / config journal，见 §4.4）。
+3. **验证指针**：本报告 §3 归档表含全部修复 commit（`f1970c67` 起，N/R 项见 §3.2）；完整修复细节与两轮验证记录在 git 历史中可追溯。
 3. **验证指针**：本报告 §3 归档表含全部修复 commit（`f1970c67` 起，N/R 项见 §3.2）；完整修复细节与两轮验证记录在 git 历史中可追溯。
 
 ## §6 测试基线参考（当前 HEAD）
 
 - 前端：tsc 0 错误 / eslint 0 警告 / vitest 55 文件 484 用例全绿。
-- Rust：`cargo fmt --check` 通过 / `cargo clippy --workspace --all-targets` 零警告 / `cargo test --workspace` 全绿（solo_soul 352、core 153、crypto 34、plugin 56、sync 47、vault 123）；`solosoul_cli` cargo check 0 错误。
+- Rust：`cargo fmt --check` 通过 / `cargo clippy --workspace --all-targets` 零警告 / `cargo test --workspace` 全绿（solo_soul 361、core 154、crypto 34、plugin 56、sync 47、vault 123）；`solosoul_cli` cargo check 0 错误。
 - 工作区干净，当前分支 `main` 与 `origin/main` 同步。

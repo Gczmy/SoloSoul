@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
+import { isMacOSSync } from '@/lib/platform';
 import type { OcrResult, MrzResult } from '@/lib/ipc';
 
 export interface OcrScanEntry {
@@ -52,7 +53,8 @@ export const useOcrScanStore = create<OcrScanState>()(
       scanHistory: [],
       currentScanId: null,
       isScanning: false,
-      activeTier: 'small',
+      // P133: macOS 默认 Vision 引擎（后端加载前兜底；权威值以 ocr_get_active_tier 为准）。
+      activeTier: isMacOSSync() ? 'vision' : 'small',
       lastScanError: null,
 
       setCardOpen: (open) => set({ isCardOpen: open }),

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { TFunction } from 'i18next';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
+import { isMacOSSync } from '@/lib/platform';
 import type { OcrTierInfo, OcrModelStatus } from '@/lib/ipc';
 
 /**
@@ -47,7 +48,8 @@ export function useOcrModelManager({
   confirmDownload,
 }: UseOcrModelManagerOptions) {
   const [tiers, setTiers] = useState<OcrTierInfo[]>([]);
-  const [activeTier, setActiveTier] = useState('small');
+  // P133: macOS 默认 Vision 引擎（后端加载前兜底；权威值以 ocr_get_active_tier 为准）。
+  const [activeTier, setActiveTier] = useState(() => (isMacOSSync() ? 'vision' : 'small'));
   const [statusMap, setStatusMap] = useState<Record<string, OcrModelStatus>>({});
   const [loading, setLoading] = useState(enabled);
   const [installingTier, setInstallingTier] = useState<string | null>(null);

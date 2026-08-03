@@ -124,4 +124,6 @@ export interface OcrModelStatus {
   tier: string;
   installed: boolean;
   bundled: boolean;
+  /** P133: 系统内置引擎（macOS Vision）——前端据此隐藏安装/下载/删除等模型管理操作。 */
+  builtin?: boolean;
 }

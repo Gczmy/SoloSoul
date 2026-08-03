@@ -88,8 +88,9 @@ export function OcrPage() {
   });
 
   const getFileFilters = () => {
-    // MRZ 与移动端均只支持图片格式（移动端 ML Kit 无法处理 PDF）
-    if (scanMode === 'mrz' || isMobilePlatform) {
+    // MRZ、移动端与 macOS Vision 引擎均只支持图片格式
+    // （移动端 ML Kit 无法处理 PDF；Vision 引擎无 PDF 渲染管线）
+    if (scanMode === 'mrz' || isMobilePlatform || activeTier === 'vision') {
       return [{ name: 'Images', extensions: ['png', 'jpg', 'jpeg', 'webp', 'bmp', 'tiff'] }];
     }
     return [
@@ -169,7 +170,7 @@ export function OcrPage() {
         filters: getFileFilters(),
         multiple: false,
         title:
-          scanMode === 'mrz' || isMobilePlatform
+          scanMode === 'mrz' || isMobilePlatform || activeTier === 'vision'
             ? t('ocr:select_image_title')
             : t('ocr:select_file_title'),
       });
@@ -414,11 +415,13 @@ export function OcrPage() {
                           <div
                             style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}
                           >
-                            {status?.installed
-                              ? t('ocr:status_installed')
-                              : status?.bundled
-                                ? t('ocr:status_bundled')
-                                : t('ocr:status_not_installed')}
+                            {status?.builtin
+                              ? t('ocr:status_builtin')
+                              : status?.installed
+                                ? t('ocr:status_installed')
+                                : status?.bundled
+                                  ? t('ocr:status_bundled')
+                                  : t('ocr:status_not_installed')}
                           </div>
                         </div>
                       </div>
@@ -581,7 +584,7 @@ export function OcrPage() {
 
             <div style={{ display: 'flex', gap: 8, justifyContent: 'center', alignItems: 'center' }}>
               <Button onClick={handleSelectFile} loading={isScanning}>
-                {scanMode === 'mrz' || isMobilePlatform
+                {scanMode === 'mrz' || isMobilePlatform || activeTier === 'vision'
                   ? t('ocr:select_image')
                   : t('ocr:select_image_or_pdf')}
               </Button>

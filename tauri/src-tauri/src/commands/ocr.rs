@@ -87,7 +87,12 @@ struct OcrPreferences {
 impl Default for OcrPreferences {
     fn default() -> Self {
         Self {
-            active_tier: OcrModelTier::Small,
+            // P133: macOS 默认使用系统内置 Vision 引擎（免模型文件）；其他平台默认 PP-OCRv6 small。
+            active_tier: if cfg!(target_os = "macos") {
+                OcrModelTier::Vision
+            } else {
+                OcrModelTier::Small
+            },
         }
     }
 }
@@ -108,6 +113,8 @@ pub struct OcrModelStatus {
     pub tier: String,
     pub installed: bool,
     pub bundled: bool,
+    /// P133: 系统内置引擎（macOS Vision）——无需安装/下载/删除，前端据此隐藏模型管理按钮。
+    pub builtin: bool,
 }
 
 // =============================================================================
@@ -197,6 +204,14 @@ mod desktop_impl {
         tier: OcrModelTier,
     ) -> Result<PathBuf, String> {
         let models_dir = models_dir(app)?;
+
+        // P133: macOS Vision 引擎为系统内置，无模型文件可校验/安装。
+        if tier == OcrModelTier::Vision {
+            if cfg!(target_os = "macos") {
+                return Ok(models_dir);
+            }
+            return Err("Vision OCR 引擎仅支持 macOS".to_string());
+        }
 
         if is_model_installed(&models_dir, tier) {
             return Ok(models_dir);
@@ -288,7 +303,6 @@ pub async fn ocr_scan_image(
 
     let app = &state.handle;
     let tier = active_tier(app);
-    let models_dir = ensure_model_available(app, tier)?;
 
     let path = PathBuf::from(&file_path);
     if !path.exists() {
@@ -306,9 +320,62 @@ pub async fn ocr_scan_image(
         .map(|e| e.to_lowercase());
     let file_type = ext;
     let is_pdf = file_type.as_deref() == Some("pdf");
+
+    // P133: macOS 系统内置 Vision 引擎分支——免模型文件，仅支持图片。
+    // 扫描同样移入 spawn_blocking（swift CLI 编译/推理为秒级操作）。
+    // 注意：macos_vision 模块为 #[cfg(target_os = "macos")] 门控，
+    // 非 macOS 编译必须使用 cfg 属性剪裁，不能依赖运行时 cfg!。
+    #[cfg(target_os = "macos")]
+    if tier == OcrModelTier::Vision {
+        if is_pdf {
+            return Err(
+                "macOS Vision 引擎不支持 PDF 扫描，请切换到 PP-OCRv6 档位（Small/Medium）"
+                    .to_string(),
+            );
+        }
+        let scan_path = path.clone();
+        let result = tokio::task::spawn_blocking(move || -> Result<OcrResult, String> {
+            let (text, confidence) = solosoul_core::ocr::macos_vision::scan_image(&scan_path)?;
+            Ok(OcrResult {
+                text,
+                confidence,
+                boxes: Vec::new(),
+            })
+        })
+        .await
+        .map_err(|e| format!("OCR Vision task join error: {e}"))??;
+
+        let file_name = path.file_name().map(|n| n.to_string_lossy().to_string());
+        let details = json!({
+            "fileType": file_type.as_deref().unwrap_or("unknown"),
+            "tier": tier.to_string(),
+            "boxCount": 0,
+            "textLength": result.text.len(),
+            "confidence": result.confidence,
+        })
+        .to_string();
+        let _ = vault.log_structured(
+            "ocr_scan",
+            "file",
+            None,
+            file_name.as_deref(),
+            &account_id,
+            Some(&details),
+        );
+
+        return Ok(result);
+    }
+
+    // P133: 防御性拒绝——非 macOS 平台不应出现 Vision 档位（list_tiers 不返回）。
+    #[cfg(not(target_os = "macos"))]
+    if tier == OcrModelTier::Vision {
+        return Err("Vision OCR 引擎仅支持 macOS".to_string());
+    }
+
     if is_pdf {
         ensure_pdfium_library_path(app);
     }
+    let models_dir = ensure_model_available(app, tier)?;
 
     // P113: 秒级 ONNX 推理（含首次引擎加载）放到 spawn_blocking，避免阻塞 tokio worker。
     let scan_path = path.clone();
@@ -397,7 +464,14 @@ pub async fn ocr_scan_mrz(
 
     let app = &state.handle;
     let tier = active_tier(app);
-    let models_dir = ensure_model_available(app, tier)?;
+    // P133: Vision 引擎不产出 MRZ 所需的 PP-OCRv6 框线——MRZ 始终走 PP-OCRv6 引擎；
+    // 当前激活为 Vision（macOS 默认）时回退 small 档，保证 MRZ 功能在默认档位下可用。
+    let engine_tier = if tier == OcrModelTier::Vision {
+        OcrModelTier::Small
+    } else {
+        tier
+    };
+    let models_dir = ensure_model_available(app, engine_tier)?;
 
     let path = PathBuf::from(&file_path);
     if !path.exists() {
@@ -413,7 +487,7 @@ pub async fn ocr_scan_mrz(
     // 与 P113 的 ocr_scan_image 同一模式。
     let scan_path = path.clone();
     let result = tokio::task::spawn_blocking(move || {
-        let engine_arc = get_ocr_engine(&models_dir, tier)?;
+        let engine_arc = get_ocr_engine(&models_dir, engine_tier)?;
         let mut engine = engine_arc
             .lock()
             .map_err(|e| format!("OCR engine lock poisoned: {e}"))?;
@@ -425,7 +499,7 @@ pub async fn ocr_scan_mrz(
     let file_name = path.file_name().map(|n| n.to_string_lossy().to_string());
     let has_mrz = result.is_some();
     let details = json!({
-        "tier": tier.to_string(),
+        "tier": engine_tier.to_string(),
         "hasMrz": has_mrz,
     })
     .to_string();
@@ -476,10 +550,13 @@ pub async fn ocr_get_supported_languages() -> Result<Vec<String>, String> {
 }
 
 /// 返回所有可用的模型档位信息。
+///
+/// P133: macOS 额外提供系统内置 Vision 引擎（置于首位，作为默认档位）；
+/// 其他平台仅返回 PP-OCRv6 三档——前端无需感知平台即可仅显示可用选项。
 #[cfg(desktop)]
 #[tauri::command]
 pub async fn ocr_list_available_tiers() -> Result<Vec<OcrTierInfo>, String> {
-    Ok(vec![
+    let mut tiers = vec![
         OcrTierInfo {
             tier: "tiny".to_string(),
             name: "Tiny".to_string(),
@@ -488,14 +565,25 @@ pub async fn ocr_list_available_tiers() -> Result<Vec<OcrTierInfo>, String> {
         OcrTierInfo {
             tier: "small".to_string(),
             name: "Small".to_string(),
-            description: "约 30MB，速度与精度平衡（默认）".to_string(),
+            description: "约 30MB，速度与精度平衡".to_string(),
         },
         OcrTierInfo {
             tier: "medium".to_string(),
             name: "Medium".to_string(),
             description: "约 132MB，高精度，适合复杂文档".to_string(),
         },
-    ])
+    ];
+    if cfg!(target_os = "macos") {
+        tiers.insert(
+            0,
+            OcrTierInfo {
+                tier: "vision".to_string(),
+                name: "Vision (Apple)".to_string(),
+                description: "macOS 系统原生 OCR，免下载模型，高精度".to_string(),
+            },
+        );
+    }
+    Ok(tiers)
 }
 
 #[cfg(mobile)]
@@ -530,6 +618,10 @@ pub async fn ocr_set_active_tier(
     let account_id = current_account(&state)?;
 
     let tier: OcrModelTier = tier.parse()?;
+    // P133: Vision 档位仅在 macOS 可用。
+    if tier == OcrModelTier::Vision && !cfg!(target_os = "macos") {
+        return Err("Vision OCR 引擎仅支持 macOS".to_string());
+    }
     let mut prefs = load_preferences(&state.handle);
     prefs.active_tier = tier;
     save_preferences(&state.handle, &prefs)?;
@@ -567,10 +659,24 @@ pub async fn ocr_get_model_status(
     let models_dir = models_dir(&state.handle)?;
     let bundled_dir = bundled_models_dir().unwrap_or_else(|_| PathBuf::new());
 
+    // P133: macOS Vision 为系统内置引擎，恒为已就绪（builtin）。
+    if tier == OcrModelTier::Vision {
+        if !cfg!(target_os = "macos") {
+            return Err("Vision OCR 引擎仅支持 macOS".to_string());
+        }
+        return Ok(OcrModelStatus {
+            tier: tier.to_string(),
+            installed: true,
+            bundled: true,
+            builtin: true,
+        });
+    }
+
     Ok(OcrModelStatus {
         tier: tier.to_string(),
         installed: is_model_installed(&models_dir, tier),
         bundled: resolve_model_bundle(&bundled_dir, tier).is_ok(),
+        builtin: false,
     })
 }
 
@@ -583,11 +689,17 @@ pub async fn ocr_get_model_status(
     let tier: OcrModelTier = tier.parse()?;
     let models_dir = models_dir(&state.handle)?;
 
+    // 移动端无 Vision 档位；防御性拒绝。
+    if tier == OcrModelTier::Vision {
+        return Err("Vision OCR 引擎仅支持 macOS".to_string());
+    }
+
     Ok(OcrModelStatus {
         tier: tier.to_string(),
         installed: is_model_installed(&models_dir, tier),
         // 移动端不打包 OCR 模型（P0-03 已排除），始终为 false
         bundled: false,
+        builtin: false,
     })
 }
 
@@ -671,6 +783,10 @@ pub async fn ocr_install_bundled_model(
     let account_id = current_account(&state)?;
 
     let tier: OcrModelTier = tier.parse()?;
+    // P133: Vision 为系统内置引擎，不参与模型安装。
+    if tier == OcrModelTier::Vision {
+        return Err("Vision 为 macOS 系统内置引擎，无需模型安装".to_string());
+    }
     let models_dir = models_dir(&state.handle)?;
     let bundled_dir = bundled_models_dir()?;
     install_model_from_bundled(&bundled_dir, &models_dir, tier)?;
@@ -717,6 +833,10 @@ pub async fn ocr_download_model(
     let account_id = current_account(&state)?;
 
     let tier: OcrModelTier = tier.parse()?;
+    // P133: Vision 为系统内置引擎，不参与模型下载。
+    if tier == OcrModelTier::Vision {
+        return Err("Vision 为 macOS 系统内置引擎，无需模型下载".to_string());
+    }
     let models_dir = models_dir(&state.handle)?;
     download_model_files(&base_url, &models_dir, tier).await?;
     // 同档位覆盖下载时清空缓存，避免旧 session 残留。
@@ -759,9 +879,12 @@ pub async fn ocr_delete_model(
     let account_id = current_account(&state)?;
 
     let tier: OcrModelTier = tier.parse()?;
+    // P133: Vision 为系统内置引擎，不参与模型删除。
+    if tier == OcrModelTier::Vision {
+        return Err("Vision 为 macOS 系统内置引擎，无需删除".to_string());
+    }
     let models_dir = models_dir(&state.handle)?;
     remove_model_dir(&models_dir, tier)?;
-    // 模型文件已删除，清空缓存使下次 OCR 重新从磁盘加载。
     clear_ocr_engine_cache();
 
     let details = json!({ "tier": tier.to_string() }).to_string();
@@ -911,6 +1034,8 @@ fn model_file_size_limit(tier: OcrModelTier, rel_path: &str) -> u64 {
         OcrModelTier::Tiny => 32 * 1024 * 1024,
         OcrModelTier::Small => 64 * 1024 * 1024,
         OcrModelTier::Medium => 256 * 1024 * 1024,
+        // P133: Vision 为系统内置引擎，不下载模型文件。
+        OcrModelTier::Vision => 0,
     }
 }
 
@@ -1098,8 +1223,14 @@ mod tests {
 
     #[test]
     fn test_ocr_preferences_default_tier() {
+        // P133: macOS 默认 Vision 引擎，其他平台默认 PP-OCRv6 small。
         let prefs = OcrPreferences::default();
-        assert_eq!(prefs.active_tier, OcrModelTier::Small);
+        let expected = if cfg!(target_os = "macos") {
+            OcrModelTier::Vision
+        } else {
+            OcrModelTier::Small
+        };
+        assert_eq!(prefs.active_tier, expected);
     }
 
     #[test]
@@ -1134,12 +1265,15 @@ mod tests {
             tier: "tiny".to_string(),
             installed: true,
             bundled: false,
+            builtin: false,
         };
         let json = serde_json::to_string(&status).unwrap();
         assert!(json.contains("\"installed\":true"));
         assert!(json.contains("\"bundled\":false"));
+        assert!(json.contains("\"builtin\":false"));
         let restored: OcrModelStatus = serde_json::from_str(&json).unwrap();
         assert_eq!(restored.tier, "tiny");
+        assert!(!restored.builtin);
     }
 
     #[test]
@@ -1184,6 +1318,22 @@ mod tests {
     }
 
     #[test]
+    fn test_ocr_list_available_tiers_platform_aware() {
+        // P133: 真实调用命令（非本地构造数组）——macOS 返回 vision 为首位共 4 档，
+        // 其他平台 3 档无 vision。防止未来改命令时把平台差异改丢。
+        let tiers = futures::executor::block_on(ocr_list_available_tiers()).unwrap();
+        if cfg!(target_os = "macos") {
+            assert_eq!(tiers.len(), 4);
+            assert_eq!(tiers[0].tier, "vision");
+            assert_eq!(tiers[0].name, "Vision (Apple)");
+            assert_eq!(tiers[1].tier, "tiny");
+        } else {
+            assert_eq!(tiers.len(), 3);
+            assert!(tiers.iter().all(|t| t.tier != "vision"));
+        }
+    }
+
+    #[test]
     fn test_ocr_install_progress_serde() {
         let progress = OcrInstallProgress {
             tier: "small".to_string(),
@@ -1217,6 +1367,7 @@ mod tests {
         assert_eq!(OcrModelTier::Tiny.to_string(), "tiny");
         assert_eq!(OcrModelTier::Small.to_string(), "small");
         assert_eq!(OcrModelTier::Medium.to_string(), "medium");
+        assert_eq!(OcrModelTier::Vision.to_string(), "vision");
 
         assert_eq!("tiny".parse::<OcrModelTier>().unwrap(), OcrModelTier::Tiny);
         assert_eq!(
@@ -1226,6 +1377,10 @@ mod tests {
         assert_eq!(
             "medium".parse::<OcrModelTier>().unwrap(),
             OcrModelTier::Medium
+        );
+        assert_eq!(
+            "vision".parse::<OcrModelTier>().unwrap(),
+            OcrModelTier::Vision
         );
         assert!("unknown".parse::<OcrModelTier>().is_err());
     }

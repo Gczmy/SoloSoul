@@ -147,7 +147,7 @@ export function OcrScanControls({
           }}
         >
           <FileText size={ICON_SIZE.md} />
-          {scanMode === 'mrz' || isMobile
+          {scanMode === 'mrz' || isMobile || activeTier === 'vision'
             ? t('ocr:select_image')
             : t('ocr:select_image_or_pdf')}
         </button>
