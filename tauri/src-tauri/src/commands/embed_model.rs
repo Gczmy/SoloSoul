@@ -8,13 +8,21 @@ use tauri::{path::BaseDirectory, AppHandle, Emitter, Manager};
 
 // ── Registry ─────────────────────────────────────────────────
 
-const REGISTRY_URL: &str = "https://raw.githubusercontent.com/SoloSoul/models/main/registry.json";
+const REGISTRY_URL: &str =
+    "https://raw.githubusercontent.com/Gczmy/SoloSoul/main/tauri/src-tauri/resources/models/registry.json";
 
-/// P207: 编译期固化的 Embedding 注册表 minisign 公钥（base64：2 字节算法前缀 + 8 字节
-/// key_id + 32 字节 Ed25519 公钥）。维护者在 SoloSoul/models 仓库的签名体系就绪后填入；
-/// 在此之前可经环境变量 `SOLOSOUL_EMBED_REGISTRY_PUBKEY` 注入（优先级更高）。
-/// 未配置任何公钥时与插件注册表行为一致：告警并按旧行为继续（注册表同通道下发）。
-const EMBED_REGISTRY_PUBKEY_B64: Option<&str> = None;
+/// P207/N-10: 编译期固化的 Embedding 注册表 minisign 公钥（base64：2 字节算法前缀 + 8 字节
+/// key_id + 32 字节 Ed25519 公钥）。
+///
+/// 由 `cargo tauri signer generate` 生成的**独立专用密钥对**（2026-08-03，与 Tauri updater
+/// 密钥 `~/.tauri/secret.key` 隔离，避免单点信任域扩张）；对应私钥交由维护者离线保管，
+/// 发布流程用 `cargo tauri signer sign`（`-p ''`，ED 预哈希签名，与 `verify(.., false)`
+/// 路径兼容）对 `registry.json` 签名产出 `registry.json.minisig`，随仓库一并提交。
+///
+/// 公钥来源优先级：`SOLOSOUL_EMBED_REGISTRY_PUBKEY` 环境变量 > 此编译期常量。
+/// 已配置公钥后校验失败即硬失败，绝不含糊。
+const EMBED_REGISTRY_PUBKEY_B64: Option<&str> =
+    Some("RWTemXPdgTgjPGuPgRxV+e3ng0NH2lgS8HzRbmi0XSlyjYXKI6zGkvXD");
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EmbedModelInfo {
@@ -691,5 +699,109 @@ mod tests {
         let data = sample_registry_bytes();
         let sig = sign_data(&data, key_id, &keypair);
         assert!(verify_registry_signature(&data, "", &sig).is_err());
+    }
+
+    // ── N-10（P207 闭环）真实发布链路端到端验证 ──────────────
+    // 使用仓库内实际下发的 registry.json 与 registry.json.minisig（由专用私钥以
+    // `cargo tauri signer sign -p ''` 签名，ED 预哈希模式）与编译期常量公钥做真实验证。
+    // 这是发布链路的防漂移测试：任何一侧（公钥 / 签名 / 注册表内容）不一致即失败。
+    #[test]
+    fn test_real_registry_signature_end_to_end() {
+        let registry_bytes = std::fs::read(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/resources/models/registry.json"
+        ))
+        .expect("registry.json 应随仓库存在");
+        let sig_text = std::fs::read_to_string(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/resources/models/registry.json.minisig"
+        ))
+        .expect("registry.json.minisig 应随仓库存在");
+        let embedded_pubkey = EMBED_REGISTRY_PUBKEY_B64.expect("编译期公钥已配置");
+
+        // 合法签名：必须通过
+        verify_registry_signature(&registry_bytes, embedded_pubkey, &sig_text)
+            .expect("真实注册表签名必须验证通过");
+
+        // 篡改注册表内容（替换 checksum 一字节）：必须拒绝
+        let mut tampered = registry_bytes.clone();
+        let needle: &[u8] = b"2d07de441b5288be";
+        let pos = tampered
+            .windows(needle.len())
+            .position(|w| w == needle)
+            .expect("checksum 前缀应存在于注册表中");
+        tampered[pos] = b'0'; // 破坏 sha256 前缀
+        assert!(
+            verify_registry_signature(&tampered, embedded_pubkey, &sig_text).is_err(),
+            "篡改后的注册表必须被拒绝"
+        );
+
+        // 错误公钥：必须拒绝
+        let (_, other_pk, _) = gen_minisign_keypair();
+        assert!(
+            verify_registry_signature(
+                &registry_bytes,
+                &pubkey_b64([0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10, 0x11], &other_pk),
+                &sig_text,
+            )
+            .is_err(),
+            "不匹配的公钥必须被拒绝"
+        );
+
+        // 篡改签名文本（第 2 行签名 base64 改坏）：必须拒绝
+        let mut sig_lines: Vec<&str> = sig_text.lines().collect();
+        sig_lines[1] = "AAAA";
+        assert!(
+            verify_registry_signature(&registry_bytes, embedded_pubkey, &sig_lines.join("\n"))
+                .is_err()
+        );
+    }
+    #[test]
+    fn test_compiled_public_key_is_valid_minisign() {
+        // 编译期公钥必须能被 minisign_verify 解析（防拼写错误 / 格式漂移）。
+        let pubkey_b64 = EMBED_REGISTRY_PUBKEY_B64.expect("编译期公钥已配置");
+        let _pk =
+            minisign_verify::PublicKey::from_base64(pubkey_b64).expect("编译期公钥必须可解析");
+        // 签名也必须可解析（格式合法）
+        let sig_text = std::fs::read_to_string(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/resources/models/registry.json.minisig"
+        ))
+        .expect("registry.json.minisig 应随仓库存在");
+        let _sig = minisign_verify::Signature::decode(&sig_text).expect("签名必须可解析");
+    }
+
+    #[test]
+    fn test_committed_zip_checksum_matches_registry() {
+        // 评审建议：提交的 zip 的 sha256 必须与 registry.json 声明的 checksum 一致，
+        // 防止「签名有效但 zip/registry 漂移」在用户下载时才暴露。
+        let registry_bytes = std::fs::read(concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/resources/models/registry.json"
+        ))
+        .expect("registry.json 应随仓库存在");
+        let registry: EmbedRegistry = serde_json::from_slice(&registry_bytes).unwrap();
+        assert!(!registry.models.is_empty(), "注册表至少应有一个模型");
+        for model in &registry.models {
+            let zip_path = concat!(env!("CARGO_MANIFEST_DIR"), "/resources/models/").to_string()
+                + &format!("{}.zip", model.id);
+            let zip_bytes = std::fs::read(&zip_path)
+                .unwrap_or_else(|_| panic!("模型 zip 应随仓库存在: {}", zip_path));
+            let hash = {
+                use sha2::Digest;
+                let mut hasher = sha2::Sha256::new();
+                hasher.update(&zip_bytes);
+                format!("{:x}", hasher.finalize())
+            };
+            let expected = model
+                .checksum
+                .strip_prefix("sha256:")
+                .unwrap_or(&model.checksum);
+            assert_eq!(
+                hash, expected,
+                "模型 {} 的 zip sha256 与 registry checksum 不一致（zip 或 registry 已漂移）",
+                model.id
+            );
+        }
     }
 }

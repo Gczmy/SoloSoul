@@ -1,0 +1,13 @@
+{
+  "models": [
+    {
+      "id": "all-MiniLM-L6-v2",
+      "name": "all-MiniLM-L6-v2",
+      "description": "Lightweight English sentence-embedding model (384-dim, 23MB). Default model for local RAG guide embeddings.",
+      "disk_size": "23MB",
+      "dimensions": 384,
+      "download_url": "https://raw.githubusercontent.com/Gczmy/SoloSoul/main/tauri/src-tauri/resources/models/all-MiniLM-L6-v2.zip",
+      "checksum": "sha256:2d07de441b5288beffb8d73e3d8d2e01fa46162d1b985ecb57742b0a63baca4e"
+    }
+  ]
+}
