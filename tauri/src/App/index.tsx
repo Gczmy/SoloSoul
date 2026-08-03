@@ -13,6 +13,7 @@ import { useSyncStore } from '@/stores/syncStore';
 import { useUiStore } from '@/stores/uiStore';
 
 import { initPlatform } from '@/lib/platform';
+import { syncPlaintextPref } from '@/stores/settingsStore';
 
 function App() {
   const [hasSeenOnboarding, setHasSeenOnboarding] = useState(() => {
@@ -88,9 +89,9 @@ function App() {
     } catch {
       /* ignore */
     }
-    invoke('ui_update_preference', { key: 'hasSeenOnboarding', value: 'true' }).catch(() => {
-      /* ignore persistence errors; localStorage fallback is already set */
-    });
+    // N-8: ③ 副本写入收敛到 syncPlaintextPref（P129 唯一写入点）；失败仅记日志，
+    // localStorage 兜底已在上方 setItem。
+    void syncPlaintextPref('hasSeenOnboarding', 'true');
     // 清除「返回账户来源选择」标志，避免引导结束后重新挂载
     useUiStore.getState().setReopenAccountSource(false);
     setHasSeenOnboarding(true);

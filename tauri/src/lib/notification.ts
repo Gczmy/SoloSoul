@@ -6,6 +6,7 @@ import {
 } from '@tauri-apps/plugin-notification';
 import { useUiStore } from '@/stores/uiStore';
 import { useSettingsStore } from '@/stores/settingsStore';
+import { syncPlaintextPref } from '@/stores/settingsStore';
 import { useAutoLockPauseStore } from '@/stores/autoLockPauseStore';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import i18next from '@/lib/i18n';
@@ -46,10 +47,8 @@ async function requestNotificationPermissionOnce(): Promise<boolean> {
   } finally {
     resume();
     // 无论允许/拒绝都记录"已请求"（二次请求在 Android 13+ 本就不再弹 UI）
-    invoke('ui_update_preference', {
-      key: 'notificationPermissionRequested',
-      value: 'true',
-    }).catch((err) => logger.warn('[notification] persist permission-requested flag failed:', err));
+    // N-8: ③ 副本写入收敛到 syncPlaintextPref（P129 唯一写入点），内部已记日志。
+    void syncPlaintextPref('notificationPermissionRequested', 'true');
   }
 }
 

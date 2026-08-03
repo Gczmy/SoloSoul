@@ -208,8 +208,12 @@ function writeUiPrefsCache(settings: AppSettings): void {
 /**
  * ③ 写入 ui_preferences.json 明文副本（P129 唯一写入点）。
  * 明文副本缺失仅影响登录页主题预加载，失败记日志即可，不阻断主流程。
+ *
+ * 导出供 App/index.tsx（hasSeenOnboarding）与 lib/notification.ts
+ * （notificationPermissionRequested）等跨模块 UI 偏好写入复用——N-8：
+ * 两处原绕过 helper 直写③，现收敛到本唯一写入点。
  */
-async function syncPlaintextPref(key: string, value: unknown): Promise<void> {
+export async function syncPlaintextPref(key: string, value: unknown): Promise<void> {
   try {
     await invoke('ui_update_preference', { key, value });
   } catch (e) {
