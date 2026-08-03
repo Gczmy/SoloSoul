@@ -1911,7 +1911,14 @@ impl VaultStore {
 
         let mut out = Vec::new();
         for (item, deleted_at) in rows {
-            let updated = chrono::DateTime::from_timestamp(deleted_at, 0)
+            // R-2: deleted_at 为毫秒（生产写入 `Utc::now().timestamp_millis()`，
+            // 见 commands/object/trash.rs、solosoul-core/objects.rs、commands/template.rs）。
+            // from_timestamp 的 secs 参数须先整除 1000、余数转纳秒——修复前按秒解释
+            // 会得到放大 1000× 的垃圾 wall_time（约 58534 年），使 HLC 水印比较失真
+            // 并污染对端 trash 表水印（后续真实删除行永远 < 垃圾水印而不再同步）。
+            let secs = deleted_at.div_euclid(1000);
+            let nanos = (deleted_at.rem_euclid(1000) * 1_000_000) as u32;
+            let updated = chrono::DateTime::from_timestamp(secs, nanos)
                 .map(|d| d.to_rfc3339())
                 .unwrap_or_default();
             let hlc =
@@ -5432,8 +5439,8 @@ mod tests {
             original_section_type: Some("identity".to_string()),
             original_sort_order: Some(42),
             data: vec![1, 2, 3, 4, 5],
-            deleted_at: chrono::Utc::now().timestamp(),
-            expires_at: Some(chrono::Utc::now().timestamp() + 86400),
+            deleted_at: chrono::Utc::now().timestamp_millis(),
+            expires_at: Some(chrono::Utc::now().timestamp_millis() + 86400000),
             deleted_by: "user".to_string(),
             name_snapshot: "Deleted Object".to_string(),
             icon_snapshot: Some("icon-1".to_string()),
@@ -5555,7 +5562,7 @@ mod tests {
                 original_section_type: None,
                 original_sort_order: None,
                 data: vec![],
-                deleted_at: chrono::Utc::now().timestamp(),
+                deleted_at: chrono::Utc::now().timestamp_millis(),
                 expires_at: None,
                 deleted_by: "user".to_string(),
                 name_snapshot: format!("{} item", t),
@@ -5575,7 +5582,7 @@ mod tests {
     #[test]
     fn test_list_trash_items_filter_by_since() {
         let (vault, _dir) = setup();
-        let now = chrono::Utc::now().timestamp();
+        let now = chrono::Utc::now().timestamp_millis();
         let old_item = TrashItem {
             id: "trash-old".to_string(),
             item_type: "object".to_string(),
@@ -5610,6 +5617,51 @@ mod tests {
         let recent = vault.list_trash_items(None, Some(now - 5000)).unwrap();
         assert_eq!(recent.len(), 1);
         assert_eq!(recent[0].id, "trash-new");
+    }
+
+    // ── R-2: trash_items.deleted_at 为毫秒，HLC 回退 wall 不得放大 1000× ────
+    //
+    // 生产写入 deleted_at 一律使用 `Utc::now().timestamp_millis()`（page_delete /
+    // delete_object / template_delete / objects.rs），但 list_trash_changes_since 曾
+    // 用 `from_timestamp(deleted_at, 0)` 把毫秒按秒解释，得到放大 1000× 的垃圾
+    // wall_time（约 58534 年）。本测试锁定回退 HLC 的 wall 必须精确等于 deleted_at
+    // 毫秒值——修复前该断言会失败（wall == deleted_at * 1000）。
+    #[test]
+    fn test_trash_changes_since_honors_millisecond_deleted_at() {
+        let (vault, _dir) = setup();
+        // 2024-01-01T00:00:00.123Z
+        let deleted_ms = 1704067200123i64;
+        let item = TrashItem {
+            id: "trash-ms".to_string(),
+            item_type: "object".to_string(),
+            original_id: "orig-ms".to_string(),
+            original_parent_id: None,
+            original_section_type: None,
+            original_sort_order: None,
+            data: vec![1, 2, 3],
+            deleted_at: deleted_ms,
+            expires_at: None,
+            deleted_by: "user".to_string(),
+            name_snapshot: "Ms".to_string(),
+            icon_snapshot: None,
+        };
+        vault.save_trash_item(&item).unwrap();
+
+        let records = vault
+            .list_sync_changes_since(
+                "trash_items",
+                &crate::SyncWatermark::default(),
+                "acc",
+                "local",
+            )
+            .unwrap();
+        assert_eq!(records.len(), 1);
+        // R-2：回退 HLC 的 wall 必须等于 deleted_at 毫秒值（修复前按秒解释为
+        // 1704067200123 秒 → wall 放大 1000× 的垃圾值）。
+        assert_eq!(
+            records[0].hlc.wall_time_ms, deleted_ms as u64,
+            "trash HLC 回退 wall 必须精确等于 deleted_at 毫秒值"
+        );
     }
 
     #[test]

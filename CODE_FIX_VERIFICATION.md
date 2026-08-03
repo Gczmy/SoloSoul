@@ -66,6 +66,16 @@
 
 **验证**：tsc 0 错误 / eslint 2 文件 0 警告 / settings 目录 vitest 9 用例全绿。
 
+## R-2 修复记录（2026-08-03）
+
+**修复方案**：`list_trash_changes_since` 秒/毫秒错配修复 + 测试写入单位对齐 + 回归测试。
+
+1. **单位修复**（storage.rs:1914）：`deleted_at` 生产写入恒为毫秒（page_delete / delete_object / template_delete / objects.rs 均 `timestamp_millis()`），原实现 `from_timestamp(deleted_at, 0)` 把毫秒当秒解释——回退 HLC 的 wall_time 放大 1000×（约 58534 年），水印比较失真并**污染对端 trash 表水印**（后续真实删除行 wall < 垃圾水印而永不同步）。修复：`div_euclid(1000)` 整除 + 余数转纳秒，回退 HLC wall 精确等于 deleted_at 毫秒值。
+2. **测试写入单位对齐**：vault storage.rs 内 6 处 TrashItem 测试构造由 `.timestamp()`（秒）改为 `.timestamp_millis()`（毫秒），与生产一致（含 `let now`、`expires_at + 86400000`）；另两处固定毫秒值（`deleted_at: 1`、`1704067200000`）本就正确无需动。
+3. **回归测试** `test_trash_changes_since_honors_millisecond_deleted_at`：deleted_at=1704067200123 → 断言回退 HLC wall == 1704067200123（修复前按秒解释为 ×1000 垃圾值，断言失败）。
+
+**验证**：fmt 干净 / clippy 0 / solosoul-vault trash 12 测试全绿（含新增）。
+
 ## N-10 暂缓决策记录（2026-08-03）
 
 **现状（已实现，待接线）**：
@@ -323,3 +333,48 @@
 6. **N-5/N-6/N-7/N-8/N-9 已于 2026-08-03 修复并提交**：N-5 sha256 清单补全 tiny/medium 档（官方 HF 仓库哈希 + small 交叉验证）；N-6 `ocr_scan_mrz` 移入 spawn_blocking（P113 残余闭环）；N-7 P120/P122/P125 新增文案 key 补入 zh-CN/en-US locale；N-8 App/index.tsx 与 notification.ts 两处直写③收敛到导出的 `syncPlaintextPref`（P129 唯一写入点代码级强制）；N-9 ipc.test.ts 中针对已删命令（encrypt_bytes/decrypt_bytes/derive_key）的陈旧 mock 测试整体移除。
 4. **暂缓项决策待用户确认**：P133-P135（死模块删除）、P223/P224（结构性拆分）建议维持暂缓；P226/P228 可排入下一轮；P225 修复人正在进行中。
 5. P227/P231 提交于验证之后，未在本次审查范围内，建议下一轮补验。
+
+---
+
+# 第二轮验证（2026-08-03）：N 项跟进 + P225-P228/P231 补验
+
+> 验证范围：commit `62ee122a` 至 `87a6507c`（N-1 至 N-11）+ 此前未验证的 P225/P226/P227/P228/P231。
+> 此前已 ✅ 的项目按约定跳过未复验。基线复核：tsc 0 错误、lint 干净、前端 484 用例、fmt/clippy 零警告、cargo test 全部通过。
+
+## 判定汇总
+
+| 项 | commit | 判定 | 要点 |
+|----|--------|------|------|
+| N-1 keyset 分页 | 62ee122a | ✅（2 项残余见下） | objects 表场景正确修复：游标 (有效 HLC 三元组, o.id) 全序 + id tiebreaker，回退行改 SQL 精确过滤，3 个回归测试实测通过，不重不漏 |
+| N-2 reencrypt 事务化 | 4d7d75c6 | ✅（2 个窄窗口 + 1 测试缺口见下） | 失败回滚正确（match result，Err 即 drop tx）；两阶段回滚覆盖改密与 KDF 升级，CLI 同受益；有失败注入测试 |
+| N-3 streamBuffer 清理 | b9552f25 | ✅ | 清理链接入正确、在途 chunk 竞态闭环（streamingConvId 守卫，与 P230 同模式） |
+| N-4 provider 登记确认 | f493ef3c | ✅ | Rust 侧原生对话框确认，XSS 不可程序化绕过；embedding 通道三条入口均有登记校验；test/check 通道任意 URL 为已声明取舍（固定负载） |
+| N-5 OCR 清单补全 | 0c6fbc08 | ✅ | 12 文件三档全覆盖，抽样哈希经官方 HF 源实测一致 |
+| N-6 MRZ spawn_blocking | a4bc74aa | ✅ | 与 P113 模式逐字对齐，移动端 stub 无阻塞面 |
+| N-7 locale key | 9687ab71 | ✅ | 4 key 双语补齐，命名空间匹配 |
+| N-8 直写③收敛 | cda265d0 | ✅ | helper 导出强制，两处迁移行为等价 |
+| N-9 陈旧测试 | 07d84276 | ✅ | 已删命令 mock 测试移除，实测 14 用例全绿 |
+| N-10 P207 暂缓文档 | 430fc912 | ✅ | 纯文档，关闭条件明确（错别字"兕底"→"兜底"，cosmetic） |
+| N-11 失败态/重试 UI | 87a6507c | ✅ | 两处错误占位 Card + 重试逻辑正确，三态可区分，i18n 复用 N-7 key |
+| P225 Rust 重复收敛 | 43af93be | ✅ | 四簇逐字段等价；唯一错误文案前缀变化（Search→Object）确认无消费方 |
+| P226 前端组件收敛 | a4c04ee5 | ✅ | 三对共享组件参数化正确，微差均已声明核实 |
+| P227 低危吞没补日志 | 66e9c259 | ✅ | 12 处全部核验，降级行为不变 |
+| P228 循环依赖断链 | acc00fe1 | ✅ | 3 个调用点无漏传 accountId，类型抽离纯移动 |
+| P231 window.open 移除 | 03336ffb | ⚠️ | 主路径保留、toast 合理，**但 `settings:link_open_failed` 未入 locale**——英文 UI 显示中文 defaultValue（N-7 同款问题的漏网之鱼） |
+
+## 残余问题（按严重度）
+
+| 编号 | 严重度 | 位置 | 问题 |
+|------|--------|------|------|
+| R-1 | 高 | `crates/solosoul-vault/src/storage.rs:1494-1502` | **trash_items 表残留 P110 同构缺陷**：小表分页忽略游标（严格 > + take(limit)），而 page_delete 给每个对象的 trash_item 同一个 deleted_at 毫秒值，删除含 >100 对象的页面 → 第 2 页空页 break → 剩余 trash_items 永久不同步。建议对非 objects 表做同等 keyset 化 |
+| R-2 | ✅ 已修复 | `crates/solosoul-vault/src/storage.rs:1914` | **秒/毫秒错配已修复**（2026-08-03 提交，见下方修复记录）：`from_timestamp` 按毫秒解释 deleted_at、测试写入单位对齐、回归测试锁定回退 HLC wall == deleted_at 毫秒值 |
+| R-3 | 低 | `solosoul-sync/src/session.rs:487` | N-1 已声明残余：会话中断后内存游标丢失，等值 HLC 组尾部未发记录被永久跳过（窄窗口：等值组 >100 且至少一页已 ack 后崩溃）。解法：页游标并入 peer watermark 持久化 |
+| R-4 | 低 | `solosoul-core/src/vault_service.rs:769-790` | N-2 已声明残余：① reencrypt commit 后、config 写完前进程崩溃 → 永久"Invalid password"（毫秒级窗口，彻底解需 journal/双 config）；② 磁盘满等共同根因下回滚级联失败可致 config 截断（回滚失败应并入上抛错误文案）；③ 回滚助手无失败注入测试 |
+| R-5 | 低 | AboutPage.tsx:485-491 | P231 的 `settings:link_open_failed` 缺 locale key |
+
+## 结论
+
+1. **本轮 16 项：15 ✅ + 1 ⚠️（仅 locale 小项）**，N-1/N-2 两个关键修复的核心逻辑均正确且有真实回归测试。
+2. **唯一需要修复人跟进的高危项是 R-1**：trash_items 同构缺陷与已修的 P110 触发条件相同（删除 >100 对象的页面），建议同等 keyset 化——已立案修复（见下方 R-1 修复记录）。**R-2 秒/毫秒错配已随 R-1 立案一并闭环**（见下方 R-2 修复记录）。
+3. R-3/R-4 均为修复人已声明的窄窗口，属可接受的工程取舍，建议登记长期改进（watermark 持久化游标、config journal）。
+4. 至此报告全部可执行项已闭环：70 项首轮验证 + 16 项二轮验证，仅剩 P133-P135（破坏性删除暂缓）、P223/P224（长期重构，修复人已声明留待迭代）为有意保留项。
