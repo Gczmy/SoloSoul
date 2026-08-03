@@ -1,65 +1,39 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useEffect, useMemo, useCallback, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AppShell } from '@/components/layout/AppShell';
 import { PageContainer } from '@/components/layout/PageContainer';
-import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
-import { Dialog } from '@/components/ui/Dialog';
-import { Input } from '@/components/ui/Input';
 import { useTemplateStore } from '@/stores/templateStore';
 import { useSettingsStore } from '@/stores/settingsStore';
-import { FilterChipGroup } from '@/components/ui/FilterChipGroup';
 import { useAuthStore } from '@/stores/authStore';
 import { useUiStore } from '@/stores/uiStore';
-import { useConfirm } from '@/hooks/useConfirm';
-import { LayoutTemplate, Pencil, Plus, BookOpen, Search, Info } from 'lucide-react';
+import { usePluginStore } from '@/stores/pluginStore';
+import { LayoutTemplate, Pencil, Plus, BookOpen, Info } from 'lucide-react';
 import buttonStyles from '@/components/ui/Button.module.css';
-import type {
-  UserTemplate,
-  TemplateProperty,
-  PropertyType,
-  SensitivityLevel,
-  ContractRoleBinding,
-} from '@/types/template';
-import { resolveCustomIcon } from '@/lib/pageIcons';
 import { logger } from '@/lib/logger';
-import { SampleTemplateGallery } from '@/components/template/SampleTemplateGallery';
-import { SampleTemplateDetail } from '@/components/template/SampleTemplateDetail';
-import type { SampleTemplate } from '@/lib/sampleTemplates';
 import { deriveSampleTemplateBindings } from '@/lib/sampleTemplates';
-import { DeleteButton } from '@/components/ui/DeleteButton';
-import { TemplateEditor } from '@/components/template/TemplateEditor';
-import { TemplateDetailModal } from '@/components/template/TemplateDetailModal';
+import type { SampleTemplate } from '@/lib/sampleTemplates';
 import { DeleteConfirmDialog } from '@/components/template/DeleteConfirmDialog';
-import { SensitivityBadges } from '@/components/template/SensitivityBadges';
-import { PluginBadge } from '@/components/template/PluginBadge';
+import { TemplateDetailModal } from '@/components/template/TemplateDetailModal';
 import { retentionPeriodDays } from '@/stores/trashStore';
 import { ICON_SIZE } from '@/lib/constants';
 import { PageGuideButton } from '@/components/guide/PageGuideButton';
-import { deriveContractBindings, type PluginManifest } from '@/lib/plugin';
-import { usePluginStore } from '@/stores/pluginStore';
+import type { PluginManifest } from '@/lib/plugin';
+import { useTemplateEditor } from '@/hooks/useTemplateEditor';
+import { TemplateListSection, type ListTemplate } from './TemplateListSection';
+import { TemplateEditorModal } from './TemplateEditorModal';
+import { SampleGallerySection } from './SampleGallerySection';
 
 const EMPTY_PLUGINS: PluginManifest[] = [];
 
 const SYSTEM_PAGES = ['identity', 'travel', 'financial', 'professional'] as const;
 
-interface ListTemplate {
-  id: string;
-  name: string;
-  category: string;
-  contractTypeId?: string;
-  properties: Array<{
-    id: string;
-    name: string;
-    type: string;
-    sensitivityLevel?: string;
-    deprecatedAt?: string;
-    contractBindings?: ContractRoleBinding[];
-  }>;
-}
-
+/**
+ * 模板管理页（P224-③ 拆分后为编排层）：
+ * 列表/详情/删除/示例画廊状态与数据派生留本页，编辑器状态与操作收敛于 useTemplateEditor，
+ * 列表/编辑器/画廊三面板经 props 透传。
+ */
 export function TemplateManagerPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -70,45 +44,19 @@ export function TemplateManagerPage() {
   const error = useTemplateStore((s) => s.error);
   const loadTemplates = useTemplateStore((s) => s.loadTemplates);
   const deleteTemplate = useTemplateStore((s) => s.deleteTemplate);
-  const updateTemplate = useTemplateStore((s) => s.updateTemplate);
   const createTemplate = useTemplateStore((s) => s.createTemplate);
-  const checkFieldUsage = useTemplateStore((s) => s.checkFieldUsage);
   const settings = useSettingsStore((s) => s.settings);
   const loadCustomPages = useSettingsStore((s) => s.loadCustomPages);
   const trashRetention = settings.trashRetention;
   const accountId = useAuthStore((s) => s.currentAccount?.id) || '';
   const showToast = useUiStore((s) => s.showToast);
-  const { requestConfirm, dialog: confirmDialog } = useConfirm();
-
-  const [editingTemplate, setEditingTemplate] = useState<UserTemplate | null>(null);
-  const [isNewTemplate, setIsNewTemplate] = useState(false);
-  const [editName, setEditName] = useState('');
-  const [editCategory, setEditCategory] = useState<string>('identity');
-  const [editIconId, setEditIconId] = useState<string>('document');
-  const [editContractTypeId, setEditContractTypeId] = useState<string>('');
-  const [editProperties, setEditProperties] = useState<TemplateProperty[]>([]);
-
-  const [newFieldType, setNewFieldType] = useState<PropertyType>('text');
-
-  // 动态字段组（模板级开关）
-  const [dynamicGroupEnabled, setDynamicGroupEnabled] = useState(false);
-  const [dynamicGroupAllowedTypes, setDynamicGroupAllowedTypes] = useState<
-    PropertyType[] | undefined
-  >();
-  const [dynamicGroupMaxItems, setDynamicGroupMaxItems] = useState<number | undefined>();
-  const [dynamicGroupSensitivity, setDynamicGroupSensitivity] =
-    useState<SensitivityLevel>('internal');
-  const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null);
-  const [detailTemplate, setDetailTemplate] = useState<ListTemplate | null>(null);
-  const [showDeprecated, setShowDeprecated] = useState(false);
-  const [fieldUsageMap, setFieldUsageMap] = useState<
-    Record<string, { active: number; softDeleted: number }>
-  >({});
-  const [showNameError, setShowNameError] = useState(false);
-  const [showSampleGallery, setShowSampleGallery] = useState(false);
-  const [selectedSample, setSelectedSample] = useState<SampleTemplate | null>(null);
   const installedPlugins = usePluginStore((s) => s.installedPlugins) ?? EMPTY_PLUGINS;
   const loadInstalled = usePluginStore((s) => s.loadInstalled);
+  const editor = useTemplateEditor();
+
+  const [confirmDelete, setConfirmDelete] = useState<{ id: string; name: string } | null>(null);
+  const [detailTemplate, setDetailTemplate] = useState<ListTemplate | null>(null);
+  const [showSampleGallery, setShowSampleGallery] = useState(false);
   const [pageFilter, setPageFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -129,32 +77,6 @@ export function TemplateManagerPage() {
       loadInstalled().catch(() => {});
     }
   }, [installedPlugins.length, loadInstalled]);
-
-  // Load field usage for deprecated fields
-  const loadFieldUsage = useCallback(async () => {
-    if (!editingTemplate) {
-      setFieldUsageMap({});
-      return;
-    }
-    const deprecated = editProperties.filter((p) => p.deprecatedAt);
-    if (deprecated.length === 0) return;
-    const map: Record<string, { active: number; softDeleted: number }> = {};
-    await Promise.all(
-      deprecated.map(async (p) => {
-        try {
-          const usage = await checkFieldUsage(editingTemplate.id, p.id);
-          map[p.id] = usage;
-        } catch {
-          /* ignore */
-        }
-      }),
-    );
-    setFieldUsageMap(map);
-  }, [editingTemplate, editProperties, checkFieldUsage]);
-
-  useEffect(() => {
-    loadFieldUsage();
-  }, [loadFieldUsage]);
 
   const allTemplates: ListTemplate[] = useMemo(() => {
     return templates.map((ut) => ({
@@ -222,251 +144,36 @@ export function TemplateManagerPage() {
     }
   };
 
-  const openEdit = (tpl: UserTemplate) => {
-    setIsNewTemplate(false);
-    setEditingTemplate(tpl);
-    setEditName(tpl.name);
-    setEditCategory(tpl.category || 'identity');
-    setEditIconId(tpl.iconId || 'document');
-    setEditContractTypeId(tpl.contractTypeId || '');
-    setEditProperties([...tpl.properties]);
-
-    // 初始化动态字段组状态
-    const dg = tpl.properties.find((p) => p.type === 'dynamic_group');
-    setDynamicGroupEnabled(!!dg);
-    setDynamicGroupAllowedTypes(dg?.allowedTypes);
-    setDynamicGroupMaxItems(dg?.maxItems);
-    setDynamicGroupSensitivity(dg?.sensitivityLevel || 'internal');
-  };
-
-  const openCreate = () => {
-    setIsNewTemplate(true);
-    setEditingTemplate({
-      id: '',
-      accountId: '',
-      name: '',
-      category: 'identity',
-      properties: [],
-      createdAt: '',
-    } as UserTemplate);
-    setEditName('');
-    setEditCategory('identity');
-    setEditIconId('document');
-    setEditContractTypeId('');
-    setEditProperties([]);
-    setDynamicGroupEnabled(false);
-    setDynamicGroupAllowedTypes(undefined);
-    setDynamicGroupMaxItems(undefined);
-    setDynamicGroupSensitivity('internal');
-  };
-
-  const closeEdit = () => {
-    setShowNameError(false);
-    setIsNewTemplate(false);
-    setEditingTemplate(null);
-    setEditName('');
-    setEditCategory('identity');
-    setEditIconId('document');
-    setEditContractTypeId('');
-    setEditProperties([]);
-    setDynamicGroupEnabled(false);
-    setDynamicGroupAllowedTypes(undefined);
-    setDynamicGroupMaxItems(undefined);
-    setDynamicGroupSensitivity('internal');
-  };
-
-  const saveEdit = async () => {
-    const name = editName.trim();
-    if (!name) {
-      showToast({ type: 'warning', message: t('common:name_required') || '请输入模板名称' });
-      setShowNameError(true);
-      return;
-    }
-    setShowNameError(false);
-    // 保存前：对 contractField: true 但尚无 contractBindings 的字段，自动推导并持久化
-    const finalProperties = editProperties.map((p) => {
-      if (
-        p.contractField &&
-        (!p.contractBindings || p.contractBindings.length === 0) &&
-        editContractTypeId
-      ) {
-        const derived = deriveContractBindings(editContractTypeId, p.id, installedPlugins);
-        if (derived.length > 0) {
-          return { ...p, contractBindings: derived };
-        }
-      }
-      return p;
-    });
-    try {
-      if (isNewTemplate) {
-        await createTemplate(
-          name,
-          editIconId,
-          editCategory,
-          finalProperties,
-          editContractTypeId || undefined,
-        );
-        await loadTemplates();
-        closeEdit();
-      } else if (editingTemplate) {
-        await updateTemplate(editingTemplate.id, {
-          name: name || editingTemplate.name,
-          iconId: editIconId,
-          category: editCategory,
-          properties: finalProperties,
-          contractTypeId: editContractTypeId || undefined,
-        });
-        closeEdit();
-      }
-    } catch (e) {
-      showToast({ type: 'error', message: `${t('common:save_failed')}: ${e}` });
-    }
-  };
-
-  const updatePropertyName = (index: number, newName: string) => {
-    setEditProperties((prev) => prev.map((p, i) => (i === index ? { ...p, name: newName } : p)));
-  };
-
-  const updatePropertyType = (index: number, newType: PropertyType) => {
-    setEditProperties((prev) =>
-      prev.map((p, i) => {
-        if (i !== index) return p;
-        const next: TemplateProperty = { ...p, type: newType };
-        // 切换为/退出 dynamic_group 时清理或初始化相关配置
-        delete (next as Partial<TemplateProperty>).allowedTypes;
-        delete (next as Partial<TemplateProperty>).maxItems;
-        return next;
-      }),
-    );
-  };
-
-  // 动态字段组回调：同步 editProperties 中的 dynamic_group 字段
-  const handleDynamicGroupEnabledChange = (enabled: boolean) => {
-    setDynamicGroupEnabled(enabled);
-    if (enabled) {
-      // 追加一个 dynamic_group 字段
-      const newDg: TemplateProperty = {
-        id: crypto.randomUUID(),
-        name: '__dynamic_group__',
-        type: 'dynamic_group',
-        sensitivityLevel: dynamicGroupSensitivity,
-        allowedTypes: dynamicGroupAllowedTypes,
-        maxItems: dynamicGroupMaxItems,
-      };
-      setEditProperties((prev) => [...prev, newDg]);
-    } else {
-      // 移除 dynamic_group 字段
-      setEditProperties((prev) => prev.filter((p) => p.type !== 'dynamic_group'));
-    }
-  };
-
-  const handleDynamicGroupAllowedTypesChange = (types: PropertyType[]) => {
-    setDynamicGroupAllowedTypes(types);
-    setEditProperties((prev) =>
-      prev.map((p) =>
-        p.type === 'dynamic_group'
-          ? { ...p, allowedTypes: types.length > 0 ? types : undefined }
-          : p,
-      ),
-    );
-  };
-
-  const handleDynamicGroupMaxItemsChange = (maxItems: number | undefined) => {
-    setDynamicGroupMaxItems(maxItems);
-    setEditProperties((prev) =>
-      prev.map((p) => (p.type === 'dynamic_group' ? { ...p, maxItems } : p)),
-    );
-  };
-
-  const handleDynamicGroupSensitivityChange = (level: SensitivityLevel) => {
-    setDynamicGroupSensitivity(level);
-    setEditProperties((prev) =>
-      prev.map((p) => (p.type === 'dynamic_group' ? { ...p, sensitivityLevel: level } : p)),
-    );
-  };
-
-  const updatePropertySensitivity = (
-    index: number,
-    level: 'public' | 'internal' | 'sensitive' | 'critical',
-  ) => {
-    setEditProperties((prev) =>
-      prev.map((p, i) => (i === index ? { ...p, sensitivityLevel: level } : p)),
-    );
-  };
-
-  const updatePropertyOptions = (index: number, options: string[]) => {
-    setEditProperties((prev) =>
-      prev.map((p, i) =>
-        i === index ? { ...p, options: options.length > 0 ? options : undefined } : p,
-      ),
-    );
-  };
-
-  const updatePropertyContractBindings = (index: number, bindings: ContractRoleBinding[]) => {
-    setEditProperties((prev) =>
-      prev.map((p, i) =>
-        i === index ? { ...p, contractBindings: bindings.length > 0 ? bindings : undefined } : p,
-      ),
-    );
-  };
-
-  const removeProperty = async (index: number) => {
-    const prop = editProperties[index];
-    if (!prop || !editingTemplate) return;
-    if (isNewTemplate) {
-      setEditProperties((prev) => prev.filter((_, i) => i !== index));
-      return;
-    }
-    try {
-      const usage = await checkFieldUsage(editingTemplate.id, prop.id);
-      if (usage.active > 0 || usage.softDeleted > 0) {
-        requestConfirm(
-          t('settings:confirm_deprecate_title'),
-          t('settings:confirm_deprecate_body', {
-            activeCount: usage.active,
-            softDeletedCount: usage.softDeleted,
+  const handleUseSample = useCallback(
+    async (sample: SampleTemplate) => {
+      try {
+        // 从示例模板创建时，使用共享推导函数补齐 contractBindings
+        const derivedProperties = deriveSampleTemplateBindings(sample, installedPlugins).map(
+          (p) => ({
+            id: p.id,
+            name: p.name,
+            type: p.type,
+            sensitivityLevel: p.sensitivityLevel,
+            options: p.options,
+            contractField: p.contractField,
+            contractBindings: p.contractBindings,
           }),
-          () => {
-            setEditProperties((prev) =>
-              prev.map((p, i) =>
-                i === index ? { ...p, deprecatedAt: new Date().toISOString() } : p,
-              ),
-            );
-            setFieldUsageMap((prev) => ({ ...prev, [prop.id]: usage }));
-          },
-          { confirmLabel: t('common:confirm'), cancelLabel: t('common:cancel') },
         );
-      } else {
-        setEditProperties((prev) => prev.filter((_, i) => i !== index));
+        await createTemplate(
+          sample.name,
+          sample.icon,
+          sample.category,
+          derivedProperties,
+          sample.contractTypeId,
+        );
+        setShowSampleGallery(false);
+      } catch (e) {
+        showToast({ type: 'error', message: `${t('common:save_failed')}: ${e}` });
+        throw e;
       }
-    } catch {
-      setEditProperties((prev) =>
-        prev.map((p, i) => (i === index ? { ...p, deprecatedAt: new Date().toISOString() } : p)),
-      );
-    }
-  };
-
-  const restoreProperty = (index: number) => {
-    setEditProperties((prev) =>
-      prev.map((p, i) => (i === index ? { ...p, deprecatedAt: undefined } : p)),
-    );
-  };
-
-  const permanentlyRemoveProperty = (index: number) => {
-    setEditProperties((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const addProperty = () => {
-    const newProp: TemplateProperty = {
-      id: crypto.randomUUID(),
-      name: t('settings:new_field_name') || '新字段',
-      type: newFieldType,
-      sensitivityLevel: 'internal',
-      allowedTypes: undefined,
-      maxItems: undefined,
-    };
-    setEditProperties((prev) => [...prev, newProp]);
-  };
+    },
+    [installedPlugins, createTemplate, showToast, t],
+  );
 
   const templateGuidePages = useMemo(
     () => [
@@ -500,8 +207,7 @@ export function TemplateManagerPage() {
           {
             title: t('common:guide_help_templates') ?? 'Template Management',
             description:
-              t('common:guide_help_templates_desc') ??
-              'Create, edit, and manage object templates',
+              t('common:guide_help_templates_desc') ?? 'Create, edit, and manage object templates',
             href: '/help?id=templates',
           },
         ],
@@ -543,7 +249,7 @@ export function TemplateManagerPage() {
             variant="secondary"
             className={`${buttonStyles.hideLabelOnMobile} ${buttonStyles.compactMobile}`}
             aria-label={t('settings:new_template') || 'New template'}
-            onClick={openCreate}
+            onClick={editor.openCreate}
           >
             <Plus size={ICON_SIZE.md} style={{ marginRight: 4 }} />
             <span className={buttonStyles.label}>{t('settings:new_template') || '新建模板'}</span>
@@ -552,177 +258,28 @@ export function TemplateManagerPage() {
       }
     >
       <PageContainer variant="medium" gap="default">
-        {isLoading && templates.length === 0 && (
-          <LoadingPlaceholder variant="base" minHeight={120} />
-        )}
-        {error && <div style={{ color: 'var(--error)' }}>{error}</div>}
-
-        {!isLoading && !error && allTemplates.length > 0 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <Input
-              placeholder={t('settings:search_templates') || '搜索模板...'}
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onClear={() => setSearchQuery('')}
-              prefixIcon={<Search size={ICON_SIZE.sm} style={{ color: 'var(--text-tertiary)' }} />}
-            />
-            <FilterChipGroup
-              options={pageOptions.map((opt) => ({ id: opt.id, label: opt.label }))}
-              value={pageFilter}
-              onChange={(v) => {
-                if (v) setPageFilter(v);
-              }}
-            />
-          </div>
-        )}
-
-        {!isLoading && allTemplates.length === 0 && (
-          <div style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: 40 }}>
-            <LayoutTemplate size={ICON_SIZE['5xl']} style={{ marginBottom: 12, opacity: 0.4 }} />
-            <div>{t('settings:no_templates') || '暂无模板'}</div>
-            <div style={{ fontSize: 'var(--text-caption)', marginTop: 4 }}>
-              {t('settings:no_templates_hint') || '点击右上角"新建模板"创建'}
-            </div>
-          </div>
-        )}
-
-        {!isLoading && allTemplates.length > 0 && filteredTemplates.length === 0 && (
-          <div style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: 40 }}>
-            <div>{t('settings:no_templates_filtered') || '没有符合筛选条件的模板'}</div>
-          </div>
-        )}
-
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--card-gap-sm)' }}>
-          {filteredTemplates.map((tpl) => {
-            const ut = templates.find((u) => u.id === tpl.id);
-            const TemplateIcon = ut?.iconId ? resolveCustomIcon(ut.iconId) : LayoutTemplate;
-            return (
-              <Card key={tpl.id} interactive onClick={() => setDetailTemplate(tpl)}>
-                <div
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                    <TemplateIcon size={ICON_SIZE.xl} style={{ flexShrink: 0 }} />
-                    <div>
-                      <div
-                        style={{
-                          fontSize: 'var(--text-sm)',
-                          fontWeight: 500,
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 6,
-                        }}
-                      >
-                        {tpl.name}
-                        <PluginBadge
-                          contractTypeId={templates.find((u) => u.id === tpl.id)?.contractTypeId}
-                          size="sm"
-                        />
-                      </div>
-                      <div
-                        style={{
-                          fontSize: 'var(--text-badge)',
-                          color: 'var(--text-tertiary)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 8,
-                          flexWrap: 'wrap',
-                        }}
-                      >
-                        {(() => {
-                          const page = resolvePageLabel(tpl.category);
-                          return (
-                            <span
-                              style={
-                                page.deleted
-                                  ? { textDecoration: 'line-through', opacity: 0.6 }
-                                  : undefined
-                              }
-                            >
-                              {page.name}
-                            </span>
-                          );
-                        })()}
-                        <span>·</span>
-                        <span>
-                          {tpl.properties.length} {t('settings:template_fields') || '个字段'}
-                        </span>
-                        <SensitivityBadges properties={tpl.properties} />
-                      </div>
-                    </div>
-                  </div>
-                  <div style={{ display: 'flex', gap: 8 }} onClick={(e) => e.stopPropagation()}>
-                    <Button
-                      variant="tertiary"
-                      size="sm"
-                      onClick={() => {
-                        const ut = templates.find((u) => u.id === tpl.id);
-                        if (ut) openEdit(ut);
-                      }}
-                    >
-                      <Pencil size={ICON_SIZE.md} style={{ color: 'var(--text-primary)' }} />
-                    </Button>
-                    <DeleteButton
-                      onClick={() => handleDelete(tpl.id, tpl.name)}
-                      title={t('common:delete')}
-                      iconOnly
-                    />
-                  </div>
-                </div>
-              </Card>
-            );
-          })}
-        </div>
+        <TemplateListSection
+          isLoading={isLoading}
+          error={error}
+          allTemplates={allTemplates}
+          filteredTemplates={filteredTemplates}
+          templates={templates}
+          pageFilter={pageFilter}
+          onPageFilterChange={(v) => {
+            if (v) setPageFilter(v);
+          }}
+          pageOptions={pageOptions}
+          searchQuery={searchQuery}
+          onSearchQueryChange={setSearchQuery}
+          resolvePageLabel={resolvePageLabel}
+          onOpenEdit={editor.openEdit}
+          onOpenDetail={setDetailTemplate}
+          onDelete={handleDelete}
+        />
       </PageContainer>
 
       {/* Edit / Create Dialog */}
-      <Dialog
-        isOpen={!!editingTemplate}
-        onClose={closeEdit}
-        title={
-          isNewTemplate
-            ? t('settings:new_template') || '新建模板'
-            : t('settings:edit_template') || '编辑模板'
-        }
-      >
-        <TemplateEditor
-          editingTemplate={editingTemplate}
-          editName={editName}
-          editCategory={editCategory}
-          editIconId={editIconId}
-          editContractTypeId={editContractTypeId}
-          editProperties={editProperties}
-          newFieldType={newFieldType}
-          showDeprecated={showDeprecated}
-          fieldUsageMap={fieldUsageMap}
-          onEditNameChange={setEditName}
-          onEditCategoryChange={setEditCategory}
-          onEditIconIdChange={setEditIconId}
-          onContractTypeIdChange={setEditContractTypeId}
-          onNewFieldTypeChange={setNewFieldType}
-          onAddProperty={addProperty}
-          onUpdatePropertyName={updatePropertyName}
-          onUpdatePropertyType={updatePropertyType}
-          onUpdatePropertySensitivity={updatePropertySensitivity}
-          onUpdatePropertyOptions={updatePropertyOptions}
-          onUpdatePropertyContractBindings={updatePropertyContractBindings}
-          onRemoveProperty={removeProperty}
-          onRestoreProperty={restoreProperty}
-          onPermanentlyRemoveProperty={permanentlyRemoveProperty}
-          onToggleShowDeprecated={() => setShowDeprecated((v) => !v)}
-          onSave={saveEdit}
-          onClose={closeEdit}
-          nameError={showNameError}
-          dynamicGroupEnabled={dynamicGroupEnabled}
-          dynamicGroupAllowedTypes={dynamicGroupAllowedTypes}
-          dynamicGroupMaxItems={dynamicGroupMaxItems}
-          dynamicGroupSensitivity={dynamicGroupSensitivity}
-          onDynamicGroupEnabledChange={handleDynamicGroupEnabledChange}
-          onDynamicGroupAllowedTypesChange={handleDynamicGroupAllowedTypesChange}
-          onDynamicGroupMaxItemsChange={handleDynamicGroupMaxItemsChange}
-          onDynamicGroupSensitivityChange={handleDynamicGroupSensitivityChange}
-        />
-      </Dialog>
+      <TemplateEditorModal editor={editor} />
 
       {/* Template detail modal */}
       <TemplateDetailModal
@@ -732,57 +289,18 @@ export function TemplateManagerPage() {
         onClose={() => setDetailTemplate(null)}
         onEdit={(id) => {
           const ut = templates.find((u) => u.id === id);
-          if (ut) openEdit(ut);
+          if (ut) editor.openEdit(ut);
         }}
       />
 
-      {/* Sample templates gallery */}
-      <SampleTemplateGallery
+      {/* Sample templates gallery + detail */}
+      <SampleGallerySection
         isOpen={showSampleGallery}
         onClose={() => setShowSampleGallery(false)}
-        onSelect={(tpl) => {
-          setSelectedSample(tpl);
-        }}
+        onUseSample={handleUseSample}
       />
 
-      {/* Sample template detail */}
-      {selectedSample && (
-        <SampleTemplateDetail
-          template={selectedSample}
-          onBack={() => setSelectedSample(null)}
-          onUse={async () => {
-            if (!selectedSample) return;
-            try {
-              // 从示例模板创建时，使用共享推导函数补齐 contractBindings
-              const derivedProperties = deriveSampleTemplateBindings(
-                selectedSample,
-                installedPlugins,
-              ).map((p) => ({
-                id: p.id,
-                name: p.name,
-                type: p.type,
-                sensitivityLevel: p.sensitivityLevel,
-                options: p.options,
-                contractField: p.contractField,
-                contractBindings: p.contractBindings,
-              }));
-              await createTemplate(
-                selectedSample.name,
-                selectedSample.icon,
-                selectedSample.category,
-                derivedProperties,
-                selectedSample.contractTypeId,
-              );
-              setSelectedSample(null);
-              setShowSampleGallery(false);
-            } catch (e) {
-              showToast({ type: 'error', message: `${t('common:save_failed')}: ${e}` });
-            }
-          }}
-        />
-      )}
-
-      {confirmDialog}
+      {editor.confirmDialog}
 
       {/* Delete confirmation dialog */}
       {confirmDelete &&
