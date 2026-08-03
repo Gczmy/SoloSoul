@@ -24,7 +24,7 @@
 - **审计问题清单共 80 项**（P001-P007、P101-P142、P201-P231）。
 - **80 项问题全部闭环**（78 项可执行修复 + P133 用户决策接入 + P134 用户决策门控 + P135 用户决策反向接入 + **N-10/P207 路径 1 公钥注入闭环**），其中 P104/P206 为部分修复/部分保留，P209 为用户决策保留。
 - **遗留未完成/待跟进 4 类**（§4 详细讨论）：
-  1. **P223/P224**：长函数/巨型组件长期重构（唯一进行中工作项，§4.1 详述；**P224-① TrashDetailPanel 与 P223-② objects 域均已于 2026-08-03 完成拆分** `bc395973`/`005fbfdf`）；
+  1. **P223/P224**：长函数/巨型组件长期重构（唯一进行中工作项，§4.1 详述；**P224-①② TrashDetailPanel/SyncPage 与 P223-② objects 域均已于 2026-08-03 完成拆分** `bc395973`/`8c74253c`/`005fbfdf`）；
   2. **R-3/R-4①**：已声明残余窗口（§4.2，低风险工程取舍）；
   3. **P209**：legacy XOR 迁移窗口保留（§4.3，决策保留）；
   4. **P206**：PDF embed 与 object-src CSP 遗留观察（§4.4，待核实）。
@@ -142,7 +142,7 @@
 | P221 | ✅ | 13 项死函数/类型删除（delta/transport/noise/pdfium/template_service/vault_file_system/profile/storage），按调用图逐项核验 |
 | P222 | ✅ | 25 处 pub 可见性收敛 + 1 处死项删除，消费关系一致 |
 | P223 | ⏸（②试点已闭环） | 长函数长期重构——**storage.rs 表域拆分试点已完成**：objects 域抽至 `src/storage/objects.rs`（15 方法，7922→7293 行，`005fbfdf`）；host.rs 分簇与 lib.rs 收尾见 §4.1 |
-| P224 | ⏸（①已闭环） | 巨型组件长期重构——**P224-① TrashDetailPanel 已完成**（1282→313 行，拆出 TrashDetailSections 575 行 + TrashSnapshotView 526 行，等价重构零行为变更，`bc395973`）；②⑤（SyncPage/OcrPage）与 ③④（TemplateManager/AboutPage）分解预案见 §4.1 |
+| P224 | ⏸（①②已闭环） | 巨型组件长期重构——**① TrashDetailPanel**（1282→313 行 + TrashDetailSections 575 + TrashSnapshotView 526，`bc395973`）与 **② SyncPage**（848→276 行 + ConflictPanel 76 + PairingPanel 135 + DeviceListPanel 440 + SyncHistoryPanel 143，`8c74253c`）均已完成，等价重构零行为变更；③④⑤（TemplateManager/AboutPage/OcrPage）分解预案见 §4.1 |
 | P225 | ✅ | 四大簇收敛（行解密闭包/unlock 共享前缀/PIN 凭证写入/附件源路径解析）；唯一错误文案前缀变化（Search→Object）确认无消费方 |
 | P226 | ✅ | 三对前端组件收敛为 4 个共享组件（净 -236 行），微差均已声明核实 |
 
@@ -176,7 +176,7 @@
 
 ### 4.1 P223/P224：长函数与巨型组件长期重构（唯一未完成工作项）
 
-**定位**：原报告明确「结构性拆分建议随功能迭代顺带、不单独安排修复轮次」——维持该定位。两轮复核（2026-08-02~03）未发现新增阻断缺陷，本版补齐**当前实测数据**与**逐文件分解预案**，供后续迭代直接取用。**进度**：P224-① TrashDetailPanel（`bc395973`，见 4.1.2 ①）与 P223-② objects 域（`005fbfdf`，见 4.1.1 ②）均已于 2026-08-03 完成拆分。
+**定位**：原报告明确「结构性拆分建议随功能迭代顺带、不单独安排修复轮次」——维持该定位。两轮复核（2026-08-02~03）未发现新增阻断缺陷，本版补齐**当前实测数据**与**逐文件分解预案**，供后续迭代直接取用。**进度**：P224-① TrashDetailPanel（`bc395973`，见 4.1.2 ①）、P224-② SyncPage（`8c74253c`，见 4.1.2 ②）与 P223-② objects 域（`005fbfdf`，见 4.1.1 ②）均已于 2026-08-03 完成拆分。
 
 #### 4.1.1 P223 Rust 长函数（实测：host.rs 1711 / storage.rs 7293（已拆 objects 域）+ objects.rs 653 / lib.rs 649）
 
@@ -241,11 +241,17 @@
 - **验证**：tsc 0 错误 / eslint 0 警告 / 全量 vitest 55 文件 484 用例全绿（基线不变）/ prettier 规范化；逐行保留性 diff 确认无内容丢失；修复机械改名隐患（`() => onToggle` 返回函数不执行 → `onClick={onToggle}` 直调）。
 - **遗留**：`SnapshotContent._detailId` 未用 prop（原文件既有，下划线前缀为有意保留）。
 
-**② `src/pages/sync/SyncPage.tsx`（848 行）**
+**② `src/pages/sync/SyncPage.tsx`（848 行）——✅ 已于 2026-08-03 完成拆分（`8c74253c`）**
 
-- `SyncPage`（46-713，约 667 行）已消费 `useSyncPage` hook（数据层已收敛）；`SyncStatusCard`（714-848）独立。
-- **拆分方案**：按 UI 区块抽 4 个展示组件——`PairingPanel`（二维码/手动码/配对流程）、`DeviceListPanel`（已知设备/信任操作）、`ConflictPanel`（冲突列表/解决）、`SyncHistoryPanel`（历史记录）；数据经 `useSyncPage` 返回对象透传，hooks 不动。复用 P142 已确立的「hook 收敛 + 组件化」模式。
-- 产出：667 行主组件 → 编排器 ~120 行 + 4×~130 行。
+- 原结构：`SyncPage`（46-713，约 667 行）已消费 `useSyncPage` hook（数据层已收敛）；`SyncStatusCard`（714-848）独立。
+- **拆分结果（等价重构，零行为变更，数据经 useSyncPage 透传）**：
+  - **`ConflictPanel.tsx`（新，76 行）**：未解决冲突摘要卡片 + SyncConflictDialog 对话框。
+  - **`PairingPanel.tsx`（新，135 行）**：QR 配对卡片 + PairingDialog/SyncShowQrDialog/SyncScanQrDialog 三对话框（`activePairPeer`/`isWaitingFlow`/`confirmLabel` 在编排层计算后透传）。
+  - **`DeviceListPanel.tsx`（新，440 行）**：手动同步 + 已发现设备 + 已知设备 + 忘记二次确认 ConfirmDialog（`onRefresh=loadStatus`、`onTrustPeer=trustPeer(id,false)`）。
+  - **`SyncHistoryPanel.tsx`（新，143 行）**：折叠式同步活动卡片，`formatNodeId`/`formatHlc` 随迁，空 recentResults 早退 null。
+  - **`SyncPage.tsx`（848→276 行）**：缩为编排层——`useSyncPage` 解构 + 四面板 props 透传 + SyncStatusCard 子组件原样保留。
+- **验证**：tsc 0 错误 / eslint 0 警告 / 全量 vitest 55 文件 484 用例全绿（基线不变）/ prettier 规范化；逐行保留性 diff 0 行丢失（74 处差异全为 import 再分配/doc 改写/const 行过滤伪报/prop 改名/对话框重写）；code-reviewer GO。
+- **有意视觉取舍**：同步活动卡片移至已知设备之后（设备管理聚合语义归组），无功能影响；SyncHistoryPanel 早退 null 后移除块内冗余条件（reviewer 建议）。
 
 **③ `src/pages/settings/TemplateManagerPage.tsx`（810 行）**
 
@@ -270,11 +276,11 @@
 3. **执行顺序建议（风险隔离从高到低）**：
    - 试点：✅ **P224-① TrashDetailPanel**（`bc395973`，2026-08-03 完成）→ 前端拆分节奏已确立；
    - 其次：✅ **P223-② storage.rs 表域拆分**（`005fbfdf`，2026-08-03 objects 域试点完成 → 模式已确立，下一域 trash/snapshots 按此推进）；
-   - 然后：P224-②⑤（SyncPage/OcrPage，数据层已有 hook）；P223-① host.rs 分簇；
+   - 然后：✅ **P224-② SyncPage 四面板**（`8c74253c`，2026-08-03 完成）→ 编排层 + 数据经 hook 透传模式已确立；剩余 P224-⑤（OcrPage）与 P223-① host.rs 分簇；
    - 最后：P224-③④（TemplateManager 状态密集、AboutPage 收益低）与 P223-③ lib.rs（已达标，收尾项）。
 4. **产出约束**：每个拆分**单独 commit**（一项一提交），commit message 注明「纯移动/等价重构」；本报告 §3 归档表随拆分补充新行。
 
-**当前建议**：不单独安排修复轮次；**P224-① 已完成**（`bc395973`），下次触碰任一文件时按上述预案顺带执行，优先 P223-② storage.rs 与 P224-② SyncPage。
+**当前建议**：不单独安排修复轮次；**P224-①② 与 P223-② 已完成**（`bc395973`/`8c74253c`/`005fbfdf`），下次触碰任一文件时按上述预案顺带执行，优先 P223-② 下一域（trash/snapshots）与 P224-⑤ OcrPage。
 
 ### 4.2 已声明残余窗口：R-3 / R-4①
 
@@ -309,7 +315,7 @@
 
 1. **审计闭环状态**：80 项问题**全部闭环**并经两轮独立复核（70 项首轮 + 16 项二轮补验 + P133/P134/P135 三项用户决策处置）验证，测试用例较修复前净增 60+；**所有 N/R 项复核发现均已闭环**。
 2. **遗留未完成/待跟进 4 类**（本报告 §4）：
-   - **P223/P224**：长函数/巨型组件长期重构（唯一进行中工作项，§4.1 含逐文件分解预案与执行顺序）；不单独安排修复轮次，随功能迭代顺带执行。**P224-① TrashDetailPanel（`bc395973`）与 P223-② objects 域（`005fbfdf`）已完成**，当前优先 P223-② 下一域（trash/snapshots）与 P224-② SyncPage。
+   - **P223/P224**：长函数/巨型组件长期重构（唯一进行中工作项，§4.1 含逐文件分解预案与执行顺序）；不单独安排修复轮次，随功能迭代顺带执行。**P224-①② TrashDetailPanel/SyncPage（`bc395973`/`8c74253c`）与 P223-② objects 域（`005fbfdf`）已完成**，当前优先 P223-② 下一域（trash/snapshots）与 P224-⑤ OcrPage。
    - **R-3/R-4①**：已声明残余窗口，可接受工程取舍，登记长期改进（等值组尾部回扫 / config journal，见 §4.2）。
    - **P209**：legacy XOR 迁移窗口保留，建议下个大版本发布后评估关闭（见 §4.3）。
    - **P206**：PDF embed 与 object-src CSP 遗留观察，待附件预览路径核实后决策（见 §4.4）。
