@@ -262,6 +262,17 @@ fn register_watermark_fn(
 
 /// 注册所有 Host Functions 到 linker
 pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(), PluginError> {
+    register_field_access_fns(linker)?;
+    register_http_fns(linker)?;
+    register_output_fns(linker)?;
+    register_watermark_host_fns(linker)?;
+    register_interaction_fns(linker)?;
+    register_util_fns(linker)?;
+    Ok(())
+}
+
+/// 字段/数据访问簇：request_field / list_objects / get_data_structure_tree / get_param（P223-① 分簇）
+fn register_field_access_fns(linker: &mut Linker<SoloHostState>) -> Result<(), PluginError> {
     // solosoul_request_field —— 请求字段
     linker
         .func_wrap(
@@ -339,74 +350,84 @@ pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(),
         )
         .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
 
-    // solosoul_post_data —— 代理 HTTP POST 请求
+    // solosoul_get_data_structure_tree —— 数据结构树（元数据）
     linker
         .func_wrap(
             "env",
-            "solosoul_post_data",
-            |mut caller: Caller<'_, SoloHostState>,
-             url_ptr: i32,
-             url_len: i32,
-             body_ptr: i32,
-             body_len: i32,
-             out_ptr: i32,
-             out_len: i32|
-             -> i32 {
-                let url = match read_required_string(&mut caller, url_ptr, url_len) {
-                    Some(s) => s,
-                    None => return code::INVALID_ARGUMENT,
-                };
-                let body = match read_string(&mut caller, body_ptr, body_len) {
-                    Ok(s) => s,
-                    Err(_) => return code::INVALID_ARGUMENT,
+            "solosoul_get_data_structure_tree",
+            |mut caller: Caller<'_, SoloHostState>, out_ptr: i32, out_len: i32| -> i32 {
+                let (plugin_id, session_id) = {
+                    let host = &caller.data().host;
+                    if !host
+                        .rate_limiter
+                        .check(&host.plugin_id, "get_data_structure_tree")
+                    {
+                        return code::RATE_LIMITED;
+                    }
+                    (host.plugin_id.clone(), host.session_id.clone())
                 };
 
-                let host = &caller.data().host;
-                if !host.rate_limiter.check(&host.plugin_id, "post_data") {
-                    return code::RATE_LIMITED;
-                }
-
-                // 检查网络策略
-                let policy = &host.manifest.network_policy;
-                if policy.block_all_outbound {
-                    return code::DOMAIN_NOT_ALLOWED;
-                }
-
-                let parsed_url = match Url::parse(&url) {
-                    Ok(u) => u,
-                    Err(_) => return code::INVALID_ARGUMENT,
-                };
-                let domain = parsed_url.host_str().unwrap_or("").to_lowercase();
-                if domain.is_empty() || !is_domain_allowed(&domain, &policy.allowed_domains) {
-                    return code::DOMAIN_NOT_ALLOWED;
-                }
-
-                let (plugin_id, session_id) = (host.plugin_id.clone(), host.session_id.clone());
-                let client = host.http_client.clone();
-                host.audit.log(
+                caller.data().host.audit.log(
                     &plugin_id,
                     Some(&session_id),
                     PluginAuditAction::PluginRunStarted,
                 );
 
-                let response_text = match perform_http_post(&client, &url, &body) {
-                    Ok(text) => text,
-                    Err(e) => {
-                        let _ = host.channel.send(PluginEvent::log(
-                            "error",
-                            format!("solosoul_post_data 失败: {}", e),
-                        ));
-                        return code::NETWORK_TIMEOUT;
-                    }
-                };
-
-                // 截断到 64KB，避免结果过大
-                let truncated: String = response_text.chars().take(64 * 1024).collect();
-                write_buffer(&mut caller, out_ptr, out_len, &truncated, -1)
+                match caller.data().host.field_resolver.build_structure_tree() {
+                    Ok(json) => write_buffer(&mut caller, out_ptr, out_len, &json, -1),
+                    Err(e) => plugin_error_code(&e),
+                }
             },
         )
         .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
 
+    // solosoul_get_param —— 获取运行参数
+    linker
+        .func_wrap(
+            "env",
+            "solosoul_get_param",
+            |mut caller: Caller<'_, SoloHostState>,
+             key_ptr: i32,
+             key_len: i32,
+             out_ptr: i32,
+             out_len: i32,
+             written_ptr: i32|
+             -> i32 {
+                let key = match read_string(&mut caller, key_ptr, key_len) {
+                    Ok(s) => s,
+                    Err(_) => return code::INVALID_ARGUMENT,
+                };
+                let value = caller
+                    .data()
+                    .host
+                    .params
+                    .get(&key)
+                    .cloned()
+                    .unwrap_or_default();
+                write_buffer(&mut caller, out_ptr, out_len, &value, written_ptr)
+            },
+        )
+        .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
+
+    // solosoul_list_attachments —— 列出可水印的附件树
+    linker
+        .func_wrap(
+            "env",
+            "solosoul_list_attachments",
+            |mut caller: Caller<'_, SoloHostState>, out_ptr: i32, out_cap: i32| -> i32 {
+                let resolver = caller.data().host.field_resolver.clone();
+                match resolver.list_attachments() {
+                    Ok(json) => write_buffer(&mut caller, out_ptr, out_cap, &json, -1),
+                    Err(e) => plugin_error_code(&e),
+                }
+            },
+        )
+        .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
+    Ok(())
+}
+
+/// HTTP 簇：http_request / http_poll / http_read / http_close（P223-① 分簇）
+fn register_http_fns(linker: &mut Linker<SoloHostState>) -> Result<(), PluginError> {
     // solosoul_http_request —— 发起异步 HTTP 请求（返回句柄）
     linker
         .func_wrap(
@@ -627,219 +648,242 @@ pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(),
         )
         .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
 
-    // solosoul_log —— 写日志（SDK 签名：无返回值）
+    Ok(())
+}
+
+/// 输出/附件簇：prepare_attachment_copy / copy_output_file / write_output_file / list_attachments（P223-① 分簇）
+fn register_output_fns(linker: &mut Linker<SoloHostState>) -> Result<(), PluginError> {
+    // solosoul_prepare_attachment_copy —— 将 Vault 附件复制到插件临时工作区
     linker
         .func_wrap(
             "env",
-            "solosoul_log",
+            "solosoul_prepare_attachment_copy",
             |mut caller: Caller<'_, SoloHostState>,
-             level_ptr: i32,
-             level_len: i32,
-             message_ptr: i32,
-             message_len: i32| {
-                let level = read_string(&mut caller, level_ptr, level_len).unwrap_or_default();
-                let message =
-                    read_string(&mut caller, message_ptr, message_len).unwrap_or_default();
-                if level.is_empty() || message.is_empty() {
-                    return;
-                }
-                let log = PluginLogLine {
-                    id: uuid::Uuid::new_v4().to_string(),
-                    level: level.clone(),
-                    message: message.clone(),
-                    timestamp: now_millis(),
-                };
-                let (plugin_id, session_id) = {
-                    let host = &caller.data().host;
-                    if let Ok(mut guard) = host.logs.lock() {
-                        guard.push(log);
-                    }
-                    let _ = host.channel.send(PluginEvent::log(&level, &message));
-                    (host.plugin_id.clone(), host.session_id.clone())
-                };
-                caller.data().host.audit.log(
-                    &plugin_id,
-                    Some(&session_id),
-                    PluginAuditAction::PluginRunStarted,
-                );
-            },
-        )
-        .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
-
-    // solosoul_get_timestamp —— 获取当前 Unix 时间戳（毫秒）
-    linker
-        .func_wrap(
-            "env",
-            "solosoul_get_timestamp",
-            |_caller: Caller<'_, SoloHostState>| -> i64 {
-                std::time::SystemTime::now()
-                    .duration_since(std::time::UNIX_EPOCH)
-                    .unwrap_or_default()
-                    .as_millis() as i64
-            },
-        )
-        .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
-
-    // solosoul_get_data_structure_tree —— 数据结构树（元数据）
-    linker
-        .func_wrap(
-            "env",
-            "solosoul_get_data_structure_tree",
-            |mut caller: Caller<'_, SoloHostState>, out_ptr: i32, out_len: i32| -> i32 {
-                let (plugin_id, session_id) = {
-                    let host = &caller.data().host;
-                    if !host
-                        .rate_limiter
-                        .check(&host.plugin_id, "get_data_structure_tree")
-                    {
-                        return code::RATE_LIMITED;
-                    }
-                    (host.plugin_id.clone(), host.session_id.clone())
-                };
-
-                caller.data().host.audit.log(
-                    &plugin_id,
-                    Some(&session_id),
-                    PluginAuditAction::PluginRunStarted,
-                );
-
-                match caller.data().host.field_resolver.build_structure_tree() {
-                    Ok(json) => write_buffer(&mut caller, out_ptr, out_len, &json, -1),
-                    Err(e) => plugin_error_code(&e),
-                }
-            },
-        )
-        .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
-
-    // solosoul_result —— SDK 原始结果通道
-    linker
-        .func_wrap(
-            "env",
-            "solosoul_result",
-            |mut caller: Caller<'_, SoloHostState>, data_ptr: i32, data_len: i32| -> i32 {
-                let json = read_string(&mut caller, data_ptr, data_len).unwrap_or_default();
-                let value = serde_json::from_str(&json).unwrap_or(serde_json::Value::Null);
-                let host = &caller.data().host;
-                // P004：盖章——`watermark_result` 载荷中的 `outputDir` 属插件可控数据，
-                // 恶意插件可上报 `outputDir: "/"` 使 `resolve_output_file` 的 starts_with
-                // 包含校验恒真（canonical(path).starts_with("/") 对任意路径成立），从而经
-                // `plugin_open_output_file`/`plugin_copy_output_file` 打开/复制任意本地文件。
-                // 此处用宿主已知的 run 参数 `outputDir`（用户配置的输出目录）覆写该字段，
-                // 使后续校验的信任基准不再受插件控制。
-                // P004：盖章逻辑已抽为纯函数 `stamp_result_payload`（可单测，防回归）。
-                let stamped = stamp_result_payload(value, &host.params);
-                let stamped_json = serde_json::to_string(&stamped).unwrap_or(json);
-                {
-                    let mut guard = host.results.lock().unwrap_or_else(|e| e.into_inner());
-                    guard.push(PluginResultPayload(stamped));
-                }
-                let _ = host.channel.send(PluginEvent::result(stamped_json));
-                code::SUCCESS
-            },
-        )
-        .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
-
-    // solosoul_show_dialog —— 通用对话框（阻塞等待用户响应）
-    linker
-        .func_wrap(
-            "env",
-            "solosoul_show_dialog",
-            |mut caller: Caller<'_, SoloHostState>,
-             config_ptr: i32,
-             config_len: i32,
-             out_ptr: i32,
-             out_len: i32|
+             object_id_ptr: i32,
+             object_id_len: i32,
+             attachment_id_ptr: i32,
+             attachment_id_len: i32,
+             out_path_ptr: i32,
+             out_path_cap: i32|
              -> i32 {
-                let config = match read_required_string(&mut caller, config_ptr, config_len) {
-                    Some(s) => s,
+                let object_id =
+                    match read_required_string(&mut caller, object_id_ptr, object_id_len) {
+                        Some(s) => s,
+                        None => return code::INVALID_ARGUMENT,
+                    };
+                let attachment_id =
+                    match read_required_string(&mut caller, attachment_id_ptr, attachment_id_len) {
+                        Some(s) => s,
+                        None => return code::INVALID_ARGUMENT,
+                    };
+
+                let workspace = match caller.data().host.workspace_dir.as_ref() {
+                    Some(d) => d.clone(),
+                    None => return code::NOT_IMPLEMENTED,
+                };
+
+                let resolver = caller.data().host.field_resolver.clone();
+                match copy_attachment_to_workspace(
+                    &resolver,
+                    &workspace,
+                    &object_id,
+                    &attachment_id,
+                ) {
+                    Ok(path) => write_buffer(
+                        &mut caller,
+                        out_path_ptr,
+                        out_path_cap,
+                        path.to_string_lossy().as_ref(),
+                        -1,
+                    ),
+                    Err(e) => {
+                        let _ = caller.data().host.channel.send(PluginEvent::log(
+                            "error",
+                            format!("prepare_attachment_copy 失败: {}", e),
+                        ));
+                        code::PROCESSING_FAILED
+                    }
+                }
+            },
+        )
+        .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
+
+    // solosoul_copy_output_file —— 将工作区中的已处理文件复制到输出目录
+    linker
+        .func_wrap(
+            "env",
+            "solosoul_copy_output_file",
+            |mut caller: Caller<'_, SoloHostState>,
+             src_path_ptr: i32,
+             src_path_len: i32,
+             file_name_ptr: i32,
+             file_name_len: i32,
+             out_path_ptr: i32,
+             out_path_cap: i32|
+             -> i32 {
+                let src_path = match read_required_string(&mut caller, src_path_ptr, src_path_len) {
+                    Some(s) => PathBuf::from(s),
                     None => return code::INVALID_ARGUMENT,
                 };
-                if config.len() > 4096 {
-                    return code::INVALID_ARGUMENT;
+                let file_name =
+                    match read_required_string(&mut caller, file_name_ptr, file_name_len) {
+                        Some(s) => s,
+                        None => return code::INVALID_ARGUMENT,
+                    };
+
+                if !is_under_workspace(&caller.data().host, &src_path) {
+                    return code::PERMISSION_DENIED;
                 }
 
-                let request_id = uuid::Uuid::new_v4().to_string();
-                let (plugin_id, plugin_name, session_id, consent_manager) = {
-                    let host = &caller.data().host;
-                    if !host.rate_limiter.check(&host.plugin_id, "show_dialog") {
-                        return code::RATE_LIMITED;
-                    }
-                    (
-                        host.plugin_id.clone(),
-                        host.plugin_name.clone(),
-                        host.session_id.clone(),
-                        host.consent_manager.clone(),
-                    )
-                };
-
-                let event =
-                    PluginEvent::dialog_request(&request_id, &plugin_id, &plugin_name, &config);
-                let _ = caller.data().host.channel.send(event);
-                caller.data().host.audit.log(
-                    &plugin_id,
-                    Some(&session_id),
-                    PluginAuditAction::PluginRunStarted,
-                );
-
-                let handle = match tokio::runtime::Handle::try_current() {
-                    Ok(h) => h,
-                    Err(_) => return code::NOT_IMPLEMENTED,
-                };
-                let rx = handle.block_on(consent_manager.request_consent(&request_id));
-
-                match handle.block_on(tokio::time::timeout(Duration::from_secs(300), rx)) {
-                    Ok(Ok(Some(value))) => write_buffer(&mut caller, out_ptr, out_len, &value, -1),
-                    Ok(Ok(None)) => code::USER_DENIED,
-                    Ok(Err(_)) | Err(_) => code::TTL_EXPIRED,
-                }
-            },
-        )
-        .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
-
-    // solosoul_get_param —— 获取运行参数
-    linker
-        .func_wrap(
-            "env",
-            "solosoul_get_param",
-            |mut caller: Caller<'_, SoloHostState>,
-             key_ptr: i32,
-             key_len: i32,
-             out_ptr: i32,
-             out_len: i32,
-             written_ptr: i32|
-             -> i32 {
-                let key = match read_string(&mut caller, key_ptr, key_len) {
-                    Ok(s) => s,
-                    Err(_) => return code::INVALID_ARGUMENT,
-                };
-                let value = caller
+                let output_dir = match caller
                     .data()
                     .host
                     .params
-                    .get(&key)
-                    .cloned()
-                    .unwrap_or_default();
-                write_buffer(&mut caller, out_ptr, out_len, &value, written_ptr)
+                    .get("outputDir")
+                    .filter(|s| !s.is_empty())
+                {
+                    Some(d) => PathBuf::from(d),
+                    None => return code::INVALID_ARGUMENT,
+                };
+
+                match copy_output_file(&src_path, &output_dir, &file_name) {
+                    Ok(path) => write_buffer(
+                        &mut caller,
+                        out_path_ptr,
+                        out_path_cap,
+                        path.to_string_lossy().as_ref(),
+                        -1,
+                    ),
+                    Err(e) => {
+                        let _ = caller.data().host.channel.send(PluginEvent::log(
+                            "error",
+                            format!("copy_output_file 失败: {}", e),
+                        ));
+                        code::PROCESSING_FAILED
+                    }
+                }
             },
         )
         .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
 
-    // solosoul_get_locale —— 获取当前 locale
+    // solosoul_write_output_file —— 将字节写入输出目录
     linker
         .func_wrap(
             "env",
-            "solosoul_get_locale",
+            "solosoul_write_output_file",
             |mut caller: Caller<'_, SoloHostState>,
-             out_ptr: i32,
-             out_len: i32,
-             written_ptr: i32|
+             file_name_ptr: i32,
+             file_name_len: i32,
+             bytes_ptr: i32,
+             bytes_len: i32,
+             out_path_ptr: i32,
+             out_path_cap: i32|
              -> i32 {
-                let locale = sys_locale::get_locale().unwrap_or_else(|| "en-US".to_string());
-                write_buffer(&mut caller, out_ptr, out_len, &locale, written_ptr)
+                let file_name =
+                    match read_required_string(&mut caller, file_name_ptr, file_name_len) {
+                        Some(s) => s,
+                        None => return code::INVALID_ARGUMENT,
+                    };
+                if bytes_len < 0 || bytes_len as usize > 256 * 1024 * 1024 {
+                    return code::FILE_TOO_LARGE;
+                }
+                let bytes_len = bytes_len as usize;
+                let bytes = match read_bytes(&mut caller, bytes_ptr, bytes_len) {
+                    Ok(b) => b,
+                    Err(_) => return code::INVALID_ARGUMENT,
+                };
+
+                let output_dir = match caller
+                    .data()
+                    .host
+                    .params
+                    .get("outputDir")
+                    .filter(|s| !s.is_empty())
+                {
+                    Some(d) => PathBuf::from(d),
+                    None => return code::INVALID_ARGUMENT,
+                };
+
+                match write_output_file(&output_dir, &file_name, &bytes) {
+                    Ok(path) => write_buffer(
+                        &mut caller,
+                        out_path_ptr,
+                        out_path_cap,
+                        path.to_string_lossy().as_ref(),
+                        -1,
+                    ),
+                    Err(e) => {
+                        let _ = caller.data().host.channel.send(PluginEvent::log(
+                            "error",
+                            format!("write_output_file 失败: {}", e),
+                        ));
+                        code::PROCESSING_FAILED
+                    }
+                }
             },
         )
         .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
 
+    Ok(())
+}
+
+/// 水印簇：image_watermark / pdf_watermark（P223-① 分簇；命名避开既有 register_watermark_fn）
+fn register_watermark_host_fns(linker: &mut Linker<SoloHostState>) -> Result<(), PluginError> {
+    // solosoul_image_watermark —— 为图片添加水印
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    register_watermark_fn(
+        linker,
+        "solosoul_image_watermark",
+        "image_watermark",
+        solosoul_core::watermark::apply_to_image,
+    )?;
+
+    #[cfg(any(target_os = "android", target_os = "ios"))]
+    linker
+        .func_wrap(
+            "env",
+            "solosoul_image_watermark",
+            |_caller: Caller<'_, SoloHostState>,
+             _input_path_ptr: i32,
+             _input_path_len: i32,
+             _output_path_ptr: i32,
+             _output_path_len: i32,
+             _config_json_ptr: i32,
+             _config_json_len: i32|
+             -> i32 { code::NOT_IMPLEMENTED },
+        )
+        .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
+
+    // solosoul_pdf_watermark —— 为 PDF 添加水印
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    register_watermark_fn(
+        linker,
+        "solosoul_pdf_watermark",
+        "pdf_watermark",
+        solosoul_core::watermark::apply_to_pdf,
+    )?;
+
+    #[cfg(any(target_os = "android", target_os = "ios"))]
+    linker
+        .func_wrap(
+            "env",
+            "solosoul_pdf_watermark",
+            |_caller: Caller<'_, SoloHostState>,
+             _input_path_ptr: i32,
+             _input_path_len: i32,
+             _output_path_ptr: i32,
+             _output_path_len: i32,
+             _config_json_ptr: i32,
+             _config_json_len: i32|
+             -> i32 { code::NOT_IMPLEMENTED },
+        )
+        .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
+
+    Ok(())
+}
+
+/// 交互簇：request_consent / show_dialog / log（P223-① 分簇）
+fn register_interaction_fns(linker: &mut Linker<SoloHostState>) -> Result<(), PluginError> {
     // solosoul_request_consent —— 请求用户授权（阻塞等待用户响应）
     linker
         .func_wrap(
@@ -932,6 +976,137 @@ pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(),
         )
         .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
 
+    // solosoul_show_dialog —— 通用对话框（阻塞等待用户响应）
+    linker
+        .func_wrap(
+            "env",
+            "solosoul_show_dialog",
+            |mut caller: Caller<'_, SoloHostState>,
+             config_ptr: i32,
+             config_len: i32,
+             out_ptr: i32,
+             out_len: i32|
+             -> i32 {
+                let config = match read_required_string(&mut caller, config_ptr, config_len) {
+                    Some(s) => s,
+                    None => return code::INVALID_ARGUMENT,
+                };
+                if config.len() > 4096 {
+                    return code::INVALID_ARGUMENT;
+                }
+
+                let request_id = uuid::Uuid::new_v4().to_string();
+                let (plugin_id, plugin_name, session_id, consent_manager) = {
+                    let host = &caller.data().host;
+                    if !host.rate_limiter.check(&host.plugin_id, "show_dialog") {
+                        return code::RATE_LIMITED;
+                    }
+                    (
+                        host.plugin_id.clone(),
+                        host.plugin_name.clone(),
+                        host.session_id.clone(),
+                        host.consent_manager.clone(),
+                    )
+                };
+
+                let event =
+                    PluginEvent::dialog_request(&request_id, &plugin_id, &plugin_name, &config);
+                let _ = caller.data().host.channel.send(event);
+                caller.data().host.audit.log(
+                    &plugin_id,
+                    Some(&session_id),
+                    PluginAuditAction::PluginRunStarted,
+                );
+
+                let handle = match tokio::runtime::Handle::try_current() {
+                    Ok(h) => h,
+                    Err(_) => return code::NOT_IMPLEMENTED,
+                };
+                let rx = handle.block_on(consent_manager.request_consent(&request_id));
+
+                match handle.block_on(tokio::time::timeout(Duration::from_secs(300), rx)) {
+                    Ok(Ok(Some(value))) => write_buffer(&mut caller, out_ptr, out_len, &value, -1),
+                    Ok(Ok(None)) => code::USER_DENIED,
+                    Ok(Err(_)) | Err(_) => code::TTL_EXPIRED,
+                }
+            },
+        )
+        .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
+
+    // solosoul_log —— 写日志（SDK 签名：无返回值）
+    linker
+        .func_wrap(
+            "env",
+            "solosoul_log",
+            |mut caller: Caller<'_, SoloHostState>,
+             level_ptr: i32,
+             level_len: i32,
+             message_ptr: i32,
+             message_len: i32| {
+                let level = read_string(&mut caller, level_ptr, level_len).unwrap_or_default();
+                let message =
+                    read_string(&mut caller, message_ptr, message_len).unwrap_or_default();
+                if level.is_empty() || message.is_empty() {
+                    return;
+                }
+                let log = PluginLogLine {
+                    id: uuid::Uuid::new_v4().to_string(),
+                    level: level.clone(),
+                    message: message.clone(),
+                    timestamp: now_millis(),
+                };
+                let (plugin_id, session_id) = {
+                    let host = &caller.data().host;
+                    if let Ok(mut guard) = host.logs.lock() {
+                        guard.push(log);
+                    }
+                    let _ = host.channel.send(PluginEvent::log(&level, &message));
+                    (host.plugin_id.clone(), host.session_id.clone())
+                };
+                caller.data().host.audit.log(
+                    &plugin_id,
+                    Some(&session_id),
+                    PluginAuditAction::PluginRunStarted,
+                );
+            },
+        )
+        .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
+
+    Ok(())
+}
+
+/// 工具簇：get_timestamp / get_locale / sleep / result / post_data（P223-① 分簇）
+fn register_util_fns(linker: &mut Linker<SoloHostState>) -> Result<(), PluginError> {
+    // solosoul_get_timestamp —— 获取当前 Unix 时间戳（毫秒）
+    linker
+        .func_wrap(
+            "env",
+            "solosoul_get_timestamp",
+            |_caller: Caller<'_, SoloHostState>| -> i64 {
+                std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .unwrap_or_default()
+                    .as_millis() as i64
+            },
+        )
+        .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
+
+    // solosoul_get_locale —— 获取当前 locale
+    linker
+        .func_wrap(
+            "env",
+            "solosoul_get_locale",
+            |mut caller: Caller<'_, SoloHostState>,
+             out_ptr: i32,
+             out_len: i32,
+             written_ptr: i32|
+             -> i32 {
+                let locale = sys_locale::get_locale().unwrap_or_else(|| "en-US".to_string());
+                write_buffer(&mut caller, out_ptr, out_len, &locale, written_ptr)
+            },
+        )
+        .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
+
     // solosoul_sleep —— 同步睡眠（毫秒）
     linker
         .func_wrap(
@@ -945,245 +1120,104 @@ pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(),
         )
         .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
 
-    // solosoul_list_attachments —— 列出可水印的附件树
+    // solosoul_result —— SDK 原始结果通道
     linker
         .func_wrap(
             "env",
-            "solosoul_list_attachments",
-            |mut caller: Caller<'_, SoloHostState>, out_ptr: i32, out_cap: i32| -> i32 {
-                let resolver = caller.data().host.field_resolver.clone();
-                match resolver.list_attachments() {
-                    Ok(json) => write_buffer(&mut caller, out_ptr, out_cap, &json, -1),
-                    Err(e) => plugin_error_code(&e),
+            "solosoul_result",
+            |mut caller: Caller<'_, SoloHostState>, data_ptr: i32, data_len: i32| -> i32 {
+                let json = read_string(&mut caller, data_ptr, data_len).unwrap_or_default();
+                let value = serde_json::from_str(&json).unwrap_or(serde_json::Value::Null);
+                let host = &caller.data().host;
+                // P004：盖章——`watermark_result` 载荷中的 `outputDir` 属插件可控数据，
+                // 恶意插件可上报 `outputDir: "/"` 使 `resolve_output_file` 的 starts_with
+                // 包含校验恒真（canonical(path).starts_with("/") 对任意路径成立），从而经
+                // `plugin_open_output_file`/`plugin_copy_output_file` 打开/复制任意本地文件。
+                // 此处用宿主已知的 run 参数 `outputDir`（用户配置的输出目录）覆写该字段，
+                // 使后续校验的信任基准不再受插件控制。
+                // P004：盖章逻辑已抽为纯函数 `stamp_result_payload`（可单测，防回归）。
+                let stamped = stamp_result_payload(value, &host.params);
+                let stamped_json = serde_json::to_string(&stamped).unwrap_or(json);
+                {
+                    let mut guard = host.results.lock().unwrap_or_else(|e| e.into_inner());
+                    guard.push(PluginResultPayload(stamped));
                 }
+                let _ = host.channel.send(PluginEvent::result(stamped_json));
+                code::SUCCESS
             },
         )
         .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
 
-    // solosoul_prepare_attachment_copy —— 将 Vault 附件复制到插件临时工作区
+    // solosoul_post_data —— 代理 HTTP POST 请求
     linker
         .func_wrap(
             "env",
-            "solosoul_prepare_attachment_copy",
+            "solosoul_post_data",
             |mut caller: Caller<'_, SoloHostState>,
-             object_id_ptr: i32,
-             object_id_len: i32,
-             attachment_id_ptr: i32,
-             attachment_id_len: i32,
-             out_path_ptr: i32,
-             out_path_cap: i32|
+             url_ptr: i32,
+             url_len: i32,
+             body_ptr: i32,
+             body_len: i32,
+             out_ptr: i32,
+             out_len: i32|
              -> i32 {
-                let object_id =
-                    match read_required_string(&mut caller, object_id_ptr, object_id_len) {
-                        Some(s) => s,
-                        None => return code::INVALID_ARGUMENT,
-                    };
-                let attachment_id =
-                    match read_required_string(&mut caller, attachment_id_ptr, attachment_id_len) {
-                        Some(s) => s,
-                        None => return code::INVALID_ARGUMENT,
-                    };
-
-                let workspace = match caller.data().host.workspace_dir.as_ref() {
-                    Some(d) => d.clone(),
-                    None => return code::NOT_IMPLEMENTED,
+                let url = match read_required_string(&mut caller, url_ptr, url_len) {
+                    Some(s) => s,
+                    None => return code::INVALID_ARGUMENT,
                 };
-
-                let resolver = caller.data().host.field_resolver.clone();
-                match copy_attachment_to_workspace(
-                    &resolver,
-                    &workspace,
-                    &object_id,
-                    &attachment_id,
-                ) {
-                    Ok(path) => write_buffer(
-                        &mut caller,
-                        out_path_ptr,
-                        out_path_cap,
-                        path.to_string_lossy().as_ref(),
-                        -1,
-                    ),
-                    Err(e) => {
-                        let _ = caller.data().host.channel.send(PluginEvent::log(
-                            "error",
-                            format!("prepare_attachment_copy 失败: {}", e),
-                        ));
-                        code::PROCESSING_FAILED
-                    }
-                }
-            },
-        )
-        .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
-
-    // solosoul_image_watermark —— 为图片添加水印
-    #[cfg(not(any(target_os = "android", target_os = "ios")))]
-    register_watermark_fn(
-        linker,
-        "solosoul_image_watermark",
-        "image_watermark",
-        solosoul_core::watermark::apply_to_image,
-    )?;
-
-    #[cfg(any(target_os = "android", target_os = "ios"))]
-    linker
-        .func_wrap(
-            "env",
-            "solosoul_image_watermark",
-            |_caller: Caller<'_, SoloHostState>,
-             _input_path_ptr: i32,
-             _input_path_len: i32,
-             _output_path_ptr: i32,
-             _output_path_len: i32,
-             _config_json_ptr: i32,
-             _config_json_len: i32|
-             -> i32 { code::NOT_IMPLEMENTED },
-        )
-        .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
-
-    // solosoul_pdf_watermark —— 为 PDF 添加水印
-    #[cfg(not(any(target_os = "android", target_os = "ios")))]
-    register_watermark_fn(
-        linker,
-        "solosoul_pdf_watermark",
-        "pdf_watermark",
-        solosoul_core::watermark::apply_to_pdf,
-    )?;
-
-    #[cfg(any(target_os = "android", target_os = "ios"))]
-    linker
-        .func_wrap(
-            "env",
-            "solosoul_pdf_watermark",
-            |_caller: Caller<'_, SoloHostState>,
-             _input_path_ptr: i32,
-             _input_path_len: i32,
-             _output_path_ptr: i32,
-             _output_path_len: i32,
-             _config_json_ptr: i32,
-             _config_json_len: i32|
-             -> i32 { code::NOT_IMPLEMENTED },
-        )
-        .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
-
-    // solosoul_write_output_file —— 将字节写入输出目录
-    linker
-        .func_wrap(
-            "env",
-            "solosoul_write_output_file",
-            |mut caller: Caller<'_, SoloHostState>,
-             file_name_ptr: i32,
-             file_name_len: i32,
-             bytes_ptr: i32,
-             bytes_len: i32,
-             out_path_ptr: i32,
-             out_path_cap: i32|
-             -> i32 {
-                let file_name =
-                    match read_required_string(&mut caller, file_name_ptr, file_name_len) {
-                        Some(s) => s,
-                        None => return code::INVALID_ARGUMENT,
-                    };
-                if bytes_len < 0 || bytes_len as usize > 256 * 1024 * 1024 {
-                    return code::FILE_TOO_LARGE;
-                }
-                let bytes_len = bytes_len as usize;
-                let bytes = match read_bytes(&mut caller, bytes_ptr, bytes_len) {
-                    Ok(b) => b,
+                let body = match read_string(&mut caller, body_ptr, body_len) {
+                    Ok(s) => s,
                     Err(_) => return code::INVALID_ARGUMENT,
                 };
 
-                let output_dir = match caller
-                    .data()
-                    .host
-                    .params
-                    .get("outputDir")
-                    .filter(|s| !s.is_empty())
-                {
-                    Some(d) => PathBuf::from(d),
-                    None => return code::INVALID_ARGUMENT,
-                };
+                let host = &caller.data().host;
+                if !host.rate_limiter.check(&host.plugin_id, "post_data") {
+                    return code::RATE_LIMITED;
+                }
 
-                match write_output_file(&output_dir, &file_name, &bytes) {
-                    Ok(path) => write_buffer(
-                        &mut caller,
-                        out_path_ptr,
-                        out_path_cap,
-                        path.to_string_lossy().as_ref(),
-                        -1,
-                    ),
+                // 检查网络策略
+                let policy = &host.manifest.network_policy;
+                if policy.block_all_outbound {
+                    return code::DOMAIN_NOT_ALLOWED;
+                }
+
+                let parsed_url = match Url::parse(&url) {
+                    Ok(u) => u,
+                    Err(_) => return code::INVALID_ARGUMENT,
+                };
+                let domain = parsed_url.host_str().unwrap_or("").to_lowercase();
+                if domain.is_empty() || !is_domain_allowed(&domain, &policy.allowed_domains) {
+                    return code::DOMAIN_NOT_ALLOWED;
+                }
+
+                let (plugin_id, session_id) = (host.plugin_id.clone(), host.session_id.clone());
+                let client = host.http_client.clone();
+                host.audit.log(
+                    &plugin_id,
+                    Some(&session_id),
+                    PluginAuditAction::PluginRunStarted,
+                );
+
+                let response_text = match perform_http_post(&client, &url, &body) {
+                    Ok(text) => text,
                     Err(e) => {
-                        let _ = caller.data().host.channel.send(PluginEvent::log(
+                        let _ = host.channel.send(PluginEvent::log(
                             "error",
-                            format!("write_output_file 失败: {}", e),
+                            format!("solosoul_post_data 失败: {}", e),
                         ));
-                        code::PROCESSING_FAILED
+                        return code::NETWORK_TIMEOUT;
                     }
-                }
-            },
-        )
-        .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
-
-    // solosoul_copy_output_file —— 将工作区中的已处理文件复制到输出目录
-    linker
-        .func_wrap(
-            "env",
-            "solosoul_copy_output_file",
-            |mut caller: Caller<'_, SoloHostState>,
-             src_path_ptr: i32,
-             src_path_len: i32,
-             file_name_ptr: i32,
-             file_name_len: i32,
-             out_path_ptr: i32,
-             out_path_cap: i32|
-             -> i32 {
-                let src_path = match read_required_string(&mut caller, src_path_ptr, src_path_len) {
-                    Some(s) => PathBuf::from(s),
-                    None => return code::INVALID_ARGUMENT,
-                };
-                let file_name =
-                    match read_required_string(&mut caller, file_name_ptr, file_name_len) {
-                        Some(s) => s,
-                        None => return code::INVALID_ARGUMENT,
-                    };
-
-                if !is_under_workspace(&caller.data().host, &src_path) {
-                    return code::PERMISSION_DENIED;
-                }
-
-                let output_dir = match caller
-                    .data()
-                    .host
-                    .params
-                    .get("outputDir")
-                    .filter(|s| !s.is_empty())
-                {
-                    Some(d) => PathBuf::from(d),
-                    None => return code::INVALID_ARGUMENT,
                 };
 
-                match copy_output_file(&src_path, &output_dir, &file_name) {
-                    Ok(path) => write_buffer(
-                        &mut caller,
-                        out_path_ptr,
-                        out_path_cap,
-                        path.to_string_lossy().as_ref(),
-                        -1,
-                    ),
-                    Err(e) => {
-                        let _ = caller.data().host.channel.send(PluginEvent::log(
-                            "error",
-                            format!("copy_output_file 失败: {}", e),
-                        ));
-                        code::PROCESSING_FAILED
-                    }
-                }
+                // 截断到 64KB，避免结果过大
+                let truncated: String = response_text.chars().take(64 * 1024).collect();
+                write_buffer(&mut caller, out_ptr, out_len, &truncated, -1)
             },
         )
         .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
 
     Ok(())
 }
-
 fn is_under_workspace(host: &SoloHostFunctions, path: &Path) -> bool {
     match host.workspace_dir.as_ref() {
         Some(ws) => solosoul_core::path_util::is_path_under_workspace(ws, path),
