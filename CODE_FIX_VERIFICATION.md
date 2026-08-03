@@ -56,6 +56,18 @@
 
 **已声明残余限制**：会话**中断**（断网/崩溃/退出）时，已持久化水印停在等值组最大值而页游标丢失，重启以 NULL 游标重查会跳过三元组 == 水印的组尾行（at-least-once 缺口）。需同时满足「会话中断」+「在飞等 ms 组」才触发；修复前每次同步都丢/循环，属严格改善。后续可把页游标 id 并入 peer watermark 持久化彻底关闭。
 
+## N-7 修复记录（2026-08-03）
+
+**修复方案**：P120/P122/P125 三个修复新增的 4 个文案 key 补入双语 locale。
+
+1. `settings.json`（zh-CN + en-US 同步）新增：
+   - `export_scope_load_failed`（P120，ExportImportPage 导出范围加载失败 toast）；
+   - `trash_detail_load_failed`（P122，TrashPage 回收站详情加载失败 toast）；
+   - `debug_log_exported` / `debug_log_export_failed`（P125，DebugLogPage 诊断包导出成功/失败 toast）。
+2. 三处 defaultValue 中文兜底保留（双重保险）；英文 UI 不再回退中文。
+
+**验证**：两个 locale JSON 解析通过 / `npx tsc --noEmit` 0 错误。
+
 ## N-6 修复记录（2026-08-03）
 
 **修复方案**：`ocr_scan_mrz`（desktop）移入 `spawn_blocking`。
@@ -250,7 +262,7 @@
 | N-4 | ✅ 已修复 | commands/llm/provider.rs:62 + rag.rs | P102 残余已闭环：① `llm_save_provider` 对未登记新 URL 强制**原生确认对话框**（XSS 无法程序化点击，杜绝两步绕过，2026-08-03 提交，见下方修复记录）；② embedding 通道发送前强制已登记地址校验 |
 | N-5 | ✅ 已修复 | commands/ocr.rs:800-813 | P104 残余已闭环：sha256 清单扩至三档共 12 文件（tiny/medium 哈希取自官方 HF 仓库并经 small 交叉验证，2026-08-03 提交，见下方修复记录） |
 | N-6 | ✅ 已修复 | commands/ocr.rs:412-416 | P113 残余已闭环：`ocr_scan_mrz` 的引擎加载+推理整体移入 `spawn_blocking`（与 P113 的 `ocr_scan_image` 同一模式，2026-08-03 提交，见下方修复记录） |
-| N-7 | 低 | ExportImportPage/TrashPage/DebugLogPage | P120/P122/P125 新增文案 key 未入 locale 文件，英文 UI 显示中文 defaultValue |
+| N-7 | ✅ 已修复 | ExportImportPage/TrashPage/DebugLogPage | P120/P122/P125 新增文案 key 已入 zh-CN/en-US locale（2026-08-03 提交，见下方修复记录） |
 | N-8 | 低 | App/index.tsx:91、lib/notification.ts:50 | P129 残余：两处绕过 helper 直写③（实际无漂移风险） |
 | N-9 | 低 | src/lib/ipc.test.ts:116-145 | P205 残余：3 个针对已删命令的陈旧 mock 测试 |
 | N-10 | 低 | commands/embed_model.rs:18 | P207 残余：minisign 公钥未注入，默认构建防护未激活 |
@@ -261,6 +273,6 @@
 1. **修复质量整体很高**：60/70 项完全正确，去重类（G 组 8 项）与性能类（E 组）全部 ✅，多数修复带防回归测试；测试用例较修复前净增 52 个。
 2. **N-1/N-2/N-3/N-4 已于 2026-08-03 修复并提交**（见上方修复记录）：N-1 keyset 分页替代 OFFSET、回退行 SQL 精确过滤、会话层节点编码对齐（残余的「会话中断时等值组尾部跳过」缺口已声明，建议后续把页游标 id 并入 peer watermark 持久化彻底关闭）；N-2 `reencrypt_all` 事务化全有或全无 + config 前置备份 + 写失败自动回滚（评审补强：`change_password` 的 config 备份读取移至 reencrypt 之前）；N-3 llmStore.streamBuffer 接入 vault-locked 清理链（清明文 + 退订 llm-stream-chunk）；N-4 provider 登记原生确认对话框（XSS 无法点击，堵死两步绕过）+ embedding 通道发送前强制已登记校验。
 3. **⚠️ 项的残余差距均已被 commit 声明或属低危**：N-6（中危）已修复，N-7 至 N-11 为小项。
-6. **N-5/N-6 已于 2026-08-03 修复并提交**：N-5 sha256 清单补全 tiny/medium 档（官方 HF 仓库哈希 + small 交叉验证）；N-6 `ocr_scan_mrz` 移入 spawn_blocking（P113 残余闭环）。
+6. **N-5/N-6/N-7 已于 2026-08-03 修复并提交**：N-5 sha256 清单补全 tiny/medium 档（官方 HF 仓库哈希 + small 交叉验证）；N-6 `ocr_scan_mrz` 移入 spawn_blocking（P113 残余闭环）；N-7 P120/P122/P125 新增文案 key 补入 zh-CN/en-US locale。
 4. **暂缓项决策待用户确认**：P133-P135（死模块删除）、P223/P224（结构性拆分）建议维持暂缓；P226/P228 可排入下一轮；P225 修复人正在进行中。
 5. P227/P231 提交于验证之后，未在本次审查范围内，建议下一轮补验。
