@@ -7,6 +7,14 @@ license.workspace = true
 repository.workspace = true
 description = "Shared core logic for SoloSoul GUI and CLI (vault lifecycle, templates, biometric primitives)."
 
+[features]
+# P134: 未来 macOS Keychain UserPresence 生物识别方案（规划代码门控）。
+# 默认关闭——团队未加入 Apple Developer Program 前不编译该模块（脱离默认编译面），
+# 启用需同时满足：加入 Apple Developer Program + Developer ID 签名 +
+# entitlements 声明 keychain-access-groups（详见 biometric/macos_keychain.rs 顶部注释）。
+# 启用方式：solosoul-core 的 consumers 声明 features = ["future-keychain"]。
+future-keychain = []
+
 [dependencies]
 # Workspace crates
 solosoul-crypto = { path = "../solosoul-crypto" }

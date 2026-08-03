@@ -32,9 +32,10 @@ mod windows;
 pub mod legacy;
 
 /// ⚠️ 未来 Keychain 方案保留模块。详见 `macos_keychain.rs` 顶部注释。
-/// 当前未使用，但保留完整实现以便团队加入 Apple Developer Program 后切换。
-#[cfg(target_os = "macos")]
-#[allow(dead_code)]
+/// P134: 已升级为 `feature = "future-keychain"` 门控（默认关闭）——
+/// 未加入 Apple Developer Program 前脱离默认编译面（不再有 dead_code 豁免）；
+/// 启用时若产生 dead_code 警告即提示该模块尚未接入 `platform_storage()`，属预期提醒。
+#[cfg(all(target_os = "macos", feature = "future-keychain"))]
 mod macos_keychain;
 
 /// 设备/平台对生物识别的可用性信息。

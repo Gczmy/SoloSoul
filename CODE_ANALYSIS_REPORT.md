@@ -17,15 +17,15 @@
 | `cargo fmt --check` | ✅ 通过 | ✅ 通过 |
 | `cargo clippy --workspace --all-targets` | ✅ 零警告 | ✅ 零警告 |
 | 前端测试 | ✅ 46 文件 / 430 用例 | ✅ 55 文件 / 484 用例（较修复前 +54） |
-| Rust 测试 | ✅ 全部通过 | ✅ 全部通过（solo_soul 361 / core 154 / crypto 34 / plugin 56 / sync 47 / vault 123） |
+| Rust 测试 | ✅ 全部通过 | ✅ 全部通过（solo_soul 361 / core 150（默认；`future-keychain` 开启时 +4）/ crypto 34 / plugin 56 / sync 47 / vault 123） |
 
 ## §2 总览：80 项问题处置结果
 
 - **审计问题清单共 80 项**（P001-P007、P101-P142、P201-P231）。
-- **79 项可执行项已修复并经独立复核验证**（60 项首轮 ✅ + 部分修复 9 项经 N 项跟进闭环 + 复核新发现 N-1~N-11 与 R-1~R-5 全部闭环 + P133 按用户决策接入 macOS 默认引擎），其中 P104/P206 为部分修复/部分保留，P209 为用户决策保留。
+- **80 项中 79 项已闭环并经独立复核验证**（78 项可执行修复 + P133 用户决策接入 + P134 用户决策门控），其中 P104/P206 为部分修复/部分保留，P209 为用户决策保留。
 - **遗留未完成 3 类**（§4 详细讨论）：
   1. **N-10 / P207 残余**：Embedding 注册表 minisign 公钥未注入，默认构建防护未激活（⏸ 用户决策暂缓）。
-  2. **P134-P135**：两个死模块处置（P134 Keychain 规划代码保留；P135 safe_storage 与 R-4① 有协同关系，见 §4.2）。
+  2. **P135**：safe_storage 与 R-4① 有协同关系（建议反向接入原子写而非删除），见 §4.2。
   3. **P223/P224**：长函数/巨型组件长期重构（有意留待迭代）。
 - 另有两项「有意保留但需后续跟进」记录在案：P209（legacy XOR 迁移窗口）、P206 遗留观察（PDF embed 与 CSP）。
 
@@ -127,7 +127,7 @@
 |----|------|----------|
 | P132 | ✅ | 8 个死命令删除（含 crypto oracle），注册与 allowlist 同步清理，前端/CLI 零残留 |
 | P133 | ✅ | 按用户决策**接入为 macOS 默认 OCR 引擎**：新增 `OcrModelTier::Vision` 档位（仅 macOS `ocr_list_available_tiers` 返回、置于首位），`OcrPreferences` 默认档 macOS 为 Vision；扫描走 `macos_vision::scan_image`（spawn_blocking + `#[cfg(target_os="macos")]` 属性剪裁，非 macOS 编译不引用门控模块）；MRZ 回退 small 档；前端仅 macOS 显示该档、默认选中、隐藏安装/下载/删除（builtin 标记）、按图片-only 过滤；详见 §4.2.1 |
-| P134 | ⏸ | 已决策保留（macOS Keychain 未来方案，破坏性删除暂缓）——详见 §4.2 |
+| P134 | ✅ | 按用户决策升级为 `feature = "future-keychain"` 门控（默认关闭，`#[cfg(all(target_os="macos", feature="future-keychain"))]`），移除 `#[allow(dead_code)]` 脱离默认编译面；启用时 10 个 dead_code 警告为「尚未接入 platform_storage()」的预期提醒；详见 §4.2.2 |
 | P135 | ⏸ | 已决策保留（safe_storage 原子写工具，破坏性删除暂缓）——**与 R-4① 存在协同，见 §4.2** |
 | P136 | ✅ | 自我纠错正确：CLI 依赖方法全部恢复，最终仅删 15 个零调用方法（provider 管理 8 + 会话管理 5 + reset_stats + 非流式 send_message） |
 | P137 | ✅ | LLM 8 结构体统一复用 `solosoul_core::llm::config` 唯一真理来源，serde 字段逐字段一致 |
@@ -170,7 +170,7 @@
 
 ## §4 未完成项详细讨论
 
-> 本节为合并版报告的核心内容。按影响面排序：N-10（安全面，暂缓待决策）→ P134-P135（死模块处置）→ P223/P224（长期重构）→ 已声明残余窗口（R-3/R-4①）→ 有意保留记录（P209/P206 遗留观察）。
+> 本节为合并版报告的核心内容。按影响面排序：N-10（安全面，暂缓待决策）→ P135（死模块处置）→ P223/P224（长期重构）→ 已声明残余窗口（R-3/R-4①）→ 有意保留记录（P209/P206 遗留观察）。
 
 ### 4.1 N-10 / P207 残余：Embedding 注册表 minisign 公钥注入（⏸ 暂缓待决策）
 
@@ -220,9 +220,9 @@
 2. **路径 1 随签名体系就绪随时激活**（一行常量 + 发布流程）；路径 2 作为中间态的 CI 接线。
 3. 在此之前维持暂缓登记，风险等级「低」由 P104 叠加缓解支撑。
 
-### 4.2 P134-P135：死模块处置（P133 已闭环，余两项待决策）
+### 4.2 P135：死模块处置（P133/P134 已闭环，余 P135 待决策）
 
-三模块原合计约 926 行，均确认零生产引用（grep 仅命中模块声明自身）。原报告建议删除属破坏性操作，2026-08-02 用户确认暂缓。**P133 已于 2026-08-03 按用户决策接入为 macOS 默认 OCR 引擎并闭环**（见 4.2.1）；P134 维持规划代码保留、P135 与 R-4① 协同建议反向接入（见 4.2.2/4.2.3）。
+三模块原合计约 926 行，均确认零生产引用（grep 仅命中模块声明自身）。原报告建议删除属破坏性操作，2026-08-02 用户确认暂缓。**P133 已于 2026-08-03 按用户决策接入为 macOS 默认 OCR 引擎并闭环**（见 4.2.1）；**P134 已于 2026-08-03 按用户决策升级为 feature 门控并闭环**（见 4.2.2）；P135 与 R-4① 协同建议反向接入（见 4.2.3）。
 
 #### 4.2.1 P133 `crates/solosoul-core/src/ocr/macos_vision.rs`（389 行）—— ✅ 已闭环（2026-08-03）
 
@@ -244,11 +244,23 @@
 
 **已声明取舍**（评审确认）：① `_language` 参数对 Vision 分支未透传（Swift 桥接恒为自动语言，如需指定语言需在 `macos_vision.rs` 扩展 `recognitionLanguages`——既定为后续改进）；② 老 macOS 用户若 `ocr_preferences.json` 已存旧档位，升级后保留原选择（尊重既有偏好），全新用户默认 Vision；③ Android target 交叉编译检查受 `ring` NDK 工具链环境限制（非代码问题），但 cfg 属性剪裁已保证非 macOS 不引用门控模块，Windows/Android 编译面无此引用。
 
-#### 4.2.2 P134 `crates/solosoul-core/src/biometric/macos_keychain.rs`（439 行）
-- **内容**：macOS Keychain UserPresence 生物识别凭证存储**未来实施方案**（`#[allow(dead_code)]`，注释明示启用前提：Apple Developer Program 付费会员 + Team ID + Developer ID 签名 + entitlements 声明 keychain-access-groups）。
-- **引用**：零（`biometric/mod.rs:38` 私有模块声明）。
-- **保留价值**：Apple 生态正式分发后的生物识别增强（当前 macOS 走 `FileBiometricStorage`，Keychain UserPresence 是更安全的升级路径，且 P002 修复后 Windows 已用 DPAPI——Keychain 是跨平台安全对齐的对称物）。
-- **建议**：这是**「有意保留的规划代码」**，与死代码清理的目标（消除误导/漂移）矛盾最小——建议保留但将 `#[allow(dead_code)]` 升级为**显式规划注释 + `#[cfg(feature = "future-keychain")]` 门控**（脱离默认编译面，消除 dead_code 豁免），或维持现状。属低优先。
+#### 4.2.2 P134 `crates/solosoul-core/src/biometric/macos_keychain.rs`（439 行）—— ✅ 已闭环（2026-08-03）
+
+**用户决策**：保留，将 `#[allow(dead_code)]` 升级为**显式规划注释 + `#[cfg(feature = "future-keychain")]` 门控**（脱离默认编译面，消除 dead_code 豁免）。
+
+**修复内容**：
+
+| 文件 | 改动 |
+|------|------|
+| `Cargo.toml` | 新增 `[features] future-keychain = []`（空 feature，依赖已按 target 门控；注释明示启用前提：Apple Developer Program + Developer ID 签名 + entitlements 声明 keychain-access-groups） |
+| `biometric/mod.rs` | 模块声明 `#[cfg(target_os="macos")] #[allow(dead_code)]` → `#[cfg(all(target_os="macos", feature="future-keychain"))]`（移除 dead_code 豁免）；文档注释说明门控语义 |
+| `macos_keychain.rs` | 顶部文档补充 P134 门控说明 |
+
+**验证**：
+- **feature 关闭（默认）**：workspace check 0 / clippy workspace 0 / CLI 0；core 默认测试 154→150（4 个 macos_keychain 测试随 feature 脱离默认编译面，符合预期）。
+- **feature 开启**（`--features future-keychain`）：模块编译通过，biometric 22 测试全绿；**10 个 dead_code 警告全部为「模块尚未接入 platform_storage()」的预期提醒**（struct never constructed / 自由函数与常量 never used / associated items never used），文档已明示该语义；CI 只跑默认 feature 不受污染。
+
+**已声明取舍**（评审确认）：feature 关闭后 macOS target 段 `security-framework`/`core-foundation` 等 4 依赖无引用仍被编译（Cargo 对 target 级声明依赖总是编译）——轻微编译开销、无警告；若追求严格按需可后续改 `optional = true` 挂 feature，但不建议现在做（churn > 收益）。
 
 #### 4.2.3 P135 `crates/solosoul-vault/src/safe_storage.rs`（98 行）——**新发现：与 R-4① 协同**
 - **内容**：原子文件写入工具 `write_atomic`（`.tmp` + rename）+ `recover_or_load`（孤儿 tmp 恢复），自带 3 条测试。
@@ -319,7 +331,7 @@
 1. **审计闭环状态**：80 项问题中 79 项可执行项已修复并经两轮独立复核（70 项首轮 + 16 项二轮补验 + P133 用户决策接入）验证，测试用例较修复前净增 54 个；**所有 N/R 项复核发现均已闭环**。
 2. **遗留未完成 3 类**（本报告 §4）：
    - N-10/P207（公钥注入）：建议下一发布周期实施**路径 3（bundled 兜底 + fail-closed）**——唯一不依赖外部密钥即可关闭缺口的路径；路径 1（真实公钥）随签名体系就绪随时激活。
-   - P134-P135：P134 维持规划代码保留（建议 `#[cfg(feature)]` 门控脱离默认编译面）；**P135 建议由「删除」改为「接入 config 原子写」**（与 R-4① 协同，一举两得）。
+   - P135：**建议由「删除」改为「接入 config 原子写」**（与 R-4① 协同，一举两得）；P134 已按用户决策门控闭环。
    - P223/P224：长期重构，建议从 `TrashDetailPanel`（P224）与 storage.rs 按表域拆分（P223）开始，沿用 P048/P217 的等价重构 + 防回归测试先例。
    - R-3/R-4① 残余：可接受工程取舍，登记长期改进（等值组尾部回扫 / config journal，见 §4.4）。
 3. **验证指针**：本报告 §3 归档表含全部修复 commit（`f1970c67` 起，N/R 项见 §3.2）；完整修复细节与两轮验证记录在 git 历史中可追溯。
@@ -328,5 +340,5 @@
 ## §6 测试基线参考（当前 HEAD）
 
 - 前端：tsc 0 错误 / eslint 0 警告 / vitest 55 文件 484 用例全绿。
-- Rust：`cargo fmt --check` 通过 / `cargo clippy --workspace --all-targets` 零警告 / `cargo test --workspace` 全绿（solo_soul 361、core 154、crypto 34、plugin 56、sync 47、vault 123）；`solosoul_cli` cargo check 0 错误。
+- Rust：`cargo fmt --check` 通过 / `cargo clippy --workspace --all-targets` 零警告 / `cargo test --workspace` 全绿（solo_soul 361、core 150 默认（`future-keychain` 开启时 +4）、crypto 34、plugin 56、sync 47、vault 123）；`solosoul_cli` cargo check 0 错误。
 - 工作区干净，当前分支 `main` 与 `origin/main` 同步。

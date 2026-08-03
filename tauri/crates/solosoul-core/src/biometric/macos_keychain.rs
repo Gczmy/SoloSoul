@@ -1,5 +1,10 @@
 //! ⚠️ 未来实施方案：macOS Keychain UserPresence 生物识别凭证存储。
 //!
+//! P134 门控：本模块仅在 `feature = "future-keychain"` 开启时编译
+//! （`#[cfg(all(target_os = "macos", feature = "future-keychain"))]`）。
+//! 默认关闭——未加入 Apple Developer Program 前不参与编译，零 dead_code 豁免；
+//! 启用 feature 后若出现 dead_code 警告，即提示本模块尚未接入 `platform_storage()`。
+//!
 //! 本文件实现将主密钥保存为受 `kSecAccessControlUserPresence` 约束的
 //! Keychain Generic Password Item，读取时由系统弹出 Touch ID / 设备密码框。
 //!
