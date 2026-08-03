@@ -24,7 +24,7 @@
 - **审计问题清单共 80 项**（P001-P007、P101-P142、P201-P231）。
 - **80 项问题全部闭环**（78 项可执行修复 + P133 用户决策接入 + P134 用户决策门控 + P135 用户决策反向接入 + **N-10/P207 路径 1 公钥注入闭环**），其中 P104/P206 为部分修复/部分保留，P209 为用户决策保留。
 - **遗留未完成/待跟进 4 类**（§4 详细讨论）：
-  1. **P223/P224**：长函数/巨型组件长期重构（唯一进行中工作项，§4.1 详述；**P224-①② TrashDetailPanel/SyncPage 与 P223-② objects 域均已于 2026-08-03 完成拆分** `bc395973`/`8c74253c`/`005fbfdf`）；
+  1. **P223/P224**：长函数/巨型组件长期重构（唯一进行中工作项，§4.1 详述；**P224-①② TrashDetailPanel/SyncPage 与 P223-② objects/trash 域均已于 2026-08-03 完成拆分** `bc395973`/`8c74253c`/`005fbfdf`/`ae030551`）；
   2. **R-3/R-4①**：已声明残余窗口（§4.2，低风险工程取舍）；
   3. **P209**：legacy XOR 迁移窗口保留（§4.3，决策保留）；
   4. **P206**：PDF embed 与 object-src CSP 遗留观察（§4.4，待核实）。
@@ -141,7 +141,7 @@
 | P220 | ✅ | 2 处未用 React 导入 + 1 处失效 eslint-disable 删除，基线 lint warning 清零 |
 | P221 | ✅ | 13 项死函数/类型删除（delta/transport/noise/pdfium/template_service/vault_file_system/profile/storage），按调用图逐项核验 |
 | P222 | ✅ | 25 处 pub 可见性收敛 + 1 处死项删除，消费关系一致 |
-| P223 | ⏸（②试点已闭环） | 长函数长期重构——**storage.rs 表域拆分试点已完成**：objects 域抽至 `src/storage/objects.rs`（15 方法，7922→7293 行，`005fbfdf`）；host.rs 分簇与 lib.rs 收尾见 §4.1 |
+| P223 | ⏸（② objects/trash 已闭环） | 长函数长期重构——**storage.rs 表域拆分已完成两域**：objects 域抽至 `src/storage/objects.rs`（15 方法，7922→7293 行，`005fbfdf`）+ trash 域抽至 `src/storage/trash.rs`（7 方法，7296→7033 行，`ae030551`）；host.rs 分簇与 lib.rs 收尾见 §4.1 |
 | P224 | ⏸（①②已闭环） | 巨型组件长期重构——**① TrashDetailPanel**（1282→313 行 + TrashDetailSections 575 + TrashSnapshotView 526，`bc395973`）与 **② SyncPage**（848→276 行 + ConflictPanel 76 + PairingPanel 135 + DeviceListPanel 440 + SyncHistoryPanel 143，`8c74253c`）均已完成，等价重构零行为变更；③④⑤（TemplateManager/AboutPage/OcrPage）分解预案见 §4.1 |
 | P225 | ✅ | 四大簇收敛（行解密闭包/unlock 共享前缀/PIN 凭证写入/附件源路径解析）；唯一错误文案前缀变化（Search→Object）确认无消费方 |
 | P226 | ✅ | 三对前端组件收敛为 4 个共享组件（净 -236 行），微差均已声明核实 |
@@ -176,9 +176,9 @@
 
 ### 4.1 P223/P224：长函数与巨型组件长期重构（唯一未完成工作项）
 
-**定位**：原报告明确「结构性拆分建议随功能迭代顺带、不单独安排修复轮次」——维持该定位。两轮复核（2026-08-02~03）未发现新增阻断缺陷，本版补齐**当前实测数据**与**逐文件分解预案**，供后续迭代直接取用。**进度**：P224-① TrashDetailPanel（`bc395973`，见 4.1.2 ①）、P224-② SyncPage（`8c74253c`，见 4.1.2 ②）与 P223-② objects 域（`005fbfdf`，见 4.1.1 ②）均已于 2026-08-03 完成拆分。
+**定位**：原报告明确「结构性拆分建议随功能迭代顺带、不单独安排修复轮次」——维持该定位。两轮复核（2026-08-02~03）未发现新增阻断缺陷，本版补齐**当前实测数据**与**逐文件分解预案**，供后续迭代直接取用。**进度**：P224-① TrashDetailPanel（`bc395973`，见 4.1.2 ①）、P224-② SyncPage（`8c74253c`，见 4.1.2 ②）与 P223-② objects/trash 域（`005fbfdf`/`ae030551`，见 4.1.1 ②）均已于 2026-08-03 完成拆分。
 
-#### 4.1.1 P223 Rust 长函数（实测：host.rs 1711 / storage.rs 7293（已拆 objects 域）+ objects.rs 653 / lib.rs 649）
+#### 4.1.1 P223 Rust 长函数（实测：host.rs 1711 / storage.rs 7033（已拆 objects/trash 域）+ objects.rs 653 + trash.rs 281 / lib.rs 649）
 
 **① `crates/solosoul-plugin/src/host.rs`（1711 行）——主拆分对象**
 
@@ -211,7 +211,7 @@
   | 同步变更清单 | 1483-2060 | `list_sync_changes_since(_paginated)` ×4 表域 + keyset | `sync_changes.rs` |
   | 同步应用/冲突 | 2061-2501 | `apply_sync_records_batch` / conflicts / `hard_delete` | `sync_apply.rs` |
   | 对象 | ✅ 2526-3186（已拆） | `list_objects` / `list_object_metadata` / `save_object(_tx)` / `search` | **`objects.rs`（已实施 `005fbfdf`）** |
-  | 回收站 | 3187-3446 | `trash_and_soft_delete_batch` / `list_trash_items` / `cleanup_expired_trash` | `trash.rs` |
+  | 回收站 | ✅ 2559-2819（已拆） | `trash_and_soft_delete_batch` / `list_trash_items` / `cleanup_expired_trash` | **`trash.rs`（已实施 `ae030551`）** |
   | 快照 | 3447-3893 | `save_snapshot(_at)` / `list_snapshots` / `backfill` / `copy` | `snapshots.rs` |
   | 审计/元数据/embeddings/sys_config | 3894-4287 | `log_structured` / `list_audit_log` / `guide_embeddings` / `read|write_metadata` | `metadata.rs` |
   | 用户模板 | 4288-4500 | `save_user_template` / `list` / `check_field_usage` | `templates.rs` |
@@ -222,7 +222,12 @@
   - **隐私规则实证**：子模块经 `super::` 直接访问父模块私有项（`data_key()`/`with_tx`/`json_contains_ignore_case`/对象 SQL 常量）——**无需** `pub(crate)` 放宽（Rust 隐私向下可见）；唯二例外是 `save_object_tx`/`load_object_tx` 提为 `pub(crate)`（根模块 `apply_object_sync_record_tx` 2459/2464 跨域调用，隐私只向下可见故父模块必须 `pub(crate)` 才能访问子模块私有）。
   - **风险点①的实证结论**：VaultStore 字段**无需** `pub(crate)`/accessor——子模块可访问父结构体私有字段（`self.conn`/`self.data_key`）。②③ 维持预案：测试留根、`test_key`/`setup` 待子模块测试出现时再放宽。
   - **验证**：逐行保留性 diff 0 行丢失 / fmt 干净 / clippy `--all-targets` 0 警告 / solosoul-vault 123 测试全绿 / workspace + CLI check 0 错误 / code-reviewer GO。
-- **产出（实测校准）**：7922 行 → 7293 根 + 653 objects 模块；后续 8 域各 300-900 行。
+- **✅ trash 域实施（2026-08-03，`ae030551`）——回收站域抽至 `src/storage/trash.rs`**：
+  - 7 个回收站方法（`save_trash_item`/`trash_and_soft_delete_batch`/`save_trash_item_tx`/`list_trash_items`/`get_trash_item`/`delete_trash_item`/`cleanup_expired_trash`）逐行搬运，storage.rs 7296→7033 行。
+  - `save_trash_item_tx` 提升 `pub(crate)`（根模块 `apply_trash_sync_record_tx` 跨域复用，同 objects 试点）；`delete_object`（兄弟域 objects 的 pub fn）**无需**放宽可见性——private 子模块内的 pub 项在 storage 子树内（含 trash）可见；`log_structured`/`with_tx`/`data_key`/SQL 常量经 super::/self. 直接访问。
+  - 根 use 移除 `TrashItem`/`TrashItemSummary`（测试模块改显式 `use crate::{ObjectRecord, Profile, TrashItem}`）。
+  - **验证**：逐行保留性 diff 0 行丢失 / fmt 干净 / clippy 0 警告 / solosoul-vault 123 测试全绿 / workspace + CLI check 0 错误 / code-reviewer GO。
+- **产出（实测校准）**：7922 行 → 7033 根 + 653 objects + 281 trash 模块；后续 7 域各 300-900 行。
 - **收益**：后续 P109/P110/P213 类同步/对象性能优化与表结构变更的 diff 面缩小约 10×；`reencrypt_all`（740-972）等重函数随迁移收编。
 
 **③ `src-tauri/src/lib.rs`（649 行）——已基本达标，仅收尾**
@@ -275,12 +280,12 @@
 2. **防回归测试**：前端拆分后跑 `npx tsc --noEmit` + `npx eslint` + `npx vitest run`（现 55 文件 484 用例全绿为基线）；Rust 拆分后跑 `cargo fmt --check` + `cargo clippy --workspace --all-targets` + `cargo test --workspace`（现 675+ 全绿为基线）。目标：**拆分前后测试零变化**。
 3. **执行顺序建议（风险隔离从高到低）**：
    - 试点：✅ **P224-① TrashDetailPanel**（`bc395973`，2026-08-03 完成）→ 前端拆分节奏已确立；
-   - 其次：✅ **P223-② storage.rs 表域拆分**（`005fbfdf`，2026-08-03 objects 域试点完成 → 模式已确立，下一域 trash/snapshots 按此推进）；
+   - 其次：✅ **P223-② storage.rs 表域拆分**（`005fbfdf` objects 域试点 + `ae030551` trash 域，2026-08-03 完成 → 模式已确立，下一域 snapshots/sync_meta 按此推进）；
    - 然后：✅ **P224-② SyncPage 四面板**（`8c74253c`，2026-08-03 完成）→ 编排层 + 数据经 hook 透传模式已确立；剩余 P224-⑤（OcrPage）与 P223-① host.rs 分簇；
    - 最后：P224-③④（TemplateManager 状态密集、AboutPage 收益低）与 P223-③ lib.rs（已达标，收尾项）。
 4. **产出约束**：每个拆分**单独 commit**（一项一提交），commit message 注明「纯移动/等价重构」；本报告 §3 归档表随拆分补充新行。
 
-**当前建议**：不单独安排修复轮次；**P224-①② 与 P223-② 已完成**（`bc395973`/`8c74253c`/`005fbfdf`），下次触碰任一文件时按上述预案顺带执行，优先 P223-② 下一域（trash/snapshots）与 P224-⑤ OcrPage。
+**当前建议**：不单独安排修复轮次；**P224-①② 与 P223-②（objects/trash）已完成**（`bc395973`/`8c74253c`/`005fbfdf`/`ae030551`），下次触碰任一文件时按上述预案顺带执行，优先 P223-② 下一域（snapshots）与 P224-⑤ OcrPage。
 
 ### 4.2 已声明残余窗口：R-3 / R-4①
 
@@ -315,7 +320,7 @@
 
 1. **审计闭环状态**：80 项问题**全部闭环**并经两轮独立复核（70 项首轮 + 16 项二轮补验 + P133/P134/P135 三项用户决策处置）验证，测试用例较修复前净增 60+；**所有 N/R 项复核发现均已闭环**。
 2. **遗留未完成/待跟进 4 类**（本报告 §4）：
-   - **P223/P224**：长函数/巨型组件长期重构（唯一进行中工作项，§4.1 含逐文件分解预案与执行顺序）；不单独安排修复轮次，随功能迭代顺带执行。**P224-①② TrashDetailPanel/SyncPage（`bc395973`/`8c74253c`）与 P223-② objects 域（`005fbfdf`）已完成**，当前优先 P223-② 下一域（trash/snapshots）与 P224-⑤ OcrPage。
+   - **P223/P224**：长函数/巨型组件长期重构（唯一进行中工作项，§4.1 含逐文件分解预案与执行顺序）；不单独安排修复轮次，随功能迭代顺带执行。**P224-①② TrashDetailPanel/SyncPage（`bc395973`/`8c74253c`）与 P223-② objects/trash 域（`005fbfdf`/`ae030551`）已完成**，当前优先 P223-② 下一域（snapshots）与 P224-⑤ OcrPage。
    - **R-3/R-4①**：已声明残余窗口，可接受工程取舍，登记长期改进（等值组尾部回扫 / config journal，见 §4.2）。
    - **P209**：legacy XOR 迁移窗口保留，建议下个大版本发布后评估关闭（见 §4.3）。
    - **P206**：PDF embed 与 object-src CSP 遗留观察，待附件预览路径核实后决策（见 §4.4）。
