@@ -236,7 +236,13 @@ export function DeviceListPanel({
               marginTop: 8,
             }}
           >
-            {t('settings:sync_result', { defaultValue: 'Result' })}: {lastResult.summary}
+            {t('settings:sync_result', { defaultValue: 'Result' })}:{' '}
+            {t('settings:sync_result_stats', {
+              examined: lastResult.examined,
+              applied: lastResult.applied,
+              skipped: lastResult.skipped,
+              conflicts: lastResult.conflicts.length,
+            })}
           </p>
         )}
         {error && (

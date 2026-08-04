@@ -75,7 +75,14 @@ export function SyncHistoryPanel({
                   fontSize: 'var(--text-caption)',
                 }}
               >
-                <div style={{ fontWeight: 500, marginBottom: 6 }}>{result.summary}</div>
+                <div style={{ fontWeight: 500, marginBottom: 6 }}>
+                  {t('settings:sync_result_stats', {
+                    examined: result.examined,
+                    applied: result.applied,
+                    skipped: result.skipped,
+                    conflicts: result.conflicts.length,
+                  })}
+                </div>
                 {result.per_table.length > 0 && (
                   <div
                     style={{

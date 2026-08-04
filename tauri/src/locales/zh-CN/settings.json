@@ -796,6 +796,7 @@
   "sync_with_device": "与设备同步",
   "sync_device_input_hint": "输入已发现的设备 ID 或 host:port 地址。",
   "sync_result": "结果",
+  "sync_result_stats": "检查 {{examined}} 条 · 应用 {{applied}} 条 · 跳过 {{skipped}} 条 · 冲突 {{conflicts}} 条",
   "sync_known_devices_title": "已知设备",
   "sync_no_devices": "暂无已知设备。启用同步并与其他设备同步以添加。",
   "sync_discovered_devices": "已发现设备",
