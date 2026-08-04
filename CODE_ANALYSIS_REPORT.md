@@ -372,10 +372,28 @@
     - **`migrate_to_encrypted_format` 重加密路径（559-895）**：内容不变，正确不落 HLC（非新变更）。快照表（object_snapshots）不参与同步，无需 HLC。
     - **结论**：**方案 B 三阶段覆盖完整，无残留本地写不落 HLC 路径**；`delete_trash_item` 与 objects 硬删不传播为既有缺口（已登记，trash 清单不合并墓碑，加 HLC 即成死代码）。
 
-#### 4.2.2 R-4①：reencrypt commit 后、config 写前进程崩溃（低）
+#### 4.2.2 R-4①：reencrypt commit 后、config 写前进程崩溃（低）——彻底关闭方案评估（2026-08-04）
 
-- **窗口**：`reencrypt_all` 事务提交成功、config.json 写入完成前进程崩溃 → 账户「数据已换新钥、config 仍记旧参数」不可用（毫秒级窗口，彻底解需 journal/双 config）。
-- **协同解法（与 P135 联动，已实施）**：见 §3.1 P135 归档——config 写入已全部接入 `safe_storage::write_atomic`（.tmp+rename），「写一半」→「要么旧、要么新」，崩溃后孤儿 tmp / 损坏主文件由 `read_config_with_recovery` → `recover_or_load` 恢复；残余为「reencrypt 提交后、新 config 落盘前崩溃」仍回退旧钥（reencrypt 侧需 journal 才完全关闭），但账户不再出现**截断/损坏**的 config——风险从「账户不可用」降为「下次解锁重新升级」。
+- **窗口**（现状）：`reencrypt_all`（SQLite 单事务）提交成功、config.json 原子写入完成前进程崩溃 → 账户「数据已换新钥、config 仍记旧参数」不可用（下次解锁旧参数通过 verify 但数据 GCM 解密失败）。P135 原子写仅消除「config 写一半」，此窗口仍需 journal 类机制。
+- **协同解法（与 P135 联动，已实施）**：见 §3.1 P135 归档——config 写入已全部接入 `safe_storage::write_atomic`（.tmp+rename），「写一半」→「要么旧、要么新」，崩溃后孤儿 tmp / 损坏主文件由 `read_config_with_recovery` → `recover_or_load` 恢复；风险从「账户不可用」降为「下次解锁重新升级」。
+- **核心难点（评估结论）**：reencrypt 与 config 分属两个持久化域（SQLite 事务 commit vs 文件写入），跨域无法原子化。任何彻底方案都需两要素：**① 持久化的意图记录**（崩溃后仍可知「曾有一次未完成的 reencrypt」及其目标 config）；**② 崩溃阶段判定**（判断 reencrypt 事务是否已提交，决定「完成」还是「放弃」）。「两阶段 config 交换」若不解决要素②，仅靠 rename 原子交换并不能关闭窗口（rename 前后崩溃仍是同一错位态）。
+- **方案 1：reencrypt 侧 journal**
+  - 流程：写 `{account_dir}/reencrypt.pending.json`（含完整 pending config，原子写）→ `reencrypt_all`（tx）→ `write_config_atomic`（新 config 生效）→ 删 journal。
+  - 要素②（阶段判定）可选两实现：
+    - **① DB marker**：reencrypt 事务内同写 metadata 明文行 `data_key_state=new`——与数据同事务提交、原子；恢复时读 marker 判定。代价：触碰已审计的 `reencrypt_all`（事务内追加一行）；N-2 回滚路径（重加密回旧钥）需同步清 marker，否则陈旧 marker 在后续 journal 场景误导。
+    - **② decrypt probe**：恢复时用「密码 + journal 新 salt/params」派生新钥、与旧钥分别试解一行数据（如 `load_profile(account_id)`）——解密成功者即数据实际密钥。N-2 已保证 reencrypt 全有或全无，单行 probe 判定确定无歧义。
+- **方案 2：两阶段 config 交换**
+  - 流程：写 `config.json.pending`（新 config，原子写，**本身即合法 AccountConfig**，复用现有 parse）→ `reencrypt_all`（tx）→ 原子交换（rename pending→active）→ 完成。恢复：unlock 时若 `config.json.pending` 存在 → 要素②判定 → 完成（promote pending→active）或放弃（删 pending）。
+  - 与方案 1 差异仅「意图记录」载体：pending 文件即 journal（无独立 schema、成功路径 = 一次原子交换）。**要素②同样必须**。
+- **收敛性结论**：两个候选方案收敛于同一机制——意图记录（journal / pending 文件）+ 阶段判定（marker / probe）。真正设计决策是两处二选一。
+- **推荐组合（拟实施）**：**方案 2 载体 + probe 判定**——
+  1. `config.json.pending` 为新 config 原子写（复用 `write_config_atomic` 同款原子语义，独立 helper）；
+  2. `reencrypt_all` **零改动**（probe 判定不触碰已审计事务）；
+  3. 恢复逻辑全部收敛在 `vault_service.rs`：`unlock`/`verify_password` 入口先判 pending 存在性（常态零开销）；probe 决定 promote/discard；
+  4. 两调用方（`change_password`/`unlock_with_kdf_upgrade`）接入同生命周期（写 pending → reencrypt → 交换 → 完成）。
+  - 估计成本 0.5–1 天：vault_service 新恢复函数（~120–180 行）+ 2 调用方接线 + 4–6 个崩溃点注入测试（pending 存在/数据新旧各态）+ 既有 N-2 测试保持绿。
+  - 回退安全：恢复失败（双钥均无法解密 = 数据损坏或密码错误）**绝不动 pending**，保留双文件供人工恢复并上抛明确错误。
+- **决策待用户确认**（2026-08-04）：实施推荐组合 / 实施方案 1（marker 判定）/ 维持现状登记长期改进。
 
 ### 4.3 P209：LEGACY_XOR_KEY（已决策保留）
 
