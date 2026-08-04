@@ -155,6 +155,36 @@ impl VaultStore {
         Ok(out)
     }
 
+    /// #1（§4.5）：把指定表的墓碑合并进变更清单并施加分页截断。
+    ///
+    /// 墓碑（sync_tombstones 行，deleted=true、data=null）HLC 由 new_tombstone_hlc
+    /// 生成（wall 严格大于本节点既往值），通常大于在册记录 HLC。合并后按
+    /// (HLC, id) 全序升序排序再 truncate(limit)：墓碑只可能在页尾被截断，而
+    /// watermark 已推进到页内最大 HLC，下页按新 watermark 过滤仍可再次取到，
+    /// 不会丢失；保留的是 HLC 最小的 limit 条，被截断的行 HLC 恒 >= 页内最大
+    /// HLC（排序保持最小的 limit 条），keyset 下页正确续取。
+    fn merge_tombstones(
+        &self,
+        mut out: Vec<crate::VaultSyncRecord>,
+        table: &str,
+        watermark: &crate::SyncWatermark,
+        local_node_id: &str,
+        limit: usize,
+    ) -> Result<Vec<crate::VaultSyncRecord>, String> {
+        let mut tombstones = self.list_tombstones_since(table, watermark, local_node_id)?;
+        out.append(&mut tombstones);
+        out.sort_by(|a, b| {
+            (&a.hlc.wall_time_ms, &a.hlc.counter, &a.hlc.node_id, &a.id).cmp(&(
+                &b.hlc.wall_time_ms,
+                &b.hlc.counter,
+                &b.hlc.node_id,
+                &b.id,
+            ))
+        });
+        out.truncate(limit);
+        Ok(out)
+    }
+
     fn list_object_changes_since(
         &self,
         watermark: &crate::SyncWatermark,
@@ -364,7 +394,10 @@ impl VaultStore {
                 deleted: obj.is_deleted,
             });
         }
-        Ok(out)
+
+        // #1（§4.5）：合并 objects 墓碑（deleted=true, data=null）随本页投递，
+        // 对端 apply 端据此删除本地行。排序/截断语义见 `merge_tombstones`。
+        self.merge_tombstones(out, "objects", watermark, local_node_id, limit)
     }
 
     fn list_user_template_changes_since(
@@ -590,6 +623,9 @@ impl VaultStore {
                 deleted: false,
             });
         }
-        Ok(out)
+
+        // #1（§4.5）：合并 trash_items 墓碑（deleted=true, data=null）随本页
+        // 投递，对端据此删除对应回收站条目。排序/截断语义见 `merge_tombstones`。
+        self.merge_tombstones(out, "trash_items", watermark, local_node_id, limit)
     }
 }
