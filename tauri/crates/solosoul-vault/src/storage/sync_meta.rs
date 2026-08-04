@@ -459,6 +459,137 @@ impl VaultStore {
         Ok(out)
     }
 
+    /// §4.5.1 方案 C：清理可安全删除的墓碑（单事务，返回删除数量）。
+    ///
+    /// **安全条件（水位老化）**：对每个墓碑，所有「仍存续且已同步过该表」的 peer
+    /// 水位都 ≥ 墓碑 HLC（协议按水位线性推进，达到即收到并应用）——等价于该表
+    /// 存续 peer 水位**最小值 ≥ 墓碑 HLC**。满足则墓碑不再被任何 peer 需要，可删。
+    /// 新 peer（无该表水位行）从零全量同步不需要墓碑（对象行已不存在，发不发结果
+    /// 一致），不计入约束。
+    ///
+    /// **时间兜底（仅纯单机/未配对）**：该表无任何存续 peer 水位行时，按
+    /// `created_at` 老化（默认 365 天）删除——纯单机无对端，删除不会导致数据回魂。
+    /// 注意：只要存在任一存续 peer 水位行，就走水位判定（严格正确），时间兜底
+    /// 绝不越权，离线 peer 的墓碑被正确保留。
+    ///
+    /// **与 sync_hlc 解耦**：删除墓碑不联动删 sync_hlc 对应行（重建记录覆盖或成
+    /// 无害孤儿，评估结论暂不联动）。
+    pub fn cleanup_expired_tombstones(&self) -> Result<usize, String> {
+        let now_ms = Self::parse_time_ms(&Self::now_rfc3339());
+        // 365 天兜底阈值（纯单机/未配对墓碑）
+        let time_cutoff_ms = now_ms.saturating_sub(365 * 24 * 60 * 60 * 1000);
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        let removed = with_tx(
+            conn,
+            "cleanup tombstones begin",
+            "cleanup tombstones commit",
+            |c| {
+                // 1) 存续 peer 水位（JOIN sync_peers 存活过滤——delete_peer 已联动删
+                //    水位，此处 JOIN 双保险，防历史残留）。
+                let peer_watermarks: Vec<(String, String, i64, i32, String)> = {
+                    let mut stmt = c
+                        .prepare(
+                            "SELECT w.peer_node_id, w.table_name, w.wall_time_ms, w.counter, w.node_id
+                             FROM sync_watermarks w
+                             JOIN sync_peers p ON w.peer_node_id = p.peer_node_id",
+                        )
+                        .map_err(|e| format!("cleanup tombstones peer query: {}", e))?;
+                    let rows = stmt
+                        .query_map([], |row| {
+                            Ok((
+                                row.get(0)?,
+                                row.get(1)?,
+                                row.get(2)?,
+                                row.get(3)?,
+                                row.get(4)?,
+                            ))
+                        })
+                        .map_err(|e| format!("cleanup tombstones peer rows: {}", e))?
+                        .collect::<Result<Vec<_>, _>>()
+                        .map_err(|e| format!("cleanup tombstones peer collect: {}", e))?;
+                    rows
+                };
+                // 2) 全部墓碑
+                let tombstones: Vec<(String, String, i64, i32, String, String)> = {
+                    let mut stmt = c
+                        .prepare(
+                            "SELECT table_name, record_id, wall_time_ms, counter, node_id, created_at
+                             FROM sync_tombstones",
+                        )
+                        .map_err(|e| format!("cleanup tombstones query: {}", e))?;
+                    let rows = stmt
+                        .query_map([], |row| {
+                            Ok((
+                                row.get(0)?,
+                                row.get(1)?,
+                                row.get(2)?,
+                                row.get(3)?,
+                                row.get(4)?,
+                                row.get(5)?,
+                            ))
+                        })
+                        .map_err(|e| format!("cleanup tombstones rows: {}", e))?
+                        .collect::<Result<Vec<_>, _>>()
+                        .map_err(|e| format!("cleanup tombstones collect: {}", e))?;
+                    rows
+                };
+                let mut removed = 0usize;
+                for (table, record_id, wall, counter, node, created_at) in tombstones {
+                    let tombstone_hlc = crate::RecordHlc {
+                        wall_time_ms: wall as u64,
+                        counter: counter as u32,
+                        node_id: node,
+                    };
+                    let table_wms: Vec<&(String, String, i64, i32, String)> =
+                        peer_watermarks.iter().filter(|w| w.1 == table).collect();
+                    let safe = if table_wms.is_empty() {
+                        // 纯单机/未配对：时间兜底
+                        Self::parse_time_ms(&created_at) <= time_cutoff_ms
+                    } else {
+                        // 水位老化：所有 peer 水位 ≥ 墓碑 HLC ⇔ 该表水位最小值 ≥ 墓碑 HLC
+                        let mut min_wm: Option<crate::SyncWatermark> = None;
+                        for w in table_wms {
+                            let wm = crate::SyncWatermark {
+                                wall_time_ms: w.2 as u64,
+                                counter: w.3 as u32,
+                                node_id: w.4.clone(),
+                            };
+                            let is_min = match &min_wm {
+                                None => true,
+                                Some(cur) => {
+                                    wm.wall_time_ms < cur.wall_time_ms
+                                        || (wm.wall_time_ms == cur.wall_time_ms
+                                            && (wm.counter < cur.counter
+                                                || (wm.counter == cur.counter
+                                                    && wm.node_id < cur.node_id)))
+                                }
+                            };
+                            if is_min {
+                                min_wm = Some(wm);
+                            }
+                        }
+                        match min_wm {
+                            // 墓碑不严格大于水位最小值 ⇔ 所有 peer 水位 ≥ 墓碑 HLC
+                            Some(wm) => !Self::hlc_after_watermark(&tombstone_hlc, &wm),
+                            None => false,
+                        }
+                    };
+                    if safe {
+                        c.execute(
+                            "DELETE FROM sync_tombstones WHERE table_name = ?1 AND record_id = ?2",
+                            params![table, record_id],
+                        )
+                        .map_err(|e| format!("cleanup tombstone delete: {}", e))?;
+                        removed += 1;
+                    }
+                }
+                Ok(removed)
+            },
+        )?;
+        Ok(removed)
+    }
+
     pub(crate) fn hlc_after_watermark(
         hlc: &crate::RecordHlc,
         watermark: &crate::SyncWatermark,
