@@ -412,7 +412,34 @@
   - **步骤2 清单端（`4caaa79c`）**：`list_object_changes_since_limited` / `list_trash_changes_since_limited` 返回前经新增私有 helper `merge_tombstones` 合并本表墓碑（deleted=true, data=null），按 (HLC, id) 全序排序后 `truncate(limit)`（两处逐字重复收敛，P223 去重惯例）。排序/截断正确性：墓碑 HLC 通常大于在册记录 HLC，页满截断只截页尾墓碑；watermark 推进到页内最大 HLC，下页按新 watermark 过滤墓碑仍可取到不丢失；保留 HLC 最小的 limit 条，被截断行 HLC 恒 >= 页内最大 HLC，keyset 下页正确续取。
   - **步骤3 应用端 + 回归测试（`9165b5c7`）**：`apply_object_sync_record_tx` / `apply_trash_sync_record_tx` 在 deserialize 前检查 `record.deleted && record.data.is_null()` → DELETE 本地行（不重记本地墓碑，远程 HLC 保持权威删除时间戳）。**软删对象（is_deleted=1、全量 data）deleted=true 但 data 非空，不会被误判为墓碑**（关键误分类防护）。回归测试×6：对象硬删产生墓碑 / 硬删不存在行无幽灵墓碑 / trash purge 产生墓碑 / 墓碑应用到对端删除本地行 / 分页合并墓碑（keyset 全收集）/ 软删对象应用不误判为墓碑。
   - **验证**：fmt 干净 / clippy 0 / solosoul-vault 133（+6）+ sync 47 全绿 / workspace + CLI check 0 / code-reviewer GO（采纳：merge_tombstones 去重、软删误判回归测试、非原子窗口注释）。
-- **遗留评估点（待后续单独立项）**：墓碑生命周期——`sync_tombstones` 无清理策略，硬删累积可致表无限增长（profiles/user_templates 同受此限，本缺口未引入新问题）。建议下轮评估按 water-mark 老化清理策略。
+- **遗留评估点（待后续单独立项）**：墓碑生命周期——`sync_tombstones` 无清理策略，硬删累积可致表无限增长（profiles/user_templates 同受此限，本缺口未引入新问题）。**下方案评估已产出（2026-08-04，仅分析不实施，详见下节「§4.5.1 墓碑生命周期清理策略评估」）**。
+
+### 4.5.1 墓碑生命周期清理策略评估（📋 已分析，待实施）
+
+**问题**：`sync_tombstones` 每硬删一条记录即插入一行且**永不清除**，表无限增长。删除对象的正确性是同步协议核心（防止对端数据回魂），清理必须保证**不破坏任何 peer 的收敛性**。
+
+**关键安全约束（评估结论）**：
+- 墓碑 HLC 由 `new_tombstone_hlc` 生成（wall 严格大于本节点既往值），投递条件为 `hlc_after_watermark`（严格大于 peer 水位）。
+- **安全删除条件 = 所有「曾同步过该表且仍受信任」的 peer 水位 ≥ 墓碑 HLC**。水位达到即证明该 peer 已收到墓碑并应用（协议按水位线性推进，无乱序）。
+- **新 peer 不需要墓碑**：新配对 peer 从零水位全量同步时，对象行已不存在，发不发墓碑对端结果一致（都不含已删对象）——因此清理只需考虑 `sync_watermarks` 中**已存在水位行**的 peer。
+- 遗留坑：`delete_peer`（sync_meta.rs:209）只删 `sync_peers` 行，**不联动删该 peer 的 `sync_watermarks`**——若清理逻辑直接扫描 watermarks，被忘记/删除设备的水位残留会永远「保住」其名下墓碑，导致清理失效。实施时须先补 delete_peer 联动（或清理条件 JOIN sync_peers 过滤存活 peer）。
+
+**方案对比**：
+
+| 方案 | 机制 | 优点 | 缺点 | 判定 |
+|------|------|------|------|------|
+| A 按水位老化 | 对每个墓碑，若所有存续 peer 的该表水位 ≥ 墓碑 HLC 则删 | 严格正确，永不漏删（线性推进保证收到即应用） | 需逐墓碑×逐 peer 比较（O(墓碑×peer)），且依赖水位行完整性 | 推荐主方案 |
+| B 按时间老化 | `created_at` 早于 N 天（如 30/90 天）即删 | 实现极简 | **不安全**：离线 >N 天的 peer 回归后漏收墓碑→对端对象回魂（数据丢失），违反收敛性 | ❌ 不推荐独立使用 |
+| C 混合 | 主：水位老化；辅：时间上限（如 365 天）仅对**无任何水位行**的墓碑生效（纯单机/未配对） | 兼顾正确性与单机清理 | 逻辑分支多，需防边界 | 推荐（A 为主 + C 兜底单机） |
+
+**推荐方案（C 的实现要点）**：
+1. **先修 `delete_peer` 联动删 `sync_watermarks`**（或清理时 JOIN `sync_peers` 存活过滤）；
+2. **`cleanup_expired_tombstones()` 新方法**（VaultStore）：单事务内对四表墓碑逐条取 `MIN(watermark)`（仅存续 peer）比较；
+3. **触发时机**：同步会话结束（send_paginated_deltas 完成后）+ `delete_trash_item`/`delete_object(硬删)` 时惰性触发（计数阈值如每 100 条墓碑触发一次，避免每次硬删全表扫）；
+4. **边界**：墓碑与 `sync_hlc` 耦合——`record_tombstone` 同时写 `sync_hlc`（`set_record_hlc`），清理墓碑时 `sync_hlc` 对应行仍保留（被后续重建记录覆盖或成为无害孤儿，删除需谨慎，暂不联动）；
+5. **回归测试**：多 peer 水位未达不清、达到即清、新 peer 不受影响、delete_peer 后残留水位不阻断清理。
+
+**影响面确认**：profiles/user_templates 墓碑与 objects/trash 同机制同表，清理方法统一覆盖四表，一处实现全部受益。
 
 ---
 
