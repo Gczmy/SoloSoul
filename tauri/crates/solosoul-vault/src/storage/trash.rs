@@ -222,13 +222,23 @@ impl VaultStore {
     }
 
     pub fn delete_trash_item(&self, id: &str) -> Result<(), String> {
-        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
-        let conn = guard.as_mut().ok_or("Vault is locked")?;
-        conn.execute(
-            "DELETE FROM trash_items WHERE id = ?1",
-            rusqlite::params![id],
-        )
-        .map_err(|e| e.to_string())?;
+        // #1（§4.5）：回收站条目永久删除（purge）是墓碑变更——删行后记录墓碑，
+        // 使对端回收站同步删除该条目（对端 apply 端按 data 为 null 识别删除）。
+        // 行不存在（重复 purge/幂等清理）时不记墓碑，避免幽灵墓碑。
+        // 已知取舍：DELETE 与 record_tombstone 非原子（与 delete_object 硬删、
+        // delete_profile 既有模式一致）；两者间崩溃留下「行已删但无墓碑」。
+        let affected = {
+            let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+            let conn = guard.as_mut().ok_or("Vault is locked")?;
+            conn.execute(
+                "DELETE FROM trash_items WHERE id = ?1",
+                rusqlite::params![id],
+            )
+            .map_err(|e| e.to_string())?
+        };
+        if affected > 0 {
+            self.record_tombstone("trash_items", id)?;
+        }
         Ok(())
     }
 

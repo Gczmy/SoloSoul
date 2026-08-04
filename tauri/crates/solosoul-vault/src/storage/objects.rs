@@ -588,22 +588,29 @@ impl VaultStore {
                 },
             )
         } else {
-            // 方案 B：硬删是墓碑变更，落库墓碑 HLC（wall 强制大于本节点既往值，
-            // 保证对端 conflict 裁决时删除胜出）。
-            let hlc = self.new_tombstone_hlc()?;
+            // #1（§4.5）：硬删是墓碑变更——先删行，再记录墓碑（record_tombstone 内部
+            // 落库 sync_tombstones + 墓碑 HLC，wall 强制大于本节点既往值，保证对端
+            // conflict 裁决时删除胜出）。行不存在（重复 purge/幂等清理）时不记墓碑，
+            // 避免产生无实体的幽灵墓碑。
+            // 已知取舍：DELETE 事务提交与 record_tombstone（独立语句）非原子——两者间
+            // 进程崩溃留下「行已删但无墓碑」：删除不传播但对端也不回魂（与 delete_profile
+            // 既有模式一致，R-4① 同款窄窗口已在 vault_service 侧有 pending 机制兜底）。
             let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
             let conn = guard.as_mut().ok_or("Vault is locked")?;
-            with_tx(
+            let affected = with_tx(
                 conn,
                 "Failed to begin transaction",
                 "Failed to commit transaction",
                 |c| {
                     c.execute("DELETE FROM objects WHERE id = ?1", params![id])
-                        .map_err(|e| format!("delete_object: {}", e))?;
-                    Self::set_record_hlc_tx(c, "objects", id, &hlc)?;
-                    Ok(())
+                        .map_err(|e| format!("delete_object: {}", e))
                 },
-            )
+            )?;
+            drop(guard);
+            if affected > 0 {
+                self.record_tombstone("objects", id)?;
+            }
+            Ok(())
         }
     }
 
