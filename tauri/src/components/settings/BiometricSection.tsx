@@ -12,6 +12,7 @@ import { Fingerprint, ShieldCheck, ScanFace, AlertTriangle } from 'lucide-react'
 import { ICON_SIZE } from '@/lib/constants';
 import { useAutoLockPauseStore } from '@/stores/autoLockPauseStore';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
+import { isMobilePlatformSync } from '@/lib/platform';
 
 interface BiometricSectionProps {
   accountId: string;
@@ -53,6 +54,9 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
   // Password hint for the biometric verification dialog
   const currentAccount = useAuthStore((s) => s.currentAccount);
   const passwordHint = currentAccount?.passwordHint || null;
+
+  // 桌面端始终展示解锁方式说明（图标右侧）；移动端因宽度限制，开启后隐藏文字仅保留图标。
+  const isMobile = isMobilePlatformSync();
 
   const refreshAvailability = useCallback(async (): Promise<BioAvailability | null> => {
     try {
@@ -242,7 +246,7 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
                   }}
                 >
                   <Fingerprint size={ICON_SIZE.md} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
-                  {!bioAvailable.strongConfigured && (
+                  {(!isMobile || !bioAvailable.strongConfigured) && (
                     <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {t('settings:biometric_toggle_label', { type: strongType })}
                     </span>
@@ -284,7 +288,7 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
                     }}
                   >
                     <ScanFace size={ICON_SIZE.md} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
-                    {!bioAvailable.weakConfigured && (
+                    {(!isMobile || !bioAvailable.weakConfigured) && (
                       <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {t('settings:biometric_toggle_label', { type: weakType })}
                       </span>
