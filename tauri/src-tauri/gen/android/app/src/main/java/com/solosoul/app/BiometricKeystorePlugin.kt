@@ -85,7 +85,16 @@ class BiometricKeystorePlugin(private val activity: Activity): Plugin(activity) 
         private const val ANDROID_KEYSTORE = "AndroidKeyStore"
         private const val TRANSFORMATION = "AES/GCM/NoPadding"
         private const val GCM_TAG_LENGTH = 128
+        /** 系统临时锁定通常持续约 30 秒；此处同时作为 canAuthenticate 报告锁定的缓存窗口 */
+        private const val LOCKOUT_WINDOW_MS = 30_000L
     }
+
+    /** 自维护的系统锁定到期时间戳（epoch ms）。
+     *  BiometricPrompt 回调上报 ERROR_LOCKOUT / ERROR_LOCKOUT_PERMANENT，或
+     *  canAuthenticate 直接返回锁定码时写入；用于在锁定窗口内区分
+     *  「不支持」与「暂时锁定」（部分设备锁定期间 canAuthenticate 仅返回
+     *  BIOMETRIC_ERROR_HW_UNAVAILABLE=1，不返回锁定码，必须靠此窗口兜底）。 */
+    private val lockoutUntilEpochMs = java.util.concurrent.atomic.AtomicLong(0L)
 
     @Command
     fun authenticateAndSave(invoke: Invoke) {
@@ -93,6 +102,12 @@ class BiometricKeystorePlugin(private val activity: Activity): Plugin(activity) 
             val args = invoke.parseArgs(AuthenticateAndSaveArgs::class.java)
             val alias = normalizeAlias(args.alias)
             val plaintext = args.data.toByteArray(Charsets.UTF_8)
+
+            // 系统临时锁定：先于可用性分发返回 LOCKOUT，避免误报「不支持」
+            if (isBiometricLockedOut()) {
+                invoke.reject("BIOMETRIC_LOCKOUT")
+                return
+            }
 
             when {
                 // 强制 Class 2 路径（用户在设置中明确选择 Face ID）
@@ -189,13 +204,22 @@ class BiometricKeystorePlugin(private val activity: Activity): Plugin(activity) 
             val iv = hexToBytes(args.iv)
             val ciphertext = hexToBytes(args.ciphertext)
 
+            // 系统临时锁定：先于可用性分发返回 LOCKOUT，避免误报「不支持」
+            if (isBiometricLockedOut()) {
+                invoke.reject("BIOMETRIC_LOCKOUT")
+                return
+            }
+
+            // strong 密钥存在性只查一次（when 守卫与分支体复用）
+            val strongKey = getKey(alias)
+
             when {
                 // "weak"：仅 Class 2 提示；"any"：指纹/人脸皆可（均配 weak 免授权密钥）
                 args.authenticator == "weak" || args.authenticator == "any" -> {
-                    if (!isWeakAvailable() && !isStrongAvailable()) {
-                        invoke.reject("BIOMETRIC_UNAVAILABLE")
-                        return
-                    }
+                    // 不按 isWeakAvailable/isStrongAvailable 前置拒绝：锁定期间 canAuthenticate
+                    // 在部分设备只返回 BIOMETRIC_ERROR_HW_UNAVAILABLE=1，前置检查会误报
+                    // BIOMETRIC_UNAVAILABLE（前端显示「未设置或不支持」）。密钥存在即走提示框，
+                    // BiometricPrompt 是权威错误来源，锁定/未录入均回调准确错误码。
                     val secretKey = getKey(weakAlias(alias))
                         ?: run {
                             invoke.reject("BIOMETRIC_KEY_NOT_FOUND")
@@ -212,15 +236,35 @@ class BiometricKeystorePlugin(private val activity: Activity): Plugin(activity) 
                         secretKey, allowed, iv, ciphertext
                     )
                 }
-                isStrongAvailable() -> {
-                    val secretKey = getKey(alias)
-                        ?: run {
-                            invoke.reject("BIOMETRIC_KEY_NOT_FOUND")
-                            return
+                // 关键：只要 strong 密钥真实存在即走 BiometricPrompt（CryptoObject），
+                // 而不是依赖 isStrongAvailable()。系统临时锁定期间 canAuthenticate 在
+                // 部分设备只返回 BIOMETRIC_ERROR_HW_UNAVAILABLE=1（而非 ERROR_LOCKOUT），
+                // 若按可用性分发会落到 BIOMETRIC_UNAVAILABLE，前端误报「未设置或不支持」。
+                // BiometricPrompt 是权威错误来源——锁定时会回调 ERROR_LOCKOUT，
+                // 由 showBiometricPrompt 映射为 BIOMETRIC_LOCKOUT（前端可区分）。
+                strongKey != null -> {
+                    val secretKey = strongKey
+                    val cipher = try {
+                        Cipher.getInstance(TRANSFORMATION).also {
+                            it.init(
+                                Cipher.DECRYPT_MODE,
+                                secretKey,
+                                GCMParameterSpec(GCM_TAG_LENGTH, iv)
+                            )
                         }
-                    val cipher = Cipher.getInstance(TRANSFORMATION)
-                    val spec = GCMParameterSpec(GCM_TAG_LENGTH, iv)
-                    cipher.init(Cipher.DECRYPT_MODE, secretKey, spec)
+                    } catch (e: KeyPermanentlyInvalidatedException) {
+                        // 生物识别数据变更导致密钥失效
+                        invoke.reject("BIOMETRIC_KEY_INVALIDATED")
+                        return
+                    } catch (e: Exception) {
+                        android.util.Log.e(
+                            "SoloSoul",
+                            "Keystore strong read init failed: ${e.message}",
+                            e
+                        )
+                        invoke.reject("Keystore read setup failed: ${e.message}")
+                        return
+                    }
 
                     showBiometricPrompt(
                         cipher = cipher,
@@ -386,16 +430,26 @@ class BiometricKeystorePlugin(private val activity: Activity): Plugin(activity) 
         }
     }
 
-    /** 检测生物识别是否因失败次数过多被系统临时锁定（覆盖 strong 与 weak 两类）。 */
+    /** 检测生物识别是否因失败次数过多被系统临时锁定（覆盖 strong 与 weak 两类）。
+     *  双重判定：① 自维护锁定窗口（BiometricPrompt 回调/已检测到锁定后写入）；
+     *  ② canAuthenticate 直接返回锁定码（ERROR_LOCKOUT / ERROR_LOCKOUT_PERMANENT）。
+     *  注意：部分设备锁定期间 canAuthenticate 仅返回 BIOMETRIC_ERROR_HW_UNAVAILABLE，
+     *  此时仅靠 ② 无法识别，依赖 ① 的窗口兜底。 */
     private fun isBiometricLockedOut(): Boolean {
+        if (System.currentTimeMillis() < lockoutUntilEpochMs.get()) return true
         return try {
             val manager = BiometricManager.from(activity)
             val strongStatus = manager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_STRONG)
             val weakStatus = manager.canAuthenticate(BiometricManager.Authenticators.BIOMETRIC_WEAK)
-            strongStatus == BiometricPrompt.ERROR_LOCKOUT ||
+            val locked = strongStatus == BiometricPrompt.ERROR_LOCKOUT ||
                 strongStatus == BiometricPrompt.ERROR_LOCKOUT_PERMANENT ||
                 weakStatus == BiometricPrompt.ERROR_LOCKOUT ||
                 weakStatus == BiometricPrompt.ERROR_LOCKOUT_PERMANENT
+            if (locked) {
+                // canAuthenticate 报告锁定时同步自维护窗口（Android 典型锁定 30 秒）
+                lockoutUntilEpochMs.set(System.currentTimeMillis() + LOCKOUT_WINDOW_MS)
+            }
+            locked
         } catch (_: Exception) {
             false
         }
@@ -447,6 +501,8 @@ class BiometricKeystorePlugin(private val activity: Activity): Plugin(activity) 
                 executor,
                 object : BiometricPrompt.AuthenticationCallback() {
                     override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                        // 验证成功即解除自维护锁定窗口（系统锁定已解除）
+                        lockoutUntilEpochMs.set(0L)
                         val authenticatedCipher = result.cryptoObject?.cipher
                         onSuccess(authenticatedCipher)
                     }
@@ -463,6 +519,11 @@ class BiometricKeystorePlugin(private val activity: Activity): Plugin(activity) 
                             }
                             BiometricPrompt.ERROR_LOCKOUT,
                             BiometricPrompt.ERROR_LOCKOUT_PERMANENT -> {
+                                // 记录锁定窗口：即使 canAuthenticate 在锁定期间只返回
+                                // HW_UNAVAILABLE，后续检查也能识别为「暂时锁定」而非「不支持」
+                                lockoutUntilEpochMs.set(
+                                    System.currentTimeMillis() + LOCKOUT_WINDOW_MS
+                                )
                                 onError("BIOMETRIC_LOCKOUT")
                             }
                             BiometricPrompt.ERROR_HW_NOT_PRESENT,
