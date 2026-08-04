@@ -115,9 +115,11 @@ impl From<&ApplyStats> for SyncResult {
     }
 }
 
-/// 发现局域网内已知的同步对端并返回状态。
-#[tauri::command]
-pub async fn sync_discover(state: State<'_, AppState>) -> Result<SyncStatus, String> {
+/// 发现局域网内已知的同步对端并返回状态（`sync_get_status` 内部助手）。
+///
+/// 历史遗留：曾声明为 `#[tauri::command]`，但从未注册进 `register_sync_commands`、
+/// 不在 capabilities allowlist、前端亦无调用方——纯内部复用（P138 附带发现收尾）。
+async fn sync_discover(state: State<'_, AppState>) -> Result<SyncStatus, String> {
     let peers = state.sync_service.known_peers().await?;
     let local_fingerprint = state.sync_service.local_fingerprint().await?;
     Ok(SyncStatus {
