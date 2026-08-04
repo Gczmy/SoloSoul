@@ -73,11 +73,8 @@ describe('ipc interfaces', () => {
       expect(mockInvoke).toHaveBeenCalledWith('lock');
     });
 
-    it('get_state 返回 VaultStateStr', async () => {
-      mockInvoke.mockResolvedValue('unlocked');
-      const result = (await invoke('get_state')) as string;
-      expect(result).toBe('unlocked');
-    });
+    // P002: get_state / delete_account 命令已从 handler 面删除（生产前端零调用），
+    // 对应 mock 测试一并移除。
 
     it('change_password 传递旧/新密码', async () => {
       mockInvoke.mockResolvedValue(undefined);
@@ -90,15 +87,6 @@ describe('ipc interfaces', () => {
         accountId: 'acc-1',
         oldPassword: 'old',
         newPassword: 'new',
-      });
-    });
-
-    it('delete_account 传递 accountId + password', async () => {
-      mockInvoke.mockResolvedValue(undefined);
-      await invoke('delete_account', { accountId: 'acc-1', password: 'pwd' });
-      expect(mockInvoke).toHaveBeenCalledWith('delete_account', {
-        accountId: 'acc-1',
-        password: 'pwd',
       });
     });
 

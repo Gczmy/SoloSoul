@@ -70,7 +70,9 @@ fn get_ui_language<R: tauri::Runtime>(
 }
 
 /// Restore an object from trash. Delegates to solosoul-core::objects::restore_from_trash_with_lang.
-#[tauri::command]
+///
+/// P002：历史 IPC 命令 `object_restore` 已从 handler/ACL 面移除（前端回收站统一走
+/// `trash_restore`），本函数保留为 `trash_restore` 的内部共享助手（不再暴露为命令）。
 pub async fn object_restore(
     app: tauri::AppHandle,
     state: State<'_, AppState>,
@@ -95,31 +97,6 @@ pub async fn object_restore(
     state.device_auto_sync.trigger_data_change();
 
     Ok(result.into())
-}
-
-#[tauri::command]
-pub async fn object_purge(state: State<'_, AppState>, object_id: String) -> Result<(), String> {
-    let vault = vault_handle(&state)?;
-
-    let (obj_name, obj_section) = vault
-        .load_object(&object_id)
-        .ok()
-        .flatten()
-        .map(|r| (r.name, r.section_type))
-        .unwrap_or_default();
-    vault.delete_object(&object_id, false)?;
-    vault.delete_trash_item(&object_id).ok();
-    let _ = vault.log_structured(
-        "object_purge",
-        "object",
-        Some(&object_id),
-        Some(&obj_name),
-        "user",
-        Some(&format!("section={}", obj_section)),
-    );
-    state.auto_sync.trigger_debounce();
-    state.device_auto_sync.trigger_data_change();
-    Ok(())
 }
 
 #[tauri::command]

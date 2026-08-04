@@ -1,7 +1,6 @@
 use crate::commands::{current_account, vault_handle};
 use crate::state::AppState;
-use solosoul_core::auth::verify_password_core;
-use solosoul_core::{AccountConfig, AccountSummary};
+use solosoul_core::AccountSummary;
 use tauri::{Emitter, State};
 
 #[tauri::command]
@@ -35,15 +34,6 @@ pub async fn lock(state: State<'_, AppState>) -> Result<(), String> {
 }
 
 #[tauri::command]
-pub async fn get_state(state: State<'_, AppState>) -> Result<String, String> {
-    let svc = state
-        .vault_service
-        .read()
-        .map_err(|_| "Vault service lock poisoned".to_string())?;
-    Ok(svc.get_vault_state())
-}
-
-#[tauri::command]
 pub async fn change_password(
     state: State<'_, AppState>,
     account_id: String,
@@ -55,29 +45,6 @@ pub async fn change_password(
         .read()
         .map_err(|_| "Vault service lock poisoned".to_string())?;
     svc.change_password(&account_id, &old_password, &new_password)
-}
-
-#[tauri::command]
-pub async fn delete_account(
-    state: State<'_, AppState>,
-    account_id: String,
-    password: String,
-) -> Result<(), String> {
-    let svc = state
-        .vault_service
-        .read()
-        .map_err(|_| "Vault service lock poisoned".to_string())?;
-    // Verify password before allowing destructive account deletion
-    let config_path = svc.base_path().join(&account_id).join("config.json");
-    let content =
-        std::fs::read_to_string(&config_path).map_err(|_| "Account not found".to_string())?;
-    let config: AccountConfig =
-        serde_json::from_str(&content).map_err(|_| "Parse error".to_string())?;
-    if !verify_password_core(&password, &config)? {
-        return Err("Invalid password".to_string());
-    }
-    drop(config);
-    svc.delete_account(&account_id)
 }
 
 #[tauri::command]

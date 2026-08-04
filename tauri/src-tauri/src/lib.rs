@@ -406,8 +406,6 @@ fn register_core_commands(
         commands::object::object_ignore_template_sync,
         commands::object::object_list_deprecated_fields,
         commands::object::object_trash_list,
-        commands::object::object_restore,
-        commands::object::object_purge,
         commands::object::trash_restore,
         commands::object::trash_permanent_delete,
         commands::object::page_delete,
@@ -436,9 +434,7 @@ fn register_core_commands(
         commands::export_import::import_parse_package,
         commands::export_import::import_decrypt_preview,
         commands::export_import::import_execute_advanced,
-        commands::vault::get_state,
         commands::vault::change_password,
-        commands::vault::delete_account,
         commands::vault::vault_list_accounts,
         commands::vault::vault_update_hint,
         // Profile commands
@@ -884,8 +880,6 @@ mod tests {
                     "object_ignore_template_sync",
                     "object_list_deprecated_fields",
                     "object_trash_list",
-                    "object_restore",
-                    "object_purge",
                     "trash_restore",
                     "trash_permanent_delete",
                     "page_delete",
@@ -911,9 +905,7 @@ mod tests {
                     "import_parse_package",
                     "import_decrypt_preview",
                     "import_execute_advanced",
-                    "get_state",
                     "change_password",
-                    "delete_account",
                     "vault_list_accounts",
                     "vault_update_hint",
                     "profile_load",
@@ -1010,7 +1002,7 @@ mod tests {
                 assert_eq!(routed, cmds.len());
             }
         }
-        // 192 条命令全覆盖
-        assert_eq!(total, 192);
+        // P002：删除 4 个死命令（object_restore/object_purge/get_state/delete_account）后共 188 条全覆盖
+        assert_eq!(total, 188);
     }
 }

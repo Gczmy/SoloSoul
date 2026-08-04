@@ -31,14 +31,14 @@
 | ID   | 优先级 | 类别       | 文件位置                                     | 描述                                             | 状态      |
 |------|--------|------------|----------------------------------------------|--------------------------------------------------|-----------|
 | P001 | P0     | 构建/CI    | `tauri/scripts/check_acl_consistency.py:27`  | ACL 脚本用 `re.search` 只解析**首个** `generate_handler!` 块——P223-③ 拆分为 5 簇后仅校验 core 簇，产生 68 条误报 WARN，同步/OCR/LLM/插件四簇失去校验 | `[x]` 已修复 |
-| P002 | P1     | 死代码/安全 | `tauri/src-tauri/src/lib.rs:409/410/439/441` | 4 个死 IPC 命令（`object_restore`/`object_purge`/`get_state`/`delete_account`）注册于 handler 但生产前端**零调用**，且未登记 ACL 白名单 → 触发 P101 一致性检查失败 | `[ ]` 待修复 |
+| P002 | P1     | 死代码/安全 | `tauri/src-tauri/src/lib.rs`、`commands/vault.rs`、`commands/object/trash.rs` | 4 个死 IPC 命令（`object_restore`/`object_purge`/`get_state`/`delete_account`）注册于 handler 但生产前端**零调用**，且未登记 ACL 白名单 → 触发 P101 一致性检查失败 | `[x]` 已修复 |
 | P003 | P2     | 重构       | `tauri/src/`（30 个文件 >400 行）             | 巨型组件长期重构候选（延续既有 P224 思路，随功能迭代顺带处理） | `[ ]` 待修复 |
-| P004 | P2     | 文档同步   | `docs/design_map/08_IPC命令接口完整规范.md`、`docs/solosoul_cli/*` | 设计文档仍将 `get_state`/`delete_account`/`object_purge`/`object_restore` 列为活跃 IPC 命令（P002 删除后需同步） | `[ ]` 待修复 |
+| P004 | P2     | 文档同步   | `docs/design_map/08_IPC命令接口完整规范.md`、`docs/solosoul_cli/*` | 设计文档仍将 `get_state`/`delete_account`/`object_purge`/`object_restore` 列为活跃 IPC 命令（P002 删除后需同步） | `[x]` 已修复 |
 
 ## 修复进度
 
-- 已完成：1 / 4
-- 当前处理：P002
+- 已完成：3 / 4
+- 当前处理：无（P003 为长期重构候选，按既有约定随功能迭代顺带处理）
 
 ---
 
@@ -62,6 +62,15 @@ m = re.search(r"generate_handler!\s*\[((?:[^\[\]]|\[[^\[\]]*\])*)\]", text, re.S
 **✅ 修复说明**：`extract_handler_commands` 改用 `re.findall` 聚合全部 5 个 `generate_handler!` 块后并集提取；复跑脚本 68 条误报 WARN 全部消失，剩余缺失项收敛为 P002 的 4 个死命令。验证：`python3 scripts/check_acl_consistency.py` 仅报 P002 项。
 
 ### P002（P1）4 个死 IPC 命令未登记 ACL——应删除而非补登记
+
+**✅ 修复说明**（详见 commit）：
+1. `commands/vault.rs`：删除 `get_state`、`delete_account` 两个 `#[tauri::command]` 函数及其专用 import（`verify_password_core`/`AccountConfig`）；服务层 `get_vault_state()`/`delete_account()` 保留（CLI `/security delete-account` 与 recovery 流程依赖）；
+2. `commands/object/trash.rs`：`object_restore` 移除 `#[tauri::command]` 降级为 `trash_restore` 的内部共享助手；`object_purge` 整体删除（语义已由 `trash_permanent_delete` 覆盖）；
+3. `lib.rs`：从 `register_core_commands` 与 `test_dispatch_cluster_prefixes_consistent` 核心簇列表移除 4 条命令，总数 192 → 188；
+4. `src/lib/ipc.test.ts`：删除 `get_state`/`delete_account` 两个 mock 测试块（12/14 用例保留）；
+5. 保留：locale 键 `object_purge`/`object_restore`（历史操作日志渲染）与 `solosoul-core/src/objects.rs` 审计字符串（恢复流程共用）。
+
+**验证**：`cargo fmt --check` ✅ / `cargo clippy -- -D warnings` ✅ 0 警告 / `npx tsc --noEmit` ✅ / `npm run lint` ✅ / `npx vitest run src/lib/ipc.test.ts` 12/12 ✅ / `cargo test -p solo_soul --lib test_dispatch_cluster_prefixes_consistent` ✅ / `check_acl_consistency.py` → **OK: 188 个命令均已登记到 ACL 白名单** ✅。
 
 **位置**：
 - `tauri/src-tauri/src/lib.rs:409/410/439/441`（handler 注册）
