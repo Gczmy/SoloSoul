@@ -14,7 +14,7 @@ import {
   FileText,
 } from 'lucide-react';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
-import { createPortal } from 'react-dom';
+import { createPortal, flushSync } from 'react-dom';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useToastError } from '@/hooks/useToastError';
@@ -174,18 +174,25 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
     return item.collectionType;
   };
 
+  // 先同步提交路由跳转再关闭弹层：react-router v7 的 navigate 内部走
+  // startTransition（延迟更新），而 onClose 是紧急更新——若先 onClose，
+  // 卡片先卸载、露出底层页面一帧，随后才跳转，产生闪烁。
+  // flushSync 强制导航同步提交，二者同帧完成，直接跳转无闪烁。
+  const closeAndNavigate = (to: string) => {
+    flushSync(() => navigate(to));
+    onClose();
+  };
+
   const handleClickResult = (item: SearchItem) => {
     if (query.trim()) saveRecent(query.trim());
     if (item.itemType === 'page') {
-      onClose();
       if (item.collectionType === 'page') {
-        navigate(`/workspace/custom/${item.objectId}`);
+        closeAndNavigate(`/workspace/custom/${item.objectId}`);
       } else {
-        navigate(`/workspace?section=${item.objectId}`);
+        closeAndNavigate(`/workspace?section=${item.objectId}`);
       }
     } else if (item.itemType === 'template') {
-      onClose();
-      navigate('/settings/templates');
+      closeAndNavigate('/settings/templates');
     } else {
       // Open object detail modal directly without leaving the current page
       setDetailObjectId(item.objectId);
@@ -434,10 +441,7 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
           <div className={styles.footer}>
             <button
               className={styles.settingsItem}
-              onClick={() => {
-                onClose();
-                navigate('/settings');
-              }}
+              onClick={() => closeAndNavigate('/settings')}
             >
               <Settings size={ICON_SIZE.md} />
               <span>{t('navigation:settings')}</span>
@@ -452,8 +456,7 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
           onClose={() => setDetailObjectId(null)}
           onEdit={() => {
             setDetailObjectId(null);
-            onClose();
-            navigate(`/editor/${detailObjectId}`);
+            closeAndNavigate(`/editor/${detailObjectId}`);
           }}
         />
       )}
