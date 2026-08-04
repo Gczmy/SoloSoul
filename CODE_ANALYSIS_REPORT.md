@@ -1,6 +1,6 @@
 # SoloSoul 代码审计修复报告（合并版）
 
-> 最后更新：2026-08-03
+> 最后更新：2026-08-04
 > 当前分支：`main`
 > **合并说明**：本文件为 `CODE_ANALYSIS_REPORT.md`（2026-08-02 初始分析，修复人）与 `CODE_FIX_VERIFICATION.md`（2026-08-02~03 两轮独立复核，验证人）的**合并版**。验证报告已删除（git 历史可追溯），其验证结论、N/R 项跟进记录与提交指针均已并入本文件。
 > **清理规则**：已通过独立复核的项仅保留**一行验证要点**归档（详见 §3），删除原始长篇修复细节（完整细节见 git 各修复 commit）；**未完成/有意保留项**在 §4 展开详细讨论。
@@ -24,7 +24,7 @@
 - **审计问题清单共 80 项**（P001-P007、P101-P142、P201-P231）。
 - **80 项问题全部闭环**（78 项可执行修复 + P133 用户决策接入 + P134 用户决策门控 + P135 用户决策反向接入 + **N-10/P207 路径 1 公钥注入闭环**），其中 P104/P206 为部分修复/部分保留，P209 为用户决策保留。
 - **遗留未完成/待跟进 4 类**（§4 详细讨论）：
-  1. **P223/P224**：长函数/巨型组件长期重构（唯一进行中工作项，§4.1 详述；**P224-①②③④⑤ TrashDetailPanel/SyncPage/TemplateManagerPage/AboutPage/OcrPage 与 P223-① host.rs 六簇分簇、P223-② objects/trash/snapshots/sync_meta/sync_changes/sync_apply/metadata/profile 八域、P223-③ lib.rs 收尾均已完成拆分** `bc395973`/`8c74253c`/`2bdc5fdd`/`084cfdd0`/`fd70cc77`/`0f0a37ff`/`005fbfdf`/`ae030551`/`ad244d7c`/`22e1a20f`/`14eff424`/`89446aeb`/`508f9445`/`cef5776c`/`a7d5925d`）；
+  1. **P223/P224**：长函数/巨型组件长期重构——**已全部完成**（§4.1 归档；**P224-①②③④⑤ TrashDetailPanel/SyncPage/TemplateManagerPage/AboutPage/OcrPage 与 P223-① host.rs 六簇分簇、P223-② objects/trash/snapshots/sync_meta/sync_changes/sync_apply/metadata/profile 八域、P223-③ lib.rs 收尾均已完成拆分** `bc395973`/`8c74253c`/`2bdc5fdd`/`084cfdd0`/`fd70cc77`/`0f0a37ff`/`005fbfdf`/`ae030551`/`ad244d7c`/`22e1a20f`/`14eff424`/`89446aeb`/`508f9445`/`cef5776c`/`a7d5925d`）；
   2. **R-3/R-4①**：均已闭环——R-3 随方案 B 阶段 3 关闭（§4.2.1，2026-08-04）；R-4① 经方案 2（config.json.pending 两阶段交换 + probe 判定）彻底关闭（§4.2.2，2026-08-04）；
   3. **P209**：legacy XOR 迁移窗口保留（§4.3，决策保留）；
   4. ~~**P206**：PDF embed 与 object-src CSP 遗留观察~~（§4.4，✅ 已闭环 `d446dc0e`，不再属于遗留）。
@@ -165,20 +165,20 @@
 | R-2 秒/毫秒错配 | 40b5ecd9 | ✅ | `list_trash_changes_since` 按毫秒解释 deleted_at，回归测试锁定 wall == deleted_at ms |
 | R-3 游标持久化 | fbe7d945 | ✅ | 迁移 v22 `sync_watermarks.cursor_id`，会话层恢复游标续传，回归测试 ×2；残余窗口见 §4.2 |
 | R-4 回滚上抛 | 4ad8e9a8 | ✅（②③） | 回滚助手返回 Result + 调用方并入「automatic rollback FAILED」文案 + toggleable mock fs 失败注入测试；①见 §4.2 |
-| R-4① 彻底关闭 | 待提交 | ✅ | 方案 2（config.json.pending 两阶段交换 + probe 判定）——`solosoul_vault::probe_data_key` 只读自由函数 + `recover_pending_reencrypt`（promote/discard/保留）+ 两调用方 pending 生命周期 + 生物识别/PIN 凭证同步 + 5 回归测试（详见 §4.2.2） |
+| R-4① 彻底关闭 | 55399364 | ✅ | 方案 2（config.json.pending 两阶段交换 + probe 判定）——`solosoul_vault::probe_data_key` 只读自由函数 + `recover_pending_reencrypt`（promote/discard/保留）+ 两调用方 pending 生命周期 + 生物识别/PIN 凭证同步 + 5 回归测试（详见 §4.2.2） |
 | R-5 locale | 397f6d84 | ✅ | `settings:link_open_failed` 补入双语 |
 | 方案B-1 objects HLC | 1a33f513 | ✅ | objects 域本地写统一 HLC + 节点规范化修复（死循环根因） |
 | 方案B-2 三域 HLC | c32fbced | ✅ | trash/profile/user_template 域统一 HLC + 软删对象新 HLC 堵同步缺口 |
-| 方案B-3 回填退休 | 待提交 | ✅ | 迁移 v23 存量 HLC 回填（wall 按各表回退语义逐字节复刻）+ 回退兜底保留，R-3 窗口关闭 |
+| 方案B-3 回填退休 | a8407226 | ✅ | 迁移 v23 存量 HLC 回填（wall 按各表回退语义逐字节复刻）+ 回退兜底保留，R-3 窗口关闭 |
 
 ---
 
 ## §4 未完成项详细讨论
 
 > 本节仅保留**未完成/有意保留**项。已闭环项（N-10/P207、P133/P134/P135 等全部 80 项）的详细修复与验证已压缩归档至 §3（一行要点 + commit 指针），完整细节见 git 各修复 commit。
-> 排序：P223/P224（长期重构，唯一进行中工作项）→ R-3/R-4①（✅ 已闭环）→ P209（决策保留）→ P206（遗留观察）。
+> 排序：P223/P224（长期重构，✅ 已全部完成）→ R-3/R-4①（✅ 已闭环）→ P209（决策保留）→ P206（已闭环）。
 
-### 4.1 P223/P224：长函数与巨型组件长期重构（唯一未完成工作项）
+### 4.1 P223/P224：长函数与巨型组件长期重构（✅ 已全部完成，本节为实施归档）
 
 **定位**：原报告明确「结构性拆分建议随功能迭代顺带、不单独安排修复轮次」——维持该定位。两轮复核（2026-08-02~03）未发现新增阻断缺陷，本版补齐**当前实测数据**与**逐文件分解预案**，供后续迭代直接取用。**进度**：P224-① TrashDetailPanel（`bc395973`）、P224-② SyncPage（`8c74253c`）、P224-③ TemplateManagerPage（`2bdc5fdd`）、P224-④ AboutPage（`084cfdd0`）、P224-⑤ OcrPage（`fd70cc77`）（分别见 4.1.2 ①-⑤）、P223-① host.rs 六簇分簇（`0f0a37ff`+`3494a8d3`，见 4.1.1 ①）与 P223-② objects/trash/snapshots/sync_meta/sync_changes/sync_apply/metadata/profile 八域（`005fbfdf`/`ae030551`/`ad244d7c`/`22e1a20f`/`14eff424`/`89446aeb`/`508f9445`/`cef5776c`，见 4.1.1 ②）全部完成拆分。
 
@@ -250,7 +250,7 @@
   - **边界修复记录**：首轮提取区间含 impl 闭合 `}` 与 `#[cfg(test)]` 行致根模块未闭合，已补回（结构健全，fmt/clippy/测试全绿佐证）；根模块 `}` 与 `#[cfg(test)]` 间补空行。
   - 共享设施经 `super::` 访问（`USER_TEMPLATE_SAVE_SQL`/`USER_TEMPLATE_LOAD_SQL` 根常量）；`decrypt_text_field`/`encrypt_text_field` + `DataEncryptionKey` 从 `crate::encryption` 导入；`record_tombstone` 属 sync_meta 域 pub(crate)；`data_key()` 隐私向下可见。
   - **验证**：逐行保留性 diff 差异仅 4 处 pub(crate) 提升 + `write_metadata` 签名 fmt 多行重排 + 续行缩进，零内容丢失 / fmt 干净 / clippy 0 警告 / solosoul-vault 123 测试全绿（基线不变）/ workspace + CLI check 0 错误 / code-reviewer GO。
-- **产出（实测校准）**：7922 行 → 4542 根 + 652 objects + 281 trash + 465 snapshots + 441 sync_meta + 595 sync_changes + 464 sync_apply + 634 metadata 模块；**剩余未拆仅 Profile 域（profile.rs，`save_profile(_tx)`/`load_profile`/`delete_profile`/`list_profiles` 约 100 行）**。
+- **产出（实测校准，已全部完成）**：7922 行 → 4433 根 + 652 objects + 281 trash + 465 snapshots + 441 sync_meta + 595 sync_changes + 464 sync_apply + 634 metadata + **140 profile（`cef5776c`，八域收尾）**模块；**八域全部拆分完毕，无剩余未拆域**。
 - **收益**：后续 P109/P110/P213 类同步/对象性能优化与表结构变更的 diff 面缩小约 10×；`reencrypt_all`（740-972）等重函数随迁移收编。
 
 **③ `src-tauri/src/lib.rs`（649→982 行）——✅ 已于 2026-08-03 完成 Builder 链按插件组分簇（`a7d5925d`）**
@@ -406,8 +406,8 @@
 
 1. **审计闭环状态**：80 项问题**全部闭环**并经两轮独立复核（70 项首轮 + 16 项二轮补验 + P133/P134/P135 三项用户决策处置）验证，测试用例较修复前净增 60+；**所有 N/R 项复核发现均已闭环**。
 2. **遗留未完成/待跟进 4 类**（本报告 §4）：
-   - **P223/P224**：长函数/巨型组件长期重构（唯一进行中工作项，§4.1 含逐文件分解预案与执行顺序）；不单独安排修复轮次，随功能迭代顺带执行。**P224-①②③④⑤ TrashDetailPanel/SyncPage/TemplateManagerPage/AboutPage/OcrPage（`bc395973`/`8c74253c`/`2bdc5fdd`/`084cfdd0`/`fd70cc77`）、P223-① host.rs 六簇（`0f0a37ff`）、P223-② objects/trash/snapshots/sync_meta/sync_changes/sync_apply/metadata 域（`005fbfdf`/`ae030551`/`ad244d7c`/`22e1a20f`/`14eff424`/`89446aeb`/`508f9445`）与 P223-③ lib.rs 收尾（`a7d5925d`）已完成**，P223 剩余未拆域（Profile）随触碰顺带。
-   - **R-3/R-4①**：已声明残余窗口，可接受工程取舍，登记长期改进（等值组尾部回扫 / config journal，见 §4.2）。
+   - **P223/P224**：长函数/巨型组件长期重构（§4.1 含逐文件分解预案与执行顺序）；不单独安排修复轮次，随功能迭代顺带执行。**P224-①②③④⑤ TrashDetailPanel/SyncPage/TemplateManagerPage/AboutPage/OcrPage（`bc395973`/`8c74253c`/`2bdc5fdd`/`084cfdd0`/`fd70cc77`）、P223-① host.rs 六簇（`0f0a37ff`）、P223-② objects/trash/snapshots/sync_meta/sync_changes/sync_apply/metadata/profile 八域（`005fbfdf`/`ae030551`/`ad244d7c`/`22e1a20f`/`14eff424`/`89446aeb`/`508f9445`/`cef5776c`）与 P223-③ lib.rs 收尾（`a7d5925d`）均已完成**，无剩余未拆域。
+   - **R-3/R-4①**：已声明残余窗口——**均已于 2026-08-04 彻底关闭**（R-3 方案 B 三阶段统一 HLC + v23 回填，R-4① config.json.pending 两阶段交换 + probe 判定，见 §4.2）。
    - **P209**：legacy XOR 迁移窗口保留，建议下个大版本发布后评估关闭（见 §4.3）。
    - **P206**：PDF embed 与 object-src CSP 遗留观察——✅ 已于 2026-08-03 按方案 A 闭环（CSP 增加 `object-src data:`，`d446dc0e`），桌面端 PDF 附件预览恢复（见 §4.4）。
 3. **验证指针**：本报告 §3 归档表含全部修复 commit（`f1970c67` 起，N/R 项见 §3.2；P133=`6e74f691`、P134=`f75605ae`、P135=`b721270c`、N-10=`70e766ee`）；完整修复细节与两轮验证记录在 git 历史中可追溯。
