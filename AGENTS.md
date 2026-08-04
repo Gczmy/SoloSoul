@@ -478,6 +478,31 @@ Rust `argon2` crate 在 macOS ARM64 上开发环境默认使用 8MiB / 2 iterati
 ### 2. SDK 占位
 `sdk/js/` 和 `sdk/python/` 为空目录，任何 SDK 相关需求需从零开始实现。
 
+### 3. Rust 增量编译缓存损坏导致的链接失败（非代码 bug）
+**症状**：`cargo test -p solo_soul` 等链接阶段报 `error: linking with cc failed`，具体为
+`Undefined symbols for architecture arm64`，且缺失符号均为**内部单态化符号**
+（如 `core::ptr::drop_in_place$LT$tokio..runtime..scheduler..Context$GT$`、匿名 `.llvm.xxx`），
+引用方是 `solosoul-plugin` / `solosoul-core` 等旧编译 rlib。**代码本身并无问题**，
+`cargo check` 通过但测试二进制链接失败即为典型缓存损坏信号。
+
+**处置 SOP（先试定向，再全量）**：
+```bash
+cd tauri
+cargo clean -p solo_soul -p solosoul-plugin -p solosoul-core -p solosoul-sync -p solosoul-vault
+cargo test -p solo_soul   # 重新编译后即可链接成功
+# 仍未解决再全量：cargo clean
+```
+实测：2026-08 一次此类故障 `cargo clean` 清掉 122GB 陈旧产物后恢复，36 个 export_import
+测试全绿。不要为「修复」这类链接错误改动代码或 Cargo 依赖。
+
+**诱因与预防**：
+- **主要诱因：构建中途被杀**（Ctrl-C、会话断开、机器休眠打断 `cargo`/`cargo tauri build`）——
+  增量 dep-graph 与 `.rlib` 写一半即不一致。构建开始后请让它跑完。
+- 次要诱因：同一 `target/` 混用 debug 测试 / release 构建 / Android 交叉构建（不同 feature
+  组合），中断时更容易互相污染；Homebrew 与 rustup 双 rustc 共存也会引入不确定。
+- `target/` 体积会随多轮构建累积到 100GB+，发布（`npm run tauri build`）前
+  `cargo clean` 让 release 从零构建最稳妥，顺带释放磁盘。
+
 ---
 
 ## 常用文件速查
