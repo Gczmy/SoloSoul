@@ -645,5 +645,7 @@
   "recovery_overwrite_confirm": "覆盖恢复",
   "recovery_overwrite_confirm_title": "确认覆盖本端数据？",
   "recovery_overwrite_confirm_desc": "本设备上该账户的全部数据将被覆盖，且无法恢复。旧设备数据将在覆盖后导入。此操作不可撤销。",
-  "recovery_overwrite_confirm_ok": "确认覆盖"
+  "recovery_overwrite_confirm_ok": "确认覆盖",
+  "recovery_overwrite_start": "覆盖并恢复",
+  "recovery_overwrite_mode_note": "已确认覆盖恢复：恢复完成后，本设备上该账户的现有数据将被旧设备数据替换。"
 }

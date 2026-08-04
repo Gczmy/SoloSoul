@@ -6,6 +6,7 @@ import { MIN_PASSWORD_LENGTH } from '@/lib/constants';
 import { translateRustError } from '@/lib/rustErrors';
 import { useAuthStore } from '@/stores/authStore';
 import { useCameraCapability } from '@/hooks/useCameraCapability';
+import type { AccountInfo } from '@/lib/ipc';
 import type {
   RecoveryResultSummary,
   RecoveryDiscoveredHost,
@@ -64,6 +65,8 @@ export function useRecoveryReceive({ isOpen, onClose, onSuccess }: UseRecoveryRe
   const [passwordHint, setPasswordHint] = useState('');
   // 账户 ID 冲突（本设备已存在相同 account_id）→ 展示覆盖恢复选项
   const [idConflict, setIdConflict] = useState(false);
+  // 用户已确认覆盖恢复 → 展示密码输入（覆盖模式），开始恢复时携带 overwrite=true
+  const [overwriteApproved, setOverwriteApproved] = useState(false);
   // 二次确认覆盖弹窗是否打开
   const [confirmingOverwrite, setConfirmingOverwrite] = useState(false);
   // 校验错误（按优先级：主密码 > 确认密码；提示词可选不校验）
@@ -88,6 +91,18 @@ export function useRecoveryReceive({ isOpen, onClose, onSuccess }: UseRecoveryRe
     return () => {
       mountedRef.current = false;
     };
+  }, []);
+
+  // ── 扫描完成后的账户 ID 冲突预检：本设备已存在相同 account_id → 输入密码前即提示覆盖选项 ──
+  const checkIdConflict = useCallback(async (accountId?: string | null): Promise<boolean> => {
+    if (!accountId) return false;
+    try {
+      const accounts = await invoke<AccountInfo[]>('vault_list_accounts');
+      return accounts.some((a) => a.id === accountId);
+    } catch {
+      // 检查失败视为无冲突，由后端在恢复时兜底提示
+      return false;
+    }
   }, []);
 
   // ── 连接失败：把底层错误映射为带诊断引导的友好提示 ──
@@ -174,6 +189,7 @@ export function useRecoveryReceive({ isOpen, onClose, onSuccess }: UseRecoveryRe
     setMasterPasswordError(null);
     setConfirmPasswordError(null);
     setIdConflict(false);
+    setOverwriteApproved(false);
     setConfirmingOverwrite(false);
     setHostAddr('');
     setPin('');
@@ -206,8 +222,8 @@ export function useRecoveryReceive({ isOpen, onClose, onSuccess }: UseRecoveryRe
     setTab(newTab);
   };
 
-  // ── 扫码：解析 t:"rec" 二维码 → 进入账户卡 ──
-  const handleScan = (text: string) => {
+  // ── 扫码：解析 t:"rec" 二维码 → 预检账户 ID 冲突 → 进入账户卡 ──
+  const handleScan = async (text: string) => {
     try {
       const parsed = JSON.parse(text);
       if (parsed.t !== 'rec') {
@@ -223,6 +239,11 @@ export function useRecoveryReceive({ isOpen, onClose, onSuccess }: UseRecoveryRe
         return;
       }
       setError(null);
+      // 扫描完成后立即预检账户 ID 冲突（在进入密码输入之前提示覆盖选项）
+      const conflict = await checkIdConflict(parsed.u);
+      if (!mountedRef.current) return;
+      setIdConflict(conflict);
+      setOverwriteApproved(false);
       setPending({
         addr: parsed.a,
         pin: parsed.p,
@@ -277,17 +298,19 @@ export function useRecoveryReceive({ isOpen, onClose, onSuccess }: UseRecoveryRe
   };
 
   // ── 密码输入变更：清空对应校验错误与全局错误 ──
+  // 注意：覆盖模式（overwriteApproved）下不清除 idConflict——密码输入框仅在确认覆盖后渲染，
+  // 若在此清冲突会误切换到普通分支，导致 UI 显示与 overwrite=true 实际行为不一致。
   const handleMasterPasswordChange = (v: string) => {
     setMasterPassword(v);
     setError(null);
-    if (idConflict) setIdConflict(false);
+    if (idConflict && !overwriteApproved) setIdConflict(false);
     if (masterPasswordError) setMasterPasswordError(null);
   };
 
   const handleConfirmPasswordChange = (v: string) => {
     setConfirmPassword(v);
     setError(null);
-    if (idConflict) setIdConflict(false);
+    if (idConflict && !overwriteApproved) setIdConflict(false);
     if (confirmPasswordError) setConfirmPasswordError(null);
   };
 
@@ -347,6 +370,7 @@ export function useRecoveryReceive({ isOpen, onClose, onSuccess }: UseRecoveryRe
         passwordHint: passwordHint.trim() || null,
         fingerprint: pending.fingerprint || null,
         nonce: pending.nonce,
+        overwrite: overwriteApproved,
       });
       if (!mountedRef.current) return;
       setSuccess(result);
@@ -356,50 +380,10 @@ export function useRecoveryReceive({ isOpen, onClose, onSuccess }: UseRecoveryRe
       if (!mountedRef.current) return;
       const raw = String(err);
       if (raw.includes('Account ID already exists')) {
-        // 本设备已存在相同 account_id → 进入冲突状态，展示覆盖恢复选项（不显示普通错误）
+        // 兜底（手动输入等无 accountId 预检的路径）：进入冲突状态，展示覆盖恢复选项（不显示普通错误）
         setIdConflict(true);
+        setOverwriteApproved(false);
       } else {
-        setError(friendlyConnectError(raw));
-      }
-    } finally {
-      setLoading(false);
-      setStatusText(null);
-    }
-  };
-
-  // ── 覆盖恢复：本设备已存在相同 account_id 时，删除本端账户并用旧设备数据替换 ──
-  // 复用同一 pending 与已输入的密码，重新下载恢复包；后端在下载成功后先删除本地账户。
-  const handleOverwriteRecovery = async () => {
-    if (!pending) return;
-    setError(null);
-    setSuccess(null);
-    setConfirmingOverwrite(false);
-
-    setLoading(true);
-    setStatusText(t('common:recovery_connecting', { defaultValue: 'Connecting to host…' }));
-
-    try {
-      const result = await invoke<RecoveryResultSummary>('recovery_restore_from_host', {
-        hostAddr: pending.addr,
-        pin: pending.pin,
-        masterPassword,
-        passwordHint: passwordHint.trim() || null,
-        fingerprint: pending.fingerprint || null,
-        nonce: pending.nonce,
-        overwrite: true,
-      });
-      if (!mountedRef.current) return;
-      setSuccess(result);
-      setStep('success');
-      await useAuthStore.getState().checkHasAccount();
-    } catch (err) {
-      if (!mountedRef.current) return;
-      const raw = String(err);
-      if (raw.includes('Account ID already exists')) {
-        setIdConflict(true);
-      } else {
-        // 覆盖失败但非冲突（如重连超时）：清除冲突态以展示错误，避免被 idConflict 遮蔽
-        setIdConflict(false);
         setError(friendlyConnectError(raw));
       }
     } finally {
@@ -414,12 +398,20 @@ export function useRecoveryReceive({ isOpen, onClose, onSuccess }: UseRecoveryRe
     setConfirmingOverwrite(true);
   };
 
-  const handleCancelConflict = () => {
-    setIdConflict(false);
-  };
-
   const handleCancelOverwriteConfirm = () => {
     setConfirmingOverwrite(false);
+  };
+
+  // 覆盖二次确认通过：进入覆盖模式 → 展示密码输入，由 handleStartRecovery 携带 overwrite=true 发起
+  const handleOverwriteRecovery = () => {
+    if (loading) return;
+    setConfirmingOverwrite(false);
+    setOverwriteApproved(true);
+  };
+
+  // 冲突警示框「取消」：返回二维码扫描/手动输入卡片页面（放弃恢复）
+  const handleCancelConflict = () => {
+    handleBackToCollect();
   };
 
   // ── 账户卡：返回重新获取连接信息 ──
@@ -432,6 +424,7 @@ export function useRecoveryReceive({ isOpen, onClose, onSuccess }: UseRecoveryRe
     setMasterPasswordError(null);
     setConfirmPasswordError(null);
     setIdConflict(false);
+    setOverwriteApproved(false);
     setConfirmingOverwrite(false);
     setError(null);
     setStep('collect');
@@ -477,6 +470,7 @@ export function useRecoveryReceive({ isOpen, onClose, onSuccess }: UseRecoveryRe
     handleStartRecovery,
     handleBackToCollect,
     idConflict,
+    overwriteApproved,
     confirmingOverwrite,
     handleOverwriteRecovery,
     handleRequestOverwrite,

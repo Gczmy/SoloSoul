@@ -646,5 +646,7 @@
   "recovery_overwrite_confirm": "Overwrite & Restore",
   "recovery_overwrite_confirm_title": "Overwrite local data?",
   "recovery_overwrite_confirm_desc": "All data for this account on this device will be overwritten and cannot be recovered. The old device's data will be imported after overwriting. This action cannot be undone.",
-  "recovery_overwrite_confirm_ok": "Confirm Overwrite"
+  "recovery_overwrite_confirm_ok": "Confirm Overwrite",
+  "recovery_overwrite_start": "Overwrite & Restore",
+  "recovery_overwrite_mode_note": "Overwrite confirmed: after restore completes, the existing data for this account on this device will be replaced by the old device's data."
 }

@@ -109,6 +109,7 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
             onStartRecovery={rcv.handleStartRecovery}
             onBackToCollect={rcv.handleBackToCollect}
             idConflict={rcv.idConflict}
+            overwriteApproved={rcv.overwriteApproved}
             confirmingOverwrite={rcv.confirmingOverwrite}
             onRequestOverwrite={rcv.handleRequestOverwrite}
             onCancelConflict={rcv.handleCancelConflict}
