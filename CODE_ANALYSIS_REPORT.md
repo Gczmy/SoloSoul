@@ -17,7 +17,7 @@
 | `cargo fmt --check` | ✅ 通过 | ✅ 通过 |
 | `cargo clippy --workspace --all-targets` | ✅ 零警告 | ✅ 零警告 |
 | 前端测试 | ✅ 46 文件 / 430 用例 | ✅ 55 文件 / 484 用例（较修复前 +54） |
-| Rust 测试 | ✅ 全部通过 | ✅ 全部通过（solo_soul 365 / core 156（默认；`future-keychain` 开启时 +4）/ crypto 34 / plugin 56 / sync 47 / vault 127（方案 B 阶段 1-3 后 +4）） |
+| Rust 测试 | ✅ 全部通过 | ✅ 全部通过（solo_soul 365 / core 156（默认；`future-keychain` 开启时 +4）/ crypto 34 / plugin 56 / sync 47 / vault 133（方案 B +4、#1 墓碑传播 +6）） |
 
 ## §2 总览：80 项问题处置结果
 
@@ -400,15 +400,19 @@
 - **决策（2026-08-03 用户选择方案 A）**：CSP 增加 `object-src data:`（`d446dc0e`），桌面端 PDF 应用内预览恢复。XSS 面评估：`src` 全部来自 `fs_read_file_as_data_url` 读取的本机附件文件，全库无 dangerouslySetInnerHTML/innerHTML、markdown 统一 SafeMarkdown 净化，风险被现有面压制。
 - 备选方案 B（弃用 embed 改系统打开）已评估未采用；R-3/R-4①/P209 维持现状（见 §4.2/§4.3）。
 
-### 4.5 #1 立项评估：objects/trash 硬删（purge）不传播的同步缺口（📋 已登记，待立项实施）
+### 4.5 #1 objects/trash 硬删（purge）不传播的同步缺口——✅ 已于 2026-08-04 闭环（三步同构，N-13）
 
-- **现状（2026-08-04 R-3 收尾验证登记，本次评估确认）**：
-  - **产生端**：`delete_object(id, false)`（`storage/objects.rs` 硬删分支，方案 B 注释明示「硬删是墓碑变更，落库墓碑 HLC」）与 `delete_trash_item(id)`（`storage/trash.rs`，回收站 purge）均只执行 `DELETE FROM …` + `set_record_hlc`，**不写 `sync_tombstones` 表**。
+- **现状（2026-08-04 R-3 收尾验证登记，评估确认）**：
+  - **产生端**：`delete_object(id, false)`（`storage/objects.rs` 硬删分支）与 `delete_trash_item(id)`（`storage/trash.rs`，回收站 purge）只执行 `DELETE FROM …` + `set_record_hlc`，**不写 `sync_tombstones` 表**。
   - **变更清单端**：`list_object_changes_since_limited` / `list_trash_changes_since`（`storage/sync_changes.rs`）**不合并 `sync_tombstones`**——对端唯一可感知删除的机制（profiles `:153-154`、user_templates `:438-440` 均已有 `list_tombstones_since` 合并，objects/trash 两域缺失）。
-  - **应用端**：对端 `apply_*` 的 `deleted` 分支与 `resolve_sync_conflict` 的 `hard_delete_record`（`storage/sync_apply.rs`）已支持 tombstone 应用（四表全覆盖）——**协议消费面齐备，仅产生面缺失**。
-- **后果**：A 端对回收站条目/对象执行永久删除（purge）→ 行从本地表消失、HLC 已推进但变更清单无墓碑 → **B 端永不收到删除，条目永久残留**；若 B 端随后对该行本地写操作，HLC 变化使行在 A 端重新出现（数据回魂），极端情况触发无意义的删除冲突。
-- **影响面**：跨设备同步场景下「回收站永久删除」语义失效；对象硬删路径（OCR/导入清理等调用 `delete_object(id, false)` 的场景）同受波及。软删（进回收站）不受影响——经 trash_items 独立变更清单传播。
-- **修复方向（待立项，本期不实施）**：与 profiles/user_templates 同构三步——① `delete_object` 硬删分支 / `delete_trash_item` 补 `record_tombstone(table, id)`；② `list_object_changes_since_limited` / `list_trash_changes_since` 合并 `list_tombstones_since`；③ 对端应用路径已就绪无需改动。需评估点：墓碑生命周期（`sync_tombstones` 清理策略，防永久累积）、trash 墓碑 wall 与 `deleted_at` 的一致性、对象硬删 vs 软删墓碑语义区分（对象行 `is_deleted=1` 软删仍走行变更，硬删才走墓碑，二者不得冲突）。
+  - **应用端**：对端 `apply_object|trash_sync_record_tx` 直接反序列化 data，**无 deleted 分支**（profiles/user_templates 已有）——墓碑（data=null）会反序列化失败。
+- **后果**：A 端 purge → 行消失、HLC 推进但清单无墓碑 → **B 端永不收到删除，条目永久残留/数据回魂**，极端情况触发无意义删除冲突。
+- **✅ 实施记录（2026-08-04，一项一提交，三步同构）**：
+  - **步骤1 产生端（`a539935f`）**：`delete_object(id,false)` 硬删分支与 `delete_trash_item` 删行后补 `record_tombstone(table, id)`——`with_tx` 返回 affected，`affected>0` 才记墓碑（重复 purge/幂等清理不产生幽灵墓碑）；墓碑 HLC 由 `new_tombstone_hlc` 生成（wall 严格大于本节点既往值），对端 conflict 裁决时删除胜出。已知取舍：DELETE 提交与 record_tombstone 非原子（与 delete_profile 既有模式一致，R-4① 同款窄窗口已有 vault_service pending 兜底）。
+  - **步骤2 清单端（`4caaa79c`）**：`list_object_changes_since_limited` / `list_trash_changes_since_limited` 返回前经新增私有 helper `merge_tombstones` 合并本表墓碑（deleted=true, data=null），按 (HLC, id) 全序排序后 `truncate(limit)`（两处逐字重复收敛，P223 去重惯例）。排序/截断正确性：墓碑 HLC 通常大于在册记录 HLC，页满截断只截页尾墓碑；watermark 推进到页内最大 HLC，下页按新 watermark 过滤墓碑仍可取到不丢失；保留 HLC 最小的 limit 条，被截断行 HLC 恒 >= 页内最大 HLC，keyset 下页正确续取。
+  - **步骤3 应用端 + 回归测试（`9165b5c7`）**：`apply_object_sync_record_tx` / `apply_trash_sync_record_tx` 在 deserialize 前检查 `record.deleted && record.data.is_null()` → DELETE 本地行（不重记本地墓碑，远程 HLC 保持权威删除时间戳）。**软删对象（is_deleted=1、全量 data）deleted=true 但 data 非空，不会被误判为墓碑**（关键误分类防护）。回归测试×6：对象硬删产生墓碑 / 硬删不存在行无幽灵墓碑 / trash purge 产生墓碑 / 墓碑应用到对端删除本地行 / 分页合并墓碑（keyset 全收集）/ 软删对象应用不误判为墓碑。
+  - **验证**：fmt 干净 / clippy 0 / solosoul-vault 133（+6）+ sync 47 全绿 / workspace + CLI check 0 / code-reviewer GO（采纳：merge_tombstones 去重、软删误判回归测试、非原子窗口注释）。
+- **遗留评估点（待后续单独立项）**：墓碑生命周期——`sync_tombstones` 无清理策略，硬删累积可致表无限增长（profiles/user_templates 同受此限，本缺口未引入新问题）。建议下轮评估按 water-mark 老化清理策略。
 
 ---
 
@@ -421,11 +425,12 @@
    - **P209**：legacy XOR 迁移窗口保留，建议下个大版本发布后评估关闭（见 §4.3）。
    - **P206**：PDF embed 与 object-src CSP 遗留观察——✅ 已于 2026-08-03 按方案 A 闭环（CSP 增加 `object-src data:`，`d446dc0e`），桌面端 PDF 附件预览恢复（见 §4.4）。
    - **收尾清扫（2026-08-04 已完成）**：P223-① 预案的 `check_rate(host, name)` 助手收敛 7 处 rate_limiter 重复检查（`57d10448`）；P138 附带的 `sync_discover` 历史遗留死命令降级为内部助手（`2b91e2c6`）。
-   - **同步缺口 #1（已登记立项）**：objects/trash 硬删（purge）不传播——产生端不写 `sync_tombstones`、变更清单不合并墓碑，对端永不收到永久删除（详见 §4.5 完整评估与修复方向）。
+   - **同步缺口 #1（✅ 已闭环 N-13）**：objects/trash 硬删（purge）不传播——三步同构修复（产生端墓碑 `a539935f` + 清单端合并 `4caaa79c` + 应用端识别 `9165b5c7`，6 回归测试），详见 §4.5。
+2. **同步墓碑生命周期（新评估点）**：`sync_tombstones` 无清理策略，硬删累积可致表无限增长（profiles/user_templates 同受此限）。建议下轮按 watermark 老化清理单独立项。
 3. **验证指针**：本报告 §3 归档表含全部修复 commit（`f1970c67` 起，N/R 项见 §3.2；P133=`6e74f691`、P134=`f75605ae`、P135=`b721270c`、N-10=`70e766ee`）；完整修复细节与两轮验证记录在 git 历史中可追溯。
 
 ## §6 测试基线参考（当前 HEAD）
 
 - 前端：tsc 0 错误 / eslint 0 警告 / vitest 55 文件 484 用例全绿。
-- Rust：`cargo fmt --check` 通过 / `cargo clippy --workspace --all-targets` 零警告 / `cargo test --workspace` 全绿（solo_soul 365、core 156 默认（`future-keychain` 开启时 +4）、crypto 34、plugin 56、sync 47、vault 123）；`solosoul_cli` cargo check 0 错误。
+- Rust：`cargo fmt --check` 通过 / `cargo clippy --workspace --all-targets` 零警告 / `cargo test --workspace` 全绿（solo_soul 365、core 156 默认（`future-keychain` 开启时 +4）、crypto 34、plugin 56、sync 47、vault 133（#1 墓碑传播 +6））；`solosoul_cli` cargo check 0 错误。
 - 工作区干净，当前分支 `main` 与 `origin/main` 同步。
