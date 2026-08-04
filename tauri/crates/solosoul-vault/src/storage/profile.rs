@@ -18,16 +18,29 @@
 
 use rusqlite::{params, Connection, OptionalExtension};
 
-use super::{VaultStore, PROFILE_LOAD_SQL, PROFILE_SAVE_SQL};
+use super::{with_tx, VaultStore, PROFILE_LOAD_SQL, PROFILE_SAVE_SQL};
 use crate::encryption::{decrypt_field, encrypt_field, DataEncryptionKey};
 use crate::{Profile, ProfileSummary};
 
 impl VaultStore {
     pub fn save_profile(&self, profile: &Profile) -> Result<(), String> {
         let key = self.data_key()?;
+        // 方案 B（R-3 根治）：本地写统一生成并落库 HLC。生成需读 sync_hlc 最大值，
+        // 必须在持锁前调用（new_local_hlc 内部自行锁 conn）。save_profile_tx 被
+        // sync_apply 远端应用路径复用（自写 HLC），故本地写 HLC 在入口事务内落。
+        let hlc = self.new_local_hlc()?;
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
-        Self::save_profile_tx(conn, &key, profile)
+        with_tx(
+            conn,
+            "Failed to begin transaction",
+            "Failed to commit transaction",
+            |c| {
+                Self::save_profile_tx(c, &key, profile)?;
+                Self::set_record_hlc_tx(c, "profiles", &profile.id, &hlc)?;
+                Ok(())
+            },
+        )
     }
 
     /// P115: 事务内保存 Profile（连接由调用方持有，批量应用单事务内复用）。

@@ -342,13 +342,19 @@
   - **影响面（实测）**：objects 域（`save_object_tx`/`delete_object`/`restore_object`，墓碑用 `new_tombstone_hlc`）+ trash 域（`trash_and_soft_delete_batch`/`save_trash_item_tx`/`delete_trash_item`）+ metadata 域（`save_user_template_tx`/`delete_user_template`）+ profile 域（`save_profile_tx`/`delete_profile`）；snapshots 域不参与同步可不动。**commands/CLI 层零改动**（全部经 vault 层方法间接调用）。
   - **成本**：1–2 天。分三阶段：① objects 域验证模式；② trash/profile/user_template 域；③ 回退路径退休（sync_changes.rs:133/424 的 `record_hlc_or_fallback` fallback 分支与 SQL `h.wall_time_ms IS NULL` 分支简化）。风险点：`delete_object` 墓碑与 `trash_and_soft_delete_batch` 的 HLC 生成时序、25+ 既有同步测试适配（部分断言依赖回退行为）。
   - **备选方案 A（等值组尾部回扫）成本 4–6h（基础）/ 8–10h（含防重复投递设计），已否决**——回扫会把已投递行重复投递，需额外记录已投递 id 集合，收益低于成本；方案 B 是根治方向。
-  - **当前状态**：**阶段 1（objects 域）已闭环**（2026-08-04）；阶段 2（trash/profile/user_template 域）与阶段 3（回退路径退休）待实施。
+  - **当前状态**：**阶段 1（objects 域）与阶段 2（trash/profile/user_template 域）均已闭环**（2026-08-04）；仅剩阶段 3（回退路径退休 + sync_changes 简化）。
   - **✅ 阶段 1 实施记录（2026-08-04）**：
     - **objects 域本地写统一 HLC**：`save_object`/`save_objects_batch`/`delete_object`/`restore_object` 在写事务外层生成 HLC（`new_local_hlc`/`new_tombstone_hlc`）并在事务内 `set_record_hlc_tx` 落库。**`save_object_tx` 保持不动**（sync_apply 远端应用路径复用、自写 HLC），故本地写 HLC 必须在外层生成。
     - **关键修复（normalize_sync_node_id）**：初版本地写 HLC 行 node 为 raw `local_node_id()`（生产 `node_<32hex>` 40 字符 / 测试 `"unknown"`），与 sync 层 session.rs 的 hex 规范化节点（`hex::encode(Hlc::parse_node_id_bytes(...))`）及水印落库格式**编码错配** → keyset 等值组判定 `node == 水印 node` 永不成立，同 wall 行经 strict `>` 反复通过、id 游标不推进 → **分页死循环**（sync crate `test_generate_delta_paginated_keyset_production_encoding` 实测挂起，修复后 0.03s 通过；生产 `get_or_create_sync_identity` 路径同款触发）。修复：`new_local_hlc`/`new_tombstone_hlc` 生成时经新增 `normalize_sync_node_id`（sync_meta.rs，与 session.rs 逐字节一致：32 字符按 hex 解码、其余取前 16 字节补零）规范化 node。
     - **测试适配**：3 个依赖「本地写无 HLC」回退语义的 keyset 测试适配方案 B（`test_paginated_keyset_fallback_false_positive_isolation`/`test_peer_watermark_cursor_resume_delivers_equal_hlc_tail`/`test_list_object_changes_since_watermark_pushdown`）；新增防回归 `test_local_write_hlc_node_normalized_production_format`（生产格式 node id 下节点规范化 + wall 严格递增 + keyset 分页终止）；`collect_paginated_object_ids` 加页数上限守卫（keyset 回归从「挂起」转「快速失败」，防 CI 挂死）。
     - **验证**：vault 124 测试全绿（+1）/ sync 47 全绿 / fmt 干净 / clippy 0 警告 / workspace + CLI check 0 错误 / code-reviewer GO。
-    - **阶段边界缺口（已声明）**：trash 域 `trash_and_soft_delete_batch`/`page_delete` 软删 objects 至今仍不带 HLC → 阶段 2 前该路径继续走回退（R-3 窗口对该路径部分残留），阶段 2 收编后关闭。
+    - **阶段边界缺口（已声明，阶段 2 已收编）**：trash 域 `trash_and_soft_delete_batch` 软删 objects 曾不带 HLC → 该路径继续走回退；阶段 2 后软删对象也落新 HLC，缺口关闭。
+  - **✅ 阶段 2 实施记录（2026-08-04）**：
+    - **trash 域**：`save_trash_item` 落 trash_items HLC；`trash_and_soft_delete_batch` 批内两组 HLC——trash 条目落 trash_items HLC + **软删对象落 objects 新 HLC**（先软删作用域块释放 stmt 借用再统一落 HLC）。关键语义：阶段 1 后对象已有 save 时 HLC，不更新则对端永远看不到 `is_deleted=1`（对象行保留，updated_at 回退路径不再生效）——本改动堵住该同步缺口。
+    - **profile/user_template 域**：`save_profile`/`save_user_template` 落对应表 HLC。`delete_profile`/`delete_user_template` 不改（已通过 `record_tombstone` 落墓碑+HLC）。
+    - **测试适配**：`test_trash_changes_since_honors_millisecond_deleted_at`（R-2）改经 `save_trash_item_tx` 直插（不落 HLC）保留回退 ms 解释覆盖；`test_paginated_trash_keyset_equal_deleted_at_completeness` 显式 `set_record_hlc` 等值组保留 keyset 边界覆盖；新增防回归 `test_local_write_hlc_stage2_domains`（四写路径落库 HLC + 节点规范化 + 软删对象 HLC 晚于 save + 软删对象以 `deleted:true` 出现在变更清单）。
+    - **验证**：vault 125（+1）/ sync 47 全绿 / fmt 干净 / clippy 0 警告 / workspace + CLI check 0 错误 / code-reviewer GO。
+    - **既有缺口记录（超范围，不扩大）**：`delete_trash_item`（trash 条目永久删除）与 objects 硬删不传播——trash 变更清单不合并墓碑且 `apply_trash_sync_record_tx` 不处理 deleted 记录，加 HLC 即成死代码；属既有同步缺口，单独立项评估。
 
 #### 4.2.2 R-4①：reencrypt commit 后、config 写前进程崩溃（低）
 

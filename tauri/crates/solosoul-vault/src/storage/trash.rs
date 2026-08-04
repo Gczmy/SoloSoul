@@ -21,9 +21,21 @@ impl VaultStore {
 
     pub fn save_trash_item(&self, item: &TrashItem) -> Result<(), String> {
         let key = self.data_key()?;
+        // 方案 B（R-3 根治）：本地写统一生成并落库 HLC。save_trash_item_tx 被
+        // sync_apply 远端应用路径复用（自写 HLC），故本地写 HLC 在入口事务内落。
+        let hlc = self.new_local_hlc()?;
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
-        Self::save_trash_item_tx(conn, &key, item)
+        with_tx(
+            conn,
+            "Failed to begin transaction",
+            "Failed to commit transaction",
+            |c| {
+                Self::save_trash_item_tx(c, &key, item)?;
+                Self::set_record_hlc_tx(c, "trash_items", &item.id, &hlc)?;
+                Ok(())
+            },
+        )
     }
 
     /// P211: 单事务批量「入回收站 + 软删对象」。
@@ -40,6 +52,18 @@ impl VaultStore {
         soft_delete_ids: &[String],
     ) -> Result<(), String> {
         let key = self.data_key()?;
+        // 方案 B（R-3 根治）：批内逐个生成 HLC——trash 条目一组 + 软删对象一组
+        // （new_local_hlc 读 sync_hlc 最大值递增保证唯一，必须在持锁前调用）。
+        // 软删对象必须落新 HLC：阶段 1 后对象已有 save 时 HLC，不更新则对端
+        // 永远不会看到 is_deleted=1（对象行保留，updated_at 回退路径不再生效）。
+        let item_hlcs = items
+            .iter()
+            .map(|_| self.new_local_hlc())
+            .collect::<Result<Vec<_>, _>>()?;
+        let obj_hlcs = soft_delete_ids
+            .iter()
+            .map(|_| self.new_local_hlc())
+            .collect::<Result<Vec<_>, _>>()?;
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         // P213: 手动事务（Transaction 无 DerefMut，prepare_cached 需要 &mut Connection）。
@@ -48,17 +72,25 @@ impl VaultStore {
             "Failed to begin transaction",
             "Failed to commit transaction",
             |c| {
-                for item in items {
+                for (item, hlc) in items.iter().zip(item_hlcs.iter()) {
                     Self::save_trash_item_tx(c, &key, item)?;
+                    Self::set_record_hlc_tx(c, "trash_items", &item.id, hlc)?;
                 }
                 if !soft_delete_ids.is_empty() {
                     let now = chrono::Utc::now().to_rfc3339();
-                    let mut stmt = c
-                        .prepare_cached(OBJECT_SOFT_DELETE_SQL)
-                        .map_err(|e| format!("Failed to prepare soft delete: {e}"))?;
-                    for id in soft_delete_ids {
-                        stmt.execute(params![&now, id])
-                            .map_err(|e| format!("Failed to soft delete: {e}"))?;
+                    // 先执行全部软删（stmt 持 c 借用，作用域块内完成即释放），
+                    // 再统一落 HLC——同事务内原子，顺序不影响结果。
+                    {
+                        let mut stmt = c
+                            .prepare_cached(OBJECT_SOFT_DELETE_SQL)
+                            .map_err(|e| format!("Failed to prepare soft delete: {e}"))?;
+                        for id in soft_delete_ids {
+                            stmt.execute(params![&now, id])
+                                .map_err(|e| format!("Failed to soft delete: {e}"))?;
+                        }
+                    }
+                    for (id, hlc) in soft_delete_ids.iter().zip(obj_hlcs.iter()) {
+                        Self::set_record_hlc_tx(c, "objects", id, hlc)?;
                     }
                 }
                 Ok(())

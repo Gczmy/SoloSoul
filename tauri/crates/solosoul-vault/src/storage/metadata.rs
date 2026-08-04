@@ -17,7 +17,7 @@
 
 use rusqlite::{params, Connection};
 
-use super::{VaultStore, USER_TEMPLATE_LOAD_SQL, USER_TEMPLATE_SAVE_SQL};
+use super::{with_tx, VaultStore, USER_TEMPLATE_LOAD_SQL, USER_TEMPLATE_SAVE_SQL};
 use crate::encryption::{decrypt_text_field, encrypt_text_field, DataEncryptionKey};
 
 impl VaultStore {
@@ -425,9 +425,21 @@ impl VaultStore {
     /// Save or update a user template (UPSERT).
     pub fn save_user_template(&self, template: &crate::UserTemplate) -> Result<(), String> {
         let key = self.data_key()?;
+        // 方案 B（R-3 根治）：本地写统一生成并落库 HLC。save_user_template_tx 被
+        // sync_apply 远端应用路径复用（自写 HLC），故本地写 HLC 在入口事务内落。
+        let hlc = self.new_local_hlc()?;
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
-        Self::save_user_template_tx(conn, &key, template)
+        with_tx(
+            conn,
+            "Failed to begin transaction",
+            "Failed to commit transaction",
+            |c| {
+                Self::save_user_template_tx(c, &key, template)?;
+                Self::set_record_hlc_tx(c, "user_templates", &template.id, &hlc)?;
+                Ok(())
+            },
+        )
     }
 
     /// P115: 事务内保存用户模板（连接由调用方持有，批量应用单事务内复用）。

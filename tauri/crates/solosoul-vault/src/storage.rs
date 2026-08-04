@@ -2272,7 +2272,15 @@ mod tests {
             name_snapshot: "Ms".to_string(),
             icon_snapshot: None,
         };
-        vault.save_trash_item(&item).unwrap();
+        // 方案 B 后 save_trash_item 落真实 HLC；本测试专门验证「无 HLC 回退行」的
+        // deleted_at 毫秒解释（R-2），故经 save_trash_item_tx 直插（不落 HLC）以
+        // 保留回退路径覆盖。
+        let key = vault.data_key().unwrap();
+        {
+            let mut guard = vault.conn.lock().unwrap();
+            let conn = guard.as_mut().unwrap();
+            VaultStore::save_trash_item_tx(conn, &key, &item).unwrap();
+        }
 
         let records = vault
             .list_sync_changes_since(
@@ -2300,7 +2308,9 @@ mod tests {
     #[test]
     fn test_paginated_trash_keyset_equal_deleted_at_completeness() {
         let (vault, _dir) = setup();
-        // page_delete 生产场景：整页对象同一个 deleted_at 毫秒值
+        // page_delete 生产场景：整页对象同一个 deleted_at 毫秒值。方案 B 后
+        // save_trash_item 落真实 HLC（递增不复现等值组），故此处显式覆盖为同一
+        // 等值 HLC——保留 keyset 等值组边界覆盖（对端批量应用可产生等值 HLC）。
         let deleted_ms = 1704067200123i64;
         let watermark = crate::SyncWatermark {
             wall_time_ms: (deleted_ms - 1000) as u64,
@@ -2308,9 +2318,10 @@ mod tests {
             node_id: "peer_x".to_string(),
         };
         for i in 1..=7usize {
+            let id = format!("trash_{:02}", i);
             vault
                 .save_trash_item(&TrashItem {
-                    id: format!("trash_{:02}", i),
+                    id: id.clone(),
                     item_type: "object".to_string(),
                     original_id: format!("orig_{:02}", i),
                     original_parent_id: None,
@@ -2323,6 +2334,17 @@ mod tests {
                     name_snapshot: format!("trash_{:02}", i),
                     icon_snapshot: None,
                 })
+                .unwrap();
+            vault
+                .set_record_hlc(
+                    "trash_items",
+                    &id,
+                    &crate::RecordHlc {
+                        wall_time_ms: deleted_ms as u64,
+                        counter: 0,
+                        node_id: "local_node".to_string(),
+                    },
+                )
                 .unwrap();
         }
 
@@ -2352,7 +2374,8 @@ mod tests {
     #[test]
     fn test_paginated_trash_keyset_mixed_real_hlc_ordering() {
         let (vault, _dir) = setup();
-        // 回退行：本地删除，无 sync_hlc 行，有效 HLC wall == deleted_at 毫秒
+        // 本地行：save_trash_item 落真实 HLC（wall=now，晚于对端行）；
+        // 对端行：显式写入真实 HLC（wall 更早、counter 更高），模拟远端应用。
         let local_ms = 1704067200123i64;
         // 真实 HLC 行：模拟对端应用写入（wall 更早、counter 更高）
         let peer_wall = 1704066000000u64;
@@ -2409,7 +2432,7 @@ mod tests {
         let watermark = crate::SyncWatermark::default();
         let paged_ids = collect_paginated_trash_ids(&vault, watermark.clone(), "local_node", 2);
 
-        // 有效 HLC 排序：真实 HLC（peer_wall 早）在前，回退行（local_ms 晚）在后
+        // 有效 HLC 排序：对端行（peer_wall 早）在前，本地行（wall=now 晚）在后
         assert_eq!(
             paged_ids,
             vec![
@@ -2420,7 +2443,7 @@ mod tests {
                 "local_02".to_string(),
                 "local_03".to_string(),
             ],
-            "真实 HLC 行与回退行必须按有效 HLC 全序稳定分页"
+            "对端/本地真实 HLC 行必须按有效 HLC 全序稳定分页"
         );
     }
 
@@ -4277,6 +4300,129 @@ mod tests {
                 "n_07".to_string(),
             ],
             "生产编码下本地写 HLC 分页必须无缺漏且循环终止"
+        );
+    }
+
+    /// 方案 B 阶段 2 防回归：trash/profile/user_template 三域本地写统一落库 HLC
+    /// （节点规范化 + 软删对象获得晚于 save 的新 HLC）。
+    #[test]
+    fn test_local_write_hlc_stage2_domains() {
+        let (vault, _dir) = setup();
+        let raw_node = format!("node_{}", "a1b2c3d4e5f67890a1b2c3d4e5f67890");
+        vault.set_sync_node_id(&raw_node).unwrap();
+        let expected_node = hex::encode(&raw_node.as_bytes()[..16]);
+
+        // ① trash：save_trash_item → trash_items HLC
+        vault
+            .save_trash_item(&crate::TrashItem {
+                id: "trash-s2".to_string(),
+                item_type: "object".to_string(),
+                original_id: "orig-s2".to_string(),
+                original_parent_id: None,
+                original_section_type: None,
+                original_sort_order: None,
+                data: vec![1],
+                deleted_at: 1704067200123,
+                expires_at: None,
+                deleted_by: "user".to_string(),
+                name_snapshot: "s2".to_string(),
+                icon_snapshot: None,
+            })
+            .unwrap();
+        let th = vault
+            .get_record_hlc("trash_items", "trash-s2")
+            .unwrap()
+            .unwrap();
+        assert_eq!(th.node_id, expected_node, "trash 写 HLC 节点必须规范化");
+
+        // ② trash：trash_and_soft_delete_batch → trash_items + objects 软删双 HLC
+        let obj_id = "obj-s2";
+        vault
+            .save_object(&crate::ObjectRecord {
+                id: obj_id.to_string(),
+                account_id: "test_account".to_string(),
+                name: "s2".to_string(),
+                section_type: "identity".to_string(),
+                properties: serde_json::json!({}),
+                sensitivity_level: "internal".to_string(),
+                ..Default::default()
+            })
+            .unwrap();
+        let save_hlc = vault
+            .get_record_hlc("objects", obj_id)
+            .unwrap()
+            .unwrap()
+            .wall_time_ms;
+        vault
+            .trash_and_soft_delete_batch(
+                &[crate::TrashItem {
+                    id: "trash-s2b".to_string(),
+                    item_type: "object".to_string(),
+                    original_id: obj_id.to_string(),
+                    original_parent_id: None,
+                    original_section_type: None,
+                    original_sort_order: None,
+                    data: vec![2],
+                    deleted_at: 1704067200124,
+                    expires_at: None,
+                    deleted_by: "user".to_string(),
+                    name_snapshot: "s2b".to_string(),
+                    icon_snapshot: None,
+                }],
+                &[obj_id.to_string()],
+            )
+            .unwrap();
+        let t2h = vault
+            .get_record_hlc("trash_items", "trash-s2b")
+            .unwrap()
+            .unwrap();
+        assert_eq!(t2h.node_id, expected_node);
+        let obj_h = vault.get_record_hlc("objects", obj_id).unwrap().unwrap();
+        assert_eq!(obj_h.node_id, expected_node);
+        assert!(
+            obj_h.wall_time_ms > save_hlc,
+            "软删对象必须获得晚于 save 的新 HLC（否则对端永远看不到 is_deleted=1）"
+        );
+        assert!(
+            vault.load_object(obj_id).unwrap().unwrap().is_deleted,
+            "软删后对象行 is_deleted 必须为 true"
+        );
+        // 端到端：软删对象必须出现在变更清单且 deleted=true（对端据此删除）
+        let changes = vault
+            .list_sync_changes_since(
+                "objects",
+                &crate::SyncWatermark::default(),
+                "test_account",
+                &expected_node,
+            )
+            .unwrap();
+        let obj_rec = changes.iter().find(|r| r.id == obj_id).unwrap();
+        assert!(obj_rec.deleted, "软删对象必须以 deleted:true 出现在变更清单");
+
+        // ③ profile：save_profile → profiles HLC
+        vault
+            .save_profile(&crate::Profile {
+                id: "p-s2".to_string(),
+                name: "s2".to_string(),
+                data: b"x".to_vec(),
+                created_at: chrono::Utc::now(),
+                updated_at: chrono::Utc::now(),
+                version: 1,
+            })
+            .unwrap();
+        let ph = vault.get_record_hlc("profiles", "p-s2").unwrap().unwrap();
+        assert_eq!(ph.node_id, expected_node, "profile 写 HLC 节点必须规范化");
+
+        // ④ user_template：save_user_template → user_templates HLC
+        let tpl = make_test_template("test_account", "s2");
+        vault.save_user_template(&tpl).unwrap();
+        let uh = vault
+            .get_record_hlc("user_templates", &tpl.id)
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            uh.node_id, expected_node,
+            "user_template 写 HLC 节点必须规范化"
         );
     }
 
