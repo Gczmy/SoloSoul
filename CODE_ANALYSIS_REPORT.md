@@ -182,7 +182,7 @@ m = re.search(r"generate_handler!\s*\[((?:[^\[\]]|\[[^\[\]]*\])*)\]", text, re.S
 | `04c2e66e` | P004：08 IPC 规范 + CLI 预研报告同步命令面 |
 | `d1d69f5a` | P004 补充：09 对象规范 invoke 示例 + tauri_dev_plan/12 store 设计历史标注（审查员复核缺口） |
 | `5f2519ff` | P003-①：ObjectDetailModal 926→523 行等价拆分（Sections/DeleteDialog/Utils + 11 新测试） |
-| `9ff923b3` | P003-②：SyncShowQrDialog 878→270 行等价拆分（TabSwitcher/SyncQrContent/RecoveryQrContent/QrStatusBlock + 5 新测试） |
+| `fed8d393` | P003-②：SyncShowQrDialog 878→270 行等价拆分（TabSwitcher/SyncQrContent/RecoveryQrContent/QrStatusBlock + 5 新测试） |
 
 ### 5.2 修复后全量验证
 
