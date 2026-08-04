@@ -3,7 +3,9 @@
 use chrono::Utc;
 use rusqlite::{params, Connection};
 
-pub const CURRENT_SCHEMA_VERSION: u32 = 22;
+use crate::storage::VaultStore;
+
+pub const CURRENT_SCHEMA_VERSION: u32 = 23;
 
 pub fn get_schema_version(conn: &Connection) -> Result<u32, String> {
     let version: String = conn
@@ -63,6 +65,7 @@ pub fn run_migrations(conn: &mut Connection) -> Result<(), String> {
     migrate_v20(conn, current)?;
     migrate_v21(conn, current)?;
     migrate_v22(conn, current)?;
+    migrate_v23(conn, current)?;
 
     Ok(())
 }
@@ -565,6 +568,149 @@ fn migrate_v22(conn: &mut Connection, current: u32) -> Result<(), String> {
     Ok(())
 }
 
+/// v23 — 方案 B 阶段 3（保守退休）：为升级前创建、无 sync_hlc 行的存量行回填 HLC。
+///
+/// 用户决策（2026-08-04 方案 B）：回填迁移 + 保留兜底。回填必须与回退路径
+/// `record_hlc_or_fallback` / keyset SQL 的 IS NULL 分支逐字节一致，否则同步排序
+/// 语义改变：
+///   - objects：wall = julianday(updated_at)→ms（与 keyset SQL 完全同一表达式）
+///   - profiles：wall = julianday(updated_at)→ms（parse_time_ms 逐字节一致，P110 断言）
+///   - trash_items：wall = deleted_at（本就是 unix ms）
+///   - user_templates：wall = julianday(COALESCE(updated_at,''))→ms（NULL 回退 parse_time_ms("")=0）
+///   - counter = 0，node = 规范化本地节点（与 sync 层 hex::encode(Hlc::parse_node_id_bytes) 一致）
+///
+/// 兜底保留：`record_hlc_or_fallback` 与 keyset IS NULL 分支不删除——未来任何直写 SQL
+/// 路径产生的无 HLC 行仍可经回退同步（安全网）。
+fn migrate_v23(conn: &mut Connection, current: u32) -> Result<(), String> {
+    if current < 23 {
+        // 表存在性守卫：部分态迁移 fixture（v17 partial state）可能无 sync 表。
+        let has_hlc = conn
+            .query_row(
+                "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='sync_hlc'",
+                [],
+                |r| r.get::<_, i64>(0),
+            )
+            .unwrap_or(0)
+            > 0;
+        if !has_hlc {
+            let now = Utc::now().timestamp();
+            conn.execute(
+                "INSERT OR IGNORE INTO schema_migrations (version, applied_at, description) VALUES (?1, ?2, ?3)",
+                params![23, now, "sync_hlc absent (partial-state fixture) — backfill skipped (no-op)"],
+            )
+            .ok();
+            set_schema_version(conn, 23)?;
+            return Ok(());
+        }
+
+        // 读本地 sync 节点（metadata 表 base64 明文，无需 data key）。与 local_node_id()
+        // 的语义一致：无节点时回退 "unknown"，再经 normalize_sync_node_id 规范化。
+        let raw_node = conn
+            .query_row(
+                "SELECT value FROM metadata WHERE key = 'sync_node_id'",
+                [],
+                |r| r.get::<_, String>(0),
+            )
+            .ok()
+            .and_then(|b64| {
+                use base64::Engine as _;
+                base64::engine::general_purpose::STANDARD.decode(&b64).ok()
+            })
+            .and_then(|v| String::from_utf8(v).ok())
+            .unwrap_or_else(|| "unknown".to_string());
+        let node = normalize_sync_node_id(&raw_node);
+        let now = Utc::now().to_rfc3339();
+
+        // ── 回填主体 ─────────────────────────────────────────────
+        // 注意：wall 语义按**各表真实回退路径**逐字节复刻，混用会改变同步排序：
+        //   - objects：keyset SQL 回退用 julianday(updated_at)→ms → 回填同表达式；
+        //   - trash_items：keyset SQL 回退用 deleted_at 原值 → 回填同列；
+        //   - profiles / user_templates：record_hlc_or_fallback 用 Rust parse_time_ms
+        //     （chrono RFC3339→ms，julianday 浮点对部分时间戳差 1ms，不可混用）→
+        //     Rust 层逐行计算（parse_time_ms 语义：解析失败/空值 → 0）。
+        let tx = conn
+            .transaction()
+            .map_err(|e| format!("Begin tx for v23: {}", e))?;
+        let mut insert = tx
+            .prepare_cached(
+                "INSERT OR IGNORE INTO sync_hlc (table_name, record_id, wall_time_ms, counter, node_id, updated_at) VALUES (?1, ?2, ?3, 0, ?4, ?5)",
+            )
+            .map_err(|e| format!("Prepare v23 insert: {}", e))?;
+
+        // objects：julianday 表达式与 keyset SQL 回退逐字一致。
+        if has_column(&tx, "objects", "updated_at") {
+            tx.execute_batch(&format!(
+                "INSERT OR IGNORE INTO sync_hlc (table_name, record_id, wall_time_ms, counter, node_id, updated_at)\n\
+                 SELECT 'objects', o.id, CAST((julianday(o.updated_at) - 2440587.5) * 86400000.0 AS INTEGER), 0, '{node}', '{now}'\n\
+                 FROM objects o LEFT JOIN sync_hlc h ON h.table_name = 'objects' AND h.record_id = o.id\n\
+                 WHERE h.record_id IS NULL;"
+            ))
+            .map_err(|e| format!("v23 objects backfill: {}", e))?;
+        }
+        // trash_items：wall = deleted_at 原值。
+        if has_column(&tx, "trash_items", "deleted_at") {
+            tx.execute_batch(&format!(
+                "INSERT OR IGNORE INTO sync_hlc (table_name, record_id, wall_time_ms, counter, node_id, updated_at)\n\
+                 SELECT 'trash_items', t.id, t.deleted_at, 0, '{node}', '{now}'\n\
+                 FROM trash_items t LEFT JOIN sync_hlc h ON h.table_name = 'trash_items' AND h.record_id = t.id\n\
+                 WHERE h.record_id IS NULL;"
+            ))
+            .map_err(|e| format!("v23 trash backfill: {}", e))?;
+        }
+        // profiles / user_templates：Rust chrono 逐行（与 parse_time_ms 逐字节一致）。
+        for (table, has_updated) in [
+            ("profiles", has_column(&tx, "profiles", "updated_at")),
+            (
+                "user_templates",
+                has_column(&tx, "user_templates", "updated_at"),
+            ),
+        ] {
+            if !has_updated {
+                continue;
+            }
+            let rows: Vec<(String, Option<String>)> = tx
+                .prepare(&format!("SELECT id, updated_at FROM {}", table))
+                .map_err(|e| format!("Prepare {} scan: {}", table, e))?
+                .query_map([], |r| {
+                    Ok((r.get::<_, String>(0)?, r.get::<_, Option<String>>(1)?))
+                })
+                .map_err(|e| format!("Scan {}: {}", table, e))?
+                .collect::<Result<_, _>>()
+                .map_err(|e| format!("Collect {}: {}", table, e))?;
+            for (id, updated) in rows {
+                let wall = updated.as_deref().map(parse_time_ms).unwrap_or(0);
+                insert
+                    .execute(params![table, id, wall, node, now])
+                    .map_err(|e| format!("v23 {} backfill row {}: {}", table, id, e))?;
+            }
+        }
+        drop(insert);
+        let now_ts = Utc::now().timestamp();
+        tx.execute(
+            "INSERT INTO schema_migrations (version, applied_at, description) VALUES (?1, ?2, ?3)",
+            params![
+                23,
+                now_ts,
+                "v23: backfill sync_hlc for legacy rows (conservative retirement)"
+            ],
+        )
+        .map_err(|e| format!("Record v23: {}", e))?;
+        set_schema_version(&tx, 23)?;
+        tx.commit().map_err(|e| format!("Commit v23: {}", e))?;
+    }
+    Ok(())
+}
+
+/// 复用 storage/sync_meta.rs 的 `VaultStore::parse_time_ms`（pub(crate)，同一 crate 无循环依赖）。
+fn parse_time_ms(s: &str) -> u64 {
+    VaultStore::parse_time_ms(s)
+}
+
+/// 复用 storage/sync_meta.rs 的 `VaultStore::normalize_sync_node_id`（pub(crate)，同一 crate）。
+fn normalize_sync_node_id(node_id: &str) -> String {
+    VaultStore::normalize_sync_node_id(node_id)
+}
+
 fn apply_migration(
     conn: &mut Connection,
     version: u32,
@@ -860,6 +1006,196 @@ CREATE TABLE IF NOT EXISTS objects (
             "second run_migrations MUST NOT add a duplicate v17 schema_migrations row (got {})",
             v17_rows_2
         );
+    }
+
+    // ── 方案 B 阶段 3 — v23 存量 HLC 回填 ───────────────────────
+    //
+    // 保守退休（2026-08-04 用户决策 B）：升级前创建、无 sync_hlc 行的存量行
+    // 按回退路径语义回填 HLC，回退代码保留作兜底。回填 wall/counter/node 必须
+    // 与 record_hlc_or_fallback / keyset IS NULL 分支逐字节一致。
+
+    /// 升级前遗留行回填测试：raw INSERT（不写 sync_hlc）模拟旧库数据，
+    /// 降级到 v22 后重跑迁移，断言四表行均被回填且 wall 与回退语义一致。
+    #[test]
+    fn test_migration_v23_backfills_hlc_for_legacy_rows() {
+        let (mut conn, _dir) = setup_conn();
+        run_migrations(&mut conn).unwrap();
+        assert_eq!(get_schema_version(&conn).unwrap(), CURRENT_SCHEMA_VERSION);
+
+        // 迁移 fixture 的 profiles 为 v1 样式（无 updated_at），补齐列以覆盖回填。
+        // execute_batch：多语句 ALTER 需逐条执行（execute 仅编译第一条）。
+        conn.execute_batch(
+            "ALTER TABLE profiles ADD COLUMN created_at TEXT;
+             ALTER TABLE profiles ADD COLUMN updated_at TEXT;
+             ALTER TABLE profiles ADD COLUMN version INTEGER DEFAULT 1;",
+        )
+        .unwrap();
+
+        // ── 遗留行（raw INSERT，无 sync_hlc）──
+        let obj_updated = "2024-01-15T00:00:00Z";
+        conn.execute(
+            "INSERT INTO objects (id, account_id, name, created_at, updated_at) VALUES ('o1', 'acc1', 'ObjA', '2024-01-01T00:00:00Z', ?1)",
+            params![obj_updated],
+        )
+        .unwrap();
+        let profile_updated = "2024-02-02T03:04:05Z";
+        conn.execute(
+            "INSERT INTO profiles (id, name, data, created_at, updated_at, version) VALUES ('p1', 'ProfA', X'0102', '2024-01-01T00:00:00Z', ?1, 1)",
+            params![profile_updated],
+        )
+        .unwrap();
+        // 已有 HLC 的行必须保持不动（LEFT JOIN + INSERT OR IGNORE 双保险）。
+        conn.execute(
+            "INSERT INTO objects (id, account_id, name, created_at, updated_at) VALUES ('o2', 'acc1', 'ObjB', '2024-01-01T00:00:00Z', '2024-03-03T00:00:00Z')",
+            [],
+        )
+        .unwrap();
+        conn.execute(
+            "INSERT INTO sync_hlc (table_name, record_id, wall_time_ms, counter, node_id, updated_at) VALUES ('objects', 'o2', 1709424000000, 7, 'aabbccdd', '2024-03-03T00:00:00Z')",
+            [],
+        )
+        .unwrap();
+        let trash_deleted = 1704067200i64 * 1000; // 2024-01-01T00:00:00Z ms
+        conn.execute(
+            "INSERT INTO trash_items (id, item_type, original_id, data, deleted_at, deleted_by, name_snapshot) VALUES ('t1', 'object', 'o9', X'00', ?1, 'user', 'TrashA')",
+            params![trash_deleted],
+        )
+        .unwrap();
+        conn.execute(
+            "INSERT INTO user_templates (id, account_id, name, icon_id, properties_json, created_at, updated_at, category) VALUES ('u1', 'acc1', 'TplA', 'doc', '[]', '2024-01-01T00:00:00Z', NULL, 'identity')",
+            [],
+        )
+        .unwrap();
+
+        // ── 模拟升级前状态：降级到 v22，重跑迁移只触发 v23 ──
+        // （先清掉首次 run_migrations 已记录的 v23 行，避免 apply_migration UNIQUE 冲突；
+        //   生产路径每次启动只跑一次，无此场景。）
+        conn.execute("DELETE FROM schema_migrations WHERE version = 23", [])
+            .unwrap();
+        set_schema_version(&conn, 22).unwrap();
+        run_migrations(&mut conn).unwrap();
+        assert_eq!(get_schema_version(&conn).unwrap(), CURRENT_SCHEMA_VERSION);
+
+        // ── 断言：四表遗留行全部回填 ──
+        let expected_obj_wall = chrono::DateTime::parse_from_rfc3339(obj_updated)
+            .unwrap()
+            .timestamp_millis();
+        let expected_profile_wall = chrono::DateTime::parse_from_rfc3339(profile_updated)
+            .unwrap()
+            .timestamp_millis();
+        let node = normalize_sync_node_id("unknown"); // 无 sync_node_id → "unknown" 规范化
+
+        let (wall, counter, node_id): (i64, i64, String) = conn
+            .query_row(
+                "SELECT wall_time_ms, counter, node_id FROM sync_hlc WHERE table_name='objects' AND record_id='o1'",
+                [],
+                |r| Ok((r.get(0)?, r.get(1)?, r.get(2)?)),
+            )
+            .unwrap();
+        assert_eq!(wall, expected_obj_wall, "objects 回退 wall 必须逐字节一致");
+        assert_eq!(counter, 0);
+        assert_eq!(node_id, node);
+
+        let (wall, counter): (i64, i64) = conn
+            .query_row(
+                "SELECT wall_time_ms, counter FROM sync_hlc WHERE table_name='profiles' AND record_id='p1'",
+                [],
+                |r| Ok((r.get(0)?, r.get(1)?)),
+            )
+            .unwrap();
+        assert_eq!(
+            wall, expected_profile_wall,
+            "profiles 回退 wall 必须逐字节一致"
+        );
+        assert_eq!(counter, 0);
+
+        let (wall, counter): (i64, i64) = conn
+            .query_row(
+                "SELECT wall_time_ms, counter FROM sync_hlc WHERE table_name='trash_items' AND record_id='t1'",
+                [],
+                |r| Ok((r.get(0)?, r.get(1)?)),
+            )
+            .unwrap();
+        assert_eq!(wall, trash_deleted, "trash_items wall 取 deleted_at 原值");
+        assert_eq!(counter, 0);
+
+        let (wall, counter): (i64, i64) = conn
+            .query_row(
+                "SELECT wall_time_ms, counter FROM sync_hlc WHERE table_name='user_templates' AND record_id='u1'",
+                [],
+                |r| Ok((r.get(0)?, r.get(1)?)),
+            )
+            .unwrap();
+        assert_eq!(
+            wall, 0,
+            "user_templates 空 updated_at 回退 parse_time_ms(\"\")=0"
+        );
+        assert_eq!(counter, 0);
+
+        // 已有 HLC 的行不被覆盖。
+        let (wall, counter): (i64, i64) = conn
+            .query_row(
+                "SELECT wall_time_ms, counter FROM sync_hlc WHERE table_name='objects' AND record_id='o2'",
+                [],
+                |r| Ok((r.get(0)?, r.get(1)?)),
+            )
+            .unwrap();
+        assert_eq!(wall, 1709424000000, "已有 HLC 的行必须保持不动");
+        assert_eq!(counter, 7);
+
+        // 幂等：重复执行 run_migrations 不再产生重复回填（version 已到位，migrate_v23 跳过）。
+        run_migrations(&mut conn).unwrap();
+        let hlc_count: i64 = conn
+            .query_row("SELECT COUNT(*) FROM sync_hlc", [], |r| r.get(0))
+            .unwrap();
+        assert_eq!(
+            hlc_count, 5,
+            "objects o1/o2 + profiles + trash + template = 5 行，重复迁移不得新增"
+        );
+    }
+
+    /// 已配置 sync 节点的库：回填 node 必须取规范化本地节点（而非 "unknown"）。
+    #[test]
+    fn test_migration_v23_backfill_uses_stored_sync_node() {
+        let (mut conn, _dir) = setup_conn();
+        run_migrations(&mut conn).unwrap();
+        conn.execute_batch(
+            "ALTER TABLE profiles ADD COLUMN created_at TEXT;
+             ALTER TABLE profiles ADD COLUMN updated_at TEXT;
+             ALTER TABLE profiles ADD COLUMN version INTEGER DEFAULT 1;",
+        )
+        .unwrap();
+
+        // metadata 存 base64 明文 sync_node_id（与 read_metadata/write_metadata 一致）。
+        use base64::Engine as _;
+        let raw_node = "node_a1b2c3d4e5f60718293a4b5c6d7e8f90";
+        let b64 = base64::engine::general_purpose::STANDARD.encode(raw_node.as_bytes());
+        conn.execute(
+            "INSERT INTO metadata (key, value, updated_at) VALUES ('sync_node_id', ?1, '2024-01-01T00:00:00Z')",
+            params![b64],
+        )
+        .unwrap();
+        conn.execute(
+            "INSERT INTO objects (id, account_id, name, created_at, updated_at) VALUES ('o1', 'acc1', 'ObjA', '2024-01-01T00:00:00Z', '2024-01-15T00:00:00Z')",
+            [],
+        )
+        .unwrap();
+
+        conn.execute("DELETE FROM schema_migrations WHERE version = 23", [])
+            .unwrap();
+        set_schema_version(&conn, 22).unwrap();
+        run_migrations(&mut conn).unwrap();
+
+        let expected_node = normalize_sync_node_id(raw_node);
+        let (node_id, wall): (String, i64) = conn
+            .query_row(
+                "SELECT node_id, wall_time_ms FROM sync_hlc WHERE table_name='objects' AND record_id='o1'",
+                [],
+                |r| Ok((r.get(0)?, r.get(1)?)),
+            )
+            .unwrap();
+        assert_eq!(node_id, expected_node, "回填 node 必须取规范化本地节点");
+        assert!(wall > 0);
     }
 
     #[test]

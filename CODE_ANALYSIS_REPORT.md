@@ -17,7 +17,7 @@
 | `cargo fmt --check` | ✅ 通过 | ✅ 通过 |
 | `cargo clippy --workspace --all-targets` | ✅ 零警告 | ✅ 零警告 |
 | 前端测试 | ✅ 46 文件 / 430 用例 | ✅ 55 文件 / 484 用例（较修复前 +54） |
-| Rust 测试 | ✅ 全部通过 | ✅ 全部通过（solo_soul 365 / core 156（默认；`future-keychain` 开启时 +4）/ crypto 34 / plugin 56 / sync 47 / vault 123） |
+| Rust 测试 | ✅ 全部通过 | ✅ 全部通过（solo_soul 365 / core 156（默认；`future-keychain` 开启时 +4）/ crypto 34 / plugin 56 / sync 47 / vault 127（方案 B 阶段 1-3 后 +4）） |
 
 ## §2 总览：80 项问题处置结果
 
@@ -25,7 +25,7 @@
 - **80 项问题全部闭环**（78 项可执行修复 + P133 用户决策接入 + P134 用户决策门控 + P135 用户决策反向接入 + **N-10/P207 路径 1 公钥注入闭环**），其中 P104/P206 为部分修复/部分保留，P209 为用户决策保留。
 - **遗留未完成/待跟进 4 类**（§4 详细讨论）：
   1. **P223/P224**：长函数/巨型组件长期重构（唯一进行中工作项，§4.1 详述；**P224-①②③④⑤ TrashDetailPanel/SyncPage/TemplateManagerPage/AboutPage/OcrPage 与 P223-① host.rs 六簇分簇、P223-② objects/trash/snapshots/sync_meta/sync_changes/sync_apply/metadata/profile 八域、P223-③ lib.rs 收尾均已完成拆分** `bc395973`/`8c74253c`/`2bdc5fdd`/`084cfdd0`/`fd70cc77`/`0f0a37ff`/`005fbfdf`/`ae030551`/`ad244d7c`/`22e1a20f`/`14eff424`/`89446aeb`/`508f9445`/`cef5776c`/`a7d5925d`）；
-  2. **R-3/R-4①**：已声明残余窗口（§4.2，低风险工程取舍）；
+  2. **R-3/R-4①**：R-3 已随方案 B 阶段 3 整体关闭（§4.2.1，2026-08-04）；R-4① 维持已声明窄窗口（§4.2.2）；
   3. **P209**：legacy XOR 迁移窗口保留（§4.3，决策保留）；
   4. ~~**P206**：PDF embed 与 object-src CSP 遗留观察~~（§4.4，✅ 已闭环 `d446dc0e`，不再属于遗留）。
 - **归档说明**：N-10/P207 与 P133/P134/P135 等已闭环项的详细修复记录已压缩至 §3（一行要点 + commit 指针），不再保留 §4 详节。
@@ -166,6 +166,9 @@
 | R-3 游标持久化 | fbe7d945 | ✅ | 迁移 v22 `sync_watermarks.cursor_id`，会话层恢复游标续传，回归测试 ×2；残余窗口见 §4.2 |
 | R-4 回滚上抛 | 4ad8e9a8 | ✅（②③） | 回滚助手返回 Result + 调用方并入「automatic rollback FAILED」文案 + toggleable mock fs 失败注入测试；①见 §4.2 |
 | R-5 locale | 397f6d84 | ✅ | `settings:link_open_failed` 补入双语 |
+| 方案B-1 objects HLC | 1a33f513 | ✅ | objects 域本地写统一 HLC + 节点规范化修复（死循环根因） |
+| 方案B-2 三域 HLC | c32fbced | ✅ | trash/profile/user_template 域统一 HLC + 软删对象新 HLC 堵同步缺口 |
+| 方案B-3 回填退休 | 待提交 | ✅ | 迁移 v23 存量 HLC 回填（wall 按各表回退语义逐字节复刻）+ 回退兜底保留，R-3 窗口关闭 |
 
 ---
 
@@ -342,7 +345,7 @@
   - **影响面（实测）**：objects 域（`save_object_tx`/`delete_object`/`restore_object`，墓碑用 `new_tombstone_hlc`）+ trash 域（`trash_and_soft_delete_batch`/`save_trash_item_tx`/`delete_trash_item`）+ metadata 域（`save_user_template_tx`/`delete_user_template`）+ profile 域（`save_profile_tx`/`delete_profile`）；snapshots 域不参与同步可不动。**commands/CLI 层零改动**（全部经 vault 层方法间接调用）。
   - **成本**：1–2 天。分三阶段：① objects 域验证模式；② trash/profile/user_template 域；③ 回退路径退休（sync_changes.rs:133/424 的 `record_hlc_or_fallback` fallback 分支与 SQL `h.wall_time_ms IS NULL` 分支简化）。风险点：`delete_object` 墓碑与 `trash_and_soft_delete_batch` 的 HLC 生成时序、25+ 既有同步测试适配（部分断言依赖回退行为）。
   - **备选方案 A（等值组尾部回扫）成本 4–6h（基础）/ 8–10h（含防重复投递设计），已否决**——回扫会把已投递行重复投递，需额外记录已投递 id 集合，收益低于成本；方案 B 是根治方向。
-  - **当前状态**：**阶段 1（objects 域）与阶段 2（trash/profile/user_template 域）均已闭环**（2026-08-04）；仅剩阶段 3（回退路径退休 + sync_changes 简化）。
+  - **当前状态**：**阶段 1/2/3 全部闭环**（2026-08-04）——阶段 3（存量回填迁移 v23 + 回退兜底保留）实施见下，R-3 窗口随本地写统一 HLC 整体关闭（仅保留「用户选择保守退休」的兜底安全网）。
   - **✅ 阶段 1 实施记录（2026-08-04）**：
     - **objects 域本地写统一 HLC**：`save_object`/`save_objects_batch`/`delete_object`/`restore_object` 在写事务外层生成 HLC（`new_local_hlc`/`new_tombstone_hlc`）并在事务内 `set_record_hlc_tx` 落库。**`save_object_tx` 保持不动**（sync_apply 远端应用路径复用、自写 HLC），故本地写 HLC 必须在外层生成。
     - **关键修复（normalize_sync_node_id）**：初版本地写 HLC 行 node 为 raw `local_node_id()`（生产 `node_<32hex>` 40 字符 / 测试 `"unknown"`），与 sync 层 session.rs 的 hex 规范化节点（`hex::encode(Hlc::parse_node_id_bytes(...))`）及水印落库格式**编码错配** → keyset 等值组判定 `node == 水印 node` 永不成立，同 wall 行经 strict `>` 反复通过、id 游标不推进 → **分页死循环**（sync crate `test_generate_delta_paginated_keyset_production_encoding` 实测挂起，修复后 0.03s 通过；生产 `get_or_create_sync_identity` 路径同款触发）。修复：`new_local_hlc`/`new_tombstone_hlc` 生成时经新增 `normalize_sync_node_id`（sync_meta.rs，与 session.rs 逐字节一致：32 字符按 hex 解码、其余取前 16 字节补零）规范化 node。
@@ -355,6 +358,13 @@
     - **测试适配**：`test_trash_changes_since_honors_millisecond_deleted_at`（R-2）改经 `save_trash_item_tx` 直插（不落 HLC）保留回退 ms 解释覆盖；`test_paginated_trash_keyset_equal_deleted_at_completeness` 显式 `set_record_hlc` 等值组保留 keyset 边界覆盖；新增防回归 `test_local_write_hlc_stage2_domains`（四写路径落库 HLC + 节点规范化 + 软删对象 HLC 晚于 save + 软删对象以 `deleted:true` 出现在变更清单）。
     - **验证**：vault 125（+1）/ sync 47 全绿 / fmt 干净 / clippy 0 警告 / workspace + CLI check 0 错误 / code-reviewer GO。
     - **既有缺口记录（超范围，不扩大）**：`delete_trash_item`（trash 条目永久删除）与 objects 硬删不传播——trash 变更清单不合并墓碑且 `apply_trash_sync_record_tx` 不处理 deleted 记录，加 HLC 即成死代码；属既有同步缺口，单独立项评估。
+  - **✅ 阶段 3 实施记录（2026-08-04，用户决策方案 B：回填迁移 + 保留兜底）**：
+    - **迁移 v23 `migrate_v23`**（migration.rs，`CURRENT_SCHEMA_VERSION` 22→23）：为升级前创建、无 sync_hlc 行的存量行（objects/profiles/trash_items/user_templates）回填 HLC。**wall 语义按各表真实回退路径逐字节复刻**：objects 用 keyset SQL 同款 `julianday(updated_at)→ms`；trash_items 用 `deleted_at` 原值；profiles/user_templates 用 Rust `parse_time_ms`（chrono RFC3339→ms，解析失败/NULL→0）——Rust 层逐行计算（**julianday 浮点对部分时间戳差 1ms，不可混用**，测试实测抓出 1ms 差异后修正）。counter=0，node=规范化本地节点（读 `metadata` 表 base64 明文 `sync_node_id`，无则 `"unknown"`，经与 session.rs 逐字节一致的 `normalize_sync_node_id`）。LEFT JOIN + INSERT OR IGNORE 双保险，已有 HLC 行不动。
+    - **兜底保留（保守退休核心）**：`record_hlc_or_fallback` 与 keyset SQL 的 `h.wall_time_ms IS NULL` 分支**不删除**——未来任何直写 SQL 路径产生的无 HLC 行仍可经回退同步（安全网）。
+    - **去重**：`normalize_sync_node_id` 提升 `pub(crate)`（sync_meta.rs），迁移层 `parse_time_ms`/`normalize_sync_node_id` 均复用 `VaultStore` 关联函数（同一 crate 无循环依赖）。
+    - **测试**：新增防回归 ×2——`test_migration_v23_backfills_hlc_for_legacy_rows`（四表回填 wall/counter/node 逐字节断言 + 已有 HLC 行不动 + 幂等不新增）+ `test_migration_v23_backfill_uses_stored_sync_node`（已配置节点时 node 取规范化本地节点而非 `"unknown"`）。
+    - **验证**：vault 127（+2）/ sync 47 全绿 / fmt 干净 / clippy 0 警告 / workspace + CLI check 0 错误 / code-reviewer GO。
+    - **语义注记（声明，非缺陷）**：从未同步过的新库（无 `sync_node_id`）回填 node 为 `normalize("unknown")`，后续本地写用真实生成节点——排序仍全序（游标 id 决胜），非正确性 bug，仅记录以免意外。
 
 #### 4.2.2 R-4①：reencrypt commit 后、config 写前进程崩溃（低）
 

@@ -328,7 +328,8 @@ impl VaultStore {
     /// 判定 (node == 水印 node) 永不成立，同 wall 行经 strict `>` 反复通过、id 游标
     /// 不推进，分页死循环（方案 B 阶段 1 在 sync 测试实测：`test_generate_delta_
     /// paginated_keyset_production_encoding` 挂起）。
-    fn normalize_sync_node_id(node_id: &str) -> String {
+    /// 与 session.rs 节点规范化逐字节一致（migration.rs 复用此 pub(crate) 版本）。
+    pub(crate) fn normalize_sync_node_id(node_id: &str) -> String {
         let bytes = if node_id.len() == 32 {
             hex::decode(node_id).unwrap_or_else(|_| Vec::new())
         } else {
