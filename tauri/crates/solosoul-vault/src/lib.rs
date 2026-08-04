@@ -222,6 +222,8 @@ pub struct GuideEmbeddingChunk {
 }
 
 pub use encryption::DataEncryptionKey;
+/// R-4① 方案 2：只读数据密钥探测（独立只读连接，无 open 副作用）。
+pub use storage::probe_data_key;
 pub use storage::VaultStore;
 
 // =============================================================================

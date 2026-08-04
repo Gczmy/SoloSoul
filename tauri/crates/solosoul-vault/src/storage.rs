@@ -1,6 +1,6 @@
 //! Vault store - SQLite storage with app-layer AES-256-GCM encryption
 
-use rusqlite::{params, Connection};
+use rusqlite::{params, Connection, OptionalExtension};
 use std::sync::Mutex;
 use zeroize::Zeroize;
 
@@ -171,6 +171,81 @@ pub fn json_contains_ignore_case(value: &serde_json::Value, needle_lower: &str) 
             k.to_lowercase().contains(needle_lower) || json_contains_ignore_case(v, needle_lower)
         }),
     }
+}
+
+/// R-4① 方案 2（probe 判定）：探测给定数据密钥能否解密指定 vault.db 中的现有数据。
+///
+/// 独立只读连接（`PRAGMA query_only`），**不**走 `VaultStore::open`——后者会触发
+/// 迁移/一次性回填（`migrate_to_encrypted_format`/`backfill_*`/`repair_restored_objects`），
+/// 用探测密钥执行将造成写副作用；probe 必须纯只读、可安全用错误密钥调用。
+///
+/// 依次尝试 profiles.data / objects.properties / trash_items.data /
+/// user_templates.properties_json 的第一行非空加密字段；任一表有非空数据即用该表
+/// 判定（解密成功 → true）；全部为空 → true（无数据可证，任何密钥均可）。
+///
+/// 用途：reencrypt→config 两阶段交换崩溃后，unlock/verify_password 用旧钥与新钥
+/// 各探测一次，判断 reencrypt 事务是否已提交（数据是新钥还是旧钥），从而决定
+/// promote（完成交换）还是 discard（丢弃 pending）。全有或全无的 reencrypt 保证
+/// 单表探测即确定，无歧义。
+pub fn probe_data_key(db_path: &std::path::Path, key: &DataEncryptionKey) -> Result<bool, String> {
+    // READ_ONLY：文件不存在时直接报错而非创建——probe 必须是纯只读，
+    // 连「误建空 db 文件」这类写副作用都不能有。
+    let conn = Connection::open_with_flags(db_path, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY)
+        .map_err(|e| format!("Failed to open vault for probe: {}", e))?;
+    conn.execute_batch("PRAGMA query_only = ON;")
+        .map_err(|e| format!("Failed to set query_only for probe: {}", e))?;
+
+    // profiles.data（AES blob）
+    if let Some(row) = conn
+        .query_row("SELECT data FROM profiles LIMIT 1", [], |r| {
+            r.get::<_, Vec<u8>>(0)
+        })
+        .optional()
+        .map_err(|e| e.to_string())?
+    {
+        if !row.is_empty() {
+            return Ok(decrypt_field(key, &row).is_ok());
+        }
+    }
+    // objects.properties（加密文本）
+    if let Some(props) = conn
+        .query_row("SELECT properties FROM objects LIMIT 1", [], |r| {
+            r.get::<_, String>(0)
+        })
+        .optional()
+        .map_err(|e| e.to_string())?
+    {
+        if !props.is_empty() {
+            return Ok(decrypt_text_field(key, &props).is_ok());
+        }
+    }
+    // trash_items.data（AES blob）
+    if let Some(row) = conn
+        .query_row("SELECT data FROM trash_items LIMIT 1", [], |r| {
+            r.get::<_, Vec<u8>>(0)
+        })
+        .optional()
+        .map_err(|e| e.to_string())?
+    {
+        if !row.is_empty() {
+            return Ok(decrypt_field(key, &row).is_ok());
+        }
+    }
+    // user_templates.properties_json（加密文本）
+    if let Some(props) = conn
+        .query_row(
+            "SELECT properties_json FROM user_templates LIMIT 1",
+            [],
+            |r| r.get::<_, String>(0),
+        )
+        .optional()
+        .map_err(|e| e.to_string())?
+    {
+        if !props.is_empty() {
+            return Ok(decrypt_text_field(key, &props).is_ok());
+        }
+    }
+    Ok(true)
 }
 
 /// Vault store with SQLite backing
@@ -4397,7 +4472,10 @@ mod tests {
             )
             .unwrap();
         let obj_rec = changes.iter().find(|r| r.id == obj_id).unwrap();
-        assert!(obj_rec.deleted, "软删对象必须以 deleted:true 出现在变更清单");
+        assert!(
+            obj_rec.deleted,
+            "软删对象必须以 deleted:true 出现在变更清单"
+        );
 
         // ③ profile：save_profile → profiles HLC
         vault

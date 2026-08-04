@@ -275,6 +275,32 @@ impl VaultService {
         format!("{id}/config.json")
     }
 
+    /// R-4① 方案 2：两阶段 config 交换的 pending 载体路径。
+    /// reencrypt 前先把新 config 内容原子写到这里，交换完成后删除；
+    /// 崩溃后残留的 pending 文件由 `recover_pending_reencrypt` 消费。
+    fn config_pending_path_rel(&self, id: &str) -> String {
+        format!("{id}/config.json.pending")
+    }
+
+    /// R-4① 方案 2：原子写 pending config（意图记录）。与 `write_config_atomic`
+    /// 同款 .tmp+rename 原子语义（复用 fs 层的 write_file_atomic）。
+    fn write_config_pending(&self, account_id: &str, content: &[u8]) -> Result<(), String> {
+        let pending_rel = self.config_pending_path_rel(account_id);
+        self.fs.write_file_atomic(&pending_rel, content)?;
+        self.ensure_private_file(&pending_rel)?;
+        Ok(())
+    }
+
+    /// R-4① 方案 2：删除 pending config（best-effort，日志兜底）。
+    fn remove_config_pending(&self, account_id: &str) {
+        let pending_rel = self.config_pending_path_rel(account_id);
+        if self.fs.exists(&pending_rel).unwrap_or(false) {
+            if let Err(e) = self.fs.remove_file(&pending_rel) {
+                tracing::warn!("Failed to remove pending config for {}: {}", account_id, e);
+            }
+        }
+    }
+
     /// P135：原子写账户 config（.tmp + rename）。
     ///
     /// 与 R-4① 协同：reencrypt→config 两阶段中 config 写入是最后一步，
@@ -758,6 +784,135 @@ impl VaultService {
         }
     }
 
+    /// R-4① 方案 2：恢复未完成的 reencrypt→config 两阶段交换。
+    ///
+    /// 崩溃窗口 = reencrypt 事务已提交、active config 未更新。此时
+    /// `config.json.pending`（reencrypt 前写入的新 config 内容）残留：
+    /// 用密码派生旧钥（active config）与新钥（pending config）各探测一次数据
+    /// （`VaultStore::probe_data_key`），判定 reencrypt 是否已提交：
+    /// - 新钥可解密 → reencrypt 已提交 → **promote**：pending 内容原子写为
+    ///   active config，删除 pending，账户数据密钥切换到新钥；
+    /// - 旧钥可解密 → reencrypt 未提交（事务回滚或从未执行）→ **discard**：
+    ///   删除 pending，数据保持旧钥；
+    /// - 两者都不可解 → 密码错误（或数据损坏）→ 不删 pending，上抛。
+    ///
+    /// 常态（无 pending 文件）零开销。probe 为只读，不触发迁移类副作用。
+    fn recover_pending_reencrypt(&self, account_id: &str, password: &str) -> Result<(), String> {
+        let pending_rel = self.config_pending_path_rel(account_id);
+        if !self.fs.exists(&pending_rel).map_err(|e| e.to_string())? {
+            return Ok(()); // 常态零开销
+        }
+        tracing::warn!(
+            "R-4①: pending config found for {}, recovering interrupted reencrypt",
+            account_id
+        );
+
+        // 读取并解析 pending（新）config。
+        let pending_bytes = self
+            .fs
+            .read_file(&pending_rel)
+            .map_err(|_| "Pending config read failed".to_string())?;
+        let pending_content = String::from_utf8(pending_bytes.clone())
+            .map_err(|_| "Pending config encoding error".to_string())?;
+        let pending_config: AccountConfig = serde_json::from_str(&pending_content)
+            .map_err(|_| "Pending config parse error".to_string())?;
+
+        // 新钥探测：用密码 + pending config 派生新钥，尝试解密数据。
+        if let Ok(new_key_arr) = self.derive_key_from_config(&pending_config, password) {
+            if self.probe_data_key(account_id, &new_key_arr)? {
+                // reencrypt 已提交 → promote：pending 内容写为 active config。
+                tracing::info!("R-4①: promote pending config for {}", account_id);
+                self.write_config_atomic(account_id, &pending_bytes)?;
+                self.remove_config_pending(account_id);
+                // 评审补强：同步更新生物识别凭证（promote 后数据=新钥，旧凭证陈旧会
+                // 导致下一次生物识别解锁“打开成功但解密全失败”）与清除 PIN 凭证，
+                // 镜像 change_password/unlock_with_kdf_upgrade 成功路径的尾部。
+                self.refresh_credentials_after_promote(account_id, &new_key_arr);
+                return Ok(());
+            }
+        }
+
+        // 旧钥探测：用密码 + active config 派生旧钥，尝试解密数据。
+        let (config, salt_arr, mk, master_key) =
+            self.load_config_and_derive_master_key(account_id, password)?;
+        let _ = (config, salt_arr, master_key);
+        if self.probe_data_key(account_id, &mk)? {
+            // reencrypt 未提交 → discard：删除 pending，数据保持旧钥。
+            tracing::info!("R-4①: discard pending config for {}", account_id);
+            self.remove_config_pending(account_id);
+            return Ok(());
+        }
+
+        // 密码错误（或数据损坏）：保留 pending 供下次重试/人工恢复。
+        // 附带 pending 存在提示，帮助用户在「改密后崩溃、新旧密码不确定」场景下判断
+        // 应尝试哪一侧密码（数据侧密钥为准）。
+        Err(
+            "Invalid password (interrupted key rotation pending; try the other password)"
+                .to_string(),
+        )
+    }
+
+    /// R-4① 方案 2：用给定密钥探测 vault.db 数据可解性。
+    /// 纯只读独立连接（solosoul_vault::probe_data_key），不触发 open 的迁移/
+    /// 回填副作用，可安全用错误密钥调用。
+    fn probe_data_key(&self, account_id: &str, key: &[u8; 32]) -> Result<bool, String> {
+        let account_dir_path = self
+            .fs
+            .local_path(&self.account_dir_rel(account_id))
+            .ok_or("无法解析账户本地目录")?;
+        let db_path = account_dir_path.join("vault.db");
+        solosoul_vault::probe_data_key(&db_path, &solosoul_vault::DataEncryptionKey::new(*key))
+    }
+
+    /// R-4① 方案 2：promote 后同步凭证（best-effort，失败仅记日志）。
+    /// 镜像 change_password / unlock_with_kdf_upgrade 成功路径尾部：
+    /// 生物识别凭证更新为新钥；PIN 凭证（旧钥）清除后由用户重新设置。
+    fn refresh_credentials_after_promote(&self, account_id: &str, new_key: &[u8; 32]) {
+        {
+            let bio_manager = make_biometric_manager(self.base_path().clone());
+            let new_key_hex = hex::encode(new_key.as_slice());
+            if let Err(e) = bio_manager.update_credential(account_id, &new_key_hex) {
+                tracing::warn!(
+                    "Failed to update biometric credential after R-4① promote for {}: {}",
+                    account_id,
+                    e
+                );
+            }
+        }
+        {
+            let pin_manager = PinManager::new(self.base_path().clone());
+            if let Err(e) = pin_manager.clear_credential(account_id) {
+                tracing::warn!(
+                    "Failed to clear PIN credential after R-4① promote for {}: {}",
+                    account_id,
+                    e
+                );
+            }
+        }
+    }
+
+    /// R-4① 方案 2：从给定的 AccountConfig 派生主密钥（[u8; 32]）。
+    fn derive_key_from_config(
+        &self,
+        config: &AccountConfig,
+        password: &str,
+    ) -> Result<[u8; 32], String> {
+        let salt_bytes =
+            base64::Engine::decode(&base64::engine::general_purpose::STANDARD, &config.salt)
+                .map_err(|_| "Invalid salt".to_string())?;
+        let salt_arr: [u8; 16] = salt_bytes
+            .as_slice()
+            .try_into()
+            .map_err(|_| "Invalid salt length".to_string())?;
+        let kdf_config = config.kdf_config();
+        let master_key = derive_key(password, &salt_arr, &kdf_config)
+            .map_err(|_| "Key derivation failed".to_string())?;
+        master_key
+            .as_slice()
+            .try_into()
+            .map_err(|_| "Master key must be 32 bytes".to_string())
+    }
+
     pub fn unlock_secure(
         &self,
         account_id: &str,
@@ -767,6 +922,10 @@ impl VaultService {
     }
 
     pub fn unlock(&self, account_id: &str, password: &str) -> Result<(), String> {
+        // R-4① 方案 2：解锁入口先恢复未完成的 reencrypt→config 交换。
+        // 常态（无 pending 文件）零开销；有 pending 时 promote/discard 后
+        // 再走正常解锁路径（config 已恢复一致，verify 与数据密钥对齐）。
+        self.recover_pending_reencrypt(account_id, password)?;
         let (config, salt_arr, mk, master_key) =
             self.load_config_and_derive_master_key(account_id, password)?;
         // Backward compat: crypto_version < 3 uses old Argon2id verify hash
@@ -900,18 +1059,6 @@ impl VaultService {
             .read_file(&config_rel)
             .map_err(|_| "Account not found".to_string())?;
 
-        // 用旧密钥打开 Vault 并重加密全部数据。
-        // N-2：reencrypt_all 事务内全有或全无（任一行失败整体回滚，数据保持旧密钥）。
-        let account_dir_path = self
-            .fs
-            .local_path(&self.account_dir_rel(account_id))
-            .ok_or("无法解析账户本地目录")?;
-        let vault_config =
-            VaultConfig::new(account_id, account_dir_path).with_data_key(old_key_arr);
-        let vault = VaultStore::open(vault_config)
-            .map_err(|e| format!("Failed to open vault for KDF upgrade: {}", e))?;
-        vault.reencrypt_all(&old_key, &new_key_enc)?;
-
         // 更新 config：新 salt、新 verify hash、生产参数。
         let content = String::from_utf8(old_config_content.clone())
             .map_err(|_| "Config encoding error".to_string())?;
@@ -929,6 +1076,26 @@ impl VaultService {
         config.kdf_iterations = Some(new_kdf_config.iterations);
         config.kdf_parallelism = Some(new_kdf_config.parallelism);
         let config_json = serde_json::to_string_pretty(&config).map_err(|e| e.to_string())?;
+
+        // R-4① 方案 2：reencrypt 前先把新 config 原子写入 pending 载体。
+        self.write_config_pending(account_id, config_json.as_bytes())?;
+
+        // 用旧密钥打开 Vault 并重加密全部数据。
+        // N-2：reencrypt_all 事务内全有或全无（任一行失败整体回滚，数据保持旧密钥）。
+        let account_dir_path = self
+            .fs
+            .local_path(&self.account_dir_rel(account_id))
+            .ok_or("无法解析账户本地目录")?;
+        let vault_config =
+            VaultConfig::new(account_id, account_dir_path).with_data_key(old_key_arr);
+        let vault = VaultStore::open(vault_config)
+            .map_err(|e| format!("Failed to open vault for KDF upgrade: {}", e))?;
+        if let Err(e) = vault.reencrypt_all(&old_key, &new_key_enc) {
+            // reencrypt 失败（事务回滚，数据仍为旧钥）：pending 无意义，清除后上抛。
+            self.remove_config_pending(account_id);
+            return Err(format!("KDF upgrade re-encryption failed: {}", e));
+        }
+
         // P135: 原子写——config 更新为关键写入路径。
         if let Err(e) = self.write_config_atomic(account_id, config_json.as_bytes()) {
             // N-2：config 写入失败 → 回滚（恢复旧 config + 数据重加密回旧密钥），
@@ -941,14 +1108,24 @@ impl VaultService {
                 &old_key,
                 &new_key_enc,
             ) {
-                Ok(_) => "an automatic rollback to the previous key was attempted.".to_string(),
-                Err(rb) => format!("automatic rollback FAILED: {}", rb),
+                Ok(_) => {
+                    // 回滚成功：数据已重加密回旧钥、config 已恢复 → pending 同步清除。
+                    self.remove_config_pending(account_id);
+                    "an automatic rollback to the previous key was attempted.".to_string()
+                }
+                Err(rb) => {
+                    // 回滚失败：保留 pending——数据可能仍为新钥，下次解锁经
+                    // recover_pending_reencrypt promote 可完成交换（恢复线索）。
+                    format!("automatic rollback FAILED: {}", rb)
+                }
             };
             return Err(format!(
                 "KDF upgrade failed to update config: {}; {}",
                 e, rollback_note
             ));
         }
+        // R-4① 方案 2：config 写入成功 → 交换完成，清除 pending。
+        self.remove_config_pending(account_id);
         // 释放临时 Vault 连接，随后以新密钥重开（避免同一 DB 双连接）
         drop(vault);
 
@@ -1057,9 +1234,14 @@ impl VaultService {
     }
 
     /// Verify whether the given password matches the account's master password.
-    /// Does NOT modify any state (no unlocking, no session key storage).
+    /// Does NOT unlock (no session key storage).
+    /// R-4① 方案 2：入口会先恢复未完成的 reencrypt→config 交换（promote 时原子改写
+    /// config.json / 删除 pending）——这是崩溃恢复所需的修复性副作用，非解锁状态变更。
     /// Verify hash is derived from the Argon2id master key using HKDF-SHA256 (P2-010).
     pub fn verify_password(&self, account_id: &str, password: &str) -> Result<bool, String> {
+        // R-4① 方案 2：verify 入口同样先恢复 pending（reencrypt→config 交换），
+        // 保证密码校验基于一致的 config；常态零开销。
+        self.recover_pending_reencrypt(account_id, password)?;
         let (config, salt_arr, mk, master_key) =
             self.load_config_and_derive_master_key(account_id, password)?;
         // Backward compat: crypto_version < 3 uses old Argon2id verify hash
@@ -1079,6 +1261,16 @@ impl VaultService {
         account_id: &str,
         session_key: &[u8; 32],
     ) -> Result<(), String> {
+        // R-4① 方案 2：存在未完成的 reencrypt→config 交换时，会话密钥（生物识别/
+        // PIN）可能是旧钥而数据已是新钥——需密码派生密钥才能恢复，这里显式拒绝
+        // 并引导走密码解锁（recover_pending_reencrypt 会完成交换）。
+        let pending_rel = self.config_pending_path_rel(account_id);
+        if self.fs.exists(&pending_rel).map_err(|e| e.to_string())? {
+            return Err(
+                "Pending key rotation detected; please unlock with your password".to_string(),
+            );
+        }
+
         // Set session key
         if let Ok(mut key) = self.session_key.write() {
             *key = Some(Zeroizing::new(*session_key));
@@ -1149,15 +1341,6 @@ impl VaultService {
         let old_config: AccountConfig =
             serde_json::from_str(&content).map_err(|_| "Config parse error".to_string())?;
 
-        // Re-encrypt all sensitive data with the new key（reencrypt_all 事务内全有或全无）。
-        {
-            let vault_guard = self
-                .get_vault_store()
-                .ok_or("Vault not available for re-encryption")?;
-            let vault = vault_guard.as_ref();
-            vault.reencrypt_all(&old_key, &new_key_enc)?;
-        }
-
         // Derive new verify hash via HKDF (P2-010).
         let mk: [u8; 32] = new_key_arr; // already 32 bytes from try_into above
         let verify_hash = hex::encode(
@@ -1175,6 +1358,26 @@ impl VaultService {
         config.kdf_iterations = Some(new_kdf_config.iterations);
         config.kdf_parallelism = Some(new_kdf_config.parallelism);
         let config_json = serde_json::to_string_pretty(&config).map_err(|e| e.to_string())?;
+
+        // R-4① 方案 2：reencrypt 前先把新 config 原子写入 pending 载体——
+        // 崩溃后残留的 pending 由 unlock/verify 入口 recover_pending_reencrypt
+        // 用 probe 判定 reencrypt 是否已提交：已提交 → promote（pending 升为
+        // active），未提交 → discard（删 pending）。
+        self.write_config_pending(account_id, config_json.as_bytes())?;
+
+        // Re-encrypt all sensitive data with the new key（reencrypt_all 事务内全有或全无）。
+        {
+            let vault_guard = self
+                .get_vault_store()
+                .ok_or("Vault not available for re-encryption")?;
+            let vault = vault_guard.as_ref();
+            if let Err(e) = vault.reencrypt_all(&old_key, &new_key_enc) {
+                // reencrypt 失败（事务回滚，数据仍为旧钥）：pending 无意义，清除后上抛。
+                self.remove_config_pending(account_id);
+                return Err(format!("Re-encryption failed: {}", e));
+            }
+        }
+
         // P135: 原子写——config 更新为关键写入路径。
         if let Err(e) = self.write_config_atomic(account_id, config_json.as_bytes()) {
             // N-2：config 写入失败 → 回滚（恢复旧 config + 数据重加密回旧密钥），
@@ -1188,8 +1391,16 @@ impl VaultService {
                     &old_key,
                     &new_key_enc,
                 ) {
-                    Ok(_) => "an automatic rollback to the previous key was attempted.".to_string(),
-                    Err(rb) => format!("automatic rollback FAILED: {}", rb),
+                    Ok(_) => {
+                        // 回滚成功：数据已重加密回旧钥、config 已恢复 → pending 同步清除。
+                        self.remove_config_pending(account_id);
+                        "an automatic rollback to the previous key was attempted.".to_string()
+                    }
+                    Err(rb) => {
+                        // 回滚失败：保留 pending——数据可能仍为新钥，下次解锁经
+                        // recover_pending_reencrypt promote 可完成交换（恢复线索）。
+                        format!("automatic rollback FAILED: {}", rb)
+                    }
                 }
             } else {
                 "automatic rollback skipped (vault unavailable)".to_string()
@@ -1199,6 +1410,9 @@ impl VaultService {
                 e, rollback_note
             ));
         }
+
+        // R-4① 方案 2：config 写入成功 → 交换完成，清除 pending。
+        self.remove_config_pending(account_id);
 
         // Update session key and reopen vault with new data key.
         {
@@ -1914,6 +2128,207 @@ mod tests {
 
         svc.unlock(account_id, "password123").unwrap();
         assert!(svc.verify_password(account_id, "password123").unwrap());
+    }
+
+    // ── R-4① 方案 2：两阶段 config 交换（config.json.pending）崩溃恢复 ──────────
+    //
+    // 模拟工具：构造「reencrypt 已提交、active config 未更新」的崩溃后状态——
+    // 数据用新钥重加密 + pending 文件残留 + active config 仍为旧。
+
+    /// 派生并返回（new_salt, new_key_arr）。
+    fn make_new_key(password: &str) -> ([u8; 16], [u8; 32]) {
+        let salt = generate_salt();
+        let kdf = KdfConfig::from_env();
+        let new_key = derive_key(password, &salt, &kdf).unwrap();
+        let arr: [u8; 32] = new_key.as_slice().try_into().unwrap();
+        (salt, arr)
+    }
+
+    /// 构造 pending config 内容：基于当前 active config，仅替换 salt/verify_hash 为新钥对应值。
+    fn build_pending_config_json(
+        svc: &VaultService,
+        account_id: &str,
+        new_salt: &[u8; 16],
+        new_key: &[u8; 32],
+    ) -> String {
+        let config_path = svc.base_path().join(account_id).join("config.json");
+        let mut raw: serde_json::Value =
+            serde_json::from_str(&fs::read_to_string(&config_path).unwrap()).unwrap();
+        raw["salt"] = serde_json::Value::String(base64::Engine::encode(
+            &base64::engine::general_purpose::STANDARD,
+            new_salt.as_slice(),
+        ));
+        let verify_hash = hex::encode(
+            solosoul_crypto::hkdf_ext::derive_hkdf_key(
+                new_key,
+                new_salt,
+                b"SOLOSOUL_VAULT_VERIFY_v1",
+            )
+            .unwrap(),
+        );
+        raw["verify_hash"] = serde_json::Value::String(verify_hash);
+        serde_json::to_string_pretty(&raw).unwrap()
+    }
+
+    #[test]
+    fn test_recover_pending_promotes_when_reencrypt_committed() {
+        // 崩溃点：reencrypt 已提交（数据=新钥），active config 未更新（仍旧），
+        // pending 文件残留。下次用新密码 unlock 应 promote：pending 升为 active。
+        let (svc, _dir) = setup_service();
+        let account = svc.create_account("Promote", "password123", None).unwrap();
+        let account_id = account["id"].as_str().unwrap();
+
+        // 写一条非空 profile，保证 probe 能区分新旧钥。
+        {
+            let vault = svc.get_vault_store().unwrap();
+            vault
+                .save_profile(&solosoul_vault::Profile::new_with_id(
+                    account_id,
+                    "p",
+                    b"sensitive".to_vec(),
+                ))
+                .unwrap();
+        }
+
+        // 模拟：旧钥解锁 → 数据重加密到新钥（reencrypt 提交）→ 写 pending（新 config）→
+        // 不更新 active config（模拟崩溃残留）。
+        svc.unlock(account_id, "password123").unwrap();
+        let old_key_arr = *svc.get_session_key().unwrap();
+        let old_key = solosoul_vault::DataEncryptionKey::new(old_key_arr);
+        let (new_salt, new_key_arr) = make_new_key("newpassword123");
+        let new_key = solosoul_vault::DataEncryptionKey::new(new_key_arr);
+        let pending_json = build_pending_config_json(&svc, account_id, &new_salt, &new_key_arr);
+        svc.write_config_pending(account_id, pending_json.as_bytes())
+            .unwrap();
+        svc.get_vault_store()
+            .unwrap()
+            .reencrypt_all(&old_key, &new_key)
+            .unwrap();
+        let pending_path = svc.base_path().join(account_id).join("config.json.pending");
+        assert!(pending_path.exists(), "pending 应存在");
+        svc.lock();
+
+        // 用新密码解锁 → 恢复应 promote（pending 升为 active），解锁成功。
+        svc.unlock(account_id, "newpassword123").unwrap();
+        assert!(!pending_path.exists(), "promote 后 pending 应被删除");
+        assert!(svc.verify_password(account_id, "newpassword123").unwrap());
+        assert!(!svc.verify_password(account_id, "password123").unwrap());
+        // 数据以新钥可解密。
+        let logs_vault = svc.get_vault_store().unwrap();
+        let profile = logs_vault.load_profile(account_id).unwrap();
+        assert!(profile.is_some(), "promote 后数据应以新钥可读");
+    }
+
+    #[test]
+    fn test_recover_pending_discards_when_reencrypt_not_committed() {
+        // 崩溃点：pending 已写但 reencrypt 未提交（数据仍=旧钥）。
+        // 下次用旧密码 unlock 应 discard：删 pending，保持旧钥。
+        let (svc, _dir) = setup_service();
+        let account = svc.create_account("Discard", "password123", None).unwrap();
+        let account_id = account["id"].as_str().unwrap();
+        {
+            let vault = svc.get_vault_store().unwrap();
+            vault
+                .save_profile(&solosoul_vault::Profile::new_with_id(
+                    account_id,
+                    "p",
+                    b"sensitive".to_vec(),
+                ))
+                .unwrap();
+        }
+
+        svc.unlock(account_id, "password123").unwrap();
+        let (new_salt, new_key_arr) = make_new_key("newpassword123");
+        let pending_json = build_pending_config_json(&svc, account_id, &new_salt, &new_key_arr);
+        svc.write_config_pending(account_id, pending_json.as_bytes())
+            .unwrap();
+        // 注意：不执行 reencrypt_all——数据保持旧钥。
+        let pending_path = svc.base_path().join(account_id).join("config.json.pending");
+        assert!(pending_path.exists());
+        svc.lock();
+
+        // 用旧密码解锁 → 恢复应 discard（pending 删除），解锁成功、数据仍旧钥可读。
+        svc.unlock(account_id, "password123").unwrap();
+        assert!(!pending_path.exists(), "discard 后 pending 应被删除");
+        assert!(svc.verify_password(account_id, "password123").unwrap());
+        assert!(!svc.verify_password(account_id, "newpassword123").unwrap());
+        let vault = svc.get_vault_store().unwrap();
+        let profile = vault.load_profile(account_id).unwrap();
+        assert!(profile.is_some(), "discard 后数据仍以旧钥可读");
+    }
+
+    #[test]
+    fn test_recover_pending_wrong_password_preserves_pending() {
+        // 密码错误时：两钥探测都失败 → 上抛且保留 pending（供下次重试/人工恢复）。
+        let (svc, _dir) = setup_service();
+        let account = svc.create_account("WrongPw", "password123", None).unwrap();
+        let account_id = account["id"].as_str().unwrap();
+        {
+            let vault = svc.get_vault_store().unwrap();
+            vault
+                .save_profile(&solosoul_vault::Profile::new_with_id(
+                    account_id,
+                    "p",
+                    b"sensitive".to_vec(),
+                ))
+                .unwrap();
+        }
+
+        svc.unlock(account_id, "password123").unwrap();
+        let (new_salt, new_key_arr) = make_new_key("newpassword123");
+        let pending_json = build_pending_config_json(&svc, account_id, &new_salt, &new_key_arr);
+        svc.write_config_pending(account_id, pending_json.as_bytes())
+            .unwrap();
+        svc.lock();
+
+        let err = svc.unlock(account_id, "totally_wrong").unwrap_err();
+        assert!(err.contains("Invalid password"), "实际: {}", err);
+        let pending_path = svc.base_path().join(account_id).join("config.json.pending");
+        assert!(pending_path.exists(), "密码错误时 pending 必须保留");
+
+        // 用正确密码重试 → 应恢复成功。
+        svc.unlock(account_id, "password123").unwrap();
+        assert!(!pending_path.exists());
+    }
+
+    #[test]
+    fn test_change_password_success_removes_pending() {
+        // 成功路径：change_password 完成后 pending 应被清除，无残留。
+        let (svc, _dir) = setup_service();
+        let account = svc.create_account("Clean", "password123", None).unwrap();
+        let account_id = account["id"].as_str().unwrap();
+        svc.unlock(account_id, "password123").unwrap();
+        svc.change_password(account_id, "password123", "newpassword123")
+            .unwrap();
+        let pending_path = svc.base_path().join(account_id).join("config.json.pending");
+        assert!(!pending_path.exists(), "成功改密后 pending 不应残留");
+        assert!(svc.verify_password(account_id, "newpassword123").unwrap());
+    }
+
+    #[test]
+    fn test_unlock_with_session_key_rejects_pending() {
+        // 生物识别/PIN 会话密钥解锁遇 pending 应显式拒绝，引导密码解锁。
+        let (svc, _dir) = setup_service();
+        let account = svc.create_account("BioGuard", "password123", None).unwrap();
+        let account_id = account["id"].as_str().unwrap();
+        svc.unlock(account_id, "password123").unwrap();
+        let session_key = *svc.get_session_key().unwrap();
+        let (new_salt, new_key_arr) = make_new_key("newpassword123");
+        let pending_json = build_pending_config_json(&svc, account_id, &new_salt, &new_key_arr);
+        svc.write_config_pending(account_id, pending_json.as_bytes())
+            .unwrap();
+        svc.lock();
+
+        let err = svc
+            .unlock_with_session_key(account_id, &session_key)
+            .unwrap_err();
+        assert!(
+            err.contains("Pending key rotation detected"),
+            "实际: {}",
+            err
+        );
+        let pending_path = svc.base_path().join(account_id).join("config.json.pending");
+        assert!(pending_path.exists(), "拒绝解锁不应误删 pending");
     }
 
     #[test]

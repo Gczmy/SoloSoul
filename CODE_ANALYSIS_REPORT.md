@@ -25,7 +25,7 @@
 - **80 项问题全部闭环**（78 项可执行修复 + P133 用户决策接入 + P134 用户决策门控 + P135 用户决策反向接入 + **N-10/P207 路径 1 公钥注入闭环**），其中 P104/P206 为部分修复/部分保留，P209 为用户决策保留。
 - **遗留未完成/待跟进 4 类**（§4 详细讨论）：
   1. **P223/P224**：长函数/巨型组件长期重构（唯一进行中工作项，§4.1 详述；**P224-①②③④⑤ TrashDetailPanel/SyncPage/TemplateManagerPage/AboutPage/OcrPage 与 P223-① host.rs 六簇分簇、P223-② objects/trash/snapshots/sync_meta/sync_changes/sync_apply/metadata/profile 八域、P223-③ lib.rs 收尾均已完成拆分** `bc395973`/`8c74253c`/`2bdc5fdd`/`084cfdd0`/`fd70cc77`/`0f0a37ff`/`005fbfdf`/`ae030551`/`ad244d7c`/`22e1a20f`/`14eff424`/`89446aeb`/`508f9445`/`cef5776c`/`a7d5925d`）；
-  2. **R-3/R-4①**：R-3 已随方案 B 阶段 3 整体关闭（§4.2.1，2026-08-04）；R-4① 维持已声明窄窗口（§4.2.2）；
+  2. **R-3/R-4①**：均已闭环——R-3 随方案 B 阶段 3 关闭（§4.2.1，2026-08-04）；R-4① 经方案 2（config.json.pending 两阶段交换 + probe 判定）彻底关闭（§4.2.2，2026-08-04）；
   3. **P209**：legacy XOR 迁移窗口保留（§4.3，决策保留）；
   4. ~~**P206**：PDF embed 与 object-src CSP 遗留观察~~（§4.4，✅ 已闭环 `d446dc0e`，不再属于遗留）。
 - **归档说明**：N-10/P207 与 P133/P134/P135 等已闭环项的详细修复记录已压缩至 §3（一行要点 + commit 指针），不再保留 §4 详节。
@@ -165,6 +165,7 @@
 | R-2 秒/毫秒错配 | 40b5ecd9 | ✅ | `list_trash_changes_since` 按毫秒解释 deleted_at，回归测试锁定 wall == deleted_at ms |
 | R-3 游标持久化 | fbe7d945 | ✅ | 迁移 v22 `sync_watermarks.cursor_id`，会话层恢复游标续传，回归测试 ×2；残余窗口见 §4.2 |
 | R-4 回滚上抛 | 4ad8e9a8 | ✅（②③） | 回滚助手返回 Result + 调用方并入「automatic rollback FAILED」文案 + toggleable mock fs 失败注入测试；①见 §4.2 |
+| R-4① 彻底关闭 | 待提交 | ✅ | 方案 2（config.json.pending 两阶段交换 + probe 判定）——`solosoul_vault::probe_data_key` 只读自由函数 + `recover_pending_reencrypt`（promote/discard/保留）+ 两调用方 pending 生命周期 + 生物识别/PIN 凭证同步 + 5 回归测试（详见 §4.2.2） |
 | R-5 locale | 397f6d84 | ✅ | `settings:link_open_failed` 补入双语 |
 | 方案B-1 objects HLC | 1a33f513 | ✅ | objects 域本地写统一 HLC + 节点规范化修复（死循环根因） |
 | 方案B-2 三域 HLC | c32fbced | ✅ | trash/profile/user_template 域统一 HLC + 软删对象新 HLC 堵同步缺口 |
@@ -175,7 +176,7 @@
 ## §4 未完成项详细讨论
 
 > 本节仅保留**未完成/有意保留**项。已闭环项（N-10/P207、P133/P134/P135 等全部 80 项）的详细修复与验证已压缩归档至 §3（一行要点 + commit 指针），完整细节见 git 各修复 commit。
-> 排序：P223/P224（长期重构，唯一进行中工作项）→ R-3/R-4①（已声明残余窗口）→ P209（决策保留）→ P206（遗留观察）。
+> 排序：P223/P224（长期重构，唯一进行中工作项）→ R-3/R-4①（✅ 已闭环）→ P209（决策保留）→ P206（遗留观察）。
 
 ### 4.1 P223/P224：长函数与巨型组件长期重构（唯一未完成工作项）
 
@@ -333,9 +334,9 @@
 
 **当前建议**：不单独安排修复轮次；**P224-①②③④⑤、P223-① host.rs 六簇、P223-②（objects/trash/snapshots/sync_meta/sync_changes/sync_apply/metadata）与 P223-③ lib.rs 全部完成**（`bc395973`/`8c74253c`/`2bdc5fdd`/`084cfdd0`/`fd70cc77`/`0f0a37ff`/`005fbfdf`/`ae030551`/`ad244d7c`/`22e1a20f`/`14eff424`/`89446aeb`/`508f9445`/`a7d5925d`），剩余前端巨型组件清零、Rust 长函数全部收编；P223/P224 剩余仅 P223-② 未拆域（Profile），下次触碰相关文件时按上述预案顺带执行。
 
-### 4.2 已声明残余窗口：R-3 / R-4①
+### 4.2 已声明残余窗口：R-3 / R-4①（✅ 均已闭环）
 
-两处均为修复人已声明的窄窗口，属可接受的工程取舍；彻底解法已登记长期改进。
+两处窄窗口此前为修复人已声明的工程取舍；R-3 随方案 B 阶段 3 关闭、R-4① 经方案 2 两阶段交换 + probe 判定关闭（详见各小节实施记录）。
 
 #### 4.2.1 R-3：同步中断后等值组尾部 at-least-once 缺口（低）
 
@@ -372,28 +373,19 @@
     - **`migrate_to_encrypted_format` 重加密路径（559-895）**：内容不变，正确不落 HLC（非新变更）。快照表（object_snapshots）不参与同步，无需 HLC。
     - **结论**：**方案 B 三阶段覆盖完整，无残留本地写不落 HLC 路径**；`delete_trash_item` 与 objects 硬删不传播为既有缺口（已登记，trash 清单不合并墓碑，加 HLC 即成死代码）。
 
-#### 4.2.2 R-4①：reencrypt commit 后、config 写前进程崩溃（低）——彻底关闭方案评估（2026-08-04）
+#### 4.2.2 R-4①：reencrypt commit 后、config 写前进程崩溃（低）——✅ 已于 2026-08-04 彻底关闭（方案 2 + probe 判定）
 
 - **窗口**（现状）：`reencrypt_all`（SQLite 单事务）提交成功、config.json 原子写入完成前进程崩溃 → 账户「数据已换新钥、config 仍记旧参数」不可用（下次解锁旧参数通过 verify 但数据 GCM 解密失败）。P135 原子写仅消除「config 写一半」，此窗口仍需 journal 类机制。
 - **协同解法（与 P135 联动，已实施）**：见 §3.1 P135 归档——config 写入已全部接入 `safe_storage::write_atomic`（.tmp+rename），「写一半」→「要么旧、要么新」，崩溃后孤儿 tmp / 损坏主文件由 `read_config_with_recovery` → `recover_or_load` 恢复；风险从「账户不可用」降为「下次解锁重新升级」。
 - **核心难点（评估结论）**：reencrypt 与 config 分属两个持久化域（SQLite 事务 commit vs 文件写入），跨域无法原子化。任何彻底方案都需两要素：**① 持久化的意图记录**（崩溃后仍可知「曾有一次未完成的 reencrypt」及其目标 config）；**② 崩溃阶段判定**（判断 reencrypt 事务是否已提交，决定「完成」还是「放弃」）。「两阶段 config 交换」若不解决要素②，仅靠 rename 原子交换并不能关闭窗口（rename 前后崩溃仍是同一错位态）。
-- **方案 1：reencrypt 侧 journal**
-  - 流程：写 `{account_dir}/reencrypt.pending.json`（含完整 pending config，原子写）→ `reencrypt_all`（tx）→ `write_config_atomic`（新 config 生效）→ 删 journal。
-  - 要素②（阶段判定）可选两实现：
-    - **① DB marker**：reencrypt 事务内同写 metadata 明文行 `data_key_state=new`——与数据同事务提交、原子；恢复时读 marker 判定。代价：触碰已审计的 `reencrypt_all`（事务内追加一行）；N-2 回滚路径（重加密回旧钥）需同步清 marker，否则陈旧 marker 在后续 journal 场景误导。
-    - **② decrypt probe**：恢复时用「密码 + journal 新 salt/params」派生新钥、与旧钥分别试解一行数据（如 `load_profile(account_id)`）——解密成功者即数据实际密钥。N-2 已保证 reencrypt 全有或全无，单行 probe 判定确定无歧义。
-- **方案 2：两阶段 config 交换**
-  - 流程：写 `config.json.pending`（新 config，原子写，**本身即合法 AccountConfig**，复用现有 parse）→ `reencrypt_all`（tx）→ 原子交换（rename pending→active）→ 完成。恢复：unlock 时若 `config.json.pending` 存在 → 要素②判定 → 完成（promote pending→active）或放弃（删 pending）。
-  - 与方案 1 差异仅「意图记录」载体：pending 文件即 journal（无独立 schema、成功路径 = 一次原子交换）。**要素②同样必须**。
-- **收敛性结论**：两个候选方案收敛于同一机制——意图记录（journal / pending 文件）+ 阶段判定（marker / probe）。真正设计决策是两处二选一。
-- **推荐组合（拟实施）**：**方案 2 载体 + probe 判定**——
-  1. `config.json.pending` 为新 config 原子写（复用 `write_config_atomic` 同款原子语义，独立 helper）；
-  2. `reencrypt_all` **零改动**（probe 判定不触碰已审计事务）；
-  3. 恢复逻辑全部收敛在 `vault_service.rs`：`unlock`/`verify_password` 入口先判 pending 存在性（常态零开销）；probe 决定 promote/discard；
-  4. 两调用方（`change_password`/`unlock_with_kdf_upgrade`）接入同生命周期（写 pending → reencrypt → 交换 → 完成）。
-  - 估计成本 0.5–1 天：vault_service 新恢复函数（~120–180 行）+ 2 调用方接线 + 4–6 个崩溃点注入测试（pending 存在/数据新旧各态）+ 既有 N-2 测试保持绿。
-  - 回退安全：恢复失败（双钥均无法解密 = 数据损坏或密码错误）**绝不动 pending**，保留双文件供人工恢复并上抛明确错误。
-- **决策待用户确认**（2026-08-04）：实施推荐组合 / 实施方案 1（marker 判定）/ 维持现状登记长期改进。
+- **方案对比（已评估）**：方案 1（reencrypt 侧 journal，DB marker 判定）与方案 2（两阶段 config 交换，pending 文件即意图记录）收敛于同一机制——意图记录 + 阶段判定。差异仅在载体与判定实现；方案 2 的 pending 文件本身即合法 `AccountConfig`、成功路径为一次原子交换，成本更低且不触碰已审计的 `reencrypt_all`。**用户 2026-08-04 决策：方案 2 + probe 判定**。
+- **✅ 实施记录（2026-08-04，一项一提交）**：
+  - **vault crate：`solosoul_vault::probe_data_key(db_path, key)` 只读自由函数**——独立连接（`OpenFlags::READ_ONLY` + `PRAGMA query_only`），**不走 `VaultStore::open`**（后者触发迁移/一次性回填的写副作用，用错误密钥探测会写坏数据）；依次 probe profiles/objects/trash_items/user_templates 第一行非空加密字段，解密成功 → true，全空 → true。
+  - **vault_service：`recover_pending_reencrypt`**（`unlock`/`verify_password` 入口调用，常态零开销）——pending 存在时用密码分别派生 pending（新）与 active（旧）两钥 probe：新钥可解 → **promote**（pending 原子写为 active + 删 pending + **同步刷新生物识别/PIN 凭证**）；旧钥可解 → **discard**（删 pending，数据保持旧钥）；双败 → **保留 pending** 返回带提示的密码错误（UX 提示「interrupted key rotation pending」）。
+  - **`change_password` / `unlock_with_kdf_upgrade`**：reencrypt 前 `write_config_pending`（原子），成功后删 pending；reencrypt 失败 → 删 pending 返回；config 写失败 → 回滚成功删 pending / **回滚失败保留 pending**（数据可能已换新钥，作为下次 promote 的恢复线索）。
+  - **`unlock_with_session_key`**（生物识别/PIN）加 pending 守卫：pending 存在时拒绝并引导密码解锁（会话密钥无密码可派生，无法自行恢复）。
+  - **回归测试 ×5**：promote（reencrypt 已提交→新钥解锁→pending 升为 active+删除）/ discard（未提交→旧钥解锁→pending 删除）/ 密码错误保留 pending（含正确密码重试恢复）/ `change_password` 成功无残留 / `unlock_with_session_key` 拒绝。
+  - **验证**：core 162（+5）/ vault 127 全绿 / fmt 干净 / clippy 0 / workspace + CLI check 0 / code-reviewer GO（阻断项已修复：promote 后凭证同步、READ_ONLY probe、verify 文档契约更新、UX 提示）。
 
 ### 4.3 P209：LEGACY_XOR_KEY（已决策保留）
 
