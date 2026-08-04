@@ -94,6 +94,16 @@ pub struct SoloHostFunctions {
     pub workspace_dir: Option<std::path::PathBuf>,
 }
 
+impl SoloHostFunctions {
+    /// 频率限制检查：以当前插件身份对指定操作名做限流。
+    ///
+    /// WASI 宿主函数共用同一检查模式（`rate_limiter.check(&plugin_id, name)`），
+    /// 抽成方法避免 7 处重复展开（P223-① 预案微优化收尾）。
+    fn check_rate(&self, name: &str) -> bool {
+        self.rate_limiter.check(&self.plugin_id, name)
+    }
+}
+
 impl Drop for SoloHostFunctions {
     fn drop(&mut self) {
         let mut handles = self.http_handles.lock().unwrap_or_else(|e| e.into_inner());
@@ -295,7 +305,7 @@ fn register_field_access_fns(linker: &mut Linker<SoloHostState>) -> Result<(), P
                         Some(&host.session_id),
                         PluginAuditAction::PluginRunStarted,
                     );
-                    if !host.rate_limiter.check(&host.plugin_id, "request_field") {
+                    if !host.check_rate("request_field") {
                         return code::RATE_LIMITED;
                     }
                     (host.plugin_id.clone(), host.session_id.clone())
@@ -331,7 +341,7 @@ fn register_field_access_fns(linker: &mut Linker<SoloHostState>) -> Result<(), P
                 };
                 let (plugin_id, session_id) = {
                     let host = &caller.data().host;
-                    if !host.rate_limiter.check(&host.plugin_id, "list_objects") {
+                    if !host.check_rate("list_objects") {
                         return code::RATE_LIMITED;
                     }
                     (host.plugin_id.clone(), host.session_id.clone())
@@ -358,10 +368,7 @@ fn register_field_access_fns(linker: &mut Linker<SoloHostState>) -> Result<(), P
             |mut caller: Caller<'_, SoloHostState>, out_ptr: i32, out_len: i32| -> i32 {
                 let (plugin_id, session_id) = {
                     let host = &caller.data().host;
-                    if !host
-                        .rate_limiter
-                        .check(&host.plugin_id, "get_data_structure_tree")
-                    {
+                    if !host.check_rate("get_data_structure_tree") {
                         return code::RATE_LIMITED;
                     }
                     (host.plugin_id.clone(), host.session_id.clone())
@@ -461,7 +468,7 @@ fn register_http_fns(linker: &mut Linker<SoloHostState>) -> Result<(), PluginErr
 
                 let (plugin_id, session_id, audit, handle) = {
                     let host = &caller.data().host;
-                    if !host.rate_limiter.check(&host.plugin_id, "http_request") {
+                    if !host.check_rate("http_request") {
                         return code::RATE_LIMITED;
                     }
                     if host.manifest.network_policy.block_all_outbound {
@@ -905,7 +912,7 @@ fn register_interaction_fns(linker: &mut Linker<SoloHostState>) -> Result<(), Pl
 
                 let (plugin_id, plugin_name, session_id, consent_manager) = {
                     let host = &caller.data().host;
-                    if !host.rate_limiter.check(&host.plugin_id, "request_consent") {
+                    if !host.check_rate("request_consent") {
                         return code::RATE_LIMITED;
                     }
                     (
@@ -998,7 +1005,7 @@ fn register_interaction_fns(linker: &mut Linker<SoloHostState>) -> Result<(), Pl
                 let request_id = uuid::Uuid::new_v4().to_string();
                 let (plugin_id, plugin_name, session_id, consent_manager) = {
                     let host = &caller.data().host;
-                    if !host.rate_limiter.check(&host.plugin_id, "show_dialog") {
+                    if !host.check_rate("show_dialog") {
                         return code::RATE_LIMITED;
                     }
                     (
@@ -1171,7 +1178,7 @@ fn register_util_fns(linker: &mut Linker<SoloHostState>) -> Result<(), PluginErr
                 };
 
                 let host = &caller.data().host;
-                if !host.rate_limiter.check(&host.plugin_id, "post_data") {
+                if !host.check_rate("post_data") {
                     return code::RATE_LIMITED;
                 }
 
