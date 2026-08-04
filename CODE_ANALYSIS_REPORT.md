@@ -4,7 +4,7 @@
 > 当前分支：`main`
 > 修复轮次：R1（全新分析——旧报告已删除，本轮不引用旧报告内容）
 > 分析范围：`tauri/`（前端 + Rust workspace）、`solosoul_cli/`；忽略 `SoloSoul_plugin_market/`（独立仓库）
-> **报告性质**：本报告为**全新一轮**代码审查。旧版 `CODE_ANALYSIS_REPORT.md`（2026-08-02~03，80 项闭环）已由用户决定删除且不恢复，本轮从 HEAD `22265c2d` 出发重新扫描并完成一轮迭代修复（P001/P002/P004 已闭环，P003 为长期重构候选）。
+> **报告性质**：本报告为**全新一轮**代码审查。旧版 `CODE_ANALYSIS_REPORT.md`（2026-08-02~03，80 项闭环）已由用户决定删除且不恢复，本轮从 HEAD `22265c2d` 出发重新扫描并完成一轮迭代修复（P001/P002/P004 已闭环，P003 为长期重构候选，①② 已按该定位完成拆分）。
 
 ---
 
@@ -32,12 +32,12 @@
 |------|--------|------------|----------------------------------------------|--------------------------------------------------|-----------|
 | P001 | P0     | 构建/CI    | `tauri/scripts/check_acl_consistency.py:27`  | ACL 脚本用 `re.search` 只解析**首个** `generate_handler!` 块——P223-③ 拆分为 5 簇后仅校验 core 簇，产生 68 条误报 WARN，同步/OCR/LLM/插件四簇失去校验 | `[x]` 已修复 |
 | P002 | P1     | 死代码/安全 | `tauri/src-tauri/src/lib.rs`、`commands/vault.rs`、`commands/object/trash.rs` | 4 个死 IPC 命令（`object_restore`/`object_purge`/`get_state`/`delete_account`）注册于 handler 但生产前端**零调用**，且未登记 ACL 白名单 → 触发 P101 一致性检查失败 | `[x]` 已修复 |
-| P003 | P2     | 重构       | `tauri/src/`（30 个文件 >400 行）             | 巨型组件长期重构候选（延续既有 P224 思路，随功能迭代顺带处理）——P003-① ObjectDetailModal 已拆分，剩余 29 个文件待后续迭代 | `[x]` P003-① 已完成 |
+| P003 | P2     | 重构       | `tauri/src/`（30 个文件 >400 行）             | 巨型组件长期重构候选（延续既有 P224 思路，随功能迭代顺带处理）——P003-①② ObjectDetailModal / SyncShowQrDialog 已拆分，剩余 28 个文件待后续迭代 | `[x]` P003-①② 已完成 |
 | P004 | P2     | 文档同步   | `docs/design_map/08_IPC命令接口完整规范.md`、`docs/solosoul_cli/*` | 设计文档仍将 `get_state`/`delete_account`/`object_purge`/`object_restore` 列为活跃 IPC 命令（P002 删除后需同步） | `[x]` 已修复 |
 
 ## 修复进度
 
-- 已完成：4 / 4（P003-① ObjectDetailModal 拆分完成，其余候选随功能迭代顺带处理）
+- 已完成：4 / 4（P003-①② ObjectDetailModal 与 SyncShowQrDialog 拆分完成，其余候选随功能迭代顺带处理）
 - 当前处理：无
 
 ---
@@ -113,27 +113,31 @@ m = re.search(r"generate_handler!\s*\[((?:[^\[\]]|\[[^\[\]]*\])*)\]", text, re.S
 
 **新增 P2 去重项**（审查员建议，随本项记录）：`flattenProperties` 现存于 3 处（`objectDetailUtils.ts` / `HistoryViewer.tsx` / `WorkspaceObjectCard.tsx`），返回类型与 `__` 键语义不同（HistoryViewer 为树结构 `FlattenedField[]`，其余为平铺行），统一需改行为——列入后续 P225 式收敛候选，暂不实施。
 
-**剩余候选**：`tauri/src/` 中 29 个文件 >400 行，前五：
+**✅ P003-② 已完成（2026-08-04）：SyncShowQrDialog.tsx 878 → 270 行**
+
+按 P224 等价重构模式拆分为 5 个文件：
+
+| 文件 | 行数 | 内容 |
+|------|------|------|
+| `SyncShowQrDialog.tsx` | 270（原 878） | 编排层：保留全部状态/副作用/回调（`recoveryStartedRef` 生命周期、`[isOpen, t]` 加载 effect + 10s 超时保护、卸载兜底 cancel、`copyToClipboard` execCommand 回退） |
+| `SyncQrTabSwitcher.tsx` | 80 | Tab 切换器 + `QrMode` 类型 |
+| `SyncQrContent.tsx` | 177 | 同步二维码内容 + `SyncQrInfo` 类型 |
+| `RecoveryQrContent.tsx` | 391 | 恢复二维码内容（含手动模式折叠面板）+ `RecoveryHostInfo` 类型 |
+| `QrStatusBlock.tsx` | 52 | 加载/错误共享占位（原件两处 ~25 行占位**逐字**合并，消除 ~50 行重复） |
+
+**验证**：tsc ✅ / eslint 0 警告 ✅ / prettier ✅ / 全量 Vitest **58 文件 / 498 用例全绿**（新增 `SyncShowQrDialog.test.tsx` 5 用例：关闭不渲染/同步加载链路/恢复会话启动 + PIN/加载失败错误占位/关闭回调）/ code-reviewer-glm ✅——`QrStatusBlock` 与原两处占位经 `git show HEAD` 逐字比对一致（`minHeight:360` + `t('common:loading')` / `#e74c3c` 错误样式），props 透传未改变回调语义（`switchMode`/`cancelRecoveryHost`/`handleClose` 收敛于编排层），审查建议的错误路径测试已补充闭环。
+
+**剩余候选**：`tauri/src/` 中 28 个文件 >400 行，前五：
 
 | 行数 | 文件 |
 |------|------|
-| 878 | `src/components/sync/SyncShowQrDialog.tsx` |
 | 793 | `src/pages/auth/LoginPage.tsx` |
 | 754 | `src/pages/settings/ExportImportPage.tsx` |
 | 743 | `src/components/object/AttachmentViewer.tsx` |
 | 699 | `src/components/guide/PageGuide.tsx` |
+| 682 | `src/components/object/HistoryViewer.tsx` |
 
-**定位**：延续既有 P224 思路（「结构性拆分建议随功能迭代顺带、不单独安排修复轮次」）。本轮完成 P003-①，其余候选随功能迭代顺带处理。拆分时应保持「等价重构、零行为变更」，并复用已收敛的共享组件。
-
-| 行数 | 文件 |
-|------|------|
-| 926 | `src/components/object/ObjectDetailModal.tsx` |
-| 878 | `src/components/sync/SyncShowQrDialog.tsx` |
-| 793 | `src/pages/auth/LoginPage.tsx` |
-| 754 | `src/pages/settings/ExportImportPage.tsx` |
-| 743 | `src/components/object/AttachmentViewer.tsx` |
-
-**定位**：延续既有 P224 思路（「结构性拆分建议随功能迭代顺带、不单独安排修复轮次」）。本轮**不实施拆分**，仅归档候选清单供后续迭代取用。拆分时应保持「等价重构、零行为变更」，并复用已收敛的共享组件（`SensitiveValueWidget`、`useConfirm`、`useSyncPage` 等）。
+**定位**：延续既有 P224 思路（「结构性拆分建议随功能迭代顺带、不单独安排修复轮次」）。本轮完成 P003-①②，其余候选随功能迭代顺带处理。拆分时应保持「等价重构、零行为变更」，并复用已收敛的共享组件（`SensitiveValueWidget`、`useConfirm`、`useSyncPage` 等）。
 
 ### P004（P2）设计文档与 IPC 面同步
 
@@ -177,12 +181,14 @@ m = re.search(r"generate_handler!\s*\[((?:[^\[\]]|\[[^\[\]]*\])*)\]", text, re.S
 | `c1b30238` | P002：删除 4 个死 IPC 命令（`object_restore`/`object_purge`/`get_state`/`delete_account`），handler 面 192→188，ACL 一致性检查恢复通过 |
 | `04c2e66e` | P004：08 IPC 规范 + CLI 预研报告同步命令面 |
 | `d1d69f5a` | P004 补充：09 对象规范 invoke 示例 + tauri_dev_plan/12 store 设计历史标注（审查员复核缺口） |
+| `5f2519ff` | P003-①：ObjectDetailModal 926→523 行等价拆分（Sections/DeleteDialog/Utils + 11 新测试） |
+| `9ff923b3` | P003-②：SyncShowQrDialog 878→270 行等价拆分（TabSwitcher/SyncQrContent/RecoveryQrContent/QrStatusBlock + 5 新测试） |
 
 ### 5.2 修复后全量验证
 
 | 检查 | 结果 |
 |------|------|
-| `npm run check-all`（tsc + fmt + clippy + eslint + vitest + ACL） | ✅ 全绿；Vitest 55 文件 / 482 用例（484−2，移除 2 个死命令测试）；ACL `OK: 188` |
+| `npm run check-all`（tsc + fmt + clippy + eslint + vitest + ACL） | ✅ 全绿；Vitest 58 文件 / 498 用例（482 + 16：P003-①② 新增测试）；ACL `OK: 188` |
 | `cargo test --workspace` | ✅ 全绿（core 162 / crypto 34 / plugin 56+2ignored / sync 47 / vault 140 / solo_soul 357 等） |
 | `cd solosoul_cli && cargo clippy -- -D warnings && cargo test` | ✅ 全绿 |
 | 代码审查（code-reviewer-glm） | ✅ 正则与删除面无误；发现 P004 文档同步缺口（09/tauri_dev_plan/12）→ 已补齐 `d1d69f5a` |
@@ -190,7 +196,7 @@ m = re.search(r"generate_handler!\s*\[((?:[^\[\]]|\[[^\[\]]*\])*)\]", text, re.S
 ### 5.3 结论
 
 - **P0/P1 全部闭环**：ACL 一致性检查从 ❌ 恢复 ✅，188 个 IPC 命令 handler↔白名单双向一致；
-- **P2**：P004 已闭环；P003-① ObjectDetailModal 拆分完成（926→523 行），剩余 29 个候选随功能迭代顺带处理；
+- **P2**：P004 已闭环；P003-①② ObjectDetailModal（926→523）与 SyncShowQrDialog（878→270）拆分完成，剩余 28 个候选随功能迭代顺带处理；
 - **遗留项**：`08_IPC命令接口完整规范.md` 中部分更早的命令名（如 `profile_save`/`search_advanced`/crypto 模块）为设计期陈旧描述，已由顶部「权威来源为 ACL/handler」声明覆盖，不属本轮范围。
 
 ✅ 本轮可识别问题已修复，代码库质量评估达标。
