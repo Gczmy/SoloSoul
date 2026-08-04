@@ -365,6 +365,12 @@
     - **测试**：新增防回归 ×2——`test_migration_v23_backfills_hlc_for_legacy_rows`（四表回填 wall/counter/node 逐字节断言 + 已有 HLC 行不动 + 幂等不新增）+ `test_migration_v23_backfill_uses_stored_sync_node`（已配置节点时 node 取规范化本地节点而非 `"unknown"`）。
     - **验证**：vault 127（+2）/ sync 47 全绿 / fmt 干净 / clippy 0 警告 / workspace + CLI check 0 错误 / code-reviewer GO。
     - **语义注记（声明，非缺陷）**：从未同步过的新库（无 `sync_node_id`）回填 node 为 `normalize("unknown")`，后续本地写用真实生成节点——排序仍全序（游标 id 决胜），非正确性 bug，仅记录以免意外。
+  - **✅ R-3 关闭收尾验证（2026-08-04，全库写路径扫描）**：
+    - **`_tx` 变体调用方全量核对**：`save_object_tx`/`save_profile_tx`/`save_trash_item_tx`/`save_user_template_tx` 生产调用方仅 `sync_apply.rs` 远端应用路径（接收方自写 HLC，合法）+ `storage.rs:2282` 测试直插（R-2 回退 ms 语义覆盖，合法）。**无业务本地写走 `_tx`**。
+    - **四表写路径全覆盖确认**：本地写全部经落 HLC 的公开方法——`save_object`/`save_objects_batch`/`delete_object`（软/硬删）/`restore_object`/`save_profile`/`save_trash_item`/`save_user_template`。专项核查：import（core `export_import.rs:472` `save_objects_batch` + src-tauri `import.rs` `save_object`/`save_user_template`）、backup restore（`backup.rs:248` `save_profile`）、模板播种（`template_service.rs:187/287` `save_user_template` + `migrate_contract_bindings` `save_object`）、CLI（profile/backup/history 全部经 vault 层方法，CLI 零直接 SQL 写）。
+    - **`repair_restored_objects`（snapshots.rs:279）判定为合法例外**：open 时一次性迁移修复（REPAIR_FLAG 守卫，每 Vault 仅一次），发生在 `run_migrations`（v23 回填）**之后**（storage.rs:196-224 顺序）——被修对象已有 HLC，修后 `updated_at` 刷新但 HLC 不变。**正确性**：触发条件本身是「account_id='imported' 的隐形对象」，修复前从未被正确同步，归位后首次同步即投递，R-3 关闭不受影响。与 v23 回填同属「存量数据修复，不写 HLC」模式。
+    - **`migrate_to_encrypted_format` 重加密路径（559-895）**：内容不变，正确不落 HLC（非新变更）。快照表（object_snapshots）不参与同步，无需 HLC。
+    - **结论**：**方案 B 三阶段覆盖完整，无残留本地写不落 HLC 路径**；`delete_trash_item` 与 objects 硬删不传播为既有缺口（已登记，trash 清单不合并墓碑，加 HLC 即成死代码）。
 
 #### 4.2.2 R-4①：reencrypt commit 后、config 写前进程崩溃（低）
 
