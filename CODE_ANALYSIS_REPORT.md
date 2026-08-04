@@ -193,7 +193,7 @@
   - **命名规避**：既有 `register_watermark_fn`（单数参数化助手）不动，簇命名 `register_watermark_host_fns`；`list_attachments` 归 field 簇（与域表一致）。
   - **注册顺序变化对 runtime 零影响**：Linker 名→闭包映射无序敏感（名唯一），host 单测不依赖顺序。
 - **验证**：块级等价性 diff 22/22 逐字节一致（0 差异）/ cargo check 0 错误 / clippy `--all-targets` 0 警告 / solosoul-plugin 56 测试全绿 / fmt 干净 / workspace + CLI check 0 错误 / code-reviewer GO。
-- **暂缓微优化**：rate_limiter 检查抽 `check_rate(host, name)` 助手去重（报告预案，未随分簇执行，保持纯移动铁律），后续单独 commit。
+- **暂缓微优化**：rate_limiter 检查抽 `check_rate(host, name)` 助手去重——✅ 已于 2026-08-04 完成（`57d10448`，7 处收敛，行为逐字等价）。
 
 **② `crates/solosoul-vault/src/storage.rs`（7922 行 = 生产约 4500 + 测试约 3400）——按表域拆模块（收益最大，✅ 试点已完成）**
 
@@ -400,6 +400,16 @@
 - **决策（2026-08-03 用户选择方案 A）**：CSP 增加 `object-src data:`（`d446dc0e`），桌面端 PDF 应用内预览恢复。XSS 面评估：`src` 全部来自 `fs_read_file_as_data_url` 读取的本机附件文件，全库无 dangerouslySetInnerHTML/innerHTML、markdown 统一 SafeMarkdown 净化，风险被现有面压制。
 - 备选方案 B（弃用 embed 改系统打开）已评估未采用；R-3/R-4①/P209 维持现状（见 §4.2/§4.3）。
 
+### 4.5 #1 立项评估：objects/trash 硬删（purge）不传播的同步缺口（📋 已登记，待立项实施）
+
+- **现状（2026-08-04 R-3 收尾验证登记，本次评估确认）**：
+  - **产生端**：`delete_object(id, false)`（`storage/objects.rs` 硬删分支，方案 B 注释明示「硬删是墓碑变更，落库墓碑 HLC」）与 `delete_trash_item(id)`（`storage/trash.rs`，回收站 purge）均只执行 `DELETE FROM …` + `set_record_hlc`，**不写 `sync_tombstones` 表**。
+  - **变更清单端**：`list_object_changes_since_limited` / `list_trash_changes_since`（`storage/sync_changes.rs`）**不合并 `sync_tombstones`**——对端唯一可感知删除的机制（profiles `:153-154`、user_templates `:438-440` 均已有 `list_tombstones_since` 合并，objects/trash 两域缺失）。
+  - **应用端**：对端 `apply_*` 的 `deleted` 分支与 `resolve_sync_conflict` 的 `hard_delete_record`（`storage/sync_apply.rs`）已支持 tombstone 应用（四表全覆盖）——**协议消费面齐备，仅产生面缺失**。
+- **后果**：A 端对回收站条目/对象执行永久删除（purge）→ 行从本地表消失、HLC 已推进但变更清单无墓碑 → **B 端永不收到删除，条目永久残留**；若 B 端随后对该行本地写操作，HLC 变化使行在 A 端重新出现（数据回魂），极端情况触发无意义的删除冲突。
+- **影响面**：跨设备同步场景下「回收站永久删除」语义失效；对象硬删路径（OCR/导入清理等调用 `delete_object(id, false)` 的场景）同受波及。软删（进回收站）不受影响——经 trash_items 独立变更清单传播。
+- **修复方向（待立项，本期不实施）**：与 profiles/user_templates 同构三步——① `delete_object` 硬删分支 / `delete_trash_item` 补 `record_tombstone(table, id)`；② `list_object_changes_since_limited` / `list_trash_changes_since` 合并 `list_tombstones_since`；③ 对端应用路径已就绪无需改动。需评估点：墓碑生命周期（`sync_tombstones` 清理策略，防永久累积）、trash 墓碑 wall 与 `deleted_at` 的一致性、对象硬删 vs 软删墓碑语义区分（对象行 `is_deleted=1` 软删仍走行变更，硬删才走墓碑，二者不得冲突）。
+
 ---
 
 ## §5 结论与后续建议
@@ -410,6 +420,8 @@
    - **R-3/R-4①**：已声明残余窗口——**均已于 2026-08-04 彻底关闭**（R-3 方案 B 三阶段统一 HLC + v23 回填，R-4① config.json.pending 两阶段交换 + probe 判定，见 §4.2）。
    - **P209**：legacy XOR 迁移窗口保留，建议下个大版本发布后评估关闭（见 §4.3）。
    - **P206**：PDF embed 与 object-src CSP 遗留观察——✅ 已于 2026-08-03 按方案 A 闭环（CSP 增加 `object-src data:`，`d446dc0e`），桌面端 PDF 附件预览恢复（见 §4.4）。
+   - **收尾清扫（2026-08-04 已完成）**：P223-① 预案的 `check_rate(host, name)` 助手收敛 7 处 rate_limiter 重复检查（`57d10448`）；P138 附带的 `sync_discover` 历史遗留死命令降级为内部助手（`2b91e2c6`）。
+   - **同步缺口 #1（已登记立项）**：objects/trash 硬删（purge）不传播——产生端不写 `sync_tombstones`、变更清单不合并墓碑，对端永不收到永久删除（详见 §4.5 完整评估与修复方向）。
 3. **验证指针**：本报告 §3 归档表含全部修复 commit（`f1970c67` 起，N/R 项见 §3.2；P133=`6e74f691`、P134=`f75605ae`、P135=`b721270c`、N-10=`70e766ee`）；完整修复细节与两轮验证记录在 git 历史中可追溯。
 
 ## §6 测试基线参考（当前 HEAD）
