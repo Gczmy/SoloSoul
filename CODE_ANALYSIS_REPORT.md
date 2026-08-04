@@ -4,7 +4,7 @@
 > 当前分支：`main`
 > 修复轮次：R1（全新分析——旧报告已删除，本轮不引用旧报告内容）
 > 分析范围：`tauri/`（前端 + Rust workspace）、`solosoul_cli/`；忽略 `SoloSoul_plugin_market/`（独立仓库）
-> **报告性质**：本报告为**全新一轮**代码审查的初始分析。旧版 `CODE_ANALYSIS_REPORT.md`（2026-08-02~03，80 项闭环）已由用户决定删除且不恢复，本轮从当前 HEAD（`22265c2d`）出发重新扫描。
+> **报告性质**：本报告为**全新一轮**代码审查。旧版 `CODE_ANALYSIS_REPORT.md`（2026-08-02~03，80 项闭环）已由用户决定删除且不恢复，本轮从 HEAD `22265c2d` 出发重新扫描并完成一轮迭代修复（P001/P002/P004 已闭环，P003 为长期重构候选）。
 
 ---
 
@@ -20,9 +20,9 @@
 | Rust 测试 | `cargo test --workspace` | ✅ 全绿（vault 140 / solo_soul / core / crypto / plugin / sync） |
 | CLI 静态分析 | `cd solosoul_cli && cargo clippy -- -D warnings` | ✅ 0 警告 |
 | CLI 测试 | `cd solosoul_cli && cargo test` | ✅ 全绿 |
-| ACL 一致性 | `python3 scripts/check_acl_consistency.py` | ❌ **失败**（详见 P001/P002） |
+| ACL 一致性 | `python3 scripts/check_acl_consistency.py` | 修复前 ❌ 失败 → 修复后 ✅ **OK: 188 个命令全部登记** |
 
-**结论**：除 ACL 一致性检查外，全部检查通过。代码库整体质量基线良好（此前的 P223-③ 分簇、P224 组件拆分等重构保持了零回归）。
+**结论**：修复前仅 ACL 一致性检查失败（P001 脚本缺陷 + P002 死命令）；修复后全部检查通过。代码库整体质量基线良好（此前的 P223-③ 分簇、P224 组件拆分等重构保持了零回归）。
 
 ---
 
@@ -32,13 +32,13 @@
 |------|--------|------------|----------------------------------------------|--------------------------------------------------|-----------|
 | P001 | P0     | 构建/CI    | `tauri/scripts/check_acl_consistency.py:27`  | ACL 脚本用 `re.search` 只解析**首个** `generate_handler!` 块——P223-③ 拆分为 5 簇后仅校验 core 簇，产生 68 条误报 WARN，同步/OCR/LLM/插件四簇失去校验 | `[x]` 已修复 |
 | P002 | P1     | 死代码/安全 | `tauri/src-tauri/src/lib.rs`、`commands/vault.rs`、`commands/object/trash.rs` | 4 个死 IPC 命令（`object_restore`/`object_purge`/`get_state`/`delete_account`）注册于 handler 但生产前端**零调用**，且未登记 ACL 白名单 → 触发 P101 一致性检查失败 | `[x]` 已修复 |
-| P003 | P2     | 重构       | `tauri/src/`（30 个文件 >400 行）             | 巨型组件长期重构候选（延续既有 P224 思路，随功能迭代顺带处理） | `[ ]` 待修复 |
+| P003 | P2     | 重构       | `tauri/src/`（30 个文件 >400 行）             | 巨型组件长期重构候选（延续既有 P224 思路，随功能迭代顺带处理） | `[ ]` 暂缓（长期计划） |
 | P004 | P2     | 文档同步   | `docs/design_map/08_IPC命令接口完整规范.md`、`docs/solosoul_cli/*` | 设计文档仍将 `get_state`/`delete_account`/`object_purge`/`object_restore` 列为活跃 IPC 命令（P002 删除后需同步） | `[x]` 已修复 |
 
 ## 修复进度
 
-- 已完成：3 / 4
-- 当前处理：无（P003 为长期重构候选，按既有约定随功能迭代顺带处理）
+- 已完成：3 / 4（P003 为 P2 长期重构候选，按既有约定不单独安排修复轮次）
+- 当前处理：无
 
 ---
 
@@ -139,3 +139,33 @@ m = re.search(r"generate_handler!\s*\[((?:[^\[\]]|\[[^\[\]]*\])*)\]", text, re.S
 | 历史审计字符串 `object_purge`/`object_restore` | ✅ 保留 | `solosoul-core` 与 locale 键用于渲染历史操作日志，不可随命令删除 |
 | 路径净化 | ✅ 已覆盖 | `sanitize_file_name`/`sanitize_import_file_name`/`sanitize_plugin_id`/`sanitize_backup_name` 均有穿越用例测试 |
 | XSS | ✅ 干净 | 生产代码零 `dangerouslySetInnerHTML`/`innerHTML` |
+
+---
+
+## §5 最终复审结论（R1 收尾，2026-08-04）
+
+### 5.1 提交记录
+
+| commit | 内容 |
+|--------|------|
+| `480c2b1f` | P001：`check_acl_consistency.py` 聚合全部 5 簇 `generate_handler!` 块（`re.search`→`re.findall`），消除 68 条误报 WARN，恢复 sync/ocr/llm/plugin 四簇校验面 |
+| `c1b30238` | P002：删除 4 个死 IPC 命令（`object_restore`/`object_purge`/`get_state`/`delete_account`），handler 面 192→188，ACL 一致性检查恢复通过 |
+| `04c2e66e` | P004：08 IPC 规范 + CLI 预研报告同步命令面 |
+| `d1d69f5a` | P004 补充：09 对象规范 invoke 示例 + tauri_dev_plan/12 store 设计历史标注（审查员复核缺口） |
+
+### 5.2 修复后全量验证
+
+| 检查 | 结果 |
+|------|------|
+| `npm run check-all`（tsc + fmt + clippy + eslint + vitest + ACL） | ✅ 全绿；Vitest 55 文件 / 482 用例（484−2，移除 2 个死命令测试）；ACL `OK: 188` |
+| `cargo test --workspace` | ✅ 全绿（core 162 / crypto 34 / plugin 56+2ignored / sync 47 / vault 140 / solo_soul 357 等） |
+| `cd solosoul_cli && cargo clippy -- -D warnings && cargo test` | ✅ 全绿 |
+| 代码审查（code-reviewer-glm） | ✅ 正则与删除面无误；发现 P004 文档同步缺口（09/tauri_dev_plan/12）→ 已补齐 `d1d69f5a` |
+
+### 5.3 结论
+
+- **P0/P1 全部闭环**：ACL 一致性检查从 ❌ 恢复 ✅，188 个 IPC 命令 handler↔白名单双向一致；
+- **P2**：P004 已闭环；P003（巨型组件重构）按既有约定归档为长期候选，随功能迭代顺带处理；
+- **遗留项**：`08_IPC命令接口完整规范.md` 中部分更早的命令名（如 `profile_save`/`search_advanced`/crypto 模块）为设计期陈旧描述，已由顶部「权威来源为 ACL/handler」声明覆盖，不属本轮范围。
+
+✅ 本轮可识别问题已修复，代码库质量评估达标。
