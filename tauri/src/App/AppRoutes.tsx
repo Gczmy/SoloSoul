@@ -40,6 +40,7 @@ import { ST_SKIPPED_VERSION, SAFE_AREA_TOP } from '@/lib/constants';
 import { logger } from '@/lib/logger';
 import { setGlobalNavigate } from '@/lib/navigation';
 import { useSafSyncStore } from '@/stores/safSyncStore';
+import { useUiStore } from '@/stores/uiStore';
 import { SafSyncIndicator } from '@/components/sync/SafSyncIndicator';
 import { PostLoginSetupGuide } from '@/components/guide/PostLoginSetupGuide';
 import type { OcrModelStatus } from '@/lib/ipc';
@@ -343,20 +344,27 @@ export function AppRoutes() {
       try {
         const { checkVaultDirectory } = await import('@/lib/vaultDirectory');
         const valid = await checkVaultDirectory();
-        if (!valid) {
-          // SAF 目录失效（用户手动删除了外部目录），弹确认对话框引导用户
-          logger.warn('[AppRoutes] SAF vault directory access revoked');
-          await confirmWithPause(
-            t(
-              'settings:vault_directory_invalid_message',
-              '您之前使用的外部存储目录已被删除或无法访问。\n\nSoloSoul 已将您的数据保留在本地应用存储中，您可以继续正常使用。\n\n如需重新选择外部目录，请前往「设置 > 保险库目录」。',
-            ),
-            {
-              title: t('settings:vault_directory_invalid_title', '存储目录不可用'),
-              kind: 'warning',
-            },
-          );
+        if (valid) {
+          // 目录已恢复（用户重新选择了 SAF 目录并迁移成功）→
+          // 清除授权失效常驻横幅状态与 toast 去重标志，避免横幅一直悬挂。
+          useUiStore.getState().setSafAuthRevoked(false);
+          useUiStore.getState().setSafAuthToastShown(false);
+          useUiStore.getState().setSafSyncError(null);
+          useUiStore.getState().setSafSyncState('idle');
+          return;
         }
+        // SAF 目录失效（用户手动删除了外部目录），弹确认对话框引导用户
+        logger.warn('[AppRoutes] SAF vault directory access revoked');
+        await confirmWithPause(
+          t(
+            'settings:vault_directory_invalid_message',
+            '您之前使用的外部存储目录已被删除或无法访问。\n\nSoloSoul 已将您的数据保留在本地应用存储中，您可以继续正常使用。\n\n如需重新选择外部目录，请前往「设置 > 数据管理」。',
+          ),
+          {
+            title: t('settings:vault_directory_invalid_title', '存储目录不可用'),
+            kind: 'warning',
+          },
+        );
       } catch {
         // Silently ignore if not on Android or dialog not supported
       }
@@ -432,17 +440,23 @@ export function AppRoutes() {
   useEffect(() => {
     if (!isAuthenticated) return;
     const unlisten = listen('saf-auth-revoked', () => {
-      // SAF 授权已失效，提示用户前往设置重新选择
+      // SAF 授权已失效，提示用户前往设置重新选择。
+      // auto-sync 在目录失效期间每 30s 周期性重试都会发射该事件——
+      // 用专用 safAuthToastShown 标志去重（同一会话只弹一次 toast），
+      // 不能复用 safAuthRevoked：GlobalSyncIndicator 先注册监听并置位它，
+      // 共用会吞掉首次 toast（整场零提示）。
       logger.warn('[AppRoutes] SAF auth revoked event received');
-      import('@/stores/uiStore').then(({ useUiStore }) => {
-        useUiStore.getState().showToast({
-          type: 'warning',
-          message: t(
-            'settings:vault_directory_invalid_toast',
-            'SAF directory access revoked. Go to Settings > Vault Directory to re-select.',
-          ),
-          duration: 10000,
-        });
+      const ui = useUiStore.getState();
+      if (ui.safAuthToastShown) return;
+      ui.setSafAuthToastShown(true);
+      ui.setSafAuthRevoked(true);
+      ui.showToast({
+        type: 'warning',
+        message: t(
+          'settings:vault_directory_invalid_toast',
+          'SAF directory access revoked. Go to Settings > Data Management to re-select.',
+        ),
+        duration: 10000,
       });
     });
     return () => {

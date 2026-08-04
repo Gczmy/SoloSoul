@@ -175,18 +175,20 @@ pub async fn vault_set_directory(
         std::fs::create_dir_all(&temp_dir).map_err(|e| format!("创建临时目录失败: {e}"))?;
 
         // 迁移：把当前本地 Vault 数据复制到 SAF 临时目录
+        //
+        // ⚠️ 源目录必须取 `svc.base_path()`（当前 Vault 实际数据位置），不能固定取 data_dir：
+        // - 本地模式：base_path = data_dir（账户/对象数据在 data_dir 根）
+        // - SAF 模式：base_path = data_dir/saf_vault_temp（真实数据在 SAF 缓存目录）
+        // 旧实现固定用 data_dir 作为迁移源，SAF→SAF 切换时会把 data_dir（不含账户数据）
+        // 以 clear_dst=true 复制进 saf_vault_temp，**清空真实缓存**，重启后账户全部丢失
+        // （表现为「重新创建账户」页面）。src==dst 时 migrate_vault_data 为 no-op，
+        // 直接保留缓存并同步到新 SAF URI，不再清空。
         let local_dir = {
             let svc = state
                 .vault_service
                 .read()
                 .map_err(|_| "Vault service lock poisoned".to_string())?;
-            if cfg!(mobile) {
-                data_dir.clone()
-            } else {
-                let bp = svc.base_path().clone();
-                drop(svc);
-                bp
-            }
+            svc.base_path().clone()
         };
 
         // 迁移/同步进度通知（spawn_blocking 外执行 emit）

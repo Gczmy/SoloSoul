@@ -756,8 +756,7 @@ impl AppState {
                     uri
                 );
                 return Err(
-                    "SAF 目录访问权限已被撤销，请前往「设置 > 保险库目录」重新选择目录。"
-                        .to_string(),
+                    "SAF 目录访问权限已被撤销，请前往「设置 > 数据管理」重新选择目录。".to_string(),
                 );
             }
         }

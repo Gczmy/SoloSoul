@@ -32,6 +32,13 @@ interface UiState {
   safSyncError: string | null;
   /** SAF 授权是否已被撤销。 */
   safAuthRevoked: boolean;
+  /**
+   * 「SAF 授权已失效」toast 是否已在本会话弹出过（仅 AppRoutes 监听器读写，
+   * 用于去重：auto-sync 周期性重试会反复发射 saf-auth-revoked 事件）。
+   * 独立于 safAuthRevoked——后者也被 GlobalSyncIndicator 置位，
+   * 若共用会因监听器注册顺序（GlobalSyncIndicator 先注册）吞掉首次 toast。
+   */
+  safAuthToastShown: boolean;
   /** 从「创建新账户」页返回时重新打开 onboarding 账户来源决策卡片的标志。 */
   reopenAccountSource: boolean;
 
@@ -43,6 +50,7 @@ interface UiState {
   setSafSyncProgress: (progress: SafSyncProgress) => void;
   setSafSyncError: (error: string | null) => void;
   setSafAuthRevoked: (revoked: boolean) => void;
+  setSafAuthToastShown: (shown: boolean) => void;
   setReopenAccountSource: (reopen: boolean) => void;
 }
 
@@ -56,6 +64,7 @@ export const useUiStore = create<UiState>((set) => ({
   safSyncProgress: { current: 0, total: 0 },
   safSyncError: null,
   safAuthRevoked: false,
+  safAuthToastShown: false,
   reopenAccountSource: false,
 
   toggleSidebar: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
@@ -83,5 +92,6 @@ export const useUiStore = create<UiState>((set) => ({
   setSafSyncProgress: (progress) => set({ safSyncProgress: progress }),
   setSafSyncError: (error) => set({ safSyncError: error }),
   setSafAuthRevoked: (revoked) => set({ safAuthRevoked: revoked }),
+  setSafAuthToastShown: (shown) => set({ safAuthToastShown: shown }),
   setReopenAccountSource: (reopen) => set({ reopenAccountSource: reopen }),
 }));

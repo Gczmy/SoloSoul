@@ -16,6 +16,7 @@ import {
   type VaultDirectoryInfo,
 } from '@/lib/vaultDirectory';
 import { Folder, RefreshCw, Download, Upload, AlertCircle, Loader2 } from 'lucide-react';
+import { useUiStore } from '@/stores/uiStore';
 
 interface SyncProgress {
   phase: 'sync_to_remote' | 'sync_from_remote' | 'migrate' | 'auto_sync';
@@ -97,6 +98,12 @@ export function VaultDirectorySection() {
       if (result.success) {
         onSuccess(t('settings:vault_directory_set_success'));
         setNeedsRestart(true);
+        // 目录已切换成功（SAF 授权已恢复或切回本地）→ 清除授权失效常驻横幅，
+        // 避免 GlobalSyncIndicator 的红色「SAF 目录访问已失效」横幅一直悬挂。
+        useUiStore.getState().setSafAuthRevoked(false);
+        useUiStore.getState().setSafAuthToastShown(false);
+        useUiStore.getState().setSafSyncError(null);
+        useUiStore.getState().setSafSyncState('idle');
         await loadInfo();
       } else {
         onError(new Error(result.message), t('settings:vault_directory_set_failed'));
@@ -121,6 +128,11 @@ export function VaultDirectorySection() {
       if (result.success) {
         onSuccess(t('settings:vault_directory_reset_success'));
         setNeedsRestart(true);
+        // 切回本地目录同样清除授权失效横幅状态
+        useUiStore.getState().setSafAuthRevoked(false);
+        useUiStore.getState().setSafAuthToastShown(false);
+        useUiStore.getState().setSafSyncError(null);
+        useUiStore.getState().setSafSyncState('idle');
         await loadInfo();
       } else {
         onError(new Error(result.message), t('settings:vault_directory_reset_failed'));

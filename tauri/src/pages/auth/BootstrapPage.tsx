@@ -28,6 +28,7 @@ export function BootstrapPage() {
   const [confirmError, setConfirmError] = useState<string | null>(null);
   const [searchParams] = useSearchParams();
   const isCreateMode = searchParams.get('mode') === 'create';
+  const hasAccount = useAuthStore((s) => s.hasAccount);
   const { t } = useTranslation(['auth', 'common', 'settings']);
 
   const handleSubmit = async (e?: React.FormEvent) => {
@@ -200,32 +201,35 @@ export function BootstrapPage() {
           </Button>
         </form>
 
-        {isCreateMode && (
-          <div
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 4,
+            marginTop: 16,
+          }}
+        >
+          {/* 始终提供「返回账户来源选择」：切换 SAF 目录后若账户未被检测到，
+              用户可从这里回到引导，重新选择目录或从其他设备恢复。 */}
+          <button
+            type="button"
+            onClick={() => useUiStore.getState().setReopenAccountSource(true)}
+            className="interactive-accent-link"
             style={{
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: 4,
-              marginTop: 16,
+              fontSize: 'var(--text-body-sm)',
+              background: 'transparent',
+              border: 'none',
+              padding: '6px 12px',
+              cursor: 'pointer',
+              fontFamily: 'inherit',
             }}
           >
-            {/* 从引导「账户来源」卡片进入创建页时，可返回重新选择「从其他设备恢复账户」 */}
-            <button
-              type="button"
-              onClick={() => useUiStore.getState().setReopenAccountSource(true)}
-              className="interactive-accent-link"
-              style={{
-                fontSize: 'var(--text-body-sm)',
-                background: 'transparent',
-                border: 'none',
-                padding: '6px 12px',
-                cursor: 'pointer',
-                fontFamily: 'inherit',
-              }}
-            >
-              {t('common:back_to_account_source_link')}
-            </button>
+            {t('common:back_to_account_source_link')}
+          </button>
+          {/* 仅当确实存在账户时才显示「返回登录页」（否则 hasAccount=false 时
+              /login 会再重定向回 /bootstrap，形成死循环） */}
+          {(isCreateMode || hasAccount === true) && (
             <button
               type="button"
               onClick={() => navigate('/login')}
@@ -241,8 +245,8 @@ export function BootstrapPage() {
             >
               {t('common:back_to_login_link')}
             </button>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );
