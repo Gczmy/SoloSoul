@@ -12,8 +12,8 @@
 use rusqlite::{params, Connection, OptionalExtension};
 
 use super::{
-    json_contains_ignore_case, with_tx, VaultStore, OBJECT_COLUMNS, OBJECT_LOAD_SQL,
-    OBJECT_SAVE_SQL, OBJECT_SELECT_BASE,
+    json_contains_ignore_case, object_has_attachments, with_tx, VaultStore, OBJECT_COLUMNS,
+    OBJECT_LOAD_SQL, OBJECT_SAVE_SQL, OBJECT_SELECT_BASE,
 };
 use crate::encryption::{decrypt_text_field, encrypt_text_field, DataEncryptionKey};
 use crate::{ObjectRecord, ObjectSummary};
@@ -440,6 +440,8 @@ impl VaultStore {
                         )),
                     )
                 })?;
+                // 附件存在性由已解密的 properties 推导（无额外解密成本）。
+                let has_attachments = object_has_attachments(&properties);
                 Ok(ObjectSummary {
                     id: row.get(0)?,
                     name: row.get(1)?,
@@ -459,6 +461,7 @@ impl VaultStore {
                     properties,
                     property_labels,
                     tags,
+                    has_attachments,
                 })
             })
             .map_err(|e| format!("list_objects query: {}", e))?
@@ -557,6 +560,8 @@ impl VaultStore {
                     properties: serde_json::Value::Null,
                     property_labels: None,
                     tags: vec![],
+                    // metadata-only 路径不解密 properties，附件存在性不可知 → false。
+                    has_attachments: false,
                 })
             })
             .map_err(|e| format!("list_object_metadata query: {}", e))?

@@ -12,6 +12,8 @@ export interface SelectionTreeObject {
   name: string;
   sensitivityLevel: string;
   sectionType: string;
+  /** 该对象是否包含（未软删的）附件——导出侧由后端范围树提供，导入侧不依赖此字段 */
+  hasAttachments?: boolean;
 }
 
 export interface SelectionTreeAttachment {
@@ -271,7 +273,8 @@ export function ObjectSelectionTree({
                         </button>
                       )}
                     </label>
-                    {expandedObjects.has(obj.id) && (
+                    {/* 展开面板同样受 showAttachmentExpand 门控：无附件对象即使存在残留展开态也不渲染 */}
+                    {expandedObjects.has(obj.id) && showAttachmentExpand(obj) && (
                       <div style={{ paddingLeft: 52, paddingBottom: 4 }}>
                         {(objectAttachments.get(obj.id) || []).length === 0 ? (
                           <span

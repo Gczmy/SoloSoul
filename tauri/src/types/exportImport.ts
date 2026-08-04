@@ -14,6 +14,8 @@ export interface ObjectSummary {
   createdAt: string;
   updatedAt: string;
   tags: string[];
+  /** 该对象是否包含（未软删的）附件——导出范围树据此决定是否展示附件展开图标 */
+  hasAttachments?: boolean;
 }
 
 export interface AttachmentInfo {

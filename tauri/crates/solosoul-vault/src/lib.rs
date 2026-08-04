@@ -228,6 +228,7 @@ pub struct GuideEmbeddingChunk {
 
 pub use encryption::DataEncryptionKey;
 /// R-4① 方案 2：只读数据密钥探测（独立只读连接，无 open 副作用）。
+pub use storage::object_has_attachments;
 pub use storage::probe_data_key;
 pub use storage::VaultStore;
 
@@ -341,6 +342,10 @@ pub struct ObjectSummary {
     #[serde(rename = "propertyLabels", skip_serializing_if = "Option::is_none")]
     pub property_labels: Option<serde_json::Value>,
     pub tags: Vec<String>,
+    /// 该对象是否包含（未软删的）附件——供导出范围树等 UI 判断是否展示附件展开图标。
+    /// 由 `properties.__attachments` 推导；metadata-only 路径（properties 未解密）为 false。
+    #[serde(default)]
+    pub has_attachments: bool,
 }
 
 // =============================================================================

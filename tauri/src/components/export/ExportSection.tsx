@@ -25,6 +25,7 @@ interface ObjectSummary {
   createdAt: string;
   updatedAt: string;
   tags: string[];
+  hasAttachments?: boolean;
 }
 
 interface AttachmentInfo {
@@ -152,7 +153,8 @@ export function ExportSection({
           selectedAttachmentIds={selectedAttachmentIds}
           objectAttachments={objectAttachments}
           totalSelected={totalSelected}
-          showAttachmentExpand={() => includeAttachments}
+          // 仅真实包含（未软删）附件的对象显示展开图标；无附件对象不再展示「无附件」空面板
+          showAttachmentExpand={(obj) => includeAttachments && obj.hasAttachments === true}
           isObjectSelected={(id) => selectedObjectIds.has(id)}
           onTogglePage={onTogglePage}
           onToggleObject={onToggleObject}

@@ -100,6 +100,9 @@ pub async fn import_decrypt_preview(
                         parent_id: o["parent_id"].as_str().map(String::from),
                         properties: o["properties"].clone(),
                         property_labels: None,
+                        // 与导出范围树同一口径（solosoul_vault::object_has_attachments）：
+                        // 未软删附件存在性，供导入侧对象行按附件展开。
+                        has_attachments: solosoul_vault::object_has_attachments(&o["properties"]),
                         tags: o["tags"]
                             .as_array()
                             .map(|t| {

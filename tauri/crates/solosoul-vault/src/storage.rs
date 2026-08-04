@@ -216,6 +216,24 @@ pub fn json_contains_ignore_case(value: &serde_json::Value, needle_lower: &str) 
     }
 }
 
+/// 判断对象 properties 是否包含未软删的附件（供导出范围树等 UI 按附件存在性
+/// 决定是否展示附件展开图标）。
+///
+/// 口径与 `export_get_attachments` 的过滤一致：`__attachments` 数组存在且至少一条
+/// 记录的 `deletedAt` 为空/缺失（camelCase 序列化，None → null → as_str 为 None）。
+pub fn object_has_attachments(properties: &serde_json::Value) -> bool {
+    properties
+        .get("__attachments")
+        .and_then(|v| v.as_array())
+        .is_some_and(|arr| {
+            arr.iter().any(|a| {
+                a.get("deletedAt")
+                    .and_then(|d| d.as_str())
+                    .is_none_or(|s| s.is_empty())
+            })
+        })
+}
+
 /// R-4① 方案 2（probe 判定）：探测给定数据密钥能否解密指定 vault.db 中的现有数据。
 ///
 /// 独立只读连接（`PRAGMA query_only`），**不**走 `VaultStore::open`——后者会触发
@@ -1862,6 +1880,33 @@ mod tests {
         let plain = serde_json::json!({ "title": "x" });
         assert!(!json_contains_ignore_case(&plain, "动态字段组"));
         assert!(!json_contains_ignore_case(&plain, "dynamic group"));
+    }
+
+    #[test]
+    fn test_object_has_attachments() {
+        // 无 __attachments 键
+        assert!(!object_has_attachments(
+            &serde_json::json!({ "title": "x" })
+        ));
+        // 空数组
+        assert!(!object_has_attachments(
+            &serde_json::json!({ "__attachments": [] })
+        ));
+        // 存在未软删附件（deletedAt 缺失或 null）
+        assert!(object_has_attachments(&serde_json::json!({
+            "__attachments": [{ "id": "a1", "deletedAt": null }]
+        })));
+        // 全部为软删附件（deletedAt 非空字符串）→ 无可见附件
+        assert!(!object_has_attachments(&serde_json::json!({
+            "__attachments": [{ "id": "a1", "deletedAt": "2026-08-04T00:00:00Z" }]
+        })));
+        // 混合：有一条未软删即命中
+        assert!(object_has_attachments(&serde_json::json!({
+            "__attachments": [
+                { "id": "a1", "deletedAt": "2026-08-04T00:00:00Z" },
+                { "id": "a2", "deletedAt": null }
+            ]
+        })));
     }
 
     #[test]
