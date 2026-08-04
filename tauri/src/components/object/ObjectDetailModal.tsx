@@ -2,28 +2,13 @@ import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { motion } from 'framer-motion';
-import {
-  X,
-  Clock,
-  Paperclip,
-  Pencil,
-  Lock,
-  Eye,
-  Maximize2,
-  Upload,
-  Info,
-  History,
-} from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { useTemplateStore } from '@/stores/templateStore';
 import { logger } from '@/lib/logger';
 import { useObjectStore, type ObjectData, type ObjectSummary } from '@/stores/objectStore';
 import { useRevealState } from '@/hooks/useRevealState';
 import type { SensitivityLevel } from '@/components/ui/SensitivityBadge';
-import { DeleteButton } from '@/components/ui/DeleteButton';
-import { Button } from '@/components/ui/Button';
 import { PasswordVerificationDialog } from '@/components/forms/PasswordVerificationDialog';
-import { PluginBadge } from '@/components/template/PluginBadge';
 import { HistoryViewer } from '@/components/object/HistoryViewer';
 import { AttachmentViewer } from '@/components/object/AttachmentViewer';
 import { PAGE_ICON_MAP, resolveCustomIcon } from '@/lib/pageIcons';
@@ -34,10 +19,16 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import type { TemplateProperty } from '@/types/template';
 import { useDragToAttach } from '@/hooks/useDragToAttach';
 import { DragUploadOverlay } from '@/components/object/DragUploadOverlay';
-import { PageGuideButton } from '@/components/guide/PageGuideButton';
-import type { GuidePage } from '@/components/guide/PageGuide';
 import { isMobilePlatformSync } from '@/lib/platform';
-import { ICON_SIZE } from '@/lib/constants';
+import { flattenProperties, buildDetailGuidePages } from '@/components/object/objectDetailUtils';
+import {
+  ObjectDetailHeader,
+  ObjectDetailTemplateSyncBanner,
+  ObjectDetailDeprecatedEntry,
+  ObjectDetailTags,
+  ObjectDetailFooter,
+} from '@/components/object/ObjectDetailSections';
+import { ObjectDetailDeleteDialog } from '@/components/object/ObjectDetailDeleteDialog';
 import styles from './ObjectDetailModal.module.css';
 
 interface ObjectDetailModalProps {
@@ -60,143 +51,6 @@ interface ObjectDetailModalProps {
   onViewDeprecatedFields?: () => void;
   /** 附件增删后的回调，用于外部（workspace）刷新计数 badge */
   onAttachmentsChange?: () => void;
-}
-
-function flattenProperties(
-  props: Record<string, unknown> | undefined,
-  fieldOrder?: string[],
-  fieldDefs?: Record<string, { type?: string }>,
-): { key: string; label?: string; value: string; fieldId?: string }[] {
-  if (!props) return [];
-  const entries: { key: string; label?: string; value: string; fieldId?: string }[] = [];
-  const defs =
-    fieldDefs ?? ((props.__fields as Record<string, { type?: string }> | undefined) || {});
-  for (const [k, v] of Object.entries(props)) {
-    if (k.startsWith('__')) continue;
-    if (v === null || v === undefined || v === '') continue;
-    const fieldType = defs[k]?.type;
-    if (fieldType === 'dynamic_group' && Array.isArray(v)) {
-      for (const item of v) {
-        if (!item || typeof item !== 'object') continue;
-        const { id, name, value } = item as Record<string, unknown>;
-        if (name === undefined || name === null || name === '') continue;
-        let displayValue = '';
-        if (Array.isArray(value)) {
-          displayValue = value.join(', ');
-        } else if (value !== null && value !== undefined) {
-          displayValue = String(value);
-        }
-        entries.push({
-          key: k,
-          label: String(name),
-          value: displayValue,
-          fieldId: id ? `${k}.${id}` : `${k}.${name}`,
-        });
-      }
-    } else if (typeof v === 'string') {
-      entries.push({ key: k, value: v });
-    } else if (typeof v === 'number' || typeof v === 'boolean') {
-      entries.push({ key: k, value: String(v) });
-    } else if (Array.isArray(v) && v.length > 0) {
-      entries.push({ key: k, value: v.join(', ') });
-    }
-  }
-  if (fieldOrder && fieldOrder.length > 0) {
-    const orderMap = new Map(fieldOrder.map((id, i) => [id, i]));
-    entries.sort((a, b) => {
-      const ia = orderMap.get(a.key);
-      const ib = orderMap.get(b.key);
-      if (ia !== undefined && ib !== undefined) return ia - ib;
-      if (ia !== undefined) return -1;
-      if (ib !== undefined) return 1;
-      return a.key.localeCompare(b.key);
-    });
-  }
-  return entries;
-}
-
-/** P041: 指南内容数据从组件内提出为纯函数，缩短主组件体积。 */
-function buildDetailGuidePages(
-  t: ReturnType<typeof useTranslation>['t'],
-  isMobilePlatform: boolean,
-): GuidePage[] {
-  return isMobilePlatform
-    ? [
-        {
-          icon: Info,
-          title: t('common:guide_detail_mobile_title') ?? '对象详情卡片',
-          steps: [
-            {
-              icon: Eye,
-              title: t('common:guide_detail_mobile_step1_title') ?? '字段与敏感等级',
-              description:
-                t('common:guide_detail_mobile_step1_desc') ??
-                '详情卡片会列出对象的所有字段，显示字段名称、类型图标和敏感度标签。敏感/关键字段的值默认会被遮罩，以保护隐私。',
-            },
-            {
-              icon: Lock,
-              title: t('common:guide_detail_mobile_step2_title') ?? '显示与解锁',
-              description:
-                t('common:guide_detail_mobile_step2_desc') ??
-                '点击敏感字段旁的「显示」图标可查看内容；关键字段旁会显示「解锁」图标，需通过主密码、PIN 或生物识别验证后才能临时查看。',
-            },
-            {
-              icon: History,
-              title: t('common:guide_detail_mobile_step3_title') ?? '操作按钮',
-              description:
-                t('common:guide_detail_mobile_step3_desc') ??
-                '卡片底部提供四个常用操作：历史记录（时钟图标）查看版本快照、附件（回形针图标）管理文件、编辑（铅笔图标）进入编辑器、删除（垃圾桶图标）将对象移入回收站。',
-            },
-          ],
-          helpLinks: [
-            {
-              title: t('common:guide_help_sensitivity') ?? '敏感度等级',
-              description:
-                t('common:guide_help_sensitivity_desc') ??
-                '了解不同敏感度等级的含义与安全策略',
-              href: '/help?id=sensitivity',
-            },
-            {
-              title: t('common:guide_help_attachments') ?? '附件管理',
-              description:
-                t('common:guide_help_attachments_desc') ??
-                '附件的上传、下载、重命名与回收站管理',
-              href: '/help?id=attachments',
-            },
-          ],
-        },
-      ]
-    : [
-        {
-          icon: Upload,
-          title: t('common:drag_upload_guide_title') ?? '拖拽附件上传指南',
-          steps: [
-            {
-              icon: Maximize2,
-              title: t('common:guide_detail_step1_title') ?? '拖拽到此面板',
-              description:
-                t('common:guide_detail_step1_desc') ??
-                '直接将文件从文件管理器拖入当前详情面板，即可为此对象添加附件。拖入时面板会高亮提示。',
-            },
-            {
-              icon: Paperclip,
-              title: t('common:guide_detail_step2_title') ?? '附件管理器',
-              description:
-                t('common:guide_detail_step2_desc') ??
-                '点击「附件」按钮打开附件管理器，也可将文件直接拖入管理器窗口进行批量上传。',
-            },
-          ],
-          helpLinks: [
-            {
-              title: t('common:guide_help_attachments') ?? '附件管理',
-              description:
-                t('common:guide_help_attachments_desc') ??
-                '附件的上传、下载、重命名与回收站管理',
-              href: '/help?id=attachments',
-            },
-          ],
-        },
-      ];
 }
 
 export function ObjectDetailModal({
@@ -489,8 +343,9 @@ export function ObjectDetailModal({
   };
 
   const detailTpl = obj?.templateId ? templates.find((t) => t.id === obj.templateId) : undefined;
-  // 模板匹配需同时满足 ID 和页面归属（与编辑器 ObjectEditorPage 对齐）
-  const detailTplMatch = detailTpl && (detailTpl.category || 'identity') === obj?.collectionType;
+  // 模板匹配需同时满足 ID 和页面归属（与编辑器 ObjectEditorPage 对齐）。
+  // !! 归一化为 boolean：原实现仅用于三元/条件真值判断，语义等价。
+  const detailTplMatch = !!detailTpl && (detailTpl.category || 'identity') === obj?.collectionType;
   const ObjectDetailIcon = detailTpl?.iconId
     ? resolveCustomIcon(detailTpl.iconId)
     : PAGE_ICON_MAP.custom;
@@ -521,79 +376,15 @@ export function ObjectDetailModal({
           >
             <>
               {/* Header */}
-              <div
-                className={styles.modalHeader}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{ flexShrink: 0, display: 'flex' }}>
-                    <ObjectDetailIcon size={ICON_SIZE['2xl']} />
-                  </span>
-                  <div>
-                    <h2
-                      style={{
-                        fontSize: 'var(--text-md)',
-                        fontWeight: 700,
-                        margin: 0,
-                        overflowWrap: 'break-word',
-                        wordBreak: 'break-word',
-                      }}
-                    >
-                      {obj.name}
-                    </h2>
-                    <span
-                      style={{
-                        fontSize: 'var(--text-badge)',
-                        color: 'var(--text-tertiary)',
-                        wordBreak: 'break-word',
-                      }}
-                    >
-                      {resolveCollectionLabelLocal(obj.collectionType)}
-                      {/* 模板名 — 模板不匹配（已删除/更改页面）时显示删除线 */}
-                      {obj.templateId &&
-                        (() => {
-                          const tplName = (obj.properties as Record<string, unknown>)
-                            ?.__templateName as string | undefined;
-                          const tid = obj.templateId || '';
-                          const label = detailTplMatch
-                            ? detailTpl?.name || tid
-                            : tplName
-                              ? `${tplName} (${tid.slice(0, 8)}…)`
-                              : tid;
-                          return (
-                            <span
-                              style={{ textDecoration: detailTplMatch ? 'none' : 'line-through' }}
-                            >
-                              {' · '}
-                              {label}
-                            </span>
-                          );
-                        })()}
-                      {obj.contractTypeId && (
-                        <span
-                          style={{ marginLeft: 4, display: 'inline-flex', verticalAlign: 'middle' }}
-                        >
-                          <PluginBadge
-                            contractTypeId={obj.contractTypeId}
-                            size="sm"
-                            variant="full"
-                          />
-                        </span>
-                      )}
-                      {' · '}
-                      {t('common:created')}: {obj.createdAt?.slice(0, 10) || '—'} ·{' '}
-                      {t('common:updated')}: {obj.updatedAt?.slice(0, 10) || '—'}
-                    </span>
-                  </div>
-                </div>
-                <button onClick={onClose} className={styles.closeBtn} data-testid="object-detail-close" aria-label={t('common:close')}>
-                  <X size={ICON_SIZE.xl} />
-                </button>
-              </div>
+              <ObjectDetailHeader
+                obj={obj}
+                icon={ObjectDetailIcon}
+                detailTplMatch={detailTplMatch}
+                detailTplName={detailTpl?.name}
+                collectionLabel={resolveCollectionLabelLocal(obj.collectionType)}
+                t={t}
+                onClose={onClose}
+              />
 
               <div
                 className={styles.headerDivider}
@@ -602,191 +393,70 @@ export function ObjectDetailModal({
 
               {/* 可滚动内容区（移动端仅此区域滚动，头尾固定） */}
               <div className={styles.modalBody}>
+                {/* 模板更新提示条 */}
+                {needsSync && onSyncTemplate && (
+                  <ObjectDetailTemplateSyncBanner
+                    t={t}
+                    onSync={onSyncTemplate}
+                    onDismiss={onDismissSync}
+                  />
+                )}
 
-              {/* 模板更新提示条 */}
-              {needsSync && onSyncTemplate && (
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: 12,
-                    marginBottom: 16,
-                    padding: '10px 12px',
-                    borderRadius: 8,
-                    background: 'color-mix(in srgb, var(--accent-primary) 10%, transparent)',
-                    border: '1px solid color-mix(in srgb, var(--accent-primary) 25%, transparent)',
-                  }}
-                >
-                  <span style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-primary)' }}>
-                    {t('editor:template_updated_hint')}
-                  </span>
-                  <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
-                    <button
-                      onClick={onSyncTemplate}
-                      style={{
-                        padding: '4px 10px',
-                        borderRadius: 6,
-                        border: 'none',
-                        background: 'var(--accent-primary)',
-                        color: '#fff',
-                        fontSize: 'var(--text-caption)',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                      }}
-                    >
-                      {t('common:yes')}
-                    </button>
-                    <button
-                      onClick={onDismissSync}
-                      style={{
-                        padding: '4px 10px',
-                        borderRadius: 6,
-                        border: '1px solid var(--border-subtle)',
-                        background: 'var(--bg-elevated)',
-                        color: 'var(--text-secondary)',
-                        fontSize: 'var(--text-caption)',
-                        fontWeight: 500,
-                        cursor: 'pointer',
-                      }}
-                    >
-                      {t('common:no')}
-                    </button>
-                  </div>
-                </div>
-              )}
+                {/* 历史字段入口 */}
+                {deprecatedFields.length > 0 && onViewDeprecatedFields && (
+                  <ObjectDetailDeprecatedEntry
+                    t={t}
+                    count={deprecatedFields.length}
+                    onView={onViewDeprecatedFields}
+                  />
+                )}
 
-              {/* 历史字段入口 */}
-              {deprecatedFields.length > 0 && onViewDeprecatedFields && (
-                <div style={{ marginBottom: 12 }}>
-                  <button
-                    onClick={onViewDeprecatedFields}
+                {/* Fields */}
+                {fields.length === 0 ? (
+                  <p
                     style={{
-                      padding: '6px 10px',
-                      borderRadius: 6,
-                      border: '1px solid var(--border-subtle)',
-                      background: 'var(--bg-toolbar)',
-                      color: 'var(--text-secondary)',
-                      fontSize: 'var(--text-caption)',
-                      cursor: 'pointer',
+                      fontSize: 'var(--text-body-sm)',
+                      color: 'var(--text-tertiary)',
+                      textAlign: 'center',
+                      padding: '16px 0',
                     }}
                   >
-                    {t('editor:deprecated_fields_button', { count: deprecatedFields.length })}
-                  </button>
-                </div>
-              )}
+                    {t('editor:no_properties')}
+                  </p>
+                ) : (
+                  <ObjectDetailFieldsList
+                    fields={fields}
+                    collectionType={obj.collectionType}
+                    contractTypeId={obj.contractTypeId}
+                    objFieldDefs={objFieldDefs}
+                    getFieldProperty={getFieldProperty}
+                    getFieldSensitivity={getFieldSensitivity}
+                    isFieldDeprecated={isFieldDeprecated}
+                    getFieldName={getFieldName}
+                    isRevealed={isRevealed}
+                    maskValue={maskValue}
+                    handleRevealField={handleRevealField}
+                    handleCopy={handleCopy}
+                    copiedField={copiedField}
+                  />
+                )}
 
-              {/* Fields */}
-              {fields.length === 0 ? (
-                <p
-                  style={{
-                    fontSize: 'var(--text-body-sm)',
-                    color: 'var(--text-tertiary)',
-                    textAlign: 'center',
-                    padding: '16px 0',
-                  }}
-                >
-                  {t('editor:no_properties')}
-                </p>
-              ) : (
-                <ObjectDetailFieldsList
-                  fields={fields}
-                  collectionType={obj.collectionType}
-                  contractTypeId={obj.contractTypeId}
-                  objFieldDefs={objFieldDefs}
-                  getFieldProperty={getFieldProperty}
-                  getFieldSensitivity={getFieldSensitivity}
-                  isFieldDeprecated={isFieldDeprecated}
-                  getFieldName={getFieldName}
-                  isRevealed={isRevealed}
-                  maskValue={maskValue}
-                  handleRevealField={handleRevealField}
-                  handleCopy={handleCopy}
-                  copiedField={copiedField}
-                />
-              )}
+                {/* 拖拽上传覆盖层 */}
+                <DragUploadOverlay dragState={detailDragState} borderRadius={16} />
 
-              {/* 拖拽上传覆盖层 */}
-              <DragUploadOverlay dragState={detailDragState} borderRadius={16} />
-
-              {/* Tags */}
-              {obj.tags && obj.tags.length > 0 && (
-                <div style={{ marginTop: 16, display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                  {obj.tags.map((tag: string) => (
-                    <span
-                      key={tag}
-                      style={{
-                        padding: '2px 8px',
-                        borderRadius: 10,
-                        fontSize: 'var(--text-badge)',
-                        background: 'var(--bg-toolbar)',
-                        color: 'var(--text-secondary)',
-                        border: '1px solid var(--border-subtle)',
-                      }}
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              )}
-
+                {/* Tags */}
+                {obj.tags && obj.tags.length > 0 && <ObjectDetailTags tags={obj.tags} />}
               </div>
 
               {/* Actions */}
-              <div className={styles.modalFooter}>
-
-                <div className={styles.guideWrapper}>
-                  <PageGuideButton pages={detailGuidePages} />
-                </div>
-                <div className={styles.footerActions}>
-                  <button
-                    onClick={() => {
-                      if (onHistory) {
-                        onHistory();
-                      } else {
-                        setShowHistory(true);
-                      }
-                    }}
-                    className={`${styles.actionBtn} ${styles.footerBtn}`}
-                  >
-                    <Clock size={ICON_SIZE.sm} />
-                    <span className={styles.actionLabel}>{t('common:history')}</span>
-                  </button>
-                  <button
-                    onClick={() => {
-                      if (onAttachments) {
-                        onAttachments();
-                      } else {
-                        setShowAttachments(true);
-                      }
-                    }}
-                    className={`${styles.actionBtn} ${styles.footerBtn}`}
-                  >
-                    <Paperclip size={ICON_SIZE.sm} />
-                    <span className={styles.actionLabel}>{t('common:attachments')}</span>
-                  </button>
-                  {onEdit && (
-                    <button onClick={onEdit} className={`${styles.actionBtn} ${styles.footerBtn}`}>
-                      <Pencil size={ICON_SIZE.sm} />
-                      <span className={styles.actionLabel}>{t('common:edit')}</span>
-                    </button>
-                  )}
-                  <div className={styles.deleteBtnWrapper}>
-                    <DeleteButton
-                      onClick={() => {
-                        if (onDelete) {
-                          onDelete();
-                        } else {
-                          setConfirmDelete(true);
-                        }
-                      }}
-                      title={t('common:delete')}
-                    >
-                      <span className={styles.actionLabel}>{t('common:delete')}</span>
-                    </DeleteButton>
-                  </div>
-                </div>
-              </div>
+              <ObjectDetailFooter
+                t={t}
+                guidePages={detailGuidePages}
+                onHistory={onHistory ?? (() => setShowHistory(true))}
+                onAttachments={onAttachments ?? (() => setShowAttachments(true))}
+                onEdit={onEdit}
+                onDelete={onDelete ?? (() => setConfirmDelete(true))}
+              />
             </>
           </motion.div>
         )}
@@ -849,78 +519,5 @@ export function ObjectDetailModal({
         onBiometric={bioAvailable.available ? handleBiometricUnlock : undefined}
       />
     </>
-  );
-}
-
-/** P041: 删除确认对话框——从主组件提取，缩短主组件体积。 */
-function ObjectDetailDeleteDialog({
-  open,
-  objectName,
-  deleting,
-  t,
-  onCancel,
-  onConfirm,
-}: {
-  open: boolean;
-  objectName: string;
-  deleting: boolean;
-  t: ReturnType<typeof useTranslation>['t'];
-  onCancel: () => void;
-  onConfirm: () => void;
-}) {
-  if (!open) return null;
-  return (
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 'var(--z-modal-important)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'var(--bg-overlay)',
-        backdropFilter: 'blur(4px)',
-      }}
-      onClick={onCancel}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          background: 'var(--bg-elevated)',
-          borderRadius: 12,
-          padding: '24px 28px',
-          maxWidth: 360,
-          width: '90%',
-          boxShadow: 'var(--shadow-lg)',
-          border: '1px solid var(--border-subtle)',
-        }}
-      >
-        <h3
-          style={{ margin: '0 0 8px', fontSize: 'var(--text-section-title)', fontWeight: 600 }}
-        >
-          {t('common:object_delete_confirm_title')}
-        </h3>
-        <p
-          style={{
-            margin: '0 0 20px',
-            fontSize: 'var(--text-body)',
-            color: 'var(--text-secondary)',
-            lineHeight: 1.5,
-          }}
-        >
-          {t('common:object_delete_confirm_body', {
-            name: objectName.length > 28 ? objectName.slice(0, 27) + '…' : objectName,
-          })}
-        </p>
-        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-          <Button variant="secondary" onClick={onCancel}>
-            {t('common:cancel')}
-          </Button>
-          <Button variant="danger-outline" onClick={onConfirm} disabled={deleting}>
-            {t('common:delete')}
-          </Button>
-        </div>
-      </div>
-    </div>
   );
 }

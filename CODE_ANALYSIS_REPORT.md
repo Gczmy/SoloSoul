@@ -32,12 +32,12 @@
 |------|--------|------------|----------------------------------------------|--------------------------------------------------|-----------|
 | P001 | P0     | 构建/CI    | `tauri/scripts/check_acl_consistency.py:27`  | ACL 脚本用 `re.search` 只解析**首个** `generate_handler!` 块——P223-③ 拆分为 5 簇后仅校验 core 簇，产生 68 条误报 WARN，同步/OCR/LLM/插件四簇失去校验 | `[x]` 已修复 |
 | P002 | P1     | 死代码/安全 | `tauri/src-tauri/src/lib.rs`、`commands/vault.rs`、`commands/object/trash.rs` | 4 个死 IPC 命令（`object_restore`/`object_purge`/`get_state`/`delete_account`）注册于 handler 但生产前端**零调用**，且未登记 ACL 白名单 → 触发 P101 一致性检查失败 | `[x]` 已修复 |
-| P003 | P2     | 重构       | `tauri/src/`（30 个文件 >400 行）             | 巨型组件长期重构候选（延续既有 P224 思路，随功能迭代顺带处理） | `[ ]` 暂缓（长期计划） |
+| P003 | P2     | 重构       | `tauri/src/`（30 个文件 >400 行）             | 巨型组件长期重构候选（延续既有 P224 思路，随功能迭代顺带处理）——P003-① ObjectDetailModal 已拆分，剩余 29 个文件待后续迭代 | `[x]` P003-① 已完成 |
 | P004 | P2     | 文档同步   | `docs/design_map/08_IPC命令接口完整规范.md`、`docs/solosoul_cli/*` | 设计文档仍将 `get_state`/`delete_account`/`object_purge`/`object_restore` 列为活跃 IPC 命令（P002 删除后需同步） | `[x]` 已修复 |
 
 ## 修复进度
 
-- 已完成：3 / 4（P003 为 P2 长期重构候选，按既有约定不单独安排修复轮次）
+- 已完成：4 / 4（P003-① ObjectDetailModal 拆分完成，其余候选随功能迭代顺带处理）
 - 当前处理：无
 
 ---
@@ -98,7 +98,32 @@ m = re.search(r"generate_handler!\s*\[((?:[^\[\]]|\[[^\[\]]*\])*)\]", text, re.S
 
 ### P003（P2）前端巨型组件长期重构
 
-**位置**：`tauri/src/` 中 30 个文件超过 400 行，前五：
+**✅ P003-① 已完成（2026-08-04）：ObjectDetailModal.tsx 926 → 523 行**
+
+按 P224 等价重构模式拆分为 4 个文件（commit 待写入）：
+
+| 文件 | 行数 | 内容 |
+|------|------|------|
+| `ObjectDetailModal.tsx` | 523（原 926） | 编排层：保留全部状态/副作用/回调（fetch、生物识别、密码验证、审计日志、删除） |
+| `ObjectDetailSections.tsx` | 262 | 纯展示：`ObjectDetailHeader` / `ObjectDetailTemplateSyncBanner` / `ObjectDetailDeprecatedEntry` / `ObjectDetailTags` / `ObjectDetailFooter` |
+| `ObjectDetailDeleteDialog.tsx` | 73 | 删除确认对话框（原 P041 提取项，随迁） |
+| `objectDetailUtils.ts` | 150 | 纯函数：`flattenProperties` / `buildDetailGuidePages` |
+
+**验证**：tsc ✅ / eslint 0 警告 ✅ / prettier ✅ / 全量 Vitest **57 文件 / 493 用例全绿**（新增 `objectDetailUtils.test.ts` 8 用例 + `ObjectDetailModal.test.tsx` 3 渲染冒烟用例：头部/标签/底部操作栏/删除确认链路/关闭回调）/ code-reviewer-glm 确认等价（JSX 逐字、`detailTplMatch` `!!` 归一化、Footer 兜底分支、SyncBanner 可空 onDismiss）✅。
+
+**新增 P2 去重项**（审查员建议，随本项记录）：`flattenProperties` 现存于 3 处（`objectDetailUtils.ts` / `HistoryViewer.tsx` / `WorkspaceObjectCard.tsx`），返回类型与 `__` 键语义不同（HistoryViewer 为树结构 `FlattenedField[]`，其余为平铺行），统一需改行为——列入后续 P225 式收敛候选，暂不实施。
+
+**剩余候选**：`tauri/src/` 中 29 个文件 >400 行，前五：
+
+| 行数 | 文件 |
+|------|------|
+| 878 | `src/components/sync/SyncShowQrDialog.tsx` |
+| 793 | `src/pages/auth/LoginPage.tsx` |
+| 754 | `src/pages/settings/ExportImportPage.tsx` |
+| 743 | `src/components/object/AttachmentViewer.tsx` |
+| 699 | `src/components/guide/PageGuide.tsx` |
+
+**定位**：延续既有 P224 思路（「结构性拆分建议随功能迭代顺带、不单独安排修复轮次」）。本轮完成 P003-①，其余候选随功能迭代顺带处理。拆分时应保持「等价重构、零行为变更」，并复用已收敛的共享组件。
 
 | 行数 | 文件 |
 |------|------|
@@ -165,7 +190,7 @@ m = re.search(r"generate_handler!\s*\[((?:[^\[\]]|\[[^\[\]]*\])*)\]", text, re.S
 ### 5.3 结论
 
 - **P0/P1 全部闭环**：ACL 一致性检查从 ❌ 恢复 ✅，188 个 IPC 命令 handler↔白名单双向一致；
-- **P2**：P004 已闭环；P003（巨型组件重构）按既有约定归档为长期候选，随功能迭代顺带处理；
+- **P2**：P004 已闭环；P003-① ObjectDetailModal 拆分完成（926→523 行），剩余 29 个候选随功能迭代顺带处理；
 - **遗留项**：`08_IPC命令接口完整规范.md` 中部分更早的命令名（如 `profile_save`/`search_advanced`/crypto 模块）为设计期陈旧描述，已由顶部「权威来源为 ACL/handler」声明覆盖，不属本轮范围。
 
 ✅ 本轮可识别问题已修复，代码库质量评估达标。
