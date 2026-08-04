@@ -17,7 +17,7 @@
 | `cargo fmt --check` | ✅ 通过 | ✅ 通过 |
 | `cargo clippy --workspace --all-targets` | ✅ 零警告 | ✅ 零警告 |
 | 前端测试 | ✅ 46 文件 / 430 用例 | ✅ 55 文件 / 484 用例（较修复前 +54） |
-| Rust 测试 | ✅ 全部通过 | ✅ 全部通过（solo_soul 365 / core 156（默认；`future-keychain` 开启时 +4）/ crypto 34 / plugin 56 / sync 47 / vault 133（方案 B +4、#1 墓碑传播 +6）） |
+| Rust 测试 | ✅ 全部通过 | ✅ 全部通过（solo_soul 365 / core 156（默认；`future-keychain` 开启时 +4）/ crypto 34 / plugin 56 / sync 47 / vault 140（方案 B +4、#1 墓碑传播 +6、N-14 墓碑清理 +7）） |
 
 ## §2 总览：80 项问题处置结果
 
@@ -412,9 +412,18 @@
   - **步骤2 清单端（`4caaa79c`）**：`list_object_changes_since_limited` / `list_trash_changes_since_limited` 返回前经新增私有 helper `merge_tombstones` 合并本表墓碑（deleted=true, data=null），按 (HLC, id) 全序排序后 `truncate(limit)`（两处逐字重复收敛，P223 去重惯例）。排序/截断正确性：墓碑 HLC 通常大于在册记录 HLC，页满截断只截页尾墓碑；watermark 推进到页内最大 HLC，下页按新 watermark 过滤墓碑仍可取到不丢失；保留 HLC 最小的 limit 条，被截断行 HLC 恒 >= 页内最大 HLC，keyset 下页正确续取。
   - **步骤3 应用端 + 回归测试（`9165b5c7`）**：`apply_object_sync_record_tx` / `apply_trash_sync_record_tx` 在 deserialize 前检查 `record.deleted && record.data.is_null()` → DELETE 本地行（不重记本地墓碑，远程 HLC 保持权威删除时间戳）。**软删对象（is_deleted=1、全量 data）deleted=true 但 data 非空，不会被误判为墓碑**（关键误分类防护）。回归测试×6：对象硬删产生墓碑 / 硬删不存在行无幽灵墓碑 / trash purge 产生墓碑 / 墓碑应用到对端删除本地行 / 分页合并墓碑（keyset 全收集）/ 软删对象应用不误判为墓碑。
   - **验证**：fmt 干净 / clippy 0 / solosoul-vault 133（+6）+ sync 47 全绿 / workspace + CLI check 0 / code-reviewer GO（采纳：merge_tombstones 去重、软删误判回归测试、非原子窗口注释）。
-- **遗留评估点（待后续单独立项）**：墓碑生命周期——`sync_tombstones` 无清理策略，硬删累积可致表无限增长（profiles/user_templates 同受此限，本缺口未引入新问题）。**下方案评估已产出（2026-08-04，仅分析不实施，详见下节「§4.5.1 墓碑生命周期清理策略评估」）**。
+- **遗留评估点（✅ 已闭环 2026-08-04）**：墓碑生命周期——`sync_tombstones` 无清理策略，硬删累积可致表无限增长（profiles/user_templates 同受此限，本缺口未引入新问题）。**方案 C 已按三步实施并提交（详见下节「§4.5.1 墓碑生命周期清理策略」）**。
 
-### 4.5.1 墓碑生命周期清理策略评估（📋 已分析，待实施）
+### 4.5.1 墓碑生命周期清理策略（✅ 已闭环，2026-08-04 方案 C 三步实施）
+
+> **实施记录（一项一提交 ×3 + 报告归档）**：
+> - `6428d375` **Step1 前置修复**：`delete_peer` 改为 with_tx 单事务内 DELETE `sync_peers` + DELETE `sync_watermarks` 联动（消除评估发现的「忘记设备水位残留永远保住墓碑」遗留坑）。
+> - `2bdcffc1` **Step2 核心**：`cleanup_expired_tombstones()` 新方法——单事务内逐条墓碑判定：**水位老化**（该表存续 peer 水位 MIN ≥ 墓碑 HLC ⇔ `!hlc_after_watermark`，JOIN `sync_peers` 存活过滤双保险）或**时间兜底**（该表无任何水位行=纯单机/未配对，`created_at` 365 天老化，绝不越权）；与 `sync_hlc` 解耦不联动（重建覆盖/无害孤儿）。
+> - `28904507` **Step3 触发 + 测试**：`send_paginated_deltas` 四表循环完成、peer 水位全部推进后、send Done 前调用（刚 ack 的墓碑立即可清，失败仅 warn 不阻断会话）；回归测试 ×7（水位落后保留/全部越过清除/任一落后保留/存续 peer 无水位行不阻断/纯单机 400 天旧墓碑清除/纯单机新墓碑保留/delete_peer 联动删水位）。
+> - 本报告归档 commit（见 git 历史）。
+> **验证**：fmt 干净 / clippy 0 / solosoul-vault 140（+7）/ solosoul-sync 47 全绿 / workspace + CLI check 0 / code-reviewer GO（含补测）。
+
+**评估结论（2026-08-04 仅分析，后按方案 C 实施）**：
 
 **问题**：`sync_tombstones` 每硬删一条记录即插入一行且**永不清除**，表无限增长。删除对象的正确性是同步协议核心（防止对端数据回魂），清理必须保证**不破坏任何 peer 的收敛性**。
 
