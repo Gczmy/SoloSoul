@@ -2,6 +2,11 @@
 
 > **审计日期:** 2026-06-06
 > **最后更新:** 2026-06-06 (第三轮完成 — 三轮迭代结束)
+>
+> **⚠️ 历史文档**：本文件为三轮迭代审计的阶段性记录。文中提及的
+> `object_restore` / `object_purge` / `get_state` / `delete_account` 命令已于 2026-08-04
+> （P002）从 IPC 面移除，回收站恢复/物理删除统一走 `trash_restore` / `trash_permanent_delete`；
+> 权威命令面以 `tauri/src-tauri/permissions/solo-soul/default.toml`（ACL 白名单）为准。
 > **审计范围:** `tauri/src-tauri/src/` (Rust 后端) + `tauri/src/` (TypeScript 前端) + `docs/design_map/` (设计文档)
 > **审计方法:** 逐文件代码审查 + 设计文档逐项对比
 

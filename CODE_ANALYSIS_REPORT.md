@@ -113,10 +113,18 @@ m = re.search(r"generate_handler!\s*\[((?:[^\[\]]|\[[^\[\]]*\])*)\]", text, re.S
 ### P004（P2）设计文档与 IPC 面同步
 
 **位置**：
-- `docs/design_map/08_IPC命令接口完整规范.md:31/34/129/136`（列出 `get_state`/`delete_account`/`object_purge`/`object_restore`）
-- `docs/solosoul_cli/solosoul_cli_research_report.md:264/266/280/281`（映射表）
+- `docs/design_map/08_IPC命令接口完整规范.md`（命令总览、Vault/Object 模块签名、安全约束表）
+- `docs/solosoul_cli/solosoul_cli_research_report.md`（CLI↔IPC 映射表）
+- `docs/design_map/09_对象规范.md` §4.6（回收站 invoke 示例）
+- `tauri/docs/design_map/tauri_dev_plan.md`、`docs/design_map/12_状态管理_Zustand_Store设计.md`（历史注释标注）
 
 **影响**：文档描述与代码面不一致，误导后续开发。随 P002 的删除一并更新（同一根因）。
+
+**✅ 修复说明**：
+1. `08`：命令总览 Vault 10→8、Object 8→6；Vault/Object 模块签名块移除 4 个命令；安全约束表移除 `delete_account` 密码接收项；顶部标注「权威来源为 ACL/handler」；
+2. CLI 预研报告：映射表移除 `get_state`/`delete_account`/`object_restore`/`object_purge` 行并标注；
+3. `09` §4.6：invoke 示例改为 `trash_restore`/`trash_permanent_delete`（代码审查员复核发现的主要缺口）；
+4. `tauri_dev_plan`（历史审计文档）与 `12`（vaultStore 已合并入 authStore）加历史标注，不重写既有历史记录。
 
 ---
 

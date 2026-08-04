@@ -105,10 +105,14 @@ interface AuthState {
 
 ## 4. vaultStore — Vault 锁定/解锁
 
+> **⚠️ 本节为历史设计**：`vaultStore.ts` 已于 P015 合并入 `authStore`（锁定/解锁收敛为
+> `authStore` action）；`VaultStateStr` 类型亦随 P219 移除。Vault 状态当前由前端
+> `authStore.isAuthenticated` 维护，后端状态判定保留在服务方法 `VaultService::get_vault_state()`。
+
 ```typescript
-// tauri/src/stores/vaultStore.ts — 实际实现
+// 历史设计（2026-06）——已迁移至 authStore，仅供参考
 interface VaultStoreState {
-  vaultState: VaultStateStr;        // 'locked' | 'unlocked'
+  vaultState: 'locked' | 'unlocked'; // 原 VaultStateStr 类型已移除
   isLoading: boolean;
   error: string | null;
 
