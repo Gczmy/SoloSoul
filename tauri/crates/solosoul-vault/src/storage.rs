@@ -138,12 +138,44 @@ fn with_tx<T>(
     result
 }
 
+/// 动态字段组内部键。对象属性中以该键存动态字段组数据数组，
+/// 字段定义存于 `__fields` 中同名键。界面显示名为「动态字段组 / Dynamic Group」。
+pub const DYNAMIC_GROUP_KEY: &str = "__dynamic_group__";
+
+/// 动态字段组键在搜索中的用户可见显示名（与前端 locale `editor:field_types.dynamic_group` 同步）。
+const DYNAMIC_GROUP_LABELS: [&str; 2] = ["动态字段组", "Dynamic Group"];
+
+/// 查询（须已小写）命中动态字段组显示名时返回命中显示名；否则 None。
+///
+/// 搜索约定：内部元数据键/占位 token（`__` 前缀）不按原始文本匹配，
+/// 仅 `__dynamic_group__` 例外——按用户可见显示名匹配（搜「动态字段组」能命中，
+/// 搜内部键名 `_dynamic_group_` 不应命中）。
+pub fn dynamic_group_label_match(query_lower: &str) -> Option<&'static str> {
+    DYNAMIC_GROUP_LABELS
+        .iter()
+        .find(|l| l.to_lowercase().contains(query_lower))
+        .copied()
+}
+
+/// 是否为内部元数据键/占位 token（`__` 前缀）。
+/// 此类键不按原始键名参与搜索匹配，值也按内部占位处理。
+pub fn is_internal_metadata_key(key: &str) -> bool {
+    key.starts_with("__")
+}
+
 /// P210: 大小写不敏感子串匹配整个 JSON Value（对象键 + 字符串值 + 数字 + 布尔）。
 ///
 /// 旧实现 `value.to_string().to_lowercase()` 每次对每个对象重新序列化 JSON
 /// （含引号/花括号/转义/格式化）并整体复制一份小写字符串，属 Value→String 往返浪费。
 /// 本函数递归遍历值树，仅对文本片段做小写匹配：
 ///   - 对象键与字符串值均参与匹配（保持旧实现“键也可命中”的搜索面）；
+///   - 内部元数据键（`__` 前缀，如 `__dynamic_group__`/`__fields`/`__attachments`）
+///     不按原始键名匹配——否则搜「_dynamic_group_」会命中内部键；其中
+///     `__dynamic_group__` 例外，按用户可见显示名匹配（动态字段组 / Dynamic Group），
+///     与前端 locale 同步。内部键的值树仍递归进入（`__fields` 中的字段名、
+///     `__attachments` 附件名等用户可见数据继续可搜索，仅键名本身不可命中）；
+///   - `__` 前缀的字符串值（如 `__fields` 定义中的 `name: "__dynamic_group__"`）
+///     视为内部占位 token，不按原始文本匹配；
 ///   - 数字/布尔按文本形式匹配（与旧序列化结果一致）；
 ///   - 字符串值按未转义原文匹配——旧实现匹配的是 JSON 转义形态（如值含真实换行时搜索
 ///     `\\n` 会命中反斜杠+n），新实现匹配真实文本，更符合用户直觉（转义形态命中是
@@ -158,6 +190,10 @@ pub fn json_contains_ignore_case(value: &serde_json::Value, needle_lower: &str) 
     }
     match value {
         serde_json::Value::String(s) => {
+            // 内部占位 token（`__` 前缀）不参与原始文本匹配——其搜索面由键路径的显示名匹配覆盖。
+            if is_internal_metadata_key(s) {
+                return false;
+            }
             // 长度快速失败，避免短值无谓的 to_lowercase 分配
             s.len() >= needle_lower.len() && s.to_lowercase().contains(needle_lower)
         }
@@ -168,7 +204,14 @@ pub fn json_contains_ignore_case(value: &serde_json::Value, needle_lower: &str) 
             .iter()
             .any(|v| json_contains_ignore_case(v, needle_lower)),
         serde_json::Value::Object(map) => map.iter().any(|(k, v)| {
-            k.to_lowercase().contains(needle_lower) || json_contains_ignore_case(v, needle_lower)
+            if is_internal_metadata_key(k) {
+                // 内部元数据键不按原始键名匹配；`__dynamic_group__` 按用户可见显示名匹配。
+                (k == DYNAMIC_GROUP_KEY && dynamic_group_label_match(needle_lower).is_some())
+                    || json_contains_ignore_case(v, needle_lower)
+            } else {
+                k.to_lowercase().contains(needle_lower)
+                    || json_contains_ignore_case(v, needle_lower)
+            }
         }),
     }
 }
@@ -1785,6 +1828,40 @@ mod tests {
         assert!(json_contains_ignore_case(&serde_json::json!(true), "true"));
         assert!(!json_contains_ignore_case(&serde_json::json!(null), "null"));
         assert!(!json_contains_ignore_case(&serde_json::json!(42), "forty"));
+    }
+
+    // ── 内部元数据键搜索面（__ 前缀不按原始文本命中）──────
+
+    #[test]
+    fn test_json_contains_internal_keys_not_matched_by_raw_name() {
+        let v = serde_json::json!({
+            "__dynamic_group__": [{ "id": "c1", "name": "手机", "type": "phone", "value": "123" }],
+            "__fields": { "__dynamic_group__": { "name": "__dynamic_group__", "type": "dynamic_group" } },
+            "title": "测试"
+        });
+        // 内部键/占位 token 不按原始文本命中（含 `_dynamic_group_` 子串与 `__fields` 键名）
+        assert!(!json_contains_ignore_case(&v, "_dynamic_group_"));
+        assert!(!json_contains_ignore_case(&v, "__fields"));
+        // 但内部键承载的用户数据（子字段名/值）仍可搜索
+        assert!(json_contains_ignore_case(&v, "手机"));
+        assert!(json_contains_ignore_case(&v, "123"));
+        // 普通键不受影响
+        assert!(json_contains_ignore_case(&v, "title"));
+    }
+
+    #[test]
+    fn test_json_contains_dynamic_group_display_label() {
+        let v = serde_json::json!({
+            "__dynamic_group__": [{ "id": "c1", "name": "手机", "type": "phone", "value": "123" }]
+        });
+        // 按用户可见显示名匹配（zh + en；needle 须已小写，与函数契约一致）
+        assert!(json_contains_ignore_case(&v, "动态字段组"));
+        assert!(json_contains_ignore_case(&v, "字段组"));
+        assert!(json_contains_ignore_case(&v, "dynamic group"));
+        // 无动态字段组键的对象不命中显示名
+        let plain = serde_json::json!({ "title": "x" });
+        assert!(!json_contains_ignore_case(&plain, "动态字段组"));
+        assert!(!json_contains_ignore_case(&plain, "dynamic group"));
     }
 
     #[test]

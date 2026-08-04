@@ -1,5 +1,6 @@
 {
   "fields": {
+    "__dynamic_group__": "Dynamic Group",
     "fullName": "Full Name",
     "dateOfBirth": "Date of Birth",
     "nationality": "Nationality",

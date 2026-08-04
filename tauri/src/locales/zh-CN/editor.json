@@ -1,5 +1,6 @@
 {
   "fields": {
+    "__dynamic_group__": "动态字段组",
     "fullName": "全名",
     "dateOfBirth": "出生日期",
     "nationality": "国籍",

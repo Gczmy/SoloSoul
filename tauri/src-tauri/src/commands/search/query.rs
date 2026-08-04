@@ -1,10 +1,18 @@
 use super::*;
 use solosoul_core::is_searchable_field_value;
+use solosoul_vault::storage::{dynamic_group_label_match, is_internal_metadata_key};
 
 /// 递归遍历对象属性，收集与查询词匹配的字段名/字段值。
 ///
 /// - `protected_keys`：字段 id 集合，这些字段的值不允许参与匹配。
 /// - `skip_values`：为 true 时跳过所有字段值匹配（用于对象级敏感度为 sensitive/critical 时）。
+///
+/// 内部元数据约定（与 `storage::json_contains_ignore_case` 一致）：
+/// - `__` 前缀的内部键不按原始键名匹配；`__dynamic_group__` 例外，按用户可见显示名
+///   （动态字段组 / Dynamic Group，与前端 locale 同步）匹配；
+/// - `__fields` 是字段定义元数据，仅定义中的 `name`（用户可见标签）参与匹配，
+///   字段 id 键、`type`/`sensitivityLevel` 等技术值不参与；
+/// - `__` 前缀的字符串值视为内部占位 token，不按原始文本匹配。
 pub(crate) fn search_properties_for_matches(
     data: &serde_json::Value,
     query: &str,
@@ -33,7 +41,43 @@ pub(crate) fn search_properties_for_matches(
                 } else {
                     format!("{}.{}", current_path, key)
                 };
-                if key.to_lowercase().contains(query) {
+
+                // `__fields` 是字段定义元数据：仅定义中的 name（用户可见标签）参与匹配；
+                // 字段 id 键、type/sensitivityLevel 等技术值不参与——否则搜「dynamic_group」
+                // 会命中定义中的 type 值、搜「internal」会命中敏感度值等内部 token。
+                if key == "__fields" {
+                    if let Some(defs) = value.as_object() {
+                        for (field_id, def) in defs {
+                            let Some(name) = def.get("name").and_then(|v| v.as_str()) else {
+                                continue;
+                            };
+                            if is_internal_metadata_key(name) {
+                                // 内部占位名（如 __dynamic_group__）：其搜索面由键路径的
+                                // 显示名匹配覆盖（见下方 is_internal_key 分支），此处跳过。
+                                continue;
+                            }
+                            if name.to_lowercase().contains(query) {
+                                let score = if name.to_lowercase() == query {
+                                    SCORE_EXACT_VALUE
+                                } else {
+                                    SCORE_FIELD_VALUE
+                                };
+                                matches.push(FieldMatch {
+                                    field_path: format!("{}.{}.name", field_path, field_id),
+                                    display_value: name.to_string(),
+                                    match_type: FieldMatchType::FieldValue,
+                                    score,
+                                });
+                            }
+                        }
+                    }
+                    continue;
+                }
+
+                // 字段名匹配：内部元数据键（`__` 前缀）不按原始键名匹配——否则搜
+                // 「_dynamic_group_」会命中内部键 `__dynamic_group__`。
+                let is_internal_key = is_internal_metadata_key(key);
+                if !is_internal_key && key.to_lowercase().contains(query) {
                     matches.push(FieldMatch {
                         field_path: field_path.clone(),
                         display_value: key.clone(),
@@ -41,8 +85,24 @@ pub(crate) fn search_properties_for_matches(
                         score: SCORE_FIELD_NAME,
                     });
                 }
+                // 内部元数据键按用户可见显示名匹配（当前仅 `__dynamic_group__`
+                // → 动态字段组 / Dynamic Group，与前端 locale 同步）。
+                if is_internal_key {
+                    if let Some(label) = dynamic_group_label_match(query) {
+                        matches.push(FieldMatch {
+                            field_path: field_path.clone(),
+                            display_value: label.to_string(),
+                            match_type: FieldMatchType::FieldName,
+                            score: SCORE_FIELD_NAME,
+                        });
+                    }
+                }
                 if let serde_json::Value::String(s) = value {
-                    if s.to_lowercase().contains(query)
+                    // 内部占位 token（`__` 前缀，如 __fields 定义中的 name: "__dynamic_group__"）
+                    // 不参与值匹配——其搜索面由键路径的显示名匹配覆盖。
+                    let value_match =
+                        !is_internal_metadata_key(s) && s.to_lowercase().contains(query);
+                    if value_match
                         && !skip_values
                         && is_searchable_field_value(&field_path, protected_keys)
                     {

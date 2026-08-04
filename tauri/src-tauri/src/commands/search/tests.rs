@@ -248,6 +248,74 @@ fn test_search_field_name_metadata_still_searchable() {
 }
 
 #[test]
+fn test_search_dynamic_group_internal_key_not_matched() {
+    // 内部键 `__dynamic_group__` / 定义 type 值不应按原始文本命中：
+    // 搜「_dynamic_group_」或「dynamic_group」不应产生任何匹配。
+    let data = serde_json::json!({
+        "__dynamic_group__": [{ "id": "c1", "name": "手机", "type": "phone", "value": "123" }],
+        "__fields": { "__dynamic_group__": { "name": "__dynamic_group__", "type": "dynamic_group" } }
+    });
+    for q in ["_dynamic_group_", "dynamic_group", "__fields"] {
+        let mut matches = Vec::new();
+        search_properties_for_matches(&data, q, "", &HashSet::new(), false, &mut matches);
+        assert!(matches.is_empty(), "内部 token {} 不应被搜索命中", q);
+    }
+    // 但内部键承载的用户数据（子字段名/值）仍可搜索
+    let mut matches = Vec::new();
+    search_properties_for_matches(&data, "手机", "", &HashSet::new(), false, &mut matches);
+    assert!(matches
+        .iter()
+        .any(|m| matches!(m.match_type, FieldMatchType::FieldValue)));
+}
+
+#[test]
+fn test_search_dynamic_group_display_label_matches() {
+    // 按用户可见显示名匹配（zh + en），而非内部键名
+    let data = serde_json::json!({
+        "__dynamic_group__": [{ "id": "c1", "name": "手机", "type": "phone", "value": "123" }],
+        "title": "测试"
+    });
+    for q in ["动态字段组", "字段组", "dynamic group"] {
+        let mut matches = Vec::new();
+        search_properties_for_matches(&data, q, "", &HashSet::new(), false, &mut matches);
+        assert!(!matches.is_empty(), "显示名 {} 应命中动态字段组对象", q);
+    }
+    // 无动态字段组键的对象不命中显示名
+    let plain = serde_json::json!({ "title": "x" });
+    let mut matches = Vec::new();
+    search_properties_for_matches(
+        &plain,
+        "动态字段组",
+        "",
+        &HashSet::new(),
+        false,
+        &mut matches,
+    );
+    assert!(matches.is_empty());
+}
+
+#[test]
+fn test_search_dynamic_group_child_value_still_searchable() {
+    // 动态字段组子字段值（用户数据）仍可搜索
+    let data = serde_json::json!({
+        "__dynamic_group__": [{ "id": "c1", "name": "手机", "type": "phone", "value": "13800138000" }]
+    });
+    let mut matches = Vec::new();
+    search_properties_for_matches(
+        &data,
+        "13800138000",
+        "",
+        &HashSet::new(),
+        false,
+        &mut matches,
+    );
+    assert!(matches
+        .iter()
+        .any(|m| m.display_value == "13800138000"
+            && matches!(m.match_type, FieldMatchType::FieldValue)));
+}
+
+#[test]
 fn test_search_skip_values_redacts_object_level_sensitive() {
     let data = serde_json::json!({ "email": "alice@example.com" });
     let mut matches = Vec::new();

@@ -10,6 +10,7 @@ use solosoul_core::{
     collect_protected_field_keys, is_protected_sensitivity, is_searchable_field_value,
     ObjectRecord, UserTemplate, VaultStore,
 };
+use solosoul_vault::storage::{dynamic_group_label_match, is_internal_metadata_key};
 
 use crate::app::{App, AppPhase};
 use crate::commands::require_unlocked;
@@ -334,7 +335,43 @@ fn search_properties_for_matches(
                 } else {
                     format!("{}.{}", current_path, key)
                 };
-                if key.to_lowercase().contains(query) {
+
+                // `__fields` 是字段定义元数据：仅定义中的 name（用户可见标签）参与匹配；
+                // 字段 id 键、type/sensitivityLevel 等技术值不参与——否则搜「dynamic_group」
+                // 会命中定义中的 type 值、搜「internal」会命中敏感度值等内部 token。
+                if key == "__fields" {
+                    if let Some(defs) = value.as_object() {
+                        for (field_id, def) in defs {
+                            let Some(name) = def.get("name").and_then(|v| v.as_str()) else {
+                                continue;
+                            };
+                            if is_internal_metadata_key(name) {
+                                // 内部占位名（如 __dynamic_group__）：其搜索面由键路径的
+                                // 显示名匹配覆盖（见下方 is_internal_key 分支），此处跳过。
+                                continue;
+                            }
+                            if name.to_lowercase().contains(query) {
+                                let score = if name.to_lowercase() == query {
+                                    5.0
+                                } else {
+                                    3.0
+                                };
+                                matches.push(FieldMatch {
+                                    field_path: format!("{}.{}.name", field_path, field_id),
+                                    display_value: name.to_string(),
+                                    match_type: FieldMatchType::FieldValue,
+                                    score,
+                                });
+                            }
+                        }
+                    }
+                    continue;
+                }
+
+                // 字段名匹配：内部元数据键（`__` 前缀）不按原始键名匹配——否则搜
+                // 「_dynamic_group_」会命中内部键 `__dynamic_group__`。
+                let is_internal_key = is_internal_metadata_key(key);
+                if !is_internal_key && key.to_lowercase().contains(query) {
                     matches.push(FieldMatch {
                         field_path: field_path.clone(),
                         display_value: key.clone(),
@@ -342,8 +379,24 @@ fn search_properties_for_matches(
                         score: 2.5,
                     });
                 }
+                // 内部元数据键按用户可见显示名匹配（当前仅 `__dynamic_group__`
+                // → 动态字段组 / Dynamic Group，与前端 locale 同步）。
+                if is_internal_key {
+                    if let Some(label) = dynamic_group_label_match(query) {
+                        matches.push(FieldMatch {
+                            field_path: field_path.clone(),
+                            display_value: label.to_string(),
+                            match_type: FieldMatchType::FieldName,
+                            score: 2.5,
+                        });
+                    }
+                }
                 if let serde_json::Value::String(s) = value {
-                    if s.to_lowercase().contains(query)
+                    // 内部占位 token（`__` 前缀，如 __fields 定义中的 name: "__dynamic_group__"）
+                    // 不参与值匹配——其搜索面由键路径的显示名匹配覆盖。
+                    let value_match =
+                        !is_internal_metadata_key(s) && s.to_lowercase().contains(query);
+                    if value_match
                         && !skip_values
                         && is_searchable_field_value(&field_path, protected_keys)
                     {
@@ -574,6 +627,47 @@ mod tests {
         assert!(!matches
             .iter()
             .any(|m| matches!(m.match_type, FieldMatchType::FieldValue)));
+    }
+
+    #[test]
+    fn test_search_properties_for_matches_internal_key_not_matched() {
+        // 内部键 `__dynamic_group__` / 定义 type 值不应按原始文本命中
+        let data = serde_json::json!({
+            "__dynamic_group__": [{ "id": "c1", "name": "手机", "type": "phone", "value": "123" }],
+            "__fields": { "__dynamic_group__": { "name": "__dynamic_group__", "type": "dynamic_group" } }
+        });
+        for q in ["_dynamic_group_", "dynamic_group", "__fields"] {
+            let mut matches = Vec::new();
+            search_properties_for_matches(&data, q, "", &HashSet::new(), false, &mut matches);
+            assert!(matches.is_empty(), "内部 token {} 不应被搜索命中", q);
+        }
+        // 子字段名/值仍可搜索
+        let mut matches = Vec::new();
+        search_properties_for_matches(&data, "手机", "", &HashSet::new(), false, &mut matches);
+        assert!(matches.iter().any(|m| m.display_value == "手机"));
+    }
+
+    #[test]
+    fn test_search_properties_for_matches_dynamic_group_display_label() {
+        let data = serde_json::json!({
+            "__dynamic_group__": [{ "id": "c1", "name": "手机", "type": "phone", "value": "123" }]
+        });
+        for q in ["动态字段组", "dynamic group"] {
+            let mut matches = Vec::new();
+            search_properties_for_matches(&data, q, "", &HashSet::new(), false, &mut matches);
+            assert!(!matches.is_empty(), "显示名 {} 应命中动态字段组对象", q);
+        }
+        let plain = serde_json::json!({ "title": "x" });
+        let mut matches = Vec::new();
+        search_properties_for_matches(
+            &plain,
+            "动态字段组",
+            "",
+            &HashSet::new(),
+            false,
+            &mut matches,
+        );
+        assert!(matches.is_empty());
     }
 
     #[test]
