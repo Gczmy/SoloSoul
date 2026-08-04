@@ -21,17 +21,22 @@ ACL_TOML = ROOT / "src-tauri" / "permissions" / "solo-soul" / "default.toml"
 
 def extract_handler_commands() -> set[str]:
     text = LIB_RS.read_text(encoding="utf-8")
-    # 平衡括号匹配：handler 块内可能含 `#[cfg(...)]` 属性（其中有 `]`），
-    # 非贪婪 `(.*?)\]` 会提前截断导致后续命令（如 desktop_check_update）
-    # 被误判为未注册。这里允许一层嵌套的 `[...]`（属性/数组字面量）。
-    m = re.search(r"generate_handler!\s*\[((?:[^\[\]]|\[[^\[\]]*\])*)\]", text, re.S)
-    if not m:
+    # P223-③ 将原先单个 generate_handler! 大列表拆分为「单分发器 + 5 簇」
+    # （register_{core,sync,ocr,llm,plugin}_commands），因此必须聚合全部
+    # generate_handler! 块；若沿用 re.search（首个匹配）会只校验 core 簇，
+    # 漏掉 sync/ocr/llm/plugin 四簇并产生大量误报 WARN。
+    # 平衡括号匹配：块内可能含 `#[cfg(...)]` 属性（其中有 `]`），
+    # 这里允许一层嵌套的 `[...]`（属性/数组字面量）。
+    blocks = re.findall(r"generate_handler!\s*\[((?:[^\[\]]|\[[^\[\]]*\])*)\]", text, re.S)
+    if not blocks:
         print("ERROR: 未在 lib.rs 中找到 generate_handler! 块", file=sys.stderr)
         sys.exit(2)
-    block = m.group(1)
-    # 命令以 `path::to::command_name` 形式列出，取 `::name` 后紧跟逗号/闭括号的最后一段，
-    # 避免误捕获模块段（如 commands::auth::login 中的 auth）
-    return set(re.findall(r"::(\w+)\s*[,\]]", block))
+    cmds: set[str] = set()
+    for block in blocks:
+        # 命令以 `path::to::command_name` 形式列出，取 `::name` 后紧跟逗号/闭括号的最后一段，
+        # 避免误捕获模块段（如 commands::auth::login 中的 auth）
+        cmds.update(re.findall(r"::(\w+)\s*[,\]]", block))
+    return cmds
 
 
 def extract_acl_commands() -> set[str]:
