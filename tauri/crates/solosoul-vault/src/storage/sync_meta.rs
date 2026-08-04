@@ -309,7 +309,7 @@ impl VaultStore {
     }
 
     pub(crate) fn new_tombstone_hlc(&self) -> Result<crate::RecordHlc, String> {
-        let node_id = self.local_node_id();
+        let node_id = Self::normalize_sync_node_id(&self.local_node_id());
         let now = Self::parse_time_ms(&Self::now_rfc3339());
         // Bump wall_time to be strictly larger than any existing HLC for this node
         // to guarantee the tombstone wins over prior local changes.
@@ -322,8 +322,27 @@ impl VaultStore {
     }
 
     /// 生成一个属于本地节点的新 HLC，用于覆盖本地版本（冲突解决时）。
+    /// 与 sync 层 session.rs 的节点规范化逐字节一致（hex 编码的 16 字节节点）：
+    /// 32 字符按 hex 解码，其余取前 16 字节补零。本地写落库 HLC 的 node 必须与
+    /// 对端水印落库格式（watermark_to_vault 的 hex 形式）一致，否则 keyset 等值组
+    /// 判定 (node == 水印 node) 永不成立，同 wall 行经 strict `>` 反复通过、id 游标
+    /// 不推进，分页死循环（方案 B 阶段 1 在 sync 测试实测：`test_generate_delta_
+    /// paginated_keyset_production_encoding` 挂起）。
+    fn normalize_sync_node_id(node_id: &str) -> String {
+        let bytes = if node_id.len() == 32 {
+            hex::decode(node_id).unwrap_or_else(|_| Vec::new())
+        } else {
+            let src = node_id.as_bytes();
+            src[..src.len().min(16)].to_vec()
+        };
+        let mut out = [0u8; 16];
+        let len = bytes.len().min(16);
+        out[..len].copy_from_slice(&bytes[..len]);
+        hex::encode(out)
+    }
+
     pub(crate) fn new_local_hlc(&self) -> Result<crate::RecordHlc, String> {
-        let node_id = self.local_node_id();
+        let node_id = Self::normalize_sync_node_id(&self.local_node_id());
         let now = Self::parse_time_ms(&Self::now_rfc3339());
         let max_existing = self.max_hlc_wall_time_for_node(&node_id)?;
         Ok(crate::RecordHlc {

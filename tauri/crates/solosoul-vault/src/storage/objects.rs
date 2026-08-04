@@ -23,15 +23,34 @@ impl VaultStore {
 
     pub fn save_object(&self, obj: &ObjectRecord) -> Result<(), String> {
         let key = self.data_key()?;
+        // 方案 B（R-3 根治）：本地写统一生成并落库 HLC。生成需读 sync_hlc 最大值，
+        // 必须在持锁前调用（new_local_hlc 内部自行锁 conn）。
+        let hlc = self.new_local_hlc()?;
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
-        Self::save_object_tx(conn, &key, obj)
+        with_tx(
+            conn,
+            "Failed to begin transaction",
+            "Failed to commit transaction",
+            |c| {
+                Self::save_object_tx(c, &key, obj)?;
+                Self::set_record_hlc_tx(c, "objects", &obj.id, &hlc)?;
+                Ok(())
+            },
+        )
     }
 
     /// P212: 单事务批量保存对象（导入等批量场景），替代逐条 `save_object` 的
     /// N 次 auto-commit 写事务。任一条失败整体回滚，不产生半导入。
+    /// 方案 B：每个对象在写事务内同时落库独立 HLC（new_local_hlc 递增保证唯一）。
     pub fn save_objects_batch(&self, objects: &[ObjectRecord]) -> Result<(), String> {
         let key = self.data_key()?;
+        // 批内逐个生成 HLC：每个都读 sync_hlc 最大值，保证递增（同批不同对象
+        // 时间戳可能相同，但 node/counter 组合与 id 决胜保证 keyset 分页不重不漏）。
+        let hlcs = objects
+            .iter()
+            .map(|_| self.new_local_hlc())
+            .collect::<Result<Vec<_>, _>>()?;
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         // P213: 手动事务（Transaction 无 DerefMut，prepare_cached 需要 &mut Connection）。
@@ -40,8 +59,9 @@ impl VaultStore {
             "Failed to begin transaction",
             "Failed to commit transaction",
             |c| {
-                for obj in objects {
+                for (obj, hlc) in objects.iter().zip(hlcs.iter()) {
                     Self::save_object_tx(c, &key, obj)?;
+                    Self::set_record_hlc_tx(c, "objects", &obj.id, hlc)?;
                 }
                 Ok(())
             },
@@ -548,33 +568,64 @@ impl VaultStore {
 
     pub fn delete_object(&self, id: &str, soft: bool) -> Result<(), String> {
         if soft {
+            // 方案 B：软删也是写变更，落库新 HLC（对象行保留，is_deleted 翻转）。
+            let hlc = self.new_local_hlc()?;
             let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
             let conn = guard.as_mut().ok_or("Vault is locked")?;
             let now = chrono::Utc::now().to_rfc3339();
-            conn.execute(
-                "UPDATE objects SET is_deleted = 1, deleted_at = ?1, updated_at = ?1 WHERE id = ?2",
-                params![now, id],
+            with_tx(
+                conn,
+                "Failed to begin transaction",
+                "Failed to commit transaction",
+                |c| {
+                    c.execute(
+                        "UPDATE objects SET is_deleted = 1, deleted_at = ?1, updated_at = ?1 WHERE id = ?2",
+                        params![now, id],
+                    )
+                    .map_err(|e| format!("soft_delete_object: {}", e))?;
+                    Self::set_record_hlc_tx(c, "objects", id, &hlc)?;
+                    Ok(())
+                },
             )
-            .map_err(|e| format!("soft_delete_object: {}", e))?;
-            Ok(())
         } else {
+            // 方案 B：硬删是墓碑变更，落库墓碑 HLC（wall 强制大于本节点既往值，
+            // 保证对端 conflict 裁决时删除胜出）。
+            let hlc = self.new_tombstone_hlc()?;
             let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
             let conn = guard.as_mut().ok_or("Vault is locked")?;
-            conn.execute("DELETE FROM objects WHERE id = ?1", params![id])
-                .map_err(|e| format!("delete_object: {}", e))?;
-            Ok(())
+            with_tx(
+                conn,
+                "Failed to begin transaction",
+                "Failed to commit transaction",
+                |c| {
+                    c.execute("DELETE FROM objects WHERE id = ?1", params![id])
+                        .map_err(|e| format!("delete_object: {}", e))?;
+                    Self::set_record_hlc_tx(c, "objects", id, &hlc)?;
+                    Ok(())
+                },
+            )
         }
     }
 
     pub fn restore_object(&self, id: &str) -> Result<(), String> {
+        // 方案 B：恢复是写变更，落库新 HLC。
+        let hlc = self.new_local_hlc()?;
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
-        conn.execute(
-            "UPDATE objects SET is_deleted = 0, deleted_at = NULL, updated_at = ?1 WHERE id = ?2",
-            params![chrono::Utc::now().to_rfc3339(), id],
+        with_tx(
+            conn,
+            "Failed to begin transaction",
+            "Failed to commit transaction",
+            |c| {
+                c.execute(
+                    "UPDATE objects SET is_deleted = 0, deleted_at = NULL, updated_at = ?1 WHERE id = ?2",
+                    params![chrono::Utc::now().to_rfc3339(), id],
+                )
+                .map_err(|e| format!("restore_object: {}", e))?;
+                Self::set_record_hlc_tx(c, "objects", id, &hlc)?;
+                Ok(())
+            },
         )
-        .map_err(|e| format!("restore_object: {}", e))?;
-        Ok(())
     }
 
     /// Count non-deleted objects for an account, optionally filtered by type or parent.

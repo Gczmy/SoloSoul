@@ -2511,11 +2511,20 @@ mod tests {
     fn test_peer_watermark_cursor_resume_delivers_equal_hlc_tail() {
         let (vault, _dir) = setup();
         let ts = "2026-08-01T12:00:00.000+00:00";
-        // 5 个同 updated_at 回退行（等值 HLC 组，模拟 page_delete 同 ms 批量删除）
+        // 方案 B 适配：本地写现落真实 HLC（wall = 当前时间戳），不再走回退路径。
+        // 本测试意图是验证「会话中断后等值 HLC 组尾部的游标续传机制」，故用显式
+        // set_record_hlc 将 5 行统一覆盖为同一个等值 HLC（同 wall/counter/node），
+        // 保留等值组构造以精确回归游标续传逻辑（与本地写路径行为解耦）。
+        let equal_hlc = crate::RecordHlc {
+            wall_time_ms: VaultStore::parse_time_ms(ts),
+            counter: 0,
+            node_id: "local_node".to_string(),
+        };
         for i in 1..=5usize {
+            let id = format!("resume_{:02}", i);
             vault
                 .save_object(&crate::ObjectRecord {
-                    id: format!("resume_{:02}", i),
+                    id: id.clone(),
                     account_id: "test_account".to_string(),
                     name: format!("resume_{:02}", i),
                     section_type: "identity".to_string(),
@@ -2526,6 +2535,7 @@ mod tests {
                     ..Default::default()
                 })
                 .unwrap();
+            vault.set_record_hlc("objects", &id, &equal_hlc).unwrap();
         }
 
         let local_hlc_node = "local_node";
@@ -3886,21 +3896,25 @@ mod tests {
             ..Default::default()
         };
 
-        // 无 HLC 行：updated_at 早于水印 → 排除（回退路径粗筛后由 Rust 精确裁决）
-        vault
-            .save_object(&mk_obj("obj_old_no_hlc", "2026-07-01T00:00:00+00:00"))
-            .unwrap();
-        // 无 HLC 行：updated_at 晚于水印 → 包含（回退 HLC 由 updated_at 派生）
-        vault
-            .save_object(&mk_obj("obj_new_no_hlc", "2026-08-02T00:00:00+00:00"))
-            .unwrap();
-
-        // 有 HLC 行：精确三元组比较
+        // 方案 B 适配：本地写统一落 HLC，不再有「无 HLC 回退行」。本测试意图是验证
+        // 水印下推的精确裁决——故所有对象统一 save_object 后显式 set_record_hlc，
+        // 其中 obj_old_* 用早于水印的 HLC（应排除）、obj_new_* 用晚于水印的 HLC（应包含）。
         let mk_hlc = |wall: u64, counter: u32, node: &str| crate::RecordHlc {
             wall_time_ms: wall,
             counter,
             node_id: node.to_string(),
         };
+        for (id, hlc) in [
+            ("obj_old_no_hlc", mk_hlc(wm_wall - 2000, 0, "local_node")),
+            ("obj_new_no_hlc", mk_hlc(wm_wall + 2000, 0, "local_node")),
+        ] {
+            vault
+                .save_object(&mk_obj(id, "2026-07-01T00:00:00+00:00"))
+                .unwrap();
+            vault.set_record_hlc("objects", id, &hlc).unwrap();
+        }
+
+        // 有 HLC 行：精确三元组比较
         for (id, wall, counter, node) in [
             ("obj_hlc_after", wm_wall + 1000, 0, "peer_b"),
             ("obj_hlc_before", wm_wall - 1000, 0, "peer_b"),
@@ -3922,7 +3936,7 @@ mod tests {
         let mut ids: Vec<&str> = records.iter().map(|r| r.id.as_str()).collect();
         ids.sort_unstable();
 
-        // 预期包含：无 HLC 回退的新对象 + HLC 晚于水印 + wall 相等时 counter/node 平局胜出
+        // 预期包含：HLC 晚于水印 + wall 相等时 counter/node 平局胜出
         assert_eq!(
             ids,
             vec![
@@ -3942,14 +3956,8 @@ mod tests {
             .iter()
             .find(|r| r.id == "obj_new_no_hlc")
             .expect("obj_new_no_hlc must be present");
-        assert_eq!(
-            new_no_hlc.hlc,
-            crate::RecordHlc {
-                wall_time_ms: VaultStore::parse_time_ms("2026-08-02T00:00:00+00:00"),
-                counter: 0,
-                node_id: "local_node".to_string(),
-            }
-        );
+        // 方案 B：本地写统一 HLC，obj_new_no_hlc 的 HLC 为显式 set 的 wm+2000
+        assert_eq!(new_no_hlc.hlc, mk_hlc(wm_wall + 2000, 0, "local_node"));
     }
 
     // ── P110: 分页必须按有效 HLC 升序返回 ───────────────────────────────
@@ -4043,7 +4051,14 @@ mod tests {
     ) -> Vec<String> {
         let mut out = Vec::new();
         let mut last_row_id: Option<String> = None;
+        // 防御：keyset 谓词回归会把循环变成死循环（挂起而非失败），页数上限把
+        // 挂起转为快速失败，避免 CI 挂死（方案 B 阶段 1 实测同款死循环）。
+        let mut pages_seen = 0usize;
         loop {
+            pages_seen += 1;
+            if pages_seen > 100 {
+                panic!("keyset 分页循环未终止（疑似键集谓词回归）");
+            }
             let page = vault
                 .list_sync_changes_since_paginated(
                     "objects",
@@ -4164,21 +4179,19 @@ mod tests {
             updated_at: updated_at.to_string(),
             ..Default::default()
         };
-        // 假阳性：同秒但早于 watermark（旧粗筛会放行，精确过滤后应被排除）
+        // 方案 B（R-3 根治）：本地写统一落库 HLC（wall = 当前时间戳，远大于
+        // 2026-08-01 水印）——该测试原语义「按 updated_at 回退过滤假阳性」
+        // 不再适用。改造为验证：本地写产生真实 HLC 后，分页按 HLC 全量投递
+        // 且循环必然终止（updated_at 早于 watermark 不再影响同步顺序）。
         for (id, ts) in [
             ("fp_1", "2026-08-01T12:00:00.100+00:00"),
             ("fp_2", "2026-08-01T12:00:00.200+00:00"),
             ("fp_3", "2026-08-01T12:00:00.300+00:00"),
+            ("tp_1", "2026-08-01T12:00:00.600+00:00"),
+            ("tp_2", "2026-08-01T12:00:00.700+00:00"),
         ] {
             vault.save_object(&mk(id, ts)).unwrap();
         }
-        // 真阳性：晚于 watermark
-        vault
-            .save_object(&mk("tp_1", "2026-08-01T12:00:00.600+00:00"))
-            .unwrap();
-        vault
-            .save_object(&mk("tp_2", "2026-08-01T12:00:00.700+00:00"))
-            .unwrap();
 
         let paged_ids = collect_paginated_object_ids(
             &vault,
@@ -4188,11 +4201,82 @@ mod tests {
             2,
         );
 
-        // 假阳性被排除、真阳性全部投递、循环必然终止
+        // 全部 5 行都因本地 HLC > 水印而被投递（updated_at 早于水印的 fp_* 不再
+        // 是假阳性——本地写已带真实 HLC），循环必然终止。
         assert_eq!(
             paged_ids,
-            vec!["tp_1".to_string(), "tp_2".to_string()],
-            "同秒回退假阳性不得进入结果集，真阳性必须全部投递"
+            vec![
+                "fp_1".to_string(),
+                "fp_2".to_string(),
+                "fp_3".to_string(),
+                "tp_1".to_string(),
+                "tp_2".to_string()
+            ],
+            "本地写统一 HLC 后，全部 5 行均因 HLC > 水印被投递（等 wall 按 id 升序）"
+        );
+    }
+
+    /// 方案 B 阶段 1 防回归：生产格式 node id（`node_` + 32 hex，
+    /// get_or_create_sync_identity 产物）下，本地写落库的 HLC 节点必须与 sync 层
+    /// session.rs 的规范化（hex 编码的 16 字节节点）逐字节一致——否则 keyset 等值组
+    /// 判定 `node == 水印 node` 永不成立，同 wall 行经 strict `>` 反复通过、id 游标
+    /// 不推进，分页死循环（sync crate `test_generate_delta_paginated_keyset_production_encoding`
+    /// 曾在 raw 节点实现下实测挂起）。
+    #[test]
+    fn test_local_write_hlc_node_normalized_production_format() {
+        let (vault, _dir) = setup();
+        let raw_node = format!("node_{}", "a1b2c3d4e5f67890a1b2c3d4e5f67890");
+        vault.set_sync_node_id(&raw_node).unwrap();
+        let expected_node = hex::encode(&raw_node.as_bytes()[..16]);
+        assert_eq!(expected_node.len(), 32);
+
+        let mk = |id: &str| crate::ObjectRecord {
+            id: id.to_string(),
+            account_id: "test_account".to_string(),
+            name: id.to_string(),
+            section_type: "identity".to_string(),
+            properties: serde_json::json!({ "k": id }),
+            sensitivity_level: "internal".to_string(),
+            created_at: "2026-08-01T12:00:00.000+00:00".to_string(),
+            updated_at: "2026-08-01T12:00:00.000+00:00".to_string(),
+            ..Default::default()
+        };
+        let mut prev_wall = 0u64;
+        for i in 1..=7usize {
+            let id = format!("n_{:02}", i);
+            vault.save_object(&mk(&id)).unwrap();
+            let hlc = vault
+                .get_record_hlc("objects", &id)
+                .unwrap()
+                .unwrap_or_else(|| panic!("本地写必须落库 HLC: {}", id));
+            assert_eq!(
+                hlc.node_id, expected_node,
+                "本地写 HLC 节点必须为 sync 层规范化 hex 形式"
+            );
+            assert!(hlc.wall_time_ms > prev_wall, "HLC wall 必须严格递增");
+            prev_wall = hlc.wall_time_ms;
+        }
+
+        // keyset 分页必须终止且无缺漏（复现生产路径：local_node_id = 规范化节点）
+        let paged = collect_paginated_object_ids(
+            &vault,
+            crate::SyncWatermark::default(),
+            "test_account",
+            &expected_node,
+            2,
+        );
+        assert_eq!(
+            paged,
+            vec![
+                "n_01".to_string(),
+                "n_02".to_string(),
+                "n_03".to_string(),
+                "n_04".to_string(),
+                "n_05".to_string(),
+                "n_06".to_string(),
+                "n_07".to_string(),
+            ],
+            "生产编码下本地写 HLC 分页必须无缺漏且循环终止"
         );
     }
 

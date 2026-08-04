@@ -342,7 +342,13 @@
   - **影响面（实测）**：objects 域（`save_object_tx`/`delete_object`/`restore_object`，墓碑用 `new_tombstone_hlc`）+ trash 域（`trash_and_soft_delete_batch`/`save_trash_item_tx`/`delete_trash_item`）+ metadata 域（`save_user_template_tx`/`delete_user_template`）+ profile 域（`save_profile_tx`/`delete_profile`）；snapshots 域不参与同步可不动。**commands/CLI 层零改动**（全部经 vault 层方法间接调用）。
   - **成本**：1–2 天。分三阶段：① objects 域验证模式；② trash/profile/user_template 域；③ 回退路径退休（sync_changes.rs:133/424 的 `record_hlc_or_fallback` fallback 分支与 SQL `h.wall_time_ms IS NULL` 分支简化）。风险点：`delete_object` 墓碑与 `trash_and_soft_delete_batch` 的 HLC 生成时序、25+ 既有同步测试适配（部分断言依赖回退行为）。
   - **备选方案 A（等值组尾部回扫）成本 4–6h（基础）/ 8–10h（含防重复投递设计），已否决**——回扫会把已投递行重复投递，需额外记录已投递 id 集合，收益低于成本；方案 B 是根治方向。
-  - **当前状态**：⏸ 已立项待实施（用户 2026-08-03 决策「先出计划再执行」，计划见 §4.2.1，实施另行启动）。
+  - **当前状态**：**阶段 1（objects 域）已闭环**（2026-08-04）；阶段 2（trash/profile/user_template 域）与阶段 3（回退路径退休）待实施。
+  - **✅ 阶段 1 实施记录（2026-08-04）**：
+    - **objects 域本地写统一 HLC**：`save_object`/`save_objects_batch`/`delete_object`/`restore_object` 在写事务外层生成 HLC（`new_local_hlc`/`new_tombstone_hlc`）并在事务内 `set_record_hlc_tx` 落库。**`save_object_tx` 保持不动**（sync_apply 远端应用路径复用、自写 HLC），故本地写 HLC 必须在外层生成。
+    - **关键修复（normalize_sync_node_id）**：初版本地写 HLC 行 node 为 raw `local_node_id()`（生产 `node_<32hex>` 40 字符 / 测试 `"unknown"`），与 sync 层 session.rs 的 hex 规范化节点（`hex::encode(Hlc::parse_node_id_bytes(...))`）及水印落库格式**编码错配** → keyset 等值组判定 `node == 水印 node` 永不成立，同 wall 行经 strict `>` 反复通过、id 游标不推进 → **分页死循环**（sync crate `test_generate_delta_paginated_keyset_production_encoding` 实测挂起，修复后 0.03s 通过；生产 `get_or_create_sync_identity` 路径同款触发）。修复：`new_local_hlc`/`new_tombstone_hlc` 生成时经新增 `normalize_sync_node_id`（sync_meta.rs，与 session.rs 逐字节一致：32 字符按 hex 解码、其余取前 16 字节补零）规范化 node。
+    - **测试适配**：3 个依赖「本地写无 HLC」回退语义的 keyset 测试适配方案 B（`test_paginated_keyset_fallback_false_positive_isolation`/`test_peer_watermark_cursor_resume_delivers_equal_hlc_tail`/`test_list_object_changes_since_watermark_pushdown`）；新增防回归 `test_local_write_hlc_node_normalized_production_format`（生产格式 node id 下节点规范化 + wall 严格递增 + keyset 分页终止）；`collect_paginated_object_ids` 加页数上限守卫（keyset 回归从「挂起」转「快速失败」，防 CI 挂死）。
+    - **验证**：vault 124 测试全绿（+1）/ sync 47 全绿 / fmt 干净 / clippy 0 警告 / workspace + CLI check 0 错误 / code-reviewer GO。
+    - **阶段边界缺口（已声明）**：trash 域 `trash_and_soft_delete_batch`/`page_delete` 软删 objects 至今仍不带 HLC → 阶段 2 前该路径继续走回退（R-3 窗口对该路径部分残留），阶段 2 收编后关闭。
 
 #### 4.2.2 R-4①：reencrypt commit 后、config 写前进程崩溃（低）
 
