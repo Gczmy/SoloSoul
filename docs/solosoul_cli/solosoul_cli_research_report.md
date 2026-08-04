@@ -93,7 +93,7 @@ CLI 不是 GUI 的简化版，而是**同一后端的另一套交互宿主**。�
 | `/search [keyword]` | 搜索页面、对象、字段属性 | `search::search_unified` / `search::search_advanced` |
 | `/trash`（或 `/bin`） | 查看回收站 | `object::object_trash_list` |
 | `/restore <trash-id>` | 恢复回收站项目 | `object::trash_restore` |
-| `/purge <trash-id>` | 彻底删除回收站项目 | `object::trash_permanent_delete` / `object::object_purge` |
+| `/purge <trash-id>` | 彻底删除回收站项目 | `object::trash_permanent_delete` |
 | `/history <object-id>` | 查看对象历史快照 | `object::snapshot_list` / `snapshot_get_data` |
 | `/rollback <object-id> <snapshot-id>` | 回滚到历史版本 | `object::snapshot_rollback` |
 | `/operation_log` | 查看操作日志 | `log::log_get_recent` |
@@ -261,9 +261,8 @@ CLI 命令与现有 Tauri Commands 的映射关系如下表（按模块）：
 | Auth | `get_current_account` | 状态栏显示 | P0 |
 | Vault | `unlock` | `/login` 内部调用 | P0 |
 | Vault | `lock` | `/logout`、`/exit`、超时锁定 | P0 |
-| Vault | `get_state` | 状态判断 | P0 |
 | Vault | `change_password` | `/security password` | P1 |
-| Vault | `delete_account` | `/security delete-account` | P1 |
+| Vault | ~~`get_state`~~ / ~~`delete_account`~~ | ~~状态判断 / `/security delete-account`~~ | —（已随 P002 移除；CLI 走服务方法 `VaultService::get_vault_state()` / `delete_account()`） |
 | Vault | `vault_list_accounts` | `/account_list` | P0 |
 | Vault | `vault_update_hint` | `/security hint` | P1 |
 | Biometric | `biometric_check_availability` | 登录界面动态显示 | P1 |
@@ -277,10 +276,10 @@ CLI 命令与现有 Tauri Commands 的映射关系如下表（按模块）：
 | Object | `object_get` | `/open` | P0 |
 | Object | `object_create` | `/newpage`、`/newobject` | P0 |
 | Object | `object_update` | `/edit` | P0 |
-| Object | `object_delete` / `object_purge` | `/delete` / `/purge` | P0 |
-| Object | `object_restore` / `trash_restore` | `/restore` | P0 |
-| Object | `object_trash_list` / `trash_get_detail` | `/trash` | P0 |
+| Object | `object_delete` | `/delete` | P0 |
+| Object | `trash_restore` | `/restore` | P0 |
 | Object | `trash_permanent_delete` | `/purge` | P0 |
+| Object | `object_trash_list` / `trash_get_detail` | `/trash` | P0 |
 | Object | `trash_get_retention` / `trash_set_retention` | `/security trash-retention` | P1 |
 | Object | `snapshot_list` / `snapshot_get` / `snapshot_get_data` / `snapshot_rollback` | `/history`、`/rollback` | P1 |
 | Template | `template_list` / `template_get` | `/newobject` 内部调用 | P0 |

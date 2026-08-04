@@ -2,7 +2,7 @@
 
 > **前置阅读**：`04_Rust_Crate拆分与后端架构.md`、`07_数据库_服务层_Repository迁移.md`
 > **Manifesto 对齐**：最少惊喜 | 安全默认
-> **当前状态**：已全部实现（约 155 个 IPC 命令）
+> **当前状态**：已全部实现。命令以 `tauri/src-tauri/permissions/solo-soul/default.toml`（ACL 白名单）与 `tauri/src-tauri/src/lib.rs`（handler 注册）为**权威来源**；本规范为设计期文档，个别命令的增删（如 P002 移除 `get_state`/`delete_account`/`object_restore`/`object_purge`）以 ACL/handler 为准。
 
 ---
 
@@ -28,10 +28,10 @@
 | 模块 | 命令数 | 典型命令 |
 |------|--------|---------|
 | 认证 (Auth) | 5 | `check_has_account`、`bootstrap`、`login`、`logout`、`get_current_account` |
-| 保险箱 (Vault) | 10 | `unlock`、`lock`、`get_state`、`change_password`、`delete_account`、`vault_list_accounts`、`vault_update_hint`、`get_vault_stats`、`verify_password`、`unlock_with_password` |
+| 保险箱 (Vault) | 8 | `unlock`、`lock`、`change_password`、`vault_list_accounts`、`vault_update_hint`、`get_vault_stats`、`verify_password`、`unlock_with_password`（`get_state`、`delete_account` 已随 P002 移除） |
 | 生物识别 (Biometric) | 5 | `biometric_check_availability`、`biometric_save_credential`、`biometric_unlock`、`biometric_delete_credential`、`biometric_test` |
 | 档案 (Profile) | 6 | `profile_load`、`profile_save`、`profile_get_section`、`profile_update_field`、`profile_delete`、`profile_list` |
-| 对象 (Object) | 8 | `object_list`、`object_get`、`object_create`、`object_update`、`object_delete`、`object_trash_list`、`object_restore`、`object_purge` |
+| 对象 (Object) | 6 | `object_list`、`object_get`、`object_create`、`object_update`、`object_delete`、`object_trash_list`（`object_restore`、`object_purge` 已随 P002 移除，回收站恢复/物理删除统一走 `trash_restore`/`trash_permanent_delete`） |
 | 模板 (Template) | 8 | `template_create`、`template_update`、`template_delete`、`template_restore`、`template_get`、`template_list`、`template_save_from_object`、`template_check_field_usage` |
 
 ### 扩展功能（Extensions）
@@ -125,16 +125,14 @@ pub async fn unlock_with_password(password: String) -> Result<(), String>;
 pub async fn lock() -> Result<(), String>;
 // 擦除内存密钥 + 关闭数据库 + 广播 "vault-locked"
 
-#[tauri::command]
-pub async fn get_state() -> Result<String, String>;
-// 返回 "uninitialized" | "locked" | "unlocked"
+// 注：`get_state` 命令已随 P002 移除（前端零调用）；Vault 状态经 `vault-locked` 事件与
+// 前端 authStore 维护，Rust 侧状态判定保留在服务方法 `VaultService::get_vault_state()`。
 
 #[tauri::command]
 pub async fn change_password(old_password: String, new_password: String) -> Result<(), String>;
 
-#[tauri::command]
-pub async fn delete_account(account_id: String, password: String) -> Result<(), String>;
-// 物理删除所有数据 + 附件目录
+// 注：`delete_account` 命令已随 P002 移除（前端零调用）；账户删除能力保留在
+// `VaultService::delete_account()` 服务方法（CLI `/security delete-account` 与 recovery 流程使用）。
 
 #[tauri::command]
 pub async fn vault_list_accounts() -> Result<Vec<AccountSummary>, String>;
@@ -253,13 +251,8 @@ pub async fn object_delete(object_id: String) -> Result<(), String>;
 pub async fn object_trash_list(account_id: String, since: Option<i64>) -> Result<Vec<TrashItemSummary>, String>;
 // 回收站列表（支持时间范围过滤）
 
-#[tauri::command]
-pub async fn object_restore(object_id: String, lang: String) -> Result<(), String>;
-// 软删除恢复
-
-#[tauri::command]
-pub async fn object_purge(object_id: String) -> Result<(), String>;
-// 物理删除（不可恢复）
+// 注：`object_restore` / `object_purge` 命令已随 P002 移除（前端零调用），
+// 回收站恢复/物理删除统一走 `trash_restore` / `trash_permanent_delete`。
 ```
 
 ---
@@ -599,7 +592,7 @@ export async function objectList(accountId: string, filter: ObjectFilter | null)
 
 | 约束 | 要求 |
 |------|------|
-| 密码接收范围 | 仅 `bootstrap`、`login`、`unlock`、`unlock_with_password`、`change_password`、`verify_password`、`delete_account` 及生物识别绑定可通过参数接收密码 |
+| 密码接收范围 | 仅 `bootstrap`、`login`、`unlock`、`unlock_with_password`、`change_password`、`verify_password` 及生物识别绑定可通过参数接收密码（`delete_account` 命令已随 P002 移除） |
 | 零流出原则 | 前端永不接收 Rust 内存中的密钥（`[u8; 32]` 主密钥），全部收敛在后端操作 |
 | 敏感度控制 | 已并入 Object 数据节点，前端按 `SensitivityLevel` 标志位局部模糊/锁定，不再涉及独立 IPC |
 | 错误不泄露内部状态 | 不返回 "table x not found"，返回中文用户可理解消息如"数据加载失败" |
