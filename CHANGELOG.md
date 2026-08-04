@@ -2,6 +2,81 @@
 
 All notable changes to SoloSoul are documented in this file.
 
+## [2.8.0] - 2026-08-04
+
+### Added
+
+- **macOS Vision Framework 原生 OCR（P133）** — 将 `macos_vision.rs` 死模块接入为 macOS 端默认 OCR 引擎，设置页仅 macOS 端显示「Apple Vision」选项，其他端不显示；与 PP-OCRv6 双引擎可切换。
+- **Embedding 注册表真实公钥注入（P207/N-10）** — 使用维护者持有的 minisign 公钥注入 `EMBED_REGISTRY_PUBKEY_B64`，注册表 JSON 与模型下载 sha256 同通道下发不再可信，硬校验签名。
+- **config 原子写（P135）** — `safe_storage::write_atomic`（.tmp + rename）反向接入，`change_password`/`unlock_with_kdf_upgrade`/`create_account` 三条关键路径全部切换，消除「写一半」损坏风险。
+- **P209 迁移窗口诊断日志** — 启动时扫描 legacy XOR 生物识别凭证存量并输出计数（trace 级），为迁移窗口关闭提供量化依据。
+
+### Security
+
+- **同步握手身份绑定（P001）** — 对端指纹以 Noise 握手认证值为准，双角色握手后强制比对，不再被加密通道内自报消息覆盖。
+- **Windows 生物识别 DPAPI（P002）** — Windows 生产路径改用真 DPAPI（CryptProtectData）保护主密钥凭证文件，魔数检测 + 原子迁移旧凭证。
+- **KDF 生产参数默认启用（P003）** — release 构建默认 64MiB/3iter（OWASP），仅 debug 用开发档；旧账户解锁成功后透明升级参数并重加密 verify token。
+- **显式 command allowlist（P101）** — 188 条显式命令白名单替代 `allow-all-custom-commands`，前端全部 invoke 比对零缺失，IPC 攻击面收敛。
+- **LLM base_url 网络出口校验（P102）** — 仅允许已登记 provider 目标；`llm_save_provider` 对未登记新 URL 强制系统级原生确认对话框（XSS 无法程序化点击），embedding 通道发送前同样校验（N-4）。
+- **OCR 模型下载加固（P104）** — URL 校验 + 重定向白名单 + 流式双限 + 原子 rename；内置 sha256 清单扩至三档 12 文件（tiny/medium 取自官方 HF 仓库并交叉验证，N-5）。
+- **分块头部纳入 GCM 认证（P105/P106）** — SOLC v2 头部作为 AAD 参与每个 chunk 认证，篡改 `chunk_count` 即解密失败；v3 分块头部一致性校验杜绝头部驱动巨额分配 DoS。
+- **fs 面收敛（P107/P108）** — 基目录收窄至 Desktop/Documents/Downloads + Vault 附件目录；copy-file/stat 作用域仅保留 `$APPCACHE`/`$TEMP`。
+- **删除 crypto oracle 命令组（P205）** — 移除 encrypt/decrypt/derive_key 三个命令，消除密码/密钥经 IPC 进 JS 堆的命令面；生物识别会话密钥改 Zeroizing 持有（P204）。
+- **CSP 收紧（P206）** — `frame-src` 移除死授权 `data:`，新增 `object-src data:` 恢复桌面端 PDF 附件预览。
+- **Embedding 注册表签名校验（P207）** — minisign 公钥硬校验 `registry.json.minisig`，7 条防回归单测。
+- **插件 WASI stdio 黑洞（P208）** — 移除 `inherit_stdio()`，杜绝插件向宿主日志注入伪造内容。
+- **同步永久停滞修复（N-1）** — keyset 分页替代 OFFSET：回退行 SQL 精确过滤（(wall,counter,node) 三元组 + id 决胜全序）、等值组尾部允许通过、会话层节点编码对齐，删除/批量创建 >limit 行同 ms 场景不再停滞。
+- **reencrypt 事务化（N-2）** — `reencrypt_all` 全有或全无；改密/KDF 升级 config 前置备份 + 写失败自动回滚（config.json.pending 两阶段交换，R-4①/N-12）。
+- **llmStore 明文清理（N-3）** — `streamBuffer` 纳入 vault-locked 清理链，流式进行中锁定不再残留 LLM 输出明文。
+- **同步墓碑传播（N-13）** — objects/trash 硬删补写 sync_tombstones，变更清单合并墓碑，应用端识别 `deleted && data.is_null()` 删除本地行——永久删除可正确同步到对端。
+- **墓碑生命周期清理（N-14）** — `delete_peer` 联动删 sync_watermarks；`cleanup_expired_tombstones()` 水位老化（存续 peer 水位 MIN ≥ 墓碑 HLC）+ 纯单机 365 天时间兜底，同步会话完成后触发。
+- **legacy XOR 凭证保留（P209）** — 用户决策保留迁移路径（迁移窗口未关闭），配启动扫描诊断日志。
+
+### Performance
+
+- **同步分页下推 SQL（P109/P110）** — watermark 下推 + 有效 HLC 排序 + LIMIT/OFFSET（后修正为 keyset）；HLC 一次批量 JOIN 消除逐对象 SELECT。
+- **list_objects metadata-only（P111）** — 新增 `list_object_metadata` 免全表解密，主列表/page_delete/attachment_list_all/llm_context 公共路径受益。
+- **attachment_list_all 解密收敛（P112）** — 复用已解密 summary.properties + parent_id 预分组，4 轮全量解密降为单轮。
+- **重路径 spawn_blocking（P113/P114）** — OCR 推理（image + MRZ，N-6）与全部 vault async command 统一移入阻塞线程池，不再阻塞 tokio runtime。
+- **apply_sync_records 批量化（P115）** — 单事务 + 零克隆借用视图，消除每条记录 4 条 auto-commit SQL。
+- **前端渲染优化（P116-P119）** — ChatMessageList 消息项 memo（流式仅最后一条重渲染）；useLlmChatCore 字段级选择器去整店订阅；WorkspaceObjectCard 修复 memo 击穿；回收站分页 + filtered useMemo + memo 卡片。
+- **关键词过滤递归值树（P210）** — 消除整值 `to_string()` 往返。
+- **page_delete 批量加载（P211）** — 单事务 + metadata 预筛，消除 N 次解密与 N×2 auto-commit。
+- **import_vault 借用迭代（P212）** — metadata 预查 + 单事务批量写入。
+- **SQL 常量化 + prepare_cached（P213）** — 热点语句缓存编译，消除 `format!` 分配。
+- **llm_context public 预筛（P214）** — Section 3 改 metadata 预筛 + 仅 public 子集批量解密。
+- **整店订阅分字段化（P215-P218）** — sync/plugin/ocr/ui store 字段级选择器 + 插件日志环形截断；onScroll 折叠瞬间持久化；附件三级列表 memo；审计日志卡片 memo + useMemo + 加载更多。
+- **trash_items keyset 分页（R-1/R-2）** — 回收站变更清单 SQL 级 keyset 分页，消除 P110 同构停滞；修复秒/毫秒错配（不再放大 1000×）。
+
+### Refactor
+
+- **统一 HLC 三阶段（方案 B）** — objects（阶段 1）、trash/profile/user_template（阶段 2）本地写统一落 HLC，v23 迁移存量回填 + 回退兜底保留（阶段 3），同步变更清单大幅简化（R-3 窗口关闭）。
+- **页游标并入 peer watermark（R-3）** — 会话中断后等值 HLC 组可续传。
+- **storage.rs 八域拆分（P223-②）** — objects/trash/snapshots/sync_meta/sync_changes/sync_apply/metadata/profile 抽子模块，7922→4433 行。
+- **host.rs 六簇分簇（P223-①）** — `register_host_functions` 923→7 行调度器 + 6 簇，`check_rate` 助手收敛 7 处重复检查。
+- **lib.rs Builder 收尾（P223-③）** — Builder 链按插件组分簇（649→982 行）。
+- **前端巨型组件拆分（P224）** — TrashDetailPanel（1282→313）、SyncPage（848→276）、TemplateManagerPage（810→328）、AboutPage（738→195）、OcrPage（738→385）均抽纯展示子组件/hook/面板。
+- **统一 IPC 调用层（P131）** — 61 文件全量迁移裸调 invoke 到 `invokeCommand`，命令失败统一日志。
+- **死命令/死代码清理（P132/P136/P219-P222）** — 删除 8 个死 Tauri 命令、LlmService 死方法簇（保留 CLI 依赖）、6 处前端死导出、13 项 Rust 死函数、25 处可见性收敛。
+- **重复代码收敛（P137-P142/P225-P226）** — LLM 数据结构统一复用 core 定义；sync.rs 11 对 cfg 重复合并；同步管理器三处收敛 shared.rs；OCR 模型管理抽 hook；搜索逻辑抽 searchShared；导航卡片按钮收敛 hook；行解密闭包/unlock 前缀/PIN 凭证/附件源解析四大簇。
+- **循环依赖断链（P228）** — accountId 注入 + 共享类型抽离 types/。
+
+### Fixed
+
+- **错误吞没批量修复（P006/P007/P120-P127/P227/P231）** — 删除对象失败、对话保存失败、导出范围加载、回收站详情、批量附件操作、PIN 验证、unlock 异常、诊断包导出、模板加载、自定义页面加载、低危静默降级等全部补 toast/日志/错误态；P120/P122 新增失败占位 + 重试 UI（N-11）。
+- **fs 目录外附件降级（P107 附带）** — 目录外选附件 sizeBytes=0 降级、遗留外部 vaultPath 预览优雅报错。
+- **P004/P005/P230 锁定后明文残留** — trashStore/searchCache/ocrScanStore 全部接入 vault-locked 清理链。
+- **AboutPage window.open 兜底（P231）** — 移除无效兜底，shell 打开失败改应用内 toast。
+- **ipc.test.ts 陈旧 mock（N-9）** — 移除针对已删 crypto 命令的测试。
+- **P129/N-8 写入点收敛** — App/index.tsx 与 notification.ts 直写③收敛到导出的 `syncPlaintextPref`。
+- **P128 主题缓存第 5 写入点消除** — 交回 settingsStore 唯一写入。
+
+### Chores
+
+- 版本号同步升级到 2.8.0。
+- 签名密钥迁入 `~/SoloSoul/signing/` 并更新全部路径引用（`9837a81f`）。
+- 172 个 commit 自 v2.7.1（`9807324d`）到 v2.8.0。
+
 ## [2.7.1] - 2026-08-01
 
 ### Fixed
