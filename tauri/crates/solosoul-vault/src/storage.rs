@@ -1086,7 +1086,7 @@ impl VaultStore {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{ObjectRecord, Profile, TrashItem};
+    use crate::{ObjectRecord, Profile, SyncWatermark, TrashItem};
     use tempfile::TempDir;
 
     fn test_key() -> [u8; 32] {
@@ -2719,6 +2719,283 @@ mod tests {
         let (vault, _dir) = setup();
         // DELETE on non-existing row should succeed (no affected rows check)
         vault.delete_trash_item("does-not-exist").unwrap();
+    }
+
+    // ── #1（§4.5）：objects/trash 硬删传播——墓碑产生与合并 ─────────────
+    //
+    // 修复前：delete_object(id,false) / delete_trash_item 只 DELETE + 落 HLC，
+    // 不写 sync_tombstones，变更清单不合并墓碑 → 对端永不收到永久删除。
+    // 修复后三步同构 profiles/user_templates：① 产生端 record_tombstone；
+    // ② 清单端合并墓碑；③ 应用端 data 为 null 识别删除。本组测试逐层验证。
+
+    /// 对象硬删后，变更清单必须包含 deleted=true、data=null 的墓碑记录。
+    #[test]
+    fn test_object_hard_delete_produces_tombstone_in_changes() {
+        let (vault, _dir) = setup();
+        vault
+            .save_object(&ObjectRecord {
+                id: "obj-tomb".to_string(),
+                account_id: "test_account".to_string(),
+                name: "To Purge".to_string(),
+                section_type: "identity".to_string(),
+                properties: serde_json::json!({ "k": "v" }),
+                sensitivity_level: "internal".to_string(),
+                ..Default::default()
+            })
+            .unwrap();
+        vault.delete_object("obj-tomb", false).unwrap();
+        assert!(vault.load_object("obj-tomb").unwrap().is_none());
+
+        let wm = SyncWatermark {
+            wall_time_ms: 0,
+            counter: 0,
+            node_id: String::new(),
+        };
+        let records = vault
+            .list_sync_changes_since("objects", &wm, "test_account", "local_node")
+            .unwrap();
+        let tomb = records
+            .iter()
+            .find(|r| r.id == "obj-tomb")
+            .expect("墓碑应在变更清单中");
+        assert!(tomb.deleted, "墓碑记录 deleted 必须为 true");
+        assert!(tomb.data.is_null(), "墓碑记录 data 必须为 null（无负载）");
+        assert_eq!(tomb.table, "objects");
+    }
+
+    /// 对象硬删不存在的行不得产生幽灵墓碑。
+    #[test]
+    fn test_object_hard_delete_nonexistent_no_tombstone() {
+        let (vault, _dir) = setup();
+        vault.delete_object("ghost-obj", false).unwrap();
+        let wm = SyncWatermark {
+            wall_time_ms: 0,
+            counter: 0,
+            node_id: String::new(),
+        };
+        let records = vault
+            .list_sync_changes_since("objects", &wm, "test_account", "local_node")
+            .unwrap();
+        assert!(
+            records.iter().all(|r| r.id != "ghost-obj"),
+            "不存在的对象不应产生墓碑"
+        );
+    }
+
+    /// 回收站条目永久删除（purge）后，变更清单必须包含墓碑。
+    #[test]
+    fn test_trash_purge_produces_tombstone_in_changes() {
+        let (vault, _dir) = setup();
+        let item = TrashItem {
+            id: "trash-tomb".to_string(),
+            item_type: "object".to_string(),
+            original_id: "orig-tomb".to_string(),
+            original_parent_id: None,
+            original_section_type: None,
+            original_sort_order: None,
+            data: vec![1, 2, 3],
+            deleted_at: chrono::Utc::now().timestamp_millis(),
+            expires_at: None,
+            deleted_by: "user".to_string(),
+            name_snapshot: "Purged".to_string(),
+            icon_snapshot: None,
+        };
+        vault.save_trash_item(&item).unwrap();
+        vault.delete_trash_item("trash-tomb").unwrap();
+        assert!(vault.get_trash_item("trash-tomb").unwrap().is_none());
+
+        let wm = SyncWatermark {
+            wall_time_ms: 0,
+            counter: 0,
+            node_id: String::new(),
+        };
+        let records = vault
+            .list_sync_changes_since("trash_items", &wm, "test_account", "local_node")
+            .unwrap();
+        let tomb = records
+            .iter()
+            .find(|r| r.id == "trash-tomb")
+            .expect("回收站墓碑应在变更清单中");
+        assert!(tomb.deleted);
+        assert!(tomb.data.is_null());
+        assert_eq!(tomb.table, "trash_items");
+    }
+
+    /// 墓碑应用端：deleted=true + data=null 记录应用到对端后删除本地行。
+    #[test]
+    fn test_apply_object_tombstone_deletes_remote_row() {
+        let (vault_a, _dir_a) = setup();
+        let (vault_b, _dir_b) = setup();
+        // B 端有同 id 对象（模拟已同步副本）
+        vault_b
+            .save_object(&ObjectRecord {
+                id: "obj-sync".to_string(),
+                account_id: "test_account".to_string(),
+                name: "Sync Copy".to_string(),
+                section_type: "identity".to_string(),
+                properties: serde_json::Value::Null,
+                sensitivity_level: "internal".to_string(),
+                ..Default::default()
+            })
+            .unwrap();
+        // A 端硬删产生墓碑
+        vault_a
+            .save_object(&ObjectRecord {
+                id: "obj-sync".to_string(),
+                account_id: "test_account".to_string(),
+                name: "Sync Copy".to_string(),
+                section_type: "identity".to_string(),
+                properties: serde_json::Value::Null,
+                sensitivity_level: "internal".to_string(),
+                ..Default::default()
+            })
+            .unwrap();
+        vault_a.delete_object("obj-sync", false).unwrap();
+        let wm = SyncWatermark {
+            wall_time_ms: 0,
+            counter: 0,
+            node_id: String::new(),
+        };
+        let records = vault_a
+            .list_sync_changes_since("objects", &wm, "test_account", "local_node")
+            .unwrap();
+        let tomb = records
+            .iter()
+            .find(|r| r.id == "obj-sync")
+            .expect("墓碑应存在");
+        let applied = vault_b.apply_sync_record(tomb, "local_node").unwrap();
+        assert!(applied, "墓碑应成功应用");
+        assert!(
+            vault_b.load_object("obj-sync").unwrap().is_none(),
+            "对端对象应被墓碑删除"
+        );
+    }
+
+    /// 软删对象（is_deleted=1、全量 data）应用到对端不得被误判为墓碑。
+    /// 这是 apply 端 `deleted && data.is_null()` 判定的关键误分类防护：软删记录
+    /// deleted=true 但 data 非空，必须走正常反序列化保存而非删除行。
+    #[test]
+    fn test_apply_soft_deleted_object_not_misclassified_as_tombstone() {
+        let (vault_a, _dir_a) = setup();
+        let (vault_b, _dir_b) = setup();
+        vault_b
+            .save_object(&ObjectRecord {
+                id: "obj-soft".to_string(),
+                account_id: "test_account".to_string(),
+                name: "Sync Copy".to_string(),
+                section_type: "identity".to_string(),
+                properties: serde_json::json!({ "k": "v" }),
+                sensitivity_level: "internal".to_string(),
+                ..Default::default()
+            })
+            .unwrap();
+        vault_a
+            .save_object(&ObjectRecord {
+                id: "obj-soft".to_string(),
+                account_id: "test_account".to_string(),
+                name: "Sync Copy".to_string(),
+                section_type: "identity".to_string(),
+                properties: serde_json::json!({ "k": "v" }),
+                sensitivity_level: "internal".to_string(),
+                ..Default::default()
+            })
+            .unwrap();
+        // A 端软删（is_deleted=1，对象行保留）
+        vault_a.delete_object("obj-soft", true).unwrap();
+        let wm = SyncWatermark {
+            wall_time_ms: 0,
+            counter: 0,
+            node_id: String::new(),
+        };
+        let records = vault_a
+            .list_sync_changes_since("objects", &wm, "test_account", "local_node")
+            .unwrap();
+        let rec = records
+            .iter()
+            .find(|r| r.id == "obj-soft")
+            .expect("软删对象应在变更清单中");
+        assert!(rec.deleted, "软删记录 deleted=true");
+        assert!(!rec.data.is_null(), "软删记录 data 非空（区别于墓碑）");
+        let applied = vault_b.apply_sync_record(rec, "local_node").unwrap();
+        assert!(applied);
+        let remote = vault_b
+            .load_object("obj-soft")
+            .unwrap()
+            .expect("对端对象应仍存在");
+        assert!(
+            remote.is_deleted,
+            "对端对象应保持软删态（is_deleted=1），不得被硬删"
+        );
+    }
+
+    /// 分页清单同样合并墓碑（limit 内墓碑不被遗漏）。
+    #[test]
+    fn test_object_changes_paginated_includes_tombstone() {
+        let (vault, _dir) = setup();
+        // 10 个对象 + 1 个硬删，limit=5 逐页收集必须包含墓碑
+        for i in 0..10usize {
+            vault
+                .save_object(&ObjectRecord {
+                    id: format!("obj-page-{:02}", i),
+                    account_id: "test_account".to_string(),
+                    name: format!("Item {}", i),
+                    section_type: "identity".to_string(),
+                    properties: serde_json::json!({ "i": i }),
+                    sensitivity_level: "internal".to_string(),
+                    ..Default::default()
+                })
+                .unwrap();
+        }
+        vault.delete_object("obj-page-05", false).unwrap();
+
+        let mut wm = SyncWatermark {
+            wall_time_ms: 0,
+            counter: 0,
+            node_id: String::new(),
+        };
+        let mut collected: Vec<String> = Vec::new();
+        let mut last_id: Option<String> = None;
+        loop {
+            let page = vault
+                .list_sync_changes_since_paginated(
+                    "objects",
+                    &wm,
+                    "test_account",
+                    "local_node",
+                    5,
+                    last_id.as_deref(),
+                )
+                .unwrap();
+            if page.is_empty() {
+                break;
+            }
+            for r in &page {
+                collected.push(r.id.clone());
+            }
+            let max_hlc = page
+                .iter()
+                .max_by_key(|r| r.hlc.wall_time_ms)
+                .unwrap()
+                .hlc
+                .clone();
+            wm = SyncWatermark {
+                wall_time_ms: max_hlc.wall_time_ms,
+                counter: max_hlc.counter,
+                node_id: max_hlc.node_id,
+            };
+            last_id = page.last().map(|r| r.id.clone());
+        }
+        // 10 个对象中 obj-page-05 被硬删：objects 表剩 9 行，墓碑补充 1 条（id 相同）
+        // → 共收集 10 条，其中 obj-page-05 出现 1 次（墓碑），其余 9 个对象各 1 次。
+        assert_eq!(collected.len(), 10, "9 行对象 + 1 条墓碑 = 10 条");
+        assert!(
+            collected
+                .iter()
+                .filter(|id| id.as_str() == "obj-page-05")
+                .count()
+                == 1,
+            "obj-page-05 应以墓碑形式出现且仅 1 次"
+        );
     }
 
     // ── Snapshot CRUD ─────────────────────────────────────────

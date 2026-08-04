@@ -417,6 +417,13 @@ impl VaultStore {
         record: &crate::BorrowedSyncRecord,
         local_node_id: &str,
     ) -> Result<bool, String> {
+        // #1（§4.5）：墓碑记录（data 为 null，deleted=true）→ 删除本地对象行。
+        // 不重记本地墓碑（对端应用路径不产生新墓碑），远程 HLC 保持权威删除时间戳。
+        if record.deleted && record.data.is_null() {
+            conn.execute("DELETE FROM objects WHERE id = ?1", params![record.id])
+                .map_err(|e| format!("delete object (tombstone): {}", e))?;
+            return Ok(true);
+        }
         let mut obj: crate::ObjectRecord = crate::ObjectRecord::deserialize(record.data)
             .map_err(|e| format!("object decode: {}", e))?;
         // Bump version if the local node is modifying an existing object.
@@ -457,6 +464,13 @@ impl VaultStore {
         key: &DataEncryptionKey,
         record: &crate::BorrowedSyncRecord,
     ) -> Result<bool, String> {
+        // #1（§4.5）：墓碑记录（data 为 null，deleted=true）→ 删除本地回收站条目。
+        // 不重记本地墓碑，远程 HLC 保持权威删除时间戳。
+        if record.deleted && record.data.is_null() {
+            conn.execute("DELETE FROM trash_items WHERE id = ?1", params![record.id])
+                .map_err(|e| format!("delete trash item (tombstone): {}", e))?;
+            return Ok(true);
+        }
         let item: crate::TrashItem = crate::TrashItem::deserialize(record.data)
             .map_err(|e| format!("trash decode: {}", e))?;
         Self::save_trash_item_tx(conn, key, &item)?;
