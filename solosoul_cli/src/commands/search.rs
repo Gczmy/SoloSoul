@@ -327,6 +327,7 @@ fn search_properties_for_matches(
                     || lower_key == "deletedat"
                     || lower_key == "vaultpath"
                     || lower_key == "__templatename"
+                    || lower_key == "__templatehash"
                 {
                     continue;
                 }
@@ -668,6 +669,23 @@ mod tests {
             &mut matches,
         );
         assert!(matches.is_empty());
+    }
+
+    #[test]
+    fn test_search_properties_for_matches_template_hash_value_not_matched() {
+        // `__templateHash` 是注入对象 properties 的技术性模板指纹哈希：
+        // 键与值均不参与搜索——搜中哈希子串不应产生「__templateHash」字段名噪声结果。
+        let data = serde_json::json!({
+            "title": "护照",
+            "__templateHash": "0f4a9d1c8e2b7f6a3c5d9e0b1a2f3c4d5e6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c"
+        });
+        let mut matches = Vec::new();
+        search_properties_for_matches(&data, "1c8e2b7f", "", &HashSet::new(), false, &mut matches);
+        assert!(matches.is_empty(), "__templateHash 值不应被搜索命中");
+        // 其余用户字段值仍可正常搜索
+        let mut matches = Vec::new();
+        search_properties_for_matches(&data, "护照", "", &HashSet::new(), false, &mut matches);
+        assert!(matches.iter().any(|m| m.field_path == "title"));
     }
 
     #[test]

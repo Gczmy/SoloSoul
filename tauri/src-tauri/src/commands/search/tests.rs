@@ -263,9 +263,46 @@ fn test_search_dynamic_group_internal_key_not_matched() {
     // 但内部键承载的用户数据（子字段名/值）仍可搜索
     let mut matches = Vec::new();
     search_properties_for_matches(&data, "手机", "", &HashSet::new(), false, &mut matches);
+}
+
+#[test]
+fn test_search_template_hash_internal_value_not_matched() {
+    // `__templateHash` 是注入对象 properties 的技术性模板指纹哈希：
+    // 键与值均不参与搜索——搜中哈希子串不应产生「字段名：__templateHash」噪声结果。
+    let data = serde_json::json!({
+        "title": "护照",
+        "__templateHash": "0f4a9d1c8e2b7f6a3c5d9e0b1a2f3c4d5e6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c"
+    });
+    let mut matches = Vec::new();
+    search_properties_for_matches(&data, "1c8e2b7f", "", &HashSet::new(), false, &mut matches);
+    assert!(matches.is_empty(), "__templateHash 值不应被搜索命中");
+    // 其余用户字段值仍可正常搜索
+    let mut matches = Vec::new();
+    search_properties_for_matches(&data, "护照", "", &HashSet::new(), false, &mut matches);
+    assert!(matches.iter().any(|m| m.field_path == "title"));
+}
+
+#[test]
+fn test_search_template_hash_metadata_still_searchable() {
+    // 普通字段名仍按原样命中，仅内部元数据键被跳过：
+    // 搜「templateHash」（__templateHash 键名的一部分）不应产生任何匹配。
+    let data = serde_json::json!({ "title": "护照", "__templateHash": "abc" });
+    let mut matches = Vec::new();
+    search_properties_for_matches(
+        &data,
+        "templateHash",
+        "",
+        &HashSet::new(),
+        false,
+        &mut matches,
+    );
+    assert!(matches.is_empty(), "__templateHash 内部键不应被搜索命中");
+    // 普通字段名仍按原样命中
+    let mut matches = Vec::new();
+    search_properties_for_matches(&data, "title", "", &HashSet::new(), false, &mut matches);
     assert!(matches
         .iter()
-        .any(|m| matches!(m.match_type, FieldMatchType::FieldValue)));
+        .any(|m| m.field_path == "title" && matches!(m.match_type, FieldMatchType::FieldName)));
 }
 
 #[test]

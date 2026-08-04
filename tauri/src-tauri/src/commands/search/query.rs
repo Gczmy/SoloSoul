@@ -33,6 +33,7 @@ pub(crate) fn search_properties_for_matches(
                     || lower_key == "deletedat"
                     || lower_key == "vaultpath"
                     || lower_key == "__templatename"
+                    || lower_key == "__templatehash"
                 {
                     continue;
                 }
