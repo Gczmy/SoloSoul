@@ -560,6 +560,16 @@ fn send_paginated_deltas(
             }
         }
     }
+    // §4.5.1 方案 C：四表全部同步完成后清理可安全删除的墓碑。此时所有 peer
+    // 水位已推进到本次会话的最大 HLC——已收到对应删除的 peer 不再需要墓碑，
+    // 清理立即可生效；未达水位的 peer（含离线）其墓碑被正确保留。
+    // 清理失败不阻断同步会话（记录日志，下次会话重试）。
+    if let Err(e) = vault.cleanup_expired_tombstones() {
+        tracing::warn!(
+            "[cleanup_expired_tombstones] failed after delta sync: {}",
+            e
+        );
+    }
     send_msg(session, transport, &SyncMessage::Done)
 }
 

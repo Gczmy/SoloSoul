@@ -4090,6 +4090,253 @@ mod tests {
         assert!(vault.load_peer_state("node_abc").unwrap().is_none());
     }
 
+    // ── §4.5.1：墓碑生命周期清理（方案 C：水位老化 + 单机时间兜底）─────
+
+    fn make_peer(vault: &VaultStore, node_id: &str) {
+        let now = chrono::Utc::now().to_rfc3339();
+        vault
+            .save_peer_state(&crate::PeerSyncState {
+                peer_node_id: node_id.to_string(),
+                peer_name: Some(format!("Device {}", node_id)),
+                trusted: true,
+                public_key_fingerprint: Some("fp".to_string()),
+                last_seen: Some(1234567890),
+                created_at: now.clone(),
+                updated_at: now,
+            })
+            .unwrap();
+    }
+
+    fn save_then_hard_delete(vault: &VaultStore, id: &str) -> crate::RecordHlc {
+        vault
+            .save_object(&ObjectRecord {
+                id: id.to_string(),
+                account_id: "test_account".to_string(),
+                name: "To Purge".to_string(),
+                section_type: "identity".to_string(),
+                properties: serde_json::json!({ "k": "v" }),
+                sensitivity_level: "internal".to_string(),
+                ..Default::default()
+            })
+            .unwrap();
+        vault.delete_object(id, false).unwrap();
+        vault.get_record_hlc("objects", id).unwrap().unwrap()
+    }
+
+    /// peer 水位落后墓碑 HLC → 墓碑必须保留（对端尚未收到删除，删了会回魂）。
+    #[test]
+    fn test_cleanup_tombstones_keeps_when_peer_watermark_behind() {
+        let (vault, _dir) = setup();
+        make_peer(&vault, "peer_a");
+        let tomb_hlc = save_then_hard_delete(&vault, "t-behind");
+        vault
+            .update_peer_watermark(
+                "peer_a",
+                "objects",
+                &crate::SyncWatermark {
+                    wall_time_ms: tomb_hlc.wall_time_ms.saturating_sub(1000),
+                    counter: 0,
+                    node_id: "local_node".to_string(),
+                },
+            )
+            .unwrap();
+        assert_eq!(
+            vault.cleanup_expired_tombstones().unwrap(),
+            0,
+            "水位落后时墓碑必须保留"
+        );
+        let wm = SyncWatermark {
+            wall_time_ms: 0,
+            counter: 0,
+            node_id: String::new(),
+        };
+        let records = vault
+            .list_sync_changes_since("objects", &wm, "test_account", "local_node")
+            .unwrap();
+        assert!(records.iter().any(|r| r.id == "t-behind" && r.deleted));
+    }
+
+    /// 所有存续 peer 水位越过墓碑 HLC → 墓碑清除。
+    #[test]
+    fn test_cleanup_tombstones_removes_when_all_peers_passed() {
+        let (vault, _dir) = setup();
+        make_peer(&vault, "peer_a");
+        make_peer(&vault, "peer_b");
+        let tomb_hlc = save_then_hard_delete(&vault, "t-passed");
+        for peer in ["peer_a", "peer_b"] {
+            vault
+                .update_peer_watermark(
+                    peer,
+                    "objects",
+                    &crate::SyncWatermark {
+                        wall_time_ms: tomb_hlc.wall_time_ms + 1000,
+                        counter: 0,
+                        node_id: "local_node".to_string(),
+                    },
+                )
+                .unwrap();
+        }
+        assert_eq!(
+            vault.cleanup_expired_tombstones().unwrap(),
+            1,
+            "全部 peer 越过水位后墓碑应清除"
+        );
+        let wm = SyncWatermark {
+            wall_time_ms: 0,
+            counter: 0,
+            node_id: String::new(),
+        };
+        let records = vault
+            .list_sync_changes_since("objects", &wm, "test_account", "local_node")
+            .unwrap();
+        assert!(!records.iter().any(|r| r.id == "t-passed"));
+    }
+
+    /// 多 peer 场景下只要有一个落后，墓碑就保留（min 水位判定）。
+    #[test]
+    fn test_cleanup_tombstones_keeps_when_any_peer_behind() {
+        let (vault, _dir) = setup();
+        make_peer(&vault, "peer_a");
+        make_peer(&vault, "peer_b");
+        let tomb_hlc = save_then_hard_delete(&vault, "t-mixed");
+        vault
+            .update_peer_watermark(
+                "peer_a",
+                "objects",
+                &crate::SyncWatermark {
+                    wall_time_ms: tomb_hlc.wall_time_ms + 1000,
+                    counter: 0,
+                    node_id: "local_node".to_string(),
+                },
+            )
+            .unwrap();
+        vault
+            .update_peer_watermark(
+                "peer_b",
+                "objects",
+                &crate::SyncWatermark {
+                    wall_time_ms: tomb_hlc.wall_time_ms.saturating_sub(1000),
+                    counter: 0,
+                    node_id: "local_node".to_string(),
+                },
+            )
+            .unwrap();
+        assert_eq!(
+            vault.cleanup_expired_tombstones().unwrap(),
+            0,
+            "任一 peer 落后则墓碑保留"
+        );
+    }
+
+    /// 纯单机（无任何 peer 水位行）：旧墓碑（>365 天）按时间兜底清除。
+    #[test]
+    fn test_cleanup_tombstones_removes_standalone_after_timeout() {
+        let (vault, _dir) = setup();
+        // 直接插入一颗一年前的墓碑（绕过 record_tombstone 的当前时间戳）
+        vault
+            .save_object(&ObjectRecord {
+                id: "t-old".to_string(),
+                account_id: "test_account".to_string(),
+                name: "Old".to_string(),
+                section_type: "identity".to_string(),
+                properties: serde_json::Value::Null,
+                sensitivity_level: "internal".to_string(),
+                ..Default::default()
+            })
+            .unwrap();
+        vault.delete_object("t-old", false).unwrap();
+        let old_created = (chrono::Utc::now() - chrono::Duration::days(400)).to_rfc3339();
+        {
+            let mut guard = vault.conn.lock().unwrap();
+            let conn = guard.as_mut().unwrap();
+            conn.execute(
+                "UPDATE sync_tombstones SET created_at = ?1 WHERE record_id = ?2",
+                rusqlite::params![old_created, "t-old"],
+            )
+            .unwrap();
+        }
+        assert_eq!(
+            vault.cleanup_expired_tombstones().unwrap(),
+            1,
+            "纯单机旧墓碑应被时间兜底清除"
+        );
+    }
+
+    /// 存续 peer 但无该表水位行（新配对 peer，从零全量不需要墓碑）不阻断清理。
+    #[test]
+    fn test_cleanup_tombstones_ignores_peer_without_watermark_row() {
+        let (vault, _dir) = setup();
+        // peer_a 已越过水位；peer_b 存在但从未同步过该表（无水位行）
+        make_peer(&vault, "peer_a");
+        make_peer(&vault, "peer_b");
+        let tomb_hlc = save_then_hard_delete(&vault, "t-newpeer");
+        vault
+            .update_peer_watermark(
+                "peer_a",
+                "objects",
+                &crate::SyncWatermark {
+                    wall_time_ms: tomb_hlc.wall_time_ms + 1000,
+                    counter: 0,
+                    node_id: "local_node".to_string(),
+                },
+            )
+            .unwrap();
+        // peer_b 不写任何水位行（全新配对，从零全量同步，不需要墓碑）
+        assert_eq!(
+            vault.cleanup_expired_tombstones().unwrap(),
+            1,
+            "新 peer 无水位行不应阻断已越过 peer 的墓碑清理"
+        );
+    }
+
+    /// 纯单机（无 peer 水位行）：新建墓碑（<365 天）时间兜底不越权删除。
+    #[test]
+    fn test_cleanup_tombstones_keeps_standalone_fresh() {
+        let (vault, _dir) = setup();
+        save_then_hard_delete(&vault, "t-fresh");
+        assert_eq!(
+            vault.cleanup_expired_tombstones().unwrap(),
+            0,
+            "纯单机新建墓碑应保留（时间兜底不越权）"
+        );
+    }
+
+    /// delete_peer 联动删除该 peer 的 watermarks（防残留水位永久保住墓碑）。
+    #[test]
+    fn test_delete_peer_removes_watermarks() {
+        let (vault, _dir) = setup();
+        make_peer(&vault, "peer_x");
+        vault
+            .update_peer_watermark(
+                "peer_x",
+                "objects",
+                &crate::SyncWatermark {
+                    wall_time_ms: 1000,
+                    counter: 0,
+                    node_id: "local_node".to_string(),
+                },
+            )
+            .unwrap();
+        // 删除前水位存在
+        assert_eq!(
+            vault
+                .get_peer_watermark("peer_x", "objects")
+                .unwrap()
+                .wall_time_ms,
+            1000
+        );
+        vault.delete_peer("peer_x").unwrap();
+        // 删除后水位联动清除（回到默认零水位）
+        assert_eq!(
+            vault.get_peer_watermark("peer_x", "objects").unwrap(),
+            crate::SyncWatermark {
+                wall_time_ms: 0,
+                counter: 0,
+                node_id: String::new(),
+            }
+        );
+    }
+
     #[test]
     fn test_apply_sync_record_profile() {
         let (vault, _dir) = setup();
