@@ -344,7 +344,8 @@ pub struct ObjectSummary {
     pub tags: Vec<String>,
     /// 该对象是否包含（未软删的）附件——供导出范围树等 UI 判断是否展示附件展开图标。
     /// 由 `properties.__attachments` 推导；metadata-only 路径（properties 未解密）为 false。
-    #[serde(default)]
+    /// 注意：本结构体为逐字段显式 rename（无 rename_all），必须显式 camelCase 序列化。
+    #[serde(rename = "hasAttachments", default)]
     pub has_attachments: bool,
 }
 
@@ -572,6 +573,46 @@ pub struct UserTemplate {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn object_summary_serializes_has_attachments_camel_case() {
+        // 防回归：导出范围树等 IPC 载荷前端按 camelCase（hasAttachments）读取；
+        // ObjectSummary 为逐字段显式 rename（无 rename_all），新增字段必须显式 camelCase。
+        let s = ObjectSummary {
+            id: "1".to_string(),
+            name: "n".to_string(),
+            collection_type: "note".to_string(),
+            section_type: "identity".to_string(),
+            sensitivity_level: "internal".to_string(),
+            created_at: String::new(),
+            updated_at: String::new(),
+            is_deleted: false,
+            template_id: None,
+            template_type: None,
+            contract_type_id: None,
+            template_hash: None,
+            ignored_template_hash: None,
+            icon_name: "document".to_string(),
+            parent_id: None,
+            properties: serde_json::Value::Null,
+            property_labels: None,
+            tags: vec![],
+            has_attachments: true,
+        };
+        let v = serde_json::to_value(&s).unwrap();
+        assert_eq!(v["hasAttachments"], serde_json::Value::Bool(true));
+        // 不得以 snake_case 键序列化（此前正是此缺陷导致前端 hasAttachments 恒为 undefined）
+        assert!(v.get("has_attachments").is_none());
+        // 既有关键字段命名不受影响
+        assert_eq!(
+            v["collectionType"],
+            serde_json::Value::String("note".to_string())
+        );
+        assert_eq!(
+            v["sensitivityLevel"],
+            serde_json::Value::String("internal".to_string())
+        );
+    }
 
     #[test]
     fn property_type_dynamic_group_roundtrip() {
