@@ -5,6 +5,7 @@ import { Dialog } from '@/components/ui/Dialog';
 import { SecurePasswordInput } from '@/components/forms/PasswordInput';
 import { PinInput } from '@/components/forms/PinInput';
 import { Button } from '@/components/ui/Button';
+import { IndeterminateProgressBar } from '@/components/ui/IndeterminateProgressBar';
 import { useToastError } from '@/hooks/useToastError';
 import { useAutoLockPauseStore } from '@/stores/autoLockPauseStore';
 import { Fingerprint, KeyRound, ScanFace, ShieldCheck, Grip } from 'lucide-react';
@@ -458,6 +459,12 @@ export function PasswordVerificationDialog({
                 error={!!pinError}
                 verifying={pinUnlocking}
               />
+              {/* 验证中动画 — 移至 PIN 码框下方，不再遮挡输入框（与登录页一致） */}
+              {pinUnlocking && (
+                <div style={{ width: '100%', maxWidth: 240, marginTop: 2 }}>
+                  <IndeterminateProgressBar height={4} />
+                </div>
+              )}
               {pinError && (
                 <div style={{ color: '#dc2626', fontSize: 'var(--text-body-sm)' }}>{pinError}</div>
               )}

@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Grip } from 'lucide-react';
 import { PinInput, type PinInputHandle } from '@/components/forms/PinInput';
+import { IndeterminateProgressBar } from '@/components/ui/IndeterminateProgressBar';
 import { ICON_SIZE } from '@/lib/constants';
 import type { RefObject } from 'react';
 
@@ -66,6 +67,12 @@ export function LoginPinView({
           error={!!pinError}
           verifying={pinUnlocking}
         />
+        {/* 验证中动画 — 移至 PIN 码框下方（创建新账户按钮上方），不再遮挡输入框 */}
+        {pinUnlocking && (
+          <div style={{ width: '100%', maxWidth: 240, marginTop: 2 }}>
+            <IndeterminateProgressBar height={4} />
+          </div>
+        )}
         {pinError && (
           <div style={{ color: '#dc2626', fontSize: 'var(--text-body-sm)' }}>{pinError}</div>
         )}

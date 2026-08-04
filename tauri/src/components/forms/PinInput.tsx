@@ -1,7 +1,5 @@
 import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 
-import { IndeterminateProgressBar } from '@/components/ui/IndeterminateProgressBar';
-
 interface PinInputProps {
   length: number;
   onComplete: (pin: string) => void;
@@ -83,8 +81,6 @@ export const PinInput = forwardRef<PinInputHandle, PinInputProps>(function PinIn
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [length, onComplete, disabled, verifying]);
 
-  const totalWidth = length * 40 + (length - 1) * 8;
-
   return (
     <div
       onClick={handleContainerClick}
@@ -163,31 +159,8 @@ export const PinInput = forwardRef<PinInputHandle, PinInputProps>(function PinIn
         ))}
       </div>
 
-      {/* 验证中动画 — 与外部存储选择一致的渐变进度条 */}
-      <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          right: 0,
-          bottom: 0,
-          left: 0,
-          opacity: verifying ? 1 : 0,
-          pointerEvents: 'none',
-          transition: 'opacity 0.25s ease',
-        }}
-      >
-        <div
-          style={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: totalWidth,
-          }}
-        >
-          <IndeterminateProgressBar height={4} />
-        </div>
-      </div>
+      {/* 验证中动画已移至输入框下方（由消费方在 PIN 码框下方渲染 IndeterminateProgressBar），
+          此处仅保留方框淡出与禁用输入。 */}
     </div>
   );
 });
