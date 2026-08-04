@@ -232,6 +232,10 @@ pub fn list_persisted_peers(vault_service: &Arc<VaultService>) -> Vec<SyncPeerIn
             fingerprint: p.public_key_fingerprint.clone().unwrap_or_default(),
             trusted: p.trusted,
             last_seen: String::new(),
+            // v24（客户端类型/信任时间/最近同步时间）字段：直接透传持久化值
+            last_seen_ts: p.last_seen,
+            trusted_at: p.trusted_at,
+            client_type: p.client_type.unwrap_or_else(|| "unknown".to_string()),
         })
         .collect()
 }
