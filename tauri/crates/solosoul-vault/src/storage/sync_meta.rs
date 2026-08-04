@@ -14,7 +14,7 @@
 
 use rusqlite::{params, Connection, OptionalExtension};
 
-use super::{VaultStore, HLC_GET_SQL, HLC_SET_SQL};
+use super::{with_tx, VaultStore, HLC_GET_SQL, HLC_SET_SQL};
 
 impl VaultStore {
     // ── Sync state helpers ──────────────────────────────────
@@ -203,14 +203,24 @@ impl VaultStore {
     }
 
     pub fn delete_peer(&self, peer_node_id: &str) -> Result<(), String> {
+        // #1 墓碑清理前置（§4.5.1）：联动删除该 peer 的 sync_watermarks 水位行。
+        // 否则被忘记/删除设备的水位残留会永远「保住」其名下墓碑（清理逻辑按
+        // 存续 peer 水位判定可删性），导致 sync_tombstones 清理永久失效。
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
-        conn.execute(
-            "DELETE FROM sync_peers WHERE peer_node_id = ?1",
-            params![peer_node_id],
-        )
-        .map_err(|e| format!("delete_peer: {}", e))?;
-        Ok(())
+        with_tx(conn, "delete_peer begin", "delete_peer commit", |c| {
+            c.execute(
+                "DELETE FROM sync_peers WHERE peer_node_id = ?1",
+                params![peer_node_id],
+            )
+            .map_err(|e| format!("delete_peer: {}", e))?;
+            c.execute(
+                "DELETE FROM sync_watermarks WHERE peer_node_id = ?1",
+                params![peer_node_id],
+            )
+            .map_err(|e| format!("delete_peer watermarks: {}", e))?;
+            Ok(())
+        })
     }
 
     pub fn update_peer_watermark(
