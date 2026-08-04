@@ -39,6 +39,7 @@ export function ConflictPanel({
               </div>
               <div style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
                 {t('settings:sync_conflicts_desc', {
+                  count: conflicts.length,
                   defaultValue: `${conflicts.length} unresolved conflict(s) need your attention.`,
                 })}
               </div>

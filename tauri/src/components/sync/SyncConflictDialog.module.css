@@ -88,14 +88,38 @@
   flex-wrap: wrap;
 }
 
-.diffGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  min-height: 200px;
+.winnerRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
-.diffPane {
+.winnerBadge,
+.remoteDeletedBadge {
+  font-size: var(--text-badge);
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.winnerLocal {
+  background: rgba(39, 174, 96, 0.12);
+  color: #27ae60;
+}
+
+.winnerRemote {
+  background: rgba(52, 152, 219, 0.12);
+  color: #3498db;
+}
+
+.remoteDeletedBadge {
+  background: rgba(231, 76, 60, 0.12);
+  color: #e74c3c;
+}
+
+/* 字段级 diff */
+.fieldDiff {
   display: flex;
   flex-direction: column;
   border: 1px solid var(--border-subtle);
@@ -103,25 +127,73 @@
   overflow: hidden;
 }
 
+.diffGrid {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.9fr) 1fr 1fr;
+  gap: 0;
+  background: var(--bg-toolbar);
+}
+
 .diffTitle {
   padding: 8px 12px;
-  background: var(--bg-toolbar);
   font-size: var(--text-body-sm);
   font-weight: 600;
   color: var(--text-primary);
 }
 
-.diffCode {
-  flex: 1;
-  margin: 0;
-  padding: 12px;
-  overflow: auto;
-  max-height: 240px;
-  font-family: monospace;
+.fieldRow {
+  display: grid;
+  grid-template-columns: minmax(120px, 0.9fr) 1fr 1fr;
+  border-top: 1px solid var(--border-subtle);
   font-size: var(--text-caption);
-  line-height: 1.4;
-  background: var(--bg-elevated);
+  line-height: 1.45;
+}
+
+.fieldRow.fieldChanged {
+  background: color-mix(in srgb, var(--accent-primary) 6%, transparent);
+}
+
+.fieldName {
+  padding: 8px 12px;
   color: var(--text-secondary);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.changedBadge {
+  font-size: var(--text-badge);
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: rgba(231, 76, 60, 0.12);
+  color: #e74c3c;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.fieldValue {
+  padding: 8px 12px;
+  color: var(--text-secondary);
+  word-break: break-word;
+  border-left: 1px solid var(--border-subtle);
+  white-space: pre-wrap;
+}
+
+.fieldMissing {
+  color: var(--text-tertiary);
+  font-style: italic;
+}
+
+.fieldEmpty {
+  padding: 16px 12px;
+  text-align: center;
+  color: var(--text-tertiary);
+  font-size: var(--text-caption);
 }
 
 .actions {
@@ -132,7 +204,17 @@
 }
 
 @media (max-width: 600px) {
+  .fieldRow {
+    grid-template-columns: 1fr 1fr;
+  }
+  .fieldName {
+    grid-column: 1 / -1;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .fieldValue {
+    border-left: none;
+  }
   .diffGrid {
-    grid-template-columns: 1fr;
+    display: none;
   }
 }

@@ -10,6 +10,7 @@ import { formatPeerName } from '@/lib/syncPeer';
 import { ICON_SIZE } from '@/lib/constants';
 import type { SyncResult } from '@/lib/ipc';
 import type { DiscoveredDevice, SyncPeer } from '@/stores/syncStore';
+import { DeviceDetailDialog } from './DeviceDetailDialog';
 
 interface DeviceListPanelProps {
   syncEnabled: boolean;
@@ -21,6 +22,8 @@ interface DeviceListPanelProps {
   lastResult: SyncResult | null;
   error: string | null;
   forgetTarget: SyncPeer | null;
+  /** 详情弹窗当前展示的设备（null = 关闭）。 */
+  detailPeer: SyncPeer | null;
   onManualAddrChange: (value: string) => void;
   onDiscover: () => void;
   onSyncWithDevice: (addr: string) => void;
@@ -30,6 +33,9 @@ interface DeviceListPanelProps {
   onForgetConfirm: () => void;
   onForgetCancel: () => void;
   onRefresh: () => void;
+  /** 点击卡片主体打开详情弹窗。 */
+  onOpenDetail: (peer: SyncPeer) => void;
+  onCloseDetail: () => void;
 }
 
 /**
@@ -46,6 +52,7 @@ export function DeviceListPanel({
   lastResult,
   error,
   forgetTarget,
+  detailPeer,
   onManualAddrChange,
   onDiscover,
   onSyncWithDevice,
@@ -55,6 +62,8 @@ export function DeviceListPanel({
   onForgetConfirm,
   onForgetCancel,
   onRefresh,
+  onOpenDetail,
+  onCloseDetail,
 }: DeviceListPanelProps) {
   const { t } = useTranslation(['settings', 'common']);
   return (
@@ -268,6 +277,15 @@ export function DeviceListPanel({
               return (
                 <div
                   key={peer.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => onOpenDetail(peer)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      onOpenDetail(peer);
+                    }
+                  }}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -275,34 +293,30 @@ export function DeviceListPanel({
                     padding: '10px 12px',
                     borderRadius: 8,
                     background: 'var(--bg-toolbar)',
+                    cursor: 'pointer',
                   }}
                 >
                   <Smartphone size={ICON_SIZE.lg} style={{ color: 'var(--accent-primary)' }} />
                   <div style={{ flex: 1, minWidth: 0 }}>
+                    {/* 设备名 */}
                     <div
                       style={{
                         fontSize: 'var(--text-body-sm)',
                         fontWeight: 500,
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 8,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
                       }}
                     >
-                      <span
-                        style={{
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {displayName}
-                      </span>
+                      {displayName}
+                    </div>
+                    {/* 信任徽章独立一行（设备名下方） */}
+                    <div style={{ marginTop: 2 }}>
                       <span
                         style={{
                           fontSize: 'var(--text-badge)',
-                          padding: '2px 8px',
+                          padding: '1px 8px',
                           borderRadius: 999,
-                          flexShrink: 0,
                           background: peer.trusted
                             ? 'rgba(39,174,96,0.12)'
                             : 'rgba(128,128,128,0.1)',
@@ -315,26 +329,22 @@ export function DeviceListPanel({
                           : t('settings:sync_untrusted_badge', { defaultValue: 'Not trusted' })}
                       </span>
                     </div>
+                    {/* 在线状态（i18n：offline/never）——不再展示指纹 */}
                     <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
-                      {peer.addr || 'offline'} · {peer.lastSeen || 'never'}
-                    </div>
-                    <div
-                      style={{
-                        fontSize: 'var(--text-badge)',
-                        color: 'var(--text-tertiary)',
-                        fontFamily: 'monospace',
-                        wordBreak: 'break-all',
-                      }}
-                    >
-                      {peer.fingerprint}
+                      {peer.addr
+                        ? `${peer.addr} · ${peer.lastSeen || t('settings:sync_never', { defaultValue: 'never' })}`
+                        : t('settings:sync_offline', { defaultValue: 'offline' })}
                     </div>
                   </div>
-                  <div style={{ display: 'flex', gap: 6 }}>
+                  <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
                     {peer.trusted ? (
                       <Button
                         size="sm"
                         variant="secondary"
-                        onClick={() => onTrustPeer(peer.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onTrustPeer(peer.id);
+                        }}
                         title={t('settings:sync_revoke_tooltip', {
                           defaultValue: 'Revoke trust: keep the record, reject its syncs',
                         })}
@@ -345,7 +355,10 @@ export function DeviceListPanel({
                       <Button
                         size="sm"
                         variant="secondary"
-                        onClick={() => onOpenPairTarget(peer)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onOpenPairTarget(peer);
+                        }}
                         title={t('settings:sync_pair_tooltip', {
                           defaultValue: 'Pair this device',
                         })}
@@ -354,7 +367,10 @@ export function DeviceListPanel({
                       </Button>
                     )}
                     <DeleteButton
-                      onClick={() => onForgetRequest(peer)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onForgetRequest(peer);
+                      }}
                       title={t('settings:sync_forget_tooltip', {
                         defaultValue: 'Forget: delete the record, you will need to re-pair',
                       })}
@@ -435,6 +451,20 @@ export function DeviceListPanel({
           </div>
         )}
       </ConfirmDialog>
+      <DeviceDetailDialog
+        peer={detailPeer}
+        onClose={onCloseDetail}
+        onToggleTrust={(peer) => {
+          if (peer.trusted) {
+            onTrustPeer(peer.id);
+          } else {
+            onOpenPairTarget(peer);
+          }
+        }}
+        onForgetRequest={(peer) => {
+          onForgetRequest(peer);
+        }}
+      />
     </>
   );
 }

@@ -16,6 +16,12 @@ export interface SyncPeer {
   fingerprint: string;
   trusted: boolean;
   lastSeen: string;
+  /** 最近一次同步/在线的原始 unix 秒时间戳（精确展示用）。 */
+  lastSeenTs?: number | null;
+  /** 最近一次信任该设备的时间（unix 秒）。从未信任/已撤销时为 null。 */
+  trustedAt?: number | null;
+  /** 客户端类型：macos / windows / linux / android / ios / unknown。 */
+  clientType?: string;
 }
 
 export interface DiscoveredDevice {
@@ -343,6 +349,9 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
             fingerprint: p.fingerprint || '',
             trusted: false,
             lastSeen: '',
+            lastSeenTs: null,
+            trustedAt: null,
+            clientType: 'unknown',
           },
         });
       },

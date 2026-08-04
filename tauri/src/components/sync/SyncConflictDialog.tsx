@@ -19,8 +19,37 @@ function formatHlc(hlc: SyncConflictSummary['local_hlc']) {
   return `${hlc.wall_time_ms}/${hlc.counter}/${hlc.node_id.slice(0, 8)}`;
 }
 
-function formatJson(value: unknown) {
-  return JSON.stringify(value, null, 2);
+/** 字段值展示：字符串原样、其他标量转字符串、嵌套对象/数组紧凑 JSON（截断）。 */
+function formatValue(value: unknown, maxLen = 220): string {
+  if (value === null || value === undefined) {
+    return '';
+  }
+  if (typeof value === 'string') {
+    return value;
+  }
+  if (typeof value === 'number' || typeof value === 'boolean') {
+    return String(value);
+  }
+  const json = JSON.stringify(value);
+  return json.length > maxLen ? `${json.slice(0, maxLen)}…` : json;
+}
+
+/** 深度相等：JSON 序列化比较（冲突数据均为可序列化值）。 */
+function valuesEqual(a: unknown, b: unknown): boolean {
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
+/** 字段级 diff 行：合并本地/远程顶层键，逐字段比对。 */
+function buildFieldRows(local: unknown, remote: unknown, remoteDeleted: boolean) {
+  const l = local && typeof local === 'object' ? (local as Record<string, unknown>) : {};
+  const r = remote && typeof remote === 'object' ? (remote as Record<string, unknown>) : {};
+  const keys = Array.from(new Set([...Object.keys(l), ...Object.keys(r)]));
+  return keys.map((key) => {
+    const lv = key in l ? l[key] : undefined;
+    const rv = key in r ? r[key] : undefined;
+    const changed = remoteDeleted ? lv !== undefined : !valuesEqual(lv, rv);
+    return { key, local: lv, remote: rv, changed };
+  });
 }
 
 export function SyncConflictDialog({
@@ -53,11 +82,22 @@ export function SyncConflictDialog({
 
   const selectedConflict = conflicts.find((c) => c.id === selectedId);
 
+  const fieldRows =
+    detail && selectedConflict
+      ? buildFieldRows(detail.local_data, detail.remote_data, detail.remote_deleted)
+      : [];
+
   return (
-    <Dialog isOpen={isOpen} onClose={onClose} title={t('settings:sync_conflicts_title', { defaultValue: 'Sync Conflicts' })}>
+    <Dialog
+      isOpen={isOpen}
+      onClose={onClose}
+      title={t('settings:sync_conflicts_title', { defaultValue: 'Sync Conflicts' })}
+    >
       <div className={styles.container}>
         {conflicts.length === 0 ? (
-          <div className={styles.empty}>{t('settings:sync_no_conflicts', { defaultValue: 'No unresolved conflicts.' })}</div>
+          <div className={styles.empty}>
+            {t('settings:sync_no_conflicts', { defaultValue: 'No unresolved conflicts.' })}
+          </div>
         ) : (
           <>
             <div className={styles.list}>
@@ -70,7 +110,12 @@ export function SyncConflictDialog({
                 >
                   <div className={styles.itemTable}>{c.table}</div>
                   <div className={styles.itemRecord}>{c.record_id}</div>
-                  <div className={styles.itemWinner}>{c.winner}</div>
+                  <div className={styles.itemWinner}>
+                    {t('settings:sync_conflict_winner', { defaultValue: 'Winner' })}:{' '}
+                    {c.winner === 'local'
+                      ? t('settings:sync_conflict_local', { defaultValue: 'Local' })
+                      : t('settings:sync_conflict_remote', { defaultValue: 'Remote' })}
+                  </div>
                 </button>
               ))}
             </div>
@@ -85,25 +130,96 @@ export function SyncConflictDialog({
                     <strong>{t('settings:sync_conflict_table', { defaultValue: 'Table' })}:</strong>{' '}
                     {detail.table}
                   </div>
-                  <div>
+                  <div className={styles.winnerRow}>
                     <strong>{t('settings:sync_conflict_winner', { defaultValue: 'Winner' })}:</strong>{' '}
-                    {detail.winner}
+                    <span
+                      className={`${styles.winnerBadge} ${
+                        detail.winner === 'local' ? styles.winnerLocal : styles.winnerRemote
+                      }`}
+                    >
+                      {detail.winner === 'local'
+                        ? t('settings:sync_conflict_local', { defaultValue: 'Local' })
+                        : t('settings:sync_conflict_remote', { defaultValue: 'Remote' })}
+                    </span>
+                    {detail.remote_deleted && (
+                      <span className={styles.remoteDeletedBadge}>
+                        {t('settings:sync_conflict_remote_deleted', {
+                          defaultValue: 'Remote deleted',
+                        })}
+                      </span>
+                    )}
                   </div>
                   <div className={styles.hlcRow}>
-                    <span>{t('settings:sync_conflict_local_hlc', { defaultValue: 'Local HLC' })}: {formatHlc(detail.local_hlc)}</span>
-                    <span>{t('settings:sync_conflict_remote_hlc', { defaultValue: 'Remote HLC' })}: {formatHlc(detail.remote_hlc)}</span>
+                    <span>
+                      {t('settings:sync_conflict_local_hlc', { defaultValue: 'Local HLC' })}:{' '}
+                      {formatHlc(detail.local_hlc)}
+                    </span>
+                    <span>
+                      {t('settings:sync_conflict_remote_hlc', { defaultValue: 'Remote HLC' })}:{' '}
+                      {formatHlc(detail.remote_hlc)}
+                    </span>
                   </div>
                 </div>
-                <div className={styles.diffGrid}>
-                  <div className={styles.diffPane}>
-                    <div className={styles.diffTitle}>{t('settings:sync_conflict_local', { defaultValue: 'Local' })}</div>
-                    <pre className={styles.diffCode}>{formatJson(detail.local_data)}</pre>
+
+                {/* 字段级 diff */}
+                <div className={styles.fieldDiff}>
+                  <div className={styles.diffGrid}>
+                    <div className={styles.diffTitle}>
+                      {t('settings:sync_conflict_local', { defaultValue: 'Local' })}
+                    </div>
+                    <div className={styles.diffTitle}>
+                      {t('settings:sync_conflict_remote', { defaultValue: 'Remote' })}
+                    </div>
                   </div>
-                  <div className={styles.diffPane}>
-                    <div className={styles.diffTitle}>{t('settings:sync_conflict_remote', { defaultValue: 'Remote' })}</div>
-                    <pre className={styles.diffCode}>{formatJson(detail.remote_data)}</pre>
-                  </div>
+                  {fieldRows.length === 0 ? (
+                    <div className={styles.fieldEmpty}>
+                      {t('settings:sync_conflict_no_fields', {
+                        defaultValue: 'No comparable fields.',
+                      })}
+                    </div>
+                  ) : (
+                    fieldRows.map((row) => (
+                      <div
+                        key={row.key}
+                        className={`${styles.fieldRow} ${row.changed ? styles.fieldChanged : ''}`}
+                      >
+                        <div className={styles.fieldName} title={row.key}>
+                          {row.key}
+                          {row.changed && (
+                            <span className={styles.changedBadge}>
+                              {t('settings:sync_conflict_changed', { defaultValue: 'changed' })}
+                            </span>
+                          )}
+                        </div>
+                        <div className={styles.fieldValue}>
+                          {row.local === undefined ? (
+                            <span className={styles.fieldMissing}>
+                              {t('settings:sync_conflict_missing', { defaultValue: '—' })}
+                            </span>
+                          ) : (
+                            formatValue(row.local)
+                          )}
+                        </div>
+                        <div className={styles.fieldValue}>
+                          {detail.remote_deleted ? (
+                            <span className={styles.fieldMissing}>
+                              {t('settings:sync_conflict_remote_deleted', {
+                                defaultValue: 'Remote deleted',
+                              })}
+                            </span>
+                          ) : row.remote === undefined ? (
+                            <span className={styles.fieldMissing}>
+                              {t('settings:sync_conflict_missing', { defaultValue: '—' })}
+                            </span>
+                          ) : (
+                            formatValue(row.remote)
+                          )}
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
+
                 <div className={styles.actions}>
                   <Button
                     variant="secondary"
@@ -113,7 +229,7 @@ export function SyncConflictDialog({
                     {t('settings:sync_conflict_keep_local', { defaultValue: 'Keep Local' })}
                   </Button>
                   <Button
-                    variant="primary"
+                    variant="secondary"
                     onClick={() => onResolve(detail.id, 'keep_remote')}
                     disabled={isLoading}
                   >

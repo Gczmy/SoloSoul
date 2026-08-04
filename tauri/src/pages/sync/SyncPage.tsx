@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AppShell } from '@/components/layout/AppShell';
@@ -12,6 +13,7 @@ import { ConflictPanel } from './ConflictPanel';
 import { PairingPanel } from './PairingPanel';
 import { DeviceListPanel } from './DeviceListPanel';
 import { SyncHistoryPanel } from './SyncHistoryPanel';
+import type { SyncPeer } from '@/stores/syncStore';
 
 /**
  * 设备同步页：渲染编排层。
@@ -23,6 +25,8 @@ export function SyncPage() {
   const location = useLocation();
   const backTo = (location.state as { from?: string } | null)?.from;
   const { t } = useTranslation(['settings', 'common']);
+  // 已知设备详情弹窗目标（列表卡片点击后打开）。
+  const [detailPeer, setDetailPeer] = useState<SyncPeer | null>(null);
   const {
     store,
     manualAddr,
@@ -117,6 +121,7 @@ export function SyncPage() {
           lastResult={store.lastResult}
           error={store.error}
           forgetTarget={forgetTarget}
+          detailPeer={detailPeer}
           onManualAddrChange={setManualAddr}
           onDiscover={handleDiscover}
           onSyncWithDevice={handleSyncWithDevice}
@@ -126,6 +131,8 @@ export function SyncPage() {
           onForgetConfirm={handleForgetConfirm}
           onForgetCancel={handleForgetCancel}
           onRefresh={loadStatus}
+          onOpenDetail={setDetailPeer}
+          onCloseDetail={() => setDetailPeer(null)}
         />
 
         <SyncHistoryPanel
@@ -237,22 +244,40 @@ function SyncStatusCard({
       </div>
 
       {store.localFingerprint && (
-        <div
-          style={{
-            marginTop: 12,
-            padding: 10,
-            borderRadius: 8,
-            background: 'var(--bg-toolbar)',
-            fontSize: 'var(--text-caption)',
-            fontFamily: 'monospace',
-            wordBreak: 'break-all',
-          }}
-        >
-          <strong>
-            {t('settings:sync_your_fingerprint', { defaultValue: 'Your fingerprint' })}:
-          </strong>{' '}
-          {store.localFingerprint}
-        </div>
+        <>
+          <div
+            style={{
+              marginTop: 12,
+              padding: 10,
+              borderRadius: 8,
+              background: 'var(--bg-toolbar)',
+              fontSize: 'var(--text-caption)',
+              color: 'var(--text-secondary)',
+              wordBreak: 'break-all',
+            }}
+          >
+            <strong>
+              {t('settings:sync_your_device_name', { defaultValue: 'Your device name' })}:
+            </strong>{' '}
+            {`SoloSoul-${store.localFingerprint.slice(0, 8)}`}
+          </div>
+          <div
+            style={{
+              marginTop: 8,
+              padding: 10,
+              borderRadius: 8,
+              background: 'var(--bg-toolbar)',
+              fontSize: 'var(--text-caption)',
+              fontFamily: 'monospace',
+              wordBreak: 'break-all',
+            }}
+          >
+            <strong>
+              {t('settings:sync_your_fingerprint', { defaultValue: 'Your fingerprint' })}:
+            </strong>{' '}
+            {store.localFingerprint}
+          </div>
+        </>
       )}
       {store.syncEnabled && store.listenAddr && (
         <div
