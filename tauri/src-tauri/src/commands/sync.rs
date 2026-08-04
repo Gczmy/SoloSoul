@@ -56,6 +56,13 @@ pub struct SyncPeer {
     pub fingerprint: String,
     pub trusted: bool,
     pub last_seen: String,
+    /// 最近一次同步/在线的原始 unix 秒时间戳（未格式化的相对串）。
+    /// 前端据此展示精确的「最近同步时间」。
+    pub last_seen_ts: Option<i64>,
+    /// 最近一次信任该设备的时间（unix 秒）。从未信任/已撤销时为 None。
+    pub trusted_at: Option<i64>,
+    /// 客户端类型：macos / windows / linux / android / ios / unknown。
+    pub client_type: String,
 }
 
 #[derive(Serialize)]
@@ -136,6 +143,9 @@ async fn sync_discover(state: State<'_, AppState>) -> Result<SyncStatus, String>
                 fingerprint: p.fingerprint,
                 trusted: p.trusted,
                 last_seen: p.last_seen,
+                last_seen_ts: p.last_seen_ts,
+                trusted_at: p.trusted_at,
+                client_type: p.client_type,
             })
             .collect(),
     })
@@ -753,10 +763,16 @@ mod tests {
             fingerprint: "ab:cd:ef:01".to_string(),
             trusted: true,
             last_seen: "2024-06-01T12:00:00Z".to_string(),
+            last_seen_ts: Some(1_717_240_000),
+            trusted_at: Some(1_717_000_000),
+            client_type: "macos".to_string(),
         };
         let json = serde_json::to_string(&peer).unwrap();
         // Structs serialize with camelCase keys for the frontend.
         assert!(json.contains("lastSeen"));
+        assert!(json.contains("lastSeenTs"));
+        assert!(json.contains("trustedAt"));
+        assert!(json.contains("clientType"));
         assert!(json.contains("\"node-1\""));
     }
 
@@ -871,10 +887,14 @@ mod tests {
             fingerprint: "02:03:04".to_string(),
             trusted: false,
             last_seen: String::new(),
+            last_seen_ts: None,
+            trusted_at: None,
+            client_type: "unknown".to_string(),
         };
         let json = serde_json::to_string(&peer).unwrap();
         assert!(json.contains("\"trusted\":false"));
         assert!(json.contains("\"lastSeen\":\"\""));
+        assert!(json.contains("\"clientType\":\"unknown\""));
     }
 
     #[test]
@@ -886,10 +906,14 @@ mod tests {
             fingerprint: "fp".to_string(),
             trusted: true,
             last_seen: "now".to_string(),
+            last_seen_ts: Some(0),
+            trusted_at: Some(0),
+            client_type: "windows".to_string(),
         };
         let json = serde_json::to_string(&peer).unwrap();
         // SyncPeer serializes with camelCase keys for the frontend.
         assert!(json.contains("lastSeen"));
         assert!(!json.contains("last_seen"), "should not contain snake_case");
+        assert!(!json.contains("last_seen_ts"));
     }
 }

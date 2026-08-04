@@ -17,6 +17,13 @@ pub struct SyncPeerInfo {
     pub fingerprint: String,
     pub trusted: bool,
     pub last_seen: String,
+    /// 最近一次同步/在线的原始 unix 秒时间戳（未格式化的相对串）。
+    /// 前端据此展示精确的「最近同步时间」。
+    pub last_seen_ts: Option<i64>,
+    /// 最近一次信任该设备的时间（unix 秒）。从未信任/已撤销时为 None。
+    pub trusted_at: Option<i64>,
+    /// 客户端类型：macos / windows / linux / android / ios / unknown。
+    pub client_type: String,
 }
 
 /// Attachment synchronization statistics.
@@ -71,6 +78,8 @@ pub struct NewPeerInfo {
     pub fingerprint: String,
     pub addr: String,
     pub device_name: String,
+    /// 发起方客户端类型（macos/windows/linux/android/ios/unknown）。
+    pub client_type: String,
 }
 
 /// 新 peer 回调钩子：入站 Hello record_peer 落库一条新的未信任记录时触发。

@@ -432,6 +432,8 @@ impl MobileSyncManager {
                 last_seen: None,
                 created_at: now.clone(),
                 updated_at: now.clone(),
+                client_type: None,
+                trusted_at: None,
             });
         // 已有记录但无指纹时补绑（历史记录/握手期未绑定）。
         // 空串视为无指纹，避免绑定 "" 导致后续握手被 P001 拒绝。
@@ -440,6 +442,12 @@ impl MobileSyncManager {
                 peer.public_key_fingerprint = Some(f.to_string());
             }
         }
+        // 信任/撤销时维护 trusted_at：信任记时间戳，撤销清空。
+        peer.trusted_at = if trusted {
+            Some(chrono::Utc::now().timestamp())
+        } else {
+            None
+        };
         peer.trusted = trusted;
         peer.updated_at = now;
         self.vault.save_peer_state(&peer)

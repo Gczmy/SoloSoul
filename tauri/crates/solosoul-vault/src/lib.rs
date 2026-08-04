@@ -99,6 +99,11 @@ pub struct PeerSyncState {
     pub last_seen: Option<i64>,
     pub created_at: String,
     pub updated_at: String,
+    /// 客户端类型：macos / windows / linux / android / ios / unknown。
+    /// 旧记录/旧客户端握手时为空（未知）。
+    pub client_type: Option<String>,
+    /// 最近信任时间（unix 秒）。从未信任/已撤销时为 None。
+    pub trusted_at: Option<i64>,
 }
 
 /// A single record change produced or consumed by the sync delta engine.

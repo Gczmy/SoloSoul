@@ -4075,16 +4075,27 @@ mod tests {
             last_seen: Some(1234567890),
             created_at: chrono::Utc::now().to_rfc3339(),
             updated_at: chrono::Utc::now().to_rfc3339(),
+            client_type: Some("macos".to_string()),
+            trusted_at: None,
         };
         vault.save_peer_state(&peer).unwrap();
 
         let loaded = vault.load_peer_state("node_abc").unwrap().unwrap();
         assert_eq!(loaded.peer_node_id, "node_abc");
         assert!(!loaded.trusted);
+        assert_eq!(loaded.client_type.as_deref(), Some("macos"));
+        assert!(loaded.trusted_at.is_none());
 
+        // 信任时记录 trusted_at（详情弹窗「信任时间」展示用），撤销时清空。
         vault.set_peer_trusted("node_abc", true).unwrap();
         let loaded = vault.load_peer_state("node_abc").unwrap().unwrap();
         assert!(loaded.trusted);
+        assert!(loaded.trusted_at.is_some());
+
+        vault.set_peer_trusted("node_abc", false).unwrap();
+        let loaded = vault.load_peer_state("node_abc").unwrap().unwrap();
+        assert!(!loaded.trusted);
+        assert!(loaded.trusted_at.is_none());
 
         vault.delete_peer("node_abc").unwrap();
         assert!(vault.load_peer_state("node_abc").unwrap().is_none());
@@ -4103,6 +4114,8 @@ mod tests {
                 last_seen: Some(1234567890),
                 created_at: now.clone(),
                 updated_at: now,
+                client_type: None,
+                trusted_at: None,
             })
             .unwrap();
     }

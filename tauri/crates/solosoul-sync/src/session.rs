@@ -28,6 +28,25 @@ const DELTA_PAGE_LIMIT: usize = 100;
 /// 版本 2：引入 account_id 双向校验 + 会话总超时 + 流式附件写入。
 /// 旧版客户端（v2.6.1 及更早）不发送 protocol_version 字段，默认为 1。
 const PROTOCOL_VERSION: u32 = 2;
+
+/// 本机客户端类型，随 Hello/HelloAck 广播给对端（已知设备卡片展示用）。
+/// 值域：macos / windows / linux / android / ios / unknown。
+/// 编译期根据目标平台确定，桌面与移动共用同一 crate，无需外部注入。
+pub(crate) fn local_client_type() -> &'static str {
+    if cfg!(target_os = "macos") {
+        "macos"
+    } else if cfg!(target_os = "windows") {
+        "windows"
+    } else if cfg!(target_os = "linux") {
+        "linux"
+    } else if cfg!(target_os = "android") {
+        "android"
+    } else if cfg!(target_os = "ios") {
+        "ios"
+    } else {
+        "unknown"
+    }
+}
 /// 允许的最低协议版本。低于此版本的 peer 将被拒绝，防止与不兼容的旧版客户端交互。
 const MIN_PROTOCOL_VERSION: u32 = 1;
 /// 同步会话总超时（5 分钟）。防止恶意 peer 通过每隔 29 秒发送一个字节
@@ -97,16 +116,18 @@ pub fn run_initiator_session(
             account_id: account_id.to_string(),
             public_key_fingerprint: keys.fingerprint(),
             protocol_version: PROTOCOL_VERSION,
+            client_type: local_client_type().to_string(),
         },
     )?;
 
-    let (peer_node_id, _trusted) = match recv_msg(&mut session, transport)? {
+    let (peer_node_id, _trusted, _peer_client_type) = match recv_msg(&mut session, transport)? {
         SyncMessage::HelloAck {
             node_id: pid,
             account_id: peer_account_id,
             trusted: t,
             public_key_fingerprint,
             protocol_version: peer_version,
+            client_type: peer_client_type,
         } => {
             check_session_deadline(session_start)?;
             // 校验响应方协议版本是否兼容。
@@ -152,13 +173,19 @@ pub fn run_initiator_session(
                 return Err(e);
             }
             // P001: 落库以握手认证指纹为准（不再信任对端自报值）。
-            record_peer(&vault, &pid, &peer_addr, &remote_fingerprint)?;
+            record_peer(
+                &vault,
+                &pid,
+                &peer_addr,
+                &remote_fingerprint,
+                &peer_client_type,
+            )?;
             if !t {
                 // 发起方侧：响应方尚未信任本设备。返回带 peer_node_id 的配对中错误码，
                 // 前端据此进入「双侧确认配对」流程（不裸报英文，走 __SYNC_ERR__ 前缀 i18n）。
                 return Err(pairing_pending_message(&pid));
             }
-            (pid, t)
+            (pid, t, peer_client_type)
         }
         SyncMessage::Error { message } => {
             // P103: 响应方未信任本设备时只回最小错误帧（pairing_pending + node_id）。
@@ -167,7 +194,7 @@ pub fn run_initiator_session(
             // 落库失败不阻断配对信号：记录在用户确认时由 trust_peer 重新创建，
             // 此处吞掉避免 DB 错误掩盖 __SYNC_ERR__:pairing_pending 让前端无法进入配对流程。
             if let Some(pid) = parse_pairing_pending(&message) {
-                let _ = record_peer(&vault, pid, &peer_addr, &remote_fingerprint);
+                let _ = record_peer(&vault, pid, &peer_addr, &remote_fingerprint, "");
             }
             return Err(message);
         }
@@ -261,12 +288,13 @@ pub fn handle_inbound(
         .remote_fingerprint()
         .ok_or("Peer did not present a static public key during handshake")?;
 
-    let (peer_node_id, is_new_peer) = match recv_msg(&mut session, transport)? {
+    let (peer_node_id, is_new_peer, peer_client_type) = match recv_msg(&mut session, transport)? {
         SyncMessage::Hello {
             node_id: pid,
             account_id: pacc,
             public_key_fingerprint,
             protocol_version: peer_version,
+            client_type: peer_client_type,
         } => {
             check_session_deadline(session_start)?;
             // 校验发起方协议版本是否兼容。
@@ -311,7 +339,7 @@ pub fn handle_inbound(
             // P103: 信任检查前**不落库**——仅只读判断是否为新 peer（用于配对请求回调），
             // 防止任意 LAN 主机连接即刷写 peer 表。
             let is_new = vault.load_peer_state(&pid)?.is_none();
-            (pid, is_new)
+            (pid, is_new, peer_client_type)
         }
         _ => return Err("Expected Hello".to_string()),
     };
@@ -333,6 +361,7 @@ pub fn handle_inbound(
                     fingerprint: remote_fingerprint.clone(),
                     addr: peer_addr.clone(),
                     device_name,
+                    client_type: peer_client_type.clone(),
                 });
             }
         }
@@ -348,7 +377,13 @@ pub fn handle_inbound(
 
     // 已信任：此刻才刷新 last_seen/指纹落库（信任已确认，落库安全），
     // 并回 HelloAck 进入同步。
-    record_peer(&vault, &peer_node_id, &peer_addr, &remote_fingerprint)?;
+    record_peer(
+        &vault,
+        &peer_node_id,
+        &peer_addr,
+        &remote_fingerprint,
+        &peer_client_type,
+    )?;
     send_msg(
         &mut session,
         transport,
@@ -358,6 +393,7 @@ pub fn handle_inbound(
             public_key_fingerprint: keys.fingerprint(),
             trusted,
             protocol_version: PROTOCOL_VERSION,
+            client_type: local_client_type().to_string(),
         },
     )?;
 
@@ -628,10 +664,17 @@ fn record_peer(
     peer_node_id: &str,
     addr: &str,
     fingerprint: &str,
+    client_type: &str,
 ) -> Result<bool, String> {
     let now = chrono::Utc::now().to_rfc3339();
     let existing = vault.load_peer_state(peer_node_id)?;
     let is_new = existing.is_none();
+    // 空串（配对中场景）存 None，避免 `Some("")` 污染已知设备客户端类型显示。
+    let client_type_opt = if client_type.is_empty() {
+        None
+    } else {
+        Some(client_type.to_string())
+    };
     let mut peer = existing.unwrap_or_else(|| PeerSyncState {
         peer_node_id: peer_node_id.to_string(),
         peer_name: Some(peer_display_name(fingerprint, addr)),
@@ -640,9 +683,14 @@ fn record_peer(
         last_seen: Some(chrono::Utc::now().timestamp()),
         created_at: now.clone(),
         updated_at: now.clone(),
+        client_type: client_type_opt.clone(),
+        trusted_at: None,
     });
-    // 已有记录不覆盖名字（可能被用户重命名），仅刷新指纹与最近在线时间。
+    // 已有记录不覆盖名字（可能被用户重命名），仅刷新指纹、客户端类型与最近在线时间。
     peer.public_key_fingerprint = Some(fingerprint.to_string());
+    if let Some(ct) = client_type_opt {
+        peer.client_type = Some(ct);
+    }
     peer.last_seen = Some(chrono::Utc::now().timestamp());
     peer.updated_at = now;
     vault.save_peer_state(&peer)?;
@@ -779,6 +827,8 @@ mod tests {
             last_seen: Some(chrono::Utc::now().timestamp()),
             created_at: now.clone(),
             updated_at: now,
+            client_type: None,
+            trusted_at: None,
         };
         vault.save_peer_state(&peer).expect("save peer");
     }
@@ -846,8 +896,8 @@ mod tests {
     #[test]
     fn test_record_peer_stores_handshake_fingerprint() {
         let (vault, _dir) = test_vault();
-        let is_new =
-            record_peer(&vault, "node-a", "10.0.0.1:42069", "handshake-fp").expect("record");
+        let is_new = record_peer(&vault, "node-a", "10.0.0.1:42069", "handshake-fp", "macos")
+            .expect("record");
         assert!(is_new, "首次记录应为新 peer");
         let peer = vault
             .load_peer_state("node-a")
@@ -855,5 +905,7 @@ mod tests {
             .expect("peer 应存在");
         assert_eq!(peer.public_key_fingerprint.as_deref(), Some("handshake-fp"));
         assert!(!peer.trusted);
+        assert_eq!(peer.client_type.as_deref(), Some("macos"));
+        assert!(peer.trusted_at.is_none());
     }
 }

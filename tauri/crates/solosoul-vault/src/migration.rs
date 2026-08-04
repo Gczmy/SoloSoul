@@ -5,7 +5,7 @@ use rusqlite::{params, Connection};
 
 use crate::storage::VaultStore;
 
-pub const CURRENT_SCHEMA_VERSION: u32 = 23;
+pub const CURRENT_SCHEMA_VERSION: u32 = 24;
 
 pub fn get_schema_version(conn: &Connection) -> Result<u32, String> {
     let version: String = conn
@@ -66,6 +66,7 @@ pub fn run_migrations(conn: &mut Connection) -> Result<(), String> {
     migrate_v21(conn, current)?;
     migrate_v22(conn, current)?;
     migrate_v23(conn, current)?;
+    migrate_v24(conn, current)?;
 
     Ok(())
 }
@@ -701,6 +702,64 @@ fn migrate_v23(conn: &mut Connection, current: u32) -> Result<(), String> {
     Ok(())
 }
 
+/// v24 — sync_peers 增加 client_type（客户端类型）与 trusted_at（最近信任时间）列。
+///
+/// 已知设备卡片展示「客户端类型 + 设备图标」与「最近信任时间」所需（P2 前端设备同步 UI）。
+/// 幂等：has_column 守卫，旧库 ALTER、新库（已含列）no-op。
+fn migrate_v24(conn: &mut Connection, current: u32) -> Result<(), String> {
+    if current < 24 {
+        // 表存在性守卫：部分态迁移 fixture（v17 partial state）可能无 sync 表。
+        let has_table = conn
+            .query_row(
+                "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='sync_peers'",
+                [],
+                |r| r.get::<_, i64>(0),
+            )
+            .unwrap_or(0)
+            > 0;
+        if !has_table {
+            let now = Utc::now().timestamp();
+            conn.execute(
+                "INSERT OR IGNORE INTO schema_migrations (version, applied_at, description) VALUES (?1, ?2, ?3)",
+                params![24, now, "sync_peers absent (partial-state fixture) — columns skipped (no-op)"],
+            )
+            .ok();
+            set_schema_version(conn, 24)?;
+            return Ok(());
+        }
+        let mut sql_parts: Vec<&str> = Vec::new();
+        if !has_column(conn, "sync_peers", "client_type") {
+            sql_parts.push("ALTER TABLE sync_peers ADD COLUMN client_type TEXT;");
+        }
+        if !has_column(conn, "sync_peers", "trusted_at") {
+            sql_parts.push("ALTER TABLE sync_peers ADD COLUMN trusted_at INTEGER;");
+        }
+        let tx = conn
+            .transaction()
+            .map_err(|e| format!("Begin tx for v24: {}", e))?;
+        let now = Utc::now().timestamp();
+        if sql_parts.is_empty() {
+            tx.execute(
+                "INSERT OR IGNORE INTO schema_migrations (version, applied_at, description) VALUES (?1, ?2, ?3)",
+                params![24, now, "client_type/trusted_at already present on sync_peers (no-op)"],
+            )
+            .map_err(|e| format!("Record v24 (no-op): {}", e))?;
+        } else {
+            let combined = sql_parts.join("\n");
+            tx.execute_batch(&combined)
+                .map_err(|e| format!("v24 ALTER failed: {}", e))?;
+            tx.execute(
+                "INSERT INTO schema_migrations (version, applied_at, description) VALUES (?1, ?2, ?3)",
+                params![24, now, "Add client_type and trusted_at to sync_peers"],
+            )
+            .map_err(|e| format!("Record v24: {}", e))?;
+        }
+        set_schema_version(&tx, 24)?;
+        tx.commit().map_err(|e| format!("Commit v24: {}", e))?;
+    }
+    Ok(())
+}
+
 /// 复用 storage/sync_meta.rs 的 `VaultStore::parse_time_ms`（pub(crate)，同一 crate 无循环依赖）。
 fn parse_time_ms(s: &str) -> u64 {
     VaultStore::parse_time_ms(s)
@@ -1196,6 +1255,86 @@ CREATE TABLE IF NOT EXISTS objects (
             .unwrap();
         assert_eq!(node_id, expected_node, "回填 node 必须取规范化本地节点");
         assert!(wall > 0);
+    }
+
+    /// v24：旧库 sync_peers 升级后自动获得 client_type / trusted_at 列，
+    /// 新库（建表已含列）与部分态 fixture（无 sync 表）幂等 no-op。
+    #[test]
+    fn test_migration_v24_adds_peer_metadata_columns() {
+        // ── 旧库路径：v15 风格 sync_peers（无 client_type/trusted_at）──
+        let (mut conn, _dir) = setup_conn();
+        conn.execute_batch(
+            "CREATE TABLE IF NOT EXISTS sync_peers (
+                peer_node_id TEXT PRIMARY KEY,
+                peer_name TEXT,
+                trusted INTEGER NOT NULL DEFAULT 0,
+                public_key_fingerprint TEXT,
+                last_seen INTEGER,
+                created_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL
+             );\n",
+        )
+        .unwrap();
+        conn.execute(
+            "INSERT INTO sync_peers (peer_node_id, peer_name, trusted, created_at, updated_at) VALUES ('node_abc', 'Old Device', 1, '2024-01-01T00:00:00Z', '2024-01-01T00:00:00Z')",
+            [],
+        )
+        .unwrap();
+
+        // 跳过 v2-v23 直接到 v23 快照，仅触发 v24。
+        conn.execute("DELETE FROM schema_migrations", []).unwrap();
+        set_schema_version(&conn, 23).unwrap();
+        run_migrations(&mut conn).unwrap();
+        assert_eq!(get_schema_version(&conn).unwrap(), CURRENT_SCHEMA_VERSION);
+
+        for col in &["client_type", "trusted_at"] {
+            let sql = format!(
+                "SELECT COUNT(*) FROM pragma_table_info('sync_peers') WHERE name = '{}'",
+                col
+            );
+            let present: i64 = conn.query_row(&sql, [], |r| r.get(0)).unwrap();
+            assert_eq!(present, 1, "sync_peers.{col} must exist after v24");
+        }
+        // 存量行保留，新列为 NULL（未知客户端/从未信任）。
+        let (client_type, trusted_at): (Option<String>, Option<i64>) = conn
+            .query_row(
+                "SELECT client_type, trusted_at FROM sync_peers WHERE peer_node_id = 'node_abc'",
+                [],
+                |r| Ok((r.get(0)?, r.get(1)?)),
+            )
+            .unwrap();
+        assert!(client_type.is_none());
+        assert!(trusted_at.is_none());
+
+        // 幂等：再次运行不新增 v24 记录行。
+        run_migrations(&mut conn).unwrap();
+        let v24_rows: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM schema_migrations WHERE version = 24",
+                [],
+                |r| r.get(0),
+            )
+            .unwrap();
+        assert_eq!(v24_rows, 1, "second run must not duplicate v24 row");
+    }
+
+    /// v24 部分态 fixture（无 sync_peers 表）：迁移需跳过 ALTER（no-op）而非报错。
+    #[test]
+    fn test_migration_v24_skips_when_sync_peers_absent() {
+        let (mut conn, _dir) = setup_conn();
+        // setup_conn 不含 sync 表；跳过前序迁移直接触发 v24。
+        conn.execute("DELETE FROM schema_migrations", []).unwrap();
+        set_schema_version(&conn, 23).unwrap();
+        run_migrations(&mut conn).unwrap();
+        assert_eq!(get_schema_version(&conn).unwrap(), CURRENT_SCHEMA_VERSION);
+        let v24_rows: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM schema_migrations WHERE version = 24",
+                [],
+                |r| r.get(0),
+            )
+            .unwrap();
+        assert_eq!(v24_rows, 1);
     }
 
     #[test]

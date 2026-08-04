@@ -114,13 +114,15 @@ impl VaultStore {
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         conn.execute(
-            "INSERT INTO sync_peers (peer_node_id, peer_name, trusted, public_key_fingerprint, last_seen, created_at, updated_at)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
+            "INSERT INTO sync_peers (peer_node_id, peer_name, trusted, public_key_fingerprint, last_seen, client_type, trusted_at, created_at, updated_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)
              ON CONFLICT(peer_node_id) DO UPDATE SET
                 peer_name = excluded.peer_name,
                 trusted = excluded.trusted,
                 public_key_fingerprint = excluded.public_key_fingerprint,
                 last_seen = excluded.last_seen,
+                client_type = excluded.client_type,
+                trusted_at = excluded.trusted_at,
                 updated_at = excluded.updated_at",
             params![
                 &peer.peer_node_id,
@@ -128,6 +130,8 @@ impl VaultStore {
                 peer.trusted as i32,
                 &peer.public_key_fingerprint,
                 peer.last_seen,
+                &peer.client_type,
+                peer.trusted_at,
                 &peer.created_at,
                 &peer.updated_at,
             ],
@@ -144,7 +148,7 @@ impl VaultStore {
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         let result = conn
             .query_row(
-                "SELECT peer_node_id, peer_name, trusted, public_key_fingerprint, last_seen, created_at, updated_at
+                "SELECT peer_node_id, peer_name, trusted, public_key_fingerprint, last_seen, client_type, trusted_at, created_at, updated_at
                  FROM sync_peers WHERE peer_node_id = ?1",
                 params![peer_node_id],
                 |row| {
@@ -154,8 +158,10 @@ impl VaultStore {
                         trusted: row.get::<_, i32>(2)? != 0,
                         public_key_fingerprint: row.get(3)?,
                         last_seen: row.get(4)?,
-                        created_at: row.get(5)?,
-                        updated_at: row.get(6)?,
+                        created_at: row.get(7)?,
+                        updated_at: row.get(8)?,
+                        client_type: row.get(5)?,
+                        trusted_at: row.get(6)?,
                     })
                 },
             )
@@ -169,7 +175,7 @@ impl VaultStore {
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         let mut stmt = conn
             .prepare(
-                "SELECT peer_node_id, peer_name, trusted, public_key_fingerprint, last_seen, created_at, updated_at
+                "SELECT peer_node_id, peer_name, trusted, public_key_fingerprint, last_seen, client_type, trusted_at, created_at, updated_at
                  FROM sync_peers ORDER BY updated_at DESC",
             )
             .map_err(|e| format!("list_peers: {}", e))?;
@@ -181,8 +187,10 @@ impl VaultStore {
                     trusted: row.get::<_, i32>(2)? != 0,
                     public_key_fingerprint: row.get(3)?,
                     last_seen: row.get(4)?,
-                    created_at: row.get(5)?,
-                    updated_at: row.get(6)?,
+                    created_at: row.get(7)?,
+                    updated_at: row.get(8)?,
+                    client_type: row.get(5)?,
+                    trusted_at: row.get(6)?,
                 })
             })
             .map_err(|e| format!("list_peers query: {}", e))?
@@ -191,12 +199,22 @@ impl VaultStore {
         Ok(peers)
     }
 
+    /// 更新 peer 信任状态。信任时记录 trusted_at（最近信任时间），撤销时清空。
     pub fn set_peer_trusted(&self, peer_node_id: &str, trusted: bool) -> Result<(), String> {
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         conn.execute(
-            "UPDATE sync_peers SET trusted = ?1, updated_at = ?2 WHERE peer_node_id = ?3",
-            params![trusted as i32, Self::now_rfc3339(), peer_node_id],
+            "UPDATE sync_peers SET trusted = ?1, trusted_at = ?2, updated_at = ?3 WHERE peer_node_id = ?4",
+            params![
+                trusted as i32,
+                if trusted {
+                    Some(chrono::Utc::now().timestamp())
+                } else {
+                    None::<i64>
+                },
+                Self::now_rfc3339(),
+                peer_node_id
+            ],
         )
         .map_err(|e| format!("set_peer_trusted: {}", e))?;
         Ok(())

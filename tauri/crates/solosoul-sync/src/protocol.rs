@@ -38,6 +38,10 @@ pub enum SyncMessage {
         /// 双方取 min(发起方版本, 响应方版本) 作为本次会话使用的协议版本。
         #[serde(default = "default_protocol_version")]
         protocol_version: u32,
+        /// 发起方客户端类型（macos/windows/linux/android/ios/unknown）。
+        /// 旧版客户端不发送此字段，反序列化时默认为空串。
+        #[serde(default)]
+        client_type: String,
     },
     #[serde(rename = "hello_ack")]
     HelloAck {
@@ -48,6 +52,9 @@ pub enum SyncMessage {
         /// 响应方的协议版本号。旧版客户端不发送此字段，默认为 1。
         #[serde(default = "default_protocol_version")]
         protocol_version: u32,
+        /// 响应方客户端类型。旧版客户端不发送此字段，默认为空串。
+        #[serde(default)]
+        client_type: String,
     },
     #[serde(rename = "batch")]
     Batch {

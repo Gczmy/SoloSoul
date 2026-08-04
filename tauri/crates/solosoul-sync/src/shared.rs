@@ -58,6 +58,12 @@ pub fn known_peers_from_vault(
                 .last_seen
                 .map(|ts| format!("{}s ago", chrono::Utc::now().timestamp() - ts))
                 .unwrap_or_default(),
+            last_seen_ts: p.last_seen,
+            trusted_at: p.trusted_at,
+            client_type: p
+                .client_type
+                .clone()
+                .unwrap_or_else(|| "unknown".to_string()),
         })
         .collect())
 }
@@ -82,12 +88,20 @@ pub fn trust_peer_fallback(
                 last_seen: None,
                 created_at: now.clone(),
                 updated_at: now.clone(),
+                client_type: None,
+                trusted_at: None,
             });
     // 已有记录但无指纹时补绑（历史记录/握手期未绑定）。
     // 空串视为无指纹，避免绑定 "" 导致后续握手被 P001 拒绝。
     if trusted && peer.public_key_fingerprint.is_none() {
         peer.public_key_fingerprint = fp;
     }
+    // 信任/撤销时维护 trusted_at：信任记时间戳，撤销清空。
+    peer.trusted_at = if trusted {
+        Some(chrono::Utc::now().timestamp())
+    } else {
+        None
+    };
     peer.trusted = trusted;
     peer.updated_at = now;
     vault.save_peer_state(&peer)

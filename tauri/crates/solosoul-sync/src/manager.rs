@@ -469,14 +469,22 @@ impl SyncManager {
             if now.duration_since(p.last_seen).as_secs() > PEER_MAX_AGE_SECS {
                 continue;
             }
+            // 已持久化 peer 的客户端类型/信任时间一并带出（发现态仅名称/地址来自 mDNS）
+            let persisted = self.vault.load_peer_state(&p.node_id)?;
             out.push(SyncPeerInfo {
                 node_id: p.node_id.clone(),
                 account_id: p.account_id.clone(),
                 name: p.name.clone(),
                 addr: p.addr.to_string(),
                 fingerprint: p.fingerprint.clone(),
-                trusted: self.is_peer_trusted(&p.node_id)?,
+                trusted: persisted.as_ref().map(|s| s.trusted).unwrap_or(false),
                 last_seen: format_duration_since(p.last_seen),
+                last_seen_ts: persisted.as_ref().and_then(|s| s.last_seen),
+                trusted_at: persisted.as_ref().and_then(|s| s.trusted_at),
+                client_type: persisted
+                    .as_ref()
+                    .and_then(|s| s.client_type.clone())
+                    .unwrap_or_else(|| "unknown".to_string()),
             });
         }
         // Include persisted peers even if not currently discovered.
@@ -496,16 +504,15 @@ impl SyncManager {
                 fingerprint: p.public_key_fingerprint.clone().unwrap_or_default(),
                 trusted: p.trusted,
                 last_seen: String::new(),
+                last_seen_ts: p.last_seen,
+                trusted_at: p.trusted_at,
+                client_type: p
+                    .client_type
+                    .clone()
+                    .unwrap_or_else(|| "unknown".to_string()),
             });
         }
         Ok(out)
-    }
-
-    fn is_peer_trusted(&self, peer_node_id: &str) -> Result<bool, String> {
-        match self.vault.load_peer_state(peer_node_id)? {
-            Some(p) => Ok(p.trusted),
-            None => Ok(false),
-        }
     }
 
     /// Mark a peer as trusted or untrusted.
