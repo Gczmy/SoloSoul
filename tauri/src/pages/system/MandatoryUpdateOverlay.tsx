@@ -51,7 +51,8 @@ export function MandatoryUpdateOverlay({
     >
       <div
         style={{
-          background: 'var(--bg-card)',
+          // 卡片背景：--bg-elevated（全主题已定义；勿用未定义的 --bg-card，否则背景透明）
+          background: 'var(--bg-elevated)',
           borderRadius: 16,
           padding: 32,
           maxWidth: 400,

@@ -4,6 +4,8 @@
   --bg-elevated: #ffffff;
   --bg-toolbar: rgba(250, 250, 248, 0.8);
   --bg-elevated-hover: #f6f5f2;
+  --bg-inset: #f0efec;
+  --bg-hover: #f0efec;
   --text-primary: #1a1a1a;
   --text-secondary: #6b6b6b;
   --text-tertiary: #9e9e9e;
@@ -57,6 +59,17 @@
   --info-subtle: var(--color-info-bg);
   --danger-rgb: 192, 57, 43;
   --warning-rgb: 212, 160, 23;
+
+  /* Legacy aliases — 历史组件引用的未定义变量统一映射（勿删，见 CODE_ANALYSIS 扫描） */
+  --error: var(--danger);
+  --bg-input: var(--bg-inset);
+  --bg-primary: var(--bg-base);
+  --bg-subtle: var(--bg-hover);
+  --border-hover: var(--border-focus);
+  --focus-ring: var(--accent-primary);
+  --accent-success: var(--success);
+  --accent-primary-soft: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+  --accent-primary-transparent: color-mix(in srgb, var(--accent-primary) 10%, transparent);
 }
 
 /* Dark mode — only when explicitly selected or system preference (not plain :root) */
@@ -106,6 +119,17 @@
     --info-subtle: var(--color-info-bg);
     --danger-rgb: 224, 122, 110;
     --warning-rgb: 230, 199, 128;
+
+    /* Legacy aliases — 历史组件引用的未定义变量统一映射（勿删，见 CODE_ANALYSIS 扫描） */
+    --error: var(--danger);
+    --bg-input: var(--bg-inset);
+    --bg-primary: var(--bg-base);
+    --bg-subtle: var(--bg-hover);
+    --border-hover: var(--border-focus);
+    --focus-ring: var(--accent-primary);
+    --accent-success: var(--success);
+    --accent-primary-soft: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+    --accent-primary-transparent: color-mix(in srgb, var(--accent-primary) 10%, transparent);
   }
 }
 
@@ -154,6 +178,17 @@
   --info-subtle: var(--color-info-bg);
   --danger-rgb: 224, 122, 110;
   --warning-rgb: 230, 199, 128;
+
+  /* Legacy aliases — 历史组件引用的未定义变量统一映射（勿删，见 CODE_ANALYSIS 扫描） */
+  --error: var(--danger);
+  --bg-input: var(--bg-inset);
+  --bg-primary: var(--bg-base);
+  --bg-subtle: var(--bg-hover);
+  --border-hover: var(--border-focus);
+  --focus-ring: var(--accent-primary);
+  --accent-success: var(--success);
+  --accent-primary-soft: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+  --accent-primary-transparent: color-mix(in srgb, var(--accent-primary) 10%, transparent);
 }
 
 /* Explicit light mode — prevents system dark from leaking through */
@@ -192,6 +227,17 @@
   --info-subtle: var(--color-info-bg);
   --danger-rgb: 192, 57, 43;
   --warning-rgb: 212, 160, 23;
+
+  /* Legacy aliases — 历史组件引用的未定义变量统一映射（勿删，见 CODE_ANALYSIS 扫描） */
+  --error: var(--danger);
+  --bg-input: var(--bg-inset);
+  --bg-primary: var(--bg-base);
+  --bg-subtle: var(--bg-hover);
+  --border-hover: var(--border-focus);
+  --focus-ring: var(--accent-primary);
+  --accent-success: var(--success);
+  --accent-primary-soft: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+  --accent-primary-transparent: color-mix(in srgb, var(--accent-primary) 10%, transparent);
 }
 
 * {
