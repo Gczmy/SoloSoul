@@ -11,6 +11,32 @@ use solosoul_vault::{BorrowedSyncRecord, RecordHlc, SyncWatermark, VaultStore};
 /// Tables synchronized in the first milestone (attachments excluded).
 pub const SYNC_TABLES: &[&str] = &["profiles", "objects", "user_templates", "trash_items"];
 
+/// 簿记字段：随每次编辑/同步应用变化、与内容差异无关。
+/// 冲突自动消解比较时剥除，避免「内容一致、仅版本/时间不同」的假冲突
+/// （两台设备修改同一对象的不同字段时，version/updated_at 必然不同，
+/// 但它们是 HLC 时间裁决的副产物，不是用户可决策的内容差异）。
+/// 覆盖 ObjectRecord 的 snake_case（updated_at）与 Profile/UserTemplate
+/// 线格式的 camelCase（updatedAt）两种命名。
+/// 已知限制（保守安全）：Profile 的 local 快照为 snake_case 序列化且含 id 键，
+/// 线格式为 camelCase 子集，键形差异使两侧比较通常不相等——profile 冲突照旧
+/// 记录（不自动消解，行为与修复前一致）；主场景（objects）已闭环。
+const BOOKKEEPING_KEYS: &[&str] = &["version", "updated_at", "updatedAt"];
+
+/// 剥除对象快照中的簿记字段后返回（用于判断两侧内容是否已收敛）。
+/// 非对象值（数组/标量/null）原样返回。
+fn strip_bookkeeping(value: &serde_json::Value) -> serde_json::Value {
+    let Some(obj) = value.as_object() else {
+        return value.clone();
+    };
+    let mut out = serde_json::Map::new();
+    for (k, v) in obj {
+        if !BOOKKEEPING_KEYS.contains(&k.as_str()) {
+            out.insert(k.clone(), v.clone());
+        }
+    }
+    serde_json::Value::Object(out)
+}
+
 fn hlc_to_record_hlc(hlc: &Hlc) -> RecordHlc {
     RecordHlc {
         wall_time_ms: hlc.wall_time_ms,
@@ -133,6 +159,19 @@ pub fn apply_sync_records(
         if let Some(local) = &outcome.local_hlc {
             let local = record_hlc_to_hlc(local);
             if local > rec.hlc {
+                let local_record_hlc = hlc_to_record_hlc(&local);
+                let remote_record_hlc = hlc_to_record_hlc(&rec.hlc);
+                let local_data = store
+                    .get_sync_conflict_local_data(&rec.table, &rec.id)
+                    .unwrap_or_default()
+                    .unwrap_or_else(|| serde_json::Value::Object(Default::default()));
+                // 自动消解：剥除簿记字段（version/updated_at，随每次编辑与同步应用
+                // 变化、与内容差异无关）后两侧内容一致 → LWW 胜者已收敛，无数据丢失，
+                // 不记录冲突（避免「内容一样、仅版本/时间不同」的假冲突）。
+                // 远程为删除墓碑（deleted）时删除与否是真实决策，仍照常记录冲突。
+                if !rec.deleted && strip_bookkeeping(&local_data) == strip_bookkeeping(&rec.data) {
+                    continue;
+                }
                 stats.conflicts.push(ConflictRecord {
                     table: rec.table.clone(),
                     id: rec.id.clone(),
@@ -141,12 +180,6 @@ pub fn apply_sync_records(
                     winner: "local".to_string(),
                 });
                 // 持久化冲突记录，供用户在冲突 UI 中查看并解决。
-                let local_record_hlc = hlc_to_record_hlc(&local);
-                let remote_record_hlc = hlc_to_record_hlc(&rec.hlc);
-                let local_data = store
-                    .get_sync_conflict_local_data(&rec.table, &rec.id)
-                    .unwrap_or_default()
-                    .unwrap_or_else(|| serde_json::Value::Object(Default::default()));
                 if let Err(e) = store.save_sync_conflict(
                     &rec.table,
                     &rec.id,
@@ -168,7 +201,7 @@ pub fn apply_sync_records(
 mod tests {
     use super::*;
     use crate::hlc::Hlc;
-    use solosoul_vault::{Profile, VaultConfig, VaultStore};
+    use solosoul_vault::{ObjectRecord, Profile, VaultConfig, VaultStore};
     use tempfile::TempDir;
 
     fn open_test_vault(account_id: &str, path: std::path::PathBuf) -> VaultStore {
@@ -230,6 +263,274 @@ mod tests {
     // hex 字节串不等），等 ms 回退行组跨页时会死循环或静默漏发。本测试走完整生产
     // 路径：generate_delta_paginated → watermark_to_vault 落库 → get_peer_watermark
     // 读回 → 解析回 sync 层，逐页收集 7 个同 updated_at 回退行，断言无缺漏、无重复。
+    #[test]
+    fn test_strip_bookkeeping_removes_only_bookkeeping_keys() {
+        let v = serde_json::json!({
+            "id": "o1",
+            "name": "n",
+            "version": 3,
+            "updated_at": "2026-08-05T10:00:00Z",
+            "updatedAt": "2026-08-05T09:00:00Z",
+            "properties": { "a": 1 },
+        });
+        let out = strip_bookkeeping(&v);
+        let obj = out.as_object().unwrap();
+        assert!(!obj.contains_key("version"));
+        assert!(!obj.contains_key("updated_at"));
+        assert!(!obj.contains_key("updatedAt"));
+        assert_eq!(obj["id"], "o1");
+        assert_eq!(obj["properties"]["a"], 1);
+        // 非对象值原样返回
+        assert_eq!(
+            strip_bookkeeping(&serde_json::json!([1, 2])),
+            serde_json::json!([1, 2])
+        );
+    }
+
+    /// 两台设备修改了同一对象的不同字段后被同步收敛：本地（接收方）内容与远程
+    /// 一致、仅 version/updated_at 不同 → 自动消解，不产生冲突。
+    #[test]
+    fn test_conflict_auto_resolved_when_only_bookkeeping_differs() {
+        let dir_a = TempDir::new().unwrap();
+        let dir_b = TempDir::new().unwrap();
+        let vault_a = open_test_vault("acc_converged", dir_a.path().to_path_buf());
+        let vault_b = open_test_vault("acc_converged", dir_b.path().to_path_buf());
+
+        let ts = "2026-08-05T10:00:00.000+00:00";
+        vault_a
+            .save_object(&ObjectRecord {
+                id: "obj_1".to_string(),
+                account_id: "acc_converged".to_string(),
+                name: "测试".to_string(),
+                section_type: "identity".to_string(),
+                properties: serde_json::json!({ "姓名": "张三" }),
+                sensitivity_level: "internal".to_string(),
+                created_at: ts.to_string(),
+                updated_at: "2026-08-05T09:00:00Z".to_string(),
+                version: 9,
+                ..Default::default()
+            })
+            .unwrap();
+
+        // 本地（接收方）内容已收敛、版本/时间更新（HLC 严格新）——先用几个填充对象
+        // 把本地 HLC wall 时间推到严格大于 vault_a 的记录（同一毫秒内的多次保存
+        // wall 递增，保证跨 vault 比较确定）。
+        for i in 0..3 {
+            vault_b
+                .save_object(&ObjectRecord {
+                    id: format!("warm_{}", i),
+                    account_id: "acc_converged".to_string(),
+                    name: "warm".to_string(),
+                    section_type: "identity".to_string(),
+                    properties: serde_json::json!({}),
+                    sensitivity_level: "internal".to_string(),
+                    created_at: ts.to_string(),
+                    updated_at: ts.to_string(),
+                    version: 1,
+                    ..Default::default()
+                })
+                .unwrap();
+        }
+        vault_b
+            .save_object(&ObjectRecord {
+                id: "obj_1".to_string(),
+                account_id: "acc_converged".to_string(),
+                name: "测试".to_string(),
+                section_type: "identity".to_string(),
+                properties: serde_json::json!({ "姓名": "张三" }),
+                sensitivity_level: "internal".to_string(),
+                created_at: ts.to_string(),
+                updated_at: "2026-08-05T10:00:00Z".to_string(),
+                version: 10,
+                ..Default::default()
+            })
+            .unwrap();
+
+        let watermark = crate::hlc::SyncWatermark::zero();
+        let page = generate_delta_paginated(
+            &vault_a,
+            "objects",
+            &watermark,
+            "acc_converged",
+            "node_a",
+            usize::MAX,
+            None,
+        )
+        .unwrap();
+        assert_eq!(page.records.len(), 1);
+
+        let stats = apply_sync_records(&vault_b, "objects", &page.records, "node_b").unwrap();
+        assert_eq!(
+            stats.conflicts.len(),
+            0,
+            "内容一致（仅 version/updated_at 不同）应自动消解，不产生冲突"
+        );
+        assert!(
+            vault_b.list_sync_conflicts().unwrap().is_empty(),
+            "持久化冲突表也应为空"
+        );
+    }
+
+    /// 内容真实不同（同一字段值不同）→ 照常记录冲突。
+    #[test]
+    fn test_conflict_recorded_when_content_differs() {
+        let dir_a = TempDir::new().unwrap();
+        let dir_b = TempDir::new().unwrap();
+        let vault_a = open_test_vault("acc_conflict", dir_a.path().to_path_buf());
+        let vault_b = open_test_vault("acc_conflict", dir_b.path().to_path_buf());
+
+        let ts = "2026-08-05T10:00:00.000+00:00";
+        vault_a
+            .save_object(&ObjectRecord {
+                id: "obj_1".to_string(),
+                account_id: "acc_conflict".to_string(),
+                name: "测试".to_string(),
+                section_type: "identity".to_string(),
+                properties: serde_json::json!({ "姓名": "张三" }),
+                sensitivity_level: "internal".to_string(),
+                created_at: ts.to_string(),
+                updated_at: "2026-08-05T09:00:00Z".to_string(),
+                version: 9,
+                ..Default::default()
+            })
+            .unwrap();
+        for i in 0..3 {
+            vault_b
+                .save_object(&ObjectRecord {
+                    id: format!("warm_{}", i),
+                    account_id: "acc_conflict".to_string(),
+                    name: "warm".to_string(),
+                    section_type: "identity".to_string(),
+                    properties: serde_json::json!({}),
+                    sensitivity_level: "internal".to_string(),
+                    created_at: ts.to_string(),
+                    updated_at: ts.to_string(),
+                    version: 1,
+                    ..Default::default()
+                })
+                .unwrap();
+        }
+        vault_b
+            .save_object(&ObjectRecord {
+                id: "obj_1".to_string(),
+                account_id: "acc_conflict".to_string(),
+                name: "测试".to_string(),
+                section_type: "identity".to_string(),
+                properties: serde_json::json!({ "姓名": "李四" }),
+                sensitivity_level: "internal".to_string(),
+                created_at: ts.to_string(),
+                updated_at: "2026-08-05T10:00:00Z".to_string(),
+                version: 10,
+                ..Default::default()
+            })
+            .unwrap();
+
+        let watermark = crate::hlc::SyncWatermark::zero();
+        let page = generate_delta_paginated(
+            &vault_a,
+            "objects",
+            &watermark,
+            "acc_conflict",
+            "node_a",
+            usize::MAX,
+            None,
+        )
+        .unwrap();
+        assert_eq!(page.records.len(), 1);
+
+        let stats = apply_sync_records(&vault_b, "objects", &page.records, "node_b").unwrap();
+        assert_eq!(
+            stats.conflicts.len(),
+            1,
+            "内容真实不同（姓名不同）应照常记录冲突"
+        );
+        let conflicts = vault_b.list_sync_conflicts().unwrap();
+        assert_eq!(conflicts.len(), 1);
+        assert_eq!(conflicts[0].record_id, "obj_1");
+    }
+
+    /// 远程为删除墓碑（deleted=true）时，即使剥除簿记字段后内容一致，仍应记录冲突
+    /// （删除与否是真实决策，不做自动消解）。
+    #[test]
+    fn test_conflict_recorded_for_tombstone_even_if_content_matches() {
+        let dir_a = TempDir::new().unwrap();
+        let dir_b = TempDir::new().unwrap();
+        let vault_a = open_test_vault("acc_tomb", dir_a.path().to_path_buf());
+        let vault_b = open_test_vault("acc_tomb", dir_b.path().to_path_buf());
+
+        let ts = "2026-08-05T10:00:00.000+00:00";
+        // 发送方：保存对象后硬删（产生墓碑记录，deleted=true, data=null）
+        vault_a
+            .save_object(&ObjectRecord {
+                id: "obj_1".to_string(),
+                account_id: "acc_tomb".to_string(),
+                name: "测试".to_string(),
+                section_type: "identity".to_string(),
+                properties: serde_json::json!({ "姓名": "张三" }),
+                sensitivity_level: "internal".to_string(),
+                created_at: ts.to_string(),
+                updated_at: ts.to_string(),
+                version: 1,
+                ..Default::default()
+            })
+            .unwrap();
+        vault_a.delete_object("obj_1", false).unwrap();
+
+        // 接收方：本地持有同内容对象，HLC 严格新（warm 推进 wall）
+        for i in 0..3 {
+            vault_b
+                .save_object(&ObjectRecord {
+                    id: format!("warm_{}", i),
+                    account_id: "acc_tomb".to_string(),
+                    name: "warm".to_string(),
+                    section_type: "identity".to_string(),
+                    properties: serde_json::json!({}),
+                    sensitivity_level: "internal".to_string(),
+                    created_at: ts.to_string(),
+                    updated_at: ts.to_string(),
+                    version: 1,
+                    ..Default::default()
+                })
+                .unwrap();
+        }
+        vault_b
+            .save_object(&ObjectRecord {
+                id: "obj_1".to_string(),
+                account_id: "acc_tomb".to_string(),
+                name: "测试".to_string(),
+                section_type: "identity".to_string(),
+                properties: serde_json::json!({ "姓名": "张三" }),
+                sensitivity_level: "internal".to_string(),
+                created_at: ts.to_string(),
+                updated_at: ts.to_string(),
+                version: 1,
+                ..Default::default()
+            })
+            .unwrap();
+
+        let watermark = crate::hlc::SyncWatermark::zero();
+        let page = generate_delta_paginated(
+            &vault_a,
+            "objects",
+            &watermark,
+            "acc_tomb",
+            "node_a",
+            usize::MAX,
+            None,
+        )
+        .unwrap();
+        assert_eq!(page.records.len(), 1);
+        assert!(page.records[0].deleted, "发送方 delta 应为删除墓碑记录");
+
+        let stats = apply_sync_records(&vault_b, "objects", &page.records, "node_b").unwrap();
+        assert_eq!(
+            stats.conflicts.len(),
+            1,
+            "删除墓碑是真实决策，即使内容一致也应照常记录冲突（不自动消解）"
+        );
+        assert_eq!(vault_b.list_sync_conflicts().unwrap().len(), 1);
+    }
+
     #[test]
     fn test_generate_delta_paginated_keyset_production_encoding() {
         let dir = TempDir::new().unwrap();
