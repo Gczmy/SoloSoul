@@ -10,6 +10,7 @@ All notable changes to SoloSoul are documented in this file.
 
 ### Fixed
 
+- **macOS Vision 扫描报错修复** — 扫描报 `Vision CLI 异常退出 (stdout: {"error": "Cannot load image at --"})`。根因：Rust 侧调用 CLI 时误传 `--` 参数分隔符，Swift 端用原始 `CommandLine.arguments[1]` 读取时把 `--` 当成图像路径。修复：Rust 侧直接传图像路径；Swift 端防御性跳过前置 `--` 并升级 v2.1-MRZ → v2.2（源码变更触发重新编译缓存二进制）。新增回归测试 `test_scan_image_passes_real_path`（真实 1x1 PNG 验证路径正确消费 + 不存在路径报错含真实路径）。
 - **同步冲突卡片可读性优化** — ① diff 表头补齐三列（项目 | 本地 | 远程），与字段行对齐；② 字段名 i18n（`accountId` → 账户 ID、`childrenIds` → 子对象、`templateId` → 模板 等 35+ 字段，未知字段标题化兑底）；③ 值不再展示紧凑 JSON——嵌套对象逐行 `字段: 值`、数组逐行 `- 项`，动态字段名复用 `editor:fields.*` 标签；④ 已知值 i18n：预植入模板 id（identity/passport/bank 等 10 个）→ 模板名、分区/分类（identity/travel/financial/professional）、对象类型 note → 笔记、布尔 → 是/否。新增 `src/lib/conflictFieldMeta.ts` 纯函数模块 + 13 个单测。
 - **已知设备详情卡片信任操作即时刷新** — 详情弹窗不再持有 peer 快照，改为从 store `connectedPeers` 按 id 派生：点击「撤销信任/信任并配对」后 `trustPeer → loadStatus` 刷新完成，卡片立即显示新的信任状态（无需重新进入卡片）；操作在途时按钮显示加载态并禁用，防止重复点击。
 - **macOS 设备图标改为笔记本图标** — 已知设备卡片、设备详情弹窗、配对对话框统一使用共享 `ClientTypeIcon`（macOS → 笔记本图标，替代此前的手机图标/Apple 商标图标；Windows → 显示器、Linux → 终端、Android → 手机、iOS → 平板、未知 → CPU），设备图标与客户端类型一一对应。

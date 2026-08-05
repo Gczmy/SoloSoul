@@ -44,6 +44,7 @@ pub struct BoundingBox {
 }
 
 /// 嵌入的 Swift 源码，使用 VNRecognizeTextRequest 扫描图像。
+/// v2.2: 修复 `--` 分隔符误读为图像路径（Rust 侧不再传 `--`，Swift 侧防御性跳过）。
 /// v2.1: 添加版本号 stderr 输出 + 强制 RGB 转码。
 const VISION_SWIFT_SOURCE: &str = r##"#!/usr/bin/env swift
 
@@ -52,15 +53,20 @@ import Vision
 import Accelerate
 
 // === 强制版本号输出到 stderr（用于诊断确认调用的是哪个二进制）===
-let version = "SoloSoul-Vision-CLI v2.1-MRZ"
+let version = "SoloSoul-Vision-CLI v2.2"
 fputs("[VISION-CLI] \(version)\n", stderr)
 
-// 解析参数
-guard CommandLine.arguments.count > 1 else {
+// 解析参数：兼容可选的 "--" 分隔符（防御性——POSIX 分隔符不会由系统剥离，
+// 若调用方误传则会占据 arguments[1]，导致图像路径错位；此处显式跳过）
+var argIndex = 1
+if CommandLine.arguments.count > 1 && CommandLine.arguments[1] == "--" {
+    argIndex = 2
+}
+guard CommandLine.arguments.count > argIndex else {
     print("{\"error\": \"No image path provided\"}")
     exit(1)
 }
-let imagePath = CommandLine.arguments[1]
+let imagePath = CommandLine.arguments[argIndex]
 let url = URL(fileURLWithPath: imagePath)
 
 // 加载图像
@@ -277,8 +283,10 @@ pub fn scan_image(image_path: &Path) -> Result<(String, f64), String> {
         image_path.display()
     );
 
+    // 直接传图像路径作为 arguments[1]——之前误传 "--" 分隔符，Swift 端用原始
+    // CommandLine.arguments[1] 读取时把 "--" 当成路径，报 "Cannot load image at --"。
+    // Swift 端已防御性跳过前置 "--"（v2.2），双保险。
     let output = Command::new(&binary_path)
-        .arg("--")
         .arg(image_path)
         .output()
         .map_err(|e| format!("执行 Vision CLI 失败: {e}"))?;
@@ -359,6 +367,49 @@ pub fn scan_image(image_path: &Path) -> Result<(String, f64), String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// 回归测试（BUG：`Cannot load image at --`）：图像路径必须原样传给 CLI。
+    /// 此前 Rust 侧误传 "--" 分隔符，Swift 端把 arguments[1] 的 "--" 当路径。
+    /// 用真实 1x1 PNG 验证：图像能加载（返回「未检测到文本」）即证明路径传递正确，
+    /// 而不是报 "Cannot load image at --"。
+    #[test]
+    fn test_scan_image_passes_real_path() {
+        if !cfg!(target_os = "macos") {
+            return;
+        }
+        let dir = std::env::temp_dir().join(format!("solosoul-vision-png-{}", std::process::id()));
+        std::fs::create_dir_all(&dir).expect("create png dir");
+        let png_path = dir.join("pixel.png");
+        // 1x1 透明 PNG（base64: iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==）
+        let png: &[u8] = &[
+            0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D, 0x49, 0x48,
+            0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01, 0x08, 0x06, 0x00, 0x00,
+            0x00, 0x31, 0x15, 0xC4, 0x89, 0x00, 0x00, 0x00, 0x0D, 0x49, 0x44, 0x41, 0x54, 0x78,
+            0x9C, 0x62, 0xFC, 0xCF, 0xC0, 0x50, 0x0F, 0x00, 0x04, 0x85, 0x01, 0x80, 0x84, 0xA9,
+            0x8C, 0x21, 0x00, 0x00, 0x00, 0x00, 0x49, 0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82,
+        ];
+        std::fs::write(&png_path, png).expect("write png");
+
+        let result = scan_image(&png_path);
+        // 修复后：图像被成功加载 → Ok(空文本) 或「未检测到任何文本」；
+        // 修复前：错误固定为 "Cannot load image at --"。
+        if let Err(e) = &result {
+            assert!(
+                !e.contains("Cannot load image at --"),
+                "路径传递回归：CLI 仍把 '--' 当成图像路径（{e}）"
+            );
+        }
+
+        // 不存在的路径：错误应包含真实路径（证明参数按原样传递），而非 "--"。
+        let missing = dir.join("does-not-exist.png");
+        let missing_err = scan_image(&missing).expect_err("不存在的路径应报错");
+        assert!(
+            missing_err.contains("does-not-exist.png"),
+            "错误应包含真实路径，got: {missing_err}"
+        );
+
+        let _ = std::fs::remove_dir_all(&dir);
+    }
 
     #[test]
     fn test_vision_not_available_in_test() {
