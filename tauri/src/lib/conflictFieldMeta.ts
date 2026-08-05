@@ -92,8 +92,18 @@ const BUILTIN_TEMPLATE_KEYS: Record<string, string> = {
   contact: 'sync_conflict_tpl_contact',
 };
 
-/** 用户无法感知/无法修改、冲突 diff 中始终省略的字段（对象指纹等）。 */
-const OMIT_ALWAYS = new Set(['template_hash', 'ignored_template_hash']);
+/** 用户无法感知/无法修改、冲突 diff 中始终省略的字段：
+ *  对象指纹（template_hash/ignored_template_hash）与簿记字段
+ *  （version 每次编辑/同步应用都会 +1、updated_at 每次编辑都会变化——
+ *  它们随 HLC 时间差异必然不同、与内容差异无关，详情头部已展示 HLC 时间）。
+ *  后台同步引擎已对「仅簿记字段不同」的冲突做自动消解（delta.rs），
+ *  此处省略保证残留冲突的 diff 只显示真实内容差异。 */
+const OMIT_ALWAYS = new Set([
+  'template_hash',
+  'ignored_template_hash',
+  'version',
+  'updated_at',
+]);
 
 /** 空值判定：null / undefined / 空字符串 / 空数组。 */
 function isEmptyValue(v: unknown): boolean {

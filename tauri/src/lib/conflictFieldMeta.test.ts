@@ -173,6 +173,18 @@ describe('shouldOmitField', () => {
     expect(shouldOmitField('ignored_template_hash', 'x', undefined)).toBe(true);
   });
 
+  it('omits bookkeeping fields (version / updated_at) so only real content differences count', () => {
+    // 两台设备改同一对象的不同字段：version/updated_at 必然不同（簿记），不计入内容差异
+    expect(shouldOmitField('version', 10, 9)).toBe(true);
+    expect(
+      shouldOmitField('updated_at', '2026-08-05T10:00:00Z', '2026-08-05T09:00:00Z'),
+    ).toBe(true);
+    // 兼容远程侧 camelCase 键
+    expect(
+      shouldOmitField('updatedAt', '2026-08-05T10:00:00Z', '2026-08-05T09:00:00Z'),
+    ).toBe(true);
+  });
+
   it('omits children_ids when both sides have no children', () => {
     expect(shouldOmitField('childrenIds', [], [])).toBe(true);
     expect(shouldOmitField('children_ids', undefined, [])).toBe(true);
