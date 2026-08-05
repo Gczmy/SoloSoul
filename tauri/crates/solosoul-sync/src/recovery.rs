@@ -242,12 +242,15 @@ impl RecoveryHost {
 }
 
 /// 新设备端：连接到主机，完成恢复流程，返回下载的文件路径、恢复密码与 account_id。
+///
+/// `on_progress` 可选进度回调：下载期间按已接收字节数报告 0-100 的整数百分比（至少触发一次）。
 pub fn recover_from_host(
     addr: &str,
     pin: &str,
     dest_dir: &Path,
     expected_fingerprint: Option<&str>,
     nonce: Option<&str>,
+    on_progress: Option<Box<dyn Fn(u8) + Send>>,
 ) -> Result<RecoveryResult, String> {
     let stream = TcpStream::connect_timeout(
         &addr.parse().map_err(|e| format!("Invalid addr: {}", e))?,
@@ -322,6 +325,11 @@ pub fn recover_from_host(
         received += chunk.len() as u64;
         if received > file_size {
             return Err("Received more data than expected".to_string());
+        }
+        if let Some(cb) = &on_progress {
+            // 下载进度按字节数换算为 0-100 百分比（file_size 上限 1GB，received * 100 不会溢出）
+            let pct = ((received * 100 / file_size.max(1)) as u8).min(100);
+            cb(pct);
         }
     }
 
@@ -539,6 +547,7 @@ mod tests {
             &dest_dir,
             Some(&info.fingerprint),
             Some(&info.nonce),
+            None,
         )
         .unwrap();
 
@@ -583,12 +592,63 @@ mod tests {
             &dest_dir,
             Some(&info.fingerprint),
             Some(&info.nonce),
+            None,
         )
         .unwrap();
 
         let received = std::fs::read(&result.downloaded_path).unwrap();
         assert_eq!(received.len(), big_payload.len());
         assert_eq!(received, big_payload);
+    }
+
+    #[test]
+    fn test_recovery_transfer_progress_callback() {
+        // 回归：下载进度回调应随字节数上报 0-100 百分比，至少触发一次且单调不减。
+        let tmp = tempfile::tempdir().unwrap();
+        let export_path = tmp.path().join("export_progress.solosoul");
+        let big_payload = vec![b'p'; 200 * 1024];
+        std::fs::write(&export_path, &big_payload).unwrap();
+
+        let host = RecoveryHost::start(
+            "127.0.0.1:0",
+            export_path.clone(),
+            generate_recovery_password(),
+            "acc_host".to_string(),
+            "Host Account".to_string(),
+        )
+        .unwrap();
+        let info = host.connection_info();
+        let addr = host.local_addr().unwrap();
+        let cancel = Arc::new(AtomicBool::new(false));
+
+        thread::spawn(move || {
+            host.run(cancel).unwrap();
+        });
+
+        let dest_dir = tmp.path().join("dest_progress");
+        let progress = Arc::new(Mutex::new(Vec::new()));
+        let cb_progress = progress.clone();
+        let result = recover_from_host(
+            &addr,
+            &info.pin,
+            &dest_dir,
+            Some(&info.fingerprint),
+            Some(&info.nonce),
+            Some(Box::new(move |pct: u8| {
+                cb_progress.lock().unwrap().push(pct);
+            })),
+        )
+        .unwrap();
+        let received = std::fs::read(&result.downloaded_path).unwrap();
+        assert_eq!(received.len(), big_payload.len());
+
+        let events = progress.lock().unwrap();
+        assert!(!events.is_empty(), "progress callback never invoked");
+        assert_eq!(*events.last().unwrap(), 100, "final progress should be 100");
+        assert!(
+            events.windows(2).all(|w| w[0] <= w[1]),
+            "progress must be monotonic non-decreasing"
+        );
     }
 
     #[test]
@@ -614,7 +674,14 @@ mod tests {
         });
 
         let dest_dir = tmp.path().join("dest");
-        let result = recover_from_host(&addr, "000000", &dest_dir, Some(&info.fingerprint), None);
+        let result = recover_from_host(
+            &addr,
+            "000000",
+            &dest_dir,
+            Some(&info.fingerprint),
+            None,
+            None,
+        );
         assert!(result.is_err());
     }
 

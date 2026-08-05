@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { useRecoveryReceive } from '@/hooks/useRecoveryReceive';
 import { RecoveryReceiveTabs } from '@/components/recovery/RecoveryReceiveTabs';
 import { RecoverySuccessView } from '@/components/recovery/RecoverySuccessView';
@@ -91,12 +92,34 @@ export function RecoveryReceiveDialog({ isOpen, onClose, onSuccess }: RecoveryRe
         )}
 
         {rcv.step === 'success' && rcv.success ? (
-          <RecoverySuccessView success={rcv.success} onClose={rcv.handleClose} />
+          <>
+            <RecoverySuccessView
+              success={rcv.success}
+              onComplete={() => rcv.setSuccessConfirmOpen(true)}
+            />
+            {/* 恢复完成确认框：用户确认后返回登录页（登录页展示刚恢复的账户） */}
+            <ConfirmDialog
+              isOpen={rcv.successConfirmOpen}
+              title={t('common:recovery_complete_title', { defaultValue: 'Recovery complete' })}
+              message={t('common:recovery_complete_desc', {
+                objects: rcv.success.objectCount,
+                attachments: rcv.success.attachmentCount,
+                defaultValue:
+                  'Recovery completed. Return to the login page and unlock with your new password.',
+              })}
+              confirmLabel={t('common:confirm')}
+              cancelLabel={t('common:cancel')}
+              confirmVariant="primary"
+              onConfirm={rcv.handleClose}
+              onCancel={() => rcv.setSuccessConfirmOpen(false)}
+            />
+          </>
         ) : rcv.step === 'account' && rcv.pending ? (
           <RecoveryAccountView
             pending={rcv.pending}
             loading={rcv.loading}
             statusText={rcv.statusText}
+            progress={rcv.progress}
             masterPassword={rcv.masterPassword}
             confirmPassword={rcv.confirmPassword}
             passwordHint={rcv.passwordHint}

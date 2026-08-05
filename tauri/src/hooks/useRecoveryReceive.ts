@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
+import { listen } from '@tauri-apps/api/event';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { useNavigate } from 'react-router-dom';
 import { MIN_PASSWORD_LENGTH } from '@/lib/constants';
 import { translateRustError } from '@/lib/rustErrors';
-import { useAuthStore } from '@/stores/authStore';
+import { useAuthStore, saveLastAccountId } from '@/stores/authStore';
 import { useCameraCapability } from '@/hooks/useCameraCapability';
 import type { AccountInfo } from '@/lib/ipc';
 import type {
@@ -57,6 +58,11 @@ export function useRecoveryReceive({ isOpen, onClose, onSuccess }: UseRecoveryRe
   const [success, setSuccess] = useState<RecoveryResultSummary | null>(null);
   // 扫码器启动失败（如权限被拒）时置位，用于展示「使用手动输入」兜底按钮
   const [scannerError, setScannerError] = useState<string | null>(null);
+
+  // 恢复执行进度（recovery-progress 事件）：{ phase, percent }，未开始/完成后为 null
+  const [progress, setProgress] = useState<{ phase: string; percent: number } | null>(null);
+  // 恢复完成后「恢复完成」确认弹窗是否打开
+  const [successConfirmOpen, setSuccessConfirmOpen] = useState(false);
 
   // 已收集的连接信息（扫码或手动输入后统一进入账户卡阶段）
   const [pending, setPending] = useState<ScannedRecoveryQr | null>(null);
@@ -180,6 +186,8 @@ export function useRecoveryReceive({ isOpen, onClose, onSuccess }: UseRecoveryRe
     userSwitchedTabRef.current = false;
     setError(null);
     setSuccess(null);
+    setProgress(null);
+    setSuccessConfirmOpen(false);
     setScannerError(null);
     setLoading(false);
     setPending(null);
@@ -360,7 +368,13 @@ export function useRecoveryReceive({ isOpen, onClose, onSuccess }: UseRecoveryRe
     }
 
     setLoading(true);
+    setProgress(null);
     setStatusText(t('common:recovery_connecting', { defaultValue: 'Connecting to host…' }));
+
+    // 订阅恢复进度事件（recovery-progress：download/overwrite/create/import/done 分阶段百分比）
+    const unlistenPromise = listen<{ phase: string; percent: number }>('recovery-progress', (e) => {
+      if (mountedRef.current) setProgress(e.payload);
+    }).catch(() => null);
 
     try {
       const result = await invoke<RecoveryResultSummary>('recovery_restore_from_host', {
@@ -375,7 +389,11 @@ export function useRecoveryReceive({ isOpen, onClose, onSuccess }: UseRecoveryRe
       if (!mountedRef.current) return;
       setSuccess(result);
       setStep('success');
+      // 记住最近恢复的账户：返回登录页后自动选中它，方便用新密码解锁
+      saveLastAccountId(result.accountId);
       await useAuthStore.getState().checkHasAccount();
+      // 自动弹出「恢复完成」确认框，用户确认后返回登录页
+      if (mountedRef.current) setSuccessConfirmOpen(true);
     } catch (err) {
       if (!mountedRef.current) return;
       const raw = String(err);
@@ -387,6 +405,10 @@ export function useRecoveryReceive({ isOpen, onClose, onSuccess }: UseRecoveryRe
         setError(friendlyConnectError(raw));
       }
     } finally {
+      // 无论成败都退订进度事件，避免泄漏监听器
+      if (unlistenPromise) {
+        void unlistenPromise.then((un) => un?.());
+      }
       setLoading(false);
       setStatusText(null);
     }
@@ -436,7 +458,10 @@ export function useRecoveryReceive({ isOpen, onClose, onSuccess }: UseRecoveryRe
     cameraCapability,
     loading,
     error,
+    progress,
     success,
+    successConfirmOpen,
+    setSuccessConfirmOpen,
     scannerError,
     pending,
     masterPassword,

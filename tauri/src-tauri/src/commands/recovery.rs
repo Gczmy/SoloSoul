@@ -5,13 +5,14 @@
 //! `account_id` 一致，后续可直接使用 Device Sync。
 
 use crate::commands::export_import::export::export_execute;
-use crate::commands::export_import::import::import_execute;
-use crate::commands::export_import::{ExportRequest, ExportScope};
+use crate::commands::export_import::import::import_execute_internal;
+use crate::commands::export_import::{default_locale, ExportRequest, ExportScope, ImportStrategy};
 use crate::state::AppState;
 use solosoul_sync::recovery::{generate_recovery_password, recover_from_host, RecoveryHost};
+use std::collections::HashMap;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
-use tauri::{Manager, State};
+use tauri::{Emitter, Manager, State};
 
 #[derive(serde::Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -261,9 +262,13 @@ pub async fn recovery_host_cancel(state: State<'_, AppState>) -> Result<(), Stri
 /// - `overwrite` 为 false/None：由 `create_account_with_id` 返回 "Account ID already exists"，前端据此提示冲突。
 ///
 /// 覆盖仅发生在恢复包下载成功之后，网络/握手失败不会损毁本地数据。
+///
+/// 执行期间向 `recovery-progress` 事件发射分阶段进度：
+/// `download`(0-40) → `overwrite`(45，仅覆盖模式) → `create`(50) → `import`(50-95) → `done`(100)。
 #[allow(clippy::too_many_arguments)]
 #[tauri::command]
 pub async fn recovery_restore_from_host(
+    app: tauri::AppHandle,
     state: State<'_, AppState>,
     master_password: String,
     host_addr: String,
@@ -283,9 +288,19 @@ pub async fn recovery_restore_from_host(
         return Err("PIN must be a 6-digit code".to_string());
     }
 
+    // 进度事件发射器（phase + 0-100 全局百分比）。
+    let emit_progress = |phase: &'static str, percent: u8| {
+        let _ = app.emit(
+            "recovery-progress",
+            serde_json::json!({ "phase": phase, "percent": percent }),
+        );
+    };
+
     let dest_dir = std::env::temp_dir().join("solosoul_recovery_downloads");
     std::fs::create_dir_all(&dest_dir).map_err(|e| e.to_string())?;
 
+    // 阶段 1：从主机下载恢复包（0-40，下载进度按字节数换算）。
+    let app_for_download = app.clone();
     let result = tokio::task::spawn_blocking(move || {
         recover_from_host(
             &host_addr,
@@ -293,6 +308,15 @@ pub async fn recovery_restore_from_host(
             &dest_dir,
             fingerprint.as_deref(),
             nonce.as_deref(),
+            Some(Box::new(move |pct: u8| {
+                let _ = app_for_download.emit(
+                    "recovery-progress",
+                    serde_json::json!({
+                        "phase": "download",
+                        "percent": (u16::from(pct) * 40 / 100) as u8,
+                    }),
+                );
+            })),
         )
     })
     .await
@@ -304,7 +328,7 @@ pub async fn recovery_restore_from_host(
     let file_path = result.downloaded_path.to_string_lossy().to_string();
     let recovery_password = result.recovery_password;
 
-    // 使用主机的 account_id 和 account_name 创建本地账户。
+    // 阶段 2：使用主机的 account_id 和 account_name 创建本地账户。
     // 恢复场景允许同名账户共存（身份是 account_id）；
     // 覆盖模式下若本机已存在相同 account_id，先删除再创建（不可逆，前端已二次确认）。
     {
@@ -313,8 +337,10 @@ pub async fn recovery_restore_from_host(
             .read()
             .map_err(|_| "Vault service lock poisoned".to_string())?;
         if overwrite.unwrap_or(false) && svc.has_account(&account_id) {
+            emit_progress("overwrite", 45);
             svc.delete_account(&account_id)?;
         }
+        emit_progress("create", 50);
         svc.create_account_with_id(
             &account_id,
             &account_name,
@@ -323,12 +349,27 @@ pub async fn recovery_restore_from_host(
         )?;
     }
 
-    // 导入恢复包
-    let import_result = import_execute(
+    // 阶段 3：导入恢复包（50-95，导入进度按对象/附件条目数换算）。
+    let app_for_import = app.clone();
+    let import_result = import_execute_internal(
         state.clone(),
         account_id.clone(),
         file_path.clone(),
         recovery_password,
+        ImportStrategy::SkipExisting,
+        None,
+        None,
+        HashMap::new(),
+        &default_locale(),
+        Some(Arc::new(move |pct: u8| {
+            let _ = app_for_import.emit(
+                "recovery-progress",
+                serde_json::json!({
+                    "phase": "import",
+                    "percent": (50 + u16::from(pct) * 45 / 100) as u8,
+                }),
+            );
+        }) as Arc<dyn Fn(u8) + Send + Sync>),
     )
     .await;
 
@@ -354,6 +395,7 @@ pub async fn recovery_restore_from_host(
         }
     };
 
+    emit_progress("done", 100);
     Ok(ImportResultSummary {
         object_count: import_result.object_count,
         attachment_count: import_result.attachment_count,

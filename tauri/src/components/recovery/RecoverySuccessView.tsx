@@ -5,11 +5,12 @@ import type { RecoveryResultSummary } from '@/components/recovery/recoveryReceiv
 
 interface RecoverySuccessViewProps {
   success: RecoveryResultSummary;
-  onClose: () => void;
+  /** 点击「完成」：打开「恢复完成」确认框（确认后返回登录页）。 */
+  onComplete: () => void;
 }
 
 /** 成功卡片：显示账户信息 + 导入统计。 */
-export function RecoverySuccessView({ success, onClose }: RecoverySuccessViewProps) {
+export function RecoverySuccessView({ success, onComplete }: RecoverySuccessViewProps) {
   const { t } = useTranslation(['common']);
 
   return (
@@ -101,7 +102,7 @@ export function RecoverySuccessView({ success, onClose }: RecoverySuccessViewPro
           attachments: success.attachmentCount,
         })}
       </p>
-      <Button onClick={onClose} style={{ width: '100%' }}>
+      <Button onClick={onComplete} style={{ width: '100%' }}>
         {t('common:onboarding_done')}
       </Button>
     </div>

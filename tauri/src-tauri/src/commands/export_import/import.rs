@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use super::helpers::ManifestData;
 use super::*;
 
@@ -190,6 +192,7 @@ pub async fn import_execute(
         None,
         HashMap::new(),
         &locale,
+        None,
     )
     .await
 }
@@ -211,12 +214,16 @@ pub async fn import_execute_advanced(
         req.selected_attachment_ids,
         req.object_strategies,
         &req.locale,
+        None,
     )
     .await
 }
 
+/// 导入执行核心。`progress` 可选进度回调：供恢复等长耗时导入场景展示进度条；常规导入传 `None`。
+/// 进度语义：对象阶段按循环下标报告 0-80（跳过对象也推进，保证阶段可到达 80），
+/// 附件阶段续接报告 80-100（`import_attachments` 内部换算），整体单调不回落。
 #[allow(clippy::too_many_arguments)]
-async fn import_execute_internal(
+pub(crate) async fn import_execute_internal(
     state: State<'_, AppState>,
     account_id: String,
     file_path: String,
@@ -226,6 +233,7 @@ async fn import_execute_internal(
     selected_attachment_ids: Option<Vec<String>>,
     object_strategies: HashMap<String, ImportStrategy>,
     locale: &str,
+    progress: Option<Arc<dyn Fn(u8) + Send + Sync>>,
 ) -> Result<ImportResult, String> {
     let svc = state
         .vault_service
@@ -290,7 +298,7 @@ async fn import_execute_internal(
         }
     }
 
-    for obj_val in objects {
+    for (obj_index, obj_val) in objects.iter().enumerate() {
         let id = obj_val["id"].as_str().unwrap_or("");
         if id.is_empty() {
             continue;
@@ -432,6 +440,11 @@ async fn import_execute_internal(
         if effective_strategy == ImportStrategy::KeepBoth {
             imported_object_ids.insert(id.to_string());
         }
+        if let Some(cb) = &progress {
+            let total = objects.len().max(1);
+            // 对象阶段 0-80（按循环下标推进，跳过对象也前进，保证单调到达 80）
+            cb(((obj_index + 1) * 80 / total).min(80) as u8);
+        }
     }
 
     // 构建选中附件 ID 集合，用于附件过滤
@@ -439,6 +452,12 @@ async fn import_execute_internal(
         selected_attachment_ids.map(|ids| ids.into_iter().collect());
 
     // ── 阶段 5：导入附件（加密，流式解密）──
+    // 附件阶段进度续接对象阶段末尾（80-100），避免进度条回落。
+    let att_progress = progress.clone().map(|cb| -> Arc<dyn Fn(u8) + Send + Sync> {
+        Arc::new(move |pct: u8| {
+            cb((80 + u16::from(pct) * 20 / 100) as u8);
+        })
+    });
     let imported_attachments_count = if manifest.has_attachments {
         import_attachments(
             vault,
@@ -451,6 +470,7 @@ async fn import_execute_internal(
             &imported_object_ids,
             sel_att_ids_set.as_ref(),
             &now,
+            att_progress.as_deref(),
         )?
     } else {
         0
@@ -718,6 +738,9 @@ fn merge_labels_into(tpl: &serde_json::Value, existing: &mut serde_json::Value) 
 }
 
 /// 阶段 5：导入附件（加密）。流式解密避免明文/密文同时驻留内存（P1-024）。
+/// `progress` 的调用契约：传入 0-100 的附件条目进度，本函数不再换算；调用方需负责把
+/// 回调映射到自己的剩余区间（当前唯一调用方 import_execute_internal 映射到 80-100，
+/// 保证整体进度单调不回落）。
 #[allow(clippy::too_many_arguments)]
 fn import_attachments(
     vault: &solosoul_vault::VaultStore,
@@ -730,6 +753,7 @@ fn import_attachments(
     imported_object_ids: &std::collections::HashSet<String>,
     sel_att_ids_set: Option<&std::collections::HashSet<String>>,
     now: &str,
+    progress: Option<&(dyn Fn(u8) + Send + Sync)>,
 ) -> Result<usize, String> {
     // Derive attachment key via HKDF
     let salt = hex::decode(&manifest.salt_hex).map_err(|e| format!("Invalid salt: {}", e))?;
@@ -759,9 +783,13 @@ fn import_attachments(
     let att_prefix = "attachments/";
     let mut imported_atts: std::collections::HashMap<String, Vec<AttachmentMeta>> =
         std::collections::HashMap::new();
+    let zip_total = archive.len();
     for i in 0..archive.len() {
         let mut f = archive.by_index(i).map_err(|e| e.to_string())?;
         let name = f.name().to_string();
+        if let Some(cb) = &progress {
+            cb(((i * 100) / zip_total.max(1)).min(100) as u8);
+        }
         if !name.starts_with(att_prefix) || name.ends_with('/') {
             continue;
         }

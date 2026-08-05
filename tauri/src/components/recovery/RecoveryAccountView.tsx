@@ -9,6 +9,8 @@ interface RecoveryAccountViewProps {
   pending: ScannedRecoveryQr;
   loading: boolean;
   statusText: string | null;
+  /** 恢复执行进度（recovery-progress 事件）：phase=download/overwrite/create/import/done，percent=0-100 */
+  progress: { phase: string; percent: number } | null;
   masterPassword: string;
   confirmPassword: string;
   passwordHint: string;
@@ -37,6 +39,7 @@ export function RecoveryAccountView({
   pending,
   loading,
   statusText,
+  progress,
   masterPassword,
   confirmPassword,
   passwordHint,
@@ -57,6 +60,23 @@ export function RecoveryAccountView({
   onConfirmOverwrite,
 }: RecoveryAccountViewProps) {
   const { t } = useTranslation(['common']);
+
+  const phaseLabel = (phase: string): string => {
+    switch (phase) {
+      case 'download':
+        return t('common:recovery_progress_download', { defaultValue: 'Downloading recovery data…' });
+      case 'overwrite':
+        return t('common:recovery_progress_overwrite', { defaultValue: 'Deleting the existing account…' });
+      case 'create':
+        return t('common:recovery_progress_create', { defaultValue: 'Creating the account…' });
+      case 'import':
+        return t('common:recovery_progress_import', { defaultValue: 'Importing data…' });
+      case 'done':
+        return t('common:recovery_progress_done', { defaultValue: 'Recovery complete' });
+      default:
+        return statusText || t('common:loading');
+    }
+  };
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -173,7 +193,7 @@ export function RecoveryAccountView({
         </div>
       </div>
 
-      {/* 传输中的状态提示 */}
+      {/* 传输中的进度提示：有进度事件时显示确定进度条，否则显示连接中的不确定动画 */}
       {loading && statusText && (
         <div
           style={{
@@ -188,13 +208,63 @@ export function RecoveryAccountView({
             boxSizing: 'border-box',
           }}
         >
-          <Loader2
-            size={16}
-            style={{ animation: 'spin 1s linear infinite', flexShrink: 0 }}
-          />
-          <span style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)' }}>
-            {statusText}
-          </span>
+          {progress ? (
+            <div style={{ width: '100%' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: 6,
+                }}
+              >
+                <span
+                  style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)' }}
+                >
+                  {phaseLabel(progress.phase)}
+                </span>
+                <span
+                  style={{
+                    fontSize: 'var(--text-body-sm)',
+                    color: 'var(--text-secondary)',
+                    fontVariantNumeric: 'tabular-nums',
+                  }}
+                >
+                  {progress.percent}%
+                </span>
+              </div>
+              <div
+                style={{
+                  width: '100%',
+                  height: 6,
+                  borderRadius: 3,
+                  background: 'var(--border-subtle)',
+                  overflow: 'hidden',
+                }}
+              >
+                <div
+                  style={{
+                    width: `${progress.percent}%`,
+                    height: '100%',
+                    borderRadius: 3,
+                    background:
+                      'linear-gradient(90deg, var(--accent-primary), var(--accent-warm))',
+                    transition: 'width 0.3s ease',
+                  }}
+                />
+              </div>
+            </div>
+          ) : (
+            <>
+              <Loader2
+                size={16}
+                style={{ animation: 'spin 1s linear infinite', flexShrink: 0 }}
+              />
+              <span style={{ fontSize: 'var(--text-body-sm)', color: 'var(--text-secondary)' }}>
+                {statusText}
+              </span>
+            </>
+          )}
         </div>
       )}
 
