@@ -280,6 +280,8 @@ export function DeviceListPanel({
           <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
             {connectedPeers.map((peer) => {
               const displayName = formatPeerName(peer);
+              // 悬停动画与 workspace 对象卡片同源（interactive-card-lift 工具类）：
+              // 桌面指针设备 hover 时上浮 1px + 主题色 ring + 阴影加深（触屏不残留）
               return (
                 <div
                   key={peer.id}
@@ -292,6 +294,7 @@ export function DeviceListPanel({
                       onOpenDetail(peer);
                     }
                   }}
+                  className="interactive-card-lift"
                   style={{
                     display: 'flex',
                     alignItems: 'center',
