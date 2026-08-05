@@ -92,6 +92,30 @@ const BUILTIN_TEMPLATE_KEYS: Record<string, string> = {
   contact: 'sync_conflict_tpl_contact',
 };
 
+/** 用户无法感知/无法修改、冲突 diff 中始终省略的字段（对象指纹等）。 */
+const OMIT_ALWAYS = new Set(['template_hash', 'ignored_template_hash']);
+
+/** 空值判定：null / undefined / 空字符串 / 空数组。 */
+function isEmptyValue(v: unknown): boolean {
+  if (v === null || v === undefined || v === '') return true;
+  return Array.isArray(v) && v.length === 0;
+}
+
+/**
+ * 冲突 diff 中应省略的字段：用户无法感知也无法修改的系统元数据。
+ * 对象指纹（template_hash/ignored_template_hash）始终省略；
+ * children_ids/parent_id 仅在两侧都为空（无子对象/无父对象）时省略——
+ * 存在真实关系差异（一侧有、一侧无）时保留展示。
+ */
+export function shouldOmitField(key: string, local: unknown, remote: unknown): boolean {
+  const norm = normalizeFieldKey(key);
+  if (OMIT_ALWAYS.has(norm)) return true;
+  if (norm === 'children_ids' || norm === 'parent_id') {
+    return isEmptyValue(local) && isEmptyValue(remote);
+  }
+  return false;
+}
+
 /** 对象分区/模板分类 key → settings locale key。 */
 const CATEGORY_KEYS: Record<string, string> = {
   identity: 'sync_conflict_cat_identity',

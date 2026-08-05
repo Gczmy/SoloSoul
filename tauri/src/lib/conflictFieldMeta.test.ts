@@ -8,6 +8,7 @@ import {
   buildDiffEntries,
   isSensitivityLevel,
   resolveConflictIcon,
+  shouldOmitField,
 } from './conflictFieldMeta';
 
 /** 模拟 i18n：settings:/editor: 命中返回假想译文，未命中返回 defaultValue；支持 {{count}} 插值。 */
@@ -135,6 +136,40 @@ describe('formatConflictValue', () => {
     expect(formatConflictValue('type', 'email', t)).toBe('邮箱');
     // 未知类型保持原值
     expect(formatConflictValue('type', 'custom', t)).toBe('custom');
+  });
+});
+
+describe('shouldOmitField', () => {
+  it('always omits object fingerprint hashes', () => {
+    expect(shouldOmitField('templateHash', 'abc', 'def')).toBe(true);
+    expect(shouldOmitField('template_hash', null, null)).toBe(true);
+    expect(shouldOmitField('ignored_template_hash', 'x', undefined)).toBe(true);
+  });
+
+  it('omits children_ids when both sides have no children', () => {
+    expect(shouldOmitField('childrenIds', [], [])).toBe(true);
+    expect(shouldOmitField('children_ids', undefined, [])).toBe(true);
+  });
+
+  it('keeps children_ids when a real relationship difference exists', () => {
+    expect(shouldOmitField('childrenIds', ['obj-1'], [])).toBe(false);
+    expect(shouldOmitField('childrenIds', ['obj-1'], ['obj-2'])).toBe(false);
+  });
+
+  it('omits parent_id when both sides have no parent', () => {
+    expect(shouldOmitField('parentId', null, null)).toBe(true);
+    expect(shouldOmitField('parent_id', undefined, '')).toBe(true);
+  });
+
+  it('keeps parent_id when a real parent difference exists', () => {
+    expect(shouldOmitField('parentId', 'p-1', null)).toBe(false);
+    expect(shouldOmitField('parentId', 'p-1', 'p-2')).toBe(false);
+  });
+
+  it('keeps meaningful user fields', () => {
+    expect(shouldOmitField('name', '张三', '李四')).toBe(false);
+    expect(shouldOmitField('templateId', 'identity', 'passport')).toBe(false);
+    expect(shouldOmitField('properties', { a: 1 }, { a: 2 })).toBe(false);
   });
 });
 

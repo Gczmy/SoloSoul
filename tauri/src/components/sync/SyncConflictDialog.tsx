@@ -13,6 +13,7 @@ import {
   buildDiffEntries,
   isSensitivityLevel,
   resolveConflictIcon,
+  shouldOmitField,
 } from '@/lib/conflictFieldMeta';
 import styles from './SyncConflictDialog.module.css';
 
@@ -40,17 +41,19 @@ function DiffIcon({ icon }: { icon: LucideIcon }) {
   return <Icon size={14} strokeWidth={1.8} />;
 }
 
-/** 字段级 diff 行：合并本地/远程顶层键，逐字段比对。 */
+/** 字段级 diff 行：合并本地/远程顶层键，逐字段比对；省略用户无法感知/修改的元数据行。 */
 function buildFieldRows(local: unknown, remote: unknown, remoteDeleted: boolean) {
   const l = local && typeof local === 'object' ? (local as Record<string, unknown>) : {};
   const r = remote && typeof remote === 'object' ? (remote as Record<string, unknown>) : {};
   const keys = Array.from(new Set([...Object.keys(l), ...Object.keys(r)]));
-  return keys.map((key) => {
-    const lv = key in l ? l[key] : undefined;
-    const rv = key in r ? r[key] : undefined;
-    const changed = remoteDeleted ? lv !== undefined : !valuesEqual(lv, rv);
-    return { key, local: lv, remote: rv, changed };
-  });
+  return keys
+    .map((key) => {
+      const lv = key in l ? l[key] : undefined;
+      const rv = key in r ? r[key] : undefined;
+      const changed = remoteDeleted ? lv !== undefined : !valuesEqual(lv, rv);
+      return { key, local: lv, remote: rv, changed };
+    })
+    .filter((row) => !shouldOmitField(row.key, row.local, row.remote));
 }
 
 export function SyncConflictDialog({
