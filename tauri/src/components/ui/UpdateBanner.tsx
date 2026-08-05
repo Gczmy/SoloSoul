@@ -98,17 +98,26 @@ export function UpdateBanner({
           <span style={{ fontWeight: 500, whiteSpace: 'nowrap' }}>
             {t('update_downloading', { version })}
           </span>
-          <progress
-            value={totalBytes > 0 ? downloadedBytes : (progressPercent ?? 0)}
-            max={totalBytes > 0 ? totalBytes : 100}
+          <div
             style={{
               flex: 1,
               maxWidth: 240,
               height: 6,
               borderRadius: 3,
-              accentColor: 'white',
+              background: 'rgba(255,255,255,0.3)',
+              overflow: 'hidden',
             }}
-          />
+          >
+            <div
+              style={{
+                width: `${Math.min(100, Math.max(0, totalBytes > 0 ? (downloadedBytes / totalBytes) * 100 : (progressPercent ?? 0)))}%`,
+                height: '100%',
+                borderRadius: 3,
+                background: 'linear-gradient(90deg, rgba(255,255,255,0.95), #ffe9c4)',
+                transition: 'width 0.2s ease',
+              }}
+            />
+          </div>
           <span
             style={{
               fontSize: 'var(--text-caption)',

@@ -261,7 +261,8 @@ export function VaultDirectorySection() {
               style={{
                 width: `${Math.round((syncProgress.current / syncProgress.total) * 100)}%`,
                 height: '100%', borderRadius: 3,
-                background: 'var(--accent-primary)',
+                background:
+                  'linear-gradient(90deg, var(--accent-primary), var(--accent-warm))',
                 transition: 'width 0.3s ease',
               }}
             />

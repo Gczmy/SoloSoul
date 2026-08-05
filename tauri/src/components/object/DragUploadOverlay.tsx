@@ -116,7 +116,8 @@ export function DragUploadOverlay({ dragState, borderRadius = 12 }: DragUploadOv
               style={{
                 height: '100%',
                 width: `${totalFiles > 1 ? ((currentIndex + 1) / totalFiles) * 100 : 30}%`,
-                background: 'var(--accent-primary)',
+                background:
+                  'linear-gradient(90deg, var(--accent-primary), var(--accent-warm))',
                 borderRadius: 2,
                 transition: 'width 0.3s ease',
               }}

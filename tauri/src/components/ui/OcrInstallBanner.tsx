@@ -171,7 +171,7 @@ export function OcrInstallBanner({
             style={{
               width: `${Math.min(100, Math.max(0, progress))}%`,
               height: '100%',
-              background: 'white',
+              background: 'linear-gradient(90deg, rgba(255,255,255,0.95), #ffe9c4)',
               borderRadius: 2,
               transition: 'width 0.2s ease',
             }}

@@ -140,7 +140,8 @@ export function LocalEmbeddingsPanel({
                         style={{
                           width: `${downloadProgress}%`,
                           height: '100%',
-                          background: 'var(--accent-primary)',
+                          background:
+                            'linear-gradient(90deg, var(--accent-primary), var(--accent-warm))',
                           transition: 'width 0.3s',
                         }}
                       />

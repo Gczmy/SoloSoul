@@ -235,7 +235,8 @@ export function UpdateInfoCard({
                           style={{
                             width: `${progressPercent}%`,
                             height: '100%',
-                            background: 'var(--accent-primary)',
+                            background:
+                              'linear-gradient(90deg, var(--accent-primary), var(--accent-warm))',
                             borderRadius: 3,
                             transition: 'width 0.2s ease',
                           }}
