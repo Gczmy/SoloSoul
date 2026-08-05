@@ -130,6 +130,12 @@ export function SyncConflictDialog({
           </div>
         ) : (
           <>
+            <div className={styles.listHeader}>
+              {t('settings:sync_conflict_list_count', {
+                defaultValue: '{{count}} conflicts',
+                count: conflicts.length,
+              })}
+            </div>
             <div className={styles.list}>
               {conflicts.map((c) => (
                 <button

@@ -1063,5 +1063,6 @@
   "sync_conflict_field_schema_count": "{{count}} fields",
   "sync_conflict_only_diff": "Only show differences",
   "sync_conflict_only_diff_count": "{{count}} differences",
-  "sync_conflict_no_differences": "No differences."
+  "sync_conflict_no_differences": "No differences.",
+  "sync_conflict_list_count": "{{count}} conflicts"
 }
