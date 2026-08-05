@@ -246,6 +246,8 @@ export function UpdateInfoCard({
                         style={{
                           fontSize: 'var(--text-badge)',
                           color: 'var(--text-tertiary)',
+                          /* 数字等宽，避免下载字节数变化时文字宽度抖动 */
+                          fontVariantNumeric: 'tabular-nums',
                         }}
                       >
                         {'event' in (downloadProgress || {})

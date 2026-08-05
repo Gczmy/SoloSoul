@@ -122,8 +122,12 @@ export function UpdateBanner({
             style={{
               fontSize: 'var(--text-caption)',
               whiteSpace: 'nowrap',
-              minWidth: 90,
+              /* 数字等宽（tabular-nums）+ 足够最小宽度 + RTL 右对齐：
+                 下载数字位数变化（22.7→5.1→54.0）时宽度恒定，进度条与左侧文字不抖动 */
+              fontVariantNumeric: 'tabular-nums',
+              minWidth: 96,
               textAlign: 'right',
+              direction: 'rtl',
             }}
           >
             {totalBytes > 0

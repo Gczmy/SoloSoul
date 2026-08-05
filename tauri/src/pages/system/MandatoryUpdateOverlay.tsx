@@ -179,6 +179,8 @@ export function MandatoryUpdateOverlay({
                 fontSize: 'var(--text-badge)',
                 color: 'var(--text-tertiary)',
                 textAlign: 'center',
+                /* 数字等宽，避免下载字节数变化时文字宽度抖动 */
+                fontVariantNumeric: 'tabular-nums',
               }}
             >
               {`${formatBytes(downloadedBytes)} / ${formatBytes(totalBytes)} (${progressPercent}%)`}
