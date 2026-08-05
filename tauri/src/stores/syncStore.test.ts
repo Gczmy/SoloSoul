@@ -59,6 +59,51 @@ describe('syncStore pairing_pending detection', () => {
     expect(s.isLoading).toBe(false);
   });
 
+  it('parses sasCode from new pairing_pending format', async () => {
+    // 新后端返回 `{peerId}:{sas}`；sas 应存入 pairingPendingSasCode 供配对卡片展示
+    mockInvoke
+      .mockImplementationOnce(() =>
+        Promise.reject('__SYNC_ERR__:pairing_pending:node-B:482913'),
+      )
+      .mockResolvedValueOnce({
+        isDiscovering: false,
+        syncEnabled: true,
+        autoSyncEnabled: false,
+        localFingerprint: 'fp',
+        connectedPeers: [
+          { id: 'node-B', name: 'SoloSoul-ab12cd34', addr: '10.0.0.2:42069', fingerprint: 'ab12cd34', trusted: false, lastSeen: 'now' },
+        ],
+      });
+
+    await useSyncStore.getState().syncWithDevice('10.0.0.2:42069');
+
+    const s = useSyncStore.getState();
+    expect(s.pairingPendingPeerId).toBe('node-B');
+    expect(s.pairingPendingSasCode).toBe('482913');
+    expect(s.error).toBeNull();
+  });
+
+  it('keeps pairingPendingSasCode null for legacy pairing_pending format', async () => {
+    // 旧格式 `{peerId}` 无 sas 部分，sasCode 应为 null（前端回退显示指纹）
+    mockInvoke
+      .mockImplementationOnce(() =>
+        Promise.reject('__SYNC_ERR__:pairing_pending:node-B'),
+      )
+      .mockResolvedValueOnce({
+        isDiscovering: false,
+        syncEnabled: true,
+        autoSyncEnabled: false,
+        localFingerprint: 'fp',
+        connectedPeers: [],
+      });
+
+    await useSyncStore.getState().syncWithDevice('10.0.0.2:42069');
+
+    const s = useSyncStore.getState();
+    expect(s.pairingPendingPeerId).toBe('node-B');
+    expect(s.pairingPendingSasCode).toBeNull();
+  });
+
   it('keeps generic error for non-pairing failures', async () => {
     mockInvoke.mockImplementationOnce(() => Promise.reject('__SYNC_ERR__:connect_failed:timeout'));
 
@@ -81,17 +126,37 @@ describe('syncStore pairing_pending detection', () => {
     const handler = handlers.get('sync-pairing-request');
     expect(handler).toBeDefined();
 
-    handler!({ payload: { nodeId: 'node-A', fingerprint: 'aabbccdd11223344', addr: '10.0.0.1:42069', deviceName: 'SoloSoul-aabbccdd' } });
+    handler!({ payload: { nodeId: 'node-A', fingerprint: 'aabbccdd11223344', addr: '10.0.0.1:42069', deviceName: 'SoloSoul-aabbccdd', sasCode: '730154' } });
 
     const req = useSyncStore.getState().incomingPairingRequest;
     expect(req).not.toBeNull();
     expect(req!.id).toBe('node-A');
     expect(req!.name).toBe('SoloSoul-aabbccdd');
     expect(req!.fingerprint).toBe('aabbccdd11223344');
+    expect(req!.sasCode).toBe('730154');
     expect(req!.trusted).toBe(false);
 
     useSyncStore.getState().clearIncomingPairingRequest();
     expect(useSyncStore.getState().incomingPairingRequest).toBeNull();
+    expect(unlisten).toBe(mockUnlisten);
+  });
+
+  it('updates sasCode on duplicate nodeId event (new handshake)', async () => {
+    const unlisten = await useSyncStore.getState().initPairingRequestListener();
+    const handler = handlers.get('sync-pairing-request');
+    expect(handler).toBeDefined();
+
+    // 首次事件（握手 H1）
+    handler!({ payload: { nodeId: 'node-A', fingerprint: 'aa', addr: '10.0.0.1:1', deviceName: 'n', sasCode: '111111' } });
+    // 同一 peer 重连（握手 H2，新验证码）：不重建卡片，仅更新 sasCode
+    handler!({ payload: { nodeId: 'node-A', fingerprint: 'aa', addr: '10.0.0.1:1', deviceName: 'n', sasCode: '222222' } });
+
+    const req = useSyncStore.getState().incomingPairingRequest;
+    expect(req).not.toBeNull();
+    expect(req!.sasCode).toBe('222222');
+    expect(req!.id).toBe('node-A');
+
+    useSyncStore.getState().clearIncomingPairingRequest();
     expect(unlisten).toBe(mockUnlisten);
   });
 });

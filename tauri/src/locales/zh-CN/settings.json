@@ -816,6 +816,8 @@
   "sync_pairing_title": "配对设备",
   "sync_pairing_warning": "请只信任您本人拥有或控制的设备。攻击者可能伪装成您的设备。",
   "sync_pairing_verify_prompt": "请核对下方 fingerprint 与对端设备显示的是否一致：",
+  "sync_pairing_sas_prompt": "请比对下方验证码与对端设备显示的是否一致，两台设备应显示相同数字：",
+  "sync_pairing_sas_hint": "两台设备显示的验证码一致即确认设备无误；确认后请在对端设备上接受配对请求",
   "sync_pairing_no_fingerprint": "无可用 fingerprint",
   "sync_pairing_ignore": "忽略",
   "sync_pairing_trust": "信任并配对",

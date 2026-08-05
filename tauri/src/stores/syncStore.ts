@@ -22,6 +22,8 @@ export interface SyncPeer {
   trustedAt?: number | null;
   /** 客户端类型：macos / windows / linux / android / ios / unknown。 */
   clientType?: string;
+  /** 6 位 SAS 配对验证码（仅配对中临时携带，两侧展示同一数字供目视比对）。 */
+  sasCode?: string;
 }
 
 export interface DiscoveredDevice {
@@ -56,6 +58,8 @@ interface SyncStoreState extends SyncStatus {
   pairingPendingPeerId: string | null;
   /** 配对中（A 侧发起方）：发起同步时使用的地址，用于确认信任后自动重试。 */
   pairingPendingAddr: string | null;
+  /** 配对中（A 侧发起方）：本次握手派生的 6 位 SAS 验证码（配对卡片展示）。 */
+  pairingPendingSasCode: string | null;
   /** 入站配对请求（B 侧响应方）：AppShell 全局监听后弹出确认对话框。 */
   incomingPairingRequest: SyncPeer | null;
 
@@ -116,6 +120,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
   hasUnreadConflicts: false,
   pairingPendingPeerId: null,
   pairingPendingAddr: null,
+  pairingPendingSasCode: null,
   incomingPairingRequest: null,
 
   loadStatus: async () => {
@@ -225,15 +230,19 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
       const raw = String(err);
       // 对端尚未信任本设备 → 进入双侧确认配对流程（A 侧发起方）。
       // B 已被 record_peer 持久化（含指纹），重读状态后弹配对卡片。
-      const pairingMatch = raw.match(/^__SYNC_ERR__:pairing_pending:(.+)$/);
+      // 新后端返回 `__SYNC_ERR__:pairing_pending:{peerId}:{sas}`（sas = 6 位验证码），
+      // 旧格式 `{peerId}` 亦兼容（无 sasCode）。
+      const pairingMatch = raw.match(/^__SYNC_ERR__:pairing_pending:([^:]+)(?::(\d{6}))?$/);
       if (pairingMatch) {
         const peerId = pairingMatch[1];
+        const sasCode = pairingMatch[2] ?? null;
         await get().loadStatus();
         set({
           isLoading: false,
           error: null,
           pairingPendingPeerId: peerId,
           pairingPendingAddr: deviceId,
+          pairingPendingSasCode: sasCode,
         });
         return;
       }
@@ -328,39 +337,49 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
    *  AppShell 全局挂载后，B 用户不在同步页也能收到配对确认对话框。
    *  返回 unlisten 函数，调用方应在组件卸载时调用以清理。 */
   initPairingRequestListener: (): Promise<UnlistenFn> => {
-    return listen<{ nodeId: string; fingerprint: string; addr: string; deviceName: string }>(
-      'sync-pairing-request',
-      (event) => {
-        const p = event.payload;
-        // P103: 未信任 peer 不再落库，同一 peer 重连会重复触发本事件。
-        // 若已展示同一 peer 的配对请求则忽略，避免 A 侧自动重试（多次连接）
-        // 导致 B 侧对话框/事件重复刷新。用户确认或忽略清除后，新请求可重新弹出。
-        if (get().incomingPairingRequest?.id === p.nodeId) {
-          return;
+    return listen<{
+      nodeId: string;
+      fingerprint: string;
+      addr: string;
+      deviceName: string;
+      sasCode?: string;
+    }>('sync-pairing-request', (event) => {
+      const p = event.payload;
+      // P103: 未信任 peer 不再落库，同一 peer 重连会重复触发本事件。
+      // 若已展示同一 peer 的配对请求：仅更新本次会话的 SAS 验证码（A 侧
+      // 忽略后重新发起会开启新握手、新验证码），不重建整个卡片，避免
+      // A 侧自动重试（多次连接）导致 B 侧对话框反复闪烁。
+      // 用户确认或忽略清除后，新请求可重新弹出。
+      const existing = get().incomingPairingRequest;
+      if (existing?.id === p.nodeId) {
+        if (p.sasCode && existing.sasCode !== p.sasCode) {
+          set({ incomingPairingRequest: { ...existing, sasCode: p.sasCode } });
         }
-        const deviceName =
-          p.deviceName ||
-          (p.fingerprint ? `SoloSoul-${p.fingerprint.slice(0, 8)}` : p.nodeId);
-        set({
-          incomingPairingRequest: {
-            id: p.nodeId,
-            name: deviceName,
-            addr: p.addr || '',
-            fingerprint: p.fingerprint || '',
-            trusted: false,
-            lastSeen: '',
-            lastSeenTs: null,
-            trustedAt: null,
-            clientType: 'unknown',
-          },
-        });
-      },
-    );
+        return;
+      }
+      const deviceName =
+        p.deviceName ||
+        (p.fingerprint ? `SoloSoul-${p.fingerprint.slice(0, 8)}` : p.nodeId);
+      set({
+        incomingPairingRequest: {
+          id: p.nodeId,
+          name: deviceName,
+          addr: p.addr || '',
+          fingerprint: p.fingerprint || '',
+          trusted: false,
+          lastSeen: '',
+          lastSeenTs: null,
+          trustedAt: null,
+          clientType: 'unknown',
+          sasCode: p.sasCode || '',
+        },
+      });
+    });
   },
 
   /** 清除 A 侧配对中状态（取消等待 / 配对完成 / 忽略）。 */
   clearPairingPending: () => {
-    set({ pairingPendingPeerId: null, pairingPendingAddr: null });
+    set({ pairingPendingPeerId: null, pairingPendingAddr: null, pairingPendingSasCode: null });
   },
 
   /** 清除 B 侧入站配对请求（确认或忽略后）。 */

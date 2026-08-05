@@ -2,6 +2,12 @@
 
 All notable changes to SoloSoul are documented in this file.
 
+## [Unreleased] - SAS 配对验证码
+
+### Changed
+
+- **设备同步配对改为 SAS 验证码** — 双侧确认配对时，两端各自从 Noise 握手哈希派生同一 6 位验证码（`SHA-256(hash ‖ "SoloSoul-SAS-v1")` 模 10^6），配对卡片两侧大号展示（3-3 分块）供目视比对。替代原 32 字符 fingerprint（双侧弹窗时两端各显示对端指纹、无法对照的痛点）；无验证码场景（手动配对/旧客户端）回退显示指纹。线上配对帧保持旧格式，旧客户端配对流程完全兼容。
+
 ## [2.8.2] - 2026-08-05
 
 ### Added

@@ -33,6 +33,7 @@ export function useSyncPage() {
       conflicts: s.conflicts,
       selectedConflict: s.selectedConflict,
       pairingPendingPeerId: s.pairingPendingPeerId,
+      pairingPendingSasCode: s.pairingPendingSasCode,
       discoverDevices: s.discoverDevices,
       syncWithDevice: s.syncWithDevice,
       trustPeer: s.trustPeer,
@@ -119,13 +120,17 @@ export function useSyncPage() {
     );
   }, [store.connectedPeers, ignoredPeerIds, hasIncomingRequest]);
 
-  /** A 侧配对目标：pairingPendingPeerId 对应的 peer（等待对端确认）。 */
+  /** A 侧配对目标：pairingPendingPeerId 对应的 peer（等待对端确认）。
+   *  若 store 携带本次握手派生的 SAS 验证码则附加到 peer 上，配对卡片据此展示。 */
   const pairingPendingPeer = useMemo(() => {
     if (!store.pairingPendingPeerId) return null;
-    return (
-      store.connectedPeers.find((p) => p.id === store.pairingPendingPeerId) || null
-    );
-  }, [store.connectedPeers, store.pairingPendingPeerId]);
+    const peer = store.connectedPeers.find((p) => p.id === store.pairingPendingPeerId) || null;
+    if (!peer) return null;
+    if (store.pairingPendingSasCode) {
+      return { ...peer, sasCode: store.pairingPendingSasCode };
+    }
+    return peer;
+  }, [store.connectedPeers, store.pairingPendingPeerId, store.pairingPendingSasCode]);
 
   // ⚡ 使用 getState() 避免闭包捕获整个 store 导致无限重触发
   const loadStatus = useCallback(async () => {

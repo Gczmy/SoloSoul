@@ -817,6 +817,8 @@
   "sync_pairing_title": "Pair New Device",
   "sync_pairing_warning": "Only trust devices you physically own or control. An attacker could impersonate your device.",
   "sync_pairing_verify_prompt": "Verify the fingerprint below matches the one shown on the other device:",
+  "sync_pairing_sas_prompt": "Compare the verification code below with the one shown on the other device. Both devices must show the same number:",
+  "sync_pairing_sas_hint": "If the codes match, the devices are verified. Confirm, then accept the pairing request on the other device.",
   "sync_pairing_no_fingerprint": "No fingerprint available",
   "sync_pairing_ignore": "Ignore",
   "sync_pairing_trust": "Trust & Pair",

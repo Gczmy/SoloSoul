@@ -80,6 +80,9 @@ pub struct NewPeerInfo {
     pub device_name: String,
     /// 发起方客户端类型（macos/windows/linux/android/ios/unknown）。
     pub client_type: String,
+    /// 6 位 SAS 配对验证码：响应方从本次握手哈希本地派生，
+    /// 与发起方各自派生的值一致，配对卡片两侧展示供用户目视比对。
+    pub sas_code: String,
 }
 
 /// 新 peer 回调钩子：入站 Hello record_peer 落库一条新的未信任记录时触发。

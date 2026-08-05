@@ -26,6 +26,21 @@ describe('PairingDialog', () => {
     expect(screen.getByText(mockPeer.fingerprint)).toBeInTheDocument();
   });
 
+  it('renders 6-digit SAS code (3-3 split) when sasCode is present', () => {
+    const peerWithSas: SyncPeer = { ...mockPeer, sasCode: '482913' };
+    render(<PairingDialog isOpen={true} peer={peerWithSas} onTrust={vi.fn()} onIgnore={vi.fn()} />);
+    // 3-3 分块展示（482 · 913）
+    expect(screen.getByText('482 · 913')).toBeInTheDocument();
+    // SAS 优先于指纹展示
+    expect(screen.queryByText(mockPeer.fingerprint)).not.toBeInTheDocument();
+  });
+
+  it('falls back to fingerprint when sasCode is missing', () => {
+    const peerNoSas: SyncPeer = { ...mockPeer, sasCode: '' };
+    render(<PairingDialog isOpen={true} peer={peerNoSas} onTrust={vi.fn()} onIgnore={vi.fn()} />);
+    expect(screen.getByText(mockPeer.fingerprint)).toBeInTheDocument();
+  });
+
   it('calls onTrust when clicking Trust & Pair', () => {
     const onTrust = vi.fn();
     render(<PairingDialog isOpen={true} peer={mockPeer} onTrust={onTrust} onIgnore={vi.fn()} />);

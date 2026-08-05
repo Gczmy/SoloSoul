@@ -148,29 +148,56 @@ export function PairingDialog({
                   fontSize: 'var(--text-caption)',
                   color: 'var(--text-secondary)',
                   marginBottom: 6,
+                  textAlign: 'center',
                 }}
               >
-                {t('settings:sync_pairing_verify_prompt', {
-                  defaultValue:
-                    'Verify the fingerprint below matches the one shown on the other device:',
-                })}
+                {peer.sasCode
+                  ? t('settings:sync_pairing_sas_prompt', {
+                      defaultValue:
+                        'Compare the verification code below with the other device. They must match:',
+                    })
+                  : t('settings:sync_pairing_verify_prompt', {
+                      defaultValue:
+                        'Verify the fingerprint below matches the one shown on the other device:',
+                    })}
               </div>
-              <div
-                style={{
-                  padding: 12,
-                  borderRadius: 8,
-                  background: 'var(--bg-toolbar)',
-                  fontFamily: 'monospace',
-                  fontSize: 'var(--text-caption)',
-                  wordBreak: 'break-all',
-                  color: 'var(--text-primary)',
-                }}
-              >
-                {peer.fingerprint ||
-                  t('settings:sync_pairing_no_fingerprint', {
-                    defaultValue: 'No fingerprint available',
-                  })}
-              </div>
+              {peer.sasCode ? (
+                /* SAS 配对验证码：6 位数字 3-3 分块，大号展示便于目视比对 */
+                <div
+                  style={{
+                    padding: 16,
+                    borderRadius: 10,
+                    background: 'var(--bg-toolbar)',
+                    border: '1px solid color-mix(in srgb, var(--accent-primary) 35%, transparent)',
+                    textAlign: 'center',
+                    fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
+                    fontSize: 'var(--text-card-title)',
+                    fontWeight: 700,
+                    letterSpacing: 8,
+                    color: 'var(--accent-primary)',
+                    fontVariantNumeric: 'tabular-nums',
+                  }}
+                >
+                  {`${peer.sasCode.slice(0, 3)} · ${peer.sasCode.slice(3, 6)}`}
+                </div>
+              ) : (
+                <div
+                  style={{
+                    padding: 12,
+                    borderRadius: 8,
+                    background: 'var(--bg-toolbar)',
+                    fontFamily: 'monospace',
+                    fontSize: 'var(--text-caption)',
+                    wordBreak: 'break-all',
+                    color: 'var(--text-primary)',
+                  }}
+                >
+                  {peer.fingerprint ||
+                    t('settings:sync_pairing_no_fingerprint', {
+                      defaultValue: 'No fingerprint available',
+                    })}
+                </div>
+              )}
             </div>
 
             {!waiting && !waitFailed && (
@@ -184,9 +211,14 @@ export function PairingDialog({
                   lineHeight: 1.5,
                 }}
               >
-                {t('settings:sync_pairing_confirm_hint', {
-                  defaultValue: '核对指纹后确认配对，并请在对端设备上接受配对请求',
-                })}
+                {peer.sasCode
+                  ? t('settings:sync_pairing_sas_hint', {
+                      defaultValue:
+                        '两台设备显示的验证码一致即确认设备无误；确认后请在对端设备上接受配对请求',
+                    })
+                  : t('settings:sync_pairing_confirm_hint', {
+                      defaultValue: '核对指纹后确认配对，并请在对端设备上接受配对请求',
+                    })}
               </div>
             )}
           </>

@@ -382,6 +382,8 @@ impl AppState {
                         "fingerprint": info.fingerprint,
                         "addr": info.addr,
                         "deviceName": info.device_name,
+                        // SAS 配对验证码：两侧展示同一 6 位数字供目视比对。
+                        "sasCode": info.sas_code,
                     }),
                 );
             })));

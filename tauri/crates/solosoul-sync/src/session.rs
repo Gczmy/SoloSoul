@@ -67,16 +67,44 @@ fn check_session_deadline(start: Instant) -> Result<(), String> {
 
 /// P103: 构造 pairing_pending 最小错误帧——只含对端 node_id，
 /// 不含本地 account_id 与指纹（信任确认前不泄露敏感信息）。
+/// 注意：这是 **B→A 线上错误帧** 的格式，必须保持旧版（无 sas）不变，
+/// 否则旧版客户端解析 `parse_pairing_pending` 会失败（配对流程断裂）。
 fn pairing_pending_message(node_id: &str) -> String {
     format!("__SYNC_ERR__:pairing_pending:{}", node_id)
 }
 
+/// 构造返回给 **本端前端** 的 pairing_pending 错误：在最小帧基础上附加
+/// 本地派生的 6 位 SAS 验证码（`__SYNC_ERR__:pairing_pending:{pid}:{sas}`）。
+/// A 侧前端据此在配对卡片两侧展示同一验证码供用户目视比对。
+/// 仅用于 A 侧（发起方）→ 本地前端，不跨设备传输；线上帧仍用旧格式。
+fn pairing_pending_frontend_message(node_id: &str, sas_code: &str) -> String {
+    format!("__SYNC_ERR__:pairing_pending:{}:{}", node_id, sas_code)
+}
+
 /// P103: 从错误帧中解析 pairing_pending 携带的对端 node_id。
 /// 非 pairing_pending 帧或空 id 返回 None。
+/// 对 A 侧前端帧（`{node_id}:{sas}`）取第一个 `:` 之前的部分，
+/// 避免 node_id 被 sas 污染（防御性——线上帧本不应携带 sas）。
 fn parse_pairing_pending(message: &str) -> Option<&str> {
     message
         .strip_prefix("__SYNC_ERR__:pairing_pending:")
         .filter(|s| !s.is_empty())
+        .map(|s| s.split(':').next().unwrap_or(s))
+        .filter(|s| !s.is_empty())
+}
+
+/// 从 A 侧前端帧（`{node_id}:{sas}`）中解析 6 位 SAS 验证码。
+/// 非前端帧（无 sas 部分）返回 None。
+/// 仅测试使用：生产路径中 sas 由前端直接解析错误串（`{node_id}:{sas}`）。
+#[cfg(test)]
+fn parse_pairing_pending_sas(message: &str) -> Option<&str> {
+    let rest = message.strip_prefix("__SYNC_ERR__:pairing_pending:")?;
+    let sas = rest.split(':').nth(1)?;
+    if sas.len() == 6 && sas.chars().all(|c| c.is_ascii_digit()) {
+        Some(sas)
+    } else {
+        None
+    }
 }
 
 /// 把同步会话/连接阶段返回的英文错误包装为 `__SYNC_ERR__:` 前缀，
@@ -183,7 +211,8 @@ pub fn run_initiator_session(
             if !t {
                 // 发起方侧：响应方尚未信任本设备。返回带 peer_node_id 的配对中错误码，
                 // 前端据此进入「双侧确认配对」流程（不裸报英文，走 __SYNC_ERR__ 前缀 i18n）。
-                return Err(pairing_pending_message(&pid));
+                // 附加本地派生的 SAS 验证码：前端配对卡片两侧展示同一 6 位数字。
+                return Err(pairing_pending_frontend_message(&pid, &session.sas_code()));
             }
             (pid, t, peer_client_type)
         }
@@ -195,6 +224,9 @@ pub fn run_initiator_session(
             // 此处吞掉避免 DB 错误掩盖 __SYNC_ERR__:pairing_pending 让前端无法进入配对流程。
             if let Some(pid) = parse_pairing_pending(&message) {
                 let _ = record_peer(&vault, pid, &peer_addr, &remote_fingerprint, "");
+                // 附加本地派生的 SAS 验证码：前端配对卡片两侧展示同一 6 位数字。
+                // B 侧旧版不发送 sas（线上帧格式未变），A 侧从本地会话派生即可。
+                return Err(pairing_pending_frontend_message(pid, &session.sas_code()));
             }
             return Err(message);
         }
@@ -363,6 +395,9 @@ pub fn handle_inbound(
                 addr: peer_addr.clone(),
                 device_name,
                 client_type: peer_client_type.clone(),
+                // 响应方从本地握手哈希派生 SAS 验证码，与发起方各自派生的值一致，
+                // 供 B 侧配对卡片展示（两侧显示同一 6 位数字供目视比对）。
+                sas_code: session.sas_code(),
             });
         }
         send_msg(
@@ -769,11 +804,60 @@ mod tests {
     }
 
     /// parse_pairing_pending 正确解析最小错误帧中的 node_id。
+    /// 注意：线上帧格式永远是 `__SYNC_ERR__:pairing_pending:{node_id}`（无 sas），
+    /// sas 只存在于 A 侧返回给本地前端的帧中，不会经线上传输。
     #[test]
     fn test_parse_pairing_pending_extracts_node_id() {
         assert_eq!(
             parse_pairing_pending("__SYNC_ERR__:pairing_pending:node-b"),
             Some("node-b")
+        );
+    }
+
+    /// 线上帧解析器对携带 sas 的前端帧：node_id 是 sas 之前的部分。
+    /// （防御性——线上帧不应带 sas，但若未来格式漂移仍能解析出 node_id。）
+    #[test]
+    fn test_parse_pairing_pending_handles_frontend_frame_with_sas() {
+        assert_eq!(
+            parse_pairing_pending("__SYNC_ERR__:pairing_pending:node-b:482913"),
+            Some("node-b")
+        );
+    }
+
+    /// 前端帧构造：最小帧 + 6 位 sas，node_id 与 sas 均可回读。
+    #[test]
+    fn test_pairing_pending_frontend_message_includes_sas() {
+        let msg = pairing_pending_frontend_message("node-b", "482913");
+        assert_eq!(msg, "__SYNC_ERR__:pairing_pending:node-b:482913");
+        // 不包含 account_id 与指纹（信任确认前不泄露敏感信息）
+        assert!(!msg.contains("account"));
+        assert!(!msg.contains("fingerprint"));
+        // node_id 可回读（用于前端定位 peer）
+        assert_eq!(parse_pairing_pending(&msg), Some("node-b"));
+        // sas 可回读
+        assert_eq!(parse_pairing_pending_sas(&msg), Some("482913"));
+    }
+
+    /// 线上最小帧无 sas 部分，sas 解析器应返回 None（避免旧客户端帧被误判）。
+    #[test]
+    fn test_parse_pairing_pending_sas_rejects_online_frame() {
+        assert_eq!(
+            parse_pairing_pending_sas("__SYNC_ERR__:pairing_pending:node-b"),
+            None
+        );
+        // 非 6 位 / 非纯数字的 sas 拒绝
+        assert_eq!(
+            parse_pairing_pending_sas("__SYNC_ERR__:pairing_pending:node-b:abc"),
+            None
+        );
+        assert_eq!(
+            parse_pairing_pending_sas("__SYNC_ERR__:pairing_pending:node-b:123"),
+            None
+        );
+        // 非 pairing_pending 帧拒绝
+        assert_eq!(
+            parse_pairing_pending_sas("__SYNC_ERR__:handshake_failed:x"),
+            None
         );
     }
 
