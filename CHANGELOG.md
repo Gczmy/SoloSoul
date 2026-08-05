@@ -2,6 +2,31 @@
 
 All notable changes to SoloSoul are documented in this file.
 
+## [2.8.2] - 2026-08-05
+
+### Added
+
+- **覆盖恢复进度条** — 「从其他设备恢复」覆盖流程显示实时进度（下载 0-40% / 覆盖 45% / 创建 50% / 导入 50-95% / 完成 100%），导入阶段按对象与附件单调推进；完成后弹确认框，用户确认后返回登录页并展示刚恢复的账户。
+
+### Fixed
+
+- **Android SAF 目录删除后重启无提醒（回归修复）** — 自动更新安装后丢失 SAF 授权失效检测状态，重新注册检测逻辑，每次启动都提示「SAF 目录访问已失效」横幅（不再只提醒一次后静默）。
+
+### Changed
+
+- **全库确定进度条统一渐变** — 恢复进度、版本更新横幅（UpdateBanner/OcrInstallBanner/UpdateInfoCard/MandatoryUpdateOverlay）、SAF 目录加载、Embedding 下载、拖拽上传等全部确定进度条统一为「主题色→暖黄」渐变（原生 `<progress>` 替换为自绘 div，消除默认绿色），随 accent 预设联动。
+- **版本更新横幅字节数防抖动** — `tabular-nums` 等宽数字 + 固定最小宽度 + RTL 右对齐，下载中数字位数变化不再推动进度条与文字左右晃动。
+- **已知设备卡片悬停动画** — 设备同步已知设备项加入 `interactive-card-lift` 悬停效果（上浮 + 主题色 ring + 阴影），与 workspace 对象卡片同源交互语言。
+
+### Security
+
+- **npm 供应链漏洞修复（`bb19e77c`）** — react-router 7.17.0→7.18.2（生产依赖，open redirect CVE-2025-68470 绕过/XSS/构造函数注入/路由 DoS）、undici 7.27.1→7.29.0、postcss→8.5.25、brace-expansion→5.0.9。keyv/cacheable 命名空间供应链攻击确认不受影响；剩余 2 个 high（RSC Mode CSRF）为纯客户端 SPA 不可利用面，暂缓 v8 升级。
+
+### Chores
+
+- 版本号同步升级到 2.8.2（versionCode 2008002）。
+- 9 个 commit 自 v2.8.1（`b5af6cc2`）到 v2.8.2。
+
 ## [2.8.1] - 2026-08-05
 
 ### Fixed
