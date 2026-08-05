@@ -2,7 +2,7 @@
 
 All notable changes to SoloSoul are documented in this file.
 
-## [Unreleased] - SAS 配对验证码
+## [2.8.3] - 2026-08-05
 
 ### Changed
 
