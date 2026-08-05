@@ -172,3 +172,116 @@ export function truncateConflictValue(text: string): string {
   if (text.length <= CONFLICT_VALUE_MAX_LEN) return text;
   return `${text.slice(0, CONFLICT_VALUE_MAX_LEN)}…`;
 }
+
+/** 深度相等：JSON 序列化比较（冲突数据均为可序列化值）。 */
+function valuesEqual(a: unknown, b: unknown): boolean {
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
+/** 叶子级 diff 条目：对象/数组字段按叶子展开，本地/远程逐叶配对。 */
+export interface DiffEntry {
+  /** 原始键路径（用于 React key 与本地/远程配对，不随语言变化）。 */
+  path: string;
+  /** 可读标签（i18n 名称链，如 `姓名`、`Fields › 出生日期`）。 */
+  label: string;
+  /** 本地侧文本；null 表示本地缺失。 */
+  localText: string | null;
+  /** 远程侧文本；null 表示远程缺失。 */
+  remoteText: string | null;
+  /** 该叶子是否存在差异（含单侧缺失）。 */
+  changed: boolean;
+}
+
+interface Leaf {
+  path: string;
+  label: string;
+  value: unknown;
+}
+
+/** 嵌套展开深度上限：超过后按整块值呈现（避免无限递归与超长标签链）。 */
+const DIFF_MAX_DEPTH = 3;
+
+/** 将对象/数组值按叶子展开（路径基于原始键、标签基于 i18n 名称链）。 */
+function collectLeaves(
+  prefix: string,
+  label: string,
+  value: unknown,
+  t: TranslateFn,
+  depth: number,
+  out: Leaf[],
+): void {
+  if (value === null || value === undefined) return;
+  if (depth >= DIFF_MAX_DEPTH || typeof value !== 'object') {
+    out.push({ path: prefix, label, value });
+    return;
+  }
+  if (Array.isArray(value)) {
+    if (value.length === 0) {
+      out.push({ path: prefix, label, value });
+      return;
+    }
+    value.forEach((item, i) => {
+      collectLeaves(`${prefix}[${i}]`, `${label}[${i}]`, item, t, depth + 1, out);
+    });
+    return;
+  }
+  const entries = Object.entries(value as Record<string, unknown>);
+  if (entries.length === 0) {
+    out.push({ path: prefix, label, value });
+    return;
+  }
+  for (const [k, v] of entries) {
+    const subPath = prefix ? `${prefix} › ${k}` : k;
+    const subLabel = prefix ? `${label} › ${nestedFieldLabel(k, t)}` : nestedFieldLabel(k, t);
+    collectLeaves(subPath, subLabel, v, t, depth + 1, out);
+  }
+}
+
+/** 叶子值文本化：嵌套块走可读化多行，标量走 formatScalar（布尔 i18n）。 */
+function formatLeafText(value: unknown, t: TranslateFn): string {
+  if (value !== null && typeof value === 'object') return formatNested(value, t);
+  return formatScalar(value, t);
+}
+
+/**
+ * 对象/数组字段 → 叶子级 diff 条目（本地/远程逐叶配对，供 UI 逐行高亮差异）。
+ * 标量字段或双方均为空容器时返回 null（沿用整值渲染）。
+ */
+export function buildDiffEntries(
+  key: string,
+  local: unknown,
+  remote: unknown,
+  t: TranslateFn,
+): DiffEntry[] | null {
+  const isObjectLike = (v: unknown): boolean => v !== null && typeof v === 'object';
+  if (!isObjectLike(local) && !isObjectLike(remote)) return null;
+
+  const localLeaves: Leaf[] = [];
+  const remoteLeaves: Leaf[] = [];
+  collectLeaves('', '', local, t, 0, localLeaves);
+  collectLeaves('', '', remote, t, 0, remoteLeaves);
+
+  // 双方均为空容器 / 退化标量侧：仅一条空路径，无展开价值
+  const paths = Array.from(
+    new Set([...localLeaves.map((l) => l.path), ...remoteLeaves.map((l) => l.path)]),
+  );
+  if (paths.length === 0 || (paths.length === 1 && paths[0] === '')) return null;
+
+  const localByPath = new Map(localLeaves.map((l) => [l.path, l]));
+  const remoteByPath = new Map(remoteLeaves.map((l) => [l.path, l]));
+  const labelByPath = new Map(
+    [...localLeaves, ...remoteLeaves].map((l) => [l.path, l.label]),
+  );
+
+  return paths.map((path) => {
+    const lValue = localByPath.get(path)?.value;
+    const rValue = remoteByPath.get(path)?.value;
+    return {
+      path,
+      label: labelByPath.get(path) || humanizeKey(key),
+      localText: lValue === undefined ? null : formatLeafText(lValue, t),
+      remoteText: rValue === undefined ? null : formatLeafText(rValue, t),
+      changed: !valuesEqual(lValue, rValue),
+    };
+  });
+}

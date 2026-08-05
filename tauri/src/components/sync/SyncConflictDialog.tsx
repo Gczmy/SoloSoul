@@ -8,6 +8,7 @@ import {
   conflictFieldLabel,
   formatConflictValue,
   truncateConflictValue,
+  buildDiffEntries,
 } from '@/lib/conflictFieldMeta';
 import styles from './SyncConflictDialog.module.css';
 
@@ -171,45 +172,91 @@ export function SyncConflictDialog({
                       })}
                     </div>
                   ) : (
-                    fieldRows.map((row) => (
-                      <div
-                        key={row.key}
-                        className={`${styles.fieldRow} ${row.changed ? styles.fieldChanged : ''}`}
-                      >
-                        <div className={styles.fieldName} title={row.key}>
-                          {conflictFieldLabel(row.key, t)}
-                          {row.changed && (
-                            <span className={styles.changedBadge}>
-                              {t('settings:sync_conflict_changed', { defaultValue: 'changed' })}
-                            </span>
-                          )}
+                    fieldRows.map((row) => {
+                      // 对象/数组字段展开为叶子级条目，逐行高亮差异；标量字段沿用整值渲染
+                      const diffEntries = detail.remote_deleted
+                        ? null
+                        : buildDiffEntries(row.key, row.local, row.remote, t);
+                      const hasEntries = diffEntries !== null && diffEntries.length > 0;
+                      const missingLabel = t('settings:sync_conflict_missing', {
+                        defaultValue: '—',
+                      });
+                      return (
+                        <div
+                          key={row.key}
+                          className={`${styles.fieldRow} ${row.changed ? styles.fieldChanged : ''}`}
+                        >
+                          <div className={styles.fieldName} title={row.key}>
+                            {conflictFieldLabel(row.key, t)}
+                            {row.changed && (
+                              <span className={styles.changedBadge}>
+                                {t('settings:sync_conflict_changed', { defaultValue: 'changed' })}
+                              </span>
+                            )}
+                          </div>
+                          <div className={styles.fieldValue}>
+                            {row.local === undefined ? (
+                              <span className={styles.fieldMissing}>{missingLabel}</span>
+                            ) : hasEntries ? (
+                              <div className={styles.diffEntryList}>
+                                {diffEntries.map((e) => (
+                                  <div
+                                    key={e.path}
+                                    className={`${styles.diffEntry} ${
+                                      e.changed ? styles.diffEntryChanged : ''
+                                    }`}
+                                  >
+                                    <span className={styles.diffEntryLabel}>
+                                      {e.label || conflictFieldLabel(row.key, t)}:
+                                    </span>
+                                    {e.localText === null ? (
+                                      <span className={styles.fieldMissing}>{missingLabel}</span>
+                                    ) : (
+                                      truncateConflictValue(e.localText)
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              truncateConflictValue(formatConflictValue(row.key, row.local, t))
+                            )}
+                          </div>
+                          <div className={styles.fieldValue}>
+                            {detail.remote_deleted ? (
+                              <span className={styles.fieldMissing}>
+                                {t('settings:sync_conflict_remote_deleted', {
+                                  defaultValue: 'Remote deleted',
+                                })}
+                              </span>
+                            ) : row.remote === undefined ? (
+                              <span className={styles.fieldMissing}>{missingLabel}</span>
+                            ) : hasEntries ? (
+                              <div className={styles.diffEntryList}>
+                                {diffEntries.map((e) => (
+                                  <div
+                                    key={e.path}
+                                    className={`${styles.diffEntry} ${
+                                      e.changed ? styles.diffEntryChanged : ''
+                                    }`}
+                                  >
+                                    <span className={styles.diffEntryLabel}>
+                                      {e.label || conflictFieldLabel(row.key, t)}:
+                                    </span>
+                                    {e.remoteText === null ? (
+                                      <span className={styles.fieldMissing}>{missingLabel}</span>
+                                    ) : (
+                                      truncateConflictValue(e.remoteText)
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              truncateConflictValue(formatConflictValue(row.key, row.remote, t))
+                            )}
+                          </div>
                         </div>
-                        <div className={styles.fieldValue}>
-                          {row.local === undefined ? (
-                            <span className={styles.fieldMissing}>
-                              {t('settings:sync_conflict_missing', { defaultValue: '—' })}
-                            </span>
-                          ) : (
-                            truncateConflictValue(formatConflictValue(row.key, row.local, t))
-                          )}
-                        </div>
-                        <div className={styles.fieldValue}>
-                          {detail.remote_deleted ? (
-                            <span className={styles.fieldMissing}>
-                              {t('settings:sync_conflict_remote_deleted', {
-                                defaultValue: 'Remote deleted',
-                              })}
-                            </span>
-                          ) : row.remote === undefined ? (
-                            <span className={styles.fieldMissing}>
-                              {t('settings:sync_conflict_missing', { defaultValue: '—' })}
-                            </span>
-                          ) : (
-                            truncateConflictValue(formatConflictValue(row.key, row.remote, t))
-                          )}
-                        </div>
-                      </div>
-                    ))
+                      );
+                    })
                   )}
                 </div>
 

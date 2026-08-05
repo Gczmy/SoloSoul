@@ -189,6 +189,28 @@
   font-style: italic;
 }
 
+/* 对象/数组字段的叶子级 diff 行 */
+.diffEntryList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.diffEntry {
+  padding: 1px 6px;
+  border-radius: 4px;
+}
+
+.diffEntryLabel {
+  color: var(--text-tertiary);
+  margin-right: 6px;
+}
+
+/* 有差异的叶子：低对比浅红背景，突出差异但不刺眼 */
+.diffEntryChanged {
+  background: rgba(231, 76, 60, 0.1);
+}
+
 .fieldEmpty {
   padding: 16px 12px;
   text-align: center;

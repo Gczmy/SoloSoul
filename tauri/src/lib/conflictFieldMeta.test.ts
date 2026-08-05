@@ -5,6 +5,7 @@ import {
   nestedFieldLabel,
   formatConflictValue,
   truncateConflictValue,
+  buildDiffEntries,
 } from './conflictFieldMeta';
 
 /** 模拟 i18n：settings:/editor: 命中返回假想译文，未命中返回 defaultValue。 */
@@ -108,5 +109,82 @@ describe('truncateConflictValue', () => {
     const out = truncateConflictValue(long);
     expect(out.length).toBeLessThan(long.length);
     expect(out.endsWith('…')).toBe(true);
+  });
+});
+
+describe('buildDiffEntries', () => {
+  it('returns null for scalar fields (plain rendering)', () => {
+    const t = makeT();
+    expect(buildDiffEntries('name', '张三', '张三', t)).toBeNull();
+    expect(buildDiffEntries('version', 1, 2, t)).toBeNull();
+  });
+
+  it('returns null when both sides are empty containers', () => {
+    const t = makeT();
+    expect(buildDiffEntries('properties', {}, {}, t)).toBeNull();
+    expect(buildDiffEntries('childrenIds', [], [], t)).toBeNull();
+  });
+
+  it('pairs object leaves and flags only the differing ones', () => {
+    const t = makeT({ 'editor:fields.fullName': '姓名', 'editor:fields.email': '邮箱' });
+    const entries = buildDiffEntries(
+      'properties',
+      { fullName: '张三', email: 'a@b.com' },
+      { fullName: '张三', email: 'a@c.com' },
+      t,
+    );
+    expect(entries).toHaveLength(2);
+    const email = entries?.find((e) => e.label === '邮箱');
+    expect(email?.localText).toBe('a@b.com');
+    expect(email?.remoteText).toBe('a@c.com');
+    expect(email?.changed).toBe(true);
+    const name = entries?.find((e) => e.label === '姓名');
+    expect(name?.localText).toBe('张三');
+    expect(name?.changed).toBe(false);
+  });
+
+  it('recurses nested objects and marks single-leaf differences', () => {
+    const t = makeT({ 'editor:fields.fullName': '姓名' });
+    const local = { Fields: { fullName: { Name: '姓名', Type: 'text' } }, 全名: '123' };
+    const remote = { Fields: { fullName: { Name: '姓名', Type: 'text' } }, 全名: '123ww' };
+    const entries = buildDiffEntries('properties', local, remote, t);
+    expect(entries?.filter((e) => e.changed)).toHaveLength(1);
+    const changed = entries?.find((e) => e.changed);
+    expect(changed?.label).toContain('全名');
+    expect(changed?.localText).toBe('123');
+    expect(changed?.remoteText).toBe('123ww');
+  });
+
+  it('marks leaves missing on one side as changed', () => {
+    const t = makeT();
+    const entries = buildDiffEntries('properties', { a: 1, b: 2 }, { a: 1 }, t);
+    expect(entries).toHaveLength(2);
+    const b = entries?.find((e) => e.label === 'B');
+    expect(b?.localText).toBe('2');
+    expect(b?.remoteText).toBeNull();
+    expect(b?.changed).toBe(true);
+    const a = entries?.find((e) => e.label === 'A');
+    expect(a?.changed).toBe(false);
+  });
+
+  it('localizes booleans in leaf values', () => {
+    const t = makeT({
+      'settings:sync_conflict_value_true': '是',
+      'settings:sync_conflict_value_false': '否',
+    });
+    const entries = buildDiffEntries('properties', { ok: true }, { ok: false }, t);
+    expect(entries?.[0].localText).toBe('是');
+    expect(entries?.[0].remoteText).toBe('否');
+    expect(entries?.[0].changed).toBe(true);
+  });
+
+  it('expands arrays into indexed leaves', () => {
+    const t = makeT();
+    const entries = buildDiffEntries('childrenIds', ['a', 'b'], ['a', 'c'], t);
+    expect(entries).toHaveLength(2);
+    const second = entries?.find((e) => e.label === '[1]');
+    expect(second?.localText).toBe('b');
+    expect(second?.remoteText).toBe('c');
+    expect(second?.changed).toBe(true);
   });
 });
