@@ -10,10 +10,13 @@ import {
   resolveConflictIcon,
 } from './conflictFieldMeta';
 
-/** 模拟 i18n：settings:/editor: 命中返回假想译文，未命中返回 defaultValue。 */
+/** 模拟 i18n：settings:/editor: 命中返回假想译文，未命中返回 defaultValue；支持 {{count}} 插值。 */
 function makeT(overrides: Record<string, string> = {}) {
-  return vi.fn((key: string, opts?: { defaultValue?: string }) => {
-    return overrides[key] ?? opts?.defaultValue ?? key;
+  return vi.fn((key: string, opts?: { defaultValue?: string; count?: number }) => {
+    const tpl = overrides[key] ?? opts?.defaultValue ?? key;
+    return typeof opts?.count === 'number'
+      ? tpl.replace(/\{\{count\}\}/g, String(opts.count))
+      : tpl;
   });
 }
 
@@ -256,6 +259,60 @@ describe('buildDiffEntries', () => {
     const entries = buildDiffEntries('properties', { 出生日期: '2026-07-08' }, {}, t);
     expect(entries?.[0].localLevel).toBeNull();
     expect(entries?.[0].localText).toBe('2026-07-08');
+  });
+
+  it('collapses identical __fields schema into a single summary entry', () => {
+    const t = makeT({
+      'settings:sync_conflict_field_schema': '字段定义',
+      'settings:sync_conflict_field_schema_count': '共 {{count}} 项',
+    });
+    const fields = {
+      fullName: { name: '姓名', type: 'text' },
+      email: { name: '邮箱', type: 'email' },
+    };
+    const local = { __fields: fields, __templateName: '身份信息', fullName: '张三', email: 'a@b.com' };
+    const remote = { __fields: fields, __templateName: '身份信息', fullName: '张三', email: 'a@c.com' };
+    const entries = buildDiffEntries('properties', local, remote, t);
+    expect(entries).not.toBeNull();
+    // 摘要条目：字段定义 + 共 2 项，无差异
+    const schema = entries?.find((e) => e.path === '__fields');
+    expect(schema?.label).toBe('字段定义');
+    expect(schema?.localText).toBe('共 2 项');
+    expect(schema?.changed).toBe(false);
+    // 不再展开 __fields 叶子
+    expect(entries?.some((e) => e.path.includes('› name'))).toBe(false);
+    expect(entries?.some((e) => e.path.includes('› type'))).toBe(false);
+    // 真实字段值仍逐叶展开并标记差异
+    const email = entries?.find((e) => e.path === 'email');
+    expect(email?.localText).toBe('a@b.com');
+    expect(email?.remoteText).toBe('a@c.com');
+    expect(email?.changed).toBe(true);
+  });
+
+  it('expands __fields when the schema actually differs', () => {
+    const t = makeT({ 'settings:sync_conflict_field_schema': '字段定义' });
+    const local = { __fields: { fullName: { name: '姓名', type: 'text' } }, 全名: '123' };
+    const remote = { __fields: { fullName: { name: '姓名', type: 'multiline' } }, 全名: '123' };
+    const entries = buildDiffEntries('properties', local, remote, t);
+    expect(entries).not.toBeNull();
+    // 无摘要条目（有差异 → 展开）
+    expect(entries?.some((e) => e.path === '__fields')).toBe(false);
+    // 展开的叶子暴露 type 差异，前缀标签为「字段定义」
+    const typeLeaf = entries?.find((e) => e.path.endsWith('› type'));
+    expect(typeLeaf?.localText).toBe('text');
+    expect(typeLeaf?.remoteText).toBe('multiline');
+    expect(typeLeaf?.changed).toBe(true);
+    expect(typeLeaf?.label).toContain('字段定义');
+  });
+
+  it('expands __fields present on one side only', () => {
+    const t = makeT({ 'settings:sync_conflict_field_schema': '字段定义' });
+    const local = { __fields: { a: { name: 'A', type: 'text' } } };
+    const remote = {};
+    const entries = buildDiffEntries('properties', local, remote, t);
+    expect(entries?.some((e) => e.path === '__fields' && e.changed)).toBe(false);
+    // 单侧缺失的叶子全部标为差异
+    expect(entries?.some((e) => e.path.includes('a') && e.changed)).toBe(true);
   });
 
   it('i18n known leaf values and exposes icon components for icon fields', () => {

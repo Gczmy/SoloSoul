@@ -1058,5 +1058,7 @@
   "sync_conflict_icon_employment": "Employment",
   "sync_conflict_icon_address": "Address",
   "sync_conflict_tpltype_user": "User Template",
-  "sync_conflict_tpltype_system": "System Template"
+  "sync_conflict_tpltype_system": "System Template",
+  "sync_conflict_field_schema": "Field Definitions",
+  "sync_conflict_field_schema_count": "{{count}} fields"
 }

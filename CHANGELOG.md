@@ -10,6 +10,7 @@ All notable changes to SoloSoul are documented in this file.
 
 ### Fixed
 
+- **同步冲突 diff 折叠 `__fields` 字段定义元数据** — 属性对象里的 `__fields`（模板字段结构快照，非用户数据）在两侧相同时不再逐字段展开成 6+ 行噪音，折叠为一行摘要「字段定义：共 N 项」；仅当单侧缺失或内容真正有差异（模板结构变化）时才展开显示具体差异。`__templateName`（Template Name）等真实单行值保留。新增 `sync_conflict_field_schema`/`sync_conflict_field_schema_count` 双语 key。
 - **同步冲突 diff 代码值 i18n + 图标图案** — ① 模板类型 `user`/`system` → 用户模板/系统模板、对象类型 `identity`（及 travel/financial/professional）→ 身份/旅行/财务/职业、图标字段（icon_name/icon_id/icon_snapshot）→ 图标名称，均不再显示原始代码值；② 图标字段值在文本左侧渲染对应 Lucide 图标图案（复用 `resolveCustomIcon`，含 legacy 别名与未知兜底）。locale 新增 `sync_conflict_tpltype_*` 与 `sync_conflict_icon_*`（~105 个图标）双语 key。
 - **同步冲突 diff 敏感度值渲染徽章** — 差异条目中值为敏感度 token（`public`/`internal`/`sensitive`/`critical`，如 `出生日期: internal`、`身份证号: critical`）时不再显示纯文本，改为渲染共享 `SensitivityBadge` 彩色徽章（图标 + 双语标签，`sensitivity` 命名空间）；顶层 `sensitivity_level` 标量字段同样生效。新增 `isSensitivityLevel` 纯函数，`DiffEntry` 携带 `localLevel`/`remoteLevel`，非敏感度值保持文本渲染。
 - **同步冲突 diff 差异行高亮** — 对象/数组字段（如「属性」）不再整块展示难以比对的文本，而是按叶子展开为逐行条目（本地/远程逐叶配对）：完全相同的行不加背景，**有差异的具体行（含单侧缺失）以低对比浅红色背景高亮**，一眼定位具体差异值（如 `全名: 123` vs `全名: 123ww`）；嵌套对象递归展开（深度上限 3）、数组按下标展开，标量字段沿用整值渲染。新增 `conflictFieldMeta.ts` 的 `buildDiffEntries` 纯函数 + 7 个单测。

@@ -11,7 +11,10 @@ import type { SensitivityLevel } from '@/types/template';
 import type { LucideIcon } from 'lucide-react';
 import { resolveCustomIcon } from '@/lib/pageIcons';
 
-type TranslateFn = (key: string, options?: { defaultValue?: string }) => string;
+type TranslateFn = (
+  key: string,
+  options?: { defaultValue?: string; count?: number },
+) => string;
 
 /** 敏感度 token 全集（与前端 `SensitivityLevel` 类型一致，供差异值渲染徽章）。 */
 const SENSITIVITY_LEVELS: readonly SensitivityLevel[] = ['public', 'internal', 'sensitive', 'critical'];
@@ -32,8 +35,12 @@ export function normalizeFieldKey(key: string): string {
     .toLowerCase();
 }
 
+/** 属性对象中的字段定义元数据键（模板字段结构快照，非用户数据）。 */
+const SCHEMA_KEY = '__fields';
+
 /** 已知字段 → settings locale key（键为归一化 snake_case）。 */
 const FIELD_LOCALE_KEYS: Record<string, string> = {
+  [SCHEMA_KEY]: 'sync_conflict_field_schema',
   id: 'sync_conflict_field_id',
   account_id: 'sync_conflict_field_account_id',
   type_id: 'sync_conflict_field_type_id',
@@ -124,8 +131,11 @@ export function conflictFieldLabel(key: string, t: TranslateFn): string {
   return humanizeKey(key);
 }
 
-/** 嵌套对象内部的字段可读名：优先 editor:fields.<id>（动态字段名），未知做标题化兜底。 */
+/** 嵌套对象内部的字段可读名：`__fields` 元数据走专属标签，其余优先 editor:fields.<id>（动态字段名），未知做标题化兜底。 */
 export function nestedFieldLabel(key: string, t: TranslateFn): string {
+  if (key === SCHEMA_KEY) {
+    return t('settings:sync_conflict_field_schema', { defaultValue: 'Field Definitions' });
+  }
   const label = t(`editor:fields.${key}`, { defaultValue: '' });
   if (label) return label;
   return humanizeKey(key);
@@ -215,6 +225,57 @@ export function truncateConflictValue(text: string): string {
 /** 深度相等：JSON 序列化比较（冲突数据均为可序列化值）。 */
 function valuesEqual(a: unknown, b: unknown): boolean {
   return JSON.stringify(a) === JSON.stringify(b);
+}
+
+/** 剥离对象顶层的 `__fields` 元数据键（仅用于两侧相同时折叠展示）。 */
+function withoutSchemaKeys(v: unknown): unknown {
+  if (v !== null && typeof v === 'object' && !Array.isArray(v)) {
+    const obj = v as Record<string, unknown>;
+    const rest: Record<string, unknown> = {};
+    for (const [k, val] of Object.entries(obj)) {
+      if (k !== SCHEMA_KEY) rest[k] = val;
+    }
+    return rest;
+  }
+  return v;
+}
+
+/**
+ * 两侧 `__fields` 相同 → 折叠为一条摘要条目（无差异、不展开）；
+ * 单侧缺失或内容有差异 → 返回 null（照常展开以显示具体差异）。
+ */
+function buildSchemaSummaryEntry(
+  local: unknown,
+  remote: unknown,
+  t: TranslateFn,
+): DiffEntry | null {
+  const toObj = (v: unknown): Record<string, unknown> | null =>
+    v !== null && typeof v === 'object' && !Array.isArray(v)
+      ? (v as Record<string, unknown>)
+      : null;
+  const lFields = toObj(local)?.[SCHEMA_KEY];
+  const rFields = toObj(remote)?.[SCHEMA_KEY];
+  if (lFields === undefined || rFields === undefined) return null;
+  if (!valuesEqual(lFields, rFields)) return null;
+  const count =
+    lFields !== null && typeof lFields === 'object' && !Array.isArray(lFields)
+      ? Object.keys(lFields as Record<string, unknown>).length
+      : 0;
+  const summary = t('settings:sync_conflict_field_schema_count', {
+    defaultValue: '{{count}} fields',
+    count,
+  });
+  return {
+    path: SCHEMA_KEY,
+    label: conflictFieldLabel(SCHEMA_KEY, t),
+    localText: summary,
+    remoteText: summary,
+    localLevel: null,
+    remoteLevel: null,
+    localIcon: null,
+    remoteIcon: null,
+    changed: false,
+  };
 }
 
 /** 叶子级 diff 条目：对象/数组字段按叶子展开，本地/远程逐叶配对。 */
@@ -313,16 +374,23 @@ export function buildDiffEntries(
   const isObjectLike = (v: unknown): boolean => v !== null && typeof v === 'object';
   if (!isObjectLike(local) && !isObjectLike(remote)) return null;
 
+  // __fields 元数据：两侧相同 → 折叠为摘要条目并剥离展开；否则照常展开
+  const schemaEntry = buildSchemaSummaryEntry(local, remote, t);
+  const lSource = schemaEntry ? withoutSchemaKeys(local) : local;
+  const rSource = schemaEntry ? withoutSchemaKeys(remote) : remote;
+
   const localLeaves: Leaf[] = [];
   const remoteLeaves: Leaf[] = [];
-  collectLeaves('', '', local, t, 0, localLeaves);
-  collectLeaves('', '', remote, t, 0, remoteLeaves);
+  collectLeaves('', '', lSource, t, 0, localLeaves);
+  collectLeaves('', '', rSource, t, 0, remoteLeaves);
 
   // 双方均为空容器 / 退化标量侧：仅一条空路径，无展开价值
   const paths = Array.from(
     new Set([...localLeaves.map((l) => l.path), ...remoteLeaves.map((l) => l.path)]),
   );
-  if (paths.length === 0 || (paths.length === 1 && paths[0] === '')) return null;
+  if (paths.length === 0 || (paths.length === 1 && paths[0] === '')) {
+    return schemaEntry ? [schemaEntry] : null;
+  }
 
   const localByPath = new Map(localLeaves.map((l) => [l.path, l]));
   const remoteByPath = new Map(remoteLeaves.map((l) => [l.path, l]));
@@ -330,7 +398,7 @@ export function buildDiffEntries(
     [...localLeaves, ...remoteLeaves].map((l) => [l.path, l.label]),
   );
 
-  return paths.map((path) => {
+  const entries = paths.map((path) => {
     const leafKey = lastKeyOf(path);
     const lValue = localByPath.get(path)?.value;
     const rValue = remoteByPath.get(path)?.value;
@@ -346,4 +414,5 @@ export function buildDiffEntries(
       changed: !valuesEqual(lValue, rValue),
     };
   });
+  return schemaEntry ? [schemaEntry, ...entries] : entries;
 }

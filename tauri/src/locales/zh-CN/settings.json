@@ -1058,5 +1058,7 @@
   "sync_conflict_icon_employment": "工作",
   "sync_conflict_icon_address": "地址",
   "sync_conflict_tpltype_user": "用户模板",
-  "sync_conflict_tpltype_system": "系统模板"
+  "sync_conflict_tpltype_system": "系统模板",
+  "sync_conflict_field_schema": "字段定义",
+  "sync_conflict_field_schema_count": "共 {{count}} 项"
 }
