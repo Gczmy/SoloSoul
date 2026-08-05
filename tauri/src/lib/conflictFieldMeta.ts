@@ -1,0 +1,174 @@
+/**
+ * 同步冲突 diff 的字段元数据：字段名 i18n、已知值（预植入模板/分区/对象类型/布尔）
+ * i18n、嵌套值可读化格式化。供 SyncConflictDialog 使用，让用户不再面对
+ * `account_id` / `childrenIds` 等原始键名与紧凑 JSON。
+ *
+ * 字段键可能来自本地侧（camelCase，如 `childrenIds`）或远程侧（如 `accountId`），
+ * 归一化到 snake_case 后统一查表，兼容两种来源。
+ */
+
+type TranslateFn = (key: string, options?: { defaultValue?: string }) => string;
+
+/** 归一化字段键：camelCase / snake_case → snake_case（`accountId`/`account_id` → `account_id`）。 */
+export function normalizeFieldKey(key: string): string {
+  return key
+    .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
+    .replace(/([A-Z]+)([A-Z][a-z])/g, '$1_$2')
+    .toLowerCase();
+}
+
+/** 已知字段 → settings locale key（键为归一化 snake_case）。 */
+const FIELD_LOCALE_KEYS: Record<string, string> = {
+  id: 'sync_conflict_field_id',
+  account_id: 'sync_conflict_field_account_id',
+  type_id: 'sync_conflict_field_type_id',
+  section_type: 'sync_conflict_field_section_type',
+  sensitivity_level: 'sync_conflict_field_sensitivity_level',
+  name: 'sync_conflict_field_name',
+  icon_name: 'sync_conflict_field_icon_name',
+  template_id: 'sync_conflict_field_template_id',
+  template_type: 'sync_conflict_field_template_type',
+  contract_type_id: 'sync_conflict_field_contract_type_id',
+  template_hash: 'sync_conflict_field_template_hash',
+  ignored_template_hash: 'sync_conflict_field_ignored_template_hash',
+  parent_id: 'sync_conflict_field_parent_id',
+  children_ids: 'sync_conflict_field_children_ids',
+  is_deleted: 'sync_conflict_field_is_deleted',
+  deleted_at: 'sync_conflict_field_deleted_at',
+  created_at: 'sync_conflict_field_created_at',
+  updated_at: 'sync_conflict_field_updated_at',
+  version: 'sync_conflict_field_version',
+  properties: 'sync_conflict_field_properties',
+  tags_json: 'sync_conflict_field_tags_json',
+  property_labels: 'sync_conflict_field_property_labels',
+  data: 'sync_conflict_field_data',
+  category: 'sync_conflict_field_category',
+  item_type: 'sync_conflict_field_item_type',
+  original_id: 'sync_conflict_field_original_id',
+  original_parent_id: 'sync_conflict_field_original_parent_id',
+  original_sort_order: 'sync_conflict_field_original_sort_order',
+  expires_at: 'sync_conflict_field_expires_at',
+  deleted_by: 'sync_conflict_field_deleted_by',
+  name_snapshot: 'sync_conflict_field_name_snapshot',
+  icon_snapshot: 'sync_conflict_field_icon_snapshot',
+  icon_id: 'sync_conflict_field_icon_id',
+  contract_bindings: 'sync_conflict_field_contract_bindings',
+  properties_json: 'sync_conflict_field_properties_json',
+};
+
+/** 预植入模板 key → settings locale key（模板显示名）。 */
+const BUILTIN_TEMPLATE_KEYS: Record<string, string> = {
+  identity: 'sync_conflict_tpl_identity',
+  id_card: 'sync_conflict_tpl_id_card',
+  passport: 'sync_conflict_tpl_passport',
+  visa: 'sync_conflict_tpl_visa',
+  bank: 'sync_conflict_tpl_bank',
+  card: 'sync_conflict_tpl_card',
+  education: 'sync_conflict_tpl_education',
+  employment: 'sync_conflict_tpl_employment',
+  address: 'sync_conflict_tpl_address',
+  contact: 'sync_conflict_tpl_contact',
+};
+
+/** 对象分区/模板分类 key → settings locale key。 */
+const CATEGORY_KEYS: Record<string, string> = {
+  identity: 'sync_conflict_cat_identity',
+  travel: 'sync_conflict_cat_travel',
+  financial: 'sync_conflict_cat_financial',
+  professional: 'sync_conflict_cat_professional',
+};
+
+/** 对象类型（typeId）key → settings locale key。 */
+const OBJECT_TYPE_KEYS: Record<string, string> = {
+  note: 'sync_conflict_type_note',
+};
+
+/** 字段可读名：已知字段走 locale，未知字段做 camel/snake → 标题化兜底。 */
+export function conflictFieldLabel(key: string, t: TranslateFn): string {
+  const localeKey = FIELD_LOCALE_KEYS[normalizeFieldKey(key)];
+  if (localeKey) {
+    const label = t(`settings:${localeKey}`, { defaultValue: '' });
+    if (label) return label;
+  }
+  return humanizeKey(key);
+}
+
+/** 嵌套对象内部的字段可读名：优先 editor:fields.<id>（动态字段名），未知做标题化兜底。 */
+export function nestedFieldLabel(key: string, t: TranslateFn): string {
+  const label = t(`editor:fields.${key}`, { defaultValue: '' });
+  if (label) return label;
+  return humanizeKey(key);
+}
+
+function humanizeKey(key: string): string {
+  const words = normalizeFieldKey(key).split('_').filter(Boolean);
+  if (words.length === 0) return key;
+  return words.map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+}
+
+/** 已知代码值（预植入模板 id / 分区 / 对象类型）→ i18n 名称；未知返回 null 保持原值。 */
+function lookupKnownValue(normKey: string, value: unknown, t: TranslateFn): string | null {
+  if (typeof value !== 'string') return null;
+  if (normKey === 'template_id' || normKey === 'contract_type_id') {
+    const localeKey = BUILTIN_TEMPLATE_KEYS[value];
+    if (localeKey) return t(`settings:${localeKey}`, { defaultValue: value });
+    return null;
+  }
+  if (normKey === 'section_type' || normKey === 'category') {
+    const localeKey = CATEGORY_KEYS[value];
+    if (localeKey) return t(`settings:${localeKey}`, { defaultValue: value });
+    return null;
+  }
+  if (normKey === 'type_id') {
+    const localeKey = OBJECT_TYPE_KEYS[value];
+    if (localeKey) return t(`settings:${localeKey}`, { defaultValue: value });
+    return null;
+  }
+  return null;
+}
+
+function formatScalar(value: unknown, t: TranslateFn): string {
+  if (typeof value === 'boolean') {
+    return value
+      ? t('settings:sync_conflict_value_true', { defaultValue: 'Yes' })
+      : t('settings:sync_conflict_value_false', { defaultValue: 'No' });
+  }
+  return String(value);
+}
+
+/** 嵌套值可读化：标量原样（布尔 i18n）；对象逐行 `字段: 值`；数组逐行 `- 项`。 */
+export function formatConflictValue(key: string, value: unknown, t: TranslateFn): string {
+  if (value === null || value === undefined) return '';
+  const known = lookupKnownValue(normalizeFieldKey(key), value, t);
+  if (known !== null) return known;
+  return formatNested(value, t);
+}
+
+function formatNested(value: unknown, t: TranslateFn): string {
+  if (Array.isArray(value)) {
+    if (value.length === 0) return '[]';
+    return value.map((item) => `- ${formatValueItem(item, t)}`).join('\n');
+  }
+  if (value !== null && typeof value === 'object') {
+    const entries = Object.entries(value as Record<string, unknown>);
+    if (entries.length === 0) return '{}';
+    return entries
+      .map(([k, v]) => `${nestedFieldLabel(k, t)}: ${formatValueItem(v, t)}`)
+      .join('\n');
+  }
+  return formatScalar(value, t);
+}
+
+function formatValueItem(value: unknown, t: TranslateFn): string {
+  if (value !== null && typeof value === 'object') return formatNested(value, t);
+  return formatScalar(value, t);
+}
+
+/** 顶层字段值的展示上限（字符数），超长截断避免单元格过大。 */
+export const CONFLICT_VALUE_MAX_LEN = 600;
+
+/** 截断超长展示值（配合 CSS pre-wrap 换行展示）。 */
+export function truncateConflictValue(text: string): string {
+  if (text.length <= CONFLICT_VALUE_MAX_LEN) return text;
+  return `${text.slice(0, CONFLICT_VALUE_MAX_LEN)}…`;
+}

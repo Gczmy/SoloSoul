@@ -4,6 +4,11 @@ import { Dialog } from '@/components/ui/Dialog';
 import { Button } from '@/components/ui/Button';
 import { useSyncStore } from '@/stores/syncStore';
 import type { SyncConflictSummary, SyncConflictDetail, SyncConflictStrategy } from '@/lib/ipc';
+import {
+  conflictFieldLabel,
+  formatConflictValue,
+  truncateConflictValue,
+} from '@/lib/conflictFieldMeta';
 import styles from './SyncConflictDialog.module.css';
 
 interface SyncConflictDialogProps {
@@ -17,21 +22,6 @@ interface SyncConflictDialogProps {
 
 function formatHlc(hlc: SyncConflictSummary['local_hlc']) {
   return `${hlc.wall_time_ms}/${hlc.counter}/${hlc.node_id.slice(0, 8)}`;
-}
-
-/** 字段值展示：字符串原样、其他标量转字符串、嵌套对象/数组紧凑 JSON（截断）。 */
-function formatValue(value: unknown, maxLen = 220): string {
-  if (value === null || value === undefined) {
-    return '';
-  }
-  if (typeof value === 'string') {
-    return value;
-  }
-  if (typeof value === 'number' || typeof value === 'boolean') {
-    return String(value);
-  }
-  const json = JSON.stringify(value);
-  return json.length > maxLen ? `${json.slice(0, maxLen)}…` : json;
 }
 
 /** 深度相等：JSON 序列化比较（冲突数据均为可序列化值）。 */
@@ -165,6 +155,9 @@ export function SyncConflictDialog({
                 <div className={styles.fieldDiff}>
                   <div className={styles.diffGrid}>
                     <div className={styles.diffTitle}>
+                      {t('settings:sync_conflict_item', { defaultValue: 'Item' })}
+                    </div>
+                    <div className={styles.diffTitle}>
                       {t('settings:sync_conflict_local', { defaultValue: 'Local' })}
                     </div>
                     <div className={styles.diffTitle}>
@@ -184,7 +177,7 @@ export function SyncConflictDialog({
                         className={`${styles.fieldRow} ${row.changed ? styles.fieldChanged : ''}`}
                       >
                         <div className={styles.fieldName} title={row.key}>
-                          {row.key}
+                          {conflictFieldLabel(row.key, t)}
                           {row.changed && (
                             <span className={styles.changedBadge}>
                               {t('settings:sync_conflict_changed', { defaultValue: 'changed' })}
@@ -197,7 +190,7 @@ export function SyncConflictDialog({
                               {t('settings:sync_conflict_missing', { defaultValue: '—' })}
                             </span>
                           ) : (
-                            formatValue(row.local)
+                            truncateConflictValue(formatConflictValue(row.key, row.local, t))
                           )}
                         </div>
                         <div className={styles.fieldValue}>
@@ -212,7 +205,7 @@ export function SyncConflictDialog({
                               {t('settings:sync_conflict_missing', { defaultValue: '—' })}
                             </span>
                           ) : (
-                            formatValue(row.remote)
+                            truncateConflictValue(formatConflictValue(row.key, row.remote, t))
                           )}
                         </div>
                       </div>
