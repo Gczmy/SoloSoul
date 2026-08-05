@@ -10,6 +10,7 @@ All notable changes to SoloSoul are documented in this file.
 
 ### Fixed
 
+- **已知设备详情卡片信任操作即时刷新** — 详情弹窗不再持有 peer 快照，改为从 store `connectedPeers` 按 id 派生：点击「撤销信任/信任并配对」后 `trustPeer → loadStatus` 刷新完成，卡片立即显示新的信任状态（无需重新进入卡片）；操作在途时按钮显示加载态并禁用，防止重复点击。
 - **macOS 设备图标改为笔记本图标** — 已知设备卡片、设备详情弹窗、配对对话框统一使用共享 `ClientTypeIcon`（macOS → 笔记本图标，替代此前的手机图标/Apple 商标图标；Windows → 显示器、Linux → 终端、Android → 手机、iOS → 平板、未知 → CPU），设备图标与客户端类型一一对应。
 - **已发现设备名不再显示 `node_<uuid>` 并溢出屏幕** — 根因：桌面端 mDNS 广播实例名原本是 `node_<uuid>`（移动端 NSD 已是 `SoloSoul-<fp8>`），安卓扫描 macOS 时直接显示原始 ID。修复：① 桌面广播实例名统一为 `SoloSoul-<指纹前 8 位>`（stop 注销与 register 重试同步更新，node_id 仍经 TXT 广播做身份标识，不影响配对）；② 桌面 `mdns_discover` 显示名从 TXT fingerprint 派生 `SoloSoul-<fp8>`，无指纹旧端回退清理后的主机名；③ 前端「已发现设备」列表新增 `formatDiscoveredName`（剥 mDNS 后缀 + 长 ID 裁剪）并加 overflow ellipsis 兜底，兼容仍广播 node_id 的旧版本对端。
 

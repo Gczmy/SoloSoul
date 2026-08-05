@@ -13,7 +13,6 @@ import { ConflictPanel } from './ConflictPanel';
 import { PairingPanel } from './PairingPanel';
 import { DeviceListPanel } from './DeviceListPanel';
 import { SyncHistoryPanel } from './SyncHistoryPanel';
-import type { SyncPeer } from '@/stores/syncStore';
 
 /**
  * 设备同步页：渲染编排层。
@@ -25,8 +24,11 @@ export function SyncPage() {
   const location = useLocation();
   const backTo = (location.state as { from?: string } | null)?.from;
   const { t } = useTranslation(['settings', 'common']);
-  // 已知设备详情弹窗目标（列表卡片点击后打开）。
-  const [detailPeer, setDetailPeer] = useState<SyncPeer | null>(null);
+  // 已知设备详情弹窗目标 id（列表卡片点击后打开）。
+  // peer 对象从 store.connectedPeers 派生而非存快照：点击「撤销信任/信任并配对」后
+  // trustPeer → loadStatus 刷新 connectedPeers，弹窗内容立即反映最新信任状态，
+  // 无需重新进入卡片才能看到变化。
+  const [detailPeerId, setDetailPeerId] = useState<string | null>(null);
   const {
     store,
     manualAddr,
@@ -61,6 +63,9 @@ export function SyncPage() {
     handleOpenConflictDialog,
     handleScanSync,
   } = useSyncPage();
+
+  // 详情弹窗 peer 由 store.connectedPeers 派生（见上方 detailPeerId 注释）
+  const detailPeer = store.connectedPeers.find((p) => p.id === detailPeerId) || null;
 
   // 配对对话框目标：A 侧等待流程优先（pairingPendingPeer），否则「去配对」手动目标，否则自动检测
   const activePairPeer = pairingPendingPeer || pairTarget || pendingPeer;
@@ -131,8 +136,8 @@ export function SyncPage() {
           onForgetConfirm={handleForgetConfirm}
           onForgetCancel={handleForgetCancel}
           onRefresh={loadStatus}
-          onOpenDetail={setDetailPeer}
-          onCloseDetail={() => setDetailPeer(null)}
+          onOpenDetail={(peer) => setDetailPeerId(peer.id)}
+          onCloseDetail={() => setDetailPeerId(null)}
         />
 
         <SyncHistoryPanel

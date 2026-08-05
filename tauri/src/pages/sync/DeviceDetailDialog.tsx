@@ -14,6 +14,8 @@ interface DeviceDetailDialogProps {
   /** 切换信任状态（trusted → 撤销；未信任 → 配对）。 */
   onToggleTrust: (peer: SyncPeer) => void;
   onForgetRequest: (peer: SyncPeer) => void;
+  /** 信任/撤销等异步操作在途：禁用操作按钮并显示加载态，避免重复点击。 */
+  isLoading?: boolean;
 }
 
 function formatTime(ts?: number | null): string {
@@ -36,6 +38,7 @@ export function DeviceDetailDialog({
   onClose,
   onToggleTrust,
   onForgetRequest,
+  isLoading = false,
 }: DeviceDetailDialogProps) {
   const { t } = useTranslation(['settings']);
   if (!peer) {
@@ -156,18 +159,31 @@ export function DeviceDetailDialog({
         {/* 操作 */}
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 4 }}>
           {peer.trusted ? (
-            <Button variant="secondary" size="sm" onClick={() => onToggleTrust(peer)}>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => onToggleTrust(peer)}
+              disabled={isLoading}
+              loading={isLoading}
+            >
               <ShieldOff size={ICON_SIZE.sm} />
               {t('settings:sync_revoke_tooltip', { defaultValue: 'Revoke trust' })}
             </Button>
           ) : (
-            <Button variant="primary" size="sm" onClick={() => onToggleTrust(peer)}>
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => onToggleTrust(peer)}
+              disabled={isLoading}
+              loading={isLoading}
+            >
               <ShieldCheck size={ICON_SIZE.sm} />
               {t('settings:sync_pair_tooltip', { defaultValue: 'Pair this device' })}
             </Button>
           )}
           <DeleteButton
             onClick={() => onForgetRequest(peer)}
+            disabled={isLoading}
             title={t('settings:sync_forget_tooltip', {
               defaultValue: 'Forget: delete the record, you will need to re-pair',
             })}

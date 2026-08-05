@@ -474,6 +474,7 @@ export function DeviceListPanel({
       <DeviceDetailDialog
         peer={detailPeer}
         onClose={onCloseDetail}
+        isLoading={isLoading}
         onToggleTrust={(peer) => {
           if (peer.trusted) {
             onTrustPeer(peer.id);
