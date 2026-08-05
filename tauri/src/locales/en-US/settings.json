@@ -1064,5 +1064,8 @@
   "sync_conflict_only_diff": "Only show differences",
   "sync_conflict_only_diff_count": "{{count}} differences",
   "sync_conflict_no_differences": "No differences.",
-  "sync_conflict_list_count": "{{count}} conflicts"
+  "sync_conflict_list_count": "{{count}} conflicts",
+  "sync_conflict_nav_position": "Conflict {{index}} / {{total}}",
+  "sync_conflict_prev": "‹ Previous",
+  "sync_conflict_next": "Next ›"
 }

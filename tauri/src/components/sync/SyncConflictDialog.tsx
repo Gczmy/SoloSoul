@@ -94,6 +94,7 @@ export function SyncConflictDialog({
   };
 
   const selectedConflict = conflicts.find((c) => c.id === selectedId);
+  const selectedIndex = selectedConflict ? conflicts.findIndex((c) => c.id === selectedId) : -1;
 
   const fieldRows =
     detail && selectedConflict
@@ -158,6 +159,33 @@ export function SyncConflictDialog({
             {detail && selectedConflict && (
               <div className={styles.detail}>
                 <div className={styles.detailHeader}>
+                  {/* 冲突位置指示 + 上一条/下一条导航：明确告知用户共有 N 条冲突、当前查看第几条 */}
+                  <div className={styles.conflictNav}>
+                    <Button
+                      variant="tertiary"
+                      onClick={() => selectedIndex > 0 && handleSelect(conflicts[selectedIndex - 1].id)}
+                      disabled={selectedIndex <= 0}
+                    >
+                      {t('settings:sync_conflict_prev', { defaultValue: '‹ Previous' })}
+                    </Button>
+                    <span className={styles.conflictNavPosition}>
+                      {t('settings:sync_conflict_nav_position', {
+                        defaultValue: 'Conflict {{index}} / {{total}}',
+                        index: selectedIndex + 1,
+                        total: conflicts.length,
+                      })}
+                    </span>
+                    <Button
+                      variant="tertiary"
+                      onClick={() =>
+                        selectedIndex < conflicts.length - 1 &&
+                        handleSelect(conflicts[selectedIndex + 1].id)
+                      }
+                      disabled={selectedIndex >= conflicts.length - 1}
+                    >
+                      {t('settings:sync_conflict_next', { defaultValue: 'Next ›' })}
+                    </Button>
+                  </div>
                   <div>
                     <strong>{t('settings:sync_conflict_record', { defaultValue: 'Record' })}:</strong>{' '}
                     {detail.record_id}

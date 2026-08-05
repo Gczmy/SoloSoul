@@ -1064,5 +1064,8 @@
   "sync_conflict_only_diff": "只看差异",
   "sync_conflict_only_diff_count": "共 {{count}} 处差异",
   "sync_conflict_no_differences": "无差异字段",
-  "sync_conflict_list_count": "共 {{count}} 条冲突"
+  "sync_conflict_list_count": "共 {{count}} 条冲突",
+  "sync_conflict_nav_position": "冲突 {{index}} / {{total}}",
+  "sync_conflict_prev": "‹ 上一条",
+  "sync_conflict_next": "下一条 ›"
 }

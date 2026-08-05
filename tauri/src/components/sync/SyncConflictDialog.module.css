@@ -89,6 +89,21 @@
   color: var(--text-secondary);
 }
 
+/* 冲突位置导航：上一条 / 位置指示 / 下一条 */
+.conflictNav {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+.conflictNavPosition {
+  font-size: var(--text-body-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
 .hlcRow {
   display: flex;
   gap: 16px;
