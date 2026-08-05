@@ -1,13 +1,27 @@
-/* 固定高度容器：冲突列表固定在上方，详情区独立滚动——
- * 避免详情内容（全部字段行）过长时把顶部冲突列表挤出视口，
- * 用户开启/关闭「只看差异」时列表始终可见。 */
+/* 容器不固定高度：整窗交给 Dialog 滚动（外部滚动条），
+ * 冲突列表 sticky 固定在顶部，详情区自然伸展——
+ * 无论字段多少、开关状态如何，列表始终可见且表格可滚动到底。 */
 .container {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  height: min(70vh, 560px);
-  min-height: 420px;
-  overflow: hidden;
+}
+
+/* 冲突列表 sticky 区：滚动详情时固定在对话框顶部；
+ * 负外边距铺满 Dialog 内边距区域、实底背景防止下方内容透出。
+ * 注意：margin 的 -24px 与 Dialog 组件 padding: 24px 联动，改动需同步。 */
+.listSticky {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  flex-shrink: 0;
+  margin: 0 -24px 0;
+  padding: 0 24px 12px;
+  background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .empty {
@@ -17,12 +31,11 @@
   font-size: var(--text-body);
 }
 
-/* 冲突列表：固定区域（不随详情滚动），自身可滚动 */
+/* 冲突列表：sticky 区内可滚动，多条冲突时内部滚动不撑高头部 */
 .list {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  flex-shrink: 0;
   max-height: min(28vh, 220px);
   overflow-y: auto;
   padding-right: 4px;
@@ -79,16 +92,12 @@
   color: var(--text-tertiary);
 }
 
+/* 详情区：自然高度，随 Dialog 整窗滚动（外部滚动条统一控制） */
 .detail {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  border-top: 1px solid var(--border-subtle);
-  padding-top: 16px;
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  padding-right: 4px;
+  padding-top: 4px;
 }
 
 .detailHeader {
