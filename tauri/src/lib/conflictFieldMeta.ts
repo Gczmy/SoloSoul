@@ -8,6 +8,8 @@
  */
 
 import type { SensitivityLevel } from '@/types/template';
+import type { LucideIcon } from 'lucide-react';
+import { resolveCustomIcon } from '@/lib/pageIcons';
 
 type TranslateFn = (key: string, options?: { defaultValue?: string }) => string;
 
@@ -91,10 +93,26 @@ const CATEGORY_KEYS: Record<string, string> = {
   professional: 'sync_conflict_cat_professional',
 };
 
-/** 对象类型（typeId）key → settings locale key。 */
+/** 对象类型（typeId）key → settings locale key。分区值（identity 等）复用分区 key。 */
 const OBJECT_TYPE_KEYS: Record<string, string> = {
   note: 'sync_conflict_type_note',
+  identity: 'sync_conflict_cat_identity',
+  travel: 'sync_conflict_cat_travel',
+  financial: 'sync_conflict_cat_financial',
+  professional: 'sync_conflict_cat_professional',
 };
+
+/** 图标字段（其字符串值即图标 ID，可渲染图标图案 + i18n 名称）。 */
+const ICON_FIELDS = new Set(['icon_name', 'icon_id', 'icon_snapshot']);
+
+/**
+ * 解析图标字段的 Lucide 图标组件（未知 ID 经 resolveCustomIcon 兜底到 document）。
+ * 非图标字段或非字符串值返回 null（保持文本渲染）。
+ */
+export function resolveConflictIcon(key: string, value: unknown): LucideIcon | null {
+  if (typeof value !== 'string' || !ICON_FIELDS.has(normalizeFieldKey(key))) return null;
+  return resolveCustomIcon(value);
+}
 
 /** 字段可读名：已知字段走 locale，未知字段做 camel/snake → 标题化兜底。 */
 export function conflictFieldLabel(key: string, t: TranslateFn): string {
@@ -136,6 +154,14 @@ function lookupKnownValue(normKey: string, value: unknown, t: TranslateFn): stri
     const localeKey = OBJECT_TYPE_KEYS[value];
     if (localeKey) return t(`settings:${localeKey}`, { defaultValue: value });
     return null;
+  }
+  if (normKey === 'template_type') {
+    const label = t(`settings:sync_conflict_tpltype_${value}`, { defaultValue: '' });
+    return label || null;
+  }
+  if (ICON_FIELDS.has(normKey)) {
+    const label = t(`settings:sync_conflict_icon_${value}`, { defaultValue: '' });
+    return label || null;
   }
   return null;
 }
@@ -205,6 +231,10 @@ export interface DiffEntry {
   localLevel: SensitivityLevel | null;
   /** 远程侧是否为敏感度 token（渲染敏感度徽章）；否则 null。 */
   remoteLevel: SensitivityLevel | null;
+  /** 本地侧图标字段的 Lucide 组件（渲染图标图案）；否则 null。 */
+  localIcon: LucideIcon | null;
+  /** 远程侧图标字段的 Lucide 组件（渲染图标图案）；否则 null。 */
+  remoteIcon: LucideIcon | null;
   /** 该叶子是否存在差异（含单侧缺失）。 */
   changed: boolean;
 }
@@ -254,10 +284,20 @@ function collectLeaves(
   }
 }
 
-/** 叶子值文本化：嵌套块走可读化多行，标量走 formatScalar（布尔 i18n）。 */
-function formatLeafText(value: unknown, t: TranslateFn): string {
+/** 叶子值文本化：已知代码值（模板类型/图标等）走 i18n，嵌套块走可读化多行，标量走 formatScalar。 */
+function formatLeafText(key: string, value: unknown, t: TranslateFn): string {
+  if (typeof value === 'string') {
+    const known = lookupKnownValue(normalizeFieldKey(key), value, t);
+    if (known !== null) return known;
+  }
   if (value !== null && typeof value === 'object') return formatNested(value, t);
   return formatScalar(value, t);
+}
+
+/** 取叶子路径的末段键（如 `Fields › Type` → `Type`），用于值 i18n / 图标解析。 */
+function lastKeyOf(path: string): string {
+  const seg = path.split(' › ').pop();
+  return seg || '';
 }
 
 /**
@@ -291,15 +331,18 @@ export function buildDiffEntries(
   );
 
   return paths.map((path) => {
+    const leafKey = lastKeyOf(path);
     const lValue = localByPath.get(path)?.value;
     const rValue = remoteByPath.get(path)?.value;
     return {
       path,
       label: labelByPath.get(path) || humanizeKey(key),
-      localText: lValue === undefined ? null : formatLeafText(lValue, t),
-      remoteText: rValue === undefined ? null : formatLeafText(rValue, t),
+      localText: lValue === undefined ? null : formatLeafText(leafKey, lValue, t),
+      remoteText: rValue === undefined ? null : formatLeafText(leafKey, rValue, t),
       localLevel: lValue === undefined ? null : isSensitivityLevel(lValue) ? lValue : null,
       remoteLevel: rValue === undefined ? null : isSensitivityLevel(rValue) ? rValue : null,
+      localIcon: lValue === undefined ? null : resolveConflictIcon(leafKey, lValue),
+      remoteIcon: rValue === undefined ? null : resolveConflictIcon(leafKey, rValue),
       changed: !valuesEqual(lValue, rValue),
     };
   });

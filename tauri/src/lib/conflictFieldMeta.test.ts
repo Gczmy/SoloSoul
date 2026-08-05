@@ -7,6 +7,7 @@ import {
   truncateConflictValue,
   buildDiffEntries,
   isSensitivityLevel,
+  resolveConflictIcon,
 } from './conflictFieldMeta';
 
 /** 模拟 i18n：settings:/editor: 命中返回假想译文，未命中返回 defaultValue。 */
@@ -100,6 +101,41 @@ describe('formatConflictValue', () => {
     const t = makeT();
     const out = formatConflictValue('childrenIds', ['obj-1', 'obj-2'], t);
     expect(out).toBe('- obj-1\n- obj-2');
+  });
+
+  it('localizes template_type values', () => {
+    const t = makeT({ 'settings:sync_conflict_tpltype_user': '用户模板' });
+    expect(formatConflictValue('templateType', 'user', t)).toBe('用户模板');
+    // 未知模板类型保持原值
+    expect(formatConflictValue('templateType', 'unknown_type', t)).toBe('unknown_type');
+  });
+
+  it('localizes identity type values', () => {
+    const t = makeT({ 'settings:sync_conflict_cat_identity': '身份' });
+    expect(formatConflictValue('typeId', 'identity', t)).toBe('身份');
+    expect(formatConflictValue('typeId', 'note', t)).toBe('note');
+  });
+
+  it('localizes icon field values', () => {
+    const t = makeT({ 'settings:sync_conflict_icon_document': '文档' });
+    expect(formatConflictValue('iconName', 'document', t)).toBe('文档');
+    // 未知图标保持原值
+    expect(formatConflictValue('iconName', 'unknown_icon', t)).toBe('unknown_icon');
+  });
+});
+
+describe('resolveConflictIcon', () => {
+  it('resolves icon fields to lucide components', () => {
+    expect(resolveConflictIcon('iconName', 'document')).not.toBeNull();
+    expect(resolveConflictIcon('icon_id', 'credit_card')).not.toBeNull();
+    expect(resolveConflictIcon('iconSnapshot', 'passport')).not.toBeNull();
+  });
+
+  it('returns null for non-icon fields or non-string values', () => {
+    expect(resolveConflictIcon('name', 'document')).toBeNull();
+    expect(resolveConflictIcon('iconName', 123)).toBeNull();
+    expect(resolveConflictIcon('iconName', null)).toBeNull();
+    expect(resolveConflictIcon('iconName', undefined)).toBeNull();
   });
 });
 
@@ -220,6 +256,25 @@ describe('buildDiffEntries', () => {
     const entries = buildDiffEntries('properties', { 出生日期: '2026-07-08' }, {}, t);
     expect(entries?.[0].localLevel).toBeNull();
     expect(entries?.[0].localText).toBe('2026-07-08');
+  });
+
+  it('i18n known leaf values and exposes icon components for icon fields', () => {
+    const t = makeT({
+      'settings:sync_conflict_tpltype_user': '用户模板',
+      'settings:sync_conflict_icon_document': '文档',
+    });
+    const entries = buildDiffEntries(
+      'properties',
+      { template_type: 'user', icon_name: 'document' },
+      {},
+      t,
+    );
+    const tpl = entries?.find((e) => e.label === 'Template Type');
+    expect(tpl?.localText).toBe('用户模板');
+    expect(tpl?.localIcon).toBeNull();
+    const icon = entries?.find((e) => e.label === 'Icon Name');
+    expect(icon?.localText).toBe('文档');
+    expect(icon?.localIcon).not.toBeNull();
   });
 
   it('expands arrays into indexed leaves', () => {

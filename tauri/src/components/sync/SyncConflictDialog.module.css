@@ -211,6 +211,14 @@
   background: rgba(231, 76, 60, 0.1);
 }
 
+/* 图标字段：图标图案 + 名称并排 */
+.diffValueWithIcon {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  vertical-align: middle;
+}
+
 .fieldEmpty {
   padding: 16px 12px;
   text-align: center;

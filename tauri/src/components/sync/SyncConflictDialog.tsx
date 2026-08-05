@@ -4,6 +4,7 @@ import { Dialog } from '@/components/ui/Dialog';
 import { Button } from '@/components/ui/Button';
 import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import { useSyncStore } from '@/stores/syncStore';
+import type { LucideIcon } from 'lucide-react';
 import type { SyncConflictSummary, SyncConflictDetail, SyncConflictStrategy } from '@/lib/ipc';
 import {
   conflictFieldLabel,
@@ -11,6 +12,7 @@ import {
   truncateConflictValue,
   buildDiffEntries,
   isSensitivityLevel,
+  resolveConflictIcon,
 } from '@/lib/conflictFieldMeta';
 import styles from './SyncConflictDialog.module.css';
 
@@ -30,6 +32,12 @@ function formatHlc(hlc: SyncConflictSummary['local_hlc']) {
 /** 深度相等：JSON 序列化比较（冲突数据均为可序列化值）。 */
 function valuesEqual(a: unknown, b: unknown): boolean {
   return JSON.stringify(a) === JSON.stringify(b);
+}
+
+/** 图标字段的图标图案渲染（lucide 组件按小尺寸/细描边适配文本行）。 */
+function DiffIcon({ icon }: { icon: LucideIcon }) {
+  const Icon = icon;
+  return <Icon size={14} strokeWidth={1.8} />;
 }
 
 /** 字段级 diff 行：合并本地/远程顶层键，逐字段比对。 */
@@ -183,6 +191,8 @@ export function SyncConflictDialog({
                       const missingLabel = t('settings:sync_conflict_missing', {
                         defaultValue: '—',
                       });
+                      const localIcon = resolveConflictIcon(row.key, row.local);
+                      const remoteIcon = resolveConflictIcon(row.key, row.remote);
                       return (
                         <div
                           key={row.key}
@@ -215,6 +225,11 @@ export function SyncConflictDialog({
                                       <span className={styles.fieldMissing}>{missingLabel}</span>
                                     ) : e.localLevel ? (
                                       <SensitivityBadge level={e.localLevel} />
+                                    ) : e.localIcon ? (
+                                      <span className={styles.diffValueWithIcon}>
+                                        <DiffIcon icon={e.localIcon} />
+                                        {truncateConflictValue(e.localText)}
+                                      </span>
                                     ) : (
                                       truncateConflictValue(e.localText)
                                     )}
@@ -223,6 +238,11 @@ export function SyncConflictDialog({
                               </div>
                             ) : isSensitivityLevel(row.local) ? (
                               <SensitivityBadge level={row.local} />
+                            ) : localIcon ? (
+                              <span className={styles.diffValueWithIcon}>
+                                <DiffIcon icon={localIcon} />
+                                {truncateConflictValue(formatConflictValue(row.key, row.local, t))}
+                              </span>
                             ) : (
                               truncateConflictValue(formatConflictValue(row.key, row.local, t))
                             )}
@@ -252,6 +272,11 @@ export function SyncConflictDialog({
                                       <span className={styles.fieldMissing}>{missingLabel}</span>
                                     ) : e.remoteLevel ? (
                                       <SensitivityBadge level={e.remoteLevel} />
+                                    ) : e.remoteIcon ? (
+                                      <span className={styles.diffValueWithIcon}>
+                                        <DiffIcon icon={e.remoteIcon} />
+                                        {truncateConflictValue(e.remoteText)}
+                                      </span>
                                     ) : (
                                       truncateConflictValue(e.remoteText)
                                     )}
@@ -260,6 +285,11 @@ export function SyncConflictDialog({
                               </div>
                             ) : isSensitivityLevel(row.remote) ? (
                               <SensitivityBadge level={row.remote} />
+                            ) : remoteIcon ? (
+                              <span className={styles.diffValueWithIcon}>
+                                <DiffIcon icon={remoteIcon} />
+                                {truncateConflictValue(formatConflictValue(row.key, row.remote, t))}
+                              </span>
                             ) : (
                               truncateConflictValue(formatConflictValue(row.key, row.remote, t))
                             )}
