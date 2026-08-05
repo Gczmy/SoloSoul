@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Dialog } from '@/components/ui/Dialog';
 import { Button } from '@/components/ui/Button';
+import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import { useSyncStore } from '@/stores/syncStore';
 import type { SyncConflictSummary, SyncConflictDetail, SyncConflictStrategy } from '@/lib/ipc';
 import {
@@ -9,6 +10,7 @@ import {
   formatConflictValue,
   truncateConflictValue,
   buildDiffEntries,
+  isSensitivityLevel,
 } from '@/lib/conflictFieldMeta';
 import styles from './SyncConflictDialog.module.css';
 
@@ -211,12 +213,16 @@ export function SyncConflictDialog({
                                     </span>
                                     {e.localText === null ? (
                                       <span className={styles.fieldMissing}>{missingLabel}</span>
+                                    ) : e.localLevel ? (
+                                      <SensitivityBadge level={e.localLevel} />
                                     ) : (
                                       truncateConflictValue(e.localText)
                                     )}
                                   </div>
                                 ))}
                               </div>
+                            ) : isSensitivityLevel(row.local) ? (
+                              <SensitivityBadge level={row.local} />
                             ) : (
                               truncateConflictValue(formatConflictValue(row.key, row.local, t))
                             )}
@@ -244,12 +250,16 @@ export function SyncConflictDialog({
                                     </span>
                                     {e.remoteText === null ? (
                                       <span className={styles.fieldMissing}>{missingLabel}</span>
+                                    ) : e.remoteLevel ? (
+                                      <SensitivityBadge level={e.remoteLevel} />
                                     ) : (
                                       truncateConflictValue(e.remoteText)
                                     )}
                                   </div>
                                 ))}
                               </div>
+                            ) : isSensitivityLevel(row.remote) ? (
+                              <SensitivityBadge level={row.remote} />
                             ) : (
                               truncateConflictValue(formatConflictValue(row.key, row.remote, t))
                             )}

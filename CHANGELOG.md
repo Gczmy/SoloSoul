@@ -10,6 +10,7 @@ All notable changes to SoloSoul are documented in this file.
 
 ### Fixed
 
+- **同步冲突 diff 敏感度值渲染徽章** — 差异条目中值为敏感度 token（`public`/`internal`/`sensitive`/`critical`，如 `出生日期: internal`、`身份证号: critical`）时不再显示纯文本，改为渲染共享 `SensitivityBadge` 彩色徽章（图标 + 双语标签，`sensitivity` 命名空间）；顶层 `sensitivity_level` 标量字段同样生效。新增 `isSensitivityLevel` 纯函数，`DiffEntry` 携带 `localLevel`/`remoteLevel`，非敏感度值保持文本渲染。
 - **同步冲突 diff 差异行高亮** — 对象/数组字段（如「属性」）不再整块展示难以比对的文本，而是按叶子展开为逐行条目（本地/远程逐叶配对）：完全相同的行不加背景，**有差异的具体行（含单侧缺失）以低对比浅红色背景高亮**，一眼定位具体差异值（如 `全名: 123` vs `全名: 123ww`）；嵌套对象递归展开（深度上限 3）、数组按下标展开，标量字段沿用整值渲染。新增 `conflictFieldMeta.ts` 的 `buildDiffEntries` 纯函数 + 7 个单测。
 - **移除 OCR「当前模型 — PP-OCRv6系列」文案** — 侧边栏扫描卡片与 OCR 扫描页面的模型系列标题删除（该信息重复且无操作价值，模型档位选择器本身已足够），同时清理 `active_model_series` 双语 locale key 与零引用的 `OCR_MODEL_SERIES` 常量。
 - **macOS Vision 扫描报错修复** — 扫描报 `Vision CLI 异常退出 (stdout: {"error": "Cannot load image at --"})`。根因：Rust 侧调用 CLI 时误传 `--` 参数分隔符，Swift 端用原始 `CommandLine.arguments[1]` 读取时把 `--` 当成图像路径。修复：Rust 侧直接传图像路径；Swift 端防御性跳过前置 `--` 并升级 v2.1-MRZ → v2.2（源码变更触发重新编译缓存二进制）。新增回归测试 `test_scan_image_passes_real_path`（真实 1x1 PNG 验证路径正确消费 + 不存在路径报错含真实路径）。

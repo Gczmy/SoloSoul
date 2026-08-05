@@ -6,6 +6,7 @@ import {
   formatConflictValue,
   truncateConflictValue,
   buildDiffEntries,
+  isSensitivityLevel,
 } from './conflictFieldMeta';
 
 /** 模拟 i18n：settings:/editor: 命中返回假想译文，未命中返回 defaultValue。 */
@@ -102,6 +103,24 @@ describe('formatConflictValue', () => {
   });
 });
 
+describe('isSensitivityLevel', () => {
+  it('recognizes the four sensitivity tokens', () => {
+    expect(isSensitivityLevel('public')).toBe(true);
+    expect(isSensitivityLevel('internal')).toBe(true);
+    expect(isSensitivityLevel('sensitive')).toBe(true);
+    expect(isSensitivityLevel('critical')).toBe(true);
+  });
+
+  it('rejects non-sensitivity values', () => {
+    expect(isSensitivityLevel('internalx')).toBe(false);
+    expect(isSensitivityLevel('Internal')).toBe(false);
+    expect(isSensitivityLevel('张三')).toBe(false);
+    expect(isSensitivityLevel(123)).toBe(false);
+    expect(isSensitivityLevel(null)).toBe(false);
+    expect(isSensitivityLevel(undefined)).toBe(false);
+  });
+});
+
 describe('truncateConflictValue', () => {
   it('keeps short text and truncates long text', () => {
     expect(truncateConflictValue('abc')).toBe('abc');
@@ -176,6 +195,31 @@ describe('buildDiffEntries', () => {
     expect(entries?.[0].localText).toBe('是');
     expect(entries?.[0].remoteText).toBe('否');
     expect(entries?.[0].changed).toBe(true);
+  });
+
+  it('exposes sensitivity tokens as badge levels', () => {
+    const t = makeT();
+    const entries = buildDiffEntries(
+      'properties',
+      { 出生日期: 'internal', 全名: 'public' },
+      { 出生日期: 'internal', 全名: 'critical' },
+      t,
+    );
+    const birth = entries?.find((e) => e.label === '出生日期');
+    expect(birth?.localLevel).toBe('internal');
+    expect(birth?.remoteLevel).toBe('internal');
+    expect(birth?.changed).toBe(false);
+    const name = entries?.find((e) => e.label === '全名');
+    expect(name?.localLevel).toBe('public');
+    expect(name?.remoteLevel).toBe('critical');
+    expect(name?.changed).toBe(true);
+  });
+
+  it('keeps level null for non-sensitivity leaf values', () => {
+    const t = makeT();
+    const entries = buildDiffEntries('properties', { 出生日期: '2026-07-08' }, {}, t);
+    expect(entries?.[0].localLevel).toBeNull();
+    expect(entries?.[0].localText).toBe('2026-07-08');
   });
 
   it('expands arrays into indexed leaves', () => {

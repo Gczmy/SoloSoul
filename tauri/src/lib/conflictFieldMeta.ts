@@ -7,7 +7,20 @@
  * 归一化到 snake_case 后统一查表，兼容两种来源。
  */
 
+import type { SensitivityLevel } from '@/types/template';
+
 type TranslateFn = (key: string, options?: { defaultValue?: string }) => string;
+
+/** 敏感度 token 全集（与前端 `SensitivityLevel` 类型一致，供差异值渲染徽章）。 */
+const SENSITIVITY_LEVELS: readonly SensitivityLevel[] = ['public', 'internal', 'sensitive', 'critical'];
+
+/** 值是否为敏感度 token（如 `internal`/`critical`），是则可在 UI 渲染敏感度徽章。 */
+export function isSensitivityLevel(value: unknown): value is SensitivityLevel {
+  return (
+    typeof value === 'string' &&
+    (SENSITIVITY_LEVELS as readonly string[]).includes(value)
+  );
+}
 
 /** 归一化字段键：camelCase / snake_case → snake_case（`accountId`/`account_id` → `account_id`）。 */
 export function normalizeFieldKey(key: string): string {
@@ -188,6 +201,10 @@ export interface DiffEntry {
   localText: string | null;
   /** 远程侧文本；null 表示远程缺失。 */
   remoteText: string | null;
+  /** 本地侧是否为敏感度 token（渲染敏感度徽章）；否则 null。 */
+  localLevel: SensitivityLevel | null;
+  /** 远程侧是否为敏感度 token（渲染敏感度徽章）；否则 null。 */
+  remoteLevel: SensitivityLevel | null;
   /** 该叶子是否存在差异（含单侧缺失）。 */
   changed: boolean;
 }
@@ -281,6 +298,8 @@ export function buildDiffEntries(
       label: labelByPath.get(path) || humanizeKey(key),
       localText: lValue === undefined ? null : formatLeafText(lValue, t),
       remoteText: rValue === undefined ? null : formatLeafText(rValue, t),
+      localLevel: lValue === undefined ? null : isSensitivityLevel(lValue) ? lValue : null,
+      remoteLevel: rValue === undefined ? null : isSensitivityLevel(rValue) ? rValue : null,
       changed: !valuesEqual(lValue, rValue),
     };
   });
