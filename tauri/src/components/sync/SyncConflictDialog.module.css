@@ -127,6 +127,37 @@
   overflow: hidden;
 }
 
+/* 「只看差异」工具栏 */
+.diffToolbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: var(--bg-toolbar);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.onlyDiffToggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-caption);
+  color: var(--text-secondary);
+  cursor: pointer;
+  user-select: none;
+}
+
+.onlyDiffToggle input {
+  accent-color: var(--accent-primary);
+  cursor: pointer;
+}
+
+.onlyDiffCount {
+  font-size: var(--text-caption);
+  color: var(--accent-primary);
+  font-weight: 600;
+}
+
 .diffGrid {
   display: grid;
   grid-template-columns: minmax(120px, 0.9fr) 1fr 1fr;

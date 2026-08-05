@@ -435,12 +435,14 @@ function lastKeyOf(path: string): string {
 /**
  * 对象/数组字段 → 叶子级 diff 条目（本地/远程逐叶配对，供 UI 逐行高亮差异）。
  * 标量字段或双方均为空容器时返回 null（沿用整值渲染）。
+ * `onlyDifferences` 为 true 时仅返回有差异的叶子（含单侧缺失），供「只看差异」模式。
  */
 export function buildDiffEntries(
   key: string,
   local: unknown,
   remote: unknown,
   t: TranslateFn,
+  onlyDifferences = false,
 ): DiffEntry[] | null {
   const isObjectLike = (v: unknown): boolean => v !== null && typeof v === 'object';
   if (!isObjectLike(local) && !isObjectLike(remote)) return null;
@@ -485,5 +487,8 @@ export function buildDiffEntries(
       changed: !valuesEqual(lValue, rValue),
     };
   });
-  return schemaEntry ? [schemaEntry, ...entries] : entries;
+  const all = schemaEntry ? [schemaEntry, ...entries] : entries;
+  if (!onlyDifferences) return all;
+  // 「只看差异」模式：剔除无差异叶子（摘要条目无差异、不展示）
+  return all.filter((e) => e.changed);
 }

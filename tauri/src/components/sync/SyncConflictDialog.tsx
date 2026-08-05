@@ -41,8 +41,14 @@ function DiffIcon({ icon }: { icon: LucideIcon }) {
   return <Icon size={14} strokeWidth={1.8} />;
 }
 
-/** 字段级 diff 行：合并本地/远程顶层键，逐字段比对；省略用户无法感知/修改的元数据行。 */
-function buildFieldRows(local: unknown, remote: unknown, remoteDeleted: boolean) {
+/** 字段级 diff 行：合并本地/远程顶层键，逐字段比对；省略用户无法感知/修改的元数据行。
+ * `onlyDifferences` 为 true 时仅保留有差异的行（「只看差异」模式）。 */
+function buildFieldRows(
+  local: unknown,
+  remote: unknown,
+  remoteDeleted: boolean,
+  onlyDifferences: boolean,
+) {
   const l = local && typeof local === 'object' ? (local as Record<string, unknown>) : {};
   const r = remote && typeof remote === 'object' ? (remote as Record<string, unknown>) : {};
   const keys = Array.from(new Set([...Object.keys(l), ...Object.keys(r)]));
@@ -53,7 +59,8 @@ function buildFieldRows(local: unknown, remote: unknown, remoteDeleted: boolean)
       const changed = remoteDeleted ? lv !== undefined : !valuesEqual(lv, rv);
       return { key, local: lv, remote: rv, changed };
     })
-    .filter((row) => !shouldOmitField(row.key, row.local, row.remote));
+    .filter((row) => !shouldOmitField(row.key, row.local, row.remote))
+    .filter((row) => !onlyDifferences || row.changed);
 }
 
 export function SyncConflictDialog({
@@ -66,6 +73,7 @@ export function SyncConflictDialog({
 }: SyncConflictDialogProps) {
   const { t } = useTranslation(['settings', 'common']);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [onlyDifferences, setOnlyDifferences] = useState(false);
 
   useEffect(() => {
     if (isOpen && conflicts.length > 0 && !selectedId) {
@@ -88,8 +96,25 @@ export function SyncConflictDialog({
 
   const fieldRows =
     detail && selectedConflict
-      ? buildFieldRows(detail.local_data, detail.remote_data, detail.remote_deleted)
+      ? buildFieldRows(
+          detail.local_data,
+          detail.remote_data,
+          detail.remote_deleted,
+          onlyDifferences,
+        )
       : [];
+  const diffCount = fieldRows.reduce(
+    (n, row) =>
+      n +
+      (row.changed
+        ? detail?.remote_deleted
+          ? 1 // remote 整行删除：整行为一处差异
+          : // 对象字段统计展开后的差异叶子数；标量行 buildDiffEntries 为 null，按 1 处计
+            (buildDiffEntries(row.key, row.local, row.remote, t)?.filter((e) => e.changed)
+              .length ?? 1)
+        : 0),
+    0,
+  );
 
   return (
     <Dialog
@@ -167,6 +192,28 @@ export function SyncConflictDialog({
 
                 {/* 字段级 diff */}
                 <div className={styles.fieldDiff}>
+                  <div className={styles.diffToolbar}>
+                    <label className={styles.onlyDiffToggle}>
+                      <input
+                        type="checkbox"
+                        checked={onlyDifferences}
+                        onChange={(e) => setOnlyDifferences(e.target.checked)}
+                      />
+                      <span>
+                        {t('settings:sync_conflict_only_diff', {
+                          defaultValue: 'Only show differences',
+                        })}
+                      </span>
+                    </label>
+                    {onlyDifferences && (
+                      <span className={styles.onlyDiffCount}>
+                        {t('settings:sync_conflict_only_diff_count', {
+                          defaultValue: '{{count}} differences',
+                          count: diffCount,
+                        })}
+                      </span>
+                    )}
+                  </div>
                   <div className={styles.diffGrid}>
                     <div className={styles.diffTitle}>
                       {t('settings:sync_conflict_item', { defaultValue: 'Item' })}
@@ -180,16 +227,26 @@ export function SyncConflictDialog({
                   </div>
                   {fieldRows.length === 0 ? (
                     <div className={styles.fieldEmpty}>
-                      {t('settings:sync_conflict_no_fields', {
-                        defaultValue: 'No comparable fields.',
-                      })}
+                      {onlyDifferences
+                        ? t('settings:sync_conflict_no_differences', {
+                            defaultValue: 'No differences.',
+                          })
+                        : t('settings:sync_conflict_no_fields', {
+                            defaultValue: 'No comparable fields.',
+                          })}
                     </div>
                   ) : (
                     fieldRows.map((row) => {
                       // 对象/数组字段展开为叶子级条目，逐行高亮差异；标量字段沿用整值渲染
                       const diffEntries = detail.remote_deleted
                         ? null
-                        : buildDiffEntries(row.key, row.local, row.remote, t);
+                        : buildDiffEntries(
+                            row.key,
+                            row.local,
+                            row.remote,
+                            t,
+                            onlyDifferences,
+                          );
                       const hasEntries = diffEntries !== null && diffEntries.length > 0;
                       const missingLabel = t('settings:sync_conflict_missing', {
                         defaultValue: '—',

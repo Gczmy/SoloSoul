@@ -1060,5 +1060,8 @@
   "sync_conflict_tpltype_user": "用户模板",
   "sync_conflict_tpltype_system": "系统模板",
   "sync_conflict_field_schema": "字段定义",
-  "sync_conflict_field_schema_count": "共 {{count}} 项"
+  "sync_conflict_field_schema_count": "共 {{count}} 项",
+  "sync_conflict_only_diff": "只看差异",
+  "sync_conflict_only_diff_count": "共 {{count}} 处差异",
+  "sync_conflict_no_differences": "无差异字段"
 }

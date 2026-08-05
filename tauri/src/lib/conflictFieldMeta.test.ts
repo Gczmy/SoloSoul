@@ -274,6 +274,36 @@ describe('buildDiffEntries', () => {
     expect(name?.changed).toBe(false);
   });
 
+  it('onlyDifferences mode drops unchanged leaves', () => {
+    const t = makeT({ 'editor:fields.fullName': '姓名', 'editor:fields.email': '邮箱' });
+    const entries = buildDiffEntries(
+      'properties',
+      { fullName: '张三', email: 'a@b.com' },
+      { fullName: '张三', email: 'a@c.com' },
+      t,
+      true,
+    );
+    expect(entries).toHaveLength(1);
+    const email = entries?.[0];
+    expect(email?.label).toBe('邮箱');
+    expect(email?.changed).toBe(true);
+  });
+
+  it('onlyDifferences mode keeps single-side-missing leaves and drops schema summary', () => {
+    const t = makeT({ 'settings:sync_conflict_field_schema': '字段定义' });
+    const fields = { fullName: { name: '姓名', type: 'text' } };
+    const local = { __fields: fields, fullName: '张三' };
+    const remote = { __fields: fields, fullName: '李四' };
+    const entries = buildDiffEntries('properties', local, remote, t, true);
+    expect(entries).not.toBeNull();
+    // 无差异的 __fields 摘要不展示
+    expect(entries?.some((e) => e.path === '__fields')).toBe(false);
+    // 仅保留有差异的叶子
+    expect(entries).toHaveLength(1);
+    expect(entries?.[0].path).toBe('fullName');
+    expect(entries?.[0].changed).toBe(true);
+  });
+
   it('recurses nested objects and marks single-leaf differences', () => {
     const t = makeT({ 'editor:fields.fullName': '姓名' });
     const local = { Fields: { fullName: { Name: '姓名', Type: 'text' } }, 全名: '123' };
