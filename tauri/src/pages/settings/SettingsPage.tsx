@@ -19,11 +19,11 @@ import {
   BookOpen,
   LayoutTemplate,
   Puzzle,
-  Smartphone,
   Scan,
   Paperclip,
   Search,
 } from 'lucide-react';
+import { PAGE_ICON_MAP } from '@/lib/pageIcons';
 
 import styles from './SettingsPage.module.css';
 
@@ -115,7 +115,8 @@ export function SettingsPage() {
         },
         {
           label: t('settings:items.sync') || '设备同步',
-          icon: Smartphone,
+          // §7.4 单源规范：与首页快捷入口/底部导航同源（PAGE_ICON_MAP.sync = 双向循环箭头）
+          icon: PAGE_ICON_MAP.sync,
           path: '/sync',
           desc: t('settings:desc.sync') || '与其他设备同步数据',
         },

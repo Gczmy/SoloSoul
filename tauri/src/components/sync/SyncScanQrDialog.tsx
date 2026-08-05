@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
-import { X, CheckCircle2 } from 'lucide-react';
+import { X } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { useCameraCapability } from '@/hooks/useCameraCapability';
 import { QrScanFallback } from '@/components/recovery/QrScanFallback';
 import { RecoveryQrScanner } from '@/components/recovery/RecoveryQrScanner';
+import { logger } from '@/lib/logger';
 
 type QrType = 'sync' | 'unknown';
 
@@ -30,8 +31,6 @@ export function SyncScanQrDialog({ isOpen, onClose, onSync }: SyncScanQrDialogPr
   const cameraCapability = useCameraCapability();
   const [error, setError] = useState<string | null>(null);
   const [scanned, setScanned] = useState<ParsedQr | null>(null);
-  const [processing, setProcessing] = useState(false);
-  const [success, setSuccess] = useState<string | null>(null);
   // 扫码器启动失败（如权限被拒）时置位，展示「使用设备发现/手动输入」兜底
   const [scannerError, setScannerError] = useState<string | null>(null);
 
@@ -54,11 +53,9 @@ export function SyncScanQrDialog({ isOpen, onClose, onSync }: SyncScanQrDialogPr
         } else {
           setError(t('common:sync_qr_unrecognized'));
         }
-        setSuccess(null);
         return;
       }
       setError(null);
-      setSuccess(null);
       setScanned({
         type,
         addr: parsed.a || '',
@@ -74,24 +71,20 @@ export function SyncScanQrDialog({ isOpen, onClose, onSync }: SyncScanQrDialogPr
   const handleClose = () => {
     setError(null);
     setScanned(null);
-    setProcessing(false);
-    setSuccess(null);
     setScannerError(null);
     onClose();
   };
 
-  const handleConfirmSync = async () => {
+  const handleConfirmSync = () => {
     if (!scanned || scanned.type !== 'sync' || !onSync) return;
-    setProcessing(true);
-    setError(null);
-    try {
-      await onSync(scanned.addr, scanned.fingerprint || '');
-      setSuccess(t('common:sync_qr_success_sync') ?? 'Sync completed');
-    } catch (err) {
-      setError(String(err));
-    } finally {
-      setProcessing(false);
-    }
+    const { addr, fingerprint } = scanned;
+    // 后台执行：立即关闭扫码对话框，不再阻塞等待完整同步（期间用户可自由操作）。
+    // 结果反馈由页面侧负责：同步成功 → toast「同步完成」；配对中 → PairingDialog
+    // 双向确认；失败 → 页面错误横幅（resolveBackendErrorMessage）。
+    void Promise.resolve(onSync(addr, fingerprint || '')).catch((err) => {
+      logger.warn('[SyncScanQrDialog] background sync failed:', err);
+    });
+    handleClose();
   };
 
   return (
@@ -196,36 +189,6 @@ export function SyncScanQrDialog({ isOpen, onClose, onSync }: SyncScanQrDialogPr
                 </div>
               )}
             </div>
-          ) : success ? (
-            <div style={{ textAlign: 'center', padding: '12px 0' }}>
-              <div
-                style={{
-                  width: 56,
-                  height: 56,
-                  borderRadius: '50%',
-                  background: 'rgba(39,174,96,0.12)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  margin: '0 auto 16px',
-                }}
-              >
-                <CheckCircle2 size={32} color="#27ae60" />
-              </div>
-              <h3
-                style={{
-                  fontSize: 'var(--text-body)',
-                  fontWeight: 600,
-                  margin: '0 0 8px',
-                  color: 'var(--text-primary)',
-                }}
-              >
-                {success}
-              </h3>
-              <Button onClick={handleClose} style={{ width: '100%', marginTop: 12 }}>
-                {t('common:close')}
-              </Button>
-            </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <p
@@ -264,8 +227,8 @@ export function SyncScanQrDialog({ isOpen, onClose, onSync }: SyncScanQrDialogPr
                   </div>
                 )}
               </div>
-              <Button onClick={handleConfirmSync} disabled={processing} style={{ width: '100%' }}>
-                {processing ? t('common:loading') : t('common:sync_qr_confirm_sync_button')}
+              <Button onClick={handleConfirmSync} style={{ width: '100%' }}>
+                {t('common:sync_qr_confirm_sync_button')}
               </Button>
               {error && (
                 <div
@@ -274,12 +237,7 @@ export function SyncScanQrDialog({ isOpen, onClose, onSync }: SyncScanQrDialogPr
                   {error}
                 </div>
               )}
-              <Button
-                variant="secondary"
-                onClick={() => setScanned(null)}
-                disabled={processing}
-                style={{ width: '100%' }}
-              >
+              <Button variant="secondary" onClick={() => setScanned(null)} style={{ width: '100%' }}>
                 {t('common:cancel')}
               </Button>
             </div>

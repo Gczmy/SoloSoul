@@ -245,9 +245,10 @@ function SyncStatusCard({
 
       {store.localFingerprint && (
         <>
+          {/* 三个本地设备信息块（设备名/指纹/监听地址）样式完全统一，以设备名为范例 */}
           <div
             style={{
-              marginTop: 12,
+              marginTop: 8,
               padding: 10,
               borderRadius: 8,
               background: 'var(--bg-toolbar)',
@@ -268,7 +269,7 @@ function SyncStatusCard({
               borderRadius: 8,
               background: 'var(--bg-toolbar)',
               fontSize: 'var(--text-caption)',
-              fontFamily: 'monospace',
+              color: 'var(--text-secondary)',
               wordBreak: 'break-all',
             }}
           >
@@ -288,7 +289,6 @@ function SyncStatusCard({
             background: 'var(--bg-toolbar)',
             fontSize: 'var(--text-caption)',
             color: 'var(--text-secondary)',
-            fontFamily: 'monospace',
             wordBreak: 'break-all',
           }}
         >

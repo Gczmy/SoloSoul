@@ -268,8 +268,10 @@ pub fn run_initiator_session(
 
 /// 作为响应方处理入站同步连接。
 ///
-/// `peer_callback`：入站 Hello 落库一条**新的未信任** peer 记录时触发，
+/// `peer_callback`：入站 Hello 来自**未信任** peer（无论是否已有记录）时触发，
 /// 供 GUI 向所有页面广播配对请求（B 用户不在同步页也能收到配对确认对话框）。
+/// 若仅对「新」peer 触发，已存在旧版遗留未信任记录的对端重连时响应方不弹框，
+/// 发起方将永远等不到双向确认。
 #[allow(clippy::too_many_arguments)]
 pub fn handle_inbound(
     transport: &mut SyncTransport,
@@ -288,7 +290,7 @@ pub fn handle_inbound(
         .remote_fingerprint()
         .ok_or("Peer did not present a static public key during handshake")?;
 
-    let (peer_node_id, is_new_peer, peer_client_type) = match recv_msg(&mut session, transport)? {
+    let (peer_node_id, peer_client_type) = match recv_msg(&mut session, transport)? {
         SyncMessage::Hello {
             node_id: pid,
             account_id: pacc,
@@ -336,10 +338,7 @@ pub fn handle_inbound(
                 )?;
                 return Err(e);
             }
-            // P103: 信任检查前**不落库**——仅只读判断是否为新 peer（用于配对请求回调），
-            // 防止任意 LAN 主机连接即刷写 peer 表。
-            let is_new = vault.load_peer_state(&pid)?.is_none();
-            (pid, is_new, peer_client_type)
+            (pid, peer_client_type)
         }
         _ => return Err("Expected Hello".to_string()),
     };
@@ -351,19 +350,20 @@ pub fn handle_inbound(
 
     if !trusted {
         // P103: 未信任 peer——不落库、不回 HelloAck（不回 account_id 与指纹）。
-        // 仅对新 peer 触发配对请求回调（数据取自握手认证值，纯内存传递），
-        // 并回最小错误帧让发起方进入「双侧确认配对」流程。
-        if is_new_peer {
-            if let Some(cb) = &peer_callback {
-                let device_name = peer_display_name(&remote_fingerprint, &peer_addr);
-                cb(NewPeerInfo {
-                    node_id: peer_node_id.clone(),
-                    fingerprint: remote_fingerprint.clone(),
-                    addr: peer_addr.clone(),
-                    device_name,
-                    client_type: peer_client_type.clone(),
-                });
-            }
+        // 只要未信任（无论是否已存在记录——含旧版遗留的未信任记录/已撤销信任的记录），
+        // 都触发配对请求回调（数据取自握手认证值，纯内存传递）。
+        // 若仅对新 peer 触发，已存在未信任记录的对端重连时响应方不弹确认框，
+        // 发起方将永远等不到双向确认（表现为「扫描方在等待、响应方毫无反应」）。
+        // 重复事件由前端按 node_id 去重，用户确认/忽略后清除才允许重新弹出。
+        if let Some(cb) = &peer_callback {
+            let device_name = peer_display_name(&remote_fingerprint, &peer_addr);
+            cb(NewPeerInfo {
+                node_id: peer_node_id.clone(),
+                fingerprint: remote_fingerprint.clone(),
+                addr: peer_addr.clone(),
+                device_name,
+                client_type: peer_client_type.clone(),
+            });
         }
         send_msg(
             &mut session,
@@ -786,6 +786,88 @@ mod tests {
         );
         assert_eq!(parse_pairing_pending("Peer is not trusted"), None);
         assert_eq!(parse_pairing_pending("__SYNC_ERR__:pairing_pending:"), None);
+    }
+
+    // ---------------------------------------------------------------------
+    // 双向配对回调防回归：未信任 peer（无论新记录还是已存在旧记录）都触发
+    // peer_callback。回归场景：响应方已存在旧版遗留的未信任记录时，旧实现
+    // 以 is_new=false 不触发回调 → 发起方永远等不到双向确认
+    // （「扫描方在等待、响应方毫无反应」）。
+    // ---------------------------------------------------------------------
+
+    /// 运行一次「客户端连接未信任响应方」的完整握手，返回响应方 peer_callback 是否被触发。
+    fn inbound_pairing_callback_fired(pre_seed_untrusted_peer: bool) -> bool {
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let addr = listener.local_addr().unwrap().to_string();
+        let server_keys = NoiseKeys::generate();
+        let client_keys = NoiseKeys::generate();
+
+        let (server_vault, _server_dir) = test_vault();
+        let (client_vault, _client_dir) = test_vault();
+        if pre_seed_untrusted_peer {
+            // 旧版遗留：响应方已存在未信任记录（P103 前落库）。
+            save_peer(&server_vault, "node-client", false, Some("legacy-fp"));
+        }
+        let fired = Arc::new(std::sync::Mutex::new(false));
+        let fired_cb = fired.clone();
+        let server_vault_arc = server_vault.clone();
+
+        let server_thread = std::thread::spawn(move || {
+            let (stream, _) = listener.accept().unwrap();
+            let mut transport = SyncTransport::from_stream(stream);
+            let cb = fired_cb.clone();
+            let result = handle_inbound(
+                &mut transport,
+                "node-server",
+                "acct",
+                &server_keys,
+                server_vault_arc,
+                "127.0.0.1:0".to_string(),
+                Some(Arc::new(move |_info: NewPeerInfo| {
+                    *cb.lock().unwrap() = true;
+                })),
+            );
+            assert!(result.is_err(), "未信任 peer 应返回错误");
+        });
+
+        let client_thread = std::thread::spawn(move || {
+            let stream = std::net::TcpStream::connect(&addr).unwrap();
+            let mut transport = SyncTransport::from_stream(stream);
+            let err = run_initiator_session(
+                &mut transport,
+                "node-client",
+                "acct",
+                &client_keys,
+                client_vault,
+                "127.0.0.1:1".to_string(),
+            )
+            .expect_err("未信任响应方应返回 pairing_pending");
+            assert!(
+                err.starts_with("__SYNC_ERR__:pairing_pending:"),
+                "got: {err}"
+            );
+        });
+
+        server_thread.join().unwrap();
+        client_thread.join().unwrap();
+        let fired_val = *fired.lock().unwrap();
+        fired_val
+    }
+
+    #[test]
+    fn test_inbound_callback_fires_for_new_untrusted_peer() {
+        assert!(
+            inbound_pairing_callback_fired(false),
+            "新未信任 peer 也应触发配对回调"
+        );
+    }
+
+    #[test]
+    fn test_inbound_callback_fires_for_existing_untrusted_record() {
+        assert!(
+            inbound_pairing_callback_fired(true),
+            "已存在旧版未信任记录的对端重连也应触发配对回调（回归）"
+        );
     }
 
     #[test]

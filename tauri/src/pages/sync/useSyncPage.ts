@@ -4,6 +4,8 @@ import { Wifi, RefreshCw, Smartphone, Info } from 'lucide-react';
 import { useShallow } from 'zustand/react/shallow';
 import { useSyncStore } from '@/stores/syncStore';
 import type { SyncPeer } from '@/stores/syncStore';
+import { useUiStore } from '@/stores/uiStore';
+import type { SyncResult } from '@/lib/ipc';
 
 /**
  * 设备同步页状态机：同步开关/自动同步/发现/信任/忽略/配对等待/忘记确认/QR 对话/冲突对话 + 指南内容。
@@ -297,8 +299,26 @@ export function useSyncPage() {
   };
 
   const handleScanSync = async (addr: string) => {
+    // 扫码后台执行：syncWithDevice 内部处理 pairing_pending（进入双向确认配对流程），
+    // 成功则写入 lastResult，由下方 lastResult 监听统一弹「同步完成」toast。
     await store.syncWithDevice(addr);
   };
+
+  // 后台同步完成提示：syncWithDevice 成功（扫码后台执行 / 手动同步 / 配对重试成功）
+  // 写入 lastResult 时弹 toast——替代扫码对话框内阻塞式「同步完成」界面，
+  // 用户无需等待即可继续操作。ref 初始化为当前值避免页面挂载时误弹。
+  const prevLastResultRef = useRef<SyncResult | null>(store.lastResult);
+  useEffect(() => {
+    const cur = store.lastResult;
+    const prev = prevLastResultRef.current;
+    prevLastResultRef.current = cur;
+    if (cur && cur !== prev) {
+      useUiStore.getState().showToast({
+        type: 'success',
+        message: t('common:sync_qr_success_sync') ?? 'Sync completed',
+      });
+    }
+  }, [store.lastResult, t]);
 
   return {
     store,
