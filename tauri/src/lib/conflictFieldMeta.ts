@@ -196,6 +196,24 @@ export function conflictFieldLabel(key: string, t: TranslateFn): string {
   return humanizeKey(key);
 }
 
+/** 同步表名 → settings locale key（冲突卡片/详情头部展示可读表名，替代原始表名如 objects）。 */
+const TABLE_LOCALE_KEYS: Record<string, string> = {
+  profiles: 'sync_conflict_table_profiles',
+  objects: 'sync_conflict_table_objects',
+  user_templates: 'sync_conflict_table_user_templates',
+  trash_items: 'sync_conflict_table_trash_items',
+};
+
+/** 同步表名可读名：已知表名（objects 等）走 locale，未知表名做标题化兜底。 */
+export function conflictTableLabel(table: string, t: TranslateFn): string {
+  const localeKey = TABLE_LOCALE_KEYS[table];
+  if (localeKey) {
+    const label = t(`settings:${localeKey}`, { defaultValue: '' });
+    if (label) return label;
+  }
+  return humanizeKey(table);
+}
+
 /** 嵌套对象内部的字段可读名：`__fields` 元数据走专属标签，其余优先 editor:fields.<id>（动态字段名），未知做标题化兜底。 */
 export function nestedFieldLabel(key: string, t: TranslateFn): string {
   if (key === SCHEMA_KEY) {

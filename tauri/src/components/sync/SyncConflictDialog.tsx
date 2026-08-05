@@ -9,6 +9,7 @@ import type { LucideIcon } from 'lucide-react';
 import type { SyncConflictSummary, SyncConflictDetail, SyncConflictStrategy } from '@/lib/ipc';
 import {
   conflictFieldLabel,
+  conflictTableLabel,
   formatConflictValue,
   truncateConflictValue,
   buildDiffEntries,
@@ -144,9 +145,8 @@ export function SyncConflictDialog({
                   type="button"
                   className={`${styles.item} ${selectedId === c.id ? styles.selected : ''}`}
                   onClick={() => handleSelect(c.id)}
-                >
-                  <div className={styles.itemTable}>{c.table}</div>
-                  <div className={styles.itemRecord}>{c.record_id}</div>
+                >                    <div className={styles.itemTable}>{conflictTableLabel(c.table, t)}</div>
+                    <div className={styles.itemRecord}>{c.record_id}</div>
                   <div className={styles.itemWinner}>
                     {t('settings:sync_conflict_winner', { defaultValue: 'Winner' })}:{' '}
                     {c.winner === 'local'
@@ -192,7 +192,7 @@ export function SyncConflictDialog({
                   </div>
                   <div>
                     <strong>{t('settings:sync_conflict_table', { defaultValue: 'Table' })}:</strong>{' '}
-                    {detail.table}
+                    {conflictTableLabel(detail.table, t)}
                   </div>
                   <div className={styles.winnerRow}>
                     <strong>{t('settings:sync_conflict_winner', { defaultValue: 'Winner' })}:</strong>{' '}

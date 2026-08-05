@@ -1067,5 +1067,9 @@
   "sync_conflict_list_count": "共 {{count}} 条冲突",
   "sync_conflict_nav_position": "冲突 {{index}} / {{total}}",
   "sync_conflict_prev": "‹ 上一条",
-  "sync_conflict_next": "下一条 ›"
+  "sync_conflict_next": "下一条 ›",
+  "sync_conflict_table_profiles": "账户",
+  "sync_conflict_table_objects": "对象",
+  "sync_conflict_table_user_templates": "用户模板",
+  "sync_conflict_table_trash_items": "回收站"
 }

@@ -9,6 +9,7 @@ import {
   isSensitivityLevel,
   resolveConflictIcon,
   shouldOmitField,
+  conflictTableLabel,
 } from './conflictFieldMeta';
 
 /** 模拟 i18n：settings:/editor: 命中返回假想译文，未命中返回 defaultValue；支持 {{count}} 插值。 */
@@ -44,6 +45,23 @@ describe('conflictFieldLabel', () => {
   it('humanizes unknown fields as fallback', () => {
     const t = makeT();
     expect(conflictFieldLabel('someUnknownField', t)).toBe('Some Unknown Field');
+  });
+});
+
+describe('conflictTableLabel', () => {
+  it('maps sync table names to i18n labels', () => {
+    const t = makeT({
+      'settings:sync_conflict_table_objects': '对象',
+      'settings:sync_conflict_table_trash_items': '回收站',
+    });
+    expect(conflictTableLabel('objects', t)).toBe('对象');
+    expect(conflictTableLabel('trash_items', t)).toBe('回收站');
+  });
+
+  it('humanizes unknown table names as fallback', () => {
+    const t = makeT();
+    expect(conflictTableLabel('unknown_table', t)).toBe('Unknown Table');
+    expect(conflictTableLabel('objects', t)).toBe('Objects');
   });
 });
 

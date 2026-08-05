@@ -1067,5 +1067,9 @@
   "sync_conflict_list_count": "{{count}} conflicts",
   "sync_conflict_nav_position": "Conflict {{index}} / {{total}}",
   "sync_conflict_prev": "‹ Previous",
-  "sync_conflict_next": "Next ›"
+  "sync_conflict_next": "Next ›",
+  "sync_conflict_table_profiles": "Profile",
+  "sync_conflict_table_objects": "Objects",
+  "sync_conflict_table_user_templates": "User Templates",
+  "sync_conflict_table_trash_items": "Trash Items"
 }
