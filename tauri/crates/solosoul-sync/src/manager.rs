@@ -4,7 +4,9 @@ use crate::identity::sha256_hex_short;
 use crate::noise::NoiseKeys;
 use crate::session::{handle_inbound, run_initiator_session, wrap_session_error};
 use crate::transport::SyncTransport;
-use crate::types::{PeerCallback, SyncPeerInfo, SyncSessionResult};
+use crate::types::{
+    PeerCallback, SessionCompletedCallback, SessionCompletedInfo, SyncPeerInfo, SyncSessionResult,
+};
 use mdns_sd::{ServiceDaemon, ServiceEvent, ServiceInfo};
 use solosoul_vault::VaultStore;
 use std::collections::HashMap;
@@ -79,6 +81,9 @@ pub struct SyncManager {
     /// 入站新 peer 回调钩子：响应方落库新的未信任记录时触发。
     /// GUI 用它向前端推送 `sync-pairing-request` 事件（B 用户不在同步页也能收到配对请求）。
     peer_callback: Arc<RwLock<Option<PeerCallback>>>,
+    /// 入站会话完成回调钩子：响应方成功完成一次同步会话时触发。
+    /// GUI 用它向前端推送 `sync-completed` 事件（两侧同时展示完成提醒与条数）。
+    session_callback: Arc<RwLock<Option<SessionCompletedCallback>>>,
 }
 
 impl SyncManager {
@@ -103,6 +108,7 @@ impl SyncManager {
             worker_handles: Mutex::new(Vec::new()),
             active_sessions: Arc::new(AtomicUsize::new(0)),
             peer_callback: Arc::new(RwLock::new(None)),
+            session_callback: Arc::new(RwLock::new(None)),
         }
     }
 
@@ -170,6 +176,7 @@ impl SyncManager {
         let vault = self.vault.clone();
         let active_sessions = self.active_sessions.clone();
         let peer_callback = self.peer_callback.clone();
+        let session_callback = self.session_callback.clone();
         // TCP accept loop (blocking std listener)
         let accept_handle = spawn_blocking(move || loop {
             if !running.load(Ordering::SeqCst) {
@@ -186,10 +193,14 @@ impl SyncManager {
                     let vault = vault.clone();
                     let guard = SessionGuard::new(active_sessions.clone());
                     let cb = peer_callback.read().ok().and_then(|g| g.clone());
+                    let session_cb = session_callback.read().ok().and_then(|g| g.clone());
                     spawn_blocking(move || {
                         let _guard = guard; // 持有直到会话结束
                         let mut transport = SyncTransport::from_stream(stream);
-                        let _ = handle_inbound(
+                        // 响应方会话成功结束：通知 GUI 推送 sync-completed，让两侧同时
+                        // 展示「同步完成 + 具体条数」（B 侧用户不在同步页也能收到全局 toast）。
+                        // 未信任/错误会话不通知完成（发起方已自行感知错误）。
+                        if let Ok(outcome) = handle_inbound(
                             &mut transport,
                             &node_id,
                             &account_id,
@@ -197,7 +208,17 @@ impl SyncManager {
                             vault,
                             addr.to_string(),
                             cb,
-                        );
+                        ) {
+                            if let Some(cb) = &session_cb {
+                                cb(SessionCompletedInfo {
+                                    peer_node_id: outcome.peer_node_id,
+                                    examined: outcome.result.data.examined,
+                                    applied: outcome.result.data.applied,
+                                    skipped: outcome.result.data.skipped,
+                                    conflicts: outcome.result.data.conflicts.len() as u64,
+                                });
+                            }
+                        }
                     });
                 }
                 Err(e) => {
@@ -563,6 +584,13 @@ impl SyncManager {
     /// 设置入站新 peer 回调钩子（GUI 装配 `sync-pairing-request` 事件推送用）。
     pub fn set_peer_callback(&self, callback: Option<PeerCallback>) {
         if let Ok(mut guard) = self.peer_callback.write() {
+            *guard = callback;
+        }
+    }
+
+    /// 设置入站会话完成回调钩子（GUI 装配 `sync-completed` 事件推送用）。
+    pub fn set_session_callback(&self, callback: Option<SessionCompletedCallback>) {
+        if let Ok(mut guard) = self.session_callback.write() {
             *guard = callback;
         }
     }

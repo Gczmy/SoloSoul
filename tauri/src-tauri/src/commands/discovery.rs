@@ -202,7 +202,13 @@ fn should_show_device(
 ) -> bool {
     // 账户过滤：本地账户未知（Vault 未解锁）时不过滤
     if let Some(local_hash) = local_account_hash {
-        if peer_account_hash.is_empty() {
+        if peer_account_hash.is_empty() && peer_account_id.is_empty() {
+            // Android NsdManager 广播的 TXT 属性（account_hash/account_id）存在已知的
+            // 互操作限制：经常不传播到标准 mDNS 客户端（桌面 mdns-sd），表现为「安卓能
+            // 发现 mac、mac 却找不到安卓」。无账户信息的服务无法按账户过滤，放行展示——
+            // 会话层仍会严格校验 account_id（Account mismatch 拒绝对端），配对流程有
+            // SAS 验证码兜底，安全不受影响；仅 UI 上可能出现无法连接的其他设备。
+        } else if peer_account_hash.is_empty() {
             // 旧版客户端广播明文 account_id，取其哈希比对
             if sha256_hex_short(peer_account_id) != local_hash {
                 return false;
@@ -300,7 +306,18 @@ pub async fn mdns_discover(
                 same_account && not_self
             })
             .map(|s| DiscoveredDevice {
-                name: s.node_id.clone(),
+                // 显示名优先指纹派生 SoloSoul-<fp8>（与桌面端 discovered_display_name /
+                // NSD 注册名 / QR 卡片命名规则一致），其次 NSD 服务名（桌面广播实例名
+                // 即 SoloSoul-<fp8>），最后回退 TXT node_id。修复前直接用 node_id
+                // （桌面端 TXT node_id 为 node_<uuid>），导致安卓端已发现列表显示
+                // `node_f2c22bc6…` 而非可读设备名。
+                name: if !s.fingerprint.is_empty() {
+                    format!("SoloSoul-{}", &s.fingerprint[..s.fingerprint.len().min(8)])
+                } else if !s.service_name.is_empty() {
+                    s.service_name.clone()
+                } else {
+                    s.node_id.clone()
+                },
                 host: s.host.clone(),
                 port: s.port,
                 addresses: vec![format!("{}:{}", s.host, s.port)],
@@ -595,6 +612,39 @@ mod tests {
             "node-other",
             Some(&local_hash),
             None
+        ));
+    }
+
+    /// Android NsdManager TXT 属性经常不传播到标准 mDNS 客户端：服务无任何账户信息
+    /// （无 account_hash 也无 account_id）时放行展示（会话层仍校验 account_id），
+    /// 否则 mac 端永远找不到安卓端。
+    #[test]
+    #[cfg(desktop)]
+    fn test_should_show_device_shows_account_less_android_peer() {
+        let local_hash = sha256_hex_short("acc-1");
+        // 无账户信息的服务（Android TXT 未传播）→ 放行（同账户概率高，跨账户由会话层拒绝）
+        assert!(should_show_device(
+            "",
+            "",
+            "SoloSoul-abcdef12",
+            Some(&local_hash),
+            Some("node-self")
+        ));
+        // 有账户信息时仍严格过滤（回归：跨账户必须隐藏）
+        assert!(!should_show_device(
+            "",
+            "acc-2",
+            "node-other",
+            Some(&local_hash),
+            None
+        ));
+        // 本机过滤不因放宽账户而失效
+        assert!(!should_show_device(
+            "",
+            "",
+            "node-self",
+            Some(&local_hash),
+            Some("node-self")
         ));
     }
 

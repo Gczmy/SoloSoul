@@ -21,7 +21,7 @@ use crate::shared::{
     audit_log, forget_peer_fallback, get_or_create_sync_identity, known_peers_from_vault,
     local_fingerprint_fallback, trust_peer_fallback,
 };
-use crate::types::{PeerCallback, SyncPeerInfo, SyncSessionResult};
+use crate::types::{PeerCallback, SessionCompletedCallback, SyncPeerInfo, SyncSessionResult};
 use std::sync::{Arc, RwLock};
 use tokio::sync::Mutex;
 
@@ -32,6 +32,8 @@ pub struct SyncService {
     manager: Mutex<Option<Arc<SyncManager>>>,
     /// 入站新 peer 回调钩子（创建 manager 时注入）。
     peer_callback: Arc<RwLock<Option<PeerCallback>>>,
+    /// 入站会话完成回调钩子（创建 manager 时注入）。
+    session_callback: Arc<RwLock<Option<SessionCompletedCallback>>>,
 }
 
 impl SyncService {
@@ -40,12 +42,20 @@ impl SyncService {
             vault_service,
             manager: Mutex::new(None),
             peer_callback: Arc::new(RwLock::new(None)),
+            session_callback: Arc::new(RwLock::new(None)),
         }
     }
 
     /// 设置入站新 peer 回调钩子（GUI 装配 `sync-pairing-request` 事件推送用）。
     pub fn set_peer_callback(&self, callback: Option<PeerCallback>) {
         if let Ok(mut guard) = self.peer_callback.write() {
+            *guard = callback;
+        }
+    }
+
+    /// 设置入站会话完成回调钩子（GUI 装配 `sync-completed` 事件推送用）。
+    pub fn set_session_callback(&self, callback: Option<SessionCompletedCallback>) {
+        if let Ok(mut guard) = self.session_callback.write() {
             *guard = callback;
         }
     }
@@ -89,8 +99,9 @@ impl SyncService {
             };
             let (node_id, keys) = get_or_create_sync_identity(&vault)?;
             let manager = SyncManager::new(node_id, account_id, keys, vault.clone(), "0.0.0.0:0");
-            // 注入入站新 peer 回调（配对请求事件推送）
+            // 注入入站新 peer 回调（配对请求事件推送）与会话完成回调（完成提醒推送）
             manager.set_peer_callback(self.peer_callback.read().ok().and_then(|g| g.clone()));
+            manager.set_session_callback(self.session_callback.read().ok().and_then(|g| g.clone()));
             match shared_daemon {
                 Some(d) => manager.start_with_daemon(d).await?,
                 None => manager.start().await?,

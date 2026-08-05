@@ -25,6 +25,10 @@ pub struct NsdServiceInfo {
     #[serde(default)]
     pub account_hash: String,
     pub fingerprint: String,
+    /// 服务的 mDNS 实例名（桌面端为 SoloSoul-<fp8> 可读设备名；旧版为 node_<uuid>）。
+    /// 用于安卓端「已发现设备」显示名回退，默认空串。
+    #[serde(default)]
+    pub service_name: String,
     pub host: String,
     pub port: u16,
 }

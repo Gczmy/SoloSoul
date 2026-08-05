@@ -18,6 +18,7 @@ vi.mock('@tauri-apps/api/event', () => ({
 }));
 
 import { useSyncStore } from './syncStore';
+import { useUiStore } from '@/stores/uiStore';
 
 describe('syncStore pairing_pending detection', () => {
   beforeEach(() => {
@@ -157,6 +158,56 @@ describe('syncStore pairing_pending detection', () => {
     expect(req!.id).toBe('node-A');
 
     useSyncStore.getState().clearIncomingPairingRequest();
+    expect(unlisten).toBe(mockUnlisten);
+  });
+});
+
+describe('syncStore initSyncCompletedListener', () => {
+  beforeEach(() => {
+    handlers.clear();
+    mockInvoke.mockReset();
+    mockUnlisten.mockClear();
+    useSyncStore.setState({ lastResult: null, recentResults: [] });
+  });
+
+  it('records inbound result with counts and shows global toast on sync-completed', async () => {
+    // loadStatus（刷新对端）+ loadConflicts（conflicts>0 时刷新冲突）
+    mockInvoke
+      .mockResolvedValueOnce({
+        isDiscovering: false,
+        syncEnabled: true,
+        autoSyncEnabled: false,
+        localFingerprint: '',
+        connectedPeers: [],
+      })
+      .mockResolvedValueOnce([]);
+    const toastSpy = vi
+      .spyOn(useUiStore.getState(), 'showToast')
+      .mockImplementation(() => {});
+
+    const unlisten = await useSyncStore.getState().initSyncCompletedListener();
+    const handler = handlers.get('sync-completed');
+    expect(handler).toBeDefined();
+
+    handler!({ payload: { peerNodeId: 'node-A', examined: 12, applied: 10, skipped: 2, conflicts: 1 } });
+
+    const s = useSyncStore.getState();
+    // 入站结果写入 lastResult（结果行展示具体条数），inbound 标记避免同步页通用 toast 双弹
+    expect(s.lastResult).not.toBeNull();
+    expect(s.lastResult!.examined).toBe(12);
+    expect(s.lastResult!.applied).toBe(10);
+    expect(s.lastResult!.skipped).toBe(2);
+    expect(s.lastResult!.inbound).toBe(true);
+    // 全局 toast（B 侧不在同步页也能收到）。测试环境 locale 可能未加载
+    // sync_completed_inbound 键（t() 返回 key 串），只断言 toast 已触发。
+    expect(toastSpy).toHaveBeenCalledTimes(1);
+    const arg = toastSpy.mock.calls[0][0] as { type: string };
+    expect(arg.type).toBe('success');
+
+    // 冲突刷新路径被触发
+    expect(mockInvoke).toHaveBeenCalledWith('sync_list_conflicts');
+
+    toastSpy.mockRestore();
     expect(unlisten).toBe(mockUnlisten);
   });
 });

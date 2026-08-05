@@ -88,3 +88,31 @@ pub struct NewPeerInfo {
 /// 新 peer 回调钩子：入站 Hello record_peer 落库一条新的未信任记录时触发。
 /// 供 GUI 装配 `sync-pairing-request` 事件推送（B 用户不在同步页也能收到配对请求）。
 pub type PeerCallback = Arc<dyn Fn(NewPeerInfo) + Send + Sync>;
+
+/// 入站同步会话的完整结果（含对端身份），供响应方通知前端「对方已完成同步」。
+///
+/// 响应方（被连接方）此前收不到任何会话结果——`handle_inbound` 的返回值在 accept
+/// 循环里被丢弃，用户只能看到发起方一侧的完成提示。携带对端 node_id 后，GUI 层
+/// 可推送 `sync-completed` 事件，让两侧同时展示同步完成提醒与具体条数。
+#[derive(Debug, Clone)]
+pub struct InboundSessionOutcome {
+    /// 发起方 peer 的 node_id。
+    pub peer_node_id: String,
+    pub result: SyncSessionResult,
+}
+
+/// 响应方完成一次入站同步会话后的统计摘要（事件载荷，供前端直接消费）。
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SessionCompletedInfo {
+    /// 发起方 peer 的 node_id。
+    pub peer_node_id: String,
+    pub examined: u64,
+    pub applied: u64,
+    pub skipped: u64,
+    /// 本次会话产生的冲突数量（含单侧删除）。
+    pub conflicts: u64,
+}
+
+/// 会话完成回调钩子：入站同步会话成功结束时触发（携带对端身份与统计）。
+/// 供 GUI 装配 `sync-completed` 事件推送（B 侧任意页面都能收到完成提醒）。
+pub type SessionCompletedCallback = Arc<dyn Fn(SessionCompletedInfo) + Send + Sync>;

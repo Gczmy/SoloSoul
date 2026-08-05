@@ -16,7 +16,10 @@ use crate::hlc::{Hlc, SyncWatermark};
 use crate::noise::{NoiseKeys, NoiseSession};
 use crate::protocol::SyncMessage;
 use crate::transport::SyncTransport;
-use crate::types::{ApplyStats, AttachmentSyncStats, NewPeerInfo, PeerCallback, SyncSessionResult};
+use crate::types::{
+    ApplyStats, AttachmentSyncStats, InboundSessionOutcome, NewPeerInfo, PeerCallback,
+    SyncSessionResult,
+};
 use solosoul_vault::{PeerSyncState, VaultStore};
 use std::path::Path;
 use std::sync::Arc;
@@ -313,7 +316,7 @@ pub fn handle_inbound(
     vault: Arc<VaultStore>,
     peer_addr: String,
     peer_callback: Option<PeerCallback>,
-) -> Result<SyncSessionResult, String> {
+) -> Result<InboundSessionOutcome, String> {
     let session_start = Instant::now();
     let mut session = NoiseSession::handshake_responder(transport, keys)?;
     // P001: Noise 握手完成后，对端静态公钥指纹已由握手密码学认证。
@@ -495,9 +498,12 @@ pub fn handle_inbound(
         attachment_stats.received
     );
 
-    Ok(SyncSessionResult {
-        data: apply_stats,
-        attachments: attachment_stats,
+    Ok(InboundSessionOutcome {
+        peer_node_id: peer_node_id.clone(),
+        result: SyncSessionResult {
+            data: apply_stats,
+            attachments: attachment_stats,
+        },
     })
 }
 

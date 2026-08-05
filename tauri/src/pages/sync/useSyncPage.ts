@@ -312,12 +312,14 @@ export function useSyncPage() {
   // 后台同步完成提示：syncWithDevice 成功（扫码后台执行 / 手动同步 / 配对重试成功）
   // 写入 lastResult 时弹 toast——替代扫码对话框内阻塞式「同步完成」界面，
   // 用户无需等待即可继续操作。ref 初始化为当前值避免页面挂载时误弹。
+  // 入站结果（inbound: true，来自 sync-completed 事件）已由 syncStore 全局弹带条数
+  // toast，这里跳过避免同一会话双弹。
   const prevLastResultRef = useRef<SyncResult | null>(store.lastResult);
   useEffect(() => {
     const cur = store.lastResult;
     const prev = prevLastResultRef.current;
     prevLastResultRef.current = cur;
-    if (cur && cur !== prev) {
+    if (cur && cur !== prev && !cur.inbound) {
       useUiStore.getState().showToast({
         type: 'success',
         message: t('common:sync_qr_success_sync') ?? 'Sync completed',

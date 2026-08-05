@@ -59,6 +59,9 @@ export interface SyncResult {
   skipped: number;
   conflicts: SyncConflict[];
   per_table: SyncTableResult[];
+  /** 客户端侧标记：true 表示该结果来自入站同步完成事件（sync-completed），
+   *  而非本端主动发起的同步。同步页据此跳过通用「同步完成」toast 避免双弹。 */
+  inbound?: boolean;
 }
 
 export interface AccountInfo {

@@ -1073,5 +1073,6 @@
   "sync_conflict_table_user_templates": "用户模板",
   "sync_conflict_table_trash_items": "回收站",
   "sync_conflict_field_template_name": "模板名称",
-  "sync_conflict_field_attachments": "附件"
+  "sync_conflict_field_attachments": "附件",
+  "sync_completed_inbound": "对端同步完成：检查 {{examined}} 条 · 应用 {{applied}} 条 · 跳过 {{skipped}} 条"
 }

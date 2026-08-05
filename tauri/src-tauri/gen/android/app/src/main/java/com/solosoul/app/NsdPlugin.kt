@@ -17,6 +17,7 @@ import app.tauri.plugin.Plugin
 import app.tauri.plugin.Invoke
 import org.json.JSONArray
 import org.json.JSONObject
+import java.security.MessageDigest
 import java.util.concurrent.ConcurrentHashMap
 
 @InvokeArg
@@ -148,6 +149,9 @@ class NsdPlugin(private val activity: Activity): Plugin(activity) {
                 port = args.port
                 setAttribute("node_id", args.nodeId)
                 setAttribute("account_id", args.accountId)
+                // 与桌面端 mDNS 广播对齐：同时广播 account_hash（SHA-256 前 16 字节 hex），
+                // 使桌面端 mdns-sd 在 TXT 属性可达时可直接按哈希过滤，无需回退明文比对。
+                setAttribute("account_hash", sha256Hex(args.accountId))
                 setAttribute("fingerprint", args.fingerprint)
             }
 
@@ -215,6 +219,8 @@ class NsdPlugin(private val activity: Activity): Plugin(activity) {
                     put("accountId", accountId)
                     put("accountHash", accountHash)
                     put("fingerprint", fingerprint)
+                    // mDNS 实例名（桌面广播为 SoloSoul-<fp8>），供前端显示名回退使用
+                    put("serviceName", info.serviceName)
                     put("host", host)
                     put("port", port)
                 }
@@ -337,6 +343,16 @@ class NsdPlugin(private val activity: Activity): Plugin(activity) {
         } catch (e: Exception) {
             android.util.Log.w("SoloSoul", "releaseMulticastLock failed: ${e.message}")
         }
+    }
+
+    /**
+     * 计算 SHA-256 前 16 字节的 hex 字符串（32 字符），与桌面端
+     * solosoul_sync::identity::sha256_hex_short 逐位对齐——两端必须完全一致，
+     * 否则桌面端按 account_hash 直接比对会失败（回退明文比对只是兜底）。
+     */
+    private fun sha256Hex(input: String): String {
+        val digest = MessageDigest.getInstance("SHA-256").digest(input.toByteArray(Charsets.UTF_8))
+        return digest.take(16).joinToString("") { "%02x".format(it) }
     }
 
     private fun resolveService(serviceInfo: NsdServiceInfo) {

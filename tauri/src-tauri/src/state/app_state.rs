@@ -389,6 +389,34 @@ impl AppState {
             })));
         }
 
+        // 装配入站会话完成回调 → 全局事件 sync-completed。
+        // 响应方成功完成一次同步会话时触发，前端任意页面（AppShell 全局挂载）
+        // 都能收到完成提醒并刷新结果——与发起方侧「同步完成」toast 对称，
+        // 让两侧同时展示同步完成与具体条数。
+        {
+            use solosoul_sync::types::SessionCompletedInfo;
+            let emit_handle = handle.clone();
+            sync_service.set_session_callback(Some(Arc::new(move |info: SessionCompletedInfo| {
+                // 响应方产生新冲突时也推送冲突徽章事件（与发起方 sync_with_device 对齐）。
+                if info.conflicts > 0 {
+                    let _ = emit_handle.emit(
+                        "sync-conflicts-updated",
+                        serde_json::json!({ "count": info.conflicts }),
+                    );
+                }
+                let _ = emit_handle.emit(
+                    "sync-completed",
+                    serde_json::json!({
+                        "peerNodeId": info.peer_node_id,
+                        "examined": info.examined,
+                        "applied": info.applied,
+                        "skipped": info.skipped,
+                        "conflicts": info.conflicts,
+                    }),
+                );
+            })));
+        }
+
         // ── DeviceAutoSyncManager（设备间自动同步，依赖 SyncService） ──
         let device_auto_sync =
             DeviceAutoSyncManager::new(sync_service.clone(), vault_service.clone(), handle.clone());

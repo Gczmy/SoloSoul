@@ -41,6 +41,19 @@ export function AppShell({ children, title, actions, onBack }: AppShellProps) {
     return () => unlisten?.();
   }, []);
 
+  // 入站同步完成通知：全局挂载监听（响应方用户不在同步页也能收到「同步完成 + 条数」
+  // toast）。与配对请求监听对称，B 侧任意页面都能感知对端完成的同步。
+  useEffect(() => {
+    let unlisten: (() => void) | undefined;
+    useSyncStore
+      .getState()
+      .initSyncCompletedListener()
+      .then((fn) => {
+        unlisten = fn;
+      });
+    return () => unlisten?.();
+  }, []);
+
   const handleIncomingTrust = async () => {
     const s = useSyncStore.getState();
     if (!s.incomingPairingRequest) return;

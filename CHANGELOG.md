@@ -33,6 +33,8 @@ All notable changes to SoloSoul are documented in this file.
 - **macOS Vision 扫描报错** — 修复「Vision CLI 异常退出：Cannot load image at --」：Rust 侧误传 `--` 参数分隔符导致 Swift 端把 `--` 当图像路径，现直接传真实路径并防御性跳过前置 `--`。
 - **已知设备详情卡片操作不刷新** — 点击「撤销信任/信任并配对」后卡片立即更新，无需重新进入详情。
 - **冲突 diff 属性名换行** — 属性名标签在窄列下不再断行，长值在标签后正常换行。
+- **设备同步双向发现修复** — ① 安卓端「已发现设备」显示名由 `node_<uuid>` 改为可读设备名 `SoloSoul-<指纹前缀>`（优先指纹派生，回退 NSD 服务名/节点名，与桌面端规则一致）；② macOS 端发现不到安卓端：Android NSD 广播的 TXT 属性（account_hash/account_id）存在不传播到标准 mDNS 客户端的已知互操作限制，桌面发现层对无账户信息的服务改为放行展示（会话层仍严格校验 account_id，配对有 SAS 验证码兑底，安全不受影响），同时安卓端广播补发 `account_hash`（SHA-256 前 16 字节 hex，与桌面端算法逐位一致，实测 Java `%02x` 对 Byte 输出与 Rust `hex::encode` 一致），TXT 可达时直接按哈希过滤。
+- **双向同步完成通知** — 响应方（被连接端）成功完成同步会话后，通过 `sync-completed` 事件全局提示「同步完成 + 具体条数」（与发起方 toast 对称），用户不在同步页也能收到；结果同步写入「与设备同步」结果行，并刷新对端列表与冲突计数。
 
 ### Chores
 

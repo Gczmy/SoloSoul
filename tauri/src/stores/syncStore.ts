@@ -1,12 +1,14 @@
 import { create } from 'zustand';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { listen, type UnlistenFn } from '@tauri-apps/api/event';
+import i18next from '@/lib/i18n';
 import type {
   SyncResult,
   SyncConflictSummary,
   SyncConflictDetail,
   SyncConflictStrategy,
 } from '@/lib/ipc';
+import { useUiStore } from '@/stores/uiStore';
 import { logger } from '@/lib/logger';
 
 export interface SyncPeer {
@@ -82,6 +84,8 @@ interface SyncStoreState extends SyncStatus {
   initNsdFailedListener: () => Promise<UnlistenFn>;
   /** 监听入站配对请求事件（sync-pairing-request），B 用户任意页面都能收到。 */
   initPairingRequestListener: () => Promise<UnlistenFn>;
+  /** 监听入站同步完成事件（sync-completed），B 侧任意页面收到完成提醒与具体条数。 */
+  initSyncCompletedListener: () => Promise<UnlistenFn>;
   /** 清除 A 侧配对中状态（取消等待 / 配对完成）。 */
   clearPairingPending: () => void;
   /** 清除 B 侧入站配对请求。 */
@@ -385,6 +389,55 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
   /** 清除 B 侧入站配对请求（确认或忽略后）。 */
   clearIncomingPairingRequest: () => {
     set({ incomingPairingRequest: null });
+  },
+
+  /** 初始化 sync-completed 事件监听器（响应方入站同步完成通知）。
+   *  后端在响应方成功完成一次入站会话时 emit（两侧同时提醒，与发起方 toast 对称）；
+   *  这里写入 lastResult/recentResults（结果行展示具体条数）+ 全局 toast + 刷新状态/冲突。
+   *  返回 unlisten 函数，调用方应在组件卸载时调用以清理。 */
+  initSyncCompletedListener: (): Promise<UnlistenFn> => {
+    return listen<{
+      peerNodeId: string;
+      examined: number;
+      applied: number;
+      skipped: number;
+      conflicts: number;
+    }>('sync-completed', (event) => {
+      const p = event.payload;
+      // 构造与本地同步同形的结果（inbound 标记让同步页通用 toast 跳过，避免双弹）
+      const result: SyncResult = {
+        summary: `examined=${p.examined}, applied=${p.applied}, skipped=${p.skipped}, conflicts=${p.conflicts}`,
+        examined: p.examined,
+        applied: p.applied,
+        skipped: p.skipped,
+        conflicts: [],
+        per_table: [],
+        inbound: true,
+      };
+      set((state) => ({
+        lastResult: result,
+        recentResults: [result, ...state.recentResults].slice(0, 10),
+      }));
+      // 全局完成提醒（B 侧用户不在同步页也能看到）
+      useUiStore.getState().showToast({
+        type: 'success',
+        message:
+          i18next.t('settings:sync_completed_inbound', {
+            examined: p.examined,
+            applied: p.applied,
+            skipped: p.skipped,
+          }) ?? 'Inbound sync completed',
+      });
+      // 刷新对端列表与冲突（响应方可能因此产生新冲突）
+      get()
+        .loadStatus()
+        .catch((err) => logger.warn('[syncStore] status refresh after inbound sync:', err));
+      if (p.conflicts > 0) {
+        get()
+          .loadConflicts()
+          .catch((err) => logger.warn('[syncStore] conflicts refresh after inbound sync:', err));
+      }
+    });
   },
 
   /** 初始化 sync-nsd-failed 事件监听器（移动端 NSD 注册失败）。
