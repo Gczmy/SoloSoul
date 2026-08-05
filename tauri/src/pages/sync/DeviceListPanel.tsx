@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/Input';
 import { DeleteButton } from '@/components/ui/DeleteButton';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { RefreshCw, ShieldCheck, ShieldOff, Smartphone } from 'lucide-react';
+import { ClientTypeIcon } from '@/components/sync/ClientTypeIcon';
 import { resolveBackendErrorMessage } from '@/lib/backendError';
 import { formatDiscoveredName, formatPeerName } from '@/lib/syncPeer';
 import { ICON_SIZE } from '@/lib/constants';
@@ -315,7 +316,7 @@ export function DeviceListPanel({
                     cursor: 'pointer',
                   }}
                 >
-                  <Smartphone size={ICON_SIZE.lg} style={{ color: 'var(--accent-primary)' }} />
+                  <ClientTypeIcon clientType={peer.clientType} size={ICON_SIZE.lg} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     {/* 设备名 */}
                     <div

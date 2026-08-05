@@ -2,16 +2,8 @@ import { useTranslation } from 'react-i18next';
 import { Dialog } from '@/components/ui/Dialog';
 import { Button } from '@/components/ui/Button';
 import { DeleteButton } from '@/components/ui/DeleteButton';
-import {
-  Apple,
-  Monitor,
-  Terminal,
-  Smartphone,
-  Tablet,
-  Cpu,
-  ShieldCheck,
-  ShieldOff,
-} from 'lucide-react';
+import { ShieldCheck, ShieldOff } from 'lucide-react';
+import { ClientTypeIcon } from '@/components/sync/ClientTypeIcon';
 import { formatPeerName } from '@/lib/syncPeer';
 import { ICON_SIZE } from '@/lib/constants';
 import type { SyncPeer } from '@/stores/syncStore';
@@ -22,25 +14,6 @@ interface DeviceDetailDialogProps {
   /** 切换信任状态（trusted → 撤销；未信任 → 配对）。 */
   onToggleTrust: (peer: SyncPeer) => void;
   onForgetRequest: (peer: SyncPeer) => void;
-}
-
-/** 客户端类型 → 图标组件。 */
-function ClientTypeIcon({ clientType, size }: { clientType?: string; size: number }) {
-  const color = 'var(--accent-primary)';
-  switch (clientType) {
-    case 'macos':
-      return <Apple size={size} color={color} />;
-    case 'windows':
-      return <Monitor size={size} color={color} />;
-    case 'linux':
-      return <Terminal size={size} color={color} />;
-    case 'android':
-      return <Smartphone size={size} color={color} />;
-    case 'ios':
-      return <Tablet size={size} color={color} />;
-    default:
-      return <Cpu size={size} color={color} />;
-  }
 }
 
 function formatTime(ts?: number | null): string {

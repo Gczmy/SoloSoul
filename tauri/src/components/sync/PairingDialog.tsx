@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
-import { ShieldAlert, Smartphone, Loader2, AlertTriangle } from 'lucide-react';
+import { ShieldAlert, Loader2, AlertTriangle } from 'lucide-react';
+import { ClientTypeIcon } from '@/components/sync/ClientTypeIcon';
 import { Dialog } from '@/components/ui/Dialog';
 import { Button } from '@/components/ui/Button';
 import type { SyncPeer } from '@/stores/syncStore';
@@ -127,7 +128,7 @@ export function PairingDialog({
               background: 'var(--bg-toolbar)',
             }}
           >
-            <Smartphone size={ICON_SIZE.xl} style={{ color: 'var(--accent-primary)' }} />
+            <ClientTypeIcon clientType={peer.clientType} size={ICON_SIZE.xl} />
           </div>
           <div>
             <div style={{ fontSize: 'var(--text-card-title)', fontWeight: 600 }}>
