@@ -4,7 +4,7 @@ import { AppShell } from '@/components/layout/AppShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { ShieldLogo } from '@/components/ui/ShieldLogo';
 import { Code, Info, Shield } from 'lucide-react';
-import { useUpdateChecker } from '@/hooks/useUpdateChecker';
+import { useUpdateChecker, type AppInfo, type VersionInfo } from '@/hooks/useUpdateChecker';
 import { useUiStore } from '@/stores/uiStore';
 import { ICON_SIZE } from '@/lib/constants';
 import { UpdateInfoCard } from './UpdateInfoCard';
@@ -38,6 +38,30 @@ export function AboutPage() {
     runCheck,
     handleUpdate,
   } = updater;
+
+  // ==================== DEBUG-START（临时调试代码，验证后删除）====================
+  // 强制展示「关键安全更新」全屏卡片（MandatoryUpdateOverlay）供 UI 修复验证：
+  // 伪造 isMandatory=true 并注入示例版本信息/发布说明，打开「关于」页即直接显示。
+  // 删除方法：删除本 DEBUG 块，并把下方 MandatoryUpdateOverlay 的
+  // isMandatory/info/versionInfo 三处传参恢复为 isMandatory/info/versionInfo。
+  const DEBUG_FORCE_MANDATORY_OVERLAY = true;
+  const debugInfo: AppInfo | null = info ?? {
+    appName: 'SoloSoul',
+    version: '2.7.1',
+    os: 'macOS',
+    arch: 'arm64',
+  };
+  const debugVersionInfo: VersionInfo | null = {
+    ...(versionInfo ?? {}),
+    currentVersion: debugInfo?.version ?? '',
+    latestVersion: '2.7.2',
+    state: 'available',
+    mandatory: true,
+    body:
+      versionInfo?.body ??
+      '- 修复若干安全问题\n- 增强数据加密强度\n- 性能优化与稳定性提升',
+  };
+  // ====================== DEBUG-END ======================
 
   const links = [
     {
@@ -179,9 +203,9 @@ export function AboutPage() {
 
         {/* ── 强制更新全屏覆盖层 ── */}
         <MandatoryUpdateOverlay
-          isMandatory={isMandatory}
-          info={info}
-          versionInfo={versionInfo}
+          isMandatory={DEBUG_FORCE_MANDATORY_OVERLAY || isMandatory}
+          info={debugInfo}
+          versionInfo={debugVersionInfo}
           downloading={downloading}
           downloadedBytes={downloadedBytes}
           totalBytes={totalBytes}
