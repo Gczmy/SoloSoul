@@ -10,6 +10,7 @@ All notable changes to SoloSoul are documented in this file.
 
 ### Fixed
 
+- **同步冲突 diff 时间字段精确到秒** — 创建时间/更新时间/删除时间/过期时间等时间元数据字段的 RFC3339 值在冲突 diff 中截断毫秒小数（`2026-08-05T12:34:56.789Z` → `2026-08-05T12:34:56Z`，`+00:00` 规范为 `Z`），顶层与叶子级统一生效；用户数据中的日期字段（如出生日期）不受影响。新增 `formatTimeValue` 纯函数。
 - **同步冲突 diff 省略不可感知元数据** — 用户无法感知也无法修改的系统元数据行不再展示：对象指纹（`template_hash`/`ignored_template_hash`）始终省略；`children_ids`/`parent_id` 仅在两侧都为空（无子对象/无父对象）时省略，存在真实关系差异（一侧有、一侧无）时保留展示。新增 `shouldOmitField` 纯函数。
 - **同步冲突 diff 属性类型代码 i18n** — `__fields` 字段定义中的 `Type` 值（`date`/`text`/`email` 等属性类型代码）不再显示原始代码，经 `editor:field_types.*` 双语 key 映射为可读名称（日期/文本/邮箱…）；未知类型保持原值。与 `__fields` 折叠联动：折叠时无影响，仅当字段定义展开（结构有差异）时类型差异行显示为可读名称。
 - **同步冲突 diff 折叠 `__fields` 字段定义元数据** — 属性对象里的 `__fields`（模板字段结构快照，非用户数据）在两侧相同时不再逐字段展开成 6+ 行噪音，折叠为一行摘要「字段定义：共 N 项」；仅当单侧缺失或内容真正有差异（模板结构变化）时才展开显示具体差异。`__templateName`（Template Name）等真实单行值保留。新增 `sync_conflict_field_schema`/`sync_conflict_field_schema_count` 双语 key。

@@ -116,6 +116,37 @@ export function shouldOmitField(key: string, local: unknown, remote: unknown): b
   return false;
 }
 
+/** 时间字段（值应为 RFC3339 字符串）：显示时截断到秒，避免毫秒噪声。 */
+const TIME_FIELDS = new Set([
+  'created_at',
+  'updated_at',
+  'deleted_at',
+  'expires_at',
+  'last_synced_at',
+  'last_trusted_at',
+  'timestamp',
+]);
+
+/** 字段值是否为时间字段（归一化键命中时间字段集合）。 */
+function isTimeField(key: string): boolean {
+  return TIME_FIELDS.has(normalizeFieldKey(key));
+}
+
+/**
+ * RFC3339 时间字符串 → 秒级精度（截断毫秒小数，`+00:00` 时区规范为 `Z`）。
+ * 非 RFC3339 字符串原样返回（不改动用户数据中的日期字段值）。
+ */
+export function formatTimeValue(value: unknown): string | null {
+  if (typeof value !== 'string') return null;
+  const m =
+    /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(?:\.\d+)?(Z|[+-]\d{2}:\d{2})$/.exec(
+      value,
+  );
+  if (!m) return null;
+  const tz = m[2] === '+00:00' ? 'Z' : m[2];
+  return `${m[1]}${tz}`;
+}
+
 /** 对象分区/模板分类 key → settings locale key。 */
 const CATEGORY_KEYS: Record<string, string> = {
   identity: 'sync_conflict_cat_identity',
@@ -214,32 +245,43 @@ function formatScalar(value: unknown, t: TranslateFn): string {
   return String(value);
 }
 
+/** 按字段语义格式化标量值：时间字段截断到秒，其余走通用标量。 */
+function formatFieldScalar(key: string, value: unknown, t: TranslateFn): string {
+  if (isTimeField(key)) {
+    const trimmed = formatTimeValue(value);
+    if (trimmed !== null) return trimmed;
+  }
+  return formatScalar(value, t);
+}
+
 /** 嵌套值可读化：标量原样（布尔 i18n）；对象逐行 `字段: 值`；数组逐行 `- 项`。 */
 export function formatConflictValue(key: string, value: unknown, t: TranslateFn): string {
   if (value === null || value === undefined) return '';
   const known = lookupKnownValue(normalizeFieldKey(key), value, t);
   if (known !== null) return known;
-  return formatNested(value, t);
+  return formatNested(value, t, key);
 }
 
-function formatNested(value: unknown, t: TranslateFn): string {
+function formatNested(value: unknown, t: TranslateFn, parentKey = ''): string {
   if (Array.isArray(value)) {
     if (value.length === 0) return '[]';
-    return value.map((item) => `- ${formatValueItem(item, t)}`).join('\n');
+    return value
+      .map((item) => `- ${formatValueItem(item, t, parentKey)}`)
+      .join('\n');
   }
   if (value !== null && typeof value === 'object') {
     const entries = Object.entries(value as Record<string, unknown>);
     if (entries.length === 0) return '{}';
     return entries
-      .map(([k, v]) => `${nestedFieldLabel(k, t)}: ${formatValueItem(v, t)}`)
+      .map(([k, v]) => `${nestedFieldLabel(k, t)}: ${formatValueItem(v, t, k)}`)
       .join('\n');
   }
-  return formatScalar(value, t);
+  return formatFieldScalar(parentKey, value, t);
 }
 
-function formatValueItem(value: unknown, t: TranslateFn): string {
-  if (value !== null && typeof value === 'object') return formatNested(value, t);
-  return formatScalar(value, t);
+function formatValueItem(value: unknown, t: TranslateFn, parentKey = ''): string {
+  if (value !== null && typeof value === 'object') return formatNested(value, t, parentKey);
+  return formatFieldScalar(parentKey, value, t);
 }
 
 /** 顶层字段值的展示上限（字符数），超长截断避免单元格过大。 */
@@ -374,14 +416,14 @@ function collectLeaves(
   }
 }
 
-/** 叶子值文本化：已知代码值（模板类型/图标等）走 i18n，嵌套块走可读化多行，标量走 formatScalar。 */
+/** 叶子值文本化：已知代码值（模板类型/图标等）走 i18n，时间字段截秒，嵌套块走可读化多行，标量走 formatScalar。 */
 function formatLeafText(key: string, value: unknown, t: TranslateFn): string {
   if (typeof value === 'string') {
     const known = lookupKnownValue(normalizeFieldKey(key), value, t);
     if (known !== null) return known;
   }
-  if (value !== null && typeof value === 'object') return formatNested(value, t);
-  return formatScalar(value, t);
+  if (value !== null && typeof value === 'object') return formatNested(value, t, key);
+  return formatFieldScalar(key, value, t);
 }
 
 /** 取叶子路径的末段键（如 `Fields › Type` → `Type`），用于值 i18n / 图标解析。 */

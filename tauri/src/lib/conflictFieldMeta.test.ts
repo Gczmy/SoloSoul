@@ -137,6 +137,33 @@ describe('formatConflictValue', () => {
     // 未知类型保持原值
     expect(formatConflictValue('type', 'custom', t)).toBe('custom');
   });
+
+  it('trims time fields to second precision', () => {
+    const t = makeT();
+    expect(formatConflictValue('createdAt', '2026-08-05T12:34:56.789Z', t)).toBe(
+      '2026-08-05T12:34:56Z',
+    );
+    expect(formatConflictValue('updated_at', '2026-08-05T12:34:56.123456+00:00', t)).toBe(
+      '2026-08-05T12:34:56Z',
+    );
+    expect(formatConflictValue('deletedAt', '2026-08-05T12:34:56Z', t)).toBe(
+      '2026-08-05T12:34:56Z',
+    );
+    expect(formatConflictValue('expiresAt', '2026-08-05T12:34:56.000+08:00', t)).toBe(
+      '2026-08-05T12:34:56+08:00',
+    );
+  });
+
+  it('keeps non-RFC3339 strings and non-time fields unchanged', () => {
+    const t = makeT();
+    // 用户日期字段（非时间元数据）不受影响
+    expect(formatConflictValue('birthDate', '2026-07-08T10:00:00.123Z', t)).toBe(
+      '2026-07-08T10:00:00.123Z',
+    );
+    // 非 RFC3339 时间值原样
+    expect(formatConflictValue('createdAt', '2026-08-05', t)).toBe('2026-08-05');
+    expect(formatConflictValue('createdAt', 1234567890, t)).toBe('1234567890');
+  });
 });
 
 describe('shouldOmitField', () => {
@@ -403,5 +430,19 @@ describe('buildDiffEntries', () => {
     expect(second?.localText).toBe('b');
     expect(second?.remoteText).toBe('c');
     expect(second?.changed).toBe(true);
+  });
+
+  it('trims time values to seconds in expanded leaves', () => {
+    const t = makeT();
+    const entries = buildDiffEntries(
+      'properties',
+      { created_at: '2026-08-05T12:34:56.789Z' },
+      { created_at: '2026-08-05T12:34:56.789Z' },
+      t,
+    );
+    const leaf = entries?.find((e) => e.path === 'created_at');
+    expect(leaf?.localText).toBe('2026-08-05T12:34:56Z');
+    expect(leaf?.remoteText).toBe('2026-08-05T12:34:56Z');
+    expect(leaf?.changed).toBe(false);
   });
 });
