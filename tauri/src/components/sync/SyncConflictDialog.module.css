@@ -279,11 +279,20 @@
   font-size: var(--text-caption);
 }
 
+/* 操作按钮栏：sticky 悬浮固定——Dialog 内滚动时始终贴底可见，用户无需滚到底即可快速处理。
+ * 左右负外边距抵消 Dialog 的 24px padding 铺满宽度，实底背景 + 顶边框遮挡下方内容透出。 */
 .actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
   display: flex;
   gap: 10px;
   justify-content: flex-end;
   flex-wrap: wrap;
+  margin: 0 -24px;
+  padding: 12px 24px;
+  background: var(--bg-elevated);
+  border-top: 1px solid var(--border-subtle);
 }
 
 @media (max-width: 600px) {
