@@ -131,33 +131,30 @@ export function SyncConflictDialog({
           </div>
         ) : (
           <>
-            {/* 冲突列表：sticky 固定在对话框顶部，滚动详情时始终可见 */}
-            <div className={styles.listSticky}>
-              <div className={styles.listHeader}>
-                {t('settings:sync_conflict_list_count', {
-                  defaultValue: '{{count}} conflicts',
-                  count: conflicts.length,
-                })}
-              </div>
-              <div className={styles.list}>
-                {conflicts.map((c) => (
-                  <button
-                    key={c.id}
-                    type="button"
-                    className={`${styles.item} ${selectedId === c.id ? styles.selected : ''}`}
-                    onClick={() => handleSelect(c.id)}
-                  >
-                    <div className={styles.itemTable}>{c.table}</div>
-                    <div className={styles.itemRecord}>{c.record_id}</div>
-                    <div className={styles.itemWinner}>
-                      {t('settings:sync_conflict_winner', { defaultValue: 'Winner' })}:{' '}
-                      {c.winner === 'local'
-                        ? t('settings:sync_conflict_local', { defaultValue: 'Local' })
-                        : t('settings:sync_conflict_remote', { defaultValue: 'Remote' })}
-                    </div>
-                  </button>
-                ))}
-              </div>
+            <div className={styles.listHeader}>
+              {t('settings:sync_conflict_list_count', {
+                defaultValue: '{{count}} conflicts',
+                count: conflicts.length,
+              })}
+            </div>
+            <div className={styles.list}>
+              {conflicts.map((c) => (
+                <button
+                  key={c.id}
+                  type="button"
+                  className={`${styles.item} ${selectedId === c.id ? styles.selected : ''}`}
+                  onClick={() => handleSelect(c.id)}
+                >
+                  <div className={styles.itemTable}>{c.table}</div>
+                  <div className={styles.itemRecord}>{c.record_id}</div>
+                  <div className={styles.itemWinner}>
+                    {t('settings:sync_conflict_winner', { defaultValue: 'Winner' })}:{' '}
+                    {c.winner === 'local'
+                      ? t('settings:sync_conflict_local', { defaultValue: 'Local' })
+                      : t('settings:sync_conflict_remote', { defaultValue: 'Remote' })}
+                  </div>
+                </button>
+              ))}
             </div>
             {detail && selectedConflict && (
               <div className={styles.detail}>

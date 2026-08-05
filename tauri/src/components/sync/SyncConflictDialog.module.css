@@ -1,27 +1,9 @@
 /* 容器不固定高度：整窗交给 Dialog 滚动（外部滚动条），
- * 冲突列表 sticky 固定在顶部，详情区自然伸展——
- * 无论字段多少、开关状态如何，列表始终可见且表格可滚动到底。 */
+ * 列表与详情随内容自然排列——与其它对话框一致的常规滚动。 */
 .container {
   display: flex;
   flex-direction: column;
   gap: 16px;
-}
-
-/* 冲突列表 sticky 区：滚动详情时固定在对话框顶部；
- * 负外边距铺满 Dialog 内边距区域、实底背景防止下方内容透出。
- * 注意：margin 的 -24px 与 Dialog 组件 padding: 24px 联动，改动需同步。 */
-.listSticky {
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  flex-shrink: 0;
-  margin: 0 -24px 0;
-  padding: 0 24px 12px;
-  background: var(--bg-elevated);
-  border-bottom: 1px solid var(--border-subtle);
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
 }
 
 .empty {
