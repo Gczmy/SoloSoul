@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Dialog } from '@/components/ui/Dialog';
 import { Button } from '@/components/ui/Button';
 import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
+import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import { useSyncStore } from '@/stores/syncStore';
 import type { LucideIcon } from 'lucide-react';
 import type { SyncConflictSummary, SyncConflictDetail, SyncConflictStrategy } from '@/lib/ipc';
@@ -193,18 +194,17 @@ export function SyncConflictDialog({
                 {/* 字段级 diff */}
                 <div className={styles.fieldDiff}>
                   <div className={styles.diffToolbar}>
-                    <label className={styles.onlyDiffToggle}>
-                      <input
-                        type="checkbox"
+                    <span className={styles.onlyDiffToggle}>
+                      <ToggleSwitch
                         checked={onlyDifferences}
-                        onChange={(e) => setOnlyDifferences(e.target.checked)}
+                        onChange={() => setOnlyDifferences(!onlyDifferences)}
                       />
                       <span>
                         {t('settings:sync_conflict_only_diff', {
                           defaultValue: 'Only show differences',
                         })}
                       </span>
-                    </label>
+                    </span>
                     {onlyDifferences && (
                       <span className={styles.onlyDiffCount}>
                         {t('settings:sync_conflict_only_diff_count', {

@@ -140,16 +140,10 @@
 .onlyDiffToggle {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   font-size: var(--text-caption);
   color: var(--text-secondary);
-  cursor: pointer;
   user-select: none;
-}
-
-.onlyDiffToggle input {
-  accent-color: var(--accent-primary);
-  cursor: pointer;
 }
 
 .onlyDiffCount {
