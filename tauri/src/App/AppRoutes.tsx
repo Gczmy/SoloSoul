@@ -353,8 +353,24 @@ export function AppRoutes() {
           useUiStore.getState().setSafSyncState('idle');
           return;
         }
-        // SAF 目录失效（用户手动删除了外部目录），弹确认对话框引导用户
+        // SAF 目录失效（用户手动删除了外部目录）：
+        // 1. 立即置位授权失效常驻横幅（每次启动登录后都会重新检测，因此每次都会提醒）；
+        // 2. 按会话去重弹出提示 toast（与 saf-auth-revoked 事件处理一致，避免多次弹）；
+        // 3. 弹确认对话框引导用户前往数据管理重新选择目录。
         logger.warn('[AppRoutes] SAF vault directory access revoked');
+        const ui = useUiStore.getState();
+        ui.setSafAuthRevoked(true);
+        if (!ui.safAuthToastShown) {
+          ui.setSafAuthToastShown(true);
+          ui.showToast({
+            type: 'warning',
+            message: t(
+              'settings:vault_directory_invalid_toast',
+              'SAF directory access revoked. Go to Settings > Data Management to re-select.',
+            ),
+            duration: 10000,
+          });
+        }
         await confirmWithPause(
           t(
             'settings:vault_directory_invalid_message',

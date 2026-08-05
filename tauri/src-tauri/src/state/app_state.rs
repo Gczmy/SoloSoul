@@ -285,8 +285,13 @@ impl AppState {
                     let _ = handle
                         .state::<AttachmentImportPluginHandle<tauri::Wry>>()
                         .cancel_fallback_sync();
-                    // 清除已失效的 SAF 配置，避免下次启动重复进入此路径。
-                    let _ = Self::save_saf_uri(&data_dir, None);
+                    // 注意：故意【不】清除已失效的 SAF URI——
+                    // 前端登录后会调用 vault_check_directory 检测失效并弹窗 + 横幅提示
+                    // 用户重新选择目录（每次启动都应提醒）；auto-sync 每 30s 也会发射
+                    // saf-auth-revoked 事件维持横幅。若在此清空 URI，前端将无从得知
+                    // 外部目录已丢失，表现为「目录被删除后重启无任何提示」的回归。
+                    // 用户重新选择目录（vault_set_directory 保存新 URI）或主动切回本地
+                    // （保存 None）后，此路径自然退出。
 
                     // 迁移 SAF temp cache 到本地目录，保全用户缓存数据。
                     // 迁移失败不阻止降级（仅打日志）。
@@ -577,10 +582,25 @@ impl AppState {
             let _ = std::fs::remove_dir_all(&placeholder_dir);
         }
 
+        // 用户明确选择本地目录（saf_uri=None）时，清除可能残留的失效 SAF URI
+        // （目录被删除后 AppState::new 降级本地时有意保留用于提醒），避免下次
+        // 启动重复进入降级/提醒路径。
+        if saf_uri.is_none() {
+            let _ = Self::save_saf_uri(&data_dir, None);
+        }
+
         // 若启用了 SAF，同步等待首次同步完成。
         // 失败直接返回错误，前端会展示给用户；成功则保证用户在
         // 已有远程数据被拉取后才会继续。
         if self.has_saf_vault() {
+            // 先把本次要初始化的 SAF URI 持久化到磁盘，再执行首次同步——
+            // init_saf_sync 会读取磁盘配置做有效性校验；若磁盘仍残留旧的失效
+            // URI（目录被删除后 AppState::new 降级本地时有意保留，用于提醒），
+            // 会错误地拒绝本次全新目录的初始化。
+            if let Some(ref uri) = saf_uri {
+                Self::save_saf_uri(&data_dir, Some(uri))?;
+            }
+
             // 同步开始：通知前端显示进度条
             let _ = self.handle.emit(
                 "sync-progress",
@@ -593,6 +613,8 @@ impl AppState {
                 tracing::warn!(
                     "[initialize_vault] SAF initial sync failed, rolling back to local: {e}"
                 );
+                // 清除本次提前写入的 URI，保持「失败不保存」的既有语义。
+                let _ = Self::save_saf_uri(&data_dir, None);
                 let local_svc = Self::try_init_local_vault(&data_dir)
                     .map_err(|e| format!("回退到本地 Vault 失败: {e}"))?;
                 {
@@ -614,11 +636,6 @@ impl AppState {
                 "sync-progress",
                 serde_json::json!({"phase": "sync_complete", "current": 1, "total": 1}),
             );
-
-            // 同步成功后才持久化 SAF URI
-            if let Some(ref uri) = saf_uri {
-                Self::save_saf_uri(&data_dir, Some(uri))?;
-            }
 
             // 同步后重载账户缓存，使前端能感知已有账户
             {
