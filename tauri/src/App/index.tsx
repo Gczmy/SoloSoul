@@ -98,7 +98,12 @@ function App() {
   };
 
   return (
-    <BrowserRouter>
+    // 导航同步化（useTransitions={false}）：react-router v7 的 BrowserRouter 默认把每次
+    // 导航状态更新包进 React.startTransition（异步延迟）。弹层场景（搜索卡片跳转设置等）
+    // 中 onClose 是紧急更新会先提交——卡片先消失露出底层页面一帧，随后 transition 才提交
+    // 跳转，产生闪烁；且 flushSync 无法强制冲刷 transition 更新，无法在弹层侧规避。
+    // 禁用 transition 后导航与 onClose 同事件内自动批处理为一次提交，同帧完成无闪烁。
+    <BrowserRouter useTransitions={false}>
       <AppRoutes />
       <ToastContainer />
       <GlobalSyncIndicator />

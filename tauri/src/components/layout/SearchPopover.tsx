@@ -14,7 +14,7 @@ import {
   FileText,
 } from 'lucide-react';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
-import { createPortal, flushSync } from 'react-dom';
+import { createPortal } from 'react-dom';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useToastError } from '@/hooks/useToastError';
@@ -174,12 +174,12 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
     return item.collectionType;
   };
 
-  // 先同步提交路由跳转再关闭弹层：react-router v7 的 navigate 内部走
-  // startTransition（延迟更新），而 onClose 是紧急更新——若先 onClose，
-  // 卡片先卸载、露出底层页面一帧，随后才跳转，产生闪烁。
-  // flushSync 强制导航同步提交，二者同帧完成，直接跳转无闪烁。
+  // 直接跳转避免闪烁：全局已禁用路由 startTransition（App/index.tsx 的
+  // <BrowserRouter useTransitions={false}>），navigate 与 onClose 同为紧急更新，
+  // React 在同一事件回调内自动批处理为一次提交——新页面渲染与卡片卸载同帧完成，
+  // 不会先露出底层页面。顺序先导航后关闭，保证新页面已就绪才移除弹层。
   const closeAndNavigate = (to: string) => {
-    flushSync(() => navigate(to));
+    navigate(to);
     onClose();
   };
 
