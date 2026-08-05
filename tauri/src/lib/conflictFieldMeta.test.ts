@@ -71,6 +71,22 @@ describe('nestedFieldLabel', () => {
     expect(nestedFieldLabel('fullName', t)).toBe('姓名');
   });
 
+  it('localizes system metadata keys (__templateName / __dynamic_group__ / __attachments)', () => {
+    const t = makeT({
+      'settings:sync_conflict_field_template_name': '模板名称',
+      'editor:field_types.dynamic_group': '动态字段组',
+      'settings:sync_conflict_field_attachments': '附件',
+    });
+    expect(nestedFieldLabel('__templateName', t)).toBe('模板名称');
+    expect(nestedFieldLabel('__dynamic_group__', t)).toBe('动态字段组');
+    expect(nestedFieldLabel('__attachments', t)).toBe('附件');
+    // 英文 locale
+    const en = makeT({
+      'settings:sync_conflict_field_template_name': 'Template Name',
+    });
+    expect(nestedFieldLabel('__templateName', en)).toBe('Template Name');
+  });
+
   it('humanizes unknown property ids', () => {
     const t = makeT();
     expect(nestedFieldLabel('customField', t)).toBe('Custom Field');

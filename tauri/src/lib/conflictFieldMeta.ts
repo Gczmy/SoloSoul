@@ -214,10 +214,24 @@ export function conflictTableLabel(table: string, t: TranslateFn): string {
   return humanizeKey(table);
 }
 
-/** 嵌套对象内部的字段可读名：`__fields` 元数据走专属标签，其余优先 editor:fields.<id>（动态字段名），未知做标题化兜底。 */
+/** 属性对象内部的系统元数据键 → 可读名（与 TrashSnapshotView/HistoryViewer 一致）。 */
+const NESTED_META_LABELS: Record<string, string> = {
+  __templateName: 'settings:sync_conflict_field_template_name',
+  __dynamic_group__: 'editor:field_types.dynamic_group',
+  __attachments: 'settings:sync_conflict_field_attachments',
+};
+
+/** 嵌套对象内部的字段可读名：`__fields` 元数据走专属标签，
+ *  `__templateName` 等系统元数据键走专属 i18n，
+ *  其余优先 editor:fields.<id>（动态字段名），未知做标题化兜底。 */
 export function nestedFieldLabel(key: string, t: TranslateFn): string {
   if (key === SCHEMA_KEY) {
     return t('settings:sync_conflict_field_schema', { defaultValue: 'Field Definitions' });
+  }
+  const metaLabelKey = NESTED_META_LABELS[key];
+  if (metaLabelKey) {
+    const metaLabel = t(metaLabelKey, { defaultValue: '' });
+    if (metaLabel) return metaLabel;
   }
   const label = t(`editor:fields.${key}`, { defaultValue: '' });
   if (label) return label;

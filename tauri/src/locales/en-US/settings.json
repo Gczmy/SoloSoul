@@ -1071,5 +1071,7 @@
   "sync_conflict_table_profiles": "Profile",
   "sync_conflict_table_objects": "Objects",
   "sync_conflict_table_user_templates": "User Templates",
-  "sync_conflict_table_trash_items": "Trash Items"
+  "sync_conflict_table_trash_items": "Trash Items",
+  "sync_conflict_field_template_name": "Template Name",
+  "sync_conflict_field_attachments": "Attachments"
 }
