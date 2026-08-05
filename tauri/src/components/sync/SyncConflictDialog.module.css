@@ -252,6 +252,11 @@
 .diffEntryLabel {
   color: var(--text-tertiary);
   margin-right: 6px;
+  /* 属性名不换行：内联块 + nowrap 粘住标签（中文不会在字间断行），
+     值在标签之后自然换行；竖排对齐让值与标签首行对齐。 */
+  display: inline-block;
+  white-space: nowrap;
+  vertical-align: top;
 }
 
 /* 有差异的叶子：低对比浅红背景，突出差异但不刺眼 */

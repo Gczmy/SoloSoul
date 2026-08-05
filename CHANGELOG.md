@@ -17,6 +17,7 @@ All notable changes to SoloSoul are documented in this file.
 
 ### Fixed
 
+- **冲突 diff 属性名不换行** — 属性叶子条目标签（如「邮箱:」）在窄列下会随中文在字间断行、导致标签与值分离：标签改 `display: inline-block` + `white-space: nowrap` 粘住不换行，长值在标签之后正常换行（浏览器 280px 窄宽实测：标签完整、值在标签后换行）。
 - **冲突 diff 属性内部元数据键 i18n** — 属性对象展开的叶子标签不再显示原始键：`__templateName` → 模板名称/Template Name、`__dynamic_group__` → 动态字段组（复用 `editor:field_types.dynamic_group`）、`__attachments` → 附件/Attachments（与 TrashSnapshotView/HistoryViewer 一致），未知键仍标题化兑底。
 - **同步冲突卡片/详情表名 i18n** — 冲突卡片顶部与详情「表」行不再显示原始表名（`objects`/`profiles`/`user_templates`/`trash_items`），经 `conflictTableLabel` 映射为可读名称（对象/账户/用户模板/回收站，双语，未知表名标题化兑底）。
 - **同步冲突 diff 簿记字段净化 + 假冲突自动消解** — 用户反馈：两台设备修改同一对象的不同字段时，`version`/`updated_at` 必然不同，diff 显示 4 处差异（2 真实字段 + 版本 + 修改时间），且部分冲突「内容实际一样、仅版本/时间不同」，误导用户。根因：冲突判定是 HLC（编辑时间）驱动的而非内容驱动，`version`/`updated_at` 随每次编辑甚至每次同步应用都会变化，是时间裁决的副产物、非可决策的内容差异。修复：① 前端 `shouldOmitField` 省略 `version`/`updated_at`（时间信息仍在详情头部 HLC 行展示），diff 与「共 N 处差异」只计真实内容差异；② 后端 `delta.rs` 记录冲突前对两侧快照做簿记字段剥除（`version`/`updated_at`/`updatedAt`）比较——内容一致则自动消解（LWW 胜者已收敛，无数据丢失），「内容一样」的假冲突从源头不再产生；删除墓碑（`deleted`）是真实决策不消解。已知限制（保守安全）：Profile 因 local 快照与线格式键形差异自动消解通常不触发，照旧记录冲突。
