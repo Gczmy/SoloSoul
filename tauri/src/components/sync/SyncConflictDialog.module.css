@@ -279,11 +279,13 @@
   font-size: var(--text-caption);
 }
 
-/* 操作按钮栏：sticky 悬浮固定——Dialog 内滚动时始终贴底可见，用户无需滚到底即可快速处理。
- * 左右负外边距抵消 Dialog 的 24px padding 铺满宽度，实底背景 + 顶边框遮挡下方内容透出。 */
+/* 操作按钮栏：sticky 悬浮固定——Dialog 内滚动时始终贴卡片底边可见，用户无需滚到底即可快速处理。
+ * 左右负外边距抵消 Dialog 的 24px padding 铺满宽度；bottom: -24px 让背景条在悬浮时
+ * 延伸到卡片最底边（覆盖底部 padding 区），滚动内容无法从按钮栏下方缝隙漏出。
+ * 实底背景 + 顶边框遮挡滚动经过的内容。 */
 .actions {
   position: sticky;
-  bottom: 0;
+  bottom: -24px;
   z-index: 2;
   display: flex;
   gap: 10px;
