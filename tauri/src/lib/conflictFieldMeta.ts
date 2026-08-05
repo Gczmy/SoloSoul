@@ -169,6 +169,11 @@ function lookupKnownValue(normKey: string, value: unknown, t: TranslateFn): stri
     const label = t(`settings:sync_conflict_tpltype_${value}`, { defaultValue: '' });
     return label || null;
   }
+  if (normKey === 'type') {
+    // __fields 字段定义中的属性类型代码（text/date/email…）→ editor:field_types 双语
+    const label = t(`editor:field_types.${value}`, { defaultValue: '' });
+    return label || null;
+  }
   if (ICON_FIELDS.has(normKey)) {
     const label = t(`settings:sync_conflict_icon_${value}`, { defaultValue: '' });
     return label || null;

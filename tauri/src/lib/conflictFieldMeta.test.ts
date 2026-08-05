@@ -125,6 +125,17 @@ describe('formatConflictValue', () => {
     // 未知图标保持原值
     expect(formatConflictValue('iconName', 'unknown_icon', t)).toBe('unknown_icon');
   });
+
+  it('localizes property type values via editor:field_types', () => {
+    const t = makeT({
+      'editor:field_types.date': '日期',
+      'editor:field_types.email': '邮箱',
+    });
+    expect(formatConflictValue('type', 'date', t)).toBe('日期');
+    expect(formatConflictValue('type', 'email', t)).toBe('邮箱');
+    // 未知类型保持原值
+    expect(formatConflictValue('type', 'custom', t)).toBe('custom');
+  });
 });
 
 describe('resolveConflictIcon', () => {
@@ -303,6 +314,21 @@ describe('buildDiffEntries', () => {
     expect(typeLeaf?.remoteText).toBe('multiline');
     expect(typeLeaf?.changed).toBe(true);
     expect(typeLeaf?.label).toContain('字段定义');
+  });
+
+  it('i18n type codes in expanded __fields leaves', () => {
+    const t = makeT({
+      'settings:sync_conflict_field_schema': '字段定义',
+      'editor:field_types.text': '文本',
+      'editor:field_types.multiline': '多行文本',
+    });
+    const local = { __fields: { fullName: { name: '姓名', type: 'text' } } };
+    const remote = { __fields: { fullName: { name: '姓名', type: 'multiline' } } };
+    const entries = buildDiffEntries('properties', local, remote, t);
+    const typeLeaf = entries?.find((e) => e.path.endsWith('› type'));
+    expect(typeLeaf?.localText).toBe('文本');
+    expect(typeLeaf?.remoteText).toBe('多行文本');
+    expect(typeLeaf?.changed).toBe(true);
   });
 
   it('expands __fields present on one side only', () => {
