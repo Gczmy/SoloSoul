@@ -59,6 +59,25 @@ describe('UpdateBanner', () => {
     expect(screen.getByText(/50.0 MB \/ 100.0 MB/i)).toBeInTheDocument();
   });
 
+  it('keeps byte counter in LTR order (no rtl bidi reflow)', () => {
+    // 防回归：direction: rtl 会对「27.0 MB / 44.2 MB」这类数字+单位文本做 bidi 重排（MB 27.0）。
+    // 断言字节数文本 span 未设置 rtl 方向，且文本保持「数字 单位 / 数字 单位」顺序。
+    render(
+      <UpdateBanner
+        {...baseProps}
+        state="downloading"
+        downloadedBytes={27 * 1024 * 1024}
+        totalBytes={44.2 * 1024 * 1024}
+      />,
+    );
+
+    const counter = screen.getByText(/27.0 MB \/ 44.2 MB/i);
+    expect(counter).toBeInTheDocument();
+    // DOM 文本必须保持逻辑顺序：数字在前、单位在后（bidi 重排发生在视觉层，但 rtl 方向是根因，一并防住）
+    expect(counter.textContent).toBe('27.0 MB / 44.2 MB');
+    expect(counter.style.direction).not.toBe('rtl');
+  });
+
   it('renders install button when downloaded', () => {
     render(<UpdateBanner {...baseProps} state="downloaded" />);
 

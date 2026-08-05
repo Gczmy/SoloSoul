@@ -122,12 +122,13 @@ export function UpdateBanner({
             style={{
               fontSize: 'var(--text-caption)',
               whiteSpace: 'nowrap',
-              /* 数字等宽（tabular-nums）+ 足够最小宽度 + RTL 右对齐：
-                 下载数字位数变化（22.7→5.1→54.0）时宽度恒定，进度条与左侧文字不抖动 */
+              /* 数字等宽（tabular-nums）+ 足够最小宽度 + 右对齐：
+                 下载数字位数变化（22.7→5.1→54.0）时宽度恒定，进度条与左侧文字不抖动。
+                 注意：direction 必须保持默认 LTR——RTL 会对「27.0 MB / 44.2 MB」这类
+                 数字+单位文本做 bidi 重排（显示成 MB 27.0），右对齐由 textAlign 承担即可。 */
               fontVariantNumeric: 'tabular-nums',
               minWidth: 96,
               textAlign: 'right',
-              direction: 'rtl',
             }}
           >
             {totalBytes > 0

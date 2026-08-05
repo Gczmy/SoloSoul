@@ -4,6 +4,12 @@ All notable changes to SoloSoul are documented in this file.
 
 ## [2.8.3] - 2026-08-05
 
+### Fixed
+
+- **版本更新横幅字节数顺序错乱** — 下载进度 `27.0 MB / 44.2 MB` 被 bidi 重排显示成 `MB / 44.2 MB 27.0`：为防抖动右对齐误加了 `direction: rtl`，RTL 方向对纯 LTR 的「数字+单位」文本做了 bidi 翻转。移除 `direction: rtl`（右对齐由 `text-align: right` 承担，防抖动由 `min-width` + `tabular-nums` 承担），字节数恢复「数字 单位 / 数字 单位」顺序，并加防回归单测（断言 DOM 顺序与 direction 非 rtl）。
+
+### Changed
+
 ### Added
 
 - **设备同步配对 SAS 验证码** — 双侧确认配对时，两端各自从 Noise 握手派生同一 6 位验证码（大号 3-3 分块展示）供目视比对，替代无法相互对照的 32 字符指纹；无验证码场景（手动配对/旧客户端）回退显示指纹，旧客户端流程完全兼容。
