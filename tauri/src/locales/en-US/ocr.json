@@ -32,7 +32,6 @@
   "model_title": "OCR Model",
   "model_management": "Model Management",
   "active_model": "Active Model",
-  "active_model_series": "Active Model — {{model}} series",
   "tier_tiny_name": "Tiny",
   "tier_tiny_description": "1.5M parameters, fastest, suitable for simple scenes",
   "tier_small_name": "Small",

@@ -2,7 +2,6 @@ import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { AlertCircle, CheckCircle, Download } from 'lucide-react';
-import { OCR_MODEL_SERIES } from '@/lib/constants';
 import { getTierLabel } from '@/lib/utils';
 import { ICON_SIZE } from '@/lib/constants';
 import type { OcrModelStatus, OcrTierInfo } from '@/lib/ipc';
@@ -52,16 +51,6 @@ export function OcrScanSettingsPanel({
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             <div>
-              <label
-                style={{
-                  display: 'block',
-                  fontSize: 'var(--text-caption)',
-                  color: 'var(--text-secondary)',
-                  marginBottom: 6,
-                }}
-              >
-                {t('ocr:active_model_series', { model: OCR_MODEL_SERIES })}
-              </label>
               <select
                 value={activeTier}
                 onChange={(e) => onTierChange(e.target.value)}
