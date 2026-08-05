@@ -1,9 +1,13 @@
+/* 固定高度容器：冲突列表固定在上方，详情区独立滚动——
+ * 避免详情内容（全部字段行）过长时把顶部冲突列表挤出视口，
+ * 用户开启/关闭「只看差异」时列表始终可见。 */
 .container {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  max-height: 70vh;
-  min-height: 400px;
+  height: min(70vh, 560px);
+  min-height: 420px;
+  overflow: hidden;
 }
 
 .empty {
@@ -13,11 +17,13 @@
   font-size: var(--text-body);
 }
 
+/* 冲突列表：固定区域（不随详情滚动），自身可滚动 */
 .list {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  max-height: min(40vh, 320px);
+  flex-shrink: 0;
+  max-height: min(28vh, 220px);
   overflow-y: auto;
   padding-right: 4px;
 }
@@ -79,6 +85,10 @@
   gap: 12px;
   border-top: 1px solid var(--border-subtle);
   padding-top: 16px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 4px;
 }
 
 .detailHeader {
