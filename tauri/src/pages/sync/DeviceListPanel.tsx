@@ -6,7 +6,7 @@ import { DeleteButton } from '@/components/ui/DeleteButton';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { RefreshCw, ShieldCheck, ShieldOff, Smartphone } from 'lucide-react';
 import { resolveBackendErrorMessage } from '@/lib/backendError';
-import { formatPeerName } from '@/lib/syncPeer';
+import { formatDiscoveredName, formatPeerName } from '@/lib/syncPeer';
 import { ICON_SIZE } from '@/lib/constants';
 import type { SyncResult } from '@/lib/ipc';
 import type { DiscoveredDevice, SyncPeer } from '@/stores/syncStore';
@@ -112,6 +112,7 @@ export function DeviceListPanel({
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {discoveredDevices.map((device) => {
               const deviceAddr = device.addresses[0] || `${device.host}:${device.port}`;
+              const deviceName = formatDiscoveredName(device);
               return (
                 <div
                   key={deviceAddr}
@@ -126,9 +127,18 @@ export function DeviceListPanel({
                 >
                   <Smartphone size={ICON_SIZE.lg} style={{ color: 'var(--accent-primary)' }} />
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500 }}>
-                      {device.name ||
-                        t('settings:sync_unknown_device', { defaultValue: 'Unknown device' })}
+                    {/* 设备名：formatDiscoveredName 裁剪 node_<uuid> / 剥 mDNS 后缀，
+                        ellipsis 兜底防安卓端溢出 */}
+                    <div
+                      style={{
+                        fontSize: 'var(--text-body-sm)',
+                        fontWeight: 500,
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {deviceName}
                     </div>
                     <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
                       {deviceAddr}

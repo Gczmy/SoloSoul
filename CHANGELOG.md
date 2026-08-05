@@ -8,6 +8,10 @@ All notable changes to SoloSoul are documented in this file.
 
 - **设备同步配对改为 SAS 验证码** — 双侧确认配对时，两端各自从 Noise 握手哈希派生同一 6 位验证码（`SHA-256(hash ‖ "SoloSoul-SAS-v1")` 模 10^6），配对卡片两侧大号展示（3-3 分块）供目视比对。替代原 32 字符 fingerprint（双侧弹窗时两端各显示对端指纹、无法对照的痛点）；无验证码场景（手动配对/旧客户端）回退显示指纹。线上配对帧保持旧格式，旧客户端配对流程完全兼容。
 
+### Fixed
+
+- **已发现设备名不再显示 `node_<uuid>` 并溢出屏幕** — 根因：桌面端 mDNS 广播实例名原本是 `node_<uuid>`（移动端 NSD 已是 `SoloSoul-<fp8>`），安卓扫描 macOS 时直接显示原始 ID。修复：① 桌面广播实例名统一为 `SoloSoul-<指纹前 8 位>`（stop 注销与 register 重试同步更新，node_id 仍经 TXT 广播做身份标识，不影响配对）；② 桌面 `mdns_discover` 显示名从 TXT fingerprint 派生 `SoloSoul-<fp8>`，无指纹旧端回退清理后的主机名；③ 前端「已发现设备」列表新增 `formatDiscoveredName`（剥 mDNS 后缀 + 长 ID 裁剪）并加 overflow ellipsis 兜底，兼容仍广播 node_id 的旧版本对端。
+
 ## [2.8.2] - 2026-08-05
 
 ### Added

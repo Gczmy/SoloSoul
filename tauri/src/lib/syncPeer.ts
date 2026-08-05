@@ -24,3 +24,24 @@ export function formatPeerName(peer: {
   }
   return raw;
 }
+
+/**
+ * 已发现设备显示名格式化：剥掉 mDNS 全名后缀（`._solosoul._tcp.local.` /
+ * `._solosoul_recovery._tcp.local.` / `.local.`），长原始 ID（`node_<uuid>` /
+ * 32 位 hex）裁剪展示（与 formatPeerName 同一规则）。
+ *
+ * 新版对端广播友好实例名 `SoloSoul-<fp8>`，本函数原样保留；旧版对端仍广播
+ * `node_<uuid>` 实例名时，裁剪为 `node_<前 8 位>…`，配合 CSS ellipsis 双重
+ * 保证设备名不溢出卡片（安卓端宽屏受限场景）。
+ */
+export function formatDiscoveredName(device: { name?: string }): string {
+  let raw = (device.name || '').trim();
+  if (!raw) return 'Unknown device';
+  raw = raw
+    .replace(/\._solosoul(?:_recovery)?\._tcp\.local\.$/i, '')
+    .replace(/\.local\.$/i, '');
+  if (/^node_[0-9a-f]{8,}$/i.test(raw) || /^[0-9a-f]{32}$/i.test(raw)) {
+    return `${raw.slice(0, 13)}…`;
+  }
+  return raw;
+}

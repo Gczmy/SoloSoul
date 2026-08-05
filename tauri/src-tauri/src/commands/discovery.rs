@@ -142,6 +142,10 @@ pub async fn mdns_discover(
                 .get("node_id")
                 .map(|v| v.to_string())
                 .unwrap_or_default();
+            let peer_fingerprint = props
+                .get("fingerprint")
+                .map(|v| v.to_string())
+                .unwrap_or_default();
             if !should_show_device(
                 &peer_account_hash,
                 &peer_account_id,
@@ -156,8 +160,9 @@ pub async fn mdns_discover(
             // 前端 SyncPage 直接取 addresses[0] 传给 sync_with_device，
             // 裸 IP 无法被 SyncManager 解析为 SocketAddr 导致 "Peer not discovered"。
             let addresses = format_discovered_addresses(info.get_addresses(), info.get_port());
+            let display_name = discovered_display_name(&peer_fingerprint, info.get_hostname());
             devices.push(DiscoveredDevice {
-                name: info.get_fullname().to_string(),
+                name: display_name,
                 host: info.get_hostname().to_string(),
                 port: info.get_port(),
                 addresses,
@@ -170,6 +175,19 @@ pub async fn mdns_discover(
     let mut seen = std::collections::HashSet::new();
     devices.retain(|d| seen.insert(format!("{}:{}", d.host, d.port)));
     Ok(devices)
+}
+
+/// 已发现设备的显示名：优先用 TXT fingerprint 派生 `SoloSoul-<fp8>`（与移动端
+/// NSD 注册名、桌面广播实例名一致）；旧版对端无指纹 TXT 时回退清理后的主机名
+/// （剥掉 `.local.` 后缀），避免 `node_<uuid>` 全名（含 `._solosoul._tcp.local.`
+/// 后缀）溢出设备卡片。纯函数，供单测覆盖。
+#[cfg(desktop)]
+fn discovered_display_name(fingerprint: &str, hostname: &str) -> String {
+    if !fingerprint.is_empty() {
+        format!("SoloSoul-{}", &fingerprint[..fingerprint.len().min(8)])
+    } else {
+        hostname.trim_end_matches(".local.").to_string()
+    }
 }
 
 /// P2：判断发现的设备是否应展示给用户——同一账户（account_hash 比对，兼容旧版
@@ -479,6 +497,22 @@ mod tests {
         assert!(json.contains("\"name\":\"Alice-MacBook\""));
         assert!(json.contains("\"addresses\""));
     }
+    /// 显示名：有指纹 → SoloSoul-<fp8>；无指纹 → 主机名剥 .local. 后缀。
+    #[test]
+    #[cfg(desktop)]
+    fn test_discovered_display_name_uses_fingerprint() {
+        assert_eq!(
+            discovered_display_name("a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6", "ignored"),
+            "SoloSoul-a1b2c3d4"
+        );
+        // 无指纹：主机名剥掉 .local. 后缀
+        assert_eq!(
+            discovered_display_name("", "node_abc123.local."),
+            "node_abc123"
+        );
+        assert_eq!(discovered_display_name("", "macbook.local."), "macbook");
+    }
+
     #[test]
     #[cfg(desktop)]
     fn test_format_discovered_addresses_includes_port() {

@@ -111,6 +111,19 @@ impl SyncManager {
         self.keys.fingerprint()
     }
 
+    /// mDNS 广播实例名：`SoloSoul-<指纹前 8 位>`（可读设备名，与移动端 NSD 注册名、
+    /// QR 卡片命名规则一致），而非 `node_<uuid>`——对端「已发现设备」列表直接显示
+    /// 可读名称。node_id 仍在 TXT 中广播用于 peer 身份标识，不受影响。
+    /// 指纹缺失（理论上不会发生，防御性处理）时回退 node_id。
+    fn mdns_instance_name(&self) -> String {
+        let fp = self.keys.fingerprint();
+        if fp.is_empty() {
+            self.node_id.clone()
+        } else {
+            format!("SoloSoul-{}", &fp[..fp.len().min(8)])
+        }
+    }
+
     pub fn listen_port(&self) -> u16 {
         self.listen_port.load(Ordering::SeqCst)
     }
@@ -227,7 +240,10 @@ impl SyncManager {
                 if self.shared_daemon.load(Ordering::SeqCst) {
                     // 共享 daemon 属于 discovery/恢复层，只注销本节点的同步服务注册，
                     // 保留 daemon 供 `mdns_discover` 等命令继续使用。
-                    let _ = d.unregister(&format!("{}.{}", self.node_id, SERVICE_TYPE));
+                    // 实例名与 register_mdns 保持一致（SoloSoul-<fp8>），否则 unregister
+                    // 传错名字会静默失败，禁用后 mDNS 广播残留。
+                    let _ =
+                        d.unregister(&format!("{}.{}", self.mdns_instance_name(), SERVICE_TYPE));
                 } else {
                     let _ = d.shutdown();
                 }
@@ -291,17 +307,22 @@ impl SyncManager {
         // fingerprint 是公钥指纹，用于 MITM 验证，必须明文传输。
         txt.insert("fingerprint".to_string(), self.keys.fingerprint());
 
-        let hostname = format!("{}.local.", self.node_id);
+        // 实例名用友好设备名 SoloSoul-<fp 前 8 位>（与移动端 NSD 注册名、QR 卡片
+        // 命名规则一致），而非 node_<uuid>：对端「已发现设备」列表直接显示可读名称。
+        // node_id 已在 TXT 中广播用于 peer 身份标识，本机过滤/去重均按 TXT 字段进行，
+        // 与实例名解耦，改名不影响既有发现与配对流程。
+        let instance_name = self.mdns_instance_name();
+        let hostname = format!("{}.local.", instance_name);
         let service = ServiceInfo::new(
             SERVICE_TYPE,
-            &self.node_id,
+            &instance_name,
             &hostname,
             &ips[..],
             port,
             txt.clone(),
         )
         .map_err(|e| format!("ServiceInfo: {}", e))?;
-        let fullname = format!("{}.{}", self.node_id, SERVICE_TYPE);
+        let fullname = format!("{}.{}", instance_name, SERVICE_TYPE);
         match daemon.register(service) {
             Ok(_) => Ok(()),
             // 共享 daemon 场景下，快速「禁用→启用」时旧实例的 unregister 可能尚未落地，
@@ -319,7 +340,7 @@ impl SyncManager {
                     ));
                 }
                 let service =
-                    ServiceInfo::new(SERVICE_TYPE, &self.node_id, &hostname, &ips[..], port, txt)
+                    ServiceInfo::new(SERVICE_TYPE, &instance_name, &hostname, &ips[..], port, txt)
                         .map_err(|e| format!("ServiceInfo: {}", e))?;
                 daemon
                     .register(service)
@@ -785,6 +806,20 @@ mod tests {
             .expect("peer 应存在");
         assert!(peer.trusted);
         assert_eq!(peer.public_key_fingerprint.as_deref(), Some("handshake-fp"));
+    }
+
+    /// mDNS 实例名为 SoloSoul-<fp 前 8 位>（可读设备名），而非 node_<uuid>。
+    #[test]
+    fn test_mdns_instance_name_is_friendly_device_name() {
+        let (manager, _vault, _dir) = test_manager();
+        let name = manager.mdns_instance_name();
+        assert!(
+            name.starts_with("SoloSoul-"),
+            "实例名应以 SoloSoul- 开头，got: {}",
+            name
+        );
+        // 指纹前 8 位 = SoloSoul- + 8 字符
+        assert_eq!(name.len(), "SoloSoul-".len() + 8);
     }
 
     /// 已绑定指纹的记录在撤销/再信任时不覆盖指纹（防漂移）。
