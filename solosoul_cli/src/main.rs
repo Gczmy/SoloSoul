@@ -69,22 +69,60 @@ fn default_data_dir() -> PathBuf {
     }
 }
 
-/// 将 tracing 日志写入 `{data_dir}/logs/cli.log`。
+/// 可通过 `RUST_LOG` 覆盖日志级别的 crate 白名单。
+///
+/// 白名单之外的 target（reqwest/tokio/rusqlite 等依赖）一律保持默认 INFO，
+/// 防止 `RUST_LOG=debug` 把依赖的 LLM 请求、vault 操作明细写进 cli.log。
+const LOG_CRATE_ALLOWLIST: &[&str] = &[
+    "solosoul_cli",
+    "solosoul",
+    "solosoul_core",
+    "solosoul_crypto",
+    "solosoul_sync",
+    "solosoul_vault",
+    "solosoul_plugin",
+];
+
+/// 将 tracing 日志写入 `{data_dir}/logs/cli.log`（按日轮转，避免无限增长）。
 fn init_logging(data_dir: &Path) -> Result<WorkerGuard> {
     let log_dir = data_dir.join("logs");
     std::fs::create_dir_all(&log_dir)?;
 
-    let file_appender = tracing_appender::rolling::never(&log_dir, "cli.log");
+    let file_appender = tracing_appender::rolling::daily(&log_dir, "cli.log");
     let (non_blocking, guard) = tracing_appender::non_blocking(file_appender);
+
+    let filter = build_env_filter();
 
     tracing_subscriber::fmt()
         .with_writer(non_blocking)
-        .with_env_filter(
-            tracing_subscriber::EnvFilter::builder()
-                .with_default_directive(tracing_subscriber::filter::LevelFilter::INFO.into())
-                .from_env_lossy(),
-        )
+        .with_env_filter(filter)
         .init();
 
     Ok(guard)
+}
+
+/// 从 `RUST_LOG` 构建 EnvFilter，仅接受白名单内 crate 的 directive。
+///
+/// 裸级别 directive（如 `RUST_LOG=debug`，无 crate 前缀）会被忽略，
+/// 避免依赖 crate 的 debug 日志泄入本地日志文件；默认级别为 INFO。
+fn build_env_filter() -> tracing_subscriber::EnvFilter {
+    let mut directives: Vec<String> = Vec::new();
+    if let Ok(rust_log) = std::env::var("RUST_LOG") {
+        for raw in rust_log.split(',') {
+            let d = raw.trim();
+            if d.is_empty() {
+                continue;
+            }
+            // 提取 target 部分（可能带 =level 后缀）
+            let target_part = d.split('=').next().unwrap_or(d).trim();
+            let target = target_part.strip_prefix("target:").unwrap_or(target_part);
+            let top = target.split("::").next().unwrap_or(target);
+            if LOG_CRATE_ALLOWLIST.contains(&top) {
+                directives.push(d.to_string());
+            }
+        }
+    }
+    directives.push("info".to_string());
+    tracing_subscriber::EnvFilter::try_new(directives.join(","))
+        .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("info"))
 }

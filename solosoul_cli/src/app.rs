@@ -426,7 +426,7 @@ impl App {
             }
         };
 
-        let log_path = base_path.join("logs").join("cli.log");
+        let log_path = latest_log_path(&base_path);
 
         let phase = if vault_service.has_any_account() {
             AppPhase::Locked
@@ -488,6 +488,31 @@ impl App {
         self.selected_shortcut = 0;
         self.phase = AppPhase::Home { account_id };
     }
+}
+
+/// 找到 `{base}/logs/` 下最新的 CLI 日志文件（`cli.log` 或按日轮转的 `cli.log.YYYY-MM-DD`）。
+///
+/// 日志自 R2-25 起按日轮转，旧文件不再覆盖 `cli.log`；`/doctor` 展示的
+/// 日志路径需指向实际最新的日志文件。无日志时回退到 `cli.log` 路径（未生成）。
+fn latest_log_path(base_path: &std::path::Path) -> std::path::PathBuf {
+    let fallback = base_path.join("logs").join("cli.log");
+    let Ok(entries) = std::fs::read_dir(base_path.join("logs")) else {
+        return fallback;
+    };
+    let mut best: Option<(std::time::SystemTime, std::path::PathBuf)> = None;
+    for entry in entries.flatten() {
+        let name = entry.file_name().to_string_lossy().to_string();
+        if !name.starts_with("cli.log") {
+            continue;
+        }
+        let mtime = entry.metadata().and_then(|m| m.modified()).ok();
+        if let Some(t) = mtime {
+            if best.as_ref().map(|(bt, _)| t > *bt).unwrap_or(true) {
+                best = Some((t, entry.path()));
+            }
+        }
+    }
+    best.map(|(_, p)| p).unwrap_or(fallback)
 }
 
 /// 从 `ui_preferences.json` 或系统 locale 检测初始语言。
