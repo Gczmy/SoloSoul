@@ -147,6 +147,19 @@ export function useSyncPage() {
     loadStatus();
   }, [loadStatus]);
 
+  // P0#4: 页面停留期间每 15s 轮询同步状态/监听地址/冲突——设备上线、离线、mDNS
+  // 发现链中断不会自行触发事件，仅靠挂载/操作/事件刷新会让列表停留过期快照
+  // （两台设备都在线却一直显示离线）。轮询使用 getState() 避免闭包捕获旧 store。
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const s = useSyncStore.getState();
+      void s.loadStatus();
+      void s.loadListenAddr();
+      void s.loadConflicts();
+    }, 15_000);
+    return () => clearInterval(timer);
+  }, []);
+
   // 监听移动端 NSD 注册失败事件：后端已回滚为禁用，重读状态避免开关 UI 漂移
   useEffect(() => {
     let unlisten: (() => void) | undefined;
