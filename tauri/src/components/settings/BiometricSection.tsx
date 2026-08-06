@@ -380,7 +380,8 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
                 setError(null);
               }}
               placeholder={t('common:password_placeholder')}
-              autoComplete="current-password"
+              // SoloSoul 主密码非网站密码：禁用自动填充（current-password 会显示历史密码明文）
+              autoComplete="off"
               showHintButton={true}
               hint={passwordHint}
               onEnter={handleBioConfirm}

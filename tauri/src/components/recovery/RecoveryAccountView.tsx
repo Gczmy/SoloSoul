@@ -357,6 +357,7 @@ export function RecoveryAccountView({
             placeholder={t('common:recovery_receive_password_hint')}
             disabled={loading}
             autoFocus
+            autoComplete="new-password"
             error={masterPasswordError ?? undefined}
           />
 
@@ -367,6 +368,7 @@ export function RecoveryAccountView({
             onChange={(e) => onConfirmPasswordChange(e.target.value)}
             placeholder={t('common:recovery_receive_password_hint')}
             disabled={loading}
+            autoComplete="new-password"
             error={confirmPasswordError ?? undefined}
           />
 

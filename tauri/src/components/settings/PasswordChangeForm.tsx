@@ -139,7 +139,8 @@ export function PasswordChangeForm({ accountId }: PasswordChangeFormProps) {
             setError(null);
           }}
           placeholder={t('common:password_placeholder')}
-          autoComplete="current-password"
+          // SoloSoul 主密码非网站密码：禁用自动填充（current-password 会显示历史密码明文）
+          autoComplete="off"
           hint={currentAccount?.passwordHint || null}
           onEnter={handleChangePassword}
         />

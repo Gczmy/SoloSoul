@@ -492,7 +492,8 @@ export function PasswordVerificationDialog({
                 }}
                 placeholder={t('common:password_placeholder')}
                 error={error}
-                autoComplete="current-password"
+                // SoloSoul 主密码非网站密码：禁用浏览器/密码管理器自动填充（current-password 会显示历史密码明文）
+                autoComplete="off"
                 hint={hint}
                 onEnter={handleConfirm}
               />

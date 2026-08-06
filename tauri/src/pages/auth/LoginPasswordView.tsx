@@ -54,7 +54,9 @@ export function LoginPasswordView({
           onChange={onPasswordChange}
           placeholder={t('common:password_placeholder')}
           hint={passwordHint}
-          autoComplete="current-password"
+          // Windows WebView2 自动填充会显示历史密码明文：SoloSoul 主密码非网站密码，
+          // 密码管理器不应接管，禁用自动填充（current-password 会触发填充）。
+          autoComplete="off"
           onEnter={onSubmit}
           onFocus={onFocus}
           error={passwordFieldError}

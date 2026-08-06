@@ -299,7 +299,8 @@ export function PinSection({ accountId }: PinSectionProps) {
                   }}
                   placeholder={t('common:password_placeholder')}
                   hint={passwordHint}
-                  autoComplete="current-password"
+                  // SoloSoul 主密码非网站密码：禁用自动填充（current-password 会显示历史密码明文）
+                  autoComplete="off"
                   onEnter={handlePasswordSubmit}
                 />
                 {setupError && (
@@ -489,7 +490,8 @@ export function PinSection({ accountId }: PinSectionProps) {
               }}
               placeholder={t('common:password_placeholder')}
               hint={passwordHint}
-              autoComplete="current-password"
+              // SoloSoul 主密码非网站密码：禁用自动填充（current-password 会显示历史密码明文）
+              autoComplete="off"
               onEnter={handleDisableConfirm}
             />
             {disableError && (
