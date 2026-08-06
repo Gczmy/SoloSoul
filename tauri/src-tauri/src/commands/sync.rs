@@ -592,6 +592,27 @@ pub async fn sync_with_device(
         .sync_with_device(device_id.clone())
         .await?;
     let stats = &result.data;
+    // P1#10：移动端 conflicts 回传对齐桌面端——把会话产生的 ConflictRecord 转换为
+    // 字段兼容的本地结构（Hlc.node_id 为 [u8;16]，hex 编码为字符串），供前端冲突 UI。
+    let conflicts = stats
+        .conflicts
+        .iter()
+        .map(|c| ConflictRecord {
+            table: c.table.clone(),
+            id: c.id.clone(),
+            local_hlc: MobileHlc {
+                wall_time_ms: c.local_hlc.wall_time_ms,
+                counter: c.local_hlc.counter as u64,
+                node_id: hex::encode(c.local_hlc.node_id),
+            },
+            remote_hlc: MobileHlc {
+                wall_time_ms: c.remote_hlc.wall_time_ms,
+                counter: c.remote_hlc.counter as u64,
+                node_id: hex::encode(c.remote_hlc.node_id),
+            },
+            winner: c.winner.clone(),
+        })
+        .collect::<Vec<_>>();
     let mut sync_result = SyncResult {
         summary: format!(
             "examined={}, applied={}, skipped={}, conflicts={}",
@@ -603,7 +624,7 @@ pub async fn sync_with_device(
         examined: stats.examined,
         applied: stats.applied,
         skipped: stats.skipped,
-        conflicts: vec![],
+        conflicts,
         per_table: stats
             .per_table
             .iter()
@@ -630,17 +651,12 @@ pub async fn sync_with_device(
     log_sync_action(&state, "sync_with_device", Some(&device_id), Some(&details));
 
     // 当同步产生冲突时，向前端发送事件通知，让 UI 显示冲突徽章。
-    // 移动端 sync_result.conflicts 始终为空（移动端不回传 ConflictRecord），
-    // 但通过查询 Vault 中的冲突表确认是否有新冲突。
-    if let Ok(vault) = crate::commands::vault_handle(&state) {
-        if let Ok(conflicts) = vault.list_sync_conflicts() {
-            if !conflicts.is_empty() {
-                let _ = state.handle.emit(
-                    "sync-conflicts-updated",
-                    serde_json::json!({ "count": conflicts.len() }),
-                );
-            }
-        }
+    // 移动端 conflicts 现随会话回传（P1#10），直接以此为准。
+    if !sync_result.conflicts.is_empty() {
+        let _ = state.handle.emit(
+            "sync-conflicts-updated",
+            serde_json::json!({ "count": sync_result.conflicts.len() }),
+        );
     }
 
     Ok(sync_result)
