@@ -135,12 +135,22 @@ export const useTrashStore = create<TrashState>((set, get) => ({
   },
 
   permanentDelete: async (trashIds) => {
-    // P052: 原循环内串行 await 逐条 IPC；后端 rusqlite 连接已在 Mutex 内串行化，
-    // 并发 invoke 无数据竞争，改用 Promise.all 并发化减少总等待时间。
-    // 任一失败时 Promise.all 整体 reject（与串行首错中止语义一致），
-    // 未完成的其余删除在服务端仍会执行，本地列表保持至下次刷新。
+    // P052: 并发化减少总等待时间；R2-20: 加并发上限，清空数百条时不瞬间发起数百 invoke。
+    // 任一失败时整体 reject（与串行首错中止语义一致），未完成的其余删除在服务端仍会执行。
+    const CONCURRENCY_LIMIT = 8;
+    let cursor = 0;
+    const worker = async (): Promise<void> => {
+      while (cursor < trashIds.length) {
+        const id = trashIds[cursor];
+        cursor += 1;
+        await invoke('trash_permanent_delete', { trashId: id });
+      }
+    };
     await Promise.all(
-      trashIds.map((id) => invoke('trash_permanent_delete', { trashId: id })),
+      Array.from(
+        { length: Math.min(CONCURRENCY_LIMIT, trashIds.length) },
+        () => worker(),
+      ),
     );
     set((s) => ({ items: s.items.filter((i) => !trashIds.includes(i.id)) }));
   },

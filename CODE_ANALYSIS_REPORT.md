@@ -44,7 +44,7 @@
 | R2-17 | P2 | 重复/性能 | `tauri/src/hooks/useExportScope.ts:89-106/223-241/254-270` | 同一段 N+1 附件加载块逐字复制三遍（~55 行），每对象一次 IPC 且无并发上限 | `[x]` 已修复 |
 | R2-18 | P2 | 规范 | 前端 100 处 | `t('key') \|\| '兜底文案'` 死兜底模式：i18next 缺 key 返回 key 本身（truthy），`\|\|` 右侧几乎永不执行；100 处硬编码与 i18n 集中管理约定相悖 | `[ ]` 待修复 |
 | R2-19 | P2 | UX | `tauri/src/components/object/AttachmentViewer.tsx:169-177` | 重命名乐观更新失败后 `.catch` 仅 `logger.warn` 不回滚：前端显示新名、后端仍是旧名 | `[x]` 已修复 |
-| R2-20 | P2 | 性能 | `tauri/src/stores/trashStore.ts:137-146` | `permanentDelete` `Promise.all` 无界并发逐条 IPC（P052 有意改并发但未设上限），清空数百条时瞬间数百 invoke | `[ ]` 待修复 |
+| R2-20 | P2 | 性能 | `tauri/src/stores/trashStore.ts:137-146` | `permanentDelete` `Promise.all` 无界并发逐条 IPC（P052 有意改并发但未设上限），清空数百条时瞬间数百 invoke | `[x]` 已修复 |
 | R2-21 | P2 | 死代码 | 前端多余 export | `TrashSnapshotView.tsx:184 SnapshotDataView`、`conflictFieldMeta.ts:31/149/227`、`useOnboarding.ts:39 baseSteps`、`searchShared.tsx:136 resolveFieldLabel` 等仅本文件/测试引用却 export | `[ ]` 待修复 |
 | R2-22 | P2 | 性能 | `solosoul_cli/src/app.rs:2874/2886/2845`、`widgets/status_bar.rs:14`、`screens/object_list.rs:40-50` | 渲染路径每帧磁盘 IO（`load_ui_prefs` 读盘+JSON 解析）、`Theme::load()` 每帧探测环境变量（11 处）、`/list` 无 200 截断（与 /search 不对称） | `[x]` 已修复 |
 | R2-23 | P2 | 性能 | `solosoul_cli/src/commands/plugin.rs:140/218/261/459`、`sync.rs:88`、`embed_model.rs:168` | 每次插件/同步/模型命令新建完整 tokio 多线程运行时，应 App 级共享 | `[x]` 已修复 |
