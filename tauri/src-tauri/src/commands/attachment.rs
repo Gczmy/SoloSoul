@@ -77,6 +77,28 @@ fn save_attachments(props: &mut Value, atts: &[AttachmentMeta]) {
 ///
 /// - `$SOLOSOUL_FS_BASE`（若设置）
 /// - 用户 Desktop / Documents / Downloads
+/// 组件级路径前缀判定（in_vault / in_attachments 共用纯函数）。
+///
+/// - `resolved`: canonicalize 结果（成功时为规范路径）；`raw`: 字面路径。
+/// - `canonicalized`: canonicalize 是否成功。成功时**只**用 resolved 判定，杜绝字面
+///   路径以共享前缀伪造（symlink 旁路）；失败时（Android symlink 兜底）用 raw 同时
+///   比较 canonical 与非 canonical 两种 base 形式，覆盖 `/data/data` ↔ `/data/user/0`
+///   双路径场景——raw 路径与 canonical base 前缀不同，仅比 canonical 会漏检。
+/// - `base_canon`: canonical 形式的 base；`base_raw`: 非 canonical 形式（可为同一值）。
+fn path_within_base(
+    resolved: &Path,
+    raw: &Path,
+    canonicalized: bool,
+    base_canon: &Path,
+    base_raw: &Path,
+) -> bool {
+    if canonicalized {
+        resolved.starts_with(base_canon)
+    } else {
+        raw.starts_with(base_canon) || raw.starts_with(base_raw)
+    }
+}
+
 /// - 移动端：应用缓存目录（前端经 plugin-fs 中转的落盘位置）
 ///
 /// R2-14: 从 `attachment_copy_to_vault` 与 `attachment_download` 两处近乎逐字重复的
@@ -426,11 +448,10 @@ pub async fn attachment_copy_to_vault(
         .canonicalize()
         .map_err(|_| "Invalid vault base path".to_string())?;
     let src_raw = std::path::Path::new(&src_path);
-    let in_vault = if src_canonicalized {
-        src.starts_with(&vault_base)
-    } else {
-        src.starts_with(&vault_base) || src_raw.starts_with(&vault_base)
-    };
+    // R2-X1: 拒绝型判定——canonicalize 失败（Android symlink 兜底）时，raw 路径须同时
+    // 与非 canonical 的 `base` 比较：/data/data 与 /data/user/0 互为 symlink 的双路径场景中，
+    // raw 路径与 canonical vault_base 前缀不同，只比 vault_base 会漏检库内自引用。
+    let in_vault = path_within_base(&src, src_raw, src_canonicalized, &vault_base, &base);
     if in_vault {
         return Err("Source path must not be inside vault storage".to_string());
     }
@@ -832,18 +853,16 @@ pub async fn attachment_download(
     let attachments_canon = attachments_dir
         .canonicalize()
         .unwrap_or_else(|_| attachments_dir.clone());
-    // R2-V8: `src_raw`（字面路径）仅当 canonicalize 失败（Android symlink 兜底）时
+    // R2-V8/X1: `src_raw`（字面路径）仅当 canonicalize 失败（Android symlink 兜底）时
     // 参与判定——成功时只用 canonicalize 结果，杜绝字面前缀绕过 symlink 旁路。
-    let in_attachments = if src_canonicalized {
-        src.starts_with(&attachments_canon)
-    } else {
-        src.starts_with(&attachments_canon) || src_raw.starts_with(&attachments_canon)
-    };
-    let in_vault = if src_canonicalized {
-        src.starts_with(&vault_base)
-    } else {
-        src.starts_with(&vault_base) || src_raw.starts_with(&vault_base)
-    };
+    let in_attachments = path_within_base(
+        &src,
+        src_raw,
+        src_canonicalized,
+        &attachments_canon,
+        &attachments_dir,
+    );
+    let in_vault = path_within_base(&src, src_raw, src_canonicalized, &vault_base, &vault_base);
 
     if !in_attachments && !in_vault {
         return Err("Source path must be within vault storage".to_string());
@@ -987,12 +1006,14 @@ pub async fn attachment_open<R: Runtime>(
         tracing::error!("attachment_open: attachment path contains '..'");
         return Err("Attachment path must not contain '..'".to_string());
     }
-    // R2-W1: 字面路径仅在 canonicalize 失败时参与判定（同 download）。
-    let in_vault = if path_canonicalized {
-        path.starts_with(&attachments_canon)
-    } else {
-        path.starts_with(&attachments_canon) || path_raw.starts_with(&attachments_canon)
-    };
+    // R2-W1/X1: 字面路径仅在 canonicalize 失败时参与判定（同 download）。
+    let in_vault = path_within_base(
+        &path,
+        path_raw,
+        path_canonicalized,
+        &attachments_canon,
+        &attachments_dir,
+    );
     if !in_vault {
         tracing::error!("attachment_open: attachment path is outside vault storage");
         return Err("Attachment path is outside vault storage".to_string());
@@ -1026,6 +1047,92 @@ mod tests {
             VaultConfig::new("test_account", dir.path().to_path_buf()).with_data_key([0x42u8; 32]);
         let vault = VaultStore::open(config).unwrap();
         (vault, dir)
+    }
+
+    /// R2-X1: 路径判定纯函数防回归测试（symlink 旁路 / Android 双路径 / 边界）。
+    #[test]
+    fn test_path_within_base_canonical_only() {
+        // canonicalize 成功：只用 resolved 判定，字面路径共享前缀不能绕过。
+        let base_canon = Path::new("/vault");
+        let base_raw = Path::new("/vault");
+        // resolved 在 base 内 → true
+        assert!(path_within_base(
+            Path::new("/vault/attachments/a.bin"),
+            Path::new("/vault/attachments/a.bin"),
+            true,
+            base_canon,
+            base_raw,
+        ));
+        // resolved 在 base 外，但 raw 字面前缀命中 → 仍 false（旁路封死）
+        assert!(!path_within_base(
+            Path::new("/real_outside/a.bin"),
+            Path::new("/vault/attachments/a.bin"),
+            true,
+            base_canon,
+            base_raw,
+        ));
+        // 完全无关 → false
+        assert!(!path_within_base(
+            Path::new("/etc/passwd"),
+            Path::new("/etc/passwd"),
+            true,
+            base_canon,
+            base_raw,
+        ));
+    }
+
+    #[test]
+    fn test_path_within_base_raw_fallback_canonical() {
+        // canonicalize 失败（Android 兜底）：raw 命中 canonical base → true
+        let base_canon = Path::new("/vault");
+        let base_raw = Path::new("/vault");
+        assert!(path_within_base(
+            Path::new("/vault/attachments/a.bin"),
+            Path::new("/vault/attachments/a.bin"),
+            false,
+            base_canon,
+            base_raw,
+        ));
+        // 与 base 完全无关 → false
+        assert!(!path_within_base(
+            Path::new("/etc/passwd"),
+            Path::new("/etc/passwd"),
+            false,
+            base_canon,
+            base_raw,
+        ));
+    }
+
+    #[test]
+    fn test_path_within_base_raw_fallback_dual_path() {
+        // Android 双路径：raw 前缀是 /data/data（非 canonical），canonical base 是
+        // /data/user/0——raw 仅命中 base_raw 时也应判定为库内（copy_to_vault 拒绝型）。
+        let base_canon = Path::new("/data/user/0/com.solosoul");
+        let base_raw = Path::new("/data/data/com.solosoul");
+        // raw 命中 base_raw → true（此前 a||a 恒等会漏检）
+        assert!(path_within_base(
+            Path::new("/data/user/0/com.solosoul/attachments/a.bin"),
+            Path::new("/data/data/com.solosoul/attachments/a.bin"),
+            false,
+            base_canon,
+            base_raw,
+        ));
+        // 与 base 完全无关 → false
+        assert!(!path_within_base(
+            Path::new("/storage/emulated/0/Download/x.bin"),
+            Path::new("/storage/emulated/0/Download/x.bin"),
+            false,
+            base_canon,
+            base_raw,
+        ));
+        // canonicalize 成功时双路径也覆盖（resolved 命中 canonical）
+        assert!(path_within_base(
+            Path::new("/data/user/0/com.solosoul/attachments/a.bin"),
+            Path::new("/data/data/com.solosoul/attachments/a.bin"),
+            true,
+            base_canon,
+            base_raw,
+        ));
     }
 
     #[test]
