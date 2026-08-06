@@ -5,6 +5,7 @@
 
 use color_eyre::Result;
 use solosoul_core::objects;
+use std::time::Instant;
 
 use crate::app::{App, AppPhase};
 use crate::commands::require_unlocked_with_vault;
@@ -236,7 +237,12 @@ fn restore(app: &mut App, attachment_id: Option<&str>) -> Result<()> {
     };
 
     match objects::restore_attachment(&vault, &account_id, &object_id, attachment_id) {
-        Ok(()) => app.error_message = Some(t!(app.i18n, "attachment-restored", id = attachment_id)),
+        Ok(()) => {
+            app.success_message = Some((
+                t!(app.i18n, "attachment-restored", id = attachment_id),
+                Instant::now(),
+            ))
+        }
         Err(e) => app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e)),
     }
     Ok(())

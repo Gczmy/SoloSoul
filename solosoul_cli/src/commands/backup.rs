@@ -5,6 +5,7 @@ use std::path::{Path, PathBuf};
 
 use color_eyre::Result;
 use serde::{Deserialize, Serialize};
+use std::time::Instant;
 
 use crate::app::{App, AppPhase};
 use crate::commands::require_unlocked;
@@ -257,12 +258,15 @@ fn backup_create(app: &mut App, name: &str) -> Result<()> {
     })?;
 
     let id = format!("{}_{}", safe_name, timestamp);
-    app.error_message = Some(t!(
-        app.i18n,
-        "cmd-backup-created",
-        id = id,
-        size = profiles.len().to_string(),
-        bytes = metadata.len().to_string()
+    app.success_message = Some((
+        t!(
+            app.i18n,
+            "cmd-backup-created",
+            id = id,
+            size = profiles.len().to_string(),
+            bytes = metadata.len().to_string()
+        ),
+        Instant::now(),
     ));
     Ok(())
 }
@@ -293,7 +297,10 @@ fn backup_restore(app: &mut App, backup_id: &str) -> Result<()> {
                 if let Err(e) = do_restore(app, &backup_id) {
                     app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e));
                 } else {
-                    app.error_message = Some(t!(app.i18n, "cmd-backup-restored", id = backup_id));
+                    app.success_message = Some((
+                        t!(app.i18n, "cmd-backup-restored", id = backup_id),
+                        Instant::now(),
+                    ));
                 }
             }
         }),
@@ -359,7 +366,10 @@ fn backup_delete(app: &mut App, backup_id: &str) -> Result<()> {
                 if let Err(e) = do_delete(app, &backup_id) {
                     app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e));
                 } else {
-                    app.error_message = Some(t!(app.i18n, "cmd-backup-deleted", id = backup_id));
+                    app.success_message = Some((
+                        t!(app.i18n, "cmd-backup-deleted", id = backup_id),
+                        Instant::now(),
+                    ));
                 }
             }
         }),
@@ -478,8 +488,9 @@ mod tests {
         confirm_prompt(&mut app);
 
         assert!(
-            app.error_message
-                .as_deref()
+            app.success_message
+                .as_ref()
+                .map(|(s, _)| s.as_str())
                 .unwrap_or("")
                 .contains("已恢复"),
             "expected restore success message, got {:?}",
@@ -510,8 +521,9 @@ mod tests {
         confirm_prompt(&mut app);
 
         assert!(
-            app.error_message
-                .as_deref()
+            app.success_message
+                .as_ref()
+                .map(|(s, _)| s.as_str())
                 .unwrap_or("")
                 .contains("已删除"),
             "expected delete success message, got {:?}",

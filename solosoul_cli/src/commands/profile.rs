@@ -3,6 +3,7 @@
 use color_eyre::Result;
 use serde_json::{Map, Value};
 use solosoul_core::Profile;
+use std::time::Instant;
 
 use crate::app::{App, AppPhase};
 use crate::commands::require_unlocked_with_vault;
@@ -114,7 +115,10 @@ fn rename_profile(app: &mut App, name: Option<&str>) -> Result<()> {
         data,
         selected: 0,
     };
-    app.error_message = Some(t!(app.i18n, "cmd-profile-updated", name = name));
+    app.success_message = Some((
+        t!(app.i18n, "cmd-profile-updated", name = name),
+        Instant::now(),
+    ));
     Ok(())
 }
 
@@ -145,7 +149,10 @@ fn set_profile_value(app: &mut App, path: Option<&str>, value: Option<String>) -
     }
 
     save_profile_data(app, &mut profile, &data)?;
-    app.error_message = Some(t!(app.i18n, "cmd-preference-updated", key = path));
+    app.success_message = Some((
+        t!(app.i18n, "cmd-preference-updated", key = path),
+        Instant::now(),
+    ));
 
     // 刷新展示屏幕
     let data = profile_data_value(&profile)?;
@@ -219,8 +226,9 @@ mod tests {
         let (mut app, _account_id, _dir) = unlocked_app();
         handle(&mut app, &["/profile", "rename", "My Profile"]).unwrap();
         assert!(app
-            .error_message
-            .as_deref()
+            .success_message
+            .as_ref()
+            .map(|(s, _)| s.as_str())
             .unwrap_or("")
             .contains("My Profile"));
         if let AppPhase::Profile { profile, .. } = &app.phase {
@@ -235,8 +243,9 @@ mod tests {
         let (mut app, account_id, _dir) = unlocked_app();
         handle(&mut app, &["/profile", "set", "identity.fullName", "张三"]).unwrap();
         assert!(app
-            .error_message
-            .as_deref()
+            .success_message
+            .as_ref()
+            .map(|(s, _)| s.as_str())
             .unwrap_or("")
             .contains("identity.fullName"));
 

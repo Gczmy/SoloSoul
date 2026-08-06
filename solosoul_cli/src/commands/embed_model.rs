@@ -16,6 +16,7 @@ use crate::t;
 use color_eyre::Result;
 use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
+use std::time::Instant;
 
 const DEFAULT_REGISTRY_URL: &str = "https://models.solosoul.dev/embed-registry.json";
 
@@ -169,7 +170,10 @@ fn install(app: &mut App, model_id: &str) {
     match result {
         Ok(report) => {
             tracing::info!("embed_model install {} ok: {}", model_id, report);
-            app.error_message = Some(t!(app.i18n, "cmd-embed-installed", model = model_id));
+            app.success_message = Some((
+                t!(app.i18n, "cmd-embed-installed", model = model_id),
+                Instant::now(),
+            ));
         }
         Err(e) => {
             app.error_message = Some(t!(app.i18n, "cmd-embed-install-failed", err = e));
@@ -248,7 +252,10 @@ fn remove(app: &mut App, model_id: &str) {
     // 激活模型由 GUI 端 LlmConfig 管理,此处仅删除目录。
     match std::fs::remove_dir_all(&dir) {
         Ok(()) => {
-            app.error_message = Some(t!(app.i18n, "cmd-embed-removed", model = model_id));
+            app.success_message = Some((
+                t!(app.i18n, "cmd-embed-removed", model = model_id),
+                Instant::now(),
+            ));
         }
         Err(e) => {
             app.error_message = Some(t!(app.i18n, "cmd-embed-remove-failed", err = e));

@@ -320,7 +320,10 @@ fn setting(app: &mut App, key: Option<&str>, value: Option<&str>) -> Result<()> 
     };
 
     crate::commands::update_profile_preference(app, key, value)?;
-    app.error_message = Some(t!(app.i18n, "cmd-preference-updated", key = key));
+    app.success_message = Some((
+        t!(app.i18n, "cmd-preference-updated", key = key),
+        Instant::now(),
+    ));
     Ok(())
 }
 

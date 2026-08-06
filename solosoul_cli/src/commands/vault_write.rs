@@ -6,6 +6,7 @@
 use color_eyre::Result;
 use solosoul_core::objects;
 use solosoul_core::ObjectRecord;
+use std::time::Instant;
 
 use crate::app::{App, AppPhase, EditObjectStep, NewObjectStep, TrashFilter};
 use crate::commands::require_unlocked;
@@ -301,7 +302,10 @@ pub fn delete(app: &mut App, object_id: Option<&str>) -> Result<()> {
                     Some(&format!("section={}", record.section_type)),
                 )
                 .ok();
-            app.error_message = Some(t!(app.i18n, "cmd-deleted", name = &record.name));
+            app.success_message = Some((
+                t!(app.i18n, "cmd-deleted", name = &record.name),
+                Instant::now(),
+            ));
         }
     }
     Ok(())
@@ -596,7 +600,10 @@ pub fn purge(app: &mut App, trash_id: Option<&str>) -> Result<()> {
                     Err(_) => return,
                 };
                 match objects::purge_trash(&vault, &trash_id) {
-                    Ok(name) => app.error_message = Some(t!(app.i18n, "cmd-deleted", name = name)),
+                    Ok(name) => {
+                        app.success_message =
+                            Some((t!(app.i18n, "cmd-deleted", name = name), Instant::now()))
+                    }
                     Err(e) => {
                         app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e))
                     }

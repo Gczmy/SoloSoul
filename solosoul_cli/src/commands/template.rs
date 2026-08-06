@@ -3,6 +3,7 @@
 use color_eyre::Result;
 use solosoul_core::template_service::SystemTemplateRegistry;
 use solosoul_core::UserTemplate;
+use std::time::Instant;
 
 use crate::app::{App, AppPhase};
 use crate::commands::require_unlocked_with_vault;
@@ -143,7 +144,10 @@ fn delete_template(app: &mut App, id: Option<&str>) -> Result<()> {
         .map_err(|e| color_eyre::eyre::eyre!(e))
     {
         Ok(()) => {
-            app.error_message = Some(t!(app.i18n, "cmd-template-deleted", id = id));
+            app.success_message = Some((
+                t!(app.i18n, "cmd-template-deleted", id = id),
+                Instant::now(),
+            ));
             list_templates(app)?;
         }
         Err(e) => {

@@ -3,6 +3,7 @@
 use color_eyre::Result;
 use serde_json::Value;
 use solosoul_core::biometric::BiometricManager;
+use std::time::Instant;
 use zeroize::Zeroizing;
 
 use crate::app::{App, AppPhase};
@@ -109,7 +110,9 @@ fn on_confirm_password(
             .vault_service
             .change_password(&account_id, &old_password, &new_password)
         {
-            Ok(()) => app.error_message = Some(t!(app.i18n, "cmd-password-changed")),
+            Ok(()) => {
+                app.success_message = Some((t!(app.i18n, "cmd-password-changed"), Instant::now()))
+            }
             Err(e) => app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e)),
         }
     }
@@ -145,7 +148,10 @@ fn handle_hint(app: &mut App, text: Option<&str>) -> Result<()> {
                     app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e));
                     color_eyre::eyre::eyre!(e)
                 })?;
-            app.error_message = Some(t!(app.i18n, "cmd-password-hint-updated", text = text));
+            app.success_message = Some((
+                t!(app.i18n, "cmd-password-hint-updated", text = text),
+                Instant::now(),
+            ));
         }
         None => {
             let hint = load_account_config(app, &account_id)
@@ -232,7 +238,8 @@ fn handle_biometric(app: &mut App, action: Option<&str>, reason: Option<&str>) -
                         let manager = biometric_manager(app);
                         match manager.save_credential(&account_id, &password, &reason) {
                             Ok(()) => {
-                                app.error_message = Some(t!(app.i18n, "cmd-biometric-enabled"))
+                                app.success_message =
+                                    Some((t!(app.i18n, "cmd-biometric-enabled"), Instant::now()))
                             }
                             Err(e) => {
                                 app.error_message =
@@ -258,7 +265,8 @@ fn handle_biometric(app: &mut App, action: Option<&str>, reason: Option<&str>) -
                         let manager = biometric_manager(app);
                         match manager.delete_credential(&account_id, &password) {
                             Ok(()) => {
-                                app.error_message = Some(t!(app.i18n, "cmd-biometric-disabled"))
+                                app.success_message =
+                                    Some((t!(app.i18n, "cmd-biometric-disabled"), Instant::now()))
                             }
                             Err(e) => {
                                 app.error_message =
@@ -380,16 +388,18 @@ mod tests {
         // 设置提示
         handle(&mut app, &["/security", "hint", "my favorite color"]).unwrap();
         assert!(app
-            .error_message
-            .as_deref()
+            .success_message
+            .as_ref()
+            .map(|(s, _)| s.as_str())
             .unwrap_or("")
             .contains("my favorite color"));
 
         // 读取提示
         handle(&mut app, &["/security", "hint"]).unwrap();
         assert!(app
-            .error_message
-            .as_deref()
+            .success_message
+            .as_ref()
+            .map(|(s, _)| s.as_str())
             .unwrap_or("")
             .contains("my favorite color"));
 
@@ -460,8 +470,9 @@ mod tests {
         answer_text_prompt(&mut app, "newpassword");
 
         assert!(app
-            .error_message
-            .as_deref()
+            .success_message
+            .as_ref()
+            .map(|(s, _)| s.as_str())
             .unwrap_or("")
             .contains("主密码已修改"));
         assert!(!app

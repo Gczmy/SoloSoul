@@ -5,6 +5,7 @@ use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 
 use color_eyre::Result;
+use std::time::Instant;
 
 use crate::app::{App, AppPhase};
 use crate::t;
@@ -283,7 +284,10 @@ pub fn uninstall_plugin(app: &mut App, plugin_id: Option<&str>) -> Result<()> {
 
     match manager.uninstall(&plugin_id) {
         Ok(()) => {
-            app.error_message = Some(t!(app.i18n, "cmd-plugin-uninstalled", id = plugin_id));
+            app.success_message = Some((
+                t!(app.i18n, "cmd-plugin-uninstalled", id = plugin_id),
+                Instant::now(),
+            ));
         }
         Err(e) => {
             app.error_message = Some(t!(

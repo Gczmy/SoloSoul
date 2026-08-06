@@ -12,6 +12,7 @@
 use std::path::{Path, PathBuf};
 
 use color_eyre::Result;
+use std::time::Instant;
 
 use solosoul_core::export_import::{
     export_vault, import_preview, import_vault, ExportScope, ImportStrategy,
@@ -102,11 +103,14 @@ fn handle_export(app: &mut App, args: &[&str]) -> Result<()> {
                     &base_clone,
                 ) {
                     Ok(count) => {
-                        app.error_message = Some(t!(
-                            app.i18n,
-                            "cmd-export-success",
-                            count = count.to_string(),
-                            path = path_clone.display().to_string()
+                        app.success_message = Some((
+                            t!(
+                                app.i18n,
+                                "cmd-export-success",
+                                count = count.to_string(),
+                                path = path_clone.display().to_string()
+                            ),
+                            Instant::now(),
                         ));
                     }
                     Err(e) => {
@@ -197,10 +201,9 @@ fn handle_import(app: &mut App, args: &[&str]) -> Result<()> {
             if let PromptResult::Text(password) = result {
                 match import_vault(&vault, &account_id, &path, &password, strategy, &base) {
                     Ok(count) => {
-                        app.error_message = Some(t!(
-                            app.i18n,
-                            "cmd-import-success",
-                            count = count.to_string()
+                        app.success_message = Some((
+                            t!(app.i18n, "cmd-import-success", count = count.to_string()),
+                            Instant::now(),
                         ));
                     }
                     Err(e) => {
