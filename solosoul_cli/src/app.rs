@@ -2005,119 +2005,111 @@ impl App {
 
     /// 搜索结果页的键盘处理。
     fn handle_search_results_key(&mut self, key: KeyEvent) -> Result<bool> {
-        if let AppPhase::SearchResults {
-            items,
-            selected,
-            query,
-            truncated,
-            total_scanned,
-        } = &self.phase
-        {
-            match handle_list_nav(*selected, items.len(), key) {
-                NavAction::Back => {
-                    commands::core::back(self);
-                    return Ok(false);
-                }
-                NavAction::Moved(sel) => {
-                    self.phase = AppPhase::SearchResults {
-                        query: query.clone(),
-                        items: items.clone(),
-                        selected: sel,
-                        truncated: *truncated,
-                        total_scanned: *total_scanned,
-                    };
-                }
-                NavAction::None if key.code == KeyCode::Enter && *selected < items.len() => {
-                    self.phase = AppPhase::SearchResults {
-                        query: query.clone(),
-                        items: items.clone(),
-                        selected: *selected,
-                        truncated: *truncated,
-                        total_scanned: *total_scanned,
-                    };
-                    commands::search::open_selected(self)?;
-                }
-                _ => {}
+        // R2-V5：先不可变借用计算导航动作（避免每按键克隆整个 items Vec），
+        // 释放借用后仅就地改 selected / 调用命令。
+        let (action, len, sel) = match &self.phase {
+            AppPhase::SearchResults {
+                items,
+                selected,
+                ..
+            } => (handle_list_nav(*selected, items.len(), key), items.len(), *selected),
+            _ => return Ok(false),
+        };
+        match action {
+            NavAction::Back => {
+                commands::core::back(self);
+                return Ok(false);
             }
+            NavAction::Moved(sel) => {
+                if let AppPhase::SearchResults { selected, .. } = &mut self.phase {
+                    *selected = sel;
+                }
+                return Ok(false);
+            }
+            NavAction::None if key.code == KeyCode::Enter && sel < len => {
+                commands::search::open_selected(self)?;
+                return Ok(false);
+            }
+            _ => {}
         }
         Ok(false)
     }
 
     /// 历史快照页的键盘处理。
     fn handle_history_list_key(&mut self, key: KeyEvent) -> Result<bool> {
-        if let AppPhase::HistoryList {
-            object_id,
-            snapshots,
-            selected,
-        } = &self.phase
-        {
-            return match handle_list_nav(*selected, snapshots.len(), key) {
-                NavAction::Back => {
-                    commands::core::back(self);
-                    Ok(false)
+        // R2-V5：同 search_results——仅就地改 selected，不克隆 snapshots Vec。
+        let action = match &self.phase {
+            AppPhase::HistoryList {
+                snapshots,
+                selected,
+                ..
+            } => handle_list_nav(*selected, snapshots.len(), key),
+            _ => return Ok(false),
+        };
+        match action {
+            NavAction::Back => {
+                commands::core::back(self);
+                Ok(false)
+            }
+            NavAction::Moved(sel) => {
+                if let AppPhase::HistoryList { selected, .. } = &mut self.phase {
+                    *selected = sel;
                 }
-                NavAction::Moved(sel) => {
-                    self.phase = AppPhase::HistoryList {
-                        object_id: object_id.clone(),
-                        snapshots: snapshots.clone(),
-                        selected: sel,
-                    };
-                    Ok(false)
-                }
-                NavAction::None => Ok(false),
-            };
+                Ok(false)
+            }
+            NavAction::None => Ok(false),
         }
-        Ok(false)
     }
 
     /// 附件列表页的键盘处理。
     fn handle_attachment_list_key(&mut self, key: KeyEvent) -> Result<bool> {
-        if let AppPhase::AttachmentList {
-            object_id,
-            items,
-            show_deleted,
-            selected,
-        } = &self.phase
-        {
-            return match handle_list_nav(*selected, items.len(), key) {
-                NavAction::Back => {
-                    commands::core::back(self);
-                    Ok(false)
+        // R2-V5：仅就地改 selected，不克隆 items Vec。
+        let action = match &self.phase {
+            AppPhase::AttachmentList {
+                items,
+                selected,
+                ..
+            } => handle_list_nav(*selected, items.len(), key),
+            _ => return Ok(false),
+        };
+        match action {
+            NavAction::Back => {
+                commands::core::back(self);
+                Ok(false)
+            }
+            NavAction::Moved(sel) => {
+                if let AppPhase::AttachmentList { selected, .. } = &mut self.phase {
+                    *selected = sel;
                 }
-                NavAction::Moved(sel) => {
-                    self.phase = AppPhase::AttachmentList {
-                        object_id: object_id.clone(),
-                        items: items.clone(),
-                        show_deleted: *show_deleted,
-                        selected: sel,
-                    };
-                    Ok(false)
-                }
-                NavAction::None => Ok(false),
-            };
+                Ok(false)
+            }
+            NavAction::None => Ok(false),
         }
-        Ok(false)
     }
 
     /// 备份列表页的键盘处理。
     fn handle_backup_list_key(&mut self, key: KeyEvent) -> Result<bool> {
-        if let AppPhase::BackupList { items, selected } = &self.phase {
-            return match handle_list_nav(*selected, items.len(), key) {
-                NavAction::Back => {
-                    commands::core::back(self);
-                    Ok(false)
+        // R2-V5：仅就地改 selected，不克隆 items Vec。
+        let action = match &self.phase {
+            AppPhase::BackupList {
+                items,
+                selected,
+            } => handle_list_nav(*selected, items.len(), key),
+            _ => return Ok(false),
+        };
+        match action {
+            NavAction::Back => {
+                commands::core::back(self);
+                Ok(false)
+            }
+            NavAction::Moved(sel) => {
+                if let AppPhase::BackupList { selected, .. } = &mut self.phase {
+                    *selected = sel;
                 }
-                NavAction::Moved(sel) => {
-                    self.phase = AppPhase::BackupList {
-                        items: items.clone(),
-                        selected: sel,
-                    };
-                    Ok(false)
-                }
-                NavAction::None => Ok(false),
-            };
+                Ok(false)
+            }
+            NavAction::None => Ok(false),
         }
-        Ok(false)
     }
 
     /// Profile 页的键盘处理。
@@ -2506,81 +2498,70 @@ impl App {
 
     /// 回收站列表页的键盘处理。
     fn handle_trash_list_key(&mut self, key: KeyEvent) -> Result<bool> {
-        let (items, mut selected, mut selected_ids, filter) = if let AppPhase::TrashList {
-            items,
-            selected,
-            selected_ids,
-            filter,
-        } = &self.phase
-        {
-            (
-                items.clone(),
-                *selected,
-                selected_ids.clone(),
-                filter.clone(),
-            )
-        } else {
-            return Ok(false);
-        };
-
-        let mut need_refresh = false;
+        // R2-V5：命令路径（q/esc 返回、r 恢复、p 永久删除）先取所需小数据再调 &mut self 命令，
+        // 纯导航路径（上下/空格选中）通过 &mut self.phase 就地改——避免每按键克隆整个 items Vec。
         match key.code {
             KeyCode::Esc | KeyCode::Char('q') => {
                 commands::core::back(self);
                 return Ok(false);
             }
-            KeyCode::Up if selected > 0 => selected -= 1,
-            KeyCode::Down if selected + 1 < items.len() => selected += 1,
-            KeyCode::Char(' ') if selected < items.len() => {
-                let id = items[selected].id.clone();
-                if let Some(pos) = selected_ids.iter().position(|x| x == &id) {
-                    selected_ids.remove(pos);
-                } else {
-                    selected_ids.push(id);
-                }
-            }
-            KeyCode::Char('r') => {
-                let ids = if selected_ids.is_empty() && selected < items.len() {
-                    vec![items[selected].id.clone()]
-                } else {
-                    selected_ids.clone()
+            KeyCode::Char('r') | KeyCode::Char('p') => {
+                // 先取 ids 与 filter（克隆仅少量 id / 过滤器），释放借用后再执行命令
+                let (ids, filter) = match &self.phase {
+                    AppPhase::TrashList {
+                        items,
+                        selected,
+                        selected_ids,
+                        filter,
+                    } => {
+                        let ids = if selected_ids.is_empty() && *selected < items.len() {
+                            vec![items[*selected].id.clone()]
+                        } else {
+                            selected_ids.clone()
+                        };
+                        (ids, filter.clone())
+                    }
+                    _ => return Ok(false),
                 };
                 if !ids.is_empty() {
-                    commands::vault_write::batch_restore(self, &ids)?;
-                    selected_ids.clear();
-                    need_refresh = true;
+                    if key.code == KeyCode::Char('r') {
+                        commands::vault_write::batch_restore(self, &ids)?;
+                    } else {
+                        commands::vault_write::batch_purge(self, &ids)?;
+                    }
+                    commands::vault_write::apply_trash_filter(self, filter)?;
                 }
-            }
-            KeyCode::Char('p') => {
-                let ids = if selected_ids.is_empty() && selected < items.len() {
-                    vec![items[selected].id.clone()]
-                } else {
-                    selected_ids.clone()
-                };
-                if !ids.is_empty() {
-                    commands::vault_write::batch_purge(self, &ids)?;
-                    selected_ids.clear();
-                    need_refresh = true;
-                }
+                return Ok(false);
             }
             _ => {}
         }
 
-        if need_refresh {
-            commands::vault_write::apply_trash_filter(self, filter)?;
-            return Ok(false);
-        }
-
-        // 限制 selected 在有效范围内
-        if !items.is_empty() && selected >= items.len() {
-            selected = items.len() - 1;
-        }
-        self.phase = AppPhase::TrashList {
+        // 纯导航：就地修改 phase（不克隆 items）
+        if let AppPhase::TrashList {
             items,
             selected,
             selected_ids,
-            filter,
-        };
+            ..
+        } = &mut self.phase
+        {
+            match key.code {
+                KeyCode::Up if *selected > 0 => *selected -= 1,
+                KeyCode::Down if *selected + 1 < items.len() => *selected += 1,
+                KeyCode::Char(' ') if *selected < items.len() => {
+                    let id = items[*selected].id.clone();
+                    if let Some(pos) = selected_ids.iter().position(|x| x == &id) {
+                        selected_ids.remove(pos);
+                    } else {
+                        selected_ids.push(id);
+                    }
+                }
+                _ => {}
+            }
+            // 限制 selected 在有效范围内
+            if !items.is_empty() && *selected >= items.len() {
+                *selected = items.len() - 1;
+            }
+        }
         Ok(false)
     }
 
