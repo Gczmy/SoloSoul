@@ -192,6 +192,9 @@ export function TrashPage() {
                 );
           } catch (err) {
             onError(err, t('common:restore_failed'));
+            // R2-V3：内层不吞错——重新抛出，外层 TrashConfirmDialog onConfirm 捕获后
+            // 保持对话框打开可重试；已恢复项在重试时按「Trash item not found」幂等处理。
+            throw err;
           }
         },
       });
