@@ -1057,7 +1057,8 @@ fn import_preferences(
     let prefs_dec = solosoul_crypto::cipher::decrypt_from_bytes(&prefs_key, &prefs_enc, None)
         .map_err(|_| "解密偏好设置失败".to_string())?;
     let profile = solosoul_vault::Profile::new_with_id(account_id, account_id, prefs_dec.to_vec());
-    let _ = vault.save_profile(&profile);
+    // R2-06: 传播保存失败，避免用户看到"导入成功"但 preferences 未落库。
+    vault.save_profile(&profile)?;
     Ok(())
 }
 

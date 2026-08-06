@@ -30,7 +30,7 @@
 | R2-03 | P1 | 崩溃/UX | `solosoul_cli/src/commands/mod.rs:10-18`、`app.rs:1584`、`tui.rs:74` | 命令错误经 `?` 一路传播到 main：Locked 状态手输 `/list` 等命令直接退出 TUI 进程（`require_unlocked` 设置的 `error_message` overlay 设计意图被旁路） | `[ ]` 待修复 |
 | R2-04 | P1 | 安全 | `solosoul_cli/src/widgets/prompt.rs:43/56/174`、`commands/security.rs:52-110/225/251/300`、`export_import.rs:89/197`、`app.rs:594` | 改主密码/导出密码/删除账户等经 prompt 以纯 `String` 多副本流转且全程不清零，与 `PasswordInput` 的 `Zeroizing<String>` 约定矛盾 | `[ ]` 待修复 |
 | R2-05 | P1 | 隐患 | `tauri/crates/solosoul-core/src/watermark/mod.rs:606-618` | 代码与注释矛盾：注释明写临时 TTF 文件须存活到 PDF 保存完成，`let _ = temp;` 却立即 drop 删除。目前仅因 Pdfium 急切加载字体而「靠运气正确」 | `[x]` 已修复 |
-| R2-06 | P1 | 错误吞没 | `tauri/crates/solosoul-core/src/export_import.rs:1060` | 导入偏好 `save_profile` 失败被 `let _ =` 吞掉，用户看到「导入成功」但 preferences 未落库 | `[ ]` 待修复 |
+| R2-06 | P1 | 错误吞没 | `tauri/crates/solosoul-core/src/export_import.rs:1060` | 导入偏好 `save_profile` 失败被 `let _ =` 吞掉，用户看到「导入成功」但 preferences 未落库 | `[x]` 已修复 |
 | R2-07 | P1 | 错误吞没 | `tauri/crates/solosoul-core/src/objects.rs:667-670` | `purge_trash` 吞掉底层 `delete_object` 失败仍删 trash 记录 → 孤儿对象行永留数据库且无法再经回收站清理 | `[ ]` 待修复 |
 | R2-08 | P1 | 性能 | `tauri/crates/solosoul-sync/src/attachments.rs:88-120` | 每次同步会话全表 N+1：`list_object_metadata` 后对每个对象 `load_object`（全量解密）+ 对每个附件文件重新 `sha256_file`，同步延迟/IO 随附件体积线性增长 | `[ ]` 待修复 |
 | R2-09 | P1 | UX/错误处理 | `tauri/src/stores/trashStore.ts:142`、`pages/settings/TrashPage.tsx:485`、`components/trash/TrashConfirmDialog.tsx:68` | 回收站永久删除失败时 unhandled rejection：对话框不关闭、无 toast、按钮可重复点击并发重复删除——破坏性操作关键路径 | `[ ]` 待修复 |
@@ -56,8 +56,8 @@
 
 ## R2 修复进度
 
-- 已完成：2 / 28（R2-01、R2-05 已闭环）
-- 当前处理：R2-06 → R2-07 → R2-02 → R2-03（第一批收尾）
+- 已完成：3 / 28（R2-01、R2-05、R2-06 已闭环）
+- 当前处理：R2-07 → R2-02 → R2-03（第一批收尾）
 
 ### R2-§3 重点问题修复指引（P0/P1）
 
@@ -90,6 +90,7 @@
 
 - **R2-01（P0 安全，2026-08-06）**：`attachment_download` 与 `attachment_open` 的路径校验移除字符串前缀回退分支（`src_path.starts_with(vault_base.to_string_lossy())`），改用组件级 `Path::starts_with`；src 与 dest 均显式拒绝 `ParentDir`（`..`）组件。共享前缀兄弟目录（`~/.solosoul_evil/`）不再能绕过 `in_vault`。Android symlink 场景保留 canonicalize 失败时的原始路径兜底，但经组件级比较校验。验证：`cargo test -p solo_soul attachment` 12 用例 + `cargo clippy -p solo_soul --all-targets` 零告警。
 - **R2-05（P1 隐患，2026-08-06）**：`try_load_font` 的 TTC 分支改为直接经内存加载——pdfium-render `load_true_type_from_bytes` 内部经 `FPDFText_LoadFont` 复制字体数据到 PDFium 内存（已核读 crate 源码 0.9.2：`load_true_type_from_file` → `read_to_end` 急切读入 → `new_font_from_bytes` → `FPDFText_LoadFont`），彻底消除 `NamedTempFile` 生命周期隐患（原 `let _ = temp;` 立即 drop 删文件、仅靠急切加载才正确），并让注释与实现一致。验证：`cargo test -p solosoul-core` 163 用例全绿。
+- **R2-06（P1 错误吞没，2026-08-06）**：`import_preferences` 的 `let _ = vault.save_profile(&profile);` 改为 `vault.save_profile(&profile)?;`——保存失败时整个导入报错返回，不再出现「导入成功」但 preferences 未落库的假象。验证：`cargo test -p solosoul-core` 163 用例全绿。
 
 ---
 
