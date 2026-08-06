@@ -2,6 +2,36 @@
 
 All notable changes to SoloSoul are documented in this file.
 
+## [2.8.5] - 2026-08-06
+
+### Added
+
+- **设备同步 9 项改进（P0#1-P0#5 + P1#7-P1#10）** — ① 自动同步开关持久化（重启后恢复，消除「用户以为开着其实已悄悄关闭」的静默失效）；② 「离线」文案修正为「未在局域网发现」并附最近同步时间，补齐缺失的 sync_last_seen i18n；③ 设备列表停留期间每 15s 自动刷新（告别过期快照）；④ 同步历史持久化（重启保留最近 10 条）；⑤ 在线状态心跳化（sync_peers.last_addr schema v25，周期同步触达刷新在线状态）；⑥ 离线 peer 2s TCP 探测快速跳过（告别 10s 连接超时拖慢整轮）；⑦ 移动端 conflicts 回传对齐桌面端。
+- **「返回账户来源选择」独立浮层** — 创建新账户页返回账户来源选择不再重挂整个引导向导（此前会故意把向导跳到末步、点「返回」后露出停在末步的引导卡片且无关闭出口）；改为独立轻量浮层，仅含决策卡片 + 恢复对话框，「返回」= 关闭浮层露出创建账户表单。
+
+### Changed
+
+- **CLI 成功/信息语义收敛（R2-W2/X2）** — 新增中性 info_message overlay（标题「信息」、非红色、Esc 关闭）；「同步成功」改 success_message toast；plugin 市场空态/会话/已装/审计列表、导入预览、模型已装等 9 处从红色 error overlay 迁移，全库语义 grep 验收残留 0。
+- **CLI 解锁样板收敛（R2-W3/X3）** — 8 处「require_unlocked + get_vault_store」双行样板收敛为 `require_unlocked_with_vault` 单行；`/purge` 补解锁门禁（锁定用户不再得到原始 eyre）；helper 错误消息统一中文「Vault 未打开」。
+
+### Fixed
+
+- **Windows 密码管理器自动填充泄漏明文** — 登录页密码框 `autoComplete="current-password"` 触发系统密码管理器填充历史密码并显示明文；登录/密码验证/PIN 设置/生物识别 5 处验证场景全部改为 `off`，恢复创建账户的新密码框补 `new-password`。
+- **安卓自动填充后输入框白底** — `-webkit-autofill` 深色模式下自动填充后输入框底色变白风格不匹配，补主题适配覆盖。
+- **回收站批量恢复失败不再吞错（R2-V3）** — 内层 catch 重新抛出，对话框保持打开可重试（已恢复项幂等）。
+- **CLI 按键错误不再退出 TUI（R2-V1/V7）** — 按键 handler 错误统一捕获为 overlay；`/list` 截断提示 + shared_runtime() 优雅报错。
+- **附件路径 symlink 旁路硬化（R2-V8a/W1/X1）** — src_raw 字面路径仅在 canonicalize 失败时参与判定；`attachment_copy_to_vault` 真修复（非 canonical base 比较 + 路径判定纯函数 `path_within_base` + 3 条防回归测试）。
+
+### Performance
+
+- **CLI 列表导航消除每按键克隆（R2-V5）** — 5 处列表导航 handler 消除 items Vec 每按键深拷贝。
+- **known_peers 去冗余 clone（审查反馈）**。
+
+### Chores
+
+- 版本号同步升级到 2.8.5（versionCode 2008005）。
+- 37 个 commit 自 v2.8.4（`9014fd3d`）到 v2.8.5。
+
 ## [2.8.4] - 2026-08-06
 
 ### Added
