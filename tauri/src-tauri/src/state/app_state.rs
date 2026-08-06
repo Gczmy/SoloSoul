@@ -431,6 +431,16 @@ impl AppState {
             }
         }
 
+        // 启动时恢复「账户设置偏好是否随设备同步」开关（默认 true，
+        // 无持久化值时保持默认；与 auto_sync_enabled 同模式）。
+        if let Ok(svc) = vault_service.read() {
+            if let Some(enabled) = crate::commands::settings::read_ui_prefs_sync_pref(&handle, &svc)
+            {
+                svc.set_ui_prefs_sync_enabled(enabled);
+                tracing::info!("[AppState] restored ui_prefs_sync_enabled={}", enabled);
+            }
+        }
+
         // ── AutoSyncManager（在 VaultService 初始化之后启动） ──
         let auto_sync = AutoSyncManager::new_for_vault(vault_service.clone(), handle.clone());
 

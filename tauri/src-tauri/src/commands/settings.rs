@@ -259,6 +259,53 @@ pub fn write_auto_sync_pref<R: tauri::Runtime>(
     Ok(())
 }
 
+/// 读取「账户设置偏好是否随设备同步」开关持久化状态（ui_preferences.json 中的
+/// `ui_prefs_sync_enabled` 键）。
+///
+/// 该开关决定设备同步时是否携带本机的 UI 外观偏好（主题、主题色等）；
+/// 持久化到明文 UI 偏好文件（非敏感），AppState 启动时据此恢复。
+/// 未设置时返回 None（调用方按默认值 true 处理）。
+pub fn read_ui_prefs_sync_pref<R: tauri::Runtime>(
+    app: &tauri::AppHandle<R>,
+    svc: &solosoul_core::vault_service::VaultService,
+) -> Option<bool> {
+    let path = resolve_ui_prefs_path(app, svc).ok()?;
+    let content = std::fs::read_to_string(&path).ok()?;
+    let prefs: serde_json::Value = serde_json::from_str(&content).ok()?;
+    prefs.get("ui_prefs_sync_enabled").and_then(|v| v.as_bool())
+}
+
+/// 写入「账户设置偏好是否随设备同步」开关持久化状态（ui_preferences.json）。
+/// 失败返回错误，由调用方记录日志（非关键路径，不阻断开关操作）。
+pub fn write_ui_prefs_sync_pref<R: tauri::Runtime>(
+    app: &tauri::AppHandle<R>,
+    svc: &solosoul_core::vault_service::VaultService,
+    enabled: bool,
+) -> Result<(), String> {
+    let path = resolve_ui_prefs_path(app, svc)?;
+    if let Some(parent) = path.parent() {
+        let _ = std::fs::create_dir_all(parent);
+    }
+    let mut prefs: serde_json::Value = if path.exists() {
+        let content = std::fs::read_to_string(&path).map_err(|e| format!("Read UI prefs: {e}"))?;
+        serde_json::from_str::<serde_json::Value>(&content).unwrap_or_default()
+    } else {
+        serde_json::Value::Object(serde_json::Map::new())
+    };
+    if !prefs.is_object() {
+        prefs = serde_json::Value::Object(serde_json::Map::new());
+    }
+    if let Some(obj) = prefs.as_object_mut() {
+        obj.insert(
+            "ui_prefs_sync_enabled".to_string(),
+            serde_json::Value::Bool(enabled),
+        );
+    }
+    let json = serde_json::to_string(&prefs).map_err(|e| e.to_string())?;
+    std::fs::write(&path, json).map_err(|e| format!("Write UI prefs: {e}"))?;
+    Ok(())
+}
+
 // ── Vault-encrypted preferences ─────────────────────────────
 
 #[derive(Deserialize)]

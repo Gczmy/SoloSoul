@@ -17,7 +17,7 @@ use rusqlite::{params, Connection, OptionalExtension};
 use serde::Deserialize;
 
 use super::{with_tx, VaultStore};
-use crate::encryption::DataEncryptionKey;
+use crate::encryption::{decrypt_field, DataEncryptionKey};
 
 impl VaultStore {
     /// Apply a single incoming sync record. Returns true if the local state changed.
@@ -35,6 +35,7 @@ impl VaultStore {
             deleted: record.deleted,
         };
         let key = self.data_key()?;
+        let ui_prefs_enabled = self.ui_prefs_sync_enabled();
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         // P213: 手动事务（Transaction 无 DerefMut，prepare_cached 需要 &mut Connection）。
@@ -42,7 +43,7 @@ impl VaultStore {
             conn,
             "apply_sync_record begin",
             "apply_sync_record commit",
-            |c| Self::apply_sync_record_tx(c, &key, &borrowed, local_node_id),
+            |c| Self::apply_sync_record_tx(c, &key, &borrowed, local_node_id, ui_prefs_enabled),
         )?;
         Ok(outcome.applied)
     }
@@ -56,6 +57,7 @@ impl VaultStore {
         key: &DataEncryptionKey,
         record: &crate::BorrowedSyncRecord,
         local_node_id: &str,
+        ui_prefs_enabled: bool,
     ) -> Result<crate::SyncApplyOutcome, String> {
         // Conflict resolution: only accept records with HLC greater than the local HLC.
         let local_hlc = Self::get_record_hlc_tx(conn, record.table, record.id)?;
@@ -70,7 +72,7 @@ impl VaultStore {
         }
 
         let applied = match record.table {
-            "profiles" => Self::apply_profile_sync_record_tx(conn, key, record),
+            "profiles" => Self::apply_profile_sync_record_tx(conn, key, record, ui_prefs_enabled),
             "objects" => Self::apply_object_sync_record_tx(conn, key, record, local_node_id),
             "user_templates" => Self::apply_user_template_sync_record_tx(conn, key, record),
             "trash_items" => Self::apply_trash_sync_record_tx(conn, key, record),
@@ -103,13 +105,14 @@ impl VaultStore {
         local_node_id: &str,
     ) -> Result<Vec<crate::SyncApplyOutcome>, String> {
         let key = self.data_key()?;
+        let ui_prefs_enabled = self.ui_prefs_sync_enabled();
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?; // P213: 手动事务（Transaction 无 DerefMut，prepare_cached 需要 &mut Connection）。
         with_tx(conn, "apply batch begin", "apply batch commit", |c| {
             let mut outcomes = Vec::with_capacity(records.len());
             for record in records {
                 // 单条失败不中断整批：错误落入 outcome，事务最终统一 commit/rollback。
-                match Self::apply_sync_record_tx(c, &key, record, local_node_id) {
+                match Self::apply_sync_record_tx(c, &key, record, local_node_id, ui_prefs_enabled) {
                     Ok(outcome) => outcomes.push(outcome),
                     Err(e) => outcomes.push(crate::SyncApplyOutcome {
                         applied: false,
@@ -359,6 +362,7 @@ impl VaultStore {
         conn: &mut Connection,
         key: &DataEncryptionKey,
         record: &crate::BorrowedSyncRecord,
+        ui_prefs_enabled: bool,
     ) -> Result<bool, String> {
         if record.deleted {
             // Apply remote tombstone directly without creating a local tombstone,
@@ -372,8 +376,14 @@ impl VaultStore {
             .get("data")
             .and_then(|v| v.as_str())
             .ok_or("Missing profile data")?;
-        let data = base64::Engine::decode(&base64::engine::general_purpose::STANDARD, data_b64)
+        let mut data = base64::Engine::decode(&base64::engine::general_purpose::STANDARD, data_b64)
             .map_err(|e| format!("profile data decode: {}", e))?;
+        // 设备关闭「同步设置偏好」：外观 UI 偏好各设备独立——剥掉对端发来的
+        // UI 外观键，并把本地已有值合并回来（不被对端覆盖）；AI 对话、回收站
+        // 保留期等其余账户级键照常接收。合并失败保持原样应用（不阻断同步）。
+        if !ui_prefs_enabled {
+            Self::merge_local_ui_prefs(conn, key, record.id, &mut data)?;
+        }
         let now = Self::now_rfc3339();
         let created = record
             .data
@@ -408,6 +418,80 @@ impl VaultStore {
         };
         Self::save_profile_tx(conn, key, &profile)?;
         Ok(true)
+    }
+
+    /// 接收侧偏好合并：incoming profile data 剥掉 UI 外观键，并回填本地 UI 外观键。
+    ///
+    /// 设备关闭「同步设置偏好」时调用：外观 UI 偏好（主题/主题色/背景/语言/侧边栏等）
+    /// 各设备独立——对端发来的值丢弃（不被覆盖），本地已有值保留；其余账户级键
+    /// （AI 对话、回收站保留期、自动锁定等）照常接受。
+    fn merge_local_ui_prefs(
+        conn: &Connection,
+        key: &DataEncryptionKey,
+        id: &str,
+        data: &mut Vec<u8>,
+    ) -> Result<(), String> {
+        // 明文 data 解析失败时保持原样（不阻断同步，防御性降级）。
+        let Ok(mut incoming) = serde_json::from_slice::<serde_json::Value>(data) else {
+            return Ok(());
+        };
+        // 本地 UI 外观键（解密本地 profile 取 preferences）。无记录/解析失败视为空。
+        let local_prefs = match Self::load_profile_data_tx(conn, key, id)? {
+            Some(raw) => serde_json::from_slice::<serde_json::Value>(&raw)
+                .ok()
+                .and_then(|v| v.get("preferences").cloned())
+                .and_then(|p| p.as_object().cloned())
+                .unwrap_or_default(),
+            None => serde_json::Map::new(),
+        };
+        let ui_keys = super::UI_PREF_SYNC_EXCLUDED_KEYS;
+        // incoming 非对象（异常数据）时不做合并。
+        let Some(obj) = incoming.as_object_mut() else {
+            return Ok(());
+        };
+        // incoming 无 preferences 但本地有 UI 键：创建空对象用于回填（本地偏好保持独立）。
+        if obj.get("preferences").is_none() && !local_prefs.is_empty() {
+            obj.insert(
+                "preferences".to_string(),
+                serde_json::Value::Object(serde_json::Map::new()),
+            );
+        }
+        if let Some(prefs) = obj.get_mut("preferences").and_then(|p| p.as_object_mut()) {
+            for k in ui_keys {
+                prefs.remove(*k);
+            }
+            for (k, v) in local_prefs {
+                if ui_keys.contains(&k.as_str()) {
+                    prefs.insert(k, v);
+                }
+            }
+        }
+        if let Ok(re) = serde_json::to_vec(&incoming) {
+            *data = re;
+        }
+        Ok(())
+    }
+
+    /// 读取本地 Profile 明文 data（解密）。无记录返回 None。供接收侧偏好合并使用。
+    fn load_profile_data_tx(
+        conn: &Connection,
+        key: &DataEncryptionKey,
+        id: &str,
+    ) -> Result<Option<Vec<u8>>, String> {
+        let raw: Option<Vec<u8>> = conn
+            .query_row(
+                "SELECT data FROM profiles WHERE id = ?1",
+                params![id],
+                |r| r.get(0),
+            )
+            .optional()
+            .map_err(|e| format!("load profile data for sync: {e}"))?;
+        match raw {
+            Some(bytes) => decrypt_field(key, &bytes)
+                .map(Some)
+                .map_err(|e| format!("decrypt profile data for sync: {e}")),
+            None => Ok(None),
+        }
     }
 
     /// P115: 事务内应用单条对象同步记录（连接由调用方持有）。

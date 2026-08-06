@@ -129,10 +129,26 @@ impl VaultStore {
         };
 
         let mut out = Vec::new();
-        for (id, name, data, created, updated, version) in rows {
+        for (id, name, mut data, created, updated, version) in rows {
             let hlc = self.record_hlc_or_fallback("profiles", &id, &updated, local_node_id)?;
             if !Self::hlc_after_watermark(&hlc, watermark) {
                 continue;
+            }
+            // 设备关闭「同步设置偏好」时：剥离 preferences 中**仅外观 UI 键**
+            // （主题/主题色/背景/语言/侧边栏等，见 UI_PREF_SYNC_EXCLUDED_KEYS）。
+            // AI 对话、回收站保留期、自动锁定等账户级设置不受影响、照常同步。
+            // 剥失败保持原样发送（不阻断同步）。
+            if !self.ui_prefs_sync_enabled() {
+                if let Ok(mut v) = serde_json::from_slice::<serde_json::Value>(&data) {
+                    if let Some(prefs) = v.get_mut("preferences").and_then(|p| p.as_object_mut()) {
+                        for k in super::UI_PREF_SYNC_EXCLUDED_KEYS {
+                            prefs.remove(*k);
+                        }
+                        if let Ok(re) = serde_json::to_vec(&v) {
+                            data = re;
+                        }
+                    }
+                }
             }
             let value = serde_json::json!({
                 "id": id,

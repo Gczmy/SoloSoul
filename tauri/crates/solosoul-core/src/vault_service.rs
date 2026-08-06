@@ -14,6 +14,7 @@ use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
 use std::path::PathBuf;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::{Arc, RwLock};
 use zeroize::{Zeroize, Zeroizing};
 
@@ -191,6 +192,10 @@ pub struct VaultService {
     session_key: RwLock<Option<Zeroizing<[u8; 32]>>>,
     unlocked_account: RwLock<Option<String>>,
     vault_store: RwLock<Option<Arc<VaultStore>>>,
+    /// 设备级「同步设置偏好」开关（默认 true=偏好照常同步）。
+    /// 跨 unlock 生命周期持久：每次 unlock 新建 VaultStore（其内部开关重置为
+    /// 默认 true）时，把本期望值应用上去——用户锁屏再解锁后偏好开关不丢失。
+    ui_prefs_sync_enabled: AtomicBool,
     /// Serializes `create_account` to eliminate the check-then-act race on
     /// account name uniqueness (R024).
     create_lock: std::sync::Mutex<()>,
@@ -238,6 +243,7 @@ impl VaultService {
             session_key: RwLock::new(None),
             unlocked_account: RwLock::new(None),
             vault_store: RwLock::new(None),
+            ui_prefs_sync_enabled: AtomicBool::new(true),
             create_lock: std::sync::Mutex::new(()),
         }
     }
@@ -261,6 +267,21 @@ impl VaultService {
 
     pub fn base_path(&self) -> &PathBuf {
         &self.base_path
+    }
+
+    /// 设置设备级「同步设置偏好」开关（由 src-tauri 层调用）。
+    /// 立即应用当前已解锁的 VaultStore；未解锁时仅记录期望值，
+    /// 下次 unlock 新建 VaultStore 时自动应用。
+    pub fn set_ui_prefs_sync_enabled(&self, enabled: bool) {
+        self.ui_prefs_sync_enabled.store(enabled, Ordering::SeqCst);
+        if let Some(v) = self.get_vault_store() {
+            v.set_ui_prefs_sync_enabled(enabled);
+        }
+    }
+
+    /// 读取设备级「同步设置偏好」开关（默认 true）。
+    pub fn ui_prefs_sync_enabled(&self) -> bool {
+        self.ui_prefs_sync_enabled.load(Ordering::SeqCst)
     }
 
     fn accounts_file_rel(&self) -> &str {
@@ -586,6 +607,8 @@ impl VaultService {
         let vault =
             VaultStore::open(vault_config).map_err(|e| format!("Failed to open vault: {}", e))?;
         let vault_arc = Arc::new(vault);
+        // 设备级偏好同步开关：unlock 新建 VaultStore 后应用期望值（默认 true）。
+        vault_arc.set_ui_prefs_sync_enabled(self.ui_prefs_sync_enabled.load(Ordering::SeqCst));
         if let Ok(mut store) = self.vault_store.write() {
             *store = Some(vault_arc);
         }
@@ -700,6 +723,8 @@ impl VaultService {
         let vault =
             VaultStore::open(vault_config).map_err(|e| format!("Failed to open vault: {}", e))?;
         let vault_arc = Arc::new(vault);
+        // 设备级偏好同步开关：unlock 新建 VaultStore 后应用期望值（默认 true）。
+        vault_arc.set_ui_prefs_sync_enabled(self.ui_prefs_sync_enabled.load(Ordering::SeqCst));
         if let Ok(mut store) = self.vault_store.write() {
             *store = Some(vault_arc);
         }
@@ -974,6 +999,8 @@ impl VaultService {
         let vault =
             VaultStore::open(vault_config).map_err(|e| format!("Failed to open vault: {}", e))?;
         let vault_arc = Arc::new(vault);
+        // 设备级偏好同步开关：unlock 新建 VaultStore 后应用期望值（默认 true）。
+        vault_arc.set_ui_prefs_sync_enabled(self.ui_prefs_sync_enabled.load(Ordering::SeqCst));
         if let Ok(mut store) = self.vault_store.write() {
             *store = Some(vault_arc);
         }
@@ -1149,8 +1176,12 @@ impl VaultService {
             VaultConfig::new(account_id, account_dir_path).with_data_key(new_key_arr);
         match VaultStore::open(vault_config) {
             Ok(vault) => {
+                let vault_arc = Arc::new(vault);
+                // 设备级偏好同步开关：新建 VaultStore 后应用期望值（默认 true）。
+                vault_arc
+                    .set_ui_prefs_sync_enabled(self.ui_prefs_sync_enabled.load(Ordering::SeqCst));
                 if let Ok(mut store) = self.vault_store.write() {
-                    *store = Some(Arc::new(vault));
+                    *store = Some(vault_arc);
                 }
             }
             Err(e) => {
@@ -1289,6 +1320,8 @@ impl VaultService {
         let vault =
             VaultStore::open(vault_config).map_err(|e| format!("Failed to open vault: {}", e))?;
         let vault_arc = Arc::new(vault);
+        // 设备级偏好同步开关：unlock 新建 VaultStore 后应用期望值（默认 true）。
+        vault_arc.set_ui_prefs_sync_enabled(self.ui_prefs_sync_enabled.load(Ordering::SeqCst));
         if let Ok(mut store) = self.vault_store.write() {
             *store = Some(vault_arc);
         }
@@ -1431,8 +1464,12 @@ impl VaultService {
             VaultConfig::new(account_id, account_dir_path).with_data_key(new_key_arr);
         match VaultStore::open(vault_config) {
             Ok(vault) => {
+                let vault_arc = Arc::new(vault);
+                // 设备级偏好同步开关：新建 VaultStore 后应用期望值（默认 true）。
+                vault_arc
+                    .set_ui_prefs_sync_enabled(self.ui_prefs_sync_enabled.load(Ordering::SeqCst));
                 if let Ok(mut store) = self.vault_store.write() {
-                    *store = Some(Arc::new(vault));
+                    *store = Some(vault_arc);
                 }
             }
             Err(e) => {

@@ -1,6 +1,7 @@
 //! Vault store - SQLite storage with app-layer AES-256-GCM encryption
 
 use rusqlite::{params, Connection, OptionalExtension};
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Mutex;
 use zeroize::Zeroize;
 
@@ -37,6 +38,26 @@ const OBJECT_SELECT_BASE: &str = "SELECT id, account_id, type_id, section_type, 
     is_deleted, deleted_at, tags_json, template_id, template_type, \
     contract_type_id, template_hash, ignored_template_hash, created_at, updated_at, version \
     FROM objects";
+
+/// 设备同步「同步设置偏好」勾选框（默认开启）关闭时，**不同步**的 UI 外观偏好键。
+///
+/// 这些键属于设备外观/界面偏好（主题、主题色、背景、界面语言、侧边栏等），
+/// 用户选择不共享后，发送侧从 profile delta 中剥离、接收侧保留本地值不被对端覆盖。
+/// preferences 子对象中**其余**键（回收站保留期、自动锁定、AI 对话 llmConversations、
+/// LLM 配置等账户级设置）不受影响，照常随 profiles 表同步。
+pub const UI_PREF_SYNC_EXCLUDED_KEYS: &[&str] = &[
+    "theme",
+    "accentColor",
+    "customAccentHex",
+    "backgroundType",
+    "backgroundValue",
+    "defaultLightTheme",
+    "defaultDarkTheme",
+    "sidebarPosition",
+    "sidebarButtonModes",
+    "language",
+    "locale",
+];
 
 /// P213: load_object 的完整常量 SQL（唯一主键查询，最高频语句）。
 const OBJECT_LOAD_SQL: &str = "SELECT id, account_id, type_id, section_type, name, icon_name, \
@@ -315,6 +336,9 @@ pub struct VaultStore {
     config: VaultConfig, // reserved for future path-based vault operations
     state: Mutex<VaultState>,
     data_key: Mutex<Option<DataEncryptionKey>>,
+    /// 设备级「同步设置偏好」开关（默认 true=偏好照常同步）。
+    /// profiles 同步发送/接收路径实时读取（&self 方法），无需改动 sync crate。
+    ui_prefs_sync_enabled: AtomicBool,
 }
 
 impl VaultStore {
@@ -337,6 +361,7 @@ impl VaultStore {
             config,
             state: Mutex::new(VaultState::Unlocked),
             data_key: Mutex::new(data_key),
+            ui_prefs_sync_enabled: AtomicBool::new(true),
         };
 
         // Migrate plaintext legacy data to encrypted format on first open.
@@ -365,6 +390,17 @@ impl VaultStore {
 
     pub fn base_path(&self) -> &std::path::Path {
         &self.config.path
+    }
+
+    /// 设置设备级「同步设置偏好」开关（由 src-tauri 层调用）。
+    /// profiles 同步发送/接收路径实时读取，开关切换后即刻生效。
+    pub fn set_ui_prefs_sync_enabled(&self, enabled: bool) {
+        self.ui_prefs_sync_enabled.store(enabled, Ordering::SeqCst);
+    }
+
+    /// 读取设备级「同步设置偏好」开关（默认 true=同步偏好）。
+    pub fn ui_prefs_sync_enabled(&self) -> bool {
+        self.ui_prefs_sync_enabled.load(Ordering::SeqCst)
     }
 
     fn data_key(&self) -> Result<DataEncryptionKey, String> {
@@ -1189,6 +1225,177 @@ mod tests {
         let dir = TempDir::new().unwrap();
         let config = VaultConfig::new("test", dir.path().to_path_buf()).with_data_key(test_key());
         assert!(VaultStore::open(config).is_ok());
+    }
+
+    // ── 「同步设置偏好」开关（默认开启）防回归测试 ────────────────────────
+
+    /// 关闭偏好同步时，发送侧 profiles delta 剥离 UI 外观键（theme/accentColor），
+    /// 保留非 UI 账户级键（trashRetention/llmConversations）与其它数据段（identity）。
+    #[test]
+    fn test_profile_sync_strips_ui_prefs_when_disabled() {
+        let (vault, _dir) = setup();
+        let data = serde_json::json!({
+            "preferences": {
+                "theme": "dark",
+                "accentColor": "rose",
+                "trashRetention": "60d",
+                "llmConversations": [{"id": "c1"}],
+            },
+            "identity": { "fullName": "张三" },
+        });
+        let profile =
+            Profile::new_with_id("acc_strip", "acc_strip", serde_json::to_vec(&data).unwrap());
+        vault.save_profile(&profile).unwrap();
+        vault.set_ui_prefs_sync_enabled(false);
+
+        let recs = vault
+            .list_sync_changes_since(
+                "profiles",
+                &SyncWatermark {
+                    wall_time_ms: 0,
+                    counter: 0,
+                    node_id: String::new(),
+                },
+                "acc_strip",
+                "node_a",
+            )
+            .unwrap();
+        assert_eq!(recs.len(), 1);
+        let b64 = recs[0].data.get("data").and_then(|v| v.as_str()).unwrap();
+        let bytes =
+            base64::Engine::decode(&base64::engine::general_purpose::STANDARD, b64).unwrap();
+        let parsed: serde_json::Value = serde_json::from_slice(&bytes).unwrap();
+        let prefs = parsed["preferences"].as_object().unwrap();
+        assert!(
+            !prefs.contains_key("theme") && !prefs.contains_key("accentColor"),
+            "UI 外观键应被剥离，got: {:?}",
+            prefs.keys()
+        );
+        assert_eq!(prefs["trashRetention"], "60d", "非 UI 账户级键应照常同步");
+        assert!(
+            prefs.contains_key("llmConversations"),
+            "AI 对话不属于外观 UI 键，应照常同步"
+        );
+        assert_eq!(
+            parsed["identity"]["fullName"], "张三",
+            "preferences 外数据不受影响"
+        );
+    }
+
+    /// 关闭偏好同步时，接收侧保留本地 UI 外观键（不被对端覆盖），
+    /// 其余账户级键照常被对端更新。
+    #[test]
+    fn test_profile_sync_preserves_local_ui_prefs_when_disabled() {
+        let (vault, _dir) = setup();
+        vault.set_ui_prefs_sync_enabled(false);
+        let local = serde_json::json!({
+            "preferences": {
+                "theme": "light",
+                "accentColor": "ocean",
+                "trashRetention": "30d",
+            }
+        });
+        vault
+            .save_profile(&Profile::new_with_id(
+                "acc_merge",
+                "acc_merge",
+                serde_json::to_vec(&local).unwrap(),
+            ))
+            .unwrap();
+
+        let remote = serde_json::json!({
+            "preferences": {
+                "theme": "dark",
+                "accentColor": "rose",
+                "trashRetention": "60d",
+            }
+        });
+        let remote_b64 = base64::Engine::encode(
+            &base64::engine::general_purpose::STANDARD,
+            serde_json::to_vec(&remote).unwrap(),
+        );
+        let rec = crate::VaultSyncRecord {
+            id: "acc_merge".to_string(),
+            table: "profiles".to_string(),
+            data: serde_json::json!({
+                "id": "acc_merge",
+                "name": "acc_merge",
+                "data": remote_b64,
+                "createdAt": "2026-01-01T00:00:00Z",
+                "updatedAt": "2026-01-01T00:00:00Z",
+                "version": 2,
+            }),
+            hlc: crate::RecordHlc {
+                wall_time_ms: 2_000_000_000_000_000,
+                counter: 0,
+                node_id: "remote".to_string(),
+            },
+            deleted: false,
+        };
+        vault.apply_sync_record(&rec, "node_b").unwrap();
+
+        let loaded = vault.load_profile("acc_merge").unwrap().unwrap();
+        let parsed: serde_json::Value = serde_json::from_slice(&loaded.data).unwrap();
+        let prefs = parsed["preferences"].as_object().unwrap();
+        assert_eq!(
+            prefs["theme"], "light",
+            "本地 UI 外观键应保留，不被对端覆盖"
+        );
+        assert_eq!(prefs["accentColor"], "ocean");
+        assert_eq!(
+            prefs["trashRetention"], "60d",
+            "非 UI 账户级键应照常被对端更新"
+        );
+    }
+
+    /// 默认开启（保持现状）：UI 外观键照常随 profiles 同步、被对端覆盖。
+    #[test]
+    fn test_profile_sync_ui_prefs_overridden_when_enabled_default() {
+        let (vault, _dir) = setup();
+        assert!(vault.ui_prefs_sync_enabled(), "默认应开启偏好同步");
+        let local = serde_json::json!({
+            "preferences": { "theme": "light", "trashRetention": "30d" }
+        });
+        vault
+            .save_profile(&Profile::new_with_id(
+                "acc_default",
+                "acc_default",
+                serde_json::to_vec(&local).unwrap(),
+            ))
+            .unwrap();
+
+        let remote = serde_json::json!({
+            "preferences": { "theme": "dark", "trashRetention": "60d" }
+        });
+        let remote_b64 = base64::Engine::encode(
+            &base64::engine::general_purpose::STANDARD,
+            serde_json::to_vec(&remote).unwrap(),
+        );
+        let rec = crate::VaultSyncRecord {
+            id: "acc_default".to_string(),
+            table: "profiles".to_string(),
+            data: serde_json::json!({
+                "id": "acc_default",
+                "name": "acc_default",
+                "data": remote_b64,
+                "createdAt": "2026-01-01T00:00:00Z",
+                "updatedAt": "2026-01-01T00:00:00Z",
+                "version": 2,
+            }),
+            hlc: crate::RecordHlc {
+                wall_time_ms: 2_000_000_000_000_000,
+                counter: 0,
+                node_id: "remote".to_string(),
+            },
+            deleted: false,
+        };
+        vault.apply_sync_record(&rec, "node_b").unwrap();
+
+        let loaded = vault.load_profile("acc_default").unwrap().unwrap();
+        let parsed: serde_json::Value = serde_json::from_slice(&loaded.data).unwrap();
+        let prefs = parsed["preferences"].as_object().unwrap();
+        assert_eq!(prefs["theme"], "dark", "默认开启时 UI 外观键应被对端覆盖");
+        assert_eq!(prefs["trashRetention"], "60d");
     }
 
     #[test]

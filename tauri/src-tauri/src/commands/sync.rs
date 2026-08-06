@@ -194,6 +194,55 @@ pub async fn sync_get_auto_status(state: State<'_, AppState>) -> Result<bool, St
     Ok(state.device_auto_sync.enabled())
 }
 
+/// 获取「账户设置偏好（主题、主题色等 UI 外观）是否随设备同步」开关状态。
+///
+/// 由本机 VaultService 的原子开关驱动（Vault 未解锁时也可读）；
+/// 该开关同步引擎在发送侧剥离 / 接收侧保留本机偏好。
+#[tauri::command]
+pub async fn sync_get_ui_prefs_sync(state: State<'_, AppState>) -> Result<bool, String> {
+    let svc = state
+        .vault_service
+        .read()
+        .map_err(|_| "Vault service lock poisoned".to_string())?;
+    Ok(svc.ui_prefs_sync_enabled())
+}
+
+/// 设置「账户设置偏好（主题、主题色等 UI 外观）是否随设备同步」开关。
+///
+/// 写入 VaultService 原子开关 + 持久化到 ui_preferences.json，
+/// AppState 启动时据此恢复（与 auto_sync_enabled 同模式）。
+#[tauri::command]
+pub async fn sync_set_ui_prefs_sync(
+    state: State<'_, AppState>,
+    enabled: bool,
+) -> Result<bool, String> {
+    {
+        let svc = state
+            .vault_service
+            .write()
+            .map_err(|_| "Vault service lock poisoned".to_string())?;
+        svc.set_ui_prefs_sync_enabled(enabled);
+    }
+    if let Ok(svc) = state.vault_service.read() {
+        if let Err(e) =
+            crate::commands::settings::write_ui_prefs_sync_pref(&state.handle, &svc, enabled)
+        {
+            tracing::warn!("[sync] persist ui_prefs_sync_enabled failed: {}", e);
+        }
+    }
+    log_sync_action(
+        &state,
+        if enabled {
+            "ui_prefs_sync_enabled"
+        } else {
+            "ui_prefs_sync_disabled"
+        },
+        None,
+        None,
+    );
+    Ok(enabled)
+}
+
 /// 获取同步状态（发现对端 + 开关状态）。
 #[tauri::command]
 pub async fn sync_get_status(state: State<'_, AppState>) -> Result<SyncStatus, String> {
