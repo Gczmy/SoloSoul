@@ -139,7 +139,7 @@
 | ID | 优先级 | 来源 | 文件位置 | 描述 | 状态 |
 |----|--------|------|----------|------|------|
 | R2-W1 | **P1（安全）** | V8a 不完整 | `tauri/src-tauri/src/commands/attachment.rs:945-957/976` | `attachment_open` 未应用 `src_canonicalized` 模式：symlink 旁路仍可以系统默认应用打开 vault 外任意文件，按 download 同款模式补齐；顺带统一 `attachment_copy_to_vault:404-435` 的 raw/canonical 混用 | `[x]` 已修复（2026-08-06 `c312fe84`） |
-| R2-W2 | P2 | V2 不完整 | CLI `commands/`：`attachment.rs:113/148/201-202/297-298/316`、`vault_write.rs:347/478/502`、`history.rs:153`、`sync.rs:165-169/186`、`security.rs:179/286` | 13 处成功语义仍写红色 error overlay（另 6 处信息/进度语义项一并评估）；修复时以 grep 全量清单验收 | `[ ]` 待修复 |
+| R2-W2 | P2 | V2 不完整 | CLI `commands/`：`attachment.rs:113/148/201-202/297-298/316`、`vault_write.rs:347/478/502`、`history.rs:153`、`sync.rs:165-169/186`、`security.rs:179/286` | 13 处成功语义仍写红色 error overlay（另 6 处信息/进度语义项一并评估）；修复时以 grep 全量清单验收 | `[x]` 已修复（2026-08-06 `14609bc5`，13 处成功 + 8 处信息/进度共 21 键收敛，测试断言同步） |
 | R2-W3 | P2 | V6 不完整 | CLI `commands/`：`log.rs:12-21`、`search.rs:80-92`、`history.rs:12-24`、`vault_read.rs:67-80`、`vault_write.rs:23-35/168-180/230-242/517-529` | 8 处纯解锁样板未收敛到 `require_unlocked_with_vault`；并修订 V6 commit 中不实的保留理由 | `[ ]` 待修复 |
 | R2-W4 | P2 | V4 新发现 | 前端 guide 文案 15 个文件（TrashPage.tsx:94-123、useSyncPage.ts:71-97、workspaceGuidePages.ts:29-66、PageGuide.tsx 等） | 同类 `t(key) ?? '...'` 死兜底约 90 处（`??` 同样永不生效），按 V4 同款 defaultValue 模式处理 | `[ ]` 待修复 |
 
