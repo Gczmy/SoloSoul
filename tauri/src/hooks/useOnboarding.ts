@@ -36,7 +36,7 @@ export interface OnboardingStepDef {
   icon: LucideIcon;
 }
 
-export const baseSteps: readonly OnboardingStepDef[] = [
+const baseSteps: readonly OnboardingStepDef[] = [
   { key: 'welcome', icon: Sparkles },
   { key: 'vault_directory', icon: Folder },
   { key: 'create_object', icon: PlusSquare },

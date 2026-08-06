@@ -146,7 +146,7 @@ function isTimeField(key: string): boolean {
  * RFC3339 时间字符串 → 秒级精度（截断毫秒小数，`+00:00` 时区规范为 `Z`）。
  * 非 RFC3339 字符串原样返回（不改动用户数据中的日期字段值）。
  */
-export function formatTimeValue(value: unknown): string | null {
+function formatTimeValue(value: unknown): string | null {
   if (typeof value !== 'string') return null;
   const m =
     /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(?:\.\d+)?(Z|[+-]\d{2}:\d{2})$/.exec(

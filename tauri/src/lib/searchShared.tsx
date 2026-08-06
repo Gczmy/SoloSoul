@@ -133,7 +133,7 @@ export function resolveResultIcon(
 }
 
 /** 解析字段路径的最后一段为可读标签（i18n 优先，回退原文）。 */
-export function resolveFieldLabel(fieldPath: string | undefined, t: TFunction): string {
+function resolveFieldLabel(fieldPath: string | undefined, t: TFunction): string {
   if (!fieldPath) return '';
   const lastSegment = fieldPath.split('.').pop() || fieldPath;
   return t(`editor:fields.${lastSegment}`, lastSegment);
