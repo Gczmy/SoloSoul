@@ -624,7 +624,7 @@ impl App {
         let field_key = field.key.clone();
         let field_label = field.label.clone();
 
-        match self.phase.clone() {
+        match &self.phase {
             AppPhase::NewObjectWizard {
                 step:
                     NewObjectStep::FillFields {
@@ -632,10 +632,16 @@ impl App {
                         page_name,
                         template,
                         name,
-                        mut fields,
+                        fields,
                         selected,
                     },
             } => {
+                let page_id = page_id.clone();
+                let page_name = page_name.clone();
+                let template = template.clone();
+                let name = name.clone();
+                let mut fields = fields.clone();
+                let selected = *selected;
                 prompt::open(
                     self,
                     spec,
@@ -665,11 +671,15 @@ impl App {
                 object_id,
                 step:
                     EditObjectStep::Overview {
-                        mut object,
-                        mut fields,
+                        object,
+                        fields,
                         selected,
                     },
             } => {
+                let object_id = object_id.clone();
+                let mut object = object.clone();
+                let mut fields = fields.clone();
+                let selected = *selected;
                 prompt::open(
                     self,
                     spec,
@@ -802,13 +812,24 @@ impl App {
             return Ok(prompt::handle_key(self, key));
         }
 
-        // 根据当前阶段分发
-        match &self.phase.clone() {
-            AppPhase::Onboarding { step } => self.handle_onboarding_key(key, step.clone()),
-            AppPhase::UnlockWizard { step } => self.handle_unlock_key(key, step.clone()),
-            AppPhase::NewObjectWizard { step } => self.handle_new_object_key(key, step.clone()),
+        // 根据当前阶段分发（借用匹配，仅克隆小字段，避免每次按键深拷贝整个 AppPhase 的大列表）
+        match &self.phase {
+            AppPhase::Onboarding { step } => {
+                let step = step.clone();
+                self.handle_onboarding_key(key, step)
+            }
+            AppPhase::UnlockWizard { step } => {
+                let step = step.clone();
+                self.handle_unlock_key(key, step)
+            }
+            AppPhase::NewObjectWizard { step } => {
+                let step = step.clone();
+                self.handle_new_object_key(key, step)
+            }
             AppPhase::EditObjectWizard { object_id, step } => {
-                self.handle_edit_object_key(key, object_id.clone(), step.clone())
+                let object_id = object_id.clone();
+                let step = step.clone();
+                self.handle_edit_object_key(key, object_id, step)
             }
             AppPhase::SearchResults { .. } => self.handle_search_results_key(key),
             AppPhase::HistoryList { .. } => self.handle_history_list_key(key),
@@ -1695,7 +1716,7 @@ impl App {
 
     /// 保存当前向导。
     fn save_wizard(&mut self) {
-        match &self.phase.clone() {
+        match &self.phase {
             AppPhase::NewObjectWizard {
                 step:
                     NewObjectStep::FillFields {
@@ -1722,12 +1743,11 @@ impl App {
                 object_id: _,
                 step: EditObjectStep::Overview { object, .. },
             } => {
+                let object = object.clone();
                 if let Err(e) = commands::vault_write::save_edited_object(self, object.clone()) {
                     self.error_message = Some(format!("保存失败: {}", e));
                 } else {
-                    self.phase = AppPhase::ObjectDetail {
-                        object: object.clone(),
-                    };
+                    self.phase = AppPhase::ObjectDetail { object };
                 }
             }
             _ => {
