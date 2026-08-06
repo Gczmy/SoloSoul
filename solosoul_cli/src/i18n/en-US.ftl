@@ -66,6 +66,7 @@ home-hint = ↑/↓ Select, Enter to fill command, type /help for all commands
 ### Object list
 object-list-title = Page List
 object-list-empty = No content
+object-list-truncated = · truncated to first 200 results
 object-list-table-id = ID
 object-list-table-name = Name
 object-list-table-type = Type

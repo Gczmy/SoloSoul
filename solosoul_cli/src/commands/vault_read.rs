@@ -19,11 +19,13 @@ pub fn list(app: &mut App, page_name: Option<&str>) -> Result<()> {
             let mut pages = vault
                 .list_objects(&account_id, Some("page"), None, None, false, false)
                 .map_err(|e| color_eyre::eyre::eyre!(e))?;
+            let truncated = pages.len() > LIST_RESULT_LIMIT;
             pages.truncate(LIST_RESULT_LIMIT);
             app.previous_phase = Some(app.phase.clone());
             app.phase = AppPhase::ObjectList {
                 title: t!(app.i18n, "object-list-title"),
                 items: pages,
+                truncated,
             };
         }
         Some(name) => {
@@ -41,11 +43,13 @@ pub fn list(app: &mut App, page_name: Option<&str>) -> Result<()> {
                     let mut objects = vault
                         .list_objects(&account_id, None, Some(&page.id), None, false, false)
                         .map_err(|e| color_eyre::eyre::eyre!(e))?;
+                    let truncated = objects.len() > LIST_RESULT_LIMIT;
                     objects.truncate(LIST_RESULT_LIMIT);
                     app.previous_phase = Some(app.phase.clone());
                     app.phase = AppPhase::ObjectList {
                         title: format!("{}: {}", t!(app.i18n, "object-list-title"), page.name),
                         items: objects,
+                        truncated,
                     };
                 }
                 None => {
@@ -145,7 +149,9 @@ mod tests {
         let (mut app, _id, _dir) = unlocked_app();
         list(&mut app, None).unwrap();
         match &app.phase {
-            AppPhase::ObjectList { title: _, items } => {
+            AppPhase::ObjectList {
+                title: _, items, ..
+            } => {
                 assert!(items.is_empty());
             }
             _ => panic!("expected ObjectList"),

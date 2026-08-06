@@ -85,8 +85,15 @@ fn sync_with(app: &mut App, peer: &str) {
         app.error_message = Some(t!(app.i18n, "cmd-sync-with-usage"));
         return;
     }
-    let result =
-        crate::util::shared_runtime().block_on(run_one_shot_sync(&app.vault_service, peer));
+    // R2-V7：运行时初始化失败优雅降级（不再 panic 退出 TUI）
+    let rt = match crate::util::shared_runtime() {
+        Ok(rt) => rt,
+        Err(e) => {
+            app.error_message = Some(format!("初始化共享运行时失败: {e}"));
+            return;
+        }
+    };
+    let result = rt.block_on(run_one_shot_sync(&app.vault_service, peer));
     match result {
         Ok(summary) => {
             tracing::info!("sync with {}: {}", peer, summary);

@@ -66,6 +66,7 @@ home-hint = ↑/↓ 选择，Enter 填入命令，直接输入 /help 查看全�
 ### Object list
 object-list-title = 页面列表
 object-list-empty = 暂无内容
+object-list-truncated = · 结果已截断至前 200 条
 object-list-table-id = ID
 object-list-table-name = 名称
 object-list-table-type = 类型

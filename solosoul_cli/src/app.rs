@@ -88,6 +88,8 @@ pub enum AppPhase {
     ObjectList {
         items: Vec<ObjectSummary>,
         title: String,
+        /// R2-V7：结果是否被 LIST_RESULT_LIMIT 截断（渲染时提示用户）
+        truncated: bool,
     },
     /// 对象详情页
     ObjectDetail { object: ObjectRecord },
@@ -2009,10 +2011,12 @@ impl App {
         // 释放借用后仅就地改 selected / 调用命令。
         let (action, len, sel) = match &self.phase {
             AppPhase::SearchResults {
-                items,
-                selected,
-                ..
-            } => (handle_list_nav(*selected, items.len(), key), items.len(), *selected),
+                items, selected, ..
+            } => (
+                handle_list_nav(*selected, items.len(), key),
+                items.len(),
+                *selected,
+            ),
             _ => return Ok(false),
         };
         match action {
@@ -2066,9 +2070,7 @@ impl App {
         // R2-V5：仅就地改 selected，不克隆 items Vec。
         let action = match &self.phase {
             AppPhase::AttachmentList {
-                items,
-                selected,
-                ..
+                items, selected, ..
             } => handle_list_nav(*selected, items.len(), key),
             _ => return Ok(false),
         };
@@ -2091,10 +2093,9 @@ impl App {
     fn handle_backup_list_key(&mut self, key: KeyEvent) -> Result<bool> {
         // R2-V5：仅就地改 selected，不克隆 items Vec。
         let action = match &self.phase {
-            AppPhase::BackupList {
-                items,
-                selected,
-            } => handle_list_nav(*selected, items.len(), key),
+            AppPhase::BackupList { items, selected } => {
+                handle_list_nav(*selected, items.len(), key)
+            }
             _ => return Ok(false),
         };
         match action {
@@ -2740,9 +2741,13 @@ impl App {
                 self.sheen_offset,
                 &self.i18n,
             ),
-            AppPhase::ObjectList { items, title } => {
-                crate::screens::object_list::render(frame, layout[1], title, items, &self.i18n)
-            }
+            AppPhase::ObjectList {
+                items,
+                title,
+                truncated,
+            } => crate::screens::object_list::render(
+                frame, layout[1], title, items, *truncated, &self.i18n,
+            ),
             AppPhase::ObjectDetail { object } => {
                 crate::screens::object_detail::render(frame, layout[1], object, &self.i18n)
             }

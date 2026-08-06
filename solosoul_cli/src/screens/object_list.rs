@@ -15,6 +15,7 @@ pub fn render(
     area: Rect,
     title: &str,
     items: &[ObjectSummary],
+    truncated: bool,
     i18n: &I18n,
 ) {
     if items.is_empty() {
@@ -49,6 +50,11 @@ pub fn render(
         })
         .collect();
 
+    // R2-V7：截断时在标题附加提示（与 /search 的截断提示语义一致）
+    let mut block_title = format!(" {} ", title);
+    if truncated {
+        block_title.push_str(&t!(i18n, "object-list-truncated"));
+    }
     let table = Table::new(
         rows,
         [
@@ -59,11 +65,7 @@ pub fn render(
         ],
     )
     .header(header)
-    .block(
-        Block::default()
-            .title(format!(" {} ", title))
-            .borders(Borders::ALL),
-    );
+    .block(Block::default().title(block_title).borders(Borders::ALL));
 
     frame.render_widget(table, area);
 }

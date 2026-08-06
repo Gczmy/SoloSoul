@@ -520,6 +520,7 @@ pub fn open_selected(app: &mut App) -> Result<()> {
             app.phase = AppPhase::ObjectList {
                 title: format!("页面: {}", item.name),
                 items: objects,
+                truncated: false,
             };
         } else {
             match vault
