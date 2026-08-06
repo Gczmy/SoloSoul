@@ -384,6 +384,8 @@ pub struct App {
     pub prompt: Option<prompt::PromptState>,
     /// 全局错误/消息 overlay，按任意键或 Esc 清除
     pub error_message: Option<String>,
+    /// 中性信息 overlay（列表结果/空态/预览等非错误、非成功语义），Esc 清除。
+    pub info_message: Option<String>,
     /// 日志文件路径，/doctor 中展示
     pub log_path: PathBuf,
     /// 当前账户显示名称（用于首页与状态栏）
@@ -454,6 +456,7 @@ impl App {
             auto_lock_paused: false,
             prompt: None,
             error_message: None,
+            info_message: None,
             log_path,
             account_name: String::new(),
             selected_shortcut: 0,
@@ -829,8 +832,10 @@ impl App {
     }
 
     fn handle_key(&mut self, key: KeyEvent) -> Result<bool> {
-        // 全局 Esc：先清 error overlay
-        if key.code == KeyCode::Esc && self.error_message.take().is_some() {
+        // 全局 Esc：先清 error / info overlay
+        if key.code == KeyCode::Esc
+            && (self.error_message.take().is_some() || self.info_message.take().is_some())
+        {
             return Ok(false);
         }
 
@@ -1474,9 +1479,9 @@ impl App {
 
     /// 普通命令模式键盘处理。
     fn handle_command_key(&mut self, key: KeyEvent) -> Result<bool> {
-        // 全局 Esc：先清 error overlay；若斜杠面板打开则关闭面板；否则清空输入/返回
+        // 全局 Esc：先清 error / info overlay；若斜杠面板打开则关闭面板；否则清空输入/返回
         if key.code == KeyCode::Esc {
-            if self.error_message.take().is_some() {
+            if self.error_message.take().is_some() || self.info_message.take().is_some() {
                 return Ok(false);
             }
             if self.command_palette.should_render(&self.command_input) {
@@ -2997,6 +3002,10 @@ impl App {
         // 模态提示 overlay
         prompt::render(self, frame);
 
+        // 中性信息 overlay（先渲染，错误 overlay 优先级更高）
+        if let Some(info) = &self.info_message {
+            render_info_overlay(frame, info);
+        }
         // 全局错误 overlay
         if let Some(err) = &self.error_message {
             render_error_overlay(frame, err);
@@ -3102,6 +3111,40 @@ fn render_error_overlay(frame: &mut Frame, message: &str) {
     let paragraph = Paragraph::new(text)
         .wrap(Wrap { trim: true })
         .style(Style::default().white().on_red())
+        .block(ratatui::widgets::Block::default().borders(ratatui::widgets::Borders::ALL));
+
+    frame.render_widget(Clear, popup);
+    frame.render_widget(paragraph, popup);
+}
+
+/// 中性信息 overlay：列表结果/空态/预览等非错误、非成功语义。
+/// 与 error overlay 的区别：非红色、标题为「信息」。
+fn render_info_overlay(frame: &mut Frame, message: &str) {
+    use ratatui::style::{Color, Style, Stylize};
+    use ratatui::text::{Line, Text};
+    use ratatui::widgets::{Clear, Paragraph, Wrap};
+
+    let area = frame.area();
+    let width = (area.width as f32 * 0.72).min(70.0) as u16;
+    // 多行列表时按行数自适应高度（上限 40% 视口）
+    let line_count = message.lines().count() as u16 + 2;
+    let height = line_count.clamp(3, (area.height as f32 * 0.4) as u16);
+    let x = (area.width.saturating_sub(width)) / 2;
+    let y = (area.height.saturating_sub(height)) / 2;
+    let popup = ratatui::layout::Rect::new(x, y, width, height);
+
+    let text = Text::from(vec![
+        Line::from("ℹ 信息").bold(),
+        Line::from(message),
+        Line::from("按 Esc 关闭").dark_gray(),
+    ]);
+    let paragraph = Paragraph::new(text)
+        .wrap(Wrap { trim: true })
+        .style(
+            Style::default()
+                .fg(Color::Black)
+                .bg(Color::Rgb(200, 220, 240)),
+        )
         .block(ratatui::widgets::Block::default().borders(ratatui::widgets::Borders::ALL));
 
     frame.render_widget(Clear, popup);

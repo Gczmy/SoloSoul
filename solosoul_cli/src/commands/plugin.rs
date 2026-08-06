@@ -52,7 +52,8 @@ pub fn list_plugins(app: &mut App) -> Result<()> {
                 .collect();
 
             if plugins.is_empty() {
-                app.error_message = Some(t!(app.i18n, "cmd-plugin-market-empty"));
+                // R2-X2: 空态为信息语义，走中性 info overlay
+                app.info_message = Some(t!(app.i18n, "cmd-plugin-market-empty"));
             } else {
                 app.phase = AppPhase::PluginList {
                     plugins,
@@ -328,7 +329,7 @@ pub fn list_sessions(app: &mut App) -> Result<()> {
     match manager.list_sessions() {
         Ok(sessions) => {
             if sessions.is_empty() {
-                app.error_message = Some(t!(app.i18n, "cmd-plugin-no-sessions"));
+                app.info_message = Some(t!(app.i18n, "cmd-plugin-no-sessions"));
             } else {
                 let lines: Vec<String> = sessions
                     .iter()
@@ -339,7 +340,7 @@ pub fn list_sessions(app: &mut App) -> Result<()> {
                         )
                     })
                     .collect();
-                app.error_message = Some(
+                app.info_message = Some(
                     t!(
                         app.i18n,
                         "cmd-plugin-sessions-header",
@@ -365,13 +366,13 @@ pub fn list_installed_plugins(app: &mut App) -> Result<()> {
     match manager.list_installed() {
         Ok(installed) => {
             if installed.is_empty() {
-                app.error_message = Some(t!(app.i18n, "cmd-plugin-none-installed"));
+                app.info_message = Some(t!(app.i18n, "cmd-plugin-none-installed"));
             } else {
                 let lines: Vec<String> = installed
                     .iter()
                     .map(|p| format!("- {} v{} ({})", p.name, p.version, p.description))
                     .collect();
-                app.error_message = Some(
+                app.info_message = Some(
                     t!(
                         app.i18n,
                         "cmd-plugin-installed-header",
@@ -410,7 +411,7 @@ pub fn audit_log(app: &mut App, limit: Option<&str>) -> Result<()> {
     match manager.audit_log(limit_num) {
         Ok(entries) => {
             if entries.is_empty() {
-                app.error_message = Some(t!(app.i18n, "cmd-plugin-no-audit-logs"));
+                app.info_message = Some(t!(app.i18n, "cmd-plugin-no-audit-logs"));
             } else {
                 let lines: Vec<String> = entries
                     .iter()
@@ -422,7 +423,7 @@ pub fn audit_log(app: &mut App, limit: Option<&str>) -> Result<()> {
                         )
                     })
                     .collect();
-                app.error_message = Some(
+                app.info_message = Some(
                     t!(
                         app.i18n,
                         "cmd-plugin-audit-header",

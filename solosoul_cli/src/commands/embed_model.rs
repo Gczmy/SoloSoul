@@ -158,7 +158,8 @@ fn install(app: &mut App, model_id: &str) {
     let dir = install_dir(app);
     let target = dir.join(model_id);
     if target.exists() {
-        app.error_message = Some(t!(
+        // R2-X2: 已安装提示为信息语义，走中性 info overlay
+        app.info_message = Some(t!(
             app.i18n,
             "cmd-embed-already-installed",
             model = model_id

@@ -98,11 +98,15 @@ fn sync_with(app: &mut App, peer: &str) {
     match result {
         Ok(summary) => {
             tracing::info!("sync with {}: {}", peer, summary);
-            app.error_message = Some(t!(
-                app.i18n,
-                "cmd-sync-with-success",
-                peer = peer,
-                summary = summary
+            // R2-X2: 同步成功为明确成功语义，走绿色 toast 而非红色 overlay
+            app.success_message = Some((
+                t!(
+                    app.i18n,
+                    "cmd-sync-with-success",
+                    peer = peer,
+                    summary = summary
+                ),
+                Instant::now(),
             ));
         }
         Err(e) => {

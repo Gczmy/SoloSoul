@@ -147,7 +147,7 @@ fn handle_import(app: &mut App, args: &[&str]) -> Result<()> {
     if preview {
         match import_preview(&path) {
             Ok(info) => {
-                app.error_message = Some(t!(
+                app.info_message = Some(t!(
                     app.i18n,
                     "cmd-import-preview",
                     version = info.version,
