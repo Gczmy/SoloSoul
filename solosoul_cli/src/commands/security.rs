@@ -3,6 +3,7 @@
 use color_eyre::Result;
 use serde_json::Value;
 use solosoul_core::biometric::BiometricManager;
+use zeroize::Zeroizing;
 
 use crate::app::{App, AppPhase};
 use crate::commands::require_unlocked;
@@ -65,7 +66,12 @@ fn on_old_password(app: &mut App, result: PromptResult, account_id: String) {
 }
 
 /// 步骤 2: 接收新密码，提示确认密码。
-fn on_new_password(app: &mut App, result: PromptResult, account_id: String, old_password: String) {
+fn on_new_password(
+    app: &mut App,
+    result: PromptResult,
+    account_id: String,
+    old_password: Zeroizing<String>,
+) {
     if let PromptResult::Text(new_password) = result {
         if new_password.len() < 8 {
             app.error_message = Some(t!(app.i18n, "cmd-password-min-length"));
@@ -91,8 +97,8 @@ fn on_confirm_password(
     app: &mut App,
     result: PromptResult,
     account_id: String,
-    old_password: String,
-    new_password: String,
+    old_password: Zeroizing<String>,
+    new_password: Zeroizing<String>,
 ) {
     if let PromptResult::Text(confirm_password) = result {
         if new_password != confirm_password {
@@ -360,7 +366,7 @@ mod tests {
 
     fn answer_text_prompt(app: &mut App, text: &str) {
         if let Some(state) = app.prompt.as_mut() {
-            state.value = text.to_string();
+            state.value = text.to_string().into();
             state.cursor = state.value.chars().count();
         }
         app.handle_event(crate::events::Event::Key(KeyEvent::from(KeyCode::Enter)))

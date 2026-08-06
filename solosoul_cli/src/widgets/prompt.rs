@@ -8,6 +8,7 @@ use ratatui::layout::{Alignment, Constraint, Direction, Layout, Margin, Rect};
 use ratatui::style::{Style, Stylize};
 use ratatui::text::{Line, Span, Text};
 use ratatui::widgets::{Block, Borders, Clear, Paragraph, Wrap};
+use zeroize::Zeroizing;
 
 use crate::app::App;
 
@@ -38,9 +39,12 @@ pub enum PromptSpec {
 }
 
 /// 提示结果。
+///
+/// `Text` 用 `Zeroizing<String>` 承载：mask 提示（主密码/导出密码等）的输入
+/// 在回调消费完成后随 drop 自动清零，与 `PasswordInput` 的零化约定一致。
 #[derive(Debug, Clone)]
 pub enum PromptResult {
-    Text(String),
+    Text(Zeroizing<String>),
     Select(usize),
     Confirm(bool),
     Cancel,
@@ -52,8 +56,8 @@ pub type PromptCallback = Box<dyn FnOnce(&mut App, PromptResult)>;
 /// 当前提示状态。
 pub struct PromptState {
     pub spec: PromptSpec,
-    /// 文本输入内容
-    pub value: String,
+    /// 文本输入内容（零化承载，drop 时自动清零）
+    pub value: Zeroizing<String>,
     /// 文本光标位置（字符索引）
     pub cursor: usize,
     /// 列表当前选中
@@ -80,7 +84,7 @@ impl PromptState {
                 mask,
                 allow_toggle_mask,
             },
-            value: initial,
+            value: Zeroizing::new(initial),
             cursor,
             selected: 0,
             mask,
@@ -100,7 +104,7 @@ impl PromptState {
                 options,
                 selected,
             },
-            value: String::new(),
+            value: Zeroizing::new(String::new()),
             cursor: 0,
             selected,
             mask: false,
@@ -114,7 +118,7 @@ impl PromptState {
                 message,
                 default_yes,
             },
-            value: String::new(),
+            value: Zeroizing::new(String::new()),
             cursor: 0,
             selected: if default_yes { 0 } else { 1 },
             mask: false,
@@ -352,7 +356,7 @@ pub fn render(app: &App, frame: &mut ratatui::Frame) {
             let display = if state.mask {
                 "•".repeat(state.value.chars().count())
             } else {
-                state.value.clone()
+                state.value.to_string()
             };
             let line = Line::from(vec![Span::raw(display)]);
             let input = Paragraph::new(line)

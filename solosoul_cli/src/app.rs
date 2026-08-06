@@ -1835,7 +1835,7 @@ impl App {
                                             page_id: page_id.clone(),
                                             page_name: page_name.clone(),
                                             template: template.clone(),
-                                            name: new_name,
+                                            name: new_name.to_string(),
                                             fields: fields.clone(),
                                             selected,
                                         },
@@ -1905,7 +1905,7 @@ impl App {
                             },
                             Box::new(move |app, result| {
                                 if let PromptResult::Text(new_name) = result {
-                                    object.name = new_name;
+                                    object.name = new_name.to_string();
                                     app.phase = AppPhase::EditObjectWizard {
                                         object_id: object.id.clone(),
                                         step: EditObjectStep::Overview {
