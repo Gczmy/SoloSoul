@@ -89,11 +89,6 @@ pub fn update_profile_preference(
     Ok(())
 }
 
-// ---- CLI 命令错误类型 ----
-
-/// CLI 命令错误类型，简化为 String。
-pub type CliError = String;
-
 pub mod attachment;
 pub mod auth;
 pub mod backup;

@@ -1,8 +1,7 @@
 //! 账户列表渲染组件。
 
-use ratatui::layout::{Constraint, Rect};
+use ratatui::layout::Constraint;
 use ratatui::style::Style;
-use ratatui::text::{Line, Text};
 use ratatui::widgets::{Cell, Row, Table};
 use solosoul_core::AccountSummary;
 
@@ -33,9 +32,4 @@ pub fn render_table<'a>(accounts: &'a [AccountSummary]) -> Table<'a> {
     )
     .header(header)
     .row_highlight_style(Style::default().reversed())
-}
-
-/// 渲染空账户提示。
-pub fn render_empty(_area: Rect) -> Text<'static> {
-    Text::from(Line::from("未发现本地账户。请使用 GUI 客户端创建账户。").centered())
 }
