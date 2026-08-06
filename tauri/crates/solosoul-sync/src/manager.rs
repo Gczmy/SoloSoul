@@ -531,10 +531,14 @@ impl SyncManager {
         }
         // Include persisted peers even if not currently discovered.
         let persisted = self.vault.list_peers()?;
+        let now_ts = chrono::Utc::now().timestamp();
         for p in persisted {
             if out.iter().any(|i| i.node_id == p.peer_node_id) {
                 continue;
             }
+            // P1#7/#8：在线状态心跳化——mDNS 未发现时，凭「fresh last_seen + last_addr」
+            // 判定在线（成功同步即证明 LAN 可达），避免「明明在线却显示离线」。
+            let online = crate::shared::peer_last_addr_online(&p, now_ts).is_some();
             out.push(SyncPeerInfo {
                 node_id: p.peer_node_id.clone(),
                 account_id: self.account_id.clone(),
@@ -542,10 +546,20 @@ impl SyncManager {
                     .peer_name
                     .clone()
                     .unwrap_or_else(|| p.peer_node_id.clone()),
-                addr: String::new(),
+                addr: if online {
+                    p.last_addr.clone().unwrap_or_default()
+                } else {
+                    String::new()
+                },
                 fingerprint: p.public_key_fingerprint.clone().unwrap_or_default(),
                 trusted: p.trusted,
-                last_seen: String::new(),
+                last_seen: if online {
+                    p.last_seen
+                        .map(|ts| format!("{}s ago", now_ts - ts))
+                        .unwrap_or_default()
+                } else {
+                    String::new()
+                },
                 last_seen_ts: p.last_seen,
                 trusted_at: p.trusted_at,
                 client_type: p

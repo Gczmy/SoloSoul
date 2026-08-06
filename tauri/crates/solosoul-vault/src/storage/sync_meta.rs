@@ -114,8 +114,8 @@ impl VaultStore {
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         conn.execute(
-            "INSERT INTO sync_peers (peer_node_id, peer_name, trusted, public_key_fingerprint, last_seen, client_type, trusted_at, created_at, updated_at)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)
+            "INSERT INTO sync_peers (peer_node_id, peer_name, trusted, public_key_fingerprint, last_seen, client_type, trusted_at, last_addr, created_at, updated_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)
              ON CONFLICT(peer_node_id) DO UPDATE SET
                 peer_name = excluded.peer_name,
                 trusted = excluded.trusted,
@@ -123,6 +123,7 @@ impl VaultStore {
                 last_seen = excluded.last_seen,
                 client_type = excluded.client_type,
                 trusted_at = excluded.trusted_at,
+                last_addr = excluded.last_addr,
                 updated_at = excluded.updated_at",
             params![
                 &peer.peer_node_id,
@@ -132,6 +133,7 @@ impl VaultStore {
                 peer.last_seen,
                 &peer.client_type,
                 peer.trusted_at,
+                &peer.last_addr,
                 &peer.created_at,
                 &peer.updated_at,
             ],
@@ -148,7 +150,7 @@ impl VaultStore {
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         let result = conn
             .query_row(
-                "SELECT peer_node_id, peer_name, trusted, public_key_fingerprint, last_seen, client_type, trusted_at, created_at, updated_at
+                "SELECT peer_node_id, peer_name, trusted, public_key_fingerprint, last_seen, client_type, trusted_at, last_addr, created_at, updated_at
                  FROM sync_peers WHERE peer_node_id = ?1",
                 params![peer_node_id],
                 |row| {
@@ -158,10 +160,11 @@ impl VaultStore {
                         trusted: row.get::<_, i32>(2)? != 0,
                         public_key_fingerprint: row.get(3)?,
                         last_seen: row.get(4)?,
-                        created_at: row.get(7)?,
-                        updated_at: row.get(8)?,
+                        created_at: row.get(8)?,
+                        updated_at: row.get(9)?,
                         client_type: row.get(5)?,
                         trusted_at: row.get(6)?,
+                        last_addr: row.get(7)?,
                     })
                 },
             )
@@ -175,7 +178,7 @@ impl VaultStore {
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         let mut stmt = conn
             .prepare(
-                "SELECT peer_node_id, peer_name, trusted, public_key_fingerprint, last_seen, client_type, trusted_at, created_at, updated_at
+                "SELECT peer_node_id, peer_name, trusted, public_key_fingerprint, last_seen, client_type, trusted_at, last_addr, created_at, updated_at
                  FROM sync_peers ORDER BY updated_at DESC",
             )
             .map_err(|e| format!("list_peers: {}", e))?;
@@ -187,10 +190,11 @@ impl VaultStore {
                     trusted: row.get::<_, i32>(2)? != 0,
                     public_key_fingerprint: row.get(3)?,
                     last_seen: row.get(4)?,
-                    created_at: row.get(7)?,
-                    updated_at: row.get(8)?,
+                    created_at: row.get(8)?,
+                    updated_at: row.get(9)?,
                     client_type: row.get(5)?,
                     trusted_at: row.get(6)?,
+                    last_addr: row.get(7)?,
                 })
             })
             .map_err(|e| format!("list_peers query: {}", e))?

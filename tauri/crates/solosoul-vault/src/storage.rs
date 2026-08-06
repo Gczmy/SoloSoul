@@ -4221,6 +4221,8 @@ mod tests {
             updated_at: chrono::Utc::now().to_rfc3339(),
             client_type: Some("macos".to_string()),
             trusted_at: None,
+            // P1#7/#8: 在线状态心跳化——last_addr 随成功同步落库。
+            last_addr: Some("192.168.0.5:42069".to_string()),
         };
         vault.save_peer_state(&peer).unwrap();
 
@@ -4229,6 +4231,7 @@ mod tests {
         assert!(!loaded.trusted);
         assert_eq!(loaded.client_type.as_deref(), Some("macos"));
         assert!(loaded.trusted_at.is_none());
+        assert_eq!(loaded.last_addr.as_deref(), Some("192.168.0.5:42069"));
 
         // 信任时记录 trusted_at（详情弹窗「信任时间」展示用），撤销时清空。
         vault.set_peer_trusted("node_abc", true).unwrap();
@@ -4260,6 +4263,7 @@ mod tests {
                 updated_at: now,
                 client_type: None,
                 trusted_at: None,
+                last_addr: None,
             })
             .unwrap();
     }

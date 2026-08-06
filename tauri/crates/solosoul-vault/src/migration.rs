@@ -5,7 +5,7 @@ use rusqlite::{params, Connection};
 
 use crate::storage::VaultStore;
 
-pub const CURRENT_SCHEMA_VERSION: u32 = 24;
+pub const CURRENT_SCHEMA_VERSION: u32 = 25;
 
 pub fn get_schema_version(conn: &Connection) -> Result<u32, String> {
     let version: String = conn
@@ -67,6 +67,7 @@ pub fn run_migrations(conn: &mut Connection) -> Result<(), String> {
     migrate_v22(conn, current)?;
     migrate_v23(conn, current)?;
     migrate_v24(conn, current)?;
+    migrate_v25(conn, current)?;
 
     Ok(())
 }
@@ -756,6 +757,52 @@ fn migrate_v24(conn: &mut Connection, current: u32) -> Result<(), String> {
         }
         set_schema_version(&tx, 24)?;
         tx.commit().map_err(|e| format!("Commit v24: {}", e))?;
+    }
+    Ok(())
+}
+
+/// v25 — sync_peers 增加 last_addr（最近一次成功同步的连接地址）列。
+///
+/// P1#7/#8：在线状态心跳化——成功同步即证明 LAN 可达，即使 mDNS 发现链中断，
+/// known_peers 也可凭「最近 5 分钟内的 last_seen + last_addr」显示在线。
+/// 幂等：has_column 守卫，旧库 ALTER、无表/已含列 no-op。
+fn migrate_v25(conn: &mut Connection, current: u32) -> Result<(), String> {
+    if current < 25 {
+        // 表存在性守卫：部分态迁移 fixture（v17 partial state）可能无 sync 表。
+        let has_table = conn
+            .query_row(
+                "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='sync_peers'",
+                [],
+                |r| r.get::<_, i64>(0),
+            )
+            .unwrap_or(0)
+            > 0;
+        if !has_table {
+            let now = Utc::now().timestamp();
+            conn.execute(
+                "INSERT OR IGNORE INTO schema_migrations (version, applied_at, description) VALUES (?1, ?2, ?3)",
+                params![25, now, "sync_peers absent (partial-state fixture) — last_addr skipped (no-op)"],
+            )
+            .ok();
+            set_schema_version(conn, 25)?;
+            return Ok(());
+        }
+        if has_column(conn, "sync_peers", "last_addr") {
+            let now = Utc::now().timestamp();
+            conn.execute(
+                "INSERT OR IGNORE INTO schema_migrations (version, applied_at, description) VALUES (?1, ?2, ?3)",
+                params![25, now, "last_addr already present on sync_peers (no-op)"],
+            )
+            .ok();
+            set_schema_version(conn, 25)?;
+        } else {
+            apply_migration(
+                conn,
+                25,
+                "ALTER TABLE sync_peers ADD COLUMN last_addr TEXT;",
+                "Add last_addr to sync_peers (peer online-state heartbeat)",
+            )?;
+        }
     }
     Ok(())
 }

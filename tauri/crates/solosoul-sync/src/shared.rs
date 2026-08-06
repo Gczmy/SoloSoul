@@ -10,6 +10,21 @@ use crate::noise::NoiseKeys;
 use crate::types::SyncPeerInfo;
 use solosoul_vault::VaultStore;
 
+/// P1#7/#8：持久化 peer 凭 `last_addr + last_seen` 判定在线的宽限期（秒），
+/// 与 manager.rs 的 mDNS `PEER_MAX_AGE_SECS` 保持一致——成功同步后 5 分钟内
+/// 视为在线，即使 mDNS/NSD 发现链中断也能显示最近可达状态。
+pub const PEER_ONLINE_GRACE_SECS: i64 = 300;
+
+/// 判断持久化 peer 是否可视为在线：最近同步时间在宽限期内且留存了连接地址。
+pub fn peer_last_addr_online(p: &solosoul_vault::PeerSyncState, now_ts: i64) -> Option<String> {
+    match (&p.last_addr, p.last_seen) {
+        (Some(addr), Some(ts)) if !addr.is_empty() && now_ts - ts <= PEER_ONLINE_GRACE_SECS => {
+            Some(addr.clone())
+        }
+        _ => None,
+    }
+}
+
 /// 记录同步相关操作日志。Vault 未解锁时静默跳过。
 pub fn audit_log(vault: &VaultStore, action: &str, entity_id: Option<&str>, details: Option<&str>) {
     let _ = vault.log_structured(action, "sync", entity_id, None, "user", details);
@@ -42,28 +57,34 @@ pub fn known_peers_from_vault(
     account_id: &str,
 ) -> Result<Vec<SyncPeerInfo>, String> {
     let persisted = vault.list_peers()?;
+    let now_ts = chrono::Utc::now().timestamp();
     Ok(persisted
         .into_iter()
-        .map(|p| SyncPeerInfo {
-            node_id: p.peer_node_id.clone(),
-            account_id: account_id.to_string(),
-            name: p
-                .peer_name
-                .clone()
-                .unwrap_or_else(|| p.peer_node_id.clone()),
-            addr: String::new(),
-            fingerprint: p.public_key_fingerprint.clone().unwrap_or_default(),
-            trusted: p.trusted,
-            last_seen: p
-                .last_seen
-                .map(|ts| format!("{}s ago", chrono::Utc::now().timestamp() - ts))
-                .unwrap_or_default(),
-            last_seen_ts: p.last_seen,
-            trusted_at: p.trusted_at,
-            client_type: p
-                .client_type
-                .clone()
-                .unwrap_or_else(|| "unknown".to_string()),
+        .map(|p| {
+            // P1#7/#8：在线状态心跳化——有 fresh last_addr 时填实际地址，
+            // 前端据此显示「在线」，否则 addr 为空显示「未在局域网发现」。
+            let online_addr = peer_last_addr_online(&p, now_ts);
+            SyncPeerInfo {
+                node_id: p.peer_node_id.clone(),
+                account_id: account_id.to_string(),
+                name: p
+                    .peer_name
+                    .clone()
+                    .unwrap_or_else(|| p.peer_node_id.clone()),
+                addr: online_addr.unwrap_or_default(),
+                fingerprint: p.public_key_fingerprint.clone().unwrap_or_default(),
+                trusted: p.trusted,
+                last_seen: p
+                    .last_seen
+                    .map(|ts| format!("{}s ago", now_ts - ts))
+                    .unwrap_or_default(),
+                last_seen_ts: p.last_seen,
+                trusted_at: p.trusted_at,
+                client_type: p
+                    .client_type
+                    .clone()
+                    .unwrap_or_else(|| "unknown".to_string()),
+            }
         })
         .collect())
 }
@@ -90,6 +111,7 @@ pub fn trust_peer_fallback(
                 updated_at: now.clone(),
                 client_type: None,
                 trusted_at: None,
+                last_addr: None,
             });
     // 已有记录但无指纹时补绑（历史记录/握手期未绑定）。
     // 空串视为无指纹，避免绑定 "" 导致后续握手被 P001 拒绝。

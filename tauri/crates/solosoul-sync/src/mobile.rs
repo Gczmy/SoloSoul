@@ -470,6 +470,7 @@ impl MobileSyncManager {
                 updated_at: now.clone(),
                 client_type: None,
                 trusted_at: None,
+                last_addr: None,
             });
         // 已有记录但无指纹时补绑（历史记录/握手期未绑定）。
         // 空串视为无指纹，避免绑定 "" 导致后续握手被 P001 拒绝。

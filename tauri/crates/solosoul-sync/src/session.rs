@@ -726,6 +726,9 @@ fn record_peer(
         updated_at: now.clone(),
         client_type: client_type_opt.clone(),
         trusted_at: None,
+        // P1#7/#8：成功握手/同步即证明对端 LAN 可达，把连接地址落库——
+        // 即使 mDNS/NSD 发现链中断，known_peers 也能凭 fresh last_addr 显示在线。
+        last_addr: Some(addr.to_string()),
     });
     // 已有记录不覆盖名字（可能被用户重命名），仅刷新指纹、客户端类型与最近在线时间。
     peer.public_key_fingerprint = Some(fingerprint.to_string());
@@ -733,6 +736,10 @@ fn record_peer(
         peer.client_type = Some(ct);
     }
     peer.last_seen = Some(chrono::Utc::now().timestamp());
+    // 连接地址随每次成功会话刷新（对端可能换 IP/端口）。
+    if !addr.is_empty() {
+        peer.last_addr = Some(addr.to_string());
+    }
     peer.updated_at = now;
     vault.save_peer_state(&peer)?;
     Ok(is_new)
@@ -1001,6 +1008,7 @@ mod tests {
             updated_at: now,
             client_type: None,
             trusted_at: None,
+            last_addr: None,
         };
         vault.save_peer_state(&peer).expect("save peer");
     }

@@ -104,6 +104,11 @@ pub struct PeerSyncState {
     pub client_type: Option<String>,
     /// 最近信任时间（unix 秒）。从未信任/已撤销时为 None。
     pub trusted_at: Option<i64>,
+    /// 最近一次成功同步/入站会话的对端连接地址（host:port）。
+    /// P1#7/#8：在线状态心跳化——成功同步即证明 LAN 可达，即使 mDNS 发现链
+    /// 中断，known_peers 也可凭「fresh last_seen + last_addr」显示在线。
+    /// 旧记录/旧客户端同步前为 None。
+    pub last_addr: Option<String>,
 }
 
 /// A single record change produced or consumed by the sync delta engine.
