@@ -2,7 +2,7 @@
 
 > 最后更新：2026-08-06
 > 当前分支：`main`
-> 修复轮次：R1 已闭环；R2 修复 28 项已提交；V1-V8 经第二轮验证后产生 4 项跟进问题（W1-W4），**已全部修复（2026-08-06）**：W1（P1 安全，attachment_open/copy_to_vault symlink 旁路硬化 `c312fe84`）、W2（CLI 21 键成功/信息语义收敛 `14609bc5`）、W3（CLI 8 处样板收敛 `0bee6cb7`）、W4（前端 156 处死兜底 `9747f573`）。待第三轮复审后 R2 可标记终版（详见 §R2-§7）
+> 修复轮次：R1 已闭环；R2 修复 28 项已提交；V1-V8、W1-W4 已提交并经第三轮验证（2026-08-06，HEAD `6b6beb6e`）：**W4 完全正确；W1 核心安全目标达成（attachment_open 旁路封死）但 copy_to_vault 为 no-op；W2/W3 清单内正确、清单外各有漏网**——产生 3 项 P2 跟进问题（X1-X3，待修复），无 P0/P1 残留。X1-X3 闭环或经用户裁决降级后 R2 可标记终版（详见 §R2-§8）
 
 ---
 
@@ -149,6 +149,35 @@
 - **3 项不完整 → W1-W4 全部闭环（2026-08-06）**：**W1（P1 安全）**`c312fe84`——attachment_open/copy_to_vault 应用 src_canonicalized 模式，symlink 旁路关闭；**W2**`14609bc5`——CLI 21 个成功/信息语义键全量收敛 success_message（grep 清单验收为 0 残留）；**W3**`0bee6cb7`——CLI 8 处纯解锁样板收敛 + V6 不实理由修订；**W4**`9747f573`——前端 156 处 t(key) ?? 字面量死兜底改 defaultValue。
 - 轻微瑕疵（不阻塞，不立项）：V1 open_selected 硬编码「未登录」；V3 失败双重 toast；V7 FTL 硬编码「200」与降级文案未 i18n。
 - 按流程阶段 4：W1-W4 已全部修复并经编译/测试验证 → 待第三轮复审后可将 R2 标记终版。
+
+### R2-§8 W 批次验证（2026-08-06 第三轮，验证 HEAD = `6b6beb6e`）
+
+> 本节为逐 diff 独立复核结果（验证方：审查流程第三轮）。基线全绿：`npm run check-all`（59 文件 / 560 用例，ACL 188 ✅）、CLI clippy 0 警告 + 153 测试全绿。
+> **结论：W4 完全正确；W1 核心（attachment_open）正确，但 copy_to_vault 为名义修复（no-op）；W2/W3 清单内全部正确、清单外各有漏网。同批额外提交 `6b6beb6e`（Windows 自动填充禁用）与 `f5d6dea0`（安卓 autofill 白底 CSS）抽查均无问题。**
+
+#### 8.1 逐项结论
+
+| ID | 结论 | 说明 |
+|----|------|------|
+| R2-W1 | ⚠️ 核心已修 / 一部分 no-op（→ X1） | **`attachment_open` 已按 download 同款 `src_canonicalized` 模式正确修复**：symlink 指向库外场景走查确认被拒绝；悬空 symlink → NotFound；Android SAF 回退未误伤；`attachment_download` 无回归；文件内无其他同类残留。**但 `attachment_copy_to_vault` 的「修复」是 no-op**：回退分支中 `src = PathBuf::from(&src_path)` 与 `src_raw = Path::new(&src_path)` 是同一路径，`a \|\| a ≡ a`，Android 双路径（raw 比对 canonical vault_base）漏检依然存在。缓解：`allowed_fs_bases` 白名单是第二道防线，实际可利用面很小。另：三处路径判定均无防回归测试 |
+| R2-W2 | ⚠️ 清单内 ✅ / 清单外漏网（→ X2） | 原清单 21 处全部改 `success_message` 且残留为 0；`Instant::now()` 48/48；测试断言同步；`cargo test` 实测 151+2 全绿。**但独立全库语义扫描发现漏网**：`sync.rs:101` `cmd-sync-with-success` 为明确成功语义仍写红色 overlay；另有约 10 处信息/空态/中性语义（`plugin.rs:55/331/342/368/374/413/425/460`、`export_import.rs:150`、`embed_model.rs:161`）仍在 error_message |
+| R2-W3 | ⚠️ 清单内 ✅ / 清单外漏网（→ X3） | 8 处全部收敛且行为等价；V6 保留理由修订如实。**但 `vault_write.rs:532-544` `purge()`（`/purge` 命令入口，分发层无全局解锁门禁）完全没有 `require_unlocked`**——锁定用户执行 `/purge` 得到原始 eyre 而非 `cmd-need-unlock` 友好提示（pre-existing，但未收敛也未计入例外清单）。另：7 处病理路径错误消息由中文「Vault 未打开」回退为 helper 的英文 "Vault not open" |
+| R2-W4 | ✅ | 完全正确且完整：四层独立 grep 复核 `t() ??/\|\|` 死兜底残留为 0（6 个正则命中均为 `Map.get()` 等误报）；156 处数量经父 commit 复扫精确验证（原报告「约 90」为漏数多行形态，本轮更全）；合法 `??`（可空 prop）正确保留；无需 locale/测试配套；`tsc` 通过 |
+
+#### 8.2 跟进问题清单（第三轮，待修复）
+
+| ID | 优先级 | 来源 | 文件位置 | 描述 | 状态 |
+|----|--------|------|----------|------|------|
+| R2-X1 | P2 | W1 部分 no-op | `tauri/src-tauri/src/commands/attachment.rs:407-436` | `attachment_copy_to_vault` 的 raw/canonical 统一是名义修复（`src == src_raw`，`\|\|` 恒等）：应同时与非 canonical 的 `base`（:399 现成可用）比较以覆盖 Android 双路径；并修订 commit 描述。另建议把 `in_vault`/`in_attachments` 判定提取为纯函数并补 symlink/穿越防回归测试（当前三处判定零测试覆盖） | `[x]` 已修复（2026-08-06 `a7f019e7`：纯函数 `path_within_base` + copy_to_vault 传非 canonical base + 3 条防回归测试） |
+| R2-X2 | P2 | W2 漏网 | `solosoul_cli/src/commands/sync.rs:101`（`cmd-sync-with-success`）；另约 10 处信息/空态/中性语义（`plugin.rs:55/331/342/368/374/413/425/460`、`export_import.rs:150`、`embed_model.rs:161`） | 成功/信息语义仍写红色 error overlay。修复时以**全库语义扫描**（而非报告清单）为验收标准 | `[ ]` 待修复 |
+| R2-X3 | P2 | W3 漏网 | `solosoul_cli/src/commands/vault_write.rs:532-544`；`commands/mod.rs:28` | a) `purge()` 缺 `require_unlocked`（锁定用户得到原始 eyre 而非友好提示）——与相邻 restore 对齐收敛；b) helper 错误消息 "Vault not open" 建议统一为中文 i18n（7 处由中文回退为英文） | `[ ]` 待修复 |
+
+#### 8.3 第三轮验证总结
+
+- **W4 是本轮范本**：全量脚本扫描 + 独立复核残留为 0 + 数量口径精确验证，一次闭环。
+- **W1 核心安全目标达成**（attachment_open 旁路封死，原 P1 缺口已消除），剩余 X1 因有白名单兜底降为 P2。
+- **W2/W3 连续第三轮出现「只验收报告清单、不做全库扫描」的模式**：清单内全对、清单外漏网（X2 的 sync 成功消息；X3 的 purge 无解锁门禁——属 pre-existing 缺陷的顺带暴露）。此类「模式消除型」修复应以全库语义 grep 结果为验收标准，而非报告给出的示例行号。
+- **优先级评估**：X1-X3 均为 P2，无 P0/P1 残留。按流程阶段 4「仅剩 P2 或零问题 → 终版有效」：X1-X3 修复并复核通过后 R2 可标记终版；或经用户裁决将 X1-X3 降级为后续迭代项后标记终版。
 
 ### R2-§3 重点问题修复指引（P0/P1）
 
