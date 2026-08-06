@@ -6,6 +6,9 @@ use crate::app::{App, AppPhase, SizeReport};
 use crate::commands::require_unlocked;
 use crate::t;
 
+/// `/list` 结果上限：与 `/search` 的 200 条截断对称，避免超大 Vault 一次渲染全部。
+const LIST_RESULT_LIMIT: usize = 200;
+
 /// 执行 `/list [page_name]`：列出页面或页面内对象。
 pub fn list(app: &mut App, page_name: Option<&str>) -> Result<()> {
     let account_id = require_unlocked(app)?;
@@ -17,9 +20,10 @@ pub fn list(app: &mut App, page_name: Option<&str>) -> Result<()> {
 
     match page_name {
         None => {
-            let pages = vault
+            let mut pages = vault
                 .list_objects(&account_id, Some("page"), None, None, false, false)
                 .map_err(|e| color_eyre::eyre::eyre!(e))?;
+            pages.truncate(LIST_RESULT_LIMIT);
             app.previous_phase = Some(app.phase.clone());
             app.phase = AppPhase::ObjectList {
                 title: t!(app.i18n, "object-list-title"),
@@ -38,9 +42,10 @@ pub fn list(app: &mut App, page_name: Option<&str>) -> Result<()> {
 
             match matched {
                 Some(page) => {
-                    let objects = vault
+                    let mut objects = vault
                         .list_objects(&account_id, None, Some(&page.id), None, false, false)
                         .map_err(|e| color_eyre::eyre::eyre!(e))?;
+                    objects.truncate(LIST_RESULT_LIMIT);
                     app.previous_phase = Some(app.phase.clone());
                     app.phase = AppPhase::ObjectList {
                         title: format!("{}: {}", t!(app.i18n, "object-list-title"), page.name),

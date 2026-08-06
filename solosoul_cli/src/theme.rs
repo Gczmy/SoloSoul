@@ -27,9 +27,15 @@ pub struct Theme {
 
 impl Theme {
     /// 根据环境自动选择颜色级别并加载主题。
+    ///
+    /// 结果经 `OnceLock` 缓存：渲染路径每帧会调用多次，而环境变量在进程
+    /// 生命周期内不变，无需每帧重复探测（`std::env::var` 有 syscall 开销）。
     pub fn load() -> Self {
-        let color_level = detect_color_level();
-        Self::with_level(color_level)
+        static CACHE: std::sync::OnceLock<Theme> = std::sync::OnceLock::new();
+        *CACHE.get_or_init(|| {
+            let color_level = detect_color_level();
+            Self::with_level(color_level)
+        })
     }
 
     /// 按指定颜色级别构造 GUI 品牌蓝主题。
