@@ -1,8 +1,8 @@
 # SoloSoul 代码分析修复报告
 
-> 最后更新：2026-08-05
+> 最后更新：2026-08-06
 > 当前分支：`main`
-> 修复轮次：R1 已闭环；**R2（新一轮全库分析）全部 28 项已闭环（27 项修复 + R2-16 长期候选）**
+> 修复轮次：R1 已闭环；R2 修复 28 项已提交；**8 项跟进问题（V1-V8）已全部闭环（2026-08-06），R2 整体可标记终版**
 
 ---
 
@@ -58,6 +58,62 @@
 
 - 已完成：28 / 28（27 项修复 + R2-16 长期候选；R2-13 同样归入长期重构候选，与 P223 同类）；R2-16 为长期重构候选
 - 当前处理：全部完成
+- **验证（2026-08-05，HEAD `e13cd14f`）**：28 项全部经逐 diff 代码核验——✅ 19 项正确 / ⚠️ 6 项有残留或隐患 / ❌ 1 项不完整（R2-26）/ 2 项长期候选（R2-13/16 不适用）；详见 §R2-§6，产生 8 项跟进问题（V1-V8，均 `[ ]`）
+
+### R2-§6 修复验证（2026-08-05，验证 HEAD = `e13cd14f`）
+
+> 验证方法：对每项修复 commit 逐 diff 审读 + 当前代码上下文核验（非凭 commit message）；基线全绿：`npm run check-all`（59 文件 / 560 用例，ACL 188 ✅）、CLI clippy 0 警告 + 153 测试全绿。另外抽查了 R2 批次之后的 sync 功能提交（`5544b441`/`e13cd14f`/`94815431`/`b8a31c3c`），无明显问题（15s 轮询卸载清理到位、TCP 探测解析方式与真实连接一致）。
+
+#### 6.1 逐项结论
+
+| ID | 结论 | 说明 |
+|----|------|------|
+| R2-01 | ✅（含 1 硬化缺口 → V8） | 字符串前缀回退已移除，组件级比较 + 双侧拒绝 `..`，Android SAF 合法场景未误伤。残留：canonicalize **成功**时仍求值 `src_raw` 字面路径分支（`attachment.rs:824-825`），vault 内被植入指向外部的 symlink 可旁路（原代码遗留、利用门槛高，建议仅 canonicalize 失败时启用 raw 比较） |
+| R2-02 | ✅ | `parts.get(2..).unwrap_or(&[])`，len==2 空参数行为正确，附防回归测试 |
+| R2-03 | ✅（→ V1 已修复） | 6 处按键 handler 已由 handle_key 统一捕获层承接（`1ddde2df`），错误转为 overlay 不再退出 TUI；i18n 文案保留 |
+| R2-04 | ✅ | `PromptState.value`/`PromptResult::Text` 均 `Zeroizing<String>`，敏感调用方全覆盖，闭包 move 捕获无 String 副本 |
+| R2-05 | ✅ | TTC 改内存加载，pdfium 源码核实与文件加载语义完全等价；NamedTempFile 彻底移除，注释同步 |
+| R2-06 | ✅ | `save_profile` 失败改 `?` 传播；对象已落库但报错诚实，重试安全（非原子语义，前端文案如承诺全撤需对齐——未核） |
+| R2-07 | ✅ | `delete_object` 失败中止，trash 记录保留可重试，孤儿对象路径消除 |
+| R2-08 | ⚠️ 部分（→ V8 知情项） | N+1 解密已消除（单次 `list_objects`）；sha256 仍逐文件重算（理由成立：manifest 须反映磁盘真实字节）；失败语义变严——单行解密失败即整批 Err（原为静默跳过坏对象） |
+| R2-09 | ✅（→ V3 已修复） | restore 回调内层 catch 后重新 throw（`62a9acd8`），失败保持对话框可重试 |
+| R2-10 | ✅（→ V5 已修复） | 5 处列表导航 handler 已改为就地改 selected（`c1380b22`），items.clone 全库清零 |
+| R2-11 | ✅ | 死子树删除干净，活路径（`bump_public_data_version` 等）完整，测试同步 |
+| R2-12 | ✅ | 无残留引用；3 处集成测试改 `new_with_dirs` 语义逐位一致 |
+| R2-14 | ✅ | 共享 helper 提取正确；移动端 download 侧纳入 temp_dir 属合理统一（放宽的是应用私有缓存目录，无安全后果） |
+| R2-15 | ✅（1 项知情） | 四项均正确：流式导入完整复刻防 ZIP 炸弹边界、字体 OnceLock 缓存、ALTER TABLE 走 PRAGMA 检查、示例密码改 env。知情项：明文 payload 现短暂落盘 OS tempdir（0600，drop 即删，崩溃可能残留） |
+| R2-16 | — | 长期重构候选，无 commit，不适用 |
+| R2-17 | ✅ | helper 收敛语义逐字等价，单对象容错与双 setState 回写保留；N+1 无上限属有意保持 |
+| R2-18 | ✅（→ V4 已修复） | 带插值死兜底 12 处（含 HistoryPage 残留）已全量改 defaultValue（`b11b2654`），全库正则扫描清零 |
+| R2-19 | ✅ | `prevName` 乐观更新前捕获，catch 按 id 回滚 + toast，无快照过期问题 |
+| R2-20 | ✅ | worker 池上限 8，游标同步段内自增无竞争，失败语义与 R2-09 兼容 |
+| R2-21 | ✅ | 多余 export 移除干净；保留项（SnapshotDataView 等）经核实被测试 import，属有效导出 |
+| R2-22 | ⚠️ 轻微（→ V7） | Theme 缓存安全（`/theme` 偏好不参与 `Theme::load`，"切换不生效"担忧不成立）；但 `/list` 静默 `truncate(200)` 无截断提示（`/search` 有，不对称） |
+| R2-23 | ⚠️ 轻微（→ V7） | OnceLock 单例正确、无嵌套 block_on 风险；但初始化失败从优雅报错退化为 `expect` panic（概率极低） |
+| R2-24 | ✅ | 创建即 0600（0644 窗口内文件为空），覆盖已存在文件场景也处理 |
+| R2-25 | ✅ | 白名单 + 裸级别丢弃逻辑正确（EnvFilter 最长前缀优先）；按日轮转命名与 `latest_log_path` 匹配 |
+| R2-26 | ✅（→ V2 已修复） | 复核发现 5 处成功路径残留红色 overlay，已由 V2 全部改 success_message toast（`8eed85e6`），至此 22 处全部闭环 |
+| R2-27 | ✅ | 无残留引用 |
+| R2-28 | ✅（→ V6 已修复） | V6 再收敛 5 处纯样板（`1c4de03e`）；剩余 `require_unlocked` 使用点均因 account_id 参与参数校验/错误消息需保留，样板收敛完成 |
+| R2-13 | — | 长期重构候选（与 P223 同类），无 commit，不适用 |
+
+#### 6.2 跟进问题清单（新发现问题，待修复）
+
+| ID | 优先级 | 来源 | 文件位置 | 描述 | 状态 |
+|----|--------|------|----------|------|------|
+| R2-V1 | P1 | R2-03 残留 | `solosoul_cli/src/app.rs:2022/2162/2167/2533/2545/2554`、`commands/mod.rs:12-13` | 6 处按键 handler 错误仍 `?` 传播退出 TUI（自动锁定后操作即触发）；overlay 捕获用英文 `e.to_string()` 覆盖 i18n 文案 | `[x]` 已修复（`1ddde2df`：handle_key 统一捕获层 + execute_command 保留 i18n 文案） |
+| R2-V2 | P1 | R2-26 不完整 | `log.rs:81`、`vault_write.rs:548`、`plugin.rs:215/252`、`security.rs:330` | 5 处成功消息仍显示为红色「! 错误」overlay，commit 声称「全部 22 处」不实 | `[x]` 已修复（`8eed85e6`：5 处成功路径改 success_message toast） |
+| R2-V3 | P2 | R2-09 残留 | `tauri/src/pages/settings/TrashPage.tsx:193-195` | restore 回调内层吞错：失败时对话框仍关闭（与 delete 路径行为不一致），外层 catch restore 分支为死代码 | `[x]` 已修复（`62a9acd8`：内层 catch 后重新 throw，外层保持对话框） |
+| R2-V4 | P2 | R2-18 扫尾 | `GlobalAttachmentManager.tsx:251/264/277`、`useAttachmentManager.ts:114/377/420/463`、`AttachmentToolbar.tsx:104/126`、`AttachmentViewer.tsx:87/229` | 11 处带插值的 `t(key, {...}) \|\| fallback` 死兜底遗漏，应同样改 defaultValue | `[x]` 已修复（`b11b2654`：12 处含 HistoryPage 同类残留，全库扫描清零） |
+| R2-V5 | P2 | R2-10 残留 | `solosoul_cli/src/app.rs:2008/2017/2046/2074/2096/2501` | 5 处列表导航 handler 仍每按键克隆整个 items Vec，应 `&mut self.phase` 就地改 selected | `[x]` 已修复（`c1380b22`：先算 NavAction 再就地改 selected，items.clone 清零） |
+| R2-V6 | P2 | R2-28 不彻底 | `solosoul_cli/src/commands/`（vault_write.rs:131-135、search.rs:89-92、history.rs:21-24、log.rs:18-20 等 20+ 处） | 解锁样板收敛仅完成 6/~40 处，剩余纯样板继续收敛到 `require_unlocked_with_vault` | `[x]` 已修复（`1c4de03e`：5 处纯样板收敛；account_id 参与校验的非纯样板保留） |
+| R2-V7 | P2 | R2-22/23 轻微 | `solosoul_cli/src/commands/vault_read.rs:23/45`、`util.rs:12` | a) `/list` 截断 200 无用户提示（与 /search 不对称）；b) `shared_runtime()` 初始化失败从优雅报错退化为 `expect` panic | `[x]` 已修复（`33127c52`：ObjectList.truncated 提示 + shared_runtime 返 Result 优雅降级） |
+| R2-V8 | P2 | 硬化/知情项 | `attachment.rs:824-825`；sync `attachments.rs`；`helpers.rs:298-324` | a) `src_raw` 字面路径比较建议仅在 canonicalize 失败时启用（symlink 旁路硬化）；b) 知情：R2-08 失败语义变严（单行坏即整批失败）、R2-15a 明文 payload 短暂落盘 tempdir——确认接受即可关闭 | `[x]` 已修复+确认（`9254248e`：src_raw 仅 canonicalize 失败时参与判定；两项知情项用户 2026-08-06 确认接受） |
+
+#### 6.3 验证总结
+
+- **整体结论**：28 项修复质量良好，无方向性错误、无回归（基线全绿）。**8 项跟进问题（V1-V8）已于 2026-08-06 全部闭环**：V1 按键 handler 错误不再退出 TUI、V2 成功消息补全、V3 回收站失败保持对话框、V4 带插值兜底全量改 defaultValue、V5 列表导航去克隆、V6 解锁样板收敛、V7 /list 截断提示 + 运行时优雅报错、V8 symlink 旁路硬化 + 知情项确认。R2 可标记终版。
+- **R2 终版验证**：Rust workspace fmt/clippy 0 警告；CLI cargo test 151+2 全绿；前端 tsc 0 / eslint 0 / vitest 全绿。
 
 ### R2-§3 重点问题修复指引（P0/P1）
 
