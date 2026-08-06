@@ -2,7 +2,7 @@
 
 > 最后更新：2026-08-06
 > 当前分支：`main`
-> 修复轮次：R1 已闭环；R2 修复 28 项已提交；V1-V8 已提交并经第二轮验证（2026-08-06）：**5 项正确 / 3 项不完整（V2、V6、V8a——其中 V8a 为 P1 安全项，attachment_open 的 symlink 旁路未修）**，产生 4 项跟进问题（W1-W4，待修复）。**R2 不能标记终版**（详见 §R2-§7）
+> 修复轮次：R1 已闭环；R2 修复 28 项已提交；V1-V8 经第二轮验证后产生 4 项跟进问题（W1-W4），**已全部修复（2026-08-06）**：W1（P1 安全，attachment_open/copy_to_vault symlink 旁路硬化 `c312fe84`）、W2（CLI 21 键成功/信息语义收敛 `14609bc5`）、W3（CLI 8 处样板收敛 `0bee6cb7`）、W4（前端 156 处死兜底 `9747f573`）。待第三轮复审后 R2 可标记终版（详见 §R2-§7）
 
 ---
 
@@ -141,14 +141,14 @@
 | R2-W1 | **P1（安全）** | V8a 不完整 | `tauri/src-tauri/src/commands/attachment.rs:945-957/976` | `attachment_open` 未应用 `src_canonicalized` 模式：symlink 旁路仍可以系统默认应用打开 vault 外任意文件，按 download 同款模式补齐；顺带统一 `attachment_copy_to_vault:404-435` 的 raw/canonical 混用 | `[x]` 已修复（2026-08-06 `c312fe84`） |
 | R2-W2 | P2 | V2 不完整 | CLI `commands/`：`attachment.rs:113/148/201-202/297-298/316`、`vault_write.rs:347/478/502`、`history.rs:153`、`sync.rs:165-169/186`、`security.rs:179/286` | 13 处成功语义仍写红色 error overlay（另 6 处信息/进度语义项一并评估）；修复时以 grep 全量清单验收 | `[x]` 已修复（2026-08-06 `14609bc5`，13 处成功 + 8 处信息/进度共 21 键收敛，测试断言同步） |
 | R2-W3 | P2 | V6 不完整 | CLI `commands/`：`log.rs:12-21`、`search.rs:80-92`、`history.rs:12-24`、`vault_read.rs:67-80`、`vault_write.rs:23-35/168-180/230-242/517-529` | 8 处纯解锁样板未收敛到 `require_unlocked_with_vault`；并修订 V6 commit 中不实的保留理由 | `[x]` 已修复（2026-08-06 `0bee6cb7`，8 处全收敛 + 导入整理 + V6 理由修订） |
-| R2-W4 | P2 | V4 新发现 | 前端 guide 文案 15 个文件（TrashPage.tsx:94-123、useSyncPage.ts:71-97、workspaceGuidePages.ts:29-66、PageGuide.tsx 等） | 同类 `t(key) ?? '...'` 死兜底约 90 处（`??` 同样永不生效），按 V4 同款 defaultValue 模式处理 | `[ ]` 待修复 |
+| R2-W4 | P2 | V4 新发现 | 前端 guide 文案 15 个文件（TrashPage.tsx:94-123、useSyncPage.ts:71-97、workspaceGuidePages.ts:29-66、PageGuide.tsx 等） | 同类 `t(key) ?? '...'` 死兜底约 90 处（`??` 同样永不生效），按 V4 同款 defaultValue 模式处理 | `[x]` 已修复（2026-08-06 `9747f573`，实际 156 处——纯 key 155 + 带插值 1，16 文件） |
 
 #### 7.3 第二轮验证总结
 
 - **5 项正确**：V1（统一捕获层设计优于逐点修）、V3、V4、V5、V7。
-- **3 项不完整**：**W1 为 P1 安全项**（attachment_open 的 symlink 旁路，比已修的 download 更危险）；W2/W3 为同型扫尾遗漏——连续两轮出现「commit 声称全量、实际未做全库 grep」的模式（R2-26→V2→W2，R2-28→V6→W3），建议此类项以 grep 全量清单为验收标准。
+- **3 项不完整 → W1-W4 全部闭环（2026-08-06）**：**W1（P1 安全）**`c312fe84`——attachment_open/copy_to_vault 应用 src_canonicalized 模式，symlink 旁路关闭；**W2**`14609bc5`——CLI 21 个成功/信息语义键全量收敛 success_message（grep 清单验收为 0 残留）；**W3**`0bee6cb7`——CLI 8 处纯解锁样板收敛 + V6 不实理由修订；**W4**`9747f573`——前端 156 处 t(key) ?? 字面量死兜底改 defaultValue。
 - 轻微瑕疵（不阻塞，不立项）：V1 open_selected 硬编码「未登录」；V3 失败双重 toast；V7 FTL 硬编码「200」与降级文案未 i18n。
-- 按流程阶段 4：存在 P1（W1）→ **R2 不能标记终版**（`cc392b34` 的终版标记无效），待 W1-W4 修复后第三轮复审。
+- 按流程阶段 4：W1-W4 已全部修复并经编译/测试验证 → 待第三轮复审后可将 R2 标记终版。
 
 ### R2-§3 重点问题修复指引（P0/P1）
 
