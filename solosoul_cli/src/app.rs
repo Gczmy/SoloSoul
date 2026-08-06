@@ -838,7 +838,11 @@ impl App {
         }
 
         // 根据当前阶段分发（借用匹配，仅克隆小字段，避免每次按键深拷贝整个 AppPhase 的大列表）
-        match &self.phase {
+        // V1（R2-03 残留收尾）：各 phase handler 内部 `?` 传播的错误在此统一捕获为
+        // error overlay，不再一路传播到 main 退出 TUI（自动锁定后在列表页操作即触发）。
+        // 命令已设置 i18n 文案（如 require_unlocked 的 cmd-need-unlock）时保留原文案，
+        // 避免英文 e.to_string() 覆盖用户语言文案。
+        let result = match &self.phase {
             AppPhase::Onboarding { step } => {
                 let step = step.clone();
                 self.handle_onboarding_key(key, step)
@@ -879,6 +883,14 @@ impl App {
             AppPhase::Locked => self.handle_locked_key(key),
             AppPhase::Welcome => self.handle_welcome_key(key),
             _ => self.handle_command_key(key),
+        };
+        if let Err(e) = result {
+            if self.error_message.is_none() {
+                self.error_message = Some(e.to_string());
+            }
+            Ok(false)
+        } else {
+            result
         }
     }
 
@@ -1620,10 +1632,14 @@ impl App {
         // R2-03: 命令错误不再经 `?` 传播到 main 导致 TUI 进程退出——
         // 统一在此捕获并显示为错误 overlay（与 require_unlocked 设置
         // error_message 的 overlay 设计意图对齐）。仅 `/exit` 返回 Ok(true)。
+        // V1（i18n 保留）：require_unlocked 等命令已设置 i18n 文案时保留，
+        // 避免英文 e.to_string() 覆盖用户语言文案。
         match self.dispatch_command(&cmd, &parts, base) {
             Ok(exit) => Ok(exit),
             Err(e) => {
-                self.error_message = Some(e.to_string());
+                if self.error_message.is_none() {
+                    self.error_message = Some(e.to_string());
+                }
                 Ok(false)
             }
         }
