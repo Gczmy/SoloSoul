@@ -35,7 +35,7 @@
 | R2-08 | P1 | 性能 | `tauri/crates/solosoul-sync/src/attachments.rs:88-120` | 每次同步会话全表 N+1：`list_object_metadata` 后对每个对象 `load_object`（全量解密）+ 对每个附件文件重新 `sha256_file`，同步延迟/IO 随附件体积线性增长 | `[x]` 已修复（N+1 部分） |
 | R2-09 | P1 | UX/错误处理 | `tauri/src/stores/trashStore.ts:142`、`pages/settings/TrashPage.tsx:485`、`components/trash/TrashConfirmDialog.tsx:68` | 回收站永久删除失败时 unhandled rejection：对话框不关闭、无 toast、按钮可重复点击并发重复删除——破坏性操作关键路径 | `[ ]` 待修复 |
 | R2-10 | P1 | 性能 | `solosoul_cli/src/app.rs:806` 等 10+ 处 | 每次按键 `self.phase.clone()` 深拷贝整个 AppPhase（含大列表 items），大 Vault 下 TUI 掉帧根源 | `[ ]` 待修复 |
-| R2-11 | P2 | 死代码 | `tauri/src-tauri/src/services/llm_context.rs:32-417` | `build_context` 及整棵私有子树（约 330 行）仅被测试引用存活；活路径仅剩 `clear_cache`/`bump_public_data_version` | `[ ]` 待修复 |
+| R2-11 | P2 | 死代码 | `tauri/src-tauri/src/services/llm_context.rs:32-417` | `build_context` 及整棵私有子树（约 330 行）仅被测试引用存活；活路径仅剩 `clear_cache`/`bump_public_data_version` | `[x]` 已修复 |
 | R2-12 | P2 | 死代码 | `tauri/src-tauri/src/commands/llm/rag.rs:502`、`crates/solosoul-plugin/src/registry.rs:60` | `needs_rebuild`、`PluginRegistry::from_path` 全 workspace 零调用 | `[ ]` 待修复 |
 | R2-13 | P2 | 结构 | Rust 超长/深嵌套函数 | `app_state.rs:257`（189 行/深 10）、`search/query.rs:16`（120/深 10）、`import.rs:226`（213）、`storage.rs:649`（211）与 `:884 reencrypt_all`（207，6 个表处理块复制粘贴）、`plugin/manager.rs:170`（209）、`plugin/host.rs:437/893/662`、`sync/attachments.rs:387` 等 | `[ ]` 待修复 |
 | R2-14 | P2 | 重复 | `tauri/src-tauri/src/commands/attachment.rs:394-418 vs 823-846` | `allowed_bases` 白名单构建块两处近乎逐字重复（~90%），且一处含移动端 temp_dir 分支一处不含——策略漂移风险 | `[ ]` 待修复 |
@@ -56,8 +56,8 @@
 
 ## R2 修复进度
 
-- 已完成：7 / 28（第一批 6 项 + R2-08）
-- 当前处理：第二批（Rust 死代码与杂项）：R2-11 → R2-12 → R2-14 → R2-15
+- 已完成：8 / 28（第一批 6 项 + R2-08 + R2-11）
+- 当前处理：第二批：R2-12 → R2-14 → R2-15
 
 ### R2-§3 重点问题修复指引（P0/P1）
 
@@ -95,6 +95,7 @@
 - **R2-03（P1 崩溃/UX，2026-08-06）**：`execute_command` 拆分为 `execute_command`（错误捕获层）+ `dispatch_command`（命令分派，仍返回 `Result<bool>`）。所有命令错误在 `execute_command` 统一捕获并转为 `error_message` overlay，不再经 `?` 传播到 `tui.run()`/`main` 导致 TUI 进程退出；仅 `/exit` 返回 `Ok(true)`。Locked 状态手输 `/list` 等需解锁命令现在仅显示错误提示。顺带清理分派表 6 处 `&parts` 的 `needless_borrow`。新增防回归单测 `test_locked_command_error_shows_overlay_not_exit`。验证：`cargo test`（149+2+1）全绿、`cargo clippy -- -D warnings` 零告警。
 - **R2-02（P1 崩溃，2026-08-06）**：`/plugin_run` 裸输（无参数）时 `&parts[2..]` 改 `parts.get(2..).unwrap_or(&[])`——一行修复消除越界 panic。新增防回归单测 `test_plugin_run_no_args_does_not_panic`（Locked 态裸输 `/plugin_run` 返回 Ok(false) 且提示用法，不崩溃不退 TUI）。验证：`cargo test`（150+2+1）全绿、`cargo clippy -- -D warnings` 零告警。
 - **R2-08（P1 性能，2026-08-06）**：`collect_attachment_manifests` 的 N+1 已消除——原「`list_object_metadata`（无 properties）+ 逐对象 `load_object`（每对象一次 SQL + 一次全量解密）」改为单次 `list_objects`（一次查询、一次解码全部 properties 并直接解析 `summary.properties.__attachments`）。注：每次对附件文件 `sha256_file` 属于**正确性必需**（manifest 的 sha256 必须反映当前磁盘文件真实字节，接收端靠它校验），未做缓存；真正的查询/解密 N+1 开销已去除。验证：`cargo test -p solosoul-sync` 60 用例全绿。
+- **R2-11（P2 死代码，2026-08-06）**：`llm_context.rs` 删除 `build_context` 及其整棵私有子树（7 个 section 构建器、`extract_properties`、`to_title_case`/`type_display_name`/`property_key_to_label`/`trim_to_limit`、`MAX_*` 常量，约 330 行）。因 `PROMPT_CACHE` 的唯一写入方即 `build_context`，缓存层随之成为「只清不写」死代码——`clear_cache` 及 `PROMPT_CACHE`/`CachedPrompt` 一并删除，并移除 vault.rs `lock` 与 auth.rs `logout` 中 2 处 `clear_cache()` 调用（原调用本就是空操作）。模块保留 `bump_public_data_version`/`load`/`save_public_data_version` 及其 3 个测试。验证：`cargo test -p solo_soul --lib llm` 36 用例 + `cargo clippy` 零告警。
 
 ---
 

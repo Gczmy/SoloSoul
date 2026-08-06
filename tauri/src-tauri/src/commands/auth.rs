@@ -187,8 +187,6 @@ pub async fn verify_password(
 
 #[tauri::command]
 pub async fn logout(state: State<'_, AppState>) -> Result<(), String> {
-    // P035：登出同样锁定 Vault，需与 lock 命令一致清空 LLM 系统提示缓存。
-    crate::services::llm_context::clear_cache();
     let svc = state
         .vault_service
         .read()

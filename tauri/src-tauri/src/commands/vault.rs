@@ -20,9 +20,6 @@ pub async fn unlock(
 #[tauri::command]
 pub async fn lock(state: State<'_, AppState>) -> Result<(), String> {
     let app_handle = state.handle.clone();
-    // P035：锁定 Vault 时清空 LLM 系统提示缓存（缓存键含 account_id，
-    // 但 prompt 内容可能含敏感数据，锁定时清理符合注释所述设计意图）。
-    crate::services::llm_context::clear_cache();
     let svc = state
         .vault_service
         .read()
