@@ -60,7 +60,23 @@ pub fn export_log(app: &mut App, file_name: Option<&str>) -> Result<()> {
         .unwrap_or_else(|| "export_audit_log.json".to_string());
     let path = logs_dir.join(&file_name);
 
-    std::fs::write(&path, &json).map_err(|e| {
+    // 审计日志内容为解密后明文，写文件后显式收紧权限为 0600（项目约定）。
+    use std::io::Write;
+    let mut f = std::fs::OpenOptions::new()
+        .write(true)
+        .create(true)
+        .truncate(true)
+        .open(&path)
+        .map_err(|e| {
+            app.error_message = Some(t!(app.i18n, "cmd-log-write-failed", err = e));
+            color_eyre::eyre::eyre!(e)
+        })?;
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let _ = std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o600));
+    }
+    f.write_all(json.as_bytes()).map_err(|e| {
         app.error_message = Some(t!(app.i18n, "cmd-log-write-failed", err = e));
         color_eyre::eyre::eyre!(e)
     })?;
