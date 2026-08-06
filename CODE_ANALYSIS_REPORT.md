@@ -26,7 +26,7 @@
 | ID | 优先级 | 类别 | 文件位置 | 描述 | 状态 |
 |----|--------|------|----------|------|------|
 | R2-01 | P0 | 安全 | `tauri/src-tauri/src/commands/attachment.rs:785-811` | 路径校验回退分支用纯字符串前缀 `starts_with`，共享前缀的兄弟目录（如 `~/.solosoul_evil/`）可绕过 `in_vault` 检查；src 未拒绝 `..` 组件。该命令不要求解锁 Vault，是 webview 可达的读文件原语 | `[x]` 已修复 |
-| R2-02 | P1 | 崩溃 | `solosoul_cli/src/app.rs:1635` | 裸输 `/plugin_run`（无参数）时 `&parts[2..]` 越界 panic，进程崩溃 | `[ ]` 待修复 |
+| R2-02 | P1 | 崩溃 | `solosoul_cli/src/app.rs:1635` | 裸输 `/plugin_run`（无参数）时 `&parts[2..]` 越界 panic，进程崩溃 | `[x]` 已修复 |
 | R2-03 | P1 | 崩溃/UX | `solosoul_cli/src/commands/mod.rs:10-18`、`app.rs:1584`、`tui.rs:74` | 命令错误经 `?` 一路传播到 main：Locked 状态手输 `/list` 等命令直接退出 TUI 进程（`require_unlocked` 设置的 `error_message` overlay 设计意图被旁路） | `[x]` 已修复 |
 | R2-04 | P1 | 安全 | `solosoul_cli/src/widgets/prompt.rs:43/56/174`、`commands/security.rs:52-110/225/251/300`、`export_import.rs:89/197`、`app.rs:594` | 改主密码/导出密码/删除账户等经 prompt 以纯 `String` 多副本流转且全程不清零，与 `PasswordInput` 的 `Zeroizing<String>` 约定矛盾 | `[ ]` 待修复 |
 | R2-05 | P1 | 隐患 | `tauri/crates/solosoul-core/src/watermark/mod.rs:606-618` | 代码与注释矛盾：注释明写临时 TTF 文件须存活到 PDF 保存完成，`let _ = temp;` 却立即 drop 删除。目前仅因 Pdfium 急切加载字体而「靠运气正确」 | `[x]` 已修复 |
@@ -56,8 +56,8 @@
 
 ## R2 修复进度
 
-- 已完成：5 / 28（R2-01/05/06/07 + R2-03 已闭环）
-- 当前处理：R2-02（CLI /plugin_run 越界 panic，第一批最后一项）
+- 已完成：6 / 28（**第一批全部闭环**：R2-01/05/06/07 + R2-02/R2-03）
+- 当前处理：第二批（Rust 性能与死代码）：R2-08 → R2-11 → R2-12 → R2-14 → R2-15
 
 ### R2-§3 重点问题修复指引（P0/P1）
 
@@ -93,6 +93,7 @@
 - **R2-06（P1 错误吞没，2026-08-06）**：`import_preferences` 的 `let _ = vault.save_profile(&profile);` 改为 `vault.save_profile(&profile)?;`——保存失败时整个导入报错返回，不再出现「导入成功」但 preferences 未落库的假象。验证：`cargo test -p solosoul-core` 163 用例全绿。
 - **R2-07（P1 错误吞没，2026-08-06）**：`purge_trash` 的 `let _ = vault.delete_object(&trash.original_id, false);` 改为传播错误（`?`）——底层对象删除失败时中止并保留 trash 记录，避免「删了 trash 记录却留下无法再清理的孤儿对象行」。验证：`cargo test -p solosoul-core` 163 用例全绿。
 - **R2-03（P1 崩溃/UX，2026-08-06）**：`execute_command` 拆分为 `execute_command`（错误捕获层）+ `dispatch_command`（命令分派，仍返回 `Result<bool>`）。所有命令错误在 `execute_command` 统一捕获并转为 `error_message` overlay，不再经 `?` 传播到 `tui.run()`/`main` 导致 TUI 进程退出；仅 `/exit` 返回 `Ok(true)`。Locked 状态手输 `/list` 等需解锁命令现在仅显示错误提示。顺带清理分派表 6 处 `&parts` 的 `needless_borrow`。新增防回归单测 `test_locked_command_error_shows_overlay_not_exit`。验证：`cargo test`（149+2+1）全绿、`cargo clippy -- -D warnings` 零告警。
+- **R2-02（P1 崩溃，2026-08-06）**：`/plugin_run` 裸输（无参数）时 `&parts[2..]` 改 `parts.get(2..).unwrap_or(&[])`——一行修复消除越界 panic。新增防回归单测 `test_plugin_run_no_args_does_not_panic`（Locked 态裸输 `/plugin_run` 返回 Ok(false) 且提示用法，不崩溃不退 TUI）。验证：`cargo test`（150+2+1）全绿、`cargo clippy -- -D warnings` 零告警。
 
 ---
 

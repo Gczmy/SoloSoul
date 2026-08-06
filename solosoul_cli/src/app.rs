@@ -1647,7 +1647,9 @@ impl App {
                 commands::plugin::list_plugins(self)?
             }
             "/plugin_run" => {
-                commands::plugin::run_plugin(self, parts.get(1).copied(), &parts[2..])?
+                // R2-02: 裸输 `/plugin_run`（无参数）时避免 `&parts[2..]` 越界 panic。
+                let args = parts.get(2..).unwrap_or(&[]);
+                commands::plugin::run_plugin(self, parts.get(1).copied(), args)?
             }
             "/plugin_install" => commands::plugin::install_plugin(self, parts.get(1).copied())?,
             "/plugin_update" => commands::plugin::update_plugin(self, parts.get(1).copied())?,
@@ -3184,6 +3186,16 @@ mod tests {
         let result = app.execute_command();
         assert_eq!(result.unwrap(), false, "命令错误不应退出 TUI");
         assert!(app.error_message.is_some(), "应显示错误 overlay");
+    }
+
+    #[test]
+    fn test_plugin_run_no_args_does_not_panic() {
+        // R2-02 回归：裸输 `/plugin_run` 不得因 `&parts[2..]` 越界 panic。
+        let (mut app, _id, _dir) = locked_app();
+        app.command_input.value = "/plugin_run".to_string();
+        let result = app.execute_command();
+        assert_eq!(result.unwrap(), false, "命令不应退出 TUI");
+        assert!(app.error_message.is_some(), "应提示用法");
     }
 
     #[test]
