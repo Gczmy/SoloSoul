@@ -347,7 +347,10 @@ async fn run_device_sync(
         //（对端已离开局域网）。短超时（2s）TCP 探测先确认可达，再走完整同步会话
         //（10s 连接超时），避免离线 peer 拖慢整轮周期同步。
         if !is_peer_reachable(&peer.addr, Duration::from_secs(2)).await {
-            tracing::debug!("[DeviceAutoSync] peer {} unreachable (probe), skipping", peer_id);
+            tracing::debug!(
+                "[DeviceAutoSync] peer {} unreachable (probe), skipping",
+                peer_id
+            );
             continue;
         }
         reachable += 1;

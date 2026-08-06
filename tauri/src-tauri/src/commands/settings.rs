@@ -240,8 +240,7 @@ pub fn write_auto_sync_pref<R: tauri::Runtime>(
         let _ = std::fs::create_dir_all(parent);
     }
     let mut prefs: serde_json::Value = if path.exists() {
-        let content =
-            std::fs::read_to_string(&path).map_err(|e| format!("Read UI prefs: {e}"))?;
+        let content = std::fs::read_to_string(&path).map_err(|e| format!("Read UI prefs: {e}"))?;
         serde_json::from_str::<serde_json::Value>(&content).unwrap_or_default()
     } else {
         serde_json::Value::Object(serde_json::Map::new())
@@ -250,7 +249,10 @@ pub fn write_auto_sync_pref<R: tauri::Runtime>(
         prefs = serde_json::Value::Object(serde_json::Map::new());
     }
     if let Some(obj) = prefs.as_object_mut() {
-        obj.insert("auto_sync_enabled".to_string(), serde_json::Value::Bool(enabled));
+        obj.insert(
+            "auto_sync_enabled".to_string(),
+            serde_json::Value::Bool(enabled),
+        );
     }
     let json = serde_json::to_string(&prefs).map_err(|e| e.to_string())?;
     std::fs::write(&path, json).map_err(|e| format!("Write UI prefs: {e}"))?;
