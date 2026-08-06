@@ -530,6 +530,7 @@ pub fn restore(app: &mut App, trash_id: Option<&str>) -> Result<()> {
 }
 
 pub fn purge(app: &mut App, trash_id: Option<&str>) -> Result<()> {
+    let (_account_id, vault) = require_unlocked_with_vault(app)?;
     let trash_id = match trash_id {
         Some(id) => id.to_string(),
         None => {
@@ -538,10 +539,6 @@ pub fn purge(app: &mut App, trash_id: Option<&str>) -> Result<()> {
         }
     };
 
-    let vault = app
-        .vault_service
-        .get_vault_store()
-        .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
     let trash = match vault
         .get_trash_item(&trash_id)
         .map_err(|e| color_eyre::eyre::eyre!(e))?
@@ -553,6 +550,8 @@ pub fn purge(app: &mut App, trash_id: Option<&str>) -> Result<()> {
         }
     };
 
+    // 闭包内复用已获取的 VaultStore（Arc），不再二次 get_vault_store 抛裸 eyre
+    let vault_for_confirm = vault.clone();
     prompt::open(
         app,
         PromptSpec::Confirm {
@@ -561,15 +560,7 @@ pub fn purge(app: &mut App, trash_id: Option<&str>) -> Result<()> {
         },
         Box::new(move |app, result| {
             if let PromptResult::Confirm(true) = result {
-                let vault = match app
-                    .vault_service
-                    .get_vault_store()
-                    .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))
-                {
-                    Ok(v) => v,
-                    Err(_) => return,
-                };
-                match objects::purge_trash(&vault, &trash_id) {
+                match objects::purge_trash(&vault_for_confirm, &trash_id) {
                     Ok(name) => {
                         app.success_message =
                             Some((t!(app.i18n, "cmd-deleted", name = name), Instant::now()))

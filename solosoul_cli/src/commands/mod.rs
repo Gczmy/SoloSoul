@@ -25,7 +25,7 @@ pub fn require_unlocked_with_vault(
     let vault = app
         .vault_service
         .get_vault_store()
-        .ok_or_else(|| color_eyre::eyre::eyre!("Vault not open"))?;
+        .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
     Ok((account_id, vault))
 }
 
