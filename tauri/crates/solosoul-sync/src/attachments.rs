@@ -84,37 +84,37 @@ pub fn collect_attachment_manifests(
     vault: &VaultStore,
     account_id: &str,
 ) -> Result<Vec<(String, Vec<AttachmentInfo>)>, String> {
-    // P111: 仅需对象 ID 候选，随后逐个 load_object 读全量，走 metadata-only 查询。
+    // R2-08: 单次 list_objects 已在一次查询中解密全部 properties（含 __attachments），
+    // 直接复用——替代原「list_object_metadata + 逐对象 load_object」的 N+1 次 SQL 往返
+    // 与重复解密（每个对象单独一次全量解密）。
     let objects = vault
-        .list_object_metadata(account_id, None, None, false, false)
-        .map_err(|e| format!("list_object_metadata: {}", e))?;
+        .list_objects(account_id, None, None, None, false, false)
+        .map_err(|e| format!("list_objects: {}", e))?;
     let base = vault.base_path();
     let mut manifests = Vec::new();
     for summary in objects {
-        if let Ok(Some(rec)) = vault.load_object(&summary.id) {
-            if let Some(attachments) = parse_attachments(&rec.properties) {
-                let infos: Vec<AttachmentInfo> = attachments
-                    .into_iter()
-                    .filter(|a| a.deleted_at.is_none())
-                    .filter_map(|a| {
-                        let path =
-                            attachment_file_path(base, &a.object_id, &a.id, &a.file_name).ok()?;
-                        if !path.exists() {
-                            return None;
-                        }
-                        let sha256 = sha256_file(&path).ok()?;
-                        Some(AttachmentInfo {
-                            id: a.id,
-                            object_id: a.object_id,
-                            file_name: a.file_name,
-                            size_bytes: a.size_bytes,
-                            sha256,
-                        })
+        if let Some(attachments) = parse_attachments(&summary.properties) {
+            let infos: Vec<AttachmentInfo> = attachments
+                .into_iter()
+                .filter(|a| a.deleted_at.is_none())
+                .filter_map(|a| {
+                    let path =
+                        attachment_file_path(base, &a.object_id, &a.id, &a.file_name).ok()?;
+                    if !path.exists() {
+                        return None;
+                    }
+                    let sha256 = sha256_file(&path).ok()?;
+                    Some(AttachmentInfo {
+                        id: a.id,
+                        object_id: a.object_id,
+                        file_name: a.file_name,
+                        size_bytes: a.size_bytes,
+                        sha256,
                     })
-                    .collect();
-                if !infos.is_empty() {
-                    manifests.push((summary.id.clone(), infos));
-                }
+                })
+                .collect();
+            if !infos.is_empty() {
+                manifests.push((summary.id.clone(), infos));
             }
         }
     }
