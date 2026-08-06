@@ -84,32 +84,40 @@ impl WatermarkConfig {
     }
 }
 
-/// 尝试加载系统等宽字体文件（供图片水印使用）
+/// 尝试加载系统等宽字体文件（供图片水印使用）。
+///
+/// R2-15: 结果经 `OnceLock` 缓存——系统字体在一次进程生命周期内不变，
+/// 避免每次图片水印都重新读盘 + 解析。首次加载失败同样缓存（保持幂等）。
 fn load_font_bytes() -> Result<Vec<u8>, String> {
-    let candidates: &[&str] = &[
-        "/System/Library/Fonts/Monaco.ttf",
-        "/System/Library/Fonts/Menlo.ttc",
-        "/System/Library/Fonts/Supplemental/Courier New.ttf",
-        "/System/Library/Fonts/Courier New.ttf",
-        "C:\\Windows\\Fonts\\cour.ttf",
-        "C:\\Windows\\Fonts\\consola.ttf",
-        "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",
-        "/usr/share/fonts/truetype/liberation/LiberationMono-Regular.ttf",
-    ];
+    static CACHE: std::sync::OnceLock<Result<Vec<u8>, String>> = std::sync::OnceLock::new();
+    CACHE
+        .get_or_init(|| {
+            let candidates: &[&str] = &[
+                "/System/Library/Fonts/Monaco.ttf",
+                "/System/Library/Fonts/Menlo.ttc",
+                "/System/Library/Fonts/Supplemental/Courier New.ttf",
+                "/System/Library/Fonts/Courier New.ttf",
+                "C:\\Windows\\Fonts\\cour.ttf",
+                "C:\\Windows\\Fonts\\consola.ttf",
+                "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",
+                "/usr/share/fonts/truetype/liberation/LiberationMono-Regular.ttf",
+            ];
 
-    for path in candidates {
-        if let Ok(data) = std::fs::read(path) {
-            if path.ends_with(".ttc") {
-                if let Ok(single) = extract_first_from_ttc(&data) {
-                    return Ok(single);
+            for path in candidates {
+                if let Ok(data) = std::fs::read(path) {
+                    if path.ends_with(".ttc") {
+                        if let Ok(single) = extract_first_from_ttc(&data) {
+                            return Ok(single);
+                        }
+                        continue;
+                    }
+                    return Ok(data);
                 }
-                continue;
             }
-            return Ok(data);
-        }
-    }
 
-    Err("未找到系统字体，无法渲染水印".to_string())
+            Err("未找到系统字体，无法渲染水印".to_string())
+        })
+        .clone()
 }
 
 /// 从 TTC（TrueType Collection）中提取第一个字体。

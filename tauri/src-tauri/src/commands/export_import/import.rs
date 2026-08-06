@@ -520,11 +520,14 @@ fn decrypt_package(
     let salt = hex::decode(&manifest.salt_hex).map_err(|e| format!("Invalid salt: {}", e))?;
     // P202: 按 manifest 声明参数派生（旧格式包无 kdf 字段回退 balanced 兼容）。
     let key = derive_export_key_cfg(password, &salt, &manifest.kdf_config())?;
-    let enc_bytes = read_file_from_zip(file_path, "payload.enc")?;
-    let decrypted = solosoul_crypto::cipher::decrypt_chunked_from_bytes(&key, &enc_bytes)
-        .map_err(|_| import_err("DECRYPT_FAILED"))?;
-    let payload: serde_json::Value =
-        serde_json::from_slice(&decrypted).map_err(|e| format!("Invalid payload: {}", e))?;
+    // R2-15: 主 payload 流式解密——`payload.enc` 经 decrypt_chunked_stream 直接写入临时文件，
+    // 再从文件流式解析 JSON；峰值内存由「密文 + 明文 + JSON 树」约 3× 降至约 1× payload。
+    let mut tmp = tempfile::NamedTempFile::new().map_err(|e| format!("创建临时文件失败: {}", e))?;
+    decrypt_zip_entry_streaming(file_path, "payload.enc", &key, &mut tmp)?;
+    let payload: serde_json::Value = {
+        let f = std::fs::File::open(tmp.path()).map_err(|e| format!("读取临时文件失败: {}", e))?;
+        serde_json::from_reader(f).map_err(|e| format!("Invalid payload: {}", e))?
+    };
     Ok((manifest, payload, key))
 }
 

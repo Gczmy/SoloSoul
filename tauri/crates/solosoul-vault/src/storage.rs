@@ -375,6 +375,22 @@ impl VaultStore {
             .ok_or_else(|| "Vault data key not available".to_string())
     }
 
+    /// 判断表中是否存在指定列（R2-15：增量迁移前先探测，不再用 `let _ =` 吞掉全部
+    /// ALTER TABLE 错误——重复加列属预期，其余错误须可见）。
+    fn column_exists(conn: &Connection, table: &str, column: &str) -> Result<bool, String> {
+        let sql = format!("PRAGMA table_info({})", table);
+        let mut stmt = conn.prepare(&sql).map_err(|e| e.to_string())?;
+        let mut rows = stmt
+            .query_map([], |row| row.get::<_, String>(1))
+            .map_err(|e| e.to_string())?;
+        while let Some(col) = rows.next().transpose().map_err(|e| e.to_string())? {
+            if col == column {
+                return Ok(true);
+            }
+        }
+        Ok(false)
+    }
+
     fn init_schema(conn: &Connection) -> Result<(), String> {
         conn.execute_batch(
             r#"
@@ -538,15 +554,21 @@ impl VaultStore {
         .map_err(|e| format!("Failed to init schema: {}", e))?;
 
         // Migration: add tags_json column if missing (added in schema v2, §24)
-        let _ = conn.execute(
-            "ALTER TABLE objects ADD COLUMN tags_json TEXT NOT NULL DEFAULT '[]'",
-            [],
-        );
+        if !Self::column_exists(conn, "objects", "tags_json")? {
+            conn.execute(
+                "ALTER TABLE objects ADD COLUMN tags_json TEXT NOT NULL DEFAULT '[]'",
+                [],
+            )
+            .map_err(|e| format!("Failed to add tags_json column: {}", e))?;
+        }
         // Migration: add section_type column if missing (§25.1.3)
-        let _ = conn.execute(
-            "ALTER TABLE objects ADD COLUMN section_type TEXT NOT NULL DEFAULT 'identity'",
-            [],
-        );
+        if !Self::column_exists(conn, "objects", "section_type")? {
+            conn.execute(
+                "ALTER TABLE objects ADD COLUMN section_type TEXT NOT NULL DEFAULT 'identity'",
+                [],
+            )
+            .map_err(|e| format!("Failed to add section_type column: {}", e))?;
+        }
 
         let version_exists: bool = conn
             .query_row(

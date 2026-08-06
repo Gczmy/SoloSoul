@@ -292,6 +292,38 @@ pub(crate) fn rewrite_id_references(
     }
 }
 
+/// 流式读取 ZIP 条目并分块解密（用于 `payload.enc`），明文直接写入 `writer`。
+///
+/// 与 `read_file_from_zip` 的防 ZIP 炸弹上限（`MAX_ZIP_ENTRY_SIZE`）一致，
+/// 但不在内存中同时驻留整份密文与明文——R2-15：导入峰值内存由约 3× payload
+/// （密文 + 明文 + JSON 树）降至约 1×（仅 JSON 树，经临时文件流式解析）。
+pub fn decrypt_zip_entry_streaming(
+    file_path: &str,
+    name: &str,
+    key: &[u8; 32],
+    writer: &mut impl std::io::Write,
+) -> Result<(), String> {
+    let path = std::path::Path::new(file_path);
+    let file = File::open(path).map_err(|e| format!("Cannot open: {}", e))?;
+    let mut archive = ZipArchive::new(file).map_err(|_| "Invalid ZIP".to_string())?;
+    let entry = archive
+        .by_name(name)
+        .map_err(|_| format!("File not found: {}", name))?;
+
+    if entry.size() > MAX_ZIP_ENTRY_SIZE {
+        return Err(format!(
+            "ZIP entry '{}' is too large ({} bytes, max {} bytes)",
+            name,
+            entry.size(),
+            MAX_ZIP_ENTRY_SIZE
+        ));
+    }
+
+    let mut limited = entry.take(MAX_ZIP_ENTRY_SIZE + 1);
+    solosoul_crypto::cipher::decrypt_chunked_stream(key, &mut limited, writer)
+        .map_err(|_| import_err("DECRYPT_FAILED"))
+}
+
 pub fn read_file_from_zip(file_path: &str, name: &str) -> Result<Vec<u8>, String> {
     let path = std::path::Path::new(file_path);
     let file = File::open(path).map_err(|e| format!("Cannot open: {}", e))?;
