@@ -1571,6 +1571,21 @@ impl App {
         let parts: Vec<&str> = cmd.split_whitespace().collect();
         let base = parts.first().copied().unwrap_or("");
 
+        // R2-03: 命令错误不再经 `?` 传播到 main 导致 TUI 进程退出——
+        // 统一在此捕获并显示为错误 overlay（与 require_unlocked 设置
+        // error_message 的 overlay 设计意图对齐）。仅 `/exit` 返回 Ok(true)。
+        match self.dispatch_command(&cmd, &parts, base) {
+            Ok(exit) => Ok(exit),
+            Err(e) => {
+                self.error_message = Some(e.to_string());
+                Ok(false)
+            }
+        }
+    }
+
+    /// 具体命令分派。任何命令错误均返回 Err（由 execute_command 统一转为 overlay），
+    /// 仅 `/exit` 返回 Ok(true) 表示退出 TUI。
+    fn dispatch_command(&mut self, cmd: &str, parts: &[&str], base: &str) -> Result<bool> {
         match base {
             "/exit" => {
                 commands::core::exit(self);
@@ -1608,19 +1623,19 @@ impl App {
             "/help" => commands::system::help(self, parts.get(1).copied())?,
             "/attach" => commands::attachment::handle(self, &parts[1..])?,
             "/backup" => commands::backup::handle(self, &parts[1..])?,
-            "/export" => commands::export_import::handle(self, &parts)?,
-            "/import" => commands::export_import::handle(self, &parts)?,
+            "/export" => commands::export_import::handle(self, parts)?,
+            "/import" => commands::export_import::handle(self, parts)?,
             "/language" | "/theme" | "/setting" | "/debug_log" => {
                 if base == "/setting" && parts.len() == 1 {
                     // 无参 `/setting` 打开设置菜单，不再报"用法: <key> <value>"。
                     commands::settings::open_menu(self);
                 } else {
-                    commands::settings::handle(self, &parts)?
+                    commands::settings::handle(self, parts)?
                 }
             }
-            "/security" => commands::security::handle(self, &parts)?,
-            "/profile" => commands::profile::handle(self, &parts)?,
-            "/template" => commands::template::handle(self, &parts)?,
+            "/security" => commands::security::handle(self, parts)?,
+            "/profile" => commands::profile::handle(self, parts)?,
+            "/template" => commands::template::handle(self, parts)?,
             "/model" => commands::llm::model(self)?,
             "/llm_config" => commands::llm::config(self)?,
             "/llm_stats" => commands::llm::stats(self)?,
@@ -3158,6 +3173,17 @@ mod tests {
 
         assert!(!app.vault_service.is_unlocked());
         assert!(app.error_message.is_some());
+    }
+
+    #[test]
+    fn test_locked_command_error_shows_overlay_not_exit() {
+        // R2-03 回归：Locked 状态手输需解锁命令（如 /list）不再经 `?` 传播
+        // 导致 TUI 进程退出，而是按 overlay 设计意图显示错误消息。
+        let (mut app, _id, _dir) = locked_app();
+        app.command_input.value = "/list".to_string();
+        let result = app.execute_command();
+        assert_eq!(result.unwrap(), false, "命令错误不应退出 TUI");
+        assert!(app.error_message.is_some(), "应显示错误 overlay");
     }
 
     #[test]
