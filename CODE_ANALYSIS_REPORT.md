@@ -1,8 +1,93 @@
-# SoloSoul 代码分析修复报告（全新一轮）
+# SoloSoul 代码分析修复报告
 
-> 最后更新：2026-08-04
+> 最后更新：2026-08-05
 > 当前分支：`main`
-> 修复轮次：R1（全新分析——旧报告已删除，本轮不引用旧报告内容）
+> 修复轮次：R1 已闭环；**R2（新一轮全库分析）进行中——HEAD = `c0478313`，仅出报告不修复**
+
+---
+
+## §R2 新一轮全库分析（2026-08-05，HEAD = `c0478313`）
+
+> 触发：R1 全部闭环，按流程阶段 4 重新全库扫描。**本轮按用户指令只出报告，不开始修复，等待指令。**
+> 分析方法：静态基线（check-all / CLI clippy+test / ACL）+ 三路并行启发式扫描（Rust 后端 / TS 前端 / CLI），全文 grep 交叉验证。
+
+### R2-§1 分析基线
+
+| 检查 | 结果 |
+|------|------|
+| `npm run check-all`（tsc + fmt + clippy + eslint + vitest + ACL） | ✅ 全绿；Vitest **59 文件 / 560 用例** |
+| `check_acl_consistency.py` | ✅ OK: 188 个命令全部登记 |
+| `cd solosoul_cli && cargo clippy -- -D warnings && cargo test` | ✅ 0 警告，测试全绿 |
+
+**结论**：全部自动化检查通过，以下问题均来自启发式扫描（静态工具无法覆盖的语义层问题）。
+
+### R2-§2 问题清单（按优先级 P0 > P1 > P2）
+
+| ID | 优先级 | 类别 | 文件位置 | 描述 | 状态 |
+|----|--------|------|----------|------|------|
+| R2-01 | P0 | 安全 | `tauri/src-tauri/src/commands/attachment.rs:785-811` | 路径校验回退分支用纯字符串前缀 `starts_with`，共享前缀的兄弟目录（如 `~/.solosoul_evil/`）可绕过 `in_vault` 检查；src 未拒绝 `..` 组件。该命令不要求解锁 Vault，是 webview 可达的读文件原语 | `[ ]` 待修复 |
+| R2-02 | P1 | 崩溃 | `solosoul_cli/src/app.rs:1635` | 裸输 `/plugin_run`（无参数）时 `&parts[2..]` 越界 panic，进程崩溃 | `[ ]` 待修复 |
+| R2-03 | P1 | 崩溃/UX | `solosoul_cli/src/commands/mod.rs:10-18`、`app.rs:1584`、`tui.rs:74` | 命令错误经 `?` 一路传播到 main：Locked 状态手输 `/list` 等命令直接退出 TUI 进程（`require_unlocked` 设置的 `error_message` overlay 设计意图被旁路） | `[ ]` 待修复 |
+| R2-04 | P1 | 安全 | `solosoul_cli/src/widgets/prompt.rs:43/56/174`、`commands/security.rs:52-110/225/251/300`、`export_import.rs:89/197`、`app.rs:594` | 改主密码/导出密码/删除账户等经 prompt 以纯 `String` 多副本流转且全程不清零，与 `PasswordInput` 的 `Zeroizing<String>` 约定矛盾 | `[ ]` 待修复 |
+| R2-05 | P1 | 隐患 | `tauri/crates/solosoul-core/src/watermark/mod.rs:606-618` | 代码与注释矛盾：注释明写临时 TTF 文件须存活到 PDF 保存完成，`let _ = temp;` 却立即 drop 删除。目前仅因 Pdfium 急切加载字体而「靠运气正确」 | `[ ]` 待修复 |
+| R2-06 | P1 | 错误吞没 | `tauri/crates/solosoul-core/src/export_import.rs:1060` | 导入偏好 `save_profile` 失败被 `let _ =` 吞掉，用户看到「导入成功」但 preferences 未落库 | `[ ]` 待修复 |
+| R2-07 | P1 | 错误吞没 | `tauri/crates/solosoul-core/src/objects.rs:667-670` | `purge_trash` 吞掉底层 `delete_object` 失败仍删 trash 记录 → 孤儿对象行永留数据库且无法再经回收站清理 | `[ ]` 待修复 |
+| R2-08 | P1 | 性能 | `tauri/crates/solosoul-sync/src/attachments.rs:88-120` | 每次同步会话全表 N+1：`list_object_metadata` 后对每个对象 `load_object`（全量解密）+ 对每个附件文件重新 `sha256_file`，同步延迟/IO 随附件体积线性增长 | `[ ]` 待修复 |
+| R2-09 | P1 | UX/错误处理 | `tauri/src/stores/trashStore.ts:142`、`pages/settings/TrashPage.tsx:485`、`components/trash/TrashConfirmDialog.tsx:68` | 回收站永久删除失败时 unhandled rejection：对话框不关闭、无 toast、按钮可重复点击并发重复删除——破坏性操作关键路径 | `[ ]` 待修复 |
+| R2-10 | P1 | 性能 | `solosoul_cli/src/app.rs:806` 等 10+ 处 | 每次按键 `self.phase.clone()` 深拷贝整个 AppPhase（含大列表 items），大 Vault 下 TUI 掉帧根源 | `[ ]` 待修复 |
+| R2-11 | P2 | 死代码 | `tauri/src-tauri/src/services/llm_context.rs:32-417` | `build_context` 及整棵私有子树（约 330 行）仅被测试引用存活；活路径仅剩 `clear_cache`/`bump_public_data_version` | `[ ]` 待修复 |
+| R2-12 | P2 | 死代码 | `tauri/src-tauri/src/commands/llm/rag.rs:502`、`crates/solosoul-plugin/src/registry.rs:60` | `needs_rebuild`、`PluginRegistry::from_path` 全 workspace 零调用 | `[ ]` 待修复 |
+| R2-13 | P2 | 结构 | Rust 超长/深嵌套函数 | `app_state.rs:257`（189 行/深 10）、`search/query.rs:16`（120/深 10）、`import.rs:226`（213）、`storage.rs:649`（211）与 `:884 reencrypt_all`（207，6 个表处理块复制粘贴）、`plugin/manager.rs:170`（209）、`plugin/host.rs:437/893/662`、`sync/attachments.rs:387` 等 | `[ ]` 待修复 |
+| R2-14 | P2 | 重复 | `tauri/src-tauri/src/commands/attachment.rs:394-418 vs 823-846` | `allowed_bases` 白名单构建块两处近乎逐字重复（~90%），且一处含移动端 temp_dir 分支一处不含——策略漂移风险 | `[ ]` 待修复 |
+| R2-15 | P2 | 性能/杂项 | Rust 轻项 | 主 `payload.enc` 导入未走流式（`import.rs:524`，≈2×payload 内存）；`watermark/mod.rs:88 load_font_bytes` 无缓存；`storage.rs:541` ALTER TABLE 吞掉所有错误；`examples/unlock_account.rs:8` 主密码放 argv | `[ ]` 待修复 |
+| R2-16 | P2 | 重构 | `tauri/src/`（>400 行文件 28→**40** 个） | P003 清单过期：前五仍准（LoginPage 793/ExportImportPage 754/AttachmentViewer 743/PageGuide 699/HistoryViewer 682），新进：AppRoutes 679、useObjectWorkspaceData 629、PasswordVerificationDialog 617、useAttachmentManager 585、TrashDetailSections 575、AddPageButton 555 | `[ ]` 待修复 |
+| R2-17 | P2 | 重复/性能 | `tauri/src/hooks/useExportScope.ts:89-106/223-241/254-270` | 同一段 N+1 附件加载块逐字复制三遍（~55 行），每对象一次 IPC 且无并发上限 | `[ ]` 待修复 |
+| R2-18 | P2 | 规范 | 前端 100 处 | `t('key') \|\| '兜底文案'` 死兜底模式：i18next 缺 key 返回 key 本身（truthy），`\|\|` 右侧几乎永不执行；100 处硬编码与 i18n 集中管理约定相悖 | `[ ]` 待修复 |
+| R2-19 | P2 | UX | `tauri/src/components/object/AttachmentViewer.tsx:169-177` | 重命名乐观更新失败后 `.catch` 仅 `logger.warn` 不回滚：前端显示新名、后端仍是旧名 | `[ ]` 待修复 |
+| R2-20 | P2 | 性能 | `tauri/src/stores/trashStore.ts:137-146` | `permanentDelete` `Promise.all` 无界并发逐条 IPC（P052 有意改并发但未设上限），清空数百条时瞬间数百 invoke | `[ ]` 待修复 |
+| R2-21 | P2 | 死代码 | 前端多余 export | `TrashSnapshotView.tsx:184 SnapshotDataView`、`conflictFieldMeta.ts:31/149/227`、`useOnboarding.ts:39 baseSteps`、`searchShared.tsx:136 resolveFieldLabel` 等仅本文件/测试引用却 export | `[ ]` 待修复 |
+| R2-22 | P2 | 性能 | `solosoul_cli/src/app.rs:2874/2886/2845`、`widgets/status_bar.rs:14`、`screens/object_list.rs:40-50` | 渲染路径每帧磁盘 IO（`load_ui_prefs` 读盘+JSON 解析）、`Theme::load()` 每帧探测环境变量（11 处）、`/list` 无 200 截断（与 /search 不对称） | `[ ]` 待修复 |
+| R2-23 | P2 | 性能 | `solosoul_cli/src/commands/plugin.rs:140/218/261/459`、`sync.rs:88`、`embed_model.rs:168` | 每次插件/同步/模型命令新建完整 tokio 多线程运行时，应 App 级共享 | `[ ]` 待修复 |
+| R2-24 | P2 | 安全 | `solosoul_cli/src/commands/log.rs:63` | `/export_log` 用 `fs::write` 默认权限（通常 0644），内容是解密后审计日志，不符合项目 0600 约定 | `[ ]` 待修复 |
+| R2-25 | P2 | 安全 | `solosoul_cli/src/main.rs:77-86` | `EnvFilter::from_env_lossy()` 无 crate 白名单（`RUST_LOG=debug` 会把依赖的 LLM 请求/vault 操作写进 cli.log）；`rolling::never` 日志无限增长 | `[ ]` 待修复 |
+| R2-26 | P2 | UX | `solosoul_cli` 多处 | 成功消息（导出成功/密码已修改等）复用红色「! 错误」overlay，已有 `success_message` toast 字段但仅 settings 使用 | `[ ]` 待修复 |
+| R2-27 | P2 | 死代码 | `solosoul_cli/src/widgets/account_list.rs:39`、`commands/mod.rs:95` | `render_empty` 无调用方；`CliError` type 定义后零使用 | `[ ]` 待修复 |
+| R2-28 | P2 | 结构 | `solosoul_cli/src/app.rs`（3650 行） | god-object：`render` 312 行、`handle_onboarding_key` 149 行等；解锁样板 `get_vault_store().ok_or_else(...)` 在 17 个文件出现 ~40 次，现成 `require_unlocked_with_vault` 仅 3 个模块使用 | `[ ]` 待修复 |
+
+## R2 修复进度
+
+- 已完成：0 / 28
+- 当前处理：无（**按用户指令：报告完成后停止，等待修复指令**）
+
+### R2-§3 重点问题修复指引（P0/P1）
+
+- **R2-01**：canonicalize 失败直接报错（或仅对 Android symlink 场景做组件级 `Path::starts_with` 比较）；src 与 dest 一样拒绝 `ParentDir` 组件。
+- **R2-02**：`parts.get(2..).unwrap_or(&[])`（一行修复）。
+- **R2-03**：`execute_command` 内 `if let Err(e) = ... { self.error_message = Some(...) }`，不再向上传播；与 overlay 设计意图对齐。
+- **R2-04**：`PromptState.value` 与 `PromptResult::Text` 改用 `Zeroizing<String>`（至少 mask=true 时），回调消费后显式 zeroize。
+- **R2-05**：`std::mem::forget(temp)`（可接受的小泄漏）或将 `NamedTempFile` 返还调用方持有到 PDF 保存完成，并让注释与实现一致。
+- **R2-06/R2-07**：传播错误（`?`）或至少 `tracing::warn!` 并在结果中标注；R2-07 应中止 `delete_trash_item` 让用户重试。
+- **R2-08**：SQL 侧过滤 `properties LIKE '%__attachments%'` 或批量接口；导入时算一次 sha256 存入 `AttachmentMeta`，同步读元数据。
+- **R2-09**：`TrashConfirmDialog` 加 submitting 态 + try/catch（失败 toast + 保持对话框打开）；restore 路径一并覆盖。
+- **R2-10**：`handle_key` 改 `match &self.phase` 只对需要的变体 `std::mem::take`/replace 所有权，避免克隆 items。
+
+### R2-§4 核验为「干净」的维度（勿重复审查）
+
+- **Rust**：unsafe 仍仅限平台 FFI（70+ 处，与 R1 一致）；命令注入零风险（4 处 `Command::new` 参数固定）；serde untagged 零使用；硬编码密钥仅在测试；敏感数据不入日志；命令路径 unwrap/expect 仅 3 处受控；crate 依赖单向无环；112 个注册 IPC 命令全部有前端引用。
+- **前端**：XSS 零命中（`dangerouslySetInnerHTML`/`innerHTML`/`eval`）；敏感数据零持久化（OCR 结果/MRZ 不落盘）；IPC 61 文件统一走 `invokeCommand` 封装；Zustand 跨 store 仅单向 toast 通知；大列表均有分页增量挂载 + memo；effect 依赖禁用项均有注释；TODO/FIXME 零技术债标记；非测试 `as any` 零命中。
+- **CLI**：Cargo.toml 依赖全部在用；敏感数据不入日志；命令路径 unwrap/expect 仅 2 处受控；薄封装架构边界清晰。
+
+### R2-§5 建议修复顺序（待用户确认后执行）
+
+1. **第一批（Rust/crates，崩溃与安全）**：R2-01 → R2-05 → R2-06 → R2-07 → R2-02 → R2-03（一行级/小范围修复先行）
+2. **第二批（Rust 性能与死代码）**：R2-08 → R2-11 → R2-12 → R2-14 → R2-15
+3. **第三批（CLI）**：R2-04（Zeroizing 整改）→ R2-10 → R2-22 → R2-23 → R2-24 → R2-25 → R2-26 → R2-27 → R2-28
+4. **第四批（前端）**：R2-09 → R2-19 → R2-17 → R2-20 → R2-18 → R2-21 → R2-16
+
+> R2-16 为长期重构候选（延续 P003 定位，随功能迭代顺带）；R2-18 为大范围机械替换，建议单独一批。遵循流程「Rust / TypeScript 分离、一项一提交」原则。
+
+---
+
 > 分析范围：`tauri/`（前端 + Rust workspace）、`solosoul_cli/`；忽略 `SoloSoul_plugin_market/`（独立仓库）
 > **报告性质**：本报告为**全新一轮**代码审查。旧版 `CODE_ANALYSIS_REPORT.md`（2026-08-02~03，80 项闭环）已由用户决定删除且不恢复，本轮从 HEAD `22265c2d` 出发重新扫描并完成一轮迭代修复（P001/P002/P004 已闭环，P003 为长期重构候选，①② 已按该定位完成拆分）。
 
