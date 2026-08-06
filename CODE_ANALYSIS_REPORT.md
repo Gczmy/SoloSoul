@@ -2,7 +2,7 @@
 
 > 最后更新：2026-08-06
 > 当前分支：`main`
-> 修复轮次：R1 已闭环；R2 修复 28 项已提交；V1-V8、W1-W4 已提交并经第三轮验证（2026-08-06）；**X1-X3 已全部闭环**（`a7f019e7`/`255ee76f`/`3aaa47bf`，无 P0/P1 残留，仅剩 P2 级轻微观察项不阻塞）。R2 可标记终版（详见 §R2-§8）
+> 修复轮次：R1 已闭环；R2 修复 28 项已提交；V1-V8、W1-W4、X1-X3 全部闭环；**第四轮独立复审（2026-08-06）确认 X1-X3 全部属实，无 P0/P1 残留**——R2 已标记终版 `code-audit-passed-20260806`（详见 §R2-§9）
 
 ---
 
@@ -179,6 +179,40 @@
 - **W2/W3 连续第三轮出现「只验收报告清单、不做全库扫描」的模式**：清单内全对、清单外漏网（X2 的 sync 成功消息；X3 的 purge 无解锁门禁——属 pre-existing 缺陷的顺带暴露）。此类「模式消除型」修复应以全库语义 grep 结果为验收标准，而非报告给出的示例行号。
 - **优先级评估**：X1-X3 均为 P2，无 P0/P1 残留。**X1-X3 已全部闭环（2026-08-06）**：**X1**`a7f019e7`——copy_to_vault 真修复（与非 canonical base 比较）+ 路径判定纯函数 `path_within_base` + 3 条防回归测试；**X2**`255ee76f`——新增中性 `info_message` overlay（列表/空态/预览 9 处）+ 明确成功 `cmd-sync-with-success` 走 success_message，全库语义 grep 残留 0；**X3**`3aaa47bf`——purge 补 `require_unlocked_with_vault`（闭包复用 Arc 消除二次裸 eyre）+ helper 消息统一「Vault 未打开」，全库英文残留 0。
 - 按流程阶段 4「仅剩 P2 或零问题 → 终版有效」：X1-X3 修复并经编译/测试验证（CLI 151+2 全绿、clippy 0 警告、Rust workspace 与前端基线全绿）→ **R2 可标记终版**。
+
+### R2-§9 X 批次第四轮独立复审（2026-08-06，验证 HEAD = `d38fa50d`，打终版标签 `code-audit-passed-20260806`）
+
+> 用户指令：对 X1-X3 做第四轮独立复审，确认后给 R2 打终版标签。逐 diff 审读 + **当前代码上下文**核验（不凭 commit message），残留扫描独立复跑。
+> **结论：X1-X3 三项宣称全部属实，无虚假、无残留。R2 按流程阶段 4 标记终版。**
+
+#### 9.1 逐项结论
+
+| ID | 结论 | 说明 |
+|----|------|------|
+| R2-X1 | ✅ 真修复确认 | `attachment_copy_to_vault` 中 `base = svc.base_path().clone()`（非 canonical）与 `vault_base = base.canonicalize()`（canonical）在函数内并存，判定改传 `path_within_base(&src, src_raw, src_canonicalized, &vault_base, &base)`——回退分支第二操作数由 no-op 的 `src_raw` 变为真正不同的 `base`，Android 双路径（raw `/data/data` 命中 base_raw `/data/data`）覆盖成立。`download`/`open` 迁移语义逐位等价（base_raw 传各自非 canonical 目录或同值）。纯函数三态（canonicalized 只用 resolved / raw 兜底 canonical / 双路径）与 3 条测试一一对应，实测 3 条全过；`commands::attachment` 14 条全绿。`..` 拒绝在 download（src/dest）与 open 各一处仍在（:847/:876/:1004），copy_to_vault 依赖 canonicalize 解析（pre-existing 设计，非本轮引入） |
+| R2-X2 | ✅ 全对 | `info_message` 字段 + 初始化 + `handle_key`/`handle_command_key` 双处 Esc 清除 + 渲染顺序（info 先于 error，error 优先级更高）全部就位。10 个键逐一核验落点：9 处（market-empty/no-sessions/sessions-header/none-installed/installed-header/no-audit-logs/audit-header/import-preview/embed-already-installed）→ info_message，1 处（cmd-sync-with-success）→ success_message 并携带 Instant。独立复扫：10 键在 `error_message` 下残留 0。info overlay 高度自适应（clamp 3~40% 视口）明显优于 error overlay 的固定高度 3 |
+| R2-X3 | ✅ 全对 | `purge()` 顶部补 `require_unlocked_with_vault`（在 trash_id 解析**之前**，锁定用户先得 `cmd-need-unlock`）；闭包改捕获 `vault_for_confirm`（Arc clone），消除第二处 `get_vault_store` 裸 eyre 静默 return——与相邻 restore 的既有模式一致。helper 错误消息已为「Vault 未打开」；独立复扫 `"Vault not open"` 全库残留 0 |
+
+#### 9.2 基线验证（独立重跑）
+
+| 检查 | 结果 |
+|------|------|
+| `solosoul_cli`：fmt / clippy / test | ✅ fmt 通过；clippy 0 警告；**151+2 测试全绿** |
+| `cargo test -p solo_soul commands::attachment` | ✅ 14 passed（336 filtered） |
+| `cargo test -p solo_soul path_within_base` | ✅ 3 passed（347 filtered） |
+| X1/X2/X3 残留扫描 | ✅ 10 键 error_message 残留 0；`"Vault not open"` 残留 0 |
+
+#### 9.3 非阻塞观察（不立项，记录在案）
+
+1. **copy_to_vault 无显式 `..` 拒绝**：靠 canonicalize 解析（正常路径无穿越可能）；仅 Android canonicalize 失败兜底时 raw 路径含 `..` 可理论绕过白名单前缀（需白名单目录内构造共享前缀 + canonicalize 同时失败，门槛极高）。download/open 已有显式拒绝，若后续统一可在 copy 侧补一行。
+2. **info overlay 样式固定**：浅蓝底（`Color::Rgb(200,220,240)`）而非 CLI 主题色（报告/commit 措辞「主题色」不准确），纯样式问题，可读性无碍。
+3. **info overlay 无滚动**：长列表（如大 limit 的 `/plugin audit_log`）超 40% 视口时截断显示；已优于旧 error overlay（固定 3 行），滚动为后续增强项。
+4. **双 overlay 并存时 Esc 语义**：error 与 info 同时存在时按一次 Esc 先清 error（短路 `||`），再按一次清 info——罕见场景，行为可解释。
+
+#### 9.4 终版结论
+
+- X1-X3 修复经第四轮逐 diff + 上下文核验**全部属实**；三轮验证累积的 P1 项（V1/W1）均已闭环，无 P0/P1 残留；非阻塞观察均为 P2 以下轻微项。
+- 按流程阶段 4「仅剩 P2 或零问题 → 终版有效」，**R2 标记终版**：打标签 `code-audit-passed-20260806`（HEAD `d38fa50d`）。
 
 ### R2-§3 重点问题修复指引（P0/P1）
 
