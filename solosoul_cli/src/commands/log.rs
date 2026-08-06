@@ -3,22 +3,16 @@
 use color_eyre::Result;
 
 use crate::app::{App, AppPhase};
-use crate::commands::require_unlocked;
 use crate::commands::require_unlocked_with_vault;
 use crate::t;
 
 /// 执行 `/operation_log [limit]`：列出审计日志。
 pub fn operation_log(app: &mut App, limit: Option<&str>) -> Result<()> {
-    let account_id = require_unlocked(app)?;
+    let (account_id, vault) = require_unlocked_with_vault(app)?;
     let limit = limit
         .and_then(|s| s.parse::<usize>().ok())
         .unwrap_or(100)
         .max(1);
-
-    let vault = app
-        .vault_service
-        .get_vault_store()
-        .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
 
     let entries = vault
         .list_audit_log(limit)

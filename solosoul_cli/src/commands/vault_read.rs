@@ -3,7 +3,6 @@
 use color_eyre::Result;
 
 use crate::app::{App, AppPhase, SizeReport};
-use crate::commands::require_unlocked;
 use crate::commands::require_unlocked_with_vault;
 use crate::t;
 
@@ -64,7 +63,7 @@ pub fn list(app: &mut App, page_name: Option<&str>) -> Result<()> {
 
 /// 执行 `/open <id>`：查看对象详情。
 pub fn open(app: &mut App, object_id: Option<&str>) -> Result<()> {
-    let account_id = require_unlocked(app)?;
+    let (account_id, vault) = require_unlocked_with_vault(app)?;
 
     let id = match object_id {
         Some(id) => id,
@@ -73,11 +72,6 @@ pub fn open(app: &mut App, object_id: Option<&str>) -> Result<()> {
             return Ok(());
         }
     };
-
-    let vault = app
-        .vault_service
-        .get_vault_store()
-        .ok_or_else(|| color_eyre::eyre::eyre!("Vault not open"))?;
 
     match vault
         .load_object(id)

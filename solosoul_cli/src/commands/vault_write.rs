@@ -20,7 +20,7 @@ use crate::widgets::prompt::{self, PromptResult, PromptSpec};
 // ============================================================================
 
 pub fn newpage(app: &mut App, name: Option<&str>) -> Result<()> {
-    let account_id = require_unlocked(app)?;
+    let (account_id, vault) = require_unlocked_with_vault(app)?;
     let name = match name {
         Some(n) if !n.is_empty() => n.to_string(),
         _ => {
@@ -28,11 +28,6 @@ pub fn newpage(app: &mut App, name: Option<&str>) -> Result<()> {
             return Ok(());
         }
     };
-
-    let vault = app
-        .vault_service
-        .get_vault_store()
-        .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
     match objects::create_page(&vault, &account_id, &name) {
         Ok(record) => {
             app.previous_phase = Some(app.phase.clone());
@@ -165,7 +160,7 @@ pub fn save_new_object(
 // ============================================================================
 
 pub fn edit(app: &mut App, object_id: Option<&str>) -> Result<()> {
-    let account_id = require_unlocked(app)?;
+    let (account_id, vault) = require_unlocked_with_vault(app)?;
     let id = match object_id {
         Some(id) => id,
         None => {
@@ -173,11 +168,6 @@ pub fn edit(app: &mut App, object_id: Option<&str>) -> Result<()> {
             return Ok(());
         }
     };
-
-    let vault = app
-        .vault_service
-        .get_vault_store()
-        .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
     match vault
         .load_object(id)
         .map_err(|e| color_eyre::eyre::eyre!(e))?
@@ -227,7 +217,7 @@ pub fn save_edited_object(app: &mut App, mut object: ObjectRecord) -> Result<()>
 // ============================================================================
 
 pub fn delete(app: &mut App, object_id: Option<&str>) -> Result<()> {
-    let account_id = require_unlocked(app)?;
+    let (account_id, vault) = require_unlocked_with_vault(app)?;
     let id = match object_id {
         Some(id) => id,
         None => {
@@ -235,11 +225,6 @@ pub fn delete(app: &mut App, object_id: Option<&str>) -> Result<()> {
             return Ok(());
         }
     };
-
-    let vault = app
-        .vault_service
-        .get_vault_store()
-        .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
     let record = match vault
         .load_object(id)
         .map_err(|e| color_eyre::eyre::eyre!(e))?
@@ -523,7 +508,7 @@ pub fn batch_purge(app: &mut App, ids: &[String]) -> Result<()> {
 }
 
 pub fn restore(app: &mut App, trash_id: Option<&str>) -> Result<()> {
-    let _account_id = require_unlocked(app)?;
+    let (_account_id, vault) = require_unlocked_with_vault(app)?;
     let trash_id = match trash_id {
         Some(id) => id,
         None => {
@@ -531,11 +516,6 @@ pub fn restore(app: &mut App, trash_id: Option<&str>) -> Result<()> {
             return Ok(());
         }
     };
-
-    let vault = app
-        .vault_service
-        .get_vault_store()
-        .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
     match objects::restore_from_trash(&vault, trash_id) {
         Ok(result) => {
             let mut message = t!(app.i18n, "cmd-restored", id = result.restored_id);

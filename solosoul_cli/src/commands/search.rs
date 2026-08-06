@@ -13,7 +13,7 @@ use solosoul_core::{
 use solosoul_vault::storage::{dynamic_group_label_match, is_internal_metadata_key};
 
 use crate::app::{App, AppPhase};
-use crate::commands::require_unlocked;
+use crate::commands::require_unlocked_with_vault;
 use crate::t;
 
 /// 最大返回结果数。
@@ -77,7 +77,7 @@ pub fn extract_query(input: Option<&str>) -> Option<String> {
 
 /// 执行 `/search <关键词>`。
 pub fn search(app: &mut App, input: Option<&str>) -> Result<()> {
-    let account_id = require_unlocked(app)?;
+    let (account_id, vault) = require_unlocked_with_vault(app)?;
     let query = match extract_query(input) {
         Some(q) if !q.is_empty() => q,
         _ => {
@@ -85,11 +85,6 @@ pub fn search(app: &mut App, input: Option<&str>) -> Result<()> {
             return Ok(());
         }
     };
-
-    let vault = app
-        .vault_service
-        .get_vault_store()
-        .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
     let (items, truncated, total_scanned) = perform_search(&vault, &account_id, &query)?;
 
     app.previous_phase = Some(app.phase.clone());

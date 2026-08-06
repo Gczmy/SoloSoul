@@ -5,12 +5,13 @@ use std::time::Instant;
 
 use crate::app::{App, AppPhase};
 use crate::commands::require_unlocked;
+use crate::commands::require_unlocked_with_vault;
 use crate::t;
 use crate::widgets::prompt::{self, PromptResult, PromptSpec};
 
 /// 执行 `/history <object-id>`：列出对象快照。
 pub fn history(app: &mut App, object_id: Option<&str>) -> Result<()> {
-    let account_id = require_unlocked(app)?;
+    let (account_id, vault) = require_unlocked_with_vault(app)?;
     let object_id = match object_id {
         Some(id) => id.to_string(),
         None => {
@@ -18,11 +19,6 @@ pub fn history(app: &mut App, object_id: Option<&str>) -> Result<()> {
             return Ok(());
         }
     };
-
-    let vault = app
-        .vault_service
-        .get_vault_store()
-        .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
 
     // 校验对象存在且属于当前账户
     match vault
