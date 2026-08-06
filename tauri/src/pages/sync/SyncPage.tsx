@@ -291,48 +291,11 @@ function SyncStatusCard({
         </div>
       </div>
 
-      {store.localFingerprint && (
-        <>
-          {/* 三个本地设备信息块（设备名/指纹/监听地址）样式完全统一，以设备名为范例 */}
-          <div
-            style={{
-              marginTop: 8,
-              padding: 10,
-              borderRadius: 8,
-              background: 'var(--bg-toolbar)',
-              fontSize: 'var(--text-caption)',
-              color: 'var(--text-secondary)',
-              wordBreak: 'break-all',
-            }}
-          >
-            <strong>
-              {t('settings:sync_your_device_name', { defaultValue: 'Your device name' })}:
-            </strong>{' '}
-            {`SoloSoul-${store.localFingerprint.slice(0, 8)}`}
-          </div>
-          <div
-            style={{
-              marginTop: 8,
-              padding: 10,
-              borderRadius: 8,
-              background: 'var(--bg-toolbar)',
-              fontSize: 'var(--text-caption)',
-              color: 'var(--text-secondary)',
-              wordBreak: 'break-all',
-            }}
-          >
-            <strong>
-              {t('settings:sync_your_fingerprint', { defaultValue: 'Your fingerprint' })}:
-            </strong>{' '}
-            {store.localFingerprint}
-          </div>
-        </>
-      )}
-      {store.syncEnabled && store.listenAddr && (
+      {(store.localFingerprint || (store.syncEnabled && store.listenAddr)) && (
         <div
           style={{
             marginTop: 8,
-            padding: 10,
+            padding: 8,
             borderRadius: 8,
             background: 'var(--bg-toolbar)',
             fontSize: 'var(--text-caption)',
@@ -340,8 +303,30 @@ function SyncStatusCard({
             wordBreak: 'break-all',
           }}
         >
-          <strong>{t('settings:sync_your_addr', { defaultValue: 'Your listen address' })}:</strong>{' '}
-          {store.listenAddr}
+          {/* 三个本地设备信息行（设备名/指纹/监听地址）合并为单容器紧凑排列，
+              行间距 6px，不再作为独立卡片造成视觉分离 */}
+          {store.localFingerprint && (
+            <div style={{ lineHeight: 1.6 }}>
+              <strong>
+                {t('settings:sync_your_device_name', { defaultValue: 'Your device name' })}:
+              </strong>{' '}
+              {`SoloSoul-${store.localFingerprint.slice(0, 8)}`}
+            </div>
+          )}
+          {store.localFingerprint && (
+            <div style={{ marginTop: 6, lineHeight: 1.6 }}>
+              <strong>
+                {t('settings:sync_your_fingerprint', { defaultValue: 'Your fingerprint' })}:
+              </strong>{' '}
+              {store.localFingerprint}
+            </div>
+          )}
+          {store.syncEnabled && store.listenAddr && (
+            <div style={{ marginTop: 6, lineHeight: 1.6 }}>
+              <strong>{t('settings:sync_your_addr', { defaultValue: 'Your listen address' })}:</strong>{' '}
+              {store.listenAddr}
+            </div>
+          )}
         </div>
       )}
     </Card>
