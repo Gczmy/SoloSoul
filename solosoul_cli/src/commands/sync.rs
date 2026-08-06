@@ -85,15 +85,8 @@ fn sync_with(app: &mut App, peer: &str) {
         app.error_message = Some(t!(app.i18n, "cmd-sync-with-usage"));
         return;
     }
-    let runtime = match tokio::runtime::Runtime::new() {
-        Ok(rt) => rt,
-        Err(e) => {
-            app.error_message = Some(t!(app.i18n, "cmd-sync-runtime-failed", err = e));
-            return;
-        }
-    };
-
-    let result = runtime.block_on(run_one_shot_sync(&app.vault_service, peer));
+    let result =
+        crate::util::shared_runtime().block_on(run_one_shot_sync(&app.vault_service, peer));
     match result {
         Ok(summary) => {
             tracing::info!("sync with {}: {}", peer, summary);

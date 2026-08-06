@@ -137,15 +137,7 @@ pub fn run_plugin(app: &mut App, plugin_id: Option<&str>, raw_params: &[&str]) -
     let market_dir_clone = market_dir;
 
     std::thread::spawn(move || {
-        let rt = match tokio::runtime::Runtime::new() {
-            Ok(rt) => rt,
-            Err(e) => {
-                if let Ok(mut h) = result_holder.lock() {
-                    *h = Some(format!("无法创建异步运行时: {}", e));
-                }
-                return;
-            }
-        };
+        let rt = crate::util::shared_runtime();
 
         let outcome = rt.block_on(async {
             let manager =
@@ -215,13 +207,7 @@ pub fn install_plugin(app: &mut App, plugin_id: Option<&str>) -> Result<()> {
         Err(_) => "latest".to_string(),
     };
 
-    let rt = match tokio::runtime::Runtime::new() {
-        Ok(rt) => rt,
-        Err(e) => {
-            app.error_message = Some(t!(app.i18n, "cmd-plugin-init-failed", err = e));
-            return Ok(());
-        }
-    };
+    let rt = crate::util::shared_runtime();
 
     match rt.block_on(manager.install_from_registry(&plugin_id, &version)) {
         Ok(result) => {
@@ -258,13 +244,7 @@ pub fn update_plugin(app: &mut App, plugin_id: Option<&str>) -> Result<()> {
         return Ok(());
     };
 
-    let rt = match tokio::runtime::Runtime::new() {
-        Ok(rt) => rt,
-        Err(e) => {
-            app.error_message = Some(t!(app.i18n, "cmd-plugin-init-failed", err = e));
-            return Ok(());
-        }
-    };
+    let rt = crate::util::shared_runtime();
 
     match rt.block_on(manager.update(&plugin_id)) {
         Ok(result) => {
@@ -456,13 +436,7 @@ pub fn update_registry(app: &mut App) -> Result<()> {
         return Ok(());
     };
 
-    let rt = match tokio::runtime::Runtime::new() {
-        Ok(rt) => rt,
-        Err(e) => {
-            app.error_message = Some(t!(app.i18n, "cmd-plugin-init-failed", err = e));
-            return Ok(());
-        }
-    };
+    let rt = crate::util::shared_runtime();
 
     app.error_message = Some(t!(app.i18n, "cmd-plugin-updating-registry"));
 

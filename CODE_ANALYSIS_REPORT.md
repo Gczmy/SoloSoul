@@ -47,7 +47,7 @@
 | R2-20 | P2 | 性能 | `tauri/src/stores/trashStore.ts:137-146` | `permanentDelete` `Promise.all` 无界并发逐条 IPC（P052 有意改并发但未设上限），清空数百条时瞬间数百 invoke | `[ ]` 待修复 |
 | R2-21 | P2 | 死代码 | 前端多余 export | `TrashSnapshotView.tsx:184 SnapshotDataView`、`conflictFieldMeta.ts:31/149/227`、`useOnboarding.ts:39 baseSteps`、`searchShared.tsx:136 resolveFieldLabel` 等仅本文件/测试引用却 export | `[ ]` 待修复 |
 | R2-22 | P2 | 性能 | `solosoul_cli/src/app.rs:2874/2886/2845`、`widgets/status_bar.rs:14`、`screens/object_list.rs:40-50` | 渲染路径每帧磁盘 IO（`load_ui_prefs` 读盘+JSON 解析）、`Theme::load()` 每帧探测环境变量（11 处）、`/list` 无 200 截断（与 /search 不对称） | `[x]` 已修复 |
-| R2-23 | P2 | 性能 | `solosoul_cli/src/commands/plugin.rs:140/218/261/459`、`sync.rs:88`、`embed_model.rs:168` | 每次插件/同步/模型命令新建完整 tokio 多线程运行时，应 App 级共享 | `[ ]` 待修复 |
+| R2-23 | P2 | 性能 | `solosoul_cli/src/commands/plugin.rs:140/218/261/459`、`sync.rs:88`、`embed_model.rs:168` | 每次插件/同步/模型命令新建完整 tokio 多线程运行时，应 App 级共享 | `[x]` 已修复 |
 | R2-24 | P2 | 安全 | `solosoul_cli/src/commands/log.rs:63` | `/export_log` 用 `fs::write` 默认权限（通常 0644），内容是解密后审计日志，不符合项目 0600 约定 | `[ ]` 待修复 |
 | R2-25 | P2 | 安全 | `solosoul_cli/src/main.rs:77-86` | `EnvFilter::from_env_lossy()` 无 crate 白名单（`RUST_LOG=debug` 会把依赖的 LLM 请求/vault 操作写进 cli.log）；`rolling::never` 日志无限增长 | `[ ]` 待修复 |
 | R2-26 | P2 | UX | `solosoul_cli` 多处 | 成功消息（导出成功/密码已修改等）复用红色「! 错误」overlay，已有 `success_message` toast 字段但仅 settings 使用 | `[ ]` 待修复 |

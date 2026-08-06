@@ -165,15 +165,7 @@ fn install(app: &mut App, model_id: &str) {
         return;
     }
 
-    let runtime = match tokio::runtime::Runtime::new() {
-        Ok(r) => r,
-        Err(e) => {
-            app.error_message = Some(t!(app.i18n, "cmd-embed-runtime-failed", err = e));
-            return;
-        }
-    };
-
-    let result = runtime.block_on(download_model(model_id, &target));
+    let result = crate::util::shared_runtime().block_on(download_model(model_id, &target));
     match result {
         Ok(report) => {
             tracing::info!("embed_model install {} ok: {}", model_id, report);
