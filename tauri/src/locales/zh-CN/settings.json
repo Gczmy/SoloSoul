@@ -856,6 +856,7 @@
   "sync_err_connect_unreachable": "网络不可达——请确认两台设备在同一网络",
   "sync_err_connect_no_route": "无法到达对方设备——请检查网络配置",
   "sync_err_handshake_failed": "与设备握手失败：{{detail}}",
+  "sync_err_handshake_vault_locked": "保险库已锁定，请先解锁保险库后再与设备同步",
   "sync_err_invalid_address": "无效的设备地址：{{detail}}",
   "sync_err_session_failed": "同步会话执行失败：{{detail}}",
   "sync_err_pairing_pending": "对方尚未信任本设备，请在对端设备上确认配对后重试（{{detail}}）",
