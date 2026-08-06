@@ -41,12 +41,7 @@ pub fn update_profile_preference(
     value: serde_json::Value,
 ) -> color_eyre::Result<()> {
     use serde_json::{Map, Value};
-    let account_id = require_unlocked(app)?;
-
-    let vault = app
-        .vault_service
-        .get_vault_store()
-        .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
+    let (account_id, vault) = require_unlocked_with_vault(app)?;
 
     let mut profile = match vault
         .load_profile(&account_id)

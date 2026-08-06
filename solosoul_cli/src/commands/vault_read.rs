@@ -93,12 +93,7 @@ pub fn open(app: &mut App, object_id: Option<&str>) -> Result<()> {
 
 /// 执行 `/size`：账户统计。
 pub fn size(app: &mut App) -> Result<()> {
-    let account_id = require_unlocked(app)?;
-
-    let vault = app
-        .vault_service
-        .get_vault_store()
-        .ok_or_else(|| color_eyre::eyre::eyre!("Vault not open"))?;
+    let (account_id, vault) = require_unlocked_with_vault(app)?;
 
     let stats = vault.stats().map_err(|e| color_eyre::eyre::eyre!(e))?;
     let pages = vault

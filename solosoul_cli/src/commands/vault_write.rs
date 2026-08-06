@@ -128,11 +128,7 @@ pub fn save_new_object(
     name: String,
     fields: Vec<EditableField>,
 ) -> Result<()> {
-    let account_id = require_unlocked(app)?;
-    let vault = app
-        .vault_service
-        .get_vault_store()
-        .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
+    let (account_id, vault) = require_unlocked_with_vault(app)?;
 
     let mut properties = serde_json::Map::new();
     for f in &fields {
@@ -464,11 +460,7 @@ fn format_restored_detail(
 }
 
 pub fn batch_restore(app: &mut App, ids: &[String]) -> Result<()> {
-    let _account_id = require_unlocked(app)?;
-    let vault = app
-        .vault_service
-        .get_vault_store()
-        .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
+    let (_account_id, vault) = require_unlocked_with_vault(app)?;
     let mut success = Vec::new();
     let mut failed = Vec::new();
     for id in ids {
@@ -498,11 +490,7 @@ pub fn batch_restore(app: &mut App, ids: &[String]) -> Result<()> {
 }
 
 pub fn batch_purge(app: &mut App, ids: &[String]) -> Result<()> {
-    require_unlocked(app)?;
-    let vault = app
-        .vault_service
-        .get_vault_store()
-        .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
+    let (_account_id, vault) = require_unlocked_with_vault(app)?;
     let mut success = 0usize;
     let mut failed = Vec::new();
     for id in ids {
