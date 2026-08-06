@@ -45,6 +45,36 @@ export function useExportScope({
   );
   const [expandedObjects, setExpandedObjects] = useState<Set<string>>(new Set());
 
+  /**
+   * 批量加载对象附件（N+1 共享实现）：逐对象一次 IPC（无并发上限，与既有行为一致），
+   * 结果写入 objectAttachments 并自动把新附件并入 selectedAttachmentIds。
+   */
+  const loadObjectAttachments = useCallback(
+    (objectIds: string[]) => {
+      const unloadedIds = objectIds.filter((id) => !objectAttachments.has(id));
+      if (unloadedIds.length === 0) return;
+      Promise.all(
+        unloadedIds.map((id) =>
+          invoke<AttachmentInfo[]>('export_get_attachments', { accountId, objectId: id })
+            .then((atts) => ({ id, atts }))
+            .catch(() => ({ id, atts: [] as AttachmentInfo[] })),
+        ),
+      ).then((results) => {
+        setObjectAttachments((prev) => {
+          const n = new Map(prev);
+          for (const { id, atts } of results) n.set(id, atts);
+          return n;
+        });
+        setSelectedAttachmentIds((prev) => {
+          const n = new Set(prev);
+          for (const { atts } of results) for (const att of atts) n.add(att.id);
+          return n;
+        });
+      });
+    },
+    [accountId, objectAttachments],
+  );
+
   const toggleExpandedPage = useCallback((sectionType: string) => {
     setExpandedPages((prev) => {
       const next = new Set(prev);
@@ -84,32 +114,12 @@ export function useExportScope({
         });
 
         if (isAdding && includeAttachments) {
-          const unloadedIds = objectIds.filter((id) => !objectAttachments.has(id));
-          if (unloadedIds.length > 0) {
-            Promise.all(
-              unloadedIds.map((id) =>
-                invoke<AttachmentInfo[]>('export_get_attachments', { accountId, objectId: id })
-                  .then((atts) => ({ id, atts }))
-                  .catch(() => ({ id, atts: [] as AttachmentInfo[] })),
-              ),
-            ).then((results) => {
-              setObjectAttachments((prev) => {
-                const n = new Map(prev);
-                for (const { id, atts } of results) n.set(id, atts);
-                return n;
-              });
-              setSelectedAttachmentIds((prev) => {
-                const n = new Set(prev);
-                for (const { atts } of results) for (const att of atts) n.add(att.id);
-                return n;
-              });
-            });
-          }
+          loadObjectAttachments(objectIds);
         }
         return next;
       });
     },
-    [accountId, includeAttachments, objectAttachments],
+    [includeAttachments, objectAttachments, loadObjectAttachments],
   );
 
   const toggleObject = useCallback(
@@ -217,28 +227,8 @@ export function useExportScope({
 
   /** 批量加载已选对象的附件并将它们加入 selectedAttachmentIds */
   const loadSelectedAttachments = useCallback(() => {
-    const ids = Array.from(selectedObjectIds);
-    const unloadedIds = ids.filter((id) => !objectAttachments.has(id));
-    if (unloadedIds.length === 0) return;
-    Promise.all(
-      unloadedIds.map((id) =>
-        invoke<AttachmentInfo[]>('export_get_attachments', { accountId, objectId: id })
-          .then((atts) => ({ id, atts }))
-          .catch(() => ({ id, atts: [] as AttachmentInfo[] })),
-      ),
-    ).then((results) => {
-      setObjectAttachments((prev) => {
-        const n = new Map(prev);
-        for (const { id, atts } of results) n.set(id, atts);
-        return n;
-      });
-      setSelectedAttachmentIds((prev) => {
-        const n = new Set(prev);
-        for (const { atts } of results) for (const att of atts) n.add(att.id);
-        return n;
-      });
-    });
-  }, [accountId, selectedObjectIds, objectAttachments]);
+    loadObjectAttachments(Array.from(selectedObjectIds));
+  }, [loadObjectAttachments, selectedObjectIds]);
 
   const totalSelected = selectedObjectIds.size;
 
@@ -249,27 +239,7 @@ export function useExportScope({
         setSelectedPageIds(new Set(allSectionTypes));
         setSelectedObjectIds(new Set(allObjectIds));
         if (includeAttachments) {
-          const unloadedIds = allObjectIds.filter((id) => !objectAttachments.has(id));
-          if (unloadedIds.length > 0) {
-            Promise.all(
-              unloadedIds.map((id) =>
-                invoke<AttachmentInfo[]>('export_get_attachments', { accountId, objectId: id })
-                  .then((atts) => ({ id, atts }))
-                  .catch(() => ({ id, atts: [] as AttachmentInfo[] })),
-              ),
-            ).then((results) => {
-              setObjectAttachments((prev) => {
-                const n = new Map(prev);
-                for (const { id, atts } of results) n.set(id, atts);
-                return n;
-              });
-              setSelectedAttachmentIds((prev) => {
-                const n = new Set(prev);
-                for (const { atts } of results) for (const att of atts) n.add(att.id);
-                return n;
-              });
-            });
-          }
+          loadObjectAttachments(allObjectIds);
           const loadedAttIds = new Set<string>();
           for (const [oid, atts] of objectAttachments) {
             if (allObjectIds.includes(oid)) {
@@ -290,7 +260,7 @@ export function useExportScope({
         setSelectedAttachmentIds(new Set());
       }
     },
-    [includeAttachments, objectAttachments, accountId],
+    [includeAttachments, objectAttachments, loadObjectAttachments],
   );
 
   return {

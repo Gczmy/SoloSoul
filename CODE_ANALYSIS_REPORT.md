@@ -41,7 +41,7 @@
 | R2-14 | P2 | 重复 | `tauri/src-tauri/src/commands/attachment.rs:394-418 vs 823-846` | `allowed_bases` 白名单构建块两处近乎逐字重复（~90%），且一处含移动端 temp_dir 分支一处不含——策略漂移风险 | `[x]` 已修复 |
 | R2-15 | P2 | 性能/杂项 | Rust 轻项 | 主 `payload.enc` 导入未走流式（`import.rs:524`，≈2×payload 内存）；`watermark/mod.rs:88 load_font_bytes` 无缓存；`storage.rs:541` ALTER TABLE 吞掉所有错误；`examples/unlock_account.rs:8` 主密码放 argv | `[x]` 已修复 |
 | R2-16 | P2 | 重构 | `tauri/src/`（>400 行文件 28→**40** 个） | P003 清单过期：前五仍准（LoginPage 793/ExportImportPage 754/AttachmentViewer 743/PageGuide 699/HistoryViewer 682），新进：AppRoutes 679、useObjectWorkspaceData 629、PasswordVerificationDialog 617、useAttachmentManager 585、TrashDetailSections 575、AddPageButton 555 | `[ ]` 待修复 |
-| R2-17 | P2 | 重复/性能 | `tauri/src/hooks/useExportScope.ts:89-106/223-241/254-270` | 同一段 N+1 附件加载块逐字复制三遍（~55 行），每对象一次 IPC 且无并发上限 | `[ ]` 待修复 |
+| R2-17 | P2 | 重复/性能 | `tauri/src/hooks/useExportScope.ts:89-106/223-241/254-270` | 同一段 N+1 附件加载块逐字复制三遍（~55 行），每对象一次 IPC 且无并发上限 | `[x]` 已修复 |
 | R2-18 | P2 | 规范 | 前端 100 处 | `t('key') \|\| '兜底文案'` 死兜底模式：i18next 缺 key 返回 key 本身（truthy），`\|\|` 右侧几乎永不执行；100 处硬编码与 i18n 集中管理约定相悖 | `[ ]` 待修复 |
 | R2-19 | P2 | UX | `tauri/src/components/object/AttachmentViewer.tsx:169-177` | 重命名乐观更新失败后 `.catch` 仅 `logger.warn` 不回滚：前端显示新名、后端仍是旧名 | `[x]` 已修复 |
 | R2-20 | P2 | 性能 | `tauri/src/stores/trashStore.ts:137-146` | `permanentDelete` `Promise.all` 无界并发逐条 IPC（P052 有意改并发但未设上限），清空数百条时瞬间数百 invoke | `[ ]` 待修复 |
