@@ -623,7 +623,11 @@ impl AppState {
                 .vault_service
                 .write()
                 .map_err(|_| "Vault service lock poisoned".to_string())?;
+            // 热替换 VaultService 后重应用「同步设置偏好」开关：新实例默认 true，
+            // 若不重应用，用户关闭的偏好同步会在切换目录后静默重置为默认开启。
+            let ui_prefs_sync = guard.ui_prefs_sync_enabled();
             *guard = new_svc;
+            guard.set_ui_prefs_sync_enabled(ui_prefs_sync);
         }
 
         // 清理占位目录，避免残留空数据。
@@ -672,7 +676,10 @@ impl AppState {
                         .vault_service
                         .write()
                         .map_err(|_| "Vault service lock poisoned".to_string())?;
+                    // 与上方成功路径一致：热替换后重应用「同步设置偏好」开关。
+                    let ui_prefs_sync = guard.ui_prefs_sync_enabled();
                     *guard = local_svc;
+                    guard.set_ui_prefs_sync_enabled(ui_prefs_sync);
                 }
                 // 取消 WorkManager 兜底同步：首次同步失败说明 SAF 不可用，
                 // 避免旧配置持续触发无效同步。

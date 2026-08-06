@@ -162,6 +162,30 @@ describe('syncStore pairing_pending detection', () => {
   });
 });
 
+describe('syncStore uiPrefsSync toggle', () => {
+  beforeEach(() => {
+    handlers.clear();
+    mockInvoke.mockReset();
+    mockUnlisten.mockClear();
+    useSyncStore.setState({ uiPrefsSyncEnabled: true, isLoading: false, error: null });
+  });
+
+  it('loadUiPrefsSync reads backend toggle', async () => {
+    mockInvoke.mockResolvedValueOnce(false);
+    await useSyncStore.getState().loadUiPrefsSync();
+    expect(mockInvoke).toHaveBeenCalledWith('sync_get_ui_prefs_sync');
+    expect(useSyncStore.getState().uiPrefsSyncEnabled).toBe(false);
+  });
+
+  it('setUiPrefsSyncEnabled persists toggle and updates state', async () => {
+    mockInvoke.mockResolvedValueOnce(false);
+    await useSyncStore.getState().setUiPrefsSyncEnabled(false);
+    expect(mockInvoke).toHaveBeenCalledWith('sync_set_ui_prefs_sync', { enabled: false });
+    expect(useSyncStore.getState().uiPrefsSyncEnabled).toBe(false);
+    expect(useSyncStore.getState().isLoading).toBe(false);
+  });
+});
+
 describe('syncStore initSyncCompletedListener', () => {
   beforeEach(() => {
     handlers.clear();

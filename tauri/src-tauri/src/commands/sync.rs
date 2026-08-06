@@ -216,10 +216,12 @@ pub async fn sync_set_ui_prefs_sync(
     state: State<'_, AppState>,
     enabled: bool,
 ) -> Result<bool, String> {
+    // set_ui_prefs_sync_enabled 是 &self（AtomicBool），读锁足够，
+    // 避免写锁短暂阻塞正在进行的 vault 操作。
     {
         let svc = state
             .vault_service
-            .write()
+            .read()
             .map_err(|_| "Vault service lock poisoned".to_string())?;
         svc.set_ui_prefs_sync_enabled(enabled);
     }
