@@ -597,26 +597,21 @@ fn cjk_font_candidates() -> Vec<&'static str> {
     candidates
 }
 
-/// 尝试从路径加载 TrueType 字体；对 TTC 先提取首字体到临时文件再加载。
+/// 尝试从路径加载 TrueType 字体；对 TTC 先提取首字体再经内存加载。
 fn try_load_font<'a>(document: &mut PdfDocument<'a>, path: &str) -> Result<PdfFontToken, String> {
     let lower = path.to_ascii_lowercase();
     if lower.ends_with(".ttc") {
         let data = std::fs::read(path).map_err(|e| format!("读取字体失败: {e}"))?;
         let single = extract_first_from_ttc(&data)?;
-        let mut temp = tempfile::NamedTempFile::with_suffix(".ttf")
-            .map_err(|e| format!("创建临时字体文件失败: {e}"))?;
-        std::io::Write::write_all(&mut temp, &single)
-            .map_err(|e| format!("写入临时字体失败: {e}"))?;
-        let token = document
+        // R2-05: 直接经内存加载 TTC 首字体——pdfium-render 的 load_true_type_from_bytes
+        // 内部经 FPDFText_LoadFont 复制字体数据到 PDFium 内存，字体数据无需（也不能依赖）
+        // 临时文件存活期。原实现写 NamedTempFile 后立即 `let _ = temp;` drop（文件随即删除），
+        // 仅因 Pdfium 急切读入内存才"靠运气正确"，且注释与实现自相矛盾；
+        // 现彻底消除临时文件生命周期隐患。
+        document
             .fonts_mut()
-            .load_true_type_from_file(temp.path(), true)
-            .map_err(|e| format!("加载 TTC 字体失败: {e}"))?;
-        // 关键：临时文件必须保持存活到 PDF 保存完成。
-        // Pdfium 加载字体时会读取文件；此处让临时文件随调用方作用域释放，
-        // 但 token 引用的是已加载的字体句柄，通常已复制到内存。
-        // 为保险起见，此处不主动 drop temp。
-        let _ = temp;
-        Ok(token)
+            .load_true_type_from_bytes(&single, true)
+            .map_err(|e| format!("加载 TTC 字体失败: {e}"))
     } else {
         document
             .fonts_mut()
