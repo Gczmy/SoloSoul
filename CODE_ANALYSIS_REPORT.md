@@ -38,8 +38,8 @@
 | R2-11 | P2 | 死代码 | `tauri/src-tauri/src/services/llm_context.rs:32-417` | `build_context` 及整棵私有子树（约 330 行）仅被测试引用存活；活路径仅剩 `clear_cache`/`bump_public_data_version` | `[x]` 已修复 |
 | R2-12 | P2 | 死代码 | `tauri/src-tauri/src/commands/llm/rag.rs:502`、`crates/solosoul-plugin/src/registry.rs:60` | `needs_rebuild`、`PluginRegistry::from_path` 全 workspace 零调用 | `[x]` 已修复 |
 | R2-13 | P2 | 结构 | Rust 超长/深嵌套函数 | `app_state.rs:257`（189 行/深 10）、`search/query.rs:16`（120/深 10）、`import.rs:226`（213）、`storage.rs:649`（211）与 `:884 reencrypt_all`（207，6 个表处理块复制粘贴）、`plugin/manager.rs:170`（209）、`plugin/host.rs:437/893/662`、`sync/attachments.rs:387` 等 | `[ ]` 待修复 |
-| R2-14 | P2 | 重复 | `tauri/src-tauri/src/commands/attachment.rs:394-418 vs 823-846` | `allowed_bases` 白名单构建块两处近乎逐字重复（~90%），且一处含移动端 temp_dir 分支一处不含——策略漂移风险 | `[ ]` 待修复 |
-| R2-15 | P2 | 性能/杂项 | Rust 轻项 | 主 `payload.enc` 导入未走流式（`import.rs:524`，≈2×payload 内存）；`watermark/mod.rs:88 load_font_bytes` 无缓存；`storage.rs:541` ALTER TABLE 吞掉所有错误；`examples/unlock_account.rs:8` 主密码放 argv | `[ ]` 待修复 |
+| R2-14 | P2 | 重复 | `tauri/src-tauri/src/commands/attachment.rs:394-418 vs 823-846` | `allowed_bases` 白名单构建块两处近乎逐字重复（~90%），且一处含移动端 temp_dir 分支一处不含——策略漂移风险 | `[x]` 已修复 |
+| R2-15 | P2 | 性能/杂项 | Rust 轻项 | 主 `payload.enc` 导入未走流式（`import.rs:524`，≈2×payload 内存）；`watermark/mod.rs:88 load_font_bytes` 无缓存；`storage.rs:541` ALTER TABLE 吞掉所有错误；`examples/unlock_account.rs:8` 主密码放 argv | `[x]` 已修复 |
 | R2-16 | P2 | 重构 | `tauri/src/`（>400 行文件 28→**40** 个） | P003 清单过期：前五仍准（LoginPage 793/ExportImportPage 754/AttachmentViewer 743/PageGuide 699/HistoryViewer 682），新进：AppRoutes 679、useObjectWorkspaceData 629、PasswordVerificationDialog 617、useAttachmentManager 585、TrashDetailSections 575、AddPageButton 555 | `[ ]` 待修复 |
 | R2-17 | P2 | 重复/性能 | `tauri/src/hooks/useExportScope.ts:89-106/223-241/254-270` | 同一段 N+1 附件加载块逐字复制三遍（~55 行），每对象一次 IPC 且无并发上限 | `[ ]` 待修复 |
 | R2-18 | P2 | 规范 | 前端 100 处 | `t('key') \|\| '兜底文案'` 死兜底模式：i18next 缺 key 返回 key 本身（truthy），`\|\|` 右侧几乎永不执行；100 处硬编码与 i18n 集中管理约定相悖 | `[ ]` 待修复 |
@@ -56,8 +56,8 @@
 
 ## R2 修复进度
 
-- 已完成：9 / 28（第一批 6 项 + R2-08/11/12）
-- 当前处理：第二批：R2-14 → R2-15
+- 已完成：11 / 28（第一批 6 项 + R2-08/11/12/14/15）
+- 当前处理：第三批（CLI）：R2-04 → R2-10 → R2-22 → R2-23 → R2-24 → R2-25 → R2-26 → R2-27 → R2-28
 
 ### R2-§3 重点问题修复指引（P0/P1）
 
@@ -97,6 +97,8 @@
 - **R2-08（P1 性能，2026-08-06）**：`collect_attachment_manifests` 的 N+1 已消除——原「`list_object_metadata`（无 properties）+ 逐对象 `load_object`（每对象一次 SQL + 一次全量解密）」改为单次 `list_objects`（一次查询、一次解码全部 properties 并直接解析 `summary.properties.__attachments`）。注：每次对附件文件 `sha256_file` 属于**正确性必需**（manifest 的 sha256 必须反映当前磁盘文件真实字节，接收端靠它校验），未做缓存；真正的查询/解密 N+1 开销已去除。验证：`cargo test -p solosoul-sync` 60 用例全绿。
 - **R2-11（P2 死代码，2026-08-06）**：`llm_context.rs` 删除 `build_context` 及其整棵私有子树（7 个 section 构建器、`extract_properties`、`to_title_case`/`type_display_name`/`property_key_to_label`/`trim_to_limit`、`MAX_*` 常量，约 330 行）。因 `PROMPT_CACHE` 的唯一写入方即 `build_context`，缓存层随之成为「只清不写」死代码——`clear_cache` 及 `PROMPT_CACHE`/`CachedPrompt` 一并删除，并移除 vault.rs `lock` 与 auth.rs `logout` 中 2 处 `clear_cache()` 调用（原调用本就是空操作）。模块保留 `bump_public_data_version`/`load`/`save_public_data_version` 及其 3 个测试。验证：`cargo test -p solo_soul --lib llm` 36 用例 + `cargo clippy` 零告警。
 - **R2-12（P2 死代码，2026-08-06）**：① `rag.rs` 删除 `needs_rebuild`（全 workspace 零调用；其姊妹 `mark_rebuilt` 仍被 `llm_rebuild_guide_embeddings` 使用，保留）；② `registry.rs` 删除 `PluginRegistry::from_path`——报告称零调用，经复核实际被 `src-tauri/tests/plugin_registry_update.rs` 3 处集成测试使用（生产零调用），属测试专属构造器，删除后 3 处测试改用 `new_with_dirs(dir, dir)`（`bundled_path`/`cache_path` 均为 `dir/registry.json`，与 `from_path` 语义逐位一致），并清理 `Path` 未用 import。验证：`cargo test --test plugin_registry_update` 3 用例 + `cargo test -p solosoul-plugin` 56 用例全绿、`cargo clippy` 零告警。
+- **R2-14（P2 重复，2026-08-06）**：提取共享 `allowed_fs_bases()` helper——`attachment_copy_to_vault` 与 `attachment_download` 两处近乎逐字重复的 `allowed_bases` 内联块（各 ~25 行）收敛为单一实现，移动端 temp_dir 分支统一纳入（原仅 copy 侧有、download 侧无，策略漂移风险消除）。验证：`cargo test -p solo_soul attachment` 12 用例 + `cargo clippy` 零告警。
+- **R2-15（P2 性能/杂项，2026-08-06）**：4 项全部处理——① **payload 流式导入**：`decrypt_package` 不再整体读入 `payload.enc`，新增 `decrypt_zip_entry_streaming`（复用 crypto 的 `decrypt_chunked_stream`，沿用 `MAX_ZIP_ENTRY_SIZE` 防 ZIP 炸弹上限）流式解密到 `NamedTempFile` 后经 `serde_json::from_reader` 解析；峰值内存由约 3×（密文+明文+JSON 树）降至约 1×。`tempfile` 从 dev-dependencies 提升至 dependencies。② **load_font_bytes 缓存**：`OnceLock` 缓存系统字体（进程内不变），消除每次图片水印重复读盘。③ **ALTER TABLE 错误吞没**：`init_schema` 的 2 处迁移改为先经 `column_exists`（PRAGMA table_info）探测、缺列才 ALTER 且错误传播。④ **示例主密码**：`examples/unlock_account.rs` 改从 `SOLOSOUL_TEST_PASSWORD` 环境变量读取（不再进 argv，防 `ps` 泄漏）。验证：export_import 36 / attachment 12 / vault 146 / watermark 5 用例全绿、example 编译通过、`cargo clippy` 零告警。
 
 ---
 

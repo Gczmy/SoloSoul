@@ -73,6 +73,41 @@ fn save_attachments(props: &mut Value, atts: &[AttachmentMeta]) {
     }
 }
 
+/// 构建允许的源/目标文件系统基目录白名单。
+///
+/// - `$SOLOSOUL_FS_BASE`（若设置）
+/// - 用户 Desktop / Documents / Downloads
+/// - 移动端：应用缓存目录（前端经 plugin-fs 中转的落盘位置）
+///
+/// R2-14: 从 `attachment_copy_to_vault` 与 `attachment_download` 两处近乎逐字重复的
+/// 内联块中提取，消除策略漂移风险（原一处含移动端 temp_dir 分支、一处不含）。
+fn allowed_fs_bases() -> Vec<PathBuf> {
+    let mut bases = Vec::new();
+    if let Ok(fs_base) = std::env::var("SOLOSOUL_FS_BASE") {
+        if let Ok(canon) = PathBuf::from(fs_base).canonicalize() {
+            bases.push(canon);
+        }
+    }
+    #[cfg(unix)]
+    let home_var = "HOME";
+    #[cfg(windows)]
+    let home_var = "USERPROFILE";
+    if let Ok(home) = std::env::var(home_var) {
+        for dir_name in &["Desktop", "Documents", "Downloads"] {
+            let p = PathBuf::from(&home).join(dir_name);
+            if let Ok(canon) = p.canonicalize() {
+                bases.push(canon);
+            }
+        }
+    }
+    // 移动端：文件由前端通过 plugin-fs 中转后放在应用缓存目录，需加入白名单
+    #[cfg(any(target_os = "android", target_os = "ios"))]
+    {
+        bases.push(std::env::temp_dir());
+    }
+    bases
+}
+
 #[tauri::command]
 pub async fn attachment_list(
     state: State<'_, AppState>,
@@ -391,32 +426,7 @@ pub async fn attachment_copy_to_vault(
     }
 
     // 验证源文件在允许的用户目录内（Desktop/Documents/Downloads 或 SOLOSOUL_FS_BASE）
-    let allowed_bases: Vec<PathBuf> = {
-        let mut bases = Vec::new();
-        if let Ok(fs_base) = std::env::var("SOLOSOUL_FS_BASE") {
-            if let Ok(canon) = PathBuf::from(fs_base).canonicalize() {
-                bases.push(canon);
-            }
-        }
-        #[cfg(unix)]
-        let home_var = "HOME";
-        #[cfg(windows)]
-        let home_var = "USERPROFILE";
-        if let Ok(home) = std::env::var(home_var) {
-            for dir_name in &["Desktop", "Documents", "Downloads"] {
-                let p = PathBuf::from(&home).join(dir_name);
-                if let Ok(canon) = p.canonicalize() {
-                    bases.push(canon);
-                }
-            }
-        }
-        // 移动端：文件由前端通过 plugin-fs 中转后放在应用缓存目录，需加入白名单
-        #[cfg(any(target_os = "android", target_os = "ios"))]
-        {
-            bases.push(std::env::temp_dir());
-        }
-        bases
-    };
+    let allowed_bases = allowed_fs_bases();
     if !allowed_bases.is_empty() && !allowed_bases.iter().any(|b| src.starts_with(b)) {
         return Err(
             "Source path must be within Desktop, Documents, Downloads, or SOLOSOUL_FS_BASE"
@@ -830,29 +840,7 @@ pub async fn attachment_download(
     }
 
     // Determine allowed base directories for downloads.
-    let allowed_bases: Vec<PathBuf> = {
-        let mut bases = Vec::new();
-        // $SOLOSOUL_FS_BASE if set
-        if let Ok(fs_base) = std::env::var("SOLOSOUL_FS_BASE") {
-            if let Ok(canon) = PathBuf::from(fs_base).canonicalize() {
-                bases.push(canon);
-            }
-        }
-        // Common user download directories (Desktop, Documents, Downloads)
-        #[cfg(unix)]
-        let home_var = "HOME";
-        #[cfg(windows)]
-        let home_var = "USERPROFILE";
-        for dir_name in &["Desktop", "Documents", "Downloads"] {
-            if let Ok(home) = std::env::var(home_var) {
-                let p = PathBuf::from(&home).join(dir_name);
-                if let Ok(canon) = p.canonicalize() {
-                    bases.push(canon);
-                }
-            }
-        }
-        bases
-    };
+    let allowed_bases = allowed_fs_bases();
 
     // If we have allowed bases, verify dest is within one of them.
     if !allowed_bases.is_empty() {
