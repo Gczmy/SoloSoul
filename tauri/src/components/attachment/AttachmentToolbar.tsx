@@ -101,8 +101,10 @@ export function AttachmentToolbar({
                   : undefined
               }
             >
-              {t('common:attachments_active', { n: activeAttachments }) ||
-                `Attachments (${activeAttachments})`}
+              {t('common:attachments_active', {
+                n: activeAttachments,
+                defaultValue: `Attachments (${activeAttachments})`,
+              })}
               <span style={{ marginLeft: 4, fontSize: 'var(--text-caption)', opacity: 0.7 }}>
                 {formatBytes(activeBytes)}
               </span>
@@ -123,7 +125,10 @@ export function AttachmentToolbar({
                   : undefined
               }
             >
-              {t('common:attachments_trash', { n: trashAttachments }) || `Trash (${trashAttachments})`}
+              {t('common:attachments_trash', {
+                n: trashAttachments,
+                defaultValue: `Trash (${trashAttachments})`,
+              })}
               <span style={{ marginLeft: 4, fontSize: 'var(--text-caption)', opacity: 0.7 }}>
                 {formatBytes(trashBytes)}
               </span>

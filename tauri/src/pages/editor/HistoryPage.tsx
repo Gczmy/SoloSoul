@@ -51,8 +51,10 @@ export function HistoryPage() {
   const handleRollback = (snapshot: SnapshotEntry) => {
     requestConfirm(
       t('common:rollback_confirm_title', 'Restore version'),
-      t('common:rollback_confirm_body', { date: new Date(snapshot.timestamp).toLocaleString() }) ||
-        `Rollback to version from ${new Date(snapshot.timestamp).toLocaleString()}?`,
+      t('common:rollback_confirm_body', {
+        date: new Date(snapshot.timestamp).toLocaleString(),
+        defaultValue: `Rollback to version from ${new Date(snapshot.timestamp).toLocaleString()}?`,
+      }),
       async () => {
         setRestoring(snapshot.id);
         try {

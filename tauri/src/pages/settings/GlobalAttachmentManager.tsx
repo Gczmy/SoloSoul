@@ -247,10 +247,10 @@ export function GlobalAttachmentManager() {
       <ConfirmDialog
         open={batchRestoreConfirm}
         title={t('common:batch_restore_title', { defaultValue: 'Batch restore' })}
-        body={
-          t('common:batch_restore_body', { n: selectedIds.size }) ||
-          `Restore ${selectedIds.size} selected attachment(s) from trash?`
-        }
+        body={t('common:batch_restore_body', {
+          n: selectedIds.size,
+          defaultValue: `Restore ${selectedIds.size} selected attachment(s) from trash?`,
+        })}
         confirmLabel={t('common:restore')}
         cancelLabel={t('common:cancel')}
         confirmStyle="primary"
@@ -260,10 +260,10 @@ export function GlobalAttachmentManager() {
       <ConfirmDialog
         open={batchDeleteConfirm}
         title={t('common:batch_delete_title', { defaultValue: 'Batch delete' })}
-        body={
-          t('common:batch_delete_body', { n: selectedIds.size }) ||
-          `Delete ${selectedIds.size} selected attachment(s)? They will be moved to trash.`
-        }
+        body={t('common:batch_delete_body', {
+          n: selectedIds.size,
+          defaultValue: `Delete ${selectedIds.size} selected attachment(s)? They will be moved to trash.`,
+        })}
         confirmLabel={t('common:delete')}
         cancelLabel={t('common:cancel')}
         confirmStyle="danger"
@@ -273,10 +273,10 @@ export function GlobalAttachmentManager() {
       <ConfirmDialog
         open={batchPermanentDeleteConfirm}
         title={t('common:batch_perm_delete_title', { defaultValue: 'Permanently delete selected?' })}
-        body={
-          t('common:batch_perm_delete_body', { n: selectedIds.size }) ||
-          `Permanently delete ${selectedIds.size} selected attachment(s)? This cannot be undone.`
-        }
+        body={t('common:batch_perm_delete_body', {
+          n: selectedIds.size,
+          defaultValue: `Permanently delete ${selectedIds.size} selected attachment(s)? This cannot be undone.`,
+        })}
         confirmLabel={t('common:delete_permanently')}
         cancelLabel={t('common:cancel')}
         confirmStyle="danger"
@@ -288,8 +288,10 @@ export function GlobalAttachmentManager() {
         title={t('common:perm_delete_title', { defaultValue: 'Permanently delete?' })}
         body={
           permDeleteItem
-            ? t('common:perm_delete_body', { name: truncateFileName(permDeleteItem.fileName) }) ||
-              `Delete "${truncateFileName(permDeleteItem.fileName)}"? This cannot be undone.`
+            ? t('common:perm_delete_body', {
+                name: truncateFileName(permDeleteItem.fileName),
+                defaultValue: `Delete "${truncateFileName(permDeleteItem.fileName)}"? This cannot be undone.`,
+              })
             : ''
         }
         confirmLabel={t('common:delete_permanently')}

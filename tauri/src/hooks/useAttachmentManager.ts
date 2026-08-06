@@ -110,9 +110,10 @@ export function useAttachmentManager() {
     } catch {
       showToast({
         type: 'error',
-        message:
-          t('common:cannot_open_file', { path: item.fileName }) ||
-          `Cannot open file: ${item.fileName}`,
+        message: t('common:cannot_open_file', {
+          path: item.fileName,
+          defaultValue: `Cannot open file: ${item.fileName}`,
+        }),
       });
     }
   };
@@ -166,8 +167,10 @@ export function useAttachmentManager() {
   const handleSoftDelete = (item: AttachmentMeta, objectId: string) => {
     requestConfirm(
       t('common:confirm_delete_title', 'Delete attachment'),
-      t('common:confirm_delete_body', { name: truncateFileName(item.fileName) }) ||
-        `Delete "${truncateFileName(item.fileName)}"? It will be moved to trash.`,
+      t('common:confirm_delete_body', {
+        name: truncateFileName(item.fileName),
+        defaultValue: `Delete "${truncateFileName(item.fileName)}"? It will be moved to trash.`,
+      }),
       async () => {
         try {
           await invoke('attachment_soft_delete', { objectId: objectId, attachmentId: item.id });
@@ -333,11 +336,11 @@ export function useAttachmentManager() {
 
       showToast({
         type: successCount === selectedItems.length ? 'success' : 'warning',
-        message:
-          t('common:batch_download_result', {
-            success: successCount,
-            total: selectedItems.length,
-          }) || `Downloaded ${successCount}/${selectedItems.length} files`,
+        message: t('common:batch_download_result', {
+          success: successCount,
+          total: selectedItems.length,
+          defaultValue: `Downloaded ${successCount}/${selectedItems.length} files`,
+        }),
       });
       clearSelection();
     } catch {
@@ -373,9 +376,11 @@ export function useAttachmentManager() {
 
     clearSelection();
     await loadData();
-    const base =
-      t('common:batch_delete_result', { success: successCount, total: entries.length }) ||
-      `Deleted ${successCount}/${entries.length} attachments`;
+    const base = t('common:batch_delete_result', {
+      success: successCount,
+      total: entries.length,
+      defaultValue: `Deleted ${successCount}/${entries.length} attachments`,
+    });
     showToast({
       type: failedCount > 0 ? 'warning' : 'info',
       message:
@@ -416,9 +421,11 @@ export function useAttachmentManager() {
 
     clearSelection();
     await loadData();
-    const base =
-      t('common:batch_perm_delete_result', { success: successCount, total: entries.length }) ||
-      `Permanently deleted ${successCount}/${entries.length} attachments`;
+    const base = t('common:batch_perm_delete_result', {
+      success: successCount,
+      total: entries.length,
+      defaultValue: `Permanently deleted ${successCount}/${entries.length} attachments`,
+    });
     showToast({
       type: failedCount > 0 ? 'warning' : 'info',
       message:
@@ -459,9 +466,11 @@ export function useAttachmentManager() {
     }
     clearSelection();
     await loadData();
-    const base =
-      t('common:batch_restore_result', { success: successCount, total: entries.length }) ||
-      `Restored ${successCount}/${entries.length} attachments`;
+    const base = t('common:batch_restore_result', {
+      success: successCount,
+      total: entries.length,
+      defaultValue: `Restored ${successCount}/${entries.length} attachments`,
+    });
     showToast({
       type: failedCount > 0 ? 'warning' : 'info',
       message:

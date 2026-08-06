@@ -83,9 +83,10 @@ export function AttachmentViewer({
     } catch {
       showToast({
         type: 'error',
-        message:
-          t('common:cannot_open_file', { path: item.fileName }) ||
-          `Cannot open file. Make sure the file still exists: ${item.fileName}`,
+        message: t('common:cannot_open_file', {
+          path: item.fileName,
+          defaultValue: `Cannot open file. Make sure the file still exists: ${item.fileName}`,
+        }),
       });
     }
   };
@@ -226,7 +227,7 @@ export function AttachmentViewer({
     await invoke('attachment_soft_delete', { objectId: objectId, attachmentId: item.id }).catch((e) => {
       showToast({
         type: 'error',
-        message: t('common:delete_failed') || `Delete failed: ${e}`,
+        message: t('common:delete_failed', { defaultValue: `Delete failed: ${e}` }),
       });
     });
     await loadAttachments();
@@ -390,11 +391,11 @@ export function AttachmentViewer({
 
     showToast({
       type: successCount === selectedItems.length ? 'success' : 'warning',
-      message:
-        t('common:batch_download_result', {
-          success: successCount,
-          total: selectedItems.length,
-        }) || `Downloaded ${successCount}/${selectedItems.length} files`,
+      message: t('common:batch_download_result', {
+        success: successCount,
+        total: selectedItems.length,
+        defaultValue: `Downloaded ${successCount}/${selectedItems.length} files`,
+      }),
     });
     clearSelection();
   };
@@ -696,12 +697,10 @@ export function AttachmentViewer({
       <ConfirmDialog
         open={!!deleteItem}
         title={t('common:confirm_delete_title', 'Delete attachment')}
-        body={
-          t('common:confirm_delete_body', {
-            name: deleteItem ? truncateFileName(deleteItem.fileName) : '',
-          }) ||
-          `Delete "${deleteItem ? truncateFileName(deleteItem.fileName) : ''}"? It will be moved to trash.`
-        }
+        body={t('common:confirm_delete_body', {
+          name: deleteItem ? truncateFileName(deleteItem.fileName) : '',
+          defaultValue: `Delete "${deleteItem ? truncateFileName(deleteItem.fileName) : ''}"? It will be moved to trash.`,
+        })}
         confirmLabel={t('common:delete')}
         cancelLabel={t('common:cancel')}
         confirmStyle="danger"
