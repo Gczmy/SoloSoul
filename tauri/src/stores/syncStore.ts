@@ -11,6 +11,34 @@ import type {
 import { useUiStore } from '@/stores/uiStore';
 import { logger } from '@/lib/logger';
 
+// P0#5: 同步历史持久化——recentResults 原为纯内存（slice(0,10)，重启即丢）。
+// 落 localStorage（仅含表名/计数/HLC，无解密内容），重启后同步活动面板保留历史。
+const SYNC_HISTORY_KEY = 'solosoul.syncHistory.v1';
+const SYNC_HISTORY_MAX = 10;
+
+function loadSyncHistory(): SyncResult[] {
+  try {
+    const raw = localStorage.getItem(SYNC_HISTORY_KEY);
+    if (!raw) return [];
+    const parsed: unknown = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.slice(0, SYNC_HISTORY_MAX) as SyncResult[];
+  } catch {
+    return [];
+  }
+}
+
+/** 写入最新同步历史并返回截断后的数组（持久化失败静默降级为纯内存）。 */
+function pushSyncHistory(results: SyncResult[]): SyncResult[] {
+  const next = results.slice(0, SYNC_HISTORY_MAX);
+  try {
+    localStorage.setItem(SYNC_HISTORY_KEY, JSON.stringify(next));
+  } catch {
+    // 存储不可用（隐私模式/配额）时忽略
+  }
+  return next;
+}
+
 export interface SyncPeer {
   id: string;
   name: string;
@@ -115,7 +143,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
   isLoading: false,
   error: null,
   lastResult: null,
-  recentResults: [],
+  recentResults: loadSyncHistory(),
   discoveredDevices: [],
   isDiscoveringDevices: false,
   listenAddr: '',
@@ -228,7 +256,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
       set((state) => ({
         isLoading: false,
         lastResult: result,
-        recentResults: [result, ...state.recentResults].slice(0, 10),
+        recentResults: pushSyncHistory([result, ...state.recentResults]),
       }));
     } catch (err) {
       const raw = String(err);
@@ -416,7 +444,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
       };
       set((state) => ({
         lastResult: result,
-        recentResults: [result, ...state.recentResults].slice(0, 10),
+        recentResults: pushSyncHistory([result, ...state.recentResults]),
       }));
       // 全局完成提醒（B 侧用户不在同步页也能看到）
       useUiStore.getState().showToast({
