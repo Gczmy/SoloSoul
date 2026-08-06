@@ -797,14 +797,23 @@ pub async fn attachment_download(
         })
         .map_err(|e| format!("Invalid source path: {}", e))?;
 
+    // R2-01: 拒绝 `..` 组件；回退分支改用组件级 Path::starts_with，
+    // 避免共享前缀的兄弟目录（如 ~/.solosoul_evil/）绕过 in_vault 检查。
+    let src_raw = std::path::Path::new(&src_path);
+    if src_raw
+        .components()
+        .any(|c| matches!(c, std::path::Component::ParentDir))
+    {
+        return Err("Source path must not contain '..'".to_string());
+    }
+
     let attachments_dir = vault_base.join("attachments");
     let attachments_canon = attachments_dir
         .canonicalize()
         .unwrap_or_else(|_| attachments_dir.clone());
-    let in_attachments = src.starts_with(&attachments_canon)
-        || src_path.starts_with(attachments_canon.to_string_lossy().as_ref());
-    let in_vault =
-        src.starts_with(&vault_base) || src_path.starts_with(vault_base.to_string_lossy().as_ref());
+    let in_attachments =
+        src.starts_with(&attachments_canon) || src_raw.starts_with(&attachments_canon);
+    let in_vault = src.starts_with(&vault_base) || src_raw.starts_with(&vault_base);
 
     if !in_attachments && !in_vault {
         return Err("Source path must be within vault storage".to_string());
@@ -956,9 +965,17 @@ pub async fn attachment_open<R: Runtime>(
     let attachments_canon = attachments_dir
         .canonicalize()
         .unwrap_or_else(|_| attachments_dir.clone());
-    if !path.starts_with(&attachments_canon)
-        && !path_str.starts_with(attachments_canon.to_string_lossy().as_ref())
+    // R2-01: 与 attachment_download 一致——拒绝 `..`、组件级 starts_with，
+    // 移除字符串前缀回退分支（共享前缀兄弟目录可绕过）。
+    let path_raw = std::path::Path::new(path_str);
+    if path_raw
+        .components()
+        .any(|c| matches!(c, std::path::Component::ParentDir))
     {
+        tracing::error!("attachment_open: attachment path contains '..'");
+        return Err("Attachment path must not contain '..'".to_string());
+    }
+    if !path.starts_with(&attachments_canon) && !path_raw.starts_with(&attachments_canon) {
         tracing::error!("attachment_open: attachment path is outside vault storage");
         return Err("Attachment path is outside vault storage".to_string());
     }

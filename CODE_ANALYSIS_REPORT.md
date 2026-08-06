@@ -25,7 +25,7 @@
 
 | ID | 优先级 | 类别 | 文件位置 | 描述 | 状态 |
 |----|--------|------|----------|------|------|
-| R2-01 | P0 | 安全 | `tauri/src-tauri/src/commands/attachment.rs:785-811` | 路径校验回退分支用纯字符串前缀 `starts_with`，共享前缀的兄弟目录（如 `~/.solosoul_evil/`）可绕过 `in_vault` 检查；src 未拒绝 `..` 组件。该命令不要求解锁 Vault，是 webview 可达的读文件原语 | `[ ]` 待修复 |
+| R2-01 | P0 | 安全 | `tauri/src-tauri/src/commands/attachment.rs:785-811` | 路径校验回退分支用纯字符串前缀 `starts_with`，共享前缀的兄弟目录（如 `~/.solosoul_evil/`）可绕过 `in_vault` 检查；src 未拒绝 `..` 组件。该命令不要求解锁 Vault，是 webview 可达的读文件原语 | `[x]` 已修复 |
 | R2-02 | P1 | 崩溃 | `solosoul_cli/src/app.rs:1635` | 裸输 `/plugin_run`（无参数）时 `&parts[2..]` 越界 panic，进程崩溃 | `[ ]` 待修复 |
 | R2-03 | P1 | 崩溃/UX | `solosoul_cli/src/commands/mod.rs:10-18`、`app.rs:1584`、`tui.rs:74` | 命令错误经 `?` 一路传播到 main：Locked 状态手输 `/list` 等命令直接退出 TUI 进程（`require_unlocked` 设置的 `error_message` overlay 设计意图被旁路） | `[ ]` 待修复 |
 | R2-04 | P1 | 安全 | `solosoul_cli/src/widgets/prompt.rs:43/56/174`、`commands/security.rs:52-110/225/251/300`、`export_import.rs:89/197`、`app.rs:594` | 改主密码/导出密码/删除账户等经 prompt 以纯 `String` 多副本流转且全程不清零，与 `PasswordInput` 的 `Zeroizing<String>` 约定矛盾 | `[ ]` 待修复 |
@@ -56,8 +56,8 @@
 
 ## R2 修复进度
 
-- 已完成：0 / 28
-- 当前处理：无（**按用户指令：报告完成后停止，等待修复指令**）
+- 已完成：1 / 28（R2-01 已闭环）
+- 当前处理：R2-05（watermark temp TTF）→ R2-06 → R2-07 → R2-02 → R2-03（第一批收尾）
 
 ### R2-§3 重点问题修复指引（P0/P1）
 
@@ -85,6 +85,10 @@
 4. **第四批（前端）**：R2-09 → R2-19 → R2-17 → R2-20 → R2-18 → R2-21 → R2-16
 
 > R2-16 为长期重构候选（延续 P003 定位，随功能迭代顺带）；R2-18 为大范围机械替换，建议单独一批。遵循流程「Rust / TypeScript 分离、一项一提交」原则。
+
+## R2 修复实施记录（逐项更新）
+
+- **R2-01（P0 安全，2026-08-06）**：`attachment_download` 与 `attachment_open` 的路径校验移除字符串前缀回退分支（`src_path.starts_with(vault_base.to_string_lossy())`），改用组件级 `Path::starts_with`；src 与 dest 均显式拒绝 `ParentDir`（`..`）组件。共享前缀兄弟目录（`~/.solosoul_evil/`）不再能绕过 `in_vault`。Android symlink 场景保留 canonicalize 失败时的原始路径兜底，但经组件级比较校验。验证：`cargo test -p solo_soul attachment` 12 用例 + `cargo clippy -p solo_soul --all-targets` 零告警。
 
 ---
 
