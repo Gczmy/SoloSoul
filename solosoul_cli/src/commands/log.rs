@@ -78,10 +78,13 @@ pub fn export_log(app: &mut App, file_name: Option<&str>) -> Result<()> {
         color_eyre::eyre::eyre!(e)
     })?;
 
-    app.error_message = Some(t!(
-        app.i18n,
-        "cmd-log-exported",
-        path = path.display().to_string()
+    app.success_message = Some((
+        t!(
+            app.i18n,
+            "cmd-log-exported",
+            path = path.display().to_string()
+        ),
+        std::time::Instant::now(),
     ));
     Ok(())
 }

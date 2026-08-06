@@ -327,8 +327,10 @@ fn start_delete_account(app: &mut App) -> Result<()> {
                                         Ok(()) => {
                                             app.vault_service.lock();
                                             app.phase = AppPhase::Locked;
-                                            app.error_message =
-                                                Some(t!(app.i18n, "cmd-account-deleted"));
+                                            app.success_message = Some((
+                                                t!(app.i18n, "cmd-account-deleted"),
+                                                std::time::Instant::now(),
+                                            ));
                                         }
                                         Err(e) => {
                                             app.error_message =

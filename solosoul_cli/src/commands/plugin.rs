@@ -212,11 +212,14 @@ pub fn install_plugin(app: &mut App, plugin_id: Option<&str>) -> Result<()> {
 
     match rt.block_on(manager.install_from_registry(&plugin_id, &version)) {
         Ok(result) => {
-            app.error_message = Some(t!(
-                app.i18n,
-                "cmd-plugin-installed",
-                id = result.plugin_id,
-                ver = result.version
+            app.success_message = Some((
+                t!(
+                    app.i18n,
+                    "cmd-plugin-installed",
+                    id = result.plugin_id,
+                    ver = result.version
+                ),
+                std::time::Instant::now(),
             ));
         }
         Err(e) => {
@@ -249,11 +252,14 @@ pub fn update_plugin(app: &mut App, plugin_id: Option<&str>) -> Result<()> {
 
     match rt.block_on(manager.update(&plugin_id)) {
         Ok(result) => {
-            app.error_message = Some(t!(
-                app.i18n,
-                "cmd-plugin-updated",
-                id = result.plugin_id,
-                ver = result.version
+            app.success_message = Some((
+                t!(
+                    app.i18n,
+                    "cmd-plugin-updated",
+                    id = result.plugin_id,
+                    ver = result.version
+                ),
+                std::time::Instant::now(),
             ));
         }
         Err(e) => {

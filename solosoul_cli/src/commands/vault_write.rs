@@ -545,7 +545,7 @@ pub fn restore(app: &mut App, trash_id: Option<&str>) -> Result<()> {
             if let Some(detail) = format_restored_detail(&app.i18n, &result) {
                 message = format!("{}\n{}", message, detail);
             }
-            app.error_message = Some(message);
+            app.success_message = Some((message, std::time::Instant::now()));
         }
         Err(e) => app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e)),
     }
