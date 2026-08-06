@@ -52,7 +52,7 @@
 | R2-25 | P2 | 安全 | `solosoul_cli/src/main.rs:77-86` | `EnvFilter::from_env_lossy()` 无 crate 白名单（`RUST_LOG=debug` 会把依赖的 LLM 请求/vault 操作写进 cli.log）；`rolling::never` 日志无限增长 | `[x]` 已修复 |
 | R2-26 | P2 | UX | `solosoul_cli` 多处 | 成功消息（导出成功/密码已修改等）复用红色「! 错误」overlay，已有 `success_message` toast 字段但仅 settings 使用 | `[x]` 已修复 |
 | R2-27 | P2 | 死代码 | `solosoul_cli/src/widgets/account_list.rs:39`、`commands/mod.rs:95` | `render_empty` 无调用方；`CliError` type 定义后零使用 | `[x]` 已修复 |
-| R2-28 | P2 | 结构 | `solosoul_cli/src/app.rs`（3650 行） | god-object：`render` 312 行、`handle_onboarding_key` 149 行等；解锁样板 `get_vault_store().ok_or_else(...)` 在 17 个文件出现 ~40 次，现成 `require_unlocked_with_vault` 仅 3 个模块使用 | `[ ]` 待修复 |
+| R2-28 | P2 | 结构 | `solosoul_cli/src/app.rs`（3650 行） | god-object：`render` 312 行、`handle_onboarding_key` 149 行等；解锁样板 `get_vault_store().ok_or_else(...)` 在 17 个文件出现 ~40 次，现成 `require_unlocked_with_vault` 仅 3 个模块使用 | `[x]` 样板收敛已完成；render 拆分列为长期候选 |
 
 ## R2 修复进度
 

@@ -10,6 +10,7 @@ use std::time::Instant;
 
 use crate::app::{App, AppPhase, EditObjectStep, NewObjectStep, TrashFilter};
 use crate::commands::require_unlocked;
+use crate::commands::require_unlocked_with_vault;
 use crate::t;
 use crate::widgets::field_editor::EditableField;
 use crate::widgets::prompt::{self, PromptResult, PromptSpec};
@@ -49,11 +50,7 @@ pub fn newpage(app: &mut App, name: Option<&str>) -> Result<()> {
 // ============================================================================
 
 pub fn newobject(app: &mut App, page_name: Option<&str>) -> Result<()> {
-    let account_id = require_unlocked(app)?;
-    let vault = app
-        .vault_service
-        .get_vault_store()
-        .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
+    let (account_id, vault) = require_unlocked_with_vault(app)?;
 
     let pages = vault
         .list_objects(&account_id, Some("page"), None, None, false, false)
@@ -81,11 +78,7 @@ pub fn newobject(app: &mut App, page_name: Option<&str>) -> Result<()> {
 }
 
 pub fn start_select_template(app: &mut App, page_id: String, page_name: String) -> Result<()> {
-    let account_id = require_unlocked(app)?;
-    let vault = app
-        .vault_service
-        .get_vault_store()
-        .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
+    let (account_id, vault) = require_unlocked_with_vault(app)?;
     let templates = vault
         .list_user_templates(&account_id)
         .map_err(|e| color_eyre::eyre::eyre!(e))?;

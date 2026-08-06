@@ -4,6 +4,7 @@ use color_eyre::Result;
 
 use crate::app::{App, AppPhase, SizeReport};
 use crate::commands::require_unlocked;
+use crate::commands::require_unlocked_with_vault;
 use crate::t;
 
 /// `/list` 结果上限：与 `/search` 的 200 条截断对称，避免超大 Vault 一次渲染全部。
@@ -11,12 +12,7 @@ const LIST_RESULT_LIMIT: usize = 200;
 
 /// 执行 `/list [page_name]`：列出页面或页面内对象。
 pub fn list(app: &mut App, page_name: Option<&str>) -> Result<()> {
-    let account_id = require_unlocked(app)?;
-
-    let vault = app
-        .vault_service
-        .get_vault_store()
-        .ok_or_else(|| color_eyre::eyre::eyre!("Vault not open"))?;
+    let (account_id, vault) = require_unlocked_with_vault(app)?;
 
     match page_name {
         None => {

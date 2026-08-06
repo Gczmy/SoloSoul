@@ -12,7 +12,7 @@ use color_eyre::Result;
 use serde_json::{Map, Value};
 
 use crate::app::{App, AppPhase};
-use crate::commands::require_unlocked;
+use crate::commands::require_unlocked_with_vault;
 use crate::t;
 use crate::widgets::prompt::{PromptResult, PromptSpec};
 
@@ -330,12 +330,7 @@ fn setting(app: &mut App, key: Option<&str>, value: Option<&str>) -> Result<()> 
 /// 执行 `/debug_log [file_name]`：导出诊断包。\n///
 /// 成功时写入 `success_message`（绿色 toast，5 秒过期），失败保留 `error_message`（红色 overlay）。\n/// 设计目标：调用方不再依赖字符串前缀判定成败，避免诊包路径文案变更引起静默兼容性问题。
 fn debug_log(app: &mut App, file_name: Option<&str>) -> Result<()> {
-    let account_id = require_unlocked(app)?;
-
-    let vault = app
-        .vault_service
-        .get_vault_store()
-        .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
+    let (account_id, vault) = require_unlocked_with_vault(app)?;
 
     let entries = vault
         .list_audit_log(10000)

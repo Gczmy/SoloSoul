@@ -9,6 +9,7 @@ use std::time::Instant;
 
 use crate::app::{App, AppPhase};
 use crate::commands::require_unlocked;
+use crate::commands::require_unlocked_with_vault;
 use crate::t;
 use crate::widgets::prompt::{self, PromptResult, PromptSpec};
 
@@ -202,11 +203,7 @@ fn read_manifest_summary(path: &Path) -> Option<(String, usize)> {
 
 /// `/backup create <name>`：创建包含全部 Profile 的备份。
 fn backup_create(app: &mut App, name: &str) -> Result<()> {
-    let _account_id = require_unlocked(app)?;
-    let vault = app
-        .vault_service
-        .get_vault_store()
-        .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
+    let (_account_id, vault) = require_unlocked_with_vault(app)?;
 
     let safe_name = sanitize_backup_name(name)?;
     let backup_dir = backups_dir(app);
