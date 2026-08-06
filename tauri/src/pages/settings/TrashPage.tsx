@@ -483,8 +483,18 @@ export function TrashPage() {
             action={confirmAction}
             onClose={() => setConfirmAction(null)}
             onConfirm={async () => {
-              await confirmAction.callback();
-              setConfirmAction(null);
+              try {
+                await confirmAction.callback();
+                setConfirmAction(null);
+              } catch (e) {
+                // 失败不关闭对话框（可重试），toast 提示具体错误，避免 unhandled rejection
+                onError(
+                  e,
+                  confirmAction.type === 'delete'
+                    ? t('common:delete_permanently')
+                    : t('common:restore'),
+                );
+              }
             }}
           />
         )}
