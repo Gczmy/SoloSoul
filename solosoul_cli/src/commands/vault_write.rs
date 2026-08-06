@@ -344,11 +344,14 @@ fn delete_page(
         .ok();
 
     app.phase = AppPhase::Home { account_id };
-    app.error_message = Some(t!(
-        app.i18n,
-        "cmd-page-deleted",
-        name = &page.name,
-        count = children.len().to_string()
+    app.success_message = Some((
+        t!(
+            app.i18n,
+            "cmd-page-deleted",
+            name = &page.name,
+            count = children.len().to_string()
+        ),
+        Instant::now(),
     ));
     Ok(())
 }
@@ -475,16 +478,19 @@ pub fn batch_restore(app: &mut App, ids: &[String]) -> Result<()> {
             Err(e) => failed.push(format!("{}: {}", id, e)),
         }
     }
-    app.error_message = Some(t!(
-        app.i18n,
-        "cmd-batch-restore-result",
-        success = &success.len().to_string(),
-        failed = &failed.len().to_string(),
-        detail = &(if failed.is_empty() {
-            String::new()
-        } else {
-            format!("\n{}", failed.join("\n"))
-        })
+    app.success_message = Some((
+        t!(
+            app.i18n,
+            "cmd-batch-restore-result",
+            success = &success.len().to_string(),
+            failed = &failed.len().to_string(),
+            detail = &(if failed.is_empty() {
+                String::new()
+            } else {
+                format!("\n{}", failed.join("\n"))
+            })
+        ),
+        Instant::now(),
     ));
     Ok(())
 }
@@ -499,16 +505,19 @@ pub fn batch_purge(app: &mut App, ids: &[String]) -> Result<()> {
             Err(e) => failed.push(format!("{}: {}", id, e)),
         }
     }
-    app.error_message = Some(t!(
-        app.i18n,
-        "cmd-batch-purge-result",
-        success = &success.to_string(),
-        failed = &failed.len().to_string(),
-        detail = &(if failed.is_empty() {
-            String::new()
-        } else {
-            format!("\n{}", failed.join("\n"))
-        })
+    app.success_message = Some((
+        t!(
+            app.i18n,
+            "cmd-batch-purge-result",
+            success = &success.to_string(),
+            failed = &failed.len().to_string(),
+            detail = &(if failed.is_empty() {
+                String::new()
+            } else {
+                format!("\n{}", failed.join("\n"))
+            })
+        ),
+        Instant::now(),
     ));
     Ok(())
 }

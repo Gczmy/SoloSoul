@@ -275,11 +275,17 @@ fn language(app: &mut App, lang: Option<&str>) -> Result<()> {
             save_ui_prefs(app, &prefs)?;
             // 同步更新运行时 i18n locale
             app.i18n.set_locale(lang);
-            app.error_message = Some(t!(app.i18n, "current-language", code = lang));
+            app.success_message = Some((
+                t!(app.i18n, "current-language", code = lang),
+                Instant::now(),
+            ));
         }
         None => {
             let current = prefs["language"].as_str().unwrap_or("");
-            app.error_message = Some(t!(app.i18n, "current-language", code = current));
+            app.success_message = Some((
+                t!(app.i18n, "current-language", code = current),
+                Instant::now(),
+            ));
         }
     }
     Ok(())
@@ -292,11 +298,15 @@ fn theme(app: &mut App, theme: Option<&str>) -> Result<()> {
         Some(theme) => {
             prefs.insert("theme".to_string(), Value::String(theme.to_string()));
             save_ui_prefs(app, &prefs)?;
-            app.error_message = Some(t!(app.i18n, "current-theme", code = theme));
+            app.success_message =
+                Some((t!(app.i18n, "current-theme", code = theme), Instant::now()));
         }
         None => {
             let current = prefs["theme"].as_str().unwrap_or("system");
-            app.error_message = Some(t!(app.i18n, "current-theme", code = current));
+            app.success_message = Some((
+                t!(app.i18n, "current-theme", code = current),
+                Instant::now(),
+            ));
         }
     }
     Ok(())
@@ -414,9 +424,10 @@ mod tests {
 
         // 获取默认值
         handle(&mut app, &["/language"]).unwrap();
+        // R2-W2: 语言查询为信息语义，走 success_message
         assert!(
-            app.error_message.is_some(),
-            "language get should set an error_message"
+            app.success_message.is_some(),
+            "language get should set a success_message"
         );
 
         // 设置
@@ -432,9 +443,10 @@ mod tests {
         let (mut app, _id, _dir) = unlocked_app();
 
         handle(&mut app, &["/theme"]).unwrap();
+        // R2-W2: 主题查询为信息语义，走 success_message
         assert!(
-            app.error_message.is_some(),
-            "theme get should set an error_message"
+            app.success_message.is_some(),
+            "theme get should set a success_message"
         );
 
         handle(&mut app, &["/theme", "dark"]).unwrap();

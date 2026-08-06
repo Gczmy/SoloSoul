@@ -132,7 +132,10 @@ pub fn run_plugin(app: &mut App, plugin_id: Option<&str>, raw_params: &[&str]) -
     // 共享结果容器：工作线程写入，主线程在 handle_tick 中轮询
     let result_holder: Arc<Mutex<Option<String>>> = Arc::new(Mutex::new(None));
     app.plugin_run_pending = Some(result_holder.clone());
-    app.error_message = Some(t!(app.i18n, "cmd-plugin-running", id = plugin_id));
+    app.success_message = Some((
+        t!(app.i18n, "cmd-plugin-running", id = plugin_id),
+        Instant::now(),
+    ));
 
     let plugin_id_clone = plugin_id;
     let market_dir_clone = market_dir;
@@ -457,7 +460,7 @@ pub fn update_registry(app: &mut App) -> Result<()> {
 
     let rt = crate::util::shared_runtime()?;
 
-    app.error_message = Some(t!(app.i18n, "cmd-plugin-updating-registry"));
+    app.success_message = Some((t!(app.i18n, "cmd-plugin-updating-registry"), Instant::now()));
 
     let result_holder: std::sync::Arc<std::sync::Mutex<Option<String>>> =
         std::sync::Arc::new(std::sync::Mutex::new(None));

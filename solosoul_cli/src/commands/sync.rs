@@ -17,6 +17,7 @@ use color_eyre::Result;
 use rand::rngs::OsRng;
 use rand::RngCore;
 use std::sync::Arc;
+use std::time::Instant;
 
 use solosoul_core::VaultService;
 use solosoul_sync::manager::SyncManager;
@@ -162,11 +163,14 @@ fn trust_peer(app: &mut App, peer_node_id: &str, trusted: bool) {
         .and_then(|mgr| mgr.trust_peer(peer_node_id, trusted, None));
     match result {
         Ok(()) => {
-            app.error_message = Some(if trusted {
-                t!(app.i18n, "cmd-sync-trusted", id = peer_node_id)
-            } else {
-                t!(app.i18n, "cmd-sync-untrusted", id = peer_node_id)
-            });
+            app.success_message = Some((
+                if trusted {
+                    t!(app.i18n, "cmd-sync-trusted", id = peer_node_id)
+                } else {
+                    t!(app.i18n, "cmd-sync-untrusted", id = peer_node_id)
+                },
+                Instant::now(),
+            ));
         }
         Err(e) => {
             app.error_message = Some(t!(app.i18n, "cmd-sync-trust-operation-failed", err = e));
@@ -183,7 +187,10 @@ fn forget_peer(app: &mut App, peer_node_id: &str) {
         build_manager_for_manage(&app.vault_service).and_then(|mgr| mgr.forget_peer(peer_node_id));
     match result {
         Ok(()) => {
-            app.error_message = Some(t!(app.i18n, "cmd-sync-forgotten", id = peer_node_id));
+            app.success_message = Some((
+                t!(app.i18n, "cmd-sync-forgotten", id = peer_node_id),
+                Instant::now(),
+            ));
         }
         Err(e) => {
             app.error_message = Some(t!(app.i18n, "cmd-sync-forget-operation-failed", err = e));

@@ -1,6 +1,7 @@
 //! 历史快照命令 /history、/rollback。
 
 use color_eyre::Result;
+use std::time::Instant;
 
 use crate::app::{App, AppPhase};
 use crate::commands::require_unlocked;
@@ -150,11 +151,14 @@ fn do_rollback(app: &mut App, object_id: &str, snapshot_id: &str) -> Result<()> 
         )),
     );
 
-    app.error_message = Some(t!(
-        app.i18n,
-        "cmd-rollback-complete",
-        name = &record.name,
-        snap = snapshot_id
+    app.success_message = Some((
+        t!(
+            app.i18n,
+            "cmd-rollback-complete",
+            name = &record.name,
+            snap = snapshot_id
+        ),
+        Instant::now(),
     ));
     Ok(())
 }

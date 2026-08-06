@@ -157,7 +157,10 @@ fn handle_hint(app: &mut App, text: Option<&str>) -> Result<()> {
             let hint = load_account_config(app, &account_id)
                 .and_then(|c| c.password_hint)
                 .unwrap_or_default();
-            app.error_message = Some(t!(app.i18n, "cmd-password-hint-current", hint = hint));
+            app.success_message = Some((
+                t!(app.i18n, "cmd-password-hint-current", hint = hint),
+                Instant::now(),
+            ));
         }
     }
     Ok(())
@@ -176,10 +179,9 @@ fn handle_trash_retention(app: &mut App, days: Option<&str>) -> Result<()> {
     // 转换为毫秒，便于与 GUI 偏好保持一致。
     let ms = days.saturating_mul(24 * 60 * 60 * 1000);
     crate::commands::update_profile_preference(app, "trashRetention", Value::Number(ms.into()))?;
-    app.error_message = Some(t!(
-        app.i18n,
-        "cmd-trash-retention-set",
-        days = days.to_string()
+    app.success_message = Some((
+        t!(app.i18n, "cmd-trash-retention-set", days = days.to_string()),
+        Instant::now(),
     ));
     Ok(())
 }
@@ -207,13 +209,16 @@ fn handle_biometric(app: &mut App, action: Option<&str>, reason: Option<&str>) -
                 .as_deref()
                 .unwrap_or(t!(app.i18n, "biometric-generic-name").as_str())
                 .to_string();
-            app.error_message = Some(t!(
-                app.i18n,
-                "cmd-biometric-status",
-                status = status,
-                configured = configured,
-                kind = kind,
-                error = availability.error.as_deref().unwrap_or("")
+            app.success_message = Some((
+                t!(
+                    app.i18n,
+                    "cmd-biometric-status",
+                    status = status,
+                    configured = configured,
+                    kind = kind,
+                    error = availability.error.as_deref().unwrap_or("")
+                ),
+                Instant::now(),
             ));
             Ok(())
         }
@@ -283,7 +288,10 @@ fn handle_biometric(app: &mut App, action: Option<&str>, reason: Option<&str>) -
                 .map(|s| s.to_string())
                 .unwrap_or_else(|| "SoloSoul 生物识别测试".to_string());
             match manager.test(&reason) {
-                Ok(true) => app.error_message = Some(t!(app.i18n, "cmd-biometric-test-passed")),
+                Ok(true) => {
+                    app.success_message =
+                        Some((t!(app.i18n, "cmd-biometric-test-passed"), Instant::now()))
+                }
                 Ok(false) => {
                     app.error_message = Some(t!(app.i18n, "cmd-biometric-test-unavailable"))
                 }
@@ -446,7 +454,12 @@ mod tests {
     fn test_biometric_status() {
         let (mut app, _account_id, _dir) = unlocked_app();
         handle(&mut app, &["/security", "biometric", "status"]).unwrap();
-        let msg = app.error_message.as_deref().unwrap_or("");
+        // R2-W2: 状态查询为信息语义，走 success_message
+        let msg = app
+            .success_message
+            .as_ref()
+            .map(|(t, _)| t.as_str())
+            .unwrap_or("");
         assert!(msg.contains("生物识别"));
     }
 

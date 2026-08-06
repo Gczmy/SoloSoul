@@ -110,7 +110,12 @@ fn add(app: &mut App, file_path: Option<&str>) -> Result<()> {
         std::path::Path::new(file_path),
         &base,
     ) {
-        Ok(_) => app.error_message = Some(t!(app.i18n, "attachment-added", path = file_path)),
+        Ok(_) => {
+            app.success_message = Some((
+                t!(app.i18n, "attachment-added", path = file_path),
+                Instant::now(),
+            ))
+        }
         Err(e) => app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e)),
     }
     Ok(())
@@ -145,7 +150,12 @@ fn rename(app: &mut App, attachment_id: Option<&str>, new_name: Option<&str>) ->
     };
 
     match objects::rename_attachment(&vault, &account_id, &object_id, attachment_id, new_name) {
-        Ok(()) => app.error_message = Some(t!(app.i18n, "attachment-renamed", name = new_name)),
+        Ok(()) => {
+            app.success_message = Some((
+                t!(app.i18n, "attachment-renamed", name = new_name),
+                Instant::now(),
+            ))
+        }
         Err(e) => app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e)),
     }
     Ok(())
@@ -198,8 +208,10 @@ fn delete(app: &mut App, attachment_id: Option<&str>) -> Result<()> {
                     &attachment_id,
                 ) {
                     Ok(()) => {
-                        app.error_message =
-                            Some(t!(app.i18n, "attachment-deleted", id = attachment_id))
+                        app.success_message = Some((
+                            t!(app.i18n, "attachment-deleted", id = attachment_id),
+                            Instant::now(),
+                        ))
                     }
                     Err(e) => {
                         app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e))
@@ -294,8 +306,10 @@ fn purge(app: &mut App, attachment_id: Option<&str>) -> Result<()> {
                     &base,
                 ) {
                     Ok(()) => {
-                        app.error_message =
-                            Some(t!(app.i18n, "attachment-purged", id = attachment_id))
+                        app.success_message = Some((
+                            t!(app.i18n, "attachment-purged", id = attachment_id),
+                            Instant::now(),
+                        ))
                     }
                     Err(e) => {
                         app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e))
@@ -313,11 +327,14 @@ fn cleanup(app: &mut App) -> Result<()> {
 
     match objects::cleanup_orphan_attachments(&vault, &account_id, &base) {
         Ok((removed, freed)) => {
-            app.error_message = Some(t!(
-                app.i18n,
-                "cmd-cleanup-result",
-                count = removed.to_string(),
-                bytes = freed.to_string()
+            app.success_message = Some((
+                t!(
+                    app.i18n,
+                    "cmd-cleanup-result",
+                    count = removed.to_string(),
+                    bytes = freed.to_string()
+                ),
+                Instant::now(),
             ));
         }
         Err(e) => {
