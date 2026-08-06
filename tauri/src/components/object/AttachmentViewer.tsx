@@ -167,14 +167,27 @@ export function AttachmentViewer({
 
   const handleConfirmRename = async () => {
     if (renamingId && renameValue.trim()) {
+      const newName = renameValue.trim();
+      // 乐观更新前先取原名，失败时回滚，避免前端显示新名、后端仍是旧名的状态不一致
+      const prevName = items.find((i) => i.id === renamingId)?.fileName;
       setItems((prev) =>
-        prev.map((i) => (i.id === renamingId ? { ...i, fileName: renameValue.trim() } : i)),
+        prev.map((i) => (i.id === renamingId ? { ...i, fileName: newName } : i)),
       );
-      invoke('attachment_rename', {
-        objectId: objectId,
-        attachmentId: renamingId,
-        newName: renameValue.trim(),
-      }).catch((err) => logger.warn('[AttachmentViewer] Rename failed:', err));
+      try {
+        await invoke('attachment_rename', {
+          objectId,
+          attachmentId: renamingId,
+          newName,
+        });
+      } catch (err) {
+        logger.warn('[AttachmentViewer] Rename failed:', err);
+        if (prevName !== undefined) {
+          setItems((prev) =>
+            prev.map((i) => (i.id === renamingId ? { ...i, fileName: prevName } : i)),
+          );
+        }
+        showToast({ type: 'error', message: t('common:rename_failed') });
+      }
     }
     setRenamingId(null);
   };
