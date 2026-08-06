@@ -401,12 +401,16 @@ pub async fn attachment_copy_to_vault(
     // Canonicalize src_path to resolve relative path traversal.
     // 在 Android 上文件选择器可能返回缓存路径（或 content:// URI，已由前端中转为本地路径），
     // 如果 canonicalize 失败但路径确实存在，则降级使用原始路径。
-    let src = std::path::Path::new(&src_path)
+    // R2-W1: 与 attachment_download 同款 src_canonicalized 模式——canonicalize 成功
+    // 时仅用 canonicalize 结果判定；字面路径仅在 Android symlink 兜底（canonicalize
+    // 失败但文件存在）时参与，统一 raw/canonical 混用。
+    let (src, src_canonicalized) = std::path::Path::new(&src_path)
         .canonicalize()
+        .map(|p| (p, true))
         .or_else(|_| {
             let p = std::path::PathBuf::from(&src_path);
             if p.exists() {
-                Ok(p)
+                Ok((p, false))
             } else {
                 Err(std::io::Error::new(
                     std::io::ErrorKind::NotFound,
@@ -421,7 +425,13 @@ pub async fn attachment_copy_to_vault(
     let vault_base = base
         .canonicalize()
         .map_err(|_| "Invalid vault base path".to_string())?;
-    if src.starts_with(&vault_base) {
+    let src_raw = std::path::Path::new(&src_path);
+    let in_vault = if src_canonicalized {
+        src.starts_with(&vault_base)
+    } else {
+        src.starts_with(&vault_base) || src_raw.starts_with(&vault_base)
+    };
+    if in_vault {
         return Err("Source path must not be inside vault storage".to_string());
     }
 
@@ -942,12 +952,16 @@ pub async fn attachment_open<R: Runtime>(
         .map_err(|_| "Invalid vault base path".to_string())?;
     let attachments_dir = vault_base.join("attachments");
 
-    let path = std::path::Path::new(path_str)
+    // R2-W1: 与 attachment_download 同款 src_canonicalized 模式——跟踪 canonicalize
+    // 是否成功；字面路径仅在 canonicalize 失败（Android symlink 兜底）时参与判定，
+    // 成功时只用 canonicalize 结果，杜绝字面前缀绕过 symlink 旁路。
+    let (path, path_canonicalized) = std::path::Path::new(path_str)
         .canonicalize()
+        .map(|p| (p, true))
         .or_else(|_| {
             let p = std::path::PathBuf::from(path_str);
             if p.exists() {
-                Ok(p)
+                Ok((p, false))
             } else {
                 Err(std::io::Error::new(
                     std::io::ErrorKind::NotFound,
@@ -973,7 +987,13 @@ pub async fn attachment_open<R: Runtime>(
         tracing::error!("attachment_open: attachment path contains '..'");
         return Err("Attachment path must not contain '..'".to_string());
     }
-    if !path.starts_with(&attachments_canon) && !path_raw.starts_with(&attachments_canon) {
+    // R2-W1: 字面路径仅在 canonicalize 失败时参与判定（同 download）。
+    let in_vault = if path_canonicalized {
+        path.starts_with(&attachments_canon)
+    } else {
+        path.starts_with(&attachments_canon) || path_raw.starts_with(&attachments_canon)
+    };
+    if !in_vault {
         tracing::error!("attachment_open: attachment path is outside vault storage");
         return Err("Attachment path is outside vault storage".to_string());
     }
