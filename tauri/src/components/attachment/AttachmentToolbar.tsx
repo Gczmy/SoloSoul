@@ -68,8 +68,8 @@ export function AttachmentToolbar({
       <Input
         placeholder={
           showTrash
-            ? t('common:search_trash') || 'Search trash...'
-            : t('common:search_attachments') || 'Search attachments...'
+            ? t('common:search_trash', { defaultValue: 'Search trash...' })
+            : t('common:search_attachments', { defaultValue: 'Search attachments...' })
         }
         value={searchQuery}
         onChange={(e) => onSearchChange(e.target.value)}
@@ -135,11 +135,11 @@ export function AttachmentToolbar({
               variant="secondary"
               size="sm"
               className={buttonStyles.hideLabelOnMobile}
-              aria-label={t('common:refresh') || 'Refresh'}
+              aria-label={t('common:refresh', { defaultValue: 'Refresh' })}
               onClick={onRefresh}
             >
               <RotateCcw size={ICON_SIZE.sm} />{' '}
-              <span className={buttonStyles.label}>{t('common:refresh') || 'Refresh'}</span>
+              <span className={buttonStyles.label}>{t('common:refresh', { defaultValue: 'Refresh' })}</span>
             </Button>
           </div>
 

@@ -136,7 +136,7 @@ export function useTemplateEditor() {
   const saveEdit = async () => {
     const name = editName.trim();
     if (!name) {
-      showToast({ type: 'warning', message: t('common:name_required') || '请输入模板名称' });
+      showToast({ type: 'warning', message: t('common:name_required', { defaultValue: '请输入模板名称' }) });
       setShowNameError(true);
       return;
     }
@@ -317,7 +317,7 @@ export function useTemplateEditor() {
   const addProperty = () => {
     const newProp: TemplateProperty = {
       id: crypto.randomUUID(),
-      name: t('settings:new_field_name') || '新字段',
+      name: t('settings:new_field_name', { defaultValue: '新字段' }),
       type: newFieldType,
       sensitivityLevel: 'internal',
       allowedTypes: undefined,

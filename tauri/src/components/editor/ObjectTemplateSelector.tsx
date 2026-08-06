@@ -128,7 +128,7 @@ export function ObjectTemplateSelector({
                 padding: '8px 0',
               }}
             >
-              {t('editor:no_template_for_section') || '此页面暂无模板，'}
+              {t('editor:no_template_for_section', { defaultValue: '此页面暂无模板，' })}
               <span
                 onClick={() =>
                   navigate('/settings/templates', {
@@ -141,7 +141,7 @@ export function ObjectTemplateSelector({
                   textDecoration: 'underline',
                 }}
               >
-                {t('editor:go_create_template') || '前往模板管理新建'}
+                {t('editor:go_create_template', { defaultValue: '前往模板管理新建' })}
               </span>
             </div>
           )}

@@ -141,7 +141,7 @@ describe('TemplateEditor — toggleBindingExpanded auto-derivation', () => {
     render(<TemplateEditor {...props} />);
 
     // 展开绑定面板
-    fireEvent.click(screen.getByText('settings:plugin_binding'));
+    fireEvent.click(screen.getByText('插件绑定'));
 
     // deriveContractBindings 被调用（参数正确）
     expect(mockDeriveContractBindings).toHaveBeenCalledWith(
@@ -180,7 +180,7 @@ describe('TemplateEditor — toggleBindingExpanded auto-derivation', () => {
     const props = createMockProps({ editProperties: [fieldWithBindings] });
     render(<TemplateEditor {...props} />);
 
-    fireEvent.click(screen.getByText('settings:plugin_binding'));
+    fireEvent.click(screen.getByText('插件绑定'));
 
     // 已有绑定 → 不触发持久化
     expect(props.onUpdatePropertyContractBindings).not.toHaveBeenCalled();
@@ -205,7 +205,7 @@ describe('TemplateEditor — toggleBindingExpanded auto-derivation', () => {
     const props = createMockProps({ editProperties: [FIELD_EMAIL] });
     render(<TemplateEditor {...props} />);
 
-    fireEvent.click(screen.getByText('settings:plugin_binding'));
+    fireEvent.click(screen.getByText('插件绑定'));
 
     expect(props.onUpdatePropertyContractBindings).not.toHaveBeenCalled();
   });
@@ -217,7 +217,7 @@ describe('TemplateEditor — toggleBindingExpanded auto-derivation', () => {
     });
     render(<TemplateEditor {...props} />);
 
-    fireEvent.click(screen.getByText('settings:plugin_binding'));
+    fireEvent.click(screen.getByText('插件绑定'));
 
     expect(props.onUpdatePropertyContractBindings).not.toHaveBeenCalled();
   });
@@ -228,7 +228,7 @@ describe('TemplateEditor — toggleBindingExpanded auto-derivation', () => {
     const props = createMockProps({ editProperties: [FIELD_STREET] });
     render(<TemplateEditor {...props} />);
 
-    fireEvent.click(screen.getByText('settings:plugin_binding'));
+    fireEvent.click(screen.getByText('插件绑定'));
 
     // derive 被调用，但空结果不应触发持久化
     expect(mockDeriveContractBindings).toHaveBeenCalled();
@@ -258,11 +258,11 @@ describe('TemplateEditor — toggleBindingExpanded auto-derivation', () => {
     render(<TemplateEditor {...props} />);
 
     // 展开（触发一次持久化）
-    fireEvent.click(screen.getByText('settings:plugin_binding'));
+    fireEvent.click(screen.getByText('插件绑定'));
     expect(props.onUpdatePropertyContractBindings).toHaveBeenCalledTimes(1);
 
     // 折叠（不应再触发持久化）
-    fireEvent.click(screen.getByText('settings:plugin_binding'));
+    fireEvent.click(screen.getByText('插件绑定'));
     expect(props.onUpdatePropertyContractBindings).toHaveBeenCalledTimes(1);
   });
 
@@ -290,7 +290,7 @@ describe('TemplateEditor — toggleBindingExpanded auto-derivation', () => {
     const { container } = render(<TemplateEditor {...props} />);
 
     // 展开
-    fireEvent.click(screen.getByText('settings:plugin_binding'));
+    fireEvent.click(screen.getByText('插件绑定'));
 
     // 在 style 属性中找 dashed 标签
     const allElements = container.querySelectorAll<HTMLElement>('[style]');
@@ -329,7 +329,7 @@ describe('TemplateEditor — toggleBindingExpanded auto-derivation', () => {
     const { container } = render(<TemplateEditor {...props} />);
 
     // 展开
-    fireEvent.click(screen.getByText('settings:plugin_binding'));
+    fireEvent.click(screen.getByText('插件绑定'));
 
     const allElements = container.querySelectorAll<HTMLElement>('[style]');
     const persistedTag = Array.from(allElements).find(

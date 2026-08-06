@@ -54,8 +54,8 @@ export function TemplateEditorModal({ editor }: TemplateEditorModalProps) {
       onClose={closeEdit}
       title={
         isNewTemplate
-          ? t('settings:new_template') || '新建模板'
-          : t('settings:edit_template') || '编辑模板'
+          ? t('settings:new_template', { defaultValue: '新建模板' })
+          : t('settings:edit_template', { defaultValue: '编辑模板' })
       }
     >
       <TemplateEditor

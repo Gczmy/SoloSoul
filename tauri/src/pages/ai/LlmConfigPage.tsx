@@ -154,8 +154,8 @@ export function LlmConfigPage() {
 
   const handleDeleteModel = (modelId: string) => {
     requestConfirm(
-      t('settings:llm_delete_model_title') || 'Delete model',
-      t('settings:llm_confirm_delete_model') || 'Delete this local embedding model?',
+      t('settings:llm_delete_model_title', { defaultValue: 'Delete model' }),
+      t('settings:llm_confirm_delete_model', { defaultValue: 'Delete this local embedding model?' }),
       async () => {
         try {
           await invoke('llm_delete_embed_model', { modelId: modelId });
@@ -172,7 +172,7 @@ export function LlmConfigPage() {
           onError(e, t('settings:llm_delete_model_failed'));
         }
       },
-      { confirmLabel: t('common:delete') || 'Delete', cancelLabel: t('common:cancel') || 'Cancel' },
+      { confirmLabel: t('common:delete', { defaultValue: 'Delete' }), cancelLabel: t('common:cancel', { defaultValue: 'Cancel' }) },
     );
   };
 
@@ -300,8 +300,8 @@ export function LlmConfigPage() {
   const handleDeleteProvider = (id: string) => {
     if (!accountId) return;
     requestConfirm(
-      t('settings:llm_delete_provider_title') || 'Delete provider',
-      t('settings:llm_delete_provider_body') || 'Delete this provider configuration?',
+      t('settings:llm_delete_provider_title', { defaultValue: 'Delete provider' }),
+      t('settings:llm_delete_provider_body', { defaultValue: 'Delete this provider configuration?' }),
       async () => {
         await invoke('llm_delete_provider', { accountId: accountId, providerId: id }).catch((err) =>
           logger.warn('[LLMConfig] Delete provider failed:', err),
@@ -309,7 +309,7 @@ export function LlmConfigPage() {
         setProviders((prev) => prev.filter((p) => p.id !== id));
         if (activeId === id) setActiveId('');
       },
-      { confirmLabel: t('common:delete') || 'Delete', cancelLabel: t('common:cancel') || 'Cancel' },
+      { confirmLabel: t('common:delete', { defaultValue: 'Delete' }), cancelLabel: t('common:cancel', { defaultValue: 'Cancel' }) },
     );
   };
 

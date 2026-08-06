@@ -40,7 +40,7 @@ export const TemplatePageSelect = memo(function TemplatePageSelect({
           cursor: 'pointer',
         }}
       >
-        <optgroup label={t('settings:system_pages') || '系统页面'}>
+        <optgroup label={t('settings:system_pages', { defaultValue: '系统页面' })}>
           {SYSTEM_PAGES.map((cat) => (
             <option key={cat} value={cat}>
               {t(`navigation:${cat}`, cat)}
@@ -48,7 +48,7 @@ export const TemplatePageSelect = memo(function TemplatePageSelect({
           ))}
         </optgroup>
         {customPages.filter((p) => !p.deletedAt).length > 0 && (
-          <optgroup label={t('settings:custom_pages') || '自定义页面'}>
+          <optgroup label={t('settings:custom_pages', { defaultValue: '自定义页面' })}>
             {customPages
               .filter((p) => !p.deletedAt)
               .map((page) => (
@@ -59,7 +59,7 @@ export const TemplatePageSelect = memo(function TemplatePageSelect({
           </optgroup>
         )}
         {customPages.filter((p) => p.deletedAt).length > 0 && (
-          <optgroup label={t('settings:custom_pages_trash') || '自定义页面（回收站）'}>
+          <optgroup label={t('settings:custom_pages_trash', { defaultValue: '自定义页面（回收站）' })}>
             {customPages
               .filter((p) => p.deletedAt)
               .map((page) => (
@@ -73,7 +73,7 @@ export const TemplatePageSelect = memo(function TemplatePageSelect({
           !SYSTEM_PAGES.includes(value as (typeof SYSTEM_PAGES)[number]) &&
           !customPages.find((p) => p.id === value) && (
             <option value={value} disabled>
-              {t('settings:deleted_page') || '（页面已删除）'}
+              {t('settings:deleted_page', { defaultValue: '（页面已删除）' })}
             </option>
           )}
       </select>

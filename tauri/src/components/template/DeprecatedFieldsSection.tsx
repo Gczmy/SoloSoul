@@ -117,7 +117,7 @@ export function DeprecatedFieldsSection({
                   />
                   <DeprecatedBadge />
                   <Button variant="tertiary" size="sm" onClick={() => onRestoreProperty(idx)}>
-                    {t('common:restore') || '恢复'}
+                    {t('common:restore', { defaultValue: '恢复' })}
                   </Button>
                   {cleanable && (
                     <Button
@@ -126,7 +126,7 @@ export function DeprecatedFieldsSection({
                       onClick={() => onPermanentlyRemoveProperty(idx)}
                       style={{ color: '#e74c3c' }}
                     >
-                      {t('common:clean_up') || '清理'}
+                      {t('common:clean_up', { defaultValue: '清理' })}
                     </Button>
                   )}
                 </div>
@@ -164,7 +164,7 @@ export function DeprecatedFieldsSection({
                           whiteSpace: 'nowrap',
                         }}
                       >
-                        {t('common:go_to_trash') || '前往回收站'}
+                        {t('common:go_to_trash', { defaultValue: '前往回收站' })}
                       </span>
                     )}
                   </div>

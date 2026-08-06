@@ -105,7 +105,7 @@ export function TemplateManagerPage() {
       if (cp) {
         return { name: cp.name, deleted: !!cp.deletedAt };
       }
-      return { name: t('settings:deleted_page') || '（页面已删除）', deleted: true };
+      return { name: t('settings:deleted_page', { defaultValue: '（页面已删除）' }), deleted: true };
     },
     [settings.customPages, t],
   );
@@ -229,7 +229,7 @@ export function TemplateManagerPage() {
 
   return (
     <AppShell
-      title={t('settings:template_manager_title') || '模板管理'}
+      title={t('settings:template_manager_title', { defaultValue: '模板管理' })}
       onBack={handleBack}
       actions={
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -237,22 +237,22 @@ export function TemplateManagerPage() {
           <Button
             variant="secondary"
             className={`${buttonStyles.hideLabelOnMobile} ${buttonStyles.compactMobile}`}
-            aria-label={t('settings:sample_templates') || 'Sample templates'}
+            aria-label={t('settings:sample_templates', { defaultValue: 'Sample templates' })}
             onClick={() => setShowSampleGallery(true)}
           >
             <BookOpen size={ICON_SIZE.md} style={{ marginRight: 4 }} />
             <span className={buttonStyles.label}>
-              {t('settings:sample_templates') || '模板示例'}
+              {t('settings:sample_templates', { defaultValue: '模板示例' })}
             </span>
           </Button>
           <Button
             variant="secondary"
             className={`${buttonStyles.hideLabelOnMobile} ${buttonStyles.compactMobile}`}
-            aria-label={t('settings:new_template') || 'New template'}
+            aria-label={t('settings:new_template', { defaultValue: 'New template' })}
             onClick={editor.openCreate}
           >
             <Plus size={ICON_SIZE.md} style={{ marginRight: 4 }} />
-            <span className={buttonStyles.label}>{t('settings:new_template') || '新建模板'}</span>
+            <span className={buttonStyles.label}>{t('settings:new_template', { defaultValue: '新建模板' })}</span>
           </Button>
         </div>
       }

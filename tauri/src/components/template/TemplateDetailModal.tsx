@@ -136,7 +136,7 @@ export function TemplateDetailModal({
                 </span>
                 <span>·</span>
                 <span>
-                  {detailTemplate.properties.length} {t('settings:template_fields') || '个字段'}
+                  {detailTemplate.properties.length} {t('settings:template_fields', { defaultValue: '个字段' })}
                 </span>
                 <SensitivityBadges properties={detailTemplate.properties} />
               </span>
@@ -170,7 +170,7 @@ export function TemplateDetailModal({
               padding: '16px 0',
             }}
           >
-            {t('settings:empty_template_hint') || '此模板暂无字段'}
+            {t('settings:empty_template_hint', { defaultValue: '此模板暂无字段' })}
           </p>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -198,7 +198,7 @@ export function TemplateDetailModal({
         {/* Actions */}
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 24 }}>
           <Button variant="secondary" onClick={onClose}>
-            {t('common:close') || '关闭'}
+            {t('common:close', { defaultValue: '关闭' })}
           </Button>
           <Button
             variant="secondary"
@@ -212,7 +212,7 @@ export function TemplateDetailModal({
             }}
           >
             <Pencil size={ICON_SIZE.md} style={{ marginRight: 4 }} />
-            {t('common:edit') || '编辑'}
+            {t('common:edit', { defaultValue: '编辑' })}
           </Button>
         </div>
       </motion.div>

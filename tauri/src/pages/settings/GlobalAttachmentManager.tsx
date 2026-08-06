@@ -127,7 +127,7 @@ export function GlobalAttachmentManager() {
 
   return (
     <AppShell
-      title={t('settings:items.global_attachments') || 'Attachments'}
+      title={t('settings:items.global_attachments', { defaultValue: 'Attachments' })}
       onBack={() => {
         const state = location.state as { from?: string } | undefined;
         if (state?.from === '/home') navigate('/home');
@@ -178,10 +178,10 @@ export function GlobalAttachmentManager() {
                   />
                   <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
                     {searchQuery.trim()
-                      ? t('common:no_search_results') || 'No matching attachments found.'
+                      ? t('common:no_search_results', { defaultValue: 'No matching attachments found.' })
                       : showTrash
-                        ? t('settings:trash_empty') || 'Trash is empty.'
-                        : t('common:no_attachments') || 'No attachments found.'}
+                        ? t('settings:trash_empty', { defaultValue: 'Trash is empty.' })
+                        : t('common:no_attachments', { defaultValue: 'No attachments found.' })}
                   </p>
                 </div>
               </Card>
@@ -246,7 +246,7 @@ export function GlobalAttachmentManager() {
       {/* Confirmation dialogs */}
       <ConfirmDialog
         open={batchRestoreConfirm}
-        title={t('common:batch_restore_title') || 'Batch restore'}
+        title={t('common:batch_restore_title', { defaultValue: 'Batch restore' })}
         body={
           t('common:batch_restore_body', { n: selectedIds.size }) ||
           `Restore ${selectedIds.size} selected attachment(s) from trash?`
@@ -259,7 +259,7 @@ export function GlobalAttachmentManager() {
       />
       <ConfirmDialog
         open={batchDeleteConfirm}
-        title={t('common:batch_delete_title') || 'Batch delete'}
+        title={t('common:batch_delete_title', { defaultValue: 'Batch delete' })}
         body={
           t('common:batch_delete_body', { n: selectedIds.size }) ||
           `Delete ${selectedIds.size} selected attachment(s)? They will be moved to trash.`
@@ -272,7 +272,7 @@ export function GlobalAttachmentManager() {
       />
       <ConfirmDialog
         open={batchPermanentDeleteConfirm}
-        title={t('common:batch_perm_delete_title') || 'Permanently delete selected?'}
+        title={t('common:batch_perm_delete_title', { defaultValue: 'Permanently delete selected?' })}
         body={
           t('common:batch_perm_delete_body', { n: selectedIds.size }) ||
           `Permanently delete ${selectedIds.size} selected attachment(s)? This cannot be undone.`
@@ -285,7 +285,7 @@ export function GlobalAttachmentManager() {
       />
       <ConfirmDialog
         open={!!permDeleteItem}
-        title={t('common:perm_delete_title') || 'Permanently delete?'}
+        title={t('common:perm_delete_title', { defaultValue: 'Permanently delete?' })}
         body={
           permDeleteItem
             ? t('common:perm_delete_body', { name: truncateFileName(permDeleteItem.fileName) }) ||

@@ -145,8 +145,7 @@ export function AttachmentViewer({
         showToast({
           type: 'warning',
           message:
-            t('common:upload_refresh_failed') ||
-            'Uploaded, but the list failed to refresh. Please reopen.',
+            t('common:upload_refresh_failed', { defaultValue: 'Uploaded, but the list failed to refresh. Please reopen.' }),
         });
       }
     } catch (e) {
@@ -209,7 +208,7 @@ export function AttachmentViewer({
       );
       showToast({
         type: 'success',
-        message: t('common:download_result') || 'Downloaded successfully',
+        message: t('common:download_result', { defaultValue: 'Downloaded successfully' }),
       });
     } catch (e) {
       showToast({ type: 'error', message: `${t('common:download_failed')}: ${e}` });
@@ -242,7 +241,7 @@ export function AttachmentViewer({
       logger.warn('[AttachmentViewer] Restore failed:', err);
       showToast({
         type: 'error',
-        message: `${t('common:restore_failed') || 'Restore failed'}: ${err}`,
+        message: `${t('common:restore_failed', { defaultValue: 'Restore failed' })}: ${err}`,
       });
     }
     await loadAttachments();
@@ -258,7 +257,7 @@ export function AttachmentViewer({
       logger.warn('[AttachmentViewer] Permanent delete failed:', err);
       showToast({
         type: 'error',
-        message: `${t('common:perm_delete_failed') || 'Delete failed'}: ${err}`,
+        message: `${t('common:perm_delete_failed', { defaultValue: 'Delete failed' })}: ${err}`,
       });
     }
     await loadAttachments();
@@ -350,7 +349,7 @@ export function AttachmentViewer({
         // 显示后端返回的具体错误，便于定位（如 NO_TREE_PICKER_HANDLER）
         showToast({
           type: 'error',
-          message: `${t('common:select_directory_failed') || 'Failed to pick directory'}: ${e}`,
+          message: `${t('common:select_directory_failed', { defaultValue: 'Failed to pick directory' })}: ${e}`,
         });
         return;
       } finally {
@@ -361,7 +360,7 @@ export function AttachmentViewer({
       dirPath = (await openWithPause({
         directory: true,
         multiple: false,
-        title: t('common:select_download_directory') || 'Select download directory',
+        title: t('common:select_download_directory', { defaultValue: 'Select download directory' }),
       })) as string | null;
     }
     if (!dirPath) return;
@@ -552,7 +551,7 @@ export function AttachmentViewer({
                   <BadgeIconButton
                     Icon={Upload}
                     onClick={handleAdd}
-                    title={t('common:upload') || 'Upload'}
+                    title={t('common:upload', { defaultValue: 'Upload' })}
                     iconSize={ICON_SIZE.sm}
                     disabled={uploading}
                   />
@@ -569,7 +568,7 @@ export function AttachmentViewer({
               <BadgeIconButton
                 Icon={X}
                 onClick={onClose}
-                title={t('common:close') || 'Close'}
+                title={t('common:close', { defaultValue: 'Close' })}
                 iconSize={ICON_SIZE.md}
               />
             </div>

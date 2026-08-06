@@ -200,7 +200,7 @@ export function SampleTemplateGallery({ isOpen, onClose, onSelect }: SampleTempl
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 16 }}>
           <Input
-            placeholder={t('settings:search_sample_templates') || '搜索示例模板...'}
+            placeholder={t('settings:search_sample_templates', { defaultValue: '搜索示例模板...' })}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onClear={() => setSearchQuery('')}

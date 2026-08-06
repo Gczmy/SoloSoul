@@ -176,7 +176,7 @@ export function OperationLogPage() {
             variant="secondary"
             size="sm"
             className={buttonStyles.hideLabelOnMobile}
-            aria-label={t('settings:export_logs') || 'Export logs'}
+            aria-label={t('settings:export_logs', { defaultValue: 'Export logs' })}
             onClick={handleExport}
           >
             <Download size={ICON_SIZE.sm} />{' '}

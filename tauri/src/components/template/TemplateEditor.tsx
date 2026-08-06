@@ -174,7 +174,7 @@ export function TemplateEditor({
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: '100%' }}>
       <div className={nameError ? 'name-input-error' : ''}>
         <Input
-          label={t('common:name') || '名称'}
+          label={t('common:name', { defaultValue: '名称' })}
           value={editName}
           onChange={(e) => {
             onEditNameChange(e.target.value);
@@ -199,7 +199,7 @@ export function TemplateEditor({
       <TemplatePageSelect
         value={editCategory}
         onChange={onEditCategoryChange}
-        label={t('settings:template_category') || '所属页面'}
+        label={t('settings:template_category', { defaultValue: '所属页面' })}
       />
 
       {/* 插件契约类型 ID（自动绑定到字段时设置） */}
@@ -218,7 +218,7 @@ export function TemplateEditor({
           }}
         >
           <span style={{ fontWeight: 500, whiteSpace: 'nowrap' }}>
-            {t('settings:contract_type_id') || '契约类型'}:
+            {t('settings:contract_type_id', { defaultValue: '契约类型' })}:
           </span>
           <span style={{ fontFamily: 'monospace', fontSize: 'var(--text-badge)' }}>
             {editContractTypeId}
@@ -264,11 +264,11 @@ export function TemplateEditor({
               : resolveCustomIcon(editIconId),
             { size: ICON_SIZE.lg, style: { color: 'var(--accent-primary)', flexShrink: 0 } },
           )}
-          <span style={{ flex: 1 }}>{t('settings:template_icon') || '模板图标'}</span>
+          <span style={{ flex: 1 }}>{t('settings:template_icon', { defaultValue: '模板图标' })}</span>
           <span style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
             {showIconPicker
-              ? t('common:collapse') || '收起'
-              : t('settings:click_to_change_icon') || '点击选择图标'}
+              ? t('common:collapse', { defaultValue: '收起' })
+              : t('settings:click_to_change_icon', { defaultValue: '点击选择图标' })}
           </span>
         </button>
         {showIconPicker && <IconPicker value={editIconId} onChange={onEditIconIdChange} />}
@@ -283,7 +283,7 @@ export function TemplateEditor({
             color: 'var(--text-secondary)',
           }}
         >
-          {t('settings:fields_section_title') || '字段列表'}
+          {t('settings:fields_section_title', { defaultValue: '字段列表' })}
         </div>
 
         <div
@@ -303,7 +303,7 @@ export function TemplateEditor({
                   padding: '12px 0',
                 }}
               >
-                {t('settings:empty_template_hint') || '此模板暂无字段，点击下方添加'}
+                {t('settings:empty_template_hint', { defaultValue: '此模板暂无字段，点击下方添加' })}
               </div>
             )}
 
@@ -447,17 +447,17 @@ export function TemplateEditor({
             }}
           >
             <Plus size={ICON_SIZE.sm} />
-            {t('settings:add_field') || '添加字段'}
+            {t('settings:add_field', { defaultValue: '添加字段' })}
           </button>
         </div>
       </div>
 
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, paddingTop: 4 }}>
         <Button variant="secondary" onClick={onClose}>
-          {t('common:cancel') || '取消'}
+          {t('common:cancel', { defaultValue: '取消' })}
         </Button>
         <Button variant="secondary" onClick={onSave}>
-          {t('common:save') || '保存'}
+          {t('common:save', { defaultValue: '保存' })}
         </Button>
       </div>
     </div>

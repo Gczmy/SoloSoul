@@ -134,7 +134,7 @@ function AttachmentObjectGroupBase({
                     e.stopPropagation();
                     onUpload(obj.objectId);
                   }}
-                  title={t('common:upload') || 'Upload'}
+                  title={t('common:upload', { defaultValue: 'Upload' })}
                   iconSize={ICON_SIZE.sm}
                 />
               )}
@@ -184,7 +184,7 @@ function AttachmentObjectGroupBase({
                   e.stopPropagation();
                   onUpload(obj.objectId);
                 }}
-                title={t('common:upload') || 'Upload'}
+                title={t('common:upload', { defaultValue: 'Upload' })}
                 iconSize={ICON_SIZE.sm}
               />
             )}

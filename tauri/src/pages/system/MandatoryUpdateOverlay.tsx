@@ -211,7 +211,7 @@ export function MandatoryUpdateOverlay({
             }}
           >
             <Download size={18} />
-            {t('settings:update_now') || 'Update Now'}
+            {t('settings:update_now', { defaultValue: 'Update Now' })}
           </button>
         )}
 
@@ -225,7 +225,7 @@ export function MandatoryUpdateOverlay({
               textAlign: 'center',
             }}
           >
-            {t('settings:installing') || 'Installing...'}
+            {t('settings:installing', { defaultValue: 'Installing...' })}
           </p>
         )}
 

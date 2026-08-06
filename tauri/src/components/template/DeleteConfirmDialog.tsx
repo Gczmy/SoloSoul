@@ -58,10 +58,10 @@ export function DeleteConfirmDialog({
         </p>
         <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
           <Button variant="secondary" onClick={onCancel}>
-            {t('common:cancel') || '取消'}
+            {t('common:cancel', { defaultValue: '取消' })}
           </Button>
           <Button variant="danger-outline" onClick={onConfirm}>
-            {t('common:delete') || '删除'}
+            {t('common:delete', { defaultValue: '删除' })}
           </Button>
         </div>
       </div>

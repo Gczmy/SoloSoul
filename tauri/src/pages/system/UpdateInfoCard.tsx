@@ -172,7 +172,7 @@ export function UpdateInfoCard({
                       className={checking ? 'about-retry-spin' : undefined}
                     />
                     {checking
-                      ? t('settings:update_checking') || 'Checking...'
+                      ? t('settings:update_checking', { defaultValue: 'Checking...' })
                       : t('settings:update_check_retry')}
                   </button>
                 </div>
@@ -251,7 +251,7 @@ export function UpdateInfoCard({
                         }}
                       >
                         {'event' in (downloadProgress || {})
-                          ? t('settings:installing') || 'Installing...'
+                          ? t('settings:installing', { defaultValue: 'Installing...' })
                           : `${formatBytes(downloadedBytes)} / ${formatBytes(totalBytes)} (${progressPercent}%)`}
                       </span>
                     </div>
@@ -276,7 +276,7 @@ export function UpdateInfoCard({
                       }}
                     >
                       <Download size={ICON_SIZE.sm} />
-                      {t('settings:update_now') || 'Update Now'}
+                      {t('settings:update_now', { defaultValue: 'Update Now' })}
                     </button>
                   )}
                   {downloadError && (

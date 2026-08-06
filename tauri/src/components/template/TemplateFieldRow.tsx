@@ -150,7 +150,7 @@ export function TemplateFieldRow({
           <input
             value={prop.name}
             onChange={(e) => onUpdatePropertyName(idx, e.target.value)}
-            placeholder={t('settings:field_name') || '字段名称'}
+            placeholder={t('settings:field_name', { defaultValue: '字段名称' })}
             style={{
               width: '100%',
               height: 36,
@@ -236,7 +236,7 @@ export function TemplateFieldRow({
         </select>
         <DeleteButton
           onClick={() => onRemoveProperty(idx)}
-          title={t('settings:remove_field') || '删除'}
+          title={t('settings:remove_field', { defaultValue: '删除' })}
           iconOnly
         />
       </div>
@@ -275,7 +275,7 @@ export function TemplateFieldRow({
           >
             <ChevronRight size={14} />
           </span>
-          {t('settings:plugin_binding') || '插件绑定'}
+          {t('settings:plugin_binding', { defaultValue: '插件绑定' })}
           {effectiveBindings.length > 0 && (
             <span
               style={{
@@ -296,8 +296,8 @@ export function TemplateFieldRow({
               }}
             >
               {isExpanded
-                ? t('common:collapse') || '收起'
-                : t('settings:click_to_configure') || '点击配置'}
+                ? t('common:collapse', { defaultValue: '收起' })
+                : t('settings:click_to_configure', { defaultValue: '点击配置' })}
             </span>
           ) : null}
         </button>
@@ -374,7 +374,7 @@ export function TemplateFieldRow({
                             fontSize: 14,
                             lineHeight: 1,
                           }}
-                          title={t('common:remove') || '移除'}
+                          title={t('common:remove', { defaultValue: '移除' })}
                         >
                           ✕
                         </button>
@@ -415,7 +415,7 @@ export function TemplateFieldRow({
                   }}
                 >
                   <option value="">
-                    {t('settings:select_plugin_contract') || '选择插件契约'}
+                    {t('settings:select_plugin_contract', { defaultValue: '选择插件契约' })}
                   </option>
                   {flattenContracts.map((fc) => {
                     const val = `${fc.pluginId}::${fc.contract.typeId}`;
@@ -449,7 +449,7 @@ export function TemplateFieldRow({
                     opacity: currentContractId ? 1 : 0.5,
                   }}
                 >
-                  <option value="">{t('settings:select_role') || '选择角色'}</option>
+                  <option value="">{t('settings:select_role', { defaultValue: '选择角色' })}</option>
                   {availableRoles.map((role) => (
                     <option key={role.roleId} value={role.roleId}>
                       {role.label || role.roleId}
@@ -484,7 +484,7 @@ export function TemplateFieldRow({
                     transition: 'background 0.15s',
                   }}
                 >
-                  {t('common:add') || 'Add'}
+                  {t('common:add', { defaultValue: 'Add' })}
                 </button>
               </div>
             ) : (
@@ -495,8 +495,7 @@ export function TemplateFieldRow({
                   padding: '4px 0',
                 }}
               >
-                {t('settings:no_plugin_contracts_available') ||
-                  '暂无已安装的插件契约（需安装含有角色定义的插件）'}
+                {t('settings:no_plugin_contracts_available', { defaultValue: '暂无已安装的插件契约（需安装含有角色定义的插件）' })}
               </div>
             )}
           </div>

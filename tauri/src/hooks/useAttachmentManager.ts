@@ -197,7 +197,7 @@ export function useAttachmentManager() {
       );
       showToast({
         type: 'success',
-        message: t('common:download_result') || 'Downloaded successfully',
+        message: t('common:download_result', { defaultValue: 'Downloaded successfully' }),
       });
     } catch (e) {
       showToast({ type: 'error', message: `${t('common:download_failed')}: ${e}` });
@@ -292,7 +292,7 @@ export function useAttachmentManager() {
       const dirPath = await openWithPause({
         directory: true,
         multiple: false,
-        title: t('common:select_download_directory') || 'Select download directory',
+        title: t('common:select_download_directory', { defaultValue: 'Select download directory' }),
       });
       if (!dirPath) return;
 
@@ -301,8 +301,7 @@ export function useAttachmentManager() {
         showToast({
           type: 'warning',
           message:
-            t('common:batch_download_mobile_unsupported') ||
-            'Batch download to a directory is not supported on mobile. Please download files individually.',
+            t('common:batch_download_mobile_unsupported', { defaultValue: 'Batch download to a directory is not supported on mobile. Please download files individually.' }),
         });
         return;
       }

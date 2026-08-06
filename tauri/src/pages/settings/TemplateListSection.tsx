@@ -82,7 +82,7 @@ export function TemplateListSection({
       {!isLoading && !error && allTemplates.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <Input
-            placeholder={t('settings:search_templates') || '搜索模板...'}
+            placeholder={t('settings:search_templates', { defaultValue: '搜索模板...' })}
             value={searchQuery}
             onChange={(e) => onSearchQueryChange(e.target.value)}
             onClear={() => onSearchQueryChange('')}
@@ -99,16 +99,16 @@ export function TemplateListSection({
       {!isLoading && allTemplates.length === 0 && (
         <div style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: 40 }}>
           <LayoutTemplate size={ICON_SIZE['5xl']} style={{ marginBottom: 12, opacity: 0.4 }} />
-          <div>{t('settings:no_templates') || '暂无模板'}</div>
+          <div>{t('settings:no_templates', { defaultValue: '暂无模板' })}</div>
           <div style={{ fontSize: 'var(--text-caption)', marginTop: 4 }}>
-            {t('settings:no_templates_hint') || '点击右上角"新建模板"创建'}
+            {t('settings:no_templates_hint', { defaultValue: '点击右上角"新建模板"创建' })}
           </div>
         </div>
       )}
 
       {!isLoading && allTemplates.length > 0 && filteredTemplates.length === 0 && (
         <div style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: 40 }}>
-          <div>{t('settings:no_templates_filtered') || '没有符合筛选条件的模板'}</div>
+          <div>{t('settings:no_templates_filtered', { defaultValue: '没有符合筛选条件的模板' })}</div>
         </div>
       )}
 
@@ -165,7 +165,7 @@ export function TemplateListSection({
                       })()}
                       <span>·</span>
                       <span>
-                        {tpl.properties.length} {t('settings:template_fields') || '个字段'}
+                        {tpl.properties.length} {t('settings:template_fields', { defaultValue: '个字段' })}
                       </span>
                       <SensitivityBadges properties={tpl.properties} />
                     </div>

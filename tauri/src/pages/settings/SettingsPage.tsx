@@ -102,23 +102,23 @@ export function SettingsPage() {
           desc: t('settings:desc.global_attachments'),
         },
         {
-          label: t('settings:items.templates') || '模板管理',
+          label: t('settings:items.templates', { defaultValue: '模板管理' }),
           icon: LayoutTemplate,
           path: '/settings/templates',
-          desc: t('settings:desc.templates') || '管理自定义对象模板',
+          desc: t('settings:desc.templates', { defaultValue: '管理自定义对象模板' }),
         },
         {
-          label: t('settings:items.plugins') || '插件',
+          label: t('settings:items.plugins', { defaultValue: '插件' }),
           icon: Puzzle,
           path: '/plugins',
-          desc: t('settings:desc.plugins') || '管理本地插件市场',
+          desc: t('settings:desc.plugins', { defaultValue: '管理本地插件市场' }),
         },
         {
-          label: t('settings:items.sync') || '设备同步',
+          label: t('settings:items.sync', { defaultValue: '设备同步' }),
           // §7.4 单源规范：与首页快捷入口/底部导航同源（PAGE_ICON_MAP.sync = 双向循环箭头）
           icon: PAGE_ICON_MAP.sync,
           path: '/sync',
-          desc: t('settings:desc.sync') || '与其他设备同步数据',
+          desc: t('settings:desc.sync', { defaultValue: '与其他设备同步数据' }),
         },
       ],
     },
@@ -126,16 +126,16 @@ export function SettingsPage() {
       title: t('settings:groups.system'),
       items: [
         {
-          label: t('settings:items.search') || '搜索',
+          label: t('settings:items.search', { defaultValue: '搜索' }),
           icon: Search,
           path: '/search',
-          desc: t('settings:desc.search') || '全局搜索',
+          desc: t('settings:desc.search', { defaultValue: '全局搜索' }),
         },
         {
-          label: t('settings:items.ocr') || 'OCR',
+          label: t('settings:items.ocr', { defaultValue: 'OCR' }),
           icon: Scan,
           path: '/ocr',
-          desc: t('settings:desc.ocr') || 'Manage OCR models and preferences',
+          desc: t('settings:desc.ocr', { defaultValue: 'Manage OCR models and preferences' }),
         },
         {
           label: t('settings:items.help_docs'),

@@ -239,7 +239,7 @@ function SnapshotCard({
           transition: 'filter 0.15s ease, background 0.15s ease',
           willChange: needsReveal && !revealed ? 'filter' : 'auto',
         }}
-        title={needsReveal && !revealed ? t('common:click_to_reveal') || 'Click to reveal' : ''}
+        title={needsReveal && !revealed ? t('common:click_to_reveal', { defaultValue: 'Click to reveal' }) : ''}
       >
         {value}
       </span>
@@ -610,21 +610,21 @@ export function HistoryViewer({
               <BadgeIconButton
                 Icon={ChevronLeft}
                 onClick={goPrev}
-                title={t('common:previous') || 'Previous'}
+                title={t('common:previous', { defaultValue: 'Previous' })}
                 disabled={isOldest || loading}
                 iconSize={ICON_SIZE.md}
               />
               <BadgeIconButton
                 Icon={ChevronRight}
                 onClick={goNext}
-                title={t('common:next') || 'Next'}
+                title={t('common:next', { defaultValue: 'Next' })}
                 disabled={isLatest || loading}
                 iconSize={ICON_SIZE.md}
               />
               <BadgeIconButton
                 Icon={X}
                 onClick={onClose}
-                title={t('common:close') || 'Close'}
+                title={t('common:close', { defaultValue: 'Close' })}
                 iconSize={ICON_SIZE.md}
               />
             </div>
