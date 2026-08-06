@@ -2,13 +2,50 @@
 
 All notable changes to SoloSoul are documented in this file.
 
-## [Unreleased]
+## [2.8.4] - 2026-08-06
+
+### Added
+
+- **R2 全库代码分析修复** — 新一轮全库分析（28 项）全部闭环：P0 附件路径校验移除字符串前缀回退（R2-01）、prompt 敏感输入改 `Zeroizing<String>` 承载（R2-04）、成功消息改用 success_message toast（R2-26）等 27 项修复完成，>400 行大文件重构列入长期候选随功能迭代顺带处理。
+
+### Changed
+
+- **设备同步双向发现修复** — ① 安卓端「已发现设备」显示名由 `node_<uuid>` 改为可读设备名 `SoloSoul-<指纹前缀>`（优先指纹派生，回退 NSD 服务名/节点名，与桌面端规则一致）；② macOS 端发现不到安卓端：Android NSD 广播的 TXT 属性（account_hash/account_id）存在不传播到标准 mDNS 客户端的已知互操作限制，桌面发现层对无账户信息的服务改为放行展示（会话层仍严格校验 account_id，配对有 SAS 验证码兑底，安全不受影响），同时安卓端广播补发 `account_hash`（SHA-256 前 16 字节 hex，与桌面端算法逐位一致，实测 Java `%02x` 对 Byte 输出与 Rust `hex::encode` 一致），TXT 可达时直接按哈希过滤。
+- **双向同步完成通知** — 响应方（被连接端）成功完成同步会话后，通过 `sync-completed` 事件全局提示「同步完成 + 具体条数」（与发起方 toast 对称），用户不在同步页也能收到；结果同步写入「与设备同步」结果行，并刷新对端列表与冲突计数。
+- **CLI 成功消息改用 success_message toast（R2-26）** — 导出/导入成功、密码修改/提示更新、生物识别启用/禁用等 22 处成功消息原先复用红色错误 overlay，现改写入 success_message toast，语义与样式分离。
+- **CLI 解锁样板收敛（R2-28）** — 6 处「require_unlocked + get_vault_store().ok_or_else」双行样板合并为 `require_unlocked_with_vault` 单行。
+- **t(key)||兜底 死兜底改 defaultValue（R2-18）** — i18next 缺 key 返回 key 本身（truthy），100 余处 `t('key') || '文本'` 的 `||` 右侧实为死代码，统一改为 `t('key', { defaultValue })`，缺 key 时兜底文案真实生效。
+- **useExportScope 附件加载三处重复收敛（R2-17）** — togglePage / loadSelectedAttachments / bulkSelect 近乎逐字重复的 N+1 附件加载块收敛为单一共享 helper。
 
 ### Fixed
 
 - **版本更新横幅字节数顺序错乱** — 下载进度 `27.0 MB / 44.2 MB` 被 bidi 重排显示成 `MB / 44.2 MB 27.0`：为防抖动右对齐误加了 `direction: rtl`，RTL 方向对纯 LTR 的「数字+单位」文本做了 bidi 翻转。移除 `direction: rtl`（右对齐由 `text-align: right` 承担，防抖动由 `min-width` + `tabular-nums` 承担），字节数恢复「数字 单位 / 数字 单位」顺序，并加防回归单测（断言 DOM 顺序与 direction 非 rtl）。
-- **设备同步双向发现修复** — ① 安卓端「已发现设备」显示名由 `node_<uuid>` 改为可读设备名 `SoloSoul-<指纹前缀>`（优先指纹派生，回退 NSD 服务名/节点名，与桌面端规则一致）；② macOS 端发现不到安卓端：Android NSD 广播的 TXT 属性（account_hash/account_id）存在不传播到标准 mDNS 客户端的已知互操作限制，桌面发现层对无账户信息的服务改为放行展示（会话层仍严格校验 account_id，配对有 SAS 验证码兑底，安全不受影响），同时安卓端广播补发 `account_hash`（SHA-256 前 16 字节 hex，与桌面端算法逐位一致，实测 Java `%02x` 对 Byte 输出与 Rust `hex::encode` 一致），TXT 可达时直接按哈希过滤。
-- **双向同步完成通知** — 响应方（被连接端）成功完成同步会话后，通过 `sync-completed` 事件全局提示「同步完成 + 具体条数」（与发起方 toast 对称），用户不在同步页也能收到；结果同步写入「与设备同步」结果行，并刷新对端列表与冲突计数。
+- **附件路径校验移除字符串前缀回退（R2-01，P0）** — 附件路径白名单校验此前在匹配失败时回退到「字符串前缀」宽松判定，可被 `..` 与同前缀目录绕过，现移除回退仅保留规范化后的严格路径判定。
+- **CLI 命令错误改显示 overlay 不再退出 TUI（R2-03）** — 未知命令/参数错误原先直接退出终端界面，改为在状态栏显示错误 overlay。
+- **CLI 裸输 /plugin_run 不再越界 panic（R2-02）** — 无参数调用时原先按空参数数组越界读取，现做参数数量守卫并提示用法。
+- **回收站确认操作失败不再 unhandled rejection（R2-09）** — 永久删除/恢复失败时对话框关闭且无提示，现加 submitting 防重复提交 + 失败 toast + 保持对话框可重试。
+- **重命名失败回滚乐观更新（R2-19）** — AttachmentViewer 重命名失败后界面显示新名、后端仍是旧名（状态不一致），现失败回滚原名 + toast 提示。
+- **purge_trash 底层删除失败不再产生孤儿对象（R2-07）** — 回收站清空时若底层删除失败，本地状态同步移除导致后端残留不可见对象，现失败时回滚本地列表。
+- **导入偏好保存失败不再被吞没（R2-06）** — 导入完成后偏好写入失败原先静默，现报错提示。
+- **TTC 字体改内存加载（R2-05）** — 水印渲染临时字体文件改用内存加载，消除临时文件生命周期隐患。
+- **CLI 导出审计日志文件权限收紧 0600（R2-24）** — 审计日志导出文件不再跟随 umask，显式 0600。
+- **CLI 日志白名单过滤 + 按日轮转（R2-25）** — CLI 日志落盘前白名单过滤敏感字段，按日期轮转避免无限增长。
+
+### Performance
+
+- **同步附件清单收集消除 N+1 全量解密（R2-08）** — 附件清单收集由逐对象全量解密改为批量加载，同步性能提升。
+- **trashStore permanentDelete 并发上限 8（R2-20）** — 清空大量回收站条目时不再瞬间发起数百 IPC，改并发 worker 池限流。
+- **CLI phase 借用匹配消除每次按键整 phase 深拷贝（R2-10）** — 渲染路径改为借用匹配，消除按键时全状态深拷贝。
+- **CLI Theme 缓存 + /list 200 截断（R2-22）** — 主题读取缓存、对象列表超 200 条截断提示，避免大库卡顿。
+- **CLI tokio 运行时收敛为进程级单例（R2-23）** — 消除每次命令初始化运行时的开销。
+- **Rust 轻项四连（R2-15）** — 流式导入逐步提交、TTC 字体缓存、迁移失败错误归因、示例密码随机化。
+
+### Chores
+
+- **死代码清理** — 删除 LLM 上下文 build_context 死代码子树（R2-11）、needs_rebuild 与 PluginRegistry::from_path（R2-12）、CLI render_empty 与 CliError（R2-27）、前端多余 export baseSteps/resolveFieldLabel/formatTimeValue（R2-21）。
+- 提取共享 allowed_fs_bases 白名单 helper（R2-14）。
+- 版本号同步升级到 2.8.4（versionCode 2008004）。
+- 34 个 commit 自 v2.8.3（`0fc3ab15`）到 v2.8.4。
 
 ## [2.8.3] - 2026-08-05
 
