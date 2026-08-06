@@ -140,7 +140,8 @@ async fn test_update_registry_from_remote() {
     let registry_path: PathBuf = dir.path().join("registry.json");
     std::fs::write(&registry_path, br#"{"plugins": {"old": {}}}"#).unwrap();
 
-    let registry = PluginRegistry::from_path(&registry_path);
+    let registry =
+        PluginRegistry::new_with_dirs(dir.path().to_path_buf(), dir.path().to_path_buf());
     registry.update_from_remote().await.expect("更新注册表失败");
 
     let saved = std::fs::read_to_string(&registry_path).unwrap();
@@ -175,7 +176,8 @@ async fn test_update_registry_rejects_invalid_signature() {
     let registry_path: PathBuf = dir.path().join("registry.json");
     std::fs::write(&registry_path, br#"{"plugins": {}}"#).unwrap();
 
-    let registry = PluginRegistry::from_path(&registry_path);
+    let registry =
+        PluginRegistry::new_with_dirs(dir.path().to_path_buf(), dir.path().to_path_buf());
     let result = registry.update_from_remote().await;
     assert!(result.is_err(), "应当拒绝无效签名");
 }
@@ -204,7 +206,8 @@ async fn test_update_registry_rejects_mismatched_key() {
     let registry_path: PathBuf = dir.path().join("registry.json");
     std::fs::write(&registry_path, br#"{"plugins": {}}"#).unwrap();
 
-    let registry = PluginRegistry::from_path(&registry_path);
+    let registry =
+        PluginRegistry::new_with_dirs(dir.path().to_path_buf(), dir.path().to_path_buf());
     let result = registry.update_from_remote().await;
     assert!(result.is_err(), "应当拒绝密钥不匹配的签名");
 }

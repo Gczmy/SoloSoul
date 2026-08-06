@@ -6,7 +6,7 @@ use super::{MarketPluginInfo, PluginError, PluginManifest, PluginStore, Registry
 use minisign_verify::{PublicKey, Signature};
 use serde::Deserialize;
 use std::collections::HashMap;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::time::Duration;
 
 /// 默认远程注册表 URL
@@ -53,15 +53,6 @@ impl PluginRegistry {
         Self {
             bundled_path: market_dir.join("registry.json"),
             cache_path: data_dir.join("registry.json"),
-        }
-    }
-
-    /// 从指定路径加载注册表
-    pub fn from_path(path: impl AsRef<Path>) -> Self {
-        let p = path.as_ref().to_path_buf();
-        Self {
-            bundled_path: p.clone(),
-            cache_path: p,
         }
     }
 

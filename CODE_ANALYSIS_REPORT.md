@@ -36,7 +36,7 @@
 | R2-09 | P1 | UX/错误处理 | `tauri/src/stores/trashStore.ts:142`、`pages/settings/TrashPage.tsx:485`、`components/trash/TrashConfirmDialog.tsx:68` | 回收站永久删除失败时 unhandled rejection：对话框不关闭、无 toast、按钮可重复点击并发重复删除——破坏性操作关键路径 | `[ ]` 待修复 |
 | R2-10 | P1 | 性能 | `solosoul_cli/src/app.rs:806` 等 10+ 处 | 每次按键 `self.phase.clone()` 深拷贝整个 AppPhase（含大列表 items），大 Vault 下 TUI 掉帧根源 | `[ ]` 待修复 |
 | R2-11 | P2 | 死代码 | `tauri/src-tauri/src/services/llm_context.rs:32-417` | `build_context` 及整棵私有子树（约 330 行）仅被测试引用存活；活路径仅剩 `clear_cache`/`bump_public_data_version` | `[x]` 已修复 |
-| R2-12 | P2 | 死代码 | `tauri/src-tauri/src/commands/llm/rag.rs:502`、`crates/solosoul-plugin/src/registry.rs:60` | `needs_rebuild`、`PluginRegistry::from_path` 全 workspace 零调用 | `[ ]` 待修复 |
+| R2-12 | P2 | 死代码 | `tauri/src-tauri/src/commands/llm/rag.rs:502`、`crates/solosoul-plugin/src/registry.rs:60` | `needs_rebuild`、`PluginRegistry::from_path` 全 workspace 零调用 | `[x]` 已修复 |
 | R2-13 | P2 | 结构 | Rust 超长/深嵌套函数 | `app_state.rs:257`（189 行/深 10）、`search/query.rs:16`（120/深 10）、`import.rs:226`（213）、`storage.rs:649`（211）与 `:884 reencrypt_all`（207，6 个表处理块复制粘贴）、`plugin/manager.rs:170`（209）、`plugin/host.rs:437/893/662`、`sync/attachments.rs:387` 等 | `[ ]` 待修复 |
 | R2-14 | P2 | 重复 | `tauri/src-tauri/src/commands/attachment.rs:394-418 vs 823-846` | `allowed_bases` 白名单构建块两处近乎逐字重复（~90%），且一处含移动端 temp_dir 分支一处不含——策略漂移风险 | `[ ]` 待修复 |
 | R2-15 | P2 | 性能/杂项 | Rust 轻项 | 主 `payload.enc` 导入未走流式（`import.rs:524`，≈2×payload 内存）；`watermark/mod.rs:88 load_font_bytes` 无缓存；`storage.rs:541` ALTER TABLE 吞掉所有错误；`examples/unlock_account.rs:8` 主密码放 argv | `[ ]` 待修复 |
@@ -56,8 +56,8 @@
 
 ## R2 修复进度
 
-- 已完成：8 / 28（第一批 6 项 + R2-08 + R2-11）
-- 当前处理：第二批：R2-12 → R2-14 → R2-15
+- 已完成：9 / 28（第一批 6 项 + R2-08/11/12）
+- 当前处理：第二批：R2-14 → R2-15
 
 ### R2-§3 重点问题修复指引（P0/P1）
 
@@ -96,6 +96,7 @@
 - **R2-02（P1 崩溃，2026-08-06）**：`/plugin_run` 裸输（无参数）时 `&parts[2..]` 改 `parts.get(2..).unwrap_or(&[])`——一行修复消除越界 panic。新增防回归单测 `test_plugin_run_no_args_does_not_panic`（Locked 态裸输 `/plugin_run` 返回 Ok(false) 且提示用法，不崩溃不退 TUI）。验证：`cargo test`（150+2+1）全绿、`cargo clippy -- -D warnings` 零告警。
 - **R2-08（P1 性能，2026-08-06）**：`collect_attachment_manifests` 的 N+1 已消除——原「`list_object_metadata`（无 properties）+ 逐对象 `load_object`（每对象一次 SQL + 一次全量解密）」改为单次 `list_objects`（一次查询、一次解码全部 properties 并直接解析 `summary.properties.__attachments`）。注：每次对附件文件 `sha256_file` 属于**正确性必需**（manifest 的 sha256 必须反映当前磁盘文件真实字节，接收端靠它校验），未做缓存；真正的查询/解密 N+1 开销已去除。验证：`cargo test -p solosoul-sync` 60 用例全绿。
 - **R2-11（P2 死代码，2026-08-06）**：`llm_context.rs` 删除 `build_context` 及其整棵私有子树（7 个 section 构建器、`extract_properties`、`to_title_case`/`type_display_name`/`property_key_to_label`/`trim_to_limit`、`MAX_*` 常量，约 330 行）。因 `PROMPT_CACHE` 的唯一写入方即 `build_context`，缓存层随之成为「只清不写」死代码——`clear_cache` 及 `PROMPT_CACHE`/`CachedPrompt` 一并删除，并移除 vault.rs `lock` 与 auth.rs `logout` 中 2 处 `clear_cache()` 调用（原调用本就是空操作）。模块保留 `bump_public_data_version`/`load`/`save_public_data_version` 及其 3 个测试。验证：`cargo test -p solo_soul --lib llm` 36 用例 + `cargo clippy` 零告警。
+- **R2-12（P2 死代码，2026-08-06）**：① `rag.rs` 删除 `needs_rebuild`（全 workspace 零调用；其姊妹 `mark_rebuilt` 仍被 `llm_rebuild_guide_embeddings` 使用，保留）；② `registry.rs` 删除 `PluginRegistry::from_path`——报告称零调用，经复核实际被 `src-tauri/tests/plugin_registry_update.rs` 3 处集成测试使用（生产零调用），属测试专属构造器，删除后 3 处测试改用 `new_with_dirs(dir, dir)`（`bundled_path`/`cache_path` 均为 `dir/registry.json`，与 `from_path` 语义逐位一致），并清理 `Path` 未用 import。验证：`cargo test --test plugin_registry_update` 3 用例 + `cargo test -p solosoul-plugin` 56 用例全绿、`cargo clippy` 零告警。
 
 ---
 

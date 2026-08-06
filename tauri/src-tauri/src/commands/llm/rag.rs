@@ -498,22 +498,6 @@ pub fn compute_content_hash(language: &str) -> Result<String, String> {
     Ok(format!("{:x}", digest))
 }
 
-/// Check if embeddings need to be rebuilt.
-pub fn needs_rebuild(vault: &solosoul_vault::VaultStore, language: &str) -> Result<bool, String> {
-    let count = vault.count_guide_embeddings()?;
-    if count == 0 {
-        return Ok(true);
-    }
-
-    let current_hash = compute_content_hash(language)?;
-    let stored_hash: Option<String> = vault.get_sys_config("guide_embeddings_content_hash")?;
-
-    match stored_hash {
-        Some(h) if h == current_hash => Ok(false),
-        _ => Ok(true),
-    }
-}
-
 /// Update the content hash and build timestamp in sys_config.
 pub fn mark_rebuilt(vault: &solosoul_vault::VaultStore, language: &str) -> Result<(), String> {
     let hash = compute_content_hash(language)?;
