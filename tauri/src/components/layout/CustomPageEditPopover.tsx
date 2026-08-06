@@ -236,7 +236,7 @@ export function CustomPageEditPopover({
                 cursor: 'pointer',
                 flexShrink: 0,
               }}
-              title={t('navigation:add_page_placeholder') ?? 'Choose icon'}
+              title={t('navigation:add_page_placeholder', { defaultValue: 'Choose icon' })}
             >
               {React.createElement(CUSTOM_ICON_MAP[selectedIconId], {
                 size: 18,

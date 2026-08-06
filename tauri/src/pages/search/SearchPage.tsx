@@ -116,36 +116,32 @@ export function SearchPage() {
     () => [
       {
         icon: Info,
-        title: t('common:guide_search_title') ?? 'Search Guide',
+        title: t('common:guide_search_title', { defaultValue: 'Search Guide' }),
         steps: [
           {
             icon: Search,
-            title: t('common:guide_search_step1_title') ?? 'Enter Keywords',
+            title: t('common:guide_search_step1_title', { defaultValue: 'Enter Keywords' }),
             description:
-              t('common:guide_search_step1_desc') ??
-              'Type keywords to search across objects, fields, and attachments. Use quoted phrases for exact matches.',
+              t('common:guide_search_step1_desc', { defaultValue: 'Type keywords to search across objects, fields, and attachments. Use quoted phrases for exact matches.' }),
           },
           {
             icon: Type,
-            title: t('common:guide_search_step2_title') ?? 'Filter Results',
+            title: t('common:guide_search_step2_title', { defaultValue: 'Filter Results' }),
             description:
-              t('common:guide_search_step2_desc') ??
-              'Filter results by sensitivity, object type, or date to narrow down the matches.',
+              t('common:guide_search_step2_desc', { defaultValue: 'Filter results by sensitivity, object type, or date to narrow down the matches.' }),
           },
           {
             icon: FolderOpen,
-            title: t('common:guide_search_step3_title') ?? 'Open Objects',
+            title: t('common:guide_search_step3_title', { defaultValue: 'Open Objects' }),
             description:
-              t('common:guide_search_step3_desc') ??
-              'Tap a result to open the object detail. You can edit or copy values from the detail view.',
+              t('common:guide_search_step3_desc', { defaultValue: 'Tap a result to open the object detail. You can edit or copy values from the detail view.' }),
           },
         ],
         helpLinks: [
           {
-            title: t('common:guide_help_search') ?? 'Global Search',
+            title: t('common:guide_help_search', { defaultValue: 'Global Search' }),
             description:
-              t('common:guide_help_search_desc') ??
-              'Search objects, fields, and attachments across the vault',
+              t('common:guide_help_search_desc', { defaultValue: 'Search objects, fields, and attachments across the vault' }),
             href: '/help?id=search',
           },
         ],

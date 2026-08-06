@@ -87,36 +87,32 @@ export function GlobalAttachmentManager() {
     () => [
       {
         icon: Info,
-        title: t('common:guide_attachment_title') ?? 'Attachment Guide',
+        title: t('common:guide_attachment_title', { defaultValue: 'Attachment Guide' }),
         steps: [
           {
             icon: FolderTree,
-            title: t('common:guide_attachment_step1_title') ?? 'Browse Tree',
+            title: t('common:guide_attachment_step1_title', { defaultValue: 'Browse Tree' }),
             description:
-              t('common:guide_attachment_step1_desc') ??
-              'Attachments are grouped by page and object. Expand pages and objects to find the files you need.',
+              t('common:guide_attachment_step1_desc', { defaultValue: 'Attachments are grouped by page and object. Expand pages and objects to find the files you need.' }),
           },
           {
             icon: Upload,
-            title: t('common:guide_attachment_step2_title') ?? 'Upload & Download',
+            title: t('common:guide_attachment_step2_title', { defaultValue: 'Upload & Download' }),
             description:
-              t('common:guide_attachment_step2_desc') ??
-              'Upload new attachments or download existing ones. On mobile, select files from your device.',
+              t('common:guide_attachment_step2_desc', { defaultValue: 'Upload new attachments or download existing ones. On mobile, select files from your device.' }),
           },
           {
             icon: Trash2,
-            title: t('common:guide_attachment_step3_title') ?? 'Delete & Restore',
+            title: t('common:guide_attachment_step3_title', { defaultValue: 'Delete & Restore' }),
             description:
-              t('common:guide_attachment_step3_desc') ??
-              'Soft delete attachments to move them to trash, restore them later, or permanently delete them.',
+              t('common:guide_attachment_step3_desc', { defaultValue: 'Soft delete attachments to move them to trash, restore them later, or permanently delete them.' }),
           },
         ],
         helpLinks: [
           {
-            title: t('common:guide_help_attachments') ?? 'Attachment Management',
+            title: t('common:guide_help_attachments', { defaultValue: 'Attachment Management' }),
             description:
-              t('common:guide_help_attachments_desc') ??
-              'Upload, download, rename, and manage attachments in trash',
+              t('common:guide_help_attachments_desc', { defaultValue: 'Upload, download, rename, and manage attachments in trash' }),
             href: '/help?id=attachments',
           },
         ],

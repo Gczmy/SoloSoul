@@ -91,36 +91,32 @@ export function TrashPage() {
     () => [
       {
         icon: Info,
-        title: t('common:guide_trash_title') ?? 'Trash Guide',
+        title: t('common:guide_trash_title', { defaultValue: 'Trash Guide' }),
         steps: [
           {
             icon: FileX,
-            title: t('common:guide_trash_step1_title') ?? 'Soft Delete',
+            title: t('common:guide_trash_step1_title', { defaultValue: 'Soft Delete' }),
             description:
-              t('common:guide_trash_step1_desc') ??
-              'Deleting an object or page moves it to trash instead of removing it immediately. Use time and type filters to find items.',
+              t('common:guide_trash_step1_desc', { defaultValue: 'Deleting an object or page moves it to trash instead of removing it immediately. Use time and type filters to find items.' }),
           },
           {
             icon: RotateCcw,
-            title: t('common:guide_trash_step2_title') ?? 'Restore',
+            title: t('common:guide_trash_step2_title', { defaultValue: 'Restore' }),
             description:
-              t('common:guide_trash_step2_desc') ??
-              'Select items and tap Restore to recover them. Restoring a page may also restore its related objects.',
+              t('common:guide_trash_step2_desc', { defaultValue: 'Select items and tap Restore to recover them. Restoring a page may also restore its related objects.' }),
           },
           {
             icon: Trash2,
-            title: t('common:guide_trash_step3_title') ?? 'Permanent Delete',
+            title: t('common:guide_trash_step3_title', { defaultValue: 'Permanent Delete' }),
             description:
-              t('common:guide_trash_step3_desc') ??
-              'Use the trash can button to permanently remove selected items. This action cannot be undone.',
+              t('common:guide_trash_step3_desc', { defaultValue: 'Use the trash can button to permanently remove selected items. This action cannot be undone.' }),
           },
         ],
         helpLinks: [
           {
-            title: t('common:guide_help_trash') ?? 'Trash',
+            title: t('common:guide_help_trash', { defaultValue: 'Trash' }),
             description:
-              t('common:guide_help_trash_desc') ??
-              'Restore or permanently delete trashed items',
+              t('common:guide_help_trash_desc', { defaultValue: 'Restore or permanently delete trashed items' }),
             href: '/help?id=trash',
           },
         ],

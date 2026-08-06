@@ -226,36 +226,32 @@ export function PluginDashboardPage() {
     () => [
       {
         icon: Info,
-        title: t('common:guide_plugin_title') ?? 'Plugin Guide',
+        title: t('common:guide_plugin_title', { defaultValue: 'Plugin Guide' }),
         steps: [
           {
             icon: LayoutGrid,
-            title: t('common:guide_plugin_step1_title') ?? 'Browse & Filter',
+            title: t('common:guide_plugin_step1_title', { defaultValue: 'Browse & Filter' }),
             description:
-              t('common:guide_plugin_step1_desc') ??
-              'Use the tabs to view all, installed, running, or log entries. Tier filters help you find plugins by phase.',
+              t('common:guide_plugin_step1_desc', { defaultValue: 'Use the tabs to view all, installed, running, or log entries. Tier filters help you find plugins by phase.' }),
           },
           {
             icon: Download,
-            title: t('common:guide_plugin_step2_title') ?? 'Install & Run',
+            title: t('common:guide_plugin_step2_title', { defaultValue: 'Install & Run' }),
             description:
-              t('common:guide_plugin_step2_desc') ??
-              'Install a plugin from the market, then run it. Some plugins require parameters or consent before execution.',
+              t('common:guide_plugin_step2_desc', { defaultValue: 'Install a plugin from the market, then run it. Some plugins require parameters or consent before execution.' }),
           },
           {
             icon: Settings,
-            title: t('common:guide_plugin_step3_title') ?? 'Manage & Refresh',
+            title: t('common:guide_plugin_step3_title', { defaultValue: 'Manage & Refresh' }),
             description:
-              t('common:guide_plugin_step3_desc') ??
-              'Update, uninstall, or stop plugins as needed. Refresh the registry to see the latest available plugins.',
+              t('common:guide_plugin_step3_desc', { defaultValue: 'Update, uninstall, or stop plugins as needed. Refresh the registry to see the latest available plugins.' }),
           },
         ],
         helpLinks: [
           {
-            title: t('common:guide_help_plugins') ?? 'Plugins',
+            title: t('common:guide_help_plugins', { defaultValue: 'Plugins' }),
             description:
-              t('common:guide_help_plugins_desc') ??
-              'Discover, install, and run plugins in SoloSoul',
+              t('common:guide_help_plugins_desc', { defaultValue: 'Discover, install, and run plugins in SoloSoul' }),
             href: '/help?id=plugins',
           },
         ],

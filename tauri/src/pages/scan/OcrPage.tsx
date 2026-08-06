@@ -282,36 +282,32 @@ export function OcrPage() {
     () => [
       {
         icon: Info,
-        title: t('common:guide_ocr_title') ?? 'OCR Scan Guide',
+        title: t('common:guide_ocr_title', { defaultValue: 'OCR Scan Guide' }),
         steps: [
           {
             icon: Scan,
-            title: t('common:guide_ocr_step1_title') ?? 'Choose Input',
+            title: t('common:guide_ocr_step1_title', { defaultValue: 'Choose Input' }),
             description:
-              t('common:guide_ocr_step1_desc') ??
-              'Take a photo with the camera or select an image from your device. OCR extracts text from the image.',
+              t('common:guide_ocr_step1_desc', { defaultValue: 'Take a photo with the camera or select an image from your device. OCR extracts text from the image.' }),
           },
           {
             icon: Layers,
-            title: t('common:guide_ocr_step2_title') ?? 'Select Tier',
+            title: t('common:guide_ocr_step2_title', { defaultValue: 'Select Tier' }),
             description:
-              t('common:guide_ocr_step2_desc') ??
-              'Pick an OCR model tier based on accuracy and speed. Larger tiers are more accurate but slower.',
+              t('common:guide_ocr_step2_desc', { defaultValue: 'Pick an OCR model tier based on accuracy and speed. Larger tiers are more accurate but slower.' }),
           },
           {
             icon: Import,
-            title: t('common:guide_ocr_step3_title') ?? 'Extract & Import',
+            title: t('common:guide_ocr_step3_title', { defaultValue: 'Extract & Import' }),
             description:
-              t('common:guide_ocr_step3_desc') ??
-              'Review the recognized text and import it as a new object. You can also copy or edit the result.',
+              t('common:guide_ocr_step3_desc', { defaultValue: 'Review the recognized text and import it as a new object. You can also copy or edit the result.' }),
           },
         ],
         helpLinks: [
           {
-            title: t('common:guide_help_ocr_scan') ?? 'OCR & Scan',
+            title: t('common:guide_help_ocr_scan', { defaultValue: 'OCR & Scan' }),
             description:
-              t('common:guide_help_ocr_scan_desc') ??
-              'Scan images and import recognized text as objects',
+              t('common:guide_help_ocr_scan_desc', { defaultValue: 'Scan images and import recognized text as objects' }),
             href: '/help?id=ocr_scan',
           },
         ],

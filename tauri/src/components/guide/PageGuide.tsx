@@ -173,7 +173,7 @@ export function PageGuide({ pages, label, compact }: PageGuideProps) {
     };
   }, [open, pageIndex, pages.length]);
 
-  const displayLabel = label ?? t('guide') ?? '指南';
+  const displayLabel = label ?? t('guide', { defaultValue: '指南' });
   const currentPage = pages[pageIndex];
   const isFirst = pageIndex === 0;
   const isLast = pageIndex === pages.length - 1;
@@ -538,7 +538,7 @@ export function PageGuide({ pages, label, compact }: PageGuideProps) {
                             letterSpacing: '0.5px',
                           }}
                         >
-                          {t('related_docs') ?? '相关帮助文档'}
+                          {t('related_docs', { defaultValue: '相关帮助文档' })}
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                           {page.helpLinks.map((link, i) => (
@@ -632,7 +632,7 @@ export function PageGuide({ pages, label, compact }: PageGuideProps) {
                 }}
               >
                 <ChevronLeft size={ICON_SIZE.xs} />
-                {t('previous') ?? '上一页'}
+                {t('previous', { defaultValue: '上一页' })}
               </button>
 
               {/* Page count */}
@@ -665,7 +665,7 @@ export function PageGuide({ pages, label, compact }: PageGuideProps) {
                     fontFamily: 'inherit',
                   }}
                 >
-                  {t('next') ?? '下一页'}
+                  {t('next', { defaultValue: '下一页' })}
                   <ChevronRight size={ICON_SIZE.xs} />
                 </button>
               ) : (
@@ -686,7 +686,7 @@ export function PageGuide({ pages, label, compact }: PageGuideProps) {
                     fontFamily: 'inherit',
                   }}
                 >
-                  {t('got_it') ?? '知道了'}
+                  {t('got_it', { defaultValue: '知道了' })}
                   <ChevronRight size={ICON_SIZE.xs} />
                 </button>
               )}

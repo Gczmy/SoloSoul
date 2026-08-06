@@ -454,7 +454,8 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
             examined: p.examined,
             applied: p.applied,
             skipped: p.skipped,
-          }) ?? 'Inbound sync completed',
+            defaultValue: 'Inbound sync completed',
+          }),
       });
       // 刷新对端列表与冲突（响应方可能因此产生新冲突）
       get()

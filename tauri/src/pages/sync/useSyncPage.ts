@@ -68,36 +68,32 @@ export function useSyncPage() {
     () => [
       {
         icon: Info,
-        title: t('common:guide_sync_title') ?? 'Device Sync Guide',
+        title: t('common:guide_sync_title', { defaultValue: 'Device Sync Guide' }),
         steps: [
           {
             icon: Wifi,
-            title: t('common:guide_sync_step1_title') ?? 'Enable Sync',
+            title: t('common:guide_sync_step1_title', { defaultValue: 'Enable Sync' }),
             description:
-              t('common:guide_sync_step1_desc') ??
-              'Turn on sync to make your device discoverable and start listening on a local port. Both devices must be on the same Wi-Fi network.',
+              t('common:guide_sync_step1_desc', { defaultValue: 'Turn on sync to make your device discoverable and start listening on a local port. Both devices must be on the same Wi-Fi network.' }),
           },
           {
             icon: RefreshCw,
-            title: t('common:guide_sync_step2_title') ?? 'Discover & Pair',
+            title: t('common:guide_sync_step2_title', { defaultValue: 'Discover & Pair' }),
             description:
-              t('common:guide_sync_step2_desc') ??
-              'Tap Discover to scan for nearby devices. Tap Sync on a discovered device to pair, then verify the fingerprint to trust it.',
+              t('common:guide_sync_step2_desc', { defaultValue: 'Tap Discover to scan for nearby devices. Tap Sync on a discovered device to pair, then verify the fingerprint to trust it.' }),
           },
           {
             icon: Smartphone,
-            title: t('common:guide_sync_step3_title') ?? 'Automatic Sync',
+            title: t('common:guide_sync_step3_title', { defaultValue: 'Automatic Sync' }),
             description:
-              t('common:guide_sync_step3_desc') ??
-              'Enable Automatic Sync to keep data in sync when the app is in the foreground, on data changes, and periodically.',
+              t('common:guide_sync_step3_desc', { defaultValue: 'Enable Automatic Sync to keep data in sync when the app is in the foreground, on data changes, and periodically.' }),
           },
         ],
         helpLinks: [
           {
-            title: t('common:guide_help_device_sync') ?? 'Device Sync',
+            title: t('common:guide_help_device_sync', { defaultValue: 'Device Sync' }),
             description:
-              t('common:guide_help_device_sync_desc') ??
-              'Pair devices over LAN and keep data in sync',
+              t('common:guide_help_device_sync_desc', { defaultValue: 'Pair devices over LAN and keep data in sync' }),
             href: '/help?id=device-sync',
           },
         ],
@@ -335,7 +331,7 @@ export function useSyncPage() {
     if (cur && cur !== prev && !cur.inbound) {
       useUiStore.getState().showToast({
         type: 'success',
-        message: t('common:sync_qr_success_sync') ?? 'Sync completed',
+        message: t('common:sync_qr_success_sync', { defaultValue: 'Sync completed' }),
       });
     }
   }, [store.lastResult, t]);

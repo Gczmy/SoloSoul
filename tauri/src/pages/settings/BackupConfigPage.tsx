@@ -43,36 +43,32 @@ export function BackupConfigPage() {
     () => [
       {
         icon: Info,
-        title: t('common:guide_backup_title') ?? 'Backup & Restore Guide',
+        title: t('common:guide_backup_title', { defaultValue: 'Backup & Restore Guide' }),
         steps: [
           {
             icon: HardDrive,
-            title: t('common:guide_backup_step1_title') ?? 'Create Backup',
+            title: t('common:guide_backup_step1_title', { defaultValue: 'Create Backup' }),
             description:
-              t('common:guide_backup_step1_desc') ??
-              'Create a local backup of your current profile. Backups are stored on this device.',
+              t('common:guide_backup_step1_desc', { defaultValue: 'Create a local backup of your current profile. Backups are stored on this device.' }),
           },
           {
             icon: RotateCcw,
-            title: t('common:guide_backup_step2_title') ?? 'Restore Backup',
+            title: t('common:guide_backup_step2_title', { defaultValue: 'Restore Backup' }),
             description:
-              t('common:guide_backup_step2_desc') ??
-              'Select a backup and restore it. Restoring may overwrite existing data in the current profile.',
+              t('common:guide_backup_step2_desc', { defaultValue: 'Select a backup and restore it. Restoring may overwrite existing data in the current profile.' }),
           },
           {
             icon: Bell,
-            title: t('common:guide_backup_step3_title') ?? 'Manage Backups',
+            title: t('common:guide_backup_step3_title', { defaultValue: 'Manage Backups' }),
             description:
-              t('common:guide_backup_step3_desc') ??
-              'View backup details, delete old backups, or recover from a previous state.',
+              t('common:guide_backup_step3_desc', { defaultValue: 'View backup details, delete old backups, or recover from a previous state.' }),
           },
         ],
         helpLinks: [
           {
-            title: t('common:guide_help_backup_restore') ?? 'Backup & Restore',
+            title: t('common:guide_help_backup_restore', { defaultValue: 'Backup & Restore' }),
             description:
-              t('common:guide_help_backup_restore_desc') ??
-              'Create and restore local profile backups',
+              t('common:guide_help_backup_restore_desc', { defaultValue: 'Create and restore local profile backups' }),
             href: '/help?id=backup_restore',
           },
         ],

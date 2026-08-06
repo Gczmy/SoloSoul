@@ -23,36 +23,32 @@ export function LlmChatPage() {
     () => [
       {
         icon: Info,
-        title: t('common:guide_ai_chat_title') ?? 'AI Chat Guide',
+        title: t('common:guide_ai_chat_title', { defaultValue: 'AI Chat Guide' }),
         steps: [
           {
             icon: Bot,
-            title: t('common:guide_ai_chat_step1_title') ?? 'Select Provider',
+            title: t('common:guide_ai_chat_step1_title', { defaultValue: 'Select Provider' }),
             description:
-              t('common:guide_ai_chat_step1_desc') ??
-              'Choose a configured AI provider or add a new one in settings. Local and remote providers are supported.',
+              t('common:guide_ai_chat_step1_desc', { defaultValue: 'Choose a configured AI provider or add a new one in settings. Local and remote providers are supported.' }),
           },
           {
             icon: MessageCircle,
-            title: t('common:guide_ai_chat_step2_title') ?? 'Start Conversation',
+            title: t('common:guide_ai_chat_step2_title', { defaultValue: 'Start Conversation' }),
             description:
-              t('common:guide_ai_chat_step2_desc') ??
-              'Create a new conversation or continue an existing one. Ask questions based on your vault data.',
+              t('common:guide_ai_chat_step2_desc', { defaultValue: 'Create a new conversation or continue an existing one. Ask questions based on your vault data.' }),
           },
           {
             icon: History,
-            title: t('common:guide_ai_chat_step3_title') ?? 'Manage Conversations',
+            title: t('common:guide_ai_chat_step3_title', { defaultValue: 'Manage Conversations' }),
             description:
-              t('common:guide_ai_chat_step3_desc') ??
-              'Rename, delete, or archive conversations. Review token usage and model statistics.',
+              t('common:guide_ai_chat_step3_desc', { defaultValue: 'Rename, delete, or archive conversations. Review token usage and model statistics.' }),
           },
         ],
         helpLinks: [
           {
-            title: t('common:guide_help_ai_chat') ?? 'AI Chat',
+            title: t('common:guide_help_ai_chat', { defaultValue: 'AI Chat' }),
             description:
-              t('common:guide_help_ai_chat_desc') ??
-              'Chat with AI using your local vault data',
+              t('common:guide_help_ai_chat_desc', { defaultValue: 'Chat with AI using your local vault data' }),
             href: '/help?id=ai_chat',
           },
         ],

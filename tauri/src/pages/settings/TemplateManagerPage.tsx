@@ -179,35 +179,32 @@ export function TemplateManagerPage() {
     () => [
       {
         icon: Info,
-        title: t('common:guide_template_title') ?? 'Template Guide',
+        title: t('common:guide_template_title', { defaultValue: 'Template Guide' }),
         steps: [
           {
             icon: LayoutTemplate,
-            title: t('common:guide_template_step1_title') ?? 'View Templates',
+            title: t('common:guide_template_step1_title', { defaultValue: 'View Templates' }),
             description:
-              t('common:guide_template_step1_desc') ??
-              'Browse templates by page category. Use the search and page filters to find the template you need.',
+              t('common:guide_template_step1_desc', { defaultValue: 'Browse templates by page category. Use the search and page filters to find the template you need.' }),
           },
           {
             icon: Pencil,
-            title: t('common:guide_template_step2_title') ?? 'Create & Edit',
+            title: t('common:guide_template_step2_title', { defaultValue: 'Create & Edit' }),
             description:
-              t('common:guide_template_step2_desc') ??
-              'Create a new template or edit an existing one. Define fields, types, and sensitivity levels.',
+              t('common:guide_template_step2_desc', { defaultValue: 'Create a new template or edit an existing one. Define fields, types, and sensitivity levels.' }),
           },
           {
             icon: BookOpen,
-            title: t('common:guide_template_step3_title') ?? 'Sample Templates',
+            title: t('common:guide_template_step3_title', { defaultValue: 'Sample Templates' }),
             description:
-              t('common:guide_template_step3_desc') ??
-              'Use the sample template gallery to quickly add commonly used templates to your vault.',
+              t('common:guide_template_step3_desc', { defaultValue: 'Use the sample template gallery to quickly add commonly used templates to your vault.' }),
           },
         ],
         helpLinks: [
           {
-            title: t('common:guide_help_templates') ?? 'Template Management',
+            title: t('common:guide_help_templates', { defaultValue: 'Template Management' }),
             description:
-              t('common:guide_help_templates_desc') ?? 'Create, edit, and manage object templates',
+              t('common:guide_help_templates_desc', { defaultValue: 'Create, edit, and manage object templates' }),
             href: '/help?id=templates',
           },
         ],
