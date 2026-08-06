@@ -538,7 +538,8 @@ impl SyncManager {
             }
             // P1#7/#8：在线状态心跳化——mDNS 未发现时，凭「fresh last_seen + last_addr」
             // 判定在线（成功同步即证明 LAN 可达），避免「明明在线却显示离线」。
-            let online = crate::shared::peer_last_addr_online(&p, now_ts).is_some();
+            let online_addr = crate::shared::peer_last_addr_online(&p, now_ts);
+            let online = online_addr.is_some();
             out.push(SyncPeerInfo {
                 node_id: p.peer_node_id.clone(),
                 account_id: self.account_id.clone(),
@@ -546,11 +547,7 @@ impl SyncManager {
                     .peer_name
                     .clone()
                     .unwrap_or_else(|| p.peer_node_id.clone()),
-                addr: if online {
-                    p.last_addr.clone().unwrap_or_default()
-                } else {
-                    String::new()
-                },
+                addr: online_addr.unwrap_or_default(),
                 fingerprint: p.public_key_fingerprint.clone().unwrap_or_default(),
                 trusted: p.trusted,
                 last_seen: if online {
