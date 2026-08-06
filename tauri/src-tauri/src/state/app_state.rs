@@ -421,6 +421,16 @@ impl AppState {
         let device_auto_sync =
             DeviceAutoSyncManager::new(sync_service.clone(), vault_service.clone(), handle.clone());
 
+        // P0#1: 启动时恢复自动同步开关持久化状态（AtomicBool 默认 false，
+        // 重启后恢复用户上次选择，消除"已打开但实际已失效"的感知断裂）。
+        // ui_preferences.json 存于 Vault base 目录，Vault 未解锁亦可读。
+        if let Ok(svc) = vault_service.read() {
+            if let Some(enabled) = crate::commands::settings::read_auto_sync_pref(&handle, &svc) {
+                device_auto_sync.set_enabled(enabled);
+                tracing::info!("[AppState] restored auto_sync_enabled={}", enabled);
+            }
+        }
+
         // ── AutoSyncManager（在 VaultService 初始化之后启动） ──
         let auto_sync = AutoSyncManager::new_for_vault(vault_service.clone(), handle.clone());
 

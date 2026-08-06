@@ -165,6 +165,16 @@ pub async fn sync_set_auto_enabled(
     enabled: bool,
 ) -> Result<bool, String> {
     state.device_auto_sync.set_enabled(enabled);
+    // P0#1: 开关持久化——AtomicBool 仅内存，重启即丢（用户感知"已打开"实际失效）。
+    // 写入 ui_preferences.json（明文非敏感偏好，随 Vault 目录可移植），
+    // AppState 启动时据此恢复。失败仅记录日志，不阻断开关操作。
+    if let Ok(svc) = state.vault_service.read() {
+        if let Err(e) =
+            crate::commands::settings::write_auto_sync_pref(&state.handle, &svc, enabled)
+        {
+            tracing::warn!("[sync] persist auto_sync_enabled failed: {}", e);
+        }
+    }
     log_sync_action(
         &state,
         if enabled {
