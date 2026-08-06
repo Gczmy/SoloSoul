@@ -931,6 +931,8 @@
   "sync_auto_desc": "Sync automatically when the app returns to foreground, after local data changes, and periodically every minute.",
   "sync_auto_on": "On",
   "sync_auto_off": "Off",
+  "sync_ui_prefs": "Sync UI preferences",
+  "sync_ui_prefs_desc": "Sync appearance settings (theme, accent color, etc.) with other devices.",
   "sync_conflicts": "Conflicts",
   "sync_winner": "winner",
   "llm_delete_model_title": "Delete Model",

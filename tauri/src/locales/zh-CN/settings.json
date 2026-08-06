@@ -931,6 +931,8 @@
   "sync_auto_desc": "在应用切回前台、本地数据变更后自动同步，并每分钟自动触发一次。",
   "sync_auto_on": "开启",
   "sync_auto_off": "关闭",
+  "sync_ui_prefs": "同步界面偏好",
+  "sync_ui_prefs_desc": "与其他设备同步外观设置（主题、主题色等）。",
   "sync_conflicts": "冲突",
   "sync_winner": "胜出方",
   "llm_delete_model_title": "删除模型",

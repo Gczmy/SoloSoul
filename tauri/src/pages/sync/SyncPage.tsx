@@ -5,6 +5,7 @@ import { AppShell } from '@/components/layout/AppShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
+import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import { Wifi, WifiOff } from 'lucide-react';
 import { PageGuideButton } from '@/components/guide/PageGuideButton';
 import { useSyncPage } from './useSyncPage';
@@ -50,6 +51,7 @@ export function SyncPage() {
     loadStatus,
     handleToggleSync,
     handleToggleAutoSync,
+    handleToggleUiPrefsSync,
     handleDiscover,
     handleSyncWithDevice,
     handleTrustPending,
@@ -97,6 +99,7 @@ export function SyncPage() {
           t={t}
           onToggleSync={handleToggleSync}
           onToggleAutoSync={handleToggleAutoSync}
+          onToggleUiPrefsSync={handleToggleUiPrefsSync}
         />
 
         <PairingPanel
@@ -156,11 +159,13 @@ function SyncStatusCard({
   t,
   onToggleSync,
   onToggleAutoSync,
+  onToggleUiPrefsSync,
 }: {
   store: ReturnType<typeof useSyncPage>['store'];
   t: ReturnType<typeof useTranslation>['t'];
   onToggleSync: () => void;
   onToggleAutoSync: () => void;
+  onToggleUiPrefsSync: () => void;
 }) {
   return (
     <Card>
@@ -246,6 +251,44 @@ function SyncStatusCard({
           onChange={onToggleAutoSync}
           disabled={!store.syncEnabled || store.isLoading}
         />
+      </div>
+
+      {/* 账户设置偏好（主题/主题色等 UI 外观）是否随设备同步 */}
+      <div
+        style={{
+          marginTop: 8,
+          padding: 10,
+          borderRadius: 8,
+          background: 'var(--bg-toolbar)',
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: 10,
+          cursor: !store.syncEnabled || store.isLoading ? 'default' : 'pointer',
+          opacity: !store.syncEnabled ? 0.55 : 1,
+        }}
+        onClick={() => {
+          if (store.syncEnabled && !store.isLoading) onToggleUiPrefsSync();
+        }}
+      >
+        <div style={{ paddingTop: 1 }}>
+          <SelectCheckbox
+            checked={store.uiPrefsSyncEnabled}
+            size={16}
+            borderRadius={4}
+            disabled={!store.syncEnabled || store.isLoading}
+          />
+        </div>
+        <div>
+          <div style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500 }}>
+            {t('settings:sync_ui_prefs', { defaultValue: 'Sync UI preferences' })}
+          </div>
+          <div style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
+            {t('settings:sync_ui_prefs_desc', {
+              defaultValue:
+                'Sync appearance settings (theme, accent color, etc.) with other devices.',
+            })}
+          </div>
+        </div>
       </div>
 
       {store.localFingerprint && (

@@ -21,6 +21,7 @@ export function useSyncPage() {
       isDiscovering: s.isDiscovering,
       syncEnabled: s.syncEnabled,
       autoSyncEnabled: s.autoSyncEnabled,
+      uiPrefsSyncEnabled: s.uiPrefsSyncEnabled,
       localFingerprint: s.localFingerprint,
       connectedPeers: s.connectedPeers,
       isLoading: s.isLoading,
@@ -40,6 +41,7 @@ export function useSyncPage() {
       forgetPeer: s.forgetPeer,
       enable: s.enable,
       setAutoSyncEnabled: s.setAutoSyncEnabled,
+      setUiPrefsSyncEnabled: s.setUiPrefsSyncEnabled,
       loadStatus: s.loadStatus,
       loadListenAddr: s.loadListenAddr,
       loadAutoSyncStatus: s.loadAutoSyncStatus,
@@ -135,6 +137,7 @@ export function useSyncPage() {
       s.loadStatus(),
       s.loadListenAddr(),
       s.loadAutoSyncStatus(),
+      s.loadUiPrefsSync(),
       s.loadConflicts(),
     ]);
   }, []);
@@ -197,6 +200,13 @@ export function useSyncPage() {
     const s = useSyncStore.getState();
     if (s.isLoading) return;
     await s.setAutoSyncEnabled(!s.autoSyncEnabled);
+  };
+
+  /** 「账户设置偏好是否随设备同步」勾选框切换。 */
+  const handleToggleUiPrefsSync = async () => {
+    const s = useSyncStore.getState();
+    if (s.isLoading) return;
+    await s.setUiPrefsSyncEnabled(!s.uiPrefsSyncEnabled);
   };
 
   const handleDiscover = async () => {
@@ -357,6 +367,7 @@ export function useSyncPage() {
     loadStatus,
     handleToggleSync,
     handleToggleAutoSync,
+    handleToggleUiPrefsSync,
     handleDiscover,
     handleSyncWithDevice,
     handleTrustPending,

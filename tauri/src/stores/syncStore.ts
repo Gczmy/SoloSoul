@@ -84,6 +84,8 @@ interface SyncStoreState extends SyncStatus {
   selectedConflict: SyncConflictDetail | null;
   /** 是否有未查看的冲突通知（由 sync-conflicts-updated 事件触发）。 */
   hasUnreadConflicts: boolean;
+  /** 账户设置偏好（主题、主题色等 UI 外观）是否随设备同步。 */
+  uiPrefsSyncEnabled: boolean;
   /** 配对中（A 侧发起方）：等待对端确认配对的 peer。 */
   pairingPendingPeerId: string | null;
   /** 配对中（A 侧发起方）：发起同步时使用的地址，用于确认信任后自动重试。 */
@@ -103,6 +105,10 @@ interface SyncStoreState extends SyncStatus {
   forgetPeer: (peerNodeId: string) => Promise<void>;
   loadAutoSyncStatus: () => Promise<void>;
   setAutoSyncEnabled: (enabled: boolean) => Promise<void>;
+  /** 读取「账户设置偏好是否随设备同步」开关状态。 */
+  loadUiPrefsSync: () => Promise<void>;
+  /** 设置「账户设置偏好是否随设备同步」开关。 */
+  setUiPrefsSyncEnabled: (enabled: boolean) => Promise<void>;
   triggerForegroundSync: () => Promise<void>;
   loadConflicts: () => Promise<void>;
   loadConflictDetail: (conflictId: string) => Promise<void>;
@@ -150,6 +156,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
   conflicts: [],
   selectedConflict: null,
   hasUnreadConflicts: false,
+  uiPrefsSyncEnabled: true,
   pairingPendingPeerId: null,
   pairingPendingAddr: null,
   pairingPendingSasCode: null,
@@ -322,6 +329,25 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
     try {
       const result = await invoke<boolean>('sync_set_auto_enabled', { enabled });
       set({ autoSyncEnabled: result, isLoading: false });
+    } catch (err) {
+      set({ isLoading: false, error: String(err) });
+    }
+  },
+
+  loadUiPrefsSync: async () => {
+    try {
+      const enabled = await invoke<boolean>('sync_get_ui_prefs_sync');
+      set({ uiPrefsSyncEnabled: enabled });
+    } catch (err) {
+      set({ error: String(err) });
+    }
+  },
+
+  setUiPrefsSyncEnabled: async (enabled) => {
+    set({ isLoading: true, error: null });
+    try {
+      const result = await invoke<boolean>('sync_set_ui_prefs_sync', { enabled });
+      set({ uiPrefsSyncEnabled: result, isLoading: false });
     } catch (err) {
       set({ isLoading: false, error: String(err) });
     }
