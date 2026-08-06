@@ -19,8 +19,6 @@ import { pickVaultDirectory, initVaultDirectory } from '@/lib/vaultDirectory';
 export interface OnboardingDialogProps {
   onComplete: () => void;
   onSkip: () => void;
-  /** 重新打开引导时直接展示「账户来源决策」卡片（从创建新账户页返回时使用）。 */
-  initialShowAccountSource?: boolean;
 }
 
 export type OnboardingStepKey =
@@ -49,11 +47,7 @@ const baseSteps: readonly OnboardingStepDef[] = [
 export type SyncPhase = 'idle' | 'syncing' | 'done';
 
 /** OnboardingDialog 的完整状态机与业务逻辑。 */
-export function useOnboarding({
-  onComplete,
-  onSkip: _onSkip,
-  initialShowAccountSource = false,
-}: OnboardingDialogProps) {
+export function useOnboarding({ onComplete, onSkip: _onSkip }: OnboardingDialogProps) {
   const { t } = useTranslation('common');
   const [step, setStep] = useState(0);
   const [platformName, setPlatformName] = useState<string>('');
@@ -92,10 +86,8 @@ export function useOnboarding({
   const [foundAccountCount, setFoundAccountCount] = useState(0);
   const [showAccountDecision, setShowAccountDecision] = useState(false);
   // 完成引导后询问用户是否已有账户在其它设备上
-  // initialShowAccountSource：从创建新账户页返回时直接显示该决策卡片
-  const [showAccountSourceDecision, setShowAccountSourceDecision] = useState(
-    initialShowAccountSource,
-  );
+  // （从创建新账户页返回时改走 AccountSourceOverlay 独立浮层，不再复用本向导）
+  const [showAccountSourceDecision, setShowAccountSourceDecision] = useState(false);
   const [recoveryOpen, setRecoveryOpen] = useState(false);
   const navigate = useNavigate();
 
@@ -116,19 +108,11 @@ export function useOnboarding({
         ? baseSteps
         : baseSteps.filter((s) => s.key !== 'vault_directory');
 
-  // 防御性钳制：平台异步解析会改变 steps 长度，initialShowAccountSource 跳到
-  // 最后一步后，在 effect 重新校准前可能出现 step 越界（steps[step] 为 undefined）。
+  // 防御性钳制：平台异步解析会改变 steps 长度，在 effect 重新校准前可能出现
+  // step 越界（steps[step] 为 undefined）。
   const current = steps[Math.min(step, steps.length - 1)];
   const Icon = current?.icon || Sparkles;
   const isLast = step >= steps.length - 1;
-
-  // 重新打开引导且需要直接展示账户来源决策时：跳到最后一步，让决策卡片覆盖在最后一张卡片上。
-  // 依赖 steps.length：平台异步解析会改变步骤列表长度，需重新校准，避免 step 越界。
-  useEffect(() => {
-    if (initialShowAccountSource && steps.length > 0) {
-      setStep(steps.length - 1);
-    }
-  }, [initialShowAccountSource, steps.length]);
 
   // 进入 vault_directory 步骤时重置 loading/error 状态，但不重置已选路径，
   // 以便用户返回上一步时仍能看到之前选择的外部目录。

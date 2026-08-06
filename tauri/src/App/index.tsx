@@ -8,6 +8,7 @@ import { OcrScanNotificationListener } from '@/components/layout/OcrScanNotifica
 import { GlobalSyncIndicator } from '@/components/layout/GlobalSyncIndicator';
 import { PluginQuickNotificationListener } from '@/components/plugin/PluginQuickNotificationListener';
 import { OnboardingDialog } from '@/components/onboarding/OnboardingDialog';
+import { AccountSourceOverlay } from '@/components/onboarding/AccountSourceOverlay';
 import { AppRoutes } from './AppRoutes';
 import { useSyncStore } from '@/stores/syncStore';
 import { useUiStore } from '@/stores/uiStore';
@@ -23,7 +24,8 @@ function App() {
       return true;
     }
   });
-  // 从「创建新账户」页点击「返回账户来源选择」时置位，重新挂载引导并直接显示账户来源卡片。
+  // 从「创建新账户」页点击「返回账户来源选择」时置位：渲染独立账户来源浮层
+  // （不含整个引导向导），「返回」即关闭浮层露出创建账户表单。
   const reopenAccountSource = useUiStore((s) => s.reopenAccountSource);
 
   useEffect(() => {
@@ -109,13 +111,10 @@ function App() {
       <GlobalSyncIndicator />
       <OcrScanNotificationListener />
       <PluginQuickNotificationListener />
-      {(!hasSeenOnboarding || reopenAccountSource) && (
-        <OnboardingDialog
-          initialShowAccountSource={reopenAccountSource}
-          onComplete={finishOnboarding}
-          onSkip={finishOnboarding}
-        />
+      {!hasSeenOnboarding && !reopenAccountSource && (
+        <OnboardingDialog onComplete={finishOnboarding} onSkip={finishOnboarding} />
       )}
+      {reopenAccountSource && <AccountSourceOverlay />}
     </BrowserRouter>
   );
 }

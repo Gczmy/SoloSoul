@@ -126,18 +126,6 @@ describe('OnboardingDialog', () => {
     expect(screen.queryByText(/onboarding_account_source_title/i)).not.toBeInTheDocument();
   });
 
-  it('shows the account source decision immediately when initialShowAccountSource is set (P-bug 2)', async () => {
-    renderWithRouter(
-      <OnboardingDialog onComplete={vi.fn()} onSkip={vi.fn()} initialShowAccountSource />,
-    );
-
-    // Wait for platform to load
-    await waitFor(() => {
-      expect(screen.getByText(/onboarding_account_source_title/i)).toBeInTheDocument();
-    });
-    expect(screen.getByText(/onboarding_account_source_create/i)).toBeInTheDocument();
-  });
-
   it('shows the account source decision when no existing account is found', async () => {
     const onComplete = vi.fn();
     renderWithRouter(<OnboardingDialog onComplete={onComplete} onSkip={vi.fn()} />);

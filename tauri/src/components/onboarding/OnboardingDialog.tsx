@@ -13,14 +13,10 @@ import { RecoveryReceiveDialog } from '@/components/recovery/RecoveryReceiveDial
  * - 完成引导后若本地无账户，弹「账户来源」浮层询问恢复或新建
  * 状态机与业务逻辑收敛在 useOnboarding hook，本组件仅编排视图。
  */
-export function OnboardingDialog({
-  onComplete,
-  onSkip: _onSkip,
-  initialShowAccountSource,
-}: OnboardingDialogProps) {
+export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDialogProps) {
   const { t } = useTranslation('common');
   const navigate = useNavigate();
-  const ob = useOnboarding({ onComplete, onSkip: _onSkip, initialShowAccountSource });
+  const ob = useOnboarding({ onComplete, onSkip: _onSkip });
 
   // Show only the vault directory step when we need to display it
   if (ob.current.key === 'vault_directory') {
