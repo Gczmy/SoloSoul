@@ -288,6 +288,35 @@ input[type='password']::-webkit-contacts-auto-fill-button {
   display: none !important;
 }
 
+/* Android/iOS WebView 自动填充主题适配：系统自动填充服务填充输入框后，
+   Chromium 会给 autofill 元素强加默认白底并覆盖文字颜色，深色模式下与主题
+   不匹配（输入框一片惨白）。用 inset box-shadow 覆盖为输入框主题背景色，
+   并让文字/光标颜色跟随主题变量（深浅色自适应）。transition 大数值 hack
+   用于防止自动填充完成瞬间背景闪烁回默认色。 */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px var(--bg-elevated) inset !important;
+  -webkit-text-fill-color: var(--text-primary) !important;
+  caret-color: var(--text-primary) !important;
+  transition: background-color 5000s ease-in-out 0s !important;
+}
+
+/* Firefox 标准 autofill 伪类（同样强加浅色背景） */
+input:autofill,
+textarea:autofill,
+select:autofill {
+  -webkit-box-shadow: 0 0 0 1000px var(--bg-elevated) inset !important;
+  -webkit-text-fill-color: var(--text-primary) !important;
+  caret-color: var(--text-primary) !important;
+}
+
 /* 移动端触控目标尺寸基线：按钮、类按钮元素至少 44×44px；
    导航项、图标按钮、列表项等由各自组件 CSS Module 单独保证 */
 @media (max-width: 767px) {
