@@ -665,7 +665,9 @@ pub fn purge_trash(vault: &VaultStore, trash_id: &str) -> Result<String, String>
     let name = trash.name_snapshot.clone();
 
     if trash.item_type != "template" {
-        let _ = vault.delete_object(&trash.original_id, false);
+        // R2-07: 底层对象删除失败必须中止（并保留 trash 记录），
+        // 否则 trash 记录被删后留下无法再经回收站清理的孤儿对象行。
+        vault.delete_object(&trash.original_id, false)?;
     }
     vault.delete_trash_item(trash_id)?;
     let _ = vault.log_structured(
