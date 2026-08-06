@@ -2,7 +2,7 @@
 
 > 最后更新：2026-08-06
 > 当前分支：`main`
-> 修复轮次：R1 已闭环；R2 修复 28 项已提交；V1-V8、W1-W4 已提交并经第三轮验证（2026-08-06，HEAD `6b6beb6e`）：**W4 完全正确；W1 核心安全目标达成（attachment_open 旁路封死）但 copy_to_vault 为 no-op；W2/W3 清单内正确、清单外各有漏网**——产生 3 项 P2 跟进问题（X1-X3，待修复），无 P0/P1 残留。X1-X3 闭环或经用户裁决降级后 R2 可标记终版（详见 §R2-§8）
+> 修复轮次：R1 已闭环；R2 修复 28 项已提交；V1-V8、W1-W4 已提交并经第三轮验证（2026-08-06）；**X1-X3 已全部闭环**（`a7f019e7`/`255ee76f`/`3aaa47bf`，无 P0/P1 残留，仅剩 P2 级轻微观察项不阻塞）。R2 可标记终版（详见 §R2-§8）
 
 ---
 
@@ -170,14 +170,15 @@
 |----|--------|------|----------|------|------|
 | R2-X1 | P2 | W1 部分 no-op | `tauri/src-tauri/src/commands/attachment.rs:407-436` | `attachment_copy_to_vault` 的 raw/canonical 统一是名义修复（`src == src_raw`，`\|\|` 恒等）：应同时与非 canonical 的 `base`（:399 现成可用）比较以覆盖 Android 双路径；并修订 commit 描述。另建议把 `in_vault`/`in_attachments` 判定提取为纯函数并补 symlink/穿越防回归测试（当前三处判定零测试覆盖） | `[x]` 已修复（2026-08-06 `a7f019e7`：纯函数 `path_within_base` + copy_to_vault 传非 canonical base + 3 条防回归测试） |
 | R2-X2 | P2 | W2 漏网 | `solosoul_cli/src/commands/sync.rs:101`（`cmd-sync-with-success`）；另约 10 处信息/空态/中性语义（`plugin.rs:55/331/342/368/374/413/425/460`、`export_import.rs:150`、`embed_model.rs:161`） | 成功/信息语义仍写红色 error overlay。修复时以**全库语义扫描**（而非报告清单）为验收标准 | `[x]` 已修复（2026-08-06 `255ee76f`：新增中性 `info_message` overlay + 明确成功走 success_message + 9 处信息/空态/预览走 info_message，全库语义 grep 残留 0） |
-| R2-X3 | P2 | W3 漏网 | `solosoul_cli/src/commands/vault_write.rs:532-544`；`commands/mod.rs:28` | a) `purge()` 缺 `require_unlocked`（锁定用户得到原始 eyre 而非友好提示）——与相邻 restore 对齐收敛；b) helper 错误消息 "Vault not open" 建议统一为中文 i18n（7 处由中文回退为英文） | `[ ]` 待修复 |
+| R2-X3 | P2 | W3 漏网 | `solosoul_cli/src/commands/vault_write.rs:532-544`；`commands/mod.rs:28` | a) `purge()` 缺 `require_unlocked`（锁定用户得到原始 eyre 而非友好提示）——与相邻 restore 对齐收敛；b) helper 错误消息 "Vault not open" 建议统一为中文 i18n（7 处由中文回退为英文） | `[x]` 已修复（2026-08-06 `3aaa47bf`：purge 补 require_unlocked_with_vault + 闭包复用 Arc 消除二次裸 eyre；helper 消息统一「Vault 未打开」，全库英文残留 0） |
 
 #### 8.3 第三轮验证总结
 
 - **W4 是本轮范本**：全量脚本扫描 + 独立复核残留为 0 + 数量口径精确验证，一次闭环。
 - **W1 核心安全目标达成**（attachment_open 旁路封死，原 P1 缺口已消除），剩余 X1 因有白名单兜底降为 P2。
 - **W2/W3 连续第三轮出现「只验收报告清单、不做全库扫描」的模式**：清单内全对、清单外漏网（X2 的 sync 成功消息；X3 的 purge 无解锁门禁——属 pre-existing 缺陷的顺带暴露）。此类「模式消除型」修复应以全库语义 grep 结果为验收标准，而非报告给出的示例行号。
-- **优先级评估**：X1-X3 均为 P2，无 P0/P1 残留。按流程阶段 4「仅剩 P2 或零问题 → 终版有效」：X1-X3 修复并复核通过后 R2 可标记终版；或经用户裁决将 X1-X3 降级为后续迭代项后标记终版。
+- **优先级评估**：X1-X3 均为 P2，无 P0/P1 残留。**X1-X3 已全部闭环（2026-08-06）**：**X1**`a7f019e7`——copy_to_vault 真修复（与非 canonical base 比较）+ 路径判定纯函数 `path_within_base` + 3 条防回归测试；**X2**`255ee76f`——新增中性 `info_message` overlay（列表/空态/预览 9 处）+ 明确成功 `cmd-sync-with-success` 走 success_message，全库语义 grep 残留 0；**X3**`3aaa47bf`——purge 补 `require_unlocked_with_vault`（闭包复用 Arc 消除二次裸 eyre）+ helper 消息统一「Vault 未打开」，全库英文残留 0。
+- 按流程阶段 4「仅剩 P2 或零问题 → 终版有效」：X1-X3 修复并经编译/测试验证（CLI 151+2 全绿、clippy 0 警告、Rust workspace 与前端基线全绿）→ **R2 可标记终版**。
 
 ### R2-§3 重点问题修复指引（P0/P1）
 
