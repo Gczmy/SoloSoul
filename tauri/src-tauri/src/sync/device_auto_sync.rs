@@ -339,8 +339,18 @@ async fn run_device_sync(
         .ok();
 
     let mut last_error: Option<String> = None;
+    let mut reachable = 0usize;
+    let target_count = targets.len();
     for peer in targets {
         let peer_id = peer.node_id.clone();
+        // P1#9：离线 peer 快速跳过——addr 虽非空，但可能是已过期的 last_addr 快照
+        //（对端已离开局域网）。短超时（2s）TCP 探测先确认可达，再走完整同步会话
+        //（10s 连接超时），避免离线 peer 拖慢整轮周期同步。
+        if !is_peer_reachable(&peer.addr, Duration::from_secs(2)).await {
+            tracing::debug!("[DeviceAutoSync] peer {} unreachable (probe), skipping", peer_id);
+            continue;
+        }
+        reachable += 1;
         if let Err(e) = sync_service.sync_with_device(peer_id.clone()).await {
             tracing::warn!("[DeviceAutoSync] sync with {} failed: {}", peer_id, e);
             last_error = Some(e);
@@ -348,6 +358,12 @@ async fn run_device_sync(
         }
         tracing::info!("[DeviceAutoSync] sync with {} completed", peer_id);
     }
+    tracing::info!(
+        "[DeviceAutoSync] finished: {} reachable of {} targets ({})",
+        reachable,
+        target_count,
+        source
+    );
 
     app_handle
         .emit(
@@ -364,6 +380,26 @@ async fn run_device_sync(
         return Err(e);
     }
     Ok(())
+}
+
+/// P1#9：短超时 TCP 探测对端是否可达（离线 peer 快速跳过）。
+///
+/// 用 `spawn_blocking` 承载阻塞 connect（同步超时连接在 async runtime 上会卡住
+/// worker 线程）；探测失败（地址解析失败/拒连/超时）一律视为不可达。
+async fn is_peer_reachable(addr: &str, timeout: Duration) -> bool {
+    if addr.is_empty() {
+        return false;
+    }
+    let owned = addr.to_string();
+    tokio::task::spawn_blocking(move || {
+        let socket: std::net::SocketAddr = match owned.parse() {
+            Ok(s) => s,
+            Err(_) => return false,
+        };
+        std::net::TcpStream::connect_timeout(&socket, timeout).is_ok()
+    })
+    .await
+    .unwrap_or(false)
 }
 
 #[cfg(test)]
