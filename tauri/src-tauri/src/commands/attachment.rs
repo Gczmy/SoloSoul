@@ -792,12 +792,13 @@ pub async fn attachment_download(
     // Security: ensure the source path is within vault storage.
     // 在 Android 上 /data/data/... 与 /data/user/0/... 可能互为 symlink，
     // canonicalize 失败但文件存在时保留原始路径做前缀比较。
-    let src = std::path::Path::new(&src_path)
+    let (src, src_canonicalized) = std::path::Path::new(&src_path)
         .canonicalize()
+        .map(|p| (p, true))
         .or_else(|_| {
             let p = std::path::PathBuf::from(&src_path);
             if p.exists() {
-                Ok(p)
+                Ok((p, false))
             } else {
                 Err(std::io::Error::new(
                     std::io::ErrorKind::NotFound,
@@ -821,9 +822,18 @@ pub async fn attachment_download(
     let attachments_canon = attachments_dir
         .canonicalize()
         .unwrap_or_else(|_| attachments_dir.clone());
-    let in_attachments =
-        src.starts_with(&attachments_canon) || src_raw.starts_with(&attachments_canon);
-    let in_vault = src.starts_with(&vault_base) || src_raw.starts_with(&vault_base);
+    // R2-V8: `src_raw`（字面路径）仅当 canonicalize 失败（Android symlink 兜底）时
+    // 参与判定——成功时只用 canonicalize 结果，杜绝字面前缀绕过 symlink 旁路。
+    let in_attachments = if src_canonicalized {
+        src.starts_with(&attachments_canon)
+    } else {
+        src.starts_with(&attachments_canon) || src_raw.starts_with(&attachments_canon)
+    };
+    let in_vault = if src_canonicalized {
+        src.starts_with(&vault_base)
+    } else {
+        src.starts_with(&vault_base) || src_raw.starts_with(&vault_base)
+    };
 
     if !in_attachments && !in_vault {
         return Err("Source path must be within vault storage".to_string());
