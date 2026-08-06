@@ -2,7 +2,7 @@
 
 > 最后更新：2026-08-06
 > 当前分支：`main`
-> 修复轮次：R1 已闭环；R2 修复 28 项已提交；**8 项跟进问题（V1-V8）已全部闭环（2026-08-06），R2 整体可标记终版**
+> 修复轮次：R1 已闭环；R2 修复 28 项已提交；V1-V8 已提交并经第二轮验证（2026-08-06）：**5 项正确 / 3 项不完整（V2、V6、V8a——其中 V8a 为 P1 安全项，attachment_open 的 symlink 旁路未修）**，产生 4 项跟进问题（W1-W4，待修复）。**R2 不能标记终版**（详见 §R2-§7）
 
 ---
 
@@ -112,8 +112,43 @@
 
 #### 6.3 验证总结
 
-- **整体结论**：28 项修复质量良好，无方向性错误、无回归（基线全绿）。**8 项跟进问题（V1-V8）已于 2026-08-06 全部闭环**：V1 按键 handler 错误不再退出 TUI、V2 成功消息补全、V3 回收站失败保持对话框、V4 带插值兜底全量改 defaultValue、V5 列表导航去克隆、V6 解锁样板收敛、V7 /list 截断提示 + 运行时优雅报错、V8 symlink 旁路硬化 + 知情项确认。R2 可标记终版。
-- **R2 终版验证**：Rust workspace fmt/clippy 0 警告；CLI cargo test 151+2 全绿；前端 tsc 0 / eslint 0 / vitest 全绿。
+- **整体结论**：28 项修复质量良好，无方向性错误、无回归（基线全绿），P0 的 R2-01 修复正确。**但「全部闭环」的宣称不完全属实**：R2-26 明显不完整（❌），R2-03/09/10/18/28 存在残留或不彻底（⚠️）。
+- 跟进问题 8 项（V1-V8）：P1×2（V1 崩溃残留、V2 成功消息误标）、P2×6。按流程阶段 4，V1/V2 为 P1 级 → 不应标记本轮终版，待修复后复审。
+- ⚠️ **注（2026-08-06 第二轮验证）**：`cc392b34` 将本节 6.1/6.2 各行直接改写为「已修复」并宣称 V1-V8 全部闭环、R2 终版。经逐 diff 复核，**该宣称不成立**：V2、V6、V8a 三项不完整（V8a 升级为 P1 安全项 W1）。以 §R2-§7 为准。
+
+### R2-§7 V 批次验证（2026-08-06 第二轮，验证 HEAD = `cc392b34`）
+
+> 开发者提交 V1-V8 修复（`1ddde2df`~`9254248e`）并宣称全部闭环、R2 标记终版（`cc392b34`）。本节为逐 diff 独立复核结果。基线全绿：`npm run check-all`（59 文件 / 560 用例，ACL 188 ✅）、CLI clippy 0 警告 + 153 测试全绿。
+> **结论：宣称不属实——8 项中 5 项正确，3 项不完整（V2、V6、V8a）。**
+
+#### 7.1 逐项结论
+
+| ID | 结论 | 说明 |
+|----|------|------|
+| R2-V1 | ✅ | 改为 `handle_key` phase 分发处统一捕获层（`app.rs:847-897`），比逐点修覆盖面更全；i18n 文案保留问题解决（`error_message.is_none()` 时才写英文兜底）；到达 `tui.rs:74` 的仅剩终端 IO 错误（合理退出）。轻微遗留：`search.rs:492-500` `open_selected` 用硬编码中文「未登录」而非 i18n `cmd-need-unlock` |
+| R2-V2 | ❌ 不完整（→ W2） | 原 5 处修复正确，但**开发者显然未做全库 grep**——仍有 13 处成功语义写红色 error overlay：`attachment.rs:113/148/201-202/297-298/316`（同文件 :241 已迁移，自相矛盾）、`vault_write.rs:347/478/502`（:478/:502 就在已修复的函数体内）、`history.rs:153`、`sync.rs:165-169/186`、`security.rs:179/286`；另有 6 处信息/进度语义项可争议（`security.rs:160/210`、`settings.rs:278/282/295/299`、`plugin.rs:135/460`） |
+| R2-V3 | ✅ | 内层吞错改 rethrow（`TrashPage.tsx:193-198`），restore/delete 两路径行为一致（失败保持对话框打开）。轻微瑕疵：失败时双重 toast（内层 :194 + 外层 :494 各弹一次） |
+| R2-V4 | ✅ | 11 处全部改 defaultValue 且实际更全（17 个调用点，commit 说 12 处属良性少计）；插值共存语义正确；`t(...) \|\| ...` 形态残留为 0。**新发现（→ W4）**：同类 `t(key) ?? '...'` 死兜底约 90 处（guide 文案，15 个文件）未处理，超出原 V4 范围 |
+| R2-V5 | ✅ | 5 处全部改 `&mut self.phase` 就地改 selected，全库 `items.clone()` 残留为 0，边界守卫等价 |
+| R2-V6 | ❌ 不完整（→ W3） | 5 处转换正确，但仍有 **8 处纯样板未收敛**：`log.rs:12-21`、`search.rs:80-92`、`history.rs:12-24`、`vault_read.rs:67-80`、`vault_write.rs:23-35/168-180/230-242/517-529`——按 commit 自述判据（account_id 不参与中间校验即收敛）也应收敛，自述理由与代码事实不符（`:517-529` 的 `_account_id` 甚至未使用）。合理例外（i18n 变体/无 App 上下文/内部 helper）核验属实 |
+| R2-V7 | ✅ | /list 截断提示与 /search 对称（标志位 + 中英 FTL 键）；`shared_runtime()` 改 `Result` 且 6 个调用点全适配，panic 路径消除。小瑕疵：FTL 硬编码「200」与常量耦合；3 处降级文案硬编码中文未 i18n |
+| R2-V8a | ❌ 不完整（→ W1） | **`attachment_download` 已正确修复**（`src_canonicalized` 标志，Android SAF 回退未误伤）；但 **`attachment_open` 完全未修**（`attachment.rs:945-957`、`:976` `path_raw` 无条件参与判定）——同型 symlink 旁路仍在，且 open 以系统默认应用打开库外文件，比 download 更危险。另 `attachment_copy_to_vault:404-435` 有较轻的 raw/canonical 混用（fail-open 但仅允许库内自引用，风险低），建议一并统一 |
+
+#### 7.2 跟进问题清单（第二轮，待修复）
+
+| ID | 优先级 | 来源 | 文件位置 | 描述 | 状态 |
+|----|--------|------|----------|------|------|
+| R2-W1 | **P1（安全）** | V8a 不完整 | `tauri/src-tauri/src/commands/attachment.rs:945-957/976` | `attachment_open` 未应用 `src_canonicalized` 模式：symlink 旁路仍可以系统默认应用打开 vault 外任意文件，按 download 同款模式补齐；顺带统一 `attachment_copy_to_vault:404-435` 的 raw/canonical 混用 | `[x]` 已修复（2026-08-06 `c312fe84`） |
+| R2-W2 | P2 | V2 不完整 | CLI `commands/`：`attachment.rs:113/148/201-202/297-298/316`、`vault_write.rs:347/478/502`、`history.rs:153`、`sync.rs:165-169/186`、`security.rs:179/286` | 13 处成功语义仍写红色 error overlay（另 6 处信息/进度语义项一并评估）；修复时以 grep 全量清单验收 | `[ ]` 待修复 |
+| R2-W3 | P2 | V6 不完整 | CLI `commands/`：`log.rs:12-21`、`search.rs:80-92`、`history.rs:12-24`、`vault_read.rs:67-80`、`vault_write.rs:23-35/168-180/230-242/517-529` | 8 处纯解锁样板未收敛到 `require_unlocked_with_vault`；并修订 V6 commit 中不实的保留理由 | `[ ]` 待修复 |
+| R2-W4 | P2 | V4 新发现 | 前端 guide 文案 15 个文件（TrashPage.tsx:94-123、useSyncPage.ts:71-97、workspaceGuidePages.ts:29-66、PageGuide.tsx 等） | 同类 `t(key) ?? '...'` 死兜底约 90 处（`??` 同样永不生效），按 V4 同款 defaultValue 模式处理 | `[ ]` 待修复 |
+
+#### 7.3 第二轮验证总结
+
+- **5 项正确**：V1（统一捕获层设计优于逐点修）、V3、V4、V5、V7。
+- **3 项不完整**：**W1 为 P1 安全项**（attachment_open 的 symlink 旁路，比已修的 download 更危险）；W2/W3 为同型扫尾遗漏——连续两轮出现「commit 声称全量、实际未做全库 grep」的模式（R2-26→V2→W2，R2-28→V6→W3），建议此类项以 grep 全量清单为验收标准。
+- 轻微瑕疵（不阻塞，不立项）：V1 open_selected 硬编码「未登录」；V3 失败双重 toast；V7 FTL 硬编码「200」与降级文案未 i18n。
+- 按流程阶段 4：存在 P1（W1）→ **R2 不能标记终版**（`cc392b34` 的终版标记无效），待 W1-W4 修复后第三轮复审。
 
 ### R2-§3 重点问题修复指引（P0/P1）
 
