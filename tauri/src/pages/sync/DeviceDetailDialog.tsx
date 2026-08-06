@@ -113,8 +113,12 @@ export function DeviceDetailDialog({
           </div>
         </div>
 
-        {/* 状态行 */}
+        {/* 状态行 —— tooltip 解释「在线=局域网可达」（P0#2） */}
         <div
+          title={t('settings:sync_online_tooltip', {
+            defaultValue:
+              '"Online" means the device is currently reachable on your local network; "Not found on LAN" means it was not seen recently — it may be off, have sync disabled, or be on another network.',
+          })}
           style={{
             padding: 10,
             borderRadius: 8,

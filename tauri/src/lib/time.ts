@@ -30,3 +30,12 @@ export function formatRelative(iso: string): string {
   if (days < 30) return rtf.format(-days, 'day');
   return formatTimestamp(iso).slice(0, 10);
 }
+
+/** 格式化 unix 秒时间戳为相对时间（本地化）；非法值返回空串。 */
+export function formatRelativeFromTs(ts: number): string {
+  const d = new Date(ts * 1000);
+  if (Number.isNaN(d.getTime())) {
+    return '';
+  }
+  return formatRelative(d.toISOString());
+}

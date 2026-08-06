@@ -8,6 +8,7 @@ import { RefreshCw, ShieldCheck, ShieldOff, Smartphone } from 'lucide-react';
 import { ClientTypeIcon } from '@/components/sync/ClientTypeIcon';
 import { resolveBackendErrorMessage } from '@/lib/backendError';
 import { formatDiscoveredName, formatPeerName } from '@/lib/syncPeer';
+import { formatRelativeFromTs } from '@/lib/time';
 import { ICON_SIZE } from '@/lib/constants';
 import type { SyncResult } from '@/lib/ipc';
 import type { DiscoveredDevice, SyncPeer } from '@/stores/syncStore';
@@ -349,11 +350,23 @@ export function DeviceListPanel({
                           : t('settings:sync_untrusted_badge', { defaultValue: 'Not trusted' })}
                       </span>
                     </div>
-                    {/* 在线状态（i18n：offline/never）——不再展示指纹 */}
+                    {/* 在线状态（i18n：offline/never）——不再展示指纹。
+                        离线含义修正（P0#2）：addr 为空 = 未在局域网发现（非「设备关机/离线」），
+                        附最近一次联系时间（lastSeenTs）帮助用户判断。 */}
                     <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
-                      {peer.addr
-                        ? `${peer.addr} · ${peer.lastSeen || t('settings:sync_never', { defaultValue: 'never' })}`
-                        : t('settings:sync_offline', { defaultValue: 'offline' })}
+                      {peer.addr ? (
+                        `${peer.addr} · ${peer.lastSeen || t('settings:sync_never', { defaultValue: 'never' })}`
+                      ) : (
+                        <>
+                          {t('settings:sync_offline', { defaultValue: 'Not found on LAN' })}
+                          {peer.lastSeenTs
+                            ? ` · ${t('settings:sync_last_seen', {
+                                defaultValue: 'Last seen: {{time}}',
+                                time: formatRelativeFromTs(peer.lastSeenTs),
+                              })}`
+                            : ''}
+                        </>
+                      )}
                     </div>
                   </div>
                   <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
