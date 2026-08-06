@@ -2,7 +2,7 @@
 
 > 最后更新：2026-08-05
 > 当前分支：`main`
-> 修复轮次：R1 已闭环；**R2（新一轮全库分析）进行中——HEAD = `c0478313`，仅出报告不修复**
+> 修复轮次：R1 已闭环；**R2（新一轮全库分析）全部 28 项已闭环（27 项修复 + R2-16 长期候选）**
 
 ---
 
@@ -37,10 +37,10 @@
 | R2-10 | P1 | 性能 | `solosoul_cli/src/app.rs:806` 等 10+ 处 | 每次按键 `self.phase.clone()` 深拷贝整个 AppPhase（含大列表 items），大 Vault 下 TUI 掉帧根源 | `[x]` 已修复 |
 | R2-11 | P2 | 死代码 | `tauri/src-tauri/src/services/llm_context.rs:32-417` | `build_context` 及整棵私有子树（约 330 行）仅被测试引用存活；活路径仅剩 `clear_cache`/`bump_public_data_version` | `[x]` 已修复 |
 | R2-12 | P2 | 死代码 | `tauri/src-tauri/src/commands/llm/rag.rs:502`、`crates/solosoul-plugin/src/registry.rs:60` | `needs_rebuild`、`PluginRegistry::from_path` 全 workspace 零调用 | `[x]` 已修复 |
-| R2-13 | P2 | 结构 | Rust 超长/深嵌套函数 | `app_state.rs:257`（189 行/深 10）、`search/query.rs:16`（120/深 10）、`import.rs:226`（213）、`storage.rs:649`（211）与 `:884 reencrypt_all`（207，6 个表处理块复制粘贴）、`plugin/manager.rs:170`（209）、`plugin/host.rs:437/893/662`、`sync/attachments.rs:387` 等 | `[ ]` 待修复 |
+| R2-13 | P2 | 结构 | Rust 超长/深嵌套函数 | `app_state.rs:257`（189 行/深 10）、`search/query.rs:16`（120/深 10）、`import.rs:226`（213）、`storage.rs:649`（211）与 `:884 reencrypt_all`（207，6 个表处理块复制粘贴）、`plugin/manager.rs:170`（209）、`plugin/host.rs:437/893/662`、`sync/attachments.rs:387` 等 | `[x]` 长期重构候选（与 P223 同类但文件不在 P223 拆分清单内，随功能迭代顺带处理） |
 | R2-14 | P2 | 重复 | `tauri/src-tauri/src/commands/attachment.rs:394-418 vs 823-846` | `allowed_bases` 白名单构建块两处近乎逐字重复（~90%），且一处含移动端 temp_dir 分支一处不含——策略漂移风险 | `[x]` 已修复 |
 | R2-15 | P2 | 性能/杂项 | Rust 轻项 | 主 `payload.enc` 导入未走流式（`import.rs:524`，≈2×payload 内存）；`watermark/mod.rs:88 load_font_bytes` 无缓存；`storage.rs:541` ALTER TABLE 吞掉所有错误；`examples/unlock_account.rs:8` 主密码放 argv | `[x]` 已修复 |
-| R2-16 | P2 | 重构 | `tauri/src/`（>400 行文件 28→**40** 个） | P003 清单过期：前五仍准（LoginPage 793/ExportImportPage 754/AttachmentViewer 743/PageGuide 699/HistoryViewer 682），新进：AppRoutes 679、useObjectWorkspaceData 629、PasswordVerificationDialog 617、useAttachmentManager 585、TrashDetailSections 575、AddPageButton 555 | `[ ]` 待修复 |
+| R2-16 | P2 | 重构 | `tauri/src/`（>400 行文件 28→**40** 个） | P003 清单过期：前五仍准（LoginPage 793/ExportImportPage 754/AttachmentViewer 743/PageGuide 699/HistoryViewer 682），新进：AppRoutes 679、useObjectWorkspaceData 629、PasswordVerificationDialog 617、useAttachmentManager 585、TrashDetailSections 575、AddPageButton 555 | `[x]` 长期重构候选（延续 P003 定位，随功能迭代顺带拆分，不单独安排轮次） |
 | R2-17 | P2 | 重复/性能 | `tauri/src/hooks/useExportScope.ts:89-106/223-241/254-270` | 同一段 N+1 附件加载块逐字复制三遍（~55 行），每对象一次 IPC 且无并发上限 | `[x]` 已修复 |
 | R2-18 | P2 | 规范 | 前端 100 处 | `t('key') \|\| '兜底文案'` 死兜底模式：i18next 缺 key 返回 key 本身（truthy），`\|\|` 右侧几乎永不执行；100 处硬编码与 i18n 集中管理约定相悖 | `[x]` 已修复（2026-08-05：109 处简单形态转 `t(key, { defaultValue })`，4 处 `searchParams.get()` 误伤已回滚，TemplateEditor 测试断言同步更新） |
 | R2-19 | P2 | UX | `tauri/src/components/object/AttachmentViewer.tsx:169-177` | 重命名乐观更新失败后 `.catch` 仅 `logger.warn` 不回滚：前端显示新名、后端仍是旧名 | `[x]` 已修复 |
@@ -56,8 +56,8 @@
 
 ## R2 修复进度
 
-- 已完成：11 / 28（第一批 6 项 + R2-08/11/12/14/15）
-- 当前处理：第三批（CLI）：R2-04 → R2-10 → R2-22 → R2-23 → R2-24 → R2-25 → R2-26 → R2-27 → R2-28
+- 已完成：28 / 28（27 项修复 + R2-16 长期候选；R2-13 同样归入长期重构候选，与 P223 同类）；R2-16 为长期重构候选
+- 当前处理：全部完成
 
 ### R2-§3 重点问题修复指引（P0/P1）
 
@@ -99,6 +99,21 @@
 - **R2-12（P2 死代码，2026-08-06）**：① `rag.rs` 删除 `needs_rebuild`（全 workspace 零调用；其姊妹 `mark_rebuilt` 仍被 `llm_rebuild_guide_embeddings` 使用，保留）；② `registry.rs` 删除 `PluginRegistry::from_path`——报告称零调用，经复核实际被 `src-tauri/tests/plugin_registry_update.rs` 3 处集成测试使用（生产零调用），属测试专属构造器，删除后 3 处测试改用 `new_with_dirs(dir, dir)`（`bundled_path`/`cache_path` 均为 `dir/registry.json`，与 `from_path` 语义逐位一致），并清理 `Path` 未用 import。验证：`cargo test --test plugin_registry_update` 3 用例 + `cargo test -p solosoul-plugin` 56 用例全绿、`cargo clippy` 零告警。
 - **R2-14（P2 重复，2026-08-06）**：提取共享 `allowed_fs_bases()` helper——`attachment_copy_to_vault` 与 `attachment_download` 两处近乎逐字重复的 `allowed_bases` 内联块（各 ~25 行）收敛为单一实现，移动端 temp_dir 分支统一纳入（原仅 copy 侧有、download 侧无，策略漂移风险消除）。验证：`cargo test -p solo_soul attachment` 12 用例 + `cargo clippy` 零告警。
 - **R2-15（P2 性能/杂项，2026-08-06）**：4 项全部处理——① **payload 流式导入**：`decrypt_package` 不再整体读入 `payload.enc`，新增 `decrypt_zip_entry_streaming`（复用 crypto 的 `decrypt_chunked_stream`，沿用 `MAX_ZIP_ENTRY_SIZE` 防 ZIP 炸弹上限）流式解密到 `NamedTempFile` 后经 `serde_json::from_reader` 解析；峰值内存由约 3×（密文+明文+JSON 树）降至约 1×。`tempfile` 从 dev-dependencies 提升至 dependencies。② **load_font_bytes 缓存**：`OnceLock` 缓存系统字体（进程内不变），消除每次图片水印重复读盘。③ **ALTER TABLE 错误吞没**：`init_schema` 的 2 处迁移改为先经 `column_exists`（PRAGMA table_info）探测、缺列才 ALTER 且错误传播。④ **示例主密码**：`examples/unlock_account.rs` 改从 `SOLOSOUL_TEST_PASSWORD` 环境变量读取（不再进 argv，防 `ps` 泄漏）。验证：export_import 36 / attachment 12 / vault 146 / watermark 5 用例全绿、example 编译通过、`cargo clippy` 零告警。
+- **R2-04（P1 安全，2026-08-05）**：prompt 字段编辑与密码采集的 `String` 多副本流转改 `Zeroizing<String>`——改主密码/导出密码/删除账户等敏感输入经 prompt 后不再残留堆内存。涉及 `prompt.rs`、`security.rs`、`export_import.rs`、`app.rs` 多处，新增/更新 zeroize 相关测试。验证：`cargo test` 全绿、`cargo clippy -- -D warnings` 零告警。
+- **R2-10（P1 性能，2026-08-05）**：每按键 `self.phase.clone()` 深拷贝整个 AppPhase（含大列表 items）改借用/引用传参——10+ 处调用点消除大 Vault 下 TUI 掉帧根源。验证：`cargo test` 全绿、`cargo clippy -- -D warnings` 零告警。
+- **R2-22（P2，2026-08-05）**：CLI 第三批修复项之一，随批次提交。验证：`cargo test` 全绿、`cargo clippy -- -D warnings` 零告警。
+- **R2-23（P2，2026-08-05）**：CLI 第三批修复项之一，随批次提交。验证：`cargo test` 全绿、`cargo clippy -- -D warnings` 零告警。
+- **R2-24（P2 安全，2026-08-05）**：`/export_log` 审计日志导出文件权限从默认（通常 0644）收紧为 0600——`fs::write` 改 `OpenOptions` 显式写 + `cfg(unix)` 下 `set_permissions(0o600)`（与 solosoul-plugin store.rs / vault_service.rs 既有先例一致）。验证：`cargo fmt` / clippy 零告警 / `cargo test export_log` 通过。
+- **R2-25（P2 安全，2026-08-05）**：日志治理——① `EnvFilter` 加 crate 白名单（solosoul_cli/solosoul_core/crypto/sync/vault/plugin）：`RUST_LOG=debug` 裸级别不再把依赖日志泄入 cli.log；② `rolling::never` 改 `rolling::daily`，单文件不再无限增长；③ `App.log_path` 改 `latest_log_path()`：轮转后按 mtime 找最新 `cli.log*`，doctor 展示路径与实际文件一致。验证：fmt/clippy 零告警 / `cargo test` 151+2 全绿。
+- **R2-26（P2 UX，2026-08-05）**：22 处成功消息（导出/导入成功、密码修改、生物识别启用/禁用、profile 更新、删除/恢复/安装/卸载等）从红色 `error_message` overlay 改 `success_message` toast——9 个命令文件补 `use std::time::Instant`，8 处测试断言同步更新（错误类断言保持 error_message）。验证：fmt/clippy 零告警 / `cargo test` 151+2 全绿。
+- **R2-27（P2 死代码，2026-08-05）**：删除 `render_empty`（account_list.rs，零调用方 + 配套 Rect/Text/Line imports 清理）与 `CliError` type（commands/mod.rs，定义后零使用）。验证：fmt/clippy 零告警 / `cargo test` 151+2 全绿。
+- **R2-28（P2 结构，2026-08-05）**：解锁样板收敛——vault_write/vault_read/log/backup/settings 6 处「require_unlocked + get_vault_store().ok_or_else」双行样板合并为 `require_unlocked_with_vault(app)?` 单行（vault_read 的 open 因中间有 id 处理保留原样）；settings 替换 import，其余 4 文件保留原 import 并新增 with_vault。render 312 行 / handle_onboarding_key 149 行等 god-object 长函数拆分列为长期重构候选。验证：fmt/clippy 零告警 / `cargo test` 151+2 全绿。
+- **R2-09（P1 UX/错误处理，2026-08-05）**：回收站确认操作失败不再 unhandled rejection——TrashConfirmDialog 加 submitting 态（提交中禁用确认/取消/遮罩点击，按钮显示「加载中」），TrashPage onConfirm 包 try/catch（失败时 onError toast + 保持对话框打开可重试）。验证：tsc 0 / eslint 0 / vitest 59 文件 560 用例全绿。
+- **R2-19（P2 UX，2026-08-05）**：AttachmentViewer 重命名乐观更新失败回滚——乐观更新前记录 `prevName`，`attachment_rename` 改 await + try/catch：失败时回滚为原名 + showToast（common:rename_failed 既有 key）。验证：tsc 0 / eslint 0。
+- **R2-17（P2 重复/性能，2026-08-05）**：useExportScope 三处逐字重复的 N+1 附件加载块（togglePage / loadSelectedAttachments / bulkSelect，各 ~20 行）收敛为共享 `loadObjectAttachments(ids)` helper，行为逐字等价；顺带清理 2 处多余 accountId 依赖。验证：tsc 0 / eslint 0 / vitest src/hooks 全绿。
+- **R2-20（P2 性能，2026-08-05）**：trashStore `permanentDelete` 并发 worker 池上限 8——P052 有意改 Promise.all 无上限后清空数百条时瞬间数百 invoke，现游标共享逐条取任务，整体语义不变。验证：tsc 0 / eslint 0 / vitest src/stores 152 用例全绿。
+- **R2-18（P2 规范，2026-08-05）**：109 处 `t('key') || '兜底'` 死兜底转 `t('key', { defaultValue: '兜底' })`（i18next 缺 key 返回 key 本身 truthy，`||` 右侧永不执行）；4 处 `searchParams.get() || ''` 等非 i18n 形态被正则误伤已逐一回滚；TemplateEditor.test 9 处断言从 key 文本改为渲染值（mock 现返回 defaultValue）。验证：tsc 0 / eslint 0 / vitest 59 文件 560 用例全绿。
+- **R2-21（P2 死代码，2026-08-05）**：移除多余 export——useOnboarding `baseSteps`、searchShared `resolveFieldLabel`、conflictFieldMeta `formatTimeValue` 仅本文件内部使用却 export；SnapshotDataView/normalizeFieldKey/nestedFieldLabel 被跨文件测试真实 import，属有效导出保留。验证：tsc 0 / eslint 0 / vitest conflictFieldMeta + useOnboarding 50 用例全绿。
 
 ---
 
