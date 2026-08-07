@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Button } from '@/components/ui/Button';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 
 interface DeleteConfirmDialogProps {
   name: string;
@@ -9,6 +9,7 @@ interface DeleteConfirmDialogProps {
   onConfirm: () => void;
 }
 
+/** P040: 收敛到 ui/ConfirmDialog 的薄封装——保留 {name} 插值语义与 i18n 按钮文案。 */
 export function DeleteConfirmDialog({
   name,
   title,
@@ -19,52 +20,15 @@ export function DeleteConfirmDialog({
   const { t } = useTranslation(['common']);
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 'var(--z-modal-important)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'var(--bg-overlay)',
-      }}
-      onClick={onCancel}
-    >
-      <div
-        style={{
-          background: 'var(--bg-elevated)',
-          borderRadius: 12,
-          padding: '24px 28px',
-          maxWidth: 360,
-          width: '90%',
-          boxShadow: 'var(--shadow-lg)',
-          border: '1px solid var(--border-subtle)',
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h3 style={{ margin: '0 0 8px', fontSize: 'var(--text-section-title)', fontWeight: 600 }}>
-          {title}
-        </h3>
-        <p
-          style={{
-            margin: '0 0 20px',
-            fontSize: 'var(--text-body)',
-            color: 'var(--text-secondary)',
-            lineHeight: 1.5,
-          }}
-        >
-          {body.replace('{name}', name)}
-        </p>
-        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-          <Button variant="secondary" onClick={onCancel}>
-            {t('common:cancel', { defaultValue: '取消' })}
-          </Button>
-          <Button variant="danger-outline" onClick={onConfirm}>
-            {t('common:delete', { defaultValue: '删除' })}
-          </Button>
-        </div>
-      </div>
-    </div>
+    <ConfirmDialog
+      isOpen
+      title={title}
+      message={body.replace('{name}', name)}
+      confirmLabel={t('common:delete', { defaultValue: '删除' })}
+      cancelLabel={t('common:cancel', { defaultValue: '取消' })}
+      priority="important"
+      onConfirm={onConfirm}
+      onCancel={onCancel}
+    />
   );
 }

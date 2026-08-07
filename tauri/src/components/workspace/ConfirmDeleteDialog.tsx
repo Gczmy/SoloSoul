@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui/Button';
+import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 
 interface ConfirmDeleteDialogProps {
   isOpen: boolean;
@@ -14,6 +14,7 @@ interface ConfirmDeleteDialogProps {
   cancelLabel?: string;
 }
 
+/** P040: 收敛到 ui/ConfirmDialog 的薄封装——保留 workspace 侧 prop API 与默认文案。 */
 export function ConfirmDeleteDialog({
   isOpen,
   title,
@@ -23,56 +24,16 @@ export function ConfirmDeleteDialog({
   confirmLabel,
   cancelLabel,
 }: ConfirmDeleteDialogProps) {
-  if (!isOpen) return null;
-
   return (
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 'var(--z-modal-important)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'rgba(0,0,0,0.4)',
-        backdropFilter: 'blur(4px)',
-      }}
-      onClick={onCancel}
-    >
-      <div
-        style={{
-          background: 'var(--bg-elevated)',
-          borderRadius: 12,
-          padding: '24px 28px',
-          maxWidth: 360,
-          width: '90%',
-          boxShadow: 'var(--shadow-lg)',
-          border: '1px solid var(--border-subtle)',
-        }}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h3 style={{ margin: '0 0 8px', fontSize: 'var(--text-section-title)', fontWeight: 600 }}>
-          {title}
-        </h3>
-        <p
-          style={{
-            margin: '0 0 20px',
-            fontSize: 'var(--text-body)',
-            color: 'var(--text-secondary)',
-            lineHeight: 1.5,
-          }}
-        >
-          {body}
-        </p>
-        <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-          <Button variant="secondary" onClick={onCancel}>
-            {cancelLabel || 'Cancel'}
-          </Button>
-          <Button variant="danger-outline" onClick={onConfirm}>
-            {confirmLabel || 'Delete'}
-          </Button>
-        </div>
-      </div>
-    </div>
+    <ConfirmDialog
+      isOpen={isOpen}
+      title={title}
+      message={body}
+      confirmLabel={confirmLabel ?? 'Delete'}
+      cancelLabel={cancelLabel ?? 'Cancel'}
+      priority="important"
+      onConfirm={onConfirm}
+      onCancel={onCancel}
+    />
   );
 }

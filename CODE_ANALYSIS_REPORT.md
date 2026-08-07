@@ -68,7 +68,7 @@
 | P037 | P2 | 架构 | 多处（`SnapshotEntry`×3、`ConversationSummary`×3、`ObjectSummary`×3 等） | 前后端镜像类型在前端重复定义 10+ 组，无防漂移机制 | `[x]` 已修复（新增 types/history、auditLog、backup、llmProvider 四单源；SnapshotEntry×3 / ConversationSummary×2 / AuditLogEntry×2 / BackupInfo×2 / ProviderConfig×2 / AttachmentInfo×2 / ListTemplate×2 收敛；exportImport.ObjectSummary 与 workspace 语义冲突重命名 ExportObjectSummary） |
 | P038 | P2 | 架构 | `tauri/src/lib/searchCache.ts` | 搜索缓存 30s TTL 无写失效，新建/编辑对象 30 秒内搜不到 | `[x]` 已修复（SearchCache.invalidateAccount 按 accountId 前缀失效；objectStore 五个写路径接入，含单测×2） |
 | P039 | P2 | 性能 | `components/llm/ChatMessageList.tsx:178`、`ConversationHistory.tsx:46`、`pages/editor/HistoryPage.tsx:96` | 大列表无分页/虚拟滚动（HistoryPage 快照随编辑次数无限增长） | `[x]` 已修复（HistoryPage 快照分页：20 条/页 + 加载更多按钮；ChatMessageList/ConversationHistory 留后续虚拟滚动迭代） |
-| P040 | P2 | 重复代码 | `attachment/ConfirmDialog.tsx`、`workspace/ConfirmDeleteDialog.tsx`、`template/DeleteConfirmDialog.tsx` 等 5 处 | 5+ 个手写确认对话框重复 `ui/ConfirmDialog` 骨架 | `[ ]` 待修复 |
+| P040 | P2 | 重复代码 | `attachment/ConfirmDialog.tsx`、`workspace/ConfirmDeleteDialog.tsx`、`template/DeleteConfirmDialog.tsx` 等 5 处 | 5+ 个手写确认对话框重复 `ui/ConfirmDialog` 骨架 | `[x]` 已修复（共享组件扩展 submitting/ReactNode message，5 处薄封装保留原 prop API，零消费者改动） |
 | P041 | P2 | 可维护性 | `pages/auth/LoginPage.tsx`(约750行)、`App/AppRoutes.tsx`(约630行) 等 | 超长组件/hook 5 处，职责混杂 | `[ ]` 待修复 |
 | P042 | P2 | 错误处理 | `TemplateManagerPage.tsx:77`、`SampleTemplateDetail.tsx:33`、`TemplateEditor.tsx:121`、`TemplateDetailModal.tsx:61` | 4 处 `loadInstalled().catch(() => {})` 静默吞错，加载失败表现为「无插件」假象 | `[ ]` 待修复 |
 | P043 | P2 | 架构 | `tauri/src/stores/objectStore.ts:185-196` | `deleteObject` 不清 `currentObjectCache` 详情缓存，残留旧数据 | `[ ]` 待修复 |
