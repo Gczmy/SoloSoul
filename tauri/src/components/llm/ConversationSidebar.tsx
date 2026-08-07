@@ -5,14 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { Plus, Pencil, Trash2, Undo2 } from 'lucide-react';
 import { formatRelative } from '@/lib/time';
 import { ICON_SIZE } from '@/lib/constants';
-
-interface ConversationSummary {
-  id: string;
-  name: string;
-  updatedAt: string;
-  messageCount: number;
-  deletedAt?: string;
-}
+import type { ConversationSummary } from '@/types/llmChat';
 
 interface ConversationSidebarProps {
   conversations: ConversationSummary[];

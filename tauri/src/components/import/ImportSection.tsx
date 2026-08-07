@@ -9,7 +9,7 @@ import type {
   ImportStrategy,
   ImportPreview,
   DecryptedImportPreview,
-  ObjectSummary,
+  ExportObjectSummary,
   ConflictKind,
 } from '@/types/exportImport';
 
@@ -50,8 +50,8 @@ interface ImportSectionProps {
 }
 
 /** Group decrypted preview objects by section_type into pages */
-function groupIntoPages(objects: ObjectSummary[]) {
-  const map = new Map<string, { sectionType: string; objects: ObjectSummary[] }>();
+function groupIntoPages(objects: ExportObjectSummary[]) {
+  const map = new Map<string, { sectionType: string; objects: ExportObjectSummary[] }>();
   for (const obj of objects) {
     const st = obj.sectionType || 'uncategorized';
     let group = map.get(st);

@@ -5,16 +5,8 @@ import { Card } from '@/components/ui/Card';
 import { resolveCollectionLabel } from '@/lib/utils';
 import type { CustomPage } from '@/stores/settingsStore';
 
-export interface AuditLogEntry {
-  id: number;
-  timestamp: string;
-  actionType: string;
-  entityType: string;
-  entityId: string | null;
-  entityName: string | null;
-  performedBy: string;
-  details: string | null;
-}
+import type { AuditLogEntry } from '@/types/auditLog';
+export type { AuditLogEntry };
 
 function formatDetail(
   entry: AuditLogEntry,

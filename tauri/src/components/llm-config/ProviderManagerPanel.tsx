@@ -7,17 +7,8 @@ import { Button } from '@/components/ui/Button';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { ICON_SIZE } from '@/lib/constants';
 
-export interface ProviderConfig {
-  id: string;
-  name: string;
-  baseUrl: string;
-  model: string;
-  isEnabled: boolean;
-  isBuiltIn: boolean;
-  apiKey: string;
-  apiType: 'openAI' | 'anthropic';
-}
-
+import type { ProviderConfig } from '@/types/llmProvider';
+export type { ProviderConfig };
 interface ProviderManagerPanelProps {
   providers: ProviderConfig[];
   activeId: string;

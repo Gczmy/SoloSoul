@@ -11,14 +11,8 @@ import { useUiStore } from '@/stores/uiStore';
 import { useConfirm } from '@/hooks/useConfirm';
 import { Clock, RotateCcw, ChevronRight } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/constants';
+import type { SnapshotEntry } from '@/types/history';
 import styles from './HistoryPage.module.css';
-
-interface SnapshotEntry {
-  id: string;
-  timestamp: number;
-  triggeredBy: string;
-  diffSummary: string;
-}
 
 export function HistoryPage() {
   const navigate = useNavigate();

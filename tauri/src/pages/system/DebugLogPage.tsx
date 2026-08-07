@@ -7,23 +7,13 @@ import { Card } from '@/components/ui/Card';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 
 import { invokeCommand as invoke } from '@/lib/ipcClient';
+import type { AuditLogEntry } from '@/types/auditLog';
 import { saveWithPause } from '@/lib/dialog';
 import { useToastError } from '@/hooks/useToastError';
 import { logger } from '@/lib/logger';
 import { Bug, Download, RefreshCw } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/constants';
 import { isUriPath, copyStagedFileToDest } from '@/lib/mobileFileTransfer';
-
-interface AuditLogEntry {
-  id: number;
-  timestamp: string;
-  actionType: string;
-  entityType: string;
-  entityId: string | null;
-  entityName: string | null;
-  performedBy: string;
-  details: string | null;
-}
 
 export function DebugLogPage() {
   const navigate = useNavigate();

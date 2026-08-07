@@ -42,12 +42,8 @@ export interface TrashAttachment {
   deletedAt?: string | null;
 }
 
-export interface SnapshotEntry {
-  id: string;
-  timestamp: number;
-  triggeredBy: string;
-  diffSummary: string;
-}
+import type { SnapshotEntry } from '@/types/history';
+export type { SnapshotEntry };
 
 export interface TrashConfirmAction {
   type: 'restore' | 'delete';

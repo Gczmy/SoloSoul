@@ -7,31 +7,13 @@ import { WarningCancelButton } from './WarningCancelButton';
 import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import { ObjectSelectionTree } from '@/components/transfer/ObjectSelectionTree';
 import { TransferButton } from '@/components/transfer/TransferButton';
-import type { ExportEstimate } from '@/types/exportImport';
+import type { AttachmentInfo, ExportEstimate, ExportObjectSummary } from '@/types/exportImport';
 
 interface PageGroup {
   sectionType: string;
   pageName: string;
   objectCount: number;
-  objects: ObjectSummary[];
-}
-
-interface ObjectSummary {
-  id: string;
-  name: string;
-  collectionType: string;
-  sectionType: string;
-  sensitivityLevel: string;
-  createdAt: string;
-  updatedAt: string;
-  tags: string[];
-  hasAttachments?: boolean;
-}
-
-interface AttachmentInfo {
-  id: string;
-  fileName: string;
-  sizeBytes: number;
+  objects: ExportObjectSummary[];
 }
 
 interface ExportSectionProps {

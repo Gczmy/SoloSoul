@@ -14,10 +14,8 @@ import { useConfirm } from '@/hooks/useConfirm';
 import { BarChart3 } from 'lucide-react';
 import { AiFeaturesCard } from '@/components/llm-config/AiFeaturesCard';
 import { SystemPromptCard } from '@/components/llm-config/SystemPromptCard';
-import {
-  ProviderManagerPanel,
-  type ProviderConfig,
-} from '@/components/llm-config/ProviderManagerPanel';
+import { ProviderManagerPanel } from '@/components/llm-config/ProviderManagerPanel';
+import type { ProviderConfig } from '@/types/llmProvider';
 import { LocalEmbeddingsPanel } from '@/components/llm-config/LocalEmbeddingsPanel';
 import { KnowledgeBaseCard } from '@/components/llm-config/KnowledgeBaseCard';
 import { RiskAcceptanceDialog } from '@/components/llm-config/RiskAcceptanceDialog';

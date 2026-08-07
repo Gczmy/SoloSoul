@@ -10,6 +10,7 @@ import { Dialog } from '@/components/ui/Dialog';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { useAuthStore } from '@/stores/authStore';
 import { useLlmStatsStore } from '@/stores/llmStatsStore';
+import type { ProviderConfig } from '@/types/llmProvider';
 import { ModelInfoCard } from '@/components/llm/ModelInfoCard';
 import { StatsGrid } from '@/components/llm/StatsGrid';
 import { AccountStatsCard } from '@/components/llm/AccountStatsCard';
@@ -18,17 +19,6 @@ import { DailySparklineCard } from '@/components/llm/DailySparklineCard';
 import { ModelUsageCard } from '@/components/llm/ModelUsageCard';
 import { BarChart3, RotateCcw } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/constants';
-
-interface ProviderConfig {
-  id: string;
-  name: string;
-  baseUrl: string;
-  model: string;
-  isEnabled: boolean;
-  isBuiltIn: boolean;
-  apiKey: string;
-  apiType: 'openAI' | 'anthropic';
-}
 
 export function LlmStatsPage() {
   const navigate = useNavigate();

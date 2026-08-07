@@ -12,6 +12,7 @@ import { invokeCommand as invoke } from '@/lib/ipcClient';
 import i18next from '@/lib/i18n';
 import { navigateTo } from '@/lib/navigation';
 import { logger } from '@/lib/logger';
+import type { BackupInfo } from '@/types/backup';
 
 /**
  * 申请系统通知权限（应用级最多弹一次系统对话框）。
@@ -159,10 +160,6 @@ export async function sendSystemNotificationWithFallback(
       duration: 5000,
     });
   }
-}
-
-interface BackupInfo {
-  created_at: string;
 }
 
 /**

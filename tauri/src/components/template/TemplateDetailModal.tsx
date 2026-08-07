@@ -9,32 +9,10 @@ import { SensitivityBadges } from './SensitivityBadges';
 import { PluginBadge } from './PluginBadge';
 import { TemplateFieldRowItem } from './TemplateFieldRowItem';
 import { resolveCustomIcon } from '@/lib/pageIcons';
-import type {
-  PropertyType,
-  SensitivityLevel,
-  UserTemplate,
-  ContractRoleBinding,
-} from '@/types/template';
+import type { PropertyType, SensitivityLevel, UserTemplate } from '@/types/template';
 import { ICON_SIZE } from '@/lib/constants';
 import { usePluginStore } from '@/stores/pluginStore';
-
-interface DetailProperty {
-  id: string;
-  name: string;
-  type: string;
-  sensitivityLevel?: string;
-  deprecatedAt?: string;
-  contractField?: boolean;
-  contractBindings?: ContractRoleBinding[];
-}
-
-interface ListTemplate {
-  id: string;
-  name: string;
-  category: string;
-  contractTypeId?: string;
-  properties: DetailProperty[];
-}
+import type { ListTemplate } from '@/pages/settings/TemplateListSection';
 
 interface TemplateDetailModalProps {
   detailTemplate: ListTemplate | null;

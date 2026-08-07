@@ -18,12 +18,7 @@ import { logger } from '@/lib/logger';
 import { ICON_SIZE } from '@/lib/constants';
 import { ValueContainer } from '@/components/ui/ValueContainer';
 
-export interface SnapshotEntry {
-  id: string;
-  timestamp: number;
-  triggeredBy: string;
-  diffSummary: string;
-}
+import type { SnapshotEntry } from '@/types/history';
 
 export type FlattenedField =
   | {

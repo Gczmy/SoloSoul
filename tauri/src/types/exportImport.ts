@@ -2,10 +2,14 @@ export interface PageGroup {
   sectionType: string;
   pageName: string;
   objectCount: number;
-  objects: ObjectSummary[];
+  objects: ExportObjectSummary[];
 }
 
-export interface ObjectSummary {
+/**
+ * 导出/导入范围树中的对象摘要（P037：与 workspace 的 ObjectSummary 语义不同，
+ * 原名相同易混淆——重命名为 ExportObjectSummary）。
+ */
+export interface ExportObjectSummary {
   id: string;
   name: string;
   collectionType: string;
@@ -52,7 +56,7 @@ export interface AttachmentImportInfo {
 }
 
 export interface DecryptedImportPreview {
-  objects: ObjectSummary[];
+  objects: ExportObjectSummary[];
   conflicts: ConflictInfo[];
   hasPreferences: boolean;
   hasAuditLog: boolean;

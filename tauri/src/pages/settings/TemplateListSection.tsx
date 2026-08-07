@@ -24,6 +24,7 @@ export interface ListTemplate {
     type: string;
     sensitivityLevel?: string;
     deprecatedAt?: string;
+    contractField?: boolean;
     contractBindings?: ContractRoleBinding[];
   }>;
 }

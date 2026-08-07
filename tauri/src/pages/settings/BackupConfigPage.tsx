@@ -9,6 +9,7 @@ import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { useToastError } from '@/hooks/useToastError';
 import { useConfirm } from '@/hooks/useConfirm';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
+import type { BackupInfo } from '@/types/backup';
 import { HardDrive, RotateCcw, Plus, Bell, Info } from 'lucide-react';
 import { DeleteButton } from '@/components/ui/DeleteButton';
 import { ICON_SIZE } from '@/lib/constants';
@@ -16,14 +17,6 @@ import { formatBytes } from '@/lib/utils';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useAuthStore } from '@/stores/authStore';
 import { PageGuideButton } from '@/components/guide/PageGuideButton';
-
-interface BackupInfo {
-  id: string;
-  name: string;
-  created_at: string;
-  size_bytes: number;
-  object_count: number;
-}
 
 export function BackupConfigPage() {
   const navigate = useNavigate();

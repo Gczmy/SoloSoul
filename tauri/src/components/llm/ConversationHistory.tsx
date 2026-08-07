@@ -3,14 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { MessageSquare } from 'lucide-react';
 import { formatRelative } from '@/lib/time';
 import { ICON_SIZE } from '@/lib/constants';
-
-interface ConversationSummary {
-  id: string;
-  name: string;
-  updatedAt: string;
-  messageCount: number;
-  deletedAt?: string;
-}
+import type { ConversationSummary } from '@/types/llmChat';
 
 interface ConversationHistoryProps {
   conversations: ConversationSummary[];
