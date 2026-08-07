@@ -97,3 +97,7 @@ tauri/src-tauri/gen/schemas/
 # Temporary test screenshots and one-off scripts
 tauri/solosoul_*.png
 tauri/auto_create_account.sh
+
+# AI agent instruction files (local-only)
+AGENTS.md
+CLAUDE.md
