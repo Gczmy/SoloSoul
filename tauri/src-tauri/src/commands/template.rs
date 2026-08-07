@@ -16,10 +16,30 @@ use tauri::State;
 // Legacy migration helper
 // ---------------------------------------------------------------------------
 
+/// P023: 迁移完成标记——写入账户 vault 的 sys_config（每账户独立 vault.db），
+/// 迁移（含确认无可迁移）完成后后续命令 O(1) 短路，免重复
+/// count_user_templates + load_profile + JSON 全量解析。
+const LEGACY_MIGRATION_DONE_KEY: &str = "legacy_templates_migrated_v1";
+
 /// Migrate old-style templates from Profile JSON to the dedicated table.
 /// This is idempotent: if `user_templates` already has rows for the account
 /// the function returns immediately.
 fn migrate_legacy_templates_if_needed(
+    vault: &solosoul_vault::VaultStore,
+    account_id: &str,
+) -> Result<(), String> {
+    // P023: 标记短路
+    if vault.get_sys_config(LEGACY_MIGRATION_DONE_KEY)?.is_some() {
+        return Ok(());
+    }
+    let result = migrate_legacy_templates_inner(vault, account_id);
+    if result.is_ok() {
+        vault.set_sys_config(LEGACY_MIGRATION_DONE_KEY, "1")?;
+    }
+    result
+}
+
+fn migrate_legacy_templates_inner(
     vault: &solosoul_vault::VaultStore,
     account_id: &str,
 ) -> Result<(), String> {
