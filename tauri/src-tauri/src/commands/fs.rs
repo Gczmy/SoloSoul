@@ -188,9 +188,14 @@ pub async fn fs_scan_directory<R: tauri::Runtime>(
     if !dir.is_dir() {
         return Err("Not a directory".to_string());
     }
-    let mut files = Vec::new();
-    scan_dir_recursive(&dir, &mut files, MAX_SCAN_DEPTH)?;
-    Ok(files)
+    // P024: 同步递归遍历 + 逐文件 metadata 为阻塞 IO，移入 spawn_blocking。
+    tokio::task::spawn_blocking(move || {
+        let mut files = Vec::new();
+        scan_dir_recursive(&dir, &mut files, MAX_SCAN_DEPTH)?;
+        Ok::<_, String>(files)
+    })
+    .await
+    .map_err(|e| format!("fs_scan_directory task failed: {e}"))?
 }
 
 fn scan_dir_recursive(
