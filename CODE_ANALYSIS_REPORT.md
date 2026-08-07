@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-07（P000-P001 已修复）
+> 最后更新：2026-08-07（P000-P001/P004 已修复）
 > 当前分支：`main`
 > 修复轮次：1（初始分析）
 > 基线版本：v2.8.5（HEAD `cdc6afb6`）
@@ -32,7 +32,7 @@
 | P001 | P1 | 安全 | `tauri/src-tauri/src/commands/export_import/export.rs:253-272` | 导出 `save_path` 无落盘基目录限制（附件下载有，导出没有，校验不一致） | `[x]` 已修复（桌面端复用 allowed_fs_bases 白名单 + `..` 拒绝） |
 | P002 | P1 | 安全 | `tauri/crates/solosoul-core/src/biometric/legacy.rs:88-103` | 遗留生物识别文件加密密钥派生自公开 account_id，可还原主密钥（存疑：仅限未迁移老安装的迁移窗口） | `[ ]` 待修复 |
 | P003 | P1 | 安全 | `tauri/src-tauri/src/commands/update.rs:202-245` | Android APK 校验和与安装包同通道下发，无独立签名验证 | `[ ]` 待修复 |
-| P004 | P1 | 性能 | `tauri/crates/solosoul-plugin/src/field.rs:219-240` | 插件每解析一个字段就全表解密一次（模板+对象），无缓存，K 字段 × N 对象放大 | `[ ]` 待修复 |
+| P004 | P1 | 性能 | `tauri/crates/solosoul-plugin/src/field.rs:219-240` | 插件每解析一个字段就全表解密一次（模板+对象），无缓存，K 字段 × N 对象放大 | `[x]` 已修复（FieldCache 惰性缓存：templates/all_objects/by_type 三类） |
 | P005 | P1 | 性能 | `tauri/src/hooks/useExportScope.ts:52-76` + `export.rs:644-667` | 导出附件勾选 N+1：前端逐对象 IPC、后端逐对象整解密 | `[ ]` 待修复 |
 | P006 | P1 | 性能 | `tauri/src-tauri/src/commands/llm/conversation.rs:13-57` | LLM 会话存为单个加密 Profile blob，每条消息全量解密+全量重加密 | `[ ]` 待修复 |
 | P007 | P1 | 性能 | `tauri/src-tauri/src/commands/attachment.rs:479,930` | `attachment_copy_to_vault`/`attachment_download` 在 tokio worker 上同步复制大文件，未走 `spawn_blocking` | `[ ]` 待修复 |
@@ -77,8 +77,8 @@
 
 ## 修复进度
 
-- 已完成：3 / 46（P045 为合并占位，实际待修复 45 项）
-- 当前处理：P000-P001（已修复）→ P004
+- 已完成：4 / 46（P045 为合并占位，实际待修复 45 项）
+- 当前处理：P000/P001/P004（已修复）→ P005
 
 ---
 

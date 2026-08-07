@@ -20,7 +20,8 @@
 use super::manifest::PluginContractBinding;
 use super::PluginError;
 use solosoul_vault::{TemplateProperty, UserTemplate, VaultStore};
-use std::sync::Arc;
+use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
 
 /// 附件列表项（用于 list_attachments）
 #[derive(serde::Serialize)]
@@ -53,6 +54,17 @@ struct AttPage {
     objects: Vec<AttObject>,
 }
 
+/// P004: 单次插件运行内的惰性缓存——`list_user_templates`/`list_objects` 均为
+/// 全表 AES 解密，K 个字段 × N 对象会放大为 K×N 次解密。缓存在 `FieldResolver`
+/// 生命周期（= 单次插件运行）内复用结果，同一字段的重复查询不再触库。
+/// `Arc<Mutex<..>>` 使 `FieldResolver` 保持 Send + Sync（被 Arc 包裹跨线程共享）。
+#[derive(Default)]
+struct FieldCache {
+    templates: Option<Vec<UserTemplate>>,
+    all_objects: Option<Vec<solosoul_vault::ObjectSummary>>,
+    objects_by_type: HashMap<String, Vec<solosoul_vault::ObjectSummary>>,
+}
+
 /// 字段解析器
 #[derive(Clone, Default)]
 pub struct FieldResolver {
@@ -61,12 +73,88 @@ pub struct FieldResolver {
     allowed_patterns: Vec<String>,
     /// Stage 4 typed-lookup 契约绑定锚点（由 PluginManager::run 在构造时填充）
     contracts: Vec<PluginContractBinding>,
+    /// P004: 惰性缓存（templates / 全量对象 / 按 type_id 的对象）
+    cache: Arc<Mutex<FieldCache>>,
 }
 
 impl FieldResolver {
     /// 创建空解析器（测试或 Vault 未解锁时使用）
     pub fn new() -> Self {
         Self::default()
+    }
+
+    /// P004: 缓存读写助手——模板列表（全表解密一次）
+    fn cached_templates(&self) -> Result<Vec<UserTemplate>, PluginError> {
+        let vault = self
+            .vault
+            .as_ref()
+            .ok_or(PluginError::ExecutionFailed("Vault 未解锁".to_string()))?;
+        let account_id = self
+            .account_id
+            .as_ref()
+            .ok_or(PluginError::ExecutionFailed("未选择账户".to_string()))?;
+        let mut cache = self
+            .cache
+            .lock()
+            .map_err(|_| PluginError::ExecutionFailed("字段缓存锁已损坏".to_string()))?;
+        if cache.templates.is_none() {
+            cache.templates = Some(
+                vault
+                    .list_user_templates(account_id)
+                    .map_err(|e| PluginError::ExecutionFailed(format!("读取模板失败: {}", e)))?,
+            );
+        }
+        Ok(cache.templates.clone().unwrap_or_default())
+    }
+
+    /// P004: 缓存读写助手——全量对象列表（全表解密一次）
+    fn cached_all_objects(&self) -> Result<Vec<solosoul_vault::ObjectSummary>, PluginError> {
+        let vault = self
+            .vault
+            .as_ref()
+            .ok_or(PluginError::ExecutionFailed("Vault 未解锁".to_string()))?;
+        let account_id = self
+            .account_id
+            .as_ref()
+            .ok_or(PluginError::ExecutionFailed("未选择账户".to_string()))?;
+        let mut cache = self
+            .cache
+            .lock()
+            .map_err(|_| PluginError::ExecutionFailed("字段缓存锁已损坏".to_string()))?;
+        if cache.all_objects.is_none() {
+            cache.all_objects = Some(
+                vault
+                    .list_objects(account_id, None, None, None, false, false)
+                    .map_err(|e| PluginError::ExecutionFailed(format!("查询对象失败: {}", e)))?,
+            );
+        }
+        Ok(cache.all_objects.clone().unwrap_or_default())
+    }
+
+    /// P004: 缓存读写助手——按 type_id 的对象列表（全表解密一次，之后内存过滤）
+    fn cached_objects_by_type(
+        &self,
+        type_id: &str,
+    ) -> Result<Vec<solosoul_vault::ObjectSummary>, PluginError> {
+        let vault = self
+            .vault
+            .as_ref()
+            .ok_or(PluginError::ExecutionFailed("Vault 未解锁".to_string()))?;
+        let account_id = self
+            .account_id
+            .as_ref()
+            .ok_or(PluginError::ExecutionFailed("未选择账户".to_string()))?;
+        let mut cache = self
+            .cache
+            .lock()
+            .map_err(|_| PluginError::ExecutionFailed("字段缓存锁已损坏".to_string()))?;
+        if !cache.objects_by_type.contains_key(type_id) {
+            let objects = vault
+                .list_objects(account_id, Some(type_id), None, None, false, false)
+                .map_err(|e| PluginError::ExecutionFailed(format!("查询对象失败: {}", e)))?;
+            cache.objects_by_type.insert(type_id.to_string(), objects);
+        }
+        Ok(cache.objects_by_type[type_id].clone())
     }
 
     /// 绑定 Vault 与会话信息
@@ -80,6 +168,7 @@ impl FieldResolver {
             account_id: Some(account_id),
             allowed_patterns,
             contracts: Vec::new(),
+            cache: Arc::new(Mutex::new(FieldCache::default())),
         }
     }
 
@@ -90,6 +179,7 @@ impl FieldResolver {
             account_id: None,
             allowed_patterns: Vec::new(),
             contracts,
+            cache: Arc::new(Mutex::new(FieldCache::default())),
         }
     }
 
@@ -105,6 +195,7 @@ impl FieldResolver {
             account_id: Some(account_id),
             allowed_patterns,
             contracts,
+            cache: Arc::new(Mutex::new(FieldCache::default())),
         }
     }
 
@@ -134,10 +225,8 @@ impl FieldResolver {
             .ok_or_else(|| PluginError::InvalidField(format!("不支持的字段路径: {}", field_id)))?;
 
         // PRIMARY：UserTemplate 反查（user-space 真实 anchor）
-        if let (Some(vault), Some(account_id)) = (self.vault.as_ref(), self.account_id.as_ref()) {
-            let templates = vault
-                .list_user_templates(account_id)
-                .map_err(|e| PluginError::ExecutionFailed(format!("读取模板失败: {}", e)))?;
+        if self.vault.is_some() && self.account_id.is_some() {
+            let templates = self.cached_templates()?;
             if let Some(t) = templates
                 .iter()
                 .find(|t| t.id == alias && t.contract_type_id.is_some())
@@ -201,12 +290,7 @@ impl FieldResolver {
             .find(|p| p.id == role_id && p.contract_field == Some(true))
     }
 
-    fn resolve_typed(
-        &self,
-        field_id: &str,
-        vault: &Arc<VaultStore>,
-        account_id: &str,
-    ) -> Result<String, PluginError> {
+    fn resolve_typed(&self, field_id: &str) -> Result<String, PluginError> {
         // 1. 解析 typed 路径
         let parsed = self.parse_typed_field(field_id)?;
         let (ctid, prop_path) =
@@ -216,9 +300,7 @@ impl FieldResolver {
         let alias = parse_type_property(field_id)
             .map(|(a, _)| a)
             .unwrap_or_default();
-        let templates = vault
-            .list_user_templates(account_id)
-            .map_err(|e| PluginError::ExecutionFailed(format!("读取模板失败: {}", e)))?;
+        let templates = self.cached_templates()?;
         let template = templates
             .iter()
             .find(|t| t.contract_type_id.as_deref() == Some(&ctid))
@@ -235,9 +317,7 @@ impl FieldResolver {
         //    type_id 可能为 section/category 而非模板 ID）
         let target_ctid = template.contract_type_id.clone();
         let target_tpl_id = template.id.clone();
-        let all_objects = vault
-            .list_objects(account_id, None, None, None, false, false)
-            .map_err(|e| PluginError::ExecutionFailed(format!("查询对象失败: {}", e)))?;
+        let all_objects = self.cached_all_objects()?;
 
         let mut objects: Vec<_> = all_objects
             .into_iter()
@@ -276,12 +356,7 @@ impl FieldResolver {
     }
 
     /// Typed-lookup 获取字段元数据（Stage 4-B）
-    fn field_metadata_typed(
-        &self,
-        field_id: &str,
-        vault: &Arc<VaultStore>,
-        account_id: &str,
-    ) -> Result<(String, String), PluginError> {
+    fn field_metadata_typed(&self, field_id: &str) -> Result<(String, String), PluginError> {
         // 复用 parse_typed_field 获取 ctid（保持与 resolve_typed 一致）
         let parsed = self.parse_typed_field(field_id)?;
         let (ctid, prop_path) = parsed.ok_or_else(|| {
@@ -296,9 +371,7 @@ impl FieldResolver {
             )));
         }
 
-        let templates = vault
-            .list_user_templates(account_id)
-            .map_err(|e| PluginError::ExecutionFailed(format!("读取模板失败: {}", e)))?;
+        let templates = self.cached_templates()?;
 
         let template = templates
             .iter()
@@ -332,15 +405,7 @@ impl FieldResolver {
 
     /// 解析字段值
     pub fn resolve(&self, field_id: &str) -> Result<String, PluginError> {
-        let vault = self
-            .vault
-            .as_ref()
-            .ok_or(PluginError::ExecutionFailed("Vault 未解锁".to_string()))?;
-        let account_id = self
-            .account_id
-            .as_ref()
-            .ok_or(PluginError::ExecutionFailed("未选择账户".to_string()))?;
-
+        // 注：Vault/账户解锁状态由缓存助手（cached_*）在首次查询时校验。
         if field_id.is_empty() {
             return Err(PluginError::InvalidField("字段路径为空".to_string()));
         }
@@ -363,11 +428,7 @@ impl FieldResolver {
             if !self.contracts.is_empty() {
                 let alias = field_id.find('.').map(|dot| &field_id[..dot]).unwrap_or("");
                 if let Some((ctid, _)) = self.parse_typed_field(&format!("{}.dummy", alias))? {
-                    let all = vault
-                        .list_objects(account_id, None, None, None, false, false)
-                        .map_err(|e| {
-                            PluginError::ExecutionFailed(format!("查询 Vault 失败: {}", e))
-                        })?;
+                    let all = self.cached_all_objects()?;
                     let mut objects: Vec<_> = all
                         .into_iter()
                         .filter(|o| {
@@ -400,10 +461,7 @@ impl FieldResolver {
 
             // Legacy __name__ 路径
             if let Some((type_id, index, _)) = parse_indexed_field(field_id) {
-                let objects = vault
-                    .list_objects(account_id, Some(&type_id), None, None, false, false)
-                    .map_err(|e| PluginError::ExecutionFailed(format!("查询 Vault 失败: {}", e)))?;
-                let mut objects = objects;
+                let mut objects = self.cached_objects_by_type(&type_id)?;
                 objects.sort_by(|a, b| a.created_at.cmp(&b.created_at));
                 let record = objects
                     .get(index)
@@ -411,13 +469,10 @@ impl FieldResolver {
                 return Ok(record.name.clone());
             }
             if let Some((type_id, _)) = parse_type_property(field_id) {
-                let objects = vault
-                    .list_objects(account_id, Some(&type_id), None, None, false, false)
-                    .map_err(|e| PluginError::ExecutionFailed(format!("查询 Vault 失败: {}", e)))?;
+                let mut objects = self.cached_objects_by_type(&type_id)?;
                 if objects.is_empty() {
                     return Ok(String::new());
                 }
-                let mut objects = objects;
                 objects.sort_by(|a, b| a.created_at.cmp(&b.created_at));
                 return Ok(objects[0].name.clone());
             }
@@ -425,7 +480,7 @@ impl FieldResolver {
 
         // Stage 4-B：typed lookup（当 manifest 声明了 contracts 时）
         if !self.contracts.is_empty() {
-            return self.resolve_typed(field_id, vault, account_id);
+            return self.resolve_typed(field_id);
         }
 
         // legacy_field_parse feature 已移除 — 插件必须声明 contracts
@@ -451,15 +506,7 @@ impl FieldResolver {
     /// - `<typeId>.<prop>`（默认取第一个对象）
     /// - 嵌套属性取第一级属性名匹配
     pub fn field_metadata(&self, field_id: &str) -> Result<(String, String), PluginError> {
-        let vault = self
-            .vault
-            .as_ref()
-            .ok_or(PluginError::ExecutionFailed("Vault 未解锁".to_string()))?;
-        let account_id = self
-            .account_id
-            .as_ref()
-            .ok_or(PluginError::ExecutionFailed("未选择账户".to_string()))?;
-
+        // 注：Vault/账户解锁状态由缓存助手（cached_*）在首次查询时校验。
         if field_id.is_empty() {
             return Err(PluginError::InvalidField("字段路径为空".to_string()));
         }
@@ -478,7 +525,7 @@ impl FieldResolver {
 
         // Stage 4-B：typed lookup
         if !self.contracts.is_empty() {
-            return self.field_metadata_typed(field_id, vault, account_id);
+            return self.field_metadata_typed(field_id);
         }
 
         // legacy_field_parse feature 已移除 — 插件必须声明 contracts
@@ -502,24 +549,14 @@ impl FieldResolver {
 
     /// 构建用户数据结构树（仅元数据，不含字段值）
     pub fn build_structure_tree(&self) -> Result<String, PluginError> {
-        let vault = self
-            .vault
-            .as_ref()
-            .ok_or(PluginError::ExecutionFailed("Vault 未解锁".to_string()))?;
-        let account_id = self
-            .account_id
-            .as_ref()
-            .ok_or(PluginError::ExecutionFailed("未选择账户".to_string()))?;
-
-        let templates = vault
-            .list_user_templates(account_id)
-            .map_err(|e| PluginError::ExecutionFailed(format!("读取模板失败: {}", e)))?;
+        // 注：Vault/账户解锁状态由缓存助手（cached_*）在首次查询时校验。
+        let templates = self.cached_templates()?;
 
         let types: Vec<serde_json::Value> = templates
             .into_iter()
             .map(|tpl| {
-                let count = vault
-                    .list_objects(account_id, Some(&tpl.id), None, None, false, false)
+                let count = self
+                    .cached_objects_by_type(&tpl.id)
                     .map(|list| list.len())
                     .unwrap_or(0);
 
@@ -559,21 +596,12 @@ impl FieldResolver {
     ///
     /// 插件在本地完成计数（`objects.len()`）和属性提取，不再需要 .count 字段。
     pub fn list_objects(&self, type_id: &str) -> Result<String, PluginError> {
-        let vault = self
-            .vault
-            .as_ref()
-            .ok_or(PluginError::ExecutionFailed("Vault 未解锁".to_string()))?;
-        let account_id = self
-            .account_id
-            .as_ref()
-            .ok_or(PluginError::ExecutionFailed("未选择账户".to_string()))?;
+        // 注：Vault/账户解锁状态由缓存助手（cached_*）在首次查询时校验。
 
         // typed-lookup：当插件声明 contracts 时，通过 contract_type_id/template_id 匹配对象
         if !self.contracts.is_empty() {
             if let Some((ctid, _)) = self.parse_typed_field(&format!("{}.dummy", type_id))? {
-                let all = vault
-                    .list_objects(account_id, None, None, None, false, false)
-                    .map_err(|e| PluginError::ExecutionFailed(format!("查询 Vault 失败: {}", e)))?;
+                let all = self.cached_all_objects()?;
                 let mut objects: Vec<_> = all
                     .into_iter()
                     .filter(|o| {
@@ -602,9 +630,7 @@ impl FieldResolver {
         }
 
         // Legacy 路径：按 type_id 直接查询
-        let objects = vault
-            .list_objects(account_id, Some(type_id), None, None, false, false)
-            .map_err(|e| PluginError::ExecutionFailed(format!("查询 Vault 失败: {}", e)))?;
+        let objects = self.cached_objects_by_type(type_id)?;
         let items: Vec<serde_json::Value> = objects
             .iter()
             .map(|o| {
@@ -620,18 +646,12 @@ impl FieldResolver {
 
     /// 列出所有可水印的附件（图片/PDF），按页面 → 对象分组返回 JSON。
     pub fn list_attachments(&self) -> Result<String, PluginError> {
+        // 注：Vault/账户解锁状态由缓存助手（cached_*）在首次查询时校验。
         let vault = self
             .vault
             .as_ref()
             .ok_or(PluginError::ExecutionFailed("Vault 未解锁".to_string()))?;
-        let account_id = self
-            .account_id
-            .as_ref()
-            .ok_or(PluginError::ExecutionFailed("未选择账户".to_string()))?;
-
-        let objects = vault
-            .list_objects(account_id, None, None, None, false, false)
-            .map_err(|e| PluginError::ExecutionFailed(format!("查询对象失败: {}", e)))?;
+        let objects = self.cached_all_objects()?;
 
         let mut page_objects: Vec<solosoul_vault::ObjectSummary> = Vec::new();
         let mut section_groups: std::collections::BTreeMap<
@@ -655,9 +675,12 @@ impl FieldResolver {
             std::collections::HashSet::new();
 
         for page_obj in &page_objects {
-            let children = vault
-                .list_objects(account_id, None, Some(&page_obj.id), None, false, false)
-                .unwrap_or_default();
+            // P004: 从缓存的全量对象中按 parent_id 过滤（避免逐页二次全表解密）
+            let children: Vec<_> = objects
+                .iter()
+                .filter(|o| o.parent_id.as_deref() == Some(page_obj.id.as_str()))
+                .cloned()
+                .collect();
             for child in &children {
                 child_ids_assigned.insert(child.id.clone());
             }
