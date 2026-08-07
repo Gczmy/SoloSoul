@@ -390,15 +390,8 @@ pub async fn llm_search_guide_chunks(
 
     scored.sort_by(|a, b| b.0.partial_cmp(&a.0).unwrap_or(std::cmp::Ordering::Equal));
 
-    // 一次性读取指南文件并建立 guide_id → title 映射，避免在 top_k 循环内
-    // 反复 chunk_all_guides（每条结果都把全部指南文件完整读一遍）。
-    let titles: std::collections::HashMap<String, String> = chunk_all_guides(&language)
-        .map(|raws| {
-            raws.into_iter()
-                .map(|r| (r.guide_id, r.guide_title))
-                .collect()
-        })
-        .unwrap_or_default();
+    // 一次性建立 guide_id → title 映射（title 存于指南索引，无需读文件/切块）。
+    let titles = guide_title_map(&language);
 
     let mut results = Vec::new();
     for (sim, chunk) in scored.into_iter().take(top_k) {
@@ -460,6 +453,23 @@ pub struct RawChunk {
     pub guide_title: String,
     pub chunk_index: usize,
     pub text: String,
+}
+
+/// P022: 从指南索引轻量构建 guide_id → title 映射——title 存于索引 JSON，
+/// 不再为构建映射而读取全部指南文件并完整跑 markdown chunking。
+pub fn guide_title_map(language: &str) -> std::collections::HashMap<String, String> {
+    load_guide_index()
+        .map(|index| {
+            index
+                .guides
+                .into_iter()
+                .map(|entry| {
+                    let title = resolve_title(&entry.title, language);
+                    (entry.id, title)
+                })
+                .collect()
+        })
+        .unwrap_or_default()
 }
 
 /// Parse all guides into semantic chunks.

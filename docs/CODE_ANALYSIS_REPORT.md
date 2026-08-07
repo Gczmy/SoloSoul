@@ -37,7 +37,7 @@
 | P019 | P2 | 安全 | `tauri/src-tauri/src/attachment_import_plugin.rs:477-482,507-512` | 生产代码遗留 error 级 debug 日志，输出用户文件完整路径 | `[x]` 已修复（`attachment_export_content_uri` 路径越界错误消息脱敏——移除 `src.display()` 与 `attachments_dir` 完整路径，与另一导出命令一致） |
 | P020 | P2 | 性能 | `tauri/crates/solosoul-vault/src/storage/objects.rs:329-485`、`tauri/src-tauri/src/commands/object/mod.rs:459-488` | `object_list` 全量解密并经 IPC 传输全部对象完整 properties，未按注释做预览截断 | `[x]` 已修复（command 边界预览截断：前 8 个非 `__` 字段 + 字符串值限长 200，`__*` 元数据完整保留；`list_objects` 内部不动，导出/搜索等内部调用方不受影响；新增单测） |
 | P021 | P2 | 性能 | `tauri/src-tauri/src/commands/search/query.rs:28-105` | 全库搜索热循环内大量临时分配（to_lowercase / format! / 全排序取最大值） | `[x]` 已修复（路径缓冲 push/pop 替代每 key format!；key/name 小写各算一次复用；`max_by` 替代全排序；值小写化保留完整 Unicode 语义） |
-| P022 | P2 | 性能 | `tauri/src-tauri/src/commands/llm/rag.rs:395-401` | 每次指南检索重读磁盘并重切块全部指南 markdown 仅为构建 title 映射 | `[ ]` 待修复 |
+| P022 | P2 | 性能 | `tauri/src-tauri/src/commands/llm/rag.rs:395-401` | 每次指南检索重读磁盘并重切块全部指南 markdown 仅为构建 title 映射 | `[x]` 已修复（title 存于索引 JSON，新增 `guide_title_map` 仅读索引构建映射，不再读文件/切块） |
 | P023 | P2 | 性能 | `tauri/src-tauri/src/commands/template.rs:22-33,121-144` | 每次模板 IPC 都执行 legacy 迁移检查（含 profile 全量加载解析），迁移完成后永久无效 | `[ ]` 待修复 |
 | P024 | P2 | 性能 | `tauri/src/stores/trashStore.ts:137-155` | 回收站批量永久删除逐条 IPC，无批量端点 | `[ ]` 待修复 |
 | P025 | P2 | 性能 | `tauri/crates/solosoul-vault/src/storage/objects.rs:282-327` | `list_object_attachment_ids` 为取附件 id 解密全部对象完整 properties | `[ ]` 待修复 |
