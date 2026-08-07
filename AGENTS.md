@@ -362,13 +362,13 @@ cargo test
 
 ### 敏感数据分级
 
-Tauri 前端所有字段均有 `SensitivityLevel`（4 级，前后端一致，`types/template.ts:21` 与 `template_service.rs:24`）：
-- `public` — 公开（不掩码）
-- `internal` — 内部（不掩码，但以 `SensitivityBadge` 标注）
-- `sensitive` — 敏感（自动掩码为 `••••••••`）
-- `critical` — 关键（自动掩码，红色锁徽章）
+Tauri 前端所有字段均有 `SensitivityLevel`（4 级，定义于 `types/template.ts:21`；Rust 侧 `template_service.rs` 以 String 字段承载）：
+- `public` — 公开（永不掩码）
+- `internal` — 内部（自动掩码为 `••••••••`，点击揭示）
+- `sensitive` — 敏感（自动掩码为 `••••••••`，点击揭示）
+- `critical` — 关键（自动掩码为 `••••••••`，红色锁徽章）
 
-**掩码机制：** `sensitive`/`critical` 字段由共享 hook `useRevealState.ts` 统一掩码——`shouldMask`/`maskValue` 负责规则（internal/public 永不掩码；敏感/关键字段点击揭示后 1 分钟自动重新隐藏），敏感度标签统一使用共享组件 `ui/SensitivityBadge.tsx`。
+**掩码机制：** 由共享 hook `useRevealState.ts` + `lib/masking.ts` 统一掩码——`shouldMaskSensitivity` 规则为「仅 `public` 永不掩码，`internal`/`sensitive`/`critical` 一律掩码为 8 圆点（点击揭示后 1 分钟自动重新隐藏）」（P036 已收敛，`WorkspaceObjectCard` 的 internal 掩码差异已统一）；敏感度标签统一使用共享组件 `ui/SensitivityBadge.tsx`。
 
 **约定：** 必须通过 `useRevealState` + `SensitivityBadge` 实现掩码/标注，禁止在各页面自行实现掩码逻辑（历史遗留的 `WorkspaceObjectCard` internal 掩码差异已由 P036 收敛）。
 

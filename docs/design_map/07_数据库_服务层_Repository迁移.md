@@ -4,6 +4,9 @@
 > **Manifesto 对齐**：本地优先 | 隐私优先 | 最少惊喜
 > **源文档**：`tauri_refactor/服务迁移与数据库.md`
 >
+> **[状态] 已实施（2026-08）**：本文档为 Flutter→Tauri 迁移期的数据库/服务层规范，核心设计已全部落地。
+> 当前库版本为 `CURRENT_SCHEMA_VERSION = 25`（`crates/solosoul-vault/src/migration.rs`），完成标准已勾选。
+>
 > **[警告] 术语迁移（审批通过）**：开发时使用新术语，但本文档中的代码示例保留旧术语作为参考对照。
 > 旧→新：`UnifiedObject` → `Object`, `PropertyDefinition` → `Property`, `unified_objects` 表 → `objects` 表。
 > 详见文档 23 的术语规范。
@@ -262,7 +265,7 @@ impl<'a> UserDataService<'a> {
 
 ## 4. 数据模型映射：Rust ↔ TypeScript
 
-| Rust (snake_case) | TypeScript (camelCase, tauri-specta 自动转换) |
+| Rust (snake_case) | TypeScript (camelCase，手工映射于 `src/lib/ipc.ts`) |
 |-------------------|----------------------------------------------|
 | `account_id: String` | `accountId: string` |
 | `full_name: Option<String>` | `fullName?: string` |
@@ -319,14 +322,14 @@ pub struct OperationEntry {
 ## 8. 完成标准
 
 ### P0（必须）
-- [ ] `cargo test` 全部通过（Repository 使用内存数据库）
-- [ ] Schema 迁移可处理所有版本（v0→v6）
-- [ ] Profile CRUD 完整工作
-- [ ] UnifiedObject 软删除 + 回收站逻辑正确
+- [x] `cargo test` 全部通过（Repository 使用内存数据库）
+- [x] Schema 迁移可处理所有版本（v0→v25，当前 `CURRENT_SCHEMA_VERSION = 25`）
+- [x] Profile CRUD 完整工作
+- [x] Object 软删除 + 回收站逻辑正确
 
 ### P1（重要）
-- [ ] 搜索支持中英文关键词
-- [ ] 操作日志在每次 CRUD 后自动生成
+- [x] 搜索支持中英文关键词
+- [x] 操作日志在每次 CRUD 后自动生成（`audit_log` SQLite 表）
 
 ---
 

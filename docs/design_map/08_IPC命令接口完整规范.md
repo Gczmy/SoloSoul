@@ -14,7 +14,7 @@
 | 前缀简化 | 核心域不强制加模块前缀（`auth_login`→`login`，`vault_unlock`→`unlock`） |
 | UnifiedObject 重命名 | 所有 `unified_object_*` 已实装为 `object_*` |
 | 敏感度模块废弃 | Sensitivity 在实现中降级为 Object 的字段属性，不设独立 IPC 模块 |
-| 参数/返回值 camelCase | `tauri-specta` 自动转换 Rust snake_case → TS camelCase |
+| 参数/返回值 camelCase | 类型在 `src/lib/ipc.ts` 手工维护，Rust snake_case → TS camelCase 手工转换 |
 | 返回值统一 `Result<T, String>` | 错误消息中文，用户可理解 |
 | 敏感数据不出后端 | 密钥、密码绝不通过 IPC 返回 |
 | 进度通知用 Event | LLM 流式、OCR 下载、导入导出等长操作通过 Tauri Event 推送 |
