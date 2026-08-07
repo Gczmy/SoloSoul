@@ -8,31 +8,12 @@ use super::{BiometricError, BiometricStorage};
 use std::path::{Path, PathBuf};
 use zeroize::Zeroizing;
 
-/// Legacy hard-coded XOR key used only for one-way migration of old biometric files.
-///
-/// # Security
-///
-/// This key is intentionally hard-coded because:
-/// 1. It is ONLY used for **one-way decryption** of legacy biometric credential files
-///    that were stored with a simple XOR obfuscation scheme in older versions.
-/// 2. On successful decryption, the legacy file is **atomically migrated** to a new
-///    AES-256-GCM encrypted format with a per-account derived key (HKDF from SHA-256
-///    of account_id). The legacy XOR-encrypted file is then renamed and cleaned up.
-/// 3. The attack surface is minimal: an attacker would need both the compiled binary
-///    AND the old `biometric_key` file on disk (protected by OS file permissions 0o600).
-///    The decrypted payload is a limited-duration session key, not the master password.
-/// 4. There is no key rotation concern: once a file is migrated, this key is never
-///    used again for that account.
-///
-/// Once the legacy migration window closes (e.g., all users of versions < 2.0 have
-/// either migrated or been prompted to re-enable biometrics), this constant and the
-/// entire `legacy.rs` module can be safely removed.
-///
-/// See also: `file_encryption_key()` for the current per-account derivation scheme.
-const LEGACY_XOR_KEY: &[u8; 32] = b"Solosoul_biometric_obfuscate_v1!";
+/// P002: 旧版 XOR 迁移路径（LEGACY_XOR_KEY / legacy_xor_decrypt / is_legacy_key_file /
+/// migrate_legacy_key_file）已删除——迁移窗口已关闭（count_legacy_key_files 诊断持续为 0）。
+/// 遗留的 64-hex XOR 文件读作「格式无效」，提示重新启用生物识别后重写为新格式。
+/// 当前文件格式为 AES-256-GCM blob（>64 hex），与新检测逻辑天然互斥。
 #[cfg(test)]
 const TEST_FILE_KEY_SALT: &[u8] = b"test-only-biometric-file-key-salt";
-const LEGACY_KEY_HEX_LEN: usize = 64;
 
 // 注：不再使用静态密钥 BIO_FILE_KEY_SECRET。生产环境的文件加密密钥
 // 通过 account_id 派生（见下方 file_encryption_key），每个账户密钥不同。
@@ -110,20 +91,6 @@ fn file_encryption_key(account_id: &str) -> Result<Zeroizing<Vec<u8>>, Biometric
     Ok(key)
 }
 
-pub(crate) fn is_legacy_key_file(content: &str) -> bool {
-    content.len() == LEGACY_KEY_HEX_LEN && content.chars().all(|c| c.is_ascii_hexdigit())
-}
-
-fn legacy_xor_decrypt(content: &str) -> Result<String, BiometricError> {
-    let obf = hex::decode(content.trim()).map_err(|_e| BiometricError::InvalidKeyFormat)?;
-    let key: Vec<u8> = obf
-        .iter()
-        .enumerate()
-        .map(|(i, b)| b ^ LEGACY_XOR_KEY[i % 32])
-        .collect();
-    Ok(hex::encode(&key))
-}
-
 fn write_encrypted_key_file(
     path: &Path,
     account_id: &str,
@@ -164,38 +131,10 @@ fn write_encrypted_key_file(
     Ok(())
 }
 
-/// 以原子方式将旧 XOR 文件迁移为新的加密文件。
-fn migrate_legacy_key_file(
-    path: &Path,
-    account_id: &str,
-    legacy_key_hex: &str,
-) -> Result<(), BiometricError> {
-    let new_path = path.with_extension("key.new");
-    let old_path = path.with_extension("key.old");
-    write_encrypted_key_file(&new_path, account_id, legacy_key_hex)?;
-    std::fs::rename(path, &old_path).map_err(|e| {
-        BiometricError::LegacyMigrationFailed(format!("Failed to backup legacy key file: {e}"))
-    })?;
-    std::fs::rename(&new_path, path).map_err(|e| {
-        BiometricError::LegacyMigrationFailed(format!("Failed to replace legacy key file: {e}"))
-    })?;
-    let _ = std::fs::remove_file(&old_path);
-    Ok(())
-}
-
 fn read_encrypted_key_file(path: &Path, account_id: &str) -> Result<String, BiometricError> {
     let content =
         std::fs::read_to_string(path).map_err(|_e| BiometricError::KeychainItemNotFound)?;
     let content = content.trim();
-
-    if is_legacy_key_file(content) {
-        let key_hex = legacy_xor_decrypt(content)?;
-        // Attempt atomic migration; failure keeps the legacy file intact.
-        if let Err(e) = migrate_legacy_key_file(path, account_id, &key_hex) {
-            tracing::warn!("Failed to migrate legacy biometric key file: {}", e);
-        }
-        return Ok(key_hex);
-    }
 
     let blob = hex::decode(content).map_err(|_| BiometricError::InvalidKeyFormat)?;
 

@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-07（P000-P001/P004-P005/P007/P009-P015 已修复，P012 闭环）
+> 最后更新：2026-08-07（P000-P001/P004-P005/P007/P009-P015 已修复，P002/P012 闭环）
 > 当前分支：`main`
 > 修复轮次：1（初始分析）
 > 基线版本：v2.8.5（HEAD `cdc6afb6`）
@@ -30,7 +30,7 @@
 |------|--------|------|----------|------|------|
 | P000 | P0 | 测试 | `tauri/src-tauri/src/lib.rs:1010` | `test_dispatch_cluster_prefixes_consistent` 断言硬编码 188，簇列表实际已有 190 条命令，`cargo test` 红、CI 必挂 | `[x]` 已修复（断言 188→190，注释同步） |
 | P001 | P1 | 安全 | `tauri/src-tauri/src/commands/export_import/export.rs:253-272` | 导出 `save_path` 无落盘基目录限制（附件下载有，导出没有，校验不一致） | `[x]` 已修复（桌面端复用 allowed_fs_bases 白名单 + `..` 拒绝） |
-| P002 | P1 | 安全 | `tauri/crates/solosoul-core/src/biometric/legacy.rs:88-103` | 遗留生物识别文件加密密钥派生自公开 account_id，可还原主密钥（存疑：仅限未迁移老安装的迁移窗口） | `[ ]` 待修复 |
+| P002 | P1 | 安全 | `tauri/crates/solosoul-core/src/biometric/legacy.rs:88-103` | 遗留生物识别文件加密密钥派生自公开 account_id，可还原主密钥（存疑：仅限未迁移老安装的迁移窗口） | `[x]` 已修复（用户确认：XOR 迁移路径整体删除，窗口已关） |
 | P003 | P1 | 安全 | `tauri/src-tauri/src/commands/update.rs:202-245` | Android APK 校验和与安装包同通道下发，无独立签名验证 | `[ ]` 待修复 |
 | P004 | P1 | 性能 | `tauri/crates/solosoul-plugin/src/field.rs:219-240` | 插件每解析一个字段就全表解密一次（模板+对象），无缓存，K 字段 × N 对象放大 | `[x]` 已修复（FieldCache 惰性缓存：templates/all_objects/by_type 三类） |
 | P005 | P1 | 性能 | `tauri/src/hooks/useExportScope.ts:52-76` + `export.rs:644-667` | 导出附件勾选 N+1：前端逐对象 IPC、后端逐对象整解密 | `[x]` 已修复（export_get_attachments_batch 批量命令 + load_objects_batch） |
@@ -77,8 +77,8 @@
 
 ## 修复进度
 
-- 已完成：13 / 46（P045 为合并占位，实际待修复 45 项）
-- 当前处理：P000-P015 全部闭环（12 项 + P045 合并）→ P002
+- 已完成：14 / 46（P045 为合并占位，实际待修复 45 项）
+- 当前处理：P000-P015 全部闭环（13 项 + P045 合并）→ P003
 
 ---
 
@@ -102,9 +102,12 @@
 
 - **位置**：`tauri/crates/solosoul-core/src/biometric/legacy.rs:88-103,127-165,32`
 - **问题**：`biometric_key` 文件（内容为主密钥 hex）的 AES 密钥 = HKDF(SHA-256(account_id))，account_id 即公开目录名，非秘密；更旧的 <2.0 格式仅用硬编码 XOR key（`LEGACY_XOR_KEY`）混淆。
-- **威胁场景**：同 UID 恶意进程读 `~/.solosoul/{acc}/biometric_key` → 重算密钥 → 解密主密钥 → 无需主密码/生物识别解密整个 Vault。代码注释自知「主要安全防护：OS 文件权限 0o600」。
-- **缓解**：macOS/Windows/iOS 主存储走 Keychain/DPAPI，此文件仅为遗留迁移路径，读取后即迁移并删除。风险窗口 = 未迁移老安装 + 删除前。
-- **建议**：设定迁移窗口截止版本，到期强制迁移并删除遗留文件；参考 P209 诊断计数 `count_legacy_key_files` 归零后移除整个 legacy 模块。
+- **修复（用户确认删除，迁移窗口已关）**：
+  1. `legacy.rs` 删除 XOR 迁移三件套：`LEGACY_XOR_KEY` 常量、`legacy_xor_decrypt`、`is_legacy_key_file`/`migrate_legacy_key_file` 函数。`FileBiometricStorage` 本体保留——它是生产依赖（macOS 当前方案 `macos.rs`、iOS、`vault_service` 测试兜底均使用）。
+  2. `read_encrypted_key_file` 移除 XOR 分支：遗留 64-hex XOR 文件现在 hex 解码后按 AES 解密失败处理（`InvalidKeyFormat` + 「重新启用生物识别」提示），与当前格式（AES blob >64 hex）天然互斥，无误判。
+  3. `mod.rs` 删除 `count_legacy_key_files` 诊断方法与测试（P209 窗口决策目的已达成）；`lib.rs` 删除 `setup_scan_legacy_biometric` 启动诊断及调用点。
+  4. `BiometricError::LegacyMigrationFailed` 变体保留（历史错误码兼容）。
+- **验证**：clippy 0 警告、core 162 测试通过（含 biometric 18）、solo_soul 编译通过。
 
 ### P003（P1 · 安全）Android APK 校验和同通道下发
 

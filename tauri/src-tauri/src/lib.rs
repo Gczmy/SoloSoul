@@ -173,27 +173,6 @@ fn setup_check_data_dir(app: &tauri::AppHandle) -> Result<(), String> {
     Ok(())
 }
 
-/// 第 1.5 步：P209 迁移窗口诊断——统计仍为 legacy XOR 格式的生物识别凭证存量。
-///
-/// 仅输出 tel 级日志（`RUST_LOG=solo_soul=trace` 可见），供大版本发布后评估
-/// 关闭 `legacy.rs` XOR 迁移路径（删除 LEGACY_XOR_KEY / legacy_xor_decrypt）
-/// 的依据：当该计数持续为 0 时迁移窗口已关闭。不读取/解密任何密钥内容。
-fn setup_scan_legacy_biometric(app: &tauri::AppHandle) {
-    let data_dir = match resolve_app_data_dir(app) {
-        Ok(dir) => dir,
-        Err(e) => {
-            tracing::warn!("[setup] 无法解析数据目录以扫描 legacy 生物识别凭证: {}", e);
-            return;
-        }
-    };
-    let manager = solosoul_core::biometric::BiometricManager::new(data_dir);
-    let legacy_count = manager.count_legacy_key_files();
-    tracing::trace!(
-        "[setup] legacy biometric credential files remaining: {} (0 表示 <2.0 迁移窗口已关闭，可移除 legacy.rs XOR 路径)",
-        legacy_count
-    );
-}
-
 /// 第 2 步：检查资源目录与关键子目录（仅记录日志，不中止启动）。
 fn setup_check_resource_dirs(app: &mut tauri::App) {
     match app.path().resource_dir() {
@@ -660,7 +639,6 @@ fn setup_app(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
 
     // 1.5 P209 迁移窗口诊断：统计仍为 legacy XOR 格式的生物识别凭证存量
     // （仅 tel 级日志，供大版本发布后评估关闭 legacy.rs XOR 路径的依据）
-    setup_scan_legacy_biometric(app.handle());
 
     // 2. 检查资源目录与关键子目录
     setup_check_resource_dirs(app);
