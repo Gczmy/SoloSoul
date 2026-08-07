@@ -1,8 +1,18 @@
 import { create } from 'zustand';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
+import { searchCache } from '@/lib/searchCache';
+import { useAuthStore } from '@/stores/authStore';
 // P228: 从 types/ 导入共享类型，断开 objectStore ↔ templateSync 循环依赖
 // （templateSync 运行时引用 objectStore，objectStore 仅需类型层）。
 import type { DeprecatedField, TemplateSyncResult } from '@/types/templateSync';
+
+// P038: 对象写操作后按当前账户失效搜索缓存（30s TTL 内新建/编辑的对象立即可搜）。
+function invalidateSearchCache() {
+  const accountId = useAuthStore.getState().currentAccount?.id;
+  if (accountId) {
+    searchCache.invalidateAccount(accountId);
+  }
+}
 
 export interface ObjectSummary {
   id: string;
@@ -145,6 +155,8 @@ export const useObjectStore = create<ObjectState>((set) => ({
         ],
         isLoading: false,
       }));
+      // P038: 新建对象后立即失效搜索缓存
+      invalidateSearchCache();
       return obj;
     } catch (err) {
       set({ error: String(err), isLoading: false });
@@ -177,6 +189,8 @@ export const useObjectStore = create<ObjectState>((set) => ({
         ),
         isLoading: false,
       }));
+      // P038: 编辑对象后立即失效搜索缓存
+      invalidateSearchCache();
     } catch (err) {
       set({ error: String(err), isLoading: false });
     }
@@ -190,6 +204,8 @@ export const useObjectStore = create<ObjectState>((set) => ({
         objects: s.objects.filter((o) => o.id !== objectId),
         isLoading: false,
       }));
+      // P038: 删除对象后立即失效搜索缓存
+      invalidateSearchCache();
     } catch (err) {
       set({ error: String(err), isLoading: false });
     }
@@ -211,6 +227,8 @@ export const useObjectStore = create<ObjectState>((set) => ({
     });
     // 同步成功后刷新该对象缓存，使 UI 立即反映最新字段与敏感度。
     await useObjectStore.getState().getObject(accountId, objectId);
+    // P038: 模板同步改写对象内容后立即失效搜索缓存
+    searchCache.invalidateAccount(accountId);
     return result;
   },
 

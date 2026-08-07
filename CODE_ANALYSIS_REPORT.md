@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-07（P000-P034、P036、P037 全部闭环，共 36 项；剩余 P027、P029、P035、P038-P044 共 9 项待修）
+> 最后更新：2026-08-07（P000-P034、P036-P038 全部闭环，共 37 项；剩余 P027、P029、P035、P039-P044 共 8 项待修）
 > 当前分支：`main`
 > 修复轮次：1（初始分析）
 > 基线版本：v2.8.5（HEAD `cdc6afb6`）
@@ -66,7 +66,7 @@
 | P035 | P2 | 安全 | `tauri/src-tauri/src/commands/llm/`（聊天路径） | AI 对话将解密内容发往第三方云端 LLM，需确认 UI 有明确隐私提示（存疑：产品决策） | `[ ]` 待修复 |
 | P036 | P2 | 规范 | `pages/workspace/WorkspaceObjectCard.tsx:320-377`、`hooks/useRevealState.ts:62-65`、`components/object/HistoryViewer.tsx:232` | 掩码逻辑分散三处且规则不一致（internal 掩码与否、占位符 4/8 圆点不一致） | `[x]` 已修复（新建 lib/masking.ts 单一规则源：仅 public 不掩码 + 8 圆点占位符，三处消费收敛，含单测×2） |
 | P037 | P2 | 架构 | 多处（`SnapshotEntry`×3、`ConversationSummary`×3、`ObjectSummary`×3 等） | 前后端镜像类型在前端重复定义 10+ 组，无防漂移机制 | `[x]` 已修复（新增 types/history、auditLog、backup、llmProvider 四单源；SnapshotEntry×3 / ConversationSummary×2 / AuditLogEntry×2 / BackupInfo×2 / ProviderConfig×2 / AttachmentInfo×2 / ListTemplate×2 收敛；exportImport.ObjectSummary 与 workspace 语义冲突重命名 ExportObjectSummary） |
-| P038 | P2 | 架构 | `tauri/src/lib/searchCache.ts` | 搜索缓存 30s TTL 无写失效，新建/编辑对象 30 秒内搜不到 | `[ ]` 待修复 |
+| P038 | P2 | 架构 | `tauri/src/lib/searchCache.ts` | 搜索缓存 30s TTL 无写失效，新建/编辑对象 30 秒内搜不到 | `[x]` 已修复（SearchCache.invalidateAccount 按 accountId 前缀失效；objectStore 五个写路径接入，含单测×2） |
 | P039 | P2 | 性能 | `components/llm/ChatMessageList.tsx:178`、`ConversationHistory.tsx:46`、`pages/editor/HistoryPage.tsx:96` | 大列表无分页/虚拟滚动（HistoryPage 快照随编辑次数无限增长） | `[ ]` 待修复 |
 | P040 | P2 | 重复代码 | `attachment/ConfirmDialog.tsx`、`workspace/ConfirmDeleteDialog.tsx`、`template/DeleteConfirmDialog.tsx` 等 5 处 | 5+ 个手写确认对话框重复 `ui/ConfirmDialog` 骨架 | `[ ]` 待修复 |
 | P041 | P2 | 可维护性 | `pages/auth/LoginPage.tsx`(约750行)、`App/AppRoutes.tsx`(约630行) 等 | 超长组件/hook 5 处，职责混杂 | `[ ]` 待修复 |

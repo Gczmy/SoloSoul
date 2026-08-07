@@ -9,7 +9,7 @@ interface CacheEntry<T> {
   timestamp: number;
 }
 
-class SearchCache {
+export class SearchCache {
   private cache = new Map<string, CacheEntry<unknown>>();
   private ttl: number;
 
@@ -46,6 +46,19 @@ class SearchCache {
   /** Clear all cached entries (e.g. on logout). */
   clear(): void {
     this.cache.clear();
+  }
+
+  /**
+   * P038: 按 accountId 前缀失效该账户的全部搜索缓存（对象写操作后调用，
+   * 避免 30s TTL 窗口内新建/编辑的对象搜不到）。
+   */
+  invalidateAccount(accountId: string): void {
+    const prefix = `${accountId}::`;
+    for (const key of this.cache.keys()) {
+      if (key.startsWith(prefix)) {
+        this.cache.delete(key);
+      }
+    }
   }
 }
 
