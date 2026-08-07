@@ -47,7 +47,7 @@
 | P029 | P2 | 安全 | `solosoul_cli/src/app.rs:776-791`、`commands/auth.rs:64-72` | 锁定/自动锁定不清理 previous_phase、chat_state、prompt，内存残留解密数据 | `[x]` 已修复（新增 `App::clear_sensitive_state`——清密码输入/提示/上一屏/聊天会话，自动锁定与 `/lock` 统一调用） |
 | P030 | P2 | 正确性 | `solosoul_cli/src/app.rs:813-818`、`commands/llm.rs:35` | 插件成功结果与 `/model` 信息性输出误用 `error_message` 通道（渲染为红色错误） | `[x]` 已修复（holder 加状态标记：成功→info_message、失败→error_message；/model 改 info_message） |
 | P031 | P2 | 正确性 | `solosoul_cli/src/commands/history.rs:88-123` | `do_rollback` 未校验 snapshot 归属对象/账户，可把别的对象数据套到本对象 | `[x]` 已修复（vault 新增 get_snapshot_owner，回滚前校验归属；回滚快照序列化/保存失败不再静默；+2 回归测试） |
-| P032 | P2 | 正确性 | `solosoul_cli/src/commands/mod.rs:61-68` | `update_profile_preference` 根非 object 时静默跳过仍返回 Ok，偏好写入丢失 | `[ ]` 待修复 |
+| P032 | P2 | 正确性 | `solosoul_cli/src/commands/mod.rs:61-68` | `update_profile_preference` 根非 object 时静默跳过仍返回 Ok，偏好写入丢失 | `[x]` 已修复（根非对象返回 Err 并保持数据不变；+2 回归测试） |
 | P033 | P2 | 正确性 | `solosoul_cli/src/commands/backup.rs:222-233` | 单个 profile 加载失败被静默跳过，备份可能不完整且无警告 | `[ ]` 待修复 |
 | P034 | P2 | 性能 | `solosoul_cli/src/commands/search.rs:283-287` | 每条搜索结果单独 `load_object(parent_id)` 解析父页面名，N+1 模式 | `[ ]` 待修复 |
 | P035 | P2 | 安全 | `solosoul_cli/src/commands/plugin.rs:102-106` | `plugin_id` 未做字符白名单校验直接拼接路径 | `[ ]` 待修复 |

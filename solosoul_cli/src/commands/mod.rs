@@ -58,13 +58,20 @@ pub fn update_profile_preference(
             .map_err(|e| color_eyre::eyre::eyre!("解析 profile 数据失败: {}", e))?
     };
 
-    if let Some(obj) = data.as_object_mut() {
-        let prefs = obj
-            .entry("preferences")
-            .or_insert_with(|| Value::Object(Map::new()));
-        if let Some(p) = prefs.as_object_mut() {
-            p.insert(key.to_string(), value);
+    // P032：根非对象时不再静默跳过——偏好写入丢失且调用方误报成功，改为显式报错
+    let obj = match data.as_object_mut() {
+        Some(o) => o,
+        None => {
+            return Err(color_eyre::eyre::eyre!(
+                "profile 数据根不是对象，无法写入偏好"
+            ));
         }
+    };
+    let prefs = obj
+        .entry("preferences")
+        .or_insert_with(|| Value::Object(Map::new()));
+    if let Some(p) = prefs.as_object_mut() {
+        p.insert(key.to_string(), value);
     }
 
     profile.data = serde_json::to_vec(&data).map_err(|e| {
@@ -105,3 +112,64 @@ pub mod system;
 pub mod template;
 pub mod vault_read;
 pub mod vault_write;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use solosoul_core::VaultService;
+    use std::sync::Arc;
+
+    fn unlocked_app() -> (App, String, tempfile::TempDir) {
+        let _guard = crate::VAULT_TEST_LOCK
+            .lock()
+            .unwrap_or_else(|e| e.into_inner());
+        let dir = tempfile::TempDir::new().unwrap();
+        let vault = VaultService::with_base_path(dir.path().to_path_buf());
+        let account = vault
+            .create_account("Test", crate::TEST_PASSWORD, None)
+            .unwrap();
+        let account_id = account["id"].as_str().unwrap().to_string();
+        let app = App::new(Arc::new(vault)).unwrap();
+        (app, account_id, dir)
+    }
+
+    /// P032：profile 数据根非对象时应报错，不得静默跳过偏好写入。
+    #[test]
+    fn test_update_profile_preference_rejects_non_object_root() {
+        let (mut app, account_id, _dir) = unlocked_app();
+        let vault = app.vault_service.get_vault_store().unwrap();
+
+        // 先走一次成功路径确保 profile 存在，再将 data 写成非对象 JSON（数组）
+        update_profile_preference(&mut app, "seed", serde_json::Value::Bool(true)).unwrap();
+        let mut profile = vault.load_profile(&account_id).unwrap().unwrap();
+        profile.data = b"[1,2,3]".to_vec();
+        vault.save_profile(&profile).unwrap();
+
+        let err =
+            update_profile_preference(&mut app, "theme", serde_json::Value::String("dark".into()))
+                .unwrap_err();
+        assert!(
+            err.to_string().contains("根不是对象"),
+            "应报告根非对象: {}",
+            err
+        );
+
+        // 数据保持原样（未写入、未覆盖）
+        let p2 = vault.load_profile(&account_id).unwrap().unwrap();
+        assert_eq!(p2.data, b"[1,2,3]");
+    }
+
+    /// P032 正向：正常对象根写入偏好成功。
+    #[test]
+    fn test_update_profile_preference_success() {
+        let (mut app, account_id, _dir) = unlocked_app();
+        let vault = app.vault_service.get_vault_store().unwrap();
+
+        update_profile_preference(&mut app, "theme", serde_json::Value::String("dark".into()))
+            .unwrap();
+
+        let profile = vault.load_profile(&account_id).unwrap().unwrap();
+        let data: serde_json::Value = serde_json::from_slice(&profile.data).unwrap();
+        assert_eq!(data["preferences"]["theme"], "dark");
+    }
+}
