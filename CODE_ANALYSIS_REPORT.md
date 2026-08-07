@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-07（P000 已修复）
+> 最后更新：2026-08-07（P000-P001 已修复）
 > 当前分支：`main`
 > 修复轮次：1（初始分析）
 > 基线版本：v2.8.5（HEAD `cdc6afb6`）
@@ -29,7 +29,7 @@
 | ID   | 优先级 | 类别 | 文件位置 | 描述 | 状态 |
 |------|--------|------|----------|------|------|
 | P000 | P0 | 测试 | `tauri/src-tauri/src/lib.rs:1010` | `test_dispatch_cluster_prefixes_consistent` 断言硬编码 188，簇列表实际已有 190 条命令，`cargo test` 红、CI 必挂 | `[x]` 已修复（断言 188→190，注释同步） |
-| P001 | P1 | 安全 | `tauri/src-tauri/src/commands/export_import/export.rs:253-272` | 导出 `save_path` 无落盘基目录限制（附件下载有，导出没有，校验不一致） | `[ ]` 待修复 |
+| P001 | P1 | 安全 | `tauri/src-tauri/src/commands/export_import/export.rs:253-272` | 导出 `save_path` 无落盘基目录限制（附件下载有，导出没有，校验不一致） | `[x]` 已修复（桌面端复用 allowed_fs_bases 白名单 + `..` 拒绝） |
 | P002 | P1 | 安全 | `tauri/crates/solosoul-core/src/biometric/legacy.rs:88-103` | 遗留生物识别文件加密密钥派生自公开 account_id，可还原主密钥（存疑：仅限未迁移老安装的迁移窗口） | `[ ]` 待修复 |
 | P003 | P1 | 安全 | `tauri/src-tauri/src/commands/update.rs:202-245` | Android APK 校验和与安装包同通道下发，无独立签名验证 | `[ ]` 待修复 |
 | P004 | P1 | 性能 | `tauri/crates/solosoul-plugin/src/field.rs:219-240` | 插件每解析一个字段就全表解密一次（模板+对象），无缓存，K 字段 × N 对象放大 | `[ ]` 待修复 |
@@ -77,8 +77,8 @@
 
 ## 修复进度
 
-- 已完成：2 / 46（P045 为合并占位，实际待修复 45 项）
-- 当前处理：P000（已修复）→ P001
+- 已完成：3 / 46（P045 为合并占位，实际待修复 45 项）
+- 当前处理：P000-P001（已修复）→ P004
 
 ---
 

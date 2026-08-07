@@ -249,6 +249,10 @@ fn validate_export_password(
 }
 
 /// 解析保存路径（支持 ~/ 前缀）并追加 .solosoul 后缀，确保父目录存在。
+///
+/// P001: 桌面端在返回前强制校验落盘位置位于允许基目录（Desktop/Documents/Downloads
+/// /SOLOSOUL_FS_BASE）内，与 `attachment_download` 同白名单——防 XSS 后以应用权限向任意
+/// 路径写入攻击者可控 zip。移动端前端仅能经 SAF URI/staging 中转（无法传任意路径），跳过校验。
 #[allow(unused_variables)]
 fn resolve_zip_path(app: &tauri::AppHandle, save_path: &str) -> Result<String, String> {
     let resolved = if save_path.starts_with("~/") {
@@ -275,10 +279,66 @@ fn resolve_zip_path(app: &tauri::AppHandle, save_path: &str) -> Result<String, S
     } else {
         format!("{resolved}.solosoul")
     };
+
+    // P001: 桌面端落盘位置白名单校验（拒绝 `..` 组件 + 必须在 allowed_fs_bases 内）。
+    #[cfg(desktop)]
+    validate_export_dest(&zip_path)?;
+
     if let Some(parent) = std::path::Path::new(&zip_path).parent() {
         let _ = std::fs::create_dir_all(parent);
     }
     Ok(zip_path)
+}
+
+/// P001: 校验导出落盘路径位于允许基目录内（与 `attachment_download` 的校验语义一致）。
+#[cfg(desktop)]
+fn validate_export_dest(zip_path: &str) -> Result<(), String> {
+    let dest = std::path::Path::new(zip_path);
+    // 拒绝路径穿越组件
+    if dest
+        .components()
+        .any(|c| matches!(c, std::path::Component::ParentDir))
+    {
+        return Err("导出路径不得包含 '..'".to_string());
+    }
+
+    let allowed_bases = crate::commands::attachment::allowed_fs_bases();
+    if allowed_bases.is_empty() {
+        return Ok(());
+    }
+
+    // 目标不存在时 canonicalize 父目录（对齐 attachment_download 的宽容处理）
+    let dest_canon = if dest.exists() {
+        dest.canonicalize()
+            .map_err(|e| format!("无法解析导出路径: {e}"))?
+    } else if let Some(parent) = dest.parent() {
+        if parent.exists() {
+            parent
+                .canonicalize()
+                .map_err(|_| "无法解析导出路径父目录".to_string())?
+        } else {
+            return Err("导出路径父目录不存在".to_string());
+        }
+    } else {
+        return Err("无效的导出路径".to_string());
+    };
+
+    let in_allowed = allowed_bases.iter().any(|base| {
+        if dest_canon.starts_with(base) {
+            return true;
+        }
+        if let Some(parent) = dest_canon.parent() {
+            parent.starts_with(base)
+        } else {
+            false
+        }
+    });
+    if !in_allowed {
+        return Err(
+            "导出位置必须在 Desktop、Documents、Downloads 或 SOLOSOUL_FS_BASE 内".to_string(),
+        );
+    }
+    Ok(())
 }
 
 const MAX_ATTACHMENT_BYTES: u64 = 100 * 1024 * 1024; // 100 MB

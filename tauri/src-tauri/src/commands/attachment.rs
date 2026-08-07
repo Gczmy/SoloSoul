@@ -104,7 +104,8 @@ fn path_within_base(
 ///
 /// R2-14: 从 `attachment_copy_to_vault` 与 `attachment_download` 两处近乎逐字重复的
 /// 内联块中提取，消除策略漂移风险（原一处含移动端 temp_dir 分支、一处不含）。
-fn allowed_fs_bases() -> Vec<PathBuf> {
+/// P001: 提升为 `pub(crate)` 供 `export_import/export.rs` 复用（导出落盘同白名单）。
+pub(crate) fn allowed_fs_bases() -> Vec<PathBuf> {
     let mut bases = Vec::new();
     if let Ok(fs_base) = std::env::var("SOLOSOUL_FS_BASE") {
         if let Ok(canon) = PathBuf::from(fs_base).canonicalize() {
