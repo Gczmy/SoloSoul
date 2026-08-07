@@ -506,11 +506,8 @@ pub async fn attachment_export_content_uri<R: Runtime>(
     let in_vault = path_within_base(&src, src_raw, src_canonicalized, &base_canon, &base);
 
     if !in_attachments && !in_vault {
-        return Err(format!(
-            "Source path must be within vault attachments storage: src={}, attachments_dir={}",
-            src.display(),
-            attachments_canon.display()
-        ));
+        // P019：错误消息不携带完整文件路径（防用户路径泄露进插件/日志）。
+        return Err("Source path must be within vault attachments storage".to_string());
     }
 
     let handle = app.state::<AttachmentImportPluginHandle<R>>();
