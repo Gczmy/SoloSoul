@@ -16,6 +16,13 @@
   font-weight: 600;
   line-height: 1.2;
   margin: 0;
+  /* 单行截断：连续无换行机会的文本（如全数字名称）在窄卡片内不水平溢出。
+     overflow: hidden 使 flex item 自动最小尺寸为 0，min-width: 0 允许收缩，
+     与设备卡/对象卡标题的省略号模式一致 */
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .cardDesc {
