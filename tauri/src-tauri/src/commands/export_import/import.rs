@@ -186,7 +186,8 @@ pub async fn import_execute(
         state,
         account_id,
         file_path,
-        password,
+        // P015: IPC 边界立即 Zeroizing 包装，避免导入密码以普通 String 长期驻留堆内存
+        zeroize::Zeroizing::new(password),
         ImportStrategy::SkipExisting,
         None,
         None,
@@ -208,7 +209,8 @@ pub async fn import_execute_advanced(
         state,
         account_id,
         req.source_path,
-        req.password,
+        // P015: IPC 边界立即 Zeroizing 包装
+        zeroize::Zeroizing::new(req.password),
         req.strategy,
         Some(req.selections),
         req.selected_attachment_ids,
@@ -227,7 +229,7 @@ pub(crate) async fn import_execute_internal(
     state: State<'_, AppState>,
     account_id: String,
     file_path: String,
-    password: String,
+    password: zeroize::Zeroizing<String>,
     strategy: ImportStrategy,
     selections: Option<Vec<ImportSelection>>,
     selected_attachment_ids: Option<Vec<String>>,
@@ -246,7 +248,7 @@ pub(crate) async fn import_execute_internal(
         return Err(import_err("PASSWORD_REQUIRED"));
     }
 
-    // ── 阶段 1：解密包读取 ──
+    // ── 阶段 1：解密包读取（password 为 Zeroizing，自动 Deref 为 &str）──
     let (manifest, payload, key) = decrypt_package(&file_path, &password)?;
 
     // Build selection set if provided

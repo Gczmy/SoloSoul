@@ -65,7 +65,9 @@ pub async fn recovery_host_start(
         .ok_or("No account is currently unlocked")?;
     let account_name = get_current_account_name(&state, &account_id)?;
 
-    let recovery_password = generate_recovery_password();
+    // P015: IPC/生成边界立即 Zeroizing 包装——恢复密码在主机会话期（最长 5 分钟）
+    // 驻留内存，普通 String 可被内存转储/交换分区还原，进而解密已导出的备份包。
+    let recovery_password = zeroize::Zeroizing::new(generate_recovery_password());
 
     // 临时导出文件路径
     let tmp_dir = std::env::temp_dir();
@@ -105,7 +107,7 @@ pub async fn recovery_host_start(
             include_behavioral: false,
             include_all: true,
         },
-        password: recovery_password.clone(),
+        password: (*recovery_password).clone(),
         password_hint: Some("Recovery transfer".to_string()),
         save_path: export_path.to_string_lossy().to_string(),
     };
@@ -350,12 +352,13 @@ pub async fn recovery_restore_from_host(
     }
 
     // 阶段 3：导入恢复包（50-95，导入进度按对象/附件条目数换算）。
+    // P015: 恢复密码在导入链路同样 Zeroizing 管理。
     let app_for_import = app.clone();
     let import_result = import_execute_internal(
         state.clone(),
         account_id.clone(),
         file_path.clone(),
-        recovery_password,
+        zeroize::Zeroizing::new(recovery_password),
         ImportStrategy::SkipExisting,
         None,
         None,

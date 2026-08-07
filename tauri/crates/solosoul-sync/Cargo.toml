@@ -21,6 +21,9 @@ chrono = { workspace = true }
 # Random
 rand = { workspace = true }
 
+# 敏感内存安全清零（P015：恢复密码 Zeroizing）
+zeroize = { workspace = true }
+
 # Local IP discovery for recovery host display address
 local-ip-address = "0.6"
 

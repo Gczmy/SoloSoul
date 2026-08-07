@@ -41,12 +41,14 @@ const GLOBAL_MAX_ATTEMPTS: u32 = 10;
 const GLOBAL_WINDOW: Duration = Duration::from_secs(60);
 
 /// 主机端状态。
+/// P015: recovery_password 用 Zeroizing 管理——恢复密码在整个主机会话期驻留内存
+/// （最长 5 分钟），普通 String 会被交换分区/内存转储还原，进而解密已导出的备份包。
 pub struct RecoveryHost {
     listener: TcpListener,
     pin: String,
     nonce: String,
     keys: NoiseKeys,
-    recovery_password: String,
+    recovery_password: zeroize::Zeroizing<String>,
     export_path: PathBuf,
     account_id: String,
     account_name: String,
@@ -70,7 +72,7 @@ impl RecoveryHost {
     pub fn start(
         addr: &str,
         export_path: PathBuf,
-        recovery_password: String,
+        recovery_password: zeroize::Zeroizing<String>,
         account_id: String,
         account_name: String,
     ) -> Result<Self, String> {
@@ -189,7 +191,7 @@ impl RecoveryHost {
         reset_global_rate_limit();
         send_text(&mut session, &mut transport, "OK")?;
 
-        // 2. 发送恢复密码
+        // 2. 发送恢复密码（Zeroizing 自动 Deref 为 &str）
         send_text(&mut session, &mut transport, &self.recovery_password)?;
 
         // 3. 发送 account_id
@@ -527,7 +529,7 @@ mod tests {
         let host = RecoveryHost::start(
             "127.0.0.1:0",
             export_path.clone(),
-            generate_recovery_password(),
+            zeroize::Zeroizing::new(generate_recovery_password()),
             "acc_host".to_string(),
             "Host Account".to_string(),
         )
@@ -572,7 +574,7 @@ mod tests {
         let host = RecoveryHost::start(
             "127.0.0.1:0",
             export_path.clone(),
-            generate_recovery_password(),
+            zeroize::Zeroizing::new(generate_recovery_password()),
             "acc_host".to_string(),
             "Host Account".to_string(),
         )
@@ -612,7 +614,7 @@ mod tests {
         let host = RecoveryHost::start(
             "127.0.0.1:0",
             export_path.clone(),
-            generate_recovery_password(),
+            zeroize::Zeroizing::new(generate_recovery_password()),
             "acc_host".to_string(),
             "Host Account".to_string(),
         )
@@ -660,7 +662,7 @@ mod tests {
         let host = RecoveryHost::start(
             "127.0.0.1:0",
             export_path.clone(),
-            generate_recovery_password(),
+            zeroize::Zeroizing::new(generate_recovery_password()),
             "acc_host".to_string(),
             "Host Account".to_string(),
         )
@@ -694,7 +696,7 @@ mod tests {
         let host = RecoveryHost::start(
             "127.0.0.1:0",
             export_path.clone(),
-            generate_recovery_password(),
+            zeroize::Zeroizing::new(generate_recovery_password()),
             "acc_host".to_string(),
             "Host Account".to_string(),
         )
