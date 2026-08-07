@@ -1,180 +1,120 @@
-# SoloSoul (独灵) 🧩
+<div align="center">
 
-**Your Local Digital Twin & Universal Identity Engine.**
+# SoloSoul · 独灵 🧩
 
-「独奏生命数据，重塑数字原点」—— 一个去中心化、本地加密的个人超级档案与自动化执行引擎。
+**Your local digital twin & universal identity engine.**
+**独奏生命数据，重塑数字原点。**
 
-> **核心理念**：「Centralized Schema definition, decentralized data storage」
+![macOS](https://img.shields.io/badge/macOS-Apple_Silicon-333333?logo=apple&logoColor=white)
+![Windows](https://img.shields.io/badge/Windows-x64-0078D6?logo=windows&logoColor=white)
+![Android](https://img.shields.io/badge/Android-APK-3DDC84?logo=android&logoColor=white)
+![Linux](https://img.shields.io/badge/Linux-AppImage-FCC624?logo=linux&logoColor=black)
+![License](https://img.shields.io/badge/license-MIT-blue)
+![Version](https://img.shields.io/badge/version-2.8.6-brightgreen)
 
----
+> **本地优先 · 隐私优先 · 零知识** 的个人数字孪生与通用身份引擎。
+>
+> 「Centralized Schema definition, decentralized data storage.」
+> 集中式 Schema 定义，去中心化数据存储。
 
-## 项目架构
-
-```
-SoloSoul/
-├── tauri/                     # 主项目：Tauri + React 跨平台客户端
-│   ├── src/                   # React 前端 (TypeScript, Zustand, CSS Modules)
-│   │   ├── components/        # UI 组件
-│   │   ├── pages/             # 页面
-│   │   │   ├── ai/            # AI 对话
-│   │   │   ├── auth/          # 启动/登录
-│   │   │   ├── editor/        # 对象/模板编辑器
-│   │   │   ├── scan/          # OCR/本地扫描
-│   │   │   ├── settings/      # 设置页
-│   │   │   ├── system/        # 关于/调试
-│   │   │   ├── workspace/     # 对象工作区
-│   │   │   └── ...
-│   │   ├── stores/            # Zustand 状态管理
-│   │   ├── lib/               # 工具库 (i18n, IPC, theme)
-│   │   ├── hooks/             # React Hooks
-│   │   ├── locales/           # 国际化 (en-US / zh-CN)
-│   │   ├── types/             # TypeScript 类型
-│   │   └── styles/            # 全局 CSS
-│   └── src-tauri/             # Rust 后端 (Tauri)
-│       ├── src/
-│       │   ├── commands/      # IPC 命令 (30+)
-│       │   ├── core/          # 核心逻辑 (SensitivityManager, etc.)
-│       │   ├── db/            # SQLite 数据库 + 迁移
-│       │   ├── ipc/           # IPC 通信
-│       │   ├── services/      # 业务服务 (vault, llm_context, sync)
-│       │   └── state/         # 应用状态
-│       └── crates/            # Workspace crates
-├── SoloSoul_plugin_market/    # 插件市场 (Git Submodule)
-├── docs/                      # 文档 (构建脚本、用户指南、法律文件)
-└── CHANGELOG.md               # 变更日志
-```
+</div>
 
 ---
 
-## 已完成
+## 为什么是 SoloSoul？
 
-### 核心系统 ✅
+你的数字生活有一个悖论：**你创造了海量的个人数据，但你几乎不拥有它们。**
 
-| 模块 | 状态 | 说明 |
-|------|------|------|
-| 对象系统 | ✅ | Create/Read/Update/Delete，扁平化管理，支持标签 |
-| 模板引擎 | ✅ | 用户自定义对象模板，8+ 字段类型 |
-| 历史快照 | ✅ | 每次修改自动保存快照，支持版本回滚 + diff 摘要 |
-| 回收站 | ✅ | 软删除/恢复/永久删除，冲突检测，批量操作 |
-| 搜索 | ✅ | 全文本搜索，支持分类/标签/类型筛选 |
-| 操作日志 | ✅ | 完整的结构化审计日志，全字段国际化 |
+- 通讯录锁在微信里，旅行记录散落在携程、飞猪、航旅纵横
+- 银行流水在各家 App 里，没有一份统一的「你的财务状况」
+- 护照、身份证、驾照躺在抽屉里，也躺在每个需要实名认证的网站上
+- 职业履历在 LinkedIn、Boss 直聘、猎聘上——每一家都只有片段
 
-### 安全 ✅
+这些数据被**割裂**（每个应用都有自己的数据模型）、被**锁定**（进去了就出不来）、被**监控**（每一次点击和搜索都被记录变现）。
 
-| 功能 | 说明 |
+SoloSoul 的信念是：**数据不应该被应用割裂。** 应该有一个统一的 Schema 定义「什么是护照」「什么是交易」「什么是联系人」——然后这些数据只存在于你的设备上，由你完全控制。
+
+这不是又一个笔记应用，也不是又一个密码管理器。SoloSoul 管理的是**结构化的「你」**：你的身份、你的旅行、你的财务、你的专业履历——每个字段都有类型、有验证规则、有敏感度分级。
+
+---
+
+## 核心特性
+
+### 🧠 你的数字孪生
+
+以对象为单位的个人档案系统，告别散落各处的信息碎片。
+
+| 能力 | 说明 |
 |------|------|
-| Argon2id 密钥派生 | 默认 8MiB/2 iter (开发) / 64MiB/3 iter (生产) |
-| AES-256-GCM 加密 | 所有数据本地加密存储 |
-| Master Password 零存储 | 仅在内存中用于密钥派生 |
-| 敏感度分级 | Public / Internal / Private / Sensitive / Restricted / Critical |
-| Privacy Shield | 一键掩码敏感数据 |
-| 生物识别 | Touch ID / Face ID 解锁 |
+| **对象系统** | 身份、旅行、财务、履历……一切皆对象，扁平化管理，支持标签 |
+| **模板引擎** | 自定义对象模板，8+ 字段类型，一次定义处处复用 |
+| **历史快照** | 每次修改自动保存快照，随时回滚 + diff 摘要 |
+| **回收站** | 软删除 30 天保护期，批量恢复 / 永久删除，冲突检测 |
 
-### AI 与工具 ✅
+### 🔐 安全默认
 
-| 功能 | 说明 |
-|------|------|
-| AI 对话 | 多 Provider (OpenAI/Anthropic/Ollama/自定义)，流式响应 |
-| 附件系统 | 上传/预览/下载/重命名/软删除/全部加密 |
-| OCR 识别 | 本地图像 OCR + MRZ 护照/证件解析 |
-| 本地扫描 | 文件系统扫描与索引 |
-| 导出/导入 | 加密导出，支持标签筛选与附件 |
+安全不是可选项，是默认状态。所有数据在离开你的手指之前加密。
 
-### 跨平台 ✅
+- **零知识架构** — 主密码从不离开设备，只在内存中派生密钥（Argon2id），用完即毁
+- **AES-256-GCM 全量加密** — 所有存储数据，包括附件
+- **敏感度六级分级** — Public → Critical，自动掩码 / 遮盖 / 重新验证
+- **生物识别** — Touch ID / Face ID 快速解锁，底层始终有主密码兜底
+- **自动锁定** — 应用切后台超时自动锁定，密钥即刻擦除
+
+### 🤖 本地 AI 与工具
+
+AI 在本地或你指定的端点运行——绝不上传原始数据。
+
+- **AI 对话** — 多 Provider（OpenAI / Anthropic / Ollama / 自定义），流式响应
+- **OCR 识别** — 本地图像文字识别 + MRZ 护照 / 证件解析（PP-OCRv6 / Apple Vision）
+- **附件系统** — 上传、预览、下载、重命名，全部加密存储
+- **加密导出 / 导入** — `.solosoul` 开放格式，随时完整迁移，导出必须加密
+
+### 🔄 设备同步
+
+多设备之间的数据同步，不经过任何第三方服务器。
+
+- **端到端加密通道** — Noise 协议握手，双向确认 + PIN 验证码配对
+- **mDNS 局域网发现** — 设备自动发现，无需配置服务器
+- **冲突可视化** — 字段级差异对比，保留本地 / 远程 / 忽略，一目了然
+- **自动同步** — 切回前台、本地变更、周期三种触发方式，可持久化开关
+
+### 🔍 掌控一切
+
+- **全局搜索** — 本地索引毫秒响应，支持分类 / 标签 / 类型筛选
+- **审计日志** — 每次 CRUD 的结构化操作记录，全字段国际化
+- **i18n 双语** — en-US / zh-CN，覆盖所有页面与文案
+
+---
+
+## 平台与安装
 
 | 平台 | 安装包 | 状态 |
 |------|--------|------|
-| macOS (Apple Silicon) | DMG | ✅ 可用 |
-| Windows (x64) | NSIS (.exe) | ✅ 可用 |
-| Linux | AppImage | ⏳ 待测试 |
+| macOS (Apple Silicon) | `.dmg` | ✅ 可用 |
+| Windows (x64) | `.exe` (NSIS) | ✅ 可用 |
+| Android | `.apk` (universal) | ✅ 可用 |
+| Linux | `.AppImage` | ⏳ 待测试 |
 
-### 国际化 i18n ✅
+从 [GitHub Releases](https://github.com/Gczmy/SoloSoul/releases) 下载对应平台的安装包。安装后创建本地账户（无需邮箱），设置主密码即可开始。
 
-- en-US / zh-CN 双语言
-- 覆盖所有页面：编辑器、认证、设置、布局、对象工作区、AI、OCR 等
-- 字段标签、验证消息、操作日志、相对时间全部翻译
+### 终端用户：SoloSoul CLI
 
----
-
-## 待完成
-
-### P0
-
-1. **签名与分发**
-   - macOS 代码签名 + 公证 (Developer ID)
-   - Windows Authenticode 签名
-
-### P1
-
-2. **物理安全**
-   - 防截屏保护
-   - 多任务视图模糊
-
-### P2
-
-3. **云同步**
-   - 多设备同步引擎
-   - 冲突解决
-
-### P3
-
-4. **插件生态系统**
-   - 插件运行时 v2 适配
-   - 插件市场集成
+配套的终端 TUI 客户端 `solosoul`，支持账户管理、对象 CRUD、搜索、历史回滚、审计日志、加密导入导出等 30+ 命令。详见 [CLI 用户指南](docs/solosoul_cli/USER_GUIDE.md)。
 
 ---
 
-## 开发命令
+## 我们对你的承诺
 
-```bash
-cd tauri
+SoloSoul 与用户之间不是「服务商与客户」，而是**「工具提供者与技术使用者」**。我们写下了 [用户契约](docs/manifesto/03_用户契约.md)，白纸黑字：
 
-# 开发模式
-npm run dev
+- **你的数据，只存在于你的设备上** — 没有云端备份，没有后台分析
+- **我们无法读取你的数据** — 零知识架构，即使开发者想看也看不到
+- **不追踪，不分析，不画像** — 零遥测，连「未读小红点」都不需要联网
+- **删除就是删除** — 没有你不知情的隐藏副本
+- **没有强制，没有锁定** — 不需要邮箱注册，可以永远使用当前版本，随时完整导出离开
 
-# 代码检查 (TypeScript + ESLint)
-npm run check-all
-
-# Release 构建
-npm run tauri build
-```
-
----
-
-## 技术栈
-
-| 组件 | 技术 |
-|------|------|
-| 前端框架 | React 19, TypeScript, Vite |
-| 状态管理 | Zustand |
-| 样式 | CSS Modules + 全局 CSS 变量 |
-| 国际化 | i18next + react-i18next |
-| 后端框架 | Tauri v2 (Rust) |
-| 数据库 | SQLite (rusqlite) |
-| 密码学 | Argon2id, AES-256-GCM |
-| OCR | PP-OCRv6 (ONNX Runtime) |
-
----
-
-## 安全特性
-
-- **零知识架构** — Master Password 从不存储，仅在内存中派生密钥
-- **本地优先** — 数据仅存储在 `~/.solosoul/`，绝不上传云端
-- **全量加密** — AES-256-GCM 加密所有存储数据
-- **敏感分级** — 三阶敏感度 (Public / Private / Restricted)
-- **安全内存** — 敏感字段使用后销毁 (secure zeroing)
-- **Session 过期** — 24 小时自动过期
-
----
-
-## 构建与发布
-
-详见 [`docs/release_process.md`](docs/release_process.md)。
-
-发布流程：
-1. **准备** — 统一版本号（3 个文件同步）
-2. **构建** — macOS 产 DMG，Windows 产 NSIS `.exe`
-3. **发布** — 上传至 GitHub Releases，更新 CHANGELOG
+**如果你丢失主密码，我们无法帮你恢复。** 这不是冷漠，这是零知识架构的必然结果——请定期导出加密备份。
 
 ---
 
@@ -182,14 +122,17 @@ npm run tauri build
 
 | 文档 | 说明 |
 |------|------|
-| [Release 流程](docs/release_process.md) | 发布构建与 GitHub Release 流程 |
-| [TODO](docs/TODO.md) | 开发任务清单 |
+| [用户契约](docs/manifesto/03_用户契约.md) | 我们对用户做出的八项承诺 |
+| [产品使命](docs/manifesto/01_产品使命.md) | SoloSoul 为什么存在 |
+| [设计哲学](docs/manifesto/02_设计哲学.md) | 我们做产品决策的依据 |
+| [CLI 用户指南](docs/solosoul_cli/USER_GUIDE.md) | 终端客户端使用说明 |
 | [CHANGELOG](CHANGELOG.md) | 详细变更日志 |
+| [开发者文档](docs/DEVELOPMENT.md) | 项目结构、技术栈、构建与发布 |
 
 ---
 
-## 许可证
+## 开源协议
 
-SoloSoul 基于 **MIT License** 发布。详见 [LICENSE](LICENSE) 文件。
+SoloSoul 基于 **MIT License** 发布——你可以自由使用、修改、分发，甚至分叉。
 
 SoloSoul is released under the **MIT License**. See the [LICENSE](LICENSE) file for details.
