@@ -44,7 +44,7 @@
 | P013 | P1 | 死代码 | `uiStore.ts:24-90`、`llmStore.ts:22,86`、`templateStore.ts:26,94`、`ocrScanStore.ts:38-40,148-150` | 多个 store 状态/action 仅被测试引用，生产零引用 | `[x]` 已修复（用户确认删除：8 项死状态/action + 对应测试块） |
 | P014 | P1 | 规范 | `AGENTS.md`（敏感数据分级节约定） | AGENTS.md 强制要求的 `SensitiveValueWidget`/`SensitivityBlurredWidget`/`SensitivityTag` 组件不存在，实际掩码机制是 `useRevealState`+`SensitivityBadge`；文档称 6 级敏感度，实现为 4 级 | `[x]` 已修复（AGENTS.md 更新为实际 4 级 + useRevealState/SensitivityBadge 约定） |
 | P015 | P1 | 安全 | `tauri/src-tauri/src/commands/export_import/import.rs:230`、`export_import/mod.rs:112`、`solosoul-sync/src/recovery.rs:46-49` | 导入/导出/恢复密码未走 `Zeroizing` 模式（auth 已全部 P031 化，这三处遗漏） | `[x]` 已修复（导入/恢复 IPC 边界 Zeroizing；RecoveryHost.recovery_password Zeroizing） |
-| P016 | P2 | 重复代码 | `tauri/crates/solosoul-vault/src/storage.rs:707,942` | `migrate_to_encrypted_format` 与 `reencrypt_all` 各 211 行互为镜像，按表复制样板 5-6 次；且均整表 collect 进内存 | `[ ]` 待修复 |
+| P016 | P2 | 重复代码 | `tauri/crates/solosoul-vault/src/storage.rs:707,942` | `migrate_to_encrypted_format` 与 `reencrypt_all` 各 211 行互为镜像，按表复制样板 5-6 次；且均整表 collect 进内存 | `[x]` 已修复（抽 rewrite_table 表驱动 helper，两函数共 12 块样板收敛为 12 个闭包） |
 | P017 | P2 | 重复代码 | `src-tauri/src/sync/auto_sync.rs:134`、`sync/device_auto_sync.rs:148` | 两个自动同步状态机约 90 行近乎逐行重复 | `[ ]` 待修复 |
 | P018 | P2 | 可维护性 | 7 处超长函数（详见下文） | `import_execute_internal`(224行) 等 7 个 >150 行函数，嵌套最深 d11 | `[ ]` 待修复 |
 | P019 | P2 | 可维护性 | `crates/solosoul-vault/src/storage/sync_meta.rs:499` | `cleanup_expired_tombstones` 嵌套 d13，手写 HLC 三元组 min 比较 | `[ ]` 待修复 |
@@ -77,8 +77,8 @@
 
 ## 修复进度
 
-- 已完成：15 / 46（P045 为合并占位，实际待修复 45 项）
-- 当前处理：P000-P015 全部闭环（14 项 + P045 合并）→ 下一项 P016
+- 已完成：16 / 46（P045 为合并占位，实际待修复 45 项）
+- 当前处理：P000-P016 全部闭环（15 项 + P045 合并）→ 下一项 P017
 
 ---
 
@@ -212,7 +212,11 @@
 
 - **位置**：`tauri/crates/solosoul-vault/src/storage.rs:707,942`
 - **问题**：`migrate_to_encrypted_format` 与 `reencrypt_all` 各 211 行，「SELECT 整表 → 逐行重加密 → UPDATE」样板按表重复 5-6 次，两函数互为镜像；新增加密表需同时改两处。附带：均整表 collect 进内存，大 vault 换密钥内存峰值可观。
-- **建议**：抽表驱动公共 helper（表名+列清单+行转换闭包），考虑分批处理。
+- **修复**：抽取表驱动公共 helper `rewrite_table(tx, select_sql, update_sql, table_name, log_progress, transform)`——闭包读出一行并返回要写回的新列值（`None` 表示跳过该行，保留原实现的幂等语义），id 取第 0 列自动追加为 UPDATE 末参数；`params_from_iter` 组装占位符（原 `params!` 宏无法动态拼接）。两函数各 6 块镜像样板收敛为 6 个短闭包：
+  1. `migrate_to_encrypted_format`：blob 表保留「`is_encrypted_blob`/空行跳过」守卫（幂等），文本表沿用 `ensure_encrypted_text`；备份、version 守卫、sys_config 写回不变。
+  2. `reencrypt_all`：每表「旧钥解密→新钥加密」，保留 `reencrypt_progress` 进度日志（helper 的 `log_progress` 开关）与 N-2 全有全无提交语义。
+- **行为等价验证**：`test_reencrypt_all_roundtrip`/`test_reencrypt_all_failure_rolls_back` 通过；vault 全量 149 测试通过；下游 sync/solo_soul 编译通过；clippy 0 警告。
+- **净减**：两函数 422 行 → 176+143 行 + helper 50 行（约 -90 行）。
 
 ### P017（P2）自动同步双状态机重复
 

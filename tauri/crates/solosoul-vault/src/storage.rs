@@ -341,6 +341,58 @@ pub struct VaultStore {
     ui_prefs_sync_enabled: AtomicBool,
 }
 
+/// P016: 表驱动整表重写公共 helper。
+/// 供 `migrate_to_encrypted_format`（幂等：仅加密未加密/非空行）与 `reencrypt_all`
+/// （换钥：全部行解密→重加密）复用。每张表只需 SELECT / UPDATE 语句、表名与一行
+/// 转换闭包：闭包读出该行数据，返回要写回的新列值（不含 id——id 取第 0 列自动
+/// 追加为 UPDATE 最后一个参数）；返回 `None` 表示跳过该行（不执行 UPDATE）。
+fn rewrite_table<F>(
+    tx: &rusqlite::Transaction<'_>,
+    select_sql: &str,
+    update_sql: &str,
+    table_name: &str,
+    log_progress: bool,
+    mut transform: F,
+) -> Result<(), String>
+where
+    F: FnMut(&rusqlite::Row<'_>) -> Result<Option<Vec<rusqlite::types::Value>>, String>,
+{
+    // 两阶段（SELECT 整表 → 释放 stmt → 再 UPDATE）：rusqlite 不允许同连接
+    // 同时持有两个活动语句，保持与原实现一致。
+    let mut stmt = tx.prepare(select_sql).map_err(|e| e.to_string())?;
+    let rows: Vec<(rusqlite::types::Value, Option<Vec<rusqlite::types::Value>>)> = {
+        let mut q = stmt.query([]).map_err(|e| e.to_string())?;
+        let mut out = Vec::new();
+        while let Some(row) = q.next().map_err(|e| e.to_string())? {
+            let id = row
+                .get::<_, rusqlite::types::Value>(0)
+                .map_err(|e| e.to_string())?;
+            let new_vals = transform(row)?;
+            out.push((id, new_vals));
+        }
+        out
+    };
+    drop(stmt);
+    let rows_len = rows.len();
+    let mut update = tx.prepare(update_sql).map_err(|e| e.to_string())?;
+    for (id, new_vals) in rows {
+        if let Some(mut params) = new_vals {
+            params.push(id);
+            update
+                .execute(rusqlite::params_from_iter(params.iter()))
+                .map_err(|e| e.to_string())?;
+        }
+    }
+    if log_progress {
+        tracing::info!(
+            "reencrypt_progress: table={}, rows={}",
+            table_name,
+            rows_len
+        );
+    }
+    Ok(())
+}
+
 impl VaultStore {
     /// Open or create a vault at the given path
     pub fn open(config: VaultConfig) -> Result<Self, String> {
@@ -736,164 +788,107 @@ impl VaultStore {
         let tx = conn.transaction().map_err(|e| e.to_string())?;
 
         let result: Result<(), String> = (|| {
-            // profiles.data
-            {
-                let mut stmt = tx
-                    .prepare("SELECT id, data FROM profiles")
-                    .map_err(|e| e.to_string())?;
-                let rows: Vec<(String, Vec<u8>)> = stmt
-                    .query_map([], |row| {
-                        Ok((row.get::<_, String>(0)?, row.get::<_, Vec<u8>>(1)?))
-                    })
-                    .map_err(|e| e.to_string())?
-                    .collect::<Result<Vec<_>, _>>()
-                    .map_err(|e| e.to_string())?;
-                drop(stmt);
-                let mut update = tx
-                    .prepare("UPDATE profiles SET data = ?1 WHERE id = ?2")
-                    .map_err(|e| e.to_string())?;
-                for (id, data) in rows {
-                    if !crate::encryption::is_encrypted_blob(&data) && !data.is_empty() {
+            // profiles.data（整行加密；已加密/空行跳过）
+            rewrite_table(
+                &tx,
+                "SELECT id, data FROM profiles",
+                "UPDATE profiles SET data = ?1 WHERE id = ?2",
+                "profiles",
+                false,
+                |row| {
+                    let data: Vec<u8> = row.get(1).map_err(|e| e.to_string())?;
+                    if crate::encryption::is_encrypted_blob(&data) || data.is_empty() {
+                        Ok(None)
+                    } else {
                         let encrypted = encrypt_field(&key, &data)?;
-                        update
-                            .execute(params![encrypted, id])
-                            .map_err(|e| e.to_string())?;
+                        Ok(Some(vec![rusqlite::types::Value::Blob(encrypted)]))
                     }
-                }
-            }
+                },
+            )?;
 
-            // objects.properties / property_labels
-            {
-                let mut stmt = tx
-                    .prepare("SELECT id, properties, property_labels FROM objects")
-                    .map_err(|e| e.to_string())?;
-                let rows: Vec<(String, String, Option<String>)> = stmt
-                    .query_map([], |row| {
-                        Ok((
-                            row.get::<_, String>(0)?,
-                            row.get::<_, String>(1)?,
-                            row.get::<_, Option<String>>(2)?,
-                        ))
-                    })
-                    .map_err(|e| e.to_string())?
-                    .collect::<Result<Vec<_>, _>>()
-                    .map_err(|e| e.to_string())?;
-                drop(stmt);
-                let mut update = tx
-                    .prepare(
-                        "UPDATE objects SET properties = ?1, property_labels = ?2 WHERE id = ?3",
-                    )
-                    .map_err(|e| e.to_string())?;
-                for (id, properties, labels) in rows {
+            // objects.properties / property_labels（ensure_encrypted_text 幂等）
+            rewrite_table(
+                &tx,
+                "SELECT id, properties, property_labels FROM objects",
+                "UPDATE objects SET properties = ?1, property_labels = ?2 WHERE id = ?3",
+                "objects",
+                false,
+                |row| {
+                    let properties: String = row.get(1).map_err(|e| e.to_string())?;
+                    let labels: Option<String> = row.get(2).map_err(|e| e.to_string())?;
                     let encrypted_props = ensure_encrypted_text(&key, &properties)?;
                     let encrypted_labels = labels
                         .as_deref()
                         .map(|l| ensure_encrypted_text(&key, l))
                         .transpose()?
                         .unwrap_or_default();
-                    update
-                        .execute(params![encrypted_props, encrypted_labels, id])
-                        .map_err(|e| e.to_string())?;
-                }
-            }
+                    Ok(Some(vec![
+                        rusqlite::types::Value::Text(encrypted_props),
+                        rusqlite::types::Value::Text(encrypted_labels),
+                    ]))
+                },
+            )?;
 
             // trash_items.data
-            {
-                let mut stmt = tx
-                    .prepare("SELECT id, data FROM trash_items")
-                    .map_err(|e| e.to_string())?;
-                let rows: Vec<(String, Vec<u8>)> = stmt
-                    .query_map([], |row| {
-                        Ok((row.get::<_, String>(0)?, row.get::<_, Vec<u8>>(1)?))
-                    })
-                    .map_err(|e| e.to_string())?
-                    .collect::<Result<Vec<_>, _>>()
-                    .map_err(|e| e.to_string())?;
-                drop(stmt);
-                let mut update = tx
-                    .prepare("UPDATE trash_items SET data = ?1 WHERE id = ?2")
-                    .map_err(|e| e.to_string())?;
-                for (id, data) in rows {
-                    if !crate::encryption::is_encrypted_blob(&data) && !data.is_empty() {
+            rewrite_table(
+                &tx,
+                "SELECT id, data FROM trash_items",
+                "UPDATE trash_items SET data = ?1 WHERE id = ?2",
+                "trash_items",
+                false,
+                |row| {
+                    let data: Vec<u8> = row.get(1).map_err(|e| e.to_string())?;
+                    if crate::encryption::is_encrypted_blob(&data) || data.is_empty() {
+                        Ok(None)
+                    } else {
                         let encrypted = encrypt_field(&key, &data)?;
-                        update
-                            .execute(params![encrypted, id])
-                            .map_err(|e| e.to_string())?;
+                        Ok(Some(vec![rusqlite::types::Value::Blob(encrypted)]))
                     }
-                }
-            }
+                },
+            )?;
 
             // object_snapshots.data
-            {
-                let mut stmt = tx
-                    .prepare("SELECT id, data FROM object_snapshots")
-                    .map_err(|e| e.to_string())?;
-                let rows: Vec<(String, Vec<u8>)> = stmt
-                    .query_map([], |row| {
-                        Ok((row.get::<_, String>(0)?, row.get::<_, Vec<u8>>(1)?))
-                    })
-                    .map_err(|e| e.to_string())?
-                    .collect::<Result<Vec<_>, _>>()
-                    .map_err(|e| e.to_string())?;
-                drop(stmt);
-                let mut update = tx
-                    .prepare("UPDATE object_snapshots SET data = ?1 WHERE id = ?2")
-                    .map_err(|e| e.to_string())?;
-                for (id, data) in rows {
-                    if !crate::encryption::is_encrypted_blob(&data) && !data.is_empty() {
+            rewrite_table(
+                &tx,
+                "SELECT id, data FROM object_snapshots",
+                "UPDATE object_snapshots SET data = ?1 WHERE id = ?2",
+                "object_snapshots",
+                false,
+                |row| {
+                    let data: Vec<u8> = row.get(1).map_err(|e| e.to_string())?;
+                    if crate::encryption::is_encrypted_blob(&data) || data.is_empty() {
+                        Ok(None)
+                    } else {
                         let encrypted = encrypt_field(&key, &data)?;
-                        update
-                            .execute(params![encrypted, id])
-                            .map_err(|e| e.to_string())?;
+                        Ok(Some(vec![rusqlite::types::Value::Blob(encrypted)]))
                     }
-                }
-            }
+                },
+            )?;
 
             // user_templates.properties_json
-            {
-                let mut stmt = tx
-                    .prepare("SELECT id, properties_json FROM user_templates")
-                    .map_err(|e| e.to_string())?;
-                let rows: Vec<(String, String)> = stmt
-                    .query_map([], |row| {
-                        Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
-                    })
-                    .map_err(|e| e.to_string())?
-                    .collect::<Result<Vec<_>, _>>()
-                    .map_err(|e| e.to_string())?;
-                drop(stmt);
-                let mut update = tx
-                    .prepare("UPDATE user_templates SET properties_json = ?1 WHERE id = ?2")
-                    .map_err(|e| e.to_string())?;
-                for (id, props_json) in rows {
+            rewrite_table(
+                &tx,
+                "SELECT id, properties_json FROM user_templates",
+                "UPDATE user_templates SET properties_json = ?1 WHERE id = ?2",
+                "user_templates",
+                false,
+                |row| {
+                    let props_json: String = row.get(1).map_err(|e| e.to_string())?;
                     let encrypted = ensure_encrypted_text(&key, &props_json)?;
-                    update
-                        .execute(params![encrypted, id])
-                        .map_err(|e| e.to_string())?;
-                }
-            }
+                    Ok(Some(vec![rusqlite::types::Value::Text(encrypted)]))
+                },
+            )?;
 
             // audit_log.details / entity_name
-            {
-                let mut stmt = tx
-                    .prepare("SELECT id, details, entity_name FROM audit_log")
-                    .map_err(|e| e.to_string())?;
-                let rows: Vec<(i64, Option<String>, Option<String>)> = stmt
-                    .query_map([], |row| {
-                        Ok((
-                            row.get::<_, i64>(0)?,
-                            row.get::<_, Option<String>>(1)?,
-                            row.get::<_, Option<String>>(2)?,
-                        ))
-                    })
-                    .map_err(|e| e.to_string())?
-                    .collect::<Result<Vec<_>, _>>()
-                    .map_err(|e| e.to_string())?;
-                drop(stmt);
-                let mut update = tx
-                    .prepare("UPDATE audit_log SET details = ?1, entity_name = ?2 WHERE id = ?3")
-                    .map_err(|e| e.to_string())?;
-                for (id, details, entity_name) in rows {
+            rewrite_table(
+                &tx,
+                "SELECT id, details, entity_name FROM audit_log",
+                "UPDATE audit_log SET details = ?1, entity_name = ?2 WHERE id = ?3",
+                "audit_log",
+                false,
+                |row| {
+                    let details: Option<String> = row.get(1).map_err(|e| e.to_string())?;
+                    let entity_name: Option<String> = row.get(2).map_err(|e| e.to_string())?;
                     let encrypted_details = details
                         .as_deref()
                         .map(|d| ensure_encrypted_text(&key, d))
@@ -904,11 +899,12 @@ impl VaultStore {
                         .map(|n| ensure_encrypted_text(&key, n))
                         .transpose()?
                         .unwrap_or_default();
-                    update
-                        .execute(params![encrypted_details, encrypted_name, id])
-                        .map_err(|e| e.to_string())?;
-                }
-            }
+                    Ok(Some(vec![
+                        rusqlite::types::Value::Text(encrypted_details),
+                        rusqlite::types::Value::Text(encrypted_name),
+                    ]))
+                },
+            )?;
 
             let now = chrono::Utc::now().to_rfc3339();
             tx.execute(
@@ -937,8 +933,6 @@ impl VaultStore {
         }
     }
 
-    /// Re-encrypt all sensitive fields with a new key.
-    /// Used by `change_password` to ensure data is accessible only with the new password.
     pub fn reencrypt_all(
         &self,
         old_key: &DataEncryptionKey,
@@ -949,57 +943,30 @@ impl VaultStore {
         let tx = conn.transaction().map_err(|e| e.to_string())?;
 
         let result: Result<(), String> = (|| {
-            // profiles
-            {
-                let mut stmt = tx
-                    .prepare("SELECT id, data FROM profiles")
-                    .map_err(|e| e.to_string())?;
-                let rows: Vec<(String, Vec<u8>)> = stmt
-                    .query_map([], |row| {
-                        Ok((row.get::<_, String>(0)?, row.get::<_, Vec<u8>>(1)?))
-                    })
-                    .map_err(|e| e.to_string())?
-                    .collect::<Result<Vec<_>, _>>()
-                    .map_err(|e| e.to_string())?;
-                let rows_len = rows.len();
-                drop(stmt);
-                let mut update = tx
-                    .prepare("UPDATE profiles SET data = ?1 WHERE id = ?2")
-                    .map_err(|e| e.to_string())?;
-                for (id, data) in rows {
+            // 每表「旧钥解密 → 新钥加密」（换钥，全量重写）
+            rewrite_table(
+                &tx,
+                "SELECT id, data FROM profiles",
+                "UPDATE profiles SET data = ?1 WHERE id = ?2",
+                "profiles",
+                true,
+                |row| {
+                    let data: Vec<u8> = row.get(1).map_err(|e| e.to_string())?;
                     let plain = decrypt_field(old_key, &data)?;
                     let encrypted = encrypt_field(new_key, &plain)?;
-                    update
-                        .execute(params![encrypted, id])
-                        .map_err(|e| e.to_string())?;
-                }
-                tracing::info!("reencrypt_progress: table=profiles, rows={}", rows_len);
-            }
+                    Ok(Some(vec![rusqlite::types::Value::Blob(encrypted)]))
+                },
+            )?;
 
-            // objects
-            {
-                let mut stmt = tx
-                    .prepare("SELECT id, properties, property_labels FROM objects")
-                    .map_err(|e| e.to_string())?;
-                let rows: Vec<(String, String, Option<String>)> = stmt
-                    .query_map([], |row| {
-                        Ok((
-                            row.get::<_, String>(0)?,
-                            row.get::<_, String>(1)?,
-                            row.get::<_, Option<String>>(2)?,
-                        ))
-                    })
-                    .map_err(|e| e.to_string())?
-                    .collect::<Result<Vec<_>, _>>()
-                    .map_err(|e| e.to_string())?;
-                let rows_len = rows.len();
-                drop(stmt);
-                let mut update = tx
-                    .prepare(
-                        "UPDATE objects SET properties = ?1, property_labels = ?2 WHERE id = ?3",
-                    )
-                    .map_err(|e| e.to_string())?;
-                for (id, properties, labels) in rows {
+            rewrite_table(
+                &tx,
+                "SELECT id, properties, property_labels FROM objects",
+                "UPDATE objects SET properties = ?1, property_labels = ?2 WHERE id = ?3",
+                "objects",
+                true,
+                |row| {
+                    let properties: String = row.get(1).map_err(|e| e.to_string())?;
+                    let labels: Option<String> = row.get(2).map_err(|e| e.to_string())?;
                     let plain_props = decrypt_text_field(old_key, &properties)?;
                     let encrypted_props = encrypt_text_field(new_key, &plain_props)?;
                     let plain_labels = labels
@@ -1010,122 +977,64 @@ impl VaultStore {
                         .map(|l| encrypt_text_field(new_key, &l))
                         .transpose()?
                         .unwrap_or_default();
-                    update
-                        .execute(params![encrypted_props, encrypted_labels, id])
-                        .map_err(|e| e.to_string())?;
-                }
-                tracing::info!("reencrypt_progress: table=objects, rows={}", rows_len);
-            }
+                    Ok(Some(vec![
+                        rusqlite::types::Value::Text(encrypted_props),
+                        rusqlite::types::Value::Text(encrypted_labels),
+                    ]))
+                },
+            )?;
 
-            // trash_items
-            {
-                let mut stmt = tx
-                    .prepare("SELECT id, data FROM trash_items")
-                    .map_err(|e| e.to_string())?;
-                let rows: Vec<(String, Vec<u8>)> = stmt
-                    .query_map([], |row| {
-                        Ok((row.get::<_, String>(0)?, row.get::<_, Vec<u8>>(1)?))
-                    })
-                    .map_err(|e| e.to_string())?
-                    .collect::<Result<Vec<_>, _>>()
-                    .map_err(|e| e.to_string())?;
-                let rows_len = rows.len();
-                drop(stmt);
-                let mut update = tx
-                    .prepare("UPDATE trash_items SET data = ?1 WHERE id = ?2")
-                    .map_err(|e| e.to_string())?;
-                for (id, data) in rows {
+            rewrite_table(
+                &tx,
+                "SELECT id, data FROM trash_items",
+                "UPDATE trash_items SET data = ?1 WHERE id = ?2",
+                "trash_items",
+                true,
+                |row| {
+                    let data: Vec<u8> = row.get(1).map_err(|e| e.to_string())?;
                     let plain = decrypt_field(old_key, &data)?;
                     let encrypted = encrypt_field(new_key, &plain)?;
-                    update
-                        .execute(params![encrypted, id])
-                        .map_err(|e| e.to_string())?;
-                }
-                tracing::info!("reencrypt_progress: table=trash_items, rows={}", rows_len);
-            }
+                    Ok(Some(vec![rusqlite::types::Value::Blob(encrypted)]))
+                },
+            )?;
 
-            // object_snapshots
-            {
-                let mut stmt = tx
-                    .prepare("SELECT id, data FROM object_snapshots")
-                    .map_err(|e| e.to_string())?;
-                let rows: Vec<(String, Vec<u8>)> = stmt
-                    .query_map([], |row| {
-                        Ok((row.get::<_, String>(0)?, row.get::<_, Vec<u8>>(1)?))
-                    })
-                    .map_err(|e| e.to_string())?
-                    .collect::<Result<Vec<_>, _>>()
-                    .map_err(|e| e.to_string())?;
-                let rows_len = rows.len();
-                drop(stmt);
-                let mut update = tx
-                    .prepare("UPDATE object_snapshots SET data = ?1 WHERE id = ?2")
-                    .map_err(|e| e.to_string())?;
-                for (id, data) in rows {
+            rewrite_table(
+                &tx,
+                "SELECT id, data FROM object_snapshots",
+                "UPDATE object_snapshots SET data = ?1 WHERE id = ?2",
+                "object_snapshots",
+                true,
+                |row| {
+                    let data: Vec<u8> = row.get(1).map_err(|e| e.to_string())?;
                     let plain = decrypt_field(old_key, &data)?;
                     let encrypted = encrypt_field(new_key, &plain)?;
-                    update
-                        .execute(params![encrypted, id])
-                        .map_err(|e| e.to_string())?;
-                }
-                tracing::info!(
-                    "reencrypt_progress: table=object_snapshots, rows={}",
-                    rows_len
-                );
-            }
+                    Ok(Some(vec![rusqlite::types::Value::Blob(encrypted)]))
+                },
+            )?;
 
-            // user_templates
-            {
-                let mut stmt = tx
-                    .prepare("SELECT id, properties_json FROM user_templates")
-                    .map_err(|e| e.to_string())?;
-                let rows: Vec<(String, String)> = stmt
-                    .query_map([], |row| {
-                        Ok((row.get::<_, String>(0)?, row.get::<_, String>(1)?))
-                    })
-                    .map_err(|e| e.to_string())?
-                    .collect::<Result<Vec<_>, _>>()
-                    .map_err(|e| e.to_string())?;
-                let rows_len = rows.len();
-                drop(stmt);
-                let mut update = tx
-                    .prepare("UPDATE user_templates SET properties_json = ?1 WHERE id = ?2")
-                    .map_err(|e| e.to_string())?;
-                for (id, props_json) in rows {
+            rewrite_table(
+                &tx,
+                "SELECT id, properties_json FROM user_templates",
+                "UPDATE user_templates SET properties_json = ?1 WHERE id = ?2",
+                "user_templates",
+                true,
+                |row| {
+                    let props_json: String = row.get(1).map_err(|e| e.to_string())?;
                     let plain = decrypt_text_field(old_key, &props_json)?;
                     let encrypted = encrypt_text_field(new_key, &plain)?;
-                    update
-                        .execute(params![encrypted, id])
-                        .map_err(|e| e.to_string())?;
-                }
-                tracing::info!(
-                    "reencrypt_progress: table=user_templates, rows={}",
-                    rows_len
-                );
-            }
+                    Ok(Some(vec![rusqlite::types::Value::Text(encrypted)]))
+                },
+            )?;
 
-            // audit_log
-            {
-                let mut stmt = tx
-                    .prepare("SELECT id, details, entity_name FROM audit_log")
-                    .map_err(|e| e.to_string())?;
-                let rows: Vec<(i64, Option<String>, Option<String>)> = stmt
-                    .query_map([], |row| {
-                        Ok((
-                            row.get::<_, i64>(0)?,
-                            row.get::<_, Option<String>>(1)?,
-                            row.get::<_, Option<String>>(2)?,
-                        ))
-                    })
-                    .map_err(|e| e.to_string())?
-                    .collect::<Result<Vec<_>, _>>()
-                    .map_err(|e| e.to_string())?;
-                let rows_len = rows.len();
-                drop(stmt);
-                let mut update = tx
-                    .prepare("UPDATE audit_log SET details = ?1, entity_name = ?2 WHERE id = ?3")
-                    .map_err(|e| e.to_string())?;
-                for (id, details, entity_name) in rows {
+            rewrite_table(
+                &tx,
+                "SELECT id, details, entity_name FROM audit_log",
+                "UPDATE audit_log SET details = ?1, entity_name = ?2 WHERE id = ?3",
+                "audit_log",
+                true,
+                |row| {
+                    let details: Option<String> = row.get(1).map_err(|e| e.to_string())?;
+                    let entity_name: Option<String> = row.get(2).map_err(|e| e.to_string())?;
                     let plain_details = details
                         .as_deref()
                         .map(|d| decrypt_text_field(old_key, d))
@@ -1142,12 +1051,12 @@ impl VaultStore {
                         .map(|n| encrypt_text_field(new_key, &n))
                         .transpose()?
                         .unwrap_or_default();
-                    update
-                        .execute(params![encrypted_details, encrypted_name, id])
-                        .map_err(|e| e.to_string())?;
-                }
-                tracing::info!("reencrypt_progress: table=audit_log, rows={}", rows_len);
-            }
+                    Ok(Some(vec![
+                        rusqlite::types::Value::Text(encrypted_details),
+                        rusqlite::types::Value::Text(encrypted_name),
+                    ]))
+                },
+            )?;
 
             Ok(())
         })();
