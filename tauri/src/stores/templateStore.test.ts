@@ -173,23 +173,6 @@ describe('templateStore', () => {
     });
   });
 
-  describe('saveFromObject', () => {
-    it('从对象保存模板后刷新列表', async () => {
-      mockInvoke.mockResolvedValueOnce('tpl-from-obj');
-      mockInvoke.mockResolvedValueOnce([]);
-
-      const { useTemplateStore } = await import('./templateStore');
-      const id = await useTemplateStore.getState().saveFromObject('obj-1', 'From Object');
-
-      expect(mockInvoke).toHaveBeenCalledWith('template_save_from_object', {
-        objectId: 'obj-1',
-        templateName: 'From Object',
-        iconId: undefined,
-      });
-      expect(id).toBe('tpl-from-obj');
-    });
-  });
-
   describe('checkFieldUsage', () => {
     it('返回字段使用统计', async () => {
       mockInvoke.mockResolvedValue({ active: 3, softDeleted: 1 });

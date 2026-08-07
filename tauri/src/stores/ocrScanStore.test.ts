@@ -177,16 +177,6 @@ describe('ocrScanStore', () => {
       expect(entry.deletedAt).toBeDefined();
     });
 
-    it('getTrash 只返回已删除条目', async () => {
-      const mod = await import('./ocrScanStore');
-      await seedScan(mod);
-      const id = mod.useOcrScanStore.getState().scanHistory[0].id;
-      mod.useOcrScanStore.getState().softDeleteEntry(id);
-
-      expect(mod.useOcrScanStore.getState().getActiveHistory()).toHaveLength(0);
-      expect(mod.useOcrScanStore.getState().getTrash()).toHaveLength(1);
-    });
-
     it('restoreEntry 恢复删除', async () => {
       const mod = await import('./ocrScanStore');
       await seedScan(mod);
@@ -215,27 +205,6 @@ describe('ocrScanStore', () => {
       history.forEach((h) => mod.useOcrScanStore.getState().softDeleteEntry(h.id));
       mod.useOcrScanStore.getState().clearTrash();
       expect(mod.useOcrScanStore.getState().scanHistory).toHaveLength(0);
-    });
-  });
-
-  describe('getCurrentEntry', () => {
-    it('返回当前扫描条目', async () => {
-      const result = { text: 'X', confidence: 0.9, boxes: [] };
-      mockInvoke.mockImplementation(async (cmd: string) => {
-        if (cmd === 'ocr_scan_image') return result;
-        return undefined;
-      });
-
-      const { useOcrScanStore } = await import('./ocrScanStore');
-      await useOcrScanStore.getState().performScan('/img.png');
-      const entry = useOcrScanStore.getState().getCurrentEntry();
-      expect(entry).not.toBeNull();
-      expect(entry!.fileName).toBe('img.png');
-    });
-
-    it('无扫描时返回 null', async () => {
-      const { useOcrScanStore } = await import('./ocrScanStore');
-      expect(useOcrScanStore.getState().getCurrentEntry()).toBeNull();
     });
   });
 

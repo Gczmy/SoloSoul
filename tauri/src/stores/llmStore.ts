@@ -19,7 +19,6 @@ interface LlmState {
 
   startStream: (conversationId: string) => void;
   onChunk: (payload: LlmStreamPayload) => void;
-  stopStream: () => void;
   reset: () => void;
 }
 
@@ -81,17 +80,6 @@ export const useLlmStore = create<LlmState>((set, get) => ({
     }
 
     set({ streamBuffer: state.streamBuffer + payload.chunk });
-  },
-
-  stopStream: () => {
-    const state = get();
-    state.unlisten?.();
-    if (state.unlistenPromise) {
-      state.unlistenPromise
-        .then((fn) => fn())
-        .catch((err) => logger.warn('[llmStore] Failed to clean up old listener:', err));
-    }
-    set({ isStreaming: false, streamingConvId: null, unlisten: null, unlistenPromise: null });
   },
 
   reset: () => {

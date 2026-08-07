@@ -169,31 +169,6 @@ describe('llmStore', () => {
     });
   });
 
-  describe('stopStream', () => {
-    it('停止流并清理状态', async () => {
-      const unlistenFn: UnlistenFn = vi.fn();
-      mockListen.mockResolvedValue(unlistenFn);
-
-      const { useLlmStore } = await import('./llmStore');
-      useLlmStore.getState().startStream('conv-1');
-      await vi.waitFor(() => {
-        expect(useLlmStore.getState().unlisten).toBeDefined();
-      });
-
-      // 先写入 buffer
-      useLlmStore.getState().onChunk({ conversationId: 'conv-1', chunk: 'Partial', isDone: false });
-
-      useLlmStore.getState().stopStream();
-
-      const state = useLlmStore.getState();
-      expect(state.isStreaming).toBe(false);
-      expect(state.streamingConvId).toBeNull();
-      expect(state.streamBuffer).toBe('Partial'); // buffer 保留
-      expect(state.unlisten).toBeNull();
-      expect(unlistenFn).toHaveBeenCalled();
-    });
-  });
-
   describe('reset', () => {
     it('完全重置所有流状态', async () => {
       const unlistenFn: UnlistenFn = vi.fn();

@@ -10,21 +10,6 @@ describe('uiStore', () => {
     vi.resetModules();
   });
 
-  describe('sidebarCollapsed', () => {
-    it('初始状态为 false', async () => {
-      const { useUiStore } = await import('./uiStore');
-      expect(useUiStore.getState().sidebarCollapsed).toBe(false);
-    });
-
-    it('toggleSidebar 切换折叠状态', async () => {
-      const { useUiStore } = await import('./uiStore');
-      useUiStore.getState().toggleSidebar();
-      expect(useUiStore.getState().sidebarCollapsed).toBe(true);
-      useUiStore.getState().toggleSidebar();
-      expect(useUiStore.getState().sidebarCollapsed).toBe(false);
-    });
-  });
-
   describe('showToast / dismissToast', () => {
     it('showToast 添加到 toasts 列表', async () => {
       const { useUiStore } = await import('./uiStore');
@@ -70,21 +55,6 @@ describe('uiStore', () => {
       // 推进时间但不应自动移除（定时器已被清除）
       vi.advanceTimersByTime(5000);
       expect(useUiStore.getState().toasts).toHaveLength(0); // 手动移除
-    });
-  });
-
-  describe('globalLoading', () => {
-    it('初始状态为 false', async () => {
-      const { useUiStore } = await import('./uiStore');
-      expect(useUiStore.getState().globalLoading).toBe(false);
-    });
-
-    it('setGlobalLoading 切换加载状态', async () => {
-      const { useUiStore } = await import('./uiStore');
-      useUiStore.getState().setGlobalLoading(true);
-      expect(useUiStore.getState().globalLoading).toBe(true);
-      useUiStore.getState().setGlobalLoading(false);
-      expect(useUiStore.getState().globalLoading).toBe(false);
     });
   });
 });

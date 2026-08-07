@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-07（P000-P001/P004-P005/P007/P009-P011/P014-P015 已修复）
+> 最后更新：2026-08-07（P000-P001/P004-P005/P007/P009-P011/P013-P015 已修复）
 > 当前分支：`main`
 > 修复轮次：1（初始分析）
 > 基线版本：v2.8.5（HEAD `cdc6afb6`）
@@ -41,7 +41,7 @@
 | P010 | P1 | 死代码 | `tauri/crates/solosoul-crypto/src/cipher.rs:141`、`aes.rs:96,135` | `encrypt_chunked_to_bytes`/`encrypt_chunked_blob`/`decrypt_chunked_blob` 仅测试引用（存疑：可能有意保留对称 API） | `[x]` 已修复（用户确认删除：函数+仅引用测试+re-export） |
 | P011 | P1 | 架构 | `tauri/src/stores/syncStore.ts:466-571` | 入站同步完成后不刷新 `objectStore`，工作区显示过期数据直至重新导航 | `[x]` 已修复（applied>0 时 loadObjects + 清详情缓存，首事件与合并分支） |
 | P012 | P1 | 规范 | `tauri/src/components/settings/BiometricSection.tsx:330-417`、`PinSection.tsx:278-327` | 两处自行实现主密码验证对话框，未用共享 `PasswordVerificationDialog`（违反硬约定） | `[ ]` 待修复 |
-| P013 | P1 | 死代码 | `uiStore.ts:24-90`、`llmStore.ts:22,86`、`templateStore.ts:26,94`、`ocrScanStore.ts:38-40,148-150` | 多个 store 状态/action 仅被测试引用，生产零引用 | `[ ]` 待修复 |
+| P013 | P1 | 死代码 | `uiStore.ts:24-90`、`llmStore.ts:22,86`、`templateStore.ts:26,94`、`ocrScanStore.ts:38-40,148-150` | 多个 store 状态/action 仅被测试引用，生产零引用 | `[x]` 已修复（用户确认删除：8 项死状态/action + 对应测试块） |
 | P014 | P1 | 规范 | `AGENTS.md`（敏感数据分级节约定） | AGENTS.md 强制要求的 `SensitiveValueWidget`/`SensitivityBlurredWidget`/`SensitivityTag` 组件不存在，实际掩码机制是 `useRevealState`+`SensitivityBadge`；文档称 6 级敏感度，实现为 4 级 | `[x]` 已修复（AGENTS.md 更新为实际 4 级 + useRevealState/SensitivityBadge 约定） |
 | P015 | P1 | 安全 | `tauri/src-tauri/src/commands/export_import/import.rs:230`、`export_import/mod.rs:112`、`solosoul-sync/src/recovery.rs:46-49` | 导入/导出/恢复密码未走 `Zeroizing` 模式（auth 已全部 P031 化，这三处遗漏） | `[x]` 已修复（导入/恢复 IPC 边界 Zeroizing；RecoveryHost.recovery_password Zeroizing） |
 | P016 | P2 | 重复代码 | `tauri/crates/solosoul-vault/src/storage.rs:707,942` | `migrate_to_encrypted_format` 与 `reencrypt_all` 各 211 行互为镜像，按表复制样板 5-6 次；且均整表 collect 进内存 | `[ ]` 待修复 |
@@ -77,8 +77,8 @@
 
 ## 修复进度
 
-- 已完成：11 / 46（P045 为合并占位，实际待修复 45 项）
-- 当前处理：P000-P015 中 10 项已闭环（含 P009/P010 删除）→ P013
+- 已完成：12 / 46（P045 为合并占位，实际待修复 45 项）
+- 当前处理：P000-P015 中 11 项已闭环（含 P009/P010/P013 删除）→ P012
 
 ---
 
@@ -177,8 +177,13 @@
 
 ### P013（P1 · 死代码）store 仅测试引用的状态/action
 
-- **位置**：`uiStore.ts:24,26,60,62,70,90`（`sidebarCollapsed`/`toggleSidebar`/`globalLoading`/`setGlobalLoading`）；`llmStore.ts:22,86`（`stopStream`）；`templateStore.ts:26,94`（`saveFromObject`）；`ocrScanStore.ts:38-40,148-150`（三个 selector）
-- **建议**：删除（同步清理测试）或改用——ocrScanStore 的 getter 可替换生产代码中的内联 filter。**删除需用户确认。**
+- **位置**：`uiStore.ts:24,26,60,62,70,90`（`sidebarCollapsed`/`toggleSidebar`/`globalLoading`/`setGlobalLoading`）；`llmStore.ts:22,86`（`stopStream`）；`templateStore.ts:26,94`（`saveFromObject`）；`ocrScanStore.ts:38-40,148-150`（`getActiveHistory`/`getTrash`/`getCurrentEntry` 三个 selector）
+- **修复（用户确认删除）**：8 项死状态/action 全部删除，同步清理仅引用它们的测试块：
+  1. `uiStore.ts`：删 `sidebarCollapsed`/`toggleSidebar`/`globalLoading`/`setGlobalLoading`（接口+实现）；`uiStore.test.ts` 删 `sidebarCollapsed`/`globalLoading` 两个 describe。
+  2. `llmStore.ts`：删 `stopStream`（接口+实现）；`llmStore.test.ts` 删 `stopStream` describe。
+  3. `templateStore.ts`：删 `saveFromObject`（接口+实现）；`templateStore.test.ts` 删 `saveFromObject` describe。
+  4. `ocrScanStore.ts`：删 `getActiveHistory`/`getTrash`/`getCurrentEntry`；`ocrScanStore.test.ts` 删引用它们的测试（getTrash 用例 + getCurrentEntry describe）。生产代码本就用 `scanHistory.filter` 内联等价逻辑，无需替换。
+- **验证**：tsc 0 错误、eslint 通过、4 个 store 测试 38 用例通过。
 
 ### P014（P1 · 规范）AGENTS.md 掩码组件约定漂移
 

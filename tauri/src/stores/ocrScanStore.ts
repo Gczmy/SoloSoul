@@ -35,9 +35,6 @@ interface OcrScanState {
   restoreEntry: (id: string) => void;
   permanentlyDeleteEntry: (id: string) => void;
   clearTrash: () => void;
-  getActiveHistory: () => OcrScanEntry[];
-  getTrash: () => OcrScanEntry[];
-  getCurrentEntry: () => OcrScanEntry | null;
 
   /** P230: Vault 锁定/退出时清空扫描结果明文（含 MRZ 证件号），仅保留持久化元数据。 */
   clearOnVaultLock: () => void;
@@ -144,13 +141,6 @@ export const useOcrScanStore = create<OcrScanState>()(
         set((s) => ({
           scanHistory: s.scanHistory.filter((h) => !h.isDeleted),
         })),
-
-      getActiveHistory: () => get().scanHistory.filter((h) => !h.isDeleted),
-      getTrash: () => get().scanHistory.filter((h) => h.isDeleted),
-      getCurrentEntry: () => {
-        const s = get();
-        return s.scanHistory.find((h) => h.id === s.currentScanId) || null;
-      },
 
       // P230: 锁定/退出后清空含解密明文的内存态（result/mrzResult/filePath 均含敏感内容）。
       // 只读 UI 偏好（activeTier/scanMode）不受影响；persist partialize 本就不持久化结果。

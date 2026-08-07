@@ -23,7 +23,6 @@ interface TemplateState {
   ) => Promise<void>;
   deleteTemplate: (id: string) => Promise<void>;
   getTemplate: (id: string) => Promise<UserTemplate | null>;
-  saveFromObject: (objectId: string, name: string) => Promise<string>;
   checkFieldUsage: (
     templateId: string,
     fieldKey: string,
@@ -89,16 +88,6 @@ export const useTemplateStore = create<TemplateState>((set, get) => ({
       }
       throw err;
     }
-  },
-
-  async saveFromObject(objectId, name) {
-    const id = await invoke<string>('template_save_from_object', {
-      objectId: objectId,
-      templateName: name,
-      iconId: undefined,
-    });
-    await get().loadTemplates();
-    return id;
   },
 
   async checkFieldUsage(templateId, fieldKey) {
