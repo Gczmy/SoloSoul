@@ -98,6 +98,27 @@ AI 在本地或你指定的端点运行——绝不上传原始数据。
 
 从 [GitHub Releases](https://github.com/Gczmy/SoloSoul/releases) 下载对应平台的安装包。安装后创建本地账户（无需邮箱），设置主密码即可开始。
 
+### ⚠️ macOS 安装提醒
+
+macOS 版本**暂未通过 Apple 开发者认证与公证**（暂无开发者账号），首次打开会被 Gatekeeper 拦截。请任选以下一种方式解除：
+
+**方式一：系统设置手动允许（推荐）**
+
+1. 双击打开 `.dmg` 并拖入「应用程序」；
+2. 首次双击 `SoloSoul.app` 被拦截后，打开 **系统设置 → 隐私与安全性**；
+3. 在「安全性」区域找到 *「\“SoloSoul\”已被阻止使用，因为来自身份不明的开发者」* 提示；
+4. 点击 **「仍要打开」**，输入管理员密码确认即可。
+
+**方式二：终端移除隔离标记**
+
+在终端中执行（可先输入 `xattr -rd com.apple.quarantine ` 再拖入 `.app` 自动补全路径）：
+
+```bash
+xattr -rd com.apple.quarantine /Applications/SoloSoul.app
+```
+
+随后正常双击即可打开。
+
 ### 终端用户：SoloSoul CLI
 
 配套的终端 TUI 客户端 `solosoul`，支持账户管理、对象 CRUD、搜索、历史回滚、审计日志、加密导入导出等 30+ 命令。详见 [CLI 用户指南](docs/solosoul_cli/USER_GUIDE.md)。
