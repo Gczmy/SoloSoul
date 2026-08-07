@@ -261,6 +261,11 @@ export function LoginPage() {
     };
   }, []);
 
+  // P034: 组件卸载时清空密码 state（登录成功导航离开 / 锁定返回登录页时缩短驻留）
+  useEffect(() => {
+    return () => setPassword('');
+  }, []);
+
   // Set login method by priority after both checks complete
   useEffect(() => {
     if (!bioChecked || !pinChecked) return;
@@ -417,6 +422,10 @@ export function LoginPage() {
         setPasswordFieldError(null);
         setSubmitError(translated ? t(translated) : state.error);
       }
+    }
+    // P034: 登录成功立即清空密码 state（JS 堆不可清零，尽早缩短驻留窗口）
+    if (!state.error) {
+      setPassword('');
     }
     // 从已有外部目录登录后，config.json 中可能残留旧的安全标志（biometric/pin enabled），
     // 但实际 KeyStore 凭证和 PIN 文件已被卸载清除。立即复位这些标志，

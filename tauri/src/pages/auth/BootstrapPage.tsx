@@ -1,4 +1,4 @@
-import { useState, type CSSProperties } from 'react';
+import { useState, useEffect, type CSSProperties } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import i18next from 'i18next';
@@ -26,6 +26,15 @@ export function BootstrapPage() {
   const [nameErrorTick, setNameErrorTick] = useState(0);
   const [passwordError, setPasswordError] = useState<string | null>(null);
   const [confirmError, setConfirmError] = useState<string | null>(null);
+
+  // P034: 组件卸载时清空密码 state（向导完成导航离开 / 返回账户来源选择时缩短驻留）
+  useEffect(() => {
+    return () => {
+      setPassword('');
+      setConfirm('');
+      setPasswordHint('');
+    };
+  }, []);
   const [searchParams] = useSearchParams();
   const isCreateMode = searchParams.get('mode') === 'create';
   const hasAccount = useAuthStore((s) => s.hasAccount);
@@ -65,6 +74,10 @@ export function BootstrapPage() {
     // 仅创建成功（store 无错误）时才跳转，失败时停留在卡片展示后端错误
     const state = useAuthStore.getState();
     if (!state.error) {
+      // P034: 创建成功后立即清空密码 state（JS 堆不可清零，尽早缩短驻留窗口）
+      setPassword('');
+      setConfirm('');
+      setPasswordHint('');
       navigate('/');
       return;
     }

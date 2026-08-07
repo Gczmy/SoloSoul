@@ -169,6 +169,15 @@ export function ExportImportPage() {
     loadScope();
   }, [loadScope]);
 
+  // P034: 组件卸载时清空密码 state（JS 堆不可清零，尽早缩短驻留窗口）
+  useEffect(() => {
+    return () => {
+      setExportPassword('');
+      setExportPasswordConfirm('');
+      setImportPw('');
+    };
+  }, []);
+
   // Page / object / attachment toggles — managed via useExportScope
 
   // 当 includeAttachments 从 false 切为 true 时，为已选对象批量加载附件（Bug 修复）
@@ -305,6 +314,9 @@ export function ExportImportPage() {
       // 导出成功后重置 skip ref，下次导出重新检查
       skipHintCheckRef.current = false;
       skipWeakPasswordCheckRef.current = false;
+      // P034: 导出成功后立即清空密码 state（JS 堆不可清零，尽早缩短驻留窗口）
+      setExportPassword('');
+      setExportPasswordConfirm('');
       onSuccess(t('settings:export_success'));
     } catch (e) {
       onError(new Error(resolveBackendErrorMessage(e)), t('common:export_failed'));
