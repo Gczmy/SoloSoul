@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useUiStore } from '@/stores/uiStore';
+import { useAuthStore } from '@/stores/authStore';
 import { OnboardingAccountSourceDecision } from '@/components/onboarding/OnboardingAccountSourceDecision';
 import { RecoveryReceiveDialog } from '@/components/recovery/RecoveryReceiveDialog';
 
@@ -12,7 +14,10 @@ import { RecoveryReceiveDialog } from '@/components/recovery/RecoveryReceiveDial
  * 露出停在末步、无关闭出口的引导卡片）。
  *
  * 本浮层只承载决策卡片 + 恢复对话框：
- * - 「返回」= 清 reopenAccountSource 关闭浮层，露出底下仍在的 BootstrapPage 创建账户表单
+ * - 本地已有账户（hasAccount !== false）：「返回登录」= 清标志并跳转 /login
+ * - 首次启动（hasAccount === false，无登录页可回）：按钮保持「返回」= 仅关闭
+ *   浮层露出创建账户表单（/login 在无账户时会重定向回 /bootstrap，导航过去
+ *   会形成回跳死循环——与 BootstrapPage 返回登录守卫同一逻辑）
  * - 「创建新账户」= 清标志 + 留在创建账户页（浮层下本就在该页，等于只关浮层）
  * - 「从其它设备恢复」= 打开恢复对话框；恢复成功清标志并跳转登录页
  *
@@ -21,10 +26,22 @@ import { RecoveryReceiveDialog } from '@/components/recovery/RecoveryReceiveDial
  */
 export function AccountSourceOverlay() {
   const navigate = useNavigate();
+  const { t } = useTranslation('common');
   const [recoveryOpen, setRecoveryOpen] = useState(false);
+  // 首次启动（本地无任何账户）时无登录页可回：hasAccount === false 时
+  // 「返回」仅关闭浮层（hasAccount 为 null/true 时均可安全跳登录页）。
+  const hasAccount = useAuthStore((s) => s.hasAccount);
+  const canGoBackToLogin = hasAccount !== false;
 
   const closeOverlay = () => {
     useUiStore.getState().setReopenAccountSource(false);
+  };
+
+  const handleBack = () => {
+    closeOverlay();
+    if (canGoBackToLogin) {
+      navigate('/login', { replace: true });
+    }
   };
 
   return (
@@ -45,7 +62,10 @@ export function AccountSourceOverlay() {
             useUiStore.getState().setReopenAccountSource(false);
             navigate('/bootstrap?mode=create', { replace: true });
           }}
-          onBack={closeOverlay}
+          onBack={handleBack}
+          backLabel={
+            canGoBackToLogin ? t('back_to_login_link', { defaultValue: 'Back to login' }) : undefined
+          }
         />
       )}
       {recoveryOpen && (

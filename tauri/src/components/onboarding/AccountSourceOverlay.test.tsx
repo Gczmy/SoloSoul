@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import { AccountSourceOverlay } from './AccountSourceOverlay';
 import { useUiStore } from '@/stores/uiStore';
+import { useAuthStore } from '@/stores/authStore';
 
 const mockNavigate = vi.fn();
 
@@ -44,11 +45,14 @@ const renderOverlay = () =>
 describe('AccountSourceOverlay', () => {
   beforeEach(() => {
     useUiStore.getState().setReopenAccountSource(true);
+    // 默认模拟「返回用户」场景（本地已有账户，登录页存在）
+    useAuthStore.setState({ hasAccount: true });
     mockNavigate.mockClear();
   });
 
   afterEach(() => {
     useUiStore.getState().setReopenAccountSource(false);
+    useAuthStore.setState({ hasAccount: null });
   });
 
   it('renders the decision card immediately without the onboarding wizard underneath', () => {
@@ -60,13 +64,27 @@ describe('AccountSourceOverlay', () => {
     expect(screen.queryByText(/onboarding_welcome_title/i)).not.toBeInTheDocument();
   });
 
-  it('clears reopenAccountSource when clicking back (reveals the bootstrap form)', () => {
+  it('navigates back to the login page when accounts exist (returning user)', () => {
+    useAuthStore.setState({ hasAccount: true });
     renderOverlay();
 
+    // 已有账户时按钮文案为「返回登录」（测试环境 t() 未加载 locale，
+    // 回退到 defaultValue 英文 "Back to login"），点击清标志并跳转登录页
+    fireEvent.click(screen.getByText(/back to login/i));
+
+    expect(useUiStore.getState().reopenAccountSource).toBe(false);
+    expect(mockNavigate).toHaveBeenCalledWith('/login', { replace: true });
+  });
+
+  it('only closes the overlay on first launch (no accounts, no login page to return to)', () => {
+    useAuthStore.setState({ hasAccount: false });
+    renderOverlay();
+
+    // 首次启动（本地无账户）时按钮保持「返回」，仅关闭浮层露出创建账户表单；
+    // 不导航——/login 在无账户时会重定向回 /bootstrap，导航过去会形成回跳
     fireEvent.click(screen.getByText(/onboarding_account_source_back/i));
 
     expect(useUiStore.getState().reopenAccountSource).toBe(false);
-    // 「返回」只关浮层，不做任何导航
     expect(mockNavigate).not.toHaveBeenCalled();
   });
 

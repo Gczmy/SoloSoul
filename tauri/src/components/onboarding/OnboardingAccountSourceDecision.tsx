@@ -6,6 +6,9 @@ interface OnboardingAccountSourceDecisionProps {
   onRecovery: () => void;
   onCreateNew: () => void;
   onBack: () => void;
+  /** 「返回」按钮文案（已翻译）；缺省用 onboarding_account_source_back（「返回」）。
+   *  重开浮层场景在本地已有账户时传「返回登录」，首次启动（无账户）保持「返回」。 */
+  backLabel?: string;
 }
 
 /** 完成引导后（本地无账户时）询问账户来源：从其它设备恢复 or 创建新账户。 */
@@ -13,6 +16,7 @@ export function OnboardingAccountSourceDecision({
   onRecovery,
   onCreateNew,
   onBack,
+  backLabel,
 }: OnboardingAccountSourceDecisionProps) {
   const { t } = useTranslation('common');
 
@@ -123,7 +127,7 @@ export function OnboardingAccountSourceDecision({
             fontWeight: 500,
           }}
         >
-          {t('onboarding_account_source_back')}
+          {backLabel ?? t('onboarding_account_source_back')}
         </button>
       </div>
     </div>
