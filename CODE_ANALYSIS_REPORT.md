@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-07（P000-P026、P028、P030、P022 全部闭环，共 30 项；剩余 P027、P029、P031-P044 共 15 项待修）
+> 最后更新：2026-08-07（P000-P026、P028、P030、P022、P031 全部闭环，共 31 项；剩余 P027、P029、P032-P044 共 14 项待修）
 > 当前分支：`main`
 > 修复轮次：1（初始分析）
 > 基线版本：v2.8.5（HEAD `cdc6afb6`）
@@ -59,7 +59,7 @@
 | P028 | P2 | 性能 | `crates/solosoul-core/src/watermark/mod.rs:612` | 水印每次调用读入整个 TTC 字体（CJK 常 10-50MB） | `[x]` 已修复（进程级按路径 Mutex+HashMap 缓存字体字节，TTC 提取一次） |
 | P029 | P2 | 性能 | `crates/solosoul-vault/src/storage.rs:272-310` | `probe_data_key` 每次探测新建 SQLite 连接（仅解锁恢复路径，存疑可不修） | `[ ]` 待修复 |
 | P030 | P2 | 安全 | `crates/solosoul-core/src/llm/client.rs:33-36` | LLM 阻塞客户端 `.timeout(None)`，慢速滴流可永久挂起线程 | `[x]` 已修复（请求级 120s 总超时，覆盖连接+响应体读取全程） |
-| P031 | P2 | 安全 | `src-tauri/src/commands/llm/chat_http.rs:5-29,34-55` | `llm_check_connection`/`llm_test_provider` 接受任意 URL+api_key，构成受限带凭证转发原语（无内网段防护） | `[ ]` 待修复 |
+| P031 | P2 | 安全 | `src-tauri/src/commands/llm/chat_http.rs:5-29,34-55` | `llm_check_connection`/`llm_test_provider` 接受任意 URL+api_key，构成受限带凭证转发原语（无内网段防护） | `[x]` 已修复（SSRF 内网段防护：字面 IP 同步拦截 + 主机名异步解析复核，回环放行） |
 | P032 | P2 | 安全 | `crates/solosoul-core/src/vault_service.rs`（`unlock_secure` 路径） | 主密码解锁无失败限流（PIN 有，主密码没有），dev KDF 参数下字典攻击可行 | `[ ]` 待修复 |
 | P033 | P2 | 安全 | `src-tauri/tauri.conf.json:30` | CSP `object-src data:` 过宽、`style-src 'unsafe-inline'` | `[ ]` 待修复 |
 | P034 | P2 | 安全 | `tauri/src/pages/auth/LoginPage.tsx:53`、`BootstrapPage.tsx:20-22`、`ExportImportPage.tsx:105-106` | 密码驻留 React state（JS 堆不可清零，Web 栈固有限制，可提交后立即置空缓解） | `[ ]` 待修复 |

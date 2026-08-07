@@ -145,11 +145,72 @@ pub fn extract_openai_usage(result: &serde_json::Value) -> (u64, u64) {
     (prompt, completion)
 }
 
+/// P031：SSRF 内网段判定。
+///
+/// 返回 `true` 表示该 IP 属于禁止外连的网段。**回环（127.0.0.0/8、::1）放行**——
+/// 本地 LLM 服务器（Ollama / LM Studio / llama.cpp 均默认监听 localhost）是
+/// SoloSoul 本地优先场景的核心用法；其余内网段一律拒绝：RFC1918 私网、链路本地
+/// （含云元数据 169.254.169.254）、CGNAT，防止 XSS 借后端做内网探测/带凭证转发。
+pub(crate) fn is_blocked_internal_ip(ip: std::net::IpAddr) -> bool {
+    match ip {
+        std::net::IpAddr::V4(v4) => {
+            let o = v4.octets();
+            if o[0] == 127 {
+                return false; // 回环放行
+            }
+            o[0] == 0 // 0.0.0.0/8
+                || o[0] == 10 // 10.0.0.0/8
+                || (o[0] == 172 && (16..=31).contains(&o[1])) // 172.16.0.0/12
+                || (o[0] == 192 && o[1] == 168) // 192.168.0.0/16
+                || (o[0] == 169 && o[1] == 254) // 169.254.0.0/16（含云元数据 169.254.169.254）
+                || (o[0] == 100 && (64..=127).contains(&o[1])) // 100.64.0.0/10 CGNAT
+        }
+        std::net::IpAddr::V6(v6) => {
+            if v6.is_loopback() {
+                return false;
+            }
+            // IPv4 映射地址（::ffff:a.b.c.d）转回 IPv4 再判
+            if let Some(v4) = v6.to_ipv4_mapped() {
+                return is_blocked_internal_ip(std::net::IpAddr::V4(v4));
+            }
+            let seg = v6.segments();
+            (seg[0] & 0xfe00) == 0xfc00 // fc00::/7 唯一本地地址
+                || (seg[0] & 0xffc0) == 0xfe80 // fe80::/10 链路本地
+        }
+    }
+}
+
+/// P031：连接测试类命令的附加 SSRF 复核——主机名解析后逐一检查解析地址，
+/// 命中任一内网段即拒绝（防 `http://nas.local` 这类解析到内网的主机名绕过）。
+/// 字面 IP 已在 `validate_llm_base_url` 同步拦截，本函数只处理域名；调用方为
+/// 用户触发的连接测试命令（可接受一次 DNS 查询），流式/常驻路径不调用。
+pub(crate) async fn ensure_public_llm_host(base_url: &str) -> Result<(), String> {
+    let url = url::Url::parse(base_url).map_err(|e| format!("Invalid base_url: {e}"))?;
+    let host = url.host_str().unwrap_or("");
+    if host.parse::<std::net::IpAddr>().is_ok() {
+        return Ok(()); // 字面 IP 已由 validate_llm_base_url 处理
+    }
+    let port = url.port().unwrap_or(443);
+    let addrs = tokio::net::lookup_host((host, port))
+        .await
+        .map_err(|e| format!("base_url host lookup failed: {e}"))?;
+    for addr in addrs {
+        if is_blocked_internal_ip(addr.ip()) {
+            return Err(
+                "base_url host resolves to a private/internal address (blocked)".to_string(),
+            );
+        }
+    }
+    Ok(())
+}
+
 /// P102：校验 LLM 请求目标 `base_url`，收窄后端网络出口。
 ///
 /// 仅允许 http/https scheme 且含非空 host，拒绝 userinfo 与其它 scheme
 /// （`javascript:`、`data:`、`file:` 等）。调用方在发起任何外连前必须先通过本校验，
 /// 防止被 XSS 当作任意 URL 数据外传通道（CSP 已禁 webview 直连，后端是唯一出口）。
+/// P031 追加：字面 IP 命中内网段（RFC1918/链路本地/CGNAT/云元数据）直接拒绝；
+/// 回环放行以支持本地 LLM 服务器。主机名需 `ensure_public_llm_host` 异步解析复核。
 pub(crate) fn validate_llm_base_url(base_url: &str) -> Result<(), String> {
     let url = url::Url::parse(base_url).map_err(|e| format!("Invalid base_url: {e}"))?;
     let scheme = url.scheme();
@@ -164,6 +225,21 @@ pub(crate) fn validate_llm_base_url(base_url: &str) -> Result<(), String> {
     }
     if !url.username().is_empty() || url.password().is_some() {
         return Err("base_url must not contain userinfo".to_string());
+    }
+    if let Some(url::Host::Ipv4(v4)) = url.host() {
+        if is_blocked_internal_ip(std::net::IpAddr::V4(v4)) {
+            return Err(
+                "base_url host must be a public address (private/internal segments are blocked)"
+                    .to_string(),
+            );
+        }
+    } else if let Some(url::Host::Ipv6(v6)) = url.host() {
+        if is_blocked_internal_ip(std::net::IpAddr::V6(v6)) {
+            return Err(
+                "base_url host must be a public address (private/internal segments are blocked)"
+                    .to_string(),
+            );
+        }
     }
     Ok(())
 }
@@ -225,5 +301,109 @@ mod tests {
                 "should reject garbage: {bad:?}"
             );
         }
+    }
+
+    #[test]
+    fn test_validate_base_url_rejects_internal_literal_ips() {
+        // P031：字面内网 IP 拒绝（回环除外）
+        for bad in [
+            "http://10.0.0.1/v1",
+            "http://172.16.0.1/v1",
+            "http://172.31.255.254/v1",
+            "http://192.168.1.5/v1",
+            "http://169.254.169.254/latest/meta-data",
+            "http://100.64.0.1/v1",
+            "http://0.0.0.0/v1",
+            "http://[fc00::1]/v1",
+            "http://[fe80::1]/v1",
+            "http://[::ffff:192.168.1.5]/v1",
+        ] {
+            assert!(
+                validate_llm_base_url(bad).is_err(),
+                "should reject internal IP: {bad}"
+            );
+        }
+    }
+
+    #[test]
+    fn test_validate_base_url_accepts_loopback_and_public_ips() {
+        // P031：回环放行（本地 LLM 服务器）+ 公网字面 IP 放行
+        for good in [
+            "http://127.0.0.1:11434/v1",
+            "http://[::1]:11434/v1",
+            "https://8.8.8.8/v1",
+            "https://1.1.1.1/v1",
+            "https://[2001:4860:4860::8888]/v1",
+        ] {
+            assert!(validate_llm_base_url(good).is_ok(), "should accept: {good}");
+        }
+    }
+
+    #[test]
+    fn test_is_blocked_internal_ip() {
+        use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
+
+        // 回环放行
+        assert!(!is_blocked_internal_ip(IpAddr::V4(Ipv4Addr::new(
+            127, 0, 0, 1
+        ))));
+        assert!(!is_blocked_internal_ip(IpAddr::V6(Ipv6Addr::LOCALHOST)));
+
+        // 私网拒绝
+        assert!(is_blocked_internal_ip(IpAddr::V4(Ipv4Addr::new(
+            10, 1, 2, 3
+        ))));
+        assert!(is_blocked_internal_ip(IpAddr::V4(Ipv4Addr::new(
+            172, 16, 0, 1
+        ))));
+        assert!(is_blocked_internal_ip(IpAddr::V4(Ipv4Addr::new(
+            172, 31, 0, 1
+        ))));
+        assert!(is_blocked_internal_ip(IpAddr::V4(Ipv4Addr::new(
+            192, 168, 0, 1
+        ))));
+        // 链路本地 / 云元数据 / CGNAT / 0.0.0.0/8
+        assert!(is_blocked_internal_ip(IpAddr::V4(Ipv4Addr::new(
+            169, 254, 169, 254
+        ))));
+        assert!(is_blocked_internal_ip(IpAddr::V4(Ipv4Addr::new(
+            100, 64, 0, 1
+        ))));
+        assert!(is_blocked_internal_ip(IpAddr::V4(Ipv4Addr::new(
+            0, 0, 0, 0
+        ))));
+
+        // IPv6：ULA / 链路本地 / IPv4 映射
+        assert!(is_blocked_internal_ip("fc00::1".parse().unwrap()));
+        assert!(is_blocked_internal_ip("fd12:3456::1".parse().unwrap()));
+        assert!(is_blocked_internal_ip("fe80::1".parse().unwrap()));
+        assert!(is_blocked_internal_ip(
+            "::ffff:192.168.1.5".parse().unwrap()
+        ));
+
+        // 公网放行
+        assert!(!is_blocked_internal_ip("8.8.8.8".parse().unwrap()));
+        assert!(!is_blocked_internal_ip(
+            "2001:4860:4860::8888".parse().unwrap()
+        ));
+        assert!(!is_blocked_internal_ip("1.2.3.4".parse().unwrap()));
+    }
+
+    #[tokio::test]
+    async fn test_ensure_public_llm_host() {
+        // 字面 IP 短路（回环放行）
+        assert!(ensure_public_llm_host("http://127.0.0.1:11434/v1")
+            .await
+            .is_ok());
+        // localhost 解析到回环 → 放行
+        assert!(ensure_public_llm_host("http://localhost:11434/v1")
+            .await
+            .is_ok());
+        // 不存在的域名 → 解析失败报错
+        assert!(
+            ensure_public_llm_host("http://definitely-not-a-real-domain-xyz123.invalid/v1")
+                .await
+                .is_err()
+        );
     }
 }
