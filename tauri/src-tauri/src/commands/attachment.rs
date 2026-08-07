@@ -77,6 +77,7 @@ fn save_attachments(props: &mut Value, atts: &[AttachmentMeta]) {
 ///
 /// - `$SOLOSOUL_FS_BASE`（若设置）
 /// - 用户 Desktop / Documents / Downloads
+///
 /// 组件级路径前缀判定（in_vault / in_attachments 共用纯函数）。
 ///
 /// - `resolved`: canonicalize 结果（成功时为规范路径）；`raw`: 字面路径。

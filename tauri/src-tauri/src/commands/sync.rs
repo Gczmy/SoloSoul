@@ -530,6 +530,7 @@ pub async fn sync_enable(
                 port,
                 account_id,
                 fingerprint,
+                solosoul_sync::local_client_type().to_string(),
             ) {
                 tracing::warn!("Failed to register NSD sync service: {}", e);
                 // NSD 注册失败时回滚同步状态，避免半开启。

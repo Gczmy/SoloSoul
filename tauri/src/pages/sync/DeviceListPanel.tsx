@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { DeleteButton } from '@/components/ui/DeleteButton';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
-import { RefreshCw, ShieldCheck, ShieldOff, Smartphone } from 'lucide-react';
+import { RefreshCw, ShieldCheck, ShieldOff } from 'lucide-react';
 import { ClientTypeIcon } from '@/components/sync/ClientTypeIcon';
 import { resolveBackendErrorMessage } from '@/lib/backendError';
 import { formatDiscoveredName, formatPeerName } from '@/lib/syncPeer';
@@ -26,6 +26,8 @@ interface DeviceListPanelProps {
   forgetTarget: SyncPeer | null;
   /** 详情弹窗当前展示的设备（null = 关闭）。 */
   detailPeer: SyncPeer | null;
+  /** 详情弹窗当前展示的已发现设备（未匹配已知设备时非 null，与 detailPeer 互斥）。 */
+  detailDiscovered?: DiscoveredDevice | null;
   onManualAddrChange: (value: string) => void;
   onDiscover: () => void;
   onSyncWithDevice: (addr: string) => void;
@@ -35,9 +37,13 @@ interface DeviceListPanelProps {
   onForgetConfirm: () => void;
   onForgetCancel: () => void;
   onRefresh: () => void;
-  /** 点击卡片主体打开详情弹窗。 */
+  /** 点击已发现设备卡片打开详情弹窗（若匹配已知设备则复用已知设备详情）。 */
+  onOpenDiscoveredDetail: (device: DiscoveredDevice) => void;
+  /** 点击卡片主体打开已知设备详情弹窗。 */
   onOpenDetail: (peer: SyncPeer) => void;
   onCloseDetail: () => void;
+  /** 对未匹配已知设备的发现设备发起立即同步。 */
+  onSyncDiscovered?: (addr: string) => void;
 }
 
 /**
@@ -55,6 +61,7 @@ export function DeviceListPanel({
   error,
   forgetTarget,
   detailPeer,
+  detailDiscovered = null,
   onManualAddrChange,
   onDiscover,
   onSyncWithDevice,
@@ -64,8 +71,10 @@ export function DeviceListPanel({
   onForgetConfirm,
   onForgetCancel,
   onRefresh,
+  onOpenDiscoveredDetail,
   onOpenDetail,
   onCloseDetail,
+  onSyncDiscovered,
 }: DeviceListPanelProps) {
   const { t } = useTranslation(['settings', 'common']);
   return (
@@ -118,6 +127,16 @@ export function DeviceListPanel({
               return (
                 <div
                   key={deviceAddr}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => onOpenDiscoveredDetail(device)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      onOpenDiscoveredDetail(device);
+                    }
+                  }}
+                  className="interactive-card-lift"
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -125,9 +144,11 @@ export function DeviceListPanel({
                     padding: '10px 12px',
                     borderRadius: 8,
                     background: 'var(--bg-toolbar)',
+                    cursor: 'pointer',
                   }}
                 >
-                  <Smartphone size={ICON_SIZE.lg} style={{ color: 'var(--accent-primary)' }} />
+                  {/* 客户端类型图标（macos 笔记本 / android 手机…），与已知设备卡片同源 */}
+                  <ClientTypeIcon clientType={device.clientType} size={ICON_SIZE.lg} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     {/* 设备名：formatDiscoveredName 裁剪 node_<uuid> / 剥 mDNS 后缀，
                         ellipsis 兜底防安卓端溢出 */}
@@ -147,7 +168,10 @@ export function DeviceListPanel({
                     </div>
                   </div>
                   <button
-                    onClick={() => onSyncWithDevice(deviceAddr)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSyncWithDevice(deviceAddr);
+                    }}
                     disabled={isLoading}
                     style={{
                       padding: '6px 12px',
@@ -486,6 +510,7 @@ export function DeviceListPanel({
       </ConfirmDialog>
       <DeviceDetailDialog
         peer={detailPeer}
+        discovered={detailDiscovered}
         onClose={onCloseDetail}
         isLoading={isLoading}
         onToggleTrust={(peer) => {
@@ -498,6 +523,7 @@ export function DeviceListPanel({
         onForgetRequest={(peer) => {
           onForgetRequest(peer);
         }}
+        onSyncDiscovered={onSyncDiscovered}
       />
     </>
   );

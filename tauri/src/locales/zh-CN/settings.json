@@ -823,6 +823,7 @@
   "sync_pairing_wait_cancel": "取消等待",
   "sync_trusted_badge": "已信任",
   "sync_untrusted_badge": "未信任",
+  "sync_discovered_badge": "新设备",
   "sync_revoke_tooltip": "撤销信任：保留记录，拒绝其同步",
   "sync_forget_tooltip": "忘记：删除记录，需重新配对",
   "sync_pair_tooltip": "核对指纹后信任此设备",

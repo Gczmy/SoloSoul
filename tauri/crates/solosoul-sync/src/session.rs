@@ -32,10 +32,11 @@ const DELTA_PAGE_LIMIT: usize = 100;
 /// 旧版客户端（v2.6.1 及更早）不发送 protocol_version 字段，默认为 1。
 const PROTOCOL_VERSION: u32 = 2;
 
-/// 本机客户端类型，随 Hello/HelloAck 广播给对端（已知设备卡片展示用）。
+/// 本机客户端类型，随 Hello/HelloAck 广播给对端（已知设备卡片展示用），
+/// 同时用于 mDNS/NSD TXT 广播（对端「已发现设备」直接展示对应图标）。
 /// 值域：macos / windows / linux / android / ios / unknown。
 /// 编译期根据目标平台确定，桌面与移动共用同一 crate，无需外部注入。
-pub(crate) fn local_client_type() -> &'static str {
+pub fn local_client_type() -> &'static str {
     if cfg!(target_os = "macos") {
         "macos"
     } else if cfg!(target_os = "windows") {

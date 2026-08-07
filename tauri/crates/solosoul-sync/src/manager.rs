@@ -2,7 +2,9 @@
 
 use crate::identity::sha256_hex_short;
 use crate::noise::NoiseKeys;
-use crate::session::{handle_inbound, run_initiator_session, wrap_session_error};
+use crate::session::{
+    handle_inbound, local_client_type, run_initiator_session, wrap_session_error,
+};
 use crate::transport::SyncTransport;
 use crate::types::{
     PeerCallback, SessionCompletedCallback, SessionCompletedInfo, SyncPeerInfo, SyncSessionResult,
@@ -327,6 +329,9 @@ impl SyncManager {
         );
         // fingerprint 是公钥指纹，用于 MITM 验证，必须明文传输。
         txt.insert("fingerprint".to_string(), self.keys.fingerprint());
+        // client_type 明文广播（macos/windows/android...），对端「已发现设备」
+        // 无需等首次同步落库 peer 记录即可直接展示对应图标。
+        txt.insert("client_type".to_string(), local_client_type().to_string());
 
         // 实例名用友好设备名 SoloSoul-<fp 前 8 位>（与移动端 NSD 注册名、QR 卡片
         // 命名规则一致），而非 node_<uuid>：对端「已发现设备」列表直接显示可读名称。

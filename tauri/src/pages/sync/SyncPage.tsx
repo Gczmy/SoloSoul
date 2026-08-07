@@ -10,6 +10,7 @@ import { Wifi, WifiOff } from 'lucide-react';
 import { PageGuideButton } from '@/components/guide/PageGuideButton';
 import { useSyncPage } from './useSyncPage';
 import { ICON_SIZE } from '@/lib/constants';
+import type { DiscoveredDevice } from '@/stores/syncStore';
 import { ConflictPanel } from './ConflictPanel';
 import { PairingPanel } from './PairingPanel';
 import { DeviceListPanel } from './DeviceListPanel';
@@ -30,6 +31,10 @@ export function SyncPage() {
   // trustPeer → loadStatus 刷新 connectedPeers，弹窗内容立即反映最新信任状态，
   // 无需重新进入卡片才能看到变化。
   const [detailPeerId, setDetailPeerId] = useState<string | null>(null);
+  // 已发现设备详情弹窗目标（点击已发现设备卡片后打开）。
+  // 若该设备匹配到已知设备（按指纹），则复用已知设备详情（含信任/忘记操作）；
+  // 否则以「新设备」形态展示并仅提供「立即同步」。
+  const [discoveredDetail, setDiscoveredDetail] = useState<DiscoveredDevice | null>(null);
   const {
     store,
     manualAddr,
@@ -66,8 +71,29 @@ export function SyncPage() {
     handleScanSync,
   } = useSyncPage();
 
-  // 详情弹窗 peer 由 store.connectedPeers 派生（见上方 detailPeerId 注释）
-  const detailPeer = store.connectedPeers.find((p) => p.id === detailPeerId) || null;
+  // 详情弹窗 peer 由 store.connectedPeers 派生（见上方 detailPeerId 注释）。
+  // 已发现设备先按指纹匹配已知设备（同一设备指纹恒等）——匹配到则复用已知设备
+  // 详情（含信任状态与操作按钮）；未匹配（新设备）则走 discovered 形态。
+  const matchedKnownPeer = discoveredDetail
+    ? (store.connectedPeers.find(
+        (p) => p.fingerprint && p.fingerprint === discoveredDetail.fingerprint,
+      ) ?? null)
+    : null;
+  const detailPeer =
+    (detailPeerId ? store.connectedPeers.find((p) => p.id === detailPeerId) : null) ||
+    matchedKnownPeer;
+  const detailDiscovered = detailPeer ? null : discoveredDetail;
+
+  const handleCloseDetail = () => {
+    setDetailPeerId(null);
+    setDiscoveredDetail(null);
+  };
+
+  const handleOpenDiscoveredDetail = (device: DiscoveredDevice) => {
+    // 关闭已知设备详情，仅展示本次点击的设备
+    setDetailPeerId(null);
+    setDiscoveredDetail(device);
+  };
 
   // 配对对话框目标：A 侧等待流程优先（pairingPendingPeer），否则「去配对」手动目标，否则自动检测
   const activePairPeer = pairingPendingPeer || pairTarget || pendingPeer;
@@ -130,6 +156,7 @@ export function SyncPage() {
           error={store.error}
           forgetTarget={forgetTarget}
           detailPeer={detailPeer}
+          detailDiscovered={detailDiscovered}
           onManualAddrChange={setManualAddr}
           onDiscover={handleDiscover}
           onSyncWithDevice={handleSyncWithDevice}
@@ -139,8 +166,15 @@ export function SyncPage() {
           onForgetConfirm={handleForgetConfirm}
           onForgetCancel={handleForgetCancel}
           onRefresh={loadStatus}
-          onOpenDetail={(peer) => setDetailPeerId(peer.id)}
-          onCloseDetail={() => setDetailPeerId(null)}
+          onOpenDiscoveredDetail={handleOpenDiscoveredDetail}
+          onOpenDetail={(peer) => {
+            // 与 handleOpenDiscoveredDetail 对称：已知设备卡片点击时清空发现详情，
+            // 避免两个详情状态并存（模态下不会发生，防御性保持状态互斥）
+            setDiscoveredDetail(null);
+            setDetailPeerId(peer.id);
+          }}
+          onCloseDetail={handleCloseDetail}
+          onSyncDiscovered={handleSyncWithDevice}
         />
 
         <SyncHistoryPanel

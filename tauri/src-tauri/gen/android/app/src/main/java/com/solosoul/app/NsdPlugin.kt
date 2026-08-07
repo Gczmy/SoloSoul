@@ -26,6 +26,7 @@ class RegisterServiceArgs {
     lateinit var nodeId: String
     lateinit var accountId: String
     lateinit var fingerprint: String
+    var clientType: String = ""
 }
 
 /**
@@ -153,6 +154,10 @@ class NsdPlugin(private val activity: Activity): Plugin(activity) {
                 // 使桌面端 mdns-sd 在 TXT 属性可达时可直接按哈希过滤，无需回退明文比对。
                 setAttribute("account_hash", sha256Hex(args.accountId))
                 setAttribute("fingerprint", args.fingerprint)
+                // 客户端类型广播：macos/windows/android...，对端「已发现设备」直接显示对应图标
+                if (args.clientType.isNotEmpty()) {
+                    setAttribute("client_type", args.clientType)
+                }
             }
 
             registrationListener = object : NsdManager.RegistrationListener {
@@ -213,12 +218,14 @@ class NsdPlugin(private val activity: Activity): Plugin(activity) {
                 val accountId = txt?.get("account_id")?.let { String(it) } ?: ""
                 val accountHash = txt?.get("account_hash")?.let { String(it) } ?: ""
                 val fingerprint = txt?.get("fingerprint")?.let { String(it) } ?: ""
+                val clientType = txt?.get("client_type")?.let { String(it) } ?: ""
 
                 val obj = JSONObject().apply {
                     put("nodeId", nodeId)
                     put("accountId", accountId)
                     put("accountHash", accountHash)
                     put("fingerprint", fingerprint)
+                    put("clientType", clientType)
                     // mDNS 实例名（桌面广播为 SoloSoul-<fp8>），供前端显示名回退使用
                     put("serviceName", info.serviceName)
                     put("host", host)

@@ -25,6 +25,9 @@ pub struct NsdServiceInfo {
     #[serde(default)]
     pub account_hash: String,
     pub fingerprint: String,
+    /// 对端客户端类型（macos/windows/android...），由 TXT 广播解析，默认空串。
+    #[serde(default)]
+    pub client_type: String,
     /// 服务的 mDNS 实例名（桌面端为 SoloSoul-<fp8> 可读设备名；旧版为 node_<uuid>）。
     /// 用于安卓端「已发现设备」显示名回退，默认空串。
     #[serde(default)]
@@ -41,6 +44,9 @@ pub struct RegisterServicePayload {
     pub node_id: String,
     pub account_id: String,
     pub fingerprint: String,
+    /// 本机客户端类型（macos/windows/android...），广播进 TXT 供对端展示图标。
+    #[serde(default)]
+    pub client_type: String,
 }
 
 /// 插件句柄包装，便于在 command 中通过 Tauri state 获取。

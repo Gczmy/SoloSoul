@@ -823,6 +823,7 @@
   "sync_pairing_wait_cancel": "Cancel",
   "sync_trusted_badge": "Trusted",
   "sync_untrusted_badge": "Not trusted",
+  "sync_discovered_badge": "New device",
   "sync_revoke_tooltip": "Revoke trust: keep the record but reject its syncs",
   "sync_forget_tooltip": "Forget: delete the record, you'll need to re-pair",
   "sync_pair_tooltip": "Verify the fingerprint and trust this device",

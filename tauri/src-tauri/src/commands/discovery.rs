@@ -89,11 +89,20 @@ pub struct RecoveryDiscoveredHost {
 }
 
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct DiscoveredDevice {
     pub name: String,
     pub host: String,
     pub port: u16,
     pub addresses: Vec<String>,
+    /// 对端公钥指纹（mDNS TXT 广播，用于前端「已发现设备」详情与已知设备匹配）。
+    /// 旧版对端/未解析时为空串。
+    #[serde(default)]
+    pub fingerprint: String,
+    /// 对端客户端类型（macos/windows/linux/android/ios/unknown）。
+    /// 优先来自 TXT 广播；旧版对端回退按 node_id 查本机 vault peer 记录；
+    /// 从未同步过的设备为 unknown（前端兜底显示通用图标）。
+    pub client_type: String,
 }
 
 #[cfg(desktop)]
@@ -146,6 +155,10 @@ pub async fn mdns_discover(
                 .get("fingerprint")
                 .map(|v| v.to_string())
                 .unwrap_or_default();
+            let peer_client_type_txt = props
+                .get("client_type")
+                .map(|v| v.to_string())
+                .unwrap_or_default();
             if !should_show_device(
                 &peer_account_hash,
                 &peer_account_id,
@@ -161,11 +174,29 @@ pub async fn mdns_discover(
             // 裸 IP 无法被 SyncManager 解析为 SocketAddr 导致 "Peer not discovered"。
             let addresses = format_discovered_addresses(info.get_addresses(), info.get_port());
             let display_name = discovered_display_name(&peer_fingerprint, info.get_hostname());
+            // 客户端类型：优先 TXT 广播（新对端也能正确显示图标）；旧版对端无
+            // client_type TXT 时按 node_id 查本机 vault peer 记录（已同步过的设备
+            // 才有记录）。查询失败静默降级为 unknown。
+            let client_type = if !peer_client_type_txt.is_empty() {
+                peer_client_type_txt
+            } else {
+                crate::commands::vault_handle(&state)
+                    .ok()
+                    .and_then(|v| {
+                        v.load_peer_state(&peer_node_id)
+                            .ok()
+                            .flatten()
+                            .and_then(|p| p.client_type)
+                    })
+                    .unwrap_or_else(|| "unknown".to_string())
+            };
             devices.push(DiscoveredDevice {
                 name: display_name,
                 host: info.get_hostname().to_string(),
                 port: info.get_port(),
                 addresses,
+                fingerprint: peer_fingerprint,
+                client_type,
             });
         }
     }
@@ -305,22 +336,43 @@ pub async fn mdns_discover(
                     .unwrap_or(true);
                 same_account && not_self
             })
-            .map(|s| DiscoveredDevice {
-                // 显示名优先指纹派生 SoloSoul-<fp8>（与桌面端 discovered_display_name /
-                // NSD 注册名 / QR 卡片命名规则一致），其次 NSD 服务名（桌面广播实例名
-                // 即 SoloSoul-<fp8>），最后回退 TXT node_id。修复前直接用 node_id
-                // （桌面端 TXT node_id 为 node_<uuid>），导致安卓端已发现列表显示
-                // `node_f2c22bc6…` 而非可读设备名。
-                name: if !s.fingerprint.is_empty() {
-                    format!("SoloSoul-{}", &s.fingerprint[..s.fingerprint.len().min(8)])
-                } else if !s.service_name.is_empty() {
-                    s.service_name.clone()
+            .map(|s| {
+                // 客户端类型：优先 TXT 广播（新对端也能正确显示图标；旧版对端无
+                // client_type 时回退按 node_id 查本机 vault peer 记录）。
+                // State 句柄不能移入 'static 闭包，经 app2（AppHandle）重新取。
+                let app_state = app2.state::<AppState>();
+                let client_type = if !s.client_type.is_empty() {
+                    s.client_type.clone()
                 } else {
-                    s.node_id.clone()
-                },
-                host: s.host.clone(),
-                port: s.port,
-                addresses: vec![format!("{}:{}", s.host, s.port)],
+                    crate::commands::vault_handle(&app_state)
+                        .ok()
+                        .and_then(|v| {
+                            v.load_peer_state(&s.node_id)
+                                .ok()
+                                .flatten()
+                                .and_then(|p| p.client_type)
+                        })
+                        .unwrap_or_else(|| "unknown".to_string())
+                };
+                DiscoveredDevice {
+                    // 显示名优先指纹派生 SoloSoul-<fp8>（与桌面端 discovered_display_name /
+                    // NSD 注册名 / QR 卡片命名规则一致），其次 NSD 服务名（桌面广播实例名
+                    // 即 SoloSoul-<fp8>），最后回退 TXT node_id。修复前直接用 node_id
+                    // （桌面端 TXT node_id 为 node_<uuid>），导致安卓端已发现列表显示
+                    // `node_f2c22bc6…` 而非可读设备名。
+                    name: if !s.fingerprint.is_empty() {
+                        format!("SoloSoul-{}", &s.fingerprint[..s.fingerprint.len().min(8)])
+                    } else if !s.service_name.is_empty() {
+                        s.service_name.clone()
+                    } else {
+                        s.node_id.clone()
+                    },
+                    host: s.host.clone(),
+                    port: s.port,
+                    addresses: vec![format!("{}:{}", s.host, s.port)],
+                    fingerprint: s.fingerprint.clone(),
+                    client_type,
+                }
             })
             .collect())
     });
@@ -479,6 +531,7 @@ pub fn register_sync_service_blocking(
     port: u16,
     account_id: String,
     fingerprint: String,
+    client_type: String,
 ) -> Result<(), String> {
     if account_id.is_empty() {
         return Err("Cannot advertise sync service: no unlocked account".to_string());
@@ -489,6 +542,7 @@ pub fn register_sync_service_blocking(
         node_id: device_name,
         account_id,
         fingerprint,
+        client_type,
     })
 }
 
@@ -506,6 +560,8 @@ mod tests {
                 "192.168.1.5:42069".to_string(),
                 "[fe80::1]:42069".to_string(),
             ],
+            fingerprint: "a1b2c3d4e5f6".to_string(),
+            client_type: "macos".to_string(),
         };
         let json = serde_json::to_string(&device).unwrap();
         assert!(json.contains("\"Alice-MacBook\""));
@@ -513,7 +569,11 @@ mod tests {
         // Verify camelCase field naming
         assert!(json.contains("\"name\":\"Alice-MacBook\""));
         assert!(json.contains("\"addresses\""));
+        // 新增字段序列化
+        assert!(json.contains("\"fingerprint\":\"a1b2c3d4e5f6\""));
+        assert!(json.contains("\"clientType\":\"macos\""));
     }
+
     /// 显示名：有指纹 → SoloSoul-<fp8>；无指纹 → 主机名剥 .local. 后缀。
     #[test]
     #[cfg(desktop)]
@@ -677,11 +737,15 @@ mod tests {
             host: String::new(),
             port: 0,
             addresses: vec![],
+            fingerprint: String::new(),
+            client_type: "unknown".to_string(),
         };
         let json = serde_json::to_string(&device).unwrap();
         // Should still serialize correctly with empty arrays
         assert!(json.contains("\"addresses\":[]"));
         assert!(json.contains("\"port\":0"));
+        // client_type 序列化为 unknown
+        assert!(json.contains("\"clientType\":\"unknown\""));
     }
 
     #[test]

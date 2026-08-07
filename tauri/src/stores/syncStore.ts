@@ -61,6 +61,10 @@ export interface DiscoveredDevice {
   host: string;
   port: number;
   addresses: string[];
+  /** 对端公钥指纹（mDNS TXT 广播；旧版对端/未解析时为空串）。用于详情展示与已知设备匹配。 */
+  fingerprint?: string;
+  /** 客户端类型：macos/windows/linux/android/ios/unknown（TXT 广播或 peer 记录回退）。 */
+  clientType?: string;
 }
 
 interface SyncStatus {
