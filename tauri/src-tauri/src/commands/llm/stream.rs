@@ -386,6 +386,9 @@ pub async fn llm_send_message_stream(
     // 当前账户已登记的 provider（内置默认 ∪ 设置中保存过的地址）。
     // 防止聊天内容（可能含敏感数据）被 XSS 借 LLM 通道外传到任意地址。
     request::validate_llm_base_url(&base_url)?;
+    // P016：SSRF 内网段防护——字面内网 IP 已被 validate 拦截，此处对主机名再做
+    // 异步解析复核（防 `http://nas.local` 这类解析到内网地址的绕过），与 chat_http 一致。
+    request::ensure_public_llm_host(&base_url).await?;
     {
         let svc = state
             .vault_service
