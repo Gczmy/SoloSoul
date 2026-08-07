@@ -1500,6 +1500,65 @@ mod tests {
         );
     }
 
+    /// P004: properties 为加密列，旧实现 LIKE 匹配密文恒为 0；
+    /// 修复后按账户取回逐行解密、内存判断字段 key，须能正确区分 active/软删除/无关对象。
+    #[test]
+    fn test_check_field_usage_decrypts_properties() {
+        let (vault, _dir) = setup();
+        let base = ObjectRecord {
+            contract_type_id: None,
+            id: String::new(),
+            account_id: "acc-1".to_string(),
+            type_id: "note".to_string(),
+            section_type: "identity".to_string(),
+            name: "obj".to_string(),
+            icon_name: "document".to_string(),
+            parent_id: None,
+            children_ids: vec![],
+            properties: serde_json::json!({}),
+            property_labels: None,
+            sensitivity_level: "internal".to_string(),
+            is_deleted: false,
+            deleted_at: None,
+            tags_json: vec![],
+            template_id: None,
+            template_type: None,
+            template_hash: None,
+            ignored_template_hash: None,
+            created_at: chrono::Utc::now().to_rfc3339(),
+            updated_at: chrono::Utc::now().to_rfc3339(),
+            version: 1,
+        };
+
+        // 活动对象：使用字段 field-1
+        let mut active = base.clone();
+        active.id = "obj-use-active".to_string();
+        active.properties = serde_json::json!({"field-1": "value", "field-2": null});
+        vault.save_object(&active).unwrap();
+
+        // 软删除对象：也使用 field-1
+        let mut deleted = base.clone();
+        deleted.id = "obj-use-deleted".to_string();
+        deleted.properties = serde_json::json!({"field-1": "v"});
+        deleted.is_deleted = true;
+        vault.save_object(&deleted).unwrap();
+
+        // 无关对象：不使用 field-1
+        let mut unrelated = base.clone();
+        unrelated.id = "obj-unrelated".to_string();
+        unrelated.properties = serde_json::json!({"other": 1});
+        vault.save_object(&unrelated).unwrap();
+
+        let (active_n, deleted_n) = vault.check_field_usage("acc-1", "field-1").unwrap();
+        assert_eq!((active_n, deleted_n), (1, 1), "field-1 应计 1 活动 + 1 软删除");
+
+        // 值 null 视为未使用；不存在的 key 计 0。
+        let (active_null, deleted_null) = vault.check_field_usage("acc-1", "field-2").unwrap();
+        assert_eq!((active_null, deleted_null), (0, 0), "null 值不计使用");
+        let (active_miss, deleted_miss) = vault.check_field_usage("acc-1", "field-nope").unwrap();
+        assert_eq!((active_miss, deleted_miss), (0, 0), "不存在的 key 计 0");
+    }
+
     #[test]
     fn test_object_soft_delete_and_restore() {
         let (vault, _dir) = setup();

@@ -622,28 +622,47 @@ impl VaultStore {
 
     /// Check whether a template field is used by any object (active or soft-deleted).
     /// Returns (active_count, soft_deleted_count).
+    ///
+    /// P004: `properties` 是 AES 加密列，旧实现对密文做 `LIKE "%\"key\":%"` 匹配恒为 0
+    /// （功能完全失效）。改为按 account_id 取回 properties 逐行解密后内存判断
+    /// 字段 key 是否存在（对象 properties 顶层 key 即模板属性 id）。
     pub fn check_field_usage(
         &self,
         account_id: &str,
         field_key: &str,
     ) -> Result<(usize, usize), String> {
+        let key = self.data_key()?;
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
-        let like = format!("%\"{}\":%", field_key);
-        let active: i64 = conn
-        .query_row(
-            "SELECT COUNT(*) FROM objects WHERE account_id = ?1 AND properties LIKE ?2 AND is_deleted = 0",
-            params![account_id, &like],
-            |r| r.get(0),
-        )
-        .map_err(|e| format!("check_field_usage active: {}", e))?;
-        let soft_deleted: i64 = conn
-        .query_row(
-            "SELECT COUNT(*) FROM objects WHERE account_id = ?1 AND properties LIKE ?2 AND is_deleted = 1",
-            params![account_id, &like],
-            |r| r.get(0),
-        )
-        .map_err(|e| format!("check_field_usage soft_deleted: {}", e))?;
-        Ok((active as usize, soft_deleted as usize))
+        let mut stmt = conn
+            .prepare_cached(
+                "SELECT properties, is_deleted FROM objects WHERE account_id = ?1",
+            )
+            .map_err(|e| format!("check_field_usage prepare: {}", e))?;
+        let rows = stmt
+            .query_map(params![account_id], |row| {
+                Ok((row.get::<_, String>(0)?, row.get::<_, i64>(1)?))
+            })
+            .map_err(|e| format!("check_field_usage query: {}", e))?;
+
+        let mut active = 0usize;
+        let mut soft_deleted = 0usize;
+        for row in rows {
+            let (props_enc, is_deleted) = row.map_err(|e| format!("check_field_usage row: {}", e))?;
+            let props = decrypt_text_field(&key, &props_enc)
+                .map_err(|e| format!("check_field_usage decrypt: {}", e))?;
+            let Ok(value) = serde_json::from_str::<serde_json::Value>(&props) else {
+                continue;
+            };
+            // 字段 key 位于对象 properties 顶层（值为 null 视为未使用）。
+            if value.get(field_key).map(|v| !v.is_null()).unwrap_or(false) {
+                if is_deleted == 0 {
+                    active += 1;
+                } else {
+                    soft_deleted += 1;
+                }
+            }
+        }
+        Ok((active, soft_deleted))
     }
 }
