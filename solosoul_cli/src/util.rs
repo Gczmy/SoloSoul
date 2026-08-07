@@ -25,6 +25,28 @@ pub fn shared_runtime() -> color_eyre::Result<&'static tokio::runtime::Runtime> 
     })
 }
 
+/// 以 0600 权限写入文件——创建时即定权限，避免默认 umask（通常 0644）下的
+/// 明文窗口期。审计日志/诊断包等解密明文统一走此入口（P027/P028）。
+pub fn write_private_file(path: &std::path::Path, contents: &[u8]) -> std::io::Result<()> {
+    #[cfg(unix)]
+    {
+        use std::io::Write;
+        use std::os::unix::fs::OpenOptionsExt;
+        let mut f = std::fs::OpenOptions::new()
+            .write(true)
+            .create(true)
+            .truncate(true)
+            .mode(0o600)
+            .open(path)?;
+        f.write_all(contents)?;
+        Ok(())
+    }
+    #[cfg(not(unix))]
+    {
+        std::fs::write(path, contents)
+    }
+}
+
 /// 将字符索引转换为字符串中的字节位置。
 pub fn byte_position(s: &str, char_index: usize) -> usize {
     s.char_indices()

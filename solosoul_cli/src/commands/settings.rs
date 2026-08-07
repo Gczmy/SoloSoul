@@ -381,7 +381,8 @@ fn debug_log(app: &mut App, file_name: Option<&str>) -> Result<()> {
         .unwrap_or_else(|| "debug_log.json".to_string());
     let path = logs_dir.join(&file_name);
 
-    std::fs::write(&path, &json).map_err(|e| {
+    // 诊断包含解密后审计日志：创建时即以 0600 定权限（P027）。
+    crate::util::write_private_file(&path, json.as_bytes()).map_err(|e| {
         app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e));
         color_eyre::eyre::eyre!(e)
     })?;
