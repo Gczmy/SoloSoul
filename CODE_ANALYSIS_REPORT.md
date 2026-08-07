@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-07（P000-P044 共 43 项闭环（含 P045 合并占位）；剩余 P027、P029、P035 共 3 项 P2 待修）
+> 最后更新：2026-08-07（P000-P044 全部闭环，共 46 项；P027/P029 经用户决策关闭不修，P035 完整方案已修复）
 > 当前分支：`main`
 > 修复轮次：1（初始分析）
 > 基线版本：v2.8.5（HEAD `cdc6afb6`）
@@ -55,15 +55,15 @@
 | P024 | P2 | 性能 | `src-tauri/src/commands/fs.rs:183-231` | `fs_scan_directory` 在 async 命令内同步递归遍历目录 | `[x]` 已修复（递归遍历 + 逐文件 metadata 移入 spawn_blocking） |
 | P025 | P2 | 性能 | `src-tauri/src/commands/llm/rag.rs:144-147,230-232`、`solosoul-plugin/src/manager.rs:441,474` | RAG embedding 每次调用新建 `reqwest::Client`，重建 TLS 连接 | `[x]` 已修复（rag.rs 与 manager.rs 各抽 OnceLock 共享 client，超时改请求级 30s/60s/120s） |
 | P026 | P2 | 性能 | `crates/solosoul-core/src/ocr/model.rs:194` | OCR 每次 `scan_rgb` 重读并重解析 det 后处理配置 | `[x]` 已修复（DetPostProcessConfig 随 OcrEngine::load 解析缓存，移除未再使用的 bundle 字段） |
-| P027 | P2 | 性能 | `crates/solosoul-core/src/export_import.rs:324-328` | 导入包 payload 一次性全量入内存（密文+明文峰值 ~200MB，有 100MB 上限兜底） | `[ ]` 待修复 |
+| P027 | P2 | 性能 | `crates/solosoul-core/src/export_import.rs:324-328` | 导入包 payload 一次性全量入内存（密文+明文峰值 ~200MB，有 100MB 上限兜底） | `[x]` 关闭不修（用户决策 2026-08-07：100MB 上限已兜底，导入为低频用户操作；流式改造涉及加密导入关键路径，收益有限风险偏高） |
 | P028 | P2 | 性能 | `crates/solosoul-core/src/watermark/mod.rs:612` | 水印每次调用读入整个 TTC 字体（CJK 常 10-50MB） | `[x]` 已修复（进程级按路径 Mutex+HashMap 缓存字体字节，TTC 提取一次） |
-| P029 | P2 | 性能 | `crates/solosoul-vault/src/storage.rs:272-310` | `probe_data_key` 每次探测新建 SQLite 连接（仅解锁恢复路径，存疑可不修） | `[ ]` 待修复 |
+| P029 | P2 | 性能 | `crates/solosoul-vault/src/storage.rs:272-310` | `probe_data_key` 每次探测新建 SQLite 连接（仅解锁恢复路径，存疑可不修） | `[x]` 关闭不修（用户决策 2026-08-07：只读低频解锁恢复路径，缓存连接引入文件锁/生命周期复杂度，收益趋零） |
 | P030 | P2 | 安全 | `crates/solosoul-core/src/llm/client.rs:33-36` | LLM 阻塞客户端 `.timeout(None)`，慢速滴流可永久挂起线程 | `[x]` 已修复（请求级 120s 总超时，覆盖连接+响应体读取全程） |
 | P031 | P2 | 安全 | `src-tauri/src/commands/llm/chat_http.rs:5-29,34-55` | `llm_check_connection`/`llm_test_provider` 接受任意 URL+api_key，构成受限带凭证转发原语（无内网段防护） | `[x]` 已修复（SSRF 内网段防护：字面 IP 同步拦截 + 主机名异步解析复核，回环放行） |
 | P032 | P2 | 安全 | `crates/solosoul-core/src/vault_service.rs`（`unlock_secure` 路径） | 主密码解锁无失败限流（PIN 有，主密码没有），dev KDF 参数下字典攻击可行 | `[x]` 已修复（AccountConfig 新增 passwordFailedAttempts/passwordLockedUntil，unlock 阶梯锁定与 PIN 同款，前端 i18n 映射） |
 | P033 | P2 | 安全 | `src-tauri/tauri.conf.json:30` | CSP `object-src data:` 过宽、`style-src 'unsafe-inline'` | `[x]` 已修复（删死配置 connect-src localhost、加 base-uri/form-action/frame-ancestors；object-src data: 与 style-src unsafe-inline 经证据确认必需保留，见下） |
 | P034 | P2 | 安全 | `tauri/src/pages/auth/LoginPage.tsx:53`、`BootstrapPage.tsx:20-22`、`ExportImportPage.tsx:105-106` | 密码驻留 React state（JS 堆不可清零，Web 栈固有限制，可提交后立即置空缓解） | `[x]` 已修复（三文件成功路径立即置空 + 卸载时 useEffect 清理） |
-| P035 | P2 | 安全 | `tauri/src-tauri/src/commands/llm/`（聊天路径） | AI 对话将解密内容发往第三方云端 LLM，需确认 UI 有明确隐私提示（存疑：产品决策） | `[ ]` 待修复 |
+| P035 | P2 | 安全 | `tauri/src-tauri/src/commands/llm/`（聊天路径） | AI 对话将解密内容发往第三方云端 LLM，需确认 UI 有明确隐私提示（存疑：产品决策） | `[x]` 已修复（2026-08-07 完整方案：provider 编辑表单云端标注「对话内容将发送至该第三方服务」+ 首次启用非本地 provider 前弹确认框，同意后写设备级 localStorage 标志；复用 isOllama 本地判定） |
 | P036 | P2 | 规范 | `pages/workspace/WorkspaceObjectCard.tsx:320-377`、`hooks/useRevealState.ts:62-65`、`components/object/HistoryViewer.tsx:232` | 掩码逻辑分散三处且规则不一致（internal 掩码与否、占位符 4/8 圆点不一致） | `[x]` 已修复（新建 lib/masking.ts 单一规则源：仅 public 不掩码 + 8 圆点占位符，三处消费收敛，含单测×2） |
 | P037 | P2 | 架构 | 多处（`SnapshotEntry`×3、`ConversationSummary`×3、`ObjectSummary`×3 等） | 前后端镜像类型在前端重复定义 10+ 组，无防漂移机制 | `[x]` 已修复（新增 types/history、auditLog、backup、llmProvider 四单源；SnapshotEntry×3 / ConversationSummary×2 / AuditLogEntry×2 / BackupInfo×2 / ProviderConfig×2 / AttachmentInfo×2 / ListTemplate×2 收敛；exportImport.ObjectSummary 与 workspace 语义冲突重命名 ExportObjectSummary） |
 | P038 | P2 | 架构 | `tauri/src/lib/searchCache.ts` | 搜索缓存 30s TTL 无写失效，新建/编辑对象 30 秒内搜不到 | `[x]` 已修复（SearchCache.invalidateAccount 按 accountId 前缀失效；objectStore 五个写路径接入，含单测×2） |
@@ -77,7 +77,7 @@
 
 ## 修复进度
 
-- 已完成：43 / 46（P045 为合并占位，实际待修复 45 项；剩余 P027/P029/P035 共 3 项，均 P2：P027 导入内存已有 100MB 上限兜底、P029 probe_data_key 标注「存疑可不修」、P035 需产品决策）
+- 已完成：46 / 46（P000-P044 全部闭环：P027/P029 经用户决策关闭不修，P035 完整方案已修复；P045 为合并占位）
 - 当前处理：P000-P026、P028、P030、P022 全部闭环（30 项 + P045 合并）→ 下一项 P027
 
 ---
