@@ -66,6 +66,19 @@ impl VaultStore {
         Ok(result)
     }
 
+    /// 返回快照所属对象 ID（`object_id` 列明文，供归属校验用）。
+    pub fn get_snapshot_owner(&self, snapshot_id: &str) -> Result<Option<String>, String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        conn.query_row(
+            "SELECT object_id FROM object_snapshots WHERE id=?1",
+            rusqlite::params![snapshot_id],
+            |r| r.get::<_, String>(0),
+        )
+        .optional()
+        .map_err(|e| format!("Failed to load snapshot owner: {}", e))
+    }
+
     pub fn count_snapshots_batch(
         &self,
         object_ids: &[String],

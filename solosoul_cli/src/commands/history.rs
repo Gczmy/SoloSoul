@@ -91,6 +91,14 @@ fn do_rollback(app: &mut App, object_id: &str, snapshot_id: &str) -> Result<()> 
         .get_vault_store()
         .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
 
+    // P031：校验快照归属——快照必须属于目标对象，防止把别的对象数据套到本对象
+    let owner = vault
+        .get_snapshot_owner(snapshot_id)
+        .map_err(|e| color_eyre::eyre::eyre!(e))?;
+    if owner.as_deref() != Some(object_id) {
+        return Err(color_eyre::eyre::eyre!("快照不属于该对象"));
+    }
+
     let data = vault
         .get_snapshot(snapshot_id)
         .map_err(|e| color_eyre::eyre::eyre!(e))?
@@ -122,30 +130,34 @@ fn do_rollback(app: &mut App, object_id: &str, snapshot_id: &str) -> Result<()> 
         .save_object(&record)
         .map_err(|e| color_eyre::eyre::eyre!(e))?;
 
-    // 保存回滚快照
+    // 保存回滚快照（P031：序列化/保存失败不得静默留下空快照）
     let rollback_data = serde_json::to_vec(&serde_json::json!({
         "name": record.name,
         "tags": record.tags_json,
         "properties": record.properties,
     }))
-    .unwrap_or_default();
-    let _ = vault.save_snapshot(
-        object_id,
-        "rollback",
-        &rollback_data,
-        "Rolled back to previous version",
-    );
-    let _ = vault.log_structured(
-        "object_rollback",
-        "object",
-        Some(object_id),
-        Some(&record.name),
-        "user",
-        Some(&format!(
-            "section={} snapshot={}",
-            record.section_type, snapshot_id
-        )),
-    );
+    .map_err(|e| color_eyre::eyre::eyre!("序列化回滚快照失败: {}", e))?;
+    vault
+        .save_snapshot(
+            object_id,
+            "rollback",
+            &rollback_data,
+            "Rolled back to previous version",
+        )
+        .map_err(|e| color_eyre::eyre::eyre!("保存回滚快照失败: {}", e))?;
+    vault
+        .log_structured(
+            "object_rollback",
+            "object",
+            Some(object_id),
+            Some(&record.name),
+            "user",
+            Some(&format!(
+                "section={} snapshot={}",
+                record.section_type, snapshot_id
+            )),
+        )
+        .map_err(|e| color_eyre::eyre::eyre!("记录操作日志失败: {}", e))?;
 
     app.success_message = Some((
         t!(
@@ -245,5 +257,111 @@ mod tests {
         let (mut app, _id, _dir) = unlocked_app();
         rollback(&mut app, None, None).unwrap();
         assert!(app.error_message.is_some());
+    }
+
+    fn make_obj(account_id: String, id: &str, name: &str) -> ObjectRecord {
+        ObjectRecord {
+            id: id.to_string(),
+            account_id,
+            type_id: "note".to_string(),
+            section_type: "identity".to_string(),
+            name: name.to_string(),
+            icon_name: "document".to_string(),
+            parent_id: None,
+            children_ids: vec![],
+            properties: serde_json::json!({ "title": name }),
+            property_labels: None,
+            sensitivity_level: "internal".to_string(),
+            is_deleted: false,
+            deleted_at: None,
+            tags_json: vec![],
+            template_id: None,
+            template_type: None,
+            contract_type_id: None,
+            created_at: chrono::Utc::now().to_rfc3339(),
+            updated_at: chrono::Utc::now().to_rfc3339(),
+            version: 1,
+            template_hash: None,
+            ignored_template_hash: None,
+        }
+    }
+
+    fn snapshot_id_of(vault: &solosoul_vault::VaultStore, object_id: &str) -> String {
+        let snaps = vault.list_snapshots(object_id).unwrap();
+        assert!(!snaps.is_empty(), "对象 {} 应有快照", object_id);
+        snaps[0]["id"].as_str().unwrap().to_string()
+    }
+
+    /// P031：跨对象快照回滚必须被拒绝，且目标对象数据不被篡改。
+    #[test]
+    fn test_rollback_rejects_snapshot_from_other_object() {
+        let (mut app, account_id, _dir) = unlocked_app();
+        let vault = app.vault_service.get_vault_store().unwrap();
+
+        let obj_a_id = format!("obj_a_{}", obj_counter());
+        let obj_b_id = format!("obj_b_{}", obj_counter());
+        vault
+            .save_object(&make_obj(account_id.clone(), &obj_a_id, "A"))
+            .unwrap();
+        vault
+            .save_object(&make_obj(account_id.clone(), &obj_b_id, "B"))
+            .unwrap();
+
+        // 对象 B 保存快照
+        let snap_b =
+            serde_json::to_vec(&serde_json::json!({"name": "B", "properties": {}})).unwrap();
+        vault
+            .save_snapshot(&obj_b_id, "user_edit", &snap_b, "Created")
+            .unwrap();
+        let snap_id = snapshot_id_of(&vault, &obj_b_id);
+
+        // 对对象 A 回滚 B 的快照 → 拒绝
+        let err = do_rollback(&mut app, &obj_a_id, &snap_id).unwrap_err();
+        assert!(
+            err.to_string().contains("快照不属于该对象"),
+            "应拒绝跨对象快照: {}",
+            err
+        );
+
+        // 对象 A 数据未被篡改
+        let obj_a = vault.load_object(&obj_a_id).unwrap().unwrap();
+        assert_eq!(obj_a.name, "A");
+        assert_eq!(obj_a.properties["title"], "A");
+    }
+
+    /// P031 正向控制：同对象快照回滚成功。
+    #[test]
+    fn test_rollback_accepts_snapshot_of_same_object() {
+        let (mut app, account_id, _dir) = unlocked_app();
+        let vault = app.vault_service.get_vault_store().unwrap();
+
+        let obj_id = format!("obj_ok_{}", obj_counter());
+        vault
+            .save_object(&make_obj(account_id.clone(), &obj_id, "old_name"))
+            .unwrap();
+
+        // 保存初始快照，然后把对象改成新状态
+        let snap_data = serde_json::to_vec(&serde_json::json!({
+            "name": "old_name",
+            "tags": [],
+            "properties": { "title": "old_title" },
+        }))
+        .unwrap();
+        vault
+            .save_snapshot(&obj_id, "user_edit", &snap_data, "Created")
+            .unwrap();
+        let snap_id = snapshot_id_of(&vault, &obj_id);
+
+        let mut obj = vault.load_object(&obj_id).unwrap().unwrap();
+        obj.name = "new_name".to_string();
+        obj.properties = serde_json::json!({ "title": "new_title" });
+        vault.save_object(&obj).unwrap();
+
+        // 回滚到旧快照
+        do_rollback(&mut app, &obj_id, &snap_id).unwrap();
+        let rolled = vault.load_object(&obj_id).unwrap().unwrap();
+        assert_eq!(rolled.name, "old_name");
+        assert_eq!(rolled.properties["title"], "old_title");
+        assert!(app.success_message.is_some());
     }
 }
