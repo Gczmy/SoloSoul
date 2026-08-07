@@ -88,7 +88,16 @@ export function AttachmentPreviewOverlay({
 
     if (kind === 'image' || kind === 'pdf') {
       invoke<string>('fs_read_file_as_data_url', { path: filePath })
-        .then(setPreviewUrl)
+        .then((url) => {
+          // P017：CSP 保留 object-src data: 以服务桌面 PDF 内嵌预览，此处加代码层
+          // 守卫——仅 application/pdf data URL 允许进入 <embed>，杜绝未来代码路径
+          // 将 data:text/html 等可执行内容注入 object/embed 元素。
+          if (kind === 'pdf' && !url.startsWith('data:application/pdf')) {
+            setError(true);
+            return;
+          }
+          setPreviewUrl(url);
+        })
         .catch(() => setError(true))
         .finally(() => setLoading(false));
     } else if (kind === 'text') {
