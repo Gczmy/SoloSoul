@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/Card';
 import { PAGE_ICON_MAP, resolveCustomIcon } from '@/lib/pageIcons';
 import { Clock, Paperclip, Pencil, Trash2 } from 'lucide-react';
 import { getSensitivityStyle, type SensitivityLevel } from '@/components/ui/SensitivityBadge';
+import { MASK_PLACEHOLDER, shouldMaskSensitivity } from '@/lib/masking';
 import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
 import type { ObjectSummary, ObjectData } from '@/stores/objectStore';
 import type { UserTemplate } from '@/types/template';
@@ -319,7 +320,8 @@ export const WorkspaceObjectCard = memo(function WorkspaceObjectCard({
             {fields.map((f) => {
               const sens = getFieldSensitivity(f.key);
               const deprecated = isFieldDeprecated(f.key);
-              const isMasked = sens !== 'public';
+              // P036: 规则统一——仅 public 不掩码（internal 同样自动掩码）
+              const isMasked = shouldMaskSensitivity(sens);
               const fieldLabel = f.label || getFieldName(f.key);
               const fieldProp = getFieldProperty(f.key);
               const isContractField =
@@ -373,7 +375,7 @@ export const WorkspaceObjectCard = memo(function WorkspaceObjectCard({
                         : { color: 'var(--text-primary)' }),
                     }}
                   >
-                    {isMasked ? '••••' : f.value}
+                    {isMasked ? MASK_PLACEHOLDER : f.value}
                   </span>
                 </span>
               );

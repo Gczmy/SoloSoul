@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-07（P000-P026、P028、P030、P022、P031、P032、P033、P034 全部闭环，共 34 项；剩余 P027、P029、P035-P044 共 11 项待修）
+> 最后更新：2026-08-07（P000-P034、P036 全部闭环，共 35 项；剩余 P027、P029、P035、P037-P044 共 10 项待修）
 > 当前分支：`main`
 > 修复轮次：1（初始分析）
 > 基线版本：v2.8.5（HEAD `cdc6afb6`）
@@ -64,7 +64,7 @@
 | P033 | P2 | 安全 | `src-tauri/tauri.conf.json:30` | CSP `object-src data:` 过宽、`style-src 'unsafe-inline'` | `[x]` 已修复（删死配置 connect-src localhost、加 base-uri/form-action/frame-ancestors；object-src data: 与 style-src unsafe-inline 经证据确认必需保留，见下） |
 | P034 | P2 | 安全 | `tauri/src/pages/auth/LoginPage.tsx:53`、`BootstrapPage.tsx:20-22`、`ExportImportPage.tsx:105-106` | 密码驻留 React state（JS 堆不可清零，Web 栈固有限制，可提交后立即置空缓解） | `[x]` 已修复（三文件成功路径立即置空 + 卸载时 useEffect 清理） |
 | P035 | P2 | 安全 | `tauri/src-tauri/src/commands/llm/`（聊天路径） | AI 对话将解密内容发往第三方云端 LLM，需确认 UI 有明确隐私提示（存疑：产品决策） | `[ ]` 待修复 |
-| P036 | P2 | 规范 | `pages/workspace/WorkspaceObjectCard.tsx:320-377`、`hooks/useRevealState.ts:62-65`、`components/object/HistoryViewer.tsx:232` | 掩码逻辑分散三处且规则不一致（internal 掩码与否、占位符 4/8 圆点不一致） | `[ ]` 待修复 |
+| P036 | P2 | 规范 | `pages/workspace/WorkspaceObjectCard.tsx:320-377`、`hooks/useRevealState.ts:62-65`、`components/object/HistoryViewer.tsx:232` | 掩码逻辑分散三处且规则不一致（internal 掩码与否、占位符 4/8 圆点不一致） | `[x]` 已修复（新建 lib/masking.ts 单一规则源：仅 public 不掩码 + 8 圆点占位符，三处消费收敛，含单测×2） |
 | P037 | P2 | 架构 | 多处（`SnapshotEntry`×3、`ConversationSummary`×3、`ObjectSummary`×3 等） | 前后端镜像类型在前端重复定义 10+ 组，无防漂移机制 | `[ ]` 待修复 |
 | P038 | P2 | 架构 | `tauri/src/lib/searchCache.ts` | 搜索缓存 30s TTL 无写失效，新建/编辑对象 30 秒内搜不到 | `[ ]` 待修复 |
 | P039 | P2 | 性能 | `components/llm/ChatMessageList.tsx:178`、`ConversationHistory.tsx:46`、`pages/editor/HistoryPage.tsx:96` | 大列表无分页/虚拟滚动（HistoryPage 快照随编辑次数无限增长） | `[ ]` 待修复 |

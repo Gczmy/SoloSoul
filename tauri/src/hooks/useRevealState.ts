@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-
-type SensitivityLevel = 'public' | 'internal' | 'sensitive' | 'critical';
+import type { SensitivityLevel } from '@/types/template';
+import { MASK_PLACEHOLDER, shouldMaskSensitivity } from '@/lib/masking';
 
 interface RevealEntry {
   expiresAt: number; // Date.now() + TTL
@@ -61,9 +61,9 @@ export function useRevealState() {
   /** Check if a field should be masked based on its sensitivity level. */
   const shouldMask = useCallback(
     (fieldId: string, sensitivity: SensitivityLevel): boolean => {
-      // Public/internal are never masked
-      if (sensitivity === 'public' || sensitivity === 'internal') return false;
-      // Sensitive/critical are masked unless revealed
+      // P036: 规则统一——仅 public 不掩码，internal 同样自动掩码（AGENTS.md 约定）
+      if (!shouldMaskSensitivity(sensitivity)) return false;
+      // Sensitive/critical (and internal) are masked unless revealed
       if (revealed[fieldId]) {
         if (Date.now() < revealed[fieldId].expiresAt) return false;
         // Expired — clean up
@@ -90,7 +90,8 @@ export function useRevealState() {
       // NOTE: Product spec needed — implement field-type-aware partial masking.
       // Requires field type registry + mask rule DSL (see §09 对象规范).
       // Examples: bank card → show last 4 digits; date → show year only.
-      return '••••••••';
+      // P036: 占位符统一（8 圆点）
+      return MASK_PLACEHOLDER;
     },
     [shouldMask],
   );

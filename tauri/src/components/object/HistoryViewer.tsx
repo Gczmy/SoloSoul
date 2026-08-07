@@ -10,6 +10,7 @@ import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
 import { DeprecatedBadge } from '@/components/ui/DeprecatedBadge';
 import { SnapshotVersionBadge } from '@/components/ui/SnapshotVersionBadge';
 import { useRevealState } from '@/hooks/useRevealState';
+import { shouldMaskSensitivity } from '@/lib/masking';
 import { resolveCollectionLabel } from '@/lib/utils';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useUiStore } from '@/stores/uiStore';
@@ -202,7 +203,8 @@ function SnapshotCard({
   }) => {
     const { value, fieldId, sens, fieldLabel } = opts;
     const revealed = isRevealed(fieldId);
-    const needsReveal = sens === 'sensitive' || sens === 'critical';
+    // P036: 规则统一——仅 public 不掩码（internal 同样自动掩码，点击揭示）
+    const needsReveal = shouldMaskSensitivity(sens);
     return (
       <span
         onClick={
