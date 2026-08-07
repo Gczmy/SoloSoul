@@ -251,20 +251,26 @@ Release APK 使用 `signingConfigs.release`，从环境变量读取 keystore 信
 
 本地构建时若环境变量缺失，则回退为未签名（debug），不会报错；CI 发布时必须提供上述变量。
 
-#### APK 校验和（SHA-256）生成
+#### APK 校验和（SHA-256）生成与签名（P003）
 
-Android 客户端下载 APK 后会自动验证 SHA-256 校验和。发布前需要生成校验和文件并随 APK 一起上传到 GitHub Release。
+Android 客户端下载 APK 后会自动验证 SHA-256 校验和。发布前需要生成校验和文件、**签名**并随 APK 一起上传到 GitHub Release。
 
 ```bash
-# 为 Release APK 生成 SHA-256 校验和文件
+# 为 Release APK 生成 SHA-256 校验和文件 + minisign 签名
 ./docs/compute-apk-checksum.sh SoloSoul-Releases/SoloSoul_2.6.1_universal-release.apk
 
-# 产物：SoloSoul_2.6.1_universal-release.apk.sha256
-# 内容：64 位 hex 编码的 SHA-256 哈希
+# 产物：
+#   SoloSoul_2.6.1_universal-release.apk.sha256       （64 位 hex 编码的 SHA-256 哈希）
+#   SoloSoul_2.6.1_universal-release.apk.sha256.minisig （校验和文件的 minisign 签名）
 ```
 
-> `.sha256` 文件只有约 64 字节，必须与 APK 一同上传到 GitHub Release。
-> 如果上传时缺少该文件，Android 客户端仍可正常下载安装，但不会进行 SHA-256 校验。
+> **P003（校验和防篡改）**：校验和不能再与 APK 同通道无条件信任——脚本会使用
+> **embed 注册表专用密钥**（`~/SoloSoul/signing/embed-registry/embed-registry.key`，
+> 客户端公钥已编译进 `update.rs`）对 `.sha256` 文件签名。客户端下载校验和后先验签
+> （`.sha256.minisig`），验签失败即拒绝该校验和（不执行 SHA-256 校验）。
+>
+> `.sha256` 与 `.sha256.minisig` 文件都很小，**必须与 APK 一同上传到 GitHub Release**。
+> 缺少签名文件时 Android 客户端不会进行 SHA-256 校验（不阻断下载，但失去完整性保障）。
 
 ---
 

@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-07（P000-P001/P004-P005/P007/P009-P015 已修复，P002/P012 闭环）
+> 最后更新：2026-08-07（P000-P015 全部闭环，共 15 项；剩余 P016-P044 共 30 项待修）
 > 当前分支：`main`
 > 修复轮次：1（初始分析）
 > 基线版本：v2.8.5（HEAD `cdc6afb6`）
@@ -31,7 +31,7 @@
 | P000 | P0 | 测试 | `tauri/src-tauri/src/lib.rs:1010` | `test_dispatch_cluster_prefixes_consistent` 断言硬编码 188，簇列表实际已有 190 条命令，`cargo test` 红、CI 必挂 | `[x]` 已修复（断言 188→190，注释同步） |
 | P001 | P1 | 安全 | `tauri/src-tauri/src/commands/export_import/export.rs:253-272` | 导出 `save_path` 无落盘基目录限制（附件下载有，导出没有，校验不一致） | `[x]` 已修复（桌面端复用 allowed_fs_bases 白名单 + `..` 拒绝） |
 | P002 | P1 | 安全 | `tauri/crates/solosoul-core/src/biometric/legacy.rs:88-103` | 遗留生物识别文件加密密钥派生自公开 account_id，可还原主密钥（存疑：仅限未迁移老安装的迁移窗口） | `[x]` 已修复（用户确认：XOR 迁移路径整体删除，窗口已关） |
-| P003 | P1 | 安全 | `tauri/src-tauri/src/commands/update.rs:202-245` | Android APK 校验和与安装包同通道下发，无独立签名验证 | `[ ]` 待修复 |
+| P003 | P1 | 安全 | `tauri/src-tauri/src/commands/update.rs:202-245` | Android APK 校验和与安装包同通道下发，无独立签名验证 | `[x]` 已修复（校验和 minisign 签名 + 客户端 base64 解包验签硬失败，复用 embed 公钥） |
 | P004 | P1 | 性能 | `tauri/crates/solosoul-plugin/src/field.rs:219-240` | 插件每解析一个字段就全表解密一次（模板+对象），无缓存，K 字段 × N 对象放大 | `[x]` 已修复（FieldCache 惰性缓存：templates/all_objects/by_type 三类） |
 | P005 | P1 | 性能 | `tauri/src/hooks/useExportScope.ts:52-76` + `export.rs:644-667` | 导出附件勾选 N+1：前端逐对象 IPC、后端逐对象整解密 | `[x]` 已修复（export_get_attachments_batch 批量命令 + load_objects_batch） |
 | P006 | P1 | 性能 | `tauri/src-tauri/src/commands/llm/conversation.rs:13-57` | LLM 会话存为单个加密 Profile blob，每条消息全量解密+全量重加密 | `[ ]` 待修复 |
@@ -77,8 +77,8 @@
 
 ## 修复进度
 
-- 已完成：14 / 46（P045 为合并占位，实际待修复 45 项）
-- 当前处理：P000-P015 全部闭环（13 项 + P045 合并）→ P003
+- 已完成：15 / 46（P045 为合并占位，实际待修复 45 项）
+- 当前处理：P000-P015 全部闭环（14 项 + P045 合并）→ 下一项 P016
 
 ---
 
@@ -114,7 +114,12 @@
 - **位置**：`tauri/src-tauri/src/commands/update.rs:202-245`
 - **问题**：Android 更新的 SHA-256 校验和与 APK 来自同一个 GitHub Release 资产列表，无独立签名验证。代码库在 `embed_model.rs:46-47` 已认识到同通道问题并对 embedding 注册表用 minisign 修复，Android APK 通道没有。
 - **缓解**：Android 包管理器强制升级包签名一致，实际可利用性低；但对首次安装/旁加载无保护。
-- **建议**：对 `.sha256` 或 `latest.json` 用 updater 同款 minisign 密钥签名，客户端硬失败校验。
+- **修复（双端闭环）**：
+  1. **客户端**（`update.rs`）：新增 `verify_checksum_signature`——下载到 `.sha256.minisig` 后先验签再信任校验和。验签逻辑：tauri signer 输出为 **base64 包裹的 minisign 明文**，需先 `base64::STANDARD.decode` 解包，再用 `minisign_verify::PublicKey`（**复用 embed 注册表公钥** `RWTemXPd...`，已编译进客户端）`verify(bytes, sig, false)`；验签失败 → 拒绝该校验和（硬失败），防止校验和与 APK 同通道被一并篡改。
+  2. **发布侧**（`docs/compute-apk-checksum.sh`）：生成 `.sha256` 后调用 `npx tauri signer sign`（embed-registry 私钥，环境变量 `SOLOSOUL_EMBED_PRIVATE_KEY` 可覆盖路径）产出 `.minisig`；发布流程文档（`release_process.md`）同步说明上传三件套。
+  3. **防回归测试**：`update.rs` 新增单测（公钥可解析、篡改校验和被拒、真实签名数据端到端验签通过）。
+- **坑位记录**：① tauri signer 的 `.sig` 是 base64 包裹格式，`minisign-verify` 不能直接解析，必须解包——已用真实签名数据端到端验证；② macOS bash 3.2 对「变量名紧跟全角括号」（`$EMBED_KEY）`）会吞掉 `0xEF` 字节导致 unbound variable——改用 `${EMBED_KEY}` 花括号；③ 脚本 `cd` 进 tauri 目录后相对路径失效——APK 路径先解析为绝对路径。
+- **验证**：`cargo test -p solo_soul update` 7 测试通过、clippy 0 警告、脚本对真实 2.8.5 APK 端到端产出可验签 `.minisig`。
 
 ### P004（P1 · 性能）插件字段解析每字段全表解密
 

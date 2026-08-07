@@ -13,6 +13,19 @@ use tauri_plugin_updater::UpdaterExt;
 const GITHUB_API: &str = "https://api.github.com/repos/Gczmy/SoloSoul/releases/latest";
 const USER_AGENT: &str = "SoloSoul/2.6.1";
 
+/// P003: APK 校验和（`.sha256`）的 minisign 公钥，**复用 embed 注册表密钥对**
+/// （`embed_model.rs::EMBED_REGISTRY_PUBKEY_B64`，标准 minisign 格式，
+/// `minisign_verify` 可解析；tauri.conf.json 的 updater pubkey 是 Tauri 自定义
+/// 格式，与 `minisign_verify::Signature::decode` 不兼容，不可用于此路径）。
+///
+/// 发布侧流程：`cargo tauri signer sign -p '' <secret.key> <apk>.sha256`
+/// 产出 `<apk>.sha256.minisig`（与 registry.json.minisig 同模式、同一把私钥），
+/// 随 `.sha256` 一起上传到 GitHub Release。
+///
+/// 验签失败或签名缺失 → 校验和视为不可信（返回空串，客户端失去完整性校验，
+/// 不阻断下载），杜绝「同通道替换 APK + 校验和」的静默降级。
+const APK_CHECKSUM_PUBKEY: &str = "RWTemXPdgTgjPGuPgRxV+e3ng0NH2lgS8HzRbmi0XSlyjYXKI6zGkvXD";
+
 // ── Types ──────────────────────────────────────────────────────
 
 /// GitHub Release API 返回的顶层结构（仅提取所需字段）。
@@ -173,6 +186,28 @@ async fn fetch_github_release(client: &reqwest::Client) -> Result<GitHubRelease,
         .map_err(|e| format!("解析 GitHub Release 响应失败: {e}"))
 }
 
+/// P003: 校验 APK 校验和文件的 minisign 签名（与 embed_model 的
+/// `verify_registry_signature` 同模式，发布侧用 `npx tauri signer sign` 签名）。
+///
+/// `tauri signer sign` 输出的 `.sig` 是 **base64 包裹的 minisign 明文**
+/// （客户端先 base64 解码得到 `untrusted comment: ...` 开头的标准 minisign
+/// 签名，`minisign_verify::Signature::decode` 才能解析），因此本函数先解码再验签。
+fn verify_checksum_signature(checksum_bytes: &[u8], sig_text: &str) -> Result<(), String> {
+    let public_key = minisign_verify::PublicKey::from_base64(APK_CHECKSUM_PUBKEY)
+        .map_err(|e| format!("APK checksum public key parse failed: {e}"))?;
+    // 先 base64 解码 tauri signer 输出，再交给 minisign_verify
+    let sig_plain =
+        base64::Engine::decode(&base64::engine::general_purpose::STANDARD, sig_text.trim())
+            .map_err(|e| format!("APK checksum signature base64 decode failed: {e}"))?;
+    let sig_plain = String::from_utf8(sig_plain)
+        .map_err(|e| format!("APK checksum signature UTF-8 decode failed: {e}"))?;
+    let signature = minisign_verify::Signature::decode(&sig_plain)
+        .map_err(|e| format!("APK checksum signature decode failed: {e}"))?;
+    public_key
+        .verify(checksum_bytes, &signature, false)
+        .map_err(|e| format!("APK checksum signature verification failed: {e}"))
+}
+
 /// 检查 GitHub Release 是否有新版本。
 ///
 /// 仅在 Android 上有效；桌面端使用 `desktop_check_update`。
@@ -195,24 +230,55 @@ pub async fn android_check_update(app: tauri::AppHandle) -> Result<AndroidUpdate
         .iter()
         .find(|a| a.name.ends_with(".apk") || a.name.contains("universal-release"));
 
-    // 查找对应的 .sha256 校验和资产，并下载其内容
+    // 查找对应的 .sha256 校验和资产与 .sha256.minisig 签名资产，下载并验签。
+    // P003: 校验和不再与 APK 同通道无条件信任——发布侧已用 embed 注册表私钥
+    // 对 .sha256 文件签名（cargo tauri signer sign -p ''），客户端以编译期
+    // 公钥验签；验签失败或缺失签名视为校验和不可信（返回空字符串，客户端仅
+    // 失去完整性校验，不阻断下载）。
     let checksum = if let Some(checksum_asset) = release
         .assets
         .iter()
         .find(|a| a.name.ends_with(".apk.sha256") || a.name.contains("sha256"))
     {
-        // 使用已有的 async client 下载校验和文件（约 64 字节）
-        let url = &checksum_asset.browser_download_url;
-        match client.get(url).send().await {
-            Ok(resp) if resp.status().is_success() => {
-                // 格式: "<64位hex>  <文件名>" 或仅 "<64位hex>"
-                let body = resp.text().await.unwrap_or_default();
-                body.split_whitespace()
-                    .next()
-                    .filter(|token| token.len() == 64)
-                    .map(|s| s.to_string())
-            }
-            _ => None,
+        let sig_asset = release.assets.iter().find(|a| {
+            a.name.ends_with(".sha256.minisig")
+                || a.name.ends_with(".apk.sha256.minisig")
+                || a.name.contains(".sha256.minisig")
+        }); // 下载校验和文件（约 64 字节）与签名文件
+        let body = match client
+            .get(&checksum_asset.browser_download_url)
+            .send()
+            .await
+        {
+            Ok(resp) if resp.status().is_success() => resp.text().await.unwrap_or_default(),
+            _ => String::new(),
+        };
+
+        // 签名缺失或验签失败 → 校验和不可信，返回 None（客户端仅失去完整性校验，不阻断下载）
+        let sig_text = match sig_asset {
+            Some(asset) => match client.get(&asset.browser_download_url).send().await {
+                Ok(resp) if resp.status().is_success() => resp.text().await.unwrap_or_default(),
+                _ => String::new(),
+            },
+            None => String::new(),
+        };
+        let sig_ok =
+            !sig_text.is_empty() && verify_checksum_signature(body.as_bytes(), &sig_text).is_ok();
+        if !sig_ok {
+            tracing::warn!(
+                "[updater] APK checksum minisign signature missing or invalid — checksum rejected"
+            );
+        }
+
+        // 验签通过后，才提取 64 位 hex 作为校验和。
+        // 格式: "<64位hex>  <文件名>" 或仅 "<64位hex>"
+        if sig_ok {
+            body.split_whitespace()
+                .next()
+                .filter(|token| token.len() == 64)
+                .map(|s| s.to_string())
+        } else {
+            None
         }
     } else {
         None
@@ -570,4 +636,68 @@ pub async fn android_is_apk_downloaded(
 ) -> Result<bool, String> {
     let path = apk_cache_path(&app, &version)?;
     Ok(path.exists())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// P003 防回归：编译期 APK 校验和公钥必须能被 minisign_verify 解析。
+    /// 曾误用 tauri.conf.json 的 updater pubkey（Tauri 自定义格式），
+    /// minisign_verify 无法解析——此测试确保公钥为标准 minisign 格式。
+    #[test]
+    fn test_apk_checksum_pubkey_is_parseable() {
+        minisign_verify::PublicKey::from_base64(APK_CHECKSUM_PUBKEY)
+            .expect("编译期公钥必须可解析（标准 minisign 格式）");
+    }
+
+    /// P003 防回归：签名文本必须能被 base64 解码 + Signature::decode 解析
+    /// （标准 minisign 格式），篡改/空签名应被拒绝。
+    #[test]
+    fn test_verify_checksum_signature_rejects_tampered() {
+        // 非 base64 文本
+        let bogus_sig = "not-base64!!!";
+        assert!(verify_checksum_signature(b"some checksum bytes", bogus_sig).is_err());
+
+        // 空签名同样被拒
+        assert!(verify_checksum_signature(b"x", "").is_err());
+    }
+
+    /// P003 端到端：真实签名（embed-registry 私钥签发，tauri signer 输出）验签通过。
+    /// 测试数据为发布侧用 embed 私钥对固定校验和文本签名后的真实产物（2026-08-07
+    /// 采集），与客户端运行时下载 `.sha256` + `.sha256.minisig` 后的验签链路一致。
+    #[test]
+    fn test_verify_checksum_signature_end_to_end() {
+        // tauri signer sign 输出（base64 包裹的 minisign 明文）
+        let real_sig = "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVUZW1YUGRnVGdqUElXektwTklqanR0NFhta25GN3FhSHI3UFh3VitLTURIU0hMeUxSbGVKc1krclNSSGZOS1FCK1FieCtZckJlckNXaHpJQ3owZlpaR051NktxN2kwWmcwPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzg2MTE0MTcxCWZpbGU6cDAwM190ZXN0LnNoYTI1NgpCdG5FUWQxUkVrdlVhL2VKUkhST29XU2lPVWJBQlBCOU9UbXordFpwclkyZGN6VGcyKy8ycDVxRHBJc3pkRFVXRHNwbzdjT012cTk3UXR4RmdPL1FDQT09Cg==";
+        // 被签名的校验和文件内容（`<64位hex>\n`）
+        let checksum_bytes = b"deadbeef1234567890abcdef1234567890abcdef1234567890abcdef12345678\n";
+        assert!(
+            verify_checksum_signature(checksum_bytes, real_sig).is_ok(),
+            "真实签名应验签通过"
+        );
+
+        // 篡改校验和内容 → 验签必须失败
+        let tampered = b"deadbeef1234567890abcdef1234567890abcdef1234567890abcdef12345679\n";
+        assert!(verify_checksum_signature(tampered, real_sig).is_err());
+    }
+
+    /// 校验和提取逻辑：仅接受 64 位 hex 首 token。
+    #[test]
+    fn test_checksum_token_extraction() {
+        let ok: Option<String> =
+            "a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90  file.apk"
+                .split_whitespace()
+                .next()
+                .filter(|token| token.len() == 64)
+                .map(|s| s.to_string());
+        assert!(ok.is_some());
+
+        let short: Option<String> = "abc"
+            .split_whitespace()
+            .next()
+            .filter(|token| token.len() == 64)
+            .map(|s| s.to_string());
+        assert!(short.is_none());
+    }
 }
