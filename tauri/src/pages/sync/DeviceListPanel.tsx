@@ -144,6 +144,8 @@ export function DeviceListPanel({
                     padding: '10px 12px',
                     borderRadius: 8,
                     background: 'var(--bg-toolbar)',
+                    // 细线边框：与已知设备卡片同款，区分卡片与页面背景
+                    border: '1px solid var(--border-subtle)',
                     cursor: 'pointer',
                   }}
                 >
@@ -344,6 +346,8 @@ export function DeviceListPanel({
                     padding: '10px 12px',
                     borderRadius: 8,
                     background: 'var(--bg-toolbar)',
+                    // 细线边框：与已知设备卡片同款，区分卡片与页面背景
+                    border: '1px solid var(--border-subtle)',
                     cursor: 'pointer',
                   }}
                 >
