@@ -14,6 +14,9 @@ import { ICON_SIZE } from '@/lib/constants';
 import type { SnapshotEntry } from '@/types/history';
 import styles from './HistoryPage.module.css';
 
+/** P039: 快照列表分页大小（快照随编辑次数无限增长，避免一次性渲染全部卡片）。 */
+const SNAPSHOT_PAGE_SIZE = 20;
+
 export function HistoryPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -21,6 +24,8 @@ export function HistoryPage() {
   const [snapshots, setSnapshots] = useState<SnapshotEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [restoring, setRestoring] = useState<string | null>(null);
+  // P039: 快照随编辑次数无限增长——分页渲染，加载更多
+  const [visibleLimit, setVisibleLimit] = useState(SNAPSHOT_PAGE_SIZE);
   const { t } = useTranslation(['common']);
   const showToast = useUiStore((s) => s.showToast);
   const { requestConfirm, dialog: confirmDialog } = useConfirm();
@@ -87,7 +92,7 @@ export function HistoryPage() {
               {t('common:version_count', { n: snapshots.length })}
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--card-gap-sm)' }}>
-              {snapshots.map((s, i) => (
+              {snapshots.slice(0, visibleLimit).map((s, i) => (
                 <Card key={s.id}>
                   <div className={styles.snapshotRow}>
                     <div className={styles.snapshotInfo}>
@@ -122,6 +127,15 @@ export function HistoryPage() {
                   </div>
                 </Card>
               ))}
+              {visibleLimit < snapshots.length && (
+                <Button
+                  variant="secondary"
+                  onClick={() => setVisibleLimit((n) => n + SNAPSHOT_PAGE_SIZE)}
+                  style={{ width: '100%', marginTop: 4 }}
+                >
+                  {t('common:load_more', { defaultValue: '加载更多' })}
+                </Button>
+              )}
             </div>
           </>
         )}
