@@ -200,10 +200,16 @@ export const useObjectStore = create<ObjectState>((set) => ({
     set({ isLoading: true, error: null });
     try {
       await invoke('object_delete', { objectId: objectId });
-      set((s) => ({
-        objects: s.objects.filter((o) => o.id !== objectId),
-        isLoading: false,
-      }));
+      set((s) => {
+        // P043: 删除对象时同步清理详情缓存，避免残留旧数据被误读
+        const nextCache = { ...s.currentObjectCache };
+        delete nextCache[objectId];
+        return {
+          objects: s.objects.filter((o) => o.id !== objectId),
+          currentObjectCache: nextCache,
+          isLoading: false,
+        };
+      });
       // P038: 删除对象后立即失效搜索缓存
       invalidateSearchCache();
     } catch (err) {
