@@ -63,6 +63,7 @@
   "no_file_path": "无可用文件路径",
   "invalid_password": "密码不正确",
   "verify_failed": "验证失败",
+  "password_locked": "尝试次数过多，请稍后再试",
   "account_name_required": "账户名不能为空",
   "account_name_taken": "账户名已存在",
   "account_not_found": "账户不存在",

@@ -11,6 +11,7 @@ const RUST_ERROR_MAP: Record<string, string> = {
   // Auth / Vault
   'Invalid password': 'common:invalid_password',
   'Verify failed': 'common:verify_failed',
+  'Too many failed attempts; try again later': 'common:password_locked',
   'Account name is required': 'common:account_name_required',
   'Account name already taken': 'common:account_name_taken',
   'Account ID already exists': 'common:account_id_exists',

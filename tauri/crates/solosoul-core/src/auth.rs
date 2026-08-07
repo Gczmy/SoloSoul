@@ -79,6 +79,8 @@ mod tests {
             pin_length: 0,
             pin_failed_attempts: 0,
             pin_locked_until: None,
+            password_failed_attempts: 0,
+            password_locked_until: None,
             kdf_memory_kb: None,
             kdf_iterations: None,
             kdf_parallelism: None,

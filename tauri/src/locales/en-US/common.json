@@ -63,6 +63,7 @@
   "no_file_path": "No file path available",
   "invalid_password": "Invalid password",
   "verify_failed": "Verification failed",
+  "password_locked": "Too many failed attempts; please try again later",
   "account_name_required": "Account name is required",
   "account_name_taken": "Account name already taken",
   "account_not_found": "Account not found",

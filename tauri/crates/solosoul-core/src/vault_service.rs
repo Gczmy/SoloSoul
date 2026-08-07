@@ -11,6 +11,25 @@ use solosoul_crypto::kdf::{derive_key, generate_salt, KdfConfig};
 use solosoul_crypto::secure::secure_compare;
 use solosoul_vault::{VaultConfig, VaultStore};
 use std::collections::HashMap;
+
+/// P032：主密码失败计数读-改-写的原子化互斥锁（镜像 pin.rs 的 PIN_OP_LOCK 模式，
+/// 保证并发解锁时失败计数不丢更新）。
+static PASSWORD_ATTEMPT_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
+/// P032：主密码锁定错误文案。前端 `rustErrors.ts` 精确匹配后映射为
+/// `common:password_locked` 双语文案（镜像 PIN 的 `__PIN_ERR__:locked` 约定）。
+const MASTER_PASSWORD_LOCKED_ERR: &str = "Too many failed attempts; try again later";
+
+/// P032：主密码失败限流阶梯（与 PIN 同款：0-4 次不锁，5-9 次锁 30s，
+/// 第 10 次锁 5 分钟，之后每次递增 5 分钟）。
+fn password_lockout_seconds(failed_attempts: u32) -> u64 {
+    match failed_attempts {
+        0..=4 => 0,
+        5..=9 => 30,
+        10 => 300,                        // 5 分钟
+        n => 300 + (n - 10) as u64 * 300, // 之后每次递增 5 分钟
+    }
+}
 use std::fs;
 use std::path::Path;
 use std::path::PathBuf;
@@ -141,6 +160,14 @@ pub struct AccountConfig {
     /// PIN 锁定截止时间（ISO 8601），None 表示未锁定。
     #[serde(default, rename = "pinLockedUntil")]
     pub pin_locked_until: Option<String>,
+
+    // ── 主密码限流相关字段（P032，镜像 PIN） ──
+    /// 连续主密码错误次数。
+    #[serde(default, rename = "passwordFailedAttempts")]
+    pub password_failed_attempts: u32,
+    /// 主密码锁定截止时间（ISO 8601），None 表示未锁定。
+    #[serde(default, rename = "passwordLockedUntil")]
+    pub password_locked_until: Option<String>,
 }
 
 impl AccountConfig {
@@ -572,6 +599,8 @@ impl VaultService {
             pin_length: 0,
             pin_failed_attempts: 0,
             pin_locked_until: None,
+            password_failed_attempts: 0,
+            password_locked_until: None,
             kdf_memory_kb: Some(kdf_config.memory_kb),
             kdf_iterations: Some(kdf_config.iterations),
             kdf_parallelism: Some(kdf_config.parallelism),
@@ -690,6 +719,8 @@ impl VaultService {
             pin_length: 0,
             pin_failed_attempts: 0,
             pin_locked_until: None,
+            password_failed_attempts: 0,
+            password_locked_until: None,
             kdf_memory_kb: Some(kdf_config.memory_kb),
             kdf_iterations: Some(kdf_config.iterations),
             kdf_parallelism: Some(kdf_config.parallelism),
@@ -776,6 +807,59 @@ impl VaultService {
             .try_into()
             .map_err(|_| "Master key must be 32 bytes".to_string())?;
         Ok((config, salt_arr, mk, master_key))
+    }
+
+    /// P032：读取并解析账户 config（供锁定预检与失败计数 RMW 使用）。
+    fn read_account_config(&self, account_id: &str) -> Result<AccountConfig, String> {
+        let content = self
+            .read_config_with_recovery(account_id)
+            .map_err(|_| "Account not found".to_string())?;
+        let content =
+            String::from_utf8(content).map_err(|_| "Config encoding error".to_string())?;
+        serde_json::from_str(&content).map_err(|_| "Config parse error".to_string())
+    }
+
+    /// P032：主密码验证失败——递增失败计数，命中阶梯档位时写入锁定截止时间。
+    /// 读-改-写经 `PASSWORD_ATTEMPT_LOCK` 原子化（镜像 PIN_OP_LOCK 模式），
+    /// 防止并发解锁时计数丢更新。
+    fn record_password_failure(&self, account_id: &str) -> Result<(), String> {
+        let _guard = PASSWORD_ATTEMPT_LOCK
+            .lock()
+            .unwrap_or_else(|e| e.into_inner());
+        let mut config = self.read_account_config(account_id)?;
+        let attempts = config.password_failed_attempts + 1;
+        config.password_failed_attempts = attempts;
+        let lockout_secs = password_lockout_seconds(attempts);
+        config.password_locked_until = if lockout_secs > 0 {
+            Some((chrono::Utc::now() + chrono::Duration::seconds(lockout_secs as i64)).to_rfc3339())
+        } else {
+            None
+        };
+        let json = serde_json::to_string_pretty(&config).map_err(|e| e.to_string())?;
+        self.write_config_atomic(account_id, json.as_bytes())
+    }
+
+    /// P032：主密码验证成功——归零失败计数与锁定。仅当有残留时才写 config，
+    /// 避免每次成功登录都多一次磁盘写入。
+    fn clear_password_failures(&self, account_id: &str, config: &AccountConfig) {
+        if config.password_failed_attempts == 0 && config.password_locked_until.is_none() {
+            return;
+        }
+        let _guard = PASSWORD_ATTEMPT_LOCK
+            .lock()
+            .unwrap_or_else(|e| e.into_inner());
+        let mut config = match self.read_account_config(account_id) {
+            Ok(c) => c,
+            Err(_) => return,
+        };
+        if config.password_failed_attempts == 0 && config.password_locked_until.is_none() {
+            return;
+        }
+        config.password_failed_attempts = 0;
+        config.password_locked_until = None;
+        if let Ok(json) = serde_json::to_string_pretty(&config) {
+            let _ = self.write_config_atomic(account_id, json.as_bytes());
+        }
     }
 
     /// P225: 计算 verify hash（crypto_version<3 旧 Argon2id 路径，否则 HKDF）。
@@ -951,6 +1035,17 @@ impl VaultService {
         // 常态（无 pending 文件）零开销；有 pending 时 promote/discard 后
         // 再走正常解锁路径（config 已恢复一致，verify 与数据密钥对齐）。
         self.recover_pending_reencrypt(account_id, password)?;
+
+        // P032：主密码失败限流——锁定预检放在昂贵 KDF 之前。
+        let pre_config = self.read_account_config(account_id)?;
+        if let Some(ref until) = pre_config.password_locked_until {
+            if let Ok(until_time) = chrono::DateTime::parse_from_rfc3339(until) {
+                if chrono::Utc::now() < until_time {
+                    return Err(MASTER_PASSWORD_LOCKED_ERR.to_string());
+                }
+            }
+        }
+
         let (config, salt_arr, mk, master_key) =
             self.load_config_and_derive_master_key(account_id, password)?;
         // Backward compat: crypto_version < 3 uses old Argon2id verify hash
@@ -958,8 +1053,13 @@ impl VaultService {
             Self::compute_verify_hash(&config, &mk, &salt_arr, master_key.as_slice())?;
 
         if !secure_compare(computed_hash.as_bytes(), config.verify_hash.as_bytes()) {
+            // P032：失败递增计数并持久化（阶梯锁定），随后返回原错误文案。
+            self.record_password_failure(account_id)?;
             return Err("Invalid password".to_string());
         }
+
+        // P032：验证成功归零失败计数/锁定（有残留时才写，避免每次登录多余 IO）。
+        self.clear_password_failures(account_id, &config);
 
         // Update last accessed
         let _now = chrono::Utc::now().to_rfc3339();
@@ -1828,6 +1928,88 @@ mod tests {
         let result = svc.unlock(account_id, "wrongpassword");
         assert!(result.is_err());
         assert!(result.unwrap_err().contains("Invalid password"));
+    }
+
+    #[test]
+    fn test_password_lockout_seconds() {
+        assert_eq!(password_lockout_seconds(0), 0);
+        assert_eq!(password_lockout_seconds(4), 0);
+        assert_eq!(password_lockout_seconds(5), 30);
+        assert_eq!(password_lockout_seconds(9), 30);
+        assert_eq!(password_lockout_seconds(10), 300);
+        assert_eq!(password_lockout_seconds(11), 600);
+        assert_eq!(password_lockout_seconds(15), 1800);
+    }
+
+    #[test]
+    fn test_unlock_rate_limit_locks_after_5_failures() {
+        let (svc, _dir) = setup_service();
+        let account = svc.create_account("Dave", "password123", None).unwrap();
+        let account_id = account["id"].as_str().unwrap().to_string();
+
+        // 前 4 次失败：不锁定，返回 Invalid password
+        for _ in 0..4 {
+            let err = svc.unlock(&account_id, "wrong").unwrap_err();
+            assert!(err.contains("Invalid password"));
+        }
+        // 第 5 次失败：触发 30s 阶梯锁定
+        let err = svc.unlock(&account_id, "wrong").unwrap_err();
+        assert!(err.contains("Invalid password"));
+        // 锁定期间即使密码正确也被拒绝，且文案稳定（不递增计数）
+        let err = svc.unlock(&account_id, "password123").unwrap_err();
+        assert!(err.contains("Too many failed attempts"));
+        let err = svc.unlock(&account_id, "wrong").unwrap_err();
+        assert!(err.contains("Too many failed attempts"));
+    }
+
+    #[test]
+    fn test_unlock_rate_limit_resets_on_success() {
+        let (svc, _dir) = setup_service();
+        let account = svc.create_account("Eve", "password123", None).unwrap();
+        let account_id = account["id"].as_str().unwrap().to_string();
+
+        // 4 次失败（未触发锁定）
+        for _ in 0..4 {
+            assert!(svc.unlock(&account_id, "wrong").is_err());
+        }
+        // 成功解锁 → 计数归零
+        assert!(svc.unlock(&account_id, "password123").is_ok());
+        // 计数已从 0 重新累计：再失败 5 次 → 第 5 次触发锁定
+        for _ in 0..5 {
+            let err = svc.unlock(&account_id, "wrong").unwrap_err();
+            assert!(err.contains("Invalid password"));
+        }
+        let err = svc.unlock(&account_id, "password123").unwrap_err();
+        assert!(err.contains("Too many failed attempts"));
+    }
+
+    #[test]
+    fn test_unlock_rate_limit_expires_and_clears() {
+        let (svc, _dir) = setup_service();
+        let account = svc.create_account("Frank", "password123", None).unwrap();
+        let account_id = account["id"].as_str().unwrap().to_string();
+
+        // 触发锁定
+        for _ in 0..5 {
+            assert!(svc.unlock(&account_id, "wrong").is_err());
+        }
+        assert!(svc.unlock(&account_id, "password123").is_err());
+
+        // 手动把锁定截止时间改为过去（模拟锁定到期）
+        let config_path = svc.base_path().join(&account_id).join("config.json");
+        let mut value: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(&config_path).unwrap()).unwrap();
+        value["passwordLockedUntil"] = serde_json::Value::String(
+            (chrono::Utc::now() - chrono::Duration::seconds(1)).to_rfc3339(),
+        );
+        std::fs::write(&config_path, serde_json::to_string_pretty(&value).unwrap()).unwrap();
+
+        // 到期后正确密码解锁成功，且失败计数/锁定被归零
+        assert!(svc.unlock(&account_id, "password123").is_ok());
+        let value: serde_json::Value =
+            serde_json::from_str(&std::fs::read_to_string(&config_path).unwrap()).unwrap();
+        assert_eq!(value["passwordFailedAttempts"], 0);
+        assert!(value["passwordLockedUntil"].as_str().is_none());
     }
 
     #[test]
