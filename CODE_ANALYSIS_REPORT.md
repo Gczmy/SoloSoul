@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-07（P000-P026 全部闭环，共 27 项；剩余 P027-P044 共 18 项待修）
+> 最后更新：2026-08-07（P000-P026、P028 全部闭环，共 28 项；剩余 P027、P029-P044 共 17 项待修）
 > 当前分支：`main`
 > 修复轮次：1（初始分析）
 > 基线版本：v2.8.5（HEAD `cdc6afb6`）
@@ -56,7 +56,7 @@
 | P025 | P2 | 性能 | `src-tauri/src/commands/llm/rag.rs:144-147,230-232`、`solosoul-plugin/src/manager.rs:441,474` | RAG embedding 每次调用新建 `reqwest::Client`，重建 TLS 连接 | `[x]` 已修复（rag.rs 与 manager.rs 各抽 OnceLock 共享 client，超时改请求级 30s/60s/120s） |
 | P026 | P2 | 性能 | `crates/solosoul-core/src/ocr/model.rs:194` | OCR 每次 `scan_rgb` 重读并重解析 det 后处理配置 | `[x]` 已修复（DetPostProcessConfig 随 OcrEngine::load 解析缓存，移除未再使用的 bundle 字段） |
 | P027 | P2 | 性能 | `crates/solosoul-core/src/export_import.rs:324-328` | 导入包 payload 一次性全量入内存（密文+明文峰值 ~200MB，有 100MB 上限兜底） | `[ ]` 待修复 |
-| P028 | P2 | 性能 | `crates/solosoul-core/src/watermark/mod.rs:612` | 水印每次调用读入整个 TTC 字体（CJK 常 10-50MB） | `[ ]` 待修复 |
+| P028 | P2 | 性能 | `crates/solosoul-core/src/watermark/mod.rs:612` | 水印每次调用读入整个 TTC 字体（CJK 常 10-50MB） | `[x]` 已修复（进程级按路径 Mutex+HashMap 缓存字体字节，TTC 提取一次） |
 | P029 | P2 | 性能 | `crates/solosoul-vault/src/storage.rs:272-310` | `probe_data_key` 每次探测新建 SQLite 连接（仅解锁恢复路径，存疑可不修） | `[ ]` 待修复 |
 | P030 | P2 | 安全 | `crates/solosoul-core/src/llm/client.rs:33-36` | LLM 阻塞客户端 `.timeout(None)`，慢速滴流可永久挂起线程 | `[ ]` 待修复 |
 | P031 | P2 | 安全 | `src-tauri/src/commands/llm/chat_http.rs:5-29,34-55` | `llm_check_connection`/`llm_test_provider` 接受任意 URL+api_key，构成受限带凭证转发原语（无内网段防护） | `[ ]` 待修复 |
@@ -77,8 +77,8 @@
 
 ## 修复进度
 
-- 已完成：28 / 46（P045 为合并占位，实际待修复 45 项）
-- 当前处理：P000-P026 全部闭环（27 项 + P045 合并）→ 下一项 P027
+- 已完成：29 / 46（P045 为合并占位，实际待修复 45 项）
+- 当前处理：P000-P026、P028 全部闭环（28 项 + P045 合并）→ 下一项 P027
 
 ---
 
@@ -320,6 +320,8 @@
 
 - **位置**：`crates/solosoul-core/src/watermark/mod.rs:612` — CJK TTC 常 10-50MB，每次水印导出重复读盘+解析。
 - **建议**：进程级缓存已提取的首字体字节。
+- **修复**：新增 `cached_font_bytes(path)`——进程级 `Mutex<HashMap<String, Arc<[u8]>>>` 按路径缓存「读取 + TTC 首字体提取」结果（非 ASCII 水印每次走候选扫描，命中即免 10-50MB 读盘）；`try_load_font` 改用缓存字节（`Arc<[u8]>` 经 deref 兼容 `load_true_type_from_bytes(&[u8])`）。失败不缓存保持可重试。图片路径 `load_font_bytes` 已有 OnceLock 缓存（R2-15），本次补 PDF 路径。
+- **验证**：clippy 0 警告、watermark 5 测试通过。
 
 ### P029（P2，存疑）`probe_data_key` 新建连接
 

@@ -8,6 +8,7 @@ use image::{Rgba, RgbaImage};
 use pdfium_render::prelude::*;
 use serde::Deserialize;
 use std::path::Path;
+use std::sync::Arc;
 
 /// 水印位置
 #[derive(Debug, Deserialize, Clone, Copy, PartialEq, Eq, Default)]
@@ -608,12 +609,36 @@ fn cjk_font_candidates() -> Vec<&'static str> {
     candidates
 }
 
-/// 尝试从路径加载 TrueType 字体；对 TTC 先提取首字体再经内存加载。
+/// P028: 进程级字体字节缓存——CJK TTC 常 10-50MB，避免每次 PDF 水印重复读盘 + 提取。
+/// 按路径缓存「读取 + TTC 提取」结果（非 ASCII 水印每次都走候选扫描）。
+/// 缓存失败不缓存（保持可重试），成功字节以 Arc 共享。
+fn cached_font_bytes(path: &str) -> Result<Arc<[u8]>, String> {
+    use std::collections::HashMap;
+    use std::sync::Mutex;
+    static CACHE: Mutex<Option<HashMap<String, Arc<[u8]>>>> = Mutex::new(None);
+    let mut guard = CACHE.lock().unwrap_or_else(|e| e.into_inner());
+    let map = guard.get_or_insert_with(HashMap::new);
+    if let Some(hit) = map.get(path) {
+        return Ok(hit.clone());
+    }
+    let lower = path.to_ascii_lowercase();
+    let data: Vec<u8> = if lower.ends_with(".ttc") {
+        let raw = std::fs::read(path).map_err(|e| format!("读取字体失败: {e}"))?;
+        extract_first_from_ttc(&raw)?
+    } else {
+        std::fs::read(path).map_err(|e| format!("读取字体失败: {e}"))?
+    };
+    let arc: Arc<[u8]> = data.into();
+    let out = arc.clone();
+    map.insert(path.to_string(), arc);
+    Ok(out)
+}
+
+/// 尝试从路径加载 TrueType 字体；对 TTC 先提取首字体再经内存加载（字节经进程级缓存）。
 fn try_load_font<'a>(document: &mut PdfDocument<'a>, path: &str) -> Result<PdfFontToken, String> {
     let lower = path.to_ascii_lowercase();
     if lower.ends_with(".ttc") {
-        let data = std::fs::read(path).map_err(|e| format!("读取字体失败: {e}"))?;
-        let single = extract_first_from_ttc(&data)?;
+        let single = cached_font_bytes(path)?;
         // R2-05: 直接经内存加载 TTC 首字体——pdfium-render 的 load_true_type_from_bytes
         // 内部经 FPDFText_LoadFont 复制字体数据到 PDFium 内存，字体数据无需（也不能依赖）
         // 临时文件存活期。原实现写 NamedTempFile 后立即 `let _ = temp;` drop（文件随即删除），
