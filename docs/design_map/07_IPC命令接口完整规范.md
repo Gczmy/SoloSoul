@@ -1,6 +1,6 @@
-# 08 — IPC 命令接口完整规范
+# 07 — IPC 命令接口完整规范
 
-> **前置阅读**：`04_Rust_Crate拆分与后端架构.md`、`07_数据库_服务层_Repository迁移.md`
+> **前置阅读**：`03_项目结构与Rust_Workspace.md`、`06_数据库与服务层.md`
 > **Manifesto 对齐**：最少惊喜 | 安全默认
 > **当前状态**：已全部实现。命令以 `tauri/src-tauri/permissions/solo-soul/default.toml`（ACL 白名单）与 `tauri/src-tauri/src/lib.rs`（handler 注册）为**权威来源**；本规范为设计期文档，个别命令的增删（如 P002 移除 `get_state`/`delete_account`/`object_restore`/`object_purge`）以 ACL/handler 为准。
 
