@@ -62,6 +62,33 @@ const mockProviders = [
   },
 ];
 
+/**
+ * 与后端 `llm_get_embed_models` 实际形状一致（embed_model.rs `EmbedModelWithStatus`
+ * `#[serde(flatten)]` 扁平字段 + snake_case + installed）——回归「扁平数据渲染崩溃」。
+ */
+const mockEmbedModels = [
+  {
+    id: 'all-MiniLM-L6-v2',
+    name: 'MiniLM',
+    description: 'Lightweight embedding model',
+    disk_size: '80MB',
+    dimensions: 384,
+    download_url: 'https://example.com/model.zip',
+    checksum: 'sha256:abc123',
+    installed: true,
+  },
+  {
+    id: 'bge-small-zh',
+    name: 'BGE Small',
+    description: 'Chinese embedding model',
+    disk_size: '120MB',
+    dimensions: 512,
+    download_url: 'https://example.com/bge.zip',
+    checksum: 'sha256:def456',
+    installed: false,
+  },
+];
+
 describe('LlmConfigPage', () => {
   const navigate = vi.fn();
 
@@ -83,7 +110,7 @@ describe('LlmConfigPage', () => {
           localEmbedModelId: null,
         };
       if (cmd === 'llm_check_embedding_available') return false;
-      if (cmd === 'llm_get_embed_models') return [];
+      if (cmd === 'llm_get_embed_models') return mockEmbedModels;
       if (cmd === 'llm_get_api_key') return '';
       return undefined;
     });
@@ -111,6 +138,9 @@ describe('LlmConfigPage', () => {
     expect(screen.getByText('Ollama')).toBeInTheDocument();
     // 未接受风险时显示风险提示条
     expect(screen.getByText('settings:ai_risk_notice')).toBeInTheDocument();
+    // 本地嵌入模型列表按真实扁平形状渲染（回归：`m.info.*` 嵌套假设在扁平数据下抛 TypeError 整页卸载）
+    expect(screen.getByText('MiniLM')).toBeInTheDocument();
+    expect(screen.getByText('BGE Small')).toBeInTheDocument();
     // 统计入口卡片
     expect(screen.getByText('settings:llm_stats_title')).toBeInTheDocument();
   });

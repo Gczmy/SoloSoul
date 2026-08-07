@@ -37,18 +37,20 @@ const ALWAYS_DISABLED_FEATURES = {
   naturalLanguageSearch: false,
 } as const;
 
-interface EmbedModelInfo {
+/**
+ * 与后端 `llm_get_embed_models`（embed_model.rs `EmbedModelWithStatus`）实际序列化形状
+ * 保持一致：`#[serde(flatten)]` 扁平字段 + snake_case + installed 标志。
+ * 此前误设为嵌套 `{ info, installed }` + camelCase，真实数据到达后渲染
+ * `m.info.id` 抛 TypeError → 整页卸载（页面无 ErrorBoundary）。
+ */
+interface EmbedModelWithStatus {
   id: string;
   name: string;
   description: string;
-  diskSize: string;
+  disk_size: string;
   dimensions: number;
-  downloadUrl: string;
+  download_url: string;
   checksum: string;
-}
-
-interface EmbedModelWithStatus {
-  info: EmbedModelInfo;
   installed: boolean;
 }
 
@@ -186,11 +188,11 @@ export function LlmConfigPage() {
     if (enabled && !localModelId && embedModels.length > 0) {
       const firstInstalled = embedModels.find((m) => m.installed);
       if (firstInstalled) {
-        setLocalModelId(firstInstalled.info.id);
+        setLocalModelId(firstInstalled.id);
         await invoke('llm_set_local_embedding', {
           accountId: accountId,
           enabled: true,
-          modelId: firstInstalled.info.id,
+          modelId: firstInstalled.id,
         });
       } else {
         onError(
