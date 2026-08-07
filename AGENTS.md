@@ -362,12 +362,15 @@ cargo test
 
 ### 敏感数据分级
 
-Tauri 前端所有字段均有 `SensitivityLevel`：
-- `public` — 公开
-- `internal` / `private` — 内部（组件自动掩码）
-- `sensitive` / `restricted` / `critical` — 敏感/受限/关键（需密码重新验证，1 分钟缓存）
+Tauri 前端所有字段均有 `SensitivityLevel`（4 级，前后端一致，`types/template.ts:21` 与 `template_service.rs:24`）：
+- `public` — 公开（不掩码）
+- `internal` — 内部（不掩码，但以 `SensitivityBadge` 标注）
+- `sensitive` — 敏感（自动掩码为 `••••••••`）
+- `critical` — 关键（自动掩码，红色锁徽章）
 
-**约定：** 必须使用共享组件 `SensitiveValueWidget` / `SensitivityBlurredWidget` / `SensitivityTag`，禁止在各页面自行实现掩码逻辑。
+**掩码机制：** `sensitive`/`critical` 字段由共享 hook `useRevealState.ts` 统一掩码——`shouldMask`/`maskValue` 负责规则（internal/public 永不掩码；敏感/关键字段点击揭示后 1 分钟自动重新隐藏），敏感度标签统一使用共享组件 `ui/SensitivityBadge.tsx`。
+
+**约定：** 必须通过 `useRevealState` + `SensitivityBadge` 实现掩码/标注，禁止在各页面自行实现掩码逻辑（历史遗留的 `WorkspaceObjectCard` internal 掩码差异已由 P036 收敛）。
 
 ---
 
