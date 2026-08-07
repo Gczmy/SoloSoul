@@ -414,6 +414,7 @@
   "ai_verifying": "验证中...",
   "ai_copied": "已复制",
   "ai_copy": "复制",
+  "ai_load_earlier": "加载更早的 {{count}} 条消息",
   "ai_confirm_delete": "确认永久删除",
   "ai_confirm_btn": "确认?",
   "ai_deleted_conv": "已删除对话",

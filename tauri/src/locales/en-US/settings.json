@@ -414,6 +414,7 @@
   "ai_verifying": "Verifying...",
   "ai_copied": "Copied",
   "ai_copy": "Copy",
+  "ai_load_earlier": "Load {{count}} earlier messages",
   "ai_confirm_delete": "Confirm permanent delete",
   "ai_confirm_btn": "Confirm?",
   "ai_deleted_conv": "Deleted conversation",

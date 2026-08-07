@@ -1,4 +1,4 @@
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import { useRef, useEffect, type RefObject } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Copy, Check, MessageSquare } from 'lucide-react';
@@ -134,6 +134,11 @@ interface ChatMessageListProps {
   chatEndRef: RefObject<HTMLDivElement | null>;
 }
 
+// P026: 长会话分页——仅挂载末尾窗口，避免数百条含 Markdown 的消息全部进 DOM；
+// 「加载更早消息」按钮按步长展开更早的消息。
+const INITIAL_MESSAGE_WINDOW = 50;
+const LOAD_EARLIER_STEP = 50;
+
 export const ChatMessageList = memo(function ChatMessageList({
   messages,
   isSending,
@@ -146,6 +151,18 @@ export const ChatMessageList = memo(function ChatMessageList({
 }: ChatMessageListProps) {
   const { t } = useTranslation(['settings', 'common']);
   const hasScrolledRef = useRef(false);
+  const [visibleCount, setVisibleCount] = useState(INITIAL_MESSAGE_WINDOW);
+
+  // 会话切换（消息条数骤降）时重置窗口；流式增长时保持已展开的窗口不变。
+  useEffect(() => {
+    if (messages.length < visibleCount) {
+      setVisibleCount(INITIAL_MESSAGE_WINDOW);
+    }
+  }, [messages.length, visibleCount]);
+
+  // 末尾窗口切片；index 保持原始数组下标（copiedIndex 语义不变）。
+  const start = Math.max(0, messages.length - visibleCount);
+  const visibleMessages = messages.slice(start);
 
   // Scroll to bottom: instant on first mount/load, smooth on subsequent updates
   useEffect(() => {
@@ -175,11 +192,33 @@ export const ChatMessageList = memo(function ChatMessageList({
           </p>
         </div>
       )}
-      {messages.map((msg, i) => (
+      {start > 0 && (
+        <div style={{ textAlign: 'center', padding: '10px 0 4px' }}>
+          <button
+            onClick={() =>
+              setVisibleCount((c) => Math.min(c + LOAD_EARLIER_STEP, messages.length))
+            }
+            style={{
+              padding: '4px 12px',
+              borderRadius: 999,
+              border: '1px solid var(--border-subtle)',
+              background: 'transparent',
+              color: 'var(--text-secondary)',
+              cursor: 'pointer',
+              fontSize: 'var(--text-caption)',
+            }}
+          >
+            {t('settings:ai_load_earlier', {
+              count: Math.min(LOAD_EARLIER_STEP, start),
+            })}
+          </button>
+        </div>
+      )}
+      {visibleMessages.map((msg, j) => (
         <ChatMessageItem
           key={msg.id ?? `msg-${msg.createdAt}-${msg.role}-${msg.content.slice(0, 16)}`}
           msg={msg}
-          index={i}
+          index={start + j}
           copiedIndex={copiedIndex}
           onCopy={onCopy}
           errorPrefix={errorPrefix}
