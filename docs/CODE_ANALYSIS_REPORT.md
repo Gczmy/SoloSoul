@@ -1,9 +1,9 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-08 00:15:00
+> 最后更新：2026-08-08 00:25:00
 > 当前分支：`main`
 > 修复轮次：1（初始分析，按用户要求不恢复旧报告、全新生成）
-> 修复进度：P001-P006 已闭环（6/45）
+> 修复进度：P001-P007 已闭环（7/45）
 > 分析范围：`tauri/`（Rust 后端 + React/TS 前端）、`solosoul_cli/`；忽略 `node_modules/`、`target/`、`dist/`、`.vite/`、`*.min.js`、`*.wasm`
 
 ## 阶段 0 基线检查结果
@@ -22,7 +22,7 @@
 | P004 | P1 | 正确性/性能 | `tauri/crates/solosoul-vault/src/storage/metadata.rs:632-647` | `check_field_usage` 对加密列做 `LIKE` 匹配，结果恒为 0（功能失效）且全表扫描 | `[x]` 已修复 |
 | P005 | P1 | 性能 | `tauri/src-tauri/src/commands/export_import/mod.rs:268-306` | 导出收集对象时全库双重解密 + N+1 查询 | `[x]` 已修复 |
 | P006 | P1 | 安全 | `solosoul_cli/src/screens/object_detail.rs:45,87-92` | CLI `/open` 对象详情只看对象级敏感度，字段级 sensitive/critical 明文渲染，违反 P036 掩码约定 | `[x]` 已修复 |
-| P007 | P1 | 安全 | `solosoul_cli/src/commands/backup.rs:218-250` | `/backup create` 明文 profile 备份以默认权限（0644）落盘，未收紧 0600 | `[ ]` 待修复 |
+| P007 | P1 | 安全 | `solosoul_cli/src/commands/backup.rs:218-250` | `/backup create` 明文 profile 备份以默认权限（0644）落盘，未收紧 0600 | `[x]` 已修复 |
 | P008 | P1 | 正确性 | `solosoul_cli/src/commands/vault_write.rs:300-310` | `delete_page` 中子对象移入回收站失败被 `let _ =` 静默吞掉，页面照删 | `[ ]` 待修复 |
 | P009 | P1 | 死代码 | `tauri/src-tauri/src/commands/ocr.rs:535,547`、`export_import/export.rs:704`、`template.rs:433`、`crates/solosoul-core/src/vault_service.rs:1651` | 3 个孤儿 Tauri Commands（无前端调用）+ 1 个仅测试使用的生产函数 | `[ ]` 待修复 |
 | P010 | P1 | 重复代码 | `tauri/src/hooks/useUpdateChecker.ts:137-178` vs `useAppUpdate.ts:100-176` | 约 80 行 APK 下载/进度 Promise 封装近乎逐行重复，已开始各自打补丁发散 | `[ ]` 待修复 |
@@ -64,10 +64,16 @@
 
 ## 修复进度
 
-- 已完成：6 / 45（P001-P006）
-- 当前处理：P007（CLI 备份明文落盘权限）
+- 已完成：7 / 45（P001-P007）
+- 当前处理：P008（CLI delete_page 吞错）
 
 ## 修复实施记录
+
+### P007（P1）CLI /backup create 明文落盘权限收紧 0600 ✅
+
+- **改动**：`solosoul_cli/src/commands/backup.rs`——`fs::write` 后 `#[cfg(unix)]` 显式 `set_permissions(0o600)`，与 log.rs 审计日志导出同一约定，避免 umask 022 下生成 0644。
+- **测试**：新增 `test_backup_create_sets_0600_permissions` 断言备份文件 mode == 0600。
+- **验证**：`cargo test backup` 6 用例全过 ✅。
 
 ### P006（P1）CLI /open 字段级敏感度掩码 ✅
 

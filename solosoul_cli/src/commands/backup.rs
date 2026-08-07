@@ -249,6 +249,14 @@ fn backup_create(app: &mut App, name: &str) -> Result<()> {
         color_eyre::eyre::eyre!(e)
     })?;
 
+    // P007: 备份内容为解密后明文（profile.data 未加密），落盘后显式收紧为 0600，
+    // 避免受 umask（通常 022）影响生成 0644 被同机其他用户读取。
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let _ = std::fs::set_permissions(&backup_path, std::fs::Permissions::from_mode(0o600));
+    }
+
     let metadata = fs::metadata(&backup_path).map_err(|e| {
         app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e));
         color_eyre::eyre::eyre!(e)
@@ -471,6 +479,21 @@ mod tests {
             }
             _ => panic!("expected BackupList"),
         }
+    }
+
+    /// P007: 备份为解密后明文，落盘权限须收紧为 0600。
+    #[cfg(unix)]
+    #[test]
+    fn test_backup_create_sets_0600_permissions() {
+        use std::os::unix::fs::PermissionsExt;
+        let (mut app, _id, _dir) = unlocked_app();
+        create_test_profile(&mut app, "TestProfile");
+
+        handle(&mut app, &["create", "weekly"]).unwrap();
+        let backups_dir = app.vault_service.base_path().join("backups");
+        let entry = std::fs::read_dir(&backups_dir).unwrap().next().unwrap().unwrap();
+        let mode = entry.path().metadata().unwrap().permissions().mode() & 0o777;
+        assert_eq!(mode, 0o600, "备份文件权限应为 0600，实际 {:#o}", mode);
     }
 
     #[test]
