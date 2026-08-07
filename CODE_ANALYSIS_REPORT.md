@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-07（P000-P024 全部闭环，共 25 项；剩余 P025-P044 共 20 项待修）
+> 最后更新：2026-08-07（P000-P025 全部闭环，共 26 项；剩余 P026-P044 共 19 项待修）
 > 当前分支：`main`
 > 修复轮次：1（初始分析）
 > 基线版本：v2.8.5（HEAD `cdc6afb6`）
@@ -53,7 +53,7 @@
 | P022 | P2 | 性能 | `crates/solosoul-plugin/src/manager.rs:568-572`、`sandbox.rs:33-46` | 插件 WASM 每次运行重新编译 + 每次从磁盘全量读入 | `[ ]` 待修复 |
 | P023 | P2 | 性能 | `src-tauri/src/commands/log.rs:105` | `log_export` 在 async 命令内同步解密万行审计日志 + JSON 序列化 + 写盘 | `[x]` 已修复（重 IO 段移入 spawn_blocking，守卫块作用域 await 前释放） |
 | P024 | P2 | 性能 | `src-tauri/src/commands/fs.rs:183-231` | `fs_scan_directory` 在 async 命令内同步递归遍历目录 | `[x]` 已修复（递归遍历 + 逐文件 metadata 移入 spawn_blocking） |
-| P025 | P2 | 性能 | `src-tauri/src/commands/llm/rag.rs:144-147,230-232`、`solosoul-plugin/src/manager.rs:441,474` | RAG embedding 每次调用新建 `reqwest::Client`，重建 TLS 连接 | `[ ]` 待修复 |
+| P025 | P2 | 性能 | `src-tauri/src/commands/llm/rag.rs:144-147,230-232`、`solosoul-plugin/src/manager.rs:441,474` | RAG embedding 每次调用新建 `reqwest::Client`，重建 TLS 连接 | `[x]` 已修复（rag.rs 与 manager.rs 各抽 OnceLock 共享 client，超时改请求级 30s/60s/120s） |
 | P026 | P2 | 性能 | `crates/solosoul-core/src/ocr/model.rs:194` | OCR 每次 `scan_rgb` 重读并重解析 det 后处理配置 | `[ ]` 待修复 |
 | P027 | P2 | 性能 | `crates/solosoul-core/src/export_import.rs:324-328` | 导入包 payload 一次性全量入内存（密文+明文峰值 ~200MB，有 100MB 上限兜底） | `[ ]` 待修复 |
 | P028 | P2 | 性能 | `crates/solosoul-core/src/watermark/mod.rs:612` | 水印每次调用读入整个 TTC 字体（CJK 常 10-50MB） | `[ ]` 待修复 |
@@ -77,8 +77,8 @@
 
 ## 修复进度
 
-- 已完成：26 / 46（P045 为合并占位，实际待修复 45 项）
-- 当前处理：P000-P024 全部闭环（25 项 + P045 合并）→ 下一项 P025
+- 已完成：27 / 46（P045 为合并占位，实际待修复 45 项）
+- 当前处理：P000-P025 全部闭环（26 项 + P045 合并）→ 下一项 P026
 
 ---
 
@@ -299,6 +299,10 @@
 
 - **位置**：`src-tauri/src/commands/llm/rag.rs:144-147,230-232`、`solosoul-plugin/src/manager.rs:441,474`
 - **建议**：`OnceLock` 共享一个带超时的 Client。
+- **修复**：
+  1. `rag.rs` 新增 `embedding_http_client()`（OnceLock 共享），`embed_text`/`embed_texts` 两处改为共享 client + 请求级 `.timeout()`（30s/120s）；客户端级仅设 10s connect_timeout 兜底，`.build()` 失败回退 `reqwest::Client::new()`（不 panic）。
+  2. `manager.rs` 新增 `http_client()`（OnceLock 共享），`fetch_manifest`/`fetch_wasm` 两处改为共享 client + 请求级 `.timeout()`（30s/60s）。
+- **验证**：clippy 0 警告、rag 9 + plugin 56 测试通过（语义：请求级 timeout 覆盖整个请求含响应体读取，与原客户端级等价）。
 
 ### P026（P2）OCR 每次重读 det 后处理配置
 

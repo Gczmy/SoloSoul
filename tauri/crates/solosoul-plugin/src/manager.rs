@@ -109,6 +109,18 @@ pub struct PluginManager {
     sandbox: WasmSandbox,
 }
 
+/// P025: 共享插件市场 HTTP 客户端——连接复用，避免每次下载重建 TLS 握手。
+/// 超时按请求级设置（manifest 30s / WASM 60s），客户端级仅设连接超时兜底。
+fn http_client() -> &'static reqwest::Client {
+    static CLIENT: std::sync::OnceLock<reqwest::Client> = std::sync::OnceLock::new();
+    CLIENT.get_or_init(|| {
+        reqwest::Client::builder()
+            .connect_timeout(std::time::Duration::from_secs(10))
+            .build()
+            .unwrap_or_else(|_| reqwest::Client::new())
+    })
+}
+
 impl PluginManager {
     /// 创建插件管理器（开发模式，无 app_handle）
     pub fn new() -> Result<Self, PluginError> {
@@ -448,13 +460,11 @@ impl PluginManager {
             ));
         };
 
-        let client = reqwest::Client::builder()
-            .timeout(std::time::Duration::from_secs(30))
-            .build()
-            .map_err(|e| PluginError::NetworkError(format!("HTTP 客户端创建失败: {}", e)))?;
+        let client = http_client();
 
         let text = client
             .get(&manifest_url)
+            .timeout(std::time::Duration::from_secs(30))
             .send()
             .await
             .map_err(|e| PluginError::NetworkError(format!("下载 manifest 失败: {}", e)))?
@@ -481,13 +491,11 @@ impl PluginManager {
                 PluginError::NetworkError("注册表中缺少 download_url / raw_url".to_string())
             })?;
 
-        let client = reqwest::Client::builder()
-            .timeout(std::time::Duration::from_secs(60))
-            .build()
-            .map_err(|e| PluginError::NetworkError(format!("HTTP 客户端创建失败: {}", e)))?;
+        let client = http_client();
 
         let bytes = client
             .get(url)
+            .timeout(std::time::Duration::from_secs(60))
             .send()
             .await
             .map_err(|e| PluginError::NetworkError(format!("下载插件失败: {}", e)))?

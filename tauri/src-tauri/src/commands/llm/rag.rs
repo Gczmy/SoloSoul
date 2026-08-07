@@ -128,6 +128,18 @@ fn get_embedding_source(
     })
 }
 
+/// P025: 共享 embedding HTTP 客户端——连接复用，避免每次调用重建连接/TLS 握手。
+/// 超时按请求级设置（单条 30s / 批量 120s），客户端级仅设连接超时兜底。
+fn embedding_http_client() -> &'static reqwest::Client {
+    static CLIENT: std::sync::OnceLock<reqwest::Client> = std::sync::OnceLock::new();
+    CLIENT.get_or_init(|| {
+        reqwest::Client::builder()
+            .connect_timeout(std::time::Duration::from_secs(10))
+            .build()
+            .unwrap_or_else(|_| reqwest::Client::new())
+    })
+}
+
 /// Call the embedding API (cloud or local) for a single text.
 /// Returns normalized embedding vector.
 async fn embed_text(
@@ -141,10 +153,7 @@ async fn embed_text(
             api_key,
             model,
         } => {
-            let client = reqwest::Client::builder()
-                .timeout(std::time::Duration::from_secs(30))
-                .build()
-                .map_err(|e| format!("Client: {}", e))?;
+            let client = embedding_http_client();
 
             let url = format!("{}/embeddings", base_url.trim_end_matches('/'));
             let body = serde_json::json!({
@@ -155,6 +164,7 @@ async fn embed_text(
 
             let resp = client
                 .post(&url)
+                .timeout(std::time::Duration::from_secs(30))
                 .header("Authorization", format!("Bearer {}", api_key))
                 .header("Content-Type", "application/json")
                 .json(&body)
@@ -226,10 +236,7 @@ async fn embed_texts(
             ref api_key,
             ref model,
         } => {
-            let client = reqwest::Client::builder()
-                .timeout(std::time::Duration::from_secs(120))
-                .build()
-                .map_err(|e| format!("Client: {}", e))?;
+            let client = embedding_http_client();
 
             let url = format!("{}/embeddings", base_url.trim_end_matches('/'));
             let body = serde_json::json!({
@@ -240,6 +247,7 @@ async fn embed_texts(
 
             let resp = client
                 .post(&url)
+                .timeout(std::time::Duration::from_secs(120))
                 .header("Authorization", format!("Bearer {}", api_key))
                 .header("Content-Type", "application/json")
                 .json(&body)
