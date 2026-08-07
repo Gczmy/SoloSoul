@@ -173,31 +173,6 @@ pub async fn import_decrypt_preview(
     })
 }
 
-/// P0: Simple import (full import, skip conflicts)
-#[tauri::command]
-pub async fn import_execute(
-    state: State<'_, AppState>,
-    account_id: String,
-    file_path: String,
-    password: String,
-) -> Result<ImportResult, String> {
-    let locale = default_locale();
-    import_execute_internal(
-        state,
-        account_id,
-        file_path,
-        // P015: IPC 边界立即 Zeroizing 包装，避免导入密码以普通 String 长期驻留堆内存
-        zeroize::Zeroizing::new(password),
-        ImportStrategy::SkipExisting,
-        None,
-        None,
-        HashMap::new(),
-        &locale,
-        None,
-    )
-    .await
-}
-
 /// P2: Advanced import with object selection and strategy
 #[tauri::command]
 pub async fn import_execute_advanced(
