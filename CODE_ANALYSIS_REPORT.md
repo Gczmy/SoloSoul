@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-07（P000-P025 全部闭环，共 26 项；剩余 P026-P044 共 19 项待修）
+> 最后更新：2026-08-07（P000-P026 全部闭环，共 27 项；剩余 P027-P044 共 18 项待修）
 > 当前分支：`main`
 > 修复轮次：1（初始分析）
 > 基线版本：v2.8.5（HEAD `cdc6afb6`）
@@ -54,7 +54,7 @@
 | P023 | P2 | 性能 | `src-tauri/src/commands/log.rs:105` | `log_export` 在 async 命令内同步解密万行审计日志 + JSON 序列化 + 写盘 | `[x]` 已修复（重 IO 段移入 spawn_blocking，守卫块作用域 await 前释放） |
 | P024 | P2 | 性能 | `src-tauri/src/commands/fs.rs:183-231` | `fs_scan_directory` 在 async 命令内同步递归遍历目录 | `[x]` 已修复（递归遍历 + 逐文件 metadata 移入 spawn_blocking） |
 | P025 | P2 | 性能 | `src-tauri/src/commands/llm/rag.rs:144-147,230-232`、`solosoul-plugin/src/manager.rs:441,474` | RAG embedding 每次调用新建 `reqwest::Client`，重建 TLS 连接 | `[x]` 已修复（rag.rs 与 manager.rs 各抽 OnceLock 共享 client，超时改请求级 30s/60s/120s） |
-| P026 | P2 | 性能 | `crates/solosoul-core/src/ocr/model.rs:194` | OCR 每次 `scan_rgb` 重读并重解析 det 后处理配置 | `[ ]` 待修复 |
+| P026 | P2 | 性能 | `crates/solosoul-core/src/ocr/model.rs:194` | OCR 每次 `scan_rgb` 重读并重解析 det 后处理配置 | `[x]` 已修复（DetPostProcessConfig 随 OcrEngine::load 解析缓存，移除未再使用的 bundle 字段） |
 | P027 | P2 | 性能 | `crates/solosoul-core/src/export_import.rs:324-328` | 导入包 payload 一次性全量入内存（密文+明文峰值 ~200MB，有 100MB 上限兜底） | `[ ]` 待修复 |
 | P028 | P2 | 性能 | `crates/solosoul-core/src/watermark/mod.rs:612` | 水印每次调用读入整个 TTC 字体（CJK 常 10-50MB） | `[ ]` 待修复 |
 | P029 | P2 | 性能 | `crates/solosoul-vault/src/storage.rs:272-310` | `probe_data_key` 每次探测新建 SQLite 连接（仅解锁恢复路径，存疑可不修） | `[ ]` 待修复 |
@@ -77,8 +77,8 @@
 
 ## 修复进度
 
-- 已完成：27 / 46（P045 为合并占位，实际待修复 45 项）
-- 当前处理：P000-P025 全部闭环（26 项 + P045 合并）→ 下一项 P026
+- 已完成：28 / 46（P045 为合并占位，实际待修复 45 项）
+- 当前处理：P000-P026 全部闭环（27 项 + P045 合并）→ 下一项 P027
 
 ---
 
@@ -308,6 +308,8 @@
 
 - **位置**：`crates/solosoul-core/src/ocr/model.rs:194`（引擎本体已缓存于 `commands/ocr.rs:36`，配置却每次 `read_to_string` + JSON parse）。
 - **建议**：解析结果随 `OcrModelBundle` 缓存进 `OcrEngine`。
+- **修复**：`OcrEngine` 新增 `det_cfg: DetPostProcessConfig` 字段，`OcrEngine::load` 时经 `load_det_postprocess_config` 解析一次（配置随模型目录固定）；`scan_rgb_with_threshold` 改用 `&self.det_cfg`。原 `bundle` 字段唯一消费点即 det_config，移除未再使用的字段与 import。
+- **验证**：clippy 0 警告、ocr 29 测试通过、solo_soul 编译通过。
 
 ### P027（P2）导入 payload 全量入内存
 

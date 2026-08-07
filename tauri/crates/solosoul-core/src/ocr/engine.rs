@@ -1,7 +1,7 @@
 //! OCR 引擎：加载检测/识别模型并执行端到端扫描。
 
 use super::model::{
-    load_det_postprocess_config, load_recognition_dict, resolve_model_bundle, OcrModelBundle,
+    load_det_postprocess_config, load_recognition_dict, resolve_model_bundle, DetPostProcessConfig,
 };
 use super::postprocess::{build_ocr_result, ctc_decode_enhanced, extract_text_boxes};
 use super::preprocess::{
@@ -16,7 +16,8 @@ pub struct OcrEngine {
     det_session: Session,
     rec_session: Session,
     char_list: Vec<String>,
-    bundle: OcrModelBundle,
+    // P026: det 后处理配置加载一次随引擎缓存——此前每次 scan_rgb 重读文件 + 逐行解析。
+    det_cfg: DetPostProcessConfig,
 }
 
 impl OcrEngine {
@@ -35,12 +36,14 @@ impl OcrEngine {
             .map_err(|e| format!("load rec model: {e}"))?;
 
         let char_list = load_recognition_dict(&bundle.rec_config)?;
+        // P026: det 配置随引擎加载一次（配置随模型目录固定不变）。
+        let det_cfg = load_det_postprocess_config(&bundle.det_config)?;
 
         Ok(Self {
             det_session,
             rec_session,
             char_list,
-            bundle,
+            det_cfg,
         })
     }
 
@@ -62,7 +65,8 @@ impl OcrEngine {
         img: &image::RgbImage,
         confidence_threshold: f64,
     ) -> Result<OcrResult, String> {
-        let det_cfg = load_det_postprocess_config(&self.bundle.det_config)?;
+        // P026: 引擎加载时已解析缓存，不再每次扫描重读配置文件。
+        let det_cfg = &self.det_cfg;
 
         // 1. 检测
         let det_input = preprocess_for_detection(img);
@@ -83,12 +87,8 @@ impl OcrEngine {
             .map_err(|e| format!("det output is not 4D: {e}"))?;
 
         let det_view = det_view.view();
-        let boxes = extract_text_boxes(
-            &det_view,
-            det_input.scale,
-            det_input.original_size,
-            &det_cfg,
-        );
+        let boxes =
+            extract_text_boxes(&det_view, det_input.scale, det_input.original_size, det_cfg);
 
         if boxes.is_empty() {
             return Ok(OcrResult {
