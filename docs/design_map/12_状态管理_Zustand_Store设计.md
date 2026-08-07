@@ -19,7 +19,7 @@ Zustand 优势：**无 Provider**、细粒度订阅、TypeScript 完美支持、
 
 ---
 
-## 2. Store 总览（共 16 个）
+## 2. Store 总览（共 17 个）
 
 应用采用基于功能领域的扁平化 Store 设计。所有 Store 均位于 `tauri/src/stores/`。
 
@@ -27,8 +27,8 @@ Zustand 优势：**无 Provider**、细粒度订阅、TypeScript 完美支持、
 
 | Store | 实际职责 | 关键动作 |
 |-------|---------|---------|
-| `authStore.ts` | 认证 + 账户列表 + 首次启动检测 | `bootstrap` / `login` / `logout` / `checkHasAccount` / `listAccounts` |
-| `vaultStore.ts` | Vault 状态（locked/unlocked）与管理 | `loadVaultState` / `unlock` / `lock` |
+| `authStore.ts` | 认证 + 账户列表 + 首次启动检测 + **Vault 锁定/解锁**（P015 收敛，替代已删除的 vaultStore） | `bootstrap` / `login` / `logout` / `lock` / `checkHasAccount` / `listAccounts` |
+| `autoLockPauseStore.ts` | 自动锁定暂停计数（模态场景打开期间暂停闲置计时） | `pause` / `resume` |
 | `settingsStore.ts` | 双层偏好：明文 UI 偏好 + Vault 加密偏好 + 自定义页面 CRUD | `loadUiPreferences`（2 步加载）/ `loadSettings` / `updateSetting` / `addCustomPage` / `removeCustomPage` |
 
 ### 2.2 核心业务数据（Core Data）
@@ -38,7 +38,7 @@ Zustand 优势：**无 Provider**、细粒度订阅、TypeScript 完美支持、
 | `objectStore.ts` | 对象 CRUD + 回收站操作 | `object_list` / `object_get` / `object_create` / `object_delete` / `object_trash_list` |
 | `templateStore.ts` | 模板 CRUD + 字段使用检查 + 从对象保存 | `template_list` / `template_create` / `template_save_from_object` / `template_check_field_usage` |
 | `trashStore.ts` | 回收站：时间/类型过滤 + 搜索 + 批量选择 | `object_trash_list` / `trash_restore` / `trash_permanent_delete` / `template_restore` |
-| `profileStore.ts` | Profile 数据加载（Uint8Array 解码）+ 分节查询 | `profile_load` / `profile_get_section` / `profile_update_field` |
+| `profileStore.ts` | Profile 数据加载（Uint8Array 解码） | `profile_load`（`profile_get_section` / `profile_update_field` 死命令已删） |
 
 ### 2.3 UI 与交互（UI & Layout）
 
@@ -67,7 +67,8 @@ Zustand 优势：**无 Provider**、细粒度订阅、TypeScript 完美支持、
 |-------|---------|--------|
 | `pluginStore.ts` | 插件市场/已安装/运行时状态 + Event 订阅（log/result/consent/dialog） | `zustand persist` → localStorage（仅 runningPlugins） |
 | `pluginQuickStore.ts` | 插件快捷面板开闭与 Tab 切换 | **无** |
-| `syncStore.ts` | 设备同步状态 + 对等节点信任/解除 | **无** |
+| `syncStore.ts` | 设备同步状态 + 对等节点信任/解除 + `sync-completed` 事件 | **无** |
+| `safSyncStore.ts` | SAF 目录同步进度（`sync-progress` 事件订阅） | Tauri Event 监听 |
 
 ---
 
