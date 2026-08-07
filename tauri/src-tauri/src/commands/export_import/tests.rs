@@ -649,6 +649,117 @@ fn test_import_preview_serde_roundtrip() {
 
 // ── 10. Import template inheritance (方案 A) ─────────────────
 
+/// P005: collect_scope_objects 批量加载——include_all 全量、selected 子集、tags 过滤、空集。
+#[test]
+fn test_collect_scope_objects_batch() -> Result<(), String> {
+    let account_id = "acc_collect";
+    let (_tmp, vault) = test_vault(account_id);
+    let now = chrono::Utc::now().to_rfc3339();
+
+    let mut mk = |id: &str, section: &str, tags: Vec<&str>| -> ObjectRecord {
+        ObjectRecord {
+            contract_type_id: None,
+            id: id.to_string(),
+            account_id: account_id.to_string(),
+            type_id: "note".to_string(),
+            section_type: section.to_string(),
+            name: format!("obj-{}", id),
+            icon_name: "document".to_string(),
+            parent_id: None,
+            children_ids: vec![],
+            properties: serde_json::json!({ "k": format!("v-{}", id) }),
+            property_labels: None,
+            sensitivity_level: "internal".to_string(),
+            is_deleted: false,
+            deleted_at: None,
+            tags_json: tags.into_iter().map(|t| t.to_string()).collect(),
+            template_id: None,
+            template_type: None,
+            template_hash: None,
+            ignored_template_hash: None,
+            created_at: now.clone(),
+            updated_at: now.clone(),
+            version: 1,
+        }
+    };
+    vault.save_object(&mk("obj-a", "identity", vec!["tag1"]))?;
+    vault.save_object(&mk("obj-b", "passport", vec!["tag1", "tag2"]))?;
+    vault.save_object(&mk("obj-c", "identity", vec!["tag3"]))?;
+
+    // include_all: 全部对象，id 升序
+    let all = collect_scope_objects(
+        &vault,
+        account_id,
+        &ExportScope {
+            selected_page_ids: vec![],
+            selected_object_ids: vec![],
+            selected_tags: vec![],
+            include_attachments: false,
+            selected_attachment_ids: vec![],
+            include_preferences: false,
+            include_behavioral: false,
+            include_all: true,
+        },
+    )?;
+    let ids: Vec<&str> = all.iter().map(|r| r.id.as_str()).collect();
+    assert_eq!(ids, vec!["obj-a", "obj-b", "obj-c"], "include_all 应含全部对象且 id 升序");
+    assert_eq!(all[0].properties["k"], serde_json::json!("v-obj-a"), "properties 应已解密");
+
+    // 选定子集
+    let subset = collect_scope_objects(
+        &vault,
+        account_id,
+        &ExportScope {
+            selected_page_ids: vec![],
+            selected_object_ids: vec!["obj-b".to_string(), "obj-c".to_string()],
+            selected_tags: vec![],
+            include_attachments: false,
+            selected_attachment_ids: vec![],
+            include_preferences: false,
+            include_behavioral: false,
+            include_all: false,
+        },
+    )?;
+    let subset_ids: Vec<&str> = subset.iter().map(|r| r.id.as_str()).collect();
+    assert_eq!(subset_ids, vec!["obj-b", "obj-c"]);
+
+    // tags 过滤（交集）
+    let tagged = collect_scope_objects(
+        &vault,
+        account_id,
+        &ExportScope {
+            selected_page_ids: vec![],
+            selected_object_ids: vec!["obj-a".to_string(), "obj-b".to_string(), "obj-c".to_string()],
+            selected_tags: vec!["tag1".to_string()],
+            include_attachments: false,
+            selected_attachment_ids: vec![],
+            include_preferences: false,
+            include_behavioral: false,
+            include_all: false,
+        },
+    )?;
+    let tagged_ids: Vec<&str> = tagged.iter().map(|r| r.id.as_str()).collect();
+    assert_eq!(tagged_ids, vec!["obj-a", "obj-b"], "tag1 应命中 obj-a/obj-b");
+
+    // 空选择返回空
+    let empty = collect_scope_objects(
+        &vault,
+        account_id,
+        &ExportScope {
+            selected_page_ids: vec![],
+            selected_object_ids: vec![],
+            selected_tags: vec![],
+            include_attachments: false,
+            selected_attachment_ids: vec![],
+            include_preferences: false,
+            include_behavioral: false,
+            include_all: false,
+        },
+    )?;
+    assert!(empty.is_empty(), "无任何选择应返回空");
+    Ok(())
+}
+
 fn test_vault(account_id: &str) -> (TempDir, Arc<VaultStore>) {
     let tmp = TempDir::new().unwrap();
     let config = VaultConfig::new(account_id, tmp.path().to_path_buf()).with_data_key([0u8; 32]);

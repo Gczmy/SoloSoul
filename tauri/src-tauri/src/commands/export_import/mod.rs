@@ -260,6 +260,10 @@ pub(crate) fn load_attachments(
 }
 
 /// Collect all objects matching the given scope.
+///
+/// P005: 旧实现先 `list_objects` 拿到轻量摘要（不解密 properties），再对每个 id 单独
+/// `load_object`——后者会二次解密 + N+1 查询。现改为：元数据筛选仍用摘要，命中 id 一次
+/// `load_objects_batch` 批量解密加载（单条 SQL + 批量解密）。
 pub(crate) fn collect_scope_objects(
     vault: &solosoul_vault::VaultStore,
     account_id: &str,
@@ -267,18 +271,12 @@ pub(crate) fn collect_scope_objects(
 ) -> Result<Vec<solosoul_vault::ObjectRecord>, String> {
     let all = vault.list_objects(account_id, None, None, None, false, false)?;
 
-    // 后端全量导出（如恢复主机）直接包含所有对象，绕过前端选择逻辑。
-    if scope.include_all {
-        let mut records = Vec::new();
-        for summary in &all {
-            if let Ok(Some(rec)) = vault.load_object(&summary.id) {
-                records.push(rec);
-            }
-        }
-        return Ok(records);
-    }
-
-    let mut selected_ids: BTreeSet<String> = scope.selected_object_ids.iter().cloned().collect();
+    let mut selected_ids: BTreeSet<String> = if scope.include_all {
+        // 后端全量导出（如恢复主机）直接包含所有对象，绕过前端选择逻辑。
+        all.iter().map(|s| s.id.clone()).collect()
+    } else {
+        scope.selected_object_ids.iter().cloned().collect()
+    };
 
     // Add all IDs belonging to selected pages
     for summary in &all {
@@ -297,12 +295,15 @@ pub(crate) fn collect_scope_objects(
         });
     }
 
-    let mut records = Vec::new();
-    for id in &selected_ids {
-        if let Ok(Some(rec)) = vault.load_object(id) {
-            records.push(rec);
-        }
+    if selected_ids.is_empty() {
+        return Ok(Vec::new());
     }
+
+    let id_list: Vec<String> = selected_ids.into_iter().collect();
+    let by_id = vault.load_objects_batch(&id_list)?;
+    let mut records: Vec<solosoul_vault::ObjectRecord> = by_id.into_values().collect();
+    // 保持确定顺序：按 id 升序（与旧实现遍历 BTreeSet 的返回顺序一致）。
+    records.sort_by(|a, b| a.id.cmp(&b.id));
     Ok(records)
 }
 
