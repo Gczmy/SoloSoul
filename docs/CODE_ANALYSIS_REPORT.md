@@ -1,9 +1,9 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-07 23:30:00
+> 最后更新：2026-08-07 23:45:00
 > 当前分支：`main`
 > 修复轮次：1（初始分析，按用户要求不恢复旧报告、全新生成）
-> 修复进度：P001-P002 已闭环（2/45）
+> 修复进度：P001-P003 已闭环（3/45）
 > 分析范围：`tauri/`（Rust 后端 + React/TS 前端）、`solosoul_cli/`；忽略 `node_modules/`、`target/`、`dist/`、`.vite/`、`*.min.js`、`*.wasm`
 
 ## 阶段 0 基线检查结果
@@ -18,7 +18,7 @@
 |----|--------|------|----------|------|------|
 | P001 | P0 | 架构/正确性 | `tauri/src-tauri/src/commands/sync.rs:34-48`、`tauri/crates/solosoul-sync/src/types.rs:59-65`、`tauri/src/lib/ipc.ts:1-15` | 同步冲突载荷 `local_hlc.node_id` 桌面端序列化为 `number[]`、移动端为 `String`，前端只建模桌面形状，Android 上类型漂移 | `[x]` 已修复 |
 | P002 | P0 | 状态一致性 | `tauri/src/stores/syncStore.ts:524-536,588-601` | 入站同步只刷新 objectStore，不同步刷新 templateStore / profileStore / trashStore，模板与回收站数据陈旧 | `[x]` 已修复 |
-| P003 | P1 | 漏洞 | `tauri/src-tauri/src/attachment_import_plugin.rs:516-519,579-580` | 附件导出路径白名单被原始字符串前缀匹配绕过，解锁态可导出任意本地文件 | `[ ]` 待修复 |
+| P003 | P1 | 漏洞 | `tauri/src-tauri/src/attachment_import_plugin.rs:516-519,579-580` | 附件导出路径白名单被原始字符串前缀匹配绕过，解锁态可导出任意本地文件 | `[x]` 已修复 |
 | P004 | P1 | 正确性/性能 | `tauri/crates/solosoul-vault/src/storage/metadata.rs:632-647` | `check_field_usage` 对加密列做 `LIKE` 匹配，结果恒为 0（功能失效）且全表扫描 | `[ ]` 待修复 |
 | P005 | P1 | 性能 | `tauri/src-tauri/src/commands/export_import/mod.rs:268-306` | 导出收集对象时全库双重解密 + N+1 查询 | `[ ]` 待修复 |
 | P006 | P1 | 安全 | `solosoul_cli/src/screens/object_detail.rs:45,87-92` | CLI `/open` 对象详情只看对象级敏感度，字段级 sensitive/critical 明文渲染，违反 P036 掩码约定 | `[ ]` 待修复 |
@@ -64,10 +64,17 @@
 
 ## 修复进度
 
-- 已完成：2 / 45（P001、P002）
-- 当前处理：P003（附件导出路径白名单绕过）
+- 已完成：3 / 45（P001、P002、P003）
+- 当前处理：P004（check_field_usage 对加密列 LIKE 匹配）
 
 ## 修复实施记录
+
+### P003（P1）附件导出路径白名单字符串前缀绕过修复 ✅
+
+- **改动**：
+  1. `tauri/src-tauri/src/commands/attachment.rs`：`path_within_base` 提升为 `pub(crate)`（P003 注释注明）。
+  2. `tauri/src-tauri/src/attachment_import_plugin.rs`：`attachment_export_content_uri` 与 `attachment_export_tree_uri` 的 `src_path.starts_with(attachments_canon.to_string_lossy())` 字符串前缀匹配改为 `path_within_base` 组件级比较（含 canonicalized 标志与 raw 双路径兜底），杜绝 `attachments_x/../../secret` 或共享前缀兄弟目录绕过。
+- **验证**：`cargo check -p solo_soul` ✅ / `cargo test commands::attachment` 14 用例全过 ✅。
 
 ### P002（P0）入站同步刷新全部数据 Store ✅
 

@@ -19,7 +19,7 @@ use tauri::{
 #[cfg(target_os = "android")]
 use tauri::plugin::PluginHandle;
 
-use crate::commands::attachment::attachment_dir;
+use crate::commands::attachment::{attachment_dir, path_within_base};
 use crate::commands::vault_handle;
 use crate::state::AppState;
 
@@ -473,22 +473,15 @@ pub async fn attachment_export_content_uri<R: Runtime>(
     let base = svc.base_path().clone();
     let attachments_dir = base.join("attachments");
 
-    // 为了调试 Android 上 path 前缀不一致的问题，先打印关键路径。
-    tracing::error!(
-        "attachment_export_content_uri debug: src_path={}, attachments_dir={}, base={}",
-        src_path,
-        attachments_dir.display(),
-        base.display()
-    );
-
     // 校验源文件在 Vault attachments 目录内，防止路径遍历。
-    // 先尝试 canonicalize 源路径；若失败但文件存在，保留原始路径做后续前缀比较。
-    let src = std::path::Path::new(&src_path)
+    // 先尝试 canonicalize 源路径；若失败但文件存在，降级使用原始路径（Android symlink 兜底）。
+    let (src, src_canonicalized) = std::path::Path::new(&src_path)
         .canonicalize()
+        .map(|p| (p, true))
         .or_else(|_| {
             let p = std::path::PathBuf::from(&src_path);
             if p.exists() {
-                Ok(p)
+                Ok((p, false))
             } else {
                 Err(std::io::Error::new(
                     std::io::ErrorKind::NotFound,
@@ -504,19 +497,13 @@ pub async fn attachment_export_content_uri<R: Runtime>(
         .unwrap_or_else(|_| attachments_dir.clone());
     let base_canon = base.canonicalize().unwrap_or_else(|_| base.clone());
 
-    tracing::error!(
-        "attachment_export_content_uri debug: src_canon={}, attachments_canon={}, base_canon={}",
-        src.display(),
-        attachments_canon.display(),
-        base_canon.display()
-    );
-
-    // 放宽校验：文件必须在 Vault base 目录下（通常即为应用私有数据目录），
-    // 并且优先要求其在 attachments 子目录下。
-    let in_attachments = src.starts_with(&attachments_canon)
-        || src_path.starts_with(attachments_canon.to_string_lossy().as_ref());
-    let in_vault =
-        src.starts_with(&base_canon) || src_path.starts_with(base_canon.to_string_lossy().as_ref());
+    // P003: 组件级比较（复用 path_within_base），杜绝字符串前缀匹配绕过——
+    // 字面路径（如 `.../attachments_x/../../secret`）仅在 canonicalize 失败时参与判定，
+    // 且同样按组件比较，防止共享前缀的兄弟目录（`attachments_evil`）通过校验。
+    let src_raw = std::path::Path::new(&src_path);
+    let in_attachments =
+        path_within_base(&src, src_raw, src_canonicalized, &attachments_canon, &attachments_dir);
+    let in_vault = path_within_base(&src, src_raw, src_canonicalized, &base_canon, &base);
 
     if !in_attachments && !in_vault {
         return Err(format!(
@@ -558,12 +545,13 @@ pub async fn attachment_export_tree_uri<R: Runtime>(
     let base = svc.base_path().clone();
     let attachments_dir = base.join("attachments");
 
-    let src = std::path::Path::new(&src_path)
+    let (src, src_canonicalized) = std::path::Path::new(&src_path)
         .canonicalize()
+        .map(|p| (p, true))
         .or_else(|_| {
             let p = std::path::PathBuf::from(&src_path);
             if p.exists() {
-                Ok(p)
+                Ok((p, false))
             } else {
                 Err(std::io::Error::new(
                     std::io::ErrorKind::NotFound,
@@ -576,8 +564,10 @@ pub async fn attachment_export_tree_uri<R: Runtime>(
     let attachments_canon = attachments_dir
         .canonicalize()
         .unwrap_or_else(|_| attachments_dir.clone());
-    let in_attachments = src.starts_with(&attachments_canon)
-        || src_path.starts_with(attachments_canon.to_string_lossy().as_ref());
+    // P003: 组件级比较，杜绝字符串前缀匹配绕过。
+    let src_raw = std::path::Path::new(&src_path);
+    let in_attachments =
+        path_within_base(&src, src_raw, src_canonicalized, &attachments_canon, &attachments_dir);
     if !in_attachments {
         return Err("Source path must be within vault attachments storage".to_string());
     }

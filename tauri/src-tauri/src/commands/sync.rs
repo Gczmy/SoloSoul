@@ -845,7 +845,7 @@ pub async fn sync_generate_qr_payload(state: State<'_, AppState>) -> Result<Stri
 #[cfg(all(test, desktop))]
 mod tests {
     use super::*;
-    use solosoul_sync::types::{ApplyStats, TableStats};
+    use solosoul_sync::types::{ApplyStats, ConflictRecord, TableStats};
     use std::collections::HashMap;
 
     #[test]

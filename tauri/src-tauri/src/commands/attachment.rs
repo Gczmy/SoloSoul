@@ -86,7 +86,8 @@ fn save_attachments(props: &mut Value, atts: &[AttachmentMeta]) {
 ///   比较 canonical 与非 canonical 两种 base 形式，覆盖 `/data/data` ↔ `/data/user/0`
 ///   双路径场景——raw 路径与 canonical base 前缀不同，仅比 canonical 会漏检。
 /// - `base_canon`: canonical 形式的 base；`base_raw`: 非 canonical 形式（可为同一值）。
-fn path_within_base(
+/// P003: 提升为 `pub(crate)` 供 `attachment_import_plugin.rs` 复用，统一组件级判定。
+pub(crate) fn path_within_base(
     resolved: &Path,
     raw: &Path,
     canonicalized: bool,
