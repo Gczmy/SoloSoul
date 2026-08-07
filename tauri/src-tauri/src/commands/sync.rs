@@ -26,25 +26,41 @@ fn log_sync_action(
 }
 
 #[cfg(desktop)]
-use solosoul_sync::types::{ApplyStats, ConflictRecord};
+use solosoul_sync::types::ApplyStats;
 
-// 移动端：提供与桌面端字段兼容的本地 ConflictRecord，使 SyncResult 签名不变。
-#[cfg(mobile)]
+/// 同步冲突载荷 DTO：桌面端与移动端**共用**的序列化形状（P001）。
+///
+/// 底层 `Hlc.node_id: [u8; 16]` 在桌面端会被 serde 序列化为 `number[]`，
+/// 而移动端旧实现用本地复刻 `MobileHlc`（`node_id: String`）——同一载荷在
+/// 两个平台形状不同，Android 上前端任何读取 `node_id` 的逻辑都会拿到 string。
+/// 统一经 hex 编码为字符串，并删除移动端复刻结构。
 #[derive(Debug, Clone, Serialize, serde::Deserialize)]
-pub struct ConflictRecord {
+pub struct SyncConflictDto {
     pub table: String,
     pub id: String,
-    pub local_hlc: MobileHlc,
-    pub remote_hlc: MobileHlc,
+    pub local_hlc: ConflictHlc,
+    pub remote_hlc: ConflictHlc,
     pub winner: String,
 }
 
-#[cfg(mobile)]
-#[derive(Debug, Clone, Serialize, serde::Deserialize)]
-pub struct MobileHlc {
-    pub wall_time_ms: u64,
-    pub counter: u64,
-    pub node_id: String,
+/// 从底层同步 crate 的 `ConflictRecord`（含原始 `Hlc`）转换为统一 DTO。
+#[cfg(desktop)]
+fn conflict_to_dto(c: &solosoul_sync::types::ConflictRecord) -> SyncConflictDto {
+    SyncConflictDto {
+        table: c.table.clone(),
+        id: c.id.clone(),
+        local_hlc: ConflictHlc {
+            wall_time_ms: c.local_hlc.wall_time_ms,
+            counter: c.local_hlc.counter as u64,
+            node_id: hex::encode(c.local_hlc.node_id),
+        },
+        remote_hlc: ConflictHlc {
+            wall_time_ms: c.remote_hlc.wall_time_ms,
+            counter: c.remote_hlc.counter as u64,
+            node_id: hex::encode(c.remote_hlc.node_id),
+        },
+        winner: c.winner.clone(),
+    }
 }
 
 #[derive(Serialize)]
@@ -81,7 +97,7 @@ pub struct SyncResult {
     pub examined: u64,
     pub applied: u64,
     pub skipped: u64,
-    pub conflicts: Vec<ConflictRecord>,
+    pub conflicts: Vec<SyncConflictDto>,
     pub per_table: Vec<TableResult>,
 }
 
@@ -107,7 +123,7 @@ impl From<&ApplyStats> for SyncResult {
             examined: stats.examined,
             applied: stats.applied,
             skipped: stats.skipped,
-            conflicts: stats.conflicts.clone(),
+            conflicts: stats.conflicts.iter().map(conflict_to_dto).collect(),
             per_table: stats
                 .per_table
                 .iter()
@@ -263,8 +279,8 @@ pub struct ConflictSummary {
     pub created_at: String,
 }
 
-/// 同步冲突 HLC。
-#[derive(Serialize)]
+/// 同步冲突 HLC（统一 DTO，桌面/移动共用）。
+#[derive(Debug, Clone, Serialize, serde::Deserialize)]
 pub struct ConflictHlc {
     pub wall_time_ms: u64,
     pub counter: u64,
@@ -644,20 +660,20 @@ pub async fn sync_with_device(
         .sync_with_device(device_id.clone())
         .await?;
     let stats = &result.data;
-    // P1#10：移动端 conflicts 回传对齐桌面端——把会话产生的 ConflictRecord 转换为
-    // 字段兼容的本地结构（Hlc.node_id 为 [u8;16]，hex 编码为字符串），供前端冲突 UI。
+    // P001：移动端 conflicts 与桌面端共用统一 DTO（Hlc.node_id 为 [u8;16]，
+    // hex 编码为字符串），供前端冲突 UI 跨平台一致消费。
     let conflicts = stats
         .conflicts
         .iter()
-        .map(|c| ConflictRecord {
+        .map(|c| SyncConflictDto {
             table: c.table.clone(),
             id: c.id.clone(),
-            local_hlc: MobileHlc {
+            local_hlc: ConflictHlc {
                 wall_time_ms: c.local_hlc.wall_time_ms,
                 counter: c.local_hlc.counter as u64,
                 node_id: hex::encode(c.local_hlc.node_id),
             },
-            remote_hlc: MobileHlc {
+            remote_hlc: ConflictHlc {
                 wall_time_ms: c.remote_hlc.wall_time_ms,
                 counter: c.remote_hlc.counter as u64,
                 node_id: hex::encode(c.remote_hlc.node_id),

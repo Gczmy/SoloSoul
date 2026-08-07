@@ -4,12 +4,12 @@ export interface SyncConflict {
   local_hlc: {
     wall_time_ms: number;
     counter: number;
-    node_id: number[];
+    node_id: string;
   };
   remote_hlc: {
     wall_time_ms: number;
     counter: number;
-    node_id: number[];
+    node_id: string;
   };
   winner: string;
 }

@@ -4,12 +4,9 @@ import { ChevronDown, ChevronUp } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/constants';
 import type { SyncConflict, SyncResult } from '@/lib/ipc';
 
-function formatNodeId(bytes: number[]): string {
-  return bytes.map((b) => b.toString(16).padStart(2, '0')).join('');
-}
-
 function formatHlc(hlc: SyncConflict['local_hlc']): string {
-  return `${hlc.wall_time_ms}-${hlc.counter}-${formatNodeId(hlc.node_id)}`;
+  // P001：node_id 后端统一 hex 编码为字符串（桌面/移动一致），直接截取前 8 位。
+  return `${hlc.wall_time_ms}-${hlc.counter}-${hlc.node_id.slice(0, 8)}`;
 }
 
 interface SyncHistoryPanelProps {
