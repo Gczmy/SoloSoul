@@ -7,7 +7,7 @@ use std::sync::{Arc, Mutex};
 use color_eyre::Result;
 use std::time::Instant;
 
-use crate::app::{App, AppPhase};
+use crate::app::{App, AppPhase, PluginRunMessage};
 use crate::t;
 
 use solosoul_plugin::{PluginEvent, PluginEventSink};
@@ -131,7 +131,8 @@ pub fn run_plugin(app: &mut App, plugin_id: Option<&str>, raw_params: &[&str]) -
         .collect();
 
     // 共享结果容器：工作线程写入，主线程在 handle_tick 中轮询
-    let result_holder: Arc<Mutex<Option<String>>> = Arc::new(Mutex::new(None));
+    // (bool, String) = (是否错误, 消息)——成功/信息性结果走 info_message，失败走 error_message
+    let result_holder: Arc<Mutex<Option<PluginRunMessage>>> = Arc::new(Mutex::new(None));
     app.plugin_run_pending = Some(result_holder.clone());
     app.success_message = Some((
         t!(app.i18n, "cmd-plugin-running", id = plugin_id),
@@ -147,7 +148,7 @@ pub fn run_plugin(app: &mut App, plugin_id: Option<&str>, raw_params: &[&str]) -
             Ok(rt) => rt,
             Err(e) => {
                 if let Ok(mut h) = result_holder.lock() {
-                    *h = Some(format!("初始化共享运行时失败: {e}"));
+                    *h = Some((true, format!("初始化共享运行时失败: {e}")));
                 }
                 return;
             }
@@ -157,7 +158,7 @@ pub fn run_plugin(app: &mut App, plugin_id: Option<&str>, raw_params: &[&str]) -
             let manager =
                 match solosoul_plugin::PluginManager::new_with_resource_dir(&market_dir_clone) {
                     Ok(m) => m,
-                    Err(e) => return format!("初始化插件管理器失败: {}", e),
+                    Err(e) => return (true, format!("初始化插件管理器失败: {}", e)),
                 };
 
             // 安装插件到本地
@@ -165,7 +166,7 @@ pub fn run_plugin(app: &mut App, plugin_id: Option<&str>, raw_params: &[&str]) -
                 .install_from_registry(&plugin_id_clone, &version)
                 .await
             {
-                return format!("安装插件 {} 失败: {}", plugin_id_clone, e);
+                return (true, format!("安装插件 {} 失败: {}", plugin_id_clone, e));
             }
 
             let sink: Arc<TerminalPluginSink> = Arc::new(TerminalPluginSink);
@@ -180,13 +181,17 @@ pub fn run_plugin(app: &mut App, plugin_id: Option<&str>, raw_params: &[&str]) -
                 )
                 .await
             {
-                Ok(result) => {
+                Ok(result) => (
+                    false,
                     format!(
                         "Plugin {} completed: exit_code={}, fuel={}",
                         plugin_id_clone, result.exit_code, result.fuel_consumed
-                    )
-                }
-                Err(e) => format!("Plugin {} run failed: {}", plugin_id_clone, e),
+                    ),
+                ),
+                Err(e) => (
+                    true,
+                    format!("Plugin {} run failed: {}", plugin_id_clone, e),
+                ),
             }
         });
 
@@ -463,7 +468,7 @@ pub fn update_registry(app: &mut App) -> Result<()> {
 
     app.success_message = Some((t!(app.i18n, "cmd-plugin-updating-registry"), Instant::now()));
 
-    let result_holder: std::sync::Arc<std::sync::Mutex<Option<String>>> =
+    let result_holder: std::sync::Arc<std::sync::Mutex<Option<PluginRunMessage>>> =
         std::sync::Arc::new(std::sync::Mutex::new(None));
     let holder = result_holder.clone();
 
@@ -472,12 +477,12 @@ pub fn update_registry(app: &mut App) -> Result<()> {
             match manager.update_registry().await {
                 Ok(()) => {
                     if let Ok(mut h) = holder.lock() {
-                        *h = Some("Plugin registry updated.".to_string());
+                        *h = Some((false, "Plugin registry updated.".to_string()));
                     }
                 }
                 Err(e) => {
                     if let Ok(mut h) = holder.lock() {
-                        *h = Some(format!("Failed to update registry: {}", e));
+                        *h = Some((true, format!("Failed to update registry: {}", e)));
                     }
                 }
             }

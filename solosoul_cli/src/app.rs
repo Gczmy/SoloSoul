@@ -356,6 +356,10 @@ pub enum ExternalEditRequest {
     DynamicGroup(EditableField),
 }
 
+/// 插件异步运行结果：(是否错误, 消息文本)。
+/// 成功/信息性结果 → info_message，失败 → error_message（P030）。
+pub type PluginRunMessage = (bool, String);
+
 pub struct App {
     pub phase: AppPhase,
     /// 上一屏备份，供 `commands::core::back` 在 Esc / /back 时还原 phase。
@@ -370,7 +374,7 @@ pub struct App {
     /// LLM 聊天会话状态（从 AppPhase 中分离以避免 Clone 问题）。
     pub chat_state: Option<crate::screens::llm_chat::LlmChatState>,
     /// 插件运行结果等待句柄（后台线程写入，主线程 tick 轮询）。
-    pub plugin_run_pending: Option<std::sync::Arc<std::sync::Mutex<Option<String>>>>,
+    pub plugin_run_pending: Option<std::sync::Arc<std::sync::Mutex<Option<PluginRunMessage>>>>,
     pub process_lock: Option<ProcessLock>,
     pub command_input: CommandInput,
     pub password_input: PasswordInput,
@@ -821,8 +825,13 @@ impl App {
         let holder = self.plugin_run_pending.take();
         if let Some(holder) = holder {
             let done = if let Ok(mut guard) = holder.lock() {
-                if let Some(msg) = guard.take() {
-                    self.error_message = Some(msg);
+                if let Some((is_error, msg)) = guard.take() {
+                    // P030：按状态路由——成功/信息性结果走 info_message，失败走 error_message
+                    if is_error {
+                        self.error_message = Some(msg);
+                    } else {
+                        self.info_message = Some(msg);
+                    }
                     true
                 } else {
                     false
@@ -3282,7 +3291,7 @@ mod tests {
         let (mut app, _id, _dir) = locked_app();
         app.command_input.value = "/list".to_string();
         let result = app.execute_command();
-        assert_eq!(result.unwrap(), false, "命令错误不应退出 TUI");
+        assert!(!result.unwrap(), "命令错误不应退出 TUI");
         assert!(app.error_message.is_some(), "应显示错误 overlay");
     }
 
@@ -3292,7 +3301,7 @@ mod tests {
         let (mut app, _id, _dir) = locked_app();
         app.command_input.value = "/plugin_run".to_string();
         let result = app.execute_command();
-        assert_eq!(result.unwrap(), false, "命令不应退出 TUI");
+        assert!(!result.unwrap(), "命令不应退出 TUI");
         assert!(app.error_message.is_some(), "应提示用法");
     }
 

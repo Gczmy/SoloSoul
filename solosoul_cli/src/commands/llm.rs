@@ -32,9 +32,9 @@ pub fn model(app: &mut App) -> Result<()> {
                     url = &provider.base_url,
                     api_type = &format!("{:?}", provider.api_type)
                 );
-                app.error_message = Some(msg);
+                app.info_message = Some(msg);
             } else {
-                app.error_message = Some(t!(app.i18n, "cmd-llm-no-active-provider"));
+                app.info_message = Some(t!(app.i18n, "cmd-llm-no-active-provider"));
             }
         }
         Err(e) => {
