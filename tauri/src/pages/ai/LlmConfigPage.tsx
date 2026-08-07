@@ -20,8 +20,15 @@ import { LocalEmbeddingsPanel } from '@/components/llm-config/LocalEmbeddingsPan
 import { KnowledgeBaseCard } from '@/components/llm-config/KnowledgeBaseCard';
 import { RiskAcceptanceDialog } from '@/components/llm-config/RiskAcceptanceDialog';
 import { isMobilePlatformSync } from '@/lib/platform';
+import { isOllama } from '@/types/llmChat';
 import { logger } from '@/lib/logger';
 import { ICON_SIZE } from '@/lib/constants';
+
+/**
+ * P035: 云端 LLM 隐私确认标志（设备级 localStorage）——首次启用非本地 provider 前弹确认，
+ * 用户同意后写入该标志，后续同一设备切换云端 provider 不再重复拦截。
+ */
+const LLM_CLOUD_PRIVACY_ACK = 'llm_cloud_privacy_accepted';
 
 /** AI 功能中始终处于禁用状态的功能（UI 尚未提供开关） */
 const ALWAYS_DISABLED_FEATURES = {
@@ -222,12 +229,32 @@ export function LlmConfigPage() {
     }
   };
 
-  const handleSetActive = async (id: string) => {
+  const applyActiveProvider = async (id: string) => {
     if (!accountId) return;
     setActiveId(id);
     await invoke('llm_set_active_provider', { accountId: accountId, providerId: id }).catch((err) =>
       logger.warn('[LLMConfig] Set active provider failed:', err),
     );
+  };
+
+  const handleSetActive = (id: string) => {
+    if (!accountId) return;
+    const target = providers.find((p) => p.id === id);
+    // P035: 首次启用云端（非 localhost/127.0.0.1）provider 前弹隐私确认；
+    // 同意后写设备级标志，后续切换云端 provider 不再拦截（本地 LLM 服务器不拦截）。
+    if (target && !isOllama(target.baseUrl) && !localStorage.getItem(LLM_CLOUD_PRIVACY_ACK)) {
+      requestConfirm(
+        t('settings:llm_cloud_privacy_confirm_title'),
+        t('settings:llm_cloud_privacy_confirm_body', { name: target.name }),
+        () => {
+          localStorage.setItem(LLM_CLOUD_PRIVACY_ACK, '1');
+          void applyActiveProvider(id);
+        },
+        { confirmLabel: t('common:confirm'), cancelLabel: t('common:cancel') },
+      );
+      return;
+    }
+    void applyActiveProvider(id);
   };
 
   const handleFeatureToggle = async () => {

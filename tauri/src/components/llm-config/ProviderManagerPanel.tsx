@@ -9,6 +9,7 @@ import { ICON_SIZE } from '@/lib/constants';
 
 import type { ProviderConfig } from '@/types/llmProvider';
 export type { ProviderConfig };
+import { isOllama } from '@/types/llmChat';
 interface ProviderManagerPanelProps {
   providers: ProviderConfig[];
   activeId: string;
@@ -213,6 +214,19 @@ export function ProviderManagerPanel({
                   setEditingProvider((p) => (p ? { ...p, baseUrl: e.target.value } : null))
                 }
               />
+              {/* P035: 云端 provider 隐私标注——对话内容将发送至该第三方服务 */}
+              {editingProvider.baseUrl && !isOllama(editingProvider.baseUrl) && (
+                <div
+                  style={{
+                    fontSize: 'var(--text-caption)',
+                    color: '#e67e22',
+                    lineHeight: 1.5,
+                    marginTop: -6,
+                  }}
+                >
+                  {t('settings:llm_cloud_privacy_hint', { name: editingProvider.name })}
+                </div>
+              )}
               <Input
                 label={t('settings:llm_model')}
                 value={editingProvider.model}
