@@ -569,28 +569,16 @@ impl VaultStore {
                         // 纯单机/未配对：时间兜底
                         Self::parse_time_ms(&created_at) <= time_cutoff_ms
                     } else {
-                        // 水位老化：所有 peer 水位 ≥ 墓碑 HLC ⇔ 该表水位最小值 ≥ 墓碑 HLC
-                        let mut min_wm: Option<crate::SyncWatermark> = None;
-                        for w in table_wms {
-                            let wm = crate::SyncWatermark {
+                        // 水位老化：所有 peer 水位 ≥ 墓碑 HLC ⇔ 该表水位最小值 ≥ 墓碑 HLC。
+                        // P019: 手写三元组 min 收敛为 Ord 派生 + Iterator::min（语义逐位一致）。
+                        let min_wm: Option<crate::SyncWatermark> = table_wms
+                            .iter()
+                            .map(|w| crate::SyncWatermark {
                                 wall_time_ms: w.2 as u64,
                                 counter: w.3 as u32,
                                 node_id: w.4.clone(),
-                            };
-                            let is_min = match &min_wm {
-                                None => true,
-                                Some(cur) => {
-                                    wm.wall_time_ms < cur.wall_time_ms
-                                        || (wm.wall_time_ms == cur.wall_time_ms
-                                            && (wm.counter < cur.counter
-                                                || (wm.counter == cur.counter
-                                                    && wm.node_id < cur.node_id)))
-                                }
-                            };
-                            if is_min {
-                                min_wm = Some(wm);
-                            }
-                        }
+                            })
+                            .min();
                         match min_wm {
                             // 墓碑不严格大于水位最小值 ⇔ 所有 peer 水位 ≥ 墓碑 HLC
                             Some(wm) => !Self::hlc_after_watermark(&tombstone_hlc, &wm),
@@ -616,9 +604,13 @@ impl VaultStore {
         hlc: &crate::RecordHlc,
         watermark: &crate::SyncWatermark,
     ) -> bool {
-        hlc.wall_time_ms > watermark.wall_time_ms
-            || (hlc.wall_time_ms == watermark.wall_time_ms
-                && (hlc.counter > watermark.counter
-                    || (hlc.counter == watermark.counter && hlc.node_id > watermark.node_id)))
+        // P019: 两类型字段同构（wall/counter/node 字典序），转 SyncWatermark 后借 Ord
+        // 严格大于比较，语义与手写三元组逐位一致。
+        let hlc_wm = crate::SyncWatermark {
+            wall_time_ms: hlc.wall_time_ms,
+            counter: hlc.counter,
+            node_id: hlc.node_id.clone(),
+        };
+        hlc_wm > *watermark
     }
 }

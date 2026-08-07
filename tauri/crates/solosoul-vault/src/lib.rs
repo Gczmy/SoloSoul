@@ -73,7 +73,9 @@ pub use profile::{Profile, ProfileData, ProfileSummary, VersionedProfileData};
 // ── Sync helpers ──────────────────────────────────────────
 
 /// HLC timestamp stored in the vault for conflict resolution.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+// P019: PartialOrd/Ord 供 cleanup_expired_tombstones 的 min 收敛——
+// 字典序 (wall_time_ms, counter, node_id) 与手写三元组比较逐位一致。
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub struct RecordHlc {
     pub wall_time_ms: u64,
@@ -82,7 +84,8 @@ pub struct RecordHlc {
 }
 
 /// Per-table sync watermark for a given peer.
-#[derive(Debug, Clone, PartialEq, Eq, Default)]
+/// P019: PartialOrd/Ord 与 RecordHlc 同构（字段顺序一致），供水位 min 收敛。
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Default)]
 pub struct SyncWatermark {
     pub wall_time_ms: u64,
     pub counter: u32,

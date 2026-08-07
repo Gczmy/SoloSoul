@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-07（P000-P018 全部闭环，共 19 项；剩余 P019-P044 共 26 项待修）
+> 最后更新：2026-08-07（P000-P019 全部闭环，共 20 项；剩余 P020-P044 共 25 项待修）
 > 当前分支：`main`
 > 修复轮次：1（初始分析）
 > 基线版本：v2.8.5（HEAD `cdc6afb6`）
@@ -47,7 +47,7 @@
 | P016 | P2 | 重复代码 | `tauri/crates/solosoul-vault/src/storage.rs:707,942` | `migrate_to_encrypted_format` 与 `reencrypt_all` 各 211 行互为镜像，按表复制样板 5-6 次；且均整表 collect 进内存 | `[x]` 已修复（抽 rewrite_table 表驱动 helper，两函数共 12 块样板收敛为 12 个闭包） |
 | P017 | P2 | 重复代码 | `src-tauri/src/sync/auto_sync.rs:134`、`sync/device_auto_sync.rs:148` | 两个自动同步状态机约 90 行近乎逐行重复 | `[x]` 已修复（抽 auto_sync_core 泛型调度内核，两状态机收敛为事件/动作适配） |
 | P018 | P2 | 可维护性 | 7 处超长函数（详见下文） | `import_execute_internal`(224行) 等 7 个 >150 行函数，嵌套最深 d11 | `[x]` 已修复（7 处全部拆分：AppState::new 抽 3 私有函数、install_from_registry 抽 helper、compute_sync_changes 抽 3 阶段、import_execute_internal 抽 import_one_object、import_vault 抽 2 阶段、handle_inbound 与 initiator 共用 2 个 session helper、search_unified 抽 3 helper） |
-| P019 | P2 | 可维护性 | `crates/solosoul-vault/src/storage/sync_meta.rs:499` | `cleanup_expired_tombstones` 嵌套 d13，手写 HLC 三元组 min 比较 | `[ ]` 待修复 |
+| P019 | P2 | 可维护性 | `crates/solosoul-vault/src/storage/sync_meta.rs:499` | `cleanup_expired_tombstones` 嵌套 d13，手写 HLC 三元组 min 比较 | `[x]` 已修复（RecordHlc/SyncWatermark derive PartialOrd+Ord，min 收敛为 Iterator::min，hlc_after_watermark 同步简化） |
 | P020 | P2 | 规范 | `src-tauri/src/commands/llm/rag.rs`（8 处）、`llm/guide.rs:515,617` | `eprintln!` 绕过 tracing 日志体系，release GUI 中不可见 | `[ ]` 待修复 |
 | P021 | P2 | 可维护性 | `crates/solosoul-core/src/watermark/mod.rs:345` | `WatermarkPosition::Tile => unreachable!()` 依赖上方守卫，守卫改动即生产 panic | `[ ]` 待修复 |
 | P022 | P2 | 性能 | `crates/solosoul-plugin/src/manager.rs:568-572`、`sandbox.rs:33-46` | 插件 WASM 每次运行重新编译 + 每次从磁盘全量读入 | `[ ]` 待修复 |
@@ -77,8 +77,8 @@
 
 ## 修复进度
 
-- 已完成：20 / 46（P045 为合并占位，实际待修复 45 项）
-- 当前处理：P000-P018 全部闭环（19 项 + P045 合并）→ 下一项 P019
+- 已完成：21 / 46（P045 为合并占位，实际待修复 45 项）
+- 当前处理：P000-P019 全部闭环（20 项 + P045 合并）→ 下一项 P020
 
 ---
 
@@ -257,6 +257,10 @@
 
 - **位置**：`crates/solosoul-vault/src/storage/sync_meta.rs:499`
 - **建议**：`RecordHlc`/`SyncWatermark` 实现 `Ord` 后用 `min_by` 收敛 :573-593 的手写三元组比较（约 20 行）。
+- **修复**：
+  1. `lib.rs`：`RecordHlc`/`SyncWatermark` derive 追加 `PartialOrd, Ord`（字段序 wall_time_ms/counter/node_id 与手写三元组比较逐位一致）。
+  2. `sync_meta.rs`：`cleanup_expired_tombstones` 的手写 min 循环（嵌套 d13）收敛为 `table_wms.iter().map(...).min()`；`hlc_after_watermark` 同步简化为转 `SyncWatermark` 后 `>` 比较（严格大于语义逐位等价）。
+- **验证**：clippy 0 警告、vault 149 测试通过（含 12 tombstone 测试）、下游 sync/core/solo_soul 编译通过。
 
 ### P020（P2）`eprintln!` 绕过 tracing
 
