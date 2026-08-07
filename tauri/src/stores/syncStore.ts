@@ -11,6 +11,9 @@ import type {
 import { useUiStore } from '@/stores/uiStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useObjectStore } from '@/stores/objectStore';
+import { useTemplateStore } from '@/stores/templateStore';
+import { useTrashStore } from '@/stores/trashStore';
+import { useProfileStore } from '@/stores/profileStore';
 import { logger } from '@/lib/logger';
 
 // P0#5: 同步历史持久化——recentResults 原为纯内存（slice(0,10)，重启即丢）。
@@ -28,6 +31,32 @@ function loadSyncHistory(): SyncResult[] {
   } catch {
     return [];
   }
+}
+
+/**
+ * P002：入站同步写入后刷新全部可能被对端改动的数据 Store。
+ * 对象（含详情缓存）、模板、回收站、账户偏好设置均可能被对端同步改动，
+ * 只刷 objectStore 会让模板/回收站/设置页数据陈旧到下次主动加载。
+ */
+function refreshDataStores(accountId: string): void {
+  useObjectStore
+    .getState()
+    .loadObjects(accountId, undefined)
+    .catch((err) => logger.warn('[syncStore] object list refresh after inbound sync:', err));
+  // 详情缓存整体清空（同步可能改动任意对象），下次打开对象时重新拉取
+  useObjectStore.setState({ currentObjectCache: {} });
+  useTemplateStore
+    .getState()
+    .loadTemplates()
+    .catch((err) => logger.warn('[syncStore] template refresh after inbound sync:', err));
+  useTrashStore
+    .getState()
+    .loadItems(accountId)
+    .catch((err) => logger.warn('[syncStore] trash refresh after inbound sync:', err));
+  useProfileStore
+    .getState()
+    .loadProfile(accountId)
+    .catch((err) => logger.warn('[syncStore] profile refresh after inbound sync:', err));
 }
 
 /** 写入最新同步历史并返回截断后的数组（持久化失败静默降级为纯内存）。 */
@@ -521,17 +550,12 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
               logger.warn('[syncStore] conflicts refresh after merged inbound sync:', err),
             );
         }
-        // P011: 合并事件同样触发工作区对象刷新（累计 applied > 0 时）
+        // P011+P002: 合并事件同样触发数据刷新（累计 applied > 0 时），
+        // 覆盖对象/模板/回收站/偏好设置，避免对端写入后本地数据陈旧。
         if (merged.applied > 0) {
           const accountId = useAuthStore.getState().currentAccount?.id;
           if (accountId) {
-            useObjectStore
-              .getState()
-              .loadObjects(accountId, undefined)
-              .catch((err) =>
-                logger.warn('[syncStore] object list refresh after merged inbound sync:', err),
-              );
-            useObjectStore.setState({ currentObjectCache: {} });
+            refreshDataStores(accountId);
           }
         }
         return;
@@ -585,19 +609,13 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
           .loadConflicts()
           .catch((err) => logger.warn('[syncStore] conflicts refresh after inbound sync:', err));
       }
-      // P011: 对端有实际数据写入（applied > 0）时刷新工作区对象列表与详情缓存——
-      // 否则用户停留在工作区时看不到对端同步进来的新增/修改对象，直到切换页面。
+      // P011+P002: 对端有实际数据写入（applied > 0）时刷新全部数据 Store——
+      // 否则用户停留在工作区时看不到对端同步进来的新增/修改对象，直到切换页面；
+      // 模板、回收站、账户偏好设置同样可能被对端改动。
       if (p.applied > 0) {
         const accountId = useAuthStore.getState().currentAccount?.id;
         if (accountId) {
-          useObjectStore
-            .getState()
-            .loadObjects(accountId, undefined)
-            .catch((err) =>
-              logger.warn('[syncStore] object list refresh after inbound sync:', err),
-            );
-          // 详情缓存整体清空（同步可能改动任意对象），下次打开对象时重新拉取
-          useObjectStore.setState({ currentObjectCache: {} });
+          refreshDataStores(accountId);
         }
       }
     });

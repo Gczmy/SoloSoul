@@ -1,9 +1,9 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-07 23:20:00
+> 最后更新：2026-08-07 23:30:00
 > 当前分支：`main`
 > 修复轮次：1（初始分析，按用户要求不恢复旧报告、全新生成）
-> 修复进度：P001 已闭环（1/45）
+> 修复进度：P001-P002 已闭环（2/45）
 > 分析范围：`tauri/`（Rust 后端 + React/TS 前端）、`solosoul_cli/`；忽略 `node_modules/`、`target/`、`dist/`、`.vite/`、`*.min.js`、`*.wasm`
 
 ## 阶段 0 基线检查结果
@@ -17,7 +17,7 @@
 | ID | 优先级 | 类别 | 文件位置 | 描述 | 状态 |
 |----|--------|------|----------|------|------|
 | P001 | P0 | 架构/正确性 | `tauri/src-tauri/src/commands/sync.rs:34-48`、`tauri/crates/solosoul-sync/src/types.rs:59-65`、`tauri/src/lib/ipc.ts:1-15` | 同步冲突载荷 `local_hlc.node_id` 桌面端序列化为 `number[]`、移动端为 `String`，前端只建模桌面形状，Android 上类型漂移 | `[x]` 已修复 |
-| P002 | P0 | 状态一致性 | `tauri/src/stores/syncStore.ts:524-536,588-601` | 入站同步只刷新 objectStore，不同步刷新 templateStore / profileStore / trashStore，模板与回收站数据陈旧 | `[ ]` 待修复 |
+| P002 | P0 | 状态一致性 | `tauri/src/stores/syncStore.ts:524-536,588-601` | 入站同步只刷新 objectStore，不同步刷新 templateStore / profileStore / trashStore，模板与回收站数据陈旧 | `[x]` 已修复 |
 | P003 | P1 | 漏洞 | `tauri/src-tauri/src/attachment_import_plugin.rs:516-519,579-580` | 附件导出路径白名单被原始字符串前缀匹配绕过，解锁态可导出任意本地文件 | `[ ]` 待修复 |
 | P004 | P1 | 正确性/性能 | `tauri/crates/solosoul-vault/src/storage/metadata.rs:632-647` | `check_field_usage` 对加密列做 `LIKE` 匹配，结果恒为 0（功能失效）且全表扫描 | `[ ]` 待修复 |
 | P005 | P1 | 性能 | `tauri/src-tauri/src/commands/export_import/mod.rs:268-306` | 导出收集对象时全库双重解密 + N+1 查询 | `[ ]` 待修复 |
@@ -64,10 +64,15 @@
 
 ## 修复进度
 
-- 已完成：1 / 45（P001）
-- 当前处理：P002（入站同步刷新 templateStore/trashStore/profile）
+- 已完成：2 / 45（P001、P002）
+- 当前处理：P003（附件导出路径白名单绕过）
 
 ## 修复实施记录
+
+### P002（P0）入站同步刷新全部数据 Store ✅
+
+- **改动**：`tauri/src/stores/syncStore.ts` 新增模块级 `refreshDataStores(accountId)` helper（对象列表+详情缓存、模板、回收站、账户偏好设置四类刷新），首事件与合并事件两个 inbound 分支在 `applied > 0` 时共用调用，替换原先仅刷新 objectStore 的逻辑。
+- **验证**：`tsc --noEmit` ✅ / eslint ✅ / `vitest src/stores/syncStore.test.ts` 13 用例全过 ✅。
 
 ### P001（P0）同步冲突 HLC 载荷跨平台统一 ✅
 
