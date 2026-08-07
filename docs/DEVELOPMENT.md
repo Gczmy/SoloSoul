@@ -120,8 +120,8 @@ npm run test:e2e
 
 ```bash
 # macOS / Windows 一键构建
-./docs/build_macos_release.sh
-./docs/build_windows_release.sh
+./scripts/build_macos_release.sh
+./scripts/build_windows_release.sh
 
 # Android Release APK（需设置签名环境变量）
 cd tauri

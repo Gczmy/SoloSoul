@@ -14,7 +14,7 @@
 # 读取，也可用环境变量 SOLOSOUL_EMBED_PRIVATE_KEY 覆盖。
 #
 # 使用方式:
-#   ./docs/compute-apk-checksum.sh path/to/SoloSoul_2.6.1_universal-release.apk
+#   ./scripts/compute-apk-checksum.sh path/to/SoloSoul_2.6.1_universal-release.apk
 #
 # 产物:
 #   path/to/SoloSoul_2.6.1_universal-release.apk.sha256

@@ -6,9 +6,9 @@
 # 一键构建 SoloSoul macOS Release 版本，包含代码签名与 DMG 打包。
 #
 # 使用方式:
-#   ./build_release.sh                    # 默认构建
-#   ./build_release.sh --verbose          # 详细输出
-#   APPLE_SIGNING_IDENTITY="XXX" ./build_release.sh  # 使用指定证书签名
+#   ./scripts/build_macos_release.sh                    # 默认构建
+#   ./scripts/build_macos_release.sh --verbose          # 详细输出
+#   APPLE_SIGNING_IDENTITY="XXX" ./scripts/build_macos_release.sh  # 使用指定证书签名
 #
 # 重要说明:
 #   - 当前版本使用 ad-hoc 签名（默认，无需 Apple Developer 账户）

@@ -158,7 +158,7 @@ fi
 
 # Windows 安装包签名统一在 macOS 本机进行，此处不生成 .sig
 log_info "Windows 安装包已生成，.sig 签名将在 macOS 上统一生成。"
-log_info "请将 ${NSIS_PATH} 复制到 Mac 的 SoloSoul-Releases/ 目录后运行 docs/sign_artifacts.sh。"
+log_info "请将 ${NSIS_PATH} 复制到 Mac 的 SoloSoul-Releases/ 目录后运行 scripts/sign_artifacts.sh。"
 
 NSIS_SIZE=$(du -sh "$NSIS_PATH" 2>/dev/null | cut -f1)
 

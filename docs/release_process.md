@@ -123,7 +123,7 @@ git push origin main
 
 ```bash
 cd /path/to/SoloSoul
-./docs/build_macos_release.sh
+./scripts/build_macos_release.sh
 ```
 
 脚本自动从 `tauri/package.json` 读取版本号（如 `2.1.0`），产物：
@@ -136,7 +136,7 @@ tauri/src-tauri/target/release/bundle/
 └── dmg/SoloSoul_2.1.0_arm64.dmg              # 首次安装用的 DMG
 ```
 
-> 如需覆盖版本号，可传入参数：`VERSION="2.2.0" ./docs/build_macos_release.sh`
+> 如需覆盖版本号，可传入参数：`VERSION="2.2.0" ./scripts/build_macos_release.sh`
 > （注意：传入参数不会修改源文件中的版本号，仅影响产物命名）
 
 > 构建脚本会自动为 `.app.tar.gz` 调用 `npx tauri signer sign` 生成 `.sig`，需要提前设置 `TAURI_SIGNING_PRIVATE_KEY`。
@@ -149,7 +149,7 @@ tauri/src-tauri/target/release/bundle/
 - 首次在另一台 Mac 上运行时，需在 系统设置 > 隐私与安全性 中手动允许
 - 如需使用 Apple Development 证书：
   ```bash
-  APPLE_SIGNING_IDENTITY="Developer ID Application: Your Name" ./docs/build_macos_release.sh
+  APPLE_SIGNING_IDENTITY="Developer ID Application: Your Name" ./scripts/build_macos_release.sh
   ```
 - **对外公开分发**前，需获取 Apple Developer ID 账户并添加公证（Notarization）步骤
 
@@ -164,7 +164,7 @@ cd /d/path/to/SoloSoul
 git pull origin main
 
 # 2. 运行一键构建脚本
-./docs/build_windows_release.sh
+./scripts/build_windows_release.sh
 ```
 
 脚本会自动安装依赖并构建，产物：
@@ -174,7 +174,7 @@ tauri/src-tauri/target/release/bundle/
 └── nsis/SoloSoul_2.1.0_x64-setup.exe
 ```
 
-> 如需覆盖版本号，可传入参数：`VERSION="2.2.0" ./docs/build_windows_release.sh`
+> 如需覆盖版本号，可传入参数：`VERSION="2.2.0" ./scripts/build_windows_release.sh`
 
 > Windows 脚本**不生成 `.sig`**，所有更新签名统一在 macOS 本机生成，避免在 Windows 上暴露私钥。
 
@@ -257,7 +257,7 @@ Android 客户端下载 APK 后会自动验证 SHA-256 校验和。发布前需�
 
 ```bash
 # 为 Release APK 生成 SHA-256 校验和文件 + minisign 签名
-./docs/compute-apk-checksum.sh SoloSoul-Releases/SoloSoul_2.6.1_universal-release.apk
+./scripts/compute-apk-checksum.sh SoloSoul-Releases/SoloSoul_2.6.1_universal-release.apk
 
 # 产物：
 #   SoloSoul_2.6.1_universal-release.apk.sha256       （64 位 hex 编码的 SHA-256 哈希）
@@ -289,7 +289,7 @@ Android 客户端下载 APK 后会自动验证 SHA-256 校验和。发布前需�
 └── SoloSoul_2.1.0_universal-release.apk.sha256 # Android APK SHA-256 校验和（推荐）
 ```
 
-> Android 校验和文件（`.sha256`）需在 Android 构建后通过 `./docs/compute-apk-checksum.sh` 生成。
+> Android 校验和文件（`.sha256`）需在 Android 构建后通过 `./scripts/compute-apk-checksum.sh` 生成。
 > 如果不包含此文件，Android 客户端在下载后不会进行 SHA-256 验证，但更新功能不受影响。
 
 ### 6. 统一签名（在 Mac 上执行）
@@ -298,7 +298,7 @@ Android 客户端下载 APK 后会自动验证 SHA-256 校验和。发布前需�
 
 ```bash
 cd /path/to/SoloSoul
-./docs/sign_artifacts.sh
+./scripts/sign_artifacts.sh
 ```
 
 脚本会读取 `~/SoloSoul/signing/tauri-updater/secret.key`（或环境变量 `TAURI_SIGNING_PRIVATE_KEY`），为 `SoloSoul-Releases/` 中的 `.dmg`、`.exe` 和 `.AppImage` 生成同名 `.sig` 文件。

@@ -9,7 +9,7 @@
 #       但 .sig 文件本身不需要上传到 GitHub Release。
 #
 # 使用方式:
-#   ./docs/sign_artifacts.sh [artifacts-dir]
+#   ./scripts/sign_artifacts.sh [artifacts-dir]
 #
 # 默认产物目录: ./SoloSoul-Releases
 # 私钥读取优先级:
