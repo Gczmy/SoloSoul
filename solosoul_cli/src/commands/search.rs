@@ -124,6 +124,16 @@ fn perform_search(
     let records = vault
         .search_objects(account_id, &q)
         .map_err(|e| color_eyre::eyre::eyre!(e))?;
+    // P034：批量预取去重后的父对象，避免每条结果单独 load_object（最多 200 次额外解密查询）
+    let parent_ids: Vec<String> = records
+        .iter()
+        .filter_map(|r| r.parent_id.clone())
+        .collect::<std::collections::HashSet<_>>()
+        .into_iter()
+        .collect();
+    let parent_objects = vault
+        .load_objects_batch(&parent_ids)
+        .map_err(|e| color_eyre::eyre::eyre!(e))?;
     for rec in records {
         total_scanned += 1;
         if rec.type_id == "page" {
@@ -133,7 +143,9 @@ fn perform_search(
         if items.len() >= RESULT_LIMIT {
             break;
         }
-        if let Some(item) = build_object_result(vault, account_id, &rec, &q, &templates) {
+        if let Some(item) =
+            build_object_result(vault, account_id, &rec, &q, &templates, &parent_objects)
+        {
             items.push(item);
         }
     }
@@ -216,11 +228,12 @@ fn search_pages(
 }
 
 fn build_object_result(
-    vault: &VaultStore,
+    _vault: &VaultStore,
     _account_id: &str,
     rec: &ObjectRecord,
     query: &str,
     templates: &std::collections::HashMap<String, UserTemplate>,
+    parent_objects: &std::collections::HashMap<String, ObjectRecord>,
 ) -> Option<SearchResultItem> {
     // 对象级敏感度为 sensitive/critical 时，整体跳过字段值匹配。
     let skip_values = is_protected_sensitivity(&rec.sensitivity_level);
@@ -279,12 +292,12 @@ fn build_object_result(
         )
     };
 
-    // 解析父页面名称（如果存在）
+    // 解析父页面名称（如果存在）——P034：从批量预取 map 中取，不再逐条查询
     let parent_name = rec
         .parent_id
         .as_ref()
-        .and_then(|pid| vault.load_object(pid).ok().flatten())
-        .map(|p| p.name);
+        .and_then(|pid| parent_objects.get(pid))
+        .map(|p| p.name.clone());
 
     Some(SearchResultItem {
         object_id: rec.id.clone(),
@@ -751,6 +764,15 @@ mod tests {
                         .iter()
                         .any(|i| i.item_type == "object" && i.name == "护照信息"),
                     "应搜索到对象"
+                );
+                // P034：批量预取路径下父页名仍应正确解析
+                assert!(
+                    items.iter().any(|i| {
+                        i.item_type == "object"
+                            && i.name == "护照信息"
+                            && i.parent_id.as_deref() == Some("旅行计划")
+                    }),
+                    "对象搜索结果应解析出父页名"
                 );
             }
             _ => panic!("expected SearchResults"),
