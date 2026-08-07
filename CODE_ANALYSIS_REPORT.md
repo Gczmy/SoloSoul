@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-07（P000-P001/P004-P005/P007 已修复）
+> 最后更新：2026-08-07（P000-P001/P004-P005/P007/P011 已修复）
 > 当前分支：`main`
 > 修复轮次：1（初始分析）
 > 基线版本：v2.8.5（HEAD `cdc6afb6`）
@@ -39,7 +39,7 @@
 | P008 | P1 | 性能 | `tauri/src-tauri/src/commands/search/commands.rs:43` | 搜索每次缓存未命中即全表解密，无索引（存疑：取决于目标 Vault 规模） | `[ ]` 待修复 |
 | P009 | P1 | 死代码 | `tauri/src-tauri/src/commands/export_import/import.rs:177-198` | `import_execute` 为 `#[tauri::command]` 但未在 `lib.rs` 注册、前端无调用，已被 `import_execute_advanced` 取代 | `[ ]` 待修复 |
 | P010 | P1 | 死代码 | `tauri/crates/solosoul-crypto/src/cipher.rs:141`、`aes.rs:96,135` | `encrypt_chunked_to_bytes`/`encrypt_chunked_blob`/`decrypt_chunked_blob` 仅测试引用（存疑：可能有意保留对称 API） | `[ ]` 待修复 |
-| P011 | P1 | 架构 | `tauri/src/stores/syncStore.ts:466-571` | 入站同步完成后不刷新 `objectStore`，工作区显示过期数据直至重新导航 | `[ ]` 待修复 |
+| P011 | P1 | 架构 | `tauri/src/stores/syncStore.ts:466-571` | 入站同步完成后不刷新 `objectStore`，工作区显示过期数据直至重新导航 | `[x]` 已修复（applied>0 时 loadObjects + 清详情缓存，首事件与合并分支） |
 | P012 | P1 | 规范 | `tauri/src/components/settings/BiometricSection.tsx:330-417`、`PinSection.tsx:278-327` | 两处自行实现主密码验证对话框，未用共享 `PasswordVerificationDialog`（违反硬约定） | `[ ]` 待修复 |
 | P013 | P1 | 死代码 | `uiStore.ts:24-90`、`llmStore.ts:22,86`、`templateStore.ts:26,94`、`ocrScanStore.ts:38-40,148-150` | 多个 store 状态/action 仅被测试引用，生产零引用 | `[ ]` 待修复 |
 | P014 | P1 | 规范 | `AGENTS.md`（敏感数据分级节约定） | AGENTS.md 强制要求的 `SensitiveValueWidget`/`SensitivityBlurredWidget`/`SensitivityTag` 组件不存在，实际掩码机制是 `useRevealState`+`SensitivityBadge`；文档称 6 级敏感度，实现为 4 级 | `[ ]` 待修复 |
@@ -77,8 +77,8 @@
 
 ## 修复进度
 
-- 已完成：6 / 46（P045 为合并占位，实际待修复 45 项）
-- 当前处理：P000-P005/P007（已修复）→ P011
+- 已完成：7 / 46（P045 为合并占位，实际待修复 45 项）
+- 当前处理：P000-P005/P007/P011（已修复）→ P015
 
 ---
 

@@ -9,6 +9,8 @@ import type {
   SyncConflictStrategy,
 } from '@/lib/ipc';
 import { useUiStore } from '@/stores/uiStore';
+import { useAuthStore } from '@/stores/authStore';
+import { useObjectStore } from '@/stores/objectStore';
 import { logger } from '@/lib/logger';
 
 // P0#5: 同步历史持久化——recentResults 原为纯内存（slice(0,10)，重启即丢）。
@@ -519,6 +521,19 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
               logger.warn('[syncStore] conflicts refresh after merged inbound sync:', err),
             );
         }
+        // P011: 合并事件同样触发工作区对象刷新（累计 applied > 0 时）
+        if (merged.applied > 0) {
+          const accountId = useAuthStore.getState().currentAccount?.id;
+          if (accountId) {
+            useObjectStore
+              .getState()
+              .loadObjects(accountId, undefined)
+              .catch((err) =>
+                logger.warn('[syncStore] object list refresh after merged inbound sync:', err),
+              );
+            useObjectStore.setState({ currentObjectCache: {} });
+          }
+        }
         return;
       }
       // 构造与本地同步同形的结果（inbound 标记让同步页通用 toast 跳过，避免双弹）
@@ -569,6 +584,21 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
         get()
           .loadConflicts()
           .catch((err) => logger.warn('[syncStore] conflicts refresh after inbound sync:', err));
+      }
+      // P011: 对端有实际数据写入（applied > 0）时刷新工作区对象列表与详情缓存——
+      // 否则用户停留在工作区时看不到对端同步进来的新增/修改对象，直到切换页面。
+      if (p.applied > 0) {
+        const accountId = useAuthStore.getState().currentAccount?.id;
+        if (accountId) {
+          useObjectStore
+            .getState()
+            .loadObjects(accountId, undefined)
+            .catch((err) =>
+              logger.warn('[syncStore] object list refresh after inbound sync:', err),
+            );
+          // 详情缓存整体清空（同步可能改动任意对象），下次打开对象时重新拉取
+          useObjectStore.setState({ currentObjectCache: {} });
+        }
       }
     });
   },
