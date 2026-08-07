@@ -49,12 +49,6 @@ impl SyncEvent {
     }
 }
 
-enum AutoSyncState {
-    Idle,
-    Scheduled(SyncSource, tokio::time::Instant),
-    Running(SyncSource),
-}
-
 /// 可注入的同步动作。
 ///
 /// 将具体的同步实现从调度循环中解耦，便于单元测试和生产注入。
@@ -133,94 +127,51 @@ impl AutoSyncManager {
 
     fn start_loop(
         &self,
-        mut rx: mpsc::Receiver<SyncEvent>,
+        rx: mpsc::Receiver<SyncEvent>,
         action: Arc<dyn SyncAction>,
         config: AutoSyncConfig,
     ) {
-        let fut = async move {
-            let mut state = AutoSyncState::Idle;
-            let mut interval = tokio::time::interval(config.periodic_interval);
-            interval.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
-            // tokio::time::interval 第一次 tick 会立即触发；
-            // 先消耗掉这次 tick，避免启动时误触发一次同步。
-            interval.tick().await;
-            let mut retry_count: u32 = 0;
+        // P017: 状态机内核收敛到 auto_sync_core::spawn_scheduler（SAF 侧周期恒开）。
+        super::auto_sync_core::spawn_scheduler::<SyncEvent, dyn SyncAction, _>(
+            rx,
+            action,
+            super::auto_sync_core::SchedulerConfig {
+                debounce_delay: config.debounce_delay,
+                periodic_interval: config.periodic_interval,
+                max_retries: config.max_retries,
+                retry_delay: config.retry_delay,
+            },
+            || true,
+        );
+    }
+}
 
-            loop {
-                match state {
-                    AutoSyncState::Idle => {
-                        tokio::select! {
-                            event = rx.recv() => match event {
-                                Some(ref inner) => match *inner {
-                                    SyncEvent::Immediate | SyncEvent::Background => {
-                                        state = AutoSyncState::Running(inner.source());
-                                    }
-                                    SyncEvent::Debounce => {
-                                        let deadline = tokio::time::Instant::now() + config.debounce_delay;
-                                        state = AutoSyncState::Scheduled(SyncSource::Debounce, deadline);
-                                    }
-                                },
-                                None => break,
-                            },
-                            _ = interval.tick() => {
-                                state = AutoSyncState::Running(SyncSource::Periodic);
-                            }
-                        }
-                    }
-                    AutoSyncState::Scheduled(source, d) => {
-                        tokio::select! {
-                            event = rx.recv() => match event {
-                                Some(ref inner) => match *inner {
-                                    SyncEvent::Immediate | SyncEvent::Background => {
-                                        state = AutoSyncState::Running(inner.source());
-                                    }
-                                    SyncEvent::Debounce => {
-                                        let new_deadline = tokio::time::Instant::now() + config.debounce_delay;
-                                        state = AutoSyncState::Scheduled(source, new_deadline);
-                                    }
-                                },
-                                None => break,
-                            },
-                            _ = tokio::time::sleep_until(d) => {
-                                state = AutoSyncState::Running(source);
-                            }
-                            _ = interval.tick() => {
-                                // Already scheduled, nothing to do.
-                            }
-                        }
-                    }
-                    AutoSyncState::Running(source) => {
-                        let result = action.run(source).await;
-                        match result {
-                            Ok(()) => {
-                                retry_count = 0;
-                                state = AutoSyncState::Idle;
-                            }
-                            Err(_) => {
-                                if retry_count < config.max_retries {
-                                    retry_count += 1;
-                                    let exponent = (retry_count - 1).min(10);
-                                    let backoff = config.retry_delay * 2u32.pow(exponent);
-                                    tokio::time::sleep(backoff).await;
-                                    state = AutoSyncState::Running(source);
-                                } else {
-                                    retry_count = 0;
-                                    state = AutoSyncState::Idle;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        };
+// P017: 事件/动作适配到共享调度内核。
+impl super::auto_sync_core::SchedulerEvent for SyncEvent {
+    type Source = SyncSource;
 
-        // 生产环境使用 tauri 的全局 async runtime，确保在无 Tokio 上下文（如
-        // Android 主线程）中也能成功 spawn。测试环境下使用 tokio::spawn 即可，
-        // 因为 #[tokio::test] 已建立运行时上下文。
-        #[cfg(test)]
-        tokio::spawn(fut);
-        #[cfg(not(test))]
-        tauri::async_runtime::spawn(fut);
+    fn is_immediate(&self) -> bool {
+        matches!(self, SyncEvent::Immediate | SyncEvent::Background)
+    }
+
+    fn source(&self) -> SyncSource {
+        SyncEvent::source(self)
+    }
+
+    fn debounce_source() -> SyncSource {
+        SyncSource::Debounce
+    }
+
+    fn periodic_source() -> SyncSource {
+        SyncSource::Periodic
+    }
+}
+
+impl super::auto_sync_core::SchedulerAction for dyn SyncAction {
+    type Source = SyncSource;
+
+    fn run(&self, source: SyncSource) -> BoxFuture<'static, Result<(), String>> {
+        SyncAction::run(self, source)
     }
 }
 

@@ -43,12 +43,6 @@ impl DeviceSyncEvent {
     }
 }
 
-enum DeviceAutoSyncState {
-    Idle,
-    Scheduled(DeviceSyncSource, tokio::time::Instant),
-    Running(DeviceSyncSource),
-}
-
 /// 设备自动同步配置。
 #[derive(Clone)]
 pub struct DeviceAutoSyncConfig {
@@ -147,94 +141,52 @@ impl DeviceAutoSyncManager {
 
     fn start_loop(
         &self,
-        mut rx: mpsc::Receiver<DeviceSyncEvent>,
+        rx: mpsc::Receiver<DeviceSyncEvent>,
         action: Arc<dyn DeviceSyncAction>,
         config: DeviceAutoSyncConfig,
         enabled: Arc<AtomicBool>,
     ) {
-        let fut = async move {
-            let mut state = DeviceAutoSyncState::Idle;
-            let mut interval = tokio::time::interval(config.periodic_interval);
-            interval.set_missed_tick_behavior(tokio::time::MissedTickBehavior::Skip);
-            // 消耗 interval 启动时的立即 tick，避免启动后立刻触发一次同步。
-            interval.tick().await;
-            let mut retry_count: u32 = 0;
+        // P017: 状态机内核收敛到 auto_sync_core::spawn_scheduler（周期 tick 受 enabled 门控）。
+        super::auto_sync_core::spawn_scheduler::<DeviceSyncEvent, dyn DeviceSyncAction, _>(
+            rx,
+            action,
+            super::auto_sync_core::SchedulerConfig {
+                debounce_delay: config.debounce_delay,
+                periodic_interval: config.periodic_interval,
+                max_retries: config.max_retries,
+                retry_delay: config.retry_delay,
+            },
+            move || enabled.load(Ordering::SeqCst),
+        );
+    }
+}
 
-            loop {
-                match state {
-                    DeviceAutoSyncState::Idle => {
-                        tokio::select! {
-                            event = rx.recv() => match event {
-                                Some(ref inner) => match *inner {
-                                    DeviceSyncEvent::Foreground => {
-                                        state = DeviceAutoSyncState::Running(inner.source());
-                                    }
-                                    DeviceSyncEvent::DataChange => {
-                                        let deadline = tokio::time::Instant::now() + config.debounce_delay;
-                                        state = DeviceAutoSyncState::Scheduled(DeviceSyncSource::DataChange, deadline);
-                                    }
-                                },
-                                None => break,
-                            },
-                            _ = interval.tick() => {
-                                if enabled.load(Ordering::SeqCst) {
-                                    state = DeviceAutoSyncState::Running(DeviceSyncSource::Periodic);
-                                }
-                            }
-                        }
-                    }
-                    DeviceAutoSyncState::Scheduled(source, d) => {
-                        tokio::select! {
-                            event = rx.recv() => match event {
-                                Some(ref inner) => match *inner {
-                                    DeviceSyncEvent::Foreground => {
-                                        state = DeviceAutoSyncState::Running(inner.source());
-                                    }
-                                    DeviceSyncEvent::DataChange => {
-                                        let new_deadline = tokio::time::Instant::now() + config.debounce_delay;
-                                        state = DeviceAutoSyncState::Scheduled(source, new_deadline);
-                                    }
-                                },
-                                None => break,
-                            },
-                            _ = tokio::time::sleep_until(d) => {
-                                state = DeviceAutoSyncState::Running(source);
-                            }
-                            _ = interval.tick() => {
-                                // Already scheduled, nothing to do.
-                            }
-                        }
-                    }
-                    DeviceAutoSyncState::Running(source) => {
-                        let result = action.run(source).await;
-                        match result {
-                            Ok(()) => {
-                                retry_count = 0;
-                                state = DeviceAutoSyncState::Idle;
-                            }
-                            Err(_) => {
-                                if retry_count < config.max_retries {
-                                    retry_count += 1;
-                                    let exponent = (retry_count - 1).min(10);
-                                    let backoff = config.retry_delay * 2u32.pow(exponent);
-                                    tokio::time::sleep(backoff).await;
-                                    state = DeviceAutoSyncState::Running(source);
-                                } else {
-                                    retry_count = 0;
-                                    state = DeviceAutoSyncState::Idle;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        };
+// P017: 事件/动作适配到共享调度内核。
+impl super::auto_sync_core::SchedulerEvent for DeviceSyncEvent {
+    type Source = DeviceSyncSource;
 
-        // 生产环境使用 tauri 的全局 async runtime，测试环境使用 tokio::spawn。
-        #[cfg(test)]
-        tokio::spawn(fut);
-        #[cfg(not(test))]
-        tauri::async_runtime::spawn(fut);
+    fn is_immediate(&self) -> bool {
+        matches!(self, DeviceSyncEvent::Foreground)
+    }
+
+    fn source(&self) -> DeviceSyncSource {
+        DeviceSyncEvent::source(self)
+    }
+
+    fn debounce_source() -> DeviceSyncSource {
+        DeviceSyncSource::DataChange
+    }
+
+    fn periodic_source() -> DeviceSyncSource {
+        DeviceSyncSource::Periodic
+    }
+}
+
+impl super::auto_sync_core::SchedulerAction for dyn DeviceSyncAction {
+    type Source = DeviceSyncSource;
+
+    fn run(&self, source: DeviceSyncSource) -> BoxFuture<'static, Result<(), String>> {
+        DeviceSyncAction::run(self, source)
     }
 }
 

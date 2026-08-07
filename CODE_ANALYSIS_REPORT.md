@@ -45,7 +45,7 @@
 | P014 | P1 | 规范 | `AGENTS.md`（敏感数据分级节约定） | AGENTS.md 强制要求的 `SensitiveValueWidget`/`SensitivityBlurredWidget`/`SensitivityTag` 组件不存在，实际掩码机制是 `useRevealState`+`SensitivityBadge`；文档称 6 级敏感度，实现为 4 级 | `[x]` 已修复（AGENTS.md 更新为实际 4 级 + useRevealState/SensitivityBadge 约定） |
 | P015 | P1 | 安全 | `tauri/src-tauri/src/commands/export_import/import.rs:230`、`export_import/mod.rs:112`、`solosoul-sync/src/recovery.rs:46-49` | 导入/导出/恢复密码未走 `Zeroizing` 模式（auth 已全部 P031 化，这三处遗漏） | `[x]` 已修复（导入/恢复 IPC 边界 Zeroizing；RecoveryHost.recovery_password Zeroizing） |
 | P016 | P2 | 重复代码 | `tauri/crates/solosoul-vault/src/storage.rs:707,942` | `migrate_to_encrypted_format` 与 `reencrypt_all` 各 211 行互为镜像，按表复制样板 5-6 次；且均整表 collect 进内存 | `[x]` 已修复（抽 rewrite_table 表驱动 helper，两函数共 12 块样板收敛为 12 个闭包） |
-| P017 | P2 | 重复代码 | `src-tauri/src/sync/auto_sync.rs:134`、`sync/device_auto_sync.rs:148` | 两个自动同步状态机约 90 行近乎逐行重复 | `[ ]` 待修复 |
+| P017 | P2 | 重复代码 | `src-tauri/src/sync/auto_sync.rs:134`、`sync/device_auto_sync.rs:148` | 两个自动同步状态机约 90 行近乎逐行重复 | `[x]` 已修复（抽 auto_sync_core 泛型调度内核，两状态机收敛为事件/动作适配） |
 | P018 | P2 | 可维护性 | 7 处超长函数（详见下文） | `import_execute_internal`(224行) 等 7 个 >150 行函数，嵌套最深 d11 | `[ ]` 待修复 |
 | P019 | P2 | 可维护性 | `crates/solosoul-vault/src/storage/sync_meta.rs:499` | `cleanup_expired_tombstones` 嵌套 d13，手写 HLC 三元组 min 比较 | `[ ]` 待修复 |
 | P020 | P2 | 规范 | `src-tauri/src/commands/llm/rag.rs`（8 处）、`llm/guide.rs:515,617` | `eprintln!` 绕过 tracing 日志体系，release GUI 中不可见 | `[ ]` 待修复 |
@@ -77,8 +77,8 @@
 
 ## 修复进度
 
-- 已完成：16 / 46（P045 为合并占位，实际待修复 45 项）
-- 当前处理：P000-P016 全部闭环（15 项 + P045 合并）→ 下一项 P017
+- 已完成：17 / 46（P045 为合并占位，实际待修复 45 项）
+- 当前处理：P000-P017 全部闭环（16 项 + P045 合并）→ 下一项 P006
 
 ---
 
@@ -221,8 +221,13 @@
 ### P017（P2）自动同步双状态机重复
 
 - **位置**：`src-tauri/src/sync/auto_sync.rs:134`、`sync/device_auto_sync.rs:148`
-- **问题**：Idle/Scheduled/Running 三态 select 循环、重试退避、test spawn 分支约 90 行近乎逐行重复，仅事件类型与 enabled 开关不同。
-- **建议**：泛型化或抽共享函数；若不抽象，至少注释互相指向。
+- **问题**：`auto_sync.rs`（SAF 自动同步）与 `device_auto_sync.rs`（设备间自动同步）各维护一份约 90 行逐行重复的 Idle/Scheduled/Running 三态 select 循环 + 重试退避 + test spawn 分支，仅「事件分类 / 防抖与周期来源 / enabled 门控」不同。
+- **修复**：新建 `sync/auto_sync_core.rs` 泛型调度内核 `spawn_scheduler<E, A, F>`：
+  1. `SchedulerEvent` 契约（`is_immediate`/`source`/`debounce_source`/`periodic_source` 关联类型）承载事件分类差异；`SchedulerAction` 契约承载动作差异。
+  2. `periodic_enabled` 闭包承载 enabled 门控差异——SAF 侧 `|| true`，设备侧 `move || enabled.load(SeqCst)`。
+  3. 两个 manager 的 `start_loop` 收敛为对 `spawn_scheduler` 的一行委托；各自文件尾新增 `SchedulerEvent`/`SchedulerAction` 适配 impl（trait object `dyn SyncAction`/`dyn DeviceSyncAction` 经 `?Sized` 泛型传入）。删除两处本地 `AutoSyncState`/`DeviceAutoSyncState` 枚举（死代码）。
+- **验证**：solo_soul 编译 0 警告、clippy 0 警告、`auto_sync` 过滤 5 测试通过（SAF 防抖/取消防抖/重试 + 设备防抖/前台立即）。净减 96 行 + 新增内核 130 行。
+- **坑位记录**：`cargo test --no-run` 出现与本次改动无关的陈旧增量 rlib 链接失败（`tokio::Context` undefined symbol，`solosoul_plugin` 旧产物）——`cargo clean -p solosoul-plugin` 定向清理即恢复（不必 122GB 全量 clean）。
 
 ### P018（P2）超长函数 7 处
 
