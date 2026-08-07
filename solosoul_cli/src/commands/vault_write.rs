@@ -297,23 +297,25 @@ fn delete_page(
         .ok_or_else(|| color_eyre::eyre::eyre!("Vault 未打开"))?;
     let retention_ms = objects::load_trash_retention(&vault, &account_id);
 
+    // P008: 子对象移入回收站失败时中止整页删除并报错——
+    // 旧实现 `let _ =` 静默吞错，子对象滞留活动列表、页面却已删除，用户无感知。
     for child_summary in children {
         if let Ok(Some(child)) = vault.load_object(&child_summary.id) {
-            let _ = objects::move_to_trash(
+            objects::move_to_trash(
                 &vault,
                 &child,
                 "object",
                 Some(page.id.clone()),
                 retention_ms,
-            );
+            )
+            .map_err(|e| color_eyre::eyre::eyre!(e))?;
         }
     }
 
     // 页面本身需要先构建 ObjectRecord 再移入回收站
     if let Ok(Some(page_record)) = vault.load_object(&page.id) {
         if let Err(e) = objects::move_to_trash(&vault, &page_record, "page", None, retention_ms) {
-            app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e));
-            return Ok(());
+            return Err(color_eyre::eyre::eyre!(e));
         }
     }
 
