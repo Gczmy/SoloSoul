@@ -512,7 +512,7 @@ pub fn find_relevant_guides_internal(
     for (entry, _) in scored.into_iter().take(3) {
         match load_guide_content(&entry, language) {
             Ok(g) => results.push(g),
-            Err(e) => eprintln!("Guide load error: {}", e),
+            Err(e) => tracing::warn!("Guide load error: {}", e),
         }
     }
 
@@ -614,7 +614,7 @@ pub async fn guide_search(query: String, language: String) -> Result<Vec<GuideCo
     for (entry, _) in scored.into_iter().take(10) {
         match guide_load_content(entry.id.clone(), language.clone()).await {
             Ok(g) => results.push(g),
-            Err(e) => eprintln!("Guide load error: {}", e),
+            Err(e) => tracing::warn!("Guide load error: {}", e),
         }
     }
     Ok(results)

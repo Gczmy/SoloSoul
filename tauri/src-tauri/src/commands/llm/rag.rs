@@ -331,7 +331,7 @@ pub async fn llm_search_guide_chunks(
         let source = match get_embedding_source(&vault, &account_id, &models_dir) {
             Ok(s) => s,
             Err(e) => {
-                eprintln!(
+                tracing::warn!(
                     "[RAG] Embedding source error: {}, falling back to keyword search",
                     e
                 );
@@ -342,7 +342,7 @@ pub async fn llm_search_guide_chunks(
         let chunks = match vault.list_guide_embeddings() {
             Ok(c) => c,
             Err(e) => {
-                eprintln!(
+                tracing::warn!(
                     "[RAG] Load embeddings failed: {}, falling back to keyword search",
                     e
                 );
@@ -351,7 +351,7 @@ pub async fn llm_search_guide_chunks(
         };
 
         if chunks.is_empty() {
-            eprintln!("[RAG] No embeddings found, falling back to keyword search");
+            tracing::warn!("[RAG] No embeddings found, falling back to keyword search");
             return fallback_keyword_search(&query, &language, top_k);
         }
 
@@ -362,7 +362,7 @@ pub async fn llm_search_guide_chunks(
     let mut query_vec = match embed_text(source, models_dir, query.clone()).await {
         Ok(v) => v,
         Err(e) => {
-            eprintln!(
+            tracing::warn!(
                 "[RAG] Embed query failed: {}, falling back to keyword search",
                 e
             );
@@ -466,7 +466,7 @@ pub fn chunk_all_guides(language: &str) -> Result<Vec<RawChunk>, String> {
         let content = match std::fs::read_to_string(&path) {
             Ok(c) => c,
             Err(e) => {
-                eprintln!("[RAG] skip guide {}: {}", entry.id, e);
+                tracing::warn!("[RAG] skip guide {}: {}", entry.id, e);
                 continue;
             }
         };
@@ -917,7 +917,7 @@ pub async fn llm_check_embedding_available(
             match crate::local_embed::get_embedder_async(models_dir, model_id).await {
                 Ok(_) => Ok(true),
                 Err(e) => {
-                    eprintln!("[RAG] Local embedding not available: {}", e);
+                    tracing::warn!("[RAG] Local embedding not available: {}", e);
                     Ok(false)
                 }
             }
@@ -941,13 +941,13 @@ pub async fn llm_check_embedding_available(
             {
                 Ok(_) => Ok(true),
                 Err(e) => {
-                    eprintln!("[RAG] Embedding availability check failed: {}", e);
+                    tracing::warn!("[RAG] Embedding availability check failed: {}", e);
                     Ok(false)
                 }
             }
         }
         Err(e) => {
-            eprintln!("[RAG] No embedding source: {}", e);
+            tracing::warn!("[RAG] No embedding source: {}", e);
             Ok(false)
         }
     }

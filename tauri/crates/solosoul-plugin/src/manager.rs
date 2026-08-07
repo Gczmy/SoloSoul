@@ -167,6 +167,150 @@ impl PluginManager {
     /// 3. 未安装或 hash 不匹配 → 优先从远程下载 manifest.json + plugin.wasm
     /// 4. 远程失败 → 回退到 bundled `market_dir`
     /// 5. 校验通过后保存到 PluginStore
+    ///
+    /// 应用数据目录中是否已安装目标版本且 WASM hash 匹配。
+    /// 返回 true 表示可直接复用（免下载、免校验）。
+    fn is_installed_ok(&self, plugin_id: &str, version: &str, expected_hash: &str) -> bool {
+        let installed = match self.store.load_manifest(plugin_id) {
+            Ok(m) => m,
+            Err(_) => return false,
+        };
+        if installed.version != version {
+            tracing::info!(
+                "Installed plugin {} version {} does not match target {}, will re-install",
+                plugin_id,
+                installed.version,
+                version
+            );
+            return false;
+        }
+        let wasm = match self.store.load_wasm(plugin_id) {
+            Ok(b) => b,
+            Err(_) => return false,
+        };
+        let actual_hash = compute_sha256(&wasm);
+        if actual_hash != expected_hash {
+            tracing::warn!(
+                "Installed plugin {} hash mismatch (expected {}, got {}), will re-download",
+                plugin_id,
+                expected_hash,
+                actual_hash
+            );
+            return false;
+        }
+        true
+    }
+
+    /// 从 `MarketManifestRaw` 构造 `PluginManifest`（远程与 bundled 两路径共用；
+    /// 为旧插件推导 effective roles）。
+    fn manifest_from_raw(
+        raw: MarketManifestRaw,
+        version: String,
+        wasm_hash_sha256: Option<String>,
+    ) -> PluginManifest {
+        let mut permissions = raw.required_fields.clone();
+        permissions.extend(raw.optional_fields.clone());
+        let contracts: Vec<_> = raw
+            .contracts
+            .iter()
+            .map(|c| {
+                let mut c2 = c.clone();
+                c2.roles = c.effective_roles(&raw.field_bindings);
+                c2
+            })
+            .collect();
+        PluginManifest {
+            id: raw.plugin_id,
+            name: raw.name,
+            version,
+            description: raw.description,
+            author: raw.publisher,
+            homepage: raw.homepage,
+            permissions,
+            required_core_version: raw.plugin_api_version,
+            wasm_hash_sha256,
+            data_ttl_seconds: raw.data_ttl_seconds.unwrap_or(300),
+            network_policy: raw.network_policy,
+            require_user_confirmation: raw.require_user_confirmation,
+            tier: raw.tier,
+            category: raw.category,
+            params: raw.params,
+            contracts,
+            field_bindings: raw.field_bindings,
+            i18n: raw.i18n.clone(),
+            custom_ui: raw.custom_ui,
+        }
+    }
+
+    /// bundled 资源回退安装：读取本地 manifest/wasm，hash 校验后安装。
+    ///
+    /// 处理 bundled 版本与目标版本不一致的情况：尝试按 bundled 版本安装
+    /// （从注册表查该版本 hash 并校验 WASM），保证离线可用。
+    fn install_bundled_fallback(
+        &self,
+        plugin_id: &str,
+        target_version: &str,
+        entry: &crate::RegistryEntry,
+    ) -> Result<Option<PluginInstallResult>, PluginError> {
+        let bundled_dir = self.market_dir.join("plugins").join(plugin_id);
+        let bundled_manifest = bundled_dir.join("manifest.json");
+        let text = std::fs::read_to_string(&bundled_manifest).map_err(|_| {
+            PluginError::NetworkError(format!(
+                "无法下载 manifest 且 bundled 资源不存在: {}",
+                target_version
+            ))
+        })?;
+        let local: MarketManifestRaw = serde_json::from_str(&text).map_err(|e| {
+            PluginError::InvalidManifest(format!("bundled manifest 解析失败: {}", e))
+        })?;
+
+        if local.version == target_version {
+            return Ok(None); // 调用方继续按目标版本路径处理
+        }
+
+        // Bundled version mismatches the target — try installing the bundled version
+        // by looking it up in the registry. This handles the common case where
+        // the registry has been updated but the bundled WASM is still the old version.
+        tracing::warn!(
+            "Bundled version {} != target {}, attempting fallback install of bundled version",
+            local.version,
+            target_version
+        );
+        let bundled_version = local.version.clone();
+        let bundled_version_info = entry.versions.get(&bundled_version).ok_or_else(|| {
+            PluginError::NetworkError(format!(
+                "远程 manifest 下载失败且 bundled 版本 {} 在注册表中不存在，无法降级安装",
+                bundled_version
+            ))
+        })?;
+        let bundled_wasm = bundled_dir.join("plugin.wasm");
+        let wasm_bytes = std::fs::read(&bundled_wasm).map_err(|_| {
+            PluginError::NetworkError("无法下载 WASM 且 bundled 资源不存在".to_string())
+        })?;
+        let actual_hash = compute_sha256(&wasm_bytes);
+        if actual_hash != bundled_version_info.sha256 {
+            return Err(PluginError::ChecksumMismatch);
+        }
+        let manifest = Self::manifest_from_raw(
+            local,
+            bundled_version.clone(),
+            Some(bundled_version_info.sha256.clone()),
+        );
+        self.store.save_plugin(&manifest, &wasm_bytes)?;
+        self.audit.log(
+            plugin_id,
+            None::<String>,
+            PluginAuditAction::PluginInstalled {
+                version: bundled_version.clone(),
+            },
+        );
+        Ok(Some(PluginInstallResult {
+            plugin_id: plugin_id.to_string(),
+            version: bundled_version,
+            installed_at: chrono::Utc::now().timestamp_millis(),
+        }))
+    }
+
     pub async fn install_from_registry(
         &self,
         plugin_id: &str,
@@ -188,32 +332,7 @@ impl PluginManager {
         validate_plugin_id(plugin_id)?;
 
         // ── 2. 检查应用数据目录中是否已安装且版本/hash 完全匹配 ──
-        let already_ok = (|| {
-            let installed = self.store.load_manifest(plugin_id).ok()?;
-            if installed.version != version {
-                tracing::info!(
-                    "Installed plugin {} version {} does not match target {}, will re-install",
-                    plugin_id,
-                    installed.version,
-                    version
-                );
-                return None;
-            }
-            let wasm = self.store.load_wasm(plugin_id).ok()?;
-            let actual_hash = compute_sha256(&wasm);
-            if actual_hash != version_info.sha256 {
-                tracing::warn!(
-                    "Installed plugin {} hash mismatch (expected {}, got {}), will re-download",
-                    plugin_id,
-                    version_info.sha256,
-                    actual_hash
-                );
-                return None;
-            }
-            Some(())
-        })();
-
-        if already_ok.is_some() {
+        if self.is_installed_ok(plugin_id, version, &version_info.sha256) {
             tracing::info!(
                 "Plugin {} {} already installed and hash matches",
                 plugin_id,
@@ -226,7 +345,7 @@ impl PluginManager {
             });
         }
 
-        // ── 3. 优先从远程下载 manifest ──
+        // ── 3. 优先从远程下载 manifest，失败回退 bundled ──
         let manifest_raw = match self.fetch_manifest(version_info).await {
             Ok(m) => m,
             Err(remote_err) => {
@@ -234,7 +353,10 @@ impl PluginManager {
                     "Remote manifest download failed: {}, falling back to bundled market_dir",
                     remote_err
                 );
-                // ── 4. 回退到 bundled 资源 ──
+                if let Some(result) = self.install_bundled_fallback(plugin_id, version, &entry)? {
+                    return Ok(result);
+                }
+                // bundled 版本与目标一致：读回 bundled manifest 继续按目标版本安装
                 let bundled_dir = self.market_dir.join("plugins").join(plugin_id);
                 let bundled_manifest = bundled_dir.join("manifest.json");
                 let text = std::fs::read_to_string(&bundled_manifest).map_err(|_| {
@@ -243,94 +365,13 @@ impl PluginManager {
                         remote_err
                     ))
                 })?;
-                let local: MarketManifestRaw = serde_json::from_str(&text).map_err(|e| {
+                serde_json::from_str(&text).map_err(|e| {
                     PluginError::InvalidManifest(format!("bundled manifest 解析失败: {}", e))
-                })?;
-                if local.version != version {
-                    // Bundled version mismatches the target — try installing the bundled version
-                    // by looking it up in the registry. This handles the common case where
-                    // the registry has been updated but the bundled WASM is still the old version.
-                    tracing::warn!(
-                        "Bundled version {} != target {}, attempting fallback install of bundled version",
-                        local.version, version
-                    );
-                    let bunded_version = local.version.clone();
-                    // Look up the bundled version in the registry to get its hash
-                    let bundled_version_info = entry
-                        .versions
-                        .get(&bunded_version)
-                        .ok_or_else(|| {
-                            PluginError::NetworkError(format!(
-                                "远程 manifest 下载失败且 bundled 版本 {} 在注册表中不存在，无法降级安装",
-                                bunded_version
-                            ))
-                        })?;
-                    // Read bundled WASM
-                    let bundled_wasm = bundled_dir.join("plugin.wasm");
-                    let wasm_bytes = std::fs::read(&bundled_wasm).map_err(|_| {
-                        PluginError::NetworkError("无法下载 WASM 且 bundled 资源不存在".to_string())
-                    })?;
-                    // Verify bundled WASM against the registry hash for its own version
-                    let actual_hash = compute_sha256(&wasm_bytes);
-                    if actual_hash != bundled_version_info.sha256 {
-                        return Err(PluginError::ChecksumMismatch);
-                    }
-                    // Install the bundled version instead
-                    let perm = {
-                        let mut p = local.required_fields.clone();
-                        p.extend(local.optional_fields.clone());
-                        p
-                    };
-                    // 为旧插件推导 effective roles（从 field_bindings）
-                    let contracts: Vec<_> = local
-                        .contracts
-                        .iter()
-                        .map(|c| {
-                            let mut c2 = c.clone();
-                            c2.roles = c.effective_roles(&local.field_bindings);
-                            c2
-                        })
-                        .collect();
-                    let manifest = PluginManifest {
-                        id: local.plugin_id,
-                        name: local.name,
-                        version: bunded_version.clone(),
-                        description: local.description,
-                        author: local.publisher,
-                        homepage: local.homepage,
-                        permissions: perm,
-                        required_core_version: local.plugin_api_version,
-                        wasm_hash_sha256: Some(bundled_version_info.sha256.clone()),
-                        data_ttl_seconds: local.data_ttl_seconds.unwrap_or(300),
-                        network_policy: local.network_policy,
-                        require_user_confirmation: local.require_user_confirmation,
-                        tier: local.tier,
-                        category: local.category,
-                        params: local.params,
-                        contracts,
-                        field_bindings: local.field_bindings,
-                        i18n: local.i18n.clone(),
-                        custom_ui: local.custom_ui,
-                    };
-                    self.store.save_plugin(&manifest, &wasm_bytes)?;
-                    self.audit.log(
-                        plugin_id,
-                        None::<String>,
-                        PluginAuditAction::PluginInstalled {
-                            version: bunded_version.clone(),
-                        },
-                    );
-                    return Ok(PluginInstallResult {
-                        plugin_id: plugin_id.to_string(),
-                        version: bunded_version,
-                        installed_at: chrono::Utc::now().timestamp_millis(),
-                    });
-                }
-                local
+                })?
             }
         };
 
-        // ── 3. 优先从远程下载 WASM ──
+        // ── 4. 优先从远程下载 WASM，失败回退 bundled ──
         let wasm_bytes = match self.fetch_wasm(version_info).await {
             Ok(bytes) => bytes,
             Err(remote_err) => {
@@ -338,7 +379,6 @@ impl PluginManager {
                     "Remote WASM download failed: {}, falling back to bundled market_dir",
                     remote_err
                 );
-                // ── 4. 回退到 bundled 资源 ──
                 let bundled_dir = self.market_dir.join("plugins").join(plugin_id);
                 let bundled_wasm = bundled_dir.join("plugin.wasm");
                 std::fs::read(&bundled_wasm).map_err(|_| {
@@ -356,41 +396,11 @@ impl PluginManager {
             return Err(PluginError::ChecksumMismatch);
         }
 
-        let mut permissions = manifest_raw.required_fields;
-        permissions.extend(manifest_raw.optional_fields);
-
-        // 为旧插件推导 effective roles（从 field_bindings），使前端能展示旧插件的角色列表
-        let contracts: Vec<_> = manifest_raw
-            .contracts
-            .iter()
-            .map(|c| {
-                let mut c2 = c.clone();
-                c2.roles = c.effective_roles(&manifest_raw.field_bindings);
-                c2
-            })
-            .collect();
-        let manifest = PluginManifest {
-            id: manifest_raw.plugin_id,
-            name: manifest_raw.name,
-            version: manifest_raw.version,
-            description: manifest_raw.description,
-            author: manifest_raw.publisher,
-            homepage: manifest_raw.homepage,
-            permissions,
-            required_core_version: manifest_raw.plugin_api_version,
-            wasm_hash_sha256: Some(version_info.sha256.clone()),
-            data_ttl_seconds: manifest_raw.data_ttl_seconds.unwrap_or(300),
-            network_policy: manifest_raw.network_policy,
-            require_user_confirmation: manifest_raw.require_user_confirmation,
-            tier: manifest_raw.tier,
-            category: manifest_raw.category,
-            params: manifest_raw.params,
-            contracts,
-            field_bindings: manifest_raw.field_bindings,
-            i18n: manifest_raw.i18n.clone(),
-            custom_ui: manifest_raw.custom_ui,
-        };
-
+        let manifest = Self::manifest_from_raw(
+            manifest_raw,
+            version.to_string(),
+            Some(version_info.sha256.clone()),
+        );
         self.store.save_plugin(&manifest, &wasm_bytes)?;
         self.audit.log(
             plugin_id,

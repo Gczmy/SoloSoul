@@ -275,152 +275,34 @@ pub(crate) async fn import_execute_internal(
         }
     }
 
+    let objects_len = objects.len();
     for (obj_index, obj_val) in objects.iter().enumerate() {
-        let id = obj_val["id"].as_str().unwrap_or("");
-        if id.is_empty() {
-            continue;
-        }
-
-        // Apply selection filter
-        if let Some(ref sel_ids) = selected_ids {
-            if !sel_ids.contains(id) {
-                continue;
-            }
-        }
-
-        // Check conflict & apply strategy (per-object override first, then global)
-        let effective_strategy = object_strategies.get(id).copied().unwrap_or(strategy);
-        // KeepBoth 不需要冲突判断（永远继续往下走）；SkipExisting 遇非软删既有对象则跳过
-        if effective_strategy != ImportStrategy::KeepBoth {
-            let existing = vault.load_object(id).ok().flatten();
-            if effective_strategy == ImportStrategy::SkipExisting
-                && existing.is_some_and(|e| !e.is_deleted)
-            {
-                continue;
-            }
-        }
-
-        // Resolve cross-scope RelationProperty references
-        let mut properties = obj_val["properties"].clone();
-        resolve_cross_scope_references(&mut properties, &package_ids);
-
-        // ── 解析实际模板 ID ──
-        let resolved_template_id = obj_val["template_id"].as_str().map(|tid| {
-            template_id_map
-                .get(tid)
-                .cloned()
-                .unwrap_or_else(|| tid.to_string())
-        });
-
-        // ── 从模板继承字段敏感度、字段定义和模板名称 ──
-        // 即使模板后来被删除，对象仍保留自己的副本
-        let mut property_labels = if obj_val["property_labels"].is_null() {
-            None
-        } else {
-            Some(obj_val["property_labels"].clone())
-        };
-        if let Some(ref tid) = resolved_template_id {
-            // 合并 property_labels：payload 原有值优先，模板值作为兜底
-            let tpl_labels = crate::commands::object::inherit_property_labels(vault, Some(tid));
-            match (tpl_labels, &mut property_labels) {
-                (Some(tpl), Some(existing)) => merge_labels_into(&tpl, existing),
-                (Some(tpl), None) => {
-                    property_labels = Some(tpl);
-                }
-                _ => {}
-            }
-
-            // 注入 __fields（字段名称 + 类型）
-            let fields = crate::commands::object::inherit_property_fields(vault, Some(tid));
-            crate::commands::object::inject_property_fields(&mut properties, &fields);
-
-            // 注入 __templateName
-            crate::commands::object::inject_template_meta(vault, Some(tid), &mut properties);
-        }
-
-        // ── 重写 KeepBoth ID 引用（所有对象都需要，不仅仅是 KeepBoth 对象）
-        // 这样如果 Object A（overwrite）引用 Object B（KeepBoth），A 的引用也会被更新
-        if !id_map.is_empty() {
-            rewrite_id_references(&mut properties, &id_map);
-        }
-
-        // ── KeepBoth: 使用预先生成的新 ID + 新名称 ────────────────────
-        let (final_id, final_name): (String, String) =
-            if effective_strategy == ImportStrategy::KeepBoth {
-                let new_id = id_map.get(id).cloned().unwrap_or_else(generate_id);
-                let new_name = unique_object_name(
-                    vault,
-                    &account_id,
-                    obj_val["name"].as_str().unwrap_or("Imported"),
-                    locale,
-                )?;
-                (new_id, new_name)
-            } else {
-                (
-                    id.to_string(),
-                    obj_val["name"].as_str().unwrap_or("Imported").to_string(),
-                )
-            };
-
-        // ── 阶段 4.1：构建导入对象记录（含 KeepBoth ID 重写）──
-        let record = build_import_record(
+        // 阶段 4 主体抽至 import_one_object：策略解析/模板继承/KeepBoth 重写/快照恢复
+        let outcome = import_one_object(
+            vault,
             obj_val,
             &account_id,
+            strategy,
+            &object_strategies,
+            selected_ids.as_ref(),
+            &package_ids,
+            &template_id_map,
             &id_map,
-            resolved_template_id,
-            &final_id,
-            &final_name,
-            properties,
-            property_labels,
+            &package_snapshots,
             &now,
-        );
-
-        vault
-            .save_object(&record)
-            .map_err(|e| format!("save: {}", e))?;
-
-        // 恢复包内历史快照（若有），否则创建初始 snapshot 使历史 badge 正常显示。
-        // KeepBoth 场景下对象获得新 ID，快照随之挂到新 ID 上。
-        let snapshot_key = if effective_strategy == ImportStrategy::KeepBoth {
-            &final_id
-        } else {
-            id
+            locale,
+            progress.as_deref(),
+            obj_index,
+            objects_len,
+        )?;
+        let Some((final_id, is_keepboth)) = outcome else {
+            continue;
         };
-        let restored = if let Some(snaps) = package_snapshots.get(id) {
-            // P1: Overwrite 覆盖导入时，仅在包内确实携带【可恢复】的快照时先清空本地旧历史，
-            // 防止包内快照叠加导致历史数量翻倍；损坏包（快照 base64 全部解码失败）保留本地
-            // 历史，避免本地历史被误删后仅剩一条 diff_imported 的数据丢失。
-            // SkipExisting 遇既有对象会跳过；KeepBoth 使用新 ID 天然无旧历史，均不受影响。
-            if effective_strategy == ImportStrategy::Overwrite && snapshots_any_restorable(snaps) {
-                if let Err(e) = vault.delete_snapshots(snapshot_key) {
-                    tracing::warn!(
-                        "[import] 覆盖导入清空旧快照失败: object={} err={}",
-                        snapshot_key,
-                        e
-                    );
-                }
-            }
-            restore_package_snapshots(vault, snapshot_key, snaps)
-        } else {
-            0
-        };
-        if restored == 0 {
-            // 旧包或对象无历史时，保持既有行为：创建 diff_imported 初始快照
-            let snapshot_data =
-                serde_json::to_vec(&record).map_err(|e| format!("snapshot ser: {}", e))?;
-            let _ = vault.save_snapshot(snapshot_key, "import", &snapshot_data, "diff_imported");
-        }
-
         imported += 1;
-        imported_object_ids.insert(final_id.clone());
+        imported_object_ids.insert(final_id);
         // 也记录旧 ID 以便附件查找（KeepBoth 场景）
-        if effective_strategy == ImportStrategy::KeepBoth {
-            imported_object_ids.insert(id.to_string());
-        }
-        if let Some(cb) = &progress {
-            let total = objects.len().max(1);
-            // 对象阶段 0-80（按循环下标推进，跳过对象也前进，保证单调到达 80）
-            cb(((obj_index + 1) * 80 / total).min(80) as u8);
+        if is_keepboth {
+            imported_object_ids.insert(obj_val["id"].as_str().unwrap_or("").to_string());
         }
     }
 
@@ -484,6 +366,174 @@ pub(crate) async fn import_execute_internal(
         object_count: imported,
         attachment_count: imported_attachments_count,
     })
+}
+
+/// 阶段 4：导入单个对象（策略解析、模板继承、KeepBoth 重写、快照恢复）。
+/// 返回 `(final_id, imported)`：`imported=false` 表示该对象被过滤/跳过。
+/// 副作用：写对象行、恢复/创建快照、更新进度回调。
+#[allow(clippy::too_many_arguments)]
+fn import_one_object(
+    vault: &solosoul_vault::VaultStore,
+    obj_val: &serde_json::Value,
+    account_id: &str,
+    strategy: ImportStrategy,
+    object_strategies: &HashMap<String, ImportStrategy>,
+    selected_ids: Option<&BTreeSet<String>>,
+    package_ids: &std::collections::HashSet<String>,
+    template_id_map: &std::collections::HashMap<String, String>,
+    id_map: &HashMap<String, String>,
+    package_snapshots: &HashMap<String, Vec<serde_json::Value>>,
+    now: &str,
+    locale: &str,
+    progress: Option<&(dyn Fn(u8) + Send + Sync)>,
+    obj_index: usize,
+    objects_len: usize,
+) -> Result<Option<(String, bool)>, String> {
+    let id = obj_val["id"].as_str().unwrap_or("");
+    if id.is_empty() {
+        return Ok(None);
+    }
+
+    // Apply selection filter
+    if let Some(sel_ids) = selected_ids {
+        if !sel_ids.contains(id) {
+            return Ok(None);
+        }
+    }
+
+    // Check conflict & apply strategy (per-object override first, then global)
+    let effective_strategy = object_strategies.get(id).copied().unwrap_or(strategy);
+    // KeepBoth 不需要冲突判断（永远继续往下走）；SkipExisting 遇非软删既有对象则跳过
+    if effective_strategy != ImportStrategy::KeepBoth {
+        let existing = vault.load_object(id).ok().flatten();
+        if effective_strategy == ImportStrategy::SkipExisting
+            && existing.is_some_and(|e| !e.is_deleted)
+        {
+            return Ok(None);
+        }
+    }
+
+    // Resolve cross-scope RelationProperty references
+    let mut properties = obj_val["properties"].clone();
+    resolve_cross_scope_references(&mut properties, package_ids);
+
+    // ── 解析实际模板 ID ──
+    let resolved_template_id = obj_val["template_id"].as_str().map(|tid| {
+        template_id_map
+            .get(tid)
+            .cloned()
+            .unwrap_or_else(|| tid.to_string())
+    });
+
+    // ── 从模板继承字段敏感度、字段定义和模板名称 ──
+    // 即使模板后来被删除，对象仍保留自己的副本
+    let mut property_labels = if obj_val["property_labels"].is_null() {
+        None
+    } else {
+        Some(obj_val["property_labels"].clone())
+    };
+    if let Some(ref tid) = resolved_template_id {
+        // 合并 property_labels：payload 原有值优先，模板值作为兜底
+        let tpl_labels = crate::commands::object::inherit_property_labels(vault, Some(tid));
+        match (tpl_labels, &mut property_labels) {
+            (Some(tpl), Some(existing)) => merge_labels_into(&tpl, existing),
+            (Some(tpl), None) => {
+                property_labels = Some(tpl);
+            }
+            _ => {}
+        }
+
+        // 注入 __fields（字段名称 + 类型）
+        let fields = crate::commands::object::inherit_property_fields(vault, Some(tid));
+        crate::commands::object::inject_property_fields(&mut properties, &fields);
+
+        // 注入 __templateName
+        crate::commands::object::inject_template_meta(vault, Some(tid), &mut properties);
+    }
+
+    // ── 重写 KeepBoth ID 引用（所有对象都需要，不仅仅是 KeepBoth 对象）
+    // 这样如果 Object A（overwrite）引用 Object B（KeepBoth），A 的引用也会被更新
+    if !id_map.is_empty() {
+        rewrite_id_references(&mut properties, id_map);
+    }
+
+    // ── KeepBoth: 使用预先生成的新 ID + 新名称 ────────────────────
+    let (final_id, final_name): (String, String) = if effective_strategy == ImportStrategy::KeepBoth
+    {
+        let new_id = id_map.get(id).cloned().unwrap_or_else(generate_id);
+        let new_name = unique_object_name(
+            vault,
+            account_id,
+            obj_val["name"].as_str().unwrap_or("Imported"),
+            locale,
+        )?;
+        (new_id, new_name)
+    } else {
+        (
+            id.to_string(),
+            obj_val["name"].as_str().unwrap_or("Imported").to_string(),
+        )
+    };
+
+    // ── 阶段 4.1：构建导入对象记录（含 KeepBoth ID 重写）──
+    let record = build_import_record(
+        obj_val,
+        account_id,
+        id_map,
+        resolved_template_id,
+        &final_id,
+        &final_name,
+        properties,
+        property_labels,
+        now,
+    );
+
+    vault
+        .save_object(&record)
+        .map_err(|e| format!("save: {}", e))?;
+
+    // 恢复包内历史快照（若有），否则创建初始 snapshot 使历史 badge 正常显示。
+    // KeepBoth 场景下对象获得新 ID，快照随之挂到新 ID 上。
+    let snapshot_key = if effective_strategy == ImportStrategy::KeepBoth {
+        &final_id
+    } else {
+        id
+    };
+    let restored = if let Some(snaps) = package_snapshots.get(id) {
+        // P1: Overwrite 覆盖导入时，仅在包内确实携带【可恢复】的快照时先清空本地旧历史，
+        // 防止包内快照叠加导致历史数量翻倍；损坏包（快照 base64 全部解码失败）保留本地
+        // 历史，避免本地历史被误删后仅剩一条 diff_imported 的数据丢失。
+        // SkipExisting 遇既有对象会跳过；KeepBoth 使用新 ID 天然无旧历史，均不受影响。
+        if effective_strategy == ImportStrategy::Overwrite && snapshots_any_restorable(snaps) {
+            if let Err(e) = vault.delete_snapshots(snapshot_key) {
+                tracing::warn!(
+                    "[import] 覆盖导入清空旧快照失败: object={} err={}",
+                    snapshot_key,
+                    e
+                );
+            }
+        }
+        restore_package_snapshots(vault, snapshot_key, snaps)
+    } else {
+        0
+    };
+    if restored == 0 {
+        // 旧包或对象无历史时，保持既有行为：创建 diff_imported 初始快照
+        let snapshot_data =
+            serde_json::to_vec(&record).map_err(|e| format!("snapshot ser: {}", e))?;
+        let _ = vault.save_snapshot(snapshot_key, "import", &snapshot_data, "diff_imported");
+    }
+
+    if let Some(cb) = progress {
+        let total = objects_len.max(1);
+        // 对象阶段 0-80（按循环下标推进，跳过对象也前进，保证单调到达 80）
+        cb(((obj_index + 1) * 80 / total).min(80) as u8);
+    }
+
+    Ok(Some((
+        final_id,
+        effective_strategy == ImportStrategy::KeepBoth,
+    )))
 }
 
 // ── 阶段化辅助函数（P023 拆分）──────────────────────────────────

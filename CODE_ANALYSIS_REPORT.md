@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-07（P000-P019 全部闭环，共 20 项；剩余 P020-P044 共 25 项待修）
+> 最后更新：2026-08-07（P000-P020 全部闭环，共 21 项；剩余 P021-P044 共 24 项待修）
 > 当前分支：`main`
 > 修复轮次：1（初始分析）
 > 基线版本：v2.8.5（HEAD `cdc6afb6`）
@@ -48,7 +48,7 @@
 | P017 | P2 | 重复代码 | `src-tauri/src/sync/auto_sync.rs:134`、`sync/device_auto_sync.rs:148` | 两个自动同步状态机约 90 行近乎逐行重复 | `[x]` 已修复（抽 auto_sync_core 泛型调度内核，两状态机收敛为事件/动作适配） |
 | P018 | P2 | 可维护性 | 7 处超长函数（详见下文） | `import_execute_internal`(224行) 等 7 个 >150 行函数，嵌套最深 d11 | `[x]` 已修复（7 处全部拆分：AppState::new 抽 3 私有函数、install_from_registry 抽 helper、compute_sync_changes 抽 3 阶段、import_execute_internal 抽 import_one_object、import_vault 抽 2 阶段、handle_inbound 与 initiator 共用 2 个 session helper、search_unified 抽 3 helper） |
 | P019 | P2 | 可维护性 | `crates/solosoul-vault/src/storage/sync_meta.rs:499` | `cleanup_expired_tombstones` 嵌套 d13，手写 HLC 三元组 min 比较 | `[x]` 已修复（RecordHlc/SyncWatermark derive PartialOrd+Ord，min 收敛为 Iterator::min，hlc_after_watermark 同步简化） |
-| P020 | P2 | 规范 | `src-tauri/src/commands/llm/rag.rs`（8 处）、`llm/guide.rs:515,617` | `eprintln!` 绕过 tracing 日志体系，release GUI 中不可见 | `[ ]` 待修复 |
+| P020 | P2 | 规范 | `src-tauri/src/commands/llm/rag.rs`（8 处）、`llm/guide.rs:515,617` | `eprintln!` 绕过 tracing 日志体系，release GUI 中不可见 | `[x]` 已修复（10 处全量改 tracing::warn!，全库 grep 验收生产路径清零） |
 | P021 | P2 | 可维护性 | `crates/solosoul-core/src/watermark/mod.rs:345` | `WatermarkPosition::Tile => unreachable!()` 依赖上方守卫，守卫改动即生产 panic | `[ ]` 待修复 |
 | P022 | P2 | 性能 | `crates/solosoul-plugin/src/manager.rs:568-572`、`sandbox.rs:33-46` | 插件 WASM 每次运行重新编译 + 每次从磁盘全量读入 | `[ ]` 待修复 |
 | P023 | P2 | 性能 | `src-tauri/src/commands/log.rs:105` | `log_export` 在 async 命令内同步解密万行审计日志 + JSON 序列化 + 写盘 | `[ ]` 待修复 |
@@ -77,8 +77,8 @@
 
 ## 修复进度
 
-- 已完成：21 / 46（P045 为合并占位，实际待修复 45 项）
-- 当前处理：P000-P019 全部闭环（20 项 + P045 合并）→ 下一项 P020
+- 已完成：22 / 46（P045 为合并占位，实际待修复 45 项）
+- 当前处理：P000-P020 全部闭环（21 项 + P045 合并）→ 下一项 P021
 
 ---
 
@@ -266,6 +266,9 @@
 
 - **位置**：`src-tauri/src/commands/llm/rag.rs` 8 处（:334/345/354/365/469/920/944/950）、`llm/guide.rs:515,617`
 - **建议**：改 `tracing::warn!/info!`。
+- **修复**：10 处 `eprintln!` 全量改 `tracing::warn!`（全为降级/错误路径：embedding 源不可用回退关键词、guide 加载失败跳过等；`tracing::` 宏全路径调用无需 import）。全库 grep 验收：src-tauri 生产路径 eprintln 清零，仅剩 8 处合法保留——local_embed.rs 5 处 `#[cfg(test)]` 测试跳过提示（测试环境无 tracing subscriber，eprintln 合理）+ lib.rs 3 处（panic hook 兜底 / tracing 初始化前 fatal / 启动失败进程退出前用户可见信息，均有配套 tracing::error! 或无法使用 tracing 的场景）。
+- **顺带修复（P018 引入的 lint）**：`manager.rs:170` doc 列表后缺空行段落分隔、`import.rs:398` `ref sel_ids` needless_borrow（抽取 helper 后参数变引用，`ref` 造成双重引用）。
+- **验证**：clippy 0 警告、rag 9 测试 + guide 1 测试通过。
 
 ### P021（P2）脆弱的 `unreachable!()`
 
