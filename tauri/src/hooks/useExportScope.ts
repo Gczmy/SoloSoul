@@ -46,31 +46,31 @@ export function useExportScope({
   const [expandedObjects, setExpandedObjects] = useState<Set<string>>(new Set());
 
   /**
-   * 批量加载对象附件（N+1 共享实现）：逐对象一次 IPC（无并发上限，与既有行为一致），
+   * 批量加载对象附件（P005：N+1 → 单次批量 IPC + 后端 load_objects_batch 一次解密），
    * 结果写入 objectAttachments 并自动把新附件并入 selectedAttachmentIds。
    */
   const loadObjectAttachments = useCallback(
     (objectIds: string[]) => {
       const unloadedIds = objectIds.filter((id) => !objectAttachments.has(id));
       if (unloadedIds.length === 0) return;
-      Promise.all(
-        unloadedIds.map((id) =>
-          invoke<AttachmentInfo[]>('export_get_attachments', { accountId, objectId: id })
-            .then((atts) => ({ id, atts }))
-            .catch(() => ({ id, atts: [] as AttachmentInfo[] })),
-        ),
-      ).then((results) => {
-        setObjectAttachments((prev) => {
-          const n = new Map(prev);
-          for (const { id, atts } of results) n.set(id, atts);
-          return n;
-        });
-        setSelectedAttachmentIds((prev) => {
-          const n = new Set(prev);
-          for (const { atts } of results) for (const att of atts) n.add(att.id);
-          return n;
-        });
-      });
+      invoke<Record<string, AttachmentInfo[]>>('export_get_attachments_batch', {
+        accountId,
+        objectIds: unloadedIds,
+      })
+        .then((byId) => {
+          const results = unloadedIds.map((id) => ({ id, atts: byId[id] ?? [] }));
+          setObjectAttachments((prev) => {
+            const n = new Map(prev);
+            for (const { id, atts } of results) n.set(id, atts);
+            return n;
+          });
+          setSelectedAttachmentIds((prev) => {
+            const n = new Set(prev);
+            for (const { atts } of results) for (const att of atts) n.add(att.id);
+            return n;
+          });
+        })
+        .catch((err) => logger.warn('[useExportScope] Load attachments batch failed:', err));
     },
     [accountId, objectAttachments],
   );
@@ -149,8 +149,12 @@ export function useExportScope({
         });
 
         if (isAdding && includeAttachments && !objectAttachments.has(id)) {
-          invoke<AttachmentInfo[]>('export_get_attachments', { accountId, objectId: id })
-            .then((atts) => {
+          invoke<Record<string, AttachmentInfo[]>>('export_get_attachments_batch', {
+            accountId,
+            objectIds: [id],
+          })
+            .then((byId) => {
+              const atts = byId[id] ?? [];
               setObjectAttachments((prev) => {
                 const n = new Map(prev);
                 n.set(id, atts);
@@ -180,11 +184,14 @@ export function useExportScope({
         }
         next.add(objectId);
         if (!objectAttachments.has(objectId)) {
-          invoke<AttachmentInfo[]>('export_get_attachments', { accountId, objectId: objectId })
-            .then((atts) => {
+          invoke<Record<string, AttachmentInfo[]>>('export_get_attachments_batch', {
+            accountId,
+            objectIds: [objectId],
+          })
+            .then((byId) => {
               setObjectAttachments((p) => {
                 const n = new Map(p);
-                n.set(objectId, atts);
+                n.set(objectId, byId[objectId] ?? []);
                 return n;
               });
             })

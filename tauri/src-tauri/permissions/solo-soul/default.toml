@@ -56,6 +56,7 @@ commands.allow = [
   "export_estimate_size",
   "export_execute",
   "export_get_attachments",
+  "export_get_attachments_batch",
   "export_get_scope_tree",
   "fs_get_file_size",
   "fs_is_dir",

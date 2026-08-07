@@ -725,3 +725,34 @@ pub async fn export_get_attachments(
 
     Ok(result)
 }
+
+/// P005: 批量读取对象附件（N+1 优化）——一次 `load_objects_batch` 解密多个对象，
+/// 消除前端全选时逐对象 IPC + 逐对象整解密的 N+1 放大。返回 object_id → 附件列表。
+#[tauri::command]
+pub async fn export_get_attachments_batch(
+    state: State<'_, AppState>,
+    _account_id: String,
+    object_ids: Vec<String>,
+) -> Result<std::collections::HashMap<String, Vec<AttachmentInfo>>, String> {
+    let vault = vault_handle(&state)?;
+
+    let records = vault.load_objects_batch(&object_ids)?;
+    let mut result = std::collections::HashMap::with_capacity(object_ids.len());
+    for id in &object_ids {
+        let atts = records
+            .get(id)
+            .map(|r| load_attachments(&r.properties))
+            .unwrap_or_default();
+        let infos: Vec<AttachmentInfo> = atts
+            .into_iter()
+            .filter(|a| a.deleted_at.is_none())
+            .map(|a| AttachmentInfo {
+                id: a.id,
+                file_name: a.file_name,
+                size_bytes: a.size_bytes,
+            })
+            .collect();
+        result.insert(id.clone(), infos);
+    }
+    Ok(result)
+}
