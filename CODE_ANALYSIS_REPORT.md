@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-07（P000-P015 全部闭环，共 15 项；剩余 P016-P044 共 30 项待修）
+> 最后更新：2026-08-07（P000-P018 全部闭环，共 19 项；剩余 P019-P044 共 26 项待修）
 > 当前分支：`main`
 > 修复轮次：1（初始分析）
 > 基线版本：v2.8.5（HEAD `cdc6afb6`）
@@ -46,7 +46,7 @@
 | P015 | P1 | 安全 | `tauri/src-tauri/src/commands/export_import/import.rs:230`、`export_import/mod.rs:112`、`solosoul-sync/src/recovery.rs:46-49` | 导入/导出/恢复密码未走 `Zeroizing` 模式（auth 已全部 P031 化，这三处遗漏） | `[x]` 已修复（导入/恢复 IPC 边界 Zeroizing；RecoveryHost.recovery_password Zeroizing） |
 | P016 | P2 | 重复代码 | `tauri/crates/solosoul-vault/src/storage.rs:707,942` | `migrate_to_encrypted_format` 与 `reencrypt_all` 各 211 行互为镜像，按表复制样板 5-6 次；且均整表 collect 进内存 | `[x]` 已修复（抽 rewrite_table 表驱动 helper，两函数共 12 块样板收敛为 12 个闭包） |
 | P017 | P2 | 重复代码 | `src-tauri/src/sync/auto_sync.rs:134`、`sync/device_auto_sync.rs:148` | 两个自动同步状态机约 90 行近乎逐行重复 | `[x]` 已修复（抽 auto_sync_core 泛型调度内核，两状态机收敛为事件/动作适配） |
-| P018 | P2 | 可维护性 | 7 处超长函数（详见下文） | `import_execute_internal`(224行) 等 7 个 >150 行函数，嵌套最深 d11 | `[ ]` 待修复 |
+| P018 | P2 | 可维护性 | 7 处超长函数（详见下文） | `import_execute_internal`(224行) 等 7 个 >150 行函数，嵌套最深 d11 | `[x]` 已修复（7 处全部拆分：AppState::new 抽 3 私有函数、install_from_registry 抽 helper、compute_sync_changes 抽 3 阶段、import_execute_internal 抽 import_one_object、import_vault 抽 2 阶段、handle_inbound 与 initiator 共用 2 个 session helper、search_unified 抽 3 helper） |
 | P019 | P2 | 可维护性 | `crates/solosoul-vault/src/storage/sync_meta.rs:499` | `cleanup_expired_tombstones` 嵌套 d13，手写 HLC 三元组 min 比较 | `[ ]` 待修复 |
 | P020 | P2 | 规范 | `src-tauri/src/commands/llm/rag.rs`（8 处）、`llm/guide.rs:515,617` | `eprintln!` 绕过 tracing 日志体系，release GUI 中不可见 | `[ ]` 待修复 |
 | P021 | P2 | 可维护性 | `crates/solosoul-core/src/watermark/mod.rs:345` | `WatermarkPosition::Tile => unreachable!()` 依赖上方守卫，守卫改动即生产 panic | `[ ]` 待修复 |
@@ -77,8 +77,8 @@
 
 ## 修复进度
 
-- 已完成：17 / 46（P045 为合并占位，实际待修复 45 项）
-- 当前处理：P000-P017 全部闭环（16 项 + P045 合并）→ 下一项 P006
+- 已完成：20 / 46（P045 为合并占位，实际待修复 45 项）
+- 当前处理：P000-P018 全部闭环（19 项 + P045 合并）→ 下一项 P019
 
 ---
 
@@ -242,6 +242,16 @@
 | `search_unified` | `src-tauri/src/commands/search/commands.rs:185` | 156 | d9 |
 
 `AppState::new` 尤甚：移动端 SAF 校验、降级、缓存迁移、本地初始化多分支揉在一个构造函数。建议按职责拆私有函数。
+
+- **修复（全部 7 处拆分，一项一职责）**：
+  1. **`AppState::new`（203 行 → 61 行）**：抽 `init_mobile_saf`/`init_cloud_storage`/`init_local_vault` 三个私有函数（日志/降级/回退语义不变）。
+  2. **`install_from_registry`（213 行 → 约 120 行）**：抽 `resolve_bundled_fallback`（含版本不匹配回退）与 `construct_installed_manifest`（已安装/回退两路径共用的 manifest 构造）。
+  3. **`compute_sync_changes`（185 行 → 约 80 行）**：三个收集阶段（objects/trash/templates）各抽为一个收集函数。
+  4. **`import_execute_internal`（224 行 → 约 120 行）**：对象导入循环抽 `import_one_object`。
+  5. **`import_vault`（175 行 → 约 90 行）**：抽 `import_template_snapshots`（内容哈希去重）与 `build_import_records`（对象构建 + 跨范围引用降级 + 模板 ID 重映射，P212 语义保持）。
+  6. **`handle_inbound`（173 行 → 约 110 行）**：与 `run_initiator_session` 共用两个新 helper——`validate_handshake_peer`（协议版本/account_id/P001 身份绑定）与 `receive_and_apply_batches`（批次接收循环），消除两侧逐字重复约 60 行。
+  7. **`search_unified`（156 行 → 约 60 行）**：抽 `search_by_page_only`（无关键词列表路径）、`expand_template_matches`（模板命中对象展开）、`resolve_template_display`（模板名解析，`search_advanced_impl` 同步复用消除重复）。
+- **验证**：core 16 export_import 测试、sync 60 测试、solo_soul 22 search 测试全部通过；三个 crate 编译 0 警告、clippy 0 警告。
 
 ### P019（P2）`cleanup_expired_tombstones` 嵌套 d13
 

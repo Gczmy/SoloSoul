@@ -331,6 +331,83 @@ pub fn import_vault(
     // ── 模板快照导入（内容哈希隔离） ────────
     let mut template_id_map: HashMap<String, String> = HashMap::new();
     let now = chrono::Utc::now().to_rfc3339();
+    import_template_snapshots(vault, account_id, &payload, &mut template_id_map, &now)?;
+
+    // P212: 存在性预查（仅 SkipExisting 需要）——一次 metadata-only 查询收集
+    // 现存非删除对象 ID，替代逐对象 load_object 的 N 次解密。VaultStore 按账户
+    // 分库，账户内 ID 唯一，集合判定与 load_object+!is_deleted 语义等价。
+    let existing_ids: HashSet<String> = match strategy {
+        ImportStrategy::SkipExisting => vault
+            .list_object_metadata(account_id, None, None, false, false)?
+            .into_iter()
+            .map(|s| s.id)
+            .collect(),
+        _ => HashSet::new(),
+    };
+
+    // P212: 构建待写对象（借用 payload 迭代，避免整数组克隆）。
+    let (records_to_save, imported, imported_object_ids) = build_import_records(
+        account_id,
+        &payload,
+        &template_id_map,
+        &package_ids,
+        &existing_ids,
+        strategy,
+        &now,
+    );
+
+    // P212: 单事务批量写入（替代逐条 save_object 的 N 次 auto-commit）。
+    vault.save_objects_batch(&records_to_save)?;
+
+    // 导入附件。
+    if manifest.has_attachments {
+        import_attachments(
+            vault,
+            base_path,
+            path,
+            &key,
+            &salt,
+            &imported_object_ids,
+            &payload,
+        )?;
+    }
+
+    // 导入偏好设置。
+    if manifest
+        .extra_files
+        .contains(&"preferences.enc".to_string())
+    {
+        import_preferences(vault, account_id, &key, &salt, path)?;
+    }
+
+    let _ = vault.log_structured(
+        "import_execute",
+        "import",
+        None,
+        None,
+        "user",
+        Some(&format!(
+            "imported {} objects from {} (strategy: {:?})",
+            imported,
+            path.display(),
+            strategy
+        )),
+    );
+
+    Ok(imported)
+}
+
+/// 导入模板快照（内容哈希隔离 + 内容去重），填充 `template_id_map`。
+///
+/// P018: 从 `import_vault` 拆出——原函数 175 行含三个独立阶段，模板阶段与
+/// 对象阶段互不依赖，仅通过 `template_id_map` 衔接。
+fn import_template_snapshots(
+    vault: &VaultStore,
+    account_id: &str,
+    payload: &serde_json::Value,
+    template_id_map: &mut HashMap<String, String>,
+    now: &str,
+) -> Result<(), ExportError> {
     if let Some(templates) = payload["templates"].as_array() {
         for tpl_val in templates {
             match serde_json::from_value::<UserTemplate>(tpl_val.clone()) {
@@ -353,8 +430,8 @@ pub fn import_vault(
                         {
                             tpl.id = imported_id.clone();
                             tpl.account_id = account_id.to_string();
-                            tpl.created_at = now.clone();
-                            tpl.updated_at = Some(now.clone());
+                            tpl.created_at = now.to_string();
+                            tpl.updated_at = Some(now.to_string());
                             let _ = vault.save_user_template(&tpl);
                         }
                         imported_id
@@ -372,25 +449,27 @@ pub fn import_vault(
             }
         }
     }
+    Ok(())
+}
 
-    // P212: 存在性预查（仅 SkipExisting 需要）——一次 metadata-only 查询收集
-    // 现存非删除对象 ID，替代逐对象 load_object 的 N 次解密。VaultStore 按账户
-    // 分库，账户内 ID 唯一，集合判定与 load_object+!is_deleted 语义等价。
-    let existing_ids: HashSet<String> = match strategy {
-        ImportStrategy::SkipExisting => vault
-            .list_object_metadata(account_id, None, None, false, false)?
-            .into_iter()
-            .map(|s| s.id)
-            .collect(),
-        _ => HashSet::new(),
-    };
-
+/// 从 payload 构建待写入对象记录（含跨范围引用降级与模板 ID 重映射）。
+///
+/// P018: 从 `import_vault` 拆出对象阶段；P212 语义保持：借用数组迭代、
+/// SkipExisting 存在性预查判定、批量收集交由调用方单事务落库。
+#[allow(clippy::too_many_arguments)]
+fn build_import_records(
+    account_id: &str,
+    payload: &serde_json::Value,
+    template_id_map: &HashMap<String, String>,
+    package_ids: &HashSet<String>,
+    existing_ids: &HashSet<String>,
+    strategy: ImportStrategy,
+    now: &str,
+) -> (Vec<ObjectRecord>, usize, HashSet<String>) {
     let mut imported = 0usize;
     let mut imported_object_ids: HashSet<String> = HashSet::new();
-    // P212: 收集待写对象，末尾 save_objects_batch 单事务批量落库（替代逐条 auto-commit）。
     let mut records_to_save: Vec<ObjectRecord> = Vec::new();
 
-    // P212: 借用 payload 数组迭代（避免整数组克隆）。
     if let Some(objects) = payload["objects"].as_array() {
         for obj_val in objects {
             let id = obj_val["id"].as_str().unwrap_or("");
@@ -403,7 +482,7 @@ pub fn import_vault(
             }
 
             let mut properties = obj_val["properties"].clone();
-            resolve_cross_scope_references(&mut properties, &package_ids);
+            resolve_cross_scope_references(&mut properties, package_ids);
 
             let record = ObjectRecord {
                 id: id.to_string(),
@@ -457,8 +536,8 @@ pub fn import_vault(
                 template_type: obj_val["template_type"].as_str().map(String::from),
                 template_hash: obj_val["template_hash"].as_str().map(String::from),
                 ignored_template_hash: obj_val["ignored_template_hash"].as_str().map(String::from),
-                created_at: obj_val["created_at"].as_str().unwrap_or(&now).to_string(),
-                updated_at: now.clone(),
+                created_at: obj_val["created_at"].as_str().unwrap_or(now).to_string(),
+                updated_at: now.to_string(),
                 version: obj_val["version"].as_u64().unwrap_or(1) as u32,
             };
 
@@ -468,45 +547,7 @@ pub fn import_vault(
         }
     }
 
-    // P212: 单事务批量写入（替代逐条 save_object 的 N 次 auto-commit）。
-    vault.save_objects_batch(&records_to_save)?;
-
-    // 导入附件。
-    if manifest.has_attachments {
-        import_attachments(
-            vault,
-            base_path,
-            path,
-            &key,
-            &salt,
-            &imported_object_ids,
-            &payload,
-        )?;
-    }
-
-    // 导入偏好设置。
-    if manifest
-        .extra_files
-        .contains(&"preferences.enc".to_string())
-    {
-        import_preferences(vault, account_id, &key, &salt, path)?;
-    }
-
-    let _ = vault.log_structured(
-        "import_execute",
-        "import",
-        None,
-        None,
-        "user",
-        Some(&format!(
-            "imported {} objects from {} (strategy: {:?})",
-            imported,
-            path.display(),
-            strategy
-        )),
-    );
-
-    Ok(imported)
+    (records_to_save, imported, imported_object_ids)
 }
 
 /// 读取导入包预览信息（无需解锁）。

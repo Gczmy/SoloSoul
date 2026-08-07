@@ -162,48 +162,18 @@ pub fn run_initiator_session(
             client_type: peer_client_type,
         } => {
             check_session_deadline(session_start)?;
-            // 校验响应方协议版本是否兼容。
-            if peer_version < MIN_PROTOCOL_VERSION {
-                send_msg(
-                    &mut session,
-                    transport,
-                    &SyncMessage::Error {
-                        message: format!(
-                            "Unsupported protocol version {} (minimum required: {})",
-                            peer_version, MIN_PROTOCOL_VERSION
-                        ),
-                    },
-                )?;
-                return Err(format!(
-                    "Peer protocol version {} is below minimum supported {}",
-                    peer_version, MIN_PROTOCOL_VERSION
-                ));
-            }
-            // 校验响应方 account_id 与本地一致，防止已信任的 peer 被重新配置为
-            // 不同账户后，发起方仍向其同步数据（违反账户隔离原则）。
-            // 与 handle_inbound 中响应方校验发起方 account_id 的逻辑对称。
-            if peer_account_id != account_id {
-                send_msg(
-                    &mut session,
-                    transport,
-                    &SyncMessage::Error {
-                        message: "Account mismatch".to_string(),
-                    },
-                )?;
-                return Err("Account mismatch".to_string());
-            }
-            // P001: 校验对端身份（自报指纹 == 握手派生指纹；已信任 peer 必须
-            // 使用与配对时相同的静态公钥）。失败时回 Error 帧并中止。
-            if let Err(e) =
-                verify_peer_identity(&vault, &pid, &public_key_fingerprint, &remote_fingerprint)
-            {
-                send_msg(
-                    &mut session,
-                    transport,
-                    &SyncMessage::Error { message: e.clone() },
-                )?;
-                return Err(e);
-            }
+            // 协议版本 / account_id / P001 身份绑定校验（与 handle_inbound 对称，共用 helper）。
+            validate_handshake_peer(
+                &mut session,
+                transport,
+                &vault,
+                &pid,
+                &peer_account_id,
+                &public_key_fingerprint,
+                &remote_fingerprint,
+                peer_version,
+                account_id,
+            )?;
             // P001: 落库以握手认证指纹为准（不再信任对端自报值）。
             record_peer(
                 &vault,
@@ -251,37 +221,14 @@ pub fn run_initiator_session(
 
     // 接收对端变更并逐批应用。
     let mut data_stats = ApplyStats::default();
-    loop {
-        let msg = recv_msg(&mut session, transport)?;
-        check_session_deadline(session_start)?;
-        match msg {
-            SyncMessage::Batch { table, records, .. } => {
-                let stats = crate::delta::apply_sync_records(&vault, &table, &records, node_id)?;
-                data_stats.examined += stats.examined;
-                data_stats.applied += stats.applied;
-                data_stats.skipped += stats.skipped;
-                data_stats.errors.extend(stats.errors);
-                for (t, s) in stats.per_table {
-                    let entry = data_stats.per_table.entry(t).or_default();
-                    entry.examined += s.examined;
-                    entry.applied += s.applied;
-                    entry.skipped += s.skipped;
-                }
-                data_stats.conflicts.extend(stats.conflicts);
-                send_msg(
-                    &mut session,
-                    transport,
-                    &SyncMessage::Ack {
-                        table,
-                        count: data_stats.examined,
-                    },
-                )?;
-            }
-            SyncMessage::Done => break,
-            SyncMessage::Error { message } => return Err(message),
-            _ => return Err("Unexpected message while receiving batches".to_string()),
-        }
-    }
+    receive_and_apply_batches(
+        &mut session,
+        transport,
+        &vault,
+        node_id,
+        session_start,
+        &mut data_stats,
+    )?;
 
     let base = vault.base_path();
     let attachment_stats =
@@ -336,45 +283,18 @@ pub fn handle_inbound(
             client_type: peer_client_type,
         } => {
             check_session_deadline(session_start)?;
-            // 校验发起方协议版本是否兼容。
-            if peer_version < MIN_PROTOCOL_VERSION {
-                send_msg(
-                    &mut session,
-                    transport,
-                    &SyncMessage::Error {
-                        message: format!(
-                            "Unsupported protocol version {} (minimum required: {})",
-                            peer_version, MIN_PROTOCOL_VERSION
-                        ),
-                    },
-                )?;
-                return Err(format!(
-                    "Peer protocol version {} is below minimum supported {}",
-                    peer_version, MIN_PROTOCOL_VERSION
-                ));
-            }
-            if pacc != account_id {
-                send_msg(
-                    &mut session,
-                    transport,
-                    &SyncMessage::Error {
-                        message: "Account mismatch".to_string(),
-                    },
-                )?;
-                return Err("Account mismatch".to_string());
-            }
-            // P001: 校验对端身份（自报指纹 == 握手派生指纹；已信任 peer 必须
-            // 使用与配对时相同的静态公钥）。失败时回 Error 帧并中止。
-            if let Err(e) =
-                verify_peer_identity(&vault, &pid, &public_key_fingerprint, &remote_fingerprint)
-            {
-                send_msg(
-                    &mut session,
-                    transport,
-                    &SyncMessage::Error { message: e.clone() },
-                )?;
-                return Err(e);
-            }
+            // 协议版本 / account_id / P001 身份绑定校验（与 run_initiator_session 对称，共用 helper）。
+            validate_handshake_peer(
+                &mut session,
+                transport,
+                &vault,
+                &pid,
+                &pacc,
+                &public_key_fingerprint,
+                &remote_fingerprint,
+                peer_version,
+                account_id,
+            )?;
             (pid, peer_client_type)
         }
         _ => return Err("Expected Hello".to_string()),
@@ -439,37 +359,14 @@ pub fn handle_inbound(
 
     // 先接收对端变更。
     let mut apply_stats = ApplyStats::default();
-    loop {
-        let msg = recv_msg(&mut session, transport)?;
-        check_session_deadline(session_start)?;
-        match msg {
-            SyncMessage::Batch { table, records, .. } => {
-                let stats = crate::delta::apply_sync_records(&vault, &table, &records, node_id)?;
-                apply_stats.examined += stats.examined;
-                apply_stats.applied += stats.applied;
-                apply_stats.skipped += stats.skipped;
-                apply_stats.errors.extend(stats.errors);
-                for (t, s) in stats.per_table {
-                    let entry = apply_stats.per_table.entry(t).or_default();
-                    entry.examined += s.examined;
-                    entry.applied += s.applied;
-                    entry.skipped += s.skipped;
-                }
-                apply_stats.conflicts.extend(stats.conflicts);
-                send_msg(
-                    &mut session,
-                    transport,
-                    &SyncMessage::Ack {
-                        table,
-                        count: apply_stats.examined,
-                    },
-                )?;
-            }
-            SyncMessage::Done => break,
-            SyncMessage::Error { message } => return Err(message),
-            _ => return Err("Unexpected message while receiving batches".to_string()),
-        }
-    }
+    receive_and_apply_batches(
+        &mut session,
+        transport,
+        &vault,
+        node_id,
+        session_start,
+        &mut apply_stats,
+    )?;
 
     // 再发送本地变更。
     // B：统计响应方发回给发起方的记录条数，随会话结果通知前端展示完整交换量
@@ -511,6 +408,111 @@ pub fn handle_inbound(
             attachments: attachment_stats,
         },
     })
+}
+
+/// P018: 握手帧统一校验——协议版本兼容性 + account_id 账户隔离 + P001 身份绑定。
+/// 失败时回 Error 帧并返回错误（发起方与响应方共用，消除逐字重复）。
+#[allow(clippy::too_many_arguments)]
+fn validate_handshake_peer(
+    session: &mut NoiseSession,
+    transport: &mut SyncTransport,
+    vault: &VaultStore,
+    peer_node_id: &str,
+    peer_account_id: &str,
+    reported_fingerprint: &str,
+    handshake_fingerprint: &str,
+    peer_version: u32,
+    account_id: &str,
+) -> Result<(), String> {
+    // 校验对端协议版本是否兼容。
+    if peer_version < MIN_PROTOCOL_VERSION {
+        send_msg(
+            session,
+            transport,
+            &SyncMessage::Error {
+                message: format!(
+                    "Unsupported protocol version {} (minimum required: {})",
+                    peer_version, MIN_PROTOCOL_VERSION
+                ),
+            },
+        )?;
+        return Err(format!(
+            "Peer protocol version {} is below minimum supported {}",
+            peer_version, MIN_PROTOCOL_VERSION
+        ));
+    }
+    // 校验对端 account_id 与本地一致，防止已信任的 peer 被重新配置为不同账户后
+    // 仍互相同步数据（违反账户隔离原则）。
+    if peer_account_id != account_id {
+        send_msg(
+            session,
+            transport,
+            &SyncMessage::Error {
+                message: "Account mismatch".to_string(),
+            },
+        )?;
+        return Err("Account mismatch".to_string());
+    }
+    // P001: 校验对端身份（自报指纹 == 握手派生指纹；已信任 peer 必须使用与配对时
+    // 相同的静态公钥）。失败时回 Error 帧并中止。
+    if let Err(e) = verify_peer_identity(
+        vault,
+        peer_node_id,
+        reported_fingerprint,
+        handshake_fingerprint,
+    ) {
+        send_msg(
+            session,
+            transport,
+            &SyncMessage::Error { message: e.clone() },
+        )?;
+        return Err(e);
+    }
+    Ok(())
+}
+
+/// P018: 接收对端变更批次并逐批应用（发起方与响应方共用同一循环）。
+/// 入站统计累积到调用方提供的 `stats`；收到 Done 时正常返回。
+fn receive_and_apply_batches(
+    session: &mut NoiseSession,
+    transport: &mut SyncTransport,
+    vault: &VaultStore,
+    node_id: &str,
+    session_start: Instant,
+    stats: &mut ApplyStats,
+) -> Result<(), String> {
+    loop {
+        let msg = recv_msg(session, transport)?;
+        check_session_deadline(session_start)?;
+        match msg {
+            SyncMessage::Batch { table, records, .. } => {
+                let s = crate::delta::apply_sync_records(vault, &table, &records, node_id)?;
+                stats.examined += s.examined;
+                stats.applied += s.applied;
+                stats.skipped += s.skipped;
+                stats.errors.extend(s.errors);
+                for (t, st) in s.per_table {
+                    let entry = stats.per_table.entry(t).or_default();
+                    entry.examined += st.examined;
+                    entry.applied += st.applied;
+                    entry.skipped += st.skipped;
+                }
+                stats.conflicts.extend(s.conflicts);
+                send_msg(
+                    session,
+                    transport,
+                    &SyncMessage::Ack {
+                        table,
+                        count: stats.examined,
+                    },
+                )?;
+            }
+            SyncMessage::Done => break,
+            SyncMessage::Error { message } => return Err(message),
+            _ => return Err("Unexpected message while receiving batches".to_string()),
+        }
+    }
+    Ok(())
 }
 
 /// 交换附件文件。
