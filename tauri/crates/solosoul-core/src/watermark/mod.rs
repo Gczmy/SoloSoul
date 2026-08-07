@@ -342,7 +342,10 @@ fn compute_positions(
         WatermarkPosition::BottomRight => {
             (canvas_w - layer_w - margin_x, canvas_h - layer_h - margin_y)
         }
-        WatermarkPosition::Tile => unreachable!(),
+        // P021: 上方 `tile || position == Tile` 守卫已提前 return，此分支实际不可达；
+        // 不写 unreachable!()，改为与 pdf_text_position 一致的居中兜底——
+        // 守卫逻辑改动时降级为单条居中水印而非生产 panic。
+        WatermarkPosition::Tile => ((canvas_w - layer_w) / 2, (canvas_h - layer_h) / 2),
     };
     vec![(x, y)]
 }

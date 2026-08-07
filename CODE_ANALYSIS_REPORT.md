@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-07（P000-P020 全部闭环，共 21 项；剩余 P021-P044 共 24 项待修）
+> 最后更新：2026-08-07（P000-P021 全部闭环，共 22 项；剩余 P022-P044 共 23 项待修）
 > 当前分支：`main`
 > 修复轮次：1（初始分析）
 > 基线版本：v2.8.5（HEAD `cdc6afb6`）
@@ -49,7 +49,7 @@
 | P018 | P2 | 可维护性 | 7 处超长函数（详见下文） | `import_execute_internal`(224行) 等 7 个 >150 行函数，嵌套最深 d11 | `[x]` 已修复（7 处全部拆分：AppState::new 抽 3 私有函数、install_from_registry 抽 helper、compute_sync_changes 抽 3 阶段、import_execute_internal 抽 import_one_object、import_vault 抽 2 阶段、handle_inbound 与 initiator 共用 2 个 session helper、search_unified 抽 3 helper） |
 | P019 | P2 | 可维护性 | `crates/solosoul-vault/src/storage/sync_meta.rs:499` | `cleanup_expired_tombstones` 嵌套 d13，手写 HLC 三元组 min 比较 | `[x]` 已修复（RecordHlc/SyncWatermark derive PartialOrd+Ord，min 收敛为 Iterator::min，hlc_after_watermark 同步简化） |
 | P020 | P2 | 规范 | `src-tauri/src/commands/llm/rag.rs`（8 处）、`llm/guide.rs:515,617` | `eprintln!` 绕过 tracing 日志体系，release GUI 中不可见 | `[x]` 已修复（10 处全量改 tracing::warn!，全库 grep 验收生产路径清零） |
-| P021 | P2 | 可维护性 | `crates/solosoul-core/src/watermark/mod.rs:345` | `WatermarkPosition::Tile => unreachable!()` 依赖上方守卫，守卫改动即生产 panic | `[ ]` 待修复 |
+| P021 | P2 | 可维护性 | `crates/solosoul-core/src/watermark/mod.rs:345` | `WatermarkPosition::Tile => unreachable!()` 依赖上方守卫，守卫改动即生产 panic | `[x]` 已修复（Tile 分支改居中兜底，与 pdf_text_position 一致，注释说明守卫关系） |
 | P022 | P2 | 性能 | `crates/solosoul-plugin/src/manager.rs:568-572`、`sandbox.rs:33-46` | 插件 WASM 每次运行重新编译 + 每次从磁盘全量读入 | `[ ]` 待修复 |
 | P023 | P2 | 性能 | `src-tauri/src/commands/log.rs:105` | `log_export` 在 async 命令内同步解密万行审计日志 + JSON 序列化 + 写盘 | `[ ]` 待修复 |
 | P024 | P2 | 性能 | `src-tauri/src/commands/fs.rs:183-231` | `fs_scan_directory` 在 async 命令内同步递归遍历目录 | `[ ]` 待修复 |
@@ -77,8 +77,8 @@
 
 ## 修复进度
 
-- 已完成：22 / 46（P045 为合并占位，实际待修复 45 项）
-- 当前处理：P000-P020 全部闭环（21 项 + P045 合并）→ 下一项 P021
+- 已完成：23 / 46（P045 为合并占位，实际待修复 45 项）
+- 当前处理：P000-P021 全部闭环（22 项 + P045 合并）→ 下一项 P022
 
 ---
 
@@ -274,6 +274,8 @@
 
 - **位置**：`crates/solosoul-core/src/watermark/mod.rs:345`
 - **建议**：改为返回 `cfg.position` 单点坐标或合并分支，消除「守卫改动即生产 panic」隐患。
+- **修复**：`compute_positions` 的 `WatermarkPosition::Tile => unreachable!()` 改为居中兜底坐标 `((canvas_w - layer_w) / 2, (canvas_h - layer_h) / 2)`——与 `pdf_text_position` 的 Tile 分支（居中）一致；上方 `tile || position == Tile` 守卫已提前 return 该分支，实际不可达，但守卫逻辑改动时降级为单条居中水印而非生产 panic。注释说明守卫关系。
+- **验证**：core 5 watermark 测试通过（含 compute_positions center 断言）、clippy 0 警告。
 
 ### P022（P2）插件 WASM 每次运行重新编译
 
