@@ -1006,7 +1006,7 @@ mod tests {
                 assert_eq!(routed, cmds.len());
             }
         }
-        // P002：删除 4 个死命令（object_restore/object_purge/get_state/delete_account）后共 188 条全覆盖
-        assert_eq!(total, 188);
+        // 共 190 条命令全覆盖（核心 113 + 同步 20 + OCR 11 + LLM 32 + 插件 14）
+        assert_eq!(total, 190);
     }
 }
