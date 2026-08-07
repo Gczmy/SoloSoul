@@ -356,7 +356,26 @@ node scripts/generate-latest-json.js \
    - `SoloSoul_2.1.0_universal-release.apk`         # Android 通用安装包
    - `SoloSoul_2.1.0_universal-release.apk.sha256`  # Android APK SHA-256 校验和（推荐）
    - `latest.json`
-5. 点击 "Publish release"
+5. **上传无版本号资产副本**（README 下载链接指向的稳定文件名，必须同步上传，确保链接始终指向最新版）：
+   - `SoloSoul_macOS.dmg`   # 复制自 `SoloSoul_2.1.0_arm64.dmg`
+   - `SoloSoul_Windows.exe` # 复制自 `SoloSoul_2.1.0_x64-setup.exe`
+   - `SoloSoul_Android.apk` # 复制自 `SoloSoul_2.1.0_universal-release.apk`
+
+   ```bash
+   # 用 gh CLI 上传时，先复制为无版本号文件名再上传：
+   cp SoloSoul-Releases/SoloSoul_2.1.0_arm64.dmg /tmp/SoloSoul_macOS.dmg
+   cp SoloSoul-Releases/SoloSoul_2.1.0_x64-setup.exe /tmp/SoloSoul_Windows.exe
+   cp SoloSoul-Releases/SoloSoul_2.1.0_universal-release.apk /tmp/SoloSoul_Android.apk
+   gh release upload v2.1.0 /tmp/SoloSoul_macOS.dmg /tmp/SoloSoul_Windows.exe /tmp/SoloSoul_Android.apk
+   ```
+
+   > **为什么需要无版本号副本**：README 的下载按钮使用
+   > `https://github.com/Gczmy/SoloSoul/releases/latest/download/<文件名>`。
+   > 该 URL 会自动指向最新 release，但**文件名必须精确匹配**。若文件名含版本号
+   > （如 `SoloSoul_2.8.6_arm64.dmg`），版本更新后链接会 404。
+   > 通过固定无版本号文件名，每次发版同步覆盖同名资产即可，README 无需改动。
+
+6. 点击 "Publish release"
 
 > 通过 GitHub Releases 上传，而不是通过 git 提交。GitHub Releases 允许上传附件，这些附件不存储在 git 仓库中。
 
