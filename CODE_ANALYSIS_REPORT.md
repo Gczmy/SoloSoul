@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-07（P000-P026、P028、P030 全部闭环，共 29 项；剩余 P027、P029、P031-P044 共 16 项待修）
+> 最后更新：2026-08-07（P000-P026、P028、P030、P022 全部闭环，共 30 项；剩余 P027、P029、P031-P044 共 15 项待修）
 > 当前分支：`main`
 > 修复轮次：1（初始分析）
 > 基线版本：v2.8.5（HEAD `cdc6afb6`）
@@ -50,7 +50,7 @@
 | P019 | P2 | 可维护性 | `crates/solosoul-vault/src/storage/sync_meta.rs:499` | `cleanup_expired_tombstones` 嵌套 d13，手写 HLC 三元组 min 比较 | `[x]` 已修复（RecordHlc/SyncWatermark derive PartialOrd+Ord，min 收敛为 Iterator::min，hlc_after_watermark 同步简化） |
 | P020 | P2 | 规范 | `src-tauri/src/commands/llm/rag.rs`（8 处）、`llm/guide.rs:515,617` | `eprintln!` 绕过 tracing 日志体系，release GUI 中不可见 | `[x]` 已修复（10 处全量改 tracing::warn!，全库 grep 验收生产路径清零） |
 | P021 | P2 | 可维护性 | `crates/solosoul-core/src/watermark/mod.rs:345` | `WatermarkPosition::Tile => unreachable!()` 依赖上方守卫，守卫改动即生产 panic | `[x]` 已修复（Tile 分支改居中兜底，与 pdf_text_position 一致，注释说明守卫关系） |
-| P022 | P2 | 性能 | `crates/solosoul-plugin/src/manager.rs:568-572`、`sandbox.rs:33-46` | 插件 WASM 每次运行重新编译 + 每次从磁盘全量读入 | `[ ]` 待修复 |
+| P022 | P2 | 性能 | `crates/solosoul-plugin/src/manager.rs:568-572`、`sandbox.rs:33-46` | 插件 WASM 每次运行重新编译 + 每次从磁盘全量读入 | `[x]` 已修复（sandbox 进程级编译缓存：字节 SHA-256 键 → Arc<Module>，锁外编译） |
 | P023 | P2 | 性能 | `src-tauri/src/commands/log.rs:105` | `log_export` 在 async 命令内同步解密万行审计日志 + JSON 序列化 + 写盘 | `[x]` 已修复（重 IO 段移入 spawn_blocking，守卫块作用域 await 前释放） |
 | P024 | P2 | 性能 | `src-tauri/src/commands/fs.rs:183-231` | `fs_scan_directory` 在 async 命令内同步递归遍历目录 | `[x]` 已修复（递归遍历 + 逐文件 metadata 移入 spawn_blocking） |
 | P025 | P2 | 性能 | `src-tauri/src/commands/llm/rag.rs:144-147,230-232`、`solosoul-plugin/src/manager.rs:441,474` | RAG embedding 每次调用新建 `reqwest::Client`，重建 TLS 连接 | `[x]` 已修复（rag.rs 与 manager.rs 各抽 OnceLock 共享 client，超时改请求级 30s/60s/120s） |
@@ -77,8 +77,8 @@
 
 ## 修复进度
 
-- 已完成：30 / 46（P045 为合并占位，实际待修复 45 项）
-- 当前处理：P000-P026、P028、P030 全部闭环（29 项 + P045 合并）→ 下一项 P027
+- 已完成：31 / 46（P045 为合并占位，实际待修复 45 项）
+- 当前处理：P000-P026、P028、P030、P022 全部闭环（30 项 + P045 合并）→ 下一项 P027
 
 ---
 
@@ -281,6 +281,8 @@
 
 - **位置**：`crates/solosoul-plugin/src/manager.rs:568-572`、`sandbox.rs:33-46`
 - **建议**：启用 wasmtime 模块缓存（`Config::cache_config_load_default`）或以 plugin_id 为键缓存 `Module`。
+- **修复**：`WasmSandbox::compile` 加进程级编译缓存——以 wasm 字节 SHA-256 为键（内容寻址，版本/哈希变化自动失效），`Module` 为 Send+Sync 以 `Arc<Module>` 共享；锁仅在查/插时持有，编译在锁外执行避免并发首编译互相阻塞。`compile` 返回类型改 `Arc<Module>`，调用点 `execute(&module, ...)` 经 deref 兼容无需改动。
+- **验证**：clippy 0 警告、plugin 56 测试通过、solo_soul 编译通过。
 
 ### P023（P2）`log_export` 阻塞 worker
 

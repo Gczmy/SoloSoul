@@ -6,6 +6,7 @@ use super::{
     ConsentManager, PluginError, PluginEvent, PluginResult, PluginSession, SoloHostFunctions,
     SoloHostState,
 };
+use std::sync::Arc;
 use wasmtime::{Config, Engine, Linker, Module, Store};
 
 /// Wasm 沙箱
@@ -29,8 +30,25 @@ impl WasmSandbox {
         Self::default()
     }
 
-    /// 编译 Wasm 模块
-    pub fn compile(&self, wasm: &[u8]) -> Result<Module, PluginError> {
+    /// 编译 Wasm 模块（进程级缓存：以字节 SHA-256 为键，同版本重复运行免重复编译）。
+    ///
+    /// P022: WASM 编译（Cranelift JIT / Pulley）是每次运行最贵步骤。
+    /// `Module` 为 Send+Sync，编译产物可跨线程安全共享；锁仅在查/插时持有，
+    /// 编译在锁外执行避免并发首编译互相阻塞。
+    pub fn compile(&self, wasm: &[u8]) -> Result<Arc<Module>, PluginError> {
+        use sha2::{Digest, Sha256};
+        static MODULE_CACHE: std::sync::Mutex<
+            Option<std::collections::HashMap<String, Arc<Module>>>,
+        > = std::sync::Mutex::new(None);
+
+        let key = hex::encode(Sha256::digest(wasm));
+        {
+            let guard = MODULE_CACHE.lock().unwrap_or_else(|e| e.into_inner());
+            if let Some(hit) = guard.as_ref().and_then(|m| m.get(&key)) {
+                return Ok(hit.clone());
+            }
+        }
+
         let mut config = Config::new();
         config.consume_fuel(true);
         // 移动端强制使用 Pulley 解释器目标，避免 Cranelift JIT 在 Android/iOS 上的 native signal / mmap 兼容性问题
@@ -42,7 +60,12 @@ impl WasmSandbox {
         }
         let engine =
             Engine::new(&config).map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
-        Module::new(&engine, wasm).map_err(PluginError::from)
+        let module = Arc::new(Module::new(&engine, wasm).map_err(PluginError::from)?);
+
+        let mut guard = MODULE_CACHE.lock().unwrap_or_else(|e| e.into_inner());
+        let cache = guard.get_or_insert_with(std::collections::HashMap::new);
+        cache.entry(key).or_insert_with(|| module.clone());
+        Ok(module)
     }
 
     /// 执行 Wasm 模块
