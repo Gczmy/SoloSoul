@@ -1,9 +1,9 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-08 01:05:00
+> 最后更新：2026-08-08 01:20:00
 > 当前分支：`main`
 > 修复轮次：1（初始分析，按用户要求不恢复旧报告、全新生成）
-> 修复进度：P001-P010 已闭环（10/45）
+> 修复进度：P001-P011 已闭环（11/45）
 > 分析范围：`tauri/`（Rust 后端 + React/TS 前端）、`solosoul_cli/`；忽略 `node_modules/`、`target/`、`dist/`、`.vite/`、`*.min.js`、`*.wasm`
 
 ## 阶段 0 基线检查结果
@@ -26,7 +26,7 @@
 | P008 | P1 | 正确性 | `solosoul_cli/src/commands/vault_write.rs:300-310` | `delete_page` 中子对象移入回收站失败被 `let _ =` 静默吞掉，页面照删 | `[x]` 已修复 |
 | P009 | P1 | 死代码 | `tauri/src-tauri/src/commands/ocr.rs:535,547`、`export_import/export.rs:704`、`template.rs:433`、`crates/solosoul-core/src/vault_service.rs:1651` | 3 个孤儿 Tauri Commands（无前端调用）+ 1 个仅测试使用的生产函数 | `[x]` 已修复 |
 | P010 | P1 | 重复代码 | `tauri/src/hooks/useUpdateChecker.ts:137-178` vs `useAppUpdate.ts:100-176` | 约 80 行 APK 下载/进度 Promise 封装近乎逐行重复，已开始各自打补丁发散 | `[x]` 已修复 |
-| P011 | P1 | 重复代码 | `tauri/src/components/object/AttachmentViewer.tsx:195-217` vs `tauri/src/hooks/useAttachmentManager.ts:186-208` | `handleDownload` 逐字符级重复（含动态 import、toast 文案） | `[ ]` 待修复 |
+| P011 | P1 | 重复代码 | `tauri/src/components/object/AttachmentViewer.tsx:195-217` vs `tauri/src/hooks/useAttachmentManager.ts:186-208` | `handleDownload` 逐字符级重复（含动态 import、toast 文案） | `[x]` 已修复 |
 | P012 | P1 | 重复代码 | `tauri/src/pages/sync/DeviceListPanel.tsx:128-151` vs `:329-352` | 约 40 行设备卡片 JSX（含键盘可访问性）整段重复 | `[ ]` 待修复 |
 | P013 | P1 | 可维护性 | `AttachmentViewer.tsx`(~660 行)、`LoginPage.tsx`(~654)、`ExportImportPage.tsx`(~643)、`PageGuide.tsx`(~615)、`useObjectWorkspaceData.ts`(~524)、`PasswordVerificationDialog.tsx`(~516) | 前端 6 个 500+ 行巨型组件/Hook | `[ ]` 待修复 |
 | P014 | P1 | 可维护性 | `crates/solosoul-plugin/src/host.rs:437,662,893`（530+ 行合计）、`solosoul-vault/src/storage.rs:482`、`export.rs:491` 等 | Rust 侧多个 150-300 行超长函数 | `[ ]` 待修复 |
@@ -64,10 +64,16 @@
 
 ## 修复进度
 
-- 已完成：10 / 45（P001-P010）
-- 当前处理：P011（附件 handleDownload 重复）
+- 已完成：11 / 45（P001-P011）
+- 当前处理：P012（设备卡片 JSX 重复）
 
 ## 修复实施记录
+
+### P011（P1）附件 handleDownload 重复抽取共享入口 ✅
+
+- **改动**：`tauri/src/lib/attachmentUtils.ts` 新增 `downloadAttachmentFile`（saveWithPause + downloadViaStage + 成功/失败 toast 统一），依赖经参数注入保持纯函数可测；`AttachmentViewer.tsx` 与 `useAttachmentManager.ts` 两处逐字符重复的 `handleDownload` 改写为单次调用。
+- **测试**：新增 `attachmentUtils.test.ts` 3 用例——成功保存、取消不下载、下载失败 toast。
+- **验证**：`tsc --noEmit` ✅ / eslint ✅ / `vitest attachmentUtils+updater` 7 用例全过 ✅。
 
 ### P010（P1）APK 下载逻辑抽取共享封装 ✅
 

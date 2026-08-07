@@ -21,7 +21,12 @@ import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import { DragUploadOverlay } from '@/components/object/DragUploadOverlay';
 
 import { pickFileToAttach, uploadSingleAttachment } from '@/lib/attachmentUpload';
-import { truncateFileName, previewItemByMime, type AttachmentItem } from '@/lib/attachmentUtils';
+import {
+  truncateFileName,
+  previewItemByMime,
+  downloadAttachmentFile,
+  type AttachmentItem,
+} from '@/lib/attachmentUtils';
 import { DeleteButton } from '@/components/ui/DeleteButton';
 import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
 import { AttachmentPreviewOverlay } from '@/components/attachment/AttachmentPreviewOverlay';
@@ -193,27 +198,20 @@ export function AttachmentViewer({
   };
 
   const handleDownload = async (item: AttachmentItem) => {
+    // P011: 统一走共享下载入口（saveWithPause + downloadViaStage + toast）
     const filePath = item.vaultPath || item.srcPath;
     if (!filePath) {
       showToast({ type: 'error', message: t('common:no_file_path') });
       return;
     }
-    try {
-      const { saveWithPause } = await import('@/lib/dialog');
-      const destPath = await saveWithPause({
-        defaultPath: item.fileName,
-      });
-      if (!destPath) return;
-      await downloadViaStage(filePath, destPath, item.fileName, (src, dest) =>
-        invoke('attachment_download', { srcPath: src, destPath: dest }),
-      );
-      showToast({
-        type: 'success',
-        message: t('common:download_result', { defaultValue: 'Downloaded successfully' }),
-      });
-    } catch (e) {
-      showToast({ type: 'error', message: `${t('common:download_failed')}: ${e}` });
-    }
+    await downloadAttachmentFile({
+      filePath,
+      fileName: item.fileName,
+      invoke,
+      showToast,
+      t,
+      downloadViaStage,
+    });
   };
 
   const handleDelete = (item: AttachmentItem) => {
