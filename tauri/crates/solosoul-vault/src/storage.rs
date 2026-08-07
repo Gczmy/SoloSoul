@@ -1500,6 +1500,32 @@ mod tests {
         );
     }
 
+    #[test]
+    fn test_extract_attachment_ids_from_json_text() {
+        // P025: 子串扫描提取 __attachments 段——含转义/嵌套/无附件/无键各形态
+        let text = r#"{"name":"x","__fields":{"a":{"type":"text"}},"__attachments":[{"id":"att_1","name":"a.pdf","note":"say \"hi\""},{"id":"att_2"}],"other":{"deep":[1,2]}}"#;
+        let ids = VaultStore::extract_attachment_ids_from_json_text(text);
+        assert_eq!(ids, vec!["att_1".to_string(), "att_2".to_string()]);
+
+        // 无 __attachments 键
+        assert!(VaultStore::extract_attachment_ids_from_json_text(r#"{"name":"x"}"#).is_empty());
+        // 空数组
+        assert!(
+            VaultStore::extract_attachment_ids_from_json_text(r#"{"__attachments":[]}"#).is_empty()
+        );
+        // 值中出现类似文本但不是键（无冒号紧随）不应误报
+        assert!(
+            VaultStore::extract_attachment_ids_from_json_text(r#"{"note":"__attachments"}"#)
+                .is_empty()
+        );
+        // 段内字符串含方括号（应被字符串状态跳过）
+        let tricky = r#"{"__attachments":[{"id":"att_9","note":"a[b]c"}]}"#;
+        assert_eq!(
+            VaultStore::extract_attachment_ids_from_json_text(tricky),
+            vec!["att_9".to_string()]
+        );
+    }
+
     /// P004: properties 为加密列，旧实现 LIKE 匹配密文恒为 0；
     /// 修复后按账户取回逐行解密、内存判断字段 key，须能正确区分 active/软删除/无关对象。
     #[test]
@@ -1550,7 +1576,11 @@ mod tests {
         vault.save_object(&unrelated).unwrap();
 
         let (active_n, deleted_n) = vault.check_field_usage("acc-1", "field-1").unwrap();
-        assert_eq!((active_n, deleted_n), (1, 1), "field-1 应计 1 活动 + 1 软删除");
+        assert_eq!(
+            (active_n, deleted_n),
+            (1, 1),
+            "field-1 应计 1 活动 + 1 软删除"
+        );
 
         // 值 null 视为未使用；不存在的 key 计 0。
         let (active_null, deleted_null) = vault.check_field_usage("acc-1", "field-2").unwrap();

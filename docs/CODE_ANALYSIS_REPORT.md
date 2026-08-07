@@ -40,7 +40,7 @@
 | P022 | P2 | 性能 | `tauri/src-tauri/src/commands/llm/rag.rs:395-401` | 每次指南检索重读磁盘并重切块全部指南 markdown 仅为构建 title 映射 | `[x]` 已修复（title 存于索引 JSON，新增 `guide_title_map` 仅读索引构建映射，不再读文件/切块） |
 | P023 | P2 | 性能 | `tauri/src-tauri/src/commands/template.rs:22-33,121-144` | 每次模板 IPC 都执行 legacy 迁移检查（含 profile 全量加载解析），迁移完成后永久无效 | `[x]` 已修复（迁移完成后写 sys_config 标记 `legacy_templates_migrated_v1`，后续命令 O(1) 短路；迁移逻辑拆 `_inner`） |
 | P024 | P2 | 性能 | `tauri/src/stores/trashStore.ts:137-155` | 回收站批量永久删除逐条 IPC，无批量端点 | `[x]` 已修复（新增 `trash_permanent_delete_batch` 服务端循环端点 + lib.rs 注册/ACL，前端改单次调用；共享 `permanent_delete_one` helper + 批量回归测试） |
-| P025 | P2 | 性能 | `tauri/crates/solosoul-vault/src/storage/objects.rs:282-327` | `list_object_attachment_ids` 为取附件 id 解密全部对象完整 properties | `[ ]` 待修复 |
+| P025 | P2 | 性能 | `tauri/crates/solosoul-vault/src/storage/objects.rs:282-327` | `list_object_attachment_ids` 为取附件 id 解密全部对象完整 properties | `[x]` 已修复（解密文本子串扫描提取 `__attachments` 段，免全量 JSON 树构造；`extract_attachment_ids_from_json_text` 纯函数 + 5 形态单测） |
 | P026 | P2 | 性能 | `tauri/src/components/llm/ChatMessageList.tsx:178` | 长会话消息列表无分页/虚拟化（项目其它列表均已分页） | `[ ]` 待修复 |
 | P027 | P2 | 安全 | `solosoul_cli/src/commands/settings.rs:342-397` | CLI `/debug_log` 解密审计日志默认权限落盘，未收紧 0600（与 log.rs 行为不一致） | `[ ]` 待修复 |
 | P028 | P2 | 安全 | `solosoul_cli/src/commands/log.rs:56-69` | `/export_log` 先默认权限创建文件再 chmod，存在明文窗口期，且 chmod 失败被吞 | `[ ]` 待修复 |

@@ -310,20 +310,67 @@ impl VaultStore {
         let mut result = Vec::new();
         for row in rows {
             let (id, decrypted) = row.map_err(|e| format!("list_object_attachment_ids: {}", e))?;
-            let props: serde_json::Value = serde_json::from_str(&decrypted)
-                .map_err(|e| format!("deserialize attachment props: {}", e))?;
-            let att_ids: Vec<String> = props
-                .get("__attachments")
-                .and_then(|v| v.as_array())
-                .map(|arr| {
-                    arr.iter()
-                        .filter_map(|a| a.get("id").and_then(|i| i.as_str()).map(String::from))
-                        .collect()
-                })
-                .unwrap_or_default();
+            // P025: 子串扫描提取 `__attachments` 段（免全量 JSON 树构造）
+            let att_ids = Self::extract_attachment_ids_from_json_text(&decrypted);
             result.push((id, att_ids));
         }
         Ok(result)
+    }
+
+    /// P025: 从解密后的 properties JSON 文本中仅提取 `__attachments` 数组段的 id 列表，
+    /// 避免 serde_json 构造完整对象属性树（大对象反复全量解析）。
+    /// `"__attachments":` 是 JSON 键语法，字符串值不可能紧随冒号，故可唯一定位。
+    /// 括号配平时正确处理字符串字面量内的转义字符。
+    pub(crate) fn extract_attachment_ids_from_json_text(text: &str) -> Vec<String> {
+        let marker = "\"__attachments\":";
+        let Some(pos) = text.find(marker) else {
+            return Vec::new();
+        };
+        let rest = &text[pos + marker.len()..];
+        let rest = rest.trim_start();
+        let Some(bracket) = rest.find('[') else {
+            return Vec::new();
+        };
+        let bytes = &rest.as_bytes()[bracket..];
+        let mut depth = 0i32;
+        let mut in_str = false;
+        let mut escaped = false;
+        let mut end = 0usize;
+        for (i, &b) in bytes.iter().enumerate() {
+            if in_str {
+                if escaped {
+                    escaped = false;
+                } else if b == b'\\' {
+                    escaped = true;
+                } else if b == b'"' {
+                    in_str = false;
+                }
+            } else {
+                match b {
+                    b'"' => in_str = true,
+                    b'[' => depth += 1,
+                    b']' => {
+                        depth -= 1;
+                        if depth == 0 {
+                            end = i + 1;
+                            break;
+                        }
+                    }
+                    _ => {}
+                }
+            }
+        }
+        if end == 0 {
+            return Vec::new();
+        }
+        let segment = &rest[bracket..bracket + end];
+        serde_json::from_str::<Vec<serde_json::Value>>(segment)
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(|a| a.get("id").and_then(|i| i.as_str()).map(String::from))
+                    .collect()
+            })
+            .unwrap_or_default()
     }
 
     pub fn list_objects(
