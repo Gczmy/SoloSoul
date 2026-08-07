@@ -656,7 +656,7 @@ fn test_collect_scope_objects_batch() -> Result<(), String> {
     let (_tmp, vault) = test_vault(account_id);
     let now = chrono::Utc::now().to_rfc3339();
 
-    let mut mk = |id: &str, section: &str, tags: Vec<&str>| -> ObjectRecord {
+    let mk = |id: &str, section: &str, tags: Vec<&str>| -> ObjectRecord {
         ObjectRecord {
             contract_type_id: None,
             id: id.to_string(),
@@ -702,8 +702,16 @@ fn test_collect_scope_objects_batch() -> Result<(), String> {
         },
     )?;
     let ids: Vec<&str> = all.iter().map(|r| r.id.as_str()).collect();
-    assert_eq!(ids, vec!["obj-a", "obj-b", "obj-c"], "include_all 应含全部对象且 id 升序");
-    assert_eq!(all[0].properties["k"], serde_json::json!("v-obj-a"), "properties 应已解密");
+    assert_eq!(
+        ids,
+        vec!["obj-a", "obj-b", "obj-c"],
+        "include_all 应含全部对象且 id 升序"
+    );
+    assert_eq!(
+        all[0].properties["k"],
+        serde_json::json!("v-obj-a"),
+        "properties 应已解密"
+    );
 
     // 选定子集
     let subset = collect_scope_objects(
@@ -729,7 +737,11 @@ fn test_collect_scope_objects_batch() -> Result<(), String> {
         account_id,
         &ExportScope {
             selected_page_ids: vec![],
-            selected_object_ids: vec!["obj-a".to_string(), "obj-b".to_string(), "obj-c".to_string()],
+            selected_object_ids: vec![
+                "obj-a".to_string(),
+                "obj-b".to_string(),
+                "obj-c".to_string(),
+            ],
             selected_tags: vec!["tag1".to_string()],
             include_attachments: false,
             selected_attachment_ids: vec![],
@@ -739,7 +751,11 @@ fn test_collect_scope_objects_batch() -> Result<(), String> {
         },
     )?;
     let tagged_ids: Vec<&str> = tagged.iter().map(|r| r.id.as_str()).collect();
-    assert_eq!(tagged_ids, vec!["obj-a", "obj-b"], "tag1 应命中 obj-a/obj-b");
+    assert_eq!(
+        tagged_ids,
+        vec!["obj-a", "obj-b"],
+        "tag1 应命中 obj-a/obj-b"
+    );
 
     // 空选择返回空
     let empty = collect_scope_objects(

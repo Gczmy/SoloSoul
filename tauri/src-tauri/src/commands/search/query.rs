@@ -16,32 +16,39 @@ use solosoul_vault::storage::{dynamic_group_label_match, is_internal_metadata_ke
 pub(crate) fn search_properties_for_matches(
     data: &serde_json::Value,
     query: &str,
-    current_path: &str,
+    path_buf: &mut String,
     protected_keys: &std::collections::HashSet<String>,
     skip_values: bool,
     matches: &mut Vec<FieldMatch>,
 ) {
     match data {
         serde_json::Value::Object(obj) => {
+            // P021: 路径缓冲 push/pop 复用——无命中场景不再为每个 key 做 format! 分配，
+            // 仅命中时克隆路径；每轮迭代结束后 truncate 还原（递归自行维护其子路径）。
+            let saved_len = path_buf.len();
             for (key, value) in obj {
-                // 跳过系统元数据字段，避免搜索结果过多
+                // 跳过系统元数据字段，避免搜索结果过多（lower_key 同时供下方字段名匹配复用）
                 let lower_key = key.to_lowercase();
-                if lower_key == "createdat"
-                    || lower_key == "objectid"
-                    || lower_key == "id"
-                    || lower_key == "updatedat"
-                    || lower_key == "deletedat"
-                    || lower_key == "vaultpath"
-                    || lower_key == "__templatename"
-                    || lower_key == "__templatehash"
-                {
+                if matches!(
+                    lower_key.as_str(),
+                    "createdat"
+                        | "objectid"
+                        | "id"
+                        | "updatedat"
+                        | "deletedat"
+                        | "vaultpath"
+                        | "__templatename"
+                        | "__templatehash"
+                ) {
                     continue;
                 }
-                let field_path = if current_path.is_empty() {
-                    key.clone()
+                if saved_len == 0 {
+                    path_buf.push_str(key);
                 } else {
-                    format!("{}.{}", current_path, key)
-                };
+                    path_buf.push('.');
+                    path_buf.push_str(key);
+                }
+                let field_path: &str = path_buf.as_str();
 
                 // `__fields` 是字段定义元数据：仅定义中的 name（用户可见标签）参与匹配；
                 // 字段 id 键、type/sensitivityLevel 等技术值不参与——否则搜「dynamic_group」
@@ -57,8 +64,9 @@ pub(crate) fn search_properties_for_matches(
                                 // 显示名匹配覆盖（见下方 is_internal_key 分支），此处跳过。
                                 continue;
                             }
-                            if name.to_lowercase().contains(query) {
-                                let score = if name.to_lowercase() == query {
+                            let name_lower = name.to_lowercase();
+                            if name_lower.contains(query) {
+                                let score = if name_lower == query {
                                     SCORE_EXACT_VALUE
                                 } else {
                                     SCORE_FIELD_VALUE
@@ -72,15 +80,16 @@ pub(crate) fn search_properties_for_matches(
                             }
                         }
                     }
+                    path_buf.truncate(saved_len);
                     continue;
                 }
 
                 // 字段名匹配：内部元数据键（`__` 前缀）不按原始键名匹配——否则搜
                 // 「_dynamic_group_」会命中内部键 `__dynamic_group__`。
                 let is_internal_key = is_internal_metadata_key(key);
-                if !is_internal_key && key.to_lowercase().contains(query) {
+                if !is_internal_key && lower_key.contains(query) {
                     matches.push(FieldMatch {
-                        field_path: field_path.clone(),
+                        field_path: field_path.to_string(),
                         display_value: key.clone(),
                         match_type: FieldMatchType::FieldName,
                         score: SCORE_FIELD_NAME,
@@ -91,7 +100,7 @@ pub(crate) fn search_properties_for_matches(
                 if is_internal_key {
                     if let Some(label) = dynamic_group_label_match(query) {
                         matches.push(FieldMatch {
-                            field_path: field_path.clone(),
+                            field_path: field_path.to_string(),
                             display_value: label.to_string(),
                             match_type: FieldMatchType::FieldName,
                             score: SCORE_FIELD_NAME,
@@ -101,11 +110,12 @@ pub(crate) fn search_properties_for_matches(
                 if let serde_json::Value::String(s) = value {
                     // 内部占位 token（`__` 前缀，如 __fields 定义中的 name: "__dynamic_group__"）
                     // 不参与值匹配——其搜索面由键路径的显示名匹配覆盖。
+                    // （值小写化保留完整 Unicode 大小写折叠语义，不做长度预检，正确性优先）
                     let value_match =
                         !is_internal_metadata_key(s) && s.to_lowercase().contains(query);
                     if value_match
                         && !skip_values
-                        && is_searchable_field_value(&field_path, protected_keys)
+                        && is_searchable_field_value(field_path, protected_keys)
                     {
                         let score = if s.len() == query.len() {
                             SCORE_EXACT_VALUE
@@ -122,7 +132,7 @@ pub(crate) fn search_properties_for_matches(
                             s.clone()
                         };
                         matches.push(FieldMatch {
-                            field_path: field_path.clone(),
+                            field_path: field_path.to_string(),
                             display_value: truncated,
                             match_type: FieldMatchType::FieldValue,
                             score,
@@ -132,23 +142,29 @@ pub(crate) fn search_properties_for_matches(
                 search_properties_for_matches(
                     value,
                     query,
-                    &field_path,
+                    path_buf,
                     protected_keys,
                     skip_values,
                     matches,
                 );
+                path_buf.truncate(saved_len);
             }
         }
         serde_json::Value::Array(arr) => {
             for (i, item) in arr.iter().enumerate() {
+                let saved_len = path_buf.len();
+                path_buf.push('[');
+                path_buf.push_str(&i.to_string());
+                path_buf.push(']');
                 search_properties_for_matches(
                     item,
                     query,
-                    &format!("{}[{}]", current_path, i),
+                    path_buf,
                     protected_keys,
                     skip_values,
                     matches,
                 );
+                path_buf.truncate(saved_len);
             }
         }
         _ => {}

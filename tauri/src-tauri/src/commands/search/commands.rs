@@ -81,10 +81,12 @@ fn search_advanced_impl(
 
         // Collect field-level matches from properties
         let mut field_matches: Vec<FieldMatch> = Vec::new();
+        // P021: 路径缓冲复用，避免热循环内每个 key 的 format! 分配
+        let mut path_buf = String::new();
         search_properties_for_matches(
             &rec.properties,
             &q,
-            "",
+            &mut path_buf,
             &protected_keys,
             redact_all,
             &mut field_matches,
@@ -110,12 +112,15 @@ fn search_advanced_impl(
                     name_score,
                 )
             } else {
-                field_matches.sort_by(|a, b| {
-                    b.score
-                        .partial_cmp(&a.score)
-                        .unwrap_or(std::cmp::Ordering::Equal)
-                });
-                let best = &field_matches[0];
+                // P021: max_by 线性取最佳，替代全排序 O(n log n)
+                let best = field_matches
+                    .iter()
+                    .max_by(|a, b| {
+                        a.score
+                            .partial_cmp(&b.score)
+                            .unwrap_or(std::cmp::Ordering::Equal)
+                    })
+                    .unwrap();
                 (
                     Some(best.field_path.clone()),
                     Some(best.display_value.clone()),
