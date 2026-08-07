@@ -97,6 +97,15 @@ pub(crate) fn path_within_base(
     if canonicalized {
         resolved.starts_with(base_canon)
     } else {
+        // P018：canonicalize 失败兜底时无法安全解析 `..`（base 可能含 symlink，词法
+        // 归一不可信），任何含 ParentDir 组件的原始路径一律拒绝——杜绝
+        // `base/../../secret` 这类前几段命中 base 的 `..` 逃逸。
+        if raw
+            .components()
+            .any(|c| matches!(c, std::path::Component::ParentDir))
+        {
+            return false;
+        }
         raw.starts_with(base_canon) || raw.starts_with(base_raw)
     }
 }
@@ -1120,6 +1129,37 @@ mod tests {
         assert!(!path_within_base(
             Path::new("/etc/passwd"),
             Path::new("/etc/passwd"),
+            false,
+            base_canon,
+            base_raw,
+        ));
+    }
+
+    #[test]
+    fn test_path_within_base_rejects_parent_dir_escape() {
+        // P018：兜底分支拒绝含 `..` 的逃逸路径（前几段命中 base 但实际越出）
+        let base_canon = Path::new("/vault");
+        let base_raw = Path::new("/vault");
+        for bad in [
+            "/vault/../../etc/passwd",
+            "/vault/attachments/../..//etc/passwd",
+            "/vault/../vault_evil/secret",
+        ] {
+            assert!(
+                !path_within_base(
+                    Path::new(bad),
+                    Path::new(bad),
+                    false,
+                    base_canon,
+                    base_raw,
+                ),
+                "should reject parent-dir escape: {bad}"
+            );
+        }
+        // 无 `..` 的正常库内路径仍放行
+        assert!(path_within_base(
+            Path::new("/vault/attachments/a.bin"),
+            Path::new("/vault/attachments/a.bin"),
             false,
             base_canon,
             base_raw,
