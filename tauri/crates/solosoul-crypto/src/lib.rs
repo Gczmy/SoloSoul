@@ -12,7 +12,7 @@ pub mod hkdf_ext;
 pub mod kdf;
 pub mod secure;
 
-pub use aes::{decrypt_blob, decrypt_chunked_blob, encrypt_blob, encrypt_chunked_blob};
+pub use aes::{decrypt_blob, encrypt_blob};
 pub use cipher::{
     decrypt, decrypt_from_bytes, encrypt, encrypt_to_bytes, CipherError, EncryptedData,
 };

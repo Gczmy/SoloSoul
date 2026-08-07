@@ -92,108 +92,6 @@ pub fn decrypt_blob(key: &[u8; 32], blob: &[u8]) -> Result<Zeroizing<Vec<u8>>, C
     Ok(Zeroizing::new(plaintext))
 }
 
-/// Encrypt data using chunked AES-256-GCM (SOLO blob v3)
-pub fn encrypt_chunked_blob(
-    key: &[u8; 32],
-    plaintext: &[u8],
-    chunk_size: usize,
-) -> Result<Vec<u8>, CipherError> {
-    let chunk_size = if chunk_size == 0 {
-        DEFAULT_CHUNK_SIZE
-    } else {
-        chunk_size
-    };
-    let original_size = plaintext.len() as u64;
-    let chunk_count = original_size.div_ceil(chunk_size as u64) as u32;
-
-    let mut blob = Vec::new();
-    blob.extend_from_slice(&BLOB_MAGIC);
-    blob.push(BLOB_VERSION_V3);
-    blob.extend_from_slice(&original_size.to_be_bytes());
-    blob.extend_from_slice(&(chunk_size as u32).to_be_bytes());
-    blob.extend_from_slice(&chunk_count.to_be_bytes());
-
-    let cipher = Aes256Gcm::new_from_slice(key).map_err(key_err)?;
-
-    for i in 0..chunk_count as usize {
-        let start = i * chunk_size;
-        let end = (start + chunk_size).min(plaintext.len());
-        let chunk = &plaintext[start..end];
-
-        let nonce = Aes256Gcm::generate_nonce(&mut OsRng);
-        let ciphertext = cipher
-            .encrypt(&nonce, chunk)
-            .map_err(|e| enc_err(format!("分块 {} 加密失败: {}", i, e)))?;
-
-        blob.extend_from_slice(nonce.as_slice());
-        blob.extend_from_slice(&ciphertext);
-    }
-    Ok(blob)
-}
-
-/// Decrypt v3 chunked blob
-pub fn decrypt_chunked_blob(
-    key: &[u8; 32],
-    blob: &[u8],
-) -> Result<Zeroizing<Vec<u8>>, CipherError> {
-    if blob.len() < 21 {
-        return Err(fmt_err("v3 头部过短"));
-    }
-    if blob[0..4] != BLOB_MAGIC || blob[4] != BLOB_VERSION_V3 {
-        return Err(fmt_err("无效的 v3 密文"));
-    }
-
-    let mut orig_size = [0u8; 8];
-    orig_size.copy_from_slice(&blob[5..13]);
-    let original_size = u64::from_be_bytes(orig_size);
-    let mut chunk_size_raw = [0u8; 4];
-    chunk_size_raw.copy_from_slice(&blob[13..17]);
-    let chunk_size = u32::from_be_bytes(chunk_size_raw) as usize;
-    let mut chunk_count_raw = [0u8; 4];
-    chunk_count_raw.copy_from_slice(&blob[17..21]);
-    let chunk_count = u32::from_be_bytes(chunk_count_raw);
-
-    // P106：头部字段（original_size/chunk_size/chunk_count）全部由输入控制，
-    // 先做一致性校验再分配，杜绝攻击者以 `with_capacity(original_size)` 触发
-    // 巨额内存分配 DoS。
-    validate_chunked_header(original_size, chunk_size, chunk_count)?;
-    // 每个 chunk 至少 NONCE_SIZE+TAG_SIZE 字节，chunk_count 必须与密文长度自洽。
-    let max_chunks = (blob.len() - 21) / (NONCE_SIZE + TAG_SIZE);
-    if chunk_count as usize > max_chunks {
-        return Err(fmt_err("分块数量与密文长度不符"));
-    }
-    // 明文总量不可能超过密文长度（每块均有 nonce+tag 开销），据此封顶初始容量。
-    let capacity = (original_size.min(blob.len() as u64)) as usize;
-
-    let cipher = Aes256Gcm::new_from_slice(key).map_err(key_err)?;
-    let mut plaintext = Vec::with_capacity(capacity);
-    let mut offset = 21;
-
-    for i in 0..chunk_count as usize {
-        let nonce = Nonce::from_slice(&blob[offset..offset + NONCE_SIZE]);
-        offset += NONCE_SIZE;
-
-        let is_last = i == chunk_count as usize - 1;
-        let expected_plain = if is_last {
-            original_size as usize - plaintext.len()
-        } else {
-            chunk_size
-        };
-        let expected_cipher = expected_plain + TAG_SIZE;
-
-        if offset + expected_cipher > blob.len() {
-            return Err(fmt_err(format!("分块 {}: 密文被截断", i)));
-        }
-
-        let decrypted = cipher
-            .decrypt(nonce, &blob[offset..offset + expected_cipher])
-            .map_err(|e| enc_err(format!("分块 {} 解密失败: {}", i, e)))?;
-        offset += expected_cipher;
-        plaintext.extend_from_slice(&decrypted);
-    }
-    Ok(Zeroizing::new(plaintext))
-}
-
 /// Encrypt a stream using chunked AES-256-GCM (SOLO blob v3).
 /// Reads from `reader`, writes the v3 blob to `writer`, processing at most
 /// `chunk_size` bytes at a time so the whole file never has to fit in memory.
@@ -384,15 +282,6 @@ mod tests {
     }
 
     #[test]
-    fn test_chunked_roundtrip() {
-        let key = [0x42u8; 32];
-        let data = vec![0xABu8; 5 * 1024 * 1024];
-        let blob = encrypt_chunked_blob(&key, &data, 1024 * 1024).unwrap();
-        let decrypted = decrypt_chunked_blob(&key, &blob).unwrap();
-        assert_eq!(decrypted.as_slice(), data.as_slice());
-    }
-
-    #[test]
     fn test_chunked_stream_roundtrip() {
         let key = [0x42u8; 32];
         let data = vec![0xABu8; 5 * 1024 * 1024];
@@ -429,38 +318,6 @@ mod tests {
     }
 
     // ── P106 头部驱动巨额分配 DoS 防护 ────────────────────────────────
-
-    /// 篡改 original_size 头字段为巨值：with_capacity 不得触发巨额分配，
-    /// 必须被一致性校验拒绝。
-    #[test]
-    fn test_decrypt_chunked_blob_rejects_huge_original_size() {
-        let key = [0x42u8; 32];
-        let data = vec![0xABu8; 5000];
-        let mut blob = encrypt_chunked_blob(&key, &data, 1024).unwrap();
-        // 头部布局：magic(4)+ver(1)+orig(8)+chunk_size(4)+chunk_count(4)
-        blob[5..13].copy_from_slice(&u64::MAX.to_be_bytes());
-        assert!(decrypt_chunked_blob(&key, &blob).is_err());
-    }
-
-    /// 篡改 chunk_count 头字段为巨值：必须在进入循环分配前被拒绝。
-    #[test]
-    fn test_decrypt_chunked_blob_rejects_huge_chunk_count() {
-        let key = [0x42u8; 32];
-        let data = vec![0xABu8; 5000];
-        let mut blob = encrypt_chunked_blob(&key, &data, 1024).unwrap();
-        blob[17..21].copy_from_slice(&u32::MAX.to_be_bytes());
-        assert!(decrypt_chunked_blob(&key, &blob).is_err());
-    }
-
-    /// chunk_size = 0：拒绝，避免除零/异常路径。
-    #[test]
-    fn test_decrypt_chunked_blob_rejects_zero_chunk_size() {
-        let key = [0x42u8; 32];
-        let data = vec![0xABu8; 5000];
-        let mut blob = encrypt_chunked_blob(&key, &data, 1024).unwrap();
-        blob[13..17].copy_from_slice(&0u32.to_be_bytes());
-        assert!(decrypt_chunked_blob(&key, &blob).is_err());
-    }
 
     /// 流式版：chunk_size = 0 直接拒绝。
     #[test]

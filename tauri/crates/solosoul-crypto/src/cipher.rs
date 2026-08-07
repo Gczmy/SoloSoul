@@ -136,58 +136,6 @@ fn chunked_aad(base_nonce: &[u8; 12], chunk_count: u64) -> [u8; 20] {
     aad
 }
 
-/// Encrypt a large file in chunks (v2, header-authenticated).
-/// Format: magic(4) || version(1) || nonce(12) || chunk_count(8) || chunk1_ct+tag || ...
-pub fn encrypt_chunked_to_bytes(key: &[u8; 32], plaintext: &[u8]) -> Result<Vec<u8>, CipherError> {
-    let cipher = Aes256Gcm::new_from_slice(key).map_err(|_| CipherError::InvalidKeyLength)?;
-    let base_nonce = Aes256Gcm::generate_nonce(&mut OsRng);
-    let base_nonce_bytes: [u8; 12] = base_nonce
-        .as_slice()
-        .try_into()
-        .map_err(|_| CipherError::NonceGenerationFailed)?;
-
-    let total_chunks = plaintext.len().div_ceil(CHUNK_SIZE);
-    if total_chunks > u64::MAX as usize {
-        return Err(CipherError::EncryptionFailed);
-    }
-    let chunk_count = total_chunks as u64;
-
-    let mut result = Vec::with_capacity(NEW_HEADER_LEN + plaintext.len() + total_chunks * 16);
-    result.extend_from_slice(&CHUNKED_MAGIC);
-    result.push(CHUNKED_VERSION);
-    result.extend_from_slice(&base_nonce_bytes);
-    result.extend_from_slice(&chunk_count.to_be_bytes());
-
-    // P105：头部（nonce||chunk_count）作为 AAD 纳入每个 chunk 的 GCM。
-    let aad = chunked_aad(&base_nonce_bytes, chunk_count);
-
-    for i in 0..total_chunks {
-        let start = i * CHUNK_SIZE;
-        let end = ((i + 1) * CHUNK_SIZE).min(plaintext.len());
-        let chunk = &plaintext[start..end];
-
-        let mut nonce_bytes = base_nonce_bytes;
-        let idx_bytes = (i as u64).to_be_bytes();
-        for j in 0..8 {
-            nonce_bytes[4 + j] ^= idx_bytes[j];
-        }
-        let nonce = Nonce::from_slice(&nonce_bytes);
-
-        let ct = cipher
-            .encrypt(
-                nonce,
-                Payload {
-                    msg: chunk,
-                    aad: &aad,
-                },
-            )
-            .map_err(|_| CipherError::EncryptionFailed)?;
-        result.extend_from_slice(&ct);
-    }
-
-    Ok(result)
-}
-
 /// Encrypt a large stream in chunks, writing the chunked format (v2, header-authenticated)
 /// directly to `writer`.
 /// `total_size` must be the exact number of plaintext bytes that `reader` will yield.
@@ -529,20 +477,6 @@ mod tests {
     // ── P105 分块格式头部认证 ──────────────────────────────────────────
 
     #[test]
-    fn test_chunked_v2_roundtrip_bytes() {
-        let key = [0x51u8; 32];
-        // 3 个完整 chunk + 1 个尾 chunk，覆盖多分块路径。
-        let plaintext: Vec<u8> = (0..CHUNK_SIZE * 3 + 1234)
-            .map(|i| (i % 251) as u8)
-            .collect();
-        let enc = encrypt_chunked_to_bytes(&key, &plaintext).unwrap();
-        assert_eq!(&enc[..4], &CHUNKED_MAGIC);
-        assert_eq!(enc[4], CHUNKED_VERSION);
-        let dec = decrypt_chunked_from_bytes(&key, &enc).unwrap();
-        assert_eq!(dec.as_slice(), plaintext.as_slice());
-    }
-
-    #[test]
     fn test_chunked_v2_roundtrip_stream() {
         let key = [0x52u8; 32];
         let plaintext: Vec<u8> = (0..CHUNK_SIZE * 5 + 777).map(|i| (i % 251) as u8).collect();
@@ -557,35 +491,6 @@ mod tests {
         let mut dec = Vec::new();
         decrypt_chunked_stream(&key, &mut enc.as_slice(), &mut dec).unwrap();
         assert_eq!(dec, plaintext);
-    }
-
-    #[test]
-    fn test_chunked_v2_empty_plaintext() {
-        let key = [0x53u8; 32];
-        let enc = encrypt_chunked_to_bytes(&key, b"").unwrap();
-        let dec = decrypt_chunked_from_bytes(&key, &enc).unwrap();
-        assert!(dec.is_empty());
-
-        // 流式路径同样应支持空明文（chunk_count=0，循环不执行）。
-        let mut enc2 = Vec::new();
-        encrypt_chunked_stream(&key, 0, &mut [].as_slice(), &mut enc2).unwrap();
-        let mut dec2 = Vec::new();
-        decrypt_chunked_stream(&key, &mut enc2.as_slice(), &mut dec2).unwrap();
-        assert!(dec2.is_empty());
-    }
-
-    #[test]
-    fn test_chunked_header_tamper_detected_bytes() {
-        let key = [0x54u8; 32];
-        let plaintext: Vec<u8> = (0..CHUNK_SIZE * 2 + 100).map(|i| (i % 251) as u8).collect();
-        let mut enc = encrypt_chunked_to_bytes(&key, &plaintext).unwrap();
-        // 篡改 chunk_count 头部字段（偏移 17..25）。
-        enc[NEW_HEADER_LEN - 1] ^= 0x01;
-        assert!(decrypt_chunked_from_bytes(&key, &enc).is_err());
-        // 篡改 magic。
-        let mut enc2 = encrypt_chunked_to_bytes(&key, &plaintext).unwrap();
-        enc2[0] ^= 0x01;
-        assert!(decrypt_chunked_from_bytes(&key, &enc2).is_err());
     }
 
     #[test]

@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-07（P000-P001/P004-P005/P007/P009/P011/P014-P015 已修复）
+> 最后更新：2026-08-07（P000-P001/P004-P005/P007/P009-P011/P014-P015 已修复）
 > 当前分支：`main`
 > 修复轮次：1（初始分析）
 > 基线版本：v2.8.5（HEAD `cdc6afb6`）
@@ -38,7 +38,7 @@
 | P007 | P1 | 性能 | `tauri/src-tauri/src/commands/attachment.rs:479,930` | `attachment_copy_to_vault`/`attachment_download` 在 tokio worker 上同步复制大文件，未走 `spawn_blocking` | `[x]` 已修复（两处 fs::copy 移入 spawn_blocking，guard 块作用域释放） |
 | P008 | P1 | 性能 | `tauri/src-tauri/src/commands/search/commands.rs:43` | 搜索每次缓存未命中即全表解密，无索引（存疑：取决于目标 Vault 规模） | `[ ]` 待修复 |
 | P009 | P1 | 死代码 | `tauri/src-tauri/src/commands/export_import/import.rs:177-198` | `import_execute` 为 `#[tauri::command]` 但未在 `lib.rs` 注册、前端无调用，已被 `import_execute_advanced` 取代 | `[x]` 已修复（删除死命令，审计日志 action 名保留） |
-| P010 | P1 | 死代码 | `tauri/crates/solosoul-crypto/src/cipher.rs:141`、`aes.rs:96,135` | `encrypt_chunked_to_bytes`/`encrypt_chunked_blob`/`decrypt_chunked_blob` 仅测试引用（存疑：可能有意保留对称 API） | `[ ]` 待修复 |
+| P010 | P1 | 死代码 | `tauri/crates/solosoul-crypto/src/cipher.rs:141`、`aes.rs:96,135` | `encrypt_chunked_to_bytes`/`encrypt_chunked_blob`/`decrypt_chunked_blob` 仅测试引用（存疑：可能有意保留对称 API） | `[x]` 已修复（用户确认删除：函数+仅引用测试+re-export） |
 | P011 | P1 | 架构 | `tauri/src/stores/syncStore.ts:466-571` | 入站同步完成后不刷新 `objectStore`，工作区显示过期数据直至重新导航 | `[x]` 已修复（applied>0 时 loadObjects + 清详情缓存，首事件与合并分支） |
 | P012 | P1 | 规范 | `tauri/src/components/settings/BiometricSection.tsx:330-417`、`PinSection.tsx:278-327` | 两处自行实现主密码验证对话框，未用共享 `PasswordVerificationDialog`（违反硬约定） | `[ ]` 待修复 |
 | P013 | P1 | 死代码 | `uiStore.ts:24-90`、`llmStore.ts:22,86`、`templateStore.ts:26,94`、`ocrScanStore.ts:38-40,148-150` | 多个 store 状态/action 仅被测试引用，生产零引用 | `[ ]` 待修复 |
@@ -77,8 +77,8 @@
 
 ## 修复进度
 
-- 已完成：10 / 46（P045 为合并占位，实际待修复 45 项）
-- 当前处理：P000-P015 中 9 项已闭环（含 P009 删除）→ P010
+- 已完成：11 / 46（P045 为合并占位，实际待修复 45 项）
+- 当前处理：P000-P015 中 10 项已闭环（含 P009/P010 删除）→ P013
 
 ---
 
@@ -155,7 +155,11 @@
 
 - **位置**：`tauri/crates/solosoul-crypto/src/cipher.rs:141`、`aes.rs:96,135`
 - **问题**：`encrypt_chunked_to_bytes`/`encrypt_chunked_blob`/`decrypt_chunked_blob` 生产路径无人调用，仅自身测试引用；但解密对偶 `decrypt_chunked_from_bytes` 有真实生产调用，API 不对称。
-- **建议**：若非有意保留对称 API，删除或改 `#[cfg(test)]`。**删除需用户确认。**
+- **修复（用户确认删除）**：
+  1. `cipher.rs` 删除 `encrypt_chunked_to_bytes`（:141-193）及仅引用它的 3 个测试（`test_chunked_v2_roundtrip_bytes`/`test_chunked_v2_empty_plaintext`/`test_chunked_header_tamper_detected_bytes`）；stream 版对称对偶保留（有生产调用）。
+  2. `aes.rs` 删除 `encrypt_chunked_blob`/`decrypt_chunked_blob`（:95-199）及 4 个 blob 测试（含 `rejects_huge_original_size`/`rejects_huge_chunk_count`/`rejects_zero_chunk_size`）；`decrypt_chunked_from_bytes` 保留。
+  3. `lib.rs` re-export 移除两名字（crate 外零引用，仅自身测试）。
+- **验证**：`cargo check --all-targets` 0 警告、clippy 0 警告、crypto 27 测试通过、下游 crate（vault/core/sync/solo_soul）编译通过。
 
 ### P011（P1 · 架构）入站同步后前端缓存不刷新
 
