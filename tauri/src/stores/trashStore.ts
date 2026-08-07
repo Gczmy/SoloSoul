@@ -135,23 +135,8 @@ export const useTrashStore = create<TrashState>((set, get) => ({
   },
 
   permanentDelete: async (trashIds) => {
-    // P052: 并发化减少总等待时间；R2-20: 加并发上限，清空数百条时不瞬间发起数百 invoke。
-    // 任一失败时整体 reject（与串行首错中止语义一致），未完成的其余删除在服务端仍会执行。
-    const CONCURRENCY_LIMIT = 8;
-    let cursor = 0;
-    const worker = async (): Promise<void> => {
-      while (cursor < trashIds.length) {
-        const id = trashIds[cursor];
-        cursor += 1;
-        await invoke('trash_permanent_delete', { trashId: id });
-      }
-    };
-    await Promise.all(
-      Array.from(
-        { length: Math.min(CONCURRENCY_LIMIT, trashIds.length) },
-        () => worker(),
-      ),
-    );
+    // P024: 服务端批量端点——N 次 IPC → 1 次；任一失败整体 reject（已删项保持已删）。
+    await invoke('trash_permanent_delete_batch', { trashIds });
     set((s) => ({ items: s.items.filter((i) => !trashIds.includes(i.id)) }));
   },
 

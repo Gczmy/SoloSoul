@@ -109,6 +109,39 @@ pub async fn trash_restore(
     object_restore(app, state, trash_id, lang).await
 }
 
+/// P024: 单条永久删除的共享实现（单删/批量命令复用；逐条自含事务与墓碑，
+/// 与 `delete_object`/`delete_trash_item` 既有语义一致）。
+pub(crate) fn permanent_delete_one(
+    vault: &solosoul_vault::VaultStore,
+    trash_id: &str,
+) -> Result<(), String> {
+    if let Ok(Some(trash)) = vault.get_trash_item(trash_id) {
+        if trash.item_type != "template" {
+            vault.delete_object(&trash.original_id, false)?;
+        }
+        let _ = vault.log_structured(
+            "trash_permanent_delete",
+            "trash_item",
+            Some(trash_id),
+            Some(&trash.name_snapshot),
+            "user",
+            Some(&format!("original_id={}", trash.original_id)),
+        );
+        vault.delete_trash_item(trash_id).ok();
+        return Ok(());
+    }
+    vault.delete_trash_item(trash_id).ok();
+    let _ = vault.log_structured(
+        "trash_permanent_delete",
+        "trash_item",
+        Some(trash_id),
+        None,
+        "user",
+        None,
+    );
+    Ok(())
+}
+
 /// Permanently delete a trash item (by trash_id → looks up original_id).
 #[tauri::command]
 pub async fn trash_permanent_delete(
@@ -116,36 +149,27 @@ pub async fn trash_permanent_delete(
     trash_id: String,
 ) -> Result<(), String> {
     let vault = vault_handle(&state)?;
-
-    if let Ok(Some(trash)) = vault.get_trash_item(&trash_id) {
-        if trash.item_type != "template" {
-            vault.delete_object(&trash.original_id, false)?;
-        }
-        let _ = vault.log_structured(
-            "trash_permanent_delete",
-            "trash_item",
-            Some(&trash_id),
-            Some(&trash.name_snapshot),
-            "user",
-            Some(&format!("original_id={}", trash.original_id)),
-        );
-        vault.delete_trash_item(&trash_id).ok();
-        state.auto_sync.trigger_debounce();
-        state.device_auto_sync.trigger_data_change();
-        return Ok(());
-    }
-    vault.delete_trash_item(&trash_id).ok();
-    let _ = vault.log_structured(
-        "trash_permanent_delete",
-        "trash_item",
-        Some(&trash_id),
-        None,
-        "user",
-        None,
-    );
+    permanent_delete_one(&vault, &trash_id)?;
     state.auto_sync.trigger_debounce();
     state.device_auto_sync.trigger_data_change();
     Ok(())
+}
+
+/// P024: 批量永久删除——单次 IPC 在服务端循环处理（替代前端逐条 invoke，
+/// 数百条时 N 次 IPC → 1 次）。任一失败中止并返回 Err（已删项保持已删，
+/// 与既有并发逐条语义一致）；成功后触发一次自动同步/数据变更广播。
+#[tauri::command]
+pub async fn trash_permanent_delete_batch(
+    state: State<'_, AppState>,
+    trash_ids: Vec<String>,
+) -> Result<usize, String> {
+    let vault = vault_handle(&state)?;
+    for id in &trash_ids {
+        permanent_delete_one(&vault, id)?;
+    }
+    state.auto_sync.trigger_debounce();
+    state.device_auto_sync.trigger_data_change();
+    Ok(trash_ids.len())
 }
 
 /// 在账户登录/解锁完成后，自动清理所有已过期的回收站项目。

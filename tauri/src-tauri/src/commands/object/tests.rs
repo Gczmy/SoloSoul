@@ -516,6 +516,65 @@ fn test_trash_permanent_delete_flow() {
 }
 
 #[test]
+fn test_trash_permanent_delete_batch_helper() {
+    // P024：批量端点依赖的共享 helper——循环删除多条后对象与回收站条目均清空。
+    let (vault, _dir) = setup_vault();
+    for i in 0..3 {
+        let record = ObjectRecord {
+            contract_type_id: None,
+            id: format!("obj-batch-{i}"),
+            account_id: "acc-1".to_string(),
+            type_id: "note".to_string(),
+            section_type: "identity".to_string(),
+            name: format!("Batch {i}"),
+            icon_name: "document".to_string(),
+            parent_id: None,
+            children_ids: vec![],
+            properties: serde_json::json!({}),
+            property_labels: None,
+            sensitivity_level: "internal".to_string(),
+            is_deleted: false,
+            deleted_at: None,
+            tags_json: vec![],
+            template_id: None,
+            template_type: None,
+            template_hash: None,
+            created_at: chrono::Utc::now().to_rfc3339(),
+            updated_at: chrono::Utc::now().to_rfc3339(),
+            version: 1,
+            ..Default::default()
+        };
+        vault.save_object(&record).unwrap();
+        let trash = TrashItem {
+            id: format!("trash_batch_{i}"),
+            item_type: "object".to_string(),
+            original_id: record.id.clone(),
+            original_parent_id: None,
+            original_section_type: Some(record.section_type.clone()),
+            original_sort_order: None,
+            data: serde_json::to_vec(&serde_json::json!({ "name": record.name })).unwrap_or_default(),
+            deleted_at: chrono::Utc::now().timestamp_millis(),
+            expires_at: None,
+            deleted_by: "user".to_string(),
+            name_snapshot: record.name.clone(),
+            icon_snapshot: None,
+        };
+        vault.save_trash_item(&trash).unwrap();
+        vault.delete_object(&record.id, true).unwrap();
+    }
+
+    // 模拟 trash_permanent_delete_batch 的服务端循环
+    for i in 0..3 {
+        super::trash::permanent_delete_one(&vault, &format!("trash_batch_{i}")).unwrap();
+    }
+
+    for i in 0..3 {
+        assert!(vault.load_object(&format!("obj-batch-{i}")).unwrap().is_none());
+        assert!(vault.get_trash_item(&format!("trash_batch_{i}")).unwrap().is_none());
+    }
+}
+
+#[test]
 fn test_snapshot_operations() {
     let (vault, _dir) = setup_vault();
     let record = ObjectRecord {
@@ -2226,7 +2285,11 @@ fn test_truncate_preview_properties() {
     let obj = out.as_object().unwrap();
     // 9 个非 `__` 字段 → 恰好保留 8 个（Map 无序，按计数断言）
     let non_meta: Vec<&String> = obj.keys().filter(|k| !k.starts_with("__")).collect();
-    assert_eq!(non_meta.len(), 8, "非 __ 字段应截断到 8 个，实际: {non_meta:?}");
+    assert_eq!(
+        non_meta.len(),
+        8,
+        "非 __ 字段应截断到 8 个，实际: {non_meta:?}"
+    );
     // `__*` 元数据完整保留
     for meta in ["__fields", "__templateName", "__deprecatedFields"] {
         assert!(obj.contains_key(meta), "{meta} 应保留");
