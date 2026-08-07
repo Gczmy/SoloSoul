@@ -130,10 +130,6 @@ SoloSoul/
 │   ├── manifesto/              # 产品使命与设计哲学
 │   ├── plugin_market/          # 插件市场技术文档
 │   ├── solosoul_cli/           # CLI 用户指南与研究
-│   ├── biometric-spec.md       # 生物识别实现规范
-│   ├── ocr-guide.md            # OCR 功能说明
-│   ├── sync-roadmap.md         # 同步功能路线图
-│   ├── P0.5-REFACTOR-REPORT.md # 重构报告
 │   ├── color-palette.html      # 配色方案
 │   ├── release_process.md      # 发布流程
 │   ├── review_code_process.md  # 代码审查流程
@@ -561,4 +557,4 @@ cargo test -p solo_soul   # 重新编译后即可链接成功
 | CLI 用户指南 | `docs/solosoul_cli/USER_GUIDE.md` |
 | OCR 功能说明 | `docs/ocr-guide.md` |
 | 生物识别实现规范 | `docs/biometric-spec.md` |
-| 同步路线图 | `docs/sync-roadmap.md` |
+| 设备同步设计与实现 | `docs/design_map/17_设备同步功能设计与实现.md` |

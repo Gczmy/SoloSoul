@@ -2,14 +2,13 @@
 
 > 版本：v2.0
 > 日期：2026-06-14
-> 依据文档：`/Users/zzc/PycharmProjects/SoloSoul/docs/solosoul_cli_prepare.md`
 > 目标读者：SoloSoul 客户端开发团队、架构师、产品经理
 
 ---
 
 ## 1. 执行摘要
 
-本报告基于 `solosoul_cli_prepare.md` 的产品设想，对 **SoloSoul 终端 CLI 版本** 的开发进行系统性预研，并**以当前 GUI 客户端的完整功能集为基准**，明确 CLI 需要覆盖的能力边界、技术选型与实施路径。核心结论如下：
+本报告基于 CLI 终端版本的产品设想（原 `docs/solosoul_cli_prepare.md` 预研设想，文档已删，设想内容已并入本文），对 **SoloSoul 终端 CLI 版本** 的开发进行系统性预研，并**以当前 GUI 客户端的完整功能集为基准**，明确 CLI 需要覆盖的能力边界、技术选型与实施路径。核心结论如下：
 
 - **技术可行性高**：现有 Rust 后端（`solosoul-vault`、`solosoul-crypto`、`VaultService`）已完整覆盖账户管理、Vault 加解密、对象 CRUD、模板系统、生物识别、导入导出、备份、插件、LLM、同步等能力，CLI 只需实现交互层与命令路由。
 - **推荐技术栈**：Rust 独立二进制 + `ratatui` + `crossterm` + `clap` + `inquire`。以**全屏 TUI 为主**，`inquire` 仅用于临时退出全屏的向导场景。

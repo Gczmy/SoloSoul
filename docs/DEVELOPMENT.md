@@ -141,7 +141,6 @@ cargo tauri android build --apk
 | [产品哲学](manifesto/) | 产品使命与设计哲学 |
 | [CLI 用户指南](solosoul_cli/USER_GUIDE.md) | 终端客户端使用说明 |
 | [移动端平台](platform-mobile/) | 移动端现状总览与 Android 开发环境搭建 |
-| [同步路线图](sync-roadmap.md) | 设备同步功能路线图 |
 | [发布流程](release_process.md) | 版本发布构建流程 |
 | [代码审查流程](review_code_process.md) | 代码审查流程 |
 | [WASM 插件开发指南](wasm-plugin-development-guide.md) | WASM 插件开发 |
