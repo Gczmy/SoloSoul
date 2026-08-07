@@ -792,6 +792,7 @@
   "sync_device_input_hint": "Enter a discovered device ID or a host:port address.",
   "sync_result": "Result",
   "sync_result_stats": "Examined {{examined}} · Applied {{applied}} · Skipped {{skipped}} · Conflicts {{conflicts}}",
+  "sync_result_outbound": "sent {{outbound}} back",
   "sync_known_devices_title": "Known Devices",
   "sync_no_devices": "No devices known yet. Enable sync and sync with another device to add it.",
   "sync_discovered_devices": "Discovered Devices",
@@ -1080,5 +1081,5 @@
   "sync_conflict_table_trash_items": "Trash Items",
   "sync_conflict_field_template_name": "Template Name",
   "sync_conflict_field_attachments": "Attachments",
-  "sync_completed_inbound": "Inbound sync completed: {{examined}} examined · {{applied}} applied · {{skipped}} skipped"
+  "sync_completed_inbound": "Inbound sync completed: {{examined}} examined · {{applied}} applied · {{skipped}} skipped · sent {{outbound}} back"
 }

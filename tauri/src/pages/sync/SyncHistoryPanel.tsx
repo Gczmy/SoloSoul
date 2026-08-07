@@ -80,8 +80,14 @@ export function SyncHistoryPanel({
                     examined: result.examined,
                     applied: result.applied,
                     skipped: result.skipped,
-                    conflicts: result.conflicts.length,
+                    conflicts: result.conflictCount ?? result.conflicts.length,
                   })}
+                  {/* B：入站结果携带发回对端条数（完整交换量） */}
+                  {result.outboundRecords != null &&
+                    ` · ${t('settings:sync_result_outbound', {
+                      outbound: result.outboundRecords,
+                      defaultValue: 'sent {{outbound}} back',
+                    })}`}
                 </div>
                 {result.per_table.length > 0 && (
                   <div

@@ -98,6 +98,9 @@ pub type PeerCallback = Arc<dyn Fn(NewPeerInfo) + Send + Sync>;
 pub struct InboundSessionOutcome {
     /// 发起方 peer 的 node_id。
     pub peer_node_id: String,
+    /// B：响应方本次会话发回给发起方的记录条数（完整交换量的一侧）。
+    /// 响应方完成事件据此展示「发回对端 X 条」，避免只显示入站方向计数。
+    pub outbound_records: u64,
     pub result: SyncSessionResult,
 }
 
@@ -111,6 +114,10 @@ pub struct SessionCompletedInfo {
     pub skipped: u64,
     /// 本次会话产生的冲突数量（含单侧删除）。
     pub conflicts: u64,
+    /// B：响应方本次会话发回给发起方的记录条数（入站方向计数之外的完整交换量）。
+    /// 旧版响应方完成事件只含入站方向（examined/applied/skipped），用户看到
+    /// 「检查 0 条」误以为没同步；携带本字段后 toast 展示双向完整交换量。
+    pub outbound_records: u64,
 }
 
 /// 会话完成回调钩子：入站同步会话成功结束时触发（携带对端身份与统计）。

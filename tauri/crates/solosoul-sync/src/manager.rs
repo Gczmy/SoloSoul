@@ -218,6 +218,8 @@ impl SyncManager {
                                     applied: outcome.result.data.applied,
                                     skipped: outcome.result.data.skipped,
                                     conflicts: outcome.result.data.conflicts.len() as u64,
+                                    // B：响应方发回给发起方的记录条数（完整交换量）。
+                                    outbound_records: outcome.outbound_records,
                                 });
                             }
                         }
@@ -397,20 +399,29 @@ impl SyncManager {
                 match receiver.recv_timeout(Duration::from_millis(MDNS_TIMEOUT_MS)) {
                     Ok(ServiceEvent::ServiceResolved(info)) => {
                         let props = info.get_properties();
-                        // 比较 account_hash 而非原始 account_id，
-                        // 兼容旧版客户端广播的 account_id 字段。
                         let peer_account_hash = props
                             .get("account_hash")
                             .map(|v| v.to_string())
-                            .unwrap_or_else(|| {
-                                // 旧版客户端仍广播 account_id 明文，计算其哈希比较。
-                                props
-                                    .get("account_id")
-                                    .map(|v| sha256_hex_short(&v.to_string()))
-                                    .unwrap_or_default()
-                            });
-                        if peer_account_hash != local_account_hash {
-                            continue;
+                            .unwrap_or_default();
+                        let peer_account_id = props
+                            .get("account_id")
+                            .map(|v| v.to_string())
+                            .unwrap_or_default();
+                        // A：发现循环对齐 mdns_discover 的兜底——Android NsdManager 广播的
+                        // TXT 属性（account_hash/account_id）存在已知互操作限制：经常不传播到
+                        // 标准 mDNS 客户端（桌面 mdns-sd），表现为「安卓能发现 mac、mac 却
+                        // 找不到安卓」。无账户信息的服务无法按账户过滤，放行展示；会话层握手
+                        // 仍严格校验 account_id（Account mismatch 拒绝对端），安全不受影响。
+                        // 有账户信息时仍按哈希严格比对（旧版广播明文 account_id 取其哈希）。
+                        if !peer_account_hash.is_empty() || !peer_account_id.is_empty() {
+                            let peer_hash = if !peer_account_hash.is_empty() {
+                                peer_account_hash
+                            } else {
+                                sha256_hex_short(&peer_account_id)
+                            };
+                            if peer_hash != local_account_hash {
+                                continue;
+                            }
                         }
                         let node_id = props
                             .get("node_id")

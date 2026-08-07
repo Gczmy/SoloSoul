@@ -412,6 +412,9 @@ impl AppState {
                         "applied": info.applied,
                         "skipped": info.skipped,
                         "conflicts": info.conflicts,
+                        // B：响应方发回给发起方的记录条数——前端 toast/结果行据此
+                        // 展示双向完整交换量（旧版只有入站方向，「检查 0 条」误导）。
+                        "outboundRecords": info.outbound_records,
                     }),
                 );
             })));

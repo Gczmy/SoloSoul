@@ -277,8 +277,14 @@ export function DeviceListPanel({
               examined: lastResult.examined,
               applied: lastResult.applied,
               skipped: lastResult.skipped,
-              conflicts: lastResult.conflicts.length,
+              conflicts: lastResult.conflictCount ?? lastResult.conflicts.length,
             })}
+            {/* B：入站结果携带发回对端条数（完整交换量），发起方结果无此字段不显示 */}
+            {lastResult.outboundRecords != null &&
+              ` · ${t('settings:sync_result_outbound', {
+                outbound: lastResult.outboundRecords,
+                defaultValue: 'sent {{outbound}} back',
+              })}`}
           </p>
         )}
         {error && (

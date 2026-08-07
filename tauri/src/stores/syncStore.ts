@@ -39,6 +39,20 @@ function pushSyncHistory(results: SyncResult[]): SyncResult[] {
   return next;
 }
 
+// C：sync-completed 事件去重——一次「立即同步」会被多个自动同步源叠加触发
+// （前台可见性 + 数据变更防抖 + 60s 周期 + 手动），产生多个几乎同时完成的入站会话
+// → 同一 peer 短窗口内多个事件。窗口内只弹一次 toast、只写一条历史，计数累加。
+const SYNC_COMPLETED_MERGE_WINDOW_MS = 5_000;
+const syncCompletedMergeCache = new Map<
+  string,
+  { lastAt: number; merged: SyncResult }
+>();
+
+/** 测试专用：清空 sync-completed 合并缓存（模拟跨窗口的新会话）。 */
+export function __resetSyncCompletedMergeForTest() {
+  syncCompletedMergeCache.clear();
+}
+
 export interface SyncPeer {
   id: string;
   name: string;
@@ -452,6 +466,8 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
   /** 初始化 sync-completed 事件监听器（响应方入站同步完成通知）。
    *  后端在响应方成功完成一次入站会话时 emit（两侧同时提醒，与发起方 toast 对称）；
    *  这里写入 lastResult/recentResults（结果行展示具体条数）+ 全局 toast + 刷新状态/冲突。
+   *  C：同一 peer 短窗口内多个事件合并（一次「立即同步」被多个自动同步源叠加触发时
+   *  后端产生多个入站会话），只弹一次 toast、只写一条历史，计数累加展示完整交换量。
    *  返回 unlisten 函数，调用方应在组件卸载时调用以清理。 */
   initSyncCompletedListener: (): Promise<UnlistenFn> => {
     return listen<{
@@ -460,23 +476,80 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
       applied: number;
       skipped: number;
       conflicts: number;
+      outboundRecords: number;
     }>('sync-completed', (event) => {
       const p = event.payload;
+      const outbound = p.outboundRecords ?? 0;
+      const now = Date.now();
+      // 先清理过期条目，防止高频会话场景 Map 无限增长
+      for (const [k, v] of syncCompletedMergeCache) {
+        if (now - v.lastAt > SYNC_COMPLETED_MERGE_WINDOW_MS) {
+          syncCompletedMergeCache.delete(k);
+        }
+      }
+      const cached = syncCompletedMergeCache.get(p.peerNodeId);
+      const isMerge =
+        !!cached && now - cached.lastAt <= SYNC_COMPLETED_MERGE_WINDOW_MS;
+      if (isMerge) {
+        // 同一 peer 短窗口内再次完成会话：累加计数（完整交换量），不重复弹
+        // toast、不重复写历史。仅刷新 lastResult 与状态/冲突，让「与设备同步」
+        // 结果行展示累计后的双向完整条数。
+        const merged = cached!.merged;
+        merged.examined += p.examined;
+        merged.applied += p.applied;
+        merged.skipped += p.skipped;
+        merged.conflictCount = (merged.conflictCount ?? 0) + (p.conflicts ?? 0);
+        merged.outboundRecords = (merged.outboundRecords ?? 0) + outbound;
+        merged.summary = `examined=${merged.examined}, applied=${merged.applied}, skipped=${merged.skipped}, conflicts=${merged.conflictCount}, outbound=${merged.outboundRecords}`;
+        cached!.lastAt = now;
+        // 注意：merged 与首事件写入历史的是同一对象引用，原地累加后历史条目
+        // 自动展示合并后的完整交换量（lastResult 浅拷贝另存）。toast 只在首事件
+        // 弹一次、展示首会话计数——多源叠加场景下这是可接受的取舍（避免延迟聚合 toast）。
+        set({ lastResult: { ...merged } });
+        get()
+          .loadStatus()
+          .catch((err) =>
+            logger.warn('[syncStore] status refresh after merged inbound sync:', err),
+          );
+        // 合并事件若携带新冲突，同样刷新冲突列表（与首事件分支对齐）
+        if (p.conflicts > 0) {
+          get()
+            .loadConflicts()
+            .catch((err) =>
+              logger.warn('[syncStore] conflicts refresh after merged inbound sync:', err),
+            );
+        }
+        return;
+      }
       // 构造与本地同步同形的结果（inbound 标记让同步页通用 toast 跳过，避免双弹）
       const result: SyncResult = {
-        summary: `examined=${p.examined}, applied=${p.applied}, skipped=${p.skipped}, conflicts=${p.conflicts}`,
+        summary: `examined=${p.examined}, applied=${p.applied}, skipped=${p.skipped}, conflicts=${p.conflicts}, outbound=${outbound}`,
         examined: p.examined,
         applied: p.applied,
         skipped: p.skipped,
         conflicts: [],
         per_table: [],
         inbound: true,
+        outboundRecords: outbound,
+        conflictCount: p.conflicts ?? 0,
       };
+      syncCompletedMergeCache.set(p.peerNodeId, { lastAt: now, merged: result });
+      // C：全 0 交换（检查/应用/跳过/发回均为 0）不弹 toast、不写历史——
+      // 无实际数据交换的会话不值得打扰用户（也不产生可读的结果行）。
+      const allZero =
+        result.examined === 0 &&
+        result.applied === 0 &&
+        result.skipped === 0 &&
+        outbound === 0;
+      if (allZero) {
+        return;
+      }
       set((state) => ({
         lastResult: result,
         recentResults: pushSyncHistory([result, ...state.recentResults]),
       }));
-      // 全局完成提醒（B 侧用户不在同步页也能看到）
+      // 全局完成提醒（B 侧用户不在同步页也能看到）；展示双向完整交换量
+      // （入站方向 + 发回对端方向），避免旧版「检查 0 条」误导。
       useUiStore.getState().showToast({
         type: 'success',
         message:
@@ -484,6 +557,7 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
             examined: p.examined,
             applied: p.applied,
             skipped: p.skipped,
+            outbound,
             defaultValue: 'Inbound sync completed',
           }),
       });

@@ -17,7 +17,7 @@ vi.mock('@tauri-apps/api/event', () => ({
   }),
 }));
 
-import { useSyncStore } from './syncStore';
+import { useSyncStore, __resetSyncCompletedMergeForTest } from './syncStore';
 import { useUiStore } from '@/stores/uiStore';
 
 describe('syncStore pairing_pending detection', () => {
@@ -191,6 +191,8 @@ describe('syncStore initSyncCompletedListener', () => {
     handlers.clear();
     mockInvoke.mockReset();
     mockUnlisten.mockClear();
+    // 清空跨窗口合并缓存，模拟新会话窗口（避免上个用例的 node-A 条目污染本用例）
+    __resetSyncCompletedMergeForTest();
     useSyncStore.setState({ lastResult: null, recentResults: [] });
   });
 
@@ -213,7 +215,16 @@ describe('syncStore initSyncCompletedListener', () => {
     const handler = handlers.get('sync-completed');
     expect(handler).toBeDefined();
 
-    handler!({ payload: { peerNodeId: 'node-A', examined: 12, applied: 10, skipped: 2, conflicts: 1 } });
+    handler!({
+      payload: {
+        peerNodeId: 'node-A',
+        examined: 12,
+        applied: 10,
+        skipped: 2,
+        conflicts: 1,
+        outboundRecords: 5,
+      },
+    });
 
     const s = useSyncStore.getState();
     // 入站结果写入 lastResult（结果行展示具体条数），inbound 标记避免同步页通用 toast 双弹
@@ -221,6 +232,9 @@ describe('syncStore initSyncCompletedListener', () => {
     expect(s.lastResult!.examined).toBe(12);
     expect(s.lastResult!.applied).toBe(10);
     expect(s.lastResult!.skipped).toBe(2);
+    expect(s.lastResult!.conflictCount).toBe(1);
+    // B：发回对端条数随结果携带（结果行/历史面板展示完整交换量）
+    expect(s.lastResult!.outboundRecords).toBe(5);
     expect(s.lastResult!.inbound).toBe(true);
     // 全局 toast（B 侧不在同步页也能收到）。测试环境 locale 可能未加载
     // sync_completed_inbound 键（t() 返回 key 串），只断言 toast 已触发。
@@ -230,6 +244,85 @@ describe('syncStore initSyncCompletedListener', () => {
 
     // 冲突刷新路径被触发
     expect(mockInvoke).toHaveBeenCalledWith('sync_list_conflicts');
+
+    toastSpy.mockRestore();
+    expect(unlisten).toBe(mockUnlisten);
+  });
+
+  it('merges duplicate sync-completed events from same peer within window (C)', async () => {
+    // 一次「立即同步」被多个自动同步源叠加触发 → 同一 peer 短窗口内多个事件：
+    // 只弹一次 toast、只写一条历史，计数累加（完整交换量）。
+    mockInvoke.mockResolvedValue({});
+    const toastSpy = vi
+      .spyOn(useUiStore.getState(), 'showToast')
+      .mockImplementation(() => {});
+
+    const unlisten = await useSyncStore.getState().initSyncCompletedListener();
+    const handler = handlers.get('sync-completed');
+    expect(handler).toBeDefined();
+
+    // 事件 1：入站 12 条 + 发回 5 条
+    handler!({
+      payload: {
+        peerNodeId: 'node-A',
+        examined: 12,
+        applied: 10,
+        skipped: 2,
+        conflicts: 1,
+        outboundRecords: 5,
+      },
+    });
+    // 事件 2：同 peer 窗口内（合并，不重复 toast/历史）——入站 0 条 + 发回 8 条
+    handler!({
+      payload: {
+        peerNodeId: 'node-A',
+        examined: 0,
+        applied: 0,
+        skipped: 0,
+        conflicts: 0,
+        outboundRecords: 8,
+      },
+    });
+
+    const s = useSyncStore.getState();
+    // 只弹一次 toast
+    expect(toastSpy).toHaveBeenCalledTimes(1);
+    // 只写一条历史
+    expect(s.recentResults.length).toBe(1);
+    // 计数累加：入站 12 + 发回 13
+    expect(s.lastResult!.examined).toBe(12);
+    expect(s.lastResult!.outboundRecords).toBe(13);
+    expect(s.lastResult!.conflictCount).toBe(1);
+
+    toastSpy.mockRestore();
+    expect(unlisten).toBe(mockUnlisten);
+  });
+
+  it('skips toast and history for all-zero exchange (C)', async () => {
+    // 无实际数据交换的会话（检查/应用/跳过/发回全 0）不弹 toast、不写历史
+    const toastSpy = vi
+      .spyOn(useUiStore.getState(), 'showToast')
+      .mockImplementation(() => {});
+
+    const unlisten = await useSyncStore.getState().initSyncCompletedListener();
+    const handler = handlers.get('sync-completed');
+    expect(handler).toBeDefined();
+
+    handler!({
+      payload: {
+        peerNodeId: 'node-Zero',
+        examined: 0,
+        applied: 0,
+        skipped: 0,
+        conflicts: 0,
+        outboundRecords: 0,
+      },
+    });
+
+    const s = useSyncStore.getState();
+    expect(toastSpy).not.toHaveBeenCalled();
+    expect(s.lastResult).toBeNull();
+    expect(s.recentResults.length).toBe(0);
 
     toastSpy.mockRestore();
     expect(unlisten).toBe(mockUnlisten);

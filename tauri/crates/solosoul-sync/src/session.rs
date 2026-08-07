@@ -238,7 +238,8 @@ pub fn run_initiator_session(
     };
 
     // 先发送本地变更。
-    send_paginated_deltas(
+    // B：返回值为本次会话发往对端的记录条数（发起方侧不展示，忽略即可）。
+    let _outbound_records = send_paginated_deltas(
         &mut session,
         transport,
         &vault,
@@ -471,7 +472,9 @@ pub fn handle_inbound(
     }
 
     // 再发送本地变更。
-    send_paginated_deltas(
+    // B：统计响应方发回给发起方的记录条数，随会话结果通知前端展示完整交换量
+    // （响应方 toast 此前只含入站方向计数，发回方向缺失导致「检查 0 条」误导）。
+    let outbound_records = send_paginated_deltas(
         &mut session,
         transport,
         &vault,
@@ -479,7 +482,7 @@ pub fn handle_inbound(
         node_id,
         &peer_node_id,
         session_start,
-    )?;
+    )? as u64;
 
     let base = vault.base_path();
     let attachment_stats =
@@ -501,6 +504,8 @@ pub fn handle_inbound(
 
     Ok(InboundSessionOutcome {
         peer_node_id: peer_node_id.clone(),
+        // B：本次响应方会话发回给发起方的记录条数（完整交换量的一侧）。
+        outbound_records,
         result: SyncSessionResult {
             data: apply_stats,
             attachments: attachment_stats,
@@ -554,7 +559,10 @@ fn send_paginated_deltas(
     node_id: &str,
     peer_node_id: &str,
     session_start: Instant,
-) -> Result<(), String> {
+) -> Result<usize, String> {
+    // B：统计本次发送的记录条数（所有表/页的 records 总和），供响应方
+    // 完成事件携带「发回对端条数」，使两侧展示完整交换量。
+    let mut sent_records = 0usize;
     // N-1：回退行节点必须与 peer watermark 落库格式一致（hex 编码的 16 字节节点）。
     // 原始 node_id（随机 UUID）与 hex 字节串永不相等，会让存储层 keyset 等值组分支
     // 永远不触发——等 ms 回退行组在页边界处要么死循环、要么静默漏发。
@@ -593,6 +601,7 @@ fn send_paginated_deltas(
             if let Some(last) = page.records.last() {
                 last_row_id = Some(last.id.clone());
             }
+            sent_records += page.records.len();
 
             send_msg(
                 session,
@@ -648,7 +657,8 @@ fn send_paginated_deltas(
             e
         );
     }
-    send_msg(session, transport, &SyncMessage::Done)
+    send_msg(session, transport, &SyncMessage::Done)?;
+    Ok(sent_records)
 }
 
 /// 派生对端显示名：fingerprint 非空 → SoloSoul-<fp 前 8 位>，否则回退到地址。

@@ -399,6 +399,8 @@ impl MobileSyncManager {
                                     applied: outcome.result.data.applied,
                                     skipped: outcome.result.data.skipped,
                                     conflicts: outcome.result.data.conflicts.len() as u64,
+                                    // B：响应方发回给发起方的记录条数（完整交换量）。
+                                    outbound_records: outcome.outbound_records,
                                 });
                             }
                         }

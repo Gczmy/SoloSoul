@@ -62,6 +62,12 @@ export interface SyncResult {
   /** 客户端侧标记：true 表示该结果来自入站同步完成事件（sync-completed），
    *  而非本端主动发起的同步。同步页据此跳过通用「同步完成」toast 避免双弹。 */
   inbound?: boolean;
+  /** B：响应方（入站会话）本次发回给发起方的记录条数。仅入站结果携带
+   *  （发起方结果无此字段），展示完整交换量避免「检查 0 条」误导。 */
+  outboundRecords?: number;
+  /** 入站事件的冲突数（SyncConflict[] 在入站路径为空数组，事件单独携带计数）。
+   *  展示时优先本字段，缺失时回退 conflicts.length。 */
+  conflictCount?: number;
 }
 
 export interface AccountInfo {
