@@ -30,8 +30,11 @@ pub fn send_chat_stream(
     messages: &[serde_json::Value],
     on_event: &dyn Fn(LlmStreamEvent),
 ) -> Result<(), String> {
+    // P030: 此前 timeout(None)——慢速滴流可永久挂起阻塞线程。
+    // 本实现经 process_sse 整包读入后解析，请求级 timeout 即覆盖
+    // 连接 + 响应体读取全程，设 120s 总上限（正常 SSE 对话远低于此）。
     let client = reqwest::blocking::Client::builder()
-        .timeout(None)
+        .timeout(std::time::Duration::from_secs(120))
         .build()
         .map_err(|e| format!("Client build error: {}", e))?;
 
