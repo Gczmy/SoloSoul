@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-07（P000-P001/P004-P005/P007/P009-P011/P013-P015 已修复）
+> 最后更新：2026-08-07（P000-P001/P004-P005/P007/P009-P015 已修复，P012 闭环）
 > 当前分支：`main`
 > 修复轮次：1（初始分析）
 > 基线版本：v2.8.5（HEAD `cdc6afb6`）
@@ -40,7 +40,7 @@
 | P009 | P1 | 死代码 | `tauri/src-tauri/src/commands/export_import/import.rs:177-198` | `import_execute` 为 `#[tauri::command]` 但未在 `lib.rs` 注册、前端无调用，已被 `import_execute_advanced` 取代 | `[x]` 已修复（删除死命令，审计日志 action 名保留） |
 | P010 | P1 | 死代码 | `tauri/crates/solosoul-crypto/src/cipher.rs:141`、`aes.rs:96,135` | `encrypt_chunked_to_bytes`/`encrypt_chunked_blob`/`decrypt_chunked_blob` 仅测试引用（存疑：可能有意保留对称 API） | `[x]` 已修复（用户确认删除：函数+仅引用测试+re-export） |
 | P011 | P1 | 架构 | `tauri/src/stores/syncStore.ts:466-571` | 入站同步完成后不刷新 `objectStore`，工作区显示过期数据直至重新导航 | `[x]` 已修复（applied>0 时 loadObjects + 清详情缓存，首事件与合并分支） |
-| P012 | P1 | 规范 | `tauri/src/components/settings/BiometricSection.tsx:330-417`、`PinSection.tsx:278-327` | 两处自行实现主密码验证对话框，未用共享 `PasswordVerificationDialog`（违反硬约定） | `[ ]` 待修复 |
+| P012 | P1 | 规范 | `tauri/src/components/settings/BiometricSection.tsx:330-417`、`PinSection.tsx:278-327` | 两处自行实现主密码验证对话框，未用共享 `PasswordVerificationDialog`（违反硬约定） | `[x]` 已修复（3 处手写密码浮层迁移共享组件，向导式流程保留自绘） |
 | P013 | P1 | 死代码 | `uiStore.ts:24-90`、`llmStore.ts:22,86`、`templateStore.ts:26,94`、`ocrScanStore.ts:38-40,148-150` | 多个 store 状态/action 仅被测试引用，生产零引用 | `[x]` 已修复（用户确认删除：8 项死状态/action + 对应测试块） |
 | P014 | P1 | 规范 | `AGENTS.md`（敏感数据分级节约定） | AGENTS.md 强制要求的 `SensitiveValueWidget`/`SensitivityBlurredWidget`/`SensitivityTag` 组件不存在，实际掩码机制是 `useRevealState`+`SensitivityBadge`；文档称 6 级敏感度，实现为 4 级 | `[x]` 已修复（AGENTS.md 更新为实际 4 级 + useRevealState/SensitivityBadge 约定） |
 | P015 | P1 | 安全 | `tauri/src-tauri/src/commands/export_import/import.rs:230`、`export_import/mod.rs:112`、`solosoul-sync/src/recovery.rs:46-49` | 导入/导出/恢复密码未走 `Zeroizing` 模式（auth 已全部 P031 化，这三处遗漏） | `[x]` 已修复（导入/恢复 IPC 边界 Zeroizing；RecoveryHost.recovery_password Zeroizing） |
@@ -77,8 +77,8 @@
 
 ## 修复进度
 
-- 已完成：12 / 46（P045 为合并占位，实际待修复 45 项）
-- 当前处理：P000-P015 中 11 项已闭环（含 P009/P010/P013 删除）→ P012
+- 已完成：13 / 46（P045 为合并占位，实际待修复 45 项）
+- 当前处理：P000-P015 全部闭环（12 项 + P045 合并）→ P002
 
 ---
 
@@ -171,9 +171,12 @@
 ### P012（P1 · 规范）两处自行实现密码验证对话框
 
 - **位置**：`tauri/src/components/settings/BiometricSection.tsx:330-417`（约 90 行手写浮层）、`PinSection.tsx:278-327` 及 447 附近
-- **对比**：共享组件 `PasswordVerificationDialog.tsx`（618 行，含 PIN 回退、自动锁定暂停、密码提示）仅在 `ObjectWorkspacePage.tsx:359`、`ObjectDetailModal.tsx:498` 被使用。
-- **影响**：三份密码验证 UI 并存，行为不一致风险（两处手写版各自 import `useAutoLockPauseStore` 正是复制成本的体现）。
-- **建议**：迁移到 `PasswordVerificationDialog`（自定义 title/onVerified 回调即可覆盖）。
+- **修复**：3 处手写密码浮层全部迁移到共享 `PasswordVerificationDialog`：
+  1. `BiometricSection`：开关触发的启用/禁用生物识别验证（约 90 行手写浮层 + 独立 `bioPw`/`error` state）→ 共享组件 `onVerify` 回调；错误文案经新增 `errorMessage` prop 透传（`getBiometricErrorMessage` 语义保留），输入变化经 `onPasswordChange` 清空。
+  2. `PinSection` 设置向导密码验证段：手写浮层 → 共享组件；新增 `onVerifySuccess` prop（验证成功后保持对话框打开、推进向导到 PIN 输入步骤）以满足多步向导需求。
+  3. `PinSection` 禁用 PIN 对话框（约 60 行手写浮层）→ 共享组件。
+- **共享组件增量**（向后兼容，既有调用点不变）：`errorMessage`（优先于内置 `auth:incorrect_password`）、`onPasswordChange`、`onVerifySuccess` 三个可选 prop。
+- **验证**：tsc 0 错误、eslint 0 警告、settings/forms/object 48 用例通过。
 
 ### P013（P1 · 死代码）store 仅测试引用的状态/action
 

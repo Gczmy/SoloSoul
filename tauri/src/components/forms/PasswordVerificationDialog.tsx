@@ -17,6 +17,11 @@ interface PasswordVerificationDialogProps {
   onClose: () => void;
   /** Called with the password. Return true to confirm, false to reject */
   onVerify: (password: string) => Promise<boolean>;
+  /**
+   * onVerify 返回 true 后回调（用于「验证成功后继续向导而非关闭」的多步流程，
+   * 如 PIN 设置向导；不传则维持默认行为：验证成功即关闭）。
+   */
+  onVerifySuccess?: () => void;
   /** Customizable text overrides — all i18n-able via parent */
   title?: string;
   description?: string;
@@ -31,6 +36,14 @@ interface PasswordVerificationDialogProps {
   pinAccountId?: string;
   /** Called when PIN unlock succeeds (instead of onClose, which always reports ok=false) */
   onPinSuccess?: () => void;
+  /**
+   * 动态错误文案（优先于内置 auth:incorrect_password）。
+   * 用于父组件需要展示自定义错误语义的场景（如生物识别错误码、锁定提示），
+   * 父组件在 onVerify 返回 false 前设置；密码输入变化时需自行清空（或使用 onPasswordChange）。
+   */
+  errorMessage?: string | null;
+  /** 密码输入变化回调（父组件用于清空自定义 errorMessage）。 */
+  onPasswordChange?: () => void;
 }
 
 /** 生物识别类型的可读标签映射 */
@@ -71,6 +84,9 @@ export function PasswordVerificationDialog({
   onBiometric,
   pinAccountId,
   onPinSuccess,
+  errorMessage,
+  onPasswordChange,
+  onVerifySuccess,
 }: PasswordVerificationDialogProps) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -213,7 +229,12 @@ export function PasswordVerificationDialog({
       const ok = await onVerify(password);
       if (ok) {
         setPassword('');
-        onClose();
+        if (onVerifySuccess) {
+          // 多步向导：验证成功后保持对话框打开，由父组件推进下一步
+          onVerifySuccess();
+        } else {
+          onClose();
+        }
       } else {
         setError(t('auth:incorrect_password'));
       }
@@ -489,9 +510,10 @@ export function PasswordVerificationDialog({
                 onChange={(v) => {
                   setPassword(v);
                   setError(null);
+                  onPasswordChange?.();
                 }}
                 placeholder={t('common:password_placeholder')}
-                error={error}
+                error={errorMessage ?? error}
                 // SoloSoul 主密码非网站密码：禁用浏览器/密码管理器自动填充（current-password 会显示历史密码明文）
                 autoComplete="off"
                 hint={hint}

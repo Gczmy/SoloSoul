@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { SecurePasswordInput } from '@/components/forms/PasswordInput';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useToastError } from '@/hooks/useToastError';
@@ -10,9 +9,10 @@ import { getBiometricErrorMessage } from '@/lib/biometricError';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { Fingerprint, ShieldCheck, ScanFace, AlertTriangle } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/constants';
-import { useAutoLockPauseStore } from '@/stores/autoLockPauseStore';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
 import { isMobilePlatformSync } from '@/lib/platform';
+import { useAutoLockPauseStore } from '@/stores/autoLockPauseStore';
+import { PasswordVerificationDialog } from '@/components/forms/PasswordVerificationDialog';
 
 interface BiometricSectionProps {
   accountId: string;
@@ -44,12 +44,10 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
   const updateSetting = useSettingsStore((s) => s.updateSetting);
 
   const [bioAvailable, setBioAvailable] = useState<BioAvailability | null>(null);
-  const [bioLoading, setBioLoading] = useState(false);
   const [showBioPwDialog, setShowBioPwDialog] = useState(false);
-  const [bioPw, setBioPw] = useState('');
   const [bioAction, setBioAction] = useState<'enable' | 'disable' | null>(null);
   const [bioMode, setBioMode] = useState<BioMode>('strong');
-  const [error, setError] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Password hint for the biometric verification dialog
   const currentAccount = useAuthStore((s) => s.currentAccount);
@@ -93,25 +91,19 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
     } else {
       setBioAction(configured ? 'disable' : 'enable');
     }
-    setBioPw('');
-    setError(null);
+    setErrorMessage(null);
     setShowBioPwDialog(true);
   };
 
-  const handleBioConfirm = async () => {
-    if (!bioPw) return;
-    setBioLoading(true);
-    setError(null);
-    // 启用生物识别时会触发系统原生验证弹窗（Android Keystore 绑定），
-    // 应用会切到后台，暂停自动锁定防止 visibilitychange 误锁
-    const { pause, resume } = useAutoLockPauseStore.getState();
-    pause();
+  /** 共享 PasswordVerificationDialog 的验证回调：返回 true 关闭，false 保持打开并显示 errorMessage */
+  const handleBioVerify = async (password: string): Promise<boolean> => {
+    setErrorMessage(null);
     try {
       const rawType = bioMode === 'weak' ? 'faceId' : bioAvailable?.biometryType || 'touchId';
       if (bioAction === 'enable') {
         await invoke('biometric_save_credential', {
           accountId: accountId,
-          password: bioPw,
+          password,
           location: 'settings_page',
           action: 'enable',
           biometryType: rawType,
@@ -124,7 +116,7 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
       } else {
         await invoke('biometric_delete_credential', {
           accountId: accountId,
-          password: bioPw,
+          password,
           location: 'settings_page',
           action: 'disable',
           biometryType: rawType,
@@ -134,20 +126,18 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
         await updateSetting(accountId, 'biometricEnabled', !!(r?.strongConfigured || r?.weakConfigured));
         onSuccess(t('settings:biometric_disabled_toast', { type: modeType }));
       }
-      setShowBioPwDialog(false);
+      return true;
     } catch (e) {
       const msg = String(e);
       if (
         msg.toLowerCase().includes('invalid password') ||
         msg.toLowerCase().includes('incorrect')
       ) {
-        setError(t('settings:current_password_incorrect'));
+        setErrorMessage(t('settings:current_password_incorrect'));
       } else {
-        setError(getBiometricErrorMessage(e, t));
+        setErrorMessage(getBiometricErrorMessage(e, t));
       }
-    } finally {
-      resume();
-      setBioLoading(false);
+      return false;
     }
   };
 
@@ -326,95 +316,23 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
 
       </Card>
 
-      {/* Biometric password verification dialog */}
-      {showBioPwDialog && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 'var(--z-modal-important)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            background: 'rgba(0,0,0,0.45)',
-            backdropFilter: 'blur(6px)',
-          }}
-        >
-          <div
-            style={{
-              background: 'var(--bg-elevated)',
-              color: 'var(--text-primary)',
-              fontFamily: 'inherit',
-              borderRadius: 16,
-              padding: '28px 32px',
-              maxWidth: 380,
-              width: '90%',
-              boxShadow: 'var(--shadow-lg)',
-              border: '1px solid var(--border-subtle)',
-            }}
-          >
-            <h3
-              style={{
-                fontSize: 'var(--text-md)',
-                fontWeight: 600,
-                marginBottom: 12,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-              }}
-            >
-              {bioMode === 'weak' ? (
-                <ScanFace size={ICON_SIZE.xl} />
-              ) : (
-                <Fingerprint size={ICON_SIZE.xl} />
-              )}
-              {bioAction === 'enable'
-                ? t('settings:biometric_enable_prompt', { type: modeType })
-                : t('settings:biometric_disable_prompt', { type: modeType })}
-            </h3>
-            <SecurePasswordInput
-              label={t('common:current_password')}
-              value={bioPw}
-              onChange={(v) => {
-                setBioPw(v);
-                setError(null);
-              }}
-              placeholder={t('common:password_placeholder')}
-              // SoloSoul 主密码非网站密码：禁用自动填充（current-password 会显示历史密码明文）
-              autoComplete="off"
-              showHintButton={true}
-              hint={passwordHint}
-              onEnter={handleBioConfirm}
-            />
-            {error && (
-              <div
-                style={{
-                  color: '#dc2626',
-                  fontSize: 'var(--text-body-sm)',
-                  padding: '4px 0',
-                  marginTop: 8,
-                }}
-              >
-                {error}
-              </div>
-            )}
-            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 16 }}>
-              <Button
-                variant="secondary"
-                onClick={() => {
-                  setShowBioPwDialog(false);
-                  setError(null);
-                }}
-              >
-                {t('common:cancel')}
-              </Button>
-              <Button onClick={handleBioConfirm} loading={bioLoading} disabled={!bioPw}>
-                {t('common:confirm')}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Biometric password verification dialog（P012：统一走共享 PasswordVerificationDialog） */}
+      <PasswordVerificationDialog
+        open={showBioPwDialog}
+        onClose={() => {
+          setShowBioPwDialog(false);
+          setErrorMessage(null);
+        }}
+        onVerify={handleBioVerify}
+        title={
+          bioAction === 'enable'
+            ? t('settings:biometric_enable_prompt', { type: modeType })
+            : t('settings:biometric_disable_prompt', { type: modeType })
+        }
+        hint={passwordHint}
+        errorMessage={errorMessage}
+        onPasswordChange={() => setErrorMessage(null)}
+      />
     </>
   );
 }
