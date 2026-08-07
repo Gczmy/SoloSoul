@@ -1,9 +1,9 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-08 00:50:00
+> 最后更新：2026-08-08 01:05:00
 > 当前分支：`main`
 > 修复轮次：1（初始分析，按用户要求不恢复旧报告、全新生成）
-> 修复进度：P001-P009 已闭环（9/45）
+> 修复进度：P001-P010 已闭环（10/45）
 > 分析范围：`tauri/`（Rust 后端 + React/TS 前端）、`solosoul_cli/`；忽略 `node_modules/`、`target/`、`dist/`、`.vite/`、`*.min.js`、`*.wasm`
 
 ## 阶段 0 基线检查结果
@@ -25,7 +25,7 @@
 | P007 | P1 | 安全 | `solosoul_cli/src/commands/backup.rs:218-250` | `/backup create` 明文 profile 备份以默认权限（0644）落盘，未收紧 0600 | `[x]` 已修复 |
 | P008 | P1 | 正确性 | `solosoul_cli/src/commands/vault_write.rs:300-310` | `delete_page` 中子对象移入回收站失败被 `let _ =` 静默吞掉，页面照删 | `[x]` 已修复 |
 | P009 | P1 | 死代码 | `tauri/src-tauri/src/commands/ocr.rs:535,547`、`export_import/export.rs:704`、`template.rs:433`、`crates/solosoul-core/src/vault_service.rs:1651` | 3 个孤儿 Tauri Commands（无前端调用）+ 1 个仅测试使用的生产函数 | `[x]` 已修复 |
-| P010 | P1 | 重复代码 | `tauri/src/hooks/useUpdateChecker.ts:137-178` vs `useAppUpdate.ts:100-176` | 约 80 行 APK 下载/进度 Promise 封装近乎逐行重复，已开始各自打补丁发散 | `[ ]` 待修复 |
+| P010 | P1 | 重复代码 | `tauri/src/hooks/useUpdateChecker.ts:137-178` vs `useAppUpdate.ts:100-176` | 约 80 行 APK 下载/进度 Promise 封装近乎逐行重复，已开始各自打补丁发散 | `[x]` 已修复 |
 | P011 | P1 | 重复代码 | `tauri/src/components/object/AttachmentViewer.tsx:195-217` vs `tauri/src/hooks/useAttachmentManager.ts:186-208` | `handleDownload` 逐字符级重复（含动态 import、toast 文案） | `[ ]` 待修复 |
 | P012 | P1 | 重复代码 | `tauri/src/pages/sync/DeviceListPanel.tsx:128-151` vs `:329-352` | 约 40 行设备卡片 JSX（含键盘可访问性）整段重复 | `[ ]` 待修复 |
 | P013 | P1 | 可维护性 | `AttachmentViewer.tsx`(~660 行)、`LoginPage.tsx`(~654)、`ExportImportPage.tsx`(~643)、`PageGuide.tsx`(~615)、`useObjectWorkspaceData.ts`(~524)、`PasswordVerificationDialog.tsx`(~516) | 前端 6 个 500+ 行巨型组件/Hook | `[ ]` 待修复 |
@@ -64,10 +64,16 @@
 
 ## 修复进度
 
-- 已完成：9 / 45（P001-P009）
-- 当前处理：P010（APK 下载逻辑双实现抽取）
+- 已完成：10 / 45（P001-P010）
+- 当前处理：P011（附件 handleDownload 重复）
 
 ## 修复实施记录
+
+### P010（P1）APK 下载逻辑抽取共享封装 ✅
+
+- **改动**：`tauri/src/lib/updater.ts` 新增 `ensureApkDownloaded(version, url, checksum, onProgress)`——统一「检查已下载短路 → 启动事件驱动下载 → 等待 done 终态 → finally 清理 unlisten」逻辑，返回 boolean（true=本次实际下载）。`useUpdateChecker.ts` 与 `useAppUpdate.ts` 两处 80 行重复改写为单次调用。
+- **测试**：新增 `updater.test.ts` 4 用例——已下载短路、成功进度回调、失败 reject + 监听清理、成功终态。
+- **验证**：`tsc --noEmit` ✅ / eslint ✅ / `vitest updater.test.ts` 4 用例全过 ✅。
 
 ### P009（P1）孤儿 Tauri Commands 与仅测试函数删除 ✅
 

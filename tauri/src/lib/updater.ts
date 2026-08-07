@@ -191,6 +191,59 @@ export async function androidDownloadApk(
 }
 
 /**
+ * P010: Android APK 下载流程统一封装——两个 hook（useUpdateChecker / useAppUpdate）
+ * 曾各自重复实现「检查已下载 → 启动事件驱动下载 → 等待 done → 清理事件监听」约 80 行。
+ *
+ * 返回 true 表示本次完成了实际下载（调用方无需再查是否已下载）；
+ * 若 APK 已存在则直接返回 false（调用方据此跳转到安装阶段）。
+ *
+ * @param onProgress 下载进度回调（含 done/error 终态）。
+ * @param onSettled 可选：下载 promise 落定（成功或失败）后回调，用于清理/标记。
+ */
+export async function ensureApkDownloaded(
+  version: string,
+  downloadUrl: string,
+  checksum: string,
+  onProgress?: (progress: ApkDownloadProgress) => void,
+): Promise<boolean> {
+  const alreadyDownloaded = await androidIsApkDownloaded(version);
+  if (alreadyDownloaded) {
+    return false;
+  }
+  // 启动下载（事件驱动进度），等待 done 终态；unlisten 用于完成后移除事件监听防止泄漏
+  let unlistenFn: UnlistenFn | undefined;
+  let settled = false;
+  try {
+    await new Promise<void>((resolve, reject) => {
+      androidDownloadApk(version, downloadUrl, checksum, (progress) => {
+        onProgress?.(progress);
+        if (progress.done && !settled) {
+          settled = true;
+          if (progress.error) {
+            reject(new Error(progress.error));
+          } else {
+            resolve();
+          }
+        }
+      })
+        .then((fn) => {
+          unlistenFn = fn;
+        })
+        .catch((err) => {
+          if (!settled) {
+            settled = true;
+            reject(err);
+          }
+        });
+    });
+  } finally {
+    // 无论成功或失败，都移除 Tauri 事件监听器，防止累积泄漏
+    unlistenFn?.();
+  }
+  return true;
+}
+
+/**
  * 安装已下载的 Android APK（调用系统包安装器）。
  */
 export async function androidInstallApk(version: string): Promise<void> {

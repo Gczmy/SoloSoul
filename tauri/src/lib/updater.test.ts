@@ -1,91 +1,104 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { checkForUpdate, downloadAndInstallUpdate } from './updater';
 
-const mockCheck = vi.fn();
-const mockRelaunch = vi.fn();
+const flushMicrotasks = () => new Promise<void>((r) => setTimeout(r, 0));
 
-vi.mock('@tauri-apps/plugin-updater', () => ({
-  check: () => mockCheck(),
+// 底层依赖 mock：ipcClient.invokeCommand + tauri event.listen，
+// ensureApkDownloaded 经 androidIsApkDownloaded/androidDownloadApk 走真实链路。
+const ipcMock = vi.hoisted(() => vi.fn());
+const listenMock = vi.hoisted(() => vi.fn());
+
+vi.mock('@/lib/ipcClient', () => ({
+  invokeCommand: ipcMock,
 }));
 
-vi.mock('@tauri-apps/plugin-process', () => ({
-  relaunch: () => mockRelaunch(),
+vi.mock('@tauri-apps/api/event', () => ({
+  listen: listenMock,
 }));
 
-describe('updater', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
+vi.mock('@/lib/logger', () => ({
+  logger: { warn: vi.fn(), error: vi.fn() },
+}));
+
+import { ensureApkDownloaded } from './updater';
+import type { ApkDownloadProgress } from './updater';
+
+beforeEach(() => {
+  vi.clearAllMocks();
+});
+
+/** 模拟 listen 注册后由外部触发一次进度事件（androidDownloadApk 取 event.payload）。 */
+function simulateProgress(
+  listener: (event: { payload: ApkDownloadProgress }) => void,
+  payload: ApkDownloadProgress,
+) {
+  listener({ payload });
+}
+
+describe('ensureApkDownloaded', () => {
+  it('APK 已下载时短路返回 false，不启动下载', async () => {
+    ipcMock.mockResolvedValue(true); // android_is_apk_downloaded -> true
+    const result = await ensureApkDownloaded('1.0.0', 'https://example.com/a.apk', '');
+    expect(result).toBe(false);
+    expect(listenMock).not.toHaveBeenCalled();
   });
 
-  describe('checkForUpdate', () => {
-    it('returns available result when an update is available', async () => {
-      mockCheck.mockResolvedValue({
-        version: '2.0.0',
-        body: 'Release notes',
-        date: '2026-06-13',
-      });
+  it('下载成功：返回 true，进度回调收到各阶段事件', async () => {
+    ipcMock.mockResolvedValue(false); // 未下载
+    // android_download_apk 触发（invoke<void>）；listen 注册回调
+    let registered: ((event: { payload: ApkDownloadProgress }) => void) | undefined;
+    listenMock.mockImplementation(
+      (_evt: string, cb: (event: { payload: ApkDownloadProgress }) => void) => {
+        registered = cb;
+        return Promise.resolve(() => {});
+      },
+    );
 
-      const result = await checkForUpdate();
-
-      const mockUpdate = {
-        version: '2.0.0',
-        body: 'Release notes',
-        date: '2026-06-13',
-      };
-
-      expect(result).toEqual({
-        kind: 'available',
-        info: {
-          version: '2.0.0',
-          body: 'Release notes',
-          date: '2026-06-13',
-        },
-        update: mockUpdate,
-      });
+    const seen: ApkDownloadProgress[] = [];
+    const p = ensureApkDownloaded('1.0.0', 'https://example.com/a.apk', 'abc123', (prog) => {
+      seen.push(prog);
     });
 
-    it('returns up-to-date result when no update is available', async () => {
-      mockCheck.mockResolvedValue(null);
+    // 等 listen 注册完成（androidDownloadApk 先 await listen 再返回）
+    await flushMicrotasks();
+    simulateProgress(registered!, { progress: 50, downloaded: 5, total: 10, done: false, error: null });
+    simulateProgress(registered!, { progress: 100, downloaded: 10, total: 10, done: true, error: null });
 
-      const result = await checkForUpdate();
-
-      expect(result).toEqual({ kind: 'up-to-date' });
-    });
-
-    it('returns error result and logs warning when check throws', async () => {
-      const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-      mockCheck.mockRejectedValue(new Error('network error'));
-
-      const result = await checkForUpdate();
-
-      expect(result).toEqual({
-        kind: 'error',
-        message: 'network error',
-      });
-      expect(consoleSpy).toHaveBeenCalledWith('[updater] check failed:', expect.any(Error));
-      consoleSpy.mockRestore();
-    });
+    const result = await p;
+    expect(result).toBe(true);
+    expect(seen.map((s) => s.progress)).toEqual([50, 100]);
   });
 
-  describe('downloadAndInstallUpdate', () => {
-    it('downloads, installs and relaunches when update is available', async () => {
-      const downloadAndInstall = vi.fn().mockResolvedValue(undefined);
-      mockCheck.mockResolvedValue({
-        version: '2.0.0',
-        downloadAndInstall,
-      });
+  it('下载失败（done + error）时 reject，并清理事件监听', async () => {
+    ipcMock.mockResolvedValue(false);
+    let registered: ((event: { payload: ApkDownloadProgress }) => void) | undefined;
+    const unlisten = vi.fn();
+    listenMock.mockImplementation(
+      (_evt: string, cb: (event: { payload: ApkDownloadProgress }) => void) => {
+        registered = cb;
+        return Promise.resolve(unlisten);
+      },
+    );
 
-      await downloadAndInstallUpdate();
+    const p = ensureApkDownloaded('1.0.0', 'https://example.com/a.apk', '');
+    await flushMicrotasks();
+    simulateProgress(registered!, { progress: 10, downloaded: 1, total: 10, done: true, error: 'disk full' });
 
-      expect(downloadAndInstall).toHaveBeenCalledWith(expect.any(Function));
-      expect(mockRelaunch).toHaveBeenCalled();
-    });
+    await expect(p).rejects.toThrow('disk full');
+    expect(unlisten).toHaveBeenCalledTimes(1);
+  });
 
-    it('throws when no update is available', async () => {
-      mockCheck.mockResolvedValue(null);
-
-      await expect(downloadAndInstallUpdate()).rejects.toThrow('No update available');
-      expect(mockRelaunch).not.toHaveBeenCalled();
-    });
+  it('未下载但无 downloadUrl 时由调用方处理（本函数不校验 URL，正常走下载）', async () => {
+    ipcMock.mockResolvedValue(false);
+    let registered: ((event: { payload: ApkDownloadProgress }) => void) | undefined;
+    listenMock.mockImplementation(
+      (_evt: string, cb: (event: { payload: ApkDownloadProgress }) => void) => {
+        registered = cb;
+        return Promise.resolve(() => {});
+      },
+    );
+    const p = ensureApkDownloaded('1.0.0', 'https://example.com/a.apk', '');
+    await flushMicrotasks();
+    simulateProgress(registered!, { progress: 100, downloaded: 1, total: 1, done: true, error: null });
+    await expect(p).resolves.toBe(true);
   });
 });

@@ -5,12 +5,10 @@ import type { Update } from '@tauri-apps/plugin-updater';
 import {
   checkForUpdate,
   androidCheckForUpdate,
-  androidDownloadApk,
   androidInstallApk,
-  androidIsApkDownloaded,
+  ensureApkDownloaded,
   type AndroidUpdateInfo,
 } from '@/lib/updater';
-import type { UnlistenFn } from '@tauri-apps/api/event';
 import { isMobilePlatformSync } from '@/lib/platform';
 import { ST_SKIPPED_VERSION } from '@/lib/constants';
 
@@ -97,55 +95,19 @@ export function useAppUpdate() {
         if (!info || !info.downloadUrl) {
           throw new Error('No download URL available');
         }
-        // 如果 APK 已下载过，直接进入安装阶段
-        const alreadyDownloaded = await androidIsApkDownloaded(updateState.version);
-        if (alreadyDownloaded) {
-          setUpdateState((prev) =>
-            prev.kind === 'downloading'
-              ? { ...prev, kind: 'downloaded' as const, progressPercent: 100 }
-              : prev,
-          );
-          return;
-        }
-        // 下载 APK，完成后 resolve；unlistenFn 用于在完成后移除事件监听器防止泄漏
-        let unlistenFn: UnlistenFn | undefined;
-        let settled = false;
-        const downloadUrl = info.downloadUrl;
-        try {
-          await new Promise<void>((resolve, reject) => {
-            androidDownloadApk(updateState.version, downloadUrl, info.checksum, (progress) => {
-              setUpdateState((prev) => {
-                if (prev.kind !== 'downloading') return prev;
-                return {
-                  ...prev,
-                  downloadedBytes: progress.downloaded,
-                  totalBytes: progress.total,
-                  progressPercent: progress.progress,
-                };
-              });
-              if (progress.done && !settled) {
-                settled = true;
-                if (progress.error) {
-                  reject(new Error(progress.error));
-                } else {
-                  resolve();
-                }
-              }
-            })
-              .then((fn) => {
-                unlistenFn = fn;
-              })
-              .catch((err) => {
-                if (!settled) {
-                  settled = true;
-                  reject(err);
-                }
-              });
+        // P010: 统一封装——检查已下载、事件驱动下载、清理监听；
+        // 返回 true 表示实际下载完成，false 表示 APK 已存在直接进入安装阶段。
+        await ensureApkDownloaded(updateState.version, info.downloadUrl, info.checksum, (progress) => {
+          setUpdateState((prev) => {
+            if (prev.kind !== 'downloading') return prev;
+            return {
+              ...prev,
+              downloadedBytes: progress.downloaded,
+              totalBytes: progress.total,
+              progressPercent: progress.progress,
+            };
           });
-        } finally {
-          // 无论成功或失败，都移除 Tauri 事件监听器，防止累积泄漏
-          unlistenFn?.();
-        }
+        });
         setUpdateState((prev) =>
           prev.kind === 'downloading'
             ? { ...prev, kind: 'downloaded' as const, progressPercent: 100 }

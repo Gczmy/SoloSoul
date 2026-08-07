@@ -4,9 +4,8 @@ import {
   desktopCheckForUpdate,
   downloadAndInstallUpdate,
   androidCheckForUpdate,
-  androidDownloadApk,
   androidInstallApk,
-  androidIsApkDownloaded,
+  ensureApkDownloaded,
   type UpdateProgress,
   type ApkDownloadProgress,
 } from '@/lib/updater';
@@ -140,28 +139,18 @@ export function useUpdateChecker() {
         if (!targetVersion) {
           throw new Error('No target version available');
         }
-        const isDownloaded = await androidIsApkDownloaded(targetVersion);
-        if (!isDownloaded && versionInfo?.downloadUrl) {
-          // 启动下载（监听事件驱动进度），等待下载完成
-          await new Promise<void>((resolve, reject) => {
-            androidDownloadApk(
-              targetVersion,
-              versionInfo.downloadUrl!,
-              versionInfo.checksum || '',
-              (progress) => {
-                setDownloadProgress(progress);
-                setDownloadedBytes(progress.downloaded);
-                setTotalBytes(progress.total);
-                if (progress.done) {
-                  if (progress.error) {
-                    reject(new Error(progress.error));
-                  } else {
-                    resolve();
-                  }
-                }
-              },
-            ).catch(reject);
-          });
+        if (versionInfo?.downloadUrl) {
+          // P010: 统一封装——检查已下载、事件驱动下载、清理监听
+          await ensureApkDownloaded(
+            targetVersion,
+            versionInfo.downloadUrl,
+            versionInfo.checksum || '',
+            (progress) => {
+              setDownloadProgress(progress);
+              setDownloadedBytes(progress.downloaded);
+              setTotalBytes(progress.total);
+            },
+          );
         }
         // 安装已下载的 APK
         await androidInstallApk(targetVersion);
