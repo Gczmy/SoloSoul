@@ -95,19 +95,19 @@ pub async fn log_export(
     state: State<'_, AppState>,
     export_path: Option<String>,
 ) -> Result<String, String> {
-    let svc = state
-        .vault_service
-        .read()
-        .map_err(|_| "Vault service lock poisoned".to_string())?;
-    let vault_guard = svc.get_vault_store().ok_or("Vault not unlocked")?;
-    let vault = vault_guard.as_ref();
-
-    let entries = vault.list_audit_log(10000)?;
-    let json = serde_json::to_string_pretty(&entries).map_err(|e| e.to_string())?;
-
-    // R011: restrict export to the vault's logs directory; user-supplied paths are
-    // reduced to a single file name to prevent writing to arbitrary locations.
-    let logs_dir = svc.base_path().join("logs");
+    // P023: 块作用域取出所有权数据，守卫在 await 前释放（RwLockReadGuard 非 Send，
+    // 不能跨 await 存活）。
+    let (vault, logs_dir) = {
+        let svc = state
+            .vault_service
+            .read()
+            .map_err(|_| "Vault service lock poisoned".to_string())?;
+        let vault = svc.get_vault_store().ok_or("Vault not unlocked")?;
+        // R011: restrict export to the vault's logs directory; user-supplied paths are
+        // reduced to a single file name to prevent writing to arbitrary locations.
+        let logs_dir = svc.base_path().join("logs");
+        (vault, logs_dir)
+    };
     let path = if let Some(p) = export_path {
         let file_name = std::path::Path::new(&p)
             .file_name()
@@ -118,10 +118,19 @@ pub async fn log_export(
     } else {
         logs_dir.join("export_audit_log.json")
     };
-    std::fs::create_dir_all(&logs_dir).map_err(|e| e.to_string())?;
-    std::fs::write(&path, &json).map_err(|e| e.to_string())?;
 
-    Ok(path.to_string_lossy().to_string())
+    // P023: 逐行解密万行审计日志 + JSON 序列化 + 写盘为同步重 IO，移入 spawn_blocking。
+    let path_out = tokio::task::spawn_blocking(move || {
+        std::fs::create_dir_all(&logs_dir).map_err(|e| e.to_string())?;
+        let entries = vault.list_audit_log(10000)?;
+        let json = serde_json::to_string_pretty(&entries).map_err(|e| e.to_string())?;
+        std::fs::write(&path, &json).map_err(|e| e.to_string())?;
+        Ok::<_, String>(path.to_string_lossy().to_string())
+    })
+    .await
+    .map_err(|e| format!("log_export task failed: {e}"))??;
+
+    Ok(path_out)
 }
 
 #[cfg(test)]

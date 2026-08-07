@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-07（P000-P021 全部闭环，共 22 项；剩余 P022-P044 共 23 项待修）
+> 最后更新：2026-08-07（P000-P024 全部闭环，共 25 项；剩余 P025-P044 共 20 项待修）
 > 当前分支：`main`
 > 修复轮次：1（初始分析）
 > 基线版本：v2.8.5（HEAD `cdc6afb6`）
@@ -51,8 +51,8 @@
 | P020 | P2 | 规范 | `src-tauri/src/commands/llm/rag.rs`（8 处）、`llm/guide.rs:515,617` | `eprintln!` 绕过 tracing 日志体系，release GUI 中不可见 | `[x]` 已修复（10 处全量改 tracing::warn!，全库 grep 验收生产路径清零） |
 | P021 | P2 | 可维护性 | `crates/solosoul-core/src/watermark/mod.rs:345` | `WatermarkPosition::Tile => unreachable!()` 依赖上方守卫，守卫改动即生产 panic | `[x]` 已修复（Tile 分支改居中兜底，与 pdf_text_position 一致，注释说明守卫关系） |
 | P022 | P2 | 性能 | `crates/solosoul-plugin/src/manager.rs:568-572`、`sandbox.rs:33-46` | 插件 WASM 每次运行重新编译 + 每次从磁盘全量读入 | `[ ]` 待修复 |
-| P023 | P2 | 性能 | `src-tauri/src/commands/log.rs:105` | `log_export` 在 async 命令内同步解密万行审计日志 + JSON 序列化 + 写盘 | `[ ]` 待修复 |
-| P024 | P2 | 性能 | `src-tauri/src/commands/fs.rs:183-231` | `fs_scan_directory` 在 async 命令内同步递归遍历目录 | `[ ]` 待修复 |
+| P023 | P2 | 性能 | `src-tauri/src/commands/log.rs:105` | `log_export` 在 async 命令内同步解密万行审计日志 + JSON 序列化 + 写盘 | `[x]` 已修复（重 IO 段移入 spawn_blocking，守卫块作用域 await 前释放） |
+| P024 | P2 | 性能 | `src-tauri/src/commands/fs.rs:183-231` | `fs_scan_directory` 在 async 命令内同步递归遍历目录 | `[x]` 已修复（递归遍历 + 逐文件 metadata 移入 spawn_blocking） |
 | P025 | P2 | 性能 | `src-tauri/src/commands/llm/rag.rs:144-147,230-232`、`solosoul-plugin/src/manager.rs:441,474` | RAG embedding 每次调用新建 `reqwest::Client`，重建 TLS 连接 | `[ ]` 待修复 |
 | P026 | P2 | 性能 | `crates/solosoul-core/src/ocr/model.rs:194` | OCR 每次 `scan_rgb` 重读并重解析 det 后处理配置 | `[ ]` 待修复 |
 | P027 | P2 | 性能 | `crates/solosoul-core/src/export_import.rs:324-328` | 导入包 payload 一次性全量入内存（密文+明文峰值 ~200MB，有 100MB 上限兜底） | `[ ]` 待修复 |
@@ -77,8 +77,8 @@
 
 ## 修复进度
 
-- 已完成：23 / 46（P045 为合并占位，实际待修复 45 项）
-- 当前处理：P000-P021 全部闭环（22 项 + P045 合并）→ 下一项 P022
+- 已完成：26 / 46（P045 为合并占位，实际待修复 45 项）
+- 当前处理：P000-P024 全部闭环（25 项 + P045 合并）→ 下一项 P025
 
 ---
 
@@ -286,11 +286,14 @@
 
 - **位置**：`src-tauri/src/commands/log.rs:105` — `list_audit_log(10000)` 逐行解密 + `to_string_pretty` + `fs::write` 全程同步。
 - **建议**：主体移入 `spawn_blocking`。
+- **修复**：路径解析（快速）留在 async 侧，`list_audit_log` + JSON 序列化 + 写盘移入 `spawn_blocking`；`RwLockReadGuard` 非 Send，经块作用域取出 `Arc<VaultStore>` 与 `logs_dir` 后在 await 前释放（此前 `drop(svc)` 写法编译器仍报跨 await 持有守卫，块作用域为权威解法）。
 
 ### P024（P2）`fs_scan_directory` 阻塞 worker
 
 - **位置**：`src-tauri/src/commands/fs.rs:183-231` — 同步递归遍历 + 逐文件 `metadata()`。
 - **建议**：移入 `spawn_blocking`。
+- **修复**：`resolve_allowed_path` 校验后，`scan_dir_recursive` 整体移入 `spawn_blocking`（`dir` 为所有权 PathBuf，直接 move 进闭包）。
+- **验证（P023+P024）**：clippy 0 警告、log 7 + fs 17 测试通过。
 
 ### P025（P2）RAG 每次新建 `reqwest::Client`
 
