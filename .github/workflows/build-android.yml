@@ -5,7 +5,7 @@ on:
     branches: [main]
     paths:
       - 'tauri/**'
-      - 'docs/android/**'
+      - 'docs/platform-mobile/**'
   pull_request:
     branches: [main]
     paths:

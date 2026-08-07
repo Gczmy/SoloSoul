@@ -10,6 +10,7 @@
 - Node.js 22+（与桌面端一致）
 - Rust 工具链（**强烈建议使用 rustup**，而非 Homebrew Rust）
 - Android Studio 2023.1+（含 SDK、NDK、模拟器）
+- 项目当前 `minSdk = 28`（Android 9.0+）
 
 ---
 
@@ -56,11 +57,11 @@ rustup target list --installed
      - Android SDK Build-Tools
      - Android SDK Platform-Tools
      - Android SDK Command-line Tools
-     - NDK (Side by side) — 建议 r26b 或 r27
+     - NDK (Side by side) — 建议 r26b+（当前项目使用 30.0.14904198）
      - Android Emulator（如使用模拟器）
 3. 记录 NDK 实际路径，例如：
    ```
-   /Users/zzc/Library/Android/sdk/ndk/26.2.11394342
+   /Users/zzc/Library/Android/sdk/ndk/30.0.14904198
    ```
 
 ---
@@ -71,7 +72,7 @@ rustup target list --installed
 
 ```bash
 export ANDROID_HOME="$HOME/Library/Android/sdk"
-export NDK_HOME="$ANDROID_HOME/ndk/26.2.11394342"  # 替换为你的 NDK 版本目录
+export NDK_HOME="$ANDROID_HOME/ndk/30.0.14904198"  # 替换为你的 NDK 版本目录
 export PATH="$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools:$ANDROID_HOME/cmdline-tools/latest/bin:$PATH"
 ```
 
@@ -211,4 +212,4 @@ xcode-select --install
 
 ## 9. 下一步
 
-环境就绪后，按 `docs/android/android-port-guide.md` 中「待完成的关键步骤」进行 MVP 功能验证与修复。
+环境就绪后，参考 `docs/platform-mobile/README.md` 了解移动端各功能（同步 / OCR / 生物识别 / SAF 目录 / 自动更新）的当前实现状态与验证入口。
