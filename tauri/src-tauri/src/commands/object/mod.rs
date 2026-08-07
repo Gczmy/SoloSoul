@@ -455,6 +455,42 @@ pub fn record_to_data(record: &ObjectRecord) -> ObjectData {
 
 // ── Commands ───────────────────────────────────────────────
 
+/// P020：`object_list` 输出预览截断参数。
+/// 卡片预览最多展示前 `PREVIEW_FIELD_LIMIT` 个非 `__` 字段；`__*` 元数据
+/// （`__fields`/`__templateName`/`__deprecatedFields` 等）始终完整保留；
+/// 字符串值限长防单个超长字段撑爆 IPC 载荷。
+const PREVIEW_FIELD_LIMIT: usize = 8;
+const PREVIEW_VALUE_LIMIT: usize = 200;
+
+/// P020：把摘要 properties 截断为卡片预览形态。`list_objects` 内部不动——
+/// 导出/搜索/恢复等 Rust 内部调用方需要完整 properties；截断仅在 command 边界。
+fn truncate_preview_properties(props: &serde_json::Value) -> serde_json::Value {
+    let obj = match props.as_object() {
+        Some(o) => o,
+        None => return props.clone(),
+    };
+    let mut out = serde_json::Map::new();
+    let mut kept = 0usize;
+    for (k, v) in obj {
+        if k.starts_with("__") {
+            out.insert(k.clone(), v.clone());
+            continue;
+        }
+        if kept >= PREVIEW_FIELD_LIMIT {
+            continue;
+        }
+        kept += 1;
+        let limited = match v {
+            serde_json::Value::String(s) if s.len() > PREVIEW_VALUE_LIMIT => {
+                serde_json::Value::String(s.chars().take(PREVIEW_VALUE_LIMIT).collect())
+            }
+            other => other.clone(),
+        };
+        out.insert(k.clone(), limited);
+    }
+    serde_json::Value::Object(out)
+}
+
 #[tauri::command]
 pub async fn object_list(
     state: State<'_, AppState>,
@@ -474,14 +510,20 @@ pub async fn object_list(
     // P114: 全表 AES 解密 + JSON 解析移入 spawn_blocking，避免阻塞 tokio worker。
     tokio::task::spawn_blocking(move || {
         // Keyword search is done at SQL level — no N+1 queries
-        vault.list_objects(
+        let mut summaries = vault.list_objects(
             &account_id,
             type_id.as_deref(),
             parent_id.as_deref(),
             keyword.as_deref(),
             include_deleted,
             false,
-        )
+        )?;
+        // P020: 预览截断——卡片只需前 N 个字段，完整数据经 object_get 获取；
+        // 大幅削减 IPC 载荷（含敏感字段全文的 properties 不再整体过 IPC）。
+        for s in &mut summaries {
+            s.properties = truncate_preview_properties(&s.properties);
+        }
+        Ok(summaries)
     })
     .await
     .map_err(|e| format!("object_list task failed: {e}"))?

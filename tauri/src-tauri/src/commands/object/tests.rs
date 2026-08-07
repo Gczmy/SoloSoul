@@ -2202,3 +2202,39 @@ fn test_backfill_missing_property_labels_from_template() {
         Some("sensitive")
     );
 }
+
+#[test]
+fn test_truncate_preview_properties() {
+    // P020：非 `__` 字段截断到前 N 个、`__*` 元数据完整保留、字符串值限长。
+    let long = "x".repeat(500);
+    let props = serde_json::json!({
+        "field1": "v1",
+        "field2": "v2",
+        "field3": "v3",
+        "field4": "v4",
+        "field5": "v5",
+        "field6": "v6",
+        "field7": "v7",
+        "field8": "v8",
+        "field9": "v9", // 超出 PREVIEW_FIELD_LIMIT，应被截掉
+        "__fields": { "field1": { "name": "字段1", "type": "text" } },
+        "__templateName": "身份信息",
+        "__deprecatedFields": [],
+        "huge": long.clone(),
+    });
+    let out = truncate_preview_properties(&props);
+    let obj = out.as_object().unwrap();
+    // 9 个非 `__` 字段 → 恰好保留 8 个（Map 无序，按计数断言）
+    let non_meta: Vec<&String> = obj.keys().filter(|k| !k.starts_with("__")).collect();
+    assert_eq!(non_meta.len(), 8, "非 __ 字段应截断到 8 个，实际: {non_meta:?}");
+    // `__*` 元数据完整保留
+    for meta in ["__fields", "__templateName", "__deprecatedFields"] {
+        assert!(obj.contains_key(meta), "{meta} 应保留");
+    }
+    // 所有字符串值限长 200
+    for v in obj.values() {
+        if let Some(s) = v.as_str() {
+            assert!(s.len() <= 200, "字符串值应限长 200");
+        }
+    }
+}
