@@ -2,6 +2,50 @@
 
 All notable changes to SoloSoul are documented in this file.
 
+## [2.8.6] - 2026-08-07
+
+### Added
+
+- **设备同步「同步界面偏好」勾选框** — 同步页新增勾选「同步界面偏好」（主题、主题色、窗口大小等 UI 外观偏好），由用户决定是否随设备同步：勾选 → 发送侧剥离本机 UI 外观偏好、接收侧保留本机偏好（主题等不改动本机）；不勾选 → 偏好不参与同步。偏好写入 VaultService 热替换后开关自动重应用。
+- **已发现设备卡片增强** — 已发现设备卡片显示与客户端类型对应的设备图标（手机/笔记本），并支持点击打开详情弹窗（与已知设备一致，同一设备详情一致）。
+- **云端 LLM 隐私提示完整方案（P035）** — ① provider 编辑表单在 baseUrl 非本地（localhost/127.0.0.1）时显示橙色提示「对话内容将发送至该第三方服务，请确认其隐私政策」；② 首次启用云端 provider 前弹确认框（说明数据将发送至第三方服务、不经 SoloSoul 服务器中转），确认后同一设备不再重复拦截；本地 LLM 服务器（Ollama/LM Studio）不拦截。
+- **R2 代码审计新增 35 项修复闭环（P000-P035）** — 安全（P001 导出落盘路径白名单、P002 删除 legacy XOR 迁移路径、P003 APK 校验和独立签名、P012 密码验证浮层收敛、P015 导入/导出/恢复密码 Zeroizing、P031 LLM SSRF 内网段防护、P032 主密码解锁阶梯限流、P033 CSP 收紧、P034 前端密码 state 提交后置空）+ 性能（P004 插件 FieldResolver 惰性缓存、P005 导出附件批量命令、P007 附件复制/下载 spawn_blocking、P022 WASM 编译进程级缓存、P023/P024 重 IO spawn_blocking、P025 reqwest Client 共享、P026/P028 配置/字体缓存、P030 LLM 120s 超时）+ 重构（P016-P021、P036-P044 前端掩码/类型/对话框/吞错收敛）。
+
+### Fixed
+
+- **LLM 配置页内容约 1 秒后消失** — 后端 `llm_get_embed_models` 以 `#[serde(flatten)]` 序列化为扁平 snake_case 形状，前端类型误写为嵌套 camelCase 且渲染 `m.info.id`：真实数据（需网络拉取注册表约 1s）到达后重渲染抛 TypeError → 无 ErrorBoundary → React 整树卸载。前端对齐后端真实形状（扁平 + snake_case）+ 冒烟测试改用真实形状数据（负向验证确定性复现原崩溃），成为防回归测试。
+- **设备同步单向发现** — Android 能发现 macOS 但 macOS 看不到 Android：桌面发现层对无账户信息的 mDNS 服务放行展示（会话层仍严格校验 account_id，SAS 验证码兑底安全不受影响），安卓端广播补发 `account_hash`（TXT 可达时按哈希过滤）。
+- **同步完成 toast 去重** — 同一 peer 短窗口合并/丢弃 0 条 toast，macOS 端不再连续弹出 4 条「对端同步完成：检查 0 条」；响应方展示完整交换条数（发回条数由发起方汇总）。
+- **同步握手失败 detail i18n** — 「与设备握手失败：vault is locked」等后端英文错误不再原样透传，纳入 i18n 翻译。
+- **首页自定义卡片标题溢出** — 全数字长名称达到最大长度时轻微溢出卡片宽度，改为单行截断 + ellipsis。
+- **账户来源浮层「返回」改「返回登录」** — 创建新账户页的账户来源决策卡片「返回」按钮与「不，创建新账户」功能重叠，改为「返回登录」直接回登录页（首启无账户场景特殊处理：仅关闭浮层）。
+- **已发现/已知设备卡片细线边框** — 与卡片背景区分，视觉层级更清晰。
+- **同步状态卡设备信息紧凑排列** — 设备名/指纹/监听地址三行行间距过大，合并为单容器紧凑布局。
+
+### Performance
+
+- **插件 FieldResolver 惰性缓存（P004）** — 消除每字段全表解密放大。
+- **导出附件勾选批量命令（P005）** — N+1 逐对象查询 → `export_get_attachments_batch` 单次批量。
+- **附件复制/下载 spawn_blocking（P007）** — 大文件拷贝不再阻塞 tokio worker。
+- **WASM 编译进程级缓存（P022）** — 内容哈希键 + `Arc<Module>`，重复编译归零。
+- **重 IO 移出 async runtime（P023/P024）** — log_export、fs_scan_directory 移入 spawn_blocking。
+- **reqwest::Client 进程级共享（P025）** — OnceLock 单例 + 请求级 timeout。
+- **PDF 水印字体 / OCR 配置缓存（P026/P028）** — 消除每次 10-50MB TTC 读盘与每次扫描重读配置。
+
+### Refactor
+
+- **auto_sync_core 泛型调度内核（P017）** — SAF/设备双自动同步状态机合并。
+- **超长函数 7 处拆分（P018）** — 含 session 双端共用 helper 去重、AppState::new 拆分。
+- **前端掩码规则统一（P036）** — 三处收敛到 `lib/masking.ts` 单一规则源。
+- **前端镜像类型 10 组收敛（P037）** — 4 个新单源类型文件 + ObjectSummary 语义重命名。
+- **确认对话框 5 处收敛（P040）** — 薄封装统一到 `ui/ConfirmDialog`（portal/滚动锁定/Escape/动画）。
+- **AppRoutes 职责拆分（P041）** — 提取 useAppUpdate + useOcrFirstInstall。
+
+### Chores
+
+- 版本号同步升级到 2.8.6（versionCode 2008006）。
+- 59 个 commit 自 v2.8.5（`c73b119`）到 v2.8.6。
+
 ## [2.8.5] - 2026-08-06
 
 ### Added
