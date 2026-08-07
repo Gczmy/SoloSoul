@@ -1,9 +1,9 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-08 00:35:00
+> 最后更新：2026-08-08 00:50:00
 > 当前分支：`main`
 > 修复轮次：1（初始分析，按用户要求不恢复旧报告、全新生成）
-> 修复进度：P001-P008 已闭环（8/45）
+> 修复进度：P001-P009 已闭环（9/45）
 > 分析范围：`tauri/`（Rust 后端 + React/TS 前端）、`solosoul_cli/`；忽略 `node_modules/`、`target/`、`dist/`、`.vite/`、`*.min.js`、`*.wasm`
 
 ## 阶段 0 基线检查结果
@@ -24,7 +24,7 @@
 | P006 | P1 | 安全 | `solosoul_cli/src/screens/object_detail.rs:45,87-92` | CLI `/open` 对象详情只看对象级敏感度，字段级 sensitive/critical 明文渲染，违反 P036 掩码约定 | `[x]` 已修复 |
 | P007 | P1 | 安全 | `solosoul_cli/src/commands/backup.rs:218-250` | `/backup create` 明文 profile 备份以默认权限（0644）落盘，未收紧 0600 | `[x]` 已修复 |
 | P008 | P1 | 正确性 | `solosoul_cli/src/commands/vault_write.rs:300-310` | `delete_page` 中子对象移入回收站失败被 `let _ =` 静默吞掉，页面照删 | `[x]` 已修复 |
-| P009 | P1 | 死代码 | `tauri/src-tauri/src/commands/ocr.rs:535,547`、`export_import/export.rs:704`、`template.rs:433`、`crates/solosoul-core/src/vault_service.rs:1651` | 3 个孤儿 Tauri Commands（无前端调用）+ 1 个仅测试使用的生产函数 | `[ ]` 待修复 |
+| P009 | P1 | 死代码 | `tauri/src-tauri/src/commands/ocr.rs:535,547`、`export_import/export.rs:704`、`template.rs:433`、`crates/solosoul-core/src/vault_service.rs:1651` | 3 个孤儿 Tauri Commands（无前端调用）+ 1 个仅测试使用的生产函数 | `[x]` 已修复 |
 | P010 | P1 | 重复代码 | `tauri/src/hooks/useUpdateChecker.ts:137-178` vs `useAppUpdate.ts:100-176` | 约 80 行 APK 下载/进度 Promise 封装近乎逐行重复，已开始各自打补丁发散 | `[ ]` 待修复 |
 | P011 | P1 | 重复代码 | `tauri/src/components/object/AttachmentViewer.tsx:195-217` vs `tauri/src/hooks/useAttachmentManager.ts:186-208` | `handleDownload` 逐字符级重复（含动态 import、toast 文案） | `[ ]` 待修复 |
 | P012 | P1 | 重复代码 | `tauri/src/pages/sync/DeviceListPanel.tsx:128-151` vs `:329-352` | 约 40 行设备卡片 JSX（含键盘可访问性）整段重复 | `[ ]` 待修复 |
@@ -64,10 +64,19 @@
 
 ## 修复进度
 
-- 已完成：8 / 45（P001-P008）
-- 当前处理：P009（孤儿 Tauri Commands 删除）
+- 已完成：9 / 45（P001-P009）
+- 当前处理：P010（APK 下载逻辑双实现抽取）
 
 ## 修复实施记录
+
+### P009（P1）孤儿 Tauri Commands 与仅测试函数删除 ✅
+
+- **改动**：
+  1. 删除 `ocr_get_supported_languages`（desktop/mobile 两个变体 + 单测 + `OcrPage.test.tsx` mock 引用）——前端零调用且未注册。
+  2. 删除 `export_get_attachments`（前端只用 batch 版）——函数 + lib.rs 注册 + ACL 白名单条目。
+  3. 删除 `template_save_from_object`（前端零调用）——函数 + lib.rs 注册 + ACL 白名单条目。
+  4. 删除 `solosoul-core::VaultService::get_vault_state`（仅测试使用），测试改 `is_unlocked()` 断言。
+- **验证**：`cargo check -p solo_soul -p solosoul-core` ✅ / template 30 测试 ✅ / core 12 ✅ / OcrPage 6 ✅ / tsc ✅。
 
 ### P008（P1）CLI delete_page 子对象移入回收站失败不再吞错 ✅
 

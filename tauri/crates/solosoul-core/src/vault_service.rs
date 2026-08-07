@@ -1648,14 +1648,6 @@ impl VaultService {
         Ok(())
     }
 
-    pub fn get_vault_state(&self) -> String {
-        if self.is_unlocked() {
-            "unlocked".to_string()
-        } else {
-            "locked".to_string()
-        }
-    }
-
     pub fn get_session_key(&self) -> Option<zeroize::Zeroizing<[u8; 32]>> {
         self.session_key.read().ok()?.clone()
     }
@@ -1906,16 +1898,14 @@ mod tests {
         let account_id = account["id"].as_str().unwrap();
 
         // create_account leaves vault unlocked
-        assert_eq!(svc.get_vault_state(), "unlocked");
+        assert!(svc.is_unlocked());
         svc.lock();
-        assert_eq!(svc.get_vault_state(), "locked");
         assert!(!svc.is_unlocked());
 
         svc.unlock(account_id, "password123").unwrap();
-        assert_eq!(svc.get_vault_state(), "unlocked");
+        assert!(svc.is_unlocked());
 
         svc.lock();
-        assert_eq!(svc.get_vault_state(), "locked");
         assert!(!svc.is_unlocked());
     }
 
@@ -2219,7 +2209,7 @@ mod tests {
         let session_key = [0u8; 32];
         svc.unlock_with_session_key(account_id, &session_key)
             .unwrap();
-        assert_eq!(svc.get_vault_state(), "unlocked");
+        assert!(svc.is_unlocked());
         assert!(svc.get_session_key().is_some());
     }
 

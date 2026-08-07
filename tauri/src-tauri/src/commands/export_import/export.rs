@@ -700,32 +700,6 @@ pub struct AttachmentInfo {
     pub size_bytes: u64,
 }
 
-#[tauri::command]
-pub async fn export_get_attachments(
-    state: State<'_, AppState>,
-    _account_id: String,
-    object_id: String,
-) -> Result<Vec<AttachmentInfo>, String> {
-    let vault = vault_handle(&state)?;
-
-    let obj = vault
-        .load_object(&object_id)?
-        .ok_or_else(|| format!("Object {} not found", object_id))?;
-
-    let atts = load_attachments(&obj.properties);
-    let result: Vec<AttachmentInfo> = atts
-        .into_iter()
-        .filter(|a| a.deleted_at.is_none())
-        .map(|a| AttachmentInfo {
-            id: a.id,
-            file_name: a.file_name,
-            size_bytes: a.size_bytes,
-        })
-        .collect();
-
-    Ok(result)
-}
-
 /// P005: 批量读取对象附件（N+1 优化）——一次 `load_objects_batch` 解密多个对象，
 /// 消除前端全选时逐对象 IPC + 逐对象整解密的 N+1 放大。返回 object_id → 附件列表。
 #[tauri::command]

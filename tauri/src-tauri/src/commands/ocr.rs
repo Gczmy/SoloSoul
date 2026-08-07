@@ -527,28 +527,6 @@ pub async fn ocr_scan_mrz(
     Ok(None)
 }
 
-/// 返回 OCR 支持的识别语言列表。
-///
-/// PP-OCRv6 识别模型本身支持多语言（中英文为主），这里返回稳定的 UI 选项。
-#[cfg(desktop)]
-#[tauri::command]
-pub async fn ocr_get_supported_languages() -> Result<Vec<String>, String> {
-    Ok(vec![
-        "auto".to_string(),
-        "en".to_string(),
-        "zh-CN".to_string(),
-        "ja".to_string(),
-        "ko".to_string(),
-    ])
-}
-
-#[cfg(mobile)]
-#[tauri::command]
-pub async fn ocr_get_supported_languages() -> Result<Vec<String>, String> {
-    // 移动端 OCR 暂未实现；返回空列表避免页面初始化时弹出未支持提示。
-    Ok(vec![])
-}
-
 /// 返回所有可用的模型档位信息。
 ///
 /// P133: macOS 额外提供系统内置 Vision 引擎（置于首位，作为默认档位）；
@@ -1274,23 +1252,6 @@ mod tests {
         let restored: OcrModelStatus = serde_json::from_str(&json).unwrap();
         assert_eq!(restored.tier, "tiny");
         assert!(!restored.builtin);
-    }
-
-    #[test]
-    fn test_ocr_get_supported_languages() {
-        let _langs = ocr_get_supported_languages();
-        // Actually call the sync logic inline
-        let expected = [
-            "auto".to_string(),
-            "en".to_string(),
-            "zh-CN".to_string(),
-            "ja".to_string(),
-            "ko".to_string(),
-        ];
-        // Just verify the function returns expected languages by calling
-        // the inner logic (the Tauri command wrapper is a thin layer)
-        assert_eq!(expected.len(), 5);
-        assert!(expected.contains(&"zh-CN".to_string()));
     }
 
     #[test]

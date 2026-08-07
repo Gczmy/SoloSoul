@@ -234,7 +234,6 @@ describe('OcrPage', () => {
           bundled: true,
         };
       if (cmd === 'ocr_set_active_tier') return undefined;
-      if (cmd === 'ocr_get_supported_languages') return ['en'];
       return undefined;
     });
     mockOpen.mockResolvedValue('/test/image.png');
