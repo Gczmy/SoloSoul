@@ -220,16 +220,26 @@ fn backup_create(app: &mut App, name: &str) -> Result<()> {
         .map_err(|e| color_eyre::eyre::eyre!(e))?;
     let mut backup_profiles = Vec::new();
     for summary in &profiles {
-        if let Ok(Some(profile)) = vault.load_profile(&summary.id) {
-            backup_profiles.push(BackupProfileEntry {
-                id: profile.id,
-                name: profile.name,
-                data: profile.data,
-                created_at: profile.created_at.to_rfc3339(),
-                updated_at: profile.updated_at.to_rfc3339(),
-                version: profile.version,
-            });
-        }
+        // P033：单个 profile 加载/解密失败不再静默跳过——备份不完整必须中止并报告
+        let profile = vault
+            .load_profile(&summary.id)
+            .map_err(|e| {
+                app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e));
+                color_eyre::eyre::eyre!("备份中止：Profile {} 加载失败: {}", summary.id, e)
+            })?
+            .ok_or_else(|| {
+                app.error_message =
+                    Some(t!(app.i18n, "cmd-operation-failed", err = "Profile 不存在"));
+                color_eyre::eyre::eyre!("备份中止：Profile {} 不存在", summary.id)
+            })?;
+        backup_profiles.push(BackupProfileEntry {
+            id: profile.id,
+            name: profile.name,
+            data: profile.data,
+            created_at: profile.created_at.to_rfc3339(),
+            updated_at: profile.updated_at.to_rfc3339(),
+            version: profile.version,
+        });
     }
 
     let manifest = BackupManifest {
@@ -491,9 +501,67 @@ mod tests {
 
         handle(&mut app, &["create", "weekly"]).unwrap();
         let backups_dir = app.vault_service.base_path().join("backups");
-        let entry = std::fs::read_dir(&backups_dir).unwrap().next().unwrap().unwrap();
+        let entry = std::fs::read_dir(&backups_dir)
+            .unwrap()
+            .next()
+            .unwrap()
+            .unwrap();
         let mode = entry.path().metadata().unwrap().permissions().mode() & 0o777;
         assert_eq!(mode, 0o600, "备份文件权限应为 0600，实际 {:#o}", mode);
+    }
+
+    /// P033：单个 profile 解密失败时备份必须中止，不得静默跳过产生不完整备份。
+    #[test]
+    fn test_backup_create_aborts_on_unreadable_profile() {
+        use zeroize::Zeroizing;
+        let (mut app, account_id, _dir) = unlocked_app();
+        create_test_profile(&mut app, "CorruptMe");
+
+        let profile_id = {
+            let vault = app.vault_service.get_vault_store().unwrap();
+            vault.list_profiles().unwrap()[0].id.clone()
+        };
+
+        // 锁定关闭连接后，直接破坏该 profile 的密文，再重新解锁
+        app.vault_service.lock();
+        let db_path = app
+            .vault_service
+            .base_path()
+            .join(&account_id)
+            .join("vault.db");
+        // 保留 SOLO blob magic（SOLO = 534F4C4F）的垃圾密文才能触发真实解密失败
+        // （decrypt_field 对无 magic 的短数据按旧版明文直接放行）。
+        let out = std::process::Command::new("sqlite3")
+            .args([
+                db_path.to_str().unwrap(),
+                &format!(
+                    "UPDATE profiles SET data = X'534F4C4FDEADBEEF' WHERE id = '{}';",
+                    profile_id
+                ),
+            ])
+            .output()
+            .expect("sqlite3 CLI 应可用");
+        assert!(
+            out.status.success(),
+            "sqlite3 更新失败: {}",
+            String::from_utf8_lossy(&out.stderr)
+        );
+
+        app.vault_service
+            .unlock_secure(
+                &account_id,
+                &Zeroizing::new(crate::TEST_PASSWORD.to_string()),
+            )
+            .unwrap();
+
+        // 备份应中止并报告，而非静默跳过
+        let err = handle(&mut app, &["create", "broken"]).unwrap_err();
+        assert!(err.to_string().contains("备份中止"), "{}", err);
+
+        // 未生成任何备份文件
+        let backups_dir = app.vault_service.base_path().join("backups");
+        let entries: Vec<_> = std::fs::read_dir(&backups_dir).unwrap().collect();
+        assert!(entries.is_empty(), "不应生成不完整备份");
     }
 
     #[test]
