@@ -773,6 +773,15 @@ impl App {
         }
     }
 
+    /// P029: 锁定时统一擦除敏感内存——密码输入、模态提示（可能含掩码输入）、
+    /// 上一屏（可能持有解密后 ObjectRecord）、LLM 聊天明文会话。
+    pub fn clear_sensitive_state(&mut self) {
+        self.password_input.clear();
+        self.prompt = None;
+        self.previous_phase = None;
+        self.chat_state = None;
+    }
+
     fn handle_tick(&mut self) -> Result<bool> {
         // 自动锁定检测（模态提示期间暂停）
         if self.auto_lock_paused {
@@ -782,8 +791,7 @@ impl App {
             let idle = Instant::now().duration_since(self.last_activity);
             if idle >= self.auto_lock_duration {
                 self.vault_service.lock();
-                self.password_input.clear();
-                self.prompt = None;
+                self.clear_sensitive_state();
                 self.auto_lock_paused = false;
                 self.phase = AppPhase::Locked;
                 self.error_message = Some("会话已超时锁定".to_string());

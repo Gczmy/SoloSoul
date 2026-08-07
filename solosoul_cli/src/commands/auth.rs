@@ -67,6 +67,7 @@ pub fn lock(app: &mut App) {
         return;
     }
     app.vault_service.lock();
-    app.password_input.clear();
+    // P029: 锁定时统一擦除敏感内存（密码输入/提示/上一屏/聊天会话）
+    app.clear_sensitive_state();
     app.phase = AppPhase::Locked;
 }

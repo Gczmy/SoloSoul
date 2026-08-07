@@ -44,7 +44,7 @@
 | P026 | P2 | 性能 | `tauri/src/components/llm/ChatMessageList.tsx:178` | 长会话消息列表无分页/虚拟化（项目其它列表均已分页） | `[x]` 已修复（末尾窗口 50 条 + 「加载更早」步进展开按钮，index 保持原数组下标；会话切换自动重置窗口；双语 i18n `ai_load_earlier`） |
 | P027 | P2 | 安全 | `solosoul_cli/src/commands/settings.rs:342-397` | CLI `/debug_log` 解密审计日志默认权限落盘，未收紧 0600（与 log.rs 行为不一致） | `[x]` 已修复（改用共享 `util::write_private_file`——创建时即 0600） |
 | P028 | P2 | 安全 | `solosoul_cli/src/commands/log.rs:56-69` | `/export_log` 先默认权限创建文件再 chmod，存在明文窗口期，且 chmod 失败被吞 | `[x]` 已修复（改用共享 `util::write_private_file`——创建时即定权限，无窗口期，chmod 不再可被吞） |
-| P029 | P2 | 安全 | `solosoul_cli/src/app.rs:776-791`、`commands/auth.rs:64-72` | 锁定/自动锁定不清理 previous_phase、chat_state、prompt，内存残留解密数据 | `[ ]` 待修复 |
+| P029 | P2 | 安全 | `solosoul_cli/src/app.rs:776-791`、`commands/auth.rs:64-72` | 锁定/自动锁定不清理 previous_phase、chat_state、prompt，内存残留解密数据 | `[x]` 已修复（新增 `App::clear_sensitive_state`——清密码输入/提示/上一屏/聊天会话，自动锁定与 `/lock` 统一调用） |
 | P030 | P2 | 正确性 | `solosoul_cli/src/app.rs:813-818`、`commands/llm.rs:35` | 插件成功结果与 `/model` 信息性输出误用 `error_message` 通道（渲染为红色错误） | `[ ]` 待修复 |
 | P031 | P2 | 正确性 | `solosoul_cli/src/commands/history.rs:88-123` | `do_rollback` 未校验 snapshot 归属对象/账户，可把别的对象数据套到本对象 | `[ ]` 待修复 |
 | P032 | P2 | 正确性 | `solosoul_cli/src/commands/mod.rs:61-68` | `update_profile_preference` 根非 object 时静默跳过仍返回 Ok，偏好写入丢失 | `[ ]` 待修复 |
