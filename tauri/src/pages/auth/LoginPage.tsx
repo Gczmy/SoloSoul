@@ -28,9 +28,6 @@ const BIOMETRIC_INFO: Record<string, string> = {
   windowsHello: 'windowsHello',
 };
 
-/** DEBUG: 设为 true 时，底部图标栏始终显示全部 5 种解锁方式，且生物识别卡片可切换显示全部 3 种 */
-const __DEBUG_SHOW_ALL = false;
-
 /** 模块级缓存 — 跨组件卸载持久化，避免锁定后重新挂载时闪烁 */
 let _cachedLoginMethod: 'faceId' | 'touchId' | 'windowsHello' | 'pin' | 'password' | null = null;
 
@@ -271,13 +268,13 @@ export function LoginPage() {
     if (!bioChecked || !pinChecked) return;
 
     // Priority: FaceID > Touch ID > Windows Hello > PIN > Password
-    if (__DEBUG_SHOW_ALL || bioAvailable) {
-      const raw = __DEBUG_SHOW_ALL ? 'touchId' : biometryTypeRaw;
+    if (bioAvailable) {
+      const raw = biometryTypeRaw;
       if (raw === 'faceId') setLoginMethod('faceId');
       else if (raw === 'touchId') setLoginMethod('touchId');
       else if (raw === 'windowsHello') setLoginMethod('windowsHello');
       else setLoginMethod('password');
-    } else if (__DEBUG_SHOW_ALL || pinAvailable) {
+    } else if (pinAvailable) {
       setLoginMethod('pin');
     } else {
       setLoginMethod('password');
@@ -458,7 +455,7 @@ export function LoginPage() {
     onClick: () => setLoginMethod('password'),
   });
   // 2. Face ID
-  if (__DEBUG_SHOW_ALL || (bioAvailable && biometryTypeRaw === 'faceId')) {
+  if (bioAvailable && biometryTypeRaw === 'faceId') {
     iconMethods.push({
       id: 'faceId',
       icon: <ScanFace size={ICON_SIZE.xl} />,
@@ -470,7 +467,7 @@ export function LoginPage() {
     });
   }
   // 3. Touch ID
-  if (__DEBUG_SHOW_ALL || (bioAvailable && biometryTypeRaw === 'touchId')) {
+  if (bioAvailable && biometryTypeRaw === 'touchId') {
     iconMethods.push({
       id: 'touchId',
       icon: <Fingerprint size={ICON_SIZE.xl} />,
@@ -482,7 +479,7 @@ export function LoginPage() {
     });
   }
   // 4. Windows Hello
-  if (__DEBUG_SHOW_ALL || (bioAvailable && biometryTypeRaw === 'windowsHello')) {
+  if (bioAvailable && biometryTypeRaw === 'windowsHello') {
     iconMethods.push({
       id: 'windowsHello',
       icon: <ShieldCheck size={ICON_SIZE.xl} />,
@@ -494,7 +491,7 @@ export function LoginPage() {
     });
   }
   // 5. PIN 码
-  if (__DEBUG_SHOW_ALL || pinAvailable) {
+  if (pinAvailable) {
     iconMethods.push({
       id: 'pin',
       icon: <Grip size={ICON_SIZE.xl} />,

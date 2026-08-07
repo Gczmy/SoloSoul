@@ -87,10 +87,8 @@ export function useRevealState() {
   const maskValue = useCallback(
     (value: string, fieldId: string, sensitivity: SensitivityLevel): string => {
       if (!shouldMask(fieldId, sensitivity)) return value;
-      // NOTE: Product spec needed — implement field-type-aware partial masking.
-      // Requires field type registry + mask rule DSL (see §09 对象规范).
-      // Examples: bank card → show last 4 digits; date → show year only.
-      // P036: 占位符统一（8 圆点）
+      // TODO(产品决策): 字段类型感知的部分掩码未实现（如银行卡只显后 4 位、日期只显年份）。
+      // 需字段类型注册表 + 掩码规则 DSL（见 §09 对象规范）；当前统一 8 圆点占位（P036 已收敛）。
       return MASK_PLACEHOLDER;
     },
     [shouldMask],

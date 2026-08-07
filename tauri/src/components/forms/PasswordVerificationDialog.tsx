@@ -53,9 +53,6 @@ const BIOMETRIC_LABEL: Record<string, string> = {
   windowsHello: 'Windows Hello',
 };
 
-/** DEBUG: 设为 true 时，底部图标栏始终显示全部 5 种解锁方式按钮 */
-const __DEBUG_SHOW_ALL_ICONS = false;
-
 /** 解锁方式定义 */
 interface UnlockMethodDef {
   id: string;
@@ -306,14 +303,12 @@ export function PasswordVerificationDialog({
     onClick: () => setLoginMethod('password'),
   });
 
-  // DEBUG 模式：忽略实际可用性，强制显示全部生物识别图标
-  const showAll = __DEBUG_SHOW_ALL_ICONS;
-  const effectiveHasBiometric = showAll || hasBiometric;
-  const effectivePinAvailable = showAll || pinAvailable;
+  const effectiveHasBiometric = hasBiometric;
+  const effectivePinAvailable = pinAvailable;
 
-  // 2–4. 生物识别（根据类型显示其中一个；DEBUG 时全部显示）
+  // 2–4. 生物识别（根据类型显示其中一个）
   if (effectiveHasBiometric) {
-    if (showAll || biometricType === 'faceId') {
+    if (biometricType === 'faceId') {
       methods.push({
         id: 'faceId',
         icon: <ScanFace size={ICON_SIZE.xl} />,
@@ -321,7 +316,7 @@ export function PasswordVerificationDialog({
         onClick: () => setLoginMethod('faceId'),
       });
     }
-    if (showAll || biometricType === 'touchId') {
+    if (biometricType === 'touchId') {
       methods.push({
         id: 'touchId',
         icon: <Fingerprint size={ICON_SIZE.xl} />,
@@ -329,7 +324,7 @@ export function PasswordVerificationDialog({
         onClick: () => setLoginMethod('touchId'),
       });
     }
-    if (showAll || biometricType === 'windowsHello') {
+    if (biometricType === 'windowsHello') {
       methods.push({
         id: 'windowsHello',
         icon: <ShieldCheck size={ICON_SIZE.xl} />,
