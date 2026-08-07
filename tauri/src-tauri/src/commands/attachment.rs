@@ -416,11 +416,15 @@ pub async fn attachment_copy_to_vault(
     attachment_id: String,
     file_name: String,
 ) -> Result<String, String> {
-    let svc = state
-        .vault_service
-        .read()
-        .map_err(|_| "Vault service lock poisoned".to_string())?;
-    let base = svc.base_path().clone();
+    // P007: 提前在块作用域内取 base 并释放非 Send 的 vault_service guard，
+    // 避免后续 spawn_blocking 的 await 跨 guard 存活。
+    let base = {
+        let svc = state
+            .vault_service
+            .read()
+            .map_err(|_| "Vault service lock poisoned".to_string())?;
+        svc.base_path().clone()
+    };
 
     // Canonicalize src_path to resolve relative path traversal.
     // 在 Android 上文件选择器可能返回缓存路径（或 content:// URI，已由前端中转为本地路径），
@@ -477,8 +481,15 @@ pub async fn attachment_copy_to_vault(
         .to_string_lossy()
         .to_string();
     let dest_path = dest_dir.join(&safe_name);
-    std::fs::copy(&src, &dest_path).map_err(|e| format!("Copy: {}", e))?;
-    Ok(dest_path.to_string_lossy().to_string())
+    let dest_path_str = dest_path.to_string_lossy().to_string();
+    // P007: 大文件复制移入阻塞线程池，避免卡住 tokio worker（路径校验已在上方完成）
+    let (src, dest_path) = (src.clone(), dest_path);
+    tauri::async_runtime::spawn_blocking(move || {
+        std::fs::copy(&src, &dest_path).map_err(|e| format!("Copy: {}", e))
+    })
+    .await
+    .map_err(|e| format!("Copy task panicked: {}", e))??;
+    Ok(dest_path_str)
 }
 
 /// Collect all attachment IDs that are currently referenced in any object's __attachments.
@@ -813,14 +824,17 @@ pub async fn attachment_download(
     src_path: String,
     dest_path: String,
 ) -> Result<(), String> {
-    let svc = state
-        .vault_service
-        .read()
-        .map_err(|_| "Vault service lock poisoned".to_string())?;
-    let vault_base = svc
-        .base_path()
-        .canonicalize()
-        .map_err(|_| "Invalid vault base path".to_string())?;
+    // P007: 提前在块作用域内取 vault_base 并释放非 Send 的 vault_service guard，
+    // 避免后续 spawn_blocking 的 await 跨 guard 存活。
+    let vault_base = {
+        let svc = state
+            .vault_service
+            .read()
+            .map_err(|_| "Vault service lock poisoned".to_string())?;
+        svc.base_path()
+            .canonicalize()
+            .map_err(|_| "Invalid vault base path".to_string())?
+    };
 
     // Security: ensure the source path is within vault storage.
     // 在 Android 上 /data/data/... 与 /data/user/0/... 可能互为 symlink，
@@ -923,12 +937,18 @@ pub async fn attachment_download(
     // Resolve duplicate file names: a.pdf -> a(1).pdf -> a(2).pdf
     let dest = make_unique_dest_path(dest);
 
-    // Create parent directory and copy the file
-    if let Some(parent) = dest.parent() {
-        std::fs::create_dir_all(parent)
-            .map_err(|e| format!("Failed to create destination directory: {}", e))?;
-    }
-    std::fs::copy(&src, &dest).map_err(|e| format!("Failed to copy file: {}", e))?;
+    // P007: 建目录 + 大文件复制移入阻塞线程池，避免卡住 tokio worker
+    let (src, dest) = (src.clone(), dest.to_path_buf());
+    tauri::async_runtime::spawn_blocking(move || {
+        if let Some(parent) = dest.parent() {
+            std::fs::create_dir_all(parent)
+                .map_err(|e| format!("Failed to create destination directory: {}", e))?;
+        }
+        std::fs::copy(&src, &dest).map_err(|e| format!("Failed to copy file: {}", e))?;
+        Ok::<(), String>(())
+    })
+    .await
+    .map_err(|e| format!("Copy task panicked: {}", e))??;
 
     Ok(())
 }
