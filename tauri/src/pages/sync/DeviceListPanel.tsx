@@ -5,7 +5,6 @@ import { Input } from '@/components/ui/Input';
 import { DeleteButton } from '@/components/ui/DeleteButton';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
 import { RefreshCw, ShieldCheck, ShieldOff } from 'lucide-react';
-import { ClientTypeIcon } from '@/components/sync/ClientTypeIcon';
 import { resolveBackendErrorMessage } from '@/lib/backendError';
 import { formatDiscoveredName, formatPeerName } from '@/lib/syncPeer';
 import { formatRelativeFromTs } from '@/lib/time';
@@ -13,6 +12,7 @@ import { ICON_SIZE } from '@/lib/constants';
 import type { SyncResult } from '@/lib/ipc';
 import type { DiscoveredDevice, SyncPeer } from '@/stores/syncStore';
 import { DeviceDetailDialog } from './DeviceDetailDialog';
+import { DeviceCardShell } from './DeviceCard';
 
 interface DeviceListPanelProps {
   syncEnabled: boolean;
@@ -124,75 +124,46 @@ export function DeviceListPanel({
             {discoveredDevices.map((device) => {
               const deviceAddr = device.addresses[0] || `${device.host}:${device.port}`;
               const deviceName = formatDiscoveredName(device);
+              // P012: 共享外壳（交互容器 + 图标 + 名称行），副标题/操作区注入
               return (
-                <div
-                  key={deviceAddr}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => onOpenDiscoveredDetail(device)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      onOpenDiscoveredDetail(device);
-                    }
-                  }}
-                  className="interactive-card-lift"
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 10,
-                    padding: '10px 12px',
-                    borderRadius: 8,
-                    background: 'var(--bg-toolbar)',
-                    // 细线边框：与已知设备卡片同款，区分卡片与页面背景
-                    border: '1px solid var(--border-subtle)',
-                    cursor: 'pointer',
-                  }}
-                >
-                  {/* 客户端类型图标（macos 笔记本 / android 手机…），与已知设备卡片同源 */}
-                  <ClientTypeIcon clientType={device.clientType} size={ICON_SIZE.lg} />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    {/* 设备名：formatDiscoveredName 裁剪 node_<uuid> / 剥 mDNS 后缀，
-                        ellipsis 兜底防安卓端溢出 */}
+                <DeviceCardShell
+                  cardKey={deviceAddr}
+                  clientType={device.clientType}
+                  name={deviceName}
+                  subtitle={
                     <div
+                      style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}
+                    >
+                      {deviceAddr}
+                    </div>
+                  }
+                  actions={
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onSyncWithDevice(deviceAddr);
+                      }}
+                      disabled={isLoading}
                       style={{
+                        padding: '6px 12px',
+                        borderRadius: 8,
+                        border: '1px solid var(--border-subtle)',
+                        background: 'var(--bg-toolbar)',
+                        color: 'var(--text-primary)',
                         fontSize: 'var(--text-body-sm)',
                         fontWeight: 500,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
+                        cursor: isLoading ? 'default' : 'pointer',
+                        opacity: isLoading ? 0.5 : 1,
+                        transition: 'all 0.15s ease',
+                        fontFamily: 'inherit',
                         whiteSpace: 'nowrap',
                       }}
                     >
-                      {deviceName}
-                    </div>
-                    <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
-                      {deviceAddr}
-                    </div>
-                  </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onSyncWithDevice(deviceAddr);
-                    }}
-                    disabled={isLoading}
-                    style={{
-                      padding: '6px 12px',
-                      borderRadius: 8,
-                      border: '1px solid var(--border-subtle)',
-                      background: 'var(--bg-toolbar)',
-                      color: 'var(--text-primary)',
-                      fontSize: 'var(--text-body-sm)',
-                      fontWeight: 500,
-                      cursor: isLoading ? 'default' : 'pointer',
-                      opacity: isLoading ? 0.5 : 1,
-                      transition: 'all 0.15s ease',
-                      fontFamily: 'inherit',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    {t('settings:sync_manual_sync', { defaultValue: 'Sync' })}
-                  </button>
-                </div>
+                      {t('settings:sync_manual_sync', { defaultValue: 'Sync' })}
+                    </button>
+                  }
+                  onOpen={() => onOpenDiscoveredDetail(device)}
+                />
               );
             })}
           </div>
@@ -324,127 +295,98 @@ export function DeviceListPanel({
           <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
             {connectedPeers.map((peer) => {
               const displayName = formatPeerName(peer);
-              // 悬停动画与 workspace 对象卡片同源（interactive-card-lift 工具类）：
-              // 桌面指针设备 hover 时上浮 1px + 主题色 ring + 阴影加深（触屏不残留）
+              // P012: 共享外壳（交互容器 + 图标 + 名称行），副标题/操作区注入
               return (
-                <div
-                  key={peer.id}
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => onOpenDetail(peer)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      e.preventDefault();
-                      onOpenDetail(peer);
-                    }
-                  }}
-                  className="interactive-card-lift"
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 10,
-                    padding: '10px 12px',
-                    borderRadius: 8,
-                    background: 'var(--bg-toolbar)',
-                    // 细线边框：与已知设备卡片同款，区分卡片与页面背景
-                    border: '1px solid var(--border-subtle)',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <ClientTypeIcon clientType={peer.clientType} size={ICON_SIZE.lg} />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    {/* 设备名 */}
-                    <div
-                      style={{
-                        fontSize: 'var(--text-body-sm)',
-                        fontWeight: 500,
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {displayName}
-                    </div>
-                    {/* 信任徽章独立一行（设备名下方） */}
-                    <div style={{ marginTop: 2 }}>
-                      <span
-                        style={{
-                          fontSize: 'var(--text-badge)',
-                          padding: '1px 8px',
-                          borderRadius: 999,
-                          background: peer.trusted
-                            ? 'rgba(39,174,96,0.12)'
-                            : 'rgba(128,128,128,0.1)',
-                          color: peer.trusted ? '#27ae60' : 'var(--text-tertiary)',
-                          whiteSpace: 'nowrap',
-                        }}
-                      >
-                        {peer.trusted
-                          ? t('settings:sync_trusted_badge', { defaultValue: 'Trusted' })
-                          : t('settings:sync_untrusted_badge', { defaultValue: 'Not trusted' })}
-                      </span>
-                    </div>
-                    {/* 在线状态（i18n：offline/never）——不再展示指纹。
-                        离线含义修正（P0#2）：addr 为空 = 未在局域网发现（非「设备关机/离线」），
-                        附最近一次联系时间（lastSeenTs）帮助用户判断。 */}
-                    <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
-                      {peer.addr ? (
-                        `${peer.addr} · ${peer.lastSeen || t('settings:sync_never', { defaultValue: 'never' })}`
+                <DeviceCardShell
+                  cardKey={peer.id}
+                  clientType={peer.clientType}
+                  name={displayName}
+                  subtitle={
+                    <>
+                      {/* 信任徽章独立一行（设备名下方） */}
+                      <div style={{ marginTop: 2 }}>
+                        <span
+                          style={{
+                            fontSize: 'var(--text-badge)',
+                            padding: '1px 8px',
+                            borderRadius: 999,
+                            background: peer.trusted
+                              ? 'rgba(39,174,96,0.12)'
+                              : 'rgba(128,128,128,0.1)',
+                            color: peer.trusted ? '#27ae60' : 'var(--text-tertiary)',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          {peer.trusted
+                            ? t('settings:sync_trusted_badge', { defaultValue: 'Trusted' })
+                            : t('settings:sync_untrusted_badge', { defaultValue: 'Not trusted' })}
+                        </span>
+                      </div>
+                      {/* 在线状态（i18n：offline/never）——不再展示指纹。
+                          离线含义修正（P0#2）：addr 为空 = 未在局域网发现（非「设备关机/离线」），
+                          附最近一次联系时间（lastSeenTs）帮助用户判断。 */}
+                      <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
+                        {peer.addr ? (
+                          `${peer.addr} · ${peer.lastSeen || t('settings:sync_never', { defaultValue: 'never' })}`
+                        ) : (
+                          <>
+                            {t('settings:sync_offline', { defaultValue: 'Not found on LAN' })}
+                            {peer.lastSeenTs
+                              ? ` · ${t('settings:sync_last_seen', {
+                                  defaultValue: 'Last seen: {{time}}',
+                                  time: formatRelativeFromTs(peer.lastSeenTs),
+                                })}`
+                              : ''}
+                          </>
+                        )}
+                      </div>
+                    </>
+                  }
+                  actions={
+                    <>
+                      {peer.trusted ? (
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onTrustPeer(peer.id);
+                          }}
+                          title={t('settings:sync_revoke_tooltip', {
+                            defaultValue: 'Revoke trust: keep the record, reject its syncs',
+                          })}
+                        >
+                          <ShieldOff size={ICON_SIZE.sm} />
+                        </Button>
                       ) : (
-                        <>
-                          {t('settings:sync_offline', { defaultValue: 'Not found on LAN' })}
-                          {peer.lastSeenTs
-                            ? ` · ${t('settings:sync_last_seen', {
-                                defaultValue: 'Last seen: {{time}}',
-                                time: formatRelativeFromTs(peer.lastSeenTs),
-                              })}`
-                            : ''}
-                        </>
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onOpenPairTarget(peer);
+                          }}
+                          title={t('settings:sync_pair_tooltip', {
+                            defaultValue: 'Pair this device',
+                          })}
+                        >
+                          <ShieldCheck size={ICON_SIZE.sm} />
+                        </Button>
                       )}
-                    </div>
-                  </div>
-                  <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
-                    {peer.trusted ? (
-                      <Button
-                        size="sm"
-                        variant="secondary"
+                      <DeleteButton
                         onClick={(e) => {
                           e.stopPropagation();
-                          onTrustPeer(peer.id);
+                          onForgetRequest(peer);
                         }}
-                        title={t('settings:sync_revoke_tooltip', {
-                          defaultValue: 'Revoke trust: keep the record, reject its syncs',
+                        title={t('settings:sync_forget_tooltip', {
+                          defaultValue: 'Forget: delete the record, you will need to re-pair',
                         })}
-                      >
-                        <ShieldOff size={ICON_SIZE.sm} />
-                      </Button>
-                    ) : (
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onOpenPairTarget(peer);
-                        }}
-                        title={t('settings:sync_pair_tooltip', {
-                          defaultValue: 'Pair this device',
-                        })}
-                      >
-                        <ShieldCheck size={ICON_SIZE.sm} />
-                      </Button>
-                    )}
-                    <DeleteButton
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onForgetRequest(peer);
-                      }}
-                      title={t('settings:sync_forget_tooltip', {
-                        defaultValue: 'Forget: delete the record, you will need to re-pair',
-                      })}
-                      iconOnly
-                    />
-                  </div>
-                </div>
+                        iconOnly
+                      />
+                    </>
+                  }
+                  onOpen={() => onOpenDetail(peer)}
+                />
               );
             })}
           </div>

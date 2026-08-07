@@ -1,9 +1,9 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-08 01:20:00
+> 最后更新：2026-08-08 01:35:00
 > 当前分支：`main`
 > 修复轮次：1（初始分析，按用户要求不恢复旧报告、全新生成）
-> 修复进度：P001-P011 已闭环（11/45）
+> 修复进度：P001-P012 已闭环（12/45）
 > 分析范围：`tauri/`（Rust 后端 + React/TS 前端）、`solosoul_cli/`；忽略 `node_modules/`、`target/`、`dist/`、`.vite/`、`*.min.js`、`*.wasm`
 
 ## 阶段 0 基线检查结果
@@ -27,7 +27,7 @@
 | P009 | P1 | 死代码 | `tauri/src-tauri/src/commands/ocr.rs:535,547`、`export_import/export.rs:704`、`template.rs:433`、`crates/solosoul-core/src/vault_service.rs:1651` | 3 个孤儿 Tauri Commands（无前端调用）+ 1 个仅测试使用的生产函数 | `[x]` 已修复 |
 | P010 | P1 | 重复代码 | `tauri/src/hooks/useUpdateChecker.ts:137-178` vs `useAppUpdate.ts:100-176` | 约 80 行 APK 下载/进度 Promise 封装近乎逐行重复，已开始各自打补丁发散 | `[x]` 已修复 |
 | P011 | P1 | 重复代码 | `tauri/src/components/object/AttachmentViewer.tsx:195-217` vs `tauri/src/hooks/useAttachmentManager.ts:186-208` | `handleDownload` 逐字符级重复（含动态 import、toast 文案） | `[x]` 已修复 |
-| P012 | P1 | 重复代码 | `tauri/src/pages/sync/DeviceListPanel.tsx:128-151` vs `:329-352` | 约 40 行设备卡片 JSX（含键盘可访问性）整段重复 | `[ ]` 待修复 |
+| P012 | P1 | 重复代码 | `tauri/src/pages/sync/DeviceListPanel.tsx:128-151` vs `:329-352` | 约 40 行设备卡片 JSX（含键盘可访问性）整段重复 | `[x]` 已修复 |
 | P013 | P1 | 可维护性 | `AttachmentViewer.tsx`(~660 行)、`LoginPage.tsx`(~654)、`ExportImportPage.tsx`(~643)、`PageGuide.tsx`(~615)、`useObjectWorkspaceData.ts`(~524)、`PasswordVerificationDialog.tsx`(~516) | 前端 6 个 500+ 行巨型组件/Hook | `[ ]` 待修复 |
 | P014 | P1 | 可维护性 | `crates/solosoul-plugin/src/host.rs:437,662,893`（530+ 行合计）、`solosoul-vault/src/storage.rs:482`、`export.rs:491` 等 | Rust 侧多个 150-300 行超长函数 | `[ ]` 待修复 |
 | P015 | P2 | 安全 | `tauri/src-tauri/src/commands/llm/request.rs:214-245` | LLM base URL 允许公网 `http://`，Bearer key 与聊天内容明文传输；与 OCR 侧策略不一致 | `[ ]` 待修复 |
@@ -64,10 +64,15 @@
 
 ## 修复进度
 
-- 已完成：11 / 45（P001-P011）
-- 当前处理：P012（设备卡片 JSX 重复）
+- 已完成：12 / 45（P001-P012）
+- 当前处理：P013/P014 巨型组件拆分（长期重构项，见备注）
 
 ## 修复实施记录
+
+### P012（P1）设备卡片 JSX 抽取共享外壳 ✅
+
+- **改动**：新增 `tauri/src/pages/sync/DeviceCard.tsx` `DeviceCardShell`（交互容器 interactive-card-lift + 键盘可访问性 + 客户端类型图标 + 名称行），已发现设备与已知设备两张卡片改为注入 `subtitle`/`actions` 子区域，删除约 40 行重复 JSX。
+- **验证**：`tsc --noEmit` ✅ / eslint ✅。
 
 ### P011（P1）附件 handleDownload 重复抽取共享入口 ✅
 
