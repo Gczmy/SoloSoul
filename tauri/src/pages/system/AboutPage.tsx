@@ -21,7 +21,10 @@ export function AboutPage() {
   const navigate = useNavigate();
   const { t, i18n } = useTranslation(['settings', 'common']);
   const showToast = useUiStore((s) => s.showToast);
-  const docLang = i18n.language?.startsWith('zh') ? 'zh-CN' : 'en-US';
+  // 法律条款文档合并至 docs/legal/，文件名按各自语言命名（中文名/英文名）
+  const isZh = i18n.language?.startsWith('zh');
+  const legalDoc = (zhName: string, enName: string) =>
+    `https://github.com/Gczmy/SoloSoul/blob/main/docs/legal/${isZh ? zhName : enName}.md`;
   const updater = useUpdateChecker();
   const {
     info,
@@ -47,12 +50,12 @@ export function AboutPage() {
     },
     {
       labelKey: 'privacy_policy',
-      url: `https://github.com/Gczmy/SoloSoul/blob/main/docs/${docLang}/PRIVACY_POLICY.md`,
+      url: legalDoc('隐私政策', 'Privacy Policy'),
       icon: <Shield size={ICON_SIZE.sm} />,
     },
     {
       labelKey: 'terms_of_service',
-      url: `https://github.com/Gczmy/SoloSoul/blob/main/docs/${docLang}/TERMS_OF_SERVICE.md`,
+      url: legalDoc('服务条款', 'Terms of Service'),
       icon: <Info size={ICON_SIZE.sm} />,
     },
   ];
