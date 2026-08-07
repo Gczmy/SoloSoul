@@ -254,118 +254,121 @@ impl AppState {
         Ok(svc)
     }
 
-    pub fn new(handle: tauri::AppHandle) -> Result<Self, anyhow::Error> {
-        // ── 移动端 VaultService 初始化 ──
-        let vault_service = if cfg!(mobile) {
-            let data_dir = normalize_path(
-                &handle
-                    .path()
-                    .resolve(".", tauri::path::BaseDirectory::Data)
-                    .map_err(|e| anyhow::anyhow!("无法解析应用数据目录: {e}"))?,
+    /// 移动端 VaultService 初始化：优先 SAF 目录（失效则降级本地），
+    /// 首次启动使用占位目录；桌面端返回空 VaultService。
+    fn init_vault_service(
+        handle: &tauri::AppHandle,
+    ) -> Result<Arc<RwLock<VaultService>>, anyhow::Error> {
+        if !cfg!(mobile) {
+            return Ok(Arc::new(RwLock::new(VaultService::new())));
+        }
+
+        let data_dir = normalize_path(
+            &handle
+                .path()
+                .resolve(".", tauri::path::BaseDirectory::Data)
+                .map_err(|e| anyhow::anyhow!("无法解析应用数据目录: {e}"))?,
+        );
+        tracing::info!("[AppState] mobile data_dir: {}", data_dir.display());
+
+        let saved_uri = Self::load_saved_saf_uri(&data_dir);
+        let Some(ref uri) = saved_uri else {
+            // 首次启动：尚未选择目录，使用占位 VaultService，
+            // 等 onboarding 调用 initialize_vault 后再热替换。
+            tracing::info!(
+                "[AppState] first launch: using placeholder vault until directory is selected"
             );
-            tracing::info!("[AppState] mobile data_dir: {}", data_dir.display());
+            return Ok(Arc::new(RwLock::new(Self::placeholder_vault(&data_dir)?)));
+        };
+        tracing::info!("[AppState] found saved SAF URI: {uri}");
 
-            let saved_uri = Self::load_saved_saf_uri(&data_dir);
-            if let Some(ref uri) = saved_uri {
-                tracing::info!("[AppState] found saved SAF URI: {uri}");
-
-                // 先检查 SAF URI 是否仍然可访问（防止用户手动删除外部目录后以失效状态启动）。
-                // check_vault_dir_access 在 Android 上通过 Kotlin 插件查询 ContentResolver
-                // 判断目录是否存在；非 Android 平台返回 false，由下层 cfg 守卫。
-                let is_valid = {
-                    let plugin_handle = handle.state::<AttachmentImportPluginHandle<tauri::Wry>>();
-                    plugin_handle.check_vault_dir_access(uri).unwrap_or(false)
-                };
-
-                if !is_valid {
-                    tracing::warn!(
-                        "[AppState] saved SAF URI is no longer accessible (dir deleted or revoked), falling back to local vault"
-                    );
-                    // 取消可能已调度的 WorkManager 兜底同步，避免旧 URI 持续重试。
-                    let _ = handle
-                        .state::<AttachmentImportPluginHandle<tauri::Wry>>()
-                        .cancel_fallback_sync();
-                    // 注意：故意【不】清除已失效的 SAF URI——
-                    // 前端登录后会调用 vault_check_directory 检测失效并弹窗 + 横幅提示
-                    // 用户重新选择目录（每次启动都应提醒）；auto-sync 每 30s 也会发射
-                    // saf-auth-revoked 事件维持横幅。若在此清空 URI，前端将无从得知
-                    // 外部目录已丢失，表现为「目录被删除后重启无任何提示」的回归。
-                    // 用户重新选择目录（vault_set_directory 保存新 URI）或主动切回本地
-                    // （保存 None）后，此路径自然退出。
-
-                    // 迁移 SAF temp cache 到本地目录，保全用户缓存数据。
-                    // 迁移失败不阻止降级（仅打日志）。
-                    //
-                    // 注意：这里必须用合并模式（clear_dst=false）！
-                    // src（saf_vault_temp）位于 dst（data_dir）内部，若按默认
-                    // 模式先清空 dst，会连带删除源目录本身以及 logs / app_resources
-                    // / models 等应用级目录——用户数据被毁、插件市场目录被删，
-                    // 首次启动直接闪退（插件管理器初始化失败导致 AppState::new 报错）。
-                    let temp_cache = data_dir.join("saf_vault_temp");
-                    if temp_cache.exists() {
-                        tracing::info!("[AppState] migrating SAF temp cache to local vault");
-                        match crate::commands::vault_directory::migrate_vault_data(
-                            &temp_cache,
-                            &data_dir,
-                            false,
-                        ) {
-                            Ok(()) => {
-                                // 合并迁移是 copy 而非 move，成功后删除残留副本，
-                                // 避免加密数据双份占用磁盘；失败仅打日志，不影响降级。
-                                if let Err(e) = std::fs::remove_dir_all(&temp_cache) {
-                                    tracing::warn!(
-                                        "[AppState] failed to clean up SAF temp cache: {e}"
-                                    );
-                                }
-                            }
-                            Err(e) => {
-                                tracing::error!(
-                                    "[AppState] temp cache migration failed (non-fatal): {e}"
-                                );
-                            }
-                        }
-                    }
-                    // 降级到本地 vault
-                    match Self::try_init_local_vault(&data_dir) {
-                        Ok(svc) => {
-                            tracing::info!("[AppState] local vault init after SAF fallback: OK");
-                            Arc::new(RwLock::new(svc))
-                        }
-                        Err(e) => {
-                            tracing::error!(
-                                "[AppState] local vault init after SAF fallback FAILED: {e}"
-                            );
-                            return Err(e);
-                        }
-                    }
-                } else {
-                    match Self::try_init_saf_vault(&handle, &data_dir, uri) {
-                        Ok(svc) => {
-                            tracing::info!("[AppState] SAF vault initialized successfully");
-                            Arc::new(RwLock::new(svc))
-                        }
-                        Err(e) => {
-                            tracing::error!(
-                                "[AppState] SAF vault init FAILED (falling back to local): {:#}",
-                                e
-                            );
-                            Arc::new(RwLock::new(Self::try_init_local_vault(&data_dir)?))
-                        }
-                    }
-                }
-            } else {
-                // 首次启动：尚未选择目录，使用占位 VaultService，
-                // 等 onboarding 调用 initialize_vault 后再热替换。
-                tracing::info!(
-                    "[AppState] first launch: using placeholder vault until directory is selected"
-                );
-                Arc::new(RwLock::new(Self::placeholder_vault(&data_dir)?))
-            }
-        } else {
-            Arc::new(RwLock::new(VaultService::new()))
+        // 先检查 SAF URI 是否仍然可访问（防止用户手动删除外部目录后以失效状态启动）。
+        // check_vault_dir_access 在 Android 上通过 Kotlin 插件查询 ContentResolver
+        // 判断目录是否存在；非 Android 平台返回 false，由下层 cfg 守卫。
+        let is_valid = {
+            let plugin_handle = handle.state::<AttachmentImportPluginHandle<tauri::Wry>>();
+            plugin_handle.check_vault_dir_access(uri).unwrap_or(false)
         };
 
-        // ── SyncService ──
+        if !is_valid {
+            tracing::warn!(
+                "[AppState] saved SAF URI is no longer accessible (dir deleted or revoked), falling back to local vault"
+            );
+            // 取消可能已调度的 WorkManager 兜底同步，避免旧 URI 持续重试。
+            let _ = handle
+                .state::<AttachmentImportPluginHandle<tauri::Wry>>()
+                .cancel_fallback_sync();
+            // 注意：故意【不】清除已失效的 SAF URI——
+            // 前端登录后会调用 vault_check_directory 检测失效并弹窗 + 横幅提示
+            // 用户重新选择目录（每次启动都应提醒）；auto-sync 每 30s 也会发射
+            // saf-auth-revoked 事件维持横幅。若在此清空 URI，前端将无从得知
+            // 外部目录已丢失，表现为「目录被删除后重启无任何提示」的回归。
+            // 用户重新选择目录（vault_set_directory 保存新 URI）或主动切回本地
+            // （保存 None）后，此路径自然退出。
+
+            // 迁移 SAF temp cache 到本地目录，保全用户缓存数据。
+            // 迁移失败不阻止降级（仅打日志）。
+            //
+            // 注意：这里必须用合并模式（clear_dst=false）！
+            // src（saf_vault_temp）位于 dst（data_dir）内部，若按默认
+            // 模式先清空 dst，会连带删除源目录本身以及 logs / app_resources
+            // / models 等应用级目录——用户数据被毁、插件市场目录被删，
+            // 首次启动直接闪退（插件管理器初始化失败导致 AppState::new 报错）。
+            let temp_cache = data_dir.join("saf_vault_temp");
+            if temp_cache.exists() {
+                tracing::info!("[AppState] migrating SAF temp cache to local vault");
+                match crate::commands::vault_directory::migrate_vault_data(
+                    &temp_cache,
+                    &data_dir,
+                    false,
+                ) {
+                    Ok(()) => {
+                        // 合并迁移是 copy 而非 move，成功后删除残留副本，
+                        // 避免加密数据双份占用磁盘；失败仅打日志，不影响降级。
+                        if let Err(e) = std::fs::remove_dir_all(&temp_cache) {
+                            tracing::warn!("[AppState] failed to clean up SAF temp cache: {e}");
+                        }
+                    }
+                    Err(e) => {
+                        tracing::error!("[AppState] temp cache migration failed (non-fatal): {e}");
+                    }
+                }
+            }
+            // 降级到本地 vault
+            match Self::try_init_local_vault(&data_dir) {
+                Ok(svc) => {
+                    tracing::info!("[AppState] local vault init after SAF fallback: OK");
+                    Ok(Arc::new(RwLock::new(svc)))
+                }
+                Err(e) => {
+                    tracing::error!("[AppState] local vault init after SAF fallback FAILED: {e}");
+                    Err(e)
+                }
+            }
+        } else {
+            match Self::try_init_saf_vault(handle, &data_dir, uri) {
+                Ok(svc) => {
+                    tracing::info!("[AppState] SAF vault initialized successfully");
+                    Ok(Arc::new(RwLock::new(svc)))
+                }
+                Err(e) => {
+                    tracing::error!(
+                        "[AppState] SAF vault init FAILED (falling back to local): {:#}",
+                        e
+                    );
+                    Ok(Arc::new(RwLock::new(Self::try_init_local_vault(
+                        &data_dir,
+                    )?)))
+                }
+            }
+        }
+    }
+
+    /// SyncService + 入站回调 + 设备自动同步装配，并恢复两个持久化开关。
+    fn init_sync_components(
+        handle: &tauri::AppHandle,
+        vault_service: &Arc<RwLock<VaultService>>,
+    ) -> (Arc<SyncService>, DeviceAutoSyncManager) {
         let sync_service = Arc::new(SyncService::new(vault_service.clone()));
 
         // 装配入站新 peer 回调 → 全局事件 sync-pairing-request。
@@ -428,7 +431,7 @@ impl AppState {
         // 重启后恢复用户上次选择，消除"已打开但实际已失效"的感知断裂）。
         // ui_preferences.json 存于 Vault base 目录，Vault 未解锁亦可读。
         if let Ok(svc) = vault_service.read() {
-            if let Some(enabled) = crate::commands::settings::read_auto_sync_pref(&handle, &svc) {
+            if let Some(enabled) = crate::commands::settings::read_auto_sync_pref(handle, &svc) {
                 device_auto_sync.set_enabled(enabled);
                 tracing::info!("[AppState] restored auto_sync_enabled={}", enabled);
             }
@@ -437,76 +440,84 @@ impl AppState {
         // 启动时恢复「账户设置偏好是否随设备同步」开关（默认 true，
         // 无持久化值时保持默认；与 auto_sync_enabled 同模式）。
         if let Ok(svc) = vault_service.read() {
-            if let Some(enabled) = crate::commands::settings::read_ui_prefs_sync_pref(&handle, &svc)
+            if let Some(enabled) = crate::commands::settings::read_ui_prefs_sync_pref(handle, &svc)
             {
                 svc.set_ui_prefs_sync_enabled(enabled);
                 tracing::info!("[AppState] restored ui_prefs_sync_enabled={}", enabled);
             }
         }
 
-        // ── AutoSyncManager（在 VaultService 初始化之后启动） ──
-        let auto_sync = AutoSyncManager::new_for_vault(vault_service.clone(), handle.clone());
+        (sync_service, device_auto_sync)
+    }
 
-        // ── PluginManager（初始化失败不阻止应用启动） ──
-        let plugin_manager = match crate::plugin::new_plugin_manager(&handle) {
-            Ok(pm) => Arc::new(pm),
+    /// PluginManager 初始化：多级兜底（临时目录 → 当前目录），最终失败才中止启动。
+    /// Android Release 构建使用 panic=abort，AppState::new 返回 Err 会导致 setup
+    /// 失败直接闪退，故仅当文件系统级异常（所有目录均不可写）才返回 Err。
+    fn init_plugin_manager(handle: &tauri::AppHandle) -> Result<Arc<PluginManager>, anyhow::Error> {
+        match crate::plugin::new_plugin_manager(handle) {
+            Ok(pm) => return Ok(Arc::new(pm)),
             Err(e) => {
                 tracing::warn!(
                     "[AppState] PluginManager 初始化失败，将以无插件模式运行: {:#}",
                     e
                 );
-                match PluginManager::new() {
-                    Ok(pm) => Arc::new(pm),
-                    Err(fallback_err) => {
-                        tracing::error!(
-                            "[AppState] PluginManager 回退构造也失败: {:#}（将继续无插件启动）",
-                            fallback_err
-                        );
-                        // 最终兜底：使用系统临时目录构造空插件管理器。
-                        // 插件初始化失败绝不中止应用启动——Android Release 构建
-                        // 使用 panic=abort，AppState::new 返回 Err 会导致 setup 失败
-                        // 直接闪退（曾因迁移误删 app_resources 触发此路径）。
-                        // 固定目录名复用：每次兜底不再新建 <pid> 后缀目录（避免残留堆积）。
-                        let fallback_dir = std::env::temp_dir().join("solosoul_plugin_fallback");
-                        let _ = std::fs::create_dir_all(&fallback_dir);
-                        match PluginManager::new_with_dirs(
-                            fallback_dir.clone(),
-                            fallback_dir.clone(),
-                        ) {
-                            Ok(pm) => Arc::new(pm),
-                            Err(final_err) => {
-                                tracing::error!(
-                                    "[AppState] PluginManager 最终兜底也失败: {:#}（继续无插件启动）",
-                                    final_err
-                                );
-                                // 极端情况（临时目录也不可写）下仍不中止启动，
-                                // 使用当前目录作为最后兜底；若仍失败仅打日志。
-                                match PluginManager::new_with_dirs(
-                                    std::env::current_dir()
-                                        .unwrap_or_else(|_| fallback_dir.clone()),
-                                    fallback_dir,
-                                ) {
-                                    Ok(pm) => Arc::new(pm),
-                                    Err(last_err) => {
-                                        // 仅当临时目录与当前目录均不可写（文件系统级异常）
-                                        // 才中止启动——此时任何目录都无法构造 PluginManager，
-                                        // 保留错误仅作为最后防线，Android 上 temp_dir 指向
-                                        // 可写的应用缓存目录，实际不可达。
-                                        tracing::error!(
-                                            "[AppState] PluginManager 最后兜底失败: {:#}（无插件模式）",
-                                            last_err
-                                        );
-                                        return Err(anyhow::anyhow!(
-                                            "PluginManager 无法初始化（多次兜底均失败）"
-                                        ));
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
             }
-        };
+        }
+        match PluginManager::new() {
+            Ok(pm) => return Ok(Arc::new(pm)),
+            Err(fallback_err) => {
+                tracing::error!(
+                    "[AppState] PluginManager 回退构造也失败: {:#}（将继续无插件启动）",
+                    fallback_err
+                );
+            }
+        }
+        // 最终兜底：使用系统临时目录构造空插件管理器。
+        // 固定目录名复用：每次兜底不再新建 <pid> 后缀目录（避免残留堆积）。
+        let fallback_dir = std::env::temp_dir().join("solosoul_plugin_fallback");
+        let _ = std::fs::create_dir_all(&fallback_dir);
+        match PluginManager::new_with_dirs(fallback_dir.clone(), fallback_dir.clone()) {
+            Ok(pm) => return Ok(Arc::new(pm)),
+            Err(final_err) => {
+                tracing::error!(
+                    "[AppState] PluginManager 最终兜底也失败: {:#}（继续无插件启动）",
+                    final_err
+                );
+            }
+        }
+        // 极端情况（临时目录也不可写）下仍不中止启动，使用当前目录作为最后兜底。
+        match PluginManager::new_with_dirs(
+            std::env::current_dir().unwrap_or_else(|_| fallback_dir.clone()),
+            fallback_dir,
+        ) {
+            Ok(pm) => Ok(Arc::new(pm)),
+            Err(last_err) => {
+                // 仅当临时目录与当前目录均不可写（文件系统级异常）
+                // 才中止启动——此时任何目录都无法构造 PluginManager。
+                // Android 上 temp_dir 指向可写的应用缓存目录，实际不可达。
+                tracing::error!(
+                    "[AppState] PluginManager 最后兜底失败: {:#}（无插件模式）",
+                    last_err
+                );
+                Err(anyhow::anyhow!(
+                    "PluginManager 无法初始化（多次兜底均失败）"
+                ))
+            }
+        }
+    }
+
+    pub fn new(handle: tauri::AppHandle) -> Result<Self, anyhow::Error> {
+        // ── 移动端 VaultService 初始化 ──
+        let vault_service = Self::init_vault_service(&handle)?;
+
+        // ── SyncService / 回调 / DeviceAutoSyncManager / 持久化开关恢复 ──
+        let (sync_service, device_auto_sync) = Self::init_sync_components(&handle, &vault_service);
+
+        // ── AutoSyncManager（在 VaultService 初始化之后启动） ──
+        let auto_sync = AutoSyncManager::new_for_vault(vault_service.clone(), handle.clone());
+
+        // ── PluginManager（初始化失败不阻止应用启动） ──
+        let plugin_manager = Self::init_plugin_manager(&handle)?;
 
         let app_state = Self {
             handle: handle.clone(),

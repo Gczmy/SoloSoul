@@ -876,50 +876,31 @@ fn template_prop_to_field_def(prop: &solosoul_vault::TemplateProperty) -> serde_
     serde_json::Value::Object(def)
 }
 
-/// 计算对象与模板之间的同步差异。
-fn compute_sync_changes(
-    record: &ObjectRecord,
+/// 新增字段：模板中有、对象 __fields 中没有。
+fn collect_added_fields(
     tpl: &solosoul_vault::UserTemplate,
-) -> TemplateSyncResult {
-    let latest_hash = template_fingerprint(tpl);
-    let current_fields = record
-        .properties
-        .get("__fields")
-        .and_then(|v| v.as_object())
-        .cloned()
-        .unwrap_or_default();
-    let props_obj = record.properties.as_object().cloned().unwrap_or_default();
-    // 对象的字段级敏感度真实来源是 property_labels；__fields 中的敏感度仅为创建/上次同步时的快照，
-    // 直接用它作基准会导致已更新过的敏感度被误报。
-    let labels_map = record
-        .property_labels
-        .as_ref()
-        .and_then(|v| v.as_object())
-        .cloned()
-        .unwrap_or_default();
-
-    let mut fields_added = Vec::new();
-    let mut fields_deprecated = Vec::new();
-    let mut fields_updated = Vec::new();
-    let mut fields_incompatible = Vec::new();
-
-    // 模板字段集合
-    let tpl_field_ids: std::collections::HashSet<String> =
-        tpl.properties.iter().map(|p| p.id.clone()).collect();
-
-    // 新增字段：模板中有，对象中没有
+    current_fields: &serde_json::Map<String, serde_json::Value>,
+) -> Vec<SyncFieldInfo> {
+    let mut out = Vec::new();
     for prop in &tpl.properties {
         if !current_fields.contains_key(&prop.id) {
-            fields_added.push(SyncFieldInfo {
+            out.push(SyncFieldInfo {
                 id: prop.id.clone(),
                 name: prop.name.clone(),
                 field_type: prop.prop_type.as_str().to_string(),
             });
         }
     }
+    out
+}
 
-    // 废弃字段：对象中有，模板中没有
-    for (field_id, def) in &current_fields {
+/// 废弃字段：对象 __fields 中有、模板中没有（跳过 `__` 内部键）。
+fn collect_deprecated_fields(
+    current_fields: &serde_json::Map<String, serde_json::Value>,
+    tpl_field_ids: &std::collections::HashSet<String>,
+) -> Vec<SyncFieldInfo> {
+    let mut out = Vec::new();
+    for (field_id, def) in current_fields {
         if field_id.starts_with("__") {
             continue;
         }
@@ -934,15 +915,28 @@ fn compute_sync_changes(
                 .and_then(|v| v.as_str())
                 .unwrap_or("text")
                 .to_string();
-            fields_deprecated.push(SyncFieldInfo {
+            out.push(SyncFieldInfo {
                 id: field_id.clone(),
                 name,
                 field_type,
             });
         }
     }
+    out
+}
 
-    // 更新与不兼容字段
+/// 更新与不兼容字段：同字段下类型变化（可转换 → 普通更新；不可 → 不兼容）、
+/// 名称/敏感度/选项/元数据变化。
+#[allow(clippy::too_many_lines)]
+fn collect_updated_fields(
+    tpl: &solosoul_vault::UserTemplate,
+    current_fields: &serde_json::Map<String, serde_json::Value>,
+    props_obj: &serde_json::Map<String, serde_json::Value>,
+    labels_map: &serde_json::Map<String, serde_json::Value>,
+) -> (Vec<SyncFieldChange>, Vec<SyncFieldIncompatible>) {
+    let mut fields_updated = Vec::new();
+    let mut fields_incompatible = Vec::new();
+
     for prop in &tpl.properties {
         let Some(old_def) = current_fields.get(&prop.id) else {
             continue;
@@ -1068,6 +1062,40 @@ fn compute_sync_changes(
             });
         }
     }
+
+    (fields_updated, fields_incompatible)
+}
+
+/// 计算对象与模板之间的同步差异。
+fn compute_sync_changes(
+    record: &ObjectRecord,
+    tpl: &solosoul_vault::UserTemplate,
+) -> TemplateSyncResult {
+    let latest_hash = template_fingerprint(tpl);
+    let current_fields = record
+        .properties
+        .get("__fields")
+        .and_then(|v| v.as_object())
+        .cloned()
+        .unwrap_or_default();
+    let props_obj = record.properties.as_object().cloned().unwrap_or_default();
+    // 对象的字段级敏感度真实来源是 property_labels；__fields 中的敏感度仅为创建/上次同步时的快照，
+    // 直接用它作基准会导致已更新过的敏感度被误报。
+    let labels_map = record
+        .property_labels
+        .as_ref()
+        .and_then(|v| v.as_object())
+        .cloned()
+        .unwrap_or_default();
+
+    let fields_added = collect_added_fields(tpl, &current_fields);
+
+    let tpl_field_ids: std::collections::HashSet<String> =
+        tpl.properties.iter().map(|p| p.id.clone()).collect();
+    let fields_deprecated = collect_deprecated_fields(&current_fields, &tpl_field_ids);
+
+    let (fields_updated, fields_incompatible) =
+        collect_updated_fields(tpl, &current_fields, &props_obj, &labels_map);
 
     let has_changes = !fields_added.is_empty()
         || !fields_deprecated.is_empty()
