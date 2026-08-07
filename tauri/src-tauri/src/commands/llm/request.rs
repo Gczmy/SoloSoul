@@ -211,6 +211,8 @@ pub(crate) async fn ensure_public_llm_host(base_url: &str) -> Result<(), String>
 /// 防止被 XSS 当作任意 URL 数据外传通道（CSP 已禁 webview 直连，后端是唯一出口）。
 /// P031 追加：字面 IP 命中内网段（RFC1918/链路本地/CGNAT/云元数据）直接拒绝；
 /// 回环放行以支持本地 LLM 服务器。主机名需 `ensure_public_llm_host` 异步解析复核。
+/// P015 追加：非回环 host 强制 https——Bearer key 与聊天内容不得经公网明文传输，
+/// 与 OCR 模型下载侧 `validate_model_base_url` 策略对齐（回环保留 http）。
 pub(crate) fn validate_llm_base_url(base_url: &str) -> Result<(), String> {
     let url = url::Url::parse(base_url).map_err(|e| format!("Invalid base_url: {e}"))?;
     let scheme = url.scheme();
@@ -241,7 +243,24 @@ pub(crate) fn validate_llm_base_url(base_url: &str) -> Result<(), String> {
             );
         }
     }
+    // P015：非回环 host 禁止明文 http（公网传输 Bearer key 与聊天内容可被中间人窃听）；
+    // 回环保留 http 以支持本地 LLM 服务器（Ollama / LM Studio / llama.cpp 默认监听 localhost）。
+    if scheme == "http" && !is_loopback_host(url.host()) {
+        return Err(
+            "base_url over http is only allowed for loopback hosts".to_string(),
+        );
+    }
     Ok(())
+}
+
+/// 判断 host 是否为回环：`localhost` 域名、IPv4 127.0.0.0/8、IPv6 ::1。
+fn is_loopback_host(host: Option<url::Host<&str>>) -> bool {
+    match host {
+        Some(url::Host::Domain(d)) => d.eq_ignore_ascii_case("localhost"),
+        Some(url::Host::Ipv4(v4)) => v4.octets()[0] == 127,
+        Some(url::Host::Ipv6(v6)) => v6.is_loopback(),
+        None => false,
+    }
 }
 
 #[cfg(test)]
@@ -327,7 +346,7 @@ mod tests {
 
     #[test]
     fn test_validate_base_url_accepts_loopback_and_public_ips() {
-        // P031：回环放行（本地 LLM 服务器）+ 公网字面 IP 放行
+        // P031：回环放行（本地 LLM 服务器）+ 公网字面 IP 放行（https）
         for good in [
             "http://127.0.0.1:11434/v1",
             "http://[::1]:11434/v1",
@@ -337,6 +356,23 @@ mod tests {
         ] {
             assert!(validate_llm_base_url(good).is_ok(), "should accept: {good}");
         }
+    }
+
+    #[test]
+    fn test_validate_base_url_rejects_public_http() {
+        // P015：非回环 host 强制 https——公网 http 明文传输密钥/内容被拒，与 OCR 侧一致
+        for bad in [
+            "http://api.openai.com/v1",
+            "http://8.8.8.8/v1",
+            "http://1.1.1.1/v1",
+            "http://[2001:4860:4860::8888]/v1",
+            "http://example.com:8080/v1",
+        ] {
+            assert!(validate_llm_base_url(bad).is_err(), "should reject: {bad}");
+        }
+        // 回环 + localhost 仍允许 http
+        assert!(validate_llm_base_url("http://localhost:11434/v1").is_ok());
+        assert!(validate_llm_base_url("http://127.0.0.2:11434/v1").is_ok());
     }
 
     #[test]
