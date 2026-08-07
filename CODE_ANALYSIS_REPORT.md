@@ -70,7 +70,7 @@
 | P039 | P2 | 性能 | `components/llm/ChatMessageList.tsx:178`、`ConversationHistory.tsx:46`、`pages/editor/HistoryPage.tsx:96` | 大列表无分页/虚拟滚动（HistoryPage 快照随编辑次数无限增长） | `[x]` 已修复（HistoryPage 快照分页：20 条/页 + 加载更多按钮；ChatMessageList/ConversationHistory 留后续虚拟滚动迭代） |
 | P040 | P2 | 重复代码 | `attachment/ConfirmDialog.tsx`、`workspace/ConfirmDeleteDialog.tsx`、`template/DeleteConfirmDialog.tsx` 等 5 处 | 5+ 个手写确认对话框重复 `ui/ConfirmDialog` 骨架 | `[x]` 已修复（共享组件扩展 submitting/ReactNode message，5 处薄封装保留原 prop API，零消费者改动） |
 | P041 | P2 | 可维护性 | `pages/auth/LoginPage.tsx`(约750行)、`App/AppRoutes.tsx`(约630行) 等 | 超长组件/hook 5 处，职责混杂 | `[x]` 已修复（AppRoutes 679→384 行：更新状态机拆 useAppUpdate、OCR 首装拆 useOcrFirstInstall；其余 4 处为长期迭代项随功能顺带拆分） |
-| P042 | P2 | 错误处理 | `TemplateManagerPage.tsx:77`、`SampleTemplateDetail.tsx:33`、`TemplateEditor.tsx:121`、`TemplateDetailModal.tsx:61` | 4 处 `loadInstalled().catch(() => {})` 静默吞错，加载失败表现为「无插件」假象 | `[ ]` 待修复 |
+| P042 | P2 | 错误处理 | `TemplateManagerPage.tsx:77`、`SampleTemplateDetail.tsx:33`、`TemplateEditor.tsx:121`、`TemplateDetailModal.tsx:61` | 4 处 `loadInstalled().catch(() => {})` 静默吞错，加载失败表现为「无插件」假象 | `[x]` 已修复（4 处 catch 补 logger.warn + 上下文标签，与同文件其他加载失败日志惯例一致） |
 | P043 | P2 | 架构 | `tauri/src/stores/objectStore.ts:185-196` | `deleteObject` 不清 `currentObjectCache` 详情缓存，残留旧数据 | `[ ]` 待修复 |
 | P044 | P2 | 可维护性 | `hooks/useRevealState.ts:90-93`、`pages/auth/LoginPage.tsx:32` | 遗留注释：字段类型感知部分掩码规格未实现；`__DEBUG_SHOW_ALL` 调试开关遗留 | `[ ]` 待修复 |
 | P045 | P2 | 重复代码 | `tauri/src/hooks/useExportScope.ts`（同 P005 根因） | 占位（合并至 P005 处理，不单独计数） | `[x]` 误报/合并 |

@@ -12,6 +12,7 @@ import type { SensitivityLevel } from '@/types/template';
 import { ICON_SIZE } from '@/lib/constants';
 import { usePluginStore } from '@/stores/pluginStore';
 import type { PluginManifest } from '@/lib/plugin';
+import { logger } from '@/lib/logger';
 
 // 模块级空数组常量，避免 ?? [] 每次创建新引用导致 ESLint useMemo 依赖 warning
 const EMPTY_PLUGINS: PluginManifest[] = [];
@@ -30,7 +31,10 @@ export function SampleTemplateDetail({ template, onBack, onUse }: SampleTemplate
   // 确保插件列表已加载（用于 deriveContractBindings）
   useEffect(() => {
     if (installedPlugins.length === 0) {
-      loadInstalled().catch(() => {});
+      // P042: 插件列表加载失败不再静默吞错（降级表现为无契约绑定推导，需可诊断）。
+      loadInstalled().catch((err) =>
+        logger.warn('[SampleTemplateDetail] Load installed plugins failed:', err),
+      );
     }
   }, [installedPlugins.length, loadInstalled]);
 

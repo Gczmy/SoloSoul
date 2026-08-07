@@ -20,6 +20,7 @@ import { usePluginStore } from '@/stores/pluginStore';
 import { resolvePluginName, deriveContractBindings } from '@/lib/plugin';
 import { TemplateFieldRow, type FlattenedContract } from './TemplateFieldRow';
 import { DeprecatedFieldsSection, type FieldUsage } from './DeprecatedFieldsSection';
+import { logger } from '@/lib/logger';
 
 interface TemplateEditorProps {
   editingTemplate: UserTemplate | null;
@@ -118,7 +119,10 @@ export function TemplateEditor({
   // 加载已安装插件列表（用于展示契约角色）
   React.useEffect(() => {
     if (installedPlugins.length === 0) {
-      loadInstalled().catch(() => {});
+      // P042: 插件列表加载失败不再静默吞错（降级表现为契约角色绑定缺失，需可诊断）。
+      loadInstalled().catch((err) =>
+        logger.warn('[TemplateEditor] Load installed plugins failed:', err),
+      );
     }
   }, [installedPlugins.length, loadInstalled]);
 

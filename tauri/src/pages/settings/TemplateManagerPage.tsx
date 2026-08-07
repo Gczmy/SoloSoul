@@ -74,7 +74,10 @@ export function TemplateManagerPage() {
   // 独立的 useEffect 加载插件列表（与模板/页面加载无关，避免 installedPlugins 变化触发不必要的重载）
   useEffect(() => {
     if (installedPlugins.length === 0) {
-      loadInstalled().catch(() => {});
+      // P042: 插件列表加载失败不再静默吞错（降级表现为插件市场数据缺失，需可诊断）。
+      loadInstalled().catch((err) =>
+        logger.warn('[TemplateManager] Load installed plugins failed:', err),
+      );
     }
   }, [installedPlugins.length, loadInstalled]);
 

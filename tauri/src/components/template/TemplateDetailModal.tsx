@@ -13,6 +13,7 @@ import type { PropertyType, SensitivityLevel, UserTemplate } from '@/types/templ
 import { ICON_SIZE } from '@/lib/constants';
 import { usePluginStore } from '@/stores/pluginStore';
 import type { ListTemplate } from '@/pages/settings/TemplateListSection';
+import { logger } from '@/lib/logger';
 
 interface TemplateDetailModalProps {
   detailTemplate: ListTemplate | null;
@@ -36,7 +37,10 @@ export function TemplateDetailModal({
   // 确保插件列表已加载（用于 contractField 推导）
   useEffect(() => {
     if (installedPlugins.length === 0) {
-      loadInstalled().catch(() => {});
+      // P042: 插件列表加载失败不再静默吞错（降级表现为 contractField 推导缺失，需可诊断）。
+      loadInstalled().catch((err) =>
+        logger.warn('[TemplateDetailModal] Load installed plugins failed:', err),
+      );
     }
   }, [installedPlugins.length, loadInstalled]);
 
