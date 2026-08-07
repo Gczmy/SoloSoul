@@ -89,14 +89,14 @@ AI 在本地或你指定的端点运行——绝不上传原始数据。
 
 ## 平台与安装
 
-| 平台 | 安装包 | 状态 |
+| 平台 | 安装包 | 下载 |
 |------|--------|------|
-| macOS (Apple Silicon) | `.dmg` | ✅ 可用 |
-| Windows (x64) | `.exe` (NSIS) | ✅ 可用 |
-| Android | `.apk` (universal) | ✅ 可用 |
+| macOS (Apple Silicon) | `.dmg` | [⬇ 下载 macOS 版](https://github.com/Gczmy/SoloSoul/releases/latest/download/SoloSoul_2.8.6_arm64.dmg) |
+| Windows (x64) | `.exe` (NSIS) | [⬇ 下载 Windows 版](https://github.com/Gczmy/SoloSoul/releases/latest/download/SoloSoul_2.8.6_x64-setup.exe) |
+| Android | `.apk` (universal) | [⬇ 下载 Android 版](https://github.com/Gczmy/SoloSoul/releases/latest/download/SoloSoul_2.8.6_universal-release.apk) |
 | Linux | `.AppImage` | ⏳ 待测试 |
 
-从 [GitHub Releases](https://github.com/Gczmy/SoloSoul/releases) 下载对应平台的安装包。安装后创建本地账户（无需邮箱），设置主密码即可开始。
+点击上方链接即可直接下载对应平台的最新安装包，无需在 Release 页面挑选文件。Release 页面中其余文件（`latest.json`、`.sha256`、`.minisig` 等）为自动更新与校验元数据，普通用户无需下载。安装后创建本地账户（无需邮箱），设置主密码即可开始。
 
 > [!IMPORTANT]
 > **macOS 安装提醒**：macOS 版本暂未通过 Apple 开发者认证与公证（暂无开发者账号），首次打开会被 Gatekeeper 拦截。请任选以下一种方式解除：
