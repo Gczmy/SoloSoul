@@ -41,7 +41,8 @@ export function ConfirmDialog({
 
   return (
     <Dialog isOpen={isOpen} onClose={onCancel} title={title} priority={priority}>
-      <p className={styles.message}>{message}</p>
+      {/* 用 div 而非 p：message 可能是块级 ReactNode（评审 P040 反馈），p 内嵌块级属无效 HTML */}
+      <div className={styles.message}>{message}</div>
       {children}
       <div className={styles.actions}>
         <Button variant="secondary" onClick={onCancel} disabled={submitting}>

@@ -32,6 +32,8 @@ export function HistoryPage() {
 
   useEffect(() => {
     if (objectId) {
+      // P039(评审反馈): 切换对象时重置分页游标，避免继承上一个对象的展开深度
+      setVisibleLimit(SNAPSHOT_PAGE_SIZE);
       invoke<SnapshotEntry[]>('snapshot_list', { objectId: objectId })
         .then(setSnapshots)
         .catch((err) => {
