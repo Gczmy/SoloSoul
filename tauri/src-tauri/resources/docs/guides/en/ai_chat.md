@@ -31,7 +31,7 @@ SoloSoul's AI Chat lets you communicate with an AI assistant directly within the
 The system prompt is context information automatically injected into every conversation, including:
 
 - Basic software information
-- Your objects marked as **Public** level
+- Your objects marked as `public` level
 - Usage statistics (conversation count, token usage, etc.)
 
 You can disable system prompt injection in LLM Config.

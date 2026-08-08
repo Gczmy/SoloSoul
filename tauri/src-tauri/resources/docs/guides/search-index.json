@@ -96,7 +96,6 @@
       "plugins",
       "search",
       "security",
-      "sensitivity",
       "snapshots",
       "templates"
     ],
@@ -3917,6 +3916,7 @@
       "objects",
       "plugins",
       "search",
+      "sensitivity",
       "templates",
       "trash"
     ],
@@ -4577,9 +4577,7 @@
       "ai_chat",
       "audit_log",
       "objects",
-      "search",
-      "sensitivity",
-      "snapshots"
+      "search"
     ],
     "支持按名称与属性值实时过滤": [
       "objects"
@@ -5325,6 +5323,7 @@
       "ocr_scan",
       "search",
       "security",
+      "sensitivity",
       "templates",
       "workspace"
     ],
@@ -5369,6 +5368,7 @@
       "device-sync",
       "llm_config",
       "plugins",
+      "sensitivity",
       "templates"
     ],
     "无法修改": [
@@ -5860,6 +5860,7 @@
       "device-sync",
       "ocr_scan",
       "security",
+      "sensitivity",
       "templates"
     ],
     "updates": [
@@ -6566,11 +6567,13 @@
     "徽": [
       "appearance",
       "attachments",
+      "sensitivity",
       "snapshots"
     ],
     "章": [
       "appearance",
       "attachments",
+      "sensitivity",
       "snapshots"
     ],
     "点击回形针图标打开附件列表": [
@@ -7135,12 +7138,13 @@
       "security",
       "snapshots"
     ],
-    "敏感": [
+    "critical": [
       "ai_chat",
+      "biometric",
       "sensitivity",
       "snapshots"
     ],
-    "关键级别的字段会被模糊处理": [
+    "级别的字段会被模糊处理": [
       "snapshots"
     ],
     "处": [
@@ -7149,7 +7153,13 @@
       "sensitivity",
       "snapshots"
     ],
-    "查看关键字段需要密码验证": [
+    "查看": [
+      "biometric",
+      "device-sync",
+      "llm_config",
+      "snapshots"
+    ],
+    "字段需要密码验证": [
       "snapshots"
     ],
     "从快照恢复": [
@@ -7359,12 +7369,6 @@
     ],
     "rules": [
       "search",
-      "snapshots"
-    ],
-    "critical": [
-      "ai_chat",
-      "biometric",
-      "sensitivity",
       "snapshots"
     ],
     "requires": [
@@ -7635,7 +7639,8 @@
       "collections",
       "device-sync",
       "ocr_scan",
-      "security"
+      "security",
+      "sensitivity"
     ],
     "detail": [
       "audit_log",
@@ -7693,6 +7698,10 @@
       "security",
       "sensitivity"
     ],
+    "敏感": [
+      "ai_chat",
+      "sensitivity"
+    ],
     "隐私": [
       "sensitivity"
     ],
@@ -7730,16 +7739,17 @@
     "显示行为": [
       "sensitivity"
     ],
-    "公开": [
-      "ai_chat",
-      "sensitivity"
-    ],
-    "公": [
+    "public": [
       "ai_chat",
       "device-sync",
       "sensitivity"
     ],
     "公众可见": [
+      "sensitivity"
+    ],
+    "公": [
+      "ai_chat",
+      "device-sync",
       "sensitivity"
     ],
     "众": [
@@ -7754,7 +7764,9 @@
     "明文显示": [
       "sensitivity"
     ],
-    "内部": [
+    "internal": [
+      "backup_restore",
+      "ocr_scan",
       "sensitivity"
     ],
     "仅内部使用": [
@@ -7787,13 +7799,62 @@
     "点击可查看": [
       "sensitivity"
     ],
-    "关键": [
-      "sensitivity"
-    ],
     "高度敏感": [
       "sensitivity"
     ],
     "查看需密码验证": [
+      "sensitivity"
+    ],
+    "表中级别以应用内徽章展示": [
+      "sensitivity"
+    ],
+    "绿色": [
+      "sensitivity"
+    ],
+    "绿": [
+      "appearance",
+      "sensitivity"
+    ],
+    "色": [
+      "appearance",
+      "device-sync",
+      "sensitivity"
+    ],
+    "蓝色": [
+      "sensitivity"
+    ],
+    "蓝": [
+      "appearance",
+      "sensitivity"
+    ],
+    "琥珀色": [
+      "sensitivity"
+    ],
+    "琥": [
+      "appearance",
+      "sensitivity"
+    ],
+    "珀": [
+      "appearance",
+      "sensitivity"
+    ],
+    "红色": [
+      "sensitivity"
+    ],
+    "红": [
+      "appearance",
+      "sensitivity"
+    ],
+    "均带颜色边框": [
+      "sensitivity"
+    ],
+    "均": [
+      "device-sync",
+      "llm_config",
+      "ocr_scan",
+      "sensitivity"
+    ],
+    "颜": [
       "sensitivity"
     ],
     "字段级保护": [
@@ -7913,13 +7974,16 @@
     "的隐私边界": [
       "sensitivity"
     ],
-    "只有公开级别的字段信息会被注入": [
+    "只有": [
       "sensitivity"
     ],
     "只": [
       "audit_log",
       "device-sync",
       "plugins",
+      "sensitivity"
+    ],
+    "级别的字段信息会被注入": [
       "sensitivity"
     ],
     "注": [
@@ -7932,7 +7996,7 @@
       "ai_chat",
       "sensitivity"
     ],
-    "关键数据": [
+    "数据": [
       "sensitivity"
     ],
     "绝不会": [
@@ -8047,11 +8111,6 @@
     "behavior": [
       "sensitivity"
     ],
-    "public": [
-      "ai_chat",
-      "device-sync",
-      "sensitivity"
-    ],
     "publicly": [
       "ai_chat",
       "sensitivity"
@@ -8060,11 +8119,6 @@
       "sensitivity"
     ],
     "plain": [
-      "sensitivity"
-    ],
-    "internal": [
-      "backup_restore",
-      "ocr_scan",
       "sensitivity"
     ],
     "handle": [
@@ -8081,6 +8135,30 @@
       "sensitivity"
     ],
     "highly": [
+      "sensitivity"
+    ],
+    "badges": [
+      "appearance",
+      "sensitivity"
+    ],
+    "green": [
+      "sensitivity"
+    ],
+    "blue": [
+      "sensitivity"
+    ],
+    "amber": [
+      "appearance",
+      "sensitivity"
+    ],
+    "red": [
+      "sensitivity"
+    ],
+    "colored": [
+      "sensitivity"
+    ],
+    "border": [
+      "appearance",
       "sensitivity"
     ],
     "full": [
@@ -8955,11 +9033,6 @@
     "启用生物识别": [
       "audit_log",
       "biometric"
-    ],
-    "查看": [
-      "biometric",
-      "device-sync",
-      "llm_config"
     ],
     "区域的状态": [
       "biometric"
@@ -10361,11 +10434,6 @@
     "所有同步数据均通过": [
       "device-sync"
     ],
-    "均": [
-      "device-sync",
-      "llm_config",
-      "ocr_scan"
-    ],
     "noise": [
       "device-sync"
     ],
@@ -10622,10 +10690,6 @@
       "device-sync"
     ],
     "配色方案": [
-      "appearance",
-      "device-sync"
-    ],
-    "色": [
       "appearance",
       "device-sync"
     ],
@@ -13172,9 +13236,6 @@
     "酒": [
       "appearance"
     ],
-    "红": [
-      "appearance"
-    ],
     "青碧": [
       "appearance"
     ],
@@ -13244,19 +13305,7 @@
     "洋": [
       "appearance"
     ],
-    "蓝": [
-      "appearance"
-    ],
-    "amber": [
-      "appearance"
-    ],
     "琥珀金": [
-      "appearance"
-    ],
-    "琥": [
-      "appearance"
-    ],
-    "珀": [
       "appearance"
     ],
     "金": [
@@ -13266,9 +13315,6 @@
       "appearance"
     ],
     "森林绿": [
-      "appearance"
-    ],
-    "绿": [
       "appearance"
     ],
     "rose": [
@@ -13454,9 +13500,6 @@
     "palette": [
       "appearance"
     ],
-    "border": [
-      "appearance"
-    ],
     "colors": [
       "appearance"
     ],
@@ -13567,9 +13610,6 @@
       "appearance"
     ],
     "buttons": [
-      "appearance"
-    ],
-    "badges": [
       "appearance"
     ],
     "highlights": [

@@ -30,8 +30,8 @@ Each snapshot contains the object's complete state (name, properties, attachment
 
 The history browser follows the same sensitivity rules:
 
-- Sensitive / Critical fields are blurred
-- Viewing Critical fields requires password verification
+- `sensitive` / `critical` fields are blurred
+- Viewing `critical` fields requires password verification
 
 ## Restoring from Snapshot
 
