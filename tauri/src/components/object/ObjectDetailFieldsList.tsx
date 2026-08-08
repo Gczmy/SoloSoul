@@ -17,7 +17,7 @@ export interface FlattenedField {
 
 interface ObjectDetailFieldsListProps {
   fields: FlattenedField[];
-  collectionType: string;
+  typeId: string;
   contractTypeId?: string;
   objFieldDefs?: Record<string, { name: string; type: string }> | undefined;
   getFieldProperty: (key: string) => TemplateProperty | undefined;
@@ -37,7 +37,7 @@ interface ObjectDetailFieldsListProps {
  */
 export function ObjectDetailFieldsList({
   fields,
-  collectionType,
+  typeId,
   contractTypeId,
   objFieldDefs,
   getFieldProperty,
@@ -57,7 +57,7 @@ export function ObjectDetailFieldsList({
       {fields.map((f) => {
         const sens = getFieldSensitivity(f.key);
         const deprecated = isFieldDeprecated(f.key);
-        const fieldId = f.fieldId || `${collectionType}.${f.key}`;
+        const fieldId = f.fieldId || `${typeId}.${f.key}`;
         const revealed = isRevealed(fieldId);
         const needsReveal = sens === 'sensitive' || sens === 'critical';
         // 字段类型图标：模板定义优先，回退到对象内嵌 __fields，最后按 text 处理

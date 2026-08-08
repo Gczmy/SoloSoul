@@ -117,7 +117,7 @@ fn test_object_data_serde_roundtrip() {
     };
     let json = serde_json::to_string(&original).unwrap();
     assert!(json.contains("accountId"));
-    assert!(json.contains("collectionType"));
+    assert!(json.contains("typeId"));
     let restored: ObjectData = serde_json::from_str(&json).unwrap();
     assert_eq!(restored.id, original.id);
     assert_eq!(restored.name, original.name);
@@ -135,7 +135,7 @@ fn test_retention_ms_parsing() {
 
 #[test]
 fn test_object_filter_deserialization() {
-    let json = r#"{"collectionType":"note","keyword":"test"}"#;
+    let json = r#"{"typeId":"note","keyword":"test"}"#;
     let filter: ObjectFilter = serde_json::from_str(json).unwrap();
     assert_eq!(filter.collection_type, Some("note".to_string()));
     assert_eq!(filter.keyword, Some("test".to_string()));
@@ -145,7 +145,7 @@ fn test_object_filter_deserialization() {
 
 #[test]
 fn test_create_object_input_deserialization() {
-    let json = r#"{"accountId":"acc-1","name":"My Note","collectionType":"note","properties":{},"parentId":"parent-1","iconName":"star"}"#;
+    let json = r#"{"accountId":"acc-1","name":"My Note","typeId":"note","properties":{},"parentId":"parent-1","iconName":"star"}"#;
     let input: CreateObjectInput = serde_json::from_str(json).unwrap();
     assert_eq!(input.account_id, "acc-1");
     assert_eq!(input.icon_name, Some("star".to_string()));

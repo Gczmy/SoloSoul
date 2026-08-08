@@ -43,7 +43,7 @@ export function useObjectWorkspaceData({
   const [historyObj, setHistoryObj] = useState<{
     id: string;
     name: string;
-    collectionType: string;
+    typeId: string;
     templateId?: string;
   } | null>(null);
   const [snapshotCounts, setSnapshotCounts] = useState<Record<string, number>>({});
@@ -165,12 +165,12 @@ export function useObjectWorkspaceData({
   const customPage = pageId ? customPages.find((p) => p.id === pageId) : null;
 
   const resolveCollectionLabel = useCallback(
-    (collectionType: string) => {
-      if (['identity', 'travel', 'financial', 'professional', 'document'].includes(collectionType)) {
-        return t(`navigation:${collectionType}`);
+    (typeId: string) => {
+      if (['identity', 'travel', 'financial', 'professional', 'document'].includes(typeId)) {
+        return t(`navigation:${typeId}`);
       }
-      const cp = customPages.find((p) => p.id === collectionType);
-      return cp?.name || collectionType;
+      const cp = customPages.find((p) => p.id === typeId);
+      return cp?.name || typeId;
     },
     [t, customPages],
   );
@@ -320,7 +320,7 @@ export function useObjectWorkspaceData({
       if (pageId) {
         loadObjects(accountId, { parentId: pageId });
       } else {
-        loadObjects(accountId, sectionFilter ? { collectionType: sectionFilter } : undefined);
+        loadObjects(accountId, sectionFilter ? { typeId: sectionFilter } : undefined);
       }
     }
   }, [accountId, sectionFilter, pageId, loadObjects]);
@@ -335,8 +335,8 @@ export function useObjectWorkspaceData({
     () =>
       objects.filter(
         (obj) =>
-          obj.collectionType !== 'page' &&
-          obj.collectionType !== 'unknown' &&
+          obj.typeId !== 'page' &&
+          obj.typeId !== 'unknown' &&
           obj.name.toLowerCase().includes(debouncedSearchQuery.toLowerCase()),
       ),
     [objects, debouncedSearchQuery],
@@ -451,7 +451,7 @@ export function useObjectWorkspaceData({
           } else {
             await loadObjects(
               accountId,
-              sectionFilter ? { collectionType: sectionFilter } : undefined,
+              sectionFilter ? { typeId: sectionFilter } : undefined,
             );
           }
           await refreshDetailObjAfterSync(objectId);
@@ -488,7 +488,7 @@ export function useObjectWorkspaceData({
       if (pageId) {
         await loadObjects(accountId, { parentId: pageId });
       } else {
-        await loadObjects(accountId, sectionFilter ? { collectionType: sectionFilter } : undefined);
+        await loadObjects(accountId, sectionFilter ? { typeId: sectionFilter } : undefined);
       }
       await refreshDetailObjAfterSync(syncDialog.objectId);
       await refreshTemplateHashMap();
@@ -519,7 +519,7 @@ export function useObjectWorkspaceData({
           } else {
             await loadObjects(
               accountId,
-              sectionFilter ? { collectionType: sectionFilter } : undefined,
+              sectionFilter ? { typeId: sectionFilter } : undefined,
             );
           }
           await refreshTemplateHashMap();

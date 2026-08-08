@@ -19,7 +19,7 @@ import { logger } from '@/lib/logger';
 import styles from './ObjectEditorPage.module.css';
 
 // Each template belongs to a workspace section.
-// collectionType is the section (for filtering), not the template name.
+// typeId is the section (for filtering), not the template name.
 type TemplateCategory = 'identity' | 'travel' | 'financial' | 'professional';
 
 // P050: 字段类型值校验表驱动化。动态组子字段与普通字段共用同一套校验，
@@ -195,10 +195,10 @@ export function ObjectEditorPage() {
       );
   const displayFields = [...activeFields, ...deprecatedFields];
 
-  // Determine collectionType
-  const collectionType = isNew
+  // Determine typeId
+  const typeId = isNew
     ? sectionParam || (selectedType ? templateMeta[selectedType]?.category || selectedType : '')
-    : currentObject?.collectionType || '';
+    : currentObject?.typeId || '';
 
   // Load existing object and populate form
   useEffect(() => {
@@ -261,7 +261,7 @@ export function ObjectEditorPage() {
     if (currentObject.templateId) {
       if (objectTemplates[currentObject.templateId]) {
         // 确保模板与对象属于同一页面。若模板被恢复（重新创建）但页面不同，不认为是匹配的模板
-        if (templateMeta[currentObject.templateId]?.category === currentObject.collectionType) {
+        if (templateMeta[currentObject.templateId]?.category === currentObject.typeId) {
           matchedType = currentObject.templateId;
         }
       }
@@ -389,7 +389,7 @@ export function ObjectEditorPage() {
         await createObject({
           accountId,
           name: name || templateMeta[selectedType]?.label || 'Untitled',
-          collectionType,
+          typeId,
           properties: values,
           parentId,
           templateId: selectedType || undefined,
@@ -427,7 +427,7 @@ export function ObjectEditorPage() {
           onSelect={setSelectedType}
           templateMeta={templateMeta}
           userTemplates={userTemplates}
-          collectionType={collectionType}
+          typeId={typeId}
           currentObject={currentObject}
           contractTypeId={contractTypeId}
           customPages={customPages}

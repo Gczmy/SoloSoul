@@ -16,7 +16,7 @@ interface ObjectTemplateSelectorProps {
   onSelect: (type: string) => void;
   templateMeta: Record<string, { category: string; label: string }>;
   userTemplates: UserTemplate[];
-  collectionType?: string;
+  typeId?: string;
   currentObject?: ObjectData | null;
   contractTypeId?: string;
   customPages: CustomPage[];
@@ -30,7 +30,7 @@ export function ObjectTemplateSelector({
   onSelect,
   templateMeta,
   userTemplates,
-  collectionType,
+  typeId,
   currentObject,
   contractTypeId,
   customPages,
@@ -151,7 +151,7 @@ export function ObjectTemplateSelector({
   }
 
   // Edit mode: show collection type badge and template info
-  if (!collectionType) return null;
+  if (!typeId) return null;
 
   return (
     <Card>
@@ -169,7 +169,7 @@ export function ObjectTemplateSelector({
             color: 'var(--accent-primary)',
           }}
         >
-          {resolveCollectionLabel(collectionType, customPages, t)}
+          {resolveCollectionLabel(typeId, customPages, t)}
         </span>
         {(selectedType || currentObject?.templateId) && (
           <span

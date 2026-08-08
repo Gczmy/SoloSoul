@@ -22,7 +22,7 @@ export const SYSTEM_PAGE_KEYS = [
 export interface SearchItem {
   objectId: string;
   name: string;
-  collectionType: string;
+  typeId: string;
   itemType?: string;
   parentId?: string;
   templateName?: string;
@@ -107,9 +107,9 @@ export function resolveResultName(
   return item.name;
 }
 
-/** 解析搜索结果的图标：系统页面按 objectId、对象按 collectionType、自定义页面按 iconId。 */
+/** 解析搜索结果的图标：系统页面按 objectId、对象按 typeId、自定义页面按 iconId。 */
 export function resolveResultIcon(
-  item: { itemType?: string; collectionType: string; objectId: string },
+  item: { itemType?: string; typeId: string; objectId: string },
   customPages: CustomPage[],
 ): LucideIcon {
   if (item.itemType === 'page') {
@@ -122,10 +122,10 @@ export function resolveResultIcon(
     }
     return PAGE_ICON_MAP.custom;
   }
-  if (item.collectionType in PAGE_ICON_MAP) {
-    return PAGE_ICON_MAP[item.collectionType as keyof typeof PAGE_ICON_MAP];
+  if (item.typeId in PAGE_ICON_MAP) {
+    return PAGE_ICON_MAP[item.typeId as keyof typeof PAGE_ICON_MAP];
   }
-  const cp = customPages.find((p) => p.id === item.collectionType);
+  const cp = customPages.find((p) => p.id === item.typeId);
   if (cp) {
     return resolveCustomIcon(cp.iconId);
   }
@@ -205,14 +205,14 @@ export function buildSearchPayload(
 ): Record<string, unknown> {
   const payload: Record<string, unknown> = { accountId, query, limit: 50 };
   if (pageKey) {
-    payload.collectionType = pageKey;
+    payload.typeId = pageKey;
   }
   if (filter) {
     const isCustom = customPages.some((p) => p.id === filter);
     if (isCustom) {
       payload.parentId = filter;
     } else {
-      payload.collectionType = filter;
+      payload.typeId = filter;
     }
   }
   return payload;
@@ -228,7 +228,7 @@ export function ensurePageResultExists(items: SearchItem[], pageKey: string): Se
     {
       objectId: pageKey,
       name: pageKey,
-      collectionType: pageKey,
+      typeId: pageKey,
       itemType: 'page',
       objectCount: undefined,
       matchedField: undefined,

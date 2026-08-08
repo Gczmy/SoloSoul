@@ -191,7 +191,7 @@ export function ObjectDetailModal({
   }, []);
 
   const resolveCollectionLabelLocal = useCallback(
-    (collectionType: string) => resolveCollectionLabel(collectionType, customPages, t),
+    (typeId: string) => resolveCollectionLabel(typeId, customPages, t),
     [customPages, t],
   );
 
@@ -209,7 +209,7 @@ export function ObjectDetailModal({
                 ? 'critical_field_windows_hello'
                 : 'critical_field_face_id';
       const entityType = method === 'password' || method === 'pin' ? 'auth' : 'biometric';
-      const details = `objectName=${obj.name} page=${resolveCollectionLabelLocal(obj.collectionType)} fieldName=${pendingRevealRef.current.fieldName}`;
+      const details = `objectName=${obj.name} page=${resolveCollectionLabelLocal(obj.typeId)} fieldName=${pendingRevealRef.current.fieldName}`;
       try {
         await invoke('log_write', {
           request: {
@@ -345,7 +345,7 @@ export function ObjectDetailModal({
   const detailTpl = obj?.templateId ? templates.find((t) => t.id === obj.templateId) : undefined;
   // 模板匹配需同时满足 ID 和页面归属（与编辑器 ObjectEditorPage 对齐）。
   // !! 归一化为 boolean：原实现仅用于三元/条件真值判断，语义等价。
-  const detailTplMatch = !!detailTpl && (detailTpl.category || 'identity') === obj?.collectionType;
+  const detailTplMatch = !!detailTpl && (detailTpl.category || 'identity') === obj?.typeId;
   const ObjectDetailIcon = detailTpl?.iconId
     ? resolveCustomIcon(detailTpl.iconId)
     : PAGE_ICON_MAP.custom;
@@ -381,7 +381,7 @@ export function ObjectDetailModal({
                 icon={ObjectDetailIcon}
                 detailTplMatch={detailTplMatch}
                 detailTplName={detailTpl?.name}
-                collectionLabel={resolveCollectionLabelLocal(obj.collectionType)}
+                collectionLabel={resolveCollectionLabelLocal(obj.typeId)}
                 t={t}
                 onClose={onClose}
               />
@@ -426,7 +426,7 @@ export function ObjectDetailModal({
                 ) : (
                   <ObjectDetailFieldsList
                     fields={fields}
-                    collectionType={obj.collectionType}
+                    typeId={obj.typeId}
                     contractTypeId={obj.contractTypeId}
                     objFieldDefs={objFieldDefs}
                     getFieldProperty={getFieldProperty}
@@ -476,7 +476,7 @@ export function ObjectDetailModal({
         <HistoryViewer
           objectId={obj.id}
           objectName={obj.name}
-          collectionType={obj.collectionType}
+          typeId={obj.typeId}
           onClose={() => setShowHistory(false)}
           passwordVerify={passwordVerify}
           getFieldSensitivity={getFieldSensitivity}

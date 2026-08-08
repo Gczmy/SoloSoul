@@ -60,7 +60,7 @@ const sampleObj = {
   id: 'obj-1',
   accountId: 'acc-1',
   name: '护照',
-  collectionType: 'travel',
+  typeId: 'travel',
   properties: {
     full_name: '张三',
     passport_number: 'E12345678',

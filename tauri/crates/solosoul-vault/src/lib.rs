@@ -304,7 +304,8 @@ pub struct ObjectRecord {
 pub struct ObjectSummary {
     pub id: String,
     pub name: String,
-    #[serde(rename = "collectionType")]
+    // P042: IPC 载荷字段名统一为 typeId（与 ObjectRecord 同步载荷一致，前端一套词汇）
+    #[serde(rename = "typeId")]
     pub collection_type: String,
     #[serde(rename = "sectionType")]
     pub section_type: String,
@@ -612,10 +613,7 @@ mod tests {
         // 不得以 snake_case 键序列化（此前正是此缺陷导致前端 hasAttachments 恒为 undefined）
         assert!(v.get("has_attachments").is_none());
         // 既有关键字段命名不受影响
-        assert_eq!(
-            v["collectionType"],
-            serde_json::Value::String("note".to_string())
-        );
+        assert_eq!(v["typeId"], serde_json::Value::String("note".to_string()));
         assert_eq!(
             v["sensitivityLevel"],
             serde_json::Value::String("internal".to_string())

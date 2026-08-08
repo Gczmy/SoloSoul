@@ -66,7 +66,7 @@ export function ObjectWorkspacePage() {
       setHistoryObj({
         id: obj.id,
         name: obj.name,
-        collectionType: obj.collectionType,
+        typeId: obj.typeId,
         templateId: obj.templateId || undefined,
       }),
     [setHistoryObj],
@@ -180,7 +180,7 @@ export function ObjectWorkspacePage() {
                 <WorkspaceObjectCard
                   key={obj.id}
                   obj={obj}
-                  collectionLabel={ws.resolveCollectionLabel(obj.collectionType)}
+                  collectionLabel={ws.resolveCollectionLabel(obj.typeId)}
                   userTemplates={ws.userTemplates}
                   snapshotCount={ws.snapshotCounts[obj.id]}
                   attachmentCount={ws.attachmentCounts[obj.id]}
@@ -288,7 +288,7 @@ export function ObjectWorkspacePage() {
             <HistoryViewer
               objectId={historyObj.id}
               objectName={historyObj.name}
-              collectionType={historyObj.collectionType}
+              typeId={historyObj.typeId}
               onClose={() => ws.setHistoryObj(null)}
               passwordVerify={ws.passwordVerify}
               getFieldSensitivity={(fieldKey) =>

@@ -12,7 +12,7 @@ export interface PageGroup {
 export interface ExportObjectSummary {
   id: string;
   name: string;
-  collectionType: string;
+  typeId: string;
   sectionType: string;
   sensitivityLevel: string;
   createdAt: string;

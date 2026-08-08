@@ -29,6 +29,9 @@ pub(crate) const MAX_DISPLAY_VALUE_CHARS: usize = 100;
 pub struct SearchResultItem {
     pub object_id: String,
     pub name: String,
+    // P042: IPC 载荷统一为 typeId（与 ObjectRecord 同步载荷一致）；
+    // rename_all = "camelCase" 下显式覆盖 collectionType → typeId
+    #[serde(rename = "typeId")]
     pub collection_type: String,
     /// "object" or "page"
     pub item_type: String,

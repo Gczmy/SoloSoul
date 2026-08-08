@@ -67,15 +67,15 @@ describe('searchShared helpers', () => {
 
   it('resolveResultIcon：系统/自定义/对象图标均能解析为非空组件', () => {
     const sysIcon = resolveResultIcon(
-      { itemType: 'page', collectionType: 'identity', objectId: 'identity' },
+      { itemType: 'page', typeId: 'identity', objectId: 'identity' },
       customPages,
     );
     const customIcon = resolveResultIcon(
-      { itemType: 'page', collectionType: 'cp1', objectId: 'cp1' },
+      { itemType: 'page', typeId: 'cp1', objectId: 'cp1' },
       customPages,
     );
     const objIcon = resolveResultIcon(
-      { itemType: 'object', collectionType: 'unknown-ct', objectId: 'o1' },
+      { itemType: 'object', typeId: 'unknown-ct', objectId: 'o1' },
       customPages,
     );
     expect(sysIcon).toBeTruthy();
@@ -94,12 +94,12 @@ describe('searchShared helpers', () => {
     expect(sortSensitivityLevels(['bogus', 'public'])).toEqual(['public']);
   });
 
-  it('buildSearchPayload：pageKey 优先、自定义页走 parentId、系统页走 collectionType', () => {
+  it('buildSearchPayload：pageKey 优先、自定义页走 parentId、系统页走 typeId', () => {
     expect(buildSearchPayload('a', 'q', 'identity', null, customPages)).toEqual({
       accountId: 'a',
       query: 'q',
       limit: 50,
-      collectionType: 'identity',
+      typeId: 'identity',
     });
     expect(buildSearchPayload('a', 'q', null, 'cp1', customPages)).toEqual({
       accountId: 'a',
@@ -111,7 +111,7 @@ describe('searchShared helpers', () => {
       accountId: 'a',
       query: 'q',
       limit: 50,
-      collectionType: 'travel',
+      typeId: 'travel',
     });
     // 无 pageKey 无 filter
     expect(buildSearchPayload('a', 'q', null, null, customPages)).toEqual({
@@ -132,7 +132,7 @@ describe('searchShared helpers', () => {
   });
 
   it('ensurePageResultExists：缺页面时置顶合成 page 结果', () => {
-    const items = [{ objectId: 'o1', name: 'O1', collectionType: 'x', relevance: 1 }] as SearchItem[];
+    const items = [{ objectId: 'o1', name: 'O1', typeId: 'x', relevance: 1 }] as SearchItem[];
     const result = ensurePageResultExists(items, 'identity');
     expect(result.length).toBe(2);
     expect(result[0].itemType).toBe('page');
@@ -141,7 +141,7 @@ describe('searchShared helpers', () => {
 
     // 已存在则不重复
     const withPage = [
-      { objectId: 'identity', name: 'identity', collectionType: 'identity', itemType: 'page', relevance: 1 },
+      { objectId: 'identity', name: 'identity', typeId: 'identity', itemType: 'page', relevance: 1 },
     ] as SearchItem[];
     const result2 = ensurePageResultExists(withPage, 'identity');
     expect(result2.length).toBe(1);

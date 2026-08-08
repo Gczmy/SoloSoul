@@ -116,7 +116,8 @@ pub struct ObjectData {
     #[serde(rename = "accountId")]
     pub account_id: String,
     pub name: String,
-    #[serde(rename = "collectionType")]
+    // P042: IPC 载荷统一为 typeId（与 ObjectRecord 同步载荷一致）
+    #[serde(rename = "typeId")]
     pub collection_type: String,
     pub properties: serde_json::Value,
     #[serde(rename = "sensitivityLevel")]
@@ -146,7 +147,8 @@ pub struct CreateObjectInput {
     #[serde(rename = "accountId")]
     pub account_id: String,
     pub name: String,
-    #[serde(rename = "collectionType")]
+    // P042: IPC 载荷统一为 typeId（与 ObjectRecord 同步载荷一致）
+    #[serde(rename = "typeId")]
     pub collection_type: String,
     pub properties: serde_json::Value,
     #[serde(rename = "parentId")]
@@ -174,7 +176,8 @@ pub struct UpdateObjectInput {
 
 #[derive(Deserialize)]
 pub struct ObjectFilter {
-    #[serde(rename = "collectionType")]
+    // P042: IPC 载荷统一为 typeId（与 ObjectRecord 同步载荷一致）
+    #[serde(rename = "typeId")]
     pub collection_type: Option<String>,
     #[serde(rename = "sensitivityLevel")]
     pub sensitivity_level: Option<String>,

@@ -203,7 +203,7 @@ describe('OcrPage', () => {
       expect(mockCreateObject).toHaveBeenCalledWith({
         accountId: 'test-account',
         name: 'My OCR Object',
-        collectionType: 'document',
+        typeId: 'document',
         properties: {
           ocrText: 'Hello World',
           __fields: {

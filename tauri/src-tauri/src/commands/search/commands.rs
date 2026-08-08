@@ -326,11 +326,13 @@ pub async fn search_unified(
     state: State<'_, AppState>,
     account_id: String,
     query: String,
-    collection_type: Option<String>,
+    // P042: 参数名改 type_id——Tauri 参数名默认 camelCase 映射，前端传 typeId
+    type_id: Option<String>,
     parent_id: Option<String>,
     limit: Option<usize>,
 ) -> Result<SearchResult, String> {
     let vault = vault_handle(&state)?;
+    let collection_type = type_id;
 
     // P114: 全表 AES 解密 + 过滤/排序移入 spawn_blocking，避免阻塞 tokio worker。
     tokio::task::spawn_blocking(move || {

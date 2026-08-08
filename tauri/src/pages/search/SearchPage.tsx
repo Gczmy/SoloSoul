@@ -100,7 +100,7 @@ export function SearchPage() {
 
   const handleClickResult = (item: SearchItem) => {
     if (item.itemType === 'page') {
-      if (item.collectionType === 'page') {
+      if (item.typeId === 'page') {
         navigate(`/workspace/custom/${item.objectId}`);
       } else {
         navigate(`/workspace?section=${item.objectId}`);
@@ -204,11 +204,11 @@ export function SearchPage() {
                           <span>{t('settings:search_type_template', 'Template')}</span>
                         ) : item.matchType === 'template' ? (
                           <Highlight
-                            text={resolveCollectionLabel(item.collectionType, customPages, t)}
+                            text={resolveCollectionLabel(item.typeId, customPages, t)}
                             query={query}
                           />
                         ) : (
-                          <span>{resolveCollectionLabel(item.collectionType, customPages, t)}</span>
+                          <span>{resolveCollectionLabel(item.typeId, customPages, t)}</span>
                         )}
                         {!isPage && item.itemType !== 'template' && item.templateName && (
                           <span>

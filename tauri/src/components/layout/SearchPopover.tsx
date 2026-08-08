@@ -169,9 +169,9 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
       const cp = customPages.find((p) => p.id === item.parentId);
       if (cp) return cp.name;
     }
-    const system = FILTER_PAGES.find((f) => f.key === item.collectionType);
+    const system = FILTER_PAGES.find((f) => f.key === item.typeId);
     if (system) return t(system.labelKey);
-    return item.collectionType;
+    return item.typeId;
   };
 
   // 直接跳转避免闪烁：全局已禁用路由 startTransition（App/index.tsx 的
@@ -186,7 +186,7 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
   const handleClickResult = (item: SearchItem) => {
     if (query.trim()) saveRecent(query.trim());
     if (item.itemType === 'page') {
-      if (item.collectionType === 'page') {
+      if (item.typeId === 'page') {
         closeAndNavigate(`/workspace/custom/${item.objectId}`);
       } else {
         closeAndNavigate(`/workspace?section=${item.objectId}`);

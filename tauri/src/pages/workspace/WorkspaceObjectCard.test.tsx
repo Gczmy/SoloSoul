@@ -7,7 +7,7 @@ import type { UserTemplate } from '@/types/template';
 const baseObj: ObjectSummary = {
   id: 'obj-1',
   name: 'Test Object',
-  collectionType: 'identity',
+  typeId: 'identity',
   sensitivityLevel: 'internal',
   createdAt: new Date().toISOString(),
   updatedAt: new Date().toISOString(),

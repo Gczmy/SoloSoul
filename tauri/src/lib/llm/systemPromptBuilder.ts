@@ -61,7 +61,7 @@ function buildSection3PublicObjectData(): string {
         const str = String(v ?? '');
         return `${k}: ${str.length > 100 ? str.slice(0, 100) + '…' : str}`;
       });
-    lines.push(`${obj.collectionType}（${obj.name}）：${propEntries.join('、') || '（无属性）'}`);
+    lines.push(`${obj.typeId}（${obj.name}）：${propEntries.join('、') || '（无属性）'}`);
   }
   return lines.join('\n');
 }

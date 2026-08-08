@@ -17,7 +17,7 @@ function invalidateSearchCache() {
 export interface ObjectSummary {
   id: string;
   name: string;
-  collectionType: string;
+  typeId: string;
   sectionType?: string; // §25.1.3 — page affiliation
   sensitivityLevel: string;
   createdAt: string;
@@ -41,7 +41,7 @@ export interface ObjectData {
   id: string;
   accountId: string;
   name: string;
-  collectionType: string;
+  typeId: string;
   properties: Record<string, unknown>;
   sensitivityLevel: string;
   templateId?: string;
@@ -69,13 +69,13 @@ interface ObjectState {
 
   loadObjects: (
     accountId: string,
-    filter?: { collectionType?: string; parentId?: string },
+    filter?: { typeId?: string; parentId?: string },
   ) => Promise<void>;
   getObject: (accountId: string, objectId: string) => Promise<void>;
   createObject: (input: {
     accountId: string;
     name: string;
-    collectionType: string;
+    typeId: string;
     properties: Record<string, unknown>;
     parentId?: string;
     iconName?: string;
@@ -143,7 +143,7 @@ export const useObjectStore = create<ObjectState>((set) => ({
           {
             id: obj.id,
             name: obj.name,
-            collectionType: obj.collectionType,
+            typeId: obj.typeId,
             sensitivityLevel: obj.sensitivityLevel,
             createdAt: obj.createdAt,
             updatedAt: obj.updatedAt,

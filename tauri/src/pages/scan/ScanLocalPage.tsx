@@ -81,7 +81,7 @@ export function ScanLocalPage() {
       await createObject({
         accountId,
         name: file.name,
-        collectionType: 'document',
+        typeId: 'document',
         properties: {
           sourcePath: file.path,
           fileSize: file.size,

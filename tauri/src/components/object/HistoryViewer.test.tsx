@@ -104,7 +104,7 @@ describe('HistoryViewer', () => {
       <HistoryViewer
         objectId="obj-1"
         objectName="Test Object"
-        collectionType="identity"
+        typeId="identity"
         onClose={() => {}}
         passwordVerify={async () => ({ ok: true, method: 'password' })}
         getFieldSensitivity={() => 'public'}
@@ -153,7 +153,7 @@ describe('HistoryViewer', () => {
       <HistoryViewer
         objectId="obj-2"
         objectName="Test Object"
-        collectionType="identity"
+        typeId="identity"
         onClose={() => {}}
         passwordVerify={async () => ({ ok: true, method: 'password' })}
         getFieldSensitivity={() => 'sensitive'}
@@ -203,7 +203,7 @@ describe('HistoryViewer', () => {
       <HistoryViewer
         objectId="obj-3"
         objectName="Test Object"
-        collectionType="identity"
+        typeId="identity"
         onClose={() => {}}
         passwordVerify={async () => ({ ok: true, method: 'password' })}
         // 外部回调返回 public，用于验证不会被它覆盖
@@ -257,7 +257,7 @@ describe('HistoryViewer', () => {
       <HistoryViewer
         objectId="obj-4"
         objectName="Test Object"
-        collectionType="identity"
+        typeId="identity"
         onClose={() => {}}
         passwordVerify={async () => ({ ok: true, method: 'password' })}
         getFieldSensitivity={() => 'public'}
@@ -310,7 +310,7 @@ describe('HistoryViewer', () => {
       <HistoryViewer
         objectId="obj-rename"
         objectName="Test Object"
-        collectionType="identity"
+        typeId="identity"
         onClose={() => {}}
         passwordVerify={async () => ({ ok: true, method: 'password' })}
         getFieldSensitivity={() => 'internal'}
@@ -365,7 +365,7 @@ describe('HistoryViewer', () => {
       <HistoryViewer
         objectId="obj-dg"
         objectName="Test Object"
-        collectionType="identity"
+        typeId="identity"
         onClose={() => {}}
         passwordVerify={async () => ({ ok: true, method: 'password' })}
         // 当前对象/模板已同步为 sensitive
@@ -425,7 +425,7 @@ describe('HistoryViewer', () => {
       <HistoryViewer
         objectId="obj-dg-raw"
         objectName="Test Object"
-        collectionType="identity"
+        typeId="identity"
         onClose={() => {}}
         passwordVerify={async () => ({ ok: true, method: 'password' })}
         getFieldSensitivity={() => 'internal'}

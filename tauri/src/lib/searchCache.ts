@@ -21,10 +21,10 @@ export class SearchCache {
   buildKey(
     accountId: string,
     query: string,
-    collectionType?: string | null,
+    typeId?: string | null,
     parentId?: string | null,
   ): string {
-    return `${accountId}::${query}::${collectionType ?? ''}::${parentId ?? ''}`;
+    return `${accountId}::${query}::${typeId ?? ''}::${parentId ?? ''}`;
   }
 
   /** Retrieve cached data if fresh, or null. */

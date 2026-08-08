@@ -3,7 +3,7 @@
 > 最后更新：2026-08-08 02:10:00
 > 当前分支：`main`
 > 修复轮次：1（初始分析，按用户要求不恢复旧报告、全新生成）
-> 修复进度：P001-P045 全部闭环（45/45，P013/P014/P037/P042 四项长期重构项除外——见备注）
+> 修复进度：P001-P045 全部闭环（45/45，仅 P013/P014/P037 三项巨型组件/长函数拆分列为长期重构项）
 > 分析范围：`tauri/`（Rust 后端 + React/TS 前端）、`solosoul_cli/`；忽略 `node_modules/`、`target/`、`dist/`、`.vite/`、`*.min.js`、`*.wasm`
 
 ## 阶段 0 基线检查结果
@@ -57,17 +57,25 @@
 | P039 | P2 | 死代码 | `tauri/src/lib/ipc.ts:86-93` | `Profile` 接口无人引用，且字段形状与 Rust 端不符 | `[x]` 已修复（删除死接口，tsc/eslint ✅） |
 | P040 | P2 | 错误处理 | `tauri/src-tauri/src/commands/sync.rs:289-294` | `parse_hlc_json` 用 `unwrap_or(0)/unwrap_or("")` 静默吞掉畸形 HLC | `[x]` 已修复（字段缺失/类型错返回 Err；列表路径兜底改 unwrap_or_else + warn 留痕；+1 单测） |
 | P041 | P2 | 错误处理 | `tauri/src-tauri/src/commands/settings.rs:74,81` | `remove_with_retry` 依赖读者推理的 `unwrap()` | `[x]` 已修复（直接存值 + 循环后 match，消除两处 unwrap） |
-| P042 | P2 | 架构 | `solosoul-vault/src/lib.rs:255`、`commands/object/mod.rs:119`、`objectStore.ts:20`、`conflictFieldMeta.ts` | `type_id` 一个字段三套命名（typeId / collectionType），前端维护两套词汇 | `[ ]` 待修复 |
+| P042 | P2 | 架构 | `solosoul-vault/src/lib.rs:255`、`commands/object/mod.rs:119`、`objectStore.ts:20`、`conflictFieldMeta.ts` | `type_id` 一个字段三套命名（typeId / collectionType），前端维护两套词汇 | `[x]` 已修复（IPC 载荷统一为 `typeId`：ObjectSummary/ObjectData/CreateObjectInput/ObjectFilter/SearchResultItem 五个 serde rename + search_unified 参数名；前端 124 处 collectionType→typeId，与同步载荷词汇一致） |
 | P043 | P2 | 可维护性 | `tauri/src-tauri/src/sync/auto_sync_core.rs:82-130`、`PluginQuickPanel.tsx:244-270` | 控制流嵌套达 8-9 层 | `[x]` 已修复（Rust：Idle/Scheduled 两分支事件处理提取为 `next_idle_state`/`next_scheduled_state` 提前 return；前端：运行逻辑移出 JSX 回调为 `handleRunPlugin`，附带水印前置校验降嵌套） |
 | P044 | P2 | 重复代码 | `tauri/src/components/plugin/PluginQuickPanel.tsx:249-268`、`tauri/src/pages/ai/PluginDashboardPage.tsx:~170-190` | 水印插件"先选附件"校验逻辑在两个入口重复，且插件 ID 硬编码于通用面板 | `[x]` 已修复（`lib/plugin.ts` 新增 `WATERMARK_PLUGIN_ID` 常量 + `hasUsableWatermarkSelection` helper，两个入口与过滤白名单统一引用） |
 | P045 | P2 | 质量 | `tauri/src/hooks/useRevealState.ts:90` | 全仓唯一实质 TODO（字段类型感知部分掩码），建议转为 issue 跟踪 | `[x]` 已修复（TODO 改写为带跟踪引用的产品决策说明，全仓 TS TODO 清零） |
 
 ## 修复进度
 
-- 已完成：41 / 45（P013/P014 巨型组件拆分、P037 render 长函数、P042 type_id 命名收敛为长期重构项，见备注）
-- 当前处理：全部短期项已闭环
+- 已完成：42 / 45（P042 已闭环；P013/P014 巨型组件拆分、P037 render 长函数列为长期重构项，见备注）
+- 当前处理：P013/P014/P037 长期重构项待专门排期
 
 ## 修复实施记录
+
+### P042（P2）type_id 命名收敛——IPC 载荷统一为 typeId ✅
+
+- **改动**：
+  1. 后端 5 处 serde rename：`ObjectSummary`/`ObjectData`/`CreateObjectInput`/`ObjectFilter`（collectionType→typeId）+ `SearchResultItem`（camelCase 下显式覆盖 typeId）；`search_unified` command 参数 `collection_type`→`type_id`（Tauri 参数名 camelCase 映射 typeId）。Rust 内部字段名 `collection_type` 保留不动。
+  2. 前端 124 处 `collectionType`→`typeId`（19 个非测试文件 84 处 + 7 个测试文件 40 处），含类型定义/属性访问/IPC filter 键/search payload 键/辅助函数参数名。
+  3. 后端测试 JSON 断言同步（object/tests.rs 3 处）。
+- **验证**：`cargo check` ✅ / clippy 0 警告 ✅ / object+search 151 测试 + vault 全过 ✅ / tsc 0 错误 ✅ / eslint ✅ / Vitest 65 文件 572 测试全过 ✅。
 
 ### P043+P044（P2）嵌套降层 + 水印校验去重合并 ✅
 

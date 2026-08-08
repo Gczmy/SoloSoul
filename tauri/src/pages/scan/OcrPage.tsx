@@ -266,7 +266,7 @@ export function OcrPage() {
       await createObject({
         accountId,
         name,
-        collectionType: 'document',
+        typeId: 'document',
         properties: buildImportProperties(),
       });
       onSuccess(t('ocr:import_success'));

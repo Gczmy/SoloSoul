@@ -366,7 +366,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         Array<{
           id: string;
           name: string;
-          collectionType: string;
+          typeId: string;
           iconName?: string;
           createdAt: string;
           updatedAt: string;
@@ -375,7 +375,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
           // 直接读取 description，消除对每个页面单独 object_get 的 N+1 IPC。
           properties?: Record<string, unknown>;
         }>
-      >('object_list', { accountId: accountId, filter: { collectionType: 'page', includeDeleted: true } });
+      >('object_list', { accountId: accountId, filter: { typeId: 'page', includeDeleted: true } });
       if (objects.length > 0) {
         // New-format pages exist in objects table — use them (including deleted pages so
         // templates referencing deleted pages can still show the original page name)
@@ -407,7 +407,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
               input: {
                 accountId,
                 name: p.name,
-                collectionType: 'page',
+                typeId: 'page',
                 iconName: p.iconId || DEFAULT_CUSTOM_ICON,
                 properties: {},
               },
@@ -484,7 +484,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         input: {
           accountId,
           name,
-          collectionType: 'page',
+          typeId: 'page',
           iconName: iconId ?? DEFAULT_CUSTOM_ICON,
           properties: description ? { description } : {},
           id,

@@ -69,14 +69,14 @@ export function getTierLabel(
 const BUILTIN_COLLECTIONS = ['identity', 'travel', 'financial', 'professional', 'document'] as const;
 
 export function resolveCollectionLabel(
-  collectionType: string,
+  typeId: string,
   customPages: CustomPage[],
   t: TFunction,
 ): string {
-  if (BUILTIN_COLLECTIONS.includes(collectionType as (typeof BUILTIN_COLLECTIONS)[number])) {
-    return t(`navigation:${collectionType}`);
+  if (BUILTIN_COLLECTIONS.includes(typeId as (typeof BUILTIN_COLLECTIONS)[number])) {
+    return t(`navigation:${typeId}`);
   }
-  return customPages.find((p) => p.id === collectionType)?.name || collectionType;
+  return customPages.find((p) => p.id === typeId)?.name || typeId;
 }
 
 // ============================================================================

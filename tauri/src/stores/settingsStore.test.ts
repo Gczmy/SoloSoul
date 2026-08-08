@@ -223,7 +223,7 @@ describe('settingsStore', () => {
           input: expect.objectContaining({
             accountId: 'acc-1',
             name: 'My Page',
-            collectionType: 'page',
+            typeId: 'page',
             iconName: 'star',
           }),
         }),
@@ -322,14 +322,14 @@ describe('settingsStore', () => {
         {
           id: 'obj-1',
           name: 'Page A',
-          collectionType: 'page',
+          typeId: 'page',
           createdAt: '2024-06-01T00:00:00Z',
           updatedAt: '2024-06-01T00:00:00Z',
         },
         {
           id: 'obj-2',
           name: 'Page B',
-          collectionType: 'page',
+          typeId: 'page',
           createdAt: '2024-06-02T00:00:00Z',
           updatedAt: '2024-06-02T00:00:00Z',
         },
@@ -342,7 +342,7 @@ describe('settingsStore', () => {
       expect(pages[1].sortOrder).toBe(1);
       expect(invoke).toHaveBeenCalledWith('object_list', {
         accountId: 'acc-1',
-        filter: { collectionType: 'page', includeDeleted: true },
+        filter: { typeId: 'page', includeDeleted: true },
       });
     });
 
@@ -374,7 +374,7 @@ describe('settingsStore', () => {
       expect(invoke).toHaveBeenCalledWith(
         'object_create',
         expect.objectContaining({
-          input: expect.objectContaining({ name: 'Old Page', collectionType: 'page' }),
+          input: expect.objectContaining({ name: 'Old Page', typeId: 'page' }),
         }),
       );
     });

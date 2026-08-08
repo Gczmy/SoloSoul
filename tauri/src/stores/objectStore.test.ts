@@ -21,7 +21,7 @@ describe('objectStore', () => {
         {
           id: '1',
           name: 'Obj1',
-          collectionType: 'address',
+          typeId: 'address',
           sensitivityLevel: 'public',
           createdAt: '2026-01-01',
           updatedAt: '2026-01-01',
@@ -29,7 +29,7 @@ describe('objectStore', () => {
         {
           id: '2',
           name: 'Obj2',
-          collectionType: 'address',
+          typeId: 'address',
           sensitivityLevel: 'private',
           createdAt: '2026-01-02',
           updatedAt: '2026-01-02',
@@ -38,11 +38,11 @@ describe('objectStore', () => {
       mockInvoke.mockResolvedValue(objects);
 
       const { useObjectStore } = await import('./objectStore');
-      await useObjectStore.getState().loadObjects('acc-1', { collectionType: 'address' });
+      await useObjectStore.getState().loadObjects('acc-1', { typeId: 'address' });
 
       expect(mockInvoke).toHaveBeenCalledWith('object_list', {
         accountId: 'acc-1',
-        filter: { collectionType: 'address' },
+        filter: { typeId: 'address' },
       });
       expect(useObjectStore.getState().objects).toEqual(objects);
       expect(useObjectStore.getState().isLoading).toBe(false);
@@ -75,7 +75,7 @@ describe('objectStore', () => {
         id: '1',
         accountId: 'acc-1',
         name: 'Obj1',
-        collectionType: 'address',
+        typeId: 'address',
         properties: { street: 'Main St' },
         sensitivityLevel: 'public',
         createdAt: '',
@@ -107,7 +107,7 @@ describe('objectStore', () => {
         id: 'new-1',
         accountId: 'acc-1',
         name: 'New',
-        collectionType: 'address',
+        typeId: 'address',
         properties: {},
         sensitivityLevel: 'public',
         createdAt: '2026-01-01',
@@ -120,18 +120,18 @@ describe('objectStore', () => {
       const result = await useObjectStore.getState().createObject({
         accountId: 'acc-1',
         name: 'New',
-        collectionType: 'address',
+        typeId: 'address',
         properties: {},
       });
 
       expect(mockInvoke).toHaveBeenCalledWith('object_create', {
-        input: { accountId: 'acc-1', name: 'New', collectionType: 'address', properties: {} },
+        input: { accountId: 'acc-1', name: 'New', typeId: 'address', properties: {} },
       });
       expect(result).toEqual(created);
       expect(useObjectStore.getState().objects).toContainEqual({
         id: 'new-1',
         name: 'New',
-        collectionType: 'address',
+        typeId: 'address',
         sensitivityLevel: 'public',
         createdAt: '2026-01-01',
         updatedAt: '2026-01-01',
@@ -147,7 +147,7 @@ describe('objectStore', () => {
         useObjectStore.getState().createObject({
           accountId: 'acc-1',
           name: '',
-          collectionType: 'address',
+          typeId: 'address',
           properties: {},
         }),
       ).rejects.toThrow('Name required');
@@ -162,7 +162,7 @@ describe('objectStore', () => {
         id: '1',
         accountId: 'acc-1',
         name: 'Updated',
-        collectionType: 'address',
+        typeId: 'address',
         properties: { street: 'New St' },
         sensitivityLevel: 'public',
         createdAt: '',
@@ -176,7 +176,7 @@ describe('objectStore', () => {
           {
             id: '1',
             name: 'Old',
-            collectionType: 'address',
+            typeId: 'address',
             sensitivityLevel: 'public',
             createdAt: '',
             updatedAt: '2026-01-01',
@@ -184,7 +184,7 @@ describe('objectStore', () => {
           {
             id: '2',
             name: 'Obj2',
-            collectionType: 'address',
+            typeId: 'address',
             sensitivityLevel: 'public',
             createdAt: '',
             updatedAt: '2026-01-02',
@@ -221,7 +221,7 @@ describe('objectStore', () => {
           {
             id: '1',
             name: 'Obj1',
-            collectionType: 'x',
+            typeId: 'x',
             sensitivityLevel: 'public',
             createdAt: '',
             updatedAt: '',
@@ -229,7 +229,7 @@ describe('objectStore', () => {
           {
             id: '2',
             name: 'Obj2',
-            collectionType: 'x',
+            typeId: 'x',
             sensitivityLevel: 'public',
             createdAt: '',
             updatedAt: '',
@@ -252,7 +252,7 @@ describe('objectStore', () => {
           {
             id: '1',
             name: 'X',
-            collectionType: 'x',
+            typeId: 'x',
             sensitivityLevel: 'public',
             createdAt: '',
             updatedAt: '',
@@ -263,7 +263,7 @@ describe('objectStore', () => {
             id: '3',
             accountId: 'a',
             name: 'Z',
-            collectionType: 'x',
+            typeId: 'x',
             properties: {},
             sensitivityLevel: 'public',
             createdAt: '',

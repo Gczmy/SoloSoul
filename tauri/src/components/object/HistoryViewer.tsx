@@ -414,7 +414,7 @@ function SnapshotCard({
 export interface HistoryViewerProps {
   objectId: string;
   objectName?: string;
-  collectionType?: string;
+  typeId?: string;
   onClose: () => void;
   passwordVerify: () => Promise<{
     ok: boolean;
@@ -430,7 +430,7 @@ export interface HistoryViewerProps {
 export function HistoryViewer({
   objectId,
   objectName,
-  collectionType,
+  typeId,
   onClose,
   passwordVerify,
   getFieldSensitivity,
@@ -448,8 +448,8 @@ export function HistoryViewer({
   const customPages = useSettingsStore((s) => s.settings.customPages);
   const showToast = useUiStore((s) => s.showToast);
 
-  const resolveCollectionLabelLocal = (collectionType: string) =>
-    resolveCollectionLabel(collectionType, customPages, t);
+  const resolveCollectionLabelLocal = (typeId: string) =>
+    resolveCollectionLabel(typeId, customPages, t);
 
   const writeCriticalAccessLog = async (
     fieldName: string,
@@ -467,7 +467,7 @@ export function HistoryViewer({
               ? 'critical_field_windows_hello'
               : 'critical_field_face_id';
     const entityType = method === 'password' || method === 'pin' ? 'auth' : 'biometric';
-    const pageLabel = collectionType ? resolveCollectionLabelLocal(collectionType) : '';
+    const pageLabel = typeId ? resolveCollectionLabelLocal(typeId) : '';
     const details = `objectName=${objectName} page=${pageLabel} fieldName=${fieldName}`;
     try {
       await invoke('log_write', {

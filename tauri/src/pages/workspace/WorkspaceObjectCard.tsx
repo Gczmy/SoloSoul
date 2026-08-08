@@ -141,7 +141,7 @@ export const WorkspaceObjectCard = memo(function WorkspaceObjectCard({
 
   const needsSync = hashNeedsSync && semanticNeedsSync;
   // 模板匹配需同时满足 ID 和页面归属（与编辑器 ObjectEditorPage 对齐）
-  const tplMatch = tpl && (tpl.category || 'identity') === obj.collectionType;
+  const tplMatch = tpl && (tpl.category || 'identity') === obj.typeId;
   const fieldOrder = tpl?.properties.map((p) => p.id);
   const fields = useMemo(
     () => flattenProperties(obj.properties as Record<string, unknown> | undefined, fieldOrder),
