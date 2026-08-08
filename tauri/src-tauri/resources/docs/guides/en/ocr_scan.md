@@ -1,53 +1,61 @@
 # OCR & Scan
 
-The OCR (Optical Character Recognition) feature lets you extract text from images and create objects.
+The OCR (Optical Character Recognition) feature lets you extract text from images or PDFs and import it as objects. All recognition runs **locally** — images are never uploaded to any external service.
 
 ## Using OCR
 
 1. Enter **OCR Scan** from the sidebar or home page
-2. Click **Select Image** and upload an image containing text
-3. The system displays extracted text and confidence scores
-4. Review results and correct if necessary
-5. Click **Import as Object** and select the target section
+2. Choose an input method:
+   - **Select File**: pick an image or PDF from your device
+   - **Take Photo**: mobile — capture directly with the camera
+3. Pick the scan mode and model tier (see below)
+4. The extracted text is displayed
+5. Review the result and correct it if necessary
+6. Click **Import as Object**, name the object, and save
+
+## Scan Modes
+
+- **General recognition**: extracts all text from an image or PDF
+- **MRZ recognition**: recognizes the Machine Readable Zone of passports, visas, and ID cards, extracting structured fields such as document type, issuing country, document number, nationality, date of birth, sex, and expiry date
 
 <!--STEPPER Scan a passport info page-->
-1. Go to the **OCR Scan** page
-2. Click **Select Image** and upload a passport info page photo
+1. Go to the **OCR Scan** page and switch the mode to **MRZ recognition**
+2. Click **Select File** and upload a passport info page photo
 3. Wait for recognition to complete
-4. Review recognized fields (name, passport number, nationality, etc.)
-5. Click **Import as Object** → select **Travel** section
+4. Review the recognized document fields
+5. Click **Import as Object** to save
 <!--/STEPPER-->
 
-## Supported Image Formats
+<!--TIP-->
+If no MRZ is detected (e.g., you photographed an ordinary document), the app automatically falls back to general recognition — nothing is lost.
+<!--/TIP-->
 
-- PNG, JPG, JPEG, WEBP, BMP, TIFF
+## Supported Input Formats
 
-## Recognized Fields
+- General recognition: PNG, JPG, JPEG, WEBP, BMP, TIFF, PDF
+- MRZ recognition: PNG, JPG, JPEG, WEBP, BMP, TIFF (document photos)
 
-The OCR engine attempts to automatically recognize common fields:
+## Model Tiers
 
-- Names, dates, and number-type fields
-- Results are presented as key-value pairs
-- Fields with confidence below 80% are specially marked
+You can switch the model tier on the **Settings → OCR** page or at the top of the scan page. Larger tiers are more accurate but slower and consume more storage:
+
+| Tier | Description |
+|------|-------------|
+| tiny | Lightweight model (~1.5MB), fast, good for simple text |
+| small | Balanced tier (~30MB), the default recommendation |
+| medium | High accuracy (~132MB), good for complex layouts |
+| vision | Built-in system engine (macOS Vision, cannot be removed) |
+
+Models are downloaded and installed on demand; bundled tiers ship with the app and can be installed without downloading.
 
 <!--TIP-->
 For best recognition results, ensure the image is clear, the text area occupies the main part of the frame, and lighting is even.
 <!--/TIP-->
 
-## Local File Import
+## Recognition Results
 
-In addition to OCR, you can directly import local files as objects:
-
-1. Go to the **Local Import** page
-2. Select files or folders
-3. The system scans supported file types
-4. Check the files you want to import
-5. Choose the import method (create object or attachment)
-
-## Privacy Notes
-
-- OCR processing is done locally; images are not uploaded to external services
-- Recognition results are saved only in your vault
+- Results are shown as text and can be copied or edited before import
+- Importing creates an object (type `document`) with the recognized text saved in an **OCR Text** field (internal level)
 
 ## Related Docs
 
@@ -56,4 +64,3 @@ In addition to OCR, you can directly import local files as objects:
 - [Object Templates](templates.md) — Passport and ID templates
 - [Attachment Management](attachments.md) — Scanned image attachments
 <!--/CARDS-->
-

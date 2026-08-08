@@ -20,11 +20,31 @@ Sync is completely optional. Your local data remains fully functional even when 
 
 1. Go to **Settings → Device Sync**.
 2. Turn on the **Enable Sync** switch at the top.
-3. Your device's **fingerprint** is displayed, for example:
+3. Your **device name**, **fingerprint**, and **listen address** are displayed, for example:
    ```
+   Your device name: SoloSoul-a1b2c3d4
    Your fingerprint: a1b2c3d4...
+   Your listen address: 192.168.1.10:54321
    ```
-   This is the short hash of your device's long-term Noise public key, used for manual verification during pairing.
+   The fingerprint is the short hash of your device's long-term Noise public key, used for manual verification during pairing; the listen address uses an OS-assigned random port.
+
+### Automatic Sync
+
+Turning on **Automatic Sync** triggers sync with trusted devices:
+
+- When the app returns to the foreground
+- After local data changes (10-second debounce)
+- Every 60 seconds periodically
+
+The automatic-sync switch is persisted and remains effective after an app restart.
+
+### Sync UI Preferences (Optional)
+
+The **Sync UI preferences** checkbox controls whether **appearance settings** (theme mode, color scheme, accent color, sidebar layout, etc.) are synced with other devices. It is unchecked by default; when checked, other devices apply your appearance preferences upon syncing.
+
+<!--TIP-->
+UI preferences are personal taste — different devices can look different. Check this only when you want a consistent look across devices.
+<!--/TIP-->
 
 <!--WARNING-->
 **Never trust a fingerprint you do not recognize or cannot verify physically.** An attacker may impersonate your device. Only tap **Trust & Pair** after confirming the other device shows the same fingerprint.
@@ -39,12 +59,14 @@ SoloSoul uses **TOFU (Trust On First Use)**: the first time a device is seen, yo
 ### Auto-discovery (mDNS)
 
 1. When sync is enabled, SoloSoul advertises itself on mDNS (Bonjour/Avahi) and listens for peers.
-2. When an untrusted peer is discovered, a **Pair New Device** dialog appears showing:
+2. The **Discovered Devices** list shows devices found in the latest scan (name, address, and client-type icon).
+3. Tapping a discovered device opens its **detail**: if it already exists in your known devices, the known-device detail is reused (trust state and sync actions); otherwise it is shown as a **new device** with an **Sync Now** action.
+4. On first connection, a **Pair New Device** dialog appears showing:
    - Device name / node_id
    - Peer address
    - Peer fingerprint
-3. Verify the fingerprint matches what the other device displays, then tap **Trust & Pair**.
-4. Trust is mutual: you must also trust this device from the other side.
+5. Verify the fingerprint matches what the other device displays, then tap **Trust & Pair**.
+6. Trust is mutual: you must also trust this device from the other side.
 
 ### Manual address
 
@@ -53,6 +75,11 @@ If mDNS is blocked by a corporate network, VPN, or firewall, use the manual addr
 1. Enter the peer address in the **Sync with Device** field, e.g. `192.168.1.12:54321` or `127.0.0.1:54321`.
 2. Tap **Sync**.
 3. If this is the first connection, the pairing dialog will appear; verify the fingerprint and trust the peer.
+
+### Known devices & online status
+
+- **Known devices**: the persisted (paired) device list, showing the last sync time. Devices currently discoverable on the LAN with a recent advertisement (within 300 seconds) are marked **online** (address shown); others show **not found on the LAN**.
+- **Offline ≠ off**: online status merely reflects real-time mDNS discovery — it does not mean the other device is off. The device list refreshes periodically while the page is open.
 
 <!--TIP-->
 The listening port is assigned by the OS and is not shown directly in the UI. The two-instance smoke-test script (`scripts/dev-two-instances.sh`) and log output provide the port.
@@ -96,9 +123,9 @@ Hard-deleting a `profile` or `user_template` writes a `sync_tombstones` entry. W
 
 ---
 
-## 5. Sync Activity Panel
+## 5. Sync History Panel
 
-After each sync, the collapsible **Sync Activity** panel below records the last 10 results, including:
+After each sync, the **Sync History** panel below records the last 10 results, including:
 
 - Overall stats: `examined / applied / skipped / conflicts`
 - Per-table stats: `{table}: {applied}+{skipped}/{examined}`

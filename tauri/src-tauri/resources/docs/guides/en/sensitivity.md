@@ -21,26 +21,23 @@ Each field in an object template has a preset sensitivity level. For example:
 
 ## Viewing Sensitive Fields
 
-- **`sensitive`**: Click the blurred area to temporarily reveal
-- **`critical`**: Clicking opens a password verification dialog. Enter your master password to view
+- **`sensitive`**: click the **Reveal** button to view it temporarily
+- **`critical`**: clicking opens a master-password verification dialog. Enter your password to view; the action is written to the audit log
 
 <!--TIP-->
-Biometric unlock (e.g., Touch ID) can substitute for password entry when viewing critical fields, if enabled in Settings.
+Every view of a `critical` field is recorded in the operation log so access history can be traced.
 <!--/TIP-->
 
 ## Adjusting Sensitivity
 
-To change a field's protection level:
+A field's sensitivity level is defined in the **object template editor** and can be changed at any time:
 
-1. Go to **Settings → Sensitivity Settings**
-2. Find the target field
-3. Select a new sensitivity level
-4. Enter your master password and provide a reason, only required when downgrading protection
-5. Confirm the change
+1. Go to **Templates** → edit the target template
+2. Find the target field's row
+3. Pick a new level from the **Sensitivity** dropdown
+4. Save the template
 
-<!--WARNING-->
-Downgrading field protection requires password verification and is recorded in the audit log. Changes cannot be reverted without a trace.
-<!--/WARNING-->
+After the change, all objects created from that template use the new protection level.
 
 ## Privacy Boundary with AI
 

@@ -39,15 +39,30 @@ Biometric credentials are bound to your master password. After changing the pass
 
 After enabling, you can click **Test Touch ID** to verify the feature works.
 
+## PIN Unlock
+
+If your device supports it, you can set a **6-digit PIN** for quick unlock as an alternative to biometrics:
+
+1. Go to **Settings → Security Settings**
+2. In the **PIN** section, click **Set PIN**
+3. Enter your master password to verify your identity
+4. Set a 6-digit PIN and confirm it again
+
+Once configured, you can unlock with the PIN directly when the vault is locked. You can change or disable the PIN at any time (disabling also requires the master password).
+
+<!--TIP-->
+Repeated wrong PIN entries temporarily lock out the PIN to deter brute-force attempts.
+<!--/TIP-->
+
 ## Auto-lock
 
 SoloSoul automatically locks the vault when:
 
-- The app enters the background for longer than the set duration
-- System screen lock is detected
+- No activity for the configured auto-lock duration (1 / 5 / 15 / 30 minutes, or **Never**)
+- The app is moved to the background (this switch can be turned off)
 - You manually click **Lock Vault** in the sidebar
 
-After locking, all sensitive state is cleared. You must re-enter your password or use biometrics to unlock.
+After locking, all sensitive state is cleared. You must re-enter your password, PIN, or use biometrics to unlock.
 
 ## Related Docs
 
@@ -55,5 +70,6 @@ After locking, all sensitive state is cleared. You must re-enter your password o
 - [Sensitivity & Privacy](sensitivity.md) — Field-level protection
 - [Biometrics](biometric.md) — Convenient unlock methods
 - [Backup & Restore](backup_restore.md) — Protect your data
+- [Device Sync](device_sync.md) — Secure multi-device sync
 <!--/CARDS-->
 
