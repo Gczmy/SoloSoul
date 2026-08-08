@@ -53,7 +53,7 @@
 | P035 | P2 | 安全 | `solosoul_cli/src/commands/plugin.rs:102-106` | `plugin_id` 未做字符白名单校验直接拼接路径 | `[x]` 已修复（is_valid_plugin_id 白名单校验 + 四命令入口拒绝 + load_manifest 守卫 + 双语键 + 2 单测） |
 | P036 | P2 | 质量 | `solosoul_cli/src/app.rs:609-636,1760,789` | 多处硬编码中文字符串绕过 `t!()` i18n 体系 | `[x]` 已修复（23 处用户可见硬编码中文全量接入 t!()，新增 24 个双语 app-* 词条，overlay 渲染函数透传 i18n） |
 | P037 | P2 | 质量 | `solosoul_cli/src/app.rs:2694-3016` 等 | `render()` 323 行及多个 110-150 行 key handler | `[ ]` 待修复 |
-| P038 | P2 | 质量 | `solosoul_cli/src/commands/settings.rs:6,340-341`、`app.rs:364,412`、`commands/profile.rs:171-180` | 陈旧注释（引用不存在的 `trigger_debug_log_export`）、文档注释混入字面 `\n`、死分支注释误导 | `[ ]` 待修复 |
+| P038 | P2 | 质量 | `solosoul_cli/src/commands/settings.rs:6,340-341`、`app.rs:364,412`、`commands/profile.rs:171-180` | 陈旧注释（引用不存在的 `trigger_debug_log_export`）、文档注释混入字面 `\n`、死分支注释误导 | `[x]` 已修复（3 处 trigger_debug_log_export 改 debug_log，字面 \n 清理，set_value_at_path 死分支删除） |
 | P039 | P2 | 死代码 | `tauri/src/lib/ipc.ts:86-93` | `Profile` 接口无人引用，且字段形状与 Rust 端不符 | `[ ]` 待修复 |
 | P040 | P2 | 错误处理 | `tauri/src-tauri/src/commands/sync.rs:289-294` | `parse_hlc_json` 用 `unwrap_or(0)/unwrap_or("")` 静默吞掉畸形 HLC | `[ ]` 待修复 |
 | P041 | P2 | 错误处理 | `tauri/src-tauri/src/commands/settings.rs:74,81` | `remove_with_retry` 依赖读者推理的 `unwrap()` | `[ ]` 待修复 |

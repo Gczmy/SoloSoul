@@ -3,7 +3,7 @@
 //! Phase 方案 C：本模块除了 4 个原始命令（保持脚本兼容），还导出
 //! `open_menu` / `open_language_select` / `open_theme_select` /
 //! `apply_language` / `apply_theme` / `start_settings_preference_edit` /
-//! `trigger_debug_log_export` / `dispatch_item`，驱动 TUI 设置菜单 phase。
+//! `debug_log` / `dispatch_item`，驱动 TUI 设置菜单 phase。
 
 use std::path::Path;
 use std::time::Instant;
@@ -337,8 +337,10 @@ fn setting(app: &mut App, key: Option<&str>, value: Option<&str>) -> Result<()> 
     Ok(())
 }
 
-/// 执行 `/debug_log [file_name]`：导出诊断包。\n///
-/// 成功时写入 `success_message`（绿色 toast，5 秒过期），失败保留 `error_message`（红色 overlay）。\n/// 设计目标：调用方不再依赖字符串前缀判定成败，避免诊包路径文案变更引起静默兼容性问题。
+/// 执行 `/debug_log [file_name]`：导出诊断包。
+///
+/// 成功时写入 `success_message`（绿色 toast，5 秒过期），失败保留 `error_message`（红色 overlay）。
+/// 设计目标：调用方不再依赖字符串前缀判定成败，避免诊包路径文案变更引起静默兼容性问题。
 fn debug_log(app: &mut App, file_name: Option<&str>) -> Result<()> {
     let (account_id, vault) = require_unlocked_with_vault(app)?;
 

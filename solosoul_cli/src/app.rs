@@ -366,7 +366,7 @@ pub struct App {
     /// 上一屏备份，供 `commands::core::back` 在 Esc / /back 时还原 phase。
     ///
     /// 设计上为**单槽**，能正确表达"Single step 跳入 → popup 复原"语义。
-    /// 但在 `apply_language` / `apply_theme` / `trigger_debug_log_export` 成功路径上会被
+    /// 但在 `apply_language` / `apply_theme` / `debug_log` 成功路径上会被
     /// 显式置 `None`，表达"phase 本身即为自然终点"，此时 Esc 在顶层 phase 内走 fallback → Home。
     /// 这是与"单槽 pop"语义的偏离——修改遵循 Settings 邻接 phase 时请勿误会此字段的契约。
     pub previous_phase: Option<AppPhase>,
@@ -414,7 +414,7 @@ pub struct App {
     /// 待通过 inquire 在外部编辑的字段请求。
     pub external_edit: Option<ExternalEditRequest>,
     /// 设置成功后的绿色 toast（带 Instant 戳）；status_bar.rs 在 5 秒内渲染过期。
-    /// apply_language / apply_theme / trigger_debug_log_export 中设置。
+    /// apply_language / apply_theme / debug_log 中设置。
     pub success_message: Option<(String, Instant)>,
 
     /// 国际化管理器（fluent-rs），支持运行时语言切换。

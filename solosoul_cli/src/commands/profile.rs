@@ -167,10 +167,8 @@ fn set_profile_value(app: &mut App, path: Option<&str>, value: Option<String>) -
 
 /// 在 JSON 对象的点号路径上设置值，仅支持对象层级。
 fn set_value_at_path(data: &mut Value, path: &str, value: Value) -> Result<(), String> {
+    // P038：str::split 永远返回至少一个元素，is_empty 为死分支，删除。
     let parts: Vec<&str> = path.split('.').collect();
-    if parts.is_empty() {
-        return Err("路径为空".to_string());
-    }
 
     let obj = data
         .as_object_mut()
