@@ -48,7 +48,7 @@
 
 <!--CARDS-->
 - [导出与导入](export_import.md) — 数据迁移方案
-- [设备同步](device-sync.md) — 多设备备份
+- [设备同步](device_sync.md) — 多设备备份
 - [回收站](trash.md) — 临时保护数据
 <!--/CARDS-->
 

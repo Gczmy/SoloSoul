@@ -51,7 +51,7 @@ If the export includes high-sensitivity fields, the password must be sufficientl
 
 <!--CARDS-->
 - [Backup & Restore](backup_restore.md) — Complete data protection
-- [Device Sync](device-sync.md) — Cross-device transfer
+- [Device Sync](device_sync.md) — Cross-device transfer
 - [Trash](trash.md) — Accidental deletion recovery
 <!--/CARDS-->
 

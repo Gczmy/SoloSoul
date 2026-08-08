@@ -51,7 +51,7 @@
 
 <!--CARDS-->
 - [备份与恢复](backup_restore.md) — 完整数据保护
-- [设备同步](device-sync.md) — 跨设备传输
+- [设备同步](device_sync.md) — 跨设备传输
 - [回收站](trash.md) — 误删恢复
 <!--/CARDS-->
 

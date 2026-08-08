@@ -71,6 +71,6 @@ Token statistics are obtained by parsing real return data from AI providers. Bot
 <!--CARDS-->
 - [AI Chat](ai_chat.md) — Use the AI assistant
 - [Plugins](plugins.md) — Plugins and LLM
-- [Privacy Policy](PRIVACY_POLICY.md) — Data privacy statement
+- [Sensitivity & Privacy](sensitivity.md) — Data privacy levels
 <!--/CARDS-->
 

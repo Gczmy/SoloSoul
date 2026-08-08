@@ -118,15 +118,7 @@
       "category": "system",
       "order": 5,
       "keywords": ["设备同步", "同步", "设备", "局域网", "mDNS", "配对", "fingerprint", "附件同步", "冲突", "device sync", "sync", "device", "lan", "mdns", "pairing", "fingerprint", "attachment sync", "conflict"],
-      "files": { "zh": "zh/device-sync.md", "en": "en/device-sync.md" }
-    },
-    {
-      "id": "sync-smoke-test",
-      "title": { "zh": "本地双实例联调指南", "en": "Local Two-Instance Sync Smoke Test" },
-      "category": "system",
-      "order": 6,
-      "keywords": ["双实例", "联调", "冒烟测试", "two instances", "smoke test", "sync", "本地"],
-      "files": { "zh": "zh/sync-smoke-test.md", "en": "en/sync-smoke-test.md" }
+      "files": { "zh": "zh/device_sync.md", "en": "en/device_sync.md" }
     },
     {
       "id": "ocr_scan",
@@ -175,22 +167,6 @@
       "order": 3,
       "keywords": ["插件", "扩展", "WASM", "plugin", "extension"],
       "files": { "zh": "zh/plugins.md", "en": "en/plugins.md" }
-    },
-    {
-      "id": "PRIVACY_POLICY",
-      "title": { "zh": "隐私政策", "en": "Privacy Policy" },
-      "category": "system",
-      "order": 10,
-      "keywords": ["隐私", "政策", "数据", "privacy", "policy", "data"],
-      "files": { "zh": "zh/PRIVACY_POLICY.md", "en": "en/PRIVACY_POLICY.md" }
-    },
-    {
-      "id": "TERMS_OF_SERVICE",
-      "title": { "zh": "服务条款", "en": "Terms of Service" },
-      "category": "system",
-      "order": 11,
-      "keywords": ["条款", "服务", "许可", "terms", "service", "license"],
-      "files": { "zh": "zh/TERMS_OF_SERVICE.md", "en": "en/TERMS_OF_SERVICE.md" }
     }
   ],
   "categories": [

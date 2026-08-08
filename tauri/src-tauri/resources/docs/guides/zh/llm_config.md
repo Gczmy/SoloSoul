@@ -71,6 +71,6 @@ Token 统计通过解析 AI 服务商的真实返回数据获得，OpenAI 和 An
 <!--CARDS-->
 - [AI 对话](ai_chat.md) — 使用 AI 助手
 - [插件](plugins.md) — 插件与 LLM
-- [隐私政策](PRIVACY_POLICY.md) — 数据隐私说明
+- [敏感度与隐私](sensitivity.md) — 数据隐私分级说明
 <!--/CARDS-->
 
