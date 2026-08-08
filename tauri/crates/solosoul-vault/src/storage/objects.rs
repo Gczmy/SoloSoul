@@ -321,56 +321,73 @@ impl VaultStore {
     /// 避免 serde_json 构造完整对象属性树（大对象反复全量解析）。
     /// `"__attachments":` 是 JSON 键语法，字符串值不可能紧随冒号，故可唯一定位。
     /// 括号配平时正确处理字符串字面量内的转义字符。
+    /// P025 复核补充：
+    /// - 字符串值内可含转义引号形态 `\"__attachments\":`（marker 前置 `\`），
+    ///   此类命中位于字符串内部而非真实键，需跳过并继续向后搜索；
+    /// - 首个候选解析失败（括号不配平/非法 JSON）时不再 `unwrap_or_default` 直接放弃，
+    ///   而是继续搜索后续 marker，避免真实附件 id 被静默丢弃。
     pub(crate) fn extract_attachment_ids_from_json_text(text: &str) -> Vec<String> {
         let marker = "\"__attachments\":";
-        let Some(pos) = text.find(marker) else {
-            return Vec::new();
-        };
-        let rest = &text[pos + marker.len()..];
-        let rest = rest.trim_start();
-        let Some(bracket) = rest.find('[') else {
-            return Vec::new();
-        };
-        let bytes = &rest.as_bytes()[bracket..];
-        let mut depth = 0i32;
-        let mut in_str = false;
-        let mut escaped = false;
-        let mut end = 0usize;
-        for (i, &b) in bytes.iter().enumerate() {
-            if in_str {
-                if escaped {
-                    escaped = false;
-                } else if b == b'\\' {
-                    escaped = true;
-                } else if b == b'"' {
-                    in_str = false;
-                }
-            } else {
-                match b {
-                    b'"' => in_str = true,
-                    b'[' => depth += 1,
-                    b']' => {
-                        depth -= 1;
-                        if depth == 0 {
-                            end = i + 1;
-                            break;
-                        }
+        let mut search_from = 0usize;
+        while let Some(rel) = text[search_from..].find(marker) {
+            let pos = search_from + rel;
+            search_from = pos + marker.len();
+            // 跳过转义引号形态：marker 起始引号前有奇数个反斜杠 → 位于字符串值内
+            let backslashes = text[..pos]
+                .bytes()
+                .rev()
+                .take_while(|&b| b == b'\\')
+                .count();
+            if backslashes % 2 == 1 {
+                continue;
+            }
+            let rest = &text[pos + marker.len()..];
+            let rest = rest.trim_start();
+            let Some(bracket) = rest.find('[') else {
+                continue;
+            };
+            let bytes = &rest.as_bytes()[bracket..];
+            let mut depth = 0i32;
+            let mut in_str = false;
+            let mut escaped = false;
+            let mut end = 0usize;
+            for (i, &b) in bytes.iter().enumerate() {
+                if in_str {
+                    if escaped {
+                        escaped = false;
+                    } else if b == b'\\' {
+                        escaped = true;
+                    } else if b == b'"' {
+                        in_str = false;
                     }
-                    _ => {}
+                } else {
+                    match b {
+                        b'"' => in_str = true,
+                        b'[' => depth += 1,
+                        b']' => {
+                            depth -= 1;
+                            if depth == 0 {
+                                end = i + 1;
+                                break;
+                            }
+                        }
+                        _ => {}
+                    }
                 }
             }
-        }
-        if end == 0 {
-            return Vec::new();
-        }
-        let segment = &rest[bracket..bracket + end];
-        serde_json::from_str::<Vec<serde_json::Value>>(segment)
-            .map(|arr| {
-                arr.iter()
+            if end == 0 {
+                continue;
+            }
+            let segment = &rest[bracket..bracket + end];
+            if let Ok(arr) = serde_json::from_str::<Vec<serde_json::Value>>(segment) {
+                return arr
+                    .iter()
                     .filter_map(|a| a.get("id").and_then(|i| i.as_str()).map(String::from))
-                    .collect()
-            })
-            .unwrap_or_default()
+                    .collect();
+            }
+            // 段解析失败（括号不配平/非法 JSON）→ 继续搜索下一个候选
+        }
+        Vec::new()
     }
 
     pub fn list_objects(

@@ -1541,6 +1541,30 @@ mod tests {
         );
     }
 
+    #[test]
+    fn test_extract_attachment_ids_skips_escaped_quote_marker() {
+        // P025 复核: 字符串值内以转义引号形式出现 `\"__attachments\":` 且位于真实键之前时，
+        // 旧实现从错误位置解析（或解析失败直接返回空，真实附件 id 被静默丢弃）。
+        let text =
+            r#"{"note":"escaped \"__attachments\": fake","__attachments":[{"id":"real_1"}]}"#;
+        let ids = VaultStore::extract_attachment_ids_from_json_text(text);
+        assert_eq!(
+            ids,
+            vec!["real_1".to_string()],
+            "应跳过字符串值内的转义伪键"
+        );
+    }
+
+    #[test]
+    fn test_extract_attachment_ids_recovers_after_unparseable_candidate() {
+        // P025 复核: 首个候选段括号不配平（非法 JSON）时，旧实现 unwrap_or_default 返回空；
+        // 修复后应继续向后搜索真实键。
+        let text =
+            r#"{"__attachments":[{"id":"broken"}},"other":1,"__attachments":[{"id":"ok_2"}]}"#;
+        let ids = VaultStore::extract_attachment_ids_from_json_text(text);
+        assert_eq!(ids, vec!["ok_2".to_string()], "应从后续候选恢复真实附件 id");
+    }
+
     /// P004: properties 为加密列，旧实现 LIKE 匹配密文恒为 0；
     /// 修复后按账户取回逐行解密、内存判断字段 key，须能正确区分 active/软删除/无关对象。
     #[test]
