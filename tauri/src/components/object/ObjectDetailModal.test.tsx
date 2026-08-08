@@ -37,7 +37,9 @@ vi.mock('@/stores/objectStore', () => ({
   useObjectStore: {
     getState: () => ({
       deleteObject: vi.fn().mockResolvedValue(undefined),
-      getObject: vi.fn(),
+      // P020 复核：modal 现在始终拉取完整对象（含传入 object 摘要时），mock 需返回 Promise；
+      // currentObjectCache 为空 → fetchedObj=null → 回退到传入 object，测试断言不受影响。
+      getObject: vi.fn().mockResolvedValue(undefined),
       currentObjectCache: {},
     }),
   },

@@ -75,7 +75,10 @@ export function ObjectDetailModal({
   const customPages = useSettingsStore((s) => s.settings.customPages);
   const { maskValue, isRevealed, reveal } = useRevealState();
   const [fetchedObj, setFetchedObj] = useState<ObjectData | null>(null);
-  const [loading, setLoading] = useState(!object && !!objectId);
+  // P020 复核：object 可能是截断预览摘要（object_list 仅保留前 8 字段/200 字符），
+  // 详情弹窗必须始终拉取完整对象，避免丢字段/值被静默截断。
+  const objId = objectId ?? object?.id;
+  const [loading, setLoading] = useState(!object && !!objId);
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fetchIdRef = useRef(0);
@@ -105,7 +108,9 @@ export function ObjectDetailModal({
   });
   const [passwordHint, setPasswordHint] = useState<string | null>(null);
 
-  const obj = useMemo(() => object || fetchedObj, [object, fetchedObj]);
+  // P020 复核：拉取结果优先于传入摘要——传入 object 仅作过渡展示，
+  // 完整数据（fetchedObj）到达后立即升级，保证详情弹窗渲染完整 properties。
+  const obj = useMemo(() => fetchedObj ?? object, [object, fetchedObj]);
   const { ref: detailDragRef, dragState: detailDragState } = useDragToAttach(obj?.id || null, {
     onComplete: onAttachmentsChange,
   });
@@ -135,20 +140,21 @@ export function ObjectDetailModal({
   }, [accountId]);
 
   useEffect(() => {
-    if (object || !objectId || !accountId) {
-      if (!object && !objectId) setLoading(false);
+    if (!objId || !accountId) {
+      if (!objId) setLoading(false);
       return;
     }
     const id = ++fetchIdRef.current;
-    setLoading(true);
+    // 有 object（摘要/完整）时仍保持当前展示，拉取完成后再升级，避免闪屏。
+    if (!object) setLoading(true);
     useObjectStore
       .getState()
-      .getObject(accountId, objectId)
+      .getObject(accountId, objId)
       .then(() => {
         // Discard stale responses: if a newer fetch started while this one
         // was in-flight, don't overwrite fetchedObj with potentially stale data.
         if (fetchIdRef.current !== id) return;
-        setFetchedObj(useObjectStore.getState().currentObjectCache[objectId] ?? null);
+        setFetchedObj(useObjectStore.getState().currentObjectCache[objId] ?? null);
       })
       .catch(() => {
         if (fetchIdRef.current === id) setFetchedObj(null);
@@ -156,7 +162,7 @@ export function ObjectDetailModal({
       .finally(() => {
         if (fetchIdRef.current === id) setLoading(false);
       });
-  }, [object, objectId, accountId]);
+  }, [object, objId, accountId]);
 
   const unlockVaultWithPassword = useCallback(
     async (password: string): Promise<boolean> => {
