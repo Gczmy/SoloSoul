@@ -11,6 +11,8 @@ import { useAutoLockPauseStore } from '@/stores/autoLockPauseStore';
 import { Fingerprint, KeyRound, ScanFace, ShieldCheck, Grip } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/constants';
 import { supportsHover } from '@/lib/platform';
+import { LoginIconBar } from '@/pages/auth/LoginIconBar';
+import type { LoginMethodOption } from '@/pages/auth/LoginIconBar';
 
 interface PasswordVerificationDialogProps {
   open: boolean;
@@ -53,9 +55,9 @@ const BIOMETRIC_LABEL: Record<string, string> = {
   windowsHello: 'Windows Hello',
 };
 
-/** 解锁方式定义 */
+/** 解锁方式定义（id 与 LoginIconBar 的 LoginMethodOption 对齐，便于复用） */
 interface UnlockMethodDef {
-  id: string;
+  id: 'faceId' | 'touchId' | 'windowsHello' | 'pin' | 'password';
   icon: React.ReactNode;
   label: string;
   onClick: () => void;
@@ -292,6 +294,16 @@ export function PasswordVerificationDialog({
     }
   };
 
+  const handleIconClick = (method: LoginMethodOption) => {
+    setHoveredIcon(null);
+    setCommittedIcon(null);
+    if (commitTimerRef.current) {
+      clearTimeout(commitTimerRef.current);
+      commitTimerRef.current = null;
+    }
+    method.onClick();
+  };
+
   // ==== 构建可用解锁方式列表 ====
   // 顺序：主密码 → Face ID → Touch ID → Windows Hello → PIN
   const methods: UnlockMethodDef[] = [];
@@ -345,11 +357,6 @@ export function PasswordVerificationDialog({
       },
     });
   }
-
-  // 判断某方式是否为当前活跃方式
-  const isActiveMethod = (methodId: string): boolean => {
-    return loginMethod === methodId;
-  };
 
   return (
     <Dialog isOpen={open} onClose={handleClose} dialogStyle={{ maxWidth: 360 }} priority="auth">
@@ -541,93 +548,17 @@ export function PasswordVerificationDialog({
           </div>
         )}
 
-        {/* ===== 底部图标栏 — 切换解锁方式 ===== */}
+        {/* ===== 底部图标栏 — 切换解锁方式（复用 LoginIconBar，P013/6） ===== */}
         {loginMethod !== null && methods.length > 1 && (
-          <div
-            style={{
-              display: 'flex',
-              gap: 6,
-              paddingTop: 12,
-              borderTop: '1px solid var(--border-subtle)',
-              justifyContent: 'flex-start',
-              overflow: 'hidden',
-              maxWidth: '100%',
-            }}
-          >
-            {methods.map((method) => {
-              const isActive = isActiveMethod(method.id);
-              const isHovered = hoveredIcon === method.id;
-              const isExpanded = committedIcon === method.id;
-
-              return (
-                <button
-                  key={method.id}
-                  aria-label={method.label}
-                  onClick={() => {
-                    setHoveredIcon(null);
-                    setCommittedIcon(null);
-                    if (commitTimerRef.current) {
-                      clearTimeout(commitTimerRef.current);
-                      commitTimerRef.current = null;
-                    }
-                    method.onClick();
-                  }}
-                  onMouseEnter={() => handleIconEnter(method.id)}
-                  onMouseLeave={handleIconLeave}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    padding: '6px 10px',
-                    borderRadius: 8,
-                    border: `1px solid ${
-                      isHovered
-                        ? 'var(--accent-primary)'
-                        : isActive
-                          ? 'color-mix(in srgb, var(--accent-primary) 40%, transparent)'
-                          : 'transparent'
-                    }`,
-                    background: isActive
-                      ? 'color-mix(in srgb, var(--accent-primary) 6%, transparent)'
-                      : 'transparent',
-                    cursor: 'pointer',
-                    fontFamily: 'inherit',
-                    fontSize: 'var(--text-body-sm)',
-                    color: isHovered
-                      ? 'var(--accent-primary)'
-                      : isActive
-                        ? 'var(--text-primary)'
-                        : 'var(--text-tertiary)',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    maxWidth: isExpanded ? 200 : 40,
-                    transition:
-                      isExpanded || (!isHovered && !isExpanded)
-                        ? 'all 0.25s ease'
-                        : 'all 0.25s ease, max-width 0.01s linear 0.2s',
-                    flexShrink: 0,
-                    outline: 'none',
-                  }}
-                >
-                  {/* 图标始终可见 */}
-                  <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>
-                    {method.icon}
-                  </span>
-                  {/* 文字：延迟 200ms 后才显示（与 committedIcon 同步） */}
-                  <span
-                    style={{
-                      opacity: isExpanded ? 1 : 0,
-                      transition: 'opacity 0.2s ease 0.05s',
-                      overflow: 'hidden',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    {method.label}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
+          <LoginIconBar
+            loginMethod={loginMethod}
+            iconMethods={methods}
+            hoveredIcon={hoveredIcon}
+            committedIcon={committedIcon}
+            onIconEnter={handleIconEnter}
+            onIconLeave={handleIconLeave}
+            onIconClick={handleIconClick}
+          />
         )}
       </div>
     </Dialog>
