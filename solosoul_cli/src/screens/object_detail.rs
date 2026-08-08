@@ -63,12 +63,7 @@ pub fn render(frame: &mut ratatui::Frame, area: Rect, object: &ObjectRecord, i18
         map.iter()
             .map(|(k, v)| {
                 let value_str = format_value(v);
-                let display = field_display_value(
-                    k,
-                    &value_str,
-                    &field_levels,
-                    object_masked,
-                );
+                let display = field_display_value(k, &value_str, &field_levels, object_masked);
                 Row::new(vec![k.clone(), display])
             })
             .collect()
@@ -88,7 +83,11 @@ pub fn render(frame: &mut ratatui::Frame, area: Rect, object: &ObjectRecord, i18
     frame.render_widget(table, layout[1]);
 
     // 底部提示（任一字段被掩码即显示）
-    if object_masked || field_levels.values().any(|lvl| is_protected_sensitivity(lvl)) {
+    if object_masked
+        || field_levels
+            .values()
+            .any(|lvl| is_protected_sensitivity(lvl))
+    {
         let hint =
             Paragraph::new(Line::from(t!(i18n, "object-detail-sensitive-masked")).dark_gray())
                 .alignment(Alignment::Center);
@@ -154,7 +153,10 @@ mod tests {
         // critical 字段掩码
         assert_eq!(field_display_value("id", "123", &lv, false), "••••••");
         // internal 字段照常
-        assert_eq!(field_display_value("phone", "13800138000", &lv, false), "13800138000");
+        assert_eq!(
+            field_display_value("phone", "13800138000", &lv, false),
+            "13800138000"
+        );
         // 未在 labels 中的字段：对象非敏感 → 照常
         assert_eq!(field_display_value("name", "张三", &lv, false), "张三");
     }

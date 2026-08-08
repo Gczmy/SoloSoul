@@ -635,9 +635,7 @@ impl VaultStore {
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         let mut stmt = conn
-            .prepare_cached(
-                "SELECT properties, is_deleted FROM objects WHERE account_id = ?1",
-            )
+            .prepare_cached("SELECT properties, is_deleted FROM objects WHERE account_id = ?1")
             .map_err(|e| format!("check_field_usage prepare: {}", e))?;
         let rows = stmt
             .query_map(params![account_id], |row| {
@@ -648,7 +646,8 @@ impl VaultStore {
         let mut active = 0usize;
         let mut soft_deleted = 0usize;
         for row in rows {
-            let (props_enc, is_deleted) = row.map_err(|e| format!("check_field_usage row: {}", e))?;
+            let (props_enc, is_deleted) =
+                row.map_err(|e| format!("check_field_usage row: {}", e))?;
             let props = decrypt_text_field(&key, &props_enc)
                 .map_err(|e| format!("check_field_usage decrypt: {}", e))?;
             let Ok(value) = serde_json::from_str::<serde_json::Value>(&props) else {

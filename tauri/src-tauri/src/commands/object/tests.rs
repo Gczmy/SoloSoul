@@ -552,7 +552,8 @@ fn test_trash_permanent_delete_batch_helper() {
             original_parent_id: None,
             original_section_type: Some(record.section_type.clone()),
             original_sort_order: None,
-            data: serde_json::to_vec(&serde_json::json!({ "name": record.name })).unwrap_or_default(),
+            data: serde_json::to_vec(&serde_json::json!({ "name": record.name }))
+                .unwrap_or_default(),
             deleted_at: chrono::Utc::now().timestamp_millis(),
             expires_at: None,
             deleted_by: "user".to_string(),
@@ -569,8 +570,14 @@ fn test_trash_permanent_delete_batch_helper() {
     }
 
     for i in 0..3 {
-        assert!(vault.load_object(&format!("obj-batch-{i}")).unwrap().is_none());
-        assert!(vault.get_trash_item(&format!("trash_batch_{i}")).unwrap().is_none());
+        assert!(vault
+            .load_object(&format!("obj-batch-{i}"))
+            .unwrap()
+            .is_none());
+        assert!(vault
+            .get_trash_item(&format!("trash_batch_{i}"))
+            .unwrap()
+            .is_none());
     }
 }
 

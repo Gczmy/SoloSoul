@@ -246,9 +246,7 @@ pub(crate) fn validate_llm_base_url(base_url: &str) -> Result<(), String> {
     // P015：非回环 host 禁止明文 http（公网传输 Bearer key 与聊天内容可被中间人窃听）；
     // 回环保留 http 以支持本地 LLM 服务器（Ollama / LM Studio / llama.cpp 默认监听 localhost）。
     if scheme == "http" && !is_loopback_host(url.host()) {
-        return Err(
-            "base_url over http is only allowed for loopback hosts".to_string(),
-        );
+        return Err("base_url over http is only allowed for loopback hosts".to_string());
     }
     Ok(())
 }

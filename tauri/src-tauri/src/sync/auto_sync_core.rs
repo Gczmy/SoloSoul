@@ -52,6 +52,36 @@ enum SchedulerState<S> {
     Running(S),
 }
 
+/// P043：Idle 态收到事件后的状态转移（None = 通道关闭，调度终止）。
+fn next_idle_state<E: SchedulerEvent>(
+    event: Option<E>,
+    config: &SchedulerConfig,
+) -> Option<SchedulerState<E::Source>> {
+    let inner = event?;
+    Some(if inner.is_immediate() {
+        SchedulerState::Running(inner.source())
+    } else {
+        SchedulerState::Scheduled(
+            E::debounce_source(),
+            tokio::time::Instant::now() + config.debounce_delay,
+        )
+    })
+}
+
+/// P043：Scheduled 态收到事件后的状态转移（None = 通道关闭，调度终止）。
+fn next_scheduled_state<E: SchedulerEvent>(
+    event: Option<E>,
+    source: E::Source,
+    config: &SchedulerConfig,
+) -> Option<SchedulerState<E::Source>> {
+    let inner = event?;
+    Some(if inner.is_immediate() {
+        SchedulerState::Running(inner.source())
+    } else {
+        SchedulerState::Scheduled(source, tokio::time::Instant::now() + config.debounce_delay)
+    })
+}
+
 /// 启动调度内核。`periodic_enabled` 控制周期 tick 是否允许触发同步
 /// （SAF 恒为 true；设备端读取 AtomicBool 运行时开关）。
 pub(crate) fn spawn_scheduler<E, A, F>(
@@ -77,17 +107,9 @@ pub(crate) fn spawn_scheduler<E, A, F>(
             match state {
                 SchedulerState::Idle => {
                     tokio::select! {
-                        event = rx.recv() => match event {
-                            Some(inner) => {
-                                if inner.is_immediate() {
-                                    state = SchedulerState::Running(inner.source());
-                                } else {
-                                    let deadline =
-                                        tokio::time::Instant::now() + config.debounce_delay;
-                                    state =
-                                        SchedulerState::Scheduled(E::debounce_source(), deadline);
-                                }
-                            }
+                        // P043：事件处理提取为提前 return 的 helper，消除 match Some/None 嵌套
+                        event = rx.recv() => match next_idle_state::<E>(event, &config) {
+                            Some(s) => state = s,
                             None => break,
                         },
                         _ = interval.tick() => {
@@ -99,16 +121,8 @@ pub(crate) fn spawn_scheduler<E, A, F>(
                 }
                 SchedulerState::Scheduled(source, d) => {
                     tokio::select! {
-                        event = rx.recv() => match event {
-                            Some(inner) => {
-                                if inner.is_immediate() {
-                                    state = SchedulerState::Running(inner.source());
-                                } else {
-                                    let new_deadline =
-                                        tokio::time::Instant::now() + config.debounce_delay;
-                                    state = SchedulerState::Scheduled(source, new_deadline);
-                                }
-                            }
+                        event = rx.recv() => match next_scheduled_state::<E>(event, source, &config) {
+                            Some(s) => state = s,
                             None => break,
                         },
                         _ = tokio::time::sleep_until(d) => {

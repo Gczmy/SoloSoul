@@ -501,8 +501,13 @@ pub async fn attachment_export_content_uri<R: Runtime>(
     // 字面路径（如 `.../attachments_x/../../secret`）仅在 canonicalize 失败时参与判定，
     // 且同样按组件比较，防止共享前缀的兄弟目录（`attachments_evil`）通过校验。
     let src_raw = std::path::Path::new(&src_path);
-    let in_attachments =
-        path_within_base(&src, src_raw, src_canonicalized, &attachments_canon, &attachments_dir);
+    let in_attachments = path_within_base(
+        &src,
+        src_raw,
+        src_canonicalized,
+        &attachments_canon,
+        &attachments_dir,
+    );
     let in_vault = path_within_base(&src, src_raw, src_canonicalized, &base_canon, &base);
 
     if !in_attachments && !in_vault {
@@ -563,8 +568,13 @@ pub async fn attachment_export_tree_uri<R: Runtime>(
         .unwrap_or_else(|_| attachments_dir.clone());
     // P003: 组件级比较，杜绝字符串前缀匹配绕过。
     let src_raw = std::path::Path::new(&src_path);
-    let in_attachments =
-        path_within_base(&src, src_raw, src_canonicalized, &attachments_canon, &attachments_dir);
+    let in_attachments = path_within_base(
+        &src,
+        src_raw,
+        src_canonicalized,
+        &attachments_canon,
+        &attachments_dir,
+    );
     if !in_attachments {
         return Err("Source path must be within vault attachments storage".to_string());
     }

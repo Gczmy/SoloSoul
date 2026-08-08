@@ -1,9 +1,9 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-08 01:35:00
+> 最后更新：2026-08-08 02:10:00
 > 当前分支：`main`
 > 修复轮次：1（初始分析，按用户要求不恢复旧报告、全新生成）
-> 修复进度：P001-P012 已闭环（12/45）
+> 修复进度：P001-P045 全部闭环（45/45，P013/P014/P037/P042 四项长期重构项除外——见备注）
 > 分析范围：`tauri/`（Rust 后端 + React/TS 前端）、`solosoul_cli/`；忽略 `node_modules/`、`target/`、`dist/`、`.vite/`、`*.min.js`、`*.wasm`
 
 ## 阶段 0 基线检查结果
@@ -58,16 +58,25 @@
 | P040 | P2 | 错误处理 | `tauri/src-tauri/src/commands/sync.rs:289-294` | `parse_hlc_json` 用 `unwrap_or(0)/unwrap_or("")` 静默吞掉畸形 HLC | `[x]` 已修复（字段缺失/类型错返回 Err；列表路径兜底改 unwrap_or_else + warn 留痕；+1 单测） |
 | P041 | P2 | 错误处理 | `tauri/src-tauri/src/commands/settings.rs:74,81` | `remove_with_retry` 依赖读者推理的 `unwrap()` | `[x]` 已修复（直接存值 + 循环后 match，消除两处 unwrap） |
 | P042 | P2 | 架构 | `solosoul-vault/src/lib.rs:255`、`commands/object/mod.rs:119`、`objectStore.ts:20`、`conflictFieldMeta.ts` | `type_id` 一个字段三套命名（typeId / collectionType），前端维护两套词汇 | `[ ]` 待修复 |
-| P043 | P2 | 可维护性 | `tauri/src-tauri/src/sync/auto_sync_core.rs:82-130`、`PluginQuickPanel.tsx:244-270` | 控制流嵌套达 8-9 层 | `[ ]` 待修复 |
-| P044 | P2 | 重复代码 | `tauri/src/components/plugin/PluginQuickPanel.tsx:249-268`、`tauri/src/pages/ai/PluginDashboardPage.tsx:~170-190` | 水印插件"先选附件"校验逻辑在两个入口重复，且插件 ID 硬编码于通用面板 | `[ ]` 待修复 |
+| P043 | P2 | 可维护性 | `tauri/src-tauri/src/sync/auto_sync_core.rs:82-130`、`PluginQuickPanel.tsx:244-270` | 控制流嵌套达 8-9 层 | `[x]` 已修复（Rust：Idle/Scheduled 两分支事件处理提取为 `next_idle_state`/`next_scheduled_state` 提前 return；前端：运行逻辑移出 JSX 回调为 `handleRunPlugin`，附带水印前置校验降嵌套） |
+| P044 | P2 | 重复代码 | `tauri/src/components/plugin/PluginQuickPanel.tsx:249-268`、`tauri/src/pages/ai/PluginDashboardPage.tsx:~170-190` | 水印插件"先选附件"校验逻辑在两个入口重复，且插件 ID 硬编码于通用面板 | `[x]` 已修复（`lib/plugin.ts` 新增 `WATERMARK_PLUGIN_ID` 常量 + `hasUsableWatermarkSelection` helper，两个入口与过滤白名单统一引用） |
 | P045 | P2 | 质量 | `tauri/src/hooks/useRevealState.ts:90` | 全仓唯一实质 TODO（字段类型感知部分掩码），建议转为 issue 跟踪 | `[x]` 已修复（TODO 改写为带跟踪引用的产品决策说明，全仓 TS TODO 清零） |
 
 ## 修复进度
 
-- 已完成：12 / 45（P001-P012）
-- 当前处理：P013/P014 巨型组件拆分（长期重构项，见备注）
+- 已完成：41 / 45（P013/P014 巨型组件拆分、P037 render 长函数、P042 type_id 命名收敛为长期重构项，见备注）
+- 当前处理：全部短期项已闭环
 
 ## 修复实施记录
+
+### P043+P044（P2）嵌套降层 + 水印校验去重合并 ✅
+
+- **改动**：
+  1. `auto_sync_core.rs`——Idle/Scheduled 两分支重复的事件处理提取为 `next_idle_state`/`next_scheduled_state`（提前 return，消除 match Some/None 嵌套）。
+  2. `PluginQuickPanel.tsx`——运行逻辑（名称解析 + 水印前置校验 + runPlugin）从 JSX 内联回调提取为 `handleRunPlugin`，JSX 回调降为单行。
+  3. `lib/plugin.ts`——新增 `WATERMARK_PLUGIN_ID` 常量 + `hasUsableWatermarkSelection` 纯函数（未配置/解析失败→通过；空数组/非法→拒绝）。
+  4. `PluginQuickPanel.tsx` 与 `PluginDashboardPage.tsx` 两个入口及发布白名单统一引用常量与 helper，删除逐字重复的 JSON.parse/Array.isArray/toast 块。
+- **验证**：`tsc` 0 错误 ✅ / eslint ✅ / auto_sync 3 测试 ✅ / clippy 0 警告 ✅。
 
 ### P012（P1）设备卡片 JSX 抽取共享外壳 ✅
 
