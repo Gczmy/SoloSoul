@@ -2,14 +2,6 @@ import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { motion } from 'framer-motion';
-import {
-  Paperclip,
-  X,
-  RotateCw,
-  Upload,
-  Download,
-} from 'lucide-react';
-import { Button } from '@/components/ui/Button';
 import { useUiStore } from '@/stores/uiStore';
 import { useConfirm } from '@/hooks/useConfirm';
 import { useIsNarrowViewport } from '@/hooks/useIsNarrowViewport';
@@ -17,22 +9,19 @@ import { useDragToAttach } from '@/hooks/useDragToAttach';
 import { downloadViaStage } from '@/lib/mobileFileTransfer';
 import { isMobilePlatformSync } from '@/lib/platform';
 import { useBatchSelect } from '@/hooks/useBatchSelect';
-import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import { DragUploadOverlay } from '@/components/object/DragUploadOverlay';
 
 import { pickFileToAttach, uploadSingleAttachment } from '@/lib/attachmentUpload';
 import {
-  truncateFileName,
   previewItemByMime,
   downloadAttachmentFile,
   type AttachmentItem,
 } from '@/lib/attachmentUtils';
-import { DeleteButton } from '@/components/ui/DeleteButton';
-import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
 import { AttachmentPreviewOverlay } from '@/components/attachment/AttachmentPreviewOverlay';
-import { ConfirmDialog } from '@/components/attachment/ConfirmDialog';
 import { AttachmentListItem } from '@/components/object/AttachmentListItem';
-import { ICON_SIZE } from '@/lib/constants';
+import { AttachmentViewerHeader } from '@/components/object/AttachmentViewerHeader';
+import { AttachmentBatchToolbar } from '@/components/object/AttachmentBatchToolbar';
+import { AttachmentConfirmDialogs } from '@/components/object/AttachmentConfirmDialogs';
 import { logger } from '@/lib/logger';
 
 export type { AttachmentItem } from '@/lib/attachmentUtils';
@@ -474,168 +463,36 @@ export function AttachmentViewer({
             margin: 16,
           }}
         >
-          {/* Header */}
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '14px 18px',
-              borderBottom: '1px solid var(--border-subtle)',
+          {/* Header（P013 拆分） */}
+          <AttachmentViewerHeader
+            isNarrowViewport={isNarrowViewport}
+            showTrash={showTrash}
+            activeCount={items.length}
+            trashCount={trashItems.length}
+            uploading={uploading}
+            onShowActive={() => {
+              setShowTrash(false);
+              clearSelection();
             }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div
-                style={{
-                  fontSize: 'var(--text-body-sm)',
-                  fontWeight: 600,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                }}
-              >
-                {/* 窄视口只留图标，把空间让给 活跃/回收站 切换与右侧操作按钮 */}
-                <Paperclip size={ICON_SIZE.sm} />
-                {!isNarrowViewport && t('common:attachments')}
-              </div>
-              <div style={{ display: 'flex', gap: 4 }}>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => {
-                    setShowTrash(false);
-                    clearSelection();
-                  }}
-                  style={{
-                    fontSize: 'var(--text-caption)',
-                    ...(!showTrash
-                      ? {
-                          background: 'color-mix(in srgb, var(--accent-primary) 10%, transparent)',
-                          borderColor: 'var(--accent-primary)',
-                          color: 'var(--accent-primary)',
-                          boxShadow: '0 0 0 1px var(--accent-primary)',
-                        }
-                      : {}),
-                  }}
-                >
-                  {t('common:attachments_active', { n: items.length })}
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => {
-                    setShowTrash(true);
-                    clearSelection();
-                  }}
-                  className="interactive-danger-tab"
-                  style={{
-                    fontSize: 'var(--text-caption)',
-                    ...(showTrash
-                      ? {
-                          background: 'color-mix(in srgb, #e74c3c 10%, transparent)',
-                          borderColor: '#e74c3c',
-                          color: '#e74c3c',
-                          boxShadow: '0 0 0 1px #e74c3c',
-                        }
-                      : {}),
-                  }}
-                >
-                  {t('common:attachments_trash', { n: trashItems.length })}
-                </Button>
-              </div>
-            </div>
-            {/* 右侧操作：窄视口下 Upload 改纯图标（与关闭按钮同款 44×44），避免头部溢出 */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>                {!showTrash &&
-                (isNarrowViewport ? (
-                  <BadgeIconButton
-                    Icon={Upload}
-                    onClick={handleAdd}
-                    title={t('common:upload', { defaultValue: 'Upload' })}
-                    iconSize={ICON_SIZE.sm}
-                    disabled={uploading}
-                  />
-                ) : (
-                  <Button variant="secondary" size="sm" onClick={handleAdd} disabled={uploading}>
-                    {uploading ? (
-                      <RotateCw size={ICON_SIZE.sm} style={{ animation: 'spin 1s linear infinite' }} />
-                    ) : (
-                      <Upload size={ICON_SIZE.sm} />
-                    )}{' '}
-                    {t('common:upload')}
-                  </Button>
-                ))}
-              <BadgeIconButton
-                Icon={X}
-                onClick={onClose}
-                title={t('common:close', { defaultValue: 'Close' })}
-                iconSize={ICON_SIZE.md}
-              />
-            </div>
-          </div>
-          {/* 批量操作工具栏 — 常驻显示 */}
+            onShowTrash={() => {
+              setShowTrash(true);
+              clearSelection();
+            }}
+            onAdd={handleAdd}
+            onClose={onClose}
+          />
+          {/* 批量操作工具栏 — 常驻显示（P013 拆分） */}
           {displayItems.length > 0 && (
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                padding: '8px 12px',
-                borderBottom: '1px solid var(--border-subtle)',
-                background:
-                  selectedIds.size > 0
-                    ? 'color-mix(in srgb, var(--accent-primary) 6%, transparent)'
-                    : 'var(--bg-toolbar)',
-                fontSize: 'var(--text-body-sm)',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <SelectCheckbox
-                  checked={allSelected}
-                  onClick={() => handleSelectAll(allVisibleKeys)}
-                  indeterminate={selectedIds.size > 0 && !allSelected}
-                />
-                <span
-                  style={{ color: 'var(--text-secondary)', cursor: 'pointer', userSelect: 'none' }}
-                  onClick={() => handleSelectAll(allVisibleKeys)}
-                >
-                  {allSelected ? t('common:deselect_all') : t('common:select_all')}
-                </span>
-                {selectedIds.size > 0 && (
-                  <span style={{ color: 'var(--text-tertiary)' }}>
-                    {t('common:selected_count', { n: selectedIds.size })}
-                  </span>
-                )}
-              </div>
-              {selectedIds.size > 0 && !showTrash ? (
-                <div style={{ display: 'flex', gap: 6 }}>
-                  <Button variant="secondary" size="sm" onClick={handleBatchDownload}>
-                    <Download size={ICON_SIZE.sm} /> {t('common:download')}
-                  </Button>
-                  <DeleteButton
-                    onClick={() => setBatchDeleteConfirm(true)}
-                    title={t('common:delete')}
-                  >
-                    {t('common:delete')}
-                  </DeleteButton>
-                </div>
-              ) : selectedIds.size > 0 && showTrash ? (
-                <div style={{ display: 'flex', gap: 6 }}>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => setBatchRestoreConfirm(true)}
-                  >
-                    <RotateCw size={ICON_SIZE.sm} /> {t('common:restore')}
-                  </Button>
-                  <DeleteButton
-                    onClick={() => setBatchPermanentDeleteConfirm(true)}
-                    title={t('common:delete_permanently')}
-                  >
-                    {t('common:delete_permanently')}
-                  </DeleteButton>
-                </div>
-              ) : null}
-            </div>
+            <AttachmentBatchToolbar
+              showTrash={showTrash}
+              allSelected={allSelected}
+              selectedCount={selectedIds.size}
+              onToggleSelectAll={() => handleSelectAll(allVisibleKeys)}
+              onBatchDownload={handleBatchDownload}
+              onBatchDelete={() => setBatchDeleteConfirm(true)}
+              onBatchRestore={() => setBatchRestoreConfirm(true)}
+              onBatchPermanentDelete={() => setBatchPermanentDeleteConfirm(true)}
+            />
           )}
           {/* List */}
           <div style={{ flex: 1, overflow: 'auto' }}>
@@ -691,61 +548,24 @@ export function AttachmentViewer({
         onOpenExternal={openAttachmentExternal}
       />
       {confirmDialog}
-      {/* Confirmation dialogs */}
-      <ConfirmDialog
-        open={!!deleteItem}
-        title={t('common:confirm_delete_title', 'Delete attachment')}
-        body={t('common:confirm_delete_body', {
-          name: deleteItem ? truncateFileName(deleteItem.fileName) : '',
-          defaultValue: `Delete "${deleteItem ? truncateFileName(deleteItem.fileName) : ''}"? It will be moved to trash.`,
-        })}
-        confirmLabel={t('common:delete')}
-        cancelLabel={t('common:cancel')}
-        confirmStyle="danger"
-        onConfirm={handleConfirmDelete}
-        onCancel={() => setDeleteItem(null)}
-      />
-      <ConfirmDialog
-        open={batchDeleteConfirm}
-        title={t('common:batch_delete_title')}
-        body={t('common:batch_delete_body', { n: selectedIds.size })}
-        confirmLabel={t('common:delete')}
-        cancelLabel={t('common:cancel')}
-        confirmStyle="danger"
-        onConfirm={handleBatchDelete}
-        onCancel={() => setBatchDeleteConfirm(false)}
-      />
-      <ConfirmDialog
-        open={batchRestoreConfirm}
-        title={t('common:batch_restore_title')}
-        body={t('common:batch_restore_body', { n: selectedIds.size })}
-        confirmLabel={t('common:restore')}
-        cancelLabel={t('common:cancel')}
-        confirmStyle="primary"
-        onConfirm={handleBatchRestore}
-        onCancel={() => setBatchRestoreConfirm(false)}
-      />
-      <ConfirmDialog
-        open={batchPermanentDeleteConfirm}
-        title={t('common:batch_perm_delete_title')}
-        body={t('common:batch_perm_delete_body', { n: selectedIds.size })}
-        confirmLabel={t('common:delete_permanently')}
-        cancelLabel={t('common:cancel')}
-        confirmStyle="danger"
-        onConfirm={handleBatchPermanentDelete}
-        onCancel={() => setBatchPermanentDeleteConfirm(false)}
-      />
-      <ConfirmDialog
-        open={!!permDeleteItem}
-        title={t('common:perm_delete_title')}
-        body={t('common:perm_delete_body', {
-          name: permDeleteItem ? truncateFileName(permDeleteItem.fileName) : '',
-        })}
-        confirmLabel={t('common:delete_permanently')}
-        cancelLabel={t('common:cancel')}
-        confirmStyle="danger"
-        onConfirm={() => permDeleteItem && handlePermanentDelete(permDeleteItem)}
-        onCancel={() => setPermDeleteItem(null)}
+      {/* Confirmation dialogs（P013 拆分） */}
+      <AttachmentConfirmDialogs
+        deleteItem={deleteItem}
+        permDeleteItem={permDeleteItem}
+        batchDeleteConfirm={batchDeleteConfirm}
+        batchRestoreConfirm={batchRestoreConfirm}
+        batchPermanentDeleteConfirm={batchPermanentDeleteConfirm}
+        selectedCount={selectedIds.size}
+        onConfirmDelete={handleConfirmDelete}
+        onCancelDelete={() => setDeleteItem(null)}
+        onConfirmPermanentDelete={() => permDeleteItem && handlePermanentDelete(permDeleteItem)}
+        onCancelPermanentDelete={() => setPermDeleteItem(null)}
+        onConfirmBatchDelete={handleBatchDelete}
+        onCancelBatchDelete={() => setBatchDeleteConfirm(false)}
+        onConfirmBatchRestore={handleBatchRestore}
+        onCancelBatchRestore={() => setBatchRestoreConfirm(false)}
+        onConfirmBatchPermanentDelete={handleBatchPermanentDelete}
+        onCancelBatchPermanentDelete={() => setBatchPermanentDeleteConfirm(false)}
       />
     </div>
   );
