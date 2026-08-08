@@ -3,8 +3,6 @@ import { ClientTypeIcon } from '@/components/sync/ClientTypeIcon';
 import { ICON_SIZE } from '@/lib/constants';
 
 interface DeviceCardShellProps {
-  /** 卡片唯一 key（由调用方传入，不参与渲染）。 */
-  cardKey: string;
   clientType?: string;
   /** 设备名（已裁剪）。 */
   name: string;
@@ -21,7 +19,6 @@ interface DeviceCardShellProps {
  * 副标题与操作区由调用方注入，保持两张卡片各自的语义差异。
  */
 export function DeviceCardShell({
-  cardKey,
   clientType,
   name,
   subtitle,
@@ -30,7 +27,6 @@ export function DeviceCardShell({
 }: DeviceCardShellProps) {
   return (
     <div
-      key={cardKey}
       role="button"
       tabIndex={0}
       onClick={onOpen}

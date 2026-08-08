@@ -127,7 +127,7 @@ export function DeviceListPanel({
               // P012: 共享外壳（交互容器 + 图标 + 名称行），副标题/操作区注入
               return (
                 <DeviceCardShell
-                  cardKey={deviceAddr}
+                  key={deviceAddr}
                   clientType={device.clientType}
                   name={deviceName}
                   subtitle={
@@ -298,7 +298,7 @@ export function DeviceListPanel({
               // P012: 共享外壳（交互容器 + 图标 + 名称行），副标题/操作区注入
               return (
                 <DeviceCardShell
-                  cardKey={peer.id}
+                  key={peer.id}
                   clientType={peer.clientType}
                   name={displayName}
                   subtitle={
