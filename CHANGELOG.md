@@ -2,6 +2,33 @@
 
 All notable changes to SoloSoul are documented in this file.
 
+## [2.9.0] - 2026-08-08
+
+### Added
+
+- **R2 代码审计 P001–P045 全部闭环（96 个 commit）** — 经三轮「修复→独立复核」完成：首轮 P000–P035（安全/性能/重构，见 2.8.6 段记录）基础上，本轮补齐 P036–P045（前端掩码/类型/对话框/吞错收敛）与复核返工（P020 详情弹窗闪烁与截断错位、P009 文档虚造表述、P005 失实注释、P045 掩码规划落地），并经独立复核确认「45/45 闭环、check-all 全绿、无虚报」。
+- **CLI 侧 R2 审计修复闭环（P006–P008、P021、P027–P038）** — `/open` 对象详情字段级掩码（模板兜底）、`/backup` 落盘收紧 0600（消除明文窗口期）、`delete_page` 子对象入回收站失败不再吞错、`update_profile_preference` 根非对象显式报错、`do_rollback` 拒绝跨对象回滚、插件 `plugin_id` 白名单字符校验（封路径逃逸）、锁定统一擦除敏感内存（previous_phase/chat_state/prompt）、debug_log/export_log 明文落盘创建即 0600、聊天消息末尾窗口分页、搜索父页名批量预取、搜索热循环零临时分配、附件 id 子串扫描（免全量 JSON 树）。
+- **README 重构为产品向 + 开发者文档拆分** — README 对标 Anytype/Warp 等专业软件（产品定位/核心价值/快速上手/下载链接），开发者相关内容移入新建的 `docs/DEVELOPMENT.md`；macOS 安装提醒改用标准 markdown 提醒块（Gatekeeper 解除方法：系统设置仍要打开 / 终端 `xattr -d com.apple.quarantine`）；下载按钮改为无版本号稳定资产名（`releases/latest/download`），发版同步覆盖副本。
+- **docs/design_map 全面整理（v3.3）** — 合并相似文档（03+04 → 项目结构与 Rust Workspace、28/29 并入 20/08）、删除过时内容（27 Bug 清单、Liquid Glass 空想）、修正与代码不一致的表述（11 视觉规范、12 store 清单、14 敏感度改字段级、15 audit_log、02 Node 22）、归档 13/28/29/REINDEX。
+- **文档体系重组** — ① 条款文档 zh-CN/en-US 合并为 `docs/legal/`（文件名按各语言命名：隐私政策/服务条款/Privacy Policy/Terms of Service）；② `docs/mobile/` + `docs/android/` 合并为 `docs/platform-mobile/`（删除过时内容）；③ 插件市场 15 篇 2026-05 设计稿重构为 3 篇与 Tauri 实现一致的文档；④ wasm 插件开发指南与 SDK/Host 实际 API 对齐（含 show_dialog、result_*、附件水印等最新能力）；⑤ 删除 PONYTAIL 过时审计文档与根目录审计报告（审计文档随 review 流程放 docs/）；⑥ 4 个 bash 脚本统一移入 `scripts/` 并更新引用；⑦ AGENTS.md/CLAUDE.md 移出版本控制。
+
+### Fixed
+
+- **R2 复核返工** — P020 详情弹窗三项：modal 绕开全局 isLoading action（列表不再闪骨架屏）、预览截断按模板 fieldOrder 选取（重要字段不再被字母序截掉）、完整 ObjectData 跳过重复拉取；P009 修正 08/11/07 文档虚造的 `template_create sourceObjectId` 表述；P005 修正 `collect_scope_objects` 失实 doc comment；P045 在 08 文档补写「字段类型感知的部分掩码」规划章节（决策载体落地）。
+- **CLI 修复** — `/open` 模板敏感字段兜底掩码（与 `/search` 判定一致）、备份中止于不可读 profile（不完整备份不再静默生成）、插件结果与 `/model` 输出改用 info_message（成功不再误显示红色错误）。
+
+### Performance
+
+- **CLI 搜索父页名批量预取（P034）** — 去重后一次 `load_objects_batch` 替代逐条 N+1。
+- **CLI 搜索热循环零临时分配（P021）** — 路径缓冲 + 小写复用 + max_by。
+- **CLI 附件 id 提取改子串扫描（P025）** — 免全量 JSON 树构造。
+- **CLI 聊天消息末尾窗口分页（P026）** — 免长会话数百条全挂 DOM。
+
+### Chores
+
+- 版本号同步升级到 2.9.0（versionCode 2009000）。
+- 96 个 commit 自 v2.8.6（`49909909`）到 v2.9.0。
+
 ## [2.8.6] - 2026-08-07
 
 ### Added
@@ -2280,7 +2307,8 @@ All notable changes to SoloSoul are documented in this file.
 - Multi-account support with independent vault directories
 - Comprehensive test suite
 
-[Unreleased]: https://github.com/Gczmy/SoloSoul/compare/v2.6.3...HEAD
+[2.9.0]: https://github.com/Gczmy/SoloSoul/releases/tag/v2.9.0
+[Unreleased]: https://github.com/Gczmy/SoloSoul/compare/v2.9.0...HEAD
 [2.6.3]: https://github.com/Gczmy/SoloSoul/releases/tag/v2.6.3
 [2.6.2]: https://github.com/Gczmy/SoloSoul/releases/tag/v2.6.2
 [2.5.6]: https://github.com/Gczmy/SoloSoul/releases/tag/v2.5.6
