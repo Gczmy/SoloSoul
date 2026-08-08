@@ -303,11 +303,22 @@ pub struct ConflictDetail {
 }
 
 fn parse_hlc_json(s: &str) -> Result<ConflictHlc, String> {
+    // P040：字段缺失/类型错误不再静默吞掉——畸形 HLC 不应得到 wall_time_ms=0 的假值。
     let hlc: serde_json::Value = serde_json::from_str(s).map_err(|e| e.to_string())?;
+    let wall_time_ms = hlc["wall_time_ms"]
+        .as_u64()
+        .ok_or_else(|| format!("HLC wall_time_ms 缺失或类型错误: {}", s))?;
+    let counter = hlc["counter"]
+        .as_u64()
+        .ok_or_else(|| format!("HLC counter 缺失或类型错误: {}", s))?;
+    let node_id = hlc["node_id"]
+        .as_str()
+        .ok_or_else(|| format!("HLC node_id 缺失或类型错误: {}", s))?
+        .to_string();
     Ok(ConflictHlc {
-        wall_time_ms: hlc["wall_time_ms"].as_u64().unwrap_or(0),
-        counter: hlc["counter"].as_u64().unwrap_or(0),
-        node_id: hlc["node_id"].as_str().unwrap_or("").to_string(),
+        wall_time_ms,
+        counter,
+        node_id,
     })
 }
 
@@ -317,15 +328,22 @@ async fn list_conflicts_impl(state: State<'_, AppState>) -> Result<Vec<ConflictS
     let summaries = rows
         .into_iter()
         .map(|c| {
-            let local_hlc = parse_hlc_json(&c.local_hlc_json).unwrap_or(ConflictHlc {
-                wall_time_ms: 0,
-                counter: 0,
-                node_id: String::new(),
+            // P040：列表兜底保留，但畸形数据必须留痕（warn），不静默
+            let local_hlc = parse_hlc_json(&c.local_hlc_json).unwrap_or_else(|e| {
+                tracing::warn!("[sync] 冲突 {} local HLC 解析失败: {}", c.id, e);
+                ConflictHlc {
+                    wall_time_ms: 0,
+                    counter: 0,
+                    node_id: String::new(),
+                }
             });
-            let remote_hlc = parse_hlc_json(&c.remote_hlc_json).unwrap_or(ConflictHlc {
-                wall_time_ms: 0,
-                counter: 0,
-                node_id: String::new(),
+            let remote_hlc = parse_hlc_json(&c.remote_hlc_json).unwrap_or_else(|e| {
+                tracing::warn!("[sync] 冲突 {} remote HLC 解析失败: {}", c.id, e);
+                ConflictHlc {
+                    wall_time_ms: 0,
+                    counter: 0,
+                    node_id: String::new(),
+                }
             });
             ConflictSummary {
                 id: c.id,
@@ -1009,5 +1027,27 @@ mod tests {
         assert!(json.contains("lastSeen"));
         assert!(!json.contains("last_seen"), "should not contain snake_case");
         assert!(!json.contains("last_seen_ts"));
+    }
+
+    /// P040：合法 HLC 正常解析，畸形数据必须报错而非得到 0 假值。
+    #[test]
+    fn test_parse_hlc_json() {
+        // 正常
+        let ok =
+            parse_hlc_json(r#"{"wall_time_ms": 1000, "counter": 5, "node_id": "node-a"}"#).unwrap();
+        assert_eq!(ok.wall_time_ms, 1000);
+        assert_eq!(ok.counter, 5);
+        assert_eq!(ok.node_id, "node-a");
+
+        // 缺字段 / 类型错误 / 非法 JSON 均报错，不再静默生成 wall_time_ms=0 假 HLC
+        for bad in [
+            r#"{"wall_time_ms": 1000, "counter": 5}"#, // 缺 node_id
+            r#"{"wall_time_ms": "x", "counter": 5, "node_id": "n"}"#, // 类型错误
+            r#"{"wall_time_ms": 1000, "counter": "x", "node_id": "n"}"#,
+            "not json",
+            "{}",
+        ] {
+            assert!(parse_hlc_json(bad).is_err(), "畸形 HLC 应报错: {}", bad);
+        }
     }
 }

@@ -55,7 +55,7 @@
 | P037 | P2 | 质量 | `solosoul_cli/src/app.rs:2694-3016` 等 | `render()` 323 行及多个 110-150 行 key handler | `[ ]` 待修复 |
 | P038 | P2 | 质量 | `solosoul_cli/src/commands/settings.rs:6,340-341`、`app.rs:364,412`、`commands/profile.rs:171-180` | 陈旧注释（引用不存在的 `trigger_debug_log_export`）、文档注释混入字面 `\n`、死分支注释误导 | `[x]` 已修复（3 处 trigger_debug_log_export 改 debug_log，字面 \n 清理，set_value_at_path 死分支删除） |
 | P039 | P2 | 死代码 | `tauri/src/lib/ipc.ts:86-93` | `Profile` 接口无人引用，且字段形状与 Rust 端不符 | `[x]` 已修复（删除死接口，tsc/eslint ✅） |
-| P040 | P2 | 错误处理 | `tauri/src-tauri/src/commands/sync.rs:289-294` | `parse_hlc_json` 用 `unwrap_or(0)/unwrap_or("")` 静默吞掉畸形 HLC | `[ ]` 待修复 |
+| P040 | P2 | 错误处理 | `tauri/src-tauri/src/commands/sync.rs:289-294` | `parse_hlc_json` 用 `unwrap_or(0)/unwrap_or("")` 静默吞掉畸形 HLC | `[x]` 已修复（字段缺失/类型错返回 Err；列表路径兜底改 unwrap_or_else + warn 留痕；+1 单测） |
 | P041 | P2 | 错误处理 | `tauri/src-tauri/src/commands/settings.rs:74,81` | `remove_with_retry` 依赖读者推理的 `unwrap()` | `[ ]` 待修复 |
 | P042 | P2 | 架构 | `solosoul-vault/src/lib.rs:255`、`commands/object/mod.rs:119`、`objectStore.ts:20`、`conflictFieldMeta.ts` | `type_id` 一个字段三套命名（typeId / collectionType），前端维护两套词汇 | `[ ]` 待修复 |
 | P043 | P2 | 可维护性 | `tauri/src-tauri/src/sync/auto_sync_core.rs:82-130`、`PluginQuickPanel.tsx:244-270` | 控制流嵌套达 8-9 层 | `[ ]` 待修复 |
