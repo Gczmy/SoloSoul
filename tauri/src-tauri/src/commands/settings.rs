@@ -64,21 +64,25 @@ fn is_retryable_io_error(kind: std::io::ErrorKind) -> bool {
 /// 对明确的永久性错误（如 PermissionDenied）会立即短路返回，避免无意义重试。
 #[cfg(any(target_os = "android", test))]
 fn remove_with_retry(path: &std::path::Path, retries: u32) -> std::io::Result<()> {
-    let mut last_err = None;
+    let mut last_err: Option<std::io::Error> = None;
     for attempt in 0..=retries {
         match std::fs::remove_file(path) {
             Ok(()) => return Ok(()),
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(()),
             Err(e) => {
+                let kind = e.kind();
                 last_err = Some(e);
-                let kind = last_err.as_ref().unwrap().kind();
                 if !is_retryable_io_error(kind) || attempt == retries {
                     break;
                 }
             }
         }
     }
-    Err(last_err.unwrap())
+    match last_err {
+        Some(e) => Err(e),
+        // 不可达：循环至少执行一次，remove_file 失败必然落入 Err 分支并记录错误。
+        None => Err(std::io::Error::other("remove_with_retry: 无可用错误详情")),
+    }
 }
 
 /// 在确认新路径已存在后，尝试清理可能残留的旧 UI preferences 文件。
