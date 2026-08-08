@@ -362,12 +362,11 @@ interface TemplateState {
   updateTemplate: (id, updates) => Promise<void>;
   deleteTemplate: (id) => Promise<void>;
   getTemplate: (id) => Promise<UserTemplate | null>;
-  saveFromObject: (objectId, name) => Promise<string>;  // 从对象创建模板
   checkFieldUsage: (templateId, fieldKey) => Promise<{ active: number; softDeleted: number }>;
 }
 ```
 
-**与 doc 差异**：`updateTemplate` 调用后自动 `loadTemplates()` 刷新全量列表（非乐观更新）。`saveFromObject` 通过 IPC `template_create`（携带 sourceObjectId）实现——`template_save_from_object` 死命令已删。
+**与 doc 差异**：`updateTemplate` 调用后自动 `loadTemplates()` 刷新全量列表（非乐观更新）。`saveFromObject` 方法不存在——「从对象保存为模板」能力已随 `template_save_from_object` 死命令一并移除，无现存入口；`template_create` 也不携带 `sourceObjectId` 参数（P009 二次复核修正）。
 
 ### 9.3 trashStore
 
