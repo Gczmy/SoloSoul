@@ -32,7 +32,7 @@
 | 生物识别 (Biometric) | 5 | `biometric_check_availability`、`biometric_save_credential`、`biometric_unlock`、`biometric_delete_credential`、`biometric_test` |
 | 档案 (Profile) | 6 | `profile_load`、`profile_save`、`profile_get_section`、`profile_update_field`、`profile_delete`、`profile_list` |
 | 对象 (Object) | 6 | `object_list`、`object_get`、`object_create`、`object_update`、`object_delete`、`object_trash_list`（`object_restore`、`object_purge` 已随 P002 移除，回收站恢复/物理删除统一走 `trash_restore`/`trash_permanent_delete`） |
-| 模板 (Template) | 8 | `template_create`、`template_update`、`template_delete`、`template_restore`、`template_get`、`template_list`、`template_save_from_object`、`template_check_field_usage` |
+| 模板 (Template) | 7 | `template_create`、`template_update`、`template_delete`、`template_restore`、`template_get`、`template_list`、`template_check_field_usage`（`template_save_from_object` 死命令已删，从对象保存模板统一走 `template_create`） |
 
 ### 扩展功能（Extensions）
 
@@ -277,10 +277,6 @@ pub async fn template_get(template_id: String) -> Result<UserTemplate, String>;
 
 #[tauri::command]
 pub async fn template_list() -> Result<Vec<UserTemplate>, String>;
-
-#[tauri::command]
-pub async fn template_save_from_object(object_id: String, template_name: String, icon_id: Option<String>) -> Result<String, String>;
-// 从已有对象反向生成模板
 
 #[tauri::command]
 pub async fn template_check_field_usage(template_id: String, field_key: String) -> Result<FieldUsage, String>;

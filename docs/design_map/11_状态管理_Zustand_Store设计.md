@@ -36,7 +36,7 @@ Zustand 优势：**无 Provider**、细粒度订阅、TypeScript 完美支持、
 | Store | 实际职责 | 关键 IPC |
 |-------|---------|---------|
 | `objectStore.ts` | 对象 CRUD + 回收站操作 | `object_list` / `object_get` / `object_create` / `object_delete` / `object_trash_list` |
-| `templateStore.ts` | 模板 CRUD + 字段使用检查 + 从对象保存 | `template_list` / `template_create` / `template_save_from_object` / `template_check_field_usage` |
+| `templateStore.ts` | 模板 CRUD + 字段使用检查 + 从对象保存 | `template_list` / `template_create` / `template_check_field_usage` |
 | `trashStore.ts` | 回收站：时间/类型过滤 + 搜索 + 批量选择 | `object_trash_list` / `trash_restore` / `trash_permanent_delete` / `template_restore` |
 | `profileStore.ts` | Profile 数据加载（Uint8Array 解码） | `profile_load`（`profile_get_section` / `profile_update_field` 死命令已删） |
 
@@ -367,7 +367,7 @@ interface TemplateState {
 }
 ```
 
-**与 doc 差异**：`updateTemplate` 调用后自动 `loadTemplates()` 刷新全量列表（非乐观更新）。`saveFromObject` 通过 IPC `template_save_from_object` 实现。
+**与 doc 差异**：`updateTemplate` 调用后自动 `loadTemplates()` 刷新全量列表（非乐观更新）。`saveFromObject` 通过 IPC `template_create`（携带 sourceObjectId）实现——`template_save_from_object` 死命令已删。
 
 ### 9.3 trashStore
 
