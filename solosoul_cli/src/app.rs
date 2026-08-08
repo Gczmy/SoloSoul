@@ -2786,7 +2786,15 @@ impl App {
                 frame, area, title, items, *truncated, &self.i18n,
             ),
             AppPhase::ObjectDetail { object } => {
-                crate::screens::object_detail::render(frame, area, object, &self.i18n)
+                // P006 复核：传入模板表供字段级敏感度兜底（与 /search 的
+                // collect_protected_field_keys 判定保持一致）。
+                let templates = self
+                    .vault_service
+                    .get_vault_store()
+                    .and_then(|v| v.list_user_templates(&object.account_id).ok())
+                    .map(|ts| ts.into_iter().map(|t| (t.id.clone(), t)).collect())
+                    .unwrap_or_default();
+                crate::screens::object_detail::render(frame, area, object, &templates, &self.i18n)
             }
             AppPhase::Size { report } => {
                 crate::screens::size::render(frame, area, report, &self.i18n)

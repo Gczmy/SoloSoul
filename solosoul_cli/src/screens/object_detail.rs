@@ -4,13 +4,23 @@ use ratatui::layout::{Alignment, Constraint, Direction, Layout, Rect};
 use ratatui::style::Stylize;
 use ratatui::text::{Line, Text};
 use ratatui::widgets::{Block, Borders, Paragraph, Row, Table};
-use solosoul_core::{is_protected_sensitivity, ObjectRecord};
+use solosoul_core::{is_protected_sensitivity, ObjectRecord, UserTemplate};
 
 use crate::i18n::I18n;
 use crate::t;
 
 /// 渲染对象详情。
-pub fn render(frame: &mut ratatui::Frame, area: Rect, object: &ObjectRecord, i18n: &I18n) {
+///
+/// `templates` 用于字段级敏感度兜底：旧对象缺少 `property_labels`（或模板
+/// 创建后新增了敏感字段）时，从模板定义读取字段敏感度，与 `/search` 路径
+/// 的 `collect_protected_field_keys` 判定保持一致（P006 复核）。
+pub fn render(
+    frame: &mut ratatui::Frame,
+    area: Rect,
+    object: &ObjectRecord,
+    templates: &std::collections::HashMap<String, UserTemplate>,
+    i18n: &I18n,
+) {
     let layout = Layout::default()
         .direction(Direction::Vertical)
         .constraints([Constraint::Length(7), Constraint::Min(0)])
@@ -45,16 +55,7 @@ pub fn render(frame: &mut ratatui::Frame, area: Rect, object: &ObjectRecord, i18
     // 否则逐字段按 property_labels 中的敏感度判断（sensitive/critical/restricted 字段
     // 掩码，public/internal 字段照常展示），与 GUI 的 SensitivityLevel 约定一致。
     let object_masked = is_protected_sensitivity(&object.sensitivity_level);
-    let field_levels: std::collections::HashMap<String, String> = object
-        .property_labels
-        .as_ref()
-        .and_then(|v| v.as_object())
-        .map(|m| {
-            m.iter()
-                .filter_map(|(k, v)| v.as_str().map(|s| (k.clone(), s.to_string())))
-                .collect()
-        })
-        .unwrap_or_default();
+    let field_levels = collect_field_levels_for(object, templates);
     let header = Row::new(vec!["字段", "值"])
         .style(ratatui::style::Style::default().bold())
         .bottom_margin(1);
@@ -94,6 +95,36 @@ pub fn render(frame: &mut ratatui::Frame, area: Rect, object: &ObjectRecord, i18
         let hint_area = Rect::new(area.x, area.y + area.height - 1, area.width, 1);
         frame.render_widget(hint, hint_area);
     }
+}
+
+/// P006: 构建字段级敏感度表——property_labels 优先（对象自带的字段级覆盖），
+/// 缺失时从模板定义兜底（旧对象或模板新增的敏感字段），与 `/search` 的
+/// `collect_protected_field_keys` 判定保持一致。
+fn collect_field_levels_for(
+    object: &ObjectRecord,
+    templates: &std::collections::HashMap<String, UserTemplate>,
+) -> std::collections::HashMap<String, String> {
+    let mut field_levels: std::collections::HashMap<String, String> = object
+        .property_labels
+        .as_ref()
+        .and_then(|v| v.as_object())
+        .map(|m| {
+            m.iter()
+                .filter_map(|(k, v)| v.as_str().map(|s| (k.clone(), s.to_string())))
+                .collect()
+        })
+        .unwrap_or_default();
+    // 模板兜底：property_labels 缺失（旧对象）或模板新增的敏感字段从模板补齐。
+    if let Some(tid) = object.template_id.as_deref() {
+        if let Some(tpl) = templates.get(tid) {
+            for prop in &tpl.properties {
+                field_levels
+                    .entry(prop.id.clone())
+                    .or_insert_with(|| prop.sensitivity_level.clone().unwrap_or_default());
+            }
+        }
+    }
+    field_levels
 }
 
 /// P006: 字段展示值——字段级敏感度优先（sensitive/critical/restricted 掩码），
@@ -181,5 +212,88 @@ mod tests {
     fn test_field_display_empty_value_not_masked() {
         let lv = levels(&[("id", "critical")]);
         assert_eq!(field_display_value("id", "", &lv, false), "");
+    }
+
+    #[test]
+    fn test_field_display_keeps_explicit_public_even_when_object_masked() {
+        // 模板定义 public 字段 → 即使对象级 sensitive 也照常展示（与 GUI 一致）
+        let lv = levels(&[("name", "public")]);
+        assert_eq!(field_display_value("name", "张三", &lv, true), "张三");
+    }
+
+    #[test]
+    fn test_render_template_fallback_masks_old_object_fields() {
+        // P006 复核：旧对象无 property_labels 但模板含 sensitive 字段时，/open 也应掩码
+        // （与 /search 的 collect_protected_field_keys 兜底一致）。
+        let mut tpl = solosoul_core::UserTemplate {
+            id: "tpl-1".to_string(),
+            account_id: "acc-1".to_string(),
+            name: "测试".to_string(),
+            icon_id: None,
+            category: None,
+            created_at: "2026-01-01".to_string(),
+            updated_at: None,
+            contract_type_id: None,
+            properties: vec![solosoul_core::TemplateProperty {
+                id: "passport_no".to_string(),
+                name: "护照号".to_string(),
+                prop_type: solosoul_core::PropertyType::Text,
+                sensitivity_level: Some("critical".to_string()),
+                sensitive: None,
+                options: None,
+                deprecated_at: None,
+                contract_field: None,
+                contract_bindings: None,
+                allowed_types: None,
+                max_items: None,
+            }],
+        };
+        tpl.id = "tpl-1".to_string();
+        let mut templates = std::collections::HashMap::new();
+        templates.insert("tpl-1".to_string(), tpl);
+
+        let mut record = solosoul_core::ObjectRecord {
+            id: "obj-1".to_string(),
+            account_id: "acc-1".to_string(),
+            type_id: "page".to_string(),
+            section_type: "custom".to_string(),
+            name: "对象".to_string(),
+            icon_name: String::new(),
+            parent_id: None,
+            children_ids: Vec::new(),
+            properties: serde_json::json!({"passport_no": "E12345678"}),
+            property_labels: None, // 旧对象：无 property_labels
+            sensitivity_level: "internal".to_string(),
+            is_deleted: false,
+            deleted_at: None,
+            tags_json: Vec::new(),
+            template_id: Some("tpl-1".to_string()),
+            template_type: None,
+            contract_type_id: None,
+            template_hash: None,
+            ignored_template_hash: None,
+            version: 1,
+            updated_at: "2026-01-01".to_string(),
+            created_at: "2026-01-01".to_string(),
+        };
+        record.id = "obj-1".to_string();
+
+        // 模板兜底后的 field_levels：passport_no → critical → 掩码
+        let field_levels = super::collect_field_levels_for(&record, &templates);
+        assert_eq!(
+            field_levels.get("passport_no").map(String::as_str),
+            Some("critical"),
+            "模板敏感字段应被补充为 critical"
+        );
+        assert_eq!(
+            field_display_value(
+                "passport_no",
+                "E12345678",
+                &field_levels,
+                is_protected_sensitivity(&record.sensitivity_level)
+            ),
+            "••••••",
+            "模板敏感字段在 /open 中应被掩码"
+        );
     }
 }
