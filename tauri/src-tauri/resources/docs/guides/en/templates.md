@@ -5,19 +5,24 @@ Templates are preset object structures that help you quickly create records in s
 ## Template Sources
 
 - **System templates**: Built-in standard templates that expand with app updates. They are read-only.
-- **User templates**: Custom templates saved from existing objects. Stored locally and can be deleted anytime.
+- **User templates**: Templates you create yourself. Stored locally; can be edited or deleted anytime.
 
 ## Built-in Templates
 
+SoloSoul ships with 10 system templates:
+
 | Template | Section | Use Case |
 |----------|---------|----------|
-| Identity | Identity | Basic personal information |
-| Passport | Travel | Passport details |
-| Visa | Travel | Visa information |
-| Bank Account | Financial | Bank account details |
-| Card | Financial | Credit / debit card |
-| Education | Professional | Education history |
-| Employment | Professional | Work experience |
+| Identity (identity) | Identity | Basic personal information |
+| ID Card (id_card) | Identity | ID card details |
+| Address (address) | Identity | Frequently used addresses |
+| Contact (contact) | Identity | Contact information |
+| Passport (passport) | Travel | Passport details |
+| Visa (visa) | Travel | Visa information |
+| Bank Account (bank) | Financial | Bank account details |
+| Bank Card (card) | Financial | Bank card |
+| Education (education) | Professional | Education history |
+| Employment (employment) | Professional | Work experience |
 
 ## Using Templates
 
@@ -35,14 +40,17 @@ Templates are preset object structures that help you quickly create records in s
 6. Click **Save**
 <!--/STEPPER-->
 
-## Saving Custom Templates
+## Creating and Editing Templates
 
-If you create an object with a structure you reuse often, save it as a template:
+You can create your own templates on the **Template Manager** page:
 
-1. Open the object's edit page
-2. Click **Save as Template**
-3. Enter a template name
-4. Confirm
+1. Go to **Settings → Template Manager**
+2. Click **New Template**
+3. Set a template name and its type (section)
+4. Add fields, and set the type and sensitivity level for each field
+5. Save the template
+
+After creation, you can edit template fields or delete the template at any time.
 
 <!--TIP-->
 Custom templates are stored locally only. They are never uploaded to any server.
@@ -50,7 +58,7 @@ Custom templates are stored locally only. They are never uploaded to any server.
 
 ## Template-Object Association
 
-When creating an object, you can associate it with a template (system or user). This association is recorded in the object data, making it easy to trace which template an object was created from. Removing the association does not affect the object's data.
+When creating an object, you can associate it with a template (system or user). This association is recorded in the object data, making it easy to trace which template an object was created from. Even if the template is later modified or deleted, the object's own data and field definitions (`__fields`) remain intact.
 
 ## Related Docs
 

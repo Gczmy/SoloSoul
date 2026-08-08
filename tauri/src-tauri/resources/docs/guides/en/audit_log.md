@@ -12,9 +12,8 @@ The Operation Log records all significant actions on the vault for auditing and 
 
 Filter by the following conditions:
 
-- **Action Type**: Create, Update, Delete, Restore, Permanent Delete, Rollback, etc.
-- **Entity Type**: Object, Page, Profile, Biometric, Export, Import, etc.
-- **Performer**: User action / System automatic
+- **Entity Type**: Object, Page, Template, Attachment, Biometric, Export, Import, etc.
+- **Keyword search**: search by action type, entity name, etc.
 
 ## Log Content
 
@@ -31,15 +30,11 @@ Common operation examples:
 
 ## Exporting Logs
 
-Click **Export Logs** to export the current filtered log range as a text file.
+Click **Export Logs** to export the current logs as a JSON file (default filename `audit_log_export.json`) for archiving or audit analysis.
 
 <!--TIP-->
 Operation logs are read-only. Users cannot modify or delete log entries. This ensures audit integrity.
 <!--/TIP-->
-
-## Log Retention
-
-Operation logs are retained long-term locally. To clean up historical logs, use the relevant feature on the **Debug Log** page.
 
 ## Related Docs
 

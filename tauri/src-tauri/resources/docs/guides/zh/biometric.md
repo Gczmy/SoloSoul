@@ -7,9 +7,12 @@ SoloSoul 支持使用设备生物识别（Touch ID / Face ID）快速解锁保�
 | 平台 | 支持类型 |
 |------|---------|
 | macOS | Touch ID |
-| iOS | Face ID / Touch ID |
-| Windows | Windows Hello（规划中）|
-| Android | 指纹（规划中）|
+| Windows | Windows Hello |
+| Android | 系统生物识别（指纹/面容，取决于设备）|
+
+<!--TIP-->
+若当前设备未录入指纹/面容，或系统未启用生物识别，设置页会提示「不可用」。请先在系统设置中添加生物特征后再启用。
+<!--/TIP-->
 
 ## 启用生物识别
 
@@ -32,8 +35,7 @@ SoloSoul 支持使用设备生物识别（Touch ID / Face ID）快速解锁保�
 启用后，生物识别可用于：
 
 - 解锁保险库（替代输入密码）
-- 查看 `critical` 级别敏感字段
-- 执行敏感度降级操作
+- 解锁敏感操作的身份验证
 
 ## 禁用生物识别
 

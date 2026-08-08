@@ -34,11 +34,11 @@ The Trash supports filtering by type and time period:
 | Filter | Description |
 |--------|-------------|
 | All | Show all deleted items |
-| Page | Custom pages only |
-| Collection | Collections only |
-| Object | Regular objects only |
+| Page | Deleted custom pages only |
+| Object | Deleted objects only |
+| Template | Deleted user templates only |
 
-Time period filters: 1 day, 3 days, 7 days, 30 days, 6 months.
+Time period filters: 1 day, 3 days, 7 days, 30 days.
 
 ## Attachment Trash
 

@@ -7,9 +7,12 @@ SoloSoul supports using device biometrics (Touch ID / Face ID) for quick vault u
 | Platform | Supported Types |
 |----------|-----------------|
 | macOS | Touch ID |
-| iOS | Face ID / Touch ID |
-| Windows | Windows Hello (planned) |
-| Android | Fingerprint (planned) |
+| Windows | Windows Hello |
+| Android | System biometrics (fingerprint / face, depending on the device) |
+
+<!--TIP-->
+If no fingerprint/face is enrolled on the device, or the system biometrics is disabled, the settings page shows **Unavailable**. Enroll a biometric in system settings first, then re-open the page.
+<!--/TIP-->
 
 ## Enabling Biometrics
 
@@ -32,8 +35,7 @@ SoloSoul supports using device biometrics (Touch ID / Face ID) for quick vault u
 Once enabled, biometrics can be used for:
 
 - Unlocking the vault (instead of typing the password)
-- Viewing `critical`-level sensitive fields
-- Performing sensitivity downgrade operations
+- Verifying identity for sensitive operations
 
 ## Disabling Biometrics
 

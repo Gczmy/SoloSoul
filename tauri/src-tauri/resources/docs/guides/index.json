@@ -50,10 +50,10 @@
     },
     {
       "id": "collections",
-      "title": { "zh": "集合", "en": "Collections" },
+      "title": { "zh": "对象类型与分区", "en": "Object Types & Sections" },
       "category": "objects",
       "order": 6,
-      "keywords": ["集合", "智能集合", "筛选", "collection", "smart", "filter"],
+      "keywords": ["类型", "分区", "分类", "集合", "collection", "type", "section", "category"],
       "files": { "zh": "zh/collections.md", "en": "en/collections.md" }
     },
     {

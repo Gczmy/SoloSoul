@@ -1,52 +1,38 @@
-# Collections
+# Object Types & Sections
 
-Collections group objects by conditions. There are built-in collections and custom collections.
+In SoloSoul, every object has a **type (Collection Type)** that determines which **section (Collection)** it belongs to.
 
-## Built-in Collections
+## Types and Sections
 
-SoloSoul provides several preset collection views:
+Built-in types include:
 
-- Recently created objects
-- Recently modified objects
-- Objects with attachments
-- High-sensitivity objects
+| Type | Section |
+|------|---------|
+| identity (身份信息) | Identity |
+| id_card (身份证), address (地址), contact (联系人) | Identity |
+| passport (护照), visa (签证) | Travel |
+| bank (银行账户), card (银行卡) | Financial |
+| education (教育经历), employment (工作经历) | Professional |
+| document (文档, e.g. objects imported from OCR) | Document |
 
-## Custom Collections
-
-You can create your own collections to organize objects:
-
-1. Go to **Settings → Data Management**
-2. In the **Collections** area, click **Add**
-3. Enter a collection name
-4. Configure filter conditions (e.g., object type, tags, creation time)
-5. Save
-
-## Smart Collections
-
-Smart Collections are dynamic views that automatically update based on filter conditions:
-
-- Objects matching the conditions appear automatically
-- No manual adding or removing needed
-- Conditions can be modified at any time
+- Each object picks a type at creation and is grouped into the corresponding section
+- The home page and sidebar show sections as cards; entering a section lists all objects of that type
+- Objects on custom pages keep their original type membership
 
 <!--TIP-->
-Smart Collections are great for dynamic views like "Documents Expiring Soon" or "Unfiled Projects".
+The type label is shown on object cards and in the detail view, making it easy to identify the section an object belongs to.
 <!--/TIP-->
 
-## Managing Collections
+## Types and Templates
 
-- **Edit**: Click the edit icon next to the collection name to modify filters
-- **Delete**: Click the delete icon to remove the collection (objects are not deleted)
-
-<!--WARNING-->
-Deleting a collection only removes the view configuration. It does not affect any object data within it.
-<!--/WARNING-->
+- **Templates** define a type's field structure (properties, sensitivity, etc.) — see [Object Templates](templates.md)
+- When creating an object, choose a template to get the type's preset field form
+- Objects of the same type share the template fields, but each object's data is independent
 
 ## Related Docs
 
 <!--CARDS-->
-- [Workspace](workspace.md) — Collections work with workspace
-- [Global Search](search.md) — Quickly find objects
-- [Object Management](objects.md) — Collections are based on objects
+- [Object Management](objects.md) — Object basics
+- [Workspace](workspace.md) — Sections and custom pages
+- [Object Templates](templates.md) — Type field structure
 <!--/CARDS-->
-

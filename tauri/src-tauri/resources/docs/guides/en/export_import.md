@@ -5,11 +5,11 @@ The Export & Import feature lets you exchange vault data in encrypted `.solosoul
 ## Exporting Data
 
 1. Go to **Settings → Export & Import**
-2. Select pages and objects to export
+2. Select pages, objects, and templates to export
 3. Choose export options:
    - **Include attachments**: Also export associated files
    - **Include preferences**: Export theme, language, and personal settings
-   - **Include behavioral data**: Export operation logs and search history
+   - **Include behavioral data**: Export operation logs and other audit data
 4. Set an export password (at least 8 characters)
 5. Click **Export Selected**
 

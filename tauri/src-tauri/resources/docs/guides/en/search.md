@@ -4,7 +4,7 @@ Global Search lets you quickly find objects across all sections.
 
 ## Using Search
 
-1. Click the **Search** icon in the sidebar or use the keyboard shortcut
+1. Click the **Search** icon in the top bar or sidebar to open search
 2. Type keywords in the search box
 3. Results display matching objects in real time
 
@@ -20,8 +20,7 @@ Search results include:
 The search scans the following fields:
 
 - Object name
-- All property values
-- Tags
+- Property values
 
 <!--TIP-->
 Search only looks at object-level information, not attachment contents. To find attachments, go to the object's attachment list.
