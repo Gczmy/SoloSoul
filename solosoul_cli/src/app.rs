@@ -20,6 +20,7 @@ use crate::commands;
 use crate::commands::plugin::PluginSummary;
 use crate::commands::search::SearchResultItem;
 use crate::i18n::I18n;
+use crate::t;
 use crate::widgets::command_input::CommandInput;
 use crate::widgets::command_palette::{CommandPalette, PaletteAction};
 use crate::widgets::field_editor::{self, EditableField};
@@ -615,10 +616,11 @@ impl App {
         prompt::open(
             self,
             PromptSpec::Text {
-                label: format!(
-                    "字段 [{}] 为 {} 级别，请输入主密码验证",
-                    field.label,
-                    field.sensitivity.to_uppercase()
+                label: t!(
+                    self.i18n,
+                    "app-field-password-verify",
+                    field = &field.label,
+                    level = field.sensitivity.to_uppercase()
                 ),
                 initial: String::new(),
                 mask: true,
@@ -629,10 +631,11 @@ impl App {
                     match app.vault_service.verify_password(&account_id, &password) {
                         Ok(true) => app.proceed_with_field_edit(field),
                         Ok(false) => {
-                            app.error_message = Some("主密码验证失败".to_string());
+                            app.error_message = Some(t!(app.i18n, "app-password-verify-failed"));
                         }
                         Err(e) => {
-                            app.error_message = Some(format!("验证失败: {}", e));
+                            app.error_message =
+                                Some(t!(app.i18n, "app-password-verify-error", err = e));
                         }
                     }
                 }
@@ -798,7 +801,7 @@ impl App {
                 self.clear_sensitive_state();
                 self.auto_lock_paused = false;
                 self.phase = AppPhase::Locked;
-                self.error_message = Some("会话已超时锁定".to_string());
+                self.error_message = Some(t!(self.i18n, "app-session-timeout-locked"));
             }
         }
 
@@ -1129,7 +1132,7 @@ impl App {
                     if biometric_configured {
                         self.try_biometric_unlock(&account_id)?;
                     } else {
-                        self.error_message = Some("当前账户未启用生物识别登录".to_string());
+                        self.error_message = Some(t!(self.i18n, "app-biometric-not-enabled"));
                     }
                     return Ok(false);
                 }
@@ -1231,7 +1234,7 @@ impl App {
                 KeyCode::Enter => {
                     let name = self.command_input.clear().trim().to_string();
                     if name.is_empty() {
-                        self.error_message = Some("账户名不能为空".to_string());
+                        self.error_message = Some(t!(self.i18n, "app-account-name-empty"));
                         self.phase = AppPhase::Onboarding {
                             step: OnboardingStep::EnterName,
                         };
@@ -1263,7 +1266,7 @@ impl App {
                     let password = self.password_input.value().clone();
                     self.password_input.clear();
                     if password.len() < 8 {
-                        self.error_message = Some("主密码至少需要 8 位".to_string());
+                        self.error_message = Some(t!(self.i18n, "app-password-too-short"));
                         self.phase = AppPhase::Onboarding {
                             step: OnboardingStep::EnterPassword { name },
                         };
@@ -1292,7 +1295,7 @@ impl App {
                     let confirm = self.password_input.value().clone();
                     self.password_input.clear();
                     if confirm.as_str() != password.as_str() {
-                        self.error_message = Some("两次输入的密码不一致，请重新设置".to_string());
+                        self.error_message = Some(t!(self.i18n, "app-password-mismatch"));
                         self.phase = AppPhase::Onboarding {
                             step: OnboardingStep::EnterPassword { name },
                         };
@@ -1375,7 +1378,7 @@ impl App {
         prompt::open(
             self,
             PromptSpec::Confirm {
-                message: "退出创建账户？未保存的数据将不会被保留。".to_string(),
+                message: t!(self.i18n, "app-exit-wizard-confirm"),
                 default_yes: false,
             },
             Box::new(|app, result| {
@@ -1392,7 +1395,7 @@ impl App {
         prompt::open(
             self,
             PromptSpec::Confirm {
-                message: "退出 SoloSoul CLI？".to_string(),
+                message: t!(self.i18n, "app-exit-cli-confirm"),
                 default_yes: false,
             },
             Box::new(|app, result| {
@@ -1438,7 +1441,7 @@ impl App {
                 self.enter_home(&account_id);
             }
             Err(e) => {
-                self.error_message = Some(format!("创建账户失败: {}", e));
+                self.error_message = Some(t!(self.i18n, "app-account-create-failed", err = e));
                 self.phase = AppPhase::Onboarding {
                     step: OnboardingStep::EnterName,
                 };
@@ -1459,7 +1462,7 @@ impl App {
             }
             Err(e) => {
                 drop(password);
-                self.error_message = Some(format!("登录失败: {}", e));
+                self.error_message = Some(t!(self.i18n, "app-login-failed", err = e));
             }
         }
         Ok(())
@@ -1481,14 +1484,18 @@ impl App {
     fn try_biometric_unlock(&mut self, account_id: &str) -> Result<()> {
         use solosoul_core::biometric::BiometricManager;
         let manager = BiometricManager::new(self.vault_service.base_path().to_path_buf());
-        match manager.unlock(account_id, &self.vault_service, "解锁 SoloSoul Vault") {
+        match manager.unlock(
+            account_id,
+            &self.vault_service,
+            &t!(self.i18n, "app-unlock-vault-title"),
+        ) {
             Ok(kind) => {
                 self.error_message = None;
                 self.enter_home(account_id);
                 tracing::info!("biometric unlock succeeded: {}", kind);
             }
             Err(e) => {
-                self.error_message = Some(format!("生物识别解锁失败: {}", e));
+                self.error_message = Some(t!(self.i18n, "app-biometric-unlock-failed", err = e));
             }
         }
         Ok(())
@@ -1757,7 +1764,7 @@ impl App {
             "/cancel" => self.cancel_wizard(),
             "/save" => self.save_wizard(),
             _ => {
-                self.error_message = Some(format!("未知命令: {}", cmd));
+                self.error_message = Some(t!(self.i18n, "app-unknown-command", cmd = cmd));
             }
         }
         Ok(false)
@@ -1774,7 +1781,7 @@ impl App {
                 }
             }
             _ => {
-                self.error_message = Some("当前不在向导中".to_string());
+                self.error_message = Some(t!(self.i18n, "app-not-in-wizard"));
             }
         }
     }
@@ -1801,7 +1808,7 @@ impl App {
                     name.clone(),
                     fields.clone(),
                 ) {
-                    self.error_message = Some(format!("保存失败: {}", e));
+                    self.error_message = Some(t!(self.i18n, "app-save-failed", err = e));
                 }
             }
             AppPhase::EditObjectWizard {
@@ -1810,13 +1817,13 @@ impl App {
             } => {
                 let object = object.clone();
                 if let Err(e) = commands::vault_write::save_edited_object(self, object.clone()) {
-                    self.error_message = Some(format!("保存失败: {}", e));
+                    self.error_message = Some(t!(self.i18n, "app-save-failed", err = e));
                 } else {
                     self.phase = AppPhase::ObjectDetail { object };
                 }
             }
             _ => {
-                self.error_message = Some("当前没有可保存的更改".to_string());
+                self.error_message = Some(t!(self.i18n, "app-no-changes-to-save"));
             }
         }
     }
@@ -1908,7 +1915,7 @@ impl App {
                         prompt::open(
                             self,
                             PromptSpec::Text {
-                                label: "对象名称".to_string(),
+                                label: t!(self.i18n, "app-object-name"),
                                 initial,
                                 mask: false,
                                 allow_toggle_mask: false,
@@ -1983,7 +1990,7 @@ impl App {
                         prompt::open(
                             self,
                             PromptSpec::Text {
-                                label: "对象名称".to_string(),
+                                label: t!(self.i18n, "app-object-name"),
                                 initial,
                                 mask: false,
                                 allow_toggle_mask: false,
@@ -2499,9 +2506,10 @@ impl App {
                     } else {
                         state
                             .messages
-                            .push(crate::screens::llm_chat::ChatLine::Error(
-                                "Vault 未解锁".into(),
-                            ));
+                            .push(crate::screens::llm_chat::ChatLine::Error(t!(
+                                self.i18n,
+                                "app-vault-locked"
+                            )));
                         state.is_streaming = false;
                         state.stream_rx = None;
                     }
@@ -2984,7 +2992,7 @@ impl App {
                 // 自定义偏好向导：提示框覆盖整个 TUI，这里只渲染中性占位
                 // （仅在被 prompt 关闭后才可见）。
                 let para = ratatui::widgets::Paragraph::new(
-                    ratatui::text::Line::from("正在编辑自定义偏好...").italic(),
+                    ratatui::text::Line::from(t!(self.i18n, "app-editing-preferences")).italic(),
                 )
                 .alignment(ratatui::layout::Alignment::Center);
                 frame.render_widget(para, layout[1]);
@@ -3021,11 +3029,11 @@ impl App {
 
         // 中性信息 overlay（先渲染，错误 overlay 优先级更高）
         if let Some(info) = &self.info_message {
-            render_info_overlay(frame, info);
+            render_info_overlay(frame, &self.i18n, info);
         }
         // 全局错误 overlay
         if let Some(err) = &self.error_message {
-            render_error_overlay(frame, err);
+            render_error_overlay(frame, &self.i18n, err);
         }
     }
 }
@@ -3108,7 +3116,7 @@ fn available_commands(phase: &AppPhase) -> &'static [&'static str] {
     }
 }
 
-fn render_error_overlay(frame: &mut Frame, message: &str) {
+fn render_error_overlay(frame: &mut Frame, i18n: &I18n, message: &str) {
     use ratatui::style::{Style, Stylize};
     use ratatui::text::{Line, Text};
     use ratatui::widgets::{Clear, Paragraph, Wrap};
@@ -3121,9 +3129,9 @@ fn render_error_overlay(frame: &mut Frame, message: &str) {
     let popup = ratatui::layout::Rect::new(x, y, width, height);
 
     let text = Text::from(vec![
-        Line::from("! 错误").bold(),
+        Line::from(t!(i18n, "app-error-overlay")).bold(),
         Line::from(message),
-        Line::from("按 Esc 关闭").dark_gray(),
+        Line::from(t!(i18n, "app-esc-to-close")).dark_gray(),
     ]);
     let paragraph = Paragraph::new(text)
         .wrap(Wrap { trim: true })
@@ -3136,7 +3144,7 @@ fn render_error_overlay(frame: &mut Frame, message: &str) {
 
 /// 中性信息 overlay：列表结果/空态/预览等非错误、非成功语义。
 /// 与 error overlay 的区别：非红色、标题为「信息」。
-fn render_info_overlay(frame: &mut Frame, message: &str) {
+fn render_info_overlay(frame: &mut Frame, i18n: &I18n, message: &str) {
     use ratatui::style::{Color, Style, Stylize};
     use ratatui::text::{Line, Text};
     use ratatui::widgets::{Clear, Paragraph, Wrap};
@@ -3151,9 +3159,9 @@ fn render_info_overlay(frame: &mut Frame, message: &str) {
     let popup = ratatui::layout::Rect::new(x, y, width, height);
 
     let text = Text::from(vec![
-        Line::from("ℹ 信息").bold(),
+        Line::from(t!(i18n, "app-info-overlay")).bold(),
         Line::from(message),
-        Line::from("按 Esc 关闭").dark_gray(),
+        Line::from(t!(i18n, "app-esc-to-close")).dark_gray(),
     ]);
     let paragraph = Paragraph::new(text)
         .wrap(Wrap { trim: true })
