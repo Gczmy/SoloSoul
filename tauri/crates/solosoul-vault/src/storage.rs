@@ -480,6 +480,14 @@ impl VaultStore {
     }
 
     fn init_schema(conn: &Connection) -> Result<(), String> {
+        Self::create_schema_tables(conn)?;
+        Self::migrate_missing_columns(conn)?;
+        Self::init_data_version(conn)?;
+        Ok(())
+    }
+
+    /// 建表：一次性执行全部 CREATE TABLE / CREATE INDEX。
+    fn create_schema_tables(conn: &Connection) -> Result<(), String> {
         conn.execute_batch(
             r#"
             CREATE TABLE IF NOT EXISTS profiles (
@@ -639,8 +647,11 @@ impl VaultStore {
             CREATE INDEX IF NOT EXISTS idx_guide_embeddings_guide ON guide_embeddings(guide_id);
             "#,
         )
-        .map_err(|e| format!("Failed to init schema: {}", e))?;
+        .map_err(|e| format!("Failed to init schema: {}", e))
+    }
 
+    /// 列级迁移：补齐历史版本缺失的列（tags_json / section_type）。
+    fn migrate_missing_columns(conn: &Connection) -> Result<(), String> {
         // Migration: add tags_json column if missing (added in schema v2, §24)
         if !Self::column_exists(conn, "objects", "tags_json")? {
             conn.execute(
@@ -657,7 +668,11 @@ impl VaultStore {
             )
             .map_err(|e| format!("Failed to add section_type column: {}", e))?;
         }
+        Ok(())
+    }
 
+    /// 初始化 data_version（仅首次建库时写入）。
+    fn init_data_version(conn: &Connection) -> Result<(), String> {
         let version_exists: bool = conn
             .query_row(
                 "SELECT EXISTS(SELECT 1 FROM sys_config WHERE key = 'data_version')",
