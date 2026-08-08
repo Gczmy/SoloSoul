@@ -400,6 +400,7 @@ cmd-plugin-usage-install = 用法：/plugin_install <plugin_id>
 cmd-plugin-usage-update = 用法：/plugin_update <plugin_id>
 cmd-plugin-usage-uninstall = 用法：/plugin_uninstall <plugin_id>
 cmd-plugin-usage-search = 用法：/plugin_search <keyword>
+cmd-plugin-invalid-id = 无效的插件 ID：{$id}（仅允许字母、数字、_ - . 字符）
 cmd-plugin-market-empty = 插件市场中暂无可用插件
 cmd-plugin-need-login = 未登录，无法运行插件
 cmd-plugin-vault-locked = Vault 未解锁

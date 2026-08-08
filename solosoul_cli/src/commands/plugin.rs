@@ -12,6 +12,27 @@ use crate::t;
 
 use solosoul_plugin::{PluginEvent, PluginEventSink};
 
+/// P035：插件 ID 白名单字符校验。
+/// 插件 ID 会直接拼接入本地路径（market_dir/plugins/<id>），必须拒绝路径分隔符与
+/// `.`/`..`，杜绝 `../`、绝对路径等路径逃逸。允许 `[a-zA-Z0-9_.-]`。
+fn is_valid_plugin_id(id: &str) -> bool {
+    !id.is_empty()
+        && id != "."
+        && id != ".."
+        && id
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || matches!(c, '_' | '-' | '.'))
+}
+
+/// 非法插件 ID 时置错误消息并返回 true（调用方应立即 return Ok(()))。
+fn reject_invalid_plugin_id(app: &mut App, id: &str) -> bool {
+    if is_valid_plugin_id(id) {
+        return false;
+    }
+    app.error_message = Some(t!(app.i18n, "cmd-plugin-invalid-id", id = id));
+    true
+}
+
 /// 终端插件事件接收器（no-op 实现）。
 ///
 /// 插件运行结果通过 PluginManager::run() 的返回值获取，
@@ -81,6 +102,9 @@ pub fn run_plugin(app: &mut App, plugin_id: Option<&str>, raw_params: &[&str]) -
             return Ok(());
         }
     };
+    if reject_invalid_plugin_id(app, &plugin_id) {
+        return Ok(());
+    }
 
     let account_id = match app.vault_service.get_current_account() {
         Some(id) => id,
@@ -212,6 +236,9 @@ pub fn install_plugin(app: &mut App, plugin_id: Option<&str>) -> Result<()> {
             return Ok(());
         }
     };
+    if reject_invalid_plugin_id(app, &plugin_id) {
+        return Ok(());
+    }
 
     let Some(manager) = create_manager(app) else {
         return Ok(());
@@ -261,6 +288,9 @@ pub fn update_plugin(app: &mut App, plugin_id: Option<&str>) -> Result<()> {
             return Ok(());
         }
     };
+    if reject_invalid_plugin_id(app, &plugin_id) {
+        return Ok(());
+    }
 
     let Some(manager) = create_manager(app) else {
         return Ok(());
@@ -301,6 +331,9 @@ pub fn uninstall_plugin(app: &mut App, plugin_id: Option<&str>) -> Result<()> {
             return Ok(());
         }
     };
+    if reject_invalid_plugin_id(app, &plugin_id) {
+        return Ok(());
+    }
 
     let Some(manager) = create_manager(app) else {
         return Ok(());
@@ -447,6 +480,10 @@ pub fn audit_log(app: &mut App, limit: Option<&str>) -> Result<()> {
 
 /// 从插件市场加载指定插件的清单。
 pub fn load_manifest(plugin_id: &str) -> Option<solosoul_plugin::PluginManifest> {
+    // P035：非法 ID 直接视为未找到，杜绝路径逃逸读取任意 manifest.json
+    if !is_valid_plugin_id(plugin_id) {
+        return None;
+    }
     let market_dir = resolve_plugin_market_dir();
     let manifest_path = market_dir
         .join("plugins")
@@ -607,4 +644,48 @@ struct RegistryEntry {
     description: Option<String>,
     #[serde(default)]
     tier: Option<String>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// P035：插件 ID 白名单——合法 ID 放行，路径逃逸/分隔符/空 ID 拒绝。
+    #[test]
+    fn test_is_valid_plugin_id() {
+        for valid in [
+            "hello",
+            "my-plugin",
+            "my_plugin",
+            "a.b-c_d",
+            "abc123",
+            "A-B_C.1",
+            "plugin.v1",
+        ] {
+            assert!(is_valid_plugin_id(valid), "应为合法 ID: {:?}", valid);
+        }
+        for invalid in [
+            "",
+            ".",
+            "..",
+            "../evil",
+            "a/b",
+            "a\\b",
+            "a b",
+            "https://x",
+            "/etc/passwd",
+            "..\\..\\x",
+            "plugin#1",
+        ] {
+            assert!(!is_valid_plugin_id(invalid), "应为非法 ID: {:?}", invalid);
+        }
+    }
+
+    /// P035：load_manifest 对非法 ID 直接返回 None，不拼路径。
+    #[test]
+    fn test_load_manifest_rejects_invalid_id() {
+        assert!(load_manifest("../evil").is_none());
+        assert!(load_manifest("a/b").is_none());
+        assert!(load_manifest("..").is_none());
+    }
 }

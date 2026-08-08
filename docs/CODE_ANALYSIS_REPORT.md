@@ -50,7 +50,7 @@
 | P032 | P2 | 正确性 | `solosoul_cli/src/commands/mod.rs:61-68` | `update_profile_preference` 根非 object 时静默跳过仍返回 Ok，偏好写入丢失 | `[x]` 已修复（根非对象返回 Err 并保持数据不变；+2 回归测试） |
 | P033 | P2 | 正确性 | `solosoul_cli/src/commands/backup.rs:222-233` | 单个 profile 加载失败被静默跳过，备份可能不完整且无警告 | `[x]` 已修复（加载/解密失败中止备份并报错，不生成不完整备份；+1 回归测试） |
 | P034 | P2 | 性能 | `solosoul_cli/src/commands/search.rs:283-287` | 每条搜索结果单独 `load_object(parent_id)` 解析父页面名，N+1 模式 | `[x]` 已修复（去重 parent_id 批量 load_objects_batch 预取，build_object_result 改查 map；扩展父页名断言） |
-| P035 | P2 | 安全 | `solosoul_cli/src/commands/plugin.rs:102-106` | `plugin_id` 未做字符白名单校验直接拼接路径 | `[ ]` 待修复 |
+| P035 | P2 | 安全 | `solosoul_cli/src/commands/plugin.rs:102-106` | `plugin_id` 未做字符白名单校验直接拼接路径 | `[x]` 已修复（is_valid_plugin_id 白名单校验 + 四命令入口拒绝 + load_manifest 守卫 + 双语键 + 2 单测） |
 | P036 | P2 | 质量 | `solosoul_cli/src/app.rs:609-636,1760,789` | 多处硬编码中文字符串绕过 `t!()` i18n 体系 | `[ ]` 待修复 |
 | P037 | P2 | 质量 | `solosoul_cli/src/app.rs:2694-3016` 等 | `render()` 323 行及多个 110-150 行 key handler | `[ ]` 待修复 |
 | P038 | P2 | 质量 | `solosoul_cli/src/commands/settings.rs:6,340-341`、`app.rs:364,412`、`commands/profile.rs:171-180` | 陈旧注释（引用不存在的 `trigger_debug_log_export`）、文档注释混入字面 `\n`、死分支注释误导 | `[ ]` 待修复 |

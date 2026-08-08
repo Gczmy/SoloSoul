@@ -400,6 +400,7 @@ cmd-plugin-usage-install = Usage: /plugin_install <plugin_id>
 cmd-plugin-usage-update = Usage: /plugin_update <plugin_id>
 cmd-plugin-usage-uninstall = Usage: /plugin_uninstall <plugin_id>
 cmd-plugin-usage-search = Usage: /plugin_search <keyword>
+cmd-plugin-invalid-id = Invalid plugin ID: {$id} (only letters, digits, _, - and . allowed)
 cmd-plugin-market-empty = No plugins available in the marketplace.
 cmd-plugin-need-login = Not logged in. Cannot run plugins.
 cmd-plugin-vault-locked = Vault is not unlocked.
