@@ -1630,6 +1630,7 @@
       "plugins",
       "search",
       "security",
+      "sensitivity",
       "snapshots",
       "templates",
       "trash",
@@ -2355,7 +2356,8 @@
       "appearance",
       "export_import",
       "getting_started",
-      "ocr_scan"
+      "ocr_scan",
+      "sensitivity"
     ],
     "度": [
       "ai_chat",
@@ -2527,6 +2529,7 @@
       "device-sync",
       "getting_started",
       "search",
+      "sensitivity",
       "templates",
       "trash"
     ],
@@ -4575,7 +4578,8 @@
       "audit_log",
       "objects",
       "search",
-      "sensitivity"
+      "sensitivity",
+      "snapshots"
     ],
     "支持按名称与属性值实时过滤": [
       "objects"
@@ -7131,27 +7135,21 @@
       "security",
       "snapshots"
     ],
-    "critical": [
+    "敏感": [
       "ai_chat",
-      "biometric",
       "sensitivity",
       "snapshots"
     ],
-    "级别的字段会被模糊处理": [
+    "关键级别的字段会被模糊处理": [
       "snapshots"
     ],
     "处": [
       "ai_chat",
       "device-sync",
+      "sensitivity",
       "snapshots"
     ],
-    "查看": [
-      "biometric",
-      "device-sync",
-      "llm_config",
-      "snapshots"
-    ],
-    "字段需要密码验证": [
+    "查看关键字段需要密码验证": [
       "snapshots"
     ],
     "从快照恢复": [
@@ -7361,6 +7359,12 @@
     ],
     "rules": [
       "search",
+      "snapshots"
+    ],
+    "critical": [
+      "ai_chat",
+      "biometric",
+      "sensitivity",
       "snapshots"
     ],
     "requires": [
@@ -7689,10 +7693,6 @@
       "security",
       "sensitivity"
     ],
-    "敏感": [
-      "ai_chat",
-      "sensitivity"
-    ],
     "隐私": [
       "sensitivity"
     ],
@@ -7730,12 +7730,8 @@
     "显示行为": [
       "sensitivity"
     ],
-    "public": [
-      "ai_chat",
-      "device-sync",
-      "sensitivity"
-    ],
     "公开": [
+      "ai_chat",
       "sensitivity"
     ],
     "公": [
@@ -7743,19 +7739,40 @@
       "device-sync",
       "sensitivity"
     ],
-    "明文显示": [
+    "公众可见": [
       "sensitivity"
     ],
-    "internal": [
-      "backup_restore",
+    "众": [
+      "sensitivity"
+    ],
+    "见": [
+      "audit_log",
+      "device-sync",
       "ocr_scan",
+      "sensitivity"
+    ],
+    "明文显示": [
       "sensitivity"
     ],
     "内部": [
       "sensitivity"
     ],
+    "仅内部使用": [
+      "sensitivity"
+    ],
     "带标签提示": [
       "sensitivity"
+    ],
+    "需谨慎处理": [
+      "sensitivity"
+    ],
+    "谨": [
+      "sensitivity",
+      "trash"
+    ],
+    "慎": [
+      "sensitivity",
+      "trash"
     ],
     "默认模糊": [
       "sensitivity"
@@ -7771,6 +7788,9 @@
       "sensitivity"
     ],
     "关键": [
+      "sensitivity"
+    ],
+    "高度敏感": [
       "sensitivity"
     ],
     "查看需密码验证": [
@@ -7893,16 +7913,13 @@
     "的隐私边界": [
       "sensitivity"
     ],
-    "只有": [
+    "只有公开级别的字段信息会被注入": [
       "sensitivity"
     ],
     "只": [
       "audit_log",
       "device-sync",
       "plugins",
-      "sensitivity"
-    ],
-    "级别的字段信息会被注入": [
       "sensitivity"
     ],
     "注": [
@@ -7915,7 +7932,7 @@
       "ai_chat",
       "sensitivity"
     ],
-    "数据": [
+    "关键数据": [
       "sensitivity"
     ],
     "绝不会": [
@@ -8030,7 +8047,30 @@
     "behavior": [
       "sensitivity"
     ],
+    "public": [
+      "ai_chat",
+      "device-sync",
+      "sensitivity"
+    ],
+    "publicly": [
+      "ai_chat",
+      "sensitivity"
+    ],
+    "visible": [
+      "sensitivity"
+    ],
     "plain": [
+      "sensitivity"
+    ],
+    "internal": [
+      "backup_restore",
+      "ocr_scan",
+      "sensitivity"
+    ],
+    "handle": [
+      "sensitivity"
+    ],
+    "care": [
       "sensitivity"
     ],
     "default": [
@@ -8038,6 +8078,9 @@
       "audit_log",
       "device-sync",
       "ocr_scan",
+      "sensitivity"
+    ],
+    "highly": [
       "sensitivity"
     ],
     "full": [
@@ -8913,6 +8956,11 @@
       "audit_log",
       "biometric"
     ],
+    "查看": [
+      "biometric",
+      "device-sync",
+      "llm_config"
+    ],
     "区域的状态": [
       "biometric"
     ],
@@ -9240,12 +9288,6 @@
       "trash"
     ],
     "请谨慎操作": [
-      "trash"
-    ],
-    "谨": [
-      "trash"
-    ],
-    "慎": [
       "trash"
     ],
     "回收站过滤": [
@@ -11439,11 +11481,6 @@
     ],
     "常见问题": [
       "device-sync"
-    ],
-    "见": [
-      "audit_log",
-      "device-sync",
-      "ocr_scan"
     ],
     "两台设备无法自动发现": [
       "device-sync"
@@ -14019,9 +14056,6 @@
       "ai_chat"
     ],
     "based": [
-      "ai_chat"
-    ],
-    "publicly": [
       "ai_chat"
     ],
     "shared": [
