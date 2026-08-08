@@ -2,6 +2,27 @@
 
 All notable changes to SoloSoul are documented in this file.
 
+## [2.9.1] - 2026-08-08
+
+### Added
+
+- **帮助页大标题（H1）下加细横线分隔线** — GuideRenderer 新增自定义 h1 样式（`--text-page-title` 字号 + `borderBottom 1px solid var(--border-subtle)`），所有帮助文档页标题下呈现与表格/卡片统一的细横线，并附防回归测试。
+
+### Fixed
+
+- **备份与恢复页进入设备同步报「Guide not found: device_sync」** — 文档内链接使用文件名 `device_sync.md`（下划线），HelpPage 直接以文件名作为 guide id，而 index 中 id 为 `device-sync`（连字符）。新增 `resolveGuideIdFromHref()` 以索引反查文件名→真实 id，`/help?id=device-sync` 深链不受影响，附 4 个单元测试。
+- **敏感度徽章回归修正** — 帮助文档中级别引用恢复为反引号包裹的 key（`critical` 等），GuideCodeBlock 内置机制自动渲染应用内真实的**带颜色边框敏感度徽章**（绿=公开/蓝=内部/琥珀=敏感/红=关键，含图标与本地化文案）；sensitivity/ai_chat/snapshots 中英 6 篇统一，附 5 个防回归测试。
+
+### Changed
+
+- **帮助文档体系全量对齐代码** — 21 篇（中英）逐篇核对修正：集合实为对象类型分区（无独立/智能集合）、对象无 Tags、系统模板补全为实际 10 个、工作区分区 4→5（含文档）、回收站筛选修正、Windows Hello 已实现、审计日志导出为 JSON、插件系统已实现、敏感度徽章文案本地化、中文模板名（「Passport」→「护照」）等。
+- **device_sync 文档移除 20 处 `---` 分隔线** — 与其余 20 篇帮助文档的章节风格统一（靠 `##` 标题与留白区分）。
+
+### Chores
+
+- 版本号同步升级到 2.9.1（versionCode 2009001）。
+- 14 个 commit 自 v2.9.0（`d8791267`）到 v2.9.1。
+
 ## [2.9.0] - 2026-08-08
 
 ### Added
