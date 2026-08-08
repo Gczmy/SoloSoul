@@ -88,6 +88,20 @@ export function isSafeExternalUrl(href: string): boolean {
 
 function createMarkdownComponents(onLinkClick?: (href: string) => void) {
   return {
+    h1: ({ children }: { children?: React.ReactNode }) => (
+      <h1
+        style={{
+          fontSize: 'var(--text-page-title)',
+          fontWeight: 700,
+          color: 'var(--text-primary)',
+          margin: '0 0 16px',
+          paddingBottom: 12,
+          borderBottom: '1px solid var(--border-subtle)',
+        }}
+      >
+        {children}
+      </h1>
+    ),
     code: GuideCodeBlock,
     img: GuideImage,
     table: GuideTable,

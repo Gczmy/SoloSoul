@@ -1,5 +1,16 @@
 import { describe, it, expect } from 'vitest';
-import { isSafeExternalUrl } from './GuideRenderer';
+import { render, screen } from '@testing-library/react';
+import { isSafeExternalUrl, GuideRenderer } from './GuideRenderer';
+
+describe('GuideRenderer H1 divider', () => {
+  it('renders the H1 page title with a bottom border divider', () => {
+    render(<GuideRenderer content={'# 敏感度与隐私\n\n正文内容'} />);
+    const h1 = screen.getByRole('heading', { level: 1 });
+    expect(h1).toHaveTextContent('敏感度与隐私');
+    // jsdom 不解析 var() 值，直接断言内联样式字符串
+    expect(h1.style.borderBottom).toBe('1px solid var(--border-subtle)');
+  });
+});
 
 describe('isSafeExternalUrl (P229)', () => {
   it('允许 http/https/mailto', () => {
