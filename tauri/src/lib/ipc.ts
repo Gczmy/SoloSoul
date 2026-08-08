@@ -83,15 +83,6 @@ export interface AccountInfo {
   hasPinHistory?: boolean;
 }
 
-export interface Profile {
-  id: string;
-  name: string;
-  data: number[];
-  createdAt: string;
-  updatedAt: string;
-  version: number;
-}
-
 export interface OcrBox {
   text: string;
   confidence: number;
