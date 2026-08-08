@@ -1258,84 +1258,34 @@ impl VaultService {
 
         // 更新会话密钥并重开 Vault（新密钥）。
         {
-            if let Ok(mut key) = self.session_key.write() {
-                *key = Some(Zeroizing::new(new_key_arr));
+            if let Ok(mut ua) = self.unlocked_account.write() {
+                *ua = Some(account_id.to_string());
             }
         }
-        if let Ok(mut ua) = self.unlocked_account.write() {
-            *ua = Some(account_id.to_string());
-        }
-        if let Ok(mut store) = self.vault_store.write() {
-            *store = None;
-        }
-        let account_dir_path = self
-            .fs
-            .local_path(&self.account_dir_rel(account_id))
-            .ok_or("无法解析账户本地目录")?;
-        let vault_config =
-            VaultConfig::new(account_id, account_dir_path).with_data_key(new_key_arr);
-        match VaultStore::open(vault_config) {
-            Ok(vault) => {
-                let vault_arc = Arc::new(vault);
-                // 设备级偏好同步开关：新建 VaultStore 后应用期望值（默认 true）。
-                vault_arc
-                    .set_ui_prefs_sync_enabled(self.ui_prefs_sync_enabled.load(Ordering::SeqCst));
-                if let Ok(mut store) = self.vault_store.write() {
-                    *store = Some(vault_arc);
-                }
-            }
-            Err(e) => {
-                return Err(format!(
-                    "KDF upgrade succeeded but vault reopen failed: {}",
-                    e
-                ));
-            }
-        }
+        self.reopen_vault_with_new_key(
+            account_id,
+            new_key_arr,
+            "KDF upgrade succeeded but vault reopen failed",
+        )?;
 
         // 此路径不再单独调用 pin_manager.reset_attempts：clear_credential 已
         // 将 pin_failed_attempts 归零并清除 pin_locked_until，与 unlock 尾部的
         // reset_attempts 效果等价。
 
         // 生物识别凭证保存的是旧主密钥，需同步更新。
-        {
-            let bio_manager = make_biometric_manager(self.base_path().clone());
-            let new_key_hex = hex::encode(new_key_arr.as_slice());
-            if let Err(e) = bio_manager.update_credential(account_id, &new_key_hex) {
-                tracing::warn!(
-                    "Failed to update biometric credential after KDF upgrade for {}: {}",
-                    account_id,
-                    e
-                );
-            }
-        }
+        self.update_credentials_after_rekey(account_id, new_key_arr, "KDF upgrade");
 
         // PIN 凭证保存的是旧主密钥，且重加密需要 PIN 输入（不可用），清除后由用户重新设置。
-        {
-            let pin_manager = PinManager::new(self.base_path().clone());
-            if let Err(e) = pin_manager.clear_credential(account_id) {
-                tracing::warn!(
-                    "Failed to clear PIN credential after KDF upgrade for {}: {}",
-                    account_id,
-                    e
-                );
-            }
-        }
+        self.clear_pin_credential_after_rekey(account_id, "KDF upgrade");
 
         // SAF 远端存储：本地 vault.db 已用新密钥重加密，同步到远端避免
         // 下次 sync_from_remote 用旧副本覆盖。
-        if self.is_remote_storage() {
-            if let Err(e) = self.sync_to_remote() {
-                tracing::error!(
-                    "Failed to sync re-encrypted vault.db to SAF after KDF upgrade for {}: {}",
-                    account_id,
-                    e
-                );
-                return Err(format!(
-                    "KDF upgrade failed to sync encrypted data to remote storage: {}",
-                    e
-                ));
-            }
-        }
+        self.sync_remote_after_rekey(
+            account_id,
+            "KDF upgrade",
+            "KDF upgrade failed to sync encrypted data to remote storage",
+            "",
+        )?;
 
         tracing::info!("KDF params upgraded to production for {}", account_id);
         Ok(())
@@ -1432,6 +1382,110 @@ impl VaultService {
             tracing::warn!("Failed to reset PIN attempts after unlock: {}", e);
         }
 
+        Ok(())
+    }
+
+    /// P014 共享尾部：用新数据密钥重开 Vault 并刷新会话密钥（change_password /
+    /// unlock_with_kdf_upgrade 共用）。err_prefix 拼入重开失败的错误消息。
+    fn reopen_vault_with_new_key(
+        &self,
+        account_id: &str,
+        new_key_arr: [u8; 32],
+        err_prefix: &str,
+    ) -> Result<(), String> {
+        {
+            if let Ok(mut key) = self.session_key.write() {
+                *key = Some(Zeroizing::new(new_key_arr));
+            }
+        }
+        if let Ok(mut store) = self.vault_store.write() {
+            *store = None;
+        }
+        let account_dir_path = self
+            .fs
+            .local_path(&self.account_dir_rel(account_id))
+            .ok_or("无法解析账户本地目录")?;
+        let vault_config =
+            VaultConfig::new(account_id, account_dir_path).with_data_key(new_key_arr);
+        match VaultStore::open(vault_config) {
+            Ok(vault) => {
+                let vault_arc = Arc::new(vault);
+                // 设备级偏好同步开关：新建 VaultStore 后应用期望值（默认 true）。
+                vault_arc
+                    .set_ui_prefs_sync_enabled(self.ui_prefs_sync_enabled.load(Ordering::SeqCst));
+                if let Ok(mut store) = self.vault_store.write() {
+                    *store = Some(vault_arc);
+                }
+            }
+            Err(e) => {
+                return Err(format!("{}: {}", err_prefix, e));
+            }
+        }
+        Ok(())
+    }
+
+    /// P014 共享尾部：改密/KDF 升级后同步更新生物识别凭证中保存的主密钥。
+    fn update_credentials_after_rekey(
+        &self,
+        account_id: &str,
+        new_key_arr: [u8; 32],
+        context: &str,
+    ) {
+        let bio_manager = make_biometric_manager(self.base_path().clone());
+        let new_key_hex = hex::encode(new_key_arr.as_slice());
+        if let Err(e) = bio_manager.update_credential(account_id, &new_key_hex) {
+            tracing::warn!(
+                "Failed to update biometric credential after {} for {}: {}",
+                context,
+                account_id,
+                e
+            );
+        }
+    }
+
+    /// P014 共享尾部：改密/KDF 升级后清除 PIN 凭证（重加密需 PIN 输入不可用），由用户重新设置。
+    fn clear_pin_credential_after_rekey(&self, account_id: &str, context: &str) {
+        let pin_manager = PinManager::new(self.base_path().clone());
+        if let Err(e) = pin_manager.clear_credential(account_id) {
+            tracing::warn!(
+                "Failed to clear PIN credential after {} for {}: {}",
+                context,
+                account_id,
+                e
+            );
+        }
+    }
+
+    /// P014 共享尾部：将重加密的 vault.db 同步到 SAF 远端，避免下次 sync_from_remote
+    /// 用旧密钥副本覆盖本地。err_detail 仅在非空时拼入用户可见错误（change_password 提供）。
+    fn sync_remote_after_rekey(
+        &self,
+        account_id: &str,
+        context: &str,
+        err_prefix: &str,
+        err_detail: &str,
+    ) -> Result<(), String> {
+        if !self.is_remote_storage() {
+            return Ok(());
+        }
+        if let Err(e) = self.sync_to_remote() {
+            tracing::error!(
+                "Failed to sync re-encrypted vault.db to SAF after {} for {}: {}",
+                context,
+                account_id,
+                e
+            );
+            return Err(if err_detail.is_empty() {
+                format!("{}: {}", err_prefix, e)
+            } else {
+                format!("{}: {}. {}", err_prefix, e, err_detail)
+            });
+        }
+        tracing::info!(
+            "Successfully synced re-encrypted vault.db to SAF after {} for {}",
+            context,
+            account_id
+        );
         Ok(())
     }
 
@@ -1548,89 +1602,35 @@ impl VaultService {
         self.remove_config_pending(account_id);
 
         // Update session key and reopen vault with new data key.
-        {
-            if let Ok(mut key) = self.session_key.write() {
-                *key = Some(Zeroizing::new(new_key_arr));
-            }
-        }
-        if let Ok(mut store) = self.vault_store.write() {
-            *store = None;
-        }
-        let account_dir_path = self
-            .fs
-            .local_path(&self.account_dir_rel(account_id))
-            .ok_or("无法解析账户本地目录")?;
-        let vault_config =
-            VaultConfig::new(account_id, account_dir_path).with_data_key(new_key_arr);
-        match VaultStore::open(vault_config) {
-            Ok(vault) => {
-                let vault_arc = Arc::new(vault);
-                // 设备级偏好同步开关：新建 VaultStore 后应用期望值（默认 true）。
-                vault_arc
-                    .set_ui_prefs_sync_enabled(self.ui_prefs_sync_enabled.load(Ordering::SeqCst));
-                if let Ok(mut store) = self.vault_store.write() {
-                    *store = Some(vault_arc);
-                }
-            }
-            Err(e) => {
-                return Err(format!("Password updated but vault reopen failed: {}", e));
-            }
-        }
+        self.reopen_vault_with_new_key(
+            account_id,
+            new_key_arr,
+            "Password updated but vault reopen failed",
+        )?;
 
         // 如果用户已启用生物识别，同步更新其中保存的主密钥，使改密后 Touch ID 仍可用。
-        {
-            let bio_manager = make_biometric_manager(self.base_path().clone());
-            let new_key_hex = hex::encode(new_key_arr.as_slice());
-            if let Err(e) = bio_manager.update_credential(account_id, &new_key_hex) {
-                tracing::warn!(
-                    "Failed to update biometric credential after password change for {}: {}",
-                    account_id,
-                    e
-                );
-            }
-        }
+        self.update_credentials_after_rekey(account_id, new_key_arr, "password change");
 
         // 如果用户已启用 PIN 解锁，同步更新 PIN 凭证。
         // 由于 PIN 派生 KEK 时需要 PIN 输入（不可用），此处清除凭证并标记为未配置，
         // 用户需要重新设置 PIN。
-        {
-            let pin_manager = PinManager::new(self.base_path().clone());
-            if let Err(e) = pin_manager.clear_credential(account_id) {
-                tracing::warn!(
-                    "Failed to update PIN credential after password change for {}: {}",
-                    account_id,
-                    e
-                );
-            }
-        }
+        self.clear_pin_credential_after_rekey(account_id, "password change");
 
         // 关键修复：reencrypt_all 已将 vault.db 用新密钥重新加密到本地临时目录，
         // 但在 Android SAF 模式下，本地临时目录与远端 SAF 存储是分离的。
         // 若不主动 sync_to_remote，重新登录时 sync_from_remote 会用旧的 SAF 副本
         // （仍用旧密钥加密）覆盖本地 vault.db，导致所有解密失败（object not found /
         // audit details decryption failed）。
-        if self.is_remote_storage() {
-            if let Err(e) = self.sync_to_remote() {
-                tracing::error!(
-                    "Failed to sync re-encrypted vault.db to SAF after password change for {}: {}. \
-                     The local DB has been re-encrypted but the remote copy is stale. \
-                     Do NOT restart the app — that would overwrite the good local copy via sync_from_remote.",
-                    account_id,
-                    e
-                );
-                return Err(format!(
-                    "Password updated but failed to sync encrypted data to remote storage: {}. \
-                     The local database is correct but the remote copy is stale. \
-                     Please retry syncing from Settings — do NOT restart the app before syncing, \
-                     as that would overwrite the local data with the stale remote copy.",
-                    e
-                ));
-            }
-            tracing::info!(
-                "Successfully synced re-encrypted vault.db to SAF after password change for {}",
-                account_id
-            );
-        }
+        self.sync_remote_after_rekey(
+            account_id,
+            "password change",
+            "Password updated but failed to sync encrypted data to remote storage",
+            concat!(
+                "The local database is correct but the remote copy is stale. ",
+                "Please retry syncing from Settings — do NOT restart the app before syncing, ",
+                "as that would overwrite the local data with the stale remote copy."
+            ),
+        )?;
 
         Ok(())
     }
