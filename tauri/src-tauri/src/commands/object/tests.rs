@@ -2288,7 +2288,7 @@ fn test_truncate_preview_properties() {
         "__deprecatedFields": [],
         "huge": long.clone(),
     });
-    let out = truncate_preview_properties(&props);
+    let out = truncate_preview_properties(&props, None);
     let obj = out.as_object().unwrap();
     // 9 个非 `__` 字段 → 恰好保留 8 个（Map 无序，按计数断言）
     let non_meta: Vec<&String> = obj.keys().filter(|k| !k.starts_with("__")).collect();
@@ -2307,4 +2307,47 @@ fn test_truncate_preview_properties() {
             assert!(s.len() <= 200, "字符串值应限长 200");
         }
     }
+}
+
+#[test]
+fn test_truncate_preview_properties_field_order_priority() {
+    // P020 二次复核：提供模板 fieldOrder 时，截断优先按模板顺序选取字段——
+    // 模板首位重要字段（字母序靠后）不再被截掉；不足 8 个时再按 Map 序补足。
+    let props = serde_json::json!({
+        "a_field": "a",
+        "b_field": "b",
+        "zz_top": "important", // 模板首位，字母序最后
+        "c_field": "c",
+        "__fields": {},
+    });
+    let order = vec![
+        "zz_top".to_string(),
+        "a_field".to_string(),
+        "b_field".to_string(),
+        "c_field".to_string(),
+    ];
+    let out = truncate_preview_properties(&props, Some(&order));
+    let obj = out.as_object().unwrap();
+    // 模板首位字段必须保留（即使字母序靠后）
+    assert!(obj.contains_key("zz_top"), "模板首位字段应优先保留");
+    assert_eq!(obj.get("zz_top").unwrap(), "important");
+    // 全部非 __ 字段都应保留（4 个 < 8 上限）
+    for k in ["a_field", "b_field", "c_field"] {
+        assert!(obj.contains_key(k), "{k} 应保留");
+    }
+    assert!(obj.contains_key("__fields"));
+
+    // 超限场景：order 优先填满 8 个，Map 序字段被挤掉
+    let props2 = serde_json::json!({
+        "f01": "1", "f02": "2", "f03": "3", "f04": "4", "f05": "5",
+        "f06": "6", "f07": "7", "f08": "8", "f09": "9", "f10": "10",
+    });
+    let order2: Vec<String> = (1..=10).map(|i| format!("f{i:02}")).collect();
+    let out2 = truncate_preview_properties(&props2, Some(&order2));
+    let obj2 = out2.as_object().unwrap();
+    let non_meta2: Vec<&String> = obj2.keys().filter(|k| !k.starts_with("__")).collect();
+    assert_eq!(non_meta2.len(), 8);
+    assert!(obj2.contains_key("f01"), "order 首位应保留");
+    assert!(obj2.contains_key("f08"));
+    assert!(!obj2.contains_key("f09") && !obj2.contains_key("f10"));
 }

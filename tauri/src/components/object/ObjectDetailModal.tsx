@@ -78,6 +78,10 @@ export function ObjectDetailModal({
   // P020 复核：object 可能是截断预览摘要（object_list 仅保留前 8 字段/200 字符），
   // 详情弹窗必须始终拉取完整对象，避免丢字段/值被静默截断。
   const objId = objectId ?? object?.id;
+  // P020 二次复核：调用方已传入完整 ObjectData（含 accountId，如 ?objectId= 路径
+  // 经 object_get 拉取后传入、或模板同步后 refreshDetailObjAfterSync 刷新）时无需
+  // 再拉取——完整数据直接可用，避免双重 object_get。ObjectSummary 无 accountId。
+  const isCompleteObject = useMemo(() => !!object && 'accountId' in object, [object]);
   const [loading, setLoading] = useState(!object && !!objId);
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -144,17 +148,29 @@ export function ObjectDetailModal({
       if (!objId) setLoading(false);
       return;
     }
+    // 完整数据直接可用：升级 fetchedObj 并结束 loading（无 fetchId 竞争）。
+    if (isCompleteObject) {
+      setFetchedObj(object as ObjectData);
+      setLoading(false);
+      return;
+    }
     const id = ++fetchIdRef.current;
-    // 有 object（摘要/完整）时仍保持当前展示，拉取完成后再升级，避免闪屏。
+    // 有 object（摘要）时仍保持当前展示，拉取完成后再升级，避免闪屏。
     if (!object) setLoading(true);
-    useObjectStore
-      .getState()
-      .getObject(accountId, objId)
-      .then(() => {
+    // P020 二次复核：绕开全局 store action（getObject 会置全局 isLoading →
+    // 打开弹窗瞬间背后工作区列表被骨架屏替换再换回），直接 invoke object_get；
+    // 结果同时写入 currentObjectCache 供其他消费方读取（不置 isLoading）。
+    invoke<ObjectData | null>('object_get', { accountId: accountId, objectId: objId })
+      .then((obj) => {
         // Discard stale responses: if a newer fetch started while this one
         // was in-flight, don't overwrite fetchedObj with potentially stale data.
         if (fetchIdRef.current !== id) return;
-        setFetchedObj(useObjectStore.getState().currentObjectCache[objId] ?? null);
+        if (obj) {
+          useObjectStore.setState((s) => ({
+            currentObjectCache: { ...s.currentObjectCache, [objId]: obj },
+          }));
+        }
+        setFetchedObj(obj ?? null);
       })
       .catch(() => {
         if (fetchIdRef.current === id) setFetchedObj(null);
@@ -162,7 +178,7 @@ export function ObjectDetailModal({
       .finally(() => {
         if (fetchIdRef.current === id) setLoading(false);
       });
-  }, [object, objId, accountId]);
+  }, [object, isCompleteObject, objId, accountId]);
 
   const unlockVaultWithPassword = useCallback(
     async (password: string): Promise<boolean> => {

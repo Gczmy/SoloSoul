@@ -5,6 +5,8 @@ import { ObjectDetailModal } from './ObjectDetailModal';
 import type { ObjectData } from '@/stores/objectStore';
 
 // ── 依赖 mock ────────────────────────────────────────────────────────────
+// P020 二次复核：modal 不再经全局 getObject action（会置 isLoading 闪列表），
+// 改为直接 invoke('object_get')；默认 mock 返回 undefined → fetchedObj=null → 回退传入 object。
 vi.mock('@/lib/ipcClient', () => ({
   invokeCommand: vi.fn().mockResolvedValue(undefined),
 }));
@@ -37,11 +39,11 @@ vi.mock('@/stores/objectStore', () => ({
   useObjectStore: {
     getState: () => ({
       deleteObject: vi.fn().mockResolvedValue(undefined),
-      // P020 复核：modal 现在始终拉取完整对象（含传入 object 摘要时），mock 需返回 Promise；
-      // currentObjectCache 为空 → fetchedObj=null → 回退到传入 object，测试断言不受影响。
-      getObject: vi.fn().mockResolvedValue(undefined),
       currentObjectCache: {},
     }),
+    // P020 二次复核：直接 invoke 成功后写缓存（不置 isLoading）；测试中 invoke 返回
+    // undefined 不触发，此处仅保证 API 存在。
+    setState: vi.fn(),
   },
 }));
 
@@ -126,5 +128,47 @@ describe('ObjectDetailModal', () => {
     // 取消 → 对话框关闭
     fireEvent.click(screen.getByText('common:cancel'));
     expect(screen.queryByText('common:object_delete_confirm_title')).not.toBeInTheDocument();
+  });
+
+  it('P020 二次复核：传入完整 ObjectData（含 accountId）时不再重复拉取 object_get', async () => {
+    const { invokeCommand } = await import('@/lib/ipcClient');
+    const invokeMock = invokeCommand as unknown as ReturnType<typeof vi.fn>;
+    invokeMock.mockClear();
+    render(
+      <BrowserRouter>
+        <ObjectDetailModal object={sampleObj} onClose={vi.fn()} />
+      </BrowserRouter>,
+    );
+    // 完整数据直接可用：不触发 object_get
+    expect(invokeMock).not.toHaveBeenCalledWith(
+      'object_get',
+      expect.objectContaining({ objectId: 'obj-1' }),
+    );
+  });
+
+  it('P020 二次复核：传入摘要（无 accountId）时直接 invoke object_get 拉取完整对象（不经全局 action）', async () => {
+    const { invokeCommand } = await import('@/lib/ipcClient');
+    const invokeMock = invokeCommand as unknown as ReturnType<typeof vi.fn>;
+    invokeMock.mockClear();
+    const summary = {
+      id: 'obj-1',
+      name: '护照',
+      typeId: 'travel',
+      sensitivityLevel: 'internal',
+      createdAt: '2026-01-01T00:00:00Z',
+      updatedAt: '2026-01-02T00:00:00Z',
+      properties: { full_name: '张三' }, // 截断摘要形态
+    };
+    render(
+      <BrowserRouter>
+        <ObjectDetailModal object={summary} onClose={vi.fn()} />
+      </BrowserRouter>,
+    );
+    expect(invokeMock).toHaveBeenCalledWith(
+      'object_get',
+      expect.objectContaining({ accountId: 'acc-1', objectId: 'obj-1' }),
+    );
+    // 拉取返回 undefined → 回退摘要展示，不崩溃
+    expect(screen.getByTestId('object-detail-modal')).toBeInTheDocument();
   });
 });

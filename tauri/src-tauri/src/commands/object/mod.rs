@@ -467,29 +467,59 @@ const PREVIEW_VALUE_LIMIT: usize = 200;
 
 /// P020：把摘要 properties 截断为卡片预览形态。`list_objects` 内部不动——
 /// 导出/搜索/恢复等 Rust 内部调用方需要完整 properties；截断仅在 command 边界。
-fn truncate_preview_properties(props: &serde_json::Value) -> serde_json::Value {
+///
+/// P020 二次复核：截断时优先按模板 fieldOrder 选取字段（若调用方提供模板字段序），
+/// 再按 Map 迭代序补足——卡片预览与模板字段顺序一致，避免模板首位重要字段
+/// 因字母序靠后被截掉。`field_order` 为可选，None 时退化为纯 Map 序截断。
+fn truncate_preview_properties(
+    props: &serde_json::Value,
+    field_order: Option<&[String]>,
+) -> serde_json::Value {
     let obj = match props.as_object() {
         Some(o) => o,
         None => return props.clone(),
     };
     let mut out = serde_json::Map::new();
     let mut kept = 0usize;
-    for (k, v) in obj {
-        if k.starts_with("__") {
-            out.insert(k.clone(), v.clone());
-            continue;
-        }
-        if kept >= PREVIEW_FIELD_LIMIT {
-            continue;
-        }
-        kept += 1;
-        let limited = match v {
+    let limit_value = |v: &serde_json::Value| -> serde_json::Value {
+        match v {
             serde_json::Value::String(s) if s.len() > PREVIEW_VALUE_LIMIT => {
                 serde_json::Value::String(s.chars().take(PREVIEW_VALUE_LIMIT).collect())
             }
             other => other.clone(),
-        };
-        out.insert(k.clone(), limited);
+        }
+    };
+    // 第一轮：按模板 fieldOrder 顺序选取（跳过 `__` 元数据），保证模板序重要字段不被截掉。
+    if let Some(order) = field_order {
+        for k in order {
+            if kept >= PREVIEW_FIELD_LIMIT {
+                break;
+            }
+            if k.starts_with("__") {
+                continue;
+            }
+            if let Some(v) = obj.get(k) {
+                out.insert(k.clone(), limit_value(v));
+                kept += 1;
+            }
+        }
+    }
+    // 第二轮：仍不足时按 Map 迭代序补足剩余非 `__` 字段。
+    for (k, v) in obj {
+        if kept >= PREVIEW_FIELD_LIMIT {
+            break;
+        }
+        if k.starts_with("__") || out.contains_key(k) {
+            continue;
+        }
+        out.insert(k.clone(), limit_value(v));
+        kept += 1;
+    }
+    // `__*` 元数据始终完整保留。
+    for (k, v) in obj {
+        if k.starts_with("__") {
+            out.insert(k.clone(), v.clone());
+        }
     }
     serde_json::Value::Object(out)
 }
@@ -521,10 +551,25 @@ pub async fn object_list(
             include_deleted,
             false,
         )?;
+        // P020 二次复核：批量加载模板一次，构建 template_id → fieldOrder 映射，
+        // 截断按模板字段顺序优先选取——卡片预览与模板 fieldOrder 一致。
+        let templates = vault.list_user_templates(&account_id).unwrap_or_default();
+        let field_orders: std::collections::HashMap<String, Vec<String>> = templates
+            .into_iter()
+            .map(|t| {
+                let order: Vec<String> = t.properties.iter().map(|p| p.id.clone()).collect();
+                (t.id, order)
+            })
+            .collect();
         // P020: 预览截断——卡片只需前 N 个字段，完整数据经 object_get 获取；
         // 大幅削减 IPC 载荷（含敏感字段全文的 properties 不再整体过 IPC）。
         for s in &mut summaries {
-            s.properties = truncate_preview_properties(&s.properties);
+            let order = s
+                .template_id
+                .as_deref()
+                .and_then(|tid| field_orders.get(tid))
+                .map(|v| v.as_slice());
+            s.properties = truncate_preview_properties(&s.properties, order);
         }
         Ok(summaries)
     })
