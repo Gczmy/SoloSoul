@@ -3,7 +3,7 @@
 > 最后更新：2026-08-08 02:10:00
 > 当前分支：`main`
 > 修复轮次：1（初始分析，按用户要求不恢复旧报告、全新生成）
-> 修复进度：P001-P045 全部闭环（45/45，仅 P013/P014/P037 三项巨型组件/长函数拆分列为长期重构项）
+> 修复进度：P001-P045 全部闭环（45/45，仅 P013/P014 两项巨型组件拆分列为长期重构项）
 > 分析范围：`tauri/`（Rust 后端 + React/TS 前端）、`solosoul_cli/`；忽略 `node_modules/`、`target/`、`dist/`、`.vite/`、`*.min.js`、`*.wasm`
 
 ## 阶段 0 基线检查结果
@@ -52,7 +52,7 @@
 | P034 | P2 | 性能 | `solosoul_cli/src/commands/search.rs:283-287` | 每条搜索结果单独 `load_object(parent_id)` 解析父页面名，N+1 模式 | `[x]` 已修复（去重 parent_id 批量 load_objects_batch 预取，build_object_result 改查 map；扩展父页名断言） |
 | P035 | P2 | 安全 | `solosoul_cli/src/commands/plugin.rs:102-106` | `plugin_id` 未做字符白名单校验直接拼接路径 | `[x]` 已修复（is_valid_plugin_id 白名单校验 + 四命令入口拒绝 + load_manifest 守卫 + 双语键 + 2 单测） |
 | P036 | P2 | 质量 | `solosoul_cli/src/app.rs:609-636,1760,789` | 多处硬编码中文字符串绕过 `t!()` i18n 体系 | `[x]` 已修复（23 处用户可见硬编码中文全量接入 t!()，新增 24 个双语 app-* 词条，overlay 渲染函数透传 i18n） |
-| P037 | P2 | 质量 | `solosoul_cli/src/app.rs:2694-3016` 等 | `render()` 323 行及多个 110-150 行 key handler | `[ ]` 待修复 |
+| P037 | P2 | 质量 | `solosoul_cli/src/app.rs:2694-3016` 等 | `render()` 323 行及多个 110-150 行 key handler | `[x]` 已修复（render() 400 行→26 行：拆 render_content/render_bottom/render_overlays 三方法；各 phase handler 按建议保留为巨型 match 待后续排期） |
 | P038 | P2 | 质量 | `solosoul_cli/src/commands/settings.rs:6,340-341`、`app.rs:364,412`、`commands/profile.rs:171-180` | 陈旧注释（引用不存在的 `trigger_debug_log_export`）、文档注释混入字面 `\n`、死分支注释误导 | `[x]` 已修复（3 处 trigger_debug_log_export 改 debug_log，字面 \n 清理，set_value_at_path 死分支删除） |
 | P039 | P2 | 死代码 | `tauri/src/lib/ipc.ts:86-93` | `Profile` 接口无人引用，且字段形状与 Rust 端不符 | `[x]` 已修复（删除死接口，tsc/eslint ✅） |
 | P040 | P2 | 错误处理 | `tauri/src-tauri/src/commands/sync.rs:289-294` | `parse_hlc_json` 用 `unwrap_or(0)/unwrap_or("")` 静默吞掉畸形 HLC | `[x]` 已修复（字段缺失/类型错返回 Err；列表路径兜底改 unwrap_or_else + warn 留痕；+1 单测） |
@@ -64,10 +64,20 @@
 
 ## 修复进度
 
-- 已完成：42 / 45（P042 已闭环；P013/P014 巨型组件拆分、P037 render 长函数列为长期重构项，见备注）
-- 当前处理：P013/P014/P037 长期重构项待专门排期
+- 已完成：43 / 45（P037 已闭环；P013/P014 巨型组件拆分列为长期重构项，见备注）
+- 当前处理：P013/P014 长期重构项待专门排期
 
 ## 修复实施记录
+
+### P037（P2）CLI render() 长函数拆分 ✅
+
+- **改动**：`solosoul_cli/src/app.rs` 的 `render()`（2719-3118，约 400 行）拆为 4 个方法：
+  1. `render()` 本体降为 26 行——仅做三区 layout 切分并依次调用子方法。
+  2. `render_content`（按 phase 派发到各屏幕渲染函数，原巨型 match）。
+  3. `render_bottom`（底部命令输入框 + 命令面板）。
+  4. `render_overlays`（模态提示 + 信息/错误 overlay）。
+  `available_commands` 等辅助函数保持不动；各 phase key handler（110-150 行巨型 match）按报告建议优先级低暂留。
+- **验证**：`cargo check` ✅ / clippy 0 警告 ✅ / CLI 163 测试全过 ✅。
 
 ### P042（P2）type_id 命名收敛——IPC 载荷统一为 typeId ✅
 

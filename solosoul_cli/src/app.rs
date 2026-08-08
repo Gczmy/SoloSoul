@@ -2732,11 +2732,22 @@ impl App {
         let status_bar = crate::widgets::status_bar::render(self);
         frame.render_widget(status_bar, layout[0]);
 
-        // 中间内容区
+        // 中间内容区：按 phase 派发到对应屏幕渲染函数（P037 拆分）
+        self.render_content(frame, layout[1]);
+
+        // 底部命令输入框（创建账户向导、模态提示打开时除外；登录密码页改为渲染密码输入框）
+        self.render_bottom(frame, layout[2]);
+
+        // 模态提示 overlay + 信息/错误 overlay
+        self.render_overlays(frame);
+    }
+
+    /// 中间内容区：按当前 phase 派发到对应屏幕渲染函数。
+    fn render_content(&mut self, frame: &mut Frame, area: Rect) {
         match &self.phase {
             AppPhase::Welcome => crate::screens::welcome::render(
                 frame,
-                layout[1],
+                area,
                 &mut self.clickable_regions,
                 self.mouse_pos,
                 self.sheen_offset,
@@ -2744,25 +2755,21 @@ impl App {
             ),
             AppPhase::Locked => crate::screens::locked::render(
                 frame,
-                layout[1],
+                area,
                 &mut self.clickable_regions,
                 self.mouse_pos,
                 self.sheen_offset,
                 self.locked_selected,
             ),
             AppPhase::AccountList { accounts } => {
-                crate::screens::account_list::render(frame, layout[1], accounts, &self.i18n)
+                crate::screens::account_list::render(frame, area, accounts, &self.i18n)
             }
-            AppPhase::UnlockWizard { step } => crate::screens::unlock::render(
-                frame,
-                layout[1],
-                step,
-                self.sheen_offset,
-                &self.i18n,
-            ),
+            AppPhase::UnlockWizard { step } => {
+                crate::screens::unlock::render(frame, area, step, self.sheen_offset, &self.i18n)
+            }
             AppPhase::Home { account_id } => crate::screens::home::render(
                 frame,
-                layout[1],
+                area,
                 &self.account_name,
                 account_id,
                 &mut self.clickable_regions,
@@ -2776,22 +2783,22 @@ impl App {
                 title,
                 truncated,
             } => crate::screens::object_list::render(
-                frame, layout[1], title, items, *truncated, &self.i18n,
+                frame, area, title, items, *truncated, &self.i18n,
             ),
             AppPhase::ObjectDetail { object } => {
-                crate::screens::object_detail::render(frame, layout[1], object, &self.i18n)
+                crate::screens::object_detail::render(frame, area, object, &self.i18n)
             }
             AppPhase::Size { report } => {
-                crate::screens::size::render(frame, layout[1], report, &self.i18n)
+                crate::screens::size::render(frame, area, report, &self.i18n)
             }
             AppPhase::Doctor { report } => {
-                crate::screens::doctor::render(frame, layout[1], report, &self.i18n)
+                crate::screens::doctor::render(frame, area, report, &self.i18n)
             }
             AppPhase::NewObjectWizard { step } => {
-                crate::screens::new_object::render(frame, layout[1], step, &self.i18n)
+                crate::screens::new_object::render(frame, area, step, &self.i18n)
             }
             AppPhase::EditObjectWizard { object_id, step } => {
-                crate::screens::edit_object::render(frame, layout[1], object_id, step, &self.i18n)
+                crate::screens::edit_object::render(frame, area, object_id, step, &self.i18n)
             }
             AppPhase::TrashList {
                 items,
@@ -2800,14 +2807,14 @@ impl App {
                 ..
             } => crate::screens::trash_list::render(
                 frame,
-                layout[1],
+                area,
                 items,
                 *selected,
                 selected_ids,
                 &self.i18n,
             ),
             AppPhase::Onboarding { step } => {
-                crate::screens::onboarding::render(frame, layout[1], self, step)
+                crate::screens::onboarding::render(frame, area, self, step)
             }
             AppPhase::SearchResults {
                 query,
@@ -2817,7 +2824,7 @@ impl App {
                 total_scanned,
             } => crate::screens::search_results::render(
                 frame,
-                layout[1],
+                area,
                 query,
                 items,
                 *selected,
@@ -2830,20 +2837,18 @@ impl App {
                 snapshots,
                 selected,
             } => crate::screens::history_list::render(
-                frame, layout[1], object_id, snapshots, *selected, &self.i18n,
+                frame, area, object_id, snapshots, *selected, &self.i18n,
             ),
             AppPhase::OperationLog {
                 entries, selected, ..
-            } => crate::screens::operation_log::render(
-                frame, layout[1], entries, *selected, &self.i18n,
-            ),
+            } => crate::screens::operation_log::render(frame, area, entries, *selected, &self.i18n),
             AppPhase::About { info } => {
-                crate::screens::about::render(frame, layout[1], info, &self.i18n)
+                crate::screens::about::render(frame, area, info, &self.i18n)
             }
             AppPhase::Help {
                 topic,
                 scroll_offset,
-            } => crate::screens::help::render(frame, layout[1], topic, *scroll_offset, &self.i18n),
+            } => crate::screens::help::render(frame, area, topic, *scroll_offset, &self.i18n),
             AppPhase::AttachmentList {
                 object_id,
                 items,
@@ -2851,7 +2856,7 @@ impl App {
                 selected,
             } => crate::screens::attachment_list::render(
                 frame,
-                layout[1],
+                area,
                 object_id,
                 items,
                 *show_deleted,
@@ -2859,22 +2864,20 @@ impl App {
                 &self.i18n,
             ),
             AppPhase::BackupList { items, selected } => {
-                crate::screens::backup_list::render(frame, layout[1], items, *selected, &self.i18n)
+                crate::screens::backup_list::render(frame, area, items, *selected, &self.i18n)
             }
             AppPhase::Profile {
                 profile,
                 data,
                 selected,
-            } => crate::screens::profile::render(
-                frame, layout[1], profile, data, *selected, &self.i18n,
-            ),
+            } => crate::screens::profile::render(frame, area, profile, data, *selected, &self.i18n),
             AppPhase::TemplateList {
                 user_templates,
                 system_templates,
                 selected,
             } => crate::screens::template_list::render(
                 frame,
-                layout[1],
+                area,
                 user_templates,
                 system_templates,
                 *selected,
@@ -2887,7 +2890,7 @@ impl App {
                 json,
             } => crate::screens::template_detail::render(
                 frame,
-                layout[1],
+                area,
                 template_id,
                 name,
                 source,
@@ -2896,25 +2899,23 @@ impl App {
             ),
             AppPhase::LlmConfig {
                 config, selected, ..
-            } => {
-                crate::screens::llm_config::render(frame, layout[1], config, *selected, &self.i18n)
-            }
+            } => crate::screens::llm_config::render(frame, area, config, *selected, &self.i18n),
             AppPhase::LlmStats { stats, selected } => {
-                crate::screens::llm_stats::render(frame, layout[1], stats, *selected, &self.i18n)
+                crate::screens::llm_stats::render(frame, area, stats, *selected, &self.i18n)
             }
             AppPhase::ConversationList {
                 conversations,
                 selected,
             } => crate::screens::conversation_list::render(
                 frame,
-                layout[1],
+                area,
                 conversations,
                 *selected,
                 &self.i18n,
             ),
             AppPhase::LlmChat => {
                 if let Some(ref state) = self.chat_state {
-                    crate::screens::llm_chat::render(frame, layout[1], state, &self.i18n)
+                    crate::screens::llm_chat::render(frame, area, state, &self.i18n)
                 }
             }
             AppPhase::PluginList {
@@ -2922,13 +2923,13 @@ impl App {
                 selected,
                 filter,
             } => crate::screens::plugin_list::render(
-                frame, layout[1], plugins, *selected, filter, &self.i18n,
+                frame, area, plugins, *selected, filter, &self.i18n,
             ),
             AppPhase::PluginDetail { manifest } => {
-                crate::screens::plugin_detail::render(frame, layout[1], manifest, &self.i18n)
+                crate::screens::plugin_detail::render(frame, area, manifest, &self.i18n)
             }
             AppPhase::SyncStatus { peers, info } => {
-                crate::screens::sync_status::render(frame, layout[1], peers, info, &self.i18n)
+                crate::screens::sync_status::render(frame, area, peers, info, &self.i18n)
             }
             AppPhase::OcrResult {
                 result,
@@ -2939,7 +2940,7 @@ impl App {
                 let t = tiers.clone().unwrap_or_default();
                 crate::screens::ocr_result::render(
                     frame,
-                    layout[1],
+                    area,
                     result,
                     source_path,
                     &t,
@@ -2948,7 +2949,7 @@ impl App {
                 )
             }
             AppPhase::EmbedModelList { models, info } => {
-                crate::screens::embed_model::render(frame, layout[1], models, info, &self.i18n)
+                crate::screens::embed_model::render(frame, area, models, info, &self.i18n)
             }
             AppPhase::SettingsMenu {
                 selected,
@@ -2956,7 +2957,7 @@ impl App {
                 current_theme,
             } => crate::screens::settings_menu::render(
                 frame,
-                layout[1],
+                area,
                 *selected,
                 current_language,
                 current_theme,
@@ -2968,7 +2969,7 @@ impl App {
                 let current = crate::commands::settings::current_language(self);
                 crate::screens::settings_language_select::render(
                     frame,
-                    layout[1],
+                    area,
                     *selected,
                     &current,
                     &mut self.clickable_regions,
@@ -2980,7 +2981,7 @@ impl App {
                 let current = crate::commands::settings::current_theme(self);
                 crate::screens::settings_theme_select::render(
                     frame,
-                    layout[1],
+                    area,
                     *selected,
                     &current,
                     &mut self.clickable_regions,
@@ -2995,12 +2996,14 @@ impl App {
                     ratatui::text::Line::from(t!(self.i18n, "app-editing-preferences")).italic(),
                 )
                 .alignment(ratatui::layout::Alignment::Center);
-                frame.render_widget(para, layout[1]);
+                frame.render_widget(para, area);
             }
             AppPhase::Quit => {}
         }
+    }
 
-        // 底部命令输入框（创建账户向导、模态提示打开时除外；登录密码页改为渲染密码输入框）
+    /// 底部命令输入框（创建账户向导、模态提示打开时除外；登录密码页改为渲染密码输入框）。
+    fn render_bottom(&mut self, frame: &mut Frame, area: Rect) {
         let is_password_page = matches!(
             self.phase,
             AppPhase::UnlockWizard {
@@ -3010,20 +3013,23 @@ impl App {
         let hide_input = self.prompt.is_some() || matches!(self.phase, AppPhase::Onboarding { .. });
         if !hide_input {
             if is_password_page {
-                self.password_input.render(frame, layout[2]);
+                self.password_input.render(frame, area);
             } else {
-                self.command_input.render(frame, layout[2]);
+                self.command_input.render(frame, area);
 
                 if self.command_palette.should_render(&self.command_input) {
                     let candidates = CommandPalette::build_candidates(
                         available_commands(&self.phase),
                         &self.command_input.value,
                     );
-                    self.command_palette.render(frame, layout[2], &candidates);
+                    self.command_palette.render(frame, area, &candidates);
                 }
             }
         }
+    }
 
+    /// 模态提示 overlay + 信息/错误 overlay（信息先渲染，错误优先级更高）。
+    fn render_overlays(&mut self, frame: &mut Frame) {
         // 模态提示 overlay
         prompt::render(self, frame);
 
