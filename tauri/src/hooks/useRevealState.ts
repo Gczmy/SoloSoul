@@ -87,8 +87,9 @@ export function useRevealState() {
   const maskValue = useCallback(
     (value: string, fieldId: string, sensitivity: SensitivityLevel): string => {
       if (!shouldMask(fieldId, sensitivity)) return value;
-      // TODO(产品决策): 字段类型感知的部分掩码未实现（如银行卡只显后 4 位、日期只显年份）。
-      // 需字段类型注册表 + 掩码规则 DSL（见 §09 对象规范）；当前统一 8 圆点占位（P036 已收敛）。
+      // 有意保留的产品决策（跟踪：code review P045，后续迭代项）：字段类型感知的部分掩码未实现
+      // （如银行卡只显后 4 位、日期只显年份），需字段类型注册表 + 掩码规则 DSL（见对象规范文档）；
+      // 当前统一 8 圆点占位。掩码逻辑一律走共享组件/本 hook，禁止在别处自行实现。
       return MASK_PLACEHOLDER;
     },
     [shouldMask],

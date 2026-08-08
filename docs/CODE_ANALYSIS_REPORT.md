@@ -60,7 +60,7 @@
 | P042 | P2 | 架构 | `solosoul-vault/src/lib.rs:255`、`commands/object/mod.rs:119`、`objectStore.ts:20`、`conflictFieldMeta.ts` | `type_id` 一个字段三套命名（typeId / collectionType），前端维护两套词汇 | `[ ]` 待修复 |
 | P043 | P2 | 可维护性 | `tauri/src-tauri/src/sync/auto_sync_core.rs:82-130`、`PluginQuickPanel.tsx:244-270` | 控制流嵌套达 8-9 层 | `[ ]` 待修复 |
 | P044 | P2 | 重复代码 | `tauri/src/components/plugin/PluginQuickPanel.tsx:249-268`、`tauri/src/pages/ai/PluginDashboardPage.tsx:~170-190` | 水印插件"先选附件"校验逻辑在两个入口重复，且插件 ID 硬编码于通用面板 | `[ ]` 待修复 |
-| P045 | P2 | 质量 | `tauri/src/hooks/useRevealState.ts:90` | 全仓唯一实质 TODO（字段类型感知部分掩码），建议转为 issue 跟踪 | `[ ]` 待修复 |
+| P045 | P2 | 质量 | `tauri/src/hooks/useRevealState.ts:90` | 全仓唯一实质 TODO（字段类型感知部分掩码），建议转为 issue 跟踪 | `[x]` 已修复（TODO 改写为带跟踪引用的产品决策说明，全仓 TS TODO 清零） |
 
 ## 修复进度
 
