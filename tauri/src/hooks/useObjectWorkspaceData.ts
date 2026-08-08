@@ -5,8 +5,6 @@ import { useObjectStore, type ObjectSummary, type ObjectData } from '@/stores/ob
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useTemplateStore } from '@/stores/templateStore';
 import { useAuthStore } from '@/stores/authStore';
-import type { TemplateProperty } from '@/types/template';
-import type { SensitivityLevel } from '@/components/ui/SensitivityBadge';
 import {
   objectNeedsSync,
   resolveSemanticNeedsSync,
@@ -15,6 +13,8 @@ import {
 } from '@/lib/templateSync';
 import { DEBOUNCE_DELAY_MS } from '@/lib/constants';
 import { logger } from '@/lib/logger';
+import { useWorkspacePasswordGuard } from './useWorkspacePasswordGuard';
+import { useTemplateFieldMeta } from './useTemplateFieldMeta';
 
 // P011: 对象卡片列表分页大小。注意：分页仅优化 DOM 挂载，
 // snapshot/attachment 计数 IPC 仍对全量 visibleObjects 批量请求（单次 batch，成本可控）。
@@ -179,140 +179,21 @@ export function useObjectWorkspaceData({
     ? t(`navigation:${sectionFilter}`, sectionFilter)
     : null;
 
-  // Inlined from useWorkspacePasswordGuard — shared between detail panel and history viewer.
-  const [showPwDialog, setShowPwDialog] = useState(false);
-  const pwResolveRef = useRef<
-    ((result: { ok: boolean; method: 'password' | 'touchId' | 'faceId' }) => void) | null
-  >(null);
-  const [bioAvailable, setBioAvailable] = useState<{ available: boolean; biometryType?: string }>({
-    available: false,
-  });
-  const [passwordHint, setPasswordHint] = useState<string | null>(null);
+  // P013/5: 密码守卫（详情面板/历史查看器共用）
+  const {
+    showPwDialog,
+    setShowPwDialog,
+    pwResolveRef,
+    bioAvailable,
+    passwordHint,
+    passwordVerify,
+    verifyVaultPassword,
+    handleBiometricUnlock,
+  } = useWorkspacePasswordGuard(accountId);
 
-  useEffect(() => {
-    invoke<{ available: boolean; configured: boolean; biometryType?: string }>(
-      'biometric_check_availability',
-      { accountId: accountId || '' },
-    )
-      .then((r) =>
-        setBioAvailable({ available: r.available && r.configured, biometryType: r.biometryType }),
-      )
-      .catch((err) => logger.warn('[Workspace] Biometric check failed:', err));
-    if (accountId) {
-      invoke<Array<{ id: string; passwordHint?: string }>>('vault_list_accounts')
-        .then((accounts) => {
-          const acc = accounts.find((a) => a.id === accountId);
-          setPasswordHint(acc?.passwordHint || null);
-        })
-        .catch(() => {
-          /* ignore */
-        });
-    }
-  }, [accountId]);
-
-  const passwordVerify = useCallback(async (): Promise<{
-    ok: boolean;
-    method: 'password' | 'touchId' | 'faceId';
-  }> => {
-    return new Promise((resolve) => {
-      pwResolveRef.current = resolve;
-      setShowPwDialog(true);
-    });
-  }, []);
-
-  const verifyVaultPassword = useCallback(
-    async (password: string): Promise<boolean> => {
-      if (!accountId) return false;
-      try {
-        await invoke('unlock_with_password', { accountId: accountId, password });
-        return true;
-      } catch (err) {
-        // P124: 密码错误与后端异常可区分——后端对错误密码返回 Err("Invalid password")，
-        // 返回 false（对话框显示「密码不正确」）；其余为真实后端异常，抛出保留细节
-        // （对话框 catch 走 onError toast），不再无差别当作密码错误。
-        const msg =
-          typeof err === 'string' ? err : err instanceof Error ? err.message : String(err);
-        if (/invalid password|incorrect password|密码错误|密码不正确/i.test(msg)) {
-          return false;
-        }
-        logger.warn('[Workspace] Vault unlock failed:', err);
-        throw err;
-      }
-    },
-    [accountId],
-  );
-
-  const handleBiometricUnlock = useCallback(async (): Promise<boolean> => {
-    if (!accountId) return false;
-    try {
-      await invoke('biometric_unlock', {
-        accountId: accountId,
-        location: 'critical_data_access',
-        action: 'unlock',
-        biometryType: bioAvailable.biometryType,
-      });
-      const method = (bioAvailable.biometryType as 'touchId' | 'faceId') || 'touchId';
-      pwResolveRef.current?.({ ok: true, method });
-      return true;
-    } catch (err) {
-      // P124: 记录失败细节（用户取消 vs 后端异常在 UI 上保持静默停留，但日志不再丢失）
-      logger.warn('[Workspace] Biometric unlock failed:', err);
-      return false;
-    }
-  }, [accountId, bioAvailable.biometryType]);
-
-  // F011: cache template field metadata so lookups are O(1) instead of O(n²).
-  const templateFieldMap = useMemo(() => {
-    const map = new Map<string, Map<string, TemplateProperty>>();
-    for (const t of userTemplates) {
-      map.set(t.id, new Map(t.properties.map((p) => [p.id, p])));
-    }
-    return map;
-  }, [userTemplates]);
-
-  const getFieldProperty = useCallback(
-    (templateId: string | undefined, fieldKey: string): TemplateProperty | undefined => {
-      return templateFieldMap.get(templateId || '')?.get(fieldKey);
-    },
-    [templateFieldMap],
-  );
-
-  const getFieldSensitivity = useCallback(
-    (
-      templateId: string | undefined,
-      fieldKey: string,
-      propertyLabels?: Record<string, string>,
-    ): SensitivityLevel => {
-      // 1. 对象自有 propertyLabels（即使模板被删除也保留敏感度）
-      if (propertyLabels?.[fieldKey]) {
-        return propertyLabels[fieldKey] as SensitivityLevel;
-      }
-      // 2. 回退到模板定义
-      return (
-        (getFieldProperty(templateId, fieldKey)?.sensitivityLevel as SensitivityLevel) || 'public'
-      );
-    },
-    [getFieldProperty],
-  );
-
-  const isFieldDeprecated = useCallback(
-    (templateId: string | undefined, fieldKey: string): boolean => {
-      return !!getFieldProperty(templateId, fieldKey)?.deprecatedAt;
-    },
-    [getFieldProperty],
-  );
-
-  const getFieldName = useCallback(
-    (
-      templateId: string | undefined,
-      fieldKey: string,
-      propertyFields?: Record<string, { name: string }>,
-    ): string => {
-      return (
-        getFieldProperty(templateId, fieldKey)?.name || propertyFields?.[fieldKey]?.name || fieldKey
-      );
-    },
-    [getFieldProperty],
+  // P013/5: 模板字段元数据查找（敏感度/废弃/显示名）
+  const { getFieldSensitivity, isFieldDeprecated, getFieldName } = useTemplateFieldMeta(
+    userTemplates,
   );
 
   useEffect(() => {
