@@ -435,403 +435,381 @@ fn register_field_access_fns(linker: &mut Linker<SoloHostState>) -> Result<(), P
 
 /// HTTP 簇：http_request / http_poll / http_read / http_close（P223-① 分簇）
 fn register_http_fns(linker: &mut Linker<SoloHostState>) -> Result<(), PluginError> {
-    // solosoul_http_request —— 发起异步 HTTP 请求（返回句柄）
     linker
-        .func_wrap(
-            "env",
-            "solosoul_http_request",
-            |mut caller: Caller<'_, SoloHostState>,
-             method_ptr: i32,
-             method_len: i32,
-             url_ptr: i32,
-             url_len: i32,
-             body_ptr: i32,
-             body_len: i32,
-             out_handle_ptr: i32|
-             -> i32 {
-                let method = match read_required_string(&mut caller, method_ptr, method_len) {
-                    Some(s) => s.to_uppercase(),
-                    None => return code::INVALID_ARGUMENT,
-                };
-                let url = match read_required_string(&mut caller, url_ptr, url_len) {
-                    Some(s) => s,
-                    None => return code::INVALID_ARGUMENT,
-                };
-                let body = match read_string(&mut caller, body_ptr, body_len) {
-                    Ok(s) => s,
-                    Err(_) => return code::INVALID_ARGUMENT,
-                };
-
-                if !matches!(method.as_str(), "GET" | "POST" | "PUT" | "PATCH" | "DELETE") {
-                    return code::INVALID_ARGUMENT;
-                }
-
-                let (plugin_id, session_id, audit, handle) = {
-                    let host = &caller.data().host;
-                    if !host.check_rate("http_request") {
-                        return code::RATE_LIMITED;
-                    }
-                    if host.manifest.network_policy.block_all_outbound {
-                        return code::DOMAIN_NOT_ALLOWED;
-                    }
-                    let parsed_url = match Url::parse(&url) {
-                        Ok(u) => u,
-                        Err(_) => return code::INVALID_ARGUMENT,
-                    };
-                    let domain = parsed_url.host_str().unwrap_or("").to_lowercase();
-                    if domain.is_empty()
-                        || !is_domain_allowed(
-                            &domain,
-                            &host.manifest.network_policy.allowed_domains,
-                        )
-                    {
-                        return code::DOMAIN_NOT_ALLOWED;
-                    }
-
-                    let handle = host.next_http_handle.fetch_add(1, Ordering::Relaxed);
-                    let (tx, rx) = oneshot::channel();
-
-                    let channel = host.channel.clone();
-                    let client = host.http_client.clone();
-                    let method_clone = method;
-                    let url_clone = url;
-                    let task = tokio::spawn(async move {
-                        let result =
-                            perform_http_async(&client, &method_clone, &url_clone, &body).await;
-                        if let Err(ref e) = result {
-                            let _ = channel.send(PluginEvent::log(
-                                "error",
-                                format!("solosoul_http_request 失败: {}", e),
-                            ));
-                        }
-                        let _ = tx.send(result.unwrap_or_else(|code| HttpResult {
-                            status: 0,
-                            body: String::new(),
-                            error_code: Some(code),
-                        }));
-                    });
-                    let abort = task.abort_handle();
-
-                    {
-                        let mut handles =
-                            host.http_handles.lock().unwrap_or_else(|e| e.into_inner());
-                        handles.insert(handle, HttpHandleState::Running { rx, abort });
-                    }
-
-                    (
-                        host.plugin_id.clone(),
-                        host.session_id.clone(),
-                        host.audit.clone(),
-                        handle,
-                    )
-                };
-
-                if write_u32(&mut caller, out_handle_ptr, handle) != code::SUCCESS {
-                    return code::INVALID_ARGUMENT;
-                }
-
-                audit.log(
-                    &plugin_id,
-                    Some(&session_id),
-                    PluginAuditAction::PluginRunStarted,
-                );
-
-                code::SUCCESS
-            },
-        )
+        .func_wrap("env", "solosoul_http_request", http_request_impl)
         .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
-
-    // solosoul_http_poll —— 轮询异步 HTTP 请求状态
     linker
-        .func_wrap(
-            "env",
-            "solosoul_http_poll",
-            |mut caller: Caller<'_, SoloHostState>,
-             handle: i32,
-             out_status_ptr: i32,
-             out_len_ptr: i32|
-             -> i32 {
-                if handle < 0 {
-                    return code::INVALID_ARGUMENT;
-                }
-                let handle = handle as u32;
-
-                let (result, code_result) = {
-                    let host = &caller.data().host;
-                    let mut handles = host.http_handles.lock().unwrap_or_else(|e| e.into_inner());
-                    let state = match handles.get_mut(&handle) {
-                        Some(s) => s,
-                        None => return code::INVALID_ARGUMENT,
-                    };
-
-                    match state {
-                        HttpHandleState::Running { rx, .. } => match rx.try_recv() {
-                            Ok(result) => {
-                                let code_result = result.error_code.unwrap_or(code::SUCCESS);
-                                *state = HttpHandleState::Completed(result.clone());
-                                (Some(result), code_result)
-                            }
-                            Err(oneshot::error::TryRecvError::Empty) => (None, code::HTTP_PENDING),
-                            Err(oneshot::error::TryRecvError::Closed) => {
-                                let result = HttpResult {
-                                    status: 0,
-                                    body: String::new(),
-                                    error_code: Some(code::NETWORK_TIMEOUT),
-                                };
-                                *state = HttpHandleState::Completed(result.clone());
-                                (Some(result), code::NETWORK_TIMEOUT)
-                            }
-                        },
-                        HttpHandleState::Completed(result) => {
-                            let code_result = result.error_code.unwrap_or(code::SUCCESS);
-                            (Some(result.clone()), code_result)
-                        }
-                    }
-                };
-
-                if let Some(result) = result {
-                    write_http_poll_result(&mut caller, out_status_ptr, out_len_ptr, &result)
-                } else {
-                    code_result
-                }
-            },
-        )
+        .func_wrap("env", "solosoul_http_poll", http_poll_impl)
         .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
-
-    // solosoul_http_read —— 读取异步 HTTP 响应体
     linker
-        .func_wrap(
-            "env",
-            "solosoul_http_read",
-            |mut caller: Caller<'_, SoloHostState>,
-             handle: i32,
-             out_ptr: i32,
-             out_cap: i32,
-             written_ptr: i32|
-             -> i32 {
-                if handle < 0 {
-                    return code::INVALID_ARGUMENT;
-                }
-                let handle = handle as u32;
-
-                let result = {
-                    let host = &caller.data().host;
-                    let mut handles = host.http_handles.lock().unwrap_or_else(|e| e.into_inner());
-                    match handles.get_mut(&handle) {
-                        Some(HttpHandleState::Completed(r)) => r.clone(),
-                        Some(HttpHandleState::Running { .. }) => return code::HTTP_PENDING,
-                        _ => return code::INVALID_ARGUMENT,
-                    }
-                };
-
-                if let Some(error_code) = result.error_code {
-                    return error_code;
-                }
-
-                // 截断到 64KB，与同步 post_data 保持一致
-                let truncated: String = result.body.chars().take(64 * 1024).collect();
-                write_buffer(&mut caller, out_ptr, out_cap, &truncated, written_ptr)
-            },
-        )
+        .func_wrap("env", "solosoul_http_read", http_read_impl)
         .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
-
-    // solosoul_http_close —— 关闭并释放异步 HTTP 句柄
     linker
-        .func_wrap(
-            "env",
-            "solosoul_http_close",
-            |caller: Caller<'_, SoloHostState>, handle: i32| -> i32 {
-                if handle < 0 {
-                    return code::INVALID_ARGUMENT;
-                }
-                let handle = handle as u32;
-                let host = &caller.data().host;
-                let mut handles = host.http_handles.lock().unwrap_or_else(|e| e.into_inner());
-                match handles.remove(&handle) {
-                    Some(_) => code::SUCCESS,
-                    None => code::INVALID_ARGUMENT,
-                }
-            },
-        )
+        .func_wrap("env", "solosoul_http_close", http_close_impl)
         .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
-
     Ok(())
+}
+
+/// solosoul_http_request —— 发起异步 HTTP 请求（返回句柄）
+// WASM host 函数参数与调用约定一一对应，无法合并，故允许 8 参数。
+#[allow(clippy::too_many_arguments)]
+fn http_request_impl(
+    mut caller: Caller<'_, SoloHostState>,
+    method_ptr: i32,
+    method_len: i32,
+    url_ptr: i32,
+    url_len: i32,
+    body_ptr: i32,
+    body_len: i32,
+    out_handle_ptr: i32,
+) -> i32 {
+    let method = match read_required_string(&mut caller, method_ptr, method_len) {
+        Some(s) => s.to_uppercase(),
+        None => return code::INVALID_ARGUMENT,
+    };
+    let url = match read_required_string(&mut caller, url_ptr, url_len) {
+        Some(s) => s,
+        None => return code::INVALID_ARGUMENT,
+    };
+    let body = match read_string(&mut caller, body_ptr, body_len) {
+        Ok(s) => s,
+        Err(_) => return code::INVALID_ARGUMENT,
+    };
+
+    if !matches!(method.as_str(), "GET" | "POST" | "PUT" | "PATCH" | "DELETE") {
+        return code::INVALID_ARGUMENT;
+    }
+
+    let (plugin_id, session_id, audit, handle) = {
+        let host = &caller.data().host;
+        if !host.check_rate("http_request") {
+            return code::RATE_LIMITED;
+        }
+        if host.manifest.network_policy.block_all_outbound {
+            return code::DOMAIN_NOT_ALLOWED;
+        }
+        let parsed_url = match Url::parse(&url) {
+            Ok(u) => u,
+            Err(_) => return code::INVALID_ARGUMENT,
+        };
+        let domain = parsed_url.host_str().unwrap_or("").to_lowercase();
+        if domain.is_empty()
+            || !is_domain_allowed(&domain, &host.manifest.network_policy.allowed_domains)
+        {
+            return code::DOMAIN_NOT_ALLOWED;
+        }
+
+        let handle = host.next_http_handle.fetch_add(1, Ordering::Relaxed);
+        let (tx, rx) = oneshot::channel();
+
+        let channel = host.channel.clone();
+        let client = host.http_client.clone();
+        let method_clone = method;
+        let url_clone = url;
+        let task = tokio::spawn(async move {
+            let result = perform_http_async(&client, &method_clone, &url_clone, &body).await;
+            if let Err(ref e) = result {
+                let _ = channel.send(PluginEvent::log(
+                    "error",
+                    format!("solosoul_http_request 失败: {}", e),
+                ));
+            }
+            let _ = tx.send(result.unwrap_or_else(|code| HttpResult {
+                status: 0,
+                body: String::new(),
+                error_code: Some(code),
+            }));
+        });
+        let abort = task.abort_handle();
+
+        {
+            let mut handles = host.http_handles.lock().unwrap_or_else(|e| e.into_inner());
+            handles.insert(handle, HttpHandleState::Running { rx, abort });
+        }
+
+        (
+            host.plugin_id.clone(),
+            host.session_id.clone(),
+            host.audit.clone(),
+            handle,
+        )
+    };
+
+    if write_u32(&mut caller, out_handle_ptr, handle) != code::SUCCESS {
+        return code::INVALID_ARGUMENT;
+    }
+
+    audit.log(
+        &plugin_id,
+        Some(&session_id),
+        PluginAuditAction::PluginRunStarted,
+    );
+
+    code::SUCCESS
+}
+
+/// solosoul_http_poll —— 轮询异步 HTTP 请求状态
+fn http_poll_impl(
+    mut caller: Caller<'_, SoloHostState>,
+    handle: i32,
+    out_status_ptr: i32,
+    out_len_ptr: i32,
+) -> i32 {
+    if handle < 0 {
+        return code::INVALID_ARGUMENT;
+    }
+    let handle = handle as u32;
+
+    let (result, code_result) = {
+        let host = &caller.data().host;
+        let mut handles = host.http_handles.lock().unwrap_or_else(|e| e.into_inner());
+        let state = match handles.get_mut(&handle) {
+            Some(s) => s,
+            None => return code::INVALID_ARGUMENT,
+        };
+
+        match state {
+            HttpHandleState::Running { rx, .. } => match rx.try_recv() {
+                Ok(result) => {
+                    let code_result = result.error_code.unwrap_or(code::SUCCESS);
+                    *state = HttpHandleState::Completed(result.clone());
+                    (Some(result), code_result)
+                }
+                Err(oneshot::error::TryRecvError::Empty) => (None, code::HTTP_PENDING),
+                Err(oneshot::error::TryRecvError::Closed) => {
+                    let result = HttpResult {
+                        status: 0,
+                        body: String::new(),
+                        error_code: Some(code::NETWORK_TIMEOUT),
+                    };
+                    *state = HttpHandleState::Completed(result.clone());
+                    (Some(result), code::NETWORK_TIMEOUT)
+                }
+            },
+            HttpHandleState::Completed(result) => {
+                let code_result = result.error_code.unwrap_or(code::SUCCESS);
+                (Some(result.clone()), code_result)
+            }
+        }
+    };
+
+    if let Some(result) = result {
+        write_http_poll_result(&mut caller, out_status_ptr, out_len_ptr, &result)
+    } else {
+        code_result
+    }
+}
+
+/// solosoul_http_read —— 读取异步 HTTP 响应体
+fn http_read_impl(
+    mut caller: Caller<'_, SoloHostState>,
+    handle: i32,
+    out_ptr: i32,
+    out_cap: i32,
+    written_ptr: i32,
+) -> i32 {
+    if handle < 0 {
+        return code::INVALID_ARGUMENT;
+    }
+    let handle = handle as u32;
+
+    let result = {
+        let host = &caller.data().host;
+        let mut handles = host.http_handles.lock().unwrap_or_else(|e| e.into_inner());
+        match handles.get_mut(&handle) {
+            Some(HttpHandleState::Completed(r)) => r.clone(),
+            Some(HttpHandleState::Running { .. }) => return code::HTTP_PENDING,
+            _ => return code::INVALID_ARGUMENT,
+        }
+    };
+
+    if let Some(error_code) = result.error_code {
+        return error_code;
+    }
+
+    // 截断到 64KB，与同步 post_data 保持一致
+    let truncated: String = result.body.chars().take(64 * 1024).collect();
+    write_buffer(&mut caller, out_ptr, out_cap, &truncated, written_ptr)
+}
+
+/// solosoul_http_close —— 关闭并释放异步 HTTP 句柄
+fn http_close_impl(caller: Caller<'_, SoloHostState>, handle: i32) -> i32 {
+    if handle < 0 {
+        return code::INVALID_ARGUMENT;
+    }
+    let handle = handle as u32;
+    let host = &caller.data().host;
+    let mut handles = host.http_handles.lock().unwrap_or_else(|e| e.into_inner());
+    match handles.remove(&handle) {
+        Some(_) => code::SUCCESS,
+        None => code::INVALID_ARGUMENT,
+    }
 }
 
 /// 输出/附件簇：prepare_attachment_copy / copy_output_file / write_output_file / list_attachments（P223-① 分簇）
 fn register_output_fns(linker: &mut Linker<SoloHostState>) -> Result<(), PluginError> {
-    // solosoul_prepare_attachment_copy —— 将 Vault 附件复制到插件临时工作区
     linker
         .func_wrap(
             "env",
             "solosoul_prepare_attachment_copy",
-            |mut caller: Caller<'_, SoloHostState>,
-             object_id_ptr: i32,
-             object_id_len: i32,
-             attachment_id_ptr: i32,
-             attachment_id_len: i32,
-             out_path_ptr: i32,
-             out_path_cap: i32|
-             -> i32 {
-                let object_id =
-                    match read_required_string(&mut caller, object_id_ptr, object_id_len) {
-                        Some(s) => s,
-                        None => return code::INVALID_ARGUMENT,
-                    };
-                let attachment_id =
-                    match read_required_string(&mut caller, attachment_id_ptr, attachment_id_len) {
-                        Some(s) => s,
-                        None => return code::INVALID_ARGUMENT,
-                    };
-
-                let workspace = match caller.data().host.workspace_dir.as_ref() {
-                    Some(d) => d.clone(),
-                    None => return code::NOT_IMPLEMENTED,
-                };
-
-                let resolver = caller.data().host.field_resolver.clone();
-                match copy_attachment_to_workspace(
-                    &resolver,
-                    &workspace,
-                    &object_id,
-                    &attachment_id,
-                ) {
-                    Ok(path) => write_buffer(
-                        &mut caller,
-                        out_path_ptr,
-                        out_path_cap,
-                        path.to_string_lossy().as_ref(),
-                        -1,
-                    ),
-                    Err(e) => {
-                        let _ = caller.data().host.channel.send(PluginEvent::log(
-                            "error",
-                            format!("prepare_attachment_copy 失败: {}", e),
-                        ));
-                        code::PROCESSING_FAILED
-                    }
-                }
-            },
+            prepare_attachment_copy_impl,
         )
         .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
-
-    // solosoul_copy_output_file —— 将工作区中的已处理文件复制到输出目录
     linker
-        .func_wrap(
-            "env",
-            "solosoul_copy_output_file",
-            |mut caller: Caller<'_, SoloHostState>,
-             src_path_ptr: i32,
-             src_path_len: i32,
-             file_name_ptr: i32,
-             file_name_len: i32,
-             out_path_ptr: i32,
-             out_path_cap: i32|
-             -> i32 {
-                let src_path = match read_required_string(&mut caller, src_path_ptr, src_path_len) {
-                    Some(s) => PathBuf::from(s),
-                    None => return code::INVALID_ARGUMENT,
-                };
-                let file_name =
-                    match read_required_string(&mut caller, file_name_ptr, file_name_len) {
-                        Some(s) => s,
-                        None => return code::INVALID_ARGUMENT,
-                    };
-
-                if !is_under_workspace(&caller.data().host, &src_path) {
-                    return code::PERMISSION_DENIED;
-                }
-
-                let output_dir = match caller
-                    .data()
-                    .host
-                    .params
-                    .get("outputDir")
-                    .filter(|s| !s.is_empty())
-                {
-                    Some(d) => PathBuf::from(d),
-                    None => return code::INVALID_ARGUMENT,
-                };
-
-                match copy_output_file(&src_path, &output_dir, &file_name) {
-                    Ok(path) => write_buffer(
-                        &mut caller,
-                        out_path_ptr,
-                        out_path_cap,
-                        path.to_string_lossy().as_ref(),
-                        -1,
-                    ),
-                    Err(e) => {
-                        let _ = caller.data().host.channel.send(PluginEvent::log(
-                            "error",
-                            format!("copy_output_file 失败: {}", e),
-                        ));
-                        code::PROCESSING_FAILED
-                    }
-                }
-            },
-        )
+        .func_wrap("env", "solosoul_copy_output_file", copy_output_file_impl)
         .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
-
-    // solosoul_write_output_file —— 将字节写入输出目录
     linker
-        .func_wrap(
-            "env",
-            "solosoul_write_output_file",
-            |mut caller: Caller<'_, SoloHostState>,
-             file_name_ptr: i32,
-             file_name_len: i32,
-             bytes_ptr: i32,
-             bytes_len: i32,
-             out_path_ptr: i32,
-             out_path_cap: i32|
-             -> i32 {
-                let file_name =
-                    match read_required_string(&mut caller, file_name_ptr, file_name_len) {
-                        Some(s) => s,
-                        None => return code::INVALID_ARGUMENT,
-                    };
-                if bytes_len < 0 || bytes_len as usize > 256 * 1024 * 1024 {
-                    return code::FILE_TOO_LARGE;
-                }
-                let bytes_len = bytes_len as usize;
-                let bytes = match read_bytes(&mut caller, bytes_ptr, bytes_len) {
-                    Ok(b) => b,
-                    Err(_) => return code::INVALID_ARGUMENT,
-                };
-
-                let output_dir = match caller
-                    .data()
-                    .host
-                    .params
-                    .get("outputDir")
-                    .filter(|s| !s.is_empty())
-                {
-                    Some(d) => PathBuf::from(d),
-                    None => return code::INVALID_ARGUMENT,
-                };
-
-                match write_output_file(&output_dir, &file_name, &bytes) {
-                    Ok(path) => write_buffer(
-                        &mut caller,
-                        out_path_ptr,
-                        out_path_cap,
-                        path.to_string_lossy().as_ref(),
-                        -1,
-                    ),
-                    Err(e) => {
-                        let _ = caller.data().host.channel.send(PluginEvent::log(
-                            "error",
-                            format!("write_output_file 失败: {}", e),
-                        ));
-                        code::PROCESSING_FAILED
-                    }
-                }
-            },
-        )
+        .func_wrap("env", "solosoul_write_output_file", write_output_file_impl)
         .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
-
     Ok(())
+}
+
+/// solosoul_prepare_attachment_copy —— 将 Vault 附件复制到插件临时工作区
+fn prepare_attachment_copy_impl(
+    mut caller: Caller<'_, SoloHostState>,
+    object_id_ptr: i32,
+    object_id_len: i32,
+    attachment_id_ptr: i32,
+    attachment_id_len: i32,
+    out_path_ptr: i32,
+    out_path_cap: i32,
+) -> i32 {
+    let object_id = match read_required_string(&mut caller, object_id_ptr, object_id_len) {
+        Some(s) => s,
+        None => return code::INVALID_ARGUMENT,
+    };
+    let attachment_id =
+        match read_required_string(&mut caller, attachment_id_ptr, attachment_id_len) {
+            Some(s) => s,
+            None => return code::INVALID_ARGUMENT,
+        };
+
+    let workspace = match caller.data().host.workspace_dir.as_ref() {
+        Some(d) => d.clone(),
+        None => return code::NOT_IMPLEMENTED,
+    };
+
+    let resolver = caller.data().host.field_resolver.clone();
+    match copy_attachment_to_workspace(&resolver, &workspace, &object_id, &attachment_id) {
+        Ok(path) => write_buffer(
+            &mut caller,
+            out_path_ptr,
+            out_path_cap,
+            path.to_string_lossy().as_ref(),
+            -1,
+        ),
+        Err(e) => {
+            let _ = caller.data().host.channel.send(PluginEvent::log(
+                "error",
+                format!("prepare_attachment_copy 失败: {}", e),
+            ));
+            code::PROCESSING_FAILED
+        }
+    }
+}
+
+/// solosoul_copy_output_file —— 将工作区中的已处理文件复制到输出目录
+fn copy_output_file_impl(
+    mut caller: Caller<'_, SoloHostState>,
+    src_path_ptr: i32,
+    src_path_len: i32,
+    file_name_ptr: i32,
+    file_name_len: i32,
+    out_path_ptr: i32,
+    out_path_cap: i32,
+) -> i32 {
+    let src_path = match read_required_string(&mut caller, src_path_ptr, src_path_len) {
+        Some(s) => PathBuf::from(s),
+        None => return code::INVALID_ARGUMENT,
+    };
+    let file_name = match read_required_string(&mut caller, file_name_ptr, file_name_len) {
+        Some(s) => s,
+        None => return code::INVALID_ARGUMENT,
+    };
+
+    if !is_under_workspace(&caller.data().host, &src_path) {
+        return code::PERMISSION_DENIED;
+    }
+
+    let output_dir = match caller
+        .data()
+        .host
+        .params
+        .get("outputDir")
+        .filter(|s| !s.is_empty())
+    {
+        Some(d) => PathBuf::from(d),
+        None => return code::INVALID_ARGUMENT,
+    };
+
+    match copy_output_file(&src_path, &output_dir, &file_name) {
+        Ok(path) => write_buffer(
+            &mut caller,
+            out_path_ptr,
+            out_path_cap,
+            path.to_string_lossy().as_ref(),
+            -1,
+        ),
+        Err(e) => {
+            let _ = caller.data().host.channel.send(PluginEvent::log(
+                "error",
+                format!("copy_output_file 失败: {}", e),
+            ));
+            code::PROCESSING_FAILED
+        }
+    }
+}
+
+/// solosoul_write_output_file —— 将字节写入输出目录
+fn write_output_file_impl(
+    mut caller: Caller<'_, SoloHostState>,
+    file_name_ptr: i32,
+    file_name_len: i32,
+    bytes_ptr: i32,
+    bytes_len: i32,
+    out_path_ptr: i32,
+    out_path_cap: i32,
+) -> i32 {
+    let file_name = match read_required_string(&mut caller, file_name_ptr, file_name_len) {
+        Some(s) => s,
+        None => return code::INVALID_ARGUMENT,
+    };
+    if bytes_len < 0 || bytes_len as usize > 256 * 1024 * 1024 {
+        return code::FILE_TOO_LARGE;
+    }
+    let bytes_len = bytes_len as usize;
+    let bytes = match read_bytes(&mut caller, bytes_ptr, bytes_len) {
+        Ok(b) => b,
+        Err(_) => return code::INVALID_ARGUMENT,
+    };
+
+    let output_dir = match caller
+        .data()
+        .host
+        .params
+        .get("outputDir")
+        .filter(|s| !s.is_empty())
+    {
+        Some(d) => PathBuf::from(d),
+        None => return code::INVALID_ARGUMENT,
+    };
+
+    match write_output_file(&output_dir, &file_name, &bytes) {
+        Ok(path) => write_buffer(
+            &mut caller,
+            out_path_ptr,
+            out_path_cap,
+            path.to_string_lossy().as_ref(),
+            -1,
+        ),
+        Err(e) => {
+            let _ = caller.data().host.channel.send(PluginEvent::log(
+                "error",
+                format!("write_output_file 失败: {}", e),
+            ));
+            code::PROCESSING_FAILED
+        }
+    }
 }
 
 /// 水印簇：image_watermark / pdf_watermark（P223-① 分簇；命名避开既有 register_watermark_fn）
@@ -891,195 +869,186 @@ fn register_watermark_host_fns(linker: &mut Linker<SoloHostState>) -> Result<(),
 
 /// 交互簇：request_consent / show_dialog / log（P223-① 分簇）
 fn register_interaction_fns(linker: &mut Linker<SoloHostState>) -> Result<(), PluginError> {
-    // solosoul_request_consent —— 请求用户授权（阻塞等待用户响应）
     linker
-        .func_wrap(
-            "env",
-            "solosoul_request_consent",
-            |mut caller: Caller<'_, SoloHostState>,
-             field_id_ptr: i32,
-             field_id_len: i32,
-             request_id_ptr: i32,
-             request_id_len: i32|
-             -> i32 {
-                let field_id =
-                    read_string(&mut caller, field_id_ptr, field_id_len).unwrap_or_default();
-                let request_id =
-                    read_string(&mut caller, request_id_ptr, request_id_len).unwrap_or_default();
-                if field_id.is_empty() || request_id.is_empty() {
-                    return code::INVALID_ARGUMENT;
-                }
-
-                let (plugin_id, plugin_name, session_id, consent_manager) = {
-                    let host = &caller.data().host;
-                    if !host.check_rate("request_consent") {
-                        return code::RATE_LIMITED;
-                    }
-                    (
-                        host.plugin_id.clone(),
-                        host.plugin_name.clone(),
-                        host.session_id.clone(),
-                        host.consent_manager.clone(),
-                    )
-                };
-
-                // 尝试从 Vault Schema 读取真实字段标签与敏感度；失败时回退到字段 ID 本身
-                let (field_label, sensitivity_level) = caller
-                    .data()
-                    .host
-                    .field_resolver
-                    .field_metadata(&field_id)
-                    .unwrap_or_else(|_| (field_id.clone(), "sensitive".to_string()));
-
-                let event = PluginEvent::consent_request(
-                    &request_id,
-                    &plugin_id,
-                    &plugin_name,
-                    &field_id,
-                    &field_label,
-                    &sensitivity_level,
-                );
-                let _ = caller.data().host.channel.send(event);
-                caller.data().host.audit.log(
-                    &plugin_id,
-                    Some(&session_id),
-                    PluginAuditAction::PluginRunStarted,
-                );
-
-                // 阻塞等待用户响应，超时 5 分钟
-                let handle = match tokio::runtime::Handle::try_current() {
-                    Ok(h) => h,
-                    Err(_) => return code::NOT_IMPLEMENTED,
-                };
-                let rx = handle.block_on(consent_manager.request_consent(&request_id));
-
-                match handle.block_on(tokio::time::timeout(Duration::from_secs(300), rx)) {
-                    Ok(Ok(Some(_value))) => {
-                        caller.data().host.audit.log(
-                            &plugin_id,
-                            Some(&session_id),
-                            PluginAuditAction::ConsentApproved { field_id },
-                        );
-                        code::SUCCESS
-                    }
-                    Ok(Ok(None)) => {
-                        caller.data().host.audit.log(
-                            &plugin_id,
-                            Some(&session_id),
-                            PluginAuditAction::ConsentDenied { field_id },
-                        );
-                        code::USER_DENIED
-                    }
-                    Ok(Err(_)) | Err(_) => {
-                        caller.data().host.audit.log(
-                            &plugin_id,
-                            Some(&session_id),
-                            PluginAuditAction::ConsentDenied { field_id },
-                        );
-                        code::TTL_EXPIRED
-                    }
-                }
-            },
-        )
+        .func_wrap("env", "solosoul_request_consent", request_consent_impl)
         .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
-
-    // solosoul_show_dialog —— 通用对话框（阻塞等待用户响应）
     linker
-        .func_wrap(
-            "env",
-            "solosoul_show_dialog",
-            |mut caller: Caller<'_, SoloHostState>,
-             config_ptr: i32,
-             config_len: i32,
-             out_ptr: i32,
-             out_len: i32|
-             -> i32 {
-                let config = match read_required_string(&mut caller, config_ptr, config_len) {
-                    Some(s) => s,
-                    None => return code::INVALID_ARGUMENT,
-                };
-                if config.len() > 4096 {
-                    return code::INVALID_ARGUMENT;
-                }
-
-                let request_id = uuid::Uuid::new_v4().to_string();
-                let (plugin_id, plugin_name, session_id, consent_manager) = {
-                    let host = &caller.data().host;
-                    if !host.check_rate("show_dialog") {
-                        return code::RATE_LIMITED;
-                    }
-                    (
-                        host.plugin_id.clone(),
-                        host.plugin_name.clone(),
-                        host.session_id.clone(),
-                        host.consent_manager.clone(),
-                    )
-                };
-
-                let event =
-                    PluginEvent::dialog_request(&request_id, &plugin_id, &plugin_name, &config);
-                let _ = caller.data().host.channel.send(event);
-                caller.data().host.audit.log(
-                    &plugin_id,
-                    Some(&session_id),
-                    PluginAuditAction::PluginRunStarted,
-                );
-
-                let handle = match tokio::runtime::Handle::try_current() {
-                    Ok(h) => h,
-                    Err(_) => return code::NOT_IMPLEMENTED,
-                };
-                let rx = handle.block_on(consent_manager.request_consent(&request_id));
-
-                match handle.block_on(tokio::time::timeout(Duration::from_secs(300), rx)) {
-                    Ok(Ok(Some(value))) => write_buffer(&mut caller, out_ptr, out_len, &value, -1),
-                    Ok(Ok(None)) => code::USER_DENIED,
-                    Ok(Err(_)) | Err(_) => code::TTL_EXPIRED,
-                }
-            },
-        )
+        .func_wrap("env", "solosoul_show_dialog", show_dialog_impl)
         .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
-
-    // solosoul_log —— 写日志（SDK 签名：无返回值）
     linker
-        .func_wrap(
-            "env",
-            "solosoul_log",
-            |mut caller: Caller<'_, SoloHostState>,
-             level_ptr: i32,
-             level_len: i32,
-             message_ptr: i32,
-             message_len: i32| {
-                let level = read_string(&mut caller, level_ptr, level_len).unwrap_or_default();
-                let message =
-                    read_string(&mut caller, message_ptr, message_len).unwrap_or_default();
-                if level.is_empty() || message.is_empty() {
-                    return;
-                }
-                let log = PluginLogLine {
-                    id: uuid::Uuid::new_v4().to_string(),
-                    level: level.clone(),
-                    message: message.clone(),
-                    timestamp: now_millis(),
-                };
-                let (plugin_id, session_id) = {
-                    let host = &caller.data().host;
-                    if let Ok(mut guard) = host.logs.lock() {
-                        guard.push(log);
-                    }
-                    let _ = host.channel.send(PluginEvent::log(&level, &message));
-                    (host.plugin_id.clone(), host.session_id.clone())
-                };
-                caller.data().host.audit.log(
-                    &plugin_id,
-                    Some(&session_id),
-                    PluginAuditAction::PluginRunStarted,
-                );
-            },
-        )
+        .func_wrap("env", "solosoul_log", log_impl)
         .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
-
     Ok(())
+}
+
+/// solosoul_request_consent —— 请求用户授权（阻塞等待用户响应）
+fn request_consent_impl(
+    mut caller: Caller<'_, SoloHostState>,
+    field_id_ptr: i32,
+    field_id_len: i32,
+    request_id_ptr: i32,
+    request_id_len: i32,
+) -> i32 {
+    let field_id = read_string(&mut caller, field_id_ptr, field_id_len).unwrap_or_default();
+    let request_id = read_string(&mut caller, request_id_ptr, request_id_len).unwrap_or_default();
+    if field_id.is_empty() || request_id.is_empty() {
+        return code::INVALID_ARGUMENT;
+    }
+
+    let (plugin_id, plugin_name, session_id, consent_manager) = {
+        let host = &caller.data().host;
+        if !host.check_rate("request_consent") {
+            return code::RATE_LIMITED;
+        }
+        (
+            host.plugin_id.clone(),
+            host.plugin_name.clone(),
+            host.session_id.clone(),
+            host.consent_manager.clone(),
+        )
+    };
+
+    // 尝试从 Vault Schema 读取真实字段标签与敏感度；失败时回退到字段 ID 本身
+    let (field_label, sensitivity_level) = caller
+        .data()
+        .host
+        .field_resolver
+        .field_metadata(&field_id)
+        .unwrap_or_else(|_| (field_id.clone(), "sensitive".to_string()));
+
+    let event = PluginEvent::consent_request(
+        &request_id,
+        &plugin_id,
+        &plugin_name,
+        &field_id,
+        &field_label,
+        &sensitivity_level,
+    );
+    let _ = caller.data().host.channel.send(event);
+    caller.data().host.audit.log(
+        &plugin_id,
+        Some(&session_id),
+        PluginAuditAction::PluginRunStarted,
+    );
+
+    // 阻塞等待用户响应，超时 5 分钟
+    let handle = match tokio::runtime::Handle::try_current() {
+        Ok(h) => h,
+        Err(_) => return code::NOT_IMPLEMENTED,
+    };
+    let rx = handle.block_on(consent_manager.request_consent(&request_id));
+
+    match handle.block_on(tokio::time::timeout(Duration::from_secs(300), rx)) {
+        Ok(Ok(Some(_value))) => {
+            caller.data().host.audit.log(
+                &plugin_id,
+                Some(&session_id),
+                PluginAuditAction::ConsentApproved { field_id },
+            );
+            code::SUCCESS
+        }
+        Ok(Ok(None)) => {
+            caller.data().host.audit.log(
+                &plugin_id,
+                Some(&session_id),
+                PluginAuditAction::ConsentDenied { field_id },
+            );
+            code::USER_DENIED
+        }
+        Ok(Err(_)) | Err(_) => {
+            caller.data().host.audit.log(
+                &plugin_id,
+                Some(&session_id),
+                PluginAuditAction::ConsentDenied { field_id },
+            );
+            code::TTL_EXPIRED
+        }
+    }
+}
+
+/// solosoul_show_dialog —— 通用对话框（阻塞等待用户响应）
+fn show_dialog_impl(
+    mut caller: Caller<'_, SoloHostState>,
+    config_ptr: i32,
+    config_len: i32,
+    out_ptr: i32,
+    out_len: i32,
+) -> i32 {
+    let config = match read_required_string(&mut caller, config_ptr, config_len) {
+        Some(s) => s,
+        None => return code::INVALID_ARGUMENT,
+    };
+    if config.len() > 4096 {
+        return code::INVALID_ARGUMENT;
+    }
+
+    let request_id = uuid::Uuid::new_v4().to_string();
+    let (plugin_id, plugin_name, session_id, consent_manager) = {
+        let host = &caller.data().host;
+        if !host.check_rate("show_dialog") {
+            return code::RATE_LIMITED;
+        }
+        (
+            host.plugin_id.clone(),
+            host.plugin_name.clone(),
+            host.session_id.clone(),
+            host.consent_manager.clone(),
+        )
+    };
+
+    let event = PluginEvent::dialog_request(&request_id, &plugin_id, &plugin_name, &config);
+    let _ = caller.data().host.channel.send(event);
+    caller.data().host.audit.log(
+        &plugin_id,
+        Some(&session_id),
+        PluginAuditAction::PluginRunStarted,
+    );
+
+    let handle = match tokio::runtime::Handle::try_current() {
+        Ok(h) => h,
+        Err(_) => return code::NOT_IMPLEMENTED,
+    };
+    let rx = handle.block_on(consent_manager.request_consent(&request_id));
+
+    match handle.block_on(tokio::time::timeout(Duration::from_secs(300), rx)) {
+        Ok(Ok(Some(value))) => write_buffer(&mut caller, out_ptr, out_len, &value, -1),
+        Ok(Ok(None)) => code::USER_DENIED,
+        Ok(Err(_)) | Err(_) => code::TTL_EXPIRED,
+    }
+}
+
+/// solosoul_log —— 写日志（SDK 签名：无返回值）
+fn log_impl(
+    mut caller: Caller<'_, SoloHostState>,
+    level_ptr: i32,
+    level_len: i32,
+    message_ptr: i32,
+    message_len: i32,
+) {
+    let level = read_string(&mut caller, level_ptr, level_len).unwrap_or_default();
+    let message = read_string(&mut caller, message_ptr, message_len).unwrap_or_default();
+    if level.is_empty() || message.is_empty() {
+        return;
+    }
+    let log = PluginLogLine {
+        id: uuid::Uuid::new_v4().to_string(),
+        level: level.clone(),
+        message: message.clone(),
+        timestamp: now_millis(),
+    };
+    let (plugin_id, session_id) = {
+        let host = &caller.data().host;
+        if let Ok(mut guard) = host.logs.lock() {
+            guard.push(log);
+        }
+        let _ = host.channel.send(PluginEvent::log(&level, &message));
+        (host.plugin_id.clone(), host.session_id.clone())
+    };
+    caller.data().host.audit.log(
+        &plugin_id,
+        Some(&session_id),
+        PluginAuditAction::PluginRunStarted,
+    );
 }
 
 /// 工具簇：get_timestamp / get_locale / sleep / result / post_data（P223-① 分簇）
