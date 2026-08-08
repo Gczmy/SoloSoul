@@ -672,3 +672,24 @@ P001、P002、P003、P004、P008、P010、P011、P013（6 子项）、P014（6 �
 
 - 二次复核遗留的 4 项全部闭环，无新增回归；P001–P045 共 **45 项全部 `[x]`**，check-all 与 CLI 测试全绿。
 - 「45/45 全部闭环、满足阶段 4 终版条件」的声称**成立**。按流程可进入阶段 4：全库终版扫描 → 生成终版报告 → 打标签 `code-audit-passed-yyyymmdd`。
+
+---
+
+## 三次复核独立核验（复核人确认，2026-08-08）
+
+> 上方「三次复核结果」章节由修复方自写。本节为复核人对 4 个修复提交（`390de685`/`453c0553`/`c77aa514`/`efb48da7`）的独立 diff 核验结论。
+
+**核验结论：4 项判定均属实，与修复方自写记录一致，本轮未发现虚报。**
+
+- **P020 ✅ 核验通过** — 三项遗留均真实闭环：①modal 改直接 `invoke('object_get')`（经 ipcClient），不再触碰全局 `getObject` action，列表闪烁前提移除，fetchId 竞态守卫保留；②`truncate_preview_properties` 新增 `field_order` 参数，模板 fieldOrder 优先 + Map 序补足，模板缺失时 `None` 退化为原行为，回退正确；Rust 用 `TemplateProperty.id` 与前端卡片排序键空间对齐；③`isCompleteObject = 'accountId' in object` 判别可靠（ObjectSummary 无 / ObjectData 有），`?objectId=` 双重拉取消除。测试实跑通过（Rust 2/2、前端 5/5）。
+- **P009 ✅ 核验通过（两处轻微残留）** — 08/11/07 虚造表述均已改为「能力随死命令移除，无现存入口」，代码示例与 `template.rs:170-178` 真实签名一致。残留：①08 §3.7 仍以未来设计条件句引用 `infer_type_from_value`（代码中已零命中，属边缘虚指）；②`docs/solosoul_cli/solosoul_cli_research_report.md:286` 仍列 `template_save_from_object` 为规划命令（前两轮已标注影响小的遗留，本轮未处理）；③settings.json 两个 i18n key 保留合理（历史审计日志标签）。
+- **P005 ✅ 核验通过** — 新 doc comment（export_import/mod.rs:264-268）与实现完全吻合，无新失实。
+- **P045 ✅ 核验通过** — 08 文档新增 §2.5「字段类型感知的部分掩码（规划）」（:203）真实存在且内容与注释所述匹配，自述为 P045 决策载体；`useRevealState.ts:90-93` 注释精确指向 §2.5。
+
+**基线独立复跑**：`npm run check-all` ✅（Vitest 65 文件 **574** 测试全过、ACL 190 命令 OK）；CLI `cargo test` 全过。
+
+**潜在问题备注（均非阻塞、不影响闭环判定）**：
+- P020 modal 的 `catch` 分支静默吞错仅置 `fetchedObj = null`，无日志（沿用修复前模式）；完整数据分支不回写 `currentObjectCache`；`object_list` 每次调用新增一次 `list_user_templates` 批量读取（代价合理）。
+- P020 测试存在 `act(...)` 警告（上一轮已存在，不影响通过）。
+
+**最终结论**：P001–P045 共 45 项经三轮「修复→独立复核」全部闭环，基线全绿。按流程已满足进入「阶段 4：最终复审」的条件——下一阶段为全库终版扫描并生成终版报告，是否执行等你指令。
