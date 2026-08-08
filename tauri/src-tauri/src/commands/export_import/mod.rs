@@ -269,14 +269,24 @@ pub(crate) fn collect_scope_objects(
     account_id: &str,
     scope: &ExportScope,
 ) -> Result<Vec<solosoul_vault::ObjectRecord>, String> {
-    let all = vault.list_objects(account_id, None, None, None, false, false)?;
+    // P005 复核：include_all 分支此前 list_objects（全量解密）取 id + load_objects_batch
+    // （再解密）双重解密。全量导出直接一次 list_object_records（已解密完整记录）
+    // 按页面/标签过滤即可，避免对同一批数据解密两遍。
+    if scope.include_all {
+        let mut records = vault.list_object_records(account_id)?;
+        records.retain(|r| {
+            let page_ok = scope.selected_page_ids.is_empty()
+                || scope.selected_page_ids.contains(&r.section_type);
+            let tag_ok = scope.selected_tags.is_empty()
+                || r.tags_json.iter().any(|t| scope.selected_tags.contains(t));
+            page_ok && tag_ok
+        });
+        records.sort_by(|a, b| a.id.cmp(&b.id));
+        return Ok(records);
+    }
 
-    let mut selected_ids: BTreeSet<String> = if scope.include_all {
-        // 后端全量导出（如恢复主机）直接包含所有对象，绕过前端选择逻辑。
-        all.iter().map(|s| s.id.clone()).collect()
-    } else {
-        scope.selected_object_ids.iter().cloned().collect()
-    };
+    let all = vault.list_objects(account_id, None, None, None, false, false)?;
+    let mut selected_ids: BTreeSet<String> = scope.selected_object_ids.iter().cloned().collect();
 
     // Add all IDs belonging to selected pages
     for summary in &all {
