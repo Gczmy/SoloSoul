@@ -254,18 +254,12 @@ fn backup_create(app: &mut App, name: &str) -> Result<()> {
         color_eyre::eyre::eyre!(e)
     })?;
 
-    fs::write(&backup_path, json).map_err(|e| {
+    // P007 复核：备份内容为解密后明文（profile.data 未加密），统一走共享
+    // write_private_file——创建时即定 0600 权限，无先写后 chmod 的明文窗口期。
+    crate::util::write_private_file(&backup_path, json.as_bytes()).map_err(|e| {
         app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e));
         color_eyre::eyre::eyre!(e)
     })?;
-
-    // P007: 备份内容为解密后明文（profile.data 未加密），落盘后显式收紧为 0600，
-    // 避免受 umask（通常 022）影响生成 0644 被同机其他用户读取。
-    #[cfg(unix)]
-    {
-        use std::os::unix::fs::PermissionsExt;
-        let _ = std::fs::set_permissions(&backup_path, std::fs::Permissions::from_mode(0o600));
-    }
 
     let metadata = fs::metadata(&backup_path).map_err(|e| {
         app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e));
@@ -508,6 +502,34 @@ mod tests {
             .unwrap();
         let mode = entry.path().metadata().unwrap().permissions().mode() & 0o777;
         assert_eq!(mode, 0o600, "备份文件权限应为 0600，实际 {:#o}", mode);
+    }
+
+    /// P007 复核: 旧版本遗留的 0644 备份文件被覆写时也应收紧为 0600
+    ///（write_private_file 对已存在文件显式 set_permissions，不再只靠 mode 新建语义）。
+    #[cfg(unix)]
+    #[test]
+    fn test_backup_overwrite_tightens_existing_0644() {
+        use std::os::unix::fs::PermissionsExt;
+        let (mut app, _id, _dir) = unlocked_app();
+        create_test_profile(&mut app, "TestProfile");
+
+        handle(&mut app, &["create", "weekly"]).unwrap();
+        let backups_dir = app.vault_service.base_path().join("backups");
+        let entry = std::fs::read_dir(&backups_dir)
+            .unwrap()
+            .next()
+            .unwrap()
+            .unwrap();
+        let path = entry.path();
+
+        // 模拟旧版本遗留的 0644
+        std::fs::set_permissions(&path, std::fs::Permissions::from_mode(0o644)).unwrap();
+
+        // 再次创建同名备份（覆盖写入）
+        handle(&mut app, &["create", "weekly"]).unwrap();
+
+        let mode = path.metadata().unwrap().permissions().mode() & 0o777;
+        assert_eq!(mode, 0o600, "覆写后权限应为 0600，实际 {:#o}", mode);
     }
 
     /// P033：单个 profile 解密失败时备份必须中止，不得静默跳过产生不完整备份。

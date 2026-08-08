@@ -27,11 +27,13 @@ pub fn shared_runtime() -> color_eyre::Result<&'static tokio::runtime::Runtime> 
 
 /// 以 0600 权限写入文件——创建时即定权限，避免默认 umask（通常 0644）下的
 /// 明文窗口期。审计日志/诊断包等解密明文统一走此入口（P027/P028）。
+/// P007 复核补充：写入后对已存在文件也显式收紧 0600——`.mode(0o600)` 仅作用于
+/// 新建文件，旧版本遗留的 0644 文件被 truncate 覆写时不会自动收紧权限。
 pub fn write_private_file(path: &std::path::Path, contents: &[u8]) -> std::io::Result<()> {
     #[cfg(unix)]
     {
         use std::io::Write;
-        use std::os::unix::fs::OpenOptionsExt;
+        use std::os::unix::fs::{OpenOptionsExt, PermissionsExt};
         let mut f = std::fs::OpenOptions::new()
             .write(true)
             .create(true)
@@ -39,6 +41,8 @@ pub fn write_private_file(path: &std::path::Path, contents: &[u8]) -> std::io::R
             .mode(0o600)
             .open(path)?;
         f.write_all(contents)?;
+        // 已存在文件（旧版本以 0644 落盘）truncate 后 mode 不生效，显式收紧。
+        std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o600))?;
         Ok(())
     }
     #[cfg(not(unix))]
