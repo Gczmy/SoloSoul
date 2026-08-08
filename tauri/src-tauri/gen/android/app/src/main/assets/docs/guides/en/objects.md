@@ -7,9 +7,8 @@ Objects are the core data unit in SoloSoul. Each object represents a structured 
 Every object contains:
 
 - **Name**: The display title of the object
-- **Collection Type**: Determines the section (Identity / Travel / Financial / Professional)
-- **Properties**: Key-value field data
-- **Tags**: For quick categorization and retrieval
+- **Collection Type**: Determines the section (Identity / Travel / Financial / Professional / Document), see [Object Types & Sections](collections.md)
+- **Properties**: Field data defined by the template; each field can have a sensitivity level
 - **Attachments**: Associated files (images, PDFs, etc.)
 
 ## Creating Objects
@@ -31,7 +30,7 @@ Templates automatically populate common fields so you don't miss important infor
 
 ## Searching Objects
 
-Type keywords in the search box at the top of the workspace. Results are filtered by name in real time.
+Type keywords in the search box at the top of the workspace. Results are filtered by name and property values in real time.
 
 <!--WARNING-->
 Deleted objects remain in the Trash for 30 days, after which they are **permanently deleted** and cannot be recovered.

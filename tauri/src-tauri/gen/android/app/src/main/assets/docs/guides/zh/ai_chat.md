@@ -61,6 +61,6 @@ AI 功能会将数据发送到外部 LLM 服务商。请勿通过 AI 对话分�
 <!--CARDS-->
 - [LLM 配置与统计](llm_config.md) — 配置 AI 提供商
 - [插件](plugins.md) — 扩展 AI 能力
-- [隐私政策](PRIVACY_POLICY.md) — AI 数据处理说明
+- [敏感度与隐私](sensitivity.md) — 数据隐私分级说明
 <!--/CARDS-->
 

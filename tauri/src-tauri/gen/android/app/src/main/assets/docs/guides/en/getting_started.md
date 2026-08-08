@@ -17,7 +17,7 @@ Your master password is the only key to your encrypted vault. It **cannot be res
 
 1. On the home page, select the **Identity** section
 2. Click the **+ Create** button
-3. Choose a template, e.g., **Identity**
+3. Choose a template, e.g., **Identity (身份信息)**
 4. Fill in fields such as name, date of birth, nationality
 5. Click **Save**
 
@@ -31,14 +31,14 @@ Your master password is the only key to your encrypted vault. It **cannot be res
 
 ## Step 3: Understand the Workspace
 
-SoloSoul organizes your data into **objects**, grouped into four sections:
+SoloSoul organizes your data into **objects**, grouped into four sections. Ten preset templates are built in, for example:
 
-| Section | Purpose |
-|---------|---------|
-| Identity | Personal info, documents |
-| Travel | Passports, visas, itineraries |
-| Financial | Bank accounts, cards |
-| Professional | Education, work experience |
+| Section | Preset templates |
+|---------|------------------|
+| Identity | Identity, ID Card, Address, Contact |
+| Travel | Passport, Visa |
+| Financial | Bank Account, Bank Card |
+| Professional | Education, Employment |
 
 You can also create **custom pages** to organize objects your own way.
 

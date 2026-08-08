@@ -9,7 +9,7 @@ Snapshots are created automatically when:
 - An object is modified and saved
 - Object fields change
 
-Each snapshot contains the object's complete state (name, properties, tags).
+Each snapshot contains the object's complete state (name, properties, attachment associations, etc.).
 
 ## Viewing History
 
@@ -37,12 +37,12 @@ The history browser follows the same sensitivity rules:
 
 To roll back an object to a previous version:
 
-1. Go to **Settings → Data Management**
-2. Or use the standalone **History** page (accessed from object details)
-3. Select the target snapshot and click **Restore to this version**
+1. Open the object details → click the history icon to enter the history viewer
+2. Select the target snapshot version
+3. Click **Restore** and confirm
 
 <!--TIP-->
-Snapshots don't consume much space; the system manages them automatically. You can view snapshot storage usage in **Data Management**.
+Snapshot storage size can be viewed in **Settings → Data Management**, where you can also set a snapshot retention limit.
 <!--/TIP-->
 
 ## Related Docs

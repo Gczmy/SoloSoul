@@ -4,11 +4,11 @@ The workspace is your primary interface for managing and browsing objects. SoloS
 
 ## Section Workspaces
 
-Four fixed sections: Identity, Travel, Financial, Professional.
+Five built-in sections: Identity, Travel, Financial, Professional, Document.
 
 - Click a sidebar icon or home card to enter the corresponding section
 - The workspace displays all objects of that type
-- Use the top search box to filter by name
+- Use the top search box to filter by name and properties
 
 ## Custom Pages
 
@@ -29,8 +29,8 @@ In addition to fixed sections, you can create your own pages to organize objects
 
 ## Managing Custom Pages
 
-- **Rename**: Double-click the custom page name in the sidebar
-- **Delete**: Enter the page workspace and click the **Delete** button in the top-right
+- **Rename**: Hover the custom page name in the sidebar and click the edit icon
+- **Delete**: Delete the page from its workspace or the edit popover (objects in the page are unaffected)
 
 <!--WARNING-->
 Deleting a custom page does **not** delete the objects within it. The objects remain in their respective sections.

@@ -61,6 +61,6 @@ AI features send data to external LLM providers. Do not share sensitive or criti
 <!--CARDS-->
 - [LLM Config & Statistics](llm_config.md) — Configure AI providers
 - [Plugins](plugins.md) — Extend AI capabilities
-- [Privacy Policy](PRIVACY_POLICY.md) — AI data processing policy
+- [Sensitivity & Privacy](sensitivity.md) — Data privacy levels
 <!--/CARDS-->
 

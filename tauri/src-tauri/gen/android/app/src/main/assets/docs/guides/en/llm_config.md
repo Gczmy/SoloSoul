@@ -36,21 +36,20 @@ For local models (e.g., Ollama), the base URL is typically `http://localhost:114
 
 ## AI Feature Switches
 
-You can individually control AI features in the LLM Config page:
+You can control AI features in the LLM Config page:
 
 | Feature | Description |
 |---------|-------------|
-| AI Chat | Chat with the AI assistant |
-| Smart Fill | Auto-complete object fields (in development) |
-| Command Gen | Natural language command generation (in development) |
-| Natural Language Search | Search by natural language description (in development) |
+| AI Chat | Chat with the AI assistant (toggle available) |
+| Smart Fill / Command Gen / Natural Language Search | Planned; no toggle in the UI yet |
 
-## System Prompt
+## Local Embeddings
 
-The system prompt switch controls whether software info is injected into AI context:
+The LLM Config page includes a **Local Embeddings** panel for managing local embedding models:
 
-- **On**: AI knows your public data and app state for more accurate answers
-- **Off**: Only user input is sent for maximum privacy
+- View available embedding models and their status (built-in / installed / not installed)
+- Download and install embedding models, and toggle local embeddings on
+- Local embeddings run on your device, powering local semantic retrieval (RAG) and similar features
 
 ## Usage Statistics
 
@@ -71,6 +70,6 @@ Token statistics are obtained by parsing real return data from AI providers. Bot
 <!--CARDS-->
 - [AI Chat](ai_chat.md) — Use the AI assistant
 - [Plugins](plugins.md) — Plugins and LLM
-- [Privacy Policy](PRIVACY_POLICY.md) — Data privacy statement
+- [Sensitivity & Privacy](sensitivity.md) — Data privacy levels
 <!--/CARDS-->
 
