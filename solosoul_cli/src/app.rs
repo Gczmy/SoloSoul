@@ -2744,6 +2744,63 @@ impl App {
 
     /// 中间内容区：按当前 phase 派发到对应屏幕渲染函数。
     fn render_content(&mut self, frame: &mut Frame, area: Rect) {
+        // P037 复核：36 个 phase 的巨型 match 按语义分组派发到子方法，
+        // 避免单个函数超长（各组子方法见下）。
+        #[derive(Copy, Clone)]
+        enum RenderGroup {
+            G0,
+            G1,
+            G2,
+            G3,
+        }
+        let group = match &self.phase {
+            AppPhase::Welcome
+            | AppPhase::Locked
+            | AppPhase::AccountList { .. }
+            | AppPhase::UnlockWizard { .. }
+            | AppPhase::Home { .. }
+            | AppPhase::Onboarding { .. }
+            | AppPhase::Quit => RenderGroup::G0,
+            AppPhase::ObjectList { .. }
+            | AppPhase::ObjectDetail { .. }
+            | AppPhase::Size { .. }
+            | AppPhase::Doctor { .. }
+            | AppPhase::NewObjectWizard { .. }
+            | AppPhase::EditObjectWizard { .. }
+            | AppPhase::TrashList { .. }
+            | AppPhase::SearchResults { .. }
+            | AppPhase::HistoryList { .. }
+            | AppPhase::OperationLog { .. }
+            | AppPhase::About { .. }
+            | AppPhase::Help { .. }
+            | AppPhase::AttachmentList { .. }
+            | AppPhase::BackupList { .. }
+            | AppPhase::Profile { .. } => RenderGroup::G1,
+            AppPhase::TemplateList { .. }
+            | AppPhase::TemplateDetail { .. }
+            | AppPhase::LlmConfig { .. }
+            | AppPhase::LlmStats { .. }
+            | AppPhase::ConversationList { .. }
+            | AppPhase::LlmChat
+            | AppPhase::PluginList { .. }
+            | AppPhase::PluginDetail { .. }
+            | AppPhase::SyncStatus { .. }
+            | AppPhase::OcrResult { .. }
+            | AppPhase::EmbedModelList { .. } => RenderGroup::G2,
+            AppPhase::SettingsMenu { .. }
+            | AppPhase::SettingsLanguageSelect { .. }
+            | AppPhase::SettingsThemeSelect { .. }
+            | AppPhase::SettingsPreferenceEdit => RenderGroup::G3,
+        };
+        match group {
+            RenderGroup::G0 => self.render_basic_screens(frame, area),
+            RenderGroup::G1 => self.render_data_screens(frame, area),
+            RenderGroup::G2 => self.render_template_llm_screens(frame, area),
+            RenderGroup::G3 => self.render_settings_screens(frame, area),
+        }
+    }
+
+    fn render_basic_screens(&mut self, frame: &mut Frame, area: Rect) {
         match &self.phase {
             AppPhase::Welcome => crate::screens::welcome::render(
                 frame,
@@ -2753,6 +2810,7 @@ impl App {
                 self.sheen_offset,
                 self.welcome_selected,
             ),
+
             AppPhase::Locked => crate::screens::locked::render(
                 frame,
                 area,
@@ -2761,12 +2819,15 @@ impl App {
                 self.sheen_offset,
                 self.locked_selected,
             ),
+
             AppPhase::AccountList { accounts } => {
                 crate::screens::account_list::render(frame, area, accounts, &self.i18n)
             }
+
             AppPhase::UnlockWizard { step } => {
                 crate::screens::unlock::render(frame, area, step, self.sheen_offset, &self.i18n)
             }
+
             AppPhase::Home { account_id } => crate::screens::home::render(
                 frame,
                 area,
@@ -2778,39 +2839,65 @@ impl App {
                 self.sheen_offset,
                 &self.i18n,
             ),
+
+            AppPhase::Onboarding { step } => {
+                crate::screens::onboarding::render(frame, area, self, step)
+            }
+
+            AppPhase::Quit => {}
+
+            _ => {}
+        }
+    }
+
+    fn render_data_screens(&mut self, frame: &mut Frame, area: Rect) {
+        match &self.phase {
             AppPhase::ObjectList {
                 items,
+
                 title,
+
                 truncated,
             } => crate::screens::object_list::render(
                 frame, area, title, items, *truncated, &self.i18n,
             ),
+
             AppPhase::ObjectDetail { object } => {
                 // P006 复核：传入模板表供字段级敏感度兜底（与 /search 的
+
                 // collect_protected_field_keys 判定保持一致）。
+
                 let templates = self
                     .vault_service
                     .get_vault_store()
                     .and_then(|v| v.list_user_templates(&object.account_id).ok())
                     .map(|ts| ts.into_iter().map(|t| (t.id.clone(), t)).collect())
                     .unwrap_or_default();
+
                 crate::screens::object_detail::render(frame, area, object, &templates, &self.i18n)
             }
+
             AppPhase::Size { report } => {
                 crate::screens::size::render(frame, area, report, &self.i18n)
             }
+
             AppPhase::Doctor { report } => {
                 crate::screens::doctor::render(frame, area, report, &self.i18n)
             }
+
             AppPhase::NewObjectWizard { step } => {
                 crate::screens::new_object::render(frame, area, step, &self.i18n)
             }
+
             AppPhase::EditObjectWizard { object_id, step } => {
                 crate::screens::edit_object::render(frame, area, object_id, step, &self.i18n)
             }
+
             AppPhase::TrashList {
                 items,
+
                 selected,
+
                 selected_ids,
                 ..
             } => crate::screens::trash_list::render(
@@ -2821,14 +2908,16 @@ impl App {
                 selected_ids,
                 &self.i18n,
             ),
-            AppPhase::Onboarding { step } => {
-                crate::screens::onboarding::render(frame, area, self, step)
-            }
+
             AppPhase::SearchResults {
                 query,
+
                 items,
+
                 selected,
+
                 truncated,
+
                 total_scanned,
             } => crate::screens::search_results::render(
                 frame,
@@ -2840,27 +2929,38 @@ impl App {
                 *total_scanned,
                 &self.i18n,
             ),
+
             AppPhase::HistoryList {
                 object_id,
+
                 snapshots,
+
                 selected,
             } => crate::screens::history_list::render(
                 frame, area, object_id, snapshots, *selected, &self.i18n,
             ),
+
             AppPhase::OperationLog {
                 entries, selected, ..
             } => crate::screens::operation_log::render(frame, area, entries, *selected, &self.i18n),
+
             AppPhase::About { info } => {
                 crate::screens::about::render(frame, area, info, &self.i18n)
             }
+
             AppPhase::Help {
                 topic,
+
                 scroll_offset,
             } => crate::screens::help::render(frame, area, topic, *scroll_offset, &self.i18n),
+
             AppPhase::AttachmentList {
                 object_id,
+
                 items,
+
                 show_deleted,
+
                 selected,
             } => crate::screens::attachment_list::render(
                 frame,
@@ -2871,17 +2971,30 @@ impl App {
                 *selected,
                 &self.i18n,
             ),
+
             AppPhase::BackupList { items, selected } => {
                 crate::screens::backup_list::render(frame, area, items, *selected, &self.i18n)
             }
+
             AppPhase::Profile {
                 profile,
+
                 data,
+
                 selected,
             } => crate::screens::profile::render(frame, area, profile, data, *selected, &self.i18n),
+
+            _ => {}
+        }
+    }
+
+    fn render_template_llm_screens(&mut self, frame: &mut Frame, area: Rect) {
+        match &self.phase {
             AppPhase::TemplateList {
                 user_templates,
+
                 system_templates,
+
                 selected,
             } => crate::screens::template_list::render(
                 frame,
@@ -2891,10 +3004,14 @@ impl App {
                 *selected,
                 &self.i18n,
             ),
+
             AppPhase::TemplateDetail {
                 template_id,
+
                 name,
+
                 source,
+
                 json,
             } => crate::screens::template_detail::render(
                 frame,
@@ -2905,14 +3022,18 @@ impl App {
                 json,
                 &self.i18n,
             ),
+
             AppPhase::LlmConfig {
                 config, selected, ..
             } => crate::screens::llm_config::render(frame, area, config, *selected, &self.i18n),
+
             AppPhase::LlmStats { stats, selected } => {
                 crate::screens::llm_stats::render(frame, area, stats, *selected, &self.i18n)
             }
+
             AppPhase::ConversationList {
                 conversations,
+
                 selected,
             } => crate::screens::conversation_list::render(
                 frame,
@@ -2921,31 +3042,42 @@ impl App {
                 *selected,
                 &self.i18n,
             ),
+
             AppPhase::LlmChat => {
                 if let Some(ref state) = self.chat_state {
                     crate::screens::llm_chat::render(frame, area, state, &self.i18n)
                 }
             }
+
             AppPhase::PluginList {
                 plugins,
+
                 selected,
+
                 filter,
             } => crate::screens::plugin_list::render(
                 frame, area, plugins, *selected, filter, &self.i18n,
             ),
+
             AppPhase::PluginDetail { manifest } => {
                 crate::screens::plugin_detail::render(frame, area, manifest, &self.i18n)
             }
+
             AppPhase::SyncStatus { peers, info } => {
                 crate::screens::sync_status::render(frame, area, peers, info, &self.i18n)
             }
+
             AppPhase::OcrResult {
                 result,
+
                 source_path,
+
                 tiers,
+
                 mrz,
             } => {
                 let t = tiers.clone().unwrap_or_default();
+
                 crate::screens::ocr_result::render(
                     frame,
                     area,
@@ -2956,12 +3088,22 @@ impl App {
                     &self.i18n,
                 )
             }
+
             AppPhase::EmbedModelList { models, info } => {
                 crate::screens::embed_model::render(frame, area, models, info, &self.i18n)
             }
+
+            _ => {}
+        }
+    }
+
+    fn render_settings_screens(&mut self, frame: &mut Frame, area: Rect) {
+        match &self.phase {
             AppPhase::SettingsMenu {
                 selected,
+
                 current_language,
+
                 current_theme,
             } => crate::screens::settings_menu::render(
                 frame,
@@ -2973,8 +3115,10 @@ impl App {
                 self.mouse_pos,
                 &self.i18n,
             ),
+
             AppPhase::SettingsLanguageSelect { selected } => {
                 let current = crate::commands::settings::current_language(self);
+
                 crate::screens::settings_language_select::render(
                     frame,
                     area,
@@ -2985,8 +3129,10 @@ impl App {
                     &self.i18n,
                 )
             }
+
             AppPhase::SettingsThemeSelect { selected } => {
                 let current = crate::commands::settings::current_theme(self);
+
                 crate::screens::settings_theme_select::render(
                     frame,
                     area,
@@ -2997,16 +3143,21 @@ impl App {
                     &self.i18n,
                 )
             }
+
             AppPhase::SettingsPreferenceEdit => {
                 // 自定义偏好向导：提示框覆盖整个 TUI，这里只渲染中性占位
+
                 // （仅在被 prompt 关闭后才可见）。
+
                 let para = ratatui::widgets::Paragraph::new(
                     ratatui::text::Line::from(t!(self.i18n, "app-editing-preferences")).italic(),
                 )
                 .alignment(ratatui::layout::Alignment::Center);
+
                 frame.render_widget(para, area);
             }
-            AppPhase::Quit => {}
+
+            _ => {}
         }
     }
 
