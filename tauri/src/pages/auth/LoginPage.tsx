@@ -20,6 +20,10 @@ import { ICON_SIZE } from '@/lib/constants';
 import { LoginBiometricView } from './LoginBiometricView';
 import { LoginPinView } from './LoginPinView';
 import { LoginPasswordView } from './LoginPasswordView';
+import { LoginAccountSelector } from './LoginAccountSelector';
+import { LoginQuickLinks } from './LoginQuickLinks';
+import { LoginIconBar } from './LoginIconBar';
+import type { LoginMethodOption } from './LoginIconBar';
 
 /** P038: 受支持的生物识别类型白名单（显示名由 LoginBiometricView 的查表负责） */
 const BIOMETRIC_INFO: Record<string, string> = {
@@ -524,6 +528,16 @@ export function LoginPage() {
     }
   };
 
+  const handleIconClick = (method: LoginMethodOption) => {
+    setHoveredIcon(null);
+    setCommittedIcon(null);
+    if (commitTimerRef.current) {
+      clearTimeout(commitTimerRef.current);
+      commitTimerRef.current = null;
+    }
+    method.onClick();
+  };
+
   const isBiometricMethod =
     loginMethod === 'faceId' || loginMethod === 'touchId' || loginMethod === 'windowsHello';
 
@@ -545,63 +559,11 @@ export function LoginPage() {
         </p>
 
         {/* Account selector / name — 始终预留空间，避免切换登录方式时下方内容位移 */}
-        <div
-          style={{ marginBottom: 20, width: '100%', minHeight: accounts.length > 0 ? 'auto' : 50 }}
-        >
-          {accounts.length > 0 &&
-            (accounts.length > 1 ? (
-              <select
-                value={selectedAccountId}
-                onChange={(e) => setSelectedAccountId(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '10px 14px',
-                  borderRadius: 8,
-                  border: '1px solid var(--border-subtle)',
-                  background: 'var(--bg-elevated)',
-                  color: 'var(--text-primary)',
-                  fontSize: 'var(--text-body)',
-                  fontFamily: 'inherit',
-                  outline: 'none',
-                  textAlign: 'left',
-                }}
-              >
-                {accounts.map((acc) => (
-                  <option key={acc.id} value={acc.id}>
-                    {acc.name} · {acc.id}
-                  </option>
-                ))}
-              </select>
-            ) : (
-              <div
-                style={{
-                  width: '100%',
-                  padding: '10px 14px',
-                  borderRadius: 8,
-                  border: '1px solid var(--border-subtle)',
-                  background: 'var(--bg-elevated)',
-                  color: 'var(--text-primary)',
-                  fontSize: 'var(--text-body)',
-                  textAlign: 'left',
-                }}
-              >
-                <div>{selectedAccount?.name ?? accounts[0]?.name}</div>
-                <div
-                  style={{
-                    fontSize: 'var(--text-badge)',
-                    color: 'var(--text-tertiary)',
-                    marginTop: 2,
-                    fontFamily: 'monospace',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                  }}
-                >
-                  {selectedAccount?.id ?? accounts[0]?.id}
-                </div>
-              </div>
-            ))}
-        </div>
+        <LoginAccountSelector
+          accounts={accounts}
+          selectedAccountId={selectedAccountId}
+          onSelect={setSelectedAccountId}
+        />
 
         {/* Biometric unlock — highest-priority method */}
         {isBiometricMethod && loginMethod && (
@@ -656,133 +618,22 @@ export function LoginPage() {
         )}
 
         {/* 在已有账户的登录页提供创建新账户与从其他设备恢复入口 */}
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: 8,
-            marginTop: 16,
-          }}
-        >
-          <button
-            type="button"
-            onClick={() => navigate('/bootstrap?mode=create')}
-            className="interactive-accent-link"
-            style={{
-              fontSize: 'var(--text-body-sm)',
-              background: 'transparent',
-              border: 'none',
-              padding: '6px 12px',
-              cursor: 'pointer',
-              fontFamily: 'inherit',
-            }}
-          >
-            {t('common:create_new_account_link')}
-          </button>
-          <button
-            type="button"
-            onClick={() => setRecoveryOpen(true)}
-            className="interactive-accent-link"
-            style={{
-              fontSize: 'var(--text-body-sm)',
-              background: 'transparent',
-              border: 'none',
-              padding: '6px 12px',
-              cursor: 'pointer',
-              fontFamily: 'inherit',
-            }}
-          >
-            {t('common:restore_from_device_link')}
-          </button>
-        </div>
+        <LoginQuickLinks
+          onCreateAccount={() => navigate('/bootstrap?mode=create')}
+          onRestore={() => setRecoveryOpen(true)}
+        />
 
         {/* ===== 底部图标栏 — 切换解锁方式 ===== */}
         {loginMethod !== null && (
-          <div
-            style={{
-              display: 'flex',
-              gap: 6,
-              paddingTop: 12,
-              marginTop: 'auto',
-              borderTop: '1px solid var(--border-subtle)',
-              justifyContent: 'flex-start',
-              overflow: 'hidden',
-              maxWidth: '100%',
-            }}
-          >
-            {iconMethods.map((method) => {
-              const isActive = loginMethod === method.id;
-              const isHovered = hoveredIcon === method.id;
-              const isExpanded = committedIcon === method.id;
-
-              return (
-                <button
-                  key={method.id}
-                  aria-label={method.label}
-                  onClick={() => {
-                    setHoveredIcon(null);
-                    setCommittedIcon(null);
-                    if (commitTimerRef.current) {
-                      clearTimeout(commitTimerRef.current);
-                      commitTimerRef.current = null;
-                    }
-                    method.onClick();
-                  }}
-                  onMouseEnter={() => handleIconEnter(method.id)}
-                  onMouseLeave={handleIconLeave}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 6,
-                    padding: '6px 10px',
-                    borderRadius: 8,
-                    border: `1px solid ${
-                      isHovered
-                        ? 'var(--accent-primary)'
-                        : isActive
-                          ? 'color-mix(in srgb, var(--accent-primary) 40%, transparent)'
-                          : 'transparent'
-                    }`,
-                    background: isActive
-                      ? 'color-mix(in srgb, var(--accent-primary) 6%, transparent)'
-                      : 'transparent',
-                    cursor: 'pointer',
-                    fontFamily: 'inherit',
-                    fontSize: 'var(--text-body-sm)',
-                    color: isHovered
-                      ? 'var(--accent-primary)'
-                      : isActive
-                        ? 'var(--text-primary)'
-                        : 'var(--text-tertiary)',
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    maxWidth: isExpanded ? 200 : 40,
-                    transition:
-                      isExpanded || (!isHovered && !isExpanded)
-                        ? 'all 0.25s ease'
-                        : 'all 0.25s ease, max-width 0.01s linear 0.2s',
-                    flexShrink: 0,
-                    outline: 'none',
-                  }}
-                >
-                  <span style={{ flexShrink: 0, display: 'flex', alignItems: 'center' }}>
-                    {method.icon}
-                  </span>
-                  <span
-                    style={{
-                      opacity: isExpanded ? 1 : 0,
-                      transition: 'opacity 0.2s ease 0.05s',
-                      overflow: 'hidden',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    {method.label}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
+          <LoginIconBar
+            loginMethod={loginMethod}
+            iconMethods={iconMethods}
+            hoveredIcon={hoveredIcon}
+            committedIcon={committedIcon}
+            onIconEnter={handleIconEnter}
+            onIconLeave={handleIconLeave}
+            onIconClick={handleIconClick}
+          />
         )}
 
         <RecoveryReceiveDialog
