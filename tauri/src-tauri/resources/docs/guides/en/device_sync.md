@@ -6,7 +6,6 @@ SoloSoul's device sync lets you securely synchronize **Profiles, Objects, Templa
 Sync is completely optional. Your local data remains fully functional even when sync is disabled — SoloSoul is designed local-first.
 <!--/TIP-->
 
----
 
 ## 1. Before You Sync
 
@@ -14,7 +13,6 @@ Sync is completely optional. Your local data remains fully functional even when 
 2. **Same LAN**: mDNS auto-discovery requires both devices to be on the same Wi-Fi or local network.
 3. **Same major version**: keep both apps on the same major version to avoid data-format mismatches.
 
----
 
 ## 2. Enabling Sync
 
@@ -50,7 +48,6 @@ UI preferences are personal taste — different devices can look different. Chec
 **Never trust a fingerprint you do not recognize or cannot verify physically.** An attacker may impersonate your device. Only tap **Trust & Pair** after confirming the other device shows the same fingerprint.
 <!--/WARNING-->
 
----
 
 ## 3. Pairing and Trust
 
@@ -85,7 +82,6 @@ If mDNS is blocked by a corporate network, VPN, or firewall, use the manual addr
 The listening port is assigned by the OS and is not shown directly in the UI. The two-instance smoke-test script (`scripts/dev-two-instances.sh`) and log output provide the port.
 <!--/TIP-->
 
----
 
 ## 4. What Syncs and How Conflicts Are Resolved
 
@@ -121,7 +117,6 @@ The conflict panel **never displays plaintext data** — only metadata so you ca
 
 Hard-deleting a `profile` or `user_template` writes a `sync_tombstones` entry. When device A deletes a record and device B syncs, B deletes its local copy and keeps the remote HLC as the authoritative deletion time.
 
----
 
 ## 5. Sync History Panel
 
@@ -135,7 +130,6 @@ After each sync, the **Sync History** panel below records the last 10 results, i
 
 This lets you track what was applied, what was skipped because local data was newer, and whether attachments arrived intact.
 
----
 
 ## 6. Large-Database Chunked Streaming
 
@@ -146,7 +140,6 @@ When a table (e.g. Objects) contains many records, SoloSoul automatically splits
 - The receiver applies batches incrementally, avoiding loading the whole table into memory.
 - If the connection drops, the next sync resumes from the last watermark, reducing re-transmission.
 
----
 
 ## 7. Security and Privacy
 
@@ -156,7 +149,6 @@ When a table (e.g. Objects) contains many records, SoloSoul automatically splits
 - **Explicit trust**: untrusted devices cannot complete a sync; you must manually verify fingerprints.
 - **Audit log**: enabling/disabling sync, trusting/revoking peers, and completed syncs are written to the local audit log.
 
----
 
 ## 8. Troubleshooting
 
@@ -182,7 +174,6 @@ When a table (e.g. Objects) contains many records, SoloSoul automatically splits
 - Open **Sync Activity** and look at the `skipped` count. If the local HLC is newer, the remote record is skipped — this is normal conflict resolution.
 - Confirm the data was actually saved on the peer with a newer HLC.
 
----
 
 ## 9. Developer Debugging
 
@@ -198,7 +189,6 @@ The script:
 - Uses different `SOLOSOUL_VITE_PORT` / `SOLOSOUL_VITE_HMR_PORT` values to avoid port collisions.
 - Copies the same account into both directories so the `account_id` matches, letting you verify end-to-end sync locally (discovery, pairing, bidirectional sync, attachments, tombstone propagation).
 
----
 
 ## Related Docs
 
