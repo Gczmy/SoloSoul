@@ -1,6 +1,30 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import { isSafeExternalUrl, GuideRenderer } from './GuideRenderer';
+import { isSafeExternalUrl, resolveGuideIdFromHref, GuideRenderer } from './GuideRenderer';
+
+describe('resolveGuideIdFromHref', () => {
+  const guides = [
+    { id: 'device-sync', files: { zh: 'zh/device_sync.md', en: 'en/device_sync.md' } },
+    { id: 'templates', files: { zh: 'zh/templates.md', en: 'en/templates.md' } },
+  ];
+
+  it('maps file name to real id when they differ (device_sync.md → device-sync)', () => {
+    expect(resolveGuideIdFromHref('device_sync.md', guides)).toBe('device-sync');
+  });
+
+  it('maps file name with directory prefix to real id', () => {
+    expect(resolveGuideIdFromHref('zh/device_sync.md', guides)).toBe('device-sync');
+  });
+
+  it('keeps id when file name matches', () => {
+    expect(resolveGuideIdFromHref('templates.md', guides)).toBe('templates');
+  });
+
+  it('falls back to file name when no index match', () => {
+    expect(resolveGuideIdFromHref('unknown.md', guides)).toBe('unknown');
+    expect(resolveGuideIdFromHref('unknown.md', undefined)).toBe('unknown');
+  });
+});
 
 describe('GuideRenderer H1 divider', () => {
   it('renders the H1 page title with a bottom border divider', () => {

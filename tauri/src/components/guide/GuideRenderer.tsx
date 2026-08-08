@@ -74,6 +74,27 @@ function parseSegments(markdown: string): Segment[] {
  * 自定义 a 组件直渲 href 即可成为 XSS 出口。此处显式白名单兜底：
  * 非白名单协议一律降级为纯文本（不渲染可点击链接）。
  */
+/**
+ * 从文档内 .md 链接解析 guide id。
+ *
+ * 文件名可能与 index 中的 id 不一致（如 `device_sync.md` 的 id 是 `device-sync`），
+ * 直接拿文件名当 id 会导致后端 Guide not found。通过索引反查文件名对应的真实 id，
+ * 查不到时回退为文件名本身（保持向后兼容）。
+ *
+ * 注意：调用方传入的 guides 可能尚未加载完成（index 与内容并行请求）；
+ * 此时回退为文件名，绝大多数文档文件名与 id 一致不受影响。
+ */
+export function resolveGuideIdFromHref(
+  href: string,
+  guides?: { id: string; files: Record<string, string> }[],
+): string {
+  const fileName = href.replace(/\.md$/, '').split('/').pop() || href;
+  const matched = guides?.find((g) =>
+    Object.values(g.files).some((fp) => fp.endsWith(`${fileName}.md`)),
+  );
+  return matched?.id ?? fileName;
+}
+
 export function isSafeExternalUrl(href: string): boolean {
   const trimmed = href.trim();
   if (!trimmed) return false;

@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { AppShell } from '@/components/layout/AppShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
-import { GuideRenderer } from '@/components/guide/GuideRenderer';
+import { GuideRenderer, resolveGuideIdFromHref } from '@/components/guide/GuideRenderer';
 import { GuideIndex } from '@/components/guide/GuideIndex';
 import { GuideSearch } from '@/components/guide/GuideSearch';
 import { OnboardingDialog } from '@/components/onboarding/OnboardingDialog';
@@ -229,8 +229,9 @@ export function HelpPage() {
             <GuideRenderer
               content={content.content}
               onLinkClick={(href) => {
-                const guideIdFromHref = href.replace(/\.md$/, '').split('/').pop() || href;
-                setSearchParams({ id: guideIdFromHref });
+                // 文件名可能与 id 不一致（如 device_sync.md → id device-sync），
+                // 通过索引反查真实 id，避免 Guide not found。
+                setSearchParams({ id: resolveGuideIdFromHref(href, index?.guides) });
               }}
             />
           </motion.div>
