@@ -792,20 +792,7 @@ fn import_attachments(
             .map_err(|e| format!("derive att key: {}", e))?;
 
     // Build old att_id -> meta map from payload objects
-    let mut att_meta_map: std::collections::HashMap<(String, String), AttachmentMeta> =
-        std::collections::HashMap::new();
-    for obj_val in objects {
-        let obj_id = obj_val["id"].as_str().unwrap_or("");
-        if obj_id.is_empty() {
-            continue;
-        }
-        let empty_props = serde_json::Map::new();
-        let props = obj_val["properties"].as_object().unwrap_or(&empty_props);
-        let atts = load_attachments(&serde_json::Value::Object(props.clone()));
-        for att in &atts {
-            att_meta_map.insert((obj_id.to_string(), att.id.clone()), att.clone());
-        }
-    }
+    let att_meta_map = build_att_meta_map(objects);
 
     // Open ZIP and iterate attachments
     let zip_file = File::open(file_path).map_err(|e| format!("open zip: {}", e))?;
@@ -854,59 +841,13 @@ fn import_attachments(
             Some(m) => m,
             None => continue,
         };
-
-        // Use streaming decryption to avoid holding the full ciphertext
-        // and plaintext in memory simultaneously (P1-024).
-        let new_att_id = generate_id();
-        // KeepBoth 场景下附件目录应使用新对象 ID，否则后续 load_object 基于新 ID 查找会找不到
-        let att_obj_id = id_map
-            .get(obj_id)
-            .cloned()
-            .unwrap_or_else(|| obj_id.to_string());
-        let dest = base_path
-            .join("attachments")
-            .join(&att_obj_id)
-            .join(&new_att_id);
-        std::fs::create_dir_all(&dest).map_err(|e| e.to_string())?;
-
-        // R008/P003: 净化导入文件名——显式拒绝路径分隔符（Unix 上 `\\` 不是分隔符，
-        // 仅靠 Path::file_name() 无法剥离 `..\\..\\evil.txt` 中的反斜杠），再取末段组件兜底。
-        let raw_name = &old_meta.file_name;
-        if raw_name.contains('/') || raw_name.contains('\\') {
-            return Err("Invalid attachment file name in package".to_string());
-        }
-        let safe_name = std::path::Path::new(raw_name)
-            .file_name()
-            .ok_or("Invalid attachment file name in package")?
-            .to_string_lossy()
-            .to_string();
-        if safe_name.is_empty() || safe_name == "." || safe_name == ".." {
-            return Err("Invalid attachment file name in package".to_string());
-        }
-        let file_path_dest = dest.join(&safe_name);
-        let mut out_file =
-            File::create(&file_path_dest).map_err(|e| format!("create attachment file: {}", e))?;
-        solosoul_crypto::cipher::decrypt_chunked_stream(&att_key, &mut f, &mut out_file)
-            .map_err(|e| format!("decrypt attachment stream: {}", e))?;
-        let file_size = std::fs::metadata(&file_path_dest)
-            .map(|m| m.len())
-            .unwrap_or(0);
-
+        let new_att = extract_att_meta_for_object(
+            base_path, &att_key, &mut f, obj_id, old_meta, id_map, now,
+        )?;
         imported_atts
             .entry(obj_id.to_string())
             .or_default()
-            .push(AttachmentMeta {
-                id: new_att_id,
-                object_id: obj_id.to_string(),
-                // P003: 元数据写回净化后的 safe_name，防止后续插件主机 join 时存储型路径遍历
-                file_name: safe_name.clone(),
-                mime_type: old_meta.mime_type.clone(),
-                size_bytes: file_size,
-                created_at: now.to_string(),
-                deleted_at: None,
-                src_path: Some(file_path_dest.to_string_lossy().to_string()),
-                vault_path: Some(file_path_dest.to_string_lossy().to_string()),
-            });
+            .push(new_att);
     }
 
     // 对于 KeepBoth 对象，将附件 key 从旧 ID 映射到新 ID
@@ -928,7 +869,101 @@ fn import_attachments(
     }
 
     // Replace each imported object's __attachments with the newly imported list
-    for (obj_id, atts) in &remapped_atts {
+    write_attachments_back(vault, &remapped_atts)?;
+
+    Ok(imported_atts.values().map(|v| v.len()).sum())
+}
+
+/// 从 payload objects 构建「旧附件 ID → 元数据」映射。
+fn build_att_meta_map(
+    objects: &[serde_json::Value],
+) -> std::collections::HashMap<(String, String), AttachmentMeta> {
+    let mut att_meta_map: std::collections::HashMap<(String, String), AttachmentMeta> =
+        std::collections::HashMap::new();
+    for obj_val in objects {
+        let obj_id = obj_val["id"].as_str().unwrap_or("");
+        if obj_id.is_empty() {
+            continue;
+        }
+        let empty_props = serde_json::Map::new();
+        let props = obj_val["properties"].as_object().unwrap_or(&empty_props);
+        let atts = load_attachments(&serde_json::Value::Object(props.clone()));
+        for att in &atts {
+            att_meta_map.insert((obj_id.to_string(), att.id.clone()), att.clone());
+        }
+    }
+    att_meta_map
+}
+
+/// 解码并落盘单个 ZIP 附件条目：净化文件名 → 流式解密 → 返回新 AttachmentMeta。
+/// Use streaming decryption to avoid holding the full ciphertext
+/// and plaintext in memory simultaneously (P1-024)。
+/// 参数多因含路径上下文/密钥/元数据/映射/时间戳，语义独立不合并。
+#[allow(clippy::too_many_arguments)]
+fn extract_att_meta_for_object(
+    base_path: &std::path::Path,
+    att_key: &[u8; 32],
+    f: &mut zip::read::ZipFile<'_>,
+    obj_id: &str,
+    old_meta: &AttachmentMeta,
+    id_map: &HashMap<String, String>,
+    now: &str,
+) -> Result<AttachmentMeta, String> {
+    let new_att_id = generate_id();
+    // KeepBoth 场景下附件目录应使用新对象 ID，否则后续 load_object 基于新 ID 查找会找不到
+    let att_obj_id = id_map
+        .get(obj_id)
+        .cloned()
+        .unwrap_or_else(|| obj_id.to_string());
+    let dest = base_path
+        .join("attachments")
+        .join(&att_obj_id)
+        .join(&new_att_id);
+    std::fs::create_dir_all(&dest).map_err(|e| e.to_string())?;
+
+    // R008/P003: 净化导入文件名——显式拒绝路径分隔符（Unix 上 `\\` 不是分隔符，
+    // 仅靠 Path::file_name() 无法剥离 `..\\..\\evil.txt` 中的反斜杠），再取末段组件兜底。
+    let raw_name = &old_meta.file_name;
+    if raw_name.contains('/') || raw_name.contains('\\') {
+        return Err("Invalid attachment file name in package".to_string());
+    }
+    let safe_name = std::path::Path::new(raw_name)
+        .file_name()
+        .ok_or("Invalid attachment file name in package")?
+        .to_string_lossy()
+        .to_string();
+    if safe_name.is_empty() || safe_name == "." || safe_name == ".." {
+        return Err("Invalid attachment file name in package".to_string());
+    }
+    let file_path_dest = dest.join(&safe_name);
+    let mut out_file =
+        File::create(&file_path_dest).map_err(|e| format!("create attachment file: {}", e))?;
+    solosoul_crypto::cipher::decrypt_chunked_stream(att_key, f, &mut out_file)
+        .map_err(|e| format!("decrypt attachment stream: {}", e))?;
+    let file_size = std::fs::metadata(&file_path_dest)
+        .map(|m| m.len())
+        .unwrap_or(0);
+
+    Ok(AttachmentMeta {
+        id: new_att_id,
+        object_id: obj_id.to_string(),
+        // P003: 元数据写回净化后的 safe_name，防止后续插件主机 join 时存储型路径遍历
+        file_name: safe_name.clone(),
+        mime_type: old_meta.mime_type.clone(),
+        size_bytes: file_size,
+        created_at: now.to_string(),
+        deleted_at: None,
+        src_path: Some(file_path_dest.to_string_lossy().to_string()),
+        vault_path: Some(file_path_dest.to_string_lossy().to_string()),
+    })
+}
+
+/// 将新附件列表写回各对象的 __attachments 元数据。
+fn write_attachments_back(
+    vault: &solosoul_vault::VaultStore,
+    remapped_atts: &std::collections::HashMap<String, Vec<AttachmentMeta>>,
+) -> Result<(), String> {
+    for (obj_id, atts) in remapped_atts {
         let mut obj = vault
             .load_object(obj_id)
             .map_err(|e| format!("get object: {}", e))?
@@ -946,8 +981,7 @@ fn import_attachments(
         }
         vault.save_object(&obj)?;
     }
-
-    Ok(imported_atts.values().map(|v| v.len()).sum())
+    Ok(())
 }
 
 /// 阶段 6：导入偏好设置（如包内含 preferences.enc）。
