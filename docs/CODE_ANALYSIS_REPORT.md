@@ -1,9 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-08 02:10:00
-> 当前分支：`main`
-> 修复轮次：1（初始分析，按用户要求不恢复旧报告、全新生成）
-> 修复进度：P001-P045 全部闭环（45/45，仅 P013/P014 两项巨型组件拆分列为长期重构项）
+> 最后更新：2026-08-08（P001-P045 全部闭环 45/45；P013 六组件拆分已闭环，仅剩 P014 Rust 侧超长函数为长期重构项）
 > 分析范围：`tauri/`（Rust 后端 + React/TS 前端）、`solosoul_cli/`；忽略 `node_modules/`、`target/`、`dist/`、`.vite/`、`*.min.js`、`*.wasm`
 
 ## 阶段 0 基线检查结果
@@ -28,7 +25,7 @@
 | P010 | P1 | 重复代码 | `tauri/src/hooks/useUpdateChecker.ts:137-178` vs `useAppUpdate.ts:100-176` | 约 80 行 APK 下载/进度 Promise 封装近乎逐行重复，已开始各自打补丁发散 | `[x]` 已修复 |
 | P011 | P1 | 重复代码 | `tauri/src/components/object/AttachmentViewer.tsx:195-217` vs `tauri/src/hooks/useAttachmentManager.ts:186-208` | `handleDownload` 逐字符级重复（含动态 import、toast 文案） | `[x]` 已修复 |
 | P012 | P1 | 重复代码 | `tauri/src/pages/sync/DeviceListPanel.tsx:128-151` vs `:329-352` | 约 40 行设备卡片 JSX（含键盘可访问性）整段重复 | `[x]` 已修复 |
-| P013 | P1 | 可维护性 | `AttachmentViewer.tsx`(~660 行)、`LoginPage.tsx`(~654)、`ExportImportPage.tsx`(~643)、`PageGuide.tsx`(~615)、`useObjectWorkspaceData.ts`(~524)、`PasswordVerificationDialog.tsx`(~516) | 前端 6 个 500+ 行巨型组件/Hook | `[ ]` 待修复 |
+| P013 | P1 | 可维护性 | `AttachmentViewer.tsx`(~660 行)、`LoginPage.tsx`(~654)、`ExportImportPage.tsx`(~643)、`PageGuide.tsx`(~615)、`useObjectWorkspaceData.ts`(~524)、`PasswordVerificationDialog.tsx`(~516) | 前端 6 个 500+ 行巨型组件/Hook | `[x]` 已修复（六组件逐一拆分，见实施记录 P013/1-6） |
 | P014 | P1 | 可维护性 | `crates/solosoul-plugin/src/host.rs:437,662,893`（530+ 行合计）、`solosoul-vault/src/storage.rs:482`、`export.rs:491` 等 | Rust 侧多个 150-300 行超长函数 | `[ ]` 待修复 |
 | P015 | P2 | 安全 | `tauri/src-tauri/src/commands/llm/request.rs:214-245` | LLM base URL 允许公网 `http://`，Bearer key 与聊天内容明文传输；与 OCR 侧策略不一致 | `[x]` 已修复（非回环 host 强制 https，回环保留 http；新增 `is_loopback_host` + 单测 5 条） |
 | P016 | P2 | 安全 | `tauri/src-tauri/src/commands/llm/stream.rs:388` | 流式聊天未调用 `ensure_public_llm_host`，内网主机名可绕过 SSRF 封禁 | `[x]` 已修复（`llm_send_message_stream` 补 `ensure_public_llm_host` 异步解析复核，与 chat_http 一致） |
@@ -64,8 +61,8 @@
 
 ## 修复进度
 
-- 已完成：43 / 45（P037 已闭环；P013/P014 巨型组件拆分列为长期重构项，见备注）
-- 当前处理：P013/P014 长期重构项待专门排期
+- 已完成：44 / 45（P013 六组件拆分已闭环；仅剩 P014 Rust 侧超长函数为长期重构项，见备注）
+- 当前处理：P014 长期重构项待专门排期
 
 ## 修复实施记录
 
@@ -86,6 +83,23 @@
   2. 前端 124 处 `collectionType`→`typeId`（19 个非测试文件 84 处 + 7 个测试文件 40 处），含类型定义/属性访问/IPC filter 键/search payload 键/辅助函数参数名。
   3. 后端测试 JSON 断言同步（object/tests.rs 3 处）。
 - **验证**：`cargo check` ✅ / clippy 0 警告 ✅ / object+search 151 测试 + vault 全过 ✅ / tsc 0 错误 ✅ / eslint ✅ / Vitest 65 文件 572 测试全过 ✅。
+
+### P013/1-6（P1）前端 6 个巨型组件拆分 ✅
+
+按组件逐一拆分、逐项验证提交：
+
+| # | 组件 | 行数变化 | 拆分方式 |
+|---|------|---------|---------|
+| 1 | `AttachmentViewer.tsx` | 752→572 | 拆出 `AttachmentViewerHeader`/`AttachmentBatchToolbar`/`AttachmentConfirmDialogs` 三子组件 |
+| 2 | `LoginPage.tsx` | 799→650 | 拆出 `LoginAccountSelector`/`LoginQuickLinks`/`LoginIconBar` 三子组件 |
+| 3 | `ExportImportPage.tsx` | 762→484 | 导入流程状态与 handler 提取为 `useImportState` hook（357 行） |
+| 4 | `PageGuide.tsx` | 699→432 | 拆出 `GuidePageContent`/`GuidePageFooter` 两子组件 |
+| 5 | `useObjectWorkspaceData.ts` | 629→505 | 拆出 `useWorkspacePasswordGuard`/`useTemplateFieldMeta` 两子 hook |
+| 6 | `PasswordVerificationDialog.tsx` | 635→566 | 底部解锁图标栏直接复用 P013/2 的 `LoginIconBar`（消除 100 行重复） |
+
+- 提交：`1d1ccbb6`/`6d5803b4`/`3920275c`/`fcfa8d86`/`0ae66f66`/`6c0c7364`，一项一提交。
+- 视觉逐字等价（内联样式原样迁移）；逻辑逐字等价迁移（hook 提取无行为变化）。
+- **验证**：每项 tsc 0 错误 ✅ / eslint ✅ / 相关测试全过；全量 Vitest 65 文件 572 测试全过 ✅、全量 eslint 0 警告 ✅。
 
 ### P043+P044（P2）嵌套降层 + 水印校验去重合并 ✅
 
