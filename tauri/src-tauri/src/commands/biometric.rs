@@ -144,41 +144,8 @@ pub async fn biometric_check_availability(
     // Android 使用 Keystore 双槽存储（strong/weak 各自独立），iOS 沿用 FileBiometricStorage
     #[cfg(target_os = "android")]
     let (configured, strong_configured, weak_configured) = {
-        use crate::keystore_plugin::KeystorePluginHandle;
-        use tauri::Manager;
-
-        let mut creds = read_keystore_credentials(svc.base_path(), &account_id);
-        let keystore = app.try_state::<KeystorePluginHandle<tauri::Wry>>();
-
-        // 卸载/换机后 Keystore 密钥已被系统擦除，但 keystore_data.json 可能
-        // 从 SAF 远端同步残留（陈旧凭证）。校验密钥真实存在并清理失效槽位，
-        // 避免安全设置显示"幽灵开启"；桥接失败时保守保留槽位，不误删有效凭证。
-        let mut pruned = false;
-        if let (Some(c), Some(ks)) = (creds.as_mut(), keystore.as_ref()) {
-            if c.strong.is_some() && ks.key_exists(&account_id, None) == Ok(false) {
-                c.strong = None;
-                pruned = true;
-            }
-            if c.weak.is_some() && ks.key_exists(&account_id, Some("weak")) == Ok(false) {
-                c.weak = None;
-                pruned = true;
-            }
-        }
-        if pruned {
-            if let Some(c) = creds.as_ref() {
-                let path = svc.base_path().join(&account_id).join("keystore_data.json");
-                if c.is_empty() {
-                    let _ = std::fs::remove_file(&path);
-                } else if let Ok(json) = serde_json::to_string(c) {
-                    let _ = std::fs::write(&path, json);
-                }
-                tracing::info!(
-                    "biometric_check_availability: pruned stale keystore slots for account={}",
-                    account_id
-                );
-            }
-        }
-
+        prune_stale_keystore_slots(&svc, &app, &account_id);
+        let creds = read_keystore_credentials(svc.base_path(), &account_id);
         let strong_configured = creds.as_ref().and_then(|c| c.strong.as_ref()).is_some();
         let weak_configured = creds.as_ref().and_then(|c| c.weak.as_ref()).is_some();
         (
@@ -199,69 +166,8 @@ pub async fn biometric_check_availability(
     // 不再以 tauri-plugin-biometric 的 status 为唯一依据——旧 API 级别
     // （<30）其弱生物识别检查退化为指纹检查，会漏检 Class 2 人脸。
     #[cfg(target_os = "android")]
-    let (available, weak_available, strong_available, effective_type, debug, system_lockout) = {
-        use crate::keystore_plugin::KeystorePluginHandle;
-        use tauri::Manager;
-        // 记录完整调用结果以便区分：state 未注册（None）/ 桥接失败（Err）/ 正常
-        let keystore_result = app
-            .try_state::<KeystorePluginHandle<tauri::Wry>>()
-            .map(|keystore| keystore.check_biometric_availability());
-        tracing::info!(
-            "biometric_check_availability: keystore_result={:?}",
-            keystore_result
-        );
-        // 诊断字符串无条件生成：桥接失败时也要让前端有内容可显示，
-        // 否则无法区分「旧构建」与「桥接失败」
-        let (bridge_desc, info) = match keystore_result {
-            None => ("missing".to_string(), None),
-            Some(Err(e)) => (format!("err:{e}"), None),
-            Some(Ok(i)) => (
-                format!(
-                    "ok strong={} weak={} lockout={} sdk={:?} faceFeature={:?} strongRaw={:?} weakRaw={:?}",
-                    i.strong_available,
-                    i.weak_available,
-                    i.lockout,
-                    i.sdk_int,
-                    i.face_feature,
-                    i.strong_raw,
-                    i.weak_raw
-                ),
-                Some(i),
-            ),
-        };
-        let strong = info.as_ref().map(|i| i.strong_available).unwrap_or(false);
-        let weak = info.as_ref().map(|i| i.weak_available).unwrap_or(false);
-        let system_lockout = info.as_ref().map(|i| i.lockout).unwrap_or(false);
-        tracing::info!(
-            "biometric_check_availability: strong={}, weak={}, lockout={}, plugin_status={}",
-            strong,
-            weak,
-            system_lockout,
-            status_available
-        );
-        let available = strong || weak || status_available;
-        // weak 独立上报：设备同时有 Class 3 时，Face ID（Class 2）也作为独立开关显示
-        let weak_available = weak;
-        let effective_type = if strong {
-            plugin_biometry_type.clone().or(Some("touchId".to_string()))
-        } else if weak || status_available {
-            Some("faceId".to_string())
-        } else {
-            plugin_biometry_type.clone()
-        };
-        let debug = Some(format!(
-            "pluginStatus={} pluginType={:?} bridge={}",
-            status_available, plugin_biometry_type, bridge_desc
-        ));
-        (
-            available,
-            weak_available,
-            strong,
-            effective_type,
-            debug,
-            system_lockout,
-        )
-    };
+    let (available, weak_available, strong_available, effective_type, debug, system_lockout) =
+        resolve_android_availability(&app, status_available, plugin_biometry_type.clone());
 
     #[cfg(target_os = "ios")]
     let (available, weak_available, strong_available, effective_type, debug) = (
@@ -294,6 +200,119 @@ pub async fn biometric_check_availability(
         lockout,
         lockout_until,
     })
+}
+
+/// 卸载/换机后 Keystore 密钥已被系统擦除，但 keystore_data.json 可能从 SAF
+/// 远端同步残留（陈旧凭证）。校验密钥真实存在并清理失效槽位，避免安全设置
+/// 显示"幽灵开启"；桥接失败时保守保留槽位，不误删有效凭证。
+#[cfg(target_os = "android")]
+fn prune_stale_keystore_slots(
+    svc: &solosoul_core::vault_service::VaultService,
+    app: &tauri::AppHandle,
+    account_id: &str,
+) {
+    use crate::keystore_plugin::KeystorePluginHandle;
+    use tauri::Manager;
+
+    let mut creds = read_keystore_credentials(svc.base_path(), account_id);
+    let keystore = app.try_state::<KeystorePluginHandle<tauri::Wry>>();
+
+    let mut pruned = false;
+    if let (Some(c), Some(ks)) = (creds.as_mut(), keystore.as_ref()) {
+        if c.strong.is_some() && ks.key_exists(account_id, None) == Ok(false) {
+            c.strong = None;
+            pruned = true;
+        }
+        if c.weak.is_some() && ks.key_exists(account_id, Some("weak")) == Ok(false) {
+            c.weak = None;
+            pruned = true;
+        }
+    }
+    if pruned {
+        if let Some(c) = creds.as_ref() {
+            let path = svc.base_path().join(account_id).join("keystore_data.json");
+            if c.is_empty() {
+                let _ = std::fs::remove_file(&path);
+            } else if let Ok(json) = serde_json::to_string(c) {
+                let _ = std::fs::write(&path, json);
+            }
+            tracing::info!(
+                "biometric_check_availability: pruned stale keystore slots for account={}",
+                account_id
+            );
+        }
+    }
+}
+
+/// Android 可用性判定：以自有 Keystore 插件检测为准（区分 Class 3 / Class 2），
+/// 记录完整调用结果以便区分 state 未注册（None）/ 桥接失败（Err）/ 正常。
+#[cfg(target_os = "android")]
+fn resolve_android_availability(
+    app: &tauri::AppHandle,
+    status_available: bool,
+    plugin_biometry_type: Option<String>,
+) -> (bool, bool, bool, Option<String>, Option<String>, bool) {
+    use crate::keystore_plugin::KeystorePluginHandle;
+    use tauri::Manager;
+
+    let keystore_result = app
+        .try_state::<KeystorePluginHandle<tauri::Wry>>()
+        .map(|keystore| keystore.check_biometric_availability());
+    tracing::info!(
+        "biometric_check_availability: keystore_result={:?}",
+        keystore_result
+    );
+    // 诊断字符串无条件生成：桥接失败时也要让前端有内容可显示，
+    // 否则无法区分「旧构建」与「桥接失败」
+    let (bridge_desc, info) = match keystore_result {
+        None => ("missing".to_string(), None),
+        Some(Err(e)) => (format!("err:{e}"), None),
+        Some(Ok(i)) => (
+            format!(
+                "ok strong={} weak={} lockout={} sdk={:?} faceFeature={:?} strongRaw={:?} weakRaw={:?}",
+                i.strong_available,
+                i.weak_available,
+                i.lockout,
+                i.sdk_int,
+                i.face_feature,
+                i.strong_raw,
+                i.weak_raw
+            ),
+            Some(i),
+        ),
+    };
+    let strong = info.as_ref().map(|i| i.strong_available).unwrap_or(false);
+    let weak = info.as_ref().map(|i| i.weak_available).unwrap_or(false);
+    let system_lockout = info.as_ref().map(|i| i.lockout).unwrap_or(false);
+    tracing::info!(
+        "biometric_check_availability: strong={}, weak={}, lockout={}, plugin_status={}",
+        strong,
+        weak,
+        system_lockout,
+        status_available
+    );
+    let available = strong || weak || status_available;
+    // weak 独立上报：设备同时有 Class 3 时，Face ID（Class 2）也作为独立开关显示
+    let weak_available = weak;
+    let effective_type = if strong {
+        plugin_biometry_type.clone().or(Some("touchId".to_string()))
+    } else if weak || status_available {
+        Some("faceId".to_string())
+    } else {
+        plugin_biometry_type.clone()
+    };
+    let debug = Some(format!(
+        "pluginStatus={} pluginType={:?} bridge={}",
+        status_available, plugin_biometry_type, bridge_desc
+    ));
+    (
+        available,
+        weak_available,
+        strong,
+        effective_type,
+        debug,
+        system_lockout,
+    )
 }
 
 #[cfg(desktop)]
