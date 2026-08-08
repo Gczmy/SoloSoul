@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-08（P001-P045 全部闭环 45/45；P013 六组件拆分已闭环，仅剩 P014 Rust 侧超长函数为长期重构项）
+> 最后更新：2026-08-08（P001-P045 全部闭环 45/45；P014 Rust 侧超长函数六项拆分已闭环）
 > 分析范围：`tauri/`（Rust 后端 + React/TS 前端）、`solosoul_cli/`；忽略 `node_modules/`、`target/`、`dist/`、`.vite/`、`*.min.js`、`*.wasm`
 
 ## 阶段 0 基线检查结果
@@ -26,7 +26,7 @@
 | P011 | P1 | 重复代码 | `tauri/src/components/object/AttachmentViewer.tsx:195-217` vs `tauri/src/hooks/useAttachmentManager.ts:186-208` | `handleDownload` 逐字符级重复（含动态 import、toast 文案） | `[x]` 已修复 |
 | P012 | P1 | 重复代码 | `tauri/src/pages/sync/DeviceListPanel.tsx:128-151` vs `:329-352` | 约 40 行设备卡片 JSX（含键盘可访问性）整段重复 | `[x]` 已修复 |
 | P013 | P1 | 可维护性 | `AttachmentViewer.tsx`(~660 行)、`LoginPage.tsx`(~654)、`ExportImportPage.tsx`(~643)、`PageGuide.tsx`(~615)、`useObjectWorkspaceData.ts`(~524)、`PasswordVerificationDialog.tsx`(~516) | 前端 6 个 500+ 行巨型组件/Hook | `[x]` 已修复（六组件逐一拆分，见实施记录 P013/1-6） |
-| P014 | P1 | 可维护性 | `crates/solosoul-plugin/src/host.rs:437,662,893`（530+ 行合计）、`solosoul-vault/src/storage.rs:482`、`export.rs:491` 等 | Rust 侧多个 150-300 行超长函数 | `[ ]` 待修复 |
+| P014 | P1 | 可维护性 | `crates/solosoul-plugin/src/host.rs:437,662,893`（530+ 行合计）、`solosoul-vault/src/storage.rs:482`、`export.rs:491` 等 | Rust 侧多个 150-300 行超长函数 | `[x]` 已修复（六处逐一拆分，见实施记录 P014/1-6） |
 | P015 | P2 | 安全 | `tauri/src-tauri/src/commands/llm/request.rs:214-245` | LLM base URL 允许公网 `http://`，Bearer key 与聊天内容明文传输；与 OCR 侧策略不一致 | `[x]` 已修复（非回环 host 强制 https，回环保留 http；新增 `is_loopback_host` + 单测 5 条） |
 | P016 | P2 | 安全 | `tauri/src-tauri/src/commands/llm/stream.rs:388` | 流式聊天未调用 `ensure_public_llm_host`，内网主机名可绕过 SSRF 封禁 | `[x]` 已修复（`llm_send_message_stream` 补 `ensure_public_llm_host` 异步解析复核，与 chat_http 一致） |
 | P017 | P2 | 安全 | `tauri/src-tauri/tauri.conf.json:30` | CSP `object-src data:` 允许加载 `data:text/html`，基线应为 `object-src 'none'` | `[x]` 已决策：保留 `data:`（桌面 PDF 预览 `<embed>` 依赖） + 代码层守卫（仅 `data:application/pdf` 前缀允许进入 embed，杜绝 `data:text/html` 注入） |
@@ -61,8 +61,8 @@
 
 ## 修复进度
 
-- 已完成：44 / 45（P013 六组件拆分已闭环；仅剩 P014 Rust 侧超长函数为长期重构项，见备注）
-- 当前处理：P014 长期重构项待专门排期
+- 已完成：45 / 45（P001-P045 全部闭环）
+- 当前处理：无（全部闭环，可进入终版复核）
 
 ## 修复实施记录
 
@@ -500,6 +500,21 @@ let in_attachments = src.starts_with(&attachments_canon)
 - **位置**：`tauri/src/hooks/useRevealState.ts:90`
 - **证据**：全仓唯一实质 TODO——「字段类型感知的部分掩码未实现（如银行卡只显后 4 位）」，是有意保留的产品决策标记，但与 AGENTS.md「禁止自行实现掩码逻辑」约定存在张力。
 - **建议**：转为 issue 跟踪，代码中移除 TODO 或改写为指向 issue 的说明。
+
+---
+
+### P014 实施记录（P1）Rust 超长函数六处拆分（2026-08-08）
+
+| # | 位置 | 拆分方式 | 提交 |
+|---|------|----------|------|
+| 1 | `solosoul-plugin/src/host.rs` | `register_http_fns`/`register_output_fns`/`register_interaction_fns` 三函数共 530+ 行 → 闭包体提取为 10 个命名 impl 函数，注册层降为 13-14 行薄层 | `78e5dc79` |
+| 2 | `solosoul-vault/src/storage.rs` | `init_schema`（179 行）→ 拆为建表/列迁移/data_version 三 helper，本体 5 行编排 | `946d8661` |
+| 3 | `export.rs` | `export_execute`（190 行）→ 拆出快照收集与 payload 序列化两 helper | `5480e06f` |
+| 4 | `biometric.rs` | mobile `biometric_check_availability`（230 行）→ 拆出槽位清理与可用性判定两 helper | `f3b2e902` |
+| 5 | `import.rs` | `import_attachments`（153 行）→ 拆出元数据映射/单条解密/写回三 helper | `86774ece` |
+| 6 | `solosoul-core/src/vault_service.rs` | `change_password`/`unlock_with_kdf_upgrade` → 提取 4 个共享 rekey 尾部 helper，错误消息逐字保留 | `3cb1f7f8` |
+
+验证：各 crate `cargo fmt` ✅ / `clippy --all-targets` 0 警告 ✅ / 相关测试全过（plugin 56、vault 151、core 166、solo_soul export_import+biometric）✅。
 
 ---
 
