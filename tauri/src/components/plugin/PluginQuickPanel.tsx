@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Puzzle, RefreshCw, X, Play, Download, Loader2, ArrowUpRight } from 'lucide-react';
 import { usePluginStore, type RunningPlugin } from '@/stores/pluginStore';
+import { hasUsableWatermarkSelection, WATERMARK_PLUGIN_ID } from '@/lib/plugin';
 import { DeleteButton } from '@/components/ui/DeleteButton';
 import { usePluginQuickStore, type QuickPanelTab } from '@/stores/pluginQuickStore';
 import { useConfirm } from '@/hooks/useConfirm';
@@ -106,7 +107,7 @@ export function PluginQuickPanel({ position, onClose, placement = 'left' }: Plug
       filtered = filtered.filter(
         (p) =>
           p.pluginId === 'com.solosoul.official.address-fmt' ||
-          p.pluginId === 'com.solosoul.official.watermark' ||
+          p.pluginId === WATERMARK_PLUGIN_ID ||
           p.pluginId === 'com.solosoul.official.expiry-guardian',
       );
     }
@@ -135,6 +136,26 @@ export function PluginQuickPanel({ position, onClose, placement = 'left' }: Plug
   const handleGoFull = () => {
     onClose();
     navigate('/plugins');
+  };
+
+  // P043/P044：运行逻辑移出 JSX 回调（降嵌套），水印附件前置校验走共享 helper
+  const handleRunPlugin = (info: (typeof marketPlugins)[number]) => {
+    const name = info.registryEntry.i18n?.[locale]?.name ?? info.registryEntry.name;
+    const savedParams = pluginRunParamsRef.current[info.pluginId];
+    if (
+      info.pluginId === WATERMARK_PLUGIN_ID &&
+      !hasUsableWatermarkSelection(savedParams)
+    ) {
+      useUiStore.getState().showToast({
+        type: 'warning',
+        message: t('plugin:watermark.select_attachments_first', {
+          defaultValue: '请先选择附件再运行',
+        }),
+        duration: 4000,
+      });
+      return;
+    }
+    runPlugin(info.pluginId, name, savedParams);
   };
 
   const isFloating = placement === 'bottom' || placement === 'top';
@@ -241,33 +262,7 @@ export function PluginQuickPanel({ position, onClose, placement = 'left' }: Plug
                     {installed && info.isCompatible && (
                       <button
                         className={styles.runBtn}
-                        onClick={() => {
-                          const name =
-                            info.registryEntry.i18n?.[locale]?.name ?? info.registryEntry.name;
-                          const savedParams = pluginRunParamsRef.current[info.pluginId];
-                          // 水印插件：检查是否已选择附件，无附件时提示用户
-                          if (info.pluginId === 'com.solosoul.official.watermark') {
-                            const selectedRaw = savedParams?.selectedAttachments;
-                            if (selectedRaw) {
-                              try {
-                                const selected = JSON.parse(selectedRaw);
-                                if (!Array.isArray(selected) || selected.length === 0) {
-                                  useUiStore.getState().showToast({
-                                    type: 'warning',
-                                    message: t('plugin:watermark.select_attachments_first', {
-                                      defaultValue: '请先选择附件再运行',
-                                    }),
-                                    duration: 4000,
-                                  });
-                                  return;
-                                }
-                              } catch {
-                                // JSON 解析失败，继续运行
-                              }
-                            }
-                          }
-                          runPlugin(info.pluginId, name, savedParams);
-                        }}
+                        onClick={() => handleRunPlugin(info)}
                         disabled={isRunning}
                       >
                         {isRunning ? <Loader2 size={ICON_SIZE.xs} /> : <Play size={ICON_SIZE.xs} />}
@@ -308,7 +303,7 @@ export function PluginQuickPanel({ position, onClose, placement = 'left' }: Plug
                 </div>
 
                 {/* ── 水印插件配置区（侧边栏内联配置，始终在日志上方） ──── */}
-                {installed && info.pluginId === 'com.solosoul.official.watermark' && (
+                {installed && info.pluginId === WATERMARK_PLUGIN_ID && (
                   <WatermarkPluginConfig
                     onParamsChange={(params) => {
                       pluginRunParamsRef.current[info.pluginId] = params;

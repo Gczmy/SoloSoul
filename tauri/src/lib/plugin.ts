@@ -250,6 +250,26 @@ export function deriveContractBindings(
   return [];
 }
 
+/** 官方水印插件 ID——运行入口与卡片展示共用，避免在通用面板硬编码漂移。 */
+export const WATERMARK_PLUGIN_ID = 'com.solosoul.official.watermark';
+
+/**
+ * 水印插件运行前置校验：已配置 `selectedAttachments` 但未选择任何附件（空数组/非法值）时返回 false。
+ * 未配置（默认全部附件）、解析失败（沿用原行为继续运行）均视为通过。
+ */
+export function hasUsableWatermarkSelection(
+  savedParams: Record<string, string> | undefined,
+): boolean {
+  const selectedRaw = savedParams?.selectedAttachments;
+  if (!selectedRaw) return true;
+  try {
+    const selected = JSON.parse(selectedRaw);
+    return Array.isArray(selected) && selected.length > 0;
+  } catch {
+    return true; // 解析失败 → 按未配置处理，继续运行
+  }
+}
+
 /** 根据当前 locale 解析插件国际化名称；若无匹配则返回插件默认 name。 */
 export function resolvePluginName(
   plugin: Pick<PluginManifest, 'name' | 'i18n'>,

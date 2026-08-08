@@ -14,7 +14,13 @@ import { PluginConsentDialog } from '@/components/plugin/PluginConsentDialog';
 import { PluginDialog } from '@/components/plugin/PluginDialog';
 import { PluginRunParamsDialog } from '@/components/plugin/PluginRunParamsDialog';
 import { usePluginStore } from '@/stores/pluginStore';
-import { pluginCommands, PluginParam, PluginTier } from '@/lib/plugin';
+import {
+  hasUsableWatermarkSelection,
+  pluginCommands,
+  PluginParam,
+  PluginTier,
+  WATERMARK_PLUGIN_ID,
+} from '@/lib/plugin';
 import { isDevOrDebug } from '@/lib/utils';
 import { useUiStore } from '@/stores/uiStore';
 import { useToastError } from '@/hooks/useToastError';
@@ -133,7 +139,7 @@ export function PluginDashboardPage() {
       filtered = filtered.filter(
         (p) =>
           p.pluginId === 'com.solosoul.official.address-fmt' ||
-          p.pluginId === 'com.solosoul.official.watermark' ||
+          p.pluginId === WATERMARK_PLUGIN_ID ||
           p.pluginId === 'com.solosoul.official.expiry-guardian',
       );
     }
@@ -169,26 +175,18 @@ export function PluginDashboardPage() {
     const name = info.registryEntry.i18n?.[locale]?.name ?? info.registryEntry.name;
 
     // 水印插件：优先使用侧边栏式内联配置参数
-    if (pluginId === 'com.solosoul.official.watermark') {
+    if (pluginId === WATERMARK_PLUGIN_ID) {
       const savedParams = inlineParamsRef.current[pluginId];
       if (savedParams) {
-        const selectedRaw = savedParams.selectedAttachments;
-        if (selectedRaw) {
-          try {
-            const selected = JSON.parse(selectedRaw);
-            if (!Array.isArray(selected) || selected.length === 0) {
-              useUiStore.getState().showToast({
-                type: 'warning',
-                message: t('plugin:watermark.select_attachments_first', {
-                  defaultValue: '请先选择附件再运行',
-                }),
-                duration: 4000,
-              });
-              return;
-            }
-          } catch {
-            // JSON 解析失败，继续运行
-          }
+        if (!hasUsableWatermarkSelection(savedParams)) {
+          useUiStore.getState().showToast({
+            type: 'warning',
+            message: t('plugin:watermark.select_attachments_first', {
+              defaultValue: '请先选择附件再运行',
+            }),
+            duration: 4000,
+          });
+          return;
         }
         await runPlugin(pluginId, name, savedParams);
         return;
@@ -351,7 +349,7 @@ export function PluginDashboardPage() {
             ) : (
               displayedPlugins.map((info) => {
                 const installed = !!info.installedVersion;
-                const isWatermark = info.pluginId === 'com.solosoul.official.watermark';
+                const isWatermark = info.pluginId === WATERMARK_PLUGIN_ID;
                 const running = runningPlugins[info.pluginId];
                 const showWatermarkRunning = activeTab === 'installed' || activeTab === 'running';
                 return (
