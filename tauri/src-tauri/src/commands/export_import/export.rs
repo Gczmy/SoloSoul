@@ -522,57 +522,10 @@ pub async fn export_execute(
 
     // ── Collect object snapshots（历史记录）──────────────────────
     // 携带每个对象的全部历史快照（含原时间戳），恢复后历史数量与旧设备一致。
-    let snapshots: Vec<serde_json::Value> = records
-        .iter()
-        .flat_map(|r| {
-            let object_id = r.id.clone();
-            vault
-                .list_snapshots(&object_id)
-                .unwrap_or_default()
-                .into_iter()
-                .filter_map(move |meta| {
-                    let snap_id = meta["id"].as_str()?.to_string();
-                    let data = vault.get_snapshot(&snap_id).ok().flatten()?;
-                    Some(serde_json::json!({
-                        "object_id": object_id,
-                        "timestamp": meta["timestamp"],
-                        "triggered_by": meta["triggeredBy"],
-                        "diff_summary": meta["diffSummary"],
-                        "data": base64::Engine::encode(
-                            &base64::engine::general_purpose::STANDARD,
-                            &data
-                        ),
-                    }))
-                })
-        })
-        .collect();
+    let snapshots = collect_object_snapshots(vault, &records)?;
 
     // ── Serialise payload ──────────────────────────────────────
-    let payload = serde_json::json!({
-        "objects": records.iter().map(|r| serde_json::json!({
-            "id": r.id,
-            "account_id": r.account_id,
-            "type_id": r.type_id,
-            "section_type": r.section_type,
-            "name": r.name,
-            "icon_name": r.icon_name,
-            "parent_id": r.parent_id,
-            "children_ids": r.children_ids,
-            "properties": r.properties,
-            "property_labels": r.property_labels,
-            "sensitivity_level": r.sensitivity_level,
-            "contract_type_id": r.contract_type_id,
-            "tags": r.tags_json,
-            "created_at": r.created_at,
-            "updated_at": r.updated_at,
-            "version": r.version,
-            "template_id": r.template_id,
-            "template_type": r.template_type,
-        })).collect::<Vec<_>>(),
-        "templates": templates,
-        "snapshots": snapshots,
-    });
-    let payload_bytes = serde_json::to_vec(&payload).map_err(|e| format!("serialize: {e}"))?;
+    let payload_bytes = serialize_export_payload(&records, &templates, &snapshots)?;
 
     // ── Derive key & encrypt ──────────────────────────────────
     let salt = solosoul_crypto::kdf::generate_salt();
@@ -688,6 +641,71 @@ pub async fn export_execute(
     );
 
     Ok(zip_path)
+}
+
+/// 收集各对象的全部历史快照（含原时间戳），恢复后历史数量与旧设备一致。
+fn collect_object_snapshots(
+    vault: &solosoul_vault::VaultStore,
+    records: &[solosoul_vault::ObjectRecord],
+) -> Result<Vec<serde_json::Value>, String> {
+    let mut snapshots: Vec<serde_json::Value> = Vec::new();
+    for r in records {
+        let object_id = r.id.clone();
+        for meta in vault.list_snapshots(&object_id).unwrap_or_default() {
+            let snap_id = match meta["id"].as_str() {
+                Some(id) => id.to_string(),
+                None => continue,
+            };
+            let data = match vault.get_snapshot(&snap_id).ok().flatten() {
+                Some(d) => d,
+                None => continue,
+            };
+            snapshots.push(serde_json::json!({
+                "object_id": object_id,
+                "timestamp": meta["timestamp"],
+                "triggered_by": meta["triggeredBy"],
+                "diff_summary": meta["diffSummary"],
+                "data": base64::Engine::encode(
+                    &base64::engine::general_purpose::STANDARD,
+                    &data
+                ),
+            }));
+        }
+    }
+    Ok(snapshots)
+}
+
+/// 序列化导出 payload（对象 + 模板 + 快照）。
+fn serialize_export_payload(
+    records: &[solosoul_vault::ObjectRecord],
+    templates: &[serde_json::Value],
+    snapshots: &[serde_json::Value],
+) -> Result<Vec<u8>, String> {
+    let payload = serde_json::json!({
+        "objects": records.iter().map(|r| serde_json::json!({
+            "id": r.id,
+            "account_id": r.account_id,
+            "type_id": r.type_id,
+            "section_type": r.section_type,
+            "name": r.name,
+            "icon_name": r.icon_name,
+            "parent_id": r.parent_id,
+            "children_ids": r.children_ids,
+            "properties": r.properties,
+            "property_labels": r.property_labels,
+            "sensitivity_level": r.sensitivity_level,
+            "contract_type_id": r.contract_type_id,
+            "tags": r.tags_json,
+            "created_at": r.created_at,
+            "updated_at": r.updated_at,
+            "version": r.version,
+            "template_id": r.template_id,
+            "template_type": r.template_type,
+        })).collect::<Vec<_>>(),
+        "templates": templates,
+        "snapshots": snapshots,
+    });
+    serde_json::to_vec(&payload).map_err(|e| format!("serialize: {e}"))
 }
 
 // ── Attachment info for export UI ──────────────────────────────
