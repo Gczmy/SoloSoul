@@ -76,6 +76,28 @@ fn object_max_sensitivity(
                 max_rank = max_rank.max(sensitivity_rank(level));
             }
         }
+
+        // 2b. dynamic_group 子项级 sensitivity（DynamicGroupEditor 每子项携带）
+        for (k, v) in record.properties.as_object().expect("checked above") {
+            if k.starts_with("__") {
+                continue;
+            }
+            let is_dynamic_group = fields
+                .get(k)
+                .and_then(|def| def.get("type"))
+                .and_then(|t| t.as_str())
+                == Some("dynamic_group");
+            if !is_dynamic_group {
+                continue;
+            }
+            if let serde_json::Value::Array(items) = v {
+                for item in items {
+                    if let Some(level) = item.get("sensitivity").and_then(|s| s.as_str()) {
+                        max_rank = max_rank.max(sensitivity_rank(level));
+                    }
+                }
+            }
+        }
     }
 
     // 3. 模板定义
@@ -161,25 +183,43 @@ fn field_value_to_text(value: &serde_json::Value) -> String {
     }
 }
 
+/// 字段定义元信息（__fields 中每个字段的 name / type）。
+#[derive(Default)]
+struct FieldDefMeta {
+    name: String,
+    ftype: String,
+}
+
 /// 拍平对象字段（跳过 `__` 内部键），返回 (字段标签, 字段值文本) 列表。
 /// 字段顺序与前端 flattenProperties 一致：properties Map 迭代序（保留 __fields 定义序）。
+///
+/// dynamic_group 字段：子字段展开为独立条目（label=子字段 name，value=子字段 value），
+/// 与前端 objectDetailUtils.flattenProperties 行为一致；组名/占位符不单独成行。
 fn flatten_object_fields(record: &solosoul_vault::ObjectRecord) -> Vec<(String, String)> {
     let mut out = Vec::new();
     let Some(props) = record.properties.as_object() else {
         return out;
     };
-    // 字段标签：优先 __fields 定义的 name，回退键名本身
-    let field_names: std::collections::HashMap<String, String> = record
+    // 字段定义：优先 __fields 定义的 name/type，回退键名本身
+    let field_meta: std::collections::HashMap<String, FieldDefMeta> = record
         .properties
         .get("__fields")
         .and_then(|v| v.as_object())
         .map(|fields| {
             fields
                 .iter()
-                .filter_map(|(k, def)| {
-                    def.get("name")
+                .map(|(k, def)| {
+                    let name = def
+                        .get("name")
                         .and_then(|n| n.as_str())
-                        .map(|n| (k.clone(), n.to_string()))
+                        .unwrap_or(k)
+                        .to_string();
+                    let ftype = def
+                        .get("type")
+                        .and_then(|t| t.as_str())
+                        .unwrap_or("")
+                        .to_string();
+                    (k.clone(), FieldDefMeta { name, ftype })
                 })
                 .collect()
         })
@@ -189,11 +229,38 @@ fn flatten_object_fields(record: &solosoul_vault::ObjectRecord) -> Vec<(String, 
         if k.starts_with("__") {
             continue;
         }
+        let meta = field_meta.get(k);
+        // dynamic_group：子字段展开为独立条目（与前端 flattenProperties 一致）
+        if meta.map(|m| m.ftype.as_str()) == Some("dynamic_group") {
+            if let serde_json::Value::Array(items) = v {
+                for item in items {
+                    if let Some(obj) = item.as_object() {
+                        let name = obj
+                            .get("name")
+                            .and_then(|n| n.as_str())
+                            .unwrap_or("")
+                            .to_string();
+                        if name.is_empty() {
+                            continue;
+                        }
+                        let value = obj
+                            .get("value")
+                            .map(field_value_to_text)
+                            .unwrap_or_default();
+                        if value.is_empty() {
+                            continue;
+                        }
+                        out.push((name, value));
+                    }
+                }
+            }
+            continue;
+        }
         let text = field_value_to_text(v);
         if text.is_empty() {
             continue;
         }
-        let label = field_names.get(k).cloned().unwrap_or_else(|| k.clone());
+        let label = meta.map(|m| m.name.clone()).unwrap_or_else(|| k.clone());
         out.push((label, text));
     }
     out
@@ -220,6 +287,24 @@ fn format_bytes(bytes: u64) -> String {
     }
 }
 
+/// 将文本渲染为 run 内多 `<w:t>` + `<w:br/>`：Word 中 `<w:t>` 内的 `\n` 不换行，
+/// 需用 `<w:br/>` 显式拆分（多行字段值、dynamic_group 展开值均受益）。
+fn text_run(text: &str) -> String {
+    // CRLF/CR：XML 解析器会把 \r 规范化为 \n（<w:t> 内不换行），先剔除
+    let safe = escape_xml(&sanitize_docx_text(text)).replace('\r', "");
+    let mut out = String::from("<w:r>");
+    for (i, line) in safe.split('\n').enumerate() {
+        if i > 0 {
+            out.push_str("<w:br/>");
+        }
+        out.push_str("<w:t xml:space=\"preserve\">");
+        out.push_str(line);
+        out.push_str("</w:t>");
+    }
+    out.push_str("</w:r>");
+    out
+}
+
 /// 构造 docx 包的最小 OOXML 结构，返回 zip 字节。
 ///
 /// 文档结构（多对象 = 多页）：
@@ -238,16 +323,12 @@ fn build_docx(
     );
 
     // 1. 封面/标题段
-    document.push_str("<w:p><w:pPr><w:pStyle w:val=\"Heading1\"/></w:pPr><w:r><w:t>");
-    document.push_str(&escape_xml(&sanitize_docx_text("SoloSoul")));
-    document.push_str("</w:t></w:r></w:p>\n");
-    document.push_str("<w:p><w:r><w:t>");
-    document.push_str(&escape_xml(&sanitize_docx_text(&format!(
-        "{} · {}",
-        export_time,
-        records.len()
-    ))));
-    document.push_str("</w:t></w:r></w:p>\n");
+    document.push_str("<w:p><w:pPr><w:pStyle w:val=\"Heading1\"/></w:pPr>");
+    document.push_str(&text_run("SoloSoul"));
+    document.push_str("</w:p>\n");
+    document.push_str("<w:p>");
+    document.push_str(&text_run(&format!("{} · {}", export_time, records.len())));
+    document.push_str("</w:p>\n");
 
     for (idx, rec) in records.iter().enumerate() {
         if idx > 0 {
@@ -255,9 +336,9 @@ fn build_docx(
             document.push_str("<w:p><w:r><w:br w:type=\"page\"/></w:r></w:p>\n");
         }
         // 对象名
-        document.push_str("<w:p><w:pPr><w:pStyle w:val=\"Heading1\"/></w:pPr><w:r><w:t>");
-        document.push_str(&escape_xml(&sanitize_docx_text(&rec.name)));
-        document.push_str("</w:t></w:r></w:p>\n");
+        document.push_str("<w:p><w:pPr><w:pStyle w:val=\"Heading1\"/></w:pPr>");
+        document.push_str(&text_run(&rec.name));
+        document.push_str("</w:p>\n");
 
         // 元信息段
         let tpl_name = rec
@@ -276,9 +357,9 @@ fn build_docx(
             meta_lines.push(format!("标签：{}", rec.tags_json.join(", ")));
         }
         for line in &meta_lines {
-            document.push_str("<w:p><w:r><w:t>");
-            document.push_str(&escape_xml(&sanitize_docx_text(line)));
-            document.push_str("</w:t></w:r></w:p>\n");
+            document.push_str("<w:p>");
+            document.push_str(&text_run(line));
+            document.push_str("</w:p>\n");
         }
 
         // 字段表格（两列：标签 / 值）
@@ -286,11 +367,15 @@ fn build_docx(
         if !fields.is_empty() {
             document.push_str("<w:tbl><w:tblPr><w:tblW w:w=\"0\" w:type=\"auto\"/></w:tblPr>");
             for (label, value) in &fields {
-                document.push_str("<w:tr><w:tc><w:tcPr><w:tcW w:w=\"3000\" w:type=\"dxa\"/></w:tcPr><w:p><w:r><w:t>");
-                document.push_str(&escape_xml(&sanitize_docx_text(label)));
-                document.push_str("</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:w=\"5000\" w:type=\"dxa\"/></w:tcPr><w:p><w:r><w:t>");
-                document.push_str(&escape_xml(&sanitize_docx_text(value)));
-                document.push_str("</w:t></w:r></w:p></w:tc></w:tr>\n");
+                document.push_str(
+                    "<w:tr><w:tc><w:tcPr><w:tcW w:w=\"3000\" w:type=\"dxa\"/></w:tcPr><w:p>",
+                );
+                document.push_str(&text_run(label));
+                document.push_str(
+                    "</w:p></w:tc><w:tc><w:tcPr><w:tcW w:w=\"5000\" w:type=\"dxa\"/></w:tcPr><w:p>",
+                );
+                document.push_str(&text_run(value));
+                document.push_str("</w:p></w:tc></w:tr>\n");
             }
             document.push_str("</w:tbl>\n");
         }
@@ -302,12 +387,9 @@ fn build_docx(
             document.push_str("附件清单");
             document.push_str("</w:t></w:r></w:p>\n");
             for (name, size, mime) in &attachments {
-                document.push_str("<w:p><w:r><w:t>");
-                document.push_str(&escape_xml(&sanitize_docx_text(&format!(
-                    "{}（{}，{}）",
-                    name, size, mime
-                ))));
-                document.push_str("</w:t></w:r></w:p>\n");
+                document.push_str("<w:p>");
+                document.push_str(&text_run(&format!("{}（{}，{}）", name, size, mime)));
+                document.push_str("</w:p>\n");
             }
         }
     }
@@ -607,6 +689,100 @@ mod tests {
         assert!(flat
             .iter()
             .any(|(l, v)| l == "备注" && v == "hello & world"));
+    }
+
+    #[test]
+    fn test_flatten_dynamic_group_expands_children() {
+        // dynamic_group 字段（id 为 __dynamic_group__ 或自定义 id）：子字段展开为独立条目，
+        // 不显示组名占位符（与前端 objectDetailUtils.flattenProperties 一致）。
+        let fields = serde_json::json!({
+            "contactMethods": {
+                "name": "联系方式",
+                "type": "dynamic_group"
+            }
+        });
+        let props = serde_json::json!({
+            "contactMethods": [
+                {"id": "c1", "name": "新字段", "type": "text", "value": "0"},
+                {"id": "c2", "name": "新字段2", "type": "phone", "value": "123"}
+            ],
+            "f1": "普通字段",
+            "__fields": fields,
+            "__attachments": []
+        });
+        let rec = make_record("o1", "对象", fields, props);
+        let flat = flatten_object_fields(&rec);
+        // 两个子字段展开 + 一个普通字段（f1 无 __fields 定义，label 回退键名），
+        // 无 __dynamic_group__ 占位符条目
+        assert_eq!(flat.len(), 3);
+        assert!(flat.iter().any(|(l, v)| l == "新字段" && v == "0"));
+        assert!(flat.iter().any(|(l, v)| l == "新字段2" && v == "123"));
+        assert!(flat.iter().any(|(l, v)| l == "f1" && v == "普通字段"));
+        assert!(!flat
+            .iter()
+            .any(|(l, _)| l == "__dynamic_group__" || l == "联系方式"));
+    }
+
+    #[test]
+    fn test_object_max_sensitivity_scans_dynamic_group_children() {
+        // 子项级 sensitivity：DynamicGroupEditor 每子项携带，preflight 必须纳入判定，
+        // 否则标 critical/sensitive 的子项会被静默明文导出。
+        let fields = serde_json::json!({
+            "contactMethods": {
+                "name": "联系方式",
+                "type": "dynamic_group",
+                "sensitivityLevel": "internal"
+            }
+        });
+        let props = serde_json::json!({
+            "contactMethods": [
+                {"id": "c1", "name": "手机", "type": "phone", "sensitivity": "critical", "value": "123"},
+                {"id": "c2", "name": "邮箱", "type": "email", "sensitivity": "internal", "value": "a@b.c"}
+            ],
+            "__fields": fields
+        });
+        let rec = make_record("o1", "对象", fields.clone(), props);
+        assert_eq!(
+            object_max_sensitivity(&rec, None),
+            DocumentSensitivity::Critical
+        );
+        // 仅敏感子项 → Sensitive
+        let props2 = serde_json::json!({
+            "contactMethods": [
+                {"id": "c1", "name": "手机", "type": "phone", "sensitivity": "sensitive", "value": "123"}
+            ],
+            "__fields": fields.clone()
+        });
+        let rec2 = make_record("o2", "对象2", fields.clone(), props2);
+        assert_eq!(
+            object_max_sensitivity(&rec2, None),
+            DocumentSensitivity::Sensitive
+        );
+        // 全部 internal/public → None
+        let props3 = serde_json::json!({
+            "contactMethods": [
+                {"id": "c1", "name": "手机", "type": "phone", "sensitivity": "public", "value": "123"}
+            ],
+            "__fields": fields.clone()
+        });
+        let rec3 = make_record("o3", "对象3", fields, props3);
+        assert_eq!(
+            object_max_sensitivity(&rec3, None),
+            DocumentSensitivity::None
+        );
+    }
+
+    #[test]
+    fn test_text_run_splits_newlines() {
+        // Word 中 <w:t> 内 \n 不换行，text_run 用 <w:br/> 拆分
+        let xml = text_run("a\nb");
+        assert!(xml.contains("<w:br/>"));
+        assert!(xml.contains("<w:t xml:space=\"preserve\">a</w:t>"));
+        assert!(xml.contains("<w:t xml:space=\"preserve\">b</w:t>"));
+        // 无换行时不含 <w:br/>
+        assert!(!text_run("single").contains("<w:br/>"));
+        // XML 转义仍然生效
+        assert!(text_run("a&b").contains("a&amp;b"));
     }
 
     #[test]
