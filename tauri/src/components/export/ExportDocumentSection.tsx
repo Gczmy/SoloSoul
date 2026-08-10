@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FileText, AlertTriangle } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
@@ -64,6 +64,25 @@ export function ExportDocumentSection({ accountId, pageGroups }: ExportDocumentS
   const [showSensitiveConfirm, setShowSensitiveConfirm] = useState(false);
   const [showPwDialog, setShowPwDialog] = useState(false);
   const pendingExportRef = useRef<(() => Promise<void>) | null>(null);
+
+  // 当前账户密码提示词（critical 解密框提示按钮展示；与 ObjectDetailModal 同一数据源）
+  const [passwordHint, setPasswordHint] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    invoke<Array<{ id: string; passwordHint?: string }>>('vault_list_accounts')
+      .then((accounts) => {
+        if (cancelled) return;
+        const acc = accounts.find((a) => a.id === accountId);
+        setPasswordHint(acc?.passwordHint || null);
+      })
+      .catch((err) =>
+        logger.warn('[ExportDocumentSection] Load password hint failed:', err),
+      );
+    return () => {
+      cancelled = true;
+    };
+  }, [accountId]);
 
   // 选中的对象 id 列表——按勾选树 页面→对象 展示顺序排列（Rust 侧按此顺序分页）
   const orderedObjectIds = useMemo(() => {
@@ -364,6 +383,7 @@ export function ExportDocumentSection({ accountId, pageGroups }: ExportDocumentS
           defaultValue: 'Selected objects contain critical fields. Verify your master password to export.',
         })}
         confirmLabel={t('common:continue')}
+        hint={passwordHint}
       />
     </>
   );

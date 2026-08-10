@@ -255,6 +255,91 @@ pub fn object_has_attachments(properties: &serde_json::Value) -> bool {
         })
 }
 
+/// 敏感度等级排序：public(0) < internal(1) < sensitive(2) < critical(3)。未知等级视为 internal(1)。
+pub fn sensitivity_rank(level: &str) -> u8 {
+    match level {
+        "public" => 0,
+        "internal" => 1,
+        "sensitive" => 2,
+        "critical" => 3,
+        _ => 1,
+    }
+}
+
+/// 收集对象字段级敏感度等级集合（去重、按 public < internal < sensitive < critical 升序）。
+///
+/// 来源优先级（与导出 preflight 判定口径一致）：
+/// 1. `property_labels`（field_id → level，对象创建时从模板继承的权威快照）；
+/// 2. `properties.__fields` 内嵌 `sensitivityLevel`（模板同步路径写入）；
+/// 3. dynamic_group 子项级 `sensitivity`（DynamicGroupEditor 每子项携带）。
+///
+/// 仅保留已知等级（public/internal/sensitive/critical），未知等级忽略——前端徽章组件
+/// 只认识这四档，避免渲染未知 key。供导出范围树展示字段敏感度徽章。
+pub fn object_field_sensitivity_levels(
+    property_labels: Option<&serde_json::Value>,
+    properties: &serde_json::Value,
+) -> Vec<String> {
+    let mut levels: Vec<String> = Vec::new();
+    let mut push_level = |lvl: &str| {
+        if matches!(lvl, "public" | "internal" | "sensitive" | "critical")
+            && !levels.iter().any(|l| l == lvl)
+        {
+            levels.push(lvl.to_string());
+        }
+    };
+
+    // 1. property_labels（权威来源）
+    if let Some(labels) = property_labels.and_then(|v| v.as_object()) {
+        for lvl in labels.values() {
+            if let Some(s) = lvl.as_str() {
+                push_level(s);
+            }
+        }
+    }
+
+    // 2. __fields 内嵌 sensitivityLevel
+    if let Some(fields) = properties.get("__fields").and_then(|v| v.as_object()) {
+        for def in fields.values() {
+            if let Some(lvl) = def.get("sensitivityLevel").and_then(|v| v.as_str()) {
+                push_level(lvl);
+            }
+        }
+
+        // 3. dynamic_group 子项级 sensitivity——仅当 __fields 中存在 dynamic_group 字段才
+        // 扫描对应 properties 键（避免对每个对象全量遍历 properties 的热路径开销）。
+        if fields
+            .values()
+            .any(|def| def.get("type").and_then(|t| t.as_str()) == Some("dynamic_group"))
+        {
+            if let Some(props) = properties.as_object() {
+                for (k, v) in props {
+                    if k.starts_with("__") {
+                        continue;
+                    }
+                    let is_dynamic_group = fields
+                        .get(k)
+                        .and_then(|def| def.get("type"))
+                        .and_then(|t| t.as_str())
+                        == Some("dynamic_group");
+                    if !is_dynamic_group {
+                        continue;
+                    }
+                    if let Some(items) = v.as_array() {
+                        for item in items {
+                            if let Some(lvl) = item.get("sensitivity").and_then(|s| s.as_str()) {
+                                push_level(lvl);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    levels.sort_by_key(|l| sensitivity_rank(l));
+    levels
+}
+
 /// R-4① 方案 2（probe 判定）：探测给定数据密钥能否解密指定 vault.db 中的现有数据。
 ///
 /// 独立只读连接（`PRAGMA query_only`），**不**走 `VaultStore::open`——后者会触发
@@ -5665,5 +5750,48 @@ mod tests {
             summary.icon_name, "doc",
             "ObjectSummary.icon_name must stay pinned across UPSERTs",
         );
+    }
+
+    #[test]
+    fn object_field_sensitivity_levels_derives_sorted_set() {
+        // property_labels 权威来源 + __fields sensitivityLevel + dynamic_group 子项级合并，
+        // 按 public < internal < sensitive < critical 升序去重；未知等级忽略。
+        let property_labels = serde_json::json!({
+            "f1": "sensitive",
+            "f2": "public",
+            "f3": "legacy_unknown"
+        });
+        let properties = serde_json::json!({
+            "f1": "value1",
+            "f2": "value2",
+            "contactMethods": [
+                {"id": "c1", "name": "手机", "type": "phone", "sensitivity": "critical", "value": "123"},
+                {"id": "c2", "name": "邮箱", "type": "email", "sensitivity": "internal", "value": "a@b.c"}
+            ],
+            "__fields": {
+                "f1": {"name": "字段1", "sensitivityLevel": "sensitive"},
+                "contactMethods": {"name": "联系方式", "type": "dynamic_group", "sensitivityLevel": "internal"}
+            }
+        });
+        let levels = object_field_sensitivity_levels(Some(&property_labels), &properties);
+        // public(0) < internal(1) < sensitive(2) < critical(3) 升序去重
+        assert_eq!(levels, vec!["public", "internal", "sensitive", "critical"]);
+    }
+
+    #[test]
+    fn object_field_sensitivity_levels_empty_when_no_markers() {
+        let properties = serde_json::json!({
+            "f1": "value",
+            "__fields": {"f1": {"name": "字段1", "type": "text"}}
+        });
+        assert!(object_field_sensitivity_levels(None, &properties).is_empty());
+    }
+
+    #[test]
+    fn object_field_sensitivity_levels_ignores_unknown_levels() {
+        // 未知等级（legacy private/restricted 等）不进入集合——前端徽章只认识四档。
+        let property_labels = serde_json::json!({"f1": "private"});
+        let properties = serde_json::json!({"f1": "value"});
+        assert!(object_field_sensitivity_levels(Some(&property_labels), &properties).is_empty());
     }
 }

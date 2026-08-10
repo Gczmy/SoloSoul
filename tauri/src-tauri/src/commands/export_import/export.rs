@@ -13,6 +13,37 @@ pub async fn export_get_scope_tree(
         .list_objects(&account_id, None, None, None, false, false)
         .map_err(|e| format!("list_objects: {}", e))?;
 
+    // 模板 id → 模板 映射：供字段敏感度兜底判定（对象仍引用模板且 property_labels 缺失时）。
+    let template_map: std::collections::HashMap<String, solosoul_vault::UserTemplate> = vault
+        .list_user_templates(&account_id)
+        .unwrap_or_default()
+        .into_iter()
+        .map(|t| (t.id.clone(), t))
+        .collect();
+
+    // 字段敏感度集合兜底：list_objects 已从 property_labels/__fields/dynamic_group 推导，
+    // 此处再并入模板定义的 sensitivity_level（与导出 preflight object_max_sensitivity 口径一致），
+    // 并按敏感度升序去重后写回（范围树展示用）。
+    let objects: Vec<ObjectSummary> = objects
+        .into_iter()
+        .map(|mut o| {
+            if let Some(ref tid) = o.template_id {
+                if let Some(tpl) = template_map.get(tid) {
+                    for prop in &tpl.properties {
+                        if let Some(ref sl) = prop.sensitivity_level {
+                            if !o.sensitivity_levels.contains(sl) {
+                                o.sensitivity_levels.push(sl.clone());
+                            }
+                        }
+                    }
+                }
+            }
+            o.sensitivity_levels
+                .sort_by_key(|l| solosoul_vault::sensitivity_rank(l));
+            o
+        })
+        .collect();
+
     // Collect custom page-defining objects (type_id = "page") into a lookup
     // page_id -> (page_name, icon_name)
     let mut custom_pages: std::collections::HashMap<String, (String, String)> =

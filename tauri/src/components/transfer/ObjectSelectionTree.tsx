@@ -11,6 +11,11 @@ export interface SelectionTreeObject {
   id: string;
   name: string;
   sensitivityLevel: string;
+  /**
+   * 对象各字段的敏感度等级集合（升序：public < internal < sensitive < critical）。
+   * 有值时按字段敏感度徽章逐档展示（导出范围树）；缺省回退 sensitivityLevel 单徽章。
+   */
+  sensitivityLevels?: string[];
   sectionType: string;
   /** 该对象是否包含（未软删的）附件——导出侧由后端范围树提供，导入侧不依赖此字段 */
   hasAttachments?: boolean;
@@ -247,7 +252,13 @@ export function ObjectSelectionTree({
                       >
                         {obj.name}
                       </span>
-                      <SensitivityBadge level={obj.sensitivityLevel as SensitivityLevel} />
+                      {/* 字段敏感度徽章：sensitivityLevels 有值时逐档展示（升序已由后端排序），否则回退记录级单徽章 */}
+                      {(obj.sensitivityLevels && obj.sensitivityLevels.length > 0
+                        ? obj.sensitivityLevels
+                        : [obj.sensitivityLevel]
+                      ).map((lvl) => (
+                        <SensitivityBadge key={lvl} level={lvl as SensitivityLevel} />
+                      ))}
                       {renderConflictBadge?.(obj)}
                       {showAttachmentExpand(obj) && (
                         <button

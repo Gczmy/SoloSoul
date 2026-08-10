@@ -235,9 +235,11 @@ pub struct GuideEmbeddingChunk {
 }
 
 pub use encryption::DataEncryptionKey;
+pub use storage::object_field_sensitivity_levels;
 /// R-4① 方案 2：只读数据密钥探测（独立只读连接，无 open 副作用）。
 pub use storage::object_has_attachments;
 pub use storage::probe_data_key;
+pub use storage::sensitivity_rank;
 pub use storage::VaultStore;
 
 // =============================================================================
@@ -356,6 +358,16 @@ pub struct ObjectSummary {
     /// 注意：本结构体为逐字段显式 rename（无 rename_all），必须显式 camelCase 序列化。
     #[serde(rename = "hasAttachments", default)]
     pub has_attachments: bool,
+    /// 对象各字段的敏感度等级集合（去重、按 public < internal < sensitive < critical 排序）。
+    /// 反映字段级敏感度分布（区别于 `sensitivity_level` 记录级）；供导出范围树等 UI 展示徽章。
+    /// 由 `list_objects` 等解密路径从 property_labels / __fields / 模板定义推导；
+    /// metadata-only 路径（properties 未解密）为空数组。
+    #[serde(
+        rename = "sensitivityLevels",
+        default,
+        skip_serializing_if = "Vec::is_empty"
+    )]
+    pub sensitivity_levels: Vec<String>,
 }
 
 // =============================================================================
@@ -607,6 +619,7 @@ mod tests {
             property_labels: None,
             tags: vec![],
             has_attachments: true,
+            sensitivity_levels: vec![],
         };
         let v = serde_json::to_value(&s).unwrap();
         assert_eq!(v["hasAttachments"], serde_json::Value::Bool(true));
@@ -618,6 +631,9 @@ mod tests {
             v["sensitivityLevel"],
             serde_json::Value::String("internal".to_string())
         );
+        // 字段敏感度集合同样显式 camelCase（sensitivityLevels），空数组不序列化
+        assert!(v.get("sensitivityLevels").is_none());
+        assert!(v.get("sensitivity_levels").is_none());
     }
 
     #[test]

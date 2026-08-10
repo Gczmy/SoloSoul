@@ -105,6 +105,11 @@ pub async fn import_decrypt_preview(
                         // 与导出范围树同一口径（solosoul_vault::object_has_attachments）：
                         // 未软删附件存在性，供导入侧对象行按附件展开。
                         has_attachments: solosoul_vault::object_has_attachments(&o["properties"]),
+                        // 字段敏感度集合（导入包无 property_labels，由 __fields/dynamic_group 推导）
+                        sensitivity_levels: solosoul_vault::object_field_sensitivity_levels(
+                            None,
+                            &o["properties"],
+                        ),
                         tags: o["tags"]
                             .as_array()
                             .map(|t| {

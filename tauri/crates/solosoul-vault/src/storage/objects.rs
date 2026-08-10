@@ -12,8 +12,8 @@
 use rusqlite::{params, Connection, OptionalExtension};
 
 use super::{
-    json_contains_ignore_case, object_has_attachments, with_tx, VaultStore, OBJECT_COLUMNS,
-    OBJECT_LOAD_SQL, OBJECT_SAVE_SQL, OBJECT_SELECT_BASE,
+    json_contains_ignore_case, object_field_sensitivity_levels, object_has_attachments, with_tx,
+    VaultStore, OBJECT_COLUMNS, OBJECT_LOAD_SQL, OBJECT_SAVE_SQL, OBJECT_SELECT_BASE,
 };
 use crate::encryption::{decrypt_text_field, encrypt_text_field, DataEncryptionKey};
 use crate::{ObjectRecord, ObjectSummary};
@@ -506,6 +506,9 @@ impl VaultStore {
                 })?;
                 // 附件存在性由已解密的 properties 推导（无额外解密成本）。
                 let has_attachments = object_has_attachments(&properties);
+                // 字段级敏感度集合（property_labels / __fields / dynamic_group 推导，升序去重）
+                let sensitivity_levels =
+                    object_field_sensitivity_levels(property_labels.as_ref(), &properties);
                 Ok(ObjectSummary {
                     id: row.get(0)?,
                     name: row.get(1)?,
@@ -526,6 +529,7 @@ impl VaultStore {
                     property_labels,
                     tags,
                     has_attachments,
+                    sensitivity_levels,
                 })
             })
             .map_err(|e| format!("list_objects query: {}", e))?
@@ -626,6 +630,8 @@ impl VaultStore {
                     tags: vec![],
                     // metadata-only 路径不解密 properties，附件存在性不可知 → false。
                     has_attachments: false,
+                    // metadata-only 路径同理：字段敏感度集合不可知 → 空数组。
+                    sensitivity_levels: vec![],
                 })
             })
             .map_err(|e| format!("list_object_metadata query: {}", e))?

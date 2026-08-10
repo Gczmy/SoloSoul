@@ -15,6 +15,12 @@ export interface ExportObjectSummary {
   typeId: string;
   sectionType: string;
   sensitivityLevel: string;
+  /**
+   * 对象各字段的敏感度等级集合（升序：public < internal < sensitive < critical）。
+   * 由后端从 property_labels / __fields / 模板定义推导；范围树据此展示字段敏感度徽章，
+   * 缺省（旧后端/导入预览）时回退到 sensitivityLevel 单徽章。
+   */
+  sensitivityLevels?: string[];
   createdAt: string;
   updatedAt: string;
   tags: string[];

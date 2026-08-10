@@ -314,6 +314,8 @@ fn build_docx(
     records: &[solosoul_vault::ObjectRecord],
     template_names: &std::collections::HashMap<String, String>,
     export_time: &str,
+    account_name: &str,
+    account_id: &str,
 ) -> Result<Vec<u8>, String> {
     let mut document = String::new();
     document.push_str(
@@ -325,6 +327,13 @@ fn build_docx(
     // 1. 封面/标题段
     document.push_str("<w:p><w:pPr><w:pStyle w:val=\"Heading1\"/></w:pPr>");
     document.push_str(&text_run("SoloSoul"));
+    document.push_str("</w:p>\n");
+    // 第二行：导出账户名 + 账户 ID
+    document.push_str("<w:p>");
+    document.push_str(&text_run(&format!(
+        "账户名：{}（{}）",
+        account_name, account_id
+    )));
     document.push_str("</w:p>\n");
     document.push_str("<w:p>");
     document.push_str(&text_run(&format!("{} · {}", export_time, records.len())));
@@ -478,6 +487,8 @@ fn build_html_document(
     records: &[solosoul_vault::ObjectRecord],
     template_names: &std::collections::HashMap<String, String>,
     export_time: &str,
+    account_name: &str,
+    account_id: &str,
 ) -> String {
     let mut html = String::from(
         "<!DOCTYPE html>\n<html lang=\"zh-CN\"><head><meta charset=\"utf-8\">\n\
@@ -496,8 +507,15 @@ fn build_html_document(
          .attach { color: #57606a; font-size: 13px; margin: 4px 0 0; }\n\
          </style></head><body>\n\
          <h1>SoloSoul</h1>\n\
-         <div class=\"meta\">",
+         <p class=\"meta\">",
     );
+    // 第二行：导出账户名 + 账户 ID
+    html.push_str(&escape_html(&format!(
+        "账户名：{}（{}）",
+        account_name, account_id
+    )));
+    html.push_str("</p>\n");
+    html.push_str("<div class=\"meta\">");
     html.push_str(&escape_html(&format!(
         "{} · {} 个对象",
         export_time,
@@ -566,10 +584,18 @@ fn build_pdf_document(
     records: &[solosoul_vault::ObjectRecord],
     template_names: &std::collections::HashMap<String, String>,
     export_time: &str,
+    account_name: &str,
+    account_id: &str,
 ) -> Result<Vec<u8>, String> {
     use printpdf::Base64OrRaw;
 
-    let html = build_html_document(records, template_names, export_time);
+    let html = build_html_document(
+        records,
+        template_names,
+        export_time,
+        account_name,
+        account_id,
+    );
     let mut fonts = std::collections::BTreeMap::new();
     // 字体名需与 build_html_document 的 font-family 列表一致（Noto Sans SC 兜底链中命中）
     fonts.insert(
@@ -736,6 +762,22 @@ pub async fn export_objects_document(
     let vault = vault_handle(&state)?;
     let export_time = chrono::Utc::now().to_rfc3339();
 
+    // 封面第二行：导出账户名 + 账户 ID（current_account 取当前解锁账户，list_accounts 反查 name）。
+    // 账户名反查失败（缓存为空等）时兜底显示 account_id，避免封面出现空账户名。
+    let account_id = crate::commands::current_account(&state)?;
+    let account_name = {
+        let svc = state
+            .vault_service
+            .read()
+            .map_err(|_| "Vault service lock poisoned".to_string())?;
+        svc.list_accounts()
+            .into_iter()
+            .find(|a| a.id == account_id)
+            .map(|a| a.name)
+            .filter(|n| !n.is_empty())
+            .unwrap_or_else(|| account_id.clone())
+    };
+
     // 解析保存路径（白名单校验在 resolve_document_path 内）——提前做，避免把无效路径带进阻塞任务。
     let document_path = resolve_document_path(&app, &save_path, &format)?;
 
@@ -744,13 +786,34 @@ pub async fn export_objects_document(
     // vault 是 Arc，闭包内 clone 一份；闭包外保留原句柄供审计日志使用。
     let vault_for_task = vault.clone();
     let format_for_task = format.clone();
+    let account_name_for_task = account_name.clone();
+    let account_id_for_task = account_id.clone();
     let (object_count, file_size_bytes) = tokio::task::spawn_blocking(move || {
         let records = load_records_in_order(&vault_for_task, &object_ids)?;
         let template_names = load_template_names(&vault_for_task, &records);
         let bytes = match format_for_task.as_str() {
-            "docx" => build_docx(&records, &template_names, &export_time)?,
-            "html" => build_html_document(&records, &template_names, &export_time).into_bytes(),
-            "pdf" => build_pdf_document(&records, &template_names, &export_time)?,
+            "docx" => build_docx(
+                &records,
+                &template_names,
+                &export_time,
+                &account_name_for_task,
+                &account_id_for_task,
+            )?,
+            "html" => build_html_document(
+                &records,
+                &template_names,
+                &export_time,
+                &account_name_for_task,
+                &account_id_for_task,
+            )
+            .into_bytes(),
+            "pdf" => build_pdf_document(
+                &records,
+                &template_names,
+                &export_time,
+                &account_name_for_task,
+                &account_id_for_task,
+            )?,
             other => return Err(export_err_with_detail("FORMAT_NOT_SUPPORTED", other)),
         };
         let count = records.len();
@@ -1056,7 +1119,8 @@ mod tests {
         );
         let mut tpl_names = std::collections::HashMap::new();
         tpl_names.insert("t1".to_string(), "护照".to_string());
-        let bytes = build_docx(&[rec], &tpl_names, "2026-08-10T00:00:00Z").unwrap();
+        let bytes =
+            build_docx(&[rec], &tpl_names, "2026-08-10T00:00:00Z", "Gczmy", "acc-1").unwrap();
 
         // zip 可读且包含必需部件
         let cursor = std::io::Cursor::new(&bytes);
@@ -1075,6 +1139,8 @@ mod tests {
         assert!(doc.contains("张三&amp;档案"));
         assert!(doc.contains("证件.pdf"));
         assert!(doc.contains("2.0 KB"));
+        // 封面第二行：账户名 + 账户 ID
+        assert!(doc.contains("账户名：Gczmy（acc-1）"));
     }
 
     #[test]
@@ -1109,7 +1175,8 @@ mod tests {
         );
         let mut tpl_names = std::collections::HashMap::new();
         tpl_names.insert("t1".to_string(), "护照".to_string());
-        let html = build_html_document(&[rec], &tpl_names, "2026-08-10T00:00:00Z");
+        let html =
+            build_html_document(&[rec], &tpl_names, "2026-08-10T00:00:00Z", "Gczmy", "acc-1");
 
         // 自包含：含 DOCTYPE 与内联 style
         assert!(html.starts_with("<!DOCTYPE html>"));
@@ -1121,6 +1188,8 @@ mod tests {
         assert!(html.contains("张三<br>第二行"));
         // 附件清单
         assert!(html.contains("附件：证件.pdf（2.0 KB，application/pdf）"));
+        // 封面第二行：账户名 + 账户 ID
+        assert!(html.contains("账户名：Gczmy（acc-1）"));
     }
 
     #[test]
@@ -1135,7 +1204,14 @@ mod tests {
             fields.clone(),
             serde_json::json!({"f1": "张三", "__fields": fields}),
         );
-        let bytes = build_pdf_document(&[rec], &std::collections::HashMap::new(), "t").unwrap();
+        let bytes = build_pdf_document(
+            &[rec],
+            &std::collections::HashMap::new(),
+            "t",
+            "Gczmy",
+            "acc-1",
+        )
+        .unwrap();
         assert!(!bytes.is_empty());
         assert_eq!(&bytes[0..4], b"%PDF");
         assert!(bytes.windows(4).any(|w| w == b"%%EOF"));
@@ -1147,7 +1223,14 @@ mod tests {
         let r1 = make_record("o1", "一", empty.clone(), empty.clone());
         let r2 = make_record("o2", "二", empty.clone(), empty.clone());
         let r3 = make_record("o3", "三", empty.clone(), empty.clone());
-        let bytes = build_docx(&[r1, r2, r3], &std::collections::HashMap::new(), "t").unwrap();
+        let bytes = build_docx(
+            &[r1, r2, r3],
+            &std::collections::HashMap::new(),
+            "t",
+            "Gczmy",
+            "acc-1",
+        )
+        .unwrap();
         let cursor = std::io::Cursor::new(&bytes);
         let mut archive = zip::ZipArchive::new(cursor).unwrap();
         let mut doc = String::new();
