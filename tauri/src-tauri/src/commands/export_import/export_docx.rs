@@ -866,14 +866,15 @@ fn build_markdown_document(
             out.push('\n');
         }
 
-        // 字段：`**标签**：值`——按字段类型格式化（url/email/phone 链接化，
-        // 多行值行尾双空格硬换行，渲染时真换行、不再出现 `<br>` 字面量）
+        // 字段：`**标签**：值`——按字段类型格式化（url/email/phone 链接化）；
+        // 字段间空行分隔（Markdown 段落即换行，避免相邻字段挤在一行）；
+        // 多行值内部同样空行分隔。
         let fields = flatten_object_fields(rec);
         if !fields.is_empty() {
             out.push('\n');
             for (label, value, ftype) in &fields {
                 let value = markdown_field_value(ftype, value);
-                out.push_str(&format!("**{}**：{}\n", escape_markdown(label), value));
+                out.push_str(&format!("**{}**：{}\n\n", escape_markdown(label), value));
             }
         }
 
@@ -1690,8 +1691,8 @@ mod tests {
         assert!(md.contains("导出 1 个对象"));
         assert!(md.contains("## 对象名称：张三&档案"));
         assert!(md.contains("- 模板：护照"));
-        // 多行值空行分隔（段落即换行），不再有 <br> 字面量
-        assert!(md.contains("**姓名**：张三\n\n第二行"));
+        // 多行值空行分隔（段落即换行）；字段间空行分隔
+        assert!(md.contains("**姓名**：张三\n\n第二行\n\n"));
         assert!(!md.contains("<br>"));
         assert!(md.contains("- 附件清单"));
         assert!(md.contains("- 证件.pdf（2.0 KB，application/pdf）"));
@@ -1806,7 +1807,7 @@ mod tests {
             "Gczmy",
             "acc-1",
         ); // 1. 多行 OCR 文本：空行分隔（段落即换行），无 <br> 字面量
-        assert!(md.contains("**OCR 文本**：第一行识别文本\n\n第二行识别文本\n\n第三行"));
+        assert!(md.contains("**OCR 文本**：第一行识别文本\n\n第二行识别文本\n\n第三行\n\n"));
         assert!(!md.contains("<br>"));
         // 2. url / email / phone 字段链接化；text 字段内嵌链接自动链接化（不额外转义 . - +）
         assert!(
