@@ -11,6 +11,7 @@ import { resolveBackendErrorMessage } from '@/lib/backendError';
 import { logger } from '@/lib/logger';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { saveWithPause } from '@/lib/dialog';
+import { swapDocumentExt } from '@/lib/exportFormat';
 import {
   cleanupStagedFile,
   copyStagedFileToDest,
@@ -58,6 +59,17 @@ export function ExportDocumentSection({ accountId, pageGroups }: ExportDocumentS
   const [format, setFormat] = useState<DocFormat>('docx');
   const [savePath, setSavePath] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const prevFormatRef = useRef<DocFormat>(format);
+
+  // 切换格式时，已选保存路径的扩展名跟随新格式更新（保留目录与文件名主体）。
+  // 用 prevFormatRef 检测真实切换，避免在 StrictMode 双调用下重复改写。
+  useEffect(() => {
+    const prev = prevFormatRef.current;
+    prevFormatRef.current = format;
+    if (prev !== format && savePath) {
+      setSavePath(swapDocumentExt(savePath, format));
+    }
+  }, [format, savePath]);
 
   // 确认流程状态
   const [showWarning, setShowWarning] = useState(false);
