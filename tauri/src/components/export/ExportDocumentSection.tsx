@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FileText, AlertTriangle } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { TransferButton } from '@/components/transfer/TransferButton';
 import { ObjectSelectionTree } from '@/components/transfer/ObjectSelectionTree';
@@ -308,7 +308,6 @@ export function ExportDocumentSection({ accountId, pageGroups }: ExportDocumentS
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 6,
                   padding: '8px 14px',
                   borderRadius: 8,
                   border: '1px solid var(--border-subtle)',
@@ -319,7 +318,6 @@ export function ExportDocumentSection({ accountId, pageGroups }: ExportDocumentS
                   fontSize: 'var(--text-body-sm)',
                 }}
               >
-                <FileText size={ICON_SIZE.sm} />
                 {label}
               </button>
             );
