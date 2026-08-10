@@ -336,7 +336,11 @@ fn build_docx(
     )));
     document.push_str("</w:p>\n");
     document.push_str("<w:p>");
-    document.push_str(&text_run(&format!("{} · {}", export_time, records.len())));
+    document.push_str(&text_run(&format!(
+        "{} · 导出 {} 个对象",
+        export_time,
+        records.len()
+    )));
     document.push_str("</w:p>\n");
 
     for (idx, rec) in records.iter().enumerate() {
@@ -517,7 +521,7 @@ fn build_html_document(
     html.push_str("</p>\n");
     html.push_str("<div class=\"meta\">");
     html.push_str(&escape_html(&format!(
-        "{} · {} 个对象",
+        "{} · 导出 {} 个对象",
         export_time,
         records.len()
     )));
@@ -1141,6 +1145,8 @@ mod tests {
         assert!(doc.contains("2.0 KB"));
         // 封面第二行：账户名 + 账户 ID
         assert!(doc.contains("账户名：Gczmy（acc-1）"));
+        // 封面第三行：明确对象数量（"导出 N 个对象"）
+        assert!(doc.contains("导出 1 个对象"));
     }
 
     #[test]
@@ -1190,6 +1196,8 @@ mod tests {
         assert!(html.contains("附件：证件.pdf（2.0 KB，application/pdf）"));
         // 封面第二行：账户名 + 账户 ID
         assert!(html.contains("账户名：Gczmy（acc-1）"));
+        // 封面第三行：明确对象数量（"导出 N 个对象"）
+        assert!(html.contains("导出 1 个对象"));
     }
 
     #[test]
