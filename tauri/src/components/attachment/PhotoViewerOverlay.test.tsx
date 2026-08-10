@@ -108,6 +108,61 @@ describe('PhotoViewerOverlay', () => {
     expect(onBack).toHaveBeenCalled();
   });
 
+  it('close button returns to the album instead of closing everything', async () => {
+    mockInvoke.mockResolvedValue('data:image/png;base64,abc');
+    const onBack = vi.fn();
+    const onClose = vi.fn();
+    render(
+      <PhotoViewerOverlay
+        items={[makeItem('a'), makeItem('b')]}
+        initialIndex={0}
+        onBack={onBack}
+        onClose={onClose}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /common:close/i }));
+    expect(onBack).toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('renders side nav buttons for multiple photos and navigates on click', async () => {
+    mockInvoke.mockResolvedValue('data:image/png;base64,abc');
+    render(
+      <PhotoViewerOverlay
+        items={[makeItem('n1'), makeItem('n2')]}
+        initialIndex={0}
+        onBack={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+
+    const nextBtn = screen.getByRole('button', { name: /common:next/i });
+    const prevBtn = screen.getByRole('button', { name: /common:previous/i });
+    expect(nextBtn).toBeInTheDocument();
+    expect(prevBtn).toBeInTheDocument();
+
+    fireEvent.click(nextBtn);
+    expect(screen.getByTestId('photo-viewer-counter')).toHaveTextContent('2 / 2');
+    fireEvent.click(prevBtn);
+    expect(screen.getByTestId('photo-viewer-counter')).toHaveTextContent('1 / 2');
+  });
+
+  it('hides side nav buttons for a single photo', async () => {
+    mockInvoke.mockResolvedValue('data:image/png;base64,abc');
+    render(
+      <PhotoViewerOverlay
+        items={[makeItem('a')]}
+        initialIndex={0}
+        onBack={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+
+    expect(screen.queryByRole('button', { name: /common:next/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /common:previous/i })).not.toBeInTheDocument();
+  });
+
   it('shows error state and open-external fallback when loading fails', async () => {
     // 使用唯一路径，避免命中 photoAlbumPreview 模块级缓存的成功结果
     mockInvoke.mockRejectedValue(new Error('boom'));

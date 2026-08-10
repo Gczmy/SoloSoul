@@ -1,7 +1,16 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowLeft, ExternalLink, RotateCcw, X, ZoomIn, ZoomOut } from 'lucide-react';
+import {
+  ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
+  ExternalLink,
+  RotateCcw,
+  X,
+  ZoomIn,
+  ZoomOut,
+} from 'lucide-react';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { ICON_SIZE } from '@/lib/constants';
 import type { AttachmentItem } from '@/lib/attachmentUtils';
@@ -44,11 +53,60 @@ const iconButtonStyle: React.CSSProperties = {
   flexShrink: 0,
 };
 
+interface NavButtonProps {
+  direction: 'prev' | 'next';
+  onClick: () => void;
+  label: string;
+}
+
+/** 左右翻页按钮：半透明悬浮圆钮，让用户感知可左右切换照片；悬停时加深。 */
+function NavButton({ direction, onClick, label }: NavButtonProps) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <button
+      type="button"
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick();
+      }}
+      title={label}
+      aria-label={label}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        position: 'absolute',
+        top: '50%',
+        transform: 'translateY(-50%)',
+        [direction === 'prev' ? 'left' : 'right']: 12,
+        zIndex: 2,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: 42,
+        height: 42,
+        borderRadius: '50%',
+        border: '1px solid rgba(255,255,255,0.18)',
+        background: hovered ? 'rgba(255,255,255,0.26)' : 'rgba(255,255,255,0.12)',
+        color: 'rgba(255,255,255,0.92)',
+        cursor: 'pointer',
+        transition: 'background 0.15s ease',
+      }}
+    >
+      {direction === 'prev' ? (
+        <ChevronLeft size={ICON_SIZE.xl} />
+      ) : (
+        <ChevronRight size={ICON_SIZE.xl} />
+      )}
+    </button>
+  );
+}
+
 /**
  * 照片集全屏查看器（附件照片集方案 §3.3）。
  *
- * - 左上角返回按钮回到网格；顶部显示「{current} / {total}」计数；
- * - 左右滑动切换（framer-motion `drag="x"` + 阈值判定），桌面端补方向键；
+ * - 顶栏左右两个返回按钮都回到网格；顶部显示「{current} / {total}」计数；
+ * - 左右滑动切换（framer-motion `drag="x"` + 阈值判定），桌面端补方向键，
+ *   内容区两侧另置半透明 ◀ ▶ 翻页按钮让用户感知可左右切换；
  * - 仅 scale ≤ 1（未放大）时响应横向 swipe——放大后容器 overflow auto 滚动优先，
  *   避免手势冲突（`global.css` 全局 `touch-action: manipulation` 在此容器覆写为 pan-y）；
  * - 加载策略：仅缓存当前 ±1（index 变化丢弃过期 resolve，修复「慢 IPC 覆盖新图」竞态）。
@@ -257,7 +315,7 @@ export function PhotoViewerOverlay({
         </span>
         <button
           type="button"
-          onClick={onClose}
+          onClick={onBack}
           title={t('common:close', 'Close')}
           aria-label={t('common:close', 'Close')}
           style={iconButtonStyle}
@@ -298,6 +356,22 @@ export function PhotoViewerOverlay({
             {renderContent()}
           </motion.div>
         </AnimatePresence>
+
+        {/* 左右翻页按钮：多图时显示，半透明提示可左右切换 */}
+        {total > 1 && (
+          <>
+            <NavButton
+              direction="prev"
+              onClick={goPrev}
+              label={t('common:previous', 'Previous')}
+            />
+            <NavButton
+              direction="next"
+              onClick={goNext}
+              label={t('common:next', 'Next')}
+            />
+          </>
+        )}
       </div>
 
       {/* 缩放控件（仅图片就绪时显示） */}
