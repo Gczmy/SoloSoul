@@ -291,8 +291,9 @@ fn resolve_zip_path(app: &tauri::AppHandle, save_path: &str) -> Result<String, S
 }
 
 /// P001: 校验导出落盘路径位于允许基目录内（与 `attachment_download` 的校验语义一致）。
+/// P220: 提升为 `pub(crate)` 供 `export_docx` 复用（文档导出同样需要白名单校验）。
 #[cfg(desktop)]
-fn validate_export_dest(zip_path: &str) -> Result<(), String> {
+pub(crate) fn validate_export_dest(zip_path: &str) -> Result<(), String> {
     let dest = std::path::Path::new(zip_path);
     // 拒绝路径穿越组件
     if dest

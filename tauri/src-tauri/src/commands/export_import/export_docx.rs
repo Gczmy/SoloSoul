@@ -1,0 +1,751 @@
+//! 对象级文档导出（Word/docx）— 设计文档 docs/next_dev/对象级文档导出功能设计与实现.md
+//!
+//! - 将选中对象以多页形式导出为一个 docx（每个对象占一页）。
+//! - docx 本质是 ZIP + OOXML，复用 workspace 已有的 `zip` crate，零新依赖。
+//! - 附件不嵌入正文，仅以「附件清单」小节列出名称/大小/类型。
+//! - 敏感字段确认后全量明文写入（前端先经 preflight 分级确认）。
+
+use super::*;
+use std::io::Write;
+
+// ── 类型 ────────────────────────────────────────────────────
+
+/// preflight 返回的最高敏感度等级。
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum DocumentSensitivity {
+    None,
+    Sensitive,
+    Critical,
+}
+
+/// 文档导出结果。
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ExportDocumentResult {
+    pub object_count: u32,
+    pub file_size_bytes: u64,
+}
+
+/// 字段敏感度等级顺序：public < internal < sensitive < critical。
+/// 返回 `Some(rank)`；未知等级视为 internal（默认）。
+fn sensitivity_rank(level: &str) -> u8 {
+    match level {
+        "public" => 0,
+        "internal" => 1,
+        "sensitive" => 2,
+        "critical" => 3,
+        _ => 1,
+    }
+}
+
+/// 依据字段定义来源合并判定对象的最高字段敏感度。
+///
+/// 来源优先级（与前端 propertyLabels / __fields / 模板定义一致）：
+/// 1. 对象 `property_labels`（field_id → level，对象创建时从模板继承的权威快照；
+///    即使用户修改模板敏感度，对象仍保留自己的副本——评审 P221 补充）；
+/// 2. 对象 `__fields` 内嵌字段定义的 `sensitivityLevel`（模板同步路径会写入）；
+/// 3. 模板 `TemplateProperty.sensitivity_level`（对象仍引用模板时）。
+///
+/// 注意：`inherit_property_fields` 在对象创建时注入的 `__fields` **不含**
+/// `sensitivityLevel`（仅 `template_prop_to_field_def` 模板同步路径写入），
+/// 因此 `property_labels` 是新建对象的敏感度权威来源，必须纳入判定。
+fn object_max_sensitivity(
+    record: &solosoul_vault::ObjectRecord,
+    tpl: Option<&solosoul_vault::UserTemplate>,
+) -> DocumentSensitivity {
+    let mut max_rank = 1u8; // internal 兜底
+
+    // 1. property_labels（权威来源）
+    if let Some(labels) = record.property_labels.as_ref().and_then(|v| v.as_object()) {
+        for level in labels.values() {
+            if let Some(level) = level.as_str() {
+                max_rank = max_rank.max(sensitivity_rank(level));
+            }
+        }
+    }
+
+    // 2. __fields 内嵌 sensitivityLevel
+    if let Some(fields) = record
+        .properties
+        .get("__fields")
+        .and_then(|v| v.as_object())
+    {
+        for def in fields.values() {
+            if let Some(level) = def.get("sensitivityLevel").and_then(|v| v.as_str()) {
+                max_rank = max_rank.max(sensitivity_rank(level));
+            }
+        }
+    }
+
+    // 3. 模板定义
+    if let Some(tpl) = tpl {
+        for prop in &tpl.properties {
+            if let Some(ref level) = prop.sensitivity_level {
+                max_rank = max_rank.max(sensitivity_rank(level));
+            }
+        }
+    }
+
+    match max_rank {
+        3 => DocumentSensitivity::Critical,
+        2 => DocumentSensitivity::Sensitive,
+        _ => DocumentSensitivity::None,
+    }
+}
+
+/// XML 转义：`& < > " '` 必须转义。
+fn escape_xml(s: &str) -> String {
+    let mut out = String::with_capacity(s.len());
+    for c in s.chars() {
+        match c {
+            '&' => out.push_str("&amp;"),
+            '<' => out.push_str("&lt;"),
+            '>' => out.push_str("&gt;"),
+            '"' => out.push_str("&quot;"),
+            '\'' => out.push_str("&apos;"),
+            _ => out.push(c),
+        }
+    }
+    out
+}
+
+/// 过滤 OOXML 不允许的控制字符（<0x20 除 \t \n \r 外全部剔除）。
+fn sanitize_docx_text(s: &str) -> String {
+    s.chars()
+        .filter(|&c| c >= '\u{20}' || c == '\t' || c == '\n' || c == '\r')
+        .collect()
+}
+
+/// 将字段值渲染为纯文本。
+///
+/// - 数组：join(", ")（与前端 flattenProperties 一致）；
+/// - dynamic_group：每个子字段独立一行 `名称：值`；
+/// - 其他：JSON 字符串化。
+fn field_value_to_text(value: &serde_json::Value) -> String {
+    match value {
+        serde_json::Value::String(s) => s.clone(),
+        serde_json::Value::Number(n) => n.to_string(),
+        serde_json::Value::Bool(b) => b.to_string(),
+        serde_json::Value::Array(items) => {
+            let is_dynamic_group = items.iter().all(|v| v.is_object());
+            if is_dynamic_group {
+                let mut lines = Vec::new();
+                for item in items {
+                    if let Some(obj) = item.as_object() {
+                        let name = obj
+                            .get("name")
+                            .and_then(|v| v.as_str())
+                            .unwrap_or("")
+                            .to_string();
+                        let value = obj
+                            .get("value")
+                            .map(field_value_to_text)
+                            .unwrap_or_default();
+                        if !name.is_empty() {
+                            lines.push(format!("{}：{}", name, value));
+                        }
+                    }
+                }
+                lines.join("\n")
+            } else {
+                items
+                    .iter()
+                    .map(field_value_to_text)
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            }
+        }
+        serde_json::Value::Null => String::new(),
+        other => other.to_string(),
+    }
+}
+
+/// 拍平对象字段（跳过 `__` 内部键），返回 (字段标签, 字段值文本) 列表。
+/// 字段顺序与前端 flattenProperties 一致：properties Map 迭代序（保留 __fields 定义序）。
+fn flatten_object_fields(record: &solosoul_vault::ObjectRecord) -> Vec<(String, String)> {
+    let mut out = Vec::new();
+    let Some(props) = record.properties.as_object() else {
+        return out;
+    };
+    // 字段标签：优先 __fields 定义的 name，回退键名本身
+    let field_names: std::collections::HashMap<String, String> = record
+        .properties
+        .get("__fields")
+        .and_then(|v| v.as_object())
+        .map(|fields| {
+            fields
+                .iter()
+                .filter_map(|(k, def)| {
+                    def.get("name")
+                        .and_then(|n| n.as_str())
+                        .map(|n| (k.clone(), n.to_string()))
+                })
+                .collect()
+        })
+        .unwrap_or_default();
+
+    for (k, v) in props {
+        if k.starts_with("__") {
+            continue;
+        }
+        let text = field_value_to_text(v);
+        if text.is_empty() {
+            continue;
+        }
+        let label = field_names.get(k).cloned().unwrap_or_else(|| k.clone());
+        out.push((label, text));
+    }
+    out
+}
+
+/// 附件清单（名称 / 大小 / 类型），仅未软删附件。
+fn collect_attachment_rows(record: &solosoul_vault::ObjectRecord) -> Vec<(String, String, String)> {
+    load_attachments(&record.properties)
+        .into_iter()
+        .filter(|a| a.deleted_at.is_none())
+        .map(|a| (a.file_name.clone(), format_bytes(a.size_bytes), a.mime_type))
+        .collect()
+}
+
+fn format_bytes(bytes: u64) -> String {
+    const KB: u64 = 1024;
+    const MB: u64 = KB * 1024;
+    if bytes >= MB {
+        format!("{:.1} MB", bytes as f64 / MB as f64)
+    } else if bytes >= KB {
+        format!("{:.1} KB", bytes as f64 / KB as f64)
+    } else {
+        format!("{} B", bytes)
+    }
+}
+
+/// 构造 docx 包的最小 OOXML 结构，返回 zip 字节。
+///
+/// 文档结构（多对象 = 多页）：
+/// 1. 封面段：应用名、导出时间、对象总数；
+/// 2. 每个对象：分页符 → 对象名(H1) → 元信息段 → 字段表格 → 附件清单小节。
+fn build_docx(
+    records: &[solosoul_vault::ObjectRecord],
+    template_names: &std::collections::HashMap<String, String>,
+    export_time: &str,
+) -> Result<Vec<u8>, String> {
+    let mut document = String::new();
+    document.push_str(
+        "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n\
+         <w:document xmlns:w=\"http://schemas.openxmlformats.org/wordprocessingml/2006/main\">\n\
+         <w:body>\n",
+    );
+
+    // 1. 封面/标题段
+    document.push_str("<w:p><w:pPr><w:pStyle w:val=\"Heading1\"/></w:pPr><w:r><w:t>");
+    document.push_str(&escape_xml(&sanitize_docx_text("SoloSoul")));
+    document.push_str("</w:t></w:r></w:p>\n");
+    document.push_str("<w:p><w:r><w:t>");
+    document.push_str(&escape_xml(&sanitize_docx_text(&format!(
+        "{} · {}",
+        export_time,
+        records.len()
+    ))));
+    document.push_str("</w:t></w:r></w:p>\n");
+
+    for (idx, rec) in records.iter().enumerate() {
+        if idx > 0 {
+            // 分页符：第二个对象起每个对象前插入
+            document.push_str("<w:p><w:r><w:br w:type=\"page\"/></w:r></w:p>\n");
+        }
+        // 对象名
+        document.push_str("<w:p><w:pPr><w:pStyle w:val=\"Heading1\"/></w:pPr><w:r><w:t>");
+        document.push_str(&escape_xml(&sanitize_docx_text(&rec.name)));
+        document.push_str("</w:t></w:r></w:p>\n");
+
+        // 元信息段
+        let tpl_name = rec
+            .template_id
+            .as_ref()
+            .and_then(|tid| template_names.get(tid))
+            .cloned()
+            .unwrap_or_default();
+        let mut meta_lines = Vec::new();
+        if !tpl_name.is_empty() {
+            meta_lines.push(format!("模板：{}", tpl_name));
+        }
+        meta_lines.push(format!("创建时间：{}", rec.created_at));
+        meta_lines.push(format!("更新时间：{}", rec.updated_at));
+        if !rec.tags_json.is_empty() {
+            meta_lines.push(format!("标签：{}", rec.tags_json.join(", ")));
+        }
+        for line in &meta_lines {
+            document.push_str("<w:p><w:r><w:t>");
+            document.push_str(&escape_xml(&sanitize_docx_text(line)));
+            document.push_str("</w:t></w:r></w:p>\n");
+        }
+
+        // 字段表格（两列：标签 / 值）
+        let fields = flatten_object_fields(rec);
+        if !fields.is_empty() {
+            document.push_str("<w:tbl><w:tblPr><w:tblW w:w=\"0\" w:type=\"auto\"/></w:tblPr>");
+            for (label, value) in &fields {
+                document.push_str("<w:tr><w:tc><w:tcPr><w:tcW w:w=\"3000\" w:type=\"dxa\"/></w:tcPr><w:p><w:r><w:t>");
+                document.push_str(&escape_xml(&sanitize_docx_text(label)));
+                document.push_str("</w:t></w:r></w:p></w:tc><w:tc><w:tcPr><w:tcW w:w=\"5000\" w:type=\"dxa\"/></w:tcPr><w:p><w:r><w:t>");
+                document.push_str(&escape_xml(&sanitize_docx_text(value)));
+                document.push_str("</w:t></w:r></w:p></w:tc></w:tr>\n");
+            }
+            document.push_str("</w:tbl>\n");
+        }
+
+        // 附件清单小节
+        let attachments = collect_attachment_rows(rec);
+        if !attachments.is_empty() {
+            document.push_str("<w:p><w:pPr><w:pStyle w:val=\"Heading2\"/></w:pPr><w:r><w:t>");
+            document.push_str("附件清单");
+            document.push_str("</w:t></w:r></w:p>\n");
+            for (name, size, mime) in &attachments {
+                document.push_str("<w:p><w:r><w:t>");
+                document.push_str(&escape_xml(&sanitize_docx_text(&format!(
+                    "{}（{}，{}）",
+                    name, size, mime
+                ))));
+                document.push_str("</w:t></w:r></w:p>\n");
+            }
+        }
+    }
+
+    document.push_str("</w:body>\n</w:document>\n");
+
+    // styles.xml：最小样式集（Heading1 / Heading2 / 正文）
+    let styles = r#"<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">
+  <w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/></w:style>
+  <w:style w:type="paragraph" w:styleId="Heading1"><w:name w:val="heading 1"/><w:pPr><w:spacing w:before="240" w:after="120"/></w:pPr><w:rPr><w:b/><w:sz w:val="32"/></w:rPr></w:style>
+  <w:style w:type="paragraph" w:styleId="Heading2"><w:name w:val="heading 2"/><w:pPr><w:spacing w:before="200" w:after="100"/></w:pPr><w:rPr><w:b/><w:sz w:val="26"/></w:rPr></w:style>
+</w:styles>
+"#;
+
+    // 组装 zip
+    let mut buf = std::io::Cursor::new(Vec::new());
+    {
+        let mut zip = ZipWriter::new(&mut buf);
+        let options =
+            SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated);
+
+        zip.start_file("[Content_Types].xml", options)
+            .map_err(|e| e.to_string())?;
+        zip.write_all(
+            r#"<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+  <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+  <Default Extension="xml" ContentType="application/xml"/>
+  <Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>
+  <Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/>
+</Types>
+"#
+            .as_bytes(),
+        )
+        .map_err(|e| e.to_string())?;
+
+        zip.start_file("_rels/.rels", options)
+            .map_err(|e| e.to_string())?;
+        zip.write_all(
+            r#"<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+  <Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>
+</Relationships>
+"#
+            .as_bytes(),
+        )
+        .map_err(|e| e.to_string())?;
+
+        zip.start_file("word/document.xml", options)
+            .map_err(|e| e.to_string())?;
+        zip.write_all(document.as_bytes())
+            .map_err(|e| e.to_string())?;
+
+        zip.start_file("word/styles.xml", options)
+            .map_err(|e| e.to_string())?;
+        zip.write_all(styles.as_bytes())
+            .map_err(|e| e.to_string())?;
+
+        zip.finish().map_err(|e| e.to_string())?;
+    }
+    Ok(buf.into_inner())
+}
+
+/// 加载对象记录并按前端传入顺序返回（空列表报错）。
+fn load_records_in_order(
+    vault: &solosoul_vault::VaultStore,
+    object_ids: &[String],
+) -> Result<Vec<solosoul_vault::ObjectRecord>, String> {
+    if object_ids.is_empty() {
+        return Err(export_err("NO_OBJECTS_SELECTED"));
+    }
+    let by_id = vault.load_objects_batch(object_ids)?;
+    let mut records = Vec::with_capacity(object_ids.len());
+    for id in object_ids {
+        match by_id.get(id) {
+            Some(r) => records.push(r.clone()),
+            None => return Err(format!("Object not found: {}", id)),
+        }
+    }
+    Ok(records)
+}
+
+/// 加载对象引用的模板名映射（id → name），加载失败静默跳过。
+fn load_template_names(
+    vault: &solosoul_vault::VaultStore,
+    records: &[solosoul_vault::ObjectRecord],
+) -> std::collections::HashMap<String, String> {
+    let mut names = std::collections::HashMap::new();
+    for rec in records {
+        if let Some(ref tid) = rec.template_id {
+            if let Ok(Some(tpl)) = vault.load_user_template(tid) {
+                names.insert(tid.clone(), tpl.name);
+            }
+        }
+    }
+    names
+}
+
+/// 解析保存路径：桌面端追加 .docx 后缀 + 白名单校验。
+/// 移动端前端经 SAF URI 中转（无法传任意路径），跳过校验。
+#[allow(unused_variables)]
+fn resolve_docx_path(app: &tauri::AppHandle, save_path: &str) -> Result<String, String> {
+    let docx_path = if save_path.to_lowercase().ends_with(".docx") {
+        save_path.to_string()
+    } else {
+        format!("{}.docx", save_path)
+    };
+
+    #[cfg(desktop)]
+    validate_export_dest(&docx_path)?;
+
+    if let Some(parent) = std::path::Path::new(&docx_path).parent() {
+        let _ = std::fs::create_dir_all(parent);
+    }
+    Ok(docx_path)
+}
+
+/// 预检：返回所选对象字段的最高敏感度（critical > sensitive > none）。
+///
+/// 设计 §3.3：逐对象解密与判定移入 `spawn_blocking`（同 `object_get`），
+/// 避免多对象全表 AES 解密阻塞 tokio worker。
+#[tauri::command]
+pub async fn export_document_preflight(
+    state: State<'_, AppState>,
+    object_ids: Vec<String>,
+) -> Result<DocumentSensitivity, String> {
+    let vault = vault_handle(&state)?;
+    let result = tokio::task::spawn_blocking(move || {
+        let records = load_records_in_order(&vault, &object_ids)?;
+        let mut max = DocumentSensitivity::None;
+        for rec in &records {
+            let tpl = rec
+                .template_id
+                .as_deref()
+                .and_then(|tid| vault.load_user_template(tid).ok().flatten());
+            let level = object_max_sensitivity(rec, tpl.as_ref());
+            if level == DocumentSensitivity::Critical {
+                return Ok(DocumentSensitivity::Critical);
+            }
+            if level == DocumentSensitivity::Sensitive {
+                max = DocumentSensitivity::Sensitive;
+            }
+        }
+        Ok::<DocumentSensitivity, String>(max)
+    })
+    .await
+    .map_err(|e| format!("preflight task failed: {e}"))??;
+    Ok(result)
+}
+
+/// 导出对象为 docx 文档并落盘。
+///
+/// - `format` 本期仅接受 `"docx"`（为二期 PDF/HTML 预留签名）。
+/// - 写文件用「临时文件 + rename」避免半截文件；Unix 设权限 0600。
+/// - 审计日志 `export_document` 仅记录格式与对象数，不记录字段内容（脱敏规范）。
+#[tauri::command]
+pub async fn export_objects_document(
+    #[allow(unused_variables)] app: tauri::AppHandle,
+    state: State<'_, AppState>,
+    object_ids: Vec<String>,
+    save_path: String,
+    format: String,
+) -> Result<ExportDocumentResult, String> {
+    if format != "docx" {
+        return Err(export_err_with_detail("FORMAT_NOT_SUPPORTED", &format));
+    }
+
+    let vault = vault_handle(&state)?;
+    let export_time = chrono::Utc::now().to_rfc3339();
+
+    // 解析保存路径（白名单校验在 resolve_docx_path 内）——提前做，避免把无效路径带进阻塞任务。
+    let docx_path = resolve_docx_path(&app, &save_path)?;
+
+    // 对象解密 + docx 生成 + 写盘（临时文件 + rename；Unix chmod 600）整体移入
+    // spawn_blocking，避免大对象集全表 AES 解密与文件写入阻塞 tokio worker（P114 同款）。
+    // vault 是 Arc，闭包内 clone 一份；闭包外保留原句柄供审计日志使用。
+    let vault_for_task = vault.clone();
+    let (object_count, file_size_bytes) = tokio::task::spawn_blocking(move || {
+        let records = load_records_in_order(&vault_for_task, &object_ids)?;
+        let template_names = load_template_names(&vault_for_task, &records);
+        let docx_bytes = build_docx(&records, &template_names, &export_time)?;
+        let count = records.len();
+
+        let tmp_path = format!("{}.tmp{}", docx_path, std::process::id());
+        {
+            let mut f = File::create(&tmp_path).map_err(|e| format!("Create docx: {e}"))?;
+            f.write_all(&docx_bytes)
+                .map_err(|e| format!("Write docx: {e}"))?;
+            #[cfg(unix)]
+            {
+                use std::os::unix::fs::PermissionsExt;
+                let _ = f.set_permissions(std::fs::Permissions::from_mode(0o600));
+            }
+        }
+        std::fs::rename(&tmp_path, &docx_path).map_err(|e| format!("Finalize docx: {e}"))?;
+
+        Ok::<(usize, u64), String>((count, docx_bytes.len() as u64))
+    })
+    .await
+    .map_err(|e| format!("docx export task failed: {e}"))??;
+
+    // 第三重：审计日志（脱敏——不含字段内容与对象名明细）
+    let _ = vault.log_structured(
+        "export_document",
+        "document",
+        None,
+        None,
+        "user",
+        Some(&format!("format=docx objects={}", object_count)),
+    );
+
+    Ok(ExportDocumentResult {
+        object_count: object_count as u32,
+        file_size_bytes,
+    })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// `fields` 仅供调用方语义表达（字段定义实际经 props.__fields 注入），参数保留签名一致性。
+    fn make_record(
+        id: &str,
+        name: &str,
+        _fields: serde_json::Value,
+        props: serde_json::Value,
+    ) -> solosoul_vault::ObjectRecord {
+        solosoul_vault::ObjectRecord {
+            id: id.to_string(),
+            account_id: "acc".to_string(),
+            type_id: "identity".to_string(),
+            section_type: "identity".to_string(),
+            name: name.to_string(),
+            icon_name: "document".to_string(),
+            parent_id: None,
+            children_ids: vec![],
+            properties: props,
+            property_labels: None,
+            sensitivity_level: "internal".to_string(),
+            is_deleted: false,
+            deleted_at: None,
+            tags_json: vec![],
+            template_id: None,
+            template_type: None,
+            contract_type_id: None,
+            template_hash: None,
+            ignored_template_hash: None,
+            created_at: "2026-01-01T00:00:00Z".to_string(),
+            updated_at: "2026-01-02T00:00:00Z".to_string(),
+            version: 1,
+        }
+    }
+
+    #[test]
+    fn test_escape_xml() {
+        assert_eq!(
+            escape_xml("a&b<c>d\"e'f"),
+            "a&amp;b&lt;c&gt;d&quot;e&apos;f"
+        );
+    }
+
+    #[test]
+    fn test_sanitize_docx_text() {
+        // 保留 \t \n \r 与可打印字符，剔除其他控制字符
+        let s = "a\tb\nc\rd\u{01}e";
+        assert_eq!(sanitize_docx_text(s), "a\tb\nc\rde");
+    }
+
+    #[test]
+    fn test_field_value_to_text_dynamic_group() {
+        let v = serde_json::json!([
+            {"id": "1", "name": "姓", "value": "张"},
+            {"id": "2", "name": "名", "value": "三"}
+        ]);
+        assert_eq!(field_value_to_text(&v), "姓：张\n名：三");
+    }
+
+    #[test]
+    fn test_flatten_skips_internal_keys() {
+        let fields = serde_json::json!({
+            "f1": {"name": "姓名"},
+            "f2": {"name": "备注"}
+        });
+        let props = serde_json::json!({
+            "f1": "张三",
+            "f2": "hello & world",
+            "__fields": fields,
+            "__attachments": []
+        });
+        let rec = make_record("o1", "对象", fields, props);
+        let flat = flatten_object_fields(&rec);
+        assert_eq!(flat.len(), 2);
+        assert!(flat.iter().any(|(l, v)| l == "姓名" && v == "张三"));
+        // XML 转义在 build 阶段处理，拍平保留原始值
+        assert!(flat
+            .iter()
+            .any(|(l, v)| l == "备注" && v == "hello & world"));
+    }
+
+    #[test]
+    fn test_object_max_sensitivity_from_fields() {
+        let fields = serde_json::json!({
+            "f1": {"name": "a", "sensitivityLevel": "public"},
+            "f2": {"name": "b", "sensitivityLevel": "critical"}
+        });
+        let rec = make_record(
+            "o1",
+            "对象",
+            fields.clone(),
+            serde_json::json!({"__fields": fields}),
+        );
+        assert_eq!(
+            object_max_sensitivity(&rec, None),
+            DocumentSensitivity::Critical
+        );
+    }
+
+    #[test]
+    fn test_object_max_sensitivity_from_property_labels() {
+        // P221: property_labels 是新建对象的敏感度权威来源（__fields 创建时不注入
+        // sensitivityLevel），preflight 必须纳入判定，否则敏感字段被静默明文导出。
+        let mut rec = make_record("o1", "对象", serde_json::json!({}), serde_json::json!({}));
+        rec.property_labels = Some(serde_json::json!({"f1": "sensitive"}));
+        assert_eq!(
+            object_max_sensitivity(&rec, None),
+            DocumentSensitivity::Sensitive
+        );
+        rec.property_labels = Some(serde_json::json!({"f1": "critical"}));
+        assert_eq!(
+            object_max_sensitivity(&rec, None),
+            DocumentSensitivity::Critical
+        );
+        // 仅 public/internal → none
+        rec.property_labels = Some(serde_json::json!({"f1": "public"}));
+        assert_eq!(
+            object_max_sensitivity(&rec, None),
+            DocumentSensitivity::None
+        );
+    }
+
+    #[test]
+    fn test_object_max_sensitivity_from_template() {
+        let rec = make_record("o1", "对象", serde_json::json!({}), serde_json::json!({}));
+        let tpl = solosoul_vault::UserTemplate {
+            id: "t1".to_string(),
+            account_id: "acc".to_string(),
+            name: "模板".to_string(),
+            icon_id: None,
+            properties: vec![solosoul_vault::TemplateProperty {
+                id: "f1".to_string(),
+                name: "a".to_string(),
+                prop_type: solosoul_vault::PropertyType::Text,
+                sensitivity_level: Some("sensitive".to_string()),
+                sensitive: None,
+                options: None,
+                deprecated_at: None,
+                contract_field: None,
+                contract_bindings: None,
+                allowed_types: None,
+                max_items: None,
+            }],
+            category: None,
+            created_at: "2026-01-01T00:00:00Z".to_string(),
+            updated_at: None,
+            contract_type_id: None,
+        };
+        assert_eq!(
+            object_max_sensitivity(&rec, Some(&tpl)),
+            DocumentSensitivity::Sensitive
+        );
+    }
+
+    #[test]
+    fn test_build_docx_structure() {
+        let fields = serde_json::json!({"f1": {"name": "姓名"}});
+        let rec = make_record(
+            "o1",
+            "张三&档案",
+            fields.clone(),
+            serde_json::json!({
+                "f1": "张三",
+                "__fields": fields,
+                "__attachments": [
+                    {"id": "a1", "objectId": "o1", "fileName": "证件.pdf", "sizeBytes": 2048, "mimeType": "application/pdf"}
+                ]
+            }),
+        );
+        let mut tpl_names = std::collections::HashMap::new();
+        tpl_names.insert("t1".to_string(), "护照".to_string());
+        let bytes = build_docx(&[rec], &tpl_names, "2026-08-10T00:00:00Z").unwrap();
+
+        // zip 可读且包含必需部件
+        let cursor = std::io::Cursor::new(&bytes);
+        let mut archive = zip::ZipArchive::new(cursor).unwrap();
+        assert!(archive.by_name("[Content_Types].xml").is_ok());
+        assert!(archive.by_name("_rels/.rels").is_ok());
+        assert!(archive.by_name("word/document.xml").is_ok());
+        assert!(archive.by_name("word/styles.xml").is_ok());
+
+        let mut doc = String::new();
+        archive
+            .by_name("word/document.xml")
+            .unwrap()
+            .read_to_string(&mut doc)
+            .unwrap();
+        assert!(doc.contains("张三&amp;档案"));
+        assert!(doc.contains("证件.pdf"));
+        assert!(doc.contains("2.0 KB"));
+    }
+
+    #[test]
+    fn test_build_docx_page_breaks() {
+        let empty = serde_json::json!({});
+        let r1 = make_record("o1", "一", empty.clone(), empty.clone());
+        let r2 = make_record("o2", "二", empty.clone(), empty.clone());
+        let r3 = make_record("o3", "三", empty.clone(), empty.clone());
+        let bytes = build_docx(&[r1, r2, r3], &std::collections::HashMap::new(), "t").unwrap();
+        let cursor = std::io::Cursor::new(&bytes);
+        let mut archive = zip::ZipArchive::new(cursor).unwrap();
+        let mut doc = String::new();
+        archive
+            .by_name("word/document.xml")
+            .unwrap()
+            .read_to_string(&mut doc)
+            .unwrap();
+        // 3 个对象 → 2 个分页符
+        assert_eq!(doc.matches("w:type=\"page\"").count(), 2);
+    }
+
+    #[test]
+    fn test_empty_object_ids_rejected() {
+        let dir = tempfile::TempDir::new().unwrap();
+        let config = solosoul_vault::VaultConfig::new("acc", dir.path().to_path_buf())
+            .with_data_key([0x42u8; 32]);
+        let vault = solosoul_vault::VaultStore::open(config).unwrap();
+        let err = load_records_in_order(&vault, &[]).unwrap_err();
+        assert!(err.contains("NO_OBJECTS_SELECTED"));
+    }
+}

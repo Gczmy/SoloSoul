@@ -21,15 +21,16 @@ import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { ICON_SIZE } from '@/lib/constants';
 import { ExportSection } from '@/components/export/ExportSection';
+import { ExportDocumentSection } from '@/components/export/ExportDocumentSection';
 import { ImportSection } from '@/components/import/ImportSection';
-import { ExportImportTabBar } from '@/components/settings/ExportImportTabBar';
+import { ExportImportTabBar, type ExportImportTabKey } from '@/components/settings/ExportImportTabBar';
 import { useExportEstimate } from '@/hooks/useExportEstimate';
 import { useExportScope } from '@/hooks/useExportScope';
 import { useImportState } from '@/hooks/useImportState';
 import { Info, FolderOpen, Lock, GitCompare } from 'lucide-react';
 import type { PageGroup } from '@/types/exportImport';
 
-type TabKey = 'export' | 'import';
+type TabKey = ExportImportTabKey;
 
 export function ExportImportPage() {
   const navigate = useNavigate();
@@ -353,7 +354,7 @@ export function ExportImportPage() {
 
         <ExportImportTabBar tab={tab} onChange={setTab} />
 
-        {tab === 'export' && scopeLoaded && scopeError ? (
+        {(tab === 'export' || tab === 'document') && scopeLoaded && scopeError ? (
           // N-11: 加载失败态与「空数据」同态问题——失败时显示错误占位 + 重试，
           // 不再渲染空导出树（用户误以为数据丢失）。
           <Card style={{ padding: '48px 24px', textAlign: 'center' }}>
@@ -442,6 +443,15 @@ export function ExportImportPage() {
                 handleExport();
               }}
             />
+          </motion.div>
+        ) : tab === 'document' && scopeLoaded ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.2 }}
+            style={{ display: 'flex', flexDirection: 'column', gap: 'var(--page-gap)' }}
+          >
+            <ExportDocumentSection accountId={accountId} pageGroups={pageGroups} />
           </motion.div>
         ) : tab === 'import' ? (
           <ImportSection

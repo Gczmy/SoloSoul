@@ -361,11 +361,13 @@ pub(crate) fn collect_export_templates(
 // ── Sub-modules ─────────────────────────────────────────────
 
 pub mod export;
+pub mod export_docx;
 pub mod helpers;
 pub mod import;
 #[cfg(test)]
 pub mod tests;
 
 pub use export::*;
+pub use export_docx::*;
 pub(crate) use helpers::*;
 pub use import::*;

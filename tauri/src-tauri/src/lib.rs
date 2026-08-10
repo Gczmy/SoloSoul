@@ -410,6 +410,8 @@ fn register_core_commands(
         commands::export_import::export_estimate_size,
         commands::export_import::export_get_attachments_batch,
         commands::export_import::export_execute,
+        commands::export_import::export_document_preflight,
+        commands::export_import::export_objects_document,
         commands::export_import::import_parse_package,
         commands::export_import::import_decrypt_preview,
         commands::export_import::import_execute_advanced,
@@ -886,6 +888,8 @@ mod tests {
                     "export_estimate_size",
                     "export_get_attachments_batch",
                     "export_execute",
+                    "export_document_preflight",
+                    "export_objects_document",
                     "import_parse_package",
                     "import_decrypt_preview",
                     "import_execute_advanced",
@@ -988,7 +992,7 @@ mod tests {
                 assert_eq!(routed, cmds.len());
             }
         }
-        // 共 192 条命令全覆盖（核心 115 + 同步 20 + OCR 11 + LLM 32 + 插件 14）
-        assert_eq!(total, 192);
+        // 共 194 条命令全覆盖（核心 117 + 同步 20 + OCR 11 + LLM 32 + 插件 14）
+        assert_eq!(total, 194);
     }
 }

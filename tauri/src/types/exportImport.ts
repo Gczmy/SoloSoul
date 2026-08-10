@@ -78,3 +78,12 @@ export interface ImportResult {
   objectCount: number;
   attachmentCount: number;
 }
+
+/** 文档导出 preflight 返回的字段最高敏感度（Rust export_document_preflight）。 */
+export type DocumentSensitivity = 'none' | 'sensitive' | 'critical';
+
+/** 文档导出结果（Rust export_objects_document）。 */
+export interface ExportDocumentResult {
+  objectCount: number;
+  fileSizeBytes: number;
+}

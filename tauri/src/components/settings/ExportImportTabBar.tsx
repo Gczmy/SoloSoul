@@ -1,19 +1,23 @@
 import { useTranslation } from 'react-i18next';
-import { Download, Upload } from 'lucide-react';
+import { Download, FileText, Upload } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/constants';
 import styles from './ExportImportTabBar.module.css';
 
-type TabKey = 'export' | 'import';
+export type ExportImportTabKey = 'export' | 'import' | 'document';
 
 interface ExportImportTabBarProps {
-  tab: TabKey;
-  onChange: (tab: TabKey) => void;
+  tab: ExportImportTabKey;
+  onChange: (tab: ExportImportTabKey) => void;
 }
 
 const PANEL_CONFIG = {
   export: {
     labelKey: 'settings:export',
     Icon: Download,
+  },
+  document: {
+    labelKey: 'settings:export_as_document',
+    Icon: FileText,
   },
   import: {
     labelKey: 'settings:import',
@@ -26,7 +30,7 @@ export function ExportImportTabBar({ tab, onChange }: ExportImportTabBarProps) {
 
   return (
     <div className={styles.container}>
-      {(['export', 'import'] as const).map((tabKey) => {
+      {(['export', 'document', 'import'] as const).map((tabKey) => {
         const isActive = tab === tabKey;
         const { Icon } = PANEL_CONFIG[tabKey];
 
