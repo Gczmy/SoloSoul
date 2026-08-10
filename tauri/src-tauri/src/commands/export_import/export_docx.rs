@@ -798,7 +798,8 @@ fn build_markdown_document(
         if idx > 0 {
             out.push_str("---\n\n");
         }
-        out.push_str(&format!("# 对象名称：{}\n\n", escape_markdown(&rec.name)));
+        // 对象名用 H2（H1 留给封面标题；H1 默认带下划线与 --- 分隔线冲突，且字级过大）
+        out.push_str(&format!("## 对象名称：{}\n\n", escape_markdown(&rec.name)));
 
         // 元信息段
         let tpl_name = rec
@@ -1651,7 +1652,7 @@ mod tests {
         assert!(md.starts_with("# SoloSoul"));
         assert!(md.contains("账户名：Gczmy（acc-1）"));
         assert!(md.contains("导出 1 个对象"));
-        assert!(md.contains("# 对象名称：张三&档案"));
+        assert!(md.contains("## 对象名称：张三&档案"));
         assert!(md.contains("- 模板：护照"));
         // 多行值行尾双空格硬换行（渲染真换行），不再有 <br> 字面量
         assert!(md.contains("**姓名**：张三  \n第二行"));
