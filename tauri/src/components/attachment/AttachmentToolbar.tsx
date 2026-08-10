@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
-import { Paperclip, RotateCcw, Search, Download } from 'lucide-react';
+import { Paperclip, RotateCcw, Search, Download, Images } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { DeleteButton } from '@/components/ui/DeleteButton';
@@ -37,6 +37,9 @@ interface AttachmentToolbarProps {
   onBatchDelete: () => void;
   onBatchRestore: () => void;
   onBatchPermanentDelete: () => void;
+  /** 照片集入口（可选）：活跃视图且存在图片时显示。 */
+  photoCount?: number;
+  onOpenAlbum?: () => void;
 }
 
 /** 搜索框 + 标签页 + 摘要卡 + 批量操作栏（P024 拆分）。 */
@@ -58,6 +61,8 @@ export function AttachmentToolbar({
   onBatchDelete,
   onBatchRestore,
   onBatchPermanentDelete,
+  photoCount,
+  onOpenAlbum,
 }: AttachmentToolbarProps) {
   const { t } = useTranslation(['settings', 'common', 'navigation']);
 
@@ -133,6 +138,24 @@ export function AttachmentToolbar({
                 {formatBytes(trashBytes)}
               </span>
             </Button>
+
+            {/* 照片集入口（仅活跃视图且存在图片时显示） */}
+            {!showTrash && typeof photoCount === 'number' && photoCount > 0 && onOpenAlbum && (
+              <Button
+                variant="secondary"
+                size="sm"
+                className={buttonStyles.hideLabelOnMobile}
+                onClick={onOpenAlbum}
+              >
+                <Images size={ICON_SIZE.sm} />{' '}
+                <span className={buttonStyles.label}>
+                  {t('common:photo_album', { defaultValue: 'Photo Album' })}
+                </span>
+                <span style={{ marginLeft: 4, fontSize: 'var(--text-caption)', opacity: 0.7 }}>
+                  {photoCount}
+                </span>
+              </Button>
+            )}
 
             <div style={{ flex: 1 }} />
 

@@ -60,6 +60,7 @@ commands.allow = [
   "fs_get_file_size",
   "fs_is_dir",
   "fs_read_file_as_data_url",
+  "fs_read_image_preview",
   "fs_read_file_as_text",
   "fs_scan_directory",
   "get_app_info",

@@ -7,6 +7,8 @@ import { useConfirm } from '@/hooks/useConfirm';
 import { useIsNarrowViewport } from '@/hooks/useIsNarrowViewport';
 import { useDragToAttach } from '@/hooks/useDragToAttach';
 import { downloadViaStage } from '@/lib/mobileFileTransfer';
+import { Images } from 'lucide-react';
+import { ICON_SIZE } from '@/lib/constants';
 import { isMobilePlatformSync } from '@/lib/platform';
 import { useBatchSelect } from '@/hooks/useBatchSelect';
 import { DragUploadOverlay } from '@/components/object/DragUploadOverlay';
@@ -18,6 +20,7 @@ import {
   type AttachmentItem,
 } from '@/lib/attachmentUtils';
 import { AttachmentPreviewOverlay } from '@/components/attachment/AttachmentPreviewOverlay';
+import { PhotoAlbumOverlay } from '@/components/attachment/PhotoAlbumOverlay';
 import { AttachmentListItem } from '@/components/object/AttachmentListItem';
 import { AttachmentViewerHeader } from '@/components/object/AttachmentViewerHeader';
 import { AttachmentBatchToolbar } from '@/components/object/AttachmentBatchToolbar';
@@ -62,6 +65,7 @@ export function AttachmentViewer({
   const [renameValue, setRenameValue] = useState('');
   const renameInputRef = useRef<HTMLInputElement>(null);
   const [previewItem, setPreviewItem] = useState<AttachmentItem | null>(null);
+  const [photoAlbumOpen, setPhotoAlbumOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const { t } = useTranslation(['common', 'editor']);
   const showToast = useUiStore((s) => s.showToast);
@@ -253,6 +257,12 @@ export function AttachmentViewer({
   };
 
   const displayItems = showTrash ? trashItems : items;
+
+  /** 照片集数据源：活跃附件中的图片（回收站视图不展示照片集入口）。 */
+  const photoItems = useMemo(
+    () => items.filter((item) => previewItemByMime(item) === 'image'),
+    [items],
+  );
 
   const allVisibleKeys = useMemo(
     () => displayItems.map((item) => `${objectId}::${item.id}`),
@@ -496,6 +506,36 @@ export function AttachmentViewer({
           )}
           {/* List */}
           <div style={{ flex: 1, overflow: 'auto' }}>
+            {/* 照片集入口：仅活跃视图且含图片时显示（附件照片集方案 §3.2） */}
+            {!showTrash && photoItems.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setPhotoAlbumOpen(true)}
+                className="interactive-toolbar"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                  width: 'calc(100% - 24px)',
+                  margin: '8px 12px 4px',
+                  padding: '10px 12px',
+                  borderRadius: 10,
+                  border: '1px solid var(--border-subtle)',
+                  background: 'var(--bg-toolbar)',
+                  cursor: 'pointer',
+                  fontSize: 'var(--text-body-sm)',
+                  color: 'var(--text-primary)',
+                }}
+              >
+                <Images size={ICON_SIZE.sm} style={{ color: 'var(--accent-primary)' }} />
+                <span style={{ flex: 1, textAlign: 'left' }}>
+                  {t('common:photo_album', 'Photo Album')}
+                </span>
+                <span style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
+                  {photoItems.length}
+                </span>
+              </button>
+            )}
             {displayItems.length === 0 ? (
               <div
                 style={{
@@ -547,6 +587,15 @@ export function AttachmentViewer({
         onClose={() => setPreviewItem(null)}
         onOpenExternal={openAttachmentExternal}
       />
+      {/* Photo album overlay（对象级照片集） */}
+      {photoAlbumOpen && photoItems.length > 0 && (
+        <PhotoAlbumOverlay
+          items={photoItems}
+          onClose={() => setPhotoAlbumOpen(false)}
+          onOpenExternal={openAttachmentExternal}
+          zIndex={2100}
+        />
+      )}
       {confirmDialog}
       {/* Confirmation dialogs（P013 拆分） */}
       <AttachmentConfirmDialogs

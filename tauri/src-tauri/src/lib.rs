@@ -424,6 +424,7 @@ fn register_core_commands(
         commands::fs::fs_get_file_size,
         commands::fs::fs_is_dir,
         commands::fs::fs_read_file_as_data_url,
+        commands::fs::fs_read_image_preview,
         commands::fs::fs_read_file_as_text,
         // System commands
         commands::system::get_app_info,
@@ -896,6 +897,7 @@ mod tests {
                     "fs_get_file_size",
                     "fs_is_dir",
                     "fs_read_file_as_data_url",
+                    "fs_read_image_preview",
                     "fs_read_file_as_text",
                     "get_app_info",
                     "get_system_theme",
@@ -984,7 +986,7 @@ mod tests {
                 assert_eq!(routed, cmds.len());
             }
         }
-        // 共 190 条命令全覆盖（核心 113 + 同步 20 + OCR 11 + LLM 32 + 插件 14）
-        assert_eq!(total, 190);
+        // 共 191 条命令全覆盖（核心 114 + 同步 20 + OCR 11 + LLM 32 + 插件 14）
+        assert_eq!(total, 191);
     }
 }

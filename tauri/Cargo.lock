@@ -5980,6 +5980,7 @@ dependencies = [
  "dirs",
  "futures",
  "hex",
+ "image",
  "local-ip-address",
  "mdns-sd",
  "minisign-verify",

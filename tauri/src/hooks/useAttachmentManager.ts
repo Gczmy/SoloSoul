@@ -38,6 +38,7 @@ export function useAttachmentManager() {
   const [expandedPages, setExpandedPages] = useState<Set<string>>(new Set());
   const [expandedObjects, setExpandedObjects] = useState<Set<string>>(new Set());
   const [previewItem, setPreviewItem] = useState<AttachmentMeta | null>(null);
+  const [albumOpen, setAlbumOpen] = useState(false);
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameObjectId, setRenameObjectId] = useState<string>('');
   const [permDeleteItem, setPermDeleteItem] = useState<AttachmentToPurge | null>(null);
@@ -231,6 +232,19 @@ export function useAttachmentManager() {
 
   const rawPages = showTrash ? data?.trashPages || [] : data?.pages || [];
   const sortedPages = useAttachmentPageSort(rawPages);
+
+  /** 照片集数据源：活跃附件中的全部图片（回收站视图不参与，附件照片集方案 §3.2）。 */
+  const photoItems = useMemo(() => {
+    const out: AttachmentMeta[] = [];
+    for (const page of data?.pages ?? []) {
+      for (const obj of page.objects) {
+        for (const att of obj.attachments) {
+          if (previewItemByMime(att) === 'image') out.push(att);
+        }
+      }
+    }
+    return out;
+  }, [data]);
 
   // Filter pages/objects/attachments by search query (matches against file name)
   const displayPages = useMemo(() => {
@@ -545,6 +559,9 @@ export function useAttachmentManager() {
     toggleObject,
     previewItem,
     setPreviewItem,
+    albumOpen,
+    setAlbumOpen,
+    photoItems,
     renamingId,
     setRenamingId,
     renameObjectId,

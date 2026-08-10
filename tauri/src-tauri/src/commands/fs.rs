@@ -12,6 +12,18 @@ use crate::state::AppState;
 /// Maximum file size that can be read into memory for a data URL preview (10 MiB).
 const MAX_DATA_URL_SIZE: u64 = 10 * 1024 * 1024;
 
+/// Maximum file size that may be read into memory for image preview generation (50 MiB).
+///
+/// 手机原图普遍超过 `MAX_DATA_URL_SIZE`（10 MiB），照片集预览必须走缩放路径；
+/// 但解码超大文件会占用过多内存，超过该上限直接拒绝而非尝试解码。
+const MAX_IMAGE_PREVIEW_READ_SIZE: u64 = 50 * 1024 * 1024;
+
+/// JPEG 重编码质量（照片集缩略图 / 全屏预览共用）。
+const IMAGE_PREVIEW_JPEG_QUALITY: u8 = 80;
+
+/// 预览最长边上限（防御性钳制）：防止畸形 `max_dim` 触发病态 resize 请求。
+const MAX_PREVIEW_DIM: u32 = 8192;
+
 /// Maximum number of files returned by `fs_scan_directory`.
 const MAX_SCAN_FILES: usize = 1_000;
 
@@ -292,6 +304,59 @@ pub async fn fs_read_file_as_data_url<R: tauri::Runtime>(
     Ok(format!("data:{};base64,{}", mime, b64))
 }
 
+/// 生成图片预览 data URL：解码 → 超过 `max_dim` 的最长边等比缩放 → JPEG 重编码 → base64。
+///
+/// 纯函数便于单测；调用方（`fs_read_image_preview`）负责路径白名单校验与 spawn_blocking。
+/// 失败场景（文件不存在/超限/解码失败如 HEIC）均返回 Err，由前端降级为占位图。
+fn generate_image_preview(path: &Path, max_dim: u32) -> Result<String, String> {
+    let max_dim = max_dim.min(MAX_PREVIEW_DIM);
+    let meta = std::fs::metadata(path).map_err(|e| format!("Metadata: {e}"))?;
+    if meta.len() > MAX_IMAGE_PREVIEW_READ_SIZE {
+        return Err(format!(
+            "File too large for image preview: {} bytes (max {})",
+            meta.len(),
+            MAX_IMAGE_PREVIEW_READ_SIZE
+        ));
+    }
+    let img = image::open(path).map_err(|e| format!("Decode: {e}"))?;
+    let img = if max_dim > 0 && (img.width() > max_dim || img.height() > max_dim) {
+        img.thumbnail(max_dim, max_dim)
+    } else {
+        img
+    };
+    let mut buf: Vec<u8> = Vec::new();
+    {
+        let mut encoder = image::codecs::jpeg::JpegEncoder::new_with_quality(
+            &mut buf,
+            IMAGE_PREVIEW_JPEG_QUALITY,
+        );
+        encoder
+            .encode_image(&img)
+            .map_err(|e| format!("Encode: {e}"))?;
+    }
+    let b64 = base64::Engine::encode(&base64::engine::general_purpose::STANDARD, &buf);
+    Ok(format!("data:image/jpeg;base64,{b64}"))
+}
+
+/// 读取图片并生成缩放后的预览 data URL（照片集缩略图/全屏预览用）。
+///
+/// - `path`：vaultPath 指向的落库副本，经 `resolve_allowed_path` 白名单校验；
+/// - `max_dim`：最长边缩放上限（网格 ≈256，全屏 ≈1600）；`0` 表示不缩放；
+/// - 解码在 `spawn_blocking` 中进行，避免阻塞 async 运行时。
+/// - 相比 `fs_read_file_as_data_url` 的优势：手机原图常超 10 MiB data URL 上限，
+///   且整文件 base64 驻留 JS 堆不可释放；本命令缩放后仅返回小尺寸 JPEG。
+#[tauri::command]
+pub async fn fs_read_image_preview<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    path: String,
+    max_dim: u32,
+) -> Result<String, String> {
+    let p = resolve_allowed_path(&app, &path)?;
+    tokio::task::spawn_blocking(move || generate_image_preview(&p, max_dim))
+        .await
+        .map_err(|e| format!("fs_read_image_preview task failed: {e}"))?
+}
+
 /// Read a text file and return its contents as a UTF-8 string.
 /// Used for in-app preview of txt/md/json/xml/csv attachments.
 #[tauri::command]
@@ -466,5 +531,114 @@ mod tests {
         ))
         .unwrap();
         assert_eq!(content, "hello 世界");
+    }
+
+    // ── fs_read_image_preview / generate_image_preview ────────────
+
+    #[test]
+    fn test_generate_image_preview_scales_down_longest_edge() {
+        let dir = TempDir::new().unwrap();
+        let path = dir.path().join("big.png");
+        // 2000×1000：等比缩放到最长边 256 → 256×128
+        image::RgbaImage::from_pixel(2000, 1000, image::Rgba([200, 30, 40, 255]))
+            .save(&path)
+            .unwrap();
+        let url = generate_image_preview(&path, 256).unwrap();
+        assert!(url.starts_with("data:image/jpeg;base64,"));
+
+        let b64 = url.strip_prefix("data:image/jpeg;base64,").unwrap();
+        let bytes =
+            base64::Engine::decode(&base64::engine::general_purpose::STANDARD, b64).unwrap();
+        let decoded = image::load_from_memory(&bytes).unwrap();
+        assert_eq!(decoded.width(), 256);
+        assert_eq!(decoded.height(), 128);
+    }
+
+    #[test]
+    fn test_generate_image_preview_does_not_upscale_small_images() {
+        let dir = TempDir::new().unwrap();
+        let path = dir.path().join("small.png");
+        image::RgbaImage::from_pixel(100, 50, image::Rgba([10, 200, 30, 255]))
+            .save(&path)
+            .unwrap();
+        let url = generate_image_preview(&path, 256).unwrap();
+        let b64 = url.strip_prefix("data:image/jpeg;base64,").unwrap();
+        let bytes =
+            base64::Engine::decode(&base64::engine::general_purpose::STANDARD, b64).unwrap();
+        let decoded = image::load_from_memory(&bytes).unwrap();
+        assert_eq!(decoded.width(), 100);
+        assert_eq!(decoded.height(), 50);
+    }
+
+    #[test]
+    fn test_generate_image_preview_max_dim_zero_keeps_size() {
+        let dir = TempDir::new().unwrap();
+        let path = dir.path().join("big.png");
+        image::RgbaImage::from_pixel(2000, 1000, image::Rgba([1, 2, 3, 255]))
+            .save(&path)
+            .unwrap();
+        let url = generate_image_preview(&path, 0).unwrap();
+        let b64 = url.strip_prefix("data:image/jpeg;base64,").unwrap();
+        let bytes =
+            base64::Engine::decode(&base64::engine::general_purpose::STANDARD, b64).unwrap();
+        let decoded = image::load_from_memory(&bytes).unwrap();
+        assert_eq!(decoded.width(), 2000);
+        assert_eq!(decoded.height(), 1000);
+    }
+
+    #[test]
+    fn test_generate_image_preview_rejects_missing_file() {
+        let dir = TempDir::new().unwrap();
+        let missing = dir.path().join("missing.png");
+        assert!(generate_image_preview(&missing, 256).is_err());
+    }
+
+    #[test]
+    fn test_generate_image_preview_rejects_oversize_file() {
+        let dir = TempDir::new().unwrap();
+        let path = dir.path().join("huge.bin");
+        // 超过 MAX_IMAGE_PREVIEW_READ_SIZE 的稀疏文件（尺寸检查先于解码，无需真实内容）
+        fs::File::create(&path)
+            .unwrap()
+            .set_len(MAX_IMAGE_PREVIEW_READ_SIZE + 1)
+            .unwrap();
+        assert!(generate_image_preview(&path, 256).is_err());
+    }
+
+    #[test]
+    fn test_generate_image_preview_clamps_max_dim() {
+        let dir = TempDir::new().unwrap();
+        let path = dir.path().join("clamp.png");
+        image::RgbaImage::from_pixel(100, 50, image::Rgba([1, 1, 1, 255]))
+            .save(&path)
+            .unwrap();
+        // 即使传入超大的 max_dim，也按 MAX_PREVIEW_DIM 钳制后正常生成（小图不放大）
+        let url = generate_image_preview(&path, u32::MAX).unwrap();
+        assert!(url.starts_with("data:image/jpeg;base64,"));
+    }
+
+    #[test]
+    fn test_generate_image_preview_rejects_undecodable_file() {
+        let dir = TempDir::new().unwrap();
+        let path = dir.path().join("not-an-image.png");
+        fs::write(&path, b"definitely not a png").unwrap();
+        assert!(generate_image_preview(&path, 256).is_err());
+    }
+
+    #[test]
+    fn test_fs_read_image_preview_command() {
+        let app = tauri::test::mock_app();
+        let dir = TempDir::new().unwrap();
+        let path = dir.path().join("photo.png");
+        image::RgbaImage::from_pixel(800, 600, image::Rgba([9, 8, 7, 255]))
+            .save(&path)
+            .unwrap();
+        let url = futures::executor::block_on(fs_read_image_preview(
+            app.handle().clone(),
+            path.to_string_lossy().to_string(),
+            256,
+        ))
+        .unwrap();
+        assert!(url.starts_with("data:image/jpeg;base64,"));
     }
 }

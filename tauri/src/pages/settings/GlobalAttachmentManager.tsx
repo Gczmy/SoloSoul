@@ -11,6 +11,7 @@ import { useAttachmentManager } from '@/hooks/useAttachmentManager';
 import { AttachmentToolbar } from '@/components/attachment/AttachmentToolbar';
 import { AttachmentPageCard } from '@/components/attachment/AttachmentPageCard';
 import { AttachmentPreviewOverlay } from '@/components/attachment/AttachmentPreviewOverlay';
+import { PhotoAlbumOverlay } from '@/components/attachment/PhotoAlbumOverlay';
 import { ConfirmDialog } from '@/components/attachment/ConfirmDialog';
 import { PageGuideButton } from '@/components/guide/PageGuideButton';
 import { ICON_SIZE } from '@/lib/constants';
@@ -37,6 +38,9 @@ export function GlobalAttachmentManager() {
     toggleObject,
     previewItem,
     setPreviewItem,
+    albumOpen,
+    setAlbumOpen,
+    photoItems,
     renamingId,
     setRenamingId,
     setRenameObjectId,
@@ -156,6 +160,8 @@ export function GlobalAttachmentManager() {
           onBatchDelete={() => setBatchDeleteConfirm(true)}
           onBatchRestore={() => setBatchRestoreConfirm(true)}
           onBatchPermanentDelete={() => setBatchPermanentDeleteConfirm(true)}
+          photoCount={photoItems.length}
+          onOpenAlbum={() => setAlbumOpen(true)}
         />
 
         {/* Content */}
@@ -231,6 +237,15 @@ export function GlobalAttachmentManager() {
           </motion.div>
         )}
       </PageContainer>
+
+      {/* Photo album overlay（全 Vault 照片集） */}
+      {albumOpen && photoItems.length > 0 && (
+        <PhotoAlbumOverlay
+          items={photoItems}
+          onClose={() => setAlbumOpen(false)}
+          onOpenExternal={openAttachmentExternal}
+        />
+      )}
 
       {/* Preview overlay */}
       <AttachmentPreviewOverlay
