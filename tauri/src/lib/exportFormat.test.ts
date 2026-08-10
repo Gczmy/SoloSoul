@@ -38,4 +38,13 @@ describe('swapDocumentExt', () => {
       'content://com.android.externalstorage.documents/tree/1/download/导出.docx',
     );
   });
+
+  it('txt / markdown 格式切换扩展名', () => {
+    expect(swapDocumentExt('/vault/export/报告.docx', 'txt')).toBe('/vault/export/报告.txt');
+    expect(swapDocumentExt('/vault/export/报告.docx', 'markdown')).toBe('/vault/export/报告.md');
+    expect(swapDocumentExt('/vault/export/报告.md', 'pdf')).toBe('/vault/export/报告.pdf');
+    expect(swapDocumentExt('/vault/export/报告.txt', 'markdown')).toBe('/vault/export/报告.md');
+    // 已是目标扩展名 → 原样
+    expect(swapDocumentExt('/vault/export/报告.md', 'markdown')).toBe('/vault/export/报告.md');
+  });
 });

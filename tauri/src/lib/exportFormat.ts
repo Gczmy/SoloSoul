@@ -6,13 +6,15 @@
  */
 
 /** 导出格式（与 ExportDocumentSection 的 DocFormat 保持一致）。 */
-export type DocumentFormat = 'docx' | 'pdf' | 'html';
+export type DocumentFormat = 'docx' | 'pdf' | 'html' | 'txt' | 'markdown';
 
 /** 各格式的主扩展名（不含点）。 */
 const FORMAT_EXTENSIONS: Record<DocumentFormat, string> = {
   docx: 'docx',
   pdf: 'pdf',
   html: 'html',
+  txt: 'txt',
+  markdown: 'md',
 };
 
 /** 路径末尾的扩展名（含点），兼容 Windows 反斜杠路径。 */

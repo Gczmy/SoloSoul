@@ -1,7 +1,9 @@
-//! 对象级文档导出（Word/docx）— 设计文档 docs/next_dev/对象级文档导出功能设计与实现.md
+//! 对象级文档导出（Word/docx / PDF / HTML / TXT / Markdown）—
+//! 设计文档 docs/next_dev/对象级文档导出功能设计与实现.md
 //!
-//! - 将选中对象以连续排版形式导出为一个 docx（对象间用横线分隔，不强制每对象一页）。
-//! - docx 本质是 ZIP + OOXML，复用 workspace 已有的 `zip` crate，零新依赖。
+//! - 将选中对象以连续排版形式导出（对象间用横线分隔，不强制每对象一页）。
+//! - docx 本质是 ZIP + OOXML，复用 workspace 已有的 `zip` crate，零新依赖；
+//!   pdf 经 printpdf from_html（内嵌 Noto Sans SC）渲染；txt/markdown 为纯文本。
 //! - 附件不嵌入正文，仅以「附件清单」小节列出名称/大小/类型。
 //! - 敏感字段确认后全量明文写入（前端先经 preflight 分级确认）。
 
@@ -470,6 +472,196 @@ fn build_docx(
     Ok(buf.into_inner())
 }
 
+/// Markdown 转义：反斜杠先转义自身，再转义其余需要字面化的特殊字符。
+/// 行首 `#`/`-`/`+`/`*` 等由转义符覆盖；保留中文与换行。
+fn escape_markdown(s: &str) -> String {
+    let mut out = String::with_capacity(s.len());
+    for c in s.chars() {
+        match c {
+            '\\' => out.push_str("\\\\"),
+            '`' | '*' | '_' | '{' | '}' | '[' | ']' | '(' | ')' | '#' | '+' | '-' | '.' | '!'
+            | '|' | '<' | '>' => {
+                out.push('\\');
+                out.push(c);
+            }
+            _ => out.push(c),
+        }
+    }
+    out
+}
+
+/// 附件清单文本行（名称（大小，类型）），供 txt/markdown 复用。
+fn attachment_lines(record: &solosoul_vault::ObjectRecord) -> Vec<String> {
+    collect_attachment_rows(record)
+        .into_iter()
+        .map(|(name, size, mime)| format!("{}（{}，{}）", name, size, mime))
+        .collect()
+}
+
+/// 构造纯文本文档（UTF-8）：封面段 → 每对象（对象名称 / 元信息 / 字段 / 附件清单）。
+/// 对象间以横线分隔（连续排版）；多行字段值整体缩进对齐。
+fn build_text_document(
+    records: &[solosoul_vault::ObjectRecord],
+    template_names: &std::collections::HashMap<String, String>,
+    export_time: &str,
+    account_name: &str,
+    account_id: &str,
+) -> String {
+    let mut out = String::new();
+    out.push_str("SoloSoul\n");
+    out.push_str(&format!("账户名：{}（{}）\n", account_name, account_id));
+    out.push_str(&format!(
+        "{} · 导出 {} 个对象\n",
+        export_time,
+        records.len()
+    ));
+
+    for (idx, rec) in records.iter().enumerate() {
+        if idx > 0 {
+            out.push_str("\n==================================================\n\n");
+        }
+        out.push_str(&format!("对象名称：{}\n", rec.name));
+
+        // 元信息段
+        let tpl_name = rec
+            .template_id
+            .as_ref()
+            .and_then(|tid| template_names.get(tid))
+            .cloned()
+            .unwrap_or_default();
+        let mut meta_lines = Vec::new();
+        if !tpl_name.is_empty() {
+            meta_lines.push(format!("模板：{}", tpl_name));
+        }
+        meta_lines.push(format!("创建时间：{}", rec.created_at));
+        meta_lines.push(format!("更新时间：{}", rec.updated_at));
+        if !rec.tags_json.is_empty() {
+            meta_lines.push(format!("标签：{}", rec.tags_json.join(", ")));
+        }
+        for line in &meta_lines {
+            out.push_str(line);
+            out.push('\n');
+        }
+
+        // 字段：`标签：值`，多行值后续行缩进对齐
+        let fields = flatten_object_fields(rec);
+        if !fields.is_empty() {
+            out.push('\n');
+            for (label, value) in &fields {
+                let mut lines = value.split('\n');
+                if let Some(first) = lines.next() {
+                    out.push_str(&format!("{}：{}\n", label, first));
+                }
+                let indent = " ".repeat(label.chars().count() + 1);
+                for rest in lines {
+                    out.push_str(&indent);
+                    out.push_str(rest);
+                    out.push('\n');
+                }
+            }
+        }
+
+        // 附件清单
+        let attachments = attachment_lines(rec);
+        if !attachments.is_empty() {
+            out.push_str("\n附件清单：\n");
+            for line in &attachments {
+                out.push_str("  - ");
+                out.push_str(line);
+                out.push('\n');
+            }
+        }
+        out.push('\n');
+    }
+    out
+}
+
+/// 构造 Markdown 文档（UTF-8）：封面段 → 每对象（`#` 标题 / 元信息 / 字段列表 / 附件）。
+/// 对象间以 `---` 分隔（连续排版）；字段值与标签均做 Markdown 转义。
+fn build_markdown_document(
+    records: &[solosoul_vault::ObjectRecord],
+    template_names: &std::collections::HashMap<String, String>,
+    export_time: &str,
+    account_name: &str,
+    account_id: &str,
+) -> String {
+    let mut out = String::new();
+    out.push_str("# SoloSoul\n\n");
+    out.push_str(&format!(
+        "账户名：{}（{}）\n\n",
+        escape_markdown(account_name),
+        escape_markdown(account_id)
+    ));
+    out.push_str(&format!(
+        "{} · 导出 {} 个对象\n\n",
+        escape_markdown(export_time),
+        records.len()
+    ));
+
+    for (idx, rec) in records.iter().enumerate() {
+        if idx > 0 {
+            out.push_str("---\n\n");
+        }
+        out.push_str(&format!("# 对象名称：{}\n\n", escape_markdown(&rec.name)));
+
+        // 元信息段
+        let tpl_name = rec
+            .template_id
+            .as_ref()
+            .and_then(|tid| template_names.get(tid))
+            .cloned()
+            .unwrap_or_default();
+        let mut meta_lines = Vec::new();
+        if !tpl_name.is_empty() {
+            meta_lines.push(format!("模板：{}", escape_markdown(&tpl_name)));
+        }
+        meta_lines.push(format!("创建时间：{}", escape_markdown(&rec.created_at)));
+        meta_lines.push(format!("更新时间：{}", escape_markdown(&rec.updated_at)));
+        if !rec.tags_json.is_empty() {
+            meta_lines.push(format!(
+                "标签：{}",
+                rec.tags_json
+                    .iter()
+                    .map(|t| escape_markdown(t))
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            ));
+        }
+        for line in &meta_lines {
+            out.push_str("- ");
+            out.push_str(line);
+            out.push('\n');
+        }
+
+        // 字段：`**标签**：值`（多行值以 `<br>` 换行保持段落内换行）
+        let fields = flatten_object_fields(rec);
+        if !fields.is_empty() {
+            out.push('\n');
+            for (label, value) in &fields {
+                let value = value.split('\n').collect::<Vec<_>>().join("<br>");
+                out.push_str(&format!(
+                    "**{}**：{}\n",
+                    escape_markdown(label),
+                    escape_markdown(&value)
+                ));
+            }
+        }
+
+        // 附件清单
+        let attachments = attachment_lines(rec);
+        if !attachments.is_empty() {
+            out.push_str("\n附件清单：\n");
+            for line in &attachments {
+                out.push_str("- ");
+                out.push_str(&escape_markdown(line));
+                out.push('\n');
+            }
+        }
+        out.push('\n');
+    }
+    out
+}
+
 /// HTML 转义（`& < > " '`）。
 fn escape_html(s: &str) -> String {
     let mut out = String::with_capacity(s.len());
@@ -690,6 +882,8 @@ fn format_extension(format: &str) -> Option<&'static str> {
         "docx" => Some("docx"),
         "pdf" => Some("pdf"),
         "html" => Some("html"),
+        "txt" => Some("txt"),
+        "markdown" => Some("md"),
         _ => None,
     }
 }
@@ -761,9 +955,9 @@ pub async fn export_document_preflight(
     Ok(result)
 }
 
-/// 导出对象为文档（docx / pdf / html）并落盘。
+/// 导出对象为文档（docx / pdf / html / txt / markdown）并落盘。
 ///
-/// - `format` 支持 `"docx"` / `"pdf"` / `"html"`。
+/// - `format` 支持 `"docx"` / `"pdf"` / `"html"` / `"txt"` / `"markdown"`。
 /// - 写文件用「临时文件 + rename」避免半截文件；Unix 设权限 0600。
 /// - 审计日志 `export_document` 仅记录格式与对象数，不记录字段内容（脱敏规范）。
 #[tauri::command]
@@ -833,6 +1027,22 @@ pub async fn export_objects_document(
                 &account_name_for_task,
                 &account_id_for_task,
             )?,
+            "txt" => build_text_document(
+                &records,
+                &template_names,
+                &export_time,
+                &account_name_for_task,
+                &account_id_for_task,
+            )
+            .into_bytes(),
+            "markdown" => build_markdown_document(
+                &records,
+                &template_names,
+                &export_time,
+                &account_name_for_task,
+                &account_id_for_task,
+            )
+            .into_bytes(),
             other => return Err(export_err_with_detail("FORMAT_NOT_SUPPORTED", other)),
         };
         let count = records.len();
@@ -1169,7 +1379,9 @@ mod tests {
         assert_eq!(format_extension("docx"), Some("docx"));
         assert_eq!(format_extension("pdf"), Some("pdf"));
         assert_eq!(format_extension("html"), Some("html"));
-        assert_eq!(format_extension("txt"), None);
+        assert_eq!(format_extension("txt"), Some("txt"));
+        assert_eq!(format_extension("markdown"), Some("md"));
+        assert_eq!(format_extension("unknown"), None);
 
         // 已带扩展名 → 原样；否则追加
         assert!(path_has_format_ext("a.PDF", "pdf"));
@@ -1177,6 +1389,105 @@ mod tests {
         assert!(path_has_format_ext("a.html", "html"));
         assert!(path_has_format_ext("a.htm", "html")); // 保存对话框允许 .htm
         assert!(!path_has_format_ext("a.html", "docx"));
+        assert!(path_has_format_ext("a.txt", "txt"));
+        assert!(path_has_format_ext("a.MD", "markdown"));
+        assert!(!path_has_format_ext("a.md", "txt"));
+    }
+
+    #[test]
+    fn test_escape_markdown() {
+        // 特殊字符加反斜杠转义，中文与换行保留
+        assert_eq!(escape_markdown("a*b_c[d]`e`"), "a\\*b\\_c\\[d\\]\\`e\\`");
+        assert_eq!(escape_markdown("# 标题\n第二行"), "\\# 标题\n第二行");
+        assert_eq!(escape_markdown("中文与空格 保留"), "中文与空格 保留");
+        assert_eq!(escape_markdown("a\\b"), "a\\\\b");
+    }
+
+    #[test]
+    fn test_build_text_document() {
+        let fields = serde_json::json!({"f1": {"name": "姓名"}});
+        let rec = make_record(
+            "o1",
+            "张三&档案",
+            fields.clone(),
+            serde_json::json!({
+                "f1": "张三\n第二行",
+                "__fields": fields,
+                "__attachments": [
+                    {"id": "a1", "objectId": "o1", "fileName": "证件.pdf", "sizeBytes": 2048, "mimeType": "application/pdf"}
+                ]
+            }),
+        );
+        let mut tpl_names = std::collections::HashMap::new();
+        tpl_names.insert("t1".to_string(), "护照".to_string());
+        let text =
+            build_text_document(&[rec], &tpl_names, "2026-08-10T00:00:00Z", "Gczmy", "acc-1");
+        // 封面：应用名 / 账户名 / 对象数
+        assert!(text.starts_with("SoloSoul\n"));
+        assert!(text.contains("账户名：Gczmy（acc-1）"));
+        assert!(text.contains("导出 1 个对象"));
+        // 对象名带前缀 + 元信息 + 字段（多行值缩进对齐）+ 附件清单
+        assert!(text.contains("对象名称：张三&档案"));
+        assert!(text.contains("模板：护照"));
+        assert!(text.contains("姓名：张三\n     第二行"));
+        assert!(text.contains("附件清单："));
+        assert!(text.contains("  - 证件.pdf（2.0 KB，application/pdf）"));
+        // 单对象无分隔线
+        assert!(!text.contains("====="));
+    }
+
+    #[test]
+    fn test_build_markdown_document() {
+        let fields = serde_json::json!({"f1": {"name": "姓名"}});
+        let rec = make_record(
+            "o1",
+            "张三&档案",
+            fields.clone(),
+            serde_json::json!({
+                "f1": "张三\n第二行",
+                "__fields": fields,
+                "__attachments": [
+                    {"id": "a1", "objectId": "o1", "fileName": "证件.pdf", "sizeBytes": 2048, "mimeType": "application/pdf"}
+                ]
+            }),
+        );
+        let mut tpl_names = std::collections::HashMap::new();
+        tpl_names.insert("t1".to_string(), "护照".to_string());
+        let md =
+            build_markdown_document(&[rec], &tpl_names, "2026-08-10T00:00:00Z", "Gczmy", "acc-1");
+        assert!(md.starts_with("# SoloSoul"));
+        assert!(md.contains("账户名：Gczmy（acc-1）"));
+        assert!(md.contains("导出 1 个对象"));
+        assert!(md.contains("# 对象名称：张三&档案"));
+        assert!(md.contains("- 模板：护照"));
+        // 字段加粗标签 + 多行值 <br>；特殊字符转义
+        assert!(md.contains("**姓名**：张三<br>第二行"));
+        assert!(md.contains("- 附件清单"));
+        assert!(md.contains("- 证件.pdf（2.0 KB，application/pdf）"));
+    }
+
+    #[test]
+    fn test_text_markdown_multi_object_separator() {
+        // 多对象：txt 用 `=====` 横线，markdown 用 `---` 分隔（连续排版）
+        let empty = serde_json::json!({});
+        let r1 = make_record("o1", "一", empty.clone(), empty.clone());
+        let r2 = make_record("o2", "二", empty.clone(), empty.clone());
+        let text = build_text_document(
+            &[r1.clone(), r2.clone()],
+            &std::collections::HashMap::new(),
+            "t",
+            "Gczmy",
+            "acc-1",
+        );
+        assert_eq!(text.matches("=====").count(), 1);
+        let md = build_markdown_document(
+            &[r1, r2],
+            &std::collections::HashMap::new(),
+            "t",
+            "Gczmy",
+            "acc-1",
+        );
+        assert!(md.contains("\n---\n"));
     }
 
     #[test]

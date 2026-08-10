@@ -264,6 +264,8 @@
   "export_format_word": "Word (.docx)",
   "export_format_pdf": "PDF (.pdf)",
   "export_format_html": "HTML (.html)",
+  "export_format_txt": "Plain Text (.txt)",
+  "export_format_markdown": "Markdown (.md)",
   "export_doc_button": "Export as document",
   "export_doc_success": "Document exported successfully ({{count}} objects)",
   "export_doc_preflight_failed": "Export preflight failed. Please try again.",

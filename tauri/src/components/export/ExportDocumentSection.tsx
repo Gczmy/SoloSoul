@@ -31,13 +31,15 @@ interface ExportDocumentSectionProps {
 }
 
 /** 导出格式。 */
-type DocFormat = 'docx' | 'pdf' | 'html';
+type DocFormat = 'docx' | 'pdf' | 'html' | 'txt' | 'markdown';
 
 /** 各格式的扩展名与保存对话框过滤器。 */
 const FORMAT_FILTERS: Record<DocFormat, { name: string; extensions: string[] }> = {
   docx: { name: 'Word Document', extensions: ['docx'] },
   pdf: { name: 'PDF Document', extensions: ['pdf'] },
   html: { name: 'HTML Document', extensions: ['html', 'htm'] },
+  txt: { name: 'Plain Text', extensions: ['txt'] },
+  markdown: { name: 'Markdown', extensions: ['md', 'markdown'] },
 };
 
 /**
@@ -286,14 +288,18 @@ export function ExportDocumentSection({ accountId, pageGroups }: ExportDocumentS
           {t('settings:export_format_label', { defaultValue: 'Format' })}
         </h3>
         <div style={{ display: 'flex', gap: 8 }}>
-          {(['docx', 'pdf', 'html'] as DocFormat[]).map((f) => {
+          {(['docx', 'pdf', 'html', 'txt', 'markdown'] as DocFormat[]).map((f) => {
             const active = format === f;
             const label =
               f === 'docx'
                 ? t('settings:export_format_word')
                 : f === 'pdf'
                   ? t('settings:export_format_pdf')
-                  : t('settings:export_format_html');
+                  : f === 'html'
+                    ? t('settings:export_format_html')
+                    : f === 'txt'
+                      ? t('settings:export_format_txt')
+                      : t('settings:export_format_markdown');
             return (
               <button
                 key={f}

@@ -264,6 +264,8 @@
   "export_format_word": "Word (.docx)",
   "export_format_pdf": "PDF (.pdf)",
   "export_format_html": "HTML (.html)",
+  "export_format_txt": "纯文本 (.txt)",
+  "export_format_markdown": "Markdown (.md)",
   "export_doc_button": "导出为文档",
   "export_doc_success": "文档导出成功（{{count}} 个对象）",
   "export_doc_preflight_failed": "导出预检失败，请重试",
