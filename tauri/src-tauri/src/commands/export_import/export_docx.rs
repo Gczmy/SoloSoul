@@ -1,6 +1,6 @@
 //! 对象级文档导出（Word/docx）— 设计文档 docs/next_dev/对象级文档导出功能设计与实现.md
 //!
-//! - 将选中对象以多页形式导出为一个 docx（每个对象占一页）。
+//! - 将选中对象以连续排版形式导出为一个 docx（对象间用横线分隔，不强制每对象一页）。
 //! - docx 本质是 ZIP + OOXML，复用 workspace 已有的 `zip` crate，零新依赖。
 //! - 附件不嵌入正文，仅以「附件清单」小节列出名称/大小/类型。
 //! - 敏感字段确认后全量明文写入（前端先经 preflight 分级确认）。
@@ -307,9 +307,10 @@ fn text_run(text: &str) -> String {
 
 /// 构造 docx 包的最小 OOXML 结构，返回 zip 字节。
 ///
-/// 文档结构（多对象 = 多页）：
-/// 1. 封面段：应用名、导出时间、对象总数；
-/// 2. 每个对象：分页符 → 对象名(H1) → 元信息段 → 字段表格 → 附件清单小节。
+/// 文档结构（连续排版）：
+/// 1. 封面段：应用名、账户名/ID、导出时间、对象总数；
+/// 2. 每个对象：分隔横线（第二个对象起，段落顶部边框）→ 对象名称(H1，带「对象名称：」前缀)
+///    → 元信息段 → 字段表格 → 附件清单小节。
 fn build_docx(
     records: &[solosoul_vault::ObjectRecord],
     template_names: &std::collections::HashMap<String, String>,
@@ -344,13 +345,15 @@ fn build_docx(
     document.push_str("</w:p>\n");
 
     for (idx, rec) in records.iter().enumerate() {
+        // 连续排版：对象间用横线分隔（第二个对象起，每个对象标题段顶部加边框横线）
         if idx > 0 {
-            // 分页符：第二个对象起每个对象前插入
-            document.push_str("<w:p><w:r><w:br w:type=\"page\"/></w:r></w:p>\n");
+            document.push_str(
+                "<w:p><w:pPr><w:pBdr><w:top w:val=\"single\" w:sz=\"8\" w:space=\"8\" w:color=\"999999\"/></w:pBdr></w:pPr></w:p>\n",
+            );
         }
-        // 对象名
+        // 对象名：左侧标注「对象名称：」明确对象名语义
         document.push_str("<w:p><w:pPr><w:pStyle w:val=\"Heading1\"/></w:pPr>");
-        document.push_str(&text_run(&rec.name));
+        document.push_str(&text_run(&format!("对象名称：{}", rec.name)));
         document.push_str("</w:p>\n");
 
         // 元信息段
@@ -503,8 +506,8 @@ fn build_html_document(
          h1 { font-size: 24px; border-bottom: 2px solid #d0d7de; padding-bottom: 8px; }\n\
          h2 { font-size: 19px; margin-top: 28px; }\n\
          .meta { color: #57606a; font-size: 13px; margin-bottom: 20px; }\n\
-         /* PDF：每个对象独立一页（内联 break-after 在 Rust 侧按对象输出）；HTML 浏览器打开时无分页副作用 */\n\
-         .obj { margin-bottom: 36px; page-break-inside: avoid; break-inside: avoid; }\n\
+         /* PDF：对象间用横线分隔连续排版（不再强制每对象独立页）；azul 固定高度分页 */\n\
+         .obj { margin-bottom: 36px; }\n\
          .obj + .obj { border-top: 1px solid #d0d7de; padding-top: 20px; }\n\
          table { border-collapse: collapse; width: 100%; margin-top: 10px; table-layout: fixed; }\n\
          /* 长值在页边距处换行（azul-layout 支持 word-break / overflow-wrap） */\n\
@@ -521,8 +524,7 @@ fn build_html_document(
         account_name, account_id
     )));
     html.push_str("</p>\n");
-    // 封面独立一页：末行 meta 带内联 break-after（azul 仅认内联样式），使对象 1 也单独成页
-    html.push_str("<div class=\"meta\" style=\"break-after: always; page-break-after: always;\">");
+    html.push_str("<div class=\"meta\">");
     html.push_str(&escape_html(&format!(
         "{} · 导出 {} 个对象",
         export_time,
@@ -530,16 +532,9 @@ fn build_html_document(
     )));
     html.push_str("</div>\n");
 
-    for (idx, rec) in records.iter().enumerate() {
-        // 每个对象独立一页（azul-layout 仅认内联 break-after；末对象不强制分页避免空尾页）
-        let break_style = if idx + 1 < records.len() {
-            " style=\"break-after: always; page-break-after: always;\""
-        } else {
-            ""
-        };
-        html.push_str("<div class=\"obj\"");
-        html.push_str(break_style);
-        html.push_str(">\n<h2>");
+    for rec in records {
+        // 连续排版：对象间由 .obj + .obj 横线分隔（不再强制分页）
+        html.push_str("<div class=\"obj\">\n<h2>");
         html.push_str(&escape_html(&rec.name));
         html.push_str("</h2>\n<div class=\"meta\">");
         let tpl_name = rec
@@ -1214,12 +1209,8 @@ mod tests {
         assert!(html.contains("张三<br>第二行"));
         // PDF 布局样式：长值换行（word-break 在 CSS 中）
         assert!(html.contains("word-break: break-all"));
-        // 封面独立成页：封面 meta 带内联 break-after
-        assert!(html.contains(
-            "<div class=\"meta\" style=\"break-after: always; page-break-after: always;\">"
-        ));
-        // 单对象场景：末对象不强制分页 → 对象 div 无内联 break-after
-        assert_eq!(html.matches("break-after: always").count(), 1);
+        // 连续排版：无内联 break-after
+        assert!(!html.contains("break-after: always"));
         // 附件清单
         assert!(html.contains("附件：证件.pdf（2.0 KB，application/pdf）"));
         // 封面第二行：账户名 + 账户 ID
@@ -1271,8 +1262,8 @@ mod tests {
     }
 
     #[test]
-    fn test_html_multi_object_page_breaks_inline() {
-        // 多对象：封面 meta + 非末对象带内联 break-after（PDF 每对象独立页），末对象不带
+    fn test_html_multi_object_continuous_layout() {
+        // 多对象连续排版：对象间由 .obj + .obj 横线分隔（CSS），无内联强制分页
         let empty = serde_json::json!({});
         let r1 = make_record("o1", "一", empty.clone(), empty.clone());
         let r2 = make_record("o2", "二", empty.clone(), empty.clone());
@@ -1283,19 +1274,17 @@ mod tests {
             "Gczmy",
             "acc-1",
         );
-        let break_attr = "style=\"break-after: always; page-break-after: always;\"";
-        // 封面 meta 带 break-after（封面独立一页）
-        assert!(html.contains(&format!("<div class=\"meta\" {break_attr}>")));
-        // 对象一（非末对象）带 break-after
-        assert!(html.contains(&format!("<div class=\"obj\" {break_attr}>")));
-        // 末对象（对象二）不带 break-after
-        assert!(html.contains("<div class=\"obj\">"));
-        // 恰有 2 个内联 break-after（封面 + 对象一）
-        assert_eq!(html.matches(break_attr).count(), 2);
+        // 无任何内联 break-after（连续排版）
+        assert!(!html.contains("break-after: always"));
+        // CSS 保留对象间横线分隔
+        assert!(html.contains(".obj + .obj { border-top: 1px solid #d0d7de; padding-top: 20px; }"));
+        // 两个对象 div 均为无样式
+        assert_eq!(html.matches("<div class=\"obj\">").count(), 2);
     }
 
     #[test]
-    fn test_build_docx_page_breaks() {
+    fn test_build_docx_continuous_layout() {
+        // 连续排版：无分页符；对象间用段落顶部边框横线分隔；对象名带「对象名称：」前缀
         let empty = serde_json::json!({});
         let r1 = make_record("o1", "一", empty.clone(), empty.clone());
         let r2 = make_record("o2", "二", empty.clone(), empty.clone());
@@ -1316,8 +1305,13 @@ mod tests {
             .unwrap()
             .read_to_string(&mut doc)
             .unwrap();
-        // 3 个对象 → 2 个分页符
-        assert_eq!(doc.matches("w:type=\"page\"").count(), 2);
+        // 无分页符（连续排版）
+        assert!(!doc.contains("w:type=\"page\""));
+        // 3 个对象 → 2 条分隔横线（第二个对象起每个对象前一条）
+        assert_eq!(doc.matches("w:top w:val=\"single\"").count(), 2);
+        // 对象名带「对象名称：」前缀
+        assert!(doc.contains("对象名称：一"));
+        assert!(doc.contains("对象名称：三"));
     }
 
     #[test]
