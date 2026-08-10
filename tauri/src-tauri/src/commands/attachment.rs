@@ -1085,13 +1085,17 @@ pub async fn attachment_open<R: Runtime>(
 /// 桌面端（macOS/Windows/Linux）分享前统一走此副本逻辑：分享副本而非 vault 原文件，
 /// 避免把用户带进隐藏的 vault 目录、也避免用户误改 vault 内文件。
 ///
+/// 将附件复制到指定目录（分享副本），返回最终目标路径。
+///
 /// - 清理文件名，防止路径遍历（file_name 来自 vault 元数据，不可直接 join）。
-/// - `file_name()` 对 "." / ".." 原样返回，显式拒绝避免写入临时目录之外。
+/// - `file_name()` 对 "." / ".." 原样返回，显式拒绝避免写入目录之外。
+/// - 同名冲突：不同对象的附件可能同名（如对象1/对象2各有 "2"），若直接用
+///   文件名作为目标会互相覆盖（后分享的覆盖先分享的，且临时目录不自动清理）。
+///   复用下载路径的 `make_unique_dest_path` 去重：已存在同名时生成
+///   a(1).pdf / a(2).pdf 序号副本，保证分享副本互不覆盖。
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
-fn copy_to_share_dir(path: &Path, file_name: &str) -> Result<PathBuf, String> {
-    let share_dir = std::env::temp_dir().join("solosoul_share");
-    std::fs::create_dir_all(&share_dir)
-        .map_err(|e| format!("Failed to prepare share directory: {}", e))?;
+fn copy_into_dir(base_dir: &Path, path: &Path, file_name: &str) -> Result<PathBuf, String> {
+    std::fs::create_dir_all(base_dir).map_err(|e| format!("Failed to prepare directory: {}", e))?;
     let safe_name = Path::new(file_name)
         .file_name()
         .ok_or("Invalid file name")?
@@ -1100,9 +1104,19 @@ fn copy_to_share_dir(path: &Path, file_name: &str) -> Result<PathBuf, String> {
     if safe_name == "." || safe_name == ".." {
         return Err("Invalid file name".to_string());
     }
-    let dest = share_dir.join(safe_name);
+    let dest = make_unique_dest_path(&base_dir.join(safe_name));
     std::fs::copy(path, &dest).map_err(|e| format!("Failed to copy file for sharing: {}", e))?;
     Ok(dest)
+}
+
+/// 分享副本落盘目录（系统临时目录，跨会话残留但不自动清理）。
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+fn copy_to_share_dir(path: &Path, file_name: &str) -> Result<PathBuf, String> {
+    copy_into_dir(
+        &std::env::temp_dir().join("solosoul_share"),
+        path,
+        file_name,
+    )
 }
 
 /// 转发附件到其他应用。
@@ -1877,6 +1891,29 @@ mod tests {
         let dest = tmp.path().join("a.pdf(1)");
         let result = make_unique_dest_path(&dest);
         assert_eq!(result, tmp.path().join("a(1).pdf"));
+    }
+
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    #[test]
+    fn test_copy_into_dir_same_name_no_overwrite() {
+        // 同名附件冲突：对象1与对象2各有名为 "2" 的附件（内容不同），分享时
+        // 不得互相覆盖——第二次分享应生成序号副本 a(1)。
+        let tmp = tempfile::tempdir().unwrap();
+        let src1 = tmp.path().join("src-1");
+        let src2 = tmp.path().join("src-2");
+        std::fs::write(&src1, b"content-A").unwrap();
+        std::fs::write(&src2, b"content-B").unwrap();
+
+        let r1 = copy_into_dir(tmp.path(), &src1, "2").unwrap();
+        let r2 = copy_into_dir(tmp.path(), &src2, "2").unwrap();
+
+        // 两次分享同名附件得到不同路径，内容互不覆盖
+        assert_ne!(r1, r2);
+        assert_eq!(std::fs::read(&r1).unwrap(), b"content-A");
+        assert_eq!(std::fs::read(&r2).unwrap(), b"content-B");
+        // 第二次生成序号副本
+        assert_eq!(r1, tmp.path().join("2"));
+        assert_eq!(r2, tmp.path().join("2(1)"));
     }
 
     #[test]
