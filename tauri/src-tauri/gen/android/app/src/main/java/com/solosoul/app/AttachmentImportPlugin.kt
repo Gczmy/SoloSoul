@@ -750,4 +750,55 @@ class AttachmentImportPlugin(private val activity: Activity): Plugin(activity) {
       invoke.reject("打开文件失败: ${e.message}")
     }
   }
+
+  /**
+   * 转发本地文件：复制到 filesDir/open_temp/ 后通过 FileProvider 暴露，
+   * 用系统分享面板（ACTION_SEND）发送给其他应用（典型场景：转发到微信）。
+   * 与 openFile 不同，分享不需要 PdfPreviewActivity 特殊分支。
+   */
+  @Command
+  fun shareFile(invoke: Invoke) {
+    try {
+      val args = invoke.parseArgs(OpenFileArgs::class.java)
+      val srcFile = File(args.path)
+      if (!srcFile.exists()) {
+        android.util.Log.e("SoloSoul", "shareFile: source file does not exist: ${args.path}")
+        invoke.reject("文件不存在: ${args.path}")
+        return
+      }
+
+      // 复制到 open_temp 暂存目录（FileProvider 已配置覆盖该目录）
+      val tempDir = File(activity.filesDir, "open_temp").apply { mkdirs() }
+      val tempFile = File(tempDir, srcFile.name)
+      FileInputStream(srcFile).use { input ->
+        FileOutputStream(tempFile).use { output ->
+          input.copyTo(output)
+        }
+      }
+
+      val authority = "${activity.packageName}.fileprovider"
+      val uri = FileProvider.getUriForFile(activity, authority, tempFile)
+      val intent = android.content.Intent(android.content.Intent.ACTION_SEND).apply {
+        type = args.mimeType
+        putExtra(android.content.Intent.EXTRA_STREAM, uri)
+        // clipData 与 FLAG_GRANT_READ_URI_PERMISSION 一起声明 URI 授权，
+        // 保证 Android 10+ 接收方读取 EXTRA_STREAM 时授权可靠投递
+        clipData = android.content.ClipData.newRawUri(null, uri)
+        addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
+      }
+
+      // createChooser 显示系统分享面板，绕过 Android 11+ resolveActivity 的包可见性限制
+      val chooser = android.content.Intent.createChooser(intent, null)
+      try {
+        activity.startActivity(chooser)
+        invoke.resolve(JSObject())
+      } catch (e: android.content.ActivityNotFoundException) {
+        android.util.Log.e("SoloSoul", "shareFile: no app can receive ${args.mimeType}")
+        invoke.reject("没有应用可接收此文件")
+      }
+    } catch (e: Exception) {
+      android.util.Log.e("SoloSoul", "shareFile failed: ${e.message}", e)
+      invoke.reject("转发失败: ${e.message}")
+    }
+  }
 }

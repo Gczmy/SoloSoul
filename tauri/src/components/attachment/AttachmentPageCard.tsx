@@ -43,6 +43,7 @@ interface AttachmentPageCardProps {
   onPreview: (item: AttachmentMeta) => void;
   onStartRename: (item: AttachmentMeta, objectId: string) => void;
   onDownload: (item: AttachmentMeta) => void;
+  onShare: (item: AttachmentMeta) => void;
   onSoftDelete: (item: AttachmentMeta, objectId: string) => void;
   onRestore: (item: AttachmentMeta, objectId: string) => void;
   onPermanentDelete: (item: AttachmentMeta, objectId: string) => void;
@@ -67,6 +68,7 @@ function AttachmentPageCardBase({
   onPreview,
   onStartRename,
   onDownload,
+  onShare,
   onSoftDelete,
   onRestore,
   onPermanentDelete,
@@ -180,6 +182,7 @@ function AttachmentPageCardBase({
                 onPreview={onPreview}
                 onStartRename={onStartRename}
                 onDownload={onDownload}
+                onShare={onShare}
                 onSoftDelete={onSoftDelete}
                 onRestore={onRestore}
                 onPermanentDelete={onPermanentDelete}

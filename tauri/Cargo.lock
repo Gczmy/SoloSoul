@@ -4215,6 +4215,7 @@ dependencies = [
  "bstr",
  "dbus",
  "normpath",
+ "url",
  "windows-sys 0.59.0",
 ]
 

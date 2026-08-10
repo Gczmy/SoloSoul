@@ -470,6 +470,7 @@ fn register_core_commands(
         commands::attachment::attachment_list_all,
         commands::attachment::attachment_download,
         commands::attachment::attachment_open,
+        commands::attachment::attachment_share,
         attachment_import_plugin::attachment_import_content_uri,
         attachment_import_plugin::attachment_export_content_uri,
         attachment_import_plugin::attachment_export_tree_uri,
@@ -936,6 +937,7 @@ mod tests {
                     "attachment_list_all",
                     "attachment_download",
                     "attachment_open",
+                    "attachment_share",
                     "attachment_import_content_uri",
                     "attachment_export_content_uri",
                     "attachment_export_tree_uri",
@@ -986,7 +988,7 @@ mod tests {
                 assert_eq!(routed, cmds.len());
             }
         }
-        // 共 191 条命令全覆盖（核心 114 + 同步 20 + OCR 11 + LLM 32 + 插件 14）
-        assert_eq!(total, 191);
+        // 共 192 条命令全覆盖（核心 115 + 同步 20 + OCR 11 + LLM 32 + 插件 14）
+        assert_eq!(total, 192);
     }
 }

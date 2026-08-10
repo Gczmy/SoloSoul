@@ -38,6 +38,8 @@ export function GlobalAttachmentManager() {
     toggleObject,
     previewItem,
     setPreviewItem,
+    shareItem,
+    setShareItem,
     albumOpen,
     setAlbumOpen,
     photoItems,
@@ -56,6 +58,8 @@ export function GlobalAttachmentManager() {
     handleUpload,
     handleSoftDelete,
     handleDownload,
+    handleShare,
+    doShare,
     handleRestore,
     handlePermanentDelete,
     doPermanentDelete,
@@ -216,6 +220,7 @@ export function GlobalAttachmentManager() {
                       onPreview={handlePreview}
                       onStartRename={handleStartRename}
                       onDownload={handleDownload}
+                      onShare={handleShare}
                       onSoftDelete={handleSoftDelete}
                       onRestore={handleRestore}
                       onPermanentDelete={handlePermanentDelete}
@@ -310,6 +315,24 @@ export function GlobalAttachmentManager() {
         confirmStyle="danger"
         onConfirm={doPermanentDelete}
         onCancel={() => setPermDeleteItem(null)}
+      />
+      {/* 转发确认：文件将以明文离开加密 Vault */}
+      <ConfirmDialog
+        open={!!shareItem}
+        title={t('common:forward_confirm_title', { defaultValue: 'Forward attachment' })}
+        body={
+          shareItem
+            ? t('common:forward_confirm_body', {
+                name: truncateFileName(shareItem.fileName),
+                defaultValue: `Forward "${truncateFileName(shareItem.fileName)}"? The file will leave the encrypted vault in plain text, and the receiving app may keep a copy.`,
+              })
+            : ''
+        }
+        confirmLabel={t('common:forward', { defaultValue: 'Forward' })}
+        cancelLabel={t('common:cancel')}
+        confirmStyle="primary"
+        onConfirm={doShare}
+        onCancel={() => setShareItem(null)}
       />
 
       {confirmDialog}

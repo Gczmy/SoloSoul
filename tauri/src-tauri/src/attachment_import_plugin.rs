@@ -165,6 +165,23 @@ impl<R: Runtime> AttachmentImportPluginHandle<R> {
         }
     }
 
+    /// 在 Android 端通过系统分享面板（ACTION_SEND + FileProvider）转发本地文件。
+    /// 非 Android 平台直接返回不支持错误。
+    pub fn share_file(&self, payload: OpenFilePayload) -> Result<(), String> {
+        #[cfg(target_os = "android")]
+        {
+            self.handle
+                .run_mobile_plugin::<serde_json::Value>("shareFile", payload)
+                .map(|_| ())
+                .map_err(|e| e.to_string())
+        }
+        #[cfg(not(target_os = "android"))]
+        {
+            let _ = payload;
+            Err("attachment_share is only supported on Android".to_string())
+        }
+    }
+
     /// 在 Android 端把 Vault 中的本地文件复制到 content:// URI。
     /// 非 Android 平台直接返回不支持错误。
     pub fn export_content_uri(&self, payload: ExportContentUriPayload) -> Result<(), String> {

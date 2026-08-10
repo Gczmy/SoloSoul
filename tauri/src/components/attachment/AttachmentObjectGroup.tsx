@@ -50,6 +50,7 @@ interface AttachmentObjectGroupProps {
   onPreview: (item: AttachmentMeta) => void;
   onStartRename: (item: AttachmentMeta, objectId: string) => void;
   onDownload: (item: AttachmentMeta) => void;
+  onShare: (item: AttachmentMeta) => void;
   onSoftDelete: (item: AttachmentMeta, objectId: string) => void;
   onRestore: (item: AttachmentMeta, objectId: string) => void;
   onPermanentDelete: (item: AttachmentMeta, objectId: string) => void;
@@ -71,6 +72,7 @@ function AttachmentObjectGroupBase({
   onPreview,
   onStartRename,
   onDownload,
+  onShare,
   onSoftDelete,
   onRestore,
   onPermanentDelete,
@@ -207,6 +209,7 @@ function AttachmentObjectGroupBase({
               onPreview={onPreview}
               onStartRename={onStartRename}
               onDownload={onDownload}
+              onShare={onShare}
               onSoftDelete={onSoftDelete}
               onRestore={onRestore}
               onPermanentDelete={onPermanentDelete}

@@ -38,6 +38,7 @@ export function useAttachmentManager() {
   const [expandedPages, setExpandedPages] = useState<Set<string>>(new Set());
   const [expandedObjects, setExpandedObjects] = useState<Set<string>>(new Set());
   const [previewItem, setPreviewItem] = useState<AttachmentMeta | null>(null);
+  const [shareItem, setShareItem] = useState<AttachmentMeta | null>(null);
   const [albumOpen, setAlbumOpen] = useState(false);
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameObjectId, setRenameObjectId] = useState<string>('');
@@ -199,6 +200,24 @@ export function useAttachmentManager() {
       t,
       downloadViaStage,
     });
+  };
+
+  /** 转发：先弹确认框（明文离开 Vault 警示），确认后调用 attachment_share。 */
+  const handleShare = (item: AttachmentMeta) => {
+    setShareItem(item);
+  };
+
+  const doShare = async () => {
+    if (!shareItem) return;
+    try {
+      await invoke('attachment_share', {
+        objectId: shareItem.objectId,
+        attachmentId: shareItem.id,
+      });
+    } catch (e) {
+      showToast({ type: 'error', message: `${t('common:forward_failed')}: ${e}` });
+    }
+    setShareItem(null);
   };
 
   const handleRestore = async (item: AttachmentMeta, objectId: string) => {
@@ -559,6 +578,8 @@ export function useAttachmentManager() {
     toggleObject,
     previewItem,
     setPreviewItem,
+    shareItem,
+    setShareItem,
     albumOpen,
     setAlbumOpen,
     photoItems,
@@ -578,6 +599,8 @@ export function useAttachmentManager() {
     handleUpload,
     handleSoftDelete,
     handleDownload,
+    handleShare,
+    doShare,
     handleRestore,
     handlePermanentDelete,
     doPermanentDelete,

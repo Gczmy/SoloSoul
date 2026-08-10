@@ -1,16 +1,17 @@
 import { useTranslation } from 'react-i18next';
-import { Eye, Edit2, Download, RotateCcw } from 'lucide-react';
+import { Eye, Edit2, Download, RotateCcw, Share2 } from 'lucide-react';
 import { DeleteButton } from '@/components/ui/DeleteButton';
 import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
 import { ICON_SIZE } from '@/lib/constants';
 
 interface AttachmentActionsProps {
   showTrash: boolean;
-  /** 重命名进行中：隐藏预览/重命名/下载按钮（AttachmentListItem 语义：保留删除按钮） */
+  /** 重命名进行中：隐藏预览/重命名/下载/转发按钮（AttachmentListItem 语义：保留删除按钮） */
   isRenaming?: boolean;
   onPreview: () => void;
   onStartRename: () => void;
   onDownload: () => void;
+  onShare: () => void;
   onSoftDelete: () => void;
   onRestore: () => void;
   onPermanentDelete: () => void;
@@ -30,6 +31,7 @@ export function AttachmentActions({
   onPreview,
   onStartRename,
   onDownload,
+  onShare,
   onSoftDelete,
   onRestore,
   onPermanentDelete,
@@ -74,6 +76,12 @@ export function AttachmentActions({
             Icon={Download}
             onClick={onDownload}
             title={t('common:download')}
+            iconSize={ICON_SIZE.sm}
+          />
+          <BadgeIconButton
+            Icon={Share2}
+            onClick={onShare}
+            title={t('common:forward')}
             iconSize={ICON_SIZE.sm}
           />
         </>

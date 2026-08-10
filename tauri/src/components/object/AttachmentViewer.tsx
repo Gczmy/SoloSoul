@@ -61,6 +61,7 @@ export function AttachmentViewer({
   const [showTrash, setShowTrash] = useState(false);
   const [permDeleteItem, setPermDeleteItem] = useState<AttachmentItem | null>(null);
   const [deleteItem, setDeleteItem] = useState<AttachmentItem | null>(null);
+  const [shareItem, setShareItem] = useState<AttachmentItem | null>(null);
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState('');
   const renameInputRef = useRef<HTMLInputElement>(null);
@@ -205,6 +206,25 @@ export function AttachmentViewer({
       t,
       downloadViaStage,
     });
+  };
+
+  /** 转发：先弹确认框（明文离开 Vault 警示），确认后调用 attachment_share。 */
+  const handleShare = (item: AttachmentItem) => {
+    setShareItem(item);
+  };
+
+  const doShare = async () => {
+    if (!shareItem) return;
+    const item = shareItem;
+    setShareItem(null);
+    try {
+      await invoke('attachment_share', {
+        objectId,
+        attachmentId: item.id,
+      });
+    } catch (e) {
+      showToast({ type: 'error', message: `${t('common:forward_failed')}: ${e}` });
+    }
   };
 
   const handleDelete = (item: AttachmentItem) => {
@@ -443,6 +463,7 @@ export function AttachmentViewer({
         if (
           deleteItem ||
           permDeleteItem ||
+          shareItem ||
           batchDeleteConfirm ||
           batchRestoreConfirm ||
           batchPermanentDeleteConfirm
@@ -570,6 +591,7 @@ export function AttachmentViewer({
                     onPreview={handlePreview}
                     onStartRename={handleStartRename}
                     onDownload={handleDownload}
+                    onShare={handleShare}
                     onDelete={handleDelete}
                     onPermanentDelete={setPermDeleteItem}
                   />
@@ -601,6 +623,7 @@ export function AttachmentViewer({
       <AttachmentConfirmDialogs
         deleteItem={deleteItem}
         permDeleteItem={permDeleteItem}
+        shareItem={shareItem}
         batchDeleteConfirm={batchDeleteConfirm}
         batchRestoreConfirm={batchRestoreConfirm}
         batchPermanentDeleteConfirm={batchPermanentDeleteConfirm}
@@ -609,6 +632,8 @@ export function AttachmentViewer({
         onCancelDelete={() => setDeleteItem(null)}
         onConfirmPermanentDelete={() => permDeleteItem && handlePermanentDelete(permDeleteItem)}
         onCancelPermanentDelete={() => setPermDeleteItem(null)}
+        onConfirmShare={doShare}
+        onCancelShare={() => setShareItem(null)}
         onConfirmBatchDelete={handleBatchDelete}
         onCancelBatchDelete={() => setBatchDeleteConfirm(false)}
         onConfirmBatchRestore={handleBatchRestore}

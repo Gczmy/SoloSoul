@@ -33,6 +33,7 @@ commands.allow = [
   "attachment_list",
   "attachment_list_all",
   "attachment_open",
+  "attachment_share",
   "attachment_pick_tree_uri",
   "attachment_rename",
   "attachment_restore",

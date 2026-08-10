@@ -19,6 +19,7 @@ function setupRow(props: Partial<Parameters<typeof AttachmentRow>[0]> = {}) {
   const onPreview = vi.fn();
   const onStartRename = vi.fn();
   const onDownload = vi.fn();
+  const onShare = vi.fn();
   const onSoftDelete = vi.fn();
   const onRestore = vi.fn();
   const onPermanentDelete = vi.fn();
@@ -36,6 +37,7 @@ function setupRow(props: Partial<Parameters<typeof AttachmentRow>[0]> = {}) {
       onPreview={onPreview}
       onStartRename={onStartRename}
       onDownload={onDownload}
+      onShare={onShare}
       onSoftDelete={onSoftDelete}
       onRestore={onRestore}
       onPermanentDelete={onPermanentDelete}
@@ -50,6 +52,7 @@ function setupRow(props: Partial<Parameters<typeof AttachmentRow>[0]> = {}) {
     onPreview,
     onStartRename,
     onDownload,
+    onShare,
     onSoftDelete,
     onRestore,
     onPermanentDelete,
@@ -118,7 +121,21 @@ describe('AttachmentRow', () => {
   it('hides rename input when not renaming and exposes actions', () => {
     setupRow();
     expect(screen.queryByDisplayValue('report.pdf')).not.toBeInTheDocument();
-    // 非回收站视图：预览/重命名/下载/删除四个操作按钮
-    expect(screen.getAllByRole('button').length).toBeGreaterThanOrEqual(4);
+    // 非回收站视图：预览/重命名/下载/转发/删除五个操作按钮
+    expect(screen.getAllByRole('button').length).toBeGreaterThanOrEqual(5);
+  });
+
+  it('renders share button and fires onShare with the item', () => {
+    const { onShare } = setupRow();
+    const shareButton = screen.getByTitle('common:forward');
+    expect(shareButton).toBeInTheDocument();
+    fireEvent.click(shareButton);
+    expect(onShare).toHaveBeenCalledTimes(1);
+    expect(onShare).toHaveBeenCalledWith(item);
+  });
+
+  it('hides share button when renaming', () => {
+    setupRow({ isRenaming: true });
+    expect(screen.queryByTitle('common:forward')).not.toBeInTheDocument();
   });
 });

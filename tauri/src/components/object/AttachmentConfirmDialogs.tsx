@@ -5,6 +5,7 @@ import { truncateFileName, type AttachmentItem } from '@/lib/attachmentUtils';
 interface AttachmentConfirmDialogsProps {
   deleteItem: AttachmentItem | null;
   permDeleteItem: AttachmentItem | null;
+  shareItem: AttachmentItem | null;
   batchDeleteConfirm: boolean;
   batchRestoreConfirm: boolean;
   batchPermanentDeleteConfirm: boolean;
@@ -13,6 +14,8 @@ interface AttachmentConfirmDialogsProps {
   onCancelDelete: () => void;
   onConfirmPermanentDelete: () => void;
   onCancelPermanentDelete: () => void;
+  onConfirmShare: () => void;
+  onCancelShare: () => void;
   onConfirmBatchDelete: () => void;
   onCancelBatchDelete: () => void;
   onConfirmBatchRestore: () => void;
@@ -21,10 +24,11 @@ interface AttachmentConfirmDialogsProps {
   onCancelBatchPermanentDelete: () => void;
 }
 
-/** AttachmentViewer 全部确认对话框（软删/永久删/批量软删/批量恢复/批量永久删）（P013 拆分）。 */
+/** AttachmentViewer 全部确认对话框（软删/永久删/转发/批量软删/批量恢复/批量永久删）（P013 拆分）。 */
 export function AttachmentConfirmDialogs({
   deleteItem,
   permDeleteItem,
+  shareItem,
   batchDeleteConfirm,
   batchRestoreConfirm,
   batchPermanentDeleteConfirm,
@@ -33,6 +37,8 @@ export function AttachmentConfirmDialogs({
   onCancelDelete,
   onConfirmPermanentDelete,
   onCancelPermanentDelete,
+  onConfirmShare,
+  onCancelShare,
   onConfirmBatchDelete,
   onCancelBatchDelete,
   onConfirmBatchRestore,
@@ -55,6 +61,20 @@ export function AttachmentConfirmDialogs({
         confirmStyle="danger"
         onConfirm={onConfirmDelete}
         onCancel={onCancelDelete}
+      />
+      {/* 转发确认：文件将以明文离开加密 Vault，接收方应用可能留存副本 */}
+      <ConfirmDialog
+        open={!!shareItem}
+        title={t('forward_confirm_title', 'Forward attachment')}
+        body={t('forward_confirm_body', {
+          name: shareItem ? truncateFileName(shareItem.fileName) : '',
+          defaultValue: `Forward "${shareItem ? truncateFileName(shareItem.fileName) : ''}"? The file will leave the encrypted vault in plain text, and the receiving app may keep a copy.`,
+        })}
+        confirmLabel={t('forward', 'Forward')}
+        cancelLabel={t('cancel')}
+        confirmStyle="primary"
+        onConfirm={onConfirmShare}
+        onCancel={onCancelShare}
       />
       <ConfirmDialog
         open={batchDeleteConfirm}

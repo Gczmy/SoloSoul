@@ -23,6 +23,7 @@ interface AttachmentListItemProps {
   onPreview: (item: AttachmentItem) => void;
   onStartRename: (item: AttachmentItem) => void;
   onDownload: (item: AttachmentItem) => void;
+  onShare: (item: AttachmentItem) => void;
   onDelete: (item: AttachmentItem) => void;
   onPermanentDelete: (item: AttachmentItem) => void;
 }
@@ -63,6 +64,7 @@ export function AttachmentListItem({
   onPreview,
   onStartRename,
   onDownload,
+  onShare,
   onDelete,
   onPermanentDelete,
 }: AttachmentListItemProps) {
@@ -122,6 +124,7 @@ export function AttachmentListItem({
         onPreview={() => onPreview(item)}
         onStartRename={() => onStartRename(item)}
         onDownload={() => onDownload(item)}
+        onShare={() => onShare(item)}
         onSoftDelete={() => onDelete(item)}
         onRestore={() => onRestore(item)}
         onPermanentDelete={() => onPermanentDelete(item)}

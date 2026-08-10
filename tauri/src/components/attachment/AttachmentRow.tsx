@@ -19,6 +19,7 @@ interface AttachmentRowProps {
   onPreview: (item: AttachmentMeta) => void;
   onStartRename: (item: AttachmentMeta, objectId: string) => void;
   onDownload: (item: AttachmentMeta) => void;
+  onShare: (item: AttachmentMeta) => void;
   onSoftDelete: (item: AttachmentMeta, objectId: string) => void;
   onRestore: (item: AttachmentMeta, objectId: string) => void;
   onPermanentDelete: (item: AttachmentMeta, objectId: string) => void;
@@ -93,6 +94,7 @@ function AttachmentRowBase({
   onPreview,
   onStartRename,
   onDownload,
+  onShare,
   onSoftDelete,
   onRestore,
   onPermanentDelete,
@@ -114,6 +116,7 @@ function AttachmentRowBase({
       onPreview={() => onPreview(item)}
       onStartRename={() => onStartRename(item, objectId)}
       onDownload={() => onDownload(item)}
+      onShare={() => onShare(item)}
       onSoftDelete={() => onSoftDelete(item, objectId)}
       onRestore={() => onRestore(item, objectId)}
       onPermanentDelete={() => onPermanentDelete(item, objectId)}

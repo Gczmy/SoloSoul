@@ -963,6 +963,89 @@ pub async fn attachment_download(
     Ok(())
 }
 
+/// 解析并校验附件文件路径（`attachment_open` 与 `attachment_share` 共享的安全关键路径）。
+///
+/// 校验链：Vault 解锁 → 对象/附件存在 → 取 vault_path/src_path → canonicalize（失败时
+/// Android symlink 兜底）→ 拒绝 `..` → `path_within_base` 组件级前缀校验。返回校验
+/// 通过的 canonical 路径与附件元数据；错误路径仅保留脱敏日志（不含路径/文件名/对象 ID）。
+fn resolve_verified_attachment_path(
+    svc: &solosoul_core::vault_service::VaultService,
+    object_id: &str,
+    attachment_id: &str,
+) -> Result<(PathBuf, AttachmentMeta), String> {
+    let vault = svc
+        .get_vault_store()
+        .ok_or_else(|| "Vault not unlocked".to_string())?;
+
+    let record = vault.load_object(object_id)?.ok_or("Object not found")?;
+    let att = load_attachments(&record.properties)
+        .into_iter()
+        .find(|a| a.id == attachment_id)
+        .ok_or("Attachment not found")?;
+
+    let path_str = att
+        .vault_path
+        .as_ref()
+        .or(att.src_path.as_ref())
+        .ok_or("Attachment has no file path")?;
+
+    let vault_base = svc
+        .base_path()
+        .canonicalize()
+        .map_err(|_| "Invalid vault base path".to_string())?;
+    let attachments_dir = vault_base.join("attachments");
+
+    // R2-W1: 与 attachment_download 同款 src_canonicalized 模式——跟踪 canonicalize
+    // 是否成功；字面路径仅在 canonicalize 失败（Android symlink 兜底）时参与判定，
+    // 成功时只用 canonicalize 结果，杜绝字面前缀绕过 symlink 旁路。
+    let (path, path_canonicalized) = Path::new(path_str)
+        .canonicalize()
+        .map(|p| (p, true))
+        .or_else(|_| {
+            let p = PathBuf::from(path_str);
+            if p.exists() {
+                Ok((p, false))
+            } else {
+                Err(std::io::Error::new(
+                    std::io::ErrorKind::NotFound,
+                    "source path does not exist",
+                ))
+            }
+        })
+        .map_err(|e| {
+            // 脱敏：不记录 path_str（可能含 vault 绝对路径）
+            tracing::error!("attachment: failed to resolve attachment file: {}", e);
+            format!("Cannot access attachment file: {}", e)
+        })?;
+    let attachments_canon = attachments_dir
+        .canonicalize()
+        .unwrap_or_else(|_| attachments_dir.clone());
+    // R2-01: 与 attachment_download 一致——拒绝 `..`、组件级 starts_with，
+    // 移除字符串前缀回退分支（共享前缀兄弟目录可绕过）。
+    let path_raw = Path::new(path_str);
+    if path_raw
+        .components()
+        .any(|c| matches!(c, std::path::Component::ParentDir))
+    {
+        tracing::error!("attachment: attachment path contains '..'");
+        return Err("Attachment path must not contain '..'".to_string());
+    }
+    // R2-W1/X1: 字面路径仅在 canonicalize 失败时参与判定（同 download）。
+    let in_vault = path_within_base(
+        &path,
+        path_raw,
+        path_canonicalized,
+        &attachments_canon,
+        &attachments_dir,
+    );
+    if !in_vault {
+        tracing::error!("attachment: attachment path is outside vault storage");
+        return Err("Attachment path is outside vault storage".to_string());
+    }
+
+    Ok((path, att))
+}
+
 /// Open an attachment with the system's default application.
 /// The path is resolved from the attachment metadata and verified to be inside
 /// the vault's `attachments` directory before opening.
@@ -979,84 +1062,14 @@ pub async fn attachment_open<R: Runtime>(
         .vault_service
         .read()
         .map_err(|_| "Vault service lock poisoned".to_string())?;
-    let vault = svc
-        .get_vault_store()
-        .ok_or_else(|| "Vault not unlocked".to_string())?;
-
-    let record = vault.load_object(&object_id)?.ok_or("Object not found")?;
-    let att = load_attachments(&record.properties)
-        .into_iter()
-        .find(|a| a.id == attachment_id)
-        .ok_or("Attachment not found")?;
-
-    let path_str = att
-        .vault_path
-        .as_ref()
-        .or(att.src_path.as_ref())
-        .ok_or("Attachment has no file path")?;
-
-    // P203: 移除残留调试日志——此前以 error! 记录完整 vault 路径/object_id/mime，
-    // 属敏感数据泄漏面；错误路径仅保留脱敏日志（不含路径/文件名/对象 ID）。
-    let vault_base = svc
-        .base_path()
-        .canonicalize()
-        .map_err(|_| "Invalid vault base path".to_string())?;
-    let attachments_dir = vault_base.join("attachments");
-
-    // R2-W1: 与 attachment_download 同款 src_canonicalized 模式——跟踪 canonicalize
-    // 是否成功；字面路径仅在 canonicalize 失败（Android symlink 兜底）时参与判定，
-    // 成功时只用 canonicalize 结果，杜绝字面前缀绕过 symlink 旁路。
-    let (path, path_canonicalized) = std::path::Path::new(path_str)
-        .canonicalize()
-        .map(|p| (p, true))
-        .or_else(|_| {
-            let p = std::path::PathBuf::from(path_str);
-            if p.exists() {
-                Ok((p, false))
-            } else {
-                Err(std::io::Error::new(
-                    std::io::ErrorKind::NotFound,
-                    "source path does not exist",
-                ))
-            }
-        })
-        .map_err(|e| {
-            // 脱敏：不记录 path_str（可能含 vault 绝对路径）
-            tracing::error!("attachment_open: failed to resolve attachment file: {}", e);
-            format!("Cannot access attachment file: {}", e)
-        })?;
-    let attachments_canon = attachments_dir
-        .canonicalize()
-        .unwrap_or_else(|_| attachments_dir.clone());
-    // R2-01: 与 attachment_download 一致——拒绝 `..`、组件级 starts_with，
-    // 移除字符串前缀回退分支（共享前缀兄弟目录可绕过）。
-    let path_raw = std::path::Path::new(path_str);
-    if path_raw
-        .components()
-        .any(|c| matches!(c, std::path::Component::ParentDir))
-    {
-        tracing::error!("attachment_open: attachment path contains '..'");
-        return Err("Attachment path must not contain '..'".to_string());
-    }
-    // R2-W1/X1: 字面路径仅在 canonicalize 失败时参与判定（同 download）。
-    let in_vault = path_within_base(
-        &path,
-        path_raw,
-        path_canonicalized,
-        &attachments_canon,
-        &attachments_dir,
-    );
-    if !in_vault {
-        tracing::error!("attachment_open: attachment path is outside vault storage");
-        return Err("Attachment path is outside vault storage".to_string());
-    }
+    let (path, _att) = resolve_verified_attachment_path(&svc, &object_id, &attachment_id)?;
 
     #[cfg(target_os = "android")]
     {
         let handle = app.state::<AttachmentImportPluginHandle<R>>();
         handle.open_file(OpenFilePayload {
             path: path.to_string_lossy().to_string(),
-            mime_type: att.mime_type.clone(),
+            mime_type: _att.mime_type.clone(),
         })
     }
 
@@ -1064,6 +1077,76 @@ pub async fn attachment_open<R: Runtime>(
     {
         opener::open(&path).map_err(|e| format!("Failed to open file: {}", e))?;
         Ok(())
+    }
+}
+
+/// 转发附件到其他应用。
+///
+/// - Android：系统分享面板（`ACTION_SEND` + FileProvider），可直发微信等应用。
+/// - 桌面端：复制附件到临时目录 `solosoul_share/` 后 `opener::reveal` 在文件管理器中
+///   显示，由用户自行拖入目标应用——复制副本而非 vault 原文件，避免把用户带进隐藏的
+///   vault 目录、也避免用户误改 vault 内文件。
+/// - iOS：不支持（返回明确错误）。
+#[tauri::command]
+pub async fn attachment_share<R: Runtime>(
+    #[allow(unused_variables)] app: AppHandle<R>,
+    state: State<'_, AppState>,
+    object_id: String,
+    attachment_id: String,
+) -> Result<(), String> {
+    // 块作用域尽早释放 vault_service 读锁：复制/转发期间不占用锁，
+    // 且保证 guard 在 spawn_blocking 的 await 点之前已销毁（async 状态机 Send 要求）。
+    let (path, att) = {
+        let svc = state
+            .vault_service
+            .read()
+            .map_err(|_| "Vault service lock poisoned".to_string())?;
+        resolve_verified_attachment_path(&svc, &object_id, &attachment_id)?
+    };
+
+    #[cfg(target_os = "android")]
+    {
+        let handle = app.state::<AttachmentImportPluginHandle<R>>();
+        handle.share_file(OpenFilePayload {
+            path: path.to_string_lossy().to_string(),
+            mime_type: att.mime_type.clone(),
+        })
+    }
+
+    #[cfg(all(not(target_os = "android"), not(target_os = "ios")))]
+    {
+        // 复制到临时目录后再 reveal，避免把用户带进隐藏的 vault 目录、也避免误改 vault 内文件。
+        // 复制/揭示走 spawn_blocking，避免大文件复制阻塞 tokio worker。
+        tokio::task::spawn_blocking(move || {
+            let share_dir = std::env::temp_dir().join("solosoul_share");
+            std::fs::create_dir_all(&share_dir)
+                .map_err(|e| format!("Failed to prepare share directory: {}", e))?;
+            // 清理文件名，防止路径遍历（file_name 来自 vault 元数据，不可直接 join）。
+            // file_name() 对 "." / ".." 原样返回，显式拒绝避免写入临时目录之外。
+            let safe_name = Path::new(&att.file_name)
+                .file_name()
+                .ok_or("Invalid file name")?
+                .to_string_lossy()
+                .to_string();
+            if safe_name == "." || safe_name == ".." {
+                return Err("Invalid file name".to_string());
+            }
+            let dest = share_dir.join(safe_name);
+            std::fs::copy(&path, &dest)
+                .map_err(|e| format!("Failed to copy file for sharing: {}", e))?;
+            opener::reveal(&dest).map_err(|e| format!("Failed to reveal file: {}", e))?;
+            Ok::<(), String>(())
+        })
+        .await
+        .map_err(|e| format!("Share task panicked: {}", e))??;
+        Ok(())
+    }
+
+    #[cfg(target_os = "ios")]
+    {
+        // 设计决策：iOS 不做转发（无现成原生分享插件先例），显式返回不支持。
+        let _ = (path, att);
+        Err("attachment_share is not supported on iOS".to_string())
     }
 }
 
@@ -1619,5 +1702,136 @@ mod tests {
         assert_eq!(sanitize_duplicate_suffix("a (1).pdf"), "a(1).pdf");
         assert_eq!(sanitize_duplicate_suffix("a(1)"), "a(1)");
         assert_eq!(sanitize_duplicate_suffix("a.pdf"), "a.pdf");
+    }
+
+    // ── resolve_verified_attachment_path（attachment_open / attachment_share 共享路径） ──
+
+    /// 创建已解锁的 VaultService + 一个含真实附件文件的对象，返回 (svc, dir, 附件文件路径)。
+    fn setup_unlocked_attachment() -> (
+        solosoul_core::vault_service::VaultService,
+        TempDir,
+        std::path::PathBuf,
+    ) {
+        let dir = TempDir::new().unwrap();
+        let base = dir.path().join("vault");
+        let svc = solosoul_core::vault_service::VaultService::with_base_path(base.clone());
+        svc.create_account_with_id("acc-1", "acc-1", "pw1234567890", None)
+            .unwrap();
+        svc.unlock("acc-1", "pw1234567890").unwrap();
+
+        // 在 vault attachments 目录下创建真实附件文件
+        let att_dir = base.join("attachments").join("obj-1").join("att-1");
+        std::fs::create_dir_all(&att_dir).unwrap();
+        let file_path = att_dir.join("a.pdf");
+        std::fs::write(&file_path, b"hello").unwrap();
+
+        let att = AttachmentMeta {
+            id: "att-1".to_string(),
+            object_id: "obj-1".to_string(),
+            file_name: "a.pdf".to_string(),
+            mime_type: "application/pdf".to_string(),
+            size_bytes: 5,
+            created_at: "2024-01-01T00:00:00Z".to_string(),
+            deleted_at: None,
+            src_path: None,
+            vault_path: Some(file_path.to_string_lossy().to_string()),
+        };
+        let record = ObjectRecord {
+            contract_type_id: None,
+            id: "obj-1".to_string(),
+            account_id: "acc-1".to_string(),
+            type_id: "note".to_string(),
+            section_type: "identity".to_string(),
+            name: "obj-1".to_string(),
+            icon_name: "document".to_string(),
+            parent_id: None,
+            children_ids: vec![],
+            properties: serde_json::json!({ "__attachments": [att] }),
+            property_labels: None,
+            sensitivity_level: "internal".to_string(),
+            is_deleted: false,
+            deleted_at: None,
+            tags_json: vec![],
+            template_id: None,
+            template_type: None,
+            template_hash: None,
+            ignored_template_hash: None,
+            created_at: "2024-01-01T00:00:00Z".to_string(),
+            updated_at: "2024-01-01T00:00:00Z".to_string(),
+            version: 1,
+        };
+        let vault = svc.get_vault_store().unwrap();
+        vault.save_object(&record).unwrap();
+
+        (svc, dir, file_path)
+    }
+
+    /// 改写对象附件的 vault_path（用于构造越界 / 含 `..` 的用例）。
+    fn set_attachment_path(svc: &solosoul_core::vault_service::VaultService, new_path: &str) {
+        let vault = svc.get_vault_store().unwrap();
+        let mut record = vault.load_object("obj-1").unwrap().unwrap();
+        let mut atts = load_attachments(&record.properties);
+        atts[0].vault_path = Some(new_path.to_string());
+        save_attachments(&mut record.properties, &atts);
+        vault.save_object(&record).unwrap();
+    }
+
+    #[test]
+    fn test_resolve_verified_attachment_path_resolves_inside_vault() {
+        let (svc, _dir, file_path) = setup_unlocked_attachment();
+        let (path, att) = resolve_verified_attachment_path(&svc, "obj-1", "att-1").unwrap();
+        assert_eq!(path, file_path.canonicalize().unwrap());
+        assert_eq!(att.id, "att-1");
+        assert_eq!(att.file_name, "a.pdf");
+    }
+
+    #[test]
+    fn test_resolve_verified_attachment_path_rejects_outside_vault() {
+        let (svc, dir, _file_path) = setup_unlocked_attachment();
+        // 附件路径指向 vault 外部的真实文件（canonicalize 成功但不在 attachments 内）
+        let outside = dir.path().join("outside.txt");
+        std::fs::write(&outside, b"x").unwrap();
+        set_attachment_path(&svc, &outside.to_string_lossy());
+
+        let err = resolve_verified_attachment_path(&svc, "obj-1", "att-1").unwrap_err();
+        assert!(err.contains("outside vault storage"), "{err}");
+    }
+
+    #[test]
+    fn test_resolve_verified_attachment_path_rejects_parent_dir() {
+        let (svc, _dir, file_path) = setup_unlocked_attachment();
+        // 构造含 `..` 的原始路径，但 canonicalize 后仍指向真实文件（存在才走到 `..` 分支）
+        let att_dir = file_path.parent().unwrap();
+        let raw = att_dir
+            .join("..")
+            .join("..")
+            .join("obj-1")
+            .join("att-1")
+            .join("a.pdf");
+        set_attachment_path(&svc, &raw.to_string_lossy());
+
+        let err = resolve_verified_attachment_path(&svc, "obj-1", "att-1").unwrap_err();
+        assert!(err.contains("must not contain '..'"), "{err}");
+    }
+
+    #[test]
+    fn test_resolve_verified_attachment_path_missing_entities() {
+        let (svc, _dir, _file_path) = setup_unlocked_attachment();
+        let err = resolve_verified_attachment_path(&svc, "obj-1", "att-missing").unwrap_err();
+        assert!(err.contains("Attachment not found"), "{err}");
+        let err = resolve_verified_attachment_path(&svc, "obj-missing", "att-1").unwrap_err();
+        assert!(err.contains("Object not found"), "{err}");
+    }
+
+    #[test]
+    fn test_resolve_verified_attachment_path_missing_file() {
+        let (svc, _dir, file_path) = setup_unlocked_attachment();
+        // vault_path 指向不存在的文件 → canonicalize 失败且文件不存在
+        set_attachment_path(
+            &svc,
+            &file_path.with_file_name("missing.pdf").to_string_lossy(),
+        );
+        let err = resolve_verified_attachment_path(&svc, "obj-1", "att-1").unwrap_err();
+        assert!(err.contains("Cannot access attachment file"), "{err}");
     }
 }
