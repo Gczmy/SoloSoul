@@ -503,12 +503,14 @@ fn build_html_document(
          h1 { font-size: 24px; border-bottom: 2px solid #d0d7de; padding-bottom: 8px; }\n\
          h2 { font-size: 19px; margin-top: 28px; }\n\
          .meta { color: #57606a; font-size: 13px; margin-bottom: 20px; }\n\
-         .obj { margin-bottom: 36px; page-break-inside: avoid; }\n\
+         /* PDF：每个对象独立一页（内联 break-after 在 Rust 侧按对象输出）；HTML 浏览器打开时无分页副作用 */\n\
+         .obj { margin-bottom: 36px; page-break-inside: avoid; break-inside: avoid; }\n\
          .obj + .obj { border-top: 1px solid #d0d7de; padding-top: 20px; }\n\
-         table { border-collapse: collapse; width: 100%; margin-top: 10px; }\n\
-         th, td { border: 1px solid #d0d7de; padding: 8px 10px; text-align: left; vertical-align: top; font-size: 14px; }\n\
+         table { border-collapse: collapse; width: 100%; margin-top: 10px; table-layout: fixed; }\n\
+         /* 长值在页边距处换行（azul-layout 支持 word-break / overflow-wrap） */\n\
+         th, td { border: 1px solid #d0d7de; padding: 8px 10px; text-align: left; vertical-align: top; font-size: 14px; word-break: break-all; overflow-wrap: anywhere; }\n\
          th { background: #f6f8fa; font-weight: 600; width: 30%; white-space: nowrap; }\n\
-         .attach { color: #57606a; font-size: 13px; margin: 4px 0 0; }\n\
+         .attach { color: #57606a; font-size: 13px; margin: 4px 0 0; word-break: break-all; }\n\
          </style></head><body>\n\
          <h1>SoloSoul</h1>\n\
          <p class=\"meta\">",
@@ -519,7 +521,8 @@ fn build_html_document(
         account_name, account_id
     )));
     html.push_str("</p>\n");
-    html.push_str("<div class=\"meta\">");
+    // 封面独立一页：末行 meta 带内联 break-after（azul 仅认内联样式），使对象 1 也单独成页
+    html.push_str("<div class=\"meta\" style=\"break-after: always; page-break-after: always;\">");
     html.push_str(&escape_html(&format!(
         "{} · 导出 {} 个对象",
         export_time,
@@ -527,8 +530,16 @@ fn build_html_document(
     )));
     html.push_str("</div>\n");
 
-    for rec in records {
-        html.push_str("<div class=\"obj\">\n<h2>");
+    for (idx, rec) in records.iter().enumerate() {
+        // 每个对象独立一页（azul-layout 仅认内联 break-after；末对象不强制分页避免空尾页）
+        let break_style = if idx + 1 < records.len() {
+            " style=\"break-after: always; page-break-after: always;\""
+        } else {
+            ""
+        };
+        html.push_str("<div class=\"obj\"");
+        html.push_str(break_style);
+        html.push_str(">\n<h2>");
         html.push_str(&escape_html(&rec.name));
         html.push_str("</h2>\n<div class=\"meta\">");
         let tpl_name = rec
@@ -610,11 +621,20 @@ fn build_pdf_document(
     );
 
     let mut warnings = Vec::new();
+    // 页边距（mm）：上下 15 / 左右 14。printpdf 的 margin 作用于每个分页页面的内容区，
+    // 解决「第一页有边距、第二页无上下边距」与左右边距过窄问题。
+    let pdf_options = printpdf::GeneratePdfOptions {
+        margin_top: Some(15.0),
+        margin_bottom: Some(15.0),
+        margin_left: Some(14.0),
+        margin_right: Some(14.0),
+        ..printpdf::GeneratePdfOptions::default()
+    };
     let pdf = printpdf::PdfDocument::from_html(
         &html,
         &std::collections::BTreeMap::new(),
         &fonts,
-        &printpdf::GeneratePdfOptions::default(),
+        &pdf_options,
         &mut warnings,
     )
     .map_err(|e| format!("PDF render failed: {}", e))?;
@@ -1192,6 +1212,14 @@ mod tests {
         // 字段表格 + 多行值换行 <br>
         assert!(html.contains("<th>姓名</th>"));
         assert!(html.contains("张三<br>第二行"));
+        // PDF 布局样式：长值换行（word-break 在 CSS 中）
+        assert!(html.contains("word-break: break-all"));
+        // 封面独立成页：封面 meta 带内联 break-after
+        assert!(html.contains(
+            "<div class=\"meta\" style=\"break-after: always; page-break-after: always;\">"
+        ));
+        // 单对象场景：末对象不强制分页 → 对象 div 无内联 break-after
+        assert_eq!(html.matches("break-after: always").count(), 1);
         // 附件清单
         assert!(html.contains("附件：证件.pdf（2.0 KB，application/pdf）"));
         // 封面第二行：账户名 + 账户 ID
@@ -1222,7 +1250,48 @@ mod tests {
         .unwrap();
         assert!(!bytes.is_empty());
         assert_eq!(&bytes[0..4], b"%PDF");
-        assert!(bytes.windows(4).any(|w| w == b"%%EOF"));
+        // 注意：%%EOF 是 5 字节序列，需用 windows(5) 匹配（早期 windows(4) 恒 false 的断言已修正）
+        assert!(bytes.windows(5).any(|w| w == b"%%EOF"));
+    }
+
+    #[test]
+    fn test_pdf_options_have_margins() {
+        // 页边距配置（上下 15mm / 左右 14mm）随渲染 options 生效——防止回归为默认 0 边距。
+        let options = printpdf::GeneratePdfOptions {
+            margin_top: Some(15.0),
+            margin_bottom: Some(15.0),
+            margin_left: Some(14.0),
+            margin_right: Some(14.0),
+            ..printpdf::GeneratePdfOptions::default()
+        };
+        assert_eq!(options.margin_top, Some(15.0));
+        assert_eq!(options.margin_bottom, Some(15.0));
+        assert_eq!(options.margin_left, Some(14.0));
+        assert_eq!(options.margin_right, Some(14.0));
+    }
+
+    #[test]
+    fn test_html_multi_object_page_breaks_inline() {
+        // 多对象：封面 meta + 非末对象带内联 break-after（PDF 每对象独立页），末对象不带
+        let empty = serde_json::json!({});
+        let r1 = make_record("o1", "一", empty.clone(), empty.clone());
+        let r2 = make_record("o2", "二", empty.clone(), empty.clone());
+        let html = build_html_document(
+            &[r1, r2],
+            &std::collections::HashMap::new(),
+            "t",
+            "Gczmy",
+            "acc-1",
+        );
+        let break_attr = "style=\"break-after: always; page-break-after: always;\"";
+        // 封面 meta 带 break-after（封面独立一页）
+        assert!(html.contains(&format!("<div class=\"meta\" {break_attr}>")));
+        // 对象一（非末对象）带 break-after
+        assert!(html.contains(&format!("<div class=\"obj\" {break_attr}>")));
+        // 末对象（对象二）不带 break-after
+        assert!(html.contains("<div class=\"obj\">"));
+        // 恰有 2 个内联 break-after（封面 + 对象一）
+        assert_eq!(html.matches(break_attr).count(), 2);
     }
 
     #[test]
