@@ -472,15 +472,17 @@ fn build_docx(
     }
     Ok(buf.into_inner())
 }
-/// Markdown 转义：反斜杠先转义自身，再转义其余需要字面化的特殊字符。
-/// 行首 `#`/`-`/`+`/`*` 等由转义符覆盖；保留中文与换行。
+/// Markdown 转义：仅转义会破坏结构或影响直接复制的字符。
+///
+/// 字段值来自用户数据，过度转义（`.` `()` `*` `-` `+` `#` 等）会让源码充满反斜杠、
+/// 无法直接复制使用。只保留真正危险的：`\` 自身、反引号（代码块）、`[]`（链接）、
+/// `|`（表格）、`<>`（HTML/自动链接）。
 fn escape_markdown(s: &str) -> String {
     let mut out = String::with_capacity(s.len());
     for c in s.chars() {
         match c {
             '\\' => out.push_str("\\\\"),
-            '`' | '*' | '_' | '{' | '}' | '[' | ']' | '(' | ')' | '#' | '+' | '-' | '.' | '!'
-            | '|' | '<' | '>' => {
+            '`' | '[' | ']' | '|' | '<' | '>' => {
                 out.push('\\');
                 out.push(c);
             }
@@ -592,6 +594,39 @@ fn find_url_at(value: &str, from: usize) -> Option<(usize, usize)> {
 
 /// 把值文本中的链接实体（email / url）自动转换为可点击链接；其余保持原文。
 /// 逐字符扫描（零依赖），已链接段不再重复处理。
+/// 行首结构字符防护：仅在行首转义 `#`/`-`/`>` 及有序列表前缀数字（`1.`/`1)`）。
+/// 其余位置保持原样（源码可复制），避免多行值续行被渲染成标题/列表/引用。
+/// 注意：`+` 不是列表标记（CommonMark 列表仅 `-`/`*`/数字），且电话 `+86…`
+/// 行首常见，故不纳入防护。
+fn escape_line_leading(value: &str) -> String {
+    let bytes = value.as_bytes();
+    if bytes.is_empty() {
+        return String::new();
+    }
+    let first = bytes[0];
+    // 首字符宽度：ASCII 1 字节，中文等 2-4 字节（`first as char` 会把首字节当
+    // 独立码点导致中文首字节损坏，必须按 UTF-8 长度切片保留原始字符）
+    let first_char = &value[..utf8_len(first)];
+    let mut escaped = String::new();
+    if matches!(first, b'#' | b'-' | b'>') {
+        escaped.push('\\');
+        escaped.push_str(first_char);
+    } else if first.is_ascii_digit() {
+        // 有序列表前缀：数字后跟 `.` 或 `)`（如 `1. 条目` / `1) 条目`）
+        let next = bytes.get(1).copied();
+        if matches!(next, Some(b'.') | Some(b')')) {
+            escaped.push('\\');
+            escaped.push_str(first_char);
+        } else {
+            escaped.push_str(first_char);
+        }
+    } else {
+        escaped.push_str(first_char);
+    }
+    escaped.push_str(&value[utf8_len(first)..]);
+    escaped
+}
+
 fn linkify_markdown_text(value: &str) -> String {
     let mut out = String::new();
     let mut pos = 0usize;
@@ -645,14 +680,15 @@ fn utf8_len(b: u8) -> usize {
 /// - date/datetime → 原样（markdown 无日期语义）；
 /// - 其余 → 链接实体自动转换。
 ///
-/// 多行值：按行硬换行（行尾两个空格），保证渲染时真换行。
+/// 多行值：行间用空行分隔（Markdown 段落分隔），渲染时真换行。
 fn markdown_field_value(ftype: &str, value: &str) -> String {
     let lines: Vec<&str> = value.split('\n').collect();
     let mut out = String::new();
     for (i, line) in lines.iter().enumerate() {
         if i > 0 {
-            out.push_str("  \n"); // 硬换行（行尾两个空格）
+            out.push_str("\n\n"); // 空行分隔（段落即换行）
         }
+        let line = escape_line_leading(line); // 行首结构字符防护（仅行首，其余保持原样）
         let rendered = match ftype {
             "url" => {
                 let line = line.trim();
@@ -678,8 +714,8 @@ fn markdown_field_value(ftype: &str, value: &str) -> String {
                     markdown_link(line, &format!("tel:{}", line))
                 }
             }
-            "date" | "datetime" => escape_markdown(line),
-            _ => linkify_markdown_text(line),
+            "date" | "datetime" => escape_markdown(&line),
+            _ => linkify_markdown_text(&line),
         };
         out.push_str(&rendered);
     }
@@ -1654,8 +1690,8 @@ mod tests {
         assert!(md.contains("导出 1 个对象"));
         assert!(md.contains("## 对象名称：张三&档案"));
         assert!(md.contains("- 模板：护照"));
-        // 多行值行尾双空格硬换行（渲染真换行），不再有 <br> 字面量
-        assert!(md.contains("**姓名**：张三  \n第二行"));
+        // 多行值空行分隔（段落即换行），不再有 <br> 字面量
+        assert!(md.contains("**姓名**：张三\n\n第二行"));
         assert!(!md.contains("<br>"));
         assert!(md.contains("- 附件清单"));
         assert!(md.contains("- 证件.pdf（2.0 KB，application/pdf）"));
@@ -1663,58 +1699,79 @@ mod tests {
 
     #[test]
     fn test_markdown_field_value_types() {
-        // url / email / phone 链接化；date 原样；多行硬换行；内嵌链接自动链接化
-        // 注：`escape_markdown` 转义 `.`/`+`/`-` 等（CommonMark 列表/标题语义防护，渲染时还原为字面量）
+        // url / email / phone 链接化；date 原样；多行空行分隔；内嵌链接自动链接化
+        // 注：`escape_markdown` 仅转义 `\` `` ` `` `[]` `|` `<>`，`.` `-` `+` `()` `*` 保持原样
         assert_eq!(
             markdown_field_value("url", "https://example.com/a?b=1"),
-            "[https://example\\.com/a?b=1](https://example\\.com/a?b=1)"
+            "[https://example.com/a?b=1](https://example.com/a?b=1)"
         );
         assert_eq!(
             markdown_field_value("email", "user@example.com"),
-            "[user@example\\.com](mailto:user@example\\.com)"
+            "[user@example.com](mailto:user@example.com)"
         );
-        // 目标含空格时用尖括号包裹（CommonMark 兼容，避免转义被截断）
+        // 目标含空格时用尖括号包裹（CommonMark 兼容，避免链接被截断）
         assert_eq!(
             markdown_field_value("phone", "+86 138-0013-8000"),
-            "[\\+86 138\\-0013\\-8000](<tel:\\+86 138\\-0013\\-8000>)"
+            "[+86 138-0013-8000](<tel:+86 138-0013-8000>)"
         );
         assert_eq!(
             markdown_field_value("phone", "（010）1234-5678"),
-            "[（010）1234\\-5678](tel:（010）1234\\-5678)"
+            "[（010）1234-5678](tel:（010）1234-5678)"
         );
-        assert_eq!(markdown_field_value("date", "2026-08-10"), "2026\\-08\\-10");
+        assert_eq!(markdown_field_value("date", "2026-08-10"), "2026-08-10");
+        // 多行值：空行分隔（Markdown 段落即换行）
         assert_eq!(
             markdown_field_value("multiline", "第一行\n第二行"),
-            "第一行  \n第二行"
+            "第一行\n\n第二行"
         );
         assert_eq!(
             markdown_field_value("text", "官网 https://x.com 邮箱 a@b.co"),
-            "官网 [https://x\\.com](https://x\\.com) 邮箱 [a@b\\.co](mailto:a@b\\.co)"
+            "官网 [https://x.com](https://x.com) 邮箱 [a@b.co](mailto:a@b.co)"
+        );
+    }
+
+    #[test]
+    fn test_markdown_line_leading_guard() {
+        // 行首结构字符防护：仅行首 `#`/`-`/`>` 及有序列表数字被转义，
+        // 其余位置（含链接目标）保持原样、可复制；`+` 不是列表标记不转义（电话 +86）
+        assert_eq!(
+            markdown_field_value("multiline", "普通行\n- 条目\n# 标题\n1. 第一项\n1) 备选"),
+            "普通行\n\n\\\\- 条目\n\n\\\\# 标题\n\n\\\\1. 第一项\n\n\\\\1) 备选"
+        );
+        // 行中间不转义（保持源码干净）
+        assert_eq!(
+            markdown_field_value("text", "a - b + c # d"),
+            "a - b + c # d"
+        );
+        // 非行首数字不转义；中文开头值不被破坏
+        assert_eq!(
+            markdown_field_value("multiline", "2026年\n第二行"),
+            "2026年\n\n第二行"
         );
     }
 
     #[test]
     fn test_markdown_link_destinations() {
-        // 注：`escape_markdown` 转义 `.`/`+`/`-` 等（CommonMark 语义防护，渲染时还原为字面量）
+        // 注：`escape_markdown` 仅转义 `\` `` ` `` `[]` `|` `<>`，`.` `-` `+` `()` `*` 保持原样
         // 目标无需特殊处理：普通 URL 保持裸目标
         assert_eq!(
             markdown_link("example.com", "https://example.com"),
-            "[example\\.com](https://example\\.com)"
+            "[example.com](https://example.com)"
         );
         // 目标含空格（如 tel: 带区号空格）→ 尖括号包裹
         assert_eq!(
             markdown_link("+86 138-0013-8000", "tel:+86 138-0013-8000"),
-            "[\\+86 138\\-0013\\-8000](<tel:\\+86 138\\-0013\\-8000>)"
+            "[+86 138-0013-8000](<tel:+86 138-0013-8000>)"
         );
-        // 目标含 ASCII 括号 → 尖括号包裹（括号在目标内被转义，CommonMark 渲染时还原为字面量）
+        // 目标含 ASCII 括号 → 尖括号包裹（括号保持原样，避免链接被截断）
         assert_eq!(
             markdown_link("(010) 1234", "tel:(010) 1234"),
-            "[\\(010\\) 1234](<tel:\\(010\\) 1234>)"
+            "[(010) 1234](<tel:(010) 1234>)"
         );
-        // 文本含 `[`/`]` → 回退自动链接形式（URL 仍转义，渲染还原为字面量）
+        // 文本含 `[`/`]` → 回退自动链接形式（URL 保持原样）
         assert_eq!(
             markdown_link("含[方括号]文本", "https://x.com"),
-            "<https://x\\.com>"
+            "<https://x.com>"
         );
     }
 
@@ -1748,16 +1805,16 @@ mod tests {
             "t",
             "Gczmy",
             "acc-1",
-        );
-        // 1. 多行 OCR 文本：行尾双空格硬换行（渲染真换行），无 <br> 字面量
-        assert!(md.contains("**OCR 文本**：第一行识别文本  \n第二行识别文本  \n第三行"));
+        ); // 1. 多行 OCR 文本：空行分隔（段落即换行），无 <br> 字面量
+        assert!(md.contains("**OCR 文本**：第一行识别文本\n\n第二行识别文本\n\n第三行"));
         assert!(!md.contains("<br>"));
-        // 2. url / email / phone 字段链接化；text 字段内嵌链接自动链接化        assert!(md.contains("**官网**：[https://example\\.com/docs?a=1](https://example\\.com/docs?a=1)"));
-        assert!(md.contains("**邮箱**：[user@example\\.com](mailto:user@example\\.com)"));
-        assert!(md.contains("**电话**：[\\+86 138\\-0013\\-8000](<tel:\\+86 138\\-0013\\-8000>)"));
-        assert!(md.contains(
-            "见官网 [https://x\\.com](https://x\\.com) 或邮箱 [a@b\\.co](mailto:a@b\\.co)"
-        ));
+        // 2. url / email / phone 字段链接化；text 字段内嵌链接自动链接化（不额外转义 . - +）
+        assert!(
+            md.contains("**官网**：[https://example.com/docs?a=1](https://example.com/docs?a=1)")
+        );
+        assert!(md.contains("**邮箱**：[user@example.com](mailto:user@example.com)"));
+        assert!(md.contains("**电话**：[+86 138-0013-8000](<tel:+86 138-0013-8000>)"));
+        assert!(md.contains("见官网 [https://x.com](https://x.com) 或邮箱 [a@b.co](mailto:a@b.co)"));
     }
 
     #[test]
