@@ -94,7 +94,8 @@ workspace = true
 
 [target.'cfg(target_os = "macos")'.dependencies]
 objc2 = { version = "0.6", default-features = false, features = ["std", "alloc"] }
-objc2-app-kit = { version = "0.3", default-features = false, features = ["NSWindow", "NSColor", "NSAppearance"] }
+objc2-app-kit = { version = "0.3", default-features = false, features = ["NSWindow", "NSColor", "NSAppearance", "NSSharingService", "NSView", "NSResponder"] }
+objc2-foundation = { version = "0.3", default-features = false, features = ["NSString", "NSURL", "NSArray", "NSGeometry", "objc2-core-foundation"] }
 block2 = { version = "0.6", default-features = false, features = ["std"] }
 
 [target.'cfg(target_os = "windows")'.dependencies]

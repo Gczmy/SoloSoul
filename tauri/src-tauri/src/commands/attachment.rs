@@ -1113,10 +1113,96 @@ pub async fn attachment_share<R: Runtime>(
         })
     }
 
-    #[cfg(all(not(target_os = "android"), not(target_os = "ios")))]
+    #[cfg(target_os = "macos")]
     {
-        // 复制到临时目录后再 reveal，避免把用户带进隐藏的 vault 目录、也避免误改 vault 内文件。
-        // 复制/揭示走 spawn_blocking，避免大文件复制阻塞 tokio worker。
+        use objc2::AnyThread;
+        use objc2_app_kit::{NSSharingServicePicker, NSView, NSWindow};
+        use objc2_foundation::{NSArray, NSRect, NSRectEdge, NSString, NSURL};
+        use tauri::Manager;
+
+        // 复制到临时目录（分享副本而非 vault 原文件，策略与 Windows/Linux reveal 分支一致）。
+        // 复制走 spawn_blocking，避免大文件复制阻塞 tokio worker。
+        let dest = tokio::task::spawn_blocking(move || -> Result<PathBuf, String> {
+            let share_dir = std::env::temp_dir().join("solosoul_share");
+            std::fs::create_dir_all(&share_dir)
+                .map_err(|e| format!("Failed to prepare share directory: {}", e))?;
+            // 清理文件名，防止路径遍历（file_name 来自 vault 元数据，不可直接 join）。
+            // file_name() 对 "." / ".." 原样返回，显式拒绝避免写入临时目录之外。
+            let safe_name = Path::new(&att.file_name)
+                .file_name()
+                .ok_or("Invalid file name")?
+                .to_string_lossy()
+                .to_string();
+            if safe_name == "." || safe_name == ".." {
+                return Err("Invalid file name".to_string());
+            }
+            let dest = share_dir.join(safe_name);
+            std::fs::copy(&path, &dest)
+                .map_err(|e| format!("Failed to copy file for sharing: {}", e))?;
+            Ok(dest)
+        })
+        .await
+        .map_err(|e| format!("Share copy task panicked: {}", e))??;
+
+        // AppKit UI 必须在主线程执行，且 NSSharingServicePicker 不是 Send——
+        // 通过 run_on_main_thread 调度到主线程，错误经 oneshot channel 回传。
+        let (tx, rx) = tokio::sync::oneshot::channel::<Result<(), String>>();
+        let app_for_main = app.clone();
+        app.run_on_main_thread(move || {
+            let result = (|| {
+                let window = app_for_main
+                    .get_webview_window("main")
+                    .ok_or("Main window not found")?;
+                let ns_window_ptr = window
+                    .ns_window()
+                    .map_err(|e| format!("Failed to get NSWindow: {}", e))?
+                    as *mut NSWindow;
+                if ns_window_ptr.is_null() {
+                    return Err("NSWindow pointer is null".to_string());
+                }
+                // SAFETY: ptr 是 Tauri 通过 ns_window() 返回的有效 NSWindow 指针，已做非空检查；
+                // Tauri 管理其生命周期，&*ptr 仅是借用引用（同 window.rs set_titlebar_color 模式）。
+                let ns_window = unsafe { &*ns_window_ptr };
+                let view = ns_window
+                    .contentView()
+                    .ok_or("NSWindow has no content view")?;
+
+                let url: objc2::rc::Retained<NSURL> =
+                    NSURL::fileURLWithPath(&NSString::from_str(&*dest.to_string_lossy()));
+                let items: objc2::rc::Retained<NSArray> =
+                    NSArray::from_retained_slice(&[url.into_super().into()]);
+                // SAFETY: initWithItems 的 unsafe 约束要求 items 元素类型正确（NSURL 可分享，
+                // 符合 NSPasteboardWriting）；这里 items 仅含单个 NSURL，类型正确。
+                let picker = unsafe {
+                    NSSharingServicePicker::initWithItems(NSSharingServicePicker::alloc(), &items)
+                };
+                picker.showRelativeToRect_ofView_preferredEdge(
+                    NSRect::ZERO,
+                    &view,
+                    NSRectEdge::MinY,
+                );
+                // picker 必须保持存活直到分享面板关闭，否则面板会立即消失；
+                // 泄漏引用（每次转发泄漏一个轻量对象，量级可忽略）。
+                Box::leak(Box::new(picker));
+                Ok(())
+            })();
+            let _ = tx.send(result);
+        })
+        .map_err(|e| format!("Failed to schedule share on main thread: {}", e))?;
+        rx.await
+            .map_err(|e| format!("Share task failed: {}", e))??;
+        Ok(())
+    }
+
+    #[cfg(all(
+        not(target_os = "android"),
+        not(target_os = "macos"),
+        not(target_os = "ios")
+    ))]
+    {
+        // Windows/Linux：复制到临时目录后 reveal 在文件管理器中显示，避免把用户带进隐藏的
+        // vault 目录、也避免误改 vault 内文件。复制/揭示走 spawn_blocking，避免大文件复制阻塞
+        // tokio worker。
         tokio::task::spawn_blocking(move || {
             let share_dir = std::env::temp_dir().join("solosoul_share");
             std::fs::create_dir_all(&share_dir)
