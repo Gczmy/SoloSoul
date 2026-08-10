@@ -285,7 +285,8 @@ export function ExportDocumentSection({ accountId, pageGroups }: ExportDocumentS
   const handleBrowse = useCallback(async () => {
     const fp = await saveWithPause({
       filters: [FORMAT_FILTERS[format]],
-      defaultPath: `SoloSoul_导出_${Date.now()}.${format}`,
+      // 用格式的主扩展名而非格式名（markdown → md），避免 .markdown.md 双后缀
+      defaultPath: `SoloSoul_导出_${Date.now()}.${FORMAT_FILTERS[format].extensions[0]}`,
     });
     if (fp) setSavePath(fp);
   }, [format]);
