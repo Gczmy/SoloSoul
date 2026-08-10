@@ -81,6 +81,10 @@ export function ExportDocumentSection({ accountId, pageGroups }: ExportDocumentS
 
   // 当前账户密码提示词（critical 解密框提示按钮展示；与 ObjectDetailModal 同一数据源）
   const [passwordHint, setPasswordHint] = useState<string | null>(null);
+  // 生物识别可用性（启用且已配置时才展示指纹/面容卡片，与关键数据查看框同一数据源）
+  const [bioAvailable, setBioAvailable] = useState<{ available: boolean; biometryType?: string }>({
+    available: false,
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -92,6 +96,16 @@ export function ExportDocumentSection({ accountId, pageGroups }: ExportDocumentS
       })
       .catch((err) =>
         logger.warn('[ExportDocumentSection] Load password hint failed:', err),
+      );
+    invoke<{ available: boolean; configured: boolean; biometryType?: string }>(
+      'biometric_check_availability',
+      { accountId },
+    )
+      .then((r) =>
+        setBioAvailable({ available: r.available && r.configured, biometryType: r.biometryType }),
+      )
+      .catch((err) =>
+        logger.warn('[ExportDocumentSection] Biometric availability check failed:', err),
       );
     return () => {
       cancelled = true;
@@ -209,24 +223,59 @@ export function ExportDocumentSection({ accountId, pageGroups }: ExportDocumentS
     }
   }, [orderedObjectIds, runExport, onError, t]);
 
+  /** 验证成功后执行待导出的导出任务（三种解锁方式共用）。 */
+  const executePendingExport = useCallback(async (): Promise<void> => {
+    const fn = pendingExportRef.current;
+    pendingExportRef.current = null;
+    if (fn) await fn().catch(() => {}); // runExport 内部统一 toast
+  }, []);
+
   /** 主密码验证（critical 分支的第二重确认）。 */
   const handleVerifyPassword = useCallback(
     async (password: string): Promise<boolean> => {
       if (!accountId) return false;
       try {
         await invoke('unlock_with_password', { accountId, password });
-        // 验证成功后执行导出；runExport 失败时 Promise 以 boolean 形式抛出——此处吞掉，
-        // 由 runExport 内部统一 toast。true 让对话框关闭。
-        const fn = pendingExportRef.current;
-        pendingExportRef.current = null;
-        if (fn) await fn().catch(() => {});
+        // 验证成功后执行导出；true 让对话框关闭。
+        await executePendingExport();
         return true;
-      } catch {
-        return false; // 密码错误 → 对话框显示「密码不正确」
+      } catch (e) {
+        // 与 ObjectDetailModal 一致：仅密码错误返回 false（对话框显示「密码不正确」），
+        // 真实后端异常抛出，由对话框 catch 走 onError toast 保留细节。
+        const msg = typeof e === 'string' ? e : e instanceof Error ? e.message : String(e);
+        if (/invalid password|incorrect password|密码错误|密码不正确/i.test(msg)) {
+          return false;
+        }
+        logger.warn('[ExportDocumentSection] Vault unlock failed:', e);
+        throw e;
       }
     },
-    [accountId],
+    [accountId, executePendingExport],
   );
+
+  /** 生物识别解锁（与关键数据查看框同一链路，location 区分导出场景）。 */
+  const handleBiometricUnlock = useCallback(async (): Promise<boolean> => {
+    if (!accountId) return false;
+    try {
+      await invoke('biometric_unlock', {
+        accountId,
+        location: 'document_export',
+        action: 'unlock',
+        biometryType: bioAvailable.biometryType,
+      });
+      await executePendingExport();
+      return true;
+    } catch (err) {
+      logger.warn('[ExportDocumentSection] Biometric unlock failed:', err);
+      return false;
+    }
+  }, [accountId, bioAvailable.biometryType, executePendingExport]);
+
+  /** PIN 解锁成功（对话框内部负责 pin_unlock 调用）。 */
+  const handlePinSuccess = useCallback(() => {
+    void executePendingExport();
+    setShowPwDialog(false);
+  }, [executePendingExport]);
 
   const handleSensitiveConfirmed = useCallback(() => {
     setShowSensitiveConfirm(false);
@@ -386,7 +435,8 @@ export function ExportDocumentSection({ accountId, pageGroups }: ExportDocumentS
         onCancel={() => setShowSensitiveConfirm(false)}
       />
 
-      {/* 第二重（critical）：主密码验证框 */}
+      {/* 第二重（critical）：验证框——复用关键数据查看的统一验证框
+          （支持指纹/面容/PIN/主密码多解锁方式，文案按导出场景定制） */}
       <PasswordVerificationDialog
         open={showPwDialog}
         onClose={() => {
@@ -398,8 +448,12 @@ export function ExportDocumentSection({ accountId, pageGroups }: ExportDocumentS
         description={t('common:export_doc_critical_desc', {
           defaultValue: 'Selected objects contain critical fields. Verify your master password to export.',
         })}
-        confirmLabel={t('common:continue')}
+        confirmLabel={t('common:unlock')}
         hint={passwordHint}
+        pinAccountId={accountId}
+        onPinSuccess={handlePinSuccess}
+        biometricType={bioAvailable.available ? bioAvailable.biometryType : undefined}
+        onBiometric={bioAvailable.available ? handleBiometricUnlock : undefined}
       />
     </>
   );
