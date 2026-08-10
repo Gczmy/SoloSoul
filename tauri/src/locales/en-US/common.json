@@ -179,7 +179,6 @@
   "no_matching_objects": "No matching objects",
   "objects": "Objects",
   "export_failed": "Export failed",
-  "export_format_coming_soon": "Coming soon",
   "export_doc_warning_title": "Plaintext export warning",
   "export_doc_warning_body": "The exported document is unencrypted; anyone who can open the file can read its contents (including sensitive fields).",
   "export_doc_sensitive_confirm_title": "Sensitive fields present",

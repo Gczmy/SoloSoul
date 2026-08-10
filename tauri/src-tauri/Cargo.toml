@@ -57,6 +57,9 @@ base64 = { workspace = true }
 
 sha2 = { workspace = true }
 zip = { version = "2.2", default-features = false, features = ["deflate"] }
+# 文档导出 PDF：HTML → PDF 渲染（html feature 依赖 azul-layout + 纯 Rust fontconfig，
+# 跨平台；default-features 关闭以避免引入 images 相关重依赖，需显式开启 html）
+printpdf = { version = "0.12.5", default-features = false, features = ["html"] }
 image = { workspace = true }
 reqwest = { workspace = true }
 futures = "0.3"

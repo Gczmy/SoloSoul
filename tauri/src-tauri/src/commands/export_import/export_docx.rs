@@ -454,6 +454,156 @@ fn build_docx(
     Ok(buf.into_inner())
 }
 
+/// HTML 转义（`& < > " '`）。
+fn escape_html(s: &str) -> String {
+    let mut out = String::with_capacity(s.len());
+    for c in s.chars() {
+        match c {
+            '&' => out.push_str("&amp;"),
+            '<' => out.push_str("&lt;"),
+            '>' => out.push_str("&gt;"),
+            '"' => out.push_str("&quot;"),
+            '\'' => out.push_str("&#39;"),
+            _ => out.push(c),
+        }
+    }
+    out
+}
+
+/// 构造自包含 HTML 文档（内联 CSS，零外部资源）。
+///
+/// 与 docx 相同的文档结构：封面段 → 每对象（标题/元信息/字段表格/附件清单）。
+/// 单文件、可用系统默认浏览器直接打开；打印另存为 PDF 亦可用。
+fn build_html_document(
+    records: &[solosoul_vault::ObjectRecord],
+    template_names: &std::collections::HashMap<String, String>,
+    export_time: &str,
+) -> String {
+    let mut html = String::from(
+        "<!DOCTYPE html>\n<html lang=\"zh-CN\"><head><meta charset=\"utf-8\">\n\
+         <title>SoloSoul 导出</title>\n\
+         <style>\n\
+         body { font-family: -apple-system, 'PingFang SC', 'Microsoft YaHei', 'Noto Sans SC', sans-serif; \
+           max-width: 800px; margin: 0 auto; padding: 32px 24px; color: #1f2328; line-height: 1.6; }\n\
+         h1 { font-size: 24px; border-bottom: 2px solid #d0d7de; padding-bottom: 8px; }\n\
+         h2 { font-size: 19px; margin-top: 28px; }\n\
+         .meta { color: #57606a; font-size: 13px; margin-bottom: 20px; }\n\
+         .obj { margin-bottom: 36px; page-break-inside: avoid; }\n\
+         .obj + .obj { border-top: 1px solid #d0d7de; padding-top: 20px; }\n\
+         table { border-collapse: collapse; width: 100%; margin-top: 10px; }\n\
+         th, td { border: 1px solid #d0d7de; padding: 8px 10px; text-align: left; vertical-align: top; font-size: 14px; }\n\
+         th { background: #f6f8fa; font-weight: 600; width: 30%; white-space: nowrap; }\n\
+         .attach { color: #57606a; font-size: 13px; margin: 4px 0 0; }\n\
+         </style></head><body>\n\
+         <h1>SoloSoul</h1>\n\
+         <div class=\"meta\">",
+    );
+    html.push_str(&escape_html(&format!(
+        "{} · {} 个对象",
+        export_time,
+        records.len()
+    )));
+    html.push_str("</div>\n");
+
+    for rec in records {
+        html.push_str("<div class=\"obj\">\n<h2>");
+        html.push_str(&escape_html(&rec.name));
+        html.push_str("</h2>\n<div class=\"meta\">");
+        let tpl_name = rec
+            .template_id
+            .as_ref()
+            .and_then(|tid| template_names.get(tid))
+            .cloned()
+            .unwrap_or_default();
+        let mut meta_parts = Vec::new();
+        if !tpl_name.is_empty() {
+            meta_parts.push(format!("模板：{}", tpl_name));
+        }
+        meta_parts.push(format!("创建时间：{}", rec.created_at));
+        meta_parts.push(format!("更新时间：{}", rec.updated_at));
+        if !rec.tags_json.is_empty() {
+            meta_parts.push(format!("标签：{}", rec.tags_json.join(", ")));
+        }
+        html.push_str(&escape_html(&meta_parts.join("　·　")));
+        html.push_str("</div>\n");
+
+        let fields = flatten_object_fields(rec);
+        if !fields.is_empty() {
+            html.push_str("<table>\n");
+            for (label, value) in &fields {
+                html.push_str("<tr><th>");
+                html.push_str(&escape_html(label));
+                html.push_str("</th><td>");
+                html.push_str(&escape_html(value).replace('\n', "<br>"));
+                html.push_str("</td></tr>\n");
+            }
+            html.push_str("</table>\n");
+        }
+
+        let attachments = collect_attachment_rows(rec);
+        if !attachments.is_empty() {
+            for (name, size, mime) in &attachments {
+                html.push_str("<p class=\"attach\">");
+                html.push_str(&escape_html(&format!(
+                    "附件：{}（{}，{}）",
+                    name, size, mime
+                )));
+                html.push_str("</p>\n");
+            }
+        }
+        html.push_str("</div>\n");
+    }
+
+    html.push_str("</body></html>\n");
+    html
+}
+
+/// 构造 PDF（HTML → printpdf from_html，内嵌 Noto Sans SC 中文字体）。
+///
+/// 字体字节经 `include_bytes!` 嵌入二进制（打包进应用；发布时随主程序分发，
+/// 无需额外资源文件）。`PdfSaveOptions` 默认 `subset_fonts=true`，PDF 只嵌用到的字形。
+fn build_pdf_document(
+    records: &[solosoul_vault::ObjectRecord],
+    template_names: &std::collections::HashMap<String, String>,
+    export_time: &str,
+) -> Result<Vec<u8>, String> {
+    use printpdf::Base64OrRaw;
+
+    let html = build_html_document(records, template_names, export_time);
+    let mut fonts = std::collections::BTreeMap::new();
+    // 字体名需与 build_html_document 的 font-family 列表一致（Noto Sans SC 兜底链中命中）
+    fonts.insert(
+        "Noto Sans SC".to_string(),
+        Base64OrRaw::Raw(
+            include_bytes!("../../../resources/fonts/NotoSansSC-Regular.otf").to_vec(),
+        ),
+    );
+
+    let mut warnings = Vec::new();
+    let pdf = printpdf::PdfDocument::from_html(
+        &html,
+        &std::collections::BTreeMap::new(),
+        &fonts,
+        &printpdf::GeneratePdfOptions::default(),
+        &mut warnings,
+    )
+    .map_err(|e| format!("PDF render failed: {}", e))?;
+
+    // 渲染警告记录日志（不阻断导出）
+    if !warnings.is_empty() {
+        tracing::warn!(
+            "[export_docx] PDF render warnings: {} item(s)",
+            warnings.len()
+        );
+    }
+
+    let bytes = pdf.save(&printpdf::PdfSaveOptions::default(), &mut Vec::new());
+    if bytes.is_empty() {
+        return Err("PDF render produced empty output".to_string());
+    }
+    Ok(bytes)
+}
+
 /// 加载对象记录并按前端传入顺序返回（空列表报错）。
 fn load_records_in_order(
     vault: &solosoul_vault::VaultStore,
@@ -489,23 +639,48 @@ fn load_template_names(
     names
 }
 
-/// 解析保存路径：桌面端追加 .docx 后缀 + 白名单校验。
+/// 导出格式对应的主扩展名（不含点）。
+fn format_extension(format: &str) -> Option<&'static str> {
+    match format {
+        "docx" => Some("docx"),
+        "pdf" => Some("pdf"),
+        "html" => Some("html"),
+        _ => None,
+    }
+}
+
+/// 保存路径是否已带目标格式扩展名（html 同时接受 .htm，对应保存对话框过滤器）。
+fn path_has_format_ext(save_path: &str, format: &str) -> bool {
+    let lower = save_path.to_lowercase();
+    match format {
+        "html" => lower.ends_with(".html") || lower.ends_with(".htm"),
+        _ => lower.ends_with(&format!(".{}", format_extension(format).unwrap_or(""))),
+    }
+}
+
+/// 解析保存路径：按格式追加扩展名 + 桌面端白名单校验。
 /// 移动端前端经 SAF URI 中转（无法传任意路径），跳过校验。
 #[allow(unused_variables)]
-fn resolve_docx_path(app: &tauri::AppHandle, save_path: &str) -> Result<String, String> {
-    let docx_path = if save_path.to_lowercase().ends_with(".docx") {
+fn resolve_document_path(
+    app: &tauri::AppHandle,
+    save_path: &str,
+    format: &str,
+) -> Result<String, String> {
+    let ext = format_extension(format)
+        .ok_or_else(|| export_err_with_detail("FORMAT_NOT_SUPPORTED", format))?;
+    let path = if path_has_format_ext(save_path, format) {
         save_path.to_string()
     } else {
-        format!("{}.docx", save_path)
+        format!("{}.{ext}", save_path)
     };
 
     #[cfg(desktop)]
-    validate_export_dest(&docx_path)?;
+    validate_export_dest(&path)?;
 
-    if let Some(parent) = std::path::Path::new(&docx_path).parent() {
+    if let Some(parent) = std::path::Path::new(&path).parent() {
         let _ = std::fs::create_dir_all(parent);
     }
-    Ok(docx_path)
+    Ok(path)
 }
 
 /// 预检：返回所选对象字段的最高敏感度（critical > sensitive > none）。
@@ -541,9 +716,9 @@ pub async fn export_document_preflight(
     Ok(result)
 }
 
-/// 导出对象为 docx 文档并落盘。
+/// 导出对象为文档（docx / pdf / html）并落盘。
 ///
-/// - `format` 本期仅接受 `"docx"`（为二期 PDF/HTML 预留签名）。
+/// - `format` 支持 `"docx"` / `"pdf"` / `"html"`。
 /// - 写文件用「临时文件 + rename」避免半截文件；Unix 设权限 0600。
 /// - 审计日志 `export_document` 仅记录格式与对象数，不记录字段内容（脱敏规范）。
 #[tauri::command]
@@ -554,43 +729,49 @@ pub async fn export_objects_document(
     save_path: String,
     format: String,
 ) -> Result<ExportDocumentResult, String> {
-    if format != "docx" {
+    if format_extension(&format).is_none() {
         return Err(export_err_with_detail("FORMAT_NOT_SUPPORTED", &format));
     }
 
     let vault = vault_handle(&state)?;
     let export_time = chrono::Utc::now().to_rfc3339();
 
-    // 解析保存路径（白名单校验在 resolve_docx_path 内）——提前做，避免把无效路径带进阻塞任务。
-    let docx_path = resolve_docx_path(&app, &save_path)?;
+    // 解析保存路径（白名单校验在 resolve_document_path 内）——提前做，避免把无效路径带进阻塞任务。
+    let document_path = resolve_document_path(&app, &save_path, &format)?;
 
-    // 对象解密 + docx 生成 + 写盘（临时文件 + rename；Unix chmod 600）整体移入
+    // 对象解密 + 文档生成 + 写盘（临时文件 + rename；Unix chmod 600）整体移入
     // spawn_blocking，避免大对象集全表 AES 解密与文件写入阻塞 tokio worker（P114 同款）。
     // vault 是 Arc，闭包内 clone 一份；闭包外保留原句柄供审计日志使用。
     let vault_for_task = vault.clone();
+    let format_for_task = format.clone();
     let (object_count, file_size_bytes) = tokio::task::spawn_blocking(move || {
         let records = load_records_in_order(&vault_for_task, &object_ids)?;
         let template_names = load_template_names(&vault_for_task, &records);
-        let docx_bytes = build_docx(&records, &template_names, &export_time)?;
+        let bytes = match format_for_task.as_str() {
+            "docx" => build_docx(&records, &template_names, &export_time)?,
+            "html" => build_html_document(&records, &template_names, &export_time).into_bytes(),
+            "pdf" => build_pdf_document(&records, &template_names, &export_time)?,
+            other => return Err(export_err_with_detail("FORMAT_NOT_SUPPORTED", other)),
+        };
         let count = records.len();
 
-        let tmp_path = format!("{}.tmp{}", docx_path, std::process::id());
+        let tmp_path = format!("{}.tmp{}", document_path, std::process::id());
         {
-            let mut f = File::create(&tmp_path).map_err(|e| format!("Create docx: {e}"))?;
-            f.write_all(&docx_bytes)
-                .map_err(|e| format!("Write docx: {e}"))?;
+            let mut f = File::create(&tmp_path).map_err(|e| format!("Create file: {e}"))?;
+            f.write_all(&bytes)
+                .map_err(|e| format!("Write file: {e}"))?;
             #[cfg(unix)]
             {
                 use std::os::unix::fs::PermissionsExt;
                 let _ = f.set_permissions(std::fs::Permissions::from_mode(0o600));
             }
         }
-        std::fs::rename(&tmp_path, &docx_path).map_err(|e| format!("Finalize docx: {e}"))?;
+        std::fs::rename(&tmp_path, &document_path).map_err(|e| format!("Finalize file: {e}"))?;
 
-        Ok::<(usize, u64), String>((count, docx_bytes.len() as u64))
+        Ok::<(usize, u64), String>((count, bytes.len() as u64))
     })
     .await
-    .map_err(|e| format!("docx export task failed: {e}"))??;
+    .map_err(|e| format!("document export task failed: {e}"))??;
 
     // 第三重：审计日志（脱敏——不含字段内容与对象名明细）
     let _ = vault.log_structured(
@@ -599,7 +780,7 @@ pub async fn export_objects_document(
         None,
         None,
         "user",
-        Some(&format!("format=docx objects={}", object_count)),
+        Some(&format!("format={} objects={}", format, object_count)),
     );
 
     Ok(ExportDocumentResult {
@@ -894,6 +1075,70 @@ mod tests {
         assert!(doc.contains("张三&amp;档案"));
         assert!(doc.contains("证件.pdf"));
         assert!(doc.contains("2.0 KB"));
+    }
+
+    #[test]
+    fn test_format_extension_and_path_resolution() {
+        assert_eq!(format_extension("docx"), Some("docx"));
+        assert_eq!(format_extension("pdf"), Some("pdf"));
+        assert_eq!(format_extension("html"), Some("html"));
+        assert_eq!(format_extension("txt"), None);
+
+        // 已带扩展名 → 原样；否则追加
+        assert!(path_has_format_ext("a.PDF", "pdf"));
+        assert!(!path_has_format_ext("a", "pdf"));
+        assert!(path_has_format_ext("a.html", "html"));
+        assert!(path_has_format_ext("a.htm", "html")); // 保存对话框允许 .htm
+        assert!(!path_has_format_ext("a.html", "docx"));
+    }
+
+    #[test]
+    fn test_build_html_document_structure() {
+        let fields = serde_json::json!({"f1": {"name": "姓名"}});
+        let rec = make_record(
+            "o1",
+            "张三&档案",
+            fields.clone(),
+            serde_json::json!({
+                "f1": "张三\n第二行",
+                "__fields": fields,
+                "__attachments": [
+                    {"id": "a1", "objectId": "o1", "fileName": "证件.pdf", "sizeBytes": 2048, "mimeType": "application/pdf"}
+                ]
+            }),
+        );
+        let mut tpl_names = std::collections::HashMap::new();
+        tpl_names.insert("t1".to_string(), "护照".to_string());
+        let html = build_html_document(&[rec], &tpl_names, "2026-08-10T00:00:00Z");
+
+        // 自包含：含 DOCTYPE 与内联 style
+        assert!(html.starts_with("<!DOCTYPE html>"));
+        assert!(html.contains("<style>"));
+        // HTML 转义：& → &amp;
+        assert!(html.contains("张三&amp;档案"));
+        // 字段表格 + 多行值换行 <br>
+        assert!(html.contains("<th>姓名</th>"));
+        assert!(html.contains("张三<br>第二行"));
+        // 附件清单
+        assert!(html.contains("附件：证件.pdf（2.0 KB，application/pdf）"));
+    }
+
+    #[test]
+    fn test_build_pdf_document_produces_pdf() {
+        // PDF 渲染链路（printpdf from_html + 内嵌 Noto Sans SC）：验证产物为合法 PDF。
+        // 注意：本机 Windows 测试二进制因预先存在的 0xc0000139 无法启动（设计文档 §9），
+        // 本用例在 CI（ubuntu）运行。
+        let fields = serde_json::json!({"f1": {"name": "姓名"}});
+        let rec = make_record(
+            "o1",
+            "张三",
+            fields.clone(),
+            serde_json::json!({"f1": "张三", "__fields": fields}),
+        );
+        let bytes = build_pdf_document(&[rec], &std::collections::HashMap::new(), "t").unwrap();
+        assert!(!bytes.is_empty());
+        assert_eq!(&bytes[0..4], b"%PDF");
+        assert!(bytes.windows(4).any(|w| w == b"%%EOF"));
     }
 
     #[test]

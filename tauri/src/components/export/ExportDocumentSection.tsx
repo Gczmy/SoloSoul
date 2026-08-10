@@ -29,10 +29,15 @@ interface ExportDocumentSectionProps {
   pageGroups: PageGroup[];
 }
 
-/** 导出格式（本期仅 docx 可用，PDF/HTML 为二期占位）。 */
+/** 导出格式。 */
 type DocFormat = 'docx' | 'pdf' | 'html';
 
-const DISABLED_FORMATS: DocFormat[] = ['pdf', 'html'];
+/** 各格式的扩展名与保存对话框过滤器。 */
+const FORMAT_FILTERS: Record<DocFormat, { name: string; extensions: string[] }> = {
+  docx: { name: 'Word Document', extensions: ['docx'] },
+  pdf: { name: 'PDF Document', extensions: ['pdf'] },
+  html: { name: 'HTML Document', extensions: ['html', 'htm'] },
+};
 
 /**
  * 「导出为文档」区块：复用 ObjectSelectionTree 勾选对象 → 格式选择器 → 保存路径 →
@@ -120,9 +125,7 @@ export function ExportDocumentSection({ accountId, pageGroups }: ExportDocumentS
     try {
       let targetSavePath = savePath;
       if (isUriPath(savePath)) {
-        stagedPath = await prepareStagedDownloadPath(
-          format === 'docx' ? 'SoloSoul_导出.docx' : 'SoloSoul_导出',
-        );
+        stagedPath = await prepareStagedDownloadPath(`SoloSoul_导出.${format}`);
         targetSavePath = stagedPath;
       }
       const result = await invoke<ExportDocumentResult>('export_objects_document', {
@@ -199,11 +202,11 @@ export function ExportDocumentSection({ accountId, pageGroups }: ExportDocumentS
 
   const handleBrowse = useCallback(async () => {
     const fp = await saveWithPause({
-      filters: [{ name: 'Word Document', extensions: ['docx'] }],
-      defaultPath: `SoloSoul_导出_${Date.now()}.docx`,
+      filters: [FORMAT_FILTERS[format]],
+      defaultPath: `SoloSoul_导出_${Date.now()}.${format}`,
     });
     if (fp) setSavePath(fp);
-  }, []);
+  }, [format]);
 
   return (
     <>
@@ -246,22 +249,25 @@ export function ExportDocumentSection({ accountId, pageGroups }: ExportDocumentS
         />
       </Card>
 
-      {/* 格式选择器（为二期预留：PDF/HTML 禁用占位） */}
+      {/* 格式选择器 */}
       <Card>
         <h3 style={{ fontSize: 'var(--text-body)', fontWeight: 600, marginBottom: 8 }}>
           {t('settings:export_format_label', { defaultValue: 'Format' })}
         </h3>
         <div style={{ display: 'flex', gap: 8 }}>
           {(['docx', 'pdf', 'html'] as DocFormat[]).map((f) => {
-            const disabled = DISABLED_FORMATS.includes(f);
-            const active = format === f && !disabled;
+            const active = format === f;
+            const label =
+              f === 'docx'
+                ? t('settings:export_format_word')
+                : f === 'pdf'
+                  ? t('settings:export_format_pdf')
+                  : t('settings:export_format_html');
             return (
               <button
                 key={f}
                 type="button"
-                disabled={disabled}
-                onClick={() => !disabled && setFormat(f)}
-                title={disabled ? t('common:export_format_coming_soon') : undefined}
+                onClick={() => setFormat(f)}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -270,21 +276,14 @@ export function ExportDocumentSection({ accountId, pageGroups }: ExportDocumentS
                   borderRadius: 8,
                   border: '1px solid var(--border-subtle)',
                   background: active ? 'var(--accent-primary)' : 'var(--bg-elevated)',
-                  color: active ? '#fff' : disabled ? 'var(--text-tertiary)' : 'var(--text-primary)',
-                  cursor: disabled ? 'not-allowed' : 'pointer',
+                  color: active ? '#fff' : 'var(--text-primary)',
+                  cursor: 'pointer',
                   fontFamily: 'inherit',
                   fontSize: 'var(--text-body-sm)',
                 }}
               >
                 <FileText size={ICON_SIZE.sm} />
-                {f === 'docx'
-                  ? t('settings:export_format_word')
-                  : f.toUpperCase()}
-                {disabled && (
-                  <span style={{ fontSize: 'var(--text-badge)', opacity: 0.8 }}>
-                    {t('common:export_format_coming_soon')}
-                  </span>
-                )}
+                {label}
               </button>
             );
           })}

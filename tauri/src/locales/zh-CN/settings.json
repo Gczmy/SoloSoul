@@ -262,6 +262,8 @@
   "export_doc_desc": "将选中的对象导出为可读文档，每个对象占一页。附件以清单形式列出，不嵌入文件。",
   "export_format_label": "格式",
   "export_format_word": "Word (.docx)",
+  "export_format_pdf": "PDF (.pdf)",
+  "export_format_html": "HTML (.html)",
   "export_doc_button": "导出为文档",
   "export_doc_success": "文档导出成功（{{count}} 个对象）",
   "export_doc_preflight_failed": "导出预检失败，请重试",
