@@ -671,5 +671,14 @@
   "recovery_overwrite_confirm_desc": "All data for this account on this device will be overwritten and cannot be recovered. The old device's data will be imported after overwriting. This action cannot be undone.",
   "recovery_overwrite_confirm_ok": "Confirm Overwrite",
   "recovery_overwrite_start": "Overwrite & Restore",
-  "recovery_overwrite_mode_note": "Overwrite confirmed: after restore completes, the existing data for this account on this device will be replaced by the old device's data."
+  "recovery_overwrite_mode_note": "Overwrite confirmed: after restore completes, the existing data for this account on this device will be replaced by the old device's data.",
+  "failed": "Failed",
+  "remove": "Remove",
+  "load_more": "Load more",
+  "click_to_reveal": "Click to reveal",
+  "history_load_failed": "Failed to load history",
+  "recovery_need_pin": "Enter the 6-digit PIN shown on the old device",
+  "sync_qr_timeout": "QR code expired, please regenerate",
+  "uninstall_confirm_title": "Uninstall plugin",
+  "uninstall_confirm_message": "Uninstall \"{{name}}\"?"
 }

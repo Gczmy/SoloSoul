@@ -1096,5 +1096,11 @@
   "sync_conflict_table_trash_items": "回收站",
   "sync_conflict_field_template_name": "模板名称",
   "sync_conflict_field_attachments": "附件",
-  "sync_completed_inbound": "对端同步完成：检查 {{examined}} 条 · 应用 {{applied}} 条 · 跳过 {{skipped}} 条 · 发回 {{outbound}} 条"
+  "sync_completed_inbound": "对端同步完成：检查 {{examined}} 条 · 应用 {{applied}} 条 · 跳过 {{skipped}} 条 · 发回 {{outbound}} 条",
+  "page_contains_objects": "页面包含的对象",
+  "sync_conflicts_badge": "{{count}} 个冲突",
+  "vault_directory_invalid_message": "SAF 目录访问已失效或已被删除，请前往「设置 > 数据管理」重新选择目录。",
+  "vault_directory_syncing": "同步中…",
+  "vault_directory_synced": "已同步",
+  "vault_directory_sync_failed": "同步失败"
 }

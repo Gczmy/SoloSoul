@@ -16,5 +16,6 @@
   "source_active": "自定义模板",
   "source_soft_deleted": "所属模板已软删除",
   "source_permanently_deleted": "所属模板已永久删除",
-  "source_manual": "手动配置"
+  "source_manual": "手动配置",
+  "sensitivity_label": "敏感度"
 }

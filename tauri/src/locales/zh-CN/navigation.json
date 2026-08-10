@@ -21,7 +21,7 @@
   "plugins": "插件",
   "add_page": "添加页面",
   "add_page_placeholder": "页面名称",
-  "add_page_description_placeholder": "说明（可选）",
+  "add_page_description_placeholder": "页面说明（可选）",
   "custom_page": "我的项目",
   "page_name_exists": "页面名称已存在",
   "page_name_required": "请输入页面名称",

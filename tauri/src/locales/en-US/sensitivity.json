@@ -16,5 +16,6 @@
   "source_active": "Custom Template",
   "source_soft_deleted": "Source template soft-deleted",
   "source_permanently_deleted": "Source template permanently deleted",
-  "source_manual": "Manual"
+  "source_manual": "Manual",
+  "sensitivity_label": "Sensitivity"
 }
