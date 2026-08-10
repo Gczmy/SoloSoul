@@ -385,6 +385,109 @@ describe('HistoryViewer', () => {
     expect(screen.queryByText('sensitive')).not.toBeInTheDocument();
   });
 
+  it('renders internal sensitivity field as plaintext (no mask, no blur)', async () => {
+    mockInvoke.mockImplementation(async (cmd) => {
+      if (cmd === 'snapshot_list') {
+        return [
+          {
+            id: 'snap-internal',
+            timestamp: Date.now(),
+            triggeredBy: 'user_edit',
+            diffSummary: 'diff_updated',
+          },
+        ];
+      }
+      if (cmd === 'snapshot_get_data') {
+        return {
+          name: 'Test Object',
+          tags: [],
+          properties: {
+            phone: '13800138000',
+            __fields: { phone: { name: '手机', type: 'phone', sensitivityLevel: 'internal' } },
+          },
+          propertyLabels: { phone: 'internal' },
+        };
+      }
+      return null;
+    });
+
+    render(
+      <HistoryViewer
+        objectId="obj-internal"
+        objectName="Test Object"
+        typeId="identity"
+        onClose={() => {}}
+        passwordVerify={async () => ({ ok: true, method: 'password' })}
+        getFieldSensitivity={() => 'internal'}
+        isFieldDeprecated={() => false}
+        getFieldName={(k) => k}
+        fieldOrder={['phone']}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('手机')).toBeInTheDocument();
+    });
+
+    // internal 字段明文直接可见（与详情卡片规则一致），无实际 blur 掩码
+    // （renderValueSpan 对非掩码渲染 blur(0px)）
+    const valueEl = screen.getByText('13800138000');
+    expect(valueEl).toBeInTheDocument();
+    expect(valueEl.style.filter).toBe('blur(0px)');
+  });
+
+  it('renders sensitive field masked with blur until revealed', async () => {
+    mockInvoke.mockImplementation(async (cmd) => {
+      if (cmd === 'snapshot_list') {
+        return [
+          {
+            id: 'snap-sensitive',
+            timestamp: Date.now(),
+            triggeredBy: 'user_edit',
+            diffSummary: 'diff_updated',
+          },
+        ];
+      }
+      if (cmd === 'snapshot_get_data') {
+        return {
+          name: 'Test Object',
+          tags: [],
+          properties: {
+            secret: 'hidden-value',
+            __fields: {
+              secret: { name: '密钥', type: 'text', sensitivityLevel: 'sensitive' },
+            },
+          },
+          propertyLabels: { secret: 'sensitive' },
+        };
+      }
+      return null;
+    });
+
+    render(
+      <HistoryViewer
+        objectId="obj-sensitive"
+        objectName="Test Object"
+        typeId="identity"
+        onClose={() => {}}
+        passwordVerify={async () => ({ ok: true, method: 'password' })}
+        getFieldSensitivity={() => 'sensitive'}
+        isFieldDeprecated={() => false}
+        getFieldName={(k) => k}
+        fieldOrder={['secret']}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('密钥')).toBeInTheDocument();
+    });
+
+    // sensitive 字段值被 blur 遮罩，明文不直接可见
+    const valueEl = screen.getByText('hidden-value');
+    expect(valueEl).toBeInTheDocument();
+    expect(valueEl.style.filter).toContain('blur');
+  });
+
   it('localizes __dynamic_group__ label even when snapshot __fields name is the raw key', async () => {
     mockInvoke.mockImplementation(async (cmd) => {
       if (cmd === 'snapshot_list') {

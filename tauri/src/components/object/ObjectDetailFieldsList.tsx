@@ -59,7 +59,10 @@ export function ObjectDetailFieldsList({
         const deprecated = isFieldDeprecated(f.key);
         const fieldId = f.fieldId || `${typeId}.${f.key}`;
         const revealed = isRevealed(fieldId);
+        // 详情卡片：internal/public 直接明文；仅 sensitive/critical 掩码（点击揭示）。
+        // workspace 卡片仍按 masking.shouldMaskSensitivity 对 internal 模糊（模糊层不同）。
         const needsReveal = sens === 'sensitive' || sens === 'critical';
+        const displayMasked = needsReveal && !revealed;
         // 字段类型图标：模板定义优先，回退到对象内嵌 __fields，最后按 text 处理
         const fieldType = (getFieldProperty(f.key)?.type ||
           objFieldDefs?.[f.key]?.type ||
@@ -115,7 +118,10 @@ export function ObjectDetailFieldsList({
                 <button
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() =>
-                    handleCopy(revealed ? f.value : maskValue(f.value, fieldId, sens), f.key)
+                    handleCopy(
+                      displayMasked ? maskValue(f.value, fieldId, sens) : f.value,
+                      f.key,
+                    )
                   }
                   className={`${styles.copyBtn} ${copiedField === f.key ? styles.copyBtnCopied : ''}`}
                 >
@@ -133,13 +139,10 @@ export function ObjectDetailFieldsList({
             <div
               className={styles.fieldValue}
               style={{
-                color:
-                  needsReveal && !revealed
-                    ? 'var(--text-tertiary)'
-                    : 'var(--text-primary)',
+                color: displayMasked ? 'var(--text-tertiary)' : 'var(--text-primary)',
               }}
             >
-              {revealed ? f.value : maskValue(f.value, fieldId, sens)}
+              {displayMasked ? maskValue(f.value, fieldId, sens) : f.value}
             </div>
           </div>
         );
