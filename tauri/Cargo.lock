@@ -6024,6 +6024,7 @@ dependencies = [
  "uuid",
  "wat",
  "windows 0.61.3",
+ "windows-collections",
  "zeroize",
  "zip 2.4.2",
 ]

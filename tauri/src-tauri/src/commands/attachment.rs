@@ -1080,6 +1080,31 @@ pub async fn attachment_open<R: Runtime>(
     }
 }
 
+/// 复制附件到共享临时目录 `solosoul_share/`，返回复制后的目标路径。
+///
+/// 桌面端（macOS/Windows/Linux）分享前统一走此副本逻辑：分享副本而非 vault 原文件，
+/// 避免把用户带进隐藏的 vault 目录、也避免用户误改 vault 内文件。
+///
+/// - 清理文件名，防止路径遍历（file_name 来自 vault 元数据，不可直接 join）。
+/// - `file_name()` 对 "." / ".." 原样返回，显式拒绝避免写入临时目录之外。
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+fn copy_to_share_dir(path: &Path, file_name: &str) -> Result<PathBuf, String> {
+    let share_dir = std::env::temp_dir().join("solosoul_share");
+    std::fs::create_dir_all(&share_dir)
+        .map_err(|e| format!("Failed to prepare share directory: {}", e))?;
+    let safe_name = Path::new(file_name)
+        .file_name()
+        .ok_or("Invalid file name")?
+        .to_string_lossy()
+        .to_string();
+    if safe_name == "." || safe_name == ".." {
+        return Err("Invalid file name".to_string());
+    }
+    let dest = share_dir.join(safe_name);
+    std::fs::copy(path, &dest).map_err(|e| format!("Failed to copy file for sharing: {}", e))?;
+    Ok(dest)
+}
+
 /// 转发附件到其他应用。
 ///
 /// - Android：系统分享面板（`ACTION_SEND` + FileProvider），可直发微信等应用。
@@ -1120,29 +1145,11 @@ pub async fn attachment_share<R: Runtime>(
         use objc2_foundation::{NSArray, NSRect, NSRectEdge, NSString, NSURL};
         use tauri::Manager;
 
-        // 复制到临时目录（分享副本而非 vault 原文件，策略与 Windows/Linux reveal 分支一致）。
-        // 复制走 spawn_blocking，避免大文件复制阻塞 tokio worker。
-        let dest = tokio::task::spawn_blocking(move || -> Result<PathBuf, String> {
-            let share_dir = std::env::temp_dir().join("solosoul_share");
-            std::fs::create_dir_all(&share_dir)
-                .map_err(|e| format!("Failed to prepare share directory: {}", e))?;
-            // 清理文件名，防止路径遍历（file_name 来自 vault 元数据，不可直接 join）。
-            // file_name() 对 "." / ".." 原样返回，显式拒绝避免写入临时目录之外。
-            let safe_name = Path::new(&att.file_name)
-                .file_name()
-                .ok_or("Invalid file name")?
-                .to_string_lossy()
-                .to_string();
-            if safe_name == "." || safe_name == ".." {
-                return Err("Invalid file name".to_string());
-            }
-            let dest = share_dir.join(safe_name);
-            std::fs::copy(&path, &dest)
-                .map_err(|e| format!("Failed to copy file for sharing: {}", e))?;
-            Ok(dest)
-        })
-        .await
-        .map_err(|e| format!("Share copy task panicked: {}", e))??;
+        // 复制到临时目录（分享副本而非 vault 原文件）——统一走 copy_to_share_dir 共享 helper，
+        // 复制在 spawn_blocking 中执行，避免大文件复制阻塞 tokio worker。
+        let dest = tokio::task::spawn_blocking(move || copy_to_share_dir(&path, &att.file_name))
+            .await
+            .map_err(|e| format!("Share copy task panicked: {}", e))??;
 
         // AppKit UI 必须在主线程执行，且 NSSharingServicePicker 不是 Send——
         // 通过 run_on_main_thread 调度到主线程，错误经 oneshot channel 回传。
@@ -1194,32 +1201,122 @@ pub async fn attachment_share<R: Runtime>(
         Ok(())
     }
 
+    #[cfg(target_os = "windows")]
+    {
+        use tauri::Manager;
+        use windows::core::{Interface, Ref, HSTRING};
+        use windows::ApplicationModel::DataTransfer::{
+            DataPackage, DataRequestedEventArgs, DataTransferManager,
+        };
+        use windows::Foundation::TypedEventHandler;
+        use windows::Storage::{IStorageItem, StorageFile};
+        use windows::Win32::System::WinRT::RoGetActivationFactory;
+        use windows::Win32::UI::Shell::IDataTransferManagerInterop;
+        use windows_collections::IIterable;
+
+        // 复制到临时目录（分享副本而非 vault 原文件）——统一走 copy_to_share_dir 共享 helper，
+        // 复制在 spawn_blocking 中执行，避免大文件复制阻塞 tokio worker。
+        let dest = tokio::task::spawn_blocking(move || copy_to_share_dir(&path, &att.file_name))
+            .await
+            .map_err(|e| format!("Share copy task panicked: {}", e))??;
+
+        // Windows 10 1809 以下不支持系统分享面板（ShowShareUIForWindow），降级为文件管理器显示
+        if !DataTransferManager::IsSupported().unwrap_or(false) {
+            opener::reveal(&dest).map_err(|e| format!("Failed to reveal file: {}", e))?;
+            return Ok(());
+        }
+
+        // WinRT 分享面板：DataTransferManager 绑定 UI 线程且非 Send——
+        // 通过 run_on_main_thread 调度，错误经 oneshot channel 回传。
+        let (tx, rx) = tokio::sync::oneshot::channel::<Result<(), String>>();
+        let app_for_main = app.clone();
+        let dest_str = dest.to_string_lossy().to_string();
+        app.run_on_main_thread(move || {
+            let result = (|| {
+                let window = app_for_main
+                    .get_webview_window("main")
+                    .ok_or("Main window not found")?;
+                let hwnd = window
+                    .hwnd()
+                    .map_err(|e| format!("Failed to get HWND: {}", e))?;
+
+                // SAFETY: RoGetActivationFactory 返回 Windows 内建激活工厂的
+                // IDataTransferManagerInterop 接口（DataTransferManager 的 COM 工厂）。
+                let interop: IDataTransferManagerInterop = unsafe {
+                    RoGetActivationFactory(&HSTRING::from(
+                        "Windows.ApplicationModel.DataTransfer.DataTransferManager",
+                    ))
+                }
+                .map_err(|e| format!("Failed to get DataTransferManager interop: {}", e))?;
+
+                // SAFETY: GetForWindow 为指定窗口返回绑定的 DataTransferManager 实例，
+                // 返回对象由 COM 管理生命周期。
+                let dtm: DataTransferManager = unsafe { interop.GetForWindow(hwnd) }
+                    .map_err(|e| format!("GetForWindow failed: {}", e))?;
+
+                // 注册 DataRequested 事件：用户在选择目标应用后，系统调用该处理器请求分享数据
+                // 注意：windows-collections 的 IIterable 需通过 From<Vec<T::Default>> 构建，
+                // 接口元素类型为 Option<IStorageItem>（T::Default = Option<T>）。
+                let path_for_handler = dest_str.clone();
+                let token = dtm
+                    .DataRequested(&TypedEventHandler::new(
+                        move |_sender: Ref<'_, DataTransferManager>,
+                              args: Ref<'_, DataRequestedEventArgs>| {
+                            let request = args.ok()?.Request()?;
+                            let package = DataPackage::new()?;
+                            let file = StorageFile::GetFileFromPathAsync(&HSTRING::from(
+                                &path_for_handler,
+                            ))?
+                            .get()?;
+                            // StorageFile → IStorageItem（SetStorageItems 需要 IIterable<IStorageItem>）
+                            let items: IIterable<IStorageItem> =
+                                vec![Some(file.cast::<IStorageItem>()?)].into();
+                            package.SetStorageItems(&items, false)?;
+                            request.SetData(&package)?;
+                            Ok(())
+                        },
+                    ))
+                    .map_err(|e| format!("DataRequested registration failed: {}", e))?;
+
+                // 显示系统分享面板（Share Contract）
+                // SAFETY: hwnd 是 Tauri 提供的有效窗口句柄，生命周期由 Tauri 管理。
+                if let Err(e) = unsafe { interop.ShowShareUIForWindow(hwnd) } {
+                    // 与 IsSupported 降级路径一致：面板启动失败（Win10 特殊环境/分享组件异常）
+                    // 时降级为文件管理器显示，而不是直接报错中断用户操作。
+                    // token 是 i64（Copy），无需显式 drop；dtm 需要释放（不再泄漏）
+                    let _ = token;
+                    drop(dtm);
+                    tracing::warn!("ShowShareUIForWindow failed, falling back to reveal: {}", e);
+                    return opener::reveal(Path::new(&dest_str))
+                        .map_err(|r| format!("Failed to reveal file: {}", r));
+                }
+
+                // 保持 DataTransferManager 存活（分享面板触发 DataRequested 时事件源需要）；
+                // token 只是注册句柄（i64），无需保留。泄漏引用——每次转发泄漏一个轻量 COM
+                // 对象，量级可忽略（同 macOS 分支的 picker 泄漏策略）。
+                Box::leak(Box::new(dtm));
+                Ok(())
+            })();
+            let _ = tx.send(result);
+        })
+        .map_err(|e| format!("Failed to schedule share on main thread: {}", e))?;
+        rx.await
+            .map_err(|e| format!("Share task failed: {}", e))??;
+        Ok(())
+    }
+
     #[cfg(all(
         not(target_os = "android"),
         not(target_os = "macos"),
+        not(target_os = "windows"),
         not(target_os = "ios")
     ))]
     {
-        // Windows/Linux：复制到临时目录后 reveal 在文件管理器中显示，避免把用户带进隐藏的
+        // Linux：复制到临时目录后 reveal 在文件管理器中显示，避免把用户带进隐藏的
         // vault 目录、也避免误改 vault 内文件。复制/揭示走 spawn_blocking，避免大文件复制阻塞
-        // tokio worker。
+        // tokio worker；复制逻辑统一走 copy_to_share_dir 共享 helper。
         tokio::task::spawn_blocking(move || {
-            let share_dir = std::env::temp_dir().join("solosoul_share");
-            std::fs::create_dir_all(&share_dir)
-                .map_err(|e| format!("Failed to prepare share directory: {}", e))?;
-            // 清理文件名，防止路径遍历（file_name 来自 vault 元数据，不可直接 join）。
-            // file_name() 对 "." / ".." 原样返回，显式拒绝避免写入临时目录之外。
-            let safe_name = Path::new(&att.file_name)
-                .file_name()
-                .ok_or("Invalid file name")?
-                .to_string_lossy()
-                .to_string();
-            if safe_name == "." || safe_name == ".." {
-                return Err("Invalid file name".to_string());
-            }
-            let dest = share_dir.join(safe_name);
-            std::fs::copy(&path, &dest)
-                .map_err(|e| format!("Failed to copy file for sharing: {}", e))?;
+            let dest = copy_to_share_dir(&path, &att.file_name)?;
             opener::reveal(&dest).map_err(|e| format!("Failed to reveal file: {}", e))?;
             Ok::<(), String>(())
         })
