@@ -1,9 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { motion } from 'framer-motion';
-import { X } from 'lucide-react';
-import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
+import { QrModalShell } from '@/components/sync/QrModalShell';
 import { useCameraCapability } from '@/hooks/useCameraCapability';
 import { QrScanFallback } from '@/components/recovery/QrScanFallback';
 import { RecoveryQrScanner } from '@/components/recovery/RecoveryQrScanner';
@@ -88,66 +86,8 @@ export function SyncScanQrDialog({ isOpen, onClose, onSync }: SyncScanQrDialogPr
   };
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 'var(--z-modal)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'var(--bg-overlay)',
-        backdropFilter: 'blur(4px)',
-        padding: 16,
-      }}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) handleClose();
-      }}
-    >
-      {/* 卡片进场淡入：消除手写模态的硬弹出闪烁（与 SyncShowQrDialog / 共享 Dialog 模式对齐） */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.2 }}
-        style={{ width: '100%', maxWidth: 420 }}
-      >
-        <Card
-          style={{
-            // 宽度由外层 motion.div（width:100% + maxWidth:420）约束，这里只填满，避免双重 maxWidth
-            width: '100%',
-            padding: 24,
-            position: 'relative',
-          }}
-        >
-          <button
-            type="button"
-            onClick={handleClose}
-            style={{
-              position: 'absolute',
-              top: 12,
-              right: 12,
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              color: 'var(--text-tertiary)',
-            }}
-            aria-label={t('common:close')}
-          >
-            <X size={20} />
-          </button>
-
-          <h2
-            style={{
-              fontSize: 'var(--text-card-title)',
-              fontWeight: 700,
-              margin: '0 0 8px',
-              color: 'var(--text-primary)',
-            }}
-          >
-            {t('common:sync_qr_scan_title')}
-          </h2>
-
-          {!scanned ? (
+    <QrModalShell onClose={handleClose} title={t('common:sync_qr_scan_title')}>
+      {!scanned ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <p
                 style={{
@@ -242,8 +182,6 @@ export function SyncScanQrDialog({ isOpen, onClose, onSync }: SyncScanQrDialogPr
               </Button>
             </div>
           )}
-        </Card>
-      </motion.div>
-    </div>
+    </QrModalShell>
   );
 }

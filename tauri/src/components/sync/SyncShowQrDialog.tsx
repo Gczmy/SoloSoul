@@ -1,9 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
-import { motion } from 'framer-motion';
-import { X } from 'lucide-react';
-import { Card } from '@/components/ui/Card';
+import { QrModalShell } from '@/components/sync/QrModalShell';
 import { resolveBackendErrorMessage } from '@/lib/backendError';
 import { translateRustError } from '@/lib/rustErrors';
 import { SyncQrTabSwitcher, type QrMode } from '@/components/sync/SyncQrTabSwitcher';
@@ -179,61 +177,8 @@ export function SyncShowQrDialog({ isOpen, onClose }: SyncShowQrDialogProps) {
   const isRecovery = mode === 'recovery';
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 'var(--z-modal)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        background: 'var(--bg-overlay)',
-        backdropFilter: 'blur(4px)',
-        padding: 16,
-      }}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) handleClose();
-      }}
-    >
-      {/* 卡片进场淡入：消除手写模态的硬弹出闪烁（与共享 Dialog 的 dialogIn 动画对齐） */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.2 }}
-        style={{ width: '100%', maxWidth: 420 }}
-      >
-        <Card
-          style={{
-            // 宽度由外层 motion.div（width:100% + maxWidth:420）约束，这里只填满，避免双重 maxWidth
-            width: '100%',
-            padding: 24,
-            position: 'relative',
-            // 与 Dialog 组件一致：展开「手动模式」后内容较高，超出视口时允许卡片内滚动，
-            // 避免 flex 居中溢出导致上下内容（tab 切换/关闭/取消按钮）不可达。
-            // 注意：必须用视口单位 100vh 而非百分比 100% —— 父级 motion.div 高度为 auto，
-            // 百分比无法解析会使整个 min() 失效，导致 max-height 不生效、内容全高溢出。
-            maxHeight: 'min(85vh, calc(100vh - 32px))',
-            overflowY: 'auto',
-          }}
-        >
-          <button
-            type="button"
-            onClick={handleClose}
-            style={{
-              position: 'absolute',
-              top: 12,
-              right: 12,
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              color: 'var(--text-tertiary)',
-            }}
-            aria-label={t('common:close')}
-          >
-            <X size={20} />
-          </button>
-
-          {/* 二维码类型切换 */}
+    <QrModalShell onClose={handleClose} scrollable>
+      {/* 二维码类型切换 */}
           <SyncQrTabSwitcher t={t} isRecovery={isRecovery} onSelect={switchMode} />
 
           {isRecovery ? (
@@ -263,8 +208,6 @@ export function SyncShowQrDialog({ isOpen, onClose }: SyncShowQrDialogProps) {
               onClose={handleClose}
             />
           )}
-        </Card>
-      </motion.div>
-    </div>
+    </QrModalShell>
   );
 }
