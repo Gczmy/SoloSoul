@@ -22,6 +22,7 @@ import {
   Scan,
   Paperclip,
   Search,
+  User,
 } from 'lucide-react';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
 
@@ -58,6 +59,17 @@ export function SettingsPage() {
           icon: Shield,
           path: '/settings/security',
           desc: t('settings:desc.security_settings'),
+        },
+      ],
+    },
+    {
+      title: t('settings:groups.account'),
+      items: [
+        {
+          label: t('settings:items.account_management'),
+          icon: User,
+          path: '/settings/account',
+          desc: t('settings:desc.account_management'),
         },
       ],
     },

@@ -3,6 +3,7 @@
   "groups": {
     "appearance": "Appearance",
     "security": "Security",
+    "account": "Account",
     "data": "Data",
     "system": "System",
     "general": "General"
@@ -10,6 +11,7 @@
   "items": {
     "theme_appearance": "Theme & Appearance",
     "security_settings": "Security Settings",
+    "account_management": "Account Management",
     "sensitivity_settings": "Sensitivity Settings",
     "data_management": "Data Management",
     "export_import": "Export & Import",
@@ -671,9 +673,17 @@
   "edit_template": "Edit Template",
   "filter_all": "All",
   "filter_user": "Custom Templates",
+  "account_id": "Account ID",
+  "account_id_hint": "The account ID identifies your vault and cannot be changed after creation.",
+  "account_id_copied": "Account ID copied",
+  "account_name": "Account Name",
+  "account_name_hint": "Rename this account. The name is used on the login screen and in exported documents.",
+  "account_rename_success": "Account name updated",
+  "account_rename_failed": "Failed to rename account",
   "desc": {
     "theme_appearance": "Customize theme, accent color, language and background",
     "security_settings": "Password management, biometric unlock, auto-lock",
+    "account_management": "View account ID and rename account",
     "sensitivity_settings": "Manage field-level data protection levels",
     "data_management": "View and manage vault data",
     "export_import": "Encrypted export or import of data",

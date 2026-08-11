@@ -3,6 +3,7 @@
   "groups": {
     "appearance": "外观",
     "security": "安全",
+    "account": "账户",
     "data": "数据",
     "system": "系统",
     "general": "通用"
@@ -10,6 +11,7 @@
   "items": {
     "theme_appearance": "主题与外观",
     "security_settings": "安全设置",
+    "account_management": "账户管理",
     "sensitivity_settings": "敏感度设置",
     "data_management": "数据管理",
     "export_import": "导出与导入",
@@ -671,9 +673,17 @@
   "edit_template": "编辑模板",
   "filter_all": "全部",
   "filter_user": "自定义模板",
+  "account_id": "账户 ID",
+  "account_id_hint": "账户 ID 用于标识您的保险库，创建后不可修改。",
+  "account_id_copied": "账户 ID 已复制",
+  "account_name": "账户名",
+  "account_name_hint": "修改此账户的名称，将应用于登录页与导出的文档。",
+  "account_rename_success": "账户名已更新",
+  "account_rename_failed": "修改账户名失败",
   "desc": {
     "theme_appearance": "自定义主题、主题色、语言和背景",
     "security_settings": "密码管理、生物识别解锁、自动锁定",
+    "account_management": "查看账户 ID、修改账户名",
     "sensitivity_settings": "管理字段级数据保护级别",
     "data_management": "查看和管理保险库数据",
     "export_import": "加密导出或导入数据",

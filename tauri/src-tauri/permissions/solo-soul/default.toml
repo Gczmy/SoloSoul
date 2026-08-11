@@ -203,6 +203,7 @@ commands.allow = [
   "vault_get_directory",
   "vault_list_accounts",
   "vault_pick_directory",
+  "vault_rename_account",
   "vault_set_directory",
   "vault_sync_background",
   "vault_sync_from_remote",

@@ -1784,6 +1784,48 @@ impl VaultService {
         self.write_config_atomic(account_id, config_json.as_bytes())?;
         Ok(())
     }
+
+    /// 修改账户名（账户 ID 不可变）：同步更新账户 config 与 accounts 清单。
+    ///
+    /// 名称唯一性检查与其他账户（大小写不敏感）冲突时报错，与 `create_account` 一致；
+    /// 复用 `create_lock` 消除「检查唯一性 → 写入」之间的竞态（R024 同款）。
+    pub fn rename_account(&self, account_id: &str, new_name: &str) -> Result<(), String> {
+        let name = new_name.trim();
+        if name.is_empty() {
+            return Err("Account name is required".to_string());
+        }
+        // R024: 与 create_account 共用锁，避免并发改名/创建导致重名。
+        let _create_guard = self.create_lock.lock().map_err(|e| e.to_string())?;
+
+        {
+            let cache = self.accounts_cache.read().map_err(|e| e.to_string())?;
+            if !cache.contains_key(account_id) {
+                return Err("Account not found".to_string());
+            }
+            if cache
+                .iter()
+                .any(|(id, a)| id != account_id && a.name.to_lowercase() == name.to_lowercase())
+            {
+                return Err("Account name already taken".to_string());
+            }
+        }
+
+        // 更新 config 中的名称（保留全部安全字段）。
+        let mut config = self.read_account_config(account_id)?;
+        config.name = name.to_string();
+        let json = serde_json::to_string_pretty(&config).map_err(|e| e.to_string())?;
+        // P135: 原子写——改名同样避免写坏 config。
+        self.write_config_atomic(account_id, json.as_bytes())?;
+
+        // 更新内存缓存与 accounts.json。
+        if let Ok(mut cache) = self.accounts_cache.write() {
+            if let Some(entry) = cache.get_mut(account_id) {
+                entry.name = name.to_string();
+            }
+        }
+        self.save_accounts()?;
+        Ok(())
+    }
 }
 
 impl Default for VaultService {
@@ -2158,6 +2200,31 @@ mod tests {
         let config: AccountConfig = serde_json::from_str(&content).unwrap();
         assert_eq!(config.password_hint, Some("My favorite color".to_string()));
         assert!(config.biometric_enabled);
+    }
+
+    #[test]
+    fn test_rename_account() {
+        let (svc, _dir) = setup_service();
+        let account = svc.create_account("Old Name", "password123", None).unwrap();
+        let account_id = account["id"].as_str().unwrap();
+
+        // 改名后：config 与账户清单都同步更新，账户 ID 不变。
+        svc.rename_account(account_id, "New Name").unwrap();
+        let summaries = svc.list_accounts();
+        let summary = summaries.iter().find(|a| a.id == account_id).unwrap();
+        assert_eq!(summary.name, "New Name");
+        let config_path = svc.base_path().join(account_id).join("config.json");
+        let content = fs::read_to_string(&config_path).unwrap();
+        let config: AccountConfig = serde_json::from_str(&content).unwrap();
+        assert_eq!(config.name, "New Name");
+
+        // 空白名与重名（大小写不敏感）拒绝。
+        assert!(svc.rename_account(account_id, "   ").is_err());
+        svc.create_account("Other", "password123", None).unwrap();
+        assert!(svc.rename_account(account_id, "other").is_err());
+
+        // 不存在的账户拒绝。
+        assert!(svc.rename_account("acc_missing", "X").is_err());
     }
 
     #[test]

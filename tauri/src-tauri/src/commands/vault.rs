@@ -79,6 +79,20 @@ pub async fn vault_update_hint(
     svc.update_password_hint(&account_id, hint.as_deref().unwrap_or(""))
 }
 
+/// 修改账户名（账户 ID 不可变）：同步更新账户 config 与 accounts 清单。
+#[tauri::command]
+pub async fn vault_rename_account(
+    state: State<'_, AppState>,
+    account_id: String,
+    new_name: String,
+) -> Result<(), String> {
+    let svc = state
+        .vault_service
+        .read()
+        .map_err(|_| "Vault service lock poisoned".to_string())?;
+    svc.rename_account(&account_id, &new_name)
+}
+
 /// Get vault statistics with breakdown components.
 #[tauri::command]
 pub async fn get_vault_stats(state: State<'_, AppState>) -> Result<serde_json::Value, String> {

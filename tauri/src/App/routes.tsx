@@ -2,6 +2,7 @@ import { Navigate } from 'react-router-dom';
 import { HomePage } from '@/pages/home/HomePage';
 import { SettingsPage } from '@/pages/settings/SettingsPage';
 import { SecuritySettingsPage } from '@/pages/settings/SecuritySettingsPage';
+import { AccountSettingsPage } from '@/pages/settings/AccountSettingsPage';
 import { DataManagementPage } from '@/pages/settings/DataManagementPage';
 import { TrashPage } from '@/pages/settings/TrashPage';
 import { ObjectWorkspacePage } from '@/pages/workspace/ObjectWorkspacePage';
@@ -46,6 +47,7 @@ export const protectedRoutes: RouteConfig[] = [
   { path: '/settings', element: <SettingsPage /> },
   { path: '/settings/appearance', element: <AppearanceSettingsPage /> },
   { path: '/settings/security', element: <SecuritySettingsPage /> },
+  { path: '/settings/account', element: <AccountSettingsPage /> },
   { path: '/settings/export-import', element: <ExportImportPage /> },
   { path: '/settings/data', element: <DataManagementPage /> },
   { path: '/settings/trash', element: <TrashPage /> },

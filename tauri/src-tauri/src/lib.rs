@@ -418,6 +418,7 @@ fn register_core_commands(
         commands::vault::change_password,
         commands::vault::vault_list_accounts,
         commands::vault::vault_update_hint,
+        commands::vault::vault_rename_account,
         // Profile commands
         commands::profile::profile_load,
         commands::vault::get_vault_stats,
