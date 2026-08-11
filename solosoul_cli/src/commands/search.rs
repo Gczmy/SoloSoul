@@ -179,8 +179,7 @@ fn search_pages(
             3.0
         };
         let object_count = vault
-            .list_objects(account_id, None, Some(&page.id), None, false, false)
-            .map(|v| v.len())
+            .count_objects(account_id, None, Some(&page.id))
             .unwrap_or(0);
         items.push(SearchResultItem {
             object_id: page.id.clone(),
@@ -204,8 +203,7 @@ fn search_pages(
         let section_lower = section.to_lowercase();
         if section_lower.contains(query) || query.contains(&section_lower) {
             let object_count = vault
-                .list_objects(account_id, Some(section), None, None, false, false)
-                .map(|v| v.len())
+                .count_objects(account_id, Some(section), None)
                 .unwrap_or(0);
             items.push(SearchResultItem {
                 object_id: section.to_string(),
