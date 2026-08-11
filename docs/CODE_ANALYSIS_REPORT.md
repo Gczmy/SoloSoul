@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-11（P016 修复完成）
+> 最后更新：2026-08-11（P017 修复完成）
 > 当前分支：`main`
 > 修复轮次：2（按用户指令逐项修复，一项一提交）
 
@@ -30,7 +30,7 @@ Git 状态：工作树除本报告文件重建外干净（旧报告已删除，�
 | P014 | P2 | 漏洞 | `tauri/src-tauri/src/commands/attachment.rs:445-482` | `attachment_copy_to_vault` 兜底分支字面 `starts_with` 且未拒绝 `..` 组件，Android symlink 场景可绕过 allowed-dir（需人工确认可达性） | `[x]` 已完成 |
 | P015 | P2 | 漏洞 | `tauri/src-tauri/src/commands/export_import/export.rs:337-340` | 导出路径白名单为空时 fail-open 放行任意路径（`attachment_download:911` 同款），应 fail-closed 或至少 warn | `[x]` 已完成 |
 | P016 | P2 | 规范 | `tauri/src-tauri/src/commands/pin.rs:42-59,103-113`、`vault.rs:34-45` | `pin_setup`/`pin_disable`/`pin_unlock`/`change_password` 的密码参数未在 IPC 边界 Zeroizing 包装（P031 模式不一致，需确认 PinManager 内部清零） | `[x]` 已完成 |
-| P017 | P2 | 漏洞 | `tauri/src-tauri/src/commands/fs.rs:133-142` | `resolve_within` 校验后返回未规范化路径，存在符号链接 TOCTOU 窗口（威胁模型较低） | `[ ]` 待修复 |
+| P017 | P2 | 漏洞 | `tauri/src-tauri/src/commands/fs.rs:133-142` | `resolve_within` 校验后返回未规范化路径，存在符号链接 TOCTOU 窗口（威胁模型较低） | `[x]` 已完成 |
 | P018 | P2 | 规范 | `tauri/crates/solosoul-core/src/ocr/macos_vision.rs:281-298` | OCR debug 日志记录用户扫描图片完整路径（GUI 侧 tracing 落盘位置需确认） | `[ ]` 待修复 |
 | P019 | P2 | 架构 | `tauri/src-tauri/src/commands/log.rs:65-76` | `log_write` 允许前端写任意 `action_type` 审计条目，无枚举白名单，审计日志作为安全证据的可信度受限（需确认设计意图） | `[ ]` 待修复 |
 | P020 | P2 | 架构 | `tauri/src-tauri/src/commands/object/mod.rs:604` 等 | object 系命令信任客户端 `account_id`（template/ocr 等已统一 `current_account` 服务端派生，两种约定并存，需确认触发路径） | `[ ]` 待修复 |
@@ -64,8 +64,8 @@ Git 状态：工作树除本报告文件重建外干净（旧报告已删除，�
 
 ## 修复进度
 
-- 已完成：16 / 47
-- 当前处理：P017（按建议顺序推进）
+- 已完成：17 / 47
+- 当前处理：P018（按建议顺序推进）
 
 ## 详细问题描述与修复指引
 
@@ -216,7 +216,13 @@ error: deref which would be done by auto-deref
 **修复**：四命令入口处用 `zeroize::Zeroizing::new(...)` 包装 password/pin（P015 `import_execute_advanced` 同款模式），所有权转移后 drop 即清零；命令签名保持 `String`（`Zeroizing<String>` 直接作 CommandArg 需 zeroize `unstable` feature，避免改动 workspace 依赖）。
 
 **验证**：`cargo check -p solo_soul --tests` ✅；clippy --workspace 全绿 ✅。
-- **P017**：`resolve_within` 返回 `target_canon` 或注释说明接受的残余风险。
+### P017（P2）resolve_within 返回 canonical 路径 — 已完成（commit 0869e4e1）
+
+**原问题**：`resolve_within`（fs.rs:133）已用 `target_canon` 做越界校验，但返回字面路径 `abs`——校验与后续文件操作使用不同路径，符号链接场景存在 TOCTOU 竞态窗口。
+
+**修复**：改返回 `target_canon`（canonicalize_existing 已解析全部现存组件并追加不存在的尾段），校验与文件操作使用同一已解析路径；同步更新 `resolve_allowed_path` 文档注释（不再「保持与旧行为一致」返回原路径）。
+
+**验证**：`cargo check -p solo_soul --tests` ✅；clippy --workspace 全绿 ✅。
 - **P018**：OCR debug 日志只记文件名尾部组件或哈希。
 - **P019**：`log_write` 对 `action_type` 加枚举白名单。
 
