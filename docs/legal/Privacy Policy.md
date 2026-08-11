@@ -16,6 +16,13 @@ SoloSoul is a **local-first** application. All your data is stored exclusively o
 - SoloSoul may connect to local or self-hosted LLM services you configure. These connections are entirely under your control.
 - No third-party analytics, telemetry, or advertising SDKs are included.
 
+## Update Checks & Download Proxying
+
+- When the app checks for updates or downloads installers, it **connects directly to GitHub by default**.
+- When direct connections are unavailable (e.g., in some network environments where GitHub is unreachable), the app automatically falls back to third-party acceleration proxies. These proxies terminate TLS and forward your requests, so **your IP address, the fact that you use SoloSoul, and the target version number may be exposed to that third-party proxy provider**.
+- Downloaded content is verified with cryptographic signatures and hashes whether it comes from a direct connection or a proxy, so proxies cannot tamper with installers; proxying only affects the transport channel, not data integrity.
+- To fully disable proxy fallback (direct connections only), you can set the environment variable `SOLOSOUL_PROXY_PREFIXES` to an empty value; this applies to the desktop app.
+
 ## Security
 
 - Your vault is encrypted with AES-256-GCM using a key derived from your master password (Argon2id).
