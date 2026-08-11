@@ -100,7 +100,7 @@
 |----|--------|------|----------|------|------|
 | U001 | P1 | 功能/文档矛盾 | `tauri/src-tauri/src/commands/update.rs:30,47,57-62,1288-1291` | **「留空禁用代理」承诺与实现矛盾**：提交信息、代码注释、本报告 T004 修复记录三处均宣称 `SOLOSOUL_PROXY_PREFIXES=""` 可禁用全部代理仅走直连，但实现按「解析结果为空 → 回退默认 4 个代理」处理，测试也固化了回退行为。隐私敏感用户显式置空后实际仍走 gh-proxy，属反向伤害。修法二选一：`var()` 的 `Ok/Err` 区分「未设置→默认 / 显式置空→禁用」（改动很小），或把三处文档改口为「空值回退默认」 | `[x]` 已修复（U001，见下） |
 | U002 | P2 | 资源 | `tauri/src-tauri/src/commands/update.rs:507-508` | **T003 超时修复只覆盖一半路径**：前端 `check()` 加了 15s 超时，但桌面端 AboutPage 检查更新走 Rust 侧 `app.updater().check()`（`updater.ts:100` → `useUpdateChecker.ts:87`），该 builder 未设 `timeout`——直连黑洞时 AboutPage「检查更新」永久卡在 checking 态，endpoint 回退不触发。修法一行：`app.updater_builder().timeout(Duration::from_secs(15)).build()` | `[x]` 已修复（U002，见下） |
-| U003 | P2 | 并发 | `tauri/src-tauri/src/commands/update.rs:229-249,449,606` | **T003 修复新引入竞态**：cleanup 注释断言「仅在下载开始前调用，无并发写入」，但无机制保证——Tauri commands 并发执行，用户在 APK 分段下载进行中触发 `android_check_update`（AboutPage/横幅），cleanup 会删除 `download_range_to_file` **正在写入**的 `.part.seg{i}`。后果可自愈（合并 open 失败 → 回退单流 → SHA-256 终检兜底，无损坏风险），但浪费带宽、进度归零。修法：下载进行中持进程内标志/Mutex，cleanup 跳过；或 cleanup 限定无活动下载时执行 | `[ ]` 待修复 |
+| U003 | P2 | 并发 | `tauri/src-tauri/src/commands/update.rs:229-249,449,606` | **T003 修复新引入竞态**：cleanup 注释断言「仅在下载开始前调用，无并发写入」，但无机制保证——Tauri commands 并发执行，用户在 APK 分段下载进行中触发 `android_check_update`（AboutPage/横幅），cleanup 会删除 `download_range_to_file` **正在写入**的 `.part.seg{i}`。后果可自愈（合并 open 失败 → 回退单流 → SHA-256 终检兜底，无损坏风险），但浪费带宽、进度归零。修法：下载进行中持进程内标志/Mutex，cleanup 跳过；或 cleanup 限定无活动下载时执行 | `[x]` 已修复（U003，见下） |
 | U004 | P2 | 隐私/文档 | `docs/zh-CN/`、`docs/en-US/`（缺失） | **披露未触达用户**：T004 的隐私披露只落在源码注释、构建脚本注释与本内部报告，用户可见的隐私政策/服务条款（中英两版）无任何代理相关条目，应用内更新 UI 亦无提示。若意图是让用户知情（审查本意），需在隐私政策补「检查更新在直连不可达时经第三方代理中转，可能暴露 IP 与版本号」 | `[ ]` 待修复 |
 | U005 | P2 | 弹性/测试 | `tauri/src-tauri/src/commands/update.rs:805-807,1011-1018` | **T002 残留**：①abort 未 await——abort 后立即删 seg 文件，若某任务已越过最后 await 点可能重建孤儿 `.seg`（无正确性影响，T003 的 cleanup 兜底）；②回退单流腿自身仍无中途切候选（`?` 直接返回，断点保留可重试，属刻意取舍但「候选切换」在单流腿未闭环）；③三个行为改动零新增测试（网络 mock 成本高可理解，回归靠人工） | `[ ]` 待修复 |
 | U006 | P2 | 测试/注释 | `tauri/src/components/attachment/AttachmentFileNameBlock.tsx:134-138`、`update.rs:1338` | **T005/T001 残留**：①描述溢出测量分支仍零行为测试覆盖（jsdom 恒 false，标签侧 mock 布局方案可仿照）；②字体晚加载漏判仍在——RO 监听 border-box 尺寸，字体加载只改 `scrollWidth` 时不触发（可用 `document.fonts.ready.then(measure)` 兜底）；③T001 测试注释引用不存在的 `download_apk`，应为 `android_download_apk`（`update.rs:601`） | `[ ]` 待修复 |
@@ -108,6 +108,12 @@
 **次要观察（不列为问题）**：ENV_LOCK 用 `.lock().unwrap()`，一个测试 panic 会 poison 锁连带另一个失败（测试代码常见取舍）；T002 重试路径进度条可能短暂超 100%，有 `min(100)` 截断且注释已声明为可接受近似；`resizeObserverInstances` 数组测试会话内只增不减（量级可忽略）。
 
 ## 修复记录（U 系列）
+
+### U003（P2，cleanup 并发竞态）✅ 已修复
+
+- **修复**：新增进程内 `APK_DOWNLOAD_ACTIVE: AtomicBool`——下载主体开始前 `store(true)`、完成后（无论 Ok/Err）`store(false)`；`cleanup_stale_apk_cache` 开头检查该标志，为 true 时整体跳过。下载进行中触发 `android_check_update` 不再删除正在写入的 `.part.seg{i}`（避免浪费带宽/进度归零；下次下载前仍正常清理）。
+- **重构**：下载主体抽为独立 `download_apk_to_part()`（分段并行/单流 + SHA-256 校验），使活动标志在 `?` 提前返回的错误路径也能由调用方统一恢复（避免重复 store 或遗漏）。
+- **验证**：cargo fmt / check / clippy `-D warnings` 全绿。
 
 ### U002（P2，桌面端 updater 超时）✅ 已修复
 

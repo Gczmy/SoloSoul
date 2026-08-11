@@ -203,8 +203,22 @@ fn apk_part_path(app: &tauri::AppHandle, version: &str) -> Result<PathBuf, Strin
     Ok(path)
 }
 
+/// U003: 进程内「APK 下载进行中」标志——Tauri commands 并发执行，用户在分段下载
+/// 进行中触发 `android_check_update`（AboutPage/横幅）时，若 cleanup 照常执行会删除
+/// `download_range_to_file` **正在写入**的 `.part.seg{i}`。下载进行中 cleanup 直接跳过
+/// （后果可自愈：合并 open 失败 → 回退单流 → SHA-256 终检兜底，但避免浪费带宽/进度归零）。
+static APK_DOWNLOAD_ACTIVE: std::sync::atomic::AtomicBool =
+    std::sync::atomic::AtomicBool::new(false);
+
 /// 清理非当前版本的 APK 缓存文件，避免旧版本安装包占用空间并被误用。
+///
+/// 下载进行中（`APK_DOWNLOAD_ACTIVE` 为 true）时**整体跳过**，保护正在写入的
+/// `.part.seg{i}`；调用点均为下载开始前或检查更新时，下次下载前仍会正常清理。
 fn cleanup_stale_apk_cache(app: &tauri::AppHandle, current_version: &str) -> Result<(), String> {
+    use std::sync::atomic::Ordering;
+    if APK_DOWNLOAD_ACTIVE.load(Ordering::Relaxed) {
+        return Ok(());
+    }
     let cache_dir = app
         .path()
         .resolve("", tauri::path::BaseDirectory::Cache)
@@ -631,30 +645,22 @@ pub async fn android_download_apk(app: tauri::AppHandle, version: String) -> Res
     let candidates = download_candidates(&download_url);
 
     // 探测下载通道：确认文件总大小与 Range 支持（直连失败自动回退代理）
-    let (file_total, range_candidate) = probe_download(&candidates).await?;
-
-    // ── 下载主体：分段并行（支持 Range 且文件够大）或单流 ──
-    if let Some(idx) = range_candidate {
-        if file_total >= PARALLEL_MIN_FILE_SIZE {
-            // 并行时优先复用探测确认支持 Range 的通道，其余通道作回退
-            let mut ordered: Vec<String> = candidates[idx..].to_vec();
-            ordered.extend(candidates[..idx].iter().cloned());
-            // 并行失败（代理限流/中途断连等）时回退单流重试一次：
-            // parallel 已保留 part_path 断点，单流可断点续传（T002）；
-            // 单流再失败则错误传播，由调用方处理。
-            if let Err(e) = download_apk_parallel(&app, &ordered, file_total, &part_path).await {
-                tracing::warn!("[updater] 分段并行下载失败，回退单流重试: {e}");
-                download_apk_single_stream(&app, &candidates, &part_path).await?;
-            }
-        } else {
-            download_apk_single_stream(&app, &candidates, &part_path).await?;
-        }
-    } else {
-        download_apk_single_stream(&app, &candidates, &part_path).await?;
-    }
-
-    // ── SHA-256 校验（P002：校验和由 Rust 侧验签获取，必非空，强制校验）+ 落盘 ──
-    let final_size = verify_and_finalize(&part_path, &dest, &expected_checksum)?;
+    let (file_total, range_candidate) = probe_download(&candidates).await?; // U003: 标记下载进行中（cleanup 据此跳过，避免并发删除正在写入的 .seg 文件），
+                                                                            // 无论成败最后恢复。探测阶段已完成（不写 seg），从下载主体开始标记。
+    use std::sync::atomic::Ordering;
+    APK_DOWNLOAD_ACTIVE.store(true, Ordering::Relaxed);
+    let result = download_apk_to_part(
+        &app,
+        &candidates,
+        range_candidate,
+        file_total,
+        &part_path,
+        &dest,
+        &expected_checksum,
+    )
+    .await;
+    APK_DOWNLOAD_ACTIVE.store(false, Ordering::Relaxed);
+    let final_size = result?;
 
     // 发送完成事件
     let _ = app.emit(
@@ -669,6 +675,43 @@ pub async fn android_download_apk(app: tauri::AppHandle, version: String) -> Res
     );
 
     Ok(())
+}
+
+/// 下载主体：分段并行（支持 Range 且文件够大）或单流，随后 SHA-256 校验并返回最终大小。
+///
+/// 抽为独立 async 函数使 `android_download_apk` 的 U003 活动标志在错误路径也能恢复
+/// （调用方 await 后无论 Ok/Err 都 store(false)）。
+async fn download_apk_to_part(
+    app: &tauri::AppHandle,
+    candidates: &[String],
+    range_candidate: Option<usize>,
+    file_total: u64,
+    part_path: &std::path::Path,
+    dest: &std::path::Path,
+    expected_checksum: &str,
+) -> Result<u64, String> {
+    if let Some(idx) = range_candidate {
+        if file_total >= PARALLEL_MIN_FILE_SIZE {
+            // 并行时优先复用探测确认支持 Range 的通道，其余通道作回退
+            let mut ordered: Vec<String> = candidates[idx..].to_vec();
+            ordered.extend(candidates[..idx].iter().cloned());
+            // 并行失败（代理限流/中途断连等）时回退单流重试一次：
+            // parallel 已保留 part_path 断点，单流可断点续传（T002）；
+            // 单流再失败则错误传播，由调用方处理。
+            if let Err(e) = download_apk_parallel(app, &ordered, file_total, part_path).await {
+                tracing::warn!("[updater] 分段并行下载失败，回退单流重试: {e}");
+                download_apk_single_stream(app, candidates, part_path).await?;
+            }
+        } else {
+            download_apk_single_stream(app, candidates, part_path).await?;
+        }
+    } else {
+        download_apk_single_stream(app, candidates, part_path).await?;
+    }
+
+    // SHA-256 校验（P002：校验和由 Rust 侧验签获取，必非空，强制校验）+ 落盘
+    let final_size = verify_and_finalize(part_path, dest, expected_checksum)?;
+    Ok(final_size)
 }
 
 /// 创建 APK 下载专用客户端：连接超时 15s + 总超时 120s。
