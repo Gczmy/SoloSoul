@@ -3,9 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { Dialog } from '@/components/ui/Dialog';
 import { SecurePasswordInput } from '@/components/forms/PasswordInput';
-import { PinInput } from '@/components/forms/PinInput';
+import { PinEntryCard } from '@/components/forms/PinEntryCard';
 import { Button } from '@/components/ui/Button';
-import { IndeterminateProgressBar } from '@/components/ui/IndeterminateProgressBar';
 import { useToastError } from '@/hooks/useToastError';
 import { useAutoLockPauseStore } from '@/stores/autoLockPauseStore';
 import { Fingerprint, KeyRound, ScanFace, ShieldCheck, Grip } from 'lucide-react';
@@ -439,60 +438,15 @@ export function PasswordVerificationDialog({
           </div>
         )}
 
-        {/* ===== PIN 码卡片 ===== */}
+        {/* ===== PIN 码卡片（P040: 共享 PinEntryCard）===== */}
         {loginMethod === 'pin' && (
-          <div
-            style={{
-              minHeight: 152,
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              marginBottom: 8,
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 12,
-                padding: '16px 24px 20px',
-                borderRadius: 14,
-                border: '1px solid var(--border-subtle)',
-                background: 'transparent',
-                width: '100%',
-              }}
-            >
-              <Grip size={ICON_SIZE['2xl']} color="var(--accent-primary)" />
-              <span
-                style={{
-                  fontSize: 'var(--text-card-title)',
-                  fontWeight: 500,
-                  color: 'var(--text-primary)',
-                }}
-              >
-                {t('auth:pin_enter_title')}
-              </span>
-              <PinInput
-                key={pinInputKey}
-                length={6}
-                onComplete={handlePinComplete}
-                disabled={pinUnlocking}
-                error={!!pinError}
-                verifying={pinUnlocking}
-              />
-              {/* 验证中动画 — 移至 PIN 码框下方，不再遮挡输入框（与登录页一致） */}
-              {pinUnlocking && (
-                <div style={{ width: '100%', maxWidth: 240, marginTop: 2 }}>
-                  <IndeterminateProgressBar height={4} />
-                </div>
-              )}
-              {pinError && (
-                <div style={{ color: '#dc2626', fontSize: 'var(--text-body-sm)' }}>{pinError}</div>
-              )}
-            </div>
-          </div>
+          <PinEntryCard
+            pinUnlocking={pinUnlocking}
+            pinError={pinError}
+            pinInputKey={pinInputKey}
+            onPinComplete={handlePinComplete}
+            marginBottom={8}
+          />
         )}
 
         {/* ===== 密码卡片 ===== */}
