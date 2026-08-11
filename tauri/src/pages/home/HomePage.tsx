@@ -1,4 +1,4 @@
-import React, { Fragment, useState, useRef, useEffect } from 'react';
+import React, { Fragment, useCallback, useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AppShell } from '@/components/layout/AppShell';
@@ -132,6 +132,8 @@ interface HomeCardProps {
   icon: LucideIcon;
   title: string;
   desc?: string;
+  /** 标题右侧角标（如照片总数）。 */
+  badge?: string | number;
   onClick: () => void;
   onMouseDown?: (e: React.MouseEvent) => void;
   onMouseUp?: (e: React.MouseEvent) => void;
@@ -145,6 +147,7 @@ const HomeCard = React.forwardRef<HTMLDivElement, HomeCardProps>(function HomeCa
     icon: Icon,
     title,
     desc,
+    badge,
     onClick,
     onMouseDown,
     onMouseUp,
@@ -168,6 +171,7 @@ const HomeCard = React.forwardRef<HTMLDivElement, HomeCardProps>(function HomeCa
       <div className={styles.cardHeader}>
         <Icon size={24} className={styles.cardIcon} />
         <h3 className={styles.cardTitle}>{title}</h3>
+        {badge !== undefined && <span className={styles.cardBadge}>{badge}</span>}
       </div>
       {desc && <p className={styles.cardDesc}>{desc}</p>}
     </Card>
@@ -213,6 +217,25 @@ export function HomePage() {
   // 首页「照片集」快捷入口状态：点击后加载全 Vault 活跃附件并直接打开全屏相册。
   const [albumItems, setAlbumItems] = useState<AttachmentMeta[] | null>(null);
   const [albumLoading, setAlbumLoading] = useState(false);
+  // 照片总数角标（挂载/账户切换时加载一次，供卡片一眼展示）
+  const [photoCount, setPhotoCount] = useState<number | null>(null);
+
+  /** 加载当前账户的照片总数（失败静默降级为 null，不阻塞卡片点击）。 */
+  const loadPhotoCount = useCallback(async () => {
+    if (!accountId) return;
+    try {
+      const result = await invoke<AttachmentListAllResult>('attachment_list_all', {
+        accountId,
+      });
+      setPhotoCount(collectPhotoItems(result.pages).length);
+    } catch {
+      setPhotoCount(null);
+    }
+  }, [accountId]);
+
+  useEffect(() => {
+    void loadPhotoCount();
+  }, [loadPhotoCount]);
 
   /** 加载所有对象的所有照片附件并打开照片集（复用 attachment_list_all + 图片过滤）。 */
   const handleOpenPhotoAlbum = async () => {
@@ -231,6 +254,8 @@ export function HomePage() {
         });
         return;
       }
+      // 本次加载的数据顺带刷新角标（与挂载时的计数保持一致）
+      setPhotoCount(photos.length);
       setAlbumItems(photos);
     } catch (e) {
       showToast({
@@ -397,6 +422,7 @@ export function HomePage() {
                   desc={t('common:photo_album_desc', {
                     defaultValue: 'Browse photos across all objects',
                   })}
+                  badge={photoCount ?? undefined}
                   onClick={() => void handleOpenPhotoAlbum()}
                 />
               )}
@@ -409,7 +435,11 @@ export function HomePage() {
       {albumItems && (
         <PhotoAlbumOverlay
           items={albumItems}
-          onClose={() => setAlbumItems(null)}
+          onClose={() => {
+            setAlbumItems(null);
+            // 相册会话结束后刷新角标，保持数量与当前 Vault 一致
+            void loadPhotoCount();
+          }}
           onOpenExternal={openAttachmentExternal}
         />
       )}

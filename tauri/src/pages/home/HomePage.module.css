@@ -25,6 +25,27 @@
   white-space: nowrap;
 }
 
+/* 卡片标题右侧角标（照片集照片总数等） */
+.cardBadge {
+  margin-left: auto;
+  flex-shrink: 0;
+  min-width: 24px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-primary) 28%, transparent);
+  color: var(--accent-primary);
+  font-size: var(--text-badge);
+  font-weight: 600;
+  line-height: 1.6;
+  text-align: center;
+  /* 数字较大时不横向撑破卡片 */
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .cardDesc {
   font-size: var(--text-body-sm);
   color: var(--text-secondary);
