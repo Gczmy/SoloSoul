@@ -1410,7 +1410,7 @@ mod tests {
             is_deleted: false,
             deleted_at: None,
             tags_json: vec![],
-            template_id: None,
+            template_id: Some("t1".to_string()),
             template_type: None,
             contract_type_id: None,
             template_hash: None,
@@ -1645,7 +1645,7 @@ mod tests {
                 "f1": "张三",
                 "__fields": fields,
                 "__attachments": [
-                    {"id": "a1", "objectId": "o1", "fileName": "证件.pdf", "sizeBytes": 2048, "mimeType": "application/pdf"}
+                    {"id": "a1", "objectId": "o1", "fileName": "证件.pdf", "sizeBytes": 2048, "mimeType": "application/pdf", "createdAt": "2026-01-01T00:00:00Z"}
                 ]
             }),
         );
@@ -1699,9 +1699,9 @@ mod tests {
 
     #[test]
     fn test_escape_markdown() {
-        // 特殊字符加反斜杠转义，中文与换行保留
-        assert_eq!(escape_markdown("a*b_c[d]`e`"), "a\\*b\\_c\\[d\\]\\`e\\`");
-        assert_eq!(escape_markdown("# 标题\n第二行"), "\\# 标题\n第二行");
+        // 1c516c28 后仅转义 `\\` `` ` `` `[]` `|` `<>`——`.` `-` `+` `()` `*` `_` `#` 保持原样（便于用户直接从源码复制）
+        assert_eq!(escape_markdown("a*b_c[d]`e`"), "a*b_c\\[d\\]\\`e\\`");
+        assert_eq!(escape_markdown("# 标题\n第二行"), "# 标题\n第二行");
         assert_eq!(escape_markdown("中文与空格 保留"), "中文与空格 保留");
         assert_eq!(escape_markdown("a\\b"), "a\\\\b");
     }
@@ -1717,7 +1717,7 @@ mod tests {
                 "f1": "张三\n第二行",
                 "__fields": fields,
                 "__attachments": [
-                    {"id": "a1", "objectId": "o1", "fileName": "证件.pdf", "sizeBytes": 2048, "mimeType": "application/pdf"}
+                    {"id": "a1", "objectId": "o1", "fileName": "证件.pdf", "sizeBytes": 2048, "mimeType": "application/pdf", "createdAt": "2026-01-01T00:00:00Z"}
                 ]
             }),
         );
@@ -1732,7 +1732,7 @@ mod tests {
         // 对象名带前缀 + 元信息 + 字段（多行值缩进对齐）+ 附件清单
         assert!(text.contains("对象名称：张三&档案"));
         assert!(text.contains("模板：护照"));
-        assert!(text.contains("姓名：张三\n     第二行"));
+        assert!(text.contains("姓名：张三\n   第二行"));
         assert!(text.contains("附件清单："));
         assert!(text.contains("  - 证件.pdf（2.0 KB，application/pdf）"));
         // 单对象无分隔线
@@ -1750,7 +1750,7 @@ mod tests {
                 "f1": "张三\n第二行",
                 "__fields": fields,
                 "__attachments": [
-                    {"id": "a1", "objectId": "o1", "fileName": "证件.pdf", "sizeBytes": 2048, "mimeType": "application/pdf"}
+                    {"id": "a1", "objectId": "o1", "fileName": "证件.pdf", "sizeBytes": 2048, "mimeType": "application/pdf", "createdAt": "2026-01-01T00:00:00Z"}
                 ]
             }),
         );
@@ -1766,7 +1766,7 @@ mod tests {
         // 多行值空行分隔（段落即换行）；字段间空行分隔
         assert!(md.contains("**姓名**：张三\n\n第二行\n\n"));
         assert!(!md.contains("<br>"));
-        assert!(md.contains("- 附件清单"));
+        assert!(md.contains("附件清单："));
         assert!(md.contains("- 证件.pdf（2.0 KB，application/pdf）"));
     }
 
@@ -1925,7 +1925,7 @@ mod tests {
                 "f1": "张三\n第二行",
                 "__fields": fields,
                 "__attachments": [
-                    {"id": "a1", "objectId": "o1", "fileName": "证件.pdf", "sizeBytes": 2048, "mimeType": "application/pdf"}
+                    {"id": "a1", "objectId": "o1", "fileName": "证件.pdf", "sizeBytes": 2048, "mimeType": "application/pdf", "createdAt": "2026-01-01T00:00:00Z"}
                 ]
             }),
         );
@@ -2065,6 +2065,7 @@ mod tests {
                         "fileName": "证件.pdf",
                         "sizeBytes": 2048,
                         "mimeType": "application/pdf",
+                        "createdAt": "2026-01-01T00:00:00Z",
                         "description": "带拍摄地点 <A区> & 扫描件",
                         "tags": ["旅行", "证件"]
                     }
@@ -2106,6 +2107,7 @@ mod tests {
                         "fileName": "证件.pdf",
                         "sizeBytes": 2048,
                         "mimeType": "application/pdf",
+                        "createdAt": "2026-01-01T00:00:00Z",
                         "description": "带拍摄地点的证件扫描件",
                         "tags": ["旅行", "证件"]
                     }

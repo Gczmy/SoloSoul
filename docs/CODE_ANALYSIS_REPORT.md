@@ -1,8 +1,8 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-11 18:39:22
+> 最后更新：2026-08-11 20:00:00
 > 当前分支：`main`
-> 修复轮次：2（修复验证轮——开发者完成轮次 1 修复后逐项验证）
+> 修复轮次：3（N 系列修复轮——按项修复并逐项更新）
 
 ## 基线验证（本轮实测）
 
@@ -72,14 +72,14 @@
 ## 修复进度
 
 - 轮次 1：验证通过关闭 **41 / 47**（含 P045 判定合理关闭）；修复有缺陷未关闭 2（P009、P022）；经确认跳过 2（P027、P033）；延期 2（P046、P047）
-- 轮次 2 新问题（N 系列）：**9 项，全部 `[ ]` 待修复**
-- 当前处理：无（按用户指令，更新报告后暂停，等待指令）
+- 轮次 2 新问题（N 系列）：**9 项，已修复 1 / 9**（N001 完成）
+- 当前处理：N002（attachment_share helper cfg 门控）
 
 ## 轮次 2 新问题清单（验证发现）
 
 | ID | 优先级 | 类别 | 文件位置 | 描述 | 状态 |
 |----|--------|------|----------|------|------|
-| N001 | P0 | 测试 | `tauri/src-tauri/src/commands/export_import/export_docx.rs` 测试、`commands/fs.rs` 测试 | main 上 Rust 测试 9 红（397 过/9 失败），CI rust-test 必挂：8 个 export_docx 陈旧断言（escape_markdown 未随 1c516c28 转义精简更新、fixture 缺 createdAt/template_id 矛盾）+ 1 个 test_fs_read_image_preview_command | `[ ]` 待修复 |
+| N001 | P0 | 测试 | `tauri/src-tauri/src/commands/export_import/export_docx.rs` 测试、`commands/fs.rs` 测试 | main 上 Rust 测试 9 红（397 过/9 失败），CI rust-test 必挂：8 个 export_docx 陈旧断言（escape_markdown 未随 1c516c28 转义精简更新、fixture 缺 createdAt/template_id 矛盾）+ 1 个 test_fs_read_image_preview_command | `[x]` 已修复 |
 | N002 | P1 | 构建 | `tauri/src-tauri/src/commands/attachment.rs:1292,1300` | P009 修复缺陷：`copy_to_share_dir_async` / `run_on_main_thread_oneshot` 缺 cfg 门控——Android/iOS 编译 E0425 硬错误（已实测复现），Linux CI clippy 报 dead code。修法：前者加 `#[cfg(not(any(android, ios)))]`，后者加 `#[cfg(any(macos, windows))]` | `[ ]` 待修复 |
 | N003 | P1 | 测试 | `solosoul_cli/src/screens/unlock.rs:233-234` | P022 修复缺陷：CLI 测试字面量仍写已删除的 `salt: None, verify_hash: None`，`cargo check --tests` E0560，CLI 测试全红。删 2 行即可 | `[ ]` 待修复 |
 | N004 | P1 | 漏洞/逻辑 | `tauri/src-tauri/src/commands/llm/conversations.rs:296-302` | 确证 bug（P004 修复引入）：`conversation_local_snapshot` 调 `load_conversation("", id)` 空 account_id 恒不匹配 → 冲突 UI 本地快照恒 None；连带 delta.rs:171-180 本地赢 LWW 时记假冲突 | `[ ]` 待修复 |
@@ -90,9 +90,25 @@
 | N009 | P2 | 测试/规范 | `tauri/src-tauri/src/commands/object/mod.rs:608`、`settings.rs`、`template.rs` | ①`validate_object_input` 误挂 `#[tauri::command]`（未注册，生成无用包装代码）；②P026 新增的三组边界校验函数零单元测试，白名单与前端 key 同步无兜底 | `[ ]` 待修复 |
 | N010 | P2 | 规范 | 多处（汇总） | 文案/注释/路径卫生：①P013 桌面白名单外导入报英文技术文案；②fs.rs 与 attachment.rs 两个 `allowed_fs_bases` 对 SOLOSOUL_FS_BASE 语义分叉（覆盖 vs 叠加）；③P015 极简 Linux 拒绝文案无自救提示且中英不一；④P017 canonical 路径回传前端（Windows `\\?\` 前缀）；⑤log.rs:10-11 模块文档与白名单语义矛盾；⑥export_import/mod.rs:262 陈旧注释 | `[ ]` 待修复 |
 
+## N 系列修复记录
+
+### N001（P0）Rust 测试 9 红 —— 已修复
+
+**2026-08-11 修复内容**：
+- `test_escape_markdown`：断言与 1c516c28 转义精简后的 `escape_markdown`（仅转义 `\` `` ` `` `[]` `|` `<>`，`.` `-` `+` `()` `*` `_` `#` 原样）对齐；`a*b_c[d]`e`` 不再期望 `\*` `\_`，`# 标题` 不再期望 `\#`
+- fixture `make_record`：`template_id: None` → `Some("t1")`，与「模板：护照」断言一致（渲染器按 template_id 查 template_names 映射）
+- 6 处 `__attachments` fixture 补 `createdAt`：`AttachmentMeta.created_at` 为必填字段（无 serde default），缺失导致 `load_attachments` 静默返回空、附件断言全挂
+- `test_build_text_document` 多行缩进断言：5 空格 → 3 空格（渲染器 `" ".repeat(label.chars().count() + 1)`，label「姓名」=2 字符+1）
+- `test_build_markdown_document`：`- 附件清单` → `附件清单：`（markdown 渲染器清单头为 `附件清单：`，条目才带 `- ` 前缀）
+- `test_fs_read_image_preview_command`：`futures::executor::block_on` → `#[tokio::test]`——`fs_read_image_preview` 内部用 `tokio::task::spawn_blocking`，`block_on` 无 Tokio runtime 上下文会 panic
+
+**验证**：`cargo fmt --check` / `cargo check -p solo_soul --tests` / `clippy -D warnings` 全绿。
+本地 Windows 下 `solo_soul` 测试二进制仍无法启动（0xc0000139，环境既有问题——`solosoul-vault` 159 项测试正常），
+断言正确性以逐条对照实现为准（已全部核对），CI/其他平台可运行验证。
+
 ## N 系列修复指引
 
-### N001（P0）Rust 测试 9 红
+### N001（P0）Rust 测试 9 红（已修复，见上）
 
 - `test_escape_markdown`：断言未随提交 1c516c28「大幅减少 markdown 转义」更新（仍期望转义 `*`/`_`）。
 - fixture 问题：`make_record` 硬编码 `template_id: None` 与「模板：护照」断言矛盾；`AttachmentMeta.created_at` 为必填而 fixture 缺 `createdAt`，导致 `load_attachments` 静默返回空（连带 be804d9b 新增的附件描述导出测试失败）。
@@ -156,3 +172,4 @@ async fn run_on_main_thread_oneshot(...) { ... }
 
 - 建议修复顺序：N001（P0，CI 红）→ N002/N003（修复轮缺陷，改动小）→ N004（确证 bug）→ N005/N006 → N007（流程缺口，防再漏）→ N008–N010。
 - 按流程一项一提交，每次提交前征得用户确认。
+- N001 已按纪律完成（一项一提交一更新报告）。

@@ -627,19 +627,22 @@ mod tests {
         assert!(generate_image_preview(&path, 256).is_err());
     }
 
-    #[test]
-    fn test_fs_read_image_preview_command() {
+    // N001: `fs_read_image_preview` 内部经 `tokio::task::spawn_blocking` 解码缩略图，
+    // 必须运行在 Tokio 运行时内（`futures::executor::block_on` 无 runtime 上下文会 panic）。
+    #[tokio::test]
+    async fn test_fs_read_image_preview_command() {
         let app = tauri::test::mock_app();
         let dir = TempDir::new().unwrap();
         let path = dir.path().join("photo.png");
         image::RgbaImage::from_pixel(800, 600, image::Rgba([9, 8, 7, 255]))
             .save(&path)
             .unwrap();
-        let url = futures::executor::block_on(fs_read_image_preview(
+        let url = fs_read_image_preview(
             app.handle().clone(),
             path.to_string_lossy().to_string(),
             256,
-        ))
+        )
+        .await
         .unwrap();
         assert!(url.starts_with("data:image/jpeg;base64,"));
     }
