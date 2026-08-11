@@ -11,4 +11,7 @@ export interface ProviderConfig {
   isBuiltIn: boolean;
   apiKey: string;
   apiType: 'openAI' | 'anthropic';
+  /** P021: 嵌入模型名（Rust ProviderConfig/ProviderWithKey 的 embedding_model）。
+   * 此前 TS 缺此字段，重构保存逻辑时会静默重置该值。 */
+  embeddingModel?: string;
 }
