@@ -27,6 +27,8 @@ export interface SearchItem {
   parentId?: string;
   templateName?: string;
   templateDeleted?: boolean;
+  /** 对象所属模板的图标 ID——解析「对象自身图标」用（与 workspace 对象卡片一致）。 */
+  templateIconId?: string;
   objectCount?: number;
   fieldCount?: number;
   matchedField?: string;
@@ -107,9 +109,14 @@ export function resolveResultName(
   return item.name;
 }
 
-/** 解析搜索结果的图标：系统页面按 objectId、对象按 typeId、自定义页面按 iconId。 */
+/** 解析搜索结果的图标：系统页面按 objectId、对象按模板图标、自定义页面按 iconId。 */
 export function resolveResultIcon(
-  item: { itemType?: string; typeId: string; objectId: string },
+  item: {
+    itemType?: string;
+    typeId: string;
+    objectId: string;
+    templateIconId?: string;
+  },
   customPages: CustomPage[],
 ): LucideIcon {
   if (item.itemType === 'page') {
@@ -121,6 +128,10 @@ export function resolveResultIcon(
       return resolveCustomIcon(cp.iconId);
     }
     return PAGE_ICON_MAP.custom;
+  }
+  // 对象优先显示所属模板的图标（与 workspace 对象卡片同源）；缺失时回退到所属页面图标。
+  if (item.templateIconId) {
+    return resolveCustomIcon(item.templateIconId);
   }
   if (item.typeId in PAGE_ICON_MAP) {
     return PAGE_ICON_MAP[item.typeId as keyof typeof PAGE_ICON_MAP];

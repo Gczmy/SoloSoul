@@ -40,6 +40,10 @@ pub struct SearchResultItem {
     pub template_name: Option<String>,
     /// Whether the template referenced by this object has been deleted
     pub template_deleted: bool,
+    /// 对象所属模板的图标 ID（object results only）——前端据此解析「对象自身图标」，
+    /// 与 workspace 对象卡片的图标来源一致（resolveCustomIcon(tpl.iconId)）。
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub template_icon_id: Option<String>,
     /// Number of populated fields in the object (object results only)
     pub field_count: Option<usize>,
     /// Sensitivity levels present in the object (object results only)

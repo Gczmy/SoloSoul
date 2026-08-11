@@ -152,6 +152,11 @@ fn search_advanced_impl(
                 collection_type: rec.type_id.clone(),
                 template_name: tpl_name,
                 template_deleted: tpl_deleted,
+                template_icon_id: rec
+                    .template_id
+                    .as_ref()
+                    .and_then(|tid| templates.get(tid))
+                    .and_then(|t| t.icon_id.clone()),
                 item_type: "object".to_string(),
                 parent_id: rec.parent_id.clone(),
                 field_count: Some(field_count),
@@ -251,6 +256,11 @@ fn search_by_page_only(
                 collection_type: s.collection_type,
                 template_name: tpl_name,
                 template_deleted: tpl_deleted,
+                template_icon_id: s
+                    .template_id
+                    .as_ref()
+                    .and_then(|tid| templates.get(tid))
+                    .and_then(|t| t.icon_id.clone()),
                 item_type: "object".to_string(),
                 parent_id: parent_id.cloned(),
                 field_count: Some(count_object_fields(&s.properties)),
@@ -275,13 +285,16 @@ fn search_by_page_only(
 
 /// P018: 模板命中时补充「使用该模板的对象」（复用 `search_advanced_impl` 已解密的全量
 /// records，不再二次 list_objects）——从 `search_unified` 拆出。
+/// `matched_template_ids` 为名称命中的模板 ID 集合；`templates` 为模板缓存
+/// （id → UserTemplate），用于解析名称与图标。
 fn expand_template_matches(
     items: &mut Vec<SearchResultItem>,
     all_records: &[solosoul_vault::ObjectRecord],
-    matched_templates: &std::collections::HashMap<String, String>,
+    matched_template_ids: &std::collections::HashSet<String>,
     collection_type: Option<&String>,
+    templates: &std::collections::HashMap<String, solosoul_vault::UserTemplate>,
 ) {
-    if matched_templates.is_empty() || all_records.is_empty() {
+    if matched_template_ids.is_empty() || all_records.is_empty() {
         return;
     }
     let existing_ids: std::collections::HashSet<String> =
@@ -297,27 +310,32 @@ fn expand_template_matches(
                 continue;
             }
         }
-        if let Some(ref tid) = obj.template_id {
-            if let Some(tpl_name) = matched_templates.get(tid) {
-                let field_count = count_object_fields(&obj.properties);
-                items.push(SearchResultItem {
-                    object_id: obj.id.clone(),
-                    name: obj.name.clone(),
-                    collection_type: obj.type_id.clone(),
-                    template_name: Some(tpl_name.clone()),
-                    template_deleted: false,
-                    item_type: "object".to_string(),
-                    parent_id: obj.parent_id.clone(),
-                    field_count: Some(field_count),
-                    sensitivity_levels: Some(vec![obj.sensitivity_level.clone()]),
-                    object_count: None,
-                    matched_field: Some("template".to_string()),
-                    matched_value: Some(tpl_name.clone()),
-                    match_type: Some("template".to_string()),
-                    relevance: SCORE_PARTIAL_NAME,
-                });
-            }
-        }
+        let tid = match obj.template_id.as_ref() {
+            Some(t) => t,
+            None => continue,
+        };
+        let tpl = match templates.get(tid) {
+            Some(t) if matched_template_ids.contains(tid) => t,
+            _ => continue,
+        };
+        let field_count = count_object_fields(&obj.properties);
+        items.push(SearchResultItem {
+            object_id: obj.id.clone(),
+            name: obj.name.clone(),
+            collection_type: obj.type_id.clone(),
+            template_name: Some(tpl.name.clone()),
+            template_deleted: false,
+            template_icon_id: tpl.icon_id.clone(),
+            item_type: "object".to_string(),
+            parent_id: obj.parent_id.clone(),
+            field_count: Some(field_count),
+            sensitivity_levels: Some(vec![obj.sensitivity_level.clone()]),
+            object_count: None,
+            matched_field: Some("template".to_string()),
+            matched_value: Some(tpl.name.clone()),
+            match_type: Some("template".to_string()),
+            relevance: SCORE_PARTIAL_NAME,
+        });
     }
 }
 
@@ -372,22 +390,34 @@ pub async fn search_unified(
             }
 
             // 始终搜索模板 — 模板不归属于页面，不受 collectionType 影响
-            let mut matched_templates: std::collections::HashMap<String, String> =
-                std::collections::HashMap::new();
+            let mut matched_template_ids: std::collections::HashSet<String> =
+                std::collections::HashSet::new();
             if let Ok(templates) = search_templates(&vault, &account_id, &query) {
                 for t in &templates {
-                    matched_templates.insert(t.object_id.clone(), t.name.clone());
+                    matched_template_ids.insert(t.object_id.clone());
                 }
                 object_result.items.extend(templates);
             }
 
             // 如果模板匹配，查找使用这些模板的对象（即使名称/字段不包含查询词）。
             // 复用 search_advanced_impl 已解密的全量 records，不再二次 list_objects。
+            // 仅当存在名称命中的模板时才加载模板缓存（避免无模板命中时多余查询）。
+            let user_templates: std::collections::HashMap<String, solosoul_vault::UserTemplate> =
+                if matched_template_ids.is_empty() {
+                    std::collections::HashMap::new()
+                } else {
+                    vault
+                        .list_user_templates(&account_id)?
+                        .into_iter()
+                        .map(|t| (t.id.clone(), t))
+                        .collect()
+                };
             expand_template_matches(
                 &mut object_result.items,
                 &all_records,
-                &matched_templates,
+                &matched_template_ids,
                 collection_type.as_ref(),
+                &user_templates,
             );
 
             // 重新排序和截断

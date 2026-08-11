@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react';
 
 // 共享模块引用 PAGE_ICON_MAP / searchCache，此处按真实实现使用（二者无副作用）即可。
 
+import { PAGE_ICON_MAP } from '@/lib/pageIcons';
 import {
   SYSTEM_PAGE_KEYS,
   SearchItem,
@@ -81,6 +82,21 @@ describe('searchShared helpers', () => {
     expect(sysIcon).toBeTruthy();
     expect(customIcon).toBeTruthy();
     expect(objIcon).toBeTruthy();
+  });
+
+  it('resolveResultIcon：对象优先使用所属模板图标，缺失时回退所属页面图标', () => {
+    // 带模板图标：即使是 identity 页面下的对象，也用模板图标而非页面图标
+    const withTemplateIcon = resolveResultIcon(
+      { itemType: 'object', typeId: 'identity', objectId: 'o1', templateIconId: 'star' },
+      customPages,
+    );
+    expect(withTemplateIcon).not.toBe(PAGE_ICON_MAP.identity);
+    // 无模板图标：回退到所属页面图标（既有行为）
+    const fallbackIcon = resolveResultIcon(
+      { itemType: 'object', typeId: 'identity', objectId: 'o2' },
+      customPages,
+    );
+    expect(fallbackIcon).toBe(PAGE_ICON_MAP.identity);
   });
 
   it('sortSensitivityLevels：按 public→critical 升序', () => {
