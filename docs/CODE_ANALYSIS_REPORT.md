@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-11 20:00:00
+> 最后更新：2026-08-11 20:10:00
 > 当前分支：`main`
 > 修复轮次：3（N 系列修复轮——按项修复并逐项更新）
 
@@ -72,15 +72,15 @@
 ## 修复进度
 
 - 轮次 1：验证通过关闭 **41 / 47**（含 P045 判定合理关闭）；修复有缺陷未关闭 2（P009、P022）；经确认跳过 2（P027、P033）；延期 2（P046、P047）
-- 轮次 2 新问题（N 系列）：**9 项，已修复 1 / 9**（N001 完成）
-- 当前处理：N002（attachment_share helper cfg 门控）
+- 轮次 2 新问题（N 系列）：**9 项，已修复 2 / 9**（N001、N002 完成）
+- 当前处理：N003（CLI 测试编译修复）
 
 ## 轮次 2 新问题清单（验证发现）
 
 | ID | 优先级 | 类别 | 文件位置 | 描述 | 状态 |
 |----|--------|------|----------|------|------|
 | N001 | P0 | 测试 | `tauri/src-tauri/src/commands/export_import/export_docx.rs` 测试、`commands/fs.rs` 测试 | main 上 Rust 测试 9 红（397 过/9 失败），CI rust-test 必挂：8 个 export_docx 陈旧断言（escape_markdown 未随 1c516c28 转义精简更新、fixture 缺 createdAt/template_id 矛盾）+ 1 个 test_fs_read_image_preview_command | `[x]` 已修复 |
-| N002 | P1 | 构建 | `tauri/src-tauri/src/commands/attachment.rs:1292,1300` | P009 修复缺陷：`copy_to_share_dir_async` / `run_on_main_thread_oneshot` 缺 cfg 门控——Android/iOS 编译 E0425 硬错误（已实测复现），Linux CI clippy 报 dead code。修法：前者加 `#[cfg(not(any(android, ios)))]`，后者加 `#[cfg(any(macos, windows))]` | `[ ]` 待修复 |
+| N002 | P1 | 构建 | `tauri/src-tauri/src/commands/attachment.rs:1292,1300` | P009 修复缺陷：`copy_to_share_dir_async` / `run_on_main_thread_oneshot` 缺 cfg 门控——Android/iOS 编译 E0425 硬错误（已实测复现），Linux CI clippy 报 dead code。修法：前者加 `#[cfg(not(any(android, ios)))]`，后者加 `#[cfg(any(macos, windows))]` | `[x]` 已修复 |
 | N003 | P1 | 测试 | `solosoul_cli/src/screens/unlock.rs:233-234` | P022 修复缺陷：CLI 测试字面量仍写已删除的 `salt: None, verify_hash: None`，`cargo check --tests` E0560，CLI 测试全红。删 2 行即可 | `[ ]` 待修复 |
 | N004 | P1 | 漏洞/逻辑 | `tauri/src-tauri/src/commands/llm/conversations.rs:296-302` | 确证 bug（P004 修复引入）：`conversation_local_snapshot` 调 `load_conversation("", id)` 空 account_id 恒不匹配 → 冲突 UI 本地快照恒 None；连带 delta.rs:171-180 本地赢 LWW 时记假冲突 | `[ ]` 待修复 |
 | N005 | P2 | 架构 | `tauri/src-tauri/src/commands/llm/conversation.rs:52-57`、`solosoul-core` LlmService | LLM 迁移隐患：①CLI 无懒迁移（看不到旧 blob 会话）；②GUI 懒迁移对 blob 逐条无条件 upsert（无 HLC/LWW 比较），可覆盖 CLI 已写入的较新行；③混合版本同步会抹掉旧设备 blob 会话（迁移窗口需文档警示或延迟删 blob 键） | `[ ]` 待修复 |
@@ -105,6 +105,15 @@
 **验证**：`cargo fmt --check` / `cargo check -p solo_soul --tests` / `clippy -D warnings` 全绿。
 本地 Windows 下 `solo_soul` 测试二进制仍无法启动（0xc0000139，环境既有问题——`solosoul-vault` 159 项测试正常），
 断言正确性以逐条对照实现为准（已全部核对），CI/其他平台可运行验证。
+
+### N002（P1）attachment_share helper cfg 门控 —— 已修复
+
+**2026-08-11 修复内容**：
+- `copy_to_share_dir_async` 加 `#[cfg(not(any(target_os = "android", target_os = "ios")))]`——桌面三平台（macos/windows/linux）使用，iOS 显式不支持分享、Android 走自有链路
+- `run_on_main_thread_oneshot` 加 `#[cfg(any(target_os = "macos", target_os = "windows"))]`——仅 macOS/WinRT 需主线程调度
+- `share_linux` 注释修正：「复制/揭示走 spawn_blocking」→ 复制走 `copy_to_share_dir_async`（spawn_blocking），reveal 在 async 上下文直接调用
+
+**验证**：`cargo fmt --check` / `clippy -D warnings` 全绿（Linux 语义无 dead code）。Android 交叉 check 本机未装 target，cfg 逻辑按报告指引逐条核对。
 
 ## N 系列修复指引
 
@@ -172,4 +181,4 @@ async fn run_on_main_thread_oneshot(...) { ... }
 
 - 建议修复顺序：N001（P0，CI 红）→ N002/N003（修复轮缺陷，改动小）→ N004（确证 bug）→ N005/N006 → N007（流程缺口，防再漏）→ N008–N010。
 - 按流程一项一提交，每次提交前征得用户确认。
-- N001 已按纪律完成（一项一提交一更新报告）。
+- N001、N002 已按纪律完成（一项一提交一更新报告）。

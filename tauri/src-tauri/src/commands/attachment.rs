@@ -1289,6 +1289,9 @@ pub async fn attachment_share<R: Runtime>(
 
 /// 复制附件到分享临时目录（分享副本而非 vault 原文件），复制在 spawn_blocking 中执行，
 /// 避免大文件复制阻塞 tokio worker。
+/// N002：仅桌面三平台使用（macos/windows/linux）；iOS 显式不支持分享、Android 走自有分享链路，
+/// 需 cfg 门控否则 Android/iOS 编译报 E0425、Linux CI 报 dead code。
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 async fn copy_to_share_dir_async(path: PathBuf, file_name: String) -> Result<PathBuf, String> {
     tokio::task::spawn_blocking(move || copy_to_share_dir(&path, &file_name))
         .await
@@ -1297,6 +1300,9 @@ async fn copy_to_share_dir_async(path: PathBuf, file_name: String) -> Result<Pat
 
 /// 主线程调度 + oneshot 回传：平台分享 UI（AppKit/WinRT）必须运行在 UI 线程且非 Send，
 /// 通过 run_on_main_thread 调度到主线程，闭包结果经 oneshot channel 回传。
+/// N002：仅 macOS / Windows 使用（Linux reveal 无需主线程），需 cfg 门控否则 Android/iOS
+/// 编译报 E0425、Linux CI 报 dead code。
+#[cfg(any(target_os = "macos", target_os = "windows"))]
 async fn run_on_main_thread_oneshot<R: Runtime, F>(app: AppHandle<R>, f: F) -> Result<(), String>
 where
     F: FnOnce(AppHandle<R>) -> Result<(), String> + Send + 'static,
@@ -1467,8 +1473,8 @@ async fn share_windows<R: Runtime>(
 ))]
 async fn share_linux(path: PathBuf, file_name: String) -> Result<(), String> {
     // Linux：复制到临时目录后 reveal 在文件管理器中显示，避免把用户带进隐藏的
-    // vault 目录、也避免误改 vault 内文件。复制/揭示走 spawn_blocking，避免大文件复制阻塞
-    // tokio worker；复制逻辑统一走 copy_to_share_dir 共享 helper。
+    // vault 目录、也避免误改 vault 内文件。复制走 copy_to_share_dir_async（spawn_blocking），
+    // reveal 在 async 上下文直接调用（文件管理器调用本身非阻塞、无 spawn_blocking 需求）。
     let dest = copy_to_share_dir_async(path, file_name).await?;
     opener::reveal(&dest).map_err(|e| format!("Failed to reveal file: {}", e))
 }
