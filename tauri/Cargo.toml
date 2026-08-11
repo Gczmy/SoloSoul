@@ -70,5 +70,8 @@ strip = "debuginfo"
 opt-level = 3
 lto = "thin"
 strip = "symbols"
-panic = "abort"
+# P025: panic = "unwind"——abort 会让命令 handler 内 panic 直接杀死整个进程（跳过 Vault
+# 正常锁定清理），且插件沙箱 sandbox.rs 的 catch_unwind 在 abort 下永远捕获不到插件 panic。
+# unwind 下 tauri 将命令 panic 转为错误返回，插件 panic 由沙箱捕获，进程保持存活。
+panic = "unwind"
 codegen-units = 1
