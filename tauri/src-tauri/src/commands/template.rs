@@ -790,6 +790,51 @@ mod tests {
         );
     }
 
+    /// N009: P026 模板输入校验函数边界单测。
+    #[test]
+    fn test_validate_template_input_boundaries() {
+        // 空名称拒绝
+        assert!(validate_template_input("", &[]).is_err());
+        assert!(validate_template_input("   ", &[]).is_err());
+
+        // 超长名称拒绝（> 200 字符）
+        assert!(validate_template_input(&"x".repeat(201), &[]).is_err());
+        // 恰好 200 字符放行
+        assert!(validate_template_input(&"x".repeat(200), &[]).is_ok());
+
+        // 超限字段载荷拒绝（> 512 KiB）
+        let big_field = TemplateProperty {
+            id: "f1".to_string(),
+            name: "大字段".to_string(),
+            prop_type: PropertyType::Text,
+            sensitivity_level: None,
+            sensitive: None,
+            options: Some(vec!["y".repeat(512 * 1024)]),
+            deprecated_at: None,
+            contract_field: None,
+            contract_bindings: None,
+            allowed_types: None,
+            max_items: None,
+        };
+        assert!(validate_template_input("tpl", &[big_field]).is_err());
+
+        // 正常输入放行
+        let ok_field = TemplateProperty {
+            id: "f1".to_string(),
+            name: "名字".to_string(),
+            prop_type: PropertyType::Text,
+            sensitivity_level: None,
+            sensitive: None,
+            options: None,
+            deprecated_at: None,
+            contract_field: None,
+            contract_bindings: None,
+            allowed_types: None,
+            max_items: None,
+        };
+        assert!(validate_template_input("模板", &[ok_field]).is_ok());
+    }
+
     // ── Helpers ──────────────────────────────────────────────────
 
     fn setup_vault() -> (solosoul_vault::VaultStore, tempfile::TempDir) {

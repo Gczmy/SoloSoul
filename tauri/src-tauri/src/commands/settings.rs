@@ -722,6 +722,40 @@ mod tests {
         assert!(p.exists());
     }
 
+    /// N009: P026 偏好载荷校验边界单测。
+    #[test]
+    fn test_validate_preferences_payload_boundaries() {
+        // 未知 key 拒绝
+        let mut bad = HashMap::new();
+        bad.insert("not_allowed_key".to_string(), serde_json::json!(1));
+        assert!(validate_preferences_payload(&bad).is_err());
+
+        // 合法 key 放行
+        let mut ok = HashMap::new();
+        ok.insert("theme".to_string(), serde_json::json!("dark"));
+        assert!(validate_preferences_payload(&ok).is_ok());
+
+        // 超过 32 个 key 拒绝
+        let mut many = HashMap::new();
+        for i in 0..33 {
+            many.insert(format!("lang{}", i), serde_json::json!(i));
+        }
+        assert!(validate_preferences_payload(&many).is_err());
+
+        // 超长 key（>128 字符）拒绝
+        let mut long_key = HashMap::new();
+        long_key.insert("k".repeat(129), serde_json::json!(1));
+        assert!(validate_preferences_payload(&long_key).is_err());
+
+        // 单值超过 256 KiB 拒绝
+        let mut big_val = HashMap::new();
+        big_val.insert(
+            "theme".to_string(),
+            serde_json::json!("x".repeat(256 * 1024 + 1)),
+        );
+        assert!(validate_preferences_payload(&big_val).is_err());
+    }
+
     #[test]
     fn test_lazy_cleanup_old_ui_prefs_new_missing_is_noop() {
         let dir = TempDir::new().unwrap();

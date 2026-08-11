@@ -2354,3 +2354,24 @@ fn test_truncate_preview_properties_field_order_priority() {
     assert!(obj2.contains_key("f08"));
     assert!(!obj2.contains_key("f09") && !obj2.contains_key("f10"));
 }
+
+/// N009: P026 对象输入校验函数边界单测。
+#[test]
+fn test_validate_object_input_boundaries() {
+    // 空名称拒绝
+    assert!(validate_object_input("", &serde_json::json!({})).is_err());
+    assert!(validate_object_input("   ", &serde_json::json!({})).is_err());
+
+    // 超长名称拒绝（> 200 字符）
+    let long_name = "x".repeat(201);
+    assert!(validate_object_input(&long_name, &serde_json::json!({})).is_err());
+    // 恰好 200 字符放行
+    assert!(validate_object_input(&"x".repeat(200), &serde_json::json!({})).is_ok());
+
+    // 超限 properties 载荷拒绝（> 10 MiB）
+    let big = "y".repeat(10 * 1024 * 1024 + 1);
+    assert!(validate_object_input("obj", &serde_json::json!({ "big": big })).is_err());
+
+    // 正常输入放行
+    assert!(validate_object_input("对象名", &serde_json::json!({ "a": 1 })).is_ok());
+}

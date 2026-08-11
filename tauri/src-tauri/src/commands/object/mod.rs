@@ -605,8 +605,8 @@ pub async fn object_get(
     .map_err(|e| format!("object_get task failed: {e}"))?
 }
 
-#[tauri::command]
 /// P026: 对象名称长度与 properties 载荷边界校验（object_create/object_update 共用）。
+/// 非命令（N009：误挂 #[tauri::command] 未注册，生成无用包装代码）。
 fn validate_object_input(name: &str, properties: &serde_json::Value) -> Result<(), String> {
     if name.trim().is_empty() {
         return Err("对象名称不能为空".to_string());
