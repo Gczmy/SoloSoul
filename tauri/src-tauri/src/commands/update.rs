@@ -43,23 +43,20 @@ const PROXY_PREFIXES: &[&str] = &[
     "https://ghps.cc/",
 ];
 
-/// T004: 代理前缀列表（可被环境变量 `SOLOSOUL_PROXY_PREFIXES` 覆盖，逗号分隔；
-/// 空字符串禁用全部代理，仅走直连）。未设置或解析为空时回退默认 `PROXY_PREFIXES`。
+/// T004: 代理前缀列表（可被环境变量 `SOLOSOUL_PROXY_PREFIXES` 覆盖，逗号分隔）。
+///
+/// U001 语义修正：**未设置**（`var` 返回 `Err`）→ 回退默认 `PROXY_PREFIXES`；
+/// **显式置空或仅空白**（隐私敏感用户意图禁用代理）→ 返回空列表，仅走直连，
+/// 不再回退默认——与注释/提交/报告三处「留空禁用代理」承诺一致。
+/// 设置非空值时按逗号分隔去空白过滤。
 fn proxy_prefixes() -> Vec<String> {
     match std::env::var("SOLOSOUL_PROXY_PREFIXES") {
-        Ok(raw) => {
-            let parsed: Vec<String> = raw
-                .split(',')
-                .map(str::trim)
-                .filter(|s| !s.is_empty())
-                .map(str::to_string)
-                .collect();
-            if parsed.is_empty() {
-                PROXY_PREFIXES.iter().map(|p| (*p).to_string()).collect()
-            } else {
-                parsed
-            }
-        }
+        Ok(raw) => raw
+            .split(',')
+            .map(str::trim)
+            .filter(|s| !s.is_empty())
+            .map(str::to_string)
+            .collect(),
         Err(_) => PROXY_PREFIXES.iter().map(|p| (*p).to_string()).collect(),
     }
 }
@@ -1257,7 +1254,7 @@ mod tests {
         }
     }
 
-    /// T004: 代理列表可被环境变量覆盖；空/仅空白时回退默认列表。
+    /// T004/U001: 代理列表可被环境变量覆盖；未设置→默认；显式置空/仅空白→禁用全部代理。
     #[test]
     fn test_proxy_prefixes_env_override() {
         let _guard = ENV_LOCK.lock().unwrap();
@@ -1285,11 +1282,17 @@ mod tests {
             ]
         );
 
-        // 空字符串（禁用代理意图）→ 回退默认列表
+        // 显式置空（禁用代理意图）→ 空列表，仅走直连（U001：不再回退默认）
         std::env::set_var("SOLOSOUL_PROXY_PREFIXES", "");
         let empty = proxy_prefixes();
         std::env::remove_var("SOLOSOUL_PROXY_PREFIXES");
-        assert_eq!(empty, default);
+        assert!(empty.is_empty());
+
+        // 仅空白同样视为禁用
+        std::env::set_var("SOLOSOUL_PROXY_PREFIXES", "  ,  ");
+        let blank = proxy_prefixes();
+        std::env::remove_var("SOLOSOUL_PROXY_PREFIXES");
+        assert!(blank.is_empty());
     }
 
     /// 分段计算：文件恰为段数整数倍 → 均匀分段，首尾闭合区间连续。
