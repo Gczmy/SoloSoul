@@ -283,12 +283,36 @@ fn flatten_object_fields(record: &solosoul_vault::ObjectRecord) -> Vec<(String, 
     out
 }
 
-/// 附件清单（名称 / 大小 / 类型），仅未软删附件。
-fn collect_attachment_rows(record: &solosoul_vault::ObjectRecord) -> Vec<(String, String, String)> {
+/// 附件清单条目（导出用）：主行（名称（大小，类型））+ 可选描述 + 标签。仅未软删附件。
+struct AttachmentExportEntry {
+    main: String,
+    description: Option<String>,
+    tags: Vec<String>,
+}
+
+/// 收集附件清单条目（名称 / 大小 / 类型 / 描述 / 标签）。
+///
+/// 描述与标签为附件级元数据（`attachment_update_meta` 维护），导出时一并列出；
+/// 描述内换行折叠为空格（清单行不承担多行排版）。
+fn collect_attachment_entries(record: &solosoul_vault::ObjectRecord) -> Vec<AttachmentExportEntry> {
     load_attachments(&record.properties)
         .into_iter()
         .filter(|a| a.deleted_at.is_none())
-        .map(|a| (a.file_name.clone(), format_bytes(a.size_bytes), a.mime_type))
+        .map(|a| AttachmentExportEntry {
+            main: format!(
+                "{}（{}，{}）",
+                a.file_name,
+                format_bytes(a.size_bytes),
+                a.mime_type
+            ),
+            description: a
+                .description
+                .as_deref()
+                .map(str::trim)
+                .filter(|d| !d.is_empty())
+                .map(|d| d.replace('\n', " ")),
+            tags: a.tags.clone(),
+        })
         .collect()
 }
 
@@ -414,15 +438,25 @@ fn build_docx(
         }
 
         // 附件清单小节
-        let attachments = collect_attachment_rows(rec);
+        let attachments = collect_attachment_entries(rec);
         if !attachments.is_empty() {
             document.push_str("<w:p><w:pPr><w:pStyle w:val=\"Heading2\"/></w:pPr><w:r><w:t>");
             document.push_str("附件清单");
             document.push_str("</w:t></w:r></w:p>\n");
-            for (name, size, mime) in &attachments {
+            for entry in &attachments {
                 document.push_str("<w:p>");
-                document.push_str(&text_run(&format!("{}（{}，{}）", name, size, mime)));
+                document.push_str(&text_run(&entry.main));
                 document.push_str("</w:p>\n");
+                if let Some(desc) = &entry.description {
+                    document.push_str("<w:p>");
+                    document.push_str(&text_run(&format!("　描述：{}", desc)));
+                    document.push_str("</w:p>\n");
+                }
+                if !entry.tags.is_empty() {
+                    document.push_str("<w:p>");
+                    document.push_str(&text_run(&format!("　标签：{}", entry.tags.join("、"))));
+                    document.push_str("</w:p>\n");
+                }
             }
         }
     }
@@ -736,12 +770,9 @@ fn markdown_field_value(ftype: &str, value: &str) -> String {
     out
 }
 
-/// 附件清单文本行（名称（大小，类型）），供 txt/markdown 复用。
-fn attachment_lines(record: &solosoul_vault::ObjectRecord) -> Vec<String> {
-    collect_attachment_rows(record)
-        .into_iter()
-        .map(|(name, size, mime)| format!("{}（{}，{}）", name, size, mime))
-        .collect()
+/// 附件清单条目（供 txt/markdown 复用）。
+fn attachment_lines(record: &solosoul_vault::ObjectRecord) -> Vec<AttachmentExportEntry> {
+    collect_attachment_entries(record)
 }
 
 /// 构造纯文本文档（UTF-8）：封面段 → 每对象（对象名称 / 元信息 / 字段 / 附件清单）。
@@ -807,14 +838,24 @@ fn build_text_document(
             }
         }
 
-        // 附件清单
+        // 附件清单（主行 + 可选描述/标签子行，缩进对齐）
         let attachments = attachment_lines(rec);
         if !attachments.is_empty() {
             out.push_str("\n附件清单：\n");
-            for line in &attachments {
+            for entry in &attachments {
                 out.push_str("  - ");
-                out.push_str(line);
+                out.push_str(&entry.main);
                 out.push('\n');
+                if let Some(desc) = &entry.description {
+                    out.push_str("    描述：");
+                    out.push_str(desc);
+                    out.push('\n');
+                }
+                if !entry.tags.is_empty() {
+                    out.push_str("    标签：");
+                    out.push_str(&entry.tags.join("、"));
+                    out.push('\n');
+                }
             }
         }
         out.push('\n');
@@ -892,14 +933,24 @@ fn build_markdown_document(
             }
         }
 
-        // 附件清单
+        // 附件清单（主行 + 可选描述/标签子行，嵌套列表）
         let attachments = attachment_lines(rec);
         if !attachments.is_empty() {
             out.push_str("\n附件清单：\n");
-            for line in &attachments {
+            for entry in &attachments {
                 out.push_str("- ");
-                out.push_str(&escape_markdown(line));
+                out.push_str(&escape_markdown(&entry.main));
                 out.push('\n');
+                if let Some(desc) = &entry.description {
+                    out.push_str("  - 描述：");
+                    out.push_str(&escape_markdown(desc));
+                    out.push('\n');
+                }
+                if !entry.tags.is_empty() {
+                    out.push_str("  - 标签：");
+                    out.push_str(&escape_markdown(&entry.tags.join("、")));
+                    out.push('\n');
+                }
             }
         }
         out.push('\n');
@@ -1005,15 +1056,22 @@ fn build_html_document(
             html.push_str("</table>\n");
         }
 
-        let attachments = collect_attachment_rows(rec);
+        let attachments = collect_attachment_entries(rec);
         if !attachments.is_empty() {
-            for (name, size, mime) in &attachments {
+            for entry in &attachments {
                 html.push_str("<p class=\"attach\">");
-                html.push_str(&escape_html(&format!(
-                    "附件：{}（{}，{}）",
-                    name, size, mime
-                )));
+                html.push_str(&escape_html(&format!("附件：{}", entry.main)));
                 html.push_str("</p>\n");
+                if let Some(desc) = &entry.description {
+                    html.push_str("<p class=\"attach\">");
+                    html.push_str(&escape_html(&format!("　描述：{}", desc)));
+                    html.push_str("</p>\n");
+                }
+                if !entry.tags.is_empty() {
+                    html.push_str("<p class=\"attach\">");
+                    html.push_str(&escape_html(&format!("　标签：{}", entry.tags.join("、"))));
+                    html.push_str("</p>\n");
+                }
             }
         }
         html.push_str("</div>\n");
@@ -1989,6 +2047,77 @@ mod tests {
         // 对象名带「对象名称：」前缀
         assert!(doc.contains("对象名称：一"));
         assert!(doc.contains("对象名称：三"));
+    }
+
+    #[test]
+    fn test_attachment_description_and_tags_exported_docx() {
+        let fields = serde_json::json!({});
+        let rec = make_record(
+            "o1",
+            "对象一",
+            fields.clone(),
+            serde_json::json!({
+                "__fields": fields,
+                "__attachments": [
+                    {
+                        "id": "a1",
+                        "objectId": "o1",
+                        "fileName": "证件.pdf",
+                        "sizeBytes": 2048,
+                        "mimeType": "application/pdf",
+                        "description": "带拍摄地点 <A区> & 扫描件",
+                        "tags": ["旅行", "证件"]
+                    }
+                ]
+            }),
+        );
+        let tpl_names = std::collections::HashMap::new();
+        let bytes =
+            build_docx(&[rec], &tpl_names, "2026-08-10T00:00:00Z", "Gczmy", "acc-1").unwrap();
+
+        let cursor = std::io::Cursor::new(&bytes);
+        let mut archive = zip::ZipArchive::new(cursor).unwrap();
+        let mut doc = String::new();
+        archive
+            .by_name("word/document.xml")
+            .unwrap()
+            .read_to_string(&mut doc)
+            .unwrap();
+        assert!(doc.contains("证件.pdf"));
+        // 描述中的 < & 必须 XML 转义（防止破坏 document.xml）
+        assert!(doc.contains("　描述：带拍摄地点 &lt;A区&gt; &amp; 扫描件"));
+        assert!(!doc.contains("<A区>"));
+        assert!(doc.contains("　标签：旅行、证件"));
+    }
+
+    #[test]
+    fn test_attachment_description_and_tags_exported_markdown() {
+        let fields = serde_json::json!({});
+        let rec = make_record(
+            "o1",
+            "对象一",
+            fields.clone(),
+            serde_json::json!({
+                "__fields": fields,
+                "__attachments": [
+                    {
+                        "id": "a1",
+                        "objectId": "o1",
+                        "fileName": "证件.pdf",
+                        "sizeBytes": 2048,
+                        "mimeType": "application/pdf",
+                        "description": "带拍摄地点的证件扫描件",
+                        "tags": ["旅行", "证件"]
+                    }
+                ]
+            }),
+        );
+        let tpl_names = std::collections::HashMap::new();
+        let md =
+            build_markdown_document(&[rec], &tpl_names, "2026-08-10T00:00:00Z", "Gczmy", "acc-1");
+        assert!(md.contains("- 证件.pdf（2.0 KB，application/pdf）"));
+        assert!(md.contains("  - 描述：带拍摄地点的证件扫描件"));
+        assert!(md.contains("  - 标签：旅行、证件"));
     }
 
     #[test]
