@@ -184,6 +184,56 @@ impl LlmService {
         Ok(())
     }
 
+    /// 永久删除会话：行级删除 + 同步从本设备 blob 值中移除该 id。
+    ///
+    /// S001（R003 回归修复）：仅删行级记录而保留 blob 键时，下次懒迁移会按
+    /// 「行级表无此 id 则写入」把已永久删除的会话从陈旧 blob 重新写回（purge
+    /// 后复活，且复活行作为新 delta 同步扩散到其他设备）。此处**改值不删键**：
+    /// 键保留仍保护只读 blob 的旧版本设备（R003），值移除保证本设备及经
+    /// profile delta 同步的其他新版本设备不再复活该会话。
+    ///
+    /// 顺序为先改 blob 后删行级：blob 移除失败时删除整体中止（不留半删除
+    /// 状态）；行级删除失败时会话仍在行级表（用户可见、可重试），且 blob 已
+    /// 无该 id，懒迁移不会复活。
+    pub fn permanent_delete_conversation(
+        &self,
+        vault: &VaultStore,
+        account_id: &str,
+        conversation_id: &str,
+    ) -> LlmResult<()> {
+        Self::remove_legacy_conversation_from_blob(vault, account_id, conversation_id)?;
+        vault
+            .delete_conversation(account_id, conversation_id)
+            .map_err(|e| format!("Delete conversation: {e}"))?;
+        Ok(())
+    }
+
+    /// 从 profile `preferences.llmConversations` blob 值中移除指定 id 的会话。
+    /// 仅当 blob 中确实存在该 id 时才回写 profile（避免无意义的 profile delta）；
+    /// 键本身保留（R003：键删除会经 profile delta 抹掉仍读 blob 的旧版本设备
+    /// 全部会话）。返回是否发生了移除。
+    fn remove_legacy_conversation_from_blob(
+        vault: &VaultStore,
+        account_id: &str,
+        conversation_id: &str,
+    ) -> LlmResult<bool> {
+        let mut data = Self::load_profile_data(vault, account_id)?;
+        let removed = data
+            .get_mut("preferences")
+            .and_then(|p| p.get_mut("llmConversations"))
+            .and_then(|v| v.as_array_mut())
+            .map(|arr| {
+                let before = arr.len();
+                arr.retain(|c| c.get("id").and_then(|v| v.as_str()) != Some(conversation_id));
+                arr.len() != before
+            })
+            .unwrap_or(false);
+        if removed {
+            Self::save_profile_data(vault, account_id, &data)?;
+        }
+        Ok(removed)
+    }
+
     /// Load all conversations for an account.
     ///
     /// P004: 会话改存 `llm_conversations` 行级表（不再存 profile preferences blob），
@@ -738,6 +788,89 @@ mod tests {
             .unwrap()
             .unwrap();
         assert_eq!(c1_again.name, "newer c1", "重复迁移不应覆盖较新行");
+    }
+
+    #[test]
+    fn test_permanent_delete_no_resurrect() {
+        let (_dir, vault, account_id) = setup_vault();
+        let service = LlmService::new();
+
+        // 构造含 c1/c2 的旧 blob 并迁移（首次迁移把 blob 写入行级表）
+        let legacy_blob = serde_json::json!([
+            {
+                "id": "c1",
+                "name": "old c1",
+                "isTemporary": false,
+                "messages": [],
+                "updatedAt": "2024-01-01T00:00:00Z",
+                "deletedAt": null
+            },
+            {
+                "id": "c2",
+                "name": "old c2",
+                "isTemporary": false,
+                "messages": [],
+                "updatedAt": "2024-01-02T00:00:00Z",
+                "deletedAt": null
+            }
+        ]);
+        let data = serde_json::json!({
+            "preferences": {
+                "llmConversations": legacy_blob
+            }
+        });
+        LlmService::save_profile_data(&vault, &account_id, &data).unwrap();
+        service
+            .migrate_legacy_conversations(&vault, &account_id)
+            .unwrap();
+        assert!(
+            service
+                .get_conversation(&vault, &account_id, "c1")
+                .unwrap()
+                .is_some(),
+            "迁移后 c1 应已在行级表"
+        );
+
+        // 永久删除 c1：行级删除 + 同步从 blob 值移除
+        service
+            .permanent_delete_conversation(&vault, &account_id, "c1")
+            .unwrap();
+        assert!(
+            service
+                .get_conversation(&vault, &account_id, "c1")
+                .unwrap()
+                .is_none(),
+            "行级记录应已删除"
+        );
+
+        // S001：再次 load（触发懒迁移）不得从保留的 blob 键复活 c1
+        let convs = service.load_conversations(&vault, &account_id).unwrap();
+        assert!(
+            !convs.iter().any(|c| c.id == "c1"),
+            "purge 后会话不应被懒迁移复活"
+        );
+
+        // 显式再迁移一次也不复活，且 c2 不受影响
+        service
+            .migrate_legacy_conversations(&vault, &account_id)
+            .unwrap();
+        let convs = service.load_conversations(&vault, &account_id).unwrap();
+        assert!(!convs.iter().any(|c| c.id == "c1"));
+        assert!(convs.iter().any(|c| c.id == "c2"), "c2 不应受影响");
+
+        // R003：blob 键保留（仅值变化），c1 已从值中移除、c2 仍留存在 blob 中
+        let data = LlmService::load_profile_data(&vault, &account_id).unwrap();
+        let blob = data
+            .get("preferences")
+            .and_then(|p| p.get("llmConversations"))
+            .and_then(|v| v.as_array())
+            .expect("R003: blob 键应保留");
+        assert!(!blob
+            .iter()
+            .any(|c| c.get("id").and_then(|v| v.as_str()) == Some("c1")));
+        assert!(blob
+            .iter()
+            .any(|c| c.get("id").and_then(|v| v.as_str()) == Some("c2")));
     }
 }
 

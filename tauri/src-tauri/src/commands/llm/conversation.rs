@@ -183,7 +183,9 @@ pub async fn llm_permanent_delete(
     conversation_id: String,
 ) -> Result<(), String> {
     let vault = vault_handle(&state)?;
-    vault.delete_conversation(&account_id, &conversation_id)
+    // S001：委托服务层——行级删除 + 同步从本设备 blob 值移除该 id，防止下次
+    // 懒迁移把已永久删除的会话从保留的 blob 键重新写回（purge 后复活）。
+    LlmService::new().permanent_delete_conversation(&vault, &account_id, &conversation_id)
 }
 
 #[tauri::command]
