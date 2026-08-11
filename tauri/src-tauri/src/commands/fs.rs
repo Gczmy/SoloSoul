@@ -138,14 +138,16 @@ fn resolve_within(base: &Path, path: &str) -> Result<PathBuf, String> {
     if !target_canon.starts_with(&base_canon) {
         return Err("Path is outside the allowed directory".to_string());
     }
-    Ok(abs)
+    // P017: 返回 canonical 目标路径而非字面路径——消除符号链接 TOCTOU 竞态：
+    // 校验与后续文件操作使用同一已解析路径，字面路径可能在校验后被替换绕过。
+    Ok(target_canon)
 }
 
 /// Resolve `path` within any allowed filesystem base directory. Filesystem
 /// commands that operate on user-selected paths must use this helper.
 ///
-/// 逐个允许基目录尝试 `resolve_within`；任一命中即返回（匹配时返回原路径而非
-/// 规范化路径，保持与旧行为一致）。若某基目录不存在（canonicalize 失败），
+/// 逐个允许基目录尝试 `resolve_within`；任一命中即返回规范化路径（P017：不再
+/// 返回字面路径，避免符号链接 TOCTOU）。若某基目录不存在（canonicalize 失败），
 /// 视为该基目录不可用并继续尝试下一个。
 pub(crate) fn resolve_allowed_path<R: tauri::Runtime>(
     app: &tauri::AppHandle<R>,
