@@ -115,6 +115,8 @@ export interface AndroidUpdateInfo {
   downloadUrl: string | null;
   /** SHA-256 校验和（hex 编码），空字符串表示不可用 */
   checksum: string;
+  /** P012: 校验和不可用原因（签名缺失/验签失败/资产缺失），用于展示可感知警告 */
+  checksumWarning: string | null;
   /** 是否为强制更新（Release body 包含 [MANDATORY] 标记） */
   mandatory: boolean;
   releaseNotes: string | null;

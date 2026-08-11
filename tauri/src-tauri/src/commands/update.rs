@@ -57,6 +57,8 @@ pub struct AndroidUpdateInfo {
     /// SHA-256 校验和（hex 编码），用于下载后验证 APK 完整性。
     /// 如果 Release 中没有对应的 `.sha256` 资产，则为空字符串。
     pub checksum: String,
+    /// P012: 校验和不可用原因（签名缺失/验签失败/资产缺失），供前端展示可感知警告。
+    pub checksum_warning: Option<String>,
     /// 是否为强制更新。当 Release body 包含 `[MANDATORY]` 标记时为 true。
     /// 强制更新会显示不可关闭的对话框，用户必须更新才能继续使用。
     pub mandatory: bool,
@@ -242,14 +244,24 @@ fn find_apk_asset(release: &GitHubRelease) -> Option<(String, Option<i64>)> {
 /// 验签；验签失败或缺失签名视为校验和不可信（返回 None）。
 ///
 /// 返回验签通过的 64 位 hex 校验和（格式: "<64位hex>  <文件名>" 或仅 hex）。
+/// 返回 (校验和, 不可用原因)——P012: 验签失败/缺失不再静默吞掉，而是把原因
+/// 带给调用方（check 命令转发给前端展示警告，download 命令 fail-closed 拒绝）。
 async fn resolve_verified_checksum(
     client: &reqwest::Client,
     release: &GitHubRelease,
-) -> Option<String> {
-    let checksum_asset = release
+) -> (Option<String>, Option<String>) {
+    // P012: 资产匹配收紧——仅以 `.sha256` 结尾且排除 `.minisig` 签名文件
+    // （旧逻辑 `contains("sha256")` 会误匹配 `xx.sha256.minisig`）。
+    let Some(checksum_asset) = release
         .assets
         .iter()
-        .find(|a| a.name.ends_with(".apk.sha256") || a.name.contains("sha256"))?;
+        .find(|a| a.name.ends_with(".sha256") && !a.name.ends_with(".minisig"))
+    else {
+        return (
+            None,
+            Some("发布未提供 .sha256 校验和资产，无法确认 APK 完整性".to_string()),
+        );
+    };
     let sig_asset = release.assets.iter().find(|a| {
         a.name.ends_with(".sha256.minisig")
             || a.name.ends_with(".apk.sha256.minisig")
@@ -279,14 +291,22 @@ async fn resolve_verified_checksum(
         tracing::warn!(
             "[updater] APK checksum minisign signature missing or invalid — checksum rejected"
         );
-        return None;
+        return (
+            None,
+            Some("校验和签名缺失或验签失败，无法确认 APK 完整性".to_string()),
+        );
     }
 
     // 验签通过后，才提取 64 位 hex 作为校验和。
-    body.split_whitespace()
+    let checksum = body
+        .split_whitespace()
         .next()
         .filter(|token| token.len() == 64)
-        .map(|s| s.to_string())
+        .map(|s| s.to_string());
+    let warning = checksum
+        .is_none()
+        .then(|| "校验和文件格式异常，无法解析 64 位 hex".to_string());
+    (checksum, warning)
 }
 
 /// 检查 GitHub Release 是否有新版本。
@@ -308,10 +328,10 @@ pub async fn android_check_update(app: tauri::AppHandle) -> Result<AndroidUpdate
     // 查找 APK 资产；校验和走共享解析（下载 .sha256 + .minisig 并验签）
     let (apk_download_url, apk_size) = find_apk_asset(&release).unwrap_or_default();
     let apk_download_url = (!apk_download_url.is_empty()).then_some(apk_download_url);
-    let checksum = resolve_verified_checksum(&client, &release).await;
+    let (checksum, checksum_warning) = resolve_verified_checksum(&client, &release).await;
 
-    // 如果找到 checksum 但解析失败（如文件格式异常），也返回空字符串
-    // 客户端仍可正常下载，只是不进行校验
+    // 如果找到 checksum 但解析失败（如文件格式异常），也返回空字符串，
+    // 客户端仍可正常下载，只是不进行校验——原因经 checksum_warning 展示给用户。
 
     // 检测强制更新标记：Release body 中是否包含 [MANDATORY]
     let mandatory = release
@@ -335,6 +355,7 @@ pub async fn android_check_update(app: tauri::AppHandle) -> Result<AndroidUpdate
         current_version: current,
         download_url: apk_download_url,
         checksum: checksum.unwrap_or_default(),
+        checksum_warning,
         mandatory,
         release_notes: clean_body,
         published_at: release.published_at,
@@ -494,6 +515,7 @@ pub async fn android_download_apk(app: tauri::AppHandle, version: String) -> Res
         find_apk_asset(&release).ok_or_else(|| "Release 中未找到 APK 资产".to_string())?;
     let expected_checksum = resolve_verified_checksum(&client, &release)
         .await
+        .0
         .ok_or_else(|| "APK 校验和不可信（签名缺失或验签失败），已拒绝下载".to_string())?;
     let should_verify = true;
 

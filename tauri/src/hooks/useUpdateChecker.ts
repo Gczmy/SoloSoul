@@ -27,6 +27,8 @@ export interface VersionInfo {
   error?: string;
   downloadUrl?: string | null;
   checksum?: string;
+  /** P012: 校验和不可用原因，展示为警告 */
+  checksumWarning?: string;
   mandatory?: boolean;
 }
 
@@ -60,6 +62,7 @@ export function useUpdateChecker() {
                   latestVersion: result.info.latestVersion,
                   downloadUrl: result.info.downloadUrl,
                   checksum: result.info.checksum,
+                  checksumWarning: result.info.checksumWarning || undefined,
                   mandatory: result.info.mandatory,
                   state: 'available' as const,
                   body: result.info.releaseNotes || undefined,

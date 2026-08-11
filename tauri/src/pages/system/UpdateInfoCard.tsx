@@ -202,6 +202,22 @@ export function UpdateInfoCard({
                   >
                     <Download size={ICON_SIZE.sm} />v{info.version} → v{versionInfo.latestVersion}
                   </div>
+                  {versionInfo.checksumWarning && (
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'flex-start',
+                        gap: 6,
+                        fontSize: 'var(--text-badge)',
+                        color: '#e67e22',
+                        lineHeight: 1.5,
+                      }}
+                      role="alert"
+                    >
+                      <AlertTriangle size={14} style={{ flexShrink: 0, marginTop: 1 }} />
+                      <span>{versionInfo.checksumWarning}</span>
+                    </div>
+                  )}
                   {versionInfo.body && (
                     <SafeMarkdown
                       className="release-notes-md"
