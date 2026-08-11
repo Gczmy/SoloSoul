@@ -852,8 +852,15 @@ async fn download_apk_parallel(
         }
     }
     if let Some(e) = failure {
-        for handle in iter {
+        // U005: abort() 是异步信号——任务可能已越过最后的 await 点仍在执行
+        // （写完文件才返回），若立刻删 seg 文件，任务收尾时可能重建孤儿 .seg。
+        // 先 abort 全部剩余句柄，再逐个 await（忽略结果）确保完全停止，之后清理。
+        let remaining: Vec<_> = iter.collect();
+        for handle in &remaining {
             handle.abort();
+        }
+        for handle in remaining {
+            let _ = handle.await;
         }
         // 只清理分段文件，**保留 part_path**：它可能承载上次单流中断的有效断点，
         // 调用方可据此回退单流断点续传（T002），不应在并行失败时销毁。
@@ -988,6 +995,13 @@ async fn download_range_to_file(
     Err(format!("分段 {start}-{end} 所有通道失败: {last_err}"))
 }
 
+/// U005: 单流中途失败后的新断点 = 已写字节数（初始偏移 + 本次新增）。
+/// 抽为纯函数便于单测：断点必须精确落在已持久化的字节边界，供下一候选
+/// `Range: bytes={offset}-` 续传。
+fn next_resume_offset(initial_offset: u64, new_bytes: u64) -> u64 {
+    initial_offset + new_bytes
+}
+
 /// 单流下载（不支持 Range 或文件较小）：候选通道回退 + 断点续传 + 进度事件。
 /// 成功返回后 `part_path` 即完整文件，交由调用方校验落盘。
 async fn download_apk_single_stream(
@@ -996,7 +1010,9 @@ async fn download_apk_single_stream(
     part_path: &std::path::Path,
 ) -> Result<(), String> {
     // 检查是否有已下载的部分文件，用于断点续传
-    let existing_size = if part_path.exists() {
+    // U005: mut——流中途失败切下一候选时更新为「已写字节数」作为新断点，
+    // 下一候选从新断点续传（不再丢失已下载字节）。
+    let mut existing_size = if part_path.exists() {
         let meta = std::fs::metadata(part_path).map_err(|e| format!("读取部分文件元数据: {e}"))?;
         let size = meta.len();
         // 部分文件体积异常（超过普通 APK 大小）时忽略
@@ -1058,14 +1074,21 @@ async fn download_apk_single_stream(
         // ── 流式下载（统一处理续传和新下载） ──
         let mut new_bytes: u64 = 0;
         let mut stream = resp;
-        while let Some(chunk) = stream
-            .chunk()
-            .await
-            .map_err(|e| format!("下载分块失败: {e}"))?
-        {
+        let mut stream_err: Option<String> = None;
+        loop {
+            let chunk = match stream.chunk().await {
+                Ok(Some(c)) => c,
+                Ok(None) => break,
+                Err(e) => {
+                    stream_err = Some(format!("下载分块失败: {e}"));
+                    break;
+                }
+            };
             use std::io::Write;
-            file.write_all(&chunk)
-                .map_err(|e| format!("写入分块失败: {e}"))?;
+            if let Err(e) = file.write_all(&chunk) {
+                stream_err = Some(format!("写入分块失败: {e}"));
+                break;
+            }
             new_bytes += chunk.len() as u64;
 
             // 发送进度事件（包含总量和百分比，供前端进度条使用）
@@ -1083,6 +1106,14 @@ async fn download_apk_single_stream(
                     },
                 );
             }
+        }
+        // U005: 流中途失败（分块读取/写入错误）→ 保留已写字节作为断点，切下一候选；
+        // 若本候选走的是「重新下载」分支（删旧文件重下），文件已存在且大小为
+        // initial_offset + new_bytes，断点同样有效。成功则返回。
+        if let Some(e) = stream_err {
+            last_err = e;
+            existing_size = next_resume_offset(initial_offset, new_bytes);
+            continue;
         }
         return Ok(());
     }
@@ -1346,6 +1377,17 @@ mod tests {
         let blank = proxy_prefixes();
         std::env::remove_var("SOLOSOUL_PROXY_PREFIXES");
         assert!(blank.is_empty());
+    }
+
+    /// U005: 单流中途失败后断点 = 初始偏移 + 本次已写字节（供下一候选 Range 续传）。
+    #[test]
+    fn test_next_resume_offset() {
+        // 全新下载中途失败：断点 = 已写字节
+        assert_eq!(next_resume_offset(0, 1024), 1024);
+        // 断点续传中失败：断点 = 原断点 + 本次新增
+        assert_eq!(next_resume_offset(5_000_000, 2048), 5_002_048);
+        // 写失败但未写任何新字节（write_all 失败前）：断点回退原值
+        assert_eq!(next_resume_offset(5_000_000, 0), 5_000_000);
     }
 
     /// 分段计算：文件恰为段数整数倍 → 均匀分段，首尾闭合区间连续。
