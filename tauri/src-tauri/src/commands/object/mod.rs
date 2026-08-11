@@ -4,7 +4,7 @@
 //! Supports: type schemas, parent/child hierarchies, property storage,
 //! soft-delete trash, and account-scoped queries.
 
-use crate::commands::{current_account_optional, vault_handle};
+use crate::commands::{current_account, current_account_optional, vault_handle};
 use crate::state::AppState;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -610,6 +610,9 @@ pub async fn object_create(
     state: State<'_, AppState>,
     input: CreateObjectInput,
 ) -> Result<ObjectData, String> {
+    // P020: 服务端派生当前账户，忽略客户端 account_id——陈旧 accountId 会把对象
+    // 写进错误账户（template/ocr 已统一此约定）。
+    let account_id = current_account(&state)?;
     let vault = vault_handle(&state)?;
 
     // P114: 模板继承查询 + save_object 写入（AES 加密）移入 spawn_blocking。
@@ -659,7 +662,7 @@ pub async fn object_create(
         let record = ObjectRecord {
             contract_type_id,
             id: id.clone(),
-            account_id: input.account_id.clone(),
+            account_id: account_id.clone(),
             type_id: input.collection_type.clone(),
             section_type: input.collection_type.clone(), // §25.1.3: page affiliation (currently mirrors type_id)
             name: input.name.clone(),

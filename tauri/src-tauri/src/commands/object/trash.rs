@@ -237,10 +237,12 @@ pub fn run_expired_trash_cleanup(state: &crate::state::AppState) {
 #[tauri::command]
 pub async fn page_delete(
     state: State<'_, AppState>,
-    account_id: String,
+    _account_id: String,
     section_type: String,
     page_object_id: Option<String>,
 ) -> Result<usize, String> {
+    // P020: 服务端派生当前账户，忽略客户端 account_id（陈旧值会把删除目标对准错误账户）
+    let account_id = current_account(&state)?;
     let vault = vault_handle(&state)?;
 
     // P114/P211: 全表筛选 + 批量加载 + 单事务批量入回收站/软删移入 spawn_blocking。
