@@ -579,16 +579,14 @@ fn derive_export_key(password: &str, salt: &[u8]) -> Result<[u8; 32], ExportErro
 }
 
 /// 以指定 KDF 参数派生导出密钥（导入端按 manifest 声明参数调用）。
+/// P024: 薄包装 `solosoul-crypto::kdf::derive_export_key` 单一实现，仅映射错误类型。
 fn derive_export_key_cfg(
     password: &str,
     salt: &[u8],
     config: &KdfConfig,
 ) -> Result<[u8; 32], ExportError> {
-    use solosoul_crypto::kdf::derive_key;
-    let key_vec = derive_key(password, salt, config).map_err(|e| format!("密钥派生失败: {}", e))?;
-    let mut key = [0u8; 32];
-    key.copy_from_slice(&key_vec);
-    Ok(key)
+    solosoul_crypto::kdf::derive_export_key(password, salt, config)
+        .map_err(|e| ExportError::Msg(format!("密钥派生失败: {}", e)))
 }
 
 /// 将 KDF 参数编码为 manifest 的 `kdf` 字段（自描述 JSON，供导入端复用）。

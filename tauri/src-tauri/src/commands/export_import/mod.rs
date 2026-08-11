@@ -233,18 +233,13 @@ pub(crate) fn derive_export_key(password: &str, salt: &[u8]) -> Result<[u8; 32],
 
 /// 以指定 KDF 参数派生导出密钥（P202：导入端按 manifest 声明的 `kdf` 字段调用；
 /// 导出端默认走 `from_env()`——release 为 production/OWASP，debug 为 development）。
-/// 注意：与 `solosoul-core/src/export_import.rs` 的 `derive_export_key_cfg` 保持同步
-/// （仅错误类型不同：本处 `String` vs 核心 `ExportError`），改动需双端一致。
+/// P024: 薄包装 `solosoul-crypto::kdf::derive_export_key` 单一实现，仅映射错误类型。
 pub(crate) fn derive_export_key_cfg(
     password: &str,
     salt: &[u8],
     config: &solosoul_crypto::kdf::KdfConfig,
 ) -> Result<[u8; 32], String> {
-    use solosoul_crypto::kdf::derive_key;
-    let key_vec = derive_key(password, salt, config).map_err(|e| e.to_string())?;
-    let mut key = [0u8; 32];
-    key.copy_from_slice(&key_vec);
-    Ok(key)
+    solosoul_crypto::kdf::derive_export_key(password, salt, config).map_err(|e| e.to_string())
 }
 
 /// Load attachment metadata from object properties.
