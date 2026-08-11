@@ -60,9 +60,25 @@ fn to_response(entry: solosoul_vault::AuditLogEntry) -> AuditLogResponse {
     }
 }
 
+/// P019: `log_write` 允许的 action_type 枚举白名单——前端仅能写关键字段查看审计，
+/// 禁止伪造登录/导出/备份等系统级动作的审计条目（审计日志作为安全证据的可信度）。
+const FRONTEND_LOG_ACTION_TYPES: &[&str] = &[
+    "critical_field_login",
+    "critical_field_pin",
+    "critical_field_touch_id",
+    "critical_field_windows_hello",
+    "critical_field_face_id",
+];
+
 /// Write a structured audit log entry to the vault's audit_log table.
 #[tauri::command]
 pub async fn log_write(state: State<'_, AppState>, request: WriteLogRequest) -> Result<(), String> {
+    if !FRONTEND_LOG_ACTION_TYPES.contains(&request.action_type.as_str()) {
+        return Err(format!(
+            "action_type '{}' is not allowed from frontend",
+            request.action_type
+        ));
+    }
     let vault = vault_handle(&state)?;
 
     vault.log_structured(
