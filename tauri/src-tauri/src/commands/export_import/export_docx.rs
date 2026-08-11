@@ -197,14 +197,11 @@ struct FieldDefMeta {
 ///
 /// dynamic_group 字段：子字段展开为独立条目（label=子字段 name，value=子字段 value），
 /// 与前端 objectDetailUtils.flattenProperties 行为一致；组名/占位符不单独成行。
-fn flatten_object_fields(record: &solosoul_vault::ObjectRecord) -> Vec<(String, String, String)> {
-    let mut out = Vec::new();
-    let Some(props) = record.properties.as_object() else {
-        return out;
-    };
-    // 字段定义：优先 __fields 定义的 name/type，回退键名本身
-    let field_meta: std::collections::HashMap<String, FieldDefMeta> = record
-        .properties
+/// 从 `properties.__fields` 提取字段定义元信息（name/type），回退键名本身。
+fn build_field_meta(
+    properties: &serde_json::Value,
+) -> std::collections::HashMap<String, FieldDefMeta> {
+    properties
         .get("__fields")
         .and_then(|v| v.as_object())
         .map(|fields| {
@@ -225,37 +222,54 @@ fn flatten_object_fields(record: &solosoul_vault::ObjectRecord) -> Vec<(String, 
                 })
                 .collect()
         })
-        .unwrap_or_default();
+        .unwrap_or_default()
+}
+
+/// dynamic_group 字段：子字段展开为独立条目（与前端 flattenProperties 一致）。
+/// 仅收集 name/value 均非空的子项，字段类型固定为 "text"。
+fn flatten_dynamic_group(value: &serde_json::Value, out: &mut Vec<(String, String, String)>) {
+    let serde_json::Value::Array(items) = value else {
+        return;
+    };
+    for item in items {
+        let Some(obj) = item.as_object() else {
+            continue;
+        };
+        let name = obj
+            .get("name")
+            .and_then(|n| n.as_str())
+            .unwrap_or("")
+            .to_string();
+        if name.is_empty() {
+            continue;
+        }
+        let value = obj
+            .get("value")
+            .map(field_value_to_text)
+            .unwrap_or_default();
+        if value.is_empty() {
+            continue;
+        }
+        out.push((name, value, "text".to_string()));
+    }
+}
+
+/// 展平对象字段为 (label, text, ftype) 三元组：`__` 元数据键跳过，
+/// dynamic_group 展开子字段，普通字段按字段定义取展示名。
+fn flatten_object_fields(record: &solosoul_vault::ObjectRecord) -> Vec<(String, String, String)> {
+    let mut out = Vec::new();
+    let Some(props) = record.properties.as_object() else {
+        return out;
+    };
+    let field_meta = build_field_meta(&record.properties);
 
     for (k, v) in props {
         if k.starts_with("__") {
             continue;
         }
         let meta = field_meta.get(k);
-        // dynamic_group：子字段展开为独立条目（与前端 flattenProperties 一致）
         if meta.map(|m| m.ftype.as_str()) == Some("dynamic_group") {
-            if let serde_json::Value::Array(items) = v {
-                for item in items {
-                    if let Some(obj) = item.as_object() {
-                        let name = obj
-                            .get("name")
-                            .and_then(|n| n.as_str())
-                            .unwrap_or("")
-                            .to_string();
-                        if name.is_empty() {
-                            continue;
-                        }
-                        let value = obj
-                            .get("value")
-                            .map(field_value_to_text)
-                            .unwrap_or_default();
-                        if value.is_empty() {
-                            continue;
-                        }
-                        out.push((name, value, "text".to_string()));
-                    }
-                }
-            }
+            flatten_dynamic_group(v, &mut out);
             continue;
         }
         let text = field_value_to_text(v);
