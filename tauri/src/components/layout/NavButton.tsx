@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 import type { LucideIcon } from 'lucide-react';
 import styles from './NavButton.module.css';
 import { ICON_SIZE } from '@/lib/constants';
-import { supportsHover } from '@/lib/platform';
+import { useHoverCardPosition } from '@/hooks/useHoverCardPosition';
 
 export type NavPosition = 'left' | 'right' | 'top' | 'bottom';
 
@@ -26,72 +26,16 @@ export function NavButton({
   position = 'left',
 }: NavButtonProps) {
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const [cardStyle, setCardStyle] = useState<React.CSSProperties | null>(null);
   const [indicatorStyle, setIndicatorStyle] = useState<CSSProperties | null>(null);
-  const [isHovered, setIsHovered] = useState(false);
 
   const isHorizontal = position === 'top' || position === 'bottom';
   const isBottom = position === 'bottom';
   const isRight = position === 'right';
 
-  const updatePosition = useCallback(() => {
-    if (wrapperRef.current) {
-      const rect = wrapperRef.current.getBoundingClientRect();
-      if (isHorizontal) {
-        if (isBottom) {
-          setCardStyle({
-            top: 'auto',
-            bottom: window.innerHeight - rect.top + 8,
-            left: rect.left + rect.width / 2,
-            transform: 'translateX(-50%)',
-          });
-        } else {
-          setCardStyle({
-            top: rect.bottom + 8,
-            bottom: 'auto',
-            left: rect.left + rect.width / 2,
-            transform: 'translateX(-50%)',
-          });
-        }
-      } else if (isRight) {
-        setCardStyle({
-          top: rect.top + rect.height / 2,
-          bottom: 'auto',
-          left: 'auto',
-          right: window.innerWidth - rect.left + 8,
-          transform: 'translateY(-50%)',
-        });
-      } else {
-        setCardStyle({
-          top: rect.top + rect.height / 2,
-          bottom: 'auto',
-          left: rect.right + 8,
-          transform: 'translateY(-50%)',
-        });
-      }
-    }
-  }, [isHorizontal, isBottom, isRight]);
-
-  const handleMouseEnter = useCallback(() => {
-    // 触屏设备不触发悬停卡片（Android WebView hover 会粘住）
-    if (!supportsHover()) return;
-    setIsHovered(true);
-    updatePosition();
-  }, [updatePosition]);
-
-  const handleMouseLeave = useCallback(() => {
-    setIsHovered(false);
-  }, []);
-
-  useEffect(() => {
-    if (!isHovered) return;
-    window.addEventListener('scroll', updatePosition, true);
-    window.addEventListener('resize', updatePosition);
-    return () => {
-      window.removeEventListener('scroll', updatePosition, true);
-      window.removeEventListener('resize', updatePosition);
-    };
-  }, [isHovered, updatePosition]);
+  const { cardStyle, isHovered, handleMouseEnter, handleMouseLeave } = useHoverCardPosition(
+    wrapperRef,
+    { isHorizontal, isBottom, isRight },
+  );
 
   const updateIndicator = useCallback(() => {
     if (!wrapperRef.current || !isActive) return;

@@ -8,7 +8,6 @@ import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import type { CustomPage } from '@/stores/settingsStore';
 import styles from './SideNavigation.module.css';
-import { supportsHover } from '@/lib/platform';
 import {
   CUSTOM_ICON_MAP,
   DEFAULT_CUSTOM_ICON,
@@ -17,6 +16,7 @@ import {
   type CustomIconId,
 } from '@/lib/pageIcons';
 import { SYSTEM_PAGE_KEYS } from './useNavigationItems';
+import { useHoverCardPosition } from '@/hooks/useHoverCardPosition';
 import { ICON_SIZE, SAFE_AREA_TOP, SAFE_AREA_BOTTOM } from '@/lib/constants';
 
 /** 预留的顶部空间：移动 AppBar (48px) + 安全区 + 8px 边距；
@@ -154,69 +154,12 @@ export function AddPageButton({
     };
   }, [isCreating, handleConfirm]);
 
-  // Hover name card (same portal pattern as NavButton)
+  // Hover name card（共享定位 hook，同 NavButton 的 portal 模式）
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const [cardStyle, setCardStyle] = useState<React.CSSProperties | null>(null);
-  const [isHovered, setIsHovered] = useState(false);
-
-  const updateCardPosition = useCallback(() => {
-    if (wrapperRef.current) {
-      const rect = wrapperRef.current.getBoundingClientRect();
-      if (isHorizontal) {
-        if (isBottom) {
-          setCardStyle({
-            top: 'auto',
-            bottom: window.innerHeight - rect.top + 8,
-            left: rect.left + rect.width / 2,
-            transform: 'translateX(-50%)',
-          });
-        } else {
-          setCardStyle({
-            top: rect.bottom + 8,
-            bottom: 'auto',
-            left: rect.left + rect.width / 2,
-            transform: 'translateX(-50%)',
-          });
-        }
-      } else if (isRight) {
-        setCardStyle({
-          top: rect.top + rect.height / 2,
-          bottom: 'auto',
-          left: 'auto',
-          right: window.innerWidth - rect.left + 8,
-          transform: 'translateY(-50%)',
-        });
-      } else {
-        setCardStyle({
-          top: rect.top + rect.height / 2,
-          bottom: 'auto',
-          left: rect.right + 8,
-          transform: 'translateY(-50%)',
-        });
-      }
-    }
-  }, [isHorizontal, isBottom, isRight]);
-
-  const handleMouseEnter = useCallback(() => {
-    // 触屏设备不触发悬停卡片（Android WebView hover 会粘住）
-    if (!supportsHover()) return;
-    setIsHovered(true);
-    updateCardPosition();
-  }, [updateCardPosition]);
-
-  const handleMouseLeave = useCallback(() => {
-    setIsHovered(false);
-  }, []);
-
-  useEffect(() => {
-    if (!isHovered) return;
-    window.addEventListener('scroll', updateCardPosition, true);
-    window.addEventListener('resize', updateCardPosition);
-    return () => {
-      window.removeEventListener('scroll', updateCardPosition, true);
-      window.removeEventListener('resize', updateCardPosition);
-    };
-  }, [isHovered, updateCardPosition]);
+  const { cardStyle, isHovered, handleMouseEnter, handleMouseLeave } = useHoverCardPosition(
+    wrapperRef,
+    { isHorizontal, isBottom, isRight },
+  );
 
   // Track viewport height so small-window detection stays reactive to resize/rotate
   useEffect(() => {
