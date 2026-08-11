@@ -142,6 +142,11 @@ export function AttachmentFileNameBlock({
       }
     };
     measure();
+    // U006: 字体晚加载兜底——ResizeObserver 监听 border-box 尺寸，字体加载只改变
+    // scrollWidth（文本渲染宽度）不改变元素盒尺寸时不触发；`document.fonts.ready`
+    // 在全部字体加载完成后 resolve，此时重测一次，避免字体加载前测量偏小漏判。
+    // 组件卸载后触发重测仅 setState no-op（React 18 无警告），无需清理。
+    document.fonts?.ready?.then(() => measure()).catch(() => undefined);
     // jsdom 无 ResizeObserver（测试环境跳过，仅依赖变化重测）
     if (typeof ResizeObserver === 'undefined') {
       return undefined;

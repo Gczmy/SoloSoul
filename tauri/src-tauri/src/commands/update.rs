@@ -1433,8 +1433,9 @@ mod tests {
     /// 文件非常大时仍不超过 PARALLEL_SEGMENTS 段。
     ///
     /// 注意：`compute_segments` 自身不感知 `PARALLEL_MIN_FILE_SIZE`（20MB 并行阈值），
-    /// 那是调用点 `download_apk` 的职责；此处只按「每段最小 PARALLEL_MIN_SEGMENT_SIZE」
-    /// 收缩段数——19MB 按 5MB/段 得 ceil(19/5)=4 段，与 20MB 阈值无关。
+    /// 那是调用点 `android_download_apk`（经 `download_apk_to_part`）的职责；此处只按
+    /// 「每段最小 PARALLEL_MIN_SEGMENT_SIZE」收缩段数——19MB 按 5MB/段 得 ceil(19/5)=4 段，
+    /// 与 20MB 阈值无关。
     #[test]
     fn test_compute_segments_caps_at_max_segments() {
         // 500MB：每段 5MB 上限为 100 段，但被 PARALLEL_SEGMENTS 封顶为 4

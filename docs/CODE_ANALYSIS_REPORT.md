@@ -103,11 +103,18 @@
 | U003 | P2 | 并发 | `tauri/src-tauri/src/commands/update.rs:229-249,449,606` | **T003 修复新引入竞态**：cleanup 注释断言「仅在下载开始前调用，无并发写入」，但无机制保证——Tauri commands 并发执行，用户在 APK 分段下载进行中触发 `android_check_update`（AboutPage/横幅），cleanup 会删除 `download_range_to_file` **正在写入**的 `.part.seg{i}`。后果可自愈（合并 open 失败 → 回退单流 → SHA-256 终检兜底，无损坏风险），但浪费带宽、进度归零。修法：下载进行中持进程内标志/Mutex，cleanup 跳过；或 cleanup 限定无活动下载时执行 | `[x]` 已修复（U003，见下） |
 | U004 | P2 | 隐私/文档 | `docs/zh-CN/`、`docs/en-US/`（缺失） | **披露未触达用户**：T004 的隐私披露只落在源码注释、构建脚本注释与本内部报告，用户可见的隐私政策/服务条款（中英两版）无任何代理相关条目，应用内更新 UI 亦无提示。若意图是让用户知情（审查本意），需在隐私政策补「检查更新在直连不可达时经第三方代理中转，可能暴露 IP 与版本号」 | `[x]` 已修复（U004，见下） |
 | U005 | P2 | 弹性/测试 | `tauri/src-tauri/src/commands/update.rs:805-807,1011-1018` | **T002 残留**：①abort 未 await——abort 后立即删 seg 文件，若某任务已越过最后 await 点可能重建孤儿 `.seg`（无正确性影响，T003 的 cleanup 兜底）；②回退单流腿自身仍无中途切候选（`?` 直接返回，断点保留可重试，属刻意取舍但「候选切换」在单流腿未闭环）；③三个行为改动零新增测试（网络 mock 成本高可理解，回归靠人工） | `[x]` 已修复（U005，见下） |
-| U006 | P2 | 测试/注释 | `tauri/src/components/attachment/AttachmentFileNameBlock.tsx:134-138`、`update.rs:1338` | **T005/T001 残留**：①描述溢出测量分支仍零行为测试覆盖（jsdom 恒 false，标签侧 mock 布局方案可仿照）；②字体晚加载漏判仍在——RO 监听 border-box 尺寸，字体加载只改 `scrollWidth` 时不触发（可用 `document.fonts.ready.then(measure)` 兜底）；③T001 测试注释引用不存在的 `download_apk`，应为 `android_download_apk`（`update.rs:601`） | `[ ]` 待修复 |
+| U006 | P2 | 测试/注释 | `tauri/src/components/attachment/AttachmentFileNameBlock.tsx:134-138`、`update.rs:1338` | **T005/T001 残留**：①描述溢出测量分支仍零行为测试覆盖（jsdom 恒 false，标签侧 mock 布局方案可仿照）；②字体晚加载漏判仍在——RO 监听 border-box 尺寸，字体加载只改 `scrollWidth` 时不触发（可用 `document.fonts.ready.then(measure)` 兜底）；③T001 测试注释引用不存在的 `download_apk`，应为 `android_download_apk`（`update.rs:601`） | `[x]` 已修复（U006，见下） |
 
 **次要观察（不列为问题）**：ENV_LOCK 用 `.lock().unwrap()`，一个测试 panic 会 poison 锁连带另一个失败（测试代码常见取舍）；T002 重试路径进度条可能短暂超 100%，有 `min(100)` 截断且注释已声明为可接受近似；`resizeObserverInstances` 数组测试会话内只增不减（量级可忽略）。
 
 ## 修复记录（U 系列）
+
+### U006（P2，测试/注释收尾）✅ 已修复
+
+- **①描述溢出行为测试**：仿照标签侧 mock 布局属性方案——mock `scrollWidth/clientWidth` 后以不同内容 rerender 触发溢出检测 effect 重测，断言折叠态出现展开箭头、点击展开（`pre-wrap` 全文）→ 收起。
+- **②字体晚加载兜底**：`AttachmentFileNameBlock` 溢出 effect 增加 `document.fonts?.ready?.then(measure)`——RO 监听 border-box 尺寸、字体加载只改 `scrollWidth` 不触发 RO，字体加载完成后再测一次防漏判（jsdom 无 FontFaceSet 静默跳过；卸载后触发仅 setState no-op）。
+- **③T001 注释修正**：`test_compute_segments_caps_at_max_segments` 注释中不存在的 `download_apk` 改为 `android_download_apk`（经 `download_apk_to_part`）。
+- **验证**：tsc / eslint 通过；AttachmentFileNameBlock 11/11、attachment+object 相关 86/86 全绿；cargo fmt / check / clippy 全绿。
 
 ### U005（P2，T002 残留收尾）✅ 已修复
 

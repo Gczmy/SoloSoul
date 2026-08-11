@@ -26,6 +26,32 @@ describe('AttachmentFileNameBlock 描述折叠/展开', () => {
     expect(descEl).toHaveStyle({ whiteSpace: 'nowrap' });
     expect(descEl).toHaveStyle({ textOverflow: 'ellipsis' });
   });
+
+  it('描述溢出（mock 布局）时显示折叠箭头，点击展开全文、再点收起', () => {
+    // U006: 描述溢出测量分支此前零行为测试覆盖——仿照标签侧方案：mock
+    // scrollWidth/clientWidth 后以不同内容 rerender 触发溢出检测 effect 重测。
+    const longDesc = '这是一段非常长的附件描述文本，'.repeat(40);
+    const { rerender } = render(<AttachmentFileNameBlock {...base} description={longDesc} />);
+    // 初始 jsdom 无布局：无按钮
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+
+    // 模拟真实布局：描述文本溢出（scrollWidth > clientWidth）
+    const descEl = screen.getByText(longDesc) as HTMLElement;
+    Object.defineProperty(descEl, 'scrollWidth', { configurable: true, value: 2000 });
+    Object.defineProperty(descEl, 'clientWidth', { configurable: true, value: 300 });
+
+    // 以不同内容 rerender 触发 effect 重测（trim 后内容变化）→ 折叠态出现展开箭头
+    rerender(<AttachmentFileNameBlock {...base} description={longDesc + '（续）'} />);
+    const toggle = screen.getByRole('button', { expanded: false });
+    expect(toggle).toBeInTheDocument();
+
+    // 点击展开 → 全文可见、箭头变收起态；再点收起 → 箭头回展开态
+    fireEvent.click(toggle);
+    expect(screen.getByRole('button', { expanded: true })).toBeInTheDocument();
+    expect(screen.getByText(longDesc + '（续）')).toHaveStyle({ whiteSpace: 'pre-wrap' });
+    fireEvent.click(screen.getByRole('button', { expanded: true }));
+    expect(screen.getByRole('button', { expanded: false })).toBeInTheDocument();
+  });
 });
 
 describe('AttachmentFileNameBlock 标签折叠/展开', () => {
