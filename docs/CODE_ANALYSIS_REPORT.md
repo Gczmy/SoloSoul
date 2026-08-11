@@ -72,8 +72,7 @@
 ## 修复进度
 
 - 轮次 1：验证通过关闭 **41 / 47**（含 P045 判定合理关闭）；修复有缺陷未关闭 2（P009、P022）；经确认跳过 2（P027、P033）；延期 2（P046、P047）
-- 轮次 2 新问题（N 系列）：**9 项，已修复 9 / 9**（N001–N009 完成）
-- 当前处理：N010（文案/注释/路径卫生逐项小改）
+- 轮次 2 新问题（N 系列）：**9 项，已修复 9 / 9**（N001–N010 全部完成，本轮收口）
 
 ## 轮次 2 新问题清单（验证发现）
 
@@ -88,7 +87,7 @@
 | N007 | P2 | 流程 | `tauri/package.json` check-all | check-all 不含 `cargo test`，Rust 测试红无法被基线/本地门禁发现（本轮 N001 即漏网之鱼）。已修：check-all 在 clippy 后插入 `cargo test` | `[x]` 已修复 |
 | N008 | P2 | 逻辑 | `tauri/src-tauri/src/commands/llm/stream.rs:292-303` | P034 语义微变：OpenAI usage chunk 缺字段时从「保留先前累积值」变为 `unwrap_or(0)` 整体覆盖清零。实际 OpenAI 兼容 API 只在末尾发一次完整 usage，风险极低。已修：`extract_openai_usage_from_chunk` 返回 Option 字段，两处调用点逐字段更新保留累积值 | `[x]` 已修复 |
 | N009 | P2 | 测试/规范 | `tauri/src-tauri/src/commands/object/mod.rs:608`、`settings.rs`、`template.rs` | ①`validate_object_input` 误挂 `#[tauri::command]`（未注册，生成无用包装代码）——已删；②P026 三组校验函数零单元测试——已补：`validate_object_input`/`validate_preferences_payload`/`validate_template_input` 各新增边界单测（空名/超长/载荷超限/白名单命中） | `[x]` 已修复 |
-| N010 | P2 | 规范 | 多处（汇总） | 文案/注释/路径卫生：①P013 桌面白名单外导入报英文技术文案；②fs.rs 与 attachment.rs 两个 `allowed_fs_bases` 对 SOLOSOUL_FS_BASE 语义分叉（覆盖 vs 叠加）；③P015 极简 Linux 拒绝文案无自救提示且中英不一；④P017 canonical 路径回传前端（Windows `\\?\` 前缀）；⑤log.rs:10-11 模块文档与白名单语义矛盾；⑥export_import/mod.rs:262 陈旧注释 | `[ ]` 待修复 |
+| N010 | P2 | 规范 | 多处（汇总） | 文案/注释/路径卫生：①P013 桌面白名单外导入报英文技术文案——attachment.rs 三处拒绝文案改中文；②fs.rs 与 attachment.rs 两个 `allowed_fs_bases` 对 SOLOSOUL_FS_BASE 语义分叉——fs.rs 改叠加语义（覆盖会致附件预览失效），注释同步；③P015 极简 Linux 拒绝文案——补自救提示（设置 SOLOSOUL_FS_BASE）且中英统一；④P017 canonical 路径回传前端（Windows `\\?\` 前缀）——新增 `display_fs_path` 剥离前缀 + 单测；⑤log.rs:10-11 模块文档与白名单语义矛盾——改为描述 P019 白名单；⑥export_import/mod.rs:262 陈旧注释——与 P003 `list_object_metadata_with_tags` 实现对齐 | `[x]` 已修复 |
 
 ## N 系列修复记录
 

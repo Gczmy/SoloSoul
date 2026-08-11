@@ -7,8 +7,10 @@
 //!
 //! - **AuditLogEntry** — structured record with action_type, entity_type,
 //!   entity_id, entity_name, performed_by, and details (JSON metadata).
-//! - **log_write** — IPC command for frontend code to record arbitrary
-//!   audit events (import/export, preference changes, biometric ops).
+//! - **log_write** — IPC command for frontend code to record audit events
+//!   within the P019 action_type whitelist (critical-field view audit);
+//!   system-level events (import/export, backup, etc.) are written only
+//!   by backend CRUD paths via VaultStore::log_structured.
 //! - **log_get_recent** — IPC command to load recent entries for display.
 //! - **log_export** — IPC command to export all entries as JSON.
 //! - Backend CRUD operations log directly via VaultStore::log_structured.

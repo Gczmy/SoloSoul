@@ -32,10 +32,11 @@ const MAX_SCAN_DEPTH: u32 = 8;
 
 /// Return the allowed base directories for filesystem commands.
 ///
-/// - 桌面端：优先使用 `SOLOSOUL_FS_BASE` 环境变量（单一根目录，供高级用户/测试
-///   显式放宽）；否则默认收窄到 **Desktop/Documents/Downloads + Vault 附件目录**（P107）——
-///   与 OCR `is_path_in_allowed_dir` 的用户目录范围一致，杜绝 XSS 经
-///   `fs_read_file_as_text/data_url` 读取 home 下任意文件（含 `~/.solosoul/**`）。
+/// - 桌面端：默认收窄到 **Desktop/Documents/Downloads + Vault 附件目录**（P107），
+///   `SOLOSOUL_FS_BASE` 环境变量作为**额外放宽**的根目录（叠加语义，N010-②，与
+///   `attachment::allowed_fs_bases` 一致）——与 OCR `is_path_in_allowed_dir` 的
+///   用户目录范围一致，杜绝 XSS 经 `fs_read_file_as_text/data_url` 读取 home 下
+///   任意文件（含 `~/.solosoul/**`）。
 ///   Vault 附件目录必须放行：附件预览（`AttachmentPreviewOverlay`）读取的是
 ///   `vaultPath` 指向的落库副本（`{base}/attachments/...`），不放行则预览功能失效；
 ///   仅放行 `attachments/` 子目录，`config.json`/`vault.db`/`accounts.json` 等
@@ -54,21 +55,33 @@ fn allowed_fs_bases<R: tauri::Runtime>(
     }
     #[cfg(desktop)]
     {
+        // N010-②: SOLOSOUL_FS_BASE 为「额外放宽」目录（叠加语义，与
+        // `attachment::allowed_fs_bases` 一致）——若仍按旧逻辑替换默认集合，设置后
+        // Vault 附件目录不在白名单内，附件预览（vaultPath 指向 {base}/attachments）
+        // 将失效；同时避免同一环境变量在两处语义分叉。
+        let mut bases = Vec::new();
         if let Ok(base) = std::env::var("SOLOSOUL_FS_BASE") {
-            return Ok(vec![PathBuf::from(base)]);
+            bases.push(PathBuf::from(base));
         }
         let home_key = if cfg!(windows) { "USERPROFILE" } else { "HOME" };
-        let home = PathBuf::from(std::env::var(home_key).map_err(|_| {
-            "Could not determine user home directory; set SOLOSOUL_FS_BASE".to_string()
-        })?);
-        // 在单个闭包内消费 guard 并克隆出 PathBuf，避免 guard 借用 State 逃逸。
-        let vault_base = app.try_state::<AppState>().and_then(|s| {
-            s.vault_service
-                .read()
-                .ok()
-                .map(|svc| svc.base_path().clone())
-        });
-        Ok(desktop_fs_bases(&home, vault_base.as_deref()))
+        if let Ok(home) = std::env::var(home_key) {
+            let home = PathBuf::from(home);
+            // 在单个闭包内消费 guard 并克隆出 PathBuf，避免 guard 借用 State 逃逸。
+            let vault_base = app.try_state::<AppState>().and_then(|s| {
+                s.vault_service
+                    .read()
+                    .ok()
+                    .map(|svc| svc.base_path().clone())
+            });
+            bases.extend(desktop_fs_bases(&home, vault_base.as_deref()));
+        }
+        if bases.is_empty() {
+            return Err(
+                "无法确定用户主目录；请设置 SOLOSOUL_FS_BASE 环境变量以指定允许的根目录"
+                    .to_string(),
+            );
+        }
+        Ok(bases)
     }
 }
 
@@ -141,6 +154,18 @@ fn resolve_within(base: &Path, path: &str) -> Result<PathBuf, String> {
     // P017: 返回 canonical 目标路径而非字面路径——消除符号链接 TOCTOU 竞态：
     // 校验与后续文件操作使用同一已解析路径，字面路径可能在校验后被替换绕过。
     Ok(target_canon)
+}
+
+/// N010-④/P017: 回传前端前的路径显示形态。Windows `canonicalize` 会产出
+/// `\\?\` 扩展长度前缀，前端（对话框、展示、再次回传）无法直接使用——剥离之；
+/// 非 Windows 或未带前缀时原样返回。
+pub(crate) fn display_fs_path(path: &Path) -> String {
+    let s = path.to_string_lossy();
+    if let Some(stripped) = s.strip_prefix(r"\\?\") {
+        stripped.to_string()
+    } else {
+        s.to_string()
+    }
 }
 
 /// Resolve `path` within any allowed filesystem base directory. Filesystem
@@ -232,7 +257,7 @@ fn scan_dir_recursive(
         } else if path.is_file() {
             let metadata = fs_std::metadata(&path).map_err(|e| e.to_string())?;
             files.push(ScannedFile {
-                path: path.to_string_lossy().to_string(),
+                path: display_fs_path(&path),
                 name: path
                     .file_name()
                     .map(|n| n.to_string_lossy().to_string())
@@ -388,6 +413,21 @@ mod tests {
     use super::*;
     use std::fs;
     use tempfile::TempDir;
+
+    /// N010-④/P017 防回归：Windows canonicalize 的 `\\?\` 前缀在回传前端前剥离；
+    /// 普通路径原样返回。
+    #[test]
+    fn test_display_fs_path_strips_windows_extended_prefix() {
+        assert_eq!(
+            display_fs_path(Path::new(r"\\?\C:\Users\me\file.txt")),
+            r"C:\Users\me\file.txt"
+        );
+        assert_eq!(
+            display_fs_path(Path::new("/Users/me/file.txt")),
+            "/Users/me/file.txt"
+        );
+        assert_eq!(display_fs_path(Path::new("relative/path")), "relative/path");
+    }
 
     #[test]
     fn test_scanned_file_serde() {

@@ -259,8 +259,8 @@ pub(crate) fn load_attachments(
 /// P005: `list_objects` 实际逐行解密完整 properties（非轻量摘要）。旧实现先 `list_objects`
 /// 全量解密取 id，再对每个 id 单独 `load_object` 二次解密（双重解密 + N+1 查询）。
 /// 现改为：include_all 分支直接 `list_object_records`（一次解密完整记录）按页面/标签过滤；
-/// selected 分支仍用 `list_objects` 元数据筛选，命中 id 一次 `load_objects_batch`
-/// 批量解密加载（单条 SQL + 批量解密）。
+/// selected 分支用 `list_object_metadata_with_tags`（纯 SQL 元数据，不解密 properties）
+/// 筛出命中 id，再一次 `load_objects_batch` 批量解密加载（N010-⑥：注释与 P003 实现对齐）。
 pub(crate) fn collect_scope_objects(
     vault: &solosoul_vault::VaultStore,
     account_id: &str,

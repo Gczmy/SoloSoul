@@ -565,14 +565,16 @@ pub async fn attachment_copy_to_vault(
     let allowed_bases = allowed_fs_bases();
     if allowed_bases.is_empty() {
         tracing::warn!("[attachment] allowed FS bases empty — rejecting copy (fail-closed)");
+        // N010-③: 中文 + 自救提示（P015：极简 Linux 无 Desktop/Documents/Downloads 时
+        // 告知可设置 SOLOSOUL_FS_BASE 白名单目录）。
         return Err(
-            "Allowed path whitelist is empty (Desktop/Documents/Downloads and SOLOSOUL_FS_BASE all unresolvable)"
+            "允许的文件白名单为空（Desktop/Documents/Downloads 与 SOLOSOUL_FS_BASE 均不可解析）。请确认存在用户目录或设置 SOLOSOUL_FS_BASE 环境变量"
                 .to_string(),
         );
     }
     if !allowed_bases.iter().any(|b| src.starts_with(b)) {
         return Err(
-            "Source path must be within Desktop, Documents, Downloads, or SOLOSOUL_FS_BASE"
+            "源文件必须在 Desktop、Documents、Downloads 或 SOLOSOUL_FS_BASE 目录内（如需其他位置，可设置 SOLOSOUL_FS_BASE 环境变量）"
                 .to_string(),
         );
     }
@@ -1005,8 +1007,9 @@ pub async fn attachment_download(
     let allowed_bases = allowed_fs_bases();
     if allowed_bases.is_empty() {
         tracing::warn!("[attachment] allowed FS bases empty — rejecting download (fail-closed)");
+        // N010-③: 中文 + 自救提示（与复制路径文案一致）。
         return Err(
-            "Allowed path whitelist is empty (Desktop/Documents/Downloads and SOLOSOUL_FS_BASE all unresolvable)"
+            "允许的文件白名单为空（Desktop/Documents/Downloads 与 SOLOSOUL_FS_BASE 均不可解析）。请确认存在用户目录或设置 SOLOSOUL_FS_BASE 环境变量"
                 .to_string(),
         );
     }
