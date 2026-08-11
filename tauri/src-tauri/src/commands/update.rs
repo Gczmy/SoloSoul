@@ -1120,9 +1120,17 @@ async fn download_apk_single_stream(
         // U005: 流中途失败（分块读取/写入错误）→ 保留已写字节作为断点，切下一候选；
         // 若本候选走的是「重新下载」分支（删旧文件重下），文件已存在且大小为
         // initial_offset + new_bytes，断点同样有效。成功则返回。
+        // V005: 断点以 metadata().len() 为准——write_all 部分写入失败时（已写部分字节
+        // 但未计入 new_bytes）文件实际长度可能大于计数断点，若按计数断点续传会从错误
+        // 偏移追加、在末尾重复拼接未计数字节导致 part 损坏（SHA-256 终检虽能兜住但
+        // 浪费一次全量重下）。文件系统实际长度即精确已持久化字节边界；读取失败才回退
+        // 计数断点（此时文件可能已缺失，下轮候选会走重新下载分支自愈）。
         if let Some(e) = stream_err {
             last_err = e;
-            existing_size = next_resume_offset(initial_offset, new_bytes);
+            existing_size = match std::fs::metadata(part_path) {
+                Ok(meta) => meta.len(),
+                Err(_) => next_resume_offset(initial_offset, new_bytes),
+            };
             continue;
         }
         return Ok(());

@@ -165,7 +165,7 @@
 | V002 | P2 | 弹性 | `tauri/src-tauri/src/commands/update.rs:522-529,585-599` | **U002 修复行为偏差**：旧代码 `app.updater()` 构建失败会把错误放入 `updater_result` 并回退 GitHub Release API（保证 AboutPage 仍能给出版本信息）；新代码 build 失败 `return Err(...)` 提前返回跳过兜底，与函数文档注释（「失败时回退到 GitHub Release API」）契约不符。实际影响小（build 失败仅当发布期配置损坏），修法：build 失败也走 `updater_result = Err(...)` 老路（一行），或文档注释改口 | `[x]` 已修复（V002，见下） |
 | V003 | P2 | 并发 | `tauri/src-tauri/src/commands/update.rs:651-663`、`tauri/src/lib/updater.ts:180` | **U003 残留**：①panic 路径标志泄漏——抽函数保证 `?`/Err 路径恢复但非 RAII guard，`download_apk_to_part` 内部 panic 时 unwind 跳过 `store(false)`，标志永久置位、cleanup 此后整体失效（仅缓存不再清理，无数据损坏）；可选修法 scopeguard 式 Drop 恢复。②`AtomicBool` 非计数器 + 前端不 await `android_download_apk`，理论上可并发双下载——A 完成 `store(false)` 时 B 仍在写 seg，cleanup 窗口重开（且双下载同写 `part_path` 本身是更大的既存问题，U003 标志并非其防线，此处登记备查） | `[x]` 已修复①（V003，见下）；②登记备查 |
 | V004 | P2 | 文档 | `docs/legal/隐私政策.md`、`docs/legal/Privacy Policy.md` | **U004 残留披露缺口**：政策只承诺完整性不可篡改，未提示「代理可返回陈旧/篡改 Release JSON 软性压制升级、可能导致无法及时获知新版本」这一可用性面（源码注释 `update.rs:32-36` 内部已披露）。隐私政策不强制涵盖可用性，但既然已写完整性声明，补一句更完整 | `[x]` 已修复（V004，见下） |
-| V005 | P3 | 弹性/测试 | `tauri/src-tauri/src/commands/update.rs:1088-1091` | **U005 残留**：①`write_all` 部分写入不计入断点——写失败时可能已写若干字节但 `new_bytes` 未计，下一候选 206 续传 append 会在文件末尾重复拼接未计数字节 → part 损坏（SHA-256 终检兜住：删 part、用户重试从零下载，仅浪费一次下载，无正确性外泄）；可选修法续传前 `set_len(existing_size)` 截断或以 `metadata().len()` 为准。②abort-await 与候选切换续传两条核心行为路径仍零自动化覆盖（纯函数测试通过不等于回归保护；可用 `wiremock` 类本地 mock HTTP 补集成测试） | `[ ]` 待修复 |
+| V005 | P3 | 弹性/测试 | `tauri/src-tauri/src/commands/update.rs:1088-1091` | **U005 残留**：①`write_all` 部分写入不计入断点——写失败时可能已写若干字节但 `new_bytes` 未计，下一候选 206 续传 append 会在文件末尾重复拼接未计数字节 → part 损坏（SHA-256 终检兜住：删 part、用户重试从零下载，仅浪费一次下载，无正确性外泄）；可选修法续传前 `set_len(existing_size)` 截断或以 `metadata().len()` 为准。②abort-await 与候选切换续传两条核心行为路径仍零自动化覆盖（纯函数测试通过不等于回归保护；可用 `wiremock` 类本地 mock HTTP 补集成测试） | `[x]` 已修复①（V005，见下）；②登记备查（P3 可缓） |
 
 **次要观察（不列为问题）**：`test_proxy_prefixes_env_override` 首条断言与 `test_download_candidates_direct_first_then_proxies` 未先 `remove_var`，若测试环境本身设置了 `SOLOSOUL_PROXY_PREFIXES` 会失败（修复前即如此）；`update.rs:648-649` 大段 U003 注释挂在行尾（cosmetic）；`document.fonts.ready` 只捕获 resolve 时已 pending 的字体（原报告建议方案的固有边界，与要求一致）。
 
@@ -191,6 +191,12 @@
 
 - **修复**：隐私政策中英两版在「完整性不可篡改」声明后补可用性面披露——代理可能返回陈旧或失真的更新元数据（如旧版本信息），导致无法及时获知新版本；不影响安装包完整性（签名与哈希校验仍生效），仅可能延迟更新通知。与源码注释 `update.rs:32-36` 的披露一致。
 - **验证**：纯文档改动，无代码变更。
+
+### V005（P3，U005 残留）✅ 已修复①
+
+- **修复①（部分写入断点错位）**：`download_apk_single_stream` 流中途失败切下一候选时，断点改为以 `std::fs::metadata(part_path).len()` 为准——`write_all` 部分写入失败时文件实际长度可能大于计数断点（`initial_offset + new_bytes`），按计数断点 206 续传 append 会在文件末尾重复拼接未计数字节导致 part 损坏；文件系统实际长度即精确已持久化字节边界，下一候选 `Range: bytes={len}-` 续传正确。`metadata` 读取失败才回退计数断点（此时文件可能已缺失，下轮候选走重新下载分支自愈）。SHA-256 终检兜底不变。
+- **②（abort-await 与候选切换续传集成测试）**：登记备查——wiremock 未引入依赖，本机 Rust 测试二进制 `0xc0000139` 限制无法运行集成测试，属 P3 可缓项；纯函数测试（`test_next_resume_offset`）已覆盖断点计数逻辑，行为路径回归依赖 CI/人工。
+- **验证**：cargo fmt / check / clippy `-D warnings` 全绿。
 
 ## 待用户指令
 
