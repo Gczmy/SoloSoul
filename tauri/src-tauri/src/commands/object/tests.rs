@@ -94,6 +94,7 @@ fn test_record_to_data_conversion() {
     assert_eq!(data.name, "Test Object");
     assert_eq!(data.sensitivity_level, "internal");
     assert_eq!(data.deleted_at, None);
+    assert_eq!(data.tags, vec!["tag1"]);
 }
 
 #[test]
@@ -106,6 +107,7 @@ fn test_object_data_serde_roundtrip() {
         properties: serde_json::json!({"foo": "bar"}),
         sensitivity_level: "public".to_string(),
         property_labels: None,
+        tags: vec!["tag-a".to_string()],
         contract_type_id: None,
         created_at: "2024-01-01T00:00:00Z".to_string(),
         updated_at: "2024-01-01T00:00:00Z".to_string(),
@@ -121,6 +123,7 @@ fn test_object_data_serde_roundtrip() {
     let restored: ObjectData = serde_json::from_str(&json).unwrap();
     assert_eq!(restored.id, original.id);
     assert_eq!(restored.name, original.name);
+    assert_eq!(restored.tags, original.tags);
 }
 
 #[test]

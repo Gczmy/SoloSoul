@@ -128,6 +128,10 @@ pub struct ObjectData {
     pub template_type: Option<String>,
     #[serde(rename = "propertyLabels")]
     pub property_labels: Option<serde_json::Value>,
+    // P006: ObjectData 补齐 tags——此前 TS 声明 tags? 永为 undefined，
+    // updateObject 用 undefined 覆盖摘要 tags，详情页标签成死渲染路径。
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub tags: Vec<String>,
     #[serde(rename = "createdAt")]
     pub created_at: String,
     #[serde(rename = "updatedAt")]
@@ -447,6 +451,7 @@ pub fn record_to_data(record: &ObjectRecord) -> ObjectData {
         template_id: record.template_id.clone(),
         template_type: record.template_type.clone(),
         property_labels: record.property_labels.clone(),
+        tags: record.tags_json.clone(),
         contract_type_id: record.contract_type_id.clone(),
         template_hash: record.template_hash.clone(),
         ignored_template_hash: record.ignored_template_hash.clone(),
