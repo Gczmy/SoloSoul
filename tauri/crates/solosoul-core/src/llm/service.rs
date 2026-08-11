@@ -128,12 +128,14 @@ impl LlmService {
     // ── Conversations ──────────────────────────────────────────────
 
     /// P004 懒迁移：旧版本会话存于 profile preferences 的 `llmConversations` blob。
-    /// 首次访问时把 blob 中的全部会话写入行级表。GUI 与 CLI 共用同一实现。
+    /// 每次访问都会按 LWW 复查 blob 与会话行（首次迁移写入，此后跳过较新行）。
+    /// GUI 与 CLI 共用同一实现。
     ///
     /// R003：迁移后**保留** blob 键（不再清除）——键删除会经 profile delta 同步到
     /// 仍从 blob 读取会话的旧版本设备（不认识 llm_conversations 行级表），导致旧
     /// 设备会话被抹且无法自行迁移；只有确认所有设备同步升级后才可在未来版本安全
-    /// 移除该键。迁移幂等：重复调用仅多一次 profile 读取，无写入副作用。
+    /// 移除该键。迁移幂等：重复调用仅多一次 profile 读取 + 逐条 LWW 比对，无写入
+    /// 副作用（旧设备编辑 blob 后经 profile delta 回流，也能被 LWW 复查拾取）。
     ///
     /// LWW 保护：对每条会话按 `updated_at` 比较，仅当 blob 数据比行级表现有
     /// 数据更新（或行级表无此 id）时才写入，避免无条件 upsert 覆盖 CLI/其他

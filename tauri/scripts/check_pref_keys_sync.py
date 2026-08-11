@@ -46,8 +46,9 @@ def extract_ts_app_settings_keys() -> set[str]:
         sys.exit(2)
     keys = set()
     for line in m.group(1).splitlines():
-        # 属性行形如 `  keyName: Type;`（两空格缩进 + 冒号），注释/空行跳过
-        hit = re.match(r"^\s{2}([A-Za-z][A-Za-z0-9]*):", line)
+        # 属性行形如 `  keyName: Type;`（缩进 + 冒号）；用 `\s+` 而非固定两空格，
+        # 避免格式化缩进变化时检查静默失效。注释行（`/**` / ` *`）以 / * 开头不匹配。
+        hit = re.match(r"^\s+([A-Za-z][A-Za-z0-9]*):", line)
         if hit:
             keys.add(hit.group(1))
     return keys
