@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-11（P007 修复完成）
+> 最后更新：2026-08-11（P008 修复完成）
 > 当前分支：`main`
 > 修复轮次：2（按用户指令逐项修复，一项一提交）
 
@@ -21,7 +21,7 @@ Git 状态：工作树除本报告文件重建外干净（旧报告已删除，�
 | P005 | P1 | 性能 | `solosoul_cli/src/commands/search.rs:181-184,206-209` | CLI `/search` 用 `list_objects(...).len()` 统计子对象数，对每个命中页面全量解密仅为取计数（GUI 已有 `count_objects` 先例） | `[x]` 已完成 |
 | P006 | P1 | 架构 | `tauri/src-tauri/src/commands/object/mod.rs:439`、`tauri/src/stores/objectStore.ts:56,185`、`ObjectDetailModal.tsx:470` | 类型漂移：Rust `ObjectData` 无 `tags`，TS 声明 `tags?` 永为 undefined；`updateObject` 用 undefined 覆盖摘要 tags，详情页标签成死渲染路径 | `[x]` 已完成 |
 | P007 | P1 | 架构 | `tauri/src-tauri/src/commands/export_import/export_docx.rs:200` | `flatten_object_fields` 6–7 层控制流嵌套，动态字段组展平逻辑难读难测 | `[x]` 已完成 |
-| P008 | P1 | 架构 | `tauri/src-tauri/src/commands/search/query.rs:16` | `search_properties_for_matches` 133 行递归函数承担 4 种职责，`__fields` 分支 5–6 层嵌套 | `[ ]` 待修复 |
+| P008 | P1 | 架构 | `tauri/src-tauri/src/commands/search/query.rs:16` | `search_properties_for_matches` 133 行递归函数承担 4 种职责，`__fields` 分支 5–6 层嵌套 | `[x]` 已完成 |
 | P009 | P1 | 架构 | `tauri/src-tauri/src/commands/attachment.rs:1130` | `attachment_share` ~161 行，macOS/Windows 两个 `#[cfg]` 块各重复约 40 行「复制→主线程调度→oneshot」骨架 | `[ ]` 待修复 |
 | P010 | P1 | 规范 | `tauri/src/components/layout/AddPageButton.tsx:162-198` ↔ `NavButton.tsx:37-73` | 悬停卡片 portal 定位逻辑 ~37 行逐字符复制（注释自认 same pattern），应抽共享 hook | `[ ]` 待修复 |
 | P011 | P1 | 规范 | `tauri/src/components/layout/AddPageButton.tsx:438-520` ↔ `CustomPageEditPopover.tsx:322-409` | 图标分类选择器 ~44 行 + 分类数组两处复制，应抽 `IconCategoryPicker` 共享组件 | `[ ]` 待修复 |
@@ -64,8 +64,8 @@ Git 状态：工作树除本报告文件重建外干净（旧报告已删除，�
 
 ## 修复进度
 
-- 已完成：7 / 47
-- 当前处理：P008（按建议顺序推进）
+- 已完成：8 / 47
+- 当前处理：P009（按建议顺序推进）
 
 ## 详细问题描述与修复指引
 
@@ -149,9 +149,16 @@ error: deref which would be done by auto-deref
 
 **验证**：`cargo check -p solo_soul --tests` ✅；clippy --workspace 全绿 ✅。现有测试 `test_flatten_basic_fields`（普通字段 label/原始值）与 `test_flatten_dynamic_group_expands_children`（子字段展开 + 无占位符条目）覆盖两条路径，行为等价（纯提取重构）。（注：src-tauri 测试二进制在本机 Windows 无法运行，为预先存在的 DLL 环境问题。）
 
-### P008–P009（P1）深嵌套/过长函数拆分（续）
+### P008（P1）search_properties_for_matches 拆分 — 已完成（commit 875ab0b8）
 
-- `search_properties_for_matches`（query.rs:16）：`__fields` 分支抽 `match_field_defs()`；值匹配打分/截断抽 `push_value_match()`。
+**原问题**：`search_properties_for_matches`（query.rs:16）133+ 行递归函数承担 4 种职责（元数据键跳过、`__fields` 定义名匹配、字段名匹配、值匹配打分/截断），`__fields` 分支 5–6 层嵌套。
+
+**修复**：抽两个辅助函数，主循环只做分发——`match_field_defs`（`__fields` 定义中的 `name` 匹配，精确/包含打分）、`push_value_match`（字符串值匹配：内部占位 token 排除、searchable 校验、精确/包含打分、超长截断）。
+
+**验证**：`cargo check -p solo_soul --tests` ✅；clippy --workspace 全绿 ✅（修复一处 doc 注释接续列表项导致的 doc_list_item lint）。主函数 157→102 行，`search/tests.rs` 22 个测试直接覆盖（含 `__fields`/dynamic_group/数组/嵌套路径），纯提取行为等价。
+
+### P009（P1）attachment_share 过长函数拆分
+
 - `attachment_share`（attachment.rs:1130）：按平台拆 `share_macos`/`share_windows`/`share_android` 子函数，共享「复制到分享目录 + 主线程调度 + oneshot」模板。
 
 ### P010–P011（P1）布局组件复制
