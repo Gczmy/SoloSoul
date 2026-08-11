@@ -51,31 +51,6 @@ impl Profile {
     }
 }
 
-/// Forward-compatible profile data envelope
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VersionedProfileData {
-    pub version: u32,
-    #[serde(flatten)]
-    pub data: ProfileData,
-}
-
-impl VersionedProfileData {
-    pub fn new(data: ProfileData) -> Self {
-        Self {
-            version: PROFILE_SCHEMA_VERSION,
-            data,
-        }
-    }
-
-    pub fn deserialize(json_str: &str) -> Result<Self, String> {
-        serde_json::from_str(json_str).map_err(|e| format!("Failed to deserialize profile: {}", e))
-    }
-
-    pub fn serialize(&self) -> Result<String, String> {
-        serde_json::to_string(self).map_err(|e| format!("Failed to serialize profile: {}", e))
-    }
-}
-
 /// Profile data sections
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct ProfileData {

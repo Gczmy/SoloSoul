@@ -68,7 +68,8 @@ pub struct VaultStats {
     pub ai_conversations_size: u64,
 }
 
-pub use profile::{Profile, ProfileData, ProfileSummary, VersionedProfileData};
+// P028: 移除 VersionedProfileData（全 workspace 零调用死代码）
+pub use profile::{Profile, ProfileData, ProfileSummary};
 
 // ── Sync helpers ──────────────────────────────────────────
 
