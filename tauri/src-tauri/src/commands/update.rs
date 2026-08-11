@@ -1223,6 +1223,10 @@ mod tests {
 
     /// 分段计算：文件略超 20MB 阈值（如 21MB）时受每段最小 5MB 约束，段数收缩到 4；
     /// 文件非常大时仍不超过 PARALLEL_SEGMENTS 段。
+    ///
+    /// 注意：`compute_segments` 自身不感知 `PARALLEL_MIN_FILE_SIZE`（20MB 并行阈值），
+    /// 那是调用点 `download_apk` 的职责；此处只按「每段最小 PARALLEL_MIN_SEGMENT_SIZE」
+    /// 收缩段数——19MB 按 5MB/段 得 ceil(19/5)=4 段，与 20MB 阈值无关。
     #[test]
     fn test_compute_segments_caps_at_max_segments() {
         // 500MB：每段 5MB 上限为 100 段，但被 PARALLEL_SEGMENTS 封顶为 4
@@ -1230,7 +1234,7 @@ mod tests {
         assert_eq!(segs.len(), PARALLEL_SEGMENTS);
         // 0 字节：无段
         assert!(compute_segments(0).is_empty());
-        // 19MB：低于 20MB 并行阈值，1 段
-        assert_eq!(compute_segments(19 * 1024 * 1024).len(), 1);
+        // 19MB：低于调用点 20MB 并行阈值，但 compute_segments 本身仍按每段最小 5MB 分 4 段
+        assert_eq!(compute_segments(19 * 1024 * 1024).len(), 4);
     }
 }
