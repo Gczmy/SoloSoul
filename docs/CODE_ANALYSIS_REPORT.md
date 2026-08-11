@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-11（P022 修复完成）
+> 最后更新：2026-08-11（P023 修复完成）
 > 当前分支：`main`
 > 修复轮次：2（按用户指令逐项修复，一项一提交）
 
@@ -36,7 +36,7 @@ Git 状态：工作树除本报告文件重建外干净（旧报告已删除，�
 | P020 | P2 | 架构 | `tauri/src-tauri/src/commands/object/mod.rs:604` 等 | object 系命令信任客户端 `account_id`（template/ocr 等已统一 `current_account` 服务端派生，两种约定并存，需确认触发路径） | `[x]` 已完成 |
 | P021 | P2 | 架构 | `tauri/src/types/llmProvider.ts:5` vs `tauri/crates/solosoul-core/src/llm/config.rs:33` | 潜伏类型漂移：TS `ProviderConfig` 缺 `embeddingModel`，重构保存逻辑时会静默重置该字段 | `[x]` 已完成 |
 | P022 | P2 | 死代码 | `tauri/crates/solosoul-core/src/vault_service.rs:493-518`、`tauri/src-tauri/src/commands/auth.rs:12-19` | 登录/账户列表把 `salt`、`verifyHash` 序列化给前端但前端零消费，扩大 WebView 攻击面且误导开发 | `[x]` 已完成 |
-| P023 | P2 | 规范 | `tauri/src-tauri/src/commands/auth.rs:12` vs `solosoul-core/src/vault_service.rs:195` | `AccountInfo`/`AccountSummary` 重复 DTO 字段重叠但可选性不同，易演进漂移 | `[ ]` 待修复 |
+| P023 | P2 | 规范 | `tauri/src-tauri/src/commands/auth.rs:12` vs `solosoul-core/src/vault_service.rs:195` | `AccountInfo`/`AccountSummary` 重复 DTO 字段重叠但可选性不同，易演进漂移 | `[x]` 已完成 |
 | P024 | P2 | 架构 | `tauri/src-tauri/src/commands/export_import/mod.rs:238` vs `solosoul-core/src/export_import.rs` | `derive_export_key_cfg` 密码学逻辑双份实现，仅靠注释约束一致性（安全敏感路径） | `[ ]` 待修复 |
 | P025 | P2 | 架构 | `tauri/Cargo.toml:73` | release 全局 `panic = "abort"`，命令 handler 内 panic = 整进程崩溃且 Vault 未走正常锁定清理 | `[ ]` 待修复 |
 | P026 | P2 | 规范 | `template.rs:171`、`object/mod.rs:604`、`settings.rs:346` | 命令参数普遍缺长度/格式校验（名称无上限、properties/preferences 载荷无大小限制、偏好 key 无白名单） | `[ ]` 待修复 |
@@ -64,8 +64,8 @@ Git 状态：工作树除本报告文件重建外干净（旧报告已删除，�
 
 ## 修复进度
 
-- 已完成：22 / 47
-- 当前处理：P023（按建议顺序推进）
+- 已完成：23 / 47
+- 当前处理：P024（按建议顺序推进）
 
 ## 详细问题描述与修复指引
 
@@ -261,7 +261,13 @@ error: deref which would be done by auto-deref
 **修复**：两个 DTO 移除 salt/verify_hash 字段（`list_accounts` 的解构元组同步简化）；TS `AccountInfo` 删除 `salt?`/`verifyHash?`；auth.rs 的 `test_account_info_serialization` 更新为不含两字段的断言。CLI 使用 AccountSummary 但不读 salt/verify_hash，无需改动。
 
 **验证**：`cargo check -p solosoul-core -p solo_soul --tests` ✅；clippy --workspace 全绿 ✅；CLI 编译 ✅；tsc ✅；eslint ✅。
-- **P023**：收敛为 core 单一 `AccountSummary`，auth.rs 复用。
+### P023（P2）收敛 core 单一 AccountSummary — 已完成（commit 78cae3be）
+
+**原问题**：`auth.rs::AccountInfo` 与 `solosoul-core::AccountSummary` 字段重叠（id/name/password_hint/created_at）但可选性与字段集不同（AccountInfo 缺 has_biometric_history/has_pin_history），两处易演进漂移。TS `ipc.ts::AccountInfo` 已与 AccountSummary 对齐，重复的只有 Rust 端。
+
+**修复**：删除 `auth.rs::AccountInfo`，`bootstrap` 返回类型改为 core 的 `AccountSummary`（新账户标志位 false）；`test_account_summary_serialization` 改用 AccountSummary 并补两个布尔字段断言。CLI/e2e 无 AccountInfo 引用，无需改动。
+
+**验证**：`cargo check -p solo_soul --tests` ✅；clippy --workspace 全绿 ✅；全仓 grep 无 AccountInfo 残留 ✅。
 - **P024**：`solosoul-crypto` 提供与错误类型无关的核心 KDF 函数，两端薄包装各自映射错误类型。
 - **P025**：评估 `panic = "unwind"`；若保留 abort，clippy 禁非测试代码新增 `unwrap/expect`。
 - **P026**：command 边界统一校验（名称 ≤ N 字符、载荷 ≤ M MB、偏好 key 白名单/前缀约束）。
