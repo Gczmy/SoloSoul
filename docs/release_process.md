@@ -326,7 +326,7 @@ cd /path/to/SoloSoul
 - 验证启动、Vault 解锁、对象 CRUD、设置页面等基础功能
 - 对于 Release APK，确认安装后验证启动、Vault 解锁、对象 CRUD、设置页面等基础功能
 
-### 8. 生成 latest.json
+### 8. 生成 latest.json（含国内加速镜像清单）
 
 在 Mac 上执行：
 
@@ -340,7 +340,22 @@ node scripts/generate-latest-json.js \
 
 生成的 `latest.json` 包含各平台安装包下载地址与 Ed25519 签名，供应用内更新器读取。
 
-> 注意：`latest.json` 目前仅用于桌面端（macOS + Windows）自动更新。Android 更新通过 Google Play 商店分发。
+脚本会**实时探测国内 GitHub 加速代理**（ghfast.top / ghproxy.net / gh-proxy.com / ghps.cc）：
+
+- 每个存活的代理会额外生成一份 `latest-mirror-<id>.json`（清单内平台 URL 带该代理前缀，
+  元数据与安装包走同一通道）；
+- 不可用/超时的代理自动剔除，不生成对应镜像；全部探测失败时仅生成直连清单；
+- 探测目标是 `releases/latest` 路径（与真实下载一致）——ghproxy 类服务对仓库主页
+  返回 403 属正常拦截，**勿改为仓库主页作探测目标**；
+- 如需跳过探测（离线/不发网络请求）：追加 `--no-probe`；
+- 如需覆盖代理列表：`--proxies ghfast=https://ghfast.top/,ghproxy=https://gh-proxy.com/`。
+
+> 安全说明：镜像清单与直连清单的签名一致（签名针对安装包二进制而非清单本身），
+> Tauri updater 无论从哪个 endpoint 下载安装包都会用 pubkey 严格验签，指向代理无供应链风险。
+
+> 注意：`latest.json` 目前仅用于桌面端（macOS + Windows）自动更新。Android 更新通过
+> GitHub Release 分发（客户端内置代理回退 + 多线程分段下载，见 `update.rs` 的
+> `PROXY_PREFIXES`，与桌面端镜像清单同源维护）。
 
 ### 9. GitHub Release 发布
 
@@ -356,6 +371,7 @@ node scripts/generate-latest-json.js \
    - `SoloSoul_2.1.0_universal-release.apk`         # Android 通用安装包
    - `SoloSoul_2.1.0_universal-release.apk.sha256`  # Android APK SHA-256 校验和（推荐）
    - `latest.json`
+   - `latest-mirror-ghfast.json` 等（步骤 8 生成的**全部** `latest-mirror-*.json`）
 5. **上传无版本号资产副本**（README 下载链接指向的稳定文件名，必须同步上传，确保链接始终指向最新版）：
    - `SoloSoul_macOS.dmg`   # 复制自 `SoloSoul_2.1.0_arm64.dmg`
    - `SoloSoul_Windows.exe` # 复制自 `SoloSoul_2.1.0_x64-setup.exe`
