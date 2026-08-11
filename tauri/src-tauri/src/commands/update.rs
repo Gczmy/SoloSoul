@@ -595,7 +595,13 @@ pub async fn android_download_apk(app: tauri::AppHandle, version: String) -> Res
             // 并行时优先复用探测确认支持 Range 的通道，其余通道作回退
             let mut ordered: Vec<String> = candidates[idx..].to_vec();
             ordered.extend(candidates[..idx].iter().cloned());
-            download_apk_parallel(&app, &ordered, file_total, &part_path).await?;
+            // 并行失败（代理限流/中途断连等）时回退单流重试一次：
+            // parallel 已保留 part_path 断点，单流可断点续传（T002）；
+            // 单流再失败则错误传播，由调用方处理。
+            if let Err(e) = download_apk_parallel(&app, &ordered, file_total, &part_path).await {
+                tracing::warn!("[updater] 分段并行下载失败，回退单流重试: {e}");
+                download_apk_single_stream(&app, &candidates, &part_path).await?;
+            }
         } else {
             download_apk_single_stream(&app, &candidates, &part_path).await?;
         }
@@ -744,19 +750,30 @@ async fn download_apk_parallel(
             download_range_to_file(&client, &candidates, start, end, &path, &sink).await
         }));
     }
-    for handle in handles {
+    // 顺序等待各段结果；任一段失败即中止其余仍在运行的分段任务
+    // （否则它们会继续写已清理的 .seg 文件并 emit 进度事件），随后清理分段文件。
+    let mut iter = handles.into_iter();
+    let mut failure: Option<String> = None;
+    for handle in iter.by_ref() {
         let result = handle
             .await
             .map_err(|e| format!("分段下载任务异常: {e}"))
             .and_then(|r| r.map_err(|e| format!("分段下载失败: {e}")));
         if let Err(e) = result {
-            // 任一段失败：清理所有分段文件，避免缓存目录累积 .seg 垃圾
-            for p in &seg_paths {
-                let _ = std::fs::remove_file(p);
-            }
-            let _ = std::fs::remove_file(part_path);
-            return Err(e);
+            failure = Some(e);
+            break;
         }
+    }
+    if let Some(e) = failure {
+        for handle in iter {
+            handle.abort();
+        }
+        // 只清理分段文件，**保留 part_path**：它可能承载上次单流中断的有效断点，
+        // 调用方可据此回退单流断点续传（T002），不应在并行失败时销毁。
+        for p in &seg_paths {
+            let _ = std::fs::remove_file(p);
+        }
+        return Err(e);
     }
 
     // 按序合并分段 → part_path，随后清理分段文件
@@ -841,27 +858,43 @@ async fn download_range_to_file(
                 continue;
             }
         };
-        let mut file = std::fs::File::create(path).map_err(|e| format!("创建分段文件: {e}"))?;
+        let mut seg_file = std::fs::File::create(path).map_err(|e| format!("创建分段文件: {e}"))?;
+        // 写入部分文件；流中途失败或写入失败时记录错误并**切换到下一候选通道**，
+        // 而不是直接失败——候选通道限流/中途断连可借此恢复（T002）。
         let mut stream = resp;
         let mut written = 0u64;
-        while let Some(chunk) = stream
-            .chunk()
-            .await
-            .map_err(|e| format!("分段分块读取失败: {e}"))?
-        {
+        let mut seg_error: Option<String> = None;
+        loop {
+            let chunk = match stream.chunk().await {
+                Ok(Some(c)) => c,
+                Ok(None) => break,
+                Err(e) => {
+                    seg_error = Some(format!("分段分块读取失败: {e}"));
+                    break;
+                }
+            };
             use std::io::Write;
-            file.write_all(&chunk)
-                .map_err(|e| format!("写入分段失败: {e}"))?;
+            if let Err(e) = seg_file.write_all(&chunk) {
+                seg_error = Some(format!("写入分段失败: {e}"));
+                break;
+            }
             written += chunk.len() as u64;
             sink.report(chunk.len() as u64);
         }
         // 校验本段实际收到的字节数，提前暴露截断/短响应（避免合并阶段才报错且无法定位）
         let expected = end - start + 1;
-        if written != expected {
-            let _ = std::fs::remove_file(path);
-            return Err(format!(
+        if seg_error.is_none() && written != expected {
+            seg_error = Some(format!(
                 "分段 {start}-{end} 截断: 期望 {expected} 字节, 实际 {written}"
             ));
+        }
+        if let Some(e) = seg_error {
+            // 本候选通道失败：清理该段部分文件，切换下一候选重试本段。
+            // 注：已 report 的字节数不回退，进度条在失败重试路径上可能短暂偏高，
+            // 属可接受的近似（最终以合并校验为准）。
+            last_err = e;
+            let _ = std::fs::remove_file(path);
+            continue;
         }
         return Ok(());
     }
