@@ -9,11 +9,10 @@ use zeroize::Zeroizing;
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
+// P022: 移除 salt/verify_hash——前端零消费，暴露扩大 WebView 攻击面
 pub struct AccountInfo {
     pub id: String,
     pub name: String,
-    pub salt: String,
-    pub verify_hash: String,
     pub password_hint: Option<String>,
     pub created_at: Option<String>,
 }
@@ -68,8 +67,6 @@ pub async fn bootstrap(
     Ok(AccountInfo {
         id: account_id,
         name: result["name"].as_str().unwrap_or("").to_string(),
-        salt: result["salt"].as_str().unwrap_or("").to_string(),
-        verify_hash: result["verifyHash"].as_str().unwrap_or("").to_string(),
         password_hint: result["passwordHint"].as_str().map(|s| s.to_string()),
         created_at: Some(chrono::Utc::now().to_rfc3339()),
     })
@@ -240,8 +237,6 @@ mod tests {
         let info = AccountInfo {
             id: "acc-1".to_string(),
             name: "Alice".to_string(),
-            salt: "salty".to_string(),
-            verify_hash: "hashy".to_string(),
             password_hint: Some("hint".to_string()),
             created_at: Some("2024-01-01T00:00:00Z".to_string()),
         };
@@ -260,8 +255,6 @@ mod tests {
         let restored: AccountConfig = serde_json::from_str(&json).unwrap();
         assert_eq!(restored.account_id, original.account_id);
         assert_eq!(restored.name, original.name);
-        assert_eq!(restored.salt, original.salt);
-        assert_eq!(restored.verify_hash, original.verify_hash);
         assert_eq!(restored.crypto_version, original.crypto_version);
         assert_eq!(restored.biometric_enabled, original.biometric_enabled);
     }

@@ -196,10 +196,7 @@ struct AccountEntry {
 pub struct AccountSummary {
     pub id: String,
     pub name: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub salt: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub verify_hash: Option<String>,
+    // P022: 移除 salt/verify_hash——仅供前端零消费，暴露扩大 WebView 攻击面
     #[serde(skip_serializing_if = "Option::is_none")]
     pub password_hint: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -500,33 +497,23 @@ impl VaultService {
         let mut result = Vec::new();
         for entry in &accounts {
             let config_rel = self.config_path_rel(&entry.id);
-            let (
-                salt,
-                verify_hash,
-                password_hint,
-                created_at,
-                has_biometric_history,
-                has_pin_history,
-            ) = match self.fs.read_file(&config_rel) {
-                Ok(content) => match serde_json::from_slice::<AccountConfig>(&content) {
-                    Ok(cfg) => (
-                        Some(cfg.salt),
-                        Some(cfg.verify_hash),
-                        cfg.password_hint,
-                        Some(cfg.created_at),
-                        cfg.biometric_enabled,
-                        cfg.pin_enabled,
-                    ),
-                    Err(_) => (None, None, None, None, false, false),
-                },
-                Err(_) => (None, None, None, None, false, false),
-            };
+            let (password_hint, created_at, has_biometric_history, has_pin_history) =
+                match self.fs.read_file(&config_rel) {
+                    Ok(content) => match serde_json::from_slice::<AccountConfig>(&content) {
+                        Ok(cfg) => (
+                            cfg.password_hint,
+                            Some(cfg.created_at),
+                            cfg.biometric_enabled,
+                            cfg.pin_enabled,
+                        ),
+                        Err(_) => (None, None, false, false),
+                    },
+                    Err(_) => (None, None, false, false),
+                };
 
             result.push(AccountSummary {
                 id: entry.id.clone(),
                 name: entry.name.clone(),
-                salt,
-                verify_hash,
                 password_hint,
                 created_at,
                 has_biometric_history,

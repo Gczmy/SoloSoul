@@ -73,8 +73,7 @@ export interface SyncResult {
 export interface AccountInfo {
   id: string;
   name: string;
-  salt?: string;
-  verifyHash?: string;
+  /** P022: salt/verifyHash 已从后端 DTO 移除（前端零消费，扩大攻击面） */
   passwordHint?: string;
   createdAt?: string;
   /** 该账户是否曾在卸载前启用过生物识别（指纹/人脸），引导用户重新设置。 */
