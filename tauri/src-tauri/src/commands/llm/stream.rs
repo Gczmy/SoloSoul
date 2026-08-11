@@ -188,8 +188,13 @@ async fn handle_sse_stream(
                 token_usage.prompt_tokens = anthropic_prompt_tokens;
                 token_usage.completion_tokens = anthropic_completion_tokens;
             } else if let Some((prompt, completion)) = extract_openai_usage_from_chunk(&json) {
-                token_usage.prompt_tokens = prompt;
-                token_usage.completion_tokens = completion;
+                // N008: 逐字段更新——缺失字段保留先前累积值，避免整体清零。
+                if let Some(p) = prompt {
+                    token_usage.prompt_tokens = p;
+                }
+                if let Some(c) = completion {
+                    token_usage.completion_tokens = c;
+                }
             }
         }
     }
@@ -256,8 +261,13 @@ fn handle_remaining_data(
     // 剩余内容也可能含 usage（P034: 复用 OpenAI chunk 解析）
     if !is_anthropic(api_type) {
         if let Some((prompt, completion)) = extract_openai_usage_from_chunk(&json) {
-            token_usage.prompt_tokens = prompt;
-            token_usage.completion_tokens = completion;
+            // N008: 逐字段更新——缺失字段保留先前累积值。
+            if let Some(p) = prompt {
+                token_usage.prompt_tokens = p;
+            }
+            if let Some(c) = completion {
+                token_usage.completion_tokens = c;
+            }
         }
     }
 }
@@ -288,17 +298,12 @@ fn extract_anthropic_usage(
 }
 
 /// P034: 从 OpenAI SSE chunk 提取 usage（usage 可能在 choices 为空的 chunk 中）。
-/// 返回 (prompt, completion)，字段缺失用 0 兜底——与既有逐字段更新语义一致。
-fn extract_openai_usage_from_chunk(json: &serde_json::Value) -> Option<(u64, u64)> {
+/// 返回 (prompt, completion)，均为 `Option`——缺失的字段由调用方保留先前累积值
+/// （N008：旧实现缺字段用 0 兜底，会把前一 chunk 的累积值整体清零）。
+fn extract_openai_usage_from_chunk(json: &serde_json::Value) -> Option<(Option<u64>, Option<u64>)> {
     let usage = json.get("usage")?;
-    let prompt = usage
-        .get("prompt_tokens")
-        .and_then(|v| v.as_u64())
-        .unwrap_or(0);
-    let completion = usage
-        .get("completion_tokens")
-        .and_then(|v| v.as_u64())
-        .unwrap_or(0);
+    let prompt = usage.get("prompt_tokens").and_then(|v| v.as_u64());
+    let completion = usage.get("completion_tokens").and_then(|v| v.as_u64());
     Some((prompt, completion))
 }
 
