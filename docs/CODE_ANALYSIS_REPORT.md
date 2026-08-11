@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-11（P003 修复完成）
+> 最后更新：2026-08-11（P004 修复完成）
 > 当前分支：`main`
 > 修复轮次：2（按用户指令逐项修复，一项一提交）
 
@@ -17,7 +17,7 @@ Git 状态：工作树除本报告文件重建外干净（旧报告已删除，�
 | P001 | P0 | 规范/构建 | `tauri/src-tauri/src/commands/attachment.rs:1158,1192` 等 | Clippy error 致 check-all 中止（详见下方修复记录） | `[x]` 已完成 |
 | P002 | P1 | 漏洞 | `tauri/src-tauri/src/commands/update.rs:449-463` | `android_download_apk` 信任前端回传的 URL 与 checksum（可传空跳过校验），验签成果未绑定到 IPC 通道 | `[x]` 已完成 |
 | P003 | P1 | 性能 | `tauri/src-tauri/src/commands/export_import/mod.rs:290`、`export.rs:183` | 导出 selected 分支全库解密两遍（`list_objects` + `load_objects_batch`），且随导出页每次勾选变更（500ms 防抖）触发 | `[x]` 已完成 |
-| P004 | P1 | 性能/架构 | `tauri/src-tauri/src/commands/llm/conversation.rs:13-57` | LLM 会话整体存加密 preferences blob，每次保存 = 全量解密+深克隆+序列化+加密+写盘；每条聊天消息都触发 | `[ ]` 待修复 |
+| P004 | P1 | 性能/架构 | `tauri/src-tauri/src/commands/llm/conversation.rs:13-57` | LLM 会话整体存加密 preferences blob，每次保存 = 全量解密+深克隆+序列化+加密+写盘；每条聊天消息都触发 | `[x]` 已完成 |
 | P005 | P1 | 性能 | `solosoul_cli/src/commands/search.rs:181-184,206-209` | CLI `/search` 用 `list_objects(...).len()` 统计子对象数，对每个命中页面全量解密仅为取计数（GUI 已有 `count_objects` 先例） | `[ ]` 待修复 |
 | P006 | P1 | 架构 | `tauri/src-tauri/src/commands/object/mod.rs:439`、`tauri/src/stores/objectStore.ts:56,185`、`ObjectDetailModal.tsx:470` | 类型漂移：Rust `ObjectData` 无 `tags`，TS 声明 `tags?` 永为 undefined；`updateObject` 用 undefined 覆盖摘要 tags，详情页标签成死渲染路径 | `[ ]` 待修复 |
 | P007 | P1 | 架构 | `tauri/src-tauri/src/commands/export_import/export_docx.rs:200` | `flatten_object_fields` 6–7 层控制流嵌套，动态字段组展平逻辑难读难测 | `[ ]` 待修复 |
@@ -64,8 +64,8 @@ Git 状态：工作树除本报告文件重建外干净（旧报告已删除，�
 
 ## 修复进度
 
-- 已完成：3 / 47
-- 当前处理：P004（按建议顺序推进）
+- 已完成：4 / 47
+- 当前处理：P005（按建议顺序推进）
 
 ## 详细问题描述与修复指引
 
@@ -111,10 +111,19 @@ error: deref which would be done by auto-deref
 
 **验证**：cargo check --tests ✅；clippy --workspace 全绿 ✅。
 
-### P004（P1）LLM 会话整 blob 重写
+### P004（P1）LLM 会话整 blob 重写 — 已完成（commit f2f8c58b）
 
-全部会话（每条最多 500 消息）存于加密 profile preferences blob；任何 save/list/rename/delete 都整 blob 解密→修改→加密→写盘，且 `save_conversations` 先 `to_vec()` 深克隆全部会话（:45）。每条聊天消息流式结束都触发 `llm_save_conversation`（`useLlmChatCore.ts:263`），开销随历史线性增长。
-**修复**：短期——按 id 定位仅克隆/trim 目标会话；中期——会话改存独立 SQLite 表（按 conversation_id 行存储），与 objects/audit_log 存储方式对齐。
+**原问题**：全部会话（每条最多 500 消息）存于加密 profile preferences blob；任何 save/list/rename/delete 都整 blob 解密→修改→加密→写盘，且 `save_conversations` 先 `to_vec()` 深克隆全部会话（:45）。每条聊天消息流式结束都触发 `llm_save_conversation`，开销随历史线性增长。
+
+**修复**（采用报告中期方案：会话改存独立 SQLite 表，行级存储）：
+
+1. **migration v26**：新增 `llm_conversations` 表（id PK、account_id、data 加密 BLOB、updated_at），建表 + `idx_llm_conversations_account` 索引；幂等采用 v24/v25 同款「表存在性守卫 + INSERT OR IGNORE」模式（兼容 v23 测试降级重跑场景）。
+2. **storage 层**（`solosoul-vault/storage/conversations.rs`）：行级 CRUD——`save_conversation`（upsert 单行 + HLC）、`load_conversation`（仅解密目标行）、`list_conversations`、`delete_conversation`（记墓碑）、`conversations_size`（纯 SQL SUM(LENGTH(data)) 统计，替代 vault stats 的 blob 读取）。
+3. **sync 集成**：`list_conversation_changes_since`/`apply_conversation_sync_record_tx` 接入 sync_changes/sync_apply 分发，`SYNC_TABLES` 常量新增 `llm_conversations`；同步记录随行携带 `accountId`（与 ObjectRecord 自带 account_id 同理），本地按该账户 upsert，与行过滤一致。
+4. **命令层**（`commands/llm/conversation.rs` 重写）：从 blob 存储切换行级 API，旧 blob 数据懒迁移到新表后清除；流式热路径（`stream.rs`）改为单行读改存；`llm/tests.rs` 测试同步更新。
+5. **一致性**：`solosoul-core/llm/service.rs` 的会话方法（无跨 crate 调用方）改为委托 vault 行级 API，消除双写路径；`vault.rs` 存储统计改用 `conversations_size`。
+
+**验证**：vault 159 测试全过（含新增行级 CRUD + sync apply + v26 建表测试）✅；clippy --workspace 全绿 ✅；src-tauri `cargo check --tests` ✅；CLI 编译 ✅。注：src-tauri 测试二进制运行报 `STATUS_ENTRYPOINT_NOT_FOUND`（Windows 本机 DLL 环境问题，旧二进制同样无法运行，非本次改动引入）。
 
 ### P005（P1）CLI 搜索计数全量解密
 
