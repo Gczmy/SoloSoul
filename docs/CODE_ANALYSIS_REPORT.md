@@ -1,15 +1,15 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-11（轮次 7：T 系列修复验证）
+> 最后更新：2026-08-12（轮次 8：U 系列修复验证）
 > 当前分支：`main`
 
 ## 总览
 
-- 全部已提出问题：**67 项**（P47 + N10 + R5 + S4 + T5 + U6，含重复计数修正）
-- **修复关闭 62 项**、**经确认跳过 2 项**（P027/P033）、**延期 2 项**（P046/P047 巨型组件/文件拆分，列为后续架构项）
-- **待修复 6 项（U 系列）**：轮次 7 验证 T 系列修复时发现——T001/T002/T005 修复通过，T003/T004 修复主体正确但各有残留，另发现修复新引入的竞态与测试覆盖缺口，详见「轮次 7」
+- 全部已提出问题：**72 项**（P47 + N10 + R5 + S4 + T5 + U6 + V5，含重复计数修正）
+- **修复关闭 68 项**、**经确认跳过 2 项**（P027/P033）、**延期 2 项**（P046/P047 巨型组件/文件拆分，列为后续架构项）
+- **待修复 5 项（V 系列）**：轮次 8 验证 U 系列修复时发现——U001/U002/U003/U005/U006 修复通过，U004（隐私政策披露）有 P1 级残留，另有若干 P2 修复残留，详见「轮次 8」
 - 遗留计划事项：S003 的 v2.10 blob 键清理（已有代码 TODO + CHANGELOG 双向追踪，属计划内而非遗忘）
-- 轮次 7 基线实测：`check-all` **EXIT=0 全绿**（cargo test + Vitest 646/646 + 两项机械化一致性检查），T001 的 P0 测试红已消除
+- 轮次 8 基线实测：`check-all` **EXIT=0 全绿**（cargo test + Vitest + 两项机械化一致性检查）
 
 ## 遗留项（跳过 / 延期）
 
@@ -30,7 +30,8 @@
 - **轮次 4**：S001–S004 全部修复（含 R003 引入的会话复活回归）。
 - **轮次 5**（收口）：4/4 全部通过，无新增问题；全库质量评估达标。
 - **轮次 6**：S 系列收口后新推送审查（更新加速 + 附件标签折叠系列），新增 T001–T005，全部 `[ ]` 待修复。
-- **轮次 7**：T 系列修复验证（6 提交 df78465c–a96f1d70）。T001/T002/T005 修复通过；T003/T004 修复主体正确但有残留；check-all 实测全绿。新增 U001–U006，全部 `[ ]` 待修复。
+- **轮次 7**：T 系列修复验证（6 提交 df78465c–a96f1d70）。T001/T002/T005 修复通过；T003/T004 修复主体正确但有残留；check-all 实测全绿。新增 U001–U006，全部修复。
+- **轮次 8**：U 系列修复验证（6 提交 9e48b02c–7635406e）。U001/U002/U003/U005/U006 修复通过；U004 隐私政策披露有 P1 级残留（禁用承诺范围错误）；check-all 实测全绿。新增 V001–V005，全部 `[ ]` 待修复。
 
 ## 轮次 6：新推送审查（T 系列）
 
@@ -71,7 +72,7 @@
 ### T004（P2，隐私/可用性披露 + 可配置）✅ 已修复
 
 - **①②③ 披露**：`update.rs` `PROXY_PREFIXES` 注释与 `scripts/generate-latest-json.js` 头部注释补全隐私/可用性披露——TLS 终止代理下用户 IP/使用事实/版本号/API 响应暴露给第三方（直连可达时不走代理，直连受限时固有权衡无法消除）；元数据请求套代理可被陈旧/篡改 Release JSON 软性压制升级（完整性无碍——校验和与签名 Rust 侧重验）；重放旧版 mirror JSON 压制升级（updater 只升不降，无降级风险）。
-- **④ 缓解（可配置）**：新增 `proxy_prefixes()` 支持环境变量 `SOLOSOUL_PROXY_PREFIXES`（逗号分隔）覆盖默认代理列表，可指向自建可信代理；**留空禁用全部代理仅走直连**；未设置/解析为空回退默认列表。`download_candidates` 改用该函数。
+- **④ 缓解（可配置）**：新增 `proxy_prefixes()` 支持环境变量 `SOLOSOUL_PROXY_PREFIXES`（逗号分隔）覆盖默认代理列表，可指向自建可信代理；**显式置空禁用全部代理仅走直连**；未设置时回退默认列表（该语义经 U001 修正后成立，原实现「解析为空回退默认」与承诺矛盾已修复）。`download_candidates` 改用该函数。
 - **测试**：新增 `test_proxy_prefixes_env_override` 覆盖「单代理覆盖 / 逗号分隔去空白 / 空值回退默认」三用例；默认候选测试保持通过。
 - **审查修复**：`SOLOSOUL_PROXY_PREFIXES` 为进程级环境变量，Rust 测试默认多线程并发——涉及 env 的两个测试（`test_proxy_prefixes_env_override` 与 `test_download_candidates_direct_first_then_proxies`）加共享 `ENV_LOCK: Mutex<()>` 串行执行，消除 set_var/remove_var 相互干扰导致的间歇性 CI 抖动。
 - **验证**：cargo fmt / check / clippy `-D warnings` 全绿。
@@ -101,7 +102,7 @@
 | U001 | P1 | 功能/文档矛盾 | `tauri/src-tauri/src/commands/update.rs:30,47,57-62,1288-1291` | **「留空禁用代理」承诺与实现矛盾**：提交信息、代码注释、本报告 T004 修复记录三处均宣称 `SOLOSOUL_PROXY_PREFIXES=""` 可禁用全部代理仅走直连，但实现按「解析结果为空 → 回退默认 4 个代理」处理，测试也固化了回退行为。隐私敏感用户显式置空后实际仍走 gh-proxy，属反向伤害。修法二选一：`var()` 的 `Ok/Err` 区分「未设置→默认 / 显式置空→禁用」（改动很小），或把三处文档改口为「空值回退默认」 | `[x]` 已修复（U001，见下） |
 | U002 | P2 | 资源 | `tauri/src-tauri/src/commands/update.rs:507-508` | **T003 超时修复只覆盖一半路径**：前端 `check()` 加了 15s 超时，但桌面端 AboutPage 检查更新走 Rust 侧 `app.updater().check()`（`updater.ts:100` → `useUpdateChecker.ts:87`），该 builder 未设 `timeout`——直连黑洞时 AboutPage「检查更新」永久卡在 checking 态，endpoint 回退不触发。修法一行：`app.updater_builder().timeout(Duration::from_secs(15)).build()` | `[x]` 已修复（U002，见下） |
 | U003 | P2 | 并发 | `tauri/src-tauri/src/commands/update.rs:229-249,449,606` | **T003 修复新引入竞态**：cleanup 注释断言「仅在下载开始前调用，无并发写入」，但无机制保证——Tauri commands 并发执行，用户在 APK 分段下载进行中触发 `android_check_update`（AboutPage/横幅），cleanup 会删除 `download_range_to_file` **正在写入**的 `.part.seg{i}`。后果可自愈（合并 open 失败 → 回退单流 → SHA-256 终检兜底，无损坏风险），但浪费带宽、进度归零。修法：下载进行中持进程内标志/Mutex，cleanup 跳过；或 cleanup 限定无活动下载时执行 | `[x]` 已修复（U003，见下） |
-| U004 | P2 | 隐私/文档 | `docs/zh-CN/`、`docs/en-US/`（缺失） | **披露未触达用户**：T004 的隐私披露只落在源码注释、构建脚本注释与本内部报告，用户可见的隐私政策/服务条款（中英两版）无任何代理相关条目，应用内更新 UI 亦无提示。若意图是让用户知情（审查本意），需在隐私政策补「检查更新在直连不可达时经第三方代理中转，可能暴露 IP 与版本号」 | `[x]` 已修复（U004，见下） |
+| U004 | P2 | 隐私/文档 | `docs/legal/隐私政策.md`、`docs/legal/Privacy Policy.md`（原报告误写为 `docs/zh-CN/`、`docs/en-US/`，实际目录为 `docs/legal/`） | **披露未触达用户**：T004 的隐私披露只落在源码注释、构建脚本注释与本内部报告，用户可见的隐私政策/服务条款（中英两版）无任何代理相关条目，应用内更新 UI 亦无提示。若意图是让用户知情（审查本意），需在隐私政策补「检查更新在直连不可达时经第三方代理中转，可能暴露 IP 与版本号」 | `[x]` 已修复（⚠️ 残留 V001，见轮次 8） |
 | U005 | P2 | 弹性/测试 | `tauri/src-tauri/src/commands/update.rs:805-807,1011-1018` | **T002 残留**：①abort 未 await——abort 后立即删 seg 文件，若某任务已越过最后 await 点可能重建孤儿 `.seg`（无正确性影响，T003 的 cleanup 兜底）；②回退单流腿自身仍无中途切候选（`?` 直接返回，断点保留可重试，属刻意取舍但「候选切换」在单流腿未闭环）；③三个行为改动零新增测试（网络 mock 成本高可理解，回归靠人工） | `[x]` 已修复（U005，见下） |
 | U006 | P2 | 测试/注释 | `tauri/src/components/attachment/AttachmentFileNameBlock.tsx:134-138`、`update.rs:1338` | **T005/T001 残留**：①描述溢出测量分支仍零行为测试覆盖（jsdom 恒 false，标签侧 mock 布局方案可仿照）；②字体晚加载漏判仍在——RO 监听 border-box 尺寸，字体加载只改 `scrollWidth` 时不触发（可用 `document.fonts.ready.then(measure)` 兜底）；③T001 测试注释引用不存在的 `download_apk`，应为 `android_download_apk`（`update.rs:601`） | `[x]` 已修复（U006，见下） |
 
@@ -144,8 +145,32 @@
 - **测试**：`test_proxy_prefixes_env_override` 更新——空字符串断言 `is_empty()`（原断言回退默认）；新增「仅空白同样禁用」用例。
 - **验证**：cargo fmt / check / clippy `-D warnings` 全绿。
 
+## 轮次 8：U 系列修复验证（V 系列）
+
+审查范围：U 系列修复 6 提交（`9e48b02c` U001 → `7635406e` U006）。基线实测：`check-all` **EXIT=0 全绿**。验证方式：逐提交 `git show` 核对 + 当前工作区代码语义审查。
+
+**通过项（修复正确）**：
+
+- **U001 ✅**：`var()` 的 `Ok/Err` 正确区分「未设置→默认 / 显式置空或仅空白→空列表仅直连」（`update.rs:52-62`），正是报告建议的修法一；代理为空时 `download_candidates` 无条件种子直连候选，无「假设 ≥2 候选」的边缘 bug；测试真实覆盖四态（未设置/单值/多值去空白/置空/仅空白），ENV_LOCK 串行与 `remove_var` 复原齐备；注释与隐私政策措辞现已一致。
+- **U002 ✅**：`updater_builder().timeout(Duration::from_secs(15)).build()`（`update.rs:522-529`）API 用法正确（`timeout` 仅存在于 `UpdaterBuilder`，参数类型 `Duration`，插件 2.10.1 源码确认逐 endpoint 生效）；endpoints/pubkey 与 `updater()` 同源无配置丢失；15s 与前端对齐；全 `src-tauri` 仅此一处构建点，无遗漏。
+- **U003 ✅**：`APK_DOWNLOAD_ACTIVE: AtomicBool`（`update.rs:210`）无死锁面；跳过逻辑加在 `cleanup_stale_apk_cache` **函数体开头**（`update.rs:217-221`），两个调用点自动受保护；抽函数 `download_apk_to_part` 保证置位与复位之间无任何 `?`，四条错误路径均正确恢复；自身下载前的 cleanup 在置位之前执行，语义正确。
+- **U005 ✅**：abort 后 `iter.collect()` 收齐句柄逐个 `await`（`Err(cancelled)` 显式忽略，无 panic 路径）再删 seg，孤儿重建窗口闭合；单流腿 `next_resume_offset` 断点在续传/重下两分支均与实际文件字节数一致，下一候选 `Range: bytes={offset}-` append 续传不重复写字节，候选为界无无限重试，SHA-256 终检兜底；`test_next_resume_offset` 三断言为真测试。
+- **U006 ✅**：描述溢出行为单测与标签侧方案同构（mock 布局属性 + rerender 重测 + 展开/收起全链路断言）；`document.fonts?.ready?.then(measure)` 有 jsdom 守卫、一次性 promise 无循环、卸载后 no-op 有注释声明；`android_download_apk` 注释函数名与真实调用链吻合（`update.rs:622,1436`）。
+
+**新增问题**：
+
+| ID | 优先级 | 类别 | 文件位置 | 描述 | 状态 |
+|----|--------|------|----------|------|------|
+| V001 | P1 | 隐私/文档矛盾 | `docs/legal/隐私政策.md:19-25`、`docs/legal/Privacy Policy.md:19-25`、`tauri/src-tauri/tauri.conf.json:83-87` | **「置空完全禁用代理，适用于桌面端」承诺不成立**：桌面端检查更新主路径是 Tauri updater 插件，其 4 个代理 endpoint **硬编码于 `tauri.conf.json` 编译期固化**，不受 `SOLOSOUL_PROXY_PREFIXES` 控制——该变量只覆盖 `proxy_prefixes()` 管辖的路径（Android 全流程 + 桌面端 GitHub API 兜底/release notes 补全）。隐私敏感的桌面用户按政策置空后，直连失败时版本检测仍经 gh-proxy 系代理。且文档限定「桌面端」方向反了——变量在 Android 端才是完全有效的（只是移动端难以设置环境变量）。修法二选一：政策措辞改为说明桌面端 updater endpoint 为内置回退、环境变量仅覆盖 API 元数据与下载中转路径；或让桌面端 updater 也走可禁用路径（成本较高） | `[ ]` 待修复 |
+| V002 | P2 | 弹性 | `tauri/src-tauri/src/commands/update.rs:522-529,585-599` | **U002 修复行为偏差**：旧代码 `app.updater()` 构建失败会把错误放入 `updater_result` 并回退 GitHub Release API（保证 AboutPage 仍能给出版本信息）；新代码 build 失败 `return Err(...)` 提前返回跳过兜底，与函数文档注释（「失败时回退到 GitHub Release API」）契约不符。实际影响小（build 失败仅当发布期配置损坏），修法：build 失败也走 `updater_result = Err(...)` 老路（一行），或文档注释改口 | `[ ]` 待修复 |
+| V003 | P2 | 并发 | `tauri/src-tauri/src/commands/update.rs:651-663`、`tauri/src/lib/updater.ts:180` | **U003 残留**：①panic 路径标志泄漏——抽函数保证 `?`/Err 路径恢复但非 RAII guard，`download_apk_to_part` 内部 panic 时 unwind 跳过 `store(false)`，标志永久置位、cleanup 此后整体失效（仅缓存不再清理，无数据损坏）；可选修法 scopeguard 式 Drop 恢复。②`AtomicBool` 非计数器 + 前端不 await `android_download_apk`，理论上可并发双下载——A 完成 `store(false)` 时 B 仍在写 seg，cleanup 窗口重开（且双下载同写 `part_path` 本身是更大的既存问题，U003 标志并非其防线，此处登记备查） | `[ ]` 待修复 |
+| V004 | P2 | 文档 | `docs/legal/隐私政策.md`、`docs/legal/Privacy Policy.md` | **U004 残留披露缺口**：政策只承诺完整性不可篡改，未提示「代理可返回陈旧/篡改 Release JSON 软性压制升级、可能导致无法及时获知新版本」这一可用性面（源码注释 `update.rs:32-36` 内部已披露）。隐私政策不强制涵盖可用性，但既然已写完整性声明，补一句更完整 | `[ ]` 待修复 |
+| V005 | P3 | 弹性/测试 | `tauri/src-tauri/src/commands/update.rs:1088-1091` | **U005 残留**：①`write_all` 部分写入不计入断点——写失败时可能已写若干字节但 `new_bytes` 未计，下一候选 206 续传 append 会在文件末尾重复拼接未计数字节 → part 损坏（SHA-256 终检兜住：删 part、用户重试从零下载，仅浪费一次下载，无正确性外泄）；可选修法续传前 `set_len(existing_size)` 截断或以 `metadata().len()` 为准。②abort-await 与候选切换续传两条核心行为路径仍零自动化覆盖（纯函数测试通过不等于回归保护；可用 `wiremock` 类本地 mock HTTP 补集成测试） | `[ ]` 待修复 |
+
+**次要观察（不列为问题）**：`test_proxy_prefixes_env_override` 首条断言与 `test_download_candidates_direct_first_then_proxies` 未先 `remove_var`，若测试环境本身设置了 `SOLOSOUL_PROXY_PREFIXES` 会失败（修复前即如此）；`update.rs:648-649` 大段 U003 注释挂在行尾（cosmetic）；`document.fonts.ready` 只捕获 resolve 时已 pending 的字体（原报告建议方案的固有边界，与要求一致）。
+
 ## 待用户指令
 
-- U 系列修复建议顺序：U001（P1，实现/文档二选一）→ U002（一行 timeout）→ U003（cleanup 竞态）→ U004（隐私政策补条目）→ U005/U006（测试与注释收尾）。
+- V 系列修复建议顺序：V001（P1，政策措辞改口为低成本路径）→ V002（一行回退）→ V003/V004 → V005（P3 可缓）。
 - 可选收尾动作：推送报告并打标签 `git tag -a "code-audit-passed-$(date +%Y%m%d)"`——需用户确认后执行。
 - 后续专项建议：优先处理 P046/P047 巨型组件/文件拆分（架构项）；S003 的 v2.10 blob 键清理按代码 TODO 计划执行。
