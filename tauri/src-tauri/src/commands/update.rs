@@ -210,6 +210,18 @@ fn apk_part_path(app: &tauri::AppHandle, version: &str) -> Result<PathBuf, Strin
 static APK_DOWNLOAD_ACTIVE: std::sync::atomic::AtomicBool =
     std::sync::atomic::AtomicBool::new(false);
 
+/// V003: Drop guard（scopeguard 式，无需外部依赖）——无论正常返回、`?` 提前返回还是
+/// panic unwind，离开作用域时都恢复 `APK_DOWNLOAD_ACTIVE`，杜绝标志永久置位导致
+/// cleanup 此后整体失效。
+struct ApkDownloadActiveGuard;
+
+impl Drop for ApkDownloadActiveGuard {
+    fn drop(&mut self) {
+        use std::sync::atomic::Ordering;
+        APK_DOWNLOAD_ACTIVE.store(false, Ordering::Relaxed);
+    }
+}
+
 /// 清理非当前版本的 APK 缓存文件，避免旧版本安装包占用空间并被误用。
 ///
 /// 下载进行中（`APK_DOWNLOAD_ACTIVE` 为 true）时**整体跳过**，保护正在写入的
@@ -643,10 +655,11 @@ pub async fn android_download_apk(app: tauri::AppHandle, version: String) -> Res
     let candidates = download_candidates(&download_url);
 
     // 探测下载通道：确认文件总大小与 Range 支持（直连失败自动回退代理）
-    let (file_total, range_candidate) = probe_download(&candidates).await?; // U003: 标记下载进行中（cleanup 据此跳过，避免并发删除正在写入的 .seg 文件），
-                                                                            // 无论成败最后恢复。探测阶段已完成（不写 seg），从下载主体开始标记。
+    let (file_total, range_candidate) = probe_download(&candidates).await?; // U003: 标记下载进行中（cleanup 据此跳过，避免并发删除正在写入的 .seg 文件）。
+                                                                            // 探测阶段已完成（不写 seg），从下载主体开始标记。
     use std::sync::atomic::Ordering;
     APK_DOWNLOAD_ACTIVE.store(true, Ordering::Relaxed);
+    let _active_guard = ApkDownloadActiveGuard; // V003: Drop 时恢复标志，panic 路径也不泄漏
     let result = download_apk_to_part(
         &app,
         &candidates,
@@ -657,7 +670,6 @@ pub async fn android_download_apk(app: tauri::AppHandle, version: String) -> Res
         &expected_checksum,
     )
     .await;
-    APK_DOWNLOAD_ACTIVE.store(false, Ordering::Relaxed);
     let final_size = result?;
 
     // 发送完成事件
