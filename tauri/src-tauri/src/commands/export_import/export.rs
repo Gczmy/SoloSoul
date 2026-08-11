@@ -333,8 +333,15 @@ pub(crate) fn validate_export_dest(zip_path: &str) -> Result<(), String> {
     }
 
     let allowed_bases = crate::commands::attachment::allowed_fs_bases();
+    // P015: 白名单为空时 fail-closed 拒绝（而非放行任意导出路径）
     if allowed_bases.is_empty() {
-        return Ok(());
+        tracing::warn!(
+            "[export] allowed FS bases empty — rejecting export destination (fail-closed)"
+        );
+        return Err(
+            "允许的路径白名单为空（Desktop/Documents/Downloads 与 SOLOSOUL_FS_BASE 均不可解析），已拒绝导出"
+                .to_string(),
+        );
     }
 
     // 目标不存在时 canonicalize 父目录（对齐 attachment_download 的宽容处理）

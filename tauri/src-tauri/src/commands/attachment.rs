@@ -482,8 +482,16 @@ pub async fn attachment_copy_to_vault(
     }
 
     // 验证源文件在允许的用户目录内（Desktop/Documents/Downloads 或 SOLOSOUL_FS_BASE）
+    // P015: 白名单为空时 fail-closed 拒绝（而非放行任意路径）
     let allowed_bases = allowed_fs_bases();
-    if !allowed_bases.is_empty() && !allowed_bases.iter().any(|b| src.starts_with(b)) {
+    if allowed_bases.is_empty() {
+        tracing::warn!("[attachment] allowed FS bases empty — rejecting copy (fail-closed)");
+        return Err(
+            "Allowed path whitelist is empty (Desktop/Documents/Downloads and SOLOSOUL_FS_BASE all unresolvable)"
+                .to_string(),
+        );
+    }
+    if !allowed_bases.iter().any(|b| src.starts_with(b)) {
         return Err(
             "Source path must be within Desktop, Documents, Downloads, or SOLOSOUL_FS_BASE"
                 .to_string(),
@@ -914,10 +922,17 @@ pub async fn attachment_download(
     }
 
     // Determine allowed base directories for downloads.
+    // P015: 白名单为空时 fail-closed 拒绝（而非放行任意路径）
     let allowed_bases = allowed_fs_bases();
+    if allowed_bases.is_empty() {
+        tracing::warn!("[attachment] allowed FS bases empty — rejecting download (fail-closed)");
+        return Err(
+            "Allowed path whitelist is empty (Desktop/Documents/Downloads and SOLOSOUL_FS_BASE all unresolvable)"
+                .to_string(),
+        );
+    }
 
-    // If we have allowed bases, verify dest is within one of them.
-    if !allowed_bases.is_empty() {
+    {
         let dest_canon = if dest.exists() {
             dest.canonicalize()
                 .map_err(|e| format!("Invalid destination: {}", e))?
