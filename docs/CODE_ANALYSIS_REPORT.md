@@ -72,8 +72,8 @@
 ## 修复进度
 
 - 轮次 1：验证通过关闭 **41 / 47**（含 P045 判定合理关闭）；修复有缺陷未关闭 2（P009、P022）；经确认跳过 2（P027、P033）；延期 2（P046、P047）
-- 轮次 2 新问题（N 系列）：**9 项，已修复 6 / 9**（N001–N006 完成）
-- 当前处理：N007（check-all 加入 cargo test）
+- 轮次 2 新问题（N 系列）：**9 项，已修复 7 / 9**（N001–N007 完成）
+- 当前处理：N008（OpenAI usage 累积语义恢复逐字段更新）
 
 ## 轮次 2 新问题清单（验证发现）
 
@@ -85,7 +85,7 @@
 | N004 | P1 | 漏洞/逻辑 | `tauri/src-tauri/src/commands/llm/conversations.rs:296-302`（实际位于 `crates/solosoul-vault/src/storage/conversations.rs`） | 确证 bug（P004 修复引入）：`conversation_local_snapshot` 调 `load_conversation("", id)` 空 account_id 恒不匹配 → 冲突 UI 本地快照恒 None；连带 delta.rs:171-180 本地赢 LWW 时记假冲突。已修：`llm_conversations.id` 为全局主键，快照直接按 id 取数（对齐其余表），新增单测 | `[x]` 已修复 |
 | N005 | P2 | 架构 | `tauri/src-tauri/src/commands/llm/conversation.rs:52-57`、`solosoul-core` LlmService | LLM 迁移隐患：①CLI 无懒迁移（看不到旧 blob 会话）；②GUI 懒迁移对 blob 逐条无条件 upsert（无 HLC/LWW 比较），可覆盖 CLI 已写入的较新行；③混合版本同步会抹掉旧设备 blob 会话。已修：迁移下沉 `LlmService::migrate_legacy_conversations` 单一实现（含 `updated_at` LWW 比较 + trim + 清键），`load_conversations`/`get_conversation` 开头自动触发（CLI 经 LlmService 读即接入），GUI `conversation.rs` 委托同一实现；新增 LWW 单测 | `[x]` 已修复 |
 | N006 | P2 | 漏洞 | `tauri/src-tauri/src/commands/update.rs:232-240` | P002 遗留：`find_apk_asset` 谓词 `contains("universal-release")` 可命中 `.apk.sha256(.minisig/.sig)` 资产；`resolve_verified_checksum` 的 `contains("sha256")` 同款。若 GitHub 资产排序不利 → fail-closed 永久误拒下载（可用性问题）。已修：`find_apk_asset` 收紧为纯 `ends_with(".apk")`；签名资产统一 `ends_with(".sha256.minisig")` 去掉宽松 `contains`；新增 2 个谓词单测 | `[x]` 已修复 |
-| N007 | P2 | 流程 | `tauri/package.json` check-all | check-all 不含 `cargo test`，Rust 测试红无法被基线/本地门禁发现（本轮 N001 即漏网之鱼）。建议脚本加入 `cargo test` | `[ ]` 待修复 |
+| N007 | P2 | 流程 | `tauri/package.json` check-all | check-all 不含 `cargo test`，Rust 测试红无法被基线/本地门禁发现（本轮 N001 即漏网之鱼）。已修：check-all 在 clippy 后插入 `cargo test` | `[x]` 已修复 |
 | N008 | P2 | 逻辑 | `tauri/src-tauri/src/commands/llm/stream.rs:292-303` | P034 语义微变：OpenAI usage chunk 缺字段时从「保留先前累积值」变为 `unwrap_or(0)` 整体覆盖清零。实际 OpenAI 兼容 API 只在末尾发一次完整 usage，风险极低 | `[ ]` 待修复 |
 | N009 | P2 | 测试/规范 | `tauri/src-tauri/src/commands/object/mod.rs:608`、`settings.rs`、`template.rs` | ①`validate_object_input` 误挂 `#[tauri::command]`（未注册，生成无用包装代码）；②P026 新增的三组边界校验函数零单元测试，白名单与前端 key 同步无兜底 | `[ ]` 待修复 |
 | N010 | P2 | 规范 | 多处（汇总） | 文案/注释/路径卫生：①P013 桌面白名单外导入报英文技术文案；②fs.rs 与 attachment.rs 两个 `allowed_fs_bases` 对 SOLOSOUL_FS_BASE 语义分叉（覆盖 vs 叠加）；③P015 极简 Linux 拒绝文案无自救提示且中英不一；④P017 canonical 路径回传前端（Windows `\\?\` 前缀）；⑤log.rs:10-11 模块文档与白名单语义矛盾；⑥export_import/mod.rs:262 陈旧注释 | `[ ]` 待修复 |
