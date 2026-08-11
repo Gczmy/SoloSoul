@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-11（P032 修复完成）
+> 最后更新：2026-08-11（P039 修复完成）
 > 当前分支：`main`
 > 修复轮次：2（按用户指令逐项修复，一项一提交）
 
@@ -47,12 +47,12 @@ Git 状态：工作树除本报告文件重建外干净（旧报告已删除，�
 | P031 | P2 | 死代码 | `tauri/src/stores/pluginStore.ts:95` | `DEFAULT_ENABLED_TIERS` 导出但仅本文件使用 | `[x]` 已完成 |
 | P032 | P2 | 规范 | `tauri/src-tauri/src/lib.rs:643-644` | 过时注释：描述的 legacy XOR 迁移遥测代码已不存在（迁移窗口已关闭） | `[x]` 已完成 |
 | P033 | P2 | 死代码 | `tauri/src-tauri/src/lib.rs:304-316`（调用于 :667） | `setup_detect_locale()` 结果仅用于一行 debug 日志，前端实际走 `get_system_locale` IPC（需人工确认是否保留诊断） | `[ ]` 待修复 |
-| P034 | P2 | 架构 | `tauri/src-tauri/src/commands/llm/stream.rs:92` | `handle_sse_stream` 123 行，usage 提取分支 5 层嵌套，SSE 解析与 token 统计耦合 | `[ ]` 待修复 |
-| P035 | P2 | 架构 | `tauri/src-tauri/src/commands/export_import/import.rs:624` | `rebuild_imported_templates` 模板 ID 去重三分支内联约 5 层嵌套 | `[ ]` 待修复 |
-| P036 | P2 | 架构 | `tauri/src-tauri/src/commands/object/snapshot.rs:179` | `build_preview_properties` ~141 行，4 个编号阶段混在一个 else 分支 | `[ ]` 待修复 |
-| P037 | P2 | 架构 | `tauri/src-tauri/src/commands/export_import/export.rs:6` | `export_get_scope_tree` ~133 行承担 5 个阶段（敏感度合并/孤儿过滤等应抽函数） | `[ ]` 待修复 |
-| P038 | P2 | 架构 | `tauri/src-tauri/src/commands/object/mod.rs:1021` | `collect_updated_fields` ~122 行，类型变更与 6 项元数据对比混在一个循环体 | `[ ]` 待修复 |
-| P039 | P2 | 规范 | `tauri/src-tauri/src/commands/export_import/export.rs:85-103,136-146` | 6 个系统分区字符串在数组/映射/集合中重复书写 3 遍，新增分区需同步改 3 处 | `[ ]` 待修复 |
+| P034 | P2 | 架构 | `tauri/src-tauri/src/commands/llm/stream.rs:92` | `handle_sse_stream` 123 行，usage 提取分支 5 层嵌套，SSE 解析与 token 统计耦合 | `[x]` 已完成 |
+| P035 | P2 | 架构 | `tauri/src-tauri/src/commands/export_import/import.rs:624` | `rebuild_imported_templates` 模板 ID 去重三分支内联约 5 层嵌套 | `[x]` 已完成 |
+| P036 | P2 | 架构 | `tauri/src-tauri/src/commands/object/snapshot.rs:179` | `build_preview_properties` ~141 行，4 个编号阶段混在一个 else 分支 | `[x]` 已完成 |
+| P037 | P2 | 架构 | `tauri/src-tauri/src/commands/export_import/export.rs:6` | `export_get_scope_tree` ~133 行承担 5 个阶段（敏感度合并/孤儿过滤等应抽函数） | `[x]` 已完成 |
+| P038 | P2 | 架构 | `tauri/src-tauri/src/commands/object/mod.rs:1021` | `collect_updated_fields` ~122 行，类型变更与 6 项元数据对比混在一个循环体 | `[x]` 已完成 |
+| P039 | P2 | 规范 | `tauri/src-tauri/src/commands/export_import/export.rs:85-103,136-146` | 6 个系统分区字符串在数组/映射/集合中重复书写 3 遍，新增分区需同步改 3 处 | `[x]` 已完成 |
 | P040 | P2 | 规范 | `PasswordVerificationDialog.tsx:444-505` ↔ `pages/auth/LoginPinView.tsx:27-82` | PIN 输入卡片 ~26 行近乎复制（AGENTS.md 禁止多处复制对话框的同类问题） | `[ ]` 待修复 |
 | P041 | P2 | 规范 | `pages/scan/OcrScanSettingsPanel.tsx:79-140` ↔ `pages/settings/OcrSettingsPage.tsx:95-160` | OCR tier 状态行 ~30 行两处复制 | `[ ]` 待修复 |
 | P042 | P2 | 架构 | `sync/SyncScanQrDialog.tsx:90-137` ↔ `SyncShowQrDialog.tsx:181-234` | 手写模态外壳 ~29 行复制，项目已有共享 `Dialog` 组件 | `[ ]` 待修复 |
@@ -64,8 +64,8 @@ Git 状态：工作树除本报告文件重建外干净（旧报告已删除，�
 
 ## 修复进度
 
-- 已完成：31 / 47
-- 当前处理：P034（按建议顺序推进；P027/P033 已按用户确认跳过）
+- 已完成：37 / 47
+- 当前处理：P040（前端重复代码类；P027/P033 已按用户确认跳过）
 
 ## 详细问题描述与修复指引
 
@@ -309,14 +309,16 @@ error: deref which would be done by auto-deref
 > **P033（未删）**：`setup_detect_locale` 保留（用户确认保留诊断用途）。
 - **P033**：`setup_detect_locale` 结果仅用于一行 debug 日志，需人工确认是否保留诊断；建议删除该步骤。
 
-### P034–P039（P2，结构优化类）
+### P034–P039（P2，结构优化类）— 已完成（P034 commit 462c77e1 / P035 f271752a / P036 b84faf20 / P037 60c1a7ed / P038 285f70aa / P039 b444ee0c）
 
-- **P034**：usage 提取按 Anthropic/OpenAI 各抽函数（`extract_delta_text` 是现成好例子）。
-- **P035**：内层「解析 local_id」抽纯函数 `resolve_template_id(vault, tpl, hash, now)`。
-- **P036**：对象分支按阶段拆 `collect_field_defs()`/`resolve_field_order()`/`resolve_sensitivity()`。
-- **P037**：敏感度合并（:27-45）与孤儿过滤（:136+）各抽函数。
-- **P038**：元数据逐项对比抽 `collect_metadata_diff(old_def, prop)`。
-- **P039**：定义单个 `const SYSTEM_SECTIONS: &[(&str, &str)]`，数组/映射/集合均由它派生。
+**P034**：`handle_sse_stream` 抽 `extract_anthropic_usage`/`extract_openai_usage_from_chunk`（153→134 行，消除 usage 分支 5 层嵌套）。
+**P035**：`rebuild_imported_templates` 去重三分支抽 `resolve_template_id` 纯函数（67→32 行）。
+**P036**：`build_preview_properties` 对象分支按阶段拆 `build_object_preview_properties` + `collect_field_defs`/`resolve_field_order`/`resolve_sensitivity`（161→33 行）。
+**P037**：`export_get_scope_tree` 按 5 阶段拆 `merge_template_sensitivities`/`collect_custom_pages`/`group_objects`/`build_page_groups`（168→30 行）。
+**P038**：`collect_updated_fields` 元数据逐项对比抽 `collect_metadata_diff`（137→103 行）。
+**P039**：系统分区收敛为单一 `SYSTEM_SECTIONS` 常量，数组/映射/集合均派生。
+
+**验证**：每项 `cargo check -p solo_soul --tests` ✅ + clippy --workspace 全绿 ✅。
 
 ### P040–P045（P2，前端重复代码类）
 
