@@ -13,6 +13,78 @@ use solosoul_vault::storage::{dynamic_group_label_match, is_internal_metadata_ke
 /// - `__fields` 是字段定义元数据，仅定义中的 `name`（用户可见标签）参与匹配，
 ///   字段 id 键、`type`/`sensitivityLevel` 等技术值不参与；
 /// - `__` 前缀的字符串值视为内部占位 token，不按原始文本匹配。
+///
+/// `__fields` 字段定义元数据匹配：仅定义中的 `name`（用户可见标签）参与匹配；
+/// 字段 id 键、type/sensitivityLevel 等技术值不参与——否则搜「dynamic_group」
+/// 会命中定义中的 type 值、搜「internal」会命中敏感度值等内部 token。
+fn match_field_defs(
+    field_path: &str,
+    defs: &serde_json::Map<String, serde_json::Value>,
+    query: &str,
+    matches: &mut Vec<FieldMatch>,
+) {
+    for (field_id, def) in defs {
+        let Some(name) = def.get("name").and_then(|v| v.as_str()) else {
+            continue;
+        };
+        if is_internal_metadata_key(name) {
+            // 内部占位名（如 __dynamic_group__）：其搜索面由键路径的
+            // 显示名匹配覆盖（见下方 is_internal_key 分支），此处跳过。
+            continue;
+        }
+        let name_lower = name.to_lowercase();
+        if name_lower.contains(query) {
+            let score = if name_lower == query {
+                SCORE_EXACT_VALUE
+            } else {
+                SCORE_FIELD_VALUE
+            };
+            matches.push(FieldMatch {
+                field_path: format!("{}.{}.name", field_path, field_id),
+                display_value: name.to_string(),
+                match_type: FieldMatchType::FieldValue,
+                score,
+            });
+        }
+    }
+}
+
+/// 字符串值匹配：内部占位 token（`__` 前缀，如 __fields 定义中的 name: "__dynamic_group__"）
+/// 不参与值匹配——其搜索面由键路径的显示名匹配覆盖。值小写化保留完整 Unicode
+/// 大小写折叠语义，不做长度预检，正确性优先。命中时按精确/包含打分，超长截断。
+fn push_value_match(
+    field_path: &str,
+    s: &str,
+    query: &str,
+    protected_keys: &std::collections::HashSet<String>,
+    skip_values: bool,
+    matches: &mut Vec<FieldMatch>,
+) {
+    let value_match = !is_internal_metadata_key(s) && s.to_lowercase().contains(query);
+    if value_match && !skip_values && is_searchable_field_value(field_path, protected_keys) {
+        let score = if s.len() == query.len() {
+            SCORE_EXACT_VALUE
+        } else {
+            SCORE_FIELD_VALUE
+        };
+        let truncated = if s.len() > MAX_DISPLAY_VALUE_CHARS {
+            let mut end = MAX_DISPLAY_VALUE_CHARS;
+            while !s.is_char_boundary(end) {
+                end -= 1;
+            }
+            format!("{}...", &s[..end])
+        } else {
+            s.to_string()
+        };
+        matches.push(FieldMatch {
+            field_path: field_path.to_string(),
+            display_value: truncated,
+            match_type: FieldMatchType::FieldValue,
+            score,
+        });
+    }
+}
+
 pub(crate) fn search_properties_for_matches(
     data: &serde_json::Value,
     query: &str,
@@ -50,35 +122,9 @@ pub(crate) fn search_properties_for_matches(
                 }
                 let field_path: &str = path_buf.as_str();
 
-                // `__fields` 是字段定义元数据：仅定义中的 name（用户可见标签）参与匹配；
-                // 字段 id 键、type/sensitivityLevel 等技术值不参与——否则搜「dynamic_group」
-                // 会命中定义中的 type 值、搜「internal」会命中敏感度值等内部 token。
                 if key == "__fields" {
                     if let Some(defs) = value.as_object() {
-                        for (field_id, def) in defs {
-                            let Some(name) = def.get("name").and_then(|v| v.as_str()) else {
-                                continue;
-                            };
-                            if is_internal_metadata_key(name) {
-                                // 内部占位名（如 __dynamic_group__）：其搜索面由键路径的
-                                // 显示名匹配覆盖（见下方 is_internal_key 分支），此处跳过。
-                                continue;
-                            }
-                            let name_lower = name.to_lowercase();
-                            if name_lower.contains(query) {
-                                let score = if name_lower == query {
-                                    SCORE_EXACT_VALUE
-                                } else {
-                                    SCORE_FIELD_VALUE
-                                };
-                                matches.push(FieldMatch {
-                                    field_path: format!("{}.{}.name", field_path, field_id),
-                                    display_value: name.to_string(),
-                                    match_type: FieldMatchType::FieldValue,
-                                    score,
-                                });
-                            }
-                        }
+                        match_field_defs(field_path, defs, query, matches);
                     }
                     path_buf.truncate(saved_len);
                     continue;
@@ -108,36 +154,7 @@ pub(crate) fn search_properties_for_matches(
                     }
                 }
                 if let serde_json::Value::String(s) = value {
-                    // 内部占位 token（`__` 前缀，如 __fields 定义中的 name: "__dynamic_group__"）
-                    // 不参与值匹配——其搜索面由键路径的显示名匹配覆盖。
-                    // （值小写化保留完整 Unicode 大小写折叠语义，不做长度预检，正确性优先）
-                    let value_match =
-                        !is_internal_metadata_key(s) && s.to_lowercase().contains(query);
-                    if value_match
-                        && !skip_values
-                        && is_searchable_field_value(field_path, protected_keys)
-                    {
-                        let score = if s.len() == query.len() {
-                            SCORE_EXACT_VALUE
-                        } else {
-                            SCORE_FIELD_VALUE
-                        };
-                        let truncated = if s.len() > MAX_DISPLAY_VALUE_CHARS {
-                            let mut end = MAX_DISPLAY_VALUE_CHARS;
-                            while !s.is_char_boundary(end) {
-                                end -= 1;
-                            }
-                            format!("{}...", &s[..end])
-                        } else {
-                            s.clone()
-                        };
-                        matches.push(FieldMatch {
-                            field_path: field_path.to_string(),
-                            display_value: truncated,
-                            match_type: FieldMatchType::FieldValue,
-                            score,
-                        });
-                    }
+                    push_value_match(field_path, s, query, protected_keys, skip_values, matches);
                 }
                 search_properties_for_matches(
                     value,
