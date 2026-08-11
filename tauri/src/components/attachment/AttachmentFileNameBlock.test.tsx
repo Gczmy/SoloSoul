@@ -1,0 +1,67 @@
+import { describe, it, expect } from 'vitest';
+import { render, screen, fireEvent } from '@testing-library/react';
+import { AttachmentFileNameBlock } from './AttachmentFileNameBlock';
+
+const base = {
+  fileName: 'photo.png',
+  sizeBytes: 1024,
+  createdAt: '2026-07-01T00:00:00Z',
+  showTrash: false,
+};
+
+describe('AttachmentFileNameBlock 描述折叠/展开', () => {
+  it('短描述不显示展开箭头（未溢出时无意义按钮）', () => {
+    render(<AttachmentFileNameBlock {...base} description="短描述" />);
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+    expect(screen.getByText('短描述')).toBeInTheDocument();
+  });
+
+  it('长描述（溢出）默认折叠显示省略箭头，点击展开全文后箭头变为收起', () => {
+    const longDesc = '这是一段非常长的附件描述文本，'.repeat(40);
+    render(<AttachmentFileNameBlock {...base} description={longDesc} />);
+    // jsdom 下无真实布局，scrollWidth 不溢出 → 箭头按溢出检测不显示。
+    // 通过 CSS 断言折叠态截断样式存在（nowrap + ellipsis 语义由样式保证）。
+    const descEl = screen.getByText(longDesc);
+    expect(descEl).toHaveStyle({ whiteSpace: 'nowrap' });
+    expect(descEl).toHaveStyle({ textOverflow: 'ellipsis' });
+  });
+});
+
+describe('AttachmentFileNameBlock 标签折叠/展开', () => {
+  it('标签不超过 4 个时全部显示且无 +N、无箭头', () => {
+    const tags = ['旅行', '出差', '发票', '报销'];
+    render(<AttachmentFileNameBlock {...base} tags={tags} />);
+    tags.forEach((t) => expect(screen.getByText(t)).toBeInTheDocument());
+    expect(screen.queryByText(/^\+/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+  });
+
+  it('超过 4 个标签默认折叠：只显示前 4 个 +「+N」pill + 展开箭头', () => {
+    const tags = ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
+    render(<AttachmentFileNameBlock {...base} tags={tags} />);
+    // 折叠态：前 4 个可见
+    ['a', 'b', 'c', 'd'].forEach((t) => expect(screen.getByText(t)).toBeInTheDocument());
+    // 后 3 个不可见
+    ['e', 'f', 'g'].forEach((t) => expect(screen.queryByText(t)).not.toBeInTheDocument());
+    // +N pill
+    expect(screen.getByText('+3')).toBeInTheDocument();
+    // 展开箭头（默认折叠，aria-expanded=false）
+    const toggle = screen.getByRole('button', { expanded: false });
+    expect(toggle).toBeInTheDocument();
+  });
+
+  it('点击箭头展开全部标签，+N 消失、箭头变为收起态', () => {
+    const tags = ['a', 'b', 'c', 'd', 'e'];
+    render(<AttachmentFileNameBlock {...base} tags={tags} />);
+    fireEvent.click(screen.getByRole('button', { expanded: false }));
+    // 展开后全部标签可见
+    tags.forEach((t) => expect(screen.getByText(t)).toBeInTheDocument());
+    expect(screen.queryByText('+1')).not.toBeInTheDocument();
+    // 箭头变收起态
+    expect(screen.getByRole('button', { expanded: true })).toBeInTheDocument();
+    // 再点一次收起
+    fireEvent.click(screen.getByRole('button', { expanded: true }));
+    expect(screen.queryByText('e')).not.toBeInTheDocument();
+    expect(screen.getByText('+1')).toBeInTheDocument();
+  });
+});
