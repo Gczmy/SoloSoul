@@ -1,16 +1,15 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-11（轮次 6：S 系列收口后新推送审查）
+> 最后更新：2026-08-11（轮次 7：T 系列修复验证）
 > 当前分支：`main`
 
 ## 总览
 
-- 全部已提出问题：**61 项**（P47 + N10 + R5 + S4，含重复计数修正）
-- **修复关闭 57 项**、**经确认跳过 2 项**（P027/P033）、**延期 2 项**（P046/P047 巨型组件/文件拆分，列为后续架构项）
+- 全部已提出问题：**67 项**（P47 + N10 + R5 + S4 + T5 + U6，含重复计数修正）
+- **修复关闭 62 项**、**经确认跳过 2 项**（P027/P033）、**延期 2 项**（P046/P047 巨型组件/文件拆分，列为后续架构项）
+- **待修复 6 项（U 系列）**：轮次 7 验证 T 系列修复时发现——T001/T002/T005 修复通过，T003/T004 修复主体正确但各有残留，另发现修复新引入的竞态与测试覆盖缺口，详见「轮次 7」
 - 遗留计划事项：S003 的 v2.10 blob 键清理（已有代码 TODO + CHANGELOG 双向追踪，属计划内而非遗忘）
-- 末轮验证（轮次 5）未发现新的 P0/P1/P2 问题，`check-all` 全绿（含 cargo test 与两项机械化一致性检查）
-
-**代码库质量评估达标，审查收口。** 剩余 P046/P047 为已知的大型重构架构项，建议在后续专项中处理。
+- 轮次 7 基线实测：`check-all` **EXIT=0 全绿**（cargo test + Vitest 646/646 + 两项机械化一致性检查），T001 的 P0 测试红已消除
 
 ## 遗留项（跳过 / 延期）
 
@@ -31,6 +30,7 @@
 - **轮次 4**：S001–S004 全部修复（含 R003 引入的会话复活回归）。
 - **轮次 5**（收口）：4/4 全部通过，无新增问题；全库质量评估达标。
 - **轮次 6**：S 系列收口后新推送审查（更新加速 + 附件标签折叠系列），新增 T001–T005，全部 `[ ]` 待修复。
+- **轮次 7**：T 系列修复验证（6 提交 df78465c–a96f1d70）。T001/T002/T005 修复通过；T003/T004 修复主体正确但有残留；check-all 实测全绿。新增 U001–U006，全部 `[ ]` 待修复。
 
 ## 轮次 6：新推送审查（T 系列）
 
@@ -42,8 +42,8 @@
 |----|--------|------|----------|------|------|
 | T001 | P0 | 测试 | `tauri/src-tauri/src/commands/update.rs:1234` | 带红测试入库：`test_compute_segments_caps_at_max_segments` 断言错误——作者把调用点的 20MB 并行阈值（`PARALLEL_MIN_FILE_SIZE`）误当成 `compute_segments` 内部逻辑，断言 1 段实为 4 段。check-all / CI rust-test 必挂。修法：断言改 4（阈值本属调用点职责） | `[x]` 已修复（T001，见下） |
 | T002 | P1 | 弹性 | `tauri/src-tauri/src/commands/update.rs:843,902,745-762` | 分段下载弹性缺口：①流读取中途失败直接 `?` 返回，不切换下一候选、也不整体回退单流（注释宣称会切换，与行为不符）；②parallel 失败时已 spawn 的分段任务不 abort，继续后台写已删除的 seg 文件并 emit 进度；③parallel 失败删除 part 文件连带销毁单流续传的有效断点。代理限流/中途断连 = 整个下载失败 | `[x]` 已修复（T002，见下） |
-| T003 | P2 | 资源 | `tauri/src-tauri/src/commands/update.rs:209`、`tauri/src-tauri/tauri.conf.json` | ①进程中断时 `.part.seg{i}` 孤儿文件永不清理（`cleanup_stale_apk_cache` 只清非当前版本，且 parallel 不支持续传，纯垃圾累积）；②updater 未配 `timeout`（插件默认无超时），直连黑洞（hang 而非 RST）时代理回退迟迟不触发 | `[x]` 已修复（T003，见下） |
-| T004 | P2 | 隐私/可用性 | `tauri/src-tauri/src/commands/update.rs:29,252`、`scripts/generate-latest-json.js` | 代理通道固有面未披露/未缓解：①gh-proxy 类代理 TLS 终止于代理方，用户 IP、使用 SoloSoul 的事实、目标版本号、API 响应全部暴露给第三方——代码注释只强调「无供应链风险」未提隐私面，建议在文档/注释披露；②`fetch_github_release_url` 把 api.github.com 元数据请求也套代理，代理可返回陈旧/篡改 Release JSON 软性压制升级（完整性无碍，属可用性面）；③代理可重放旧版 mirror JSON 压制升级（updater 只升不降，无降级风险）；④4 个代理硬编码不可配置，失效需发新版 | `[x]` 已修复（T004，见下） |
+| T003 | P2 | 资源 | `tauri/src-tauri/src/commands/update.rs:209`、`tauri/src-tauri/tauri.conf.json` | ①进程中断时 `.part.seg{i}` 孤儿文件永不清理（`cleanup_stale_apk_cache` 只清非当前版本，且 parallel 不支持续传，纯垃圾累积）；②updater 未配 `timeout`（插件默认无超时），直连黑洞（hang 而非 RST）时代理回退迟迟不触发 | `[x]` 已修复（⚠️ 残留 U002/U003，见轮次 7） |
+| T004 | P2 | 隐私/可用性 | `tauri/src-tauri/src/commands/update.rs:29,252`、`scripts/generate-latest-json.js` | 代理通道固有面未披露/未缓解：①gh-proxy 类代理 TLS 终止于代理方，用户 IP、使用 SoloSoul 的事实、目标版本号、API 响应全部暴露给第三方——代码注释只强调「无供应链风险」未提隐私面，建议在文档/注释披露；②`fetch_github_release_url` 把 api.github.com 元数据请求也套代理，代理可返回陈旧/篡改 Release JSON 软性压制升级（完整性无碍，属可用性面）；③代理可重放旧版 mirror JSON 压制升级（updater 只升不降，无降级风险）；④4 个代理硬编码不可配置，失效需发新版 | `[x]` 已修复（⚠️ 残留 U001/U004，见轮次 7） |
 | T005 | P2 | 前端 | `tauri/src/components/attachment/AttachmentFileNameBlock.tsx:127-139` | 溢出检测无 resize 监听：描述与标签两处 `useLayoutEffect` 测量仅在 deps 变化时触发，容器变窄后原本 ≤4 个的标签被截断时用户**无任何展开途径**（无 +N 也无按钮）；字体未加载完成时测量可能偏小漏判。另：描述溢出测量分支在 jsdom 下恒走 false，零行为测试覆盖（标签侧已用 mock 布局属性方案解决，可仿照）。建议加 `ResizeObserver` | `[x]` 已修复（T005，见下） |
 
 **附件折叠系列（797a0afa–95de2d9f）其余结论**：mergeTagInput 幂等合并四路径闭环成立（失焦+保存双保险）；折叠态单行 CSS 无崩坏路径；按钮固定右侧结构正确；`95de2d9f` 未改全局 CSS（border-box 为项目骨架既有规则，提交信息有误导）；测试在 jsdom 下真实有效（15/15 实测通过，mock 布局属性方案成立）。
@@ -82,8 +82,33 @@
 - **测试基建**：`src/test/setup.ts` 的 MockResizeObserver 升级为导出实例收集数组 + `trigger()` 方法（模拟浏览器 resize 通知）；新增单测「容器变窄（ResizeObserver 触发）后标签被截断即出现折叠按钮」（act 包裹 flush setState）。
 - **验证**：tsc / eslint 通过；AttachmentFileNameBlock 10/10、attachment+object 相关 85/85 全绿（setup 改动无回归）。
 
+## 轮次 7：T 系列修复验证（U 系列）
+
+审查范围：T 系列修复 6 提交（`df78465c` T001 → `a96f1d70` T004 补充）。基线实测：`check-all` **EXIT=0 全绿**（tsc / fmt / clippy / cargo test / eslint / Vitest 646/646 / ACL 与 pref-keys 机比），T001 的 P0 测试红确认消除。验证方式：逐提交 `git show` 核对 + 当前工作区代码语义审查。
+
+**通过项（修复正确，无阻塞残留）**：
+
+- **T001 ✅**：断言 4 段与 `compute_segments` 实现（`div_ceil(19MB/5MB)=4`，`update.rs:730`）完全一致，非糊弄式改断言；doc 注释澄清「20MB 阈值属调用点职责」准确。
+- **T002 ✅**：三子项全部落实——①流中途失败收敛 `seg_error` 后 `continue` 切下一候选（`update.rs:904-935`，候选列表为界无死循环）；②`iter.by_ref()` 顺序等待 + 失败即 `break` + 剩余 `JoinHandle` 逐个 `abort()`（`update.rs:790-814`）；③parallel 失败只清 `.seg` 保留 `part_path`，调用点回退单流续传重试一次（`update.rs:638-641,968-992`），重试链条恰一层。断点边界（合并成功原子重命名 / 合并 IO 错误保留有效前缀 / 最终失败保留供续传）均清晰。
+- **T005 ✅**：ResizeObserver 挂载/卸载正确（`AttachmentFileNameBlock.tsx:132-153`，cleanup `disconnect()`，无泄漏；StrictMode 双调用安全）；容器变窄截断场景已闭环；MockResizeObserver 升级对既有测试零影响（全仓无其他 RO 使用方）；新单测走真实 RO 回调路径断言按钮出现，非改断言糊弄。
+- **T003 ①✅ / ②半✅**：孤儿 seg 清理谓词语义正确（`update.rs:229-249`，不误删当前版本 `.part` 断点与 `.apk`）；前端两处 `check()` 15s 超时单位正确且插件会自动切下一 endpoint——但桌面端 Rust 路径遗漏（见 U002）。
+- **T004 主体✅**：env 覆盖接入点完整（`proxy_prefixes()` 唯一来源，元数据+二进制双通道同生效，无绕过）；3 个新单测为真测试；ENV_LOCK 竞态消除成立（模块级单例、锁在一切 env 操作之前、全仓无第三个触碰者）。
+
+**新增问题**：
+
+| ID | 优先级 | 类别 | 文件位置 | 描述 | 状态 |
+|----|--------|------|----------|------|------|
+| U001 | P1 | 功能/文档矛盾 | `tauri/src-tauri/src/commands/update.rs:30,47,57-62,1288-1291` | **「留空禁用代理」承诺与实现矛盾**：提交信息、代码注释、本报告 T004 修复记录三处均宣称 `SOLOSOUL_PROXY_PREFIXES=""` 可禁用全部代理仅走直连，但实现按「解析结果为空 → 回退默认 4 个代理」处理，测试也固化了回退行为。隐私敏感用户显式置空后实际仍走 gh-proxy，属反向伤害。修法二选一：`var()` 的 `Ok/Err` 区分「未设置→默认 / 显式置空→禁用」（改动很小），或把三处文档改口为「空值回退默认」 | `[ ]` 待修复 |
+| U002 | P2 | 资源 | `tauri/src-tauri/src/commands/update.rs:507-508` | **T003 超时修复只覆盖一半路径**：前端 `check()` 加了 15s 超时，但桌面端 AboutPage 检查更新走 Rust 侧 `app.updater().check()`（`updater.ts:100` → `useUpdateChecker.ts:87`），该 builder 未设 `timeout`——直连黑洞时 AboutPage「检查更新」永久卡在 checking 态，endpoint 回退不触发。修法一行：`app.updater_builder().timeout(Duration::from_secs(15)).build()` | `[ ]` 待修复 |
+| U003 | P2 | 并发 | `tauri/src-tauri/src/commands/update.rs:229-249,449,606` | **T003 修复新引入竞态**：cleanup 注释断言「仅在下载开始前调用，无并发写入」，但无机制保证——Tauri commands 并发执行，用户在 APK 分段下载进行中触发 `android_check_update`（AboutPage/横幅），cleanup 会删除 `download_range_to_file` **正在写入**的 `.part.seg{i}`。后果可自愈（合并 open 失败 → 回退单流 → SHA-256 终检兜底，无损坏风险），但浪费带宽、进度归零。修法：下载进行中持进程内标志/Mutex，cleanup 跳过；或 cleanup 限定无活动下载时执行 | `[ ]` 待修复 |
+| U004 | P2 | 隐私/文档 | `docs/zh-CN/`、`docs/en-US/`（缺失） | **披露未触达用户**：T004 的隐私披露只落在源码注释、构建脚本注释与本内部报告，用户可见的隐私政策/服务条款（中英两版）无任何代理相关条目，应用内更新 UI 亦无提示。若意图是让用户知情（审查本意），需在隐私政策补「检查更新在直连不可达时经第三方代理中转，可能暴露 IP 与版本号」 | `[ ]` 待修复 |
+| U005 | P2 | 弹性/测试 | `tauri/src-tauri/src/commands/update.rs:805-807,1011-1018` | **T002 残留**：①abort 未 await——abort 后立即删 seg 文件，若某任务已越过最后 await 点可能重建孤儿 `.seg`（无正确性影响，T003 的 cleanup 兜底）；②回退单流腿自身仍无中途切候选（`?` 直接返回，断点保留可重试，属刻意取舍但「候选切换」在单流腿未闭环）；③三个行为改动零新增测试（网络 mock 成本高可理解，回归靠人工） | `[ ]` 待修复 |
+| U006 | P2 | 测试/注释 | `tauri/src/components/attachment/AttachmentFileNameBlock.tsx:134-138`、`update.rs:1338` | **T005/T001 残留**：①描述溢出测量分支仍零行为测试覆盖（jsdom 恒 false，标签侧 mock 布局方案可仿照）；②字体晚加载漏判仍在——RO 监听 border-box 尺寸，字体加载只改 `scrollWidth` 时不触发（可用 `document.fonts.ready.then(measure)` 兜底）；③T001 测试注释引用不存在的 `download_apk`，应为 `android_download_apk`（`update.rs:601`） | `[ ]` 待修复 |
+
+**次要观察（不列为问题）**：ENV_LOCK 用 `.lock().unwrap()`，一个测试 panic 会 poison 锁连带另一个失败（测试代码常见取舍）；T002 重试路径进度条可能短暂超 100%，有 `min(100)` 截断且注释已声明为可接受近似；`resizeObserverInstances` 数组测试会话内只增不减（量级可忽略）。
+
 ## 待用户指令
 
-- T 系列修复建议顺序：T001（P0，单行断言）→ T002（下载弹性）→ T003/T004/T005。
-- 可选收尾动作：推送终版报告并打标签 `git tag -a "code-audit-passed-$(date +%Y%m%d)"`——需用户确认后执行。
+- U 系列修复建议顺序：U001（P1，实现/文档二选一）→ U002（一行 timeout）→ U003（cleanup 竞态）→ U004（隐私政策补条目）→ U005/U006（测试与注释收尾）。
+- 可选收尾动作：推送报告并打标签 `git tag -a "code-audit-passed-$(date +%Y%m%d)"`——需用户确认后执行。
 - 后续专项建议：优先处理 P046/P047 巨型组件/文件拆分（架构项）；S003 的 v2.10 blob 键清理按代码 TODO 计划执行。
