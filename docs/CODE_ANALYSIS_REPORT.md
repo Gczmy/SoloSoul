@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-11（P026 修复完成）
+> 最后更新：2026-08-11（P032 修复完成）
 > 当前分支：`main`
 > 修复轮次：2（按用户指令逐项修复，一项一提交）
 
@@ -41,11 +41,11 @@ Git 状态：工作树除本报告文件重建外干净（旧报告已删除，�
 | P025 | P2 | 架构 | `tauri/Cargo.toml:73` | release 全局 `panic = "abort"`，命令 handler 内 panic = 整进程崩溃且 Vault 未走正常锁定清理 | `[x]` 已完成 |
 | P026 | P2 | 规范 | `template.rs:171`、`object/mod.rs:604`、`settings.rs:346` | 命令参数普遍缺长度/格式校验（名称无上限、properties/preferences 载荷无大小限制、偏好 key 无白名单） | `[x]` 已完成 |
 | P027 | P2 | 死代码 | `tauri/src-tauri/src/commands/object/trash.rs:147`、`lib.rs:389,870,996` | `trash_permanent_delete` 已注册但前端从不调用（P024 批量改造后走 batch），删除需同步守卫测试与总数断言 | `[ ]` 待修复 |
-| P028 | P2 | 死代码 | `tauri/crates/solosoul-vault/src/profile.rs:56` | `VersionedProfileData` 及 3 个方法全 workspace 零调用（约 25 行） | `[ ]` 待修复 |
-| P029 | P2 | 死代码 | `tauri/crates/solosoul-plugin/src/manifest.rs:119` | `PluginTier::label()` 零调用 | `[ ]` 待修复 |
-| P030 | P2 | 死代码 | `tauri/src-tauri/src/fs/vault_file_system.rs:1-6`、`fs.rs:4` | 死 re-export shim，全 workspace 无 import，制造双 import 路径混淆 | `[ ]` 待修复 |
-| P031 | P2 | 死代码 | `tauri/src/stores/pluginStore.ts:95` | `DEFAULT_ENABLED_TIERS` 导出但仅本文件使用 | `[ ]` 待修复 |
-| P032 | P2 | 规范 | `tauri/src-tauri/src/lib.rs:643-644` | 过时注释：描述的 legacy XOR 迁移遥测代码已不存在（迁移窗口已关闭） | `[ ]` 待修复 |
+| P028 | P2 | 死代码 | `tauri/crates/solosoul-vault/src/profile.rs:56` | `VersionedProfileData` 及 3 个方法全 workspace 零调用（约 25 行） | `[x]` 已完成 |
+| P029 | P2 | 死代码 | `tauri/crates/solosoul-plugin/src/manifest.rs:119` | `PluginTier::label()` 零调用 | `[x]` 已完成 |
+| P030 | P2 | 死代码 | `tauri/src-tauri/src/fs/vault_file_system.rs:1-6`、`fs.rs:4` | 死 re-export shim，全 workspace 无 import，制造双 import 路径混淆 | `[x]` 已完成 |
+| P031 | P2 | 死代码 | `tauri/src/stores/pluginStore.ts:95` | `DEFAULT_ENABLED_TIERS` 导出但仅本文件使用 | `[x]` 已完成 |
+| P032 | P2 | 规范 | `tauri/src-tauri/src/lib.rs:643-644` | 过时注释：描述的 legacy XOR 迁移遥测代码已不存在（迁移窗口已关闭） | `[x]` 已完成 |
 | P033 | P2 | 死代码 | `tauri/src-tauri/src/lib.rs:304-316`（调用于 :667） | `setup_detect_locale()` 结果仅用于一行 debug 日志，前端实际走 `get_system_locale` IPC（需人工确认是否保留诊断） | `[ ]` 待修复 |
 | P034 | P2 | 架构 | `tauri/src-tauri/src/commands/llm/stream.rs:92` | `handle_sse_stream` 123 行，usage 提取分支 5 层嵌套，SSE 解析与 token 统计耦合 | `[ ]` 待修复 |
 | P035 | P2 | 架构 | `tauri/src-tauri/src/commands/export_import/import.rs:624` | `rebuild_imported_templates` 模板 ID 去重三分支内联约 5 层嵌套 | `[ ]` 待修复 |
@@ -64,8 +64,8 @@ Git 状态：工作树除本报告文件重建外干净（旧报告已删除，�
 
 ## 修复进度
 
-- 已完成：26 / 47
-- 当前处理：P027（按建议顺序推进）
+- 已完成：31 / 47
+- 当前处理：P034（按建议顺序推进；P027/P033 已按用户确认跳过）
 
 ## 详细问题描述与修复指引
 
@@ -295,9 +295,18 @@ error: deref which would be done by auto-deref
 
 ### P027–P033（P2，死代码类）
 
-- **P027**：删除 `trash_permanent_delete` 函数 + `lib.rs:389` 注册 + `:870` 测试清单，守卫测试总数断言 194→193；清理 `commands/object/tests.rs:508` 注释引用。**注意：删除即破坏 API 完备性，按流程约束属「删除文件/代码」类，需用户确认后执行。**
-- **P028–P031**：删除对应定义/re-export/export；若属预留 API 则加 `#[allow(dead_code)]` + 注释说明意图。
-- **P032**：删除 `lib.rs:643-644` 过时注释块。
+### P028–P032（P2，死代码清理）— 已完成（P028 commit d3bdcf07 / P029 39a4b45d / P030 3f01f208 / P031 b0f54b6a / P032 d3d67a32）
+
+**P028**：删除 `VersionedProfileData` 结构 + 3 方法 + `lib.rs:71` re-export（全 workspace 零调用）。
+**P029**：删除 `PluginTier::label()`（零调用，显示名由前端 tier 文案映射）。
+**P030**：删除 `src-tauri/src/fs/vault_file_system.rs` shim 文件 + `fs.rs:4` mod 声明（无引用，直接 use core）。
+**P031**：`DEFAULT_ENABLED_TIERS` 取消 export（仅本文件使用）。
+**P032**：删除 `lib.rs` 过时 P209 迁移窗口诊断注释块。
+
+**验证**：`cargo check -p solosoul-vault -p solosoul-plugin -p solo_soul --tests` ✅；clippy --workspace 全绿 ✅；solosoul-vault 159 项 ✅；tsc/eslint ✅。
+
+> **P027（未删）**：`trash_permanent_delete` 删除需用户确认（按流程约束，跳过）。
+> **P033（未删）**：`setup_detect_locale` 保留（用户确认保留诊断用途）。
 - **P033**：`setup_detect_locale` 结果仅用于一行 debug 日志，需人工确认是否保留诊断；建议删除该步骤。
 
 ### P034–P039（P2，结构优化类）
