@@ -180,16 +180,24 @@ export function AttachmentFileNameBlock({
         <div
           style={{
             display: 'flex',
-            flexWrap: 'wrap',
+            // 折叠态强制单行：标签 chip 可压缩并以省略号截断，保证 +N 与折叠按钮
+            // 始终完整留在行尾（不被挤到第二行）；展开态恢复换行显示全部标签。
+            flexWrap: tagsExpanded ? 'wrap' : 'nowrap',
             alignItems: 'center',
             gap: 4,
             marginTop: 3,
+            minWidth: 0,
+            overflow: tagsExpanded ? 'visible' : 'hidden',
           }}
         >
           {displayedTags.map((tag) => (
             <span
               key={tag}
               style={{
+                // 折叠态允许压缩（flexShrink: 1 + minWidth: 0 使省略号生效），
+                // 空间不足时优先截断标签文本而非换行；展开态不压缩、完整显示。
+                flexShrink: tagsExpanded ? 0 : 1,
+                minWidth: 0,
                 padding: '1px 8px',
                 borderRadius: 999,
                 fontSize: 'var(--text-badge)',
@@ -197,17 +205,22 @@ export function AttachmentFileNameBlock({
                 border: '1px solid var(--border-subtle)',
                 background: 'var(--bg-toolbar)',
                 opacity: showTrash ? 0.5 : 1,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
               }}
             >
               {tag}
             </span>
           ))}
           {!tagsExpanded && hasMoreTags && (
-            // +N 采用与标签一致的 pill 尺寸（同 padding/fontSize/行高），保证垂直对齐
+            // +N 采用与标签一致的 pill 尺寸（同 padding/fontSize/行高），保证垂直对齐；
+            // flexShrink: 0 使其与折叠按钮一样永不被压缩、始终位于行尾
             <span
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
+                flexShrink: 0,
                 padding: '1px 8px',
                 borderRadius: 999,
                 fontSize: 'var(--text-badge)',

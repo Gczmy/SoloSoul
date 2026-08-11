@@ -64,4 +64,26 @@ describe('AttachmentFileNameBlock 标签折叠/展开', () => {
     expect(screen.queryByText('e')).not.toBeInTheDocument();
     expect(screen.getByText('+1')).toBeInTheDocument();
   });
+
+  it('折叠态单行（nowrap）压缩标签留出 +N 与按钮；展开态恢复换行', () => {
+    const tags = ['超长的第一个标签文本'.repeat(30), 'b', 'c', 'd', 'e'];
+    render(<AttachmentFileNameBlock {...base} tags={tags} />);
+    // 折叠态：标签容器 nowrap + hidden，标签 chip 可压缩（flexShrink 1）且省略号截断
+    const container = screen.getByText('超长的第一个标签文本'.repeat(30)).parentElement!;
+    expect(container).toHaveStyle({ flexWrap: 'nowrap', overflow: 'hidden' });
+    expect(screen.getByText('超长的第一个标签文本'.repeat(30))).toHaveStyle({
+      flexShrink: '1',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap',
+    });
+    // +N 与按钮不可压缩（flexShrink 0），保证留在行尾
+    expect(screen.getByText('+1')).toHaveStyle({ flexShrink: '0' });
+    expect(screen.getByRole('button', { expanded: false })).toBeInTheDocument();
+    // 展开态：换行显示全部
+    fireEvent.click(screen.getByRole('button', { expanded: false }));
+    expect(container).toHaveStyle({ flexWrap: 'wrap', overflow: 'visible' });
+    expect(screen.getByText('超长的第一个标签文本'.repeat(30))).toHaveStyle({ flexShrink: '0' });
+    tags.forEach((t) => expect(screen.getByText(t)).toBeInTheDocument());
+  });
 });
