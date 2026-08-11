@@ -175,40 +175,21 @@ async fn handle_sse_stream(
                 }
             }
 
-            // ── 提取 usage ──
+            // ── 提取 usage（P034: 按 Anthropic/OpenAI 各抽函数，消除 5 层嵌套）──
             if is_anthropic(api_type) {
-                if current_event == "message_start" {
-                    if let Some(input_tokens) = json
-                        .get("message")
-                        .and_then(|m| m.get("usage"))
-                        .and_then(|u| u.get("input_tokens"))
-                        .and_then(|v| v.as_u64())
-                    {
-                        anthropic_prompt_tokens = input_tokens;
+                if let Some((input, output)) = extract_anthropic_usage(&json, &current_event) {
+                    if let Some(i) = input {
+                        anthropic_prompt_tokens = i;
                     }
-                } else if current_event == "message_delta" {
-                    if let Some(output_tokens) = json
-                        .get("usage")
-                        .and_then(|u| u.get("output_tokens"))
-                        .and_then(|v| v.as_u64())
-                    {
-                        anthropic_completion_tokens = output_tokens;
+                    if let Some(o) = output {
+                        anthropic_completion_tokens = o;
                     }
                 }
                 token_usage.prompt_tokens = anthropic_prompt_tokens;
                 token_usage.completion_tokens = anthropic_completion_tokens;
-            } else {
-                // OpenAI: usage 可能在 choices 为空的 chunk 中
-                if let Some(usage) = json.get("usage") {
-                    if let Some(prompt) = usage.get("prompt_tokens").and_then(|v| v.as_u64()) {
-                        token_usage.prompt_tokens = prompt;
-                    }
-                    if let Some(completion) =
-                        usage.get("completion_tokens").and_then(|v| v.as_u64())
-                    {
-                        token_usage.completion_tokens = completion;
-                    }
-                }
+            } else if let Some((prompt, completion)) = extract_openai_usage_from_chunk(&json) {
+                token_usage.prompt_tokens = prompt;
+                token_usage.completion_tokens = completion;
             }
         }
     }
@@ -272,17 +253,53 @@ fn handle_remaining_data(
             );
         }
     }
-    // 剩余内容也可能含 usage
+    // 剩余内容也可能含 usage（P034: 复用 OpenAI chunk 解析）
     if !is_anthropic(api_type) {
-        if let Some(usage) = json.get("usage") {
-            if let Some(prompt) = usage.get("prompt_tokens").and_then(|v| v.as_u64()) {
-                token_usage.prompt_tokens = prompt;
-            }
-            if let Some(completion) = usage.get("completion_tokens").and_then(|v| v.as_u64()) {
-                token_usage.completion_tokens = completion;
-            }
+        if let Some((prompt, completion)) = extract_openai_usage_from_chunk(&json) {
+            token_usage.prompt_tokens = prompt;
+            token_usage.completion_tokens = completion;
         }
     }
+}
+
+/// P034: 从 Anthropic SSE chunk 提取 usage（跨事件：message_start 提供 input_tokens，
+/// message_delta 提供 output_tokens）。返回 (input 更新, output 更新)，`None` 表示该
+/// 事件不携带该字段（保持累积值）。
+fn extract_anthropic_usage(
+    json: &serde_json::Value,
+    current_event: &str,
+) -> Option<(Option<u64>, Option<u64>)> {
+    if current_event == "message_start" {
+        let input = json
+            .get("message")
+            .and_then(|m| m.get("usage"))
+            .and_then(|u| u.get("input_tokens"))
+            .and_then(|v| v.as_u64())?;
+        Some((Some(input), None))
+    } else if current_event == "message_delta" {
+        let output = json
+            .get("usage")
+            .and_then(|u| u.get("output_tokens"))
+            .and_then(|v| v.as_u64())?;
+        Some((None, Some(output)))
+    } else {
+        None
+    }
+}
+
+/// P034: 从 OpenAI SSE chunk 提取 usage（usage 可能在 choices 为空的 chunk 中）。
+/// 返回 (prompt, completion)，字段缺失用 0 兜底——与既有逐字段更新语义一致。
+fn extract_openai_usage_from_chunk(json: &serde_json::Value) -> Option<(u64, u64)> {
+    let usage = json.get("usage")?;
+    let prompt = usage
+        .get("prompt_tokens")
+        .and_then(|v| v.as_u64())
+        .unwrap_or(0);
+    let completion = usage
+        .get("completion_tokens")
+        .and_then(|v| v.as_u64())
+        .unwrap_or(0);
+    Some((prompt, completion))
 }
 
 /// 非 SSE 响应：完整获取文本 + 打字机效果降级推送。
