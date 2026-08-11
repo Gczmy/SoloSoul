@@ -1043,8 +1043,9 @@ pub async fn attachment_download(
         });
 
         if !in_allowed_dir {
+            // R004-①: 中文 + 自救提示（与复制路径文案一致，N010 漏改此处）。
             return Err(
-                "Destination must be within Desktop, Documents, Downloads, or SOLOSOUL_FS_BASE"
+                "目标位置必须在 Desktop、Documents、Downloads 或 SOLOSOUL_FS_BASE 目录内（如需其他位置，可设置 SOLOSOUL_FS_BASE 环境变量）"
                     .to_string(),
             );
         }

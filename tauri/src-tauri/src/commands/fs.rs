@@ -160,9 +160,17 @@ fn resolve_within(base: &Path, path: &str) -> Result<PathBuf, String> {
 /// `\\?\` 扩展长度前缀，前端（对话框、展示、再次回传）无法直接使用——剥离之；
 /// 非 Windows 或未带前缀时原样返回。
 pub(crate) fn display_fs_path(path: &Path) -> String {
+    // R004-②: 纯字符串处理（跨平台确定）。`\\?\` 为 Windows 扩展长度前缀：
+    // 普通盘符路径 `\\?\C:\...` → `C:\...`；网络路径 `\\?\UNC\server\share`
+    // 需把 `UNC\` 段还原为 `\\server\share`（dunce::simplified 对非盘符 UNC
+    // 按设计原样返回、非 Windows 为 no-op，无法统一处理，故不引入）。
     let s = path.to_string_lossy();
     if let Some(stripped) = s.strip_prefix(r"\\?\") {
-        stripped.to_string()
+        if let Some(unc) = stripped.strip_prefix("UNC\\") {
+            format!(r"\\{unc}")
+        } else {
+            stripped.to_string()
+        }
     } else {
         s.to_string()
     }
@@ -415,12 +423,17 @@ mod tests {
     use tempfile::TempDir;
 
     /// N010-④/P017 防回归：Windows canonicalize 的 `\\?\` 前缀在回传前端前剥离；
+    /// R004-②：UNC 网络路径 `\\?\UNC\server\share` → `\\server\share`；
     /// 普通路径原样返回。
     #[test]
     fn test_display_fs_path_strips_windows_extended_prefix() {
         assert_eq!(
             display_fs_path(Path::new(r"\\?\C:\Users\me\file.txt")),
             r"C:\Users\me\file.txt"
+        );
+        assert_eq!(
+            display_fs_path(Path::new(r"\\?\UNC\server\share\file.txt")),
+            r"\\server\share\file.txt"
         );
         assert_eq!(
             display_fs_path(Path::new("/Users/me/file.txt")),

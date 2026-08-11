@@ -33,8 +33,8 @@
 
 - 轮次 1（P 系列）：41/47 验证通过；2 缺陷已在轮次 2 修复并验证（P009→N002 ✅、P022→N003 ✅）；2 跳过；2 延期
 - 轮次 2（N 系列）：**9/10 验证通过**（其中 5 项有残留子项转 R002–R005），N001 未完全关闭（→ R001）
-- 轮次 3 新问题（R 系列）：**3/5 已修复**（R001/R002/R003），R004/R005 待修复
-- 当前处理：R003 已修复提交
+- 轮次 3 新问题（R 系列）：**4/5 已修复**（R001–R004），R005 待修复
+- 当前处理：R004 已修复提交
 
 ## 轮次 3 新问题清单（验证发现）
 
@@ -43,7 +43,7 @@
 | R001 | P0 | 测试 | `tauri/src-tauri/src/commands/export_import/export_docx.rs:1906` | N001 遗漏：`test_text_markdown_multi_object_separator` 仍红，check-all EXIT=101。断言 `text.matches("=====").count() == 1` 陈旧——实现（:798）分隔线是 50 个 `=`，matches 按 5 字符计得 10。**实现行为正确**（两对象间一条分隔线），只需把断言改为对完整分隔行计数 | `[x]` 已修复 |
 | R002 | P2 | 逻辑 | `tauri/crates/solosoul-sync/src/delta.rs:179`、`crates/solosoul-vault/src/storage/conversations.rs:200-216` | N004 残留：假冲突自动消解比较 `strip_bookkeeping(local) == strip_bookkeeping(remote)` 对 conversations 恒不成立——本地快照是解密会话 JSON（id/name/messages 键），远端是线格式信封 `{id, accountId, data: <base64>, updatedAt}`，键形错配。内容已收敛、本地赢 LWW 时仍必记假冲突（噪声问题非数据丢失）。**已修复**：新增 `conversation_remote_content` 解密远端信封为明文 JSON 再与本地快照比较（信封 data 为随机 nonce 加密 blob，base64 不可直接比对）；新增 `test_conversation_conflict_auto_resolved_when_content_converged` 单测验证本地赢 LWW 内容已收敛时不产生假冲突（delta 8 测试全绿） | `[x]` 已修复 |
 | R003 | P2 | 架构 | `tauri/crates/solosoul-core/src/llm/service.rs` 懒迁移 | N005 残留：迁移仍立即删除 profile blob 的 `llmConversations` 键，键删除经 profile delta 同步到旧版本设备后，旧设备（不认识 llm_conversations 表）会话被抹且无法自行迁移。**已修复**：迁移后保留 blob 键（延迟删键，删除 `clear_legacy_conversations`），重复调用幂等（LWW 不覆盖较新行）；CHANGELOG 明确警示混合版本同步安全策略；LWW 测试更新断言键保留 + 重复迁移幂等（4 测试全绿） | `[x]` 已修复 |
-| R004 | P2 | 规范 | `tauri/src-tauri/src/commands/attachment.rs:1046-1049` | N010 残留：①`attachment_download` 目的地白名单拒绝文案仍为英文且无自救提示（与 :577 同类用户可见场景）；②Windows `\\?\UNC\...` 网络路径剥离不完美（未用 dunce，仅影响展示边角） | `[ ]` 待修复 |
+| R004 | P2 | 规范 | `tauri/src-tauri/src/commands/attachment.rs:1046-1049`、`commands/fs.rs display_fs_path` | N010 残留：①`attachment_download` 目的地白名单拒绝文案仍为英文且无自救提示（与 :577 同类用户可见场景）；②Windows `\\?\UNC\...` 网络路径剥离不完美。**已修复**：①文案改中文 + `SOLOSOUL_FS_BASE` 自救提示（与复制路径一致）；②`display_fs_path` 纯字符串处理：`\\?\UNC\server\share` → `\\server\share`（dunce::simplified 对非盘符 UNC 按设计原样返回、非 Windows 为 no-op，不可用故不引入依赖），单测补 UNC 用例；fmt/check/clippy 全绿 | `[x]` 已修复 |
 | R005 | P2 | 测试 | `tauri/src-tauri/src/commands/settings.rs`、`llm/stream.rs` | 测试兜底缺口：①P026 偏好 key 白名单与前端 settingsStore 20 个 key 的同步无机械化断言（当前手工核对重合，未来新增 key 无兜底，可考虑构建期脚本或 CI 比对）；②N008 的 `extract_openai_usage_from_chunk` 缺字段保留语义无单测 | `[ ]` 待修复 |
 
 ## 轮次 3 验证覆盖说明
