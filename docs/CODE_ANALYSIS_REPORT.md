@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-11（P023 修复完成）
+> 最后更新：2026-08-11（P024 修复完成）
 > 当前分支：`main`
 > 修复轮次：2（按用户指令逐项修复，一项一提交）
 
@@ -37,7 +37,7 @@ Git 状态：工作树除本报告文件重建外干净（旧报告已删除，�
 | P021 | P2 | 架构 | `tauri/src/types/llmProvider.ts:5` vs `tauri/crates/solosoul-core/src/llm/config.rs:33` | 潜伏类型漂移：TS `ProviderConfig` 缺 `embeddingModel`，重构保存逻辑时会静默重置该字段 | `[x]` 已完成 |
 | P022 | P2 | 死代码 | `tauri/crates/solosoul-core/src/vault_service.rs:493-518`、`tauri/src-tauri/src/commands/auth.rs:12-19` | 登录/账户列表把 `salt`、`verifyHash` 序列化给前端但前端零消费，扩大 WebView 攻击面且误导开发 | `[x]` 已完成 |
 | P023 | P2 | 规范 | `tauri/src-tauri/src/commands/auth.rs:12` vs `solosoul-core/src/vault_service.rs:195` | `AccountInfo`/`AccountSummary` 重复 DTO 字段重叠但可选性不同，易演进漂移 | `[x]` 已完成 |
-| P024 | P2 | 架构 | `tauri/src-tauri/src/commands/export_import/mod.rs:238` vs `solosoul-core/src/export_import.rs` | `derive_export_key_cfg` 密码学逻辑双份实现，仅靠注释约束一致性（安全敏感路径） | `[ ]` 待修复 |
+| P024 | P2 | 架构 | `tauri/src-tauri/src/commands/export_import/mod.rs:238` vs `solosoul-core/src/export_import.rs` | `derive_export_key_cfg` 密码学逻辑双份实现，仅靠注释约束一致性（安全敏感路径） | `[x]` 已完成 |
 | P025 | P2 | 架构 | `tauri/Cargo.toml:73` | release 全局 `panic = "abort"`，命令 handler 内 panic = 整进程崩溃且 Vault 未走正常锁定清理 | `[ ]` 待修复 |
 | P026 | P2 | 规范 | `template.rs:171`、`object/mod.rs:604`、`settings.rs:346` | 命令参数普遍缺长度/格式校验（名称无上限、properties/preferences 载荷无大小限制、偏好 key 无白名单） | `[ ]` 待修复 |
 | P027 | P2 | 死代码 | `tauri/src-tauri/src/commands/object/trash.rs:147`、`lib.rs:389,870,996` | `trash_permanent_delete` 已注册但前端从不调用（P024 批量改造后走 batch），删除需同步守卫测试与总数断言 | `[ ]` 待修复 |
@@ -64,8 +64,8 @@ Git 状态：工作树除本报告文件重建外干净（旧报告已删除，�
 
 ## 修复进度
 
-- 已完成：23 / 47
-- 当前处理：P024（按建议顺序推进）
+- 已完成：24 / 47
+- 当前处理：P025（按建议顺序推进）
 
 ## 详细问题描述与修复指引
 
@@ -268,7 +268,13 @@ error: deref which would be done by auto-deref
 **修复**：删除 `auth.rs::AccountInfo`，`bootstrap` 返回类型改为 core 的 `AccountSummary`（新账户标志位 false）；`test_account_summary_serialization` 改用 AccountSummary 并补两个布尔字段断言。CLI/e2e 无 AccountInfo 引用，无需改动。
 
 **验证**：`cargo check -p solo_soul --tests` ✅；clippy --workspace 全绿 ✅；全仓 grep 无 AccountInfo 残留 ✅。
-- **P024**：`solosoul-crypto` 提供与错误类型无关的核心 KDF 函数，两端薄包装各自映射错误类型。
+### P024（P2）derive_export_key_cfg 收敛单一实现 — 已完成（commit 15bef1bd）
+
+**原问题**：`tauri/src-tauri/commands/export_import/mod.rs:238` 与 `solosoul-core/src/export_import.rs:582` 各有一份 `derive_export_key_cfg`（仅错误类型不同：`String` vs `ExportError`），安全敏感路径靠注释约束一致性，改一处忘另一处即静默行为漂移。
+
+**修复**：`solosoul-crypto::kdf` 新增 `derive_export_key`（返回 `[u8;32]`，错误类型 `KdfError`）作为单一实现；core 与 tauri 两端改为仅映射错误类型的薄包装（`ExportError::Msg` / `to_string()`）。
+
+**验证**：`cargo check -p solosoul-core -p solo_soul --tests` ✅；clippy --workspace 全绿 ✅；solosoul-core export_import 16 项 ✅；solosoul-vault 159 项 ✅；solosoul-crypto 27 项 ✅（注：solo_soul 壳测试二进制在 Windows 环境报 STATUS_ENTRYPOINT_NOT_FOUND 无法启动，属环境问题与本次改动无关）。
 - **P025**：评估 `panic = "unwind"`；若保留 abort，clippy 禁非测试代码新增 `unwrap/expect`。
 - **P026**：command 边界统一校验（名称 ≤ N 字符、载荷 ≤ M MB、偏好 key 白名单/前缀约束）。
 
