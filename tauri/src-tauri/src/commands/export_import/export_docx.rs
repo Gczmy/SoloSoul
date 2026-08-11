@@ -1903,7 +1903,12 @@ mod tests {
             "Gczmy",
             "acc-1",
         );
-        assert_eq!(text.matches("=====").count(), 1);
+        // 分隔线是整行 50 个 `=`，按完整分隔行计数（matches("=====") 会按 5 字符非重叠计成 10）
+        let sep_lines = text
+            .lines()
+            .filter(|l| !l.is_empty() && l.chars().all(|c| c == '='))
+            .count();
+        assert_eq!(sep_lines, 1);
         let md = build_markdown_document(
             &[r1, r2],
             &std::collections::HashMap::new(),
