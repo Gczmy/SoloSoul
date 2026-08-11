@@ -120,23 +120,37 @@ export function AttachmentFileNameBlock({
   const tagsExpandedRef = useRef(tagsExpanded);
   tagsExpandedRef.current = tagsExpanded;
 
-  // 折叠态检测描述是否溢出（仅溢出时展示展开箭头，避免短文本出现无意义的按钮）。
-  // 展开态文本为多行（pre-wrap）不参与检测：若在展开态测量，scrollWidth ≤ clientWidth
-  // 会误判无溢出，导致收起后箭头永久消失——故展开态直接跳过测量。descExpanded 经 ref
-  // 读取最新值而非放入依赖数组，展开/收起不触发重测，保留折叠态测得的 descOverflow。
+  // 折叠态检测描述/标签是否溢出（仅溢出时展示展开箭头，避免短文本出现无意义的按钮）。
+  // 展开态不参与检测：描述展开为多行（pre-wrap）、标签展开为 wrap 后 scrollWidth ≤
+  // clientWidth 会误判无溢出，导致收起后箭头永久消失——故展开态直接跳过测量。
+  // descExpanded/tagsExpanded 经 ref 读取最新值而非放入依赖数组，展开/收起不触发重测，
+  // 保留折叠态测得的溢出值。
+  //
+  // T005: 除内容/回收站态变化外，还注册 ResizeObserver 监听容器尺寸变化（列表变窄、
+  // 侧栏展开/收起、窗口缩放等）时重测——否则容器变窄后原本 ≤4 个的标签被截断时
+  // 用户无任何展开途径（无 +N 也无按钮）。
   useLayoutEffect(() => {
-    if (descExpandedRef.current) return;
-    const el = descRef.current;
-    if (!el) return;
-    setDescOverflow(el.scrollWidth > el.clientWidth + 1);
-  }, [trimmedDesc, showTrash]);
-
-  // 折叠态检测是否有标签被省略号截断（任一 chip 溢出即需要展开按钮）；
-  // 展开态 wrap 不压缩不参与检测（同描述策略，tagsExpanded 经 ref 读取避免依赖数组）。
-  useLayoutEffect(() => {
-    if (tagsExpandedRef.current) return;
-    setTagsOverflow(hasTagOverflow(tagsContainerRef.current));
-  }, [tags, showTrash]);
+    const measure = () => {
+      if (!descExpandedRef.current) {
+        const el = descRef.current;
+        if (el) {
+          setDescOverflow(el.scrollWidth > el.clientWidth + 1);
+        }
+      }
+      if (!tagsExpandedRef.current) {
+        setTagsOverflow(hasTagOverflow(tagsContainerRef.current));
+      }
+    };
+    measure();
+    // jsdom 无 ResizeObserver（测试环境跳过，仅依赖变化重测）
+    if (typeof ResizeObserver === 'undefined') {
+      return undefined;
+    }
+    const observer = new ResizeObserver(() => measure());
+    if (descRef.current) observer.observe(descRef.current);
+    if (tagsContainerRef.current) observer.observe(tagsContainerRef.current);
+    return () => observer.disconnect();
+  }, [trimmedDesc, tags, showTrash]);
 
   const hasMoreTags = visibleTags.length > MAX_VISIBLE_TAGS;
   const displayedTags = tagsExpanded ? visibleTags : visibleTags.slice(0, MAX_VISIBLE_TAGS);

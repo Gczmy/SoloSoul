@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import { AttachmentFileNameBlock, hasTagOverflow } from './AttachmentFileNameBlock';
+import { resizeObserverInstances } from '@/test/setup';
 
 const base = {
   fileName: 'photo.png',
@@ -132,6 +133,33 @@ describe('AttachmentFileNameBlock 标签折叠/展开', () => {
     expect(container).toHaveStyle({ flexWrap: 'wrap', overflow: 'visible' });
     expect(screen.getByText('超长的第一个标签文本'.repeat(30))).toHaveStyle({ flexShrink: '0' });
     tags.forEach((t) => expect(screen.getByText(t)).toBeInTheDocument());
+  });
+
+  it('容器变窄（ResizeObserver 触发）后标签被截断即出现折叠按钮', () => {
+    const longTag = '一个非常长的标签'.repeat(20);
+    const tags = [longTag, '短标签'];
+
+    // 清空模块级实例收集（其他测试 render 也会 push 实例），只触发本测试的 observer
+    resizeObserverInstances.length = 0;
+    const { unmount } = render(<AttachmentFileNameBlock {...base} tags={tags} />);
+    // 初始无布局信息：无按钮
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+
+    // 模拟容器变窄后 chip 被压缩省略（scrollWidth > clientWidth）
+    const chip = screen.getByText(longTag) as HTMLElement;
+    Object.defineProperty(chip, 'scrollWidth', { configurable: true, value: 1000 });
+    Object.defineProperty(chip, 'clientWidth', { configurable: true, value: 50 });
+
+    // 触发 ResizeObserver 回调 → 重测溢出 → 出现折叠按钮（act 包裹 flush setState）
+    act(() => {
+      for (const inst of resizeObserverInstances) {
+        inst.trigger();
+      }
+    });
+    expect(screen.queryByText(/^\+/)).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { expanded: false })).toBeInTheDocument();
+
+    unmount();
   });
 
   it('展开后长标签 chip 允许换行（whiteSpace normal + wordBreak）且按钮位置不变', () => {

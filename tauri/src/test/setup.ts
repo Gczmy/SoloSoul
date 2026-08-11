@@ -47,10 +47,21 @@ Object.defineProperty(window, 'matchMedia', {
 Element.prototype.scrollIntoView = vi.fn();
 
 // Mock ResizeObserver (not available in jsdom)
-class MockResizeObserver {
+// 收集实例并暴露 trigger()，供测试模拟「容器尺寸变化」驱动回调重测。
+export const resizeObserverInstances: MockResizeObserver[] = [];
+export class MockResizeObserver {
+  callback: ResizeObserverCallback;
   observe = vi.fn();
   unobserve = vi.fn();
   disconnect = vi.fn();
+  constructor(callback: ResizeObserverCallback) {
+    this.callback = callback;
+    resizeObserverInstances.push(this);
+  }
+  /** 手动触发回调（模拟容器尺寸变化后浏览器的重测通知）。 */
+  trigger() {
+    this.callback([], this as unknown as ResizeObserver);
+  }
 }
 Object.defineProperty(window, 'ResizeObserver', {
   writable: true,
