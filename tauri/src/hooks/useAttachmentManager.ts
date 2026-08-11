@@ -22,6 +22,19 @@ import type {
 const getPageKey = (p: AttachmentTreePage) => p.pageId || p.pageName;
 const getObjKey = (o: AttachmentTreeObject) => o.objectId;
 
+/** 从页面树中收集全部图片附件（照片集数据源公共过滤，纯函数）。 */
+function collectPhotoItems(pages: AttachmentTreePage[] | undefined): AttachmentMeta[] {
+  const out: AttachmentMeta[] = [];
+  for (const page of pages ?? []) {
+    for (const obj of page.objects) {
+      for (const att of obj.attachments) {
+        if (previewItemByMime(att) === 'image') out.push(att);
+      }
+    }
+  }
+  return out;
+}
+
 /**
  * 附件管理器页面的数据加载、附件操作与批量操作逻辑（P024 拆分）。
  * 返回主组件渲染所需的状态与回调。
@@ -252,18 +265,15 @@ export function useAttachmentManager() {
   const rawPages = showTrash ? data?.trashPages || [] : data?.pages || [];
   const sortedPages = useAttachmentPageSort(rawPages);
 
-  /** 照片集数据源：活跃附件中的全部图片（回收站视图不参与，附件照片集方案 §3.2）。 */
-  const photoItems = useMemo(() => {
-    const out: AttachmentMeta[] = [];
-    for (const page of data?.pages ?? []) {
-      for (const obj of page.objects) {
-        for (const att of obj.attachments) {
-          if (previewItemByMime(att) === 'image') out.push(att);
-        }
-      }
-    }
-    return out;
-  }, [data]);
+  /** 活跃附件中的全部图片。 */
+  const activePhotoItems = useMemo(() => collectPhotoItems(data?.pages), [data]);
+  /** 回收站软删除附件中的全部图片。 */
+  const trashPhotoItems = useMemo(() => collectPhotoItems(data?.trashPages), [data]);
+  /** 当前视图（活跃/回收站）对应的照片集数据源（附件照片集方案 §3.2）。 */
+  const photoItems = useMemo(
+    () => (showTrash ? trashPhotoItems : activePhotoItems),
+    [showTrash, trashPhotoItems, activePhotoItems],
+  );
 
   // Filter pages/objects/attachments by search query (matches against file name)
   const displayPages = useMemo(() => {

@@ -278,11 +278,18 @@ export function AttachmentViewer({
 
   const displayItems = showTrash ? trashItems : items;
 
-  /** 照片集数据源：活跃附件中的图片（回收站视图不展示照片集入口）。 */
-  const photoItems = useMemo(
+  /** 活跃附件中的图片。 */
+  const activePhotoItems = useMemo(
     () => items.filter((item) => previewItemByMime(item) === 'image'),
     [items],
   );
+  /** 回收站附件中的图片。 */
+  const trashPhotoItems = useMemo(
+    () => trashItems.filter((item) => previewItemByMime(item) === 'image'),
+    [trashItems],
+  );
+  /** 当前视图（活跃/回收站）对应的照片集数据源（附件照片集方案 §3.2）。 */
+  const displayPhotoItems = showTrash ? trashPhotoItems : activePhotoItems;
 
   const allVisibleKeys = useMemo(
     () => displayItems.map((item) => `${objectId}::${item.id}`),
@@ -527,8 +534,8 @@ export function AttachmentViewer({
           )}
           {/* List */}
           <div style={{ flex: 1, overflow: 'auto' }}>
-            {/* 照片集入口：仅活跃视图且含图片时显示（附件照片集方案 §3.2） */}
-            {!showTrash && photoItems.length > 0 && (
+            {/* 照片集入口：活跃/回收站视图各有对应数据源的照片集（附件照片集方案 §3.2） */}
+            {displayPhotoItems.length > 0 && (
               <button
                 type="button"
                 onClick={() => setPhotoAlbumOpen(true)}
@@ -553,7 +560,7 @@ export function AttachmentViewer({
                   {t('common:photo_album', 'Photo Album')}
                 </span>
                 <span style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
-                  {photoItems.length}
+                  {displayPhotoItems.length}
                 </span>
               </button>
             )}
@@ -610,9 +617,9 @@ export function AttachmentViewer({
         onOpenExternal={openAttachmentExternal}
       />
       {/* Photo album overlay（对象级照片集） */}
-      {photoAlbumOpen && photoItems.length > 0 && (
+      {photoAlbumOpen && displayPhotoItems.length > 0 && (
         <PhotoAlbumOverlay
-          items={photoItems}
+          items={displayPhotoItems}
           onClose={() => setPhotoAlbumOpen(false)}
           onOpenExternal={openAttachmentExternal}
           zIndex={2100}

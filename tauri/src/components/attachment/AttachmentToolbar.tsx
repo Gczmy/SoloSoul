@@ -139,24 +139,6 @@ export function AttachmentToolbar({
               </span>
             </Button>
 
-            {/* 照片集入口（仅活跃视图且存在图片时显示） */}
-            {!showTrash && typeof photoCount === 'number' && photoCount > 0 && onOpenAlbum && (
-              <Button
-                variant="secondary"
-                size="sm"
-                className={buttonStyles.hideLabelOnMobile}
-                onClick={onOpenAlbum}
-              >
-                <Images size={ICON_SIZE.sm} />{' '}
-                <span className={buttonStyles.label}>
-                  {t('common:photo_album', { defaultValue: 'Photo Album' })}
-                </span>
-                <span style={{ marginLeft: 4, fontSize: 'var(--text-caption)', opacity: 0.7 }}>
-                  {photoCount}
-                </span>
-              </Button>
-            )}
-
             <div style={{ flex: 1 }} />
 
             <Button
@@ -170,6 +152,27 @@ export function AttachmentToolbar({
               <span className={buttonStyles.label}>{t('common:refresh', { defaultValue: 'Refresh' })}</span>
             </Button>
           </div>
+
+          {/* 照片集入口：位于 活跃/回收站 标签下方，随标签切换显示对应数据源的照片集 */}
+          {typeof photoCount === 'number' && photoCount > 0 && onOpenAlbum && (
+            <div style={{ display: 'flex' }}>
+              <Button
+                variant="secondary"
+                size="sm"
+                className={buttonStyles.hideLabelOnMobile}
+                onClick={onOpenAlbum}
+                style={{ width: '100%', justifyContent: 'flex-start' }}
+              >
+                <Images size={ICON_SIZE.sm} />{' '}
+                <span className={buttonStyles.label}>
+                  {t('common:photo_album', { defaultValue: 'Photo Album' })}
+                </span>
+                <span style={{ marginLeft: 4, fontSize: 'var(--text-caption)', opacity: 0.7 }}>
+                  {photoCount}
+                </span>
+              </Button>
+            </div>
+          )}
 
           {/* Summary card */}
           <Card style={{ padding: '12px 16px' }}>
