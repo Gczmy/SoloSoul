@@ -277,11 +277,12 @@ fn ensure_vision_cli() -> Result<PathBuf, String> {
 pub fn scan_image(image_path: &Path) -> Result<(String, f64), String> {
     let binary_path = ensure_vision_cli()?;
 
-    tracing::debug!(
-        "Vision CLI 执行: {} {}",
-        binary_path.display(),
-        image_path.display()
-    );
+    // P018: 只记录图片文件名尾部组件，不落完整路径（用户目录名等敏感信息不入日志）
+    let image_name = image_path
+        .file_name()
+        .map(|n| n.to_string_lossy().to_string())
+        .unwrap_or_else(|| "<unknown>".to_string());
+    tracing::debug!("Vision CLI 执行: {} {}", binary_path.display(), image_name);
 
     // 直接传图像路径作为 arguments[1]——之前误传 "--" 分隔符，Swift 端用原始
     // CommandLine.arguments[1] 读取时把 "--" 当成路径，报 "Cannot load image at --"。
