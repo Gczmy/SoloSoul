@@ -1134,41 +1134,7 @@ fn collect_updated_fields(
         }
 
         // 其他元数据变化：动态字段组 allowedTypes/maxItems、字段 deprecatedAt/contractField
-        let mut metadata_keys: Vec<String> = Vec::new();
-        if new_type == "dynamic_group" {
-            let old_allowed = old_def
-                .get("allowedTypes")
-                .and_then(|v| v.as_array())
-                .map(|arr| arr.iter().filter_map(|v| v.as_str()).collect::<Vec<_>>());
-            let new_allowed = prop
-                .allowed_types
-                .as_ref()
-                .map(|types| types.iter().map(|t| t.as_str()).collect::<Vec<_>>());
-            if old_allowed != new_allowed {
-                metadata_keys.push("allowedTypes".to_string());
-            }
-            let old_max = old_def.get("maxItems").and_then(|v| v.as_u64());
-            let new_max = prop.max_items.map(|m| m as u64);
-            if old_max != new_max {
-                metadata_keys.push("maxItems".to_string());
-            }
-        }
-        let old_deprecated = old_def
-            .get("deprecatedAt")
-            .and_then(|v| v.as_str())
-            .unwrap_or("");
-        let new_deprecated = prop.deprecated_at.as_deref().unwrap_or("");
-        if old_deprecated != new_deprecated {
-            metadata_keys.push("deprecatedAt".to_string());
-        }
-        let old_contract = old_def
-            .get("contractField")
-            .and_then(|v| v.as_bool())
-            .unwrap_or(false);
-        let new_contract = prop.contract_field.unwrap_or(false);
-        if old_contract != new_contract {
-            metadata_keys.push("contractField".to_string());
-        }
+        let metadata_keys = collect_metadata_diff(old_def, prop, new_type);
         if !metadata_keys.is_empty() {
             changes.push(SyncFieldChangeItem::Metadata { metadata_keys });
         }
@@ -1184,6 +1150,51 @@ fn collect_updated_fields(
     }
 
     (fields_updated, fields_incompatible)
+}
+
+/// P038: 逐项对比元数据变化（动态字段组 allowedTypes/maxItems、字段 deprecatedAt/
+/// contractField），返回变化的元数据键名列表。
+fn collect_metadata_diff(
+    old_def: &serde_json::Value,
+    prop: &solosoul_vault::TemplateProperty,
+    new_type: &str,
+) -> Vec<String> {
+    let mut metadata_keys: Vec<String> = Vec::new();
+    if new_type == "dynamic_group" {
+        let old_allowed = old_def
+            .get("allowedTypes")
+            .and_then(|v| v.as_array())
+            .map(|arr| arr.iter().filter_map(|v| v.as_str()).collect::<Vec<_>>());
+        let new_allowed = prop
+            .allowed_types
+            .as_ref()
+            .map(|types| types.iter().map(|t| t.as_str()).collect::<Vec<_>>());
+        if old_allowed != new_allowed {
+            metadata_keys.push("allowedTypes".to_string());
+        }
+        let old_max = old_def.get("maxItems").and_then(|v| v.as_u64());
+        let new_max = prop.max_items.map(|m| m as u64);
+        if old_max != new_max {
+            metadata_keys.push("maxItems".to_string());
+        }
+    }
+    let old_deprecated = old_def
+        .get("deprecatedAt")
+        .and_then(|v| v.as_str())
+        .unwrap_or("");
+    let new_deprecated = prop.deprecated_at.as_deref().unwrap_or("");
+    if old_deprecated != new_deprecated {
+        metadata_keys.push("deprecatedAt".to_string());
+    }
+    let old_contract = old_def
+        .get("contractField")
+        .and_then(|v| v.as_bool())
+        .unwrap_or(false);
+    let new_contract = prop.contract_field.unwrap_or(false);
+    if old_contract != new_contract {
+        metadata_keys.push("contractField".to_string());
+    }
+    metadata_keys
 }
 
 /// 计算对象与模板之间的同步差异。
