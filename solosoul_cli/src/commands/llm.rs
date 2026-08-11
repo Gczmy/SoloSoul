@@ -118,6 +118,7 @@ pub fn list_conversations(app: &mut App) -> Result<()> {
             return Ok(());
         }
     };
+    // LlmService::list_conversations 内部自动懒迁移旧 blob 会话（与 GUI 共用实现，幂等）。
     match app.llm_service.list_conversations(&vault, &account_id) {
         Ok(conversations) => {
             app.phase = AppPhase::ConversationList {

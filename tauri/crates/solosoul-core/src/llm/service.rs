@@ -127,6 +127,62 @@ impl LlmService {
 
     // ── Conversations ──────────────────────────────────────────────
 
+    /// P004 懒迁移：旧版本会话存于 profile preferences 的 `llmConversations` blob。
+    /// 首次访问时把 blob 中的全部会话写入行级表并清除 blob 键（幂等：迁移后
+    /// 键已删，再次调用直接跳过）。GUI 与 CLI 共用同一实现。
+    ///
+    /// LWW 保护：对每条会话按 `updated_at` 比较，仅当 blob 数据比行级表现有
+    /// 数据更新（或行级表无此 id）时才写入，避免无条件 upsert 覆盖 CLI/其他
+    /// 端已写入的较新行（N005）。
+    pub fn migrate_legacy_conversations(
+        &self,
+        vault: &VaultStore,
+        account_id: &str,
+    ) -> LlmResult<()> {
+        let data = Self::load_profile_data(vault, account_id)?;
+        let legacy: Option<Vec<Conversation>> = data
+            .get("preferences")
+            .and_then(|p| p.get("llmConversations"))
+            .and_then(|v| serde_json::from_value(v.clone()).ok());
+        let Some(convs) = legacy else { return Ok(()) };
+        if convs.is_empty() {
+            // 空数组也视为已迁移：清掉键避免每次重复空写。
+            return self.clear_legacy_conversations(vault, account_id);
+        }
+
+        for mut c in convs {
+            trim_conversation_messages(&mut c);
+            // LWW：行级表已有更新或相同的数据则跳过，防止覆盖较新行。
+            if let Some(raw) = vault
+                .load_conversation(account_id, &c.id)
+                .map_err(|e| e.to_string())?
+            {
+                if let Ok(existing) = serde_json::from_slice::<Conversation>(&raw) {
+                    if compare_updated_at(&existing.updated_at, &c.updated_at)
+                        != std::cmp::Ordering::Less
+                    {
+                        continue;
+                    }
+                }
+            }
+            let data = serde_json::to_vec(&c).map_err(|e| format!("Serialize: {e}"))?;
+            vault
+                .save_conversation(account_id, &c.id, &c.updated_at, &data)
+                .map_err(|e| e.to_string())?;
+        }
+        self.clear_legacy_conversations(vault, account_id)
+    }
+
+    /// 清掉 profile preferences 中的旧 `llmConversations` blob 键。
+    fn clear_legacy_conversations(&self, vault: &VaultStore, account_id: &str) -> LlmResult<()> {
+        let mut data = Self::load_profile_data(vault, account_id)?;
+        if let Some(prefs) = data.get_mut("preferences").and_then(|p| p.as_object_mut()) {
+            prefs.remove("llmConversations");
+            Self::save_profile_data(vault, account_id, &data)?;
+        }
+        Ok(())
+    }
+
     /// Load all conversations for an account.
     ///
     /// P004: 会话改存 `llm_conversations` 行级表（不再存 profile preferences blob），
@@ -136,6 +192,7 @@ impl LlmService {
         vault: &VaultStore,
         account_id: &str,
     ) -> LlmResult<Vec<Conversation>> {
+        self.migrate_legacy_conversations(vault, account_id)?;
         let rows = vault
             .list_conversations(account_id)
             .map_err(|e| e.to_string())?;
@@ -190,6 +247,7 @@ impl LlmService {
         account_id: &str,
         conversation_id: &str,
     ) -> LlmResult<Option<Conversation>> {
+        self.migrate_legacy_conversations(vault, account_id)?;
         let data = vault
             .load_conversation(account_id, conversation_id)
             .map_err(|e| e.to_string())?;
@@ -598,5 +656,104 @@ mod tests {
         service.save_stats(&vault, &account_id, &new_stats).unwrap();
         let loaded = service.load_stats(&vault, &account_id).unwrap();
         assert_eq!(loaded.total_tokens, 1000);
+    }
+
+    #[test]
+    fn test_migrate_legacy_conversations_lww() {
+        let (_dir, vault, account_id) = setup_vault();
+        let service = LlmService::new();
+
+        // 构造旧 blob：preferences.llmConversations 含两条会话
+        let legacy_blob = serde_json::json!([
+            {
+                "id": "c1",
+                "name": "old c1",
+                "isTemporary": false,
+                "messages": [],
+                "updatedAt": "2024-01-01T00:00:00Z",
+                "deletedAt": null
+            },
+            {
+                "id": "c2",
+                "name": "old c2",
+                "isTemporary": false,
+                "messages": [],
+                "updatedAt": "2024-01-02T00:00:00Z",
+                "deletedAt": null
+            }
+        ]);
+        let data = serde_json::json!({
+            "preferences": {
+                "llmConversations": legacy_blob
+            }
+        });
+        LlmService::save_profile_data(&vault, &account_id, &data).unwrap();
+
+        // 模拟 CLI/新端已写入更新的 c1（updated_at 比 blob 新）
+        let newer = Conversation {
+            id: "c1".into(),
+            name: "newer c1".to_string(),
+            is_temporary: false,
+            messages: vec![],
+            updated_at: "2024-03-01T00:00:00Z".to_string(),
+            deleted_at: None,
+        };
+        service
+            .save_conversation(&vault, &account_id, &newer)
+            .unwrap();
+
+        // 迁移：c1 已有更新数据应保留，c2 无行应写入
+        service
+            .migrate_legacy_conversations(&vault, &account_id)
+            .unwrap();
+
+        let c1 = service
+            .get_conversation(&vault, &account_id, "c1")
+            .unwrap()
+            .unwrap();
+        assert_eq!(c1.name, "newer c1", "LWW: 较新的已存在行不应被 blob 覆盖");
+        assert_eq!(c1.updated_at, "2024-03-01T00:00:00Z");
+
+        let c2 = service
+            .get_conversation(&vault, &account_id, "c2")
+            .unwrap()
+            .unwrap();
+        assert_eq!(c2.name, "old c2");
+
+        // blob 键已清除：再次迁移幂等且无残留
+        service
+            .migrate_legacy_conversations(&vault, &account_id)
+            .unwrap();
+        let data = LlmService::load_profile_data(&vault, &account_id).unwrap();
+        assert!(
+            data.get("preferences")
+                .and_then(|p| p.get("llmConversations"))
+                .is_none(),
+            "迁移后 blob 键应清除"
+        );
+    }
+}
+
+/// 单条对话的最大消息数量，超过此限时自动裁剪最早的消息（与 GUI 侧常量一致）。
+const MAX_CONVERSATION_MESSAGES: usize = 500;
+
+/// 裁剪单条对话的消息数量，防止数据无限增长。
+fn trim_conversation_messages(conv: &mut Conversation) {
+    if conv.messages.len() > MAX_CONVERSATION_MESSAGES {
+        let excess = conv.messages.len() - MAX_CONVERSATION_MESSAGES;
+        conv.messages.drain(..excess);
+    }
+}
+
+/// 比较两个 RFC3339 时间字符串；无法解析时按字典序兜底（同格式下等价）。
+fn compare_updated_at(a: &str, b: &str) -> std::cmp::Ordering {
+    let parse = |s: &str| {
+        chrono::DateTime::parse_from_rfc3339(s)
+            .map(|dt| dt.timestamp_millis())
+            .ok()
+    };
+    match (parse(a), parse(b)) {
+        (Some(x), Some(y)) => x.cmp(&y),
+        _ => a.cmp(b),
     }
 }

@@ -72,8 +72,8 @@
 ## 修复进度
 
 - 轮次 1：验证通过关闭 **41 / 47**（含 P045 判定合理关闭）；修复有缺陷未关闭 2（P009、P022）；经确认跳过 2（P027、P033）；延期 2（P046、P047）
-- 轮次 2 新问题（N 系列）：**9 项，已修复 4 / 9**（N001–N004 完成）
-- 当前处理：N005（LLM 懒迁移 HLC 比较 + CLI 接入同一迁移）
+- 轮次 2 新问题（N 系列）：**9 项，已修复 5 / 9**（N001–N005 完成）
+- 当前处理：N006（find_apk_asset/resolve_verified_checksum 谓词收紧）
 
 ## 轮次 2 新问题清单（验证发现）
 
@@ -83,7 +83,7 @@
 | N002 | P1 | 构建 | `tauri/src-tauri/src/commands/attachment.rs:1292,1300` | P009 修复缺陷：`copy_to_share_dir_async` / `run_on_main_thread_oneshot` 缺 cfg 门控——Android/iOS 编译 E0425 硬错误（已实测复现），Linux CI clippy 报 dead code。修法：前者加 `#[cfg(not(any(android, ios)))]`，后者加 `#[cfg(any(macos, windows))]` | `[x]` 已修复 |
 | N003 | P1 | 测试 | `solosoul_cli/src/screens/unlock.rs:233-234` | P022 修复缺陷：CLI 测试字面量仍写已删除的 `salt: None, verify_hash: None`，`cargo check --tests` E0560，CLI 测试全红。删 2 行即可 | `[x]` 已修复 |
 | N004 | P1 | 漏洞/逻辑 | `tauri/src-tauri/src/commands/llm/conversations.rs:296-302`（实际位于 `crates/solosoul-vault/src/storage/conversations.rs`） | 确证 bug（P004 修复引入）：`conversation_local_snapshot` 调 `load_conversation("", id)` 空 account_id 恒不匹配 → 冲突 UI 本地快照恒 None；连带 delta.rs:171-180 本地赢 LWW 时记假冲突。已修：`llm_conversations.id` 为全局主键，快照直接按 id 取数（对齐其余表），新增单测 | `[x]` 已修复 |
-| N005 | P2 | 架构 | `tauri/src-tauri/src/commands/llm/conversation.rs:52-57`、`solosoul-core` LlmService | LLM 迁移隐患：①CLI 无懒迁移（看不到旧 blob 会话）；②GUI 懒迁移对 blob 逐条无条件 upsert（无 HLC/LWW 比较），可覆盖 CLI 已写入的较新行；③混合版本同步会抹掉旧设备 blob 会话（迁移窗口需文档警示或延迟删 blob 键） | `[ ]` 待修复 |
+| N005 | P2 | 架构 | `tauri/src-tauri/src/commands/llm/conversation.rs:52-57`、`solosoul-core` LlmService | LLM 迁移隐患：①CLI 无懒迁移（看不到旧 blob 会话）；②GUI 懒迁移对 blob 逐条无条件 upsert（无 HLC/LWW 比较），可覆盖 CLI 已写入的较新行；③混合版本同步会抹掉旧设备 blob 会话。已修：迁移下沉 `LlmService::migrate_legacy_conversations` 单一实现（含 `updated_at` LWW 比较 + trim + 清键），`load_conversations`/`get_conversation` 开头自动触发（CLI 经 LlmService 读即接入），GUI `conversation.rs` 委托同一实现；新增 LWW 单测 | `[x]` 已修复 |
 | N006 | P2 | 漏洞 | `tauri/src-tauri/src/commands/update.rs:232-240` | P002 遗留：`find_apk_asset` 谓词 `contains("universal-release")` 可命中 `.apk.sha256(.minisig/.sig)` 资产；`resolve_verified_checksum` 的 `contains("sha256")` 同款。若 GitHub 资产排序不利 → fail-closed 永久误拒下载（可用性问题） | `[ ]` 待修复 |
 | N007 | P2 | 流程 | `tauri/package.json` check-all | check-all 不含 `cargo test`，Rust 测试红无法被基线/本地门禁发现（本轮 N001 即漏网之鱼）。建议脚本加入 `cargo test` | `[ ]` 待修复 |
 | N008 | P2 | 逻辑 | `tauri/src-tauri/src/commands/llm/stream.rs:292-303` | P034 语义微变：OpenAI usage chunk 缺字段时从「保留先前累积值」变为 `unwrap_or(0)` 整体覆盖清零。实际 OpenAI 兼容 API 只在末尾发一次完整 usage，风险极低 | `[ ]` 待修复 |

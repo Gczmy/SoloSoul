@@ -1,6 +1,6 @@
 use crate::commands::vault_handle;
-use crate::services::profile_prefs::update_profile_prefs;
 use crate::state::AppState;
+use solosoul_core::llm::service::LlmService;
 use solosoul_vault::VaultStore;
 use tauri::State;
 
@@ -29,43 +29,14 @@ pub(crate) fn load_conversations(
 }
 
 /// 懒迁移：旧版本会话存于 profile preferences 的 `llmConversations` blob。
-/// 首次进入时把 blob 中的全部会话写入行级表，并清除 blob 键（幂等：迁移后
-/// blob 键已删，`update_profile_prefs` 不再有旧数据；若 blob 无此键则直接跳过）。
+/// 首次进入时把 blob 中的全部会话写入行级表，并清除 blob 键（幂等）。
+/// 委托 `LlmService::migrate_legacy_conversations` 共享实现（N005：与 CLI 同一
+/// 迁移，且带 LWW 比较，避免无条件 upsert 覆盖 CLI 已写入的较新行）。
 fn migrate_legacy_conversations(vault: &VaultStore, account_id: &str) -> Result<(), String> {
-    // 先读 blob（未迁移时有数据），无则无事可做。
-    let legacy: Option<Vec<Conversation>> = match vault.load_profile(account_id) {
-        Ok(Some(profile)) => {
-            let data: serde_json::Value =
-                serde_json::from_slice(&profile.data).map_err(|e| format!("Parse: {e}"))?;
-            data.get("preferences")
-                .and_then(|p| p.get("llmConversations"))
-                .and_then(|v| serde_json::from_value(v.clone()).ok())
-        }
-        _ => None,
-    };
-    let Some(convs) = legacy else { return Ok(()) };
-    if convs.is_empty() {
-        // 空数组也视为已迁移：清掉键避免每次进入重复空写。
-        return clear_legacy_conversations(vault, account_id);
-    }
-
-    // 逐条写入行级表（含裁剪，防止超限数据进入新表）。
-    for mut c in convs {
-        trim_conversation_messages(&mut c);
-        let data = serde_json::to_vec(&c).map_err(|e| format!("Serialize: {e}"))?;
-        vault.save_conversation(account_id, &c.id, &c.updated_at, &data)?;
-    }
-    clear_legacy_conversations(vault, account_id)
+    LlmService::new().migrate_legacy_conversations(vault, account_id)
 }
 
-fn clear_legacy_conversations(vault: &VaultStore, account_id: &str) -> Result<(), String> {
-    update_profile_prefs(vault, account_id, |prefs| {
-        prefs.remove("llmConversations");
-        Ok(())
-    })
-}
-
-/// 裁剪单条对话的消息数量，防止数据无限增长。
+/// 裁剪单条对话的消息数量，防止数据无限增长（保存路径使用）。
 fn trim_conversation_messages(conv: &mut Conversation) {
     if conv.messages.len() > MAX_CONVERSATION_MESSAGES {
         let excess = conv.messages.len() - MAX_CONVERSATION_MESSAGES;
