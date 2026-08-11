@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-11（P009 修复完成）
+> 最后更新：2026-08-11（P010 修复完成）
 > 当前分支：`main`
 > 修复轮次：2（按用户指令逐项修复，一项一提交）
 
@@ -23,7 +23,7 @@ Git 状态：工作树除本报告文件重建外干净（旧报告已删除，�
 | P007 | P1 | 架构 | `tauri/src-tauri/src/commands/export_import/export_docx.rs:200` | `flatten_object_fields` 6–7 层控制流嵌套，动态字段组展平逻辑难读难测 | `[x]` 已完成 |
 | P008 | P1 | 架构 | `tauri/src-tauri/src/commands/search/query.rs:16` | `search_properties_for_matches` 133 行递归函数承担 4 种职责，`__fields` 分支 5–6 层嵌套 | `[x]` 已完成 |
 | P009 | P1 | 架构 | `tauri/src-tauri/src/commands/attachment.rs:1130` | `attachment_share` ~161 行，macOS/Windows 两个 `#[cfg]` 块各重复约 40 行「复制→主线程调度→oneshot」骨架 | `[x]` 已完成 |
-| P010 | P1 | 规范 | `tauri/src/components/layout/AddPageButton.tsx:162-198` ↔ `NavButton.tsx:37-73` | 悬停卡片 portal 定位逻辑 ~37 行逐字符复制（注释自认 same pattern），应抽共享 hook | `[ ]` 待修复 |
+| P010 | P1 | 规范 | `tauri/src/components/layout/AddPageButton.tsx:162-198` ↔ `NavButton.tsx:37-73` | 悬停卡片 portal 定位逻辑 ~37 行逐字符复制（注释自认 same pattern），应抽共享 hook | `[x]` 已完成 |
 | P011 | P1 | 规范 | `tauri/src/components/layout/AddPageButton.tsx:438-520` ↔ `CustomPageEditPopover.tsx:322-409` | 图标分类选择器 ~44 行 + 分类数组两处复制，应抽 `IconCategoryPicker` 共享组件 | `[ ]` 待修复 |
 | P012 | P2 | 漏洞 | `tauri/src-tauri/src/commands/update.rs:238-246` | Release 资产匹配过宽（`contains("sha256")` 会命中 `.minisig`），完整性校验可能静默失效（需人工确认 assets 顺序） | `[ ]` 待修复 |
 | P013 | P2 | 漏洞 | `tauri/src-tauri/src/commands/export_import/import.rs:9,59,183` | 导入命令 `file_path` 无白名单（与 fs 命令 P107 收窄策略不一致），构成有限任意文件探测原语 | `[ ]` 待修复 |
@@ -64,8 +64,8 @@ Git 状态：工作树除本报告文件重建外干净（旧报告已删除，�
 
 ## 修复进度
 
-- 已完成：9 / 47
-- 当前处理：P010（按建议顺序推进）
+- 已完成：10 / 47
+- 当前处理：P011（按建议顺序推进）
 
 ## 详细问题描述与修复指引
 
@@ -165,10 +165,13 @@ error: deref which would be done by auto-deref
 
 **验证**：`cargo check -p solo_soul --tests` ✅（Windows 目标，macos/android 分支 cfg 排除但代码逐字保留）；clippy --workspace 全绿 ✅。重构为纯提取，平台行为不变（修复一处 helper 末尾漏 `Ok(())` 的编译错误）。
 
-### P010–P011（P1）布局组件复制
+### P010（P1）useHoverCardPosition 共享 hook — 已完成（commit 9c3112e7）
 
-- `AddPageButton.tsx:162-198` ↔ `NavButton.tsx:37-73`：抽共享 hook `useHoverCardPosition(wrapperRef, {isHorizontal, isBottom, isRight})`。
-- `AddPageButton.tsx:438-520` ↔ `CustomPageEditPopover.tsx:322-409`：抽 `IconCategoryPicker` 共享组件，分类数组移到 `CUSTOM_ICON_MAP` 旁导出常量。
+**原问题**：`AddPageButton.tsx:162-198` 与 `NavButton.tsx:37-73` 悬停名称卡片定位逻辑双份复制（约 40 行/份：rect 定位计算、supportsHover 守卫、scroll/resize 跟随）。
+
+**修复**：抽共享 hook `useHoverCardPosition(wrapperRef, {isHorizontal, isBottom, isRight})`（`src/hooks/useHoverCardPosition.ts`），返回 `cardStyle`/`isHovered`/`handleMouseEnter`/`handleMouseLeave`。两组件改用 hook，删除各自复制块；NavButton 保留独立的 `updateIndicator`（激活指示条，非共享逻辑）。
+
+**验证**：tsc ✅；eslint ✅；全量 vitest 619/619 ✅（纯提取，无行为变化）。
 
 ### P012–P019（P2，安全类）
 
