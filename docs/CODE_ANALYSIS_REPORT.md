@@ -26,8 +26,8 @@
 - 轮次 1（P 系列）：41/47 通过，2 跳过，2 延期（P046/P047 巨型组件/文件拆分，仍为后续架构项）
 - 轮次 2（N 系列）：10/10 通过（残留转 R 系列）
 - 轮次 3（R 系列）：**4/5 通过**，R003 修复引入新回归 → S001
-- 轮次 4 新问题（S 系列）：**2/4 已完成**（S001–S002 已修复，S003–S004 待修复）
-- 当前处理：S003–S004 待修复
+- 轮次 4 新问题（S 系列）：**3/4 已完成**（S001–S003 已修复，S004 待修复）
+- 当前处理：S004 待修复
 
 ## 轮次 4 新问题清单（验证发现）
 
@@ -35,7 +35,7 @@
 |----|--------|------|----------|------|------|
 | S001 | P1 | 逻辑/数据 | `tauri/src-tauri/src/commands/llm/conversation.rs:180-187`、`crates/solosoul-core/src/llm/service.rs:163-178` | **R003 引入的回归**：`llm_permanent_delete` 只删行级记录不碰 blob，而 blob 键现在永久保留——此后任何 `load_conversations`/`get_conversation` 触发的懒迁移（条件「行级表无此 id 则写入」）会把已永久删除的会话从陈旧 blob 重新写回，**回收站 purge 的会话下次列表即复活**，且复活行作为新 delta 同步扩散到其他设备。修复：永久删除时同步从本设备 blob 值中移除该 id（改值不删键，旧设备不受影响），或迁移侧维护已物理删除 id 的墓碑集合；补「purge 后不复活」单测 | `[x]` 已修复（见下） |
 | S002 | P2 | 测试 | `crates/solosoul-sync/src/delta.rs` | R002 残留测试缺口：新假冲突消解逻辑只有「内容收敛→不记冲突」单测；「会话内容不同仍记冲突」与「解密失败退化记冲突」两条路径无会话级单测（现有内容不同用例走 objects 表，覆盖不到新分支） | `[x]` 已修复（见下） |
-| S003 | P2 | 技术债 | `crates/solosoul-core/src/llm/service.rs`、CHANGELOG | R003 残留：blob 键清理时机仅 CHANGELOG 一句「确认所有设备升级后清理」，代码中无 TODO/版本门槛/追踪 issue，容易永久遗忘。另注：混合版本期旧设备**删除**会话不传播到新设备行级表（迁移只增不删、无墓碑）——N005 迁移固有限制，建议与删键清理一并规划 | `[ ]` 待修复 |
+| S003 | P2 | 技术债 | `crates/solosoul-core/src/llm/service.rs`、CHANGELOG | R003 残留：blob 键清理时机仅 CHANGELOG 一句「确认所有设备升级后清理」，代码中无 TODO/版本门槛/追踪 issue，容易永久遗忘。另注：混合版本期旧设备**删除**会话不传播到新设备行级表（迁移只增不删、无墓碑）——N005 迁移固有限制，建议与删键清理一并规划 | `[x]` 已修复（见下） |
 | S004 | P2 | 规范 | `tauri/scripts/check_pref_keys_sync.py:55`、`tauri/src-tauri/src/commands/fs.rs:164-166` | 小项汇总：①机比脚本 TS 属性正则不匹配可选属性 `key?:` 与带引号键——未来 AppSettings 出现可选属性会静默漏检（当前 20 键均必选无实际影响，建议正则收紧为 `([A-Za-z][A-Za-z0-9]*)\?*:`）；②fs.rs 注释称「dunce 对非盘符 UNC 按设计原样返回」不准确（dunce 实际会转换安全 UNC），行为正确仅注释论证有偏差 | `[ ]` 待修复 |
 
 ## 轮次 4 修复记录
@@ -53,6 +53,12 @@
   - `test_conversation_conflict_recorded_when_content_differs`：本地内容与远端不同 → 真实差异，记录冲突（不自动消解），断言 `stats.conflicts.len() == 1` 且持久化冲突表非空。
   - `test_conversation_conflict_recorded_when_remote_decrypt_fails`：篡改远端信封 `data` 的一个合法 base64 字符（长度不变仍可解码、解码后字节损坏）→ 解密失败 → fail-safe 保守记录冲突。已验证 LWW 检查先于写库（`apply_sync_record_tx` 第 62-72 行），篡改数据不会落库。
 - 实测 delta 模块 10/10 全绿（原 8 + 新 2），fmt/clippy 干净。
+
+### S003（P2，技术债登记）✅ 已修复
+
+- **代码内登记 TODO(S003) 版本门槛**（`crates/solosoul-core/src/llm/service.rs` 的 `migrate_legacy_conversations` 保留键注释处）：①删键时机——确认所有设备升级到 2.9.2+ 后，在下一个大版本（建议 v2.10，同步 bump versionCode）经 `save_profile_data` 移除键，让 profile delta 传播键删除；②混合版本期删除传播限制——旧版本设备（只读 blob）删除会话不传播到新版本设备行级表（迁移只增不删、无墓碑），新版本永久删除已由 S001 覆盖，彻底闭环旧端删除须与删键清理一并规划行级墓碑协议升级。
+- **CHANGELOG 会话迁移警示同步补充**：清理门槛 + 混合版本期限制两条，与代码 TODO 互相引用，防止永久遗忘。
+- fmt/check/clippy 全绿（纯注释/文档改动）。
 
 ## 轮次 4 验证覆盖说明
 
