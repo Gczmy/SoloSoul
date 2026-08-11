@@ -312,6 +312,62 @@ pub fn write_ui_prefs_sync_pref<R: tauri::Runtime>(
 
 // ── Vault-encrypted preferences ─────────────────────────────
 
+/// P026: 前端实际写入的偏好 key 白名单（settingsStore.updateSetting 全集 +
+/// customPages 迁移清理）。拒绝未知 key 防止任意 JSON 注入/键膨胀。
+const ALLOWED_PREF_KEYS: &[&str] = &[
+    "theme",
+    "accentColor",
+    "defaultLightTheme",
+    "defaultDarkTheme",
+    "customAccentHex",
+    "backgroundType",
+    "backgroundValue",
+    "language",
+    "locale",
+    "autoLockTimeoutMinutes",
+    "autoLockNotificationEnabled",
+    "autoLockOnBackground",
+    "backupReminderDays",
+    "lastBackupReminderAt",
+    "trashRetention",
+    "biometricEnabled",
+    "confirmDelete",
+    "sidebarPosition",
+    "sidebarButtonModes",
+    "customPages",
+];
+
+/// P026: 偏好载荷边界校验——key 白名单 + key 数量上限 + 单值大小上限。
+fn validate_preferences_payload(preferences: &HashMap<String, Value>) -> Result<(), String> {
+    const MAX_KEYS: usize = 32;
+    const MAX_VALUE_BYTES: usize = 256 * 1024; // 256 KiB/值（sidebarButtonModes/customPages 为最大载体）
+    if preferences.len() > MAX_KEYS {
+        return Err(format!(
+            "Preferences payload too large: {} keys (max {})",
+            preferences.len(),
+            MAX_KEYS
+        ));
+    }
+    for (k, v) in preferences {
+        if !ALLOWED_PREF_KEYS.contains(&k.as_str()) {
+            return Err(format!("Unknown preference key: {}", k));
+        }
+        if k.len() > 128 {
+            return Err(format!("Preference key too long: {}", k));
+        }
+        let size = serde_json::to_vec(v).map_err(|e| format!("Serialize preference: {}", e))?;
+        if size.len() > MAX_VALUE_BYTES {
+            return Err(format!(
+                "Preference value too large for key '{}' ({} bytes, max {})",
+                k,
+                size.len(),
+                MAX_VALUE_BYTES
+            ));
+        }
+    }
+    Ok(())
+}
+
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdatePreferencesPayload {
@@ -347,6 +403,8 @@ pub async fn user_data_update_preference(
     state: State<'_, AppState>,
     payload: UpdatePreferencesPayload,
 ) -> Result<(), String> {
+    // P026: 入口校验 key 白名单与载荷边界，拒绝未知 key/超限载荷。
+    validate_preferences_payload(&payload.preferences)?;
     let vault = vault_handle(&state)?;
 
     // Load or create profile so preferences can always be saved.

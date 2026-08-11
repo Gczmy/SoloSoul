@@ -606,6 +606,22 @@ pub async fn object_get(
 }
 
 #[tauri::command]
+/// P026: 对象名称长度与 properties 载荷边界校验（object_create/object_update 共用）。
+fn validate_object_input(name: &str, properties: &serde_json::Value) -> Result<(), String> {
+    if name.trim().is_empty() {
+        return Err("对象名称不能为空".to_string());
+    }
+    if name.chars().count() > 200 {
+        return Err("对象名称不能超过 200 字符".to_string());
+    }
+    let size = serde_json::to_vec(properties).map_err(|e| e.to_string())?;
+    if size.len() > 10 * 1024 * 1024 {
+        return Err("对象属性载荷过大（超过 10 MiB）".to_string());
+    }
+    Ok(())
+}
+
+#[tauri::command]
 pub async fn object_create(
     state: State<'_, AppState>,
     input: CreateObjectInput,
@@ -614,6 +630,9 @@ pub async fn object_create(
     // 写进错误账户（template/ocr 已统一此约定）。
     let account_id = current_account(&state)?;
     let vault = vault_handle(&state)?;
+
+    // P026: 名称长度与 properties 载荷边界校验。
+    validate_object_input(&input.name, &input.properties)?;
 
     // P114: 模板继承查询 + save_object 写入（AES 加密）移入 spawn_blocking。
     let data = tokio::task::spawn_blocking(move || -> Result<ObjectData, String> {
@@ -736,6 +755,9 @@ pub async fn object_update(
     input: UpdateObjectInput,
 ) -> Result<ObjectData, String> {
     let vault = vault_handle(&state)?;
+
+    // P026: 名称长度与 properties 载荷边界校验。
+    validate_object_input(&input.name, &input.properties)?;
 
     // P114: load_object 解密 + save_object 加密写入 + 快照/日志移入 spawn_blocking。
     let data = tokio::task::spawn_blocking(move || -> Result<ObjectData, String> {

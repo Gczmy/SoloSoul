@@ -167,6 +167,21 @@ fn cleanup_legacy_json(vault: &solosoul_vault::VaultStore, account_id: &str) -> 
 // IPC commands
 // ---------------------------------------------------------------------------
 
+/// P026: 模板名称长度与字段载荷边界校验。
+fn validate_template_input(name: &str, properties: &[TemplateProperty]) -> Result<(), String> {
+    if name.trim().is_empty() {
+        return Err("模板名称不能为空".to_string());
+    }
+    if name.chars().count() > 200 {
+        return Err("模板名称不能超过 200 字符".to_string());
+    }
+    let size = serde_json::to_vec(properties).map_err(|e| e.to_string())?;
+    if size.len() > 512 * 1024 {
+        return Err("模板字段载荷过大（超过 512 KiB）".to_string());
+    }
+    Ok(())
+}
+
 #[tauri::command]
 pub async fn template_create(
     state: State<'_, AppState>,
@@ -176,6 +191,8 @@ pub async fn template_create(
     properties: Vec<TemplateProperty>,
     contract_type_id: Option<String>,
 ) -> Result<String, String> {
+    // P026: 名称长度与载荷边界校验。
+    validate_template_input(&name, &properties)?;
     let vault = vault_handle(&state)?;
 
     let account_id = current_account(&state)?;
@@ -234,6 +251,18 @@ pub async fn template_update(
         return Err("无权修改此模板".to_string());
     }
 
+    // P026: 名称长度与载荷边界校验（仅校验实际提供的字段）。
+    if let Some(n) = name.as_deref() {
+        if n.trim().is_empty() || n.chars().count() > 200 {
+            return Err("模板名称不能为空且不能超过 200 字符".to_string());
+        }
+    }
+    if let Some(ref props) = properties {
+        let size = serde_json::to_vec(props).map_err(|e| e.to_string())?;
+        if size.len() > 512 * 1024 {
+            return Err("模板字段载荷过大（超过 512 KiB）".to_string());
+        }
+    }
     if let Some(n) = name {
         template.name = n;
     }
