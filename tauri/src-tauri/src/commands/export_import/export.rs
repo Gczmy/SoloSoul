@@ -9,11 +9,10 @@ pub async fn export_get_scope_tree(
 ) -> Result<Vec<PageGroup>, String> {
     let vault = vault_handle(&state)?;
 
+    // 阶段 1：拉取对象 + 模板映射
     let objects = vault
         .list_objects(&account_id, None, None, None, false, false)
         .map_err(|e| format!("list_objects: {}", e))?;
-
-    // 模板 id → 模板 映射：供字段敏感度兜底判定（对象仍引用模板且 property_labels 缺失时）。
     let template_map: std::collections::HashMap<String, solosoul_vault::UserTemplate> = vault
         .list_user_templates(&account_id)
         .unwrap_or_default()
@@ -21,10 +20,27 @@ pub async fn export_get_scope_tree(
         .map(|t| (t.id.clone(), t))
         .collect();
 
-    // 字段敏感度集合兜底：list_objects 已从 property_labels/__fields/dynamic_group 推导，
-    // 此处再并入模板定义的 sensitivity_level（与导出 preflight object_max_sensitivity 口径一致），
-    // 并按敏感度升序去重后写回（范围树展示用）。
-    let objects: Vec<ObjectSummary> = objects
+    // 阶段 2：合并模板敏感度（与导出 preflight object_max_sensitivity 口径一致）
+    let objects = merge_template_sensitivities(objects, &template_map);
+
+    // 阶段 3：收集自定义页面（page 类型对象）与分组
+    let (custom_pages, custom_page_order) = collect_custom_pages(&objects);
+    let custom_page_ids: std::collections::HashSet<String> = custom_pages.keys().cloned().collect();
+    let groups = group_objects(objects, &custom_page_ids);
+
+    // 阶段 4：组装 PageGroup 列表（系统分区 → 自定义页面 → 剩余/孤儿过滤）
+    let result = build_page_groups(groups, &custom_pages, &custom_page_order);
+
+    Ok(result)
+}
+
+/// P037: 模板敏感度合并——list_objects 已从 property_labels/__fields/dynamic_group 推导，
+/// 此处再并入模板定义的 sensitivity_level，并按敏感度升序去重后写回（范围树展示用）。
+fn merge_template_sensitivities(
+    objects: Vec<ObjectSummary>,
+    template_map: &std::collections::HashMap<String, solosoul_vault::UserTemplate>,
+) -> Vec<ObjectSummary> {
+    objects
         .into_iter()
         .map(|mut o| {
             if let Some(ref tid) = o.template_id {
@@ -42,25 +58,36 @@ pub async fn export_get_scope_tree(
                 .sort_by_key(|l| solosoul_vault::sensitivity_rank(l));
             o
         })
-        .collect();
+        .collect()
+}
 
-    // Collect custom page-defining objects (type_id = "page") into a lookup
-    // page_id -> (page_name, icon_name)
+/// P037: 收集自定义页面对象（type_id = "page"）为 lookup：page_id -> (name, icon)，
+/// 保持 list_objects 的出现顺序。
+fn collect_custom_pages(
+    objects: &[ObjectSummary],
+) -> (
+    std::collections::HashMap<String, (String, String)>,
+    Vec<String>,
+) {
     let mut custom_pages: std::collections::HashMap<String, (String, String)> =
         std::collections::HashMap::new();
     let mut custom_page_order: Vec<String> = Vec::new();
-    for obj in &objects {
+    for obj in objects {
         if obj.collection_type == "page" && !custom_pages.contains_key(&obj.id) {
             custom_pages.insert(obj.id.clone(), (obj.name.clone(), obj.icon_name.clone()));
             custom_page_order.push(obj.id.clone());
         }
     }
+    (custom_pages, custom_page_order)
+}
 
-    let custom_page_ids: std::collections::HashSet<String> = custom_pages.keys().cloned().collect();
-
+/// P037: 按 section_type/collection_type 将非页面对象分组。
+fn group_objects(
+    objects: Vec<ObjectSummary>,
+    custom_page_ids: &std::collections::HashSet<String>,
+) -> std::collections::HashMap<String, Vec<ObjectSummary>> {
     let mut groups: std::collections::HashMap<String, Vec<ObjectSummary>> =
         std::collections::HashMap::new();
-
     for obj in objects {
         // Skip page-defining objects — they are already represented as section headers
         // and should not appear as duplicate items inside their own page section.
@@ -80,7 +107,16 @@ pub async fn export_get_scope_tree(
             };
         groups.entry(group_key).or_default().push(obj);
     }
+    groups
+}
 
+/// P037: 组装 PageGroup 列表——系统分区（侧栏顺序）→ 自定义页面（出现顺序）→
+/// 剩余分组（过滤孤儿 UUID：软删除自定义页面残留的子对象，pre-P0-1 bug）。
+fn build_page_groups(
+    mut groups: std::collections::HashMap<String, Vec<ObjectSummary>>,
+    custom_pages: &std::collections::HashMap<String, (String, String)>,
+    custom_page_order: &[String],
+) -> Vec<PageGroup> {
     // System page display names (sidebar order)
     let system_sections: &[&str] = &[
         "identity",
@@ -118,7 +154,7 @@ pub async fn export_get_scope_tree(
     }
 
     // 2. Custom page groups in order they appear from list_objects
-    for page_id in &custom_page_order {
+    for page_id in custom_page_order {
         let (page_name, _icon) = &custom_pages[page_id];
         let objs = groups.remove(page_id.as_str()).unwrap_or_default();
         result.push(PageGroup {
@@ -168,8 +204,7 @@ pub async fn export_get_scope_tree(
             objects: objs,
         });
     }
-
-    Ok(result)
+    result
 }
 
 #[tauri::command]
