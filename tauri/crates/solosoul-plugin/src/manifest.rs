@@ -115,16 +115,7 @@ impl PluginTier {
         }
     }
 
-    /// 显示名称
-    pub fn label(&self) -> &'static str {
-        match self {
-            PluginTier::P0 => "P0",
-            PluginTier::P1 => "P1",
-            PluginTier::P2 => "P2",
-            PluginTier::P3 => "P3",
-            PluginTier::P4 => "P4",
-        }
-    }
+    // P029: 移除零调用的 label()（显示名由前端 tier 文案映射）
 }
 
 /// 插件契约中的一个输入角色（语义槽位）。
