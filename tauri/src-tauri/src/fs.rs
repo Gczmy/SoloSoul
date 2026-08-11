@@ -1,7 +1,7 @@
 //! 文件系统抽象模块（Tauri 应用层）
 
+// P030: 移除死 re-export shim vault_file_system（无引用，直接 use solosoul_core::vault_file_system）
 pub mod saf_sync_driver;
-pub mod vault_file_system;
 
 /// 规范化路径：移除 `./` 等冗余组件，不依赖文件系统（不会 canonicalize）。
 ///
