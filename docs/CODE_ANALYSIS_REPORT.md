@@ -1,695 +1,190 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-08（三次复核完成：二次复核遗留 4 项——P020 列表闪烁副作用 + 截断排序错位、P009 文档虚造 sourceObjectId、P005 失实 doc comment、P045 引用虚指——全部闭环，P001–P045 共 45 项全部 `[x]`。详见文末「三次复核结果（2026-08-08）」）
-> 三次复核基线：`npm run check-all` ✅ 全绿（含末尾 ACL 一致性检查 OK：190 个命令全部登记）；Vitest 65 文件 574 测试全过；CLI `cargo test` 全过
-> 分析范围：`tauri/`（Rust 后端 + React/TS 前端）、`solosoul_cli/`；忽略 `node_modules/`、`target/`、`dist/`、`.vite/`、`*.min.js`、`*.wasm`
+> 最后更新：2026-08-11 01:09:05
+> 当前分支：`main`
+> 修复轮次：1（初始分析，全新生成，未沿用旧报告）
 
-## 阶段 0 基线检查结果
+## 基线检查（阶段 0）
 
-- Git 仓库状态：干净（`main` 分支，无未提交改动）。
-- `npm run check-all`（tsc → cargo fmt --check → clippy → ESLint → Vitest 570 测试）：**全部通过**。
-- 结论：静态工具基线为绿，以下问题全部来自启发式人工/代理分析。
+`npm run check-all` **未通过**：TypeScript 与 fmt 已通过，**Rust Clippy 报 2 个 error 后中止**，后续 lint / 单元测试未执行（见 P001）。
+
+Git 状态：工作树除本报告文件重建外干净（旧报告已删除，本轮按要求全新生成）。
 
 ## 问题清单（按优先级 P0 > P1 > P2）
 
-| ID | 优先级 | 类别 | 文件位置 | 描述 | 状态 |
-|----|--------|------|----------|------|------|
-| P001 | P0 | 架构/正确性 | `tauri/src-tauri/src/commands/sync.rs:34-48`、`tauri/crates/solosoul-sync/src/types.rs:59-65`、`tauri/src/lib/ipc.ts:1-15` | 同步冲突载荷 `local_hlc.node_id` 桌面端序列化为 `number[]`、移动端为 `String`，前端只建模桌面形状，Android 上类型漂移 | `[x]` 已修复 |
-| P002 | P0 | 状态一致性 | `tauri/src/stores/syncStore.ts:524-536,588-601` | 入站同步只刷新 objectStore，不同步刷新 templateStore / profileStore / trashStore，模板与回收站数据陈旧 | `[x]` 已修复 |
-| P003 | P1 | 漏洞 | `tauri/src-tauri/src/attachment_import_plugin.rs:516-519,579-580` | 附件导出路径白名单被原始字符串前缀匹配绕过，解锁态可导出任意本地文件 | `[x]` 已修复 |
-| P004 | P1 | 正确性/性能 | `tauri/crates/solosoul-vault/src/storage/metadata.rs:632-647` | `check_field_usage` 对加密列做 `LIKE` 匹配，结果恒为 0（功能失效）且全表扫描 | `[x]` 已修复 |
-| P005 | P1 | 性能 | `tauri/src-tauri/src/commands/export_import/mod.rs:268-306` | 导出收集对象时全库双重解密 + N+1 查询 | `[x]` 三次复核：失实 doc comment 已修正为与实现一致（include_all 单次解密 / selected 批量解密） |
-| P006 | P1 | 安全 | `solosoul_cli/src/screens/object_detail.rs:45,87-92` | CLI `/open` 对象详情只看对象级敏感度，字段级 sensitive/critical 明文渲染，违反 P036 掩码约定 | `[x]` 已修复（复核跟进：collect_field_levels_for 模板兜底，与 /search 判定一致） |
-| P007 | P1 | 安全 | `solosoul_cli/src/commands/backup.rs:218-250` | `/backup create` 明文 profile 备份以默认权限（0644）落盘，未收紧 0600 | `[x]` 已修复（复核跟进：改 write_private_file 无窗口期；helper 补已存在 0644 覆写收紧） |
-| P008 | P1 | 正确性 | `solosoul_cli/src/commands/vault_write.rs:300-310` | `delete_page` 中子对象移入回收站失败被 `let _ =` 静默吞掉，页面照删 | `[x]` 已修复 |
-| P009 | P1 | 死代码 | `tauri/src-tauri/src/commands/ocr.rs:535,547`、`export_import/export.rs:704`、`template.rs:433`、`crates/solosoul-core/src/vault_service.rs:1651` | 3 个孤儿 Tauri Commands（无前端调用）+ 1 个仅测试使用的生产函数 | `[x]` 三次复核：08/11/07 文档 sourceObjectId 虚造表述全部改为「能力随死命令移除，无现存入口」，无虚指残留 |
-| P010 | P1 | 重复代码 | `tauri/src/hooks/useUpdateChecker.ts:137-178` vs `useAppUpdate.ts:100-176` | 约 80 行 APK 下载/进度 Promise 封装近乎逐行重复，已开始各自打补丁发散 | `[x]` 已修复 |
-| P011 | P1 | 重复代码 | `tauri/src/components/object/AttachmentViewer.tsx:195-217` vs `tauri/src/hooks/useAttachmentManager.ts:186-208` | `handleDownload` 逐字符级重复（含动态 import、toast 文案） | `[x]` 已修复 |
-| P012 | P1 | 重复代码 | `tauri/src/pages/sync/DeviceListPanel.tsx:128-151` vs `:329-352` | 约 40 行设备卡片 JSX（含键盘可访问性）整段重复 | `[x]` 已修复（复核跟进：cardKey prop 改调用点 key，恢复正确列表 key 语义） |
-| P013 | P1 | 可维护性 | `AttachmentViewer.tsx`(~660 行)、`LoginPage.tsx`(~654)、`ExportImportPage.tsx`(~643)、`PageGuide.tsx`(~615)、`useObjectWorkspaceData.ts`(~524)、`PasswordVerificationDialog.tsx`(~516) | 前端 6 个 500+ 行巨型组件/Hook | `[x]` 已修复（六组件逐一拆分，见实施记录 P013/1-6） |
-| P014 | P1 | 可维护性 | `crates/solosoul-plugin/src/host.rs:437,662,893`（530+ 行合计）、`solosoul-vault/src/storage.rs:482`、`export.rs:491` 等 | Rust 侧多个 150-300 行超长函数 | `[x]` 已修复（六处逐一拆分，见实施记录 P014/1-6） |
-| P015 | P2 | 安全 | `tauri/src-tauri/src/commands/llm/request.rs:214-245` | LLM base URL 允许公网 `http://`，Bearer key 与聊天内容明文传输；与 OCR 侧策略不一致 | `[x]` 已修复（非回环 host 强制 https，回环保留 http；新增 `is_loopback_host` + 单测 5 条） |
-| P016 | P2 | 安全 | `tauri/src-tauri/src/commands/llm/stream.rs:388` | 流式聊天未调用 `ensure_public_llm_host`，内网主机名可绕过 SSRF 封禁 | `[x]` 已修复（`llm_send_message_stream` 补 `ensure_public_llm_host` 异步解析复核，与 chat_http 一致） |
-| P017 | P2 | 安全 | `tauri/src-tauri/tauri.conf.json:30` | CSP `object-src data:` 允许加载 `data:text/html`，基线应为 `object-src 'none'` | `[x]` 已决策：保留 `data:`（桌面 PDF 预览 `<embed>` 依赖） + 代码层守卫（仅 `data:application/pdf` 前缀允许进入 embed，杜绝 `data:text/html` 注入）——复核确认：守卫实现到位且全仓 embed/object 仅此一处；但 CSP 策略层口子仍保留，未来新增 embed 路径无兜底，属风险接受 |
-| P018 | P2 | 安全 | `tauri/src-tauri/src/commands/attachment.rs:96-100` | `path_within_base` canonicalize 失败兜底分支仍放行含 `..` 的路径 | `[x]` 已修复（兜底分支拒绝含 ParentDir 组件的原始路径，统一覆盖全部调用方；新增 1 条逃逸回归测试） |
-| P019 | P2 | 安全 | `tauri/src-tauri/src/attachment_import_plugin.rs:477-482,507-512` | 生产代码遗留 error 级 debug 日志，输出用户文件完整路径 | `[x]` 已修复（`attachment_export_content_uri` 路径越界错误消息脱敏——移除 `src.display()` 与 `attachments_dir` 完整路径，与另一导出命令一致） |
-| P020 | P2 | 性能 | `tauri/crates/solosoul-vault/src/storage/objects.rs:329-485`、`tauri/src-tauri/src/commands/object/mod.rs:459-488` | `object_list` 全量解密并经 IPC 传输全部对象完整 properties，未按注释做预览截断 | `[x]` 三次复核：modal 绕开全局 isLoading action（直接 invoke + 仅写缓存）；截断按模板 fieldOrder 优先选取（模板首位重要字段不再被截掉）；完整 ObjectData 传入跳过重复拉取 |
-| P021 | P2 | 性能 | `tauri/src-tauri/src/commands/search/query.rs:28-105` | 全库搜索热循环内大量临时分配（to_lowercase / format! / 全排序取最大值） | `[x]` 已修复（路径缓冲 push/pop 替代每 key format!；key/name 小写各算一次复用；`max_by` 替代全排序；值小写化保留完整 Unicode 语义） |
-| P022 | P2 | 性能 | `tauri/src-tauri/src/commands/llm/rag.rs:395-401` | 每次指南检索重读磁盘并重切块全部指南 markdown 仅为构建 title 映射 | `[x]` 已修复（title 存于索引 JSON，新增 `guide_title_map` 仅读索引构建映射，不再读文件/切块） |
-| P023 | P2 | 性能 | `tauri/src-tauri/src/commands/template.rs:22-33,121-144` | 每次模板 IPC 都执行 legacy 迁移检查（含 profile 全量加载解析），迁移完成后永久无效 | `[x]` 已修复（迁移完成后写 sys_config 标记 `legacy_templates_migrated_v1`，后续命令 O(1) 短路；迁移逻辑拆 `_inner`） |
-| P024 | P2 | 性能 | `tauri/src/stores/trashStore.ts:137-155` | 回收站批量永久删除逐条 IPC，无批量端点 | `[x]` 已修复（复核返工：default.toml 补登记 trash_permanent_delete_batch，ACL 检查 OK） |
-| P025 | P2 | 性能 | `tauri/crates/solosoul-vault/src/storage/objects.rs:282-327` | `list_object_attachment_ids` 为取附件 id 解密全部对象完整 properties | `[x]` 已修复（复核跟进：跳过转义引号伪键 + 解析失败继续搜索 + 2 回归测试） |
-| P026 | P2 | 性能 | `tauri/src/components/llm/ChatMessageList.tsx:178` | 长会话消息列表无分页/虚拟化（项目其它列表均已分页） | `[x]` 已修复（末尾窗口 50 条 + 「加载更早」步进展开按钮，index 保持原数组下标；会话切换自动重置窗口；双语 i18n `ai_load_earlier`） |
-| P027 | P2 | 安全 | `solosoul_cli/src/commands/settings.rs:342-397` | CLI `/debug_log` 解密审计日志默认权限落盘，未收紧 0600（与 log.rs 行为不一致） | `[x]` 已修复（改用共享 `util::write_private_file`——创建时即 0600） |
-| P028 | P2 | 安全 | `solosoul_cli/src/commands/log.rs:56-69` | `/export_log` 先默认权限创建文件再 chmod，存在明文窗口期，且 chmod 失败被吞 | `[x]` 已修复（改用共享 `util::write_private_file`——创建时即定权限，无窗口期，chmod 不再可被吞） |
-| P029 | P2 | 安全 | `solosoul_cli/src/app.rs:776-791`、`commands/auth.rs:64-72` | 锁定/自动锁定不清理 previous_phase、chat_state、prompt，内存残留解密数据 | `[x]` 已修复（新增 `App::clear_sensitive_state`——清密码输入/提示/上一屏/聊天会话，自动锁定与 `/lock` 统一调用） |
-| P030 | P2 | 正确性 | `solosoul_cli/src/app.rs:813-818`、`commands/llm.rs:35` | 插件成功结果与 `/model` 信息性输出误用 `error_message` 通道（渲染为红色错误） | `[x]` 已修复（holder 加状态标记：成功→info_message、失败→error_message；/model 改 info_message） |
-| P031 | P2 | 正确性 | `solosoul_cli/src/commands/history.rs:88-123` | `do_rollback` 未校验 snapshot 归属对象/账户，可把别的对象数据套到本对象 | `[x]` 已修复（vault 新增 get_snapshot_owner，回滚前校验归属；回滚快照序列化/保存失败不再静默；+2 回归测试） |
-| P032 | P2 | 正确性 | `solosoul_cli/src/commands/mod.rs:61-68` | `update_profile_preference` 根非 object 时静默跳过仍返回 Ok，偏好写入丢失 | `[x]` 已修复（根非对象返回 Err 并保持数据不变；+2 回归测试） |
-| P033 | P2 | 正确性 | `solosoul_cli/src/commands/backup.rs:222-233` | 单个 profile 加载失败被静默跳过，备份可能不完整且无警告 | `[x]` 已修复（加载/解密失败中止备份并报错，不生成不完整备份；+1 回归测试） |
-| P034 | P2 | 性能 | `solosoul_cli/src/commands/search.rs:283-287` | 每条搜索结果单独 `load_object(parent_id)` 解析父页面名，N+1 模式 | `[x]` 已修复（去重 parent_id 批量 load_objects_batch 预取，build_object_result 改查 map；扩展父页名断言） |
-| P035 | P2 | 安全 | `solosoul_cli/src/commands/plugin.rs:102-106` | `plugin_id` 未做字符白名单校验直接拼接路径 | `[x]` 已修复（is_valid_plugin_id 白名单校验 + 四命令入口拒绝 + load_manifest 守卫 + 双语键 + 2 单测） |
-| P036 | P2 | 质量 | `solosoul_cli/src/app.rs:609-636,1760,789` | 多处硬编码中文字符串绕过 `t!()` i18n 体系 | `[x]` 已修复（23 处用户可见硬编码中文全量接入 t!()，新增 24 个双语 app-* 词条，overlay 渲染函数透传 i18n） |
-| P037 | P2 | 质量 | `solosoul_cli/src/app.rs:2694-3016` 等 | `render()` 323 行及多个 110-150 行 key handler | `[x]` 已修复（复核跟进：render_content 268 行 36 个 phase 按语义拆 4 组子方法，dispatch 降为薄层） |
-| P038 | P2 | 质量 | `solosoul_cli/src/commands/settings.rs:6,340-341`、`app.rs:364,412`、`commands/profile.rs:171-180` | 陈旧注释（引用不存在的 `trigger_debug_log_export`）、文档注释混入字面 `\n`、死分支注释误导 | `[x]` 已修复（3 处 trigger_debug_log_export 改 debug_log，字面 \n 清理，set_value_at_path 死分支删除） |
-| P039 | P2 | 死代码 | `tauri/src/lib/ipc.ts:86-93` | `Profile` 接口无人引用，且字段形状与 Rust 端不符 | `[x]` 已修复（删除死接口，tsc/eslint ✅） |
-| P040 | P2 | 错误处理 | `tauri/src-tauri/src/commands/sync.rs:289-294` | `parse_hlc_json` 用 `unwrap_or(0)/unwrap_or("")` 静默吞掉畸形 HLC | `[x]` 已修复（字段缺失/类型错返回 Err；列表路径兜底改 unwrap_or_else + warn 留痕；+1 单测） |
-| P041 | P2 | 错误处理 | `tauri/src-tauri/src/commands/settings.rs:74,81` | `remove_with_retry` 依赖读者推理的 `unwrap()` | `[x]` 已修复（直接存值 + 循环后 match，消除两处 unwrap） |
-| P042 | P2 | 架构 | `solosoul-vault/src/lib.rs:255`、`commands/object/mod.rs:119`、`objectStore.ts:20`、`conflictFieldMeta.ts` | `type_id` 一个字段三套命名（typeId / collectionType），前端维护两套词汇 | `[x]` 已修复（IPC 载荷统一为 `typeId`：ObjectSummary/ObjectData/CreateObjectInput/ObjectFilter/SearchResultItem 五个 serde rename + search_unified 参数名；前端 124 处 collectionType→typeId，与同步载荷词汇一致） |
-| P043 | P2 | 可维护性 | `tauri/src-tauri/src/sync/auto_sync_core.rs:82-130`、`PluginQuickPanel.tsx:244-270` | 控制流嵌套达 8-9 层 | `[x]` 已修复（Rust：Idle/Scheduled 两分支事件处理提取为 `next_idle_state`/`next_scheduled_state` 提前 return；前端：运行逻辑移出 JSX 回调为 `handleRunPlugin`）——复核确认：两侧修复均真实，但前端部分实际由 P044 commit `5efddd1f` 完成，P043 commit `c4235081` 提交信息含前端属误记 |
-| P044 | P2 | 重复代码 | `tauri/src/components/plugin/PluginQuickPanel.tsx:249-268`、`tauri/src/pages/ai/PluginDashboardPage.tsx:~170-190` | 水印插件"先选附件"校验逻辑在两个入口重复，且插件 ID 硬编码于通用面板 | `[x]` 已修复（`lib/plugin.ts` 新增 `WATERMARK_PLUGIN_ID` 常量 + `hasUsableWatermarkSelection` helper，两个入口与过滤白名单统一引用） |
-| P045 | P2 | 质量 | `tauri/src/hooks/useRevealState.ts:90` | 全仓唯一实质 TODO（字段类型感知部分掩码），建议转为 issue 跟踪 | `[x]` 三次复核：08 文档新增 §2.5「字段类型感知的部分掩码（规划）」作为决策载体，注释精确指向真实章节 |
+| ID   | 优先级 | 类别 | 文件位置 | 描述 | 状态 |
+|------|--------|------|----------|------|------|
+| P001 | P0 | 规范/构建 | `tauri/src-tauri/src/commands/attachment.rs:1158,1192` | Clippy 2 error：未使用 import `NSView`；`explicit_auto_deref`（`&*dest.to_string_lossy()`），check-all 中止 | `[ ]` 待修复 |
+| P002 | P1 | 漏洞 | `tauri/src-tauri/src/commands/update.rs:449-463` | `android_download_apk` 信任前端回传的 URL 与 checksum（可传空跳过校验），验签成果未绑定到 IPC 通道（需人工确认） | `[ ]` 待修复 |
+| P003 | P1 | 性能 | `tauri/src-tauri/src/commands/export_import/mod.rs:290`、`export.rs:183` | 导出 selected 分支全库解密两遍（`list_objects` + `load_objects_batch`），且随导出页每次勾选变更（500ms 防抖）触发 | `[ ]` 待修复 |
+| P004 | P1 | 性能/架构 | `tauri/src-tauri/src/commands/llm/conversation.rs:13-57` | LLM 会话整体存加密 preferences blob，每次保存 = 全量解密+深克隆+序列化+加密+写盘；每条聊天消息都触发 | `[ ]` 待修复 |
+| P005 | P1 | 性能 | `solosoul_cli/src/commands/search.rs:181-184,206-209` | CLI `/search` 用 `list_objects(...).len()` 统计子对象数，对每个命中页面全量解密仅为取计数（GUI 已有 `count_objects` 先例） | `[ ]` 待修复 |
+| P006 | P1 | 架构 | `tauri/src-tauri/src/commands/object/mod.rs:439`、`tauri/src/stores/objectStore.ts:56,185`、`ObjectDetailModal.tsx:470` | 类型漂移：Rust `ObjectData` 无 `tags`，TS 声明 `tags?` 永为 undefined；`updateObject` 用 undefined 覆盖摘要 tags，详情页标签成死渲染路径 | `[ ]` 待修复 |
+| P007 | P1 | 架构 | `tauri/src-tauri/src/commands/export_import/export_docx.rs:200` | `flatten_object_fields` 6–7 层控制流嵌套，动态字段组展平逻辑难读难测 | `[ ]` 待修复 |
+| P008 | P1 | 架构 | `tauri/src-tauri/src/commands/search/query.rs:16` | `search_properties_for_matches` 133 行递归函数承担 4 种职责，`__fields` 分支 5–6 层嵌套 | `[ ]` 待修复 |
+| P009 | P1 | 架构 | `tauri/src-tauri/src/commands/attachment.rs:1130` | `attachment_share` ~161 行，macOS/Windows 两个 `#[cfg]` 块各重复约 40 行「复制→主线程调度→oneshot」骨架 | `[ ]` 待修复 |
+| P010 | P1 | 规范 | `tauri/src/components/layout/AddPageButton.tsx:162-198` ↔ `NavButton.tsx:37-73` | 悬停卡片 portal 定位逻辑 ~37 行逐字符复制（注释自认 same pattern），应抽共享 hook | `[ ]` 待修复 |
+| P011 | P1 | 规范 | `tauri/src/components/layout/AddPageButton.tsx:438-520` ↔ `CustomPageEditPopover.tsx:322-409` | 图标分类选择器 ~44 行 + 分类数组两处复制，应抽 `IconCategoryPicker` 共享组件 | `[ ]` 待修复 |
+| P012 | P2 | 漏洞 | `tauri/src-tauri/src/commands/update.rs:238-246` | Release 资产匹配过宽（`contains("sha256")` 会命中 `.minisig`），完整性校验可能静默失效（需人工确认 assets 顺序） | `[ ]` 待修复 |
+| P013 | P2 | 漏洞 | `tauri/src-tauri/src/commands/export_import/import.rs:9,59,183` | 导入命令 `file_path` 无白名单（与 fs 命令 P107 收窄策略不一致），构成有限任意文件探测原语 | `[ ]` 待修复 |
+| P014 | P2 | 漏洞 | `tauri/src-tauri/src/commands/attachment.rs:445-482` | `attachment_copy_to_vault` 兜底分支字面 `starts_with` 且未拒绝 `..` 组件，Android symlink 场景可绕过 allowed-dir（需人工确认可达性） | `[ ]` 待修复 |
+| P015 | P2 | 漏洞 | `tauri/src-tauri/src/commands/export_import/export.rs:337-340` | 导出路径白名单为空时 fail-open 放行任意路径（`attachment_download:911` 同款），应 fail-closed 或至少 warn | `[ ]` 待修复 |
+| P016 | P2 | 规范 | `tauri/src-tauri/src/commands/pin.rs:42-59,103-113`、`vault.rs:34-45` | `pin_setup`/`pin_disable`/`pin_unlock`/`change_password` 的密码参数未在 IPC 边界 Zeroizing 包装（P031 模式不一致，需确认 PinManager 内部清零） | `[ ]` 待修复 |
+| P017 | P2 | 漏洞 | `tauri/src-tauri/src/commands/fs.rs:133-142` | `resolve_within` 校验后返回未规范化路径，存在符号链接 TOCTOU 窗口（威胁模型较低） | `[ ]` 待修复 |
+| P018 | P2 | 规范 | `tauri/crates/solosoul-core/src/ocr/macos_vision.rs:281-298` | OCR debug 日志记录用户扫描图片完整路径（GUI 侧 tracing 落盘位置需确认） | `[ ]` 待修复 |
+| P019 | P2 | 架构 | `tauri/src-tauri/src/commands/log.rs:65-76` | `log_write` 允许前端写任意 `action_type` 审计条目，无枚举白名单，审计日志作为安全证据的可信度受限（需确认设计意图） | `[ ]` 待修复 |
+| P020 | P2 | 架构 | `tauri/src-tauri/src/commands/object/mod.rs:604` 等 | object 系命令信任客户端 `account_id`（template/ocr 等已统一 `current_account` 服务端派生，两种约定并存，需确认触发路径） | `[ ]` 待修复 |
+| P021 | P2 | 架构 | `tauri/src/types/llmProvider.ts:5` vs `tauri/crates/solosoul-core/src/llm/config.rs:33` | 潜伏类型漂移：TS `ProviderConfig` 缺 `embeddingModel`，重构保存逻辑时会静默重置该字段 | `[ ]` 待修复 |
+| P022 | P2 | 死代码 | `tauri/crates/solosoul-core/src/vault_service.rs:493-518`、`tauri/src-tauri/src/commands/auth.rs:12-19` | 登录/账户列表把 `salt`、`verifyHash` 序列化给前端但前端零消费，扩大 WebView 攻击面且误导开发 | `[ ]` 待修复 |
+| P023 | P2 | 规范 | `tauri/src-tauri/src/commands/auth.rs:12` vs `solosoul-core/src/vault_service.rs:195` | `AccountInfo`/`AccountSummary` 重复 DTO 字段重叠但可选性不同，易演进漂移 | `[ ]` 待修复 |
+| P024 | P2 | 架构 | `tauri/src-tauri/src/commands/export_import/mod.rs:238` vs `solosoul-core/src/export_import.rs` | `derive_export_key_cfg` 密码学逻辑双份实现，仅靠注释约束一致性（安全敏感路径） | `[ ]` 待修复 |
+| P025 | P2 | 架构 | `tauri/Cargo.toml:73` | release 全局 `panic = "abort"`，命令 handler 内 panic = 整进程崩溃且 Vault 未走正常锁定清理 | `[ ]` 待修复 |
+| P026 | P2 | 规范 | `template.rs:171`、`object/mod.rs:604`、`settings.rs:346` | 命令参数普遍缺长度/格式校验（名称无上限、properties/preferences 载荷无大小限制、偏好 key 无白名单） | `[ ]` 待修复 |
+| P027 | P2 | 死代码 | `tauri/src-tauri/src/commands/object/trash.rs:147`、`lib.rs:389,870,996` | `trash_permanent_delete` 已注册但前端从不调用（P024 批量改造后走 batch），删除需同步守卫测试与总数断言 | `[ ]` 待修复 |
+| P028 | P2 | 死代码 | `tauri/crates/solosoul-vault/src/profile.rs:56` | `VersionedProfileData` 及 3 个方法全 workspace 零调用（约 25 行） | `[ ]` 待修复 |
+| P029 | P2 | 死代码 | `tauri/crates/solosoul-plugin/src/manifest.rs:119` | `PluginTier::label()` 零调用 | `[ ]` 待修复 |
+| P030 | P2 | 死代码 | `tauri/src-tauri/src/fs/vault_file_system.rs:1-6`、`fs.rs:4` | 死 re-export shim，全 workspace 无 import，制造双 import 路径混淆 | `[ ]` 待修复 |
+| P031 | P2 | 死代码 | `tauri/src/stores/pluginStore.ts:95` | `DEFAULT_ENABLED_TIERS` 导出但仅本文件使用 | `[ ]` 待修复 |
+| P032 | P2 | 规范 | `tauri/src-tauri/src/lib.rs:643-644` | 过时注释：描述的 legacy XOR 迁移遥测代码已不存在（迁移窗口已关闭） | `[ ]` 待修复 |
+| P033 | P2 | 死代码 | `tauri/src-tauri/src/lib.rs:304-316`（调用于 :667） | `setup_detect_locale()` 结果仅用于一行 debug 日志，前端实际走 `get_system_locale` IPC（需人工确认是否保留诊断） | `[ ]` 待修复 |
+| P034 | P2 | 架构 | `tauri/src-tauri/src/commands/llm/stream.rs:92` | `handle_sse_stream` 123 行，usage 提取分支 5 层嵌套，SSE 解析与 token 统计耦合 | `[ ]` 待修复 |
+| P035 | P2 | 架构 | `tauri/src-tauri/src/commands/export_import/import.rs:624` | `rebuild_imported_templates` 模板 ID 去重三分支内联约 5 层嵌套 | `[ ]` 待修复 |
+| P036 | P2 | 架构 | `tauri/src-tauri/src/commands/object/snapshot.rs:179` | `build_preview_properties` ~141 行，4 个编号阶段混在一个 else 分支 | `[ ]` 待修复 |
+| P037 | P2 | 架构 | `tauri/src-tauri/src/commands/export_import/export.rs:6` | `export_get_scope_tree` ~133 行承担 5 个阶段（敏感度合并/孤儿过滤等应抽函数） | `[ ]` 待修复 |
+| P038 | P2 | 架构 | `tauri/src-tauri/src/commands/object/mod.rs:1021` | `collect_updated_fields` ~122 行，类型变更与 6 项元数据对比混在一个循环体 | `[ ]` 待修复 |
+| P039 | P2 | 规范 | `tauri/src-tauri/src/commands/export_import/export.rs:85-103,136-146` | 6 个系统分区字符串在数组/映射/集合中重复书写 3 遍，新增分区需同步改 3 处 | `[ ]` 待修复 |
+| P040 | P2 | 规范 | `PasswordVerificationDialog.tsx:444-505` ↔ `pages/auth/LoginPinView.tsx:27-82` | PIN 输入卡片 ~26 行近乎复制（AGENTS.md 禁止多处复制对话框的同类问题） | `[ ]` 待修复 |
+| P041 | P2 | 规范 | `pages/scan/OcrScanSettingsPanel.tsx:79-140` ↔ `pages/settings/OcrSettingsPage.tsx:95-160` | OCR tier 状态行 ~30 行两处复制 | `[ ]` 待修复 |
+| P042 | P2 | 架构 | `sync/SyncScanQrDialog.tsx:90-137` ↔ `SyncShowQrDialog.tsx:181-234` | 手写模态外壳 ~29 行复制，项目已有共享 `Dialog` 组件 | `[ ]` 待修复 |
+| P043 | P2 | 规范 | `pages/system/MandatoryUpdateOverlay.tsx:157-188` ↔ `UpdateInfoCard.tsx:225-257` | 下载进度条 ~24 行复制 | `[ ]` 待修复 |
+| P044 | P2 | 规范 | `tauri/src-tauri/src/commands/discovery.rs:180-192,344-356` | desktop/mobile 两个 `mdns_discover` 中 client_type 解析逻辑近似复制 ~15 行（cfg 分支语义需人工确认） | `[ ]` 待修复 |
+| P045 | P2 | 规范 | `HistoryViewer.tsx:391`、`TrashSnapshotView.tsx:408`、`WorkspaceObjectCard.tsx:389` | 动态字段组快照行渲染疑似三份拷贝（各 ~16–22 行，需人工核对） | `[ ]` 待修复 |
+| P046 | P2 | 架构 | 前端 10 个巨型组件（汇总） | 单组件非注释行 > 300：`AttachmentViewer`(~550)、`LoginPage`(~501)、`PasswordVerificationDialog`(~447)、`TemplateFieldRow`(~436)、`DeviceListPanel`(~424)、`TrashPage`(~422)、`ObjectDetailModal`(~422)、`ExportImportPage`(~417)、`ImportSection`(~409)、`ExportSection`(~405)，建议按「数据 hook + 展示子组件」拆分 | `[ ]` 待修复 |
+| P047 | P2 | 架构 | Rust 巨型文件（汇总） | `attachment.rs` 2057 行、`object/tests.rs` 2353 行、`export_docx.rs` 1989 行，文件级拆分作为后续架构项 | `[ ]` 待修复 |
 
 ## 修复进度
 
-- 开发者声称：45 / 45 全部闭环（第一轮修复 45 commit + 复核返工 11 commit）
-- 一次复核结论（2026-08-08）：确认有效 36 项；需返工 3 项（P020、P024、P009）；部分修复/遗留 7 项（P005、P006、P007、P012、P025、P037、P045）
-- 二次复核结论（2026-08-08，针对 11 个返工提交）：**彻底闭环 6 项（P006、P007、P012、P024、P025、P037）；仍有遗留 4 项——P020（列表闪烁副作用 + 截断排序错位）、P009（文档虚造 API）、P005（失实注释）、P045（引用虚指）**。check-all 已恢复全绿
-- 三次复核结论（2026-08-08，针对 4 个返工提交）：**P020/P009/P005/P045 全部闭环**，P001–P045 共 45 项全部 `[x]`，满足进入「阶段 4 终版」条件
-- 当前处理：无（三次复核完成，45/45 闭环）
-
-> 状态图例：`[x]` 复核确认有效；`[~]` 部分修复/有遗留或偏离；`[!]` 需返工（引入新问题或基线破坏）。
-
-## 修复实施记录
-
-### P037（P2）CLI render() 长函数拆分 ✅
-
-- **改动**：`solosoul_cli/src/app.rs` 的 `render()`（2719-3118，约 400 行）拆为 4 个方法：
-  1. `render()` 本体降为 26 行——仅做三区 layout 切分并依次调用子方法。
-  2. `render_content`（按 phase 派发到各屏幕渲染函数，原巨型 match）。
-  3. `render_bottom`（底部命令输入框 + 命令面板）。
-  4. `render_overlays`（模态提示 + 信息/错误 overlay）。
-  `available_commands` 等辅助函数保持不动；各 phase key handler（110-150 行巨型 match）按报告建议优先级低暂留。
-- **验证**：`cargo check` ✅ / clippy 0 警告 ✅ / CLI 163 测试全过 ✅。
-
-### P042（P2）type_id 命名收敛——IPC 载荷统一为 typeId ✅
-
-- **改动**：
-  1. 后端 5 处 serde rename：`ObjectSummary`/`ObjectData`/`CreateObjectInput`/`ObjectFilter`（collectionType→typeId）+ `SearchResultItem`（camelCase 下显式覆盖 typeId）；`search_unified` command 参数 `collection_type`→`type_id`（Tauri 参数名 camelCase 映射 typeId）。Rust 内部字段名 `collection_type` 保留不动。
-  2. 前端 124 处 `collectionType`→`typeId`（19 个非测试文件 84 处 + 7 个测试文件 40 处），含类型定义/属性访问/IPC filter 键/search payload 键/辅助函数参数名。
-  3. 后端测试 JSON 断言同步（object/tests.rs 3 处）。
-- **验证**：`cargo check` ✅ / clippy 0 警告 ✅ / object+search 151 测试 + vault 全过 ✅ / tsc 0 错误 ✅ / eslint ✅ / Vitest 65 文件 572 测试全过 ✅。
-
-### P013/1-6（P1）前端 6 个巨型组件拆分 ✅
-
-按组件逐一拆分、逐项验证提交：
-
-| # | 组件 | 行数变化 | 拆分方式 |
-|---|------|---------|---------|
-| 1 | `AttachmentViewer.tsx` | 752→572 | 拆出 `AttachmentViewerHeader`/`AttachmentBatchToolbar`/`AttachmentConfirmDialogs` 三子组件 |
-| 2 | `LoginPage.tsx` | 799→650 | 拆出 `LoginAccountSelector`/`LoginQuickLinks`/`LoginIconBar` 三子组件 |
-| 3 | `ExportImportPage.tsx` | 762→484 | 导入流程状态与 handler 提取为 `useImportState` hook（357 行） |
-| 4 | `PageGuide.tsx` | 699→432 | 拆出 `GuidePageContent`/`GuidePageFooter` 两子组件 |
-| 5 | `useObjectWorkspaceData.ts` | 629→505 | 拆出 `useWorkspacePasswordGuard`/`useTemplateFieldMeta` 两子 hook |
-| 6 | `PasswordVerificationDialog.tsx` | 635→566 | 底部解锁图标栏直接复用 P013/2 的 `LoginIconBar`（消除 100 行重复） |
-
-- 提交：`1d1ccbb6`/`6d5803b4`/`3920275c`/`fcfa8d86`/`0ae66f66`/`6c0c7364`，一项一提交。
-- 视觉逐字等价（内联样式原样迁移）；逻辑逐字等价迁移（hook 提取无行为变化）。
-- **验证**：每项 tsc 0 错误 ✅ / eslint ✅ / 相关测试全过；全量 Vitest 65 文件 572 测试全过 ✅、全量 eslint 0 警告 ✅。
-
-### P043+P044（P2）嵌套降层 + 水印校验去重合并 ✅
-
-- **改动**：
-  1. `auto_sync_core.rs`——Idle/Scheduled 两分支重复的事件处理提取为 `next_idle_state`/`next_scheduled_state`（提前 return，消除 match Some/None 嵌套）。
-  2. `PluginQuickPanel.tsx`——运行逻辑（名称解析 + 水印前置校验 + runPlugin）从 JSX 内联回调提取为 `handleRunPlugin`，JSX 回调降为单行。
-  3. `lib/plugin.ts`——新增 `WATERMARK_PLUGIN_ID` 常量 + `hasUsableWatermarkSelection` 纯函数（未配置/解析失败→通过；空数组/非法→拒绝）。
-  4. `PluginQuickPanel.tsx` 与 `PluginDashboardPage.tsx` 两个入口及发布白名单统一引用常量与 helper，删除逐字重复的 JSON.parse/Array.isArray/toast 块。
-- **验证**：`tsc` 0 错误 ✅ / eslint ✅ / auto_sync 3 测试 ✅ / clippy 0 警告 ✅。
-
-### P012（P1）设备卡片 JSX 抽取共享外壳 ✅
-
-- **改动**：新增 `tauri/src/pages/sync/DeviceCard.tsx` `DeviceCardShell`（交互容器 interactive-card-lift + 键盘可访问性 + 客户端类型图标 + 名称行），已发现设备与已知设备两张卡片改为注入 `subtitle`/`actions` 子区域，删除约 40 行重复 JSX。
-- **验证**：`tsc --noEmit` ✅ / eslint ✅。
-
-### P011（P1）附件 handleDownload 重复抽取共享入口 ✅
-
-- **改动**：`tauri/src/lib/attachmentUtils.ts` 新增 `downloadAttachmentFile`（saveWithPause + downloadViaStage + 成功/失败 toast 统一），依赖经参数注入保持纯函数可测；`AttachmentViewer.tsx` 与 `useAttachmentManager.ts` 两处逐字符重复的 `handleDownload` 改写为单次调用。
-- **测试**：新增 `attachmentUtils.test.ts` 3 用例——成功保存、取消不下载、下载失败 toast。
-- **验证**：`tsc --noEmit` ✅ / eslint ✅ / `vitest attachmentUtils+updater` 7 用例全过 ✅。
-
-### P010（P1）APK 下载逻辑抽取共享封装 ✅
-
-- **改动**：`tauri/src/lib/updater.ts` 新增 `ensureApkDownloaded(version, url, checksum, onProgress)`——统一「检查已下载短路 → 启动事件驱动下载 → 等待 done 终态 → finally 清理 unlisten」逻辑，返回 boolean（true=本次实际下载）。`useUpdateChecker.ts` 与 `useAppUpdate.ts` 两处 80 行重复改写为单次调用。
-- **测试**：新增 `updater.test.ts` 4 用例——已下载短路、成功进度回调、失败 reject + 监听清理、成功终态。
-- **验证**：`tsc --noEmit` ✅ / eslint ✅ / `vitest updater.test.ts` 4 用例全过 ✅。
-
-### P009（P1）孤儿 Tauri Commands 与仅测试函数删除 ✅
-
-- **改动**：
-  1. 删除 `ocr_get_supported_languages`（desktop/mobile 两个变体 + 单测 + `OcrPage.test.tsx` mock 引用）——前端零调用且未注册。
-  2. 删除 `export_get_attachments`（前端只用 batch 版）——函数 + lib.rs 注册 + ACL 白名单条目。
-  3. 删除 `template_save_from_object`（前端零调用）——函数 + lib.rs 注册 + ACL 白名单条目。
-  4. 删除 `solosoul-core::VaultService::get_vault_state`（仅测试使用），测试改 `is_unlocked()` 断言。
-- **验证**：`cargo check -p solo_soul -p solosoul-core` ✅ / template 30 测试 ✅ / core 12 ✅ / OcrPage 6 ✅ / tsc ✅。
-
-### P008（P1）CLI delete_page 子对象移入回收站失败不再吞错 ✅
-
-- **改动**：`solosoul_cli/src/commands/vault_write.rs` 的 `delete_page`——子对象 `move_to_trash` 失败由 `let _ =` 静默吞掉改为 `?` 传播，中止整页删除并报错；页面本身移入失败同样返回 Err（由调用方统一展示）。
-- **验证**：`cargo test vault_write` 4 用例全过 ✅。
-
-### P007（P1）CLI /backup create 明文落盘权限收紧 0600 ✅
-
-- **改动**：`solosoul_cli/src/commands/backup.rs`——`fs::write` 后 `#[cfg(unix)]` 显式 `set_permissions(0o600)`，与 log.rs 审计日志导出同一约定，避免 umask 022 下生成 0644。
-- **测试**：新增 `test_backup_create_sets_0600_permissions` 断言备份文件 mode == 0600。
-- **验证**：`cargo test backup` 6 用例全过 ✅。
-
-### P006（P1）CLI /open 字段级敏感度掩码 ✅
-
-- **改动**：`solosoul_cli/src/screens/object_detail.rs`——掩码判定从对象级升级为字段级：`property_labels` 中 sensitive/critical/restricted 字段掩码、public/internal 字段照常展示；缺失时回退对象级；复用 `solosoul_core::is_protected_sensitivity`。抽纯函数 `field_display_value` 便于测试。
-- **测试**：新增 4 个单元测试（critical 掩码/internal 照常/对象级回退/public 覆盖对象级/空值不掩码）。
-- **验证**：`cargo test object_detail` 4 用例全过 ✅。
-
-### P005（P1）导出收集对象批量加载——去双重解密与 N+1 ✅
-
-- **改动**：`tauri/src-tauri/src/commands/export_import/mod.rs` 的 `collect_scope_objects`：旧实现先 `list_objects`（不解密）再对每个 id 单独 `load_object`（N+1 二次解密）。现改为：元数据筛选仍用摘要，命中 id 一次 `load_objects_batch` 批量解密加载（单条 SQL + 批量解密），结果按 id 升序保持确定性。
-- **测试**：`tests.rs` 新增 `test_collect_scope_objects_batch`——include_all 全量、selected 子集、tags 过滤、空集四路径，断言 properties 已解密。
-- **验证**：`cargo check -p solo_soul` ✅ / `cargo test collect_scope_objects` ✅。
-
-### P004（P1）check_field_usage 加密列匹配失效修复 ✅
-
-- **改动**：`tauri/crates/solosoul-vault/src/storage/metadata.rs` 的 `check_field_usage` 删除对密文的 `LIKE "%\"key\":%"` 匹配（恒为 0），改为按 `account_id` 取回 `properties`/`is_deleted` 两列、`decrypt_text_field` 逐行解密后内存判断字段 key 存在（null 值不计）。
-- **测试**：`storage.rs` 新增 `test_check_field_usage_decrypts_properties`——活动对象 1 + 软删除对象 1 + 无关对象 1，断言 field-1 计 (1,1)、null 值与缺失 key 均计 0。
-- **验证**：`cargo check -p solosoul-vault` ✅ / `cargo test check_field_usage` ✅。
-
-### P003（P1）附件导出路径白名单字符串前缀绕过修复 ✅
-
-- **改动**：
-  1. `tauri/src-tauri/src/commands/attachment.rs`：`path_within_base` 提升为 `pub(crate)`（P003 注释注明）。
-  2. `tauri/src-tauri/src/attachment_import_plugin.rs`：`attachment_export_content_uri` 与 `attachment_export_tree_uri` 的 `src_path.starts_with(attachments_canon.to_string_lossy())` 字符串前缀匹配改为 `path_within_base` 组件级比较（含 canonicalized 标志与 raw 双路径兜底），杜绝 `attachments_x/../../secret` 或共享前缀兄弟目录绕过。
-- **验证**：`cargo check -p solo_soul` ✅ / `cargo test commands::attachment` 14 用例全过 ✅。
-
-### P002（P0）入站同步刷新全部数据 Store ✅
-
-- **改动**：`tauri/src/stores/syncStore.ts` 新增模块级 `refreshDataStores(accountId)` helper（对象列表+详情缓存、模板、回收站、账户偏好设置四类刷新），首事件与合并事件两个 inbound 分支在 `applied > 0` 时共用调用，替换原先仅刷新 objectStore 的逻辑。
-- **验证**：`tsc --noEmit` ✅ / eslint ✅ / `vitest src/stores/syncStore.test.ts` 13 用例全过 ✅。
-
-### P001（P0）同步冲突 HLC 载荷跨平台统一 ✅
-
-- **commit**：`（见 git log）`
-- **改动**：
-  1. `tauri/src-tauri/src/commands/sync.rs`：删除移动端本地复刻 `MobileHlc`，桌面/移动共用统一 DTO `SyncConflictDto` + `ConflictHlc`（`node_id: String`，hex 编码）；桌面端 `From<&ApplyStats>` 经新增 `conflict_to_dto` 转换，移动端 `sync_with_device` 同样 hex 编码构造，两端载荷形状一致。
-  2. `tauri/src/lib/ipc.ts`：`SyncConflict.local_hlc/remote_hlc.node_id` 类型 `number[]` → `string`。
-  3. `tauri/src/pages/sync/SyncHistoryPanel.tsx`：`formatNodeId(bytes: number[])` 改为直接截取 hex 字符串前 8 位。
-- **验证**：`cargo check -p solo_soul` ✅、`cargo check -p solo_soul --target aarch64-linux-android` ✅（仅 6 个既有 warning）、`npx tsc --noEmit` ✅。
-
-## 修复顺序建议（阶段 2）
-
-1. **P0 优先**：P001 → P002（均为同步链路，同一上下文连续处理）。
-2. **P1 按栈分组**（减少上下文切换）：
-   - Rust/安全与正确性：P003 → P004 → P008 → P005
-   - CLI：P006 → P007 → P008（P008 已列于上，CLI 侧随 P006/P007 一并处理）
-   - 死代码：P009（删除孤儿命令需同步清理 lib.rs 注册与 ACL）
-   - 前端重复代码：P010 → P011 → P012
-   - 可维护性拆分（工作量大，建议最后或按需）：P013 → P014
-3. **P2**：按 Rust → CLI → 前端分批处理；P039（删死接口）可与 P009 同类合并提交原则下各自独立 commit。
-4. 注意：P009、P039 涉及删除代码/文件，按流程约束属破坏性操作边缘——删除函数/接口属正常修复，无文件级删除。
-
----
+- 已完成：0 / 47
+- 当前处理：无（按用户指令，生成报告后暂停，等待修复指令）
 
 ## 详细问题描述与修复指引
 
-### P001（P0）同步冲突载荷桌面/移动序列化分裂
+### P001（P0）Clippy 基线失败
 
-- **位置**：`tauri/src-tauri/src/commands/sync.rs:34-48`、`tauri/crates/solosoul-sync/src/types.rs:59-65`、`tauri/src/lib/ipc.ts:1-15`
-- **证据**：桌面端 `ConflictRecord.local_hlc` 直接嵌入原始 `Hlc`（`node_id: [u8; 16]`，serde 序列化为 `number[]`）；移动端用本地复刻 `MobileHlc`（`node_id: String`）。前端 `SyncConflict` 只建模了桌面形状（`node_id: number[]`）。另外 `Hlc.counter: u32` 与 `ConflictHlc.counter: u64`（sync.rs:270）宽度也不一致。
-- **影响**：Android 上任何读取 `node_id` 的前端冲突处理逻辑都会拿到 string 而非数组，属跨平台真实 bug 隐患。
-- **建议**：桌面端也走 `ConflictHlc`（String node_id）统一 DTO，或把 `Hlc` 的 serde 改为 hex string，删除移动端复刻结构。
-
-### P002（P0）入站同步只刷新 objectStore
-
-- **位置**：`tauri/src/stores/syncStore.ts:524-536,588-601`
-- **证据**：`solosoul-sync/src/delta.rs:12` 的 `SYNC_TABLES = ["profiles", "objects", "user_templates", "trash_items"]`，对端可推入模板/profile/回收站变更；但 sync-completed 处理器在 `applied > 0` 时仅调用 `useObjectStore.getState().loadObjects(...)` 并清 `currentObjectCache`。
-- **影响**：对端同步进新模板/删除模板后，本端模板列表、模板编辑器、回收站页面保持陈旧数据直到手动刷新或重启。
-- **建议**：入站处理器按表粒度（或简单地全量）同时触发 `templateStore.loadTemplates()`、`trashStore` 与 profile 的重载。
-
-### P003（P1）附件导出路径白名单字符串前缀绕过
-
-- **位置**：`tauri/src-tauri/src/attachment_import_plugin.rs:516-519,579-580`
-- **证据**：
-
-```rust
-let in_attachments = src.starts_with(&attachments_canon)
-    || src_path.starts_with(attachments_canon.to_string_lossy().as_ref());
+```
+error: unused import: `NSView`
+  --> src-tauri/src/commands/attachment.rs:1158:53
+error: deref which would be done by auto-deref
+  --> src-tauri/src/commands/attachment.rs:1192:64
+  help: try: `&dest.to_string_lossy()`
 ```
 
-`src`（canonicalize 后）组件级比较安全，但 **或** 条件右侧是对用户原始字符串 `src_path` 做字面字节前缀匹配。传入 `{attachments_dir}/../../../../etc/passwd`：文件存在 → canonicalize 成功 → 组件比较失败，但原始字符串字面以 `{attachments_dir}` 开头 → 校验通过，随后导出 canonicalize 后的真实路径。
-- **影响**：仅要求 Vault 解锁，即可把任意本地文件导出到攻击者指定的 content URI / SAF tree；在 webview 被 XSS 攻破的威胁模型下构成任意文件读取。
-- **建议**：按 `commands/attachment.rs` 的 `path_within_base`（R2-X1 已修同款）原则统一——canonicalize 成功时只用 resolved 路径判定，删除原始字符串前缀分支；失败兜底分支显式拒绝含 `ParentDir` 组件的路径。
+- **影响**：`npm run check-all` 在 clippy 阶段中止，lint / Vitest / cargo test 均未执行，CI 必红。
+- **修复**：删除 `NSView` import；`&*dest.to_string_lossy()` 改为 `&dest.to_string_lossy()`。改后跑 `cargo clippy -- -D warnings` + `npm run check-all` 全量确认。
 
-### P004（P1）`check_field_usage` 对加密列做 LIKE 匹配
+### P002（P1）APK 下载信任前端回传的 URL 与校验和
 
-- **位置**：`tauri/crates/solosoul-vault/src/storage/metadata.rs:632-647`（调用方 `template_check_field_usage`，`tauri/src-tauri/src/commands/template.rs:275`）
-- **证据**：`objects.properties` 列存储的是 `encrypt_text_field` 产物（`"solo:" + base64(随机 nonce 密文)`），而这里执行 `SELECT COUNT(*) ... WHERE properties LIKE '%"field_key":%'`。随机 nonce 密文几乎不可能命中，结果恒为 0。
-- **影响**：模板编辑器字段删除前的使用检查失效（功能 bug），且每次对全表做两次 LIKE 全扫描。
-- **建议**：改为解密后内存判断（复用 `list_objects` + 解析 JSON key，与搜索路径一致）。
+`android_check_update` 在 Rust 侧验签得到的可信 checksum 经前端 JSON 回传给 `android_download_apk`，无完整性绑定；`expected_checksum` 为 None/空串时 `should_verify=false` 完全不校验。WebView 被 XSS 控制时可诱导下载任意 URL 的 APK 并触发系统安装流程。缓解：安装仍需用户系统级确认，下载目标固定在缓存目录。
+**修复**：`android_check_update` 对 `(version, url, checksum)` 用编译期密钥 HMAC 签名，`android_download_apk` 验签后使用；或下载命令内按 `version` 重新拉取 release 元数据，不接受前端传入。与 P012 叠加时 APK 完整性保护完全失效，建议优先处理。
 
-### P005（P1）导出收集对象全库双重解密 + N+1
+### P003（P1）导出 selected 分支全库双重解密
 
-- **位置**：`tauri/src-tauri/src/commands/export_import/mod.rs:268-306`
-- **证据**：`collect_scope_objects` 先 `vault.list_objects(...)`（解密全部对象），`include_all` 分支对每个对象再 `vault.load_object(&summary.id)` 逐个查询并二次解密；`selected_ids` 分支同样逐个 `load_object`。crate 内已有 `list_object_records` 与 `load_objects_batch`（P110）。
-- **建议**：`include_all` 直接用 `list_object_records`；选中分支用 `load_objects_batch` 替代逐条 `load_object`。
+`collect_scope_objects` selected 分支 `list_objects(account_id, None...)` 对全账户逐行完整解密仅为筛 id，随后 `load_objects_batch` 对命中对象再解密一次；`export_estimate_size` 随导出页每次勾选变更（500ms 防抖）触发该路径。P005 只修了 include_all 分支。
+**修复**：页面/标签过滤均可下推 SQL（`section_type`、`tags_json` 列未加密），无需解密 properties；估算字节数参照 `snapshots_size_batch` 先例用 `SUM(LENGTH(properties))` 纯 SQL。
 
-### P006（P1）CLI `/open` 字段级掩码缺失
+### P004（P1）LLM 会话整 blob 重写
 
-- **位置**：`solosoul_cli/src/screens/object_detail.rs:45,87-92`
-- **证据**：掩码只看对象级 `sensitivity_level`（`should_mask_level` 仅匹配 sensitive/critical/restricted），完全忽略字段级敏感度（property_labels/模板）。对象级为 public/internal 时，字段级 critical/sensitive 的值以明文渲染。对比 `widgets/field_editor.rs:188-195` 与 `commands/search.rs:228-232` 的 `collect_protected_field_keys`。
-- **影响**：与项目「internal/sensitive/critical 一律掩码」收敛约定（P036）不一致，敏感字段在 CLI 明文展示。
-- **建议**：复用/移植 `collect_protected_field_keys` 逻辑，详情渲染按字段级掩码。
+全部会话（每条最多 500 消息）存于加密 profile preferences blob；任何 save/list/rename/delete 都整 blob 解密→修改→加密→写盘，且 `save_conversations` 先 `to_vec()` 深克隆全部会话（:45）。每条聊天消息流式结束都触发 `llm_save_conversation`（`useLlmChatCore.ts:263`），开销随历史线性增长。
+**修复**：短期——按 id 定位仅克隆/trim 目标会话；中期——会话改存独立 SQLite 表（按 conversation_id 行存储），与 objects/audit_log 存储方式对齐。
 
-### P007（P1）CLI 备份明文落盘且权限不符约定
+### P005（P1）CLI 搜索计数全量解密
 
-- **位置**：`solosoul_cli/src/commands/backup.rs:218-250`
-- **证据**：`/backup create` 把解密后的明文 profile 数据写成 JSON 备份文件，`fs::write` 默认权限（通常 0644），未像 `log.rs:68` 那样收紧 0600。
-- **影响**：违反项目「文件 0600」约定；明文副本存在于 SQLite 之外，用户易误以为备份是加密的。
-- **建议**：`OpenOptions::mode(0o600)` 创建时定权限（同时修复 P028 的窗口期模式）。
+`search_pages` 用 `list_objects(...).map(|v| v.len())` 统计子对象数，`list_objects` 对每行 AES-GCM 解密 + JSON 解析仅为取计数，命中多个分区时相当于多次全库解密。
+**修复**：改用 GUI 已在用的 `VaultStore::count_objects`（`solosoul-vault/src/storage/objects.rs:715`，纯 SQL COUNT 不解密），改动极小。
 
-### P008（P1）CLI `delete_page` 吞错导致回收站不一致
+### P006（P1）ObjectData tags 类型漂移
 
-- **位置**：`solosoul_cli/src/commands/vault_write.rs:300-310`
-- **证据**：循环中对每个子对象 `let _ = objects::move_to_trash(...)`，任何失败被静默吞掉，随后页面照样删除并提示成功。
-- **影响**：产生「页面已删但子对象未入回收站」的不一致状态，且无提示。
-- **建议**：收集失败项并报告，或任一失败即中止并回滚提示。
+Rust `record_to_data` 不返回 `tags`，TS `ObjectData.tags?` 永为 undefined；`updateObject`（objectStore.ts:185）将 `tags: obj.tags`（undefined）显式覆盖进摘要列表项，抹掉 `object_list` 摘要已有的 tags；详情弹窗 `obj.tags`（ObjectDetailModal.tsx:470）是死渲染路径。
+**修复**：Rust `ObjectData` 增加 `tags`（或 TS 删除该字段改为仅从 `ObjectSummary` 读）；`updateObject` 摘要同步只合并后端实际返回的字段。
 
-### P009（P1）孤儿 Tauri Commands 与仅测试使用的生产函数
+### P007–P009（P1）深嵌套/过长函数拆分
 
-- **位置与证据**：
-  - `commands/ocr.rs:535,547` `ocr_get_supported_languages`（desktop/mobile 两变体）：带 `#[tauri::command]` 但**未注册**进任何 `generate_handler!`（lib.rs:527-542 不含它），前端无 invoke，IPC 完全不可达。
-  - `commands/export_import/export.rs:704` `export_get_attachments`：已注册且有 ACL，但前端只用批处理版 `export_get_attachments_batch`（useExportScope.ts），单对象版无调用点。
-  - `commands/template.rs:433` `template_save_from_object`：已注册且有 ACL，前端全仓无 invoke（删除前建议确认产品侧是否计划做「从对象生成模板」）。
-  - `crates/solosoul-core/src/vault_service.rs:1651` `pub fn get_vault_state`：生产代码无调用点，仅同文件测试模块使用。
-- **建议**：删除 3 个命令时同步清理 `lib.rs` 的注册项与 ACL 字符串（lib.rs:886、:881）及对应测试；`get_vault_state` 改为 `#[cfg(test)]` 可见或删除。属删除类操作，无文件级删除。
+- `flatten_object_fields`（export_docx.rs:200）：`__` 元数据键处理与 dynamic_group 展平各抽独立函数，主循环只做分发。
+- `search_properties_for_matches`（query.rs:16）：`__fields` 分支抽 `match_field_defs()`；值匹配打分/截断抽 `push_value_match()`。
+- `attachment_share`（attachment.rs:1130）：按平台拆 `share_macos`/`share_windows`/`share_android` 子函数，共享「复制到分享目录 + 主线程调度 + oneshot」模板。
 
-### P010（P1）APK 下载逻辑双实现
+### P010–P011（P1）布局组件复制
 
-- **位置**：`tauri/src/hooks/useUpdateChecker.ts:137-178` vs `tauri/src/hooks/useAppUpdate.ts:100-176`
-- **证据**：约 80 行 `androidIsApkDownloaded` → `androidDownloadApk(url, checksum, onProgress)` → Promise 封装 → `progress.done/progress.error` 判分支近乎逐行重复；P227 注释显示 settled 标志、unlisten 清理只存在于 useAppUpdate，两套逻辑已开始发散。
-- **建议**：抽取共享 `downloadApkWithProgress()`（如 `lib/updater.ts`）。
+- `AddPageButton.tsx:162-198` ↔ `NavButton.tsx:37-73`：抽共享 hook `useHoverCardPosition(wrapperRef, {isHorizontal, isBottom, isRight})`。
+- `AddPageButton.tsx:438-520` ↔ `CustomPageEditPopover.tsx:322-409`：抽 `IconCategoryPicker` 共享组件，分类数组移到 `CUSTOM_ICON_MAP` 旁导出常量。
 
-### P011（P1）附件 handleDownload 逐字符重复
+### P012–P019（P2，安全类）
 
-- **位置**：`tauri/src/components/object/AttachmentViewer.tsx:195-217` vs `tauri/src/hooks/useAttachmentManager.ts:186-208`
-- **证据**：`handleDownload` 完全相同（动态 import dialog、saveWithPause、downloadViaStage、toast 文案、注释、i18n key）。删除/恢复 handler 同样两处各自实现。
-- **建议**：抽公共 `useAttachmentDownload` hook 或让 AttachmentViewer 复用 `useAttachmentManager`。
+- **P012**：资产匹配改 `ends_with(".sha256") && !ends_with(".minisig")`；验签失败向前端返回可感知警告。
+- **P013**：导入命令桌面端对 `file_path` 复用 `resolve_allowed_path`（Desktop/Documents/Downloads + SOLOSOUL_FS_BASE）。
+- **P014**：与 `attachment_download` 对齐，入口处拒绝 `Component::ParentDir`。
+- **P015**：桌面端白名单为空改为拒绝（fail-closed），或至少 `tracing::warn`。
+- **P016**：`pin_setup`/`pin_disable`/`pin_unlock`/`change_password` 统一套用 P031 Zeroizing 模式。
+- **P017**：`resolve_within` 返回 `target_canon` 或注释说明接受的残余风险。
+- **P018**：OCR debug 日志只记文件名尾部组件或哈希。
+- **P019**：`log_write` 对 `action_type` 加枚举白名单。
 
-### P012（P1）设备卡片 JSX 整段重复
+### P020–P026（P2，架构/规范类）
 
-- **位置**：`tauri/src/pages/sync/DeviceListPanel.tsx:128-151` vs `:329-352`
-- **证据**：约 40 行设备卡片 JSX（role=button、Enter/Space 键盘处理、inline style、`interactive-card-lift`）整段重复，仅数据源不同。
-- **建议**：抽 `DeviceCard` 组件，键盘可访问性逻辑只维护一份。
+- **P020**：object 写命令统一 `current_account(&state)?` 派生，忽略/校验客户端 account_id（先人工确认陈旧 accountId 触发路径）。
+- **P021**：TS `ProviderConfig` 补 `embeddingModel?: string`，或 `llm_save_provider` 合并旧值而非整体覆盖。
+- **P022**：Rust 两个 DTO 去掉 salt/verify_hash 字段（或 `skip_serializing`），TS 同步删除。
+- **P023**：收敛为 core 单一 `AccountSummary`，auth.rs 复用。
+- **P024**：`solosoul-crypto` 提供与错误类型无关的核心 KDF 函数，两端薄包装各自映射错误类型。
+- **P025**：评估 `panic = "unwind"`；若保留 abort，clippy 禁非测试代码新增 `unwrap/expect`。
+- **P026**：command 边界统一校验（名称 ≤ N 字符、载荷 ≤ M MB、偏好 key 白名单/前缀约束）。
 
-### P013（P1）前端巨型组件/Hook
+### P027–P033（P2，死代码类）
 
-| 行数（非注释） | 位置 |
-|---|---|
-| ~660 | `tauri/src/components/object/AttachmentViewer.tsx:55` |
-| ~654 | `tauri/src/pages/auth/LoginPage.tsx:34` |
-| ~643 | `tauri/src/pages/settings/ExportImportPage.tsx:40` |
-| ~615 | `tauri/src/components/guide/PageGuide.tsx:41` |
-| ~524 | `tauri/src/hooks/useObjectWorkspaceData.ts:30` |
-| ~516 | `tauri/src/components/forms/PasswordVerificationDialog.tsx:72`（本身是 AGENTS.md 规定的统一组件，已膨胀到 500+ 行） |
+- **P027**：删除 `trash_permanent_delete` 函数 + `lib.rs:389` 注册 + `:870` 测试清单，守卫测试总数断言 194→193；清理 `commands/object/tests.rs:508` 注释引用。**注意：删除即破坏 API 完备性，按流程约束属「删除文件/代码」类，需用户确认后执行。**
+- **P028–P031**：删除对应定义/re-export/export；若属预留 API 则加 `#[allow(dead_code)]` + 注释说明意图。
+- **P032**：删除 `lib.rs:643-644` 过时注释块。
+- **P033**：`setup_detect_locale` 结果仅用于一行 debug 日志，需人工确认是否保留诊断；建议删除该步骤。
 
-- **建议**：按「逻辑 hook + 视图子组件」模式逐步拆分；工作量大，建议拆分为多个独立 commit/多轮处理，优先级低于正确性问题。
+### P034–P039（P2，结构优化类）
 
-### P014（P1）Rust 超长函数
+- **P034**：usage 提取按 Anthropic/OpenAI 各抽函数（`extract_delta_text` 是现成好例子）。
+- **P035**：内层「解析 local_id」抽纯函数 `resolve_template_id(vault, tpl, hash, now)`。
+- **P036**：对象分支按阶段拆 `collect_field_defs()`/`resolve_field_order()`/`resolve_sensitivity()`。
+- **P037**：敏感度合并（:27-45）与孤儿过滤（:136+）各抽函数。
+- **P038**：元数据逐项对比抽 `collect_metadata_diff(old_def, prop)`。
+- **P039**：定义单个 `const SYSTEM_SECTIONS: &[(&str, &str)]`，数组/映射/集合均由它派生。
 
-| 行数 | 位置 |
-|---|---|
-| 305 | `solosoul_cli/src/app.rs:2694` `render`（另见 P037） |
-| 199 | `tauri/crates/solosoul-plugin/src/host.rs:437` `register_http_fns` |
-| 179 | `tauri/crates/solosoul-vault/src/storage.rs:482` `init_schema` |
-| 174 | `tauri/crates/solosoul-plugin/src/host.rs:893` `register_interaction_fns` |
-| 167 | `tauri/src-tauri/src/commands/export_import/export.rs:491` `export_execute` |
-| 161 | `tauri/crates/solosoul-plugin/src/host.rs:662` `register_output_fns` |
+### P040–P045（P2，前端重复代码类）
 
-另有 `biometric_check_availability`（154）、`import_attachments`（153）、`change_password`（152）、`unlock_with_kdf_upgrade`（147）。`host.rs` 三个 register_* 合计 530+ 行，闭包内联了参数读取/校验/审计/错误码映射。
-- **建议**：`host.rs` 抽 `read_args_or_return(...)` 式辅助收敛；`init_schema` 按表拆函数；其余按逻辑块拆分。
+- **P040**：抽 `PinEntryCard` 共享组件。
+- **P041**：抽 `OcrTierStatusRow` 组件。
+- **P042**：改用共享 `Dialog` 或抽 `QrModalShell`。
+- **P043**：抽 `DownloadProgressBar` 小组件。
+- **P044**：抽 `resolve_peer_client_type(vault_result, txt, node_id)` 共享函数（抽取前确认两端语义）。
+- **P045**：人工核对三处快照行渲染后抽共享组件。
 
-### P015（P2）LLM 公网明文 HTTP
+### P046–P047（P2，巨型组件/文件汇总）
 
-- **位置**：`tauri/src-tauri/src/commands/llm/request.rs:214-245`
-- **证据**：`validate_llm_base_url` 只要求 scheme ∈ {http, https}，允许公网 `http://`；LLM 请求携带 `Authorization: Bearer <api_key>` 及私密聊天内容。OCR 侧 `validate_model_base_url` 明确拒绝非回环 http（ocr.rs:1405-1409），两侧策略不一致。
-- **建议**：对齐 OCR 策略，仅允许回环地址使用 http。
+- **P046**：10 个 >300 行前端组件按「数据 hook + 展示子组件」逐步拆分（可拆为多个独立修复任务）。
+- **P047**：`attachment.rs`(2057)、`object/tests.rs`(2353)、`export_docx.rs`(1989) 文件级拆分，作为后续架构项。
 
-### P016（P2）流式聊天缺 SSRF 主机复核
+## 已核查确认无问题的领域（排除误报）
 
-- **位置**：`tauri/src-tauri/src/commands/llm/stream.rs:388`
-- **证据**：流式聊天只调 `validate_llm_base_url`，未调 `ensure_public_llm_host`；非流式 `chat_http.rs:13-15,43-45` 两者都调。已登记 provider 若用主机名（如 `nas.lan`），流式路径可命中内网解析结果。另 `ensure_public_llm_host` 解析一次后 reqwest 连接时再次解析，存在 DNS rebinding TOCTOU 窗口。
-- **建议**：流式路径补齐 `ensure_public_llm_host`；TOCTOU 可考虑连接时固定解析结果（reqwest `resolve`）。
-
-### P017（P2）CSP `object-src data:`
-
-- **位置**：`tauri/src-tauri/tauri.conf.json:30`
-- **证据**：CSP 允许 `object-src data:`，可经 `<object>/<embed>` 加载 `data:text/html` 在独立源执行脚本。`style-src 'unsafe-inline'` 为 React 内联样式所需可接受。
-- **建议**：改为 `object-src 'none'`，改动后需验证 PDF/图片预览等依赖 `<object>` 的功能。
-
-### P018（P2）`path_within_base` 兜底分支放行 `..`
-
-- **位置**：`tauri/src-tauri/src/commands/attachment.rs:96-100`
-- **证据**：canonicalize 失败（Android symlink 兜底）时退化为 `raw.starts_with(base_canon)`，朴素组件前缀匹配不解析 `..`。触发条件苛刻，但纵深防御上仍放行逃逸。
-- **建议**：兜底分支显式拒绝含 `ParentDir` 组件的 raw 路径。
-
-### P019（P2）附件导入插件调试日志残留
-
-- **位置**：`tauri/src-tauri/src/attachment_import_plugin.rs:477-482,507-512`
-- **证据**：生产代码遗留 `tracing::error!("attachment_export_content_uri debug: src_path=...")`，以 error 级输出用户文件完整路径。
-- **建议**：删除或降级为 `debug!` 并脱敏。
-
-### P020（P2）`object_list` 全量解密全量传输
-
-- **位置**：`tauri/crates/solosoul-vault/src/storage/objects.rs:329-485`、`tauri/src-tauri/src/commands/object/mod.rs:459-488`
-- **证据**：`list_objects` 对每个对象解密完整 properties/property_labels 放入 `ObjectSummary.properties` 整体返回；注释声称 "First few property key-value pairs for card previews"（lib.rs:347）但实际未截断。前端工作区无 section 过滤时拉取全账户。
-- **建议**：后端对 summary properties 做预览截断（前 N 字段/每值限长），或提供 SQL 级分页；计数类调用方改用已有的 `list_object_metadata`（P111）。
-
-### P021（P2）搜索热循环临时分配
-
-- **位置**：`tauri/src-tauri/src/commands/search/query.rs:28,40-44,60,81,104-105`
-- **证据**：对每个对象每个 key 做 `key.to_lowercase()` 分配、`format!("{}.{}", ...)` 构造 field_path（无命中也分配）、每个字符串值 `s.to_lowercase()` 完整复制；`field_matches` 整体 `sort_by` 仅取最大值。
-- **建议**：field_path 用可复用 String 缓冲 push/pop；`max_by` 替代全排序。
-
-### P022（P2）RAG 每次检索重读全部指南
-
-- **位置**：`tauri/src-tauri/src/commands/llm/rag.rs:395-401`
-- **证据**：`llm_search_guide_chunks` 每次调用都 `chunk_all_guides(&language)` 仅为构建 guide_id→title 映射，内部 `read_to_string` 遍历所有指南文件并完整跑 markdown chunking。
-- **建议**：title 映射用 `OnceLock`/按 language 缓存，或随 embeddings 持久化。
-
-### P023（P2）模板命令每次执行无效迁移检查
-
-- **位置**：`tauri/src-tauri/src/commands/template.rs:22-33,121-144`
-- **证据**：`migrate_legacy_templates_if_needed` 在每个模板命令入口调用；迁移完成后仍每次 `load_profile` + `serde_json::from_slice` 全量解析。
-- **建议**：迁移成功后写 sys_config/metadata 标记，后续 O(1) 短路；或进程内缓存已迁移状态。
-
-### P024（P2）回收站批量永久删除逐条 IPC
-
-- **位置**：`tauri/src/stores/trashStore.ts:137-155`
-- **证据**：`permanentDelete` 对每个 trashId 单独 `invoke('trash_permanent_delete')`，仅并发 8 限流；附件模块已有 `attachment_batch_delete` 批量端点先例。
-- **建议**：新增 `trash_permanent_delete_batch` 端点（单事务循环删除），前端改单次调用。
-
-### P025（P2）`list_object_attachment_ids` 全解密取 id
-
-- **位置**：`tauri/crates/solosoul-vault/src/storage/objects.rs:282-327`
-- **证据**：`SELECT id, properties FROM objects WHERE ...` 后逐行 AES 解密 + JSON 全解析，仅为提取 `__attachments` id 列表；调用方 `get_vault_stats`。
-- **建议**：短期可在解密文本上子串扫描提取 `__attachments` 段；长期把附件清单拆出独立存储。
-
-### P026（P2）聊天消息列表无分页/虚拟化
-
-- **位置**：`tauri/src/components/llm/ChatMessageList.tsx:178`
-- **证据**：`messages.map` 全量挂载所有气泡（bubble 已 memo），数百条含 markdown 消息全部在 DOM；项目其它列表（对象/日志/快照/附件）均已分页。
-- **建议**：加「加载更早消息」分页或窗口化渲染。
-
-### P027（P2）CLI `/debug_log` 明文权限未收紧
-
-- **位置**：`solosoul_cli/src/commands/settings.rs:342-397`
-- **证据**：解密后的审计日志（含操作对象名、账户 ID、数据目录路径）用 `std::fs::write` 默认权限写入 `logs/`，未做 0600 收紧（对比 `log.rs:65-68` 的显式 chmod，两处行为不一致）。
-- **建议**：与 P007/P028 统一用 `OpenOptions::mode(0o600)`。
-
-### P028（P2）CLI `/export_log` 权限窗口期
-
-- **位置**：`solosoul_cli/src/commands/log.rs:56-69`
-- **证据**：先以默认权限创建文件、写完前才 `set_permissions(0o600)`（明文窗口期），且 `let _ =` 吞掉 chmod 失败。
-- **建议**：`OpenOptions::mode(0o600)` 在创建时定权限。
-
-### P029（P2）CLI 锁定后内存残留解密数据
-
-- **位置**：`solosoul_cli/src/app.rs:776-791`、`commands/auth.rs:64-72`
-- **证据**：自动锁定与 `/lock` 只清理 `password_input` 并切 phase，不清理 `previous_phase`（可能持有解密后 ObjectRecord）、`chat_state`（LLM 对话明文）与 `prompt`（可能持有 mask 输入）。
-- **建议**：锁定时统一重置上述字段，与「锁定擦除敏感状态」约定对齐。
-
-### P030（P2）CLI 消息通道误用
-
-- **位置**：`solosoul_cli/src/app.rs:813-818`、`commands/llm.rs:35`
-- **证据**：插件运行**成功**结果与 `/model` 信息性输出通过 `self.error_message` 展示（渲染为红色「! 错误」overlay）；已有 `info_message`（app.rs:388）正是为此设计。
-- **建议**：改用 `info_message`。
-
-### P031（P2）CLI `do_rollback` 未校验快照归属
-
-- **位置**：`solosoul_cli/src/commands/history.rs:88-123`
-- **证据**：未校验 `snapshot_id` 属于 `object_id`，也未校验目标对象归属当前账户；`get_snapshot` 取到哪个快照就应用哪个。另 `history.rs:126-132` 用 `unwrap_or_default()` + `let _ = save_snapshot`，失败静默留下空快照。
-- **建议**：回滚前校验快照 object_id 与账户归属；序列化/保存失败应报错。
-
-### P032（P2）CLI `update_profile_preference` 静默丢失
-
-- **位置**：`solosoul_cli/src/commands/mod.rs:61-68`
-- **证据**：profile 数据根不是 JSON object 时 `if let Some(obj)` 静默跳过，函数仍 `save_profile` 并返回 Ok——偏好写入丢失，调用方误报成功。
-- **建议**：根非 object 时返回 Err 或初始化为 object。
-
-### P033（P2）CLI 备份静默跳过失败 profile
-
-- **位置**：`solosoul_cli/src/commands/backup.rs:222-233`
-- **证据**：`if let Ok(Some(profile)) = vault.load_profile(...)`，单个 profile 加载/解密失败被静默跳过，备份可能不完整且无警告。
-- **建议**：失败时中止并报告，或在备份概要中明确标注缺失项。
-
-### P034（P2）CLI 搜索父页名 N+1
-
-- **位置**：`solosoul_cli/src/commands/search.rs:283-287`
-- **证据**：每条搜索结果都单独 `vault.load_object(parent_id)`（DB 查询 + 解密）解析父页面名，单次搜索最多 200 次额外解密查询。
-- **建议**：批量预取去重后的 parent_id 集合。
-
-### P035（P2）CLI `plugin_id` 未校验字符
-
-- **位置**：`solosoul_cli/src/commands/plugin.rs:102-106`
-- **证据**：`plugin_id` 未做字符校验直接 `market_dir.join("plugins").join(&plugin_id)`，`../`、绝对路径不做拒绝。当前仅用于存在性检查，影响有限。
-- **建议**：按插件 ID 白名单字符（如 `[a-z0-9_.-]`）校验；正向例子见 `backup.rs:80-96` `sanitize_backup_name`。
-
-### P036（P2）CLI 硬编码中文绕过 i18n
-
-- **位置**：`solosoul_cli/src/app.rs:609-636`（`prompt_verify_password_for_field`）、`app.rs:1760`、`app.rs:789` 等
-- **证据**：硬编码中文字符串绕过全项目已铺开的 `t!()` i18n 体系。
-- **建议**：补 FTL 词条，改用 `t!()`。
-
-### P037（P2）CLI 超长函数
-
-- **位置**：`solosoul_cli/src/app.rs:2694-3016` `render()`（323 行）；`handle_onboarding_key`（150 行）、`handle_new_object_key`（133 行）、`handle_plugin_list_key`（131 行）、`handle_command_key`（116 行）
-- **建议**：多为巨型 match，可按 phase 拆函数；优先级低。
-
-### P038（P2）CLI 陈旧注释
-
-- **位置**：`solosoul_cli/src/commands/settings.rs:340-341`（文档注释混入字面 `\n`）、`settings.rs:6` 与 `app.rs:364,412`（引用不存在的 `trigger_debug_log_export`）、`commands/profile.rs:171-180`（`parts.is_empty()` 死分支，注释理由不准确）
-- **建议**：修正注释；`parts.is_empty()` 分支可删。
-
-### P039（P2）前端 `Profile` 死接口
-
-- **位置**：`tauri/src/lib/ipc.ts:86-93`
-- **证据**：全仓 grep 无 import；且 `createdAt/updatedAt: string` 与 Rust `profile.rs:11-19` 的 `created_at: DateTime<Utc>`（snake_case、无 rename）对不上，即便被引用也是错误形状。
-- **建议**：删除，或由后端真实返回结构重新生成。
-
-### P040（P2）`parse_hlc_json` 静默吞畸形数据
-
-- **位置**：`tauri/src-tauri/src/commands/sync.rs:289-294`
-- **证据**：`.as_u64().unwrap_or(0)` / `.as_str().unwrap_or("")` 静默吞掉畸形 HLC，冲突记录 JSON 损坏时得到 `wall_time_ms=0` 的假 HLC 并照常展示。
-- **建议**：解析失败返回 Err 或至少记 warn。
-
-### P041（P2）`remove_with_retry` 的 unwrap
-
-- **位置**：`tauri/src-tauri/src/commands/settings.rs:74,81`
-- **证据**：`last_err.as_ref().unwrap()` / `last_err.unwrap()` 逻辑上可证安全但依赖读者推理。
-- **建议**：改为直接存值、循环后 `match`，消掉 unwrap。
-
-### P042（P2）`type_id` 三套命名
-
-- **位置**：`tauri/crates/solosoul-vault/src/lib.rs:255`（serde `rename = "typeId"`）、`tauri/src-tauri/src/commands/object/mod.rs:119`（DTO `rename = "collectionType"`）、`tauri/src/stores/objectStore.ts:20`（`collectionType`）、`conflictFieldMeta.ts`（又需认识 `typeId`）
-- **证据**：同步冲突的 `local_data`/`remote_data` 透传原始 `ObjectRecord` JSON，同一份数据在不同 IPC 通道暴露不同字段名。
-- **建议**：统一序列化名，或给冲突载荷也过 DTO 映射层。注意与 P001 同属同步冲突载荷问题，修复时可同轮次处理。
-
-### P043（P2）深层嵌套
-
-- **位置**：`tauri/src-tauri/src/sync/auto_sync_core.rs:82-130`（真实控制流 8-9 层）、`tauri/src/components/plugin/PluginQuickPanel.tsx:244-270`（JSX 回调内嵌套 8 层）
-- **建议**：提前 return / 拆 `run_immediate()`、`run_periodic()`；JSX 回调逻辑移出。
-
-### P044（P2）水印插件校验逻辑重复 + 插件 ID 硬编码
-
-- **位置**：`tauri/src/components/plugin/PluginQuickPanel.tsx:249-268`、`tauri/src/pages/ai/PluginDashboardPage.tsx:~170-190`
-- **证据**：同一段 `JSON.parse(savedParams.selectedAttachments)` + `Array.isArray` 检查 + toast，写死插件 ID `com.solosoul.official.watermark` 于两个通用 UI 入口。
-- **建议**：下沉到插件参数 schema/运行时校验层。
-
-### P045（P2）遗留 TODO 注释
-
-- **位置**：`tauri/src/hooks/useRevealState.ts:90`
-- **证据**：全仓唯一实质 TODO——「字段类型感知的部分掩码未实现（如银行卡只显后 4 位）」，是有意保留的产品决策标记，但与 AGENTS.md「禁止自行实现掩码逻辑」约定存在张力。
-- **建议**：转为 issue 跟踪，代码中移除 TODO 或改写为指向 issue 的说明。
-
----
-
-### P014 实施记录（P1）Rust 超长函数六处拆分（2026-08-08）
-
-| # | 位置 | 拆分方式 | 提交 |
-|---|------|----------|------|
-| 1 | `solosoul-plugin/src/host.rs` | `register_http_fns`/`register_output_fns`/`register_interaction_fns` 三函数共 530+ 行 → 闭包体提取为 10 个命名 impl 函数，注册层降为 13-14 行薄层 | `78e5dc79` |
-| 2 | `solosoul-vault/src/storage.rs` | `init_schema`（179 行）→ 拆为建表/列迁移/data_version 三 helper，本体 5 行编排 | `946d8661` |
-| 3 | `export.rs` | `export_execute`（190 行）→ 拆出快照收集与 payload 序列化两 helper | `5480e06f` |
-| 4 | `biometric.rs` | mobile `biometric_check_availability`（230 行）→ 拆出槽位清理与可用性判定两 helper | `f3b2e902` |
-| 5 | `import.rs` | `import_attachments`（153 行）→ 拆出元数据映射/单条解密/写回三 helper | `86774ece` |
-| 6 | `solosoul-core/src/vault_service.rs` | `change_password`/`unlock_with_kdf_upgrade` → 提取 4 个共享 rekey 尾部 helper，错误消息逐字保留 | `3cb1f7f8` |
-
-验证：各 crate `cargo fmt` ✅ / `clippy --all-targets` 0 警告 ✅ / 相关测试全过（plugin 56、vault 151、core 166、solo_soul export_import+biometric）✅。
-
----
-
-## 核查后确认无问题的重点面（免责说明）
-
-- **硬编码密钥**：未发现；命中均为测试夹具与 minisign 公钥嵌入。
-- **加密用法**：AES-256-GCM 全部随机 nonce，chunked 格式 v2 头部纳入 AAD；Argon2id 参数分级合理；无 ECB/固定 nonce。
-- **zeroize**：密码与派生密钥在 IPC 边界即 Zeroizing 包装，lock 时显式擦除。
-- **XSS**：无 `dangerouslySetInnerHTML`/`rehype-raw`；Markdown 链接有协议白名单。
-- **命令注入**：仅固定参数的 `swiftc`/`icacls`，arg 数组传参，无 shell 拼接。
-- **Zip slip**：导入 ZIP 用生成新 ID 落盘 + 拒绝 `/`、`\`；embed 模型解压用 `mangled_name`。
-- **unsafe**：集中于平台 FFI，带 SAFETY 注释，模式正确。
-- **网络层**：无禁用 TLS 校验；updater/GitHub API 均 https；Embedding/OCR 注册表有 minisign + sha256 校验。
-- **crate 依赖**：无循环依赖（干净的 DAG）。
-- **IPC 错误处理**：前端 `ipcClient.ts` 统一收口；commands 侧 `Result<T, String>` 模式一致，command 路径无会 panic 的 unwrap。
-- **unwrap/expect**：Rust 生产代码纪律良好，绝大多数命中在 `#[cfg(test)]`。
-- **数据库索引**：常用过滤列均有索引，未发现缺索引。
-- **CLI 密码处理**：PasswordInput/prompt/security 链路均已正确 zeroize；日志有 crate 白名单过滤，无密码/session key 泄露。
-
----
-
-## 复核结果（2026-08-08）
-
-> 复核方式：对 P001–P045 共 45 项修复逐一 `git show` 对应 commit 核验 diff（非提交信息），并重新运行基线。
-> 基线：`npm run check-all` **❌ 未通过**——末尾 ACL 一致性检查报 `ERROR: trash_permanent_delete_batch 未登记到 ACL 白名单`（P024 引入）与 `WARN: 白名单遗留 ['export_get_attachments', 'template_save_from_object']`（P009 未清）；其余环节（tsc / fmt / clippy / ESLint / Vitest 65 文件 572 测试）通过；CLI `cargo test` 全部通过。
-> 注：本次 check-all 通过 `| tail` 管道运行，进程退出码被掩盖，「任务完成」不代表通过，以日志末尾 ACL 脚本的 ERROR 为准。
-
-### 需返工项（阻塞）
-
-**P020（性能 → 引入新回归）** — `object_list` 预览截断本身实现正确（前 8 个非 `__` 字段 + 值限长 200），但 `ObjectWorkspacePage.tsx:237` 把工作区卡片点击得到的 `ObjectSummary` 直接作为 `object={detailObj}` 传给 `ObjectDetailModal`，而 `ObjectDetailModal.tsx:138-141` 在 `object` prop 存在时**跳过 `object_get` 重新拉取**——详情弹窗将渲染截断后的 properties：超过 8 个字段的对象丢字段、超过 200 字符的值被静默截断且无提示。另「前 8 字段」按 JSON 插入序而非模板字段顺序，可能截掉真正要展示的字段。修复方向：`ObjectDetailModal` 收到 summary 时仍拉取完整对象，或将截断限定在卡片渲染路径。
-
-**P024（性能 → 基线破坏）** — `trash_permanent_delete_batch` 端点与前端改造均已落地，但只注册了 lib.rs handler，**未登记 `permissions/solo-soul/default.toml`**——check-all 末尾 ACL 检查 ERROR 失败（CI 会红）；移动端 ACL 强制校验下该批量调用会被权限拒绝。修复方向：向 `default.toml` 的 `allow-all-custom-commands` 补登记。
-
-**P009（死代码 → 清理不完整）** — 3 个孤儿命令与 `get_vault_state` 的代码、lib.rs 注册、测试镜像均已删除，但 `permissions/solo-soul/default.toml:58,188` 仍残留 `export_get_attachments` 与 `template_save_from_object` 两条白名单（check-all WARN，白名单膨胀）。另设计文档 `docs/design_map/07、08、11` 仍把 `template_save_from_object` 列为现存命令，未同步。修复方向：清理 default.toml 两条遗留项（顺带使 ACL 脚本恢复全绿）。
-
-### 部分修复 / 有遗留项（不阻塞，建议跟进）
-
-- **P005**：N+1 已消除（`load_objects_batch` + 4 组测试），但 include_all 分支仍是 `list_objects`（全量解密）+ 批量再解密的双重解密；commit 注释「list_objects 拿到轻量摘要（不解密 properties）」失实。建议 include_all 改 `list_object_records`。
-- **P006**：字段级掩码已加且复用 `is_protected_sensitivity`，但缺模板兜底——旧对象无 property_labels 而模板含 sensitive 字段时，`/search` 视为受保护、`/open` 仍明文渲染，与 `collect_protected_field_keys` 不一致。
-- **P007**：备份已收紧 0600，但为「先写后 chmod」且 `let _ =` 吞 chmod 失败（与 P008/P031 修掉的反模式同类）；未复用 P027/P028 新建的 `util::write_private_file`（OpenOptions 创建时定权限）。
-- **P012**：`DeviceCardShell` 抽取等价，但调用方以 `cardKey={...}` 普通 prop 传入——组件内部 `key={cardKey}` 不起列表 key 作用，两个列表实际均无 React key（dev 警告 + 重排退化为索引协调），原实现有正确 key，属小幅回归。eslint 未启用 `react/jsx-key` 故未拦截。
-- **P025**：子串扫描 + 括号配平 + 转义状态机实现正确，但 marker `"\"__attachments\":"` 以转义引号形式出现在字符串值内且位于真实键之前时，会从错误位置解析或解析失败后 `unwrap_or_default` 返回空且不再继续搜索——真实附件 id 被静默丢弃。测试未覆盖带冒号的转义形态。
-- **P037**：render() 本体降至 ~25 行属实，但 `render_content` 仍是 ~260 行巨型 phase match，超长问题转移而非闭环（commit 已如实披露，key handler 留后续排期）。
-- **P045**：TODO 已改写且全仓 TS TODO 清零，但注释中「跟踪：code review P045」自指报告本身，`gh issue` 无对应 issue——跟踪引用为空指。
-
-### 有意偏离（已确认理由成立，风险接受）
-
-- **P017**：按用户决策保留 CSP `object-src data:`，代码层守卫（`AttachmentPreviewOverlay.tsx:95` 仅放行 `data:application/pdf` 前缀 + `<embed type="application/pdf">`）实现到位，全仓 embed/object 仅此一处。残留风险：策略层口子仍在，未来新增 embed 路径无 CSP 兜底。
-- **P016**：流式已补 `ensure_public_llm_host`（与非流式一致）；DNS rebinding TOCTOU 未处理，属报告已识别的可接受残留风险。小瑕疵：`ensure_public_llm_host` 的 doc comment 已过时。
-- **P044**：未彻底下沉插件参数校验层，仅常量集中化 + 共享 helper（`hasUsableWatermarkSelection` 无单测）；`address-fmt`/`expiry-guardian` 等 ID 仍散落两个字面量白名单。折中合理。
-
-### 复核确认有效的项（36 项）
-
-P001、P002、P003、P004、P008、P010、P011、P013（6 子项）、P014（6 子项）、P015、P016、P018、P019、P021、P022、P023、P026、P027、P028、P029、P030、P031、P032、P033、P034、P035、P036、P038、P039、P040、P041、P042、P043——均与报告建议方案一致或无不当偏离，多数测试同步。
-
-复核中发现的其他事实性备注（不影响判定）：
-
-- **P019**：报告描述的两处 debug 日志实际在 P003 的 commit `c247c4d3` 中删除，`42140879` 本身只做错误消息脱敏；问题已闭环，仅 commit 归属错位。
-- **P043**：前端部分实际由 P044 commit `5efddd1f` 完成，`c4235081` 提交信息含前端属误记。
-- **P010**：修复正确且原缺失方已补齐 settled/unlisten；但该 commit 夹带删除 5 个既有桌面 updater 测试（checkForUpdate ×3、downloadAndInstallUpdate ×2），commit message 未声明，桌面 updater 逻辑从此无直接单测，属测试覆盖回退。
-- **P002**：修复正确，但新增的四类 store 刷新无针对性测试断言；轻微边缘风险：入站同步触发 `profileStore.loadProfile` 理论上可覆盖正在编辑未落盘的 profile 输入。
-- **P001**：桌面/移动 DTO 统一到位；小遗留：DTO 映射逻辑桌面/移动两处复制，且未新增 node_id hex 断言测试。
-- **P008**：`move_to_trash` 吞错已修，但同函数内 `load_object` 失败（如解密错误）仍被 `if let Ok` 静默跳过，页面照删，属同模式残留（ narrower case）。
-- **P029**：手动 /lock 与自动锁定均已接入 `clear_sensitive_state`；但删除账户后的锁定路径（`security.rs:336`）未调用，残留同隐患。
-- **P013/P014**：12 个拆分 commit 经 diff 抽查行为等价；2 处提交信息行数小误差（ExportImportPage 实际 485 vs 声称 484、useObjectWorkspaceData 实际 510 vs 声称 505）；`LoginIconBar` 复用引入 `marginTop:auto`（无视觉效果）。
-- **P027/P028**：`write_private_file` 的 `.mode(0o600)` 仅作用于新建文件——旧版本遗留的 0644 文件 truncate 覆写不会收紧权限。
-- **P033**：`.ok_or_else` 分支把中文「Profile 不存在」塞入已翻译模板，英文环境下仍为中文（与 P036 目标轻微矛盾）。
-- 提交信息格式瑕疵：CLI 侧多个 commit message 含字面 `\n\n` 未转义。
-
-### 复核结论
-
-开发者「45/45 全部闭环」的声称**总体属实但不完全准确**：36 项经 diff 核验修复正确；但 **P020 引入了新的用户可见回归**（详情弹窗丢字段/值截断）、**P024 导致 check-all 基线变红**（ACL 未登记）、**P009 清理不完整**（ACL 遗留），此 3 项需返工后方可视为真正闭环；另有 7 项部分修复/遗留建议跟进。按流程当前不满足进入「阶段 4 终版」的条件（check-all 未全绿 + 存在需返工项）。
-
----
-
-## 复核返工记录（2026-08-08）
-
-> 针对「需返工项（阻塞）」3 项与「部分修复/有遗留项（建议跟进）」7 项逐一修复，一项一提交。**`npm run check-all` 已恢复全绿**（含 ACL 一致性检查 OK：190 个命令全部登记），Vitest 65 文件 572 测试全过，CLI `cargo test` 全过。
-
-| ID | 提交 | 修复内容 | 验证 |
-|----|------|----------|------|
-| P020 | `cb036bf0` | ObjectDetailModal 派生 objId = objectId ?? object?.id，只要有 id 就始终 getObject；obj 改 fetchedObj ?? object，完整数据到达后升级展示（传入摘要仅过渡，避免闪屏）；测试 mock 同步 | tsc 0 错误 / ObjectDetailModal 3 测试全过 |
-| P024 | `0a7830de` | default.toml 补登记 trash_permanent_delete_batch | check_acl_consistency.py → OK |
-| P009 | `fa68dd58` | default.toml 清理 export_get_attachments / template_save_from_object 两条遗留；设计文档 07/08/11 同步（模板命令数 8→7、代码示例改 template_create 携带 sourceObjectId） | check_acl_consistency.py → OK |
-| P005 | `22824703` | collect_scope_objects include_all 分支改 list_object_records 单次解密 + 页面/标签过滤，消除双重解密；selected 路径不变 | export_import 37 测试全过 / clippy 0 警告 |
-| P006 | `a781696f` | CLI /open 字段级掩码补模板兜底：render 增加 templates 参数，新增 collect_field_levels_for 纯函数（property_labels 优先 + 模板补齐），与 /search 的 collect_protected_field_keys 判定一致；+2 测试 | object_detail 6 测试全过 / clippy 0 警告 |
-| P007 | `a17ae789` | backup.rs 改 util::write_private_file（创建时即 0600，无窗口期）；helper 补写入后对已存在文件显式 set_permissions（P027/P028 备注遗留一并解决）；+1 回归测试 | backup 8 测试全过 / clippy 0 警告 |
-| P012 | `8b72a4e3` | DeviceCardShell 删除 cardKey prop，两个调用点改 key={deviceAddr|peer.id}，恢复正确列表 key 语义 | tsc 0 错误 / eslint ✅ |
-| P025 | `31e42907` | extract_attachment_ids_from_json_text 循环搜索，跳过转义引号伪键（marker 前奇数反斜杠）；候选段解析失败继续向后搜索；+2 回归测试 | extract_attachment 3 测试全过 / clippy 0 警告 |
-| P037 | `d7cf27ad` | render_content 268 行 36 个 phase 巨型 match 按语义分 4 组子方法（basic/data/template_llm/settings），dispatch 两段式避免借用冲突 | CLI 166+2 测试全过 / clippy 0 警告 |
-| P045 | `f79b0c82` | useRevealState 掩码 TODO 移除空指跟踪引用，指向 docs/design_map/08 字段类型注册表 + 掩码规则 DSL 规划 | tsc 0 错误 / eslint ✅ |
-
-**返工后基线**：`npm run check-all` ✅ 全绿（tsc / fmt / clippy / ESLint / Vitest 572 测试 / ACL 190 命令全部登记）；CLI `cargo test` ✅ 全过。P001-P045 全部 45 项闭环，满足进入「阶段 4 终版」条件。
-
-
----
-
-## 二次复核结果（2026-08-08）
-
-> 针对返工提交 `cb036bf0`–`f79b0c82`（10 个代码/docs commit + 1 个 docs 记录 commit `aa9557a8`）逐一 `git show` 核验 diff。
-> 基线：`npm run check-all` ✅ 全绿（ACL 190 命令全部登记，ERROR/WARN 归零）；Vitest 65 文件 572 测试全过；CLI `cargo test` 全过。
-> 注：上方「复核返工记录」末尾「45 项全部闭环，满足进入阶段 4 终版条件」的声称**经二次复核不完全成立**，以下为逐项判定。
-
-### 彻底闭环（6 项）
-
-- **P024（`0a7830de`）✅** — `default.toml:192` 按字母序正确补登记 `trash_permanent_delete_batch`，diff 仅 +1 行无误改；实跑 ACL 脚本 `OK: 190 个命令均已登记`。
-- **P012（`8b72a4e3`）✅** — 两个调用点改真正的 `key={deviceAddr}`/`key={peer.id}`，`cardKey` prop 三处（interface/解构/内部 key）全部清除无残留；key 取值与原实现一致。
-- **P025（`31e42907`）✅** — 转义伪键用 marker 前反斜杠奇偶判定跳过，逻辑严谨；解析失败改 `continue` 继续搜索，不再静默返回空；新增 2 个回归测试覆盖带冒号转义形态与配平失败恢复。次要残留（非本次引入）：`rest.find('[')` 仍可跨键误配，输入为内部序列化产物不会触发。
-- **P006（`a781696f`）✅（轻微边界残留）** — 新增 `collect_field_levels_for`：property_labels 优先 + 模板兜底，模板按 `t.id` 建 key 与 `/search` 一致；+2 测试。残留：兜底用 `.entry().or_insert()` 而 `/search` 为无条件并集——「labels 显式 public + 模板后改 critical」边界下两侧判定仍不完全等价（原始场景已修复）；ObjectDetail 每次重绘全量 `list_user_templates` 有轻微开销。
-- **P007（`a17ae789`）✅（轻微残留）** — 改走 `util::write_private_file`，helper 对已存在文件写后显式 `set_permissions(0o600)?` 且错误上抛（不再吞）；+1 回归测试（0644 覆写收紧）。残留：已存在文件「先写后收紧」仍有毫秒级窗口；非 unix 平台无收紧语义（可接受）。
-- **P037（`d7cf27ad`）✅（两处瑕疵）** — 36 个 phase 按语义分 4 组子方法，dispatch 无通配符（新增 variant 编译报错强制分类，设计正确）；arm 逐条等价迁移，fmt/clippy/166+2 测试实测全绿。瑕疵：①子方法内新增 `_ => {}` 兜底，phase 分组后漏加 arm 会静默渲染空白，编译期安全性部分回退；②提取残留孤立空行（app.rs:2856-2860 等）可读性差，`render_data_screens` 含空行计 137 行略超 commit 自称的 ≤120 行。
-
-### 仍有遗留（4 项，均非阻塞）
-
-- **P020（`cb036bf0`）⚠️** — 主修复正确：只要有 `objId` 就无条件 `getObject`，`fetchedObj ?? object` 升级展示，摘要作过渡无闪屏，失败优雅降级，测试同步通过。遗留问题：
-  1. **新副作用**：modal 每次打开经 `useObjectStore.getState().getObject()`，该 action 置全局 `isLoading: true`（objectStore.ts:122），工作区列表以其门控渲染（ObjectWorkspacePage.tsx:151-177）——打开弹窗瞬间背后的列表被骨架屏替换再换回。建议绕开全局 action 直接 `invoke('object_get')`（`refreshDetailObjAfterSync` 已有先例）。
-  2. **次生问题未处理**：截断「前 8 字段」按 serde_json Map 迭代序（未启用 preserve_order，实为字母序），而卡片前端按模板 `fieldOrder` 排序——模板首位重要字段若字母序靠后，卡片预览缺失。modal 已免疫，卡片预览仍受影响。
-  3. 次要：`?objectId=` 路径每次打开 2 次 `object_get`；测试出现 `act(...)` 警告。
-- **P009（`fa68dd58`）⚠️** — ACL 清理本身正确（两条遗留删除、有效条目无误删、WARN 归零）。但**文档同步引入新的不实描述**：`docs/design_map/08_对象与模板规范.md:287` 与 `11_状态管理_Zustand_Store设计.md:370` 声称「`template_create` 携带 `sourceObjectId`」——实际 `template_create`（template.rs:171-178）无此参数，全仓 `source_object_id` 零命中。正确表述应为「该能力随死命令一并移除，无现存入口」。另 `docs/solosoul_cli/solosoul_cli_research_report.md:286` 仍列其为规划命令（研究报告性质，影响小）。
-- **P005（`22824703`）⚠️** — 双重解密已真正消除（include_all 改 `list_object_records` 单 SQL 单解密），selected 分支语义保持，测试覆盖新路径。但上轮指认的失实 doc comment 仍在 `export_import/mod.rs:262-266` 原样残留（「list_objects 拿到轻量摘要（不解密 properties）」——list_objects 实际逐行解密完整 properties）。
-- **P045（`f79b0c82`）⚠️** — 空指引用已移除，但新指向的 `docs/design_map/08_对象与模板规范.md` 中**不存在**所述「字段类型注册表 + 掩码规则 DSL 规划」内容（全文检索无「掩码/DSL/字段类型注册表」匹配）——从空指变为虚指，决策载体仍未落地。建议：在该文档补写对应规划章节，或注释改为不引用不存在的内容。
-
-### 二次复核结论
-
-- 返工质量整体良好：11 个提交中 6 项彻底闭环，基线恢复全绿，无新的阻塞性回归。
-- 「45 项全部闭环、满足阶段 4 终版条件」的声称**尚不成立**：P020（列表闪烁副作用 + 截断排序错位）、P009（文档虚造 API）、P005（失实注释）、P045（虚指引用）4 项仍有遗留。均不阻塞日常使用，但按流程「一项一提交」修复并复核后，方可进入阶段 4 终版复审。
-- 流程层面观察：两轮复核均发现「commit 信息/文档表述与实际 diff 不符」的模式（P019/P043 归属错位、P010 未声明删测试、P005 注释失实、P009 文档虚造 API、P045 虚指引用），建议后续修复提交时以 diff 为准核对表述。
-
-
----
-
-## 三次复核结果（2026-08-08）
-
-> 针对二次复核遗留 4 项（P020/P009/P005/P045）逐一 `git show` 核验 diff 后全部闭环。
-> 基线：`npm run check-all` ✅ 全绿（tsc / fmt / clippy / ESLint / Vitest 65 文件 574 测试 / ACL 190 命令全部登记）；CLI `cargo test` ✅ 全过。
-
-### 逐项判定
-
-- **P020（`390de685`）✅** — 三项遗留全部处理：
-  1. 列表闪烁副作用消除：`ObjectDetailModal` 不再经全局 `getObject` action（其置全局 `isLoading`，打开弹窗时背后工作区列表闪骨架屏），改为直接 `invoke('object_get')`，成功后仅写 `currentObjectCache`（不置 `isLoading`）；
-  2. 截断排序错位消除：`object_list` 现批量加载模板一次构建 `template_id → fieldOrder` 映射，`truncate_preview_properties` 第一轮按模板顺序选取字段、第二轮按 Map 序补足，None 时退化原行为——模板首位重要字段不再因字母序靠后被截掉；+1 Rust 单测（fieldOrder 优先 + 超限挤掉 Map 序字段）；
-  3. 重复拉取消除：传入完整 ObjectData（含 `accountId`，如 `?objectId=` 路径或模板同步后刷新）时跳过 `object_get`，避免双重拉取；+2 modal 单测。
-  验证：cargo check ✅ / object 41 测试全过 ✅ / tsc 0 错误 ✅ / modal 5 测试全过 ✅。
-- **P009（`453c0553`）✅** — 08 文档 §3.4 代码示例改真实签名（`name/iconId/category/properties/contractTypeId`），§3.7 类型安全说明与 P1 清单同步改「能力已随死命令移除，无现存入口」；11 文档删除虚造的 `saveFromObject` 方法；07 文档模板命令表同步。全仓 grep 残留仅剩否定/移除说明性文字。
-- **P005（`c77aa514`）✅** — doc comment 改与实现一致：`list_objects` 实际逐行解密完整 properties（非轻量摘要）；include_all 用 `list_object_records` 一次解密、selected 用 `list_objects` 元数据筛选 + `load_objects_batch` 批量解密。
-- **P045（`efb48da7`）✅** — 08 文档新增 §2.5「字段类型感知的部分掩码（规划）」作为真实决策载体（现状 + 字段类型注册表 + 掩码规则 DSL + 约束 + 实施触发条件，文档自述为 P045 载体）；`useRevealState.ts` 注释精确指向 §2.5，虚指变实指。
-
-### 三次复核结论
-
-- 二次复核遗留的 4 项全部闭环，无新增回归；P001–P045 共 **45 项全部 `[x]`**，check-all 与 CLI 测试全绿。
-- 「45/45 全部闭环、满足阶段 4 终版条件」的声称**成立**。按流程可进入阶段 4：全库终版扫描 → 生成终版报告 → 打标签 `code-audit-passed-yyyymmdd`。
-
----
-
-## 三次复核独立核验（复核人确认，2026-08-08）
-
-> 上方「三次复核结果」章节由修复方自写。本节为复核人对 4 个修复提交（`390de685`/`453c0553`/`c77aa514`/`efb48da7`）的独立 diff 核验结论。
-
-**核验结论：4 项判定均属实，与修复方自写记录一致，本轮未发现虚报。**
-
-- **P020 ✅ 核验通过** — 三项遗留均真实闭环：①modal 改直接 `invoke('object_get')`（经 ipcClient），不再触碰全局 `getObject` action，列表闪烁前提移除，fetchId 竞态守卫保留；②`truncate_preview_properties` 新增 `field_order` 参数，模板 fieldOrder 优先 + Map 序补足，模板缺失时 `None` 退化为原行为，回退正确；Rust 用 `TemplateProperty.id` 与前端卡片排序键空间对齐；③`isCompleteObject = 'accountId' in object` 判别可靠（ObjectSummary 无 / ObjectData 有），`?objectId=` 双重拉取消除。测试实跑通过（Rust 2/2、前端 5/5）。
-- **P009 ✅ 核验通过（两处轻微残留）** — 08/11/07 虚造表述均已改为「能力随死命令移除，无现存入口」，代码示例与 `template.rs:170-178` 真实签名一致。残留：①08 §3.7 仍以未来设计条件句引用 `infer_type_from_value`（代码中已零命中，属边缘虚指）；②`docs/solosoul_cli/solosoul_cli_research_report.md:286` 仍列 `template_save_from_object` 为规划命令（前两轮已标注影响小的遗留，本轮未处理）；③settings.json 两个 i18n key 保留合理（历史审计日志标签）。
-- **P005 ✅ 核验通过** — 新 doc comment（export_import/mod.rs:264-268）与实现完全吻合，无新失实。
-- **P045 ✅ 核验通过** — 08 文档新增 §2.5「字段类型感知的部分掩码（规划）」（:203）真实存在且内容与注释所述匹配，自述为 P045 决策载体；`useRevealState.ts:90-93` 注释精确指向 §2.5。
-
-**基线独立复跑**：`npm run check-all` ✅（Vitest 65 文件 **574** 测试全过、ACL 190 命令 OK）；CLI `cargo test` 全过。
-
-**潜在问题备注（均非阻塞、不影响闭环判定）**：
-- P020 modal 的 `catch` 分支静默吞错仅置 `fetchedObj = null`，无日志（沿用修复前模式）；完整数据分支不回写 `currentObjectCache`；`object_list` 每次调用新增一次 `list_user_templates` 批量读取（代价合理）。
-- P020 测试存在 `act(...)` 警告（上一轮已存在，不影响通过）。
-
-**最终结论**：P001–P045 共 45 项经三轮「修复→独立复核」全部闭环，基线全绿。按流程已满足进入「阶段 4：最终复审」的条件——下一阶段为全库终版扫描并生成终版报告，是否执行等你指令。
+- **XSS**：全库无 `dangerouslySetInnerHTML`/`eval`/`srcDoc`；markdown 统一收口 `SafeMarkdown`（无 rehype-raw）；URL 协议白名单正确。
+- **命令注入**：仅 3 处 `Command::new`，参数均为程序生成路径，无用户输入拼接；macOS Vision CLI 有 sha256+权限+执行前哈希校验防 TOCTOU。
+- **路径遍历核心路径**：fs.rs 全部命令经 `resolve_allowed_path`；`attachment_download` 双向校验完备；插件输出文件 canonical 前缀校验；无 zip-slip。
+- **硬编码密钥/弱加密**：无；PIN/恢复密码用 CSPRNG；恢复 PIN 校验常数时间比较。
+- **SQL 注入**：全部参数化；唯二 `format!` SQL 用编译期常量。
+- **IPC ACL**：194 条命令与权限白名单逐条一致（有防回归单测）。
+- **供应链完整性**：embed 注册表 minisign、插件注册表签名 + WASM sha256、OCR 模型 pinned sha256、updater Tauri 签名通道。
+- **Crate 依赖图**：单向 DAG 无循环依赖。
+- **Zustand/后端一致性**：`vault-locked` 事件清理链完整；searchCache TTL + 写失效；settingsStore 写入矩阵文档化。
+- **性能已优化领域**：附件/导出分块加密、缩略图 LRU 缓存、全表解密 spawn_blocking、前端大列表分页 + memo、批量计数 IPC 等（P005/P020/P114/P210 等历史专项成果）。
+- **serde untagged**：零命中。unsafe：均为平台 FFI 且合理。全库 TODO/FIXME 注释为 0。
+
+## 备注
+
+- 多处「需人工确认」项已在表格与详情中标注，修复前请先确认前提（GitHub assets 排序、Android 兜底路径可达性、PinManager 内部清零、tracing 落盘位置、log_write 设计意图、陈旧 accountId 触发路径等）。
+- 按流程约束，涉及删除文件/代码的项（P027–P031 等）执行前需用户确认。
+- 待用户指令后开始阶段 3 迭代修复（建议顺序：P001 → P002 → P003–P005（Rust 性能）→ P006–P009（Rust 架构）→ P010–P011（前端重复）→ P2 批次）。
