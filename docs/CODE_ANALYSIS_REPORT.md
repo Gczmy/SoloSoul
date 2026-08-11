@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-11（P020 修复完成）
+> 最后更新：2026-08-11（P021 修复完成）
 > 当前分支：`main`
 > 修复轮次：2（按用户指令逐项修复，一项一提交）
 
@@ -34,7 +34,7 @@ Git 状态：工作树除本报告文件重建外干净（旧报告已删除，�
 | P018 | P2 | 规范 | `tauri/crates/solosoul-core/src/ocr/macos_vision.rs:281-298` | OCR debug 日志记录用户扫描图片完整路径（GUI 侧 tracing 落盘位置需确认） | `[x]` 已完成 |
 | P019 | P2 | 架构 | `tauri/src-tauri/src/commands/log.rs:65-76` | `log_write` 允许前端写任意 `action_type` 审计条目，无枚举白名单，审计日志作为安全证据的可信度受限（需确认设计意图） | `[x]` 已完成 |
 | P020 | P2 | 架构 | `tauri/src-tauri/src/commands/object/mod.rs:604` 等 | object 系命令信任客户端 `account_id`（template/ocr 等已统一 `current_account` 服务端派生，两种约定并存，需确认触发路径） | `[x]` 已完成 |
-| P021 | P2 | 架构 | `tauri/src/types/llmProvider.ts:5` vs `tauri/crates/solosoul-core/src/llm/config.rs:33` | 潜伏类型漂移：TS `ProviderConfig` 缺 `embeddingModel`，重构保存逻辑时会静默重置该字段 | `[ ]` 待修复 |
+| P021 | P2 | 架构 | `tauri/src/types/llmProvider.ts:5` vs `tauri/crates/solosoul-core/src/llm/config.rs:33` | 潜伏类型漂移：TS `ProviderConfig` 缺 `embeddingModel`，重构保存逻辑时会静默重置该字段 | `[x]` 已完成 |
 | P022 | P2 | 死代码 | `tauri/crates/solosoul-core/src/vault_service.rs:493-518`、`tauri/src-tauri/src/commands/auth.rs:12-19` | 登录/账户列表把 `salt`、`verifyHash` 序列化给前端但前端零消费，扩大 WebView 攻击面且误导开发 | `[ ]` 待修复 |
 | P023 | P2 | 规范 | `tauri/src-tauri/src/commands/auth.rs:12` vs `solosoul-core/src/vault_service.rs:195` | `AccountInfo`/`AccountSummary` 重复 DTO 字段重叠但可选性不同，易演进漂移 | `[ ]` 待修复 |
 | P024 | P2 | 架构 | `tauri/src-tauri/src/commands/export_import/mod.rs:238` vs `solosoul-core/src/export_import.rs` | `derive_export_key_cfg` 密码学逻辑双份实现，仅靠注释约束一致性（安全敏感路径） | `[ ]` 待修复 |
@@ -64,8 +64,8 @@ Git 状态：工作树除本报告文件重建外干净（旧报告已删除，�
 
 ## 修复进度
 
-- 已完成：20 / 47
-- 当前处理：P021（按建议顺序推进）
+- 已完成：21 / 47
+- 当前处理：P022（按建议顺序推进）
 
 ## 详细问题描述与修复指引
 
@@ -247,7 +247,13 @@ error: deref which would be done by auto-deref
 **修复**：`object_create` 在命令入口派生 `current_account(&state)?` 并用于 `record.account_id`（忽略客户端值）；`page_delete` 同样派生并忽略客户端参数（参数改名 `_account_id` 保持前端 invoke 兼容）。`object_update`/`object_delete` 本就按 object_id 操作（记录自带 account_id），无需改动。
 
 **验证**：`cargo check -p solo_soul --tests` ✅；clippy --workspace 全绿 ✅；tsc ✅（前端 invoke 参数不变）。
-- **P021**：TS `ProviderConfig` 补 `embeddingModel?: string`，或 `llm_save_provider` 合并旧值而非整体覆盖。
+### P021（P2）TS ProviderConfig 补 embeddingModel — 已完成（commit 59d7feed）
+
+**原问题**：Rust `ProviderConfig`/`ProviderWithKey` 均有 `embedding_model`（serde camelCase），TS `ProviderConfig` 缺 `embeddingModel`——类型未声明的字段在重构保存逻辑（对象重建/字面量构造）时会静默丢失。
+
+**修复**：TS `ProviderConfig` 补 `embeddingModel?: string`，与 `llm_get_providers` 实际返回的 `ProviderWithKey` IPC 载荷对齐（`LlmConfigPage` 用 `invoke<ProviderConfig[]>` 接收的就是该载荷）。保存路径 `llm_save_provider` 整体覆盖语义保持不变——前端编辑时 spread 保留运行时字段，类型补全后任何新构造路径都携带该字段。
+
+**验证**：tsc ✅；eslint ✅（无 ProviderConfig 相关测试）。
 - **P022**：Rust 两个 DTO 去掉 salt/verify_hash 字段（或 `skip_serializing`），TS 同步删除。
 - **P023**：收敛为 core 单一 `AccountSummary`，auth.rs 复用。
 - **P024**：`solosoul-crypto` 提供与错误类型无关的核心 KDF 函数，两端薄包装各自映射错误类型。
