@@ -10,12 +10,16 @@
 ![Android](https://img.shields.io/badge/Android-APK-3DDC84?logo=android&logoColor=white)
 ![Linux](https://img.shields.io/badge/Linux-AppImage-FCC624?logo=linux&logoColor=black)
 ![License](https://img.shields.io/badge/license-MIT-blue)
-![Version](https://img.shields.io/badge/version-2.8.6-brightgreen)
+![Version](https://img.shields.io/badge/version-2.9.2-brightgreen)
 
 > **本地优先 · 隐私优先 · 零知识** 的个人数字孪生与通用身份引擎。
 >
 > 「Centralized Schema definition, decentralized data storage.」
 > 集中式 Schema 定义，去中心化数据存储。
+
+**⬇️ 立即下载 / Quick Download**
+
+[🍎 macOS](README.md#平台与安装) · [🪟 Windows](README.md#平台与安装) · [🤖 Android](README.md#平台与安装) · [🐧 Linux](README.md#平台与安装)
 
 </div>
 
