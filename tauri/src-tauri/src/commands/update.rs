@@ -23,6 +23,17 @@ const USER_AGENT: &str = "SoloSoul/2.6.1";
 /// 安全说明：下载内容无论来自直连还是代理，都会经过 minisign/SHA-256 强制校验
 /// （桌面端 updater 验签、安卓端 P002 校验），因此走代理通道不引入供应链风险。
 ///
+/// 隐私披露（T004）：gh-proxy 类代理是 TLS 终止代理——连接在代理方解密后转发，
+/// 因此**用户 IP、使用 SoloSoul 的事实、目标版本号、GitHub API 响应内容都会暴露
+/// 给第三方代理服务商**。直连优先的设计使国内直连可达时不会走代理，但直连受限时
+/// 必然经过代理，属固有权衡，无法消除，仅在此明示。若用户对此敏感，可通过环境变量
+/// `SOLOSOUL_PROXY_PREFIXES`（逗号分隔）覆盖为自建可信代理或留空禁用代理。
+///
+/// 可用性披露（T004）：① `api.github.com` 元数据请求走代理时，代理可返回陈旧/
+/// 篡改的 Release JSON 软性压制升级（内容完整性不受影响——校验和与签名在 Rust 侧
+/// 重新验签，属可用性面）；② 代理也可重放旧版 latest-mirror JSON 压制升级（updater
+/// 只升不降，无降级风险）。
+///
 /// 维护注意：这些第三方代理服务存活期不稳定，失效条目应在此处替换为可用条目；
 /// 客户端按「直连优先、逐代理回退」设计，单个代理失效只会多一次短超时，不阻断下载。
 const PROXY_PREFIXES: &[&str] = &[
@@ -31,6 +42,27 @@ const PROXY_PREFIXES: &[&str] = &[
     "https://gh-proxy.com/",
     "https://ghps.cc/",
 ];
+
+/// T004: 代理前缀列表（可被环境变量 `SOLOSOUL_PROXY_PREFIXES` 覆盖，逗号分隔；
+/// 空字符串禁用全部代理，仅走直连）。未设置或解析为空时回退默认 `PROXY_PREFIXES`。
+fn proxy_prefixes() -> Vec<String> {
+    match std::env::var("SOLOSOUL_PROXY_PREFIXES") {
+        Ok(raw) => {
+            let parsed: Vec<String> = raw
+                .split(',')
+                .map(str::trim)
+                .filter(|s| !s.is_empty())
+                .map(str::to_string)
+                .collect();
+            if parsed.is_empty() {
+                PROXY_PREFIXES.iter().map(|p| (*p).to_string()).collect()
+            } else {
+                parsed
+            }
+        }
+        Err(_) => PROXY_PREFIXES.iter().map(|p| (*p).to_string()).collect(),
+    }
+}
 
 /// 多线程分段下载的并发段数（移动端网络下 4 段在提速与稳定性间均衡）。
 const PARALLEL_SEGMENTS: usize = 4;
@@ -42,7 +74,7 @@ const PARALLEL_MIN_SEGMENT_SIZE: u64 = 5 * 1024 * 1024; // 5MB
 /// 为给定 GitHub URL 生成下载候选列表：直连优先，随后各代理前缀。
 fn download_candidates(url: &str) -> Vec<String> {
     let mut candidates = vec![url.to_string()];
-    candidates.extend(PROXY_PREFIXES.iter().map(|p| format!("{p}{url}")));
+    candidates.extend(proxy_prefixes().iter().map(|p| format!("{p}{url}")));
     candidates
 }
 
@@ -1205,19 +1237,53 @@ mod tests {
         assert!(short.is_none());
     }
 
-    /// 下载候选列表：直连优先，随后各代理前缀拼接。
+    /// 下载候选列表：直连优先，随后各代理前缀拼接（默认代理列表）。
     #[test]
     fn test_download_candidates_direct_first_then_proxies() {
         let url = "https://github.com/Gczmy/SoloSoul/releases/download/v2.9.2/app.apk";
         let candidates = download_candidates(url);
         // 直连必须是第一个候选
         assert_eq!(candidates[0], url);
-        // 代理数 = 前缀数
+        // 代理数 = 前缀数（默认列表）
         assert_eq!(candidates.len(), 1 + PROXY_PREFIXES.len());
         // 每个代理前缀按规则拼接
         for (i, prefix) in PROXY_PREFIXES.iter().enumerate() {
             assert_eq!(candidates[i + 1], format!("{prefix}{url}"));
         }
+    }
+
+    /// T004: 代理列表可被环境变量覆盖；空/仅空白时回退默认列表。
+    #[test]
+    fn test_proxy_prefixes_env_override() {
+        let default = proxy_prefixes();
+        assert_eq!(default.len(), PROXY_PREFIXES.len());
+
+        // 覆盖为自建代理
+        std::env::set_var("SOLOSOUL_PROXY_PREFIXES", "https://self.example.com/");
+        let overridden = proxy_prefixes();
+        std::env::remove_var("SOLOSOUL_PROXY_PREFIXES");
+        assert_eq!(overridden, vec!["https://self.example.com/".to_string()]);
+
+        // 逗号分隔 + 去空白
+        std::env::set_var(
+            "SOLOSOUL_PROXY_PREFIXES",
+            " https://a.example.com/ , https://b.example.com/ ",
+        );
+        let multi = proxy_prefixes();
+        std::env::remove_var("SOLOSOUL_PROXY_PREFIXES");
+        assert_eq!(
+            multi,
+            vec![
+                "https://a.example.com/".to_string(),
+                "https://b.example.com/".to_string()
+            ]
+        );
+
+        // 空字符串（禁用代理意图）→ 回退默认列表
+        std::env::set_var("SOLOSOUL_PROXY_PREFIXES", "");
+        let empty = proxy_prefixes();
+        std::env::remove_var("SOLOSOUL_PROXY_PREFIXES");
+        assert_eq!(empty, default);
     }
 
     /// 分段计算：文件恰为段数整数倍 → 均匀分段，首尾闭合区间连续。
