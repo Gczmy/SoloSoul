@@ -38,6 +38,7 @@ pub async fn pin_check_availability(
 }
 
 /// 设置 PIN 码（需要验证主密码）。
+/// P016: password/pin 在命令入口 Zeroizing 包装，避免明文残留堆内存。
 #[tauri::command]
 pub async fn pin_setup(
     state: State<'_, AppState>,
@@ -45,6 +46,8 @@ pub async fn pin_setup(
     password: String,
     pin: String,
 ) -> Result<(), String> {
+    let password = zeroize::Zeroizing::new(password);
+    let pin = zeroize::Zeroizing::new(pin);
     let vault_service = state.vault_service.clone();
     tokio::task::spawn_blocking(move || {
         let svc = vault_service
@@ -60,6 +63,7 @@ pub async fn pin_setup(
 }
 
 /// 使用 PIN 码解锁 Vault，返回账户信息（id + name），省去前端额外调用 vault_list_accounts。
+/// P016: pin 在命令入口 Zeroizing 包装，避免明文残留堆内存。
 #[tauri::command]
 pub async fn pin_unlock(
     state: State<'_, AppState>,
@@ -68,6 +72,7 @@ pub async fn pin_unlock(
     location: Option<String>,
     action: Option<String>,
 ) -> Result<AccountSummary, String> {
+    let pin = zeroize::Zeroizing::new(pin);
     let vault_service = state.vault_service.clone();
     let summary = tokio::task::spawn_blocking(move || {
         let svc = vault_service
@@ -100,12 +105,14 @@ pub async fn pin_unlock(
 }
 
 /// 禁用 PIN 码（需要验证主密码）。
+/// P016: password 在命令入口 Zeroizing 包装，避免明文残留堆内存。
 #[tauri::command]
 pub async fn pin_disable(
     state: State<'_, AppState>,
     account_id: String,
     password: String,
 ) -> Result<(), String> {
+    let password = zeroize::Zeroizing::new(password);
     let vault_service = state.vault_service.clone();
     tokio::task::spawn_blocking(move || {
         let svc = vault_service

@@ -37,6 +37,9 @@ pub async fn change_password(
     old_password: String,
     new_password: String,
 ) -> Result<(), String> {
+    // P016: 命令入口 Zeroizing 包装，避免明文残留堆内存
+    let old_password = zeroize::Zeroizing::new(old_password);
+    let new_password = zeroize::Zeroizing::new(new_password);
     let svc = state
         .vault_service
         .read()
