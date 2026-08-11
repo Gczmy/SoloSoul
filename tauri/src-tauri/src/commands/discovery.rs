@@ -177,19 +177,8 @@ pub async fn mdns_discover(
             // 客户端类型：优先 TXT 广播（新对端也能正确显示图标）；旧版对端无
             // client_type TXT 时按 node_id 查本机 vault peer 记录（已同步过的设备
             // 才有记录）。查询失败静默降级为 unknown。
-            let client_type = if !peer_client_type_txt.is_empty() {
-                peer_client_type_txt
-            } else {
-                crate::commands::vault_handle(&state)
-                    .ok()
-                    .and_then(|v| {
-                        v.load_peer_state(&peer_node_id)
-                            .ok()
-                            .flatten()
-                            .and_then(|p| p.client_type)
-                    })
-                    .unwrap_or_else(|| "unknown".to_string())
-            };
+            let client_type =
+                resolve_peer_client_type(&peer_client_type_txt, &peer_node_id, &state);
             devices.push(DiscoveredDevice {
                 name: display_name,
                 host: info.get_hostname().to_string(),
@@ -219,6 +208,24 @@ fn discovered_display_name(fingerprint: &str, hostname: &str) -> String {
     } else {
         hostname.trim_end_matches(".local.").to_string()
     }
+}
+
+/// P044: 解析对端客户端类型——优先 TXT 广播值（新对端也能正确显示图标）；旧版对端
+/// 无 client_type 时按 node_id 查本机 vault peer 记录（已同步过的设备才有记录），
+/// 查询失败静默降级为 unknown。桌面/移动两端 mdns_discover 共用。
+fn resolve_peer_client_type(txt_client_type: &str, peer_node_id: &str, state: &AppState) -> String {
+    if !txt_client_type.is_empty() {
+        return txt_client_type.to_string();
+    }
+    crate::commands::vault_handle(state)
+        .ok()
+        .and_then(|v| {
+            v.load_peer_state(peer_node_id)
+                .ok()
+                .flatten()
+                .and_then(|p| p.client_type)
+        })
+        .unwrap_or_else(|| "unknown".to_string())
 }
 
 /// P2：判断发现的设备是否应展示给用户——同一账户（account_hash 比对，兼容旧版
@@ -341,19 +348,7 @@ pub async fn mdns_discover(
                 // client_type 时回退按 node_id 查本机 vault peer 记录）。
                 // State 句柄不能移入 'static 闭包，经 app2（AppHandle）重新取。
                 let app_state = app2.state::<AppState>();
-                let client_type = if !s.client_type.is_empty() {
-                    s.client_type.clone()
-                } else {
-                    crate::commands::vault_handle(&app_state)
-                        .ok()
-                        .and_then(|v| {
-                            v.load_peer_state(&s.node_id)
-                                .ok()
-                                .flatten()
-                                .and_then(|p| p.client_type)
-                        })
-                        .unwrap_or_else(|| "unknown".to_string())
-                };
+                let client_type = resolve_peer_client_type(&s.client_type, &s.node_id, &app_state);
                 DiscoveredDevice {
                     // 显示名优先指纹派生 SoloSoul-<fp8>（与桌面端 discovered_display_name /
                     // NSD 注册名 / QR 卡片命名规则一致），其次 NSD 服务名（桌面广播实例名
