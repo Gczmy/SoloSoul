@@ -2,6 +2,17 @@ use super::*;
 
 // ── Export commands ────────────────────────────────────────────
 
+/// P039: 系统分区（侧栏顺序）+ 显示名单一来源——数组/映射/集合均由它派生，
+/// 新增分区只需在此追加一处。
+const SYSTEM_SECTIONS: &[(&str, &str)] = &[
+    ("identity", "Identity"),
+    ("travel", "Travel"),
+    ("financial", "Financial"),
+    ("professional", "Professional"),
+    ("note", "Notes"),
+    ("document", "Documents"),
+];
+
 #[tauri::command]
 pub async fn export_get_scope_tree(
     state: State<'_, AppState>,
@@ -117,33 +128,19 @@ fn build_page_groups(
     custom_pages: &std::collections::HashMap<String, (String, String)>,
     custom_page_order: &[String],
 ) -> Vec<PageGroup> {
-    // System page display names (sidebar order)
-    let system_sections: &[&str] = &[
-        "identity",
-        "travel",
-        "financial",
-        "professional",
-        "note",
-        "document",
-    ];
-    let page_names: std::collections::HashMap<&str, &str> = [
-        ("identity", "Identity"),
-        ("travel", "Travel"),
-        ("financial", "Financial"),
-        ("professional", "Professional"),
-        ("note", "Notes"),
-        ("document", "Documents"),
-    ]
-    .iter()
-    .cloned()
-    .collect();
+    // P039: 系统分区从单一 SYSTEM_SECTIONS 派生（侧栏顺序 + 显示名）
+    let system_keys: Vec<&str> = SYSTEM_SECTIONS.iter().map(|(k, _)| *k).collect();
 
     let mut result = Vec::new();
 
     // 1. System sections in sidebar order
-    for key in system_sections {
+    for key in &system_keys {
         if let Some(objs) = groups.remove(*key) {
-            let display = page_names.get(key).copied().unwrap_or(key).to_string();
+            let display = SYSTEM_SECTIONS
+                .iter()
+                .find(|(k, _)| *k == *key)
+                .map(|(_, name)| name.to_string())
+                .unwrap_or_else(|| key.to_string());
             result.push(PageGroup {
                 section_type: key.to_string(),
                 page_name: display,
@@ -169,17 +166,12 @@ fn build_page_groups(
     // Filter out orphan UUID groups that belong to already-deleted custom pages.
     // These appear when a custom page was soft-deleted without its child objects
     // (pre-P0-1 bug), leaving orphan objects with section_type = page UUID.
-    let system_sections_set: std::collections::HashSet<&str> = [
-        "identity",
-        "travel",
-        "financial",
-        "professional",
-        "note",
-        "document",
-        "uncategorized",
-    ]
-    .into_iter()
-    .collect();
+    // P039: 系统分区集合由 SYSTEM_SECTIONS 派生（另含 uncategorized）
+    let system_sections_set: std::collections::HashSet<&str> = SYSTEM_SECTIONS
+        .iter()
+        .map(|(k, _)| *k)
+        .chain(std::iter::once("uncategorized"))
+        .collect();
 
     let mut remaining: Vec<(String, Vec<ObjectSummary>)> = groups
         .into_iter()
