@@ -128,8 +128,12 @@ impl LlmService {
     // ── Conversations ──────────────────────────────────────────────
 
     /// P004 懒迁移：旧版本会话存于 profile preferences 的 `llmConversations` blob。
-    /// 首次访问时把 blob 中的全部会话写入行级表并清除 blob 键（幂等：迁移后
-    /// 键已删，再次调用直接跳过）。GUI 与 CLI 共用同一实现。
+    /// 首次访问时把 blob 中的全部会话写入行级表。GUI 与 CLI 共用同一实现。
+    ///
+    /// R003：迁移后**保留** blob 键（不再清除）——键删除会经 profile delta 同步到
+    /// 仍从 blob 读取会话的旧版本设备（不认识 llm_conversations 行级表），导致旧
+    /// 设备会话被抹且无法自行迁移；只有确认所有设备同步升级后才可在未来版本安全
+    /// 移除该键。迁移幂等：重复调用仅多一次 profile 读取，无写入副作用。
     ///
     /// LWW 保护：对每条会话按 `updated_at` 比较，仅当 blob 数据比行级表现有
     /// 数据更新（或行级表无此 id）时才写入，避免无条件 upsert 覆盖 CLI/其他
@@ -146,8 +150,9 @@ impl LlmService {
             .and_then(|v| serde_json::from_value(v.clone()).ok());
         let Some(convs) = legacy else { return Ok(()) };
         if convs.is_empty() {
-            // 空数组也视为已迁移：清掉键避免每次重复空写。
-            return self.clear_legacy_conversations(vault, account_id);
+            // 空数组也视为已迁移。同样保留键（R003：删除会经 profile delta
+            // 影响仍读 blob 的旧版本设备）；重复调用仅多一次 profile 读取。
+            return Ok(());
         }
 
         for mut c in convs {
@@ -170,16 +175,10 @@ impl LlmService {
                 .save_conversation(account_id, &c.id, &c.updated_at, &data)
                 .map_err(|e| e.to_string())?;
         }
-        self.clear_legacy_conversations(vault, account_id)
-    }
-
-    /// 清掉 profile preferences 中的旧 `llmConversations` blob 键。
-    fn clear_legacy_conversations(&self, vault: &VaultStore, account_id: &str) -> LlmResult<()> {
-        let mut data = Self::load_profile_data(vault, account_id)?;
-        if let Some(prefs) = data.get_mut("preferences").and_then(|p| p.as_object_mut()) {
-            prefs.remove("llmConversations");
-            Self::save_profile_data(vault, account_id, &data)?;
-        }
+        // R003：刻意保留 profile 中的 `llmConversations` 键，不在此删除。
+        // 键删除会随 profile delta 同步到仍从 blob 读取会话的旧版本设备，导致
+        // 旧设备会话被抹且无法自行迁移；只有确认所有设备同步升级后才可在
+        // 未来版本安全移除该键。
         Ok(())
     }
 
@@ -720,7 +719,8 @@ mod tests {
             .unwrap();
         assert_eq!(c2.name, "old c2");
 
-        // blob 键已清除：再次迁移幂等且无残留
+        // R003：blob 键刻意保留（键删除会经 profile delta 同步到仍读 blob 的
+        // 旧版本设备，抹掉其会话且无法自行迁移）——再次迁移幂等，且不覆盖较新行。
         service
             .migrate_legacy_conversations(&vault, &account_id)
             .unwrap();
@@ -728,9 +728,14 @@ mod tests {
         assert!(
             data.get("preferences")
                 .and_then(|p| p.get("llmConversations"))
-                .is_none(),
-            "迁移后 blob 键应清除"
+                .is_some(),
+            "R003: 迁移后 blob 键应保留（延迟删键，保护混合版本同步）"
         );
+        let c1_again = service
+            .get_conversation(&vault, &account_id, "c1")
+            .unwrap()
+            .unwrap();
+        assert_eq!(c1_again.name, "newer c1", "重复迁移不应覆盖较新行");
     }
 }
 

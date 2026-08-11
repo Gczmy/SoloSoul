@@ -28,6 +28,8 @@ All notable changes to SoloSoul are documented in this file.
 - 版本号同步升级到 2.9.2（versionCode 2009002）。
 - 29 个 commit 自 v2.9.1 到 v2.9.2。
 
+> **会话存储迁移（P004/N005）**：AI 会话已由 profile preferences 的 `llmConversations` blob 懒迁移到行级表。迁移后 blob 键**刻意保留**（R003）：若立即删除，键删除会经 profile delta 同步到仍从 blob 读取会话的旧版本设备，导致旧设备会话被抹且无法自行迁移。请确认所有设备同步升级到 2.9.2+ 后，再在后续版本安全清理该键。
+
 ## [2.9.1] - 2026-08-08
 
 ### Added
