@@ -37,7 +37,7 @@ function simulateProgress(
 describe('ensureApkDownloaded', () => {
   it('APK 已下载时短路返回 false，不启动下载', async () => {
     ipcMock.mockResolvedValue(true); // android_is_apk_downloaded -> true
-    const result = await ensureApkDownloaded('1.0.0', 'https://example.com/a.apk', '');
+    const result = await ensureApkDownloaded('1.0.0');
     expect(result).toBe(false);
     expect(listenMock).not.toHaveBeenCalled();
   });
@@ -54,7 +54,7 @@ describe('ensureApkDownloaded', () => {
     );
 
     const seen: ApkDownloadProgress[] = [];
-    const p = ensureApkDownloaded('1.0.0', 'https://example.com/a.apk', 'abc123', (prog) => {
+    const p = ensureApkDownloaded('1.0.0', (prog) => {
       seen.push(prog);
     });
 
@@ -79,7 +79,7 @@ describe('ensureApkDownloaded', () => {
       },
     );
 
-    const p = ensureApkDownloaded('1.0.0', 'https://example.com/a.apk', '');
+    const p = ensureApkDownloaded('1.0.0');
     await flushMicrotasks();
     simulateProgress(registered!, { progress: 10, downloaded: 1, total: 10, done: true, error: 'disk full' });
 
@@ -87,7 +87,7 @@ describe('ensureApkDownloaded', () => {
     expect(unlisten).toHaveBeenCalledTimes(1);
   });
 
-  it('未下载但无 downloadUrl 时由调用方处理（本函数不校验 URL，正常走下载）', async () => {
+  it('P002: 前端不再传 URL/校验和（参数移除），invoke 仅携带 version', async () => {
     ipcMock.mockResolvedValue(false);
     let registered: ((event: { payload: ApkDownloadProgress }) => void) | undefined;
     listenMock.mockImplementation(
@@ -96,9 +96,13 @@ describe('ensureApkDownloaded', () => {
         return Promise.resolve(() => {});
       },
     );
-    const p = ensureApkDownloaded('1.0.0', 'https://example.com/a.apk', '');
+    const p = ensureApkDownloaded('1.0.0');
     await flushMicrotasks();
     simulateProgress(registered!, { progress: 100, downloaded: 1, total: 1, done: true, error: null });
     await expect(p).resolves.toBe(true);
+    // 校验 invoke 参数：仅 version，不再包含 downloadUrl/expectedChecksum
+    const call = ipcMock.mock.calls.find((c) => c[0] === 'android_download_apk');
+    expect(call).toBeTruthy();
+    expect(call![1]).toEqual({ version: '1.0.0' });
   });
 });

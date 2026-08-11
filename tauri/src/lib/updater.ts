@@ -156,14 +156,14 @@ export async function androidCheckForUpdate(): Promise<AndroidUpdateCheckResult>
 
 /**
  * 下载 Android APK 并监听进度事件。
- * 如果提供了 `checksum`（非空），下载完成后自动验证 SHA-256。
+ *
+ * P002: 下载 URL 与校验和由 Rust 端按 version 重新拉取 GitHub Release 元数据
+ * 并重新验签（不信任前端回传，杜绝 XSS 诱导下载任意 APK），因此前端仅传 version。
  *
  * 返回一个取消监听函数。
  */
 export async function androidDownloadApk(
   version: string,
-  downloadUrl: string,
-  checksum: string,
   onProgress?: (progress: ApkDownloadProgress) => void,
 ): Promise<UnlistenFn> {
   const unlisten = await listen<ApkDownloadProgress>('apk-download-progress', (event) => {
@@ -171,11 +171,8 @@ export async function androidDownloadApk(
   });
 
   // 在后台启动下载（不 await，让事件驱动进度）
-  // expectedChecksum: 传入空字符串或有效 hex；Rust 端根据非空决定是否校验
   invoke<void>('android_download_apk', {
     version,
-    downloadUrl: downloadUrl,
-    expectedChecksum: checksum || null,
   }).catch((err) => {
     logger.error('[updater] android download failed:', err);
     onProgress?.({
@@ -197,13 +194,12 @@ export async function androidDownloadApk(
  * 返回 true 表示本次完成了实际下载（调用方无需再查是否已下载）；
  * 若 APK 已存在则直接返回 false（调用方据此跳转到安装阶段）。
  *
+ * P002: URL/校验和参数已移除——Rust 端按 version 重新拉取元数据并验签。
+ *
  * @param onProgress 下载进度回调（含 done/error 终态）。
- * @param onSettled 可选：下载 promise 落定（成功或失败）后回调，用于清理/标记。
  */
 export async function ensureApkDownloaded(
   version: string,
-  downloadUrl: string,
-  checksum: string,
   onProgress?: (progress: ApkDownloadProgress) => void,
 ): Promise<boolean> {
   const alreadyDownloaded = await androidIsApkDownloaded(version);
@@ -215,7 +211,7 @@ export async function ensureApkDownloaded(
   let settled = false;
   try {
     await new Promise<void>((resolve, reject) => {
-      androidDownloadApk(version, downloadUrl, checksum, (progress) => {
+      androidDownloadApk(version, (progress) => {
         onProgress?.(progress);
         if (progress.done && !settled) {
           settled = true;

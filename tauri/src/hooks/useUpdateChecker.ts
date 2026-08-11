@@ -141,16 +141,12 @@ export function useUpdateChecker() {
         }
         if (versionInfo?.downloadUrl) {
           // P010: 统一封装——检查已下载、事件驱动下载、清理监听
-          await ensureApkDownloaded(
-            targetVersion,
-            versionInfo.downloadUrl,
-            versionInfo.checksum || '',
-            (progress) => {
-              setDownloadProgress(progress);
-              setDownloadedBytes(progress.downloaded);
-              setTotalBytes(progress.total);
-            },
-          );
+          // P002: URL/校验和由 Rust 端按 version 重新拉取并验签，前端不再回传
+          await ensureApkDownloaded(targetVersion, (progress) => {
+            setDownloadProgress(progress);
+            setDownloadedBytes(progress.downloaded);
+            setTotalBytes(progress.total);
+          });
         }
         // 安装已下载的 APK
         await androidInstallApk(targetVersion);

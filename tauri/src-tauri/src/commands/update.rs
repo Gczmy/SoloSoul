@@ -11,6 +11,8 @@ use tauri::{Emitter, Manager};
 use tauri_plugin_updater::UpdaterExt;
 
 const GITHUB_API: &str = "https://api.github.com/repos/Gczmy/SoloSoul/releases/latest";
+/// 按 tag 拉取指定版本的 Release（P002：下载命令重新拉取元数据，不信任前端回传）。
+const GITHUB_API_TAG: &str = "https://api.github.com/repos/Gczmy/SoloSoul/releases/tags/";
 const USER_AGENT: &str = "SoloSoul/2.6.1";
 
 /// P003: APK 校验和（`.sha256`）的 minisign 公钥，**复用 embed 注册表密钥对**
@@ -171,8 +173,24 @@ fn github_client() -> Result<reqwest::Client, String> {
 
 /// 请求 GitHub Release API 并解析最新 Release。
 async fn fetch_github_release(client: &reqwest::Client) -> Result<GitHubRelease, String> {
+    fetch_github_release_url(client, GITHUB_API).await
+}
+
+/// 按 tag 拉取指定版本的 Release（P002：下载命令重新拉取元数据，不信任前端回传）。
+async fn fetch_github_release_by_tag(
+    client: &reqwest::Client,
+    tag: &str,
+) -> Result<GitHubRelease, String> {
+    fetch_github_release_url(client, &format!("{GITHUB_API_TAG}{tag}")).await
+}
+
+/// 请求 GitHub Release API 并解析 Release（latest 或按 tag）。
+async fn fetch_github_release_url(
+    client: &reqwest::Client,
+    url: &str,
+) -> Result<GitHubRelease, String> {
     let resp = client
-        .get(GITHUB_API)
+        .get(url)
         .send()
         .await
         .map_err(|e| format!("请求 GitHub API 失败: {e}"))?;
@@ -208,6 +226,69 @@ fn verify_checksum_signature(checksum_bytes: &[u8], sig_text: &str) -> Result<()
         .map_err(|e| format!("APK checksum signature verification failed: {e}"))
 }
 
+/// 从 Release 资产中查找 APK 下载资产，返回其 URL 与大小（克隆值，避免借用阻塞后续字段移动）。
+fn find_apk_asset(release: &GitHubRelease) -> Option<(String, Option<i64>)> {
+    release
+        .assets
+        .iter()
+        .find(|a| a.name.ends_with(".apk") || a.name.contains("universal-release"))
+        .map(|a| (a.browser_download_url.clone(), a.size))
+}
+
+/// 查找对应的 `.sha256` 校验和资产、`.sha256.minisig` 签名资产，下载并验签。
+///
+/// P003: 校验和不再与 APK 同通道无条件信任——发布侧已用 embed 注册表私钥
+/// 对 .sha256 文件签名（cargo tauri signer sign -p ''），客户端以编译期公钥
+/// 验签；验签失败或缺失签名视为校验和不可信（返回 None）。
+///
+/// 返回验签通过的 64 位 hex 校验和（格式: "<64位hex>  <文件名>" 或仅 hex）。
+async fn resolve_verified_checksum(
+    client: &reqwest::Client,
+    release: &GitHubRelease,
+) -> Option<String> {
+    let checksum_asset = release
+        .assets
+        .iter()
+        .find(|a| a.name.ends_with(".apk.sha256") || a.name.contains("sha256"))?;
+    let sig_asset = release.assets.iter().find(|a| {
+        a.name.ends_with(".sha256.minisig")
+            || a.name.ends_with(".apk.sha256.minisig")
+            || a.name.contains(".sha256.minisig")
+    });
+
+    // 下载校验和文件（约 64 字节）与签名文件
+    let body = match client
+        .get(&checksum_asset.browser_download_url)
+        .send()
+        .await
+    {
+        Ok(resp) if resp.status().is_success() => resp.text().await.unwrap_or_default(),
+        _ => String::new(),
+    };
+    let sig_text = match sig_asset {
+        Some(asset) => match client.get(&asset.browser_download_url).send().await {
+            Ok(resp) if resp.status().is_success() => resp.text().await.unwrap_or_default(),
+            _ => String::new(),
+        },
+        None => String::new(),
+    };
+
+    let sig_ok =
+        !sig_text.is_empty() && verify_checksum_signature(body.as_bytes(), &sig_text).is_ok();
+    if !sig_ok {
+        tracing::warn!(
+            "[updater] APK checksum minisign signature missing or invalid — checksum rejected"
+        );
+        return None;
+    }
+
+    // 验签通过后，才提取 64 位 hex 作为校验和。
+    body.split_whitespace()
+        .next()
+        .filter(|token| token.len() == 64)
+        .map(|s| s.to_string())
+}
+
 /// 检查 GitHub Release 是否有新版本。
 ///
 /// 仅在 Android 上有效；桌面端使用 `desktop_check_update`。
@@ -224,65 +305,10 @@ pub async fn android_check_update(app: tauri::AppHandle) -> Result<AndroidUpdate
         .unwrap_or(&release.tag_name)
         .to_string();
 
-    // 查找 APK 资产
-    let apk_asset = release
-        .assets
-        .iter()
-        .find(|a| a.name.ends_with(".apk") || a.name.contains("universal-release"));
-
-    // 查找对应的 .sha256 校验和资产与 .sha256.minisig 签名资产，下载并验签。
-    // P003: 校验和不再与 APK 同通道无条件信任——发布侧已用 embed 注册表私钥
-    // 对 .sha256 文件签名（cargo tauri signer sign -p ''），客户端以编译期
-    // 公钥验签；验签失败或缺失签名视为校验和不可信（返回空字符串，客户端仅
-    // 失去完整性校验，不阻断下载）。
-    let checksum = if let Some(checksum_asset) = release
-        .assets
-        .iter()
-        .find(|a| a.name.ends_with(".apk.sha256") || a.name.contains("sha256"))
-    {
-        let sig_asset = release.assets.iter().find(|a| {
-            a.name.ends_with(".sha256.minisig")
-                || a.name.ends_with(".apk.sha256.minisig")
-                || a.name.contains(".sha256.minisig")
-        }); // 下载校验和文件（约 64 字节）与签名文件
-        let body = match client
-            .get(&checksum_asset.browser_download_url)
-            .send()
-            .await
-        {
-            Ok(resp) if resp.status().is_success() => resp.text().await.unwrap_or_default(),
-            _ => String::new(),
-        };
-
-        // 签名缺失或验签失败 → 校验和不可信，返回 None（客户端仅失去完整性校验，不阻断下载）
-        let sig_text = match sig_asset {
-            Some(asset) => match client.get(&asset.browser_download_url).send().await {
-                Ok(resp) if resp.status().is_success() => resp.text().await.unwrap_or_default(),
-                _ => String::new(),
-            },
-            None => String::new(),
-        };
-        let sig_ok =
-            !sig_text.is_empty() && verify_checksum_signature(body.as_bytes(), &sig_text).is_ok();
-        if !sig_ok {
-            tracing::warn!(
-                "[updater] APK checksum minisign signature missing or invalid — checksum rejected"
-            );
-        }
-
-        // 验签通过后，才提取 64 位 hex 作为校验和。
-        // 格式: "<64位hex>  <文件名>" 或仅 "<64位hex>"
-        if sig_ok {
-            body.split_whitespace()
-                .next()
-                .filter(|token| token.len() == 64)
-                .map(|s| s.to_string())
-        } else {
-            None
-        }
-    } else {
-        None
-    };
+    // 查找 APK 资产；校验和走共享解析（下载 .sha256 + .minisig 并验签）
+    let (apk_download_url, apk_size) = find_apk_asset(&release).unwrap_or_default();
+    let apk_download_url = (!apk_download_url.is_empty()).then_some(apk_download_url);
+    let checksum = resolve_verified_checksum(&client, &release).await;
 
     // 如果找到 checksum 但解析失败（如文件格式异常），也返回空字符串
     // 客户端仍可正常下载，只是不进行校验
@@ -307,12 +333,12 @@ pub async fn android_check_update(app: tauri::AppHandle) -> Result<AndroidUpdate
     Ok(AndroidUpdateInfo {
         latest_version: latest,
         current_version: current,
-        download_url: apk_asset.map(|a| a.browser_download_url.clone()),
+        download_url: apk_download_url,
         checksum: checksum.unwrap_or_default(),
         mandatory,
         release_notes: clean_body,
         published_at: release.published_at,
-        apk_size: apk_asset.and_then(|a| a.size),
+        apk_size,
     })
 }
 
@@ -441,26 +467,35 @@ pub async fn desktop_check_update(app: tauri::AppHandle) -> Result<DesktopUpdate
 /// 支持**断点续传**：如果缓存目录中已存在部分下载的 `update.part` 文件，
 /// 会自动通过 HTTP `Range` 请求头从断点处继续下载。
 ///
-/// 如果提供了 `expected_checksum`（非空字符串），下载完成后会读取完整文件
-/// 计算 SHA-256 并校验。验证失败则删除部分文件并返回错误。
+/// P002: 下载 URL 与 SHA-256 校验和**不信任前端回传**——WebView 被 XSS 控制时
+/// 可诱导下载任意 URL 的 APK 并触发系统安装流程。因此本命令仅接收 `version`，
+/// 在 Rust 侧按 `releases/tags/v{version}` 重新拉取 GitHub Release 元数据，
+/// 复用 `resolve_verified_checksum` 重新验签；元数据缺失或验签失败则 **fail-closed**
+/// 拒绝下载（绝不降级为「无校验下载」）。下载完成后仍强制 SHA-256 校验。
 ///
 /// 事件名：`apk-download-progress`
 #[tauri::command]
-pub async fn android_download_apk(
-    app: tauri::AppHandle,
-    version: String,
-    download_url: String,
-    expected_checksum: Option<String>,
-) -> Result<(), String> {
+pub async fn android_download_apk(app: tauri::AppHandle, version: String) -> Result<(), String> {
     let dest = apk_cache_path(&app, &version)?;
     let part_path = apk_part_path(&app, &version)?;
 
     // 下载前再次清理旧版本缓存，确保不会把旧版本的 .part/.apk 混淆。
     let _ = cleanup_stale_apk_cache(&app, &version);
-    let should_verify = expected_checksum
-        .as_ref()
-        .map(|s| !s.is_empty())
-        .unwrap_or(false);
+
+    // P002: Rust 侧重新拉取 release 元数据，提取 APK 下载地址并重新验签校验和。
+    let client = github_client()?;
+    let tag = if version.starts_with('v') {
+        version.clone()
+    } else {
+        format!("v{}", version)
+    };
+    let release = fetch_github_release_by_tag(&client, &tag).await?;
+    let (download_url, _apk_size) =
+        find_apk_asset(&release).ok_or_else(|| "Release 中未找到 APK 资产".to_string())?;
+    let expected_checksum = resolve_verified_checksum(&client, &release)
+        .await
+        .ok_or_else(|| "APK 校验和不可信（签名缺失或验签失败），已拒绝下载".to_string())?;
+    let should_verify = true;
 
     // 检查是否有已下载的部分文件，用于断点续传
     let existing_size = if part_path.exists() {
@@ -552,10 +587,10 @@ pub async fn android_download_apk(
 
     let final_size = initial_offset + new_bytes;
 
-    // ── SHA-256 校验 ──
+    // ── SHA-256 校验（P002：校验和由 Rust 侧验签获取，必非空，强制校验） ──
     if should_verify {
         use std::io::Read;
-        let expected = expected_checksum.unwrap_or_default();
+        let expected = expected_checksum;
         let mut file =
             std::fs::File::open(&part_path).map_err(|e| format!("打开文件计算校验和: {e}"))?;
         let mut hasher = sha2::Sha256::new();

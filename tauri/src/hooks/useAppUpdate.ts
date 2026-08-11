@@ -97,7 +97,8 @@ export function useAppUpdate() {
         }
         // P010: 统一封装——检查已下载、事件驱动下载、清理监听；
         // 返回 true 表示实际下载完成，false 表示 APK 已存在直接进入安装阶段。
-        await ensureApkDownloaded(updateState.version, info.downloadUrl, info.checksum, (progress) => {
+        // P002: URL/校验和由 Rust 端按 version 重新拉取并验签，前端不再回传。
+        await ensureApkDownloaded(updateState.version, (progress) => {
           setUpdateState((prev) => {
             if (prev.kind !== 'downloading') return prev;
             return {
