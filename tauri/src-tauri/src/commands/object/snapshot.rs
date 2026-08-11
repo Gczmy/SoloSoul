@@ -206,136 +206,171 @@ fn build_preview_properties(
         })()
         .unwrap_or_default()
     } else {
-        // 生成对象 preview_properties：优先使用对象自身保存的 __fields 字段定义获取名称/类型，
-        // 敏感度以 property_labels 为真实来源；模板删除后仍可显示正确的本地化字段名与敏感度。
-        (|| -> Option<Vec<serde_json::Value>> {
-            let data: serde_json::Value = serde_json::from_slice(&trash.data).ok()?;
-            let props = data.get("properties")?.as_object()?;
-            let fields_def = props.get("__fields").and_then(|v| v.as_object());
-
-            // 字段级敏感度的真实来源是 propertyLabels（对象当前敏感度副本）
-            let sensitivity_map = data
-                .get("propertyLabels")
-                .or_else(|| data.get("property_labels"))
-                .and_then(|v| v.as_object())
-                .cloned()
-                .unwrap_or_default();
-
-            // 1. 加载模板（用于排序和补充字段定义）
-            let tpl = data
-                .get("templateId")
-                .or_else(|| data.get("template_id"))
-                .and_then(|v| v.as_str())
-                .and_then(|tpl_id| vault.load_user_template(tpl_id).ok().flatten());
-
-            // 2. 构建字段定义映射：field_id -> (显示名, 类型)
-            let mut field_defs: std::collections::HashMap<String, (String, String)> =
-                std::collections::HashMap::new();
-
-            // 2.1 优先从对象自带的 __fields 读取名称和类型
-            if let Some(fields) = fields_def {
-                for (field_id, def) in fields {
-                    let name = def
-                        .get("name")
-                        .and_then(|v| v.as_str())
-                        .unwrap_or(field_id)
-                        .to_string();
-                    let ptype = def
-                        .get("type")
-                        .and_then(|v| v.as_str())
-                        .unwrap_or("text")
-                        .to_string();
-                    field_defs.insert(field_id.clone(), (name, ptype));
-                }
-            }
-
-            // 2.2 模板作为补充（排序优先）
-            let tpl_order: Vec<String> = tpl
-                .as_ref()
-                .map(|t| t.properties.iter().map(|p| p.id.clone()).collect())
-                .unwrap_or_default();
-            if let Some(ref t) = tpl {
-                for prop in &t.properties {
-                    if field_defs.contains_key(&prop.id) {
-                        continue;
-                    }
-                    let ptype = serde_json::to_string(&prop.prop_type)
-                        .ok()
-                        .and_then(|s| serde_json::from_str::<String>(&s).ok())
-                        .unwrap_or_else(|| "text".to_string());
-                    field_defs.insert(prop.id.clone(), (prop.name.clone(), ptype));
-                }
-            }
-
-            // 3. 确定字段顺序：模板顺序 -> __fields 顺序 -> properties 顺序
-            let mut ordered_ids: Vec<String> = Vec::new();
-            let mut seen = std::collections::HashSet::new();
-            for id in &tpl_order {
-                if seen.insert(id.clone()) {
-                    ordered_ids.push(id.clone());
-                }
-            }
-            if let Some(fields) = fields_def {
-                for id in fields.keys() {
-                    if seen.insert(id.clone()) {
-                        ordered_ids.push(id.clone());
-                    }
-                }
-            }
-            for id in props.keys() {
-                if !id.starts_with("__") && seen.insert(id.clone()) {
-                    ordered_ids.push(id.clone());
-                }
-            }
-
-            // 4. 生成结果：敏感度从 property_labels 读取，fallback 到 __fields/模板/internal
-            //    对于 page 类型不包含 sensitiveLevel（页面描述等字段无敏感度概念）
-            let is_page = trash.item_type == "page";
-            let mut result = Vec::new();
-            for field_id in ordered_ids {
-                let v = match props.get(&field_id) {
-                    Some(v) => v,
-                    None => continue,
-                };
-                let (name, ptype) = match field_defs.get(&field_id) {
-                    Some(def) => def.clone(),
-                    None => (field_id.clone(), "text".to_string()),
-                };
-                let mut entry = serde_json::json!({
-                    "fieldId": field_id,
-                    "key": name,
-                    "value": v,
-                    "type": ptype,
-                });
-                if !is_page {
-                    let sens = sensitivity_map
-                        .get(&field_id)
-                        .and_then(|v| v.as_str())
-                        .map(String::from)
-                        .or_else(|| {
-                            fields_def
-                                .and_then(|f| f.get(&field_id))
-                                .and_then(|d| d.get("sensitivityLevel"))
-                                .and_then(|v| v.as_str())
-                                .map(String::from)
-                        })
-                        .or_else(|| {
-                            tpl.as_ref().and_then(|t| {
-                                t.properties
-                                    .iter()
-                                    .find(|p| p.id == field_id)
-                                    .and_then(|p| p.sensitivity_level.clone())
-                            })
-                        })
-                        .unwrap_or_else(|| "internal".to_string());
-                    entry["sensitivityLevel"] = serde_json::Value::String(sens);
-                }
-                result.push(entry);
-            }
-            Some(result.into_iter().take(5).collect())
-        })()
-        .unwrap_or_default()
+        build_object_preview_properties(vault, trash)
     }
+}
+
+/// P036: 对象/页面条目的 preview_properties 构建（阶段化）：
+/// 优先使用对象自身保存的 __fields 字段定义获取名称/类型，敏感度以 property_labels
+/// 为真实来源；模板删除后仍可显示正确的本地化字段名与敏感度。
+fn build_object_preview_properties(
+    vault: &solosoul_vault::VaultStore,
+    trash: &solosoul_vault::TrashItem,
+) -> Vec<serde_json::Value> {
+    (|| -> Option<Vec<serde_json::Value>> {
+        let data: serde_json::Value = serde_json::from_slice(&trash.data).ok()?;
+        let props = data.get("properties")?.as_object()?;
+        let fields_def = props.get("__fields").and_then(|v| v.as_object());
+
+        // 字段级敏感度的真实来源是 propertyLabels（对象当前敏感度副本）
+        let sensitivity_map = data
+            .get("propertyLabels")
+            .or_else(|| data.get("property_labels"))
+            .and_then(|v| v.as_object())
+            .cloned()
+            .unwrap_or_default();
+
+        // 阶段 1：加载模板（用于排序和补充字段定义）
+        let tpl = data
+            .get("templateId")
+            .or_else(|| data.get("template_id"))
+            .and_then(|v| v.as_str())
+            .and_then(|tpl_id| vault.load_user_template(tpl_id).ok().flatten());
+        let tpl_order: Vec<String> = tpl
+            .as_ref()
+            .map(|t| t.properties.iter().map(|p| p.id.clone()).collect())
+            .unwrap_or_default();
+
+        // 阶段 2：构建字段定义映射（__fields 优先，模板补充）
+        let field_defs = collect_field_defs(fields_def, tpl.as_ref());
+
+        // 阶段 3：确定字段顺序：模板顺序 -> __fields 顺序 -> properties 顺序
+        let ordered_ids = resolve_field_order(&tpl_order, fields_def, props);
+
+        // 阶段 4：生成结果（敏感度三级 fallback；page 类型不含 sensitiveLevel）
+        let is_page = trash.item_type == "page";
+        let mut result = Vec::new();
+        for field_id in ordered_ids {
+            let v = match props.get(&field_id) {
+                Some(v) => v,
+                None => continue,
+            };
+            let (name, ptype) = match field_defs.get(&field_id) {
+                Some(def) => def.clone(),
+                None => (field_id.clone(), "text".to_string()),
+            };
+            let mut entry = serde_json::json!({
+                "fieldId": field_id,
+                "key": name,
+                "value": v,
+                "type": ptype,
+            });
+            if !is_page {
+                let sens =
+                    resolve_sensitivity(&field_id, &sensitivity_map, fields_def, tpl.as_ref());
+                entry["sensitivityLevel"] = serde_json::Value::String(sens);
+            }
+            result.push(entry);
+        }
+        Some(result.into_iter().take(5).collect())
+    })()
+    .unwrap_or_default()
+}
+
+/// P036: 构建字段定义映射：field_id -> (显示名, 类型)。__fields 优先，模板补充缺失项。
+fn collect_field_defs(
+    fields_def: Option<&serde_json::Map<String, serde_json::Value>>,
+    tpl: Option<&solosoul_vault::UserTemplate>,
+) -> std::collections::HashMap<String, (String, String)> {
+    let mut field_defs: std::collections::HashMap<String, (String, String)> =
+        std::collections::HashMap::new();
+
+    if let Some(fields) = fields_def {
+        for (field_id, def) in fields {
+            let name = def
+                .get("name")
+                .and_then(|v| v.as_str())
+                .unwrap_or(field_id)
+                .to_string();
+            let ptype = def
+                .get("type")
+                .and_then(|v| v.as_str())
+                .unwrap_or("text")
+                .to_string();
+            field_defs.insert(field_id.clone(), (name, ptype));
+        }
+    }
+
+    if let Some(t) = tpl {
+        for prop in &t.properties {
+            if field_defs.contains_key(&prop.id) {
+                continue;
+            }
+            let ptype = serde_json::to_string(&prop.prop_type)
+                .ok()
+                .and_then(|s| serde_json::from_str::<String>(&s).ok())
+                .unwrap_or_else(|| "text".to_string());
+            field_defs.insert(prop.id.clone(), (prop.name.clone(), ptype));
+        }
+    }
+    field_defs
+}
+
+/// P036: 确定字段顺序：模板顺序 -> __fields 顺序 -> properties 顺序（跳过 __ 系统键）。
+fn resolve_field_order(
+    tpl_order: &[String],
+    fields_def: Option<&serde_json::Map<String, serde_json::Value>>,
+    props: &serde_json::Map<String, serde_json::Value>,
+) -> Vec<String> {
+    let mut ordered_ids: Vec<String> = Vec::new();
+    let mut seen = std::collections::HashSet::new();
+    for id in tpl_order {
+        if seen.insert(id.clone()) {
+            ordered_ids.push(id.clone());
+        }
+    }
+    if let Some(fields) = fields_def {
+        for id in fields.keys() {
+            if seen.insert(id.clone()) {
+                ordered_ids.push(id.clone());
+            }
+        }
+    }
+    for id in props.keys() {
+        if !id.starts_with("__") && seen.insert(id.clone()) {
+            ordered_ids.push(id.clone());
+        }
+    }
+    ordered_ids
+}
+
+/// P036: 解析字段敏感度：property_labels -> __fields -> 模板 -> internal。
+fn resolve_sensitivity(
+    field_id: &str,
+    sensitivity_map: &serde_json::Map<String, serde_json::Value>,
+    fields_def: Option<&serde_json::Map<String, serde_json::Value>>,
+    tpl: Option<&solosoul_vault::UserTemplate>,
+) -> String {
+    sensitivity_map
+        .get(field_id)
+        .and_then(|v| v.as_str())
+        .map(String::from)
+        .or_else(|| {
+            fields_def
+                .and_then(|f| f.get(field_id))
+                .and_then(|d| d.get("sensitivityLevel"))
+                .and_then(|v| v.as_str())
+                .map(String::from)
+        })
+        .or_else(|| {
+            tpl.and_then(|t| {
+                t.properties
+                    .iter()
+                    .find(|p| p.id == field_id)
+                    .and_then(|p| p.sensitivity_level.clone())
+            })
+        })
+        .unwrap_or_else(|| "internal".to_string())
 }
 
 /// 从存储数据解析附件（活跃 + 软删除）。
