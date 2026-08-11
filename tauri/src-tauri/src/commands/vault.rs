@@ -102,18 +102,10 @@ pub async fn get_vault_stats(state: State<'_, AppState>) -> Result<serde_json::V
     }
     stats.attachments_size = attachments_size;
 
-    // AI conversations stored inside profiles (in the preferences JSON blob)
-    if let Ok(Some(profile)) = vault.load_profile(&account_id) {
-        if !profile.data.is_empty() {
-            if let Ok(data) = serde_json::from_slice::<serde_json::Value>(&profile.data) {
-                if let Some(convs) = data.pointer("/preferences/llmConversations") {
-                    if let Some(arr) = convs.as_array() {
-                        let raw = serde_json::to_vec(arr).unwrap_or_default();
-                        stats.ai_conversations_size = raw.len() as u64;
-                    }
-                }
-            }
-        }
+    // P004: AI conversations stored in dedicated llm_conversations table (row-level).
+    // 统计密文总字节（纯 SQL SUM，不解密）。
+    if let Ok(bytes) = vault.conversations_size(&account_id) {
+        stats.ai_conversations_size = bytes;
     }
 
     let total = stats.profiles_size

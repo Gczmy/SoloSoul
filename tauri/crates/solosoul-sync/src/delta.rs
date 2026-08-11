@@ -9,7 +9,14 @@ use crate::types::{ApplyStats, ConflictRecord};
 use solosoul_vault::{BorrowedSyncRecord, RecordHlc, SyncWatermark, VaultStore};
 
 /// Tables synchronized in the first milestone (attachments excluded).
-pub const SYNC_TABLES: &[&str] = &["profiles", "objects", "user_templates", "trash_items"];
+/// P004: 加入 llm_conversations（会话行存储，随设备同步）。
+pub const SYNC_TABLES: &[&str] = &[
+    "profiles",
+    "objects",
+    "user_templates",
+    "trash_items",
+    "llm_conversations",
+];
 
 /// 簿记字段：随每次编辑/同步应用变化、与内容差异无关。
 /// 冲突自动消解比较时剥除，避免「内容一致、仅版本/时间不同」的假冲突

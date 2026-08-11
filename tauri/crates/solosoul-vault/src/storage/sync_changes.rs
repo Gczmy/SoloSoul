@@ -31,6 +31,9 @@ impl VaultStore {
                 self.list_user_template_changes_since(watermark, account_id, local_node_id)
             }
             "trash_items" => self.list_trash_changes_since(watermark, local_node_id),
+            "llm_conversations" => {
+                self.list_conversation_changes_since(watermark, account_id, local_node_id)
+            }
             _ => Err(format!("Unsupported sync table: {}", table)),
         }
     }

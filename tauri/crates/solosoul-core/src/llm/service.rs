@@ -128,33 +128,37 @@ impl LlmService {
     // ── Conversations ──────────────────────────────────────────────
 
     /// Load all conversations for an account.
+    ///
+    /// P004: 会话改存 `llm_conversations` 行级表（不再存 profile preferences blob），
+    /// 本方法委托 vault 行级读取，与 src-tauri 命令实现保持单一数据源。
     pub fn load_conversations(
         &self,
         vault: &VaultStore,
         account_id: &str,
     ) -> LlmResult<Vec<Conversation>> {
-        let data = Self::load_profile_data(vault, account_id)?;
-        Ok(data
-            .get("preferences")
-            .and_then(|p| p.get("llmConversations"))
-            .and_then(|v| serde_json::from_value(v.clone()).ok())
-            .unwrap_or_default())
+        let rows = vault
+            .list_conversations(account_id)
+            .map_err(|e| e.to_string())?;
+        Ok(rows
+            .into_iter()
+            .filter_map(|(_id, _updated, data)| serde_json::from_slice(&data).ok())
+            .collect())
     }
 
-    /// Save conversations.
+    /// Save conversations（整批 upsert 到行级表）。
     pub fn save_conversations(
         &self,
         vault: &VaultStore,
         account_id: &str,
         conversations: &[Conversation],
     ) -> LlmResult<()> {
-        let mut data = Self::load_profile_data(vault, account_id)?;
-        let prefs = Self::prefs_mut(&mut data)?;
-        prefs.insert(
-            "llmConversations".to_string(),
-            serde_json::to_value(conversations).map_err(|e| e.to_string())?,
-        );
-        Self::save_profile_data(vault, account_id, &data)
+        for c in conversations {
+            let data = serde_json::to_vec(c).map_err(|e| format!("Serialize: {e}"))?;
+            vault
+                .save_conversation(account_id, &c.id, &c.updated_at, &data)
+                .map_err(|e| e.to_string())?;
+        }
+        Ok(())
     }
 
     /// List conversation summaries (non-temporary, non-deleted).
@@ -179,31 +183,36 @@ impl LlmService {
         Ok(summaries)
     }
 
-    /// Get a single conversation by ID.
+    /// Get a single conversation by ID（P004：单行读取，仅解密目标行）。
     pub fn get_conversation(
         &self,
         vault: &VaultStore,
         account_id: &str,
         conversation_id: &str,
     ) -> LlmResult<Option<Conversation>> {
-        let conversations = self.load_conversations(vault, account_id)?;
-        Ok(conversations.into_iter().find(|c| c.id == conversation_id))
+        let data = vault
+            .load_conversation(account_id, conversation_id)
+            .map_err(|e| e.to_string())?;
+        Ok(data.and_then(|d| serde_json::from_slice(&d).ok()))
     }
 
-    /// Save a single conversation (upsert).
+    /// Save a single conversation (行级 upsert)。
     pub fn save_conversation(
         &self,
         vault: &VaultStore,
         account_id: &str,
         conversation: &Conversation,
     ) -> LlmResult<()> {
-        let mut conversations = self.load_conversations(vault, account_id)?;
-        if let Some(existing) = conversations.iter_mut().find(|c| c.id == conversation.id) {
-            *existing = conversation.clone();
-        } else {
-            conversations.push(conversation.clone());
-        }
-        self.save_conversations(vault, account_id, &conversations)
+        let data = serde_json::to_vec(conversation).map_err(|e| format!("Serialize: {e}"))?;
+        vault
+            .save_conversation(
+                account_id,
+                &conversation.id,
+                &conversation.updated_at,
+                &data,
+            )
+            .map_err(|e| e.to_string())?;
+        Ok(())
     }
 
     // ── Stats ──────────────────────────────────────────────────────

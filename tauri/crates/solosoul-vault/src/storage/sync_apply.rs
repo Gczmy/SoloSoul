@@ -76,6 +76,7 @@ impl VaultStore {
             "objects" => Self::apply_object_sync_record_tx(conn, key, record, local_node_id),
             "user_templates" => Self::apply_user_template_sync_record_tx(conn, key, record),
             "trash_items" => Self::apply_trash_sync_record_tx(conn, key, record),
+            "llm_conversations" => Self::apply_conversation_sync_record_tx(conn, key, record),
             _ => Err(format!("Unsupported sync table: {}", record.table)),
         }?;
 
@@ -264,6 +265,7 @@ impl VaultStore {
                     return Ok(None);
                 }
             }
+            "llm_conversations" => return self.conversation_local_snapshot(record_id),
             _ => return Ok(None),
         };
         Ok(Some(value))
@@ -348,6 +350,9 @@ impl VaultStore {
             "trash_items" => {
                 conn.execute("DELETE FROM trash_items WHERE id = ?1", params![record_id])
                     .map_err(|e| e.to_string())?;
+            }
+            "llm_conversations" => {
+                Self::delete_conversation_tx(conn, record_id)?;
             }
             _ => return Err(format!("Unsupported sync table: {}", table)),
         }

@@ -433,14 +433,18 @@ pub async fn llm_send_message_stream(
             .map_err(|_| "Vault service lock poisoned".to_string())?;
         let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
         let vault = vg.as_ref();
-        let mut convs = load_conversations(vault, &account_id)?;
-        if let Some(conv) = convs.iter_mut().find(|c| c.id == conversation_id) {
-            conv.messages.push(ChatMessage {
+        // P004: 热路径行级读写——单行加载目标会话、追加助手回复、行级保存，
+        // 不再整 blob 解密/深克隆/重写全部会话。
+        let mut conv: Option<Conversation> = vault
+            .load_conversation(&account_id, &conversation_id)?
+            .and_then(|data| serde_json::from_slice::<Conversation>(&data).ok());
+        if let Some(conv_mut) = conv.as_mut() {
+            conv_mut.messages.push(ChatMessage {
                 role: "assistant".to_string(),
                 content: full_text.clone(),
                 created_at: now_iso(),
             });
-            conv.updated_at = now_iso();
+            conv_mut.updated_at = now_iso();
         } else {
             // Fallback: create new conversation if not found
             let name = messages
@@ -454,7 +458,7 @@ pub async fn llm_send_message_stream(
                 .find(|(role, _)| *role == "user")
                 .map(|(_, content)| content.chars().take(30).collect::<String>())
                 .unwrap_or_default();
-            convs.push(Conversation {
+            conv = Some(Conversation {
                 id: conversation_id,
                 name,
                 is_temporary: false,
@@ -467,7 +471,9 @@ pub async fn llm_send_message_stream(
                 deleted_at: None,
             });
         }
-        let _ = save_conversations(vault, &account_id, &convs);
+        if let Some(conv) = conv {
+            let _ = save_conversation(vault, &account_id, &conv);
+        }
     }
 
     let provider_name = format!("{:?}", api_type);

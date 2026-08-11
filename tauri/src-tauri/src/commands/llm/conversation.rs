@@ -10,25 +10,62 @@ use super::*;
 
 /// 单条对话的最大消息数量，超过此限时自动裁剪最早的消息。
 const MAX_CONVERSATION_MESSAGES: usize = 500;
+
+/// 从行级存储读取全部会话明文（P004：不再整 blob 解密；仅解密本账户行）。
+/// 首次调用时触发旧 blob 数据懒迁移（见 `migrate_legacy_conversations`）。
 pub(crate) fn load_conversations(
     vault: &VaultStore,
     account_id: &str,
 ) -> Result<Vec<Conversation>, String> {
-    match vault.load_profile(account_id) {
-        Ok(Some(profile)) => {
-            let data: serde_json::Value =
-                serde_json::from_slice(&profile.data).map_err(|e| format!("Parse: {}", e))?;
-            Ok(data
-                .get("preferences")
-                .and_then(|p| p.get("llmConversations"))
-                .and_then(|v| serde_json::from_value(v.clone()).ok())
-                .unwrap_or_default())
+    migrate_legacy_conversations(vault, account_id)?;
+    let rows = vault.list_conversations(account_id)?;
+    let mut convs = Vec::with_capacity(rows.len());
+    for (_id, _updated, data) in rows {
+        if let Ok(c) = serde_json::from_slice::<Conversation>(&data) {
+            convs.push(c);
         }
-        _ => Ok(vec![]),
     }
+    Ok(convs)
 }
 
-/// 裁剪单条对话的消息数量，防止 Profile 数据无限增长。
+/// 懒迁移：旧版本会话存于 profile preferences 的 `llmConversations` blob。
+/// 首次进入时把 blob 中的全部会话写入行级表，并清除 blob 键（幂等：迁移后
+/// blob 键已删，`update_profile_prefs` 不再有旧数据；若 blob 无此键则直接跳过）。
+fn migrate_legacy_conversations(vault: &VaultStore, account_id: &str) -> Result<(), String> {
+    // 先读 blob（未迁移时有数据），无则无事可做。
+    let legacy: Option<Vec<Conversation>> = match vault.load_profile(account_id) {
+        Ok(Some(profile)) => {
+            let data: serde_json::Value =
+                serde_json::from_slice(&profile.data).map_err(|e| format!("Parse: {e}"))?;
+            data.get("preferences")
+                .and_then(|p| p.get("llmConversations"))
+                .and_then(|v| serde_json::from_value(v.clone()).ok())
+        }
+        _ => None,
+    };
+    let Some(convs) = legacy else { return Ok(()) };
+    if convs.is_empty() {
+        // 空数组也视为已迁移：清掉键避免每次进入重复空写。
+        return clear_legacy_conversations(vault, account_id);
+    }
+
+    // 逐条写入行级表（含裁剪，防止超限数据进入新表）。
+    for mut c in convs {
+        trim_conversation_messages(&mut c);
+        let data = serde_json::to_vec(&c).map_err(|e| format!("Serialize: {e}"))?;
+        vault.save_conversation(account_id, &c.id, &c.updated_at, &data)?;
+    }
+    clear_legacy_conversations(vault, account_id)
+}
+
+fn clear_legacy_conversations(vault: &VaultStore, account_id: &str) -> Result<(), String> {
+    update_profile_prefs(vault, account_id, |prefs| {
+        prefs.remove("llmConversations");
+        Ok(())
+    })
+}
+
+/// 裁剪单条对话的消息数量，防止数据无限增长。
 fn trim_conversation_messages(conv: &mut Conversation) {
     if conv.messages.len() > MAX_CONVERSATION_MESSAGES {
         let excess = conv.messages.len() - MAX_CONVERSATION_MESSAGES;
@@ -36,24 +73,18 @@ fn trim_conversation_messages(conv: &mut Conversation) {
     }
 }
 
-pub(crate) fn save_conversations(
+/// 保存单条会话（行级 upsert，P004：不再整 blob 重写）。
+/// 返回会话数据是否被裁剪（供调用方判断是否需要重新拉取摘要计数）。
+pub(crate) fn save_conversation(
     vault: &VaultStore,
     account_id: &str,
-    conversations: &[Conversation],
+    conversation: &Conversation,
 ) -> Result<(), String> {
-    // 裁剪每条对话的消息数量，防止 Profile 数据无限增长
-    let mut trimmed = conversations.to_vec();
-    for conv in &mut trimmed {
-        trim_conversation_messages(conv);
-    }
-
-    update_profile_prefs(vault, account_id, |prefs| {
-        prefs.insert(
-            "llmConversations".to_string(),
-            serde_json::to_value(&trimmed).map_err(|e| e.to_string())?,
-        );
-        Ok(())
-    })
+    let mut c = conversation.clone();
+    trim_conversation_messages(&mut c);
+    let data = serde_json::to_vec(&c).map_err(|e| format!("Serialize: {e}"))?;
+    vault.save_conversation(account_id, &c.id, &c.updated_at, &data)?;
+    Ok(())
 }
 
 pub(crate) fn now_iso() -> String {
@@ -118,6 +149,13 @@ pub async fn llm_get_conversation(
     conversation_id: String,
 ) -> Result<Conversation, String> {
     let vault = vault_handle(&state)?;
+    // 先尝试行级单行读取（P004：避免整表加载只为取一条）。
+    if let Some(data) = vault.load_conversation(&account_id, &conversation_id)? {
+        if let Ok(c) = serde_json::from_slice::<Conversation>(&data) {
+            return Ok(c);
+        }
+    }
+    // 兼容旧 blob（迁移前）：回退全量读取查找。
     let convs = load_conversations(&vault, &account_id)?;
     convs
         .into_iter()
@@ -132,15 +170,9 @@ pub async fn llm_save_conversation(
     conversation: Conversation,
 ) -> Result<(), String> {
     let vault = vault_handle(&state)?;
-    let mut convs = load_conversations(&vault, &account_id)?;
     let mut c = conversation;
     c.is_temporary = false;
-    if let Some(existing) = convs.iter_mut().find(|e| e.id == c.id) {
-        *existing = c;
-    } else {
-        convs.push(c);
-    }
-    save_conversations(&vault, &account_id, &convs)
+    save_conversation(&vault, &account_id, &c)
 }
 
 #[tauri::command]
@@ -153,8 +185,9 @@ pub async fn llm_soft_delete_conversation(
     let mut convs = load_conversations(&vault, &account_id)?;
     if let Some(c) = convs.iter_mut().find(|c| c.id == conversation_id) {
         c.deleted_at = Some(now_iso());
+        save_conversation(&vault, &account_id, c)?;
     }
-    save_conversations(&vault, &account_id, &convs)
+    Ok(())
 }
 
 #[tauri::command]
@@ -167,8 +200,9 @@ pub async fn llm_restore_conversation(
     let mut convs = load_conversations(&vault, &account_id)?;
     if let Some(c) = convs.iter_mut().find(|c| c.id == conversation_id) {
         c.deleted_at = None;
+        save_conversation(&vault, &account_id, c)?;
     }
-    save_conversations(&vault, &account_id, &convs)
+    Ok(())
 }
 
 #[tauri::command]
@@ -178,9 +212,7 @@ pub async fn llm_permanent_delete(
     conversation_id: String,
 ) -> Result<(), String> {
     let vault = vault_handle(&state)?;
-    let mut convs = load_conversations(&vault, &account_id)?;
-    convs.retain(|c| c.id != conversation_id);
-    save_conversations(&vault, &account_id, &convs)
+    vault.delete_conversation(&account_id, &conversation_id)
 }
 
 #[tauri::command]
@@ -195,6 +227,7 @@ pub async fn llm_rename_conversation(
     if let Some(c) = convs.iter_mut().find(|c| c.id == conversation_id) {
         c.name = name;
         c.updated_at = now_iso();
+        save_conversation(&vault, &account_id, c)?;
     }
-    save_conversations(&vault, &account_id, &convs)
+    Ok(())
 }

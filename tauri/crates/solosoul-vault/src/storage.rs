@@ -16,6 +16,7 @@ use crate::{VaultConfig, VaultState, VaultStats};
 // 后续 sync_changes / sync_apply / metadata / templates 等域按此模式拆分：
 // 方法体逐行搬运到 src/storage/<domain>.rs 的 `impl VaultStore { .. }`，
 // 跨域被根模块调用的私有助手提升为 `pub(crate)`，其余保持私有。
+mod conversations;
 mod metadata;
 mod objects;
 mod profile;
@@ -43,8 +44,10 @@ const OBJECT_SELECT_BASE: &str = "SELECT id, account_id, type_id, section_type, 
 ///
 /// 这些键属于设备外观/界面偏好（主题、主题色、背景、界面语言、侧边栏等），
 /// 用户选择不共享后，发送侧从 profile delta 中剥离、接收侧保留本地值不被对端覆盖。
-/// preferences 子对象中**其余**键（回收站保留期、自动锁定、AI 对话 llmConversations、
-/// LLM 配置等账户级设置）不受影响，照常随 profiles 表同步。
+/// preferences 子对象中**其余**键（回收站保留期、自动锁定、LLM 配置等账户级设置）
+/// 不受影响，照常随 profiles 表同步。
+/// P004: AI 对话已迁出 blob 改存 llm_conversations 行级表（随 SYNC_TABLES 单独同步），
+/// 不再出现在 profile delta 中。
 pub const UI_PREF_SYNC_EXCLUDED_KEYS: &[&str] = &[
     "theme",
     "accentColor",
@@ -1239,7 +1242,8 @@ mod tests {
     // ── 「同步设置偏好」开关（默认开启）防回归测试 ────────────────────────
 
     /// 关闭偏好同步时，发送侧 profiles delta 剥离 UI 外观键（theme/accentColor），
-    /// 保留非 UI 账户级键（trashRetention/llmConversations）与其它数据段（identity）。
+    /// 保留非 UI 账户级键（trashRetention 等）与其它数据段（identity）。
+    /// 注：llmConversations 已随 P004 迁出 blob（此处仅模拟历史数据验证剥离逻辑不变）。
     #[test]
     fn test_profile_sync_strips_ui_prefs_when_disabled() {
         let (vault, _dir) = setup();

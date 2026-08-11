@@ -5,7 +5,7 @@ use rusqlite::{params, Connection};
 
 use crate::storage::VaultStore;
 
-pub const CURRENT_SCHEMA_VERSION: u32 = 25;
+pub const CURRENT_SCHEMA_VERSION: u32 = 26;
 
 pub fn get_schema_version(conn: &Connection) -> Result<u32, String> {
     let version: String = conn
@@ -68,6 +68,7 @@ pub fn run_migrations(conn: &mut Connection) -> Result<(), String> {
     migrate_v23(conn, current)?;
     migrate_v24(conn, current)?;
     migrate_v25(conn, current)?;
+    migrate_v26(conn, current)?;
 
     Ok(())
 }
@@ -807,6 +808,48 @@ fn migrate_v25(conn: &mut Connection, current: u32) -> Result<(), String> {
     Ok(())
 }
 
+/// v26 — 新增 `llm_conversations` 表（P004：LLM 会话从 profile preferences blob 迁出，
+/// 按 conversation_id 行存储，避免每次保存整 blob 解密+深克隆+序列化+加密+写盘）。
+///
+/// 表结构：data 列为加密 JSON（与 profiles.data 同款 AES-256-GCM），updated_at 明文
+/// 供排序与 HLC 回退。幂等：CREATE TABLE IF NOT EXISTS + 版本记录 INSERT OR IGNORE
+/// （与 v24/v25 守卫模式一致，兼容 v23 测试降级重跑场景）。
+fn migrate_v26(conn: &mut Connection, current: u32) -> Result<(), String> {
+    if current < 26 {
+        let has_table = conn
+            .query_row(
+                "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='llm_conversations'",
+                [],
+                |r| r.get::<_, i64>(0),
+            )
+            .unwrap_or(0)
+            > 0;
+        if has_table {
+            let now = Utc::now().timestamp();
+            conn.execute(
+                "INSERT OR IGNORE INTO schema_migrations (version, applied_at, description) VALUES (?1, ?2, ?3)",
+                params![26, now, "llm_conversations already present (no-op)"],
+            )
+            .ok();
+            set_schema_version(conn, 26)?;
+        } else {
+            apply_migration(
+                conn,
+                26,
+                "CREATE TABLE IF NOT EXISTS llm_conversations (
+                    id TEXT PRIMARY KEY,
+                    account_id TEXT NOT NULL,
+                    data BLOB NOT NULL,
+                    updated_at TEXT NOT NULL
+                );
+                CREATE INDEX IF NOT EXISTS idx_llm_conversations_account ON llm_conversations(account_id);",
+                "Add llm_conversations table for per-row conversation storage (P004)",
+            )?;
+        }
+    }
+    Ok(())
+}
+
 /// 复用 storage/sync_meta.rs 的 `VaultStore::parse_time_ms`（pub(crate)，同一 crate 无循环依赖）。
 fn parse_time_ms(s: &str) -> u64 {
     VaultStore::parse_time_ms(s)
@@ -1382,6 +1425,60 @@ CREATE TABLE IF NOT EXISTS objects (
             )
             .unwrap();
         assert_eq!(v24_rows, 1);
+    }
+
+    /// v26：旧库升级后获得 llm_conversations 表与账号索引；新库幂等。
+    #[test]
+    fn test_migration_v26_creates_conversations_table() {
+        let (mut conn, _dir) = setup_conn();
+        conn.execute("DELETE FROM schema_migrations", []).unwrap();
+        set_schema_version(&conn, 25).unwrap();
+        run_migrations(&mut conn).unwrap();
+        assert_eq!(get_schema_version(&conn).unwrap(), CURRENT_SCHEMA_VERSION);
+
+        let count: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='llm_conversations'",
+                [],
+                |r| r.get(0),
+            )
+            .unwrap();
+        assert_eq!(count, 1, "llm_conversations 表必须存在");
+
+        let idx: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM sqlite_master WHERE type='index' AND name='idx_llm_conversations_account'",
+                [],
+                |r| r.get(0),
+            )
+            .unwrap();
+        assert_eq!(idx, 1, "账号索引必须存在");
+
+        // 可写可读
+        conn.execute(
+            "INSERT INTO llm_conversations (id, account_id, data, updated_at) VALUES ('c1', 'acc1', X'01', '2024-01-01T00:00:00Z')",
+            [],
+        )
+        .unwrap();
+        let id: String = conn
+            .query_row(
+                "SELECT id FROM llm_conversations WHERE id = 'c1'",
+                [],
+                |r| r.get(0),
+            )
+            .unwrap();
+        assert_eq!(id, "c1");
+
+        // 幂等：重复迁移不重复建表/索引
+        run_migrations(&mut conn).unwrap();
+        let v26_rows: i64 = conn
+            .query_row(
+                "SELECT COUNT(*) FROM schema_migrations WHERE version = 26",
+                [],
+                |r| r.get(0),
+            )
+            .unwrap();
+        assert_eq!(v26_rows, 1);
     }
 
     #[test]

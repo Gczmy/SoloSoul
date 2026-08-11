@@ -346,7 +346,10 @@ fn test_load_save_conversations() {
         },
     ];
 
-    save_conversations(&vault, account_id, &conversations).unwrap();
+    // P004: 行级保存——逐条 upsert，不再整 blob 重写。
+    for c in &conversations {
+        save_conversation(&vault, account_id, c).unwrap();
+    }
 
     let loaded = load_conversations(&vault, account_id).unwrap();
     assert_eq!(loaded.len(), 2);
@@ -354,6 +357,19 @@ fn test_load_save_conversations() {
     assert_eq!(loaded[0].deleted_at, None);
     assert_eq!(loaded[1].id, "conv-2");
     assert_eq!(loaded[1].deleted_at, Some("2024-03-01T00:00:00Z".into()));
+
+    // P004: 单行读取（仅解密目标行）
+    let single = vault
+        .load_conversation(account_id, "conv-2")
+        .unwrap()
+        .and_then(|d| serde_json::from_slice::<Conversation>(&d).ok());
+    assert_eq!(single.map(|c| c.id), Some("conv-2".to_string()));
+
+    // P004: 物理删除 + 墓碑
+    vault.delete_conversation(account_id, "conv-1").unwrap();
+    let after = load_conversations(&vault, account_id).unwrap();
+    assert_eq!(after.len(), 1);
+    assert_eq!(after[0].id, "conv-2");
 }
 
 #[test]
