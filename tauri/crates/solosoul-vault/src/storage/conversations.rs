@@ -265,14 +265,33 @@ impl VaultStore {
     }
 
     /// 冲突 UI 本地快照（对齐其余表）。
+    ///
+    /// `llm_conversations.id` 为全局主键（account_id 仅作归属列，供账户级过滤），
+    /// 因此快照直接按 id 取数，不再透传 account_id（此前传空串恒不匹配，冲突 UI
+    /// 本地快照恒为 None，并连带 delta.rs 本地赢 LWW 时误记假冲突）。
     pub(crate) fn conversation_local_snapshot(
         &self,
         id: &str,
     ) -> Result<Option<serde_json::Value>, String> {
-        match self.load_conversation("", id)? {
-            Some(data) => serde_json::from_slice(&data)
-                .map(Some)
-                .map_err(|e| format!("serialize conversation: {e}")),
+        let key = self.data_key()?;
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        let result = conn
+            .query_row(
+                "SELECT data FROM llm_conversations WHERE id = ?1",
+                params![id],
+                |row| row.get::<_, Vec<u8>>(0),
+            )
+            .optional()
+            .map_err(|e| format!("conversation_local_snapshot: {e}"))?;
+        match result {
+            Some(raw) => {
+                let plain = decrypt_field(&key, &raw)
+                    .map_err(|e| format!("conversation_local_snapshot decrypt: {e}"))?;
+                serde_json::from_slice(&plain)
+                    .map(Some)
+                    .map_err(|e| format!("serialize conversation: {e}"))
+            }
             None => Ok(None),
         }
     }
@@ -290,6 +309,23 @@ mod tests {
             VaultConfig::new("test_account", dir.path().to_path_buf()).with_data_key([0x42u8; 32]);
         let vault = VaultStore::open(config).unwrap();
         (vault, dir)
+    }
+
+    #[test]
+    fn test_conversation_local_snapshot_by_id() {
+        let (vault, _dir) = setup_vault();
+        let account_id = "test_account";
+        vault
+            .save_conversation(account_id, "c1", "2024-01-01T00:00:00Z", b"{\"id\":\"c1\"}")
+            .unwrap();
+
+        // 快照按主键 id 取数，无需透传 account_id（回归 N004：空 account_id 恒不匹配）
+        let snap = vault.conversation_local_snapshot("c1").unwrap();
+        let v = snap.expect("saved conversation should be snapshotted by id");
+        assert_eq!(v["id"], "c1");
+
+        // 不存在的 id → None
+        assert!(vault.conversation_local_snapshot("nope").unwrap().is_none());
     }
 
     #[test]
