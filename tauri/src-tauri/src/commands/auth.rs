@@ -1,21 +1,11 @@
 use crate::commands::object::trash::run_expired_trash_cleanup;
 use crate::state::AppState;
-use serde::Serialize;
 use solosoul_core::auth::verify_password_core;
 use solosoul_core::template_service::seed_default_templates;
 use solosoul_core::AccountConfig;
+use solosoul_core::AccountSummary;
 use tauri::State;
 use zeroize::Zeroizing;
-
-#[derive(Serialize)]
-#[serde(rename_all = "camelCase")]
-// P022: 移除 salt/verify_hash——前端零消费，暴露扩大 WebView 攻击面
-pub struct AccountInfo {
-    pub id: String,
-    pub name: String,
-    pub password_hint: Option<String>,
-    pub created_at: Option<String>,
-}
 
 #[tauri::command]
 pub async fn check_has_account(state: State<'_, AppState>) -> Result<bool, String> {
@@ -37,7 +27,7 @@ pub async fn bootstrap(
     password: String,
     locale: String,
     password_hint: Option<String>,
-) -> Result<AccountInfo, String> {
+) -> Result<AccountSummary, String> {
     // P031: 密码以 Zeroizing<String> 接收，使用完毕后立即安全清零。
     let password = Zeroizing::new(password);
     let svc = state
@@ -64,11 +54,14 @@ pub async fn bootstrap(
         }
     }
 
-    Ok(AccountInfo {
+    // P023: 收敛 core 单一 AccountSummary——新账户尚无生物识别/PIN 历史，标志位为 false。
+    Ok(AccountSummary {
         id: account_id,
         name: result["name"].as_str().unwrap_or("").to_string(),
         password_hint: result["passwordHint"].as_str().map(|s| s.to_string()),
         created_at: Some(chrono::Utc::now().to_rfc3339()),
+        has_biometric_history: false,
+        has_pin_history: false,
     })
 }
 
@@ -233,18 +226,22 @@ mod tests {
     }
 
     #[test]
-    fn test_account_info_serialization() {
-        let info = AccountInfo {
+    fn test_account_summary_serialization() {
+        let info = AccountSummary {
             id: "acc-1".to_string(),
             name: "Alice".to_string(),
             password_hint: Some("hint".to_string()),
             created_at: Some("2024-01-01T00:00:00Z".to_string()),
+            has_biometric_history: false,
+            has_pin_history: false,
         };
         let json = serde_json::to_string(&info).unwrap();
         assert!(json.contains("\"id\":\"acc-1\""));
         assert!(json.contains("\"name\":\"Alice\""));
         assert!(json.contains("\"passwordHint\":\"hint\""));
         assert!(json.contains("\"createdAt\":\"2024-01-01T00:00:00Z\""));
+        assert!(json.contains("\"hasBiometricHistory\":false"));
+        assert!(json.contains("\"hasPinHistory\":false"));
     }
 
     #[test]
