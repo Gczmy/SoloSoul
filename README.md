@@ -8,7 +8,6 @@
 ![macOS](https://img.shields.io/badge/macOS-Apple_Silicon-333333?logo=apple&logoColor=white)
 ![Windows](https://img.shields.io/badge/Windows-x64-0078D6?logo=windows&logoColor=white)
 ![Android](https://img.shields.io/badge/Android-APK-3DDC84?logo=android&logoColor=white)
-![Linux](https://img.shields.io/badge/Linux-AppImage-FCC624?logo=linux&logoColor=black)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Version](https://img.shields.io/badge/version-2.9.2-brightgreen)
 
@@ -17,9 +16,7 @@
 > 「Centralized Schema definition, decentralized data storage.」
 > 集中式 Schema 定义，去中心化数据存储。
 
-**⬇️ 立即下载 / Quick Download**
-
-[🍎 macOS](README.md#平台与安装) · [🪟 Windows](README.md#平台与安装) · [🤖 Android](README.md#平台与安装) · [🐧 Linux](README.md#平台与安装)
+**立即下载 / Quick Download**：[macOS](README.md#平台与安装) · [Windows](README.md#平台与安装) · [Android](README.md#平台与安装)
 
 </div>
 
@@ -98,7 +95,6 @@ AI 在本地或你指定的端点运行——绝不上传原始数据。
 | macOS (Apple Silicon) | `.dmg` | [⬇ 下载 macOS 版](https://github.com/Gczmy/SoloSoul/releases/latest/download/SoloSoul_macOS.dmg) |
 | Windows (x64) | `.exe` (NSIS) | [⬇ 下载 Windows 版](https://github.com/Gczmy/SoloSoul/releases/latest/download/SoloSoul_Windows.exe) |
 | Android | `.apk` (universal) | [⬇ 下载 Android 版](https://github.com/Gczmy/SoloSoul/releases/latest/download/SoloSoul_Android.apk) |
-| Linux | `.AppImage` | ⏳ 待测试 |
 
 点击上方链接即可直接下载对应平台的最新安装包，无需在 Release 页面挑选文件。链接使用**无版本号的稳定文件名**（如 `SoloSoul_macOS.dmg`），发布新版本时会同步更新同名资产，链接始终指向最新版。Release 页面中其余文件（`latest.json`、`.sha256`、`.minisig` 等）为自动更新与校验元数据，普通用户无需下载。安装后创建本地账户（无需邮箱），设置主密码即可开始。
 
