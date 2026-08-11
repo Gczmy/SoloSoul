@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-11（P039 修复完成）
+> 最后更新：2026-08-11（P044 修复完成）
 > 当前分支：`main`
 > 修复轮次：2（按用户指令逐项修复，一项一提交）
 
@@ -53,19 +53,19 @@ Git 状态：工作树除本报告文件重建外干净（旧报告已删除，�
 | P037 | P2 | 架构 | `tauri/src-tauri/src/commands/export_import/export.rs:6` | `export_get_scope_tree` ~133 行承担 5 个阶段（敏感度合并/孤儿过滤等应抽函数） | `[x]` 已完成 |
 | P038 | P2 | 架构 | `tauri/src-tauri/src/commands/object/mod.rs:1021` | `collect_updated_fields` ~122 行，类型变更与 6 项元数据对比混在一个循环体 | `[x]` 已完成 |
 | P039 | P2 | 规范 | `tauri/src-tauri/src/commands/export_import/export.rs:85-103,136-146` | 6 个系统分区字符串在数组/映射/集合中重复书写 3 遍，新增分区需同步改 3 处 | `[x]` 已完成 |
-| P040 | P2 | 规范 | `PasswordVerificationDialog.tsx:444-505` ↔ `pages/auth/LoginPinView.tsx:27-82` | PIN 输入卡片 ~26 行近乎复制（AGENTS.md 禁止多处复制对话框的同类问题） | `[ ]` 待修复 |
-| P041 | P2 | 规范 | `pages/scan/OcrScanSettingsPanel.tsx:79-140` ↔ `pages/settings/OcrSettingsPage.tsx:95-160` | OCR tier 状态行 ~30 行两处复制 | `[ ]` 待修复 |
-| P042 | P2 | 架构 | `sync/SyncScanQrDialog.tsx:90-137` ↔ `SyncShowQrDialog.tsx:181-234` | 手写模态外壳 ~29 行复制，项目已有共享 `Dialog` 组件 | `[ ]` 待修复 |
-| P043 | P2 | 规范 | `pages/system/MandatoryUpdateOverlay.tsx:157-188` ↔ `UpdateInfoCard.tsx:225-257` | 下载进度条 ~24 行复制 | `[ ]` 待修复 |
-| P044 | P2 | 规范 | `tauri/src-tauri/src/commands/discovery.rs:180-192,344-356` | desktop/mobile 两个 `mdns_discover` 中 client_type 解析逻辑近似复制 ~15 行（cfg 分支语义需人工确认） | `[ ]` 待修复 |
+| P040 | P2 | 规范 | `PasswordVerificationDialog.tsx:444-505` ↔ `pages/auth/LoginPinView.tsx:27-82` | PIN 输入卡片 ~26 行近乎复制（AGENTS.md 禁止多处复制对话框的同类问题） | `[x]` 已完成 |
+| P041 | P2 | 规范 | `pages/scan/OcrScanSettingsPanel.tsx:79-140` ↔ `pages/settings/OcrSettingsPage.tsx:95-160` | OCR tier 状态行 ~30 行两处复制 | `[x]` 已完成 |
+| P042 | P2 | 架构 | `sync/SyncScanQrDialog.tsx:90-137` ↔ `SyncShowQrDialog.tsx:181-234` | 手写模态外壳 ~29 行复制，项目已有共享 `Dialog` 组件 | `[x]` 已完成 |
+| P043 | P2 | 规范 | `pages/system/MandatoryUpdateOverlay.tsx:157-188` ↔ `UpdateInfoCard.tsx:225-257` | 下载进度条 ~24 行复制 | `[x]` 已完成 |
+| P044 | P2 | 规范 | `tauri/src-tauri/src/commands/discovery.rs:180-192,344-356` | desktop/mobile 两个 `mdns_discover` 中 client_type 解析逻辑近似复制 ~15 行（cfg 分支语义需人工确认） | `[x]` 已完成 |
 | P045 | P2 | 规范 | `HistoryViewer.tsx:391`、`TrashSnapshotView.tsx:408`、`WorkspaceObjectCard.tsx:389` | 动态字段组快照行渲染疑似三份拷贝（各 ~16–22 行，需人工核对） | `[ ]` 待修复 |
 | P046 | P2 | 架构 | 前端 10 个巨型组件（汇总） | 单组件非注释行 > 300：`AttachmentViewer`(~550)、`LoginPage`(~501)、`PasswordVerificationDialog`(~447)、`TemplateFieldRow`(~436)、`DeviceListPanel`(~424)、`TrashPage`(~422)、`ObjectDetailModal`(~422)、`ExportImportPage`(~417)、`ImportSection`(~409)、`ExportSection`(~405)，建议按「数据 hook + 展示子组件」拆分 | `[ ]` 待修复 |
 | P047 | P2 | 架构 | Rust 巨型文件（汇总） | `attachment.rs` 2057 行、`object/tests.rs` 2353 行、`export_docx.rs` 1989 行，文件级拆分作为后续架构项 | `[ ]` 待修复 |
 
 ## 修复进度
 
-- 已完成：37 / 47
-- 当前处理：P040（前端重复代码类；P027/P033 已按用户确认跳过）
+- 已完成：41 / 47（P045 核对后判定不合并）
+- 当前处理：P046（巨型组件/文件；P027/P033 已按用户确认跳过）
 
 ## 详细问题描述与修复指引
 
@@ -320,14 +320,17 @@ error: deref which would be done by auto-deref
 
 **验证**：每项 `cargo check -p solo_soul --tests` ✅ + clippy --workspace 全绿 ✅。
 
-### P040–P045（P2，前端重复代码类）
+### P040–P044（P2，前端重复代码类）— 已完成（P040 commit e123ccea / P041 dfb067cd / P042 9aea36bc / P043 5bfe0e65 / P044 52251fdb）
 
-- **P040**：抽 `PinEntryCard` 共享组件。
-- **P041**：抽 `OcrTierStatusRow` 组件。
-- **P042**：改用共享 `Dialog` 或抽 `QrModalShell`。
-- **P043**：抽 `DownloadProgressBar` 小组件。
-- **P044**：抽 `resolve_peer_client_type(vault_result, txt, node_id)` 共享函数（抽取前确认两端语义）。
-- **P045**：人工核对三处快照行渲染后抽共享组件。
+**P040**：抽 `PinEntryCard` 共享组件（PasswordVerificationDialog/LoginPinView，含 ref 聚焦与 marginBottom 参数化）。
+**P041**：抽 `OcrTierStatusRow` 共享组件（OcrScanSettingsPanel/OcrSettingsPage，含 rawButton 裸按钮与删除/存储占用差异）。
+**P042**：抽 `QrModalShell` 共享模态外壳（SyncScanQrDialog/SyncShowQrDialog，overlay+淡入卡片+关闭按钮+可选滚动/标题）。
+**P043**：抽 `DownloadProgressBar` 共享组件（MandatoryUpdateOverlay/UpdateInfoCard，含 installing 状态文本参数化）。
+**P044**：抽 `resolve_peer_client_type` 共享函数（desktop/mobile 两端 mdns_discover client_type 解析）。
+
+**验证**：每项 tsc ✅ + eslint ✅ + vitest 619 全过 ✅。
+
+> **P045（已核对不合并）**：人工核对 HistoryViewer/TrashSnapshotView/WorkspaceObjectCard 三处动态字段组快照渲染——结构并不等价（树状含 deprecated 徽章 vs 扁平组标题行 vs flatten chips），强行参数化共享组件风险大于收益，判定保留现状。
 
 ### P046–P047（P2，巨型组件/文件汇总）
 
