@@ -51,6 +51,8 @@ interface AttachmentObjectGroupProps {
   onStartRename: (item: AttachmentMeta, objectId: string) => void;
   onDownload: (item: AttachmentMeta) => void;
   onShare: (item: AttachmentMeta) => void;
+  /** 编辑描述与标签 */
+  onEditMeta?: (item: AttachmentMeta, objectId: string) => void;
   onSoftDelete: (item: AttachmentMeta, objectId: string) => void;
   onRestore: (item: AttachmentMeta, objectId: string) => void;
   onPermanentDelete: (item: AttachmentMeta, objectId: string) => void;
@@ -73,6 +75,7 @@ function AttachmentObjectGroupBase({
   onStartRename,
   onDownload,
   onShare,
+  onEditMeta,
   onSoftDelete,
   onRestore,
   onPermanentDelete,
@@ -210,6 +213,7 @@ function AttachmentObjectGroupBase({
               onStartRename={onStartRename}
               onDownload={onDownload}
               onShare={onShare}
+              onEditMeta={onEditMeta}
               onSoftDelete={onSoftDelete}
               onRestore={onRestore}
               onPermanentDelete={onPermanentDelete}

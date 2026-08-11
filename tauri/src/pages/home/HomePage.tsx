@@ -441,6 +441,12 @@ export function HomePage() {
             void loadPhotoCount();
           }}
           onOpenExternal={openAttachmentExternal}
+          onItemMetaUpdated={(updated) => {
+            // 相册内编辑描述/标签：就地更新本次加载的数据，关闭后角标刷新保持总数一致
+            setAlbumItems((prev) =>
+              prev ? prev.map((i) => (i.id === updated.id ? updated : i)) : prev,
+            );
+          }}
         />
       )}
     </AppShell>

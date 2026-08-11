@@ -6,12 +6,14 @@ import {
   ChevronLeft,
   ChevronRight,
   ExternalLink,
+  FilePen,
   RotateCcw,
   X,
   ZoomIn,
   ZoomOut,
 } from 'lucide-react';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
+import { AttachmentMetaEditDialog } from '@/components/attachment/AttachmentMetaEditDialog';
 import { ICON_SIZE } from '@/lib/constants';
 import type { AttachmentItem } from '@/lib/attachmentUtils';
 import { loadFullPreviewUrl } from '@/lib/photoAlbumPreview';
@@ -24,6 +26,8 @@ export interface PhotoViewerOverlayProps {
   /** 关闭整个相册。 */
   onClose: () => void;
   onOpenExternal?: (item: AttachmentItem) => void;
+  /** 附件描述/标签保存成功后的回调（照片集同步最新元数据） */
+  onItemMetaUpdated?: (updated: AttachmentItem) => void;
 }
 
 /** 横向滑动翻页阈值（px）。 */
@@ -117,6 +121,7 @@ export function PhotoViewerOverlay({
   onBack,
   onClose,
   onOpenExternal,
+  onItemMetaUpdated,
 }: PhotoViewerOverlayProps) {
   const { t } = useTranslation('common');
   const [index, setIndex] = useState(initialIndex);
@@ -126,6 +131,7 @@ export function PhotoViewerOverlay({
   const [loading, setLoading] = useState(true);
   const [naturalSize, setNaturalSize] = useState<{ w: number; h: number } | null>(null);
   const [scale, setScale] = useState(1);
+  const [metaEditOpen, setMetaEditOpen] = useState(false);
 
   const total = items.length;
   const item = items[index];
@@ -313,6 +319,17 @@ export function PhotoViewerOverlay({
         >
           {index + 1} / {total}
         </span>
+        {/* 描述/标签编辑入口（全屏照片，需求 2+3） */}
+        <button
+          type="button"
+          onClick={() => setMetaEditOpen(true)}
+          title={t('common:edit_meta', 'Edit description & tags')}
+          aria-label={t('common:edit_meta', 'Edit description & tags')}
+          style={iconButtonStyle}
+          className="interactive-icon"
+        >
+          <FilePen size={ICON_SIZE.md} />
+        </button>
         <button
           type="button"
           onClick={onBack}
@@ -324,6 +341,18 @@ export function PhotoViewerOverlay({
           <X size={ICON_SIZE.md} />
         </button>
       </div>
+
+      {/* 描述/标签编辑对话框（覆盖查看器） */}
+      {metaEditOpen && item && (
+        <AttachmentMetaEditDialog
+          item={item}
+          onClose={() => setMetaEditOpen(false)}
+          onSaved={(updated) => {
+            onItemMetaUpdated?.({ ...item, ...updated });
+            setMetaEditOpen(false);
+          }}
+        />
+      )}
 
       {/* 内容区：AnimatePresence 方向性滑动切换 + drag="x" 翻页 */}
       <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>

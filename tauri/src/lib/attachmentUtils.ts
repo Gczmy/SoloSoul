@@ -10,6 +10,12 @@ export interface AttachmentItem {
   deletedAt?: string | null;
   srcPath?: string | null;
   vaultPath?: string | null;
+  /** 附件描述（可空；由 attachment_update_meta 维护） */
+  description?: string | null;
+  /** 附件标签（可空；由 attachment_update_meta 维护） */
+  tags?: string[];
+  /** 所属对象名称（照片集按对象分组用；对象级列表可为空） */
+  objectName?: string;
 }
 
 // ── Formatting ────────────────────────────────────────────────
@@ -89,7 +95,7 @@ export function previewItemByMime(item: AttachmentItem): 'image' | 'pdf' | 'text
 
 /** 附件页面树节点（结构性类型，避免 lib → components 依赖）。 */
 interface PhotoPageNode {
-  objects: Array<{ attachments: AttachmentItem[] }>;
+  objects: Array<{ objectName?: string; attachments: AttachmentItem[] }>;
 }
 
 /**
@@ -103,7 +109,10 @@ export function collectPhotoItems(pages: PhotoPageNode[] | undefined): Attachmen
   for (const page of pages ?? []) {
     for (const obj of page.objects) {
       for (const att of obj.attachments) {
-        if (previewItemByMime(att) === 'image') out.push(att);
+        if (previewItemByMime(att) === 'image') {
+          // 携带对象名：照片集「按对象分组」需要（对象级列表无树节点，保持为空）
+          out.push({ ...att, objectName: att.objectName ?? obj.objectName });
+        }
       }
     }
   }

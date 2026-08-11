@@ -25,6 +25,8 @@ interface AttachmentListItemProps {
   onStartRename: (item: AttachmentItem) => void;
   onDownload: (item: AttachmentItem) => void;
   onShare: (item: AttachmentItem) => void;
+  /** 编辑描述与标签 */
+  onEditMeta?: (item: AttachmentItem) => void;
   onDelete: (item: AttachmentItem) => void;
   onPermanentDelete: (item: AttachmentItem) => void;
 }
@@ -66,6 +68,7 @@ export function AttachmentListItem({
   onStartRename,
   onDownload,
   onShare,
+  onEditMeta,
   onDelete,
   onPermanentDelete,
 }: AttachmentListItemProps) {
@@ -89,6 +92,8 @@ export function AttachmentListItem({
         sizeBytes={item.sizeBytes}
         createdAt={item.createdAt}
         showTrash={showTrash}
+        description={item.description}
+        tags={item.tags}
         metaStyle={{ fontSize: 'var(--text-badge)' }}
       />
       {isRenaming && !showTrash ? (
@@ -124,6 +129,7 @@ export function AttachmentListItem({
       onStartRename={() => onStartRename(item)}
       onDownload={() => onDownload(item)}
       onShare={() => onShare(item)}
+      onEditMeta={() => onEditMeta?.(item)}
       onSoftDelete={() => onDelete(item)}
       onRestore={() => onRestore(item)}
       onPermanentDelete={() => onPermanentDelete(item)}

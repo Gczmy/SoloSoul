@@ -11,6 +11,10 @@ export interface AttachmentMeta {
   deletedAt?: string | null;
   srcPath?: string | null;
   vaultPath?: string | null;
+  /** 附件描述（可空） */
+  description?: string | null;
+  /** 附件标签（可空） */
+  tags?: string[];
 }
 
 export interface AttachmentTreeObject {

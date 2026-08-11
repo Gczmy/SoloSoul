@@ -76,6 +76,10 @@ pub struct AttachmentMeta {
     pub src_path: Option<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub vault_path: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub tags: Vec<String>,
 }
 
 /// 导出范围。
@@ -1036,6 +1040,8 @@ fn import_attachments(
                 deleted_at: None,
                 src_path: Some(file_path_dest.to_string_lossy().to_string()),
                 vault_path: Some(file_path_dest.to_string_lossy().to_string()),
+                description: None,
+                tags: vec![],
             });
     }
 

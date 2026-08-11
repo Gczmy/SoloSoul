@@ -1,0 +1,261 @@
+import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { X } from 'lucide-react';
+import { Dialog } from '@/components/ui/Dialog';
+import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { invokeCommand as invoke } from '@/lib/ipcClient';
+import { useUiStore } from '@/stores/uiStore';
+
+/** 保存成功后回传的最新元数据（父级据此更新本地列表 / 照片集）。 */
+export interface AttachmentMetaEditResult {
+  description?: string | null;
+  tags?: string[];
+}
+
+interface AttachmentMetaEditDialogProps {
+  /** 目标附件（仅使用 objectId / id / description / tags）。 */
+  item: {
+    objectId: string;
+    id: string;
+    fileName?: string;
+    description?: string | null;
+    tags?: string[];
+  };
+  onClose: () => void;
+  onSaved: (updated: AttachmentMetaEditResult) => void;
+}
+
+/** 单个附件最多标签数（与后端 MAX_ATTACHMENT_TAGS 一致）。 */
+const MAX_TAGS = 20;
+
+/** 单个标签最大字符数（与后端 MAX_ATTACHMENT_TAG_LEN 一致）。 */
+const MAX_TAG_LEN = 30;
+
+/**
+ * 附件「描述 + 标签」编辑对话框。
+ *
+ * - 描述：多行文本域，空串保存时清除；
+ * - 标签：chips 输入（回车 / 逗号添加，X 移除，去空去重，最多 20 个）；
+ * - 保存调用 `attachment_update_meta`，成功后回调 onSaved 供父级同步本地状态。
+ */
+export function AttachmentMetaEditDialog({ item, onClose, onSaved }: AttachmentMetaEditDialogProps) {
+  const { t } = useTranslation('common');
+  const showToast = useUiStore((s) => s.showToast);
+
+  const [description, setDescription] = useState(item.description ?? '');
+  const [tags, setTags] = useState<string[]>(item.tags ?? []);
+  const [tagInput, setTagInput] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  // item 切换（如相册翻页后再次打开）时重置表单
+  useEffect(() => {
+    setDescription(item.description ?? '');
+    setTags(item.tags ?? []);
+    setTagInput('');
+  }, [item.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const commitTag = (raw: string) => {
+    const val = raw.trim().slice(0, MAX_TAG_LEN);
+    if (!val) return;
+    setTags((prev) => {
+      if (prev.length >= MAX_TAGS) return prev;
+      const exists = prev.some((x) => x.toLowerCase() === val.toLowerCase());
+      return exists ? prev : [...prev, val];
+    });
+  };
+
+  const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      commitTag(tagInput);
+      setTagInput('');
+    } else if (e.key === 'Backspace' && !tagInput && tags.length > 0) {
+      setTags((prev) => prev.slice(0, -1));
+    }
+  };
+
+  const removeTag = (tag: string) => {
+    setTags((prev) => prev.filter((x) => x !== tag));
+  };
+
+  const handleSave = async () => {
+    if (saving) return;
+    setSaving(true);
+    try {
+      const trimmedDesc = description.trim();
+      const updated: AttachmentMetaEditResult = {
+        description: trimmedDesc ? trimmedDesc : null,
+        tags,
+      };
+      await invoke('attachment_update_meta', {
+        objectId: item.objectId,
+        attachmentId: item.id,
+        description: updated.description,
+        tags: updated.tags,
+      });
+      onSaved(updated);
+      showToast({ type: 'success', message: t('common:meta_saved', { defaultValue: 'Saved' }) });
+      onClose();
+    } catch (e) {
+      showToast({
+        type: 'error',
+        message: `${t('common:save_failed', { defaultValue: 'Save failed' })}: ${e}`,
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <Dialog
+      isOpen
+      onClose={onClose}
+      title={t('common:edit_meta', { defaultValue: 'Description & Tags' })}
+    >
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        {/* 描述 */}
+        <div>
+          <label
+            style={{
+              display: 'block',
+              fontSize: 'var(--text-caption)',
+              color: 'var(--text-secondary)',
+              marginBottom: 6,
+              fontWeight: 500,
+            }}
+          >
+            {t('common:attachment_description', { defaultValue: 'Description' })}
+          </label>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder={t('common:attachment_description_placeholder', {
+              defaultValue: 'Add a description…',
+            })}
+            rows={3}
+            maxLength={500}
+            style={{
+              width: '100%',
+              resize: 'vertical',
+              padding: '8px 10px',
+              borderRadius: 8,
+              border: '1px solid var(--border-subtle)',
+              background: 'var(--bg-elevated)',
+              color: 'var(--text-primary)',
+              fontSize: 'var(--text-body-sm)',
+              outline: 'none',
+              fontFamily: 'inherit',
+              boxSizing: 'border-box',
+            }}
+          />
+        </div>
+
+        {/* 标签 */}
+        <div>
+          <label
+            style={{
+              display: 'block',
+              fontSize: 'var(--text-caption)',
+              color: 'var(--text-secondary)',
+              marginBottom: 6,
+              fontWeight: 500,
+            }}
+          >
+            {t('common:attachment_tags', { defaultValue: 'Tags' })}
+          </label>
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: 6,
+              padding: '8px 10px',
+              borderRadius: 8,
+              border: '1px solid var(--border-subtle)',
+              background: 'var(--bg-elevated)',
+              minHeight: 40,
+              boxSizing: 'border-box',
+              alignItems: 'center',
+            }}
+          >
+            {tags.map((tag) => (
+              <span
+                key={tag}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  padding: '2px 8px 2px 10px',
+                  borderRadius: 999,
+                  background: 'var(--accent-subtle, rgba(94,129,244,0.12))',
+                  border: '1px solid var(--accent-primary)',
+                  color: 'var(--accent-primary)',
+                  fontSize: 'var(--text-badge)',
+                  fontWeight: 500,
+                }}
+              >
+                {tag}
+                <button
+                  type="button"
+                  onClick={() => removeTag(tag)}
+                  aria-label={t('common:remove_tag', { defaultValue: 'Remove tag' })}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    width: 16,
+                    height: 16,
+                    borderRadius: '50%',
+                    border: 'none',
+                    background: 'transparent',
+                    color: 'inherit',
+                    cursor: 'pointer',
+                    padding: 0,
+                  }}
+                >
+                  <X size={12} />
+                </button>
+              </span>
+            ))}
+            <Input
+              value={tagInput}
+              onChange={(e) => setTagInput(e.target.value.slice(0, MAX_TAG_LEN))}
+              onKeyDown={handleTagKeyDown}
+              placeholder={t('common:tag_input_placeholder', {
+                defaultValue: 'Type a tag and press Enter',
+              })}
+              style={{ flex: 1, minWidth: 140 }}
+              aria-label={t('common:attachment_tags', { defaultValue: 'Tags' })}
+            />
+          </div>
+          <div
+            style={{
+              marginTop: 4,
+              fontSize: 'var(--text-caption)',
+              color: 'var(--text-tertiary)',
+            }}
+          >
+            {tags.length}/{MAX_TAGS}
+          </div>
+        </div>
+
+        {/* 操作 */}
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            gap: 8,
+            marginTop: 4,
+          }}
+        >
+          <Button variant="tertiary" size="sm" onClick={onClose} disabled={saving}>
+            {t('common:cancel')}
+          </Button>
+          <Button variant="primary" size="sm" onClick={handleSave} loading={saving}>
+            {t('common:save')}
+          </Button>
+        </div>
+      </div>
+    </Dialog>
+  );
+}

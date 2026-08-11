@@ -20,6 +20,10 @@ import {
   type AttachmentItem,
 } from '@/lib/attachmentUtils';
 import { AttachmentPreviewOverlay } from '@/components/attachment/AttachmentPreviewOverlay';
+import {
+  AttachmentMetaEditDialog,
+  type AttachmentMetaEditResult,
+} from '@/components/attachment/AttachmentMetaEditDialog';
 import { PhotoAlbumOverlay } from '@/components/attachment/PhotoAlbumOverlay';
 import { AttachmentListItem } from '@/components/object/AttachmentListItem';
 import { AttachmentViewerHeader } from '@/components/object/AttachmentViewerHeader';
@@ -66,6 +70,7 @@ export function AttachmentViewer({
   const [renameValue, setRenameValue] = useState('');
   const renameInputRef = useRef<HTMLInputElement>(null);
   const [previewItem, setPreviewItem] = useState<AttachmentItem | null>(null);
+  const [metaEditItem, setMetaEditItem] = useState<AttachmentItem | null>(null);
   const [photoAlbumOpen, setPhotoAlbumOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const { t } = useTranslation(['common', 'editor']);
@@ -225,6 +230,19 @@ export function AttachmentViewer({
     } catch (e) {
       showToast({ type: 'error', message: `${t('common:forward_failed')}: ${e}` });
     }
+  };
+
+  /** 附件描述/标签保存成功：就地更新列表与预览中的附件元数据。 */
+  const handleMetaSaved = (updated: AttachmentMetaEditResult) => {
+    const patch = (list: AttachmentItem[]) =>
+      list.map((i) =>
+        i.id === metaEditItem?.id ? { ...i, description: updated.description, tags: updated.tags } : i,
+      );
+    setItems((prev) => patch(prev));
+    setTrashItems((prev) => patch(prev));
+    setPreviewItem((prev) =>
+      prev && prev.id === metaEditItem?.id ? { ...prev, ...updated } : prev,
+    );
   };
 
   const handleDelete = (item: AttachmentItem) => {
@@ -599,6 +617,7 @@ export function AttachmentViewer({
                     onStartRename={handleStartRename}
                     onDownload={handleDownload}
                     onShare={handleShare}
+                    onEditMeta={setMetaEditItem}
                     onDelete={handleDelete}
                     onPermanentDelete={setPermDeleteItem}
                   />
@@ -615,13 +634,23 @@ export function AttachmentViewer({
         item={previewItem}
         onClose={() => setPreviewItem(null)}
         onOpenExternal={openAttachmentExternal}
+        onItemUpdated={handleMetaSaved}
       />
+      {/* 附件描述/标签编辑对话框 */}
+      {metaEditItem && (
+        <AttachmentMetaEditDialog
+          item={metaEditItem}
+          onClose={() => setMetaEditItem(null)}
+          onSaved={handleMetaSaved}
+        />
+      )}
       {/* Photo album overlay（对象级照片集） */}
       {photoAlbumOpen && displayPhotoItems.length > 0 && (
         <PhotoAlbumOverlay
           items={displayPhotoItems}
           onClose={() => setPhotoAlbumOpen(false)}
           onOpenExternal={openAttachmentExternal}
+          onItemMetaUpdated={handleMetaSaved}
           zIndex={2100}
         />
       )}

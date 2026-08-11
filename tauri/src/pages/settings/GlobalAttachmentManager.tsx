@@ -11,6 +11,7 @@ import { useAttachmentManager } from '@/hooks/useAttachmentManager';
 import { AttachmentToolbar } from '@/components/attachment/AttachmentToolbar';
 import { AttachmentPageCard } from '@/components/attachment/AttachmentPageCard';
 import { AttachmentPreviewOverlay } from '@/components/attachment/AttachmentPreviewOverlay';
+import { AttachmentMetaEditDialog } from '@/components/attachment/AttachmentMetaEditDialog';
 import { PhotoAlbumOverlay } from '@/components/attachment/PhotoAlbumOverlay';
 import { ConfirmDialog } from '@/components/attachment/ConfirmDialog';
 import { PageGuideButton } from '@/components/guide/PageGuideButton';
@@ -40,6 +41,8 @@ export function GlobalAttachmentManager() {
     setPreviewItem,
     shareItem,
     setShareItem,
+    metaEditItem,
+    setMetaEditItem,
     albumOpen,
     setAlbumOpen,
     photoItems,
@@ -221,6 +224,7 @@ export function GlobalAttachmentManager() {
                       onStartRename={handleStartRename}
                       onDownload={handleDownload}
                       onShare={handleShare}
+                      onEditMeta={(item) => setMetaEditItem(item)}
                       onSoftDelete={handleSoftDelete}
                       onRestore={handleRestore}
                       onPermanentDelete={handlePermanentDelete}
@@ -249,6 +253,21 @@ export function GlobalAttachmentManager() {
           items={photoItems}
           onClose={() => setAlbumOpen(false)}
           onOpenExternal={openAttachmentExternal}
+          onItemMetaUpdated={() => {
+            // 相册内编辑描述/标签后刷新树数据，行内与照片集同步最新元数据
+            void loadData();
+          }}
+        />
+      )}
+
+      {/* 附件描述/标签编辑对话框 */}
+      {metaEditItem && (
+        <AttachmentMetaEditDialog
+          item={metaEditItem}
+          onClose={() => setMetaEditItem(null)}
+          onSaved={() => {
+            void loadData();
+          }}
         />
       )}
 
@@ -257,6 +276,10 @@ export function GlobalAttachmentManager() {
         item={previewItem}
         onClose={() => setPreviewItem(null)}
         onOpenExternal={openAttachmentExternal}
+        onItemUpdated={() => {
+          // 全屏预览内编辑描述/标签后刷新树数据
+          void loadData();
+        }}
       />
 
       {/* Confirmation dialogs */}

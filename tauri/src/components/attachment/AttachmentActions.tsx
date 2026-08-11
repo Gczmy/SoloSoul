@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Eye, Edit2, Download, RotateCcw, Share2 } from 'lucide-react';
+import { Eye, Edit2, Download, RotateCcw, Share2, FilePen } from 'lucide-react';
 import { DeleteButton } from '@/components/ui/DeleteButton';
 import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
 import { ICON_SIZE } from '@/lib/constants';
@@ -12,6 +12,8 @@ interface AttachmentActionsProps {
   onStartRename: () => void;
   onDownload: () => void;
   onShare: () => void;
+  /** 编辑描述与标签（附件行级入口，需求「为每个附件增加描述文本编辑入口」） */
+  onEditMeta?: () => void;
   onSoftDelete: () => void;
   onRestore: () => void;
   onPermanentDelete: () => void;
@@ -32,6 +34,7 @@ export function AttachmentActions({
   onStartRename,
   onDownload,
   onShare,
+  onEditMeta,
   onSoftDelete,
   onRestore,
   onPermanentDelete,
@@ -84,6 +87,14 @@ export function AttachmentActions({
             title={t('common:forward')}
             iconSize={ICON_SIZE.sm}
           />
+          {onEditMeta && (
+            <BadgeIconButton
+              Icon={FilePen}
+              onClick={onEditMeta}
+              title={t('common:edit_meta', { defaultValue: 'Edit description & tags' })}
+              iconSize={ICON_SIZE.sm}
+            />
+          )}
         </>
       )}
       <DeleteButton iconOnly onClick={onSoftDelete} title={t('common:delete')} />

@@ -467,6 +467,7 @@ fn register_core_commands(
         commands::attachment::attachment_batch_delete,
         commands::attachment::attachment_restore,
         commands::attachment::attachment_rename,
+        commands::attachment::attachment_update_meta,
         commands::attachment::attachment_delete,
         commands::attachment::attachment_count_batch,
         commands::attachment::attachment_copy_to_vault,
@@ -933,6 +934,7 @@ mod tests {
                     "attachment_batch_delete",
                     "attachment_restore",
                     "attachment_rename",
+                    "attachment_update_meta",
                     "attachment_delete",
                     "attachment_count_batch",
                     "attachment_copy_to_vault",
@@ -990,7 +992,7 @@ mod tests {
                 assert_eq!(routed, cmds.len());
             }
         }
-        // 共 194 条命令全覆盖（核心 117 + 同步 20 + OCR 11 + LLM 32 + 插件 14）
-        assert_eq!(total, 194);
+        // 共 195 条命令全覆盖（核心 118 + 同步 20 + OCR 11 + LLM 32 + 插件 14）
+        assert_eq!(total, 195);
     }
 }

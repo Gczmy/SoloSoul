@@ -44,6 +44,8 @@ export function useAttachmentManager() {
   const [expandedObjects, setExpandedObjects] = useState<Set<string>>(new Set());
   const [previewItem, setPreviewItem] = useState<AttachmentMeta | null>(null);
   const [shareItem, setShareItem] = useState<AttachmentMeta | null>(null);
+  /** 正在编辑描述/标签的附件（非空时渲染 AttachmentMetaEditDialog） */
+  const [metaEditItem, setMetaEditItem] = useState<AttachmentMeta | null>(null);
   const [albumOpen, setAlbumOpen] = useState(false);
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [renameObjectId, setRenameObjectId] = useState<string>('');
@@ -582,6 +584,8 @@ export function useAttachmentManager() {
     setPreviewItem,
     shareItem,
     setShareItem,
+    metaEditItem,
+    setMetaEditItem,
     albumOpen,
     setAlbumOpen,
     photoItems,

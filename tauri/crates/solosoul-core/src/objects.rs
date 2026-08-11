@@ -756,6 +756,8 @@ pub fn add_attachments(
         deleted_at: None,
         src_path: Some(file_path.to_string_lossy().to_string()),
         vault_path: Some(vault_path),
+        description: None,
+        tags: vec![],
     };
 
     atts.push(meta.clone());

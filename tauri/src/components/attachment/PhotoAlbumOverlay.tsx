@@ -1,24 +1,76 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, Images, X } from 'lucide-react';
+import { ArrowDown, ArrowLeft, ArrowUp, Images, X } from 'lucide-react';
 import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
 import { PhotoAlbumGrid } from '@/components/attachment/PhotoAlbumGrid';
 import { PhotoViewerOverlay } from '@/components/attachment/PhotoViewerOverlay';
+import { FilterChipGroup } from '@/components/ui/FilterChipGroup';
+import { DropdownSelect } from '@/components/ui/DropdownSelect';
 import { syncStatusBarStyle } from '@/lib/theme';
 import { ICON_SIZE, SAFE_AREA_BOTTOM, SAFE_AREA_TOP } from '@/lib/constants';
 import type { AttachmentItem } from '@/lib/attachmentUtils';
+
+/** 照片集分组模式：不分组 / 按年 / 按月 / 按日 / 按对象。 */
+export type AlbumGroupMode = 'none' | 'year' | 'month' | 'day' | 'object';
 
 export interface PhotoAlbumOverlayProps {
   /** 已按 `previewItemByMime(...) === 'image'` 过滤的照片项（调用方负责过滤）。 */
   items: AttachmentItem[];
   onClose: () => void;
   onOpenExternal?: (item: AttachmentItem) => void;
+  /** 相册内编辑附件描述/标签后的回调（父级同步数据源）。 */
+  onItemMetaUpdated?: (updated: AttachmentItem) => void;
   zIndex?: number | string;
+}
+
+/** 照片集分组区块（startIndex 为区块首项在排序后可见列表中的下标，供查看器索引映射）。 */
+interface AlbumSection {
+  key: string;
+  label: string | null;
+  items: AttachmentItem[];
+  startIndex: number;
+}
+
+/** 解析 ISO 时间字符串为本地 Date；非法值回退 0 时刻保证排序稳定。 */
+function parseDate(s: string): Date {
+  const d = new Date(s);
+  return Number.isNaN(d.getTime()) ? new Date(0) : d;
+}
+
+/** 时间分组键：'2026' / '2026-8' / '2026-8-10'。 */
+function timeGroupKey(mode: Exclude<AlbumGroupMode, 'none' | 'object'>, d: Date): string {
+  const y = d.getFullYear();
+  const m = d.getMonth() + 1;
+  const day = d.getDate();
+  if (mode === 'year') return `${y}`;
+  if (mode === 'month') return `${y}-${m}`;
+  return `${y}-${m}-${day}`;
+}
+
+/** 分组标题本地化：2026 / 2026年8月 / 2026年8月10日 / 对象名。 */
+function formatGroupLabel(mode: AlbumGroupMode, key: string, lang: string): string {
+  if (mode === 'object') return key;
+  if (mode === 'none') return key;
+  const [y, m, d] = key.split('-').map(Number);
+  if (mode === 'year') {
+    return new Intl.DateTimeFormat(lang, { year: 'numeric' }).format(new Date(y, 0, 1));
+  }
+  if (mode === 'month') {
+    return new Intl.DateTimeFormat(lang, { year: 'numeric', month: 'long' }).format(
+      new Date(y, (m || 1) - 1, 1),
+    );
+  }
+  return new Intl.DateTimeFormat(lang, {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  }).format(new Date(y, (m || 1) - 1, d || 1));
 }
 
 /**
  * 照片集相册组合层（附件照片集方案 §3.2/§3.3）：
  * - 顶栏（返回/关闭 + 标题 + 数量）；
+ * - 工具栏：标签分区筛选（需求4）+ 时间正/倒序排序（需求5）+ 年/月/日/对象分组（需求5/6）；
  * - 网格视图（PhotoAlbumGrid）↔ 全屏查看器（PhotoViewerOverlay）状态机；
  * - 打开时切深色状态栏，关闭恢复主题对应样式（与 AttachmentPreviewOverlay 一致）。
  */
@@ -26,10 +78,24 @@ export function PhotoAlbumOverlay({
   items,
   onClose,
   onOpenExternal,
+  onItemMetaUpdated,
   zIndex = 'var(--z-preview-overlay)',
 }: PhotoAlbumOverlayProps) {
-  const { t } = useTranslation('common');
+  const { t, i18n } = useTranslation('common');
   const [viewerIndex, setViewerIndex] = useState<number | null>(null);
+  const [filterTag, setFilterTag] = useState<string | null>(null);
+  const [sortDesc, setSortDesc] = useState(true);
+  const [groupMode, setGroupMode] = useState<AlbumGroupMode>('none');
+
+  // 本地副本：相册内编辑描述/标签后即时生效，父级刷新后经 props 同步。
+  // 注意：仅同步数据、不重置筛选/查看器下标——相册内编辑元数据后父级 setItems/
+  // loadData 会产生新的 items 引用，若在此重置 viewerIndex 会把用户从全屏查看器
+  // 踢回网格（需求 2+3 要求在全屏照片中编辑后留在原处）。越界由渲染守卫
+  // `visibleItems[viewerIndex]` 兜底。
+  const [localItems, setLocalItems] = useState<AttachmentItem[]>(items);
+  useEffect(() => {
+    setLocalItems(items);
+  }, [items]);
 
   useEffect(() => {
     void syncStatusBarStyle('dark');
@@ -38,6 +104,104 @@ export function PhotoAlbumOverlay({
       void syncStatusBarStyle(currentTheme === 'dark' ? 'dark' : 'light');
     };
   }, []);
+
+  /** 标签分区（需求4）：全量去重标签，按出现次数降序、名称升序。 */
+  const tagOptions = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const item of localItems) {
+      for (const tag of item.tags ?? []) {
+        const k = tag.trim();
+        if (k) counts.set(k, (counts.get(k) ?? 0) + 1);
+      }
+    }
+    return [...counts.entries()]
+      .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+      .map(([tag]) => tag);
+  }, [localItems]);
+
+  /** 可见列表 = 标签筛选 + 时间排序（上传时间 created_at）。 */
+  const visibleItems = useMemo(() => {
+    const filtered = filterTag
+      ? localItems.filter((i) => (i.tags ?? []).includes(filterTag))
+      : localItems;
+    return [...filtered].sort((a, b) => {
+      const diff = parseDate(a.createdAt).getTime() - parseDate(b.createdAt).getTime();
+      return sortDesc ? -diff : diff;
+    });
+  }, [localItems, filterTag, sortDesc]);
+
+  /** 分组区块（需求5/6）。 */
+  const sections = useMemo<AlbumSection[]>(() => {
+    if (visibleItems.length === 0 || groupMode === 'none') {
+      return [{ key: 'all', label: null, items: visibleItems, startIndex: 0 }];
+    }
+    const groups = new Map<string, AttachmentItem[]>();
+    for (const item of visibleItems) {
+      let key: string;
+      if (groupMode === 'object') {
+        key = item.objectName?.trim() || item.objectId;
+      } else {
+        key = timeGroupKey(groupMode, parseDate(item.createdAt));
+      }
+      const list = groups.get(key);
+      if (list) list.push(item);
+      else groups.set(key, [item]);
+    }
+    // 时间分组：按键值排序，倒序时时间新在前；对象分组：按名称字典序
+    const keys = [...groups.keys()];
+    keys.sort((a, b) => {
+      if (groupMode === 'object') return a.localeCompare(b);
+      const na = Number(a.split('-')[0]);
+      const nb = Number(b.split('-')[0]);
+      if (na !== nb) return sortDesc ? nb - na : na - nb;
+      return sortDesc ? b.localeCompare(a) : a.localeCompare(b);
+    });
+    let startIndex = 0;
+    return keys.map((key) => {
+      const groupItems = groups.get(key)!;
+      const section: AlbumSection = {
+        key,
+        label: formatGroupLabel(groupMode, key, i18n.language),
+        items: groupItems,
+        startIndex,
+      };
+      startIndex += groupItems.length;
+      return section;
+    });
+  }, [visibleItems, groupMode, sortDesc, i18n.language]);
+
+  /** 相册内编辑描述/标签后：本地副本即时更新 + 通知父级。 */
+  const handleItemMetaUpdated = (updated: AttachmentItem) => {
+    setLocalItems((prev) => prev.map((i) => (i.id === updated.id ? updated : i)));
+    onItemMetaUpdated?.(updated);
+  };
+
+  /** 仅单个对象（对象级相册）时隐藏「按对象」分组选项。 */
+  const distinctObjects = useMemo(
+    () => new Set(localItems.map((i) => i.objectName?.trim() || i.objectId)).size,
+    [localItems],
+  );
+
+  const groupLabel =
+    groupMode === 'none'
+      ? t('common:group_none', { defaultValue: 'No grouping' })
+      : groupMode === 'object'
+        ? t('common:group_by_object', { defaultValue: 'By object' })
+        : groupMode === 'year'
+          ? t('common:group_by_year', { defaultValue: 'By year' })
+          : groupMode === 'month'
+            ? t('common:group_by_month', { defaultValue: 'By month' })
+            : t('common:group_by_day', { defaultValue: 'By day' });
+
+  const groupOptions = [
+    { value: 'none', label: t('common:group_none', { defaultValue: 'No grouping' }) },
+    { value: 'year', label: t('common:group_by_year', { defaultValue: 'By year' }) },
+    { value: 'month', label: t('common:group_by_month', { defaultValue: 'By month' }) },
+    { value: 'day', label: t('common:group_by_day', { defaultValue: 'By day' }) },
+    ...(distinctObjects > 1
+      ? [{ value: 'object', label: t('common:group_by_object', { defaultValue: 'By object' }) }]
+      : []),
+  ];
 
   return (
     <div
@@ -80,7 +244,7 @@ export function PhotoAlbumOverlay({
             {t('common:photo_album', 'Photo Album')}
           </span>
           <span style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
-            {items.length}
+            {visibleItems.length}
           </span>
         </div>
         <BadgeIconButton
@@ -91,9 +255,90 @@ export function PhotoAlbumOverlay({
         />
       </div>
 
-      {/* 网格 */}
+      {/* 工具栏：标签筛选 + 排序 + 分组 */}
+      {(tagOptions.length > 0 || visibleItems.length > 0) && (
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 8,
+            padding: '10px 16px',
+            borderBottom: '1px solid var(--border-subtle)',
+            background: 'var(--bg-toolbar)',
+            flexShrink: 0,
+          }}
+        >
+          {tagOptions.length > 0 && (
+            <div
+              style={{
+                overflowX: 'auto',
+                paddingBottom: 2,
+                marginBottom: -2,
+              }}
+            >
+              <FilterChipGroup<string>
+                value={filterTag}
+                onChange={setFilterTag}
+                toggle
+                options={[
+                  {
+                    id: null,
+                    label: t('common:filter_all', { defaultValue: 'All' }),
+                  },
+                  ...tagOptions.map((tag) => ({ id: tag, label: tag })),
+                ]}
+                size="caption"
+                style={{ flexWrap: 'nowrap', width: 'max-content' }}
+              />
+            </div>
+          )}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <button
+              type="button"
+              onClick={() => setSortDesc((v) => !v)}
+              title={t(
+                sortDesc ? 'common:sort_asc' : 'common:sort_desc',
+                sortDesc ? 'Switch to oldest first' : 'Switch to newest first',
+              )}
+              className="interactive-toolbar"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '5px 10px',
+                borderRadius: 6,
+                border: '1px solid var(--border-subtle)',
+                background: 'var(--bg-elevated)',
+                color: 'var(--text-secondary)',
+                fontSize: 'var(--text-caption)',
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {sortDesc ? (
+                <ArrowDown size={ICON_SIZE.sm} />
+              ) : (
+                <ArrowUp size={ICON_SIZE.sm} />
+              )}
+              {sortDesc
+                ? t('common:sort_desc', { defaultValue: 'Newest first' })
+                : t('common:sort_asc', { defaultValue: 'Oldest first' })}
+            </button>
+            <DropdownSelect
+              value={groupMode}
+              onChange={(v) => setGroupMode(v as AlbumGroupMode)}
+              options={groupOptions}
+              triggerLabel={groupLabel}
+              ariaLabel={t('common:album_group_mode', { defaultValue: 'Group by' })}
+              width={110}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* 网格（按区块分隔渲染） */}
       <div style={{ flex: 1, overflow: 'auto', padding: 16 }}>
-        {items.length === 0 ? (
+        {visibleItems.length === 0 ? (
           <div
             style={{
               textAlign: 'center',
@@ -102,21 +347,60 @@ export function PhotoAlbumOverlay({
               fontSize: 'var(--text-body)',
             }}
           >
-            {t('common:no_attachments', 'No attachments')}
+            {filterTag
+              ? t('common:no_photos_for_filter', {
+                  tag: filterTag,
+                  defaultValue: `No photos with tag "${filterTag}"`,
+                })
+              : t('common:no_attachments', 'No attachments')}
           </div>
         ) : (
-          <PhotoAlbumGrid items={items} onSelect={(_, i) => setViewerIndex(i)} />
+          sections.map((section) => (
+            <div key={section.key} style={{ marginBottom: 20 }}>
+              {section.label && (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    marginBottom: 10,
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: 'var(--text-body-sm)',
+                      fontWeight: 600,
+                      color: 'var(--text-secondary)',
+                    }}
+                  >
+                    {section.label}
+                  </span>
+                  <span style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
+                    {section.items.length}
+                  </span>
+                  <div
+                    style={{ flex: 1, height: 1, background: 'var(--border-subtle)' }}
+                  />
+                </div>
+              )}
+              <PhotoAlbumGrid
+                items={section.items}
+                onSelect={(_, i) => setViewerIndex(section.startIndex + i)}
+              />
+            </div>
+          ))
         )}
       </div>
 
-      {/* 全屏查看器（覆盖整个相册） */}
-      {viewerIndex !== null && items[viewerIndex] && (
+      {/* 全屏查看器（覆盖整个相册；浏览范围为当前筛选/排序后的可见列表） */}
+      {viewerIndex !== null && visibleItems[viewerIndex] && (
         <PhotoViewerOverlay
-          items={items}
+          items={visibleItems}
           initialIndex={viewerIndex}
           onBack={() => setViewerIndex(null)}
           onClose={onClose}
           onOpenExternal={onOpenExternal}
+          onItemMetaUpdated={handleItemMetaUpdated}
         />
       )}
     </div>

@@ -20,6 +20,8 @@ interface AttachmentRowProps {
   onStartRename: (item: AttachmentMeta, objectId: string) => void;
   onDownload: (item: AttachmentMeta) => void;
   onShare: (item: AttachmentMeta) => void;
+  /** 编辑描述与标签（附件行级入口） */
+  onEditMeta?: (item: AttachmentMeta, objectId: string) => void;
   onSoftDelete: (item: AttachmentMeta, objectId: string) => void;
   onRestore: (item: AttachmentMeta, objectId: string) => void;
   onPermanentDelete: (item: AttachmentMeta, objectId: string) => void;
@@ -95,6 +97,7 @@ function AttachmentRowBase({
   onStartRename,
   onDownload,
   onShare,
+  onEditMeta,
   onSoftDelete,
   onRestore,
   onPermanentDelete,
@@ -117,6 +120,7 @@ function AttachmentRowBase({
       onStartRename={() => onStartRename(item, objectId)}
       onDownload={() => onDownload(item)}
       onShare={() => onShare(item)}
+      onEditMeta={() => onEditMeta?.(item, objectId)}
       onSoftDelete={() => onSoftDelete(item, objectId)}
       onRestore={() => onRestore(item, objectId)}
       onPermanentDelete={() => onPermanentDelete(item, objectId)}
@@ -154,6 +158,8 @@ function AttachmentRowBase({
               sizeBytes={item.sizeBytes}
               createdAt={item.createdAt}
               showTrash={showTrash}
+              description={item.description}
+              tags={item.tags}
             />
             <div style={{ display: 'flex', gap: 4, marginTop: 4 }}>{actions}</div>
           </div>
@@ -190,6 +196,8 @@ function AttachmentRowBase({
           sizeBytes={item.sizeBytes}
           createdAt={item.createdAt}
           showTrash={showTrash}
+          description={item.description}
+          tags={item.tags}
         />
       )}
 

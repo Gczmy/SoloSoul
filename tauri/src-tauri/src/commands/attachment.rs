@@ -15,6 +15,15 @@ use tauri::{AppHandle, Runtime, State};
 /// 单个对象最多允许的活跃附件数量。
 const MAX_ACTIVE_ATTACHMENTS: usize = 200;
 
+/// 单个附件最多允许的标签数量（超出部分丢弃）。
+const MAX_ATTACHMENT_TAGS: usize = 20;
+
+/// 单个标签的最大字符数（超出部分截断）。
+const MAX_ATTACHMENT_TAG_LEN: usize = 30;
+
+/// 单个附件描述的最大字符数（超出部分截断）。
+const MAX_ATTACHMENT_DESCRIPTION_LEN: usize = 500;
+
 /// 附件 ID 与对象 ID 允许使用的字符集，防止路径遍历。
 fn validate_attachment_id(id: &str) -> Result<(), String> {
     if id.is_empty()
@@ -55,6 +64,12 @@ pub struct AttachmentMeta {
     /// Vault storage path (persistent, survives original file deletion)
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub vault_path: Option<String>,
+    /// 附件描述（可选；前端通过 attachment_update_meta 维护）
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub description: Option<String>,
+    /// 附件标签（可选，去重后最多 MAX_ATTACHMENT_TAGS 个）
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub tags: Vec<String>,
 }
 
 fn load_attachments(props: &Value) -> Vec<AttachmentMeta> {
@@ -264,6 +279,70 @@ pub async fn attachment_rename(
             .map(|n| n.to_string_lossy().to_string())
             .unwrap_or(new_name.clone());
         a.file_name = safe_name;
+    }
+    save_attachments(&mut record.properties, &atts);
+    record.updated_at = chrono::Utc::now().to_rfc3339();
+    record.version += 1;
+    vault.save_object(&record)?;
+    state.auto_sync.trigger_debounce();
+    state.device_auto_sync.trigger_data_change();
+    Ok(())
+}
+
+/// 更新附件元数据（描述 + 标签）。
+///
+/// - `description`: `None` 表示不修改；`Some` 时按「空串清除」语义处理（trim 后
+///   为空则置 None），超长截断。
+/// - `tags`: `None` 表示不修改；`Some` 时整体替换（逐项 trim、去空、去重、限长）。
+///
+/// 与 `attachment_rename` 同构：加载对象 → 定位附件 → 修改 → 落盘 + 触发同步。
+#[tauri::command]
+pub async fn attachment_update_meta(
+    state: State<'_, AppState>,
+    object_id: String,
+    attachment_id: String,
+    description: Option<String>,
+    tags: Option<Vec<String>>,
+) -> Result<(), String> {
+    let vault = vault_handle(&state)?;
+    let mut record = vault.load_object(&object_id)?.ok_or("Object not found")?;
+    let mut atts = load_attachments(&record.properties);
+    let att = atts
+        .iter_mut()
+        .find(|a| a.id == attachment_id)
+        .ok_or("Attachment not found")?;
+    if let Some(desc) = description {
+        let trimmed = desc.trim();
+        if trimmed.is_empty() {
+            att.description = None;
+        } else {
+            // 字符级截断：String::truncate 按字节截断，多字节 UTF-8（中文等）落在字符
+            // 中间会 panic——用 chars().take() 保证字符边界安全
+            att.description = Some(
+                trimmed
+                    .chars()
+                    .take(MAX_ATTACHMENT_DESCRIPTION_LEN)
+                    .collect(),
+            );
+        }
+    }
+    if let Some(tags) = tags {
+        // 与前端一致：大小写不敏感去重 + 逐标签长度上限（均字符级，UTF-8 安全）
+        let mut seen: std::collections::HashSet<String> = std::collections::HashSet::new();
+        let cleaned: Vec<String> = tags
+            .into_iter()
+            .filter_map(|s| {
+                let trimmed = s.trim().to_string();
+                let normalized = trimmed.to_lowercase();
+                if trimmed.is_empty() || !seen.insert(normalized) {
+                    None
+                } else {
+                    Some(trimmed.chars().take(MAX_ATTACHMENT_TAG_LEN).collect())
+                }
+            })
+            .take(MAX_ATTACHMENT_TAGS)
+            .collect();
+        att.tags = cleaned;
     }
     save_attachments(&mut record.properties, &atts);
     record.updated_at = chrono::Utc::now().to_rfc3339();
@@ -1531,6 +1610,8 @@ mod tests {
             deleted_at: Some("2024-02-01T00:00:00Z".to_string()),
             src_path: Some("/tmp/test.pdf".to_string()),
             vault_path: Some("/vault/test.pdf".to_string()),
+            description: Some("a test attachment".to_string()),
+            tags: vec!["scanned".to_string(), "receipt".to_string()],
         };
         let json = serde_json::to_string(&original).unwrap();
         let restored: AttachmentMeta = serde_json::from_str(&json).unwrap();
@@ -1564,6 +1645,8 @@ mod tests {
             deleted_at: None,
             src_path: None,
             vault_path: None,
+            description: None,
+            tags: vec![],
         }];
         let props = serde_json::json!({"title": "hello", "__attachments": atts});
         let loaded = load_attachments(&props);
@@ -1584,6 +1667,8 @@ mod tests {
             deleted_at: None,
             src_path: None,
             vault_path: None,
+            description: None,
+            tags: vec![],
         }];
         save_attachments(&mut props, &atts);
         let loaded = load_attachments(&props);
@@ -1619,6 +1704,8 @@ mod tests {
                         deleted_at: None,
                         src_path: None,
                         vault_path: None,
+                        description: None,
+                        tags: vec![],
                     },
                     AttachmentMeta {
                         id: "att-2".to_string(),
@@ -1630,6 +1717,8 @@ mod tests {
                         deleted_at: Some("2024-02-01T00:00:00Z".to_string()),
                         src_path: None,
                         vault_path: None,
+                        description: None,
+                        tags: vec![],
                     },
                 ]
             }),
@@ -1670,6 +1759,8 @@ mod tests {
                         deleted_at: None,
                         src_path: None,
                         vault_path: None,
+                        description: None,
+                        tags: vec![],
                     },
                 ]
             }),
@@ -1720,6 +1811,8 @@ mod tests {
                         deleted_at: None,
                         src_path: None,
                         vault_path: None,
+                        description: None,
+                        tags: vec![],
                     },
                     AttachmentMeta {
                         id: "att-2".to_string(),
@@ -1731,6 +1824,8 @@ mod tests {
                         deleted_at: Some("2024-02-01T00:00:00Z".to_string()),
                         src_path: None,
                         vault_path: None,
+                        description: None,
+                        tags: vec![],
                     },
                 ]
             }),
@@ -1792,6 +1887,8 @@ mod tests {
             deleted_at: deleted.then(|| "2024-02-01T00:00:00Z".to_string()),
             src_path: None,
             vault_path: None,
+            description: None,
+            tags: vec![],
         };
         let mk_record = |id: &str,
                          type_id: &str,
@@ -2002,6 +2099,8 @@ mod tests {
             deleted_at: None,
             src_path: None,
             vault_path: Some(file_path.to_string_lossy().to_string()),
+            description: None,
+            tags: vec![],
         };
         let record = ObjectRecord {
             contract_type_id: None,

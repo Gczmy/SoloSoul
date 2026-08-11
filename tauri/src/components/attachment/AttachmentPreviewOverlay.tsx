@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
-import { ArrowLeft, X, ZoomIn, ZoomOut, RotateCcw, ExternalLink } from 'lucide-react';
+import { ArrowLeft, X, ZoomIn, ZoomOut, RotateCcw, ExternalLink, FilePen } from 'lucide-react';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
+import { AttachmentMetaEditDialog } from '@/components/attachment/AttachmentMetaEditDialog';
 import type { AttachmentItem } from '@/lib/attachmentUtils';
 import { previewItemByMime } from '@/lib/attachmentUtils';
 import { isMobilePlatformSync } from '@/lib/platform';
@@ -13,6 +14,8 @@ interface AttachmentPreviewOverlayProps {
   item: AttachmentItem | null;
   onClose: () => void;
   onOpenExternal?: (item: AttachmentItem) => void;
+  /** 附件描述/标签保存成功后的回调（父级同步列表状态） */
+  onItemUpdated?: (item: AttachmentItem) => void;
 }
 
 type PreviewKind = 'image' | 'pdf' | 'text' | 'other';
@@ -38,6 +41,7 @@ export function AttachmentPreviewOverlay({
   item,
   onClose,
   onOpenExternal,
+  onItemUpdated,
 }: AttachmentPreviewOverlayProps) {
   const { t } = useTranslation('common');
   const [previewKind, setPreviewKind] = useState<PreviewKind | null>(null);
@@ -47,6 +51,7 @@ export function AttachmentPreviewOverlay({
   const [loading, setLoading] = useState(false);
   const [naturalSize, setNaturalSize] = useState<{ width: number; height: number } | null>(null);
   const [scale, setScale] = useState(1);
+  const [metaEditOpen, setMetaEditOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -384,6 +389,31 @@ export function AttachmentPreviewOverlay({
         >
           {item.fileName}
         </span>
+        {/* 描述/标签编辑入口（全屏照片，需求 2+3） */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setMetaEditOpen(true);
+          }}
+          title={t('common:edit_meta', 'Edit description & tags')}
+          aria-label={t('common:edit_meta', 'Edit description & tags')}
+          className="interactive-icon"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 36,
+            height: 36,
+            borderRadius: 8,
+            border: 'none',
+            background: 'transparent',
+            color: 'var(--text-secondary)',
+            cursor: 'pointer',
+            flexShrink: 0,
+          }}
+        >
+          <FilePen size={ICON_SIZE.md} />
+        </button>
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -409,6 +439,18 @@ export function AttachmentPreviewOverlay({
           <X size={ICON_SIZE.lg} />
         </button>
       </div>
+
+      {/* 描述/标签编辑对话框 */}
+      {metaEditOpen && (
+        <AttachmentMetaEditDialog
+          item={item}
+          onClose={() => setMetaEditOpen(false)}
+          onSaved={(updated) => {
+            onItemUpdated?.({ ...item, ...updated });
+            setMetaEditOpen(false);
+          }}
+        />
+      )}
 
       {/* 背景点击统一由外层 div 处理（stopPropagation + onClose）：
           此处不再挂 onClick，避免与外层重复触发 onClose 两次。

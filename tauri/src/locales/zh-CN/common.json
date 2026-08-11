@@ -681,5 +681,22 @@
   "recovery_need_pin": "请输入旧设备上显示的 6 位 PIN 码",
   "sync_qr_timeout": "二维码已过期，请重新生成",
   "uninstall_confirm_title": "卸载插件",
-  "uninstall_confirm_message": "确定要卸载「{{name}}」吗？"
+  "uninstall_confirm_message": "确定要卸载「{{name}}」吗？",
+  "edit_meta": "编辑描述与标签",
+  "attachment_description": "描述",
+  "attachment_description_placeholder": "添加描述…",
+  "attachment_tags": "标签",
+  "tag_input_placeholder": "输入标签后回车",
+  "remove_tag": "移除标签",
+  "meta_saved": "已保存",
+  "filter_all": "全部",
+  "sort_asc": "时间正序",
+  "sort_desc": "时间倒序",
+  "group_none": "不分组",
+  "group_by_year": "按年",
+  "group_by_month": "按月",
+  "group_by_day": "按日",
+  "group_by_object": "按对象",
+  "album_group_mode": "分组方式",
+  "no_photos_for_filter": "没有带「{{tag}}」标签的照片"
 }

@@ -1002,6 +1002,8 @@ fn extract_att_meta_for_object(
         deleted_at: None,
         src_path: Some(file_path_dest.to_string_lossy().to_string()),
         vault_path: Some(file_path_dest.to_string_lossy().to_string()),
+        description: None,
+        tags: vec![],
     })
 }
 

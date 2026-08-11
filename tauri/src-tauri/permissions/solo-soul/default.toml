@@ -39,6 +39,7 @@ commands.allow = [
   "attachment_restore",
   "attachment_save",
   "attachment_soft_delete",
+  "attachment_update_meta",
   "backup_create",
   "backup_delete",
   "backup_list",
