@@ -662,43 +662,8 @@ pub(crate) fn rebuild_imported_templates(
                     let original_id = tpl.id.clone();
                     let hash = solosoul_core::export_import::user_template_content_hash(&tpl);
 
-                    // 去重：检查是否有完全一致的已有模板（含系统预置模板）
-                    let local_id = if let Some(existing) =
-                        vault.find_user_template_by_content_hash(account_id, &hash)?
-                    {
-                        existing.id
-                    } else if vault
-                        .load_user_template(&original_id)
-                        .ok()
-                        .flatten()
-                        .is_none()
-                    {
-                        // P2: 本地无同 ID 模板 → 保留原始 ID（预置种子模板 key 如 passport 得以保留，
-                        // 恢复后模板 ID 与旧设备一致）。
-                        tpl.id = original_id.clone();
-                        tpl.account_id = account_id.to_string();
-                        tpl.created_at = now.clone();
-                        tpl.updated_at = Some(now.clone());
-                        let _ = vault.save_user_template(&tpl);
-                        original_id.clone()
-                    } else {
-                        // 本地已有同 ID 但内容不同的模板 → 派生 ID（快照隔离，避免覆盖本地模板）
-                        let imported_id =
-                            solosoul_core::export_import::imported_template_id(&original_id, &hash);
-                        if vault
-                            .load_user_template(&imported_id)
-                            .ok()
-                            .flatten()
-                            .is_none()
-                        {
-                            tpl.id = imported_id.clone();
-                            tpl.account_id = account_id.to_string();
-                            tpl.created_at = now.clone();
-                            tpl.updated_at = Some(now.clone());
-                            let _ = vault.save_user_template(&tpl);
-                        }
-                        imported_id
-                    };
+                    // P035: 三分支去重逻辑抽纯函数。
+                    let local_id = resolve_template_id(vault, account_id, &mut tpl, &hash, &now)?;
 
                     template_id_map.insert(original_id, local_id);
                 }
@@ -713,6 +678,57 @@ pub(crate) fn rebuild_imported_templates(
         }
     }
     Ok(template_id_map)
+}
+
+/// P035: 解析单个模板的本地 ID（去重三分支）：
+/// 1. 内容哈希已存在（含系统预置模板）→ 复用已有模板 ID；
+/// 2. 本地无同 ID 模板 → 保留原始 ID（预置种子模板 key 如 passport 得以保留，
+///    恢复后模板 ID 与旧设备一致）；
+/// 3. 本地已有同 ID 但内容不同 → 派生 ID（快照隔离，避免覆盖本地模板）。
+///
+/// 需要保存新模板时统一改写归属字段并写入。
+fn resolve_template_id(
+    vault: &solosoul_vault::VaultStore,
+    account_id: &str,
+    tpl: &mut solosoul_vault::UserTemplate,
+    hash: &str,
+    now: &str,
+) -> Result<String, String> {
+    if let Some(existing) = vault.find_user_template_by_content_hash(account_id, hash)? {
+        return Ok(existing.id);
+    }
+
+    let original_id = tpl.id.clone();
+    if vault
+        .load_user_template(&original_id)
+        .ok()
+        .flatten()
+        .is_none()
+    {
+        // 本地无同 ID 模板 → 保留原始 ID
+        tpl.id = original_id.clone();
+        tpl.account_id = account_id.to_string();
+        tpl.created_at = now.to_string();
+        tpl.updated_at = Some(now.to_string());
+        let _ = vault.save_user_template(tpl);
+        return Ok(original_id);
+    }
+
+    // 本地已有同 ID 但内容不同 → 派生 ID
+    let imported_id = solosoul_core::export_import::imported_template_id(&original_id, hash);
+    if vault
+        .load_user_template(&imported_id)
+        .ok()
+        .flatten()
+        .is_none()
+    {
+        tpl.id = imported_id.clone();
+        tpl.account_id = account_id.to_string();
+        tpl.created_at = now.to_string();
+        tpl.updated_at = Some(now.to_string());
+        let _ = vault.save_user_template(tpl);
+    }
+    Ok(imported_id)
 }
 
 /// 阶段 4.1：构建导入对象记录（含 KeepBoth ID 引用重写）。
