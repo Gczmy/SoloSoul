@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-11（P004 修复完成）
+> 最后更新：2026-08-11（P005 修复完成）
 > 当前分支：`main`
 > 修复轮次：2（按用户指令逐项修复，一项一提交）
 
@@ -18,7 +18,7 @@ Git 状态：工作树除本报告文件重建外干净（旧报告已删除，�
 | P002 | P1 | 漏洞 | `tauri/src-tauri/src/commands/update.rs:449-463` | `android_download_apk` 信任前端回传的 URL 与 checksum（可传空跳过校验），验签成果未绑定到 IPC 通道 | `[x]` 已完成 |
 | P003 | P1 | 性能 | `tauri/src-tauri/src/commands/export_import/mod.rs:290`、`export.rs:183` | 导出 selected 分支全库解密两遍（`list_objects` + `load_objects_batch`），且随导出页每次勾选变更（500ms 防抖）触发 | `[x]` 已完成 |
 | P004 | P1 | 性能/架构 | `tauri/src-tauri/src/commands/llm/conversation.rs:13-57` | LLM 会话整体存加密 preferences blob，每次保存 = 全量解密+深克隆+序列化+加密+写盘；每条聊天消息都触发 | `[x]` 已完成 |
-| P005 | P1 | 性能 | `solosoul_cli/src/commands/search.rs:181-184,206-209` | CLI `/search` 用 `list_objects(...).len()` 统计子对象数，对每个命中页面全量解密仅为取计数（GUI 已有 `count_objects` 先例） | `[ ]` 待修复 |
+| P005 | P1 | 性能 | `solosoul_cli/src/commands/search.rs:181-184,206-209` | CLI `/search` 用 `list_objects(...).len()` 统计子对象数，对每个命中页面全量解密仅为取计数（GUI 已有 `count_objects` 先例） | `[x]` 已完成 |
 | P006 | P1 | 架构 | `tauri/src-tauri/src/commands/object/mod.rs:439`、`tauri/src/stores/objectStore.ts:56,185`、`ObjectDetailModal.tsx:470` | 类型漂移：Rust `ObjectData` 无 `tags`，TS 声明 `tags?` 永为 undefined；`updateObject` 用 undefined 覆盖摘要 tags，详情页标签成死渲染路径 | `[ ]` 待修复 |
 | P007 | P1 | 架构 | `tauri/src-tauri/src/commands/export_import/export_docx.rs:200` | `flatten_object_fields` 6–7 层控制流嵌套，动态字段组展平逻辑难读难测 | `[ ]` 待修复 |
 | P008 | P1 | 架构 | `tauri/src-tauri/src/commands/search/query.rs:16` | `search_properties_for_matches` 133 行递归函数承担 4 种职责，`__fields` 分支 5–6 层嵌套 | `[ ]` 待修复 |
@@ -64,8 +64,8 @@ Git 状态：工作树除本报告文件重建外干净（旧报告已删除，�
 
 ## 修复进度
 
-- 已完成：4 / 47
-- 当前处理：P005（按建议顺序推进）
+- 已完成：5 / 47
+- 当前处理：P006（按建议顺序推进）
 
 ## 详细问题描述与修复指引
 
@@ -125,10 +125,13 @@ error: deref which would be done by auto-deref
 
 **验证**：vault 159 测试全过（含新增行级 CRUD + sync apply + v26 建表测试）✅；clippy --workspace 全绿 ✅；src-tauri `cargo check --tests` ✅；CLI 编译 ✅。注：src-tauri 测试二进制运行报 `STATUS_ENTRYPOINT_NOT_FOUND`（Windows 本机 DLL 环境问题，旧二进制同样无法运行，非本次改动引入）。
 
-### P005（P1）CLI 搜索计数全量解密
+### P005（P1）CLI 搜索计数全量解密 — 已完成（commit 29a9d8ec）
 
-`search_pages` 用 `list_objects(...).map(|v| v.len())` 统计子对象数，`list_objects` 对每行 AES-GCM 解密 + JSON 解析仅为取计数，命中多个分区时相当于多次全库解密。
-**修复**：改用 GUI 已在用的 `VaultStore::count_objects`（`solosoul-vault/src/storage/objects.rs:715`，纯 SQL COUNT 不解密），改动极小。
+**原问题**：`search_pages` 用 `list_objects(...).map(|v| v.len())` 统计子对象数，`list_objects` 对每行 AES-GCM 解密 + JSON 解析仅为取计数，命中多个分区时相当于多次全库解密。
+
+**修复**：`search.rs` 两处计数（自定义页子对象数 :182、系统分区对象数 :207）改用 `VaultStore::count_objects`（纯 SQL `COUNT(*)`，不解密），语义等价（`count_objects` 与 `list_objects(kw=None, include_deleted=false)` 均按 `account_id + is_deleted=0` + type/parent 过滤）。
+
+**验证**：CLI 编译 ✅；`commands::search` 测试 10/10 ✅。（注：CLI 全量测试中 backup/ocr/profile 等 14 项失败为 Windows 本机预先存在问题，经 stash 对比确认与本次改动无关。）
 
 ### P006（P1）ObjectData tags 类型漂移
 
