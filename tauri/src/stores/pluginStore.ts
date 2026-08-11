@@ -92,7 +92,8 @@ export interface RunningPlugin {
   toastShown?: boolean;
 }
 
-export const DEFAULT_ENABLED_TIERS: PluginTier[] = ['p0', 'p1', 'p2'];
+// P031: 仅本文件使用，取消导出（死导出）
+const DEFAULT_ENABLED_TIERS: PluginTier[] = ['p0', 'p1', 'p2'];
 
 interface PluginState {
   marketPlugins: MarketPluginInfo[];
