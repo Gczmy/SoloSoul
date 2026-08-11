@@ -1,5 +1,5 @@
 import React, { Fragment, useCallback, useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AppShell } from '@/components/layout/AppShell';
 import { PageContainer } from '@/components/layout/PageContainer';
@@ -207,6 +207,8 @@ function EditableCustomPageCard({
 
 export function HomePage() {
   const navigate = useNavigate();
+  // 监听路由位置：从附件管理等其他页面返回首页时重新加载角标（防止数量过期）
+  const location = useLocation();
   const { t } = useTranslation(['common', 'navigation']);
   const activeCustomPages = useActiveCustomPages();
   // 当前账户名，用于欢迎卡片让用户感知正在使用的账户
@@ -239,9 +241,13 @@ export function HomePage() {
     }
   }, [accountId]);
 
+  // 挂载 / 账户切换 / 导航回到首页（location.pathname 回到 '/'）时刷新角标。
+  // 离开首页时路径变化会触发本 effect，但被守卫跳过，返回时才真正重新加载。
   useEffect(() => {
-    void loadCounts();
-  }, [loadCounts]);
+    if (location.pathname === '/') {
+      void loadCounts();
+    }
+  }, [location.pathname, loadCounts]);
 
   /** 加载所有对象的所有照片附件并打开照片集（复用 attachment_list_all + 图片过滤）。 */
   const handleOpenPhotoAlbum = async () => {

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
-import { MemoryRouter, useNavigate } from 'react-router-dom';
+import { MemoryRouter, Navigate, useNavigate } from 'react-router-dom';
 import { invoke } from '@tauri-apps/api/core';
 import { HomePage } from './HomePage';
 
@@ -131,5 +131,45 @@ describe('HomePage', () => {
 
     const albumCard = screen.getByText('Photo Album').closest('[role="button"]') as HTMLElement;
     expect(within(albumCard).getByText('2')).toBeInTheDocument();
+  });
+
+  it('从其他页面返回首页时重新加载角标计数', async () => {
+    const listAllResult = {
+      pages: [{ pageName: 'P', objects: [{ attachments: [{ id: 'a1' }] }] }],
+      trashPages: [],
+    };
+    mockUseAuthStore.mockImplementation(
+      (selector: (s: { currentAccount: { id: string; name: string } | null }) => unknown) =>
+        selector({ currentAccount: { id: 'acc-1', name: 'Gczmy' } }),
+    );
+    let callCount = 0;
+    vi.mocked(invoke).mockImplementation(async (cmd: string) => {
+      if (cmd === 'attachment_list_all') {
+        callCount += 1;
+        return listAllResult;
+      }
+      return undefined;
+    });
+
+    // HomePage 始终直接渲染（不经 Route 匹配，保持挂载），仅路由位置随导航变化
+    function Harness({ nav }: { nav: 'home' | 'away' | 'back' }) {
+      return (
+        <MemoryRouter initialEntries={['/']}>
+          {nav === 'away' && <Navigate to="/settings/attachments" replace />}
+          {nav === 'back' && <Navigate to="/" replace />}
+          <HomePage />
+        </MemoryRouter>
+      );
+    }
+
+    const { rerender } = render(<Harness nav="home" />);
+    // 挂载时加载一次
+    await waitFor(() => expect(callCount).toBe(1));
+
+    // 离开首页（位置变化被守卫跳过，不加载）
+    rerender(<Harness nav="away" />);
+    // 返回首页（位置回到 '/'，重新加载）
+    rerender(<Harness nav="back" />);
+    await waitFor(() => expect(callCount).toBe(2));
   });
 });
