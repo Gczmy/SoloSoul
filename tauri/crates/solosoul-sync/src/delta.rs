@@ -451,6 +451,138 @@ mod tests {
         );
     }
 
+    /// 会话内容不同（本地赢 LWW）→ 仍应记录冲突（真实内容差异不可自动消解）。
+    #[test]
+    fn test_conversation_conflict_recorded_when_content_differs() {
+        let dir_a = TempDir::new().unwrap();
+        let dir_b = TempDir::new().unwrap();
+        let vault_a = open_test_vault("acc_conv", dir_a.path().to_path_buf());
+        let vault_b = open_test_vault("acc_conv", dir_b.path().to_path_buf());
+
+        let ts = "2026-08-05T10:00:00.000+00:00";
+        let remote_conv = serde_json::json!({ "id": "conv_1", "name": "远端内容", "messages": [] })
+            .to_string()
+            .into_bytes();
+        vault_a
+            .save_conversation("acc_conv", "conv_1", ts, &remote_conv)
+            .unwrap();
+
+        // 本地（接收方）内容与远端不同、updated_at 更新（本地赢 LWW）——先用几个
+        // 填充会话把本地 HLC wall 时间推到严格大于 vault_a 的记录（与收敛用例同法）。
+        for i in 0..3 {
+            let filler =
+                serde_json::json!({ "id": format!("warm_{i}"), "name": "warm", "messages": [] })
+                    .to_string()
+                    .into_bytes();
+            vault_b
+                .save_conversation("acc_conv", &format!("warm_{i}"), ts, &filler)
+                .unwrap();
+        }
+        let local_conv = serde_json::json!({ "id": "conv_1", "name": "本地内容", "messages": [] })
+            .to_string()
+            .into_bytes();
+        vault_b
+            .save_conversation("acc_conv", "conv_1", "2026-08-05T11:00:00Z", &local_conv)
+            .unwrap();
+
+        let watermark = crate::hlc::SyncWatermark::zero();
+        let page = generate_delta_paginated(
+            &vault_a,
+            "llm_conversations",
+            &watermark,
+            "acc_conv",
+            "node_a",
+            usize::MAX,
+            None,
+        )
+        .unwrap();
+        assert_eq!(page.records.len(), 1);
+
+        let stats =
+            apply_sync_records(&vault_b, "llm_conversations", &page.records, "node_b").unwrap();
+        assert_eq!(
+            stats.conflicts.len(),
+            1,
+            "会话内容不同是真实差异，应记录冲突（不自动消解）"
+        );
+        assert!(
+            !vault_b.list_sync_conflicts().unwrap().is_empty(),
+            "持久化冲突表应含该冲突"
+        );
+    }
+
+    /// 远端会话信封解密失败（数据损坏/密钥不匹配）→ 保守退化，照常记录冲突
+    /// （fail-safe：任何解析/解密错误都不得自动消解，防止误判丢失真实差异）。
+    #[test]
+    fn test_conversation_conflict_recorded_when_remote_decrypt_fails() {
+        let dir_a = TempDir::new().unwrap();
+        let dir_b = TempDir::new().unwrap();
+        let vault_a = open_test_vault("acc_conv", dir_a.path().to_path_buf());
+        let vault_b = open_test_vault("acc_conv", dir_b.path().to_path_buf());
+
+        let ts = "2026-08-05T10:00:00.000+00:00";
+        let conv = serde_json::json!({ "id": "conv_1", "name": "会话", "messages": [] })
+            .to_string()
+            .into_bytes();
+        vault_a
+            .save_conversation("acc_conv", "conv_1", ts, &conv)
+            .unwrap();
+
+        // 本地（接收方）内容更新（本地赢 LWW）
+        for i in 0..3 {
+            let filler =
+                serde_json::json!({ "id": format!("warm_{i}"), "name": "warm", "messages": [] })
+                    .to_string()
+                    .into_bytes();
+            vault_b
+                .save_conversation("acc_conv", &format!("warm_{i}"), ts, &filler)
+                .unwrap();
+        }
+        vault_b
+            .save_conversation("acc_conv", "conv_1", "2026-08-05T11:00:00Z", &conv)
+            .unwrap();
+
+        let watermark = crate::hlc::SyncWatermark::zero();
+        let page = generate_delta_paginated(
+            &vault_a,
+            "llm_conversations",
+            &watermark,
+            "acc_conv",
+            "node_a",
+            usize::MAX,
+            None,
+        )
+        .unwrap();
+        assert_eq!(page.records.len(), 1);
+
+        // 篡改远端信封的 data（替换一个合法 base64 字符，长度不变仍可解码），
+        // 解码后字节损坏 → 解密失败 → 保守记录冲突。LWW 检查先于写库，篡改数据
+        // 不会落库（本地较新即跳过写入）。
+        let mut record = page.records.into_iter().next().unwrap();
+        if let Some(obj) = record.data.as_object_mut() {
+            if let Some(data_str) = obj.get_mut("data").and_then(|v| v.as_str()) {
+                let mut chars: Vec<u8> = data_str.as_bytes().to_vec();
+                let idx = chars.iter().position(|&c| c == b'A').unwrap_or(0);
+                chars[idx] = if chars[idx] == b'A' { b'B' } else { b'A' };
+                obj.insert(
+                    "data".to_string(),
+                    serde_json::Value::String(String::from_utf8(chars).unwrap()),
+                );
+            }
+        }
+
+        let stats = apply_sync_records(&vault_b, "llm_conversations", &[record], "node_b").unwrap();
+        assert_eq!(
+            stats.conflicts.len(),
+            1,
+            "远端解密失败应保守记录冲突（fail-safe，不自动消解）"
+        );
+        assert!(
+            !vault_b.list_sync_conflicts().unwrap().is_empty(),
+            "持久化冲突表应含该冲突"
+        );
+    }
+
     /// 内容真实不同（同一字段值不同）→ 照常记录冲突。
     #[test]
     fn test_conflict_recorded_when_content_differs() {
