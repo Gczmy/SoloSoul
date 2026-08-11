@@ -12,7 +12,7 @@ import { PageGuideButton } from '@/components/guide/PageGuideButton';
 import { useAuthStore } from '@/stores/authStore';
 import { useUiStore } from '@/stores/uiStore';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
-import { collectPhotoItems } from '@/lib/attachmentUtils';
+import { collectPhotoItems, countActiveAttachments } from '@/lib/attachmentUtils';
 import { PhotoAlbumOverlay } from '@/components/attachment/PhotoAlbumOverlay';
 import type { AttachmentListAllResult, AttachmentMeta } from '@/components/attachment/attachmentManagerTypes';
 
@@ -217,25 +217,31 @@ export function HomePage() {
   // 首页「照片集」快捷入口状态：点击后加载全 Vault 活跃附件并直接打开全屏相册。
   const [albumItems, setAlbumItems] = useState<AttachmentMeta[] | null>(null);
   const [albumLoading, setAlbumLoading] = useState(false);
-  // 照片总数角标（挂载/账户切换时加载一次，供卡片一眼展示）
+  // 角标计数（挂载/账户切换时加载一次，供卡片一眼展示）：照片总数 + 附件总数
   const [photoCount, setPhotoCount] = useState<number | null>(null);
+  const [attachmentCount, setAttachmentCount] = useState<number | null>(null);
 
-  /** 加载当前账户的照片总数（失败静默降级为 null，不阻塞卡片点击）。 */
-  const loadPhotoCount = useCallback(async () => {
+  /**
+   * 加载照片与附件总数：一次 attachment_list_all 同时供「照片集」与「附件管理」
+   * 两张卡片角标（失败静默降级为 null，不阻塞卡片点击）。
+   */
+  const loadCounts = useCallback(async () => {
     if (!accountId) return;
     try {
       const result = await invoke<AttachmentListAllResult>('attachment_list_all', {
         accountId,
       });
       setPhotoCount(collectPhotoItems(result.pages).length);
+      setAttachmentCount(countActiveAttachments(result.pages));
     } catch {
       setPhotoCount(null);
+      setAttachmentCount(null);
     }
   }, [accountId]);
 
   useEffect(() => {
-    void loadPhotoCount();
-  }, [loadPhotoCount]);
+    void loadCounts();
+  }, [loadCounts]);
 
   /** 加载所有对象的所有照片附件并打开照片集（复用 attachment_list_all + 图片过滤）。 */
   const handleOpenPhotoAlbum = async () => {
@@ -256,6 +262,7 @@ export function HomePage() {
       }
       // 本次加载的数据顺带刷新角标（与挂载时的计数保持一致）
       setPhotoCount(photos.length);
+      setAttachmentCount(countActiveAttachments(result.pages));
       setAlbumItems(photos);
     } catch (e) {
       showToast({
@@ -412,6 +419,9 @@ export function HomePage() {
                 icon={q.icon}
                 title={t(`navigation:${q.labelKey}`)}
                 desc={t(`common:${q.descKey}`)}
+                badge={
+                  q.path === '/settings/attachments' ? (attachmentCount ?? undefined) : undefined
+                }
                 onClick={() => navigate(q.path, { state: { fromHome: true } })}
               />
               {/* 照片集快捷入口：紧跟附件管理卡片，点击直接进入全 Vault 照片集 */}
@@ -438,7 +448,7 @@ export function HomePage() {
           onClose={() => {
             setAlbumItems(null);
             // 相册会话结束后刷新角标，保持数量与当前 Vault 一致
-            void loadPhotoCount();
+            void loadCounts();
           }}
           onOpenExternal={openAttachmentExternal}
           onItemMetaUpdated={(updated) => {

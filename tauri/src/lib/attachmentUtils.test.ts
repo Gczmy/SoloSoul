@@ -6,7 +6,7 @@ vi.mock('@/lib/dialog', () => ({
   saveWithPause: saveMock,
 }));
 
-import { downloadAttachmentFile } from './attachmentUtils';
+import { downloadAttachmentFile, countActiveAttachments } from './attachmentUtils';
 
 const tMock = ((key: string, opts?: Record<string, unknown>) =>
   String(key) + (opts ? JSON.stringify(opts) : '')) as never;
@@ -68,5 +68,25 @@ describe('downloadAttachmentFile', () => {
       type: 'error',
       message: expect.stringContaining('common:download_failed'),
     });
+  });
+});
+
+describe('countActiveAttachments', () => {
+  it('扁平统计活跃附件总数（不含回收站）', () => {
+    const pages = [
+      { objects: [{ attachments: [{ id: 'a1' }, { id: 'a2' }] }] },
+      {
+        objects: [
+          { attachments: [{ id: 'a3' }] },
+          { attachments: [{ id: 'a4' }, { id: 'a5' }] },
+        ],
+      },
+    ];
+    expect(countActiveAttachments(pages as never)).toBe(5);
+  });
+
+  it('undefined / 空树返回 0', () => {
+    expect(countActiveAttachments(undefined)).toBe(0);
+    expect(countActiveAttachments([])).toBe(0);
   });
 });

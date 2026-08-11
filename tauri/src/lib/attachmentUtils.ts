@@ -118,3 +118,15 @@ export function collectPhotoItems(pages: PhotoPageNode[] | undefined): Attachmen
   }
   return out;
 }
+
+/**
+ * 统计活跃（非回收站）附件总数：attachment_list_all 返回的 pages 树扁平计数。
+ *
+ * 与 collectPhotoItems 共用同一树结构；回收站附件在 trashPages 中，不计入。
+ */
+export function countActiveAttachments(pages: PhotoPageNode[] | undefined): number {
+  return (pages ?? []).reduce(
+    (n, page) => n + page.objects.reduce((m, obj) => m + obj.attachments.length, 0),
+    0,
+  );
+}
