@@ -229,11 +229,16 @@ fn verify_checksum_signature(checksum_bytes: &[u8], sig_text: &str) -> Result<()
 }
 
 /// 从 Release 资产中查找 APK 下载资产，返回其 URL 与大小（克隆值，避免借用阻塞后续字段移动）。
+///
+/// N006: 谓词收紧为仅 `ends_with(".apk")`——旧逻辑含 `contains("universal-release")`，
+/// 会误命中 `xx-universal-release.apk.sha256(.minisig)` 等校验和/签名资产（若 GitHub
+/// 资产排序不利 → 下载到非 APK 文件或 fail-closed 误拒）。`universal-release` 只是
+/// 命名惯例，不能替代扩展名判断。
 fn find_apk_asset(release: &GitHubRelease) -> Option<(String, Option<i64>)> {
     release
         .assets
         .iter()
-        .find(|a| a.name.ends_with(".apk") || a.name.contains("universal-release"))
+        .find(|a| a.name.ends_with(".apk"))
         .map(|a| (a.browser_download_url.clone(), a.size))
 }
 
@@ -262,11 +267,12 @@ async fn resolve_verified_checksum(
             Some("发布未提供 .sha256 校验和资产，无法确认 APK 完整性".to_string()),
         );
     };
-    let sig_asset = release.assets.iter().find(|a| {
-        a.name.ends_with(".sha256.minisig")
-            || a.name.ends_with(".apk.sha256.minisig")
-            || a.name.contains(".sha256.minisig")
-    });
+    // N006: 签名资产谓词收紧——统一以 `.sha256.minisig` 结尾（`.apk.sha256.minisig`
+    // 本身已以此结尾），去掉宽松的 `contains`（会误命中 `foo.minisig` 等无关资产）。
+    let sig_asset = release
+        .assets
+        .iter()
+        .find(|a| a.name.ends_with(".sha256.minisig"));
 
     // 下载校验和文件（约 64 字节）与签名文件
     let body = match client
@@ -737,6 +743,64 @@ mod tests {
         // 篡改校验和内容 → 验签必须失败
         let tampered = b"deadbeef1234567890abcdef1234567890abcdef1234567890abcdef12345679\n";
         assert!(verify_checksum_signature(tampered, real_sig).is_err());
+    }
+
+    /// N006 防回归：`find_apk_asset` 只匹配 `.apk` 扩展名，绝不命中校验和/
+    /// 签名资产（`contains("universal-release")` 曾误命中它们）。
+    #[test]
+    fn test_find_apk_asset_only_matches_apk_extension() {
+        let release = GitHubRelease {
+            tag_name: "v2.9.2".into(),
+            body: None,
+            published_at: None,
+            assets: vec![
+                GitHubAsset {
+                    name: "solo-soul-universal-release.apk.sha256".into(),
+                    browser_download_url: "https://example/checksum".into(),
+                    size: Some(64),
+                },
+                GitHubAsset {
+                    name: "solo-soul-universal-release.apk.sha256.minisig".into(),
+                    browser_download_url: "https://example/sig".into(),
+                    size: Some(88),
+                },
+                GitHubAsset {
+                    name: "solo-soul-universal-release.apk".into(),
+                    browser_download_url: "https://example/apk".into(),
+                    size: Some(52_428_800),
+                },
+            ],
+        };
+        let (url, size) = find_apk_asset(&release).expect("应命中真实 APK 资产");
+        assert_eq!(url, "https://example/apk");
+        assert_eq!(size, Some(52_428_800));
+    }
+
+    /// N006 防回归：无 `.apk` 资产时返回 None（旧逻辑 `contains("universal-release")`
+    /// 会误把校验和资产当成 APK，导致下载到非 APK 文件）。
+    #[test]
+    fn test_find_apk_asset_returns_none_without_apk() {
+        let release = GitHubRelease {
+            tag_name: "v2.9.2".into(),
+            body: None,
+            published_at: None,
+            assets: vec![
+                GitHubAsset {
+                    name: "solo-soul-universal-release.apk.sha256".into(),
+                    browser_download_url: "https://example/checksum".into(),
+                    size: Some(64),
+                },
+                GitHubAsset {
+                    name: "solo-soul-universal-release.apk.sha256.minisig".into(),
+                    browser_download_url: "https://example/sig".into(),
+                    size: Some(88),
+                },
+            ],
+        };
+        assert!(
+            find_apk_asset(&release).is_none(),
+            "仅校验和/签名资产时不应命中 APK"
+        );
     }
 
     /// 校验和提取逻辑：仅接受 64 位 hex 首 token。
