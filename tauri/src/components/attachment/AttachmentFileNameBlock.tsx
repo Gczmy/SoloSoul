@@ -206,65 +206,79 @@ export function AttachmentFileNameBlock({
         </div>
       )}
       {visibleTags.length > 0 && (
+        // 外层 flex 与描述块同构：chips 区域独立 wrap，折叠按钮固定在右侧、顶部对齐——
+        // 展开/收起时按钮位置不变（不随标签流漂移到最后一行末尾）。
         <div
-          ref={tagsContainerRef}
           style={{
             display: 'flex',
-            // 折叠态强制单行：标签 chip 可压缩并以省略号截断，保证 +N 与折叠按钮
-            // 始终完整留在行尾（不被挤到第二行）；展开态恢复换行显示全部标签。
-            flexWrap: tagsExpanded ? 'wrap' : 'nowrap',
-            alignItems: 'center',
-            gap: 4,
+            alignItems: 'flex-start',
+            gap: 2,
             marginTop: 3,
             minWidth: 0,
-            overflow: tagsExpanded ? 'visible' : 'hidden',
+            opacity: showTrash ? 0.6 : 1,
           }}
         >
-          {displayedTags.map((tag) => (
-            <span
-              key={tag}
-              {...{ [TAG_CHIP_ATTR]: true }}
-              style={{
-                // 折叠态允许压缩（flexShrink: 1 + minWidth: 0 使省略号生效），
-                // 空间不足时优先截断标签文本而非换行；展开态不压缩、完整显示。
-                flexShrink: tagsExpanded ? 0 : 1,
-                minWidth: 0,
-                padding: '1px 8px',
-                borderRadius: 999,
-                fontSize: 'var(--text-badge)',
-                color: 'var(--accent-primary)',
-                border: '1px solid var(--border-subtle)',
-                background: 'var(--bg-toolbar)',
-                opacity: showTrash ? 0.5 : 1,
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-              }}
-            >
-              {tag}
-            </span>
-          ))}
-          {!tagsExpanded && hasMoreTags && (
-            // +N 采用与标签一致的 pill 尺寸（同 padding/fontSize/行高），保证垂直对齐；
-            // flexShrink: 0 使其与折叠按钮一样永不被压缩、始终位于行尾
-            <span
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                flexShrink: 0,
-                padding: '1px 8px',
-                borderRadius: 999,
-                fontSize: 'var(--text-badge)',
-                lineHeight: '1.4',
-                color: 'var(--text-tertiary)',
-                border: '1px dashed var(--border-subtle)',
-                background: 'transparent',
-                opacity: showTrash ? 0.5 : 1,
-              }}
-            >
-              +{visibleTags.length - MAX_VISIBLE_TAGS}
-            </span>
-          )}
+          <div
+            ref={tagsContainerRef}
+            style={{
+              flex: 1,
+              minWidth: 0,
+              display: 'flex',
+              // 折叠态强制单行：标签 chip 可压缩并以省略号截断，保证 +N 始终完整留在行尾；
+              // 展开态恢复换行显示全部标签（长标签在 chip 内换行，阅读舒适）。
+              flexWrap: tagsExpanded ? 'wrap' : 'nowrap',
+              alignItems: 'center',
+              gap: 4,
+              overflow: tagsExpanded ? 'visible' : 'hidden',
+            }}
+          >
+            {displayedTags.map((tag) => (
+              <span
+                key={tag}
+                {...{ [TAG_CHIP_ATTR]: true }}
+                style={{
+                  // 折叠态允许压缩（flexShrink: 1 + minWidth: 0 使省略号生效），
+                  // 空间不足时优先截断标签文本而非换行；展开态不压缩、完整显示。
+                  flexShrink: tagsExpanded ? 0 : 1,
+                  minWidth: 0,
+                  padding: '1px 8px',
+                  borderRadius: 999,
+                  fontSize: 'var(--text-badge)',
+                  color: 'var(--accent-primary)',
+                  border: '1px solid var(--border-subtle)',
+                  background: 'var(--bg-toolbar)',
+                  // 展开态允许 chip 内文本换行（wordBreak 兜底长单词/超长串）
+                  whiteSpace: tagsExpanded ? 'normal' : 'nowrap',
+                  overflow: tagsExpanded ? 'visible' : 'hidden',
+                  textOverflow: tagsExpanded ? undefined : 'ellipsis',
+                  wordBreak: 'break-word',
+                  lineHeight: 1.4,
+                }}
+              >
+                {tag}
+              </span>
+            ))}
+            {!tagsExpanded && hasMoreTags && (
+              // +N 采用与标签一致的 pill 尺寸（同 padding/fontSize/行高），保证垂直对齐；
+              // flexShrink: 0 使其永不被压缩、始终位于行尾
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  flexShrink: 0,
+                  padding: '1px 8px',
+                  borderRadius: 999,
+                  fontSize: 'var(--text-badge)',
+                  lineHeight: '1.4',
+                  color: 'var(--text-tertiary)',
+                  border: '1px dashed var(--border-subtle)',
+                  background: 'transparent',
+                }}
+              >
+                +{visibleTags.length - MAX_VISIBLE_TAGS}
+              </span>
+            )}
+          </div>
           {showTagsToggle && (
             <ToggleButton
               expanded={tagsExpanded}

@@ -120,13 +120,41 @@ describe('AttachmentFileNameBlock 标签折叠/展开', () => {
       textOverflow: 'ellipsis',
       whiteSpace: 'nowrap',
     });
-    // +N 与按钮不可压缩（flexShrink 0），保证留在行尾
+    // +N 不可压缩（flexShrink 0），保证留在行尾
     expect(screen.getByText('+1')).toHaveStyle({ flexShrink: '0' });
-    expect(screen.getByRole('button', { expanded: false })).toBeInTheDocument();
+    const toggle = screen.getByRole('button', { expanded: false });
+    expect(toggle).toBeInTheDocument();
+    // 按钮固定在右侧外层 flex：不是 chips 容器（container）的子元素
+    expect(container.contains(toggle)).toBe(false);
+    expect(toggle.parentElement).not.toBe(container);
     // 展开态：换行显示全部
-    fireEvent.click(screen.getByRole('button', { expanded: false }));
+    fireEvent.click(toggle);
     expect(container).toHaveStyle({ flexWrap: 'wrap', overflow: 'visible' });
     expect(screen.getByText('超长的第一个标签文本'.repeat(30))).toHaveStyle({ flexShrink: '0' });
+    tags.forEach((t) => expect(screen.getByText(t)).toBeInTheDocument());
+  });
+
+  it('展开后长标签 chip 允许换行（whiteSpace normal + wordBreak）且按钮位置不变', () => {
+    const longTag = '超长标签文本'.repeat(40);
+    const tags = [longTag, 'b', 'c', 'd', 'e'];
+    const { rerender } = render(<AttachmentFileNameBlock {...base} tags={tags} />);
+    // 模拟折叠态溢出 → 出现按钮
+    const chip = screen.getByText(longTag) as HTMLElement;
+    Object.defineProperty(chip, 'scrollWidth', { configurable: true, value: 1000 });
+    Object.defineProperty(chip, 'clientWidth', { configurable: true, value: 50 });
+    rerender(<AttachmentFileNameBlock {...base} tags={[...tags]} />);
+
+    const toggle = screen.getByRole('button', { expanded: false });
+    const outerFlex = toggle.parentElement!;
+    // 展开后：按钮仍在同一外层 flex（位置不变）
+    fireEvent.click(toggle);
+    const toggleAfter = screen.getByRole('button', { expanded: true });
+    expect(toggleAfter.parentElement).toBe(outerFlex);
+    // 展开后 chip 允许换行（阅读舒适），不再 nowrap 省略
+    const chipAfter = screen.getByText(longTag) as HTMLElement;
+    expect(chipAfter).toHaveStyle({ whiteSpace: 'normal', wordBreak: 'break-word' });
+    expect(chipAfter).toHaveStyle({ textOverflow: undefined });
+    // 全部标签可见
     tags.forEach((t) => expect(screen.getByText(t)).toBeInTheDocument());
   });
 });
