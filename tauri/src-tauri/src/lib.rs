@@ -640,9 +640,6 @@ fn setup_app(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
     // 1. 检查数据目录是否可写
     setup_check_data_dir(app.handle())?;
 
-    // 1.5 P209 迁移窗口诊断：统计仍为 legacy XOR 格式的生物识别凭证存量
-    // （仅 tel 级日志，供大版本发布后评估关闭 legacy.rs XOR 路径的依据）
-
     // 2. 检查资源目录与关键子目录
     setup_check_resource_dirs(app);
 
