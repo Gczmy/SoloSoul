@@ -40,7 +40,14 @@ export function Dialog({
   if (!isOpen) return null;
 
   return createPortal(
-    <div className={styles.wrapper} data-priority={priority}>
+    // stopPropagation：对话框经 createPortal 渲染到 body，但仍是宿主组件的 React 子节点——
+    // React 合成事件会沿组件树冒泡，若不拦截，点击输入框等会泄漏到宿主背景的 onClick
+    // （如 AttachmentViewer/AttachmentPreviewOverlay 点击背景即关闭），导致对话框与宿主一起关闭。
+    <div
+      className={styles.wrapper}
+      data-priority={priority}
+      onClick={(e) => e.stopPropagation()}
+    >
       {/* Backdrop overlay */}
       <div className={styles.backdrop} onClick={onClose} />
       {/* Dialog content */}

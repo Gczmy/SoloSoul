@@ -54,6 +54,21 @@ describe('Dialog', () => {
     expect(onClose).not.toHaveBeenCalled();
   });
 
+  it('dialog clicks do not bubble to host backdrop handlers (portal leak regression)', () => {
+    // 复现：AttachmentViewer 外层背景 onClick 即关闭，对话框是其 React 子节点（portal 到 body），
+    // 点击对话框内部输入框不得冒泡到宿主背景处理器（否则对话框与宿主一起关闭，返回 workspace）。
+    const onHostBackdropClick = vi.fn();
+    render(
+      <div onClick={onHostBackdropClick}>
+        <Dialog isOpen={true} onClose={vi.fn()}>
+          <input aria-label="dialog-input" />
+        </Dialog>
+      </div>,
+    );
+    fireEvent.click(screen.getByLabelText('dialog-input'));
+    expect(onHostBackdropClick).not.toHaveBeenCalled();
+  });
+
   it('calls onClose when pressing Escape', () => {
     const onClose = vi.fn();
     render(
