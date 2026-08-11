@@ -1,8 +1,8 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-11 01:09:05
+> 最后更新：2026-08-11（P001 修复完成）
 > 当前分支：`main`
-> 修复轮次：1（初始分析，全新生成，未沿用旧报告）
+> 修复轮次：2（按用户指令逐项修复，一项一提交）
 
 ## 基线检查（阶段 0）
 
@@ -14,7 +14,7 @@ Git 状态：工作树除本报告文件重建外干净（旧报告已删除，�
 
 | ID   | 优先级 | 类别 | 文件位置 | 描述 | 状态 |
 |------|--------|------|----------|------|------|
-| P001 | P0 | 规范/构建 | `tauri/src-tauri/src/commands/attachment.rs:1158,1192` | Clippy 2 error：未使用 import `NSView`；`explicit_auto_deref`（`&*dest.to_string_lossy()`），check-all 中止 | `[ ]` 待修复 |
+| P001 | P0 | 规范/构建 | `tauri/src-tauri/src/commands/attachment.rs:1158,1192` 等 | Clippy error 致 check-all 中止（详见下方修复记录） | `[x]` 已完成 |
 | P002 | P1 | 漏洞 | `tauri/src-tauri/src/commands/update.rs:449-463` | `android_download_apk` 信任前端回传的 URL 与 checksum（可传空跳过校验），验签成果未绑定到 IPC 通道（需人工确认） | `[ ]` 待修复 |
 | P003 | P1 | 性能 | `tauri/src-tauri/src/commands/export_import/mod.rs:290`、`export.rs:183` | 导出 selected 分支全库解密两遍（`list_objects` + `load_objects_batch`），且随导出页每次勾选变更（500ms 防抖）触发 | `[ ]` 待修复 |
 | P004 | P1 | 性能/架构 | `tauri/src-tauri/src/commands/llm/conversation.rs:13-57` | LLM 会话整体存加密 preferences blob，每次保存 = 全量解密+深克隆+序列化+加密+写盘；每条聊天消息都触发 | `[ ]` 待修复 |
@@ -64,23 +64,31 @@ Git 状态：工作树除本报告文件重建外干净（旧报告已删除，�
 
 ## 修复进度
 
-- 已完成：0 / 47
-- 当前处理：无（按用户指令，生成报告后暂停，等待修复指令）
+- 已完成：1 / 47
+- 当前处理：P002（按建议顺序推进）
 
 ## 详细问题描述与修复指引
 
-### P001（P0）Clippy 基线失败
+### P001（P0）Clippy 基线失败 — 已完成（commit 51135565）
+
+**原问题**：
 
 ```
 error: unused import: `NSView`
   --> src-tauri/src/commands/attachment.rs:1158:53
 error: deref which would be done by auto-deref
   --> src-tauri/src/commands/attachment.rs:1192:64
-  help: try: `&dest.to_string_lossy()`
 ```
 
-- **影响**：`npm run check-all` 在 clippy 阶段中止，lint / Vitest / cargo test 均未执行，CI 必红。
-- **修复**：删除 `NSView` import；`&*dest.to_string_lossy()` 改为 `&dest.to_string_lossy()`。改后跑 `cargo clippy -- -D warnings` + `npm run check-all` 全量确认。
+**修复记录**（共 5 处，覆盖 Windows 与 macOS 双平台 CI）：
+
+1. `attachment.rs:1158`：删除未使用的 `NSView` import（macOS 块）。
+2. `attachment.rs:1192`：`&*dest.to_string_lossy()` → `&dest.to_string_lossy()`（explicit_auto_deref）。
+3. `window.rs:12`：`calculate_luminance` 仅 macOS 分支调用，Windows/Linux 非 test 构建为死代码，加 `#[cfg_attr(not(target_os = "macos"), allow(dead_code))]`。
+4. `solosoul-core/vault_service.rs:33`：`use std::fs;` 仅 unix 函数与 test 使用，按 `#[cfg(any(unix, test))]` 门控。
+5. `solosoul-core/biometric/windows.rs:308`：`if let Err(e) = ensure_mta() { return Err(e); }` → `ensure_mta()?;`（clippy::question_mark）。
+
+**验证**：`cargo clippy --workspace -- -D warnings` 全绿；`cargo fmt --check` ✅；`tsc --noEmit` ✅；`eslint src` ✅；`check_acl_consistency.py` OK（194 命令）；`vitest` 619 用例全过。
 
 ### P002（P1）APK 下载信任前端回传的 URL 与校验和
 
