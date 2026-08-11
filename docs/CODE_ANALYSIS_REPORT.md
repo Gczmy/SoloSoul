@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-11（P014 修复完成）
+> 最后更新：2026-08-11（P015 修复完成）
 > 当前分支：`main`
 > 修复轮次：2（按用户指令逐项修复，一项一提交）
 
@@ -28,7 +28,7 @@ Git 状态：工作树除本报告文件重建外干净（旧报告已删除，�
 | P012 | P2 | 漏洞 | `tauri/src-tauri/src/commands/update.rs:238-246` | Release 资产匹配过宽（`contains("sha256")` 会命中 `.minisig`），完整性校验可能静默失效（需人工确认 assets 顺序） | `[x]` 已完成 |
 | P013 | P2 | 漏洞 | `tauri/src-tauri/src/commands/export_import/import.rs:9,59,183` | 导入命令 `file_path` 无白名单（与 fs 命令 P107 收窄策略不一致），构成有限任意文件探测原语 | `[x]` 已完成 |
 | P014 | P2 | 漏洞 | `tauri/src-tauri/src/commands/attachment.rs:445-482` | `attachment_copy_to_vault` 兜底分支字面 `starts_with` 且未拒绝 `..` 组件，Android symlink 场景可绕过 allowed-dir（需人工确认可达性） | `[x]` 已完成 |
-| P015 | P2 | 漏洞 | `tauri/src-tauri/src/commands/export_import/export.rs:337-340` | 导出路径白名单为空时 fail-open 放行任意路径（`attachment_download:911` 同款），应 fail-closed 或至少 warn | `[ ]` 待修复 |
+| P015 | P2 | 漏洞 | `tauri/src-tauri/src/commands/export_import/export.rs:337-340` | 导出路径白名单为空时 fail-open 放行任意路径（`attachment_download:911` 同款），应 fail-closed 或至少 warn | `[x]` 已完成 |
 | P016 | P2 | 规范 | `tauri/src-tauri/src/commands/pin.rs:42-59,103-113`、`vault.rs:34-45` | `pin_setup`/`pin_disable`/`pin_unlock`/`change_password` 的密码参数未在 IPC 边界 Zeroizing 包装（P031 模式不一致，需确认 PinManager 内部清零） | `[ ]` 待修复 |
 | P017 | P2 | 漏洞 | `tauri/src-tauri/src/commands/fs.rs:133-142` | `resolve_within` 校验后返回未规范化路径，存在符号链接 TOCTOU 窗口（威胁模型较低） | `[ ]` 待修复 |
 | P018 | P2 | 规范 | `tauri/crates/solosoul-core/src/ocr/macos_vision.rs:281-298` | OCR debug 日志记录用户扫描图片完整路径（GUI 侧 tracing 落盘位置需确认） | `[ ]` 待修复 |
@@ -64,8 +64,8 @@ Git 状态：工作树除本报告文件重建外干净（旧报告已删除，�
 
 ## 修复进度
 
-- 已完成：14 / 47
-- 当前处理：P015（按建议顺序推进）
+- 已完成：15 / 47
+- 当前处理：P016（按建议顺序推进）
 
 ## 详细问题描述与修复指引
 
@@ -202,7 +202,13 @@ error: deref which would be done by auto-deref
 **修复**：入口处（`src_raw` 建立后）与 `attachment_download` 对齐，拒绝 `Component::ParentDir`（`Source path must not contain '..'`）。
 
 **验证**：`cargo check -p solo_soul --tests` ✅；clippy --workspace 全绿 ✅。
-- **P015**：桌面端白名单为空改为拒绝（fail-closed），或至少 `tracing::warn`。
+### P015（P2）路径白名单为空 fail-closed — 已完成（commit 34dbce73）
+
+**原问题**：`validate_export_dest`（export.rs:337-340）、`attachment_download`（attachment.rs:911 同款）白名单为空时 fail-open 放行任意路径。
+
+**修复**：三处（`attachment_copy_to_vault`/`attachment_download`/`validate_export_dest`）在白名单为空时改为拒绝 + `tracing::warn`（fail-closed），错误文案说明 Desktop/Documents/Downloads 与 SOLOSOUL_FS_BASE 均不可解析。移动端不受影响（`allowed_fs_bases` 含应用缓存目录，实际恒非空）。
+
+**验证**：`cargo check -p solo_soul --tests` ✅；clippy --workspace 全绿 ✅。
 - **P016**：`pin_setup`/`pin_disable`/`pin_unlock`/`change_password` 统一套用 P031 Zeroizing 模式。
 - **P017**：`resolve_within` 返回 `target_canon` 或注释说明接受的残余风险。
 - **P018**：OCR debug 日志只记文件名尾部组件或哈希。
