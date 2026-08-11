@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-11（P005 修复完成）
+> 最后更新：2026-08-11（P006 修复完成）
 > 当前分支：`main`
 > 修复轮次：2（按用户指令逐项修复，一项一提交）
 
@@ -19,7 +19,7 @@ Git 状态：工作树除本报告文件重建外干净（旧报告已删除，�
 | P003 | P1 | 性能 | `tauri/src-tauri/src/commands/export_import/mod.rs:290`、`export.rs:183` | 导出 selected 分支全库解密两遍（`list_objects` + `load_objects_batch`），且随导出页每次勾选变更（500ms 防抖）触发 | `[x]` 已完成 |
 | P004 | P1 | 性能/架构 | `tauri/src-tauri/src/commands/llm/conversation.rs:13-57` | LLM 会话整体存加密 preferences blob，每次保存 = 全量解密+深克隆+序列化+加密+写盘；每条聊天消息都触发 | `[x]` 已完成 |
 | P005 | P1 | 性能 | `solosoul_cli/src/commands/search.rs:181-184,206-209` | CLI `/search` 用 `list_objects(...).len()` 统计子对象数，对每个命中页面全量解密仅为取计数（GUI 已有 `count_objects` 先例） | `[x]` 已完成 |
-| P006 | P1 | 架构 | `tauri/src-tauri/src/commands/object/mod.rs:439`、`tauri/src/stores/objectStore.ts:56,185`、`ObjectDetailModal.tsx:470` | 类型漂移：Rust `ObjectData` 无 `tags`，TS 声明 `tags?` 永为 undefined；`updateObject` 用 undefined 覆盖摘要 tags，详情页标签成死渲染路径 | `[ ]` 待修复 |
+| P006 | P1 | 架构 | `tauri/src-tauri/src/commands/object/mod.rs:439`、`tauri/src/stores/objectStore.ts:56,185`、`ObjectDetailModal.tsx:470` | 类型漂移：Rust `ObjectData` 无 `tags`，TS 声明 `tags?` 永为 undefined；`updateObject` 用 undefined 覆盖摘要 tags，详情页标签成死渲染路径 | `[x]` 已完成 |
 | P007 | P1 | 架构 | `tauri/src-tauri/src/commands/export_import/export_docx.rs:200` | `flatten_object_fields` 6–7 层控制流嵌套，动态字段组展平逻辑难读难测 | `[ ]` 待修复 |
 | P008 | P1 | 架构 | `tauri/src-tauri/src/commands/search/query.rs:16` | `search_properties_for_matches` 133 行递归函数承担 4 种职责，`__fields` 分支 5–6 层嵌套 | `[ ]` 待修复 |
 | P009 | P1 | 架构 | `tauri/src-tauri/src/commands/attachment.rs:1130` | `attachment_share` ~161 行，macOS/Windows 两个 `#[cfg]` 块各重复约 40 行「复制→主线程调度→oneshot」骨架 | `[ ]` 待修复 |
@@ -64,8 +64,8 @@ Git 状态：工作树除本报告文件重建外干净（旧报告已删除，�
 
 ## 修复进度
 
-- 已完成：5 / 47
-- 当前处理：P006（按建议顺序推进）
+- 已完成：6 / 47
+- 当前处理：P007（按建议顺序推进）
 
 ## 详细问题描述与修复指引
 
@@ -133,10 +133,13 @@ error: deref which would be done by auto-deref
 
 **验证**：CLI 编译 ✅；`commands::search` 测试 10/10 ✅。（注：CLI 全量测试中 backup/ocr/profile 等 14 项失败为 Windows 本机预先存在问题，经 stash 对比确认与本次改动无关。）
 
-### P006（P1）ObjectData tags 类型漂移
+### P006（P1）ObjectData tags 类型漂移 — 已完成（commit 91290b0b）
 
-Rust `record_to_data` 不返回 `tags`，TS `ObjectData.tags?` 永为 undefined；`updateObject`（objectStore.ts:185）将 `tags: obj.tags`（undefined）显式覆盖进摘要列表项，抹掉 `object_list` 摘要已有的 tags；详情弹窗 `obj.tags`（ObjectDetailModal.tsx:470）是死渲染路径。
-**修复**：Rust `ObjectData` 增加 `tags`（或 TS 删除该字段改为仅从 `ObjectSummary` 读）；`updateObject` 摘要同步只合并后端实际返回的字段。
+**原问题**：Rust `record_to_data` 不返回 `tags`，TS `ObjectData.tags?` 永为 undefined；`updateObject`（objectStore.ts:185）将 `tags: obj.tags`（undefined）显式覆盖进摘要列表项，抹掉 `object_list` 摘要已有的 tags；详情弹窗 `obj.tags`（ObjectDetailModal.tsx:470）是死渲染路径。
+
+**修复**：Rust `ObjectData` 补齐 `tags: Vec<String>`（`#[serde(default, skip_serializing_if = "Vec::is_empty")]`），`record_to_data` 透传 `record.tags_json`。TS `ObjectData` 本就声明 `tags?: string[]`，无需改动——`object_get`/`object_update` 现在返回真实 tags，`updateObject` 摘要合并恢复正确（tags 与摘要同源同一行 `tags_json`，无覆盖错位），详情弹窗 `ObjectDetailTags` 渲染成为活路径。`test_record_to_data_conversion` 增补 tags 断言，serde roundtrip 测试改为非空 tags 覆盖序列化路径。
+
+**验证**：`cargo check -p solo_soul --tests` ✅；tsc ✅；eslint ✅；objectStore + ObjectDetailModal 前端测试 15/15 ✅；代码审查确认无回归（tags 与摘要同源一致性、skip_serializing_if 空值场景无可见影响）。
 
 ### P007–P009（P1）深嵌套/过长函数拆分
 
