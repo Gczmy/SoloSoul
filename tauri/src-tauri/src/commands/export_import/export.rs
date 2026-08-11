@@ -188,14 +188,12 @@ pub async fn export_estimate_size(
     let templates = collect_export_templates(&vault, &account_id, &scope, &records)?;
     let template_count = templates.len();
     let template_names: Vec<String> = templates.iter().map(|t| t.name.clone()).collect();
-    let mut estimated_bytes: u64 = records
-        .iter()
-        .map(|r| {
-            let props_len = serde_json::to_vec(&r.properties).unwrap_or_default().len() as u64;
-            let name_len = r.name.len() as u64;
-            props_len + name_len + 256
-        })
-        .sum();
+    // P003: 对象 payload 体积用纯 SQL SUM(LENGTH(properties)) 估算（不解密、不重新序列化）；
+    // 密文长度略大于明文（AES-GCM tag/nonce），加上 name 长度与固定开销更贴近导出包实际体积。
+    let ids: Vec<String> = records.iter().map(|r| r.id.clone()).collect();
+    let props_bytes = vault.objects_size_batch(&ids).unwrap_or(0);
+    let name_bytes: u64 = records.iter().map(|r| r.name.len() as u64).sum();
+    let mut estimated_bytes: u64 = props_bytes + name_bytes + (records.len() as u64 * 256);
 
     // Estimate attachments (only explicitly selected attachment IDs are counted)
     let mut attachment_count = 0usize;

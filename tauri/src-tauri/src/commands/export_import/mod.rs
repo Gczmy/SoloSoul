@@ -287,7 +287,10 @@ pub(crate) fn collect_scope_objects(
         return Ok(records);
     }
 
-    let all = vault.list_objects(account_id, None, None, None, false, false)?;
+    // P003: selected 分支此前用 list_objects（全库解密 properties 仅为筛 id），随后
+    // load_objects_batch 再解密一次——双重解密。现改用 metadata-only + 明文 tags_json
+    // 的 list_object_metadata_with_tags（纯 SQL，不解密 properties），命中对象才解密。
+    let all = vault.list_object_metadata_with_tags(account_id, None, None, false, false)?;
     let mut selected_ids: BTreeSet<String> = scope.selected_object_ids.iter().cloned().collect();
 
     // Add all IDs belonging to selected pages

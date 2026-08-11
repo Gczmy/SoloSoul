@@ -552,7 +552,7 @@ impl VaultStore {
         }
     }
 
-    /// P111: metadata-only listing —— 不 SELECT/解密 `properties`/`property_labels`/`tags`。
+    /// P111: metadata-only listing —— 不 SELECT/解密 `properties`/`property_labels`。
     ///
     /// 返回的 `ObjectSummary` 中 `properties = Null`、`property_labels = None`、`tags = []`，
     /// 其余身份/排序/分区/敏感度字段与 `list_objects` 一致（`ORDER BY created_at ASC, id ASC`）。
@@ -567,13 +567,59 @@ impl VaultStore {
         include_deleted: bool,
         only_deleted: bool,
     ) -> Result<Vec<ObjectSummary>, String> {
+        self.list_object_metadata_impl(
+            account_id,
+            type_id,
+            parent_id,
+            include_deleted,
+            only_deleted,
+            false,
+        )
+    }
+
+    /// P003: 同 `list_object_metadata`，但额外 SELECT 明文 `tags_json` 列并填充 `tags`。
+    ///
+    /// tags_json 在存储层为明文（未加密，见 save_object），因此此变体仍不触碰加密的
+    /// `properties`/`property_labels` 列——适用于「按页面/标签筛 id 后单独批量加载」的
+    /// 调用方（如导出范围收集 `collect_scope_objects`），消除全表解密。
+    pub fn list_object_metadata_with_tags(
+        &self,
+        account_id: &str,
+        type_id: Option<&str>,
+        parent_id: Option<&str>,
+        include_deleted: bool,
+        only_deleted: bool,
+    ) -> Result<Vec<ObjectSummary>, String> {
+        self.list_object_metadata_impl(
+            account_id,
+            type_id,
+            parent_id,
+            include_deleted,
+            only_deleted,
+            true,
+        )
+    }
+
+    /// metadata-only 列表的共享实现。`with_tags` 决定是否 SELECT 并解析明文 tags_json。
+    fn list_object_metadata_impl(
+        &self,
+        account_id: &str,
+        type_id: Option<&str>,
+        parent_id: Option<&str>,
+        include_deleted: bool,
+        only_deleted: bool,
+        with_tags: bool,
+    ) -> Result<Vec<ObjectSummary>, String> {
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
 
         let mut sql = String::from(
-            "SELECT id, name, type_id, section_type, sensitivity_level, created_at, updated_at, is_deleted, template_id, template_type, contract_type_id, template_hash, ignored_template_hash, icon_name, parent_id
-             FROM objects WHERE account_id = ?1",
+            "SELECT id, name, type_id, section_type, sensitivity_level, created_at, updated_at, is_deleted, template_id, template_type, contract_type_id, template_hash, ignored_template_hash, icon_name, parent_id",
         );
+        if with_tags {
+            sql.push_str(", tags_json");
+        }
+        sql.push_str(" FROM objects WHERE account_id = ?1");
         let mut param_idx = 2;
         let mut param_values: Vec<Box<dyn rusqlite::types::ToSql>> =
             vec![Box::new(account_id.to_string())];
@@ -608,6 +654,12 @@ impl VaultStore {
         let objects = stmt
             .query_map(params_refs.as_slice(), |row: &rusqlite::Row<'_>| {
                 let deleted_int: i32 = row.get(7)?;
+                let tags = if with_tags {
+                    let tags_str: String = row.get(15).unwrap_or_default();
+                    serde_json::from_str(&tags_str).unwrap_or_default()
+                } else {
+                    vec![]
+                };
                 Ok(ObjectSummary {
                     id: row.get(0)?,
                     name: row.get(1)?,
@@ -627,7 +679,7 @@ impl VaultStore {
                     // P111: 不解密负载列，占位值（调用方不得依赖）
                     properties: serde_json::Value::Null,
                     property_labels: None,
-                    tags: vec![],
+                    tags,
                     // metadata-only 路径不解密 properties，附件存在性不可知 → false。
                     has_attachments: false,
                     // metadata-only 路径同理：字段敏感度集合不可知 → 空数组。
@@ -739,6 +791,34 @@ impl VaultStore {
             })
             .map_err(|e| format!("count_objects: {}", e))?;
         Ok(count as usize)
+    }
+
+    /// P003: 按 id 列表求加密 properties 列字节数总和（纯 SQL SUM(LENGTH())，不解密）。
+    ///
+    /// 参照 `snapshots_size_batch` 先例，供导出估算（`export_estimate_size`）在不解密
+    /// 任何对象负载的情况下估算 payload 体积。properties 为 AES-GCM 密文 + JSON，
+    /// 长度略大于明文；调用方按需自行加 base64/头部膨胀系数。
+    pub fn objects_size_batch(&self, object_ids: &[String]) -> Result<u64, String> {
+        if object_ids.is_empty() {
+            return Ok(0);
+        }
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        let placeholders = std::iter::repeat_n("?", object_ids.len())
+            .collect::<Vec<_>>()
+            .join(",");
+        let sql = format!(
+            "SELECT COALESCE(SUM(LENGTH(properties)), 0) FROM objects WHERE id IN ({})",
+            placeholders
+        );
+        let total: i64 = conn
+            .query_row(
+                &sql,
+                rusqlite::params_from_iter(object_ids.iter().map(|s| s.as_str())),
+                |r| r.get(0),
+            )
+            .map_err(|e| format!("objects_size_batch: {}", e))?;
+        Ok(total as u64)
     }
 
     /// Load full object records (decrypted) for an account without query filtering.
