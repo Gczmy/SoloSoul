@@ -152,7 +152,10 @@ export function AttachmentListItem({
       {isMobile ? (
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>{actions}</div>
       ) : (
-        actions
+        // 桌面端：marginLeft auto 将按钮组推到行尾右对齐
+        <div style={{ display: 'flex', alignItems: 'center', marginLeft: 'auto', gap: 2 }}>
+          {actions}
+        </div>
       )}
     </div>
   );

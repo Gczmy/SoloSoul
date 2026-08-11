@@ -112,6 +112,10 @@ export function AttachmentMetaEditDialog({ item, onClose, onSaved }: AttachmentM
       isOpen
       onClose={onClose}
       title={t('common:edit_meta', { defaultValue: 'Description & Tags' })}
+      // 附件查看器在详情模态下可达 z-index 5100（ObjectDetailModal 传入），
+      // 默认层级（--z-modal 4000）会被其背景遮住导致「点击无反应」；
+      // 与附件确认对话框同用 auth 层级（8000），保证恒在查看器/预览/相册之上。
+      priority="auth"
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
         {/* 描述 */}

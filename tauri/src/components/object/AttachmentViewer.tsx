@@ -651,7 +651,8 @@ export function AttachmentViewer({
           onClose={() => setPhotoAlbumOpen(false)}
           onOpenExternal={openAttachmentExternal}
           onItemMetaUpdated={handleMetaSaved}
-          zIndex={2100}
+          // 相对查看器层级 +1：详情模态下查看器为 5100，固定 2100 会被其背景遮住
+          zIndex={zIndex + 1}
         />
       )}
       {confirmDialog}
