@@ -69,6 +69,39 @@ describe('AttachmentMetaEditDialog', () => {
     });
   });
 
+  it('失焦时输入框有内容则直接生成标签', async () => {
+    const onSaved = vi.fn();
+    render(<AttachmentMetaEditDialog item={baseItem} onSaved={onSaved} onClose={vi.fn()} />);
+
+    const tagInput = screen.getByPlaceholderText(/Type a tag/i);
+    fireEvent.change(tagInput, { target: { value: '出差' } });
+    // 未回车，直接 blur（点击外部）→ 应生成标签
+    fireEvent.blur(tagInput);
+    expect(screen.getByText('出差')).toBeInTheDocument();
+    // 输入框已清空
+    expect(tagInput).toHaveValue('');
+
+    // 保存后标签已含失焦生成的条目
+    fireEvent.click(screen.getByRole('button', { name: /common:save/i }));
+    await waitFor(() => {
+      expect(onSaved).toHaveBeenCalledWith({ description: '现有描述', tags: ['旅行', '出差'] });
+    });
+  });
+
+  it('直接保存时输入框未回车内容也一并生成标签', async () => {
+    const onSaved = vi.fn();
+    render(<AttachmentMetaEditDialog item={baseItem} onSaved={onSaved} onClose={vi.fn()} />);
+
+    const tagInput = screen.getByPlaceholderText(/Type a tag/i);
+    fireEvent.change(tagInput, { target: { value: '出差' } });
+    // 不回车、不失焦，直接点保存 → 输入框内容应并入保存的标签
+    fireEvent.click(screen.getByRole('button', { name: /common:save/i }));
+
+    await waitFor(() => {
+      expect(onSaved).toHaveBeenCalledWith({ description: '现有描述', tags: ['旅行', '出差'] });
+    });
+  });
+
   it('X 按钮移除标签', () => {
     render(<AttachmentMetaEditDialog item={baseItem} onSaved={vi.fn()} onClose={vi.fn()} />);
 

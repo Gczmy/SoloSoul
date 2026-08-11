@@ -33,10 +33,24 @@ const MAX_TAGS = 20;
 const MAX_TAG_LEN = 30;
 
 /**
+ * 把输入框原始文本合并进标签数组（幂等）：trim → 截断 → 空值/重复/超上限均不新增。
+ *
+ * 供「回车 / 失焦 / 保存」三条路径共用——尤其保存路径必须基于最新 tags 合并
+ * 当前 tagInput，避免 blur 的 setTags 尚未提交时读取到过期闭包导致标签丢失。
+ */
+function mergeTagInput(base: string[], raw: string): string[] {
+  const val = raw.trim().slice(0, MAX_TAG_LEN);
+  if (!val) return base;
+  if (base.length >= MAX_TAGS) return base;
+  const exists = base.some((x) => x.toLowerCase() === val.toLowerCase());
+  return exists ? base : [...base, val];
+}
+
+/**
  * 附件「描述 + 标签」编辑对话框。
  *
  * - 描述：多行文本域，空串保存时清除；
- * - 标签：chips 输入（回车 / 逗号添加，X 移除，去空去重，最多 20 个）；
+ * - 标签：chips 输入（回车 / 逗号 / 失焦 / 保存时自动生成，X 移除，去空去重，最多 20 个）；
  * - 保存调用 `attachment_update_meta`，成功后回调 onSaved 供父级同步本地状态。
  */
 export function AttachmentMetaEditDialog({ item, onClose, onSaved }: AttachmentMetaEditDialogProps) {
@@ -55,23 +69,21 @@ export function AttachmentMetaEditDialog({ item, onClose, onSaved }: AttachmentM
     setTagInput('');
   }, [item.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const commitTag = (raw: string) => {
-    const val = raw.trim().slice(0, MAX_TAG_LEN);
-    if (!val) return;
-    setTags((prev) => {
-      if (prev.length >= MAX_TAGS) return prev;
-      const exists = prev.some((x) => x.toLowerCase() === val.toLowerCase());
-      return exists ? prev : [...prev, val];
-    });
-  };
-
   const handleTagKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' || e.key === ',') {
       e.preventDefault();
-      commitTag(tagInput);
+      setTags((prev) => mergeTagInput(prev, tagInput));
       setTagInput('');
     } else if (e.key === 'Backspace' && !tagInput && tags.length > 0) {
       setTags((prev) => prev.slice(0, -1));
+    }
+  };
+
+  /** 失焦（点击对话框外部/其他区域）时，输入框有内容则直接生成标签。 */
+  const handleTagBlur = () => {
+    if (tagInput.trim()) {
+      setTags((prev) => mergeTagInput(prev, tagInput));
+      setTagInput('');
     }
   };
 
@@ -84,9 +96,11 @@ export function AttachmentMetaEditDialog({ item, onClose, onSaved }: AttachmentM
     setSaving(true);
     try {
       const trimmedDesc = description.trim();
+      // 保存时输入框仍有未回车内容 → 一并生成标签（基于最新 tags 合并，幂等）
+      const finalTags = mergeTagInput(tags, tagInput);
       const updated: AttachmentMetaEditResult = {
         description: trimmedDesc ? trimmedDesc : null,
-        tags,
+        tags: finalTags,
       };
       await invoke('attachment_update_meta', {
         objectId: item.objectId,
@@ -225,6 +239,7 @@ export function AttachmentMetaEditDialog({ item, onClose, onSaved }: AttachmentM
               value={tagInput}
               onChange={(e) => setTagInput(e.target.value.slice(0, MAX_TAG_LEN))}
               onKeyDown={handleTagKeyDown}
+              onBlur={handleTagBlur}
               placeholder={t('common:tag_input_placeholder', {
                 defaultValue: 'Type a tag and press Enter',
               })}
