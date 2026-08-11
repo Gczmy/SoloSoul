@@ -1,14 +1,15 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-11 20:45
+> 最后更新：2026-08-11 22:20
 > 当前分支：`main`
-> 修复轮次：4（R 系列修复验证轮）
+> 修复轮次：5（S 系列修复轮）
 
 ## 基线验证（本轮实测）
 
 | 检查 | 结果 |
 |------|------|
-| `npm run check-all`（tsc → fmt → clippy → cargo test → lint → Vitest → ACL → pref-keys 同步检查） | ✅ **全部通过（EXIT=0）**——自轮次 1 以来首次全绿，含 cargo test、196 命令 ACL、白名单↔前端 20 key 机比 |
+| 轮次 4 基线：`npm run check-all`（tsc → fmt → clippy → cargo test → lint → Vitest → ACL → pref-keys 同步检查） | ✅ 全部通过（EXIT=0） |
+| 轮次 5 修复验证：S001–S004 相关 Rust 测试（solosoul-core llm::service 5、solosoul-sync delta 10、solosoul-vault conversations）+ 四 crate fmt/clippy + 偏好键机比脚本 | ✅ 全部通过 |
 
 ## 轮次 3 问题验证结果（R001–R005）
 
@@ -65,6 +66,11 @@
 - **①机比脚本正则收紧**（`tauri/scripts/check_pref_keys_sync.py`）：`^\s+([A-Za-z][A-Za-z0-9]*):` → `^\s+\"?([A-Za-z][A-Za-z0-9]*)\"?\??:`。调试中发现关键细节：TypeScript 带引号键 `"keyName":` 的引号**成对包裹键名**（闭引号在键名之后、冒号之前），只允许开引号会漏匹配——修正后四种形态（普通/可选 `?:`/带引号/带引号可选）均正确提取，注释行仍忽略。实测脚本 OK（20 键一致，EXIT=0）。
 - **②fs.rs dunce 注释论证修正**（`src-tauri/src/commands/fs.rs`）：核对 dunce 1.0.5 源码——`simplified` 在 Windows 上仅把盘符 VerbatimDisk（`\\?\C:\...`）还原为常规路径，对网络 VerbatimUNC（`\\?\UNC\...`）按设计**刻意保留原样**，且非 Windows 为 no-op；修正注释为准确表述，并说明自实现两类前缀都处理且跨平台行为一致（便于 CI 单测）。
 - fmt/check/clippy 全绿。
+
+### 轮次 5 收口：审查与验证 ✅
+
+- **代码审查通过**（无阻塞项）：S001 先 blob 后行级删除的顺序语义正确（部分失败自愈、无复活）；S002 解密失败测试的「LWW 检查先于写库、篡改字节不落库」推理与 `apply_sync_record_tx` 第 62-72 行一致；S004 正则成对引号修复与 dunce 行为核对均准确。审查建议 1 条已采纳：S001 文档补「极端部分失败时 profile delta 已传播、重试成功后墓碑传播自愈」说明。
+- **验证全绿**：solosoul-core llm::service 5 测试（含 purge 不复活）、solosoul-sync 63 测试（含 delta 10）、solosoul-vault conversations 3 测试；四 crate fmt/clippy 全绿；偏好键机比脚本 20 键一致。
 
 ## 轮次 4 验证覆盖说明
 

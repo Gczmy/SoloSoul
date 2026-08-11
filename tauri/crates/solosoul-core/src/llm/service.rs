@@ -203,7 +203,9 @@ impl LlmService {
     ///
     /// 顺序为先改 blob 后删行级：blob 移除失败时删除整体中止（不留半删除
     /// 状态）；行级删除失败时会话仍在行级表（用户可见、可重试），且 blob 已
-    /// 无该 id，懒迁移不会复活。
+    /// 无该 id，懒迁移不会复活。极端部分失败（blob 改动已随 profile delta
+    /// 传播、行级删除失败未记墓碑）时，其他新版本设备会丢失 blob 副本但保留
+    /// 行级记录，重试成功后墓碑传播即收敛，自愈无数据丢失。
     pub fn permanent_delete_conversation(
         &self,
         vault: &VaultStore,
