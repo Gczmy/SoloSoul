@@ -161,13 +161,20 @@
 
 | ID | 优先级 | 类别 | 文件位置 | 描述 | 状态 |
 |----|--------|------|----------|------|------|
-| V001 | P1 | 隐私/文档矛盾 | `docs/legal/隐私政策.md:19-25`、`docs/legal/Privacy Policy.md:19-25`、`tauri/src-tauri/tauri.conf.json:83-87` | **「置空完全禁用代理，适用于桌面端」承诺不成立**：桌面端检查更新主路径是 Tauri updater 插件，其 4 个代理 endpoint **硬编码于 `tauri.conf.json` 编译期固化**，不受 `SOLOSOUL_PROXY_PREFIXES` 控制——该变量只覆盖 `proxy_prefixes()` 管辖的路径（Android 全流程 + 桌面端 GitHub API 兜底/release notes 补全）。隐私敏感的桌面用户按政策置空后，直连失败时版本检测仍经 gh-proxy 系代理。且文档限定「桌面端」方向反了——变量在 Android 端才是完全有效的（只是移动端难以设置环境变量）。修法二选一：政策措辞改为说明桌面端 updater endpoint 为内置回退、环境变量仅覆盖 API 元数据与下载中转路径；或让桌面端 updater 也走可禁用路径（成本较高） | `[ ]` 待修复 |
+| V001 | P1 | 隐私/文档矛盾 | `docs/legal/隐私政策.md:19-25`、`docs/legal/Privacy Policy.md:19-25`、`tauri/src-tauri/tauri.conf.json:83-87` | **「置空完全禁用代理，适用于桌面端」承诺不成立**：桌面端检查更新主路径是 Tauri updater 插件，其 4 个代理 endpoint **硬编码于 `tauri.conf.json` 编译期固化**，不受 `SOLOSOUL_PROXY_PREFIXES` 控制——该变量只覆盖 `proxy_prefixes()` 管辖的路径（Android 全流程 + 桌面端 GitHub API 兜底/release notes 补全）。隐私敏感的桌面用户按政策置空后，直连失败时版本检测仍经 gh-proxy 系代理。且文档限定「桌面端」方向反了——变量在 Android 端才是完全有效的（只是移动端难以设置环境变量）。修法二选一：政策措辞改为说明桌面端 updater endpoint 为内置回退、环境变量仅覆盖 API 元数据与下载中转路径；或让桌面端 updater 也走可禁用路径（成本较高） | `[x]` 已修复（V001，见下） |
 | V002 | P2 | 弹性 | `tauri/src-tauri/src/commands/update.rs:522-529,585-599` | **U002 修复行为偏差**：旧代码 `app.updater()` 构建失败会把错误放入 `updater_result` 并回退 GitHub Release API（保证 AboutPage 仍能给出版本信息）；新代码 build 失败 `return Err(...)` 提前返回跳过兜底，与函数文档注释（「失败时回退到 GitHub Release API」）契约不符。实际影响小（build 失败仅当发布期配置损坏），修法：build 失败也走 `updater_result = Err(...)` 老路（一行），或文档注释改口 | `[ ]` 待修复 |
 | V003 | P2 | 并发 | `tauri/src-tauri/src/commands/update.rs:651-663`、`tauri/src/lib/updater.ts:180` | **U003 残留**：①panic 路径标志泄漏——抽函数保证 `?`/Err 路径恢复但非 RAII guard，`download_apk_to_part` 内部 panic 时 unwind 跳过 `store(false)`，标志永久置位、cleanup 此后整体失效（仅缓存不再清理，无数据损坏）；可选修法 scopeguard 式 Drop 恢复。②`AtomicBool` 非计数器 + 前端不 await `android_download_apk`，理论上可并发双下载——A 完成 `store(false)` 时 B 仍在写 seg，cleanup 窗口重开（且双下载同写 `part_path` 本身是更大的既存问题，U003 标志并非其防线，此处登记备查） | `[ ]` 待修复 |
 | V004 | P2 | 文档 | `docs/legal/隐私政策.md`、`docs/legal/Privacy Policy.md` | **U004 残留披露缺口**：政策只承诺完整性不可篡改，未提示「代理可返回陈旧/篡改 Release JSON 软性压制升级、可能导致无法及时获知新版本」这一可用性面（源码注释 `update.rs:32-36` 内部已披露）。隐私政策不强制涵盖可用性，但既然已写完整性声明，补一句更完整 | `[ ]` 待修复 |
 | V005 | P3 | 弹性/测试 | `tauri/src-tauri/src/commands/update.rs:1088-1091` | **U005 残留**：①`write_all` 部分写入不计入断点——写失败时可能已写若干字节但 `new_bytes` 未计，下一候选 206 续传 append 会在文件末尾重复拼接未计数字节 → part 损坏（SHA-256 终检兜住：删 part、用户重试从零下载，仅浪费一次下载，无正确性外泄）；可选修法续传前 `set_len(existing_size)` 截断或以 `metadata().len()` 为准。②abort-await 与候选切换续传两条核心行为路径仍零自动化覆盖（纯函数测试通过不等于回归保护；可用 `wiremock` 类本地 mock HTTP 补集成测试） | `[ ]` 待修复 |
 
 **次要观察（不列为问题）**：`test_proxy_prefixes_env_override` 首条断言与 `test_download_candidates_direct_first_then_proxies` 未先 `remove_var`，若测试环境本身设置了 `SOLOSOUL_PROXY_PREFIXES` 会失败（修复前即如此）；`update.rs:648-649` 大段 U003 注释挂在行尾（cosmetic）；`document.fonts.ready` 只捕获 resolve 时已 pending 的字体（原报告建议方案的固有边界，与要求一致）。
+
+## 修复记录（V 系列）
+
+### V001（P1，隐私/文档矛盾）✅ 已修复
+
+- **修复**：采用低成本路径——隐私政策中英两版措辞改口。原「置空完全禁用代理，此行为适用于桌面端」承诺不成立：桌面端 updater 插件的直连 + 4 代理 endpoint 编译期固化于 `tauri.conf.json`（`updater.endpoints`），不受 `SOLOSOUL_PROXY_PREFIXES` 控制。改后措辞区分两级：①该环境变量仅覆盖应用自建的 GitHub API 元数据与安装包下载中转路径（`proxy_prefixes()`/`download_candidates()` 管辖，Android 全流程有效，但移动端难以设置环境变量）；②明确披露桌面端内置更新检查通道为编译期内置直连 + 代理回退、不可经环境变量关闭。
+- **验证**：纯文档改动，无代码变更。
 
 ## 待用户指令
 
