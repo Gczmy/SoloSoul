@@ -176,7 +176,21 @@ pub fn apply_sync_records(
                 // 变化、与内容差异无关）后两侧内容一致 → LWW 胜者已收敛，无数据丢失，
                 // 不记录冲突（避免「内容一样、仅版本/时间不同」的假冲突）。
                 // 远程为删除墓碑（deleted）时删除与否是真实决策，仍照常记录冲突。
-                if !rec.deleted && strip_bookkeeping(&local_data) == strip_bookkeeping(&rec.data) {
+                // 会话（llm_conversations）本地快照是解密 JSON、远端是线格式信封
+                // {id, accountId, data: <base64>, updatedAt}，键形错配不能直接比较，
+                // 且信封 data 是随机 nonce 加密 blob（base64 逐设备不同），须先解密
+                // 远端信封为明文 JSON 再与本地快照比较（无 data/解密失败保守记录冲突）。
+                let content_matches = if rec.table == "llm_conversations" {
+                    match store.conversation_remote_content(&rec.data) {
+                        Ok(Some(remote_plain)) => {
+                            strip_bookkeeping(&local_data) == strip_bookkeeping(&remote_plain)
+                        }
+                        _ => false,
+                    }
+                } else {
+                    strip_bookkeeping(&local_data) == strip_bookkeeping(&rec.data)
+                };
+                if !rec.deleted && content_matches {
                     continue;
                 }
                 stats.conflicts.push(ConflictRecord {
@@ -371,6 +385,65 @@ mod tests {
             stats.conflicts.len(),
             0,
             "内容一致（仅 version/updated_at 不同）应自动消解，不产生冲突"
+        );
+        assert!(
+            vault_b.list_sync_conflicts().unwrap().is_empty(),
+            "持久化冲突表也应为空"
+        );
+    }
+
+    /// 会话内容已收敛（本地赢 LWW）→ 自动消解，不产生假冲突。
+    /// 本地快照（解密 JSON）与远端信封（{id, accountId, data: base64, updatedAt}）
+    /// 键形错配，须解密远端信封为明文后再比较。
+    #[test]
+    fn test_conversation_conflict_auto_resolved_when_content_converged() {
+        let dir_a = TempDir::new().unwrap();
+        let dir_b = TempDir::new().unwrap();
+        let vault_a = open_test_vault("acc_conv", dir_a.path().to_path_buf());
+        let vault_b = open_test_vault("acc_conv", dir_b.path().to_path_buf());
+
+        let conv = serde_json::json!({ "id": "conv_1", "name": "会话", "messages": [] })
+            .to_string()
+            .into_bytes();
+        let ts = "2026-08-05T10:00:00.000+00:00";
+        vault_a
+            .save_conversation("acc_conv", "conv_1", ts, &conv)
+            .unwrap();
+
+        // 本地（接收方）内容已收敛、updated_at 更新——先用几个填充会话把本地 HLC
+        // wall 时间推到严格大于 vault_a 的记录（与对象用例同法，保证跨 vault 比较确定）。
+        for i in 0..3 {
+            let filler =
+                serde_json::json!({ "id": format!("warm_{i}"), "name": "warm", "messages": [] })
+                    .to_string()
+                    .into_bytes();
+            vault_b
+                .save_conversation("acc_conv", &format!("warm_{i}"), ts, &filler)
+                .unwrap();
+        }
+        vault_b
+            .save_conversation("acc_conv", "conv_1", "2026-08-05T11:00:00Z", &conv)
+            .unwrap();
+
+        let watermark = crate::hlc::SyncWatermark::zero();
+        let page = generate_delta_paginated(
+            &vault_a,
+            "llm_conversations",
+            &watermark,
+            "acc_conv",
+            "node_a",
+            usize::MAX,
+            None,
+        )
+        .unwrap();
+        assert_eq!(page.records.len(), 1);
+
+        let stats =
+            apply_sync_records(&vault_b, "llm_conversations", &page.records, "node_b").unwrap();
+        assert_eq!(
+            stats.conflicts.len(),
+            0,
+            "会话内容一致（仅 updatedAt 不同）应自动消解，不产生假冲突"
         );
         assert!(
             vault_b.list_sync_conflicts().unwrap().is_empty(),

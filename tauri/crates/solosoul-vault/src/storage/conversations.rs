@@ -295,6 +295,29 @@ impl VaultStore {
             None => Ok(None),
         }
     }
+
+    /// 解密远端会话同步记录信封中的明文会话 JSON，供 delta.rs 假冲突自动消解比较。
+    ///
+    /// 远端信封为线格式 `{id, accountId, data: <base64 加密 blob>, updatedAt}`，
+    /// 与本地解密快照（id/name/messages 等键）键形错配，且信封 data 是随机 nonce
+    /// 加密 blob（base64 逐设备不同），故须解密为明文 JSON 后才能与本地快照比较。
+    /// 解析失败或无 data 字段返回 Ok(None)，由调用方保守地照常记录冲突。
+    pub fn conversation_remote_content(
+        &self,
+        remote: &serde_json::Value,
+    ) -> Result<Option<serde_json::Value>, String> {
+        let Some(data_b64) = remote.get("data").and_then(|v| v.as_str()) else {
+            return Ok(None);
+        };
+        let data = base64::Engine::decode(&base64::engine::general_purpose::STANDARD, data_b64)
+            .map_err(|e| format!("conversation remote data decode: {e}"))?;
+        let key = self.data_key()?;
+        let plain =
+            decrypt_field(&key, &data).map_err(|e| format!("conversation remote decrypt: {e}"))?;
+        serde_json::from_slice(&plain)
+            .map(Some)
+            .map_err(|e| format!("conversation remote parse: {e}"))
+    }
 }
 
 #[cfg(test)]
