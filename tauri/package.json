@@ -20,7 +20,8 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:e2e:mobile": "playwright test --project=mobile",
-    "check-all": "tsc --noEmit && cargo fmt --check && cargo clippy -- -D warnings && cargo test && npm run lint && npm run test && python3 scripts/check_acl_consistency.py",
+    "check-all": "tsc --noEmit && cargo fmt --check && cargo clippy -- -D warnings && cargo test && npm run lint && npm run test && python3 scripts/check_acl_consistency.py && python3 scripts/check_pref_keys_sync.py",
+    "check:pref-keys": "python3 scripts/check_pref_keys_sync.py || python scripts/check_pref_keys_sync.py",
     "format": "prettier --write src/",
     "format:check": "prettier --check src/"
   },

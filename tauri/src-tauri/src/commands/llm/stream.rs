@@ -187,14 +187,9 @@ async fn handle_sse_stream(
                 }
                 token_usage.prompt_tokens = anthropic_prompt_tokens;
                 token_usage.completion_tokens = anthropic_completion_tokens;
-            } else if let Some((prompt, completion)) = extract_openai_usage_from_chunk(&json) {
-                // N008: 逐字段更新——缺失字段保留先前累积值，避免整体清零。
-                if let Some(p) = prompt {
-                    token_usage.prompt_tokens = p;
-                }
-                if let Some(c) = completion {
-                    token_usage.completion_tokens = c;
-                }
+            } else {
+                // N008/R005: 逐字段更新——缺失字段保留先前累积值，避免整体清零。
+                apply_openai_usage_chunk(&mut token_usage, &json);
             }
         }
     }
@@ -260,14 +255,21 @@ fn handle_remaining_data(
     }
     // 剩余内容也可能含 usage（P034: 复用 OpenAI chunk 解析）
     if !is_anthropic(api_type) {
-        if let Some((prompt, completion)) = extract_openai_usage_from_chunk(&json) {
-            // N008: 逐字段更新——缺失字段保留先前累积值。
-            if let Some(p) = prompt {
-                token_usage.prompt_tokens = p;
-            }
-            if let Some(c) = completion {
-                token_usage.completion_tokens = c;
-            }
+        // N008/R005: 逐字段更新——缺失字段保留先前累积值。
+        apply_openai_usage_chunk(token_usage, &json);
+    }
+}
+
+/// N008/R005: 把 OpenAI SSE chunk 的 usage 逐字段应用到累积值——缺失字段保留
+/// 先前累积值（旧实现缺字段用 0 兜底，会把前一 chunk 的累积值整体清零）。
+/// 无 usage 字段时整体不动。
+fn apply_openai_usage_chunk(token_usage: &mut TokenUsage, json: &serde_json::Value) {
+    if let Some((prompt, completion)) = extract_openai_usage_from_chunk(json) {
+        if let Some(p) = prompt {
+            token_usage.prompt_tokens = p;
+        }
+        if let Some(c) = completion {
+            token_usage.completion_tokens = c;
         }
     }
 }
@@ -536,4 +538,78 @@ pub async fn llm_send_message_stream(
         };
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::commands::llm::stats::TokenUsage;
+
+    /// R005-②: usage 缺失 → None（调用方整体不动）。
+    #[test]
+    fn test_extract_openai_usage_absent() {
+        assert_eq!(
+            extract_openai_usage_from_chunk(&serde_json::json!({"choices": []})),
+            None
+        );
+        assert_eq!(
+            extract_openai_usage_from_chunk(&serde_json::json!({})),
+            None
+        );
+    }
+
+    /// R005-②: 双字段齐备 → 全部提取。
+    #[test]
+    fn test_extract_openai_usage_both_fields() {
+        let json = serde_json::json!({"usage": {"prompt_tokens": 10, "completion_tokens": 20}});
+        assert_eq!(
+            extract_openai_usage_from_chunk(&json),
+            Some((Some(10), Some(20)))
+        );
+    }
+
+    /// R005-②: 缺字段必须返回 None（而非 0），调用方才可能保留先前累积值。
+    #[test]
+    fn test_extract_openai_usage_missing_field_yields_none_not_zero() {
+        let only_prompt = serde_json::json!({"usage": {"prompt_tokens": 5}});
+        assert_eq!(
+            extract_openai_usage_from_chunk(&only_prompt),
+            Some((Some(5), None))
+        );
+        let only_completion = serde_json::json!({"usage": {"completion_tokens": 7}});
+        assert_eq!(
+            extract_openai_usage_from_chunk(&only_completion),
+            Some((None, Some(7)))
+        );
+        // usage 存在但字段非数字 → None 字段
+        let bad = serde_json::json!({"usage": {"prompt_tokens": "abc"}});
+        assert_eq!(extract_openai_usage_from_chunk(&bad), Some((None, None)));
+    }
+
+    /// R005-②: 逐字段更新语义——缺失字段保留先前累积值（N008 修复目标）。
+    #[test]
+    fn test_apply_openai_usage_chunk_retains_missing_fields() {
+        let mut usage = TokenUsage {
+            prompt_tokens: 100,
+            completion_tokens: 200,
+        };
+        // 仅 prompt 的 chunk → completion 保留先前值
+        apply_openai_usage_chunk(
+            &mut usage,
+            &serde_json::json!({"usage": {"prompt_tokens": 300}}),
+        );
+        assert_eq!(usage.prompt_tokens, 300);
+        assert_eq!(usage.completion_tokens, 200);
+        // 仅 completion 的 chunk → prompt 保留先前值
+        apply_openai_usage_chunk(
+            &mut usage,
+            &serde_json::json!({"usage": {"completion_tokens": 400}}),
+        );
+        assert_eq!(usage.prompt_tokens, 300);
+        assert_eq!(usage.completion_tokens, 400);
+        // 无 usage → 完全不动
+        apply_openai_usage_chunk(&mut usage, &serde_json::json!({"choices": []}));
+        assert_eq!(usage.prompt_tokens, 300);
+        assert_eq!(usage.completion_tokens, 400);
+    }
 }
