@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { AttachmentFileNameBlock } from './AttachmentFileNameBlock';
+import { AttachmentFileNameBlock, hasTagOverflow } from './AttachmentFileNameBlock';
 
 const base = {
   fileName: 'photo.png',
@@ -63,6 +63,49 @@ describe('AttachmentFileNameBlock 标签折叠/展开', () => {
     fireEvent.click(screen.getByRole('button', { expanded: true }));
     expect(screen.queryByText('e')).not.toBeInTheDocument();
     expect(screen.getByText('+1')).toBeInTheDocument();
+  });
+
+  it('hasTagOverflow：任一标签被省略（scrollWidth>clientWidth）即判定溢出', () => {
+    // 模拟折叠态 DOM：两个 chip，一个被压缩省略
+    const container = {
+      querySelectorAll: () => [
+        { scrollWidth: 60, clientWidth: 40 }, // 溢出 → 省略号
+        { scrollWidth: 30, clientWidth: 40 }, // 未溢出
+      ],
+    } as unknown as HTMLElement;
+    expect(hasTagOverflow(container)).toBe(true);
+
+    // 全部未溢出 → false
+    const okContainer = {
+      querySelectorAll: () => [{ scrollWidth: 30, clientWidth: 40 }],
+    } as unknown as HTMLElement;
+    expect(hasTagOverflow(okContainer)).toBe(false);
+
+    // 空容器 → false
+    expect(hasTagOverflow(null)).toBe(false);
+  });
+
+  it('标签数量未超限但过长被省略时仍显示折叠按钮', () => {
+    const longTag = '一个非常非常长的标签'.repeat(20);
+    const tags = [longTag, '短标签'];
+    const { rerender } = render(<AttachmentFileNameBlock {...base} tags={tags} />);
+    // jsdom 无真实布局：初始渲染无溢出、无按钮
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+
+    // 模拟真实布局：chip 文本溢出（scrollWidth > clientWidth）
+    const chip = screen.getByText(longTag) as HTMLElement;
+    Object.defineProperty(chip, 'scrollWidth', { configurable: true, value: 1000 });
+    Object.defineProperty(chip, 'clientWidth', { configurable: true, value: 50 });
+
+    // 换 tags 引用触发溢出检测 effect 重测 → 数量 2 未超 4、无 +N，但出现折叠按钮
+    rerender(<AttachmentFileNameBlock {...base} tags={[...tags]} />);
+    expect(screen.queryByText(/^\+/)).not.toBeInTheDocument();
+    const toggle = screen.getByRole('button', { expanded: false });
+    expect(toggle).toBeInTheDocument();
+
+    // 点击展开 → 收起态按钮
+    fireEvent.click(toggle);
+    expect(screen.getByRole('button', { expanded: true })).toBeInTheDocument();
   });
 
   it('折叠态单行（nowrap）压缩标签留出 +N 与按钮；展开态恢复换行', () => {

@@ -20,6 +20,22 @@ interface AttachmentFileNameBlockProps {
 /** 折叠态最多展示的标签数；超出部分收进「+N」并可用箭头展开。 */
 const MAX_VISIBLE_TAGS = 4;
 
+/** 标签 chip 的 data 标记，供溢出检测定位（避免误扫 +N/按钮等兄弟元素）。 */
+const TAG_CHIP_ATTR = 'data-tag-chip';
+
+/**
+ * 折叠态下是否存在被压缩省略的标签 chip（scrollWidth > clientWidth 即出现省略号）。
+ *
+ * 与描述溢出检测同策略：只要任一标签被省略（哪怕数量不超过 MAX_VISIBLE_TAGS），
+ * 就需要折叠按钮让用户展开查看完整内容。
+ */
+export function hasTagOverflow(container: HTMLElement | null): boolean {
+  if (!container) return false;
+  return Array.from(container.querySelectorAll(`[${TAG_CHIP_ATTR}]`)).some(
+    (el) => el.scrollWidth > el.clientWidth + 1,
+  );
+}
+
 /**
  * 描述/标签的折叠展开箭头按钮（小号、透明、hover 高亮）。
  */
@@ -76,8 +92,8 @@ function ToggleButton({
  *
  * 描述与标签均默认折叠：
  * - 描述：折叠态单行省略，仅当文本实际溢出时显示展开箭头；展开后显示全文（保留换行）。
- * - 标签：折叠态显示前 4 个 +「+N」pill（与标签同尺寸垂直对齐），超过 4 个时显示展开箭头；
- *   展开后显示全部标签。
+ * - 标签：折叠态显示前 4 个 +「+N」pill（与标签同尺寸垂直对齐），超过 4 个**或任一标签被
+ *   省略号截断**时显示展开箭头；展开后显示全部标签。
  */
 export function AttachmentFileNameBlock({
   fileName,
@@ -95,10 +111,14 @@ export function AttachmentFileNameBlock({
   const [descExpanded, setDescExpanded] = useState(false);
   const [tagsExpanded, setTagsExpanded] = useState(false);
   const descRef = useRef<HTMLDivElement | null>(null);
+  const tagsContainerRef = useRef<HTMLDivElement | null>(null);
   const [descOverflow, setDescOverflow] = useState(false);
-  // 展开态实时镜像（供溢出检测守卫读取最新值，避免依赖数组包含 descExpanded 引发展开/收起重测）
+  const [tagsOverflow, setTagsOverflow] = useState(false);
+  // 展开态实时镜像（供溢出检测守卫读取最新值，避免依赖数组包含 expanded 引发展开/收起重测）
   const descExpandedRef = useRef(descExpanded);
   descExpandedRef.current = descExpanded;
+  const tagsExpandedRef = useRef(tagsExpanded);
+  tagsExpandedRef.current = tagsExpanded;
 
   // 折叠态检测描述是否溢出（仅溢出时展示展开箭头，避免短文本出现无意义的按钮）。
   // 展开态文本为多行（pre-wrap）不参与检测：若在展开态测量，scrollWidth ≤ clientWidth
@@ -111,8 +131,17 @@ export function AttachmentFileNameBlock({
     setDescOverflow(el.scrollWidth > el.clientWidth + 1);
   }, [trimmedDesc, showTrash]);
 
+  // 折叠态检测是否有标签被省略号截断（任一 chip 溢出即需要展开按钮）；
+  // 展开态 wrap 不压缩不参与检测（同描述策略，tagsExpanded 经 ref 读取避免依赖数组）。
+  useLayoutEffect(() => {
+    if (tagsExpandedRef.current) return;
+    setTagsOverflow(hasTagOverflow(tagsContainerRef.current));
+  }, [tags, showTrash]);
+
   const hasMoreTags = visibleTags.length > MAX_VISIBLE_TAGS;
   const displayedTags = tagsExpanded ? visibleTags : visibleTags.slice(0, MAX_VISIBLE_TAGS);
+  // 折叠按钮条件：标签数量超限 **或** 任一标签被省略号截断（4 个以内的长标签同样可展开）
+  const showTagsToggle = hasMoreTags || tagsOverflow;
 
   return (
     <div style={{ flex: 1, minWidth: 0 }}>
@@ -178,6 +207,7 @@ export function AttachmentFileNameBlock({
       )}
       {visibleTags.length > 0 && (
         <div
+          ref={tagsContainerRef}
           style={{
             display: 'flex',
             // 折叠态强制单行：标签 chip 可压缩并以省略号截断，保证 +N 与折叠按钮
@@ -193,6 +223,7 @@ export function AttachmentFileNameBlock({
           {displayedTags.map((tag) => (
             <span
               key={tag}
+              {...{ [TAG_CHIP_ATTR]: true }}
               style={{
                 // 折叠态允许压缩（flexShrink: 1 + minWidth: 0 使省略号生效），
                 // 空间不足时优先截断标签文本而非换行；展开态不压缩、完整显示。
@@ -234,7 +265,7 @@ export function AttachmentFileNameBlock({
               +{visibleTags.length - MAX_VISIBLE_TAGS}
             </span>
           )}
-          {hasMoreTags && (
+          {showTagsToggle && (
             <ToggleButton
               expanded={tagsExpanded}
               onClick={() => setTagsExpanded((v) => !v)}
