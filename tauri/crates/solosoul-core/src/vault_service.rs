@@ -30,6 +30,7 @@ fn password_lockout_seconds(failed_attempts: u32) -> u64 {
         n => 300 + (n - 10) as u64 * 300, // 之后每次递增 5 分钟
     }
 }
+#[cfg(any(unix, test))]
 use std::fs;
 use std::path::Path;
 use std::path::PathBuf;

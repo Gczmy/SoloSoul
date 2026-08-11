@@ -305,9 +305,7 @@ pub(crate) fn query_windows_biometric_availability() -> (bool, Option<String>, O
 /// 使用 UserConsentVerifier::RequestVerificationAsync() 触发 Windows Hello 验证弹窗。
 /// Windows Hello 始终允许 PIN 回退，因此 strict 参数在此平台上无实际区分效果。
 pub(crate) fn trigger_windows_biometric(reason: &str, _strict: bool) -> Result<(), BiometricError> {
-    if let Err(e) = ensure_mta() {
-        return Err(e);
-    }
+    ensure_mta()?;
 
     match UserConsentVerifierHelper::request_verification(reason) {
         Ok(result) => match result {

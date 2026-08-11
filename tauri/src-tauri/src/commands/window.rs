@@ -9,6 +9,8 @@ pub struct TitlebarColor {
 
 /// 根据 sRGB 分量计算感知亮度（Rec. 601 luma）。
 /// 返回 0.0 ~ 255.0，用于判断标题栏使用深色还是浅色 appearance。
+/// 仅 macOS 分支调用；Windows/Linux 下非 test 构建为死代码，此处允许。
+#[cfg_attr(not(target_os = "macos"), allow(dead_code))]
 pub(crate) fn calculate_luminance(color: &TitlebarColor) -> f64 {
     0.299 * f64::from(color.red) + 0.587 * f64::from(color.green) + 0.114 * f64::from(color.blue)
 }

@@ -1155,7 +1155,7 @@ pub async fn attachment_share<R: Runtime>(
     #[cfg(target_os = "macos")]
     {
         use objc2::AnyThread;
-        use objc2_app_kit::{NSSharingServicePicker, NSView, NSWindow};
+        use objc2_app_kit::{NSSharingServicePicker, NSWindow};
         use objc2_foundation::{NSArray, NSRect, NSRectEdge, NSString, NSURL};
         use tauri::Manager;
 
@@ -1189,7 +1189,7 @@ pub async fn attachment_share<R: Runtime>(
                     .ok_or("NSWindow has no content view")?;
 
                 let url: objc2::rc::Retained<NSURL> =
-                    NSURL::fileURLWithPath(&NSString::from_str(&*dest.to_string_lossy()));
+                    NSURL::fileURLWithPath(&NSString::from_str(&dest.to_string_lossy()));
                 let items: objc2::rc::Retained<NSArray> =
                     NSArray::from_retained_slice(&[url.into_super().into()]);
                 // SAFETY: initWithItems 的 unsafe 约束要求 items 元素类型正确（NSURL 可分享，
