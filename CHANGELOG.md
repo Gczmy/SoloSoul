@@ -2,6 +2,32 @@
 
 All notable changes to SoloSoul are documented in this file.
 
+## [2.9.2] - 2026-08-11
+
+### Added
+
+- **文档导出新增 5 种格式（TXT / Markdown / PDF / HTML / 对象级 DOCX）** — 新增 `build_text_document` / `build_markdown_document`（txt/markdown 纯文本与 Markdown 导出）；补齐 PDF/HTML 文档导出（`printpdf from_html` 渲染 + 内嵌 Noto Sans SC 字体，HTML 零依赖自包含）；DOCX 支持对象级导出（此前仅按范围导出）。
+- **文档导出封面增强** — 封面加账户名/ID；对象数量文案明确为「导出 N 个对象」；解密框传密码提示词；导出范围树按字段敏感度集合显示徽章。
+- **文档导出关键字段验证框复用统一验证框** — 支持指纹 / PIN / 主密码三种方式，文案改为「验证身份」，与解锁体系一致。
+- **附件照片集相册功能** — 网格浏览 + 全屏滑动查看 + Rust 缩略图生成；照片查看器新增左右翻页按钮，右上角关闭改为返回照片集。
+- **附件转发功能** — Android 使用系统分享面板、桌面端显示于文件管理器；macOS 改用 `NSSharingServicePicker` 原生分享面板，Windows 改用 `IDataTransferManagerInterop` 系统分享面板。
+
+### Fixed
+
+- **markdown 导出渲染修复** — 多行值硬换行、url/email/phone 链接化、目标含空格/括号/尖括号时包裹尖括号；字段间空行分隔（相邻字段不再挤在一行）；大幅减少转义（`.()*-+#` 等保持原样），仅对行首结构字符做定向防护；对象名标题由 H2 改为 H3（消除默认下划线横线）。
+- **导出默认文件名用规范扩展名** — markdown 使用 `md`，修复 `.markdown.md` 双后缀；切换导出格式时已选保存路径扩展名跟随更新（`swapDocumentExt`）。
+- **docx 改为连续排版** — 对象名加「对象名称：」前缀、对象间以横线分隔、取消强制分页；`dynamic_group` 子字段展开为独立条目 + `<w:br/>` 换行渲染 + preflight 扫描子项敏感度。
+- **PDF 布局修复** — 每页页边距 15/14mm、表格长值换行、封面与每个对象独立一页。
+- **文档导出确认框按钮补 i18n**（continue 键），格式选择按钮移除图标。
+- **internal 敏感度字段显示修正** — internal 字段在详情卡片与历史快照中直接显示明文（仅 sensitive/critical 掩码）。
+- **分享同名附件不再互相覆盖** — `copy_into_dir` + `make_unique_dest_path` 去重。
+- **i18n 补齐 52 个缺失 locale 键**（common/auth/plugin/ocr/sensitivity/navigation/settings），新增全量扫描脚本防止回归。
+
+### Chores
+
+- 版本号同步升级到 2.9.2（versionCode 2009002）。
+- 29 个 commit 自 v2.9.1 到 v2.9.2。
+
 ## [2.9.1] - 2026-08-08
 
 ### Added
