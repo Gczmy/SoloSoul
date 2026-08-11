@@ -6,8 +6,9 @@ import { Card } from '@/components/ui/Card';
 import { useToastError } from '@/hooks/useToastError';
 import { useConfirm } from '@/hooks/useConfirm';
 import { useOcrModelManager } from '@/hooks/useOcrModelManager';
+import { OcrTierStatusRow } from '@/components/ocr/OcrTierStatusRow';
 import { getTierLabel } from '@/lib/utils';
-import { Download, CheckCircle, AlertCircle, Trash2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/constants';
 import { isMobilePlatformSync } from '@/lib/platform';
 
@@ -93,9 +94,6 @@ export function OcrSettingsPage() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {tiers.map((tier) => {
                 const status = statusMap[tier.tier];
-                const isInstalling = installingTier === tier.tier;
-                const isDownloading = downloadingTier === tier.tier;
-                const isDeleting = deletingTier === tier.tier;
                 // P133: Vision 为系统内置引擎，无存储占用（tierSize 空串）。
                 const tierSize =
                   tier.tier === 'tiny'
@@ -105,135 +103,46 @@ export function OcrSettingsPage() {
                       : tier.tier === 'vision'
                         ? ''
                         : '30MB';
+                const statusText = status?.builtin
+                  ? t('ocr:status_builtin')
+                  : status?.installed
+                    ? `${t('ocr:status_installed')} · ${t('ocr:storage_usage_value', { size: tierSize })}`
+                    : status?.bundled
+                      ? t('ocr:status_bundled')
+                      : t('ocr:status_not_installed');
                 return (
-                  <div
+                  <OcrTierStatusRow
                     key={tier.tier}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '10px 12px',
-                      borderRadius: 8,
-                      background: 'var(--bg-toolbar)',
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
-                      {status?.installed ? (
-                        <CheckCircle size={ICON_SIZE.md} color="var(--accent-primary)" />
-                      ) : status?.bundled ? (
-                        <AlertCircle size={ICON_SIZE.md} color="var(--text-tertiary)" />
-                      ) : (
-                        <AlertCircle size={ICON_SIZE.md} color="var(--error)" />
-                      )}
-                      <div>
-                        <div style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500 }}>
-                          {getTierLabel(t, tier).name}
-                        </div>
-                        <div
-                          style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}
-                        >
-                          {status?.builtin
-                            ? t('ocr:status_builtin')
-                            : status?.installed
-                              ? `${t('ocr:status_installed')} · ${t('ocr:storage_usage_value', { size: tierSize })}`
-                              : status?.bundled
-                                ? t('ocr:status_bundled')
-                                : t('ocr:status_not_installed')}
-                        </div>
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      {status?.bundled && !status?.installed && (
-                        <button
-                          onClick={() => handleInstallBundled(tier.tier)}
-                          disabled={isInstalling}
-                          className="interactive-toolbar"
-                          style={{
-                            padding: '6px 12px',
-                            borderRadius: 8,
-                            borderWidth: 1,
-                            borderStyle: 'solid',
-                            fontSize: 'var(--text-caption)',
-                            fontWeight: 500,
-                            cursor: isInstalling ? 'default' : 'pointer',
-                            opacity: isInstalling ? 0.6 : 1,
-                            fontFamily: 'inherit',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: 4,
-                            whiteSpace: 'nowrap',
-                          }}
-                        >
-                          {isInstalling
-                            ? t('common:loading', { defaultValue: '...' })
-                            : t('ocr:install')}
-                        </button>
-                      )}
-                      {!status?.bundled && !status?.installed && (
-                        <button
-                          onClick={() => handleDownload(tier.tier)}
-                          disabled={isDownloading}
-                          className="interactive-toolbar"
-                          style={{
-                            padding: '6px 12px',
-                            borderRadius: 8,
-                            borderWidth: 1,
-                            borderStyle: 'solid',
-                            fontSize: 'var(--text-caption)',
-                            fontWeight: 500,
-                            cursor: isDownloading ? 'default' : 'pointer',
-                            opacity: isDownloading ? 0.6 : 1,
-                            fontFamily: 'inherit',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: 4,
-                            whiteSpace: 'nowrap',
-                          }}
-                        >
-                          {isDownloading ? (
-                            t('common:loading', { defaultValue: '...' })
-                          ) : (
-                            <>
-                              <Download size={ICON_SIZE.sm} />
-                              {t('ocr:download')}
-                            </>
-                          )}
-                        </button>
-                      )}
-                      {/* P133: 系统内置引擎（Vision）不可删除 */}
-                      {status?.installed && !status?.builtin && (
-                        <button
-                          onClick={() => handleDelete(tier.tier)}
-                          disabled={isDeleting}
-                          className="interactive-danger"
-                          style={{
-                            padding: '6px 12px',
-                            borderRadius: 8,
-                            borderWidth: 1,
-                            borderStyle: 'solid',
-                            fontSize: 'var(--text-caption)',
-                            fontWeight: 500,
-                            cursor: isDeleting ? 'default' : 'pointer',
-                            opacity: isDeleting ? 0.6 : 1,
-                            fontFamily: 'inherit',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: 4,
-                            whiteSpace: 'nowrap',
-                          }}
-                        >
-                          {isDeleting ? (
-                            t('common:loading', { defaultValue: '...' })
-                          ) : (
-                            <>
-                              <Trash2 size={ICON_SIZE.sm} color="var(--error)" />
-                              {t('common:delete')}
-                            </>
-                          )}
-                        </button>
-                      )}
-                    </div>
-                  </div>
+                    tierKey={tier.tier}
+                    status={status}
+                    label={getTierLabel(t, tier).name}
+                    statusText={statusText}
+                    isInstalling={installingTier === tier.tier}
+                    isDownloading={downloadingTier === tier.tier}
+                    isDeleting={deletingTier === tier.tier}
+                    rawButton
+                    onInstall={
+                      status?.bundled && !status?.installed
+                        ? () => handleInstallBundled(tier.tier)
+                        : undefined
+                    }
+                    onDownload={
+                      !status?.bundled && !status?.installed
+                        ? () => handleDownload(tier.tier)
+                        : undefined
+                    }
+                    onDelete={
+                      status?.installed && !status?.builtin
+                        ? () => handleDelete(tier.tier)
+                        : undefined
+                    }
+                    deleteLabel={
+                      <>
+                        <Trash2 size={ICON_SIZE.sm} color="var(--error)" />
+                        {t('common:delete')}
+                      </>
+                    }
+                  />
                 );
               })}
             </div>

@@ -1,9 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { AlertCircle, CheckCircle, Download } from 'lucide-react';
+import { OcrTierStatusRow } from '@/components/ocr/OcrTierStatusRow';
 import { getTierLabel } from '@/lib/utils';
-import { ICON_SIZE } from '@/lib/constants';
 import type { OcrModelStatus, OcrTierInfo } from '@/lib/ipc';
 
 interface OcrScanSettingsPanelProps {
@@ -79,67 +77,27 @@ export function OcrScanSettingsPanel({
             <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
               {tiers.map((tier) => {
                 const status = statusMap[tier.tier];
-                const isInstalling = installingTier === tier.tier;
-                const isDownloading = downloadingTier === tier.tier;
+                const statusText = status?.builtin
+                  ? t('ocr:status_builtin')
+                  : status?.installed
+                    ? t('ocr:status_installed')
+                    : status?.bundled
+                      ? t('ocr:status_bundled')
+                      : t('ocr:status_not_installed');
                 return (
-                  <div
+                  <OcrTierStatusRow
                     key={tier.tier}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '10px 12px',
-                      borderRadius: 8,
-                      background: 'var(--bg-toolbar)',
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
-                      {status?.installed ? (
-                        <CheckCircle size={ICON_SIZE.md} color="var(--accent-primary)" />
-                      ) : status?.bundled ? (
-                        <AlertCircle size={ICON_SIZE.md} color="var(--text-tertiary)" />
-                      ) : (
-                        <AlertCircle size={ICON_SIZE.md} color="var(--error)" />
-                      )}
-                      <div>
-                        <div style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500 }}>
-                          {getTierLabel(t, tier).name}
-                        </div>
-                        <div
-                          style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}
-                        >
-                          {status?.builtin
-                            ? t('ocr:status_builtin')
-                            : status?.installed
-                              ? t('ocr:status_installed')
-                              : status?.bundled
-                                ? t('ocr:status_bundled')
-                                : t('ocr:status_not_installed')}
-                        </div>
-                      </div>
-                    </div>
-                    <div style={{ display: 'flex', gap: 8 }}>
-                      {status?.bundled && !status?.installed && (
-                        <Button
-                          size="sm"
-                          onClick={() => onInstallBundled(tier.tier)}
-                          loading={isInstalling}
-                        >
-                          {t('ocr:install')}
-                        </Button>
-                      )}
-                      {!status?.bundled && !status?.installed && (
-                        <Button
-                          size="sm"
-                          onClick={() => onDownload(tier.tier)}
-                          loading={isDownloading}
-                        >
-                          <Download size={ICON_SIZE.sm} style={{ marginRight: 4 }} />
-                          {t('ocr:download')}
-                        </Button>
-                      )}
-                    </div>
-                  </div>
+                    tierKey={tier.tier}
+                    status={status}
+                    label={getTierLabel(t, tier).name}
+                    statusText={statusText}
+                    isInstalling={installingTier === tier.tier}
+                    isDownloading={downloadingTier === tier.tier}
+                    onInstall={status?.bundled && !status?.installed ? () => onInstallBundled(tier.tier) : undefined}
+                    onDownload={
+                      !status?.bundled && !status?.installed ? () => onDownload(tier.tier) : undefined
+                    }
+                  />
                 );
               })}
             </div>
