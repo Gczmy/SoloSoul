@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-11（P002 修复完成）
+> 最后更新：2026-08-11（P003 修复完成）
 > 当前分支：`main`
 > 修复轮次：2（按用户指令逐项修复，一项一提交）
 
@@ -16,7 +16,7 @@ Git 状态：工作树除本报告文件重建外干净（旧报告已删除，�
 |------|--------|------|----------|------|------|
 | P001 | P0 | 规范/构建 | `tauri/src-tauri/src/commands/attachment.rs:1158,1192` 等 | Clippy error 致 check-all 中止（详见下方修复记录） | `[x]` 已完成 |
 | P002 | P1 | 漏洞 | `tauri/src-tauri/src/commands/update.rs:449-463` | `android_download_apk` 信任前端回传的 URL 与 checksum（可传空跳过校验），验签成果未绑定到 IPC 通道 | `[x]` 已完成 |
-| P003 | P1 | 性能 | `tauri/src-tauri/src/commands/export_import/mod.rs:290`、`export.rs:183` | 导出 selected 分支全库解密两遍（`list_objects` + `load_objects_batch`），且随导出页每次勾选变更（500ms 防抖）触发 | `[ ]` 待修复 |
+| P003 | P1 | 性能 | `tauri/src-tauri/src/commands/export_import/mod.rs:290`、`export.rs:183` | 导出 selected 分支全库解密两遍（`list_objects` + `load_objects_batch`），且随导出页每次勾选变更（500ms 防抖）触发 | `[x]` 已完成 |
 | P004 | P1 | 性能/架构 | `tauri/src-tauri/src/commands/llm/conversation.rs:13-57` | LLM 会话整体存加密 preferences blob，每次保存 = 全量解密+深克隆+序列化+加密+写盘；每条聊天消息都触发 | `[ ]` 待修复 |
 | P005 | P1 | 性能 | `solosoul_cli/src/commands/search.rs:181-184,206-209` | CLI `/search` 用 `list_objects(...).len()` 统计子对象数，对每个命中页面全量解密仅为取计数（GUI 已有 `count_objects` 先例） | `[ ]` 待修复 |
 | P006 | P1 | 架构 | `tauri/src-tauri/src/commands/object/mod.rs:439`、`tauri/src/stores/objectStore.ts:56,185`、`ObjectDetailModal.tsx:470` | 类型漂移：Rust `ObjectData` 无 `tags`，TS 声明 `tags?` 永为 undefined；`updateObject` 用 undefined 覆盖摘要 tags，详情页标签成死渲染路径 | `[ ]` 待修复 |
@@ -64,8 +64,8 @@ Git 状态：工作树除本报告文件重建外干净（旧报告已删除，�
 
 ## 修复进度
 
-- 已完成：2 / 47
-- 当前处理：P003（按建议顺序推进）
+- 已完成：3 / 47
+- 当前处理：P004（按建议顺序推进）
 
 ## 详细问题描述与修复指引
 
@@ -102,10 +102,14 @@ error: deref which would be done by auto-deref
 
 **验证**：cargo check --tests ✅；updater.test.ts 4/4 ✅；vitest 619 全过 ✅；ACL 194 命令一致 ✅。
 
-### P003（P1）导出 selected 分支全库双重解密
+### P003（P1）导出 selected 分支全库双重解密 — 已完成（commit 6f947313）
 
-`collect_scope_objects` selected 分支 `list_objects(account_id, None...)` 对全账户逐行完整解密仅为筛 id，随后 `load_objects_batch` 对命中对象再解密一次；`export_estimate_size` 随导出页每次勾选变更（500ms 防抖）触发该路径。P005 只修了 include_all 分支。
-**修复**：页面/标签过滤均可下推 SQL（`section_type`、`tags_json` 列未加密），无需解密 properties；估算字节数参照 `snapshots_size_batch` 先例用 `SUM(LENGTH(properties))` 纯 SQL。
+**修复**：
+
+1. **筛 id 阶段不再解密**：`collect_scope_objects` selected 分支改用新增的 `list_object_metadata_with_tags`（`list_object_metadata_impl(with_tags=true)`）——纯 SQL SELECT 元数据列 + 明文 `tags_json`，不触碰加密的 `properties`/`property_labels`。命中对象才经 `load_objects_batch` 解密一次。
+2. **估算不再序列化**：`export_estimate_size` 对象 payload 体积改用新增的 `objects_size_batch`（纯 SQL `SUM(LENGTH(properties))`，参照 `snapshots_size_batch` 先例）估算，不再对已解密 properties 做 `serde_json::to_vec` 往返。
+
+**验证**：cargo check --tests ✅；clippy --workspace 全绿 ✅。
 
 ### P004（P1）LLM 会话整 blob 重写
 
