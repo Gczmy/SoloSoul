@@ -464,6 +464,15 @@ pub async fn attachment_copy_to_vault(
         .canonicalize()
         .map_err(|_| "Invalid vault base path".to_string())?;
     let src_raw = std::path::Path::new(&src_path);
+    // P014: 与 attachment_download 对齐，入口拒绝 `..` 组件——兜底分支（canonicalize
+    // 失败但文件存在）用字面路径做 `starts_with` 前缀判定，`..` 组件可让字面前缀
+    // 通过检查却解析到白名单外（Android symlink 场景可达）。
+    if src_raw
+        .components()
+        .any(|c| matches!(c, std::path::Component::ParentDir))
+    {
+        return Err("Source path must not contain '..'".to_string());
+    }
     // R2-X1: 拒绝型判定——canonicalize 失败（Android symlink 兜底）时，raw 路径须同时
     // 与非 canonical 的 `base` 比较：/data/data 与 /data/user/0 互为 symlink 的双路径场景中，
     // raw 路径与 canonical vault_base 前缀不同，只比 vault_base 会漏检库内自引用。
