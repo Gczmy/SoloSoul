@@ -42,7 +42,7 @@
 |----|--------|------|----------|------|------|
 | T001 | P0 | 测试 | `tauri/src-tauri/src/commands/update.rs:1234` | 带红测试入库：`test_compute_segments_caps_at_max_segments` 断言错误——作者把调用点的 20MB 并行阈值（`PARALLEL_MIN_FILE_SIZE`）误当成 `compute_segments` 内部逻辑，断言 1 段实为 4 段。check-all / CI rust-test 必挂。修法：断言改 4（阈值本属调用点职责） | `[x]` 已修复（T001，见下） |
 | T002 | P1 | 弹性 | `tauri/src-tauri/src/commands/update.rs:843,902,745-762` | 分段下载弹性缺口：①流读取中途失败直接 `?` 返回，不切换下一候选、也不整体回退单流（注释宣称会切换，与行为不符）；②parallel 失败时已 spawn 的分段任务不 abort，继续后台写已删除的 seg 文件并 emit 进度；③parallel 失败删除 part 文件连带销毁单流续传的有效断点。代理限流/中途断连 = 整个下载失败 | `[x]` 已修复（T002，见下） |
-| T003 | P2 | 资源 | `tauri/src-tauri/src/commands/update.rs:209`、`tauri/src-tauri/tauri.conf.json` | ①进程中断时 `.part.seg{i}` 孤儿文件永不清理（`cleanup_stale_apk_cache` 只清非当前版本，且 parallel 不支持续传，纯垃圾累积）；②updater 未配 `timeout`（插件默认无超时），直连黑洞（hang 而非 RST）时代理回退迟迟不触发 | `[ ]` 待修复 |
+| T003 | P2 | 资源 | `tauri/src-tauri/src/commands/update.rs:209`、`tauri/src-tauri/tauri.conf.json` | ①进程中断时 `.part.seg{i}` 孤儿文件永不清理（`cleanup_stale_apk_cache` 只清非当前版本，且 parallel 不支持续传，纯垃圾累积）；②updater 未配 `timeout`（插件默认无超时），直连黑洞（hang 而非 RST）时代理回退迟迟不触发 | `[x]` 已修复（T003，见下） |
 | T004 | P2 | 隐私/可用性 | `tauri/src-tauri/src/commands/update.rs:29,252`、`scripts/generate-latest-json.js` | 代理通道固有面未披露/未缓解：①gh-proxy 类代理 TLS 终止于代理方，用户 IP、使用 SoloSoul 的事实、目标版本号、API 响应全部暴露给第三方——代码注释只强调「无供应链风险」未提隐私面，建议在文档/注释披露；②`fetch_github_release_url` 把 api.github.com 元数据请求也套代理，代理可返回陈旧/篡改 Release JSON 软性压制升级（完整性无碍，属可用性面）；③代理可重放旧版 mirror JSON 压制升级（updater 只升不降，无降级风险）；④4 个代理硬编码不可配置，失效需发新版 | `[ ]` 待修复 |
 | T005 | P2 | 前端 | `tauri/src/components/attachment/AttachmentFileNameBlock.tsx:127-139` | 溢出检测无 resize 监听：描述与标签两处 `useLayoutEffect` 测量仅在 deps 变化时触发，容器变窄后原本 ≤4 个的标签被截断时用户**无任何展开途径**（无 +N 也无按钮）；字体未加载完成时测量可能偏小漏判。另：描述溢出测量分支在 jsdom 下恒走 false，零行为测试覆盖（标签侧已用 mock 布局属性方案解决，可仿照）。建议加 `ResizeObserver` | `[ ]` 待修复 |
 
@@ -61,6 +61,12 @@
 - **②abort 剩余分段任务**：`download_apk_parallel` 改为 `for handle in iter.by_ref()` 顺序等待，任一段失败即 `break` 并对剩余 `JoinHandle` 逐个 `abort()`，不再让已 spawn 任务后台写已删除的 seg 文件/emit 进度。
 - **③保留续传断点**：parallel 失败只清理 `.seg` 文件，**不再删除 `part_path`**（可能承载上次单流中断的有效断点）；调用点 `android_download_apk` 在 parallel 失败时 `tracing::warn` 并**回退单流重试一次**（单流可断点续传），单流再失败才传播错误。
 - **验证**：cargo fmt / check / clippy `-D warnings` 全绿；修复中处理了 `file` 变量与内置宏 `file!` 的解析冲突（重命名 `seg_file`）。
+
+### T003（P2，资源/超时）✅ 已修复
+
+- **①孤儿 seg 清理**：`cleanup_stale_apk_cache` 增加「当前版本 `.part.seg{i}` 孤儿分段文件也删除」——parallel 不支持续传，进程中断（kill/崩溃）残留的 seg 纯属垃圾累积；该函数仅在下载开始前调用（检查更新时/下载前），无并发写入，删除安全。当前版本 `.part`（单流断点）与 `.apk` 仍保留。
+- **②updater 请求超时**：核对 tauri-plugin-updater 2.10.1 源码——`Config` 无 timeout 字段，timeout 由 guest-js `check(options)` / `download(options)` 的 `timeout?: number`（毫秒）传入。`tauri/src/lib/updater.ts` 两处 `check()` 调用（`checkForUpdate`/`downloadAndInstallUpdate`）统一传 `UPDATE_REQUEST_TIMEOUT_MS = 15_000`，直连黑洞（hang 而非 RST）15s 后超时，插件自动尝试下一 endpoint。
+- **验证**：cargo fmt / check / clippy `-D warnings` 全绿；tsc / eslint 通过。
 
 ## 待用户指令
 

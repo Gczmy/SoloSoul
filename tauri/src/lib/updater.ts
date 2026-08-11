@@ -25,9 +25,13 @@ type UpdateCheckResult =
  * - 'up-to-date': 当前已是最新版
  * - 'error': 检查失败（如网络异常、端点不可达）
  */
+// T003: updater 插件默认无请求超时，直连黑洞（hang 而非 RST）时会卡住代理回退；
+// 显式传 15s 超时（毫秒），超时后插件自动尝试下一个 endpoint。
+const UPDATE_REQUEST_TIMEOUT_MS = 15_000;
+
 export async function checkForUpdate(): Promise<UpdateCheckResult> {
   try {
-    const update = await check();
+    const update = await check({ timeout: UPDATE_REQUEST_TIMEOUT_MS });
     if (!update) {
       return { kind: 'up-to-date' };
     }
@@ -57,7 +61,7 @@ export async function checkForUpdate(): Promise<UpdateCheckResult> {
 export async function downloadAndInstallUpdate(
   onProgress?: (progress: UpdateProgress) => void,
 ): Promise<void> {
-  const update = await check();
+  const update = await check({ timeout: UPDATE_REQUEST_TIMEOUT_MS });
   if (!update) {
     throw new Error('No update available');
   }

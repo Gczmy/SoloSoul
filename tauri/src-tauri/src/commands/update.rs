@@ -206,7 +206,12 @@ fn cleanup_stale_apk_cache(app: &tauri::AppHandle, current_version: &str) -> Res
                 .or_else(|| stripped.strip_suffix(".part"))
                 .or_else(|| stripped.split(".part.seg").next())
                 .unwrap_or(stripped);
-            if file_version != current_part {
+            // ① 旧版本文件一律删除；② 当前版本的 `.part.seg{i}` 孤儿分段文件也删除
+            // （T003）：parallel 分段下载不支持续传，进程中断（kill/崩溃）残留的 seg
+            // 文件纯属垃圾累积；本函数仅在下载开始前调用（检查更新时/下载前），无并发
+            // 写入，删除安全。当前版本的 `.part`（单流断点）与 `.apk` 保留。
+            let is_orphan_seg = name_str.contains(".part.seg");
+            if file_version != current_part || is_orphan_seg {
                 let _ = std::fs::remove_file(entry.path());
             }
         }
