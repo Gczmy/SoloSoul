@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
-import { X, ZoomIn, ZoomOut, RotateCcw, ExternalLink } from 'lucide-react';
+import { ArrowLeft, X, ZoomIn, ZoomOut, RotateCcw, ExternalLink } from 'lucide-react';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import type { AttachmentItem } from '@/lib/attachmentUtils';
 import { previewItemByMime } from '@/lib/attachmentUtils';
@@ -172,7 +172,7 @@ export function AttachmentPreviewOverlay({
   const renderContent = () => {
     if (error) {
       return (
-        <div style={{ color: '#e74c3c', padding: 24, textAlign: 'center' }}>
+        <div style={{ margin: 'auto', color: '#e74c3c', padding: 24, textAlign: 'center' }}>
           <div>{t('common:attachment_preview_failed', 'Failed to load preview.')}</div>
           {(!item.vaultPath || isUriPath(item.vaultPath)) && (
             <div style={{ marginTop: 8, fontSize: 'var(--text-body-sm)' }}>
@@ -184,7 +184,7 @@ export function AttachmentPreviewOverlay({
     }
 
     if (loading) {
-      return <LoadingPlaceholder variant="toolbar" minHeight={120} />;
+      return <LoadingPlaceholder variant="toolbar" minHeight={120} style={{ margin: 'auto' }} />;
     }
 
     switch (previewKind) {
@@ -193,6 +193,10 @@ export function AttachmentPreviewOverlay({
           <div
             onClick={(e) => e.stopPropagation()}
             style={{
+              // margin: auto——内容小于视口时水平垂直居中；放大超出视口时
+              // auto 边距归零、按起始位置对齐，保证溢出边缘仍可滚动到达（与
+              // PhotoViewerOverlay 的居中策略一致，避免 flex 居中裁剪顶部）。
+              margin: 'auto',
               display: 'inline-block',
               width: displayWidth,
               height: displayHeight,
@@ -221,6 +225,9 @@ export function AttachmentPreviewOverlay({
           <div
             onClick={(e) => e.stopPropagation()}
             style={{
+              // margin 0 auto：宽视口（> 1024px）下保持水平居中（容器已移除
+              // justifyContent: center，改为内容自身 margin 居中）
+              margin: '0 auto',
               width: '100%',
               height: '100%',
               maxWidth: 1024,
@@ -244,6 +251,7 @@ export function AttachmentPreviewOverlay({
           <div
             onClick={(e) => e.stopPropagation()}
             style={{
+              margin: 'auto',
               width: '100%',
               maxWidth: 960,
               background: 'var(--bg-elevated)',
@@ -273,6 +281,7 @@ export function AttachmentPreviewOverlay({
           <div
             onClick={(e) => e.stopPropagation()}
             style={{
+              margin: 'auto',
               color: 'var(--text-primary)',
               padding: 24,
               textAlign: 'center',
@@ -320,34 +329,90 @@ export function AttachmentPreviewOverlay({
         background: 'rgba(0,0,0,0.8)',
         backdropFilter: 'blur(12px)',
       }}
-      onClick={onClose}
+      onClick={(e) => {
+        // 阻止冒泡：预览遮罩是 AttachmentViewer/附件管理器容器的子层，
+        // 点击预览背景仅关闭预览本身，不能让事件继续冒泡把整个附件卡片关掉
+        // （否则会直接跳回 workspace/详情卡片）。
+        e.stopPropagation();
+        onClose();
+      }}
     >
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '10px 18px',
+          gap: 10,
+          padding: '10px 14px',
           background: 'var(--bg-toolbar)',
         }}
       >
-        <span style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500 }}>{item.fileName}</span>
+        {/* 左上角返回按钮：与照片集全屏查看器一致，返回附件列表 */}
         <button
           onClick={(e) => {
             e.stopPropagation();
             onClose();
           }}
+          title={t('common:back', 'Back')}
+          aria-label={t('common:back', 'Back')}
+          className="interactive-icon"
           style={{
-            color: 'var(--text-secondary)',
-            background: 'transparent',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 36,
+            height: 36,
+            borderRadius: 8,
             border: 'none',
+            background: 'transparent',
+            color: 'var(--text-secondary)',
             cursor: 'pointer',
+            flexShrink: 0,
+          }}
+        >
+          <ArrowLeft size={ICON_SIZE.md} />
+        </button>
+        <span
+          style={{
+            flex: 1,
+            minWidth: 0,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            fontSize: 'var(--text-body-sm)',
+            fontWeight: 500,
+          }}
+        >
+          {item.fileName}
+        </span>
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onClose();
+          }}
+          title={t('common:close', 'Close')}
+          aria-label={t('common:close', 'Close')}
+          className="interactive-icon"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 36,
+            height: 36,
+            borderRadius: 8,
+            border: 'none',
+            background: 'transparent',
+            color: 'var(--text-secondary)',
+            cursor: 'pointer',
+            flexShrink: 0,
           }}
         >
           <X size={ICON_SIZE.lg} />
         </button>
       </div>
 
+      {/* 背景点击统一由外层 div 处理（stopPropagation + onClose）：
+          此处不再挂 onClick，避免与外层重复触发 onClose 两次。
+          内容包装器已各自 stopPropagation，点击图片/PDF/文本不会关闭。 */}
       <div
         ref={scrollRef}
         onWheel={handleWheel}
@@ -355,15 +420,7 @@ export function AttachmentPreviewOverlay({
           flex: 1,
           overflow: 'auto',
           display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'flex-start',
           padding: 24,
-        }}
-        onClick={(e) => {
-          // Clicks on the empty backdrop still close the overlay.
-          if (e.target === e.currentTarget) {
-            onClose();
-          }
         }}
       >
         {renderContent()}

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { invoke } from '@tauri-apps/api/core';
 import { AttachmentPreviewOverlay } from './AttachmentPreviewOverlay';
 import type { AttachmentItem } from '@/lib/attachmentUtils';
@@ -94,6 +94,36 @@ describe('AttachmentPreviewOverlay', () => {
     expect(await screen.findByText(/common:attachment_not_in_vault/i)).toBeInTheDocument();
     expect(mockInvoke).not.toHaveBeenCalledWith('fs_read_file_as_data_url', expect.anything());
     expect(mockInvoke).not.toHaveBeenCalledWith('fs_read_file_as_text', expect.anything());
+  });
+
+  it('顶栏提供左上角返回按钮，点击关闭预览（与照片集查看器一致）', () => {
+    mockInvoke.mockResolvedValue('data:image/png;base64,abc');
+    const onClose = vi.fn();
+    render(<AttachmentPreviewOverlay item={makeItem()} onClose={onClose} />);
+
+    // i18n 未初始化时 t() 返回原始 key，aria-label 为 common:back
+    const backBtn = screen.getByLabelText(/common:back/i);
+    expect(backBtn).toBeInTheDocument();
+    backBtn.click();
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('点击预览背景仅关闭预览本身（不冒泡关闭附件卡片容器）', () => {
+    mockInvoke.mockResolvedValue('data:image/png;base64,abc');
+    const onClose = vi.fn();
+    const { container } = render(<AttachmentPreviewOverlay item={makeItem()} onClose={onClose} />);
+
+    // 点击遮罩根元素（空白背景）：只触发一次 onClose
+    fireEvent.click(container.firstChild as HTMLElement);
+    expect(onClose).toHaveBeenCalledTimes(1);
+
+    // 点击内容区滚动容器背景：经外层统一处理也只触发一次（无双重调用）
+    const scrollArea = container.querySelector('[style*="overflow: auto"]');
+    expect(scrollArea).toBeTruthy();
+    if (scrollArea) {
+      fireEvent.click(scrollArea);
+      expect(onClose).toHaveBeenCalledTimes(2);
+    }
   });
 
   it('calls onOpenExternal for unsupported types', async () => {
