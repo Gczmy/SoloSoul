@@ -147,7 +147,7 @@ fn resolve_within(base: &Path, path: &str) -> Result<PathBuf, String> {
 /// 逐个允许基目录尝试 `resolve_within`；任一命中即返回（匹配时返回原路径而非
 /// 规范化路径，保持与旧行为一致）。若某基目录不存在（canonicalize 失败），
 /// 视为该基目录不可用并继续尝试下一个。
-fn resolve_allowed_path<R: tauri::Runtime>(
+pub(crate) fn resolve_allowed_path<R: tauri::Runtime>(
     app: &tauri::AppHandle<R>,
     path: &str,
 ) -> Result<PathBuf, String> {

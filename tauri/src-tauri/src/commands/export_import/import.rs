@@ -5,8 +5,30 @@ use super::*;
 
 // ── Import commands ────────────────────────────────────────────
 
+/// P013: 桌面端导入文件路径白名单校验（Desktop/Documents/Downloads + SOLOSOUL_FS_BASE），
+/// 拒绝越界路径；移动端文件来自 SAF 选择/应用内路径，不做此校验。
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+fn validate_import_path<R: tauri::Runtime>(
+    app: &tauri::AppHandle<R>,
+    file_path: &str,
+) -> Result<(), String> {
+    crate::commands::fs::resolve_allowed_path(app, file_path).map(|_| ())
+}
+
+#[cfg(any(target_os = "android", target_os = "ios"))]
+fn validate_import_path<R: tauri::Runtime>(
+    _app: &tauri::AppHandle<R>,
+    _file_path: &str,
+) -> Result<(), String> {
+    Ok(())
+}
+
 #[tauri::command]
-pub async fn import_parse_package(file_path: String) -> Result<ImportPreview, String> {
+pub async fn import_parse_package<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
+    file_path: String,
+) -> Result<ImportPreview, String> {
+    validate_import_path(&app, &file_path)?;
     let fp = file_path.clone();
     let result = tokio::task::spawn_blocking(move || {
         // P201: 统一经 read_manifest_json 读取（含 100MB 大小上限，防 ZIP 炸弹 OOM）
@@ -56,11 +78,13 @@ pub async fn import_parse_package(file_path: String) -> Result<ImportPreview, St
 }
 
 #[tauri::command]
-pub async fn import_decrypt_preview(
+pub async fn import_decrypt_preview<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
     state: State<'_, AppState>,
     file_path: String,
     password: String,
 ) -> Result<DecryptedImportPreview, String> {
+    validate_import_path(&app, &file_path)?;
     let vault = vault_handle(&state)?;
 
     let manifest = read_manifest(&file_path)?;
@@ -180,11 +204,13 @@ pub async fn import_decrypt_preview(
 
 /// P2: Advanced import with object selection and strategy
 #[tauri::command]
-pub async fn import_execute_advanced(
+pub async fn import_execute_advanced<R: tauri::Runtime>(
+    app: tauri::AppHandle<R>,
     state: State<'_, AppState>,
     account_id: String,
     req: AdvancedImportRequest,
 ) -> Result<ImportResult, String> {
+    validate_import_path(&app, &req.source_path)?;
     import_execute_internal(
         state,
         account_id,
