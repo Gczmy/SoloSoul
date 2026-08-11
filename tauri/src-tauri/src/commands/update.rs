@@ -500,13 +500,23 @@ pub async fn desktop_check_update(app: tauri::AppHandle) -> Result<DesktopUpdate
     let current = current_version();
 
     // 1. 首选：通过 updater 插件检测是否有可用更新（latest.json 中的版本与签名）
-    let updater_result = match app.updater() {
-        Ok(updater) => updater
-            .check()
-            .await
-            .map_err(|e| format!("检查更新失败: {e}")),
-        Err(e) => Err(format!("初始化更新器失败: {e}")),
+    // U002: 显式设置 15s 请求超时（与前端 check() 的 UPDATE_REQUEST_TIMEOUT_MS 一致）——
+    // 插件默认无超时，直连黑洞（hang 而非 RST）时 endpoint 回退不触发，AboutPage 会
+    // 永久卡在 checking 态；超时后插件自动尝试下一个 endpoint。
+    // 注：timeout 在 UpdaterBuilder 上（updater() 是已构建的 Updater，无此方法），
+    // 故经 updater_builder() 构建。
+    let updater = match app
+        .updater_builder()
+        .timeout(std::time::Duration::from_secs(15))
+        .build()
+    {
+        Ok(u) => u,
+        Err(e) => return Err(format!("初始化更新器失败: {e}")),
     };
+    let updater_result = updater
+        .check()
+        .await
+        .map_err(|e| format!("检查更新失败: {e}"));
 
     match updater_result {
         Ok(Some(update)) => {
