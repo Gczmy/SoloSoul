@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-11（P008 修复完成）
+> 最后更新：2026-08-11（P009 修复完成）
 > 当前分支：`main`
 > 修复轮次：2（按用户指令逐项修复，一项一提交）
 
@@ -22,7 +22,7 @@ Git 状态：工作树除本报告文件重建外干净（旧报告已删除，�
 | P006 | P1 | 架构 | `tauri/src-tauri/src/commands/object/mod.rs:439`、`tauri/src/stores/objectStore.ts:56,185`、`ObjectDetailModal.tsx:470` | 类型漂移：Rust `ObjectData` 无 `tags`，TS 声明 `tags?` 永为 undefined；`updateObject` 用 undefined 覆盖摘要 tags，详情页标签成死渲染路径 | `[x]` 已完成 |
 | P007 | P1 | 架构 | `tauri/src-tauri/src/commands/export_import/export_docx.rs:200` | `flatten_object_fields` 6–7 层控制流嵌套，动态字段组展平逻辑难读难测 | `[x]` 已完成 |
 | P008 | P1 | 架构 | `tauri/src-tauri/src/commands/search/query.rs:16` | `search_properties_for_matches` 133 行递归函数承担 4 种职责，`__fields` 分支 5–6 层嵌套 | `[x]` 已完成 |
-| P009 | P1 | 架构 | `tauri/src-tauri/src/commands/attachment.rs:1130` | `attachment_share` ~161 行，macOS/Windows 两个 `#[cfg]` 块各重复约 40 行「复制→主线程调度→oneshot」骨架 | `[ ]` 待修复 |
+| P009 | P1 | 架构 | `tauri/src-tauri/src/commands/attachment.rs:1130` | `attachment_share` ~161 行，macOS/Windows 两个 `#[cfg]` 块各重复约 40 行「复制→主线程调度→oneshot」骨架 | `[x]` 已完成 |
 | P010 | P1 | 规范 | `tauri/src/components/layout/AddPageButton.tsx:162-198` ↔ `NavButton.tsx:37-73` | 悬停卡片 portal 定位逻辑 ~37 行逐字符复制（注释自认 same pattern），应抽共享 hook | `[ ]` 待修复 |
 | P011 | P1 | 规范 | `tauri/src/components/layout/AddPageButton.tsx:438-520` ↔ `CustomPageEditPopover.tsx:322-409` | 图标分类选择器 ~44 行 + 分类数组两处复制，应抽 `IconCategoryPicker` 共享组件 | `[ ]` 待修复 |
 | P012 | P2 | 漏洞 | `tauri/src-tauri/src/commands/update.rs:238-246` | Release 资产匹配过宽（`contains("sha256")` 会命中 `.minisig`），完整性校验可能静默失效（需人工确认 assets 顺序） | `[ ]` 待修复 |
@@ -64,8 +64,8 @@ Git 状态：工作树除本报告文件重建外干净（旧报告已删除，�
 
 ## 修复进度
 
-- 已完成：8 / 47
-- 当前处理：P009（按建议顺序推进）
+- 已完成：9 / 47
+- 当前处理：P010（按建议顺序推进）
 
 ## 详细问题描述与修复指引
 
@@ -157,9 +157,13 @@ error: deref which would be done by auto-deref
 
 **验证**：`cargo check -p solo_soul --tests` ✅；clippy --workspace 全绿 ✅（修复一处 doc 注释接续列表项导致的 doc_list_item lint）。主函数 157→102 行，`search/tests.rs` 22 个测试直接覆盖（含 `__fields`/dynamic_group/数组/嵌套路径），纯提取行为等价。
 
-### P009（P1）attachment_share 过长函数拆分
+### P009（P1）attachment_share 按平台拆分 — 已完成（commit 2f688fd9）
 
-- `attachment_share`（attachment.rs:1130）：按平台拆 `share_macos`/`share_windows`/`share_android` 子函数，共享「复制到分享目录 + 主线程调度 + oneshot」模板。
+**原问题**：`attachment_share`（attachment.rs:1130）~161 行，macOS/Windows 两个 `#[cfg]` 块各重复约 40 行「复制→主线程调度→oneshot」骨架。
+
+**修复**：调度器只保留公共前置（resolve 路径 + 平台分发）；按平台拆 `share_macos`/`share_windows`/`share_linux` 子函数，抽两个共享模板——`copy_to_share_dir_async`（spawn_blocking 复制到分享目录）与 `run_on_main_thread_oneshot`（`run_on_main_thread` 调度 + oneshot 回传，泛型闭包参数接收 AppHandle 克隆）。Android（插件 share_file）与 iOS（显式不支持）保持内联。各平台函数体内 `use` 与 SAFETY 注释原样保留。
+
+**验证**：`cargo check -p solo_soul --tests` ✅（Windows 目标，macos/android 分支 cfg 排除但代码逐字保留）；clippy --workspace 全绿 ✅。重构为纯提取，平台行为不变（修复一处 helper 末尾漏 `Ok(())` 的编译错误）。
 
 ### P010–P011（P1）布局组件复制
 
