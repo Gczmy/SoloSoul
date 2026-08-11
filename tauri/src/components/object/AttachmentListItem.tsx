@@ -5,6 +5,7 @@ import { AttachmentFileNameBlock } from '@/components/attachment/AttachmentFileN
 import { AttachmentActions } from '@/components/attachment/AttachmentActions';
 import { type AttachmentItem } from '@/lib/attachmentUtils';
 import { ICON_SIZE } from '@/lib/constants';
+import { isMobilePlatformSync } from '@/lib/platform';
 
 interface AttachmentListItemProps {
   item: AttachmentItem;
@@ -69,18 +70,12 @@ export function AttachmentListItem({
   onPermanentDelete,
 }: AttachmentListItemProps) {
   const isRenaming = renamingId === item.id;
+  // 安卓端：附件信息（图标/名称/大小时间）与五个操作按钮并排会被按钮挤占，
+  // 按钮单独一行放在信息下方；桌面端保持原横向布局。
+  const isMobile = isMobilePlatformSync();
 
-  return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 8,
-        padding: '8px 12px',
-        borderBottom: isLast ? 'none' : '1px solid var(--border-subtle)',
-        fontSize: 'var(--text-body-sm)',
-      }}
-    >
+  const infoRow = (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
       <SelectCheckbox
         checked={checked}
         onClick={(e) => {
@@ -118,17 +113,41 @@ export function AttachmentListItem({
           }}
         />
       ) : null}
-      <AttachmentActions
-        showTrash={showTrash}
-        isRenaming={isRenaming}
-        onPreview={() => onPreview(item)}
-        onStartRename={() => onStartRename(item)}
-        onDownload={() => onDownload(item)}
-        onShare={() => onShare(item)}
-        onSoftDelete={() => onDelete(item)}
-        onRestore={() => onRestore(item)}
-        onPermanentDelete={() => onPermanentDelete(item)}
-      />
+    </div>
+  );
+
+  const actions = (
+    <AttachmentActions
+      showTrash={showTrash}
+      isRenaming={isRenaming}
+      onPreview={() => onPreview(item)}
+      onStartRename={() => onStartRename(item)}
+      onDownload={() => onDownload(item)}
+      onShare={() => onShare(item)}
+      onSoftDelete={() => onDelete(item)}
+      onRestore={() => onRestore(item)}
+      onPermanentDelete={() => onPermanentDelete(item)}
+    />
+  );
+
+  return (
+    <div
+      style={{
+        display: 'flex',
+        flexDirection: isMobile ? 'column' : 'row',
+        alignItems: isMobile ? 'stretch' : 'center',
+        gap: 8,
+        padding: '8px 12px',
+        borderBottom: isLast ? 'none' : '1px solid var(--border-subtle)',
+        fontSize: 'var(--text-body-sm)',
+      }}
+    >
+      {infoRow}
+      {isMobile ? (
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>{actions}</div>
+      ) : (
+        actions
+      )}
     </div>
   );
 }
