@@ -339,6 +339,24 @@ export const ICON_CATEGORIES: Record<CustomIconId, string> = {
 };
 
 /**
+ * 图标选择器分类展示顺序（AddPageButton / CustomPageEditPopover 共享）。
+ */
+export const ICON_CATEGORY_ORDER: readonly string[] = [
+  'general',
+  'security',
+  'identity',
+  'finance',
+  'travel',
+  'work',
+  'communication',
+  'health',
+  'education',
+  'life',
+  'nature',
+  'special',
+];
+
+/**
  * 分类显示标签映射表。
  */
 export const CATEGORY_LABELS: Record<string, string> = {

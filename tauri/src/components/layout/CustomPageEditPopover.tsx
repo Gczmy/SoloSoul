@@ -3,17 +3,12 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { useTranslation } from 'react-i18next';
-import type { LucideIcon } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore, type CustomPage } from '@/stores/settingsStore';
-import {
-  CUSTOM_ICON_MAP,
-  ICON_CATEGORIES,
-  CATEGORY_LABELS,
-  type CustomIconId,
-} from '@/lib/pageIcons';
+import { CUSTOM_ICON_MAP, type CustomIconId } from '@/lib/pageIcons';
 import { SYSTEM_PAGE_KEYS } from './useNavigationItems';
-import { ICON_SIZE, SAFE_AREA_TOP, SAFE_AREA_BOTTOM } from '@/lib/constants';
+import { IconCategoryPicker } from './IconCategoryPicker';
+import { SAFE_AREA_TOP, SAFE_AREA_BOTTOM } from '@/lib/constants';
 import styles from './SideNavigation.module.css';
 
 // =============================================================================
@@ -321,84 +316,14 @@ export function CustomPageEditPopover({
                 gap: 8,
               }}
             >
-              {[
-                'general',
-                'security',
-                'identity',
-                'finance',
-                'travel',
-                'work',
-                'communication',
-                'health',
-                'education',
-                'life',
-                'nature',
-                'special',
-              ].map((cat) => {
-                const categoryIcons = (
-                  Object.entries(CUSTOM_ICON_MAP) as [CustomIconId, LucideIcon][]
-                ).filter(([id]) => ICON_CATEGORIES[id] === cat);
-                if (categoryIcons.length === 0) return null;
-                return (
-                  <div key={cat}>
-                    <div
-                      style={{
-                        fontSize: 'var(--text-badge)',
-                        fontWeight: 500,
-                        color: 'var(--text-tertiary)',
-                        padding: '2px 0 4px',
-                        borderBottom: '1px solid var(--border-subtle)',
-                        marginBottom: 4,
-                      }}
-                    >
-                      {t(`navigation:icon_category_${cat}`, CATEGORY_LABELS[cat])}
-                    </div>
-                    <div
-                      style={{
-                        display: 'grid',
-                        gridTemplateColumns: 'repeat(6, 1fr)',
-                        gap: 4,
-                      }}
-                    >
-                      {categoryIcons.map(([id, IconComp]) => (
-                        <button
-                          key={id}
-                          onClick={() => {
-                            setSelectedIconId(id);
-                            setShowIconPicker(false);
-                          }}
-                          className={
-                            selectedIconId === id
-                              ? 'interactive-tile selected-accent'
-                              : 'interactive-tile'
-                          }
-                          style={{
-                            width: 32,
-                            height: 32,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            borderRadius: 6,
-                            borderWidth: selectedIconId === id ? 2 : 1,
-                            borderStyle: 'solid',
-                            cursor: 'pointer',
-                          }}
-                        >
-                          <IconComp
-                            size={ICON_SIZE.lg}
-                            style={{
-                              color:
-                                selectedIconId === id
-                                  ? 'var(--accent-primary)'
-                                  : 'var(--text-secondary)',
-                            }}
-                          />
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
+              <IconCategoryPicker
+                variant="inline"
+                selectedIconId={selectedIconId}
+                onSelect={(id) => {
+                  setSelectedIconId(id);
+                  setShowIconPicker(false);
+                }}
+              />
             </div>
           )}
         </motion.div>

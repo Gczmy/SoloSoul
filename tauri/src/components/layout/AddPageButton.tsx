@@ -2,21 +2,15 @@ import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react'
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus } from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import type { CustomPage } from '@/stores/settingsStore';
 import styles from './SideNavigation.module.css';
-import {
-  CUSTOM_ICON_MAP,
-  DEFAULT_CUSTOM_ICON,
-  ICON_CATEGORIES,
-  CATEGORY_LABELS,
-  type CustomIconId,
-} from '@/lib/pageIcons';
+import { DEFAULT_CUSTOM_ICON, type CustomIconId } from '@/lib/pageIcons';
 import { SYSTEM_PAGE_KEYS } from './useNavigationItems';
 import { useHoverCardPosition } from '@/hooks/useHoverCardPosition';
+import { IconCategoryPicker } from './IconCategoryPicker';
 import { ICON_SIZE, SAFE_AREA_TOP, SAFE_AREA_BOTTOM } from '@/lib/constants';
 
 /** 预留的顶部空间：移动 AppBar (48px) + 安全区 + 8px 边距；
@@ -380,69 +374,7 @@ export function AddPageButton({
                     ...(isBottom && { flex: '1 1 auto', minHeight: 0 }),
                   }}
                 >
-                  {[
-                    'general',
-                    'security',
-                    'identity',
-                    'finance',
-                    'travel',
-                    'work',
-                    'communication',
-                    'health',
-                    'education',
-                    'life',
-                    'nature',
-                    'special',
-                  ].map((cat) => {
-                    const categoryIcons = (
-                      Object.entries(CUSTOM_ICON_MAP) as [CustomIconId, LucideIcon][]
-                    ).filter(([id]) => ICON_CATEGORIES[id] === cat);
-                    if (categoryIcons.length === 0) return null;
-                    return (
-                      <div key={cat}>
-                        <div
-                          style={{
-                            fontSize: 'var(--text-badge)',
-                            fontWeight: 500,
-                            color: 'var(--text-tertiary)',
-                            padding: '2px 0 4px',
-                            borderBottom: '1px solid var(--border-subtle)',
-                            marginBottom: 4,
-                          }}
-                        >
-                          {t(`navigation:icon_category_${cat}`, CATEGORY_LABELS[cat])}
-                        </div>
-                        <div
-                          style={{
-                            display: 'grid',
-                            gridTemplateColumns: 'repeat(6, 1fr)',
-                            gap: 4,
-                          }}
-                        >
-                          {categoryIcons.map(([id, IconComp]) => (
-                            <button
-                              key={id}
-                              onMouseDown={(e) => e.preventDefault()}
-                              onClick={() => setSelectedIconId(id)}
-                              className={`${styles.iconPickerBtn} ${id === selectedIconId ? styles.iconPickerBtnSelected : ''}`}
-                              title={id}
-                              aria-label={id}
-                            >
-                              <IconComp
-                                size={ICON_SIZE.md}
-                                style={{
-                                  color:
-                                    id === selectedIconId
-                                      ? 'var(--accent-primary)'
-                                      : 'var(--text-secondary)',
-                                }}
-                              />
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })}
+                  <IconCategoryPicker selectedIconId={selectedIconId} onSelect={setSelectedIconId} />
                 </div>
               </div>
 
