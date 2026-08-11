@@ -73,6 +73,7 @@
 - **①②③ 披露**：`update.rs` `PROXY_PREFIXES` 注释与 `scripts/generate-latest-json.js` 头部注释补全隐私/可用性披露——TLS 终止代理下用户 IP/使用事实/版本号/API 响应暴露给第三方（直连可达时不走代理，直连受限时固有权衡无法消除）；元数据请求套代理可被陈旧/篡改 Release JSON 软性压制升级（完整性无碍——校验和与签名 Rust 侧重验）；重放旧版 mirror JSON 压制升级（updater 只升不降，无降级风险）。
 - **④ 缓解（可配置）**：新增 `proxy_prefixes()` 支持环境变量 `SOLOSOUL_PROXY_PREFIXES`（逗号分隔）覆盖默认代理列表，可指向自建可信代理；**留空禁用全部代理仅走直连**；未设置/解析为空回退默认列表。`download_candidates` 改用该函数。
 - **测试**：新增 `test_proxy_prefixes_env_override` 覆盖「单代理覆盖 / 逗号分隔去空白 / 空值回退默认」三用例；默认候选测试保持通过。
+- **审查修复**：`SOLOSOUL_PROXY_PREFIXES` 为进程级环境变量，Rust 测试默认多线程并发——涉及 env 的两个测试（`test_proxy_prefixes_env_override` 与 `test_download_candidates_direct_first_then_proxies`）加共享 `ENV_LOCK: Mutex<()>` 串行执行，消除 set_var/remove_var 相互干扰导致的间歇性 CI 抖动。
 - **验证**：cargo fmt / check / clippy `-D warnings` 全绿。
 
 ### T005（P2，前端溢出检测）✅ 已修复

@@ -1120,6 +1120,10 @@ pub async fn android_is_apk_downloaded(
 mod tests {
     use super::*;
 
+    // T004 防抖：SOLOSOUL_PROXY_PREFIXES 是进程级环境变量，涉及它的测试必须
+    // 串行执行（Rust 测试默认多线程并发，set_var/remove_var 会相互干扰）。
+    static ENV_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+
     /// P003 防回归：编译期 APK 校验和公钥必须能被 minisign_verify 解析。
     /// 曾误用 tauri.conf.json 的 updater pubkey（Tauri 自定义格式），
     /// minisign_verify 无法解析——此测试确保公钥为标准 minisign 格式。
@@ -1240,6 +1244,7 @@ mod tests {
     /// 下载候选列表：直连优先，随后各代理前缀拼接（默认代理列表）。
     #[test]
     fn test_download_candidates_direct_first_then_proxies() {
+        let _guard = ENV_LOCK.lock().unwrap();
         let url = "https://github.com/Gczmy/SoloSoul/releases/download/v2.9.2/app.apk";
         let candidates = download_candidates(url);
         // 直连必须是第一个候选
@@ -1255,6 +1260,7 @@ mod tests {
     /// T004: 代理列表可被环境变量覆盖；空/仅空白时回退默认列表。
     #[test]
     fn test_proxy_prefixes_env_override() {
+        let _guard = ENV_LOCK.lock().unwrap();
         let default = proxy_prefixes();
         assert_eq!(default.len(), PROXY_PREFIXES.len());
 
