@@ -3,7 +3,7 @@ import { Card } from '@/components/ui/Card';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { SafeMarkdown } from '@/components/ui/SafeMarkdown';
 import { AlertTriangle, Download, RefreshCw } from 'lucide-react';
-import { formatBytes } from '@/lib/utils';
+import { DownloadProgressBar } from '@/components/ui/DownloadProgressBar';
 import { ICON_SIZE } from '@/lib/constants';
 import type { AppInfo, VersionInfo } from '@/hooks/useUpdateChecker';
 import type { ApkDownloadProgress, UpdateProgress } from '@/lib/updater';
@@ -235,42 +235,18 @@ export function UpdateInfoCard({
                     </SafeMarkdown>
                   )}
 
-                  {/* 下载按钮或进度 */}
+                  {/* 下载按钮或进度（P043: 共享 DownloadProgressBar） */}
                   {downloading ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                      <div
-                        style={{
-                          width: '100%',
-                          height: 6,
-                          borderRadius: 3,
-                          background: 'var(--bg-toolbar)',
-                          overflow: 'hidden',
-                        }}
-                      >
-                        <div
-                          style={{
-                            width: `${progressPercent}%`,
-                            height: '100%',
-                            background:
-                              'linear-gradient(90deg, var(--accent-primary), var(--accent-warm))',
-                            borderRadius: 3,
-                            transition: 'width 0.2s ease',
-                          }}
-                        />
-                      </div>
-                      <span
-                        style={{
-                          fontSize: 'var(--text-badge)',
-                          color: 'var(--text-tertiary)',
-                          /* 数字等宽，避免下载字节数变化时文字宽度抖动 */
-                          fontVariantNumeric: 'tabular-nums',
-                        }}
-                      >
-                        {'event' in (downloadProgress || {})
+                    <DownloadProgressBar
+                      downloadedBytes={downloadedBytes}
+                      totalBytes={totalBytes}
+                      progressPercent={progressPercent}
+                      statusText={
+                        'event' in (downloadProgress || {})
                           ? t('settings:installing', { defaultValue: 'Installing...' })
-                          : `${formatBytes(downloadedBytes)} / ${formatBytes(totalBytes)} (${progressPercent}%)`}
-                      </span>
-                    </div>
+                          : undefined
+                      }
+                    />
                   ) : (
                     <button
                       type="button"

@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { createPortal } from 'react-dom';
 import { SafeMarkdown } from '@/components/ui/SafeMarkdown';
 import { AlertTriangle, Download } from 'lucide-react';
-import { formatBytes } from '@/lib/utils';
+import { DownloadProgressBar } from '@/components/ui/DownloadProgressBar';
 import type { AppInfo, VersionInfo } from '@/hooks/useUpdateChecker';
 
 interface MandatoryUpdateOverlayProps {
@@ -144,47 +144,14 @@ export function MandatoryUpdateOverlay({
           </SafeMarkdown>
         )}
 
-        {/* 下载进度 */}
+        {/* 下载进度（P043: 共享 DownloadProgressBar） */}
         {downloading && (
-          <div
-            style={{
-              width: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 4,
-            }}
-          >
-            <div
-              style={{
-                width: '100%',
-                height: 6,
-                borderRadius: 3,
-                background: 'var(--bg-toolbar)',
-                overflow: 'hidden',
-              }}
-            >
-              <div
-                style={{
-                  width: `${progressPercent}%`,
-                  height: '100%',
-                  background:
-                    'linear-gradient(90deg, var(--accent-primary), var(--accent-warm))',
-                  borderRadius: 3,
-                  transition: 'width 0.2s ease',
-                }}
-              />
-            </div>
-            <span
-              style={{
-                fontSize: 'var(--text-badge)',
-                color: 'var(--text-tertiary)',
-                textAlign: 'center',
-                /* 数字等宽，避免下载字节数变化时文字宽度抖动 */
-                fontVariantNumeric: 'tabular-nums',
-              }}
-            >
-              {`${formatBytes(downloadedBytes)} / ${formatBytes(totalBytes)} (${progressPercent}%)`}
-            </span>
+          <div style={{ width: '100%' }}>
+            <DownloadProgressBar
+              downloadedBytes={downloadedBytes}
+              totalBytes={totalBytes}
+              progressPercent={progressPercent}
+            />
           </div>
         )}
 
