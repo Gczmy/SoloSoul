@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-11（P013 修复完成）
+> 最后更新：2026-08-11（P014 修复完成）
 > 当前分支：`main`
 > 修复轮次：2（按用户指令逐项修复，一项一提交）
 
@@ -27,7 +27,7 @@ Git 状态：工作树除本报告文件重建外干净（旧报告已删除，�
 | P011 | P1 | 规范 | `tauri/src/components/layout/AddPageButton.tsx:438-520` ↔ `CustomPageEditPopover.tsx:322-409` | 图标分类选择器 ~44 行 + 分类数组两处复制，应抽 `IconCategoryPicker` 共享组件 | `[x]` 已完成 |
 | P012 | P2 | 漏洞 | `tauri/src-tauri/src/commands/update.rs:238-246` | Release 资产匹配过宽（`contains("sha256")` 会命中 `.minisig`），完整性校验可能静默失效（需人工确认 assets 顺序） | `[x]` 已完成 |
 | P013 | P2 | 漏洞 | `tauri/src-tauri/src/commands/export_import/import.rs:9,59,183` | 导入命令 `file_path` 无白名单（与 fs 命令 P107 收窄策略不一致），构成有限任意文件探测原语 | `[x]` 已完成 |
-| P014 | P2 | 漏洞 | `tauri/src-tauri/src/commands/attachment.rs:445-482` | `attachment_copy_to_vault` 兜底分支字面 `starts_with` 且未拒绝 `..` 组件，Android symlink 场景可绕过 allowed-dir（需人工确认可达性） | `[ ]` 待修复 |
+| P014 | P2 | 漏洞 | `tauri/src-tauri/src/commands/attachment.rs:445-482` | `attachment_copy_to_vault` 兜底分支字面 `starts_with` 且未拒绝 `..` 组件，Android symlink 场景可绕过 allowed-dir（需人工确认可达性） | `[x]` 已完成 |
 | P015 | P2 | 漏洞 | `tauri/src-tauri/src/commands/export_import/export.rs:337-340` | 导出路径白名单为空时 fail-open 放行任意路径（`attachment_download:911` 同款），应 fail-closed 或至少 warn | `[ ]` 待修复 |
 | P016 | P2 | 规范 | `tauri/src-tauri/src/commands/pin.rs:42-59,103-113`、`vault.rs:34-45` | `pin_setup`/`pin_disable`/`pin_unlock`/`change_password` 的密码参数未在 IPC 边界 Zeroizing 包装（P031 模式不一致，需确认 PinManager 内部清零） | `[ ]` 待修复 |
 | P017 | P2 | 漏洞 | `tauri/src-tauri/src/commands/fs.rs:133-142` | `resolve_within` 校验后返回未规范化路径，存在符号链接 TOCTOU 窗口（威胁模型较低） | `[ ]` 待修复 |
@@ -64,8 +64,8 @@ Git 状态：工作树除本报告文件重建外干净（旧报告已删除，�
 
 ## 修复进度
 
-- 已完成：13 / 47
-- 当前处理：P014（按建议顺序推进）
+- 已完成：14 / 47
+- 当前处理：P015（按建议顺序推进）
 
 ## 详细问题描述与修复指引
 
@@ -195,7 +195,13 @@ error: deref which would be done by auto-deref
 **修复**：`fs.rs` 的 `resolve_allowed_path` 改 `pub(crate)`；import.rs 新增 `validate_import_path` helper（桌面端：`resolve_allowed_path` 白名单校验，越界即拒绝；Android/iOS：SAF/应用内路径跳过），三个导入命令入口各加 `AppHandle<R>` 参数并先校验（`import_execute_advanced` 校验 `req.source_path`）。校验只在命令边界，`import_execute_internal` 保持不动——恢复备份（recovery.rs）复用内部函数读应用内备份路径，不受影响。
 
 **验证**：`cargo check -p solo_soul --tests` ✅；clippy --workspace 全绿 ✅；ACL 194 命令一致 ✅；前端 invoke 参数不变（AppHandle 由 Tauri 注入）。
-- **P014**：与 `attachment_download` 对齐，入口处拒绝 `Component::ParentDir`。
+### P014（P2）attachment_copy_to_vault 拒绝 .. 组件 — 已完成（commit a388bc53）
+
+**原问题**：`attachment_copy_to_vault`（attachment.rs:445-482）兜底分支（canonicalize 失败但文件存在，Android symlink 场景）用字面路径做 `starts_with` 前缀判定，未拒绝 `..` 组件——`..` 可让字面前缀通过检查却解析到白名单外。
+
+**修复**：入口处（`src_raw` 建立后）与 `attachment_download` 对齐，拒绝 `Component::ParentDir`（`Source path must not contain '..'`）。
+
+**验证**：`cargo check -p solo_soul --tests` ✅；clippy --workspace 全绿 ✅。
 - **P015**：桌面端白名单为空改为拒绝（fail-closed），或至少 `tracing::warn`。
 - **P016**：`pin_setup`/`pin_disable`/`pin_unlock`/`change_password` 统一套用 P031 Zeroizing 模式。
 - **P017**：`resolve_within` 返回 `target_canon` 或注释说明接受的残余风险。
