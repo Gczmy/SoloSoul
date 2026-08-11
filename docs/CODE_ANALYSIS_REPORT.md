@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-11（P011 修复完成）
+> 最后更新：2026-08-11（P012 修复完成）
 > 当前分支：`main`
 > 修复轮次：2（按用户指令逐项修复，一项一提交）
 
@@ -25,7 +25,7 @@ Git 状态：工作树除本报告文件重建外干净（旧报告已删除，�
 | P009 | P1 | 架构 | `tauri/src-tauri/src/commands/attachment.rs:1130` | `attachment_share` ~161 行，macOS/Windows 两个 `#[cfg]` 块各重复约 40 行「复制→主线程调度→oneshot」骨架 | `[x]` 已完成 |
 | P010 | P1 | 规范 | `tauri/src/components/layout/AddPageButton.tsx:162-198` ↔ `NavButton.tsx:37-73` | 悬停卡片 portal 定位逻辑 ~37 行逐字符复制（注释自认 same pattern），应抽共享 hook | `[x]` 已完成 |
 | P011 | P1 | 规范 | `tauri/src/components/layout/AddPageButton.tsx:438-520` ↔ `CustomPageEditPopover.tsx:322-409` | 图标分类选择器 ~44 行 + 分类数组两处复制，应抽 `IconCategoryPicker` 共享组件 | `[x]` 已完成 |
-| P012 | P2 | 漏洞 | `tauri/src-tauri/src/commands/update.rs:238-246` | Release 资产匹配过宽（`contains("sha256")` 会命中 `.minisig`），完整性校验可能静默失效（需人工确认 assets 顺序） | `[ ]` 待修复 |
+| P012 | P2 | 漏洞 | `tauri/src-tauri/src/commands/update.rs:238-246` | Release 资产匹配过宽（`contains("sha256")` 会命中 `.minisig`），完整性校验可能静默失效（需人工确认 assets 顺序） | `[x]` 已完成 |
 | P013 | P2 | 漏洞 | `tauri/src-tauri/src/commands/export_import/import.rs:9,59,183` | 导入命令 `file_path` 无白名单（与 fs 命令 P107 收窄策略不一致），构成有限任意文件探测原语 | `[ ]` 待修复 |
 | P014 | P2 | 漏洞 | `tauri/src-tauri/src/commands/attachment.rs:445-482` | `attachment_copy_to_vault` 兜底分支字面 `starts_with` 且未拒绝 `..` 组件，Android symlink 场景可绕过 allowed-dir（需人工确认可达性） | `[ ]` 待修复 |
 | P015 | P2 | 漏洞 | `tauri/src-tauri/src/commands/export_import/export.rs:337-340` | 导出路径白名单为空时 fail-open 放行任意路径（`attachment_download:911` 同款），应 fail-closed 或至少 warn | `[ ]` 待修复 |
@@ -64,8 +64,8 @@ Git 状态：工作树除本报告文件重建外干净（旧报告已删除，�
 
 ## 修复进度
 
-- 已完成：11 / 47
-- 当前处理：P012（按建议顺序推进）
+- 已完成：12 / 47
+- 当前处理：P013（按建议顺序推进）
 
 ## 详细问题描述与修复指引
 
@@ -181,9 +181,13 @@ error: deref which would be done by auto-deref
 
 **验证**：tsc ✅；eslint ✅；全量 vitest 619/619 ✅（纯提取，两处渲染与行为不变）。
 
-### P012–P019（P2，安全类）
+### P012（P2）APK 校验和资产匹配与验签警告 — 已完成（commit e33d4753）
 
-- **P012**：资产匹配改 `ends_with(".sha256") && !ends_with(".minisig")`；验签失败向前端返回可感知警告。
+**原问题**：`resolve_verified_checksum` 资产匹配用 `contains("sha256")`，会误匹配 `.sha256.minisig` 签名文件；验签失败/资产缺失仅 `tracing::warn` 静默返回空串，前端无感知。
+
+**修复**：① 校验和资产匹配收紧为 `ends_with(".sha256") && !ends_with(".minisig")`；② `resolve_verified_checksum` 返回 `(Option<String>, Option<String>)`（校验和 + 不可用原因），三类失败（资产缺失/签名缺失或验签失败/文件格式异常）分别给出中文原因；③ `AndroidUpdateInfo` 新增 `checksum_warning` 字段，check 命令透传给前端；④ 前端 `AndroidUpdateInfo`/`VersionInfo` 补 `checksumWarning`，UpdateInfoCard 在可用更新区以 AlertTriangle 警告条展示；⑤ download 命令仍 fail-closed（`.0.ok_or_else`），不因警告放宽。
+
+**验证**：`cargo check -p solo_soul --tests` ✅；clippy --workspace 全绿 ✅；tsc ✅；eslint ✅；全量 vitest 619/619 ✅。
 - **P013**：导入命令桌面端对 `file_path` 复用 `resolve_allowed_path`（Desktop/Documents/Downloads + SOLOSOUL_FS_BASE）。
 - **P014**：与 `attachment_download` 对齐，入口处拒绝 `Component::ParentDir`。
 - **P015**：桌面端白名单为空改为拒绝（fail-closed），或至少 `tracing::warn`。
