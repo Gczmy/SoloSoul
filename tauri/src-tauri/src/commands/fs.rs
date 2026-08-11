@@ -160,10 +160,12 @@ fn resolve_within(base: &Path, path: &str) -> Result<PathBuf, String> {
 /// `\\?\` 扩展长度前缀，前端（对话框、展示、再次回传）无法直接使用——剥离之；
 /// 非 Windows 或未带前缀时原样返回。
 pub(crate) fn display_fs_path(path: &Path) -> String {
-    // R004-②: 纯字符串处理（跨平台确定）。`\\?\` 为 Windows 扩展长度前缀：
-    // 普通盘符路径 `\\?\C:\...` → `C:\...`；网络路径 `\\?\UNC\server\share`
-    // 需把 `UNC\` 段还原为 `\\server\share`（dunce::simplified 对非盘符 UNC
-    // 按设计原样返回、非 Windows 为 no-op，无法统一处理，故不引入）。
+    // R004-②: 纯字符串处理（跨平台确定，不引入 dunce）。`\\?\` 为 Windows 扩展
+    // 长度前缀：普通盘符路径 `\\?\C:\...` → `C:\...`；网络路径 `\\?\UNC\server\share`
+    // 需把 `UNC\` 段还原为 `\\server\share`。dunce::simplified 在 Windows 上仅把
+    // 盘符 VerbatimDisk 还原为常规路径，对网络 VerbatimUNC（`\\?\UNC\...`）按设计
+    // 刻意保留原样，且非 Windows 为 no-op——本实现两类前缀都处理且跨平台行为一致，
+    // 便于单测在任意平台（含 CI）稳定验证。
     let s = path.to_string_lossy();
     if let Some(stripped) = s.strip_prefix(r"\\?\") {
         if let Some(unc) = stripped.strip_prefix("UNC\\") {

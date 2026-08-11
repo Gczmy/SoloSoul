@@ -46,9 +46,11 @@ def extract_ts_app_settings_keys() -> set[str]:
         sys.exit(2)
     keys = set()
     for line in m.group(1).splitlines():
-        # 属性行形如 `  keyName: Type;`（缩进 + 冒号）；用 `\s+` 而非固定两空格，
-        # 避免格式化缩进变化时检查静默失效。注释行（`/**` / ` *`）以 / * 开头不匹配。
-        hit = re.match(r"^\s+([A-Za-z][A-Za-z0-9]*):", line)
+        # 属性行形如 `  keyName: Type;`、可选属性 `  keyName?: Type;`、带引号键
+        # `  "keyName": Type;`（缩进 + 引号成对包裹键名 + 冒号）；`?`/引号在
+        # 捕获组之外，不影响键名提取。用 `\s+` 而非固定两空格，避免格式化缩进
+        # 变化时检查静默失效。注释行（`/**` / ` *`）以 / * 开头不匹配。
+        hit = re.match(r"^\s+\"?([A-Za-z][A-Za-z0-9]*)\"?\??:", line)
         if hit:
             keys.add(hit.group(1))
     return keys
