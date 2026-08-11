@@ -230,8 +230,6 @@ mod tests {
         let accounts = vec![AccountSummary {
             id: "alice-123".to_string(),
             name: "Alice".to_string(),
-            salt: None,
-            verify_hash: None,
             password_hint: None,
             created_at: None,
             has_biometric_history: false,
