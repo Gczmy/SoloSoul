@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { Fragment, useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AppShell } from '@/components/layout/AppShell';
@@ -10,9 +10,14 @@ import { useActiveCustomPages } from '@/components/layout/useNavigationItems';
 import { CustomPageEditPopover } from '@/components/layout/CustomPageEditPopover';
 import { PageGuideButton } from '@/components/guide/PageGuideButton';
 import { useAuthStore } from '@/stores/authStore';
+import { useUiStore } from '@/stores/uiStore';
+import { invokeCommand as invoke } from '@/lib/ipcClient';
+import { collectPhotoItems } from '@/lib/attachmentUtils';
+import { PhotoAlbumOverlay } from '@/components/attachment/PhotoAlbumOverlay';
+import type { AttachmentListAllResult, AttachmentMeta } from '@/components/attachment/attachmentManagerTypes';
 
 import { useLongPress } from '@/hooks/useLongPress';
-import { LayoutGrid, Zap, Hand } from 'lucide-react';
+import { LayoutGrid, Zap, Hand, Images } from 'lucide-react';
 import type { ProfileSection } from '@/types';
 import type { LucideIcon } from 'lucide-react';
 import type { CustomPage } from '@/stores/settingsStore';
@@ -202,6 +207,55 @@ export function HomePage() {
   const activeCustomPages = useActiveCustomPages();
   // 当前账户名，用于欢迎卡片让用户感知正在使用的账户
   const accountName = useAuthStore((s) => s.currentAccount?.name);
+  const accountId = useAuthStore((s) => s.currentAccount?.id);
+  const showToast = useUiStore((s) => s.showToast);
+
+  // 首页「照片集」快捷入口状态：点击后加载全 Vault 活跃附件并直接打开全屏相册。
+  const [albumItems, setAlbumItems] = useState<AttachmentMeta[] | null>(null);
+  const [albumLoading, setAlbumLoading] = useState(false);
+
+  /** 加载所有对象的所有照片附件并打开照片集（复用 attachment_list_all + 图片过滤）。 */
+  const handleOpenPhotoAlbum = async () => {
+    if (!accountId || albumLoading) return;
+    setAlbumLoading(true);
+    try {
+      const result = await invoke<AttachmentListAllResult>('attachment_list_all', {
+        accountId,
+      });
+      // 复用全局附件管理器同一过滤逻辑（collectPhotoItems），防止两处漂移
+      const photos = collectPhotoItems(result.pages);
+      if (photos.length === 0) {
+        showToast({
+          type: 'info',
+          message: t('common:no_photos', { defaultValue: 'No photos yet.' }),
+        });
+        return;
+      }
+      setAlbumItems(photos);
+    } catch (e) {
+      showToast({
+        type: 'error',
+        message: `${t('common:load_failed', { defaultValue: 'Failed to load' })}: ${e}`,
+      });
+    } finally {
+      setAlbumLoading(false);
+    }
+  };
+
+  /** 照片集内系统应用打开附件（与全局附件管理器一致）。 */
+  const openAttachmentExternal = async (item: AttachmentMeta) => {
+    try {
+      await invoke('attachment_open', { objectId: item.objectId, attachmentId: item.id });
+    } catch {
+      showToast({
+        type: 'error',
+        message: t('common:cannot_open_file', {
+          path: item.fileName,
+          defaultValue: `Cannot open file: ${item.fileName}`,
+        }),
+      });
+    }
+  };
 
   // 移动端启动性能基线：首页对象列表可见时记录 T2（MOB-P1-07）
   // 从解锁完成时刻（__SOLOSOUL_UNLOCK_TIME）开始计算，而非应用启动时刻
@@ -328,16 +382,37 @@ export function HomePage() {
         {/* Quick Access Cards */}
         <CardGrid>
           {quickCards.map((q) => (
-            <HomeCard
-              key={q.path}
-              icon={q.icon}
-              title={t(`navigation:${q.labelKey}`)}
-              desc={t(`common:${q.descKey}`)}
-              onClick={() => navigate(q.path, { state: { fromHome: true } })}
-            />
+            <Fragment key={q.path}>
+              <HomeCard
+                icon={q.icon}
+                title={t(`navigation:${q.labelKey}`)}
+                desc={t(`common:${q.descKey}`)}
+                onClick={() => navigate(q.path, { state: { fromHome: true } })}
+              />
+              {/* 照片集快捷入口：紧跟附件管理卡片，点击直接进入全 Vault 照片集 */}
+              {q.path === '/settings/attachments' && (
+                <HomeCard
+                  icon={Images}
+                  title={t('navigation:photo_album', { defaultValue: 'Photo Album' })}
+                  desc={t('common:photo_album_desc', {
+                    defaultValue: 'Browse photos across all objects',
+                  })}
+                  onClick={() => void handleOpenPhotoAlbum()}
+                />
+              )}
+            </Fragment>
           ))}
         </CardGrid>
       </PageContainer>
+
+      {/* 照片集全屏相册（首页快捷入口，覆盖整个视口） */}
+      {albumItems && (
+        <PhotoAlbumOverlay
+          items={albumItems}
+          onClose={() => setAlbumItems(null)}
+          onOpenExternal={openAttachmentExternal}
+        />
+      )}
     </AppShell>
   );
 }

@@ -15,6 +15,7 @@
   "trash": "回收站",
   "templates": "模板管理",
   "attachments": "附件管理",
+  "photo_album": "照片集",
   "import_export": "导入导出",
   "sync": "设备同步",
   "ocr": "OCR 扫描",

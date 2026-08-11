@@ -334,6 +334,8 @@
   "settings_desc": "Manage account, theme, security, and preferences",
   "templates_desc": "Create, edit, and manage object templates",
   "attachments_desc": "Manage attachment uploads, downloads, and trash",
+  "photo_album_desc": "Browse photos across all objects",
+  "no_photos": "No photos yet. Add some photo attachments first.",
   "import_export_desc": "Export or import encrypted vault packages",
   "sync_desc": "Sync vault data with nearby devices over the local network",
   "collapse": "Collapse",

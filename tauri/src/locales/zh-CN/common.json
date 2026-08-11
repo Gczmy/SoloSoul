@@ -333,6 +333,8 @@
   "settings_desc": "管理账户、主题、安全与偏好设置",
   "templates_desc": "创建、编辑与管理对象模板",
   "attachments_desc": "管理附件的上传、下载与回收站",
+  "photo_album_desc": "浏览所有对象的所有照片",
+  "no_photos": "还没有照片，先去添加一些照片附件吧",
   "import_export_desc": "导出或导入加密 Vault 包",
   "sync_desc": "在局域网内与附近设备同步 Vault 数据",
   "collapse": "收起",

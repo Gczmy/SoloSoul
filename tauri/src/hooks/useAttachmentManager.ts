@@ -9,7 +9,12 @@ import { useBatchSelect } from '@/hooks/useBatchSelect';
 import { pickFileToAttach, uploadSingleAttachment } from '@/lib/attachmentUpload';
 import { downloadViaStage, isUriPath } from '@/lib/mobileFileTransfer';
 import { logger } from '@/lib/logger';
-import { previewItemByMime, truncateFileName, downloadAttachmentFile } from '@/lib/attachmentUtils';
+import {
+  collectPhotoItems,
+  previewItemByMime,
+  truncateFileName,
+  downloadAttachmentFile,
+} from '@/lib/attachmentUtils';
 import { isMobilePlatformSync } from '@/lib/platform';
 import type {
   AttachmentListAllResult,
@@ -21,19 +26,6 @@ import type {
 
 const getPageKey = (p: AttachmentTreePage) => p.pageId || p.pageName;
 const getObjKey = (o: AttachmentTreeObject) => o.objectId;
-
-/** 从页面树中收集全部图片附件（照片集数据源公共过滤，纯函数）。 */
-function collectPhotoItems(pages: AttachmentTreePage[] | undefined): AttachmentMeta[] {
-  const out: AttachmentMeta[] = [];
-  for (const page of pages ?? []) {
-    for (const obj of page.objects) {
-      for (const att of obj.attachments) {
-        if (previewItemByMime(att) === 'image') out.push(att);
-      }
-    }
-  }
-  return out;
-}
 
 /**
  * 附件管理器页面的数据加载、附件操作与批量操作逻辑（P024 拆分）。

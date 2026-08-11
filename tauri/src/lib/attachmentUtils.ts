@@ -86,3 +86,26 @@ export function previewItemByMime(item: AttachmentItem): 'image' | 'pdf' | 'text
     return 'text';
   return 'other';
 }
+
+/** 附件页面树节点（结构性类型，避免 lib → components 依赖）。 */
+interface PhotoPageNode {
+  objects: Array<{ attachments: AttachmentItem[] }>;
+}
+
+/**
+ * 从附件页面树中收集全部图片附件（照片集数据源公共过滤）。
+ *
+ * 首页照片集快捷入口与全局附件管理器的活跃/回收站照片集共用，
+ * 防止过滤逻辑在多处复制后漂移（P044 同款收敛）。
+ */
+export function collectPhotoItems(pages: PhotoPageNode[] | undefined): AttachmentItem[] {
+  const out: AttachmentItem[] = [];
+  for (const page of pages ?? []) {
+    for (const obj of page.objects) {
+      for (const att of obj.attachments) {
+        if (previewItemByMime(att) === 'image') out.push(att);
+      }
+    }
+  }
+  return out;
+}
