@@ -238,7 +238,7 @@ export function AttachmentFileNameBlock({
                 {...{ [TAG_CHIP_ATTR]: true }}
                 style={{
                   // 折叠态允许压缩（flexShrink: 1 + minWidth: 0 使省略号生效），
-                  // 空间不足时优先截断标签文本而非换行；展开态不压缩、完整显示。
+                  // 空间不足时优先截断标签文本而非换行。
                   flexShrink: tagsExpanded ? 0 : 1,
                   minWidth: 0,
                   padding: '1px 8px',
@@ -247,7 +247,11 @@ export function AttachmentFileNameBlock({
                   color: 'var(--accent-primary)',
                   border: '1px solid var(--border-subtle)',
                   background: 'var(--bg-toolbar)',
-                  // 展开态允许 chip 内文本换行（wordBreak 兜底长单词/超长串）
+                  // 展开态允许 chip 内文本换行：**必须加 maxWidth: 100%**——flex-basis: auto
+                  // 的 item 默认宽度为内容 max-content，长标签会撑出容器而溢出，whiteSpace:
+                  // normal 永远没有换行机会；maxWidth 将 item 宽度钳制在容器宽度内，
+                  // wordBreak 兜底长单词/超长串，换行才会在 chip 内部生效。
+                  maxWidth: tagsExpanded ? '100%' : undefined,
                   whiteSpace: tagsExpanded ? 'normal' : 'nowrap',
                   overflow: tagsExpanded ? 'visible' : 'hidden',
                   textOverflow: tagsExpanded ? undefined : 'ellipsis',

@@ -154,6 +154,9 @@ describe('AttachmentFileNameBlock 标签折叠/展开', () => {
     const chipAfter = screen.getByText(longTag) as HTMLElement;
     expect(chipAfter).toHaveStyle({ whiteSpace: 'normal', wordBreak: 'break-word' });
     expect(chipAfter).toHaveStyle({ textOverflow: undefined });
+    // flex-basis:auto 的 item 默认宽度为内容 max-content，长标签会撑出容器——
+    // 必须 maxWidth:100% 将 item 钳制在容器宽度内，whiteSpace:normal 才会触发换行
+    expect(chipAfter).toHaveStyle({ maxWidth: '100%' });
     // 全部标签可见
     tags.forEach((t) => expect(screen.getByText(t)).toBeInTheDocument());
   });
