@@ -680,6 +680,7 @@
   "load_more": "加载更多",
   "click_to_reveal": "点击显示",
   "history_load_failed": "历史记录加载失败",
+  "load_failed": "加载失败",
   "recovery_need_pin": "请输入旧设备上显示的 6 位 PIN 码",
   "sync_qr_timeout": "二维码已过期，请重新生成",
   "uninstall_confirm_title": "卸载插件",

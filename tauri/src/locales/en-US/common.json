@@ -681,6 +681,7 @@
   "load_more": "Load more",
   "click_to_reveal": "Click to reveal",
   "history_load_failed": "Failed to load history",
+  "load_failed": "Failed to load",
   "recovery_need_pin": "Enter the 6-digit PIN shown on the old device",
   "sync_qr_timeout": "QR code expired, please regenerate",
   "uninstall_confirm_title": "Uninstall plugin",
