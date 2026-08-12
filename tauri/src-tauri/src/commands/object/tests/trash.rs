@@ -246,6 +246,8 @@ fn test_trash_detail_serialization() {
             size_bytes: 1024,
             created_at: "2024-01-01T00:00:00Z".to_string(),
             deleted_at: None,
+            description: Some("护照扫描件".to_string()),
+            tags: vec!["旅行".to_string(), "证件".to_string()],
         }],
         deleted_attachments: vec![],
         snapshots: vec![serde_json::json!({"id": "snap-1", "timestamp": 0})],
@@ -262,6 +264,8 @@ fn test_trash_detail_serialization() {
     assert!(json.contains("\"originalLocation\":\"From page: identity\""));
     assert!(json.contains("\"previewProperties\""));
     assert!(json.contains("\"attachments\""));
+    assert!(json.contains("\"description\":\"护照扫描件\""));
+    assert!(json.contains("\"tags\":[\"旅行\",\"证件\"]"));
     assert!(json.contains("\"deletedAttachments\""));
     assert!(json.contains("\"snapshots\""));
 }
@@ -405,6 +409,62 @@ fn test_trash_page_detail_includes_children() {
         names,
         vec!["Child Object 0", "Child Object 1", "Child Object 2"]
     );
+}
+
+#[test]
+fn test_parse_trash_attachments_carries_description_and_tags() {
+    // 真实调用 snapshot.rs 的 parse_trash_attachments（pub(crate)）：
+    // __attachments 中携带的 description/tags 必须完整透传到 TrashAttachmentInfo。
+    let data = serde_json::json!({
+        "properties": {
+            "__attachments": [
+                {
+                    "id": "att-1",
+                    "fileName": "photo.png",
+                    "mimeType": "image/png",
+                    "sizeBytes": 1024,
+                    "createdAt": "2024-01-01T00:00:00Z",
+                    "deletedAt": null,
+                    "description": "护照扫描件",
+                    "tags": ["旅行", "证件"]
+                },
+                {
+                    "id": "att-2",
+                    "fileName": "legacy.pdf",
+                    "mimeType": "application/pdf",
+                    "sizeBytes": 2048,
+                    "createdAt": "2024-01-02T00:00:00Z",
+                    "deletedAt": "2024-02-01T00:00:00Z"
+                }
+            ]
+        }
+    });
+    let trash = TrashItem {
+        id: "trash_parse_1".to_string(),
+        item_type: "object".to_string(),
+        original_id: "obj-1".to_string(),
+        original_parent_id: None,
+        original_section_type: Some("identity".to_string()),
+        original_sort_order: None,
+        data: serde_json::to_vec(&data).unwrap_or_default(),
+        deleted_at: 1234567890,
+        expires_at: None,
+        deleted_by: "user".to_string(),
+        name_snapshot: "Parse Test".to_string(),
+        icon_snapshot: None,
+    };
+
+    let (active, deleted) = super::super::snapshot::parse_trash_attachments(&trash);
+    // 活跃附件：description/tags 透传
+    assert_eq!(active.len(), 1);
+    assert_eq!(active[0].description.as_deref(), Some("护照扫描件"));
+    assert_eq!(active[0].tags, vec!["旅行".to_string(), "证件".to_string()]);
+    // 旧数据（无 description/tags 键）：安全回退
+    assert_eq!(deleted.len(), 1);
+    assert_eq!(deleted[0].description, None);
+    assert!(deleted[0].tags.is_empty());
+    // 软删除附件仍按 deletedAt 归入 deleted 桶
+    assert_eq!(deleted[0].file_name, "legacy.pdf");
 }
 
 #[test]

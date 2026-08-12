@@ -148,6 +148,10 @@ pub struct TrashAttachmentInfo {
     pub size_bytes: u64,
     pub created_at: String,
     pub deleted_at: Option<String>,
+    /// 附件描述（随 __attachments 快照携带；旧数据可能缺失）
+    pub description: Option<String>,
+    /// 附件标签（随 __attachments 快照携带；旧数据可能缺失）
+    pub tags: Vec<String>,
 }
 
 // ── Trash detail helpers ──────────────────────────────────────
@@ -374,7 +378,8 @@ fn resolve_sensitivity(
 }
 
 /// 从存储数据解析附件（活跃 + 软删除）。
-fn parse_trash_attachments(
+/// pub(crate)：供 tests/ 子模块直接测试真实解析逻辑。
+pub(crate) fn parse_trash_attachments(
     trash: &solosoul_vault::TrashItem,
 ) -> (Vec<TrashAttachmentInfo>, Vec<TrashAttachmentInfo>) {
     let parsed = (|| -> Option<(Vec<TrashAttachmentInfo>, Vec<TrashAttachmentInfo>)> {
@@ -398,6 +403,21 @@ fn parse_trash_attachments(
                 } else {
                     a["deletedAt"].as_str().map(String::from)
                 },
+                // 旧数据可能未保存这两项（AttachmentMeta 序列化时 skip 空值）——
+                // 键缺失或类型不符均安全回退为 None / 空数组。
+                description: a
+                    .get("description")
+                    .and_then(|v| v.as_str())
+                    .map(String::from),
+                tags: a
+                    .get("tags")
+                    .and_then(|v| v.as_array())
+                    .map(|arr| {
+                        arr.iter()
+                            .filter_map(|v| v.as_str().map(String::from))
+                            .collect()
+                    })
+                    .unwrap_or_default(),
             };
             if info.deleted_at.is_some() {
                 deleted.push(info);

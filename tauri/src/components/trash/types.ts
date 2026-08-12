@@ -40,6 +40,10 @@ export interface TrashAttachment {
   sizeBytes: number;
   createdAt: string;
   deletedAt?: string | null;
+  /** 附件描述（随快照携带；旧数据可能缺失） */
+  description?: string | null;
+  /** 附件标签（随快照携带；旧数据可能缺失） */
+  tags?: string[];
 }
 
 import type { SnapshotEntry } from '@/types/history';
@@ -52,4 +56,3 @@ export interface TrashConfirmAction {
   pageChildCount?: number;
   callback: () => Promise<void>;
 }
-

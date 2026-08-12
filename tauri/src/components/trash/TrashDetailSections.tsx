@@ -13,8 +13,8 @@ import { FieldTypeIcon } from '@/components/ui/FieldTypeIcon';
 import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import { ValueContainer } from '@/components/ui/ValueContainer';
 import { ICON_SIZE } from '@/lib/constants';
-import { formatBytes, resolveCollectionLabel } from '@/lib/utils';
-import { truncateFileName } from '@/lib/attachmentUtils';
+import { resolveCollectionLabel } from '@/lib/utils';
+import { AttachmentFileNameBlock } from '@/components/attachment/AttachmentFileNameBlock';
 import type { CustomPage } from '@/stores/settingsStore';
 import type { PropertyType, SensitivityLevel, UserTemplate } from '@/types/template';
 import type { TrashDetail, TrashAttachment } from './types';
@@ -429,27 +429,16 @@ export function TrashAttachmentsSection({
                       }}
                     >
                       <AttachIcon size={ICON_SIZE.md} style={{ color: iconColor, flexShrink: 0 }} />
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div
-                          style={{
-                            fontWeight: 500,
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            whiteSpace: 'nowrap',
-                            textDecoration: showTrash ? 'line-through' : 'none',
-                          }}
-                        >
-                          {truncateFileName(a.fileName)}
-                        </div>
-                        <div
-                          style={{
-                            color: 'var(--text-tertiary)',
-                            fontSize: 'var(--text-badge)',
-                          }}
-                        >
-                          {formatBytes(a.sizeBytes)} · {new Date(a.createdAt).toLocaleDateString()}
-                        </div>
-                      </div>
+                      <AttachmentFileNameBlock
+                        fileName={a.fileName}
+                        sizeBytes={a.sizeBytes}
+                        createdAt={a.createdAt}
+                        showTrash={showTrash}
+                        // 与 AttachmentListItem（对象详情卡）同款紧凑元信息行字号，保持回收站详情原视觉
+                        metaStyle={{ fontSize: 'var(--text-badge)' }}
+                        description={a.description}
+                        tags={a.tags}
+                      />
                       <span
                         style={{
                           fontSize: 'var(--text-badge)',
