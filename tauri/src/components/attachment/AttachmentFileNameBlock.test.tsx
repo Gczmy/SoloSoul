@@ -52,6 +52,46 @@ describe('AttachmentFileNameBlock 描述折叠/展开', () => {
     fireEvent.click(screen.getByRole('button', { expanded: true }));
     expect(screen.getByRole('button', { expanded: false })).toBeInTheDocument();
   });
+
+  it('T003 触控优化：有折叠按钮时点击描述文本区同样可展开/收起（整行可点）', () => {
+    const longDesc = '这是一段非常长的附件描述文本，'.repeat(40);
+    const { rerender } = render(<AttachmentFileNameBlock {...base} description={longDesc} />);
+    const descEl = screen.getByText(longDesc) as HTMLElement;
+    Object.defineProperty(descEl, 'scrollWidth', { configurable: true, value: 2000 });
+    Object.defineProperty(descEl, 'clientWidth', { configurable: true, value: 300 });
+    rerender(<AttachmentFileNameBlock {...base} description={longDesc + '（续）'} />);
+
+    const toggle = screen.getByRole('button', { expanded: false });
+    const row = toggle.parentElement!;
+    // 整行可点（cursor pointer + touchAction manipulation）
+    expect(row).toHaveStyle({ cursor: 'pointer', touchAction: 'manipulation' });
+    // 点击描述文本（非按钮）→ 展开
+    fireEvent.click(screen.getByText(longDesc + '（续）'));
+    expect(screen.getByRole('button', { expanded: true })).toBeInTheDocument();
+    // 再点文本区 → 收起
+    fireEvent.click(screen.getByText(longDesc + '（续）'));
+    expect(screen.getByRole('button', { expanded: false })).toBeInTheDocument();
+    // 按钮点击不冒泡到整行（不会双重切换）：一次点击按钮仅切一次状态
+    fireEvent.click(screen.getByRole('button', { expanded: false }));
+    expect(screen.getByRole('button', { expanded: true })).toBeInTheDocument();
+  });
+
+  it('T003 触控优化：按钮视觉 18×18 但热区扩展至 44×44（inset -13 绝对定位子元素）', () => {
+    const longDesc = '这是一段非常长的附件描述文本，'.repeat(40);
+    const { rerender } = render(<AttachmentFileNameBlock {...base} description={longDesc} />);
+    const descEl = screen.getByText(longDesc) as HTMLElement;
+    Object.defineProperty(descEl, 'scrollWidth', { configurable: true, value: 2000 });
+    Object.defineProperty(descEl, 'clientWidth', { configurable: true, value: 300 });
+    rerender(<AttachmentFileNameBlock {...base} description={longDesc + '（续）'} />);
+
+    const toggle = screen.getByRole('button', { expanded: false });
+    // 视觉尺寸保持 18×18（不撑高行）
+    expect(toggle).toHaveStyle({ width: '18px', height: '18px', position: 'relative' });
+    // 热区子元素：绝对定位 inset -13（18 + 26 = 44px 可点区域）
+    const hotzone = toggle.querySelector('span');
+    expect(hotzone).toHaveStyle({ position: 'absolute', inset: '-13px' });
+    expect(hotzone).toHaveAttribute('aria-hidden', 'true');
+  });
 });
 
 describe('AttachmentFileNameBlock 标签折叠/展开', () => {
@@ -90,6 +130,23 @@ describe('AttachmentFileNameBlock 标签折叠/展开', () => {
     fireEvent.click(screen.getByRole('button', { expanded: true }));
     expect(screen.queryByText('e')).not.toBeInTheDocument();
     expect(screen.getByText('+1')).toBeInTheDocument();
+  });
+
+  it('T003 触控优化：有折叠按钮时点击标签 chip 区同样可展开/收起（整行可点）', () => {
+    const tags = ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
+    render(<AttachmentFileNameBlock {...base} tags={tags} />);
+    const toggle = screen.getByRole('button', { expanded: false });
+    const row = toggle.parentElement!;
+    expect(row).toHaveStyle({ cursor: 'pointer', touchAction: 'manipulation' });
+    // 点击标签文本（非按钮）→ 展开全部
+    fireEvent.click(screen.getByText('a'));
+    ['e', 'f', 'g'].forEach((t) => expect(screen.getByText(t)).toBeInTheDocument());
+    // 再点 chip 区 → 收起
+    fireEvent.click(screen.getByText('a'));
+    expect(screen.queryByText('e')).not.toBeInTheDocument();
+    // 按钮点击不冒泡到整行（不会双重切换）
+    fireEvent.click(screen.getByRole('button', { expanded: false }));
+    expect(screen.getByRole('button', { expanded: true })).toBeInTheDocument();
   });
 
   it('hasTagOverflow：任一标签被省略（scrollWidth>clientWidth）即判定溢出', () => {

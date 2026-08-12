@@ -51,11 +51,16 @@ function ToggleButton({
   return (
     <button
       type="button"
-      onClick={onClick}
+      onClick={(e) => {
+        // 阻止冒泡：行容器整行可点（T003 触控优化），按钮点击不应再触发行切换造成双重展开/收起
+        e.stopPropagation();
+        onClick();
+      }}
       aria-expanded={expanded}
       aria-label={label}
       title={label}
       style={{
+        position: 'relative',
         display: 'inline-flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -68,6 +73,8 @@ function ToggleButton({
         background: 'transparent',
         color: 'var(--text-tertiary)',
         cursor: 'pointer',
+        // T003 移动端触控：消除 300ms 点击延迟与双击缩放误触发
+        touchAction: 'manipulation',
         transition: 'color 120ms ease, background 120ms ease',
       }}
       onMouseEnter={(e) => {
@@ -79,6 +86,12 @@ function ToggleButton({
         e.currentTarget.style.background = 'transparent';
       }}
     >
+      {/* T003 触控热区扩展：视觉保持 18×18 不占布局，实际可点击区域放大到
+          44×44（inset -13）——移动端触控目标达标且不撑高行；桌面端无感。 */}
+      <span
+        aria-hidden="true"
+        style={{ position: 'absolute', inset: -13, borderRadius: 8 }}
+      />
       {expanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
     </button>
   );
@@ -194,7 +207,15 @@ export function AttachmentFileNameBlock({
             gap: 2,
             marginTop: 2,
             opacity: showTrash ? 0.6 : 1,
+            // T003 触控优化：有折叠按钮时整行可点（点文本任意处展开/收起）
+            cursor: descExpanded || descOverflow ? 'pointer' : 'default',
+            touchAction: 'manipulation',
           }}
+          onClick={
+            descExpanded || descOverflow
+              ? () => setDescExpanded((v) => !v)
+              : undefined
+          }
         >
           <div
             ref={descRef}
@@ -235,7 +256,11 @@ export function AttachmentFileNameBlock({
             marginTop: 3,
             minWidth: 0,
             opacity: showTrash ? 0.6 : 1,
+            // T003 触控优化：有折叠按钮时整行可点（点标签/chip 任意处展开/收起）
+            cursor: showTagsToggle ? 'pointer' : 'default',
+            touchAction: 'manipulation',
           }}
+          onClick={showTagsToggle ? () => setTagsExpanded((v) => !v) : undefined}
         >
           <div
             ref={tagsContainerRef}
