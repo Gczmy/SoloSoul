@@ -298,10 +298,25 @@ Android 客户端下载 APK 后会自动验证 SHA-256 校验和。发布前需�
 
 ```bash
 cd /path/to/SoloSoul
-./scripts/sign_artifacts.sh
+./scripts/sign_artifacts.sh              # 默认签名 ./SoloSoul-Releases/ 下的产物
+./scripts/sign_artifacts.sh SoloSoul-Releases   # 相对目录（在项目根目录下执行）
+./scripts/sign_artifacts.sh /path/to/artifacts   # 绝对目录
 ```
 
-脚本会读取 `~/SoloSoul/signing/tauri-updater/secret.key`（或环境变量 `TAURI_SIGNING_PRIVATE_KEY`），为 `SoloSoul-Releases/` 中的 `.dmg`、`.exe` 和 `.AppImage` 生成同名 `.sig` 文件。
+**用法说明：**
+
+- 脚本第一个参数为产物目录，**相对路径与绝对路径均可**——内部统一转换为绝对路径后再调用
+  `npx tauri signer`（tauri signer 在 `tauri/` 子 shell 中执行，相对路径会因 `cd` 失效，
+  脚本已内置转换，无需手动处理）；不传参数时默认使用 `./SoloSoul-Releases`。
+- 脚本会读取 `~/SoloSoul/signing/tauri-updater/secret.key`（或环境变量
+  `TAURI_SIGNING_PRIVATE_KEY`），为产物中**实际用于 updater 的包**生成同名 `.sig` 文件：
+  - macOS：`SoloSoul_<版本>_arm64.app.tar.gz`（`build_macos_release.sh` 已生成，此处会跳过）
+  - Windows：`SoloSoul_<版本>_x64-setup.exe`
+  - Linux：`SoloSoul_<版本>.AppImage`
+  - **DMG 不需要 updater 签名**（仅手动安装用，与 4a 节说明一致）
+- 已存在 `.sig` 的产物自动跳过（幂等），重复执行安全；`.sig` 内容写入 `latest.json`，
+  但 `.sig` 文件本身**不需要上传**到 GitHub Release。
+- 产物目录在签名前消失时脚本会显式报错并以非零退出（fail-fast），不会静默继续。
 
 > Android AAB 签名由 Gradle 构建时完成，不需要在此步骤额外签名。
 
