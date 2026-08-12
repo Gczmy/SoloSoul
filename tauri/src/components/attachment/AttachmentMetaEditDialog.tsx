@@ -203,7 +203,7 @@ export function AttachmentMetaEditDialog({ item, onClose, onSaved }: AttachmentM
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: 4,
-                  padding: '3px 8px',
+                  padding: '1px 8px',
                   borderRadius: 6,
                   background: 'var(--accent-subtle, rgba(94,129,244,0.12))',
                   border: '1px solid var(--accent-primary)',
@@ -225,12 +225,17 @@ export function AttachmentMetaEditDialog({ item, onClose, onSaved }: AttachmentM
                     justifyContent: 'center',
                     width: 16,
                     height: 16,
+                    // 覆盖 global.css 移动端 button 触控基线（min-height/min-width: 44px）——
+                    // 否则安卓端 X 移除按钮被撑成 44×44，chip 高度随之暴增（T003 同源）。
+                    minWidth: 0,
+                    minHeight: 0,
                     borderRadius: '50%',
                     border: 'none',
                     background: 'transparent',
                     color: 'inherit',
                     cursor: 'pointer',
                     padding: 0,
+                    touchAction: 'manipulation',
                   }}
                 >
                   <X size={12} />
