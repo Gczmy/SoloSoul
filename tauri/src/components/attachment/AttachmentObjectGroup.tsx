@@ -91,7 +91,8 @@ function AttachmentObjectGroupBase({
           display: 'flex',
           alignItems: 'center',
           gap: 6,
-          padding: '7px 8px 7px 28px',
+          // 移动端删除层级缩进，与页面行（padding '10px 14px'）左对齐；桌面端保留层级缩进
+          padding: isMobile ? '7px 8px 7px 14px' : '7px 8px 7px 28px',
           cursor: 'pointer',
           fontSize: 'var(--text-sm)',
           fontWeight: 500,

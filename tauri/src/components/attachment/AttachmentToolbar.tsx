@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/Input';
 import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import { ICON_SIZE } from '@/lib/constants';
 import { formatBytes } from '@/lib/utils';
+import { isMobilePlatformSync } from '@/lib/platform';
 import buttonStyles from '@/components/ui/Button.module.css';
 
 export interface AttachmentSummaryStats {
@@ -65,8 +66,17 @@ export function AttachmentToolbar({
   onOpenAlbum,
 }: AttachmentToolbarProps) {
   const { t } = useTranslation(['settings', 'common', 'navigation']);
+  const isMobile = isMobilePlatformSync();
 
-  const { activeAttachments, activeBytes, trashAttachments, trashBytes } = summary;
+  const {
+    activeAttachments,
+    activeBytes,
+    activeObjects,
+    trashAttachments,
+    trashBytes,
+    trashObjects,
+  } = summary;
+  const objectCount = showTrash ? trashObjects : activeObjects;
 
   return (
     <>
@@ -149,24 +159,24 @@ export function AttachmentToolbar({
               onClick={onRefresh}
             >
               <RotateCcw size={ICON_SIZE.sm} />{' '}
-              <span className={buttonStyles.label}>{t('common:refresh', { defaultValue: 'Refresh' })}</span>
+              <span className={buttonStyles.label}>
+                {t('common:refresh', { defaultValue: 'Refresh' })}
+              </span>
             </Button>
           </div>
 
-          {/* 照片集入口：位于 活跃/回收站 标签下方，随标签切换显示对应数据源的照片集 */}
+          {/* 照片集入口：位于 活跃/回收站 标签下方，随标签切换显示对应数据源的照片集；
+              移动端同样显示「照片集」文本（与桌面端一致，仅图标不符合预期） */}
           {typeof photoCount === 'number' && photoCount > 0 && onOpenAlbum && (
             <div style={{ display: 'flex' }}>
               <Button
                 variant="secondary"
                 size="sm"
-                className={buttonStyles.hideLabelOnMobile}
                 onClick={onOpenAlbum}
                 style={{ width: '100%', justifyContent: 'flex-start' }}
               >
                 <Images size={ICON_SIZE.sm} />{' '}
-                <span className={buttonStyles.label}>
-                  {t('common:photo_album', { defaultValue: 'Photo Album' })}
-                </span>
+                <span>{t('common:photo_album', { defaultValue: 'Photo Album' })}</span>
                 <span style={{ marginLeft: 4, fontSize: 'var(--text-caption)', opacity: 0.7 }}>
                   {photoCount}
                 </span>
@@ -174,36 +184,102 @@ export function AttachmentToolbar({
             </div>
           )}
 
-          {/* Summary card */}
+          {/* Summary card：桌面端单行三组（附件/大小/对象同格式），移动端两行三列均匀分布 */}
           <Card style={{ padding: '12px 16px' }}>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 20,
-                fontSize: 'var(--text-sm)',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <Paperclip size={ICON_SIZE.sm} style={{ color: 'var(--accent-primary)' }} />
-                <span style={{ color: 'var(--text-tertiary)' }}>{t('common:attachments')}</span>
-                <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
-                  {showTrash ? trashAttachments : activeAttachments}
-                </span>
+            {isMobile ? (
+              <div
+                style={{
+                  display: 'flex',
+                  gap: 12,
+                  fontSize: 'var(--text-sm)',
+                }}
+              >
+                {/* 三列等宽均匀分布 */}
+                <div
+                  style={{
+                    flex: 1,
+                    minWidth: 0,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: 4,
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <Paperclip size={ICON_SIZE.sm} style={{ color: 'var(--accent-primary)' }} />
+                    <span style={{ color: 'var(--text-tertiary)' }}>{t('common:attachments')}</span>
+                  </div>
+                  <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+                    {showTrash ? trashAttachments : activeAttachments}
+                  </span>
+                </div>
+                <div
+                  style={{
+                    flex: 1,
+                    minWidth: 0,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: 4,
+                  }}
+                >
+                  <span style={{ color: 'var(--text-tertiary)' }}>{t('common:size')}</span>
+                  <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+                    {formatBytes(showTrash ? trashBytes : activeBytes)}
+                  </span>
+                </div>
+                <div
+                  style={{
+                    flex: 1,
+                    minWidth: 0,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: 4,
+                  }}
+                >
+                  <span style={{ color: 'var(--text-tertiary)' }}>{t('common:objects')}</span>{' '}
+                  <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+                    {t('common:objects_count_value', {
+                      n: objectCount,
+                      defaultValue: `${objectCount}`,
+                    })}
+                  </span>
+                </div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span style={{ color: 'var(--text-tertiary)' }}>{t('common:size')}</span>
-                <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
-                  {formatBytes(showTrash ? trashBytes : activeBytes)}
-                </span>
+            ) : (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 20,
+                  fontSize: 'var(--text-sm)',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Paperclip size={ICON_SIZE.sm} style={{ color: 'var(--accent-primary)' }} />
+                  <span style={{ color: 'var(--text-tertiary)' }}>{t('common:attachments')}</span>
+                  <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+                    {showTrash ? trashAttachments : activeAttachments}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ color: 'var(--text-tertiary)' }}>{t('common:size')}</span>
+                  <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+                    {formatBytes(showTrash ? trashBytes : activeBytes)}
+                  </span>
+                </div>{' '}
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span style={{ color: 'var(--text-tertiary)' }}>{t('common:objects')}</span>
+                  <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+                    {t('common:objects_count_value', {
+                      n: objectCount,
+                      defaultValue: `${objectCount}`,
+                    })}
+                  </span>
+                </div>
               </div>
-              <div style={{ flex: 1 }} />
-              <div style={{ color: 'var(--text-tertiary)', fontSize: 'var(--text-caption)' }}>
-                {t('settings:objects_count', {
-                  n: showTrash ? summary.trashObjects : summary.activeObjects,
-                })}
-              </div>
-            </div>
+            )}
           </Card>
 
           {/* Batch toolbar */}

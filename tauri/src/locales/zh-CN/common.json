@@ -179,6 +179,7 @@
   "no_objects": "暂无对象",
   "no_matching_objects": "未找到匹配的对象",
   "objects": "对象",
+  "objects_count_value": "{{n}}个",
   "export_failed": "导出失败",
   "export_doc_warning_title": "明文导出警告",
   "export_doc_warning_body": "导出的文档将以未加密形式保存，任何能打开该文件的人都可以阅读其中的内容（包括敏感字段）。",

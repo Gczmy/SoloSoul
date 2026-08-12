@@ -179,6 +179,7 @@
   "no_objects": "No objects yet",
   "no_matching_objects": "No matching objects",
   "objects": "Objects",
+  "objects_count_value": "{{n}}",
   "export_failed": "Export failed",
   "export_doc_warning_title": "Plaintext export warning",
   "export_doc_warning_body": "The exported document is unencrypted; anyone who can open the file can read its contents (including sensitive fields).",

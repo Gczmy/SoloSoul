@@ -127,7 +127,8 @@ function AttachmentRowBase({
     />
   );
 
-  // 移动端：多行布局 — 第1行 勾选框+图标+文件名，第2行 大小·时间，第3行 操作按钮
+  // 移动端：多行布局 — 左侧竖排 [勾选框][附件图标]（图标移到勾选框下方腾出宽度），
+  // 右侧第1行 文件名，第2行 大小·时间，第3行 操作按钮；无层级缩进与页面/对象行对齐
   if (isMobile) {
     return (
       <div
@@ -135,19 +136,30 @@ function AttachmentRowBase({
         style={{
           display: 'flex',
           gap: 6,
-          padding: '6px 8px 6px 40px',
+          alignItems: 'flex-start',
+          padding: '6px 8px 6px 14px',
           fontSize: 'var(--text-sm)',
           borderBottom: '1px solid var(--border-subtle)',
         }}
       >
-        <SelectCheckbox
-          checked={isChecked}
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggleSelect(compositeKey);
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 4,
+            flexShrink: 0,
           }}
-        />
-        <Paperclip size={ICON_SIZE.sm} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
+        >
+          <SelectCheckbox
+            checked={isChecked}
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleSelect(compositeKey);
+            }}
+          />
+          <Paperclip size={ICON_SIZE.sm} style={{ color: 'var(--text-tertiary)' }} />
+        </div>
 
         {isRenaming ? (
           renameInput
@@ -190,7 +202,9 @@ function AttachmentRowBase({
       />
       <Paperclip size={ICON_SIZE.sm} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
 
-      {isRenaming ? renameInput : (
+      {isRenaming ? (
+        renameInput
+      ) : (
         <AttachmentFileNameBlock
           fileName={item.fileName}
           sizeBytes={item.sizeBytes}

@@ -106,14 +106,14 @@ function AttachmentPageCardBase({
         }}
         className="interactive-toolbar"
       >
-        <PageIconComp
-          size={ICON_SIZE.xl}
-          style={{ flexShrink: 0, color: 'var(--accent-primary)' }}
-        />
         {isMobile ? (
-          // 移动端：第1行 页面名+展开箭头，第2行 统计信息
+          // 移动端：第1行 [页面图标][页面名][展开箭头]，第2行 统计信息（图标与页面名同行）
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <PageIconComp
+                size={ICON_SIZE.xl}
+                style={{ flexShrink: 0, color: 'var(--accent-primary)' }}
+              />
               <span
                 style={{
                   flex: 1,
