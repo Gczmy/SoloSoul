@@ -1,15 +1,15 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-12（轮次 12：W 系列收尾 + V005-R1 备查项修复 + W001-②③④⑤ hook 拆分 + W004/W005 巨型 hook 拆分）
+> 最后更新：2026-08-12（轮次 12 复核：19 提交独立验证）
 > 当前分支：`main`
 
 ## 总览
 
-- 全部已提出问题：**80 项**（P47 + N10 + R5 + S4 + T5 + U6 + V5 + W3，含重复计数修正）
+- 全部已提出问题：**83 项**（P47 + N10 + R5 + S4 + T5 + U6 + V5 + W3 + X3，含重复计数修正）
 - **修复关闭 78 项**、**经确认跳过 2 项**（P027/P033）、**延期 0 项**（P046/P047 均已拆分完成）
-- **待修复 0 项**：轮次 11 复核发现的 W 系列（巨型化转移/注释残留）已全部收尾，详见「轮次 11 复核」与「修复记录（W 系列）」
+- **待修复 3 项（X 系列）**：轮次 12 复核确认 W 系列与 V005-R1 修复真实（check-all 全绿），但更新横幅新功能有 1 个 P2 样式缺陷，另有 2 项 P3，详见「轮次 12 复核」
 - 遗留计划事项：S003 的 v2.10 blob 键清理（已有代码 TODO + CHANGELOG 双向追踪，属计划内而非遗忘）
-- 轮次 11 基线实测：`check-all` **EXIT=0 全绿**（tsc / fmt / clippy / cargo test / eslint / Vitest / ACL 与 pref-keys 机比）
+- 轮次 12 基线实测：`check-all` **EXIT=0 全绿**（tsc / fmt / clippy / cargo test / eslint / Vitest / ACL 与 pref-keys 机比）
 
 ## 遗留项（跳过 / 延期）
 
@@ -36,6 +36,7 @@
 - **轮次 10**：P046 前端 10 个巨型组件拆分收官（3 提交 909d6735–15488aa3，按域分三批）。认证域 2 组件（P046-1：LoginPage 650→179、PasswordVerificationDialog 520→136）、对象域 3 组件（P046-2：AttachmentViewer 683→307 总行/287 非注释、ObjectDetailModal 545→239、TemplateFieldRow 506→192）、设置导出域 5 组件（P046-3：ExportImportPage 495→263、ExportSection 489→311、ImportSection 493→183、TrashPage 503→294、DeviceListPanel 482→187），均按「数据 hook + 展示子组件」纯重构零行为变化；`PageGroup` 消除重复定义统一单一来源。前端全量验证：tsc / eslint 全绿、73 文件 647 测试全绿、代码审查通过无阻塞项。延期项仅剩 P047（Rust 巨型文件拆分）。
 - **轮次 11**：P047 Rust 巨型文件拆分收官（3 提交，纯文件级重构零行为变化）。P047-1 `attachment.rs` 2213→attachment/ 5 文件（mod/crud/tree/share/tests，最大 734）；P047-2 `object/tests.rs` 2377→object/tests/ 6 文件（mod 共享 setup_vault + crud/trash/snapshot/template_sync/misc 五主题子模块，最大 732）；P047-3 `export_docx.rs` 2139→export_docx/ 8 文件（mod 命令 + fields/docx/markdown/text/html/pdf + tests，最大 752，最小 66）。tauri 宏命令注册改定义处路径、外部引用路径保持（`pub use export_docx::*` 链不变）。验证：cargo fmt / check / clippy `-D warnings` 全绿（42 object 测试 + 28 export_docx 测试属性归属正确）；测试二进制本机 `0xc0000139` 限制，CI 兜底。至此 P046（前端 10 组件）+ P047（Rust 3 文件）全部完成，延期/跳过项清零，修复关闭 77/77。
 - **轮次 11 复核**：审查方对 P046/P047 6 个拆分提交独立验证（多重集逐行比对 + 工作区语义审查 + check-all 实测全绿）。确认拆分真实、逻辑零行为变化、测试 42/21/28 全保留、IPC 命令名与 re-export 链未变；但发现巨型化转移与注释残留，新增 W001–W003（轮次 12 全部修复）。
+- **轮次 12 复核**：审查方对 W 系列收尾 + 附件触控系列 + 更新横幅 release notes 等 19 提交独立验证（check-all 实测全绿）。确认 W001–W003 与 V005-R1 修复真实闭合、触控演进链最终态自洽、SafeMarkdown 消毒链与强制更新不可绕过；发现更新横幅弹卡样式依赖 AboutPage 注入（P2）等，新增 X001–X003，全部 `[ ]` 待修复。
 
 ## 轮次 11 复核：P046/P047 拆分独立验证（W 系列）
 
@@ -390,9 +391,33 @@
 - **验证**：tsc / eslint 全绿；全量前端 73 文件 647 测试全绿（无相关测试文件，重构保持行为不变）。
 - **待拆**：对象域（AttachmentViewer/ObjectDetailModal/TemplateFieldRow）、设置导出域（ExportImportPage/ExportSection/ImportSection/TrashPage/DeviceListPanel）。
 
+## 轮次 12 复核：19 提交独立验证（X 系列）
+
+审查范围：`ef96e8c0`（W001-1）→ `35a20fb3`（chip X 按钮）共 19 提交，四组：W/V005-R1 修复 6 提交、hook 拆分 7 提交（W001-②③④⑤ + W004/W005）、附件触控优化 6 提交、更新横幅/强制更新 release notes 3 提交（含 i18n 补齐）。验证方式：逐提交 `git show` + 工作区语义审查 + 非注释行统计 + i18n 机比脚本实测。基线实测：`check-all` **EXIT=0 全绿**；`check-missing-i18n` 双 locale 缺失 0（审查方实测复核）。
+
+**确认无误的面**：
+
+- **W001-②③④⑤ hook 再拆（5 提交）✅**：全部纯移动——hook 间接缝（回调互引、闭包捕获、返回面字段集）与原版逐字一致；两处自称「语义保持转调」验证为真等价（`handleClose` 经 `handleIconLeave` 清悬停态是原行为良性超集；账户切换错误复位经稳定 setter 转调时序一致）；调用方零改动；未触碰任何测试文件。
+- **W004/W005 hook 拆分（2 提交）✅**：返回面字段集逐一相符（GlobalAttachmentManager 解构 56 字段全命中、ObjectWorkspacePage 消费点全命中）；uiStore `Toast` 仅 `export` 提升且为 `import type` 使用，uiStore 是叶子 store 零循环依赖；store actions 经字段级 selector 注入为同一引用透传，无时序变化；handler 改 `useCallback` 仅更优。
+- **W002/W003 ✅**：三处 doc 与拆分前原文逐字一致归位（多重集 diff 验证）；报告数字修订与实测全部吻合（28/42 测试、各文件行数）。
+- **V005-R1 ✅ 真实闭合**：`next_resume_offset(Option<u64>)` 新语义——`None`（metadata 失败/文件缺失）→ 0 强制走 `File::create` 重下分支，精确闭合「缺失文件 + 下一候选 206 → append NotFound 终止整个下载」路径；单测重写覆盖三语义，非糊弄式改断言（旧断言正是被修复的 bug 行为）；无旧签名残留。
+- **附件触控系列（6 提交）✅**：演进链最终态自洽——按钮 18×18 + `minWidth/minHeight:0` 内联覆盖 global.css 移动端 44px 基线（无 `!important`，内联特异性胜出；PageGuide 有同模式先例）+ 整行可点承担触控；6362c943 引入的 inset 热区在 b56e9c09 完整移除无死代码残留；重命名态被 `RenameInput` 整块替换，编辑态不存在误触；expanded 状态驱动高亮与 T005 状态机同源；新增测试断言 min 尺寸/无 span 热区/expanded 类名，真测行为。
+- **更新横幅/强制更新（2 提交）✅ 核心**：SafeMarkdown 无 rehype-raw、`urlTransform` 拦截危险协议、`disallowedElements` 置于 props 展开之后不可被调用方覆盖——远程 release notes 渲染安全；`[MANDATORY]` 标记 Rust 侧已剥离不泄漏；Dialog zIndex prop 向后兼容，10000 层级在全库 z-index 谱系中成立；横幅按钮仅在 available 分支渲染（三态 rerender 测试覆盖）；强制更新弹卡无跳过路径；i18n 三 key 双 locale 齐全。
+- **bb605cdb ✅**：`rows={3}`→`{5}` 单行改动无虚报，对话框自身滚动兜底，与展示态溢出检测零耦合。
+
+**新增问题**：
+
+| ID | 优先级 | 类别 | 文件位置 | 描述 | 状态 |
+|----|--------|------|----------|------|------|
+| X001 | P2 | 样式 | `tauri/src/pages/system/AboutPage.tsx:66-127`、`tauri/src/components/update/UpdateBanner.tsx`、`tauri/src/AppRoutes.tsx:300` | **更新横幅弹卡样式依赖 AboutPage 注入**：`.release-notes-md` 全部 CSS 定义在 AboutPage 的 `<style>` 标签内，仅 AboutPage 挂载期间存在于 DOM。MandatoryUpdateOverlay 由 AboutPage 渲染没问题，但 UpdateBanner 挂在 AppRoutes 全局——用户在首页等任意页面点「查看更新内容」时样式表不存在：h1/h2 回落 UA 默认大字号、链接默认蓝色、code/pre 无背景，与 AboutPage 渲染效果不一致（现有测试只断言文本节点抓不到）。修法：样式块提升到全局 CSS 或 SafeMarkdown 自带 | `[ ]` 待修复 |
+| X002 | P3 | 样式/UX | `tauri/src/components/attachment/AttachmentMetaEditDialog.tsx:207`、`AttachmentFileNameBlock.tsx:282,206-211,256` | **触控系列三个边角**：①chip 圆角不一致——编辑对话框 6px vs 列表展示态 999 胶囊（35a20fb3 声称「与列表展示态对齐」只对了 padding，同一标签列表↔编辑视觉跳变；若有意区分编辑/展示态可接受，建议统一或注明意图）；②桌面端 hover 高亮消失未声明——57c6de6f 移除 onMouseEnter/Leave 后桌面悬停展开按钮无任何反馈（安卓根因修复成立，桌面反馈丢失属附带行为变化）；③整行可点使描述文本不可拖选复制（UX 权衡，可考虑 user-select 策略） | `[ ]` 待修复 |
+| X003 | P3 | 文档/注释精度 | `tauri/src/hooks/useAppUpdate.ts:72-74`、`useAttachmentManagerItemOps.ts:16-17`、dd612ced 提交信息、本报告 | **文档/注释失实**：①dd612ced 提交信息称「5 条新测试」实际仅 2 个 `it` 块（0415c398 的「4 条」属实，合计 6 非 9）；②`useAppUpdate.ts:72-74` 注释描述「桌面端 release notes 由 GitHub API 补全」的 fallback 链不存在——该路径只走 updater 插件，从不调用 desktop_check_update（latest.json notes 为空时横幅不显示按钮，行为可接受但注释失实）；③`useAttachmentManagerItemOps.ts:16-17` `renamingId` 上方残留复制错误的注释（属主是主 hook 的 `metaEditItem`）；④报告 W001 修复记录称 4 个 hook「均已再拆至 < 300」与 `useAttachmentViewer` 实测 321 矛盾；⑤`usePasswordVerificationIconBar.tsx:93,100` 注释「延迟 200ms」实为 300ms（既往残留逐字随迁，非本批引入） | `[ ]` 待修复 |
+
+**次要观察（不列为问题）**：`PhotoViewerOverlay` 的 36×36/28×28 图标按钮在移动端也会被 44px 基线撑大（历史遗留，44×44 恰好符合触控基线，影响可忽略）；UpdateBanner 新按钮缺 `type="button"`（不在 form 内无实际影响）；横幅 notes Dialog 用默认 priority 4000 会被 toast(9000) 盖住（与全库默认 Dialog 行为一致）；W001-② 拆分后 `useAttachmentViewer` 仍 321 非注释行（hook 承载层，已登记口径）。
+
 ## 待用户指令
 
-- 轮次 11 复核：P046/P047 拆分真实、零行为变化（check-all 全绿），新增 W001–W003 已在轮次 12 全部修复（W001 再拆、W002 注释归位、W003 文档精度），待修复清零。
+- 轮次 12 复核：W 系列 + V005-R1 修复真实闭合（check-all 全绿），新增 X001–X003。建议顺序：X001（P2，样式提升全局）→ X002/X003（P3，顺手级）。
 - 可选收尾动作：推送报告并打标签 `git tag -a "code-audit-passed-$(date +%Y%m%d)"`——需用户确认后执行。
 - 后续专项建议：S003 的 v2.10 blob 键清理按代码 TODO 计划执行。
-- 备查项：V003②（并发双下载，更大既存问题）、V005②（wiremock 集成测试，P3 可缓）已登记，后续视需要处理；**V005-R1（fallback 缺失文件 + 206 组合下不自愈）已在轮次 12 修复**（`next_resume_offset` 缺失 → 0 强制重下）。
+- 备查项：V003②（并发双下载，更大既存问题）、V005②（wiremock 集成测试，P3 可缓）已登记，后续视需要处理；**V005-R1（fallback 缺失文件 + 206 组合下不自愈）已在轮次 12 修复并复核确认**（`next_resume_offset` 缺失 → 0 强制重下）。
