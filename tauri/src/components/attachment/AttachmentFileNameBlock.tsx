@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
+import { useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { formatBytes } from '@/lib/utils';
@@ -21,6 +21,11 @@ const MAX_VISIBLE_TAGS = 4;
 
 /** 标签 chip 的 data 标记，供溢出检测定位（避免误扫 +N/按钮等兄弟元素）。 */
 const TAG_CHIP_ATTR = 'data-tag-chip';
+
+/** 可展开块外层**第一层**半透明主题色背景（展开态整块）。 */
+const BLOCK_BG = 'color-mix(in srgb, var(--accent-primary) 6%, transparent)';
+/** 折叠把手行**第二层**半透明主题色背景（叠在 BLOCK_BG 之上 → 颜色更深）。 */
+const HANDLE_BG = 'color-mix(in srgb, var(--accent-primary) 10%, transparent)';
 
 /**
  * 折叠态下是否存在被压缩省略的标签 chip（scrollWidth > clientWidth 即出现省略号）。
@@ -118,7 +123,7 @@ function CollapseHandleRow({ label, onCollapse }: { label: string; onCollapse: (
         gap: 2,
         // 半透明主题色圆角背景仅此把手行有（描述态叠在外层块背景之上 → 颜色更深，
         // 提示用户此行可点击收起）。
-        background: 'color-mix(in srgb, var(--accent-primary) 10%, transparent)',
+        background: HANDLE_BG,
         borderRadius: 6,
         // 触控友好：此行为展开态唯一折叠入口，垂直留白使其成为足够大的点击目标。
         padding: '6px 4px',
@@ -146,6 +151,87 @@ function CollapseHandleRow({ label, onCollapse }: { label: string; onCollapse: (
         onClick={onCollapse}
         label={t('common:collapse', { defaultValue: '收起' })}
       />
+    </div>
+  );
+}
+
+/**
+ * 名称/描述/标签共用的可展开块（T006–T008 三处重复收敛）：
+ * - 收起态：内容单行省略 + 尾部箭头 + 整行可点展开（canExpand 时）
+ * - 展开态：顶部折叠把手行（唯一折叠入口）+ 全量内容不可点击折叠（可选中/复制）
+ * - 展开态整块叠**第一层**半透明主题色圆角背景，把手行 10% 叠加上层更深
+ */
+function ExpandableBlock({
+  expanded,
+  canExpand,
+  onExpand,
+  onCollapse,
+  label,
+  marginTop,
+  opacity,
+  children,
+}: {
+  expanded: boolean;
+  /** 收起态是否可展开（溢出/超限才显示箭头与整行可点） */
+  canExpand: boolean;
+  onExpand: () => void;
+  onCollapse: () => void;
+  /** 折叠把手行标签（展开态出现） */
+  label: string;
+  marginTop?: number;
+  /** 整块不透明度（回收站态半透明） */
+  opacity: number;
+  children: ReactNode;
+}) {
+  const { t } = useTranslation(['common']);
+  return (
+    <div
+      style={{
+        marginTop,
+        minWidth: 0,
+        opacity,
+        // 展开态：整块叠**第一层**半透明主题色圆角背景，把折叠把手行与内容圈在一起；
+        // 收起态无背景、维持原样。
+        background: expanded ? BLOCK_BG : undefined,
+        borderRadius: expanded ? 8 : undefined,
+        padding: expanded ? 4 : undefined,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 4,
+      }}
+    >
+      {expanded && <CollapseHandleRow label={label} onCollapse={onCollapse} />}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: 2,
+          minWidth: 0,
+          // T003/T006：**仅收起态**整行可点（点内容任意处展开）——展开态内容不可点击
+          // 折叠（避免用户无法选中文本），折叠把手移交标签行。
+          cursor: !expanded && canExpand ? 'pointer' : 'default',
+          touchAction: 'manipulation',
+        }}
+        onClick={
+          !expanded && canExpand
+            ? () => {
+                // Y001: 有文本选区（拖选复制/长按选择）时不切换折叠态——同一元素内
+                // 拖选后 click 仍照常派发，仅靠 userSelect 无法阻止。
+                if (hasTextSelection()) return;
+                onExpand();
+              }
+            : undefined
+        }
+      >
+        {children}
+        {!expanded && canExpand ? (
+          <ToggleButton
+            expanded={false}
+            onClick={onExpand}
+            label={t('common:expand', { defaultValue: '展开' })}
+          />
+        ) : null}
+      </div>
     </div>
   );
 }
@@ -243,75 +329,33 @@ export function AttachmentFileNameBlock({
 
   return (
     <div style={{ flex: 1, minWidth: 0 }}>
-      {/* 名称行：超长时折叠/展开（与描述同策略，T006 同模式） */}
-      <div
-        style={{
-          // 回收站态：整块（含把手行/箭头）统一半透明（与描述块同模式），
-          // 文本本身的删除线在下方内层保留。
-          opacity: showTrash ? 0.5 : 1,
-          // 展开态：整块叠**第一层**半透明主题色圆角背景，把「名称」折叠把手行与
-          // 全名圈在一起；收起态无背景、维持原样。
-          background: nameExpanded
-            ? 'color-mix(in srgb, var(--accent-primary) 6%, transparent)'
-            : undefined,
-          borderRadius: nameExpanded ? 8 : undefined,
-          padding: nameExpanded ? 4 : undefined,
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 4,
-        }}
+      {/* 名称行：超长时折叠/展开（ExpandableBlock 共享） */}
+      <ExpandableBlock
+        expanded={nameExpanded}
+        canExpand={nameOverflow}
+        onExpand={() => setNameExpanded(true)}
+        onCollapse={() => setNameExpanded(false)}
+        label={t('common:name', { defaultValue: '名称' })}
+        // 回收站态：整块（含把手行/箭头）统一半透明；文本删除线在下方内容层保留
+        opacity={showTrash ? 0.5 : 1}
       >
-        {nameExpanded && (
-          <CollapseHandleRow
-            label={t('common:name', { defaultValue: '名称' })}
-            onCollapse={() => setNameExpanded(false)}
-          />
-        )}
         <div
+          ref={nameRef}
           style={{
-            display: 'flex',
-            alignItems: 'flex-start',
-            gap: 2,
-            // T006：**仅收起态**整行可点（点名称任意处展开）——展开态全名不可点击折叠
-            //（可选中/复制），折叠把手移交「名称」标签行。
-            cursor: !nameExpanded && nameOverflow ? 'pointer' : 'default',
-            touchAction: 'manipulation',
+            flex: 1,
+            minWidth: 0,
+            fontWeight: 500,
+            overflow: 'hidden',
+            textOverflow: nameExpanded ? undefined : 'ellipsis',
+            whiteSpace: nameExpanded ? 'pre-wrap' : 'nowrap',
+            wordBreak: 'break-word',
+            textDecoration: showTrash ? 'line-through' : 'none',
+            userSelect: 'text',
           }}
-          onClick={
-            !nameExpanded && nameOverflow
-              ? () => {
-                  // Y001: 有文本选区（拖选复制/长按选择）时不切换折叠态。
-                  if (hasTextSelection()) return;
-                  setNameExpanded(true);
-                }
-              : undefined
-          }
         >
-          <div
-            ref={nameRef}
-            style={{
-              flex: 1,
-              minWidth: 0,
-              fontWeight: 500,
-              overflow: 'hidden',
-              textOverflow: nameExpanded ? undefined : 'ellipsis',
-              whiteSpace: nameExpanded ? 'pre-wrap' : 'nowrap',
-              wordBreak: 'break-word',
-              textDecoration: showTrash ? 'line-through' : 'none',
-              userSelect: 'text',
-            }}
-          >
-            {fileName}
-          </div>
-          {!nameExpanded && nameOverflow ? (
-            <ToggleButton
-              expanded={false}
-              onClick={() => setNameExpanded(true)}
-              label={t('common:expand', { defaultValue: '展开' })}
-            />
-          ) : null}
+          {fileName}
         </div>
-      </div>
+      </ExpandableBlock>
       <div
         style={{
           fontSize: 'var(--text-caption)',
@@ -323,197 +367,112 @@ export function AttachmentFileNameBlock({
         {formatBytes(sizeBytes)} · {new Date(createdAt).toLocaleDateString()}
       </div>
       {trimmedDesc && (
-        <div
-          style={{
-            marginTop: 2,
-            opacity: showTrash ? 0.6 : 1,
-            // 展开态：整块叠**第一层**半透明主题色圆角背景，把「描述」折叠把手行与
-            // 全文内容圈在一起；收起态无背景、维持原样。
-            background: descExpanded
-              ? 'color-mix(in srgb, var(--accent-primary) 6%, transparent)'
-              : undefined,
-            borderRadius: descExpanded ? 8 : undefined,
-            padding: descExpanded ? 4 : undefined,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 4,
-          }}
+        <ExpandableBlock
+          expanded={descExpanded}
+          canExpand={descOverflow}
+          onExpand={() => setDescExpanded(true)}
+          onCollapse={() => setDescExpanded(false)}
+          label={t('common:attachment_description', { defaultValue: '描述' })}
+          marginTop={2}
+          opacity={showTrash ? 0.6 : 1}
         >
-          {descExpanded && (
-            <CollapseHandleRow
-              label={t('common:attachment_description', { defaultValue: '描述' })}
-              onCollapse={() => setDescExpanded(false)}
-            />
-          )}
           <div
+            ref={descRef}
             style={{
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: 2,
-              // T003 触控优化：**仅收起态**整行可点（点文本任意处展开）——展开态全文
-              // 不可点击折叠（避免用户无法选中描述文本），折叠把手移交「描述」标签行。
-              cursor: !descExpanded && descOverflow ? 'pointer' : 'default',
-              touchAction: 'manipulation',
+              flex: 1,
+              minWidth: 0,
+              fontSize: 'var(--text-caption)',
+              color: 'var(--text-secondary)',
+              overflow: 'hidden',
+              textOverflow: descExpanded ? undefined : 'ellipsis',
+              whiteSpace: descExpanded ? 'pre-wrap' : 'nowrap',
+              wordBreak: 'break-word',
+              // X002: 整行可点下显式声明文本可选（拖选复制的前提）。
+              // Y001: 机制修正——同一元素内拖选后 click 照常派发（按下/释放目标相同），
+              // 防误翻转改由行 onClick 的选区守卫承担（有选区则不切换）。
+              userSelect: 'text',
             }}
-            onClick={
-              !descExpanded && descOverflow
-                ? () => {
-                    // Y001: 有文本选区（拖选复制/长按选择）时不切换折叠态——同一元素内
-                    // 拖选后 click 仍照常派发，仅靠 userSelect 无法阻止。
-                    if (hasTextSelection()) return;
-                    setDescExpanded(true);
-                  }
-                : undefined
-            }
           >
-            <div
-              ref={descRef}
-              style={{
-                flex: 1,
-                minWidth: 0,
-                fontSize: 'var(--text-caption)',
-                color: 'var(--text-secondary)',
-                overflow: 'hidden',
-                textOverflow: descExpanded ? undefined : 'ellipsis',
-                whiteSpace: descExpanded ? 'pre-wrap' : 'nowrap',
-                wordBreak: 'break-word',
-                // X002: 整行可点下显式声明文本可选（拖选复制的前提）。
-                // Y001: 机制修正——同一元素内拖选后 click 照常派发（按下/释放目标相同），
-                // 防误翻转改由行 onClick 的选区守卫承担（有选区则不切换）。
-                userSelect: 'text',
-              }}
-            >
-              {trimmedDesc}
-            </div>
-            {!descExpanded && descOverflow ? (
-              <ToggleButton
-                expanded={false}
-                onClick={() => setDescExpanded(true)}
-                label={t('common:expand', { defaultValue: '展开' })}
-              />
-            ) : null}
+            {trimmedDesc}
           </div>
-        </div>
+        </ExpandableBlock>
       )}
       {visibleTags.length > 0 && (
-        // 外层列容器：展开态整块叠**第一层**半透明主题色圆角背景（与名称/描述块同模式），
-        // 把「标签」折叠把手行与下方 chip 区域圈在一起；收起态无背景、维持原样。
-        <div
-          style={{
-            marginTop: 3,
-            minWidth: 0,
-            opacity: showTrash ? 0.6 : 1,
-            background: tagsExpanded
-              ? 'color-mix(in srgb, var(--accent-primary) 6%, transparent)'
-              : undefined,
-            borderRadius: tagsExpanded ? 8 : undefined,
-            padding: tagsExpanded ? 4 : undefined,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 4,
-          }}
+        <ExpandableBlock
+          expanded={tagsExpanded}
+          canExpand={showTagsToggle}
+          onExpand={() => setTagsExpanded(true)}
+          onCollapse={() => setTagsExpanded(false)}
+          label={t('common:attachment_tags', { defaultValue: '标签' })}
+          marginTop={3}
+          opacity={showTrash ? 0.6 : 1}
         >
-          {tagsExpanded && (
-            <CollapseHandleRow
-              label={t('common:attachment_tags', { defaultValue: '标签' })}
-              onCollapse={() => setTagsExpanded(false)}
-            />
-          )}
           <div
+            ref={tagsContainerRef}
             style={{
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: 2,
+              flex: 1,
               minWidth: 0,
-              // T003 触控优化：**仅收起态**整行可点（点标签/chip 任意处展开）——展开态
-              // chip 不可点击折叠，折叠把手移交「标签」行。
-              cursor: !tagsExpanded && showTagsToggle ? 'pointer' : 'default',
-              touchAction: 'manipulation',
+              display: 'flex',
+              // 折叠态强制单行：标签 chip 可压缩并以省略号截断，保证 +N 始终完整留在行尾；
+              // 展开态恢复换行显示全部标签（长标签在 chip 内换行，阅读舒适）。
+              flexWrap: tagsExpanded ? 'wrap' : 'nowrap',
+              alignItems: 'center',
+              gap: 4,
+              overflow: tagsExpanded ? 'visible' : 'hidden',
             }}
-            onClick={
-              !tagsExpanded && showTagsToggle
-                ? () => {
-                    // Y001: 同上——有选区时不切换（拖选复制与整行折叠互不冲突）。
-                    if (hasTextSelection()) return;
-                    setTagsExpanded(true);
-                  }
-                : undefined
-            }
           >
-            <div
-              ref={tagsContainerRef}
-              style={{
-                flex: 1,
-                minWidth: 0,
-                display: 'flex',
-                // 折叠态强制单行：标签 chip 可压缩并以省略号截断，保证 +N 始终完整留在行尾；
-                // 展开态恢复换行显示全部标签（长标签在 chip 内换行，阅读舒适）。
-                flexWrap: tagsExpanded ? 'wrap' : 'nowrap',
-                alignItems: 'center',
-                gap: 4,
-                overflow: tagsExpanded ? 'visible' : 'hidden',
-              }}
-            >
-              {displayedTags.map((tag) => (
-                <span
-                  key={tag}
-                  {...{ [TAG_CHIP_ATTR]: true }}
-                  style={{
-                    // 折叠态允许压缩（flexShrink: 1 + minWidth: 0 使省略号生效），
-                    // 空间不足时优先截断标签文本而非换行。
-                    flexShrink: tagsExpanded ? 0 : 1,
-                    minWidth: 0,
-                    padding: '1px 8px',
-                    borderRadius: 999,
-                    fontSize: 'var(--text-badge)',
-                    color: 'var(--accent-primary)',
-                    border: '1px solid var(--border-subtle)',
-                    background: 'var(--bg-toolbar)',
-                    // 展开态允许 chip 内文本换行：**必须加 maxWidth: 100%**——flex-basis: auto
-                    // 的 item 默认宽度为内容 max-content，长标签会撑出容器而溢出，whiteSpace:
-                    // normal 永远没有换行机会；maxWidth 将 item 宽度钳制在容器宽度内，
-                    // wordBreak 兜底长单词/超长串，换行才会在 chip 内部生效。
-                    maxWidth: tagsExpanded ? '100%' : undefined,
-                    whiteSpace: tagsExpanded ? 'normal' : 'nowrap',
-                    overflow: tagsExpanded ? 'visible' : 'hidden',
-                    textOverflow: tagsExpanded ? undefined : 'ellipsis',
-                    wordBreak: 'break-word',
-                    lineHeight: 1.4,
-                  }}
-                >
-                  {tag}
-                </span>
-              ))}
-              {!tagsExpanded && hasMoreTags && (
-                // +N 采用与标签一致的 pill 尺寸（同 padding/fontSize/行高），保证垂直对齐；
-                // flexShrink: 0 使其永不被压缩、始终位于行尾
-                <span
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    flexShrink: 0,
-                    padding: '1px 8px',
-                    borderRadius: 999,
-                    fontSize: 'var(--text-badge)',
-                    lineHeight: '1.4',
-                    color: 'var(--text-tertiary)',
-                    border: '1px dashed var(--border-subtle)',
-                    background: 'transparent',
-                  }}
-                >
-                  +{visibleTags.length - MAX_VISIBLE_TAGS}
-                </span>
-              )}
-            </div>
-            {!tagsExpanded && showTagsToggle ? (
-              <ToggleButton
-                expanded={false}
-                onClick={() => setTagsExpanded(true)}
-                label={t('common:expand', { defaultValue: '展开' })}
-              />
-            ) : null}
+            {displayedTags.map((tag) => (
+              <span
+                key={tag}
+                {...{ [TAG_CHIP_ATTR]: true }}
+                style={{
+                  // 折叠态允许压缩（flexShrink: 1 + minWidth: 0 使省略号生效），
+                  // 空间不足时优先截断标签文本而非换行。
+                  flexShrink: tagsExpanded ? 0 : 1,
+                  minWidth: 0,
+                  padding: '1px 8px',
+                  borderRadius: 999,
+                  fontSize: 'var(--text-badge)',
+                  color: 'var(--accent-primary)',
+                  border: '1px solid var(--border-subtle)',
+                  background: 'var(--bg-toolbar)',
+                  // 展开态允许 chip 内文本换行：**必须加 maxWidth: 100%**——flex-basis: auto
+                  // 的 item 默认宽度为内容 max-content，长标签会撑出容器而溢出，whiteSpace:
+                  // normal 永远没有换行机会；maxWidth 将 item 宽度钳制在容器宽度内，
+                  // wordBreak 兜底长单词/超长串，换行才会在 chip 内部生效。
+                  maxWidth: tagsExpanded ? '100%' : undefined,
+                  whiteSpace: tagsExpanded ? 'normal' : 'nowrap',
+                  overflow: tagsExpanded ? 'visible' : 'hidden',
+                  textOverflow: tagsExpanded ? undefined : 'ellipsis',
+                  wordBreak: 'break-word',
+                  lineHeight: 1.4,
+                }}
+              >
+                {tag}
+              </span>
+            ))}
+            {!tagsExpanded && hasMoreTags && (
+              // +N 采用与标签一致的 pill 尺寸（同 padding/fontSize/行高），保证垂直对齐；
+              // flexShrink: 0 使其永不被压缩、始终位于行尾
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  flexShrink: 0,
+                  padding: '1px 8px',
+                  borderRadius: 999,
+                  fontSize: 'var(--text-badge)',
+                  lineHeight: '1.4',
+                  color: 'var(--text-tertiary)',
+                  border: '1px dashed var(--border-subtle)',
+                  background: 'transparent',
+                }}
+              >
+                +{visibleTags.length - MAX_VISIBLE_TAGS}
+              </span>
+            )}
           </div>
-        </div>
+        </ExpandableBlock>
       )}
     </div>
   );
