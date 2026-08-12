@@ -1,66 +1,13 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { Dialog } from '@/components/ui/Dialog';
-import { SecurePasswordInput } from '@/components/forms/PasswordInput';
 import { PinEntryCard } from '@/components/forms/PinEntryCard';
-import { Button } from '@/components/ui/Button';
-import { useToastError } from '@/hooks/useToastError';
-import { useAutoLockPauseStore } from '@/stores/autoLockPauseStore';
-import { Fingerprint, KeyRound, ScanFace, ShieldCheck, Grip } from 'lucide-react';
-import { ICON_SIZE } from '@/lib/constants';
-import { supportsHover } from '@/lib/platform';
 import { LoginIconBar } from '@/pages/auth/LoginIconBar';
-import type { LoginMethodOption } from '@/pages/auth/LoginIconBar';
 
-interface PasswordVerificationDialogProps {
-  open: boolean;
-  onClose: () => void;
-  /** Called with the password. Return true to confirm, false to reject */
-  onVerify: (password: string) => Promise<boolean>;
-  /**
-   * onVerify 返回 true 后回调（用于「验证成功后继续向导而非关闭」的多步流程，
-   * 如 PIN 设置向导；不传则维持默认行为：验证成功即关闭）。
-   */
-  onVerifySuccess?: () => void;
-  /** Customizable text overrides — all i18n-able via parent */
-  title?: string;
-  description?: string;
-  confirmLabel?: string;
-  /** Optional password hint to display */
-  hint?: string | null;
-  /** Biometric type name (e.g. "Touch ID", "Face ID") — enables biometric button */
-  biometricType?: string;
-  /** Called when user clicks biometric button. Return true on success */
-  onBiometric?: () => Promise<boolean>;
-  /** If provided, enables PIN verification mode */
-  pinAccountId?: string;
-  /** Called when PIN unlock succeeds (instead of onClose, which always reports ok=false) */
-  onPinSuccess?: () => void;
-  /**
-   * 动态错误文案（优先于内置 auth:incorrect_password）。
-   * 用于父组件需要展示自定义错误语义的场景（如生物识别错误码、锁定提示），
-   * 父组件在 onVerify 返回 false 前设置；密码输入变化时需自行清空（或使用 onPasswordChange）。
-   */
-  errorMessage?: string | null;
-  /** 密码输入变化回调（父组件用于清空自定义 errorMessage）。 */
-  onPasswordChange?: () => void;
-}
+import { usePasswordVerification, type PasswordVerificationDialogProps } from './usePasswordVerification';
+import { PasswordVerificationBiometricCard } from './PasswordVerificationBiometricCard';
+import { PasswordVerificationPasswordCard } from './PasswordVerificationPasswordCard';
 
-/** 生物识别类型的可读标签映射 */
-const BIOMETRIC_LABEL: Record<string, string> = {
-  faceId: 'Face ID',
-  touchId: 'Touch ID',
-  windowsHello: 'Windows Hello',
-};
-
-/** 解锁方式定义（id 与 LoginIconBar 的 LoginMethodOption 对齐，便于复用） */
-interface UnlockMethodDef {
-  id: 'faceId' | 'touchId' | 'windowsHello' | 'pin' | 'password';
-  icon: React.ReactNode;
-  label: string;
-  onClick: () => void;
-}
+export type { PasswordVerificationDialogProps } from './usePasswordVerification';
 
 /**
  * Unified password verification dialog — single source of truth for all
@@ -69,293 +16,41 @@ interface UnlockMethodDef {
  * 按优先级显示解锁方式卡片：Face ID > Touch ID > Windows Hello > PIN > 密码
  * 底部统一图标栏切换方式（主密码 · Face ID · Touch ID · Windows Hello · PIN）。
  * 悬停图标时展开文字，左侧按钮不动右侧按钮被推向右。
+ *
+ * P046 拆分后为纯展示组合层：状态与 handler 收敛于 usePasswordVerification 数据 hook，
+ * 生物识别/密码卡片为独立展示子组件，PIN 卡片复用共享 PinEntryCard。
  */
-export function PasswordVerificationDialog({
-  open,
-  onClose,
-  onVerify,
-  title,
-  description,
-  confirmLabel,
-  hint,
-  biometricType,
-  onBiometric,
-  pinAccountId,
-  onPinSuccess,
-  errorMessage,
-  onPasswordChange,
-  onVerifySuccess,
-}: PasswordVerificationDialogProps) {
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [bioLoading, setBioLoading] = useState(false);
-  const [pinAvailable, setPinAvailable] = useState(false);
-  const [pinChecked, setPinChecked] = useState(false);
-  const [pinUnlocking, setPinUnlocking] = useState(false);
-  const [pinError, setPinError] = useState<string | null>(null);
-  const [pinInputKey, setPinInputKey] = useState(0);
-  const [hoveredIcon, setHoveredIcon] = useState<string | null>(null);
-  const [committedIcon, setCommittedIcon] = useState<string | null>(null);
-  const commitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const { onError } = useToastError();
+export function PasswordVerificationDialog(props: PasswordVerificationDialogProps) {
+  const {
+    open,
+    title,
+    description,
+    confirmLabel,
+    hint,
+  } = props;
   const { t } = useTranslation(['auth', 'common', 'settings']);
-
-  const hasBiometric = !!biometricType && !!onBiometric;
-
-  // 当前显示的解锁方式（按优先级选择）
-  const [loginMethod, setLoginMethod] = useState<
-    'faceId' | 'touchId' | 'windowsHello' | 'pin' | 'password' | null
-  >(null);
-
-  // 从 loginMethod 推导生物识别类型标签（与当前卡片图标保持一致）
-  const activeBioType =
-    loginMethod === 'faceId' || loginMethod === 'touchId' || loginMethod === 'windowsHello'
-      ? loginMethod
-      : biometricType || '';
-  const biometricLabel =
-    BIOMETRIC_LABEL[activeBioType] ||
-    activeBioType ||
-    t('auth:bio_default', { defaultValue: 'Biometric' });
-
-  // 卸载时清理悬停延迟定时器
-  useEffect(() => {
-    return () => {
-      if (commitTimerRef.current) clearTimeout(commitTimerRef.current);
-    };
-  }, []);
-
-  // 对话框打开期间暂停自动锁定计时（与 CLI 的 auto_lock_paused 语义一致），
-  // 避免用户长时间未输入时验证框被锁定流程变成孤儿状态
-  useEffect(() => {
-    if (!open) return;
-    const { pause, resume } = useAutoLockPauseStore.getState();
-    pause();
-    return () => resume();
-  }, [open]);
-
-  // 对话框打开时重置状态、检查可用性
-  useEffect(() => {
-    if (!open) {
-      setPinChecked(false);
-      setPinAvailable(false);
-      setLoginMethod(null);
-      return;
-    }
-
-    setPassword('');
-    setError(null);
-    setPinError(null);
-    setPinUnlocking(false);
-    setBioLoading(false);
-    setLoginMethod(null);
-    setPinChecked(false);
-    setPinAvailable(false);
-
-    if (pinAccountId) {
-      invoke<{ configured: boolean; locked: boolean }>('pin_check_availability', {
-        accountId: pinAccountId,
-      })
-        .then((r) => setPinAvailable(r.configured && !r.locked))
-        .catch(() => setPinAvailable(false))
-        .finally(() => setPinChecked(true));
-    } else {
-      setPinChecked(true);
-    }
-  }, [open, pinAccountId]);
-
-  // PIN 检查完成后按优先级设置默认解锁方式
-  useEffect(() => {
-    if (!open || !pinChecked) return;
-
-    // Priority: FaceID > Touch ID > Windows Hello > PIN > Password
-    if (hasBiometric) {
-      const raw = biometricType || '';
-      if (raw === 'faceId') setLoginMethod('faceId');
-      else if (raw === 'touchId') setLoginMethod('touchId');
-      else if (raw === 'windowsHello') setLoginMethod('windowsHello');
-      else setLoginMethod('password');
-    } else if (pinAvailable) {
-      setLoginMethod('pin');
-    } else {
-      setLoginMethod('password');
-    }
-  }, [open, pinChecked, hasBiometric, pinAvailable, biometricType]);
-
-  const handlePinComplete = useCallback(
-    async (pin: string) => {
-      if (!pinAccountId) return;
-      setPinUnlocking(true);
-      setPinError(null);
-      try {
-        await invoke('pin_unlock', {
-          accountId: pinAccountId,
-          pin,
-          location: 'critical_data_access',
-          action: 'unlock',
-        });
-        setPassword('');
-        setPinError(null);
-        onPinSuccess?.();
-      } catch (e) {
-        const msg = String(e);
-        if (msg.includes('__PIN_ERR__:locked')) {
-          setPinError(t('auth:pin_locked'));
-          setPinAvailable(false);
-          setLoginMethod('password');
-        } else if (msg.includes('__PIN_ERR__:incorrect')) {
-          setPinError(t('auth:pin_incorrect'));
-        } else {
-          setPinError(t('auth:pin_error'));
-        }
-        setPinInputKey((k) => k + 1);
-      } finally {
-        setPinUnlocking(false);
-      }
-    },
-    [pinAccountId, t, onPinSuccess],
-  );
-
-  const handleConfirm = async () => {
-    if (!password) {
-      setError(t('auth:password_required'));
-      return;
-    }
-    setLoading(true);
-    setError(null);
-    try {
-      const ok = await onVerify(password);
-      if (ok) {
-        setPassword('');
-        if (onVerifySuccess) {
-          // 多步向导：验证成功后保持对话框打开，由父组件推进下一步
-          onVerifySuccess();
-        } else {
-          onClose();
-        }
-      } else {
-        setError(t('auth:incorrect_password'));
-      }
-    } catch (e) {
-      onError(e, t('common:error'));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleBiometric = async () => {
-    if (!onBiometric) return;
-    setBioLoading(true);
-    setError(null);
-    try {
-      const ok = await onBiometric();
-      if (ok) {
-        setPassword('');
-        onClose();
-      }
-    } catch {
-      // User cancelled or failed — silently stay on screen
-    } finally {
-      setBioLoading(false);
-    }
-  };
-
-  const handleClose = () => {
-    setPassword('');
-    setError(null);
-    setLoginMethod(null);
-    setPinError(null);
-    setCommittedIcon(null);
-    if (commitTimerRef.current) clearTimeout(commitTimerRef.current);
-    onClose();
-  };
-
-  // 两阶段悬停：边框/颜色立即高亮，文字/展开延迟 200ms 后触发
-  const handleIconEnter = (id: string) => {
-    // 触屏设备不触发悬停展开（Android WebView hover 会粘住）
-    if (!supportsHover()) return;
-    setHoveredIcon(id);
-    // 清除上一次的定时器
-    if (commitTimerRef.current) clearTimeout(commitTimerRef.current);
-    // 200ms 后提交展开状态
-    commitTimerRef.current = setTimeout(() => {
-      setCommittedIcon(id);
-      commitTimerRef.current = null;
-    }, 300);
-  };
-
-  const handleIconLeave = () => {
-    setHoveredIcon(null);
-    setCommittedIcon(null);
-    if (commitTimerRef.current) {
-      clearTimeout(commitTimerRef.current);
-      commitTimerRef.current = null;
-    }
-  };
-
-  const handleIconClick = (method: LoginMethodOption) => {
-    setHoveredIcon(null);
-    setCommittedIcon(null);
-    if (commitTimerRef.current) {
-      clearTimeout(commitTimerRef.current);
-      commitTimerRef.current = null;
-    }
-    method.onClick();
-  };
-
-  // ==== 构建可用解锁方式列表 ====
-  // 顺序：主密码 → Face ID → Touch ID → Windows Hello → PIN
-  const methods: UnlockMethodDef[] = [];
-  // 1. 主密码（始终可用）
-  methods.push({
-    id: 'password',
-    icon: <KeyRound size={ICON_SIZE.xl} />,
-    label: t('auth:password_method', { defaultValue: '主密码' }),
-    onClick: () => setLoginMethod('password'),
-  });
-
-  const effectiveHasBiometric = hasBiometric;
-  const effectivePinAvailable = pinAvailable;
-
-  // 2–4. 生物识别（根据类型显示其中一个）
-  if (effectiveHasBiometric) {
-    if (biometricType === 'faceId') {
-      methods.push({
-        id: 'faceId',
-        icon: <ScanFace size={ICON_SIZE.xl} />,
-        label: 'Face ID',
-        onClick: () => setLoginMethod('faceId'),
-      });
-    }
-    if (biometricType === 'touchId') {
-      methods.push({
-        id: 'touchId',
-        icon: <Fingerprint size={ICON_SIZE.xl} />,
-        label: 'Touch ID',
-        onClick: () => setLoginMethod('touchId'),
-      });
-    }
-    if (biometricType === 'windowsHello') {
-      methods.push({
-        id: 'windowsHello',
-        icon: <ShieldCheck size={ICON_SIZE.xl} />,
-        label: 'Windows Hello',
-        onClick: () => setLoginMethod('windowsHello'),
-      });
-    }
-  }
-  // 5. PIN 码
-  if (effectivePinAvailable) {
-    methods.push({
-      id: 'pin',
-      icon: <Grip size={ICON_SIZE.xl} />,
-      label: t('auth:pin_method', { defaultValue: 'PIN 码' }),
-      onClick: () => {
-        setLoginMethod('pin');
-        setPinError(null);
-      },
-    });
-  }
+  const {
+    loginMethod,
+    bioLoading,
+    biometricLabel,
+    handleBiometric,
+    pinUnlocking,
+    pinError,
+    pinInputKey,
+    handlePinComplete,
+    password,
+    handlePasswordChange,
+    inputError,
+    loading,
+    handleConfirm,
+    handleClose,
+    methods,
+    hoveredIcon,
+    committedIcon,
+    handleIconEnter,
+    handleIconLeave,
+    handleIconClick,
+  } = usePasswordVerification(props);
 
   return (
     <Dialog isOpen={open} onClose={handleClose} dialogStyle={{ maxWidth: 360 }} priority="auth">
@@ -373,69 +68,13 @@ export function PasswordVerificationDialog({
         {(loginMethod === 'faceId' ||
           loginMethod === 'touchId' ||
           loginMethod === 'windowsHello') && (
-          <div
-            style={{
-              minHeight: 152,
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              marginBottom: 8,
-            }}
-          >
-            <button
-              onClick={handleBiometric}
-              disabled={bioLoading}
-              className="interactive-card-lift"
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 12,
-                padding: '20px 24px',
-                borderRadius: 14,
-                borderWidth: 1,
-                borderStyle: 'solid',
-                background: bioLoading ? 'var(--bg-toolbar)' : 'transparent',
-                cursor: bioLoading ? 'wait' : 'pointer',
-                width: '100%',
-                fontFamily: 'inherit',
-              }}
-            >
-              {loginMethod === 'faceId' && (
-                <ScanFace
-                  size={ICON_SIZE['4xl']}
-                  color="var(--accent-primary)"
-                  style={{ opacity: bioLoading ? 0.5 : 1 }}
-                />
-              )}
-              {loginMethod === 'touchId' && (
-                <Fingerprint
-                  size={ICON_SIZE['4xl']}
-                  color="var(--accent-primary)"
-                  style={{ opacity: bioLoading ? 0.5 : 1 }}
-                />
-              )}
-              {loginMethod === 'windowsHello' && (
-                <ShieldCheck
-                  size={ICON_SIZE['4xl']}
-                  color="var(--accent-primary)"
-                  style={{ opacity: bioLoading ? 0.5 : 1 }}
-                />
-              )}
-              <span
-                style={{
-                  fontSize: 'var(--text-card-title)',
-                  fontWeight: 500,
-                  color: 'var(--text-primary)',
-                }}
-              >
-                {bioLoading
-                  ? t('auth:bio_verifying')
-                  : t('auth:bio_unlock_reason', { type: biometricLabel })}
-              </span>
-            </button>
-          </div>
+          <PasswordVerificationBiometricCard
+            loginMethod={loginMethod}
+            bioLoading={bioLoading}
+            biometricLabel={biometricLabel}
+            onUnlock={handleBiometric}
+            t={t}
+          />
         )}
 
         {/* ===== PIN 码卡片（P040: 共享 PinEntryCard）===== */}
@@ -451,40 +90,17 @@ export function PasswordVerificationDialog({
 
         {/* ===== 密码卡片 ===== */}
         {(loginMethod === 'password' || loginMethod === null) && (
-          <div
-            style={{
-              minHeight: 152,
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              marginBottom: 8,
-            }}
-          >
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <SecurePasswordInput
-                value={password}
-                onChange={(v) => {
-                  setPassword(v);
-                  setError(null);
-                  onPasswordChange?.();
-                }}
-                placeholder={t('common:password_placeholder')}
-                error={errorMessage ?? error}
-                // SoloSoul 主密码非网站密码：禁用浏览器/密码管理器自动填充（current-password 会显示历史密码明文）
-                autoComplete="off"
-                hint={hint}
-                onEnter={handleConfirm}
-              />
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-                <Button variant="secondary" onClick={handleClose}>
-                  {t('common:cancel')}
-                </Button>
-                <Button onClick={handleConfirm} loading={loading} disabled={!password}>
-                  {confirmLabel || t('common:confirm')}
-                </Button>
-              </div>
-            </div>
-          </div>
+          <PasswordVerificationPasswordCard
+            password={password}
+            onPasswordChange={handlePasswordChange}
+            hint={hint}
+            error={inputError}
+            loading={loading}
+            confirmLabel={confirmLabel}
+            onConfirm={handleConfirm}
+            onCancel={handleClose}
+            t={t}
+          />
         )}
 
         {/* loginMethod === null（正在检测可用性）时显示轻量 loading */}

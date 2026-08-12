@@ -1,0 +1,583 @@
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { invokeCommand as invoke } from '@/lib/ipcClient';
+import { useAuthStore, saveLastAccountId, LAST_ACCOUNT_KEY } from '@/stores/authStore';
+import { useApplyThemeFromSettings } from '@/hooks/useApplyThemeFromSettings';
+import type { AccountInfo } from '@/lib/ipc';
+import { getBiometricErrorMessage } from '@/lib/biometricError';
+import { translateRustError } from '@/lib/rustErrors';
+import { supportsHover } from '@/lib/platform';
+import { logger } from '@/lib/logger';
+
+import type { PinInputHandle } from '@/components/forms/PinInput';
+import { Fingerprint, KeyRound, ScanFace, ShieldCheck, Grip } from 'lucide-react';
+import { ICON_SIZE } from '@/lib/constants';
+
+import type { LoginMethodOption } from './LoginIconBar';
+
+/** P038: 受支持的生物识别类型白名单（显示名由 LoginBiometricView 的查表负责） */
+const BIOMETRIC_INFO: Record<string, string> = {
+  faceId: 'faceId',
+  touchId: 'touchId',
+  windowsHello: 'windowsHello',
+};
+
+/** 模块级缓存 — 跨组件卸载持久化，避免锁定后重新挂载时闪烁 */
+let _cachedLoginMethod: 'faceId' | 'touchId' | 'windowsHello' | 'pin' | 'password' | null = null;
+
+export type LoginMethod = 'faceId' | 'touchId' | 'windowsHello' | 'pin' | 'password';
+
+/**
+ * 登录页全部编排逻辑（P046 拆分：数据 hook）。
+ * 账户选择、生物识别/PIN 可用性探测、解锁方式优先级、三种解锁 handler、
+ * 底部图标栏构建与悬停状态均收敛于此，LoginPage 组件退化为纯展示组合层。
+ */
+export function useLoginPage() {
+  useApplyThemeFromSettings();
+  const navigate = useNavigate();
+  const {
+    login,
+    checkHasAccount,
+    listAccounts,
+    hasAccount,
+    isAuthenticated,
+    isLoading,
+    accounts,
+    clearError,
+  } = useAuthStore();
+  const [searchParams] = useSearchParams();
+  const fromExisting = searchParams.get('fromExisting') === 'true';
+  const [selectedAccountId, setSelectedAccountId] = useState('');
+  const [password, setPassword] = useState('');
+  const { t } = useTranslation(['auth', 'common', 'settings']);
+  const selectedAccount = accounts.find((a) => a.id === selectedAccountId);
+
+  // Biometric state
+  const [bioAvailable, setBioAvailable] = useState(false);
+  const [biometryTypeRaw, setBiometryTypeRaw] = useState('touchId');
+  const [bioLoading, setBioLoading] = useState(false);
+  const [bioError, setBioError] = useState<string | null>(null);
+  const [bioChecked, setBioChecked] = useState(false);
+  // 系统生物识别因失败次数过多被临时锁定（Android）：指纹项仍显示，但点击时提示警告
+  const [bioLockout, setBioLockout] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  /** 主密码输入框行内错误（空密码 / 后端密码错误），红边 + 抖动。 */
+  const [passwordFieldError, setPasswordFieldError] = useState<string | null>(null);
+  /** 密码错误自增计数：同串错误（Invalid password）重复提交时也重新抖动。 */
+  const [passwordErrorTick, setPasswordErrorTick] = useState(0);
+  const abortRef = useRef<AbortController | null>(null);
+
+  // PIN state
+  const [pinAvailable, setPinAvailable] = useState(false);
+  const [pinChecked, setPinChecked] = useState(false);
+  const [pinUnlocking, setPinUnlocking] = useState(false);
+  const [pinError, setPinError] = useState<string | null>(null);
+  const [pinInputKey, setPinInputKey] = useState(0);
+  const pinInputRef = useRef<PinInputHandle>(null);
+  const [hoveredIcon, setHoveredIcon] = useState<string | null>(null);
+  const [committedIcon, setCommittedIcon] = useState<string | null>(null);
+  const commitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [recoveryOpen, setRecoveryOpen] = useState(false);
+
+  // 移动端启动性能基线：登录页首个输入框获焦时记录 T1（MOB-P1-07）
+  // 注意 T1 从 __SOLOSOUL_APP_START_TIME 开始算，记录首个输入框 focus 时刻。
+  const t1FiredRef = useRef(false);
+
+  useEffect(() => {
+    // Defensive load: fetch the account list directly in case Vite HMR keeps
+    // authStore.listAccounts pointing at a stale command name.
+    invoke<AccountInfo[]>('vault_list_accounts')
+      .then((parsed) => {
+        useAuthStore.setState({
+          accounts: parsed,
+          hasAccount: parsed.length > 0,
+        });
+      })
+      .catch(() => {
+        // Fall through to the store-level loader below.
+      });
+    abortRef.current?.abort();
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
+    // 到达登录页即撤掉原生锁屏遮盖层（Android；其他平台为 no-op）。
+    // 覆盖冷启动路径：进程被杀后持久化标记触发遮盖，但 JS 事件可能丢失，
+    // 冷启动后 Vault 内存密钥已不存在，必然落在登录页，挂载即撤遮盖。
+    invoke('dismiss_lock_mask').catch(() => {});
+    checkHasAccount().then(() => {
+      if (!ctrl.signal.aborted) listAccounts();
+    });
+    // Probe device biometry type early (do not set bioAvailable here — configured
+    // status is account-specific and decided in the selectedAccountId effect).
+    invoke<{ available: boolean; biometryType?: string }>('biometric_check_availability', {
+      accountId: '',
+    })
+      .then((r) => {
+        if (ctrl.signal.aborted) return;
+        const info = r.biometryType ? BIOMETRIC_INFO[r.biometryType] : undefined;
+        if (info) {
+          setBiometryTypeRaw(info);
+        }
+      })
+      .catch(() => {
+        // Ignore: account-specific check will handle availability.
+      });
+    // 每次回到前台时撤掉原生锁屏遮盖层：
+    // Kotlin LockStatePlugin.onResume() 在进程被杀恢复后可能重新挂遮罩，
+    // 而 useAutoLock 的 screen-locked 监听器在 isAuthenticated 变为 false
+    // 时已被清理，导致无人调 dismiss_lock_mask。此兜底确保无论何时回到前台都撤除。
+    const onVisibleDismissMask = () => {
+      if (document.visibilityState === 'visible') {
+        invoke('dismiss_lock_mask').catch(() => {});
+      }
+    };
+    document.addEventListener('visibilitychange', onVisibleDismissMask);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibleDismissMask);
+      ctrl.abort();
+    };
+  }, [checkHasAccount, listAccounts]);
+
+  useEffect(() => {
+    if (hasAccount === false) navigate('/bootstrap');
+    if (isAuthenticated) navigate('/');
+  }, [hasAccount, isAuthenticated, navigate]);
+
+  // Auto-select last logged-in account (fall back to first account)
+  useEffect(() => {
+    if (accounts.length > 0 && !selectedAccountId) {
+      let lastId = '';
+      try {
+        lastId = localStorage.getItem(LAST_ACCOUNT_KEY) || '';
+      } catch {
+        lastId = '';
+      }
+      const target = accounts.find((a) => a.id === lastId) || accounts[0];
+      setSelectedAccountId(target.id);
+    }
+  }, [accounts, selectedAccountId]);
+
+  // Priority-based login method selection
+  // Priority: FaceID > Touch ID > Windows Hello > PIN > Password
+  // 从模块缓存初始化，避免锁定后重新挂载时闪烁
+  const [loginMethod, setLoginMethod] = useState<LoginMethod | null>(_cachedLoginMethod);
+
+  // 跨卸载持久化 — 锁定再登录后直接显示最后使用的方法
+  useEffect(() => {
+    if (loginMethod) _cachedLoginMethod = loginMethod;
+  }, [loginMethod]);
+
+  // Check biometric and PIN availability for selected account
+  useEffect(() => {
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+    if (!selectedAccountId) {
+      // 尚未选中账户时保持缓存值，不触发优先级设置 effect，避免覆盖缓存
+      return () => controller.abort();
+    }
+
+    // 从 SAF 已有账户登录时，旧安装的生物识别/PIN 凭证已失效，强制仅显示主密码
+    if (fromExisting) {
+      setBioChecked(true);
+      setPinChecked(true);
+      setBioAvailable(false);
+      setPinAvailable(false);
+      setBioLockout(false);
+      return () => controller.abort();
+    }
+
+    // Reset state when account changes — 不重置 loginMethod，保留缓存值避免闪烁
+    setBioChecked(false);
+    setPinChecked(false);
+    setBioAvailable(false);
+    setPinAvailable(false);
+    setBioLockout(false);
+    setBioError(null);
+    setPinError(null);
+    setSubmitError(null);
+
+    // Check biometric
+    // lockout 场景：系统因失败次数过多临时锁定生物识别（Android canAuthenticate 返回
+    // ERROR_LOCKOUT），此时后端 available 会变 false，但凭证仍已配置（configured=true）。
+    // 指纹项应继续显示，仅在解锁时提示"系统指纹识别未恢复"，而不是消失或显示"不支持"。
+    invoke<{
+      available: boolean;
+      configured: boolean;
+      biometryType?: string;
+      lockout?: boolean;
+    }>('biometric_check_availability', { accountId: selectedAccountId })
+      .then((r) => {
+        if (controller.signal.aborted) return;
+        // 已配置凭证且（设备可用或系统临时锁定）→ 保留指纹项。
+        // lockout 以 !!r.lockout 为准：即使 available 与 lockout 同时成立
+        // （Android 插件 status() 在锁定期间可能仍报可用），也正确显示警告。
+        if (r.configured && (r.available || r.lockout)) {
+          setBioAvailable(true);
+          setBioLockout(!!r.lockout);
+          const info = r.biometryType ? BIOMETRIC_INFO[r.biometryType] : undefined;
+          if (info) {
+            setBiometryTypeRaw(info);
+          }
+        } else {
+          setBioAvailable(false);
+          setBioLockout(false);
+        }
+      })
+      .catch(() => {
+        if (controller.signal.aborted) return;
+        setBioAvailable(false);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setBioChecked(true);
+      });
+
+    // Check PIN
+    invoke<{ configured: boolean; locked: boolean }>('pin_check_availability', {
+      accountId: selectedAccountId,
+    })
+      .then((r) => {
+        if (controller.signal.aborted) return;
+        setPinAvailable(r.configured && !r.locked);
+      })
+      .catch(() => {
+        if (controller.signal.aborted) return;
+        setPinAvailable(false);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setPinChecked(true);
+      });
+
+    return () => controller.abort();
+  }, [selectedAccountId, fromExisting]);
+
+  // 卸载时清理悬停延迟定时器
+  useEffect(() => {
+    return () => {
+      if (commitTimerRef.current) clearTimeout(commitTimerRef.current);
+    };
+  }, []);
+
+  // P034: 组件卸载时清空密码 state（登录成功导航离开 / 锁定返回登录页时缩短驻留）
+  useEffect(() => {
+    return () => setPassword('');
+  }, []);
+
+  // Set login method by priority after both checks complete
+  useEffect(() => {
+    if (!bioChecked || !pinChecked) return;
+
+    // Priority: FaceID > Touch ID > Windows Hello > PIN > Password
+    if (bioAvailable) {
+      const raw = biometryTypeRaw;
+      if (raw === 'faceId') setLoginMethod('faceId');
+      else if (raw === 'touchId') setLoginMethod('touchId');
+      else if (raw === 'windowsHello') setLoginMethod('windowsHello');
+      else setLoginMethod('password');
+    } else if (pinAvailable) {
+      setLoginMethod('pin');
+    } else {
+      setLoginMethod('password');
+    }
+  }, [bioChecked, pinChecked, bioAvailable, pinAvailable, biometryTypeRaw]);
+
+  const handlePinComplete = useCallback(
+    async (pin: string) => {
+      if (!selectedAccountId || pinUnlocking) return;
+      setPinUnlocking(true);
+      setPinError(null);
+      const t0 = performance.now();
+      try {
+        // pin_unlock 直接返回账户信息（id + name），省去额外 vault_list_accounts 调用
+        const acc = await invoke<AccountInfo>('pin_unlock', {
+          accountId: selectedAccountId,
+          pin,
+          location: 'login_page',
+          action: 'unlock',
+        });
+        (window as typeof window & { __SOLOSOUL_UNLOCK_TIME?: number }).__SOLOSOUL_UNLOCK_TIME = t0;
+        saveLastAccountId(acc.id);
+        // P015: 收敛到 authStore action，不再直改 setState
+        useAuthStore.getState().completeUnlock(acc);
+        // PIN 解锁后延迟检查备份提醒（P228: accountId 注入，避免循环依赖）
+        const pinUnlockedAccountId = acc.id;
+        setTimeout(() => {
+          import('@/lib/notification')
+            .then((m) => m.checkBackupReminder(pinUnlockedAccountId))
+            .catch((err) => logger.warn('[LoginPage] backup reminder check failed:', err));
+        }, 2000);
+        navigate('/');
+      } catch (e) {
+        const msg = String(e);
+        if (msg.includes('__PIN_ERR__:locked')) {
+          setPinError(t('auth:pin_locked'));
+          setPinAvailable(false);
+          // 锁定后降级到主密码
+          setLoginMethod('password');
+        } else if (msg.includes('__PIN_ERR__:incorrect')) {
+          setPinError(t('auth:pin_incorrect'));
+        } else {
+          setPinError(t('auth:pin_error'));
+        }
+        // 清空 PinInput 控件状态
+        setPinInputKey((k) => k + 1);
+        setPinUnlocking(false);
+      }
+    },
+    [selectedAccountId, pinUnlocking, t, navigate],
+  );
+
+  const handleBiometricUnlock = useCallback(async () => {
+    if (!selectedAccountId || bioLoading) return;
+    // 系统生物识别处于临时锁定状态：不发起原生提示，直接显示警告并降级到主密码
+    if (bioLockout) {
+      setBioError(t('settings:biometric_lockout_desc'));
+      setLoginMethod('password');
+      return;
+    }
+    setBioLoading(true);
+    setBioError(null);
+    let success = false;
+    const t0 = performance.now();
+    try {
+      await invoke('biometric_unlock', {
+        accountId: selectedAccountId,
+        location: 'login_page',
+        action: 'unlock',
+        biometryType: biometryTypeRaw,
+      });
+      // Vault already unlocked — set auth state directly
+      const accs = (await invoke<AccountInfo[]>('vault_list_accounts')) || [];
+      const acc = accs.find((a) => a.id === selectedAccountId) || {
+        id: selectedAccountId,
+        name: selectedAccountId,
+      };
+      saveLastAccountId(acc.id);
+      // P015: 收敛到 authStore action，不再直改 setState
+      useAuthStore.getState().completeUnlock(acc, accs);
+      success = true;
+      (window as typeof window & { __SOLOSOUL_UNLOCK_TIME?: number }).__SOLOSOUL_UNLOCK_TIME = t0;
+      // 生物识别解锁后延迟检查备份提醒（P228: accountId 注入，避免循环依赖）
+      const bioUnlockedAccountId = acc.id;
+      setTimeout(() => {
+        import('@/lib/notification')
+          .then((m) => m.checkBackupReminder(bioUnlockedAccountId))
+          .catch((err) => logger.error('[LoginPage] backup reminder check failed:', err));
+      }, 2000);
+      // Navigate immediately to avoid showing the biometric UI after success
+      navigate('/');
+    } catch (e) {
+      const msg = String(e);
+      if (
+        msg.toLowerCase().includes('cancelled') ||
+        msg.toLowerCase().includes('cancel') ||
+        msg.includes('__BIO_ERR__:cancelled')
+      ) {
+        setLoginMethod('password');
+      } else if (msg.includes('__BIO_ERR__:lockout') || msg.toLowerCase().includes('lockout')) {
+        // 系统临时锁定：保留指纹项显示，标记锁定状态并展示警告
+        setBioLockout(true);
+        setBioError(t('settings:biometric_lockout_desc'));
+        setLoginMethod('password');
+      } else {
+        setBioError(getBiometricErrorMessage(e, t));
+        setLoginMethod('password');
+      }
+    } finally {
+      if (!success) setBioLoading(false);
+    }
+  }, [selectedAccountId, bioLoading, t, navigate, biometryTypeRaw, bioLockout]);
+
+  const handleSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    clearError();
+    setBioError(null);
+    setSubmitError(null);
+    // 注意：此处不清除 passwordFieldError —— 重复提交同串错误时靠 errorTick 重抖；
+    // 若在提交开头清除，Argon2 校验期间行内错误会闪烁消失（用户报的闪烁问题）。
+    if (!selectedAccountId) {
+      setSubmitError(t('auth:no_account_selected'));
+      return;
+    }
+    // 空密码前置校验：不发后端请求，输入框行内必填错误（消除 Argon2 往返与 div 切换闪烁）
+    if (!password) {
+      setPasswordFieldError(t('auth:password_required'));
+      setPasswordErrorTick((n) => n + 1);
+      return;
+    }
+    await login(selectedAccountId, password);
+    // 后端密码类错误（Invalid password / Verify failed）：i18n 后挂到输入框行内；
+    // 其他后端错误回退到 submitError（独立错误区展示），避免被静默丢弃
+    const state = useAuthStore.getState();
+    if (state.error) {
+      const translated = translateRustError(state.error);
+      if (translated === 'common:invalid_password' || translated === 'common:verify_failed') {
+        setPasswordFieldError(t(translated));
+        setPasswordErrorTick((n) => n + 1);
+      } else {
+        // 非密码错误：清除可能残留的主密码行内错误，避免与 submitError 同时展示
+        setPasswordFieldError(null);
+        setSubmitError(translated ? t(translated) : state.error);
+      }
+    }
+    // P034: 登录成功立即清空密码 state（JS 堆不可清零，尽早缩短驻留窗口）
+    if (!state.error) {
+      setPassword('');
+    }
+    // 从已有外部目录登录后，config.json 中可能残留旧的安全标志（biometric/pin enabled），
+    // 但实际 KeyStore 凭证和 PIN 文件已被卸载清除。立即复位这些标志，
+    // 避免用户在安全设置中看到「已启用」但实际无法使用的状态。
+    if (fromExisting) {
+      try {
+        await invoke('reset_security_flags', { accountId: selectedAccountId });
+        // 刷新账户列表，让 currentAccount 反映新的 hasBiometricHistory/hasPinHistory 标志，
+        // 同时让安全设置页在重新进入时读取到最新的可用性状态。
+        await listAccounts();
+      } catch {
+        // 重置失败不阻断登录流程，用户下次启动时再试
+      }
+    }
+  };
+
+  // ==== 构建可用解锁方式列表 ====
+  // 顺序：主密码 → Face ID → Touch ID → Windows Hello → PIN
+  const iconMethods: {
+    id: 'faceId' | 'touchId' | 'windowsHello' | 'pin' | 'password';
+    icon: React.ReactNode;
+    label: string;
+    onClick: () => void;
+  }[] = [];
+  // 1. 主密码（始终可用）
+  iconMethods.push({
+    id: 'password',
+    icon: <KeyRound size={ICON_SIZE.xl} />,
+    label: t('auth:password_method', { defaultValue: '主密码' }),
+    onClick: () => setLoginMethod('password'),
+  });
+  // 2. Face ID
+  if (bioAvailable && biometryTypeRaw === 'faceId') {
+    iconMethods.push({
+      id: 'faceId',
+      icon: <ScanFace size={ICON_SIZE.xl} />,
+      label: 'Face ID',
+      onClick: () => {
+        setLoginMethod('faceId');
+        setBioError(null);
+      },
+    });
+  }
+  // 3. Touch ID
+  if (bioAvailable && biometryTypeRaw === 'touchId') {
+    iconMethods.push({
+      id: 'touchId',
+      icon: <Fingerprint size={ICON_SIZE.xl} />,
+      label: 'Touch ID',
+      onClick: () => {
+        setLoginMethod('touchId');
+        setBioError(null);
+      },
+    });
+  }
+  // 4. Windows Hello
+  if (bioAvailable && biometryTypeRaw === 'windowsHello') {
+    iconMethods.push({
+      id: 'windowsHello',
+      icon: <ShieldCheck size={ICON_SIZE.xl} />,
+      label: 'Windows Hello',
+      onClick: () => {
+        setLoginMethod('windowsHello');
+        setBioError(null);
+      },
+    });
+  }
+  // 5. PIN 码
+  if (pinAvailable) {
+    iconMethods.push({
+      id: 'pin',
+      icon: <Grip size={ICON_SIZE.xl} />,
+      label: t('auth:pin_method', { defaultValue: 'PIN 码' }),
+      onClick: () => {
+        setLoginMethod('pin');
+        setPinError(null);
+      },
+    });
+  }
+
+  // 两阶段悬停：边框/颜色立即高亮，文字/展开延迟 300ms 后触发
+  const handleIconEnter = (id: string) => {
+    // 触屏设备不触发悬停展开（Android WebView hover 会粘住）
+    if (!supportsHover()) return;
+    setHoveredIcon(id);
+    if (commitTimerRef.current) clearTimeout(commitTimerRef.current);
+    commitTimerRef.current = setTimeout(() => {
+      setCommittedIcon(id);
+      commitTimerRef.current = null;
+    }, 300);
+  };
+
+  const handleIconLeave = () => {
+    setHoveredIcon(null);
+    setCommittedIcon(null);
+    if (commitTimerRef.current) {
+      clearTimeout(commitTimerRef.current);
+      commitTimerRef.current = null;
+    }
+  };
+
+  const handleIconClick = (method: LoginMethodOption) => {
+    setHoveredIcon(null);
+    setCommittedIcon(null);
+    if (commitTimerRef.current) {
+      clearTimeout(commitTimerRef.current);
+      commitTimerRef.current = null;
+    }
+    method.onClick();
+  };
+
+  return {
+    // account
+    accounts,
+    selectedAccountId,
+    setSelectedAccountId,
+    selectedAccount,
+    // password input
+    password,
+    setPassword,
+    passwordFieldError,
+    setPasswordFieldError,
+    passwordErrorTick,
+    // store-driven
+    isLoading,
+    // method & availability
+    loginMethod,
+    // biometric view
+    bioLoading,
+    bioLockout,
+    bioError,
+    // pin view
+    pinUnlocking,
+    pinError,
+    pinInputKey,
+    pinInputRef,
+    // password view extras
+    submitError,
+    // handlers
+    handleBiometricUnlock,
+    handlePinComplete,
+    handleSubmit,
+    // icon bar
+    iconMethods,
+    hoveredIcon,
+    committedIcon,
+    handleIconEnter,
+    handleIconLeave,
+    handleIconClick,
+    // links & recovery
+    recoveryOpen,
+    setRecoveryOpen,
+    listAccounts,
+    navigate,
+    // performance probe
+    t1FiredRef,
+  };
+}
