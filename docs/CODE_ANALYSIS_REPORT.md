@@ -1,13 +1,13 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-12（轮次 13 复核：X 系列修复独立验证）
+> 最后更新：2026-08-12（轮次 14：Y001 修复收官）
 > 当前分支：`main`
 
 ## 总览
 
 - 全部已提出问题：**84 项**（P47 + N10 + R5 + S4 + T5 + U6 + V5 + W3 + X3 + Y1，含重复计数修正）
-- **修复关闭 81 项**、**经确认跳过 2 项**（P027/P033）、**延期 0 项**（P046/P047 均已拆分完成）
-- **待修复 1 项（Y001，P3）**：轮次 13 复核确认 X001–X003 修复真实（check-all 全绿），但 X002② 的「拖选不触发 click」机制依据不成立，详见「轮次 13 复核」
+- **修复关闭 82 项**、**经确认跳过 2 项**（P027/P033）、**延期 0 项**（P046/P047 均已拆分完成）
+- **待修复 0 项**：Y001 已修复（轮次 14），详见「修复记录（Y 系列）」
 - 遗留计划事项：S003 的 v2.10 blob 键清理（已有代码 TODO + CHANGELOG 双向追踪，属计划内而非遗忘）
 - 轮次 13 基线实测：`check-all` **EXIT=0 全绿**（tsc / fmt / clippy / cargo test / eslint / Vitest / ACL 与 pref-keys 机比）
 
@@ -39,6 +39,7 @@
 - **轮次 12 复核**：审查方对 W 系列收尾 + 附件触控系列 + 更新横幅 release notes 等 19 提交独立验证（check-all 实测全绿）。确认 W001–W003 与 V005-R1 修复真实闭合、触控演进链最终态自洽、SafeMarkdown 消毒链与强制更新不可绕过；发现更新横幅弹卡样式依赖 AboutPage 注入（P2）等，新增 X001–X003，全部 `[ ]` 待修复。
 - **轮次 13**：X 系列修复收官（3 提交）。X001 `.release-notes-md` 样式块提升全局（修横幅弹卡在任意页面缺样式）；X002 触控三边角（桌面 hover 限悬挂载恢复 / 描述文本可选中 / chip 圆角注释声明）；X003 文档/注释失实 5 处（dd612ced 测试计数、useAppUpdate 注释、itemOps 注释、W001 记录 321 矛盾、IconBar 300ms）。验证：tsc / eslint / Vitest 全绿。**待修复 0 项收官**。
 - **轮次 13 复核**：审查方对 X 系列 3 修复提交独立验证（check-all 实测全绿）。X001/X002/X003 修复均真实落地；发现 X002② 机制依据不成立（Chromium 下同元素内拖选仍触发 click），新增 Y001（P3），`[ ]` 待修复。
+- **轮次 14**：Y001 修复（1 提交）。描述/标签行 onClick 加 `getSelection` 非空选区守卫（拖选复制不再意外翻转折叠态），X002② 错误机制注释如实化；2 条新测试。验证：tsc / eslint / Vitest 全绿。**待修复 0 项收官**。
 
 ## 轮次 13 复核：X 系列修复独立验证（Y 系列）
 
@@ -54,10 +55,19 @@
 
 | ID | 优先级 | 类别 | 文件位置 | 描述 | 状态 |
 |----|--------|------|----------|------|------|
-| Y001 | P3 | UX/注释 | `tauri/src/components/attachment/AttachmentFileNameBlock.tsx:227-229`（描述行）、标签行同模式 | **X002②「拖选不触发 click」机制依据不成立**：注释称「拖选/长按不触发 click（按下与释放位置不同）」，但按 UI Events 规范，click 事件派发到 mousedown 与 mouseup 目标的**最近公共祖先**——在同一 `<span>` 内拖选文本时，按下与释放目标均为该 span，click 照常派发（Chromium 实测如此，Android WebView 同内核）。`userSelect: 'text'` 只让文本变得可选，并不能阻止拖选后触发展开/收起。实际影响轻微（用户拖选描述文本后折叠态会意外翻转一次，再点即恢复），但修复意图（复制与折叠互不冲突）未真正闭环，注释机制描述亦错误。稳妥修法：行 onClick 内加 `window.getSelection()?.toString()` 非空守卫（有选区则不切换） | `[ ]` 待修复 |
+| Y001 | P3 | UX/注释 | `tauri/src/components/attachment/AttachmentFileNameBlock.tsx:227-229`（描述行）、标签行同模式 | **X002②「拖选不触发 click」机制依据不成立**：注释称「拖选/长按不触发 click（按下与释放位置不同）」，但按 UI Events 规范，click 事件派发到 mousedown 与 mouseup 目标的**最近公共祖先**——在同一 `<span>` 内拖选文本时，按下与释放目标均为该 span，click 照常派发（Chromium 实测如此，Android WebView 同内核）。`userSelect: 'text'` 只让文本变得可选，并不能阻止拖选后触发展开/收起。实际影响轻微（用户拖选描述文本后折叠态会意外翻转一次，再点即恢复），但修复意图（复制与折叠互不冲突）未真正闭环，注释机制描述亦错误。稳妥修法：行 onClick 内加 `window.getSelection()?.toString()` 非空守卫（有选区则不切换） | `[x]` 已修复（Y001，见下） |
 
 **次要观察（不列为问题）**：X002②对标签行同样加了 `userSelect`（标签文本短，拖选场景少）；`userSelect` 本身是必要前提（此前整行 onClick 下文本选择体验差），只是不充分。
 
+
+## 修复记录（Y 系列）
+
+### Y001（P3，选区守卫）✅ 已修复
+
+- **修复**：描述行与标签行两处行 onClick 均加 `hasTextSelection()` 守卫——`window.getSelection()?.toString()` 非空（拖选复制/长按选择）时不切换折叠态，复制与折叠互不冲突真正闭环。
+- **注释修正**：原 X002② 机制注释「拖选/长按不触发 click（按下与释放位置不同）」依据不成立——UI Events 下 click 派发到按下/释放目标的最近公共祖先，同一元素内拖选后 click 照常派发，`userSelect: 'text'` 仅让文本可选；现如实描述「防误翻转由行 onClick 选区守卫承担」。
+- **测试**：新增 2 条（描述行/标签行各一）——mock `window.getSelection` 返回非空选区时点击不切换、`mockRestore` 后正常切换。
+- **验证**：tsc / eslint 全绿；AttachmentFileNameBlock 17 测试全绿。
 
 ## 轮次 11 复核：P046/P047 拆分独立验证（W 系列）
 
