@@ -1,13 +1,13 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-12（轮次 11：P047 Rust 巨型文件拆分 2/3）
+> 最后更新：2026-08-12（轮次 11：P047 Rust 巨型文件拆分收官）
 > 当前分支：`main`
 
 ## 总览
 
 - 全部已提出问题：**77 项**（P47 + N10 + R5 + S4 + T5 + U6 + V5，含重复计数修正）
 - **修复关闭 74 项**、**经确认跳过 2 项**（P027/P033）、**延期 1 项**（P047 Rust 巨型文件拆分，列为后续架构项）
-- **待修复 0 项**：轮次 9 V 系列全部修复（V001–V005），轮次 10 P046 前端巨型组件拆分收官，轮次 11 P047 Rust 巨型文件拆分推进（attachment.rs、object/tests.rs 完成），无新增问题
+- **待修复 0 项**：轮次 9 V 系列全部修复（V001–V005），轮次 10 P046 前端巨型组件拆分收官，轮次 11 P047 Rust 巨型文件拆分收官（attachment.rs、object/tests.rs、export_docx.rs 全部完成），无新增问题
 - 遗留计划事项：S003 的 v2.10 blob 键清理（已有代码 TODO + CHANGELOG 双向追踪，属计划内而非遗忘）
 - 轮次 9 基线实测：`check-all` **EXIT=0 全绿**（cargo test + Vitest + 两项机械化一致性检查）；轮次 10 前端全量验证 tsc / eslint 全绿、73 文件 647 测试全绿
 
@@ -20,7 +20,7 @@
 | P027 | P2 | 死代码 | `tauri/src-tauri/src/commands/object/trash.rs:147`、`lib.rs:389,870,996` | `trash_permanent_delete` 已注册但前端从不调用（P024 批量改造后走 batch），删除需同步守卫测试与总数断言 | `[-]` 经确认跳过（保留 API 完备性） |
 | P033 | P2 | 死代码 | `tauri/src-tauri/src/lib.rs:304-316`（调用于 :667） | `setup_detect_locale()` 结果仅用于一行 debug 日志，前端实际走 `get_system_locale` IPC（需人工确认是否保留诊断） | `[-]` 经确认跳过（保留诊断日志） |
 | P046 | P2 | 架构 | 前端 10 个巨型组件（汇总） | 单组件非注释行 > 300：`AttachmentViewer`(~550)、`LoginPage`(~501)、`PasswordVerificationDialog`(~447)、`TemplateFieldRow`(~436)、`DeviceListPanel`(~424)、`TrashPage`(~422)、`ObjectDetailModal`(~422)、`ExportImportPage`(~417)、`ImportSection`(~409)、`ExportSection`(~405)，建议按「数据 hook + 展示子组件」拆分 | `[x]` 已修复（P046-1 认证域、P046-2 对象域、P046-3 设置导出域，10/10 全部完成） |
-| P047 | P2 | 架构 | Rust 巨型文件（汇总） | `attachment.rs` 2057 行、`object/tests.rs` 2353 行、`export_docx.rs` 1989 行，文件级拆分作为后续架构项 | `[>]` 拆解中：**attachment.rs 1/3、object/tests.rs 2/3 完成**（见 P047-1、P047-2）；export_docx.rs 待拆 |
+| P047 | P2 | 架构 | Rust 巨型文件（汇总） | `attachment.rs` 2057 行、`object/tests.rs` 2353 行、`export_docx.rs` 1989 行，文件级拆分作为后续架构项 | `[x]` 已修复（P047-1 attachment、P047-2 object/tests、P047-3 export_docx，3/3 全部完成） |
 
 ## 历史轮次摘要
 
@@ -34,7 +34,7 @@
 - **轮次 8**：U 系列修复验证（6 提交 9e48b02c–7635406e）。U001/U002/U003/U005/U006 修复通过；U004 隐私政策披露有 P1 级残留（禁用承诺范围错误）；check-all 实测全绿。新增 V001–V005，全部 `[ ]` 待修复。
 - **轮次 9**：V 系列修复验证（5 提交 349dd084–8e9e0a18）。V001–V005 全部修复（V001 政策措辞改口、V002 build 失败兜底回退、V003 Drop guard、V004 可用性面披露、V005 metadata 断点）；V005② wiremock 集成测试登记备查（P3 可缓）。check-all 实测全绿。无新增问题。
 - **轮次 10**：P046 前端 10 个巨型组件拆分收官（3 提交 909d6735–15488aa3，按域分三批）。认证域 2 组件（P046-1：LoginPage 650→179、PasswordVerificationDialog 520→136）、对象域 3 组件（P046-2：AttachmentViewer 683→305、ObjectDetailModal 545→239、TemplateFieldRow 506→192）、设置导出域 5 组件（P046-3：ExportImportPage 495→263、ExportSection 489→311、ImportSection 493→183、TrashPage 503→294、DeviceListPanel 482→187），均按「数据 hook + 展示子组件」纯重构零行为变化；`PageGroup` 消除重复定义统一单一来源。前端全量验证：tsc / eslint 全绿、73 文件 647 测试全绿、代码审查通过无阻塞项。延期项仅剩 P047（Rust 巨型文件拆分）。
-- **轮次 11**：P047 Rust 巨型文件拆分推进 2/3（2 提交，纯文件级重构零行为变化）。P047-1 `attachment.rs` 2213→5 文件（mod/crud/tree/share/tests，最大 734）；P047-2 `object/tests.rs` 2377→tests/ 目录 6 文件（mod 共享 setup_vault + crud/trash/snapshot/template_sync/misc 五主题子模块，最大 732）；tauri 宏命令注册改定义处路径、外部引用路径保持。验证：cargo fmt / check / clippy `-D warnings` 全绿、42 测试属性与函数同段归属正确。剩余 export_docx.rs（2139 行）。
+- **轮次 11**：P047 Rust 巨型文件拆分收官（3 提交，纯文件级重构零行为变化）。P047-1 `attachment.rs` 2213→attachment/ 5 文件（mod/crud/tree/share/tests，最大 734）；P047-2 `object/tests.rs` 2377→object/tests/ 6 文件（mod 共享 setup_vault + crud/trash/snapshot/template_sync/misc 五主题子模块，最大 732）；P047-3 `export_docx.rs` 2139→export_docx/ 8 文件（mod 命令 + fields/docx/markdown/text/html/pdf + tests，最大 752，最小 62）。tauri 宏命令注册改定义处路径、外部引用路径保持（`pub use export_docx::*` 链不变）。验证：cargo fmt / check / clippy `-D warnings` 全绿（42 object 测试 + 21 export_docx 测试属性归属正确）；测试二进制本机 `0xc0000139` 限制，CI 兜底。至此 P046（前端 10 组件）+ P047（Rust 3 文件）全部完成，延期/跳过项清零，修复关闭 77/77。
 
 ## 轮次 6：新推送审查（T 系列）
 
@@ -203,6 +203,24 @@
 
 ## 修复记录（P047 Rust 巨型文件拆分）
 
+### P047-3（架构，export_docx.rs 3/3）✅ 已完成
+
+- **拆分**：纯文件级重构，零行为变化：`export_import/export_docx.rs` **2139 → export_docx/ 目录 8 文件**（最大 752，最小 62）：
+  - `export_docx/mod.rs` **368 行**：类型（`DocumentSensitivity`/`ExportDocumentResult`）、敏感度工具（`sensitivity_rank`/`object_max_sensitivity`）、命令工具（`load_records_in_order`/`load_template_names`/`format_extension`/`path_has_format_ext`/`resolve_document_path`）、命令（`export_document_preflight`/`export_objects_document`）、子模块声明。
+  - `export_docx/fields.rs` **224 行**：字段工具（`escape_xml`/`sanitize_docx_text`/`field_value_to_text`/`build_field_meta`/`flatten_object_fields`/`collect_attachment_entries`/`format_bytes`/`attachment_lines`）+ `AttachmentExportEntry`。
+  - `export_docx/docx.rs` **197 行**：`text_run` + `build_docx`（OOXML 组装）。
+  - `export_docx/markdown.rs` **342 行**：markdown 转义/链接化/字段渲染 + `build_markdown_document`。
+  - `export_docx/text.rs` **89 行**：`build_text_document`。
+  - `export_docx/html.rs` **125 行**：`escape_html` + `build_html_document`。
+  - `export_docx/pdf.rs` **62 行**：`build_pdf_document`（printpdf from_html）。
+  - `export_docx/tests.rs` **752 行**：21 测试（原 `#[cfg(test)] mod tests` 整体迁移，去外层包裹 + dedent）。
+- **关键处理**：
+  - **外部引用保持**：`export_import/mod.rs` 的 `pub mod export_docx;` + `pub use export_docx::*;` 不变——lib.rs 命令注册 `commands::export_import::export_document_preflight`（经 re-export 链）无需改动；`use super::*` 链保持（`export_docx` 头部 `use super::*` 从 `export_import` glob）。
+  - **可见性**：跨模块函数提升 `pub(crate)`（fields 的字段工具、docx/markdown/html/pdf 的 `build_*`）；`AttachmentExportEntry` 结构与其字段提升 `pub(crate)`（docx/markdown/text 访问 `entry.main/description/tags`）；兄弟模块显式 `use super::fields::...` 导入（`use super::*` 不 glob mod.rs 私有 use 绑定）。
+  - **include_bytes 路径**：pdf.rs 字体路径 `../../../` → `../../../../`（文件下沉一层）。
+  - **doc 注释归属**：切分边界把下一函数的 `///` doc 注释残留在段尾（E0753）——脚本统一剔除各子模块尾部 dangling doc 行。
+- **验证**：cargo fmt / check / clippy `-D warnings` 全绿；测试编译通过（本机 `0xc0000139` 为既有环境限制，CI 兜底）。
+
 ### P047-2（架构，object/tests.rs 2/3）✅ 已完成
 
 - **拆分**：纯文件级重构，零行为变化：`object/tests.rs` **2377 → tests/ 目录 6 文件**（最大 732，最小 17）：
@@ -267,7 +285,7 @@
 
 ## 待用户指令
 
-- 轮次 11：P047 Rust 巨型文件拆分已推进 2/3（P047-1 attachment.rs、P047-2 object/tests.rs，已推送），剩余 **export_docx.rs**（2139 行，P047-3）待推进。
+- 轮次 11：P047 Rust 巨型文件拆分已全部完成（P047-1 attachment.rs、P047-2 object/tests.rs、P047-3 export_docx.rs），P046 + P047 全部收官，延期/跳过项清零，修复关闭 77/77。
 - 可选收尾动作：推送报告并打标签 `git tag -a "code-audit-passed-$(date +%Y%m%d)"`——需用户确认后执行。
 - 后续专项建议：优先处理 P047 巨型 Rust 文件拆分（架构项）；S003 的 v2.10 blob 键清理按代码 TODO 计划执行。
 - 备查项：V003②（并发双下载，更大既存问题）与 V005②（wiremock 集成测试，P3 可缓）已登记，后续视需要处理。
