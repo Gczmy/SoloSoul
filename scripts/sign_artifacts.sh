@@ -80,13 +80,9 @@ sign_file() {
         log_error "无法解析产物目录（目录已消失?）: $(dirname "$file")"
         return 1
     }
+    # 注意：.sig 存在性检查由调用方循环统一负责（计入 skipped_count），
+    # 此处不再重复判断，sign_file 只处理真正需要签名的文件。
     local abs_file="${dir}/$(basename "$file")"
-    local sig="${abs_file}.sig"
-
-    if [[ -f "$sig" ]]; then
-        log_warn "已存在签名文件，跳过: ${sig}"
-        return 0
-    fi
 
     log_info "正在签名: $(basename "$abs_file")"
     (
