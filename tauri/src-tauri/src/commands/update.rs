@@ -1005,11 +1005,17 @@ async fn download_range_to_file(
     Err(format!("分段 {start}-{end} 所有通道失败: {last_err}"))
 }
 
-/// U005: 单流中途失败后的新断点 = 已写字节数（初始偏移 + 本次新增）。
-/// 抽为纯函数便于单测：断点必须精确落在已持久化的字节边界，供下一候选
-/// `Range: bytes={offset}-` 续传。
-fn next_resume_offset(initial_offset: u64, new_bytes: u64) -> u64 {
-    initial_offset + new_bytes
+/// U005: 单流中途失败后，下一候选续传应使用的起始字节偏移。
+///
+/// - `Some(len)`（文件实际长度，V005）：write_all 部分写入失败时文件实际长度可能
+///   大于计数断点，以文件系统实际字节边界为准，供下一候选 `Range: bytes={len}-` 续传。
+/// - `None`（文件缺失/不可读，V005-R1）：返回 0 强制重下——若沿用计数断点，下一候选
+///   206 续传会对缺失文件 `append(true).open()` 直接 NotFound 终止整个下载；置 0 后
+///   下一候选不带 Range 头、走「重新下载」分支自愈。
+///
+/// 抽为纯函数便于单测：断点语义（实际长度优先 / 缺失强制重下）可独立验证。
+fn next_resume_offset(part_len: Option<u64>) -> u64 {
+    part_len.unwrap_or(0)
 }
 
 /// 单流下载（不支持 Range 或文件较小）：候选通道回退 + 断点续传 + 进度事件。
@@ -1123,14 +1129,14 @@ async fn download_apk_single_stream(
         // V005: 断点以 metadata().len() 为准——write_all 部分写入失败时（已写部分字节
         // 但未计入 new_bytes）文件实际长度可能大于计数断点，若按计数断点续传会从错误
         // 偏移追加、在末尾重复拼接未计数字节导致 part 损坏（SHA-256 终检虽能兜住但
-        // 浪费一次全量重下）。文件系统实际长度即精确已持久化字节边界；读取失败才回退
-        // 计数断点（此时文件可能已缺失，下轮候选会走重新下载分支自愈）。
+        // 浪费一次全量重下）。文件系统实际长度即精确已持久化字节边界。
+        // V005-R1: metadata 读取失败（文件可能已缺失，如写失败后被并发删除）时
+        // **不能**回退计数断点——若沿用计数断点，下一候选 206 续传会对缺失文件
+        // `append(true).open()` 直接 NotFound 以 `?` 终止整个函数，并非修复记录所称
+        // 「走重新下载分支自愈」（自愈仅在服务器不支持 Range 时成立）；置 0 强制重下。
         if let Some(e) = stream_err {
             last_err = e;
-            existing_size = match std::fs::metadata(part_path) {
-                Ok(meta) => meta.len(),
-                Err(_) => next_resume_offset(initial_offset, new_bytes),
-            };
+            existing_size = next_resume_offset(std::fs::metadata(part_path).ok().map(|m| m.len()));
             continue;
         }
         return Ok(());
@@ -1397,15 +1403,16 @@ mod tests {
         assert!(blank.is_empty());
     }
 
-    /// U005: 单流中途失败后断点 = 初始偏移 + 本次已写字节（供下一候选 Range 续传）。
+    /// U005/V005: 单流中途失败后断点以文件实际长度为准（write_all 部分写入失败时
+    /// 实际字节数可能大于计数断点）；V005-R1: 文件缺失（metadata 失败）→ 0 强制重下
+    /// （若沿用计数断点，下一候选 206 续传会对缺失文件 append 直接 NotFound 终止下载）。
     #[test]
     fn test_next_resume_offset() {
-        // 全新下载中途失败：断点 = 已写字节
-        assert_eq!(next_resume_offset(0, 1024), 1024);
-        // 断点续传中失败：断点 = 原断点 + 本次新增
-        assert_eq!(next_resume_offset(5_000_000, 2048), 5_002_048);
-        // 写失败但未写任何新字节（write_all 失败前）：断点回退原值
-        assert_eq!(next_resume_offset(5_000_000, 0), 5_000_000);
+        // 文件存在：以文件系统实际长度为断点（部分写入失败时可能大于计数断点）
+        assert_eq!(next_resume_offset(Some(1024)), 1024);
+        assert_eq!(next_resume_offset(Some(5_002_048)), 5_002_048);
+        // 文件缺失/不可读（V005-R1）：强制重新下载（0 → 下一候选不带 Range 头）
+        assert_eq!(next_resume_offset(None), 0);
     }
 
     /// 分段计算：文件恰为段数整数倍 → 均匀分段，首尾闭合区间连续。

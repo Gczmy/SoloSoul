@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-12（轮次 12：W 系列收尾——W001 再拆、W002 注释归位、W003 文档精度）
+> 最后更新：2026-08-12（轮次 12：W 系列收尾 + V005-R1 备查项修复）
 > 当前分支：`main`
 
 ## 总览
@@ -56,7 +56,7 @@
 | W002 | P3 | 注释 | `tauri/src-tauri/src/commands/attachment/mod.rs:14,70-72`、`crud.rs:87-100` | **P047-1 拆分 doc 注释错位/丢失 3 处**：①`mod.rs:14`「单个对象最多允许的活跃附件数量」错贴在 `path_within_base` 头上，其真正属主 `MAX_ACTIVE_ATTACHMENTS`（crud.rs:12）丢失 doc；②`path_within_base`/`allowed_fs_bases` 的整段参数文档（fs 白名单 + symlink 旁路 + Android 双路径）被留在 crud.rs 错挂在 `attachment_list` 命令头上，mod.rs 定义处只剩残缺尾巴；③`load_all_referenced_attachment_ids` 原 3 行 doc 丢了 2 行。无行为影响，属「注释描述旧位置」类残留 | `[x]` 已修复（W002，见下） |
 | W003 | P3 | 注释/文档精度 | `tauri/src-tauri/src/commands/object/tests/crud.rs:441,443`、本报告轮次 10/11 记录 | **文档/注释精度**：①`tests/crud.rs` 的 `/// N009: P026 对象输入校验函数边界单测。` 重复两行（切分脚本段边界残留，删一行即可）；②轮次 11 记录称 export_docx「21 测试」实为 **28** 个 `#[test]`；③轮次 10/11 记录的行数与实测有系统性小偏差（AttachmentViewer「683→305」实 307 总行/287 非注释、export_docx 子文件 ±1~6 行），统计口径差异，不影响达标结论 | `[x]` 已修复（W003，见下） |
 
-**复核补登（轮次 9 复核结论曾丢失）**：轮次 9 审查方独立复核节在未提交状态下被覆盖丢失，其确认结论（V001–V005 全部修复正确）与本轮开发者记录一致无需重补，但其中登记的备查项 **V005-R1** 一并丢失，现补登：V005 的 fallback 分支使「`existing_size>0` 但 part 文件缺失」状态可达——此时若下一候选服务器返回 206，`append(true).open()` 对缺失文件 NotFound 并以 `?` 终止整个函数（`update.rs:1064-1067`），并非修复记录所称「走重新下载分支自愈」（自愈仅在服务器不支持 Range 时成立）。触发条件极苛刻（写失败后、metadata 调用前 part 被并发删除），后果仅本次下载报错、用户重试，无数据损坏。修法一行：fallback 置 `existing_size = 0` 强制重下，或 append 加 `create(true)`。**P3 备查**。
+**复核补登（轮次 9 复核结论曾丢失）**：轮次 9 审查方独立复核节在未提交状态下被覆盖丢失，其确认结论（V001–V005 全部修复正确）与本轮开发者记录一致无需重补，但其中登记的备查项 **V005-R1** 一并丢失，现补登：V005 的 fallback 分支使「`existing_size>0` 但 part 文件缺失」状态可达——此时若下一候选服务器返回 206，`append(true).open()` 对缺失文件 NotFound 并以 `?` 终止整个函数（`update.rs:1064-1067`），并非修复记录所称「走重新下载分支自愈」（自愈仅在服务器不支持 Range 时成立）。触发条件极苛刻（写失败后、metadata 调用前 part 被并发删除），后果仅本次下载报错、用户重试，无数据损坏。修法一行：fallback 置 `existing_size = 0` 强制重下，或 append 加 `create(true)`。**P3 备查（轮次 12 已修复，见下）**。
 
 ## 修复记录（W 系列）
 
@@ -82,6 +82,13 @@
 - **②测试计数**：本报告轮次 11 记录「export_docx 21 测试」修正为 **28**（`grep -c '#[test]' export_docx/tests.rs` 实测 28）——轮次 11 摘要「42+21 export_docx」改「42+28」，P047-3 记录「tests.rs：21 测试」改「28 测试」；轮次 11 复核节「42/21/28」为 object 42 / attachment 21 / export_docx 28 的跨文件汇总，无需改。
 - **③行数口径**：按实测修订轮次 10/11 记录——AttachmentViewer「683→305」改「683→307 总行/287 非注释」（`useAttachmentViewer.tsx` 529→530、`usePasswordVerification.tsx` 382→377 同步修订）；export_docx 子文件按 `wc -l` 实测修订（fields 224→223、markdown 342→348、text 89→91、html 125→126、pdf 62→66，docx/mod/tests 不变），「最大 752，最小 62」改「最小 66」。
 - **验证**：cargo fmt / check 全绿（`object/tests` 编译通过，42 测试属性归属不变）；纯注释/文档改动，无行为影响。
+
+### V005-R1（P3，fallback 缺失文件自愈）✅ 已修复
+
+- **修复**：`download_apk_single_stream` 流中途失败切下一候选时，断点计算由「`metadata` 读取失败回退计数断点（`initial_offset + new_bytes`）」改为「`metadata` 读取失败 → `next_resume_offset(None)` = **0 强制重下**」——`existing_size>0` 但 part 文件缺失的状态下，下一候选若返回 206，`append(true).open()` 会对缺失文件 NotFound 并以 `?` 终止整个下载（自愈仅在不支持 Range 的服务器上成立）；置 0 后下一候选不带 Range 头、走「重新下载」分支自愈。
+- **重构**：`next_resume_offset(initial_offset, new_bytes)` 改为 `next_resume_offset(part_len: Option<u64>)`——`Some(实际长度)` 沿用 V005 的文件系统字节边界语义；`None` 返回 0 强制重下。纯函数保持可单测。
+- **测试**：`test_next_resume_offset` 重写覆盖新语义——文件存在（`Some`）以实际长度为断点两用例、文件缺失（`None`）返回 0 强制重下。
+- **验证**：cargo fmt / check / clippy `-D warnings` 全绿；测试二进制本机 `0xc0000139` 为既有环境限制，编译通过（`--no-run` BUILD=0），CI 兜底。
 
 
 ## 轮次 6：新推送审查（T 系列）
@@ -336,4 +343,4 @@
 - 轮次 11 复核：P046/P047 拆分真实、零行为变化（check-all 全绿），新增 W001–W003 已在轮次 12 全部修复（W001 再拆、W002 注释归位、W003 文档精度），待修复清零。
 - 可选收尾动作：推送报告并打标签 `git tag -a "code-audit-passed-$(date +%Y%m%d)"`——需用户确认后执行。
 - 后续专项建议：S003 的 v2.10 blob 键清理按代码 TODO 计划执行。
-- 备查项：V003②（并发双下载，更大既存问题）、V005②（wiremock 集成测试，P3 可缓）、V005-R1（fallback 缺失文件 + 206 组合下不自愈，P3，修法一行，轮次 11 复核补登）已登记，后续视需要处理。
+- 备查项：V003②（并发双下载，更大既存问题）、V005②（wiremock 集成测试，P3 可缓）已登记，后续视需要处理；**V005-R1（fallback 缺失文件 + 206 组合下不自愈）已在轮次 12 修复**（`next_resume_offset` 缺失 → 0 强制重下）。
