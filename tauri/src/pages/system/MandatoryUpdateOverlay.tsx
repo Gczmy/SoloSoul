@@ -1,8 +1,12 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { createPortal } from 'react-dom';
 import { SafeMarkdown } from '@/components/ui/SafeMarkdown';
-import { AlertTriangle, Download } from 'lucide-react';
+import { AlertTriangle, Download, Info } from 'lucide-react';
 import { DownloadProgressBar } from '@/components/ui/DownloadProgressBar';
+import { Dialog } from '@/components/ui/Dialog';
+import { ICON_SIZE } from '@/lib/constants';
+import { isMobilePlatformSync } from '@/lib/platform';
 import type { AppInfo, VersionInfo } from '@/hooks/useUpdateChecker';
 
 interface MandatoryUpdateOverlayProps {
@@ -33,6 +37,9 @@ export function MandatoryUpdateOverlay({
   handleUpdate,
 }: MandatoryUpdateOverlayProps) {
   const { t } = useTranslation(['settings', 'common']);
+  const [notesOpen, setNotesOpen] = useState(false);
+  // 移动端仅显示图标按钮，与更新横幅 UpdateBanner 交互一致。
+  const isMobile = isMobilePlatformSync();
   if (!isMandatory) {
     return null;
   }
@@ -121,27 +128,40 @@ export function MandatoryUpdateOverlay({
           v{info?.version ?? '?'} → v{versionInfo?.latestVersion ?? '?'}
         </div>
 
-        {/* Release notes */}
+        {/* 查看更新内容：与更新横幅 UpdateBanner 交互一致——点击弹出完整 release notes 弹卡 */}
         {versionInfo?.body && (
-          <SafeMarkdown
-            className="release-notes-md release-notes-md-overlay"
-            style={
-              {
-                fontSize: 'var(--text-caption)',
-                color: 'var(--text-tertiary)',
-                lineHeight: 1.5,
-                padding: '8px 12px',
-                borderRadius: 8,
-                background: 'var(--bg-toolbar)',
-                width: '100%',
-                maxHeight: 120,
-                overflowY: 'auto',
-                boxSizing: 'border-box',
-              } as React.CSSProperties
-            }
+          <button
+            type="button"
+            onClick={() => setNotesOpen(true)}
+            aria-label={t('common:view_release_notes')}
+            title={isMobile ? t('common:view_release_notes') : undefined}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 6,
+              padding: '6px 14px',
+              borderRadius: 8,
+              border: '1px solid var(--border-subtle)',
+              background: 'transparent',
+              color: 'var(--text-secondary)',
+              fontSize: 'var(--text-caption)',
+              fontWeight: 500,
+              cursor: 'pointer',
+              transition: 'background 0.15s ease, color 0.15s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = 'var(--bg-toolbar)';
+              e.currentTarget.style.color = 'var(--text-primary)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'transparent';
+              e.currentTarget.style.color = 'var(--text-secondary)';
+            }}
           >
-            {versionInfo.body}
-          </SafeMarkdown>
+            <Info size={ICON_SIZE.xs} />
+            {!isMobile && t('common:view_release_notes')}
+          </button>
         )}
 
         {/* 下载进度（P043: 共享 DownloadProgressBar） */}
@@ -194,6 +214,33 @@ export function MandatoryUpdateOverlay({
           >
             {t('settings:installing', { defaultValue: 'Installing...' })}
           </p>
+        )}
+
+        {/* Release notes 弹卡：zIndex 高于遮罩本体（9999），Portal 到 body 后不被遮挡 */}
+        {notesOpen && versionInfo?.body && (
+          <Dialog
+            isOpen={notesOpen}
+            onClose={() => setNotesOpen(false)}
+            title={t('common:release_notes_title', {
+              version: versionInfo.latestVersion ?? '?',
+            })}
+            dialogStyle={{ maxWidth: 480 }}
+            priority="default"
+            zIndex={10000}
+          >
+            <SafeMarkdown
+              className="release-notes-md"
+              style={{
+                fontSize: 'var(--text-body-sm)',
+                color: 'var(--text-secondary)',
+                lineHeight: 1.6,
+                maxHeight: 420,
+                overflowY: 'auto',
+              }}
+            >
+              {versionInfo.body}
+            </SafeMarkdown>
+          </Dialog>
         )}
 
         {downloadError && (

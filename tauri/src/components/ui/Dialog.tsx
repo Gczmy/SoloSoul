@@ -11,6 +11,8 @@ interface DialogProps {
   dialogStyle?: React.CSSProperties;
   /** 层级优先级：普通弹窗用默认，重要弹窗用 'important'，密码/认证弹窗用 'auth' */
   priority?: 'default' | 'important' | 'auth';
+  /** 可选的自定义 z-index（内联覆盖优先级层级），用于叠加在更高层覆盖物之上 */
+  zIndex?: number;
 }
 
 export function Dialog({
@@ -20,6 +22,7 @@ export function Dialog({
   title,
   dialogStyle,
   priority = 'default',
+  zIndex,
 }: DialogProps) {
   useEffect(() => {
     if (!isOpen) return;
@@ -46,6 +49,7 @@ export function Dialog({
     <div
       className={styles.wrapper}
       data-priority={priority}
+      style={zIndex !== undefined ? { zIndex } : undefined}
       onClick={(e) => e.stopPropagation()}
     >
       {/* Backdrop overlay */}
