@@ -25,6 +25,13 @@ vi.mock('@/stores/authStore', () => ({
   useAuthStore: (selector: unknown) => mockUseAuthStore(selector),
 }));
 
+// 隔离 HomePage 的相册历史标记/返回守卫行为（PhotoAlbumOverlay 自身另有独立测试）
+vi.mock('@/components/attachment/PhotoAlbumOverlay', () => ({
+  PhotoAlbumOverlay: ({ items }: { items: unknown[] }) => (
+    <div data-testid="home-album-overlay" data-count={items.length} />
+  ),
+}));
+
 describe('HomePage', () => {
   const navigate = vi.fn();
 
@@ -109,8 +116,9 @@ describe('HomePage', () => {
       ],
       trashPages: [],
     };
-    mockUseAuthStore.mockImplementation((selector: (s: { currentAccount: { id: string; name: string } | null }) => unknown) =>
-      selector({ currentAccount: { id: 'acc-1', name: 'Gczmy' } }),
+    mockUseAuthStore.mockImplementation(
+      (selector: (s: { currentAccount: { id: string; name: string } | null }) => unknown) =>
+        selector({ currentAccount: { id: 'acc-1', name: 'Gczmy' } }),
     );
     vi.mocked(invoke).mockImplementation(async (cmd: string) =>
       cmd === 'attachment_list_all' ? listAllResult : undefined,
@@ -171,5 +179,50 @@ describe('HomePage', () => {
     // 返回首页（位置回到 '/'，重新加载）
     rerender(<Harness nav="back" />);
     await waitFor(() => expect(callCount).toBe(2));
+  });
+
+  it('首页照片集打开时压入历史标记，Android 硬件返回关闭相册而非跳回上一路由', async () => {
+    const listAllResult = {
+      pages: [
+        {
+          pageName: 'P',
+          objects: [{ attachments: [{ id: 'a1', fileName: 'a.png', mimeType: 'image/png' }] }],
+        },
+      ],
+      trashPages: [],
+    };
+    mockUseAuthStore.mockImplementation(
+      (selector: (s: { currentAccount: { id: string; name: string } | null }) => unknown) =>
+        selector({ currentAccount: { id: 'acc-1', name: 'Gczmy' } }),
+    );
+    vi.mocked(invoke).mockImplementation(async (cmd: string) =>
+      cmd === 'attachment_list_all' ? listAllResult : undefined,
+    );
+
+    render(
+      <MemoryRouter>
+        <HomePage />
+      </MemoryRouter>,
+    );
+
+    // 点击照片集快捷入口 → 相册打开
+    const albumCard = screen.getByText('Photo Album').closest('[role="button"]') as HTMLElement;
+    fireEvent.click(albumCard);
+    await waitFor(() => {
+      expect(screen.getByTestId('home-album-overlay')).toBeInTheDocument();
+    });
+
+    // 打开时压入了同名历史标记（URL 不变），供硬件返回先弹出
+    const state = window.history.state as { solosoulHomeAlbum?: boolean };
+    expect(state.solosoulHomeAlbum).toBe(true);
+
+    // 模拟 Android 硬件返回：浏览器弹出标记条目并触发 popstate
+    fireEvent.popState(window);
+    await waitFor(() => {
+      expect(screen.queryByTestId('home-album-overlay')).not.toBeInTheDocument();
+    });
+    // 相册关闭后仍在首页（未发生路由跳转）
+    expect(screen.getByText('Photo Album')).toBeInTheDocument();
+    expect(navigate).not.toHaveBeenCalled();
   });
 });

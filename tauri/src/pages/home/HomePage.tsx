@@ -14,7 +14,10 @@ import { useUiStore } from '@/stores/uiStore';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { collectPhotoItems, countActiveAttachments } from '@/lib/attachmentUtils';
 import { PhotoAlbumOverlay } from '@/components/attachment/PhotoAlbumOverlay';
-import type { AttachmentListAllResult, AttachmentMeta } from '@/components/attachment/attachmentManagerTypes';
+import type {
+  AttachmentListAllResult,
+  AttachmentMeta,
+} from '@/components/attachment/attachmentManagerTypes';
 
 import { useLongPress } from '@/hooks/useLongPress';
 import { LayoutGrid, Zap, Hand, Images } from 'lucide-react';
@@ -219,6 +222,9 @@ export function HomePage() {
   // 首页「照片集」快捷入口状态：点击后加载全 Vault 活跃附件并直接打开全屏相册。
   const [albumItems, setAlbumItems] = useState<AttachmentMeta[] | null>(null);
   const [albumLoading, setAlbumLoading] = useState(false);
+  // Android 硬件返回守卫：相册打开时压入同名历史条目（URL 不变），返回先弹该条目，
+  // popstate 触发时关闭相册——而不是回退到上一个路由（如 /settings）。
+  const albumOpenRef = useRef(false);
   // 角标计数（挂载/账户切换时加载一次，供卡片一眼展示）：照片总数 + 附件总数
   const [photoCount, setPhotoCount] = useState<number | null>(null);
   const [attachmentCount, setAttachmentCount] = useState<number | null>(null);
@@ -269,7 +275,15 @@ export function HomePage() {
       // 本次加载的数据顺带刷新角标（与挂载时的计数保持一致）
       setPhotoCount(photos.length);
       setAttachmentCount(countActiveAttachments(result.pages));
+      albumOpenRef.current = true;
       setAlbumItems(photos);
+      // 压入历史标记（保留 React Router 的 idx 计数）：Android 硬件返回 / 手势返回
+      // 先弹出该条目（URL 仍为 '/'），由下方 popstate 守卫关闭相册而非跳回上一路由。
+      const prevState = window.history.state as { idx?: number } | null;
+      window.history.pushState(
+        { ...(prevState ?? {}), solosoulHomeAlbum: true, idx: (prevState?.idx ?? 0) + 1 },
+        '',
+      );
     } catch (e) {
       showToast({
         type: 'error',
@@ -298,14 +312,35 @@ export function HomePage() {
   // 移动端启动性能基线：首页对象列表可见时记录 T2（MOB-P1-07）
   // 从解锁完成时刻（__SOLOSOUL_UNLOCK_TIME）开始计算，而非应用启动时刻
   useEffect(() => {
-    const unlockTime = (
-      window as typeof window & { __SOLOSOUL_UNLOCK_TIME?: number }
-    ).__SOLOSOUL_UNLOCK_TIME;
+    const unlockTime = (window as typeof window & { __SOLOSOUL_UNLOCK_TIME?: number })
+      .__SOLOSOUL_UNLOCK_TIME;
     if (typeof unlockTime === 'number') {
       // T2 timing is captured internally; no console output in production
       void unlockTime;
     }
   }, []);
+
+  /** 关闭照片集：重置状态 + 刷新角标；若当前历史条目仍是打开时压入的标记，回退弹出避免残留。 */
+  const closeAlbum = useCallback(() => {
+    albumOpenRef.current = false;
+    setAlbumItems(null);
+    void loadCounts();
+    const state = window.history.state as { solosoulHomeAlbum?: boolean } | null;
+    if (state?.solosoulHomeAlbum) {
+      window.history.back();
+    }
+  }, [loadCounts]);
+
+  // Android 硬件返回：浏览器已把标记条目弹出（URL 仍为 '/'），此处仅需关闭相册。
+  useEffect(() => {
+    const onPopState = () => {
+      if (albumOpenRef.current) {
+        closeAlbum();
+      }
+    };
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, [closeAlbum]);
 
   const [editingPage, setEditingPage] = useState<CustomPage | null>(null);
   const [editingCardRect, setEditingCardRect] = useState<DOMRect | null>(null);
@@ -451,11 +486,7 @@ export function HomePage() {
       {albumItems && (
         <PhotoAlbumOverlay
           items={albumItems}
-          onClose={() => {
-            setAlbumItems(null);
-            // 相册会话结束后刷新角标，保持数量与当前 Vault 一致
-            void loadCounts();
-          }}
+          onClose={closeAlbum}
           onOpenExternal={openAttachmentExternal}
           onItemMetaUpdated={(updated) => {
             // 相册内编辑描述/标签：就地更新本次加载的数据，关闭后角标刷新保持总数一致
