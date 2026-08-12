@@ -396,13 +396,18 @@ export function AttachmentFileNameBlock({
         </div>
       )}
       {visibleTags.length > 0 && (
-        // 外层列容器：展开态多一个「标签」折叠把手行（唯一带半透明主题色背景的行），
-        // 下方实际标签 chip 不需要背景（chip 自身已有底色）。
+        // 外层列容器：展开态整块叠**第一层**半透明主题色圆角背景（与名称/描述块同模式），
+        // 把「标签」折叠把手行与下方 chip 区域圈在一起；收起态无背景、维持原样。
         <div
           style={{
             marginTop: 3,
             minWidth: 0,
             opacity: showTrash ? 0.6 : 1,
+            background: tagsExpanded
+              ? 'color-mix(in srgb, var(--accent-primary) 6%, transparent)'
+              : undefined,
+            borderRadius: tagsExpanded ? 8 : undefined,
+            padding: tagsExpanded ? 4 : undefined,
             display: 'flex',
             flexDirection: 'column',
             gap: 4,

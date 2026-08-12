@@ -235,17 +235,27 @@ describe('AttachmentFileNameBlock 标签折叠/展开', () => {
     expect(screen.getByRole('button', { expanded: true })).toBeInTheDocument();
   });
 
-  it('展开态「标签」把手行是唯一带半透明背景的行；下方实际 chip 无背景', () => {
+  it('展开态「标签」把手行叠双层半透明主题色背景（更深）；chip 区域仅第一层背景', () => {
     const tags = ['a', 'b', 'c', 'd', 'e'];
     render(<AttachmentFileNameBlock {...base} tags={tags} />);
+    // 收起态：无「标签」把手行、无半透明背景
+    expect(screen.queryByText('标签')).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole('button', { expanded: false }));
+
     const label = screen.getByText('标签');
     const handleRow = label.parentElement!;
+    // 把手行：第二层更深的背景（叠在外层块之上 → 颜色更深）
     expect(handleRow).toHaveStyle({
       background: 'color-mix(in srgb, var(--accent-primary) 10%, transparent)',
       cursor: 'pointer',
     });
-    // 下方 chip 所在行容器不带半透明主题色背景（chip 自身底色足够）
+    // 外层块：第一层半透明主题色背景，覆盖把手行与下方 chip 区域
+    const block = handleRow.parentElement!;
+    expect(block).toHaveStyle({
+      background: 'color-mix(in srgb, var(--accent-primary) 6%, transparent)',
+      borderRadius: '8px',
+    });
+    // chip 区域自身不带第二层（10%）背景（chip 自身已有底色）
     const chipsRow = handleRow.nextElementSibling as HTMLElement;
     expect(chipsRow).not.toHaveStyle({
       background: 'color-mix(in srgb, var(--accent-primary) 10%, transparent)',
