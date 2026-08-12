@@ -20,7 +20,7 @@
 | P027 | P2 | 死代码 | `tauri/src-tauri/src/commands/object/trash.rs:147`、`lib.rs:389,870,996` | `trash_permanent_delete` 已注册但前端从不调用（P024 批量改造后走 batch），删除需同步守卫测试与总数断言 | `[-]` 经确认跳过（保留 API 完备性） |
 | P033 | P2 | 死代码 | `tauri/src-tauri/src/lib.rs:304-316`（调用于 :667） | `setup_detect_locale()` 结果仅用于一行 debug 日志，前端实际走 `get_system_locale` IPC（需人工确认是否保留诊断） | `[-]` 经确认跳过（保留诊断日志） |
 | P046 | P2 | 架构 | 前端 10 个巨型组件（汇总） | 单组件非注释行 > 300：`AttachmentViewer`(~550)、`LoginPage`(~501)、`PasswordVerificationDialog`(~447)、`TemplateFieldRow`(~436)、`DeviceListPanel`(~424)、`TrashPage`(~422)、`ObjectDetailModal`(~422)、`ExportImportPage`(~417)、`ImportSection`(~409)、`ExportSection`(~405)，建议按「数据 hook + 展示子组件」拆分 | `[x]` 已修复（P046-1 认证域、P046-2 对象域、P046-3 设置导出域，10/10 全部完成） |
-| P047 | P2 | 架构 | Rust 巨型文件（汇总） | `attachment.rs` 2057 行、`object/tests.rs` 2353 行、`export_docx.rs` 1989 行，文件级拆分作为后续架构项 | `[>]` 延期：3 个巨型 Rust 文件拆分，列为后续架构项 |
+| P047 | P2 | 架构 | Rust 巨型文件（汇总） | `attachment.rs` 2057 行、`object/tests.rs` 2353 行、`export_docx.rs` 1989 行，文件级拆分作为后续架构项 | `[>]` 拆解中：**attachment.rs 1/3 完成**（见 P047-1）；object/tests.rs、export_docx.rs 待拆 |
 
 ## 历史轮次摘要
 
@@ -199,6 +199,23 @@
 - **修复①（部分写入断点错位）**：`download_apk_single_stream` 流中途失败切下一候选时，断点改为以 `std::fs::metadata(part_path).len()` 为准——`write_all` 部分写入失败时文件实际长度可能大于计数断点（`initial_offset + new_bytes`），按计数断点 206 续传 append 会在文件末尾重复拼接未计数字节导致 part 损坏；文件系统实际长度即精确已持久化字节边界，下一候选 `Range: bytes={len}-` 续传正确。`metadata` 读取失败才回退计数断点（此时文件可能已缺失，下轮候选走重新下载分支自愈）。SHA-256 终检兜底不变。
 - **②（abort-await 与候选切换续传集成测试）**：登记备查——wiremock 未引入依赖，本机 Rust 测试二进制 `0xc0000139` 限制无法运行集成测试，属 P3 可缓项；纯函数测试（`test_next_resume_offset`）已覆盖断点计数逻辑，行为路径回归依赖 CI/人工。
 - **验证**：cargo fmt / check / clippy `-D warnings` 全绿。
+
+## 修复记录（P047 Rust 巨型文件拆分）
+
+### P047-1（架构，attachment.rs 1/3）✅ 已完成
+
+- **拆分**：纯文件级重构，零行为变化：`attachment.rs` **2213 → 5 个文件**（最大 734，最小 217）：
+  - `attachment/mod.rs` **468 行**：路径安全工具（`path_within_base`/`allowed_fs_bases`）、去重文件名（`sanitize_duplicate_suffix`/`make_unique_dest_path`）、`attachment_download`、`resolve_verified_attachment_path`、`attachment_open`、子模块声明与 re-export（`AttachmentMeta`/`attachment_dir`/命令）。
+  - `attachment/crud.rs` **542 行**：常量、`validate_attachment_id`/`attachment_dir`、`AttachmentMeta`、`load/save_attachments`、全部 CRUD 命令（`attachment_list`–`attachment_count_batch`）+ `attachment_copy_to_vault`。
+  - `attachment/tree.rs` **217 行**：附件树类型 + `attachment_list_all` + 分组/构建函数（`pub(crate)` 供测试访问）。
+  - `attachment/share.rs` **303 行**：平台分享（macOS 面板 / Windows 面板降级 reveal / Linux reveal / Android 系统分享）。
+  - `attachment/tests.rs` **734 行**：原内嵌 `mod tests` 整体迁移。
+- **关键处理**：
+  - **tauri 宏约束**：`generate_handler!` 要求 `__cmd__xxx` 辅助符号与命令定义同模块——`pub use` re-export 不携带，lib.rs 注册路径改为定义处（`attachment::crud::attachment_list`、`attachment::tree::attachment_list_all`、`attachment::share::attachment_share`）；`attachment_download`/`attachment_open` 仍留 mod.rs 路径不变。
+  - **tests.rs 双重嵌套修复**：原文件自带 `#[cfg(test)] mod tests {}` 包裹，mod.rs `mod tests;` 声明后文件根即模块——剥离外层包裹，`use super::*` 正确指向 attachment 模块。
+  - **可见性**：`load/save_attachments`、`attachment_dir` 提升 `pub(crate)`（子模块 tree/share/tests 经 `use super::*` 访问）；`load_all_referenced_attachment_ids` 保持 `#[cfg(test)]` 但提升 `pub(crate)` 供测试访问；父模块 `use` 绑定（如 `Path`）不随 glob 导入，tests 显式导入。
+- **外部引用保持**：`attachment_import_plugin.rs`（`attachment_dir`/`path_within_base`）、`export_import/mod.rs`（`AttachmentMeta`）、`export.rs`（`allowed_fs_bases`）路径均不变。
+- **验证**：cargo fmt / check / clippy `-D warnings` 全绿；测试编译通过（本机 `0xc0000139` 为既有环境限制，CI 兜底）。
 
 ## 修复记录（P046 巨型组件拆分）
 
