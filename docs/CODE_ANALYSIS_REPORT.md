@@ -1,15 +1,15 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-12（轮次 13：X001–X003 修复收官）
+> 最后更新：2026-08-12（轮次 13 复核：X 系列修复独立验证）
 > 当前分支：`main`
 
 ## 总览
 
-- 全部已提出问题：**83 项**（P47 + N10 + R5 + S4 + T5 + U6 + V5 + W3 + X3，含重复计数修正）
+- 全部已提出问题：**84 项**（P47 + N10 + R5 + S4 + T5 + U6 + V5 + W3 + X3 + Y1，含重复计数修正）
 - **修复关闭 81 项**、**经确认跳过 2 项**（P027/P033）、**延期 0 项**（P046/P047 均已拆分完成）
-- **待修复 0 项**：X001–X003 已全部修复（轮次 13，3 提交），详见「修复记录（X 系列）」
+- **待修复 1 项（Y001，P3）**：轮次 13 复核确认 X001–X003 修复真实（check-all 全绿），但 X002② 的「拖选不触发 click」机制依据不成立，详见「轮次 13 复核」
 - 遗留计划事项：S003 的 v2.10 blob 键清理（已有代码 TODO + CHANGELOG 双向追踪，属计划内而非遗忘）
-- 轮次 12 基线实测：`check-all` **EXIT=0 全绿**（tsc / fmt / clippy / cargo test / eslint / Vitest / ACL 与 pref-keys 机比）
+- 轮次 13 基线实测：`check-all` **EXIT=0 全绿**（tsc / fmt / clippy / cargo test / eslint / Vitest / ACL 与 pref-keys 机比）
 
 ## 遗留项（跳过 / 延期）
 
@@ -38,6 +38,26 @@
 - **轮次 11 复核**：审查方对 P046/P047 6 个拆分提交独立验证（多重集逐行比对 + 工作区语义审查 + check-all 实测全绿）。确认拆分真实、逻辑零行为变化、测试 42/21/28 全保留、IPC 命令名与 re-export 链未变；但发现巨型化转移与注释残留，新增 W001–W003（轮次 12 全部修复）。
 - **轮次 12 复核**：审查方对 W 系列收尾 + 附件触控系列 + 更新横幅 release notes 等 19 提交独立验证（check-all 实测全绿）。确认 W001–W003 与 V005-R1 修复真实闭合、触控演进链最终态自洽、SafeMarkdown 消毒链与强制更新不可绕过；发现更新横幅弹卡样式依赖 AboutPage 注入（P2）等，新增 X001–X003，全部 `[ ]` 待修复。
 - **轮次 13**：X 系列修复收官（3 提交）。X001 `.release-notes-md` 样式块提升全局（修横幅弹卡在任意页面缺样式）；X002 触控三边角（桌面 hover 限悬挂载恢复 / 描述文本可选中 / chip 圆角注释声明）；X003 文档/注释失实 5 处（dd612ced 测试计数、useAppUpdate 注释、itemOps 注释、W001 记录 321 矛盾、IconBar 300ms）。验证：tsc / eslint / Vitest 全绿。**待修复 0 项收官**。
+- **轮次 13 复核**：审查方对 X 系列 3 修复提交独立验证（check-all 实测全绿）。X001/X002/X003 修复均真实落地；发现 X002② 机制依据不成立（Chromium 下同元素内拖选仍触发 click），新增 Y001（P3），`[ ]` 待修复。
+
+## 轮次 13 复核：X 系列修复独立验证（Y 系列）
+
+审查范围：`63368d58`（X001）、`e0c9680a`（X002）、`58b0fefd`（X003）3 修复提交。验证方式：逐提交 `git show` 全 diff + 工作区语义审查 + 浏览器事件机制核对。基线实测：`check-all` **EXIT=0 全绿**。
+
+**确认无误的面**：
+
+- **X001 ✅**：`.release-notes-md` 样式块从 AboutPage `<style>` 逐字迁至 `global.css:329-404`（含问题根因注释）；AboutPage 仅保留 `about-retry-spin` 动画；三个消费方（UpdateInfoCard / UpdateBanner / MandatoryUpdateOverlay）渲染一致性成立——全局样式表不再依赖 AboutPage 挂载。
+- **X002 ✅（一项残留见 Y001）**：①桌面 hover 经 `@media (hover: hover) and (pointer: fine)` 的 `.toggle-arrow-btn:hover` 恢复——该 media 条件在触摸设备上为假，从机制上规避安卓 WebView 触摸残留 mouseover 问题，与 expanded 状态驱动高亮互不干扰，方案正确；③chip 圆角差异以注释声明为有意区分（编辑态 6px / 展示态 999），X002① 按「注明意图」路径闭合。
+- **X003 ✅**：三处注释修正全部属实——`useAppUpdate.ts:72-73` 新注释如实描述「notes 来自 updater 插件 update.body，为空则横幅不显示按钮」（与代码行为一致）；`useAttachmentManagerItemOps.ts:39-41` `renamingId`/`renameObjectId` 注释改为正确语义；IconBar 注释 200ms→300ms 与 `setTimeout` 实现一致；报告侧 W001 记录与 dd612ced 测试计数同步修正。
+
+**新增问题**：
+
+| ID | 优先级 | 类别 | 文件位置 | 描述 | 状态 |
+|----|--------|------|----------|------|------|
+| Y001 | P3 | UX/注释 | `tauri/src/components/attachment/AttachmentFileNameBlock.tsx:227-229`（描述行）、标签行同模式 | **X002②「拖选不触发 click」机制依据不成立**：注释称「拖选/长按不触发 click（按下与释放位置不同）」，但按 UI Events 规范，click 事件派发到 mousedown 与 mouseup 目标的**最近公共祖先**——在同一 `<span>` 内拖选文本时，按下与释放目标均为该 span，click 照常派发（Chromium 实测如此，Android WebView 同内核）。`userSelect: 'text'` 只让文本变得可选，并不能阻止拖选后触发展开/收起。实际影响轻微（用户拖选描述文本后折叠态会意外翻转一次，再点即恢复），但修复意图（复制与折叠互不冲突）未真正闭环，注释机制描述亦错误。稳妥修法：行 onClick 内加 `window.getSelection()?.toString()` 非空守卫（有选区则不切换） | `[ ]` 待修复 |
+
+**次要观察（不列为问题）**：X002②对标签行同样加了 `userSelect`（标签文本短，拖选场景少）；`userSelect` 本身是必要前提（此前整行 onClick 下文本选择体验差），只是不充分。
+
 
 ## 轮次 11 复核：P046/P047 拆分独立验证（W 系列）
 
@@ -441,7 +461,7 @@
 
 ## 待用户指令
 
-- 轮次 12 复核：W 系列 + V005-R1 修复真实闭合（check-all 全绿），新增 X001–X003。建议顺序：X001（P2，样式提升全局）→ X002/X003（P3，顺手级）。
+- 轮次 13 复核：X001–X003 修复真实落地（check-all 全绿），新增 Y001（P3，X002② 拖选仍触发 click 未闭环，修法一行：行 onClick 加 `window.getSelection()` 非空守卫）。
 - 可选收尾动作：推送报告并打标签 `git tag -a "code-audit-passed-$(date +%Y%m%d)"`——需用户确认后执行。
 - 后续专项建议：S003 的 v2.10 blob 键清理按代码 TODO 计划执行。
 - 备查项：V003②（并发双下载，更大既存问题）、V005②（wiremock 集成测试，P3 可缓）已登记，后续视需要处理；**V005-R1（fallback 缺失文件 + 206 组合下不自愈）已在轮次 12 修复并复核确认**（`next_resume_offset` 缺失 → 0 强制重下）。
