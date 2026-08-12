@@ -1,13 +1,13 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-12（轮次 12：W 系列收尾——W001 拆分转移巨型化再拆）
+> 最后更新：2026-08-12（轮次 12：W 系列收尾——W001 拆分转移巨型化再拆、W002 注释归位）
 > 当前分支：`main`
 
 ## 总览
 
 - 全部已提出问题：**80 项**（P47 + N10 + R5 + S4 + T5 + U6 + V5 + W3，含重复计数修正）
-- **修复关闭 76 项**、**经确认跳过 2 项**（P027/P033）、**延期 0 项**（P046/P047 均已拆分完成）
-- **待修复 2 项（W 系列）**：轮次 11 复核 P046/P047 拆分时发现——拆分本身真实、零行为变化，但存在巨型化转移（新组件/hook 超 300 行红线）与注释残留，详见「轮次 11 复核」；W001 已修复，W002/W003 待修复
+- **修复关闭 77 项**、**经确认跳过 2 项**（P027/P033）、**延期 0 项**（P046/P047 均已拆分完成）
+- **待修复 1 项（W 系列）**：轮次 11 复核 P046/P047 拆分时发现——拆分本身真实、零行为变化，但存在巨型化转移（新组件/hook 超 300 行红线）与注释残留，详见「轮次 11 复核」；W001/W002 已修复，W003 待修复
 - 遗留计划事项：S003 的 v2.10 blob 键清理（已有代码 TODO + CHANGELOG 双向追踪，属计划内而非遗忘）
 - 轮次 11 基线实测：`check-all` **EXIT=0 全绿**（tsc / fmt / clippy / cargo test / eslint / Vitest / ACL 与 pref-keys 机比）
 
@@ -53,7 +53,7 @@
 | ID | 优先级 | 类别 | 文件位置 | 描述 | 状态 |
 |----|--------|------|----------|------|------|
 | W001 | P2 | 架构 | `tauri/src/components/template/TemplateFieldBindingSection.tsx`（354 非注释行）、`useLoginPage.tsx`（~459）、`useAttachmentViewer.tsx`（464）、`useObjectDetailModal.tsx`（356）、`usePasswordVerification.tsx`（~306） | **拆分转移巨型化**：①`TemplateFieldBindingSection` 是**组件**且 354 非注释行 > 300——P046 消灭一个 477 行组件的同时新造了一个超阈值组件，按 P046 自身验收口径不达标（可再拆「已绑定列表」与「添加绑定表单」两个子组件，或登记豁免理由）；②4 个数据 hook 自身 300+ 非注释行——hook 不在 P046「组件」字面口径内，属「数据 hook + 展示子组件」模式的预期承载层，但 `useAttachmentViewer` 已集 18 state + 19 handler 于一体（批量操作段 ~130 行可抽 `useAttachmentBatchOps`），`useLoginPage` ~459 行接近原组件规模。建议：TemplateFieldBindingSection 再拆或登记豁免；hook 侧登记备查按需再拆 | `[x]` 已修复①（W001，见下）；②hook 登记备查 |
-| W002 | P3 | 注释 | `tauri/src-tauri/src/commands/attachment/mod.rs:14,70-72`、`crud.rs:87-100` | **P047-1 拆分 doc 注释错位/丢失 3 处**：①`mod.rs:14`「单个对象最多允许的活跃附件数量」错贴在 `path_within_base` 头上，其真正属主 `MAX_ACTIVE_ATTACHMENTS`（crud.rs:12）丢失 doc；②`path_within_base`/`allowed_fs_bases` 的整段参数文档（fs 白名单 + symlink 旁路 + Android 双路径）被留在 crud.rs 错挂在 `attachment_list` 命令头上，mod.rs 定义处只剩残缺尾巴；③`load_all_referenced_attachment_ids` 原 3 行 doc 丢了 2 行。无行为影响，属「注释描述旧位置」类残留 | `[ ]` 待修复 |
+| W002 | P3 | 注释 | `tauri/src-tauri/src/commands/attachment/mod.rs:14,70-72`、`crud.rs:87-100` | **P047-1 拆分 doc 注释错位/丢失 3 处**：①`mod.rs:14`「单个对象最多允许的活跃附件数量」错贴在 `path_within_base` 头上，其真正属主 `MAX_ACTIVE_ATTACHMENTS`（crud.rs:12）丢失 doc；②`path_within_base`/`allowed_fs_bases` 的整段参数文档（fs 白名单 + symlink 旁路 + Android 双路径）被留在 crud.rs 错挂在 `attachment_list` 命令头上，mod.rs 定义处只剩残缺尾巴；③`load_all_referenced_attachment_ids` 原 3 行 doc 丢了 2 行。无行为影响，属「注释描述旧位置」类残留 | `[x]` 已修复（W002，见下） |
 | W003 | P3 | 注释/文档精度 | `tauri/src-tauri/src/commands/object/tests/crud.rs:441,443`、本报告轮次 10/11 记录 | **文档/注释精度**：①`tests/crud.rs` 的 `/// N009: P026 对象输入校验函数边界单测。` 重复两行（切分脚本段边界残留，删一行即可）；②轮次 11 记录称 export_docx「21 测试」实为 **28** 个 `#[test]`；③轮次 10/11 记录的行数与实测有系统性小偏差（AttachmentViewer「683→305」实 307 总行/287 非注释、export_docx 子文件 ±1~6 行），统计口径差异，不影响达标结论 | `[ ]` 待修复 |
 
 **复核补登（轮次 9 复核结论曾丢失）**：轮次 9 审查方独立复核节在未提交状态下被覆盖丢失，其确认结论（V001–V005 全部修复正确）与本轮开发者记录一致无需重补，但其中登记的备查项 **V005-R1** 一并丢失，现补登：V005 的 fallback 分支使「`existing_size>0` 但 part 文件缺失」状态可达——此时若下一候选服务器返回 206，`append(true).open()` 对缺失文件 NotFound 并以 `?` 终止整个函数（`update.rs:1064-1067`），并非修复记录所称「走重新下载分支自愈」（自愈仅在服务器不支持 Range 时成立）。触发条件极苛刻（写失败后、metadata 调用前 part 被并发删除），后果仅本次下载报错、用户重试，无数据损坏。修法一行：fallback 置 `existing_size = 0` 强制重下，或 append 加 `create(true)`。**P3 备查**。
@@ -68,6 +68,13 @@
   - `TemplateFieldBindingForm.tsx` **124 非注释行**：添加绑定表单（契约/角色下拉 + 添加按钮）——`availableRoles` 类型改用 `lib/plugin.ts` 新导出的 `PluginContractRole`（原接口未导出，仅 `export` 关键字提升，零外部影响）。
 - **②（4 个数据 hook 300+ 行）**：登记备查——hook 属「数据 hook + 展示子组件」模式的预期承载层，不在 P046「组件」验收口径内；`useAttachmentViewer`（464）、`useLoginPage`（459）、`useObjectDetailModal`（356）、`usePasswordVerification`（306）按需再拆（如 `useAttachmentViewer` 批量操作段可抽 `useAttachmentBatchOps`），本期不处理。
 - **验证**：tsc / eslint 全绿；template 域 3 测试文件 27 测试全绿（TemplateEditor 8 测试为绑定 UI 主覆盖）。
+
+### W002（P3，注释归位）✅ 已修复
+
+- **①`MAX_ACTIVE_ATTACHMENTS` doc 归位**：`crud.rs` 常量前补回「单个对象最多允许的活跃附件数量。」（与拆分前原文逐字一致），`mod.rs` 中错贴在 `path_within_base` 头上的同一行删除。
+- **②`path_within_base` 参数文档归位**：整段 doc（fs 白名单 + symlink 旁路 + Android `/data/data`↔`/data/user/0` 双路径 + base_canon/base_raw 参数说明 + P003 可见性注）从 crud.rs 错挂的 `attachment_list` 命令头上移回 mod.rs 定义处，与拆分前原文逐字一致；`attachment_list` 恢复无 doc 的原始状态（原文件本就无注释）。
+- **③`load_all_referenced_attachment_ids` doc 补齐**：mod.rs 恢复 3 行 doc（Collect... / P110 批量方法 / 仅供测试使用），拆分前原文逐字一致。
+- **验证**：cargo fmt / check / clippy `-D warnings` 全绿（纯注释改动，零行为影响）。
 
 
 ## 轮次 6：新推送审查（T 系列）
