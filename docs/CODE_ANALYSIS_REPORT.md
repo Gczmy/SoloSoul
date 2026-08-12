@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-12（轮次 12：W 系列收尾 + V005-R1 备查项修复 + W001-②③④⑤ hook 拆分，备查清零）
+> 最后更新：2026-08-12（轮次 12：W 系列收尾 + V005-R1 备查项修复 + W001-②③④⑤ hook 拆分 + W004 useAttachmentManager 拆分）
 > 当前分支：`main`
 
 ## 总览
@@ -101,6 +101,16 @@
   - **父层保留**：`loginMethod` 状态 + 优先级 effect + `biometricLabel` 推导 + `handleClose` 组合（经稳定 setter 解构重置三域状态）。
 - **行为保留**：`LoginMethod` 类型从内部 `UnlockMethodDef` 提升为导出类型供子 hook 引用；原 `UnlockMethodDef` 与 `LoginMethodOption` 字段同构（id/icon/label/onClick），`methods` 直接以 `LoginMethodOption[]` 提供，`PasswordVerificationDialog.tsx` 消费字段名零变化；PIN 选择清 pinError、handlePinComplete 锁定降级、优先级 FaceID>TouchID>WindowsHello>PIN>Password 逻辑逐字保留。
 - **验证**：tsc / eslint 全绿；forms + auth 4 测试文件 40 测试全绿。
+
+### W004（P2，useAttachmentManager 拆分）✅ 已修复
+
+- **修复**：`useAttachmentManager.ts` **547 → 203 非注释行**（< 300 达标）改为组合层——拆出两个内聚子 hook：
+  - `useAttachmentManagerBatchOps.ts` **220 非注释行**：批量选择状态（`useBatchSelect(allVisibleKeys)`）与四个批量 handler（`handleBatchDownload`/`handleBatchDelete`/`handleBatchPermanentDelete`/`handleBatchRestore`）整体收敛——与 W001-② `useAttachmentBatchOps` 同构；P054 `Promise.allSettled` 并发下载、移动端 tree-URI 拒下载、P121 逐对象失败计数与 `batch_op_failed_suffix` 提示逐字随迁。
+  - `useAttachmentManagerItemOps.ts` **203 非注释行**：12 个单项 handler（打开/预览/重命名/上传/软删/下载/转发/恢复/永久删除）+ 5 组状态（previewItem/shareItem/renamingId/renameObjectId/permDeleteItem）；`requestConfirm` 以 prop 注入（软删除前置确认框仍由父层 useConfirm 承载渲染）。
+  - **父层保留**：数据加载（loadData + attachment_list_all）、树展开（expandedPages/expandedObjects/togglePage/toggleObject + 两展开 effect）、展示数据派生（sortedPages/photoItems/displayPages/allVisibleKeys/summaryStats）、metaEditItem/albumOpen/searchQuery 状态。
+  - **接口**：`useAttachmentManagerBatchOps({ allVisibleKeys, displayPages, loadData, t, showToast })` 与 `useAttachmentManagerItemOps({ loadData, requestConfirm, t, showToast })`，返回值 spread 进父层——`GlobalAttachmentManager.tsx` 消费字段名零变化（含 `setRenamingId`/`setRenameObjectId` 等全部 setter），调用方零改动。
+- **行为保留**：`showToast` 类型以 `uiStore` 导出的 `Toast` 接口的 `Omit<Toast, 'id'>` 精确承接（`interface Toast` 补 `export`，与 W001 中 `PluginContractRole` 提升导出同模式）；各 handler 的 useCallback deps 均含新增注入函数（loadData/requestConfirm/t/showToast，父层 useCallback/selector 身份稳定）。
+- **验证**：tsc / eslint 全绿；settings + attachment + hooks 11 测试文件 87 测试全绿。
 
 ### W002（P3，注释归位）✅ 已修复
 
