@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ArrowDown, ArrowLeft, ArrowUp, Images, X } from 'lucide-react';
 import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
@@ -7,6 +7,7 @@ import { PhotoViewerOverlay } from '@/components/attachment/PhotoViewerOverlay';
 import { FilterChipGroup } from '@/components/ui/FilterChipGroup';
 import { DropdownSelect } from '@/components/ui/DropdownSelect';
 import { syncStatusBarStyle } from '@/lib/theme';
+import { useOverlayBackGuard } from '@/hooks/useOverlayBackGuard';
 import { ICON_SIZE, SAFE_AREA_BOTTOM, SAFE_AREA_TOP } from '@/lib/constants';
 import type { AttachmentItem } from '@/lib/attachmentUtils';
 
@@ -103,73 +104,16 @@ export function PhotoAlbumOverlay({
   const [sortDesc, setSortDesc] = useState(true);
   const [groupMode, setGroupMode] = useState<AlbumGroupMode>('none');
 
-  // ── Android 硬件返回分层守卫 ─────────────────────────────────────────
+  // ── Android 硬件返回分层守卫（共享 useOverlayBackGuard）──
   // 相册打开时压入「相册层」历史标记（URL 不变），打开全屏查看器时再压入
   // 「查看器层」标记；Android 返回先弹查看器层（回到网格），再弹相册层
-  // （关闭相册）——避免从全屏查看器直接退出到首页。层数记录于 layersRef，
-  // 供卸载时 history.go(-n) 一次性清理残留标记，保持历史栈干净。
-  const viewerIndexRef = useRef<number | null>(null);
-  viewerIndexRef.current = viewerIndex;
-  const onCloseRef = useRef(onClose);
-  onCloseRef.current = onClose;
-  const layersRef = useRef(0);
-
-  // 相册层：挂载压入标记 + popstate 分层处理 + 卸载清理。
-  // popstate 时浏览器已弹出顶层标记：若查看器开着则回网格（查看器层被弹），
-  // 否则关闭相册（相册层被弹）。
-  useEffect(() => {
-    const prevState = window.history.state as { idx?: number } | null;
-    window.history.pushState(
-      { ...(prevState ?? {}), solosoulAlbumLayer: true, idx: (prevState?.idx ?? 0) + 1 },
-      '',
-    );
-    layersRef.current += 1;
-
-    const onPopState = () => {
-      if (layersRef.current > 0) layersRef.current -= 1;
-      if (viewerIndexRef.current !== null) {
-        setViewerIndex(null);
-      } else {
-        onCloseRef.current();
-      }
-    };
-    window.addEventListener('popstate', onPopState);
-    return () => {
-      window.removeEventListener('popstate', onPopState);
-      // 仅当顶层仍是我们的标记（相册层/查看器层均带 solosoulAlbumLayer）时才清理——
-      // 若相册打开期间叠加了外部历史条目（如 vault 锁定 navigate('/login')），
-      // 顶层非标记则跳过，避免误弹外部条目。
-      const top = window.history.state as { solosoulAlbumLayer?: boolean } | null;
-      if (top?.solosoulAlbumLayer && layersRef.current > 0) {
-        window.history.go(-layersRef.current);
-      }
-      layersRef.current = 0;
-    };
-  }, []);
-
-  // 查看器层：打开时再压入一层标记（供返回先回网格）。
-  // 关闭统一由 popstate / handleViewerBack 负责，本 effect 无需 cleanup。
-  useEffect(() => {
-    if (viewerIndex === null) return;
-    const prevState = window.history.state as { idx?: number } | null;
-    window.history.pushState(
-      { ...(prevState ?? {}), solosoulViewerLayer: true, idx: (prevState?.idx ?? 0) + 1 },
-      '',
-    );
-    layersRef.current += 1;
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- 仅在 null↔非 null 边界压层
-  }, [viewerIndex === null]);
-
-  /** 查看器左上角返回按钮：查看器层标记在栈顶时主动弹出（触发 popstate 回网格），
-   *  否则直接回网格（防御性兜底）。 */
-  const handleViewerBack = () => {
-    const state = window.history.state as { solosoulViewerLayer?: boolean } | null;
-    if (state?.solosoulViewerLayer) {
-      window.history.back();
-    } else {
-      setViewerIndex(null);
-    }
-  };
+  // （关闭相册）——避免从全屏查看器直接退出到首页。三个入口（首页/附件管理/
+  // 对象详情）均渲染本 overlay，故统一获得该行为。
+  const { handleInnerBack: handleViewerBack } = useOverlayBackGuard({
+    innerOpen: viewerIndex !== null,
+    onCloseInner: () => setViewerIndex(null),
+    onClose,
+  });
 
   // 本地副本：相册内编辑描述/标签后即时生效，父级刷新后经 props 同步。
   // 注意：仅同步数据、不重置筛选/查看器下标——相册内编辑元数据后父级 setItems/
