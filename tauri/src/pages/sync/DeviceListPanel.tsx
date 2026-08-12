@@ -1,18 +1,13 @@
 import { useTranslation } from 'react-i18next';
-import { Card } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { DeleteButton } from '@/components/ui/DeleteButton';
 import { ConfirmDialog } from '@/components/ui/ConfirmDialog';
-import { RefreshCw, ShieldCheck, ShieldOff } from 'lucide-react';
-import { resolveBackendErrorMessage } from '@/lib/backendError';
-import { formatDiscoveredName, formatPeerName } from '@/lib/syncPeer';
-import { formatRelativeFromTs } from '@/lib/time';
-import { ICON_SIZE } from '@/lib/constants';
+import { formatPeerName } from '@/lib/syncPeer';
 import type { SyncResult } from '@/lib/ipc';
 import type { DiscoveredDevice, SyncPeer } from '@/stores/syncStore';
+
+import { DeviceListDiscoveredCard } from './DeviceListDiscoveredCard';
+import { DeviceListManualCard } from './DeviceListManualCard';
+import { DeviceListKnownCard } from './DeviceListKnownCard';
 import { DeviceDetailDialog } from './DeviceDetailDialog';
-import { DeviceCardShell } from './DeviceCard';
 
 interface DeviceListPanelProps {
   syncEnabled: boolean;
@@ -47,8 +42,10 @@ interface DeviceListPanelProps {
 }
 
 /**
- * 设备列表面板：手动同步 + 已发现设备 + 已知设备 + 忘记设备二次确认对话框。
- * 数据与回调经 SyncPage 从 useSyncPage 透传（P224-② 拆分）。
+ * 设备列表面板 — P046 拆分后为纯组合层：
+ * 已发现设备（DeviceListDiscoveredCard）、手动同步（DeviceListManualCard）、
+ * 已知设备（DeviceListKnownCard）为独立展示子组件；
+ * 本组件保留忘记设备确认对话框与详情弹窗装配。
  */
 export function DeviceListPanel({
   syncEnabled,
@@ -79,332 +76,40 @@ export function DeviceListPanel({
   const { t } = useTranslation(['settings', 'common']);
   return (
     <>
-      {/* Discovered devices */}
-      <Card>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>
-            {t('settings:sync_discovered_devices', { defaultValue: 'Discovered Devices' })}
-          </h3>
-          <button
-            onClick={onDiscover}
-            disabled={!syncEnabled || isDiscoveringDevices}
-            style={{
-              padding: '6px 12px',
-              borderRadius: 8,
-              border: '1px solid var(--border-subtle)',
-              background: 'var(--bg-toolbar)',
-              color: 'var(--text-primary)',
-              fontSize: 'var(--text-body-sm)',
-              fontWeight: 500,
-              cursor: !syncEnabled || isDiscoveringDevices ? 'default' : 'pointer',
-              opacity: !syncEnabled || isDiscoveringDevices ? 0.5 : 1,
-              transition: 'all 0.15s ease',
-              fontFamily: 'inherit',
-            }}
-          >
-            {isDiscoveringDevices
-              ? t('common:loading', { defaultValue: 'Loading...' })
-              : t('settings:sync_discover', { defaultValue: 'Discover' })}
-          </button>
-        </div>
-        <p
-          style={{
-            fontSize: 'var(--text-caption)',
-            color: 'var(--text-tertiary)',
-            marginTop: 8,
-            marginBottom: 12,
-          }}
-        >
-          {t('settings:sync_discovered_hint', {
-            defaultValue: 'Nearby devices advertising SoloSoul sync will appear here.',
-          })}
-        </p>
-        {discoveredDevices.length > 0 ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {discoveredDevices.map((device) => {
-              const deviceAddr = device.addresses[0] || `${device.host}:${device.port}`;
-              const deviceName = formatDiscoveredName(device);
-              // P012: 共享外壳（交互容器 + 图标 + 名称行），副标题/操作区注入
-              return (
-                <DeviceCardShell
-                  key={deviceAddr}
-                  clientType={device.clientType}
-                  name={deviceName}
-                  subtitle={
-                    <div
-                      style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}
-                    >
-                      {deviceAddr}
-                    </div>
-                  }
-                  actions={
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onSyncWithDevice(deviceAddr);
-                      }}
-                      disabled={isLoading}
-                      style={{
-                        padding: '6px 12px',
-                        borderRadius: 8,
-                        border: '1px solid var(--border-subtle)',
-                        background: 'var(--bg-toolbar)',
-                        color: 'var(--text-primary)',
-                        fontSize: 'var(--text-body-sm)',
-                        fontWeight: 500,
-                        cursor: isLoading ? 'default' : 'pointer',
-                        opacity: isLoading ? 0.5 : 1,
-                        transition: 'all 0.15s ease',
-                        fontFamily: 'inherit',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
-                      {t('settings:sync_manual_sync', { defaultValue: 'Sync' })}
-                    </button>
-                  }
-                  onOpen={() => onOpenDiscoveredDetail(device)}
-                />
-              );
-            })}
-          </div>
-        ) : (
-          <>
-            <p style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
-              {t('settings:sync_no_devices_found', {
-                defaultValue: 'No devices found. Click Discover to scan.',
-              })}
-            </p>
-            {syncEnabled && (
-              <p
-                style={{
-                  fontSize: 'var(--text-caption)',
-                  color: 'var(--text-tertiary)',
-                  marginTop: 8,
-                }}
-              >
-                {t('settings:sync_manual_fallback_hint', {
-                  defaultValue:
-                    "If automatic discovery fails, ensure both devices are on the same Wi-Fi and enter the other device's IP address with port below.",
-                })}
-              </p>
-            )}
-          </>
-        )}
-      </Card>
+      {/* Discovered devices（P046 拆分：DeviceListDiscoveredCard） */}
+      <DeviceListDiscoveredCard
+        syncEnabled={syncEnabled}
+        isLoading={isLoading}
+        isDiscoveringDevices={isDiscoveringDevices}
+        discoveredDevices={discoveredDevices}
+        onDiscover={onDiscover}
+        onSyncWithDevice={onSyncWithDevice}
+        onOpenDiscoveredDetail={onOpenDiscoveredDetail}
+        t={t}
+      />
 
-      {/* Manual sync */}
-      <Card>
-        <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600, marginBottom: 12 }}>
-          {t('settings:sync_with_device', { defaultValue: 'Sync with Device' })}
-        </h3>
-        <p
-          style={{
-            fontSize: 'var(--text-caption)',
-            color: 'var(--text-tertiary)',
-            marginBottom: 12,
-          }}
-        >
-          {t('settings:sync_device_input_hint', {
-            defaultValue: 'Enter a discovered device ID or a host:port address.',
-          })}
-        </p>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <Input
-            placeholder="host:port"
-            value={manualAddr}
-            onChange={(e) => onManualAddrChange(e.target.value)}
-            style={{ flex: 1 }}
-          />
-          <button
-            onClick={() => onSyncWithDevice(manualAddr)}
-            disabled={!manualAddr.trim() || isLoading}
-            className="interactive-toolbar"
-            style={{
-              padding: '8px 16px',
-              borderRadius: 8,
-              borderWidth: 1,
-              borderStyle: 'solid',
-              fontSize: 'var(--text-body-sm)',
-              fontWeight: 500,
-              cursor: !manualAddr.trim() || isLoading ? 'default' : 'pointer',
-              opacity: !manualAddr.trim() || isLoading ? 0.5 : 1,
-              fontFamily: 'inherit',
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {isLoading
-              ? t('common:loading', { defaultValue: 'Loading...' })
-              : t('settings:sync_manual_sync', { defaultValue: 'Sync' })}
-          </button>
-        </div>
-        {lastResult && (
-          <p
-            style={{
-              fontSize: 'var(--text-caption)',
-              color: 'var(--text-secondary)',
-              marginTop: 8,
-            }}
-          >
-            {t('settings:sync_result', { defaultValue: 'Result' })}:{' '}
-            {t('settings:sync_result_stats', {
-              examined: lastResult.examined,
-              applied: lastResult.applied,
-              skipped: lastResult.skipped,
-              conflicts: lastResult.conflictCount ?? lastResult.conflicts.length,
-            })}
-            {/* B：入站结果携带发回对端条数（完整交换量），发起方结果无此字段不显示 */}
-            {lastResult.outboundRecords != null &&
-              ` · ${t('settings:sync_result_outbound', {
-                outbound: lastResult.outboundRecords,
-                defaultValue: 'sent {{outbound}} back',
-              })}`}
-          </p>
-        )}
-        {error && (
-          <p style={{ fontSize: 'var(--text-caption)', color: '#e74c3c', marginTop: 8 }}>
-            {resolveBackendErrorMessage(error)}
-          </p>
-        )}
-      </Card>
+      {/* Manual sync（P046 拆分：DeviceListManualCard） */}
+      <DeviceListManualCard
+        manualAddr={manualAddr}
+        lastResult={lastResult}
+        error={error}
+        isLoading={isLoading}
+        onManualAddrChange={onManualAddrChange}
+        onSyncWithDevice={onSyncWithDevice}
+        t={t}
+      />
 
-      {/* Known peers */}
-      <Card>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <h3 style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>
-            {t('settings:sync_known_devices_title', { defaultValue: 'Known Devices' })}
-          </h3>
-          <Button size="sm" variant="tertiary" onClick={onRefresh} loading={isLoading}>
-            <RefreshCw size={ICON_SIZE.sm} />
-          </Button>
-        </div>
-        <p
-          style={{
-            fontSize: 'var(--text-caption)',
-            color: 'var(--text-tertiary)',
-            marginTop: 8,
-            marginBottom: 12,
-          }}
-        >
-          {t('settings:sync_known_devices_hint', {
-            defaultValue:
-              'Devices you have discovered or connected to before; only trusted devices can sync.',
-          })}
-        </p>
-
-        {connectedPeers.length > 0 ? (
-          <div style={{ marginTop: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {connectedPeers.map((peer) => {
-              const displayName = formatPeerName(peer);
-              // P012: 共享外壳（交互容器 + 图标 + 名称行），副标题/操作区注入
-              return (
-                <DeviceCardShell
-                  key={peer.id}
-                  clientType={peer.clientType}
-                  name={displayName}
-                  subtitle={
-                    <>
-                      {/* 信任徽章独立一行（设备名下方） */}
-                      <div style={{ marginTop: 2 }}>
-                        <span
-                          style={{
-                            fontSize: 'var(--text-badge)',
-                            padding: '1px 8px',
-                            borderRadius: 999,
-                            background: peer.trusted
-                              ? 'rgba(39,174,96,0.12)'
-                              : 'rgba(128,128,128,0.1)',
-                            color: peer.trusted ? '#27ae60' : 'var(--text-tertiary)',
-                            whiteSpace: 'nowrap',
-                          }}
-                        >
-                          {peer.trusted
-                            ? t('settings:sync_trusted_badge', { defaultValue: 'Trusted' })
-                            : t('settings:sync_untrusted_badge', { defaultValue: 'Not trusted' })}
-                        </span>
-                      </div>
-                      {/* 在线状态（i18n：offline/never）——不再展示指纹。
-                          离线含义修正（P0#2）：addr 为空 = 未在局域网发现（非「设备关机/离线」），
-                          附最近一次联系时间（lastSeenTs）帮助用户判断。 */}
-                      <div style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
-                        {peer.addr ? (
-                          `${peer.addr} · ${peer.lastSeen || t('settings:sync_never', { defaultValue: 'never' })}`
-                        ) : (
-                          <>
-                            {t('settings:sync_offline', { defaultValue: 'Not found on LAN' })}
-                            {peer.lastSeenTs
-                              ? ` · ${t('settings:sync_last_seen', {
-                                  defaultValue: 'Last seen: {{time}}',
-                                  time: formatRelativeFromTs(peer.lastSeenTs),
-                                })}`
-                              : ''}
-                          </>
-                        )}
-                      </div>
-                    </>
-                  }
-                  actions={
-                    <>
-                      {peer.trusted ? (
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onTrustPeer(peer.id);
-                          }}
-                          title={t('settings:sync_revoke_tooltip', {
-                            defaultValue: 'Revoke trust: keep the record, reject its syncs',
-                          })}
-                        >
-                          <ShieldOff size={ICON_SIZE.sm} />
-                        </Button>
-                      ) : (
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onOpenPairTarget(peer);
-                          }}
-                          title={t('settings:sync_pair_tooltip', {
-                            defaultValue: 'Pair this device',
-                          })}
-                        >
-                          <ShieldCheck size={ICON_SIZE.sm} />
-                        </Button>
-                      )}
-                      <DeleteButton
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onForgetRequest(peer);
-                        }}
-                        title={t('settings:sync_forget_tooltip', {
-                          defaultValue: 'Forget: delete the record, you will need to re-pair',
-                        })}
-                        iconOnly
-                      />
-                    </>
-                  }
-                  onOpen={() => onOpenDetail(peer)}
-                />
-              );
-            })}
-          </div>
-        ) : (
-          <p
-            style={{
-              fontSize: 'var(--text-caption)',
-              color: 'var(--text-tertiary)',
-              marginTop: 8,
-            }}
-          >
-            {t('settings:sync_no_devices', {
-              defaultValue:
-                'No devices known yet. Enable sync and sync with another device to add it.',
-            })}
-          </p>
-        )}
-      </Card>
+      {/* Known peers（P046 拆分：DeviceListKnownCard） */}
+      <DeviceListKnownCard
+        connectedPeers={connectedPeers}
+        isLoading={isLoading}
+        onRefresh={onRefresh}
+        onTrustPeer={onTrustPeer}
+        onOpenPairTarget={onOpenPairTarget}
+        onForgetRequest={onForgetRequest}
+        onOpenDetail={onOpenDetail}
+        t={t}
+      />
       <ConfirmDialog
         isOpen={!!forgetTarget}
         title={t('settings:sync_forget_confirm_title', { defaultValue: 'Forget device?' })}

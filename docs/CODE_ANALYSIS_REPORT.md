@@ -19,7 +19,7 @@
 |----|--------|------|----------|------|------|
 | P027 | P2 | 死代码 | `tauri/src-tauri/src/commands/object/trash.rs:147`、`lib.rs:389,870,996` | `trash_permanent_delete` 已注册但前端从不调用（P024 批量改造后走 batch），删除需同步守卫测试与总数断言 | `[-]` 经确认跳过（保留 API 完备性） |
 | P033 | P2 | 死代码 | `tauri/src-tauri/src/lib.rs:304-316`（调用于 :667） | `setup_detect_locale()` 结果仅用于一行 debug 日志，前端实际走 `get_system_locale` IPC（需人工确认是否保留诊断） | `[-]` 经确认跳过（保留诊断日志） |
-| P046 | P2 | 架构 | 前端 10 个巨型组件（汇总） | 单组件非注释行 > 300：`AttachmentViewer`(~550)、`LoginPage`(~501)、`PasswordVerificationDialog`(~447)、`TemplateFieldRow`(~436)、`DeviceListPanel`(~424)、`TrashPage`(~422)、`ObjectDetailModal`(~422)、`ExportImportPage`(~417)、`ImportSection`(~409)、`ExportSection`(~405)，建议按「数据 hook + 展示子组件」拆分 | `[>]` 拆解中：**认证域 2/10 + 对象域 3/10 完成（共 5/10）**（LoginPage、PasswordVerificationDialog 见 P046-1；AttachmentViewer/ObjectDetailModal/TemplateFieldRow 见 P046-2）；设置导出域（ExportImportPage/ExportSection/ImportSection/TrashPage/DeviceListPanel）待拆 |
+| P046 | P2 | 架构 | 前端 10 个巨型组件（汇总） | 单组件非注释行 > 300：`AttachmentViewer`(~550)、`LoginPage`(~501)、`PasswordVerificationDialog`(~447)、`TemplateFieldRow`(~436)、`DeviceListPanel`(~424)、`TrashPage`(~422)、`ObjectDetailModal`(~422)、`ExportImportPage`(~417)、`ImportSection`(~409)、`ExportSection`(~405)，建议按「数据 hook + 展示子组件」拆分 | `[x]` 已修复（P046-1 认证域、P046-2 对象域、P046-3 设置导出域，10/10 全部完成） |
 | P047 | P2 | 架构 | Rust 巨型文件（汇总） | `attachment.rs` 2057 行、`object/tests.rs` 2353 行、`export_docx.rs` 1989 行，文件级拆分作为后续架构项 | `[>]` 延期：3 个巨型 Rust 文件拆分，列为后续架构项 |
 
 ## 历史轮次摘要
@@ -200,6 +200,17 @@
 - **验证**：cargo fmt / check / clippy `-D warnings` 全绿。
 
 ## 修复记录（P046 巨型组件拆分）
+
+### P046-3（架构，设置导出域 5/10）✅ 已完成
+
+- **拆分**：按「数据 hook + 展示子组件」模式，纯重构零行为变化：
+  - `ExportImportPage.tsx` **495 → 263 行**（非注释 256）：全部编排逻辑（tab 切换、导出/导入/文档三流状态、savePath/密码/hint、pageGroups 拉取、标签筛选、include* 开关、风险确认弹窗）迁入 `src/pages/settings/useExportImportPage.tsx`；组件退化为纯组合层。
+  - `ExportSection.tsx` **489 → 311 行**（非注释 296）：页面/对象选择树抽为 `ExportTreeCard.tsx`、导出选项抽为 `ExportOptionsCard.tsx`、加密输入抽为 `ExportEncryptionCard.tsx`、风险确认抽为 `ExportWarningDialogs.tsx`；主组件保留标签筛选、大小预估、保存路径与导出按钮。
+  - `ImportSection.tsx` **493 → 183 行**（非注释 174）：文件选择卡抽为 `ImportFileSelectorCard.tsx`、清单信息区抽为 `ImportManifestInfoSection.tsx`、解密预览树+冲突区抽为 `ImportDecryptedSection.tsx`、操作/策略区抽为 `ImportActionSection.tsx`。
+  - `TrashPage.tsx` **503 → 294 行**（非注释 281）：编排逻辑（分页/筛选/搜索/批量恢复/永久删除、恢复确认弹窗）迁入 `src/pages/settings/useTrashPage.tsx`。
+  - `DeviceListPanel.tsx` **482 → 187 行**（非注释 181）：已发现设备卡抽为 `DeviceListDiscoveredCard.tsx`、手动同步卡抽为 `DeviceListManualCard.tsx`、已知设备卡抽为 `DeviceListKnownCard.tsx`。
+- **审查处理**：`PageGroup` 消除重复定义（原 `ExportTreeCard` 与 `types/exportImport` 各一份、内容一致）——统一以 `types/exportImport.ts` 为单一来源，`ExportTreeCard` 改为 re-export，消除未来漂移风险；清理两处未使用导入（`ExportObjectSummary`）。
+- **验证**：tsc / eslint 全绿；全量前端 73 文件 647 测试全绿。
 
 ### P046-2（架构，对象域 3/10）✅ 已完成
 

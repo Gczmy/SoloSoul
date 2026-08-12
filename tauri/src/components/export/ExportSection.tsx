@@ -1,20 +1,15 @@
 import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
-import { SecurePasswordInput } from '@/components/forms/PasswordInput';
 import { formatBytes } from '@/lib/utils';
-import { AttachmentLimitsInfo } from './AttachmentLimitsInfo';
-import { WarningCancelButton } from './WarningCancelButton';
-import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
-import { ObjectSelectionTree } from '@/components/transfer/ObjectSelectionTree';
 import { TransferButton } from '@/components/transfer/TransferButton';
-import type { AttachmentInfo, ExportEstimate, ExportObjectSummary } from '@/types/exportImport';
+import type { AttachmentInfo, ExportEstimate } from '@/types/exportImport';
 
-interface PageGroup {
-  sectionType: string;
-  pageName: string;
-  objectCount: number;
-  objects: ExportObjectSummary[];
-}
+import { ExportTreeCard, type PageGroup } from './ExportTreeCard';
+import { ExportOptionsCard } from './ExportOptionsCard';
+import { ExportEncryptionCard } from './ExportEncryptionCard';
+import { ExportWarningDialogs } from './ExportWarningDialogs';
+
+export type { PageGroup } from './ExportTreeCard';
 
 interface ExportSectionProps {
   pageGroups: PageGroup[];
@@ -66,6 +61,12 @@ interface ExportSectionProps {
   onSetWeakPasswordExport: () => void;
 }
 
+/**
+ * 导出配置区 — P046 拆分后为纯组合层：
+ * 页面/对象树（ExportTreeCard）、导出选项（ExportOptionsCard）、
+ * 加密输入（ExportEncryptionCard）、风险确认（ExportWarningDialogs）均为独立展示子组件；
+ * 本组件保留标签筛选、大小预估、保存路径与导出按钮。
+ */
 export function ExportSection({
   pageGroups,
   selectedPageIds,
@@ -122,30 +123,25 @@ export function ExportSection({
         {t('settings:export_desc')}
       </p>
 
-      {/* Page & Object tree */}
-      <Card>
-        <h3 style={{ fontSize: 'var(--text-body)', fontWeight: 600, marginBottom: 8 }}>
-          {t('settings:select_objects')}
-        </h3>
-        <ObjectSelectionTree
-          pageGroups={pageGroups}
-          selectedPageIds={selectedPageIds}
-          expandedPages={expandedPages}
-          expandedObjects={expandedObjects}
-          selectedAttachmentIds={selectedAttachmentIds}
-          objectAttachments={objectAttachments}
-          totalSelected={totalSelected}
-          // 仅真实包含（未软删）附件的对象显示展开图标；无附件对象不再展示「无附件」空面板
-          showAttachmentExpand={(obj) => includeAttachments && obj.hasAttachments === true}
-          isObjectSelected={(id) => selectedObjectIds.has(id)}
-          onTogglePage={onTogglePage}
-          onToggleObject={onToggleObject}
-          onToggleObjectExpanded={onToggleObjectExpanded}
-          onToggleAttachment={onToggleAttachment}
-          onToggleExpandedPage={onToggleExpandedPage}
-          onSelectAll={onSelectAllExport}
-        />
-      </Card>
+      {/* Page & Object tree（P046 拆分：ExportTreeCard） */}
+      <ExportTreeCard
+        pageGroups={pageGroups}
+        selectedPageIds={selectedPageIds}
+        selectedObjectIds={selectedObjectIds}
+        expandedPages={expandedPages}
+        expandedObjects={expandedObjects}
+        selectedAttachmentIds={selectedAttachmentIds}
+        objectAttachments={objectAttachments}
+        totalSelected={totalSelected}
+        includeAttachments={includeAttachments}
+        onTogglePage={onTogglePage}
+        onToggleObject={onToggleObject}
+        onToggleObjectExpanded={onToggleObjectExpanded}
+        onToggleAttachment={onToggleAttachment}
+        onToggleExpandedPage={onToggleExpandedPage}
+        onSelectAllExport={onSelectAllExport}
+        t={t}
+      />
 
       {/* Tag filter */}
       {allTags.length > 0 && (
@@ -235,95 +231,16 @@ export function ExportSection({
         </Card>
       )}
 
-      <Card>
-        <h3 style={{ fontSize: 'var(--text-body)', fontWeight: 600, marginBottom: 8 }}>
-          {t('settings:export_options')}
-        </h3>
-        <div style={{ padding: '4px 0' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <label
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                cursor: 'pointer',
-                fontSize: 'var(--text-body-sm)',
-              }}
-            >
-              <SelectCheckbox
-                checked={includeAttachments}
-                onChange={(v) => onSetIncludeAttachments(v)}
-              />
-              {t('settings:include_attachments')}
-            </label>
-            <AttachmentLimitsInfo />
-          </div>
-          <div
-            style={{
-              paddingLeft: 24,
-              fontSize: 'var(--text-badge)',
-              color: 'var(--text-tertiary)',
-              marginTop: 2,
-            }}
-          >
-            {t('settings:include_attachments_desc')}
-          </div>
-        </div>
-        <div style={{ padding: '4px 0' }}>
-          <label
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              cursor: 'pointer',
-              fontSize: 'var(--text-body-sm)',
-            }}
-          >
-            <SelectCheckbox
-              checked={includePreferences}
-              onChange={(v) => onSetIncludePreferences(v)}
-            />
-            {t('settings:include_preferences')}
-          </label>
-          <div
-            style={{
-              paddingLeft: 24,
-              fontSize: 'var(--text-badge)',
-              color: 'var(--text-tertiary)',
-              marginTop: 2,
-            }}
-          >
-            {t('settings:include_preferences_desc')}
-          </div>
-        </div>
-        <div style={{ padding: '4px 0' }}>
-          <label
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              cursor: 'pointer',
-              fontSize: 'var(--text-body-sm)',
-            }}
-          >
-            <SelectCheckbox
-              checked={includeBehavioral}
-              onChange={(v) => onSetIncludeBehavioral(v)}
-            />
-            {t('settings:include_behavioral')}
-          </label>
-          <div
-            style={{
-              paddingLeft: 24,
-              fontSize: 'var(--text-badge)',
-              color: 'var(--text-tertiary)',
-              marginTop: 2,
-            }}
-          >
-            {t('settings:include_behavioral_desc')}
-          </div>
-        </div>
-      </Card>
+      {/* Export options（P046 拆分：ExportOptionsCard） */}
+      <ExportOptionsCard
+        includeAttachments={includeAttachments}
+        includePreferences={includePreferences}
+        includeBehavioral={includeBehavioral}
+        onSetIncludeAttachments={onSetIncludeAttachments}
+        onSetIncludePreferences={onSetIncludePreferences}
+        onSetIncludeBehavioral={onSetIncludeBehavioral}
+        t={t}
+      />
 
       {/* Save path */}
       <Card>
@@ -355,124 +272,29 @@ export function ExportSection({
         </TransferButton>
       </Card>
 
-      {/* Encryption */}
-      <Card>
-        <h3 style={{ fontSize: 'var(--text-body)', fontWeight: 600, marginBottom: 8 }}>
-          {t('settings:encryption')}
-        </h3>
+      {/* Encryption（P046 拆分：ExportEncryptionCard） */}
+      <ExportEncryptionCard
+        exportPassword={exportPassword}
+        exportPasswordConfirm={exportPasswordConfirm}
+        exportHint={exportHint}
+        hasSensitiveData={hasSensitiveData}
+        onSetExportPassword={onSetExportPassword}
+        onSetExportPasswordConfirm={onSetExportPasswordConfirm}
+        onSetExportHint={onSetExportHint}
+        onExport={onExport}
+        t={t}
+      />
 
-        {hasSensitiveData && (
-          <div
-            style={{
-              marginBottom: 10,
-              padding: '8px 12px',
-              background: 'var(--warning-subtle)',
-              borderRadius: 6,
-              fontSize: 'var(--text-caption)',
-              color: 'var(--warning)',
-              border: '1px solid var(--warning)',
-            }}
-          >
-            {t('settings:sensitive_export_warning')}
-          </div>
-        )}
-
-        <SecurePasswordInput
-          value={exportPassword}
-          onChange={onSetExportPassword}
-          placeholder={t('common:password_placeholder')}
-          showHintButton={false}
-          onEnter={onExport}
-        />
-        <div style={{ marginTop: 8 }}>
-          <SecurePasswordInput
-            value={exportPasswordConfirm}
-            onChange={(v) => onSetExportPasswordConfirm(v)}
-            placeholder={t('settings:confirm_password')}
-            showHintButton={false}
-            onEnter={onExport}
-          />
-        </div>
-        {exportPassword && exportPasswordConfirm && exportPassword !== exportPasswordConfirm && (
-          <div style={{ marginTop: 4, fontSize: 'var(--text-caption)', color: 'var(--danger)' }}>
-            {t('settings:password_mismatch')}
-          </div>
-        )}
-        <div style={{ marginTop: 8 }}>
-          <input
-            type="text"
-            value={exportHint}
-            onChange={(e) => onSetExportHint(e.target.value)}
-            placeholder={t('common:password_hint')}
-            maxLength={200}
-            className="interactive-field"
-            style={{
-              width: '100%',
-              padding: '10px 14px',
-              fontSize: 'var(--text-body)',
-              borderWidth: 1,
-              borderStyle: 'solid',
-              borderRadius: 8,
-              background: 'var(--bg-elevated)',
-              color: 'var(--text-primary)',
-              fontFamily: 'inherit',
-              outline: 'none',
-            }}
-          />
-        </div>
-      </Card>
-
-      {/* Weak password confirmation dialog */}
-      {showWeakPasswordWarning && (
-        <div
-          style={{
-            padding: '12px 16px',
-            borderRadius: 8,
-            background: 'var(--warning-subtle)',
-            border: '1px solid var(--warning)',
-            fontSize: 'var(--text-body-sm)',
-            color: 'var(--warning)',
-          }}
-        >
-          <p style={{ marginBottom: 8, fontWeight: 600 }}>{t('settings:weak_password_title')}</p>
-          <p style={{ marginBottom: 10 }}>{t('settings:weak_password_confirm')}</p>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <WarningCancelButton onClick={() => onSetShowWeakPasswordWarning(false)}>
-              {t('common:cancel')}
-            </WarningCancelButton>
-            <TransferButton variant="warning" onClick={onSetWeakPasswordExport}>
-              {t('settings:export_anyway')}
-            </TransferButton>
-          </div>
-        </div>
-      )}
-
-      {/* Password hint risk confirmation dialog */}
-      {showHintWarning && (
-        <div
-          style={{
-            padding: '12px 16px',
-            borderRadius: 8,
-            background: 'var(--warning-subtle)',
-            border: '1px solid var(--warning)',
-            fontSize: 'var(--text-body-sm)',
-            color: 'var(--warning)',
-          }}
-        >
-          <p style={{ marginBottom: 8, fontWeight: 600 }}>
-            {t('settings:hint_contains_password_title')}
-          </p>
-          <p style={{ marginBottom: 10 }}>{t('settings:hint_contains_password_confirm')}</p>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <WarningCancelButton onClick={() => onSetShowHintWarning(false)}>
-              {t('common:cancel')}
-            </WarningCancelButton>
-            <TransferButton variant="warning" onClick={onSetShowHintWarningAndExport}>
-              {t('settings:export_anyway')}
-            </TransferButton>
-          </div>
-        </div>
-      )}
+      {/* Risk confirmations（P046 拆分：ExportWarningDialogs） */}
+      <ExportWarningDialogs
+        showWeakPasswordWarning={showWeakPasswordWarning}
+        showHintWarning={showHintWarning}
+        onSetShowWeakPasswordWarning={onSetShowWeakPasswordWarning}
+        onSetShowHintWarning={onSetShowHintWarning}
+        onSetWeakPasswordExport={onSetWeakPasswordExport}
+        onSetShowHintWarningAndExport={onSetShowHintWarningAndExport}
+        t={t}
+      />
 
       <TransferButton
         variant="accent"
