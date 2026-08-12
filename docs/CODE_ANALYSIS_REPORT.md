@@ -1,13 +1,13 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-12（轮次 10：P046 巨型组件拆分收官）
+> 最后更新：2026-08-12（轮次 11：P047 Rust 巨型文件拆分 2/3）
 > 当前分支：`main`
 
 ## 总览
 
 - 全部已提出问题：**77 项**（P47 + N10 + R5 + S4 + T5 + U6 + V5，含重复计数修正）
 - **修复关闭 74 项**、**经确认跳过 2 项**（P027/P033）、**延期 1 项**（P047 Rust 巨型文件拆分，列为后续架构项）
-- **待修复 0 项**：轮次 9 V 系列全部修复（V001–V005），轮次 10 P046 前端巨型组件拆分收官，无新增问题
+- **待修复 0 项**：轮次 9 V 系列全部修复（V001–V005），轮次 10 P046 前端巨型组件拆分收官，轮次 11 P047 Rust 巨型文件拆分推进（attachment.rs、object/tests.rs 完成），无新增问题
 - 遗留计划事项：S003 的 v2.10 blob 键清理（已有代码 TODO + CHANGELOG 双向追踪，属计划内而非遗忘）
 - 轮次 9 基线实测：`check-all` **EXIT=0 全绿**（cargo test + Vitest + 两项机械化一致性检查）；轮次 10 前端全量验证 tsc / eslint 全绿、73 文件 647 测试全绿
 
@@ -20,7 +20,7 @@
 | P027 | P2 | 死代码 | `tauri/src-tauri/src/commands/object/trash.rs:147`、`lib.rs:389,870,996` | `trash_permanent_delete` 已注册但前端从不调用（P024 批量改造后走 batch），删除需同步守卫测试与总数断言 | `[-]` 经确认跳过（保留 API 完备性） |
 | P033 | P2 | 死代码 | `tauri/src-tauri/src/lib.rs:304-316`（调用于 :667） | `setup_detect_locale()` 结果仅用于一行 debug 日志，前端实际走 `get_system_locale` IPC（需人工确认是否保留诊断） | `[-]` 经确认跳过（保留诊断日志） |
 | P046 | P2 | 架构 | 前端 10 个巨型组件（汇总） | 单组件非注释行 > 300：`AttachmentViewer`(~550)、`LoginPage`(~501)、`PasswordVerificationDialog`(~447)、`TemplateFieldRow`(~436)、`DeviceListPanel`(~424)、`TrashPage`(~422)、`ObjectDetailModal`(~422)、`ExportImportPage`(~417)、`ImportSection`(~409)、`ExportSection`(~405)，建议按「数据 hook + 展示子组件」拆分 | `[x]` 已修复（P046-1 认证域、P046-2 对象域、P046-3 设置导出域，10/10 全部完成） |
-| P047 | P2 | 架构 | Rust 巨型文件（汇总） | `attachment.rs` 2057 行、`object/tests.rs` 2353 行、`export_docx.rs` 1989 行，文件级拆分作为后续架构项 | `[>]` 拆解中：**attachment.rs 1/3 完成**（见 P047-1）；object/tests.rs、export_docx.rs 待拆 |
+| P047 | P2 | 架构 | Rust 巨型文件（汇总） | `attachment.rs` 2057 行、`object/tests.rs` 2353 行、`export_docx.rs` 1989 行，文件级拆分作为后续架构项 | `[>]` 拆解中：**attachment.rs 1/3、object/tests.rs 2/3 完成**（见 P047-1、P047-2）；export_docx.rs 待拆 |
 
 ## 历史轮次摘要
 
@@ -34,6 +34,7 @@
 - **轮次 8**：U 系列修复验证（6 提交 9e48b02c–7635406e）。U001/U002/U003/U005/U006 修复通过；U004 隐私政策披露有 P1 级残留（禁用承诺范围错误）；check-all 实测全绿。新增 V001–V005，全部 `[ ]` 待修复。
 - **轮次 9**：V 系列修复验证（5 提交 349dd084–8e9e0a18）。V001–V005 全部修复（V001 政策措辞改口、V002 build 失败兜底回退、V003 Drop guard、V004 可用性面披露、V005 metadata 断点）；V005② wiremock 集成测试登记备查（P3 可缓）。check-all 实测全绿。无新增问题。
 - **轮次 10**：P046 前端 10 个巨型组件拆分收官（3 提交 909d6735–15488aa3，按域分三批）。认证域 2 组件（P046-1：LoginPage 650→179、PasswordVerificationDialog 520→136）、对象域 3 组件（P046-2：AttachmentViewer 683→305、ObjectDetailModal 545→239、TemplateFieldRow 506→192）、设置导出域 5 组件（P046-3：ExportImportPage 495→263、ExportSection 489→311、ImportSection 493→183、TrashPage 503→294、DeviceListPanel 482→187），均按「数据 hook + 展示子组件」纯重构零行为变化；`PageGroup` 消除重复定义统一单一来源。前端全量验证：tsc / eslint 全绿、73 文件 647 测试全绿、代码审查通过无阻塞项。延期项仅剩 P047（Rust 巨型文件拆分）。
+- **轮次 11**：P047 Rust 巨型文件拆分推进 2/3（2 提交，纯文件级重构零行为变化）。P047-1 `attachment.rs` 2213→5 文件（mod/crud/tree/share/tests，最大 734）；P047-2 `object/tests.rs` 2377→tests/ 目录 6 文件（mod 共享 setup_vault + crud/trash/snapshot/template_sync/misc 五主题子模块，最大 732）；tauri 宏命令注册改定义处路径、外部引用路径保持。验证：cargo fmt / check / clippy `-D warnings` 全绿、42 测试属性与函数同段归属正确。剩余 export_docx.rs（2139 行）。
 
 ## 轮次 6：新推送审查（T 系列）
 
@@ -202,6 +203,21 @@
 
 ## 修复记录（P047 Rust 巨型文件拆分）
 
+### P047-2（架构，object/tests.rs 2/3）✅ 已完成
+
+- **拆分**：纯文件级重构，零行为变化：`object/tests.rs` **2377 → tests/ 目录 6 文件**（最大 732，最小 17）：
+  - `object/tests/mod.rs` **17 行**：`setup_vault` 共享测试夹具 + 5 个主题子模块声明。
+  - `object/tests/crud.rs` **462 行**：基础 CRUD/序列化/校验（`inherit_contract_type_id`、`record_to_data`、serde 往返、`create/update_object_input`、`vault_object_save/list`、`hard_delete`、`truncate_preview`、`validate_object_input` 等 14 测试）。
+  - `object/tests/trash.rs` **600 行**：回收站（`trash_permanent_delete`、`load_trash_retention`、`trash_detail`、`repair_restored` 等 10 测试）。
+  - `object/tests/snapshot.rs` **424 行**：快照（snapshot 操作/复制/回滚 + `page_section_delete` 等 5 测试）。
+  - `object/tests/template_sync.rs` **732 行**：模板同步（compute/apply_sync_changes 系列 + `template_fingerprint` 等 9 测试）。
+  - `object/tests/misc.rs` **171 行**：动态组校验、敏感度、`backfill_missing_property_labels_from_template` 等 4 测试。
+- **关键处理**：
+  - **测试属性归属**：切分脚本段边界从 `#[test]` 属性行开始（非 fn 行），保证 42 个测试的属性与函数同段——首次切分将属性行留在上一段末尾导致全部测试丢失 `#[test]` 变 dead_code（never used 警告），经 git 恢复原文件重新切分修复。
+  - **模块层级可见性**：子模块用 `use super::super::*;` 访问 object 模块私有项（与 `tests.rs` 原 `use super::*` 等价——Rust 中后代模块可访问祖先私有项）；`setup_vault` 经 `use super::setup_vault;` 显式导入；`solosoul_vault` 类型按各子模块实际使用按需导入（`use super::*` 不 glob 父模块私有 use 绑定）。
+  - **mod.rs 头部裁剪**：原文件头部的 `use super::*`（mod.rs 自身不再需要）与未用类型导入移除，仅保留 `setup_vault` 所需 `VaultConfig`/`VaultStore`/`TempDir`。
+- **验证**：cargo fmt / check / clippy `-D warnings` 全绿；测试编译通过（本机 `0xc0000139` 为既有环境限制，CI 兜底）。
+
 ### P047-1（架构，attachment.rs 1/3）✅ 已完成
 
 - **拆分**：纯文件级重构，零行为变化：`attachment.rs` **2213 → 5 个文件**（最大 734，最小 217）：
@@ -251,7 +267,7 @@
 
 ## 待用户指令
 
-- 轮次 10：P046 前端巨型组件拆分已全部完成并推送（`909d6735`–`15488aa3`），报告同步更新。剩余延期架构项仅 **P047**（3 个巨型 Rust 文件拆分：`attachment.rs` / `object/tests.rs` / `export_docx.rs`），待用户确认后推进。
+- 轮次 11：P047 Rust 巨型文件拆分已推进 2/3（P047-1 attachment.rs、P047-2 object/tests.rs，已推送），剩余 **export_docx.rs**（2139 行，P047-3）待推进。
 - 可选收尾动作：推送报告并打标签 `git tag -a "code-audit-passed-$(date +%Y%m%d)"`——需用户确认后执行。
 - 后续专项建议：优先处理 P047 巨型 Rust 文件拆分（架构项）；S003 的 v2.10 blob 键清理按代码 TODO 计划执行。
 - 备查项：V003②（并发双下载，更大既存问题）与 V005②（wiremock 集成测试，P3 可缓）已登记，后续视需要处理。
