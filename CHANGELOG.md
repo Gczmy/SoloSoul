@@ -2,6 +2,64 @@
 
 All notable changes to SoloSoul are documented in this file.
 
+## [2.10.0] - 2026-08-12
+
+### Added
+
+- **附件描述与标签** — 附件新增「描述」（3→5 行输入框，maxLength 500）与「标签」编辑能力（`attachment_update_meta` 命令）；行/全屏照片编辑入口；照片集支持标签筛选、时间排序、按年月日与对象分组；描述/标签随 docx/markdown/txt/html/pdf 一并导出（清单主行下附「描述/标签」行，含 XML 转义断言）。
+- **照片集快捷入口** — 首页新增照片集卡片（点击加载全 Vault 照片进入全屏相册），照片总数角标；附件管理快捷卡片增加附件总数角标，返回首页自动刷新（`countActiveAttachments` + `loadCounts`）。
+- **账户管理页** — 查看账户 ID（只读+复制）、修改账户名（`vault_rename_account` 命令 + 唯一性校验 + 原子写）。
+- **GitHub 国内下载加速（U001-U006 系列）** — 安卓端代理回退 + 多线程分段下载（Range 分 4 段并发 + 合并 + SHA-256 校验，不支持 Range 降级单流续传）；桌面端发版探测生成 `latest-mirror-<id>.json` + updater endpoints 直连/代理回退；`SOLOSOUL_PROXY_PREFIXES` 区分未设置（回退默认）与显式置空（禁用全部代理）。
+- **更新横幅「查看更新内容」按钮** — available 状态展示，点击弹卡渲染最新版 release notes（SafeMarkdown），移动端仅图标；MandatoryUpdateOverlay 同款交互（内嵌滚动块改 Dialog 弹卡，Dialog 新增可选 zIndex prop）。
+
+### Fixed
+
+- **附件描述/标签折叠展开** — 描述溢出显示箭头可展开全文（默认折叠、仅溢出时出按钮）；标签超 4 个显示 +N pill + 展开箭头；长标签换行（chip `maxWidth 100%` 钳制）；标签折叠按钮与描述一致固定在右侧；折叠态强制单行 +N 与折叠按钮永居行尾。
+- **标签输入自动生成** — 失焦或直接保存时自动生成标签（幂等 `mergeTagInput` 四路径共用，修复 blur setState 未提交导致保存丢失）。
+- **展开按钮触控三边角（T003-T004）** — global.css 移动端 44×44 button 触控基线把 18px 展开箭头撑成两行（显式 `minWidth/minHeight:0` 覆盖）；高亮改由 expanded 状态驱动（安卓 WebView 触摸残留合成 mouseover 导致高亮卡死）；移除箭头按钮 44×44 隐形热区，触控由整行可点承担。
+- **选区守卫（Y001）** — 描述/标签行 onClick 加 `getSelection` 非空守卫，拖选复制不再意外翻转折叠态。
+- **附件编辑对话框标签 chip 视觉** — 全圆胶囊改 6px 小圆角、padding 收紧为对称 3px 8px、X 移除按钮 minWidth/minHeight:0 覆盖触控基线。
+- **对话框输入框不再误关宿主（c1b995a1）** — portal 合成事件沿 React 树冒泡到宿主背景 onClick，wrapper 加 stopPropagation 拦截（修复附件描述/标签编辑框一点输入就退出返回 workspace）。
+- **详情模态下附件卡片遮挡（98c43db3）** — 对象附件卡片按钮右对齐；编辑描述/标签对话框 z-index 5100 高于默认 4000 被遮挡，改用 auth 层级；照片集 z-index 相对查看器 +1。
+- **单图预览对齐照片集查看器（fdd4b685）** — 顶栏返回按钮、背景点击 stopPropagation、内容 margin:auto 垂直水平居中。
+- **搜索结果对象显示模板图标（c6f64978）** — 与 workspace 对象卡片图标同源。
+- **安卓对象级附件卡片按钮独立一行（4ecf81b8）** — 避免挤占文件名/大小时间信息。
+- **更新下载弹性（T001-T005/V001-V005 系列）** — 单流切候选断点改 `metadata().len()` 为准（write_all 部分写入失败不再按计数断点续传导致 part 重复拼接损坏）；parallel 失败 abort 后逐个 await 再清理 seg；`ApkDownloadActiveGuard` Drop guard 恢复（panic unwind 不再泄漏标志）；`desktop_check_update` 改 `updater_builder().timeout(15s)`（不再因直连黑洞永久卡 checking）；`cleanup` 清理当前版本孤儿 `.part.seg{i}`；`next_resume_offset` 缺失文件时置 0 强制重下。
+- **隐私披露（U004/V001/V004）** — 隐私政策中英两版补充「检查更新与下载中转」章节（第三方代理 TLS 终止中转的隐私面、`SOLOSOUL_PROXY_PREFIXES` 覆盖与禁用方式、软性压制升级可用性面）。
+- **i18n 补齐** — `common:load_failed` 双 locale key，`check-missing-i18n` 现已 0 缺失。
+- **P001-P047 修复闭环（轮次 1-9）** — 见下「安全/重构/性能」分类；其中 P001 clippy 基线清零、P002 Android 下载不信任前端回传 URL/校验和（fail-closed）、P003 导出计数纯 SQL、P004 LLM 会话行级表、P005 CLI 搜索计数纯 SQL、P006 ObjectData 补齐 tags、P007-P011 共享组件/hook 抽取、P012 校验和资产匹配收紧、P013 导入路径白名单、P014 附件入口拒绝 `..` 组件、P015 路径白名单空时 fail-closed、P016 密码/PIN Zeroizing、P017 resolve_within canonical 路径（TOCTOU）、P018 OCR 日志路径脱敏、P019 log_write action_type 白名单、P020 服务端派生账户、P021 TS ProviderConfig 补 embeddingModel、P022 移除 DTO salt/verifyHash、P023 删除重复 DTO、P024 导出密钥单一实现、P025 release panic unwind、P026 命令边界校验、P027-P033 死代码清理、P034-P039 大函数拆分、P040-P044 共享组件、P045-P047 巨型组件/文件拆分。
+- **N001-N010 修复（轮次 2-3）** — Rust 测试 9 红修复、LLM 冲突快照本地快照恒 None（`conversation_local_snapshot` 按主键取数）、懒迁移下沉 `LlmService` 单一实现（updated_at LWW 防覆盖 CLI 较新行）、`find_apk_asset` 收紧纯 `.apk` 扩展名、`check-all` 加入 cargo test、OpenAI usage 逐字段更新、`validate_object_input` 误挂 `#[tauri::command]`、六项卫生修复（白名单拒绝文案、FS_BASE 语义、Windows 前缀剥离）。
+- **R001-R005 修复（轮次 4）** — 会话级冲突两路径单测（内容不同仍记冲突、远端信封解密失败 fail-safe）、S001 永久删除同步从 blob 值移除该 id（修复 R003 保留键后懒迁移复活 purge 会话的回归）、懒迁移延迟删键（保留 `llmConversations` 键保护混合版本同步）、下载目的地白名单拒绝文案中文+自救提示、`display_fs_path` 纯字符串处理 UNC 网络路径、check_pref_keys_sync.py 缩进匹配改 `\s+`、R001 分隔行计数断言修正。
+- **S001-S004 修复（轮次 5）** — 会话永久删除同步从 blob 移除（修复 purge 会话复活回归）、附件溢出检测补 `document.fonts.ready` 字体重测兜底、容器尺寸 ResizeObserver 监听（变窄后标签截断即时出现折叠按钮）、`SOLOSOUL_PROXY_PREFIXES` 测试共享 ENV_LOCK 串行执行。
+- **附件标签溢出修复（1039c070 系列）** — 折叠按钮改为「任一标签被省略号截断即出现」（`hasTagOverflow` 检测 `scrollWidth>clientWidth`）、数量未超 4 的长标签也可展开；展开后长标签 chip 内换行（`whiteSpace normal + wordBreak`）。
+
+### Refactor
+
+- **P046 前端巨型组件拆分（10 项）** — 认证域（LoginPage 650→179、PasswordVerificationDialog 520→136）、对象域（AttachmentViewer 683→305、ObjectDetailModal 545→239、TemplateFieldRow 506→192）、settings/export 域；W001 系列 hook 再拆（usePasswordVerificationFlows/IconBar、useObjectDetailVerification、useLoginUnlockFlows、useAttachmentBatchOps）、W004 useAttachmentManager 拆 useAttachmentManagerBatchOps/ItemOps、W005 useObjectWorkspaceData 拆 useWorkspaceTemplateSync。
+- **P047 Rust 巨型文件拆分** — `attachment.rs` 2213 行拆 5 文件、`object/tests.rs` 2377 行拆 6 文件、`export_docx.rs` 2139 行拆 8 文件。
+- **T009 附件展开块收敛** — 名称/描述/标签三个可展开块收敛为共享 `ExpandableBlock` 组件（双层背景色抽 BLOCK_BG/HANDLE_BG 常量），净减 44 行。
+- **P034-P044 大函数/共享组件抽取** — `handle_sse_stream` 抽 usage 提取、`rebuild_imported_templates` 抽 `resolve_template_id`、`build_preview_properties` 阶段拆分、`export_get_scope_tree` 5 阶段拆分、`collect_updated_fields` 抽 `collect_metadata_diff`、系统分区收敛 `SYSTEM_SECTIONS`、PinEntryCard/QrModalShell/DownloadProgressBar/OcrTierStatusRow/IconCategoryPicker/useHoverCardPosition 共享组件、`resolve_peer_client_type` 共享函数。
+- **P023-P032 死代码与收敛** — 删除重复 AccountInfo DTO、`derive_export_key_cfg` 收敛到 crypto 单一实现、删除 PluginTier::label/VersionedProfileData/死 re-export shim、DEFAULT_ENABLED_TIERS 取消导出、移除过时 P209 注释块。
+
+### Security
+
+- **P002** — `android_download_apk` 不信任前端回传 URL/校验和，Rust 侧按 version 重拉 release 元数据并验签，fail-closed 拒绝无校验下载。
+- **P016/P015** — `pin_setup/pin_disable/pin_unlock/change_password` 命令入口 Zeroizing 包装密码与 PIN（P015 同款模式）。
+- **P017/P014** — `resolve_within` 返回 canonical 目标路径（消除符号链接 TOCTOU）；`attachment_copy_to_vault` 入口拒绝 `..` 组件。
+- **P013/P012/P019/P020/P022/P026** — 导入路径白名单校验、校验和资产匹配收紧（`.sha256` 且排除 `.minisig`，验签失败返回 checksumWarning）、`log_write` action_type 白名单、服务端派生账户（忽略客户端 account_id）、移除 DTO salt/verifyHash（缩小 WebView 攻击面）、命令边界校验（偏好 key 白名单 + 载荷上限）。
+- **P025** — release panic 由 abort 改 unwind，命令 handler panic 不再整进程崩溃（Vault 可正常锁定清理），插件沙箱 catch_unwind 恢复有效。
+
+### Performance
+
+- **P003/P005** — 导出 selected 分支消除全库双重解密（`list_object_metadata_with_tags` 纯 SQL + `SUM(LENGTH(properties))` 估算）；CLI 搜索计数改用 `count_objects` 纯 SQL。
+
+### Chores
+
+- 版本号同步升级到 2.10.0（versionCode 2010000）。
+- **S003 会话 blob 键清理门槛达成** — v2.10 起经 profile delta 移除 `llmConversations` 键（代码内 `TODO(S003)` 门槛：确认所有设备升级到 2.9.2+ 后清理）。
+- 同步 solosoul_cli Cargo.lock 依赖版本（solosoul-core/crypto 2.8.6→2.9.2）。
+- 184 个 commit 自 v2.9.2 到 v2.10.0。
+
 ## [2.9.2] - 2026-08-11
 
 ### Added
