@@ -398,3 +398,102 @@ describe('AttachmentFileNameBlock 标签折叠/展开', () => {
     tags.forEach((t) => expect(screen.getByText(t)).toBeInTheDocument());
   });
 });
+
+describe('AttachmentFileNameBlock 名称折叠/展开', () => {
+  it('短名称不显示展开箭头', () => {
+    render(<AttachmentFileNameBlock {...base} fileName="photo.png" />);
+    expect(screen.getByText('photo.png')).toBeInTheDocument();
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+  });
+
+  it('T006 名称折叠：超长名称（mock 溢出）显示展开箭头；展开态仅「名称」把手行可收起', () => {
+    const longName = '一个非常非常长的附件文件名称'.repeat(12) + '.pdf';
+    const { rerender } = render(<AttachmentFileNameBlock {...base} fileName={longName} />);
+    // 初始 jsdom 无布局：无按钮
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+
+    // 模拟真实布局：名称溢出（scrollWidth > clientWidth）
+    const nameEl = screen.getByText(longName) as HTMLElement;
+    Object.defineProperty(nameEl, 'scrollWidth', { configurable: true, value: 2000 });
+    Object.defineProperty(nameEl, 'clientWidth', { configurable: true, value: 300 });
+
+    // 以不同文件名 rerender 触发溢出检测 effect 重测 → 折叠态出现展开箭头
+    rerender(<AttachmentFileNameBlock {...base} fileName={longName + '（重命名）'} />);
+    const toggle = screen.getByRole('button', { expanded: false });
+    expect(toggle).toBeInTheDocument();
+    // 收起态整行可点（cursor pointer + touchAction manipulation）
+    expect(toggle.parentElement).toHaveStyle({ cursor: 'pointer', touchAction: 'manipulation' });
+
+    // 点击名称文本（非按钮）→ 展开
+    fireEvent.click(screen.getByText(longName + '（重命名）'));
+    expect(screen.getByRole('button', { expanded: true })).toBeInTheDocument();
+
+    // 展开态：全名换行显示 +「名称」折叠把手行（半透明主题色背景，唯一折叠入口）
+    expect(screen.getByText(longName + '（重命名）')).toHaveStyle({ whiteSpace: 'pre-wrap' });
+    const handleLabel = screen.getByText('名称');
+    expect(handleLabel.parentElement).toHaveStyle({
+      background: 'color-mix(in srgb, var(--accent-primary) 10%, transparent)',
+      cursor: 'pointer',
+    });
+
+    // 展开后点击全名**不**折叠（可选中/复制）
+    fireEvent.click(screen.getByText(longName + '（重命名）'));
+    expect(screen.getByRole('button', { expanded: true })).toBeInTheDocument();
+
+    // 点击「名称」把手行 → 收起
+    fireEvent.click(screen.getByText('名称'));
+    expect(screen.getByRole('button', { expanded: false })).toBeInTheDocument();
+  });
+
+  it('Y001 选区守卫：有非空选区时点击名称行不展开，无选区时正常展开', () => {
+    const longName = '一个非常非常长的附件文件名称'.repeat(12) + '.pdf';
+    const { rerender } = render(<AttachmentFileNameBlock {...base} fileName={longName} />);
+    const nameEl = screen.getByText(longName) as HTMLElement;
+    Object.defineProperty(nameEl, 'scrollWidth', { configurable: true, value: 2000 });
+    Object.defineProperty(nameEl, 'clientWidth', { configurable: true, value: 300 });
+    rerender(<AttachmentFileNameBlock {...base} fileName={longName + '（重命名）'} />);
+    expect(screen.getByRole('button', { expanded: false })).toBeInTheDocument();
+
+    const spy = vi
+      .spyOn(window, 'getSelection')
+      .mockReturnValue({ toString: () => '选中文本' } as Selection);
+    try {
+      // 点击名称文本（click 照常派发到行容器）→ 有选区不展开
+      fireEvent.click(screen.getByText(longName + '（重命名）'));
+      expect(screen.getByRole('button', { expanded: false })).toBeInTheDocument();
+    } finally {
+      spy.mockRestore();
+    }
+
+    // 无选区（正常点击）→ 展开
+    fireEvent.click(screen.getByText(longName + '（重命名）'));
+    expect(screen.getByRole('button', { expanded: true })).toBeInTheDocument();
+  });
+
+  it('回收站态名称仍可折叠展开（删除线/半透明保留）', () => {
+    const longName = '待删除的极长附件文件名称'.repeat(12) + '.zip';
+    const { rerender } = render(
+      <AttachmentFileNameBlock {...base} fileName={longName} showTrash />,
+    );
+    const nameEl = screen.getByText(longName) as HTMLElement;
+    Object.defineProperty(nameEl, 'scrollWidth', { configurable: true, value: 2000 });
+    Object.defineProperty(nameEl, 'clientWidth', { configurable: true, value: 300 });
+    rerender(<AttachmentFileNameBlock {...base} fileName={longName + '（回收站）'} showTrash />);
+
+    // 折叠态：名称删除线；整块（外层容器）半透明（与描述块同模式，含把手行/箭头）
+    const collapsed = screen.getByText(longName + '（回收站）');
+    expect(collapsed).toHaveStyle({ textDecoration: 'line-through' });
+    expect(collapsed.parentElement!.parentElement).toHaveStyle({ opacity: '0.5' });
+    fireEvent.click(screen.getByRole('button', { expanded: false }));
+
+    // 展开态：全名保留删除线，把手行与全名同在半透明块内
+    expect(screen.getByText(longName + '（回收站）')).toHaveStyle({
+      textDecoration: 'line-through',
+      whiteSpace: 'pre-wrap',
+    });
+    expect(screen.getByText('名称').parentElement!.parentElement).toHaveStyle({ opacity: '0.5' });
+    // 收起
+    fireEvent.click(screen.getByText('名称'));
+    expect(screen.getByRole('button', { expanded: false })).toBeInTheDocument();
+  });
+});

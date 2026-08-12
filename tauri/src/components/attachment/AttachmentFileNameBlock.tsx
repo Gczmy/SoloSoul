@@ -1,7 +1,6 @@
 import { useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { truncateFileName } from '@/lib/attachmentUtils';
 import { formatBytes } from '@/lib/utils';
 
 interface AttachmentFileNameBlockProps {
@@ -152,12 +151,13 @@ function CollapseHandleRow({ label, onCollapse }: { label: string; onCollapse: (
 }
 
 /**
- * P226: 附件文件名块——名称（回收站态删除线/半透明）+ 大小·日期 + 描述（可展开）+ 标签（可展开）。
+ * P226: 附件文件名块——名称（超长折叠展开/回收站态删除线）+ 大小·日期 + 描述（可展开）+ 标签（可展开）。
  *
  * 收敛自 AttachmentRow 与 AttachmentListItem 两处逐字节相同的文件名展示块；
  * 唯一差异是元信息行字号（text-caption vs text-badge），以 metaStyle 参数化。
  *
- * 描述与标签均默认折叠：
+ * 名称、描述与标签均默认折叠：
+ * - 名称：折叠态单行省略，仅当文本实际溢出时显示展开箭头；展开后显示全名（换行）。
  * - 描述：折叠态单行省略，仅当文本实际溢出时显示展开箭头；展开后显示全文（保留换行）。
  * - 标签：折叠态显示前 4 个 +「+N」pill（与标签同尺寸垂直对齐），超过 4 个**或任一标签被
  *   省略号截断**时显示展开箭头；展开后显示全部标签。
@@ -175,13 +175,18 @@ export function AttachmentFileNameBlock({
   const visibleTags = (tags ?? []).filter((x) => x.trim());
   const trimmedDesc = description?.trim() ?? '';
 
+  const [nameExpanded, setNameExpanded] = useState(false);
   const [descExpanded, setDescExpanded] = useState(false);
   const [tagsExpanded, setTagsExpanded] = useState(false);
+  const nameRef = useRef<HTMLDivElement | null>(null);
   const descRef = useRef<HTMLDivElement | null>(null);
   const tagsContainerRef = useRef<HTMLDivElement | null>(null);
+  const [nameOverflow, setNameOverflow] = useState(false);
   const [descOverflow, setDescOverflow] = useState(false);
   const [tagsOverflow, setTagsOverflow] = useState(false);
   // 展开态实时镜像（供溢出检测守卫读取最新值，避免依赖数组包含 expanded 引发展开/收起重测）
+  const nameExpandedRef = useRef(nameExpanded);
+  nameExpandedRef.current = nameExpanded;
   const descExpandedRef = useRef(descExpanded);
   descExpandedRef.current = descExpanded;
   const tagsExpandedRef = useRef(tagsExpanded);
@@ -198,6 +203,12 @@ export function AttachmentFileNameBlock({
   // 用户无任何展开途径（无 +N 也无按钮）。
   useLayoutEffect(() => {
     const measure = () => {
+      if (!nameExpandedRef.current) {
+        const el = nameRef.current;
+        if (el) {
+          setNameOverflow(el.scrollWidth > el.clientWidth + 1);
+        }
+      }
       if (!descExpandedRef.current) {
         const el = descRef.current;
         if (el) {
@@ -219,10 +230,11 @@ export function AttachmentFileNameBlock({
       return undefined;
     }
     const observer = new ResizeObserver(() => measure());
+    if (nameRef.current) observer.observe(nameRef.current);
     if (descRef.current) observer.observe(descRef.current);
     if (tagsContainerRef.current) observer.observe(tagsContainerRef.current);
     return () => observer.disconnect();
-  }, [trimmedDesc, tags, showTrash]);
+  }, [fileName, trimmedDesc, tags, showTrash]);
 
   const hasMoreTags = visibleTags.length > MAX_VISIBLE_TAGS;
   const displayedTags = tagsExpanded ? visibleTags : visibleTags.slice(0, MAX_VISIBLE_TAGS);
@@ -231,17 +243,74 @@ export function AttachmentFileNameBlock({
 
   return (
     <div style={{ flex: 1, minWidth: 0 }}>
+      {/* 名称行：超长时折叠/展开（与描述同策略，T006 同模式） */}
       <div
         style={{
-          fontWeight: 500,
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-          textDecoration: showTrash ? 'line-through' : 'none',
+          // 回收站态：整块（含把手行/箭头）统一半透明（与描述块同模式），
+          // 文本本身的删除线在下方内层保留。
           opacity: showTrash ? 0.5 : 1,
+          // 展开态：整块叠**第一层**半透明主题色圆角背景，把「名称」折叠把手行与
+          // 全名圈在一起；收起态无背景、维持原样。
+          background: nameExpanded
+            ? 'color-mix(in srgb, var(--accent-primary) 6%, transparent)'
+            : undefined,
+          borderRadius: nameExpanded ? 8 : undefined,
+          padding: nameExpanded ? 4 : undefined,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 4,
         }}
       >
-        {truncateFileName(fileName)}
+        {nameExpanded && (
+          <CollapseHandleRow
+            label={t('common:name', { defaultValue: '名称' })}
+            onCollapse={() => setNameExpanded(false)}
+          />
+        )}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: 2,
+            // T006：**仅收起态**整行可点（点名称任意处展开）——展开态全名不可点击折叠
+            //（可选中/复制），折叠把手移交「名称」标签行。
+            cursor: !nameExpanded && nameOverflow ? 'pointer' : 'default',
+            touchAction: 'manipulation',
+          }}
+          onClick={
+            !nameExpanded && nameOverflow
+              ? () => {
+                  // Y001: 有文本选区（拖选复制/长按选择）时不切换折叠态。
+                  if (hasTextSelection()) return;
+                  setNameExpanded(true);
+                }
+              : undefined
+          }
+        >
+          <div
+            ref={nameRef}
+            style={{
+              flex: 1,
+              minWidth: 0,
+              fontWeight: 500,
+              overflow: 'hidden',
+              textOverflow: nameExpanded ? undefined : 'ellipsis',
+              whiteSpace: nameExpanded ? 'pre-wrap' : 'nowrap',
+              wordBreak: 'break-word',
+              textDecoration: showTrash ? 'line-through' : 'none',
+              userSelect: 'text',
+            }}
+          >
+            {fileName}
+          </div>
+          {!nameExpanded && nameOverflow ? (
+            <ToggleButton
+              expanded={false}
+              onClick={() => setNameExpanded(true)}
+              label={t('common:expand', { defaultValue: '展开' })}
+            />
+          ) : null}
+        </div>
       </div>
       <div
         style={{
