@@ -73,21 +73,16 @@ function ToggleButton({
         padding: 0,
         border: 'none',
         borderRadius: 4,
-        background: 'transparent',
-        color: 'var(--text-tertiary)',
+        // 状态驱动而非 hover/触摸事件驱动：展开态保持「点击效果」（accent 色 +
+        // 高亮底），收起态恢复常态——安卓 WebView 触摸后合成 mouseover 无 mouseout
+        // 会导致 hover 样式残留卡死（标签与描述按钮行为不一致的根因）。
+        background: expanded ? 'var(--bg-hover)' : 'transparent',
+        color: expanded ? 'var(--accent-primary)' : 'var(--text-tertiary)',
         cursor: 'pointer',
         // T003 移动端触控：消除 300ms 点击延迟与双击缩放误触发；
         // 触控面积由行容器整行可点承担，按钮不再扩展隐形热区（不占额外行）。
         touchAction: 'manipulation',
         transition: 'color 120ms ease, background 120ms ease',
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.color = 'var(--accent-primary)';
-        e.currentTarget.style.background = 'var(--bg-hover)';
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.color = 'var(--text-tertiary)';
-        e.currentTarget.style.background = 'transparent';
       }}
     >
       {expanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}

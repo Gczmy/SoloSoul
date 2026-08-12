@@ -92,6 +92,34 @@ describe('AttachmentFileNameBlock 描述折叠/展开', () => {
     // 否则安卓端按钮被 min-height/min-width 撑成 44×44，视觉占两行（T003 根因）。
     expect(toggle).toHaveStyle({ minWidth: '0px', minHeight: '0px' });
   });
+
+  it('T004 状态驱动样式：收起态常态、展开态保持点击效果（非 hover 残留）', () => {
+    const longDesc = '这是一段非常长的附件描述文本，'.repeat(40);
+    const { rerender } = render(<AttachmentFileNameBlock {...base} description={longDesc} />);
+    const descEl = screen.getByText(longDesc) as HTMLElement;
+    Object.defineProperty(descEl, 'scrollWidth', { configurable: true, value: 2000 });
+    Object.defineProperty(descEl, 'clientWidth', { configurable: true, value: 300 });
+    rerender(<AttachmentFileNameBlock {...base} description={longDesc + '（续）'} />);
+
+    // 收起态：常态（tertiary 色 + 透明底）
+    const collapsed = screen.getByRole('button', { expanded: false });
+    expect(collapsed).toHaveStyle({ color: 'var(--text-tertiary)', background: 'transparent' });
+
+    // 展开态：保持点击效果（accent 色 + 高亮底）——样式随 expanded 状态而非 hover 事件
+    fireEvent.click(collapsed);
+    const expanded = screen.getByRole('button', { expanded: true });
+    expect(expanded).toHaveStyle({
+      color: 'var(--accent-primary)',
+      background: 'var(--bg-hover)',
+    });
+
+    // 再收起 → 恢复常态
+    fireEvent.click(expanded);
+    expect(screen.getByRole('button', { expanded: false })).toHaveStyle({
+      color: 'var(--text-tertiary)',
+      background: 'transparent',
+    });
+  });
 });
 
 describe('AttachmentFileNameBlock 标签折叠/展开', () => {
