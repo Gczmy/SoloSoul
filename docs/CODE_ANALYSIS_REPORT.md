@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-12（轮次 12：W 系列收尾 + V005-R1 备查项修复 + W001-②③④⑤ hook 拆分 + W004 useAttachmentManager 拆分）
+> 最后更新：2026-08-12（轮次 12：W 系列收尾 + V005-R1 备查项修复 + W001-②③④⑤ hook 拆分 + W004/W005 巨型 hook 拆分）
 > 当前分支：`main`
 
 ## 总览
@@ -111,6 +111,15 @@
   - **接口**：`useAttachmentManagerBatchOps({ allVisibleKeys, displayPages, loadData, t, showToast })` 与 `useAttachmentManagerItemOps({ loadData, requestConfirm, t, showToast })`，返回值 spread 进父层——`GlobalAttachmentManager.tsx` 消费字段名零变化（含 `setRenamingId`/`setRenameObjectId` 等全部 setter），调用方零改动。
 - **行为保留**：`showToast` 类型以 `uiStore` 导出的 `Toast` 接口的 `Omit<Toast, 'id'>` 精确承接（`interface Toast` 补 `export`，与 W001 中 `PluginContractRole` 提升导出同模式）；各 handler 的 useCallback deps 均含新增注入函数（loadData/requestConfirm/t/showToast，父层 useCallback/selector 身份稳定）。
 - **验证**：tsc / eslint 全绿；settings + attachment + hooks 11 测试文件 87 测试全绿。
+
+### W005（P2，useObjectWorkspaceData 模板同步域拆分）✅ 已修复
+
+- **修复**：`useObjectWorkspaceData.ts` **443 → 259 非注释行**（< 300 达标）改为组合层——模板同步流程域抽为 `useWorkspaceTemplateSync.ts`（**231 非注释行**）：
+  - **迁出**：syncDialog/dismissConfirm/syncDialogOpenForObjectId 三弹窗状态、templateHashMap 指纹映射 + 加载/刷新（`template_hash_map` IPC）、detailHashNeedsSync（hash 初判）+ detailSemanticNeedsSync（语义复核 effect）、`refreshDetailObjAfterSync`、五个同步 handler（`handleStartSync`/`handleConfirmSync`/`handleDismissSync`/`handleRequestDismissSync`/`handleConfirmDismissSync`）。
+  - **父 hook 保留**：对象加载（loadObjects/分页/搜索防抖）、snapshot/attachment 计数 batch、删除/历史/附件/详情弹窗状态、密码守卫（useWorkspacePasswordGuard）、字段元数据（useTemplateFieldMeta）、customPage/collectionLabel/newObjectUrl 派生、`handleViewDeprecatedFields`。
+  - **接口**：`useWorkspaceTemplateSync({ accountId, pageId, sectionFilter, detailObj, setDetailObj, userTemplates, loadObjects, previewSyncTemplate, applySyncTemplate, ignoreTemplateSync })`，返回值 spread 进父层——`ObjectWorkspacePage.tsx` 消费字段名零变化（`ws.xxx` 全字段访问），调用方零改动。
+- **行为保留**：五 handler 的 useCallback deps 含全部注入项（store actions 稳定 selector 身份）；「无差异直接应用同步」快速路径、同步后刷新对象列表/指纹映射/详情对象三重刷新、dismiss 二次确认链路逐字随迁。
+- **验证**：tsc / eslint 全绿；workspace + object + hooks 7 测试文件 57 测试全绿。
 
 ### W002（P3，注释归位）✅ 已修复
 
