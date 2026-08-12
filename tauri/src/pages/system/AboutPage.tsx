@@ -62,64 +62,8 @@ export function AboutPage() {
 
   return (
     <>
-      {/* 关于页面更新说明 Markdown 样式 */}
+      {/* 关于页面重试按钮旋转动画（release-notes-md 全局样式见 global.css） */}
       <style>{`
-        .release-notes-md h1,
-        .release-notes-md h2,
-        .release-notes-md h3 {
-          font-size: var(--text-sm);
-          font-weight: 600;
-          margin: 8px 0 4px;
-        }
-        .release-notes-md h4,
-        .release-notes-md h5,
-        .release-notes-md h6 {
-          font-size: var(--text-caption);
-          font-weight: 600;
-          margin: 6px 0 3px;
-        }
-        .release-notes-md p { margin: 0 0 6px; }
-        .release-notes-md p:last-child { margin-bottom: 0; }
-        .release-notes-md ul,
-        .release-notes-md ol { margin: 4px 0; padding-left: 20px; }
-        .release-notes-md li { margin: 2px 0; }
-        .release-notes-md strong { font-weight: 600; }
-        .release-notes-md code {
-          font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
-          font-size: 12px;
-          background: rgba(128,128,128,0.1);
-          padding: 1px 4px;
-          border-radius: 3px;
-        }
-        .release-notes-md pre {
-          background: var(--bg-toolbar);
-          padding: 8px 10px;
-          border-radius: 6px;
-          overflow-x: auto;
-          margin: 6px 0;
-        }
-        .release-notes-md pre code {
-          background: none;
-          padding: 0;
-        }
-        .release-notes-md a {
-          color: var(--accent-primary);
-          text-decoration: none;
-        }
-        @media (hover: hover) and (pointer: fine) {
-          .release-notes-md a:hover { text-decoration: underline; }
-        }
-        .release-notes-md blockquote {
-          border-left: 3px solid var(--accent-primary);
-          margin: 6px 0;
-          padding-left: 10px;
-          color: var(--text-secondary);
-        }
-        .release-notes-md hr {
-          border: none;
-          border-top: 1px solid var(--border-subtle);
-          margin: 8px 0;
-        }
         @keyframes about-retry-spin {
           to { transform: rotate(360deg); }
         }
