@@ -73,7 +73,14 @@ sign_file() {
     # 转为绝对路径：tauri signer 在 ${TAURI_DIR} 子 shell 中执行（需要 npx 从 tauri/
     # 解析），相对路径（如 SoloSoul-Releases/xxx）会因 cd 而失效——与
     # build_macos_release.sh 对 updater 产物转绝对路径的处理保持一致。
-    local abs_file="$(cd "$(dirname "$file")" && pwd)/$(basename "$file")"
+    # 产物目录在 glob 与调用之间消失时，cd 失败须显式报错退出（set -e），
+    # 避免静默降级为 "/<basename>" 产生误导性签名路径错误。
+    local dir
+    dir="$(cd "$(dirname "$file")" && pwd)" || {
+        log_error "无法解析产物目录（目录已消失?）: $(dirname "$file")"
+        return 1
+    }
+    local abs_file="${dir}/$(basename "$file")"
     local sig="${abs_file}.sig"
 
     if [[ -f "$sig" ]]; then
