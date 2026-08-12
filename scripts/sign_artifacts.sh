@@ -70,17 +70,21 @@ fi
 # --- 签名函数 ---
 sign_file() {
     local file="$1"
-    local sig="${file}.sig"
+    # 转为绝对路径：tauri signer 在 ${TAURI_DIR} 子 shell 中执行（需要 npx 从 tauri/
+    # 解析），相对路径（如 SoloSoul-Releases/xxx）会因 cd 而失效——与
+    # build_macos_release.sh 对 updater 产物转绝对路径的处理保持一致。
+    local abs_file="$(cd "$(dirname "$file")" && pwd)/$(basename "$file")"
+    local sig="${abs_file}.sig"
 
     if [[ -f "$sig" ]]; then
         log_warn "已存在签名文件，跳过: ${sig}"
         return 0
     fi
 
-    log_info "正在签名: $(basename "$file")"
+    log_info "正在签名: $(basename "$abs_file")"
     (
         cd "${TAURI_DIR}"
-        npx tauri signer sign --password "" --private-key "$TAURI_SIGNING_PRIVATE_KEY" "$file"
+        npx tauri signer sign --password "" --private-key "$TAURI_SIGNING_PRIVATE_KEY" "$abs_file"
     )
 }
 
