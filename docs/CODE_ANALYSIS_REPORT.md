@@ -1,13 +1,13 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-12（轮次 12 复核：19 提交独立验证）
+> 最后更新：2026-08-12（轮次 13：X001–X003 修复收官）
 > 当前分支：`main`
 
 ## 总览
 
 - 全部已提出问题：**83 项**（P47 + N10 + R5 + S4 + T5 + U6 + V5 + W3 + X3，含重复计数修正）
-- **修复关闭 78 项**、**经确认跳过 2 项**（P027/P033）、**延期 0 项**（P046/P047 均已拆分完成）
-- **待修复 3 项（X 系列）**：轮次 12 复核确认 W 系列与 V005-R1 修复真实（check-all 全绿），但更新横幅新功能有 1 个 P2 样式缺陷，另有 2 项 P3，详见「轮次 12 复核」
+- **修复关闭 81 项**、**经确认跳过 2 项**（P027/P033）、**延期 0 项**（P046/P047 均已拆分完成）
+- **待修复 0 项**：X001–X003 已全部修复（轮次 13，3 提交），详见「修复记录（X 系列）」
 - 遗留计划事项：S003 的 v2.10 blob 键清理（已有代码 TODO + CHANGELOG 双向追踪，属计划内而非遗忘）
 - 轮次 12 基线实测：`check-all` **EXIT=0 全绿**（tsc / fmt / clippy / cargo test / eslint / Vitest / ACL 与 pref-keys 机比）
 
@@ -37,6 +37,7 @@
 - **轮次 11**：P047 Rust 巨型文件拆分收官（3 提交，纯文件级重构零行为变化）。P047-1 `attachment.rs` 2213→attachment/ 5 文件（mod/crud/tree/share/tests，最大 734）；P047-2 `object/tests.rs` 2377→object/tests/ 6 文件（mod 共享 setup_vault + crud/trash/snapshot/template_sync/misc 五主题子模块，最大 732）；P047-3 `export_docx.rs` 2139→export_docx/ 8 文件（mod 命令 + fields/docx/markdown/text/html/pdf + tests，最大 752，最小 66）。tauri 宏命令注册改定义处路径、外部引用路径保持（`pub use export_docx::*` 链不变）。验证：cargo fmt / check / clippy `-D warnings` 全绿（42 object 测试 + 28 export_docx 测试属性归属正确）；测试二进制本机 `0xc0000139` 限制，CI 兜底。至此 P046（前端 10 组件）+ P047（Rust 3 文件）全部完成，延期/跳过项清零，修复关闭 77/77。
 - **轮次 11 复核**：审查方对 P046/P047 6 个拆分提交独立验证（多重集逐行比对 + 工作区语义审查 + check-all 实测全绿）。确认拆分真实、逻辑零行为变化、测试 42/21/28 全保留、IPC 命令名与 re-export 链未变；但发现巨型化转移与注释残留，新增 W001–W003（轮次 12 全部修复）。
 - **轮次 12 复核**：审查方对 W 系列收尾 + 附件触控系列 + 更新横幅 release notes 等 19 提交独立验证（check-all 实测全绿）。确认 W001–W003 与 V005-R1 修复真实闭合、触控演进链最终态自洽、SafeMarkdown 消毒链与强制更新不可绕过；发现更新横幅弹卡样式依赖 AboutPage 注入（P2）等，新增 X001–X003，全部 `[ ]` 待修复。
+- **轮次 13**：X 系列修复收官（3 提交）。X001 `.release-notes-md` 样式块提升全局（修横幅弹卡在任意页面缺样式）；X002 触控三边角（桌面 hover 限悬挂载恢复 / 描述文本可选中 / chip 圆角注释声明）；X003 文档/注释失实 5 处（dd612ced 测试计数、useAppUpdate 注释、itemOps 注释、W001 记录 321 矛盾、IconBar 300ms）。验证：tsc / eslint / Vitest 全绿。**待修复 0 项收官**。
 
 ## 轮次 11 复核：P046/P047 拆分独立验证（W 系列）
 
@@ -67,7 +68,7 @@
   - `TemplateFieldBindingSection.tsx` **354 → 187 非注释行**（组件本体 ≤300 达标）：保留 props 接口、自动推导/去重/增删逻辑与折叠头，退化为纯组合层；`FlattenedContract`/`TemplateFieldBindingSectionProps` 类型与 re-export 链不变（TemplateFieldRow 零改动）。
   - `TemplateFieldBindingList.tsx` **105 非注释行**：已绑定契约/角色标签列表（含移除按钮）——`getContractInfo`/`getRoleInfo` 信息查找随迁。
   - `TemplateFieldBindingForm.tsx` **124 非注释行**：添加绑定表单（契约/角色下拉 + 添加按钮）——`availableRoles` 类型改用 `lib/plugin.ts` 新导出的 `PluginContractRole`（原接口未导出，仅 `export` 关键字提升，零外部影响）。
-- **②（4 个数据 hook 300+ 行）**：全部拆分完成——`useAttachmentViewer`（见 W001-②）、`useLoginPage`（见 W001-③）、`useObjectDetailModal`（见 W001-④）、`usePasswordVerification`（见 W001-⑤）。hook 属「数据 hook + 展示子组件」模式的预期承载层，不在 P046「组件」验收口径内，但均已按需再拆至 < 300 非注释行。
+- **②（4 个数据 hook 300+ 行）**：全部拆分完成——`useAttachmentViewer`（见 W001-②）、`useLoginPage`（见 W001-③）、`useObjectDetailModal`（见 W001-④）、`usePasswordVerification`（见 W001-⑤）。hook 属「数据 hook + 展示子组件」模式的预期承载层，不在 P046「组件」验收口径内。拆分后 3 个 < 300 达标（459→238 / 356→208 / 306→119），`useAttachmentViewer` 464→321 仍略超 300，按承载层口径登记（X003④ 修订：原「均已再拆至 < 300」表述与实测 321 矛盾）。
 
 ### W001-②（P2，useAttachmentViewer 批量段拆分）✅ 已修复
 
@@ -143,6 +144,29 @@
 - **测试**：`test_next_resume_offset` 重写覆盖新语义——文件存在（`Some`）以实际长度为断点两用例、文件缺失（`None`）返回 0 强制重下。
 - **验证**：cargo fmt / check / clippy `-D warnings` 全绿；测试二进制本机 `0xc0000139` 为既有环境限制，编译通过（`--no-run` BUILD=0），CI 兜底。
 
+
+## 修复记录（X 系列）
+
+### X001（P2，release-notes-md 样式依赖 AboutPage 注入）✅ 已修复
+
+- **修复**：`.release-notes-md` 样式块（h1–h6 字号/链接色/code/pre 背景/列表间距等约 60 行）从 AboutPage 的 `<style>` 标签**提升到 `global.css`**——UpdateBanner 挂在 AppRoutes 全局，在任意页面点「查看更新内容」弹卡时样式不再缺失（此前 h1/h2 回落 UA 默认大字号、链接默认蓝色、code/pre 无背景）；AboutPage 仅保留特有的 `about-retry-spin` 动画。三处 release notes 渲染（横幅弹卡 / 强制遮罩弹卡 / About 内嵌预览）统一命中全局样式，效果一致。
+- **验证**：tsc / eslint 全绿；system 域 + UpdateBanner 相关测试全绿。
+
+### X002（P3，触控系列三个边角）✅ 已修复
+
+- **①桌面 hover 恢复（限悬挂载）**：`ToggleButton` 加 `toggle-arrow-btn` class，`global.css` 新增 `@media (hover: hover) and (pointer: fine)` 限定的 hover 样式——桌面端悬停有背景/文字过渡反馈（T004 移除事件驱动后丢失的反馈恢复），触摸设备不挂样式（无触摸残留），与 expanded 状态驱动高亮互不干扰。
+- **②描述文本可选中**：描述行显式 `userSelect: 'text'`——拖选/长按文本不触发行点击，复制与整行折叠点击不再冲突（移动端长按唤起系统选择菜单）。
+- **③chip 圆角差异注释声明**：编辑对话框 chip 6px（35a20fb3 用户要求的小圆角方块）与列表展示态 999 胶囊为**有意区分**（编辑/展示场景语义不同），双方加注释声明，不再视为不一致。
+- **验证**：tsc / eslint 全绿；AttachmentFileNameBlock 15 测试 + AttachmentMetaEditDialog 6 测试全绿。
+
+### X003（P3，文档/注释失实 5 处）✅ 已修复
+
+- **①dd612ced 测试计数**：提交信息「5 条新测试」虚报——实际仅 2 个 `it` 块（UpdateBanner.test.tsx 新增 2 条），与 0415c398 的 4 条合计 6 条非 9（提交已推送不改历史，本记录为准确口径）。
+- **②`useAppUpdate.ts` 注释如实化**：桌面端 release notes 注释改为如实描述——`result.info.body` 直接来自 updater 插件（发布说明内置），`latest.json` notes 为空时横幅不显示「查看更新内容」按钮；不存在「GitHub API 补全」fallback 链（该路径只走 updater 插件）。
+- **③`useAttachmentManagerItemOps.ts` 注释修正**：`renamingId` 上方残留的复制错误注释（错误描述 metaEditItem 属主逻辑）改为正确语义——该组状态属主为单项重命名/编辑操作。
+- **④报告 W001 记录修正**：「4 个 hook 均已再拆至 < 300」表述与 `useAttachmentViewer` 实测 321 矛盾——修正为：3 个 < 300 达标（459→238 / 356→208 / 306→119），`useAttachmentViewer` 464→321 按「数据 hook 承载层」口径登记（与轮次 12 复核次要观察一致）。
+- **⑤`usePasswordVerificationIconBar.tsx` 注释 200ms→300ms**：两阶段悬停延迟注释与实现（300ms 定时器）一致。
+- **验证**：tsc / eslint 全绿（纯注释/文档改动，零行为影响）。
 
 ## 轮次 6：新推送审查（T 系列）
 
@@ -409,9 +433,9 @@
 
 | ID | 优先级 | 类别 | 文件位置 | 描述 | 状态 |
 |----|--------|------|----------|------|------|
-| X001 | P2 | 样式 | `tauri/src/pages/system/AboutPage.tsx:66-127`、`tauri/src/components/update/UpdateBanner.tsx`、`tauri/src/AppRoutes.tsx:300` | **更新横幅弹卡样式依赖 AboutPage 注入**：`.release-notes-md` 全部 CSS 定义在 AboutPage 的 `<style>` 标签内，仅 AboutPage 挂载期间存在于 DOM。MandatoryUpdateOverlay 由 AboutPage 渲染没问题，但 UpdateBanner 挂在 AppRoutes 全局——用户在首页等任意页面点「查看更新内容」时样式表不存在：h1/h2 回落 UA 默认大字号、链接默认蓝色、code/pre 无背景，与 AboutPage 渲染效果不一致（现有测试只断言文本节点抓不到）。修法：样式块提升到全局 CSS 或 SafeMarkdown 自带 | `[ ]` 待修复 |
-| X002 | P3 | 样式/UX | `tauri/src/components/attachment/AttachmentMetaEditDialog.tsx:207`、`AttachmentFileNameBlock.tsx:282,206-211,256` | **触控系列三个边角**：①chip 圆角不一致——编辑对话框 6px vs 列表展示态 999 胶囊（35a20fb3 声称「与列表展示态对齐」只对了 padding，同一标签列表↔编辑视觉跳变；若有意区分编辑/展示态可接受，建议统一或注明意图）；②桌面端 hover 高亮消失未声明——57c6de6f 移除 onMouseEnter/Leave 后桌面悬停展开按钮无任何反馈（安卓根因修复成立，桌面反馈丢失属附带行为变化）；③整行可点使描述文本不可拖选复制（UX 权衡，可考虑 user-select 策略） | `[ ]` 待修复 |
-| X003 | P3 | 文档/注释精度 | `tauri/src/hooks/useAppUpdate.ts:72-74`、`useAttachmentManagerItemOps.ts:16-17`、dd612ced 提交信息、本报告 | **文档/注释失实**：①dd612ced 提交信息称「5 条新测试」实际仅 2 个 `it` 块（0415c398 的「4 条」属实，合计 6 非 9）；②`useAppUpdate.ts:72-74` 注释描述「桌面端 release notes 由 GitHub API 补全」的 fallback 链不存在——该路径只走 updater 插件，从不调用 desktop_check_update（latest.json notes 为空时横幅不显示按钮，行为可接受但注释失实）；③`useAttachmentManagerItemOps.ts:16-17` `renamingId` 上方残留复制错误的注释（属主是主 hook 的 `metaEditItem`）；④报告 W001 修复记录称 4 个 hook「均已再拆至 < 300」与 `useAttachmentViewer` 实测 321 矛盾；⑤`usePasswordVerificationIconBar.tsx:93,100` 注释「延迟 200ms」实为 300ms（既往残留逐字随迁，非本批引入） | `[ ]` 待修复 |
+| X001 | P2 | 样式 | `tauri/src/pages/system/AboutPage.tsx:66-127`、`tauri/src/components/update/UpdateBanner.tsx`、`tauri/src/AppRoutes.tsx:300` | **更新横幅弹卡样式依赖 AboutPage 注入**：`.release-notes-md` 全部 CSS 定义在 AboutPage 的 `<style>` 标签内，仅 AboutPage 挂载期间存在于 DOM。MandatoryUpdateOverlay 由 AboutPage 渲染没问题，但 UpdateBanner 挂在 AppRoutes 全局——用户在首页等任意页面点「查看更新内容」时样式表不存在：h1/h2 回落 UA 默认大字号、链接默认蓝色、code/pre 无背景，与 AboutPage 渲染效果不一致（现有测试只断言文本节点抓不到）。修法：样式块提升到全局 CSS 或 SafeMarkdown 自带 | `[x]` 已修复（X001，见下） |
+| X002 | P3 | 样式/UX | `tauri/src/components/attachment/AttachmentMetaEditDialog.tsx:207`、`AttachmentFileNameBlock.tsx:282,206-211,256` | **触控系列三个边角**：①chip 圆角不一致——编辑对话框 6px vs 列表展示态 999 胶囊（35a20fb3 声称「与列表展示态对齐」只对了 padding，同一标签列表↔编辑视觉跳变；若有意区分编辑/展示态可接受，建议统一或注明意图）；②桌面端 hover 高亮消失未声明——57c6de6f 移除 onMouseEnter/Leave 后桌面悬停展开按钮无任何反馈（安卓根因修复成立，桌面反馈丢失属附带行为变化）；③整行可点使描述文本不可拖选复制（UX 权衡，可考虑 user-select 策略） | `[x]` 已修复（X002，见下） |
+| X003 | P3 | 文档/注释精度 | `tauri/src/hooks/useAppUpdate.ts:72-74`、`useAttachmentManagerItemOps.ts:16-17`、dd612ced 提交信息、本报告 | **文档/注释失实**：①dd612ced 提交信息称「5 条新测试」实际仅 2 个 `it` 块（0415c398 的「4 条」属实，合计 6 非 9）；②`useAppUpdate.ts:72-74` 注释描述「桌面端 release notes 由 GitHub API 补全」的 fallback 链不存在——该路径只走 updater 插件，从不调用 desktop_check_update（latest.json notes 为空时横幅不显示按钮，行为可接受但注释失实）；③`useAttachmentManagerItemOps.ts:16-17` `renamingId` 上方残留复制错误的注释（属主是主 hook 的 `metaEditItem`）；④报告 W001 修复记录称 4 个 hook「均已再拆至 < 300」与 `useAttachmentViewer` 实测 321 矛盾；⑤`usePasswordVerificationIconBar.tsx:93,100` 注释「延迟 200ms」实为 300ms（既往残留逐字随迁，非本批引入） | `[x]` 已修复（X003，见下） |
 
 **次要观察（不列为问题）**：`PhotoViewerOverlay` 的 36×36/28×28 图标按钮在移动端也会被 44px 基线撑大（历史遗留，44×44 恰好符合触控基线，影响可忽略）；UpdateBanner 新按钮缺 `type="button"`（不在 form 内无实际影响）；横幅 notes Dialog 用默认 priority 4000 会被 toast(9000) 盖住（与全库默认 Dialog 行为一致）；W001-② 拆分后 `useAttachmentViewer` 仍 321 非注释行（hook 承载层，已登记口径）。
 
