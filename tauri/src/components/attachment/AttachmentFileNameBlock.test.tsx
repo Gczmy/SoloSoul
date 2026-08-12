@@ -53,7 +53,7 @@ describe('AttachmentFileNameBlock 描述折叠/展开', () => {
     expect(screen.getByRole('button', { expanded: false })).toBeInTheDocument();
   });
 
-  it('T003 触控优化：有折叠按钮时点击描述文本区同样可展开/收起（整行可点）', () => {
+  it('T003 触控优化：收起态整行可点展开；展开态仅「描述」把手行可收起（全文点击不折叠）', () => {
     const longDesc = '这是一段非常长的附件描述文本，'.repeat(40);
     const { rerender } = render(<AttachmentFileNameBlock {...base} description={longDesc} />);
     const descEl = screen.getByText(longDesc) as HTMLElement;
@@ -63,17 +63,46 @@ describe('AttachmentFileNameBlock 描述折叠/展开', () => {
 
     const toggle = screen.getByRole('button', { expanded: false });
     const row = toggle.parentElement!;
-    // 整行可点（cursor pointer + touchAction manipulation）
+    // 收起态整行可点（cursor pointer + touchAction manipulation）
     expect(row).toHaveStyle({ cursor: 'pointer', touchAction: 'manipulation' });
     // 点击描述文本（非按钮）→ 展开
     fireEvent.click(screen.getByText(longDesc + '（续）'));
     expect(screen.getByRole('button', { expanded: true })).toBeInTheDocument();
-    // 再点文本区 → 收起
+    // 展开态：点击全文**不**折叠（用户可自由选中/拖选复制文本）
     fireEvent.click(screen.getByText(longDesc + '（续）'));
+    expect(screen.getByRole('button', { expanded: true })).toBeInTheDocument();
+    // 点击「描述」折叠把手行 → 收起
+    fireEvent.click(screen.getByText('描述'));
     expect(screen.getByRole('button', { expanded: false })).toBeInTheDocument();
     // 按钮点击不冒泡到整行（不会双重切换）：一次点击按钮仅切一次状态
     fireEvent.click(screen.getByRole('button', { expanded: false }));
     expect(screen.getByRole('button', { expanded: true })).toBeInTheDocument();
+  });
+
+  it('展开态「描述」把手行叠双层半透明主题色背景（更深）；全文区仅第一层背景', () => {
+    const longDesc = '这是一段非常长的附件描述文本，'.repeat(40);
+    const { rerender } = render(<AttachmentFileNameBlock {...base} description={longDesc} />);
+    const descEl = screen.getByText(longDesc) as HTMLElement;
+    Object.defineProperty(descEl, 'scrollWidth', { configurable: true, value: 2000 });
+    Object.defineProperty(descEl, 'clientWidth', { configurable: true, value: 300 });
+    rerender(<AttachmentFileNameBlock {...base} description={longDesc + '（续）'} />);
+
+    // 收起态：无「描述」标签行（把手行仅展开态出现）
+    expect(screen.queryByText('描述')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { expanded: false }));
+
+    // 展开态：「描述」把手行出现，带第二层更深的背景；外层块带第一层背景
+    const label = screen.getByText('描述');
+    const handleRow = label.parentElement!;
+    expect(handleRow).toHaveStyle({
+      background: 'color-mix(in srgb, var(--accent-primary) 10%, transparent)',
+      cursor: 'pointer',
+    });
+    const block = handleRow.parentElement!;
+    expect(block).toHaveStyle({
+      background: 'color-mix(in srgb, var(--accent-primary) 6%, transparent)',
+      borderRadius: '8px',
+    });
   });
 
   it('T003 触控优化：按钮保持 18×18 不占额外行（无扩展热区，触控由整行承担）', () => {
@@ -186,7 +215,7 @@ describe('AttachmentFileNameBlock 标签折叠/展开', () => {
     expect(screen.getByText('+1')).toBeInTheDocument();
   });
 
-  it('T003 触控优化：有折叠按钮时点击标签 chip 区同样可展开/收起（整行可点）', () => {
+  it('T003 触控优化：收起态整行可点展开；展开态仅「标签」把手行可收起（chip 点击不折叠）', () => {
     const tags = ['a', 'b', 'c', 'd', 'e', 'f', 'g'];
     render(<AttachmentFileNameBlock {...base} tags={tags} />);
     const toggle = screen.getByRole('button', { expanded: false });
@@ -195,12 +224,32 @@ describe('AttachmentFileNameBlock 标签折叠/展开', () => {
     // 点击标签文本（非按钮）→ 展开全部
     fireEvent.click(screen.getByText('a'));
     ['e', 'f', 'g'].forEach((t) => expect(screen.getByText(t)).toBeInTheDocument());
-    // 再点 chip 区 → 收起
+    // 展开态：点击 chip **不**收起（标签可选中/复制）
     fireEvent.click(screen.getByText('a'));
+    ['e', 'f', 'g'].forEach((t) => expect(screen.getByText(t)).toBeInTheDocument());
+    // 点击「标签」折叠把手行 → 收起
+    fireEvent.click(screen.getByText('标签'));
     expect(screen.queryByText('e')).not.toBeInTheDocument();
     // 按钮点击不冒泡到整行（不会双重切换）
     fireEvent.click(screen.getByRole('button', { expanded: false }));
     expect(screen.getByRole('button', { expanded: true })).toBeInTheDocument();
+  });
+
+  it('展开态「标签」把手行是唯一带半透明背景的行；下方实际 chip 无背景', () => {
+    const tags = ['a', 'b', 'c', 'd', 'e'];
+    render(<AttachmentFileNameBlock {...base} tags={tags} />);
+    fireEvent.click(screen.getByRole('button', { expanded: false }));
+    const label = screen.getByText('标签');
+    const handleRow = label.parentElement!;
+    expect(handleRow).toHaveStyle({
+      background: 'color-mix(in srgb, var(--accent-primary) 10%, transparent)',
+      cursor: 'pointer',
+    });
+    // 下方 chip 所在行容器不带半透明主题色背景（chip 自身底色足够）
+    const chipsRow = handleRow.nextElementSibling as HTMLElement;
+    expect(chipsRow).not.toHaveStyle({
+      background: 'color-mix(in srgb, var(--accent-primary) 10%, transparent)',
+    });
   });
 
   it('Y001 选区守卫：有非空选区时点击标签 chip 区不切换，无选区时正常切换', () => {
@@ -208,7 +257,9 @@ describe('AttachmentFileNameBlock 标签折叠/展开', () => {
     render(<AttachmentFileNameBlock {...base} tags={tags} />);
     expect(screen.getByRole('button', { expanded: false })).toBeInTheDocument();
 
-    const spy = vi.spyOn(window, 'getSelection').mockReturnValue({ toString: () => 'x' } as Selection);
+    const spy = vi
+      .spyOn(window, 'getSelection')
+      .mockReturnValue({ toString: () => 'x' } as Selection);
     try {
       // 点击标签文本（非按钮）→ 有选区不展开
       fireEvent.click(screen.getByText('a'));
@@ -331,10 +382,11 @@ describe('AttachmentFileNameBlock 标签折叠/展开', () => {
 
     const toggle = screen.getByRole('button', { expanded: false });
     const outerFlex = toggle.parentElement!;
-    // 展开后：按钮仍在同一外层 flex（位置不变）
+    // 展开后：箭头移入「标签」折叠把手行（把手行 = 折叠入口，不再位于原外层 flex）
     fireEvent.click(toggle);
     const toggleAfter = screen.getByRole('button', { expanded: true });
-    expect(toggleAfter.parentElement).toBe(outerFlex);
+    expect(toggleAfter.parentElement).not.toBe(outerFlex);
+    expect(screen.getByText('标签').parentElement!.contains(toggleAfter)).toBe(true);
     // 展开后 chip 允许换行（阅读舒适），不再 nowrap 省略
     const chipAfter = screen.getByText(longTag) as HTMLElement;
     expect(chipAfter).toHaveStyle({ whiteSpace: 'normal', wordBreak: 'break-word' });
