@@ -88,6 +88,9 @@ describe('AttachmentFileNameBlock 描述折叠/展开', () => {
     // 按钮自身即 18×18 点击目标，无绝对定位扩展子元素（不撑高行/不占两行）
     expect(toggle).toHaveStyle({ width: '18px', height: '18px' });
     expect(toggle.querySelector('span')).toBeNull();
+    // 必须显式清零 min/min 尺寸，覆盖 global.css 移动端 button 44×44 触控基线——
+    // 否则安卓端按钮被 min-height/min-width 撑成 44×44，视觉占两行（T003 根因）。
+    expect(toggle).toHaveStyle({ minWidth: '0px', minHeight: '0px' });
   });
 });
 

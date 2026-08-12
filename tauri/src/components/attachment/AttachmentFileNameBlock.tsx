@@ -66,6 +66,10 @@ function ToggleButton({
         flexShrink: 0,
         width: 18,
         height: 18,
+        // 覆盖 global.css 移动端 button 触控基线（min-height/min-width: 44px）——
+        // 否则安卓端按钮被撑成 44×44 视觉占两行；触控面积由整行可点承担。
+        minWidth: 0,
+        minHeight: 0,
         padding: 0,
         border: 'none',
         borderRadius: 4,
