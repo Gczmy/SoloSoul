@@ -113,6 +113,88 @@ describe('useOverlayBackGuard', () => {
     expect(onCloseInner).toHaveBeenCalledTimes(1);
   });
 
+  it('vault 锁定压入外部条目后卸载：不误弹外部条目，残留标记在后续返回被 sweeper 跳过', () => {
+    const onClose = vi.fn();
+    const { unmount } = renderHook(() =>
+      useOverlayBackGuard({ innerOpen: false, onCloseInner: vi.fn(), onClose }),
+    );
+
+    // 模拟 vault 锁定：外部 navigate('/login') 压入条目（顶层非本浮层标记）
+    window.history.pushState({ login: true, idx: 2 }, '', '/login');
+    act(() => {
+      unmount();
+    });
+    // 卸载清理应跳过：顶层非标记 → 不误弹外部 /login 条目
+    expect(window.history.go).not.toHaveBeenCalled();
+
+    // 用户后续硬件返回：浏览器弹出外部条目，落到残留标记上 → sweeper 自动 go(-1) 跳过
+    act(() => {
+      window.dispatchEvent(
+        new PopStateEvent('popstate', { state: { solosoulOverlayLayer: true, idx: 1 } }),
+      );
+    });
+    expect(window.history.go).toHaveBeenCalledWith(-1);
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('活跃浮层返回时 sweeper 不跳过（标记仍被认领，由钩子自身监听关闭）', () => {
+    const onClose = vi.fn();
+    renderHook(() => useOverlayBackGuard({ innerOpen: false, onCloseInner: vi.fn(), onClose }));
+
+    // 取当前顶层 state（即本钩子压入的标记对象，引用一致 → 仍在 ownedMarkers 中）
+    const markerState = window.history.state as Record<string, unknown>;
+    act(() => {
+      window.dispatchEvent(new PopStateEvent('popstate', { state: markerState }));
+    });
+
+    // sweeper 不跳过（owned）；钩子自身 popstate 监听关闭浮层
+    expect(window.history.go).not.toHaveBeenCalled();
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('vault 锁定埋藏两层标记：后续返回连续跳过全部残留标记', () => {
+    const onClose = vi.fn();
+    const onCloseInner = vi.fn();
+    const { rerender, unmount } = renderHook(
+      ({ innerOpen }: { innerOpen: boolean }) =>
+        useOverlayBackGuard({ innerOpen, onCloseInner, onClose }),
+      { initialProps: { innerOpen: false } },
+    );
+
+    // 打开查看器（两层标记）→ vault 锁定压入外部条目 → 卸载
+    act(() => rerender({ innerOpen: true }));
+    window.history.pushState({ login: true, idx: 3 }, '', '/login');
+    act(() => {
+      unmount();
+    });
+    expect(window.history.go).not.toHaveBeenCalled();
+
+    // 返回：先落内层残留标记 → 跳过；再落浮层残留标记 → 跳过
+    act(() => {
+      window.dispatchEvent(
+        new PopStateEvent('popstate', {
+          state: { solosoulOverlayLayer: true, solosoulOverlayInnerLayer: true, idx: 2 },
+        }),
+      );
+    });
+    act(() => {
+      window.dispatchEvent(
+        new PopStateEvent('popstate', { state: { solosoulOverlayLayer: true, idx: 1 } }),
+      );
+    });
+    expect(window.history.go).toHaveBeenCalledTimes(2);
+    expect(window.history.go).toHaveBeenLastCalledWith(-1);
+    expect(onClose).not.toHaveBeenCalled();
+    expect(onCloseInner).not.toHaveBeenCalled();
+
+    // 级联终止：落到真实条目（无标记）后不再继续 go(-1)
+    vi.mocked(window.history.go).mockClear();
+    act(() => {
+      window.dispatchEvent(new PopStateEvent('popstate', { state: { real: true, idx: 0 } }));
+    });
+    expect(window.history.go).not.toHaveBeenCalled();
+  });
+
   it('卸载时清理残留标记：仅当顶层仍是本浮层标记才 history.go(-n)', () => {
     const onClose = vi.fn();
     const onCloseInner = vi.fn();
