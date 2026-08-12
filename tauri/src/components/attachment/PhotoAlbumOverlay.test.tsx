@@ -53,6 +53,45 @@ describe('PhotoAlbumOverlay', () => {
     expect(onClose).toHaveBeenCalled();
   });
 
+  it('Android 硬件返回：查看器打开时先回网格而非关闭相册，再返回才关闭', async () => {
+    mockInvoke.mockResolvedValue('data:image/png;base64,abc');
+    const onClose = vi.fn();
+    render(<PhotoAlbumOverlay items={[makeItem('a'), makeItem('b')]} onClose={onClose} />);
+
+    const grid = await screen.findByTestId('photo-album-grid');
+    const cells = within(grid).getAllByRole('button');
+    fireEvent.click(cells[0]);
+    await waitFor(() => {
+      expect(screen.getByTestId('photo-viewer-counter')).toHaveTextContent('1 / 2');
+    });
+
+    // 第一次返回：查看器层标记被弹出 → 回到网格，相册保持打开
+    fireEvent.popState(window);
+    await waitFor(() => {
+      expect(screen.queryByTestId('photo-viewer-counter')).not.toBeInTheDocument();
+    });
+    expect(screen.getByTestId('photo-album-grid')).toBeInTheDocument();
+    expect(onClose).not.toHaveBeenCalled();
+
+    // 第二次返回：相册层标记被弹出 → 关闭相册
+    fireEvent.popState(window);
+    await waitFor(() => {
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('Android 硬件返回：网格态直接关闭相册（回到上一页）', async () => {
+    mockInvoke.mockResolvedValue('data:image/png;base64,abc');
+    const onClose = vi.fn();
+    render(<PhotoAlbumOverlay items={[makeItem('a')]} onClose={onClose} />);
+    await screen.findByAltText('a.png');
+
+    fireEvent.popState(window);
+    await waitFor(() => {
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+  });
+
   it('filters photos by tag chip (需求4：标签分区筛选)', async () => {
     mockInvoke.mockResolvedValue('data:image/png;base64,abc');
     const tagged = makeItem('tagged');

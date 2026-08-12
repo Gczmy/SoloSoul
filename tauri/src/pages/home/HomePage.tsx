@@ -220,11 +220,10 @@ export function HomePage() {
   const showToast = useUiStore((s) => s.showToast);
 
   // 首页「照片集」快捷入口状态：点击后加载全 Vault 活跃附件并直接打开全屏相册。
+  // Android 硬件返回分层守卫（查看器层→网格→关闭相册）由 PhotoAlbumOverlay
+  // 内部统一管理（压入/弹出历史标记），首页仅负责打开/关闭状态。
   const [albumItems, setAlbumItems] = useState<AttachmentMeta[] | null>(null);
   const [albumLoading, setAlbumLoading] = useState(false);
-  // Android 硬件返回守卫：相册打开时压入同名历史条目（URL 不变），返回先弹该条目，
-  // popstate 触发时关闭相册——而不是回退到上一个路由（如 /settings）。
-  const albumOpenRef = useRef(false);
   // 角标计数（挂载/账户切换时加载一次，供卡片一眼展示）：照片总数 + 附件总数
   const [photoCount, setPhotoCount] = useState<number | null>(null);
   const [attachmentCount, setAttachmentCount] = useState<number | null>(null);
@@ -275,15 +274,7 @@ export function HomePage() {
       // 本次加载的数据顺带刷新角标（与挂载时的计数保持一致）
       setPhotoCount(photos.length);
       setAttachmentCount(countActiveAttachments(result.pages));
-      albumOpenRef.current = true;
       setAlbumItems(photos);
-      // 压入历史标记（保留 React Router 的 idx 计数）：Android 硬件返回 / 手势返回
-      // 先弹出该条目（URL 仍为 '/'），由下方 popstate 守卫关闭相册而非跳回上一路由。
-      const prevState = window.history.state as { idx?: number } | null;
-      window.history.pushState(
-        { ...(prevState ?? {}), solosoulHomeAlbum: true, idx: (prevState?.idx ?? 0) + 1 },
-        '',
-      );
     } catch (e) {
       showToast({
         type: 'error',
@@ -320,27 +311,11 @@ export function HomePage() {
     }
   }, []);
 
-  /** 关闭照片集：重置状态 + 刷新角标；若当前历史条目仍是打开时压入的标记，回退弹出避免残留。 */
+  /** 关闭照片集：重置状态 + 刷新角标（历史标记清理由 PhotoAlbumOverlay 卸载时处理）。 */
   const closeAlbum = useCallback(() => {
-    albumOpenRef.current = false;
     setAlbumItems(null);
     void loadCounts();
-    const state = window.history.state as { solosoulHomeAlbum?: boolean } | null;
-    if (state?.solosoulHomeAlbum) {
-      window.history.back();
-    }
   }, [loadCounts]);
-
-  // Android 硬件返回：浏览器已把标记条目弹出（URL 仍为 '/'），此处仅需关闭相册。
-  useEffect(() => {
-    const onPopState = () => {
-      if (albumOpenRef.current) {
-        closeAlbum();
-      }
-    };
-    window.addEventListener('popstate', onPopState);
-    return () => window.removeEventListener('popstate', onPopState);
-  }, [closeAlbum]);
 
   const [editingPage, setEditingPage] = useState<CustomPage | null>(null);
   const [editingCardRect, setEditingCardRect] = useState<DOMRect | null>(null);

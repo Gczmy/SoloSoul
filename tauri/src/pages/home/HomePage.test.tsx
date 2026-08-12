@@ -25,10 +25,14 @@ vi.mock('@/stores/authStore', () => ({
   useAuthStore: (selector: unknown) => mockUseAuthStore(selector),
 }));
 
-// 隔离 HomePage 的相册历史标记/返回守卫行为（PhotoAlbumOverlay 自身另有独立测试）
+// 隔离 HomePage 的相册打开/关闭状态（PhotoAlbumOverlay 的分层返回守卫另有独立测试）
 vi.mock('@/components/attachment/PhotoAlbumOverlay', () => ({
-  PhotoAlbumOverlay: ({ items }: { items: unknown[] }) => (
-    <div data-testid="home-album-overlay" data-count={items.length} />
+  PhotoAlbumOverlay: ({ items, onClose }: { items: unknown[]; onClose: () => void }) => (
+    <div data-testid="home-album-overlay" data-count={items.length}>
+      <button data-testid="home-album-close" onClick={onClose}>
+        close
+      </button>
+    </div>
   ),
 }));
 
@@ -181,7 +185,7 @@ describe('HomePage', () => {
     await waitFor(() => expect(callCount).toBe(2));
   });
 
-  it('首页照片集打开时压入历史标记，Android 硬件返回关闭相册而非跳回上一路由', async () => {
+  it('首页照片集打开/关闭相册均不产生路由跳转（分层返回守卫在 PhotoAlbumOverlay 内）', async () => {
     const listAllResult = {
       pages: [
         {
@@ -205,23 +209,19 @@ describe('HomePage', () => {
       </MemoryRouter>,
     );
 
-    // 点击照片集快捷入口 → 相册打开
+    // 点击照片集快捷入口 → 相册打开（不产生路由跳转）
     const albumCard = screen.getByText('Photo Album').closest('[role="button"]') as HTMLElement;
     fireEvent.click(albumCard);
     await waitFor(() => {
       expect(screen.getByTestId('home-album-overlay')).toBeInTheDocument();
     });
+    expect(navigate).not.toHaveBeenCalled();
 
-    // 打开时压入了同名历史标记（URL 不变），供硬件返回先弹出
-    const state = window.history.state as { solosoulHomeAlbum?: boolean };
-    expect(state.solosoulHomeAlbum).toBe(true);
-
-    // 模拟 Android 硬件返回：浏览器弹出标记条目并触发 popstate
-    fireEvent.popState(window);
+    // 关闭相册（mock overlay 的 onClose）后仍在首页（未发生路由跳转）
+    fireEvent.click(screen.getByTestId('home-album-close'));
     await waitFor(() => {
       expect(screen.queryByTestId('home-album-overlay')).not.toBeInTheDocument();
     });
-    // 相册关闭后仍在首页（未发生路由跳转）
     expect(screen.getByText('Photo Album')).toBeInTheDocument();
     expect(navigate).not.toHaveBeenCalled();
   });
