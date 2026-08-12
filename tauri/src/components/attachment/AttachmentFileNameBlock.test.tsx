@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import { AttachmentFileNameBlock, hasTagOverflow } from './AttachmentFileNameBlock';
 import { resizeObserverInstances } from '@/test/setup';
@@ -120,6 +120,32 @@ describe('AttachmentFileNameBlock 描述折叠/展开', () => {
       background: 'transparent',
     });
   });
+
+  it('Y001 选区守卫：拖选文本（有非空选区）时点击描述行不切换折叠态，无选区时正常切换', () => {
+    const longDesc = '这是一段非常长的附件描述文本，'.repeat(40);
+    const { rerender } = render(<AttachmentFileNameBlock {...base} description={longDesc} />);
+    const descEl = screen.getByText(longDesc) as HTMLElement;
+    Object.defineProperty(descEl, 'scrollWidth', { configurable: true, value: 2000 });
+    Object.defineProperty(descEl, 'clientWidth', { configurable: true, value: 300 });
+    rerender(<AttachmentFileNameBlock {...base} description={longDesc + '（续）'} />);
+    expect(screen.getByRole('button', { expanded: false })).toBeInTheDocument();
+
+    // 模拟拖选完成后的状态：非空选区（getSelection 返回选中文本）
+    const spy = vi
+      .spyOn(window, 'getSelection')
+      .mockReturnValue({ toString: () => '选中文本' } as Selection);
+    try {
+      // 点击描述文本区（click 照常派发到行容器）→ 有选区不切换，仍折叠
+      fireEvent.click(screen.getByText(longDesc + '（续）'));
+      expect(screen.getByRole('button', { expanded: false })).toBeInTheDocument();
+    } finally {
+      spy.mockRestore();
+    }
+
+    // 无选区（正常点击）→ 切换展开
+    fireEvent.click(screen.getByText(longDesc + '（续）'));
+    expect(screen.getByRole('button', { expanded: true })).toBeInTheDocument();
+  });
 });
 
 describe('AttachmentFileNameBlock 标签折叠/展开', () => {
@@ -175,6 +201,26 @@ describe('AttachmentFileNameBlock 标签折叠/展开', () => {
     // 按钮点击不冒泡到整行（不会双重切换）
     fireEvent.click(screen.getByRole('button', { expanded: false }));
     expect(screen.getByRole('button', { expanded: true })).toBeInTheDocument();
+  });
+
+  it('Y001 选区守卫：有非空选区时点击标签 chip 区不切换，无选区时正常切换', () => {
+    const tags = ['a', 'b', 'c', 'd', 'e'];
+    render(<AttachmentFileNameBlock {...base} tags={tags} />);
+    expect(screen.getByRole('button', { expanded: false })).toBeInTheDocument();
+
+    const spy = vi.spyOn(window, 'getSelection').mockReturnValue({ toString: () => 'x' } as Selection);
+    try {
+      // 点击标签文本（非按钮）→ 有选区不展开
+      fireEvent.click(screen.getByText('a'));
+      expect(screen.queryByText('e')).not.toBeInTheDocument();
+      expect(screen.getByRole('button', { expanded: false })).toBeInTheDocument();
+    } finally {
+      spy.mockRestore();
+    }
+
+    // 无选区 → 正常展开全部
+    fireEvent.click(screen.getByText('a'));
+    expect(screen.getByText('e')).toBeInTheDocument();
   });
 
   it('hasTagOverflow：任一标签被省略（scrollWidth>clientWidth）即判定溢出', () => {

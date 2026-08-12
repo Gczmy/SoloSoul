@@ -39,6 +39,17 @@ export function hasTagOverflow(container: HTMLElement | null): boolean {
 /**
  * 描述/标签的折叠展开箭头按钮（小号、透明、hover 高亮）。
  */
+/**
+ * Y001: 行点击的选区守卫。同一元素内拖选文本后 mouseup 触发 click 照常派发
+ * （UI Events：click 派发到 mousedown/mouseup 目标的最近公共祖先），`userSelect:
+ * 'text'` 只能让文本可选、无法阻止该 click——有非空选区时不切换折叠态，
+ * 拖选复制与整行折叠点击因此互不冲突。
+ */
+function hasTextSelection(): boolean {
+  const selection = window.getSelection();
+  return selection != null && selection.toString().length > 0;
+}
+
 function ToggleButton({
   expanded,
   onClick,
@@ -209,7 +220,12 @@ export function AttachmentFileNameBlock({
           }}
           onClick={
             descExpanded || descOverflow
-              ? () => setDescExpanded((v) => !v)
+              ? () => {
+                  // Y001: 有文本选区（拖选复制/长按选择）时不切换折叠态——同一元素内
+                  // 拖选后 click 仍照常派发，仅靠 userSelect 无法阻止。
+                  if (hasTextSelection()) return;
+                  setDescExpanded((v) => !v);
+                }
               : undefined
           }
         >
@@ -224,8 +240,9 @@ export function AttachmentFileNameBlock({
               textOverflow: descExpanded ? undefined : 'ellipsis',
               whiteSpace: descExpanded ? 'pre-wrap' : 'nowrap',
               wordBreak: 'break-word',
-              // X002: 整行可点下显式声明文本可选——拖选/长按不触发 click（按下与
-              // 释放位置不同），因此复制文本与点击折叠互不冲突。
+              // X002: 整行可点下显式声明文本可选（拖选复制的前提）。
+              // Y001: 机制修正——同一元素内拖选后 click 照常派发（按下/释放目标相同），
+              // 防误翻转改由行 onClick 的选区守卫承担（有选区则不切换）。
               userSelect: 'text',
             }}
           >
@@ -259,7 +276,15 @@ export function AttachmentFileNameBlock({
             cursor: showTagsToggle ? 'pointer' : 'default',
             touchAction: 'manipulation',
           }}
-          onClick={showTagsToggle ? () => setTagsExpanded((v) => !v) : undefined}
+          onClick={
+            showTagsToggle
+              ? () => {
+                  // Y001: 同上——有选区时不切换（拖选复制与整行折叠互不冲突）。
+                  if (hasTextSelection()) return;
+                  setTagsExpanded((v) => !v);
+                }
+              : undefined
+          }
         >
           <div
             ref={tagsContainerRef}
