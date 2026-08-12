@@ -5,8 +5,8 @@ import { useAuthStore } from '@/stores/authStore';
 import { useTemplateStore } from '@/stores/templateStore';
 import { logger } from '@/lib/logger';
 import { useObjectStore, type ObjectData, type ObjectSummary } from '@/stores/objectStore';
-import { useRevealState } from '@/hooks/useRevealState';
 import type { SensitivityLevel } from '@/components/ui/SensitivityBadge';
+import { useObjectDetailVerification } from './useObjectDetailVerification';
 import { PAGE_ICON_MAP, resolveCustomIcon } from '@/lib/pageIcons';
 import { resolveCollectionLabel } from '@/lib/utils';
 import { COPY_FEEDBACK_DURATION_MS } from '@/lib/constants';
@@ -39,9 +39,11 @@ export interface ObjectDetailModalProps {
 }
 
 /**
- * 对象详情弹窗的全部编排逻辑（P046 拆分：数据 hook）。
- * 完整对象拉取、模板字段解析、敏感度/历史字段推导、关键字段验证（密码/生物识别/PIN）、
- * 复制反馈、删除流程、历史/附件子视图开关均收敛于此；ObjectDetailModal 组件退化为纯展示组合层。
+ * 对象详情弹窗的全部编排逻辑（P046 拆分：数据 hook；W001-④ 再拆后为组合层）。
+ * 完整对象拉取（P020 防陈旧）、模板字段解析、敏感度/历史字段推导、复制反馈、
+ * 删除流程、历史/附件子视图开关、拖拽上传保留于此；关键字段验证
+ * （密码/生物识别/PIN + 揭示状态 + 访问日志）收敛于 useObjectDetailVerification。
+ * ObjectDetailModal 组件退化为纯展示组合层。
  */
 export function useObjectDetailModal(props: ObjectDetailModalProps) {
   const {
@@ -58,7 +60,6 @@ export function useObjectDetailModal(props: ObjectDetailModalProps) {
   const templates = useTemplateStore((s) => s.templates);
   const loadTemplates = useTemplateStore((s) => s.loadTemplates);
   const customPages = useSettingsStore((s) => s.settings.customPages);
-  const { maskValue, isRevealed, reveal } = useRevealState();
   const [fetchedObj, setFetchedObj] = useState<ObjectData | null>(null);
   // P020 复核：object 可能是截断预览摘要（object_list 仅保留前 8 字段/200 字符），
   // 详情弹窗必须始终拉取完整对象，避免丢字段/值被静默截断。
@@ -83,20 +84,6 @@ export function useObjectDetailModal(props: ObjectDetailModalProps) {
   const [showHistory, setShowHistory] = useState(false);
   const [showAttachments, setShowAttachments] = useState(false);
 
-  const [showPwDialog, setShowPwDialog] = useState(false);
-  const pwResolveRef = useRef<
-    | ((result: {
-        ok: boolean;
-        method: 'password' | 'touchId' | 'faceId' | 'windowsHello' | 'pin';
-      }) => void)
-    | null
-  >(null);
-  const pendingRevealRef = useRef<{ fieldId: string; fieldName: string } | null>(null);
-  const [bioAvailable, setBioAvailable] = useState<{ available: boolean; biometryType?: string }>({
-    available: false,
-  });
-  const [passwordHint, setPasswordHint] = useState<string | null>(null);
-
   // P020 复核：拉取结果优先于传入摘要——传入 object 仅作过渡展示，
   // 完整数据（fetchedObj）到达后立即升级，保证详情弹窗渲染完整 properties。
   const obj = useMemo(() => fetchedObj ?? object, [object, fetchedObj]);
@@ -107,26 +94,6 @@ export function useObjectDetailModal(props: ObjectDetailModalProps) {
   useEffect(() => {
     loadTemplates().catch((err) => logger.warn('[ObjectDetail] Load templates failed:', err));
   }, [loadTemplates]);
-
-  useEffect(() => {
-    if (!accountId) return;
-    invoke<{ available: boolean; configured: boolean; biometryType?: string }>(
-      'biometric_check_availability',
-      {
-        accountId: accountId,
-      },
-    )
-      .then((r) =>
-        setBioAvailable({ available: r.available && r.configured, biometryType: r.biometryType }),
-      )
-      .catch((err) => logger.warn('[ObjectDetail] Biometric availability check failed:', err));
-    invoke<Array<{ id: string; passwordHint?: string }>>('vault_list_accounts')
-      .then((accounts) => {
-        const acc = accounts.find((a) => a.id === accountId);
-        setPasswordHint(acc?.passwordHint || null);
-      })
-      .catch((err) => logger.warn('[ObjectDetail] Load password hint failed:', err));
-  }, [accountId]);
 
   useEffect(() => {
     if (!objId || !accountId) {
@@ -165,110 +132,18 @@ export function useObjectDetailModal(props: ObjectDetailModalProps) {
       });
   }, [object, isCompleteObject, objId, accountId]);
 
-  const unlockVaultWithPassword = useCallback(
-    async (password: string): Promise<boolean> => {
-      if (!accountId) return false;
-      try {
-        await invoke('unlock_with_password', { accountId: accountId, password });
-        return true;
-      } catch (err) {
-        // P124: 密码错误与后端异常可区分——后端对错误密码返回 Err("Invalid password")，
-        // 返回 false（对话框显示「密码不正确」）；其余为真实后端异常，抛出保留细节
-        // （对话框 catch 走 onError toast），不再无差别当作密码错误。
-        const msg =
-          typeof err === 'string' ? err : err instanceof Error ? err.message : String(err);
-        if (/invalid password|incorrect password|密码错误|密码不正确/i.test(msg)) {
-          return false;
-        }
-        logger.warn('[ObjectDetail] Vault unlock failed:', err);
-        throw err;
-      }
-    },
-    [accountId],
-  );
-
-  const passwordVerify = useCallback(async (): Promise<{
-    ok: boolean;
-    method: 'password' | 'touchId' | 'faceId' | 'windowsHello' | 'pin';
-  }> => {
-    return new Promise((resolve) => {
-      pwResolveRef.current = resolve;
-      setShowPwDialog(true);
-    });
-  }, []);
-
   const resolveCollectionLabelLocal = useCallback(
     (typeId: string) => resolveCollectionLabel(typeId, customPages, t),
     [customPages, t],
   );
 
-  const writeCriticalAccessLog = useCallback(
-    async (method: 'password' | 'touchId' | 'faceId' | 'windowsHello' | 'pin') => {
-      if (!accountId || !obj || !pendingRevealRef.current) return;
-      const actionType =
-        method === 'password'
-          ? 'critical_field_login'
-          : method === 'pin'
-            ? 'critical_field_pin'
-            : method === 'touchId'
-              ? 'critical_field_touch_id'
-              : method === 'windowsHello'
-                ? 'critical_field_windows_hello'
-                : 'critical_field_face_id';
-      const entityType = method === 'password' || method === 'pin' ? 'auth' : 'biometric';
-      const details = `objectName=${obj.name} page=${resolveCollectionLabelLocal(obj.typeId)} fieldName=${pendingRevealRef.current.fieldName}`;
-      try {
-        await invoke('log_write', {
-          request: {
-            actionType,
-            entityType,
-            entityId: obj.id,
-            entityName: null,
-            details,
-          },
-        });
-      } catch {
-        // best effort
-      }
-    },
-    [accountId, obj, resolveCollectionLabelLocal],
-  );
-
-  const handleBiometricUnlock = useCallback(async (): Promise<boolean> => {
-    if (!accountId) return false;
-    try {
-      await invoke('biometric_unlock', {
-        accountId: accountId,
-        location: 'critical_data_access',
-        action: 'unlock',
-        biometryType: bioAvailable.biometryType,
-      });
-      const method =
-        (bioAvailable.biometryType as 'touchId' | 'faceId' | 'windowsHello') || 'touchId';
-      pwResolveRef.current?.({ ok: true, method });
-      return true;
-    } catch (err) {
-      // P124: 记录失败细节（用户取消 vs 后端异常在 UI 上保持静默停留，但日志不再丢失）
-      logger.warn('[ObjectDetail] Biometric unlock failed:', err);
-      return false;
-    }
-  }, [accountId, bioAvailable.biometryType]);
-
-  const handleRevealField = useCallback(
-    async (fieldId: string, sens: SensitivityLevel, fieldName: string) => {
-      if (sens === 'critical') {
-        pendingRevealRef.current = { fieldId, fieldName };
-        const result = await passwordVerify();
-        if (result.ok) {
-          reveal(fieldId);
-          await writeCriticalAccessLog(result.method);
-        }
-      } else {
-        reveal(fieldId);
-      }
-    },
-    [passwordVerify, reveal, writeCriticalAccessLog],
-  );
+  // 关键数据验证域（密码/生物识别/PIN 验证对话框 + 揭示状态 + 访问日志 + 探测）
+  // 收敛于 useObjectDetailVerification（W001-④ 拆分）。
+  const verification = useObjectDetailVerification({
+    accountId,
+    obj: obj ?? null,
+    resolveCollectionLabelLocal,
+  });
 
   // F012: cache the current object's template field map for O(1) lookups.
   const fieldMap = useMemo(() => {
@@ -366,26 +241,6 @@ export function useObjectDetailModal(props: ObjectDetailModalProps) {
     [t, isMobilePlatform],
   );
 
-  // 密码验证对话框的联动 handler（验证成功/取消/ PIN 成功），收敛 pwResolveRef 细节
-  const handlePwDialogClose = useCallback(() => {
-    setShowPwDialog(false);
-    pwResolveRef.current?.({ ok: false, method: 'password' });
-  }, []);
-
-  const handlePwDialogVerify = useCallback(
-    async (password: string) => {
-      const ok = await unlockVaultWithPassword(password);
-      if (ok) pwResolveRef.current?.({ ok: true, method: 'password' });
-      return ok;
-    },
-    [unlockVaultWithPassword],
-  );
-
-  const handlePwDialogPinSuccess = useCallback(() => {
-    pwResolveRef.current?.({ ok: true, method: 'pin' });
-    setShowPwDialog(false);
-  }, []);
-
   return {
     t,
     accountId,
@@ -407,9 +262,6 @@ export function useObjectDetailModal(props: ObjectDetailModalProps) {
     isFieldDeprecated,
     getFieldName,
     // 揭示/复制
-    isRevealed,
-    maskValue,
-    handleRevealField,
     handleCopy,
     copiedField,
     // 删除流程
@@ -422,15 +274,8 @@ export function useObjectDetailModal(props: ObjectDetailModalProps) {
     setShowHistory,
     showAttachments,
     setShowAttachments,
-    // 关键数据验证
-    passwordVerify,
-    showPwDialog,
-    handlePwDialogClose,
-    handlePwDialogVerify,
-    handlePwDialogPinSuccess,
-    passwordHint,
-    bioAvailable,
-    handleBiometricUnlock,
+    // 关键数据验证（useObjectDetailVerification 收敛）
+    ...verification,
     // 拖拽上传
     detailDragRef,
     detailDragState,
