@@ -1,13 +1,13 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-12（轮次 12：W 系列收尾——W001 拆分转移巨型化再拆、W002 注释归位）
+> 最后更新：2026-08-12（轮次 12：W 系列收尾——W001 再拆、W002 注释归位、W003 文档精度）
 > 当前分支：`main`
 
 ## 总览
 
 - 全部已提出问题：**80 项**（P47 + N10 + R5 + S4 + T5 + U6 + V5 + W3，含重复计数修正）
-- **修复关闭 77 项**、**经确认跳过 2 项**（P027/P033）、**延期 0 项**（P046/P047 均已拆分完成）
-- **待修复 1 项（W 系列）**：轮次 11 复核 P046/P047 拆分时发现——拆分本身真实、零行为变化，但存在巨型化转移（新组件/hook 超 300 行红线）与注释残留，详见「轮次 11 复核」；W001/W002 已修复，W003 待修复
+- **修复关闭 78 项**、**经确认跳过 2 项**（P027/P033）、**延期 0 项**（P046/P047 均已拆分完成）
+- **待修复 0 项**：轮次 11 复核发现的 W 系列（巨型化转移/注释残留）已全部收尾，详见「轮次 11 复核」与「修复记录（W 系列）」
 - 遗留计划事项：S003 的 v2.10 blob 键清理（已有代码 TODO + CHANGELOG 双向追踪，属计划内而非遗忘）
 - 轮次 11 基线实测：`check-all` **EXIT=0 全绿**（tsc / fmt / clippy / cargo test / eslint / Vitest / ACL 与 pref-keys 机比）
 
@@ -33,9 +33,9 @@
 - **轮次 7**：T 系列修复验证（6 提交 df78465c–a96f1d70）。T001/T002/T005 修复通过；T003/T004 修复主体正确但有残留；check-all 实测全绿。新增 U001–U006，全部修复。
 - **轮次 8**：U 系列修复验证（6 提交 9e48b02c–7635406e）。U001/U002/U003/U005/U006 修复通过；U004 隐私政策披露有 P1 级残留（禁用承诺范围错误）；check-all 实测全绿。新增 V001–V005，全部 `[ ]` 待修复。
 - **轮次 9**：V 系列修复验证（5 提交 349dd084–8e9e0a18）。V001–V005 全部修复（V001 政策措辞改口、V002 build 失败兜底回退、V003 Drop guard、V004 可用性面披露、V005 metadata 断点）；V005② wiremock 集成测试登记备查（P3 可缓）。check-all 实测全绿。无新增问题。
-- **轮次 10**：P046 前端 10 个巨型组件拆分收官（3 提交 909d6735–15488aa3，按域分三批）。认证域 2 组件（P046-1：LoginPage 650→179、PasswordVerificationDialog 520→136）、对象域 3 组件（P046-2：AttachmentViewer 683→305、ObjectDetailModal 545→239、TemplateFieldRow 506→192）、设置导出域 5 组件（P046-3：ExportImportPage 495→263、ExportSection 489→311、ImportSection 493→183、TrashPage 503→294、DeviceListPanel 482→187），均按「数据 hook + 展示子组件」纯重构零行为变化；`PageGroup` 消除重复定义统一单一来源。前端全量验证：tsc / eslint 全绿、73 文件 647 测试全绿、代码审查通过无阻塞项。延期项仅剩 P047（Rust 巨型文件拆分）。
-- **轮次 11**：P047 Rust 巨型文件拆分收官（3 提交，纯文件级重构零行为变化）。P047-1 `attachment.rs` 2213→attachment/ 5 文件（mod/crud/tree/share/tests，最大 734）；P047-2 `object/tests.rs` 2377→object/tests/ 6 文件（mod 共享 setup_vault + crud/trash/snapshot/template_sync/misc 五主题子模块，最大 732）；P047-3 `export_docx.rs` 2139→export_docx/ 8 文件（mod 命令 + fields/docx/markdown/text/html/pdf + tests，最大 752，最小 62）。tauri 宏命令注册改定义处路径、外部引用路径保持（`pub use export_docx::*` 链不变）。验证：cargo fmt / check / clippy `-D warnings` 全绿（42 object 测试 + 21 export_docx 测试属性归属正确）；测试二进制本机 `0xc0000139` 限制，CI 兜底。至此 P046（前端 10 组件）+ P047（Rust 3 文件）全部完成，延期/跳过项清零，修复关闭 77/77。
-- **轮次 11 复核**：审查方对 P046/P047 6 个拆分提交独立验证（多重集逐行比对 + 工作区语义审查 + check-all 实测全绿）。确认拆分真实、逻辑零行为变化、测试 42/21/28 全保留、IPC 命令名与 re-export 链未变；但发现巨型化转移与注释残留，新增 W001–W003（W001 已修复，W002/W003 待修复）。
+- **轮次 10**：P046 前端 10 个巨型组件拆分收官（3 提交 909d6735–15488aa3，按域分三批）。认证域 2 组件（P046-1：LoginPage 650→179、PasswordVerificationDialog 520→136）、对象域 3 组件（P046-2：AttachmentViewer 683→307 总行/287 非注释、ObjectDetailModal 545→239、TemplateFieldRow 506→192）、设置导出域 5 组件（P046-3：ExportImportPage 495→263、ExportSection 489→311、ImportSection 493→183、TrashPage 503→294、DeviceListPanel 482→187），均按「数据 hook + 展示子组件」纯重构零行为变化；`PageGroup` 消除重复定义统一单一来源。前端全量验证：tsc / eslint 全绿、73 文件 647 测试全绿、代码审查通过无阻塞项。延期项仅剩 P047（Rust 巨型文件拆分）。
+- **轮次 11**：P047 Rust 巨型文件拆分收官（3 提交，纯文件级重构零行为变化）。P047-1 `attachment.rs` 2213→attachment/ 5 文件（mod/crud/tree/share/tests，最大 734）；P047-2 `object/tests.rs` 2377→object/tests/ 6 文件（mod 共享 setup_vault + crud/trash/snapshot/template_sync/misc 五主题子模块，最大 732）；P047-3 `export_docx.rs` 2139→export_docx/ 8 文件（mod 命令 + fields/docx/markdown/text/html/pdf + tests，最大 752，最小 66）。tauri 宏命令注册改定义处路径、外部引用路径保持（`pub use export_docx::*` 链不变）。验证：cargo fmt / check / clippy `-D warnings` 全绿（42 object 测试 + 28 export_docx 测试属性归属正确）；测试二进制本机 `0xc0000139` 限制，CI 兜底。至此 P046（前端 10 组件）+ P047（Rust 3 文件）全部完成，延期/跳过项清零，修复关闭 77/77。
+- **轮次 11 复核**：审查方对 P046/P047 6 个拆分提交独立验证（多重集逐行比对 + 工作区语义审查 + check-all 实测全绿）。确认拆分真实、逻辑零行为变化、测试 42/21/28 全保留、IPC 命令名与 re-export 链未变；但发现巨型化转移与注释残留，新增 W001–W003（轮次 12 全部修复）。
 
 ## 轮次 11 复核：P046/P047 拆分独立验证（W 系列）
 
@@ -54,7 +54,7 @@
 |----|--------|------|----------|------|------|
 | W001 | P2 | 架构 | `tauri/src/components/template/TemplateFieldBindingSection.tsx`（354 非注释行）、`useLoginPage.tsx`（~459）、`useAttachmentViewer.tsx`（464）、`useObjectDetailModal.tsx`（356）、`usePasswordVerification.tsx`（~306） | **拆分转移巨型化**：①`TemplateFieldBindingSection` 是**组件**且 354 非注释行 > 300——P046 消灭一个 477 行组件的同时新造了一个超阈值组件，按 P046 自身验收口径不达标（可再拆「已绑定列表」与「添加绑定表单」两个子组件，或登记豁免理由）；②4 个数据 hook 自身 300+ 非注释行——hook 不在 P046「组件」字面口径内，属「数据 hook + 展示子组件」模式的预期承载层，但 `useAttachmentViewer` 已集 18 state + 19 handler 于一体（批量操作段 ~130 行可抽 `useAttachmentBatchOps`），`useLoginPage` ~459 行接近原组件规模。建议：TemplateFieldBindingSection 再拆或登记豁免；hook 侧登记备查按需再拆 | `[x]` 已修复①（W001，见下）；②hook 登记备查 |
 | W002 | P3 | 注释 | `tauri/src-tauri/src/commands/attachment/mod.rs:14,70-72`、`crud.rs:87-100` | **P047-1 拆分 doc 注释错位/丢失 3 处**：①`mod.rs:14`「单个对象最多允许的活跃附件数量」错贴在 `path_within_base` 头上，其真正属主 `MAX_ACTIVE_ATTACHMENTS`（crud.rs:12）丢失 doc；②`path_within_base`/`allowed_fs_bases` 的整段参数文档（fs 白名单 + symlink 旁路 + Android 双路径）被留在 crud.rs 错挂在 `attachment_list` 命令头上，mod.rs 定义处只剩残缺尾巴；③`load_all_referenced_attachment_ids` 原 3 行 doc 丢了 2 行。无行为影响，属「注释描述旧位置」类残留 | `[x]` 已修复（W002，见下） |
-| W003 | P3 | 注释/文档精度 | `tauri/src-tauri/src/commands/object/tests/crud.rs:441,443`、本报告轮次 10/11 记录 | **文档/注释精度**：①`tests/crud.rs` 的 `/// N009: P026 对象输入校验函数边界单测。` 重复两行（切分脚本段边界残留，删一行即可）；②轮次 11 记录称 export_docx「21 测试」实为 **28** 个 `#[test]`；③轮次 10/11 记录的行数与实测有系统性小偏差（AttachmentViewer「683→305」实 307 总行/287 非注释、export_docx 子文件 ±1~6 行），统计口径差异，不影响达标结论 | `[ ]` 待修复 |
+| W003 | P3 | 注释/文档精度 | `tauri/src-tauri/src/commands/object/tests/crud.rs:441,443`、本报告轮次 10/11 记录 | **文档/注释精度**：①`tests/crud.rs` 的 `/// N009: P026 对象输入校验函数边界单测。` 重复两行（切分脚本段边界残留，删一行即可）；②轮次 11 记录称 export_docx「21 测试」实为 **28** 个 `#[test]`；③轮次 10/11 记录的行数与实测有系统性小偏差（AttachmentViewer「683→305」实 307 总行/287 非注释、export_docx 子文件 ±1~6 行），统计口径差异，不影响达标结论 | `[x]` 已修复（W003，见下） |
 
 **复核补登（轮次 9 复核结论曾丢失）**：轮次 9 审查方独立复核节在未提交状态下被覆盖丢失，其确认结论（V001–V005 全部修复正确）与本轮开发者记录一致无需重补，但其中登记的备查项 **V005-R1** 一并丢失，现补登：V005 的 fallback 分支使「`existing_size>0` 但 part 文件缺失」状态可达——此时若下一候选服务器返回 206，`append(true).open()` 对缺失文件 NotFound 并以 `?` 终止整个函数（`update.rs:1064-1067`），并非修复记录所称「走重新下载分支自愈」（自愈仅在服务器不支持 Range 时成立）。触发条件极苛刻（写失败后、metadata 调用前 part 被并发删除），后果仅本次下载报错、用户重试，无数据损坏。修法一行：fallback 置 `existing_size = 0` 强制重下，或 append 加 `create(true)`。**P3 备查**。
 
@@ -75,6 +75,13 @@
 - **②`path_within_base` 参数文档归位**：整段 doc（fs 白名单 + symlink 旁路 + Android `/data/data`↔`/data/user/0` 双路径 + base_canon/base_raw 参数说明 + P003 可见性注）从 crud.rs 错挂的 `attachment_list` 命令头上移回 mod.rs 定义处，与拆分前原文逐字一致；`attachment_list` 恢复无 doc 的原始状态（原文件本就无注释）。
 - **③`load_all_referenced_attachment_ids` doc 补齐**：mod.rs 恢复 3 行 doc（Collect... / P110 批量方法 / 仅供测试使用），拆分前原文逐字一致。
 - **验证**：cargo fmt / check / clippy `-D warnings` 全绿（纯注释改动，零行为影响）。
+
+### W003（P3，文档精度）✅ 已修复
+
+- **①重复 doc 行**：`object/tests/crud.rs` `test_validate_object_input_boundaries` 上方重复两行的 `/// N009: P026 对象输入校验函数边界单测。` 删去一行（切分脚本段边界残留）。
+- **②测试计数**：本报告轮次 11 记录「export_docx 21 测试」修正为 **28**（`grep -c '#[test]' export_docx/tests.rs` 实测 28）——轮次 11 摘要「42+21 export_docx」改「42+28」，P047-3 记录「tests.rs：21 测试」改「28 测试」；轮次 11 复核节「42/21/28」为 object 42 / attachment 21 / export_docx 28 的跨文件汇总，无需改。
+- **③行数口径**：按实测修订轮次 10/11 记录——AttachmentViewer「683→305」改「683→307 总行/287 非注释」（`useAttachmentViewer.tsx` 529→530、`usePasswordVerification.tsx` 382→377 同步修订）；export_docx 子文件按 `wc -l` 实测修订（fields 224→223、markdown 342→348、text 89→91、html 125→126、pdf 62→66，docx/mod/tests 不变），「最大 752，最小 62」改「最小 66」。
+- **验证**：cargo fmt / check 全绿（`object/tests` 编译通过，42 测试属性归属不变）；纯注释/文档改动，无行为影响。
 
 
 ## 轮次 6：新推送审查（T 系列）
@@ -246,15 +253,15 @@
 
 ### P047-3（架构，export_docx.rs 3/3）✅ 已完成
 
-- **拆分**：纯文件级重构，零行为变化：`export_import/export_docx.rs` **2139 → export_docx/ 目录 8 文件**（最大 752，最小 62）：
+- **拆分**：纯文件级重构，零行为变化：`export_import/export_docx.rs` **2139 → export_docx/ 目录 8 文件**（最大 752，最小 66）：
   - `export_docx/mod.rs` **368 行**：类型（`DocumentSensitivity`/`ExportDocumentResult`）、敏感度工具（`sensitivity_rank`/`object_max_sensitivity`）、命令工具（`load_records_in_order`/`load_template_names`/`format_extension`/`path_has_format_ext`/`resolve_document_path`）、命令（`export_document_preflight`/`export_objects_document`）、子模块声明。
-  - `export_docx/fields.rs` **224 行**：字段工具（`escape_xml`/`sanitize_docx_text`/`field_value_to_text`/`build_field_meta`/`flatten_object_fields`/`collect_attachment_entries`/`format_bytes`/`attachment_lines`）+ `AttachmentExportEntry`。
+  - `export_docx/fields.rs` **223 行**：字段工具（`escape_xml`/`sanitize_docx_text`/`field_value_to_text`/`build_field_meta`/`flatten_object_fields`/`collect_attachment_entries`/`format_bytes`/`attachment_lines`）+ `AttachmentExportEntry`。
   - `export_docx/docx.rs` **197 行**：`text_run` + `build_docx`（OOXML 组装）。
-  - `export_docx/markdown.rs` **342 行**：markdown 转义/链接化/字段渲染 + `build_markdown_document`。
-  - `export_docx/text.rs` **89 行**：`build_text_document`。
-  - `export_docx/html.rs` **125 行**：`escape_html` + `build_html_document`。
-  - `export_docx/pdf.rs` **62 行**：`build_pdf_document`（printpdf from_html）。
-  - `export_docx/tests.rs` **752 行**：21 测试（原 `#[cfg(test)] mod tests` 整体迁移，去外层包裹 + dedent）。
+  - `export_docx/markdown.rs` **348 行**：markdown 转义/链接化/字段渲染 + `build_markdown_document`。
+  - `export_docx/text.rs` **91 行**：`build_text_document`。
+  - `export_docx/html.rs` **126 行**：`escape_html` + `build_html_document`。
+  - `export_docx/pdf.rs` **66 行**：`build_pdf_document`（printpdf from_html）。
+  - `export_docx/tests.rs` **752 行**：28 测试（原 `#[cfg(test)] mod tests` 整体迁移，去外层包裹 + dedent）。
 - **关键处理**：
   - **外部引用保持**：`export_import/mod.rs` 的 `pub mod export_docx;` + `pub use export_docx::*;` 不变——lib.rs 命令注册 `commands::export_import::export_document_preflight`（经 re-export 链）无需改动；`use super::*` 链保持（`export_docx` 头部 `use super::*` 从 `export_import` glob）。
   - **可见性**：跨模块函数提升 `pub(crate)`（fields 的字段工具、docx/markdown/html/pdf 的 `build_*`）；`AttachmentExportEntry` 结构与其字段提升 `pub(crate)`（docx/markdown/text 访问 `entry.main/description/tags`）；兄弟模块显式 `use super::fields::...` 导入（`use super::*` 不 glob mod.rs 私有 use 绑定）。
@@ -308,7 +315,7 @@
 ### P046-2（架构，对象域 3/10）✅ 已完成
 
 - **拆分**：按「数据 hook + 展示子组件」模式，纯重构零行为变化：
-  - `AttachmentViewer.tsx` **683 → 305 行**（非注释 ~285）：全部编排逻辑（列表加载、上传/重命名/下载/转发/删除/恢复/永久删除、批量操作、照片集数据源、拖拽上传）迁入 `src/components/object/useAttachmentViewer.tsx`（529 行）；组件退化为纯组合层，复用既有 8 个子组件。保留 `AttachmentItem`/`AttachmentViewerProps` 类型 re-export。
+  - `AttachmentViewer.tsx` **683 → 307 行**（非注释 287）：全部编排逻辑（列表加载、上传/重命名/下载/转发/删除/恢复/永久删除、批量操作、照片集数据源、拖拽上传）迁入 `src/components/object/useAttachmentViewer.tsx`（530 行）；组件退化为纯组合层，复用既有 8 个子组件。保留 `AttachmentItem`/`AttachmentViewerProps` 类型 re-export。
   - `ObjectDetailModal.tsx` **545 → 239 行**：编排逻辑（对象拉取 P020 防陈旧、字段/敏感度解析、关键数据验证密码/生物识别/PIN、复制反馈、删除、历史/附件子视图）迁入 `src/components/object/useObjectDetailModal.tsx`（438 行）；`PasswordVerificationDialog` 联动收敛为 `handlePwDialogClose/Verify/PinSuccess` 三个组合 handler。
   - `TemplateFieldRow.tsx` **506 → 192 行**：插件契约绑定折叠区（~270 行内联 JSX + 全部派生/增删逻辑）抽为 `TemplateFieldBindingSection.tsx`（382 行），主组件仅保留顶部字段控件行；`FlattenedContract` 类型从子组件 re-export（TemplateEditor 既有导入不受影响）。
 - **审查处理**：`handleMetaSaved` 参数类型与 `AttachmentMetaEditResult` 对齐；`objectId` 由 hook 返回供组件使用（消除 JSX 中段 `props.objectId` 直接引用，与 `allVisibleKeys` 键源一致）；清理未用解构/导入。
@@ -319,14 +326,14 @@
 
 - **拆分**：按「数据 hook + 展示子组件」模式，纯重构零行为变化：
   - `LoginPage.tsx` **650 → 179 行**：全部编排逻辑（账户选择、生物识别/PIN 可用性探测、解锁方式优先级 + 模块缓存、三种解锁 handler、图标栏构建与悬停）迁入新数据 hook `src/pages/auth/useLoginPage.tsx`（583 行）；组件退化为纯组合层，JSX 逐字不变。`BIOMETRIC_INFO` 与 `_cachedLoginMethod` 模块级缓存随迁。
-  - `PasswordVerificationDialog.tsx` **520 → 136 行**：状态与 handler 迁入 `src/components/forms/usePasswordVerification.tsx`（382 行）；生物识别卡片抽为 `PasswordVerificationBiometricCard.tsx`（85 行）、密码卡片抽为 `PasswordVerificationPasswordCard.tsx`（62 行），PIN 卡片继续复用共享 `PinEntryCard`，props 接口迁至 hook 文件并从组件 re-export（原接口未导出，外部仅引用组件本体，无破坏）。
+  - `PasswordVerificationDialog.tsx` **520 → 136 行**：状态与 handler 迁入 `src/components/forms/usePasswordVerification.tsx`（377 行）；生物识别卡片抽为 `PasswordVerificationBiometricCard.tsx`（85 行）、密码卡片抽为 `PasswordVerificationPasswordCard.tsx`（62 行），PIN 卡片继续复用共享 `PinEntryCard`，props 接口迁至 hook 文件并从组件 re-export（原接口未导出，外部仅引用组件本体，无破坏）。
 - **审查处理**：TS 别名收窄（`isBiometricMethod`）跨 hook 不生效——移回组件内局部 const 计算；TS 要求含 JSX 的 hook 文件使用 `.tsx` 扩展名；清理 dialog hook 死返回值与冗余别名。
 - **验证**：tsc / eslint 全绿；全量前端 73 文件 647 测试全绿（无相关测试文件，重构保持行为不变）。
 - **待拆**：对象域（AttachmentViewer/ObjectDetailModal/TemplateFieldRow）、设置导出域（ExportImportPage/ExportSection/ImportSection/TrashPage/DeviceListPanel）。
 
 ## 待用户指令
 
-- 轮次 11 复核：P046/P047 拆分真实、零行为变化（check-all 全绿），但新增 W001–W003 待修复。建议顺序：W001（P2，TemplateFieldBindingSection 再拆或登记豁免 + hook 巨型化备查）→ W002/W003（P3，注释归位与文档精度，顺手级）。
+- 轮次 11 复核：P046/P047 拆分真实、零行为变化（check-all 全绿），新增 W001–W003 已在轮次 12 全部修复（W001 再拆、W002 注释归位、W003 文档精度），待修复清零。
 - 可选收尾动作：推送报告并打标签 `git tag -a "code-audit-passed-$(date +%Y%m%d)"`——需用户确认后执行。
 - 后续专项建议：S003 的 v2.10 blob 键清理按代码 TODO 计划执行。
 - 备查项：V003②（并发双下载，更大既存问题）、V005②（wiremock 集成测试，P3 可缓）、V005-R1（fallback 缺失文件 + 206 组合下不自愈，P3，修法一行，轮次 11 复核补登）已登记，后续视需要处理。

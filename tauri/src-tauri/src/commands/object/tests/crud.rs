@@ -439,8 +439,6 @@ fn test_truncate_preview_properties_field_order_priority() {
 }
 
 /// N009: P026 对象输入校验函数边界单测。
-
-/// N009: P026 对象输入校验函数边界单测。
 #[test]
 fn test_validate_object_input_boundaries() {
     // 空名称拒绝
