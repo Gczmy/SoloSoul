@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-12（轮次 12：W 系列收尾 + V005-R1 备查项修复 + W001-②③④ hook 拆分）
+> 最后更新：2026-08-12（轮次 12：W 系列收尾 + V005-R1 备查项修复 + W001-②③④⑤ hook 拆分，备查清零）
 > 当前分支：`main`
 
 ## 总览
@@ -52,7 +52,7 @@
 
 | ID | 优先级 | 类别 | 文件位置 | 描述 | 状态 |
 |----|--------|------|----------|------|------|
-| W001 | P2 | 架构 | `tauri/src/components/template/TemplateFieldBindingSection.tsx`（354 非注释行）、`useLoginPage.tsx`（~459）、`useAttachmentViewer.tsx`（464）、`useObjectDetailModal.tsx`（356）、`usePasswordVerification.tsx`（~306） | **拆分转移巨型化**：①`TemplateFieldBindingSection` 是**组件**且 354 非注释行 > 300——P046 消灭一个 477 行组件的同时新造了一个超阈值组件，按 P046 自身验收口径不达标（可再拆「已绑定列表」与「添加绑定表单」两个子组件，或登记豁免理由）；②4 个数据 hook 自身 300+ 非注释行——hook 不在 P046「组件」字面口径内，属「数据 hook + 展示子组件」模式的预期承载层，但 `useAttachmentViewer` 已集 18 state + 19 handler 于一体（批量操作段 ~130 行可抽 `useAttachmentBatchOps`），`useLoginPage` ~459 行接近原组件规模。建议：TemplateFieldBindingSection 再拆或登记豁免；hook 侧登记备查按需再拆 | `[x]` 已修复①（W001，见下）；②`useAttachmentViewer` 已拆（W001-②）、`useLoginPage` 已拆（W001-③）、`useObjectDetailModal` 已拆（W001-④，见下），其余 1 hook 登记备查 |
+| W001 | P2 | 架构 | `tauri/src/components/template/TemplateFieldBindingSection.tsx`（354 非注释行）、`useLoginPage.tsx`（~459）、`useAttachmentViewer.tsx`（464）、`useObjectDetailModal.tsx`（356）、`usePasswordVerification.tsx`（~306） | **拆分转移巨型化**：①`TemplateFieldBindingSection` 是**组件**且 354 非注释行 > 300——P046 消灭一个 477 行组件的同时新造了一个超阈值组件，按 P046 自身验收口径不达标（可再拆「已绑定列表」与「添加绑定表单」两个子组件，或登记豁免理由）；②4 个数据 hook 自身 300+ 非注释行——hook 不在 P046「组件」字面口径内，属「数据 hook + 展示子组件」模式的预期承载层，但 `useAttachmentViewer` 已集 18 state + 19 handler 于一体（批量操作段 ~130 行可抽 `useAttachmentBatchOps`），`useLoginPage` ~459 行接近原组件规模。建议：TemplateFieldBindingSection 再拆或登记豁免；hook 侧登记备查按需再拆 | `[x]` 已修复①（W001，见下）；②4 hook 全部拆分（W001-②③④⑤，见下），备查清零 |
 | W002 | P3 | 注释 | `tauri/src-tauri/src/commands/attachment/mod.rs:14,70-72`、`crud.rs:87-100` | **P047-1 拆分 doc 注释错位/丢失 3 处**：①`mod.rs:14`「单个对象最多允许的活跃附件数量」错贴在 `path_within_base` 头上，其真正属主 `MAX_ACTIVE_ATTACHMENTS`（crud.rs:12）丢失 doc；②`path_within_base`/`allowed_fs_bases` 的整段参数文档（fs 白名单 + symlink 旁路 + Android 双路径）被留在 crud.rs 错挂在 `attachment_list` 命令头上，mod.rs 定义处只剩残缺尾巴；③`load_all_referenced_attachment_ids` 原 3 行 doc 丢了 2 行。无行为影响，属「注释描述旧位置」类残留 | `[x]` 已修复（W002，见下） |
 | W003 | P3 | 注释/文档精度 | `tauri/src-tauri/src/commands/object/tests/crud.rs:441,443`、本报告轮次 10/11 记录 | **文档/注释精度**：①`tests/crud.rs` 的 `/// N009: P026 对象输入校验函数边界单测。` 重复两行（切分脚本段边界残留，删一行即可）；②轮次 11 记录称 export_docx「21 测试」实为 **28** 个 `#[test]`；③轮次 10/11 记录的行数与实测有系统性小偏差（AttachmentViewer「683→305」实 307 总行/287 非注释、export_docx 子文件 ±1~6 行），统计口径差异，不影响达标结论 | `[x]` 已修复（W003，见下） |
 
@@ -66,7 +66,7 @@
   - `TemplateFieldBindingSection.tsx` **354 → 187 非注释行**（组件本体 ≤300 达标）：保留 props 接口、自动推导/去重/增删逻辑与折叠头，退化为纯组合层；`FlattenedContract`/`TemplateFieldBindingSectionProps` 类型与 re-export 链不变（TemplateFieldRow 零改动）。
   - `TemplateFieldBindingList.tsx` **105 非注释行**：已绑定契约/角色标签列表（含移除按钮）——`getContractInfo`/`getRoleInfo` 信息查找随迁。
   - `TemplateFieldBindingForm.tsx` **124 非注释行**：添加绑定表单（契约/角色下拉 + 添加按钮）——`availableRoles` 类型改用 `lib/plugin.ts` 新导出的 `PluginContractRole`（原接口未导出，仅 `export` 关键字提升，零外部影响）。
-- **②（4 个数据 hook 300+ 行）**：`useAttachmentViewer` 已拆分（见 W001-②）、`useLoginPage` 已拆分（见 W001-③）、`useObjectDetailModal` 已拆分（见 W001-④）；`usePasswordVerification`（306）仍登记备查——hook 属「数据 hook + 展示子组件」模式的预期承载层，不在 P046「组件」验收口径内，按需再拆，本期不处理。
+- **②（4 个数据 hook 300+ 行）**：全部拆分完成——`useAttachmentViewer`（见 W001-②）、`useLoginPage`（见 W001-③）、`useObjectDetailModal`（见 W001-④）、`usePasswordVerification`（见 W001-⑤）。hook 属「数据 hook + 展示子组件」模式的预期承载层，不在 P046「组件」验收口径内，但均已按需再拆至 < 300 非注释行。
 
 ### W001-②（P2，useAttachmentViewer 批量段拆分）✅ 已修复
 
@@ -92,6 +92,15 @@
   - **接口**：`useObjectDetailVerification({ accountId, obj, resolveCollectionLabelLocal })`，返回值 spread 进父层——`ObjectDetailModal.tsx` 消费字段名零变化（isRevealed/maskValue/handleRevealField/passwordVerify/showPwDialog/四个 handler/passwordHint/bioAvailable/handleBiometricUnlock 均经展开提供），调用方零改动。
 - **行为保留**：探测 effect deps、`handleBiometricUnlock` 的 `bioAvailable.biometryType` dep、`writeCriticalAccessLog` 的 `[accountId, obj, resolveCollectionLabelLocal]` dep 均不变；`ObjectDetailModal.test.tsx` 对 `@/hooks/useRevealState` 的模块级 mock 在子 hook 中同样生效（vitest 按模块路径拦截），P020 两用例断言面（完整对象不重复拉取 / 摘要触发 object_get）留在父层不受影响。
 - **验证**：tsc / eslint 全绿；object 域 4 测试文件 31 测试全绿（含 ObjectDetailModal 5/5）。
+
+### W001-⑤（P2，usePasswordVerification 组合层化）✅ 已修复
+
+- **修复**：`usePasswordVerification.tsx` **306 → 119 非注释行**（< 300 达标）改为组合层——拆出两个内聚子 hook：
+  - `usePasswordVerificationFlows.tsx` **168 非注释行**：三种解锁流程——PIN（可用性探测 + `handlePinComplete` + pinUnlocking/pinError/pinInputKey/pinAvailable/pinChecked）、主密码（`handleConfirm` + password/error/loading + 行内错误）、生物识别（`handleBiometric` + bioLoading）；对话框打开时的状态重置与 auto-lock 暂停 effect 随迁（对话框生命周期语义）；`setLoginMethod` 以 prop 注入（PIN 锁定降级主密码用）。
+  - `usePasswordVerificationIconBar.tsx` **113 非注释行**：methods 构建（主密码 → Face ID → Touch ID → Windows Hello → PIN，类型改用 `LoginMethodOption`）+ 两阶段悬停状态与 handler + 卸载清理定时器 effect；`onSelectMethod` 由父层注入，handleClose 复用 `handleIconLeave` 清悬停态。
+  - **父层保留**：`loginMethod` 状态 + 优先级 effect + `biometricLabel` 推导 + `handleClose` 组合（经稳定 setter 解构重置三域状态）。
+- **行为保留**：`LoginMethod` 类型从内部 `UnlockMethodDef` 提升为导出类型供子 hook 引用；原 `UnlockMethodDef` 与 `LoginMethodOption` 字段同构（id/icon/label/onClick），`methods` 直接以 `LoginMethodOption[]` 提供，`PasswordVerificationDialog.tsx` 消费字段名零变化；PIN 选择清 pinError、handlePinComplete 锁定降级、优先级 FaceID>TouchID>WindowsHello>PIN>Password 逻辑逐字保留。
+- **验证**：tsc / eslint 全绿；forms + auth 4 测试文件 40 测试全绿。
 
 ### W002（P3，注释归位）✅ 已修复
 
