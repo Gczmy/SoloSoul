@@ -1,6 +1,6 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-12（轮次 12：W 系列收尾 + V005-R1 备查项修复）
+> 最后更新：2026-08-12（轮次 12：W 系列收尾 + V005-R1 备查项修复 + W001-② useAttachmentViewer 批量段拆分）
 > 当前分支：`main`
 
 ## 总览
@@ -52,7 +52,7 @@
 
 | ID | 优先级 | 类别 | 文件位置 | 描述 | 状态 |
 |----|--------|------|----------|------|------|
-| W001 | P2 | 架构 | `tauri/src/components/template/TemplateFieldBindingSection.tsx`（354 非注释行）、`useLoginPage.tsx`（~459）、`useAttachmentViewer.tsx`（464）、`useObjectDetailModal.tsx`（356）、`usePasswordVerification.tsx`（~306） | **拆分转移巨型化**：①`TemplateFieldBindingSection` 是**组件**且 354 非注释行 > 300——P046 消灭一个 477 行组件的同时新造了一个超阈值组件，按 P046 自身验收口径不达标（可再拆「已绑定列表」与「添加绑定表单」两个子组件，或登记豁免理由）；②4 个数据 hook 自身 300+ 非注释行——hook 不在 P046「组件」字面口径内，属「数据 hook + 展示子组件」模式的预期承载层，但 `useAttachmentViewer` 已集 18 state + 19 handler 于一体（批量操作段 ~130 行可抽 `useAttachmentBatchOps`），`useLoginPage` ~459 行接近原组件规模。建议：TemplateFieldBindingSection 再拆或登记豁免；hook 侧登记备查按需再拆 | `[x]` 已修复①（W001，见下）；②hook 登记备查 |
+| W001 | P2 | 架构 | `tauri/src/components/template/TemplateFieldBindingSection.tsx`（354 非注释行）、`useLoginPage.tsx`（~459）、`useAttachmentViewer.tsx`（464）、`useObjectDetailModal.tsx`（356）、`usePasswordVerification.tsx`（~306） | **拆分转移巨型化**：①`TemplateFieldBindingSection` 是**组件**且 354 非注释行 > 300——P046 消灭一个 477 行组件的同时新造了一个超阈值组件，按 P046 自身验收口径不达标（可再拆「已绑定列表」与「添加绑定表单」两个子组件，或登记豁免理由）；②4 个数据 hook 自身 300+ 非注释行——hook 不在 P046「组件」字面口径内，属「数据 hook + 展示子组件」模式的预期承载层，但 `useAttachmentViewer` 已集 18 state + 19 handler 于一体（批量操作段 ~130 行可抽 `useAttachmentBatchOps`），`useLoginPage` ~459 行接近原组件规模。建议：TemplateFieldBindingSection 再拆或登记豁免；hook 侧登记备查按需再拆 | `[x]` 已修复①（W001，见下）；②`useAttachmentViewer` 已拆（W001-②，见下），其余 3 hook 登记备查 |
 | W002 | P3 | 注释 | `tauri/src-tauri/src/commands/attachment/mod.rs:14,70-72`、`crud.rs:87-100` | **P047-1 拆分 doc 注释错位/丢失 3 处**：①`mod.rs:14`「单个对象最多允许的活跃附件数量」错贴在 `path_within_base` 头上，其真正属主 `MAX_ACTIVE_ATTACHMENTS`（crud.rs:12）丢失 doc；②`path_within_base`/`allowed_fs_bases` 的整段参数文档（fs 白名单 + symlink 旁路 + Android 双路径）被留在 crud.rs 错挂在 `attachment_list` 命令头上，mod.rs 定义处只剩残缺尾巴；③`load_all_referenced_attachment_ids` 原 3 行 doc 丢了 2 行。无行为影响，属「注释描述旧位置」类残留 | `[x]` 已修复（W002，见下） |
 | W003 | P3 | 注释/文档精度 | `tauri/src-tauri/src/commands/object/tests/crud.rs:441,443`、本报告轮次 10/11 记录 | **文档/注释精度**：①`tests/crud.rs` 的 `/// N009: P026 对象输入校验函数边界单测。` 重复两行（切分脚本段边界残留，删一行即可）；②轮次 11 记录称 export_docx「21 测试」实为 **28** 个 `#[test]`；③轮次 10/11 记录的行数与实测有系统性小偏差（AttachmentViewer「683→305」实 307 总行/287 非注释、export_docx 子文件 ±1~6 行），统计口径差异，不影响达标结论 | `[x]` 已修复（W003，见下） |
 
@@ -66,7 +66,13 @@
   - `TemplateFieldBindingSection.tsx` **354 → 187 非注释行**（组件本体 ≤300 达标）：保留 props 接口、自动推导/去重/增删逻辑与折叠头，退化为纯组合层；`FlattenedContract`/`TemplateFieldBindingSectionProps` 类型与 re-export 链不变（TemplateFieldRow 零改动）。
   - `TemplateFieldBindingList.tsx` **105 非注释行**：已绑定契约/角色标签列表（含移除按钮）——`getContractInfo`/`getRoleInfo` 信息查找随迁。
   - `TemplateFieldBindingForm.tsx` **124 非注释行**：添加绑定表单（契约/角色下拉 + 添加按钮）——`availableRoles` 类型改用 `lib/plugin.ts` 新导出的 `PluginContractRole`（原接口未导出，仅 `export` 关键字提升，零外部影响）。
-- **②（4 个数据 hook 300+ 行）**：登记备查——hook 属「数据 hook + 展示子组件」模式的预期承载层，不在 P046「组件」验收口径内；`useAttachmentViewer`（464）、`useLoginPage`（459）、`useObjectDetailModal`（356）、`usePasswordVerification`（306）按需再拆（如 `useAttachmentViewer` 批量操作段可抽 `useAttachmentBatchOps`），本期不处理。
+- **②（4 个数据 hook 300+ 行）**：`useAttachmentViewer` 已拆分（见下）；`useLoginPage`（459）、`useObjectDetailModal`（356）、`usePasswordVerification`（306）仍登记备查——hook 属「数据 hook + 展示子组件」模式的预期承载层，不在 P046「组件」验收口径内，按需再拆，本期不处理。
+
+### W001-②（P2，useAttachmentViewer 批量段拆分）✅ 已修复
+
+- **修复**：批量操作段（~143 行）从 `useAttachmentViewer.tsx` **464 → 321 非注释行**抽为 `useAttachmentBatchOps.tsx`（**177 非注释行**）——批量选择状态（`useBatchSelect` 的 selectedIds/allSelected/确认框态与 setter）与四个批量 handler（`handleBatchDelete`/`handleBatchRestore`/`handleBatchDownload`/`handleBatchPermanentDelete`）整体收敛；父 hook 仅保留 `allVisibleKeys` 计算 + `useAttachmentBatchOps({ objectId, allVisibleKeys, displayItems, loadAttachments, onCountChange })` 调用 + 返回值 `...batchOps` 展开。
+- **接口**：`AttachmentViewer.tsx` 消费字段名零变化（selectedIds/allSelected/batchDeleteConfirm 等 + 四个 handler 均经展开提供），调用方零改动。
+- **验证**：tsc / eslint 全绿；attachment+object+forms 13 测试文件 106 测试全绿。
 - **验证**：tsc / eslint 全绿；template 域 3 测试文件 27 测试全绿（TemplateEditor 8 测试为绑定 UI 主覆盖）。
 
 ### W002（P3，注释归位）✅ 已修复

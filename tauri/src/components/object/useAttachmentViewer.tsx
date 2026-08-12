@@ -7,8 +7,8 @@ import { useIsNarrowViewport } from '@/hooks/useIsNarrowViewport';
 import { useDragToAttach } from '@/hooks/useDragToAttach';
 import { downloadViaStage } from '@/lib/mobileFileTransfer';
 import { isMobilePlatformSync } from '@/lib/platform';
-import { useBatchSelect } from '@/hooks/useBatchSelect';
 import { pickFileToAttach, uploadSingleAttachment } from '@/lib/attachmentUpload';
+import { useAttachmentBatchOps } from './useAttachmentBatchOps';
 import {
   previewItemByMime,
   downloadAttachmentFile,
@@ -301,155 +301,14 @@ export function useAttachmentViewer(props: AttachmentViewerProps) {
     [displayItems, objectId],
   );
 
-  const {
-    selectedIds,
-    batchDeleteConfirm,
-    batchRestoreConfirm,
-    batchPermanentDeleteConfirm,
-    allSelected,
-    toggleSelect,
-    handleSelectAll,
-    clearSelection,
-    setBatchDeleteConfirm,
-    setBatchRestoreConfirm,
-    setBatchPermanentDeleteConfirm,
-  } = useBatchSelect(allVisibleKeys);
-
-  const handleBatchDelete = async () => {
-    setBatchDeleteConfirm(false);
-    const keys = Array.from(selectedIds);
-    const attachmentIds = keys.map((k) => k.split('::')[1]);
-    try {
-      await invoke('attachment_batch_soft_delete', { objectId: objectId, attachmentIds: attachmentIds });
-      showToast({
-        type: 'success',
-        message: t('common:batch_delete_result', { success: keys.length, total: keys.length }),
-      });
-    } catch (err) {
-      logger.warn('[AttachmentViewer] Batch soft delete failed:', err);
-      showToast({
-        type: 'warning',
-        message: t('common:batch_delete_result', { success: 0, total: keys.length }),
-      });
-    }
-    clearSelection();
-    await loadAttachments();
-    onCountChange?.();
-  };
-
-  const handleBatchRestore = async () => {
-    setBatchRestoreConfirm(false);
-    const keys = Array.from(selectedIds);
-    const attachmentIds = keys.map((k) => k.split('::')[1]);
-    try {
-      await invoke('attachment_batch_restore', { objectId: objectId, attachmentIds: attachmentIds });
-      showToast({
-        type: 'success',
-        message: t('common:batch_restore_result', { success: keys.length, total: keys.length }),
-      });
-    } catch (err) {
-      logger.warn('[AttachmentViewer] Batch restore failed:', err);
-      showToast({
-        type: 'warning',
-        message: t('common:batch_restore_result', { success: 0, total: keys.length }),
-      });
-    }
-    clearSelection();
-    await loadAttachments();
-    onCountChange?.();
-  };
-
-  const handleBatchDownload = async () => {
-    const keys = Array.from(selectedIds);
-    const attachmentIds = keys.map((k) => k.split('::')[1]);
-    const selectedItems = displayItems.filter((item) => attachmentIds.includes(item.id));
-    if (selectedItems.length === 0) return;
-
-    let dirPath: string | null;
-    if (isMobilePlatformSync()) {
-      // 移动端：使用自定义 SAF 目录选择器（plugin-dialog 的 directory 模式在 Android 不支持）
-      const { pause, resume } = await import('@/stores/autoLockPauseStore').then(
-        (m) => m.useAutoLockPauseStore.getState(),
-      );
-      pause();
-      try {
-        const result = await invoke<{ uri: string | null }>('attachment_pick_tree_uri');
-        dirPath = result.uri;
-      } catch (e) {
-        // 显示后端返回的具体错误，便于定位（如 NO_TREE_PICKER_HANDLER）
-        showToast({
-          type: 'error',
-          message: `${t('common:select_directory_failed', { defaultValue: 'Failed to pick directory' })}: ${e}`,
-        });
-        return;
-      } finally {
-        resume();
-      }
-    } else {
-      const { openWithPause } = await import('@/lib/dialog');
-      dirPath = (await openWithPause({
-        directory: true,
-        multiple: false,
-        title: t('common:select_download_directory', { defaultValue: 'Select download directory' }),
-      })) as string | null;
-    }
-    if (!dirPath) return;
-
-    // P054: 逐条串行 await 改为 Promise.allSettled 并发（各附件独立 IPC + 独立目标文件，
-    // 并发安全）；allSettled 不会因单项失败整体 reject，successCount 语义与串行一致。
-    // 平台检测只取一次（纯常量），避免逐项重复调用。
-    const isMobile = isMobilePlatformSync();
-    const downloadTasks = selectedItems
-      .filter((item) => !!(item.vaultPath || item.srcPath))
-      .map((item) => {
-        const filePath = item.vaultPath || (item.srcPath as string);
-        if (isMobile) {
-          // 移动端 SAF 目录返回的是 content://tree/... URI，走 Android 专用命令
-          return invoke('attachment_export_tree_uri', {
-            srcPath: filePath,
-            treeUri: dirPath,
-            fileName: item.fileName,
-            mimeType: item.mimeType,
-          });
-        }
-        const destPath = `${dirPath}/${item.fileName}`;
-        return invoke('attachment_download', { srcPath: filePath, destPath: destPath });
-      });
-    const results = await Promise.allSettled(downloadTasks);
-    const successCount = results.filter((r) => r.status === 'fulfilled').length;
-
-    showToast({
-      type: successCount === selectedItems.length ? 'success' : 'warning',
-      message: t('common:batch_download_result', {
-        success: successCount,
-        total: selectedItems.length,
-        defaultValue: `Downloaded ${successCount}/${selectedItems.length} files`,
-      }),
-    });
-    clearSelection();
-  };
-
-  const handleBatchPermanentDelete = async () => {
-    setBatchPermanentDeleteConfirm(false);
-    const keys = Array.from(selectedIds);
-    const attachmentIds = keys.map((k) => k.split('::')[1]);
-    try {
-      await invoke('attachment_batch_delete', { objectId: objectId, attachmentIds: attachmentIds });
-      showToast({
-        type: 'success',
-        message: t('common:batch_perm_delete_result', { success: keys.length, total: keys.length }),
-      });
-    } catch (err) {
-      logger.warn('[AttachmentViewer] Batch permanent delete failed:', err);
-      showToast({
-        type: 'warning',
-        message: t('common:batch_perm_delete_result', { success: 0, total: keys.length }),
-      });
-    }
-    clearSelection();
-    await loadAttachments();
-    onCountChange?.();
-  };
+  // W001-②: 批量选择状态与批量操作（删除/恢复/下载/永久删除）收敛于 useAttachmentBatchOps
+  const batchOps = useAttachmentBatchOps({
+    objectId,
+    allVisibleKeys,
+    displayItems,
+    loadAttachments,
+    onCountChange,
+  });
 
   const { ref: dragRef, dragState } = useDragToAttach(objectId, {
     onComplete: () => {
@@ -472,19 +331,9 @@ export function useAttachmentViewer(props: AttachmentViewerProps) {
     displayPhotoItems,
     uploading,
     isNarrowViewport,
-    // 批量选择
-    selectedIds,
-    allSelected,
+    // 批量选择（useAttachmentBatchOps 收敛）
     allVisibleKeys,
-    toggleSelect,
-    handleSelectAll,
-    clearSelection,
-    batchDeleteConfirm,
-    batchRestoreConfirm,
-    batchPermanentDeleteConfirm,
-    setBatchDeleteConfirm,
-    setBatchRestoreConfirm,
-    setBatchPermanentDeleteConfirm,
+    ...batchOps,
     // 单项操作状态
     deleteItem,
     setDeleteItem,
@@ -520,10 +369,6 @@ export function useAttachmentViewer(props: AttachmentViewerProps) {
     handleConfirmDelete,
     handleRestore,
     handlePermanentDelete,
-    handleBatchDelete,
-    handleBatchRestore,
-    handleBatchDownload,
-    handleBatchPermanentDelete,
     // 确认对话框
     confirmDialog,
   };
