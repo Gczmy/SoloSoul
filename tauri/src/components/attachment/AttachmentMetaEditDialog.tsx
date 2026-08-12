@@ -151,7 +151,7 @@ export function AttachmentMetaEditDialog({ item, onClose, onSaved }: AttachmentM
             placeholder={t('common:attachment_description_placeholder', {
               defaultValue: 'Add a description…',
             })}
-            rows={3}
+            rows={5}
             maxLength={500}
             style={{
               width: '100%',
