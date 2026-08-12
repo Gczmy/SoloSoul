@@ -1,7 +1,11 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Download, CheckCircle2, X } from 'lucide-react';
+import { Download, CheckCircle2, X, Info } from 'lucide-react';
 import { formatBytes } from '@/lib/utils';
 import { ICON_SIZE } from '@/lib/constants';
+import { isMobilePlatformSync } from '@/lib/platform';
+import { Dialog } from '@/components/ui/Dialog';
+import { SafeMarkdown } from '@/components/ui/SafeMarkdown';
 
 export type UpdateBannerState = 'available' | 'downloading' | 'downloaded' | 'error';
 
@@ -15,6 +19,8 @@ interface UpdateBannerProps {
   error?: string;
   /** 强制更新时隐藏「跳过」与关闭按钮 */
   mandatory?: boolean;
+  /** 最新版本 release notes（available 状态展示「查看更新内容」按钮） */
+  releaseNotes?: string | null;
   onUpdate: () => void;
   onInstall: () => void;
   onSkip: () => void;
@@ -29,12 +35,16 @@ export function UpdateBanner({
   progressPercent,
   error,
   mandatory,
+  releaseNotes,
   onUpdate,
   onInstall,
   onSkip,
   onClose,
 }: UpdateBannerProps) {
   const { t } = useTranslation('common');
+  const [notesOpen, setNotesOpen] = useState(false);
+  // 移动端仅显示图标按钮（竖屏空间有限），桌面端图标 + 文字。
+  const isMobile = isMobilePlatformSync();
 
   return (
     <div
@@ -55,6 +65,30 @@ export function UpdateBanner({
         <>
           <span style={{ fontWeight: 500 }}>{t('update_available', { version })}</span>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            {/* 查看更新内容：仅在刚开始提醒安装时展示（进入下载进度条后该分支不再渲染） */}
+            {releaseNotes && (
+              <button
+                onClick={() => setNotesOpen(true)}
+                aria-label={t('view_release_notes')}
+                title={isMobile ? t('view_release_notes') : undefined}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 4,
+                  padding: '5px 10px',
+                  borderRadius: 6,
+                  border: '1px solid rgba(255,255,255,0.35)',
+                  background: 'transparent',
+                  color: 'white',
+                  fontSize: 'var(--text-caption)',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                }}
+              >
+                <Info size={ICON_SIZE.xs} />
+                {!isMobile && t('view_release_notes')}
+              </button>
+            )}
             <button
               onClick={onUpdate}
               style={{
@@ -211,6 +245,30 @@ export function UpdateBanner({
         >
           <X size={ICON_SIZE.md} />
         </button>
+      )}
+
+      {/* 最新版本 release notes 展示卡片（仅在 available 状态可打开） */}
+      {notesOpen && releaseNotes && (
+        <Dialog
+          isOpen={notesOpen}
+          onClose={() => setNotesOpen(false)}
+          title={t('release_notes_title', { version })}
+          dialogStyle={{ maxWidth: 480 }}
+          priority="default"
+        >
+          <SafeMarkdown
+            className="release-notes-md"
+            style={{
+              fontSize: 'var(--text-body-sm)',
+              color: 'var(--text-secondary)',
+              lineHeight: 1.6,
+              maxHeight: 420,
+              overflowY: 'auto',
+            }}
+          >
+            {releaseNotes}
+          </SafeMarkdown>
+        </Dialog>
       )}
     </div>
   );

@@ -305,6 +305,7 @@ export function AppRoutes() {
               progressPercent={updateState.progressPercent}
               mandatory={updateState.mandatory}
               error={updateState.error}
+              releaseNotes={updateState.releaseNotes}
               onUpdate={startDownload}
               onInstall={installUpdate}
               onSkip={() => {

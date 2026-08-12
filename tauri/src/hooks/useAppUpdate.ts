@@ -19,6 +19,8 @@ export type AppUpdateState =
       update: Update | null;
       androidInfo: AndroidUpdateInfo | null;
       version: string;
+      /** 最新版本 release notes（桌面端 update.body / Android androidInfo.releaseNotes），可能为空 */
+      releaseNotes: string | null;
       downloadedBytes: number;
       totalBytes: number;
       progressPercent: number;
@@ -50,6 +52,7 @@ export function useAppUpdate() {
           update: null,
           androidInfo: info,
           version: info.latestVersion,
+          releaseNotes: info.releaseNotes,
           downloadedBytes: 0,
           totalBytes: 0,
           progressPercent: 0,
@@ -66,6 +69,9 @@ export function useAppUpdate() {
           update: result.update,
           androidInfo: null,
           version: result.info.version,
+          // 桌面端 release notes 由 GitHub API 补全（desktop_check_update 返回 releaseNotes），
+          // 优先用 update.body（updater 插件内置）；均缺失时为空。
+          releaseNotes: result.info.body ?? null,
           downloadedBytes: 0,
           totalBytes: 0,
           progressPercent: 0,

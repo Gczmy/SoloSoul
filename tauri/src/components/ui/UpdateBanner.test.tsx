@@ -45,6 +45,48 @@ describe('UpdateBanner', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
+  it('shows view-release-notes button only when available and releaseNotes provided', () => {
+    const { rerender } = render(<UpdateBanner {...baseProps} state="available" />);
+    // 未提供 releaseNotes：按钮不渲染
+    expect(screen.queryByLabelText(/view_release_notes/i)).not.toBeInTheDocument();
+
+    const notes = '## New features\n- Sync';
+    rerender(<UpdateBanner {...baseProps} state="available" releaseNotes={notes} />);
+    expect(screen.getByLabelText(/view_release_notes/i)).toBeInTheDocument();
+
+    // downloading 状态：按钮消失（点击安装后进入进度条不再展示）
+    rerender(
+      <UpdateBanner
+        {...baseProps}
+        state="downloading"
+        releaseNotes={notes}
+        downloadedBytes={10}
+        totalBytes={100}
+      />,
+    );
+    expect(screen.queryByLabelText(/view_release_notes/i)).not.toBeInTheDocument();
+  });
+
+  it('opens release notes dialog on click and closes it', () => {
+    render(
+      <UpdateBanner
+        {...baseProps}
+        state="available"
+        releaseNotes={'## New features\n- Cloud sync'}
+      />,
+    );
+
+    fireEvent.click(screen.getByLabelText(/view_release_notes/i));
+    // Dialog 标题含版本号，正文经 SafeMarkdown 渲染（列表项独立文本节点）
+    expect(screen.getByText(/release_notes_title/i)).toBeInTheDocument();
+    expect(screen.getByText('Cloud sync')).toBeInTheDocument();
+
+    // Dialog 组件无独立 X 按钮（本项目统一 backdrop/Escape 关闭），
+    // 用 Escape 键关闭弹卡（注意不能点横幅自身的 close 按钮——那关闭的是横幅）。
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(screen.queryByText(/release_notes_title/i)).not.toBeInTheDocument();
+  });
+
   it('renders progress info when downloading', () => {
     render(
       <UpdateBanner

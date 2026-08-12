@@ -273,6 +273,8 @@
   "update_available": "Update available: {{version}}",
   "update_now": "Update Now",
   "skip_version": "Skip This Version",
+  "view_release_notes": "View Release Notes",
+  "release_notes_title": "v{{version}} Release Notes",
   "update_later": "Remind Me Later",
   "update_check_failed": "Update check failed",
   "update_downloading": "Downloading {{version}}",
