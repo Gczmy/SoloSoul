@@ -1,15 +1,15 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-12（轮次 11：P047 Rust 巨型文件拆分收官）
+> 最后更新：2026-08-12（轮次 11 复核：P046/P047 拆分独立验证）
 > 当前分支：`main`
 
 ## 总览
 
-- 全部已提出问题：**77 项**（P47 + N10 + R5 + S4 + T5 + U6 + V5，含重复计数修正）
-- **修复关闭 74 项**、**经确认跳过 2 项**（P027/P033）、**延期 1 项**（P047 Rust 巨型文件拆分，列为后续架构项）
-- **待修复 0 项**：轮次 9 V 系列全部修复（V001–V005），轮次 10 P046 前端巨型组件拆分收官，轮次 11 P047 Rust 巨型文件拆分收官（attachment.rs、object/tests.rs、export_docx.rs 全部完成），无新增问题
+- 全部已提出问题：**80 项**（P47 + N10 + R5 + S4 + T5 + U6 + V5 + W3，含重复计数修正）
+- **修复关闭 75 项**、**经确认跳过 2 项**（P027/P033）、**延期 0 项**（P046/P047 均已拆分完成）
+- **待修复 3 项（W 系列）**：轮次 11 复核 P046/P047 拆分时发现——拆分本身真实、零行为变化，但存在巨型化转移（新组件/hook 超 300 行红线）与注释残留，详见「轮次 11 复核」
 - 遗留计划事项：S003 的 v2.10 blob 键清理（已有代码 TODO + CHANGELOG 双向追踪，属计划内而非遗忘）
-- 轮次 9 基线实测：`check-all` **EXIT=0 全绿**（cargo test + Vitest + 两项机械化一致性检查）；轮次 10 前端全量验证 tsc / eslint 全绿、73 文件 647 测试全绿
+- 轮次 11 基线实测：`check-all` **EXIT=0 全绿**（tsc / fmt / clippy / cargo test / eslint / Vitest / ACL 与 pref-keys 机比）
 
 ## 遗留项（跳过 / 延期）
 
@@ -35,6 +35,29 @@
 - **轮次 9**：V 系列修复验证（5 提交 349dd084–8e9e0a18）。V001–V005 全部修复（V001 政策措辞改口、V002 build 失败兜底回退、V003 Drop guard、V004 可用性面披露、V005 metadata 断点）；V005② wiremock 集成测试登记备查（P3 可缓）。check-all 实测全绿。无新增问题。
 - **轮次 10**：P046 前端 10 个巨型组件拆分收官（3 提交 909d6735–15488aa3，按域分三批）。认证域 2 组件（P046-1：LoginPage 650→179、PasswordVerificationDialog 520→136）、对象域 3 组件（P046-2：AttachmentViewer 683→305、ObjectDetailModal 545→239、TemplateFieldRow 506→192）、设置导出域 5 组件（P046-3：ExportImportPage 495→263、ExportSection 489→311、ImportSection 493→183、TrashPage 503→294、DeviceListPanel 482→187），均按「数据 hook + 展示子组件」纯重构零行为变化；`PageGroup` 消除重复定义统一单一来源。前端全量验证：tsc / eslint 全绿、73 文件 647 测试全绿、代码审查通过无阻塞项。延期项仅剩 P047（Rust 巨型文件拆分）。
 - **轮次 11**：P047 Rust 巨型文件拆分收官（3 提交，纯文件级重构零行为变化）。P047-1 `attachment.rs` 2213→attachment/ 5 文件（mod/crud/tree/share/tests，最大 734）；P047-2 `object/tests.rs` 2377→object/tests/ 6 文件（mod 共享 setup_vault + crud/trash/snapshot/template_sync/misc 五主题子模块，最大 732）；P047-3 `export_docx.rs` 2139→export_docx/ 8 文件（mod 命令 + fields/docx/markdown/text/html/pdf + tests，最大 752，最小 62）。tauri 宏命令注册改定义处路径、外部引用路径保持（`pub use export_docx::*` 链不变）。验证：cargo fmt / check / clippy `-D warnings` 全绿（42 object 测试 + 21 export_docx 测试属性归属正确）；测试二进制本机 `0xc0000139` 限制，CI 兜底。至此 P046（前端 10 组件）+ P047（Rust 3 文件）全部完成，延期/跳过项清零，修复关闭 77/77。
+- **轮次 11 复核**：审查方对 P046/P047 6 个拆分提交独立验证（多重集逐行比对 + 工作区语义审查 + check-all 实测全绿）。确认拆分真实、逻辑零行为变化、测试 42/21/28 全保留、IPC 命令名与 re-export 链未变；但发现巨型化转移与注释残留，新增 W001–W003，全部 `[ ]` 待修复。
+
+## 轮次 11 复核：P046/P047 拆分独立验证（W 系列）
+
+审查范围：6 个重构提交（`909d6735` P046-1 → `cc3423f0` P047-3）。验证方式：逐提交 `git show` 全 diff + 行多重集比对（旧文件 vs 新文件拼接，归一化后排序对比）+ 工作区最终状态语义审查 + 非注释行统计。基线实测：`check-all` **EXIT=0 全绿**。
+
+**确认无误的面（零行为变化成立）**：
+
+- **P046-1/2/3**：迁出逻辑与原组件内联代码逐行对应——effect 依赖数组、清理函数、错误分支、P 系列历史注释全部随迁；非移动性改动仅个别语义等价项（`onChange={(v) => f(v)}` → `onChange={f}`、内联闭包抽名等）；组件 props 接口原样、调用方零改动；脱敏约定未破坏（`useRevealState`/`SensitivityBadge` 仍统一承载，无自行掩码）；PageGroup 全仓单一来源（`types/exportImport.ts:1`）；ExportSection 实测 281 非注释行，10/10 组件本体均 ≤300 达标。
+- **P047-1**：16 个 `#[tauri::command]` 函数名与 IPC 命令名未变（ACL 白名单不受影响）；`attachment_dir` 物理路径、`__attachments` 元数据读写、`path_within_base` P018 防逃逸等关键逻辑逐字未动；21=21 测试属性；re-export 链完整。
+- **P047-2**：42=42 测试属性，函数名集合完全一致，43 个函数中 42 个逐字节一致（仅一处 doc 重复，见 W003）；`setup_vault` 逐行相同；5 个子模块均被 `tests/mod.rs` 声明，无测试丢失编译。
+- **P047-3**：28=28 测试属性（报告误写 21，见 W003）；「pdf 字体路径修正」实为文件下沉一层的编译必需等价调整（`include_bytes!` 新旧路径 realpath 均指向同一 8.3MB 字体文件，嵌入字节相同，导出零变化）；两个导出命令 IPC 名未变；8 个新文件最大 650 行。
+
+**新增问题**：
+
+| ID | 优先级 | 类别 | 文件位置 | 描述 | 状态 |
+|----|--------|------|----------|------|------|
+| W001 | P2 | 架构 | `tauri/src/components/object/TemplateFieldBindingSection.tsx`（354 非注释行）、`useLoginPage.tsx`（~459）、`useAttachmentViewer.tsx`（464）、`useObjectDetailModal.tsx`（356）、`usePasswordVerification.tsx`（~306） | **拆分转移巨型化**：①`TemplateFieldBindingSection` 是**组件**且 354 非注释行 > 300——P046 消灭一个 477 行组件的同时新造了一个超阈值组件，按 P046 自身验收口径不达标（可再拆「已绑定列表」与「添加绑定表单」两个子组件，或登记豁免理由）；②4 个数据 hook 自身 300+ 非注释行——hook 不在 P046「组件」字面口径内，属「数据 hook + 展示子组件」模式的预期承载层，但 `useAttachmentViewer` 已集 18 state + 19 handler 于一体（批量操作段 ~130 行可抽 `useAttachmentBatchOps`），`useLoginPage` ~459 行接近原组件规模。建议：TemplateFieldBindingSection 再拆或登记豁免；hook 侧登记备查按需再拆 | `[ ]` 待修复 |
+| W002 | P3 | 注释 | `tauri/src-tauri/src/commands/attachment/mod.rs:14,70-72`、`crud.rs:87-100` | **P047-1 拆分 doc 注释错位/丢失 3 处**：①`mod.rs:14`「单个对象最多允许的活跃附件数量」错贴在 `path_within_base` 头上，其真正属主 `MAX_ACTIVE_ATTACHMENTS`（crud.rs:12）丢失 doc；②`path_within_base`/`allowed_fs_bases` 的整段参数文档（fs 白名单 + symlink 旁路 + Android 双路径）被留在 crud.rs 错挂在 `attachment_list` 命令头上，mod.rs 定义处只剩残缺尾巴；③`load_all_referenced_attachment_ids` 原 3 行 doc 丢了 2 行。无行为影响，属「注释描述旧位置」类残留 | `[ ]` 待修复 |
+| W003 | P3 | 注释/文档精度 | `tauri/src-tauri/src/commands/object/tests/crud.rs:441,443`、本报告轮次 10/11 记录 | **文档/注释精度**：①`tests/crud.rs` 的 `/// N009: P026 对象输入校验函数边界单测。` 重复两行（切分脚本段边界残留，删一行即可）；②轮次 11 记录称 export_docx「21 测试」实为 **28** 个 `#[test]`；③轮次 10/11 记录的行数与实测有系统性小偏差（AttachmentViewer「683→305」实 307 总行/287 非注释、export_docx 子文件 ±1~6 行），统计口径差异，不影响达标结论 | `[ ]` 待修复 |
+
+**复核补登（轮次 9 复核结论曾丢失）**：轮次 9 审查方独立复核节在未提交状态下被覆盖丢失，其确认结论（V001–V005 全部修复正确）与本轮开发者记录一致无需重补，但其中登记的备查项 **V005-R1** 一并丢失，现补登：V005 的 fallback 分支使「`existing_size>0` 但 part 文件缺失」状态可达——此时若下一候选服务器返回 206，`append(true).open()` 对缺失文件 NotFound 并以 `?` 终止整个函数（`update.rs:1064-1067`），并非修复记录所称「走重新下载分支自愈」（自愈仅在服务器不支持 Range 时成立）。触发条件极苛刻（写失败后、metadata 调用前 part 被并发删除），后果仅本次下载报错、用户重试，无数据损坏。修法一行：fallback 置 `existing_size = 0` 强制重下，或 append 加 `create(true)`。**P3 备查**。
+
 
 ## 轮次 6：新推送审查（T 系列）
 
@@ -285,7 +308,7 @@
 
 ## 待用户指令
 
-- 轮次 11：P047 Rust 巨型文件拆分已全部完成（P047-1 attachment.rs、P047-2 object/tests.rs、P047-3 export_docx.rs），P046 + P047 全部收官，延期/跳过项清零，修复关闭 77/77。
+- 轮次 11 复核：P046/P047 拆分真实、零行为变化（check-all 全绿），但新增 W001–W003 待修复。建议顺序：W001（P2，TemplateFieldBindingSection 再拆或登记豁免 + hook 巨型化备查）→ W002/W003（P3，注释归位与文档精度，顺手级）。
 - 可选收尾动作：推送报告并打标签 `git tag -a "code-audit-passed-$(date +%Y%m%d)"`——需用户确认后执行。
-- 后续专项建议：优先处理 P047 巨型 Rust 文件拆分（架构项）；S003 的 v2.10 blob 键清理按代码 TODO 计划执行。
-- 备查项：V003②（并发双下载，更大既存问题）与 V005②（wiremock 集成测试，P3 可缓）已登记，后续视需要处理。
+- 后续专项建议：S003 的 v2.10 blob 键清理按代码 TODO 计划执行。
+- 备查项：V003②（并发双下载，更大既存问题）、V005②（wiremock 集成测试，P3 可缓）、V005-R1（fallback 缺失文件 + 206 组合下不自愈，P3，修法一行，轮次 11 复核补登）已登记，后续视需要处理。
