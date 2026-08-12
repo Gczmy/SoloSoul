@@ -703,5 +703,6 @@
   "group_by_day": "By day",
   "group_by_object": "By object",
   "album_group_mode": "Group by",
-  "no_photos_for_filter": "No photos with tag \"{{tag}}\""
+  "no_photos_for_filter": "No photos with tag \"{{tag}}\"",
+  "unknown_page": "Unknown page"
 }

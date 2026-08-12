@@ -23,13 +23,26 @@ export interface PhotoAlbumOverlayProps {
   zIndex?: number | string;
 }
 
-/** 照片集分组区块（startIndex 为区块首项在排序后可见列表中的下标，供查看器索引映射）。 */
-interface AlbumSection {
+interface AlbumSectionBase {
   key: string;
   label: string | null;
   items: AttachmentItem[];
-  startIndex: number;
 }
+
+/** 叶子区块：持有照片，startIndex 为区块首项在查看器浏览列表中的下标。 */
+interface AlbumLeafSection extends AlbumSectionBase {
+  startIndex: number;
+  children?: undefined;
+}
+
+/** 对象分组模式的页面区块：只持有 children（对象子区块，渲染时缩进），自身不渲染网格。 */
+interface AlbumGroupSection extends AlbumSectionBase {
+  startIndex?: undefined;
+  children: AlbumLeafSection[];
+}
+
+/** 照片集分组区块。对象分组为两级：页面区块（label=页面名）含 children=对象子区块。 */
+type AlbumSection = AlbumLeafSection | AlbumGroupSection;
 
 /** 解析 ISO 时间字符串为本地 Date；非法值回退 0 时刻保证排序稳定。 */
 function parseDate(s: string): Date {
@@ -47,10 +60,13 @@ function timeGroupKey(mode: Exclude<AlbumGroupMode, 'none' | 'object'>, d: Date)
   return `${y}-${m}-${day}`;
 }
 
-/** 分组标题本地化：2026 / 2026年8月 / 2026年8月10日 / 对象名。 */
-function formatGroupLabel(mode: AlbumGroupMode, key: string, lang: string): string {
-  if (mode === 'object') return key;
-  if (mode === 'none') return key;
+/** 分组标题本地化：2026 / 2026年8月 / 2026年8月10日。
+ *  对象分组（页面→对象两级）与「不分组」在 sections 内单独处理，不经过本函数。 */
+function formatGroupLabel(
+  mode: Exclude<AlbumGroupMode, 'none' | 'object'>,
+  key: string,
+  lang: string,
+): string {
   const [y, m, d] = key.split('-').map(Number);
   if (mode === 'year') {
     return new Intl.DateTimeFormat(lang, { year: 'numeric' }).format(new Date(y, 0, 1));
@@ -198,27 +214,71 @@ export function PhotoAlbumOverlay({
     });
   }, [localItems, filterTag, sortDesc]);
 
-  /** 分组区块（需求5/6）。 */
+  /** 分组区块（需求5/6）。对象分组为 页面→对象 两级：
+   *  顶层页面区块（页面名，系统页经 navigation 命名空间翻译），
+   *  其 children 为对象子区块（对象名缩进展示，照片在子区块内）。 */
   const sections = useMemo<AlbumSection[]>(() => {
     if (visibleItems.length === 0 || groupMode === 'none') {
       return [{ key: 'all', label: null, items: visibleItems, startIndex: 0 }];
     }
+    if (groupMode === 'object') {
+      // 页面 → 对象 两级分组（页面信息由 collectPhotoItems 从树携带）
+      const pageGroups = new Map<string, Map<string, AttachmentItem[]>>();
+      const pageLabels = new Map<string, string>();
+      for (const item of visibleItems) {
+        const pageKey = item.pageId || item.pageName || '';
+        if (!pageLabels.has(pageKey)) {
+          pageLabels.set(
+            pageKey,
+            item.pageName
+              ? item.pageId
+                ? item.pageName
+                : t(`navigation:${item.pageName}`, { defaultValue: item.pageName })
+              : t('common:unknown_page', { defaultValue: 'Unknown page' }),
+          );
+        }
+        let objs = pageGroups.get(pageKey);
+        if (!objs) {
+          objs = new Map();
+          pageGroups.set(pageKey, objs);
+        }
+        const objKey = item.objectName?.trim() || item.objectId;
+        const list = objs.get(objKey);
+        if (list) list.push(item);
+        else objs.set(objKey, [item]);
+      }
+      // 页面按标签字典序、页内对象按名称字典序（与既有对象分组排序一致）
+      const pageKeys = [...pageGroups.keys()].sort((a, b) =>
+        (pageLabels.get(a) ?? a).localeCompare(pageLabels.get(b) ?? b),
+      );
+      let startIndex = 0;
+      return pageKeys.map((pageKey) => {
+        const objs = pageGroups.get(pageKey)!;
+        const objKeys = [...objs.keys()].sort((a, b) => a.localeCompare(b));
+        const children: AlbumLeafSection[] = objKeys.map((objKey) => {
+          const items = objs.get(objKey)!;
+          const child: AlbumLeafSection = { key: objKey, label: objKey, items, startIndex };
+          startIndex += items.length;
+          return child;
+        });
+        return {
+          key: pageKey,
+          label: pageLabels.get(pageKey) ?? pageKey,
+          items: children.flatMap((c) => c.items),
+          children,
+        };
+      });
+    }
     const groups = new Map<string, AttachmentItem[]>();
     for (const item of visibleItems) {
-      let key: string;
-      if (groupMode === 'object') {
-        key = item.objectName?.trim() || item.objectId;
-      } else {
-        key = timeGroupKey(groupMode, parseDate(item.createdAt));
-      }
+      const key = timeGroupKey(groupMode, parseDate(item.createdAt));
       const list = groups.get(key);
       if (list) list.push(item);
       else groups.set(key, [item]);
     }
-    // 时间分组：按键值排序，倒序时时间新在前；对象分组：按名称字典序
+    // 时间分组：按键值排序，倒序时时间新在前
     const keys = [...groups.keys()];
     keys.sort((a, b) => {
-      if (groupMode === 'object') return a.localeCompare(b);
       const na = Number(a.split('-')[0]);
       const nb = Number(b.split('-')[0]);
       if (na !== nb) return sortDesc ? nb - na : na - nb;
@@ -236,7 +296,21 @@ export function PhotoAlbumOverlay({
       startIndex += groupItems.length;
       return section;
     });
-  }, [visibleItems, groupMode, sortDesc, i18n.language]);
+  }, [visibleItems, groupMode, sortDesc, i18n.language, t]);
+
+  /** 查看器浏览列表 = 分组渲染顺序拍平（对象分组下与网格可见顺序一致，
+   *  保证 startIndex + i 索引正确；时间分组下等价于 createdAt 排序）。 */
+  const viewerItems = useMemo(() => {
+    const out: AttachmentItem[] = [];
+    for (const s of sections) {
+      if (s.children) {
+        for (const c of s.children) out.push(...c.items);
+      } else {
+        out.push(...s.items);
+      }
+    }
+    return out;
+  }, [sections]);
 
   /** 相册内编辑描述/标签后：本地副本即时更新 + 通知父级。 */
   const handleItemMetaUpdated = (updated: AttachmentItem) => {
@@ -445,19 +519,54 @@ export function PhotoAlbumOverlay({
                   <div style={{ flex: 1, height: 1, background: 'var(--border-subtle)' }} />
                 </div>
               )}
-              <PhotoAlbumGrid
-                items={section.items}
-                onSelect={(_, i) => setViewerIndex(section.startIndex + i)}
-              />
+              {section.children ? (
+                // 对象分组：对象子区块缩进展示（对象名 + 照片）
+                section.children.map((child) => (
+                  <div key={child.key} style={{ paddingLeft: 16, marginBottom: 16 }}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 8,
+                        marginBottom: 10,
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: 'var(--text-caption)',
+                          fontWeight: 600,
+                          color: 'var(--text-tertiary)',
+                        }}
+                      >
+                        {child.label}
+                      </span>
+                      <span
+                        style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}
+                      >
+                        {child.items.length}
+                      </span>
+                    </div>
+                    <PhotoAlbumGrid
+                      items={child.items}
+                      onSelect={(_, i) => setViewerIndex(child.startIndex + i)}
+                    />
+                  </div>
+                ))
+              ) : (
+                <PhotoAlbumGrid
+                  items={section.items}
+                  onSelect={(_, i) => setViewerIndex(section.startIndex + i)}
+                />
+              )}
             </div>
           ))
         )}
       </div>
 
-      {/* 全屏查看器（覆盖整个相册；浏览范围为当前筛选/排序后的可见列表） */}
-      {viewerIndex !== null && visibleItems[viewerIndex] && (
+      {/* 全屏查看器（覆盖整个相册；浏览范围为分组渲染顺序拍平的可见列表） */}
+      {viewerIndex !== null && viewerItems[viewerIndex] && (
         <PhotoViewerOverlay
-          items={visibleItems}
+          items={viewerItems}
           initialIndex={viewerIndex}
           onBack={handleViewerBack}
           onClose={onClose}

@@ -117,6 +117,60 @@ describe('PhotoAlbumOverlay', () => {
     });
   });
 
+  it('按对象分组显示 页面→对象 两级结构（页面名 + 缩进对象名）', async () => {
+    mockInvoke.mockResolvedValue('data:image/png;base64,abc');
+    // 两个页面，每个页面两个对象；对象名与页面信息由 collectPhotoItems 从树携带
+    const mk = (
+      id: string,
+      objectId: string,
+      objectName: string,
+      pageId: string,
+      pageName: string,
+    ) => ({
+      ...makeItem(id),
+      objectId,
+      objectName,
+      pageId,
+      pageName,
+    });
+    const items = [
+      mk('a1', 'o1', '身份信息对象1', 'p1', '身份'),
+      mk('a2', 'o1', '身份信息对象1', 'p1', '身份'),
+      mk('b1', 'o2', '身份信息对象2', 'p1', '身份'),
+      mk('c1', 'o3', '护照对象1', 'p2', '旅行'),
+    ];
+    render(<PhotoAlbumOverlay items={items} onClose={vi.fn()} />);
+
+    await screen.findByAltText('a1.png');
+    // 打开分组下拉并选择「按对象」
+    fireEvent.click(screen.getByRole('button', { name: /Group by|album_group_mode/i }));
+    fireEvent.click(await screen.findByRole('button', { name: /By object|group_by_object/i }));
+
+    // 两级结构：页面名（顶层）+ 对象名（子级）
+    await waitFor(() => {
+      expect(screen.getByText('身份')).toBeInTheDocument();
+      expect(screen.getByText('旅行')).toBeInTheDocument();
+      expect(screen.getByText('身份信息对象1')).toBeInTheDocument();
+      expect(screen.getByText('身份信息对象2')).toBeInTheDocument();
+      expect(screen.getByText('护照对象1')).toBeInTheDocument();
+    });
+
+    // 每个页面区块下各有一个缩进的对象子区块网格（照片在其中）
+    const grids = screen.getAllByTestId('photo-album-grid');
+    expect(grids).toHaveLength(3); // 身份信息对象1 / 身份信息对象2 / 护照对象1
+    // 顺序与排序实现相关（页面/对象均按名称字典序），按集合断言避免脆弱
+    const gridAlts = grids.map((g) =>
+      within(g)
+        .getAllByRole('button')
+        .map((b) => b.getAttribute('title')),
+    );
+    const flattened = gridAlts.flat();
+    expect(flattened).toEqual(expect.arrayContaining(['a1.png', 'a2.png', 'b1.png', 'c1.png']));
+    // 对象级网格划分正确：同一对象的照片在同一网格、跨对象照片不混入
+    const groupSizes = gridAlts.map((g) => g.length).sort();
+    expect(groupSizes).toEqual([1, 1, 2]);
+  });
+
   it('groups photos by year with separators (需求5：时间分组)', async () => {
     mockInvoke.mockResolvedValue('data:image/png;base64,abc');
     const old = { ...makeItem('old'), createdAt: '2022-03-01T00:00:00Z' };

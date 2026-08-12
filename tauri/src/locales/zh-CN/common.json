@@ -702,5 +702,6 @@
   "group_by_day": "按日",
   "group_by_object": "按对象",
   "album_group_mode": "分组方式",
-  "no_photos_for_filter": "没有带「{{tag}}」标签的照片"
+  "no_photos_for_filter": "没有带「{{tag}}」标签的照片",
+  "unknown_page": "未知页面"
 }
