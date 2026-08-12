@@ -36,8 +36,9 @@ export function useAttachmentManagerItemOps({
 }: UseAttachmentManagerItemOpsOptions) {
   const [previewItem, setPreviewItem] = useState<AttachmentMeta | null>(null);
   const [shareItem, setShareItem] = useState<AttachmentMeta | null>(null);
-  /** 正在编辑描述/标签的附件（非空时渲染 AttachmentMetaEditDialog） */
+  /** 正在重命名的附件 ID（RenameInput 由 AttachmentRow 行内管理，此处仅记录） */
   const [renamingId, setRenamingId] = useState<string | null>(null);
+  /** 正在重命名的附件所属对象 ID */
   const [renameObjectId, setRenameObjectId] = useState<string>('');
   const [permDeleteItem, setPermDeleteItem] = useState<AttachmentToPurge | null>(null);
 

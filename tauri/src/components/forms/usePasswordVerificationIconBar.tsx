@@ -90,14 +90,14 @@ export function usePasswordVerificationIconBar({
     });
   }
 
-  // 两阶段悬停：边框/颜色立即高亮，文字/展开延迟 200ms 后触发
+  // 两阶段悬停：边框/颜色立即高亮，文字/展开延迟 300ms 后触发
   const handleIconEnter = (id: string) => {
     // 触屏设备不触发悬停展开（Android WebView hover 会粘住）
     if (!supportsHover()) return;
     setHoveredIcon(id);
     // 清除上一次的定时器
     if (commitTimerRef.current) clearTimeout(commitTimerRef.current);
-    // 200ms 后提交展开状态
+    // 300ms 后提交展开状态
     commitTimerRef.current = setTimeout(() => {
       setCommittedIcon(id);
       commitTimerRef.current = null;

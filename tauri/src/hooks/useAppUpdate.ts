@@ -69,8 +69,8 @@ export function useAppUpdate() {
           update: result.update,
           androidInfo: null,
           version: result.info.version,
-          // 桌面端 release notes 由 GitHub API 补全（desktop_check_update 返回 releaseNotes），
-          // 优先用 update.body（updater 插件内置）；均缺失时为空。
+          // 桌面端 release notes 来自 updater 插件检查结果（update.body，GitHub Release
+          // 正文）；latest.json 中 notes 为空时 result.info.body 为空，横幅不显示查看按钮。
           releaseNotes: result.info.body ?? null,
           downloadedBytes: 0,
           totalBytes: 0,
