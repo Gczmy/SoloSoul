@@ -1,20 +1,12 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { useTranslation } from 'react-i18next';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
-import { useAuthStore, saveLastAccountId, LAST_ACCOUNT_KEY } from '@/stores/authStore';
+import { useAuthStore, LAST_ACCOUNT_KEY } from '@/stores/authStore';
 import { useApplyThemeFromSettings } from '@/hooks/useApplyThemeFromSettings';
 import type { AccountInfo } from '@/lib/ipc';
-import { getBiometricErrorMessage } from '@/lib/biometricError';
-import { translateRustError } from '@/lib/rustErrors';
-import { supportsHover } from '@/lib/platform';
-import { logger } from '@/lib/logger';
 
-import type { PinInputHandle } from '@/components/forms/PinInput';
-import { Fingerprint, KeyRound, ScanFace, ShieldCheck, Grip } from 'lucide-react';
-import { ICON_SIZE } from '@/lib/constants';
-
-import type { LoginMethodOption } from './LoginIconBar';
+import { useLoginUnlockFlows } from './useLoginUnlockFlows';
+import { useLoginIconBar } from './useLoginIconBar';
 
 /** P038: 受支持的生物识别类型白名单（显示名由 LoginBiometricView 的查表负责） */
 const BIOMETRIC_INFO: Record<string, string> = {
@@ -29,55 +21,38 @@ let _cachedLoginMethod: 'faceId' | 'touchId' | 'windowsHello' | 'pin' | 'passwor
 export type LoginMethod = 'faceId' | 'touchId' | 'windowsHello' | 'pin' | 'password';
 
 /**
- * 登录页全部编排逻辑（P046 拆分：数据 hook）。
- * 账户选择、生物识别/PIN 可用性探测、解锁方式优先级、三种解锁 handler、
- * 底部图标栏构建与悬停状态均收敛于此，LoginPage 组件退化为纯展示组合层。
+ * 登录页全部编排逻辑（P046 拆分：数据 hook；W001-② 再拆后为组合层）。
+ * 账户选择、生物识别/PIN 可用性探测、解锁方式优先级与模块缓存、底部图标栏组合
+ * 保留于此；三种解锁 handler 收敛于 useLoginUnlockFlows，图标栏状态收敛于
+ * useLoginIconBar。
  */
 export function useLoginPage() {
   useApplyThemeFromSettings();
   const navigate = useNavigate();
   const {
-    login,
     checkHasAccount,
     listAccounts,
     hasAccount,
     isAuthenticated,
     isLoading,
     accounts,
-    clearError,
   } = useAuthStore();
   const [searchParams] = useSearchParams();
   const fromExisting = searchParams.get('fromExisting') === 'true';
   const [selectedAccountId, setSelectedAccountId] = useState('');
-  const [password, setPassword] = useState('');
-  const { t } = useTranslation(['auth', 'common', 'settings']);
   const selectedAccount = accounts.find((a) => a.id === selectedAccountId);
 
   // Biometric state
   const [bioAvailable, setBioAvailable] = useState(false);
   const [biometryTypeRaw, setBiometryTypeRaw] = useState('touchId');
-  const [bioLoading, setBioLoading] = useState(false);
-  const [bioError, setBioError] = useState<string | null>(null);
   const [bioChecked, setBioChecked] = useState(false);
   // 系统生物识别因失败次数过多被临时锁定（Android）：指纹项仍显示，但点击时提示警告
   const [bioLockout, setBioLockout] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  /** 主密码输入框行内错误（空密码 / 后端密码错误），红边 + 抖动。 */
-  const [passwordFieldError, setPasswordFieldError] = useState<string | null>(null);
-  /** 密码错误自增计数：同串错误（Invalid password）重复提交时也重新抖动。 */
-  const [passwordErrorTick, setPasswordErrorTick] = useState(0);
   const abortRef = useRef<AbortController | null>(null);
 
   // PIN state
   const [pinAvailable, setPinAvailable] = useState(false);
   const [pinChecked, setPinChecked] = useState(false);
-  const [pinUnlocking, setPinUnlocking] = useState(false);
-  const [pinError, setPinError] = useState<string | null>(null);
-  const [pinInputKey, setPinInputKey] = useState(0);
-  const pinInputRef = useRef<PinInputHandle>(null);
-  const [hoveredIcon, setHoveredIcon] = useState<string | null>(null);
-  const [committedIcon, setCommittedIcon] = useState<string | null>(null);
-  const commitTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [recoveryOpen, setRecoveryOpen] = useState(false);
 
   // 移动端启动性能基线：登录页首个输入框获焦时记录 T1（MOB-P1-07）
@@ -167,6 +142,21 @@ export function useLoginPage() {
     if (loginMethod) _cachedLoginMethod = loginMethod;
   }, [loginMethod]);
 
+  // 三种解锁流程（PIN / 生物识别 / 主密码）+ 各自状态
+  // 置于可用性 effect 之前：复位块需经组合层转调其 setter（setter 身份稳定）
+  const unlockFlows = useLoginUnlockFlows({
+    selectedAccountId,
+    fromExisting,
+    bioLockout,
+    biometryTypeRaw,
+    setLoginMethod,
+    setBioLockout,
+    setPinAvailable,
+  });
+
+  // 稳定 setter 解构：供可用性 effect 的复位块与图标栏错误清除复用（useState setter 身份稳定）
+  const { setBioError, setPinError, setSubmitError } = unlockFlows;
+
   // Check biometric and PIN availability for selected account
   useEffect(() => {
     abortRef.current?.abort();
@@ -193,6 +183,7 @@ export function useLoginPage() {
     setBioAvailable(false);
     setPinAvailable(false);
     setBioLockout(false);
+    // 错误状态（unlockFlows 持有）同样复位——原内联实现同处复位，拆分后经组合层转调
     setBioError(null);
     setPinError(null);
     setSubmitError(null);
@@ -249,19 +240,7 @@ export function useLoginPage() {
       });
 
     return () => controller.abort();
-  }, [selectedAccountId, fromExisting]);
-
-  // 卸载时清理悬停延迟定时器
-  useEffect(() => {
-    return () => {
-      if (commitTimerRef.current) clearTimeout(commitTimerRef.current);
-    };
-  }, []);
-
-  // P034: 组件卸载时清空密码 state（登录成功导航离开 / 锁定返回登录页时缩短驻留）
-  useEffect(() => {
-    return () => setPassword('');
-  }, []);
+  }, [selectedAccountId, fromExisting, setBioError, setPinError, setSubmitError]);
 
   // Set login method by priority after both checks complete
   useEffect(() => {
@@ -281,258 +260,21 @@ export function useLoginPage() {
     }
   }, [bioChecked, pinChecked, bioAvailable, pinAvailable, biometryTypeRaw]);
 
-  const handlePinComplete = useCallback(
-    async (pin: string) => {
-      if (!selectedAccountId || pinUnlocking) return;
-      setPinUnlocking(true);
-      setPinError(null);
-      const t0 = performance.now();
-      try {
-        // pin_unlock 直接返回账户信息（id + name），省去额外 vault_list_accounts 调用
-        const acc = await invoke<AccountInfo>('pin_unlock', {
-          accountId: selectedAccountId,
-          pin,
-          location: 'login_page',
-          action: 'unlock',
-        });
-        (window as typeof window & { __SOLOSOUL_UNLOCK_TIME?: number }).__SOLOSOUL_UNLOCK_TIME = t0;
-        saveLastAccountId(acc.id);
-        // P015: 收敛到 authStore action，不再直改 setState
-        useAuthStore.getState().completeUnlock(acc);
-        // PIN 解锁后延迟检查备份提醒（P228: accountId 注入，避免循环依赖）
-        const pinUnlockedAccountId = acc.id;
-        setTimeout(() => {
-          import('@/lib/notification')
-            .then((m) => m.checkBackupReminder(pinUnlockedAccountId))
-            .catch((err) => logger.warn('[LoginPage] backup reminder check failed:', err));
-        }, 2000);
-        navigate('/');
-      } catch (e) {
-        const msg = String(e);
-        if (msg.includes('__PIN_ERR__:locked')) {
-          setPinError(t('auth:pin_locked'));
-          setPinAvailable(false);
-          // 锁定后降级到主密码
-          setLoginMethod('password');
-        } else if (msg.includes('__PIN_ERR__:incorrect')) {
-          setPinError(t('auth:pin_incorrect'));
-        } else {
-          setPinError(t('auth:pin_error'));
-        }
-        // 清空 PinInput 控件状态
-        setPinInputKey((k) => k + 1);
-        setPinUnlocking(false);
+  // 图标栏：可用解锁方式列表 + 两阶段悬停状态
+  // 选择方式时清对应错误（bio 方法清 bioError、PIN 清 pinError，与原内联行为一致）
+  const iconBar = useLoginIconBar({
+    bioAvailable,
+    biometryTypeRaw,
+    pinAvailable,
+    onSelectMethod: (method) => {
+      setLoginMethod(method);
+      if (method === 'pin') {
+        setPinError(null);
+      } else if (method !== 'password') {
+        setBioError(null);
       }
     },
-    [selectedAccountId, pinUnlocking, t, navigate],
-  );
-
-  const handleBiometricUnlock = useCallback(async () => {
-    if (!selectedAccountId || bioLoading) return;
-    // 系统生物识别处于临时锁定状态：不发起原生提示，直接显示警告并降级到主密码
-    if (bioLockout) {
-      setBioError(t('settings:biometric_lockout_desc'));
-      setLoginMethod('password');
-      return;
-    }
-    setBioLoading(true);
-    setBioError(null);
-    let success = false;
-    const t0 = performance.now();
-    try {
-      await invoke('biometric_unlock', {
-        accountId: selectedAccountId,
-        location: 'login_page',
-        action: 'unlock',
-        biometryType: biometryTypeRaw,
-      });
-      // Vault already unlocked — set auth state directly
-      const accs = (await invoke<AccountInfo[]>('vault_list_accounts')) || [];
-      const acc = accs.find((a) => a.id === selectedAccountId) || {
-        id: selectedAccountId,
-        name: selectedAccountId,
-      };
-      saveLastAccountId(acc.id);
-      // P015: 收敛到 authStore action，不再直改 setState
-      useAuthStore.getState().completeUnlock(acc, accs);
-      success = true;
-      (window as typeof window & { __SOLOSOUL_UNLOCK_TIME?: number }).__SOLOSOUL_UNLOCK_TIME = t0;
-      // 生物识别解锁后延迟检查备份提醒（P228: accountId 注入，避免循环依赖）
-      const bioUnlockedAccountId = acc.id;
-      setTimeout(() => {
-        import('@/lib/notification')
-          .then((m) => m.checkBackupReminder(bioUnlockedAccountId))
-          .catch((err) => logger.error('[LoginPage] backup reminder check failed:', err));
-      }, 2000);
-      // Navigate immediately to avoid showing the biometric UI after success
-      navigate('/');
-    } catch (e) {
-      const msg = String(e);
-      if (
-        msg.toLowerCase().includes('cancelled') ||
-        msg.toLowerCase().includes('cancel') ||
-        msg.includes('__BIO_ERR__:cancelled')
-      ) {
-        setLoginMethod('password');
-      } else if (msg.includes('__BIO_ERR__:lockout') || msg.toLowerCase().includes('lockout')) {
-        // 系统临时锁定：保留指纹项显示，标记锁定状态并展示警告
-        setBioLockout(true);
-        setBioError(t('settings:biometric_lockout_desc'));
-        setLoginMethod('password');
-      } else {
-        setBioError(getBiometricErrorMessage(e, t));
-        setLoginMethod('password');
-      }
-    } finally {
-      if (!success) setBioLoading(false);
-    }
-  }, [selectedAccountId, bioLoading, t, navigate, biometryTypeRaw, bioLockout]);
-
-  const handleSubmit = async (e?: React.FormEvent) => {
-    e?.preventDefault();
-    clearError();
-    setBioError(null);
-    setSubmitError(null);
-    // 注意：此处不清除 passwordFieldError —— 重复提交同串错误时靠 errorTick 重抖；
-    // 若在提交开头清除，Argon2 校验期间行内错误会闪烁消失（用户报的闪烁问题）。
-    if (!selectedAccountId) {
-      setSubmitError(t('auth:no_account_selected'));
-      return;
-    }
-    // 空密码前置校验：不发后端请求，输入框行内必填错误（消除 Argon2 往返与 div 切换闪烁）
-    if (!password) {
-      setPasswordFieldError(t('auth:password_required'));
-      setPasswordErrorTick((n) => n + 1);
-      return;
-    }
-    await login(selectedAccountId, password);
-    // 后端密码类错误（Invalid password / Verify failed）：i18n 后挂到输入框行内；
-    // 其他后端错误回退到 submitError（独立错误区展示），避免被静默丢弃
-    const state = useAuthStore.getState();
-    if (state.error) {
-      const translated = translateRustError(state.error);
-      if (translated === 'common:invalid_password' || translated === 'common:verify_failed') {
-        setPasswordFieldError(t(translated));
-        setPasswordErrorTick((n) => n + 1);
-      } else {
-        // 非密码错误：清除可能残留的主密码行内错误，避免与 submitError 同时展示
-        setPasswordFieldError(null);
-        setSubmitError(translated ? t(translated) : state.error);
-      }
-    }
-    // P034: 登录成功立即清空密码 state（JS 堆不可清零，尽早缩短驻留窗口）
-    if (!state.error) {
-      setPassword('');
-    }
-    // 从已有外部目录登录后，config.json 中可能残留旧的安全标志（biometric/pin enabled），
-    // 但实际 KeyStore 凭证和 PIN 文件已被卸载清除。立即复位这些标志，
-    // 避免用户在安全设置中看到「已启用」但实际无法使用的状态。
-    if (fromExisting) {
-      try {
-        await invoke('reset_security_flags', { accountId: selectedAccountId });
-        // 刷新账户列表，让 currentAccount 反映新的 hasBiometricHistory/hasPinHistory 标志，
-        // 同时让安全设置页在重新进入时读取到最新的可用性状态。
-        await listAccounts();
-      } catch {
-        // 重置失败不阻断登录流程，用户下次启动时再试
-      }
-    }
-  };
-
-  // ==== 构建可用解锁方式列表 ====
-  // 顺序：主密码 → Face ID → Touch ID → Windows Hello → PIN
-  const iconMethods: {
-    id: 'faceId' | 'touchId' | 'windowsHello' | 'pin' | 'password';
-    icon: React.ReactNode;
-    label: string;
-    onClick: () => void;
-  }[] = [];
-  // 1. 主密码（始终可用）
-  iconMethods.push({
-    id: 'password',
-    icon: <KeyRound size={ICON_SIZE.xl} />,
-    label: t('auth:password_method', { defaultValue: '主密码' }),
-    onClick: () => setLoginMethod('password'),
   });
-  // 2. Face ID
-  if (bioAvailable && biometryTypeRaw === 'faceId') {
-    iconMethods.push({
-      id: 'faceId',
-      icon: <ScanFace size={ICON_SIZE.xl} />,
-      label: 'Face ID',
-      onClick: () => {
-        setLoginMethod('faceId');
-        setBioError(null);
-      },
-    });
-  }
-  // 3. Touch ID
-  if (bioAvailable && biometryTypeRaw === 'touchId') {
-    iconMethods.push({
-      id: 'touchId',
-      icon: <Fingerprint size={ICON_SIZE.xl} />,
-      label: 'Touch ID',
-      onClick: () => {
-        setLoginMethod('touchId');
-        setBioError(null);
-      },
-    });
-  }
-  // 4. Windows Hello
-  if (bioAvailable && biometryTypeRaw === 'windowsHello') {
-    iconMethods.push({
-      id: 'windowsHello',
-      icon: <ShieldCheck size={ICON_SIZE.xl} />,
-      label: 'Windows Hello',
-      onClick: () => {
-        setLoginMethod('windowsHello');
-        setBioError(null);
-      },
-    });
-  }
-  // 5. PIN 码
-  if (pinAvailable) {
-    iconMethods.push({
-      id: 'pin',
-      icon: <Grip size={ICON_SIZE.xl} />,
-      label: t('auth:pin_method', { defaultValue: 'PIN 码' }),
-      onClick: () => {
-        setLoginMethod('pin');
-        setPinError(null);
-      },
-    });
-  }
-
-  // 两阶段悬停：边框/颜色立即高亮，文字/展开延迟 300ms 后触发
-  const handleIconEnter = (id: string) => {
-    // 触屏设备不触发悬停展开（Android WebView hover 会粘住）
-    if (!supportsHover()) return;
-    setHoveredIcon(id);
-    if (commitTimerRef.current) clearTimeout(commitTimerRef.current);
-    commitTimerRef.current = setTimeout(() => {
-      setCommittedIcon(id);
-      commitTimerRef.current = null;
-    }, 300);
-  };
-
-  const handleIconLeave = () => {
-    setHoveredIcon(null);
-    setCommittedIcon(null);
-    if (commitTimerRef.current) {
-      clearTimeout(commitTimerRef.current);
-      commitTimerRef.current = null;
-    }
-  };
-
-  const handleIconClick = (method: LoginMethodOption) => {
-    setHoveredIcon(null);
-    setCommittedIcon(null);
-    if (commitTimerRef.current) {
-      clearTimeout(commitTimerRef.current);
-      commitTimerRef.current = null;
-    }
-    method.onClick();
-  };
 
   return {
     // account
@@ -540,38 +282,38 @@ export function useLoginPage() {
     selectedAccountId,
     setSelectedAccountId,
     selectedAccount,
-    // password input
-    password,
-    setPassword,
-    passwordFieldError,
-    setPasswordFieldError,
-    passwordErrorTick,
+    // password input（来自 unlockFlows）
+    password: unlockFlows.password,
+    setPassword: unlockFlows.setPassword,
+    passwordFieldError: unlockFlows.passwordFieldError,
+    setPasswordFieldError: unlockFlows.setPasswordFieldError,
+    passwordErrorTick: unlockFlows.passwordErrorTick,
     // store-driven
     isLoading,
     // method & availability
     loginMethod,
     // biometric view
-    bioLoading,
+    bioLoading: unlockFlows.bioLoading,
     bioLockout,
-    bioError,
+    bioError: unlockFlows.bioError,
     // pin view
-    pinUnlocking,
-    pinError,
-    pinInputKey,
-    pinInputRef,
+    pinUnlocking: unlockFlows.pinUnlocking,
+    pinError: unlockFlows.pinError,
+    pinInputKey: unlockFlows.pinInputKey,
+    pinInputRef: unlockFlows.pinInputRef,
     // password view extras
-    submitError,
+    submitError: unlockFlows.submitError,
     // handlers
-    handleBiometricUnlock,
-    handlePinComplete,
-    handleSubmit,
+    handleBiometricUnlock: unlockFlows.handleBiometricUnlock,
+    handlePinComplete: unlockFlows.handlePinComplete,
+    handleSubmit: unlockFlows.handleSubmit,
     // icon bar
-    iconMethods,
-    hoveredIcon,
-    committedIcon,
-    handleIconEnter,
-    handleIconLeave,
-    handleIconClick,
+    iconMethods: iconBar.iconMethods,
+    hoveredIcon: iconBar.hoveredIcon,
+    committedIcon: iconBar.committedIcon,
+    handleIconEnter: iconBar.handleIconEnter,
+    handleIconLeave: iconBar.handleIconLeave,
+    handleIconClick: iconBar.handleIconClick,
     // links & recovery
     recoveryOpen,
     setRecoveryOpen,
