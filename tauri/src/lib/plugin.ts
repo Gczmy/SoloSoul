@@ -46,7 +46,7 @@ export interface MarketPluginInfo {
   registryEntry: RegistryEntry;
 }
 
-interface PluginContractRole {
+export interface PluginContractRole {
   roleId: string;
   label?: string;
   required?: boolean;
