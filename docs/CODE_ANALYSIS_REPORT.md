@@ -19,7 +19,7 @@
 |----|--------|------|----------|------|------|
 | P027 | P2 | 死代码 | `tauri/src-tauri/src/commands/object/trash.rs:147`、`lib.rs:389,870,996` | `trash_permanent_delete` 已注册但前端从不调用（P024 批量改造后走 batch），删除需同步守卫测试与总数断言 | `[-]` 经确认跳过（保留 API 完备性） |
 | P033 | P2 | 死代码 | `tauri/src-tauri/src/lib.rs:304-316`（调用于 :667） | `setup_detect_locale()` 结果仅用于一行 debug 日志，前端实际走 `get_system_locale` IPC（需人工确认是否保留诊断） | `[-]` 经确认跳过（保留诊断日志） |
-| P046 | P2 | 架构 | 前端 10 个巨型组件（汇总） | 单组件非注释行 > 300：`AttachmentViewer`(~550)、`LoginPage`(~501)、`PasswordVerificationDialog`(~447)、`TemplateFieldRow`(~436)、`DeviceListPanel`(~424)、`TrashPage`(~422)、`ObjectDetailModal`(~422)、`ExportImportPage`(~417)、`ImportSection`(~409)、`ExportSection`(~405)，建议按「数据 hook + 展示子组件」拆分 | `[>]` 拆解中：**认证域 2/10 完成**（LoginPage、PasswordVerificationDialog，见修复记录 P046-1）；对象域（AttachmentViewer/ObjectDetailModal/TemplateFieldRow）与设置导出域（ExportImportPage/ExportSection/ImportSection/TrashPage/DeviceListPanel）待拆 |
+| P046 | P2 | 架构 | 前端 10 个巨型组件（汇总） | 单组件非注释行 > 300：`AttachmentViewer`(~550)、`LoginPage`(~501)、`PasswordVerificationDialog`(~447)、`TemplateFieldRow`(~436)、`DeviceListPanel`(~424)、`TrashPage`(~422)、`ObjectDetailModal`(~422)、`ExportImportPage`(~417)、`ImportSection`(~409)、`ExportSection`(~405)，建议按「数据 hook + 展示子组件」拆分 | `[>]` 拆解中：**认证域 2/10 + 对象域 3/10 完成（共 5/10）**（LoginPage、PasswordVerificationDialog 见 P046-1；AttachmentViewer/ObjectDetailModal/TemplateFieldRow 见 P046-2）；设置导出域（ExportImportPage/ExportSection/ImportSection/TrashPage/DeviceListPanel）待拆 |
 | P047 | P2 | 架构 | Rust 巨型文件（汇总） | `attachment.rs` 2057 行、`object/tests.rs` 2353 行、`export_docx.rs` 1989 行，文件级拆分作为后续架构项 | `[>]` 延期：3 个巨型 Rust 文件拆分，列为后续架构项 |
 
 ## 历史轮次摘要
@@ -200,6 +200,16 @@
 - **验证**：cargo fmt / check / clippy `-D warnings` 全绿。
 
 ## 修复记录（P046 巨型组件拆分）
+
+### P046-2（架构，对象域 3/10）✅ 已完成
+
+- **拆分**：按「数据 hook + 展示子组件」模式，纯重构零行为变化：
+  - `AttachmentViewer.tsx` **683 → 305 行**（非注释 ~285）：全部编排逻辑（列表加载、上传/重命名/下载/转发/删除/恢复/永久删除、批量操作、照片集数据源、拖拽上传）迁入 `src/components/object/useAttachmentViewer.tsx`（529 行）；组件退化为纯组合层，复用既有 8 个子组件。保留 `AttachmentItem`/`AttachmentViewerProps` 类型 re-export。
+  - `ObjectDetailModal.tsx` **545 → 239 行**：编排逻辑（对象拉取 P020 防陈旧、字段/敏感度解析、关键数据验证密码/生物识别/PIN、复制反馈、删除、历史/附件子视图）迁入 `src/components/object/useObjectDetailModal.tsx`（438 行）；`PasswordVerificationDialog` 联动收敛为 `handlePwDialogClose/Verify/PinSuccess` 三个组合 handler。
+  - `TemplateFieldRow.tsx` **506 → 192 行**：插件契约绑定折叠区（~270 行内联 JSX + 全部派生/增删逻辑）抽为 `TemplateFieldBindingSection.tsx`（382 行），主组件仅保留顶部字段控件行；`FlattenedContract` 类型从子组件 re-export（TemplateEditor 既有导入不受影响）。
+- **审查处理**：`handleMetaSaved` 参数类型与 `AttachmentMetaEditResult` 对齐；`objectId` 由 hook 返回供组件使用（消除 JSX 中段 `props.objectId` 直接引用，与 `allVisibleKeys` 键源一致）；清理未用解构/导入。
+- **验证**：tsc / eslint 全绿；全量前端 73 文件 647 测试全绿（含 ObjectDetailModal 5 测试、TemplateEditor 8 测试）。
+- **待拆**：设置导出域（ExportImportPage/ExportSection/ImportSection/TrashPage/DeviceListPanel）。
 
 ### P046-1（架构，认证域 2/10）✅ 已完成
 
