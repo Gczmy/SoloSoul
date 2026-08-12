@@ -402,3 +402,14 @@ select:autofill {
   border-top: 1px solid var(--border-subtle);
   margin: 8px 0;
 }
+
+/* 附件描述/标签展开按钮（ToggleButton）桌面指针设备 hover 反馈——
+   X002: 仅 (hover:hover) and (pointer:fine) 生效，触摸设备不挂 hover 样式，
+   与「状态驱动展开高亮」互不干扰（安卓 WebView 触摸残留 mouseover 问题由
+   该 media 条件彻底规避）。 */
+@media (hover: hover) and (pointer: fine) {
+  .toggle-arrow-btn:hover {
+    color: var(--accent-primary);
+    background: var(--bg-hover);
+  }
+}

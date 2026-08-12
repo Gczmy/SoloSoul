@@ -59,6 +59,9 @@ function ToggleButton({
       aria-expanded={expanded}
       aria-label={label}
       title={label}
+      // X002: 桌面指针设备 hover 反馈经 global.css `.toggle-arrow-btn`（media 限定）
+      // 提供——触摸设备不挂该样式，与状态驱动展开高亮互不干扰。
+      className="toggle-arrow-btn"
       style={{
         display: 'inline-flex',
         alignItems: 'center',
@@ -221,6 +224,9 @@ export function AttachmentFileNameBlock({
               textOverflow: descExpanded ? undefined : 'ellipsis',
               whiteSpace: descExpanded ? 'pre-wrap' : 'nowrap',
               wordBreak: 'break-word',
+              // X002: 整行可点下显式声明文本可选——拖选/长按不触发 click（按下与
+              // 释放位置不同），因此复制文本与点击折叠互不冲突。
+              userSelect: 'text',
             }}
           >
             {trimmedDesc}

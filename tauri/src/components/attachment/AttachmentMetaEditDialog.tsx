@@ -200,6 +200,8 @@ export function AttachmentMetaEditDialog({ item, onClose, onSaved }: AttachmentM
               <span
                 key={tag}
                 style={{
+                  // X002: 圆角 6px 为有意区分——编辑态用小圆角（用户曾反馈全圆胶囊
+                  // 「圆形框太大难看」），列表展示态保持 999 胶囊（AttachmentFileNameBlock）
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: 4,
