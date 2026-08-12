@@ -76,7 +76,7 @@ describe('AttachmentFileNameBlock 描述折叠/展开', () => {
     expect(screen.getByRole('button', { expanded: true })).toBeInTheDocument();
   });
 
-  it('T003 触控优化：按钮视觉 18×18 但热区扩展至 44×44（inset -13 绝对定位子元素）', () => {
+  it('T003 触控优化：按钮保持 18×18 不占额外行（无扩展热区，触控由整行承担）', () => {
     const longDesc = '这是一段非常长的附件描述文本，'.repeat(40);
     const { rerender } = render(<AttachmentFileNameBlock {...base} description={longDesc} />);
     const descEl = screen.getByText(longDesc) as HTMLElement;
@@ -85,12 +85,9 @@ describe('AttachmentFileNameBlock 描述折叠/展开', () => {
     rerender(<AttachmentFileNameBlock {...base} description={longDesc + '（续）'} />);
 
     const toggle = screen.getByRole('button', { expanded: false });
-    // 视觉尺寸保持 18×18（不撑高行）
-    expect(toggle).toHaveStyle({ width: '18px', height: '18px', position: 'relative' });
-    // 热区子元素：绝对定位 inset -13（18 + 26 = 44px 可点区域）
-    const hotzone = toggle.querySelector('span');
-    expect(hotzone).toHaveStyle({ position: 'absolute', inset: '-13px' });
-    expect(hotzone).toHaveAttribute('aria-hidden', 'true');
+    // 按钮自身即 18×18 点击目标，无绝对定位扩展子元素（不撑高行/不占两行）
+    expect(toggle).toHaveStyle({ width: '18px', height: '18px' });
+    expect(toggle.querySelector('span')).toBeNull();
   });
 });
 

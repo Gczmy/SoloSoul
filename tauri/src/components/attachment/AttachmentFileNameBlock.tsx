@@ -60,7 +60,6 @@ function ToggleButton({
       aria-label={label}
       title={label}
       style={{
-        position: 'relative',
         display: 'inline-flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -73,7 +72,8 @@ function ToggleButton({
         background: 'transparent',
         color: 'var(--text-tertiary)',
         cursor: 'pointer',
-        // T003 移动端触控：消除 300ms 点击延迟与双击缩放误触发
+        // T003 移动端触控：消除 300ms 点击延迟与双击缩放误触发；
+        // 触控面积由行容器整行可点承担，按钮不再扩展隐形热区（不占额外行）。
         touchAction: 'manipulation',
         transition: 'color 120ms ease, background 120ms ease',
       }}
@@ -86,12 +86,6 @@ function ToggleButton({
         e.currentTarget.style.background = 'transparent';
       }}
     >
-      {/* T003 触控热区扩展：视觉保持 18×18 不占布局，实际可点击区域放大到
-          44×44（inset -13）——移动端触控目标达标且不撑高行；桌面端无感。 */}
-      <span
-        aria-hidden="true"
-        style={{ position: 'absolute', inset: -13, borderRadius: 8 }}
-      />
       {expanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
     </button>
   );
