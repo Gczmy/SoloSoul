@@ -203,13 +203,15 @@ export function AttachmentMetaEditDialog({ item, onClose, onSaved }: AttachmentM
                   display: 'inline-flex',
                   alignItems: 'center',
                   gap: 4,
-                  padding: '2px 8px 2px 10px',
-                  borderRadius: 999,
+                  padding: '3px 8px',
+                  borderRadius: 6,
                   background: 'var(--accent-subtle, rgba(94,129,244,0.12))',
                   border: '1px solid var(--accent-primary)',
                   color: 'var(--accent-primary)',
                   fontSize: 'var(--text-badge)',
                   fontWeight: 500,
+                  lineHeight: 1,
+                  whiteSpace: 'nowrap',
                 }}
               >
                 {tag}
