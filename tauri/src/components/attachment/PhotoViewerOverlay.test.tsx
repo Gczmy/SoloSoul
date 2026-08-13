@@ -315,4 +315,228 @@ describe('PhotoViewerOverlay', () => {
     fireEvent.click(screen.getByTitle(/common:attachment_zoom_in/i), { detail: 1 });
     expect(onClose).not.toHaveBeenCalled();
   });
+
+  // ── 安卓端手势（T010）：双指捏合缩放 + 双击缩放 ──
+  const touchPoints = (pts: Array<[number, number]>) =>
+    pts.map(([clientX, clientY]) => ({ clientX, clientY }));
+
+  it('pinches with two fingers to zoom in and out', async () => {
+    mockInvoke.mockResolvedValue('data:image/png;base64,abc');
+    render(
+      <PhotoViewerOverlay
+        items={[makeItem('a')]}
+        initialIndex={0}
+        onBack={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTitle(/common:attachment_zoom_in/i)).toBeInTheDocument();
+    });
+    expect(screen.getByText('100%')).toBeInTheDocument();
+
+    const area = screen.getByTestId('photo-viewer-content');
+    // 捏合开始：两指距离 100，基准比例 1（jsdom 无自然尺寸，fit 保持 1）
+    fireEvent.touchStart(area, {
+      touches: touchPoints([
+        [100, 100],
+        [200, 100],
+      ]),
+    });
+    // 撑开至 200 → 比例 1 × 200/100 = 2
+    fireEvent.touchMove(area, {
+      touches: touchPoints([
+        [100, 100],
+        [300, 100],
+      ]),
+    });
+    expect(screen.getByText('200%')).toBeInTheDocument();
+    // 收拢回 100 → 比例回到 1
+    fireEvent.touchMove(area, {
+      touches: touchPoints([
+        [100, 100],
+        [200, 100],
+      ]),
+    });
+    expect(screen.getByText('100%')).toBeInTheDocument();
+    fireEvent.touchEnd(area, { touches: [] });
+  });
+
+  it('pinching below fit snaps back to fit on release', async () => {
+    mockInvoke.mockResolvedValue('data:image/png;base64,abc');
+    render(
+      <PhotoViewerOverlay
+        items={[makeItem('a')]}
+        initialIndex={0}
+        onBack={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTitle(/common:attachment_zoom_in/i)).toBeInTheDocument();
+    });
+
+    const area = screen.getByTestId('photo-viewer-content');
+    fireEvent.touchStart(area, {
+      touches: touchPoints([
+        [100, 100],
+        [300, 100],
+      ]),
+    });
+    fireEvent.touchMove(area, {
+      touches: touchPoints([
+        [100, 100],
+        [150, 100],
+      ]),
+    });
+    // 1 × 50/200 = 0.25 → 25%
+    expect(screen.getByText('25%')).toBeInTheDocument();
+    // 抬起 → 回弹 fit（jsdom 中 fitToView 无自然尺寸 no-op，保持当前比例）
+    fireEvent.touchEnd(area, { touches: [] });
+  });
+
+  it('double-tap toggles zoom between fit and fit×2', async () => {
+    mockInvoke.mockResolvedValue('data:image/png;base64,abc');
+    render(
+      <PhotoViewerOverlay
+        items={[makeItem('a')]}
+        initialIndex={0}
+        onBack={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTitle(/common:attachment_zoom_in/i)).toBeInTheDocument();
+    });
+    expect(screen.getByText('100%')).toBeInTheDocument();
+
+    const area = screen.getByTestId('photo-viewer-content');
+    const tap = () => {
+      fireEvent.touchStart(area, { touches: touchPoints([[150, 400]]) });
+      fireEvent.touchEnd(area, { touches: [] });
+    };
+    tap();
+    tap();
+    // 双击 → fit × 2 = 2 → 200%
+    expect(screen.getByText('200%')).toBeInTheDocument();
+  });
+
+  it('single tap does not zoom', async () => {
+    mockInvoke.mockResolvedValue('data:image/png;base64,abc');
+    render(
+      <PhotoViewerOverlay
+        items={[makeItem('a')]}
+        initialIndex={0}
+        onBack={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTitle(/common:attachment_zoom_in/i)).toBeInTheDocument();
+    });
+
+    const area = screen.getByTestId('photo-viewer-content');
+    fireEvent.touchStart(area, { touches: touchPoints([[150, 400]]) });
+    fireEvent.touchEnd(area, { touches: [] });
+    expect(screen.getByText('100%')).toBeInTheDocument();
+  });
+
+  // 审查回归：点按后紧接着双指捏合，最后一指抬起不应误触发双击缩放
+  it('tap followed by quick pinch does not trigger double-tap zoom', async () => {
+    mockInvoke.mockResolvedValue('data:image/png;base64,abc');
+    render(
+      <PhotoViewerOverlay
+        items={[makeItem('a')]}
+        initialIndex={0}
+        onBack={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTitle(/common:attachment_zoom_in/i)).toBeInTheDocument();
+    });
+    expect(screen.getByText('100%')).toBeInTheDocument();
+
+    const area = screen.getByTestId('photo-viewer-content');
+    // ① 单击（建立 lastTapTimeRef）
+    fireEvent.touchStart(area, { touches: touchPoints([[150, 400]]) });
+    fireEvent.touchEnd(area, { touches: [] });
+    // ② 快速捏合：双指落下（旧 tap 候选必须被作废）→ 收拢 → 逐指抬起
+    fireEvent.touchStart(area, {
+      touches: touchPoints([
+        [100, 100],
+        [300, 100],
+      ]),
+    });
+    fireEvent.touchMove(area, {
+      touches: touchPoints([
+        [100, 100],
+        [200, 100],
+      ]),
+    });
+    fireEvent.touchEnd(area, { touches: touchPoints([[200, 100]]) });
+    fireEvent.touchEnd(area, { touches: [] });
+    // 捏合停在 50%（jsdom 无自然尺寸，回弹 fit 为 no-op）
+    expect(screen.getByText('50%')).toBeInTheDocument();
+    // 若残留 tap 候选误触发双击 → 会跳变到 200%；此处验证未触发
+    expect(screen.queryByText('200%')).not.toBeInTheDocument();
+  });
+
+  // 审查回归：touchcancel 在捏合中发生时（touches 仍报 2 指）必须无条件清理捏合
+  // 状态。若 pinchRef 残留，下一次单指 touchend 会误入 wasPinching 分支被吞掉
+  // （双击候选丢失、需额外一次点按才触发）——以「touchcancel 后两次点按即可
+  // 触发双击缩放」验证清理正确。注：pinchActive 残留会禁用 framer-motion drag/
+  // swipe 翻页，属真实设备行为，jsdom 无法经 fireEvent 模拟 framer-motion 手势。
+  it('touchcancel during pinch clears pinch state (double-tap still needs only 2 taps)', async () => {
+    mockInvoke.mockResolvedValue('data:image/png;base64,abc');
+    render(
+      <PhotoViewerOverlay
+        items={[makeItem('a')]}
+        initialIndex={0}
+        onBack={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTitle(/common:attachment_zoom_in/i)).toBeInTheDocument();
+    });
+    expect(screen.getByText('100%')).toBeInTheDocument();
+
+    const area = screen.getByTestId('photo-viewer-content');
+    // 捏合：两指距离保持 200 → 比例保持 1（100%）
+    fireEvent.touchStart(area, {
+      touches: touchPoints([
+        [100, 100],
+        [300, 100],
+      ]),
+    });
+    fireEvent.touchMove(area, {
+      touches: touchPoints([
+        [100, 100],
+        [300, 100],
+      ]),
+    });
+    expect(screen.getByText('100%')).toBeInTheDocument();
+    // 浏览器接管手势：touchcancel 仍报 2 指
+    fireEvent.touchCancel(area, {
+      touches: touchPoints([
+        [100, 100],
+        [300, 100],
+      ]),
+    });
+    // touchcancel 后两次快速点按 → 双击缩放（fit → fit×2 = 200%）
+    const tap = () => {
+      fireEvent.touchStart(area, { touches: touchPoints([[150, 400]]) });
+      fireEvent.touchEnd(area, { touches: [] });
+    };
+    tap();
+    tap();
+    expect(screen.getByText('200%')).toBeInTheDocument();
+  });
 });

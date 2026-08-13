@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { AttachmentMetaEditDialog } from '@/components/attachment/AttachmentMetaEditDialog';
+import { useTouchZoom } from '@/hooks/useTouchZoom';
 import { ICON_SIZE } from '@/lib/constants';
 import type { AttachmentItem } from '@/lib/attachmentUtils';
 import { loadFullPreviewUrl } from '@/lib/photoAlbumPreview';
@@ -152,7 +153,8 @@ export function PhotoViewerOverlay({
   /** 适应视口比例（相对原始尺寸，见 fitToView）；图片未放大时 scale 即为此值。 */
   const [fitScale, setFitScale] = useState(1);
   const [metaEditOpen, setMetaEditOpen] = useState(false);
-  /** 图片滚动/平移容器（motion.div），fitToView 以其 clientWidth/Height 计算适应比例。 */
+  /** 图片展示区（内容区容器，跨照片稳定存在）：fitToView 以 clientWidth/Height 计算适应比例，
+   *  双指捏合/双击手势也绑定在此（motion.div 随 index 重建，不宜作为监听宿主）。 */
   const contentRef = useRef<HTMLDivElement>(null);
 
   const total = items.length;
@@ -251,6 +253,17 @@ export function PhotoViewerOverlay({
   const onZoomKeyboard = (action: () => void) => (e: React.MouseEvent<HTMLButtonElement>) => {
     if (e.detail === 0) action();
   };
+
+  // 安卓端手势：双指捏合缩放 + 双击切换（捏合进行中暂停 swipe 翻页，见 drag 门控）
+  const { pinchActive } = useTouchZoom({
+    elementRef: contentRef,
+    scale,
+    setScale,
+    fitScale,
+    fitToView,
+    minScale: MIN_SCALE,
+    maxScale: MAX_SCALE,
+  });
 
   const showZoomControls = !!url && !loading && !error;
 
@@ -433,8 +446,12 @@ export function PhotoViewerOverlay({
         />
       )}
 
-      {/* 内容区：AnimatePresence 方向性滑动切换 + drag="x" 翻页 */}
-      <div style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+      {/* 内容区：AnimatePresence 方向性滑动切换 + drag="x" 翻页；手势（捏合/双击）绑定在此容器 */}
+      <div
+        ref={contentRef}
+        data-testid="photo-viewer-content"
+        style={{ flex: 1, position: 'relative', overflow: 'hidden' }}
+      >
         <AnimatePresence initial={false} custom={direction}>
           <motion.div
             key={index}
@@ -443,7 +460,7 @@ export function PhotoViewerOverlay({
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -48 * direction }}
             transition={{ duration: 0.18, ease: 'easeOut' }}
-            drag={fitsViewport ? 'x' : false}
+            drag={pinchActive ? false : fitsViewport ? 'x' : false}
             dragConstraints={{ left: 0, right: 0 }}
             dragElastic={0.12}
             onDragEnd={(_, info) => {
@@ -451,7 +468,6 @@ export function PhotoViewerOverlay({
               if (nav === 1) goNext();
               else if (nav === -1) goPrev();
             }}
-            ref={contentRef}
             style={{
               position: 'absolute',
               inset: 0,

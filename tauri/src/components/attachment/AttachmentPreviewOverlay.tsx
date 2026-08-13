@@ -7,6 +7,7 @@ import { AttachmentMetaEditDialog } from '@/components/attachment/AttachmentMeta
 import type { AttachmentItem } from '@/lib/attachmentUtils';
 import { previewItemByMime } from '@/lib/attachmentUtils';
 import { isMobilePlatformSync } from '@/lib/platform';
+import { useTouchZoom } from '@/hooks/useTouchZoom';
 import { syncStatusBarStyle } from '@/lib/theme';
 import { ICON_SIZE, SAFE_AREA_TOP, SAFE_AREA_BOTTOM } from '@/lib/constants';
 
@@ -51,6 +52,8 @@ export function AttachmentPreviewOverlay({
   const [loading, setLoading] = useState(false);
   const [naturalSize, setNaturalSize] = useState<{ width: number; height: number } | null>(null);
   const [scale, setScale] = useState(1);
+  /** 适应视口比例（相对原始尺寸）；双击以此为基准放大、捏合回落低于它时回弹。 */
+  const [fitScale, setFitScale] = useState(1);
   const [metaEditOpen, setMetaEditOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -63,6 +66,7 @@ export function AttachmentPreviewOverlay({
       setLoading(false);
       setNaturalSize(null);
       setScale(1);
+      setFitScale(1);
       // 关闭预览遮罩后恢复应用主题对应的状态栏样式
       const currentTheme = document.documentElement.getAttribute('data-theme');
       void syncStatusBarStyle(currentTheme === 'dark' ? 'dark' : 'light');
@@ -83,6 +87,7 @@ export function AttachmentPreviewOverlay({
     setLoading(true);
     setNaturalSize(null);
     setScale(1);
+    setFitScale(1);
 
     const filePath = item.vaultPath;
     if (!filePath || isUriPath(filePath)) {
@@ -129,8 +134,9 @@ export function AttachmentPreviewOverlay({
     if (naturalSize.width === 0 || naturalSize.height === 0) return;
     const scaleX = clientWidth / naturalSize.width;
     const scaleY = clientHeight / naturalSize.height;
-    const fitScale = Math.min(scaleX, scaleY, 1);
-    setScale(Number(fitScale.toFixed(3)));
+    const fit = Number(Math.min(scaleX, scaleY, 1).toFixed(3));
+    setFitScale(fit);
+    setScale(fit);
   }, [naturalSize]);
 
   useEffect(() => {
@@ -148,6 +154,17 @@ export function AttachmentPreviewOverlay({
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, [naturalSize, fitToView]);
+
+  // 安卓端手势：双指捏合缩放 + 双击切换（绑定图片滚动容器，单指拖动仍是原生滚动平移）
+  useTouchZoom({
+    elementRef: scrollRef,
+    scale,
+    setScale,
+    fitScale,
+    fitToView,
+    minScale: MIN_SCALE,
+    maxScale: MAX_SCALE,
+  });
 
   const clampScale = (value: number) => Math.min(MAX_SCALE, Math.max(MIN_SCALE, value));
 
@@ -292,7 +309,12 @@ export function AttachmentPreviewOverlay({
               textAlign: 'center',
             }}
           >
-            <div>{t('common:attachment_preview_unsupported', 'Preview is not supported for this file type.')}</div>
+            <div>
+              {t(
+                'common:attachment_preview_unsupported',
+                'Preview is not supported for this file type.',
+              )}
+            </div>
             {onOpenExternal && (
               <button
                 onClick={() => onOpenExternal(item)}
@@ -457,6 +479,7 @@ export function AttachmentPreviewOverlay({
           内容包装器已各自 stopPropagation，点击图片/PDF/文本不会关闭。 */}
       <div
         ref={scrollRef}
+        data-testid="attachment-preview-content"
         onWheel={handleWheel}
         style={{
           flex: 1,

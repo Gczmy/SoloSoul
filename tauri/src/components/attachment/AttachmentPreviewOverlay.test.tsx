@@ -140,4 +140,55 @@ describe('AttachmentPreviewOverlay', () => {
     button.click();
     expect(onOpenExternal).toHaveBeenCalled();
   });
+
+  // ── 安卓端手势（T010）：双指捏合缩放 + 双击缩放 ──
+  const touchPoints = (pts: Array<[number, number]>) =>
+    pts.map(([clientX, clientY]) => ({ clientX, clientY }));
+
+  async function renderImage() {
+    mockInvoke.mockResolvedValue('data:image/png;base64,abc');
+    render(<AttachmentPreviewOverlay item={makeItem()} onClose={vi.fn()} />);
+    await waitFor(() => {
+      expect(screen.getByTitle(/common:attachment_zoom_in/i)).toBeInTheDocument();
+    });
+    return screen.getByTestId('attachment-preview-content');
+  }
+
+  it('pinches with two fingers to zoom in and out', async () => {
+    const area = await renderImage();
+    expect(screen.getByText('100%')).toBeInTheDocument();
+
+    fireEvent.touchStart(area, {
+      touches: touchPoints([
+        [100, 100],
+        [200, 100],
+      ]),
+    });
+    fireEvent.touchMove(area, {
+      touches: touchPoints([
+        [100, 100],
+        [300, 100],
+      ]),
+    });
+    expect(screen.getByText('200%')).toBeInTheDocument();
+    fireEvent.touchMove(area, {
+      touches: touchPoints([
+        [100, 100],
+        [200, 100],
+      ]),
+    });
+    expect(screen.getByText('100%')).toBeInTheDocument();
+    fireEvent.touchEnd(area, { touches: [] });
+  });
+
+  it('double-tap toggles zoom between fit and fit×2', async () => {
+    const area = await renderImage();
+    const tap = () => {
+      fireEvent.touchStart(area, { touches: touchPoints([[150, 400]]) });
+      fireEvent.touchEnd(area, { touches: [] });
+    };
+    tap();
+    tap();
+    expect(screen.getByText('200%')).toBeInTheDocument();
+  });
 });
