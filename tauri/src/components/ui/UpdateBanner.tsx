@@ -63,7 +63,9 @@ export function UpdateBanner({
     >
       {state === 'available' && (
         <>
-          <span style={{ fontWeight: 500 }}>{t('update_available', { version })}</span>
+          <span style={{ fontWeight: 500, whiteSpace: 'nowrap' }}>
+            {t('update_available', { version })}
+          </span>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             {/* 查看更新内容：仅在刚开始提醒安装时展示（进入下载进度条后该分支不再渲染） */}
             {releaseNotes && (
@@ -74,8 +76,10 @@ export function UpdateBanner({
                 style={{
                   display: 'flex',
                   alignItems: 'center',
+                  justifyContent: 'center',
                   gap: 4,
-                  padding: '5px 10px',
+                  /* 移动端仅图标：固定正方形 + 零内边距，图标精确居中；桌面端图标 + 文字 */
+                  ...(isMobile ? { width: 30, height: 30, padding: 0 } : { padding: '5px 10px' }),
                   borderRadius: 6,
                   border: '1px solid rgba(255,255,255,0.35)',
                   background: 'transparent',
@@ -83,6 +87,7 @@ export function UpdateBanner({
                   fontSize: 'var(--text-caption)',
                   fontWeight: 500,
                   cursor: 'pointer',
+                  whiteSpace: 'nowrap',
                 }}
               >
                 <Info size={ICON_SIZE.xs} />
@@ -91,11 +96,15 @@ export function UpdateBanner({
             )}
             <button
               onClick={onUpdate}
+              aria-label={isMobile ? t('update_now') : undefined}
+              title={isMobile ? t('update_now') : undefined}
               style={{
                 display: 'flex',
                 alignItems: 'center',
+                justifyContent: 'center',
                 gap: 4,
-                padding: '5px 10px',
+                /* 移动端仅图标：固定正方形 + 零内边距，图标精确居中；桌面端图标 + 文字 */
+                ...(isMobile ? { width: 30, height: 30, padding: 0 } : { padding: '5px 10px' }),
                 borderRadius: 6,
                 border: 'none',
                 background: 'rgba(255,255,255,0.2)',
@@ -103,9 +112,11 @@ export function UpdateBanner({
                 fontSize: 'var(--text-caption)',
                 fontWeight: 500,
                 cursor: 'pointer',
+                whiteSpace: 'nowrap',
               }}
             >
-              <Download size={ICON_SIZE.xs} /> {t('update_now')}
+              <Download size={ICON_SIZE.xs} />
+              {!isMobile && t('update_now')}
             </button>
             {!mandatory && (
               <button
@@ -118,9 +129,10 @@ export function UpdateBanner({
                   color: 'white',
                   fontSize: 'var(--text-caption)',
                   cursor: 'pointer',
+                  whiteSpace: 'nowrap',
                 }}
               >
-                {t('skip_version')}
+                {t('skip')}
               </button>
             )}
           </div>

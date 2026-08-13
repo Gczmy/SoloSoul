@@ -1,6 +1,19 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { UpdateBanner } from './UpdateBanner';
+
+// 可切换的移动端模拟：默认 false（桌面端行为），移动端测试内置置 true。
+// isMobilePlatformSync 读模块级缓存，直接 mock 平台模块（保留其余导出）。
+const mobileFlag = vi.hoisted(() => ({ value: false }));
+
+vi.mock('@/lib/platform', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/lib/platform')>();
+  return { ...actual, isMobilePlatformSync: () => mobileFlag.value };
+});
+
+afterEach(() => {
+  mobileFlag.value = false;
+});
 
 const baseProps = {
   version: '2.1.0',
@@ -18,7 +31,7 @@ describe('UpdateBanner', () => {
 
     expect(screen.getByText(/update_available/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /update_now/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /skip_version/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /skip/i })).toBeInTheDocument();
   });
 
   it('calls onUpdate when clicking update button', () => {
@@ -33,7 +46,7 @@ describe('UpdateBanner', () => {
     const onSkip = vi.fn();
     render(<UpdateBanner {...baseProps} state="available" onSkip={onSkip} />);
 
-    fireEvent.click(screen.getByRole('button', { name: /skip_version/i }));
+    fireEvent.click(screen.getByRole('button', { name: /skip/i }));
     expect(onSkip).toHaveBeenCalledTimes(1);
   });
 
@@ -43,6 +56,28 @@ describe('UpdateBanner', () => {
 
     fireEvent.click(screen.getByLabelText(/close/i));
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('mobile: update button is icon-only (aria-label), skip uses short text, release-notes icon centered', () => {
+    mobileFlag.value = true;
+    render(<UpdateBanner {...baseProps} state="available" releaseNotes="## x" />);
+
+    // 立即更新：仅图标、无可见文本，可访问名称由 aria-label 提供
+    const updateBtn = screen.getByRole('button', { name: /update_now/i });
+    expect(updateBtn.querySelector('svg')).not.toBeNull();
+    expect(updateBtn.textContent?.replace(/\s/g, '')).toBe('');
+    // 固定正方形 + 零内边距 + flex 居中 → 图标精确居中（防换行/偏移）
+    expect(updateBtn.style.width).toBe('30px');
+    expect(updateBtn.style.height).toBe('30px');
+    expect(updateBtn.style.padding).toBe('0px');
+
+    // 跳过：短文本（不换行）
+    expect(screen.getByRole('button', { name: /skip/i })).toBeInTheDocument();
+
+    // 查看更新内容：仍为图标按钮（aria-label 提供可访问名称）
+    const notesBtn = screen.getByLabelText(/view_release_notes/i);
+    expect(notesBtn.querySelector('svg')).not.toBeNull();
+    expect(notesBtn.style.width).toBe('30px');
   });
 
   it('shows view-release-notes button only when available and releaseNotes provided', () => {
