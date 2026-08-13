@@ -68,6 +68,65 @@ const PARALLEL_MIN_FILE_SIZE: u64 = 20 * 1024 * 1024; // 20MB
 /// 每个分段的最小体积：文件略超阈值时不生成过碎的分段。
 const PARALLEL_MIN_SEGMENT_SIZE: u64 = 5 * 1024 * 1024; // 5MB
 
+/// 直连健康测速样本大小：探测直连通道时下载该字节数用于吞吐判定。
+/// 快路径（海外快直连）样本在数十毫秒内读完，开销可忽略；慢路径受探测客户端
+/// 总超时（20s）约束，最坏等待有限。
+const DIRECT_SAMPLE_BYTES: u64 = 1024 * 1024; // 1MB
+/// 直连「健康」吞吐阈值：样本测速累计吞吐 ≥ 该值视为直连正常 → 走旧版单流直连。
+/// 海外（如英国）直连通常 ≥5MB/s，国内受限直连通常 <1MB/s，阈值两侧分离清晰；
+/// 恰在阈值（2MB/s）时 111.7MB 单流约 1 分钟，仍属可接受，不触发并行。
+const DIRECT_MIN_SPEED_BYTES_PER_SEC: u64 = 2 * 1024 * 1024; // 2MB/s
+
+/// 下载策略（由探测阶段判定，修复④核心）。
+///
+/// - [`DirectSingleStream`](DownloadStrategy::DirectSingleStream)：直连健康（206 +
+///   样本测速达标）→ 走旧版单流直连路径（直连优先，代理仅作段级兜底）。
+///   海外直连本就很快时不再启用并行分段与代理，消除多连接分段在移动网络上的
+///   最慢段拖累与「段失败→从 0 重下」的回退放大（英国更新变慢的根因）。
+/// - [`Accelerated`](DownloadStrategy::Accelerated)：直连失败或过慢（国内受限场景）→
+///   启用并行分段 + 代理回退；`range_channel` 为首个支持 Range 的候选索引
+///   （None = 无通道支持 Range，回退单流 + 代理）。
+#[derive(Debug, Clone, Copy)]
+enum DownloadStrategy {
+    DirectSingleStream,
+    Accelerated {
+        total: u64,
+        range_channel: Option<usize>,
+    },
+}
+
+/// 样本测速达标判定（纯函数，便于单测）：累计吞吐 ≥ 阈值即为直连健康。
+fn sample_speed_healthy(read_bytes: u64, elapsed_secs: f64) -> bool {
+    elapsed_secs > 0.0 && read_bytes as f64 / elapsed_secs >= DIRECT_MIN_SPEED_BYTES_PER_SEC as f64
+}
+
+/// 直连通道 206 响应体测速：读取样本字节并按累计吞吐判定健康与否。
+///
+/// 快路径优化：逐块累计，一旦累计吞吐已达标（且样本窗口 ≥0.15s 避免慢启动首个
+/// 分块虚高）立即返回健康，不必等满整个样本——海外快直连的探测开销 ≈ 一两个分块。
+async fn direct_sample_healthy(resp: &mut reqwest::Response) -> bool {
+    let start = std::time::Instant::now();
+    let mut read = 0u64;
+    loop {
+        match resp.chunk().await {
+            Ok(Some(chunk)) => {
+                read += chunk.len() as u64;
+                if read >= DIRECT_SAMPLE_BYTES {
+                    break;
+                }
+                let elapsed = start.elapsed().as_secs_f64();
+                if elapsed >= 0.15 && sample_speed_healthy(read, elapsed) {
+                    return true;
+                }
+            }
+            Ok(None) => break,
+            Err(_) => break, // 读取失败视为过慢（交由并行/代理路径处理）
+        }
+    }
+    let elapsed = start.elapsed().as_secs_f64();
+    sample_speed_healthy(read, elapsed)
+}
+
 /// 为给定 GitHub URL 生成下载候选列表：直连优先，随后各代理前缀。
 fn download_candidates(url: &str) -> Vec<String> {
     let mut candidates = vec![url.to_string()];
@@ -614,11 +673,13 @@ pub async fn desktop_check_update(app: tauri::AppHandle) -> Result<DesktopUpdate
 
 /// 从指定 URL 下载 APK 文件到缓存目录，并发送进度事件。
 ///
-/// 下载策略（国内 GitHub 直连受限场景优化）：
-/// - **多通道回退**：候选 URL = 直连 + 各代理前缀，探测/下载失败自动切换；
-/// - **多线程分段下载**：服务器支持 HTTP Range 且文件足够大（>20MB）时，
-///   将文件切成至多 4 段并发拉取（利用 GitHub Release 的 Range 支持），
-///   大幅提升单连接受限时的下载速度；不支持 Range 或小文件退回单流；
+/// 下载策略（直连健康优先，国内 GitHub 直连受限场景优化，修复④）：
+/// - **直连健康 → 旧版单流直连**：探测阶段直连返回 206 且样本测速达标（≥2MB/s）时
+///   直接单流直连——海外（如英国）直连本就很快，不再启用并行分段/代理，避免多连接
+///   分段在移动网络上的最慢段拖累与失败回退放大（英国更新变慢的根因）；
+/// - **直连失败/过慢 → 多通道回退 + 并行分段**：直连受限（国内场景）时，候选 URL =
+///   直连 + 各代理前缀自动回退；服务器支持 HTTP Range 且文件足够大（>20MB）时切成
+///   至多 4 段并发拉取，不支持 Range 或小文件退回单流；
 /// - **单流断点续传**：已存在 `.part` 时带 `Range` 头从断点继续。
 ///
 /// P002: 下载 URL 与 SHA-256 校验和**不信任前端回传**——WebView 被 XSS 控制时
@@ -654,8 +715,8 @@ pub async fn android_download_apk(app: tauri::AppHandle, version: String) -> Res
     // 下载候选通道：直连优先 + 代理回退（元数据/校验和/APK 全链路同策略）
     let candidates = download_candidates(&download_url);
 
-    // 探测下载通道：确认文件总大小与 Range 支持（直连失败自动回退代理）
-    let (file_total, range_candidate) = probe_download(&candidates).await?; // U003: 标记下载进行中（cleanup 据此跳过，避免并发删除正在写入的 .seg 文件）。
+    // 探测下载通道并判定策略：直连健康→单流直连；直连失败/过慢→并行+代理
+    let strategy = probe_download(&candidates).await?; // U003: 标记下载进行中（cleanup 据此跳过，避免并发删除正在写入的 .seg 文件）。
                                                                             // 探测阶段已完成（不写 seg），从下载主体开始标记。
     use std::sync::atomic::Ordering;
     APK_DOWNLOAD_ACTIVE.store(true, Ordering::Relaxed);
@@ -663,8 +724,7 @@ pub async fn android_download_apk(app: tauri::AppHandle, version: String) -> Res
     let result = download_apk_to_part(
         &app,
         &candidates,
-        range_candidate,
-        file_total,
+        strategy,
         &part_path,
         &dest,
         &expected_checksum,
@@ -687,36 +747,48 @@ pub async fn android_download_apk(app: tauri::AppHandle, version: String) -> Res
     Ok(())
 }
 
-/// 下载主体：分段并行（支持 Range 且文件够大）或单流，随后 SHA-256 校验并返回最终大小。
+/// 下载主体：按探测策略执行（直连健康→单流直连；需加速→并行分段或单流），
+/// 随后 SHA-256 校验并返回最终大小。
 ///
 /// 抽为独立 async 函数使 `android_download_apk` 的 U003 活动标志在错误路径也能恢复
 /// （调用方 await 后无论 Ok/Err 都 store(false)）。
 async fn download_apk_to_part(
     app: &tauri::AppHandle,
     candidates: &[String],
-    range_candidate: Option<usize>,
-    file_total: u64,
+    strategy: DownloadStrategy,
     part_path: &std::path::Path,
     dest: &std::path::Path,
     expected_checksum: &str,
 ) -> Result<u64, String> {
-    if let Some(idx) = range_candidate {
-        if file_total >= PARALLEL_MIN_FILE_SIZE {
-            // 并行时优先复用探测确认支持 Range 的通道，其余通道作回退
-            let mut ordered: Vec<String> = candidates[idx..].to_vec();
-            ordered.extend(candidates[..idx].iter().cloned());
-            // 并行失败（代理限流/中途断连等）时回退单流重试一次：
-            // parallel 已保留 part_path 断点，单流可断点续传（T002）；
-            // 单流再失败则错误传播，由调用方处理。
-            if let Err(e) = download_apk_parallel(app, &ordered, file_total, part_path).await {
-                tracing::warn!("[updater] 分段并行下载失败，回退单流重试: {e}");
-                download_apk_single_stream(app, candidates, part_path).await?;
-            }
-        } else {
+    match strategy {
+        // 修复④：直连健康 → 旧版单流直连（候选仍直连优先，代理仅作段级兜底）
+        DownloadStrategy::DirectSingleStream => {
             download_apk_single_stream(app, candidates, part_path).await?;
         }
-    } else {
-        download_apk_single_stream(app, candidates, part_path).await?;
+        // 直连失败/过慢（国内受限场景）→ 启用并行分段 + 代理回退
+        DownloadStrategy::Accelerated {
+            total,
+            range_channel,
+        } => {
+            if let Some(idx) = range_channel {
+                if total >= PARALLEL_MIN_FILE_SIZE {
+                    // 并行时优先复用探测确认支持 Range 的通道，其余通道作回退
+                    let mut ordered: Vec<String> = candidates[idx..].to_vec();
+                    ordered.extend(candidates[..idx].iter().cloned());
+                    // 并行失败（代理限流/中途断连等）时回退单流重试一次：
+                    // parallel 已保留 part_path 断点，单流可断点续传（T002）；
+                    // 单流再失败则错误传播，由调用方处理。
+                    if let Err(e) = download_apk_parallel(app, &ordered, total, part_path).await {
+                        tracing::warn!("[updater] 分段并行下载失败，回退单流重试: {e}");
+                        download_apk_single_stream(app, candidates, part_path).await?;
+                    }
+                } else {
+                    download_apk_single_stream(app, candidates, part_path).await?;
+                }
+            } else {
+                download_apk_single_stream(app, candidates, part_path).await?;
+            }
+        }
     }
 
     // SHA-256 校验（P002：校验和由 Rust 侧验签获取，必非空，强制校验）+ 落盘
@@ -737,14 +809,19 @@ fn download_client() -> Result<reqwest::Client, String> {
         .map_err(|e| format!("创建 HTTP 客户端失败: {e}"))
 }
 
-/// 探测下载候选通道：逐个尝试 `Range: bytes=0-0`，确认文件总大小与 Range 支持。
+/// 探测下载候选通道并判定下载策略（修复④核心）。
 ///
-/// 返回 `(文件总大小, 首个支持 Range 的候选索引)`：
-/// - 某候选返回 206 + 可解析的 Content-Range → 记录总大小，返回该索引（用于分段并行）；
-/// - 所有候选均不支持 Range（200）→ 返回首个可连通候选的大小与 `None`（退回单流）；
-/// - 全部候选失败 → 聚合错误。
-async fn probe_download(candidates: &[String]) -> Result<(u64, Option<usize>), String> {
-    // 探测用独立 client：连接/总超时均短（探测只取 1 字节响应头），避免卡住整条链路
+/// - **直连（候选 0）返回 206**：下载 `DIRECT_SAMPLE_BYTES` 样本测速——
+///   - 吞吐 ≥ 阈值 → 直连健康 → [`DownloadStrategy::DirectSingleStream`]
+///     （海外快直连不再并行/绕代理）；
+///   - 吞吐不足 → 直连过慢（国内受限直连）→ [`DownloadStrategy::Accelerated`]
+///     （并行 over 直连，代理兜底）。
+/// - **直连失败/非 206** → 继续探测代理：首个 206 的代理作为并行通道；
+/// - **所有候选均不支持 Range（200）** → 记录首个可连通候选大小，回退单流；
+/// - **全部候选失败** → 聚合错误。
+///
+/// 探测用独立 client：连接/总超时均短（样本最大 1MB），避免卡住整条链路。
+async fn probe_download(candidates: &[String]) -> Result<DownloadStrategy, String> {
     let client = reqwest::Client::builder()
         .user_agent(USER_AGENT)
         .connect_timeout(std::time::Duration::from_secs(10))
@@ -754,7 +831,12 @@ async fn probe_download(candidates: &[String]) -> Result<(u64, Option<usize>), S
     let mut last_err = String::new();
     let mut first_ok_size: Option<u64> = None;
     for (i, url) in candidates.iter().enumerate() {
-        let resp = match client.get(url).header("Range", "bytes=0-0").send().await {
+        let resp = match client
+            .get(url)
+            .header("Range", format!("bytes=0-{}", DIRECT_SAMPLE_BYTES - 1))
+            .send()
+            .await
+        {
             Ok(r) => r,
             Err(e) => {
                 last_err = format!("通道 {i} 失败: {e}");
@@ -762,11 +844,35 @@ async fn probe_download(candidates: &[String]) -> Result<(u64, Option<usize>), S
             }
         };
         if resp.status() == reqwest::StatusCode::PARTIAL_CONTENT {
-            if let Some(total) = parse_content_range_total(&resp) {
-                tracing::info!("[updater] 探测通道 {i} 支持 Range，文件总大小 {total} 字节");
-                return Ok((total, Some(i)));
+            let Some(total) = parse_content_range_total(&resp) else {
+                last_err = format!("通道 {i} Content-Range 解析失败");
+                continue;
+            };
+            if i == 0 {
+                // 直连通道：样本测速判定健康与否
+                let mut resp = resp;
+                if direct_sample_healthy(&mut resp).await {
+                    tracing::info!(
+                        "[updater] 直连健康（样本测速 ≥ {}B/s），走单流直连",
+                        DIRECT_MIN_SPEED_BYTES_PER_SEC
+                    );
+                    return Ok(DownloadStrategy::DirectSingleStream);
+                }
+                tracing::warn!(
+                    "[updater] 直连过慢（样本测速 < {}B/s），启用并行加速（总大小 {total} 字节）",
+                    DIRECT_MIN_SPEED_BYTES_PER_SEC
+                );
+                return Ok(DownloadStrategy::Accelerated {
+                    total,
+                    range_channel: Some(0),
+                });
             }
-            last_err = format!("通道 {i} Content-Range 解析失败");
+            // 代理通道支持 Range：作为并行下载通道（段级失败回退其余候选）
+            tracing::info!("[updater] 探测通道 {i}（代理）支持 Range，文件总大小 {total} 字节");
+            return Ok(DownloadStrategy::Accelerated {
+                total,
+                range_channel: Some(i),
+            });
         } else if resp.status().is_success() {
             // 该通道忽略 Range 返回 200（完整 body），记录大小作为单流兜底
             if first_ok_size.is_none() {
@@ -778,7 +884,10 @@ async fn probe_download(candidates: &[String]) -> Result<(u64, Option<usize>), S
         }
     }
     match first_ok_size {
-        Some(len) => Ok((len, None)),
+        Some(len) => Ok(DownloadStrategy::Accelerated {
+            total: len,
+            range_channel: None,
+        }),
         None => Err(format!("所有下载通道探测失败: {last_err}")),
     }
 }
@@ -1470,5 +1579,174 @@ mod tests {
         assert!(compute_segments(0).is_empty());
         // 19MB：低于调用点 20MB 并行阈值，但 compute_segments 本身仍按每段最小 5MB 分 4 段
         assert_eq!(compute_segments(19 * 1024 * 1024).len(), 4);
+    }
+
+    /// 修复④：样本测速达标判定——海外快直连（≈20MB/s）健康；恰在阈值（2MB/s）健康；
+    /// 国内受限直连（≈300KB/s）过慢；零耗时/零字节防御性判过慢。
+    #[test]
+    fn test_sample_speed_healthy_verdicts() {
+        assert!(sample_speed_healthy(5 * 1024 * 1024, 0.25)); // 20MB/s
+        assert!(sample_speed_healthy(1024 * 1024, 0.5)); // 恰 2MB/s 阈值
+        assert!(!sample_speed_healthy(300 * 1024, 1.0)); // 300KB/s 过慢
+        assert!(!sample_speed_healthy(0, 0.0));
+        assert!(!sample_speed_healthy(1024 * 1024, 0.0)); // 零耗时防御
+    }
+
+    // ── 修复④ 探测策略集成测试（本地 HTTP/1.1 服务器，不触网） ──────────────
+
+    /// 启动本地 HTTP/1.1 服务器，模拟 GitHub 资产（64MB，支持 Range）。
+    /// `slow` 时按 ≈320KB/s（每 64KB sleep 200ms）分块吐样本字节，模拟直连过慢；
+    /// `ignore_range` 时忽略 Range 返回 200（完整 body，模拟不支持 Range 的通道）。
+    /// 返回 base URL；服务器任务在后台 tokio 任务中持续接受连接。
+    async fn spawn_range_server(slow: bool, ignore_range: bool) -> String {
+        use tokio::io::{AsyncReadExt, AsyncWriteExt};
+        use tokio::net::TcpListener;
+
+        const TOTAL: u64 = 64 * 1024 * 1024; // 64MB 模拟 APK
+        let listener = TcpListener::bind("127.0.0.1:0").await.expect("bind 本地端口");
+        let addr = listener.local_addr().expect("取监听地址");
+        let base = format!("http://{addr}");
+        tokio::spawn(async move {
+            loop {
+                let Ok((mut sock, _)) = listener.accept().await else {
+                    break;
+                };
+                tokio::spawn(async move {
+                    // 读请求头（到 \r\n\r\n 或上限）
+                    let mut buf = [0u8; 4096];
+                    let mut request: Vec<u8> = Vec::new();
+                    loop {
+                        match sock.read(&mut buf).await {
+                            Ok(0) | Err(_) => break,
+                            Ok(n) => request.extend_from_slice(&buf[..n]),
+                        }
+                        if request.windows(4).any(|w| w == b"\r\n\r\n") || request.len() > 8192 {
+                            break;
+                        }
+                    }
+                    // 解析 Range: bytes=start-end
+                    let req_text = String::from_utf8_lossy(&request);
+                    let (start, end) = req_text
+                        .lines()
+                        .find(|l| l.to_ascii_lowercase().starts_with("range:"))
+                        .and_then(|l| l.split_once(':').map(|(_, v)| v.trim().to_string()))
+                        .and_then(|v| v.strip_prefix("bytes=").map(|r| r.to_string()))
+                        .and_then(|r| r.split_once('-').map(|(s, e)| (s.to_string(), e.to_string())))
+                        .map(|(s, e)| (s.parse().unwrap_or(0), e.parse().unwrap_or(0)))
+                        .unwrap_or((0, 1024 * 1024));
+                    let end = end.min(TOTAL - 1);
+                    let len = end.saturating_sub(start) + 1;
+                    let headers = if ignore_range {
+                        format!("HTTP/1.1 200 OK\r\nContent-Length: {TOTAL}\r\nConnection: close\r\n\r\n")
+                    } else {
+                        format!(
+                            "HTTP/1.1 206 Partial Content\r\nContent-Range: bytes {start}-{end}/{TOTAL}\r\nContent-Length: {len}\r\nConnection: close\r\n\r\n"
+                        )
+                    };
+                    if sock.write_all(headers.as_bytes()).await.is_err() {
+                        return;
+                    }
+                    // 200（不支持 Range）场景客户端不会读 body（探测只取状态/大小），
+                    // 只写前 1MB 即可让探测正常完成，避免无谓写满 64MB。
+                    let body_len = if ignore_range { len.min(1024 * 1024) } else { len };
+                    let mut sent = 0u64;
+                    while sent < body_len {
+                        // 快路径用大块单次写入（最小化 syscall 开销，降低 CI 慢机误判慢的风险）
+                        let chunk = if slow {
+                            (body_len - sent).min(64 * 1024) as usize
+                        } else {
+                            (body_len - sent).min(1024 * 1024) as usize
+                        };
+                        if sock.write_all(&vec![0u8; chunk]).await.is_err() {
+                            return;
+                        }
+                        sent += chunk as u64;
+                        if slow {
+                            tokio::time::sleep(std::time::Duration::from_millis(200)).await;
+                        }
+                    }
+                    let _ = sock.shutdown().await;
+                });
+            }
+        });
+        base
+    }
+
+    /// 取一个必然连接失败的端口（绑定后立即释放）。
+    async fn closed_port() -> u16 {
+        tokio::net::TcpListener::bind("127.0.0.1:0")
+            .await
+            .expect("bind")
+            .local_addr()
+            .expect("取端口")
+            .port()
+    }
+
+    /// 修复④：直连健康（206 + 样本测速达标）→ 单流直连策略（不再并行/绕代理）。
+    #[tokio::test]
+    async fn test_probe_direct_healthy_returns_single_stream() {
+        let base = spawn_range_server(false, false).await;
+        let candidates = vec![format!("{base}/app.apk")];
+        let strategy = probe_download(&candidates).await.expect("探测应成功");
+        assert!(
+            matches!(strategy, DownloadStrategy::DirectSingleStream),
+            "快直连应走单流直连，实际 {strategy:?}"
+        );
+    }
+
+    /// 修复④：直连过慢（206 但样本测速不足）→ 并行加速（range_channel=0，代理兜底）。
+    #[tokio::test]
+    async fn test_probe_direct_slow_returns_accelerated_parallel() {
+        let base = spawn_range_server(true, false).await;
+        let candidates = vec![format!("{base}/app.apk")];
+        let strategy = probe_download(&candidates).await.expect("探测应成功");
+        match strategy {
+            DownloadStrategy::Accelerated { total, range_channel } => {
+                assert_eq!(range_channel, Some(0), "直连过慢应并行 over 直连");
+                assert!(total > 0);
+            }
+            other => panic!("直连过慢应返回 Accelerated，实际 {other:?}"),
+        }
+    }
+
+    /// 修复④：直连失败 → 回退代理通道（首个 206 的代理索引）。
+    #[tokio::test]
+    async fn test_probe_direct_down_falls_back_to_proxy() {
+        let base = spawn_range_server(false, false).await;
+        let dead = format!("http://127.0.0.1:{}/x", closed_port().await);
+        let candidates = vec![dead, format!("{base}/app.apk")];
+        let strategy = probe_download(&candidates).await.expect("探测应成功");
+        match strategy {
+            DownloadStrategy::Accelerated { total, range_channel } => {
+                assert_eq!(range_channel, Some(1), "直连失败应回退代理通道");
+                assert!(total > 0);
+            }
+            other => panic!("直连失败应回退代理，实际 {other:?}"),
+        }
+    }
+
+    /// 修复④：全部候选不可用 → 聚合错误。
+    #[tokio::test]
+    async fn test_probe_all_candidates_down_errors() {
+        let candidates = vec![
+            format!("http://127.0.0.1:{}/a", closed_port().await),
+            format!("http://127.0.0.1:{}/b", closed_port().await),
+        ];
+        assert!(probe_download(&candidates).await.is_err());
+    }
+
+    /// 修复④：所有候选均不支持 Range（200）→ 单流回退（range_channel=None）。
+    #[tokio::test]
+    async fn test_probe_no_range_support_falls_back_to_single_stream() {
+        let base = spawn_range_server(false, true).await;
+        let candidates = vec![format!("{base}/a"), format!("{base}/b")];
+        let strategy = probe_download(&candidates).await.expect("探测应成功");
+        match strategy {
+            DownloadStrategy::Accelerated { total, range_channel } => {
+                assert!(range_channel.is_none(), "不支持 Range 应回退单流");
+                assert!(total > 0);
+            }
+            other => panic!("200 通道应返回 Accelerated{{None}}，实际 {other:?}"),
+        }
     }
 }
