@@ -144,6 +144,22 @@ describe('AttachmentRow', () => {
     expect(screen.queryByTitle('common:forward')).not.toBeInTheDocument();
   });
 
+  it('移动端：操作按钮行 0 缩进（移出内容列）且间距为 80%（3.2px）', () => {
+    vi.mocked(isMobilePlatformSync).mockReturnValue(true);
+    setupRow();
+
+    const deleteBtn = screen.getByTitle('common:delete');
+    // BadgeIconButton 结构：div.wrapper > button
+    const wrapper = deleteBtn.parentElement!;
+    const actionsRow = wrapper.parentElement!;
+    expect(actionsRow.style.display).toBe('flex');
+    expect(actionsRow.style.gap).toBe('3.2px');
+    // 0 缩进：按钮行是行容器（flex column）的直接子元素，
+    // 而非缩进在「勾选框内容列（flex:1）」之内
+    const rowContainer = actionsRow.parentElement!;
+    expect(rowContainer.style.flexDirection).toBe('column');
+  });
+
   it('移动端：附件图标位于元信息行左侧（与名称列对齐）而非勾选框下方', () => {
     vi.mocked(isMobilePlatformSync).mockReturnValue(true);
     setupRow();

@@ -7,6 +7,9 @@ import { ICON_SIZE } from '@/lib/constants';
 import { isMobilePlatformSync } from '@/lib/platform';
 import type { AttachmentMeta } from './attachmentManagerTypes';
 
+/** 移动端操作按钮行间距：原 4px 的 80%——窄屏让宽，防六个按钮溢出卡片（软删除不可见）。 */
+const MOBILE_ACTIONS_GAP = 4 * 0.8;
+
 interface AttachmentRowProps {
   item: AttachmentMeta;
   objectId: string;
@@ -136,48 +139,54 @@ function AttachmentRowBase({
         key={item.id}
         style={{
           display: 'flex',
+          flexDirection: 'column',
           gap: 6,
-          alignItems: 'flex-start',
           padding: '6px 8px 6px 14px',
           fontSize: 'var(--text-sm)',
           borderBottom: '1px solid var(--border-subtle)',
         }}
       >
-        <div style={{ display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
-          <SelectCheckbox
-            checked={isChecked}
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggleSelect(compositeKey);
-            }}
-          />
-        </div>
-
-        {isRenaming ? (
-          renameInput
-        ) : (
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <AttachmentFileNameBlock
-              fileName={item.fileName}
-              sizeBytes={item.sizeBytes}
-              createdAt={item.createdAt}
-              showTrash={showTrash}
-              description={item.description}
-              tags={item.tags}
-              metaLeadingIcon={
-                <>
-                  <AttachmentTypeIcon
-                    item={item}
-                    size={ICON_SIZE.sm}
-                    style={{ color: 'var(--text-tertiary)', flexShrink: 0 }}
-                  />
-                  <AttachmentExtBadge fileName={item.fileName} />
-                </>
-              }
+        {/* 第1行：勾选框 + 内容列（文件名 / 元信息） */}
+        <div style={{ display: 'flex', gap: 6, alignItems: 'flex-start' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+            <SelectCheckbox
+              checked={isChecked}
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleSelect(compositeKey);
+              }}
             />
-            <div style={{ display: 'flex', gap: 4, marginTop: 4 }}>{actions}</div>
           </div>
-        )}
+
+          {isRenaming ? (
+            renameInput
+          ) : (
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <AttachmentFileNameBlock
+                fileName={item.fileName}
+                sizeBytes={item.sizeBytes}
+                createdAt={item.createdAt}
+                showTrash={showTrash}
+                description={item.description}
+                tags={item.tags}
+                metaLeadingIcon={
+                  <>
+                    <AttachmentTypeIcon
+                      item={item}
+                      size={ICON_SIZE.sm}
+                      style={{ color: 'var(--text-tertiary)', flexShrink: 0 }}
+                    />
+                    <AttachmentExtBadge fileName={item.fileName} />
+                  </>
+                }
+              />
+            </div>
+          )}
+        </div>
+        {/* 第2行：操作按钮——0 缩进（移出内容列，与勾选框同左缘对齐，不再占
+            勾选框宽度的缩进空间）；间距 4px → 3.2px（80%），窄屏下六个按钮
+            （含软删除）可全部落在卡片范围内。重命名进行时不渲染。 */}
+        {!isRenaming && <div style={{ display: 'flex', gap: MOBILE_ACTIONS_GAP }}>{actions}</div>}
       </div>
     );
   }
