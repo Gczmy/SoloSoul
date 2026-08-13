@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
@@ -35,6 +35,22 @@ const SWIPE_THRESHOLD = 60;
 const MIN_SCALE = 0.1;
 const MAX_SCALE = 5;
 const ZOOM_STEP = 1.2;
+
+/**
+ * 纯函数：计算「适应视口」缩放比例（相对图片原始尺寸，与附件预览一致）。
+ * 取宽/高两个方向的适配比中较小者，且不超过 1（小图不放大）。
+ */
+export function computeFitScale(
+  clientWidth: number,
+  clientHeight: number,
+  naturalWidth: number,
+  naturalHeight: number,
+): number {
+  if (clientWidth <= 0 || clientHeight <= 0 || naturalWidth <= 0 || naturalHeight <= 0) {
+    return 1;
+  }
+  return Number(Math.min(clientWidth / naturalWidth, clientHeight / naturalHeight, 1).toFixed(3));
+}
 
 /** 纯函数：根据拖拽横向位移判断翻页方向（左滑 → 下一张，右滑 → 上一张）。 */
 export function swipeNavigation(offsetX: number, threshold = SWIPE_THRESHOLD): -1 | 0 | 1 {
@@ -111,7 +127,9 @@ function NavButton({ direction, onClick, label }: NavButtonProps) {
  * - 顶栏左右两个返回按钮都回到网格；顶部显示「{current} / {total}」计数；
  * - 左右滑动切换（framer-motion `drag="x"` + 阈值判定），桌面端补方向键，
  *   内容区两侧另置半透明 ◀ ▶ 翻页按钮让用户感知可左右切换；
- * - 仅 scale ≤ 1（未放大）时响应横向 swipe——放大后容器 overflow auto 滚动优先，
+ * - 缩放采用与附件预览一致的 fit-scale 模型：初始 scale = 适应视口比例（相对原始尺寸，
+ *   大图如 26%），图片始终按 `原始尺寸 × scale` 渲染——缩放比例真实、缩小始终可见；
+ *   图片超出视口（scale > fit）时容器 overflow auto 可滚动平移并禁用横向滑动翻页，
  *   避免手势冲突（`global.css` 全局 `touch-action: manipulation` 在此容器覆写为 pan-y）；
  * - 加载策略：仅缓存当前 ±1（index 变化丢弃过期 resolve，修复「慢 IPC 覆盖新图」竞态）。
  */
@@ -131,11 +149,17 @@ export function PhotoViewerOverlay({
   const [loading, setLoading] = useState(true);
   const [naturalSize, setNaturalSize] = useState<{ w: number; h: number } | null>(null);
   const [scale, setScale] = useState(1);
+  /** 适应视口比例（相对原始尺寸，见 fitToView）；图片未放大时 scale 即为此值。 */
+  const [fitScale, setFitScale] = useState(1);
   const [metaEditOpen, setMetaEditOpen] = useState(false);
+  /** 图片滚动/平移容器（motion.div），fitToView 以其 clientWidth/Height 计算适应比例。 */
+  const contentRef = useRef<HTMLDivElement>(null);
 
   const total = items.length;
   const item = items[index];
-  const zoomed = scale > 1;
+  /** 图片渲染尺寸是否未超出视口：超出时容器 overflow auto 可平移、禁用左右滑动翻页。
+   *  带 epsilon 容忍缩放 ×1.2 ÷1.2 浮点回环的亚像素误差（如 fit=0.487 回环后 0.4870000000000001）。 */
+  const fitsViewport = naturalSize !== null ? scale <= fitScale + 0.001 : true;
 
   const goTo = useCallback(
     (targetRaw: number) => {
@@ -158,6 +182,7 @@ export function PhotoViewerOverlay({
     setUrl(null);
     setNaturalSize(null);
     setScale(1);
+    setFitScale(1);
     loadFullPreviewUrl(item)
       .then((u) => {
         if (!stale) setUrl(u);
@@ -187,7 +212,36 @@ export function PhotoViewerOverlay({
   const clampScale = (v: number) => Math.min(MAX_SCALE, Math.max(MIN_SCALE, v));
   const zoomIn = () => setScale((s) => clampScale(s * ZOOM_STEP));
   const zoomOut = () => setScale((s) => clampScale(s / ZOOM_STEP));
-  const resetZoom = () => setScale(1);
+
+  /** 计算「适应视口」缩放比例（相对图片原始尺寸）并与附件预览一致：
+   *  初始显示为 fit（大图如 26% 而非 100%），此后缩放均基于原始尺寸，比例真实。 */
+  const fitToView = useCallback(() => {
+    const container = contentRef.current;
+    if (!container || !naturalSize) return;
+    const fit = computeFitScale(
+      container.clientWidth,
+      container.clientHeight,
+      naturalSize.w,
+      naturalSize.h,
+    );
+    setFitScale(fit);
+    setScale(fit);
+  }, [naturalSize]);
+
+  // 图片元信息就绪后（容器已布局）计算 fit 比例；窗口尺寸变化（横竖屏/桌面缩放）时重算。
+  useEffect(() => {
+    if (naturalSize) fitToView();
+  }, [naturalSize, fitToView]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (naturalSize) fitToView();
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [naturalSize, fitToView]);
+
+  const resetZoom = () => fitToView();
 
   // Android 加固：缩放按钮主路径走 pointerdown（先于任何手势取消 click 触发），
   // 但仅响应主按键（右键/中键不缩放）；键盘激活无 pointerdown，经 click(detail===0) 兜底。
@@ -233,31 +287,47 @@ export function PhotoViewerOverlay({
       return <LoadingPlaceholder variant="toolbar" minHeight={120} style={{ margin: 'auto' }} />;
     }
     if (!url) return null;
+    const displayWidth = naturalSize ? Math.round(naturalSize.w * scale) : undefined;
+    const displayHeight = naturalSize ? Math.round(naturalSize.h * scale) : undefined;
     return (
-      <img
-        src={url}
-        alt={item.fileName}
-        draggable={false}
-        onLoad={(e) =>
-          setNaturalSize({ w: e.currentTarget.naturalWidth, h: e.currentTarget.naturalHeight })
-        }
-        onError={() => {
-          // data URL 拿到但浏览器无法渲染（如 HEIC）→ 进入错误态降级「使用系统应用打开」
-          setError(true);
-          setUrl(null);
-        }}
+      // 定宽高包装层：margin auto 居中——内容小于视口时水平垂直居中；放大超出视口时
+      // auto 边距归零、按起始位置对齐，保证溢出边缘仍可滚动到达（与附件预览一致）。
+      <div
+        onClick={(e) => e.stopPropagation()}
         style={{
           margin: 'auto',
-          maxWidth: zoomed ? 'none' : '100%',
-          maxHeight: zoomed ? 'none' : '100%',
-          width: zoomed && naturalSize ? naturalSize.w * scale : 'auto',
-          height: zoomed && naturalSize ? naturalSize.h * scale : 'auto',
-          objectFit: 'contain',
-          borderRadius: 8,
-          transition: 'width 0.15s ease, height 0.15s ease',
-          userSelect: 'none',
+          display: 'inline-block',
+          width: displayWidth,
+          height: displayHeight,
+          maxWidth: displayWidth !== undefined ? undefined : '100%',
+          maxHeight: displayHeight !== undefined ? undefined : '100%',
+          minWidth: 'auto',
+          minHeight: 'auto',
+          flexShrink: 0,
         }}
-      />
+      >
+        <img
+          src={url}
+          alt={item.fileName}
+          draggable={false}
+          onLoad={(e) =>
+            setNaturalSize({ w: e.currentTarget.naturalWidth, h: e.currentTarget.naturalHeight })
+          }
+          onError={() => {
+            // data URL 拿到但浏览器无法渲染（如 HEIC）→ 进入错误态降级「使用系统应用打开」
+            setError(true);
+            setUrl(null);
+          }}
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'contain',
+            borderRadius: 8,
+            display: 'block',
+            userSelect: 'none',
+          }}
+        />
+      </div>
     );
   };
 
@@ -274,8 +344,8 @@ export function PhotoViewerOverlay({
         backdropFilter: 'blur(12px)',
       }}
       onClick={(e) => {
-        // 点背景关闭（桌面端习惯）；缩放时避免误触
-        if (e.target === e.currentTarget && scale <= 1) onClose();
+        // 点背景关闭（桌面端习惯）；图片放大超出视口时避免误触
+        if (e.target === e.currentTarget && fitsViewport) onClose();
       }}
     >
       {/* 顶栏：返回网格 + 文件名 + 计数 + 关闭 */}
@@ -373,7 +443,7 @@ export function PhotoViewerOverlay({
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -48 * direction }}
             transition={{ duration: 0.18, ease: 'easeOut' }}
-            drag={scale <= 1 ? 'x' : false}
+            drag={fitsViewport ? 'x' : false}
             dragConstraints={{ left: 0, right: 0 }}
             dragElastic={0.12}
             onDragEnd={(_, info) => {
@@ -381,14 +451,15 @@ export function PhotoViewerOverlay({
               if (nav === 1) goNext();
               else if (nav === -1) goPrev();
             }}
+            ref={contentRef}
             style={{
               position: 'absolute',
               inset: 0,
               display: 'flex',
-              overflow: zoomed ? 'auto' : 'hidden',
-              // 覆写全局 touch-action: manipulation——未放大时横向拖拽交给 framer-motion；
-              // 放大后容器溢出滚动优先，需恢复 auto 让浏览器处理双向滚动
-              touchAction: zoomed ? 'auto' : 'pan-y',
+              overflow: fitsViewport ? 'hidden' : 'auto',
+              // 覆写全局 touch-action: manipulation——图片未超出视口时横向拖拽交给 framer-motion；
+              // 超出后容器溢出滚动优先，需恢复 auto 让浏览器处理双向滚动
+              touchAction: fitsViewport ? 'pan-y' : 'auto',
             }}
           >
             {renderContent()}
@@ -405,10 +476,9 @@ export function PhotoViewerOverlay({
       </div>
 
       {/* 缩放控件（仅图片就绪时显示）
-          Android 加固：缩放条悬浮于 framer-motion drag 层（touch-action: pan-y）之上，
-          真实 WebView 的手势判定/合成层可能吞掉 click——显式 zIndex 确保绘制在 drag 层之上，
-          touch-action: manipulation 声明本区域仅为点按（不参与 pan），按钮主路径走 onPointerDown
-          （在任何手势取消 click 之前触发），键盘激活仍经 click(detail===0) 兜底。 */}
+          交互加固：缩放条悬浮于 framer-motion drag 层之上，显式 zIndex 确保绘制在上层、
+          touch-action: manipulation 声明本区域仅为点按；按钮主路径走 onPointerDown（触控/鼠标
+          按下即响应），键盘激活经 click(detail===0) 兜底，右键/中键不缩放。 */}
       {showZoomControls && (
         <div
           onClick={(e) => e.stopPropagation()}

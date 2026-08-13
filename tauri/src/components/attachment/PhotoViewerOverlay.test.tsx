@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { invoke } from '@tauri-apps/api/core';
-import { PhotoViewerOverlay, swipeNavigation } from './PhotoViewerOverlay';
+import { PhotoViewerOverlay, swipeNavigation, computeFitScale } from './PhotoViewerOverlay';
 import { FULL_PREVIEW_MAX_DIM } from '@/lib/photoAlbumPreview';
 import type { AttachmentItem } from '@/lib/attachmentUtils';
 
@@ -26,6 +26,32 @@ describe('swipeNavigation', () => {
     expect(swipeNavigation(100)).toBe(-1); // 右滑 → 上一张
     expect(swipeNavigation(-30)).toBe(0); // 低于阈值不翻页
     expect(swipeNavigation(30)).toBe(0);
+  });
+});
+
+describe('computeFitScale（T009 缩放语义：初始 = 适应视口比例，比例相对原始尺寸）', () => {
+  it('大图按视口适配比计算（如 800x600 图在 390x844 视口 → 约 49%）', () => {
+    // min(390/800, 844/600, 1) = 0.4875；JS 浮点表示下 toFixed(3) 得 0.487
+    expect(computeFitScale(390, 844, 800, 600)).toBe(0.487);
+    // 手机大图：4000x3000 在 400x800 视口 → min(0.1, 0.2667, 1) = 0.1
+    expect(computeFitScale(400, 800, 4000, 3000)).toBe(0.1);
+  });
+
+  it('小图不超过 100%（不放大）', () => {
+    expect(computeFitScale(400, 800, 200, 150)).toBe(1);
+  });
+
+  it('容器或原始尺寸为 0/负值时回退 1（防御）', () => {
+    expect(computeFitScale(0, 800, 800, 600)).toBe(1);
+    expect(computeFitScale(400, 0, 800, 600)).toBe(1);
+    expect(computeFitScale(400, 800, 0, 600)).toBe(1);
+    expect(computeFitScale(400, 800, 800, 0)).toBe(1);
+  });
+
+  it('缩放步进相对 fit 成比例（120% = fit × 1.2，非跳变到原始尺寸 120%）', () => {
+    const fit = computeFitScale(390, 844, 800, 600);
+    expect(Number((fit * 1.2).toFixed(3))).toBe(0.584); // 58% 而非 120%
+    expect(Number((fit * 1.2 * 1.2).toFixed(3))).toBe(0.701); // 70%
   });
 });
 
