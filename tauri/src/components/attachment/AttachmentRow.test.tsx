@@ -1,7 +1,12 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { AttachmentRow } from './AttachmentRow';
+import { isMobilePlatformSync } from '@/lib/platform';
 import type { AttachmentMeta } from './attachmentManagerTypes';
+
+vi.mock('@/lib/platform', () => ({
+  isMobilePlatformSync: vi.fn(() => false),
+}));
 
 const item: AttachmentMeta = {
   id: 'att_1',
@@ -137,5 +142,17 @@ describe('AttachmentRow', () => {
   it('hides share button when renaming', () => {
     setupRow({ isRenaming: true });
     expect(screen.queryByTitle('common:forward')).not.toBeInTheDocument();
+  });
+
+  it('移动端：附件图标位于元信息行左侧（与名称列对齐）而非勾选框下方', () => {
+    vi.mocked(isMobilePlatformSync).mockReturnValue(true);
+    setupRow();
+    // 元信息文本（span）所在 flex 行即「大小·时间」行；其首个子元素应为图标 SVG
+    // → 图标缩进到与名称同列、与元信息同行（方案B）；若图标仍竖排在勾选框下方
+    // （旧布局），元信息行内将无任何 SVG，本断言即失败。
+    const metaText = screen.getByText(/1\.0 KB/);
+    const metaRow = metaText.parentElement;
+    expect(metaRow).not.toBeNull();
+    expect(metaRow!.firstElementChild?.tagName.toLowerCase()).toBe('svg');
   });
 });

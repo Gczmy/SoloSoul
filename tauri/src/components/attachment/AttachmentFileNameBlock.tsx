@@ -10,6 +10,9 @@ interface AttachmentFileNameBlockProps {
   showTrash: boolean;
   /** 可选元信息样式覆盖（如 AttachmentListItem 使用更小的 text-badge） */
   metaStyle?: CSSProperties;
+  /** 可选：元信息行左侧的前置图标（移动端附件管理行把附件图标从勾选框竖列移入此处，
+   *  与名称列对齐；桌面端/回收站详情不传则保持纯文本行） */
+  metaLeadingIcon?: ReactNode;
   /** 可选：附件描述（存在时在元信息下方显示一行，截断；可展开全文） */
   description?: string | null;
   /** 可选：附件标签（存在时以小型 chips 显示，超过 4 个可展开） */
@@ -254,6 +257,7 @@ export function AttachmentFileNameBlock({
   createdAt,
   showTrash,
   metaStyle,
+  metaLeadingIcon,
   description,
   tags,
 }: AttachmentFileNameBlockProps) {
@@ -358,13 +362,22 @@ export function AttachmentFileNameBlock({
       </ExpandableBlock>
       <div
         style={{
+          // 元信息行：可选前置图标 + 文本（flex 使图标与文本垂直居中；图标由调用方
+          // 以固定尺寸传入，不随 metaStyle 的字号变化）
+          display: 'flex',
+          alignItems: 'center',
+          gap: 4,
           fontSize: 'var(--text-caption)',
           color: 'var(--text-tertiary)',
           marginTop: 1,
+          minWidth: 0,
           ...metaStyle,
         }}
       >
-        {formatBytes(sizeBytes)} · {new Date(createdAt).toLocaleDateString()}
+        {metaLeadingIcon}
+        <span style={{ minWidth: 0 }}>
+          {formatBytes(sizeBytes)} · {new Date(createdAt).toLocaleDateString()}
+        </span>
       </div>
       {trimmedDesc && (
         <ExpandableBlock
