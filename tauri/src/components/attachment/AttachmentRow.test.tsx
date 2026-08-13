@@ -19,12 +19,10 @@ const item: AttachmentMeta = {
 
 function setupRow(props: Partial<Parameters<typeof AttachmentRow>[0]> = {}) {
   const onToggleSelect = vi.fn();
-  const onRenameConfirm = vi.fn();
-  const onRenameCancel = vi.fn();
   const onPreview = vi.fn();
-  const onStartRename = vi.fn();
   const onDownload = vi.fn();
   const onShare = vi.fn();
+  const onEditMeta = vi.fn();
   const onSoftDelete = vi.fn();
   const onRestore = vi.fn();
   const onPermanentDelete = vi.fn();
@@ -35,14 +33,11 @@ function setupRow(props: Partial<Parameters<typeof AttachmentRow>[0]> = {}) {
       objectId="obj_1"
       showTrash={false}
       isChecked={false}
-      isRenaming={false}
       onToggleSelect={onToggleSelect}
-      onRenameConfirm={onRenameConfirm}
-      onRenameCancel={onRenameCancel}
       onPreview={onPreview}
-      onStartRename={onStartRename}
       onDownload={onDownload}
       onShare={onShare}
+      onEditMeta={onEditMeta}
       onSoftDelete={onSoftDelete}
       onRestore={onRestore}
       onPermanentDelete={onPermanentDelete}
@@ -52,12 +47,10 @@ function setupRow(props: Partial<Parameters<typeof AttachmentRow>[0]> = {}) {
 
   return {
     onToggleSelect,
-    onRenameConfirm,
-    onRenameCancel,
     onPreview,
-    onStartRename,
     onDownload,
     onShare,
+    onEditMeta,
     onSoftDelete,
     onRestore,
     onPermanentDelete,
@@ -71,62 +64,9 @@ describe('AttachmentRow', () => {
     expect(screen.getByText(/1\.0 KB/)).toBeInTheDocument();
   });
 
-  it('shows rename input pre-filled when isRenaming', () => {
-    setupRow({ isRenaming: true });
-    const input = screen.getByDisplayValue('report.pdf');
-    expect(input).toBeInTheDocument();
-  });
-
-  it('P217: typing only updates local input, does not submit per keystroke', () => {
-    const { onRenameConfirm } = setupRow({ isRenaming: true });
-    const input = screen.getByDisplayValue('report.pdf');
-    fireEvent.change(input, { target: { value: 'new-name.pdf' } });
-    // 本地输入态：任何一次击键都不应触发 confirm
-    expect(onRenameConfirm).not.toHaveBeenCalled();
-    // 输入框随本地 state 更新
-    expect(screen.getByDisplayValue('new-name.pdf')).toBeInTheDocument();
-  });
-
-  it('P217: Enter submits the typed value once', () => {
-    const { onRenameConfirm } = setupRow({ isRenaming: true });
-    const input = screen.getByDisplayValue('report.pdf');
-    fireEvent.change(input, { target: { value: 'new-name.pdf' } });
-    fireEvent.keyDown(input, { key: 'Enter' });
-    expect(onRenameConfirm).toHaveBeenCalledTimes(1);
-    expect(onRenameConfirm).toHaveBeenCalledWith('new-name.pdf');
-  });
-
-  it('P217: Enter→blur does not double-submit', () => {
-    const { onRenameConfirm } = setupRow({ isRenaming: true });
-    const input = screen.getByDisplayValue('report.pdf');
-    fireEvent.change(input, { target: { value: 'new-name.pdf' } });
-    fireEvent.keyDown(input, { key: 'Enter' });
-    fireEvent.blur(input);
-    expect(onRenameConfirm).toHaveBeenCalledTimes(1);
-  });
-
-  it('P217: Escape cancels without submitting', () => {
-    const { onRenameConfirm, onRenameCancel } = setupRow({ isRenaming: true });
-    const input = screen.getByDisplayValue('report.pdf');
-    fireEvent.change(input, { target: { value: 'new-name.pdf' } });
-    fireEvent.keyDown(input, { key: 'Escape' });
-    expect(onRenameCancel).toHaveBeenCalledTimes(1);
-    expect(onRenameConfirm).not.toHaveBeenCalled();
-  });
-
-  it('blur confirms the current value', () => {
-    const { onRenameConfirm } = setupRow({ isRenaming: true });
-    const input = screen.getByDisplayValue('report.pdf');
-    fireEvent.change(input, { target: { value: 'blurred.pdf' } });
-    fireEvent.blur(input);
-    expect(onRenameConfirm).toHaveBeenCalledTimes(1);
-    expect(onRenameConfirm).toHaveBeenCalledWith('blurred.pdf');
-  });
-
-  it('hides rename input when not renaming and exposes actions', () => {
+  it('exposes action buttons (preview/download/share/edit-attributes/delete)', () => {
     setupRow();
-    expect(screen.queryByDisplayValue('report.pdf')).not.toBeInTheDocument();
-    // 非回收站视图：预览/重命名/下载/转发/删除五个操作按钮
+    // 重命名与编辑描述和标签已合并：常规态 5 个操作按钮（预览/下载/转发/编辑属性/删除）
     expect(screen.getAllByRole('button').length).toBeGreaterThanOrEqual(5);
   });
 
@@ -139,9 +79,14 @@ describe('AttachmentRow', () => {
     expect(onShare).toHaveBeenCalledWith(item);
   });
 
-  it('hides share button when renaming', () => {
-    setupRow({ isRenaming: true });
-    expect(screen.queryByTitle('common:forward')).not.toBeInTheDocument();
+  it('fires onEditMeta with the item and objectId (合并后的编辑附件属性入口)', () => {
+    const { onEditMeta } = setupRow();
+    // 单测无 i18n 实例：t() 带 defaultValue 时返回 defaultValue（'Edit Attachment Attributes'）
+    const editBtn = screen.getByTitle('Edit Attachment Attributes');
+    expect(editBtn).toBeInTheDocument();
+    fireEvent.click(editBtn);
+    expect(onEditMeta).toHaveBeenCalledTimes(1);
+    expect(onEditMeta).toHaveBeenCalledWith(item, 'obj_1');
   });
 
   it('移动端：操作按钮行 0 缩进（移出内容列）且间距为 80%（3.2px）', () => {

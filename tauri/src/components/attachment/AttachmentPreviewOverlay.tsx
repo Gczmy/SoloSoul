@@ -424,8 +424,8 @@ export function AttachmentPreviewOverlay({
             e.stopPropagation();
             setMetaEditOpen(true);
           }}
-          title={t('common:edit_meta', 'Edit description & tags')}
-          aria-label={t('common:edit_meta', 'Edit description & tags')}
+          title={t('common:edit_meta', 'Edit Attachment Attributes')}
+          aria-label={t('common:edit_meta', 'Edit Attachment Attributes')}
           className="interactive-icon"
           style={{
             display: 'flex',

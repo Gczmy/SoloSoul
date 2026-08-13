@@ -22,9 +22,7 @@ describe('AttachmentMetaEditDialog', () => {
   it('预填描述与标签，添加标签后保存调用 attachment_update_meta', async () => {
     const onSaved = vi.fn();
     const onClose = vi.fn();
-    render(
-      <AttachmentMetaEditDialog item={baseItem} onSaved={onSaved} onClose={onClose} />,
-    );
+    render(<AttachmentMetaEditDialog item={baseItem} onSaved={onSaved} onClose={onClose} />);
 
     // 预填
     expect(screen.getByDisplayValue('现有描述')).toBeInTheDocument();
@@ -100,6 +98,86 @@ describe('AttachmentMetaEditDialog', () => {
     await waitFor(() => {
       expect(onSaved).toHaveBeenCalledWith({ description: '现有描述', tags: ['旅行', '出差'] });
     });
+  });
+
+  it('修改名称时调用 attachment_rename 且 onSaved 带回 fileName', async () => {
+    const onSaved = vi.fn();
+    render(<AttachmentMetaEditDialog item={baseItem} onSaved={onSaved} onClose={vi.fn()} />);
+
+    // 名称输入框预填原文件名
+    expect(screen.getByDisplayValue('photo.png')).toBeInTheDocument();
+    fireEvent.change(screen.getByDisplayValue('photo.png'), {
+      target: { value: 'new-photo.png' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /common:save/i }));
+
+    await waitFor(() => {
+      expect(mockInvoke).toHaveBeenCalledWith('attachment_rename', {
+        objectId: 'obj-1',
+        attachmentId: 'att-1',
+        newName: 'new-photo.png',
+      });
+      expect(mockInvoke).toHaveBeenCalledWith('attachment_update_meta', {
+        objectId: 'obj-1',
+        attachmentId: 'att-1',
+        description: '现有描述',
+        tags: ['旅行'],
+      });
+    });
+    expect(onSaved).toHaveBeenCalledWith({
+      fileName: 'new-photo.png',
+      description: '现有描述',
+      tags: ['旅行'],
+    });
+  });
+
+  it('名称重命名失败时中止保存（不调用 update_meta，对话框不关闭）', async () => {
+    mockInvoke.mockRejectedValueOnce(new Error('rename boom'));
+    const onSaved = vi.fn();
+    const onClose = vi.fn();
+    render(<AttachmentMetaEditDialog item={baseItem} onSaved={onSaved} onClose={onClose} />);
+
+    fireEvent.change(screen.getByDisplayValue('photo.png'), {
+      target: { value: 'new.png' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /common:save/i }));
+
+    await waitFor(() => {
+      expect(mockInvoke).toHaveBeenCalledWith('attachment_rename', expect.anything());
+    });
+    // 名称失败 → 中止，不再写描述/标签，不关对话框
+    expect(mockInvoke).not.toHaveBeenCalledWith('attachment_update_meta', expect.anything());
+    expect(onSaved).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('名称未改动时不触发 attachment_rename（onSaved 不带 fileName）', async () => {
+    const onSaved = vi.fn();
+    render(<AttachmentMetaEditDialog item={baseItem} onSaved={onSaved} onClose={vi.fn()} />);
+
+    // 名称保持原值，仅改描述
+    fireEvent.change(screen.getByDisplayValue('现有描述'), {
+      target: { value: '新描述' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /common:save/i }));
+
+    await waitFor(() => {
+      expect(mockInvoke).not.toHaveBeenCalledWith('attachment_rename', expect.anything());
+      expect(onSaved).toHaveBeenCalledWith({ description: '新描述', tags: ['旅行'] });
+    });
+  });
+
+  it('名称清空时不触发重命名（防误清空），仅保存描述/标签', async () => {
+    const onSaved = vi.fn();
+    render(<AttachmentMetaEditDialog item={baseItem} onSaved={onSaved} onClose={vi.fn()} />);
+
+    fireEvent.change(screen.getByDisplayValue('photo.png'), { target: { value: '   ' } });
+    fireEvent.click(screen.getByRole('button', { name: /common:save/i }));
+
+    await waitFor(() => {
+      expect(mockInvoke).not.toHaveBeenCalledWith('attachment_rename', expect.anything());
+    });
+    expect(onSaved).toHaveBeenCalledWith({ description: '现有描述', tags: ['旅行'] });
   });
 
   it('X 按钮移除标签', () => {

@@ -39,19 +39,14 @@ interface AttachmentObjectGroupProps {
   showTrash: boolean;
   /** 当前选中附件复合键集合（`objectId::attachmentId`），用于行内勾选态。 */
   selectedIds: Set<string>;
-  /** 当前重命名附件 ID，仅命中的行进入编辑态。 */
-  renamingId: string | null;
   loadData: () => void;
   onToggle: () => void;
   onUpload: (objectId: string) => void;
   onToggleSelect: (compositeKey: string) => void;
-  onRenameConfirm: (newName: string) => void;
-  onRenameCancel: () => void;
   onPreview: (item: AttachmentMeta) => void;
-  onStartRename: (item: AttachmentMeta, objectId: string) => void;
   onDownload: (item: AttachmentMeta) => void;
   onShare: (item: AttachmentMeta) => void;
-  /** 编辑描述与标签 */
+  /** 编辑附件属性（名称/描述/标签） */
   onEditMeta?: (item: AttachmentMeta, objectId: string) => void;
   onSoftDelete: (item: AttachmentMeta, objectId: string) => void;
   onRestore: (item: AttachmentMeta, objectId: string) => void;
@@ -64,15 +59,11 @@ function AttachmentObjectGroupBase({
   isExpanded,
   showTrash,
   selectedIds,
-  renamingId,
   loadData,
   onToggle,
   onUpload,
   onToggleSelect,
-  onRenameConfirm,
-  onRenameCancel,
   onPreview,
-  onStartRename,
   onDownload,
   onShare,
   onEditMeta,
@@ -206,12 +197,8 @@ function AttachmentObjectGroupBase({
               objectId={obj.objectId}
               showTrash={showTrash}
               isChecked={selectedIds.has(`${obj.objectId}::${att.id}`)}
-              isRenaming={renamingId === att.id}
               onToggleSelect={onToggleSelect}
-              onRenameConfirm={onRenameConfirm}
-              onRenameCancel={onRenameCancel}
               onPreview={onPreview}
-              onStartRename={onStartRename}
               onDownload={onDownload}
               onShare={onShare}
               onEditMeta={onEditMeta}
@@ -235,9 +222,9 @@ function AttachmentObjectGroupBase({
 }
 
 /**
- * P217：memo 化——比较器只比较数据 props（obj/isExpanded/showTrash/selectedIds/renamingId），
- * 忽略全部回调身份。selectedIds/renamingId 作为数据透传，选中态/编辑态变化精确触发
- * 对应层级重渲染；回调持旧引用无害（显式参数 + 函数式 setState）。
+ * P217：memo 化——比较器只比较数据 props（obj/isExpanded/showTrash/selectedIds），
+ * 忽略全部回调身份。selectedIds 作为数据透传，选中态变化精确触发对应层级重渲染；
+ * 回调持旧引用无害（显式参数 + 函数式 setState）。
  */
 function attachmentObjectGroupPropsEqual(
   prev: AttachmentObjectGroupProps,
@@ -247,8 +234,7 @@ function attachmentObjectGroupPropsEqual(
     prev.obj === next.obj &&
     prev.isExpanded === next.isExpanded &&
     prev.showTrash === next.showTrash &&
-    prev.selectedIds === next.selectedIds &&
-    prev.renamingId === next.renamingId
+    prev.selectedIds === next.selectedIds
   );
 }
 

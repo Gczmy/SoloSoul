@@ -29,8 +29,6 @@ interface AttachmentPageCardProps {
   showTrash: boolean;
   /** 当前选中附件复合键集合（`objectId::attachmentId`）。 */
   selectedIds: Set<string>;
-  /** 当前重命名附件 ID。 */
-  renamingId: string | null;
   /** 当前展开对象键集合（`pageKey::objectId`）。 */
   expandedObjects: Set<string>;
   onToggle: () => void;
@@ -38,13 +36,10 @@ interface AttachmentPageCardProps {
   onUpload: (objectId: string) => void;
   loadData: () => void;
   onToggleSelect: (compositeKey: string) => void;
-  onRenameConfirm: (newName: string) => void;
-  onRenameCancel: () => void;
   onPreview: (item: AttachmentMeta) => void;
-  onStartRename: (item: AttachmentMeta, objectId: string) => void;
   onDownload: (item: AttachmentMeta) => void;
   onShare: (item: AttachmentMeta) => void;
-  /** 编辑描述与标签 */
+  /** 编辑附件属性（名称/描述/标签） */
   onEditMeta?: (item: AttachmentMeta, objectId: string) => void;
   onSoftDelete: (item: AttachmentMeta, objectId: string) => void;
   onRestore: (item: AttachmentMeta, objectId: string) => void;
@@ -58,17 +53,13 @@ function AttachmentPageCardBase({
   isExpanded,
   showTrash,
   selectedIds,
-  renamingId,
   expandedObjects,
   onToggle,
   onToggleObject,
   onUpload,
   loadData,
   onToggleSelect,
-  onRenameConfirm,
-  onRenameCancel,
   onPreview,
-  onStartRename,
   onDownload,
   onShare,
   onEditMeta,
@@ -175,15 +166,11 @@ function AttachmentPageCardBase({
                 isExpanded={expandedObjects.has(objKey)}
                 showTrash={showTrash}
                 selectedIds={selectedIds}
-                renamingId={renamingId}
                 loadData={loadData}
                 onToggle={() => onToggleObject(objKey)}
                 onUpload={onUpload}
                 onToggleSelect={onToggleSelect}
-                onRenameConfirm={onRenameConfirm}
-                onRenameCancel={onRenameCancel}
                 onPreview={onPreview}
-                onStartRename={onStartRename}
                 onDownload={onDownload}
                 onShare={onShare}
                 onEditMeta={onEditMeta}
@@ -201,8 +188,8 @@ function AttachmentPageCardBase({
 
 /**
  * P217：memo 化——比较器只比较数据 props（page/pageKey/isExpanded/showTrash/selectedIds/
- * renamingId/expandedObjects），忽略全部回调身份。对象展开/选中/编辑态作为数据集合
- * 透传，变化时精确触发对应层级重渲染；回调持旧引用无害（显式参数 + 函数式 setState）。
+ * expandedObjects），忽略全部回调身份。对象展开/选中态作为数据集合透传，变化时
+ * 精确触发对应层级重渲染；回调持旧引用无害（显式参数 + 函数式 setState）。
  */
 function attachmentPageCardPropsEqual(
   prev: AttachmentPageCardProps,
@@ -214,7 +201,6 @@ function attachmentPageCardPropsEqual(
     prev.isExpanded === next.isExpanded &&
     prev.showTrash === next.showTrash &&
     prev.selectedIds === next.selectedIds &&
-    prev.renamingId === next.renamingId &&
     prev.expandedObjects === next.expandedObjects
   );
 }

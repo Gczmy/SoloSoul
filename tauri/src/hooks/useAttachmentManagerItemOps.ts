@@ -6,7 +6,10 @@ import { downloadViaStage } from '@/lib/mobileFileTransfer';
 import { previewItemByMime, truncateFileName, downloadAttachmentFile } from '@/lib/attachmentUtils';
 import { isMobilePlatformSync } from '@/lib/platform';
 import type { Toast } from '@/stores/uiStore';
-import type { AttachmentMeta, AttachmentToPurge } from '@/components/attachment/attachmentManagerTypes';
+import type {
+  AttachmentMeta,
+  AttachmentToPurge,
+} from '@/components/attachment/attachmentManagerTypes';
 
 export interface UseAttachmentManagerItemOpsOptions {
   /** 数据刷新（操作成功后同步）。 */
@@ -36,10 +39,6 @@ export function useAttachmentManagerItemOps({
 }: UseAttachmentManagerItemOpsOptions) {
   const [previewItem, setPreviewItem] = useState<AttachmentMeta | null>(null);
   const [shareItem, setShareItem] = useState<AttachmentMeta | null>(null);
-  /** 正在重命名的附件 ID（RenameInput 由 AttachmentRow 行内管理，此处仅记录） */
-  const [renamingId, setRenamingId] = useState<string | null>(null);
-  /** 正在重命名的附件所属对象 ID */
-  const [renameObjectId, setRenameObjectId] = useState<string>('');
   const [permDeleteItem, setPermDeleteItem] = useState<AttachmentToPurge | null>(null);
 
   const openAttachmentExternal = useCallback(
@@ -74,33 +73,8 @@ export function useAttachmentManagerItemOps({
     [openAttachmentExternal],
   );
 
-  // P217: 重命名输入值由 AttachmentRow 内自包含的 RenameInput 本地管理，
-  // 此处仅记录「正在重命名哪个附件」，确认时接收行内提交的新文件名。
-  const handleStartRename = useCallback((item: AttachmentMeta, objectId: string) => {
-    setRenamingId(item.id);
-    setRenameObjectId(objectId);
-  }, []);
-
-  const handleConfirmRename = useCallback(
-    async (newName: string) => {
-      const trimmed = newName.trim();
-      if (renamingId && trimmed && renameObjectId) {
-        try {
-          await invoke('attachment_rename', {
-            objectId: renameObjectId,
-            attachmentId: renamingId,
-            newName: trimmed,
-          });
-          await loadData();
-        } catch (e) {
-          showToast({ type: 'error', message: `${t('common:rename_failed')}: ${e}` });
-        }
-      }
-      setRenamingId(null);
-      setRenameObjectId('');
-    },
-    [renamingId, renameObjectId, loadData, t, showToast],
-  );
+  // 重命名已并入「编辑附件属性」卡片（AttachmentMetaEditDialog 内 attachment_rename），
+  // 行内不再保留独立重命名入口。
 
   const handleUpload = useCallback(
     async (objectId: string) => {
@@ -212,16 +186,10 @@ export function useAttachmentManagerItemOps({
     setPreviewItem,
     shareItem,
     setShareItem,
-    renamingId,
-    setRenamingId,
-    renameObjectId,
-    setRenameObjectId,
     permDeleteItem,
     setPermDeleteItem,
     openAttachmentExternal,
     handlePreview,
-    handleStartRename,
-    handleConfirmRename,
     handleUpload,
     handleSoftDelete,
     handleDownload,

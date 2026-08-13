@@ -687,7 +687,7 @@
   "sync_qr_timeout": "QR code expired, please regenerate",
   "uninstall_confirm_title": "Uninstall plugin",
   "uninstall_confirm_message": "Uninstall \"{{name}}\"?",
-  "edit_meta": "Edit description & tags",
+  "edit_meta": "Edit Attachment Attributes",
   "attachment_description": "Description",
   "attachment_description_placeholder": "Add a description…",
   "attachment_tags": "Tags",

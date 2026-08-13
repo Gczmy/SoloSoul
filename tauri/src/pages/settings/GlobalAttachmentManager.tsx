@@ -46,9 +46,6 @@ export function GlobalAttachmentManager() {
     albumOpen,
     setAlbumOpen,
     photoItems,
-    renamingId,
-    setRenamingId,
-    setRenameObjectId,
     permDeleteItem,
     setPermDeleteItem,
     searchQuery,
@@ -56,8 +53,6 @@ export function GlobalAttachmentManager() {
     loadData,
     openAttachmentExternal,
     handlePreview,
-    handleStartRename,
-    handleConfirmRename,
     handleUpload,
     handleSoftDelete,
     handleDownload,
@@ -103,27 +98,34 @@ export function GlobalAttachmentManager() {
           {
             icon: FolderTree,
             title: t('common:guide_attachment_step1_title', { defaultValue: 'Browse Tree' }),
-            description:
-              t('common:guide_attachment_step1_desc', { defaultValue: 'Attachments are grouped by page and object. Expand pages and objects to find the files you need.' }),
+            description: t('common:guide_attachment_step1_desc', {
+              defaultValue:
+                'Attachments are grouped by page and object. Expand pages and objects to find the files you need.',
+            }),
           },
           {
             icon: Upload,
             title: t('common:guide_attachment_step2_title', { defaultValue: 'Upload & Download' }),
-            description:
-              t('common:guide_attachment_step2_desc', { defaultValue: 'Upload new attachments or download existing ones. On mobile, select files from your device.' }),
+            description: t('common:guide_attachment_step2_desc', {
+              defaultValue:
+                'Upload new attachments or download existing ones. On mobile, select files from your device.',
+            }),
           },
           {
             icon: Trash2,
             title: t('common:guide_attachment_step3_title', { defaultValue: 'Delete & Restore' }),
-            description:
-              t('common:guide_attachment_step3_desc', { defaultValue: 'Soft delete attachments to move them to trash, restore them later, or permanently delete them.' }),
+            description: t('common:guide_attachment_step3_desc', {
+              defaultValue:
+                'Soft delete attachments to move them to trash, restore them later, or permanently delete them.',
+            }),
           },
         ],
         helpLinks: [
           {
             title: t('common:guide_help_attachments', { defaultValue: 'Attachment Management' }),
-            description:
-              t('common:guide_help_attachments_desc', { defaultValue: 'Upload, download, rename, and manage attachments in trash' }),
+            description: t('common:guide_help_attachments_desc', {
+              defaultValue: 'Upload, download, rename, and manage attachments in trash',
+            }),
             href: '/help?id=attachments',
           },
         ],
@@ -187,7 +189,9 @@ export function GlobalAttachmentManager() {
                   />
                   <p style={{ fontSize: 'var(--text-sm)', color: 'var(--text-secondary)' }}>
                     {searchQuery.trim()
-                      ? t('common:no_search_results', { defaultValue: 'No matching attachments found.' })
+                      ? t('common:no_search_results', {
+                          defaultValue: 'No matching attachments found.',
+                        })
                       : showTrash
                         ? t('settings:trash_empty', { defaultValue: 'Trash is empty.' })
                         : t('common:no_attachments', { defaultValue: 'No attachments found.' })}
@@ -195,9 +199,7 @@ export function GlobalAttachmentManager() {
                 </div>
               </Card>
             ) : (
-              <div
-                style={{ display: 'flex', flexDirection: 'column', gap: 'var(--card-gap-md)' }}
-              >
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--card-gap-md)' }}>
                 {visiblePages.map((page) => {
                   const pageKey = page.pageId || page.pageName;
                   return (
@@ -208,20 +210,13 @@ export function GlobalAttachmentManager() {
                       isExpanded={expandedPages.has(pageKey)}
                       showTrash={showTrash}
                       selectedIds={selectedIds}
-                      renamingId={renamingId}
                       expandedObjects={expandedObjects}
                       onToggle={() => togglePage(pageKey)}
                       onToggleObject={toggleObject}
                       onUpload={handleUpload}
                       loadData={loadData}
                       onToggleSelect={toggleSelect}
-                      onRenameConfirm={handleConfirmRename}
-                      onRenameCancel={() => {
-                        setRenamingId(null);
-                        setRenameObjectId('');
-                      }}
                       onPreview={handlePreview}
-                      onStartRename={handleStartRename}
                       onDownload={handleDownload}
                       onShare={handleShare}
                       onEditMeta={(item) => setMetaEditItem(item)}
@@ -311,7 +306,9 @@ export function GlobalAttachmentManager() {
       />
       <ConfirmDialog
         open={batchPermanentDeleteConfirm}
-        title={t('common:batch_perm_delete_title', { defaultValue: 'Permanently delete selected?' })}
+        title={t('common:batch_perm_delete_title', {
+          defaultValue: 'Permanently delete selected?',
+        })}
         body={t('common:batch_perm_delete_body', {
           n: selectedIds.size,
           defaultValue: `Permanently delete ${selectedIds.size} selected attachment(s)? This cannot be undone.`,

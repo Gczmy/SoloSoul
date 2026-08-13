@@ -7,8 +7,10 @@ import { Input } from '@/components/ui/Input';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { useUiStore } from '@/stores/uiStore';
 
-/** 保存成功后回传的最新元数据（父级据此更新本地列表 / 照片集）。 */
+/** 保存成功后回传的最新属性（父级据此更新本地列表 / 照片集）。
+ *  fileName 仅在名称实际变更（触发 attachment_rename）时返回。 */
 export interface AttachmentMetaEditResult {
+  fileName?: string;
   description?: string | null;
   tags?: string[];
 }
@@ -53,10 +55,15 @@ function mergeTagInput(base: string[], raw: string): string[] {
  * - 标签：chips 输入（回车 / 逗号 / 失焦 / 保存时自动生成，X 移除，去空去重，最多 20 个）；
  * - 保存调用 `attachment_update_meta`，成功后回调 onSaved 供父级同步本地状态。
  */
-export function AttachmentMetaEditDialog({ item, onClose, onSaved }: AttachmentMetaEditDialogProps) {
+export function AttachmentMetaEditDialog({
+  item,
+  onClose,
+  onSaved,
+}: AttachmentMetaEditDialogProps) {
   const { t } = useTranslation('common');
   const showToast = useUiStore((s) => s.showToast);
 
+  const [name, setName] = useState(item.fileName ?? '');
   const [description, setDescription] = useState(item.description ?? '');
   const [tags, setTags] = useState<string[]>(item.tags ?? []);
   const [tagInput, setTagInput] = useState('');
@@ -64,6 +71,7 @@ export function AttachmentMetaEditDialog({ item, onClose, onSaved }: AttachmentM
 
   // item 切换（如相册翻页后再次打开）时重置表单
   useEffect(() => {
+    setName(item.fileName ?? '');
     setDescription(item.description ?? '');
     setTags(item.tags ?? []);
     setTagInput('');
@@ -95,10 +103,28 @@ export function AttachmentMetaEditDialog({ item, onClose, onSaved }: AttachmentM
     if (saving) return;
     setSaving(true);
     try {
+      // 名称：trim 后非空且与原名不同才触发 attachment_rename（空串视为不改名，防误清空）
+      const trimmedName = name.trim();
+      const nameChanged = !!trimmedName && trimmedName !== item.fileName;
+      if (nameChanged) {
+        try {
+          await invoke('attachment_rename', {
+            objectId: item.objectId,
+            attachmentId: item.id,
+            newName: trimmedName,
+          });
+        } catch (e) {
+          // 名称保存失败 → 中止整个保存（描述/标签不落库），避免部分保存；对话框保持打开可重试
+          showToast({ type: 'error', message: `${t('common:rename_failed')}: ${e}` });
+          return;
+        }
+      }
+
       const trimmedDesc = description.trim();
       // 保存时输入框仍有未回车内容 → 一并生成标签（基于最新 tags 合并，幂等）
       const finalTags = mergeTagInput(tags, tagInput);
       const updated: AttachmentMetaEditResult = {
+        ...(nameChanged ? { fileName: trimmedName } : {}),
         description: trimmedDesc ? trimmedDesc : null,
         tags: finalTags,
       };
@@ -125,13 +151,35 @@ export function AttachmentMetaEditDialog({ item, onClose, onSaved }: AttachmentM
     <Dialog
       isOpen
       onClose={onClose}
-      title={t('common:edit_meta', { defaultValue: 'Description & Tags' })}
+      title={t('common:edit_meta', { defaultValue: 'Edit Attachment Attributes' })}
       // 附件查看器在详情模态下可达 z-index 5100（ObjectDetailModal 传入），
       // 默认层级（--z-modal 4000）会被其背景遮住导致「点击无反应」；
       // 与附件确认对话框同用 auth 层级（8000），保证恒在查看器/预览/相册之上。
       priority="auth"
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+        {/* 名称（与描述/标签同卡编辑，替代原行内重命名入口） */}
+        <div>
+          <label
+            style={{
+              display: 'block',
+              fontSize: 'var(--text-caption)',
+              color: 'var(--text-secondary)',
+              marginBottom: 6,
+              fontWeight: 500,
+            }}
+          >
+            {t('common:name', { defaultValue: 'Name' })}
+          </label>
+          <Input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder={t('common:name', { defaultValue: 'Name' })}
+            aria-label={t('common:name', { defaultValue: 'Name' })}
+            style={{ width: '100%' }}
+          />
+        </div>
+
         {/* 描述 */}
         <div>
           <label

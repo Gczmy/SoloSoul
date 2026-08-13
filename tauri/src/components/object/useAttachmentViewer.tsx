@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { useUiStore } from '@/stores/uiStore';
@@ -53,9 +53,6 @@ export function useAttachmentViewer(props: AttachmentViewerProps) {
   const [permDeleteItem, setPermDeleteItem] = useState<AttachmentItem | null>(null);
   const [deleteItem, setDeleteItem] = useState<AttachmentItem | null>(null);
   const [shareItem, setShareItem] = useState<AttachmentItem | null>(null);
-  const [renamingId, setRenamingId] = useState<string | null>(null);
-  const [renameValue, setRenameValue] = useState('');
-  const renameInputRef = useRef<HTMLInputElement>(null);
   const [previewItem, setPreviewItem] = useState<AttachmentItem | null>(null);
   const [metaEditItem, setMetaEditItem] = useState<AttachmentItem | null>(null);
   const [photoAlbumOpen, setPhotoAlbumOpen] = useState(false);
@@ -119,11 +116,7 @@ export function useAttachmentViewer(props: AttachmentViewerProps) {
     try {
       // 真机上曾出现首个附件上传后 IPC 未结算导致 uploading 卡死、按钮永久禁用，
       // 关键 await 均加超时兜底，保证按钮必然复位
-      await withTimeout(
-        uploadSingleAttachment(filePath, objectId),
-        UPLOAD_TIMEOUT_MS,
-        'upload',
-      );
+      await withTimeout(uploadSingleAttachment(filePath, objectId), UPLOAD_TIMEOUT_MS, 'upload');
       showToast({
         type: 'success',
         message: t('common:upload_success'),
@@ -136,8 +129,9 @@ export function useAttachmentViewer(props: AttachmentViewerProps) {
         logger.warn('[AttachmentViewer] refresh after upload failed:', refreshErr);
         showToast({
           type: 'warning',
-          message:
-            t('common:upload_refresh_failed', { defaultValue: 'Uploaded, but the list failed to refresh. Please reopen.' }),
+          message: t('common:upload_refresh_failed', {
+            defaultValue: 'Uploaded, but the list failed to refresh. Please reopen.',
+          }),
         });
       }
     } catch (e) {
@@ -150,38 +144,8 @@ export function useAttachmentViewer(props: AttachmentViewerProps) {
     }
   };
 
-  const handleStartRename = (item: AttachmentItem) => {
-    setRenamingId(item.id);
-    setRenameValue(item.fileName);
-    setTimeout(() => renameInputRef.current?.focus(), 50);
-  };
-
-  const handleConfirmRename = async () => {
-    if (renamingId && renameValue.trim()) {
-      const newName = renameValue.trim();
-      // 乐观更新前先取原名，失败时回滚，避免前端显示新名、后端仍是旧名的状态不一致
-      const prevName = items.find((i) => i.id === renamingId)?.fileName;
-      setItems((prev) =>
-        prev.map((i) => (i.id === renamingId ? { ...i, fileName: newName } : i)),
-      );
-      try {
-        await invoke('attachment_rename', {
-          objectId,
-          attachmentId: renamingId,
-          newName,
-        });
-      } catch (err) {
-        logger.warn('[AttachmentViewer] Rename failed:', err);
-        if (prevName !== undefined) {
-          setItems((prev) =>
-            prev.map((i) => (i.id === renamingId ? { ...i, fileName: prevName } : i)),
-          );
-        }
-        showToast({ type: 'error', message: t('common:rename_failed') });
-      }
-    }
-    setRenamingId(null);
-  };
+  // 重命名已并入「编辑附件属性」卡片（AttachmentMetaEditDialog 内 attachment_rename），
+  // 行内不再保留独立重命名入口。
 
   const handleDownload = async (item: AttachmentItem) => {
     // P011: 统一走共享下载入口（saveWithPause + downloadViaStage + toast）
@@ -219,11 +183,18 @@ export function useAttachmentViewer(props: AttachmentViewerProps) {
     }
   };
 
-  /** 附件描述/标签保存成功：就地更新列表与预览中的附件元数据。 */
+  /** 附件属性（名称/描述/标签）保存成功：就地更新列表与预览中的附件元数据。 */
   const handleMetaSaved = (updated: AttachmentMetaEditResult) => {
     const patch = (list: AttachmentItem[]) =>
       list.map((i) =>
-        i.id === metaEditItem?.id ? { ...i, description: updated.description, tags: updated.tags } : i,
+        i.id === metaEditItem?.id
+          ? {
+              ...i,
+              ...(updated.fileName !== undefined ? { fileName: updated.fileName } : {}),
+              description: updated.description,
+              tags: updated.tags,
+            }
+          : i,
       );
     setItems((prev) => patch(prev));
     setTrashItems((prev) => patch(prev));
@@ -240,12 +211,14 @@ export function useAttachmentViewer(props: AttachmentViewerProps) {
     if (!deleteItem) return;
     const item = deleteItem;
     setDeleteItem(null);
-    await invoke('attachment_soft_delete', { objectId: objectId, attachmentId: item.id }).catch((e) => {
-      showToast({
-        type: 'error',
-        message: t('common:delete_failed', { defaultValue: `Delete failed: ${e}` }),
-      });
-    });
+    await invoke('attachment_soft_delete', { objectId: objectId, attachmentId: item.id }).catch(
+      (e) => {
+        showToast({
+          type: 'error',
+          message: t('common:delete_failed', { defaultValue: `Delete failed: ${e}` }),
+        });
+      },
+    );
     await loadAttachments();
     onCountChange?.();
   };
@@ -341,11 +314,6 @@ export function useAttachmentViewer(props: AttachmentViewerProps) {
     setPermDeleteItem,
     shareItem,
     setShareItem,
-    renamingId,
-    setRenamingId,
-    renameValue,
-    setRenameValue,
-    renameInputRef,
     previewItem,
     setPreviewItem,
     metaEditItem,
@@ -359,8 +327,6 @@ export function useAttachmentViewer(props: AttachmentViewerProps) {
     openAttachmentExternal,
     handlePreview,
     handleAdd,
-    handleStartRename,
-    handleConfirmRename,
     handleDownload,
     handleShare,
     doShare,

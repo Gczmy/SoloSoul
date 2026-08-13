@@ -57,11 +57,6 @@ export function AttachmentViewer(props: AttachmentViewerProps) {
     setPermDeleteItem,
     shareItem,
     setShareItem,
-    renamingId,
-    setRenamingId,
-    renameValue,
-    setRenameValue,
-    renameInputRef,
     previewItem,
     setPreviewItem,
     metaEditItem,
@@ -75,8 +70,6 @@ export function AttachmentViewer(props: AttachmentViewerProps) {
     openAttachmentExternal,
     handlePreview,
     handleAdd,
-    handleStartRename,
-    handleConfirmRename,
     handleDownload,
     handleShare,
     doShare,
@@ -229,16 +222,9 @@ export function AttachmentViewer(props: AttachmentViewerProps) {
                     checked={checked}
                     showTrash={showTrash}
                     isLast={idx === displayItems.length - 1}
-                    renamingId={renamingId}
-                    renameValue={renameValue}
-                    renameInputRef={renameInputRef}
                     onToggleSelect={toggleSelect}
-                    onRenameValueChange={setRenameValue}
-                    onConfirmRename={handleConfirmRename}
-                    onCancelRename={() => setRenamingId(null)}
                     onRestore={handleRestore}
                     onPreview={handlePreview}
-                    onStartRename={handleStartRename}
                     onDownload={handleDownload}
                     onShare={handleShare}
                     onEditMeta={setMetaEditItem}

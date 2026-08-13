@@ -415,8 +415,8 @@ export function PhotoViewerOverlay({
         <button
           type="button"
           onClick={() => setMetaEditOpen(true)}
-          title={t('common:edit_meta', 'Edit description & tags')}
-          aria-label={t('common:edit_meta', 'Edit description & tags')}
+          title={t('common:edit_meta', 'Edit Attachment Attributes')}
+          aria-label={t('common:edit_meta', 'Edit Attachment Attributes')}
           style={iconButtonStyle}
           className="interactive-icon"
         >

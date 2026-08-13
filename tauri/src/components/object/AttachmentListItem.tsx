@@ -1,4 +1,3 @@
-import type { RefObject } from 'react';
 import { Paperclip, Image, FileText } from 'lucide-react';
 import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import { AttachmentFileNameBlock } from '@/components/attachment/AttachmentFileNameBlock';
@@ -13,19 +12,12 @@ interface AttachmentListItemProps {
   checked: boolean;
   showTrash: boolean;
   isLast: boolean;
-  renamingId: string | null;
-  renameValue: string;
-  renameInputRef: RefObject<HTMLInputElement | null>;
   onToggleSelect: (key: string) => void;
-  onRenameValueChange: (v: string) => void;
-  onConfirmRename: () => void;
-  onCancelRename: () => void;
   onRestore: (item: AttachmentItem) => void;
   onPreview: (item: AttachmentItem) => void;
-  onStartRename: (item: AttachmentItem) => void;
   onDownload: (item: AttachmentItem) => void;
   onShare: (item: AttachmentItem) => void;
-  /** 编辑描述与标签 */
+  /** 编辑附件属性（名称/描述/标签） */
   onEditMeta?: (item: AttachmentItem) => void;
   onDelete: (item: AttachmentItem) => void;
   onPermanentDelete: (item: AttachmentItem) => void;
@@ -56,24 +48,16 @@ export function AttachmentListItem({
   checked,
   showTrash,
   isLast,
-  renamingId,
-  renameValue,
-  renameInputRef,
   onToggleSelect,
-  onRenameValueChange,
-  onConfirmRename,
-  onCancelRename,
   onRestore,
   onPreview,
-  onStartRename,
   onDownload,
   onShare,
   onEditMeta,
   onDelete,
   onPermanentDelete,
 }: AttachmentListItemProps) {
-  const isRenaming = renamingId === item.id;
-  // 安卓端：附件信息（图标/名称/大小时间）与五个操作按钮并排会被按钮挤占，
+  // 安卓端：附件信息（图标/名称/大小时间）与操作按钮并排会被按钮挤占，
   // 按钮单独一行放在信息下方；桌面端保持原横向布局。
   const isMobile = isMobilePlatformSync();
 
@@ -96,37 +80,13 @@ export function AttachmentListItem({
         tags={item.tags}
         metaStyle={{ fontSize: 'var(--text-badge)' }}
       />
-      {isRenaming && !showTrash ? (
-        <input
-          ref={renameInputRef}
-          value={renameValue}
-          onChange={(e) => onRenameValueChange(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') onConfirmRename();
-            if (e.key === 'Escape') onCancelRename();
-          }}
-          onBlur={onConfirmRename}
-          style={{
-            width: 100,
-            padding: '3px 6px',
-            fontSize: 'var(--text-caption)',
-            borderRadius: 4,
-            border: '1px solid var(--accent-primary)',
-            background: 'transparent',
-            color: 'var(--text-primary)',
-            outline: 'none',
-          }}
-        />
-      ) : null}
     </div>
   );
 
   const actions = (
     <AttachmentActions
       showTrash={showTrash}
-      isRenaming={isRenaming}
       onPreview={() => onPreview(item)}
-      onStartRename={() => onStartRename(item)}
       onDownload={() => onDownload(item)}
       onShare={() => onShare(item)}
       onEditMeta={() => onEditMeta?.(item)}

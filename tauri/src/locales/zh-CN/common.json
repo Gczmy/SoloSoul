@@ -686,7 +686,7 @@
   "sync_qr_timeout": "二维码已过期，请重新生成",
   "uninstall_confirm_title": "卸载插件",
   "uninstall_confirm_message": "确定要卸载「{{name}}」吗？",
-  "edit_meta": "编辑描述与标签",
+  "edit_meta": "编辑附件属性",
   "attachment_description": "描述",
   "attachment_description_placeholder": "添加描述…",
   "attachment_tags": "标签",
