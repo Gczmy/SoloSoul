@@ -154,5 +154,30 @@ describe('AttachmentRow', () => {
     const metaRow = metaText.parentElement;
     expect(metaRow).not.toBeNull();
     expect(metaRow!.firstElementChild?.tagName.toLowerCase()).toBe('svg');
+    // 格式名称徽章与图标同在元信息行内（[图标][PDF]大小·时间）
+    expect(metaRow!.textContent).toContain('PDF');
+  });
+
+  it('显示格式名称徽章（随扩展名变化：report.pdf → PDF）', () => {
+    setupRow();
+    expect(screen.getByText('PDF')).toBeInTheDocument();
+  });
+
+  it('图片附件显示图片格式图标与对应徽章（photo.png → PNG）', () => {
+    setupRow({
+      item: {
+        ...item,
+        id: 'att_2',
+        fileName: 'photo.png',
+        mimeType: 'image/png',
+      },
+    });
+    expect(screen.getByText('PNG')).toBeInTheDocument();
+    // 徽章紧跟在格式图标之后；图标必须是 Image（lucide-image）而非统一回形针
+    const badge = screen.getByText('PNG');
+    expect(badge.tagName.toLowerCase()).toBe('span');
+    const iconSvg = badge.previousElementSibling;
+    expect(iconSvg?.tagName.toLowerCase()).toBe('svg');
+    expect((iconSvg as HTMLElement).classList.contains('lucide-image')).toBe(true);
   });
 });

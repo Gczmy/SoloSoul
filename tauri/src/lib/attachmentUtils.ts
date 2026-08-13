@@ -84,7 +84,9 @@ export async function downloadAttachmentFile(params: {
 
 // ── MIME helpers ──────────────────────────────────────────────
 
-export function previewItemByMime(item: AttachmentItem): 'image' | 'pdf' | 'text' | 'other' {
+export function previewItemByMime(
+  item: Pick<AttachmentItem, 'fileName' | 'mimeType'>,
+): 'image' | 'pdf' | 'text' | 'other' {
   const ext = item.fileName.split('.').pop()?.toLowerCase() || '';
   if (
     item.mimeType.startsWith('image/') ||

@@ -1,8 +1,8 @@
 import { memo, useRef, useState } from 'react';
-import { Paperclip } from 'lucide-react';
 import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import { AttachmentFileNameBlock } from './AttachmentFileNameBlock';
 import { AttachmentActions } from './AttachmentActions';
+import { AttachmentTypeIcon, AttachmentExtBadge } from './AttachmentFormatBadge';
 import { ICON_SIZE } from '@/lib/constants';
 import { isMobilePlatformSync } from '@/lib/platform';
 import type { AttachmentMeta } from './attachmentManagerTypes';
@@ -128,8 +128,8 @@ function AttachmentRowBase({
   );
 
   // 移动端：多行布局 — 勾选框独占左上角；内容列（勾选框宽度的天然缩进）第1行 文件名，
-  // 第2行 [附件图标]大小·时间（图标经 metaLeadingIcon 移入元信息行左侧，与名称列对齐），
-  // 第3行 操作按钮；无层级缩进与页面/对象行对齐
+  // 第2行 [格式图标][格式名称徽章]大小·时间（图标+徽章经 metaLeadingIcon 移入元信息行
+  // 左侧，与名称列对齐），第3行 操作按钮；无层级缩进与页面/对象行对齐
   if (isMobile) {
     return (
       <div
@@ -165,10 +165,14 @@ function AttachmentRowBase({
               description={item.description}
               tags={item.tags}
               metaLeadingIcon={
-                <Paperclip
-                  size={ICON_SIZE.sm}
-                  style={{ color: 'var(--text-tertiary)', flexShrink: 0 }}
-                />
+                <>
+                  <AttachmentTypeIcon
+                    item={item}
+                    size={ICON_SIZE.sm}
+                    style={{ color: 'var(--text-tertiary)', flexShrink: 0 }}
+                  />
+                  <AttachmentExtBadge fileName={item.fileName} />
+                </>
               }
             />
             <div style={{ display: 'flex', gap: 4, marginTop: 4 }}>{actions}</div>
@@ -198,7 +202,12 @@ function AttachmentRowBase({
           onToggleSelect(compositeKey);
         }}
       />
-      <Paperclip size={ICON_SIZE.sm} style={{ color: 'var(--text-tertiary)', flexShrink: 0 }} />
+      <AttachmentTypeIcon
+        item={item}
+        size={ICON_SIZE.sm}
+        style={{ color: 'var(--text-tertiary)', flexShrink: 0 }}
+      />
+      <AttachmentExtBadge fileName={item.fileName} />
 
       {isRenaming ? (
         renameInput

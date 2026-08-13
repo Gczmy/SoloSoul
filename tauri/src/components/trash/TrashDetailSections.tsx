@@ -6,7 +6,7 @@
 // ============================================================
 
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, X, Image, FileText, Paperclip, RotateCcw } from 'lucide-react';
+import { ArrowLeft, X, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { DeleteButton } from '@/components/ui/DeleteButton';
 import { FieldTypeIcon } from '@/components/ui/FieldTypeIcon';
@@ -15,6 +15,10 @@ import { ValueContainer } from '@/components/ui/ValueContainer';
 import { ICON_SIZE } from '@/lib/constants';
 import { resolveCollectionLabel } from '@/lib/utils';
 import { AttachmentFileNameBlock } from '@/components/attachment/AttachmentFileNameBlock';
+import {
+  AttachmentTypeIcon,
+  AttachmentExtBadge,
+} from '@/components/attachment/AttachmentFormatBadge';
 import type { CustomPage } from '@/stores/settingsStore';
 import type { PropertyType, SensitivityLevel, UserTemplate } from '@/types/template';
 import type { TrashDetail, TrashAttachment } from './types';
@@ -405,13 +409,6 @@ export function TrashAttachmentsSection({
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {(showTrash ? deletedAttachments : activeAttachments).map((a) => {
-                  const ext = a.fileName.split('.').pop()?.toLowerCase() || '';
-                  const isImage =
-                    a.mimeType.startsWith('image/') ||
-                    ['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'].includes(ext);
-                  const isPdf = a.mimeType === 'application/pdf' || ext === 'pdf';
-                  const AttachIcon = isImage ? Image : isPdf ? FileText : Paperclip;
-                  const iconColor = 'var(--text-tertiary)';
                   return (
                     <div
                       key={a.id}
@@ -428,7 +425,11 @@ export function TrashAttachmentsSection({
                         cursor: 'default',
                       }}
                     >
-                      <AttachIcon size={ICON_SIZE.md} style={{ color: iconColor, flexShrink: 0 }} />
+                      <AttachmentTypeIcon
+                        item={a}
+                        size={ICON_SIZE.md}
+                        style={{ color: 'var(--text-tertiary)', flexShrink: 0 }}
+                      />
                       <AttachmentFileNameBlock
                         fileName={a.fileName}
                         sizeBytes={a.sizeBytes}
@@ -439,20 +440,7 @@ export function TrashAttachmentsSection({
                         description={a.description}
                         tags={a.tags}
                       />
-                      <span
-                        style={{
-                          fontSize: 'var(--text-badge)',
-                          padding: '2px 6px',
-                          borderRadius: 4,
-                          fontWeight: 500,
-                          background: 'color-mix(in srgb, var(--text-tertiary) 10%, transparent)',
-                          color: 'var(--text-tertiary)',
-                          flexShrink: 0,
-                          textDecoration: 'none',
-                        }}
-                      >
-                        {ext.toUpperCase() || 'FILE'}
-                      </span>
+                      <AttachmentExtBadge fileName={a.fileName} />
                     </div>
                   );
                 })}
