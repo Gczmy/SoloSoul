@@ -17,6 +17,12 @@ interface AttachmentPreviewOverlayProps {
   onOpenExternal?: (item: AttachmentItem) => void;
   /** 附件描述/标签保存成功后的回调（父级同步列表状态） */
   onItemUpdated?: (item: AttachmentItem) => void;
+  /**
+   * 只读上下文（如回收站详情）：隐藏「编辑附件属性」按钮（对象已删，改名/改
+   * 描述无意义且不落库）；vaultPath 缺失时提示「文件已不存在」而非「未存储在
+   * 保险库」（回收站里附件文件可能已随附件级永久删除而消失）。
+   */
+  disableMetaEdit?: boolean;
 }
 
 type PreviewKind = 'image' | 'pdf' | 'text' | 'other';
@@ -43,6 +49,7 @@ export function AttachmentPreviewOverlay({
   onClose,
   onOpenExternal,
   onItemUpdated,
+  disableMetaEdit = false,
 }: AttachmentPreviewOverlayProps) {
   const { t } = useTranslation('common');
   const [previewKind, setPreviewKind] = useState<PreviewKind | null>(null);
@@ -205,7 +212,10 @@ export function AttachmentPreviewOverlay({
           <div>{t('common:attachment_preview_failed', 'Failed to load preview.')}</div>
           {(!item.vaultPath || isUriPath(item.vaultPath)) && (
             <div style={{ marginTop: 8, fontSize: 'var(--text-body-sm)' }}>
-              {t('common:attachment_not_in_vault', 'Attachment is not stored in vault.')}
+              {/* 回收站只读上下文：文件已随附件级永久删除消失；常规上下文：从未入库 */}
+              {disableMetaEdit
+                ? t('common:attachment_file_missing', 'The attachment file no longer exists.')
+                : t('common:attachment_not_in_vault', 'Attachment is not stored in vault.')}
             </div>
           )}
         </div>
@@ -418,31 +428,33 @@ export function AttachmentPreviewOverlay({
         >
           {item.fileName}
         </span>
-        {/* 描述/标签编辑入口（全屏照片，需求 2+3） */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            setMetaEditOpen(true);
-          }}
-          title={t('common:edit_meta', 'Edit Attachment Attributes')}
-          aria-label={t('common:edit_meta', 'Edit Attachment Attributes')}
-          className="interactive-icon"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: 36,
-            height: 36,
-            borderRadius: 8,
-            border: 'none',
-            background: 'transparent',
-            color: 'var(--text-secondary)',
-            cursor: 'pointer',
-            flexShrink: 0,
-          }}
-        >
-          <FilePen size={ICON_SIZE.md} />
-        </button>
+        {/* 描述/标签编辑入口（全屏照片，需求 2+3）。回收站只读上下文隐藏（disableMetaEdit） */}
+        {!disableMetaEdit && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setMetaEditOpen(true);
+            }}
+            title={t('common:edit_meta', 'Edit Attachment Attributes')}
+            aria-label={t('common:edit_meta', 'Edit Attachment Attributes')}
+            className="interactive-icon"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: 36,
+              height: 36,
+              borderRadius: 8,
+              border: 'none',
+              background: 'transparent',
+              color: 'var(--text-secondary)',
+              cursor: 'pointer',
+              flexShrink: 0,
+            }}
+          >
+            <FilePen size={ICON_SIZE.md} />
+          </button>
+        )}
         <button
           onClick={(e) => {
             e.stopPropagation();

@@ -248,6 +248,7 @@ fn test_trash_detail_serialization() {
             deleted_at: None,
             description: Some("护照扫描件".to_string()),
             tags: vec!["旅行".to_string(), "证件".to_string()],
+            vault_path: None,
         }],
         deleted_attachments: vec![],
         snapshots: vec![serde_json::json!({"id": "snap-1", "timestamp": 0})],
@@ -465,6 +466,115 @@ fn test_parse_trash_attachments_carries_description_and_tags() {
     assert!(deleted[0].tags.is_empty());
     // 软删除附件仍按 deletedAt 归入 deleted 桶
     assert_eq!(deleted[0].file_name, "legacy.pdf");
+}
+
+#[test]
+fn test_parse_trash_attachments_vault_path_probe() {
+    // parse_trash_attachments 的 vault_path 探测：
+    // 1) 快照携带 vaultPath 且文件存在 → Some(原路径)
+    // 2) 快照携带 vaultPath 但文件已删 → None（附件级永久删除 remove_dir_all）
+    // 3) 旧数据无 vaultPath 键 → None（安全回退）
+    let dir = tempfile::TempDir::new().unwrap();
+    let existing = dir.path().join("attachments").join("obj-1").join("att-1");
+    std::fs::create_dir_all(&existing).unwrap();
+    let existing_file = existing.join("photo.png");
+    std::fs::write(&existing_file, b"png-data").unwrap();
+    let existing_path = existing_file.to_string_lossy().to_string();
+    let missing_path = dir.path().join("attachments").join("obj-1").join("att-2").join("gone.pdf");
+    let missing_path_str = missing_path.to_string_lossy().to_string();
+
+    let data = serde_json::json!({
+        "properties": {
+            "__attachments": [
+                {
+                    "id": "att-1",
+                    "fileName": "photo.png",
+                    "mimeType": "image/png",
+                    "sizeBytes": 1024,
+                    "createdAt": "2024-01-01T00:00:00Z",
+                    "deletedAt": null,
+                    "vaultPath": existing_path
+                },
+                {
+                    "id": "att-2",
+                    "fileName": "gone.pdf",
+                    "mimeType": "application/pdf",
+                    "sizeBytes": 2048,
+                    "createdAt": "2024-01-02T00:00:00Z",
+                    "deletedAt": "2024-02-01T00:00:00Z",
+                    "vaultPath": missing_path_str
+                },
+                {
+                    "id": "att-3",
+                    "fileName": "legacy.txt",
+                    "mimeType": "text/plain",
+                    "sizeBytes": 512,
+                    "createdAt": "2024-01-03T00:00:00Z",
+                    "deletedAt": null
+                }
+            ]
+        }
+    });
+    let trash = TrashItem {
+        id: "trash_vault_path_1".to_string(),
+        item_type: "object".to_string(),
+        original_id: "obj-1".to_string(),
+        original_parent_id: None,
+        original_section_type: Some("identity".to_string()),
+        original_sort_order: None,
+        data: serde_json::to_vec(&data).unwrap_or_default(),
+        deleted_at: 1234567890,
+        expires_at: None,
+        deleted_by: "user".to_string(),
+        name_snapshot: "Vault Path Test".to_string(),
+        icon_snapshot: None,
+    };
+
+    let (active, deleted) = super::super::snapshot::parse_trash_attachments(&trash);
+    // att-1：文件存在 → vault_path 保留原路径
+    assert_eq!(active.len(), 2);
+    assert_eq!(active[0].id, "att-1");
+    assert_eq!(active[0].vault_path.as_deref(), Some(existing_path.as_str()));
+    // att-3：旧数据无 vaultPath 键 → None
+    assert_eq!(active[1].id, "att-3");
+    assert_eq!(active[1].vault_path, None);
+    // att-2：vaultPath 指向已删除文件 → 探测失败降级为 None
+    assert_eq!(deleted.len(), 1);
+    assert_eq!(deleted[0].id, "att-2");
+    assert_eq!(deleted[0].vault_path, None);
+
+    // snake_case 兜底：vault_path 键同样可读
+    let snake_data = serde_json::json!({
+        "properties": {
+            "__attachments": [
+                {
+                    "id": "att-4",
+                    "fileName": "snake.png",
+                    "mimeType": "image/png",
+                    "sizeBytes": 1,
+                    "createdAt": "2024-01-04T00:00:00Z",
+                    "deletedAt": null,
+                    "vault_path": existing_path
+                }
+            ]
+        }
+    });
+    let trash2 = TrashItem {
+        id: "trash_vault_path_2".to_string(),
+        item_type: "object".to_string(),
+        original_id: "obj-1".to_string(),
+        original_parent_id: None,
+        original_section_type: Some("identity".to_string()),
+        original_sort_order: None,
+        data: serde_json::to_vec(&snake_data).unwrap_or_default(),
+        deleted_at: 1234567890,
+        expires_at: None,
+        deleted_by: "user".to_string(),
+        name_snapshot: "Snake Test".to_string(),
+        icon_snapshot: None,
+    };
+    let (active2, _) = super::super::snapshot::parse_trash_attachments(&trash2);
+    assert_eq!(active2[0].vault_path.as_deref(), Some(existing_path.as_str()));
 }
 
 #[test]

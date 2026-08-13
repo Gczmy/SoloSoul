@@ -12,9 +12,12 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { motion } from 'framer-motion';
 import { FolderOpen } from 'lucide-react';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
+import { AttachmentPreviewOverlay } from '@/components/attachment/AttachmentPreviewOverlay';
 import { ICON_SIZE } from '@/lib/constants';
+import { logger } from '@/lib/logger';
+import type { AttachmentItem } from '@/lib/attachmentUtils';
 import type { UserTemplate } from '@/types/template';
-import type { TrashDetail, SnapshotEntry, TrashChildSummary } from './types';
+import type { TrashDetail, SnapshotEntry, TrashChildSummary, TrashAttachment } from './types';
 import {
   TrashDetailHeader,
   TrashMetaInfo,
@@ -40,6 +43,7 @@ function ObjectDetailContent({
   onRequestDelete,
   showBackButton,
   onBack,
+  onPreviewAttachment,
 }: {
   item: TrashDetail;
   detailTemplate: UserTemplate | null;
@@ -48,6 +52,8 @@ function ObjectDetailContent({
   onRequestDelete: (id: string) => void;
   showBackButton?: boolean;
   onBack?: () => void;
+  /** 附件行预览按钮回调（状态提升至 TrashDetailPanel，预览遮罩渲染在面板 transform 容器之外） */
+  onPreviewAttachment?: (att: TrashAttachment) => void;
 }) {
   const customPages = useSettingsStore((s) => s.settings.customPages);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
@@ -112,6 +118,7 @@ function ObjectDetailContent({
             showTrash={showTrashAttachments}
             onToggle={() => toggleSection('attachments')}
             onSetShowTrash={setShowTrashAttachments}
+            onPreviewAttachment={onPreviewAttachment}
           />
           <SnapshotSummaryRow
             item={item}
@@ -150,6 +157,8 @@ export function TrashDetailPanel({
   const [, setViewingChildId] = useState<string | null>(null);
   const [childDetail, setChildDetail] = useState<TrashDetail | null>(null);
   const [childLoading, setChildLoading] = useState(false);
+  // 附件预览状态：含附件所属对象 ID（主条目 originalId，或钻取子对象的 originalId）
+  const [preview, setPreview] = useState<{ objectId: string; att: TrashAttachment } | null>(null);
 
   const handleViewChild = useCallback(async (child: TrashChildSummary) => {
     setViewingChildId(child.id);
@@ -168,6 +177,14 @@ export function TrashDetailPanel({
     setViewingChildId(null);
     setChildDetail(null);
   }, []);
+
+  // 预览回调：附件所属对象 ID = 当前激活视图的 originalId（childDetail 优先）
+  const handlePreviewAttachment = useCallback(
+    (att: TrashAttachment) => {
+      setPreview({ objectId: (childDetail ?? detailItem).originalId, att });
+    },
+    [childDetail, detailItem],
+  );
 
   const showChildren = detailItem.itemType === 'page' && detailItem.childItems.length > 0;
 
@@ -213,6 +230,7 @@ export function TrashDetailPanel({
             onRequestDelete={onRequestDelete}
             showBackButton
             onBack={handleBackToParent}
+            onPreviewAttachment={handlePreviewAttachment}
           />
         )}
 
@@ -225,6 +243,7 @@ export function TrashDetailPanel({
               onClose={onClose}
               onRequestRestore={onRequestRestore}
               onRequestDelete={onRequestDelete}
+              onPreviewAttachment={handlePreviewAttachment}
             />
 
             {/* Child objects list for page-type items */}
@@ -308,6 +327,43 @@ export function TrashDetailPanel({
           </>
         )}
       </motion.div>
+      {/* 附件预览：复用工作区 AttachmentPreviewOverlay。
+          必须在面板 transform 容器（translate(-50%,-50%) + overflowY:auto）**之外**渲染——
+          transform 祖先会成为 position:fixed 的包含块，遮罩会被限制在 380px 面板内并随其滚动。
+          只读上下文（disableMetaEdit）：对象已删，编辑名称/描述/标签不落库故隐藏入口；
+          文件缺失（vaultPath 为 null）时后端已探测降级，按钮层禁用，不会走到这里。
+          外链打开复用 attachment_open：软删对象行仍在库中（is_deleted=1），路径可解析。 */}
+      {preview && (
+        <AttachmentPreviewOverlay
+          item={
+            {
+              id: preview.att.id,
+              objectId: preview.objectId,
+              fileName: preview.att.fileName,
+              mimeType: preview.att.mimeType,
+              sizeBytes: preview.att.sizeBytes,
+              createdAt: preview.att.createdAt,
+              deletedAt: preview.att.deletedAt ?? null,
+              vaultPath: preview.att.vaultPath ?? null,
+              description: preview.att.description ?? null,
+              tags: preview.att.tags ?? [],
+            } satisfies AttachmentItem
+          }
+          disableMetaEdit
+          onClose={() => setPreview(null)}
+          onOpenExternal={async (it) => {
+            try {
+              await invoke('attachment_open', {
+                objectId: preview.objectId,
+                attachmentId: it.id,
+              });
+            } catch (e) {
+              // 面板无 toast 句柄；记录并保持静默（极少数硬删对象残留回收站条目场景）
+              logger.warn('[TrashDetailPanel] Open trashed attachment externally failed:', e);
+            }
+          }}
+        />
+      )}
     </>
   );
 }

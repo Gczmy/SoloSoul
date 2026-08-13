@@ -44,6 +44,8 @@ export interface TrashAttachment {
   description?: string | null;
   /** 附件标签（随快照携带；旧数据可能缺失） */
   tags?: string[];
+  /** 落库副本路径（后端 exists 探测：文件仍在磁盘才返回；已删/旧数据为 null） */
+  vaultPath?: string | null;
 }
 
 import type { SnapshotEntry } from '@/types/history';

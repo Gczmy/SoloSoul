@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { TrashAttachmentsSection } from './TrashDetailSections';
 import type { TrashAttachment } from './types';
@@ -11,6 +11,8 @@ const baseAtt: TrashAttachment = {
   createdAt: '2026-07-01T00:00:00Z',
   description: '护照扫描件',
   tags: ['旅行', '证件'],
+  // 文件在磁盘（后端探测通过）——预览按钮可用
+  vaultPath: '/vault/attachments/obj-1/att-1/photo.png',
 };
 
 const baseProps = {
@@ -31,8 +33,9 @@ describe('TrashAttachmentsSection 附件名称/描述/标签折叠展开', () =>
     expect(screen.getByText('旅行')).toBeInTheDocument();
     expect(screen.getByText('证件')).toBeInTheDocument();
     expect(screen.getByText(/1\.0 KB/)).toBeInTheDocument();
-    // 短描述 + ≤4 个标签 + jsdom 无溢出：不出现无意义的展开按钮
-    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+    // 短描述 + ≤4 个标签 + jsdom 无溢出：不出现无意义的展开箭头
+    // （预览按钮是固定入口，不作为「展开按钮」断言目标）
+    expect(screen.queryByTitle(/展开/i)).not.toBeInTheDocument();
   });
 
   it('标签超过 4 个默认折叠显示前 4 个 +「+N」+ 展开箭头，点击展开全部、再点收起', () => {
@@ -54,6 +57,34 @@ describe('TrashAttachmentsSection 附件名称/描述/标签折叠展开', () =>
     expect(screen.getByText('+1')).toBeInTheDocument();
   });
 
+  it('附件行预览按钮：vaultPath 存在时点击回调携带该附件', () => {
+    const onPreviewAttachment = vi.fn();
+    render(<TrashAttachmentsSection {...baseProps} onPreviewAttachment={onPreviewAttachment} />);
+    // 测试环境 useTranslation mock：object-form defaultValue 原样返回 → 'Preview'
+    const btn = screen.getByRole('button', { name: /Preview/i });
+    expect(btn).toBeEnabled();
+    fireEvent.click(btn);
+    expect(onPreviewAttachment).toHaveBeenCalledTimes(1);
+    expect(onPreviewAttachment).toHaveBeenCalledWith(expect.objectContaining({ id: 'att-1' }));
+  });
+
+  it('附件行预览按钮：vaultPath 缺失（文件已删/旧数据）时禁用并提示文件不存在', () => {
+    const onPreviewAttachment = vi.fn();
+    render(
+      <TrashAttachmentsSection
+        {...baseProps}
+        onPreviewAttachment={onPreviewAttachment}
+        activeAttachments={[{ ...baseAtt, vaultPath: null }]}
+      />,
+    );
+    const btn = screen.getByRole('button', {
+      name: /The attachment file no longer exists/i,
+    });
+    expect(btn).toBeDisabled();
+    fireEvent.click(btn);
+    expect(onPreviewAttachment).not.toHaveBeenCalled();
+  });
+
   it('长描述（mock 溢出）显示展开箭头，点击展开全文、再点收起', () => {
     const longDesc = '这是一段非常长的附件描述文本，'.repeat(40);
     const { rerender } = render(
@@ -62,8 +93,8 @@ describe('TrashAttachmentsSection 附件名称/描述/标签折叠展开', () =>
         activeAttachments={[{ ...baseAtt, description: longDesc }]}
       />,
     );
-    // 初始 jsdom 无布局：无按钮
-    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+    // 初始 jsdom 无布局：无展开箭头按钮（预览按钮为固定入口，不算展开按钮）
+    expect(screen.queryByTitle(/展开/i)).not.toBeInTheDocument();
 
     // 模拟真实布局：描述文本溢出（scrollWidth > clientWidth）
     const descEl = screen.getByText(longDesc) as HTMLElement;

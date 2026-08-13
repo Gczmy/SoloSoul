@@ -1,6 +1,7 @@
 use crate::commands::vault_handle;
 use crate::state::AppState;
 use serde::Serialize;
+use std::path::Path;
 
 use tauri::State;
 
@@ -152,6 +153,11 @@ pub struct TrashAttachmentInfo {
     pub description: Option<String>,
     /// 附件标签（随 __attachments 快照携带；旧数据可能缺失）
     pub tags: Vec<String>,
+    /// 落库副本路径（`{base}/attachments/{objectId}/{attachmentId}/{file}`）。
+    /// 仅当快照携带 vaultPath 且文件当前仍存在于磁盘时返回 Some；
+    /// 旧数据缺失键或文件已永久删除（回收站软删不删附件目录，但附件级
+    /// 永久删除会 remove_dir_all）均为 None——前端据此降级为「文件已不存在」。
+    pub vault_path: Option<String>,
 }
 
 // ── Trash detail helpers ──────────────────────────────────────
@@ -392,6 +398,17 @@ pub(crate) fn parse_trash_attachments(
         let mut active = Vec::new();
         let mut deleted = Vec::new();
         for a in &atts {
+            // vaultPath 随 AttachmentMeta 序列化持久化于 __attachments；软删对象行仍在
+            // 库中，路径不失效。仅当键缺失（旧数据）或文件已不在磁盘（附件级永久删除
+            // remove_dir_all）时置 None——由前端降级为「文件已不存在」而非让预览报错。
+            let vault_path = a
+                .get("vaultPath")
+                .or_else(|| a.get("vault_path"))
+                .and_then(|v| v.as_str())
+                .filter(|s| !s.is_empty())
+                .map(Path::new)
+                .filter(|p| p.is_file())
+                .map(|p| p.to_string_lossy().to_string());
             let info = TrashAttachmentInfo {
                 id: a["id"].as_str().unwrap_or("").to_string(),
                 file_name: a["fileName"].as_str().unwrap_or("").to_string(),
@@ -418,6 +435,7 @@ pub(crate) fn parse_trash_attachments(
                             .collect()
                     })
                     .unwrap_or_default(),
+                vault_path,
             };
             if info.deleted_at.is_some() {
                 deleted.push(info);

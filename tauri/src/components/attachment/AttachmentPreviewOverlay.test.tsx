@@ -126,6 +126,27 @@ describe('AttachmentPreviewOverlay', () => {
     }
   });
 
+  it('disableMetaEdit 隐藏「编辑附件属性」按钮（回收站只读上下文）', async () => {
+    mockInvoke.mockResolvedValue('data:image/png;base64,abc');
+    render(<AttachmentPreviewOverlay item={makeItem()} onClose={vi.fn()} disableMetaEdit />);
+    await waitFor(() => {
+      expect(mockInvoke).toHaveBeenCalledWith('fs_read_file_as_data_url', expect.anything());
+    });
+    expect(screen.queryByTitle(/common:edit_meta/i)).not.toBeInTheDocument();
+  });
+
+  it('disableMetaEdit 且 vaultPath 缺失时提示「文件已不存在」而非「未存储在保险库」', async () => {
+    render(
+      <AttachmentPreviewOverlay
+        item={makeItem({ vaultPath: null })}
+        onClose={vi.fn()}
+        disableMetaEdit
+      />,
+    );
+    expect(await screen.findByText(/common:attachment_file_missing/i)).toBeInTheDocument();
+    expect(screen.queryByText(/common:attachment_not_in_vault/i)).not.toBeInTheDocument();
+  });
+
   it('calls onOpenExternal for unsupported types', async () => {
     const onOpenExternal = vi.fn();
     render(

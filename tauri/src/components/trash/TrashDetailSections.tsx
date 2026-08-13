@@ -6,7 +6,7 @@
 // ============================================================
 
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, X, RotateCcw } from 'lucide-react';
+import { ArrowLeft, X, RotateCcw, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { DeleteButton } from '@/components/ui/DeleteButton';
 import { FieldTypeIcon } from '@/components/ui/FieldTypeIcon';
@@ -314,6 +314,7 @@ export function TrashAttachmentsSection({
   showTrash,
   onToggle,
   onSetShowTrash,
+  onPreviewAttachment,
 }: {
   activeAttachments: TrashAttachment[];
   deletedAttachments: TrashAttachment[];
@@ -321,6 +322,8 @@ export function TrashAttachmentsSection({
   showTrash: boolean;
   onToggle: () => void;
   onSetShowTrash: (show: boolean) => void;
+  /** 附件行预览按钮回调（文件在磁盘才可点；后端已 exists 探测） */
+  onPreviewAttachment?: (att: TrashAttachment) => void;
 }) {
   const { t } = useTranslation(['common']);
   return (
@@ -441,6 +444,50 @@ export function TrashAttachmentsSection({
                         tags={a.tags}
                       />
                       <AttachmentExtBadge fileName={a.fileName} />
+                      {/* 预览按钮：vaultPath 为 null（文件已随永久删除消失 / 旧数据无路径）
+                          时禁用并提示，避免点击后进入必失败的预览 */}
+                      <button
+                        type="button"
+                        disabled={!a.vaultPath}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onPreviewAttachment?.(a);
+                        }}
+                        title={
+                          a.vaultPath
+                            ? t('common:preview', { defaultValue: 'Preview' })
+                            : t('common:attachment_file_missing', {
+                                defaultValue: 'The attachment file no longer exists.',
+                              })
+                        }
+                        aria-label={
+                          a.vaultPath
+                            ? t('common:preview', { defaultValue: 'Preview' })
+                            : t('common:attachment_file_missing', {
+                                defaultValue: 'The attachment file no longer exists.',
+                              })
+                        }
+                        className="interactive-icon"
+                        style={{
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexShrink: 0,
+                          width: 24,
+                          height: 24,
+                          padding: 0,
+                          border: 'none',
+                          borderRadius: 6,
+                          background: 'transparent',
+                          color: a.vaultPath ? 'var(--text-secondary)' : 'var(--text-tertiary)',
+                          cursor: a.vaultPath ? 'pointer' : 'not-allowed',
+                          opacity: a.vaultPath ? 1 : 0.4,
+                          // T003 同款：触控面积由行容器承担，不扩展热区防换行
+                          touchAction: 'manipulation',
+                        }}
+                      >
+                        <Eye size={ICON_SIZE.sm} />
+                      </button>
                     </div>
                   );
                 })}

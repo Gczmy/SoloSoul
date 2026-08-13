@@ -94,6 +94,7 @@
   "byte_unit_kb": "KB",
   "attachment_preview_failed": "Failed to load preview.",
   "attachment_not_in_vault": "Attachment is not stored in vault.",
+  "attachment_file_missing": "The attachment file no longer exists.",
   "attachment_preview_unsupported": "Preview is not supported for this file type.",
   "attachment_open_system": "Open with system app",
   "attachment_zoom_in": "Zoom In",
