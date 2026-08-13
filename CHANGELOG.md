@@ -2,6 +2,38 @@
 
 All notable changes to SoloSoul are documented in this file.
 
+## [2.10.1] - 2026-08-13
+
+### Added
+
+- **安卓端图片手势缩放（T010）** — 照片集 + 附件预览双查看器接入双指捏合与双击缩放：新增共享 hook `useTouchZoom`（原生 touch 事件：touchstart 记录捏合基线/单击候选，touchmove `passive:false` 阻止滚动、按 距离比×基线比例 实时缩放并 clamp [0.1,5]，touchend 捏合结束、低于 fit 回弹；双击在 300ms 窗口内两次快速点按（250ms/10px 判定）在 fit 与 fit×2 间切换，latest/currentScaleRef 防闭包过期，pinchActive 门控 drag/swipe）；照片集查看器 contentRef 移入稳定内容区容器承载手势并门控 framer-motion drag，附件预览补 fitScale/fitToView 对齐 fit-scale 模型后接入；新增 11 条测试（两查看器捏合放大缩小、低于 fit 回弹、双击切换、单击不缩放，审查回归：tap 后接捏合不误触双击、touchcancel 无条件清理捏合状态）。
+- **附件管理树按格式显示图标+格式名称徽章** — 抽取共享 `AttachmentFormatBadge`（分类复用 `previewItemByMime` 单一源，text 归 other；图标 image→Image/pdf→FileText/其余→回形针；徽章半透明底色 pill，无扩展名回退 FILE）；树行桌面端 [勾选][图标][徽章][名称块][操作]，移动端图标+徽章随 metaLeadingIcon 入元信息行与名称列对齐；TrashAttachmentsSection 改用共享组件（参考与实现同源防漂移）；新增 9 条测试。
+- **回收站对象详情卡附件项折叠展开** — Rust `TrashAttachmentInfo` 增补 description/tags 并从 `__attachments` 快照安全解析（旧数据缺键回退）；附件行换用共享 `AttachmentFileNameBlock`（名称/描述/标签三块可展开，触控优化随附），名称由 28 字符硬截断改为整名省略号+可展开；新增 4 条测试。
+- **照片集「按对象」分组改为 页面→对象 两级结构** — 页面名顶层展示（自定义页直显、系统页 navigation 翻译、无页面信息回退 unknown_page），对象子区块缩进展示对象名+数量+照片网格；查看器浏览列表按分组渲染顺序拍平保证 startIndex 索引正确（修复对象分组下查看器错位隐患）。
+- **附件管理页信息栏与树结构双端适配** — 照片集按钮移动端显示「照片集」文本与桌面一致；桌面 summary 改「附件/大小/对象」三组同格式（新增 `common:objects_count_value`）；移动 summary 两行三列等宽分布；移动页面行图标与页面名同行；对象/附件行删除层级缩进与页面对齐。
+
+### Fixed
+
+- **附件预览手势无响应（T010 真机回归）** — 两处根因：① 调用方始终挂载本组件且 previewItem 初始为 null，首帧组件 return null、手势目标元素尚不存在，useTouchZoom 原一次性挂载 effect 在此时 elementRef.current===null 提前返回导致监听永不绑定；② 全局 `touch-action: manipulation` 含 pinch-zoom 抢双指手势，附件预览滚动容器未覆写。修复：useTouchZoom 改为每次渲染后核对 ref 指向、目标元素出现/变化才重绑，事件处理器仅首次渲染创建一次（bind/unbind 引用身份稳定，正确解绑不再静默泄漏）；附件预览图片模式 touchAction 按 fitsViewport 覆写 pan-y/auto（PDF/文本保持原行为）；新增 3 条回归。
+- **照片集全屏查看器缩放语义错误（T009）** — 真机对照实验定位：初始 scale=1 表示「适应视口」却显示 100%，放大按原始尺寸×scale 渲染导致从适配比直接跳到 1.2×原始尺寸，缩小到 scale<1 时图片仍按适配渲染故「缩小没反应」。改为与附件预览一致的 fit-scale 模型：`computeFitScale` 纯函数按容器尺寸计算适应比例（不超过 1 小图不放大），初始显示真实适配比、图片始终按原始尺寸×scale 渲染；图片超出视口（scale>fit，0.001 epsilon 容忍浮点回环）才切 overflow auto 可平移并禁用左右滑动翻页；新增 computeFitScale 4 条纯函数测试。
+- **照片集全屏查看器 Android 缩放条无响应** — 真实 WebView 手势层（framer-motion drag 的 touch-action: pan-y 区域）吞掉悬浮其上的缩放条 click；缩放条显式 zIndex:10 + touch-action:manipulation 声明本区域仅点按；按钮主路径改 onPointerDown(e.button===0)（先于任何手势取消 click，右键/中键不缩放），键盘 Enter/Space 经 click(detail===0) 兜底；新增 4 条回归。
+- **照片集/浮层在安卓模拟器点击无反应** — useOverlayBackGuard StrictMode 竞态：清理期 history.go 异步排队遍历，dev 构建（StrictMode 挂载→清理→重挂载同步连续）下会在重挂载实例 pushState 之后执行，误弹新标记并触发新实例 popstate → 浮层打开瞬间即被关闭；清理改为延迟到微任务 + 栈顶引用身份校验（真实卸载则 go(-n)，dev 重挂载则跳过交由新实例接管）；新增重挂载回归测试。
+- **相册打开时 vault 锁定残留历史标记清理** — 模块级 sweeper 追踪活跃钩子压入的标记所有权（pushState 同引用），卸载时释放；popstate 遇无人认领的浮层标记自动 go(-1) 跳过，一次返回连续跨越全部残留标记直达真实条目，消除幻影返回/卡顿；AuthGuard replace 与 vault-locked push 两条锁定路径统一覆盖；新增 3 条测试。
+- **首页照片集 Android 硬件返回回首页而非设置页** — 打开相册时压入同名历史标记（保留 React Router idx），popstate 守卫关闭相册；屏幕内关闭经 history.back() 弹出标记防残留；测试新增。
+- **照片集全屏查看器 Android 返回先回网格而非直接退出** — 分层历史守卫收敛到 PhotoAlbumOverlay（挂载压相册层标记、打开查看器再压查看器层标记，popstate 按层回退：查看器开→网格、网格态→关闭相册）；HomePage 移除自管守卫职责移交 overlay；另两个入口（附件管理/对象详情）同获关闭而非跳路由；测试 2 条新增。
+- **并行分段下载弹性收口** — ① 段级候选顺序抽 `parallel_candidate_order`：探测主通道（通常直连）重复 1+DIRECT_SEGMENT_RETRIES(=2) 次排最前，段中途失败先重试同通道而非立即切中国代理（瞬时抖动重试即恢复，代理仅作最后兜底）；② 并行失败不再从 0 重下：按序等待记录首个失败段下标 fail_idx，0..fail_idx 已完成段（必为连续前缀）经 merge_seg_files 合并为 part_path 断点供回退单流 Range 续传；merge_seg_files 抽公共（成功全量/失败前缀共用）并改「临时文件 + 原子 rename」落位——任何失败不触碰既有断点（T002 保证不削弱）；cleanup 顺带清理 .part.merge 孤儿；新增 2 条测试。
+- **下载策略直连健康优先** — probe 对直连（候选0）206 响应下载 1MB 样本测速（chunk 逐块累计+早退，≥2MB/s 判健康），健康→回旧版单流直连（海外直连本就快，不再启用并行分段/代理，消除多连接最慢段拖累与段失败→从0重下的回退放大）；直连失败/过慢（国内受限）→并行+代理照旧；探测改返回 DownloadStrategy 枚举（DirectSingleStream / Accelerated{total, range_channel}）；新增 sample_speed_healthy 单测 + 5 条本地 HTTP 服务器集成测试。
+
+### Refactor
+
+- **Android 硬件返回分层守卫抽为共享 useOverlayBackGuard** — 从 PhotoAlbumOverlay 抽出浮层层/内层层历史标记 + popstate 分层回退 + 卸载清理（防误弹外部条目）；相册改用 hook 并复用返回 handleInnerBack；首页/附件管理/对象详情三入口均渲染本 overlay 自动继承守卫；新增 6 条 hook 单元测试。
+- **附件管理树移动端图标对齐** — 附件图标不再竖排在勾选框下方，移入共享 AttachmentFileNameBlock 新增的可选 metaLeadingIcon 插槽（元信息行左侧 flex），随内容列形成勾选框宽度的天然缩进、与文件名同列对齐；桌面端/回收站详情/对象详情不传该 prop 保持纯文本；新增移动端断言测试。
+- **sign_artifacts.sh 健壮性** — 相对路径签名失效修复（tauri signer 在 tauri/ 子 shell 执行，签名前统一转绝对路径）；产物目录在 glob 与签名之间消失时显式报错并以非零退出（fail-fast）；sign_file 移除与调用方循环重复的 .sig 跳过检查（计数语义更清晰）。
+
+### Chores
+
+- 版本号同步升级到 2.10.1（versionCode 2010001）。
+
 ## [2.10.0] - 2026-08-12
 
 ### Added
