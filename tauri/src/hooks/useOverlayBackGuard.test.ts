@@ -195,7 +195,7 @@ describe('useOverlayBackGuard', () => {
     expect(window.history.go).not.toHaveBeenCalled();
   });
 
-  it('卸载时清理残留标记：仅当顶层仍是本浮层标记才 history.go(-n)', () => {
+  it('卸载时清理残留标记：仅当顶层仍是本浮层标记才 history.go(-n)', async () => {
     const onClose = vi.fn();
     const onCloseInner = vi.fn();
     const { unmount, rerender } = renderHook(
@@ -204,10 +204,13 @@ describe('useOverlayBackGuard', () => {
       { initialProps: { innerOpen: false } },
     );
 
-    // 查看器打开（2 层标记），随后卸载 → go(-2) 清理
+    // 查看器打开（2 层标记），随后卸载 → 清理延迟到微任务，冲洗后 go(-2)
     act(() => rerender({ innerOpen: true }));
     act(() => {
       unmount();
+    });
+    await act(async () => {
+      await Promise.resolve();
     });
     expect(window.history.go).toHaveBeenCalledWith(-2);
 
@@ -220,6 +223,41 @@ describe('useOverlayBackGuard', () => {
     act(() => {
       unmount2();
     });
+    await act(async () => {
+      await Promise.resolve();
+    });
     expect(window.history.go).not.toHaveBeenCalled();
+  });
+
+  it('dev StrictMode 重挂载：清理的延迟 go 不误弹新实例标记（相册打开即关闭回归）', async () => {
+    const onClose1 = vi.fn();
+    const onClose2 = vi.fn();
+
+    // StrictMode 开发模式：挂载 → 清理 → 重挂载（同步连续执行）。
+    // 浏览器中清理期的 history.go 是异步排队的遍历，会在重挂载实例的 pushState
+    // 之后才执行——若直接调用会从重挂载后的位置误弹新标记并触发新实例 popstate。
+    const { unmount } = renderHook(() =>
+      useOverlayBackGuard({ innerOpen: false, onCloseInner: vi.fn(), onClose: onClose1 }),
+    );
+    unmount();
+    // 重挂载新实例：压入自己的新标记，接管浮层
+    renderHook(() =>
+      useOverlayBackGuard({ innerOpen: false, onCloseInner: vi.fn(), onClose: onClose2 }),
+    );
+
+    // 冲洗微任务：首实例清理的延迟 go 此时执行——栈顶已是新实例标记（身份不等）
+    // → 必须跳过，不得误弹；浮层保持打开，onClose2 不被误触发。
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(window.history.go).not.toHaveBeenCalled();
+    expect(onClose2).not.toHaveBeenCalled();
+
+    // 用户真实硬件返回（浏览器弹出新实例标记）：正常关闭浮层
+    act(() => {
+      window.dispatchEvent(new PopStateEvent('popstate', { state: window.history.state }));
+    });
+    expect(onClose2).toHaveBeenCalledTimes(1);
+    expect(onClose1).not.toHaveBeenCalled();
   });
 });

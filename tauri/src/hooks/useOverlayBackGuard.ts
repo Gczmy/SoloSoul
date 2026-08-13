@@ -110,7 +110,21 @@ export function useOverlayBackGuard({
       // 顶层非标记则跳过，避免误弹外部条目（残留标记交给 sweeper 后续跳过）。
       const top = window.history.state as { solosoulOverlayLayer?: boolean } | null;
       if (top?.solosoulOverlayLayer && layersRef.current > 0) {
-        window.history.go(-layersRef.current);
+        // 延迟到微任务 + 栈顶身份校验（dev StrictMode 竞态防护）：
+        // 开发构建下 React StrictMode 会「挂载→清理→重挂载」同步连续执行——清理期的
+        // history.go() 是异步排队的遍历，若在此直接调用，会在重挂载实例的 pushState
+        // **之后**才执行，从「重挂载后的位置」多弹一层新标记并触发新实例自己的 popstate
+        // 处理器 → 相册/浮层打开瞬间即被关闭（安卓端表现为点按钮无反应）。
+        // 延迟到微任务后：真实卸载场景下（无重挂载）栈顶仍是本钩子标记，身份相等则照常
+        // 清理；dev 重挂载场景下重挂载实例已同步压入新标记，栈顶身份不再相等 → 跳过，
+        // 由新实例接管（首实例遗留的旧标记按「残留标记」交给 sweeper 在返回时自动跳过）。
+        const n = layersRef.current;
+        const capturedTop = top;
+        queueMicrotask(() => {
+          if (window.history.state === capturedTop) {
+            window.history.go(-n);
+          }
+        });
       }
       layersRef.current = 0;
       // 卸载后标记不再属于本钩子：无论已被正常弹出还是被外部条目埋藏，都释放
