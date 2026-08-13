@@ -67,6 +67,10 @@ const PARALLEL_SEGMENTS: usize = 4;
 const PARALLEL_MIN_FILE_SIZE: u64 = 20 * 1024 * 1024; // 20MB
 /// 每个分段的最小体积：文件略超阈值时不生成过碎的分段。
 const PARALLEL_MIN_SEGMENT_SIZE: u64 = 5 * 1024 * 1024; // 5MB
+/// 分段级主通道重试次数：并行段在探测主通道（通常为直连）中途失败时不立即切中国
+/// 代理，先重试同通道这么多次——避免单次网络抖动/单连接劣化把本可直连完成的段
+/// 绕道到慢速代理（修复①）。单段总尝试次数 = 1 + DIRECT_SEGMENT_RETRIES。
+const DIRECT_SEGMENT_RETRIES: usize = 2;
 
 /// 直连健康测速样本大小：探测直连通道时下载该字节数用于吞吐判定。
 /// 快路径（海外快直连）样本在数十毫秒内读完，开销可忽略；慢路径受探测客户端
@@ -310,7 +314,9 @@ fn cleanup_stale_apk_cache(app: &tauri::AppHandle, current_version: &str) -> Res
         // 仅处理 update_<version>.apk / .part / .part.seg{i} 格式
         let is_update_file = (name_str.starts_with("update_") && name_str.ends_with(".apk"))
             || (name_str.starts_with("update_") && name_str.ends_with(".part"))
-            || (name_str.starts_with("update_") && name_str.contains(".part.seg"));
+            || (name_str.starts_with("update_") && name_str.contains(".part.seg"))
+            // merge_seg_files 的合并临时文件（进程中断残留即孤儿）
+            || (name_str.starts_with("update_") && name_str.ends_with(".part.merge"));
         if !is_update_file {
             continue;
         }
@@ -320,10 +326,10 @@ fn cleanup_stale_apk_cache(app: &tauri::AppHandle, current_version: &str) -> Res
                 .or_else(|| stripped.strip_suffix(".part"))
                 .or_else(|| stripped.split(".part.seg").next())
                 .unwrap_or(stripped);
-            // ① 旧版本文件一律删除；② 当前版本的 `.part.seg{i}` 孤儿分段文件也删除
-            // （T003）：parallel 分段下载不支持续传，进程中断（kill/崩溃）残留的 seg
-            // 文件纯属垃圾累积；本函数仅在下载开始前调用（检查更新时/下载前），无并发
-            // 写入，删除安全。当前版本的 `.part`（单流断点）与 `.apk` 保留。
+            // ① 旧版本文件一律删除；② 当前版本的 `.part.seg{i}` 孤儿分段文件与
+            // `.part.merge` 合并临时文件也删除（T003）：进程中断（kill/崩溃）残留的
+            // seg/merge 文件纯属垃圾累积；本函数仅在下载开始前调用（检查更新时/下载前），
+            // 无并发写入，删除安全。当前版本的 `.part`（单流断点）与 `.apk` 保留。
             let is_orphan_seg = name_str.contains(".part.seg");
             if file_version != current_part || is_orphan_seg {
                 let _ = std::fs::remove_file(entry.path());
@@ -747,6 +753,22 @@ pub async fn android_download_apk(app: tauri::AppHandle, version: String) -> Res
     Ok(())
 }
 
+/// 构造并行下载的段级候选顺序（修复①）。
+///
+/// 探测主通道（`idx`，通常为直连）排最前并重复 `1 + DIRECT_SEGMENT_RETRIES` 次：
+/// 段在主通道中途失败时先重试同通道（网络抖动/单连接劣化多为瞬时，重试即恢复），
+/// 全部重试仍失败才轮到其余候选（代理），避免直连可用场景的段被绕道到慢速代理。
+/// 其余候选保持原有相对顺序（`idx+1..` 优先于 `..idx`）。
+fn parallel_candidate_order(candidates: &[String], idx: usize) -> Vec<String> {
+    let mut ordered: Vec<String> = Vec::with_capacity(candidates.len() + DIRECT_SEGMENT_RETRIES);
+    for _ in 0..=DIRECT_SEGMENT_RETRIES {
+        ordered.push(candidates[idx].clone());
+    }
+    ordered.extend(candidates[idx + 1..].iter().cloned());
+    ordered.extend(candidates[..idx].iter().cloned());
+    ordered
+}
+
 /// 下载主体：按探测策略执行（直连健康→单流直连；需加速→并行分段或单流），
 /// 随后 SHA-256 校验并返回最终大小。
 ///
@@ -772,12 +794,13 @@ async fn download_apk_to_part(
         } => {
             if let Some(idx) = range_channel {
                 if total >= PARALLEL_MIN_FILE_SIZE {
-                    // 并行时优先复用探测确认支持 Range 的通道，其余通道作回退
-                    let mut ordered: Vec<String> = candidates[idx..].to_vec();
-                    ordered.extend(candidates[..idx].iter().cloned());
+                    // 并行时优先复用探测确认支持 Range 的通道，且主通道（通常直连）
+                    // 重复 DIRECT_SEGMENT_RETRIES 次排最前（修复①）：段中途失败先
+                    // 重试同通道而非立即切中国代理。
+                    let ordered = parallel_candidate_order(candidates, idx);
                     // 并行失败（代理限流/中途断连等）时回退单流重试一次：
-                    // parallel 已保留 part_path 断点，单流可断点续传（T002）；
-                    // 单流再失败则错误传播，由调用方处理。
+                    // parallel 已把完成段合并为 part_path 前缀（修复②），单流可断点
+                    // 续传；单流再失败则错误传播，由调用方处理。
                     if let Err(e) = download_apk_parallel(app, &ordered, total, part_path).await {
                         tracing::warn!("[updater] 分段并行下载失败，回退单流重试: {e}");
                         download_apk_single_stream(app, candidates, part_path).await?;
@@ -914,10 +937,50 @@ fn compute_segments(total: u64) -> Vec<(u64, u64)> {
     segments
 }
 
+/// 按序合并 seg 文件到 `part_path` 并删除已合并的分段文件，返回合并字节数。
+///
+/// 先合并到同目录临时文件（`part_path` + `.merge`），成功后原子 `rename` 覆盖
+/// `part_path`：任何失败都不触碰既有 `part_path`（T002：并行失败不销毁单流遗留
+/// 断点），临时文件在失败路径自行清理。成功路径合并全部段；并行失败路径（修复②）
+/// 仅合并已完成的前缀段。
+fn merge_seg_files(part_path: &std::path::Path, seg_paths: &[PathBuf]) -> Result<u64, String> {
+    let tmp_path = {
+        let mut p = part_path.as_os_str().to_owned();
+        p.push(".merge");
+        PathBuf::from(p)
+    };
+    let result = (|| -> Result<u64, String> {
+        let mut out =
+            std::fs::File::create(&tmp_path).map_err(|e| format!("创建合并文件: {e}"))?;
+        let mut merged = 0u64;
+        for p in seg_paths {
+            let mut f = std::fs::File::open(p).map_err(|e| format!("打开分段文件: {e}"))?;
+            merged += std::io::copy(&mut f, &mut out).map_err(|e| format!("合并分段失败: {e}"))?;
+            drop(f);
+            let _ = std::fs::remove_file(p);
+        }
+        drop(out);
+        Ok(merged)
+    })();
+    match result {
+        Ok(merged) => std::fs::rename(&tmp_path, part_path)
+            .map(|()| merged)
+            .map_err(|e| {
+                let _ = std::fs::remove_file(&tmp_path);
+                format!("合并文件落位失败: {e}")
+            }),
+        Err(e) => {
+            let _ = std::fs::remove_file(&tmp_path);
+            Err(e)
+        }
+    }
+}
+
 /// 多线程分段下载：将 `[0, total)` 均分为多段并发拉取，全部成功后按序合并到 `part_path`。
 ///
 /// 每段写入独立的 `.seg{i}` 临时文件，共用原子进度计数并发出进度事件；
-/// 任一段失败即中止并清理所有分段文件。
+/// 任一段失败即中止其余任务，并把**已完成的段（必为连续前缀）合并为 `part_path`**
+/// 断点供回退单流续传（修复②），不再从 0 重下。
 async fn download_apk_parallel(
     app: &tauri::AppHandle,
     candidates: &[String],
@@ -956,21 +1019,22 @@ async fn download_apk_parallel(
             download_range_to_file(&client, &candidates, start, end, &path, &sink).await
         }));
     }
-    // 顺序等待各段结果；任一段失败即中止其余仍在运行的分段任务
-    // （否则它们会继续写已清理的 .seg 文件并 emit 进度事件），随后清理分段文件。
+    // 顺序等待各段结果（0..seg_count）；任一段失败即中止其余仍在运行的分段任务
+    // （否则它们会继续写已清理的 .seg 文件并 emit 进度事件）。
+    // 因按序等待，首个失败段下标即「已完成段数」：0..fail_idx 均已成功写盘。
     let mut iter = handles.into_iter();
-    let mut failure: Option<String> = None;
-    for handle in iter.by_ref() {
+    let mut failure: Option<(usize, String)> = None;
+    for (i, handle) in iter.by_ref().enumerate() {
         let result = handle
             .await
             .map_err(|e| format!("分段下载任务异常: {e}"))
             .and_then(|r| r.map_err(|e| format!("分段下载失败: {e}")));
         if let Err(e) = result {
-            failure = Some(e);
+            failure = Some((i, e));
             break;
         }
     }
-    if let Some(e) = failure {
+    if let Some((fail_idx, e)) = failure {
         // U005: abort() 是异步信号——任务可能已越过最后的 await 点仍在执行
         // （写完文件才返回），若立刻删 seg 文件，任务收尾时可能重建孤儿 .seg。
         // 先 abort 全部剩余句柄，再逐个 await（忽略结果）确保完全停止，之后清理。
@@ -981,24 +1045,38 @@ async fn download_apk_parallel(
         for handle in remaining {
             let _ = handle.await;
         }
-        // 只清理分段文件，**保留 part_path**：它可能承载上次单流中断的有效断点，
-        // 调用方可据此回退单流断点续传（T002），不应在并行失败时销毁。
+        // 修复②：已完成段（0..fail_idx）构成连续前缀，合并为 part_path 断点供
+        // 回退单流续传（Range: bytes={prefix}-），避免从 0 重下整个文件。
+        // 仅当前缀长于既有 .part（上次单流遗留断点）时才覆盖，否则保留更长断点。
+        if fail_idx > 0 {
+            let existing = std::fs::metadata(part_path).map(|m| m.len()).unwrap_or(0);
+            let prefix_len: u64 = seg_paths[..fail_idx]
+                .iter()
+                .filter_map(|p| std::fs::metadata(p).ok().map(|m| m.len()))
+                .sum();
+            if prefix_len > existing {
+                match merge_seg_files(part_path, &seg_paths[..fail_idx]) {
+                    Ok(merged) => tracing::info!(
+                        "[updater] 并行失败后保留 {merged} 字节前缀供单流断点续传"
+                    ),
+                    // 合并失败：part_path 未被触碰（临时文件已由 merge_seg_files 清理），
+                    // 既有断点原样保留（T002），回退单流仍可从原断点续传。
+                    Err(merge_err) => tracing::warn!(
+                        "[updater] 并行失败后合并已完成分段失败（既有断点保留）: {merge_err}"
+                    ),
+                }
+            }
+        }
+        // 清理分段文件：合并路径的成功段已随合并删除，失败段/被中止段/未合并段
+        // 在这里清理（remove_file 对已删除文件报错可忽略）；**保留 part_path**（T002）。
         for p in &seg_paths {
             let _ = std::fs::remove_file(p);
         }
         return Err(e);
     }
 
-    // 按序合并分段 → part_path，随后清理分段文件
-    let mut out = std::fs::File::create(part_path).map_err(|e| format!("创建合并文件: {e}"))?;
-    let mut merged = 0u64;
-    for p in &seg_paths {
-        let mut f = std::fs::File::open(p).map_err(|e| format!("打开分段文件: {e}"))?;
-        merged += std::io::copy(&mut f, &mut out).map_err(|e| format!("合并分段失败: {e}"))?;
-        drop(f);
-        let _ = std::fs::remove_file(p);
-    }
-    drop(out);
+    // 全部成功：按序合并分段 → part_path（合并函数随合并删除各段文件）
+    let merged = merge_seg_files(part_path, &seg_paths)?;
     if merged != total {
         let _ = std::fs::remove_file(part_path);
         return Err(format!("分段合并大小不符: 期望 {total}, 实际 {merged}"));
@@ -1748,5 +1826,51 @@ mod tests {
             }
             other => panic!("200 通道应返回 Accelerated{{None}}，实际 {other:?}"),
         }
+    }
+
+    /// 修复①：并行段级候选顺序——主通道（通常直连）重复 1+DIRECT_SEGMENT_RETRIES 次
+    /// 排最前（失败先重试同通道而非立即切代理），其余候选保持原有相对顺序。
+    #[test]
+    fn test_parallel_candidate_order_direct_retried_first() {
+        let candidates: Vec<String> = (0..5).map(|i| format!("url{i}")).collect();
+        // idx=0（直连主通道）：直连 ×(1+RETRIES)，随后其余候选
+        let ordered = parallel_candidate_order(&candidates, 0);
+        let mut expected = vec![candidates[0].clone(); 1 + DIRECT_SEGMENT_RETRIES];
+        expected.extend(candidates[1..].iter().cloned());
+        assert_eq!(ordered, expected);
+        // idx=2（代理主通道）：主通道 ×(1+RETRIES)，随后 idx+1.. 再 ..idx
+        let ordered2 = parallel_candidate_order(&candidates, 2);
+        let mut expected2 = vec![candidates[2].clone(); 1 + DIRECT_SEGMENT_RETRIES];
+        expected2.extend(candidates[3..].iter().cloned());
+        expected2.extend(candidates[..2].iter().cloned());
+        assert_eq!(ordered2, expected2);
+    }
+
+    /// 修复②：合并 seg 文件按序拼接并删除源文件（成功路径全量 / 失败路径前缀共用）。
+    #[test]
+    fn test_merge_seg_files_concatenates_and_removes() {
+        let dir = std::env::temp_dir().join(format!("solosoul_seg_test_{}", std::process::id()));
+        let _ = std::fs::create_dir_all(&dir);
+        let segs: Vec<PathBuf> = (0..3)
+            .map(|i| {
+                let p = dir.join(format!("part.seg{i}"));
+                std::fs::write(&p, vec![b'a' + i as u8; 100]).unwrap();
+                p
+            })
+            .collect();
+        let part = dir.join("part");
+        let merged = merge_seg_files(&part, &segs).unwrap();
+        assert_eq!(merged, 300);
+        let data = std::fs::read(&part).unwrap();
+        assert_eq!(data.len(), 300);
+        // 按序拼接：前 100 字节 a、次 100 字节 b、末 100 字节 c
+        assert!(data.iter().take(100).all(|&b| b == b'a'));
+        assert!(data.iter().skip(100).take(100).all(|&b| b == b'b'));
+        assert!(data.iter().skip(200).all(|&b| b == b'c'));
+        // 源 seg 文件已删除
+        for p in &segs {
+            assert!(!p.exists());
+        }
+        let _ = std::fs::remove_dir_all(&dir);
     }
 }
