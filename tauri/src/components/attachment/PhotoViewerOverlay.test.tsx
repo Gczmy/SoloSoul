@@ -197,4 +197,96 @@ describe('PhotoViewerOverlay', () => {
     fireEvent.keyDown(window, { key: 'Escape' });
     expect(onClose).toHaveBeenCalled();
   });
+
+  // ── Android 缩放条加固回归（T009）：真实 WebView 手势层可能吞 click，
+  //    主交互路径改 onPointerDown（任何取消前触发）；键盘仍走 click(detail===0)。
+  it('zooms via pointerdown (primary mobile path)', async () => {
+    mockInvoke.mockResolvedValue('data:image/png;base64,abc');
+    render(
+      <PhotoViewerOverlay
+        items={[makeItem('a')]}
+        initialIndex={0}
+        onBack={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTitle(/common:attachment_zoom_in/i)).toBeInTheDocument();
+    });
+    expect(screen.getByText('100%')).toBeInTheDocument();
+
+    fireEvent.pointerDown(screen.getByTitle(/common:attachment_zoom_in/i));
+    expect(screen.getByText('120%')).toBeInTheDocument();
+
+    fireEvent.pointerDown(screen.getByTitle(/common:attachment_zoom_out/i));
+    expect(screen.getByText('100%')).toBeInTheDocument();
+
+    // pointerdown 后触发的 click(detail>=1) 不应二次缩放
+    fireEvent.click(screen.getByTitle(/common:attachment_zoom_in/i), { detail: 1 });
+    expect(screen.getByText('100%')).toBeInTheDocument();
+  });
+
+  it('does not zoom on right/middle mouse button pointerdown', async () => {
+    mockInvoke.mockResolvedValue('data:image/png;base64,abc');
+    render(
+      <PhotoViewerOverlay
+        items={[makeItem('a')]}
+        initialIndex={0}
+        onBack={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTitle(/common:attachment_zoom_in/i)).toBeInTheDocument();
+    });
+
+    fireEvent.pointerDown(screen.getByTitle(/common:attachment_zoom_in/i), { button: 2 });
+    expect(screen.getByText('100%')).toBeInTheDocument();
+
+    fireEvent.pointerDown(screen.getByTitle(/common:attachment_zoom_in/i), { button: 1 });
+    expect(screen.getByText('100%')).toBeInTheDocument();
+  });
+
+  it('zooms via keyboard activation (click with detail 0)', async () => {
+    mockInvoke.mockResolvedValue('data:image/png;base64,abc');
+    render(
+      <PhotoViewerOverlay
+        items={[makeItem('a')]}
+        initialIndex={0}
+        onBack={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTitle(/common:attachment_zoom_in/i)).toBeInTheDocument();
+    });
+
+    // 键盘 Enter/Space 激活的 click 事件 detail===0（无 pointerdown），走兜底路径
+    fireEvent.click(screen.getByTitle(/common:attachment_zoom_in/i), { detail: 0 });
+    expect(screen.getByText('120%')).toBeInTheDocument();
+  });
+
+  it('clicking zoom controls never closes the viewer', async () => {
+    mockInvoke.mockResolvedValue('data:image/png;base64,abc');
+    const onClose = vi.fn();
+    render(
+      <PhotoViewerOverlay
+        items={[makeItem('a')]}
+        initialIndex={0}
+        onBack={vi.fn()}
+        onClose={onClose}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTitle(/common:attachment_zoom_in/i)).toBeInTheDocument();
+    });
+
+    fireEvent.pointerDown(screen.getByTitle(/common:attachment_zoom_in/i));
+    fireEvent.click(screen.getByTitle(/common:attachment_zoom_in/i), { detail: 1 });
+    expect(onClose).not.toHaveBeenCalled();
+  });
 });

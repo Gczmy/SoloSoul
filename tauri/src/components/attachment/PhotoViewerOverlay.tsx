@@ -189,6 +189,15 @@ export function PhotoViewerOverlay({
   const zoomOut = () => setScale((s) => clampScale(s / ZOOM_STEP));
   const resetZoom = () => setScale(1);
 
+  // Android 加固：缩放按钮主路径走 pointerdown（先于任何手势取消 click 触发），
+  // 但仅响应主按键（右键/中键不缩放）；键盘激活无 pointerdown，经 click(detail===0) 兜底。
+  const onZoomPointer = (action: () => void) => (e: React.PointerEvent) => {
+    if (e.button === 0) action();
+  };
+  const onZoomKeyboard = (action: () => void) => (e: React.MouseEvent<HTMLButtonElement>) => {
+    if (e.detail === 0) action();
+  };
+
   const showZoomControls = !!url && !loading && !error;
 
   const renderContent = () => {
@@ -389,21 +398,17 @@ export function PhotoViewerOverlay({
         {/* 左右翻页按钮：多图时显示，半透明提示可左右切换 */}
         {total > 1 && (
           <>
-            <NavButton
-              direction="prev"
-              onClick={goPrev}
-              label={t('common:previous', 'Previous')}
-            />
-            <NavButton
-              direction="next"
-              onClick={goNext}
-              label={t('common:next', 'Next')}
-            />
+            <NavButton direction="prev" onClick={goPrev} label={t('common:previous', 'Previous')} />
+            <NavButton direction="next" onClick={goNext} label={t('common:next', 'Next')} />
           </>
         )}
       </div>
 
-      {/* 缩放控件（仅图片就绪时显示） */}
+      {/* 缩放控件（仅图片就绪时显示）
+          Android 加固：缩放条悬浮于 framer-motion drag 层（touch-action: pan-y）之上，
+          真实 WebView 的手势判定/合成层可能吞掉 click——显式 zIndex 确保绘制在 drag 层之上，
+          touch-action: manipulation 声明本区域仅为点按（不参与 pan），按钮主路径走 onPointerDown
+          （在任何手势取消 click 之前触发），键盘激活仍经 click(detail===0) 兜底。 */}
       {showZoomControls && (
         <div
           onClick={(e) => e.stopPropagation()}
@@ -412,6 +417,8 @@ export function PhotoViewerOverlay({
             bottom: 24,
             left: '50%',
             transform: 'translateX(-50%)',
+            zIndex: 10,
+            touchAction: 'manipulation',
             display: 'flex',
             alignItems: 'center',
             gap: 10,
@@ -425,24 +432,28 @@ export function PhotoViewerOverlay({
           }}
         >
           <button
-            onClick={zoomOut}
+            type="button"
+            onPointerDown={onZoomPointer(zoomOut)}
+            onClick={onZoomKeyboard(zoomOut)}
             title={t('common:attachment_zoom_out', 'Zoom Out')}
             style={{ ...iconButtonStyle, width: 28, height: 28 }}
           >
             <ZoomOut size={ICON_SIZE.lg} />
           </button>
-          <span style={{ minWidth: 52, textAlign: 'center' }}>
-            {Math.round(scale * 100)}%
-          </span>
+          <span style={{ minWidth: 52, textAlign: 'center' }}>{Math.round(scale * 100)}%</span>
           <button
-            onClick={zoomIn}
+            type="button"
+            onPointerDown={onZoomPointer(zoomIn)}
+            onClick={onZoomKeyboard(zoomIn)}
             title={t('common:attachment_zoom_in', 'Zoom In')}
             style={{ ...iconButtonStyle, width: 28, height: 28 }}
           >
             <ZoomIn size={ICON_SIZE.lg} />
           </button>
           <button
-            onClick={resetZoom}
+            type="button"
+            onPointerDown={onZoomPointer(resetZoom)}
+            onClick={onZoomKeyboard(resetZoom)}
             title={t('common:attachment_zoom_fit', 'Fit to window')}
             style={{ ...iconButtonStyle, width: 28, height: 28 }}
           >
