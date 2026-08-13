@@ -20,7 +20,7 @@ const TAP_MAX_DURATION = 250;
 const TAP_MAX_MOVE = 10;
 
 export interface UseTouchZoomOptions {
-  /** 手势作用容器（图片展示区）。容器应在组件生命周期内稳定；touch 事件经其冒泡到达。 */
+  /** 手势作用容器（图片展示区）。容器可能延迟就绪（如组件先以空数据挂载、\n   * 首帧 return null），hook 会在其出现后自动绑定。 */
   elementRef: RefObject<HTMLElement | null>;
   /** 当前缩放比例（相对图片原始尺寸）。 */
   scale: number;
@@ -51,8 +51,14 @@ export interface TouchZoomState {
  *   在 fit 与 fit×doubleTapFactor 之间切换；
  * - 监听以原生 touch 事件绑定：React 合成 touch 事件在根上是被动监听无法
  *   preventDefault，这里以 `{ passive: false }` 绑定 touchmove 拦截浏览器滚动/手势，
- *   保证捏合不触发页面滚动（全局 `touch-action: manipulation` + `user-scalable=no`
- *   下浏览器双指缩放已被禁用，事件可完整到达本 hook）。
+ *   保证捏合不触发页面滚动。手势能否派发到本 hook 取决于容器 touch-action——
+ *   调用方须覆写全局 `touch-action: manipulation`（含 pinch-zoom，浏览器会抢手势）
+ *   为 pan-y（未放大）让事件完整到达；
+ * - 绑定时机：组件可能先以空数据挂载（如 AttachmentPreviewOverlay 的 item 初始为
+ *   null，首帧 return null，ref 目标尚不存在），监听不能依赖一次性 effect——每次
+ *   渲染后核对 ref 指向，目标元素出现或变化时才重绑；卸载时统一解绑。
+ * - 事件处理器仅在首次渲染创建一次（参数经 ref 读取）：bind/unbind 引用身份跨渲染
+ *   稳定，removeEventListener 按回调引用匹配，身份不稳定会导致解绑静默失效。
  */
 export function useTouchZoom({
   elementRef,
@@ -66,9 +72,13 @@ export function useTouchZoom({
 }: UseTouchZoomOptions): TouchZoomState {
   const [pinchActive, setPinchActive] = useState(false);
 
-  // 最新值引用：监听器只在元素挂载时绑定一次，事件回调内读取 ref 避免过期闭包
+  // 最新值引用：监听器在元素出现时绑定，事件回调内读取 ref 避免过期闭包
   const latest = useRef({ scale, setScale, fitScale, fitToView });
   latest.current = { scale, setScale, fitScale, fitToView };
+
+  // 可变参数（min/max/doubleTapFactor）：稳定处理器经此读取，props 变化也能感知
+  const paramsRef = useRef({ minScale, maxScale, doubleTapFactor });
+  paramsRef.current = { minScale, maxScale, doubleTapFactor };
 
   // 捏合过程中同步写入的当前比例：touchend 时 state 可能尚未刷新（React 批量更新），
   // 回弹判定必须读此值而不是 latest.current.scale
@@ -79,11 +89,21 @@ export function useTouchZoom({
   const lastTapTimeRef = useRef(0);
   const tapStartRef = useRef<{ x: number; y: number; t: number } | null>(null);
 
-  useEffect(() => {
-    const el = elementRef.current;
-    if (!el) return;
+  // 当前已绑定监听的元素：绑定与解绑以它为准，避免重复绑定
+  const boundElRef = useRef<HTMLElement | null>(null);
 
-    const clamp = (v: number) => Math.min(maxScale, Math.max(minScale, v));
+  // 事件处理器只创建一次：bind/unbind 身份稳定，卸载/换元素时 removeEventListener
+  // 才能按回调引用匹配到实际挂载的监听（否则静默解绑失败、监听泄漏）。
+  const stableRef = useRef<{
+    onTouchStart: (e: TouchEvent) => void;
+    onTouchMove: (e: TouchEvent) => void;
+    onTouchEnd: (e: TouchEvent) => void;
+    bind: (el: HTMLElement) => void;
+    unbind: (el: HTMLElement) => void;
+  } | null>(null);
+  if (!stableRef.current) {
+    const clamp = (v: number) =>
+      Math.min(paramsRef.current.maxScale, Math.max(paramsRef.current.minScale, v));
 
     const onTouchStart = (e: TouchEvent) => {
       if (e.touches.length === 2) {
@@ -162,7 +182,9 @@ export function useTouchZoom({
             lastTapTimeRef.current = 0;
             const cur = currentScaleRef.current;
             if (cur <= latest.current.fitScale + 0.001) {
-              latest.current.setScale(clamp(latest.current.fitScale * doubleTapFactor));
+              latest.current.setScale(
+                clamp(latest.current.fitScale * paramsRef.current.doubleTapFactor),
+              );
             } else {
               latest.current.fitToView();
             }
@@ -173,17 +195,45 @@ export function useTouchZoom({
       }
     };
 
-    el.addEventListener('touchstart', onTouchStart, { passive: true });
-    el.addEventListener('touchmove', onTouchMove, { passive: false });
-    el.addEventListener('touchend', onTouchEnd);
-    el.addEventListener('touchcancel', onTouchEnd);
-    return () => {
+    const bind = (el: HTMLElement) => {
+      el.addEventListener('touchstart', onTouchStart, { passive: true });
+      el.addEventListener('touchmove', onTouchMove, { passive: false });
+      el.addEventListener('touchend', onTouchEnd);
+      el.addEventListener('touchcancel', onTouchEnd);
+    };
+
+    const unbind = (el: HTMLElement) => {
       el.removeEventListener('touchstart', onTouchStart);
       el.removeEventListener('touchmove', onTouchMove);
       el.removeEventListener('touchend', onTouchEnd);
       el.removeEventListener('touchcancel', onTouchEnd);
     };
-  }, [elementRef, minScale, maxScale, doubleTapFactor]);
+
+    stableRef.current = { onTouchStart, onTouchMove, onTouchEnd, bind, unbind };
+  }
+
+  // 无依赖数组：每次渲染后核对 ref 指向。目标元素从无到有（延迟就绪）或切换时
+  // 才重绑；元素不变则什么都不做，避免重复绑定/解绑抖动。
+  // （stableRef 在首次渲染必然初始化，此处经 ! 断言取用。）
+  useEffect(() => {
+    const { bind, unbind } = stableRef.current!;
+    const el = elementRef.current;
+    if (!el || el === boundElRef.current) return;
+    if (boundElRef.current) unbind(boundElRef.current);
+    boundElRef.current = el;
+    bind(el);
+  });
+
+  // 组件卸载：解绑当前元素并清标记（stableRef 身份稳定，经同一引用解绑）
+  useEffect(() => {
+    return () => {
+      const { unbind } = stableRef.current!;
+      if (boundElRef.current) {
+        unbind(boundElRef.current);
+        boundElRef.current = null;
+      }
+    };
+  }, []);
 
   return { pinchActive };
 }

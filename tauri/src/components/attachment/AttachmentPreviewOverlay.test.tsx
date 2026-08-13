@@ -191,4 +191,69 @@ describe('AttachmentPreviewOverlay', () => {
     tap();
     expect(screen.getByText('200%')).toBeInTheDocument();
   });
+
+  // 回归（T010 真机修复）：真实调用方（AttachmentViewer / GlobalAttachmentManager）
+  // 始终挂载本组件且 previewItem 初始为 null——首帧组件 return null、手势目标元素
+  // 尚未存在，若监听只在挂载时绑定一次则永不生效。验证「先空挂载 → 再给 item」
+  // 后捏合/双击仍可用（useTouchZoom 需在元素延迟就绪后自动绑定）。
+  it('binds gestures when mounted empty then given an item (real caller pattern)', async () => {
+    mockInvoke.mockResolvedValue('data:image/png;base64,abc');
+    const { rerender } = render(<AttachmentPreviewOverlay item={null} onClose={vi.fn()} />);
+    // 空挂载：无内容
+    expect(screen.queryByTestId('attachment-preview-content')).not.toBeInTheDocument();
+
+    rerender(<AttachmentPreviewOverlay item={makeItem()} onClose={vi.fn()} />);
+    const area = screen.getByTestId('attachment-preview-content');
+    await waitFor(() => {
+      expect(screen.getByTitle(/common:attachment_zoom_in/i)).toBeInTheDocument();
+    });
+
+    // 双击缩放应生效（若监听未绑定，两次点按后仍为 100%）
+    expect(screen.getByText('100%')).toBeInTheDocument();
+    const tap = () => {
+      fireEvent.touchStart(area, { touches: touchPoints([[150, 400]]) });
+      fireEvent.touchEnd(area, { touches: [] });
+    };
+    tap();
+    tap();
+    expect(screen.getByText('200%')).toBeInTheDocument();
+  });
+
+  it('overrides touch-action to pan-y when image fits viewport (browser must not grab pinch)', async () => {
+    const area = await renderImage();
+    // jsdom 无自然尺寸 → fitsViewport 为 true → 图片模式 touch-action 应为 pan-y
+    expect(area).toHaveStyle('touch-action: pan-y');
+  });
+
+  // 审查回归：关闭（item→null）再重新打开（null→item）不应重复绑定监听——
+  // 每次打开手势都应恰好生效一次（若重复绑定，单次双击可能触发多次缩放）
+  it('reopening after close does not double-bind gestures', async () => {
+    mockInvoke.mockResolvedValue('data:image/png;base64,abc');
+    const { rerender } = render(<AttachmentPreviewOverlay item={null} onClose={vi.fn()} />);
+
+    // 打开 → 关闭 → 再打开（模拟真机反复预览不同附件）
+    rerender(<AttachmentPreviewOverlay item={makeItem()} onClose={vi.fn()} />);
+    let area = screen.getByTestId('attachment-preview-content');
+    await waitFor(() => {
+      expect(screen.getByTitle(/common:attachment_zoom_in/i)).toBeInTheDocument();
+    });
+    rerender(<AttachmentPreviewOverlay item={null} onClose={vi.fn()} />);
+    expect(screen.queryByTestId('attachment-preview-content')).not.toBeInTheDocument();
+    rerender(<AttachmentPreviewOverlay item={makeItem({ id: 'att-2' })} onClose={vi.fn()} />);
+    area = screen.getByTestId('attachment-preview-content');
+    await waitFor(() => {
+      expect(screen.getByTitle(/common:attachment_zoom_in/i)).toBeInTheDocument();
+    });
+
+    // 双击：若监听重复绑定，一次双击会触发多次切换 → 比例跳到 400%/800% 而非 200%
+    expect(screen.getByText('100%')).toBeInTheDocument();
+    const tap = () => {
+      fireEvent.touchStart(area, { touches: touchPoints([[150, 400]]) });
+      fireEvent.touchEnd(area, { touches: [] });
+    };
+    tap();
+    tap();
+    expect(screen.getByText('200%')).toBeInTheDocument();
+    expect(screen.queryByText('400%')).not.toBeInTheDocument();
+  });
 });

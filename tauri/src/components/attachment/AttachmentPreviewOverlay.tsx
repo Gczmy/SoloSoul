@@ -172,6 +172,13 @@ export function AttachmentPreviewOverlay({
   const zoomOut = () => setScale((s) => clampScale(s / ZOOM_STEP));
   const resetZoom = () => fitToView();
 
+  /** 图片渲染尺寸是否未超出视口（与 PhotoViewerOverlay 一致，带 epsilon 容忍浮点回环）。
+   *  未超出时容器 touch-action 覆写为 pan-y——全局 `touch-action: manipulation`
+   *  允许 pinch-zoom，浏览器会原生抢走双指手势导致捏合失效；pan-y 不含 pinch-zoom，
+   *  事件完整派发给 useTouchZoom。超出后恢复 auto 让浏览器处理双向滚动平移。 */
+  const fitsViewport =
+    previewKind === 'image' && naturalSize !== null ? scale <= fitScale + 0.001 : true;
+
   const handleWheel = (e: React.WheelEvent) => {
     // Ctrl/Cmd + wheel zooms; plain wheel scrolls the container normally.
     if (e.ctrlKey || e.metaKey) {
@@ -486,6 +493,9 @@ export function AttachmentPreviewOverlay({
           overflow: 'auto',
           display: 'flex',
           padding: 24,
+          // 仅图片预览覆写：未超出视口时声明本区域仅纵向 pan（把双指/双击手势
+          // 让给 JS 的 useTouchZoom，浏览器不抢）；放大超出后恢复 auto 双向滚动平移
+          touchAction: previewKind === 'image' ? (fitsViewport ? 'pan-y' : 'auto') : undefined,
         }}
       >
         {renderContent()}
