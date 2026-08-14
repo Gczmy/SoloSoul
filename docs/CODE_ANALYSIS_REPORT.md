@@ -28,7 +28,7 @@
 
 | ID   | 优先级 | 类别 | 文件位置 | 描述 | 状态 |
 |------|--------|------|----------|------|------|
-| P001 | P1 | 安全/架构 | `tauri/crates/solosoul-core/src/vault_service.rs:1282-1297`（另 629-637、747-755） | `lock()` 等处 RwLock 中毒时静默跳过清零，「锁定」后派生密钥仍驻留内存（fail-open） | `[ ]` 待修复 |
+| P001 | P1 | 安全/架构 | `tauri/crates/solosoul-core/src/vault_service.rs` | `lock()` 等处 RwLock 中毒时静默跳过清零，「锁定」后派生密钥仍驻留内存（fail-open） | `[x]` 已修复（P001） |
 | P002 | P1 | 架构 | `tauri/src-tauri/src/commands/llm/stream.rs:499` | 流式对话完成后 `let _ = save_conversation(...)` 吞错，Vault 写入失败时整段对话丢失且无感知 | `[ ]` 待修复 |
 | P003 | P1 | 架构 | `commands/object/mod.rs:727/729/818/820`、`commands/biometric.rs` 多处、`commands/auth.rs:87`、`commands/sync.rs:18` 等 | 审计日志 `log_structured` 与快照 `save_snapshot` 大量 `let _ =` 吞错，审计轨迹/回滚快照可能静默缺漏 | `[ ]` 待修复 |
 | P004 | P1 | 性能/架构 | `tauri/crates/solosoul-core/src/llm/client.rs:142-150` | `process_sse` 整包读入再解析，「流式输出」实际不流式；120s 总超时对长回复直接截断 | `[ ]` 待修复 |
@@ -61,8 +61,8 @@
 
 ## 修复进度
 
-- 已完成：2 / 30
-- 当前处理：P001（锁中毒 fail-open）
+- 已完成：3 / 30
+- 当前处理：P002（流式对话保存吞错）
 
 ---
 
@@ -72,9 +72,14 @@
 - **提交**：`7b2fe75c`（见上）
 
 ### P006 · `cargo fmt --check` 不通过（已修复）
-- **提交**：`（待填写）`
+- **提交**：`8792fd17`
 - **改动**：`cargo fmt --all` 修复 `commands/update.rs`（9 处）与 `commands/object/tests/trash.rs`（3 处），纯格式化无逻辑变化。
 - **验证**：`cargo fmt --all -- --check` exit 0。
+
+### P001 · 锁中毒 fail-open（已修复）
+- **提交**：`（待填写）`
+- **改动**：`vault_service.rs` 三处 `if let Ok(...)` 静默跳过改为 `unwrap_or_else(|e| e.into_inner())` 强制取回（复用文件内 `PASSWORD_ATTEMPT_LOCK` 既有模式）：① `lock()` 三个状态锁（vault_store/session_key/unlocked_account）中毒时强制取回并 `zeroize()`/`take()`，保证「Lock 即擦除密钥」不变量；② `create_account`/`create_account_with_id` 的 accounts_cache + 三个会话状态锁强制取回，杜绝「账户落盘但会话状态部分缺失」不一致。
+- **验证**：`cargo clippy --all-targets -- -D warnings`（solosoul-core）exit 0。
 - **改动**：`llm/service.rs` 中 `MAX_CONVERSATION_MESSAGES`、`trim_conversation_messages`、`compare_updated_at` 三个 item 纯移动到 `mod tests` 之前（无逻辑变化）；顺带修复 `biometric/windows.rs:486` 测试中恒真断言 `available == false || available == true`（`bool_comparison` warning，`-D warnings` 下同阻断 CI）。
 - **验证**：`cargo clippy --all-targets -- -D warnings`（solosoul-core）exit 0 全绿。
 

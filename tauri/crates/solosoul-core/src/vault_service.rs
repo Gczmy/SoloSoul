@@ -608,9 +608,14 @@ impl VaultService {
             created_at: now.clone(),
             last_accessed: Some(now),
         };
-        if let Ok(mut cache) = self.accounts_cache.write() {
-            cache.insert(account_id.clone(), entry);
-        }
+        // P001：RwLock 中毒按不可恢复处理——`into_inner()` 强制取回写锁，保证
+        // 账户落盘后会话状态（accounts_cache / vault_store / session_key /
+        // unlocked_account）一致建立，不再出现「账户已创建但会话状态部分缺失」
+        // 的不一致（与 lock() 同款处理）。
+        self.accounts_cache
+            .write()
+            .unwrap_or_else(|e| e.into_inner())
+            .insert(account_id.clone(), entry);
         self.save_accounts()?;
 
         // Open vault with data key
@@ -626,15 +631,13 @@ impl VaultService {
         let vault_arc = Arc::new(vault);
         // 设备级偏好同步开关：unlock 新建 VaultStore 后应用期望值（默认 true）。
         vault_arc.set_ui_prefs_sync_enabled(self.ui_prefs_sync_enabled.load(Ordering::SeqCst));
-        if let Ok(mut store) = self.vault_store.write() {
-            *store = Some(vault_arc);
-        }
-        if let Ok(mut key) = self.session_key.write() {
-            *key = Some(Zeroizing::new(master_key_arr));
-        }
-        if let Ok(mut ua) = self.unlocked_account.write() {
-            *ua = Some(account_id.clone());
-        }
+        *self.vault_store.write().unwrap_or_else(|e| e.into_inner()) = Some(vault_arc);
+        *self.session_key.write().unwrap_or_else(|e| e.into_inner()) =
+            Some(Zeroizing::new(master_key_arr));
+        *self
+            .unlocked_account
+            .write()
+            .unwrap_or_else(|e| e.into_inner()) = Some(account_id.clone());
 
         Ok(serde_json::json!({
             "id": account_id, "name": name,
@@ -727,9 +730,11 @@ impl VaultService {
             created_at: now.clone(),
             last_accessed: Some(now),
         };
-        if let Ok(mut cache) = self.accounts_cache.write() {
-            cache.insert(account_id.to_string(), entry);
-        }
+        // P001：RwLock 中毒按不可恢复处理（同 create_account）。
+        self.accounts_cache
+            .write()
+            .unwrap_or_else(|e| e.into_inner())
+            .insert(account_id.to_string(), entry);
         self.save_accounts()?;
 
         let master_key_arr: [u8; 32] = master_key
@@ -744,15 +749,13 @@ impl VaultService {
         let vault_arc = Arc::new(vault);
         // 设备级偏好同步开关：unlock 新建 VaultStore 后应用期望值（默认 true）。
         vault_arc.set_ui_prefs_sync_enabled(self.ui_prefs_sync_enabled.load(Ordering::SeqCst));
-        if let Ok(mut store) = self.vault_store.write() {
-            *store = Some(vault_arc);
-        }
-        if let Ok(mut key) = self.session_key.write() {
-            *key = Some(Zeroizing::new(master_key_arr));
-        }
-        if let Ok(mut ua) = self.unlocked_account.write() {
-            *ua = Some(account_id.to_string());
-        }
+        *self.vault_store.write().unwrap_or_else(|e| e.into_inner()) = Some(vault_arc);
+        *self.session_key.write().unwrap_or_else(|e| e.into_inner()) =
+            Some(Zeroizing::new(master_key_arr));
+        *self
+            .unlocked_account
+            .write()
+            .unwrap_or_else(|e| e.into_inner()) = Some(account_id.to_string());
 
         Ok(serde_json::json!({
             "id": account_id, "name": name,
@@ -1279,21 +1282,28 @@ impl VaultService {
         Ok(())
     }
 
+    /// P001：RwLock 中毒（持锁线程 panic）按不可恢复处理——`into_inner()` 强制取回写锁
+    /// 继续执行。「锁定即擦除会话密钥」是核心安全不变量：静默跳过清零会让派生密钥
+    /// 在锁定后仍驻留内存（fail-open）。即使写锁内状态因 panic 部分更新，取回后
+    /// 执行 `take()`/`zeroize()` 仍保证各状态收敛（密钥清零、会话与 vault 句柄移除）。
     pub fn lock(&self) {
-        if let Ok(mut store) = self.vault_store.write() {
-            if let Some(ref mut v) = *store {
-                v.lock();
-            }
-            store.take();
+        let mut store = self.vault_store.write().unwrap_or_else(|e| e.into_inner());
+        if let Some(ref mut v) = *store {
+            v.lock();
         }
-        if let Ok(mut key) = self.session_key.write() {
-            if let Some(mut k) = key.take() {
-                k.zeroize();
-            }
+        store.take();
+        if let Some(mut k) = self
+            .session_key
+            .write()
+            .unwrap_or_else(|e| e.into_inner())
+            .take()
+        {
+            k.zeroize();
         }
-        if let Ok(mut ua) = self.unlocked_account.write() {
-            ua.take();
-        }
+        self.unlocked_account
+            .write()
+            .unwrap_or_else(|e| e.into_inner())
+            .take();
     }
 
     pub fn is_unlocked(&self) -> bool {
