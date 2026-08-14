@@ -31,7 +31,7 @@
 | P001 | P1 | 安全/架构 | `tauri/crates/solosoul-core/src/vault_service.rs` | `lock()` 等处 RwLock 中毒时静默跳过清零，「锁定」后派生密钥仍驻留内存（fail-open） | `[x]` 已修复（P001） |
 | P002 | P1 | 架构 | `tauri/src-tauri/src/commands/llm/stream.rs` | 流式对话完成后 `let _ = save_conversation(...)` 吞错，Vault 写入失败时整段对话丢失且无感知 | `[x]` 已修复（P002） |
 | P003 | P1 | 架构 | `commands/` 各模块（object/biometric/auth/sync/ocr/template/trash/snapshot/import/export/export_docx/llm-provider） | 审计日志 `log_structured` 与快照 `save_snapshot` 大量 `let _ =` 吞错，审计轨迹/回滚快照可能静默缺漏 | `[x]` 已修复（P003） |
-| P004 | P1 | 性能/架构 | `tauri/crates/solosoul-core/src/llm/client.rs:142-150` | `process_sse` 整包读入再解析，「流式输出」实际不流式；120s 总超时对长回复直接截断 | `[ ]` 待修复 |
+| P004 | P1 | 性能/架构 | `tauri/crates/solosoul-core/src/llm/client.rs` | `process_sse` 整包读入再解析，「流式输出」实际不流式；120s 总超时对长回复直接截断 | `[x]` 已修复（P004） |
 | P005 | P1 | 规范 | `tauri/crates/solosoul-core/src/llm/service.rs` | Clippy 错误 `items_after_test_module`：常量与两个函数定义在 `mod tests` 之后，`check-all`/CI 阻断 | `[x]` 已修复（P005） |
 | P006 | P1 | 规范 | `tauri/src-tauri/src/commands/update.rs`（9 处）、`tauri/src-tauri/src/commands/object/tests/trash.rs`（3 处） | `cargo fmt --check` 不通过，`check-all`/CI 阻断 | `[x]` 已修复（P006） |
 | P007 | P1 | 架构 | `tauri/src/pages/ai/LlmConfigPage.tsx:327-341` | `handleDeleteProvider` 删除失败后（catch 仅 warn）仍无条件更新本地状态，前后端状态分叉 | `[ ]` 待修复 |
@@ -61,8 +61,8 @@
 
 ## 修复进度
 
-- 已完成：5 / 30
-- 当前处理：P004（LLM 流式整包读取，需先确认前端适配）
+- 已完成：6 / 30
+- 当前处理：P007（删除 provider 失败仍更新本地状态）
 
 ---
 
@@ -87,9 +87,14 @@
 - **验证**：`cargo check` exit 0；`cargo clippy --lib` 无警告。
 
 ### P003 · 审计日志/快照大面积吞错（已修复）
-- **提交**：`（待填写）`
+- **提交**：`8be25d0c`
 - **改动**：`commands/mod.rs` 新增 `log_audit_best_effort()` / `save_snapshot_best_effort()` 封装（内部 `tracing::warn!` 脱敏落日志：仅记动作/实体标识，不记 details 内容），替换 12 个生产文件共 **32 处 `let _ = vault.log_structured(` + 5 处 `let _ = vault.save_snapshot(`**（object/mod、object/snapshot、object/trash、biometric、auth、sync、ocr、template、export、import、export_docx/mod、llm/provider）。审计轨迹与回滚快照写入失败现在有可观测信号。测试文件（object/tests/snapshot.rs）保持不动。
 - **验证**：`cargo check` exit 0；`cargo clippy --lib -- -D warnings` exit 0（`&vault` 冗余借用经 `clippy --fix` 清除）；`cargo fmt --all -- --check` exit 0。
+
+### P004 · LLM「流式」实为整包读取（已修复）
+- **提交**：`（待填写）`
+- **改动**：确认 GUI 路径（`src-tauri/commands/llm/stream.rs` `handle_sse_stream`）本已真流式；整包读取仅影响 CLI（`solosoul_cli/src/app.rs` → `LlmService::send_message_stream` → `client.rs::process_sse`）。`client.rs` 三处改造：① `process_sse` 弃用 `resp.bytes()` 整包读入，改独立读线程 `BufReader` 逐行消费网络流 + mpsc 转发，首 token 到达即触发 `on_event`（CLI 打字机真正流式）；② 超时策略：请求级 120s 总超时改为 `SSE_IDLE_TIMEOUT=120s` 空闲超时（`recv_timeout`，每行重置）——长回复持续出 token 不再被截断，死连接不发数据也不会永久挂起；③ 非流式路径 `process_non_streaming` 经新增 `read_body_with_timeout` 保留总超时兜底；client 改 `connect_timeout(15s)` + 无总超时。解析逻辑与事件语义不变。
+- **验证**：`cargo clippy --all-targets -- -D warnings`（solosoul-core）exit 0；`cargo check`（solosoul_cli）exit 0；fmt 通过。
 - **改动**：`llm/service.rs` 中 `MAX_CONVERSATION_MESSAGES`、`trim_conversation_messages`、`compare_updated_at` 三个 item 纯移动到 `mod tests` 之前（无逻辑变化）；顺带修复 `biometric/windows.rs:486` 测试中恒真断言 `available == false || available == true`（`bool_comparison` warning，`-D warnings` 下同阻断 CI）。
 - **验证**：`cargo clippy --all-targets -- -D warnings`（solosoul-core）exit 0 全绿。
 

@@ -30,11 +30,13 @@ pub fn send_chat_stream(
     messages: &[serde_json::Value],
     on_event: &dyn Fn(LlmStreamEvent),
 ) -> Result<(), String> {
-    // P030: 此前 timeout(None)——慢速滴流可永久挂起阻塞线程。
-    // 本实现经 process_sse 整包读入后解析，请求级 timeout 即覆盖
-    // 连接 + 响应体读取全程，设 120s 总上限（正常 SSE 对话远低于此）。
+    // P030: 此前 timeout(None)——慢速滴流可永久挂起阻塞线程；P004: 请求级 120s
+    // 总超时会把「长回复持续出 token」的流式响应直接截断。现改为：连接阶段由
+    // connect_timeout(15s) 兜底；流式路径（process_sse）用空闲超时
+    // SSE_IDLE_TIMEOUT（每收到完整一行重置，长回复不截断，死连接不挂起）覆盖；
+    // 非流式路径（process_non_streaming）由 read_body_with_timeout 总超时覆盖。
     let client = reqwest::blocking::Client::builder()
-        .timeout(std::time::Duration::from_secs(120))
+        .connect_timeout(std::time::Duration::from_secs(15))
         .build()
         .map_err(|e| format!("Client build error: {}", e))?;
 
@@ -139,6 +141,10 @@ fn split_system_messages(
 
 // ── SSE processing ───────────────────────────────────────────────
 
+/// P004: SSE 空闲超时——每收到完整一行重置计时（替代旧的请求级 120s 总超时：
+/// 长回复持续出 token 不再被截断；连接死而不发数据也不会永久挂起）。
+const SSE_IDLE_TIMEOUT: std::time::Duration = std::time::Duration::from_secs(120);
+
 fn process_sse(
     resp: reqwest::blocking::Response,
     api_type: &ApiType,
@@ -146,19 +152,46 @@ fn process_sse(
 ) -> Result<(), String> {
     use std::io::BufRead;
 
-    // Read the full body as bytes, then use Cursor for BufRead
-    let bytes = resp.bytes().map_err(|e| format!("Read response: {}", e))?;
-    let cursor = std::io::Cursor::new(bytes);
-    let reader = std::io::BufReader::new(cursor);
+    // P004: 不再 `resp.bytes()` 整包读入——blocking Response 实现 `std::io::Read`，
+    // 由独立读线程逐行消费网络流，经 mpsc 转发给解析侧；首个 chunk 到达即触发
+    // on_event（CLI 打字机真正流式）。空闲超时用 `recv_timeout` 实现。
+    let (tx, rx) = std::sync::mpsc::channel::<Option<String>>();
+    // 不 join：空闲超时退出时读线程可能仍阻塞在 read_line，detach 语义让其随
+    // 连接关闭/进程退出自然清理（解析侧丢 rx 后其 send 会失败并退出）。
+    let _reader = std::thread::spawn(move || {
+        let mut reader = std::io::BufReader::new(resp);
+        let mut line = String::new();
+        loop {
+            line.clear();
+            match reader.read_line(&mut line) {
+                Ok(0) => break, // EOF
+                Ok(_) => {
+                    if tx.send(Some(std::mem::take(&mut line))).is_err() {
+                        break; // 解析侧已退出（如空闲超时），停止发送
+                    }
+                }
+                Err(_) => break,
+            }
+        }
+        let _ = tx.send(None); // 通知解析侧流结束
+    });
 
     let mut anthropic_prompt_tokens: u64 = 0;
     let mut anthropic_completion_tokens: u64 = 0;
     let mut prompt_tokens: u64 = 0;
     let mut completion_tokens: u64 = 0;
 
-    for raw_line_result in reader.lines() {
-        let raw_line: String =
-            raw_line_result.map_err(|e: std::io::Error| format!("Read error: {}", e))?;
+    loop {
+        let line_opt = rx.recv_timeout(SSE_IDLE_TIMEOUT).map_err(|e| {
+            format!(
+                "SSE stream read error (idle timeout {}s or disconnected): {}",
+                SSE_IDLE_TIMEOUT.as_secs(),
+                e
+            )
+        })?;
+        let Some(raw_line) = line_opt else {
+            break; // EOF
+        };
         let line: &str = raw_line.trim();
 
         if line.is_empty() {
@@ -243,14 +276,28 @@ fn process_sse(
     Ok(())
 }
 
+/// 带总超时的阻塞读 body（线程 + recv_timeout，仅非流式路径使用）。
+/// P004: 非流式响应无「空闲重置」语义，保留总超时兜底防死连接永久挂起。
+fn read_body_with_timeout(
+    resp: reqwest::blocking::Response,
+    timeout: std::time::Duration,
+) -> Result<String, String> {
+    let (tx, rx) = std::sync::mpsc::channel::<Result<String, String>>();
+    std::thread::spawn(move || {
+        let _ = tx.send(resp.text().map_err(|e| format!("Read response: {}", e)));
+    });
+    rx.recv_timeout(timeout)
+        .map_err(|_| format!("Response body read timed out after {}s", timeout.as_secs()))?
+}
+
 fn process_non_streaming(
     resp: reqwest::blocking::Response,
     api_type: &ApiType,
     on_event: &dyn Fn(LlmStreamEvent),
 ) -> Result<(), String> {
-    let json: serde_json::Value = resp
-        .json()
-        .map_err(|e: reqwest::Error| format!("Parse response: {}", e))?;
+    let body = read_body_with_timeout(resp, SSE_IDLE_TIMEOUT)?;
+    let json: serde_json::Value =
+        serde_json::from_str(&body).map_err(|e| format!("Parse response: {}", e))?;
 
     let text = match api_type {
         ApiType::Anthropic => json["content"]
