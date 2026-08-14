@@ -1,6 +1,7 @@
 import i18next from 'i18next';
 import { initReactI18next } from 'react-i18next';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
+import { logger } from '@/lib/logger';
 
 import enCommon from '@/locales/en-US/common.json';
 import enNav from '@/locales/en-US/navigation.json';
@@ -75,9 +76,15 @@ export async function initI18n(): Promise<typeof i18next> {
 
   // Layer 2: Rust IPC (取代此前 window.eval + window.__SOLOSOUL_LOCALE__)
   if (!detectedLng) {
-    const locale = await invoke<string>('get_system_locale');
-    if (locale) {
-      detectedLng = locale.startsWith('zh') ? 'zh-CN' : 'en-US';
+    // P008: IPC 异常（后端未就绪/调用失败）不得中断初始化链——捕获后落入
+    // Layer 3 navigator.language 兜底，杜绝启动白屏。
+    try {
+      const locale = await invoke<string>('get_system_locale');
+      if (locale) {
+        detectedLng = locale.startsWith('zh') ? 'zh-CN' : 'en-US';
+      }
+    } catch (err) {
+      logger.warn('[i18n] get_system_locale failed, falling back to navigator.language:', err);
     }
   }
 

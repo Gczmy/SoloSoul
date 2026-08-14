@@ -216,6 +216,19 @@ describe('initI18n', () => {
     expect(invokeMock).toHaveBeenCalledWith('get_system_locale');
   });
 
+  it('P008: falls back to navigator.language when IPC rejects (no white-screen)', async () => {
+    // IPC 抛错（后端未就绪等）不得中断初始化链——捕获后落入 Layer 3。
+    // 旧实现此场景会 reject 传播到 main.tsx 链尾，<App/> 永不渲染（白屏）。
+    invokeMock.mockRejectedValue(new Error('IPC unavailable'));
+    const { initI18n } = await import('./i18n');
+    await expect(initI18n()).resolves.toBeDefined();
+
+    const { init } = vi.mocked((await import('i18next')).default);
+    // navigator.language 默认 en-US
+    expect(init).toHaveBeenCalledWith(expect.objectContaining({ lng: 'en-US' }));
+    expect(invokeMock).toHaveBeenCalledWith('get_system_locale');
+  });
+
   // ── Infrastructure ──────────────────────────────────────────────────────
 
   it('calls i18next.use(initReactI18next) before init', async () => {

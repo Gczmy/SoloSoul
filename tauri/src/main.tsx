@@ -41,4 +41,14 @@ initI18n()
         <App />
       </React.StrictMode>,
     );
+  })
+  .catch((err) => {
+    // P008: 启动链任一环节失败也不白屏——兜底渲染（i18n 内部已逐层兜底到
+    // navigator.language，此处防御 initI18n 本身抛错等极端情况），错误落日志。
+    logger.error('[main] App bootstrap failed, rendering with defaults:', err);
+    ReactDOM.createRoot(rootEl!).render(
+      <React.StrictMode>
+        <App />
+      </React.StrictMode>,
+    );
   });
