@@ -383,7 +383,8 @@ pub(crate) async fn import_execute_internal(
             ImportStrategy::KeepBoth => "keepBoth",
         },
     });
-    let _ = vault.log_structured(
+    crate::commands::log_audit_best_effort(
+        vault,
         "import_execute",
         "import",
         None,
@@ -552,7 +553,13 @@ fn import_one_object(
         // 旧包或对象无历史时，保持既有行为：创建 diff_imported 初始快照
         let snapshot_data =
             serde_json::to_vec(&record).map_err(|e| format!("snapshot ser: {}", e))?;
-        let _ = vault.save_snapshot(snapshot_key, "import", &snapshot_data, "diff_imported");
+        crate::commands::save_snapshot_best_effort(
+            vault,
+            snapshot_key,
+            "import",
+            &snapshot_data,
+            "diff_imported",
+        );
     }
 
     if let Some(cb) = progress {

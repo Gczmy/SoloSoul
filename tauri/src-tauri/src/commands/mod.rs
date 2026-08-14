@@ -27,6 +27,55 @@ pub mod window;
 use crate::state::AppState;
 use std::sync::Arc;
 
+/// P003: 审计日志 best-effort 封装——替代裸 `let _ = vault.log_structured(...)`
+/// 吞错。审计轨迹是零知识应用的核心承诺，写入失败时 `tracing::warn!`（脱敏：
+/// 仅记录动作/实体标识，不记录 details 内容）落日志，保留可观测信号。
+pub fn log_audit_best_effort(
+    vault: &solosoul_vault::VaultStore,
+    action_type: &str,
+    entity_type: &str,
+    entity_id: Option<&str>,
+    entity_name: Option<&str>,
+    performed_by: &str,
+    details: Option<&str>,
+) {
+    if let Err(e) = vault.log_structured(
+        action_type,
+        entity_type,
+        entity_id,
+        entity_name,
+        performed_by,
+        details,
+    ) {
+        tracing::warn!(
+            "Audit log write failed (action={}, entity_type={}, entity_id={:?}): {}",
+            action_type,
+            entity_type,
+            entity_id,
+            e
+        );
+    }
+}
+
+/// P003: 编辑快照 best-effort 封装——替代裸 `let _ = vault.save_snapshot(...)`
+/// 吞错。回滚快照缺失会让历史视图静默缺漏，失败时 warn 落日志。
+pub fn save_snapshot_best_effort(
+    vault: &solosoul_vault::VaultStore,
+    object_id: &str,
+    triggered_by: &str,
+    data: &[u8],
+    diff_summary: &str,
+) {
+    if let Err(e) = vault.save_snapshot(object_id, triggered_by, data, diff_summary) {
+        tracing::warn!(
+            "Snapshot save failed (object_id={}, triggered_by={}): {}",
+            object_id,
+            triggered_by,
+            e
+        );
+    }
+}
+
 /// 获取当前已解锁 Vault 的句柄，避免在每个命令中重复加锁/解包样板。
 pub fn vault_handle(state: &AppState) -> Result<Arc<solosoul_vault::VaultStore>, String> {
     let svc = state

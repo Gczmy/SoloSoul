@@ -213,7 +213,8 @@ pub async fn template_create(
 
     vault.save_user_template(&template)?;
 
-    let _ = vault.log_structured(
+    crate::commands::log_audit_best_effort(
+        &vault,
         "template_create",
         "template",
         Some(&template.id),
@@ -287,7 +288,8 @@ pub async fn template_update(
 
     vault.save_user_template(&template)?;
 
-    let _ = vault.log_structured(
+    crate::commands::log_audit_best_effort(
+        &vault,
         "template_update",
         "template",
         Some(&template_id),
@@ -373,7 +375,8 @@ pub async fn template_delete(
     vault.save_trash_item(&trash)?;
     vault.delete_user_template(&template_id)?;
 
-    let _ = vault.log_structured(
+    crate::commands::log_audit_best_effort(
+        &vault,
         "template_delete",
         "template",
         Some(&template_id),
@@ -408,7 +411,8 @@ pub async fn template_restore(
     vault.save_user_template(&template)?;
     vault.delete_trash_item(&trash_id)?;
 
-    let _ = vault.log_structured(
+    crate::commands::log_audit_best_effort(
+        &vault,
         "template_restore",
         "template",
         Some(&template.id),

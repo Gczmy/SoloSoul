@@ -691,7 +691,8 @@ pub async fn export_execute(
 
     zip.finish().map_err(|e| format!("ZIP finish: {e}"))?;
 
-    let _ = vault.log_structured(
+    crate::commands::log_audit_best_effort(
+        vault,
         "export_execute",
         "export",
         None,

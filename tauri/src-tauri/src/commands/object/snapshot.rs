@@ -88,8 +88,15 @@ pub async fn snapshot_rollback(
         "propertyLabels": record.property_labels,
     }))
     .unwrap_or_default();
-    let _ = vault.save_snapshot(&object_id, "rollback", &rollback_data, "diff_rollback");
-    let _ = vault.log_structured(
+    crate::commands::save_snapshot_best_effort(
+        &vault,
+        &object_id,
+        "rollback",
+        &rollback_data,
+        "diff_rollback",
+    );
+    crate::commands::log_audit_best_effort(
+        &vault,
         "object_rollback",
         "object",
         Some(&object_id),

@@ -119,7 +119,8 @@ pub(crate) fn permanent_delete_one(
         if trash.item_type != "template" {
             vault.delete_object(&trash.original_id, false)?;
         }
-        let _ = vault.log_structured(
+        crate::commands::log_audit_best_effort(
+            vault,
             "trash_permanent_delete",
             "trash_item",
             Some(trash_id),
@@ -131,7 +132,8 @@ pub(crate) fn permanent_delete_one(
         return Ok(());
     }
     vault.delete_trash_item(trash_id).ok();
-    let _ = vault.log_structured(
+    crate::commands::log_audit_best_effort(
+        vault,
         "trash_permanent_delete",
         "trash_item",
         Some(trash_id),
@@ -340,7 +342,8 @@ pub async fn page_delete(
         vault.trash_and_soft_delete_batch(&trash_items, &soft_delete_ids)?;
         let count = trash_items.len();
 
-        let _ = vault.log_structured(
+        crate::commands::log_audit_best_effort(
+            &vault,
             "page_delete",
             "page",
             Some(&section_type),

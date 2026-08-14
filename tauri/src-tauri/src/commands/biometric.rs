@@ -362,7 +362,8 @@ pub async fn biometric_save_credential(
         let loc = location.unwrap_or_else(|| "unknown".to_string());
         let act = action.unwrap_or_else(|| "enable".to_string());
         let bio_type = biometry_type.as_deref().unwrap_or("unknown");
-        let _ = vault.log_structured(
+        crate::commands::log_audit_best_effort(
+            vault,
             "biometric_saved",
             "biometric",
             Some(&account_id),
@@ -494,7 +495,8 @@ pub async fn biometric_save_credential(
         let loc = location.unwrap_or_else(|| "unknown".to_string());
         let act = action.unwrap_or_else(|| "enable".to_string());
         let bio_type = biometry_type.as_deref().unwrap_or("unknown");
-        let _ = vault.log_structured(
+        crate::commands::log_audit_best_effort(
+            &vault,
             "biometric_saved",
             "biometric",
             Some(&account_id),
@@ -543,7 +545,8 @@ pub async fn biometric_unlock(
                 "windowsHello" => "windows_hello_unlock",
                 _ => "biometric_unlock",
             };
-            let _ = vault.log_structured(
+            crate::commands::log_audit_best_effort(
+                vault,
                 action_type,
                 "biometric",
                 Some(&account_id),
@@ -664,7 +667,8 @@ pub async fn biometric_unlock(
                 "faceId" => "face_id_unlock",
                 _ => "biometric_unlock",
             };
-            let _ = vault.log_structured(
+            crate::commands::log_audit_best_effort(
+                &vault,
                 action_type,
                 "biometric",
                 Some(&account_id),
@@ -710,7 +714,8 @@ pub async fn biometric_delete_credential(
         let loc = location.unwrap_or_else(|| "unknown".to_string());
         let act = action.unwrap_or_else(|| "disable".to_string());
         let bio_type = biometry_type.as_deref().unwrap_or("unknown");
-        let _ = vault.log_structured(
+        crate::commands::log_audit_best_effort(
+            vault,
             "biometric_deleted",
             "biometric",
             Some(&account_id),
@@ -806,7 +811,8 @@ pub async fn biometric_delete_credential(
         let loc = location.unwrap_or_else(|| "unknown".to_string());
         let act = action.unwrap_or_else(|| "disable".to_string());
         let bio_type = biometry_type.as_deref().unwrap_or("unknown");
-        let _ = vault.log_structured(
+        crate::commands::log_audit_best_effort(
+            &vault,
             "biometric_deleted",
             "biometric",
             Some(&account_id),

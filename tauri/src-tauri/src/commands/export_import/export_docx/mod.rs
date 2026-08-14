@@ -352,7 +352,8 @@ pub async fn export_objects_document(
     .map_err(|e| format!("document export task failed: {e}"))??;
 
     // 第三重：审计日志（脱敏——不含字段内容与对象名明细）
-    let _ = vault.log_structured(
+    crate::commands::log_audit_best_effort(
+        &vault,
         "export_document",
         "document",
         None,

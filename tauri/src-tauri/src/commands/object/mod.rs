@@ -724,9 +724,16 @@ pub async fn object_create(
             "propertyLabels": record.property_labels,
         }))
         .unwrap_or_default();
-        let _ = vault.save_snapshot(&id, "user_edit", &snapshot_data, "diff_created");
+        crate::commands::save_snapshot_best_effort(
+            &vault,
+            &id,
+            "user_edit",
+            &snapshot_data,
+            "diff_created",
+        );
         let is_page = input.collection_type == "page";
-        let _ = vault.log_structured(
+        crate::commands::log_audit_best_effort(
+            &vault,
             if is_page {
                 "page_create"
             } else {
@@ -815,9 +822,16 @@ pub async fn object_update(
             "propertyLabels": record.property_labels,
         }))
         .unwrap_or_default();
-        let _ = vault.save_snapshot(&object_id, "user_edit", &snapshot_data, "diff_updated");
+        crate::commands::save_snapshot_best_effort(
+            &vault,
+            &object_id,
+            "user_edit",
+            &snapshot_data,
+            "diff_updated",
+        );
 
-        let _ = vault.log_structured(
+        crate::commands::log_audit_best_effort(
+            &vault,
             "object_update",
             "object",
             Some(&object_id),
@@ -1441,14 +1455,16 @@ pub async fn object_sync_with_template(
             "propertyLabels": record.property_labels,
         }))
         .unwrap_or_default();
-        let _ = vault.save_snapshot(
+        crate::commands::save_snapshot_best_effort(
+            &vault,
             &object_id,
             "template_sync",
             &snapshot_data,
             "diff_template_sync",
         );
 
-        let _ = vault.log_structured(
+        crate::commands::log_audit_best_effort(
+            &vault,
             "object_sync_template",
             "object",
             Some(&object_id),
@@ -1585,7 +1601,7 @@ pub async fn object_delete(state: State<'_, AppState>, object_id: String) -> Res
                 };
                 let _ = vault.save_trash_item(&trash);
                 vault.delete_object(&object_id, true)?;
-                let _ = vault.log_structured(
+                crate::commands::log_audit_best_effort(&vault,
                     "object_delete",
                     "object",
                     Some(&object_id),

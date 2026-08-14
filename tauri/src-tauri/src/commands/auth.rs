@@ -84,7 +84,8 @@ pub async fn login(
         if let Some(vg) = svc.get_vault_store() {
             let vault = vg.as_ref();
             {
-                let _ = vault.log_structured(
+                crate::commands::log_audit_best_effort(
+                    vault,
                     "login",
                     "auth",
                     Some(&account_id),

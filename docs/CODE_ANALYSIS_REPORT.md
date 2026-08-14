@@ -30,7 +30,7 @@
 |------|--------|------|----------|------|------|
 | P001 | P1 | 安全/架构 | `tauri/crates/solosoul-core/src/vault_service.rs` | `lock()` 等处 RwLock 中毒时静默跳过清零，「锁定」后派生密钥仍驻留内存（fail-open） | `[x]` 已修复（P001） |
 | P002 | P1 | 架构 | `tauri/src-tauri/src/commands/llm/stream.rs` | 流式对话完成后 `let _ = save_conversation(...)` 吞错，Vault 写入失败时整段对话丢失且无感知 | `[x]` 已修复（P002） |
-| P003 | P1 | 架构 | `commands/object/mod.rs:727/729/818/820`、`commands/biometric.rs` 多处、`commands/auth.rs:87`、`commands/sync.rs:18` 等 | 审计日志 `log_structured` 与快照 `save_snapshot` 大量 `let _ =` 吞错，审计轨迹/回滚快照可能静默缺漏 | `[ ]` 待修复 |
+| P003 | P1 | 架构 | `commands/` 各模块（object/biometric/auth/sync/ocr/template/trash/snapshot/import/export/export_docx/llm-provider） | 审计日志 `log_structured` 与快照 `save_snapshot` 大量 `let _ =` 吞错，审计轨迹/回滚快照可能静默缺漏 | `[x]` 已修复（P003） |
 | P004 | P1 | 性能/架构 | `tauri/crates/solosoul-core/src/llm/client.rs:142-150` | `process_sse` 整包读入再解析，「流式输出」实际不流式；120s 总超时对长回复直接截断 | `[ ]` 待修复 |
 | P005 | P1 | 规范 | `tauri/crates/solosoul-core/src/llm/service.rs` | Clippy 错误 `items_after_test_module`：常量与两个函数定义在 `mod tests` 之后，`check-all`/CI 阻断 | `[x]` 已修复（P005） |
 | P006 | P1 | 规范 | `tauri/src-tauri/src/commands/update.rs`（9 处）、`tauri/src-tauri/src/commands/object/tests/trash.rs`（3 处） | `cargo fmt --check` 不通过，`check-all`/CI 阻断 | `[x]` 已修复（P006） |
@@ -61,8 +61,8 @@
 
 ## 修复进度
 
-- 已完成：4 / 30
-- 当前处理：P003（审计日志/快照大面积吞错）
+- 已完成：5 / 30
+- 当前处理：P004（LLM 流式整包读取，需先确认前端适配）
 
 ---
 
@@ -82,9 +82,14 @@
 - **验证**：`cargo clippy --all-targets -- -D warnings`（solosoul-core）exit 0。
 
 ### P002 · 流式对话保存吞错（已修复）
-- **提交**：`（待填写）`
+- **提交**：`b34b5e09`
 - **改动**：`commands/llm/stream.rs` `llm_send_message_stream` 尾部 `let _ = save_conversation(...)` 改为显式 `if let Err(e)`：① `tracing::warn!` 落日志（仅记录会话 id 与错误，不含消息内容）；② 向前端 emit `llm-stream-chunk`（is_done=true + error 文案），持久化失败用户可见可重试。回复已完整流式展示，因此不把整个命令判失败（避免前端误判生成中断）。另 `send_chat_stream(app, ...)` 改传 `app.clone()`（流结束后仍需 emit）。
 - **验证**：`cargo check` exit 0；`cargo clippy --lib` 无警告。
+
+### P003 · 审计日志/快照大面积吞错（已修复）
+- **提交**：`（待填写）`
+- **改动**：`commands/mod.rs` 新增 `log_audit_best_effort()` / `save_snapshot_best_effort()` 封装（内部 `tracing::warn!` 脱敏落日志：仅记动作/实体标识，不记 details 内容），替换 12 个生产文件共 **32 处 `let _ = vault.log_structured(` + 5 处 `let _ = vault.save_snapshot(`**（object/mod、object/snapshot、object/trash、biometric、auth、sync、ocr、template、export、import、export_docx/mod、llm/provider）。审计轨迹与回滚快照写入失败现在有可观测信号。测试文件（object/tests/snapshot.rs）保持不动。
+- **验证**：`cargo check` exit 0；`cargo clippy --lib -- -D warnings` exit 0（`&vault` 冗余借用经 `clippy --fix` 清除）；`cargo fmt --all -- --check` exit 0。
 - **改动**：`llm/service.rs` 中 `MAX_CONVERSATION_MESSAGES`、`trim_conversation_messages`、`compare_updated_at` 三个 item 纯移动到 `mod tests` 之前（无逻辑变化）；顺带修复 `biometric/windows.rs:486` 测试中恒真断言 `available == false || available == true`（`bool_comparison` warning，`-D warnings` 下同阻断 CI）。
 - **验证**：`cargo clippy --all-targets -- -D warnings`（solosoul-core）exit 0 全绿。
 

@@ -354,7 +354,8 @@ pub async fn ocr_scan_image(
             "confidence": result.confidence,
         })
         .to_string();
-        let _ = vault.log_structured(
+        crate::commands::log_audit_best_effort(
+            &vault,
             "ocr_scan",
             "file",
             None,
@@ -402,7 +403,8 @@ pub async fn ocr_scan_image(
         "confidence": result.confidence,
     })
     .to_string();
-    let _ = vault.log_structured(
+    crate::commands::log_audit_best_effort(
+        &vault,
         "ocr_scan",
         "file",
         None,
@@ -438,7 +440,8 @@ pub async fn ocr_scan_image(
         "confidence": result.confidence,
     })
     .to_string();
-    let _ = vault.log_structured(
+    crate::commands::log_audit_best_effort(
+        &vault,
         "ocr_scan",
         "file",
         None,
@@ -503,7 +506,8 @@ pub async fn ocr_scan_mrz(
         "hasMrz": has_mrz,
     })
     .to_string();
-    let _ = vault.log_structured(
+    crate::commands::log_audit_best_effort(
+        &vault,
         "ocr_scan_mrz",
         "file",
         None,
@@ -605,7 +609,8 @@ pub async fn ocr_set_active_tier(
     save_preferences(&state.handle, &prefs)?;
 
     let details = json!({ "tier": tier.to_string() }).to_string();
-    let _ = vault.log_structured(
+    crate::commands::log_audit_best_effort(
+        &vault,
         "ocr_set_active_tier",
         "ocr_model",
         None,
@@ -772,7 +777,8 @@ pub async fn ocr_install_bundled_model(
     clear_ocr_engine_cache();
 
     let details = json!({ "tier": tier.to_string() }).to_string();
-    let _ = vault.log_structured(
+    crate::commands::log_audit_best_effort(
+        &vault,
         "ocr_install_bundled_model",
         "ocr_model",
         None,
@@ -821,7 +827,8 @@ pub async fn ocr_download_model(
     clear_ocr_engine_cache();
 
     let details = json!({ "baseUrl": base_url, "tier": tier.to_string() }).to_string();
-    let _ = vault.log_structured(
+    crate::commands::log_audit_best_effort(
+        &vault,
         "ocr_download_model",
         "ocr_model",
         None,
@@ -866,7 +873,8 @@ pub async fn ocr_delete_model(
     clear_ocr_engine_cache();
 
     let details = json!({ "tier": tier.to_string() }).to_string();
-    let _ = vault.log_structured(
+    crate::commands::log_audit_best_effort(
+        &vault,
         "ocr_delete_model",
         "ocr_model",
         None,

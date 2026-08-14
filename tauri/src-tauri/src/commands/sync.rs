@@ -15,7 +15,8 @@ fn log_sync_action(
     let Ok(vault) = crate::commands::vault_handle(state) else {
         return;
     };
-    let _ = vault.log_structured(
+    crate::commands::log_audit_best_effort(
+        &vault,
         action,
         "sync",
         Some(&account_id),
