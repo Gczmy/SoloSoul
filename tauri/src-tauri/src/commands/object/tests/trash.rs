@@ -480,7 +480,12 @@ fn test_parse_trash_attachments_vault_path_probe() {
     let existing_file = existing.join("photo.png");
     std::fs::write(&existing_file, b"png-data").unwrap();
     let existing_path = existing_file.to_string_lossy().to_string();
-    let missing_path = dir.path().join("attachments").join("obj-1").join("att-2").join("gone.pdf");
+    let missing_path = dir
+        .path()
+        .join("attachments")
+        .join("obj-1")
+        .join("att-2")
+        .join("gone.pdf");
     let missing_path_str = missing_path.to_string_lossy().to_string();
 
     let data = serde_json::json!({
@@ -534,7 +539,10 @@ fn test_parse_trash_attachments_vault_path_probe() {
     // att-1：文件存在 → vault_path 保留原路径
     assert_eq!(active.len(), 2);
     assert_eq!(active[0].id, "att-1");
-    assert_eq!(active[0].vault_path.as_deref(), Some(existing_path.as_str()));
+    assert_eq!(
+        active[0].vault_path.as_deref(),
+        Some(existing_path.as_str())
+    );
     // att-3：旧数据无 vaultPath 键 → None
     assert_eq!(active[1].id, "att-3");
     assert_eq!(active[1].vault_path, None);
@@ -574,7 +582,10 @@ fn test_parse_trash_attachments_vault_path_probe() {
         icon_snapshot: None,
     };
     let (active2, _) = super::super::snapshot::parse_trash_attachments(&trash2);
-    assert_eq!(active2[0].vault_path.as_deref(), Some(existing_path.as_str()));
+    assert_eq!(
+        active2[0].vault_path.as_deref(),
+        Some(existing_path.as_str())
+    );
 }
 
 #[test]

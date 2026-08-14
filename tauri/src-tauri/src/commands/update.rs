@@ -723,7 +723,7 @@ pub async fn android_download_apk(app: tauri::AppHandle, version: String) -> Res
 
     // 探测下载通道并判定策略：直连健康→单流直连；直连失败/过慢→并行+代理
     let strategy = probe_download(&candidates).await?; // U003: 标记下载进行中（cleanup 据此跳过，避免并发删除正在写入的 .seg 文件）。
-                                                                            // 探测阶段已完成（不写 seg），从下载主体开始标记。
+                                                       // 探测阶段已完成（不写 seg），从下载主体开始标记。
     use std::sync::atomic::Ordering;
     APK_DOWNLOAD_ACTIVE.store(true, Ordering::Relaxed);
     let _active_guard = ApkDownloadActiveGuard; // V003: Drop 时恢复标志，panic 路径也不泄漏
@@ -950,8 +950,7 @@ fn merge_seg_files(part_path: &std::path::Path, seg_paths: &[PathBuf]) -> Result
         PathBuf::from(p)
     };
     let result = (|| -> Result<u64, String> {
-        let mut out =
-            std::fs::File::create(&tmp_path).map_err(|e| format!("创建合并文件: {e}"))?;
+        let mut out = std::fs::File::create(&tmp_path).map_err(|e| format!("创建合并文件: {e}"))?;
         let mut merged = 0u64;
         for p in seg_paths {
             let mut f = std::fs::File::open(p).map_err(|e| format!("打开分段文件: {e}"))?;
@@ -1056,9 +1055,9 @@ async fn download_apk_parallel(
                 .sum();
             if prefix_len > existing {
                 match merge_seg_files(part_path, &seg_paths[..fail_idx]) {
-                    Ok(merged) => tracing::info!(
-                        "[updater] 并行失败后保留 {merged} 字节前缀供单流断点续传"
-                    ),
+                    Ok(merged) => {
+                        tracing::info!("[updater] 并行失败后保留 {merged} 字节前缀供单流断点续传")
+                    }
                     // 合并失败：part_path 未被触碰（临时文件已由 merge_seg_files 清理），
                     // 既有断点原样保留（T002），回退单流仍可从原断点续传。
                     Err(merge_err) => tracing::warn!(
@@ -1681,7 +1680,9 @@ mod tests {
         use tokio::net::TcpListener;
 
         const TOTAL: u64 = 64 * 1024 * 1024; // 64MB 模拟 APK
-        let listener = TcpListener::bind("127.0.0.1:0").await.expect("bind 本地端口");
+        let listener = TcpListener::bind("127.0.0.1:0")
+            .await
+            .expect("bind 本地端口");
         let addr = listener.local_addr().expect("取监听地址");
         let base = format!("http://{addr}");
         tokio::spawn(async move {
@@ -1709,7 +1710,10 @@ mod tests {
                         .find(|l| l.to_ascii_lowercase().starts_with("range:"))
                         .and_then(|l| l.split_once(':').map(|(_, v)| v.trim().to_string()))
                         .and_then(|v| v.strip_prefix("bytes=").map(|r| r.to_string()))
-                        .and_then(|r| r.split_once('-').map(|(s, e)| (s.to_string(), e.to_string())))
+                        .and_then(|r| {
+                            r.split_once('-')
+                                .map(|(s, e)| (s.to_string(), e.to_string()))
+                        })
                         .map(|(s, e)| (s.parse().unwrap_or(0), e.parse().unwrap_or(0)))
                         .unwrap_or((0, 1024 * 1024));
                     let end = end.min(TOTAL - 1);
@@ -1726,7 +1730,11 @@ mod tests {
                     }
                     // 200（不支持 Range）场景客户端不会读 body（探测只取状态/大小），
                     // 只写前 1MB 即可让探测正常完成，避免无谓写满 64MB。
-                    let body_len = if ignore_range { len.min(1024 * 1024) } else { len };
+                    let body_len = if ignore_range {
+                        len.min(1024 * 1024)
+                    } else {
+                        len
+                    };
                     let mut sent = 0u64;
                     while sent < body_len {
                         // 快路径用大块单次写入（最小化 syscall 开销，降低 CI 慢机误判慢的风险）
@@ -1779,7 +1787,10 @@ mod tests {
         let candidates = vec![format!("{base}/app.apk")];
         let strategy = probe_download(&candidates).await.expect("探测应成功");
         match strategy {
-            DownloadStrategy::Accelerated { total, range_channel } => {
+            DownloadStrategy::Accelerated {
+                total,
+                range_channel,
+            } => {
                 assert_eq!(range_channel, Some(0), "直连过慢应并行 over 直连");
                 assert!(total > 0);
             }
@@ -1795,7 +1806,10 @@ mod tests {
         let candidates = vec![dead, format!("{base}/app.apk")];
         let strategy = probe_download(&candidates).await.expect("探测应成功");
         match strategy {
-            DownloadStrategy::Accelerated { total, range_channel } => {
+            DownloadStrategy::Accelerated {
+                total,
+                range_channel,
+            } => {
                 assert_eq!(range_channel, Some(1), "直连失败应回退代理通道");
                 assert!(total > 0);
             }
@@ -1820,7 +1834,10 @@ mod tests {
         let candidates = vec![format!("{base}/a"), format!("{base}/b")];
         let strategy = probe_download(&candidates).await.expect("探测应成功");
         match strategy {
-            DownloadStrategy::Accelerated { total, range_channel } => {
+            DownloadStrategy::Accelerated {
+                total,
+                range_channel,
+            } => {
                 assert!(range_channel.is_none(), "不支持 Range 应回退单流");
                 assert!(total > 0);
             }

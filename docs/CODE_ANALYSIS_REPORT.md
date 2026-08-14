@@ -33,7 +33,7 @@
 | P003 | P1 | 架构 | `commands/object/mod.rs:727/729/818/820`、`commands/biometric.rs` 多处、`commands/auth.rs:87`、`commands/sync.rs:18` 等 | 审计日志 `log_structured` 与快照 `save_snapshot` 大量 `let _ =` 吞错，审计轨迹/回滚快照可能静默缺漏 | `[ ]` 待修复 |
 | P004 | P1 | 性能/架构 | `tauri/crates/solosoul-core/src/llm/client.rs:142-150` | `process_sse` 整包读入再解析，「流式输出」实际不流式；120s 总超时对长回复直接截断 | `[ ]` 待修复 |
 | P005 | P1 | 规范 | `tauri/crates/solosoul-core/src/llm/service.rs` | Clippy 错误 `items_after_test_module`：常量与两个函数定义在 `mod tests` 之后，`check-all`/CI 阻断 | `[x]` 已修复（P005） |
-| P006 | P1 | 规范 | `tauri/src-tauri/src/commands/update.rs`（9 处）、`tauri/src-tauri/src/commands/object/tests/trash.rs`（3 处） | `cargo fmt --check` 不通过，`check-all`/CI 阻断 | `[ ]` 待修复 |
+| P006 | P1 | 规范 | `tauri/src-tauri/src/commands/update.rs`（9 处）、`tauri/src-tauri/src/commands/object/tests/trash.rs`（3 处） | `cargo fmt --check` 不通过，`check-all`/CI 阻断 | `[x]` 已修复（P006） |
 | P007 | P1 | 架构 | `tauri/src/pages/ai/LlmConfigPage.tsx:327-341` | `handleDeleteProvider` 删除失败后（catch 仅 warn）仍无条件更新本地状态，前后端状态分叉 | `[ ]` 待修复 |
 | P008 | P1 | 健壮性 | `tauri/src/lib/i18n.ts:78` + `tauri/src/main.tsx:31-44` | 启动链 `initI18n()` 中 `invoke('get_system_locale')` 无 try/catch，链路末端无 `.catch`：IPC 异常时 `<App/>` 永不渲染（白屏） | `[ ]` 待修复 |
 | P009 | P2 | 死代码（需确认） | `tauri/crates/solosoul-core/src/llm/service.rs:268` | `pub fn save_conversations` 全仓库零调用；且循环内逐条保存无批量事务 | `[ ]` 待修复 |
@@ -61,15 +61,20 @@
 
 ## 修复进度
 
-- 已完成：1 / 30
-- 当前处理：P006（cargo fmt）
+- 已完成：2 / 30
+- 当前处理：P001（锁中毒 fail-open）
 
 ---
 
 ## 修复记录（轮次 1）
 
 ### P005 · Clippy `items_after_test_module`（已修复）
+- **提交**：`7b2fe75c`（见上）
+
+### P006 · `cargo fmt --check` 不通过（已修复）
 - **提交**：`（待填写）`
+- **改动**：`cargo fmt --all` 修复 `commands/update.rs`（9 处）与 `commands/object/tests/trash.rs`（3 处），纯格式化无逻辑变化。
+- **验证**：`cargo fmt --all -- --check` exit 0。
 - **改动**：`llm/service.rs` 中 `MAX_CONVERSATION_MESSAGES`、`trim_conversation_messages`、`compare_updated_at` 三个 item 纯移动到 `mod tests` 之前（无逻辑变化）；顺带修复 `biometric/windows.rs:486` 测试中恒真断言 `available == false || available == true`（`bool_comparison` warning，`-D warnings` 下同阻断 CI）。
 - **验证**：`cargo clippy --all-targets -- -D warnings`（solosoul-core）exit 0 全绿。
 
