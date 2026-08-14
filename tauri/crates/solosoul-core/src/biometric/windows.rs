@@ -483,7 +483,8 @@ mod tests {
     fn test_windows_biometric_availability_shape() {
         // 只验证返回结构，不验证具体值（CI/无 Windows Hello 硬件的机器可能不可用）
         let (available, bt, err) = query_windows_biometric_availability();
-        assert!(available == false || available == true);
+        // available 的类型即 bool，`== false || == true` 恒真、无验证意义（clippy
+        // bool_comparison），删除该恒真断言；后续分支仍按 available 值校验一致性。
         if let Some(ref bt_val) = bt {
             assert_eq!(bt_val, "windowsHello");
         }

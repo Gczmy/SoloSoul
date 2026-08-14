@@ -650,6 +650,30 @@ impl LlmService {
         self.save_stats(vault, account_id, &stats)
     }
 }
+
+/// 单条对话的最大消息数量，超过此限时自动裁剪最早的消息（与 GUI 侧常量一致）。
+const MAX_CONVERSATION_MESSAGES: usize = 500;
+
+/// 裁剪单条对话的消息数量，防止数据无限增长。
+fn trim_conversation_messages(conv: &mut Conversation) {
+    if conv.messages.len() > MAX_CONVERSATION_MESSAGES {
+        let excess = conv.messages.len() - MAX_CONVERSATION_MESSAGES;
+        conv.messages.drain(..excess);
+    }
+}
+
+/// 比较两个 RFC3339 时间字符串；无法解析时按字典序兜底（同格式下等价）。
+fn compare_updated_at(a: &str, b: &str) -> std::cmp::Ordering {
+    let parse = |s: &str| {
+        chrono::DateTime::parse_from_rfc3339(s)
+            .map(|dt| dt.timestamp_millis())
+            .ok()
+    };
+    match (parse(a), parse(b)) {
+        (Some(x), Some(y)) => x.cmp(&y),
+        _ => a.cmp(b),
+    }
+}
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -882,29 +906,5 @@ mod tests {
         assert!(blob
             .iter()
             .any(|c| c.get("id").and_then(|v| v.as_str()) == Some("c2")));
-    }
-}
-
-/// 单条对话的最大消息数量，超过此限时自动裁剪最早的消息（与 GUI 侧常量一致）。
-const MAX_CONVERSATION_MESSAGES: usize = 500;
-
-/// 裁剪单条对话的消息数量，防止数据无限增长。
-fn trim_conversation_messages(conv: &mut Conversation) {
-    if conv.messages.len() > MAX_CONVERSATION_MESSAGES {
-        let excess = conv.messages.len() - MAX_CONVERSATION_MESSAGES;
-        conv.messages.drain(..excess);
-    }
-}
-
-/// 比较两个 RFC3339 时间字符串；无法解析时按字典序兜底（同格式下等价）。
-fn compare_updated_at(a: &str, b: &str) -> std::cmp::Ordering {
-    let parse = |s: &str| {
-        chrono::DateTime::parse_from_rfc3339(s)
-            .map(|dt| dt.timestamp_millis())
-            .ok()
-    };
-    match (parse(a), parse(b)) {
-        (Some(x), Some(y)) => x.cmp(&y),
-        _ => a.cmp(b),
     }
 }
