@@ -438,7 +438,8 @@ pub async fn llm_send_message_stream(
         .join("\n");
 
     let (full_text, token_usage) = send_chat_stream(
-        app,
+        // P002: clone 保留 app 所有权，流结束后仍需 emit 持久化失败事件。
+        app.clone(),
         conversation_id.clone(),
         base_url,
         api_key,
@@ -496,7 +497,26 @@ pub async fn llm_send_message_stream(
             });
         }
         if let Some(conv) = conv {
-            let _ = save_conversation(vault, &account_id, &conv);
+            if let Err(e) = save_conversation(vault, &account_id, &conv) {
+                // P002: 保存失败不再静默吞错——落 warn 日志（不含消息内容）并向前端
+                // emit 持久化失败事件，用户可见可重试，不再无感知丢失整段对话。
+                // （回复已完整流式展示，此处不把整个命令判失败，避免前端误判为
+                // 生成中断。）
+                tracing::warn!(
+                    "Failed to persist conversation {} after stream: {}",
+                    conv.id,
+                    e
+                );
+                let _ = app.emit(
+                    "llm-stream-chunk",
+                    LlmStreamPayload {
+                        conversation_id: conv.id.clone(),
+                        chunk: String::new(),
+                        is_done: true,
+                        error: Some(format!("Failed to persist conversation: {e}")),
+                    },
+                );
+            }
         }
     }
 
