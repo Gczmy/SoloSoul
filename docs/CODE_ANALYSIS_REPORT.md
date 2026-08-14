@@ -34,7 +34,7 @@
 | P004 | P1 | 性能/架构 | `tauri/crates/solosoul-core/src/llm/client.rs` | `process_sse` 整包读入再解析，「流式输出」实际不流式；120s 总超时对长回复直接截断 | `[x]` 已修复（P004） |
 | P005 | P1 | 规范 | `tauri/crates/solosoul-core/src/llm/service.rs` | Clippy 错误 `items_after_test_module`：常量与两个函数定义在 `mod tests` 之后，`check-all`/CI 阻断 | `[x]` 已修复（P005） |
 | P006 | P1 | 规范 | `tauri/src-tauri/src/commands/update.rs`（9 处）、`tauri/src-tauri/src/commands/object/tests/trash.rs`（3 处） | `cargo fmt --check` 不通过，`check-all`/CI 阻断 | `[x]` 已修复（P006） |
-| P007 | P1 | 架构 | `tauri/src/pages/ai/LlmConfigPage.tsx:327-341` | `handleDeleteProvider` 删除失败后（catch 仅 warn）仍无条件更新本地状态，前后端状态分叉 | `[ ]` 待修复 |
+| P007 | P1 | 架构 | `tauri/src/pages/ai/LlmConfigPage.tsx` | `handleDeleteProvider` 删除失败后（catch 仅 warn）仍无条件更新本地状态，前后端状态分叉 | `[x]` 已修复（P007） |
 | P008 | P1 | 健壮性 | `tauri/src/lib/i18n.ts:78` + `tauri/src/main.tsx:31-44` | 启动链 `initI18n()` 中 `invoke('get_system_locale')` 无 try/catch，链路末端无 `.catch`：IPC 异常时 `<App/>` 永不渲染（白屏） | `[ ]` 待修复 |
 | P009 | P2 | 死代码（需确认） | `tauri/crates/solosoul-core/src/llm/service.rs:268` | `pub fn save_conversations` 全仓库零调用；且循环内逐条保存无批量事务 | `[ ]` 待修复 |
 | P010 | P2 | 安全（需确认） | `tauri/crates/solosoul-core/src/vault_service.rs:639-643、757-761` | `create_account*` 将 `salt` 与 `verifyHash` 经 IPC 返回前端，前端并不需要，违背最小暴露 | `[ ]` 待修复 |
@@ -61,8 +61,8 @@
 
 ## 修复进度
 
-- 已完成：6 / 30
-- 当前处理：P007（删除 provider 失败仍更新本地状态）
+- 已完成：7 / 30
+- 当前处理：P008（i18n 启动链无兜底白屏）
 
 ---
 
@@ -92,9 +92,14 @@
 - **验证**：`cargo check` exit 0；`cargo clippy --lib -- -D warnings` exit 0（`&vault` 冗余借用经 `clippy --fix` 清除）；`cargo fmt --all -- --check` exit 0。
 
 ### P004 · LLM「流式」实为整包读取（已修复）
-- **提交**：`（待填写）`
+- **提交**：`e84a247f`
 - **改动**：确认 GUI 路径（`src-tauri/commands/llm/stream.rs` `handle_sse_stream`）本已真流式；整包读取仅影响 CLI（`solosoul_cli/src/app.rs` → `LlmService::send_message_stream` → `client.rs::process_sse`）。`client.rs` 三处改造：① `process_sse` 弃用 `resp.bytes()` 整包读入，改独立读线程 `BufReader` 逐行消费网络流 + mpsc 转发，首 token 到达即触发 `on_event`（CLI 打字机真正流式）；② 超时策略：请求级 120s 总超时改为 `SSE_IDLE_TIMEOUT=120s` 空闲超时（`recv_timeout`，每行重置）——长回复持续出 token 不再被截断，死连接不发数据也不会永久挂起；③ 非流式路径 `process_non_streaming` 经新增 `read_body_with_timeout` 保留总超时兜底；client 改 `connect_timeout(15s)` + 无总超时。解析逻辑与事件语义不变。
 - **验证**：`cargo clippy --all-targets -- -D warnings`（solosoul-core）exit 0；`cargo check`（solosoul_cli）exit 0；fmt 通过。
+
+### P007 · 删除 LLM provider 失败仍更新本地状态（已修复）
+- **提交**：`（待填写）`
+- **改动**：`LlmConfigPage.tsx` `handleDeleteProvider` 改为 try/catch：删除失败 `logger.warn` + `onError` toast（新增 `settings:llm_delete_provider_failed` 双 locale 键）后提前 return，仅删除成功才 `setProviders(filter)` 与 `setActiveId('')`——后端未删时 UI 不再误移除、不再误清 activeId。
+- **验证**：`npx tsc --noEmit` exit 0；eslint 干净；`check-missing-i18n` 双 locale 0 缺失；`vitest run src/pages/ai` 2 测试全绿。
 - **改动**：`llm/service.rs` 中 `MAX_CONVERSATION_MESSAGES`、`trim_conversation_messages`、`compare_updated_at` 三个 item 纯移动到 `mod tests` 之前（无逻辑变化）；顺带修复 `biometric/windows.rs:486` 测试中恒真断言 `available == false || available == true`（`bool_comparison` warning，`-D warnings` 下同阻断 CI）。
 - **验证**：`cargo clippy --all-targets -- -D warnings`（solosoul-core）exit 0 全绿。
 

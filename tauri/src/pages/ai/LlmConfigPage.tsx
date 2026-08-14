@@ -147,7 +147,11 @@ export function LlmConfigPage() {
       if (!localModelId) {
         setLocalModelId(modelId);
         if (accountId) {
-          await invoke('llm_set_local_embedding', { accountId: accountId, enabled: true, modelId: modelId });
+          await invoke('llm_set_local_embedding', {
+            accountId: accountId,
+            enabled: true,
+            modelId: modelId,
+          });
           setUseLocalEmbedding(true);
         }
       }
@@ -162,7 +166,9 @@ export function LlmConfigPage() {
   const handleDeleteModel = (modelId: string) => {
     requestConfirm(
       t('settings:llm_delete_model_title', { defaultValue: 'Delete model' }),
-      t('settings:llm_confirm_delete_model', { defaultValue: 'Delete this local embedding model?' }),
+      t('settings:llm_confirm_delete_model', {
+        defaultValue: 'Delete this local embedding model?',
+      }),
       async () => {
         try {
           await invoke('llm_delete_embed_model', { modelId: modelId });
@@ -172,14 +178,21 @@ export function LlmConfigPage() {
             setLocalModelId(null);
             setUseLocalEmbedding(false);
             if (accountId) {
-              await invoke('llm_set_local_embedding', { accountId: accountId, enabled: false, modelId: null });
+              await invoke('llm_set_local_embedding', {
+                accountId: accountId,
+                enabled: false,
+                modelId: null,
+              });
             }
           }
         } catch (e) {
           onError(e, t('settings:llm_delete_model_failed'));
         }
       },
-      { confirmLabel: t('common:delete', { defaultValue: 'Delete' }), cancelLabel: t('common:cancel', { defaultValue: 'Cancel' }) },
+      {
+        confirmLabel: t('common:delete', { defaultValue: 'Delete' }),
+        cancelLabel: t('common:cancel', { defaultValue: 'Cancel' }),
+      },
     );
   };
 
@@ -202,7 +215,11 @@ export function LlmConfigPage() {
         return;
       }
     } else {
-      await invoke('llm_set_local_embedding', { accountId: accountId, enabled, modelId: localModelId });
+      await invoke('llm_set_local_embedding', {
+        accountId: accountId,
+        enabled,
+        modelId: localModelId,
+      });
     }
     setUseLocalEmbedding(enabled);
   };
@@ -211,7 +228,11 @@ export function LlmConfigPage() {
     if (!accountId) return;
     setLocalModelId(modelId);
     if (useLocalEmbedding) {
-      await invoke('llm_set_local_embedding', { accountId: accountId, enabled: true, modelId: modelId });
+      await invoke('llm_set_local_embedding', {
+        accountId: accountId,
+        enabled: true,
+        modelId: modelId,
+      });
     }
   };
 
@@ -291,8 +312,8 @@ export function LlmConfigPage() {
     const next = !includeSystemPrompt;
     setIncludeSystemPrompt(next);
     if (accountId)
-      await invoke('llm_set_system_prompt_switch', { accountId: accountId, enabled: next }).catch((err) =>
-        logger.warn('[LLMConfig] Set system prompt switch failed:', err),
+      await invoke('llm_set_system_prompt_switch', { accountId: accountId, enabled: next }).catch(
+        (err) => logger.warn('[LLMConfig] Set system prompt switch failed:', err),
       );
   };
 
@@ -328,15 +349,26 @@ export function LlmConfigPage() {
     if (!accountId) return;
     requestConfirm(
       t('settings:llm_delete_provider_title', { defaultValue: 'Delete provider' }),
-      t('settings:llm_delete_provider_body', { defaultValue: 'Delete this provider configuration?' }),
+      t('settings:llm_delete_provider_body', {
+        defaultValue: 'Delete this provider configuration?',
+      }),
       async () => {
-        await invoke('llm_delete_provider', { accountId: accountId, providerId: id }).catch((err) =>
-          logger.warn('[LLMConfig] Delete provider failed:', err),
-        );
+        try {
+          await invoke('llm_delete_provider', { accountId: accountId, providerId: id });
+        } catch (err) {
+          // P007: 删除失败不得更新本地状态——否则后端未删、UI 已移除，重启后
+          // 复现且误清 activeId 导致功能开关与实际不符；失败给出 toast 反馈。
+          logger.warn('[LLMConfig] Delete provider failed:', err);
+          onError(err, t('settings:llm_delete_provider_failed'));
+          return;
+        }
         setProviders((prev) => prev.filter((p) => p.id !== id));
         if (activeId === id) setActiveId('');
       },
-      { confirmLabel: t('common:delete', { defaultValue: 'Delete' }), cancelLabel: t('common:cancel', { defaultValue: 'Cancel' }) },
+      {
+        confirmLabel: t('common:delete', { defaultValue: 'Delete' }),
+        cancelLabel: t('common:cancel', { defaultValue: 'Cancel' }),
+      },
     );
   };
 
