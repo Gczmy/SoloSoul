@@ -43,7 +43,7 @@
 | P013 | P2 | 安全 | `tauri/src-tauri/src/commands/export_import/import.rs` + `lib.rs` 启动清扫 | 导入解密明文落系统 temp 目录 `NamedTempFile`，进程 SIGKILL/崩溃时明文残留 | `[x]` 已修复（P013） |
 | P014 | P2 | 安全 | `tauri/crates/solosoul-sync/src/recovery.rs:183` | 恢复主机接受裸 6 位数字 PIN 兼容旁路（无 nonce 绑定），削弱抗重放 | `[x]` 保留（用户决策） |
 | P015 | P2 | 可优化 | `tauri/crates/solosoul-core/src/vault_service.rs` + `commands/sync.rs` vs `solosoul-sync/src/recovery.rs` | `create_account`/`create_account_with_id` 约 90 行近乎逐字重复（安全敏感代码双份）；`local_display_ip` 跨 crate 重复实现 | `[x]` 已修复（P015） |
-| P016 | P2 | 性能 | `tauri/crates/solosoul-sync/src/delta.rs:166-213` | 同步冲突分支内每条记录单独解密/写入，大量冲突时变慢（主路径已批量事务化） | `[ ]` 待修复 |
+| P016 | P2 | 性能 | `tauri/crates/solosoul-sync/src/delta.rs` + `solosoul-vault/src/storage/sync_apply.rs` | 同步冲突分支内每条记录单独解密/写入，大量冲突时变慢（主路径已批量事务化） | `[x]` 已修复（P016） |
 | P017 | P2 | 可优化 | 多处（详见下文） | 过长函数/深嵌套候选 9 项（`list_object_changes_since_limited` 165 行等） | `[ ]` 待修复 |
 | P018 | P2 | 规范 | `AGENTS.md` 项目结构节 | 声称 `src-tauri/src/ipc/` 存在（实际无此目录），结构表与实际文件不同步 | `[ ]` 待修复 |
 | P019 | P2 | 安全（极低风险） | `tauri/crates/solosoul-core/src/ocr/macos_vision.rs:221` | 运行时 `Command::new("swiftc")` 依赖 PATH；hash 文件与二进制同目录（自证式校验） | `[ ]` 待修复 |
@@ -61,8 +61,8 @@
 
 ## 修复进度
 
-- 已完成：15 / 30
-- 当前处理：P016（同步冲突分支批量落库）
+- 已完成：16 / 30
+- 当前处理：P017（过长函数拆分，可选 9 项）
 
 ---
 
@@ -139,9 +139,14 @@
 - **提交**：无代码改动（本次仅文档登记）。
 
 ### P015 · create_account 双份实现 + local_display_ip 跨 crate 重复（已修复）
-- **提交**：`（待填写）`
-- **改动**：① `vault_service.rs` 提取 `create_account_common`（密钥派生→写 config→建会话→返回摘要的公共主体），`create_account`/`create_account_with_id` 各保留自身入口校验（名字唯一性 vs ID 已存在 + create_lock）后调用之，安全敏感代码（derive_key/verify_hash/会话建立）收敛为单份，杜绝双份实现漂移；② `local_display_ip` 收敛到 `solosoul-sync/recovery.rs`（改 `pub` + lib 根 re-export），`src-tauri/commands/sync.rs` 删除私有 async 副本（含移动端 timeout 包装）与 `local-ip-address` 死依赖，两处调用点改 `solosoul_sync::local_display_ip()`。注：移动端同步二维码路径行为与恢复主机路径对齐（均走 UDP 选择路由地址，纯本地内核操作不阻塞）。
+- **提交**：`26b69606`
+- **改动**：① `vault_service.rs` 提取 `create_account_common`（密钥派生→写 config→建会话→返回摘要的公共主体），`create_account`/`create_account_with_id` 各保留自身入口校验（名字唯一性 vs ID 已存在 + create_lock）后调用之，安全敏感代码（derive_key/verify_hash/会话建立）收敛为单份，杜绝双份实现漂移；② `local_display_ip` 收敛到 `solosoul-sync/recovery.rs`（改 `pub` + lib 根 re-export），`src-tauri/commands/sync.rs` 删除私有 async 副本（含移动端 timeout 包装）与 `local-ip-address` 死依赖（Cargo.lock 同步），两处调用点改 `solosoul_sync::local_display_ip()`。注：移动端同步二维码路径行为与恢复主机路径对齐（均走 UDP 选择路由地址，纯本地内核操作不阻塞）。
 - **验证**：solosoul-core/solosoul-sync `cargo clippy --all-targets -- -D warnings` exit 0；src-tauri check + clippy exit 0；`solosoul_cli` check exit 0；`cargo fmt --check` exit 0。
+
+### P016 · 同步冲突分支逐条解密/写入（已修复）
+- **提交**：`（待填写）`
+- **改动**：`solosoul-vault` 新增 `save_sync_conflicts_batch`（单锁 + 单事务，N 条冲突一次 commit，逐条 upsert 语义不变）与 `get_sync_conflict_local_data_batch`（objects 表走既有 `load_objects_batch` 单查询，其余表逐条复用）；`solosoul-sync/delta.rs` 冲突分支重构为「候选收集 → 批量取本地数据 → 自动消解判定 → 单事务批量持久化」，消除大量冲突时的 N 次锁竞争与 N 次写事务。lib.rs 新增 `SyncConflictBatchEntry` 条目类型。新增 vault 单测 2 条（批量 upsert 不重复、批量本地数据含软删/缺失 None）。
+- **验证**：solosoul-vault/solosoul-sync `cargo clippy --all-targets -- -D warnings` exit 0；src-tauri check exit 0；`cargo fmt --check` exit 0。
 
 ---
 

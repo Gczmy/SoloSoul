@@ -169,6 +169,87 @@ impl VaultStore {
         Ok(())
     }
 
+    /// P016: 批量持久化同步冲突——单连接 + 单事务，N 条冲突一次 commit。
+    ///
+    /// 相比逐条 `save_sync_conflict`（每次锁 + execute + 隐式事务）：大量冲突时
+    /// 不再 N 次锁竞争与 N 次写事务，写入开销从 O(N) 事务降至 O(1) 事务。
+    pub fn save_sync_conflicts_batch(
+        &self,
+        entries: &[crate::SyncConflictBatchEntry],
+    ) -> Result<(), String> {
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        let now = Self::now_rfc3339();
+        with_tx(conn, "save conflicts begin", "save conflicts commit", |c| {
+            for e in entries {
+                let local_hlc_json =
+                    serde_json::to_string(&e.local_hlc).map_err(|err| err.to_string())?;
+                let remote_hlc_json =
+                    serde_json::to_string(&e.remote_hlc).map_err(|err| err.to_string())?;
+                let local_data_json =
+                    serde_json::to_string(&e.local_data).map_err(|err| err.to_string())?;
+                let remote_data_json =
+                    serde_json::to_string(&e.remote_data).map_err(|err| err.to_string())?;
+                c.execute(
+                    "INSERT INTO sync_conflicts (id, table_name, record_id, local_hlc, remote_hlc, local_data, remote_data, remote_deleted, winner, created_at, resolved)
+                     VALUES ((lower(hex(randomblob(16)))), ?1, ?2, ?3, ?4, ?5, ?6, ?7, 'local', ?8, 0)
+                     ON CONFLICT(table_name, record_id) DO UPDATE SET
+                        local_hlc = excluded.local_hlc,
+                        remote_hlc = excluded.remote_hlc,
+                        local_data = excluded.local_data,
+                        remote_data = excluded.remote_data,
+                        remote_deleted = excluded.remote_deleted,
+                        winner = excluded.winner",
+                    params![
+                        e.table,
+                        e.record_id,
+                        local_hlc_json,
+                        remote_hlc_json,
+                        local_data_json,
+                        remote_data_json,
+                        e.remote_deleted,
+                        now
+                    ],
+                )
+                .map_err(|err| format!("save_sync_conflicts_batch: {}", err))?;
+            }
+            Ok(())
+        })
+    }
+
+    /// P016: 批量获取冲突候选的本地记录同步格式快照（供自动消解比较与冲突展示）。
+    ///
+    /// objects 表走 `load_objects_batch` 单查询（避免 N+1 锁/查询），其余表逐条复用
+    /// `get_sync_conflict_local_data`（解密开销逐条固有）。缺失 id 记为 `None`。
+    pub fn get_sync_conflict_local_data_batch(
+        &self,
+        table: &str,
+        ids: &[String],
+    ) -> Result<std::collections::HashMap<String, Option<serde_json::Value>>, String> {
+        let mut out = std::collections::HashMap::with_capacity(ids.len());
+        match table {
+            "objects" => {
+                let objs = self.load_objects_batch(ids)?;
+                for id in ids {
+                    let value = match objs.get(id) {
+                        Some(obj) => Some(
+                            serde_json::to_value(obj)
+                                .map_err(|e| format!("serialize object: {}", e))?,
+                        ),
+                        None => None,
+                    };
+                    out.insert(id.clone(), value);
+                }
+            }
+            _ => {
+                for id in ids {
+                    out.insert(id.clone(), self.get_sync_conflict_local_data(table, id)?);
+                }
+            }
+        }
+        Ok(out)
+    }
+
     /// 列出所有未解决的同步冲突摘要。
     pub fn list_sync_conflicts(&self) -> Result<Vec<crate::SyncConflictSummary>, String> {
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;

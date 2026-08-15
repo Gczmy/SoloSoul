@@ -5798,4 +5798,93 @@ mod tests {
         let properties = serde_json::json!({"f1": "value"});
         assert!(object_field_sensitivity_levels(Some(&property_labels), &properties).is_empty());
     }
+
+    /// P016: 批量持久化冲突（单事务 upsert）——多条一次写入，覆盖更新不产生重复。
+    #[test]
+    fn test_save_sync_conflicts_batch_upserts() {
+        let (vault, _dir) = setup();
+        let mk_hlc = |wall: u64, node: &str| crate::RecordHlc {
+            wall_time_ms: wall,
+            counter: 1,
+            node_id: node.to_string(),
+        };
+        let entry = |table: &str, id: &str, wall: u64, name: &str| crate::SyncConflictBatchEntry {
+            table: table.to_string(),
+            record_id: id.to_string(),
+            local_hlc: mk_hlc(wall, "local"),
+            remote_hlc: mk_hlc(wall, "remote"),
+            local_data: serde_json::json!({"name": name}),
+            remote_data: serde_json::json!({"name": "remote"}),
+            remote_deleted: false,
+        };
+
+        // 三条冲突一次批量写入
+        vault
+            .save_sync_conflicts_batch(&[
+                entry("objects", "o1", 10, "A"),
+                entry("objects", "o2", 20, "B"),
+                entry("profiles", "p1", 30, "C"),
+            ])
+            .unwrap();
+        let list = vault.list_sync_conflicts().unwrap();
+        assert_eq!(list.len(), 3);
+
+        // 同 (table, record_id) 再写 → upsert 覆盖，不新增行
+        vault
+            .save_sync_conflicts_batch(&[entry("objects", "o1", 99, "A2")])
+            .unwrap();
+        let list = vault.list_sync_conflicts().unwrap();
+        assert_eq!(list.len(), 3, "同键 upsert 不应新增行");
+        let o1 = list.iter().find(|c| c.record_id == "o1").unwrap();
+        assert!(o1.local_hlc_json.contains("\"wall_time_ms\":99"));
+
+        // 空批次为 no-op
+        vault.save_sync_conflicts_batch(&[]).unwrap();
+        assert_eq!(vault.list_sync_conflicts().unwrap().len(), 3);
+    }
+
+    /// P016: 批量抓取冲突候选本地数据——objects 表含已软删对象、缺失 id 记 None。
+    #[test]
+    fn test_get_sync_conflict_local_data_batch_objects() {
+        let (vault, _dir) = setup();
+        let now = chrono::Utc::now().to_rfc3339();
+        for (id, deleted) in [("obj_a", false), ("obj_b", true)] {
+            vault
+                .save_object(&ObjectRecord {
+                    id: id.to_string(),
+                    account_id: "test_account".to_string(),
+                    name: format!("name-{}", id),
+                    properties: serde_json::json!({ "k": id }),
+                    is_deleted: deleted,
+                    created_at: now.clone(),
+                    updated_at: now.clone(),
+                    ..Default::default()
+                })
+                .unwrap();
+        }
+        let map = vault
+            .get_sync_conflict_local_data_batch(
+                "objects",
+                &[
+                    "obj_a".to_string(),
+                    "obj_b".to_string(),
+                    "missing".to_string(),
+                ],
+            )
+            .unwrap();
+        assert_eq!(map.len(), 3);
+        // 存在对象返回解密后的序列化值
+        assert_eq!(map["obj_a"].as_ref().unwrap()["name"], "name-obj_a");
+        // 已软删对象仍应返回（冲突比较需要本地软删状态）
+        assert!(map["obj_b"].as_ref().is_some());
+        // 缺失 id → None
+        assert!(map["missing"].is_none());
+
+        // 空 id 列表 → 空 map
+        let empty: Vec<String> = vec![];
+        assert!(vault
+            .get_sync_conflict_local_data_batch("objects", &empty)
+            .unwrap()
+            .is_empty());
+    }
 }

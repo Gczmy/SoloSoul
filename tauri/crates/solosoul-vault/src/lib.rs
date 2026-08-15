@@ -177,6 +177,19 @@ pub struct SyncConflictDetail {
     pub created_at: String,
 }
 
+/// P016: 批量持久化同步冲突的输入条目（`VaultStore::save_sync_conflicts_batch` 使用）。
+/// 一次批量调用内所有冲突在单事务中 upsert，避免大量冲突时逐条 commit。
+#[derive(Debug, Clone)]
+pub struct SyncConflictBatchEntry {
+    pub table: String,
+    pub record_id: String,
+    pub local_hlc: RecordHlc,
+    pub remote_hlc: RecordHlc,
+    pub local_data: serde_json::Value,
+    pub remote_data: serde_json::Value,
+    pub remote_deleted: bool,
+}
+
 // ── Trash items (§23 回收站功能规范) ────────────────────────
 
 #[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]

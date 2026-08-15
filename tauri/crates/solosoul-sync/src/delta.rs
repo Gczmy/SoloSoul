@@ -146,6 +146,10 @@ pub fn apply_sync_records(
 
     let outcomes = store.apply_sync_records_batch(&borrowed, local_node_id)?;
 
+    // P016: 冲突候选收集（本地 HLC 严格新于远端）——本地数据抓取与持久化延后到
+    // 批量阶段：本地快照按表单查询批量取（objects 走 load_objects_batch），
+    // 冲突写入单事务批量 commit，避免大量冲突时 N 次逐条解密/写事务。
+    let mut conflict_candidates: Vec<(&SyncRecord, RecordHlc)> = Vec::new();
     for (rec, outcome) in records.iter().zip(outcomes.iter()) {
         stats.examined += 1;
         table_stats.examined += 1;
@@ -166,52 +170,69 @@ pub fn apply_sync_records(
         if let Some(local) = &outcome.local_hlc {
             let local = record_hlc_to_hlc(local);
             if local > rec.hlc {
-                let local_record_hlc = hlc_to_record_hlc(&local);
-                let remote_record_hlc = hlc_to_record_hlc(&rec.hlc);
-                let local_data = store
-                    .get_sync_conflict_local_data(&rec.table, &rec.id)
-                    .unwrap_or_default()
-                    .unwrap_or_else(|| serde_json::Value::Object(Default::default()));
-                // 自动消解：剥除簿记字段（version/updated_at，随每次编辑与同步应用
-                // 变化、与内容差异无关）后两侧内容一致 → LWW 胜者已收敛，无数据丢失，
-                // 不记录冲突（避免「内容一样、仅版本/时间不同」的假冲突）。
-                // 远程为删除墓碑（deleted）时删除与否是真实决策，仍照常记录冲突。
-                // 会话（llm_conversations）本地快照是解密 JSON、远端是线格式信封
-                // {id, accountId, data: <base64>, updatedAt}，键形错配不能直接比较，
-                // 且信封 data 是随机 nonce 加密 blob（base64 逐设备不同），须先解密
-                // 远端信封为明文 JSON 再与本地快照比较（无 data/解密失败保守记录冲突）。
-                let content_matches = if rec.table == "llm_conversations" {
-                    match store.conversation_remote_content(&rec.data) {
-                        Ok(Some(remote_plain)) => {
-                            strip_bookkeeping(&local_data) == strip_bookkeeping(&remote_plain)
-                        }
-                        _ => false,
+                conflict_candidates.push((rec, hlc_to_record_hlc(&local)));
+            }
+        }
+    }
+
+    // P016: 批量阶段——本地数据单查询批量取 + 自动消解判定 + 单事务批量持久化。
+    if !conflict_candidates.is_empty() {
+        let candidate_ids: Vec<String> = conflict_candidates
+            .iter()
+            .map(|(rec, _)| rec.id.clone())
+            .collect();
+        let local_datas = store.get_sync_conflict_local_data_batch(table, &candidate_ids)?;
+        let mut conflict_entries: Vec<solosoul_vault::SyncConflictBatchEntry> = Vec::new();
+        for (rec, local_hlc) in &conflict_candidates {
+            let local_record_hlc = (*local_hlc).clone();
+            let remote_record_hlc = hlc_to_record_hlc(&rec.hlc);
+            let local_data = local_datas
+                .get(&rec.id)
+                .cloned()
+                .flatten()
+                .unwrap_or_else(|| serde_json::Value::Object(Default::default()));
+            // 自动消解：剥除簿记字段（version/updated_at，随每次编辑与同步应用
+            // 变化、与内容差异无关）后两侧内容一致 → LWW 胜者已收敛，无数据丢失，
+            // 不记录冲突（避免「内容一样、仅版本/时间不同」的假冲突）。
+            // 远程为删除墓碑（deleted）时删除与否是真实决策，仍照常记录冲突。
+            // 会话（llm_conversations）本地快照是解密 JSON、远端是线格式信封
+            // {id, accountId, data: <base64>, updatedAt}，键形错配不能直接比较，
+            // 且信封 data 是随机 nonce 加密 blob（base64 逐设备不同），须先解密
+            // 远端信封为明文 JSON 再与本地快照比较（无 data/解密失败保守记录冲突）。
+            let content_matches = if rec.table == "llm_conversations" {
+                match store.conversation_remote_content(&rec.data) {
+                    Ok(Some(remote_plain)) => {
+                        strip_bookkeeping(&local_data) == strip_bookkeeping(&remote_plain)
                     }
-                } else {
-                    strip_bookkeeping(&local_data) == strip_bookkeeping(&rec.data)
-                };
-                if !rec.deleted && content_matches {
-                    continue;
+                    _ => false,
                 }
-                stats.conflicts.push(ConflictRecord {
-                    table: rec.table.clone(),
-                    id: rec.id.clone(),
-                    local_hlc: local,
-                    remote_hlc: rec.hlc,
-                    winner: "local".to_string(),
-                });
-                // 持久化冲突记录，供用户在冲突 UI 中查看并解决。
-                if let Err(e) = store.save_sync_conflict(
-                    &rec.table,
-                    &rec.id,
-                    &local_record_hlc,
-                    &remote_record_hlc,
-                    &local_data,
-                    &rec.data,
-                    rec.deleted,
-                ) {
-                    tracing::warn!("save_sync_conflict failed: {}", e);
-                }
+            } else {
+                strip_bookkeeping(&local_data) == strip_bookkeeping(&rec.data)
+            };
+            if !rec.deleted && content_matches {
+                continue;
+            }
+            stats.conflicts.push(ConflictRecord {
+                table: rec.table.clone(),
+                id: rec.id.clone(),
+                local_hlc: record_hlc_to_hlc(local_hlc),
+                remote_hlc: rec.hlc,
+                winner: "local".to_string(),
+            });
+            conflict_entries.push(solosoul_vault::SyncConflictBatchEntry {
+                table: rec.table.clone(),
+                record_id: rec.id.clone(),
+                local_hlc: local_record_hlc,
+                remote_hlc: remote_record_hlc,
+                local_data,
+                remote_data: rec.data.clone(),
+                remote_deleted: rec.deleted,
+            });
+        }
+        // 持久化冲突记录（单事务批量），供用户在冲突 UI 中查看并解决。
+        if !conflict_entries.is_empty() {
+            if let Err(e) = store.save_sync_conflicts_batch(&conflict_entries) {
+                tracing::warn!("save_sync_conflicts_batch failed: {}", e);
             }
         }
     }
