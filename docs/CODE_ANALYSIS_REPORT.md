@@ -159,9 +159,14 @@
 - **验证**：`cargo clippy --all-targets -- -D warnings`（solosoul-vault）exit 0；`cargo fmt --check` exit 0；`cargo test --lib storage::` 137 passed。
 
 ### P017-③ · `search_advanced_impl` 拆分（已修复）
-- **提交**：`（待回填）`
+- **提交**：`18a6a29d`
 - **改动**：`src-tauri/commands/search/commands.rs` 拆分 180 行 5 层函数——循环体内「逐对象匹配/评分/组装」抽为模块级 helper `match_object_to_query`（返回 `Option<SearchResultItem>`）：类型/敏感度/页面过滤、redact/protected_keys（P114）、字段级命中收集（P021 路径缓冲）、名称加分、最佳命中选取、模板显示名解析全部迁入；主函数保留空查询分支、模板/记录预加载、预筛 filter 循环与排序截断。纯重构零行为变化。
 - **验证**：src-tauri `cargo check` exit 0；`cargo clippy --lib -- -D warnings` exit 0；`cargo fmt --check` exit 0。注：src-tauri 测试二进制在本机报 `STATUS_ENTRYPOINT_NOT_FOUND`（所有测试均受影响，Windows 增量链接环境问题，与本次改动无关，登记备查）。
+
+### P017-④ · `build_docx` 拆分（已修复）
+- **提交**：`ee20ea82`
+- **改动**：`src-tauri/commands/export_import/export_docx/docx.rs` 拆分 146 行函数——封面段抽 `push_docx_cover`、单个对象节（分隔横线/对象名/元信息/字段表/附件清单）抽 `push_docx_object_section`、styles.xml 常量抽 `docx_styles_xml`、zip 四文件组装抽 `assemble_docx_zip`；主函数保留 XML 头/封面调用/对象循环/zip 组装编排（146→33 行）。纯重构零行为变化。
+- **验证**：src-tauri `cargo check` exit 0；`cargo fmt --check` exit 0。
 
 ---
 
