@@ -70,6 +70,23 @@ for (const file of files) {
   }
 }
 
+// 1b. P006: backendError.ts 的 RUST_ERROR_MAP / RUST_PREFIX_MAP 也是 i18n 键引用点——
+// 裸字符串契约下 Rust 改文案会让映射静默失效，映射引用了不存在的键则会渲染裸键名
+// （如 P029-R1 的 common:password_too_short）。把映射表引用的 'ns:key' 并入 used 集合，
+// 与 t() 调用同规则校验双语存在性。
+for (const file of files) {
+  if (!file.endsWith('lib/backendError.ts')) continue;
+  const text = readFileSync(file, 'utf8');
+  // 匹配映射表条目 'Rust error': 'ns:key' 或 'prefix': 'ns:key'
+  const MAP_ENTRY = /'[^']*':\s*'([a-zA-Z][a-zA-Z0-9_]*):([a-zA-Z0-9_.]+)'/g;
+  let mm;
+  while ((mm = MAP_ENTRY.exec(text)) !== null) {
+    const ns = mm[1];
+    if (!used.has(ns)) used.set(ns, new Set());
+    used.get(ns).add(mm[2]);
+  }
+}
+
 // 2. 加载 locale JSON，按路径解析键
 function load(lang) {
   const base = join(LOCALES, lang);
