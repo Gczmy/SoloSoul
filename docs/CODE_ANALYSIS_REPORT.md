@@ -42,7 +42,7 @@
 | P008 | 架构       | `tauri/crates/solosoul-vault/src/storage.rs`（5915 行） | 上帝对象：VaultStore + 加密迁移 + 整表重写 + sync 密钥 + 搜索工具混在一个文件 | `[x]` 已修复（P008） |
 | P009 | 死代码     | `tauri/crates/solosoul-core/Cargo.toml:29,38,49` | `anyhow`、`tokio`、`rand` 三个直接依赖在 core 全库无引用 | `[x]` 已修复（P009） |
 | P010 | 重复代码   | `tauri/src-tauri/src/commands/export_import/helpers.rs:24-88` ↔ `tauri/crates/solosoul-core/src/export_import.rs:885-942` 等 | `build_package_ids`/`resolve_*_references`/`derive_export_key` 等函数 GUI 与 core 逐字重复（相似度 ≈100%） | `[x]` 已修复（P010） |
-| P011 | 性能       | `tauri/crates/solosoul-vault/src/storage/sync_changes.rs:136,495`、`storage/conversations.rs:204` | 同步热路径逐行 `record_hlc_or_fallback`（每行一次 SELECT + 加锁），objects/trash 已用 LEFT JOIN 批量，同文件两种模式并存 | `[ ]` 待修复 |
+| P011 | 性能       | `tauri/crates/solosoul-vault/src/storage/sync_changes.rs:136,495`、`storage/conversations.rs:204` | 同步热路径逐行 `record_hlc_or_fallback`（每行一次 SELECT + 加锁），objects/trash 已用 LEFT JOIN 批量，同文件两种模式并存 | `[x]` 已修复（P011） |
 | P012 | 结构       | `tauri/crates/solosoul-vault/src/storage/objects.rs:393` | `list_objects` 147 行，查询/解密/组装混杂，对象列表核心路径 | `[ ]` 待修复 |
 | P013 | 结构       | `tauri/crates/solosoul-vault/src/storage/sync_changes.rs:283` | `query_object_changes` 146 行，SQL 拼装与行解密混在一处 | `[ ]` 待修复 |
 | P014 | 结构       | `tauri/src-tauri/src/commands/export_import/export_docx/fields.rs:32` | `field_value_to_text` 嵌套 7 层（match 套 if-let 套循环） | `[ ]` 待修复 |
@@ -94,8 +94,8 @@
 
 ## 修复进度
 
-- 已完成：10 / 54
-- 当前处理：P011（同步热路径 N+1 HLC 查询）
+- 已完成：11 / 54
+- 当前处理：P012（list_objects 147 行拆分）
 
 ---
 
@@ -178,10 +178,12 @@
 - **修复**：core 侧三函数改 `pub` 单一实现；GUI helpers.rs 删除逐字副本改为 `pub use solosoul_core::export_import::{build_package_ids, resolve_cross_scope_references, resolve_value_references}` re-export——`helpers::*` 既有调用路径（mod.rs `pub(crate) use helpers::*`）不变，零调用点改动。核实 `derive_export_key(_cfg)` 两侧均已是 `solosoul-crypto::kdf` 薄包装（P024 已收敛，仅错误类型映射不同），不属待消重复故未动；`read_manifest`/`read_file_from_zip` 等 GUI 侧其余 helpers 在 core 无对应实现，非重复。
 - **验证**：core `cargo test export_import` 16 测试全绿；src-tauri/solosoul-core clippy `-D warnings` exit 0；fmt 通过。顺修 P005 引入的 `cloned-ref-to-slice-refs` clippy 提示。
 
-### P011 — 同步热路径 N+1 HLC 查询
+### P011 — 同步热路径 N+1 HLC 查询（已修复）
 
+- **提交**：`4f54413f`
 - **位置**：`solosoul-vault/src/storage/sync_changes.rs:136`（`list_profile_changes_since`）、`:495`（`list_user_template_changes_since`）、`storage/conversations.rs:204`：循环内逐行 `record_hlc_or_fallback`（每行一次 `get_record_hlc` SELECT + 锁获取）。
-- **修复**：参照同文件 `query_object_changes` 的 `LEFT JOIN sync_hlc` 批量写法统一三张表。
+- **修复**：新增 `get_record_hlcs_batch`（单次 `WHERE table_name = ? AND record_id IN (...)` 查询，prepare_cached 复用，ids 为内部 UUID 主键无注入面）+ `resolve_hlc_or_fallback_batch`（无 HLC 行按 `updated_at` 构造零计数 fallback，与旧单条路径 `parse_time_ms` 逐字节一致）；三个变更清单函数改为「收集 ids → 批量取回 → 循环查 HashMap」——N 次 SELECT+锁收敛为 1 次；单条 `record_hlc_or_fallback` 随之零调用删除。采用批量 `IN` 而非 LEFT JOIN 是因为三表主查询结构与 objects 不同（无统一 keyset 分页，直接 JOIN 会改变行序语义），`IN` 批量在保持逐行语义的同时消除锁竞争与查询次数。
+- **验证**：solosoul-vault `cargo test --lib` 163 全绿；clippy `-D warnings` exit 0；fmt 通过。
 
 ### P012 / P013 — 过长核心函数
 
