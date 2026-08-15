@@ -167,10 +167,9 @@ fn process_sse(
                 e
             )
         })?;
-        let raw_line = match line_opt {
-            Ok(raw) => raw,
-            Err(e) => return Err(e),
-        };
+        // Err(e) = 网络读错误（P004-R1：中断并传播，不得当作完整回复）；
+        // Ok(None) = 真正的 EOF。
+        let raw_line = line_opt?;
         let Some(raw_line) = raw_line else {
             break; // 真正的 EOF
         };
