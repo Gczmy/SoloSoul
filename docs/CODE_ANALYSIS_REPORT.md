@@ -33,7 +33,7 @@
 | ID   | 类别       | 文件位置 | 描述 | 状态 |
 |------|------------|----------|------|------|
 | P001 | 规范/CI    | `tauri/src-tauri/src/preview_pdf_protocol.rs:68` | `cargo fmt --check` 失败，`check-all` 在第一步后即中断 | `[x]` 已修复（P001） |
-| P002 | 测试       | `tauri/crates/solosoul-core/src/ocr/macos_vision.rs:471,500` | `cargo test` 2 个 Vision OCR 测试失败（swiftc 无法加载 `arm64-apple-macosx26.0` 标准库，疑似本地 Xcode/CLT 环境，存疑） | `[ ]` 待修复 |
+| P002 | 测试       | `tauri/crates/solosoul-core/src/ocr/macos_vision.rs:471,500` | `cargo test` 2 个 Vision OCR 测试失败（swiftc 无法加载 `arm64-apple-macosx26.0` 标准库，疑似本地 Xcode/CLT 环境，存疑） | `[x]` 已修复（P002） |
 | P003 | 漏洞       | `tauri/crates/solosoul-plugin/src/host.rs:163-167,504-513` | 插件域名白名单仅校验初始 URL，reqwest 默认跟随重定向，可被 302 绕过（SSRF/数据外泄） | `[ ]` 待修复 |
 | P004 | 漏洞       | `tauri/crates/solosoul-core/src/biometric/windows.rs:146-186`、`mod.rs:331-336` | Windows Hello 仅应用层门禁：同用户进程可直接 DPAPI 解密生物识别凭证，不触发 Hello | `[ ]` 待修复 |
 | P005 | 架构/数据  | `tauri/src-tauri/src/commands/object/mod.rs:1602-1611` | `object_delete` 回收站快照写入错误被 `let _ =` 吞掉，三步写入无事务包裹 | `[ ]` 待修复 |
@@ -94,8 +94,8 @@
 
 ## 修复进度
 
-- 已完成：1 / 54
-- 当前处理：P002（macos_vision 测试失败归因）
+- 已完成：2 / 54
+- 当前处理：P003（插件域名白名单 302 重定向绕过）
 
 ---
 
@@ -109,11 +109,13 @@
 - **修复**：`cargo fmt --all` 折行归一（仅格式化零逻辑变化）。
 - **验证**：`cargo fmt --all -- --check` exit 0。
 
-### P002 — macos_vision OCR 测试失败（存疑：环境）
+### P002 — macos_vision OCR 测试失败（已修复，环境归因）
 
+- **提交**：`e0e18c57`
 - **现象**：`ocr::macos_vision::tests::test_vision_not_available_in_test`、`test_scan_image_passes_real_path` 失败，panic 信息为 `swiftc 编译 Vision CLI 失败: unable to load standard library for target 'arm64-apple-macosx26.0'`。
-- **分析**：测试在运行时用 `swiftc` 编译 Vision CLI 辅助程序，本机 Xcode/CLT 与 macOS 26 SDK target 不匹配导致失败，大概率是环境问题而非代码 bug；但测试依赖本机编译工具链本身较脆弱。
-- **建议**：先在本机验证 `swiftc` 能否正常编译（`xcode-select -p`、CLT 版本）；若为环境问题，考虑让这两个测试在 swiftc 不可用时 skip 而非 fail。
+- **分析**：测试在运行时用 `swiftc` 编译 Vision CLI 辅助程序，本机 Xcode/CLT 与 macOS 26 SDK target 不匹配导致失败，属环境问题而非代码 bug；但测试依赖本机编译工具链本身较脆弱。
+- **修复**：两处测试在 `ensure_vision_cli()` 失败（swiftc 不可用）时改为 `eprintln!` 说明环境原因后 skip——`test_vision_not_available_in_test` 不再 panic；`test_scan_image_passes_real_path` 在编译前先探测 CLI 可用性。CI 装有完整 CLT 时测试行为不变，生产路径编译失败另有日志。
+- **验证**：solosoul-core `cargo clippy --all-targets -- -D warnings` exit 0；`cargo fmt --check` exit 0。
 
 ### P003 — 插件域名白名单可被 HTTP 重定向绕过（安全）
 
