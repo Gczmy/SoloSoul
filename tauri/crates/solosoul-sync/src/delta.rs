@@ -176,6 +176,12 @@ pub fn apply_sync_records(
     }
 
     // P016: 批量阶段——本地数据单查询批量取 + 自动消解判定 + 单事务批量持久化。
+    //
+    // P016-R1 行为收紧声明：`get_sync_conflict_local_data_batch` 任一条本地
+    // 快照解密失败会经 `?` 传播并中止整个 apply（旧逐条实现用 `.unwrap_or_default()`
+    // 静默降级为空对象、继续统计后续冲突）。fail-fast 与 P001–P003「消除静默失败」
+    // 主题一致：单条解密失败说明本地数据损坏/密钥失配，中止比静默丢数据更安全；
+    // 代价是此时不会产生冲突记录——属有意收紧，非「语义不变」。
     if !conflict_candidates.is_empty() {
         let candidate_ids: Vec<String> = conflict_candidates
             .iter()

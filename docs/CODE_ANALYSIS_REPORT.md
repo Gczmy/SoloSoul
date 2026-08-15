@@ -154,6 +154,8 @@
 - **提交**：`c91e1191`
 - **改动**：`solosoul-vault` 新增 `save_sync_conflicts_batch`（单锁 + 单事务，N 条冲突一次 commit，逐条 upsert 语义不变）与 `get_sync_conflict_local_data_batch`（objects 表走既有 `load_objects_batch` 单查询，其余表逐条复用）；`solosoul-sync/delta.rs` 冲突分支重构为「候选收集 → 批量取本地数据 → 自动消解判定 → 单事务批量持久化」，消除大量冲突时的 N 次锁竞争与 N 次写事务。lib.rs 新增 `SyncConflictBatchEntry` 条目类型。新增 vault 单测 2 条（批量 upsert 不重复、批量本地数据含软删/缺失 None）。
 - **验证**：solosoul-vault/solosoul-sync `cargo clippy --all-targets -- -D warnings` exit 0；src-tauri check exit 0；`cargo fmt --check` exit 0。
+- **P016-R1 行为收紧声明（核查轮次 13 发现）**：批量取本地快照由逐条 `.unwrap_or_default()` 容错改为 `?` 传播——任一条解密失败会中止整个 sync apply 并丢弃已统计冲突数。原提交声称「语义不变」不准确。方向更安全（fail-fast 与 P001–P003「消除静默失败」一致，单条解密失败说明本地损坏/密钥失配，中止优于静默丢数据），故**保留代码行为、如实声明**：delta.rs 冲突收集段补注释说明为有意收紧，非语义不变。提交 `（待回填）`。
+- **P016-R1 验证**：solosoul-sync clippy `-D warnings` exit 0；`cargo test delta` 10 测试全绿；fmt 通过。
 
 ### P017-① · `list_object_changes_since_limited` 拆分（已修复）
 - **提交**：`fda2703b`
