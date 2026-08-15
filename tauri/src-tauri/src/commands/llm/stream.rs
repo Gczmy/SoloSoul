@@ -413,20 +413,7 @@ pub async fn llm_send_message_stream(
     // P016：SSRF 内网段防护——字面内网 IP 已被 validate 拦截，此处对主机名再做
     // 异步解析复核（防 `http://nas.local` 这类解析到内网地址的绕过），与 chat_http 一致。
     request::ensure_public_llm_host(&base_url).await?;
-    {
-        let svc = state
-            .vault_service
-            .read()
-            .map_err(|_| "Vault service lock poisoned".to_string())?;
-        let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
-        let config = super::load_config(vg.as_ref(), &account_id)?;
-        if !super::is_registered_provider_url(&config, &base_url) {
-            return Err(format!(
-                "base_url 未在当前账户登记，已拒绝请求: {}",
-                base_url
-            ));
-        }
-    }
+    ensure_registered_provider(&state, &account_id, &base_url)?;
     let prompt_text: String = messages
         .iter()
         .filter_map(|m| {
@@ -449,102 +436,157 @@ pub async fn llm_send_message_stream(
     )
     .await?;
 
-    // Auto-save conversation with AI reply after stream completes
-    // (ensures data persists even if frontend component is unmounted)
-    {
-        let svc = state
-            .vault_service
-            .read()
-            .map_err(|_| "Vault service lock poisoned".to_string())?;
-        let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
-        let vault = vg.as_ref();
-        // P004: 热路径行级读写——单行加载目标会话、追加助手回复、行级保存，
-        // 不再整 blob 解密/深克隆/重写全部会话。
-        let mut conv: Option<Conversation> = vault
-            .load_conversation(&account_id, &conversation_id)?
-            .and_then(|data| serde_json::from_slice::<Conversation>(&data).ok());
-        if let Some(conv_mut) = conv.as_mut() {
-            conv_mut.messages.push(ChatMessage {
+    persist_conversation_reply(
+        &app,
+        &state,
+        &account_id,
+        &conversation_id,
+        &full_text,
+        &messages,
+    )?;
+
+    record_and_persist_usage(
+        &state,
+        &account_id,
+        &model,
+        &api_type,
+        token_usage,
+        &prompt_text,
+        &full_text,
+    )
+    .await?;
+    Ok(())
+}
+/// P102/P016：校验 base_url 属于当前账户已登记的 provider（网络出口收窄）。
+fn ensure_registered_provider(
+    state: &State<'_, AppState>,
+    account_id: &str,
+    base_url: &str,
+) -> Result<(), String> {
+    let svc = state
+        .vault_service
+        .read()
+        .map_err(|_| "Vault service lock poisoned".to_string())?;
+    let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
+    let config = super::load_config(vg.as_ref(), account_id)?;
+    if !super::is_registered_provider_url(&config, base_url) {
+        return Err(format!(
+            "base_url 未在当前账户登记，已拒绝请求: {}",
+            base_url
+        ));
+    }
+    Ok(())
+}
+
+/// Auto-save conversation with AI reply after stream completes
+/// (ensures data persists even if frontend component is unmounted)。
+/// 热路径行级读写（P004）；保存失败落 warn 并 emit 持久化失败事件（P002），不整命令判失败。
+fn persist_conversation_reply(
+    app: &tauri::AppHandle,
+    state: &State<'_, AppState>,
+    account_id: &str,
+    conversation_id: &str,
+    full_text: &str,
+    messages: &[serde_json::Value],
+) -> Result<(), String> {
+    let svc = state
+        .vault_service
+        .read()
+        .map_err(|_| "Vault service lock poisoned".to_string())?;
+    let vg = svc.get_vault_store().ok_or("Vault not unlocked")?;
+    let vault = vg.as_ref();
+    // P004: 热路径行级读写——单行加载目标会话、追加助手回复、行级保存，
+    // 不再整 blob 解密/深克隆/重写全部会话。
+    let mut conv: Option<Conversation> = vault
+        .load_conversation(account_id, conversation_id)?
+        .and_then(|data| serde_json::from_slice::<Conversation>(&data).ok());
+    if let Some(conv_mut) = conv.as_mut() {
+        conv_mut.messages.push(ChatMessage {
+            role: "assistant".to_string(),
+            content: full_text.to_string(),
+            created_at: now_iso(),
+        });
+        conv_mut.updated_at = now_iso();
+    } else {
+        // Fallback: create new conversation if not found
+        let name = messages
+            .iter()
+            .filter_map(|m| m.get("role").and_then(|r| r.as_str()))
+            .zip(
+                messages
+                    .iter()
+                    .filter_map(|m| m.get("content").and_then(|c| c.as_str())),
+            )
+            .find(|(role, _)| *role == "user")
+            .map(|(_, content)| content.chars().take(30).collect::<String>())
+            .unwrap_or_default();
+        conv = Some(Conversation {
+            id: conversation_id.to_string(),
+            name,
+            is_temporary: false,
+            messages: vec![ChatMessage {
                 role: "assistant".to_string(),
-                content: full_text.clone(),
+                content: full_text.to_string(),
                 created_at: now_iso(),
-            });
-            conv_mut.updated_at = now_iso();
-        } else {
-            // Fallback: create new conversation if not found
-            let name = messages
-                .iter()
-                .filter_map(|m| m.get("role").and_then(|r| r.as_str()))
-                .zip(
-                    messages
-                        .iter()
-                        .filter_map(|m| m.get("content").and_then(|c| c.as_str())),
-                )
-                .find(|(role, _)| *role == "user")
-                .map(|(_, content)| content.chars().take(30).collect::<String>())
-                .unwrap_or_default();
-            conv = Some(Conversation {
-                id: conversation_id,
-                name,
-                is_temporary: false,
-                messages: vec![ChatMessage {
-                    role: "assistant".to_string(),
-                    content: full_text.clone(),
-                    created_at: now_iso(),
-                }],
-                updated_at: now_iso(),
-                deleted_at: None,
-            });
-        }
-        if let Some(conv) = conv {
-            if let Err(e) = save_conversation(vault, &account_id, &conv) {
-                // P002: 保存失败不再静默吞错——落 warn 日志（不含消息内容）并向前端
-                // emit 持久化失败事件，用户可见可重试，不再无感知丢失整段对话。
-                // （回复已完整流式展示，此处不把整个命令判失败，避免前端误判为
-                // 生成中断。）
-                tracing::warn!(
-                    "Failed to persist conversation {} after stream: {}",
-                    conv.id,
-                    e
-                );
-                let _ = app.emit(
-                    "llm-stream-chunk",
-                    LlmStreamPayload {
-                        conversation_id: conv.id.clone(),
-                        chunk: String::new(),
-                        is_done: true,
-                        error: Some(format!("Failed to persist conversation: {e}")),
-                    },
-                );
-            }
+            }],
+            updated_at: now_iso(),
+            deleted_at: None,
+        });
+    }
+    if let Some(conv) = conv {
+        if let Err(e) = save_conversation(vault, account_id, &conv) {
+            // P002: 保存失败不再静默吞错——落 warn 日志（不含消息内容）并向前端
+            // emit 持久化失败事件，用户可见可重试，不再无感知丢失整段对话。
+            // （回复已完整流式展示，此处不把整个命令判失败，避免前端误判为
+            // 生成中断。）
+            tracing::warn!(
+                "Failed to persist conversation {} after stream: {}",
+                conv.id,
+                e
+            );
+            let _ = app.emit(
+                "llm-stream-chunk",
+                LlmStreamPayload {
+                    conversation_id: conv.id.clone(),
+                    chunk: String::new(),
+                    is_done: true,
+                    error: Some(format!("Failed to persist conversation: {e}")),
+                },
+            );
         }
     }
+    Ok(())
+}
 
+/// 记录 token 用量（真实/兜底）并立即持久化统计到 vault。
+async fn record_and_persist_usage(
+    state: &State<'_, AppState>,
+    account_id: &str,
+    model: &str,
+    api_type: &ApiType,
+    token_usage: Option<TokenUsage>,
+    prompt_text: &str,
+    full_text: &str,
+) -> Result<(), String> {
     let provider_name = format!("{:?}", api_type);
     if let Some(usage) = token_usage {
         let _ = record_usage(
-            &account_id,
-            &model,
+            account_id,
+            model,
             &provider_name,
             usage.prompt_tokens,
             usage.completion_tokens,
         )
         .await;
     } else {
-        let _ = record_usage_fallback(
-            &account_id,
-            &model,
-            &provider_name,
-            &prompt_text,
-            &full_text,
-        )
-        .await;
+        let _ =
+            record_usage_fallback(account_id, model, &provider_name, prompt_text, full_text).await;
     }
     // Persist usage stats to vault immediately after recording
     {
         let stats = {
             let map = STATS_MAP.read().await;
-            map.get(&account_id).cloned().unwrap_or_default()
+            map.get(account_id).cloned().unwrap_or_default()
         };
         let svc = state
             .vault_service
@@ -553,7 +595,7 @@ pub async fn llm_send_message_stream(
         if let Some(vg) = svc.get_vault_store() {
             let vault = vg.as_ref();
             {
-                let _ = save_stats_to_vault(vault, &account_id, &stats);
+                let _ = save_stats_to_vault(vault, account_id, &stats);
             }
         };
     }
