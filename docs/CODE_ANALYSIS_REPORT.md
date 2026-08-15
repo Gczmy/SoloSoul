@@ -57,7 +57,7 @@
 | P027 | P2 | 可优化 | `components/layout/SearchPopover.tsx`、`components/sync/SyncConflictDialog.tsx` | JSX 嵌套约 12+ 层（缩进达 40 空格），可维护性差 | `[ ]` 待修复 |
 | P028 | P2 | 架构 | `tauri/src/pages/ai/LlmConfigPage.tsx:234-240、262-274、290-297` | 三处乐观更新先 setState 再 invoke，失败仅 warn 不回滚 | `[ ]` 待修复 |
 | P029 | P2 | 架构 | `tauri/src/lib/rustErrors.ts` 与 `tauri/src/lib/backendError.ts` | 两套后端错误本地化库职责重叠，新增错误需判断进哪套，易漏配 | `[ ]` 待修复 |
-| P030 | P2 | 性能（低影响） | `tauri/src/stores/settingsStore.ts:404-419` | 旧格式自定义页迁移循环内逐条串行 `await invoke('object_create')`（一次性路径，影响极小） | `[ ]` 待修复 |
+| P030 | P2 | 性能（低影响） | `tauri/src/stores/settingsStore.ts:404-419` | 旧格式自定义页迁移循环内逐条串行 `await invoke('object_create')`（一次性路径，影响极小） | `[x]` 已修复（P030） |
 
 ## 修复进度
 
@@ -328,8 +328,13 @@
 #### P023 · PluginLogPanel 审计日志加载无 catch
 `tauri/src/pages/ai/PluginDashboardPage.tsx:464-471`：`pluginCommands.auditLog(50).then(...)` 无 `.catch`，失败时 unhandled rejection、面板静默空白。**建议**：加 `.catch` 与空态/错误态提示。
 
-### P026 · `useRevealState` 渲染期 setState（已修复）
+### P030 · settingsStore 迁移循环串行 IPC（已修复）
 - **提交**：`（待回填）`
+- **改动**：`settingsStore.ts` `loadCustomPages` 的旧格式自定义页迁移循环由逐条串行 `await invoke('object_create')` 改为 `Promise.allSettled` 并行——一次性路径页面数个位数，allSettled 保证单条失败（`logger.warn` 记名）不阻断其余；`migrated` 按原数组顺序归并（fulfilled 才 push），成功页清理/落 store 逻辑不变。
+- **验证**：`npx tsc --noEmit` 无该文件错误；`npx eslint` 通过；`vitest run src/stores/settingsStore.test.ts` 19 测试全绿。
+
+### P026 · `useRevealState` 渲染期 setState（已修复）
+- **提交**：`184427b8`
 - **改动**：`useRevealState.ts` 的过期清理从渲染期迁出——`shouldMask` 不再调用 `hide(fieldId)`，改纯判断（已过期条目视为未 reveal），新增 `useEffect`（监听 `revealed` 变化）扫描过期条目并 `hide`（清一轮后无过期则空转停止）；`shouldMask` 依赖数组同步收窄为 `[revealed]`，StrictMode/并发渲染下不再触发 setState。
 - **验证**：`npx tsc --noEmit` 无该文件错误；`npx eslint` 通过。
 

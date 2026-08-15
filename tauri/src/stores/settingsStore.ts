@@ -399,11 +399,11 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       // No pages in objects table — check for old-format pages from preferences
       const oldPages = get().settings.customPages;
       if (oldPages.length > 0) {
-        // Migrate each old page into the objects table
-        const migrated: CustomPage[] = [];
-        for (const p of oldPages) {
-          try {
-            await invoke('object_create', {
+        // P030: 并行迁移——一次性路径页面数个位数，allSettled 保证单条失败不阻断其余
+        // （原串行 await 对个位数页面影响极小，并行化消除无谓的串行等待）。
+        const results = await Promise.allSettled(
+          oldPages.map((p) =>
+            invoke('object_create', {
               input: {
                 accountId,
                 name: p.name,
@@ -411,12 +411,17 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
                 iconName: p.iconId || DEFAULT_CUSTOM_ICON,
                 properties: {},
               },
-            });
-            migrated.push(p);
-          } catch (e) {
-            logger.warn('[settingsStore] Failed to migrate custom page:', p.name, e);
+            }),
+          ),
+        );
+        const migrated: CustomPage[] = [];
+        results.forEach((r, i) => {
+          if (r.status === 'fulfilled') {
+            migrated.push(oldPages[i]);
+          } else {
+            logger.warn('[settingsStore] Failed to migrate custom page:', oldPages[i].name, r.reason);
           }
-        }
+        });
         if (migrated.length > 0) {
           set((s) => ({ settings: { ...s.settings, customPages: migrated } }));
           // Clear old-format pages from preferences
