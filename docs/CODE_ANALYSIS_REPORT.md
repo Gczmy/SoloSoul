@@ -169,27 +169,27 @@
 - **验证**：src-tauri `cargo check` exit 0；`cargo fmt --check` exit 0。
 
 ### P017-⑤ · `register_field_access_fns` 拆分（已修复）
-- **提交**：`（待回填）`
+- **提交**：`19f812a5`
 - **改动**：`crates/solosoul-plugin/src/host.rs` 拆分 139 行函数——5 个 `func_wrap` 内联闭包（request_field / list_objects / get_data_structure_tree / get_param / list_attachments）抽为模块级 `solosoul_*_impl` 顶层函数（与 `register_http_fns` 的 `http_*_impl` 完全同构），主函数保留注释 + 每注册一行 `linker.func_wrap("env", name, impl)`（139→39 行）。闭包转函数时签名按原参数顺序/类型逐一迁移（`Caller` 泛型内逗号按顶层逗号正确分割），body 原样迁移仅去一层缩进。纯重构零行为变化。
 - **验证**：solosoul-plugin `cargo check` / `cargo clippy --all-targets -D warnings` exit 0；`cargo fmt --check` exit 0；plugin 单测 56 passed / 0 failed / 2 ignored。
 
 ### P017-⑥ · `import_execute_internal` 拆分（已修复）
-- **提交**：`（待回填）`
+- **提交**：`1540ec98`
 - **改动**：`src-tauri/commands/export_import/import.rs` 拆分 170 行阶段编排函数（两轮）——① 包内快照解析、KeepBoth ID 映射预构建、附件进度换算（80-100 映射）分别抽 `build_package_snapshots` / `build_keepboth_id_map` / `wrap_attachment_progress`；② 选中集合构建、对象导入主循环、附件+偏好导入、审计详情组装分别抽 `build_selected_ids` / `import_objects_loop` / `import_attachments_and_preferences` / `build_import_details`。主函数保留阶段 1 解密 / 阶段 2 模板重建 / 阶段编排与审计（170→103 行，7 个 helper）。纯重构零行为变化。
 - **验证**：src-tauri `cargo check` / `cargo clippy --lib -D warnings` exit 0；`cargo fmt --check` exit 0。
 
 ### P017-⑦ · `process_sse` 拆分（已修复）
-- **提交**：`（待回填）`
+- **提交**：`b3f9afe2`
 - **改动**：`crates/solosoul-core/src/llm/client.rs` 拆分 130 行函数（8 层嵌套）——① 读线程抽 `spawn_sse_reader`（独立 `std::io::BufRead` 消费 + mpsc 转发 + EOF None 通知）；② 4 个 token 计数器抽 `SseCounters` struct（derive Default）；③ 主循环内逐条 SSE data JSON 解析抽 `handle_sse_payload`（按 api_type 提取 token 计数并派发 Chunk，消除 line→data→match→choices→delta→content 8 层嵌套）。主函数留 收流/空闲超时/DONE 判定/计数汇总/Done 事件编排（130→60 行）。纯重构零行为变化。
 - **验证**：solosoul-core `cargo check` / `cargo clippy --all-targets -D warnings` exit 0；`cargo fmt --check` exit 0；单测 169 passed / 0 failed。
 
 ### P017-⑧ · `recovery_host_start` 拆分（已修复）
-- **提交**：`（待回填）`
+- **提交**：`2478a92c`
 - **改动**：`src-tauri/commands/recovery.rs` 拆分 155 行函数（5 层）——① 附件 ID 收集抽 `collect_all_attachment_ids`；② 旧主机取消+join+临时文件清理抽 `cancel_and_cleanup_old_host`（锁外 join）；③ mDNS 广告注册抽 `advertise_recovery_mdns`（async，desktop / 非 desktop 双 cfg 实现，fingerprint/display_addr 参数化）。主函数保留密码生成/临时路径/导出调用/主机启动/状态写入/qr 组装编排（155→107 行）。纯重构零行为变化。
 - **验证**：src-tauri `cargo check` / `cargo clippy --lib -D warnings` exit 0；`cargo fmt --check` exit 0。
 
 ### P017-⑨ · `llm_send_message_stream` 拆分（已修复）
-- **提交**：`（待回填）`
+- **提交**：`3ca04d46`
 - **改动**：`src-tauri/commands/llm/stream.rs` 拆分 164 行函数（5 层）——① 账户登记检查抽 `ensure_registered_provider`（P102/P016 网络出口收窄）；② 流结束后会话 Auto-save 抽 `persist_conversation_reply`（行级读写 P004 + 保存失败 warn/emit 事件 P002 + 新会话 fallback）；③ token 用量记录 + 统计持久化抽 `record_and_persist_usage`（async，真实/兜底双路径）。主函数保留 URL 校验/提示词提取/流式调用/持久化编排（164→62 行）。纯重构零行为变化。
 - **验证**：src-tauri `cargo check` / `cargo clippy --lib -D warnings` exit 0；`cargo fmt --check` exit 0。
 
