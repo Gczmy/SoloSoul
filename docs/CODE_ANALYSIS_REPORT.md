@@ -56,7 +56,7 @@
 | P026 | P2 | 规范 | `tauri/src/hooks/useRevealState.ts:70` | `shouldMask` 在渲染期内执行 `hide(fieldId)` setState，违反 React 渲染纯净性 | `[x]` 已修复（P026） |
 | P027 | P2 | 可优化 | `components/layout/SearchPopover.tsx`、`components/sync/SyncConflictDialog.tsx` | JSX 嵌套约 12+ 层（缩进达 40 空格），可维护性差 | `[ ]` 待修复 |
 | P028 | P2 | 架构 | `tauri/src/pages/ai/LlmConfigPage.tsx:234-240、262-274、290-297` | 三处乐观更新先 setState 再 invoke，失败仅 warn 不回滚 | `[x]` 已修复（P028） |
-| P029 | P2 | 架构 | `tauri/src/lib/rustErrors.ts` 与 `tauri/src/lib/backendError.ts` | 两套后端错误本地化库职责重叠，新增错误需判断进哪套，易漏配 | `[ ]` 待修复 |
+| P029 | P2 | 架构 | `tauri/src/lib/rustErrors.ts` 与 `tauri/src/lib/backendError.ts` | 两套后端错误本地化库职责重叠，新增错误需判断进哪套，易漏配 | `[x]` 已修复（P029） |
 | P030 | P2 | 性能（低影响） | `tauri/src/stores/settingsStore.ts:404-419` | 旧格式自定义页迁移循环内逐条串行 `await invoke('object_create')`（一次性路径，影响极小） | `[x]` 已修复（P030） |
 
 ## 修复进度
@@ -328,8 +328,13 @@
 #### P023 · PluginLogPanel 审计日志加载无 catch
 `tauri/src/pages/ai/PluginDashboardPage.tsx:464-471`：`pluginCommands.auditLog(50).then(...)` 无 `.catch`，失败时 unhandled rejection、面板静默空白。**建议**：加 `.catch` 与空态/错误态提示。
 
-### P019 · `swiftc` PATH 查找与自证式校验（已修复）
+### P029 · 两套后端错误库合并单一入口（已修复）
 - **提交**：`（待回填）`
+- **改动**：Rust 静态错误映射表（`RUST_ERROR_MAP` + `RUST_PREFIX_MAP`，原 `rustErrors.ts` 精确+前缀匹配）并入 `backendError.ts`——`translateRustError` 迁至此处；`resolveBackendErrorMessage` 未命中前缀 token 时新增回退：先查 Rust 静态映射（命中 `i18n.t(key)` 返回），未命中才透传原文。`rustErrors.ts` 降为兼容 re-export 薄壳（5 处旧 import 路径不变），新增错误只需在 `backendError.ts` 单表登记。
+- **验证**：`npx tsc --noEmit` 无相关文件错误；`npx eslint` 通过；`vitest run src/lib/backendError.test.ts` 4 测试全绿。
+
+### P019 · `swiftc` PATH 查找与自证式校验（已修复）
+- **提交**：`b7500562`
 - **改动**：`macos_vision.rs` 两处强化：① 编译 swiftc 不再 `Command::new("swiftc")` 依赖 PATH——新增 `resolve_swiftc()` 优先 `xcrun --find swiftc` 解析绝对路径（Xcode CLT 标准定位），失败才回退 PATH；② hash 文件从缓存目录（与二进制同目录）移出，存 `config_dir/com.solosoul.app/vision_cli/`（0o700，与缓存目录分离），杜绝「能写二进制者也能改 hash」的自证式校验失效；测试环境 hash 仍与缓存同目录（共用临时目录）。
 - **验证**：solosoul-core `cargo check` / `cargo clippy --all-targets -D warnings` exit 0；`cargo fmt --check` exit 0；ocr 单测 27 passed。
 
