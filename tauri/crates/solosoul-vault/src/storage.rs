@@ -481,6 +481,121 @@ where
     Ok(())
 }
 
+/// P017-②: 单 blob 列表（profiles/trash_items/object_snapshots）整体加密——
+/// 已加密/空值跳过，未加密行用 encrypt_field 加密。
+fn rewrite_blob_table_encrypted(
+    tx: &rusqlite::Transaction<'_>,
+    select_sql: &str,
+    update_sql: &str,
+    table_name: &str,
+    key: &DataEncryptionKey,
+) -> Result<(), String> {
+    rewrite_table(tx, select_sql, update_sql, table_name, false, |row| {
+        let data: Vec<u8> = row.get(1).map_err(|e| e.to_string())?;
+        if crate::encryption::is_encrypted_blob(&data) || data.is_empty() {
+            Ok(None)
+        } else {
+            let encrypted = encrypt_field(key, &data)?;
+            Ok(Some(vec![rusqlite::types::Value::Blob(encrypted)]))
+        }
+    })
+}
+
+/// P017-②: objects.properties / property_labels 双文本列加密。
+fn rewrite_objects_encrypted(
+    tx: &rusqlite::Transaction<'_>,
+    key: &DataEncryptionKey,
+) -> Result<(), String> {
+    rewrite_table(
+        tx,
+        "SELECT id, properties, property_labels FROM objects",
+        "UPDATE objects SET properties = ?1, property_labels = ?2 WHERE id = ?3",
+        "objects",
+        false,
+        |row| {
+            let properties: String = row.get(1).map_err(|e| e.to_string())?;
+            let labels: Option<String> = row.get(2).map_err(|e| e.to_string())?;
+            let encrypted_props = ensure_encrypted_text(key, &properties)?;
+            let encrypted_labels = labels
+                .as_deref()
+                .map(|l| ensure_encrypted_text(key, l))
+                .transpose()?
+                .unwrap_or_default();
+            Ok(Some(vec![
+                rusqlite::types::Value::Text(encrypted_props),
+                rusqlite::types::Value::Text(encrypted_labels),
+            ]))
+        },
+    )
+}
+
+/// P017-②: user_templates.properties_json 单文本列加密。
+fn rewrite_templates_encrypted(
+    tx: &rusqlite::Transaction<'_>,
+    key: &DataEncryptionKey,
+) -> Result<(), String> {
+    rewrite_table(
+        tx,
+        "SELECT id, properties_json FROM user_templates",
+        "UPDATE user_templates SET properties_json = ?1 WHERE id = ?2",
+        "user_templates",
+        false,
+        |row| {
+            let props_json: String = row.get(1).map_err(|e| e.to_string())?;
+            let encrypted = ensure_encrypted_text(key, &props_json)?;
+            Ok(Some(vec![rusqlite::types::Value::Text(encrypted)]))
+        },
+    )
+}
+
+/// P017-②: audit_log.details / entity_name 双可选文本列加密。
+fn rewrite_audit_log_encrypted(
+    tx: &rusqlite::Transaction<'_>,
+    key: &DataEncryptionKey,
+) -> Result<(), String> {
+    rewrite_table(
+        tx,
+        "SELECT id, details, entity_name FROM audit_log",
+        "UPDATE audit_log SET details = ?1, entity_name = ?2 WHERE id = ?3",
+        "audit_log",
+        false,
+        |row| {
+            let details: Option<String> = row.get(1).map_err(|e| e.to_string())?;
+            let entity_name: Option<String> = row.get(2).map_err(|e| e.to_string())?;
+            let encrypted_details = details
+                .as_deref()
+                .map(|d| ensure_encrypted_text(key, d))
+                .transpose()?
+                .unwrap_or_default();
+            let encrypted_name = entity_name
+                .as_deref()
+                .map(|n| ensure_encrypted_text(key, n))
+                .transpose()?
+                .unwrap_or_default();
+            Ok(Some(vec![
+                rusqlite::types::Value::Text(encrypted_details),
+                rusqlite::types::Value::Text(encrypted_name),
+            ]))
+        },
+    )
+}
+
+/// P017-②: 写入 encryption_version=1 与迁移时间标记。
+fn write_encryption_version_marker(tx: &rusqlite::Transaction<'_>) -> Result<(), String> {
+    let now = chrono::Utc::now().to_rfc3339();
+    tx.execute(
+        "INSERT OR REPLACE INTO sys_config (key, value, updated_at) VALUES ('encryption_version', ?1, ?2)",
+        params!["1", now],
+    )
+    .map_err(|e| e.to_string())?;
+    tx.execute(
+        "INSERT OR REPLACE INTO sys_config (key, value, updated_at) VALUES ('encryption_migrated_at', ?1, ?2)",
+        params![chrono::Utc::now().to_rfc3339(), now],
+    )
+    .map_err(|e| e.to_string())?;
+    Ok(())
+}
+
 impl VaultStore {
     /// Open or create a vault at the given path
     pub fn open(config: VaultConfig) -> Result<Self, String> {
@@ -892,132 +1007,42 @@ impl VaultStore {
 
         let result: Result<(), String> = (|| {
             // profiles.data（整行加密；已加密/空行跳过）
-            rewrite_table(
+            rewrite_blob_table_encrypted(
                 &tx,
                 "SELECT id, data FROM profiles",
                 "UPDATE profiles SET data = ?1 WHERE id = ?2",
                 "profiles",
-                false,
-                |row| {
-                    let data: Vec<u8> = row.get(1).map_err(|e| e.to_string())?;
-                    if crate::encryption::is_encrypted_blob(&data) || data.is_empty() {
-                        Ok(None)
-                    } else {
-                        let encrypted = encrypt_field(&key, &data)?;
-                        Ok(Some(vec![rusqlite::types::Value::Blob(encrypted)]))
-                    }
-                },
+                &key,
             )?;
 
             // objects.properties / property_labels（ensure_encrypted_text 幂等）
-            rewrite_table(
-                &tx,
-                "SELECT id, properties, property_labels FROM objects",
-                "UPDATE objects SET properties = ?1, property_labels = ?2 WHERE id = ?3",
-                "objects",
-                false,
-                |row| {
-                    let properties: String = row.get(1).map_err(|e| e.to_string())?;
-                    let labels: Option<String> = row.get(2).map_err(|e| e.to_string())?;
-                    let encrypted_props = ensure_encrypted_text(&key, &properties)?;
-                    let encrypted_labels = labels
-                        .as_deref()
-                        .map(|l| ensure_encrypted_text(&key, l))
-                        .transpose()?
-                        .unwrap_or_default();
-                    Ok(Some(vec![
-                        rusqlite::types::Value::Text(encrypted_props),
-                        rusqlite::types::Value::Text(encrypted_labels),
-                    ]))
-                },
-            )?;
+            rewrite_objects_encrypted(&tx, &key)?;
 
             // trash_items.data
-            rewrite_table(
+            rewrite_blob_table_encrypted(
                 &tx,
                 "SELECT id, data FROM trash_items",
                 "UPDATE trash_items SET data = ?1 WHERE id = ?2",
                 "trash_items",
-                false,
-                |row| {
-                    let data: Vec<u8> = row.get(1).map_err(|e| e.to_string())?;
-                    if crate::encryption::is_encrypted_blob(&data) || data.is_empty() {
-                        Ok(None)
-                    } else {
-                        let encrypted = encrypt_field(&key, &data)?;
-                        Ok(Some(vec![rusqlite::types::Value::Blob(encrypted)]))
-                    }
-                },
+                &key,
             )?;
 
             // object_snapshots.data
-            rewrite_table(
+            rewrite_blob_table_encrypted(
                 &tx,
                 "SELECT id, data FROM object_snapshots",
                 "UPDATE object_snapshots SET data = ?1 WHERE id = ?2",
                 "object_snapshots",
-                false,
-                |row| {
-                    let data: Vec<u8> = row.get(1).map_err(|e| e.to_string())?;
-                    if crate::encryption::is_encrypted_blob(&data) || data.is_empty() {
-                        Ok(None)
-                    } else {
-                        let encrypted = encrypt_field(&key, &data)?;
-                        Ok(Some(vec![rusqlite::types::Value::Blob(encrypted)]))
-                    }
-                },
+                &key,
             )?;
 
             // user_templates.properties_json
-            rewrite_table(
-                &tx,
-                "SELECT id, properties_json FROM user_templates",
-                "UPDATE user_templates SET properties_json = ?1 WHERE id = ?2",
-                "user_templates",
-                false,
-                |row| {
-                    let props_json: String = row.get(1).map_err(|e| e.to_string())?;
-                    let encrypted = ensure_encrypted_text(&key, &props_json)?;
-                    Ok(Some(vec![rusqlite::types::Value::Text(encrypted)]))
-                },
-            )?;
+            rewrite_templates_encrypted(&tx, &key)?;
 
             // audit_log.details / entity_name
-            rewrite_table(
-                &tx,
-                "SELECT id, details, entity_name FROM audit_log",
-                "UPDATE audit_log SET details = ?1, entity_name = ?2 WHERE id = ?3",
-                "audit_log",
-                false,
-                |row| {
-                    let details: Option<String> = row.get(1).map_err(|e| e.to_string())?;
-                    let entity_name: Option<String> = row.get(2).map_err(|e| e.to_string())?;
-                    let encrypted_details = details
-                        .as_deref()
-                        .map(|d| ensure_encrypted_text(&key, d))
-                        .transpose()?
-                        .unwrap_or_default();
-                    let encrypted_name = entity_name
-                        .as_deref()
-                        .map(|n| ensure_encrypted_text(&key, n))
-                        .transpose()?
-                        .unwrap_or_default();
-                    Ok(Some(vec![
-                        rusqlite::types::Value::Text(encrypted_details),
-                        rusqlite::types::Value::Text(encrypted_name),
-                    ]))
-                },
-            )?;
+            rewrite_audit_log_encrypted(&tx, &key)?;
 
-            let now = chrono::Utc::now().to_rfc3339();
-            tx.execute(
-                "INSERT OR REPLACE INTO sys_config (key, value, updated_at) VALUES ('encryption_version', ?1, ?2)",
-                params!["1", now],
-            ).map_err(|e| e.to_string())?;
-            tx.execute(
-                "INSERT OR REPLACE INTO sys_config (key, value, updated_at) VALUES ('encryption_migrated_at', ?1, ?2)",
-                params![chrono::Utc::now().to_rfc3339(), now],
-            ).map_err(|e| e.to_string())?;
+            write_encryption_version_marker(&tx)?;
 
             Ok(())
         })();
