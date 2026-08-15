@@ -41,7 +41,7 @@
 | P007 | 漏洞/架构  | 普遍，例 `tauri/crates/solosoul-vault/src/storage/objects.rs:712` | 内部错误细节（SQL 片段、路径、rusqlite 原文）直接透传到前端 UI | `[x]` 已修复（P007） |
 | P008 | 架构       | `tauri/crates/solosoul-vault/src/storage.rs`（5915 行） | 上帝对象：VaultStore + 加密迁移 + 整表重写 + sync 密钥 + 搜索工具混在一个文件 | `[x]` 已修复（P008） |
 | P009 | 死代码     | `tauri/crates/solosoul-core/Cargo.toml:29,38,49` | `anyhow`、`tokio`、`rand` 三个直接依赖在 core 全库无引用 | `[x]` 已修复（P009） |
-| P010 | 重复代码   | `tauri/src-tauri/src/commands/export_import/helpers.rs:24-88` ↔ `tauri/crates/solosoul-core/src/export_import.rs:885-942` 等 | `build_package_ids`/`resolve_*_references`/`derive_export_key` 等函数 GUI 与 core 逐字重复（相似度 ≈100%） | `[ ]` 待修复 |
+| P010 | 重复代码   | `tauri/src-tauri/src/commands/export_import/helpers.rs:24-88` ↔ `tauri/crates/solosoul-core/src/export_import.rs:885-942` 等 | `build_package_ids`/`resolve_*_references`/`derive_export_key` 等函数 GUI 与 core 逐字重复（相似度 ≈100%） | `[x]` 已修复（P010） |
 | P011 | 性能       | `tauri/crates/solosoul-vault/src/storage/sync_changes.rs:136,495`、`storage/conversations.rs:204` | 同步热路径逐行 `record_hlc_or_fallback`（每行一次 SELECT + 加锁），objects/trash 已用 LEFT JOIN 批量，同文件两种模式并存 | `[ ]` 待修复 |
 | P012 | 结构       | `tauri/crates/solosoul-vault/src/storage/objects.rs:393` | `list_objects` 147 行，查询/解密/组装混杂，对象列表核心路径 | `[ ]` 待修复 |
 | P013 | 结构       | `tauri/crates/solosoul-vault/src/storage/sync_changes.rs:283` | `query_object_changes` 146 行，SQL 拼装与行解密混在一处 | `[ ]` 待修复 |
@@ -94,8 +94,8 @@
 
 ## 修复进度
 
-- 已完成：9 / 54
-- 当前处理：P010（export_import GUI 与 core 逐字重复）
+- 已完成：10 / 54
+- 当前处理：P011（同步热路径 N+1 HLC 查询）
 
 ---
 
@@ -171,10 +171,12 @@
 - **修复**：从 `[dependencies]` 移除三项（workspace 级 `[workspace.dependencies]` 定义仍被其他 crate 使用，不动）。
 - **验证**：solosoul-core `cargo check --all-targets` / `cargo clippy --all-targets -- -D warnings` / `cargo fmt --check` 全部 exit 0。
 
-### P010 — export_import 在 GUI 与 core 逐字重复
+### P010 — export_import 在 GUI 与 core 逐字重复（已修复）
 
-- **位置**：`src-tauri/src/commands/export_import/helpers.rs:24-88` ↔ `solosoul-core/src/export_import.rs:885-942`（`build_package_ids`/`resolve_value_references`/`resolve_cross_scope_references` 相似度 ≈100%）；`mod.rs:229-250` ↔ `core:580-598`（`derive_export_key`）；另有 `read_manifest`/`read_file_from_zip`/`import_attachments`/`import_preferences` 高度平行。
-- **修复**：core 版改为 `pub`（core 已是 GUI 依赖），GUI 侧删副本改为薄 IPC 壳。
+- **提交**：`18bd4985`
+- **位置**：`src-tauri/src/commands/export_import/helpers.rs:24-88` ↔ `solosoul-core/src/export_import.rs:885-942`（`build_package_ids`/`resolve_value_references`/`resolve_cross_scope_references` 相似度 ≈100%）。
+- **修复**：core 侧三函数改 `pub` 单一实现；GUI helpers.rs 删除逐字副本改为 `pub use solosoul_core::export_import::{build_package_ids, resolve_cross_scope_references, resolve_value_references}` re-export——`helpers::*` 既有调用路径（mod.rs `pub(crate) use helpers::*`）不变，零调用点改动。核实 `derive_export_key(_cfg)` 两侧均已是 `solosoul-crypto::kdf` 薄包装（P024 已收敛，仅错误类型映射不同），不属待消重复故未动；`read_manifest`/`read_file_from_zip` 等 GUI 侧其余 helpers 在 core 无对应实现，非重复。
+- **验证**：core `cargo test export_import` 16 测试全绿；src-tauri/solosoul-core clippy `-D warnings` exit 0；fmt 通过。顺修 P005 引入的 `cloned-ref-to-slice-refs` clippy 提示。
 
 ### P011 — 同步热路径 N+1 HLC 查询
 
