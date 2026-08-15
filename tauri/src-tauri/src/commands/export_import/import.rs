@@ -371,7 +371,9 @@ pub(crate) async fn import_execute_internal(
     })
 }
 /// 构建选中附件/对象 ID 集合（selections 中 selected=true 的 object_id）。
-fn build_selected_ids(selections: Option<Vec<ImportSelection>>) -> Option<BTreeSet<String>> {
+pub(crate) fn build_selected_ids(
+    selections: Option<Vec<ImportSelection>>,
+) -> Option<BTreeSet<String>> {
     selections.map(|sels| {
         sels.into_iter()
             .filter(|s| s.selected)
@@ -532,7 +534,9 @@ fn build_keepboth_id_map(
 }
 
 /// 阶段 5：附件进度续接对象阶段末尾（80-100），避免进度条回落。
-fn wrap_attachment_progress(cb: Arc<dyn Fn(u8) + Send + Sync>) -> Arc<dyn Fn(u8) + Send + Sync> {
+pub(crate) fn wrap_attachment_progress(
+    cb: Arc<dyn Fn(u8) + Send + Sync>,
+) -> Arc<dyn Fn(u8) + Send + Sync> {
     Arc::new(move |pct: u8| {
         cb((80 + u16::from(pct) * 20 / 100) as u8);
     })

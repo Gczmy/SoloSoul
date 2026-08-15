@@ -1493,3 +1493,51 @@ fn test_import_no_template_object_unchanged() {
     assert!(loaded.properties.get("__fields").is_none());
     assert!(loaded.properties.get("__templateName").is_none());
 }
+// ── P017-⑥ helper 聚焦单测 ──────────────────────────────
+
+#[test]
+fn test_wrap_attachment_progress_maps_80_100() {
+    let seen: Arc<std::sync::Mutex<Vec<u8>>> = Arc::new(std::sync::Mutex::new(Vec::new()));
+    let cb: Arc<dyn Fn(u8) + Send + Sync> = Arc::new({
+        let seen = Arc::clone(&seen);
+        move |pct: u8| seen.lock().unwrap().push(pct)
+    });
+    let wrapped = wrap_attachment_progress(cb);
+    // 附件阶段 0-100 映射到总进度 80-100，单调不回落
+    wrapped(0);
+    wrapped(25);
+    wrapped(50);
+    wrapped(75);
+    wrapped(100);
+    let got = seen.lock().unwrap().clone();
+    assert_eq!(got, vec![80, 85, 90, 95, 100]);
+}
+
+#[test]
+fn test_build_selected_ids_filters_selected() {
+    let sels = vec![
+        ImportSelection {
+            object_id: "a".to_string(),
+            selected: true,
+        },
+        ImportSelection {
+            object_id: "b".to_string(),
+            selected: false,
+        },
+        ImportSelection {
+            object_id: "c".to_string(),
+            selected: true,
+        },
+    ];
+    let ids = build_selected_ids(Some(sels));
+    let set = ids.expect("Some for provided selections");
+    assert_eq!(set.len(), 2);
+    assert!(set.contains("a"));
+    assert!(set.contains("c"));
+    assert!(!set.contains("b"));
+}
+
+#[test]
+fn test_build_selected_ids_none_input() {
+    assert_eq!(build_selected_ids(None), None);
+}
