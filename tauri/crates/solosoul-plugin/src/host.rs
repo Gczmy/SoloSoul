@@ -160,9 +160,14 @@ impl SoloHostFunctions {
         channel: std::sync::Arc<dyn PluginEventSink>,
         workspace_dir: Option<std::path::PathBuf>,
     ) -> Self {
+        // P003: 关闭自动跟随重定向——白名单只校验初始 URL 的 host，reqwest 默认跟随
+        // 最多 10 跳会把请求引到白名单外主机（含 localhost/169.254.169.254 等），
+        // 开放重定向即可绕过沙箱边界。3xx 作为普通响应返回插件，插件继续请求新域名
+        // 时仍会再次经过 is_domain_allowed 校验。
         let http_client = reqwest::Client::builder()
             .connect_timeout(Duration::from_secs(10))
             .timeout(Duration::from_secs(30))
+            .redirect(reqwest::redirect::Policy::none())
             .build()
             .unwrap_or_default();
 
@@ -1730,5 +1735,38 @@ mod tests {
             .unwrap();
         assert_eq!(result.status, 201);
         assert_eq!(result.body, "OK");
+    }
+
+    #[tokio::test]
+    async fn test_p003_redirect_not_followed() {
+        // P003 回归：生产 client 关闭自动跟随重定向——白名单只校验初始 URL，
+        // 跟随 302 即可把请求引到白名单外主机。断言 3xx 原样返回且不请求 Location。
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        let redirect_url = format!("http://{}/target", addr);
+
+        let hits = std::sync::Arc::new(std::sync::atomic::AtomicU32::new(0));
+        let hits_clone = hits.clone();
+        tokio::spawn(async move {
+            let (mut socket, _) = listener.accept().await.unwrap();
+            let mut buf = [0u8; 2048];
+            let _n = socket.read(&mut buf).await.unwrap();
+            hits_clone.store(1, std::sync::atomic::Ordering::SeqCst);
+            let response = format!(
+                "HTTP/1.1 302 Found\r\nLocation: {redirect_url}\r\nContent-Length: 0\r\n\r\n"
+            );
+            socket.write_all(response.as_bytes()).await.unwrap();
+        });
+
+        // 与生产路径同款策略（Policy::none），非默认跟随
+        let client = reqwest::Client::builder()
+            .redirect(reqwest::redirect::Policy::none())
+            .build()
+            .unwrap();
+        let url = format!("http://{}", addr);
+        let result = perform_http_async(&client, "GET", &url, "").await.unwrap();
+        assert_eq!(result.status, 302, "302 应原样返回而非跟随");
+        // 未跟随 → 服务器只收到一次请求（不会有对 /target 的第二次请求）
+        assert_eq!(hits.load(std::sync::atomic::Ordering::SeqCst), 1);
     }
 }
