@@ -142,6 +142,20 @@ const OBJECT_SOFT_DELETE_SQL: &str =
 ///
 /// 注意：与 `Transaction` 不同，回调 panic 时不会自动回滚（无法在 unwind 中持有借用）。
 /// 调用方应确保回调内无 panic 操作；本库约定错误一律经 `Result` 返回，故可接受。
+/// P007: rusqlite 错误对外消息脱敏。
+///
+/// `rusqlite::Error::SqliteFailure(_, Some(sql))` 的 Display 会把 SQL 语句文本
+/// （表名/列名/查询结构）一并带出——若直接透传，SQL 片段可达前端 UI/toast，
+/// 对隐私优先定位属攻击面。本函数把完整错误（含 SQL）落 tracing 供诊断，
+/// 对外只保留 ffi 层消息（code + 原因），不携带 SQL 文本。
+fn sql_err(context: &str, e: rusqlite::Error) -> String {
+    tracing::error!("{context}: sqlite error: {e}");
+    match &e {
+        rusqlite::Error::SqliteFailure(err, Some(_sql)) => format!("{context}: {err}"),
+        _ => format!("{context}: {e}"),
+    }
+}
+
 fn with_tx<T>(
     conn: &mut Connection,
     begin_err: &'static str,
@@ -149,12 +163,12 @@ fn with_tx<T>(
     f: impl FnOnce(&mut Connection) -> Result<T, String>,
 ) -> Result<T, String> {
     conn.execute_batch("BEGIN")
-        .map_err(|e| format!("{begin_err}: {e}"))?;
+        .map_err(|e| sql_err(begin_err, e))?;
     let result = f(conn);
     match &result {
         Ok(_) => conn
             .execute_batch("COMMIT")
-            .map_err(|e| format!("{commit_err}: {e}"))?,
+            .map_err(|e| sql_err(commit_err, e))?,
         Err(_) => {
             let _ = conn.execute_batch("ROLLBACK");
         }
@@ -1262,6 +1276,28 @@ mod tests {
         let dir = TempDir::new().unwrap();
         let config = VaultConfig::new("test", dir.path().to_path_buf()).with_data_key(test_key());
         assert!(VaultStore::open(config).is_ok());
+    }
+
+    // ── P007：SQL 错误对外消息脱敏（不含 SQL 语句文本）──────────────────
+
+    #[test]
+    fn test_sql_err_redacts_sql_statement() {
+        // 构造 rusqlite::Error::SqliteFailure(_, Some(sql))——其 Display 会带出 SQL
+        // 语句文本（表名/查询结构），对外消息不得包含。
+        // 直接构造 ffi::Error（code + extended_code 字段公开）：模拟 SQL 执行失败，
+        // 第二个参数携带 SQL 语句文本（rusqlite 调用方把 SQL 传入 Some）。
+        let ffi_err = rusqlite::ffi::Error {
+            code: rusqlite::ffi::ErrorCode::ConstraintViolation,
+            extended_code: 19,
+        };
+        let e = rusqlite::Error::SqliteFailure(ffi_err, Some("UPDATE objects SET ...".into()));
+        let msg = sql_err("test_op", e);
+        assert!(
+            !msg.contains("UPDATE objects"),
+            "对外消息不得含 SQL 语句文本, got: {msg}"
+        );
+        assert!(msg.contains("test_op"), "应保留操作上下文: {msg}");
+        assert!(msg.contains("Error code"), "应保留 ffi 层 code 消息: {msg}");
     }
 
     // ── 「同步设置偏好」开关（默认开启）防回归测试 ────────────────────────
