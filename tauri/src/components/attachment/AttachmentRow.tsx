@@ -115,7 +115,11 @@ function AttachmentRowBase({
 
   // 桌面端：两行布局 — 第1行 [勾选框] 附件名称（勾选框与名称行对齐）；
   // 第2行 [格式图标][格式徽章] 附件信息（图标+徽章经 metaLeadingIcon 移入元信息行左侧，
-  // 不再占据名称行首部）；操作按钮居右垂直居中
+  // 不再占据名称行首部）；操作按钮居右垂直居中。
+  // 勾选框垂直对齐：名称行行高（14px 字号 × 1.4 ≈ 19.6px）大于勾选框自身 14px——
+  // 容器 alignSelf 对齐的是整块（名称+元信息），故用定高容器 + 内部垂直居中，
+  // 使勾选框与名称文本行高中心对齐。行容器显式声明 lineHeight: 1.4，勾选框
+  // 容器高度用同一度量（text-sm × 1.4）推导，两者始终一致、不依赖字体默认值。
   return (
     <div
       key={item.id}
@@ -125,16 +129,26 @@ function AttachmentRowBase({
         gap: 6,
         padding: '6px 8px 6px 40px',
         fontSize: 'var(--text-sm)',
+        lineHeight: 1.4,
         borderBottom: '1px solid var(--border-subtle)',
       }}
     >
-      <SelectCheckbox
-        checked={isChecked}
-        onClick={(e) => {
-          e.stopPropagation();
-          onToggleSelect(compositeKey);
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          height: 'calc(var(--text-sm) * 1.4)',
+          flexShrink: 0,
         }}
-      />
+      >
+        <SelectCheckbox
+          checked={isChecked}
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleSelect(compositeKey);
+          }}
+        />
+      </div>
 
       <AttachmentFileNameBlock
         fileName={item.fileName}

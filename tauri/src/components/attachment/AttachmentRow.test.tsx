@@ -132,6 +132,20 @@ describe('AttachmentRow', () => {
     expect(metaRow!.querySelector('input[type=checkbox]')).toBeNull();
   });
 
+  it('桌面端：勾选框在定高容器内垂直居中（与名称行高中心对齐）', () => {
+    vi.mocked(isMobilePlatformSync).mockReturnValue(false);
+    setupRow();
+    // 勾选框（role=checkbox）外层应为 flex 垂直居中容器，高度 = text-sm × 1.4
+    const checkbox = screen.getByRole('checkbox');
+    const wrapper = checkbox.parentElement!;
+    expect(wrapper.style.display).toBe('flex');
+    expect(wrapper.style.alignItems).toBe('center');
+    expect(wrapper.style.height).toBe('calc(var(--text-sm) * 1.4)');
+    // 行容器显式 lineHeight 1.4——勾选框中心与名称行高中心同源度量，始终对齐
+    const row = wrapper.parentElement!;
+    expect(row.style.lineHeight).toBe('1.4');
+  });
+
   it('显示格式名称徽章（随扩展名变化：report.pdf → PDF）', () => {
     setupRow();
     expect(screen.getByText('PDF')).toBeInTheDocument();
