@@ -5,6 +5,42 @@ use super::*;
 
 // ── Import commands ────────────────────────────────────────────
 
+/// P013: 导入解密明文临时目录前缀。临时目录建于**数据目录内**（0700，与敏感数据
+/// 同姿态），不再落系统 temp；前缀固定以便启动时/下次导入前清扫崩溃残留孤儿目录。
+/// 目录由 `tempfile::Builder` 生成唯一随机后缀（同前缀并存多个互不冲突）。
+const IMPORT_TMP_PREFIX: &str = "solosoul-import-tmp-";
+
+/// P013: 清扫数据目录内崩溃残留的导入明文孤儿临时目录（SIGKILL/断电时
+/// `TempDir` 无法 Drop 递归删除）。前缀匹配 + `remove_dir_all` 整目录清除；
+/// 单个条目失败仅 warn 不阻断（下次启动/导入仍会重试）。
+/// 启动时（lib.rs setup）与每次导入前均调用，保证明文不无限期滞留。
+pub(crate) fn cleanup_orphan_import_temps(data_dir: &std::path::Path) -> Result<(), String> {
+    let Ok(entries) = std::fs::read_dir(data_dir) else {
+        return Ok(());
+    };
+    let mut cleaned = 0usize;
+    for entry in entries.filter_map(Result::ok) {
+        let name = entry.file_name().to_string_lossy().to_string();
+        if !name.starts_with(IMPORT_TMP_PREFIX) {
+            continue;
+        }
+        let Ok(meta) = entry.metadata() else {
+            continue;
+        };
+        if !meta.is_dir() {
+            continue;
+        }
+        match std::fs::remove_dir_all(entry.path()) {
+            Ok(()) => cleaned += 1,
+            Err(e) => tracing::warn!("[import] 清扫孤儿导入临时目录失败: {} err={}", name, e),
+        }
+    }
+    if cleaned > 0 {
+        tracing::info!("[import] 启动/导入前清扫 {cleaned} 个孤儿导入临时目录");
+    }
+    Ok(())
+}
+
 /// P013: 桌面端导入文件路径白名单校验（Desktop/Documents/Downloads + SOLOSOUL_FS_BASE），
 /// 拒绝越界路径；移动端文件来自 SAF 选择/应用内路径，不做此校验。
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -255,7 +291,9 @@ pub(crate) async fn import_execute_internal(
     }
 
     // ── 阶段 1：解密包读取（password 为 Zeroizing，自动 Deref 为 &str）──
-    let (manifest, payload, key) = decrypt_package(&file_path, &password)?;
+    // P013: 导入前清扫上次崩溃残留的明文孤儿临时目录（数据目录内）。
+    let _ = cleanup_orphan_import_temps(svc.base_path());
+    let (manifest, payload, key) = decrypt_package(&file_path, &password, svc.base_path())?;
 
     // Build selection set if provided
     let selected_ids: Option<BTreeSet<String>> = selections.map(|sels| {
@@ -577,9 +615,14 @@ fn import_one_object(
 // ── 阶段化辅助函数（P023 拆分）──────────────────────────────────
 
 /// 阶段 1：读取并解密导入包，返回 (manifest, payload, 派生密钥)。
+///
+/// P013: 明文临时目录建于 `temp_base`（保险库数据目录，0700）内而非系统 temp——
+/// 进程 SIGKILL/崩溃时残留明文仍位于受保护的数据目录，且前缀固定可被
+/// `cleanup_orphan_import_temps` 清扫；正常路径 `TempDir` Drop 递归删除整个目录。
 fn decrypt_package(
     file_path: &str,
     password: &str,
+    temp_base: &std::path::Path,
 ) -> Result<(ManifestData, serde_json::Value, [u8; 32]), String> {
     let manifest = read_manifest(file_path)?;
     let salt = hex::decode(&manifest.salt_hex).map_err(|e| format!("Invalid salt: {}", e))?;
@@ -587,12 +630,18 @@ fn decrypt_package(
     let key = derive_export_key_cfg(password, &salt, &manifest.kdf_config())?;
     // R2-15: 主 payload 流式解密——`payload.enc` 经 decrypt_chunked_stream 直接写入临时文件，
     // 再从文件流式解析 JSON；峰值内存由「密文 + 明文 + JSON 树」约 3× 降至约 1× payload。
-    let mut tmp = tempfile::NamedTempFile::new().map_err(|e| format!("创建临时文件失败: {}", e))?;
+    let tmp_dir = tempfile::Builder::new()
+        .prefix(IMPORT_TMP_PREFIX)
+        .tempdir_in(temp_base)
+        .map_err(|e| format!("创建临时目录失败: {}", e))?;
+    let mut tmp = tempfile::NamedTempFile::new_in(tmp_dir.path())
+        .map_err(|e| format!("创建临时文件失败: {}", e))?;
     decrypt_zip_entry_streaming(file_path, "payload.enc", &key, &mut tmp)?;
     let payload: serde_json::Value = {
         let f = std::fs::File::open(tmp.path()).map_err(|e| format!("读取临时文件失败: {}", e))?;
         serde_json::from_reader(f).map_err(|e| format!("Invalid payload: {}", e))?
     };
+    // tmp（NamedTempFile）先于 tmp_dir Drop；tmp_dir 随后递归删除整个临时目录。
     Ok((manifest, payload, key))
 }
 

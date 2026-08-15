@@ -40,7 +40,7 @@
 | P010 | P2 | 安全 | `tauri/crates/solosoul-core/src/vault_service.rs` | `create_account*` 将 `salt` 与 `verifyHash` 经 IPC 返回前端，前端并不需要，违背最小暴露 | `[x]` 已修复（P010） |
 | P011 | P2 | 安全（纵深防御） | `tauri/crates/solosoul-sync/src/noise.rs` | `NoiseKeys` 派生 `Debug`+`Clone`，长期身份私钥可被 `{:?}` 打印且无 Drop 清零 | `[x]` 已修复（P011） |
 | P012 | P2 | 安全 | `tauri/src-tauri/src/commands/update.rs` + 前端更新呈现 | APK 校验和 minisign 签名缺失/无效时仅降级继续下载，用户静默失去完整性校验 | `[x]` 已修复（P012） |
-| P013 | P2 | 安全 | `tauri/src-tauri/src/commands/export_import/import.rs:583-588` | 导入解密明文落系统 temp 目录 `NamedTempFile`，进程 SIGKILL/崩溃时明文残留 | `[ ]` 待修复 |
+| P013 | P2 | 安全 | `tauri/src-tauri/src/commands/export_import/import.rs` + `lib.rs` 启动清扫 | 导入解密明文落系统 temp 目录 `NamedTempFile`，进程 SIGKILL/崩溃时明文残留 | `[x]` 已修复（P013） |
 | P014 | P2 | 安全 | `tauri/crates/solosoul-sync/src/recovery.rs:183` | 恢复主机接受裸 6 位数字 PIN 兼容旁路（无 nonce 绑定），削弱抗重放 | `[ ]` 待修复 |
 | P015 | P2 | 可优化 | `tauri/crates/solosoul-core/src/vault_service.rs:526-644` vs `650-762`；另 `commands/sync.rs:790` vs `solosoul-sync/src/recovery.rs:403` | `create_account`/`create_account_with_id` 约 90 行近乎逐字重复（安全敏感代码双份）；`local_display_ip` 跨 crate 重复实现 | `[ ]` 待修复 |
 | P016 | P2 | 性能 | `tauri/crates/solosoul-sync/src/delta.rs:166-213` | 同步冲突分支内每条记录单独解密/写入，大量冲突时变慢（主路径已批量事务化） | `[ ]` 待修复 |
@@ -61,8 +61,8 @@
 
 ## 修复进度
 
-- 已完成：12 / 30
-- 当前处理：P013（导入明文残留系统 temp，改数据目录内）
+- 已完成：13 / 30
+- 当前处理：P014（恢复流程裸 PIN 兼容分支——用户已决策：保留并登记）
 
 ---
 
@@ -124,9 +124,14 @@
 - **验证**：`cargo clippy --all-targets -- -D warnings`（solosoul-sync）exit 0；`cargo fmt --check` exit 0；`cargo check`（src-tauri）exit 0。
 
 ### P012 · APK 校验和验签 fail-open（已修复）
-- **提交**：`（待填写）`
+- **提交**：`48af1aaf`
 - **改动**：已确认前端呈现强度（AboutPage 卡片警告 + 下载命令 P002 已 fail-closed），按用户决策方案 B 收口：① Rust `android_check_update` 强制更新（mandatory）且校验和不可信（.sha256 缺失/签名缺失/验签失败）→ 检查阶段硬失败返回明确错误「强制更新已阻止：无法验证 APK 完整性」，不再让用户在遮罩里反复点下载；② 前端 `useAppUpdate`/`UpdateBanner` 新增 `checksumWarning` 透传，available 状态在横幅下方渲染警告条（避免首页横幅用户盲点下载后才看到泛化错误）；③ `MandatoryUpdateOverlay` 增校验和警告展示（防御纵深，Rust 硬失败后该分支正常不触发）。
 - **验证**：`npx tsc --noEmit` exit 0；eslint 干净；`vitest run MandatoryUpdateOverlay/UpdateBanner` 9 测试全绿（新增 4 条 P012 断言）；`cargo check`/`cargo clippy --lib -- -D warnings`/`cargo fmt --check` exit 0。
+
+### P013 · 导入明文残留系统 temp（已修复）
+- **提交**：`（待填写）`
+- **改动**：`import.rs` 新增 `cleanup_orphan_import_temps`（前缀 `solosoul-import-tmp-` 匹配 + `remove_dir_all`，单条失败仅 warn）；`decrypt_package` 明文临时目录由系统 temp 的 `NamedTempFile::new()` 改 `tempfile::Builder::tempdir_in(保险库数据目录)`（0700，与敏感数据同姿态），`NamedTempFile::new_in(临时目录内)`，Drop 时整目录递归删除；`import_execute_internal` 导入前清扫一次；`lib.rs` setup 新增 `setup_cleanup_import_temps`（第 1.5 步）启动时清扫崩溃残留。新增单测 `test_cleanup_orphan_import_temps`（仅删前缀匹配目录、保留无关条目）。
+- **验证**：`cargo clippy --all-targets -- -D warnings` exit 0（含测试目标编译）；`cargo fmt --check` exit 0。
 
 ---
 

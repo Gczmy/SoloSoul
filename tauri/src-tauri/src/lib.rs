@@ -173,6 +173,16 @@ fn setup_check_data_dir(app: &tauri::AppHandle) -> Result<(), String> {
     Ok(())
 }
 
+/// 第 1.5 步：清扫数据目录内崩溃残留的导入明文孤儿临时目录（P013）。
+/// 导入解密明文现在建于数据目录内（0700），进程 SIGKILL 时 TempDir 无法清理；
+/// 每次启动清扫一次，保证明文不无限期滞留（导入前也会再次清扫）。
+fn setup_cleanup_import_temps(app: &tauri::AppHandle) {
+    let Ok(data_dir) = resolve_app_data_dir(app) else {
+        return;
+    };
+    let _ = commands::export_import::import::cleanup_orphan_import_temps(&data_dir);
+}
+
 /// 第 2 步：检查资源目录与关键子目录（仅记录日志，不中止启动）。
 fn setup_check_resource_dirs(app: &mut tauri::App) {
     match app.path().resource_dir() {
@@ -641,6 +651,9 @@ fn setup_app(app: &mut tauri::App) -> Result<(), Box<dyn std::error::Error>> {
 
     // 1. 检查数据目录是否可写
     setup_check_data_dir(app.handle())?;
+
+    // 1.5 清扫数据目录内崩溃残留的导入明文孤儿临时目录（P013）
+    setup_cleanup_import_temps(app.handle());
 
     // 2. 检查资源目录与关键子目录
     setup_check_resource_dirs(app);

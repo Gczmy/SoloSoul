@@ -337,6 +337,39 @@ fn test_read_file_from_zip() -> Result<(), String> {
     Ok(())
 }
 
+// ── 7b. P013 孤儿导入临时目录清扫 ───────────────────────────
+
+/// P013: 清扫仅删除前缀匹配的孤儿导入临时目录（含嵌套文件，模拟崩溃残留明文），
+/// 保留无关条目（如 attachments 目录），不误删正常数据。
+#[test]
+fn test_cleanup_orphan_import_temps() {
+    let dir = tempfile::TempDir::new().unwrap();
+    let base = dir.path();
+
+    // 两个孤儿目录（带嵌套文件模拟崩溃残留的明文 payload）
+    let orphan1 = base.join("solosoul-import-tmp-abc123");
+    let orphan2 = base.join("solosoul-import-tmp-def456");
+    std::fs::create_dir_all(orphan1.join("sub")).unwrap();
+    std::fs::write(orphan1.join("sub").join("payload.dec"), b"plaintext").unwrap();
+    std::fs::create_dir_all(&orphan2).unwrap();
+    std::fs::write(orphan2.join("payload.dec"), b"more").unwrap();
+
+    // 无关条目：前缀不匹配的目录与文件必须保留
+    let unrelated_dir = base.join("attachments");
+    let unrelated_file = base.join("vault.db");
+    std::fs::create_dir_all(&unrelated_dir).unwrap();
+    std::fs::write(unrelated_dir.join("x.txt"), b"keep").unwrap();
+    std::fs::write(&unrelated_file, b"db").unwrap();
+
+    cleanup_orphan_import_temps(base).unwrap();
+
+    assert!(!orphan1.exists(), "孤儿目录 1 应被清扫");
+    assert!(!orphan2.exists(), "孤儿目录 2 应被清扫");
+    assert!(unrelated_dir.exists(), "无关目录应保留");
+    assert!(unrelated_dir.join("x.txt").exists(), "无关目录内容应保留");
+    assert!(unrelated_file.exists(), "无关文件应保留");
+}
+
 // ── 8. Data model serialization roundtrips ──────────────────
 
 #[test]
