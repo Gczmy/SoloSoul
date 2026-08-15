@@ -2,6 +2,54 @@
 
 All notable changes to SoloSoul are documented in this file.
 
+## [2.10.2] - 2026-08-15
+
+### Added
+
+- **附件「重命名」与「编辑描述和标签」合并为「编辑附件属性」单卡（T013）** — AttachmentMetaEditDialog 顶部新增名称输入框（保存时名称变更才调 `attachment_rename`，失败即中止整体保存防部分落库；描述/标签仍走 `attachment_update_meta`）；AttachmentActions 删除独立重命名按钮（常规态 6→5 按钮）；随之移除全部行内重命名机制（AttachmentRow RenameInput / ListItem 内联输入 / 两端 hook 的 renamingId·renameValue·renameInputRef·handleStartRename·handleConfirmRename 及三层透传参数链与 memo 比较器字段）；照片集全屏与附件预览的编辑按钮标题同步更新，onSaved 增 fileName 透传（仅变更时返回）；新增对话框 4 条回归（改名调用 rename+meta、名不变不调、空名不调、rename 失败中止）+ 行按钮合并测试。
+- **回收站对象详情附件行加预览按钮** — 后端 `TrashAttachmentInfo` 新增 vault_path（解析 `__attachments` 快照携带 vaultPath + `Path::is_file` 探测：旧数据缺键/附件级永久删除均降级 None，snake_case 兜底）；前端附件行尾新增 Eye 预览按钮（vault_path 为 null 禁用 + tooltip「附件文件已不存在」），复用 AttachmentPreviewOverlay（新增 disableMetaEdit 只读属性），预览遮罩状态提升至 TrashDetailPanel 并在 transform 容器之外渲染；外链打开复用 attachment_open；新增 Rust vaultPath 探测三态测试 + 前端按钮可用/禁用测试。
+
+### Fixed
+
+- **P001 锁中毒 fail-open 收口** — `lock()/create_account*/create_account_with_id` 的 RwLock 写入改 `unwrap_or_else(into_inner)` 强制取回：lock 保证「锁定即擦除会话密钥」不变量（zeroize 不再被静默跳过），create 路径保证账户落盘后会话状态一致建立；P001-R1 补漏 `unlock/unlock_with_session_key/reopen_vault_with_new_key` 三处同款修复（`unlock_with_kdf_upgrade` 一并对齐）。
+- **P002 流式对话保存吞错** — `save_conversation` 失败改 warn 日志 + 前端 emit 持久化失败事件（回复已展示故不判命令失败）；P002-R1 后端 error 加 `__LLM_PERSIST_FAILED__` 前缀，llmStore 按 is_done+前缀保留已展示回复只置 persistFailed 标记（不再整体替换为错误文案），真流错误仍走 streamError，useLlmChatCore 持久化失败只 toast 且 finalize 跳过重复保存。
+- **P003 审计日志/快照吞错** — `log_audit_best_effort`/`save_snapshot_best_effort` 封装（warn 脱敏落日志），替换 12 生产文件 32 处 `log_structured` + 5 处 `save_snapshot` 裸 `let _=`，审计轨迹与回滚快照失败有可观测信号。
+- **P004 LLM 流式整包读取** — process_sse 弃 `resp.bytes()` 整包读入，改读线程逐行消费 + mpsc 转发（CLI 打字机真流式）；请求级 120s 总超时改 120s 空闲超时（长回复不再被截断、死连接不挂起），client 改 `connect_timeout(15s)`；P004-R1 读错误不再伪装 EOF——通道改 `Result<Option<String>,String>` 传播读错误，process_sse 收到 Err 直接 return 不 emit Done，Ok(None) 仅表真 EOF，新增 BrokenPipe 回归测试。
+- **P005/P006 编译卫生** — clippy `items_after_test_module` 修复（MAX_CONVERSATION_MESSAGES/trim_conversation_messages/compare_updated_at 移出测试模块）+ windows.rs 测试恒真断言修复（bool_comparison），cargo fmt 恢复绿。
+- **P008 启动链无兜底白屏** — initI18n 的 `get_system_locale` invoke 包 try/catch 落入 `navigator.language`，main.tsx 链尾加 .catch 兜底渲染；新增回归测试（IPC reject 时 resolve 且落 Layer 3）。
+- **P010 create_account\* 返回值移除 salt/verifyHash** — 前端零消费（bootstrap 仅读 id/name/passwordHint、CLI 仅读 id、recovery 丢弃结果），verifyHash 泄露可支持离线爆破，仅经 IPC 暴露面收敛；两值仍写磁盘 config 不变。
+- **P011 NoiseKeys 私钥硬化** — secret 改 `Zeroizing<[u8;32]>`（Clone 副本 Drop 清零），手写 Debug 仅输出公钥指纹杜绝 `{:?}` 泄漏长期身份私钥，from_secret 先清零包装再派生公钥，新增防回归测试。
+- **P012 APK 校验和验签 fail-open 收口** — android_check_update 强制更新且校验和不可信→检查阶段硬失败（明确报因），不再遮罩里反复点下载；UpdateBanner 新增 checksumWarning 警告条 + MandatoryUpdateOverlay 警告展示防御纵深；新增 4 条前端测试。
+- **P013 导入明文残留系统 temp** — decrypt_package 明文临时目录改建于保险库数据目录（0700，tempdir_in + NamedTempFile::new_in，Drop 整目录递归删）；新增 `cleanup_orphan_import_temps` 前缀清扫（导入前 + 启动时），崩溃残留明文不再滞留系统 temp；新增单测。
+- **P016-R1 批量取本地快照 fail-fast** — 批量取本地快照由逐条 unwrap_or_default 容错改为 `?` 传播（任一条解密失败中止 apply），消除静默失败；delta.rs 补注释声明。
+- **P019 macos_vision swiftc 强化** — 编译改用 `xcrun --find swiftc` 解析绝对路径（消除 PATH 依赖）+ hash 存 config_dir 与二进制同目录分离（消除自证式校验失效）；P019-R1 spawn 失败改回退 PATH 不再上抛 + hash 文件写入后显式 chmod 0o600。
+- **P021/P023/P026/P028/P029/P030 UI 吞错/竞态收敛** — useLlmChat 四个会话操作 invoke 补 catch（rename/soft-delete/restore/permanent-delete 失败 toast 且不执行后续本地更新）；PluginLogPanel 审计日志加载补 catch（新增 plugin:audit_log_load_failed 键）；useRevealState 渲染期 setState 迁移 useEffect；LlmConfigPage 三处乐观更新失败回滚旧值 + `llm_accept_risk_failed` 失败不再置位 + 回滚改函数式比对防竞态（SelectCheckbox 补 data-testid）；P029-R1 password_too_short 错误映射键缺失修复（原指向不存在的 common 键，改指 settings:password_too_short）；P030-R1 settingsStore 迁移仅全部成功才清空 customPages（失败页保留可重试）。
+- **P024-R1 快照字段名过期修复** — 共享 flatten 核心给普通字段注入 defs.name 而旧实现不带 label，模板重命名而 `__fields` 快照未同步时显示过期名；新增 injectFieldLabels 参数（默认 false 恢复旧语义，HistoryViewer 传 true 保持快照名）。
+- **安卓端版本更新横幅布局优化** — release note 按钮移动端 30×30 固定正方形+零内边距+flex 居中；立即更新按钮移动端去文本只保留下载图标（aria-label/title 补可访问名称）；跳过按钮文本简化为「跳过」（新 common:skip 键，删废弃 skip_version 键）；三按钮与版本文案统一 whiteSpace nowrap 防换行；新增移动端模式回归测试。
+- **全局附件页移动端操作按钮行窄屏让宽** — 按钮行间距 4px→3.2px（命名常量 MOBILE_ACTIONS_GAP）；按钮行移出内容列改为行容器直接子元素、与勾选框同左缘对齐（腾出勾选框宽度+gap 约 20px），六个按钮（含软删除）不再溢出卡片被 overflow:hidden 裁切；新增结构回归测试。
+
+### Refactor
+
+- **P015 双份实现收敛** — vault_service 提取 `create_account_common` 公共主体（两入口仅保留校验差异，安全敏感代码单份）；`local_display_ip` 下沉 solosoul-sync 唯一实现（lib 根 re-export），sync.rs 删私有副本与 local-ip-address 死依赖。
+- **P017 九项大函数拆分** — list_object_changes_since_limited（165→50）、migrate_to_encrypted_format（155→~90）、search_advanced_impl（180→76）、build_docx（146→33）、register_field_access_fns（139→39）、import_execute_internal（170→103）、process_sse（130→60）、recovery_host_start（155→107）、llm_send_message_stream（164→62）；另补 match_object_to_query / wrap_attachment_progress / build_selected_ids 聚焦单测。
+- **P024 三份 flattenProperties 收敛** — 新建共享核心 propertyFlatten.ts（keepMetaKeys/flattenDynamicGroups 差异点参数化），HistoryViewer/objectDetailUtils/WorkspaceObjectCard 改薄包装复用，消除 `__` 前缀规则分叉；新增核心 8 条单测。
+- **P027 JSX 深嵌套拆分** — SearchPopover 结果行抽 SearchResultRow、SyncConflictDialog 字段冲突行抽 ConflictFieldRow 子组件，12+ 层嵌套降为 2 层。
+- **P029 两套后端错误库合并单一入口** — Rust 静态映射并入 backendError.ts，resolveBackendErrorMessage 未命中 token 时回退精确/前缀映射；rustErrors.ts 降为兼容 re-export 薄壳。
+- **P020 DebugLogPage 死过滤逻辑删除** — levelFilter 恒为 all 无 setter，filteredLogs 恒等于 logs，删 state 与过滤分支改用 logs 直读。
+
+### Performance
+
+- **P016 同步冲突分支批量落库** — vault 新增 `save_sync_conflicts_batch`（单事务 N 条 upsert）+ `get_sync_conflict_local_data_batch`（objects 单查询）；delta.rs 冲突分支改候选收集→批量取数→自动消解→单事务批量持久化，大量冲突不再 N 次锁/事务；新增 2 条 vault 单测。
+- **P022 Zustand 全 store 订阅改 useShallow 字段级选择（10 处）** — authStore 4 处/settingsStore 3 处/llmStatsStore/ocrInstallStore/pluginQuickStore 各 1 处，仅选实际消费字段，无关字段翻转不再触发整页重渲染。
+- **P025 SearchCache 加 LRU 容量上限** — 默认 200 条，get 命中刷新、set 超限淘汰最久未用，TTL 惰性淘汰保留；解密结果明文不再无限驻留。
+- **P030 settingsStore 迁移循环并行 IPC** — loadCustomPages 旧格式自定义页迁移改 Promise.allSettled 并行，单条失败不阻断其余（原逐条 await 串行）。
+
+### Chores
+
+- 版本号同步升级到 2.10.2（versionCode 2010002）。
+- Cargo.lock 版本同步——workspace crates（solosoul-core/crypto/plugin/sync/vault/solo_soul）2.10.1→2.10.2 与 workspace 对齐（tauri-plugin-updater 2.10.1 为第三方依赖不受影响）。
+- 63 个 commit 自 v2.10.1 到 v2.10.2。
+
 ## [2.10.1] - 2026-08-13
 
 ### Added
