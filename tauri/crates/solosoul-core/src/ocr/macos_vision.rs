@@ -167,6 +167,49 @@ fn vision_cli_cache_root() -> Result<PathBuf, String> {
     }
 }
 
+/// 返回 Vision CLI 哈希存储目录（与二进制缓存目录分离——P019：
+/// hash 不再与二进制同目录，避免「能写二进制者也能改 hash」的自证式校验失效）。
+/// 生产环境使用系统配置目录，测试环境与缓存目录共用临时目录。
+fn vision_cli_hash_root() -> Result<PathBuf, String> {
+    #[cfg(test)]
+    {
+        vision_cli_cache_root()
+    }
+    #[cfg(not(test))]
+    {
+        let root = dirs::config_dir()
+            .ok_or_else(|| "无法获取系统配置目录".to_string())?
+            .join("com.solosoul.app")
+            .join("vision_cli");
+        std::fs::create_dir_all(&root).map_err(|e| format!("创建 Vision CLI 哈希目录失败: {e}"))?;
+        // 哈希目录同样 0o700，保持与缓存目录一致的最小权限。
+        let mut perms = std::fs::metadata(&root)
+            .map_err(|e| format!("读取哈希目录元数据失败: {e}"))?
+            .permissions();
+        perms.set_mode(0o700);
+        std::fs::set_permissions(&root, perms).map_err(|e| format!("设置哈希目录权限失败: {e}"))?;
+        Ok(root)
+    }
+}
+
+/// 解析 swiftc 绝对路径（P019：不再依赖 PATH 查找）。
+/// 优先 `xcrun --find swiftc`（Xcode Command Line Tools 标准定位），
+/// 失败时回退 PATH 中的 `swiftc`（返回命令名，最终仍由系统 PATH 解析）。
+fn resolve_swiftc() -> Result<PathBuf, String> {
+    let xcrun = Command::new("xcrun")
+        .args(["--find", "swiftc"])
+        .output()
+        .map_err(|e| format!("启动 xcrun 解析 swiftc 失败: {e}"))?;
+    if xcrun.status.success() {
+        let path = String::from_utf8_lossy(&xcrun.stdout).trim().to_string();
+        if !path.is_empty() {
+            return Ok(PathBuf::from(path));
+        }
+    }
+    tracing::warn!("xcrun --find swiftc 未返回路径，回退 PATH 查找");
+    Ok(PathBuf::from("swiftc"))
+}
+
 /// 获取或编译 Vision Framework CLI 二进制路径。
 ///
 /// # 安全
@@ -186,7 +229,8 @@ fn ensure_vision_cli() -> Result<PathBuf, String> {
         .map_err(|e| format!("设置缓存目录权限失败: {e}"))?;
 
     let binary_path = cache_root.join("ocr_vision_cli");
-    let hash_path = cache_root.join("ocr_vision_cli.sha256");
+    // P019: hash 存配置目录（与二进制分离）
+    let hash_path = vision_cli_hash_root()?.join("ocr_vision_cli.sha256");
     let source_path = cache_root.join("ocr_vision_cli.swift");
 
     // 仅在源码发生变化时才写入，避免每次调用都更新 mtime 导致重复编译。
@@ -218,7 +262,9 @@ fn ensure_vision_cli() -> Result<PathBuf, String> {
 
     if needs_compile {
         tracing::debug!("编译 Vision CLI...");
-        let output = Command::new("swiftc")
+        let swiftc = resolve_swiftc()?;
+        tracing::debug!("使用 swiftc: {}", swiftc.display());
+        let output = Command::new(&swiftc)
             .args([
                 "-O",
                 "-o",

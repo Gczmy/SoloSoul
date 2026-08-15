@@ -46,7 +46,7 @@
 | P016 | P2 | 性能 | `tauri/crates/solosoul-sync/src/delta.rs` + `solosoul-vault/src/storage/sync_apply.rs` | 同步冲突分支内每条记录单独解密/写入，大量冲突时变慢（主路径已批量事务化） | `[x]` 已修复（P016） |
 | P017 | P2 | 可优化 | 多处（详见下文） | 过长函数/深嵌套候选 9 项（`list_object_changes_since_limited` 165 行等） | `[~]` 部分修复（P017-①~④ 前 4 项，余 5 项按报告建议登记不拆） |
 | P018 | P2 | 规范 | `AGENTS.md` 项目结构节 | 声称 `src-tauri/src/ipc/` 存在（实际无此目录），结构表与实际文件不同步 | `[x]` 已修复（P018：文件不存在，问题不复存在） |
-| P019 | P2 | 安全（极低风险） | `tauri/crates/solosoul-core/src/ocr/macos_vision.rs:221` | 运行时 `Command::new("swiftc")` 依赖 PATH；hash 文件与二进制同目录（自证式校验） | `[ ]` 待修复 |
+| P019 | P2 | 安全（极低风险） | `tauri/crates/solosoul-core/src/ocr/macos_vision.rs:221` | 运行时 `Command::new("swiftc")` 依赖 PATH；hash 文件与二进制同目录（自证式校验） | `[x]` 已修复（P019） |
 | P020 | P2 | 死代码 | `tauri/src/pages/system/DebugLogPage.tsx:21,66-67` | `levelFilter` 无 setter，过滤分支永不执行，整段过滤逻辑为死代码 | `[x]` 已修复（P020） |
 | P021 | P2 | 错误处理 | `tauri/src/pages/ai/LlmChatPage/useLlmChat.ts:118-157` | `handleRename`/`handleSoftDelete`/`handleRestore`/`handlePermanentDelete` 四个 invoke 无 catch，失败无反馈且跳过刷新 | `[x]` 已修复（P021） |
 | P022 | P2 | 性能 | 约 10 处（详见下文） | 整个 Zustand store 无选择器订阅，任一字段变更触发整页重渲染 | `[ ]` 待修复 |
@@ -328,8 +328,13 @@
 #### P023 · PluginLogPanel 审计日志加载无 catch
 `tauri/src/pages/ai/PluginDashboardPage.tsx:464-471`：`pluginCommands.auditLog(50).then(...)` 无 `.catch`，失败时 unhandled rejection、面板静默空白。**建议**：加 `.catch` 与空态/错误态提示。
 
-### P028 · `LlmConfigPage` 乐观更新失败回滚（已修复）
+### P019 · `swiftc` PATH 查找与自证式校验（已修复）
 - **提交**：`（待回填）`
+- **改动**：`macos_vision.rs` 两处强化：① 编译 swiftc 不再 `Command::new("swiftc")` 依赖 PATH——新增 `resolve_swiftc()` 优先 `xcrun --find swiftc` 解析绝对路径（Xcode CLT 标准定位），失败才回退 PATH；② hash 文件从缓存目录（与二进制同目录）移出，存 `config_dir/com.solosoul.app/vision_cli/`（0o700，与缓存目录分离），杜绝「能写二进制者也能改 hash」的自证式校验失效；测试环境 hash 仍与缓存同目录（共用临时目录）。
+- **验证**：solosoul-core `cargo check` / `cargo clippy --all-targets -D warnings` exit 0；`cargo fmt --check` exit 0；ocr 单测 27 passed。
+
+### P028 · `LlmConfigPage` 乐观更新失败回滚（已修复）
+- **提交**：`568f10fe`
 - **改动**：`LlmConfigPage.tsx` 三处乐观更新改 try/catch 失败回滚：① `applyActiveProvider` 记录旧 activeId，失败回滚 + toast；② `handleFeatureToggle` 失败 `setChatEnabled(!next)` 回滚 + toast；③ `handleSystemPromptToggle` 失败回滚 + toast。新增 `settings:llm_set_active_failed` / `llm_set_features_failed` / `llm_set_prompt_failed` 双 locale 键。后端未生效时 UI 不再误显新状态。
 - **验证**：`npx tsc --noEmit` 无该文件错误；`npx eslint` 通过；`check-missing-i18n` 双 locale 0 缺失；`vitest run src/pages/ai/LlmConfigPage.test.tsx` 2 测试全绿。
 
