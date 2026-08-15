@@ -356,6 +356,8 @@
 - **提交**：`b7500562`
 - **改动**：`macos_vision.rs` 两处强化：① 编译 swiftc 不再 `Command::new("swiftc")` 依赖 PATH——新增 `resolve_swiftc()` 优先 `xcrun --find swiftc` 解析绝对路径（Xcode CLT 标准定位），失败才回退 PATH；② hash 文件从缓存目录（与二进制同目录）移出，存 `config_dir/com.solosoul.app/vision_cli/`（0o700，与缓存目录分离），杜绝「能写二进制者也能改 hash」的自证式校验失效；测试环境 hash 仍与缓存同目录（共用临时目录）。
 - **验证**：solosoul-core `cargo check` / `cargo clippy --all-targets -D warnings` exit 0；`cargo fmt --check` exit 0；ocr 单测 27 passed。
+- **P019-R1 小缺口补齐（核查轮次 13 发现）**：① `resolve_swiftc` 原实现 `Command::new("xcrun").output().map_err(...)?`——xcrun **spawn 本身失败**（未安装/不可执行）时直接上抛，与「失败回退 PATH」的声称不符。改为 `match`：spawn 失败与返回空路径均回退 PATH 的 `swiftc`（不影响 OCR 主流程）。② hash 文件写入后显式 `chmod 0o600`（此前仅目录 0o700 兜底，文件权限由 umask 决定可能过宽；hash 与二进制同等敏感——能改 hash 即可自证式绕过校验）。提交 `（待回填）`。
+- **P019-R1 验证**：solosoul-core clippy `-D warnings` exit 0；`cargo test ocr::` 27 测试全绿；fmt 通过。
 
 ### P028 · `LlmConfigPage` 乐观更新失败回滚（已修复）
 - **提交**：`568f10fe`

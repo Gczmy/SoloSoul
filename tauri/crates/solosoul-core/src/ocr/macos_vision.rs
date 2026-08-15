@@ -196,18 +196,25 @@ fn vision_cli_hash_root() -> Result<PathBuf, String> {
 /// 解析 swiftc 绝对路径（P019：不再依赖 PATH 查找）。
 /// 优先 `xcrun --find swiftc`（Xcode Command Line Tools 标准定位），
 /// 失败时回退 PATH 中的 `swiftc`（返回命令名，最终仍由系统 PATH 解析）。
+///
+/// P019-R1: spawn 本身失败（xcrun 未安装/不可执行）也必须回退 PATH，
+/// 不得直接上抛——与「失败回退 PATH」的声称一致（原实现 `?` 直接返回 Err）。
 fn resolve_swiftc() -> Result<PathBuf, String> {
-    let xcrun = Command::new("xcrun")
-        .args(["--find", "swiftc"])
-        .output()
-        .map_err(|e| format!("启动 xcrun 解析 swiftc 失败: {e}"))?;
-    if xcrun.status.success() {
-        let path = String::from_utf8_lossy(&xcrun.stdout).trim().to_string();
-        if !path.is_empty() {
-            return Ok(PathBuf::from(path));
+    match Command::new("xcrun").args(["--find", "swiftc"]).output() {
+        Ok(xcrun) => {
+            if xcrun.status.success() {
+                let path = String::from_utf8_lossy(&xcrun.stdout).trim().to_string();
+                if !path.is_empty() {
+                    return Ok(PathBuf::from(path));
+                }
+            }
+            tracing::warn!("xcrun --find swiftc 未返回路径，回退 PATH 查找");
+        }
+        Err(e) => {
+            // P019-R1: spawn 失败（xcrun 不在 PATH）→ 回退，不阻断 OCR
+            tracing::warn!("xcrun 不可用（{e}），回退 PATH 查找 swiftc");
         }
     }
-    tracing::warn!("xcrun --find swiftc 未返回路径，回退 PATH 查找");
     Ok(PathBuf::from("swiftc"))
 }
 
@@ -297,6 +304,13 @@ fn ensure_vision_cli() -> Result<PathBuf, String> {
         let hash = sha256_file(&binary_path)?;
         let hash_hex = hex::encode(&hash);
         std::fs::write(&hash_path, &hash_hex).map_err(|e| format!("写入哈希文件失败: {e}"))?;
+        // P019-R1: hash 文件显式收紧为 0o600（此前仅目录 0o700 兜底，文件权限
+        // 由 umask 决定可能过宽；hash 与二进制同等敏感——能改 hash 即可自证式绕过校验）。
+        if let Ok(meta) = std::fs::metadata(&hash_path) {
+            let mut perms = meta.permissions();
+            perms.set_mode(0o600);
+            let _ = std::fs::set_permissions(&hash_path, perms);
+        }
         tracing::debug!("Vision CLI 哈希已存储: {}", &hash_hex[..16]);
     }
 
