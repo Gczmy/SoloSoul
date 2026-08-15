@@ -12,6 +12,14 @@
 //!   在此平台上行为相同（已验证 = 成功，其他 = 失败）。
 //! - 兼容迁移：读取时若文件不带 DPAPI 魔数头（旧版 XOR / SHA256 派生格式），
 //!   先用 `legacy::FileBiometricStorage` 解出密钥，再原子改写为 DPAPI 格式。
+//!
+//! # 平台限制（P004）
+//!
+//! Windows Hello 验证与 DPAPI 解密是**顺序执行而非加密绑定**：同用户身份运行的
+//! 任意进程可直接 `CryptUnprotectData` 读取凭证，不触发 Hello 弹窗；
+//! 强度低于 macOS Keychain 生物识别 ACL 的加密级绑定。完整威胁模型与
+//! 中期强化路线（KeyCredentialManager Key Attestation / per-account entropy）
+//! 见 `docs/biometric-spec.md` §3。
 
 use super::{BiometricError, BiometricStorage};
 use crate::biometric::legacy::FileBiometricStorage;
