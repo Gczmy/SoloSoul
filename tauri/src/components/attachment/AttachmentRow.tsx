@@ -113,13 +113,15 @@ function AttachmentRowBase({
     );
   }
 
-  // 桌面端：单行布局
+  // 桌面端：两行布局 — 第1行 [勾选框] 附件名称（勾选框与名称行对齐）；
+  // 第2行 [格式图标][格式徽章] 附件信息（图标+徽章经 metaLeadingIcon 移入元信息行左侧，
+  // 不再占据名称行首部）；操作按钮居右垂直居中
   return (
     <div
       key={item.id}
       style={{
         display: 'flex',
-        alignItems: 'center',
+        alignItems: 'flex-start',
         gap: 6,
         padding: '6px 8px 6px 40px',
         fontSize: 'var(--text-sm)',
@@ -133,12 +135,6 @@ function AttachmentRowBase({
           onToggleSelect(compositeKey);
         }}
       />
-      <AttachmentTypeIcon
-        item={item}
-        size={ICON_SIZE.sm}
-        style={{ color: 'var(--text-tertiary)', flexShrink: 0 }}
-      />
-      <AttachmentExtBadge fileName={item.fileName} />
 
       <AttachmentFileNameBlock
         fileName={item.fileName}
@@ -147,9 +143,19 @@ function AttachmentRowBase({
         showTrash={showTrash}
         description={item.description}
         tags={item.tags}
+        metaLeadingIcon={
+          <>
+            <AttachmentTypeIcon
+              item={item}
+              size={ICON_SIZE.sm}
+              style={{ color: 'var(--text-tertiary)', flexShrink: 0 }}
+            />
+            <AttachmentExtBadge fileName={item.fileName} />
+          </>
+        }
       />
 
-      <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>{actions}</div>
+      <div style={{ display: 'flex', gap: 4, flexShrink: 0, alignSelf: 'center' }}>{actions}</div>
     </div>
   );
 }

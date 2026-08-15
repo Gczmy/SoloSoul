@@ -119,6 +119,19 @@ describe('AttachmentRow', () => {
     expect(metaRow!.textContent).toContain('PDF');
   });
 
+  it('桌面端：第1行勾选框+附件名称，第2行[图标][徽章]附件信息', () => {
+    vi.mocked(isMobilePlatformSync).mockReturnValue(false);
+    setupRow();
+    // 元信息行首个子元素为图标 SVG，随后是格式徽章——图标/徽章不再占据名称行首部
+    const metaText = screen.getByText(/1\.0 KB/);
+    const metaRow = metaText.parentElement;
+    expect(metaRow).not.toBeNull();
+    expect(metaRow!.firstElementChild?.tagName.toLowerCase()).toBe('svg');
+    expect(metaRow!.textContent).toContain('PDF');
+    // 勾选框与名称同列（flex-start 对齐）：勾选框不在元信息行内
+    expect(metaRow!.querySelector('input[type=checkbox]')).toBeNull();
+  });
+
   it('显示格式名称徽章（随扩展名变化：report.pdf → PDF）', () => {
     setupRow();
     expect(screen.getByText('PDF')).toBeInTheDocument();
