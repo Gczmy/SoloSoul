@@ -103,15 +103,15 @@ describe('PhotoAlbumOverlay', () => {
     await screen.findByAltText('tagged.png');
     expect(screen.getByAltText('plain.png')).toBeInTheDocument();
 
-    // 点击「vacation」标签 → 只剩带该标签的照片
-    fireEvent.click(screen.getByRole('button', { name: 'vacation' }));
+    // 点击「vacation」标签 → 只剩带该标签的照片（chip 现带数量徽标，用正则匹配）
+    fireEvent.click(screen.getByRole('button', { name: /vacation/ }));
     await waitFor(() => {
       expect(screen.queryByAltText('plain.png')).not.toBeInTheDocument();
     });
     expect(screen.getByAltText('tagged.png')).toBeInTheDocument();
 
     // 再次点击（toggle）取消筛选 → 恢复全部
-    fireEvent.click(screen.getByRole('button', { name: 'vacation' }));
+    fireEvent.click(screen.getByRole('button', { name: /vacation/ }));
     await waitFor(() => {
       expect(screen.getByAltText('plain.png')).toBeInTheDocument();
     });
@@ -207,6 +207,34 @@ describe('PhotoAlbumOverlay', () => {
     expect(
       styleEls.some((s) => s.textContent?.includes('photo-album-tag-filter::-webkit-scrollbar')),
     ).toBe(true);
+  });
+
+  it('顶栏显示全部数量、标签 chip 与工具栏显示当前选项数量', async () => {
+    mockInvoke.mockResolvedValue('data:image/png;base64,abc');
+    const tagged = makeItem('tagged');
+    tagged.tags = ['vacation'];
+    const plain = makeItem('plain');
+    render(<PhotoAlbumOverlay items={[tagged, plain]} onClose={vi.fn()} />);
+
+    await screen.findByAltText('tagged.png');
+
+    // ① 顶栏标题右侧 = 全部数量（2），不随筛选变化
+    expect(screen.getByTestId('album-total-count').textContent).toBe('2');
+
+    // ② 每个标签 chip 显示该标签的照片数量（vacation=1），「全部」chip 显示总数 2
+    const vacationChip = screen.getByRole('button', { name: /vacation/ });
+    expect(vacationChip.textContent).toContain('1');
+
+    // ③ 工具栏右侧（排序/分组所在行）显示当前选项数量 2
+    expect(screen.getByTestId('album-current-count').textContent).toBe('2');
+
+    // 选择「vacation」后：顶栏仍为全部数量 2，工具栏右侧变为当前选项数量 1
+    fireEvent.click(vacationChip);
+    await waitFor(() => {
+      expect(screen.queryByAltText('plain.png')).not.toBeInTheDocument();
+    });
+    expect(screen.getByTestId('album-total-count').textContent).toBe('2');
+    expect(screen.getByTestId('album-current-count').textContent).toBe('1');
   });
 
   it('标签筛选区展开/折叠：箭头按钮切换全部标签平铺（高度自适应）与单行滚动', async () => {

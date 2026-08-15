@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ArrowDown, ArrowLeft, ArrowUp, ChevronDown, ChevronUp, Images, X } from 'lucide-react';
 import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
@@ -139,7 +139,8 @@ export function PhotoAlbumOverlay({
     };
   }, []);
 
-  /** 标签分区（需求4）：全量去重标签，按出现次数降序、名称升序。 */
+  /** 标签分区（需求4）：全量去重标签，按出现次数降序、名称升序；
+   *  count 供 chip 上的数量徽标（当前选项照片数显示在每个选项按钮上）。 */
   const tagOptions = useMemo(() => {
     const counts = new Map<string, number>();
     for (const item of localItems) {
@@ -150,7 +151,7 @@ export function PhotoAlbumOverlay({
     }
     return [...counts.entries()]
       .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
-      .map(([tag]) => tag);
+      .map(([tag, count]) => ({ tag, count }));
   }, [localItems]);
 
   /** 可见列表 = 标签筛选 + 时间排序（上传时间 created_at）。 */
@@ -309,6 +310,20 @@ export function PhotoAlbumOverlay({
       : []),
   ];
 
+  // chip 数量徽标样式：标签按钮上显示该标签的照片数（当前选项数量在选项按钮上）
+  const tagCountBadge: CSSProperties = {
+    display: 'inline-block',
+    marginLeft: 5,
+    padding: '0 5px',
+    borderRadius: 8,
+    background: 'color-mix(in srgb, var(--accent-primary) 12%, transparent)',
+    color: 'var(--text-tertiary)',
+    fontSize: 'var(--text-badge)',
+    fontWeight: 500,
+    lineHeight: '14px',
+    verticalAlign: 'middle',
+  };
+
   return (
     <div
       data-testid="photo-album-overlay"
@@ -354,8 +369,12 @@ export function PhotoAlbumOverlay({
           <span style={{ fontSize: 'var(--text-body-sm)', fontWeight: 600 }}>
             {t('common:photo_album', 'Photo Album')}
           </span>
-          <span style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
-            {visibleItems.length}
+          {/* 标题右侧显示全部照片数量（当前选项数量移到标签 chip 与工具栏右侧） */}
+          <span
+            data-testid="album-total-count"
+            style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}
+          >
+            {localItems.length}
           </span>
         </div>
         <BadgeIconButton
@@ -408,9 +427,22 @@ export function PhotoAlbumOverlay({
                   options={[
                     {
                       id: null,
-                      label: t('common:filter_all', { defaultValue: 'All' }),
+                      label: (
+                        <>
+                          {t('common:filter_all', { defaultValue: 'All' })}
+                          <span style={tagCountBadge}>{localItems.length}</span>
+                        </>
+                      ),
                     },
-                    ...tagOptions.map((tag) => ({ id: tag, label: tag })),
+                    ...tagOptions.map(({ tag, count }) => ({
+                      id: tag,
+                      label: (
+                        <>
+                          {tag}
+                          <span style={tagCountBadge}>{count}</span>
+                        </>
+                      ),
+                    })),
                   ]}
                   size="caption"
                   style={
@@ -487,6 +519,18 @@ export function PhotoAlbumOverlay({
               ariaLabel={t('common:album_group_mode', { defaultValue: 'Group by' })}
               width={110}
             />
+            {/* 排序/分组按钮右侧：当前选项的照片数量 */}
+            <span
+              data-testid="album-current-count"
+              style={{
+                marginLeft: 'auto',
+                fontSize: 'var(--text-caption)',
+                color: 'var(--text-tertiary)',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {visibleItems.length}
+            </span>
           </div>
         </div>
       )}
