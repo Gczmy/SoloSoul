@@ -54,17 +54,25 @@ export function AddPageButton({
   const buttonRef = useRef<HTMLButtonElement>(null);
   const popoverRef = useRef<HTMLDivElement>(null);
   const outsideClickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  /**
+   * 弹出卡片顶部坐标（px）。非 bottom 模式：从按钮下方（horizontal）或按钮
+   * 顶部对齐（侧边栏）向下展开，并保证不低于预留顶栏高度。bottom 模式不参与
+   * （顶部固定为移动 AppBar + 安全区，无需此处计算）。
+   */
+  const popoverTop = useMemo(() => {
+    if (isBottom || !buttonRect) return TOP_RESERVED_OFFSET;
+    return Math.max(isHorizontal ? buttonRect.bottom + 8 : buttonRect.top, TOP_RESERVED_OFFSET);
+  }, [buttonRect, isHorizontal, isBottom]);
+
   // Compute max height for icon picker scroll area based on available viewport space
   const scrollMaxHeight = useMemo(() => {
     if (isBottom) return undefined;
-    if (!buttonRect) return 280;
     // name input(~40) + optional description input(~40) + gap/padding(~24) + label(~14)
     const nonInputHeight = showDescription ? 118 : 72;
-    // Opens downward: horizontal (below button) or side (aligned to top)
-    const topEdge = isHorizontal ? buttonRect.bottom + 8 : buttonRect.top;
-    const available = window.innerHeight - topEdge - 16 - nonInputHeight;
-    return Math.max(120, Math.min(280, available));
-  }, [buttonRect, isHorizontal, isBottom, showDescription]);
+    // 底部留 16px 边距；icon 滚动区最小保留 48px（窗口极矮时宁可图标区滚动）
+    const available = window.innerHeight - popoverTop - 16 - nonInputHeight;
+    return Math.max(48, Math.min(280, available));
+  }, [popoverTop, showDescription]);
 
   // Compute popover left position for horizontal mode with right-edge overflow protection.
   // When the + button is near the right edge (function area collapsed), clamp left so
@@ -93,38 +101,42 @@ export function AddPageButton({
     setSelectedIconId(DEFAULT_CUSTOM_ICON);
   }, []);
 
-  const handleConfirm = useCallback((isExplicit = false) => {
-    const trimmed = name.trim();
-    if (!trimmed || !currentAccount) {
-      if (isExplicit) {
-        setNameError('empty');
-      } else {
-        handleCancel();
+  const handleConfirm = useCallback(
+    (isExplicit = false) => {
+      const trimmed = name.trim();
+      if (!trimmed || !currentAccount) {
+        if (isExplicit) {
+          setNameError('empty');
+        } else {
+          handleCancel();
+        }
+        return;
       }
-      return;
-    }
-    // Check for duplicate page names
-    const store = useSettingsStore.getState();
-    const existingNames = [
-      ...SYSTEM_PAGE_KEYS.map((k) => t(k)),
-      ...store.settings.customPages.filter((p) => !p.deletedAt).map((p) => p.name),
-    ];
-    if (existingNames.some((n) => n.toLowerCase() === trimmed.toLowerCase())) {
-      setNameError('duplicate');
-      return;
-    }
-    const trimmedDesc = description.trim();
-    addCustomPage(currentAccount.id, trimmed, selectedIconId, trimmedDesc || undefined).then(
-      (page) => {
-        onCreate(page);
-      },
-    );
-    handleCancel();
-  }, [name, description, selectedIconId, currentAccount, addCustomPage, onCreate, t, handleCancel]);
+      // Check for duplicate page names
+      const store = useSettingsStore.getState();
+      const existingNames = [
+        ...SYSTEM_PAGE_KEYS.map((k) => t(k)),
+        ...store.settings.customPages.filter((p) => !p.deletedAt).map((p) => p.name),
+      ];
+      if (existingNames.some((n) => n.toLowerCase() === trimmed.toLowerCase())) {
+        setNameError('duplicate');
+        return;
+      }
+      const trimmedDesc = description.trim();
+      addCustomPage(currentAccount.id, trimmed, selectedIconId, trimmedDesc || undefined).then(
+        (page) => {
+          onCreate(page);
+        },
+      );
+      handleCancel();
+    },
+    [name, description, selectedIconId, currentAccount, addCustomPage, onCreate, t, handleCancel],
+  );
 
   // Close popover on outside click
   useEffect(() => {
-    if (!isCreating) return;      const handler = (e: MouseEvent) => {
+    if (!isCreating) return;
+    const handler = (e: MouseEvent) => {
       if (
         popoverRef.current &&
         !popoverRef.current.contains(e.target as Node) &&
@@ -246,12 +258,7 @@ export function AddPageButton({
                 margin: isBottom ? '0 auto' : undefined,
                 top: isBottom
                   ? `calc(${MOBILE_APP_BAR_HEIGHT}px + ${SAFE_AREA_TOP} + 8px)`
-                  : buttonRect
-                    ? Math.max(
-                        isHorizontal ? buttonRect.bottom + 8 : buttonRect.top,
-                        TOP_RESERVED_OFFSET,
-                      )
-                    : '50%',
+                  : popoverTop,
                 bottom: isBottom
                   ? buttonRect
                     ? window.innerHeight - buttonRect.top + 8
@@ -268,9 +275,9 @@ export function AddPageButton({
                 border: '1px solid var(--border-subtle)',
                 transformOrigin: 'top',
                 maxWidth: 'calc(100vw - 32px)',
-                maxHeight: isBottom
-                  ? undefined
-                  : `calc(100vh - ${SAFE_AREA_TOP} - ${SAFE_AREA_BOTTOM} - 32px)`,
+                // 最大高度锚定卡片顶部：100vh - top - 16px 底部边距，保证
+                // 卡片底部始终位于窗口底部之上（修复：侧边栏靠下时卡片底部超屏）
+                maxHeight: isBottom ? undefined : `calc(100vh - ${popoverTop}px - 16px)`,
                 overflowY: isBottom ? 'hidden' : 'auto',
               }}
             >
@@ -304,7 +311,9 @@ export function AddPageButton({
                 <input
                   value={description}
                   onChange={(e) => setDescription(e.target.value.slice(0, 30))}
-                  onBlur={(e) => {                    if (popoverRef.current &&
+                  onBlur={(e) => {
+                    if (
+                      popoverRef.current &&
                       !popoverRef.current.contains(e.relatedTarget as Node)
                     ) {
                       handleConfirm(false);
@@ -374,7 +383,10 @@ export function AddPageButton({
                     ...(isBottom && { flex: '1 1 auto', minHeight: 0 }),
                   }}
                 >
-                  <IconCategoryPicker selectedIconId={selectedIconId} onSelect={setSelectedIconId} />
+                  <IconCategoryPicker
+                    selectedIconId={selectedIconId}
+                    onSelect={setSelectedIconId}
+                  />
                 </div>
               </div>
 
@@ -404,7 +416,8 @@ export function AddPageButton({
                   }}
                 >
                   {t('common:cancel')}
-                </button>                  <button
+                </button>{' '}
+                <button
                   onClick={() => handleConfirm(true)}
                   style={{
                     padding: '6px 12px',
