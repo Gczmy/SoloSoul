@@ -36,6 +36,28 @@ function isUriPath(path: string): boolean {
 }
 
 /**
+ * 把 `data:application/pdf;base64,...` 转成 blob: URL。
+ *
+ * WebView2/Chromium 内建 PDF 查看器不渲染 data: URL 的 <embed>（data: 无源标识，
+ * PDFium 拒绝加载），转成 blob: URL（createObjectURL）后正常加载。base64 经 atob
+ * 手动解码而非 fetch(data:)（后者会被 `connect-src 'self'` 拦截，且避免为此放宽
+ * CSP）；解码失败抛错由调用方 catch 统一降级为错误态。
+ */
+function dataUrlToBlobUrl(dataUrl: string): string {
+  const comma = dataUrl.indexOf(',');
+  if (comma < 0) throw new Error('Malformed data URL');
+  const header = dataUrl.slice(0, comma);
+  const mime = header.match(/^data:([^;]+)/)?.[1] ?? 'application/octet-stream';
+  const b64 = dataUrl.slice(comma + 1);
+  const binary = atob(b64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return URL.createObjectURL(new Blob([bytes], { type: mime }));
+}
+
+/**
  * Full-screen attachment preview overlay.
  * Supports image (with zoom), PDF, and text previews.
  * Non-previewable files show an "open externally" fallback.
@@ -63,8 +85,21 @@ export function AttachmentPreviewOverlay({
   const [fitScale, setFitScale] = useState(1);
   const [metaEditOpen, setMetaEditOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  /** 当前 PDF 预览的 blob URL（卸载/切换 item 时 revoke，防泄漏）。 */
+  const pdfBlobUrlRef = useRef<string | null>(null);
+  const revokePdfBlobUrl = useCallback(() => {
+    if (pdfBlobUrlRef.current) {
+      URL.revokeObjectURL(pdfBlobUrlRef.current);
+      pdfBlobUrlRef.current = null;
+    }
+  }, []);
+
+  // 卸载时兜底 revoke（正常路径在 item 切换/关闭时已清理，此处防严格模式双挂载等残留）
+  useEffect(() => revokePdfBlobUrl, [revokePdfBlobUrl]);
 
   useEffect(() => {
+    // item 切换/关闭：先清理上一轮 PDF blob URL，避免对象 URL 泄漏
+    revokePdfBlobUrl();
     if (!item) {
       setPreviewKind(null);
       setPreviewUrl('');
@@ -113,7 +148,13 @@ export function AttachmentPreviewOverlay({
             setError(true);
             return;
           }
-          setPreviewUrl(url);
+          // W-PDF：WebView2（Windows）内建 PDF 查看器不渲染 data: URL 的 embed，
+          // 经守卫后转成 blob: URL 再交给 <embed>（图片仍走 data: URL）。
+          const finalUrl = kind === 'pdf' ? dataUrlToBlobUrl(url) : url;
+          if (kind === 'pdf') {
+            pdfBlobUrlRef.current = finalUrl;
+          }
+          setPreviewUrl(finalUrl);
         })
         .catch(() => setError(true))
         .finally(() => setLoading(false));
@@ -126,7 +167,7 @@ export function AttachmentPreviewOverlay({
       // 'other' files are not loaded automatically.
       setLoading(false);
     }
-  }, [item]);
+  }, [item, revokePdfBlobUrl]);
 
   useEffect(() => {
     if (!item) return;

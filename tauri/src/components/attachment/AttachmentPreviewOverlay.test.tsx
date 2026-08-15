@@ -23,6 +23,9 @@ function makeItem(overrides: Partial<AttachmentItem> = {}): AttachmentItem {
 describe('AttachmentPreviewOverlay', () => {
   beforeEach(() => {
     mockInvoke.mockReset();
+    // jsdom 无 createObjectURL/revokeObjectURL——mock 以捕获 blob URL 生命周期
+    URL.createObjectURL = vi.fn(() => 'blob:mock-pdf-url');
+    URL.revokeObjectURL = vi.fn();
   });
 
   it('renders nothing when item is null', () => {
@@ -55,6 +58,48 @@ describe('AttachmentPreviewOverlay', () => {
         path: '/vault/attachments/obj-1/att-1/test.png',
       });
     });
+  });
+
+  // W-PDF：WebView2/Chromium 内建 PDF 查看器不渲染 data: URL 的 embed，必须转 blob: URL。
+  // 断言：① createObjectURL 被调用（data URL 已转 blob）；② embed src 为 blob URL。
+  it('converts pdf data URL to blob URL for embed (WebView2 cannot render data: URL)', async () => {
+    mockInvoke.mockResolvedValue('data:application/pdf;base64,JVBERi0xLjQK');
+    render(
+      <AttachmentPreviewOverlay
+        item={makeItem({ fileName: 'doc.pdf', mimeType: 'application/pdf' })}
+        onClose={vi.fn()}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(URL.createObjectURL).toHaveBeenCalledTimes(1);
+    });
+    // Blob 内容为解码后的 PDF 字节、type 为 application/pdf
+    const blob = vi.mocked(URL.createObjectURL).mock.calls[0][0] as Blob;
+    expect(blob.type).toBe('application/pdf');
+    expect(blob.size).toBe(9); // 'JVBERi0xLjQK' → 9 字节 '%PDF-1.4\n'
+
+    const embed = screen.getByTitle('doc.pdf');
+    expect(embed.tagName.toLowerCase()).toBe('embed');
+    expect(embed.getAttribute('src')).toBe('blob:mock-pdf-url');
+    expect(embed.getAttribute('type')).toBe('application/pdf');
+  });
+
+  it('revokes pdf blob URL when switching item / closing preview', async () => {
+    mockInvoke.mockResolvedValue('data:application/pdf;base64,JVBERi0xLjQK');
+    const { rerender } = render(
+      <AttachmentPreviewOverlay
+        item={makeItem({ fileName: 'doc.pdf', mimeType: 'application/pdf' })}
+        onClose={vi.fn()}
+      />,
+    );
+    await waitFor(() => {
+      expect(URL.createObjectURL).toHaveBeenCalledTimes(1);
+    });
+
+    // 关闭预览（item → null）：上一轮 blob URL 被 revoke
+    rerender(<AttachmentPreviewOverlay item={null} onClose={vi.fn()} />);
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:mock-pdf-url');
   });
 
   it('loads text preview via fs_read_file_as_text', async () => {
