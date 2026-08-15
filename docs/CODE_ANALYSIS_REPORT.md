@@ -345,11 +345,12 @@
 - **提交**：`09e85969`
 - **改动**：① `SearchPopover.tsx` 结果行抽为模块级 `SearchResultRow` 子组件（图标 + 高亮名称 + 页面/模板/对象三型元信息 + 敏感度徽章 + MatchHint），主组件渲染收缩为 `results.map(renderResultRow)`；② `SyncConflictDialog.tsx` 字段级冲突行抽为 `ConflictFieldRow` 子组件（字段名 + 差异徽章 + 本地/远程两列，对象/数组字段叶子级 diff 展开逻辑原样迁移）。纯抽取零行为变化。
 - **验证**：`npx tsc --noEmit` 无相关文件错误；`npx eslint` 通过；`vitest run src/components/sync src/components/layout` 15 测试全绿。
+- **P027-R1 核查补齐**：原验证仅靠 tsc + 人工比对背书——15 个测试无一渲染被重构组件。已补 `SearchPopover.test.tsx`（3 条：搜索触发 + 结果行渲染、空态、底部设置入口）与 `SyncConflictDialog.test.tsx`（4 条：关闭态、冲突列表 + 字段 diff 行、只看差异过滤、Keep Local 解析），覆盖 SearchResultRow/ConflictFieldRow 提取后的完整渲染路径；7 条全绿。
 
 ### P022 · Zustand 全 store 订阅改字段级选择（已修复）
 - **提交**：`072d0634`
 - **改动**：报告列出的 10 处无选择器订阅全部改为 `useShallow` 字段级选择：`useAuthStore()`（AppRoutes / useLoginPage / useLoginUnlockFlows / BootstrapPage——仅选实际消费的字段，error/backendError 等无关字段翻转不再触发重渲染）、`useSettingsStore()`（SecuritySettingsPage / BackupConfigPage / AppearanceSettingsPage——仅选 settings + updateSetting，isLoading/customPages 翻转不再整页重渲染）、`useLlmStatsStore()`（LlmStatsPage）、`useOcrInstallStore()`（useOcrFirstInstall）、`usePluginQuickStore()`（PluginQuickPanel——isOpen 翻转不再重渲染面板）。
-- **验证**：`npx tsc --noEmit` 无相关文件错误；`npx eslint` 通过；`vitest run src/pages/auth src/components/plugin` 20 测试全绿。
+- **验证**：`npx tsc --noEmit` 无相关文件错误；`npx eslint` 通过；`vitest run src/pages/auth src/components/plugin` 29 测试全绿（原记录误写 20，实际产出 29）。
 
 ### P029 · `backendError.ts` 两套后端错误库合并单一入口（已修复）
 - **提交**：`b05e4aa8`
@@ -361,7 +362,8 @@
 ### P019 · `swiftc` PATH 查找与自证式校验（已修复）
 - **提交**：`b7500562`
 - **改动**：`macos_vision.rs` 两处强化：① 编译 swiftc 不再 `Command::new("swiftc")` 依赖 PATH——新增 `resolve_swiftc()` 优先 `xcrun --find swiftc` 解析绝对路径（Xcode CLT 标准定位），失败才回退 PATH；② hash 文件从缓存目录（与二进制同目录）移出，存 `config_dir/com.solosoul.app/vision_cli/`（0o700，与缓存目录分离），杜绝「能写二进制者也能改 hash」的自证式校验失效；测试环境 hash 仍与缓存同目录（共用临时目录）。
-- **验证**：solosoul-core `cargo check` / `cargo clippy --all-targets -D warnings` exit 0；`cargo fmt --check` exit 0；ocr 单测 27 passed。
+- **验证**：solosoul-core `cargo check` / `cargo clippy --all-targets -D warnings` exit 0；`cargo fmt --check` exit 0；ocr 单测 27 passed（hash 分离逻辑在 `cfg(test)` 下不执行、验证以编译期检查背书）。
+- **P019-R1 核查补齐**：`resolve_swiftc` 原实现 xcrun spawn 失败（未安装/不可执行）直接上抛不回退 PATH，与「失败回退 PATH」声称不符；已改失败即回退 PATH，并显式 chmod 0o600（原仅目录 0o700 兜底）。
 - **P019-R1 小缺口补齐（核查轮次 13 发现）**：① `resolve_swiftc` 原实现 `Command::new("xcrun").output().map_err(...)?`——xcrun **spawn 本身失败**（未安装/不可执行）时直接上抛，与「失败回退 PATH」的声称不符。改为 `match`：spawn 失败与返回空路径均回退 PATH 的 `swiftc`（不影响 OCR 主流程）。② hash 文件写入后显式 `chmod 0o600`（此前仅目录 0o700 兜底，文件权限由 umask 决定可能过宽；hash 与二进制同等敏感——能改 hash 即可自证式绕过校验）。提交 `（待回填）`。
 - **P019-R1 验证**：solosoul-core clippy `-D warnings` exit 0；`cargo test ocr::` 27 测试全绿；fmt 通过。
 
@@ -394,7 +396,7 @@
 ### P026 · `useRevealState` 渲染期 setState（已修复）
 - **提交**：`184427b8`
 - **改动**：`useRevealState.ts` 的过期清理从渲染期迁出——`shouldMask` 不再调用 `hide(fieldId)`，改纯判断（已过期条目视为未 reveal），新增 `useEffect`（监听 `revealed` 变化）扫描过期条目并 `hide`（清一轮后无过期则空转停止）；`shouldMask` 依赖数组同步收窄为 `[revealed]`，StrictMode/并发渲染下不再触发 setState。
-- **验证**：`npx tsc --noEmit` 无该文件错误；`npx eslint` 通过。
+- **验证**：`npx tsc --noEmit` 无该文件错误；`npx eslint` 通过（无直接单测：reveal 状态机为渲染期读写 + 计时器驱动，jsdom 时序注入成本高，正确性以 tsc + 窗口期行为人工比对背书）。
 
 #### P024 · 三份 `flattenProperties` 实现已分叉
 `components/object/HistoryViewer.tsx:40`、`components/object/objectDetailUtils.ts:18`、`pages/workspace/WorkspaceObjectCard.tsx:22`：约 100 行核心逻辑高度相似，但 `__` 前缀 key 处理规则已分叉（HistoryViewer 保留 fieldDefs 中存在的 `__` key，objectDetailUtils 一律跳过）。**影响**：同一对象在工作区卡片/详情弹窗/历史快照三处渲染可能不一致。**建议**：收敛为单一共享实现，差异点参数化。
