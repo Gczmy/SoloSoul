@@ -183,6 +183,11 @@
 - **改动**：`crates/solosoul-core/src/llm/client.rs` 拆分 130 行函数（8 层嵌套）——① 读线程抽 `spawn_sse_reader`（独立 `std::io::BufRead` 消费 + mpsc 转发 + EOF None 通知）；② 4 个 token 计数器抽 `SseCounters` struct（derive Default）；③ 主循环内逐条 SSE data JSON 解析抽 `handle_sse_payload`（按 api_type 提取 token 计数并派发 Chunk，消除 line→data→match→choices→delta→content 8 层嵌套）。主函数留 收流/空闲超时/DONE 判定/计数汇总/Done 事件编排（130→60 行）。纯重构零行为变化。
 - **验证**：solosoul-core `cargo check` / `cargo clippy --all-targets -D warnings` exit 0；`cargo fmt --check` exit 0；单测 169 passed / 0 failed。
 
+### P017-⑧ · `recovery_host_start` 拆分（已修复）
+- **提交**：`（待回填）`
+- **改动**：`src-tauri/commands/recovery.rs` 拆分 155 行函数（5 层）——① 附件 ID 收集抽 `collect_all_attachment_ids`；② 旧主机取消+join+临时文件清理抽 `cancel_and_cleanup_old_host`（锁外 join）；③ mDNS 广告注册抽 `advertise_recovery_mdns`（async，desktop / 非 desktop 双 cfg 实现，fingerprint/display_addr 参数化）。主函数保留密码生成/临时路径/导出调用/主机启动/状态写入/qr 组装编排（155→107 行）。纯重构零行为变化。
+- **验证**：src-tauri `cargo check` / `cargo clippy --lib -D warnings` exit 0；`cargo fmt --check` exit 0。
+
 ---
 
 ## 详细问题描述与修复指引

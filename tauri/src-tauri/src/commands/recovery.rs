@@ -79,22 +79,7 @@ pub async fn recovery_host_start(
     ));
 
     // 收集全部附件 ID，保证恢复包包含附件
-    let all_attachment_ids = {
-        let vault = crate::commands::vault_handle(&state)?;
-        let objects = vault
-            .list_objects(&account_id, None, None, None, false, false)
-            .map_err(|e| e.to_string())?;
-        let mut ids = Vec::new();
-        for obj in objects {
-            let atts = crate::commands::export_import::load_attachments(&obj.properties);
-            for att in atts {
-                if att.deleted_at.is_none() {
-                    ids.push(att.id);
-                }
-            }
-        }
-        ids
-    };
+    let all_attachment_ids = collect_all_attachment_ids(&state, &account_id)?;
 
     let export_req = ExportRequest {
         scope: ExportScope {
@@ -117,17 +102,7 @@ pub async fn recovery_host_start(
     export_execute(app.clone(), export_state, account_id.clone(), export_req).await?;
 
     // 取消并清理之前可能残留的主机（在锁外 join，避免阻塞）
-    let (old_thread, old_path) = {
-        let mut rec = state.recovery_state.lock().map_err(|e| e.to_string())?;
-        rec.host_cancel.store(true, Ordering::SeqCst);
-        (rec.host_thread.take(), rec.export_path.take())
-    };
-    if let Some(thread) = old_thread {
-        let _ = thread.join();
-    }
-    if let Some(path) = old_path {
-        let _ = std::fs::remove_file(&path);
-    }
+    cancel_and_cleanup_old_host(&state)?;
 
     // 启动新的恢复主机（监听所有接口）
     let host = RecoveryHost::start(
@@ -152,35 +127,12 @@ pub async fn recovery_host_start(
 
     // 注册恢复主机的 mDNS 广告，让局域网内的新设备能自动发现本机
     #[cfg(desktop)]
-    let mdns_instance_name = {
-        let daemon_state = app.state::<crate::commands::discovery::SharedDaemon>();
-        let daemon_arc = daemon_state.get().await?;
-        let guard = daemon_arc.lock().await;
-        if let Some(daemon) = guard.as_ref() {
-            let instance_name = format!(
-                "recovery-{}",
-                &info.fingerprint[..info.fingerprint.len().min(8)]
-            );
-            if let Err(e) = crate::commands::discovery::recovery_advertise(
-                daemon,
-                &instance_name,
-                info.display_addr
-                    .split(':')
-                    .next_back()
-                    .and_then(|p| p.parse::<u16>().ok())
-                    .unwrap_or(0),
-                &info.fingerprint,
-                &info.display_addr,
-            ) {
-                tracing::warn!("Recovery mDNS advertise failed (non-fatal): {}", e);
-                None
-            } else {
-                Some(instance_name)
-            }
-        } else {
-            None
-        }
-    };
+    // 注册恢复主机的 mDNS 广告，让局域网内的新设备能自动发现本机
+    #[cfg(desktop)]
+    let mdns_instance_name =
+        advertise_recovery_mdns(&app, &info.fingerprint, &info.display_addr).await?;
+    #[cfg(not(desktop))]
+    let mdns_instance_name: Option<String> = None;
     #[cfg(not(desktop))]
     let mdns_instance_name: Option<String> = None;
 
@@ -211,6 +163,84 @@ pub async fn recovery_host_start(
         fingerprint: info.fingerprint,
         qr_payload,
     })
+}
+/// 收集全部附件 ID（未删除项），保证恢复包包含附件。
+fn collect_all_attachment_ids(
+    state: &State<'_, AppState>,
+    account_id: &str,
+) -> Result<Vec<String>, String> {
+    let vault = crate::commands::vault_handle(state)?;
+    let objects = vault
+        .list_objects(account_id, None, None, None, false, false)
+        .map_err(|e| e.to_string())?;
+    let mut ids = Vec::new();
+    for obj in objects {
+        let atts = crate::commands::export_import::load_attachments(&obj.properties);
+        for att in atts {
+            if att.deleted_at.is_none() {
+                ids.push(att.id);
+            }
+        }
+    }
+    Ok(ids)
+}
+
+/// 取消并清理之前可能残留的恢复主机（在锁外 join，避免阻塞）。
+fn cancel_and_cleanup_old_host(state: &State<'_, AppState>) -> Result<(), String> {
+    let (old_thread, old_path) = {
+        let mut rec = state.recovery_state.lock().map_err(|e| e.to_string())?;
+        rec.host_cancel.store(true, Ordering::SeqCst);
+        (rec.host_thread.take(), rec.export_path.take())
+    };
+    if let Some(thread) = old_thread {
+        let _ = thread.join();
+    }
+    if let Some(path) = old_path {
+        let _ = std::fs::remove_file(&path);
+    }
+    Ok(())
+}
+
+/// 注册恢复主机的 mDNS 广告，让局域网内的新设备能自动发现本机。
+#[cfg(desktop)]
+async fn advertise_recovery_mdns(
+    app: &tauri::AppHandle,
+    fingerprint: &str,
+    display_addr: &str,
+) -> Result<Option<String>, String> {
+    let daemon_state = app.state::<crate::commands::discovery::SharedDaemon>();
+    let daemon_arc = daemon_state.get().await?;
+    let guard = daemon_arc.lock().await;
+    if let Some(daemon) = guard.as_ref() {
+        let instance_name = format!("recovery-{}", &fingerprint[..fingerprint.len().min(8)]);
+        if let Err(e) = crate::commands::discovery::recovery_advertise(
+            daemon,
+            &instance_name,
+            display_addr
+                .split(':')
+                .next_back()
+                .and_then(|p| p.parse::<u16>().ok())
+                .unwrap_or(0),
+            fingerprint,
+            display_addr,
+        ) {
+            tracing::warn!("Recovery mDNS advertise failed (non-fatal): {}", e);
+            Ok(None)
+        } else {
+            Ok(Some(instance_name))
+        }
+    } else {
+        Ok(None)
+    }
+}
+
+#[cfg(not(desktop))]
+async fn advertise_recovery_mdns(
+    _app: &tauri::AppHandle,
+    _fingerprint: &str,
+    _display_addr: &str,
+) -> Result<Option<String>, String> {
+    Ok(None)
 }
 
 /// 取消当前正在运行的恢复主机。
