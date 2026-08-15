@@ -882,7 +882,8 @@ fn read_file_from_zip(path: &Path, name: &str) -> Result<Vec<u8>, ExportError> {
 }
 
 /// 构建包内所有对象 ID 集合。
-fn build_package_ids(payload: &serde_json::Value) -> HashSet<String> {
+/// P010: 由 core 单一实现，GUI 侧 re-export（消除 helpers.rs 逐字副本）。
+pub fn build_package_ids(payload: &serde_json::Value) -> HashSet<String> {
     payload["objects"]
         .as_array()
         .map(|arr| {
@@ -894,7 +895,8 @@ fn build_package_ids(payload: &serde_json::Value) -> HashSet<String> {
 }
 
 /// 递归扫描 JSON 值，将指向包外对象的关系引用降级为文本备注。
-fn resolve_value_references(value: &mut serde_json::Value, package_ids: &HashSet<String>) {
+/// P010: 由 core 单一实现，GUI 侧 re-export。
+pub fn resolve_value_references(value: &mut serde_json::Value, package_ids: &HashSet<String>) {
     match value {
         serde_json::Value::Object(obj) => {
             let is_relation = obj
@@ -930,7 +932,8 @@ fn resolve_value_references(value: &mut serde_json::Value, package_ids: &HashSet
 }
 
 /// 扫描对象属性并降级跨范围关系引用。
-fn resolve_cross_scope_references(
+/// P010: 由 core 单一实现，GUI 侧 re-export。
+pub fn resolve_cross_scope_references(
     properties: &mut serde_json::Value,
     package_ids: &HashSet<String>,
 ) {

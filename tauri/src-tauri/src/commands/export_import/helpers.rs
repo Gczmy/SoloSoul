@@ -18,74 +18,17 @@ impl ManifestData {
     }
 }
 
-// ── Cross-scope reference resolution ─────────────────────────
-
-/// Build a set of all object IDs present in the imported package.
-pub fn build_package_ids(payload: &serde_json::Value) -> std::collections::HashSet<String> {
-    payload["objects"]
-        .as_array()
-        .map(|arr| {
-            arr.iter()
-                .filter_map(|o| o["id"].as_str().map(String::from))
-                .collect()
-        })
-        .unwrap_or_default()
-}
-
-/// Recursively scan a JSON value for RelationProperty references.
-/// If a relation targets an object not in `package_ids`, downgrade it to a text remark.
-pub fn resolve_value_references(
-    value: &mut serde_json::Value,
-    package_ids: &std::collections::HashSet<String>,
-) {
-    match value {
-        serde_json::Value::Object(obj) => {
-            // Check if this object looks like a RelationProperty
-            let is_relation = obj
-                .get("type")
-                .or_else(|| obj.get("__type"))
-                .or_else(|| obj.get("kind"))
-                .and_then(|v| v.as_str())
-                == Some("relation");
-            if is_relation {
-                let target_id = obj
-                    .get("targetId")
-                    .or_else(|| obj.get("id"))
-                    .or_else(|| obj.get("objectId"))
-                    .and_then(|v| v.as_str());
-                if let Some(tid) = target_id {
-                    if !package_ids.contains(tid) {
-                        // Downgrade to text remark as per §4 cross-scope reference handling
-                        *value = serde_json::Value::String(format!("[引用对象未导出: {}]", tid));
-                        return;
-                    }
-                }
-            }
-            // Recurse into nested objects
-            for (_k, v) in obj.iter_mut() {
-                resolve_value_references(v, package_ids);
-            }
-        }
-        serde_json::Value::Array(arr) => {
-            for item in arr.iter_mut() {
-                resolve_value_references(item, package_ids);
-            }
-        }
-        _ => {}
-    }
-}
-
-/// Scan object properties and downgrade any cross-scope relation references.
-pub fn resolve_cross_scope_references(
-    properties: &mut serde_json::Value,
-    package_ids: &std::collections::HashSet<String>,
-) {
-    if let Some(map) = properties.as_object_mut() {
-        for (_key, value) in map.iter_mut() {
-            resolve_value_references(value, package_ids);
-        }
-    }
-}
+// ── Cross-scope reference resolution（P010: 由 solosoul-core 单一实现）──
+//
+// build_package_ids / resolve_value_references / resolve_cross_scope_references
+// 原在本文件与 solosoul-core::export_import 逐字重复（相似度 ≈100%）。
+// 已收敛为 core 侧 pub 实现，此处 re-export 保持既有调用路径（`helpers::*`）不变。
+//
+// P010 备注：derive_export_key(_cfg) 两侧均已是 solosoul-crypto::kdf 薄包装（P024 收敛），
+// 仅错误类型映射不同，不属重复实现。
+pub use solosoul_core::export_import::{
+    build_package_ids, resolve_cross_scope_references, resolve_value_references,
+};
 
 /// 读取 ZIP 包内 manifest.json 并解析为 JSON 值。
 ///
