@@ -45,7 +45,7 @@
 | P015 | P2 | 可优化 | `tauri/crates/solosoul-core/src/vault_service.rs` + `commands/sync.rs` vs `solosoul-sync/src/recovery.rs` | `create_account`/`create_account_with_id` 约 90 行近乎逐字重复（安全敏感代码双份）；`local_display_ip` 跨 crate 重复实现 | `[x]` 已修复（P015） |
 | P016 | P2 | 性能 | `tauri/crates/solosoul-sync/src/delta.rs` + `solosoul-vault/src/storage/sync_apply.rs` | 同步冲突分支内每条记录单独解密/写入，大量冲突时变慢（主路径已批量事务化） | `[x]` 已修复（P016） |
 | P017 | P2 | 可优化 | 多处（详见下文） | 过长函数/深嵌套候选 9 项（`list_object_changes_since_limited` 165 行等） | `[~]` 部分修复（P017-①~④ 前 4 项，余 5 项按报告建议登记不拆） |
-| P018 | P2 | 规范 | `AGENTS.md` 项目结构节 | 声称 `src-tauri/src/ipc/` 存在（实际无此目录），结构表与实际文件不同步 | `[ ]` 待修复 |
+| P018 | P2 | 规范 | `AGENTS.md` 项目结构节 | 声称 `src-tauri/src/ipc/` 存在（实际无此目录），结构表与实际文件不同步 | `[x]` 已修复（P018：文件不存在，问题不复存在） |
 | P019 | P2 | 安全（极低风险） | `tauri/crates/solosoul-core/src/ocr/macos_vision.rs:221` | 运行时 `Command::new("swiftc")` 依赖 PATH；hash 文件与二进制同目录（自证式校验） | `[ ]` 待修复 |
 | P020 | P2 | 死代码 | `tauri/src/pages/system/DebugLogPage.tsx:21,66-67` | `levelFilter` 无 setter，过滤分支永不执行，整段过滤逻辑为死代码 | `[ ]` 待修复 |
 | P021 | P2 | 错误处理 | `tauri/src/pages/ai/LlmChatPage/useLlmChat.ts:118-157` | `handleRename`/`handleSoftDelete`/`handleRestore`/`handlePermanentDelete` 四个 invoke 无 catch，失败无反馈且跳过刷新 | `[ ]` 待修复 |
@@ -292,6 +292,11 @@
 
 #### P018 · AGENTS.md 文档漂移
 项目结构节声称 `src-tauri/src/ipc/` 存在，实际无此目录（IPC 分发在 `lib.rs` `dispatch_ipc` + 前缀路由）；结构表未含 `attachment_import_plugin.rs`、`keystore_plugin.rs`、`nsd_plugin.rs` 等。**建议**：修订 AGENTS.md 对齐。
+
+### P018 · `AGENTS.md` 文档漂移（已修复）
+- **提交**：`（待回填）`
+- **改动**：核查确认仓库内不存在 `AGENTS.md`（`git log --all` 无任何历史记录），且 `docs/DEVELOPMENT.md`/`README.md` 等现存文档均无 `src/ipc` 或结构表漂移内容；问题随目标文件不存在而不复存在，无需修改任何文档。
+- **验证**：`grep -rn 'src/ipc' docs/ README.md DEVELOPMENT.md` 零命中。
 
 #### P019 · `swiftc` PATH 查找与自证式校验（极低风险）
 `tauri/crates/solosoul-core/src/ocr/macos_vision.rs:221`：运行时 `Command::new("swiftc")` 依赖 PATH；缓存二进制有 0700 目录 + SHA-256 自检，但 hash 与二进制同目录（能写二进制者也能改 hash）。实际风险很低，可不改；若要强化：hash 存 vault 数据目录，编译器用 `xcrun -f swiftc` 解析绝对路径。
