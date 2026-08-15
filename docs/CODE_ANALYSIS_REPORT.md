@@ -47,7 +47,7 @@
 | P017 | P2 | 可优化 | 多处（详见下文） | 过长函数/深嵌套候选 9 项（`list_object_changes_since_limited` 165 行等） | `[~]` 部分修复（P017-①~④ 前 4 项，余 5 项按报告建议登记不拆） |
 | P018 | P2 | 规范 | `AGENTS.md` 项目结构节 | 声称 `src-tauri/src/ipc/` 存在（实际无此目录），结构表与实际文件不同步 | `[x]` 已修复（P018：文件不存在，问题不复存在） |
 | P019 | P2 | 安全（极低风险） | `tauri/crates/solosoul-core/src/ocr/macos_vision.rs:221` | 运行时 `Command::new("swiftc")` 依赖 PATH；hash 文件与二进制同目录（自证式校验） | `[ ]` 待修复 |
-| P020 | P2 | 死代码 | `tauri/src/pages/system/DebugLogPage.tsx:21,66-67` | `levelFilter` 无 setter，过滤分支永不执行，整段过滤逻辑为死代码 | `[ ]` 待修复 |
+| P020 | P2 | 死代码 | `tauri/src/pages/system/DebugLogPage.tsx:21,66-67` | `levelFilter` 无 setter，过滤分支永不执行，整段过滤逻辑为死代码 | `[x]` 已修复（P020） |
 | P021 | P2 | 错误处理 | `tauri/src/pages/ai/LlmChatPage/useLlmChat.ts:118-157` | `handleRename`/`handleSoftDelete`/`handleRestore`/`handlePermanentDelete` 四个 invoke 无 catch，失败无反馈且跳过刷新 | `[ ]` 待修复 |
 | P022 | P2 | 性能 | 约 10 处（详见下文） | 整个 Zustand store 无选择器订阅，任一字段变更触发整页重渲染 | `[ ]` 待修复 |
 | P023 | P2 | 错误处理 | `tauri/src/pages/ai/PluginDashboardPage.tsx:464-471` | `pluginCommands.auditLog(50).then(...)` 无 `.catch`，失败时面板静默空白 | `[ ]` 待修复 |
@@ -303,6 +303,11 @@
 
 #### P020 · DebugLogPage 死过滤逻辑
 `tauri/src/pages/system/DebugLogPage.tsx:21,66-67`：`const [levelFilter] = useState('all')` 无 setter，过滤分支永不执行。**建议**：删除该 state 与过滤分支，或补上筛选 UI。
+
+### P020 · `DebugLogPage` 死过滤逻辑（已修复）
+- **提交**：`（待回填）`
+- **改动**：删除 `levelFilter` state（恒为 `'all'`，无 setter）与 `filteredLogs` 过滤分支（恒等于 `logs`），三处引用改用 `logs` 直读。纯删死代码零行为变化。
+- **验证**：`npx tsc --noEmit` 无该文件错误；`npx eslint` 通过。
 
 #### P021 · useLlmChat 四个 invoke 无 catch
 `tauri/src/pages/ai/LlmChatPage/useLlmChat.ts:118-157`：`handleRename`/`handleSoftDelete`/`handleRestore`/`handlePermanentDelete` 失败时 unhandled rejection，后续 `refreshLists()` 被跳过。**建议**：统一 try/catch + toast 提示，失败不执行后续本地状态更新。

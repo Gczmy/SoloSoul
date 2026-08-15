@@ -18,7 +18,6 @@ import { isUriPath, copyStagedFileToDest } from '@/lib/mobileFileTransfer';
 export function DebugLogPage() {
   const navigate = useNavigate();
   const [logs, setLogs] = useState<AuditLogEntry[]>([]);
-  const [levelFilter] = useState<string>('all');
   const [isLoading, setIsLoading] = useState(true);
   const { t } = useTranslation(['settings', 'common']);
   const { onError, onSuccess } = useToastError();
@@ -62,9 +61,6 @@ export function DebugLogPage() {
       onError(e, t('settings:debug_log_export_failed', { defaultValue: '导出诊断包失败' }));
     }
   };
-
-  const filteredLogs =
-    levelFilter === 'all' ? logs : logs.filter((l) => l.entityType === levelFilter);
 
   return (
     <AppShell title={t('settings:debug_log')} onBack={() => navigate('/settings')}>
@@ -114,7 +110,7 @@ export function DebugLogPage() {
               marginLeft: 'auto',
             }}
           >
-            {filteredLogs.length} {t('settings:entries_count')}
+            {logs.length} {t('settings:entries_count')}
           </span>
         </div>
 
@@ -122,7 +118,7 @@ export function DebugLogPage() {
         <Card>
           {isLoading ? (
             <LoadingPlaceholder variant="elevated" minHeight={200} />
-          ) : filteredLogs.length === 0 ? (
+          ) : logs.length === 0 ? (
             <div
               style={{
                 textAlign: 'center',
@@ -142,7 +138,7 @@ export function DebugLogPage() {
                 lineHeight: 1.6,
               }}
             >
-              {filteredLogs.map((log) => (
+              {logs.map((log) => (
                 <div
                   key={log.id}
                   style={{
