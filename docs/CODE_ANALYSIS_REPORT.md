@@ -164,7 +164,7 @@
 - **验证**：src-tauri `cargo check` exit 0；`cargo clippy --lib -- -D warnings` exit 0；`cargo fmt --check` exit 0。注：src-tauri 测试二进制在本机报 `STATUS_ENTRYPOINT_NOT_FOUND`（所有测试均受影响，Windows 增量链接环境问题，与本次改动无关，登记备查）。
 
 ### P017-④ · `build_docx` 拆分（已修复）
-- **提交**：`ee20ea82`
+- **提交**：`5c37808a`
 - **改动**：`src-tauri/commands/export_import/export_docx/docx.rs` 拆分 146 行函数——封面段抽 `push_docx_cover`、单个对象节（分隔横线/对象名/元信息/字段表/附件清单）抽 `push_docx_object_section`、styles.xml 常量抽 `docx_styles_xml`、zip 四文件组装抽 `assemble_docx_zip`；主函数保留 XML 头/封面调用/对象循环/zip 组装编排（146→33 行）。纯重构零行为变化。
 - **验证**：src-tauri `cargo check` exit 0；`cargo fmt --check` exit 0。
 
