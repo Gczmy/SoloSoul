@@ -35,7 +35,7 @@
 | P001 | 规范/CI    | `tauri/src-tauri/src/preview_pdf_protocol.rs:68` | `cargo fmt --check` 失败，`check-all` 在第一步后即中断 | `[x]` 已修复（P001） |
 | P002 | 测试       | `tauri/crates/solosoul-core/src/ocr/macos_vision.rs:471,500` | `cargo test` 2 个 Vision OCR 测试失败（swiftc 无法加载 `arm64-apple-macosx26.0` 标准库，疑似本地 Xcode/CLT 环境，存疑） | `[x]` 已修复（P002） |
 | P003 | 漏洞       | `tauri/crates/solosoul-plugin/src/host.rs:163-167,504-513` | 插件域名白名单仅校验初始 URL，reqwest 默认跟随重定向，可被 302 绕过（SSRF/数据外泄） | `[x]` 已修复（P003） |
-| P004 | 漏洞       | `tauri/crates/solosoul-core/src/biometric/windows.rs:146-186`、`mod.rs:331-336` | Windows Hello 仅应用层门禁：同用户进程可直接 DPAPI 解密生物识别凭证，不触发 Hello | `[ ]` 待修复 |
+| P004 | 漏洞       | `tauri/crates/solosoul-core/src/biometric/windows.rs:146-186`、`mod.rs:331-336` | Windows Hello 仅应用层门禁：同用户进程可直接 DPAPI 解密生物识别凭证，不触发 Hello | `[x]` 已修复（P004） |
 | P005 | 架构/数据  | `tauri/src-tauri/src/commands/object/mod.rs:1602-1611` | `object_delete` 回收站快照写入错误被 `let _ =` 吞掉，三步写入无事务包裹 | `[ ]` 待修复 |
 | P006 | 架构       | `tauri/src-tauri/src/commands/`（401 处 `Result<_, String>`）↔ `tauri/src/lib/backendError.ts` | 前后端错误契约是裸字符串精确/前缀匹配，Rust 侧改文案前端 i18n 静默失效 | `[ ]` 待修复 |
 | P007 | 漏洞/架构  | 普遍，例 `tauri/crates/solosoul-vault/src/storage/objects.rs:712` | 内部错误细节（SQL 片段、路径、rusqlite 原文）直接透传到前端 UI | `[ ]` 待修复 |
@@ -94,8 +94,8 @@
 
 ## 修复进度
 
-- 已完成：3 / 54
-- 当前处理：P004（Windows Hello 仅应用层门禁）
+- 已完成：4 / 54
+- 当前处理：P005（object_delete 回收站快照吞错无事务）
 
 ---
 
@@ -125,11 +125,13 @@
 - **修复**：client 构建加 `.redirect(reqwest::redirect::Policy::none())`——关闭自动跟随，3xx 作为普通响应原样返回插件；插件若对新域名继续发请求仍会再次经过 `is_domain_allowed` 校验（半不可信模型下沙箱边界闭合）。
 - **验证**：solosoul-plugin `cargo clippy --all-targets -- -D warnings` exit 0；新增回归测试 `test_p003_redirect_not_followed`（302 原样返回 + 服务器仅收到一次请求）通过；fmt 通过。
 
-### P004 — Windows 生物识别仅应用层门禁（安全）
+### P004 — Windows 生物识别仅应用层门禁（已修复：短期文档化）
 
+- **提交**：`3e9e08de`
 - **位置**：`solosoul-core/src/biometric/windows.rs:146-186`（DPAPI 无 entropy）、`mod.rs:331-336`（Hello 验证与凭证读取仅顺序执行，无加密绑定）。
 - **影响**：同 Windows 用户身份运行的任意进程可直接 `CryptUnprotectData` 读取 `biometric_key` 文件，不触发 Hello 弹窗即获得会话密钥。macOS 端是 Keychain 生物识别 ACL 加密级绑定，两端强度不一致。
-- **修复**：短期在 `docs/biometric-spec.md` 明示该平台限制；中期改用 Windows Hello Key Attestation（`KeyCredentialManager`），或为 DPAPI 加每账户随机 entropy 并存入需 Hello 验证的载体。
+- **修复（短期）**：新建 `docs/biometric-spec.md`——三平台实现对比表 + Windows 威胁模型（已防御 DPAPI 用户凭据绑定/旧版公开派生密钥修复；残余缺口=同用户进程直解不弹 Hello）、影响评估（需同用户任意代码执行，实际风险中等）、中期强化路线登记（KeyCredentialManager Key Attestation 推荐 / per-account entropy 需存到高于文件系统保护级的载体才有效）；`windows.rs` 模块头补 P004 平台限制声明指向规范文档。中期 Key Attestation 属较大平台工程，登记 backlog 未排期。
+- **验证**：solosoul-core `cargo clippy --all-targets -- -D warnings` exit 0；`cargo fmt --check` exit 0。
 
 ### P005 — object_delete 回收站快照错误被吞
 
