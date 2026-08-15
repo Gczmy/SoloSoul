@@ -173,6 +173,11 @@
 - **改动**：`crates/solosoul-plugin/src/host.rs` 拆分 139 行函数——5 个 `func_wrap` 内联闭包（request_field / list_objects / get_data_structure_tree / get_param / list_attachments）抽为模块级 `solosoul_*_impl` 顶层函数（与 `register_http_fns` 的 `http_*_impl` 完全同构），主函数保留注释 + 每注册一行 `linker.func_wrap("env", name, impl)`（139→39 行）。闭包转函数时签名按原参数顺序/类型逐一迁移（`Caller` 泛型内逗号按顶层逗号正确分割），body 原样迁移仅去一层缩进。纯重构零行为变化。
 - **验证**：solosoul-plugin `cargo check` / `cargo clippy --all-targets -D warnings` exit 0；`cargo fmt --check` exit 0；plugin 单测 56 passed / 0 failed / 2 ignored。
 
+### P017-⑥ · `import_execute_internal` 拆分（已修复）
+- **提交**：`（待回填）`
+- **改动**：`src-tauri/commands/export_import/import.rs` 拆分 170 行阶段编排函数（两轮）——① 包内快照解析、KeepBoth ID 映射预构建、附件进度换算（80-100 映射）分别抽 `build_package_snapshots` / `build_keepboth_id_map` / `wrap_attachment_progress`；② 选中集合构建、对象导入主循环、附件+偏好导入、审计详情组装分别抽 `build_selected_ids` / `import_objects_loop` / `import_attachments_and_preferences` / `build_import_details`。主函数保留阶段 1 解密 / 阶段 2 模板重建 / 阶段编排与审计（170→103 行，7 个 helper）。纯重构零行为变化。
+- **验证**：src-tauri `cargo check` / `cargo clippy --lib -D warnings` exit 0；`cargo fmt --check` exit 0。
+
 ---
 
 ## 详细问题描述与修复指引

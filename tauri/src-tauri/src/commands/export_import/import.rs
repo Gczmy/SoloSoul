@@ -296,12 +296,7 @@ pub(crate) async fn import_execute_internal(
     let (manifest, payload, key) = decrypt_package(&file_path, &password, svc.base_path())?;
 
     // Build selection set if provided
-    let selected_ids: Option<BTreeSet<String>> = selections.map(|sels| {
-        sels.into_iter()
-            .filter(|s| s.selected)
-            .map(|s| s.object_id)
-            .collect()
-    });
+    let selected_ids = build_selected_ids(selections);
 
     let objects = payload["objects"]
         .as_array()
@@ -311,116 +306,54 @@ pub(crate) async fn import_execute_internal(
     // ── 阶段 1.5：解析包内对象历史快照（object_id → 快照列表）──
     // 导出端携带每个对象的全部历史快照（含原时间戳），导入时按原时间线恢复，
     // 保证跨设备恢复后历史记录数量与旧设备一致。
-    let package_snapshots: HashMap<String, Vec<serde_json::Value>> = payload["snapshots"]
-        .as_array()
-        .map(|arr| {
-            let mut map: HashMap<String, Vec<serde_json::Value>> = HashMap::new();
-            for snap in arr {
-                if let Some(oid) = snap["object_id"].as_str() {
-                    map.entry(oid.to_string()).or_default().push(snap.clone());
-                }
-            }
-            map
-        })
-        .unwrap_or_default();
+    let package_snapshots = build_package_snapshots(&payload);
 
     // ── 阶段 2：重建包内引用模板（快照隔离，按内容哈希去重）──
     let template_id_map = rebuild_imported_templates(vault, &account_id, &payload)?;
 
-    let mut imported = 0usize;
-    let mut imported_object_ids: std::collections::HashSet<String> =
-        std::collections::HashSet::new();
     let now = chrono::Utc::now().to_rfc3339();
 
     // ── 阶段 3：预构建 KeepBoth ID 映射表（解决前向引用问题）──
-    let mut id_map: HashMap<String, String> = HashMap::new();
-    for obj_val in objects {
-        let id = obj_val["id"].as_str().unwrap_or("");
-        if id.is_empty() {
-            continue;
-        }
-        if object_strategies.get(id).copied() == Some(ImportStrategy::KeepBoth) {
-            id_map.insert(id.to_string(), generate_id());
-        }
-    }
+    let id_map = build_keepboth_id_map(objects, &object_strategies);
 
-    let objects_len = objects.len();
-    for (obj_index, obj_val) in objects.iter().enumerate() {
-        // 阶段 4 主体抽至 import_one_object：策略解析/模板继承/KeepBoth 重写/快照恢复
-        let outcome = import_one_object(
-            vault,
-            obj_val,
-            &account_id,
-            strategy,
-            &object_strategies,
-            selected_ids.as_ref(),
-            &package_ids,
-            &template_id_map,
-            &id_map,
-            &package_snapshots,
-            &now,
-            locale,
-            progress.as_deref(),
-            obj_index,
-            objects_len,
-        )?;
-        let Some((final_id, is_keepboth)) = outcome else {
-            continue;
-        };
-        imported += 1;
-        imported_object_ids.insert(final_id);
-        // 也记录旧 ID 以便附件查找（KeepBoth 场景）
-        if is_keepboth {
-            imported_object_ids.insert(obj_val["id"].as_str().unwrap_or("").to_string());
-        }
-    }
+    // ── 阶段 4：对象导入主循环（策略/模板/KeepBoth/快照已抽至 import_one_object）──
+    let (imported, imported_object_ids) = import_objects_loop(
+        vault,
+        objects,
+        &account_id,
+        strategy,
+        &object_strategies,
+        selected_ids.as_ref(),
+        &package_ids,
+        &template_id_map,
+        &id_map,
+        &package_snapshots,
+        &now,
+        locale,
+        progress.as_deref(),
+    )?;
 
     // 构建选中附件 ID 集合，用于附件过滤
     let sel_att_ids_set: Option<std::collections::HashSet<String>> =
         selected_attachment_ids.map(|ids| ids.into_iter().collect());
 
-    // ── 阶段 5：导入附件（加密，流式解密）──
-    // 附件阶段进度续接对象阶段末尾（80-100），避免进度条回落。
-    let att_progress = progress.clone().map(|cb| -> Arc<dyn Fn(u8) + Send + Sync> {
-        Arc::new(move |pct: u8| {
-            cb((80 + u16::from(pct) * 20 / 100) as u8);
-        })
-    });
-    let imported_attachments_count = if manifest.has_attachments {
-        import_attachments(
-            vault,
-            svc.base_path(),
-            &file_path,
-            &key,
-            &manifest,
-            objects,
-            &id_map,
-            &imported_object_ids,
-            sel_att_ids_set.as_ref(),
-            &now,
-            att_progress.as_deref(),
-        )?
-    } else {
-        0
-    };
+    // ── 阶段 5+6：导入附件与偏好设置（附件进度续接 80-100）──
+    let imported_attachments_count = import_attachments_and_preferences(
+        vault,
+        svc.base_path(),
+        &file_path,
+        &key,
+        &manifest,
+        objects,
+        &id_map,
+        &imported_object_ids,
+        sel_att_ids_set.as_ref(),
+        &now,
+        progress.clone(),
+        &account_id,
+    )?;
 
-    // ── 阶段 6：导入偏好设置（如有）──
-    import_preferences(vault, &file_path, &key, &manifest, &account_id)?;
-
-    let file_name = std::path::Path::new(&file_path)
-        .file_name()
-        .map(|s| s.to_string_lossy().to_string())
-        .unwrap_or_else(|| file_path.clone());
-    let details = serde_json::json!({
-        "count": imported,
-        "attachmentCount": imported_attachments_count,
-        "fileName": file_name,
-        "strategy": match strategy {
-            ImportStrategy::SkipExisting => "skipExisting",
-            ImportStrategy::Overwrite => "overwrite",
-            ImportStrategy::KeepBoth => "keepBoth",
-        },
-    });
+    let details = build_import_details(imported, imported_attachments_count, &file_path, strategy);
     crate::commands::log_audit_best_effort(
         vault,
         "import_execute",
@@ -435,6 +368,173 @@ pub(crate) async fn import_execute_internal(
     Ok(ImportResult {
         object_count: imported,
         attachment_count: imported_attachments_count,
+    })
+}
+/// 构建选中附件/对象 ID 集合（selections 中 selected=true 的 object_id）。
+fn build_selected_ids(selections: Option<Vec<ImportSelection>>) -> Option<BTreeSet<String>> {
+    selections.map(|sels| {
+        sels.into_iter()
+            .filter(|s| s.selected)
+            .map(|s| s.object_id)
+            .collect()
+    })
+}
+
+/// 阶段 4：对象导入主循环（策略解析/模板继承/KeepBoth 重写/快照恢复已抽至 import_one_object）。
+/// 返回 (imported 计数, 已导入对象 ID 集合)。
+#[allow(clippy::too_many_arguments)]
+fn import_objects_loop(
+    vault: &solosoul_vault::VaultStore,
+    objects: &[serde_json::Value],
+    account_id: &str,
+    strategy: ImportStrategy,
+    object_strategies: &HashMap<String, ImportStrategy>,
+    selected_ids: Option<&BTreeSet<String>>,
+    package_ids: &std::collections::HashSet<String>,
+    template_id_map: &std::collections::HashMap<String, String>,
+    id_map: &HashMap<String, String>,
+    package_snapshots: &HashMap<String, Vec<serde_json::Value>>,
+    now: &str,
+    locale: &str,
+    progress: Option<&(dyn Fn(u8) + Send + Sync)>,
+) -> Result<(usize, std::collections::HashSet<String>), String> {
+    let mut imported = 0usize;
+    let mut imported_object_ids: std::collections::HashSet<String> =
+        std::collections::HashSet::new();
+    let objects_len = objects.len();
+    for (obj_index, obj_val) in objects.iter().enumerate() {
+        // 阶段 4 主体抽至 import_one_object：策略解析/模板继承/KeepBoth 重写/快照恢复
+        let outcome = import_one_object(
+            vault,
+            obj_val,
+            account_id,
+            strategy,
+            object_strategies,
+            selected_ids,
+            package_ids,
+            template_id_map,
+            id_map,
+            package_snapshots,
+            now,
+            locale,
+            progress,
+            obj_index,
+            objects_len,
+        )?;
+        let Some((final_id, is_keepboth)) = outcome else {
+            continue;
+        };
+        imported += 1;
+        imported_object_ids.insert(final_id);
+        // 也记录旧 ID 以便附件查找（KeepBoth 场景）
+        if is_keepboth {
+            imported_object_ids.insert(obj_val["id"].as_str().unwrap_or("").to_string());
+        }
+    }
+    Ok((imported, imported_object_ids))
+}
+
+/// 阶段 5+6：导入附件（加密，流式解密）与偏好设置。
+/// 附件阶段进度续接对象阶段末尾（80-100），避免进度条回落。返回附件导入数量。
+#[allow(clippy::too_many_arguments)]
+fn import_attachments_and_preferences(
+    vault: &solosoul_vault::VaultStore,
+    base_path: &std::path::Path,
+    file_path: &str,
+    key: &[u8; 32],
+    manifest: &ManifestData,
+    objects: &[serde_json::Value],
+    id_map: &HashMap<String, String>,
+    imported_object_ids: &std::collections::HashSet<String>,
+    sel_att_ids_set: Option<&std::collections::HashSet<String>>,
+    now: &str,
+    progress: Option<Arc<dyn Fn(u8) + Send + Sync>>,
+    account_id: &str,
+) -> Result<usize, String> {
+    let att_progress = progress.map(wrap_attachment_progress);
+    let imported_attachments_count = if manifest.has_attachments {
+        import_attachments(
+            vault,
+            base_path,
+            file_path,
+            key,
+            manifest,
+            objects,
+            id_map,
+            imported_object_ids,
+            sel_att_ids_set,
+            now,
+            att_progress.as_deref(),
+        )?
+    } else {
+        0
+    };
+    import_preferences(vault, file_path, key, manifest, account_id)?;
+    Ok(imported_attachments_count)
+}
+
+/// 组装导入审计详情（count / attachmentCount / fileName / strategy）。
+fn build_import_details(
+    imported: usize,
+    imported_attachments_count: usize,
+    file_path: &str,
+    strategy: ImportStrategy,
+) -> serde_json::Value {
+    let file_name = std::path::Path::new(file_path)
+        .file_name()
+        .map(|s| s.to_string_lossy().to_string())
+        .unwrap_or_else(|| file_path.to_string());
+    serde_json::json!({
+        "count": imported,
+        "attachmentCount": imported_attachments_count,
+        "fileName": file_name,
+        "strategy": match strategy {
+            ImportStrategy::SkipExisting => "skipExisting",
+            ImportStrategy::Overwrite => "overwrite",
+            ImportStrategy::KeepBoth => "keepBoth",
+        },
+    })
+}
+
+/// 阶段 1.5：解析包内对象历史快照（object_id → 快照列表）。
+/// 导出端携带每个对象的全部历史快照（含原时间戳），导入时按原时间线恢复。
+fn build_package_snapshots(payload: &serde_json::Value) -> HashMap<String, Vec<serde_json::Value>> {
+    payload["snapshots"]
+        .as_array()
+        .map(|arr| {
+            let mut map: HashMap<String, Vec<serde_json::Value>> = HashMap::new();
+            for snap in arr {
+                if let Some(oid) = snap["object_id"].as_str() {
+                    map.entry(oid.to_string()).or_default().push(snap.clone());
+                }
+            }
+            map
+        })
+        .unwrap_or_default()
+}
+
+/// 阶段 3：预构建 KeepBoth ID 映射表（解决前向引用问题）。
+fn build_keepboth_id_map(
+    objects: &[serde_json::Value],
+    object_strategies: &HashMap<String, ImportStrategy>,
+) -> HashMap<String, String> {
+    let mut id_map: HashMap<String, String> = HashMap::new();
+    for obj_val in objects {
+        let id = obj_val["id"].as_str().unwrap_or("");
+        if id.is_empty() {
+            continue;
+        }
+        if object_strategies.get(id).copied() == Some(ImportStrategy::KeepBoth) {
+            id_map.insert(id.to_string(), generate_id());
+        }
+    }
+    id_map
+}
+
+/// 阶段 5：附件进度续接对象阶段末尾（80-100），避免进度条回落。
+fn wrap_attachment_progress(cb: Arc<dyn Fn(u8) + Send + Sync>) -> Arc<dyn Fn(u8) + Send + Sync> {
+    Arc::new(move |pct: u8| {
+        cb((80 + u16::from(pct) * 20 / 100) as u8);
     })
 }
 
