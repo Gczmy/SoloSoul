@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ArrowDown, ArrowLeft, ArrowUp, Images, X } from 'lucide-react';
+import { ArrowDown, ArrowLeft, ArrowUp, ChevronDown, ChevronUp, Images, X } from 'lucide-react';
 import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
 import { PhotoAlbumGrid } from '@/components/attachment/PhotoAlbumGrid';
 import { PhotoViewerOverlay } from '@/components/attachment/PhotoViewerOverlay';
@@ -106,6 +106,9 @@ export function PhotoAlbumOverlay({
   // 标签筛选横向滚动容器：隐藏滚动条但支持左右滑动（对齐侧边栏搜索卡片
   // SearchPopover.filterBar 的页面选项滚动方式）。
   const tagFilterRef = useRef<HTMLDivElement>(null);
+  // 标签展开态：折叠 = 单行横向滚动（省空间）；展开 = 全部标签换行平铺（高度
+  // 自适应，便于一眼看到全部标签）。展开后箭头按钮切换为折叠。
+  const [tagsExpanded, setTagsExpanded] = useState(false);
 
   // ── Android 硬件返回分层守卫（共享 useOverlayBackGuard）──
   // 相册打开时压入「相册层」历史标记（URL 不变），打开全屏查看器时再压入
@@ -377,33 +380,76 @@ export function PhotoAlbumOverlay({
           }}
         >
           {tagOptions.length > 0 && (
-            <div
-              ref={tagFilterRef}
-              onWheel={handleTagFilterWheel}
-              className="photo-album-tag-filter"
-              style={{
-                overflowX: 'auto',
-                overflowY: 'hidden',
-                scrollbarWidth: 'none',
-                paddingBottom: 2,
-                marginBottom: -2,
-              }}
-            >
-              <FilterChipGroup<string>
-                value={filterTag}
-                onChange={setFilterTag}
-                toggle
-                options={[
-                  {
-                    id: null,
-                    label: t('common:filter_all', { defaultValue: 'All' }),
-                  },
-                  ...tagOptions.map((tag) => ({ id: tag, label: tag })),
-                ]}
-                size="caption"
-                style={{ flexWrap: 'nowrap', width: 'max-content' }}
-              />
-            </div>
+            <>
+              <div
+                ref={tagFilterRef}
+                onWheel={handleTagFilterWheel}
+                className="photo-album-tag-filter"
+                style={
+                  tagsExpanded
+                    ? {
+                        // 展开态：不做横向滚动约束，chip 换行平铺，高度自适应标签数量
+                        paddingBottom: 2,
+                        marginBottom: -2,
+                      }
+                    : {
+                        overflowX: 'auto',
+                        overflowY: 'hidden',
+                        scrollbarWidth: 'none',
+                        paddingBottom: 2,
+                        marginBottom: -2,
+                      }
+                }
+              >
+                <FilterChipGroup<string>
+                  value={filterTag}
+                  onChange={setFilterTag}
+                  toggle
+                  options={[
+                    {
+                      id: null,
+                      label: t('common:filter_all', { defaultValue: 'All' }),
+                    },
+                    ...tagOptions.map((tag) => ({ id: tag, label: tag })),
+                  ]}
+                  size="caption"
+                  style={
+                    tagsExpanded
+                      ? { flexWrap: 'wrap', width: '100%' }
+                      : { flexWrap: 'nowrap', width: 'max-content' }
+                  }
+                />
+              </div>
+              {/* 展开/折叠按钮：滚动栏下方，展开后切换为折叠图标 */}
+              <button
+                type="button"
+                onClick={() => setTagsExpanded((v) => !v)}
+                title={t(tagsExpanded ? 'common:collapse' : 'common:expand')}
+                aria-label={t(tagsExpanded ? 'common:collapse' : 'common:expand')}
+                className="interactive-icon"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  alignSelf: 'center',
+                  width: 24,
+                  height: 20,
+                  padding: 0,
+                  border: 'none',
+                  borderRadius: 6,
+                  background: 'transparent',
+                  color: 'var(--text-tertiary)',
+                  cursor: 'pointer',
+                  flexShrink: 0,
+                }}
+              >
+                {tagsExpanded ? (
+                  <ChevronUp size={14} style={{ flexShrink: 0 }} />
+                ) : (
+                  <ChevronDown size={14} style={{ flexShrink: 0 }} />
+                )}
+              </button>
+            </>
           )}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <button

@@ -209,6 +209,33 @@ describe('PhotoAlbumOverlay', () => {
     ).toBe(true);
   });
 
+  it('标签筛选区展开/折叠：箭头按钮切换全部标签平铺（高度自适应）与单行滚动', async () => {
+    mockInvoke.mockResolvedValue('data:image/png;base64,abc');
+    const tagged = makeItem('tagged');
+    tagged.tags = ['vacation'];
+    render(<PhotoAlbumOverlay items={[tagged]} onClose={vi.fn()} />);
+
+    // 折叠态：容器约束单行滚动，chip 不换行，按钮为展开箭头（common:expand）
+    const container = document.querySelector('.photo-album-tag-filter') as HTMLElement;
+    const chipWrap = container.querySelector(':scope > div') as HTMLElement; // FilterChipGroup 容器
+    expect(container.style.overflowX).toBe('auto');
+    expect(chipWrap.style.flexWrap).toBe('nowrap');
+    const expandBtn = screen.getByRole('button', { name: /common:expand/i });
+    expect(expandBtn).toBeInTheDocument();
+
+    // 点击展开：容器解除横向约束（overflowX 空）、chip 换行平铺、按钮切换为折叠
+    fireEvent.click(expandBtn);
+    expect(container.style.overflowX).toBe('');
+    expect(chipWrap.style.flexWrap).toBe('wrap');
+    expect(screen.getByRole('button', { name: /common:collapse/i })).toBeInTheDocument();
+
+    // 再点折叠：恢复单行滚动约束与展开箭头
+    fireEvent.click(screen.getByRole('button', { name: /common:collapse/i }));
+    expect(container.style.overflowX).toBe('auto');
+    expect(chipWrap.style.flexWrap).toBe('nowrap');
+    expect(screen.getByRole('button', { name: /common:expand/i })).toBeInTheDocument();
+  });
+
   it('sorts by createdAt desc by default and toggles to asc (需求5：时间正/倒序)', async () => {
     mockInvoke.mockResolvedValue('data:image/png;base64,abc');
     const old = { ...makeItem('old'), createdAt: '2022-03-01T00:00:00Z' };
