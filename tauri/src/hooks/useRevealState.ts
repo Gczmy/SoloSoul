@@ -58,20 +58,29 @@ export function useRevealState() {
     });
   }, []);
 
+  // P026: 过期清理移到 effect——渲染期（shouldMask）不再触发 setState，
+  // 保证渲染纯净性；监听 revealed 变化，发现过期条目即 hide（触发新一轮
+  // render 后无过期条目，effect 空转停止）。
+  useEffect(() => {
+    const now = Date.now();
+    const expired: string[] = [];
+    for (const [fieldId, entry] of Object.entries(revealed)) {
+      if (now >= entry.expiresAt) expired.push(fieldId);
+    }
+    for (const fieldId of expired) hide(fieldId);
+  }, [revealed, hide]);
+
   /** Check if a field should be masked based on its sensitivity level. */
   const shouldMask = useCallback(
     (fieldId: string, sensitivity: SensitivityLevel): boolean => {
       // P036: 规则统一——仅 public 不掩码，internal 同样自动掩码（AGENTS.md 约定）
       if (!shouldMaskSensitivity(sensitivity)) return false;
-      // Sensitive/critical (and internal) are masked unless revealed
-      if (revealed[fieldId]) {
-        if (Date.now() < revealed[fieldId].expiresAt) return false;
-        // Expired — clean up
-        hide(fieldId);
-      }
+      // Sensitive/critical (and internal) are masked unless revealed.
+      // 已过期条目视为未 reveal（纯判断，清理交由上述 effect）。
+      if (revealed[fieldId] && Date.now() < revealed[fieldId].expiresAt) return false;
       return true;
     },
-    [revealed, hide],
+    [revealed],
   );
 
   /** Check if a field is currently revealed. */

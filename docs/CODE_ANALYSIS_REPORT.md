@@ -53,7 +53,7 @@
 | P023 | P2 | 错误处理 | `tauri/src/pages/ai/PluginDashboardPage.tsx:464-471` | `pluginCommands.auditLog(50).then(...)` 无 `.catch`，失败时面板静默空白 | `[x]` 已修复（P023） |
 | P024 | P2 | 可优化 | `components/object/HistoryViewer.tsx:40`、`components/object/objectDetailUtils.ts:18`、`pages/workspace/WorkspaceObjectCard.tsx:22` | 三份 `flattenProperties` 实现且 `__` 前缀 key 处理规则已分叉，三处渲染可能不一致 | `[ ]` 待修复 |
 | P025 | P2 | 性能/内存 | `tauri/src/lib/searchCache.ts:42-44` | `SearchCache` 无容量上限，TTL 惰性淘汰，解密结果明文驻留内存只增不减 | `[ ]` 待修复 |
-| P026 | P2 | 规范 | `tauri/src/hooks/useRevealState.ts:70` | `shouldMask` 在渲染期内执行 `hide(fieldId)` setState，违反 React 渲染纯净性 | `[ ]` 待修复 |
+| P026 | P2 | 规范 | `tauri/src/hooks/useRevealState.ts:70` | `shouldMask` 在渲染期内执行 `hide(fieldId)` setState，违反 React 渲染纯净性 | `[x]` 已修复（P026） |
 | P027 | P2 | 可优化 | `components/layout/SearchPopover.tsx`、`components/sync/SyncConflictDialog.tsx` | JSX 嵌套约 12+ 层（缩进达 40 空格），可维护性差 | `[ ]` 待修复 |
 | P028 | P2 | 架构 | `tauri/src/pages/ai/LlmConfigPage.tsx:234-240、262-274、290-297` | 三处乐观更新先 setState 再 invoke，失败仅 warn 不回滚 | `[ ]` 待修复 |
 | P029 | P2 | 架构 | `tauri/src/lib/rustErrors.ts` 与 `tauri/src/lib/backendError.ts` | 两套后端错误本地化库职责重叠，新增错误需判断进哪套，易漏配 | `[ ]` 待修复 |
@@ -318,7 +318,7 @@
 - **验证**：`npx tsc --noEmit` 无该文件错误；`npx eslint` 通过。
 
 ### P023 · `PluginLogPanel` 审计日志加载无 catch（已修复）
-- **提交**：`（待回填）`
+- **提交**：`66d4d7d9`
 - **改动**：`PluginDashboardPage.tsx` 的 `PluginLogPanel` 内 `pluginCommands.auditLog(50).then(...)` 补 `.catch`：失败 `logger.warn` 落日志 + `setLoadFailed(true)` 显示错误态提示（新增 `plugin:audit_log_load_failed` 双 locale 键，文案与既有 `no_logs` 并列）；正常路径不变。
 - **验证**：`npx tsc --noEmit` 无该文件错误；`npx eslint` 通过；`check-missing-i18n` 双 locale 0 缺失。
 
@@ -327,6 +327,11 @@
 
 #### P023 · PluginLogPanel 审计日志加载无 catch
 `tauri/src/pages/ai/PluginDashboardPage.tsx:464-471`：`pluginCommands.auditLog(50).then(...)` 无 `.catch`，失败时 unhandled rejection、面板静默空白。**建议**：加 `.catch` 与空态/错误态提示。
+
+### P026 · `useRevealState` 渲染期 setState（已修复）
+- **提交**：`（待回填）`
+- **改动**：`useRevealState.ts` 的过期清理从渲染期迁出——`shouldMask` 不再调用 `hide(fieldId)`，改纯判断（已过期条目视为未 reveal），新增 `useEffect`（监听 `revealed` 变化）扫描过期条目并 `hide`（清一轮后无过期则空转停止）；`shouldMask` 依赖数组同步收窄为 `[revealed]`，StrictMode/并发渲染下不再触发 setState。
+- **验证**：`npx tsc --noEmit` 无该文件错误；`npx eslint` 通过。
 
 #### P024 · 三份 `flattenProperties` 实现已分叉
 `components/object/HistoryViewer.tsx:40`、`components/object/objectDetailUtils.ts:18`、`pages/workspace/WorkspaceObjectCard.tsx:22`：约 100 行核心逻辑高度相似，但 `__` 前缀 key 处理规则已分叉（HistoryViewer 保留 fieldDefs 中存在的 `__` key，objectDetailUtils 一律跳过）。**影响**：同一对象在工作区卡片/详情弹窗/历史快照三处渲染可能不一致。**建议**：收敛为单一共享实现，差异点参数化。
