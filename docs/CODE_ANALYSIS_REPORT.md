@@ -34,7 +34,7 @@
 |------|------------|----------|------|------|
 | P001 | 规范/CI    | `tauri/src-tauri/src/preview_pdf_protocol.rs:68` | `cargo fmt --check` 失败，`check-all` 在第一步后即中断 | `[x]` 已修复（P001） |
 | P002 | 测试       | `tauri/crates/solosoul-core/src/ocr/macos_vision.rs:471,500` | `cargo test` 2 个 Vision OCR 测试失败（swiftc 无法加载 `arm64-apple-macosx26.0` 标准库，疑似本地 Xcode/CLT 环境，存疑） | `[x]` 已修复（P002） |
-| P003 | 漏洞       | `tauri/crates/solosoul-plugin/src/host.rs:163-167,504-513` | 插件域名白名单仅校验初始 URL，reqwest 默认跟随重定向，可被 302 绕过（SSRF/数据外泄） | `[ ]` 待修复 |
+| P003 | 漏洞       | `tauri/crates/solosoul-plugin/src/host.rs:163-167,504-513` | 插件域名白名单仅校验初始 URL，reqwest 默认跟随重定向，可被 302 绕过（SSRF/数据外泄） | `[x]` 已修复（P003） |
 | P004 | 漏洞       | `tauri/crates/solosoul-core/src/biometric/windows.rs:146-186`、`mod.rs:331-336` | Windows Hello 仅应用层门禁：同用户进程可直接 DPAPI 解密生物识别凭证，不触发 Hello | `[ ]` 待修复 |
 | P005 | 架构/数据  | `tauri/src-tauri/src/commands/object/mod.rs:1602-1611` | `object_delete` 回收站快照写入错误被 `let _ =` 吞掉，三步写入无事务包裹 | `[ ]` 待修复 |
 | P006 | 架构       | `tauri/src-tauri/src/commands/`（401 处 `Result<_, String>`）↔ `tauri/src/lib/backendError.ts` | 前后端错误契约是裸字符串精确/前缀匹配，Rust 侧改文案前端 i18n 静默失效 | `[ ]` 待修复 |
@@ -94,8 +94,8 @@
 
 ## 修复进度
 
-- 已完成：2 / 54
-- 当前处理：P003（插件域名白名单 302 重定向绕过）
+- 已完成：3 / 54
+- 当前处理：P004（Windows Hello 仅应用层门禁）
 
 ---
 
@@ -117,11 +117,13 @@
 - **修复**：两处测试在 `ensure_vision_cli()` 失败（swiftc 不可用）时改为 `eprintln!` 说明环境原因后 skip——`test_vision_not_available_in_test` 不再 panic；`test_scan_image_passes_real_path` 在编译前先探测 CLI 可用性。CI 装有完整 CLT 时测试行为不变，生产路径编译失败另有日志。
 - **验证**：solosoul-core `cargo clippy --all-targets -- -D warnings` exit 0；`cargo fmt --check` exit 0。
 
-### P003 — 插件域名白名单可被 HTTP 重定向绕过（安全）
+### P003 — 插件域名白名单可被 HTTP 重定向绕过（已修复）
 
+- **提交**：`add2b926`
 - **位置**：`tauri/crates/solosoul-plugin/src/host.rs:163-167`（client 构建，默认跟随最多 10 次重定向）、`:504-513`（仅校验初始 URL 的 host）。
 - **影响**：白名单内域名的开放重定向（或被控域名返回 302）可把插件请求引到任意主机（含 `169.254.169.254`、`localhost`），用户已授权给插件的解密字段可经此外泄。插件按半不可信模型设计，此为沙箱边界缺口。
-- **修复**：`.redirect(reqwest::redirect::Policy::none())`，把 3xx 作为结果返回插件（插件要对新域名发请求仍会走白名单校验）；或 `Policy::custom` 在每跳重跑 `is_domain_allowed`。另建议强制 scheme 为 `https`。
+- **修复**：client 构建加 `.redirect(reqwest::redirect::Policy::none())`——关闭自动跟随，3xx 作为普通响应原样返回插件；插件若对新域名继续发请求仍会再次经过 `is_domain_allowed` 校验（半不可信模型下沙箱边界闭合）。
+- **验证**：solosoul-plugin `cargo clippy --all-targets -- -D warnings` exit 0；新增回归测试 `test_p003_redirect_not_followed`（302 原样返回 + 服务器仅收到一次请求）通过；fmt 通过。
 
 ### P004 — Windows 生物识别仅应用层门禁（安全）
 
