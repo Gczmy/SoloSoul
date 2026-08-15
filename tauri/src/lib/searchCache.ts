@@ -12,9 +12,12 @@ interface CacheEntry<T> {
 export class SearchCache {
   private cache = new Map<string, CacheEntry<unknown>>();
   private ttl: number;
+  private maxEntries: number;
 
-  constructor(ttl: number) {
+  /** @param maxEntries LRU 容量上限——超出按最久未用淘汰（见 P025）。 */
+  constructor(ttl: number, maxEntries = 200) {
     this.ttl = ttl;
+    this.maxEntries = maxEntries;
   }
 
   /** Build a normalized cache key from search parameters. */
@@ -35,12 +38,23 @@ export class SearchCache {
       this.cache.delete(key);
       return null;
     }
+    // P025: 命中即刷新 LRU 顺序（与 photoAlbumPreview.createBoundedCache 同构）
+    this.cache.delete(key);
+    this.cache.set(key, entry);
     return entry.data as T;
   }
 
   /** Store data in cache. */
   set<T>(key: string, data: T): void {
+    if (this.cache.has(key)) this.cache.delete(key);
     this.cache.set(key, { data, timestamp: Date.now() });
+    // P025: 容量上限——TTL 只做读取时惰性淘汰，会话内解密结果明文驻留内存
+    // 只增不减，必须加 LRU 硬上限兜底。
+    while (this.cache.size > this.maxEntries) {
+      const oldest = this.cache.keys().next().value as string | undefined;
+      if (oldest === undefined) break;
+      this.cache.delete(oldest);
+    }
   }
 
   /** Clear all cached entries (e.g. on logout). */
