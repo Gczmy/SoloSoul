@@ -42,6 +42,7 @@ export const SelectCheckbox = memo(function SelectCheckbox({
 
   return (
     <div
+      data-testid="select-checkbox"
       onClick={handleClick}
       style={{
         width: size,

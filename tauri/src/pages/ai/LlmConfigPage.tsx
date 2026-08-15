@@ -259,9 +259,10 @@ export function LlmConfigPage() {
     try {
       await invoke('llm_set_active_provider', { accountId: accountId, providerId: id });
     } catch (err) {
-      // P028: 失败回滚——后端未切换时 UI 不得误显新 provider 为激活态
+      // P028-R1: 失败回滚需防竞态——仅当当前状态仍是本次操作写入的 id 时才回滚
+      //（函数式比对），否则可能是后续更快的成功切换，误回滚会覆盖新状态。
       logger.warn('[LLMConfig] Set active provider failed:', err);
-      setActiveId(prevActive);
+      setActiveId((cur) => (cur === id ? prevActive : cur));
       onError(err, t('settings:llm_set_active_failed'));
     }
   };
@@ -300,9 +301,10 @@ export function LlmConfigPage() {
           features: { chat: next, ...ALWAYS_DISABLED_FEATURES },
         });
       } catch (err) {
-        // P028: 失败回滚——后端未开启时 UI 不得误显 AI 功能已启用
+        // P028-R1: 失败回滚需防竞态——仅当当前状态仍是本次操作写入的 next 时才回滚
+        //（函数式比对），连续快速切换时旧失败不得覆盖后一次成功操作。
         logger.warn('[LLMConfig] Set AI features failed:', err);
-        setChatEnabled(!next);
+        setChatEnabled((cur) => (cur === next ? !next : cur));
         onError(err, t('settings:llm_set_features_failed'));
       }
     }
@@ -310,16 +312,29 @@ export function LlmConfigPage() {
 
   const handleAcceptRisk = async () => {
     if (!accountId) return;
-    await invoke('llm_accept_risk', { accountId: accountId }).catch((err) =>
-      logger.warn('[LLMConfig] Accept risk failed:', err),
-    );
+    try {
+      await invoke('llm_accept_risk', { accountId: accountId });
+    } catch (err) {
+      // P028-R1: accept_risk 失败不得置 hasAcceptedRisk/chatEnabled——
+      // 否则后端未接受风险、UI 却放行 AI 功能（功能开关与后端真实状态不符）。
+      logger.warn('[LLMConfig] Accept risk failed:', err);
+      onError(err, t('settings:llm_accept_risk_failed'));
+      return;
+    }
     setHasAcceptedRisk(true);
     setShowRiskDialog(false);
     setChatEnabled(true);
-    await invoke('llm_set_ai_features', {
-      accountId: accountId,
-      features: { chat: true, ...ALWAYS_DISABLED_FEATURES },
-    }).catch((err) => logger.warn('[LLMConfig] Set features after risk accept failed:', err));
+    try {
+      await invoke('llm_set_ai_features', {
+        accountId: accountId,
+        features: { chat: true, ...ALWAYS_DISABLED_FEATURES },
+      });
+    } catch (err) {
+      // P028-R1: 启用功能失败需回滚 chatEnabled（函数式比对防竞态）
+      logger.warn('[LLMConfig] Set features after risk accept failed:', err);
+      setChatEnabled((cur) => (cur === true ? false : cur));
+      onError(err, t('settings:llm_set_features_failed'));
+    }
   };
 
   const handleSystemPromptToggle = async () => {
@@ -329,9 +344,9 @@ export function LlmConfigPage() {
       try {
         await invoke('llm_set_system_prompt_switch', { accountId: accountId, enabled: next });
       } catch (err) {
-        // P028: 失败回滚——后端未切换时 UI 不得误显新状态
+        // P028-R1: 失败回滚需防竞态——仅当当前状态仍是本次操作写入的 next 时才回滚
         logger.warn('[LLMConfig] Set system prompt switch failed:', err);
-        setIncludeSystemPrompt(!next);
+        setIncludeSystemPrompt((cur) => (cur === next ? !next : cur));
         onError(err, t('settings:llm_set_prompt_failed'));
       }
     }

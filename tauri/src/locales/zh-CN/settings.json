@@ -971,6 +971,7 @@
   "llm_set_active_failed": "切换默认提供商失败，请重试",
   "llm_set_features_failed": "设置 AI 功能开关失败，请重试",
   "llm_set_prompt_failed": "设置系统提示词开关失败，请重试",
+  "llm_accept_risk_failed": "接受 AI 风险失败，请重试",
   "local_import": "本地导入",
   "scan_select_dir_title": "选择扫描目录",
   "scan_select_dir_desc": "选择要扫描文档的文件夹",

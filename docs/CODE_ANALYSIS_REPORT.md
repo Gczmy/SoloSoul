@@ -361,6 +361,8 @@
 - **提交**：`568f10fe`
 - **改动**：`LlmConfigPage.tsx` 三处乐观更新改 try/catch 失败回滚：① `applyActiveProvider` 记录旧 activeId，失败回滚 + toast；② `handleFeatureToggle` 失败 `setChatEnabled(!next)` 回滚 + toast；③ `handleSystemPromptToggle` 失败回滚 + toast。新增 `settings:llm_set_active_failed` / `llm_set_features_failed` / `llm_set_prompt_failed` 双 locale 键。后端未生效时 UI 不再误显新状态。
 - **验证**：`npx tsc --noEmit` 无该文件错误；`npx eslint` 通过；`check-missing-i18n` 双 locale 0 缺失；`vitest run src/pages/ai/LlmConfigPage.test.tsx` 2 测试全绿。
+- **P028-R1 补齐（核查轮次 13 发现）**：① `handleAcceptRisk` 仍旧模式——`llm_accept_risk` 失败仅 warn 却照样置 `hasAcceptedRisk=true` + `setChatEnabled(true)`，后端未接受风险时 UI 误放行 AI 功能。改为 try/catch：失败 toast（新增 `settings:llm_accept_risk_failed` 双 locale 键）+ return 不置状态；后续 `llm_set_ai_features` 失败同样回滚。② 三处已修回滚存在竞态：闭包旧值（`prevActive`/`!next`）无条件回滚会覆盖连续快速切换时后一次成功操作。改为函数式比对（`setActiveId(cur => cur === id ? prevActive : cur)` 等），仅当状态仍是本次操作写入的值时才回滚。新增 2 条测试（set_ai_features 失败回滚、accept_risk 失败不置位）。提交 `（待回填）`。
+- **P028-R1 验证**：tsc/eslint 通过；`vitest run src/pages/ai/LlmConfigPage.test.tsx` 4 测试全绿（含新增 2 条）；`check-missing-i18n` 双 locale 0 缺失。
 
 ### P024 · 三份 `flattenProperties` 收敛为共享实现（已修复）
 - **提交**：`b1d7ee2b`

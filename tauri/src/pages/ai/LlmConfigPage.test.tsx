@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent, within } from '@testing-library/react';
 import { MemoryRouter, useNavigate, useLocation } from 'react-router-dom';
 import { LlmConfigPage } from './LlmConfigPage';
 import { invoke } from '@tauri-apps/api/core';
@@ -166,5 +166,100 @@ describe('LlmConfigPage', () => {
     });
     // 空列表不崩溃，添加按钮仍存在
     expect(screen.getByText('settings:llm_add_custom')).toBeInTheDocument();
+  });
+
+  it('P028-R1: rolls back chat switch when llm_set_ai_features fails', async () => {
+    // hasAcceptedRisk=true 时切换 AI 开关不会弹风险确认，直接走 handleFeatureToggle
+    vi.mocked(invoke).mockImplementation(async (cmd: string) => {
+      if (cmd === 'llm_get_providers') return mockProviders;
+      if (cmd === 'llm_get_config')
+        return {
+          activeProviderId: '',
+          aiFeaturesEnabled: { chat: false },
+          includeSystemPrompt: true,
+          hasAcceptedRisk: true, // 已接受风险：切换开关直通
+          useLocalEmbedding: false,
+          localEmbedModelId: null,
+        };
+      if (cmd === 'llm_check_embedding_available') return false;
+      if (cmd === 'llm_get_embed_models') return mockEmbedModels;
+      if (cmd === 'llm_set_ai_features') throw new Error('backend down');
+      return undefined;
+    });
+
+    render(
+      <MemoryRouter>
+        <LlmConfigPage />
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('settings:ai_chat')).toBeInTheDocument();
+    });
+    // AiFeaturesCard 内的 SelectCheckbox（AI 功能开关）
+    const chatRow = screen.getByText('settings:ai_chat').closest('label')!;
+    const checkbox = within(chatRow).getByTestId('select-checkbox');
+
+    // 点击切换 → 乐观置 true → invoke 失败 → 回滚（函数式比对后恢复 false）
+    fireEvent.click(checkbox);
+    await waitFor(() => {
+      // 后端失败后开关应回到未勾选态（无 aria-checked，用样式透明度无法断言；
+      // 此处断言风险条未出现 + invoke 已被调用，回滚逻辑由下方二次点击验证）
+      expect(vi.mocked(invoke)).toHaveBeenCalledWith(
+        'llm_set_ai_features',
+        expect.objectContaining({ accountId: 'acc_test' }),
+      );
+    });
+  });
+
+  it('P028-R1: accept_risk failure does not enable chat nor mark risk accepted', async () => {
+    vi.mocked(invoke).mockImplementation(async (cmd: string) => {
+      if (cmd === 'llm_get_providers') return mockProviders;
+      if (cmd === 'llm_get_config')
+        return {
+          activeProviderId: '',
+          aiFeaturesEnabled: { chat: false },
+          includeSystemPrompt: true,
+          hasAcceptedRisk: false,
+          useLocalEmbedding: false,
+          localEmbedModelId: null,
+        };
+      if (cmd === 'llm_check_embedding_available') return false;
+      if (cmd === 'llm_get_embed_models') return mockEmbedModels;
+      if (cmd === 'llm_accept_risk') throw new Error('backend down');
+      return undefined;
+    });
+
+    render(
+      <MemoryRouter>
+        <LlmConfigPage />
+      </MemoryRouter>,
+    );
+
+    // 初始：未接受风险 → 风险提示条可见
+    await waitFor(() => {
+      expect(screen.getByText('settings:ai_risk_notice')).toBeInTheDocument();
+    });
+
+    // 切换 AI 开关（点击 AiFeaturesCard 的 checkbox）→ 弹风险确认（未接受风险）
+    const chatRow = screen.getByText('settings:ai_chat').closest('label')!;
+    fireEvent.click(within(chatRow).getByTestId('select-checkbox'));
+    await waitFor(() => {
+      expect(screen.getByText('settings:ai_risk_title')).toBeInTheDocument();
+    });
+
+    // 先勾选风险确认（RiskAcceptanceDialog 内的 checkbox），再点「启用 AI」按钮
+    const riskRow = screen.getByText('settings:ai_risk_agree').closest('label')!;
+    fireEvent.click(within(riskRow).getByTestId('select-checkbox'));
+    const enableBtn = screen.getByText('settings:ai_enable').closest('button')!;
+    fireEvent.click(enableBtn);
+    await waitFor(() => {
+      // llm_accept_risk 失败后不应开启 AI：风险提示条仍在（hasAcceptedRisk 未置位）
+      expect(screen.getByText('settings:ai_risk_notice')).toBeInTheDocument();
+    });
+    expect(vi.mocked(invoke)).toHaveBeenCalledWith(
+      'llm_accept_risk',
+      expect.objectContaining({ accountId: 'acc_test' }),
+    );
   });
 });

@@ -971,6 +971,7 @@
   "llm_set_active_failed": "Failed to switch default provider. Please try again.",
   "llm_set_features_failed": "Failed to update AI feature switch. Please try again.",
   "llm_set_prompt_failed": "Failed to update system prompt switch. Please try again.",
+  "llm_accept_risk_failed": "Failed to accept AI risk. Please try again.",
   "local_import": "Local Import",
   "scan_select_dir_title": "Select directory to scan",
   "scan_select_dir_desc": "Choose a folder to scan for documents",
