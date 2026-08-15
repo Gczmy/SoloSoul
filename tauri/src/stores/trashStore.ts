@@ -88,10 +88,15 @@ export const useTrashStore = create<TrashState>((set, get) => ({
   loadItems: async (_accountId) => {
     set({ isLoading: true, error: null });
     try {
-      const since = TIME_SINCE[get().timeFilter];
+      // 后端 since 语义为「绝对毫秒时间戳」（SQL: deleted_at >= since），
+      // TIME_SINCE 表存的是相对偏移量，必须换算为 Date.now() - offset 再传——
+      // 否则 1d=86400000 会被当成 1970 年的时间戳比较，任何真实 deleted_at
+      // （≈1.78e12）都恒 ≥ 它，筛选等于不过滤（修复：回收站时间筛选失效）。
+      const offset = TIME_SINCE[get().timeFilter];
+      const since = offset === null ? undefined : Date.now() - offset;
       const items = await invoke<TrashItemSummary[]>('object_trash_list', {
         accountId: _accountId,
-        ...(since && { since }),
+        ...(since !== undefined && { since }),
       });
       set({ items, isLoading: false, selectedIds: new Set() });
     } catch (err) {
