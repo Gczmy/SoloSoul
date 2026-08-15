@@ -301,9 +301,11 @@
 项目结构节声称 `src-tauri/src/ipc/` 存在，实际无此目录（IPC 分发在 `lib.rs` `dispatch_ipc` + 前缀路由）；结构表未含 `attachment_import_plugin.rs`、`keystore_plugin.rs`、`nsd_plugin.rs` 等。**建议**：修订 AGENTS.md 对齐。
 
 ### P018 · `AGENTS.md` 文档漂移（已修复）
-- **提交**：`79b32fca`
-- **改动**：核查确认仓库内不存在 `AGENTS.md`（`git log --all` 无任何历史记录），且 `docs/DEVELOPMENT.md`/`README.md` 等现存文档均无 `src/ipc` 或结构表漂移内容；问题随目标文件不存在而不复存在，无需修改任何文档。
-- **验证**：`grep -rn 'src/ipc' docs/ README.md DEVELOPMENT.md` 零命中。
+- **提交**：`79b32fca`（原修复结论错误，见 P018-R1 返工）
+- **改动**：原修复核查结论「仓库内不存在 `AGENTS.md`、`git log --all` 无任何历史记录」**错误**——`git log --all -- AGENTS.md` 有完整历史（`e9aa8d96` 于 2026-08-07 将其移出版本控制并加入 `.gitignore`），历史版本（560 行）的目录树仍含不存在的 `src-tauri/src/ipc/` 与 `db/`，结构表缺 `attachment_import_plugin.rs`/`keystore_plugin.rs`/`nsd_plugin.rs` 等。
+- **验证**：`grep -rn 'src/ipc' docs/ README.md DEVELOPMENT.md` 零命中（该验证只查了现存文档，未查 AGENTS.md 历史，无法支持原结论）。
+- **P018-R1 返工（核查轮次 13 发现）**：从 `e9aa8d96^` 恢复 `AGENTS.md` 到本地（文件在 `.gitignore` 中，不入库，仅本地修复），修正目录树漂移：删除不存在的 `ipc/` 与 `db/` 行（SQLite 存储实际在 `solosoul-vault` crate）；按 `tauri/src-tauri/src/` 实际结构补充 `plugin/`、`sync/`、`fs/`、`attachment_import_plugin.rs`、`keystore_plugin.rs`、`lock_state_plugin.rs`、`mobile_ocr_plugin.rs`、`nsd_plugin.rs`、`status_bar_plugin.rs`、`update_plugin.rs`、`fs.rs`；crates 列表补 `solosoul-plugin`。**注意**：AGENTS.md 已被移出版本控制，后续结构变更不会再被 git 追踪，需人工维护或重新评估纳入版本控制。提交 `（待回填）`。
+- **P018-R1 验证**：AGENTS.md 目录树与 `tauri/src-tauri/src/`、`tauri/crates/` 实际结构逐一比对一致；`grep 'src-tauri/src/ipc'` 零命中。
 
 #### P019 · `swiftc` PATH 查找与自证式校验（极低风险）
 `tauri/crates/solosoul-core/src/ocr/macos_vision.rs:221`：运行时 `Command::new("swiftc")` 依赖 PATH；缓存二进制有 0700 目录 + SHA-256 自检，但 hash 与二进制同目录（能写二进制者也能改 hash）。实际风险很低，可不改；若要强化：hash 存 vault 数据目录，编译器用 `xcrun -f swiftc` 解析绝对路径。
