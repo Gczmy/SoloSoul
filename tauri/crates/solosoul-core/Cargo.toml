@@ -26,7 +26,6 @@ serde_json = { workspace = true }
 
 # 错误处理
 thiserror = { workspace = true }
-anyhow = { workspace = true }
 
 # 时间
 chrono = { workspace = true }
@@ -35,7 +34,6 @@ chrono = { workspace = true }
 uuid = { workspace = true }
 hex = { workspace = true }
 reqwest = { workspace = true, features = ["blocking"] }
-tokio = { workspace = true }
 base64 = { workspace = true }
 zeroize = { workspace = true }
 
@@ -46,7 +44,6 @@ tracing = { workspace = true }
 # macOS 使用 Security.framework + Keychain UserPresence；其他平台使用占位实现。
 
 # 随机数生成
-rand = { workspace = true }
 sha2 = { workspace = true }
 
 # 加密导出/导入 ZIP 包
