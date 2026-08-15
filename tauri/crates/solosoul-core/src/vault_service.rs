@@ -1003,12 +1003,15 @@ impl VaultService {
             .as_slice()
             .try_into()
             .map_err(|_| "Argon2id output must be 32 bytes".to_string())?;
-        if let Ok(mut key) = self.session_key.write() {
-            *key = Some(Zeroizing::new(master_key_arr));
-        }
-        if let Ok(mut ua) = self.unlocked_account.write() {
-            *ua = Some(account_id.to_string());
-        }
+        // P001：锁中毒按不可恢复处理——`into_inner()` 强制取回写锁（与
+        // create_account_common / lock() 同款），杜绝 unlock 成功后会话状态
+        // 部分缺失（密钥已设、unlocked_account/vault_store 未设）的不一致。
+        *self.session_key.write().unwrap_or_else(|e| e.into_inner()) =
+            Some(Zeroizing::new(master_key_arr));
+        *self
+            .unlocked_account
+            .write()
+            .unwrap_or_else(|e| e.into_inner()) = Some(account_id.to_string());
 
         // Open vault with data key
         let account_dir_path = self
@@ -1022,9 +1025,7 @@ impl VaultService {
         let vault_arc = Arc::new(vault);
         // 设备级偏好同步开关：unlock 新建 VaultStore 后应用期望值（默认 true）。
         vault_arc.set_ui_prefs_sync_enabled(self.ui_prefs_sync_enabled.load(Ordering::SeqCst));
-        if let Ok(mut store) = self.vault_store.write() {
-            *store = Some(vault_arc);
-        }
+        *self.vault_store.write().unwrap_or_else(|e| e.into_inner()) = Some(vault_arc);
 
         // 用户已通过主密码验证身份，重置 PIN 锁定状态。
         let pin_manager = PinManager::new(self.base_path().clone());
@@ -1178,11 +1179,12 @@ impl VaultService {
         drop(vault);
 
         // 更新会话密钥并重开 Vault（新密钥）。
-        {
-            if let Ok(mut ua) = self.unlocked_account.write() {
-                *ua = Some(account_id.to_string());
-            }
-        }
+        // P001：锁中毒按不可恢复处理（同 unlock 侧统一），杜绝改密/KDF 升级后
+        // unlocked_account 未设置的会话不一致。
+        *self
+            .unlocked_account
+            .write()
+            .unwrap_or_else(|e| e.into_inner()) = Some(account_id.to_string());
         self.reopen_vault_with_new_key(
             account_id,
             new_key_arr,
@@ -1281,12 +1283,15 @@ impl VaultService {
         }
 
         // Set session key
-        if let Ok(mut key) = self.session_key.write() {
-            *key = Some(Zeroizing::new(*session_key));
-        }
-        if let Ok(mut ua) = self.unlocked_account.write() {
-            *ua = Some(account_id.to_string());
-        }
+        // P001：锁中毒按不可恢复处理——`into_inner()` 强制取回写锁（与
+        // create_account_common / lock() 同款），杜绝会话密钥解锁成功后
+        // unlocked_account/vault_store 部分缺失的不一致。
+        *self.session_key.write().unwrap_or_else(|e| e.into_inner()) =
+            Some(Zeroizing::new(*session_key));
+        *self
+            .unlocked_account
+            .write()
+            .unwrap_or_else(|e| e.into_inner()) = Some(account_id.to_string());
 
         // Open vault with data key
         let account_dir_path = self
@@ -1300,9 +1305,7 @@ impl VaultService {
         let vault_arc = Arc::new(vault);
         // 设备级偏好同步开关：unlock 新建 VaultStore 后应用期望值（默认 true）。
         vault_arc.set_ui_prefs_sync_enabled(self.ui_prefs_sync_enabled.load(Ordering::SeqCst));
-        if let Ok(mut store) = self.vault_store.write() {
-            *store = Some(vault_arc);
-        }
+        *self.vault_store.write().unwrap_or_else(|e| e.into_inner()) = Some(vault_arc);
 
         // 用户已通过更强因子（生物识别 / PIN 本身）验证身份，重置 PIN 锁定状态。
         let pin_manager = PinManager::new(self.base_path().clone());
@@ -1321,14 +1324,12 @@ impl VaultService {
         new_key_arr: [u8; 32],
         err_prefix: &str,
     ) -> Result<(), String> {
-        {
-            if let Ok(mut key) = self.session_key.write() {
-                *key = Some(Zeroizing::new(new_key_arr));
-            }
-        }
-        if let Ok(mut store) = self.vault_store.write() {
-            *store = None;
-        }
+        // P001：锁中毒按不可恢复处理——`into_inner()` 强制取回写锁（与
+        // create_account_common / lock() 同款）。改密/KDF 升级的关键路径上
+        // 静默跳过会话密钥/句柄更新会导致「新钥已生效但会话状态未切换」。
+        *self.session_key.write().unwrap_or_else(|e| e.into_inner()) =
+            Some(Zeroizing::new(new_key_arr));
+        *self.vault_store.write().unwrap_or_else(|e| e.into_inner()) = None;
         let account_dir_path = self
             .fs
             .local_path(&self.account_dir_rel(account_id))
@@ -1341,9 +1342,7 @@ impl VaultService {
                 // 设备级偏好同步开关：新建 VaultStore 后应用期望值（默认 true）。
                 vault_arc
                     .set_ui_prefs_sync_enabled(self.ui_prefs_sync_enabled.load(Ordering::SeqCst));
-                if let Ok(mut store) = self.vault_store.write() {
-                    *store = Some(vault_arc);
-                }
+                *self.vault_store.write().unwrap_or_else(|e| e.into_inner()) = Some(vault_arc);
             }
             Err(e) => {
                 return Err(format!("{}: {}", err_prefix, e));

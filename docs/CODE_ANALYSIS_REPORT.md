@@ -100,6 +100,11 @@
 - **P004-R1 回归修复（核查轮次 13 发现）**：读线程 `spawn_sse_reader` 原实现 `Err(_) => break` 后照常 `send(None)`，把**网络读错误伪装成 EOF**——中途断流的半截回复被当完整回复 emit Done 并 Auto-save 持久化（与 P001–P003「消除静默失败」主题相悖）。修复：通道类型改为 `Result<Option<String>, String>`，读错误经 `Err` 传播给解析侧（`process_sse` 直接 `return Err`，不 emit Done），`Ok(None)` 仅表示真正 EOF；读循环抽为 `sse_reader_loop` 便于单测。新增回归测试 `sse_reader_propagates_read_error_not_fake_eof`（模拟「读出一行后 BrokenPipe」：断言第二项为 `Err` 而非 `Ok(None)`）。提交 `（待回填）`。
 - **P004-R1 验证**：`cargo test llm::client` 3 测试全绿（含新增回归）；`cargo fmt` 通过。
 
+### P001 · 解锁链路锁中毒静默跳过（已修复）
+- **提交**：`（待回填）`
+- **改动**：核查轮次 13 发现 P001 原修复仅覆盖 lock/create 侧，unlock 侧三处同款 `if let Ok` 中毒静默跳过未改——`unlock`、`unlock_with_session_key`（生物识别/PIN 解锁）的 session_key/unlocked_account/vault_store 写入，以及 `reopen_vault_with_new_key`（改密/KDF 升级共享尾部）的 session_key/vault_store 写入。统一改为 `create_account_common`/`lock()` 已用的 fail-closed 模式 `write().unwrap_or_else(|e| e.into_inner())`：锁中毒按不可恢复处理强制取回写锁，杜绝「解锁/改密成功后会话状态部分缺失」（密钥已设、unlocked_account/vault_store 未设）的不一致；另 `unlock_with_kdf_upgrade` 的 unlocked_account 写入一并对齐。仅影响锁中毒这一异常路径，正常路径行为不变。
+- **验证**：solosoul-core `cargo clippy --all-targets -- -D warnings` exit 0；`cargo test vault_service` 32 测试全绿；`cargo test llm::client` 3 测试全绿；fmt 通过。
+
 ### P007 · 删除 LLM provider 失败仍更新本地状态（已修复）
 - **提交**：`724f6faa`
 - **改动**：`LlmConfigPage.tsx` `handleDeleteProvider` 改为 try/catch：删除失败 `logger.warn` + `onError` toast（新增 `settings:llm_delete_provider_failed` 双 locale 键）后提前 return，仅删除成功才 `setProviders(filter)` 与 `setActiveId('')`——后端未删时 UI 不再误移除、不再误清 activeId。
