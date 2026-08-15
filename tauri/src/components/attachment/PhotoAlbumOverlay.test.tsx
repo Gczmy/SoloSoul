@@ -189,6 +189,26 @@ describe('PhotoAlbumOverlay', () => {
     });
   });
 
+  it('标签筛选区：隐藏滚动条但保留横向滚动（对齐 SearchPopover.filterBar）', async () => {
+    mockInvoke.mockResolvedValue('data:image/png;base64,abc');
+    const tagged = makeItem('tagged');
+    tagged.tags = ['vacation'];
+    render(<PhotoAlbumOverlay items={[tagged]} onClose={vi.fn()} />);
+
+    // 容器具备隐藏滚动条的样式：横向可滚、纵向禁止、滚动条隐藏（Firefox）、
+    // chip 不换行（nowrap 由 FilterChipGroup 内联样式提供，容器配合 overflowX）
+    const container = document.querySelector('.photo-album-tag-filter') as HTMLElement;
+    expect(container).not.toBeNull();
+    expect(container.style.overflowX).toBe('auto');
+    expect(container.style.overflowY).toBe('hidden');
+    expect(container.style.scrollbarWidth).toBe('none');
+    // 内联 style 标签存在（webkit 滚动条隐藏规则）
+    const styleEls = Array.from(document.querySelectorAll('style'));
+    expect(
+      styleEls.some((s) => s.textContent?.includes('photo-album-tag-filter::-webkit-scrollbar')),
+    ).toBe(true);
+  });
+
   it('sorts by createdAt desc by default and toggles to asc (需求5：时间正/倒序)', async () => {
     mockInvoke.mockResolvedValue('data:image/png;base64,abc');
     const old = { ...makeItem('old'), createdAt: '2022-03-01T00:00:00Z' };

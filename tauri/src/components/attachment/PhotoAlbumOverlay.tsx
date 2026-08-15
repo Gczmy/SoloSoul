@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ArrowDown, ArrowLeft, ArrowUp, Images, X } from 'lucide-react';
 import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
@@ -103,6 +103,9 @@ export function PhotoAlbumOverlay({
   const [filterTag, setFilterTag] = useState<string | null>(null);
   const [sortDesc, setSortDesc] = useState(true);
   const [groupMode, setGroupMode] = useState<AlbumGroupMode>('none');
+  // 标签筛选横向滚动容器：隐藏滚动条但支持左右滑动（对齐侧边栏搜索卡片
+  // SearchPopover.filterBar 的页面选项滚动方式）。
+  const tagFilterRef = useRef<HTMLDivElement>(null);
 
   // ── Android 硬件返回分层守卫（共享 useOverlayBackGuard）──
   // 相册打开时压入「相册层」历史标记（URL 不变），打开全屏查看器时再压入
@@ -262,6 +265,20 @@ export function PhotoAlbumOverlay({
     onItemMetaUpdated?.(updated);
   };
 
+  /**
+   * 垂直滚轮转为横向滚动（与 SearchPopover.filterBar 同一交互）：标签区
+   * 横向可滚动但隐藏滚动条，鼠标滚轮上下滚动时改为左右滑动标签；无横向
+   * 溢出时不拦截（保持默认行为）。
+   */
+  const handleTagFilterWheel = (e: React.WheelEvent<HTMLDivElement>) => {
+    const el = tagFilterRef.current;
+    if (!el || el.scrollWidth <= el.clientWidth) return;
+    if (e.deltaY !== 0) {
+      e.preventDefault();
+      el.scrollLeft += e.deltaY;
+    }
+  };
+
   /** 仅单个对象（对象级相册）时隐藏「按对象」分组选项。 */
   const distinctObjects = useMemo(
     () => new Set(localItems.map((i) => i.objectName?.trim() || i.objectId)).size,
@@ -306,6 +323,11 @@ export function PhotoAlbumOverlay({
         background: 'var(--bg-elevated)',
       }}
     >
+      {/* 标签筛选区横向滚动：隐藏 webkit 滚动条但保留滚动能力（与
+          SearchPopover.filterBar 的 scrollbar-width:none 方案一致）。 */}
+      <style>{`
+        .photo-album-tag-filter::-webkit-scrollbar { display: none; }
+      `}</style>
       {/* 顶栏 */}
       <div
         style={{
@@ -356,8 +378,13 @@ export function PhotoAlbumOverlay({
         >
           {tagOptions.length > 0 && (
             <div
+              ref={tagFilterRef}
+              onWheel={handleTagFilterWheel}
+              className="photo-album-tag-filter"
               style={{
                 overflowX: 'auto',
+                overflowY: 'hidden',
+                scrollbarWidth: 'none',
                 paddingBottom: 2,
                 marginBottom: -2,
               }}
