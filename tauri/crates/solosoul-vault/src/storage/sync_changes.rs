@@ -244,6 +244,50 @@ impl VaultStore {
         limit: usize,
         last_row_id: Option<&str>,
     ) -> Result<Vec<crate::VaultSyncRecord>, String> {
+        // P017: SQL keyset 查询 + 行级解密拆入 query_object_changes；
+        // 本函数保留最终裁决（水印/keyset 等值组尾部）与墓碑合并。
+        let rows =
+            self.query_object_changes(watermark, account_id, local_node_id, limit, last_row_id)?;
+        let mut out = Vec::new();
+        for (obj, hlc) in rows {
+            // 最终裁决（与 SQL 谓词逐字一致）：严格 > 水印，或（keyset 游标存在且
+            // 三元组 == 水印且 id > 游标）的等值组尾部行。
+            let equal_watermark = hlc.wall_time_ms == watermark.wall_time_ms
+                && hlc.counter == watermark.counter
+                && hlc.node_id == watermark.node_id;
+            let keyset_tail = equal_watermark && last_row_id.is_some_and(|c| c < obj.id.as_str());
+            if !Self::hlc_after_watermark(&hlc, watermark) && !keyset_tail {
+                continue;
+            }
+            let id = obj.id.clone();
+            out.push(crate::VaultSyncRecord {
+                id,
+                table: "objects".to_string(),
+                data: serde_json::to_value(&obj)
+                    .map_err(|e| format!("serialize object for sync: {}", e))?,
+                hlc,
+                deleted: obj.is_deleted,
+            });
+        }
+
+        // #1（§4.5）：合并 objects 墓碑（deleted=true, data=null）随本页投递，
+        // 对端 apply 端据此删除本地行。排序/截断语义见 `merge_tombstones`。
+        self.merge_tombstones(out, "objects", watermark, local_node_id, limit)
+    }
+
+    /// P017: 从 `list_object_changes_since_limited` 拆出的 SQL 查询阶段。
+    ///
+    /// 一次 LEFT JOIN sync_hlc 批量取回 HLC（消除逐对象 HLC SELECT），并把水印/
+    /// keyset 谓词下推 SQL（有/无 HLC 两类行均按 (有效 HLC, o.id) 全序精确过滤），
+    /// 返回 (ObjectRecord, 有效 HLC) 列表；调用方负责最终裁决与墓碑合并。
+    fn query_object_changes(
+        &self,
+        watermark: &crate::SyncWatermark,
+        account_id: &str,
+        local_node_id: &str,
+        limit: usize,
+        last_row_id: Option<&str>,
+    ) -> Result<Vec<(crate::ObjectRecord, crate::RecordHlc)>, String> {
         let key = self.data_key()?;
         let rows = {
             let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
@@ -392,33 +436,8 @@ impl VaultStore {
             rows
         };
 
-        let mut out = Vec::new();
-        for (obj, hlc) in rows {
-            // 最终裁决（与 SQL 谓词逐字一致）：严格 > 水印，或（keyset 游标存在且
-            // 三元组 == 水印且 id > 游标）的等值组尾部行。
-            let equal_watermark = hlc.wall_time_ms == watermark.wall_time_ms
-                && hlc.counter == watermark.counter
-                && hlc.node_id == watermark.node_id;
-            let keyset_tail = equal_watermark && last_row_id.is_some_and(|c| c < obj.id.as_str());
-            if !Self::hlc_after_watermark(&hlc, watermark) && !keyset_tail {
-                continue;
-            }
-            let id = obj.id.clone();
-            out.push(crate::VaultSyncRecord {
-                id,
-                table: "objects".to_string(),
-                data: serde_json::to_value(&obj)
-                    .map_err(|e| format!("serialize object for sync: {}", e))?,
-                hlc,
-                deleted: obj.is_deleted,
-            });
-        }
-
-        // #1（§4.5）：合并 objects 墓碑（deleted=true, data=null）随本页投递，
-        // 对端 apply 端据此删除本地行。排序/截断语义见 `merge_tombstones`。
-        self.merge_tombstones(out, "objects", watermark, local_node_id, limit)
+        Ok(rows)
     }
-
     fn list_user_template_changes_since(
         &self,
         watermark: &crate::SyncWatermark,

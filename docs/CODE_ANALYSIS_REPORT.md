@@ -44,7 +44,7 @@
 | P014 | P2 | 安全 | `tauri/crates/solosoul-sync/src/recovery.rs:183` | 恢复主机接受裸 6 位数字 PIN 兼容旁路（无 nonce 绑定），削弱抗重放 | `[x]` 保留（用户决策） |
 | P015 | P2 | 可优化 | `tauri/crates/solosoul-core/src/vault_service.rs` + `commands/sync.rs` vs `solosoul-sync/src/recovery.rs` | `create_account`/`create_account_with_id` 约 90 行近乎逐字重复（安全敏感代码双份）；`local_display_ip` 跨 crate 重复实现 | `[x]` 已修复（P015） |
 | P016 | P2 | 性能 | `tauri/crates/solosoul-sync/src/delta.rs` + `solosoul-vault/src/storage/sync_apply.rs` | 同步冲突分支内每条记录单独解密/写入，大量冲突时变慢（主路径已批量事务化） | `[x]` 已修复（P016） |
-| P017 | P2 | 可优化 | 多处（详见下文） | 过长函数/深嵌套候选 9 项（`list_object_changes_since_limited` 165 行等） | `[ ]` 待修复 |
+| P017 | P2 | 可优化 | 多处（详见下文） | 过长函数/深嵌套候选 9 项（`list_object_changes_since_limited` 165 行等） | `[~]` 部分修复（P017-①~④ 前 4 项，余 5 项按报告建议登记不拆） |
 | P018 | P2 | 规范 | `AGENTS.md` 项目结构节 | 声称 `src-tauri/src/ipc/` 存在（实际无此目录），结构表与实际文件不同步 | `[ ]` 待修复 |
 | P019 | P2 | 安全（极低风险） | `tauri/crates/solosoul-core/src/ocr/macos_vision.rs:221` | 运行时 `Command::new("swiftc")` 依赖 PATH；hash 文件与二进制同目录（自证式校验） | `[ ]` 待修复 |
 | P020 | P2 | 死代码 | `tauri/src/pages/system/DebugLogPage.tsx:21,66-67` | `levelFilter` 无 setter，过滤分支永不执行，整段过滤逻辑为死代码 | `[ ]` 待修复 |
@@ -61,8 +61,8 @@
 
 ## 修复进度
 
-- 已完成：16 / 30
-- 当前处理：P017（过长函数拆分，可选 9 项）
+- 已完成：17 / 30
+- 当前处理：P017（过长函数拆分——前 4 项 P017-①~④ 已完成）
 
 ---
 
@@ -144,9 +144,14 @@
 - **验证**：solosoul-core/solosoul-sync `cargo clippy --all-targets -- -D warnings` exit 0；src-tauri check + clippy exit 0；`solosoul_cli` check exit 0；`cargo fmt --check` exit 0。
 
 ### P016 · 同步冲突分支逐条解密/写入（已修复）
-- **提交**：`（待填写）`
+- **提交**：`c91e1191`
 - **改动**：`solosoul-vault` 新增 `save_sync_conflicts_batch`（单锁 + 单事务，N 条冲突一次 commit，逐条 upsert 语义不变）与 `get_sync_conflict_local_data_batch`（objects 表走既有 `load_objects_batch` 单查询，其余表逐条复用）；`solosoul-sync/delta.rs` 冲突分支重构为「候选收集 → 批量取本地数据 → 自动消解判定 → 单事务批量持久化」，消除大量冲突时的 N 次锁竞争与 N 次写事务。lib.rs 新增 `SyncConflictBatchEntry` 条目类型。新增 vault 单测 2 条（批量 upsert 不重复、批量本地数据含软删/缺失 None）。
 - **验证**：solosoul-vault/solosoul-sync `cargo clippy --all-targets -- -D warnings` exit 0；src-tauri check exit 0；`cargo fmt --check` exit 0。
+
+### P017-① · `list_object_changes_since_limited` 拆分（已修复）
+- **提交**：`（待回填）`
+- **改动**：`solosoul-vault/storage/sync_changes.rs` 拆分 165 行巨型函数——SQL keyset 查询 + 行级解密阶段（LEFT JOIN sync_hlc 批量取 HLC、水印/keyset 谓词下推、prepare_cached 复用）抽为私有方法 `query_object_changes`（返回 `(ObjectRecord, RecordHlc)` 列表），主函数保留「最终裁决（严格 > 水印或 keyset 等值组尾部）→ 组装 VaultSyncRecord → merge_tombstones 合并墓碑」流程。纯重构零行为变化，P110/N-1/P213 分页注释随代码迁移。
+- **验证**：`cargo clippy --all-targets -- -D warnings`（solosoul-vault）exit 0；`cargo fmt --check` exit 0；`cargo test --lib storage::` 137 passed。
 
 ---
 
