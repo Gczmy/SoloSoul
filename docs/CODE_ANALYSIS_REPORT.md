@@ -37,7 +37,7 @@
 | P007 | P1 | 架构 | `tauri/src/pages/ai/LlmConfigPage.tsx` | `handleDeleteProvider` 删除失败后（catch 仅 warn）仍无条件更新本地状态，前后端状态分叉 | `[x]` 已修复（P007） |
 | P008 | P1 | 健壮性 | `tauri/src/lib/i18n.ts` + `tauri/src/main.tsx` | 启动链 `initI18n()` 中 `invoke('get_system_locale')` 无 try/catch，链路末端无 `.catch`：IPC 异常时 `<App/>` 永不渲染（白屏） | `[x]` 已修复（P008） |
 | P009 | P2 | 死代码 | `tauri/crates/solosoul-core/src/llm/service.rs` | `pub fn save_conversations` 全仓库零调用；且循环内逐条保存无批量事务 | `[x]` 已修复（P009，用户确认删除） |
-| P010 | P2 | 安全（需确认） | `tauri/crates/solosoul-core/src/vault_service.rs:639-643、757-761` | `create_account*` 将 `salt` 与 `verifyHash` 经 IPC 返回前端，前端并不需要，违背最小暴露 | `[ ]` 待修复 |
+| P010 | P2 | 安全 | `tauri/crates/solosoul-core/src/vault_service.rs` | `create_account*` 将 `salt` 与 `verifyHash` 经 IPC 返回前端，前端并不需要，违背最小暴露 | `[x]` 已修复（P010） |
 | P011 | P2 | 安全（纵深防御） | `tauri/crates/solosoul-sync/src/noise.rs:25-29` | `NoiseKeys` 派生 `Debug`+`Clone`，长期身份私钥可被 `{:?}` 打印且无 Drop 清零 | `[ ]` 待修复 |
 | P012 | P2 | 安全 | `tauri/src-tauri/src/commands/update.rs:169-171、474-486` | APK 校验和 minisign 签名缺失/无效时仅降级继续下载，用户静默失去完整性校验 | `[ ]` 待修复 |
 | P013 | P2 | 安全 | `tauri/src-tauri/src/commands/export_import/import.rs:583-588` | 导入解密明文落系统 temp 目录 `NamedTempFile`，进程 SIGKILL/崩溃时明文残留 | `[ ]` 待修复 |
@@ -61,8 +61,8 @@
 
 ## 修复进度
 
-- 已完成：9 / 30
-- 当前处理：P010（create_account* 返回移除 salt/verifyHash）
+- 已完成：10 / 30
+- 当前处理：P011（NoiseKeys 私钥 Debug/Clone 硬化）
 
 ---
 
@@ -107,9 +107,14 @@
 - **验证**：`npx tsc --noEmit` exit 0；eslint 干净；`vitest run src/lib/i18n.test.ts` 22 测试全绿（含新增回归：IPC reject 时 `initI18n()` resolve 且落 Layer 3）。
 
 ### P009 · `save_conversations` 死代码（已修复，用户确认删除）
-- **提交**：`（待填写）`
+- **提交**：`3a769b75`
 - **改动**：删除 `llm/service.rs` 的 `pub fn save_conversations`（全仓库零调用——`commands/llm/tests.rs` 的 `test_load_save_conversations` 仅是测试名含该字符串，实际逐条调用单条 `save_conversation`，不受影响）。
 - **验证**：`cargo clippy --all-targets -- -D warnings`（solosoul-core）exit 0；`cargo check`（solosoul_cli / src-tauri）exit 0。
+
+### P010 · `create_account*` 返回 salt/verifyHash（已修复）
+- **提交**：`（待填写）`
+- **改动**：`vault_service.rs` `create_account` / `create_account_with_id` 返回值移除 `salt` 与 `verifyHash`——核实前端零消费（`auth::bootstrap` 仅读 id/name/passwordHint，CLI 仅读 id，`recovery::recovery_restore_from_host` 丢弃结果）。两值仍写入磁盘 config（解锁/校验必需），仅不再经 IPC 暴露（verifyHash 泄露可支持离线口令爆破）。
+- **验证**：`cargo clippy --all-targets -- -D warnings`（solosoul-core）exit 0；`cargo check`（src-tauri / solosoul_cli）exit 0。
 - **改动**：`llm/service.rs` 中 `MAX_CONVERSATION_MESSAGES`、`trim_conversation_messages`、`compare_updated_at` 三个 item 纯移动到 `mod tests` 之前（无逻辑变化）；顺带修复 `biometric/windows.rs:486` 测试中恒真断言 `available == false || available == true`（`bool_comparison` warning，`-D warnings` 下同阻断 CI）。
 - **验证**：`cargo clippy --all-targets -- -D warnings`（solosoul-core）exit 0 全绿。
 

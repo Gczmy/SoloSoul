@@ -639,9 +639,11 @@ impl VaultService {
             .write()
             .unwrap_or_else(|e| e.into_inner()) = Some(account_id.clone());
 
+        // P010: 返回值不再携带 salt/verifyHash——前端零消费（auth::bootstrap 仅读
+        // id/name/passwordHint，CLI 仅读 id），暴露会扩大 WebView 攻击面（verifyHash
+        // 可支持离线口令爆破）。两值仍写入磁盘 config（解锁/校验必需）。
         Ok(serde_json::json!({
             "id": account_id, "name": name,
-            "salt": config_data.salt, "verifyHash": config_data.verify_hash,
             "passwordHint": config_data.password_hint,
         }))
     }
@@ -757,9 +759,9 @@ impl VaultService {
             .write()
             .unwrap_or_else(|e| e.into_inner()) = Some(account_id.to_string());
 
+        // P010: 同 create_account——返回值不再携带 salt/verifyHash。
         Ok(serde_json::json!({
             "id": account_id, "name": name,
-            "salt": config_data.salt, "verifyHash": config_data.verify_hash,
             "passwordHint": config_data.password_hint,
         }))
     }
