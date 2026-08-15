@@ -84,7 +84,7 @@ fn search_advanced_impl(
 /// 输入单条已解密记录与预筛通过的查询词，应用类型/敏感度/页面过滤后收集字段级
 /// 命中与名称加分，选最佳字段命中并解析模板显示名，返回 SearchResultItem；
 /// 未命中（无字段匹配且名称不加分）返回 None。redact 逻辑（P114）原样保留。
-fn match_object_to_query(
+pub(crate) fn match_object_to_query(
     rec: &solosoul_vault::ObjectRecord,
     q: &str,
     templates: &std::collections::HashMap<String, solosoul_vault::UserTemplate>,

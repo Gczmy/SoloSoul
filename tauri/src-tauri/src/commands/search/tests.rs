@@ -510,3 +510,91 @@ fn test_search_skip_values_redacts_object_level_sensitive() {
         .iter()
         .any(|m| matches!(m.match_type, FieldMatchType::FieldValue)));
 }
+
+#[test]
+fn test_match_object_to_query_collection_type_filter() {
+    let rec = solosoul_vault::ObjectRecord {
+        id: "o1".to_string(),
+        account_id: "a1".to_string(),
+        type_id: "note".to_string(),
+        name: "Alice Note".to_string(),
+        properties: serde_json::json!({}),
+        sensitivity_level: "internal".to_string(),
+        ..Default::default()
+    };
+    let templates = std::collections::HashMap::new();
+    // 类型不匹配 → None
+    assert!(match_object_to_query(&rec, "alice", &templates, Some("page"), None,).is_none());
+    // 类型匹配且名称命中 → Some
+    let item = match_object_to_query(&rec, "alice", &templates, Some("note"), None);
+    assert!(item.is_some());
+    assert_eq!(item.unwrap().name, "Alice Note");
+}
+
+#[test]
+fn test_match_object_to_query_sensitivity_filter() {
+    let rec = solosoul_vault::ObjectRecord {
+        id: "o2".to_string(),
+        account_id: "a1".to_string(),
+        type_id: "note".to_string(),
+        name: "Bob Note".to_string(),
+        properties: serde_json::json!({}),
+        sensitivity_level: "sensitive".to_string(),
+        ..Default::default()
+    };
+    let templates = std::collections::HashMap::new();
+    // 敏感度不匹配 → None
+    assert!(match_object_to_query(&rec, "bob", &templates, None, Some("internal")).is_none());
+    // 敏感度匹配 → Some
+    assert!(match_object_to_query(&rec, "bob", &templates, None, Some("sensitive")).is_some());
+}
+
+#[test]
+fn test_match_object_to_query_skips_page_type() {
+    let rec = solosoul_vault::ObjectRecord {
+        id: "o3".to_string(),
+        account_id: "a1".to_string(),
+        type_id: "page".to_string(),
+        name: "Custom Page".to_string(),
+        properties: serde_json::json!({}),
+        sensitivity_level: "public".to_string(),
+        ..Default::default()
+    };
+    let templates = std::collections::HashMap::new();
+    // page 类型 → None（由 search_pages 单独呈现）
+    assert!(match_object_to_query(&rec, "custom", &templates, None, None).is_none());
+}
+
+#[test]
+fn test_match_object_to_query_redact_all_still_matches_name() {
+    let rec = solosoul_vault::ObjectRecord {
+        id: "o4".to_string(),
+        account_id: "a1".to_string(),
+        type_id: "note".to_string(),
+        name: "Secret Doc".to_string(),
+        properties: serde_json::json!({ "email": "alice@example.com" }),
+        sensitivity_level: "critical".to_string(),
+        ..Default::default()
+    };
+    let templates = std::collections::HashMap::new();
+    // critical 级别：字段值被 redact（skip_values=true），但名称命中仍应返回
+    let item = match_object_to_query(&rec, "secret", &templates, None, None).unwrap();
+    assert_eq!(item.name, "Secret Doc");
+    assert_eq!(item.matched_field.as_deref(), Some("name"));
+}
+
+#[test]
+fn test_match_object_to_query_no_match_returns_none() {
+    let rec = solosoul_vault::ObjectRecord {
+        id: "o5".to_string(),
+        account_id: "a1".to_string(),
+        type_id: "note".to_string(),
+        name: "Nothing Here".to_string(),
+        properties: serde_json::json!({ "a": "b" }),
+        sensitivity_level: "public".to_string(),
+        ..Default::default()
+    };
+    let templates = std::collections::HashMap::new();
+    // 名称与字段值均不命中 → None
+    assert!(match_object_to_query(&rec, "zzz", &templates, None, None).is_none());
+}
