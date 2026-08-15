@@ -68,17 +68,14 @@ fn hex_val(b: u8) -> Option<u8> {
 
 /// 把自定义协议注册到 Tauri builder。
 pub fn register<R: tauri::Runtime>(builder: tauri::Builder<R>) -> tauri::Builder<R> {
-    builder.register_asynchronous_uri_scheme_protocol(
-        "solosoul-pdf",
-        |ctx, request, responder| {
-            let app = ctx.app_handle().clone();
-            // 文件读取放到独立线程，避免阻塞协议回调线程。
-            std::thread::spawn(move || {
-                let response = handle_request(&app, request);
-                responder.respond(response);
-            });
-        },
-    )
+    builder.register_asynchronous_uri_scheme_protocol("solosoul-pdf", |ctx, request, responder| {
+        let app = ctx.app_handle().clone();
+        // 文件读取放到独立线程，避免阻塞协议回调线程。
+        std::thread::spawn(move || {
+            let response = handle_request(&app, request);
+            responder.respond(response);
+        });
+    })
 }
 
 /// 处理单次协议请求（纯函数便于单测）。
