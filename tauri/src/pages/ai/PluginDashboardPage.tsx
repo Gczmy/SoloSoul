@@ -22,6 +22,7 @@ import {
   WATERMARK_PLUGIN_ID,
 } from '@/lib/plugin';
 import { isDevOrDebug } from '@/lib/utils';
+import { logger } from '@/lib/logger';
 import { useUiStore } from '@/stores/uiStore';
 import { useToastError } from '@/hooks/useToastError';
 import styles from './PluginDashboardPage.module.css';
@@ -459,22 +460,36 @@ function formatAuditTimestamp(iso: string): { date: string; time: string } {
 function PluginLogPanel() {
   const { t } = useTranslation(['plugin', 'common']);
   const [logs, setLogs] = useState<{ level: string; message: string; timestamp: string }[]>([]);
+  const [loadFailed, setLoadFailed] = useState(false);
 
   useEffect(() => {
-    pluginCommands.auditLog(50).then((entries) => {
-      const lines = entries.map((e) => ({
-        level: 'info',
-        message: `${e.action.action} — ${e.pluginId}`,
-        timestamp: e.timestamp,
-      }));
-      setLogs(lines);
-    });
+    pluginCommands
+      .auditLog(50)
+      .then((entries) => {
+        const lines = entries.map((e) => ({
+          level: 'info',
+          message: `${e.action.action} — ${e.pluginId}`,
+          timestamp: e.timestamp,
+        }));
+        setLogs(lines);
+      })
+      .catch((err) => {
+        // P023: 加载失败不再静默——落日志并显示错误态提示
+        logger.warn('[PluginDashboardPage] Load audit log failed:', err);
+        setLoadFailed(true);
+      });
   }, []);
 
   return (
     <Card className={styles.logPanel}>
       <h4>{t('plugin:audit_log', { defaultValue: 'Audit Log' })}</h4>
-      {logs.length === 0 ? (
+      {loadFailed ? (
+        <div className={styles.empty}>
+          {t('plugin:audit_log_load_failed', {
+            defaultValue: 'Failed to load audit logs',
+          })}
+        </div>
+      ) : logs.length === 0 ? (
         <div className={styles.empty}>
           {t('plugin:no_logs', { defaultValue: 'No audit logs yet' })}
         </div>

@@ -24,6 +24,7 @@
   "deny_all": "全部拒绝",
   "audit_log": "审计日志",
   "no_logs": "暂无审计日志",
+  "audit_log_load_failed": "审计日志加载失败",
   "result_empty": "暂无结果",
   "operation_failed": "插件操作失败",
   "status_completed": "已完成",

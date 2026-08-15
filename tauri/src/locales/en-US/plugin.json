@@ -24,6 +24,7 @@
   "deny_all": "Deny All",
   "audit_log": "Audit Log",
   "no_logs": "No audit logs yet",
+  "audit_log_load_failed": "Failed to load audit logs",
   "result_empty": "No result yet",
   "operation_failed": "Plugin operation failed",
   "status_completed": "Completed",

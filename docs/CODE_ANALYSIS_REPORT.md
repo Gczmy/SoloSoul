@@ -50,7 +50,7 @@
 | P020 | P2 | 死代码 | `tauri/src/pages/system/DebugLogPage.tsx:21,66-67` | `levelFilter` 无 setter，过滤分支永不执行，整段过滤逻辑为死代码 | `[x]` 已修复（P020） |
 | P021 | P2 | 错误处理 | `tauri/src/pages/ai/LlmChatPage/useLlmChat.ts:118-157` | `handleRename`/`handleSoftDelete`/`handleRestore`/`handlePermanentDelete` 四个 invoke 无 catch，失败无反馈且跳过刷新 | `[x]` 已修复（P021） |
 | P022 | P2 | 性能 | 约 10 处（详见下文） | 整个 Zustand store 无选择器订阅，任一字段变更触发整页重渲染 | `[ ]` 待修复 |
-| P023 | P2 | 错误处理 | `tauri/src/pages/ai/PluginDashboardPage.tsx:464-471` | `pluginCommands.auditLog(50).then(...)` 无 `.catch`，失败时面板静默空白 | `[ ]` 待修复 |
+| P023 | P2 | 错误处理 | `tauri/src/pages/ai/PluginDashboardPage.tsx:464-471` | `pluginCommands.auditLog(50).then(...)` 无 `.catch`，失败时面板静默空白 | `[x]` 已修复（P023） |
 | P024 | P2 | 可优化 | `components/object/HistoryViewer.tsx:40`、`components/object/objectDetailUtils.ts:18`、`pages/workspace/WorkspaceObjectCard.tsx:22` | 三份 `flattenProperties` 实现且 `__` 前缀 key 处理规则已分叉，三处渲染可能不一致 | `[ ]` 待修复 |
 | P025 | P2 | 性能/内存 | `tauri/src/lib/searchCache.ts:42-44` | `SearchCache` 无容量上限，TTL 惰性淘汰，解密结果明文驻留内存只增不减 | `[ ]` 待修复 |
 | P026 | P2 | 规范 | `tauri/src/hooks/useRevealState.ts:70` | `shouldMask` 在渲染期内执行 `hide(fieldId)` setState，违反 React 渲染纯净性 | `[ ]` 待修复 |
@@ -316,6 +316,11 @@
 - **提交**：`（待回填）`
 - **改动**：`useLlmChat.ts` 引入 `useToastError` + `useTranslation('common')`，四个 handler（rename / soft-delete / restore / permanent-delete）统一 try/catch：失败 `logger.warn` + `onError` toast（复用 `common:error` 文案 + rustErrors 翻译），并提前 return 不执行后续本地状态更新 / 刷新；成功路径不变。
 - **验证**：`npx tsc --noEmit` 无该文件错误；`npx eslint` 通过。
+
+### P023 · `PluginLogPanel` 审计日志加载无 catch（已修复）
+- **提交**：`（待回填）`
+- **改动**：`PluginDashboardPage.tsx` 的 `PluginLogPanel` 内 `pluginCommands.auditLog(50).then(...)` 补 `.catch`：失败 `logger.warn` 落日志 + `setLoadFailed(true)` 显示错误态提示（新增 `plugin:audit_log_load_failed` 双 locale 键，文案与既有 `no_logs` 并列）；正常路径不变。
+- **验证**：`npx tsc --noEmit` 无该文件错误；`npx eslint` 通过；`check-missing-i18n` 双 locale 0 缺失。
 
 #### P022 · 全 store 无选择器订阅（约 10 处）
 `useLlmStatsStore()`（`pages/ai/LlmStatsPage.tsx:28`）、`useSettingsStore()`（`AppearanceSettingsPage.tsx:48`、`SecuritySettingsPage.tsx:19`、`BackupConfigPage.tsx:33`）、`useAuthStore()`（`App/AppRoutes.tsx:42`、`pages/auth/useLoginPage.tsx:39`、`useLoginUnlockFlows.tsx:43`、`BootstrapPage.tsx:18`）、`usePluginQuickStore()`（`PluginQuickPanel.tsx:30`）、`useOcrInstallStore()`（`hooks/useOcrFirstInstall.ts:24`）。**影响**：store 任一字段变更触发整页重渲染。**建议**：改为选择器订阅或 `useShallow`。
