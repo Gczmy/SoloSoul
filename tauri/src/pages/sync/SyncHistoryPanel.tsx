@@ -2,11 +2,25 @@ import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
 import { ChevronDown, ChevronUp } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/constants';
+import { ClientTypeIcon } from '@/components/sync/ClientTypeIcon';
+import { resolveBackendErrorMessage } from '@/lib/backendError';
+import { formatRelativeFromTs, formatTimestamp } from '@/lib/time';
 import type { SyncConflict, SyncResult } from '@/lib/ipc';
 
 function formatHlc(hlc: SyncConflict['local_hlc']): string {
   // P001：node_id 后端统一 hex 编码为字符串（桌面/移动一致），直接截取前 8 位。
   return `${hlc.wall_time_ms}-${hlc.counter}-${hlc.node_id.slice(0, 8)}`;
+}
+
+/** 同步活动时间：相对时间展示，悬停 title 显示完整本地时间；无盖章（旧版历史）返回空。 */
+function formatActivityTime(at?: number): { label: string; title?: string } {
+  if (!at) return { label: '' };
+  const d = new Date(at);
+  if (Number.isNaN(d.getTime())) return { label: '' };
+  return {
+    label: formatRelativeFromTs(Math.floor(at / 1000)),
+    title: formatTimestamp(d.toISOString()),
+  };
 }
 
 interface SyncHistoryPanelProps {
@@ -62,87 +76,144 @@ export function SyncHistoryPanel({
               gap: 12,
             }}
           >
-            {recentResults.map((result, idx) => (
-              <div
-                key={idx}
-                style={{
-                  padding: 12,
-                  borderRadius: 8,
-                  background: 'var(--bg-toolbar)',
-                  fontSize: 'var(--text-caption)',
-                }}
-              >
-                <div style={{ fontWeight: 500, marginBottom: 6 }}>
-                  {t('settings:sync_result_stats', {
-                    examined: result.examined,
-                    applied: result.applied,
-                    skipped: result.skipped,
-                    conflicts: result.conflictCount ?? result.conflicts.length,
-                  })}
-                  {/* B：入站结果携带发回对端条数（完整交换量） */}
-                  {result.outboundRecords != null &&
-                    ` · ${t('settings:sync_result_outbound', {
-                      outbound: result.outboundRecords,
-                      defaultValue: 'sent {{outbound}} back',
-                    })}`}
-                </div>
-                {result.per_table.length > 0 && (
+            {recentResults.map((result, idx) => {
+              const time = formatActivityTime(result.at);
+              return (
+                <div
+                  key={idx}
+                  style={{
+                    padding: 12,
+                    borderRadius: 8,
+                    background: result.failed ? 'rgba(192, 57, 43, 0.07)' : 'var(--bg-toolbar)',
+                    fontSize: 'var(--text-caption)',
+                  }}
+                >
+                  {/* 头部：方向徽章 + 设备图标 + 设备名 + 时间戳 */}
                   <div
                     style={{
                       display: 'flex',
+                      alignItems: 'center',
+                      gap: 8,
+                      marginBottom: 6,
                       flexWrap: 'wrap',
-                      gap: 6,
-                      marginBottom: result.conflicts.length > 0 ? 8 : 0,
                     }}
                   >
-                    {result.per_table.map((tbl) => (
-                      <span
-                        key={tbl.table}
-                        style={{
-                          padding: '2px 8px',
-                          borderRadius: 4,
-                          background: 'var(--bg-elevated)',
-                          color: 'var(--text-secondary)',
-                        }}
-                      >
-                        {tbl.table}: {tbl.applied}+{tbl.skipped}/{tbl.examined}
-                      </span>
-                    ))}
-                  </div>
-                )}
-                {result.conflicts.length > 0 && (
-                  <div style={{ marginTop: 6 }}>
-                    <div style={{ color: '#c0392b', marginBottom: 4 }}>
-                      {t('settings:sync_conflicts', { defaultValue: 'Conflicts' })}:{' '}
-                      {result.conflicts.length}
-                    </div>
-                    <ul
+                    <span
                       style={{
-                        margin: 0,
-                        paddingLeft: 16,
-                        color: 'var(--text-secondary)',
+                        padding: '1px 6px',
+                        borderRadius: 4,
+                        fontSize: 'var(--text-badge)',
+                        fontWeight: 600,
+                        background: result.inbound ? 'var(--bg-elevated)' : 'var(--accent-primary)',
+                        color: result.inbound ? 'var(--text-secondary)' : '#fff',
                       }}
                     >
-                      {result.conflicts.map((c, cidx) => (
-                        <li key={cidx}>
-                          {c.table}/{c.id} — {t('settings:sync_winner', { defaultValue: 'winner' })}
-                          : {c.winner}
-                          <div
+                      {result.inbound
+                        ? t('settings:sync_activity_inbound', { defaultValue: 'Inbound' })
+                        : t('settings:sync_activity_outbound', { defaultValue: 'Outbound' })}
+                    </span>
+                    <ClientTypeIcon clientType={result.peerClientType} size={14} />
+                    <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+                      {result.peerName ||
+                        t('settings:sync_activity_unknown_device', {
+                          defaultValue: 'Unknown device',
+                        })}
+                    </span>
+                    {time.label && (
+                      <span
+                        style={{
+                          marginLeft: 'auto',
+                          color: 'var(--text-tertiary)',
+                          fontSize: 'var(--text-badge)',
+                        }}
+                        title={time.title}
+                      >
+                        {time.label}
+                      </span>
+                    )}
+                  </div>
+                  {result.failed ? (
+                    <div style={{ color: '#c0392b' }}>
+                      {t('settings:sync_activity_failed', { defaultValue: 'Sync failed' })}:{' '}
+                      {resolveBackendErrorMessage(result.errorSummary)}
+                    </div>
+                  ) : (
+                    <>
+                      <div style={{ fontWeight: 500, marginBottom: 6 }}>
+                        {t('settings:sync_result_stats', {
+                          examined: result.examined,
+                          applied: result.applied,
+                          skipped: result.skipped,
+                          conflicts: result.conflictCount ?? result.conflicts.length,
+                        })}
+                        {/* B：入站结果携带发回对端条数（完整交换量） */}
+                        {result.outboundRecords != null &&
+                          ` · ${t('settings:sync_result_outbound', {
+                            outbound: result.outboundRecords,
+                            defaultValue: 'sent {{outbound}} back',
+                          })}`}
+                      </div>
+                      {result.per_table.length > 0 && (
+                        <div
+                          style={{
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            gap: 6,
+                            marginBottom: result.conflicts.length > 0 ? 8 : 0,
+                          }}
+                        >
+                          {result.per_table.map((tbl) => (
+                            <span
+                              key={tbl.table}
+                              style={{
+                                padding: '2px 8px',
+                                borderRadius: 4,
+                                background: 'var(--bg-elevated)',
+                                color: 'var(--text-secondary)',
+                              }}
+                            >
+                              {tbl.table}: {tbl.applied}+{tbl.skipped}/{tbl.examined}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      {result.conflicts.length > 0 && (
+                        <div style={{ marginTop: 6 }}>
+                          <div style={{ color: '#c0392b', marginBottom: 4 }}>
+                            {t('settings:sync_conflicts', { defaultValue: 'Conflicts' })}:{' '}
+                            {result.conflicts.length}
+                          </div>
+                          <ul
                             style={{
-                              fontFamily: 'monospace',
-                              fontSize: 'var(--text-badge)',
-                              color: 'var(--text-tertiary)',
+                              margin: 0,
+                              paddingLeft: 16,
+                              color: 'var(--text-secondary)',
                             }}
                           >
-                            local: {formatHlc(c.local_hlc)} / remote: {formatHlc(c.remote_hlc)}
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            ))}
+                            {result.conflicts.map((c, cidx) => (
+                              <li key={cidx}>
+                                {c.table}/{c.id} —{' '}
+                                {t('settings:sync_winner', { defaultValue: 'winner' })}: {c.winner}
+                                <div
+                                  style={{
+                                    fontFamily: 'monospace',
+                                    fontSize: 'var(--text-badge)',
+                                    color: 'var(--text-tertiary)',
+                                  }}
+                                >
+                                  local: {formatHlc(c.local_hlc)} / remote:{' '}
+                                  {formatHlc(c.remote_hlc)}
+                                </div>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </Card>

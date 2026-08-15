@@ -38,16 +38,21 @@ describe('syncStore pairing_pending detection', () => {
   it('detects pairing_pending error and enters A-side pairing flow', async () => {
     // 首次 sync_with_device 返回 pairing_pending；随后 loadStatus 返回状态
     mockInvoke
-      .mockImplementationOnce(() =>
-        Promise.reject('__SYNC_ERR__:pairing_pending:node-B'),
-      )
+      .mockImplementationOnce(() => Promise.reject('__SYNC_ERR__:pairing_pending:node-B'))
       .mockResolvedValueOnce({
         isDiscovering: false,
         syncEnabled: true,
         autoSyncEnabled: false,
         localFingerprint: 'fp',
         connectedPeers: [
-          { id: 'node-B', name: 'SoloSoul-ab12cd34', addr: '10.0.0.2:42069', fingerprint: 'ab12cd34', trusted: false, lastSeen: 'now' },
+          {
+            id: 'node-B',
+            name: 'SoloSoul-ab12cd34',
+            addr: '10.0.0.2:42069',
+            fingerprint: 'ab12cd34',
+            trusted: false,
+            lastSeen: 'now',
+          },
         ],
       });
 
@@ -63,16 +68,21 @@ describe('syncStore pairing_pending detection', () => {
   it('parses sasCode from new pairing_pending format', async () => {
     // 新后端返回 `{peerId}:{sas}`；sas 应存入 pairingPendingSasCode 供配对卡片展示
     mockInvoke
-      .mockImplementationOnce(() =>
-        Promise.reject('__SYNC_ERR__:pairing_pending:node-B:482913'),
-      )
+      .mockImplementationOnce(() => Promise.reject('__SYNC_ERR__:pairing_pending:node-B:482913'))
       .mockResolvedValueOnce({
         isDiscovering: false,
         syncEnabled: true,
         autoSyncEnabled: false,
         localFingerprint: 'fp',
         connectedPeers: [
-          { id: 'node-B', name: 'SoloSoul-ab12cd34', addr: '10.0.0.2:42069', fingerprint: 'ab12cd34', trusted: false, lastSeen: 'now' },
+          {
+            id: 'node-B',
+            name: 'SoloSoul-ab12cd34',
+            addr: '10.0.0.2:42069',
+            fingerprint: 'ab12cd34',
+            trusted: false,
+            lastSeen: 'now',
+          },
         ],
       });
 
@@ -87,9 +97,7 @@ describe('syncStore pairing_pending detection', () => {
   it('keeps pairingPendingSasCode null for legacy pairing_pending format', async () => {
     // 旧格式 `{peerId}` 无 sas 部分，sasCode 应为 null（前端回退显示指纹）
     mockInvoke
-      .mockImplementationOnce(() =>
-        Promise.reject('__SYNC_ERR__:pairing_pending:node-B'),
-      )
+      .mockImplementationOnce(() => Promise.reject('__SYNC_ERR__:pairing_pending:node-B'))
       .mockResolvedValueOnce({
         isDiscovering: false,
         syncEnabled: true,
@@ -127,7 +135,15 @@ describe('syncStore pairing_pending detection', () => {
     const handler = handlers.get('sync-pairing-request');
     expect(handler).toBeDefined();
 
-    handler!({ payload: { nodeId: 'node-A', fingerprint: 'aabbccdd11223344', addr: '10.0.0.1:42069', deviceName: 'SoloSoul-aabbccdd', sasCode: '730154' } });
+    handler!({
+      payload: {
+        nodeId: 'node-A',
+        fingerprint: 'aabbccdd11223344',
+        addr: '10.0.0.1:42069',
+        deviceName: 'SoloSoul-aabbccdd',
+        sasCode: '730154',
+      },
+    });
 
     const req = useSyncStore.getState().incomingPairingRequest;
     expect(req).not.toBeNull();
@@ -148,9 +164,25 @@ describe('syncStore pairing_pending detection', () => {
     expect(handler).toBeDefined();
 
     // 首次事件（握手 H1）
-    handler!({ payload: { nodeId: 'node-A', fingerprint: 'aa', addr: '10.0.0.1:1', deviceName: 'n', sasCode: '111111' } });
+    handler!({
+      payload: {
+        nodeId: 'node-A',
+        fingerprint: 'aa',
+        addr: '10.0.0.1:1',
+        deviceName: 'n',
+        sasCode: '111111',
+      },
+    });
     // 同一 peer 重连（握手 H2，新验证码）：不重建卡片，仅更新 sasCode
-    handler!({ payload: { nodeId: 'node-A', fingerprint: 'aa', addr: '10.0.0.1:1', deviceName: 'n', sasCode: '222222' } });
+    handler!({
+      payload: {
+        nodeId: 'node-A',
+        fingerprint: 'aa',
+        addr: '10.0.0.1:1',
+        deviceName: 'n',
+        sasCode: '222222',
+      },
+    });
 
     const req = useSyncStore.getState().incomingPairingRequest;
     expect(req).not.toBeNull();
@@ -207,9 +239,7 @@ describe('syncStore initSyncCompletedListener', () => {
         connectedPeers: [],
       })
       .mockResolvedValueOnce([]);
-    const toastSpy = vi
-      .spyOn(useUiStore.getState(), 'showToast')
-      .mockImplementation(() => {});
+    const toastSpy = vi.spyOn(useUiStore.getState(), 'showToast').mockImplementation(() => {});
 
     const unlisten = await useSyncStore.getState().initSyncCompletedListener();
     const handler = handlers.get('sync-completed');
@@ -253,9 +283,7 @@ describe('syncStore initSyncCompletedListener', () => {
     // 一次「立即同步」被多个自动同步源叠加触发 → 同一 peer 短窗口内多个事件：
     // 只弹一次 toast、只写一条历史，计数累加（完整交换量）。
     mockInvoke.mockResolvedValue({});
-    const toastSpy = vi
-      .spyOn(useUiStore.getState(), 'showToast')
-      .mockImplementation(() => {});
+    const toastSpy = vi.spyOn(useUiStore.getState(), 'showToast').mockImplementation(() => {});
 
     const unlisten = await useSyncStore.getState().initSyncCompletedListener();
     const handler = handlers.get('sync-completed');
@@ -300,9 +328,7 @@ describe('syncStore initSyncCompletedListener', () => {
 
   it('skips toast and history for all-zero exchange (C)', async () => {
     // 无实际数据交换的会话（检查/应用/跳过/发回全 0）不弹 toast、不写历史
-    const toastSpy = vi
-      .spyOn(useUiStore.getState(), 'showToast')
-      .mockImplementation(() => {});
+    const toastSpy = vi.spyOn(useUiStore.getState(), 'showToast').mockImplementation(() => {});
 
     const unlisten = await useSyncStore.getState().initSyncCompletedListener();
     const handler = handlers.get('sync-completed');
@@ -364,6 +390,141 @@ describe('syncStore initNsdFailedListener', () => {
     expect(s.isLoading).toBe(false);
     // 重读后端状态后，开关 UI 纠正为禁用，消除状态漂移
     expect(s.syncEnabled).toBe(false);
+    expect(unlisten).toBe(mockUnlisten);
+  });
+});
+
+describe('syncStore activity stamping (timestamp + peer info + failure record)', () => {
+  beforeEach(() => {
+    handlers.clear();
+    mockInvoke.mockReset();
+    mockUnlisten.mockClear();
+    useSyncStore.setState({
+      isLoading: false,
+      error: null,
+      lastResult: null,
+      recentResults: [],
+      connectedPeers: [],
+    });
+  });
+
+  it('stamps local timestamp and resolved peer info on manual sync success', async () => {
+    const before = Date.now();
+    mockInvoke
+      .mockResolvedValueOnce({
+        summary: 'examined=3, applied=2, skipped=1, conflicts=0',
+        examined: 3,
+        applied: 2,
+        skipped: 1,
+        conflicts: [],
+        per_table: [{ table: 'object', examined: 3, applied: 2, skipped: 1 }],
+      })
+      .mockResolvedValueOnce({
+        isDiscovering: false,
+        syncEnabled: true,
+        autoSyncEnabled: false,
+        localFingerprint: 'fp',
+        connectedPeers: [
+          {
+            id: 'node-B',
+            name: 'SoloSoul-ab12cd34',
+            addr: '10.0.0.2:42069',
+            fingerprint: 'ab12cd34',
+            trusted: true,
+            lastSeen: 'now',
+            clientType: 'windows',
+          },
+        ],
+      })
+      .mockResolvedValueOnce([]);
+
+    await useSyncStore.getState().syncWithDevice('10.0.0.2:42069');
+
+    const entry = useSyncStore.getState().recentResults[0];
+    expect(entry).toBeDefined();
+    // 本地时间戳盖章（记录时刻）
+    expect(entry.at).toBeGreaterThanOrEqual(before);
+    expect(entry.at).toBeLessThanOrEqual(Date.now());
+    // 对端信息从 loadStatus 刷新后的 connectedPeers 解析并固化
+    expect(entry.peerName).toBe('SoloSoul-ab12cd34');
+    expect(entry.peerClientType).toBe('windows');
+    expect(entry.peerNodeId).toBe('10.0.0.2:42069');
+    expect(entry.failed).toBeFalsy();
+    expect(useSyncStore.getState().lastResult).not.toBeNull();
+  });
+
+  it('records a failed history entry on generic sync error (timestamp + peer info)', async () => {
+    // 失败路径不走 loadStatus，设备信息从当前 connectedPeers 解析
+    useSyncStore.setState({
+      connectedPeers: [
+        {
+          id: 'node-B',
+          name: 'SoloSoul-ab12cd34',
+          addr: '10.0.0.2:42069',
+          fingerprint: 'ab12cd34',
+          trusted: true,
+          lastSeen: 'now',
+          clientType: 'android',
+        },
+      ],
+    });
+    mockInvoke.mockImplementationOnce(() => Promise.reject('__SYNC_ERR__:connect_failed:timeout'));
+
+    await useSyncStore.getState().syncWithDevice('10.0.0.2:42069');
+
+    const s = useSyncStore.getState();
+    expect(s.error).toContain('__SYNC_ERR__:connect_failed');
+    // 失败不写 lastResult（不触发「同步完成」toast），但写入失败历史条目
+    expect(s.lastResult).toBeNull();
+    const entry = s.recentResults[0];
+    expect(entry).toBeDefined();
+    expect(entry.failed).toBe(true);
+    expect(entry.errorSummary).toContain('connect_failed');
+    expect(entry.at).toBeGreaterThan(0);
+    expect(entry.peerName).toBe('SoloSoul-ab12cd34');
+    expect(entry.peerClientType).toBe('android');
+  });
+
+  it('stamps timestamp + peer info on inbound sync-completed event', async () => {
+    // 事件收到前 connectedPeers 已含对端（本端曾与对端同步/loadStatus 加载过）
+    useSyncStore.setState({
+      connectedPeers: [
+        {
+          id: 'node-A',
+          name: 'SoloSoul-11223344',
+          addr: '10.0.0.1:42069',
+          fingerprint: '11223344',
+          trusted: true,
+          lastSeen: 'now',
+          clientType: 'macos',
+        },
+      ],
+    });
+    mockInvoke.mockResolvedValue([]);
+
+    const unlisten = await useSyncStore.getState().initSyncCompletedListener();
+    const handler = handlers.get('sync-completed');
+    expect(handler).toBeDefined();
+
+    const before = Date.now();
+    handler!({
+      payload: {
+        peerNodeId: 'node-A',
+        examined: 5,
+        applied: 4,
+        skipped: 1,
+        conflicts: 0,
+        outboundRecords: 2,
+      },
+    });
+
+    const entry = useSyncStore.getState().recentResults[0];
+    expect(entry).toBeDefined();
+    expect(entry.inbound).toBe(true);
+    expect(entry.at).toBeGreaterThanOrEqual(before);
+    expect(entry.peerName).toBe('SoloSoul-11223344');
+    expect(entry.peerClientType).toBe('macos');
+    expect(entry.peerNodeId).toBe('node-A');
     expect(unlisten).toBe(mockUnlisten);
   });
 });
