@@ -61,8 +61,8 @@
 
 ## 修复进度
 
-- 已完成：17 / 30
-- 当前处理：P017（过长函数拆分——前 4 项 P017-①~④ 已完成）
+- 已完成：30 / 30（P018–P030 全部 13 项已修复）
+- 当前处理：无（全部完成）
 
 ---
 
@@ -294,7 +294,7 @@
 项目结构节声称 `src-tauri/src/ipc/` 存在，实际无此目录（IPC 分发在 `lib.rs` `dispatch_ipc` + 前缀路由）；结构表未含 `attachment_import_plugin.rs`、`keystore_plugin.rs`、`nsd_plugin.rs` 等。**建议**：修订 AGENTS.md 对齐。
 
 ### P018 · `AGENTS.md` 文档漂移（已修复）
-- **提交**：`（待回填）`
+- **提交**：`79b32fca`
 - **改动**：核查确认仓库内不存在 `AGENTS.md`（`git log --all` 无任何历史记录），且 `docs/DEVELOPMENT.md`/`README.md` 等现存文档均无 `src/ipc` 或结构表漂移内容；问题随目标文件不存在而不复存在，无需修改任何文档。
 - **验证**：`grep -rn 'src/ipc' docs/ README.md DEVELOPMENT.md` 零命中。
 
@@ -305,7 +305,7 @@
 `tauri/src/pages/system/DebugLogPage.tsx:21,66-67`：`const [levelFilter] = useState('all')` 无 setter，过滤分支永不执行。**建议**：删除该 state 与过滤分支，或补上筛选 UI。
 
 ### P020 · `DebugLogPage` 死过滤逻辑（已修复）
-- **提交**：`（待回填）`
+- **提交**：`985cbb7f`
 - **改动**：删除 `levelFilter` state（恒为 `'all'`，无 setter）与 `filteredLogs` 过滤分支（恒等于 `logs`），三处引用改用 `logs` 直读。纯删死代码零行为变化。
 - **验证**：`npx tsc --noEmit` 无该文件错误；`npx eslint` 通过。
 
@@ -313,7 +313,7 @@
 `tauri/src/pages/ai/LlmChatPage/useLlmChat.ts:118-157`：`handleRename`/`handleSoftDelete`/`handleRestore`/`handlePermanentDelete` 失败时 unhandled rejection，后续 `refreshLists()` 被跳过。**建议**：统一 try/catch + toast 提示，失败不执行后续本地状态更新。
 
 ### P021 · `useLlmChat` 四个 invoke 无 catch（已修复）
-- **提交**：`（待回填）`
+- **提交**：`b7c97400`
 - **改动**：`useLlmChat.ts` 引入 `useToastError` + `useTranslation('common')`，四个 handler（rename / soft-delete / restore / permanent-delete）统一 try/catch：失败 `logger.warn` + `onError` toast（复用 `common:error` 文案 + rustErrors 翻译），并提前 return 不执行后续本地状态更新 / 刷新；成功路径不变。
 - **验证**：`npx tsc --noEmit` 无该文件错误；`npx eslint` 通过。
 
@@ -329,7 +329,7 @@
 `tauri/src/pages/ai/PluginDashboardPage.tsx:464-471`：`pluginCommands.auditLog(50).then(...)` 无 `.catch`，失败时 unhandled rejection、面板静默空白。**建议**：加 `.catch` 与空态/错误态提示。
 
 ### P027 · JSX 深层嵌套拆分（已修复）
-- **提交**：`（待回填）`
+- **提交**：`09e85969`
 - **改动**：① `SearchPopover.tsx` 结果行抽为模块级 `SearchResultRow` 子组件（图标 + 高亮名称 + 页面/模板/对象三型元信息 + 敏感度徽章 + MatchHint），主组件渲染收缩为 `results.map(renderResultRow)`；② `SyncConflictDialog.tsx` 字段级冲突行抽为 `ConflictFieldRow` 子组件（字段名 + 差异徽章 + 本地/远程两列，对象/数组字段叶子级 diff 展开逻辑原样迁移）。纯抽取零行为变化。
 - **验证**：`npx tsc --noEmit` 无相关文件错误；`npx eslint` 通过；`vitest run src/components/sync src/components/layout` 15 测试全绿。
 
