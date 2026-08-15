@@ -7,7 +7,9 @@ use crate::transport::SyncTransport;
 use rand::rngs::OsRng;
 use sha2::{Digest, Sha256};
 use snow::{Builder, TransportState};
+use std::fmt;
 use x25519_dalek::{PublicKey, StaticSecret};
+use zeroize::Zeroizing;
 
 const PATTERN: &str = "Noise_XX_25519_ChaChaPoly_BLAKE2s";
 
@@ -22,10 +24,23 @@ const MAX_NOISE_PAYLOAD: usize = 65535 - 16;
 const SAS_DOMAIN_SEPARATOR: &[u8] = b"SoloSoul-SAS-v1";
 
 /// Long-term Noise identity keys for this node.
-#[derive(Debug, Clone)]
+///
+/// 私钥存放于 `Zeroizing`：Drop 时清零（clone 出的副本同样在 drop 时清零），
+/// 避免长期身份私钥残留于堆内存；`Debug` 手写实现仅暴露公钥指纹，
+/// 杜绝 `{:?}` 日志打印泄漏私钥（纵深防御，当前无日志点直接打印）。
+#[derive(Clone)]
 pub struct NoiseKeys {
-    secret: [u8; 32],
+    secret: Zeroizing<[u8; 32]>,
     public: [u8; 32],
+}
+
+impl fmt::Debug for NoiseKeys {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.debug_struct("NoiseKeys")
+            .field("public", &hex::encode(self.public))
+            .field("fingerprint", &self.fingerprint())
+            .finish_non_exhaustive()
+    }
 }
 
 impl NoiseKeys {
@@ -34,14 +49,15 @@ impl NoiseKeys {
         let secret = StaticSecret::random_from_rng(OsRng);
         let public = PublicKey::from(&secret);
         Self {
-            secret: secret.to_bytes(),
+            secret: Zeroizing::new(secret.to_bytes()),
             public: public.to_bytes(),
         }
     }
 
     /// Restore keys from a persisted secret key.
     pub fn from_secret(secret: [u8; 32]) -> Self {
-        let secret_obj = StaticSecret::from(secret);
+        let secret = Zeroizing::new(secret);
+        let secret_obj = StaticSecret::from(*secret);
         let public = PublicKey::from(&secret_obj);
         Self {
             secret,
@@ -76,7 +92,7 @@ impl NoiseSession {
         keys: &NoiseKeys,
     ) -> Result<Self, String> {
         let mut handshake = Builder::new(PATTERN.parse().map_err(|e| format!("pattern: {:?}", e))?)
-            .local_private_key(&keys.secret)
+            .local_private_key(&*keys.secret)
             .build_initiator()
             .map_err(|e| format!("build initiator: {e}"))?;
 
@@ -118,7 +134,7 @@ impl NoiseSession {
         keys: &NoiseKeys,
     ) -> Result<Self, String> {
         let mut handshake = Builder::new(PATTERN.parse().map_err(|e| format!("pattern: {:?}", e))?)
-            .local_private_key(&keys.secret)
+            .local_private_key(&*keys.secret)
             .build_responder()
             .map_err(|e| format!("build responder: {e}"))?;
 
@@ -228,6 +244,21 @@ mod tests {
     fn test_keys_fingerprint() {
         let keys = NoiseKeys::generate();
         assert_eq!(keys.fingerprint().len(), 32);
+    }
+
+    /// P011 防回归：Debug 输出不得包含私钥明文（纵深防御）。
+    /// 私钥 32 字节 hex 为 64 字符，与公钥/fingerprint 展示位不同源，
+    /// 若未来回退到派生 Debug 或误加 secret 字段，本测试即失败。
+    #[test]
+    fn test_debug_redacts_secret() {
+        let keys = NoiseKeys::generate();
+        let secret_hex = hex::encode(keys.secret_key());
+        let dbg = format!("{:?}", keys);
+        assert!(
+            !dbg.contains(&secret_hex),
+            "Debug 输出泄漏了私钥明文: {dbg}"
+        );
+        assert!(dbg.contains("fingerprint"), "Debug 应展示 fingerprint");
     }
 
     #[test]
