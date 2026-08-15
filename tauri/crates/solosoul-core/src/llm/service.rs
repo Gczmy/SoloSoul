@@ -264,22 +264,6 @@ impl LlmService {
             .collect())
     }
 
-    /// Save conversations（整批 upsert 到行级表）。
-    pub fn save_conversations(
-        &self,
-        vault: &VaultStore,
-        account_id: &str,
-        conversations: &[Conversation],
-    ) -> LlmResult<()> {
-        for c in conversations {
-            let data = serde_json::to_vec(c).map_err(|e| format!("Serialize: {e}"))?;
-            vault
-                .save_conversation(account_id, &c.id, &c.updated_at, &data)
-                .map_err(|e| e.to_string())?;
-        }
-        Ok(())
-    }
-
     /// List conversation summaries (non-temporary, non-deleted).
     pub fn list_conversations(
         &self,

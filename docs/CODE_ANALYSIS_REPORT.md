@@ -36,7 +36,7 @@
 | P006 | P1 | 规范 | `tauri/src-tauri/src/commands/update.rs`（9 处）、`tauri/src-tauri/src/commands/object/tests/trash.rs`（3 处） | `cargo fmt --check` 不通过，`check-all`/CI 阻断 | `[x]` 已修复（P006） |
 | P007 | P1 | 架构 | `tauri/src/pages/ai/LlmConfigPage.tsx` | `handleDeleteProvider` 删除失败后（catch 仅 warn）仍无条件更新本地状态，前后端状态分叉 | `[x]` 已修复（P007） |
 | P008 | P1 | 健壮性 | `tauri/src/lib/i18n.ts` + `tauri/src/main.tsx` | 启动链 `initI18n()` 中 `invoke('get_system_locale')` 无 try/catch，链路末端无 `.catch`：IPC 异常时 `<App/>` 永不渲染（白屏） | `[x]` 已修复（P008） |
-| P009 | P2 | 死代码（需确认） | `tauri/crates/solosoul-core/src/llm/service.rs:268` | `pub fn save_conversations` 全仓库零调用；且循环内逐条保存无批量事务 | `[ ]` 待修复 |
+| P009 | P2 | 死代码 | `tauri/crates/solosoul-core/src/llm/service.rs` | `pub fn save_conversations` 全仓库零调用；且循环内逐条保存无批量事务 | `[x]` 已修复（P009，用户确认删除） |
 | P010 | P2 | 安全（需确认） | `tauri/crates/solosoul-core/src/vault_service.rs:639-643、757-761` | `create_account*` 将 `salt` 与 `verifyHash` 经 IPC 返回前端，前端并不需要，违背最小暴露 | `[ ]` 待修复 |
 | P011 | P2 | 安全（纵深防御） | `tauri/crates/solosoul-sync/src/noise.rs:25-29` | `NoiseKeys` 派生 `Debug`+`Clone`，长期身份私钥可被 `{:?}` 打印且无 Drop 清零 | `[ ]` 待修复 |
 | P012 | P2 | 安全 | `tauri/src-tauri/src/commands/update.rs:169-171、474-486` | APK 校验和 minisign 签名缺失/无效时仅降级继续下载，用户静默失去完整性校验 | `[ ]` 待修复 |
@@ -61,8 +61,8 @@
 
 ## 修复进度
 
-- 已完成：8 / 30
-- 当前处理：P2 项分批（P009–P030，先按语言：Rust 侧 P009–P016 → 前端侧 P020–P030）
+- 已完成：9 / 30
+- 当前处理：P010（create_account* 返回移除 salt/verifyHash）
 
 ---
 
@@ -102,9 +102,14 @@
 - **验证**：`npx tsc --noEmit` exit 0；eslint 干净；`check-missing-i18n` 双 locale 0 缺失；`vitest run src/pages/ai` 2 测试全绿。
 
 ### P008 · 启动链无兜底白屏（已修复）
-- **提交**：`（待填写）`
+- **提交**：`b8dc27c0`
 - **改动**：① `lib/i18n.ts` Layer 2 的 `invoke('get_system_locale')` 包 try/catch——IPC 异常（后端未就绪/调用失败）捕获后 `logger.warn` 落入 Layer 3 `navigator.language` 兜底；② `main.tsx` 启动链尾部加 `.catch`——任一环节失败也兜底渲染 `<App/>`（i18n 内部已逐层兜底，此处防御 `initI18n` 本身抛错等极端情况），错误落日志。
 - **验证**：`npx tsc --noEmit` exit 0；eslint 干净；`vitest run src/lib/i18n.test.ts` 22 测试全绿（含新增回归：IPC reject 时 `initI18n()` resolve 且落 Layer 3）。
+
+### P009 · `save_conversations` 死代码（已修复，用户确认删除）
+- **提交**：`（待填写）`
+- **改动**：删除 `llm/service.rs` 的 `pub fn save_conversations`（全仓库零调用——`commands/llm/tests.rs` 的 `test_load_save_conversations` 仅是测试名含该字符串，实际逐条调用单条 `save_conversation`，不受影响）。
+- **验证**：`cargo clippy --all-targets -- -D warnings`（solosoul-core）exit 0；`cargo check`（solosoul_cli / src-tauri）exit 0。
 - **改动**：`llm/service.rs` 中 `MAX_CONVERSATION_MESSAGES`、`trim_conversation_messages`、`compare_updated_at` 三个 item 纯移动到 `mod tests` 之前（无逻辑变化）；顺带修复 `biometric/windows.rs:486` 测试中恒真断言 `available == false || available == true`（`bool_comparison` warning，`-D warnings` 下同阻断 CI）。
 - **验证**：`cargo clippy --all-targets -- -D warnings`（solosoul-core）exit 0 全绿。
 
