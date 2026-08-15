@@ -154,9 +154,14 @@
 - **验证**：`cargo clippy --all-targets -- -D warnings`（solosoul-vault）exit 0；`cargo fmt --check` exit 0；`cargo test --lib storage::` 137 passed。
 
 ### P017-② · `migrate_to_encrypted_format` 拆分（已修复）
-- **提交**：`（待回填）`
+- **提交**：`fe0d5176`
 - **改动**：`solosoul-vault/storage.rs` 拆分 155 行迁移函数——6 个 `rewrite_table` 逐表闭包抽为模块级 helper：`rewrite_blob_table_encrypted`（profiles/trash_items/object_snapshots 三表单 blob 列共享）、`rewrite_objects_encrypted`、`rewrite_templates_encrypted`、`rewrite_audit_log_encrypted`，sys_config 版本标记写入抽 `write_encryption_version_marker`；主函数保留版本检查、备份、事务与 commit/rollback 编排。纯重构零行为变化（encrypt_field/ensure_encrypted_text 幂等语义不变）。
 - **验证**：`cargo clippy --all-targets -- -D warnings`（solosoul-vault）exit 0；`cargo fmt --check` exit 0；`cargo test --lib storage::` 137 passed。
+
+### P017-③ · `search_advanced_impl` 拆分（已修复）
+- **提交**：`（待回填）`
+- **改动**：`src-tauri/commands/search/commands.rs` 拆分 180 行 5 层函数——循环体内「逐对象匹配/评分/组装」抽为模块级 helper `match_object_to_query`（返回 `Option<SearchResultItem>`）：类型/敏感度/页面过滤、redact/protected_keys（P114）、字段级命中收集（P021 路径缓冲）、名称加分、最佳命中选取、模板显示名解析全部迁入；主函数保留空查询分支、模板/记录预加载、预筛 filter 循环与排序截断。纯重构零行为变化。
+- **验证**：src-tauri `cargo check` exit 0；`cargo clippy --lib -- -D warnings` exit 0；`cargo fmt --check` exit 0。注：src-tauri 测试二进制在本机报 `STATUS_ENTRYPOINT_NOT_FOUND`（所有测试均受影响，Windows 增量链接环境问题，与本次改动无关，登记备查）。
 
 ---
 

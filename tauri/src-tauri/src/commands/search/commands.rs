@@ -50,126 +50,16 @@ fn search_advanced_impl(
         r.name.to_lowercase().contains(&q)
             || solosoul_vault::storage::json_contains_ignore_case(&r.properties, &q)
     }) {
-        // Apply collection_type filter
-        if let Some(ref filter_ct) = collection_type {
-            if &rec.type_id != filter_ct {
-                continue;
-            }
-        }
-
-        // Apply sensitivity_level filter
-        if let Some(ref filter_sl) = sensitivity_level {
-            if &rec.sensitivity_level != filter_sl {
-                continue;
-            }
-        }
-
-        // Custom pages are stored as objects with type_id = "page".
-        // They are surfaced as page results by search_pages, not as object results here.
-        if rec.type_id == "page" {
-            continue;
-        }
-
-        // 对象级敏感度为 sensitive/critical 时，跳过所有字段值匹配。
-        let redact_all = is_protected_sensitivity(&rec.sensitivity_level);
-        // 字段级敏感度过滤：property_labels 优先，缺失时回退到模板定义。
-        let protected_keys = collect_protected_field_keys(
-            rec.property_labels.as_ref(),
-            rec.template_id.as_deref(),
-            &templates,
-        );
-
-        // Collect field-level matches from properties
-        let mut field_matches: Vec<FieldMatch> = Vec::new();
-        // P021: 路径缓冲复用，避免热循环内每个 key 的 format! 分配
-        let mut path_buf = String::new();
-        search_properties_for_matches(
-            &rec.properties,
+        if let Some(item) = match_object_to_query(
+            rec,
             &q,
-            &mut path_buf,
-            &protected_keys,
-            redact_all,
-            &mut field_matches,
-        );
-
-        // Name match bonus
-        let name_score = if rec.name.to_lowercase().contains(&q) {
-            SCORE_NAME_BONUS
-        } else {
-            0.0
-        };
-
-        if !field_matches.is_empty() || name_score > 0.0 {
-            let field_count = count_object_fields(&rec.properties);
-            let sensitivity_levels = object_sensitivity_levels(rec, &templates);
-            // 每个对象只返回一条最佳结果，避免同一对象因多个字段匹配而重复出现
-            let (matched_field, matched_value, match_type, relevance) = if field_matches.is_empty()
-            {
-                (
-                    Some("name".to_string()),
-                    Some(rec.name.clone()),
-                    Some("name".to_string()),
-                    name_score,
-                )
-            } else {
-                // P021: max_by 线性取最佳，替代全排序 O(n log n)
-                let best = field_matches
-                    .iter()
-                    .max_by(|a, b| {
-                        a.score
-                            .partial_cmp(&b.score)
-                            .unwrap_or(std::cmp::Ordering::Equal)
-                    })
-                    .unwrap();
-                (
-                    Some(best.field_path.clone()),
-                    Some(best.display_value.clone()),
-                    Some(match best.match_type {
-                        FieldMatchType::FieldName => "fieldName".to_string(),
-                        FieldMatchType::FieldValue => "fieldValue".to_string(),
-                    }),
-                    best.score + name_score,
-                )
-            };
-            // 先尝试从模板缓存中获取名称，若模板已删除则回退到 properties 中存储的 __templateName
-            let tpl_from_cache = rec
-                .template_id
-                .as_ref()
-                .and_then(|tid| templates.get(tid))
-                .map(|t| t.name.clone());
-            let tpl_from_props = rec
-                .properties
-                .get("__templateName")
-                .and_then(|v| v.as_str().map(String::from));
-            let (tpl_name, tpl_deleted) = resolve_template_display(
-                rec.template_id.as_deref(),
-                tpl_from_cache,
-                tpl_from_props,
-            );
-            items.push(SearchResultItem {
-                object_id: rec.id.clone(),
-                name: rec.name.clone(),
-                collection_type: rec.type_id.clone(),
-                template_name: tpl_name,
-                template_deleted: tpl_deleted,
-                template_icon_id: rec
-                    .template_id
-                    .as_ref()
-                    .and_then(|tid| templates.get(tid))
-                    .and_then(|t| t.icon_id.clone()),
-                item_type: "object".to_string(),
-                parent_id: rec.parent_id.clone(),
-                field_count: Some(field_count),
-                sensitivity_levels: Some(sensitivity_levels),
-                object_count: None,
-                matched_field,
-                matched_value,
-                match_type,
-                relevance,
-            });
+            &templates,
+            collection_type.as_deref(),
+            sensitivity_level.as_deref(),
+        ) {
+            items.push(item);
         }
     }
-
     items.sort_by(|a, b| {
         b.relevance
             .partial_cmp(&a.relevance)
@@ -187,6 +77,135 @@ fn search_advanced_impl(
         },
         all_records,
     ))
+}
+
+/// P017-③: 从 `search_advanced_impl` 拆出的逐对象匹配/评分/组装。
+///
+/// 输入单条已解密记录与预筛通过的查询词，应用类型/敏感度/页面过滤后收集字段级
+/// 命中与名称加分，选最佳字段命中并解析模板显示名，返回 SearchResultItem；
+/// 未命中（无字段匹配且名称不加分）返回 None。redact 逻辑（P114）原样保留。
+fn match_object_to_query(
+    rec: &solosoul_vault::ObjectRecord,
+    q: &str,
+    templates: &std::collections::HashMap<String, solosoul_vault::UserTemplate>,
+    collection_type: Option<&str>,
+    sensitivity_level: Option<&str>,
+) -> Option<SearchResultItem> {
+    // Apply collection_type filter
+    if let Some(filter_ct) = collection_type {
+        if rec.type_id != filter_ct {
+            return None;
+        }
+    }
+
+    // Apply sensitivity_level filter
+    if let Some(filter_sl) = sensitivity_level {
+        if rec.sensitivity_level != filter_sl {
+            return None;
+        }
+    }
+
+    // Custom pages are stored as objects with type_id = "page".
+    // They are surfaced as page results by search_pages, not as object results here.
+    if rec.type_id == "page" {
+        return None;
+    }
+
+    // 对象级敏感度为 sensitive/critical 时，跳过所有字段值匹配。
+    let redact_all = is_protected_sensitivity(&rec.sensitivity_level);
+    // 字段级敏感度过滤：property_labels 优先，缺失时回退到模板定义。
+    let protected_keys = collect_protected_field_keys(
+        rec.property_labels.as_ref(),
+        rec.template_id.as_deref(),
+        templates,
+    );
+
+    // Collect field-level matches from properties
+    let mut field_matches: Vec<FieldMatch> = Vec::new();
+    // P021: 路径缓冲复用，避免热循环内每个 key 的 format! 分配
+    let mut path_buf = String::new();
+    search_properties_for_matches(
+        &rec.properties,
+        q,
+        &mut path_buf,
+        &protected_keys,
+        redact_all,
+        &mut field_matches,
+    );
+
+    // Name match bonus
+    let name_score = if rec.name.to_lowercase().contains(q) {
+        SCORE_NAME_BONUS
+    } else {
+        0.0
+    };
+
+    if field_matches.is_empty() && name_score <= 0.0 {
+        return None;
+    }
+    let field_count = count_object_fields(&rec.properties);
+    let sensitivity_levels = object_sensitivity_levels(rec, templates);
+    // 每个对象只返回一条最佳结果，避免同一对象因多个字段匹配而重复出现
+    let (matched_field, matched_value, match_type, relevance) = if field_matches.is_empty() {
+        (
+            Some("name".to_string()),
+            Some(rec.name.clone()),
+            Some("name".to_string()),
+            name_score,
+        )
+    } else {
+        // P021: max_by 线性取最佳，替代全排序 O(n log n)
+        let best = field_matches
+            .iter()
+            .max_by(|a, b| {
+                a.score
+                    .partial_cmp(&b.score)
+                    .unwrap_or(std::cmp::Ordering::Equal)
+            })
+            .unwrap();
+        (
+            Some(best.field_path.clone()),
+            Some(best.display_value.clone()),
+            Some(match best.match_type {
+                FieldMatchType::FieldName => "fieldName".to_string(),
+                FieldMatchType::FieldValue => "fieldValue".to_string(),
+            }),
+            best.score + name_score,
+        )
+    };
+    // 先尝试从模板缓存中获取名称，若模板已删除则回退到 properties 中存储的 __templateName
+    let tpl_from_cache = rec
+        .template_id
+        .as_ref()
+        .and_then(|tid| templates.get(tid))
+        .map(|t| t.name.clone());
+    let tpl_from_props = rec
+        .properties
+        .get("__templateName")
+        .and_then(|v| v.as_str().map(String::from));
+    let (tpl_name, tpl_deleted) =
+        resolve_template_display(rec.template_id.as_deref(), tpl_from_cache, tpl_from_props);
+    Some(SearchResultItem {
+        object_id: rec.id.clone(),
+        name: rec.name.clone(),
+        collection_type: rec.type_id.clone(),
+        template_name: tpl_name,
+        template_deleted: tpl_deleted,
+        template_icon_id: rec
+            .template_id
+            .as_ref()
+            .and_then(|tid| templates.get(tid))
+            .and_then(|t| t.icon_id.clone()),
+        item_type: "object".to_string(),
+        parent_id: rec.parent_id.clone(),
+        field_count: Some(field_count),
+        sensitivity_levels: Some(sensitivity_levels),
+        object_count: None,
+        matched_field,
+        matched_value,
+        match_type,
+        relevance,
+    })
 }
 
 /// P018: 模板显示名解析——模板缓存优先，已删除模板回退到 `__templateName` 属性，
