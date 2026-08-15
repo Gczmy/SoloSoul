@@ -36,7 +36,7 @@
 | P002 | 测试       | `tauri/crates/solosoul-core/src/ocr/macos_vision.rs:471,500` | `cargo test` 2 个 Vision OCR 测试失败（swiftc 无法加载 `arm64-apple-macosx26.0` 标准库，疑似本地 Xcode/CLT 环境，存疑） | `[x]` 已修复（P002） |
 | P003 | 漏洞       | `tauri/crates/solosoul-plugin/src/host.rs:163-167,504-513` | 插件域名白名单仅校验初始 URL，reqwest 默认跟随重定向，可被 302 绕过（SSRF/数据外泄） | `[x]` 已修复（P003） |
 | P004 | 漏洞       | `tauri/crates/solosoul-core/src/biometric/windows.rs:146-186`、`mod.rs:331-336` | Windows Hello 仅应用层门禁：同用户进程可直接 DPAPI 解密生物识别凭证，不触发 Hello | `[x]` 已修复（P004） |
-| P005 | 架构/数据  | `tauri/src-tauri/src/commands/object/mod.rs:1602-1611` | `object_delete` 回收站快照写入错误被 `let _ =` 吞掉，三步写入无事务包裹 | `[ ]` 待修复 |
+| P005 | 架构/数据  | `tauri/src-tauri/src/commands/object/mod.rs:1602-1611` | `object_delete` 回收站快照写入错误被 `let _ =` 吞掉，三步写入无事务包裹 | `[x]` 已修复（P005） |
 | P006 | 架构       | `tauri/src-tauri/src/commands/`（401 处 `Result<_, String>`）↔ `tauri/src/lib/backendError.ts` | 前后端错误契约是裸字符串精确/前缀匹配，Rust 侧改文案前端 i18n 静默失效 | `[ ]` 待修复 |
 | P007 | 漏洞/架构  | 普遍，例 `tauri/crates/solosoul-vault/src/storage/objects.rs:712` | 内部错误细节（SQL 片段、路径、rusqlite 原文）直接透传到前端 UI | `[ ]` 待修复 |
 | P008 | 架构       | `tauri/crates/solosoul-vault/src/storage.rs`（5915 行） | 上帝对象：VaultStore + 加密迁移 + 整表重写 + sync 密钥 + 搜索工具混在一个文件 | `[ ]` 待修复 |
@@ -94,8 +94,8 @@
 
 ## 修复进度
 
-- 已完成：4 / 54
-- 当前处理：P005（object_delete 回收站快照吞错无事务）
+- 已完成：5 / 54
+- 当前处理：P006（前后端错误契约裸字符串匹配）
 
 ---
 
@@ -133,11 +133,13 @@
 - **修复（短期）**：新建 `docs/biometric-spec.md`——三平台实现对比表 + Windows 威胁模型（已防御 DPAPI 用户凭据绑定/旧版公开派生密钥修复；残余缺口=同用户进程直解不弹 Hello）、影响评估（需同用户任意代码执行，实际风险中等）、中期强化路线登记（KeyCredentialManager Key Attestation 推荐 / per-account entropy 需存到高于文件系统保护级的载体才有效）；`windows.rs` 模块头补 P004 平台限制声明指向规范文档。中期 Key Attestation 属较大平台工程，登记 backlog 未排期。
 - **验证**：solosoul-core `cargo clippy --all-targets -- -D warnings` exit 0；`cargo fmt --check` exit 0。
 
-### P005 — object_delete 回收站快照错误被吞
+### P005 — object_delete 回收站快照错误被吞（已修复）
 
+- **提交**：`1fc50a40`
 - **位置**：`tauri/src-tauri/src/commands/object/mod.rs:1602-1611`：`let _ = vault.save_trash_item(&trash);` → `delete_object(soft)` → `log_audit_best_effort`，三次独立写入无事务。
 - **影响**：快照写失败时对象已软删但回收站无条目，用户无法从回收站恢复（数据未丢但 UI 不可达）。
-- **修复**：快照写失败即中止删除并返回错误；或将「快照+软删」下沉为 VaultStore 单事务方法。
+- **修复**：复用既有 P211 `trash_and_soft_delete_batch` 单事务方法——「回收站快照 + 软删」在单事务内原子完成，快照写失败整体回滚、中止删除并返回错误（fail-closed）；单条删除与批量删除命令语义对齐，吞错点消除。
+- **验证**：src-tauri `cargo check` exit 0；`cargo fmt --check` exit 0。
 
 ### P006 — 前后端错误契约为裸字符串匹配
 
