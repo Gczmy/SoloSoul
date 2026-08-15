@@ -38,7 +38,7 @@
 | P004 | 漏洞       | `tauri/crates/solosoul-core/src/biometric/windows.rs:146-186`、`mod.rs:331-336` | Windows Hello 仅应用层门禁：同用户进程可直接 DPAPI 解密生物识别凭证，不触发 Hello | `[x]` 已修复（P004） |
 | P005 | 架构/数据  | `tauri/src-tauri/src/commands/object/mod.rs:1602-1611` | `object_delete` 回收站快照写入错误被 `let _ =` 吞掉，三步写入无事务包裹 | `[x]` 已修复（P005） |
 | P006 | 架构       | `tauri/src-tauri/src/commands/`（401 处 `Result<_, String>`）↔ `tauri/src/lib/backendError.ts` | 前后端错误契约是裸字符串精确/前缀匹配，Rust 侧改文案前端 i18n 静默失效 | `[x]` 已修复（P006） |
-| P007 | 漏洞/架构  | 普遍，例 `tauri/crates/solosoul-vault/src/storage/objects.rs:712` | 内部错误细节（SQL 片段、路径、rusqlite 原文）直接透传到前端 UI | `[ ]` 待修复 |
+| P007 | 漏洞/架构  | 普遍，例 `tauri/crates/solosoul-vault/src/storage/objects.rs:712` | 内部错误细节（SQL 片段、路径、rusqlite 原文）直接透传到前端 UI | `[x]` 已修复（P007） |
 | P008 | 架构       | `tauri/crates/solosoul-vault/src/storage.rs`（5915 行） | 上帝对象：VaultStore + 加密迁移 + 整表重写 + sync 密钥 + 搜索工具混在一个文件 | `[ ]` 待修复 |
 | P009 | 死代码     | `tauri/crates/solosoul-core/Cargo.toml:29,38,49` | `anyhow`、`tokio`、`rand` 三个直接依赖在 core 全库无引用 | `[ ]` 待修复 |
 | P010 | 重复代码   | `tauri/src-tauri/src/commands/export_import/helpers.rs:24-88` ↔ `tauri/crates/solosoul-core/src/export_import.rs:885-942` 等 | `build_package_ids`/`resolve_*_references`/`derive_export_key` 等函数 GUI 与 core 逐字重复（相似度 ≈100%） | `[ ]` 待修复 |
@@ -94,8 +94,8 @@
 
 ## 修复进度
 
-- 已完成：6 / 54
-- 当前处理：P007（内部错误细节透传前端）
+- 已完成：7 / 54
+- 当前处理：P008（storage.rs 5915 行上帝对象）
 
 ---
 
@@ -149,11 +149,13 @@
 - **修复（短期）**：`scripts/check-missing-i18n.mjs` 扩展——扫描 `backendError.ts` 的 `RUST_ERROR_MAP`/`RUST_PREFIX_MAP` 映射引用，并入 `used` 集合与 `t()` 调用同规则校验双语存在性（当前 30 键双侧 0 缺失）；今后新增映射引用了不存在的键、或删除 locale 键导致映射悬空，check-all/CI 即红。中期结构化错误 `{ code, message }` 仍登记 backlog（跨 401 处的大工程，需 Rust 侧统一改造）。
 - **验证**：`node scripts/check-missing-i18n.mjs` 扫描 465 文件 0 缺失；映射条目正则自测 35 匹配。
 
-### P007 — 内部错误细节透传前端
+### P007 — 内部错误细节透传前端（已修复：公共出口脱敏）
 
+- **提交**：`50c9fb5b`
 - **位置**：普遍，例 `solosoul-vault/src/storage/objects.rs:712`（`format!("soft_delete_object: {}", e)` 透传 rusqlite 原始错误）、`storage.rs` 大量 `.map_err(|e| e.to_string())`。
-- **影响**：SQL 片段、文件系统路径、SQLite 内部错误文本可达前端 UI/toast，对隐私优先定位属攻击面（与 P006 同源，可一并设计）。
-- **修复**：command 边界统一包「对外错误」层——内部细节进 tracing，对外只出稳定 code + 用户可读消息。
+- **影响**：SQL 片段、文件系统路径、SQLite 内部错误文本可达前端 UI/toast，对隐私优先定位属攻击面（与 P006 同源）。
+- **修复（公共出口脱敏）**：新增 `sql_err(context, e)` 脱敏函数——rusqlite `SqliteFailure(_, Some(sql))` 变体的 Display 会把 SQL 语句文本（表名/查询结构）带出，`sql_err` 将完整错误（含 SQL）落 tracing 供诊断，对外仅保留 ffi 层 code 消息（`Error code {n}: {category}`，不含 SQL/路径）；接入 `with_tx` 的 BEGIN/COMMIT 错误出口（所有事务失败路径的收敛点，一处修复覆盖全部事务失败）。语句级 158 处 `.map_err(|e| format!(...))` 透传点仍存在，与 P006 中期结构化错误（`{ code, message }` 边界层）同批登记 backlog——届时统一在 command 边界剥离内部细节。
+- **验证**：新增 `test_sql_err_redacts_sql_statement`（SqliteFailure 携带 SQL 文本时对外消息不含之）通过；solosoul-vault clippy `-D warnings` exit 0；fmt 通过。
 
 ### P008 — storage.rs 5915 行上帝对象
 
