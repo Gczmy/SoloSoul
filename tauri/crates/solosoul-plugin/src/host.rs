@@ -285,79 +285,12 @@ pub fn register_host_functions(linker: &mut Linker<SoloHostState>) -> Result<(),
 fn register_field_access_fns(linker: &mut Linker<SoloHostState>) -> Result<(), PluginError> {
     // solosoul_request_field —— 请求字段
     linker
-        .func_wrap(
-            "env",
-            "solosoul_request_field",
-            |mut caller: Caller<'_, SoloHostState>,
-             field_id_ptr: i32,
-             field_id_len: i32,
-             out_ptr: i32,
-             out_len: i32|
-             -> i32 {
-                let field_id = match read_string(&mut caller, field_id_ptr, field_id_len) {
-                    Ok(s) => s,
-                    Err(_) => return code::INVALID_ARGUMENT,
-                };
-                let (plugin_id, session_id) = {
-                    let host = &caller.data().host;
-                    host.audit.log(
-                        &host.plugin_id,
-                        Some(&host.session_id),
-                        PluginAuditAction::PluginRunStarted,
-                    );
-                    if !host.check_rate("request_field") {
-                        return code::RATE_LIMITED;
-                    }
-                    (host.plugin_id.clone(), host.session_id.clone())
-                };
-                let result = caller.data().host.field_resolver.resolve(&field_id);
-                caller.data().host.audit.log(
-                    &plugin_id,
-                    Some(&session_id),
-                    PluginAuditAction::PluginRunStarted,
-                );
-                match result {
-                    Ok(value) => write_buffer(&mut caller, out_ptr, out_len, &value, -1),
-                    Err(e) => plugin_error_code(&e),
-                }
-            },
-        )
+        .func_wrap("env", "solosoul_request_field", solosoul_request_field_impl)
         .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
 
     // solosoul_list_objects —— 列出指定类型的所有对象（Phase 5，替代 .count）
     linker
-        .func_wrap(
-            "env",
-            "solosoul_list_objects",
-            |mut caller: Caller<'_, SoloHostState>,
-             type_id_ptr: i32,
-             type_id_len: i32,
-             out_ptr: i32,
-             out_cap: i32|
-             -> i32 {
-                let type_id = match read_required_string(&mut caller, type_id_ptr, type_id_len) {
-                    Some(s) => s,
-                    None => return code::INVALID_ARGUMENT,
-                };
-                let (plugin_id, session_id) = {
-                    let host = &caller.data().host;
-                    if !host.check_rate("list_objects") {
-                        return code::RATE_LIMITED;
-                    }
-                    (host.plugin_id.clone(), host.session_id.clone())
-                };
-                let result = caller.data().host.field_resolver.list_objects(&type_id);
-                caller.data().host.audit.log(
-                    &plugin_id,
-                    Some(&session_id),
-                    PluginAuditAction::PluginRunStarted,
-                );
-                match result {
-                    Ok(json) => write_buffer(&mut caller, out_ptr, out_cap, &json, -1),
-                    Err(e) => plugin_error_code(&e),
-                }
-            },
-        )
+        .func_wrap("env", "solosoul_list_objects", solosoul_list_objects_impl)
         .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
 
     // solosoul_get_data_structure_tree —— 数据结构树（元数据）
@@ -365,55 +298,13 @@ fn register_field_access_fns(linker: &mut Linker<SoloHostState>) -> Result<(), P
         .func_wrap(
             "env",
             "solosoul_get_data_structure_tree",
-            |mut caller: Caller<'_, SoloHostState>, out_ptr: i32, out_len: i32| -> i32 {
-                let (plugin_id, session_id) = {
-                    let host = &caller.data().host;
-                    if !host.check_rate("get_data_structure_tree") {
-                        return code::RATE_LIMITED;
-                    }
-                    (host.plugin_id.clone(), host.session_id.clone())
-                };
-
-                caller.data().host.audit.log(
-                    &plugin_id,
-                    Some(&session_id),
-                    PluginAuditAction::PluginRunStarted,
-                );
-
-                match caller.data().host.field_resolver.build_structure_tree() {
-                    Ok(json) => write_buffer(&mut caller, out_ptr, out_len, &json, -1),
-                    Err(e) => plugin_error_code(&e),
-                }
-            },
+            solosoul_get_data_structure_tree_impl,
         )
         .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
 
     // solosoul_get_param —— 获取运行参数
     linker
-        .func_wrap(
-            "env",
-            "solosoul_get_param",
-            |mut caller: Caller<'_, SoloHostState>,
-             key_ptr: i32,
-             key_len: i32,
-             out_ptr: i32,
-             out_len: i32,
-             written_ptr: i32|
-             -> i32 {
-                let key = match read_string(&mut caller, key_ptr, key_len) {
-                    Ok(s) => s,
-                    Err(_) => return code::INVALID_ARGUMENT,
-                };
-                let value = caller
-                    .data()
-                    .host
-                    .params
-                    .get(&key)
-                    .cloned()
-                    .unwrap_or_default();
-                write_buffer(&mut caller, out_ptr, out_len, &value, written_ptr)
-            },
-        )
+        .func_wrap("env", "solosoul_get_param", solosoul_get_param_impl)
         .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
 
     // solosoul_list_attachments —— 列出可水印的附件树
@@ -421,16 +312,138 @@ fn register_field_access_fns(linker: &mut Linker<SoloHostState>) -> Result<(), P
         .func_wrap(
             "env",
             "solosoul_list_attachments",
-            |mut caller: Caller<'_, SoloHostState>, out_ptr: i32, out_cap: i32| -> i32 {
-                let resolver = caller.data().host.field_resolver.clone();
-                match resolver.list_attachments() {
-                    Ok(json) => write_buffer(&mut caller, out_ptr, out_cap, &json, -1),
-                    Err(e) => plugin_error_code(&e),
-                }
-            },
+            solosoul_list_attachments_impl,
         )
         .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
     Ok(())
+}
+/// solosoul_request_field —— 请求字段
+fn solosoul_request_field_impl(
+    mut caller: Caller<'_, SoloHostState>,
+    field_id_ptr: i32,
+    field_id_len: i32,
+    out_ptr: i32,
+    out_len: i32,
+) -> i32 {
+    let field_id = match read_string(&mut caller, field_id_ptr, field_id_len) {
+        Ok(s) => s,
+        Err(_) => return code::INVALID_ARGUMENT,
+    };
+    let (plugin_id, session_id) = {
+        let host = &caller.data().host;
+        host.audit.log(
+            &host.plugin_id,
+            Some(&host.session_id),
+            PluginAuditAction::PluginRunStarted,
+        );
+        if !host.check_rate("request_field") {
+            return code::RATE_LIMITED;
+        }
+        (host.plugin_id.clone(), host.session_id.clone())
+    };
+    let result = caller.data().host.field_resolver.resolve(&field_id);
+    caller.data().host.audit.log(
+        &plugin_id,
+        Some(&session_id),
+        PluginAuditAction::PluginRunStarted,
+    );
+    match result {
+        Ok(value) => write_buffer(&mut caller, out_ptr, out_len, &value, -1),
+        Err(e) => plugin_error_code(&e),
+    }
+}
+
+/// solosoul_list_objects —— 列出指定类型的所有对象（Phase 5，替代 .count）
+fn solosoul_list_objects_impl(
+    mut caller: Caller<'_, SoloHostState>,
+    type_id_ptr: i32,
+    type_id_len: i32,
+    out_ptr: i32,
+    out_cap: i32,
+) -> i32 {
+    let type_id = match read_required_string(&mut caller, type_id_ptr, type_id_len) {
+        Some(s) => s,
+        None => return code::INVALID_ARGUMENT,
+    };
+    let (plugin_id, session_id) = {
+        let host = &caller.data().host;
+        if !host.check_rate("list_objects") {
+            return code::RATE_LIMITED;
+        }
+        (host.plugin_id.clone(), host.session_id.clone())
+    };
+    let result = caller.data().host.field_resolver.list_objects(&type_id);
+    caller.data().host.audit.log(
+        &plugin_id,
+        Some(&session_id),
+        PluginAuditAction::PluginRunStarted,
+    );
+    match result {
+        Ok(json) => write_buffer(&mut caller, out_ptr, out_cap, &json, -1),
+        Err(e) => plugin_error_code(&e),
+    }
+}
+
+/// solosoul_get_data_structure_tree —— 数据结构树（元数据）
+fn solosoul_get_data_structure_tree_impl(
+    mut caller: Caller<'_, SoloHostState>,
+    out_ptr: i32,
+    out_len: i32,
+) -> i32 {
+    let (plugin_id, session_id) = {
+        let host = &caller.data().host;
+        if !host.check_rate("get_data_structure_tree") {
+            return code::RATE_LIMITED;
+        }
+        (host.plugin_id.clone(), host.session_id.clone())
+    };
+
+    caller.data().host.audit.log(
+        &plugin_id,
+        Some(&session_id),
+        PluginAuditAction::PluginRunStarted,
+    );
+
+    match caller.data().host.field_resolver.build_structure_tree() {
+        Ok(json) => write_buffer(&mut caller, out_ptr, out_len, &json, -1),
+        Err(e) => plugin_error_code(&e),
+    }
+}
+
+/// solosoul_get_param —— 获取运行参数
+fn solosoul_get_param_impl(
+    mut caller: Caller<'_, SoloHostState>,
+    key_ptr: i32,
+    key_len: i32,
+    out_ptr: i32,
+    out_len: i32,
+    written_ptr: i32,
+) -> i32 {
+    let key = match read_string(&mut caller, key_ptr, key_len) {
+        Ok(s) => s,
+        Err(_) => return code::INVALID_ARGUMENT,
+    };
+    let value = caller
+        .data()
+        .host
+        .params
+        .get(&key)
+        .cloned()
+        .unwrap_or_default();
+    write_buffer(&mut caller, out_ptr, out_len, &value, written_ptr)
+}
+
+/// solosoul_list_attachments —— 列出可水印的附件树
+fn solosoul_list_attachments_impl(
+    mut caller: Caller<'_, SoloHostState>,
+    out_ptr: i32,
+    out_cap: i32,
+) -> i32 {
+    let resolver = caller.data().host.field_resolver.clone();
+    match resolver.list_attachments() {
+        Ok(json) => write_buffer(&mut caller, out_ptr, out_cap, &json, -1),
+        Err(e) => plugin_error_code(&e),
+    }
 }
 
 /// HTTP 簇：http_request / http_poll / http_read / http_close（P223-① 分簇）

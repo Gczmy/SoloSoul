@@ -168,6 +168,11 @@
 - **改动**：`src-tauri/commands/export_import/export_docx/docx.rs` 拆分 146 行函数——封面段抽 `push_docx_cover`、单个对象节（分隔横线/对象名/元信息/字段表/附件清单）抽 `push_docx_object_section`、styles.xml 常量抽 `docx_styles_xml`、zip 四文件组装抽 `assemble_docx_zip`；主函数保留 XML 头/封面调用/对象循环/zip 组装编排（146→33 行）。纯重构零行为变化。
 - **验证**：src-tauri `cargo check` exit 0；`cargo fmt --check` exit 0。
 
+### P017-⑤ · `register_field_access_fns` 拆分（已修复）
+- **提交**：`（待回填）`
+- **改动**：`crates/solosoul-plugin/src/host.rs` 拆分 139 行函数——5 个 `func_wrap` 内联闭包（request_field / list_objects / get_data_structure_tree / get_param / list_attachments）抽为模块级 `solosoul_*_impl` 顶层函数（与 `register_http_fns` 的 `http_*_impl` 完全同构），主函数保留注释 + 每注册一行 `linker.func_wrap("env", name, impl)`（139→39 行）。闭包转函数时签名按原参数顺序/类型逐一迁移（`Caller` 泛型内逗号按顶层逗号正确分割），body 原样迁移仅去一层缩进。纯重构零行为变化。
+- **验证**：solosoul-plugin `cargo check` / `cargo clippy --all-targets -D warnings` exit 0；`cargo fmt --check` exit 0；plugin 单测 56 passed / 0 failed / 2 ignored。
+
 ---
 
 ## 详细问题描述与修复指引
