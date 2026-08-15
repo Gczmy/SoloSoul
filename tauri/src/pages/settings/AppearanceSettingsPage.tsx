@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useShallow } from 'zustand/react/shallow';
 import { AppShell } from '@/components/layout/AppShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
@@ -45,7 +46,10 @@ const SIDEBAR_OPTIONS: {
 export function AppearanceSettingsPage() {
   const navigate = useNavigate();
   const currentAccount = useAuthStore((s) => s.currentAccount);
-  const { settings, updateSetting } = useSettingsStore();
+  // P022: useShallow 字段级选择——避免 store 无关字段翻转时整页重渲染
+  const { settings, updateSetting } = useSettingsStore(
+    useShallow((s) => ({ settings: s.settings, updateSetting: s.updateSetting })),
+  );
   const accountId = currentAccount?.id || '';
   const isMobilePlatform = isMobilePlatformSync();
   const { t } = useTranslation(['settings', 'common']);

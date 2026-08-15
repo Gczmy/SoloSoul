@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useShallow } from 'zustand/react/shallow';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { useAuthStore, saveLastAccountId } from '@/stores/authStore';
 import type { AccountInfo } from '@/lib/ipc';
@@ -40,7 +41,14 @@ export function useLoginUnlockFlows({
 }: UseLoginUnlockFlowsOptions) {
   const navigate = useNavigate();
   const { t } = useTranslation(['auth', 'common', 'settings']);
-  const { login, listAccounts, clearError } = useAuthStore();
+  // P022: useShallow 字段级选择——避免 store 无关字段翻转时整 hook 重渲染
+  const { login, listAccounts, clearError } = useAuthStore(
+    useShallow((s) => ({
+      login: s.login,
+      listAccounts: s.listAccounts,
+      clearError: s.clearError,
+    })),
+  );
 
   const [password, setPassword] = useState('');
   const [submitError, setSubmitError] = useState<string | null>(null);

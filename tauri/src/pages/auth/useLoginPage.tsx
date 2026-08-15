@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useShallow } from 'zustand/react/shallow';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { useAuthStore, LAST_ACCOUNT_KEY } from '@/stores/authStore';
 import { useApplyThemeFromSettings } from '@/hooks/useApplyThemeFromSettings';
@@ -29,14 +30,18 @@ export type LoginMethod = 'faceId' | 'touchId' | 'windowsHello' | 'pin' | 'passw
 export function useLoginPage() {
   useApplyThemeFromSettings();
   const navigate = useNavigate();
-  const {
-    checkHasAccount,
-    listAccounts,
-    hasAccount,
-    isAuthenticated,
-    isLoading,
-    accounts,
-  } = useAuthStore();
+  // P022: useShallow 字段级选择——避免 store 无关字段（error/backendError）翻转时整页重渲染
+  const { checkHasAccount, listAccounts, hasAccount, isAuthenticated, isLoading, accounts } =
+    useAuthStore(
+      useShallow((s) => ({
+        checkHasAccount: s.checkHasAccount,
+        listAccounts: s.listAccounts,
+        hasAccount: s.hasAccount,
+        isAuthenticated: s.isAuthenticated,
+        isLoading: s.isLoading,
+        accounts: s.accounts,
+      })),
+    );
   const [searchParams] = useSearchParams();
   const fromExisting = searchParams.get('fromExisting') === 'true';
   const [selectedAccountId, setSelectedAccountId] = useState('');

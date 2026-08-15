@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useShallow } from 'zustand/react/shallow';
 import { listen } from '@tauri-apps/api/event';
 import { useAuthStore } from '@/stores/authStore';
 import { useObjectStore } from '@/stores/objectStore';
@@ -39,7 +40,14 @@ export function AppRoutes() {
     };
   }, [navigate]);
   const { t } = useTranslation(['settings']);
-  const { checkHasAccount, hasAccount, isAuthenticated } = useAuthStore();
+  // P022: useShallow 字段级选择——避免 store 任意字段（error/backendError 等）翻转时整页重渲染
+  const { checkHasAccount, hasAccount, isAuthenticated } = useAuthStore(
+    useShallow((s) => ({
+      checkHasAccount: s.checkHasAccount,
+      hasAccount: s.hasAccount,
+      isAuthenticated: s.isAuthenticated,
+    })),
+  );
   // P041: 统一更新状态机（桌面 plugin-updater + Android GitHub Release）与 OCR 首装逻辑
   // 已各自拆入 useAppUpdate / useOcrFirstInstall。
   const { updateState, startDownload, installUpdate, dismissUpdate } = useAppUpdate();

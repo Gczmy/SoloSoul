@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { useShallow } from 'zustand/react/shallow';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { confirmWithPause } from '@/lib/dialog';
 import {
@@ -21,7 +22,15 @@ export function useOcrFirstInstall() {
   const isMobilePlatform = isMobilePlatformSync();
   const { t } = useTranslation(['ocr', 'settings']);
   const [showOcrBanner, setShowOcrBanner] = useState(false);
-  const { isInstalling, progress, error, startListening } = useOcrInstallStore();
+  // P022: useShallow 字段级选择——避免 store 无关字段翻转时重渲染
+  const { isInstalling, progress, error, startListening } = useOcrInstallStore(
+    useShallow((s) => ({
+      isInstalling: s.isInstalling,
+      progress: s.progress,
+      error: s.error,
+      startListening: s.startListening,
+    })),
+  );
 
   // Derive OCR banner phase from store state for the new banner component.
   const ocrPhase: OcrInstallPhase = error ? 'error' : isInstalling ? 'installing' : 'completed';

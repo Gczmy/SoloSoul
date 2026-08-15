@@ -49,7 +49,7 @@
 | P019 | P2 | 安全（极低风险） | `tauri/crates/solosoul-core/src/ocr/macos_vision.rs:221` | 运行时 `Command::new("swiftc")` 依赖 PATH；hash 文件与二进制同目录（自证式校验） | `[x]` 已修复（P019） |
 | P020 | P2 | 死代码 | `tauri/src/pages/system/DebugLogPage.tsx:21,66-67` | `levelFilter` 无 setter，过滤分支永不执行，整段过滤逻辑为死代码 | `[x]` 已修复（P020） |
 | P021 | P2 | 错误处理 | `tauri/src/pages/ai/LlmChatPage/useLlmChat.ts:118-157` | `handleRename`/`handleSoftDelete`/`handleRestore`/`handlePermanentDelete` 四个 invoke 无 catch，失败无反馈且跳过刷新 | `[x]` 已修复（P021） |
-| P022 | P2 | 性能 | 约 10 处（详见下文） | 整个 Zustand store 无选择器订阅，任一字段变更触发整页重渲染 | `[ ]` 待修复 |
+| P022 | P2 | 性能 | 约 10 处（详见下文） | 整个 Zustand store 无选择器订阅，任一字段变更触发整页重渲染 | `[x]` 已修复（P022） |
 | P023 | P2 | 错误处理 | `tauri/src/pages/ai/PluginDashboardPage.tsx:464-471` | `pluginCommands.auditLog(50).then(...)` 无 `.catch`，失败时面板静默空白 | `[x]` 已修复（P023） |
 | P024 | P2 | 可优化 | `components/object/HistoryViewer.tsx:40`、`components/object/objectDetailUtils.ts:18`、`pages/workspace/WorkspaceObjectCard.tsx:22` | 三份 `flattenProperties` 实现且 `__` 前缀 key 处理规则已分叉，三处渲染可能不一致 | `[x]` 已修复（P024） |
 | P025 | P2 | 性能/内存 | `tauri/src/lib/searchCache.ts:42-44` | `SearchCache` 无容量上限，TTL 惰性淘汰，解密结果明文驻留内存只增不减 | `[x]` 已修复（P025） |
@@ -328,8 +328,13 @@
 #### P023 · PluginLogPanel 审计日志加载无 catch
 `tauri/src/pages/ai/PluginDashboardPage.tsx:464-471`：`pluginCommands.auditLog(50).then(...)` 无 `.catch`，失败时 unhandled rejection、面板静默空白。**建议**：加 `.catch` 与空态/错误态提示。
 
-### P029 · 两套后端错误库合并单一入口（已修复）
+### P022 · Zustand 全 store 订阅改字段级选择（已修复）
 - **提交**：`（待回填）`
+- **改动**：报告列出的 10 处无选择器订阅全部改为 `useShallow` 字段级选择：`useAuthStore()`（AppRoutes / useLoginPage / useLoginUnlockFlows / BootstrapPage——仅选实际消费的字段，error/backendError 等无关字段翻转不再触发重渲染）、`useSettingsStore()`（SecuritySettingsPage / BackupConfigPage / AppearanceSettingsPage——仅选 settings + updateSetting，isLoading/customPages 翻转不再整页重渲染）、`useLlmStatsStore()`（LlmStatsPage）、`useOcrInstallStore()`（useOcrFirstInstall）、`usePluginQuickStore()`（PluginQuickPanel——isOpen 翻转不再重渲染面板）。
+- **验证**：`npx tsc --noEmit` 无相关文件错误；`npx eslint` 通过；`vitest run src/pages/auth src/components/plugin` 20 测试全绿。
+
+### P029 · 两套后端错误库合并单一入口（已修复）
+- **提交**：`b05e4aa8`
 - **改动**：Rust 静态错误映射表（`RUST_ERROR_MAP` + `RUST_PREFIX_MAP`，原 `rustErrors.ts` 精确+前缀匹配）并入 `backendError.ts`——`translateRustError` 迁至此处；`resolveBackendErrorMessage` 未命中前缀 token 时新增回退：先查 Rust 静态映射（命中 `i18n.t(key)` 返回），未命中才透传原文。`rustErrors.ts` 降为兼容 re-export 薄壳（5 处旧 import 路径不变），新增错误只需在 `backendError.ts` 单表登记。
 - **验证**：`npx tsc --noEmit` 无相关文件错误；`npx eslint` 通过；`vitest run src/lib/backendError.test.ts` 4 测试全绿。
 

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useShallow } from 'zustand/react/shallow';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { AppShell } from '@/components/layout/AppShell';
 import { PageContainer } from '@/components/layout/PageContainer';
@@ -25,7 +26,15 @@ export function LlmStatsPage() {
   const location = useLocation();
   const { t } = useTranslation(['settings', 'common']);
   const accountId = useAuthStore((s) => s.currentAccount?.id);
-  const { stats, loading, loadStats, resetStats } = useLlmStatsStore();
+  // P022: useShallow 字段级选择——避免 store 无关字段翻转时整页重渲染
+  const { stats, loading, loadStats, resetStats } = useLlmStatsStore(
+    useShallow((s) => ({
+      stats: s.stats,
+      loading: s.loading,
+      loadStats: s.loadStats,
+      resetStats: s.resetStats,
+    })),
+  );
   const [activeProvider, setActiveProvider] = useState<{
     name: string;
     model: string;

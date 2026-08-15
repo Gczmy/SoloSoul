@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import { useShallow } from 'zustand/react/shallow';
 import { AppShell } from '@/components/layout/AppShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
@@ -30,7 +31,10 @@ export function BackupConfigPage() {
   const [restoringId, setRestoringId] = useState<string | null>(null);
 
   const currentAccount = useAuthStore((s) => s.currentAccount);
-  const { settings, updateSetting } = useSettingsStore();
+  // P022: useShallow 字段级选择——避免 store 无关字段翻转时整页重渲染
+  const { settings, updateSetting } = useSettingsStore(
+    useShallow((s) => ({ settings: s.settings, updateSetting: s.updateSetting })),
+  );
 
   const backupGuidePages = useMemo(
     () => [

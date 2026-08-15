@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
+import { useShallow } from 'zustand/react/shallow';
 import { AppShell } from '@/components/layout/AppShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
@@ -16,7 +17,10 @@ export function SecuritySettingsPage() {
   const currentAccount = useAuthStore((s) => s.currentAccount);
   const { t } = useTranslation(['settings', 'common']);
 
-  const { settings, updateSetting } = useSettingsStore();
+  // P022: useShallow 字段级选择——避免 store 无关字段（isLoading/customPages 等）翻转时整页重渲染
+  const { settings, updateSetting } = useSettingsStore(
+    useShallow((s) => ({ settings: s.settings, updateSetting: s.updateSetting })),
+  );
 
   return (
     <AppShell title={t('settings:items.security_settings')} onBack={() => navigate('/settings')}>

@@ -1,6 +1,7 @@
 import { useState, useEffect, type CSSProperties } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { useShallow } from 'zustand/react/shallow';
 import i18next from 'i18next';
 import { useAuthStore } from '@/stores/authStore';
 import { useUiStore } from '@/stores/uiStore';
@@ -15,7 +16,14 @@ import { translateRustError } from '@/lib/rustErrors';
 export function BootstrapPage() {
   useApplyThemeFromSettings();
   const navigate = useNavigate();
-  const { bootstrap, isLoading, error } = useAuthStore();
+  // P022: useShallow 字段级选择——避免 store 无关字段翻转时整页重渲染
+  const { bootstrap, isLoading, error } = useAuthStore(
+    useShallow((s) => ({
+      bootstrap: s.bootstrap,
+      isLoading: s.isLoading,
+      error: s.error,
+    })),
+  );
   const [accountName, setAccountName] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');

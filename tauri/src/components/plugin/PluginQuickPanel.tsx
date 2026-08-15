@@ -27,7 +27,13 @@ export function PluginQuickPanel({ position, onClose, placement = 'left' }: Plug
   const navigate = useNavigate();
   const locale = i18n.language?.startsWith('zh') ? 'zh' : 'en';
 
-  const { activeTab, setActiveTab } = usePluginQuickStore();
+  // P022: useShallow 字段级选择——避免 store 无关字段（isOpen 等）翻转时整面板重渲染
+  const { activeTab, setActiveTab } = usePluginQuickStore(
+    useShallow((s) => ({
+      activeTab: s.activeTab,
+      setActiveTab: s.setActiveTab,
+    })),
+  );
   const { requestConfirm, dialog: uninstallDialog } = useConfirm();
 
   // 存储插件运行参数（用于水印插件等的侧边栏配置）
