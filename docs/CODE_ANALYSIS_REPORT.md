@@ -54,7 +54,7 @@
 | P024 | P2 | 可优化 | `components/object/HistoryViewer.tsx:40`、`components/object/objectDetailUtils.ts:18`、`pages/workspace/WorkspaceObjectCard.tsx:22` | 三份 `flattenProperties` 实现且 `__` 前缀 key 处理规则已分叉，三处渲染可能不一致 | `[x]` 已修复（P024） |
 | P025 | P2 | 性能/内存 | `tauri/src/lib/searchCache.ts:42-44` | `SearchCache` 无容量上限，TTL 惰性淘汰，解密结果明文驻留内存只增不减 | `[x]` 已修复（P025） |
 | P026 | P2 | 规范 | `tauri/src/hooks/useRevealState.ts:70` | `shouldMask` 在渲染期内执行 `hide(fieldId)` setState，违反 React 渲染纯净性 | `[x]` 已修复（P026） |
-| P027 | P2 | 可优化 | `components/layout/SearchPopover.tsx`、`components/sync/SyncConflictDialog.tsx` | JSX 嵌套约 12+ 层（缩进达 40 空格），可维护性差 | `[ ]` 待修复 |
+| P027 | P2 | 可优化 | `components/layout/SearchPopover.tsx`、`components/sync/SyncConflictDialog.tsx` | JSX 嵌套约 12+ 层（缩进达 40 空格），可维护性差 | `[x]` 已修复（P027） |
 | P028 | P2 | 架构 | `tauri/src/pages/ai/LlmConfigPage.tsx:234-240、262-274、290-297` | 三处乐观更新先 setState 再 invoke，失败仅 warn 不回滚 | `[x]` 已修复（P028） |
 | P029 | P2 | 架构 | `tauri/src/lib/rustErrors.ts` 与 `tauri/src/lib/backendError.ts` | 两套后端错误本地化库职责重叠，新增错误需判断进哪套，易漏配 | `[x]` 已修复（P029） |
 | P030 | P2 | 性能（低影响） | `tauri/src/stores/settingsStore.ts:404-419` | 旧格式自定义页迁移循环内逐条串行 `await invoke('object_create')`（一次性路径，影响极小） | `[x]` 已修复（P030） |
@@ -328,8 +328,13 @@
 #### P023 · PluginLogPanel 审计日志加载无 catch
 `tauri/src/pages/ai/PluginDashboardPage.tsx:464-471`：`pluginCommands.auditLog(50).then(...)` 无 `.catch`，失败时 unhandled rejection、面板静默空白。**建议**：加 `.catch` 与空态/错误态提示。
 
-### P022 · Zustand 全 store 订阅改字段级选择（已修复）
+### P027 · JSX 深层嵌套拆分（已修复）
 - **提交**：`（待回填）`
+- **改动**：① `SearchPopover.tsx` 结果行抽为模块级 `SearchResultRow` 子组件（图标 + 高亮名称 + 页面/模板/对象三型元信息 + 敏感度徽章 + MatchHint），主组件渲染收缩为 `results.map(renderResultRow)`；② `SyncConflictDialog.tsx` 字段级冲突行抽为 `ConflictFieldRow` 子组件（字段名 + 差异徽章 + 本地/远程两列，对象/数组字段叶子级 diff 展开逻辑原样迁移）。纯抽取零行为变化。
+- **验证**：`npx tsc --noEmit` 无相关文件错误；`npx eslint` 通过；`vitest run src/components/sync src/components/layout` 15 测试全绿。
+
+### P022 · Zustand 全 store 订阅改字段级选择（已修复）
+- **提交**：`072d0634`
 - **改动**：报告列出的 10 处无选择器订阅全部改为 `useShallow` 字段级选择：`useAuthStore()`（AppRoutes / useLoginPage / useLoginUnlockFlows / BootstrapPage——仅选实际消费的字段，error/backendError 等无关字段翻转不再触发重渲染）、`useSettingsStore()`（SecuritySettingsPage / BackupConfigPage / AppearanceSettingsPage——仅选 settings + updateSetting，isLoading/customPages 翻转不再整页重渲染）、`useLlmStatsStore()`（LlmStatsPage）、`useOcrInstallStore()`（useOcrFirstInstall）、`usePluginQuickStore()`（PluginQuickPanel——isOpen 翻转不再重渲染面板）。
 - **验证**：`npx tsc --noEmit` 无相关文件错误；`npx eslint` 通过；`vitest run src/pages/auth src/components/plugin` 20 测试全绿。
 

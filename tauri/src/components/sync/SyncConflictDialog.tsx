@@ -106,6 +106,20 @@ export function SyncConflictDialog({
           onlyDifferences,
         )
       : [];
+
+  // P027: 字段行抽为子组件（降低 JSX 嵌套深度）；diff 行渲染与计数逻辑保持一致
+  const renderFieldRow = (row: { key: string; local: unknown; remote: unknown; changed: boolean }) => {
+    if (!detail) return null;
+    return (
+      <ConflictFieldRow
+        key={row.key}
+        row={row}
+        detail={detail}
+        onlyDifferences={onlyDifferences}
+        t={t}
+      />
+    );
+  };
   const diffCount = fieldRows.reduce(
     (n, row) =>
       n +
@@ -270,127 +284,7 @@ export function SyncConflictDialog({
                           })}
                     </div>
                   ) : (
-                    fieldRows.map((row) => {
-                      // 对象/数组字段展开为叶子级条目，逐行高亮差异；标量字段沿用整值渲染
-                      const diffEntries = detail.remote_deleted
-                        ? null
-                        : buildDiffEntries(
-                            row.key,
-                            row.local,
-                            row.remote,
-                            t,
-                            onlyDifferences,
-                          );
-                      const hasEntries = diffEntries !== null && diffEntries.length > 0;
-                      const missingLabel = t('settings:sync_conflict_missing', {
-                        defaultValue: '—',
-                      });
-                      const localIcon = resolveConflictIcon(row.key, row.local);
-                      const remoteIcon = resolveConflictIcon(row.key, row.remote);
-                      return (
-                        <div
-                          key={row.key}
-                          className={`${styles.fieldRow} ${row.changed ? styles.fieldChanged : ''}`}
-                        >
-                          <div className={styles.fieldName} title={row.key}>
-                            {conflictFieldLabel(row.key, t)}
-                            {row.changed && (
-                              <span className={styles.changedBadge}>
-                                {t('settings:sync_conflict_changed', { defaultValue: 'changed' })}
-                              </span>
-                            )}
-                          </div>
-                          <div className={styles.fieldValue}>
-                            {row.local === undefined ? (
-                              <span className={styles.fieldMissing}>{missingLabel}</span>
-                            ) : hasEntries ? (
-                              <div className={styles.diffEntryList}>
-                                {diffEntries.map((e) => (
-                                  <div
-                                    key={e.path}
-                                    className={`${styles.diffEntry} ${
-                                      e.changed ? styles.diffEntryChanged : ''
-                                    }`}
-                                  >
-                                    <span className={styles.diffEntryLabel}>
-                                      {e.label || conflictFieldLabel(row.key, t)}:
-                                    </span>
-                                    {e.localText === null ? (
-                                      <span className={styles.fieldMissing}>{missingLabel}</span>
-                                    ) : e.localLevel ? (
-                                      <SensitivityBadge level={e.localLevel} />
-                                    ) : e.localIcon ? (
-                                      <span className={styles.diffValueWithIcon}>
-                                        <DiffIcon icon={e.localIcon} />
-                                        {truncateConflictValue(e.localText)}
-                                      </span>
-                                    ) : (
-                                      truncateConflictValue(e.localText)
-                                    )}
-                                  </div>
-                                ))}
-                              </div>
-                            ) : isSensitivityLevel(row.local) ? (
-                              <SensitivityBadge level={row.local} />
-                            ) : localIcon ? (
-                              <span className={styles.diffValueWithIcon}>
-                                <DiffIcon icon={localIcon} />
-                                {truncateConflictValue(formatConflictValue(row.key, row.local, t))}
-                              </span>
-                            ) : (
-                              truncateConflictValue(formatConflictValue(row.key, row.local, t))
-                            )}
-                          </div>
-                          <div className={styles.fieldValue}>
-                            {detail.remote_deleted ? (
-                              <span className={styles.fieldMissing}>
-                                {t('settings:sync_conflict_remote_deleted', {
-                                  defaultValue: 'Remote deleted',
-                                })}
-                              </span>
-                            ) : row.remote === undefined ? (
-                              <span className={styles.fieldMissing}>{missingLabel}</span>
-                            ) : hasEntries ? (
-                              <div className={styles.diffEntryList}>
-                                {diffEntries.map((e) => (
-                                  <div
-                                    key={e.path}
-                                    className={`${styles.diffEntry} ${
-                                      e.changed ? styles.diffEntryChanged : ''
-                                    }`}
-                                  >
-                                    <span className={styles.diffEntryLabel}>
-                                      {e.label || conflictFieldLabel(row.key, t)}:
-                                    </span>
-                                    {e.remoteText === null ? (
-                                      <span className={styles.fieldMissing}>{missingLabel}</span>
-                                    ) : e.remoteLevel ? (
-                                      <SensitivityBadge level={e.remoteLevel} />
-                                    ) : e.remoteIcon ? (
-                                      <span className={styles.diffValueWithIcon}>
-                                        <DiffIcon icon={e.remoteIcon} />
-                                        {truncateConflictValue(e.remoteText)}
-                                      </span>
-                                    ) : (
-                                      truncateConflictValue(e.remoteText)
-                                    )}
-                                  </div>
-                                ))}
-                              </div>
-                            ) : isSensitivityLevel(row.remote) ? (
-                              <SensitivityBadge level={row.remote} />
-                            ) : remoteIcon ? (
-                              <span className={styles.diffValueWithIcon}>
-                                <DiffIcon icon={remoteIcon} />
-                                {truncateConflictValue(formatConflictValue(row.key, row.remote, t))}
-                              </span>
-                            ) : (
-                              truncateConflictValue(formatConflictValue(row.key, row.remote, t))
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })
+                    fieldRows.map(renderFieldRow)
                   )}
                 </div>
 
@@ -423,5 +317,126 @@ export function SyncConflictDialog({
         )}
       </div>
     </Dialog>
+  );
+}
+
+/**
+ * P027: 字段级冲突行（从 SyncConflictDialog 抽出，降低主组件 JSX 嵌套深度）。
+ * 渲染字段名 + 差异徽章 + 本地值/远程值两列（对象/数组字段展开为叶子级 diff 条目，
+ * 标量字段沿用整值渲染；敏感度/图标/截断规则与既有实现一致）。
+ */
+function ConflictFieldRow({
+  row,
+  detail,
+  onlyDifferences,
+  t,
+}: {
+  row: { key: string; local: unknown; remote: unknown; changed: boolean };
+  detail: SyncConflictDetail;
+  onlyDifferences: boolean;
+  t: (key: string, opts?: Record<string, unknown>) => string;
+}) {
+  // 对象/数组字段展开为叶子级条目，逐行高亮差异；标量字段沿用整值渲染
+  const diffEntries = detail.remote_deleted
+    ? null
+    : buildDiffEntries(row.key, row.local, row.remote, t, onlyDifferences);
+  const hasEntries = diffEntries !== null && diffEntries.length > 0;
+  const missingLabel = t('settings:sync_conflict_missing', { defaultValue: '—' });
+  const localIcon = resolveConflictIcon(row.key, row.local);
+  const remoteIcon = resolveConflictIcon(row.key, row.remote);
+
+  return (
+    <div className={`${styles.fieldRow} ${row.changed ? styles.fieldChanged : ''}`}>
+      <div className={styles.fieldName} title={row.key}>
+        {conflictFieldLabel(row.key, t)}
+        {row.changed && (
+          <span className={styles.changedBadge}>
+            {t('settings:sync_conflict_changed', { defaultValue: 'changed' })}
+          </span>
+        )}
+      </div>
+      <div className={styles.fieldValue}>
+        {row.local === undefined ? (
+          <span className={styles.fieldMissing}>{missingLabel}</span>
+        ) : hasEntries ? (
+          <div className={styles.diffEntryList}>
+            {diffEntries.map((e) => (
+              <div
+                key={e.path}
+                className={`${styles.diffEntry} ${e.changed ? styles.diffEntryChanged : ''}`}
+              >
+                <span className={styles.diffEntryLabel}>
+                  {e.label || conflictFieldLabel(row.key, t)}:
+                </span>
+                {e.localText === null ? (
+                  <span className={styles.fieldMissing}>{missingLabel}</span>
+                ) : e.localLevel ? (
+                  <SensitivityBadge level={e.localLevel} />
+                ) : e.localIcon ? (
+                  <span className={styles.diffValueWithIcon}>
+                    <DiffIcon icon={e.localIcon} />
+                    {truncateConflictValue(e.localText)}
+                  </span>
+                ) : (
+                  truncateConflictValue(e.localText)
+                )}
+              </div>
+            ))}
+          </div>
+        ) : isSensitivityLevel(row.local) ? (
+          <SensitivityBadge level={row.local} />
+        ) : localIcon ? (
+          <span className={styles.diffValueWithIcon}>
+            <DiffIcon icon={localIcon} />
+            {truncateConflictValue(formatConflictValue(row.key, row.local, t))}
+          </span>
+        ) : (
+          truncateConflictValue(formatConflictValue(row.key, row.local, t))
+        )}
+      </div>
+      <div className={styles.fieldValue}>
+        {detail.remote_deleted ? (
+          <span className={styles.fieldMissing}>
+            {t('settings:sync_conflict_remote_deleted', { defaultValue: 'Remote deleted' })}
+          </span>
+        ) : row.remote === undefined ? (
+          <span className={styles.fieldMissing}>{missingLabel}</span>
+        ) : hasEntries ? (
+          <div className={styles.diffEntryList}>
+            {diffEntries.map((e) => (
+              <div
+                key={e.path}
+                className={`${styles.diffEntry} ${e.changed ? styles.diffEntryChanged : ''}`}
+              >
+                <span className={styles.diffEntryLabel}>
+                  {e.label || conflictFieldLabel(row.key, t)}:
+                </span>
+                {e.remoteText === null ? (
+                  <span className={styles.fieldMissing}>{missingLabel}</span>
+                ) : e.remoteLevel ? (
+                  <SensitivityBadge level={e.remoteLevel} />
+                ) : e.remoteIcon ? (
+                  <span className={styles.diffValueWithIcon}>
+                    <DiffIcon icon={e.remoteIcon} />
+                    {truncateConflictValue(e.remoteText)}
+                  </span>
+                ) : (
+                  truncateConflictValue(e.remoteText)
+                )}
+              </div>
+            ))}
+          </div>
+        ) : isSensitivityLevel(row.remote) ? (
+          <SensitivityBadge level={row.remote} />
+        ) : remoteIcon ? (
+          <span className={styles.diffValueWithIcon}>
+            <DiffIcon icon={remoteIcon} />
+            {truncateConflictValue(formatConflictValue(row.key, row.remote, t))}
+          </span>
+        ) : (
+          truncateConflictValue(formatConflictValue(row.key, row.remote, t))
+        )}
+      </div>
+    </div>
   );
 }

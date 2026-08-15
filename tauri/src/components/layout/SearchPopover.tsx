@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import {
   Search,
   X,
@@ -16,7 +17,7 @@ import {
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { createPortal } from 'react-dom';
 import { useAuthStore } from '@/stores/authStore';
-import { useSettingsStore } from '@/stores/settingsStore';
+import { useSettingsStore, type CustomPage } from '@/stores/settingsStore';
 import { useToastError } from '@/hooks/useToastError';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
 import { DEBOUNCE_DELAY_MS } from '@/lib/constants';
@@ -210,6 +211,19 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
 
   const showDefaultView = !hasSearched || (query.trim() === '' && !selectedFilter);
 
+  // P027: 结果行抽为子组件（降 JSX 嵌套深度，resolvePageName/resolveResultName 经 props 传入）
+  const renderResultRow = (item: SearchItem) => (
+    <SearchResultRow
+      key={`${item.itemType}-${item.objectId}`}
+      item={item}
+      query={query}
+      customPages={customPages}
+      t={t}
+      resolvePageName={resolvePageName}
+      onClick={() => handleClickResult(item)}
+    />
+  );
+
   const handleFilterWheel = (e: React.WheelEvent<HTMLDivElement>) => {
     const el = filterBarRef.current;
     if (!el) return;
@@ -311,108 +325,7 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
                     {t('common:no_results')}
                   </div>
                 )}
-                {results.map((item) => {
-                  const ResultIcon = resolveResultIcon(item, customPages);
-                  return (
-                    <button
-                      key={`${item.itemType}-${item.objectId}`}
-                      className={styles.resultItem}
-                      onClick={() => handleClickResult(item)}
-                    >
-                      <ResultIcon size={16} />
-                      <div className={styles.resultText}>
-                        <div className={styles.resultName}>
-                          {item.itemType === 'page' ||
-                          item.itemType === 'template' ||
-                          item.matchType === 'template' ? (
-                            <Highlight text={resolveResultName(item, customPages, t)} query={query} />
-                          ) : (
-                            resolveResultName(item, customPages, t)
-                          )}
-                        </div>
-                        <div className={styles.resultMeta}>
-                          {item.itemType === 'page' ? (
-                            <>
-                              <span className={styles.typeTag}>
-                                {t('settings:search_type_page')}
-                              </span>
-                              <span> · {resolvePageName(item)}</span>
-                              {item.objectCount !== undefined && (
-                                <span>
-                                  {' '}
-                                  · {item.objectCount} {t('settings:search_objects_count')}
-                                </span>
-                              )}
-                            </>
-                          ) : item.itemType === 'template' ? (
-                            <>
-                              <span className={styles.typeTag}>
-                                {t('settings:search_type_template', 'Template')}
-                              </span>
-                              {item.fieldCount !== undefined && (
-                                <span>
-                                  {' · '}
-                                  {item.fieldCount} {t('settings:search_fields_count')}
-                                </span>
-                              )}
-                            </>
-                          ) : (
-                            <>
-                              <span className={styles.typeTag}>
-                                {t('settings:search_type_object')}
-                              </span>
-                              <span>
-                                {' '}
-                                ·{' '}
-                                {item.matchType === 'template' ? (
-                                  <Highlight text={resolvePageName(item)} query={query} />
-                                ) : (
-                                  resolvePageName(item)
-                                )}
-                              </span>
-                              {item.templateName && (
-                                <span>
-                                  {' · '}
-                                  <span
-                                    style={
-                                      item.templateDeleted
-                                        ? { textDecoration: 'line-through' }
-                                        : undefined
-                                    }
-                                  >
-                                    {item.templateName}
-                                  </span>
-                                </span>
-                              )}
-                              {item.fieldCount !== undefined && (
-                                <span>
-                                  {' '}
-                                  · {item.fieldCount} {t('settings:search_fields_count')}
-                                </span>
-                              )}
-                              {item.sensitivityLevels && item.sensitivityLevels.length > 0 && (
-                                <span
-                                  style={{
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    gap: 4,
-                                    marginLeft: 4,
-                                  }}
-                                >
-                                  {' · '}
-                                  {sortSensitivityLevels(item.sensitivityLevels).map((lvl) => (
-                                    <SensitivityBadge key={lvl} level={lvl} />
-                                  ))}
-                                </span>
-                              )}
-                            </>
-                          )}
-                          <MatchHint item={item} query={query} t={t} />
-                        </div>
-                      </div>
-                    </button>
-                  );
-                })}
+                {results.map(renderResultRow)}
               </>
             )}
 
@@ -462,5 +375,109 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
       )}
     </>,
     document.body,
+  );
+}
+
+/**
+ * P027: 搜索结果单行（从 SearchPopover 抽出，降低主组件 JSX 嵌套深度）。
+ * 渲染图标 + 名称（含高亮）+ 元信息（页面/模板/对象三种类型 + 敏感度徽章 + 匹配提示）。
+ */
+function SearchResultRow({
+  item,
+  query,
+  customPages,
+  t,
+  resolvePageName,
+  onClick,
+}: {
+  item: SearchItem;
+  query: string;
+  customPages: CustomPage[];
+  t: TFunction;
+  resolvePageName: (item: SearchItem) => string;
+  onClick: () => void;
+}) {
+  const ResultIcon = resolveResultIcon(item, customPages);
+  return (
+    <button className={styles.resultItem} onClick={onClick}>
+      <ResultIcon size={16} />
+      <div className={styles.resultText}>
+        <div className={styles.resultName}>
+          {item.itemType === 'page' ||
+          item.itemType === 'template' ||
+          item.matchType === 'template' ? (
+            <Highlight text={resolveResultName(item, customPages, t)} query={query} />
+          ) : (
+            resolveResultName(item, customPages, t)
+          )}
+        </div>
+        <div className={styles.resultMeta}>
+          {item.itemType === 'page' ? (
+            <>
+              <span className={styles.typeTag}>{t('settings:search_type_page')}</span>
+              <span> · {resolvePageName(item)}</span>
+              {item.objectCount !== undefined && (
+                <span>
+                  {' '}· {item.objectCount} {t('settings:search_objects_count')}
+                </span>
+              )}
+            </>
+          ) : item.itemType === 'template' ? (
+            <>
+              <span className={styles.typeTag}>{t('settings:search_type_template', 'Template')}</span>
+              {item.fieldCount !== undefined && (
+                <span>
+                  {' · '}
+                  {item.fieldCount} {t('settings:search_fields_count')}
+                </span>
+              )}
+            </>
+          ) : (
+            <>
+              <span className={styles.typeTag}>{t('settings:search_type_object')}</span>
+              <span>
+                {' '}·{' '}
+                {item.matchType === 'template' ? (
+                  <Highlight text={resolvePageName(item)} query={query} />
+                ) : (
+                  resolvePageName(item)
+                )}
+              </span>
+              {item.templateName && (
+                <span>
+                  {' · '}
+                  <span
+                    style={item.templateDeleted ? { textDecoration: 'line-through' } : undefined}
+                  >
+                    {item.templateName}
+                  </span>
+                </span>
+              )}
+              {item.fieldCount !== undefined && (
+                <span>
+                  {' '}· {item.fieldCount} {t('settings:search_fields_count')}
+                </span>
+              )}
+              {item.sensitivityLevels && item.sensitivityLevels.length > 0 && (
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    marginLeft: 4,
+                  }}
+                >
+                  {' · '}
+                  {sortSensitivityLevels(item.sensitivityLevels).map((lvl) => (
+                    <SensitivityBadge key={lvl} level={lvl} />
+                  ))}
+                </span>
+              )}
+            </>
+          )}
+          <MatchHint item={item} query={query} t={t} />
+        </div>
+      </div>
+    </button>
   );
 }
