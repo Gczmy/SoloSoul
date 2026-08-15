@@ -38,6 +38,14 @@ export interface FlattenPropertyOptions {
   keepMetaKeys?: boolean;
   /** dynamic_group 子字段展平为独立条目（默认 true）；false 时保留分组结构。 */
   flattenDynamicGroups?: boolean;
+  /**
+   * 普通字段是否注入 `label: defs[k]?.name`（默认 false）。
+   * P024-R1：旧 objectDetailUtils/WorkspaceObjectCard 实现普通字段不带 label——
+   * 消费端 label 优先（`label || getFieldName(key)`）回退当前模板名；若注入
+   * 过期 `__fields` 快照名，模板字段重命名而快照未同步时会显示旧名。
+   * 仅 HistoryViewer（历史快照本就以快照名称为准）传 true。
+   */
+  injectFieldLabels?: boolean;
 }
 
 export interface FieldDefShape {
@@ -60,7 +68,7 @@ export function flattenPropertyEntries(
   options: FlattenPropertyOptions = {},
 ): FlattenedPropertyEntry[] {
   if (!props) return [];
-  const { keepMetaKeys = false, flattenDynamicGroups = true } = options;
+  const { keepMetaKeys = false, flattenDynamicGroups = true, injectFieldLabels = false } = options;
   const defs =
     fieldDefs ??
     ((props.__fields as Record<string, FieldDefShape> | undefined) ?? {});
@@ -125,13 +133,21 @@ export function flattenPropertyEntries(
     }
 
     if (typeof v === 'string') {
-      entries.push({ kind: 'field', key: k, value: v, label: defs[k]?.name, type: defs[k]?.type });
+      // P024-R1: 普通字段默认不注入 label（旧实现语义）；HistoryViewer 场景
+      // 经 injectFieldLabels 显式开启（历史快照以快照名称为准）。
+      entries.push({
+        kind: 'field',
+        key: k,
+        value: v,
+        label: injectFieldLabels ? defs[k]?.name : undefined,
+        type: defs[k]?.type,
+      });
     } else if (typeof v === 'number' || typeof v === 'boolean') {
       entries.push({
         kind: 'field',
         key: k,
         value: String(v),
-        label: defs[k]?.name,
+        label: injectFieldLabels ? defs[k]?.name : undefined,
         type: defs[k]?.type,
       });
     } else if (Array.isArray(v) && v.length > 0) {
@@ -139,7 +155,7 @@ export function flattenPropertyEntries(
         kind: 'field',
         key: k,
         value: v.join(', '),
-        label: defs[k]?.name,
+        label: injectFieldLabels ? defs[k]?.name : undefined,
         type: defs[k]?.type,
       });
     }

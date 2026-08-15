@@ -372,6 +372,8 @@
 - **提交**：`b1d7ee2b`
 - **改动**：新建 `src/lib/propertyFlatten.ts` 共享核心 `flattenPropertyEntries`，差异点参数化：`keepMetaKeys`（保留 fieldDefs 中定义的 `__` 前缀 key，历史快照的 `__dynamic_group__` 需要；普通展示一律跳过）与 `flattenDynamicGroups`（展平为独立条目 vs 保留分组结构）。三处调用方改为薄包装：① `HistoryViewer.tsx`（keepMetaKeys=true + 分组模式，行为完全不变，13 测试全绿）；② `objectDetailUtils.ts`（展平模式 + fieldId，6 测试全绿）；③ `WorkspaceObjectCard.tsx`（展平模式，3 测试全绿）。新增共享核心自身 8 条单测。
 - **验证**：`npx tsc --noEmit` 无相关文件错误；`npx eslint` 通过；`vitest run` 相关 3 文件 24 + 核心 8 测试全绿。
+- **P024-R1 「零行为变化」不实修正（核查轮次 13 发现）**：共享核心给**普通字段**新增了 `label: defs[k]?.name`，而旧 objectDetailUtils/WorkspaceObjectCard 实现不带 label——消费端 label 优先（`label || getFieldName(key)`），模板字段重命名而对象 `__fields` 快照未同步时会显示过期快照名（旧代码显示当前模板名）。修复：`FlattenPropertyOptions` 新增 `injectFieldLabels`（默认 false），普通字段默认不注入 label（恢复旧语义，消费端回退当前模板名）；仅 HistoryViewer 传 true（历史快照本就以快照内名称为准，行为不变，旧实现也注入）。新增 2 条核心单测（默认不注入 / 显式注入）。提交 `（待回填）`。
+- **P024-R1 验证**：tsc/eslint 通过；`vitest run` 核心 10 + HistoryViewer/objectDetailUtils/WorkspaceObjectCard 共 32 测试全绿。
 
 ### P025 · `SearchCache` 无容量上限（已修复）
 - **提交**：`370e2ef6`

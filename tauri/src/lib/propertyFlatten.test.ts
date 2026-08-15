@@ -109,4 +109,27 @@ describe('flattenPropertyEntries (P024 shared core)', () => {
     const result = flattenPropertyEntries(props, ['c', 'a']);
     expect(result.map((r) => r.key)).toEqual(['c', 'a', 'b']);
   });
+
+  it('P024-R1: plain fields do NOT inject __fields snapshot label by default', () => {
+    // 旧 objectDetailUtils/WorkspaceObjectCard 语义：普通字段不带 label，
+    // 消费端 label 优先回退当前模板名；若注入过期 __fields 快照名，模板字段
+    // 重命名而快照未同步时会显示旧名（核查轮次 13 发现的零行为变化破坏）。
+    const props = {
+      __fields: { email: { type: 'text', name: '旧邮箱名' } },
+      email: 'a@b.com',
+    };
+    expect(flattenPropertyEntries(props)).toEqual([
+      { kind: 'field', key: 'email', value: 'a@b.com', type: 'text' },
+    ]);
+  });
+
+  it('P024-R1: injectFieldLabels=true keeps snapshot names (HistoryViewer semantics)', () => {
+    const props = {
+      __fields: { email: { type: 'text', name: '历史邮箱名' } },
+      email: 'a@b.com',
+    };
+    expect(flattenPropertyEntries(props, undefined, undefined, { injectFieldLabels: true })).toEqual(
+      [{ kind: 'field', key: 'email', value: 'a@b.com', label: '历史邮箱名', type: 'text' }],
+    );
+  });
 });

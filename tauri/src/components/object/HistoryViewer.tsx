@@ -44,9 +44,13 @@ export function flattenProperties(
   props: Record<string, unknown> | undefined,
   fieldOrder?: string[],
 ): FlattenedField[] {
+  // P024-R1: 历史快照以快照内 __fields 名称为准（快照本身就是该时刻的字段定义），
+  // 显式开启 injectFieldLabels；普通对象展示（objectDetailUtils/WorkspaceObjectCard）
+  // 保持旧语义不注入，回退消费端当前模板名。
   return flattenPropertyEntries(props, fieldOrder, undefined, {
     keepMetaKeys: true,
     flattenDynamicGroups: false,
+    injectFieldLabels: true,
   }).map((e) =>
     e.kind === 'field'
       ? {
