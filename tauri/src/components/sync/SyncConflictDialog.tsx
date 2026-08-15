@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import type { TFunction } from 'i18next';
 import { Dialog } from '@/components/ui/Dialog';
 import { Button } from '@/components/ui/Button';
 import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
@@ -107,19 +108,17 @@ export function SyncConflictDialog({
         )
       : [];
 
-  // P027: 字段行抽为子组件（降低 JSX 嵌套深度）；diff 行渲染与计数逻辑保持一致
-  const renderFieldRow = (row: { key: string; local: unknown; remote: unknown; changed: boolean }) => {
-    if (!detail) return null;
-    return (
-      <ConflictFieldRow
-        key={row.key}
-        row={row}
-        detail={detail}
-        onlyDifferences={onlyDifferences}
-        t={t}
-      />
-    );
-  };
+  // P027: 字段行抽为子组件（降低 JSX 嵌套深度）；diff 行渲染与计数逻辑保持一致。
+  // detail 仅在下方 `detail && selectedConflict` 分支内调用，非空断言安全。
+  const renderFieldRow = (row: { key: string; local: unknown; remote: unknown; changed: boolean }) => (
+    <ConflictFieldRow
+      key={row.key}
+      row={row}
+      detail={detail!}
+      onlyDifferences={onlyDifferences}
+      t={t}
+    />
+  );
   const diffCount = fieldRows.reduce(
     (n, row) =>
       n +
@@ -334,7 +333,7 @@ function ConflictFieldRow({
   row: { key: string; local: unknown; remote: unknown; changed: boolean };
   detail: SyncConflictDetail;
   onlyDifferences: boolean;
-  t: (key: string, opts?: Record<string, unknown>) => string;
+  t: TFunction;
 }) {
   // 对象/数组字段展开为叶子级条目，逐行高亮差异；标量字段沿用整值渲染
   const diffEntries = detail.remote_deleted

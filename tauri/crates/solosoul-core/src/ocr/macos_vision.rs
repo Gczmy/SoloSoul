@@ -5,7 +5,8 @@
 //!
 //! # 实现方式
 //!
-//! 将 Swift 源码作为字符串嵌入，在首次调用时编译为临时二进制，缓存到 `{tmp}/solosoul-ocr-vision/`。
+//! 将 Swift 源码作为字符串嵌入，在首次调用时编译为临时二进制，缓存到系统缓存目录
+//! `{cache}/com.solosoul.app/vision_cli/`（hash 另存 `{config}/com.solosoul.app/vision_cli/`）。
 //! 后续调用直接使用已编译的二进制，避免每次都重新编译。
 //!
 //! # 跨平台
@@ -306,7 +307,10 @@ fn ensure_vision_cli() -> Result<PathBuf, String> {
         let actual_hash = sha256_file(&binary_path)?;
         let actual_hex = hex::encode(&actual_hash);
         if stored_hash.trim() != actual_hex {
-            return Err("缓存二进制哈希不匹配，文件可能已被篡改。请删除缓存目录后重试".to_string());
+            return Err(
+                "缓存二进制哈希不匹配，文件可能已被篡改。请删除缓存目录与配置目录下的 vision_cli 后重试"
+                    .to_string(),
+            );
         }
         tracing::debug!("Vision CLI 哈希校验通过");
     } else {
