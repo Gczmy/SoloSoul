@@ -40,7 +40,7 @@
 | P006 | 架构       | `tauri/src-tauri/src/commands/`（401 处 `Result<_, String>`）↔ `tauri/src/lib/backendError.ts` | 前后端错误契约是裸字符串精确/前缀匹配，Rust 侧改文案前端 i18n 静默失效 | `[x]` 已修复（P006） |
 | P007 | 漏洞/架构  | 普遍，例 `tauri/crates/solosoul-vault/src/storage/objects.rs:712` | 内部错误细节（SQL 片段、路径、rusqlite 原文）直接透传到前端 UI | `[x]` 已修复（P007） |
 | P008 | 架构       | `tauri/crates/solosoul-vault/src/storage.rs`（5915 行） | 上帝对象：VaultStore + 加密迁移 + 整表重写 + sync 密钥 + 搜索工具混在一个文件 | `[x]` 已修复（P008） |
-| P009 | 死代码     | `tauri/crates/solosoul-core/Cargo.toml:29,38,49` | `anyhow`、`tokio`、`rand` 三个直接依赖在 core 全库无引用 | `[ ]` 待修复 |
+| P009 | 死代码     | `tauri/crates/solosoul-core/Cargo.toml:29,38,49` | `anyhow`、`tokio`、`rand` 三个直接依赖在 core 全库无引用 | `[x]` 已修复（P009） |
 | P010 | 重复代码   | `tauri/src-tauri/src/commands/export_import/helpers.rs:24-88` ↔ `tauri/crates/solosoul-core/src/export_import.rs:885-942` 等 | `build_package_ids`/`resolve_*_references`/`derive_export_key` 等函数 GUI 与 core 逐字重复（相似度 ≈100%） | `[ ]` 待修复 |
 | P011 | 性能       | `tauri/crates/solosoul-vault/src/storage/sync_changes.rs:136,495`、`storage/conversations.rs:204` | 同步热路径逐行 `record_hlc_or_fallback`（每行一次 SELECT + 加锁），objects/trash 已用 LEFT JOIN 批量，同文件两种模式并存 | `[ ]` 待修复 |
 | P012 | 结构       | `tauri/crates/solosoul-vault/src/storage/objects.rs:393` | `list_objects` 147 行，查询/解密/组装混杂，对象列表核心路径 | `[ ]` 待修复 |
@@ -94,8 +94,8 @@
 
 ## 修复进度
 
-- 已完成：8 / 54
-- 当前处理：P009（solosoul-core 三个未使用依赖）
+- 已完成：9 / 54
+- 当前处理：P010（export_import GUI 与 core 逐字重复）
 
 ---
 
@@ -164,10 +164,12 @@
 - **修复**：① `reencrypt_all`（~147 行整库换钥重加密，报告建议的 `storage/reencrypt.rs`）抽为独立子模块——`impl VaultStore` 扩展方法 + `use super::rewrite_table` 复用父模块重写助手，N-2 单事务原子回滚语义原样迁移，storage.rs 瘦身至 ~1250 行；② 内嵌 `mod tests`（~4700 行 / 138 测试）整体迁移至 `storage/tests.rs`（`#[cfg(test)] mod tests;` + 去一层缩进）。拆分后 `storage.rs` 本体 1113 行纯生产代码（低于 <1500 目标），其余逻辑仍按需驻留子模块。纯重构零行为变化。
 - **验证**：storage::tests 138 全绿；solosoul-vault clippy `-D warnings` exit 0；fmt 通过。
 
-### P009 — solosoul-core 三个未使用依赖
+### P009 — solosoul-core 三个未使用依赖（已修复）
 
+- **提交**：`88719a69`
 - **位置**：`tauri/crates/solosoul-core/Cargo.toml:29,38,49`：`anyhow`、`tokio`、`rand` 在 `solosoul-core/src` 全库（含测试模块）无任何引用。
-- **修复**：从 `[dependencies]` 移除。
+- **修复**：从 `[dependencies]` 移除三项（workspace 级 `[workspace.dependencies]` 定义仍被其他 crate 使用，不动）。
+- **验证**：solosoul-core `cargo check --all-targets` / `cargo clippy --all-targets -- -D warnings` / `cargo fmt --check` 全部 exit 0。
 
 ### P010 — export_import 在 GUI 与 core 逐字重复
 
