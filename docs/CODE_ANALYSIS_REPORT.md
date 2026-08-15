@@ -97,6 +97,8 @@
 - **提交**：`e84a247f`
 - **改动**：确认 GUI 路径（`src-tauri/commands/llm/stream.rs` `handle_sse_stream`）本已真流式；整包读取仅影响 CLI（`solosoul_cli/src/app.rs` → `LlmService::send_message_stream` → `client.rs::process_sse`）。`client.rs` 三处改造：① `process_sse` 弃用 `resp.bytes()` 整包读入，改独立读线程 `BufReader` 逐行消费网络流 + mpsc 转发，首 token 到达即触发 `on_event`（CLI 打字机真正流式）；② 超时策略：请求级 120s 总超时改为 `SSE_IDLE_TIMEOUT=120s` 空闲超时（`recv_timeout`，每行重置）——长回复持续出 token 不再被截断，死连接不发数据也不会永久挂起；③ 非流式路径 `process_non_streaming` 经新增 `read_body_with_timeout` 保留总超时兜底；client 改 `connect_timeout(15s)` + 无总超时。解析逻辑与事件语义不变。
 - **验证**：`cargo clippy --all-targets -- -D warnings`（solosoul-core）exit 0；`cargo check`（solosoul_cli）exit 0；fmt 通过。
+- **P004-R1 回归修复（核查轮次 13 发现）**：读线程 `spawn_sse_reader` 原实现 `Err(_) => break` 后照常 `send(None)`，把**网络读错误伪装成 EOF**——中途断流的半截回复被当完整回复 emit Done 并 Auto-save 持久化（与 P001–P003「消除静默失败」主题相悖）。修复：通道类型改为 `Result<Option<String>, String>`，读错误经 `Err` 传播给解析侧（`process_sse` 直接 `return Err`，不 emit Done），`Ok(None)` 仅表示真正 EOF；读循环抽为 `sse_reader_loop` 便于单测。新增回归测试 `sse_reader_propagates_read_error_not_fake_eof`（模拟「读出一行后 BrokenPipe」：断言第二项为 `Err` 而非 `Ok(None)`）。提交 `（待回填）`。
+- **P004-R1 验证**：`cargo test llm::client` 3 测试全绿（含新增回归）；`cargo fmt` 通过。
 
 ### P007 · 删除 LLM provider 失败仍更新本地状态（已修复）
 - **提交**：`724f6faa`

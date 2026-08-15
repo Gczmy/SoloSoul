@@ -158,6 +158,8 @@ fn process_sse(
     let mut counters = SseCounters::default();
 
     loop {
+        // 通道值语义：Ok(Some(line)) 正常行；Ok(None) 真正 EOF；
+        // Err(e) 网络读错误（P004-R1：必须中断并传播，不得当作完整回复）。
         let line_opt = rx.recv_timeout(SSE_IDLE_TIMEOUT).map_err(|e| {
             format!(
                 "SSE stream read error (idle timeout {}s or disconnected): {}",
@@ -165,8 +167,12 @@ fn process_sse(
                 e
             )
         })?;
-        let Some(raw_line) = line_opt else {
-            break; // EOF
+        let raw_line = match line_opt {
+            Ok(raw) => raw,
+            Err(e) => return Err(e),
+        };
+        let Some(raw_line) = raw_line else {
+            break; // 真正的 EOF
         };
         let line: &str = raw_line.trim();
 
@@ -204,33 +210,50 @@ fn process_sse(
     Ok(())
 }
 /// P004: 独立读线程逐行消费网络流（blocking Response 实现 `std::io::Read`），
-/// 经 mpsc 转发给解析侧；EOF 时发送 `None`。不 join：空闲超时退出时读线程
-/// 可能仍阻塞在 read_line，detach 语义让其随连接关闭/进程退出自然清理。
+/// 经 mpsc 转发给解析侧。
+///
+/// 通道语义（P004-R1 修正）：`Err(String)` 表示读线程遇到**网络读错误**，
+/// 必须传播给解析侧（进程外由 send_chat_stream 返回 Err 通知 CLI/引擎），
+/// **不得**伪装成 EOF——否则网络中途断流的半截回复会被当作完整回复
+/// emit Done 并持久化。`Ok(None)` 仅表示真正的 EOF。
+///
+/// 不 join：空闲超时退出时读线程可能仍阻塞在 read_line，detach 语义让其随
+/// 连接关闭/进程退出自然清理（解析侧丢 rx 后其 send 会失败并退出）。
 fn spawn_sse_reader(
     resp: reqwest::blocking::Response,
-) -> std::sync::mpsc::Receiver<Option<String>> {
-    use std::io::BufRead;
-    let (tx, rx) = std::sync::mpsc::channel::<Option<String>>();
-    // 不 join：空闲超时退出时读线程可能仍阻塞在 read_line，detach 语义让其随
-    // 连接关闭/进程退出自然清理（解析侧丢 rx 后其 send 会失败并退出）。
+) -> std::sync::mpsc::Receiver<Result<Option<String>, String>> {
+    let (tx, rx) = std::sync::mpsc::channel::<Result<Option<String>, String>>();
     let _reader = std::thread::spawn(move || {
-        let mut reader = std::io::BufReader::new(resp);
-        let mut line = String::new();
-        loop {
-            line.clear();
-            match reader.read_line(&mut line) {
-                Ok(0) => break, // EOF
-                Ok(_) => {
-                    if tx.send(Some(std::mem::take(&mut line))).is_err() {
-                        break; // 解析侧已退出（如空闲超时），停止发送
-                    }
-                }
-                Err(_) => break,
-            }
-        }
-        let _ = tx.send(None); // 通知解析侧流结束
+        sse_reader_loop(std::io::BufReader::new(resp), tx);
     });
     rx
+}
+
+/// P004-R1: 读线程逐行消费循环（抽函数便于单测）。
+/// 语义：`Ok(Some(line))` 正常行；`Err(e)` 网络读错误（必须传播，不得伪装 EOF）；
+/// 循环结束后 `Ok(None)` 通知真正的流结束（解析侧已因 Err 提前返回时被忽略）。
+fn sse_reader_loop<R: std::io::BufRead>(
+    mut reader: R,
+    tx: std::sync::mpsc::Sender<Result<Option<String>, String>>,
+) {
+    let mut line = String::new();
+    loop {
+        line.clear();
+        match reader.read_line(&mut line) {
+            Ok(0) => break, // 真正的 EOF
+            Ok(_) => {
+                if tx.send(Ok(Some(std::mem::take(&mut line)))).is_err() {
+                    break; // 解析侧已退出（如空闲超时），停止发送
+                }
+            }
+            Err(e) => {
+                // P004-R1: 读错误必须传播，不能伪装成 EOF
+                let _ = tx.send(Err(format!("SSE stream read error: {e}")));
+                break;
+            }
+        }
+    }
+    let _ = tx.send(Ok(None)); // 通知解析侧真正的流结束
 }
 
 /// process_sse 的 token 计数聚合。
@@ -396,5 +419,58 @@ mod tests {
         assert_eq!(body["model"], "claude-sonnet-4-20250514");
         assert!(body.get("system").is_some());
         assert!(headers.iter().any(|(k, _)| k == "x-api-key"));
+    }
+
+    /// P004-R1 回归测试：读线程在「读出一行后网络中断」时，必须发送
+    /// `Err`（读错误）而不是 `Ok(None)`（伪装 EOF）——否则解析侧会把
+    /// 半截回复当完整回复 emit Done 并持久化。
+    struct ReadLineThenBroken {
+        emitted: bool,
+    }
+    impl std::io::Read for ReadLineThenBroken {
+        fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+            if !self.emitted {
+                self.emitted = true;
+                let line = b"data: {\"role\": \"assistant\"}\n";
+                let n = line.len().min(buf.len());
+                buf[..n].copy_from_slice(&line[..n]);
+                Ok(n)
+            } else {
+                Err(std::io::Error::new(
+                    std::io::ErrorKind::BrokenPipe,
+                    "connection reset by peer",
+                ))
+            }
+        }
+    }
+
+    #[test]
+    fn sse_reader_propagates_read_error_not_fake_eof() {
+        let (tx, rx) = std::sync::mpsc::channel::<Result<Option<String>, String>>();
+        sse_reader_loop(
+            std::io::BufReader::new(ReadLineThenBroken { emitted: false }),
+            tx,
+        );
+
+        // 第一行正常送达
+        let first = rx.recv().expect("first line");
+        assert!(
+            matches!(&first, Ok(Some(l)) if l.starts_with("data: ")),
+            "第一行应为正常行，got {first:?}"
+        );
+
+        // 读错误必须作为 Err 传播，而不是 Ok(None)（伪装 EOF）
+        let second = rx.recv().expect("read error");
+        assert!(
+            matches!(&second, Err(e) if e.contains("reset")),
+            "读错误应传播为 Err，got {second:?}"
+        );
+
+        // 循环结束仍发送 Ok(None)（detach 通知，解析侧已提前返回则忽略）
+        let third = rx.recv().expect("eof marker");
+        assert!(
+            matches!(third, Ok(None)),
+            "EOF 标记应为 Ok(None)，got {third:?}"
+        );
     }
 }
