@@ -4428,7 +4428,7 @@ dependencies = [
 
 [[package]]
 name = "solosoul-core"
-version = "2.9.2"
+version = "2.10.1"
 dependencies = [
  "ab_glyph",
  "anyhow",
@@ -4466,7 +4466,7 @@ dependencies = [
 
 [[package]]
 name = "solosoul-crypto"
-version = "2.9.2"
+version = "2.10.1"
 dependencies = [
  "aes-gcm",
  "argon2",
@@ -4480,7 +4480,7 @@ dependencies = [
 
 [[package]]
 name = "solosoul-plugin"
-version = "2.9.2"
+version = "2.10.1"
 dependencies = [
  "chrono",
  "dirs",
@@ -4505,7 +4505,7 @@ dependencies = [
 
 [[package]]
 name = "solosoul-sync"
-version = "2.9.2"
+version = "2.10.1"
 dependencies = [
  "base64",
  "chrono",
@@ -4528,7 +4528,7 @@ dependencies = [
 
 [[package]]
 name = "solosoul-vault"
-version = "2.9.2"
+version = "2.10.1"
 dependencies = [
  "base64",
  "chrono",
