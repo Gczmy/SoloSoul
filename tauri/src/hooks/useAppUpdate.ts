@@ -25,6 +25,8 @@ export type AppUpdateState =
       totalBytes: number;
       progressPercent: number;
       mandatory: boolean;
+      /** P012: APK 校验和不可用原因（Android），供横幅展示可感知警告 */
+      checksumWarning?: string | null;
       error?: string;
     };
 
@@ -57,6 +59,7 @@ export function useAppUpdate() {
           totalBytes: 0,
           progressPercent: 0,
           mandatory: info.mandatory,
+          checksumWarning: info.checksumWarning ?? null,
         });
       });
     } else {
@@ -76,6 +79,7 @@ export function useAppUpdate() {
           totalBytes: 0,
           progressPercent: 0,
           mandatory: false,
+          checksumWarning: null,
         });
       });
     }

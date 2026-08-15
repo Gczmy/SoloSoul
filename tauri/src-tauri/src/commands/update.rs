@@ -526,6 +526,15 @@ pub async fn android_check_update(app: tauri::AppHandle) -> Result<AndroidUpdate
         .map(|body| body.contains("[MANDATORY]"))
         .unwrap_or(false);
 
+    // P012: 强制更新 + 校验和不可信 → 检查阶段硬失败。
+    // 强制更新不可跳过，若无法确认 APK 完整性（.sha256 缺失/签名缺失/验签失败），
+    // 继续提示用户更新只会让下载命令（P002 已 fail-closed）必然失败，且用户可能
+    // 在遮罩里反复点「立即更新」。此处直接阻断并给出明确原因——安全优先于可用性。
+    if mandatory && checksum.is_none() {
+        let reason = checksum_warning.unwrap_or_else(|| "校验和不可用".to_string());
+        return Err(format!("强制更新已阻止：无法验证 APK 完整性（{reason}）"));
+    }
+
     // 如果 Release body 包含 [MANDATORY]，在返回前移除该标记
     // 避免用户看到原始标记文本
     let clean_body = release

@@ -306,6 +306,7 @@ export function AppRoutes() {
               mandatory={updateState.mandatory}
               error={updateState.error}
               releaseNotes={updateState.releaseNotes}
+              checksumWarning={updateState.checksumWarning}
               onUpdate={startDownload}
               onInstall={installUpdate}
               onSkip={() => {

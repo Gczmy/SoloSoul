@@ -66,6 +66,25 @@ describe('MandatoryUpdateOverlay', () => {
     expect(screen.queryByText(/release_notes_title/i)).not.toBeInTheDocument();
   });
 
+  it('P012: shows checksum warning when versionInfo.checksumWarning present', () => {
+    render(
+      <MandatoryUpdateOverlay
+        {...baseProps}
+        versionInfo={{
+          ...baseVersionInfo,
+          checksumWarning: '校验和签名缺失，无法确认 APK 完整性',
+        }}
+      />,
+    );
+    expect(screen.getByText('校验和签名缺失，无法确认 APK 完整性')).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toBeInTheDocument();
+  });
+
+  it('P012: no checksum warning block when checksumWarning absent', () => {
+    const { container } = render(<MandatoryUpdateOverlay {...baseProps} />);
+    expect(container.querySelector('[role="alert"]')).not.toBeInTheDocument();
+  });
+
   it('keeps dialog above the overlay (zIndex > 9999)', () => {
     render(
       <MandatoryUpdateOverlay

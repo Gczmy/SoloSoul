@@ -128,6 +128,29 @@ export function MandatoryUpdateOverlay({
           v{info?.version ?? '?'} → v{versionInfo?.latestVersion ?? '?'}
         </div>
 
+        {/* P012: 校验和不可用警告（防御纵深）——Rust 侧强制更新+不可信已硬失败，
+            此分支仅当未来放宽硬失败策略或后端版本差异时兜底展示 */}
+        {versionInfo?.checksumWarning && (
+          <div
+            role="alert"
+            style={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: 6,
+              width: '100%',
+              padding: '8px 10px',
+              borderRadius: 8,
+              background: 'rgba(230,126,34,0.12)',
+              fontSize: 'var(--text-badge)',
+              color: '#e67e22',
+              lineHeight: 1.5,
+            }}
+          >
+            <AlertTriangle size={14} style={{ flexShrink: 0, marginTop: 1 }} />
+            <span>{versionInfo.checksumWarning}</span>
+          </div>
+        )}
+
         {/* 查看更新内容：与更新横幅 UpdateBanner 交互一致——点击弹出完整 release notes 弹卡 */}
         {versionInfo?.body && (
           <button
