@@ -39,7 +39,7 @@
 | P005 | 架构/数据  | `tauri/src-tauri/src/commands/object/mod.rs:1602-1611` | `object_delete` 回收站快照写入错误被 `let _ =` 吞掉，三步写入无事务包裹 | `[x]` 已修复（P005） |
 | P006 | 架构       | `tauri/src-tauri/src/commands/`（401 处 `Result<_, String>`）↔ `tauri/src/lib/backendError.ts` | 前后端错误契约是裸字符串精确/前缀匹配，Rust 侧改文案前端 i18n 静默失效 | `[x]` 已修复（P006） |
 | P007 | 漏洞/架构  | 普遍，例 `tauri/crates/solosoul-vault/src/storage/objects.rs:712` | 内部错误细节（SQL 片段、路径、rusqlite 原文）直接透传到前端 UI | `[x]` 已修复（P007） |
-| P008 | 架构       | `tauri/crates/solosoul-vault/src/storage.rs`（5915 行） | 上帝对象：VaultStore + 加密迁移 + 整表重写 + sync 密钥 + 搜索工具混在一个文件 | `[ ]` 待修复 |
+| P008 | 架构       | `tauri/crates/solosoul-vault/src/storage.rs`（5915 行） | 上帝对象：VaultStore + 加密迁移 + 整表重写 + sync 密钥 + 搜索工具混在一个文件 | `[x]` 已修复（P008） |
 | P009 | 死代码     | `tauri/crates/solosoul-core/Cargo.toml:29,38,49` | `anyhow`、`tokio`、`rand` 三个直接依赖在 core 全库无引用 | `[ ]` 待修复 |
 | P010 | 重复代码   | `tauri/src-tauri/src/commands/export_import/helpers.rs:24-88` ↔ `tauri/crates/solosoul-core/src/export_import.rs:885-942` 等 | `build_package_ids`/`resolve_*_references`/`derive_export_key` 等函数 GUI 与 core 逐字重复（相似度 ≈100%） | `[ ]` 待修复 |
 | P011 | 性能       | `tauri/crates/solosoul-vault/src/storage/sync_changes.rs:136,495`、`storage/conversations.rs:204` | 同步热路径逐行 `record_hlc_or_fallback`（每行一次 SELECT + 加锁），objects/trash 已用 LEFT JOIN 批量，同文件两种模式并存 | `[ ]` 待修复 |
@@ -94,8 +94,8 @@
 
 ## 修复进度
 
-- 已完成：7 / 54
-- 当前处理：P008（storage.rs 5915 行上帝对象）
+- 已完成：8 / 54
+- 当前处理：P009（solosoul-core 三个未使用依赖）
 
 ---
 
@@ -157,10 +157,12 @@
 - **修复（公共出口脱敏）**：新增 `sql_err(context, e)` 脱敏函数——rusqlite `SqliteFailure(_, Some(sql))` 变体的 Display 会把 SQL 语句文本（表名/查询结构）带出，`sql_err` 将完整错误（含 SQL）落 tracing 供诊断，对外仅保留 ffi 层 code 消息（`Error code {n}: {category}`，不含 SQL/路径）；接入 `with_tx` 的 BEGIN/COMMIT 错误出口（所有事务失败路径的收敛点，一处修复覆盖全部事务失败）。语句级 158 处 `.map_err(|e| format!(...))` 透传点仍存在，与 P006 中期结构化错误（`{ code, message }` 边界层）同批登记 backlog——届时统一在 command 边界剥离内部细节。
 - **验证**：新增 `test_sql_err_redacts_sql_statement`（SqliteFailure 携带 SQL 文本时对外消息不含之）通过；solosoul-vault clippy `-D warnings` exit 0；fmt 通过。
 
-### P008 — storage.rs 5915 行上帝对象
+### P008 — storage.rs 5915 行上帝对象（已修复）
 
+- **提交**：`d5ae3b2e`（①）、`5cf3d035`（②）
 - **位置**：`tauri/crates/solosoul-vault/src/storage.rs`。虽已拆出 `storage/` 9 个子模块，本体仍承载 VaultStore 结构、加密格式迁移、整表重写（re-encrypt）、sync node 密钥、搜索工具、probing、测试。
-- **修复**：继续向 `storage/` 子模块迁移（如 `storage/reencrypt.rs`），目标本体 <1500 行。
+- **修复**：① `reencrypt_all`（~147 行整库换钥重加密，报告建议的 `storage/reencrypt.rs`）抽为独立子模块——`impl VaultStore` 扩展方法 + `use super::rewrite_table` 复用父模块重写助手，N-2 单事务原子回滚语义原样迁移，storage.rs 瘦身至 ~1250 行；② 内嵌 `mod tests`（~4700 行 / 138 测试）整体迁移至 `storage/tests.rs`（`#[cfg(test)] mod tests;` + 去一层缩进）。拆分后 `storage.rs` 本体 1113 行纯生产代码（低于 <1500 目标），其余逻辑仍按需驻留子模块。纯重构零行为变化。
+- **验证**：storage::tests 138 全绿；solosoul-vault clippy `-D warnings` exit 0；fmt 通过。
 
 ### P009 — solosoul-core 三个未使用依赖
 
