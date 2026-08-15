@@ -338,7 +338,7 @@
 - **改动**：报告列出的 10 处无选择器订阅全部改为 `useShallow` 字段级选择：`useAuthStore()`（AppRoutes / useLoginPage / useLoginUnlockFlows / BootstrapPage——仅选实际消费的字段，error/backendError 等无关字段翻转不再触发重渲染）、`useSettingsStore()`（SecuritySettingsPage / BackupConfigPage / AppearanceSettingsPage——仅选 settings + updateSetting，isLoading/customPages 翻转不再整页重渲染）、`useLlmStatsStore()`（LlmStatsPage）、`useOcrInstallStore()`（useOcrFirstInstall）、`usePluginQuickStore()`（PluginQuickPanel——isOpen 翻转不再重渲染面板）。
 - **验证**：`npx tsc --noEmit` 无相关文件错误；`npx eslint` 通过；`vitest run src/pages/auth src/components/plugin` 20 测试全绿。
 
-### P029 · 两套后端错误库合并单一入口（已修复）
+### P029 · `backendError.ts` 两套后端错误库合并单一入口（已修复）
 - **提交**：`b05e4aa8`
 - **改动**：Rust 静态错误映射表（`RUST_ERROR_MAP` + `RUST_PREFIX_MAP`，原 `rustErrors.ts` 精确+前缀匹配）并入 `backendError.ts`——`translateRustError` 迁至此处；`resolveBackendErrorMessage` 未命中前缀 token 时新增回退：先查 Rust 静态映射（命中 `i18n.t(key)` 返回），未命中才透传原文。`rustErrors.ts` 降为兼容 re-export 薄壳（5 处旧 import 路径不变），新增错误只需在 `backendError.ts` 单表登记。
 - **验证**：`npx tsc --noEmit` 无相关文件错误；`npx eslint` 通过；`vitest run src/lib/backendError.test.ts` 4 测试全绿。
@@ -363,7 +363,7 @@
 - **改动**：`searchCache.ts` 的 `SearchCache` 增加 LRU 容量上限（构造第二参数 `maxEntries`，默认 200）——`get` 命中刷新 LRU 顺序、`set` 覆盖写去重 + 超限淘汰最久未用条目（与 `photoAlbumPreview.ts` 的 `createBoundedCache` 同构）；TTL 惰性淘汰保留。新增 2 条测试：超限淘汰最久未用、覆盖写不重复占用容量。
 - **验证**：`npx tsc --noEmit` 无该文件错误；`npx eslint` 通过；`vitest run src/lib/searchCache.test.ts` 4 测试全绿。
 
-### P030 · settingsStore 迁移循环串行 IPC（已修复）
+### P030 · `settingsStore` 迁移循环串行 IPC（已修复）
 - **提交**：`0fb1d066`
 - **改动**：`settingsStore.ts` `loadCustomPages` 的旧格式自定义页迁移循环由逐条串行 `await invoke('object_create')` 改为 `Promise.allSettled` 并行——一次性路径页面数个位数，allSettled 保证单条失败（`logger.warn` 记名）不阻断其余；`migrated` 按原数组顺序归并（fulfilled 才 push），成功页清理/落 store 逻辑不变。
 - **验证**：`npx tsc --noEmit` 无该文件错误；`npx eslint` 通过；`vitest run src/stores/settingsStore.test.ts` 19 测试全绿。
