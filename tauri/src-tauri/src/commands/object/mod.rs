@@ -1599,8 +1599,10 @@ pub async fn object_delete(state: State<'_, AppState>, object_id: String) -> Res
                     name_snapshot: rec.name.clone(),
                     icon_snapshot: Some(rec.icon_name),
                 };
-                let _ = vault.save_trash_item(&trash);
-                vault.delete_object(&object_id, true)?;
+                // P005: 复用 P211 单事务「入回收站 + 软删」——save_trash_item 的
+                // 错误不再被 `let _ =` 吞掉：快照写失败则整体回滚、中止删除，
+                // 杜绝「对象已软删但回收站无条目」的不可恢复状态。
+                vault.trash_and_soft_delete_batch(std::slice::from_ref(&trash), &[object_id.clone()])?;
                 crate::commands::log_audit_best_effort(&vault,
                     "object_delete",
                     "object",
