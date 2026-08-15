@@ -150,36 +150,12 @@ fn process_sse(
     api_type: &ApiType,
     on_event: &dyn Fn(LlmStreamEvent),
 ) -> Result<(), String> {
-    use std::io::BufRead;
-
     // P004: 不再 `resp.bytes()` 整包读入——blocking Response 实现 `std::io::Read`，
     // 由独立读线程逐行消费网络流，经 mpsc 转发给解析侧；首个 chunk 到达即触发
     // on_event（CLI 打字机真正流式）。空闲超时用 `recv_timeout` 实现。
-    let (tx, rx) = std::sync::mpsc::channel::<Option<String>>();
-    // 不 join：空闲超时退出时读线程可能仍阻塞在 read_line，detach 语义让其随
-    // 连接关闭/进程退出自然清理（解析侧丢 rx 后其 send 会失败并退出）。
-    let _reader = std::thread::spawn(move || {
-        let mut reader = std::io::BufReader::new(resp);
-        let mut line = String::new();
-        loop {
-            line.clear();
-            match reader.read_line(&mut line) {
-                Ok(0) => break, // EOF
-                Ok(_) => {
-                    if tx.send(Some(std::mem::take(&mut line))).is_err() {
-                        break; // 解析侧已退出（如空闲超时），停止发送
-                    }
-                }
-                Err(_) => break,
-            }
-        }
-        let _ = tx.send(None); // 通知解析侧流结束
-    });
+    let rx = spawn_sse_reader(resp);
 
-    let mut anthropic_prompt_tokens: u64 = 0;
-    let mut anthropic_completion_tokens: u64 = 0;
-    let mut prompt_tokens: u64 = 0;
-    let mut completion_tokens: u64 = 0;
+    let mut counters = SseCounters::default();
 
     loop {
         let line_opt = rx.recv_timeout(SSE_IDLE_TIMEOUT).map_err(|e| {
@@ -211,69 +187,117 @@ fn process_sse(
             let json: serde_json::Value =
                 serde_json::from_str(data).map_err(|e| format!("SSE parse: {}", e))?;
 
-            match api_type {
-                ApiType::Anthropic => {
-                    if let Some(usage) = json.get("message").and_then(|m| m.get("usage")) {
-                        anthropic_prompt_tokens = usage
-                            .get("input_tokens")
-                            .and_then(|v| v.as_u64())
-                            .unwrap_or(0);
-                    }
-                    if let Some(usage) = json.get("usage") {
-                        anthropic_completion_tokens = usage
-                            .get("output_tokens")
-                            .and_then(|v| v.as_u64())
-                            .unwrap_or(0);
-                    }
+            handle_sse_payload(&json, api_type, on_event, &mut counters);
+        }
+    }
 
-                    if let Some(delta) = json.get("delta") {
-                        if let Some(text) = delta.get("text").and_then(|v| v.as_str()) {
-                            on_event(LlmStreamEvent::Chunk {
-                                content: text.to_string(),
-                            });
-                        }
+    if api_type == &ApiType::Anthropic {
+        counters.prompt_tokens = counters.anthropic_prompt_tokens;
+        counters.completion_tokens = counters.anthropic_completion_tokens;
+    }
+
+    on_event(LlmStreamEvent::Done {
+        prompt_tokens: counters.prompt_tokens,
+        completion_tokens: counters.completion_tokens,
+    });
+
+    Ok(())
+}
+/// P004: 独立读线程逐行消费网络流（blocking Response 实现 `std::io::Read`），
+/// 经 mpsc 转发给解析侧；EOF 时发送 `None`。不 join：空闲超时退出时读线程
+/// 可能仍阻塞在 read_line，detach 语义让其随连接关闭/进程退出自然清理。
+fn spawn_sse_reader(
+    resp: reqwest::blocking::Response,
+) -> std::sync::mpsc::Receiver<Option<String>> {
+    use std::io::BufRead;
+    let (tx, rx) = std::sync::mpsc::channel::<Option<String>>();
+    // 不 join：空闲超时退出时读线程可能仍阻塞在 read_line，detach 语义让其随
+    // 连接关闭/进程退出自然清理（解析侧丢 rx 后其 send 会失败并退出）。
+    let _reader = std::thread::spawn(move || {
+        let mut reader = std::io::BufReader::new(resp);
+        let mut line = String::new();
+        loop {
+            line.clear();
+            match reader.read_line(&mut line) {
+                Ok(0) => break, // EOF
+                Ok(_) => {
+                    if tx.send(Some(std::mem::take(&mut line))).is_err() {
+                        break; // 解析侧已退出（如空闲超时），停止发送
                     }
                 }
-                ApiType::OpenAI => {
-                    if let Some(usage) = json.get("usage") {
-                        prompt_tokens = usage
-                            .get("prompt_tokens")
-                            .and_then(|v| v.as_u64())
-                            .unwrap_or(0);
-                        completion_tokens = usage
-                            .get("completion_tokens")
-                            .and_then(|v| v.as_u64())
-                            .unwrap_or(0);
-                    }
+                Err(_) => break,
+            }
+        }
+        let _ = tx.send(None); // 通知解析侧流结束
+    });
+    rx
+}
 
-                    if let Some(choices) = json.get("choices").and_then(|c| c.as_array()) {
-                        for choice in choices {
-                            if let Some(delta) = choice.get("delta") {
-                                if let Some(content) = delta.get("content").and_then(|v| v.as_str())
-                                {
-                                    on_event(LlmStreamEvent::Chunk {
-                                        content: content.to_string(),
-                                    });
-                                }
-                            }
+/// process_sse 的 token 计数聚合。
+#[derive(Default)]
+struct SseCounters {
+    anthropic_prompt_tokens: u64,
+    anthropic_completion_tokens: u64,
+    prompt_tokens: u64,
+    completion_tokens: u64,
+}
+
+/// 解析单条 SSE data JSON，按 api_type 提取 token 计数并派发 Chunk 事件。
+/// 从 process_sse 主循环抽出以消除 8 层嵌套（line → data → match → choices → delta → content）。
+fn handle_sse_payload(
+    json: &serde_json::Value,
+    api_type: &ApiType,
+    on_event: &dyn Fn(LlmStreamEvent),
+    counters: &mut SseCounters,
+) {
+    match api_type {
+        ApiType::Anthropic => {
+            if let Some(usage) = json.get("message").and_then(|m| m.get("usage")) {
+                counters.anthropic_prompt_tokens = usage
+                    .get("input_tokens")
+                    .and_then(|v| v.as_u64())
+                    .unwrap_or(0);
+            }
+            if let Some(usage) = json.get("usage") {
+                counters.anthropic_completion_tokens = usage
+                    .get("output_tokens")
+                    .and_then(|v| v.as_u64())
+                    .unwrap_or(0);
+            }
+
+            if let Some(delta) = json.get("delta") {
+                if let Some(text) = delta.get("text").and_then(|v| v.as_str()) {
+                    on_event(LlmStreamEvent::Chunk {
+                        content: text.to_string(),
+                    });
+                }
+            }
+        }
+        ApiType::OpenAI => {
+            if let Some(usage) = json.get("usage") {
+                counters.prompt_tokens = usage
+                    .get("prompt_tokens")
+                    .and_then(|v| v.as_u64())
+                    .unwrap_or(0);
+                counters.completion_tokens = usage
+                    .get("completion_tokens")
+                    .and_then(|v| v.as_u64())
+                    .unwrap_or(0);
+            }
+
+            if let Some(choices) = json.get("choices").and_then(|c| c.as_array()) {
+                for choice in choices {
+                    if let Some(delta) = choice.get("delta") {
+                        if let Some(content) = delta.get("content").and_then(|v| v.as_str()) {
+                            on_event(LlmStreamEvent::Chunk {
+                                content: content.to_string(),
+                            });
                         }
                     }
                 }
             }
         }
     }
-
-    if api_type == &ApiType::Anthropic {
-        prompt_tokens = anthropic_prompt_tokens;
-        completion_tokens = anthropic_completion_tokens;
-    }
-
-    on_event(LlmStreamEvent::Done {
-        prompt_tokens,
-        completion_tokens,
-    });
-
-    Ok(())
 }
 
 /// 带总超时的阻塞读 body（线程 + recv_timeout，仅非流式路径使用）。
