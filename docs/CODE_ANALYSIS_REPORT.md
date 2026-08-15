@@ -378,6 +378,8 @@
 - **提交**：`0fb1d066`
 - **改动**：`settingsStore.ts` `loadCustomPages` 的旧格式自定义页迁移循环由逐条串行 `await invoke('object_create')` 改为 `Promise.allSettled` 并行——一次性路径页面数个位数，allSettled 保证单条失败（`logger.warn` 记名）不阻断其余；`migrated` 按原数组顺序归并（fulfilled 才 push），成功页清理/落 store 逻辑不变。
 - **验证**：`npx tsc --noEmit` 无该文件错误；`npx eslint` 通过；`vitest run src/stores/settingsStore.test.ts` 19 测试全绿。
+- **P030-R1 预存在缺陷修复（核查轮次 13 发现）**：原实现「只要有一条迁移成功就清空 preferences 的 customPages」——部分失败时失败页数据被误删且无重试机会（下次加载时 objects 表已有成功页，直接走新格式分支返回）。修复：仅当**全部**迁移成功（`migrated.length === oldPages.length`）才清空 preferences；部分失败时保留失败页在 preferences（下次加载仍可重试），store 内仍只展示成功页。新增 2 条测试（部分失败不清空 preferences / 全部成功才清空）。提交 `（待回填）`。
+- **P030-R1 验证**：tsc/eslint 通过；`vitest run src/stores/settingsStore.test.ts` 20 测试全绿（含新增 2 条）。
 
 ### P026 · `useRevealState` 渲染期 setState（已修复）
 - **提交**：`184427b8`

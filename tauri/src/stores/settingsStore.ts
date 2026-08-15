@@ -424,13 +424,17 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
         });
         if (migrated.length > 0) {
           set((s) => ({ settings: { ...s.settings, customPages: migrated } }));
-          // Clear old-format pages from preferences
-          try {
-            await invoke('user_data_update_preference', {
-              payload: { accountId, preferences: { customPages: [] } },
-            });
-          } catch (e) {
-            logger.warn('[settingsStore] Failed to clear old-format custom pages:', e);
+          // P030-R1: 仅当**全部**迁移成功才清空 preferences 旧格式 customPages——
+          // 原实现只要有一条成功就整体清空，部分失败时失败页数据被误删且无重试机会；
+          // 全部成功才清空，部分失败时失败页保留在 preferences（下次加载仍可重试）。
+          if (migrated.length === oldPages.length) {
+            try {
+              await invoke('user_data_update_preference', {
+                payload: { accountId, preferences: { customPages: [] } },
+              });
+            } catch (e) {
+              logger.warn('[settingsStore] Failed to clear old-format custom pages:', e);
+            }
           }
         }
       }

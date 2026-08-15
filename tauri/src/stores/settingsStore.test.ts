@@ -379,10 +379,67 @@ describe('settingsStore', () => {
       );
     });
 
-    it('should silently fail when objects table is empty and no old pages exist', async () => {
-      vi.mocked(invoke).mockResolvedValue([]);
+    it('P030-R1: partial migration failure keeps old pages in preferences (no data loss)', async () => {
+      useSettingsStore.setState({
+        settings: {
+          ...useSettingsStore.getState().settings,
+          customPages: [
+            { id: 'ok-1', name: 'OK Page', iconId: 'star', createdAt: '2024-01-01', sortOrder: 0 },
+            {
+              id: 'bad-1',
+              name: 'Bad Page',
+              iconId: 'star',
+              createdAt: '2024-01-02',
+              sortOrder: 1,
+            },
+          ],
+        },
+      });
+      let createCalls = 0;
+      vi.mocked(invoke).mockImplementation(async (cmd: string) => {
+        if (cmd === 'object_list') return [];
+        if (cmd === 'object_create') {
+          createCalls += 1;
+          // 第一条成功、第二条失败 → 部分迁移
+          if (createCalls === 1) return undefined;
+          throw new Error('db locked');
+        }
+        if (cmd === 'user_data_update_preference') return undefined;
+        return undefined;
+      });
       await useSettingsStore.getState().loadCustomPages('acc-1');
-      expect(useSettingsStore.getState().settings.customPages).toHaveLength(0);
+      // store 只保留成功迁移的页
+      const pages = useSettingsStore.getState().settings.customPages;
+      expect(pages).toHaveLength(1);
+      expect(pages[0].id).toBe('ok-1');
+      // 部分失败时**不得**清空 preferences（失败页数据保留，下次可重试）
+      expect(invoke).not.toHaveBeenCalledWith('user_data_update_preference', {
+        payload: { accountId: 'acc-1', preferences: { customPages: [] } },
+      });
+    });
+
+    it('P030-R1: clears preferences only when all pages migrated successfully', async () => {
+      useSettingsStore.setState({
+        settings: {
+          ...useSettingsStore.getState().settings,
+          customPages: [
+            { id: 'a-1', name: 'A', iconId: 'star', createdAt: '2024-01-01', sortOrder: 0 },
+            { id: 'b-1', name: 'B', iconId: 'star', createdAt: '2024-01-02', sortOrder: 1 },
+          ],
+        },
+      });
+      vi.mocked(invoke).mockImplementation(async (cmd: string) => {
+        if (cmd === 'object_list') return [];
+        if (cmd === 'object_create') return undefined;
+        if (cmd === 'user_data_update_preference') return undefined;
+        return undefined;
+      });
+      await useSettingsStore.getState().loadCustomPages('acc-1');
+      expect(useSettingsStore.getState().settings.customPages).toHaveLength(2);
+      // 全部成功 → 清空 preferences
+      expect(invoke).toHaveBeenCalledWith('user_data_update_preference', {
+        payload: { accountId: 'acc-1', preferences: { customPages: [] } },
+      });
     });
 
     it('should handle object_list failure gracefully', async () => {
