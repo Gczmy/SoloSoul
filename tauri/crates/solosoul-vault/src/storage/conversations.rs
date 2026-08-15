@@ -198,10 +198,18 @@ impl VaultStore {
             rows
         };
 
+        // P011: 批量取回 HLC（单次 IN 查询）替代逐行 SELECT + 锁获取。
+        let hlc_map = self.resolve_hlc_or_fallback_batch(
+            "llm_conversations",
+            &rows
+                .iter()
+                .map(|(id, _a, _d, u)| (id.clone(), u.clone()))
+                .collect::<Vec<_>>(),
+            local_node_id,
+        )?;
         let mut out = Vec::new();
         for (id, _acct, data, updated) in rows {
-            let hlc =
-                self.record_hlc_or_fallback("llm_conversations", &id, &updated, local_node_id)?;
+            let hlc = hlc_map[&id].clone();
             if !Self::hlc_after_watermark(&hlc, watermark) {
                 continue;
             }

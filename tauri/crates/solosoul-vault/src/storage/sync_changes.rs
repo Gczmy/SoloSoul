@@ -131,9 +131,18 @@ impl VaultStore {
             rows
         };
 
+        // P011: 批量取回 HLC（单次 IN 查询）替代逐行 SELECT + 锁获取。
+        let hlc_map = self.resolve_hlc_or_fallback_batch(
+            "profiles",
+            &rows
+                .iter()
+                .map(|(id, _n, _d, _c, u, _v)| (id.clone(), u.clone()))
+                .collect::<Vec<_>>(),
+            local_node_id,
+        )?;
         let mut out = Vec::new();
         for (id, name, mut data, created, updated, version) in rows {
-            let hlc = self.record_hlc_or_fallback("profiles", &id, &updated, local_node_id)?;
+            let hlc = hlc_map[&id].clone();
             if !Self::hlc_after_watermark(&hlc, watermark) {
                 continue;
             }
@@ -488,11 +497,18 @@ impl VaultStore {
             rows
         };
 
+        // P011: 批量取回 HLC（单次 IN 查询）替代逐行 SELECT + 锁获取。
+        let hlc_map = self.resolve_hlc_or_fallback_batch(
+            "user_templates",
+            &rows
+                .iter()
+                .map(|t| (t.id.clone(), t.updated_at.clone().unwrap_or_default()))
+                .collect::<Vec<_>>(),
+            local_node_id,
+        )?;
         let mut out = Vec::new();
         for tpl in rows {
-            let updated = tpl.updated_at.clone().unwrap_or_default();
-            let hlc =
-                self.record_hlc_or_fallback("user_templates", &tpl.id, &updated, local_node_id)?;
+            let hlc = hlc_map[&tpl.id].clone();
             if !Self::hlc_after_watermark(&hlc, watermark) {
                 continue;
             }

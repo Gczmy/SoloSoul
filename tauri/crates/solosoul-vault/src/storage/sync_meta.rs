@@ -93,21 +93,83 @@ impl VaultStore {
         Ok(())
     }
 
-    pub(crate) fn record_hlc_or_fallback(
+    /// P011: 批量取回多条记录的 HLC——单次 `IN` 查询替代逐行 `get_record_hlc`
+    /// （每个热路径变更清单函数原本每行一次 SELECT + 锁获取）。
+    /// 返回 `HashMap<record_id, RecordHlc>`；无 HLC 行的记录不在 map 中，
+    /// 调用方按 `updated_at` 构造 fallback（等价原 `record_hlc_or_fallback` 语义，
+    /// 该方法已被本批量路径取代删除）。
+    pub(crate) fn get_record_hlcs_batch(
         &self,
         table: &str,
-        record_id: &str,
-        updated_at: &str,
-        local_node_id: &str,
-    ) -> Result<crate::RecordHlc, String> {
-        if let Some(hlc) = self.get_record_hlc(table, record_id)? {
-            return Ok(hlc);
+        record_ids: &[String],
+    ) -> Result<std::collections::HashMap<String, crate::RecordHlc>, String> {
+        let mut out = std::collections::HashMap::with_capacity(record_ids.len());
+        if record_ids.is_empty() {
+            return Ok(out);
         }
-        Ok(crate::RecordHlc {
-            wall_time_ms: Self::parse_time_ms(updated_at),
-            counter: 0,
-            node_id: local_node_id.to_string(),
-        })
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        // 占位符构造：?, ?, ...（id 数）——ids 是内部数据库主键（UUID），
+        // 非用户输入，无注入面。
+        let placeholders = vec!["?"; record_ids.len()].join(", ");
+        let sql = format!(
+            "SELECT record_id, wall_time_ms, counter, node_id FROM sync_hlc \
+             WHERE table_name = ?1 AND record_id IN ({placeholders})"
+        );
+        let mut stmt = conn
+            .prepare_cached(&sql)
+            .map_err(|e| format!("get_record_hlcs_batch prepare: {e}"))?;
+        let mut params_vec: Vec<&dyn rusqlite::ToSql> = vec![&table];
+        for id in record_ids {
+            params_vec.push(id);
+        }
+        let mut rows = stmt
+            .query(rusqlite::params_from_iter(params_vec))
+            .map_err(|e| format!("get_record_hlcs_batch query: {e}"))?;
+        while let Some(row) = rows
+            .next()
+            .map_err(|e| format!("get_record_hlcs_batch next: {e}"))?
+        {
+            out.insert(
+                row.get::<_, String>(0)
+                    .map_err(|e| format!("get_record_hlcs_batch id: {e}"))?,
+                crate::RecordHlc {
+                    wall_time_ms: row
+                        .get::<_, i64>(1)
+                        .map_err(|e| format!("get_record_hlcs_batch wall: {e}"))?
+                        as u64,
+                    // HLC_SET_SQL 以 i32 落库，读回转回 u32（同 get_record_hlc_tx 语义）。
+                    counter: row
+                        .get::<_, i32>(2)
+                        .map_err(|e| format!("get_record_hlcs_batch counter: {e}"))?
+                        as u32,
+                    node_id: row
+                        .get::<_, String>(3)
+                        .map_err(|e| format!("get_record_hlcs_batch node: {e}"))?,
+                },
+            );
+        }
+        Ok(out)
+    }
+
+    /// P011: 批量 fallback——与 `record_hlc_or_fallback` 语义等价：
+    /// 已有 HLC 用库值，否则按 `updated_at` 构造零计数 fallback。
+    pub(crate) fn resolve_hlc_or_fallback_batch(
+        &self,
+        table: &str,
+        records: &[(String, String)],
+        local_node_id: &str,
+    ) -> Result<std::collections::HashMap<String, crate::RecordHlc>, String> {
+        let ids: Vec<String> = records.iter().map(|(id, _)| id.clone()).collect();
+        let mut map = self.get_record_hlcs_batch(table, &ids)?;
+        for (id, updated_at) in records {
+            map.entry(id.clone()).or_insert_with(|| crate::RecordHlc {
+                wall_time_ms: Self::parse_time_ms(updated_at),
+                counter: 0,
+                node_id: local_node_id.to_string(),
+            });
+        }
+        Ok(map)
     }
 
     pub fn save_peer_state(&self, peer: &crate::PeerSyncState) -> Result<(), String> {
