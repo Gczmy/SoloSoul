@@ -32,7 +32,7 @@
 
 | ID   | 类别       | 文件位置 | 描述 | 状态 |
 |------|------------|----------|------|------|
-| P001 | 规范/CI    | `tauri/src-tauri/src/preview_pdf_protocol.rs:68` | `cargo fmt --check` 失败，`check-all` 在第一步后即中断 | `[ ]` 待修复 |
+| P001 | 规范/CI    | `tauri/src-tauri/src/preview_pdf_protocol.rs:68` | `cargo fmt --check` 失败，`check-all` 在第一步后即中断 | `[x]` 已修复（P001） |
 | P002 | 测试       | `tauri/crates/solosoul-core/src/ocr/macos_vision.rs:471,500` | `cargo test` 2 个 Vision OCR 测试失败（swiftc 无法加载 `arm64-apple-macosx26.0` 标准库，疑似本地 Xcode/CLT 环境，存疑） | `[ ]` 待修复 |
 | P003 | 漏洞       | `tauri/crates/solosoul-plugin/src/host.rs:163-167,504-513` | 插件域名白名单仅校验初始 URL，reqwest 默认跟随重定向，可被 302 绕过（SSRF/数据外泄） | `[ ]` 待修复 |
 | P004 | 漏洞       | `tauri/crates/solosoul-core/src/biometric/windows.rs:146-186`、`mod.rs:331-336` | Windows Hello 仅应用层门禁：同用户进程可直接 DPAPI 解密生物识别凭证，不触发 Hello | `[ ]` 待修复 |
@@ -94,18 +94,20 @@
 
 ## 修复进度
 
-- 已完成：0 / 54
-- 当前处理：无（按用户指令，本轮仅生成报告，不执行修复）
+- 已完成：1 / 54
+- 当前处理：P002（macos_vision 测试失败归因）
 
 ---
 
 ## 详细问题描述与修复指引
 
-### P001 — cargo fmt 失败阻塞 check-all
+### P001 — cargo fmt 失败阻塞 check-all（已修复）
 
+- **提交**：`15045f26`
 - **现象**：`npm run check-all` 在 `cargo fmt --check` 步失败，`preview_pdf_protocol.rs:68` 的 `register_asynchronous_uri_scheme_protocol` 调用需从多行折回单行紧凑格式。
 - **影响**：CI（`pr_check.yml`/`ci_cd.yml` 的 rust-check 含 fmt）必失败。
-- **修复**：`cd tauri && cargo fmt`（仅此一处差异）。
+- **修复**：`cargo fmt --all` 折行归一（仅格式化零逻辑变化）。
+- **验证**：`cargo fmt --all -- --check` exit 0。
 
 ### P002 — macos_vision OCR 测试失败（存疑：环境）
 
