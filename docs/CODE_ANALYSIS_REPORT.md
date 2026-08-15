@@ -55,7 +55,7 @@
 | P025 | P2 | 性能/内存 | `tauri/src/lib/searchCache.ts:42-44` | `SearchCache` 无容量上限，TTL 惰性淘汰，解密结果明文驻留内存只增不减 | `[x]` 已修复（P025） |
 | P026 | P2 | 规范 | `tauri/src/hooks/useRevealState.ts:70` | `shouldMask` 在渲染期内执行 `hide(fieldId)` setState，违反 React 渲染纯净性 | `[x]` 已修复（P026） |
 | P027 | P2 | 可优化 | `components/layout/SearchPopover.tsx`、`components/sync/SyncConflictDialog.tsx` | JSX 嵌套约 12+ 层（缩进达 40 空格），可维护性差 | `[ ]` 待修复 |
-| P028 | P2 | 架构 | `tauri/src/pages/ai/LlmConfigPage.tsx:234-240、262-274、290-297` | 三处乐观更新先 setState 再 invoke，失败仅 warn 不回滚 | `[ ]` 待修复 |
+| P028 | P2 | 架构 | `tauri/src/pages/ai/LlmConfigPage.tsx:234-240、262-274、290-297` | 三处乐观更新先 setState 再 invoke，失败仅 warn 不回滚 | `[x]` 已修复（P028） |
 | P029 | P2 | 架构 | `tauri/src/lib/rustErrors.ts` 与 `tauri/src/lib/backendError.ts` | 两套后端错误本地化库职责重叠，新增错误需判断进哪套，易漏配 | `[ ]` 待修复 |
 | P030 | P2 | 性能（低影响） | `tauri/src/stores/settingsStore.ts:404-419` | 旧格式自定义页迁移循环内逐条串行 `await invoke('object_create')`（一次性路径，影响极小） | `[x]` 已修复（P030） |
 
@@ -328,8 +328,13 @@
 #### P023 · PluginLogPanel 审计日志加载无 catch
 `tauri/src/pages/ai/PluginDashboardPage.tsx:464-471`：`pluginCommands.auditLog(50).then(...)` 无 `.catch`，失败时 unhandled rejection、面板静默空白。**建议**：加 `.catch` 与空态/错误态提示。
 
-### P024 · 三份 `flattenProperties` 收敛为共享实现（已修复）
+### P028 · `LlmConfigPage` 乐观更新失败回滚（已修复）
 - **提交**：`（待回填）`
+- **改动**：`LlmConfigPage.tsx` 三处乐观更新改 try/catch 失败回滚：① `applyActiveProvider` 记录旧 activeId，失败回滚 + toast；② `handleFeatureToggle` 失败 `setChatEnabled(!next)` 回滚 + toast；③ `handleSystemPromptToggle` 失败回滚 + toast。新增 `settings:llm_set_active_failed` / `llm_set_features_failed` / `llm_set_prompt_failed` 双 locale 键。后端未生效时 UI 不再误显新状态。
+- **验证**：`npx tsc --noEmit` 无该文件错误；`npx eslint` 通过；`check-missing-i18n` 双 locale 0 缺失；`vitest run src/pages/ai/LlmConfigPage.test.tsx` 2 测试全绿。
+
+### P024 · 三份 `flattenProperties` 收敛为共享实现（已修复）
+- **提交**：`b1d7ee2b`
 - **改动**：新建 `src/lib/propertyFlatten.ts` 共享核心 `flattenPropertyEntries`，差异点参数化：`keepMetaKeys`（保留 fieldDefs 中定义的 `__` 前缀 key，历史快照的 `__dynamic_group__` 需要；普通展示一律跳过）与 `flattenDynamicGroups`（展平为独立条目 vs 保留分组结构）。三处调用方改为薄包装：① `HistoryViewer.tsx`（keepMetaKeys=true + 分组模式，行为完全不变，13 测试全绿）；② `objectDetailUtils.ts`（展平模式 + fieldId，6 测试全绿）；③ `WorkspaceObjectCard.tsx`（展平模式，3 测试全绿）。新增共享核心自身 8 条单测。
 - **验证**：`npx tsc --noEmit` 无相关文件错误；`npx eslint` 通过；`vitest run` 相关 3 文件 24 + 核心 8 测试全绿。
 

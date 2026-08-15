@@ -254,10 +254,16 @@ export function LlmConfigPage() {
 
   const applyActiveProvider = async (id: string) => {
     if (!accountId) return;
+    const prevActive = activeId;
     setActiveId(id);
-    await invoke('llm_set_active_provider', { accountId: accountId, providerId: id }).catch((err) =>
-      logger.warn('[LLMConfig] Set active provider failed:', err),
-    );
+    try {
+      await invoke('llm_set_active_provider', { accountId: accountId, providerId: id });
+    } catch (err) {
+      // P028: 失败回滚——后端未切换时 UI 不得误显新 provider 为激活态
+      logger.warn('[LLMConfig] Set active provider failed:', err);
+      setActiveId(prevActive);
+      onError(err, t('settings:llm_set_active_failed'));
+    }
   };
 
   const handleSetActive = (id: string) => {
@@ -287,11 +293,19 @@ export function LlmConfigPage() {
       return;
     }
     setChatEnabled(next);
-    if (accountId)
-      await invoke('llm_set_ai_features', {
-        accountId: accountId,
-        features: { chat: next, ...ALWAYS_DISABLED_FEATURES },
-      }).catch((err) => logger.warn('[LLMConfig] Set AI features failed:', err));
+    if (accountId) {
+      try {
+        await invoke('llm_set_ai_features', {
+          accountId: accountId,
+          features: { chat: next, ...ALWAYS_DISABLED_FEATURES },
+        });
+      } catch (err) {
+        // P028: 失败回滚——后端未开启时 UI 不得误显 AI 功能已启用
+        logger.warn('[LLMConfig] Set AI features failed:', err);
+        setChatEnabled(!next);
+        onError(err, t('settings:llm_set_features_failed'));
+      }
+    }
   };
 
   const handleAcceptRisk = async () => {
@@ -311,10 +325,16 @@ export function LlmConfigPage() {
   const handleSystemPromptToggle = async () => {
     const next = !includeSystemPrompt;
     setIncludeSystemPrompt(next);
-    if (accountId)
-      await invoke('llm_set_system_prompt_switch', { accountId: accountId, enabled: next }).catch(
-        (err) => logger.warn('[LLMConfig] Set system prompt switch failed:', err),
-      );
+    if (accountId) {
+      try {
+        await invoke('llm_set_system_prompt_switch', { accountId: accountId, enabled: next });
+      } catch (err) {
+        // P028: 失败回滚——后端未切换时 UI 不得误显新状态
+        logger.warn('[LLMConfig] Set system prompt switch failed:', err);
+        setIncludeSystemPrompt(!next);
+        onError(err, t('settings:llm_set_prompt_failed'));
+      }
+    }
   };
 
   const handleSaveProvider = async (provider: ProviderConfig) => {
