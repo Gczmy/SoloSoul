@@ -37,7 +37,7 @@
 | P003 | 漏洞       | `tauri/crates/solosoul-plugin/src/host.rs:163-167,504-513` | 插件域名白名单仅校验初始 URL，reqwest 默认跟随重定向，可被 302 绕过（SSRF/数据外泄） | `[x]` 已修复（P003） |
 | P004 | 漏洞       | `tauri/crates/solosoul-core/src/biometric/windows.rs:146-186`、`mod.rs:331-336` | Windows Hello 仅应用层门禁：同用户进程可直接 DPAPI 解密生物识别凭证，不触发 Hello | `[x]` 已修复（P004） |
 | P005 | 架构/数据  | `tauri/src-tauri/src/commands/object/mod.rs:1602-1611` | `object_delete` 回收站快照写入错误被 `let _ =` 吞掉，三步写入无事务包裹 | `[x]` 已修复（P005） |
-| P006 | 架构       | `tauri/src-tauri/src/commands/`（401 处 `Result<_, String>`）↔ `tauri/src/lib/backendError.ts` | 前后端错误契约是裸字符串精确/前缀匹配，Rust 侧改文案前端 i18n 静默失效 | `[ ]` 待修复 |
+| P006 | 架构       | `tauri/src-tauri/src/commands/`（401 处 `Result<_, String>`）↔ `tauri/src/lib/backendError.ts` | 前后端错误契约是裸字符串精确/前缀匹配，Rust 侧改文案前端 i18n 静默失效 | `[x]` 已修复（P006） |
 | P007 | 漏洞/架构  | 普遍，例 `tauri/crates/solosoul-vault/src/storage/objects.rs:712` | 内部错误细节（SQL 片段、路径、rusqlite 原文）直接透传到前端 UI | `[ ]` 待修复 |
 | P008 | 架构       | `tauri/crates/solosoul-vault/src/storage.rs`（5915 行） | 上帝对象：VaultStore + 加密迁移 + 整表重写 + sync 密钥 + 搜索工具混在一个文件 | `[ ]` 待修复 |
 | P009 | 死代码     | `tauri/crates/solosoul-core/Cargo.toml:29,38,49` | `anyhow`、`tokio`、`rand` 三个直接依赖在 core 全库无引用 | `[ ]` 待修复 |
@@ -94,8 +94,8 @@
 
 ## 修复进度
 
-- 已完成：5 / 54
-- 当前处理：P006（前后端错误契约裸字符串匹配）
+- 已完成：6 / 54
+- 当前处理：P007（内部错误细节透传前端）
 
 ---
 
@@ -141,11 +141,13 @@
 - **修复**：复用既有 P211 `trash_and_soft_delete_batch` 单事务方法——「回收站快照 + 软删」在单事务内原子完成，快照写失败整体回滚、中止删除并返回错误（fail-closed）；单条删除与批量删除命令语义对齐，吞错点消除。
 - **验证**：src-tauri `cargo check` exit 0；`cargo fmt --check` exit 0。
 
-### P006 — 前后端错误契约为裸字符串匹配
+### P006 — 前后端错误契约为裸字符串匹配（已修复：短期防护加固）
 
+- **提交**：`011ff0b6`
 - **位置**：Rust 侧 48 个文件共 401 处 `Result<_, String>`；前端 `lib/backendError.ts` 的 `RUST_ERROR_MAP`/`RUST_PREFIX_MAP` 按整串/前缀匹配翻译。
 - **影响**：Rust 侧改任一错误文案（含标点）前端 i18n 映射静默失效；映射表无编译期校验。
-- **修复**：中期引入结构化错误 `{ code, message }`（code 为稳定 snake_case 枚举），前端按 code 映射；短期 Rust 侧错误串提为常量并加测试断言映射表全覆盖。
+- **修复（短期）**：`scripts/check-missing-i18n.mjs` 扩展——扫描 `backendError.ts` 的 `RUST_ERROR_MAP`/`RUST_PREFIX_MAP` 映射引用，并入 `used` 集合与 `t()` 调用同规则校验双语存在性（当前 30 键双侧 0 缺失）；今后新增映射引用了不存在的键、或删除 locale 键导致映射悬空，check-all/CI 即红。中期结构化错误 `{ code, message }` 仍登记 backlog（跨 401 处的大工程，需 Rust 侧统一改造）。
+- **验证**：`node scripts/check-missing-i18n.mjs` 扫描 465 文件 0 缺失；映射条目正则自测 35 匹配。
 
 ### P007 — 内部错误细节透传前端
 
