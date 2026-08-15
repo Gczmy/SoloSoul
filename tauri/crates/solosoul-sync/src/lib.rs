@@ -41,6 +41,8 @@ pub use service::SyncService;
 
 // 账户哈希计算（mDNS TXT account_hash 广播/比对），供 GUI 发现层过滤复用。
 pub use identity::sha256_hex_short;
+/// P015: 本地非回环 IPv4 展示地址（唯一实现，src-tauri 同步命令复用）。
+pub use recovery::local_display_ip;
 
 // 本机客户端类型（macos/windows/...），供 GUI 在 mDNS/NSD TXT 广播中使用。
 pub use session::local_client_type;

@@ -523,6 +523,111 @@ impl VaultService {
         result
     }
 
+    /// P015: create_account / create_account_with_id 的公共主体（各自入口校验通过后）。
+    /// 派生密钥 → 写 config（原子）→ 写缓存 → 打开 Vault → 建立会话状态 → 返回摘要。
+    /// 安全敏感代码（密钥派生/verify_hash/会话建立）收敛为单份，避免双份实现漂移。
+    fn create_account_common(
+        &self,
+        account_id: &str,
+        name: &str,
+        password: &str,
+        password_hint: Option<&str>,
+    ) -> Result<serde_json::Value, String> {
+        let salt = generate_salt();
+        let kdf_config = KdfConfig::from_env();
+        let master_key = derive_key(password, &salt, &kdf_config)
+            .map_err(|e| format!("Key derivation failed: {}", e))?;
+
+        let mk: [u8; 32] = master_key
+            .as_slice()
+            .try_into()
+            .map_err(|_| "Master key must be 32 bytes".to_string())?;
+        let verify_hash = hex::encode(
+            solosoul_crypto::hkdf_ext::derive_hkdf_key(&mk, &salt, b"SOLOSOUL_VAULT_VERIFY_v1")
+                .map_err(|e| format!("Verify HKDF failed: {}", e))?,
+        );
+
+        let dir_rel = self.account_dir_rel(account_id);
+        self.fs.create_dir_all(&dir_rel)?;
+        self.ensure_private_dir(&dir_rel)?;
+
+        let now = chrono::Utc::now().to_rfc3339();
+        let config_data = AccountConfig {
+            account_id: account_id.to_string(),
+            name: name.to_string(),
+            salt: base64::Engine::encode(
+                &base64::engine::general_purpose::STANDARD,
+                salt.as_slice(),
+            ),
+            verify_hash,
+            created_at: now.clone(),
+            crypto_version: 3, // P2-010: HKDF-based verify hash
+            biometric_enabled: false,
+            pin_enabled: false,
+            pin_length: 0,
+            pin_failed_attempts: 0,
+            pin_locked_until: None,
+            password_failed_attempts: 0,
+            password_locked_until: None,
+            kdf_memory_kb: Some(kdf_config.memory_kb),
+            kdf_iterations: Some(kdf_config.iterations),
+            kdf_parallelism: Some(kdf_config.parallelism),
+            password_hint: password_hint.map(|s| s.to_string()),
+            last_login_at: Some(now.clone()),
+            last_operation_at: None,
+            last_operation_desc: None,
+        };
+        let config_json = serde_json::to_string_pretty(&config_data).map_err(|e| e.to_string())?;
+        // P135: 原子写（.tmp + rename）——create 为关键写入路径。
+        self.write_config_atomic(account_id, config_json.as_bytes())?;
+
+        // Add to cache
+        let entry = AccountEntry {
+            id: account_id.to_string(),
+            name: name.to_string(),
+            created_at: now.clone(),
+            last_accessed: Some(now),
+        };
+        // P001：RwLock 中毒按不可恢复处理——`into_inner()` 强制取回写锁，保证
+        // 账户落盘后会话状态（accounts_cache / vault_store / session_key /
+        // unlocked_account）一致建立，不再出现「账户已创建但会话状态部分缺失」
+        // 的不一致（与 lock() 同款处理）。
+        self.accounts_cache
+            .write()
+            .unwrap_or_else(|e| e.into_inner())
+            .insert(account_id.to_string(), entry);
+        self.save_accounts()?;
+
+        // Open vault with data key
+        let master_key_arr: [u8; 32] = master_key
+            .as_slice()
+            .try_into()
+            .map_err(|_| "HKDF output must be 32 bytes".to_string())?;
+        let account_dir_path = self.fs.local_path(&dir_rel).ok_or("无法解析账户本地目录")?;
+        let vault_config =
+            VaultConfig::new(account_id, account_dir_path).with_data_key(master_key_arr);
+        let vault =
+            VaultStore::open(vault_config).map_err(|e| format!("Failed to open vault: {}", e))?;
+        let vault_arc = Arc::new(vault);
+        // 设备级偏好同步开关：unlock 新建 VaultStore 后应用期望值（默认 true）。
+        vault_arc.set_ui_prefs_sync_enabled(self.ui_prefs_sync_enabled.load(Ordering::SeqCst));
+        *self.vault_store.write().unwrap_or_else(|e| e.into_inner()) = Some(vault_arc);
+        *self.session_key.write().unwrap_or_else(|e| e.into_inner()) =
+            Some(Zeroizing::new(master_key_arr));
+        *self
+            .unlocked_account
+            .write()
+            .unwrap_or_else(|e| e.into_inner()) = Some(account_id.to_string());
+
+        // P010: 返回值不再携带 salt/verifyHash——前端零消费（auth::bootstrap 仅读
+        // id/name/passwordHint，CLI 仅读 id），暴露会扩大 WebView 攻击面（verifyHash
+        // 可支持离线口令爆破）。两值仍写入磁盘 config（解锁/校验必需）。
+        Ok(serde_json::json!({
+            "id": account_id, "name": name,
+            "passwordHint": config_data.password_hint,
+        }))
+    }
+
     pub fn create_account(
         &self,
         name: &str,
@@ -553,99 +658,7 @@ impl VaultService {
             "acc_{}",
             &uuid::Uuid::new_v4().to_string().replace("-", "")[..16]
         );
-        let salt = generate_salt();
-        let kdf_config = KdfConfig::from_env();
-        let master_key = derive_key(password, &salt, &kdf_config)
-            .map_err(|e| format!("Key derivation failed: {}", e))?;
-
-        let mk: [u8; 32] = master_key
-            .as_slice()
-            .try_into()
-            .map_err(|_| "Master key must be 32 bytes".to_string())?;
-        let verify_hash = hex::encode(
-            solosoul_crypto::hkdf_ext::derive_hkdf_key(&mk, &salt, b"SOLOSOUL_VAULT_VERIFY_v1")
-                .map_err(|e| format!("Verify HKDF failed: {}", e))?,
-        );
-
-        let dir_rel = self.account_dir_rel(&account_id);
-        self.fs.create_dir_all(&dir_rel)?;
-        self.ensure_private_dir(&dir_rel)?;
-
-        let now = chrono::Utc::now().to_rfc3339();
-        let config_data = AccountConfig {
-            account_id: account_id.clone(),
-            name: name.to_string(),
-            salt: base64::Engine::encode(
-                &base64::engine::general_purpose::STANDARD,
-                salt.as_slice(),
-            ),
-            verify_hash,
-            created_at: now.clone(),
-            crypto_version: 3, // P2-010: HKDF-based verify hash
-            biometric_enabled: false,
-            pin_enabled: false,
-            pin_length: 0,
-            pin_failed_attempts: 0,
-            pin_locked_until: None,
-            password_failed_attempts: 0,
-            password_locked_until: None,
-            kdf_memory_kb: Some(kdf_config.memory_kb),
-            kdf_iterations: Some(kdf_config.iterations),
-            kdf_parallelism: Some(kdf_config.parallelism),
-            password_hint: password_hint.map(|s| s.to_string()),
-            last_login_at: Some(now.clone()),
-            last_operation_at: None,
-            last_operation_desc: None,
-        };
-        let config_json = serde_json::to_string_pretty(&config_data).map_err(|e| e.to_string())?;
-        // P135: 原子写（.tmp + rename）——create_account 为关键写入路径。
-        self.write_config_atomic(&account_id, config_json.as_bytes())?;
-
-        // Add to cache
-        let entry = AccountEntry {
-            id: account_id.clone(),
-            name: name.to_string(),
-            created_at: now.clone(),
-            last_accessed: Some(now),
-        };
-        // P001：RwLock 中毒按不可恢复处理——`into_inner()` 强制取回写锁，保证
-        // 账户落盘后会话状态（accounts_cache / vault_store / session_key /
-        // unlocked_account）一致建立，不再出现「账户已创建但会话状态部分缺失」
-        // 的不一致（与 lock() 同款处理）。
-        self.accounts_cache
-            .write()
-            .unwrap_or_else(|e| e.into_inner())
-            .insert(account_id.clone(), entry);
-        self.save_accounts()?;
-
-        // Open vault with data key
-        let master_key_arr: [u8; 32] = master_key
-            .as_slice()
-            .try_into()
-            .map_err(|_| "HKDF output must be 32 bytes".to_string())?;
-        let account_dir_path = self.fs.local_path(&dir_rel).ok_or("无法解析账户本地目录")?;
-        let vault_config =
-            VaultConfig::new(&account_id, account_dir_path).with_data_key(master_key_arr);
-        let vault =
-            VaultStore::open(vault_config).map_err(|e| format!("Failed to open vault: {}", e))?;
-        let vault_arc = Arc::new(vault);
-        // 设备级偏好同步开关：unlock 新建 VaultStore 后应用期望值（默认 true）。
-        vault_arc.set_ui_prefs_sync_enabled(self.ui_prefs_sync_enabled.load(Ordering::SeqCst));
-        *self.vault_store.write().unwrap_or_else(|e| e.into_inner()) = Some(vault_arc);
-        *self.session_key.write().unwrap_or_else(|e| e.into_inner()) =
-            Some(Zeroizing::new(master_key_arr));
-        *self
-            .unlocked_account
-            .write()
-            .unwrap_or_else(|e| e.into_inner()) = Some(account_id.clone());
-
-        // P010: 返回值不再携带 salt/verifyHash——前端零消费（auth::bootstrap 仅读
-        // id/name/passwordHint，CLI 仅读 id），暴露会扩大 WebView 攻击面（verifyHash
-        // 可支持离线口令爆破）。两值仍写入磁盘 config（解锁/校验必需）。
-        Ok(serde_json::json!({
-            "id": account_id, "name": name,
-            "passwordHint": config_data.password_hint,
-        }))
+        self.create_account_common(&account_id, name, password, password_hint)
     }
 
     /// 使用指定的 account_id 创建账户（用于跨设备恢复等场景）。
@@ -678,92 +691,7 @@ impl VaultService {
             return Err("Account ID already exists".to_string());
         }
 
-        let salt = generate_salt();
-        let kdf_config = KdfConfig::from_env();
-        let master_key = derive_key(password, &salt, &kdf_config)
-            .map_err(|e| format!("Key derivation failed: {}", e))?;
-
-        let mk: [u8; 32] = master_key
-            .as_slice()
-            .try_into()
-            .map_err(|_| "Master key must be 32 bytes".to_string())?;
-        let verify_hash = hex::encode(
-            solosoul_crypto::hkdf_ext::derive_hkdf_key(&mk, &salt, b"SOLOSOUL_VAULT_VERIFY_v1")
-                .map_err(|e| format!("Verify HKDF failed: {}", e))?,
-        );
-
-        let dir_rel = self.account_dir_rel(account_id);
-        self.fs.create_dir_all(&dir_rel)?;
-        self.ensure_private_dir(&dir_rel)?;
-
-        let now = chrono::Utc::now().to_rfc3339();
-        let config_data = AccountConfig {
-            account_id: account_id.to_string(),
-            name: name.to_string(),
-            salt: base64::Engine::encode(
-                &base64::engine::general_purpose::STANDARD,
-                salt.as_slice(),
-            ),
-            verify_hash,
-            created_at: now.clone(),
-            crypto_version: 3,
-            biometric_enabled: false,
-            pin_enabled: false,
-            pin_length: 0,
-            pin_failed_attempts: 0,
-            pin_locked_until: None,
-            password_failed_attempts: 0,
-            password_locked_until: None,
-            kdf_memory_kb: Some(kdf_config.memory_kb),
-            kdf_iterations: Some(kdf_config.iterations),
-            kdf_parallelism: Some(kdf_config.parallelism),
-            password_hint: password_hint.map(|s| s.to_string()),
-            last_login_at: Some(now.clone()),
-            last_operation_at: None,
-            last_operation_desc: None,
-        };
-        let config_json = serde_json::to_string_pretty(&config_data).map_err(|e| e.to_string())?;
-        // P135: 原子写（.tmp + rename）——create_account_with_id 为关键写入路径。
-        self.write_config_atomic(account_id, config_json.as_bytes())?;
-
-        let entry = AccountEntry {
-            id: account_id.to_string(),
-            name: name.to_string(),
-            created_at: now.clone(),
-            last_accessed: Some(now),
-        };
-        // P001：RwLock 中毒按不可恢复处理（同 create_account）。
-        self.accounts_cache
-            .write()
-            .unwrap_or_else(|e| e.into_inner())
-            .insert(account_id.to_string(), entry);
-        self.save_accounts()?;
-
-        let master_key_arr: [u8; 32] = master_key
-            .as_slice()
-            .try_into()
-            .map_err(|_| "HKDF output must be 32 bytes".to_string())?;
-        let account_dir_path = self.fs.local_path(&dir_rel).ok_or("无法解析账户本地目录")?;
-        let vault_config =
-            VaultConfig::new(account_id, account_dir_path).with_data_key(master_key_arr);
-        let vault =
-            VaultStore::open(vault_config).map_err(|e| format!("Failed to open vault: {}", e))?;
-        let vault_arc = Arc::new(vault);
-        // 设备级偏好同步开关：unlock 新建 VaultStore 后应用期望值（默认 true）。
-        vault_arc.set_ui_prefs_sync_enabled(self.ui_prefs_sync_enabled.load(Ordering::SeqCst));
-        *self.vault_store.write().unwrap_or_else(|e| e.into_inner()) = Some(vault_arc);
-        *self.session_key.write().unwrap_or_else(|e| e.into_inner()) =
-            Some(Zeroizing::new(master_key_arr));
-        *self
-            .unlocked_account
-            .write()
-            .unwrap_or_else(|e| e.into_inner()) = Some(account_id.to_string());
-
-        // P010: 同 create_account——返回值不再携带 salt/verifyHash。
-        Ok(serde_json::json!({
-            "id": account_id, "name": name,
-            "passwordHint": config_data.password_hint,
-        }))
+        self.create_account_common(account_id, name, password, password_hint)
     }
 
     /// 安全解锁：接受 Zeroizing<String> 主密码，避免调用侧额外明文拷贝。

@@ -42,7 +42,7 @@
 | P012 | P2 | 安全 | `tauri/src-tauri/src/commands/update.rs` + 前端更新呈现 | APK 校验和 minisign 签名缺失/无效时仅降级继续下载，用户静默失去完整性校验 | `[x]` 已修复（P012） |
 | P013 | P2 | 安全 | `tauri/src-tauri/src/commands/export_import/import.rs` + `lib.rs` 启动清扫 | 导入解密明文落系统 temp 目录 `NamedTempFile`，进程 SIGKILL/崩溃时明文残留 | `[x]` 已修复（P013） |
 | P014 | P2 | 安全 | `tauri/crates/solosoul-sync/src/recovery.rs:183` | 恢复主机接受裸 6 位数字 PIN 兼容旁路（无 nonce 绑定），削弱抗重放 | `[x]` 保留（用户决策） |
-| P015 | P2 | 可优化 | `tauri/crates/solosoul-core/src/vault_service.rs:526-644` vs `650-762`；另 `commands/sync.rs:790` vs `solosoul-sync/src/recovery.rs:403` | `create_account`/`create_account_with_id` 约 90 行近乎逐字重复（安全敏感代码双份）；`local_display_ip` 跨 crate 重复实现 | `[ ]` 待修复 |
+| P015 | P2 | 可优化 | `tauri/crates/solosoul-core/src/vault_service.rs` + `commands/sync.rs` vs `solosoul-sync/src/recovery.rs` | `create_account`/`create_account_with_id` 约 90 行近乎逐字重复（安全敏感代码双份）；`local_display_ip` 跨 crate 重复实现 | `[x]` 已修复（P015） |
 | P016 | P2 | 性能 | `tauri/crates/solosoul-sync/src/delta.rs:166-213` | 同步冲突分支内每条记录单独解密/写入，大量冲突时变慢（主路径已批量事务化） | `[ ]` 待修复 |
 | P017 | P2 | 可优化 | 多处（详见下文） | 过长函数/深嵌套候选 9 项（`list_object_changes_since_limited` 165 行等） | `[ ]` 待修复 |
 | P018 | P2 | 规范 | `AGENTS.md` 项目结构节 | 声称 `src-tauri/src/ipc/` 存在（实际无此目录），结构表与实际文件不同步 | `[ ]` 待修复 |
@@ -61,8 +61,8 @@
 
 ## 修复进度
 
-- 已完成：14 / 30
-- 当前处理：P015（create_account 重复提取 inner + local_display_ip 下沉）
+- 已完成：15 / 30
+- 当前处理：P016（同步冲突分支批量落库）
 
 ---
 
@@ -137,6 +137,11 @@
 - **决策**：用户选择「保留并登记」。`recovery.rs:174-179、280` 的 `nonce:pin` 裸 PIN 分支是**旧版手动输入兼容**（无 nonce 绑定的老设备恢复）；已确认有 Noise 加密 + 限流兜底，实际风险低。移除会破坏旧版本设备的手动恢复输入，故保留。
 - **登记**：风险持续跟踪项——若未来同步协议升级可淘汰旧设备支持，再随版本计划移除。
 - **提交**：无代码改动（本次仅文档登记）。
+
+### P015 · create_account 双份实现 + local_display_ip 跨 crate 重复（已修复）
+- **提交**：`（待填写）`
+- **改动**：① `vault_service.rs` 提取 `create_account_common`（密钥派生→写 config→建会话→返回摘要的公共主体），`create_account`/`create_account_with_id` 各保留自身入口校验（名字唯一性 vs ID 已存在 + create_lock）后调用之，安全敏感代码（derive_key/verify_hash/会话建立）收敛为单份，杜绝双份实现漂移；② `local_display_ip` 收敛到 `solosoul-sync/recovery.rs`（改 `pub` + lib 根 re-export），`src-tauri/commands/sync.rs` 删除私有 async 副本（含移动端 timeout 包装）与 `local-ip-address` 死依赖，两处调用点改 `solosoul_sync::local_display_ip()`。注：移动端同步二维码路径行为与恢复主机路径对齐（均走 UDP 选择路由地址，纯本地内核操作不阻塞）。
+- **验证**：solosoul-core/solosoul-sync `cargo clippy --all-targets -- -D warnings` exit 0；src-tauri check + clippy exit 0；`solosoul_cli` check exit 0；`cargo fmt --check` exit 0。
 
 ---
 

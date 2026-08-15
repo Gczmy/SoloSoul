@@ -400,7 +400,12 @@ pub fn generate_recovery_password() -> String {
 
 /// 尝试获取一个适合展示给用户的本地非回环 IPv4 地址。
 /// 优先通过外联 UDP 获得路由选中的地址；失败或离线时枚举本地网卡。
-fn local_display_ip() -> Option<String> {
+/// P015: 本地非回环 IPv4 展示地址（跨 crate 唯一实现）。
+///
+/// 优先通过外联 UDP 获得路由选中的地址（`connect` 仅设置对端，不发送任何数据包，
+/// 纯本地内核操作不会阻塞）；回退枚举本地网卡。src-tauri 同步命令（sync_listen_addr /
+/// sync_generate_qr_payload）经 lib.rs 根 re-export 复用本实现，不再各自维护副本。
+pub fn local_display_ip() -> Option<String> {
     if let Ok(socket) = UdpSocket::bind("0.0.0.0:0") {
         if socket.connect("8.8.8.8:80").is_ok() {
             if let Ok(local) = socket.local_addr() {
