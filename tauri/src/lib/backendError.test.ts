@@ -26,7 +26,21 @@ vi.mock('@/lib/i18n', () => ({
   },
 }));
 
-import { resolveBackendErrorMessage } from './backendError';
+import { resolveBackendErrorMessage, translateRustError } from './backendError';
+
+describe('translateRustError (P029-R1: password_too_short 映射)', () => {
+  it('maps password-length Rust error to existing settings key (not missing common key)', () => {
+    // 旧映射指向 common:password_too_short（双语 common.json 均无此键）→ 渲染裸键名；
+    // 修正后指向 settings:password_too_short（settings.json 已存在）。
+    expect(translateRustError('Password must be at least 8 characters')).toBe(
+      'settings:password_too_short',
+    );
+  });
+
+  it('unmatched errors still return null', () => {
+    expect(translateRustError('Some unknown rust error')).toBeNull();
+  });
+});
 
 describe('resolveBackendErrorMessage handshake detail i18n', () => {
   beforeEach(() => {

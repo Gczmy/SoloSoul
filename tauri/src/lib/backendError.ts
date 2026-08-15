@@ -16,7 +16,9 @@ const RUST_ERROR_MAP: Record<string, string> = {
   'Account name already taken': 'common:account_name_taken',
   'Account ID already exists': 'common:account_id_exists',
   'Account not found': 'common:account_not_found',
-  'Password must be at least 8 characters': 'common:password_too_short',
+  // P029-R1: 原映射 common:password_too_short 在双语 common.json 均不存在，
+  // 渲染裸键名；settings.json 已有同义键，改指之。
+  'Password must be at least 8 characters': 'settings:password_too_short',
   'No account is currently unlocked': 'common:no_account_unlocked',
 
   // Backup

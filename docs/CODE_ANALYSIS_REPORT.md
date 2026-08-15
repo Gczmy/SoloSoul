@@ -349,6 +349,8 @@
 - **提交**：`b05e4aa8`
 - **改动**：Rust 静态错误映射表（`RUST_ERROR_MAP` + `RUST_PREFIX_MAP`，原 `rustErrors.ts` 精确+前缀匹配）并入 `backendError.ts`——`translateRustError` 迁至此处；`resolveBackendErrorMessage` 未命中前缀 token 时新增回退：先查 Rust 静态映射（命中 `i18n.t(key)` 返回），未命中才透传原文。`rustErrors.ts` 降为兼容 re-export 薄壳（5 处旧 import 路径不变），新增错误只需在 `backendError.ts` 单表登记。
 - **验证**：`npx tsc --noEmit` 无相关文件错误；`npx eslint` 通过；`vitest run src/lib/backendError.test.ts` 4 测试全绿。
+- **P029-R1 回归修复（核查轮次 13 发现）**：`'Password must be at least 8 characters'` 原映射 `common:password_too_short` 在双语 `common.json` 均不存在（历史遗留）——合并前该错误透传可读英文原文，合并后导出/导入/同步页面会渲染裸键名 `password_too_short`。修复：改映射到 `settings:password_too_short`（`settings.json` 已存在同义键「密码长度不少于 8 位」）；`translateRustError` 返回 key 的既有比较点（BootstrapPage `account_name_taken`）不受影响。新增 2 条单测（映射指向正确键 + 未匹配仍返回 null）。提交 `（待回填）`。
+- **P029-R1 验证**：`npx vitest run src/lib/backendError.test.ts` 6 测试全绿（含新增 2 条）；tsc/eslint 通过；`node` 确认 common.json 双 locale 均无该键、settings.json 双 locale 均有。
 
 ### P019 · `swiftc` PATH 查找与自证式校验（已修复）
 - **提交**：`b7500562`
