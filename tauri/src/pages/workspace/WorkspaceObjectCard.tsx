@@ -14,60 +14,24 @@ import { useAuthStore } from '@/stores/authStore';
 import { useDragToAttach } from '@/hooks/useDragToAttach';
 import { DragUploadOverlay } from '@/components/object/DragUploadOverlay';
 import { ICON_SIZE } from '@/lib/constants';
+import {
+  flattenPropertyEntries,
+  type FlattenedPropertyEntry,
+} from '@/lib/propertyFlatten';
 import styles from './WorkspaceObjectCard.module.css';
 
-/** Extract displayable key-value pairs from object properties (filters internal __ fields).
- * 对于 dynamic_group 类型，每个子字段作为独立条目返回，使用子字段名称作为 label。
+/**
+ * P024: 收敛至共享核心 flattenPropertyEntries（展平模式 + 过滤 `__` 字段）。
+ * 提取可展示的键值对（dynamic_group 子字段作为独立 chip，label 用子字段 name）。
  */
 function flattenProperties(
   props: Record<string, unknown> | undefined,
   fieldOrder?: string[],
 ): { key: string; value: string; label?: string }[] {
-  if (!props) return [];
-  // 从 properties 中提取 __fields 定义，用于识别 dynamic_group 字段
-  const fieldDefs = props.__fields as Record<string, { type?: string }> | undefined;
-  const entries: { key: string; value: string; label?: string }[] = [];
-  for (const [k, v] of Object.entries(props)) {
-    if (k.startsWith('__')) continue;
-    if (v === null || v === undefined || v === '') continue;
-
-    // dynamic_group 字段：每个子字段作为独立 chip 展示
-    if (fieldDefs?.[k]?.type === 'dynamic_group' && Array.isArray(v)) {
-      for (const item of v) {
-        if (!item || typeof item !== 'object') continue;
-        const { name, value: itemVal } = item as Record<string, unknown>;
-        if (name === undefined || name === null || name === '') continue;
-        let displayVal = '';
-        if (Array.isArray(itemVal)) {
-          displayVal = itemVal.join(', ');
-        } else if (itemVal !== null && itemVal !== undefined) {
-          displayVal = String(itemVal);
-        }
-        entries.push({ key: k, value: displayVal, label: String(name) });
-      }
-      continue;
-    }
-
-    if (typeof v === 'string') {
-      entries.push({ key: k, value: v });
-    } else if (typeof v === 'number' || typeof v === 'boolean') {
-      entries.push({ key: k, value: String(v) });
-    } else if (Array.isArray(v) && v.length > 0) {
-      entries.push({ key: k, value: v.join(', ') });
-    }
-  }
-  if (fieldOrder && fieldOrder.length > 0) {
-    const orderMap = new Map(fieldOrder.map((id, i) => [id, i]));
-    entries.sort((a, b) => {
-      const ia = orderMap.get(a.key);
-      const ib = orderMap.get(b.key);
-      if (ia !== undefined && ib !== undefined) return ia - ib;
-      if (ia !== undefined) return -1;
-      if (ib !== undefined) return 1;
-      return a.key.localeCompare(b.key);
-    });
-  }
-  return entries;
+  // 展平模式仅产生 field 条目；filter 收窄 union 后取 value/label。
+  return flattenPropertyEntries(props, fieldOrder)
+    .filter((e): e is Extract<FlattenedPropertyEntry, { kind: 'field' }> => e.kind === 'field')
+    .map((e) => ({ key: e.key, value: e.value, label: e.label }));
 }
 
 interface WorkspaceObjectCardProps {

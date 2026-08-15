@@ -16,6 +16,7 @@ import { useUiStore } from '@/stores/uiStore';
 import { logger } from '@/lib/logger';
 import { ICON_SIZE } from '@/lib/constants';
 import { ValueContainer } from '@/components/ui/ValueContainer';
+import { flattenPropertyEntries } from '@/lib/propertyFlatten';
 
 import type { SnapshotEntry } from '@/types/history';
 
@@ -37,85 +38,32 @@ export type FlattenedField =
       children: { label: string; value: string; type?: string }[];
     };
 
+// P024: 收敛至共享核心 flattenPropertyEntries——历史快照需要保留 __fields 中的
+// __ 前缀 key（如 __dynamic_group__）且 dynamic_group 保持分组结构。
 export function flattenProperties(
   props: Record<string, unknown> | undefined,
   fieldOrder?: string[],
 ): FlattenedField[] {
-  if (!props) return [];
-  const fieldDefs = props.__fields as Record<string, { type?: string; name?: string }> | undefined;
-  const entries: FlattenedField[] = [];
-  for (const [k, v] of Object.entries(props)) {
-    // 跳过对象元数据字段，但保留字段定义中存在的 key（如 __dynamic_group__）
-    if (k.startsWith('__') && !fieldDefs?.[k]) continue;
-    if (v === null || v === undefined || v === '') continue;
-
-    if (fieldDefs?.[k]?.type === 'dynamic_group' && Array.isArray(v)) {
-      if (v.length === 0) continue;
-      const children: { label: string; value: string; type?: string }[] = [];
-      for (const item of v) {
-        if (!item || typeof item !== 'object') continue;
-        const { name, value: itemVal, type: itemType } = item as Record<string, unknown>;
-        if (name === undefined || name === null || name === '') continue;
-        let displayVal = '';
-        if (Array.isArray(itemVal)) {
-          displayVal = itemVal.join(', ');
-        } else if (itemVal !== null && itemVal !== undefined) {
-          displayVal = String(itemVal);
+  return flattenPropertyEntries(props, fieldOrder, undefined, {
+    keepMetaKeys: true,
+    flattenDynamicGroups: false,
+  }).map((e) =>
+    e.kind === 'field'
+      ? {
+          kind: 'field',
+          key: e.key,
+          value: e.value,
+          label: e.label,
+          type: e.type as PropertyType | undefined,
         }
-        children.push({
-          label: String(name),
-          value: displayVal,
-          type: typeof itemType === 'string' ? itemType : undefined,
-        });
-      }
-      entries.push({
-        kind: 'dynamicGroup',
-        key: k,
-        label: fieldDefs?.[k]?.name,
-        type: 'dynamic_group',
-        children,
-      });
-      continue;
-    }
-
-    if (typeof v === 'string') {
-      entries.push({
-        kind: 'field',
-        key: k,
-        value: v,
-        label: fieldDefs?.[k]?.name,
-        type: fieldDefs?.[k]?.type as PropertyType | undefined,
-      });
-    } else if (typeof v === 'number' || typeof v === 'boolean') {
-      entries.push({
-        kind: 'field',
-        key: k,
-        value: String(v),
-        label: fieldDefs?.[k]?.name,
-        type: fieldDefs?.[k]?.type as PropertyType | undefined,
-      });
-    } else if (Array.isArray(v) && v.length > 0) {
-      entries.push({
-        kind: 'field',
-        key: k,
-        value: v.join(', '),
-        label: fieldDefs?.[k]?.name,
-        type: fieldDefs?.[k]?.type as PropertyType | undefined,
-      });
-    }
-  }
-  if (fieldOrder && fieldOrder.length > 0) {
-    const orderMap = new Map(fieldOrder.map((id, i) => [id, i]));
-    entries.sort((a, b) => {
-      const ia = orderMap.get(a.key);
-      const ib = orderMap.get(b.key);
-      if (ia !== undefined && ib !== undefined) return ia - ib;
-      if (ia !== undefined) return -1;
-      if (ib !== undefined) return 1;
-      return a.key.localeCompare(b.key);
-    });
-  }
-  return entries;
+      : {
+          kind: 'dynamicGroup',
+          key: e.key,
+          label: e.label,
+          type: e.type as PropertyType | undefined,
+          children: e.children,
+        },
+  );
 }
 
 function SnapshotCard({

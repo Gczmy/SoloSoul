@@ -1,6 +1,10 @@
 import { Info, Lock, Eye, History, Upload, Maximize2, Paperclip } from 'lucide-react';
 import type { useTranslation } from 'react-i18next';
 import type { GuidePage } from '@/components/guide/PageGuide';
+import {
+  flattenPropertyEntries,
+  type FlattenedPropertyEntry,
+} from '@/lib/propertyFlatten';
 
 /** 对象详情可展示字段条目（dynamic_group 子字段以独立条目 + label 返回）。 */
 export type FlattenedObjectDetailField = {
@@ -11,7 +15,7 @@ export type FlattenedObjectDetailField = {
 };
 
 /**
- * 将对象 properties 扁平化为可展示的键值条目列表（过滤内部 `__` 字段）。
+ * P024: 收敛至共享核心 flattenPropertyEntries（展平模式 + 过滤 `__` 字段）。
  * - dynamic_group 类型：每个子字段作为独立条目返回，使用子字段名称作为 label；
  * - 支持通过 fieldDefs 参数显式传入字段定义（否则回退到 properties.__fields）。
  */
@@ -20,52 +24,10 @@ export function flattenProperties(
   fieldOrder?: string[],
   fieldDefs?: Record<string, { type?: string }>,
 ): FlattenedObjectDetailField[] {
-  if (!props) return [];
-  const entries: FlattenedObjectDetailField[] = [];
-  const defs =
-    fieldDefs ?? ((props.__fields as Record<string, { type?: string }> | undefined) || {});
-  for (const [k, v] of Object.entries(props)) {
-    if (k.startsWith('__')) continue;
-    if (v === null || v === undefined || v === '') continue;
-    const fieldType = defs[k]?.type;
-    if (fieldType === 'dynamic_group' && Array.isArray(v)) {
-      for (const item of v) {
-        if (!item || typeof item !== 'object') continue;
-        const { id, name, value } = item as Record<string, unknown>;
-        if (name === undefined || name === null || name === '') continue;
-        let displayValue = '';
-        if (Array.isArray(value)) {
-          displayValue = value.join(', ');
-        } else if (value !== null && value !== undefined) {
-          displayValue = String(value);
-        }
-        entries.push({
-          key: k,
-          label: String(name),
-          value: displayValue,
-          fieldId: id ? `${k}.${id}` : `${k}.${name}`,
-        });
-      }
-    } else if (typeof v === 'string') {
-      entries.push({ key: k, value: v });
-    } else if (typeof v === 'number' || typeof v === 'boolean') {
-      entries.push({ key: k, value: String(v) });
-    } else if (Array.isArray(v) && v.length > 0) {
-      entries.push({ key: k, value: v.join(', ') });
-    }
-  }
-  if (fieldOrder && fieldOrder.length > 0) {
-    const orderMap = new Map(fieldOrder.map((id, i) => [id, i]));
-    entries.sort((a, b) => {
-      const ia = orderMap.get(a.key);
-      const ib = orderMap.get(b.key);
-      if (ia !== undefined && ib !== undefined) return ia - ib;
-      if (ia !== undefined) return -1;
-      if (ib !== undefined) return 1;
-      return a.key.localeCompare(b.key);
-    });
-  }
-  return entries;
+  // 展平模式仅产生 field 条目；filter 收窄 union 后取 value/fieldId。
+  return flattenPropertyEntries(props, fieldOrder, fieldDefs)
+    .filter((e): e is Extract<FlattenedPropertyEntry, { kind: 'field' }> => e.kind === 'field')
+    .map((e) => ({ key: e.key, label: e.label, value: e.value, fieldId: e.fieldId }));
 }
 
 /** P041: 指南内容数据（移动端 / 桌面端两套），纯函数便于单测。 */
