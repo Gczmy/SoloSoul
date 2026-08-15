@@ -32,6 +32,18 @@ export function isMacOSSync(): boolean {
 }
 
 /**
+ * 同步判断是否为 Windows（基于缓存）。
+ * 若缓存未命中则返回 false，建议在应用初始化时调用一次 getPlatform()。
+ * 用于构造 `solosoul-pdf://` 自定义协议的 URL 形态：Windows 走
+ * `http://solosoul-pdf.localhost/<path>`（tauri 2.x 自定义协议在 Windows 的默认形态），
+ * 其余桌面平台走 `solosoul-pdf://localhost/<path>`。
+ */
+export function isWindowsSync(): boolean {
+  if (!cachedPlatform) return false;
+  return cachedPlatform === 'windows';
+}
+
+/**
  * 在应用初始化时预加载平台信息。
  */
 export async function initPlatform(): Promise<void> {

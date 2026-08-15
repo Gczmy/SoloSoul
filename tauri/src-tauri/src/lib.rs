@@ -13,6 +13,7 @@ pub mod lock_state_plugin;
 pub mod mobile_ocr_plugin;
 pub mod nsd_plugin;
 pub mod plugin;
+pub mod preview_pdf_protocol;
 pub mod services;
 pub mod state;
 pub mod status_bar_plugin;
@@ -720,6 +721,14 @@ pub fn run() {
         builder = builder
             .plugin(tauri_plugin_window_state::Builder::new().build())
             .plugin(tauri_plugin_updater::Builder::new().build());
+    }
+
+    // 桌面端：solosoul-pdf:// 自定义协议——PDF 附件内嵌预览（WebView2 无法渲染
+    // data:/blob: URL 的 embed，且 fs_read_file_as_data_url 有 10 MiB 上限）。
+    // 移动端 PDF 预览走系统应用，无需注册该协议。
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    {
+        builder = preview_pdf_protocol::register(builder);
     }
 
     let result = builder

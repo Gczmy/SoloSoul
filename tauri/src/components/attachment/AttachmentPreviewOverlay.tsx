@@ -6,7 +6,7 @@ import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { AttachmentMetaEditDialog } from '@/components/attachment/AttachmentMetaEditDialog';
 import type { AttachmentItem } from '@/lib/attachmentUtils';
 import { previewItemByMime } from '@/lib/attachmentUtils';
-import { isMobilePlatformSync } from '@/lib/platform';
+import { isMobilePlatformSync, isWindowsSync } from '@/lib/platform';
 import { useTouchZoom } from '@/hooks/useTouchZoom';
 import { syncStatusBarStyle } from '@/lib/theme';
 import { ICON_SIZE, SAFE_AREA_TOP, SAFE_AREA_BOTTOM } from '@/lib/constants';
@@ -36,25 +36,22 @@ function isUriPath(path: string): boolean {
 }
 
 /**
- * 把 `data:application/pdf;base64,...` 转成 blob: URL。
+ * 构造 `solosoul-pdf://` 自定义协议的 embed URL（仅 Windows 使用）。
  *
- * WebView2/Chromium 内建 PDF 查看器不渲染 data: URL 的 <embed>（data: 无源标识，
- * PDFium 拒绝加载），转成 blob: URL（createObjectURL）后正常加载。base64 经 atob
- * 手动解码而非 fetch(data:)（后者会被 `connect-src 'self'` 拦截，且避免为此放宽
- * CSP）；解码失败抛错由调用方 catch 统一降级为错误态。
+ * WebView2/Chromium 内建 PDF 查看器无法从 data:/blob: URL 可靠渲染 <embed>
+ * （data: 无源标识 PDFium 拒绝加载；blob: 在 WebView2 子帧同样不稳定），且
+ * `fs_read_file_as_data_url` 有 10 MiB 上限会拒绝真实大 PDF。改用自定义协议
+ * 直出 application/pdf 字节（后端经 resolve_allowed_path 白名单校验 + 扩展名
+ * 守卫），WebView2 按常规 HTTP 资源渲染，无 base64 膨胀、无大小上限。
+ *
+ * tauri 2.x 自定义协议在 Windows 的 URL 形态为 `http://<scheme>.localhost/<path>`
+ * （其余桌面平台的 `<scheme>://localhost/<path>` 形态 WKWebView 渲染不确定，
+ * 故 macOS/Linux 仍走原 data: URL 路径，不走本协议）。path 经
+ * encodeURIComponent 编码（与后端 percent_decode_str 配对）。
  */
-function dataUrlToBlobUrl(dataUrl: string): string {
-  const comma = dataUrl.indexOf(',');
-  if (comma < 0) throw new Error('Malformed data URL');
-  const header = dataUrl.slice(0, comma);
-  const mime = header.match(/^data:([^;]+)/)?.[1] ?? 'application/octet-stream';
-  const b64 = dataUrl.slice(comma + 1);
-  const binary = atob(b64);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i += 1) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-  return URL.createObjectURL(new Blob([bytes], { type: mime }));
+function buildPdfPreviewSrc(vaultPath: string): string {
+  const encoded = encodeURIComponent(vaultPath);
+  return `http://solosoul-pdf.localhost/${encoded}`;
 }
 
 /**
@@ -85,21 +82,8 @@ export function AttachmentPreviewOverlay({
   const [fitScale, setFitScale] = useState(1);
   const [metaEditOpen, setMetaEditOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
-  /** 当前 PDF 预览的 blob URL（卸载/切换 item 时 revoke，防泄漏）。 */
-  const pdfBlobUrlRef = useRef<string | null>(null);
-  const revokePdfBlobUrl = useCallback(() => {
-    if (pdfBlobUrlRef.current) {
-      URL.revokeObjectURL(pdfBlobUrlRef.current);
-      pdfBlobUrlRef.current = null;
-    }
-  }, []);
-
-  // 卸载时兜底 revoke（正常路径在 item 切换/关闭时已清理，此处防严格模式双挂载等残留）
-  useEffect(() => revokePdfBlobUrl, [revokePdfBlobUrl]);
 
   useEffect(() => {
-    // item 切换/关闭：先清理上一轮 PDF blob URL，避免对象 URL 泄漏
-    revokePdfBlobUrl();
     if (!item) {
       setPreviewKind(null);
       setPreviewUrl('');
@@ -138,26 +122,36 @@ export function AttachmentPreviewOverlay({
       return;
     }
 
-    if (kind === 'image' || kind === 'pdf') {
+    if (kind === 'image') {
       invoke<string>('fs_read_file_as_data_url', { path: filePath })
         .then((url) => {
-          // P017：CSP 保留 object-src data: 以服务桌面 PDF 内嵌预览，此处加代码层
-          // 守卫——仅 application/pdf data URL 允许进入 <embed>，杜绝未来代码路径
-          // 将 data:text/html 等可执行内容注入 object/embed 元素。
-          if (kind === 'pdf' && !url.startsWith('data:application/pdf')) {
-            setError(true);
-            return;
-          }
-          // W-PDF：WebView2（Windows）内建 PDF 查看器不渲染 data: URL 的 embed，
-          // 经守卫后转成 blob: URL 再交给 <embed>（图片仍走 data: URL）。
-          const finalUrl = kind === 'pdf' ? dataUrlToBlobUrl(url) : url;
-          if (kind === 'pdf') {
-            pdfBlobUrlRef.current = finalUrl;
-          }
-          setPreviewUrl(finalUrl);
+          // P017：图片走 data URL（img-src data: 放行），保留代码层守卫
+          setPreviewUrl(url);
         })
         .catch(() => setError(true))
         .finally(() => setLoading(false));
+    } else if (kind === 'pdf') {
+      if (isWindowsSync()) {
+        // Windows（WebView2/PDFium）：无法渲染 data:/blob: URL 的 embed，且 10 MiB
+        // 上限会拒绝真实 PDF。经自定义协议 solosoul-pdf:// 直出 application/pdf
+        // 字节（后端白名单校验），同步设置 URL 即可，无需 invoke。
+        setPreviewUrl(buildPdfPreviewSrc(filePath));
+        setLoading(false);
+      } else {
+        // macOS/Linux（WKWebView/WebKit）：data: URL 原生可渲染，保持既有路径
+        //（自定义协议形态在 WebKit 的渲染支持不确定，不做回归风险）。
+        invoke<string>('fs_read_file_as_data_url', { path: filePath })
+          .then((url) => {
+            // P017 守卫——仅 application/pdf data URL 允许进入 <embed>
+            if (!url.startsWith('data:application/pdf')) {
+              setError(true);
+              return;
+            }
+            setPreviewUrl(url);
+          })
+          .catch(() => setError(true))
+          .finally(() => setLoading(false));
+      }
     } else if (kind === 'text') {
       invoke<string>('fs_read_file_as_text', { path: filePath })
         .then(setTextContent)
@@ -167,7 +161,7 @@ export function AttachmentPreviewOverlay({
       // 'other' files are not loaded automatically.
       setLoading(false);
     }
-  }, [item, revokePdfBlobUrl]);
+  }, [item]);
 
   useEffect(() => {
     if (!item) return;

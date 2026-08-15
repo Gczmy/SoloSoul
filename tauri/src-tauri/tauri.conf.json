@@ -27,7 +27,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; connect-src 'self'; img-src 'self' data:; frame-src 'self'; object-src data: blob:; style-src 'self' 'unsafe-inline'"
+      "csp": "default-src 'self'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; connect-src 'self'; img-src 'self' data:; frame-src 'self' solosoul-pdf: http://solosoul-pdf.localhost; object-src data: blob: solosoul-pdf: http://solosoul-pdf.localhost; style-src 'self' 'unsafe-inline'"
     }
   },
   "bundle": {

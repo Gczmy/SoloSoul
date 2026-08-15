@@ -3,6 +3,14 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { invoke } from '@tauri-apps/api/core';
 import { AttachmentPreviewOverlay } from './AttachmentPreviewOverlay';
 import type { AttachmentItem } from '@/lib/attachmentUtils';
+import { isWindowsSync } from '@/lib/platform';
+
+// 与既有测试（AttachmentRow/ObjectDetailFieldsList 等）同款：mock 平台判定。
+// 默认非 Windows（macOS/Linux 走原 data URL 路径）；Windows 分支在用例内临时翻转。
+vi.mock('@/lib/platform', () => ({
+  isMobilePlatformSync: vi.fn(() => false),
+  isWindowsSync: vi.fn(() => false),
+}));
 
 const mockInvoke = vi.mocked(invoke);
 
@@ -23,9 +31,9 @@ function makeItem(overrides: Partial<AttachmentItem> = {}): AttachmentItem {
 describe('AttachmentPreviewOverlay', () => {
   beforeEach(() => {
     mockInvoke.mockReset();
-    // jsdom 无 createObjectURL/revokeObjectURL——mock 以捕获 blob URL 生命周期
-    URL.createObjectURL = vi.fn(() => 'blob:mock-pdf-url');
-    URL.revokeObjectURL = vi.fn();
+    // 平台 mock 复位：默认非 Windows（macOS/Linux data URL 路径）
+    vi.mocked(isWindowsSync).mockReset();
+    vi.mocked(isWindowsSync).mockReturnValue(false);
   });
 
   it('renders nothing when item is null', () => {
@@ -44,7 +52,37 @@ describe('AttachmentPreviewOverlay', () => {
     });
   });
 
-  it('loads pdf preview via fs_read_file_as_data_url', async () => {
+  // W-PDF：Windows（WebView2/PDFium）无法渲染 data:/blob: URL 的 embed，且
+  // fs_read_file_as_data_url 有 10 MiB 上限会拒绝真实 PDF。改为经自定义协议
+  // solosoul-pdf:// 直出 application/pdf（后端白名单校验），不再 invoke、不再 base64。
+  it('pdf preview uses solosoul-pdf:// custom protocol on Windows', async () => {
+    vi.mocked(isWindowsSync).mockReturnValue(true);
+    mockInvoke.mockResolvedValue('data:application/pdf;base64,abc');
+    render(
+      <AttachmentPreviewOverlay
+        item={makeItem({ fileName: 'doc.pdf', mimeType: 'application/pdf' })}
+        onClose={vi.fn()}
+      />,
+    );
+
+    const embed = screen.getByTitle('doc.pdf');
+    expect(embed.tagName.toLowerCase()).toBe('embed');
+    expect(embed.getAttribute('type')).toBe('application/pdf');
+    // Windows 形态：http://solosoul-pdf.localhost/<encodeURIComponent(path)>
+    expect(embed.getAttribute('src')).toBe(
+      `http://solosoul-pdf.localhost/${encodeURIComponent(
+        '/vault/attachments/obj-1/att-1/test.png',
+      )}`,
+    );
+    // PDF 不触发任何 invoke（不走 10 MiB 上限的 data URL 读取）
+    expect(mockInvoke).not.toHaveBeenCalledWith('fs_read_file_as_data_url', expect.anything());
+    expect(mockInvoke).not.toHaveBeenCalledWith('fs_read_file_as_text', expect.anything());
+  });
+
+  // 平台门控：macOS/Linux（WKWebView）不切自定义协议，保持原 data URL 路径，
+  // 避免 WebKit 对自定义 scheme 的 <embed> 渲染不确定引入回归。
+  it('pdf preview keeps data URL path on non-Windows desktop', async () => {
+    vi.mocked(isWindowsSync).mockReturnValue(false);
     mockInvoke.mockResolvedValue('data:application/pdf;base64,abc');
     render(
       <AttachmentPreviewOverlay
@@ -58,48 +96,8 @@ describe('AttachmentPreviewOverlay', () => {
         path: '/vault/attachments/obj-1/att-1/test.png',
       });
     });
-  });
-
-  // W-PDF：WebView2/Chromium 内建 PDF 查看器不渲染 data: URL 的 embed，必须转 blob: URL。
-  // 断言：① createObjectURL 被调用（data URL 已转 blob）；② embed src 为 blob URL。
-  it('converts pdf data URL to blob URL for embed (WebView2 cannot render data: URL)', async () => {
-    mockInvoke.mockResolvedValue('data:application/pdf;base64,JVBERi0xLjQK');
-    render(
-      <AttachmentPreviewOverlay
-        item={makeItem({ fileName: 'doc.pdf', mimeType: 'application/pdf' })}
-        onClose={vi.fn()}
-      />,
-    );
-
-    await waitFor(() => {
-      expect(URL.createObjectURL).toHaveBeenCalledTimes(1);
-    });
-    // Blob 内容为解码后的 PDF 字节、type 为 application/pdf
-    const blob = vi.mocked(URL.createObjectURL).mock.calls[0][0] as Blob;
-    expect(blob.type).toBe('application/pdf');
-    expect(blob.size).toBe(9); // 'JVBERi0xLjQK' → 9 字节 '%PDF-1.4\n'
-
     const embed = screen.getByTitle('doc.pdf');
-    expect(embed.tagName.toLowerCase()).toBe('embed');
-    expect(embed.getAttribute('src')).toBe('blob:mock-pdf-url');
-    expect(embed.getAttribute('type')).toBe('application/pdf');
-  });
-
-  it('revokes pdf blob URL when switching item / closing preview', async () => {
-    mockInvoke.mockResolvedValue('data:application/pdf;base64,JVBERi0xLjQK');
-    const { rerender } = render(
-      <AttachmentPreviewOverlay
-        item={makeItem({ fileName: 'doc.pdf', mimeType: 'application/pdf' })}
-        onClose={vi.fn()}
-      />,
-    );
-    await waitFor(() => {
-      expect(URL.createObjectURL).toHaveBeenCalledTimes(1);
-    });
-
-    // 关闭预览（item → null）：上一轮 blob URL 被 revoke
-    rerender(<AttachmentPreviewOverlay item={null} onClose={vi.fn()} />);
-    expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:mock-pdf-url');
+    expect(embed.getAttribute('src')).toBe('data:application/pdf;base64,abc');
   });
 
   it('loads text preview via fs_read_file_as_text', async () => {
