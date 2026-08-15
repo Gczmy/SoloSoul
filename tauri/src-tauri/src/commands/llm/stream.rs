@@ -550,7 +550,9 @@ fn persist_conversation_reply(
                     conversation_id: conv.id.clone(),
                     chunk: String::new(),
                     is_done: true,
-                    error: Some(format!("Failed to persist conversation: {e}")),
+                    // P002-R1: 结构化标记——前端据此区分「持久化失败」（回复已完整展示，
+                    // 只 toast 提示，保留内容）与「生成中断」（流错误，替换为错误文案）。
+                    error: Some(format!("__LLM_PERSIST_FAILED__: {e}")),
                 },
             );
         }

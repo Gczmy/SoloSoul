@@ -71,6 +71,7 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
   const isStreaming = useLlmStore((s) => s.isStreaming);
   const streamingConvId = useLlmStore((s) => s.streamingConvId);
   const streamError = useLlmStore((s) => s.streamError);
+  const persistFailed = useLlmStore((s) => s.persistFailed);
   const startStream = useLlmStore((s) => s.startStream);
   const onChunk = useLlmStore((s) => s.onChunk);
   const reset = useLlmStore((s) => s.reset);
@@ -245,39 +246,61 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
     });
   }, [streamBuffer, isStreaming, streamingConvId]);
 
+  /* Stream: persist failure — keep displayed reply, only toast (P002-R1) */
+  const persistFailedHandledRef = useRef(false);
+  useEffect(() => {
+    if (!persistFailed || persistFailedHandledRef.current) return;
+    persistFailedHandledRef.current = true;
+    // 后端 Auto-save 失败：回复已完整流式展示，不替换内容，仅提示用户记录可能未持久化。
+    useUiStore.getState().showToast({
+      type: 'error',
+      message: t('settings:ai_save_conversation_failed', {
+        defaultValue: '对话保存失败，记录可能丢失，请重试',
+      }),
+      duration: 5000,
+    });
+  }, [persistFailed, t]);
+
   /* Stream: finalize after done */
   useEffect(() => {
     if (!isStreaming && streamingConvId && streamBuffer) {
-      const convId = streamingConvId;
-      const currentMsgs = messagesRef.current;
-      if (currentMsgs.length > 0 && currentMsgs[currentMsgs.length - 1].role === 'assistant') {
-        const firstUser = currentMsgs.find((m) => m.role === 'user');
-        const convName = firstUser ? firstUser.content.slice(0, 30) : '';
-        const finalConv: Conversation = {
-          id: convId,
-          name: convName,
-          isTemporary: false,
-          messages: currentMsgs,
-          updatedAt: nowISO(),
-        };
-        invoke('llm_save_conversation', {
-          accountId: accountIdRef.current,
-          conversation: finalConv,
-        }).catch((err) => {
-          // P007: 保存失败不得静默——提示用户记录可能丢失，避免丢失后无感知。
-          logger.warn('[useLlmChatCore] Save conversation failed:', err);
-          useUiStore.getState().showToast({
-            type: 'error',
-            message: t('settings:ai_save_conversation_failed', {
-              defaultValue: '对话保存失败，记录可能丢失，请重试',
-            }),
-            duration: 5000,
+      // P002-R1: 持久化失败时后端已报错（Auto-save 失败）——回复已完整展示，
+      // 由 persistFailed effect 提示；此处跳过前端再次保存（重试大概率同样失败，
+      // 且避免「后端失败 toast + 前端重试成功」的重复/矛盾提示），仅收敛状态。
+      const wasPersistFailed = useLlmStore.getState().persistFailed;
+      if (!wasPersistFailed) {
+        const convId = streamingConvId;
+        const currentMsgs = messagesRef.current;
+        if (currentMsgs.length > 0 && currentMsgs[currentMsgs.length - 1].role === 'assistant') {
+          const firstUser = currentMsgs.find((m) => m.role === 'user');
+          const convName = firstUser ? firstUser.content.slice(0, 30) : '';
+          const finalConv: Conversation = {
+            id: convId,
+            name: convName,
+            isTemporary: false,
+            messages: currentMsgs,
+            updatedAt: nowISO(),
+          };
+          invoke('llm_save_conversation', {
+            accountId: accountIdRef.current,
+            conversation: finalConv,
+          }).catch((err) => {
+            // P007: 保存失败不得静默——提示用户记录可能丢失，避免丢失后无感知。
+            logger.warn('[useLlmChatCore] Save conversation failed:', err);
+            useUiStore.getState().showToast({
+              type: 'error',
+              message: t('settings:ai_save_conversation_failed', {
+                defaultValue: '对话保存失败，记录可能丢失，请重试',
+              }),
+              duration: 5000,
+            });
           });
-        });
-        onConversationSaved?.();
+          onConversationSaved?.();
+        }
       }
       reset();
       setIsSending(false);
+      persistFailedHandledRef.current = false;
     }
   }, [
     isStreaming,
@@ -292,6 +315,8 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
   useEffect(() => {
     if (streamError) {
       const errMsg = streamError;
+      // P002-R1: 仅流级错误（生成中断）替换已展示内容；持久化失败走
+      // persistFailed 分支（保留回复、只 toast），不进入此路径。
       setMessages((prev) => {
         if (prev.length === 0) return prev;
         const lastIdx = prev.length - 1;
@@ -306,6 +331,7 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
       });
       reset();
       setIsSending(false);
+      persistFailedHandledRef.current = false;
     }
   }, [streamError, t, reset]);
 

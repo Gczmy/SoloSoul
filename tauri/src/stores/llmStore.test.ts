@@ -150,6 +150,57 @@ describe('llmStore', () => {
       expect(unlistenFn).toHaveBeenCalledTimes(1);
     });
 
+    it('P002-R1: is_done + persist-failed error 保留 buffer 并置 persistFailed（不替换内容）', async () => {
+      const unlistenFn = vi.fn();
+      mockListen.mockResolvedValue(unlistenFn);
+
+      const { useLlmStore } = await import('./llmStore');
+      useLlmStore.getState().startStream('conv-1');
+      await vi.waitFor(() => {
+        expect(useLlmStore.getState().unlisten).toBeDefined();
+      });
+
+      // 先展示完整回复
+      useLlmStore.getState().onChunk({ conversationId: 'conv-1', chunk: '完整回复', isDone: false });
+      // 持久化失败事件：is_done=true + 结构化前缀
+      useLlmStore.getState().onChunk({
+        conversationId: 'conv-1',
+        chunk: '',
+        isDone: true,
+        error: '__LLM_PERSIST_FAILED__: db full',
+      });
+
+      const state = useLlmStore.getState();
+      expect(state.isStreaming).toBe(false);
+      expect(state.persistFailed).toBe(true); // 持久化失败标记
+      expect(state.streamBuffer).toBe('完整回复'); // 已展示内容保留
+      expect(state.streamError).toBeNull(); // 不当作生成中断
+      expect(unlistenFn).toHaveBeenCalledTimes(1);
+    });
+
+    it('P002-R1: 真流错误（is_done=false + error）仍设 streamError 并停止流', async () => {
+      const unlistenFn = vi.fn();
+      mockListen.mockResolvedValue(unlistenFn);
+
+      const { useLlmStore } = await import('./llmStore');
+      useLlmStore.getState().startStream('conv-1');
+      await vi.waitFor(() => {
+        expect(useLlmStore.getState().unlisten).toBeDefined();
+      });
+
+      useLlmStore.getState().onChunk({
+        conversationId: 'conv-1',
+        chunk: '',
+        isDone: false,
+        error: 'HTTP 500: upstream error',
+      });
+
+      const state = useLlmStore.getState();
+      expect(state.isStreaming).toBe(false);
+      expect(state.streamError).toBe('HTTP 500: upstream error');
+      expect(state.persistFailed).toBe(false);
+    });
+
     it('忽略不匹配 conversationId 的 chunk', async () => {
       const unlistenFn = vi.fn();
       mockListen.mockResolvedValue(unlistenFn);
@@ -189,6 +240,7 @@ describe('llmStore', () => {
       expect(state.streamingConvId).toBeNull();
       expect(state.streamBuffer).toBe('');
       expect(state.streamError).toBeNull();
+      expect(state.persistFailed).toBe(false);
       expect(state.unlisten).toBeNull();
       expect(state.unlistenPromise).toBeNull();
     });

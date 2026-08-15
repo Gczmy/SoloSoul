@@ -87,6 +87,8 @@
 - **提交**：`b34b5e09`
 - **改动**：`commands/llm/stream.rs` `llm_send_message_stream` 尾部 `let _ = save_conversation(...)` 改为显式 `if let Err(e)`：① `tracing::warn!` 落日志（仅记录会话 id 与错误，不含消息内容）；② 向前端 emit `llm-stream-chunk`（is_done=true + error 文案），持久化失败用户可见可重试。回复已完整流式展示，因此不把整个命令判失败（避免前端误判生成中断）。另 `send_chat_stream(app, ...)` 改传 `app.clone()`（流结束后仍需 emit）。
 - **验证**：`cargo check` exit 0；`cargo clippy --lib` 无警告。
+- **P002-R1 前后端行为矛盾修复（核查轮次 13 发现）**：原提交自称「不把持久化失败判为生成中断」，但前端 `useLlmChatCore` 收到 error 事件（含持久化失败事件）后会把**已展示的回复整体替换**为错误文案，用户无法区分「生成中断」与「保存失败」；且 `stream.rs` 持久化失败 error 文案硬编码英文、无 i18n 键。修复：① 后端持久化失败事件 error 加结构化前缀 `__LLM_PERSIST_FAILED__`；② `llmStore.onChunk` 区分——`is_done=true` + 该前缀视为持久化失败：保留 buffer、置 `persistFailed` 标记（新 store 字段），**不设 streamError**（不替换内容）；`is_done=false` + error 仍为流级错误（生成中断）；③ `useLlmChatCore` 新增 persistFailed effect：只 toast `settings:ai_save_conversation_failed`（已有 i18n 键）不替换内容；finalize effect 在 persistFailed 时跳过前端再次保存（避免「后端失败 toast + 前端重试」重复/矛盾提示）。新增 2 条 llmStore 测试（persist-failed 保留 buffer / 真流错误仍设 streamError）。提交 `（待回填）`。
+- **P002-R1 验证**：tsc/eslint 通过；`vitest run src/stores/llmStore.test.ts` 11 测试全绿（含新增 2 条）；src-tauri `cargo check` exit 0。
 
 ### P003 · 审计日志/快照大面积吞错（已修复）
 - **提交**：`8be25d0c`

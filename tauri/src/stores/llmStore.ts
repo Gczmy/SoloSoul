@@ -13,7 +13,11 @@ interface LlmState {
   isStreaming: boolean;
   streamingConvId: string | null;
   streamBuffer: string;
+  /** 流级错误（生成中断）——前端会把已展示回复替换为错误文案。 */
   streamError: string | null;
+  /** 持久化失败标记（is_done=true 且 error 带 __LLM_PERSIST_FAILED__ 前缀）——
+   *  回复已完整展示，仅提示保存失败，不替换内容。 */
+  persistFailed: boolean;
   unlisten: UnlistenFn | null;
   unlistenPromise: Promise<UnlistenFn> | null;
 
@@ -27,6 +31,7 @@ export const useLlmStore = create<LlmState>((set, get) => ({
   streamingConvId: null,
   streamBuffer: '',
   streamError: null,
+  persistFailed: false,
   unlisten: null,
   unlistenPromise: null,
 
@@ -45,6 +50,7 @@ export const useLlmStore = create<LlmState>((set, get) => ({
       streamingConvId: conversationId,
       streamBuffer: '',
       streamError: null,
+      persistFailed: false,
       unlisten: null,
       unlistenPromise: null,
     });
@@ -68,7 +74,14 @@ export const useLlmStore = create<LlmState>((set, get) => ({
     if (payload.conversationId !== state.streamingConvId) return;
 
     if (payload.error) {
-      set({ streamError: payload.error, isStreaming: false });
+      if (payload.isDone && payload.error.startsWith('__LLM_PERSIST_FAILED__')) {
+        // P002-R1: 持久化失败——流已正常结束（is_done=true），回复已完整展示。
+        // 保留 buffer，仅置 persistFailed 标记供页面 toast，不替换已展示内容。
+        set({ isStreaming: false, persistFailed: true, streamError: null });
+      } else {
+        // 流级错误（生成中断）：中断并标记错误（前端替换为错误文案）
+        set({ streamError: payload.error, isStreaming: false });
+      }
       state.unlisten?.();
       return;
     }
@@ -95,6 +108,7 @@ export const useLlmStore = create<LlmState>((set, get) => ({
       streamingConvId: null,
       streamBuffer: '',
       streamError: null,
+      persistFailed: false,
       unlisten: null,
       unlistenPromise: null,
     });
