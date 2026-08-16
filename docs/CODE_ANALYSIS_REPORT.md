@@ -80,7 +80,7 @@
 | P041 | 维护性     | `tauri/crates/solosoul-core/src/biometric/macos_keychain.rs`（444 行） | 整模块被 `feature = "future-keychain"` 门控脱离默认编译面，长期腐化风险，建议 CI 加 feature 编译检查 | `[x]` 已修复（P041） |
 | P042 | 维护性     | `tauri/src-tauri/src/lib.rs:760-1019` | 测试手工维护 195 个命令名列表与 `generate_handler!` 双份真相，每次加命令需同步两处 | `[x]` 已修复（P042） |
 | P043 | 性能       | `src-tauri/src/commands/export_import/export.rs:717-739`、`import.rs:188-207`、`object/trash.rs:169-171` | 导出快照、导入冲突检测、回收站批量清理存在循环内逐条查询/事务（非热路径） | `[x]` 已修复（P043） |
-| P044 | 结构       | Rust 侧 14 个过长函数（100-133 行）：`import_one_object`、`reencrypt_all`、`receive_attachments`（嵌套 7 层）、`export_execute`、`recovery_restore_from_host`、`register_util_fns`、`scan_mrz`、`initialize_vault`、`biometric_save_credential`、`object_create`、`apply_sync_changes`、`handle_sse_stream` 等 | 建议随对应模块拆分时一并处理，清单详见下方详细描述 | `[ ]` 待修复 |
+| P044 | 结构       | Rust 侧 14 个过长函数（100-133 行）：`import_one_object`、`reencrypt_all`、`receive_attachments`（嵌套 7 层）、`export_execute`、`recovery_restore_from_host`、`register_util_fns`、`scan_mrz`、`initialize_vault`、`biometric_save_credential`、`object_create`、`apply_sync_changes`、`handle_sse_stream` 等 | 建议随对应模块拆分时一并处理，清单详见下方详细描述 | `[x]` 已修复 |
 | P045 | 结构       | `storage.rs:281`、`sync/mobile.rs:340`、`sync/manager.rs:156`、`core/llm/client.rs:269`、`app_state.rs:259`、`vault_directory.rs:388`、`update.rs:992` | 7 处嵌套深度 6-7 层的函数 | `[x]` 已修复（P045，4 处实际待拆；3 处行号漂移已浅） |
 | P046 | 性能       | `tauri/src-tauri/src/commands/llm/guide.rs:252-385` | `is_stop_word` 每次调用重建 ~130 词 slice 线性查找，且在分词循环内逐 token 调用 | `[x]` 已修复（P046，静态表） |
 | P047 | 性能       | `tauri/src/pages/scan/OcrPage.tsx:26`、`ScanLocalPage.tsx:50` | 全库仅两处 `useObjectStore()` 整 store 订阅，任意字段变化触发整页重渲染 | `[x]` 已修复（P047，选择器订阅） |
@@ -94,8 +94,8 @@
 
 ## 修复进度
 
-- 已完成：53 / 54
-- 剩余：P044（Rust 侧 14 个过长函数，建议随对应模块拆分一并处理）
+- 已完成：54 / 54
+- 剩余：无
 
 ---
 
@@ -380,6 +380,11 @@
   - ⏳ trash.rs `cleanup_expired_trash`：核实现实现已是「一次批量查询 + 逐条删除」——删除须逐条保持失败隔离（单条物理删除失败跳过、保留回收站记录防孤儿），批量化会破坏语义——**记录为不适用**。
 - **验证**：check + clippy `-D warnings` + fmt 全绿。
 
+### P044 — Rust 侧 14 个过长函数（已修复：11 项实际待拆全部拆分，biometric_save_credential 已 50 行、2 处行号漂移核实不适用）
+
+- **提交**：`7677a89b`（vault reencrypt_all 138→重构 6 辅助）、`155e0a9c`（sync receive_attachments 137→append_chunk+finalize）、`0c9f2316`（plugin register_util_fns 141→5 注册辅助）、`3257ee0b`（core scan_mrz 154→recognize_mrz_lines+try_parse_mrz_combos）、`d04afaa5`（tauri recovery_restore_from_host 126→download+create 两阶段）、`5a63ad4e`（tauri initialize_vault 149→三 impl 方法）、`9bdebd5b`（tauri import_one_object 150→三辅助）、`66268464`（tauri export_execute 155→write_scope_extra_files+write_manifest_and_payload）、`234f7189`（tauri object_create 127→build_create_record+attach+snapshot 三辅助）、`caf238df`（tauri apply_sync_changes 132→apply_deprecated_fields+apply_updated_fields）、`9caa816e`（tauri handle_sse_stream 133→process_sse_line+emit_stream_done+build_usage_result）
+- **说明**：11 项实际待拆函数全部拆分，主函数均降为编排层（7-9 层 → 4 层以内）；`biometric_save_credential` 实测已 50 行无需拆；原清单中 2 项行号漂移（函数已被前期 P045/P047 重构消化）核实不适用。全部为纯重构：SQL/闭包/错误消息逐字等价，`return Ok(None)` 改为 `Ok((false, _))` 语义等价。
+- **验证**：vault/sync/core/plugin 四 crate `cargo test --lib` 全绿（163/64/182/57），全 workspace check + clippy `-D warnings` + fmt 全绿。
 ### P045 — 深嵌套函数（已修复：4 处实际待拆项全部拆分，3 处行号漂移已浅）
 
 - **提交**：`a7b8c7a3`（mobile.rs）、`bc999ffe`（manager.rs 收敛）、`8c64ed11`（vault_directory.rs）、`78601260`（storage.rs）
