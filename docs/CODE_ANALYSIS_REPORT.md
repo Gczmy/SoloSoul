@@ -65,7 +65,7 @@
 | P026 | 重复代码   | `solosoul-core/src/llm/client.rs`（475 行）vs `src-tauri/src/commands/llm/`（约 1185 行） | LLM HTTP/SSE 客户端 blocking/async 双份实现，请求构造与 SSE 解析可共享纯函数 | `[x]` 已修复（P026） |
 | P027 | 架构       | `tauri/src/stores/authStore.ts` ↔ 后端 `VaultService` | 解锁状态前后端双份维护，靠事件 + best-effort 收敛（已有多层缓解，残余窗口存疑） | `[x]` 已修复（P027） |
 | P028 | 架构       | `tauri/src/stores/syncStore.ts:20-66` ↔ `commands/sync.rs:6-27` | 同步历史存两份：localStorage（无清理逻辑，存疑）与后端 audit_log | `[x]` 已修复（P028） |
-| P029 | 架构       | `tauri/src/stores/settingsStore.ts:156-232` | 偏好设置三副本（后端 DB / localStorage / ui_preferences.json），读路径异常时可能闪烁回跳 | `[ ]` 待修复 |
+| P029 | 架构       | `tauri/src/stores/settingsStore.ts:156-232` | 偏好设置三副本（后端 DB / localStorage / ui_preferences.json），读路径异常时可能闪烁回跳 | `[x]` 已修复（P029） |
 | P030 | 架构       | `tauri/src-tauri/src/state/app_state.rs`（866 行） | AppState 聚合 8 个字段且混入 SAF config、DTO、自由函数 | `[ ]` 待修复 |
 | P031 | 架构       | `tauri/src-tauri/src/services/`（仅 3 文件）vs `commands/`（30+ 模块） | services 层萎缩，业务规则锁在 command 签名旁（如 `object/mod.rs` 的 dynamic_group 校验），CLI 无法复用 | `[ ]` 待修复 |
 | P032 | 健壮性     | `tauri/crates/solosoul-vault/src/migration.rs:45` | 迁移版本读取 `unwrap_or(1)` 吞掉读取错误，版本表读失败会静默重跑全部迁移 | `[ ]` 待修复 |
@@ -94,8 +94,8 @@
 
 ## 修复进度
 
-- 已完成：28 / 54
-- 当前处理：P029（偏好设置三副本读路径闪烁回跳）
+- 已完成：29 / 54
+- 当前处理：P030（AppState 聚合 8 个字段）
 
 ---
 
@@ -269,6 +269,13 @@
 - **位置**：`tauri/src/stores/syncStore.ts`（`loadSyncHistory`，+ 测试）。
 - **修复**：`loadSyncHistory` 读取时即按 `SYNC_HISTORY_MAX(10)` 截断并写回——早期版本若已写入超限条数（当时无清理逻辑），重启后不再重复加载同样的超限旧数据（仅 slice 不写回会留下永久垃圾）；写回失败（隐私模式/配额）静默降级为内存态。写入侧 `pushSyncHistory` 本已前插 + slice 截断，不重复改。localStorage 中仅存表名/计数/HLC 无解密内容，定位为后端 audit_log 的展示投影，与 P0#5 持久化设计一致，不做双份去除。
 - **验证**：新增 2 测试（超限截断写回保留最新前 10 条 / 未超限数据原样不动，经模块重载触发 store 创建路径）；syncStore 18 测试全绿；tsc + eslint 全绿。
+
+### P029 — 偏好设置三副本读路径闪烁回跳（已修复：读路径回跳消除）
+
+- **提交**：`70d272bc`
+- **位置**：`tauri/src/stores/settingsStore.ts`（`loadSettings` 合并基准，+ 测试）。
+- **修复（按指引「三源读路径顺序异常时可能闪烁，记录即可」落实为记录 + 真实回跳消除）**：写入侧 P129 已收敛单点（`writeUiPrefsCache`/`syncPlaintextPref` 唯一写入点），读路径残余问题在 `loadSettings`——旧实现以 `DEFAULT_SETTINGS` 为合并基准，vault ④ 缺失某 UI 键（旧版升级/未持久化）时会把登录前 `loadUiPreferences` 已应用的缓存值回跳默认（如暗色主题解锁瞬间闪回 system）。修复：合并基准改为「当前 settings + DEFAULT 兜底」——vault 有值的键仍以 vault 为准（设计意图不变），缺失键沿用已应用缓存值；`sidebarButtonModes` 显式拷贝避免下方原地赋值污染 store 既有对象（旧实现会原地改 `DEFAULT_SETTINGS` 共享引用）；P062 四副本矩阵注释区补 P029 读路径回跳残余说明。
+- **验证**：新增回归测试（vault 缺 UI 键保留缓存值 / vault 有键仍以 vault 为准），settingsStore 21 测试全绿；tsc + eslint 全绿。
 
 ### P026 — LLM 客户端 blocking/async 双份实现（已修复：共享纯函数收敛）
 
