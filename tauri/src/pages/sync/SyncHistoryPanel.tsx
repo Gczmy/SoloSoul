@@ -76,11 +76,12 @@ export function SyncHistoryPanel({
               gap: 12,
             }}
           >
-            {recentResults.map((result, idx) => {
+            {recentResults.map((result, _idx) => {
               const time = formatActivityTime(result.at);
               return (
                 <div
-                  key={idx}
+                  // P052: 稳定 key（时间戳+对端）替代数组下标，前插新记录不再整行重挂载
+                  key={`${result.at}-${result.peerNodeId ?? 'local'}`}
                   style={{
                     padding: 12,
                     borderRadius: 8,
