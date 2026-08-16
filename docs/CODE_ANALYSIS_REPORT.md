@@ -70,7 +70,7 @@
 | P031 | 架构       | `tauri/src-tauri/src/services/`（仅 3 文件）vs `commands/`（30+ 模块） | services 层萎缩，业务规则锁在 command 签名旁（如 `object/mod.rs` 的 dynamic_group 校验），CLI 无法复用 | `[x]` 已修复（P031） |
 | P032 | 健壮性     | `tauri/crates/solosoul-vault/src/migration.rs:45` | 迁移版本读取 `unwrap_or(1)` 吞掉读取错误，版本表读失败会静默重跑全部迁移 | `[x]` 已修复（P032） |
 | P033 | 性能       | `tauri/crates/solosoul-vault/src/storage.rs:423,607,962` | 单 `Mutex<Connection>` 全库串行，未见显式 `journal_mode=WAL`（存疑）；`reencrypt_all` 持锁期间全库阻塞 | `[x]` 已修复（P033） |
-| P034 | 架构       | `commands/update.rs` 1902、`commands/ocr.rs` 1517、`migration.rs` 1536、`ocr/mrz.rs` 1423、`export_import/import.rs` 1225、`commands/biometric.rs` 1004、`commands/llm/rag.rs` 972 等 | 800+ 行文件群，与 P008/P025 同批纳入拆分 backlog | `[ ]` 待修复 |
+| P034 | 架构       | `commands/update.rs` 1902、`commands/ocr.rs` 1517、`migration.rs` 1536、`ocr/mrz.rs` 1423、`export_import/import.rs` 1225、`commands/biometric.rs` 1004、`commands/llm/rag.rs` 972 等 | 800+ 行文件群，与 P008/P025 同批纳入拆分 backlog | `[x]` 已处理（P034：backlog 挂账登记） |
 | P035 | 死代码     | `tauri/crates/solosoul-vault/src/storage/sync_apply.rs:140` | `save_sync_conflict`（单条版）无调用方，已被 batch 版取代 | `[ ]` 待修复 |
 | P036 | 死代码     | `tauri/crates/solosoul-core/src/biometric/mod.rs:370` | `BiometricService::test()` 无调用方（命令层直接调 `trigger_system_biometric`） | `[ ]` 待修复 |
 | P037 | 死代码     | `tauri/crates/solosoul-plugin/src/registry.rs:30-49` | `PluginRegistry::new()`/`Default`/`new_with_resource_dir()` 三个构造器无调用方 | `[ ]` 待修复 |
@@ -94,8 +94,8 @@
 
 ## 修复进度
 
-- 已完成：33 / 54
-- 当前处理：P034（死代码 backlog）
+- 已完成：34 / 54
+- 当前处理：P035–P039（死代码，按流程暂缓待用户确认）
 
 ---
 
@@ -306,6 +306,13 @@
   - ① `open()` 幂等设置 `PRAGMA journal_mode = WAL`——此前代码仅在 `lock()` 收尾用 `wal_checkpoint(TRUNCATE)` 暗示 WAL，从未确认/设置模式，存疑消除；WAL 下读写并发避免整库写放大与读阻塞，主连接与 `probe_data_key` 只读连接可并发访问。
   - ② `reencrypt_all` 持锁阻塞评估结论：改密/KDF 升级为同步命令（`change_password` 等），前端 `PasswordChangeForm` 已有 `setLoading(true)` 禁用按钮，用户无法并发触发其他 vault 操作；单 Mutex + 单事务保证原子性；WAL 快照隔离下 `probe_data_key` 只读连接读到的是未提交事务前的旧数据，reencrypt 崩溃恢复判定不受影响——**无需新增前端维护遮罩**，评估结论记录于代码注释。
 - **验证**：vault 163 测试全绿；check + clippy `-D warnings` + fmt 全绿。
+
+### P034 — 800+ 行文件群拆分 backlog（已处理：backlog 挂账登记，不单独立项）
+
+- **提交**：本报告提交（文档登记，无代码改动）。
+- **位置**：`commands/update.rs` 1929、`commands/ocr.rs` 1517、`migration.rs` 1543（`crates/solosoul-vault/`）、`export_import/import.rs` 1225、`commands/biometric.rs` 1004、`commands/llm/rag.rs` 972（`ocr/mrz.rs` 经 git 全历史核实从未存在于仓库，报告原引用过时；MRZ 扫描逻辑位于 `ocr.rs` 内部 `ocr_scan_mrz`）。
+- **处理（按指引「与 P008/P025 同批纳入拆分 backlog，不单独立项」）**：核实同批 P008（storage.rs 5915 行拆分）与 P025（vault_service.rs/lib.rs 拆分）均已完成；本项所列文件经复核仍为 800+ 行，**未做拆分**——按指引登记为拆分 backlog 挂账，不单独立项、不虚假声称已拆分，等待对应模块的专项拆分轮次（与 P044/P045 过长函数清单同步推进）。
+- **验证**：无需验证（登记项）。
 
 ### P026 — LLM 客户端 blocking/async 双份实现（已修复：共享纯函数收敛）
 
