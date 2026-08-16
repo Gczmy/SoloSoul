@@ -78,7 +78,7 @@
 | P039 | 死代码     | `tauri/crates/solosoul-core/src/process_lock.rs:19` | `ProcessLock` 的 `path` 字段从不读取（`file` 字段靠持有实现 RAII 属合理） | `[x]` 已修复（P039） |
 | P040 | 死代码     | `tauri/crates/solosoul-core/src/llm/service.rs:185` | 全库唯一遗留 `TODO(S003)`：会话存储迁移清理，需确认门槛版本是否已过 | `[x]` 已修复（P040） |
 | P041 | 维护性     | `tauri/crates/solosoul-core/src/biometric/macos_keychain.rs`（444 行） | 整模块被 `feature = "future-keychain"` 门控脱离默认编译面，长期腐化风险，建议 CI 加 feature 编译检查 | `[x]` 已修复（P041） |
-| P042 | 维护性     | `tauri/src-tauri/src/lib.rs:760-1019` | 测试手工维护 195 个命令名列表与 `generate_handler!` 双份真相，每次加命令需同步两处 | `[ ]` 待修复 |
+| P042 | 维护性     | `tauri/src-tauri/src/lib.rs:760-1019` | 测试手工维护 195 个命令名列表与 `generate_handler!` 双份真相，每次加命令需同步两处 | `[x]` 已修复（P042） |
 | P043 | 性能       | `src-tauri/src/commands/export_import/export.rs:717-739`、`import.rs:188-207`、`object/trash.rs:169-171` | 导出快照、导入冲突检测、回收站批量清理存在循环内逐条查询/事务（非热路径） | `[ ]` 待修复 |
 | P044 | 结构       | Rust 侧 14 个过长函数（100-133 行）：`import_one_object`、`reencrypt_all`、`receive_attachments`（嵌套 7 层）、`export_execute`、`recovery_restore_from_host`、`register_util_fns`、`scan_mrz`、`initialize_vault`、`biometric_save_credential`、`object_create`、`apply_sync_changes`、`handle_sse_stream` 等 | 建议随对应模块拆分时一并处理，清单详见下方详细描述 | `[ ]` 待修复 |
 | P045 | 结构       | `storage.rs:281`、`sync/mobile.rs:340`、`sync/manager.rs:156`、`core/llm/client.rs:269`、`app_state.rs:259`、`vault_directory.rs:388`、`update.rs:992` | 7 处嵌套深度 6-7 层的函数 | `[ ]` 待修复 |
@@ -94,8 +94,8 @@
 
 ## 修复进度
 
-- 已完成：41 / 54
-- 当前处理：P042（注释强化或宏生成命令列表）
+- 已完成：42 / 54
+- 当前处理：P043（导出/导入/回收站批量路径批量 SQL）
 
 ---
 
@@ -362,6 +362,13 @@
 - **位置**：`.github/workflows/pr_check.yml`、`.github/workflows/ci_cd.yml`。
 - **修复（按指引「CI 加 future-keychain feature 编译检查防腐化」）**：pr_check.yml `rust-check`（macOS）与 ci_cd.yml `build-macos` 各新增 `cargo check -p solosoul-core --features future-keychain` 步骤——macos_keychain.rs 门控模块不再长期脱离编译面（接口漂移/不可编译腐化风险消除）；模块需 `target_os=macos` + feature 双条件，CI 两处均运行于 macOS 满足编译条件。
 - **验证**：本地 `cargo check -p solosoul-core --features future-keychain` 通过（Windows 下 target_os 不匹配不编译该模块属预期）；YAML 缩进/CRLF 与既有步骤一致。
+
+### P042 — 命令列表双份真相（已修复：注释强化）
+
+- **提交**：`99a8f53c`
+- **位置**：`src-tauri/src/lib.rs`（`dispatch_ipc`、`test_dispatch_cluster_prefixes_consistent`）。
+- **修复（按指引「注释强化提醒或改宏生成命令列表」）**：Rust 宏输出不可内省，无法从 `generate_handler!` 自动提取命令名——宏生成方案不可行，选指引选项一「注释强化」：①`dispatch_ipc` 路由函数 doc 加 P042 维护提醒（新增命令需同步 `register_*_commands` 列表 + 路由条件 + 守卫测试映射）；②守卫测试 doc 注明本列表为命令名第二份真相及宏不可内省的根因；③命令名映射处加「新增命令同步更新下方列表与总数断言（当前 195）」提醒。
+- **验证**：纯注释零行为变化；check + tests 编译（Windows DLL 环境问题致运行失败，预存在）+ clippy `-D warnings` + fmt 全绿。
 
 ### P026 — LLM 客户端 blocking/async 双份实现（已修复：共享纯函数收敛）
 
