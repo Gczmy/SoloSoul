@@ -6469,7 +6469,6 @@ name = "solosoul-core"
 version = "2.10.2"
 dependencies = [
  "ab_glyph",
- "anyhow",
  "base64 0.22.1",
  "block2 0.6.2",
  "chrono",
@@ -6483,7 +6482,6 @@ dependencies = [
  "objc2 0.6.4",
  "ort",
  "pdfium-render",
- "rand 0.8.6",
  "reqwest 0.12.28",
  "security-framework",
  "security-framework-sys",
@@ -6494,7 +6492,6 @@ dependencies = [
  "solosoul-vault",
  "tempfile",
  "thiserror 1.0.69",
- "tokio",
  "tracing",
  "uuid",
  "windows 0.58.0",
