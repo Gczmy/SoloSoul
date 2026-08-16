@@ -238,6 +238,28 @@ fn current_version() -> String {
     env!("CARGO_PKG_VERSION").to_string()
 }
 
+/// P020: 版本单调性判断——仅当 `a` 严格高于 `b` 时才视为新版本。
+///
+/// 任一侧解析失败（非 semver）时保守判定非新（fail-safe：宁可漏提示，不可在
+/// 第三方代理重放旧 release 元数据时诱导用户降级）。GitHub tag 与 `CARGO_PKG_VERSION`
+/// 均为 X.Y.Z 形式，正常路径永远走 semver 分支。
+fn version_is_newer(a: &str, b: &str) -> bool {
+    match (semver::Version::parse(a), semver::Version::parse(b)) {
+        (Ok(va), Ok(vb)) => va > vb,
+        _ => false,
+    }
+}
+
+/// P020: 版本单调性归一——非新版本（低于/等于已安装版本）时归一为当前版本，
+/// 前端 `latest == current` 判等即不再提示更新，杜绝代理重放旧清单的降级提示。
+fn normalize_to_newer(latest: String, current: &str) -> String {
+    if version_is_newer(&latest, current) {
+        latest
+    } else {
+        current.to_string()
+    }
+}
+
 // ── Helper: APK 缓存路径 ──────────────────────────────────────
 
 /// 将版本号转换为安全的文件名字符串。
@@ -510,6 +532,9 @@ pub async fn android_check_update(app: tauri::AppHandle) -> Result<AndroidUpdate
         .strip_prefix('v')
         .unwrap_or(&release.tag_name)
         .to_string();
+    // P020: 版本单调性检查——拒绝低于/等于已安装版本的清单（第三方代理可重放旧
+    // release 元数据压制升级或诱导降级提示）；非新版本时归一为当前版本。
+    let latest = normalize_to_newer(latest, &current);
 
     // 查找 APK 资产；校验和走共享解析（下载 .sha256 + .minisig 并验签）
     let (apk_download_url, apk_size) = find_apk_asset(&release).unwrap_or_default();
@@ -570,6 +595,8 @@ fn desktop_info_from_github_release(current: &str, release: &GitHubRelease) -> D
         .strip_prefix('v')
         .unwrap_or(&release.tag_name)
         .to_string();
+    // P020: 与 Android 路径一致的版本单调性归一（GitHub API 兜底同样防代理重放旧清单）。
+    let latest = normalize_to_newer(latest, current);
     let mandatory = release
         .body
         .as_deref()
