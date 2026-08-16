@@ -34,37 +34,42 @@ pub(crate) fn field_value_to_text(value: &serde_json::Value) -> String {
         serde_json::Value::String(s) => s.clone(),
         serde_json::Value::Number(n) => n.to_string(),
         serde_json::Value::Bool(b) => b.to_string(),
-        serde_json::Value::Array(items) => {
-            let is_dynamic_group = items.iter().all(|v| v.is_object());
-            if is_dynamic_group {
-                let mut lines = Vec::new();
-                for item in items {
-                    if let Some(obj) = item.as_object() {
-                        let name = obj
-                            .get("name")
-                            .and_then(|v| v.as_str())
-                            .unwrap_or("")
-                            .to_string();
-                        let value = obj
-                            .get("value")
-                            .map(field_value_to_text)
-                            .unwrap_or_default();
-                        if !name.is_empty() {
-                            lines.push(format!("{}：{}", name, value));
-                        }
-                    }
-                }
-                lines.join("\n")
-            } else {
-                items
-                    .iter()
-                    .map(field_value_to_text)
-                    .collect::<Vec<_>>()
-                    .join(", ")
-            }
-        }
+        serde_json::Value::Array(items) => field_array_to_text(items),
         serde_json::Value::Null => String::new(),
         other => other.to_string(),
+    }
+}
+
+/// 数组字段文本化（P014：field_value_to_text 的 Array 分支抽离，消除 match→if→for→if-let 嵌套）：
+/// - 全部元素为对象（dynamic_group）：每个子字段独立一行 `名称：值`；
+/// - 其他：逐元素递归文本化后用逗号连接。
+fn field_array_to_text(items: &[serde_json::Value]) -> String {
+    let is_dynamic_group = items.iter().all(|v| v.is_object());
+    if is_dynamic_group {
+        let mut lines = Vec::new();
+        for item in items {
+            if let Some(obj) = item.as_object() {
+                let name = obj
+                    .get("name")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("")
+                    .to_string();
+                let value = obj
+                    .get("value")
+                    .map(field_value_to_text)
+                    .unwrap_or_default();
+                if !name.is_empty() {
+                    lines.push(format!("{}：{}", name, value));
+                }
+            }
+        }
+        lines.join("\n")
+    } else {
+        items
+            .iter()
+            .map(field_value_to_text)
+            .collect::<Vec<_>>()
+            .join(", ")
     }
 }
 
