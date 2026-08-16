@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { motion } from 'framer-motion';
@@ -123,7 +123,8 @@ function SnapshotCard({
   const fieldDefs = rawProps?.__fields as
     | Record<string, { type?: string; sensitivityLevel?: string }>
     | undefined;
-  const fields = flattenProperties(rawProps, fieldOrder);
+  // P050: fields 派生自异步快照数据（加载后稳定）+ 静态 fieldOrder，useMemo 避免每次渲染重算
+  const fields = useMemo(() => flattenProperties(rawProps, fieldOrder), [rawProps, fieldOrder]);
   const snapName =
     snapData && typeof snapData === 'object' && 'name' in snapData ? String(snapData.name) : '';
   const tags: string[] =
@@ -188,7 +189,11 @@ function SnapshotCard({
           transition: 'filter 0.15s ease, background 0.15s ease',
           willChange: needsReveal && !revealed ? 'filter' : 'auto',
         }}
-        title={needsReveal && !revealed ? t('common:click_to_reveal', { defaultValue: 'Click to reveal' }) : ''}
+        title={
+          needsReveal && !revealed
+            ? t('common:click_to_reveal', { defaultValue: 'Click to reveal' })
+            : ''
+        }
       >
         {value}
       </span>
@@ -278,7 +283,15 @@ function SnapshotCard({
                         border: '1px solid var(--border-subtle)',
                       }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 74, flex: '0 0 auto' }}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 4,
+                          minWidth: 74,
+                          flex: '0 0 auto',
+                        }}
+                      >
                         <FieldTypeIcon type={(child.type as PropertyType) || 'text'} />
                         <span style={{ fontWeight: 500, color: 'var(--text-secondary)' }}>
                           {child.label}
@@ -317,7 +330,15 @@ function SnapshotCard({
                   opacity: deprecated ? 0.7 : 1,
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: 4, minWidth: 90, flex: '0 0 auto' }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 4,
+                    minWidth: 90,
+                    flex: '0 0 auto',
+                  }}
+                >
                   <FieldTypeIcon type={f.type || 'text'} />
                   <span
                     style={{
