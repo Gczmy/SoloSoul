@@ -10,6 +10,7 @@
 
 use crate::noise::{NoiseKeys, NoiseSession};
 use crate::transport::SyncTransport;
+use rand::rngs::OsRng;
 use rand::RngCore;
 use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream, UdpSocket};
@@ -365,9 +366,16 @@ pub struct RecoveryConnectionInfo {
 
 fn generate_pin() -> String {
     let mut pin = String::with_capacity(PIN_LEN);
-    let mut rng = rand::thread_rng();
+    let mut rng = OsRng;
     for _ in 0..PIN_LEN {
-        let n = (rng.next_u32() % 10) as u8;
+        // P017: OsRng + 拒绝采样——2^32 不能被 10 整除（余 6），直接 % 10 会让
+        // 0-5 六个数字多一次映射产生轻微偏差；只接受落在完整 10 块内的值。
+        let n = loop {
+            let v = rng.next_u32();
+            if v < 4_294_967_290 {
+                break (v % 10) as u8;
+            }
+        };
         pin.push((b'0' + n) as char);
     }
     pin
@@ -394,7 +402,8 @@ fn constant_time_eq(a: &str, b: &str) -> bool {
 pub fn generate_recovery_password() -> String {
     use base64::Engine;
     let mut bytes = [0u8; RECOVERY_PASSWORD_LEN];
-    rand::thread_rng().fill_bytes(&mut bytes);
+    // P017: 恢复密码改用 OsRng（操作系统 CSPRNG）直取随机字节。
+    OsRng.fill_bytes(&mut bytes);
     base64::engine::general_purpose::STANDARD.encode(bytes)
 }
 
