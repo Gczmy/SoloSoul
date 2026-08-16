@@ -45,7 +45,7 @@
 | P011 | 性能       | `tauri/crates/solosoul-vault/src/storage/sync_changes.rs:136,495`、`storage/conversations.rs:204` | 同步热路径逐行 `record_hlc_or_fallback`（每行一次 SELECT + 加锁），objects/trash 已用 LEFT JOIN 批量，同文件两种模式并存 | `[x]` 已修复（P011） |
 | P012 | 结构       | `tauri/crates/solosoul-vault/src/storage/objects.rs:393` | `list_objects` 147 行，查询/解密/组装混杂，对象列表核心路径 | `[x]` 已修复（P012） |
 | P013 | 结构       | `tauri/crates/solosoul-vault/src/storage/sync_changes.rs:283` | `query_object_changes` 146 行，SQL 拼装与行解密混在一处 | `[x]` 已修复（P013） |
-| P014 | 结构       | `tauri/src-tauri/src/commands/export_import/export_docx/fields.rs:32` | `field_value_to_text` 嵌套 7 层（match 套 if-let 套循环） | `[ ]` 待修复 |
+| P014 | 结构       | `tauri/src-tauri/src/commands/export_import/export_docx/fields.rs:32` | `field_value_to_text` 嵌套 7 层（match 套 if-let 套循环） | `[x]` 已修复（P014） |
 | P015 | 性能       | `tauri/src/App/routes.tsx:2-29`、`tauri/vite.config.ts` | 27 个页面全部 eager import，无 `React.lazy`/`manualChunks`，移动端首屏需解析全部 bundle | `[ ]` 待修复 |
 
 ### P2（轻微，可排入 backlog）
@@ -94,8 +94,8 @@
 
 ## 修复进度
 
-- 已完成：13 / 54
-- 当前处理：P014（field_value_to_text 嵌套 7 层拆分）
+- 已完成：14 / 54
+- 当前处理：P015（前端 27 页面 eager import → React.lazy 路由级懒加载）
 
 ---
 
@@ -199,10 +199,12 @@
 - **修复**：SQL 拼装与行解密分离——`object_changes_sql`（40 行：o. 前缀列拼接、keyset 分页游标三元组过滤、`usize::MAX → LIMIT -1` 语义）+ `map_object_changes_row`（83 行：properties/property_labels 解密、children/tags JSON 解析、LEFT JOIN HLC 有则用 HLC 否则回退 `updated_at`），`query_object_changes` 主体 146→44 行变为编排（锁 → prepare_cached → query_map → collect）；SQL 文本/参数索引/错误映射逐字节等价。
 - **验证**：solosoul-vault `cargo test --lib` 163 全绿；clippy `-D warnings` exit 0；fmt 通过。
 
-### P014 — field_value_to_text 嵌套 7 层
+### P014 — field_value_to_text 嵌套 7 层（已修复）
 
-- **位置**：`commands/export_import/export_docx/fields.rs:32`，match 套 if-let 套循环。
-- **修复**：早返回拍平。
+- **提交**：`8b0822b4`
+- **位置**：`src-tauri/src/commands/export_import/export_docx/fields.rs:32`（`field_value_to_text` 50 行，Array 分支 match→if→for→if-let 嵌套 5 层）。
+- **修复**：Array 分支抽为 `field_array_to_text` 助手——动态组（全部元素为对象）按 `名称：值` 逐行、普通数组逐元素递归文本化逗号连接；主函数 50→14 行变为纯 match 分发；语义逐字节等价（动态组判定、name 非空过滤、递归调用原样迁移）。
+- **验证**：cargo check / clippy `-D warnings` / fmt 全绿。注：src-tauri 测试二进制在本机以 `0xc0000139`（STATUS_ENTRYPOINT_NOT_FOUND）启动失败——经全量导入符号校验（689 个名字导入 0 缺失、无 ordinal、无外部 DLL 引用）确认与本次零导入变更无关，系本机工具链/安全策略环境问题（详见轮次说明）。
 
 ### P015 — 前端路由无代码分割
 
