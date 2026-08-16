@@ -2,7 +2,7 @@
 //!
 //! 解析 `SoloSoul_plugin_market/registry.json`，提供与当前应用版本的兼容性判断。
 
-use super::{MarketPluginInfo, PluginError, PluginManifest, PluginStore, RegistryEntry};
+use super::{MarketPluginInfo, PluginError, PluginManifest, RegistryEntry};
 use minisign_verify::{PublicKey, Signature};
 use serde::Deserialize;
 use std::collections::HashMap;
@@ -35,28 +35,7 @@ pub struct PluginRegistry {
     cache_path: PathBuf,
 }
 
-impl Default for PluginRegistry {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
 impl PluginRegistry {
-    /// 创建注册表加载器（开发模式回退到源码路径）
-    pub fn new() -> Self {
-        Self::new_with_dirs(
-            super::paths::default_market_dir(),
-            PluginStore::data_dir()
-                .unwrap_or_else(|_| std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."))),
-        )
-    }
-
-    /// 使用 resource_dir 创建注册表加载器
-    pub fn new_with_resource_dir(resource_dir: &std::path::PathBuf) -> Result<Self, PluginError> {
-        let market_dir = super::paths::resolve_market_dir(Some(resource_dir))?;
-        Ok(Self::new_with_dirs(market_dir, PluginStore::data_dir()?))
-    }
-
     /// 显式注入市场目录与数据目录（由调用方负责解析，crate 不反向依赖 tauri）
     pub fn new_with_dirs(market_dir: PathBuf, data_dir: PathBuf) -> Self {
         Self {
