@@ -3,7 +3,7 @@
 //! 移动端不使用桌面端的 mdns-sd，发现层由 Android NSD / iOS Bonjour 插件负责。
 //! 本模块仅负责启动 TCP 监听、接受入站同步连接、以及作为发起方与指定地址同步。
 
-use crate::session::{handle_inbound, run_initiator_session, wrap_session_error};
+use crate::session::{run_accept_loop, run_initiator_session, wrap_session_error, SessionGuard};
 use crate::shared::{
     audit_log, forget_peer_fallback, get_or_create_sync_identity, known_peers_from_vault,
     local_fingerprint_fallback, trust_peer_fallback,
@@ -25,24 +25,6 @@ use tokio::task::{spawn_blocking, JoinHandle};
 const STOP_GRACE_PERIOD_SECS: u64 = 30;
 /// `stop()` 轮询 `active_sessions` 的间隔。
 const STOP_POLL_INTERVAL_MS: u64 = 100;
-
-/// RAII guard：创建时递增 `active_sessions`，Drop 时递减。
-struct SessionGuard {
-    counter: Arc<AtomicUsize>,
-}
-
-impl SessionGuard {
-    fn new(counter: Arc<AtomicUsize>) -> Self {
-        counter.fetch_add(1, Ordering::SeqCst);
-        Self { counter }
-    }
-}
-
-impl Drop for SessionGuard {
-    fn drop(&mut self) {
-        self.counter.fetch_sub(1, Ordering::SeqCst);
-    }
-}
 
 /// 长周期 Noise 身份密钥，与桌面端实现一致。
 use crate::noise::NoiseKeys;
@@ -364,7 +346,7 @@ impl MobileSyncManager {
 
         // P045: accept 循环与单连接会话处理拆分为独立函数，消除 8 层嵌套。
         let accept_handle = spawn_blocking(move || {
-            accept_loop(
+            run_accept_loop(
                 listener,
                 running,
                 node_id,
@@ -459,92 +441,4 @@ impl MobileSyncManager {
     fn forget_peer(&self, peer_node_id: &str) -> Result<(), String> {
         self.vault.delete_peer(peer_node_id)
     }
-}
-/// P045: accept 循环——阻塞接受入站连接，每连接派生 worker 处理会话。
-/// 从 `start()` 拆出，消除 8 层嵌套；单连接处理见 `handle_accepted_connection`。
-#[allow(clippy::too_many_arguments)]
-fn accept_loop(
-    listener: TcpListener,
-    running: Arc<AtomicBool>,
-    node_id: String,
-    account_id: String,
-    keys: NoiseKeys,
-    vault: Arc<VaultStore>,
-    active_sessions: Arc<AtomicUsize>,
-    peer_callback: Arc<RwLock<Option<PeerCallback>>>,
-    session_callback: Arc<RwLock<Option<SessionCompletedCallback>>>,
-) {
-    loop {
-        if !running.load(Ordering::SeqCst) {
-            break;
-        }
-        match listener.accept() {
-            Ok((stream, addr)) => {
-                if !running.load(Ordering::SeqCst) {
-                    break;
-                }
-                handle_accepted_connection(
-                    stream,
-                    addr,
-                    node_id.clone(),
-                    account_id.clone(),
-                    keys.clone(),
-                    vault.clone(),
-                    active_sessions.clone(),
-                    peer_callback.clone(),
-                    session_callback.clone(),
-                );
-            }
-            Err(e) => {
-                tracing::warn!("accept error: {}", e);
-                std::thread::sleep(Duration::from_millis(100));
-            }
-        }
-    }
-}
-
-/// P045: 单连接会话处理——派生 worker 执行 inbound 会话并通知完成。
-/// 从 accept 循环内拆出，消除 6 层嵌套。
-#[allow(clippy::too_many_arguments)]
-fn handle_accepted_connection(
-    stream: std::net::TcpStream,
-    addr: SocketAddr,
-    node_id: String,
-    account_id: String,
-    keys: NoiseKeys,
-    vault: Arc<VaultStore>,
-    active_sessions: Arc<AtomicUsize>,
-    peer_callback: Arc<RwLock<Option<PeerCallback>>>,
-    session_callback: Arc<RwLock<Option<SessionCompletedCallback>>>,
-) {
-    let guard = SessionGuard::new(active_sessions);
-    let cb = peer_callback.read().ok().and_then(|g| g.clone());
-    let session_cb = session_callback.read().ok().and_then(|g| g.clone());
-    spawn_blocking(move || {
-        let _guard = guard; // 持有直到会话结束
-        let mut transport = SyncTransport::from_stream(stream);
-        // 响应方会话成功结束：通知 GUI 推送 sync-completed（与桌面端一致）。
-        // 未信任/错误会话不通知完成（发起方已自行感知错误）。
-        if let Ok(outcome) = handle_inbound(
-            &mut transport,
-            &node_id,
-            &account_id,
-            &keys,
-            vault,
-            addr.to_string(),
-            cb,
-        ) {
-            if let Some(cb) = &session_cb {
-                cb(SessionCompletedInfo {
-                    peer_node_id: outcome.peer_node_id,
-                    examined: outcome.result.data.examined,
-                    applied: outcome.result.data.applied,
-                    skipped: outcome.result.data.skipped,
-                    conflicts: outcome.result.data.conflicts.len() as u64,
-                    // B：响应方发回给发起方的记录条数（完整交换量）。
-                    outbound_records: outcome.outbound_records,
-                });
-            }
-        }
-    });
 }

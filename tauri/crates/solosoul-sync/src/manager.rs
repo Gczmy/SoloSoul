@@ -3,12 +3,10 @@
 use crate::identity::sha256_hex_short;
 use crate::noise::NoiseKeys;
 use crate::session::{
-    handle_inbound, local_client_type, run_initiator_session, wrap_session_error,
+    local_client_type, run_accept_loop, run_initiator_session, wrap_session_error, SessionGuard,
 };
 use crate::transport::SyncTransport;
-use crate::types::{
-    PeerCallback, SessionCompletedCallback, SessionCompletedInfo, SyncPeerInfo, SyncSessionResult,
-};
+use crate::types::{PeerCallback, SessionCompletedCallback, SyncPeerInfo, SyncSessionResult};
 use mdns_sd::{ServiceDaemon, ServiceEvent, ServiceInfo};
 use solosoul_vault::VaultStore;
 use std::collections::HashMap;
@@ -31,25 +29,6 @@ const PEER_MAX_AGE_SECS: u64 = 300;
 const STOP_GRACE_PERIOD_SECS: u64 = 30;
 /// `stop()` 轮询 `active_sessions` 的间隔。
 const STOP_POLL_INTERVAL_MS: u64 = 100;
-
-/// RAII guard：创建时递增 `active_sessions`，Drop 时递减。
-/// 确保 `stop()` 能感知当前有多少同步会话正在进行。
-struct SessionGuard {
-    counter: Arc<AtomicUsize>,
-}
-
-impl SessionGuard {
-    fn new(counter: Arc<AtomicUsize>) -> Self {
-        counter.fetch_add(1, Ordering::SeqCst);
-        Self { counter }
-    }
-}
-
-impl Drop for SessionGuard {
-    fn drop(&mut self) {
-        self.counter.fetch_sub(1, Ordering::SeqCst);
-    }
-}
 
 #[derive(Debug, Clone)]
 struct DiscoveredPeer {
@@ -179,57 +158,19 @@ impl SyncManager {
         let active_sessions = self.active_sessions.clone();
         let peer_callback = self.peer_callback.clone();
         let session_callback = self.session_callback.clone();
-        // TCP accept loop (blocking std listener)
-        let accept_handle = spawn_blocking(move || loop {
-            if !running.load(Ordering::SeqCst) {
-                break;
-            }
-            match listener.accept() {
-                Ok((stream, addr)) => {
-                    if !running.load(Ordering::SeqCst) {
-                        break;
-                    }
-                    let node_id = node_id.clone();
-                    let account_id = account_id.clone();
-                    let keys = keys.clone();
-                    let vault = vault.clone();
-                    let guard = SessionGuard::new(active_sessions.clone());
-                    let cb = peer_callback.read().ok().and_then(|g| g.clone());
-                    let session_cb = session_callback.read().ok().and_then(|g| g.clone());
-                    spawn_blocking(move || {
-                        let _guard = guard; // 持有直到会话结束
-                        let mut transport = SyncTransport::from_stream(stream);
-                        // 响应方会话成功结束：通知 GUI 推送 sync-completed，让两侧同时
-                        // 展示「同步完成 + 具体条数」（B 侧用户不在同步页也能收到全局 toast）。
-                        // 未信任/错误会话不通知完成（发起方已自行感知错误）。
-                        if let Ok(outcome) = handle_inbound(
-                            &mut transport,
-                            &node_id,
-                            &account_id,
-                            &keys,
-                            vault,
-                            addr.to_string(),
-                            cb,
-                        ) {
-                            if let Some(cb) = &session_cb {
-                                cb(SessionCompletedInfo {
-                                    peer_node_id: outcome.peer_node_id,
-                                    examined: outcome.result.data.examined,
-                                    applied: outcome.result.data.applied,
-                                    skipped: outcome.result.data.skipped,
-                                    conflicts: outcome.result.data.conflicts.len() as u64,
-                                    // B：响应方发回给发起方的记录条数（完整交换量）。
-                                    outbound_records: outcome.outbound_records,
-                                });
-                            }
-                        }
-                    });
-                }
-                Err(e) => {
-                    tracing::warn!("accept error: {}", e);
-                    std::thread::sleep(Duration::from_millis(100));
-                }
-            }
+        // P045: accept 循环与会话处理收敛到 session::run_accept_loop（与 mobile.rs 共享）。
+        let accept_handle = spawn_blocking(move || {
+            run_accept_loop(
+                listener,
+                running,
+                node_id,
+                account_id,
+                keys,
+                vault,
+                active_sessions,
+                peer_callback,
+                session_callback,
+            )
         });
 
         // mDNS

@@ -18,12 +18,15 @@ use crate::protocol::SyncMessage;
 use crate::transport::SyncTransport;
 use crate::types::{
     ApplyStats, AttachmentSyncStats, InboundSessionOutcome, NewPeerInfo, PeerCallback,
-    SyncSessionResult,
+    SessionCompletedCallback, SessionCompletedInfo, SyncSessionResult,
 };
 use solosoul_vault::{PeerSyncState, VaultStore};
+use std::net::{SocketAddr, TcpListener};
 use std::path::Path;
-use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
+use std::sync::{Arc, RwLock};
 use std::time::{Duration, Instant};
+use tokio::task::spawn_blocking;
 
 const DELTA_PAGE_LIMIT: usize = 100;
 /// 当前实现支持的同步协议版本。
@@ -781,6 +784,115 @@ pub(crate) fn vault_to_watermark(wm: &solosoul_vault::SyncWatermark) -> SyncWate
         counter: wm.counter,
         node_id: Hlc::parse_node_id_bytes(&wm.node_id),
     }
+}
+
+/// RAII guard：创建时递增 `active_sessions`，Drop 时递减。
+/// 共享给 manager.rs 与 mobile.rs （P045：三处重复定义收敛）。
+pub(crate) struct SessionGuard {
+    counter: Arc<AtomicUsize>,
+}
+
+impl SessionGuard {
+    pub(crate) fn new(counter: Arc<AtomicUsize>) -> Self {
+        counter.fetch_add(1, Ordering::SeqCst);
+        Self { counter }
+    }
+}
+
+impl Drop for SessionGuard {
+    fn drop(&mut self) {
+        self.counter.fetch_sub(1, Ordering::SeqCst);
+    }
+}
+
+/// P045: accept 循环——阻塞接受入站连接，每连接派生 worker 处理会话。
+/// 共享给 manager.rs 与 mobile.rs，消除各自 8 层嵌套的 accept 循环实现。
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn run_accept_loop(
+    listener: TcpListener,
+    running: Arc<AtomicBool>,
+    node_id: String,
+    account_id: String,
+    keys: NoiseKeys,
+    vault: Arc<VaultStore>,
+    active_sessions: Arc<AtomicUsize>,
+    peer_callback: Arc<RwLock<Option<PeerCallback>>>,
+    session_callback: Arc<RwLock<Option<SessionCompletedCallback>>>,
+) {
+    loop {
+        if !running.load(Ordering::SeqCst) {
+            break;
+        }
+        match listener.accept() {
+            Ok((stream, addr)) => {
+                if !running.load(Ordering::SeqCst) {
+                    break;
+                }
+                handle_accepted_connection(
+                    stream,
+                    addr,
+                    node_id.clone(),
+                    account_id.clone(),
+                    keys.clone(),
+                    vault.clone(),
+                    active_sessions.clone(),
+                    peer_callback.clone(),
+                    session_callback.clone(),
+                );
+            }
+            Err(e) => {
+                tracing::warn!("accept error: {}", e);
+                std::thread::sleep(Duration::from_millis(100));
+            }
+        }
+    }
+}
+
+/// P045: 单连接会话处理——派生 worker 执行 inbound 会话并通知完成。
+/// 从 accept 循环内拆出，消除 6 层嵌套。
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn handle_accepted_connection(
+    stream: std::net::TcpStream,
+    addr: SocketAddr,
+    node_id: String,
+    account_id: String,
+    keys: NoiseKeys,
+    vault: Arc<VaultStore>,
+    active_sessions: Arc<AtomicUsize>,
+    peer_callback: Arc<RwLock<Option<PeerCallback>>>,
+    session_callback: Arc<RwLock<Option<SessionCompletedCallback>>>,
+) {
+    let guard = SessionGuard::new(active_sessions);
+    let cb = peer_callback.read().ok().and_then(|g| g.clone());
+    let session_cb = session_callback.read().ok().and_then(|g| g.clone());
+    spawn_blocking(move || {
+        let _guard = guard; // 持有直到会话结束
+        let mut transport = SyncTransport::from_stream(stream);
+        // 响应方会话成功结束：通知 GUI 推送 sync-completed，让两侧同时
+        // 展示「同步完成 + 具体条数」（B 侧用户不在同步页也能收到全局 toast）。
+        // 未信任/错误会话不通知完成（发起方已自行感知错误）。
+        if let Ok(outcome) = handle_inbound(
+            &mut transport,
+            &node_id,
+            &account_id,
+            &keys,
+            vault,
+            addr.to_string(),
+            cb,
+        ) {
+            if let Some(cb) = &session_cb {
+                cb(SessionCompletedInfo {
+                    peer_node_id: outcome.peer_node_id,
+                    examined: outcome.result.data.examined,
+                    applied: outcome.result.data.applied,
+                    skipped: outcome.result.data.skipped,
+                    conflicts: outcome.result.data.conflicts.len() as u64,
+                    // B：响应方发回给发起方的记录条数（完整交换量）。
+                    outbound_records: outcome.outbound_records,
+                });
+            }
+        }
+    });
 }
 
 #[cfg(test)]
