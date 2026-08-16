@@ -307,22 +307,46 @@ impl VaultStore {
             //   - 无 HLC 记录的行（回退 updated_at）：同样按 (CAST(ms), 0, local) 三元组
             //     精确过滤——julianday→ms 的浮点精度（~86µs）远低于 1ms，与 Rust
             //     parse_time_ms 逐字节一致（P110 断言），故可安全下推，不再粗筛。
-            let o_columns = OBJECT_COLUMNS
-                .split(',')
-                .map(|c| format!("o.{}", c.trim()))
-                .collect::<Vec<_>>()
-                .join(", ");
-            // 分页：LIMIT 传 usize::MAX 时按 SQLite 语义（LIMIT -1）不限制行数。
-            let limit_param = if limit == usize::MAX {
-                -1i64
-            } else {
-                limit as i64
-            };
-            // P213: prepare_cached 按 SQL 文本缓存（o. 前缀列拼接结果稳定），避免每次重编译。
-            // keyset：游标 ?7 为 NULL（未分页）时仅严格三元组 >；为字符串时允许
-            // (三元组 == 水印) 且 id > 游标的等值组尾部行通过（跨页不重不漏）。
+            let (sql, limit_param) = Self::object_changes_sql(limit);
             let mut stmt = conn
-            .prepare_cached(&format!(
+                .prepare_cached(&sql)
+                .map_err(|e| format!("list_object_changes: {}", e))?;
+            let rows = stmt
+                .query_map(
+                    params![
+                        account_id,
+                        watermark.wall_time_ms as i64,
+                        watermark.counter as i32,
+                        &watermark.node_id,
+                        local_node_id,
+                        limit_param,
+                        last_row_id.map(str::to_owned),
+                    ],
+                    |row| Self::map_object_changes_row(&key, local_node_id, row),
+                )
+                .map_err(|e| format!("list_object_changes query: {}", e))?
+                .collect::<Result<Vec<_>, _>>()
+                .map_err(|e| format!("list_object_changes collect: {}", e))?;
+            rows
+        };
+
+        Ok(rows)
+    }
+    /// P013: 对象变更清单 SQL 拼装 —— o. 前缀列拼接 + keyset 分页游标参数，独立于行解密。
+    fn object_changes_sql(limit: usize) -> (String, i64) {
+        let o_columns = OBJECT_COLUMNS
+            .split(',')
+            .map(|c| format!("o.{}", c.trim()))
+            .collect::<Vec<_>>()
+            .join(", ");
+        // 分页：LIMIT 传 usize::MAX 时按 SQLite 语义（LIMIT -1）不限制行数。
+        let limit_param = if limit == usize::MAX {
+            -1i64
+        } else {
+            limit as i64
+        };
+        (
+            format!(
                 "SELECT {cols}, h.wall_time_ms AS hlc_wall, h.counter AS hlc_counter, h.node_id AS hlc_node
                  FROM objects o
                  LEFT JOIN sync_hlc h ON h.table_name = 'objects' AND h.record_id = o.id
@@ -345,108 +369,96 @@ impl VaultStore {
                    o.id ASC
                  LIMIT ?6",
                 cols = o_columns,
-            ))
-            .map_err(|e| format!("list_object_changes: {}", e))?;
-            let rows = stmt
-                .query_map(
-                    params![
-                        account_id,
-                        watermark.wall_time_ms as i64,
-                        watermark.counter as i32,
-                        &watermark.node_id,
-                        local_node_id,
-                        limit_param,
-                        last_row_id.map(str::to_owned),
-                    ],
-                    |row| {
-                        let props_str: String = row.get(8)?;
-                        let labels_str: String = row.get(9)?;
-                        let decrypted_props =
-                            decrypt_text_field(&key, &props_str).map_err(|e| {
-                                rusqlite::Error::FromSqlConversionFailure(
-                                    8,
-                                    rusqlite::types::Type::Text,
-                                    Box::new(std::io::Error::new(
-                                        std::io::ErrorKind::InvalidData,
-                                        format!("Object properties decryption failed: {}", e),
-                                    )),
-                                )
-                            })?;
-                        let decrypted_labels = if labels_str.is_empty() {
-                            Ok(String::new())
-                        } else {
-                            decrypt_text_field(&key, &labels_str).map_err(|e| {
-                                rusqlite::Error::FromSqlConversionFailure(
-                                    9,
-                                    rusqlite::types::Type::Text,
-                                    Box::new(std::io::Error::new(
-                                        std::io::ErrorKind::InvalidData,
-                                        format!("Object labels decryption failed: {}", e),
-                                    )),
-                                )
-                            })
-                        }?;
-                        let children: Vec<String> =
-                            serde_json::from_str(&row.get::<_, String>(7)?).unwrap_or_default();
-                        let tags: Vec<String> =
-                            serde_json::from_str(&row.get::<_, String>(13)?).unwrap_or_default();
-                        let labels: Option<serde_json::Value> = if decrypted_labels.is_empty() {
-                            None
-                        } else {
-                            serde_json::from_str(&decrypted_labels).ok()
-                        };
-                        let props: serde_json::Value =
-                            serde_json::from_str(&decrypted_props).unwrap_or_default();
-                        let obj = crate::ObjectRecord {
-                            id: row.get(0)?,
-                            account_id: row.get(1)?,
-                            type_id: row.get(2)?,
-                            section_type: row.get(3)?,
-                            name: row.get(4)?,
-                            icon_name: row.get(5)?,
-                            parent_id: row.get(6)?,
-                            children_ids: children,
-                            properties: props,
-                            property_labels: labels,
-                            sensitivity_level: row.get(10)?,
-                            is_deleted: row.get::<_, i32>(11)? != 0,
-                            deleted_at: row.get(12)?,
-                            tags_json: tags,
-                            template_id: row.get(14)?,
-                            template_type: row.get(15)?,
-                            contract_type_id: row.get(16)?,
-                            template_hash: row.get(17)?,
-                            ignored_template_hash: row.get(18)?,
-                            created_at: row.get(19)?,
-                            updated_at: row.get(20)?,
-                            version: row.get(21)?,
-                        };
-                        // 从 JOIN 结果解析有效 HLC：有 HLC 记录用 HLC，否则回退 updated_at
-                        let hlc_wall: Option<i64> = row.get(22)?;
-                        let hlc = if let Some(wall) = hlc_wall {
-                            crate::RecordHlc {
-                                wall_time_ms: wall as u64,
-                                counter: row.get::<_, Option<i32>>(23)?.unwrap_or(0) as u32,
-                                node_id: row.get::<_, Option<String>>(24)?.unwrap_or_default(),
-                            }
-                        } else {
-                            crate::RecordHlc {
-                                wall_time_ms: Self::parse_time_ms(&obj.updated_at),
-                                counter: 0,
-                                node_id: local_node_id.to_string(),
-                            }
-                        };
-                        Ok((obj, hlc))
-                    },
-                )
-                .map_err(|e| format!("list_object_changes query: {}", e))?
-                .collect::<Result<Vec<_>, _>>()
-                .map_err(|e| format!("list_object_changes collect: {}", e))?;
-            rows
-        };
-
-        Ok(rows)
+            ),
+            limit_param,
+        )
     }
+
+    /// P013: 对象变更清单行解密与组装 —— LEFT JOIN sync_hlc 结果 → ObjectRecord + RecordHlc，
+    /// 有 HLC 记录用 HLC、否则回退 updated_at（与旧闭包逐字节等价）。
+    fn map_object_changes_row(
+        key: &crate::encryption::DataEncryptionKey,
+        local_node_id: &str,
+        row: &rusqlite::Row<'_>,
+    ) -> Result<(crate::ObjectRecord, crate::RecordHlc), rusqlite::Error> {
+        let props_str: String = row.get(8)?;
+        let labels_str: String = row.get(9)?;
+        let decrypted_props = decrypt_text_field(key, &props_str).map_err(|e| {
+            rusqlite::Error::FromSqlConversionFailure(
+                8,
+                rusqlite::types::Type::Text,
+                Box::new(std::io::Error::new(
+                    std::io::ErrorKind::InvalidData,
+                    format!("Object properties decryption failed: {}", e),
+                )),
+            )
+        })?;
+        let decrypted_labels = if labels_str.is_empty() {
+            Ok(String::new())
+        } else {
+            decrypt_text_field(key, &labels_str).map_err(|e| {
+                rusqlite::Error::FromSqlConversionFailure(
+                    9,
+                    rusqlite::types::Type::Text,
+                    Box::new(std::io::Error::new(
+                        std::io::ErrorKind::InvalidData,
+                        format!("Object labels decryption failed: {}", e),
+                    )),
+                )
+            })
+        }?;
+        let children: Vec<String> =
+            serde_json::from_str(&row.get::<_, String>(7)?).unwrap_or_default();
+        let tags: Vec<String> =
+            serde_json::from_str(&row.get::<_, String>(13)?).unwrap_or_default();
+        let labels: Option<serde_json::Value> = if decrypted_labels.is_empty() {
+            None
+        } else {
+            serde_json::from_str(&decrypted_labels).ok()
+        };
+        let props: serde_json::Value = serde_json::from_str(&decrypted_props).unwrap_or_default();
+        let obj = crate::ObjectRecord {
+            id: row.get(0)?,
+            account_id: row.get(1)?,
+            type_id: row.get(2)?,
+            section_type: row.get(3)?,
+            name: row.get(4)?,
+            icon_name: row.get(5)?,
+            parent_id: row.get(6)?,
+            children_ids: children,
+            properties: props,
+            property_labels: labels,
+            sensitivity_level: row.get(10)?,
+            is_deleted: row.get::<_, i32>(11)? != 0,
+            deleted_at: row.get(12)?,
+            tags_json: tags,
+            template_id: row.get(14)?,
+            template_type: row.get(15)?,
+            contract_type_id: row.get(16)?,
+            template_hash: row.get(17)?,
+            ignored_template_hash: row.get(18)?,
+            created_at: row.get(19)?,
+            updated_at: row.get(20)?,
+            version: row.get(21)?,
+        };
+        // 从 JOIN 结果解析有效 HLC：有 HLC 记录用 HLC，否则回退 updated_at
+        let hlc_wall: Option<i64> = row.get(22)?;
+        let hlc = if let Some(wall) = hlc_wall {
+            crate::RecordHlc {
+                wall_time_ms: wall as u64,
+                counter: row.get::<_, Option<i32>>(23)?.unwrap_or(0) as u32,
+                node_id: row.get::<_, Option<String>>(24)?.unwrap_or_default(),
+            }
+        } else {
+            crate::RecordHlc {
+                wall_time_ms: Self::parse_time_ms(&obj.updated_at),
+                counter: 0,
+                node_id: local_node_id.to_string(),
+            }
+        };
+        Ok((obj, hlc))
+    }
+
     fn list_user_template_changes_since(
         &self,
         watermark: &crate::SyncWatermark,
