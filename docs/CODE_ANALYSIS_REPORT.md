@@ -69,7 +69,7 @@
 | P030 | 架构       | `tauri/src-tauri/src/state/app_state.rs`（866 行） | AppState 聚合 8 个字段且混入 SAF config、DTO、自由函数 | `[x]` 已修复（P030） |
 | P031 | 架构       | `tauri/src-tauri/src/services/`（仅 3 文件）vs `commands/`（30+ 模块） | services 层萎缩，业务规则锁在 command 签名旁（如 `object/mod.rs` 的 dynamic_group 校验），CLI 无法复用 | `[x]` 已修复（P031） |
 | P032 | 健壮性     | `tauri/crates/solosoul-vault/src/migration.rs:45` | 迁移版本读取 `unwrap_or(1)` 吞掉读取错误，版本表读失败会静默重跑全部迁移 | `[x]` 已修复（P032） |
-| P033 | 性能       | `tauri/crates/solosoul-vault/src/storage.rs:423,607,962` | 单 `Mutex<Connection>` 全库串行，未见显式 `journal_mode=WAL`（存疑）；`reencrypt_all` 持锁期间全库阻塞 | `[ ]` 待修复 |
+| P033 | 性能       | `tauri/crates/solosoul-vault/src/storage.rs:423,607,962` | 单 `Mutex<Connection>` 全库串行，未见显式 `journal_mode=WAL`（存疑）；`reencrypt_all` 持锁期间全库阻塞 | `[x]` 已修复（P033） |
 | P034 | 架构       | `commands/update.rs` 1902、`commands/ocr.rs` 1517、`migration.rs` 1536、`ocr/mrz.rs` 1423、`export_import/import.rs` 1225、`commands/biometric.rs` 1004、`commands/llm/rag.rs` 972 等 | 800+ 行文件群，与 P008/P025 同批纳入拆分 backlog | `[ ]` 待修复 |
 | P035 | 死代码     | `tauri/crates/solosoul-vault/src/storage/sync_apply.rs:140` | `save_sync_conflict`（单条版）无调用方，已被 batch 版取代 | `[ ]` 待修复 |
 | P036 | 死代码     | `tauri/crates/solosoul-core/src/biometric/mod.rs:370` | `BiometricService::test()` 无调用方（命令层直接调 `trigger_system_biometric`） | `[ ]` 待修复 |
@@ -94,8 +94,8 @@
 
 ## 修复进度
 
-- 已完成：32 / 54
-- 当前处理：P033（单 Mutex 串行 + WAL 存疑 + reencrypt_all 持锁阻塞）
+- 已完成：33 / 54
+- 当前处理：P034（死代码 backlog）
 
 ---
 
@@ -297,6 +297,15 @@
 - **位置**：`solosoul-vault/src/migration.rs`（`get_schema_version`、`run_migrations` 入口）。
 - **修复（按指引「版本读取失败显式报错或至少 tracing::error 留痕，不要 unwrap_or(1)」）**：`get_schema_version` 改用 rusqlite `optional()` 显式区分两类情况——「首次建库 sys_config 无 data_version 行」（`optional() → None`，返回 `Ok(1)`，完整保留历史 `unwrap_or(1)` 的兜底语义，首次初始化流程不受影响）与「真实读取/解析错误」（显式传播，不再吞掉）；`run_migrations` 入口 `unwrap_or(1)` 改 `?` 传播——版本表读失败时 fail-closed 上抛，不再静默按版本 1 重跑全部迁移（幂等迁移重复执行存在重复建列/数据损坏风险）。
 - **验证**：migration 域 12 测试全绿（含「首次建库后 get_schema_version 为 1」既有断言，天然覆盖新路径）；check + clippy `-D warnings` + fmt 全绿。
+
+### P033 — 单 Mutex 串行 + WAL 存疑 + reencrypt_all 持锁阻塞（已修复：WAL 显式确认 + 阻塞评估）
+
+- **提交**：`17f2cc48`
+- **位置**：`solosoul-vault/src/storage.rs`（`open()` 连接初始化）。
+- **修复（按指引「确认/显式设置 journal_mode=WAL；评估 reencrypt_all 期间前端维护中状态」）**：
+  - ① `open()` 幂等设置 `PRAGMA journal_mode = WAL`——此前代码仅在 `lock()` 收尾用 `wal_checkpoint(TRUNCATE)` 暗示 WAL，从未确认/设置模式，存疑消除；WAL 下读写并发避免整库写放大与读阻塞，主连接与 `probe_data_key` 只读连接可并发访问。
+  - ② `reencrypt_all` 持锁阻塞评估结论：改密/KDF 升级为同步命令（`change_password` 等），前端 `PasswordChangeForm` 已有 `setLoading(true)` 禁用按钮，用户无法并发触发其他 vault 操作；单 Mutex + 单事务保证原子性；WAL 快照隔离下 `probe_data_key` 只读连接读到的是未提交事务前的旧数据，reencrypt 崩溃恢复判定不受影响——**无需新增前端维护遮罩**，评估结论记录于代码注释。
+- **验证**：vault 163 测试全绿；check + clippy `-D warnings` + fmt 全绿。
 
 ### P026 — LLM 客户端 blocking/async 双份实现（已修复：共享纯函数收敛）
 
