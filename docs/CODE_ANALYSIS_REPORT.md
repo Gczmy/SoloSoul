@@ -75,7 +75,7 @@
 | P036 | 死代码     | `tauri/crates/solosoul-core/src/biometric/mod.rs:370` | `BiometricService::test()` 无调用方（命令层直接调 `trigger_system_biometric`） | `[x]` 已修复（P036） |
 | P037 | 死代码     | `tauri/crates/solosoul-plugin/src/registry.rs:30-49` | `PluginRegistry::new()`/`Default`/`new_with_resource_dir()` 三个构造器无调用方 | `[x]` 已修复（P037） |
 | P038 | 死代码     | `tauri/src-tauri/src/commands/object/trash.rs:149` | 命令 `trash_permanent_delete`（单条版）已注册但前端无 invoke（存疑：可能为 API 对齐保留） | `[x]` 已修复（P038） |
-| P039 | 死代码     | `tauri/crates/solosoul-core/src/process_lock.rs:19` | `ProcessLock` 的 `path` 字段从不读取（`file` 字段靠持有实现 RAII 属合理） | `[ ]` 待修复 |
+| P039 | 死代码     | `tauri/crates/solosoul-core/src/process_lock.rs:19` | `ProcessLock` 的 `path` 字段从不读取（`file` 字段靠持有实现 RAII 属合理） | `[x]` 已修复（P039） |
 | P040 | 死代码     | `tauri/crates/solosoul-core/src/llm/service.rs:185` | 全库唯一遗留 `TODO(S003)`：会话存储迁移清理，需确认门槛版本是否已过 | `[ ]` 待修复 |
 | P041 | 维护性     | `tauri/crates/solosoul-core/src/biometric/macos_keychain.rs`（444 行） | 整模块被 `feature = "future-keychain"` 门控脱离默认编译面，长期腐化风险，建议 CI 加 feature 编译检查 | `[ ]` 待修复 |
 | P042 | 维护性     | `tauri/src-tauri/src/lib.rs:760-1019` | 测试手工维护 195 个命令名列表与 `generate_handler!` 双份真相，每次加命令需同步两处 | `[ ]` 待修复 |
@@ -94,8 +94,8 @@
 
 ## 修复进度
 
-- 已完成：34 / 54
-- 当前处理：P035–P039（死代码，按流程暂缓待用户确认）
+- 已完成：39 / 54
+- 当前处理：P040（S003 迁移门槛 TODO 落实）
 
 ---
 
@@ -341,6 +341,13 @@
 - **位置**：`src-tauri/src/commands/object/trash.rs`、`src-tauri/src/lib.rs`。
 - **修复**：`trash_permanent_delete`（单条版，已注册但前端无 invoke——P024 已用 `trash_permanent_delete_batch` 取代）移除：命令定义 + `invoke_handler` 注册 + IPC 白名单三处同步删除；共享实现 `permanent_delete_one` 保留（batch 与测试仍用）；审计日志事件名字符串保留（记录语义）。
 - **验证**：纯死代码删除零行为变化；check + clippy `-D warnings` + `--tests` + fmt 全绿。
+
+### P039 — 死代码：ProcessLock.path 字段（已修复：删除）
+
+- **提交**：`6874bb24`
+- **位置**：`solosoul-core/src/process_lock.rs`。
+- **修复**：`ProcessLock.path` 字段（从不读取）与 `path()` getter（无外部调用方，仅测试用）删除；两处构造器字段同步清理，import 收窄为 `Path`，测试断言移除、仅用于持有锁的变量改 `_lock`。`file` 字段保留（靠持有实现 RAII，属合理）。
+- **验证**：纯死代码删除零行为变化；core check + clippy `-D warnings` + process_lock 测试全绿。
 
 ### P026 — LLM 客户端 blocking/async 双份实现（已修复：共享纯函数收敛）
 
