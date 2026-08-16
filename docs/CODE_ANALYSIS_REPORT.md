@@ -43,7 +43,7 @@
 | P009 | 死代码     | `tauri/crates/solosoul-core/Cargo.toml:29,38,49` | `anyhow`、`tokio`、`rand` 三个直接依赖在 core 全库无引用 | `[x]` 已修复（P009） |
 | P010 | 重复代码   | `tauri/src-tauri/src/commands/export_import/helpers.rs:24-88` ↔ `tauri/crates/solosoul-core/src/export_import.rs:885-942` 等 | `build_package_ids`/`resolve_*_references`/`derive_export_key` 等函数 GUI 与 core 逐字重复（相似度 ≈100%） | `[x]` 已修复（P010） |
 | P011 | 性能       | `tauri/crates/solosoul-vault/src/storage/sync_changes.rs:136,495`、`storage/conversations.rs:204` | 同步热路径逐行 `record_hlc_or_fallback`（每行一次 SELECT + 加锁），objects/trash 已用 LEFT JOIN 批量，同文件两种模式并存 | `[x]` 已修复（P011） |
-| P012 | 结构       | `tauri/crates/solosoul-vault/src/storage/objects.rs:393` | `list_objects` 147 行，查询/解密/组装混杂，对象列表核心路径 | `[ ]` 待修复 |
+| P012 | 结构       | `tauri/crates/solosoul-vault/src/storage/objects.rs:393` | `list_objects` 147 行，查询/解密/组装混杂，对象列表核心路径 | `[x]` 已修复（P012） |
 | P013 | 结构       | `tauri/crates/solosoul-vault/src/storage/sync_changes.rs:283` | `query_object_changes` 146 行，SQL 拼装与行解密混在一处 | `[ ]` 待修复 |
 | P014 | 结构       | `tauri/src-tauri/src/commands/export_import/export_docx/fields.rs:32` | `field_value_to_text` 嵌套 7 层（match 套 if-let 套循环） | `[ ]` 待修复 |
 | P015 | 性能       | `tauri/src/App/routes.tsx:2-29`、`tauri/vite.config.ts` | 27 个页面全部 eager import，无 `React.lazy`/`manualChunks`，移动端首屏需解析全部 bundle | `[ ]` 待修复 |
@@ -94,8 +94,8 @@
 
 ## 修复进度
 
-- 已完成：11 / 54
-- 当前处理：P012（list_objects 147 行拆分）
+- 已完成：12 / 54
+- 当前处理：P013（query_object_changes 146 行拆分）
 
 ---
 
@@ -185,9 +185,15 @@
 - **修复**：新增 `get_record_hlcs_batch`（单次 `WHERE table_name = ? AND record_id IN (...)` 查询，prepare_cached 复用，ids 为内部 UUID 主键无注入面）+ `resolve_hlc_or_fallback_batch`（无 HLC 行按 `updated_at` 构造零计数 fallback，与旧单条路径 `parse_time_ms` 逐字节一致）；三个变更清单函数改为「收集 ids → 批量取回 → 循环查 HashMap」——N 次 SELECT+锁收敛为 1 次；单条 `record_hlc_or_fallback` 随之零调用删除。采用批量 `IN` 而非 LEFT JOIN 是因为三表主查询结构与 objects 不同（无统一 keyset 分页，直接 JOIN 会改变行序语义），`IN` 批量在保持逐行语义的同时消除锁竞争与查询次数。
 - **验证**：solosoul-vault `cargo test --lib` 163 全绿；clippy `-D warnings` exit 0；fmt 通过。
 
-### P012 / P013 — 过长核心函数
+### P012 — 过长核心函数（已修复）
 
-- `storage/objects.rs:393` `list_objects`（147 行）：拆分查询/解密/组装阶段。
+- **提交**：`a651c7d8`
+- **位置**：`solosoul-vault/src/storage/objects.rs:393`（`list_objects` 147 行）。
+- **修复**：查询/解密/组装三段分离——`build_list_objects_sql`（47 行，WHERE 条件拼接/参数占位符索引/排序尾缀）+ `map_object_list_row`（85 行，properties/property_labels 解密、tags 解析、has_attachments/敏感度推导组装 ObjectSummary），`list_objects` 主体 147→56 行变为编排（锁 → SQL → query_map 映射 → 内存 keyword 过滤）；语义逐字节等价（占位符索引、错误映射、列索引原样迁移，keyword 过滤仍走 json_contains_ignore_case）。
+- **验证**：solosoul-vault objects 域 11 测试全绿；clippy `-D warnings` exit 0；fmt 通过。
+
+### P013 — 过长核心函数
+
 - `storage/sync_changes.rs:283` `query_object_changes`（146 行）：SQL 拼装与行解密分离。
 
 ### P014 — field_value_to_text 嵌套 7 层
