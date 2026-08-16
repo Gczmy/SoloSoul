@@ -1071,6 +1071,15 @@ fn log_impl(
 
 /// 工具簇：get_timestamp / get_locale / sleep / result / post_data（P223-① 分簇）
 fn register_util_fns(linker: &mut Linker<SoloHostState>) -> Result<(), PluginError> {
+    // 5 个工具函数注册拆分为模块级辅助（P044-3），闭包逐字迁移
+    register_get_timestamp(linker)?;
+    register_get_locale(linker)?;
+    register_sleep(linker)?;
+    register_result(linker)?;
+    register_post_data(linker)?;
+    Ok(())
+}
+fn register_get_timestamp(linker: &mut Linker<SoloHostState>) -> Result<(), PluginError> {
     // solosoul_get_timestamp —— 获取当前 Unix 时间戳（毫秒）
     linker
         .func_wrap(
@@ -1084,7 +1093,10 @@ fn register_util_fns(linker: &mut Linker<SoloHostState>) -> Result<(), PluginErr
             },
         )
         .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
+    Ok(())
+}
 
+fn register_get_locale(linker: &mut Linker<SoloHostState>) -> Result<(), PluginError> {
     // solosoul_get_locale —— 获取当前 locale
     linker
         .func_wrap(
@@ -1100,7 +1112,10 @@ fn register_util_fns(linker: &mut Linker<SoloHostState>) -> Result<(), PluginErr
             },
         )
         .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
+    Ok(())
+}
 
+fn register_sleep(linker: &mut Linker<SoloHostState>) -> Result<(), PluginError> {
     // solosoul_sleep —— 同步睡眠（毫秒）
     linker
         .func_wrap(
@@ -1113,7 +1128,10 @@ fn register_util_fns(linker: &mut Linker<SoloHostState>) -> Result<(), PluginErr
             },
         )
         .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
+    Ok(())
+}
 
+fn register_result(linker: &mut Linker<SoloHostState>) -> Result<(), PluginError> {
     // solosoul_result —— SDK 原始结果通道
     linker
         .func_wrap(
@@ -1141,7 +1159,10 @@ fn register_util_fns(linker: &mut Linker<SoloHostState>) -> Result<(), PluginErr
             },
         )
         .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
+    Ok(())
+}
 
+fn register_post_data(linker: &mut Linker<SoloHostState>) -> Result<(), PluginError> {
     // solosoul_post_data —— 代理 HTTP POST 请求
     linker
         .func_wrap(
@@ -1209,9 +1230,9 @@ fn register_util_fns(linker: &mut Linker<SoloHostState>) -> Result<(), PluginErr
             },
         )
         .map_err(|e| PluginError::ExecutionFailed(e.to_string()))?;
-
     Ok(())
 }
+
 fn is_under_workspace(host: &SoloHostFunctions, path: &Path) -> bool {
     match host.workspace_dir.as_ref() {
         Some(ws) => solosoul_core::path_util::is_path_under_workspace(ws, path),
