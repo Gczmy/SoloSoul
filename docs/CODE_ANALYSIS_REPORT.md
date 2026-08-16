@@ -239,7 +239,7 @@
 - **提交**：`20d7b30b`（+ 子模块 `SoloSoul_plugin_market` README 文档同步 `e3c7102`）。
 - **位置**：`tauri/crates/solosoul-plugin/src/registry.rs:76-88`。
 - **修复**：① 新增编译期常量 `PLUGIN_REGISTRY_PUBKEY_B64: Option<&str>`（对齐 `embed_model.rs:14` 的 `EMBED_REGISTRY_PUBKEY_B64` 模式），公钥解析优先级改为「`SOLOSOUL_REGISTRY_PUBKEY` 环境变量 > 编译期常量」——测试/开发仍可覆盖，release 获得编译期信任锚；② `SOLOSOUL_REGISTRY_URL` 环境变量覆盖仅 `debug_assertions` 生效，release 固定 `DEFAULT_REGISTRY_URL`，运行环境无法重定向注册表端点；③ 插件市场 README 环境变量表同步说明。
-- **待办**：生产公钥由维护者离线保管，常量当前为 `None`，发布时随代码填入（同 embed 注册表 2026-08-03 固化流程）；填入后未配置公钥时不再静默跳过远程更新。
+- **待办（后续提供）**：生产公钥由维护者离线保管，常量当前为 `None`，待维护者后续提供公钥值后填入（同 embed 注册表 2026-08-03 固化流程）；填入后未配置公钥时不再静默跳过远程更新。
 - **验证**：solosoul-plugin check / clippy `-D warnings` / fmt 全绿。
 
 ### P016–P054 摘要指引
