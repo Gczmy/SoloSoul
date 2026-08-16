@@ -59,7 +59,7 @@
 | P020 | 供应链/隐私 | `tauri/src-tauri/tauri.conf.json:82-88` | updater 5 个端点中 4 个为第三方 GitHub 代理，存在降级冻结与行为记录风险 | `[x]` 已修复（P020） |
 | P021 | 静态加密   | `tauri/src-tauri/src/commands/attachment/crud.rs:524` | 附件明文落盘 `{vault}/attachments/`，与 vault.db/导出包加密姿态不一致（0700 权限是唯一防线） | `[x]` 已修复（P021） |
 | P022 | 加密弱点   | `tauri/crates/solosoul-core/src/pin.rs:101` | PIN 凭证可离线爆破（6 位最坏约 1 天），锁定计数对离线攻击无效；设计权衡但未文档化 | `[x]` 已修复（P022） |
-| P023 | 路径遍历（加固） | `tauri/crates/solosoul-sync/src/attachments.rs:45-50` 对比 `solosoul-core/src/export_import.rs:1070-1088` | sync 侧附件文件名净化弱于 import 侧（未拒绝 `\`），同款安全控制两处强度不一致 | `[ ]` 待修复 |
+| P023 | 路径遍历（加固） | `tauri/crates/solosoul-sync/src/attachments.rs:45-50` 对比 `solosoul-core/src/export_import.rs:1070-1088` | sync 侧附件文件名净化弱于 import 侧（未拒绝 `\`），同款安全控制两处强度不一致 | `[x]` 已修复（P023） |
 | P024 | 架构       | `tauri/crates/solosoul-sync/Cargo.toml`、`solosoul-plugin/Cargo.toml` | sync/plugin 依赖 core 拖入整个 OCR/PDF 重依赖栈（ort、pdfium-render 等），编译面与体积被拉大 | `[ ]` 待修复 |
 | P025 | 架构       | `tauri/crates/solosoul-core/src/vault_service.rs`（2559 行）、`tauri/src-tauri/src/lib.rs`（1020 行） | 账户生命周期/SAF/会话全塞一个文件；lib.rs setup 步骤堆积在入口 | `[ ]` 待修复 |
 | P026 | 重复代码   | `solosoul-core/src/llm/client.rs`（475 行）vs `src-tauri/src/commands/llm/`（约 1185 行） | LLM HTTP/SSE 客户端 blocking/async 双份实现，请求构造与 SSE 解析可共享纯函数 | `[ ]` 待修复 |
@@ -94,8 +94,8 @@
 
 ## 修复进度
 
-- 已完成：22 / 54
-- 当前处理：P023（sync 附件文件名净化弱于 import 侧）
+- 已完成：23 / 54
+- 当前处理：P024（sync/plugin 依赖 core 拖入 OCR/PDF 重依赖栈）
 
 ---
 
@@ -255,6 +255,13 @@
 - **位置**：`docs/attachment-storage-spec.md`（新建）+ `AGENTS.md` 安全架构章节（AGENTS.md 未入版本控制，仅本地同步）。
 - **修复（用户选定方案 A）**：新建附件存储安全规范（对齐 biometric-spec.md 模式）——登记存储形态（`{vault}/attachments/{object_id}/{attachment_id}/` 明文 + vault 目录 0700/0600 + 附件 ID 白名单 + 元数据 `properties.__attachments` 永远加密 + 导出包加密）、已防御（目录权限/元数据加密/`resolve_verified_attachment_path` 鉴权/移动端 FBE 兜底）、残余缺口（同用户进程可读明文、vault 整体外拷泄露）、设计权衡（系统级打开/分享需真实文件路径 + 临时解密文件面与全量解密性能成本）、中期强化路线（敏感度 `sensitive`/`critical` 附件的可选加密开关，backlog 未排期）。
 - **验证**：纯文档变更，无代码影响。
+
+### P023 — sync/import/attachment 文件名净化强度不一致（已修复：收敛共享实现）
+
+- **提交**：`6fc2773d`
+- **位置**：`solosoul-core/src/path_util.rs`（新增 `sanitize_file_name`）+ 四处消费点统一。
+- **修复**：`path_util::sanitize_file_name`（平台无关拒绝 `/` 与 `\\` 分隔符 + 取末段兜底 + 拒绝空/`.`/`..`）成为唯一实现——① sync `attachments.rs` 由仅 `Path::file_name()`（Unix 上不剥反斜杠的弱实现）升级为强语义；② `crud.rs`/`share.rs`/`attachment_import_plugin.rs` 三处 R007 落盘净化同步收紧（原「Invalid file name」仅取末段，`..\\..\\evil.txt` 可穿透）；③ export_import 与 plugin `host.rs` 原最强实现改为转发，消除逐字重复；`core/lib.rs` 导出。前端无这些文案的 i18n 映射，统一文案安全。
+- **验证**：path_util 新增 3 测试（正常名/拒绝分隔符/拒绝空点）10 全绿；export_import 16 全绿；四 crate clippy `-D warnings` / fmt 全绿。
 
 ### P022 — PIN 凭证离线爆破强度（已修复：强度加固 + 规范文档）
 
