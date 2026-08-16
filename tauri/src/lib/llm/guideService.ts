@@ -7,12 +7,6 @@
 
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 
-export interface GuideContent {
-  id: string;
-  title: string;
-  content: string;
-}
-
 export interface GuideChunk {
   guideId: string;
   guideTitle: string;
