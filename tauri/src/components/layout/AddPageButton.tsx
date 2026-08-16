@@ -11,7 +11,7 @@ import { DEFAULT_CUSTOM_ICON, type CustomIconId } from '@/lib/pageIcons';
 import { SYSTEM_PAGE_KEYS } from './useNavigationItems';
 import { useHoverCardPosition } from '@/hooks/useHoverCardPosition';
 import { IconCategoryPicker } from './IconCategoryPicker';
-import { ICON_SIZE, SAFE_AREA_TOP, SAFE_AREA_BOTTOM } from '@/lib/constants';
+import { ICON_SIZE, SAFE_AREA_TOP } from '@/lib/constants';
 
 /** 预留的顶部空间：移动 AppBar (48px) + 安全区 + 8px 边距；
  * 桌面端 AppBar 为 56px，64px 也能满足。 */
@@ -72,7 +72,7 @@ export function AddPageButton({
     // 底部留 16px 边距；icon 滚动区最小保留 48px（窗口极矮时宁可图标区滚动）
     const available = window.innerHeight - popoverTop - 16 - nonInputHeight;
     return Math.max(48, Math.min(280, available));
-  }, [popoverTop, showDescription]);
+  }, [popoverTop, showDescription, isBottom]);
 
   // Compute popover left position for horizontal mode with right-edge overflow protection.
   // When the + button is near the right edge (function area collapsed), clamp left so
