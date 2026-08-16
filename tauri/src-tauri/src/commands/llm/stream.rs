@@ -112,75 +112,20 @@ async fn handle_sse_stream(
                 continue;
             }
 
-            // 处理 event: 行（Anthropic 使用）
-            if let Some(event) = line.strip_prefix("event: ") {
-                current_event = event.to_string();
-                continue;
-            }
-
-            // 只处理 data: 行
-            if !line.starts_with("data: ") {
-                continue;
-            }
-            let data = &line[6..];
-
-            // OpenAI 风格结束标记
-            if data == "[DONE]" {
-                let _ = app.emit(
-                    "llm-stream-chunk",
-                    LlmStreamPayload {
-                        conversation_id: conversation_id.to_string(),
-                        chunk: String::new(),
-                        is_done: true,
-                        error: None,
-                    },
-                );
-                let usage = if token_usage.prompt_tokens > 0 || token_usage.completion_tokens > 0 {
-                    Some(token_usage)
-                } else {
-                    None
-                };
-                return Ok((full_text, usage));
-            }
-
-            // 尝试解析 JSON
-            let Ok(json) = serde_json::from_str::<serde_json::Value>(data) else {
-                continue;
-            };
-
-            // ── 提取 delta content ──
-            let delta_text = extract_delta_text(&json, api_type);
-
-            if let Some(text) = delta_text {
-                if !text.is_empty() {
-                    full_text.push_str(text);
-                    let _ = app.emit(
-                        "llm-stream-chunk",
-                        LlmStreamPayload {
-                            conversation_id: conversation_id.to_string(),
-                            chunk: text.to_string(),
-                            is_done: false,
-                            error: None,
-                        },
-                    );
-                }
-            }
-
-            // ── 提取 usage（P034: 按 Anthropic/OpenAI 各抽函数，消除 5 层嵌套）──
-            if is_anthropic(api_type) {
-                if let Some((input, output)) = extract_anthropic_usage(&json, &current_event) {
-                    if let Some(i) = input {
-                        anthropic_prompt_tokens = i;
-                    }
-                    if let Some(o) = output {
-                        anthropic_completion_tokens = o;
-                    }
-                }
-                token_usage.prompt_tokens = anthropic_prompt_tokens;
-                token_usage.completion_tokens = anthropic_completion_tokens;
-            } else {
-                // N008/R005: 逐字段更新——缺失字段保留先前累积值，避免整体清零。
-                apply_openai_usage_chunk(&mut token_usage, &json);
+            // 处理单行：event/data 前缀、[DONE] 结束标记、delta emit、usage 提取
+            if process_sse_line(
+                &line,
+                app,
+                conversation_id,
+                api_type,
+                &mut current_event,
+                &mut full_text,
+                &mut token_usage,
+                &mut anthropic_prompt_tokens,
+                &mut anthropic_completion_tokens,
+            ) {
+                emit_stream_done(app, conversation_id);
+                return Ok((full_text, build_usage_result(&token_usage)));
             }
         }
     }
@@ -198,6 +143,85 @@ async fn handle_sse_stream(
     }
 
     // 流正常结束
+    emit_stream_done(app, conversation_id);
+    Ok((full_text, build_usage_result(&token_usage)))
+}
+
+/// 处理单行 SSE 数据（event:/data: 前缀、[DONE] 结束标记、delta 提取与 emit、usage 提取）。
+/// 返回 true 表示命中 [DONE]，调用方应立即结束并发送完成信号。
+#[allow(clippy::too_many_arguments)]
+fn process_sse_line(
+    line: &str,
+    app: &tauri::AppHandle,
+    conversation_id: &str,
+    api_type: &ApiType,
+    current_event: &mut String,
+    full_text: &mut String,
+    token_usage: &mut TokenUsage,
+    anthropic_prompt_tokens: &mut u64,
+    anthropic_completion_tokens: &mut u64,
+) -> bool {
+    // 处理 event: 行（Anthropic 使用）
+    if let Some(event) = line.strip_prefix("event: ") {
+        *current_event = event.to_string();
+        return false;
+    }
+
+    // 只处理 data: 行
+    if !line.starts_with("data: ") {
+        return false;
+    }
+    let data = &line[6..];
+
+    // OpenAI 风格结束标记
+    if data == "[DONE]" {
+        return true;
+    }
+
+    // 尝试解析 JSON
+    let Ok(json) = serde_json::from_str::<serde_json::Value>(data) else {
+        return false;
+    };
+
+    // ── 提取 delta content ──
+    let delta_text = extract_delta_text(&json, api_type);
+
+    if let Some(text) = delta_text {
+        if !text.is_empty() {
+            full_text.push_str(text);
+            let _ = app.emit(
+                "llm-stream-chunk",
+                LlmStreamPayload {
+                    conversation_id: conversation_id.to_string(),
+                    chunk: text.to_string(),
+                    is_done: false,
+                    error: None,
+                },
+            );
+        }
+    }
+
+    // ── 提取 usage（P034: 按 Anthropic/OpenAI 各抽函数，消除 5 层嵌套）──
+    if is_anthropic(api_type) {
+        if let Some((input, output)) = extract_anthropic_usage(&json, current_event) {
+            if let Some(i) = input {
+                *anthropic_prompt_tokens = i;
+            }
+            if let Some(o) = output {
+                *anthropic_completion_tokens = o;
+            }
+        }
+        token_usage.prompt_tokens = *anthropic_prompt_tokens;
+        token_usage.completion_tokens = *anthropic_completion_tokens;
+    } else {
+        // N008/R005: 逐字段更新——缺失字段保留先前累积值，避免整体清零。
+        apply_openai_usage_chunk(token_usage, &json);
+    }
+    false
+}
+
+/// 发送流结束信号（is_done: true）。
+fn emit_stream_done(app: &tauri::AppHandle, conversation_id: &str) {
     let _ = app.emit(
         "llm-stream-chunk",
         LlmStreamPayload {
@@ -207,14 +231,16 @@ async fn handle_sse_stream(
             error: None,
         },
     );
-    let usage = if token_usage.prompt_tokens > 0 || token_usage.completion_tokens > 0 {
-        Some(token_usage)
-    } else {
-        None
-    };
-    Ok((full_text, usage))
 }
 
+/// 有 usage 时返回 Some，否则 None。
+fn build_usage_result(token_usage: &TokenUsage) -> Option<TokenUsage> {
+    if token_usage.prompt_tokens > 0 || token_usage.completion_tokens > 0 {
+        Some(token_usage.clone())
+    } else {
+        None
+    }
+}
 /// 处理流结束前缓冲区内最后一行（未换行）的 data 内容。
 fn handle_remaining_data(
     data: &str,
