@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { Suspense, lazy, useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useShallow } from 'zustand/react/shallow';
@@ -28,8 +28,14 @@ import { useUiStore } from '@/stores/uiStore';
 import { SafSyncIndicator } from '@/components/sync/SafSyncIndicator';
 import { PostLoginSetupGuide } from '@/components/guide/PostLoginSetupGuide';
 import { protectedRoutes, AuthGuard } from './routes';
-import { BootstrapPage } from '@/pages/auth/BootstrapPage';
-import { LoginPage } from '@/pages/auth/LoginPage';
+import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
+// P015: 认证页同样懒加载（首屏只加载当前需要的 chunk）
+const BootstrapPage = lazy(() =>
+  import('@/pages/auth/BootstrapPage').then((m) => ({ default: m.BootstrapPage })),
+);
+const LoginPage = lazy(() =>
+  import('@/pages/auth/LoginPage').then((m) => ({ default: m.LoginPage })),
+);
 
 export function AppRoutes() {
   const navigate = useNavigate();
@@ -339,56 +345,59 @@ export function AppRoutes() {
         </div>
       )}
       {isAuthenticated && <PostLoginSetupGuide />}
-      <Routes>
-        <Route
-          path="/bootstrap"
-          element={
-            hasAccount === false || bootstrapMode === 'create' ? (
-              <BootstrapPage />
-            ) : hasAccount === true ? (
-              <Navigate to="/login" replace />
-            ) : (
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  height: '100vh',
-                  color: 'var(--text-secondary)',
-                  fontSize: 'var(--text-body)',
-                }}
-              >
-                Connecting to backend...
-              </div>
-            )
-          }
-        />
-        <Route
-          path="/login"
-          element={
-            hasAccount === null ? (
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  height: '100vh',
-                  color: 'var(--text-secondary)',
-                  fontSize: 'var(--text-body)',
-                }}
-              >
-                Connecting...
-              </div>
-            ) : (
-              <LoginPage />
-            )
-          }
-        />
-        {protectedRoutes.map((r) => (
-          <Route key={r.path} path={r.path} element={<AuthGuard>{r.element}</AuthGuard>} />
-        ))}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      {/* P015: Suspense 承接路由级懒加载 chunk 拉取期，纯色占位避免白屏闪烁 */}
+      <Suspense fallback={<LoadingPlaceholder variant="base" minHeight="100vh" />}>
+        <Routes>
+          <Route
+            path="/bootstrap"
+            element={
+              hasAccount === false || bootstrapMode === 'create' ? (
+                <BootstrapPage />
+              ) : hasAccount === true ? (
+                <Navigate to="/login" replace />
+              ) : (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    height: '100vh',
+                    color: 'var(--text-secondary)',
+                    fontSize: 'var(--text-body)',
+                  }}
+                >
+                  Connecting to backend...
+                </div>
+              )
+            }
+          />
+          <Route
+            path="/login"
+            element={
+              hasAccount === null ? (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    height: '100vh',
+                    color: 'var(--text-secondary)',
+                    fontSize: 'var(--text-body)',
+                  }}
+                >
+                  Connecting...
+                </div>
+              ) : (
+                <LoginPage />
+              )
+            }
+          />
+          {protectedRoutes.map((r) => (
+            <Route key={r.path} path={r.path} element={<AuthGuard>{r.element}</AuthGuard>} />
+          ))}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Suspense>
     </>
   );
 }

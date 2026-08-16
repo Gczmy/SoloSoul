@@ -1,32 +1,90 @@
 import { Navigate } from 'react-router-dom';
-import { HomePage } from '@/pages/home/HomePage';
-import { SettingsPage } from '@/pages/settings/SettingsPage';
-import { SecuritySettingsPage } from '@/pages/settings/SecuritySettingsPage';
-import { AccountSettingsPage } from '@/pages/settings/AccountSettingsPage';
-import { DataManagementPage } from '@/pages/settings/DataManagementPage';
-import { TrashPage } from '@/pages/settings/TrashPage';
-import { ObjectWorkspacePage } from '@/pages/workspace/ObjectWorkspacePage';
-import { ObjectEditorPage } from '@/pages/editor/ObjectEditorPage';
-import { ExportImportPage } from '@/pages/settings/ExportImportPage';
-import { SearchPage } from '@/pages/search/SearchPage';
-import { OperationLogPage } from '@/pages/settings/OperationLogPage';
-import { AboutPage } from '@/pages/system/AboutPage';
-import { DebugLogPage } from '@/pages/system/DebugLogPage';
-import { AppearanceSettingsPage } from '@/pages/settings/AppearanceSettingsPage';
-import { BackupConfigPage } from '@/pages/settings/BackupConfigPage';
-import { PluginGatePage } from '@/pages/ai/PluginGatePage';
-import { LlmChatPage } from '@/pages/ai/LlmChatPage';
-import { LlmConfigPage } from '@/pages/ai/LlmConfigPage';
-import { TemplateManagerPage } from '@/pages/settings/TemplateManagerPage';
-import { OcrSettingsPage } from '@/pages/settings/OcrSettingsPage';
-import { GlobalAttachmentManager } from '@/pages/settings/GlobalAttachmentManager';
-import { VaultDirectoryPage } from '@/pages/settings/VaultDirectoryPage';
-import { LlmStatsPage } from '@/pages/ai/LlmStatsPage';
-import { HelpPage } from '@/pages/help/HelpPage';
-import { ScanLocalPage } from '@/pages/scan/ScanLocalPage';
-import { OcrPage } from '@/pages/scan/OcrPage';
-import { HistoryPage } from '@/pages/editor/HistoryPage';
-import { SyncPage } from '@/pages/sync/SyncPage';
+import { lazy } from 'react';
+
+// P015: 路由级懒加载——27 个页面全部改为 React.lazy 动态导入，vite 自动按页面分包，
+// 移动端首屏只加载登录/首页相关 chunk，进入其他页面时才拉取对应包。
+const HomePage = lazy(() => import('@/pages/home/HomePage').then((m) => ({ default: m.HomePage })));
+const SettingsPage = lazy(() =>
+  import('@/pages/settings/SettingsPage').then((m) => ({ default: m.SettingsPage })),
+);
+const SecuritySettingsPage = lazy(() =>
+  import('@/pages/settings/SecuritySettingsPage').then((m) => ({
+    default: m.SecuritySettingsPage,
+  })),
+);
+const AccountSettingsPage = lazy(() =>
+  import('@/pages/settings/AccountSettingsPage').then((m) => ({ default: m.AccountSettingsPage })),
+);
+const DataManagementPage = lazy(() =>
+  import('@/pages/settings/DataManagementPage').then((m) => ({ default: m.DataManagementPage })),
+);
+const TrashPage = lazy(() =>
+  import('@/pages/settings/TrashPage').then((m) => ({ default: m.TrashPage })),
+);
+const ObjectWorkspacePage = lazy(() =>
+  import('@/pages/workspace/ObjectWorkspacePage').then((m) => ({ default: m.ObjectWorkspacePage })),
+);
+const ObjectEditorPage = lazy(() =>
+  import('@/pages/editor/ObjectEditorPage').then((m) => ({ default: m.ObjectEditorPage })),
+);
+const ExportImportPage = lazy(() =>
+  import('@/pages/settings/ExportImportPage').then((m) => ({ default: m.ExportImportPage })),
+);
+const SearchPage = lazy(() =>
+  import('@/pages/search/SearchPage').then((m) => ({ default: m.SearchPage })),
+);
+const OperationLogPage = lazy(() =>
+  import('@/pages/settings/OperationLogPage').then((m) => ({ default: m.OperationLogPage })),
+);
+const AboutPage = lazy(() =>
+  import('@/pages/system/AboutPage').then((m) => ({ default: m.AboutPage })),
+);
+const DebugLogPage = lazy(() =>
+  import('@/pages/system/DebugLogPage').then((m) => ({ default: m.DebugLogPage })),
+);
+const AppearanceSettingsPage = lazy(() =>
+  import('@/pages/settings/AppearanceSettingsPage').then((m) => ({
+    default: m.AppearanceSettingsPage,
+  })),
+);
+const BackupConfigPage = lazy(() =>
+  import('@/pages/settings/BackupConfigPage').then((m) => ({ default: m.BackupConfigPage })),
+);
+const PluginGatePage = lazy(() =>
+  import('@/pages/ai/PluginGatePage').then((m) => ({ default: m.PluginGatePage })),
+);
+const LlmChatPage = lazy(() =>
+  import('@/pages/ai/LlmChatPage').then((m) => ({ default: m.LlmChatPage })),
+);
+const LlmConfigPage = lazy(() =>
+  import('@/pages/ai/LlmConfigPage').then((m) => ({ default: m.LlmConfigPage })),
+);
+const TemplateManagerPage = lazy(() =>
+  import('@/pages/settings/TemplateManagerPage').then((m) => ({ default: m.TemplateManagerPage })),
+);
+const OcrSettingsPage = lazy(() =>
+  import('@/pages/settings/OcrSettingsPage').then((m) => ({ default: m.OcrSettingsPage })),
+);
+const GlobalAttachmentManager = lazy(() =>
+  import('@/pages/settings/GlobalAttachmentManager').then((m) => ({
+    default: m.GlobalAttachmentManager,
+  })),
+);
+const VaultDirectoryPage = lazy(() =>
+  import('@/pages/settings/VaultDirectoryPage').then((m) => ({ default: m.VaultDirectoryPage })),
+);
+const LlmStatsPage = lazy(() =>
+  import('@/pages/ai/LlmStatsPage').then((m) => ({ default: m.LlmStatsPage })),
+);
+const HelpPage = lazy(() => import('@/pages/help/HelpPage').then((m) => ({ default: m.HelpPage })));
+const ScanLocalPage = lazy(() =>
+  import('@/pages/scan/ScanLocalPage').then((m) => ({ default: m.ScanLocalPage })),
+);
+const OcrPage = lazy(() => import('@/pages/scan/OcrPage').then((m) => ({ default: m.OcrPage })));
+const HistoryPage = lazy(() =>
+  import('@/pages/editor/HistoryPage').then((m) => ({ default: m.HistoryPage })),
+);
+const SyncPage = lazy(() => import('@/pages/sync/SyncPage').then((m) => ({ default: m.SyncPage })));
 import { useAuthStore } from '@/stores/authStore';
 import type { ReactNode } from 'react';
 
