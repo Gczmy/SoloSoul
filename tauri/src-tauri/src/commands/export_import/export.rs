@@ -619,43 +619,16 @@ pub async fn export_execute(
     let has_attachments =
         write_attachment_entries(&mut zip, options, &key, &salt, &attachment_entries)?;
 
-    // ── P2: Preferences ────────────────────────────────────────
-    let mut extra_files: Vec<String> = Vec::new();
-    let mut preferences_encrypted = false;
-    if req.scope.include_preferences {
-        if let Ok(Some(profile)) = vault.load_profile(&account_id) {
-            extra_files.push(write_encrypted_extra(
-                &mut zip,
-                options,
-                &key,
-                &salt,
-                b"solosoul:preferences:v1",
-                "preferences.enc",
-                &profile.data,
-            )?);
-            preferences_encrypted = true;
-        }
-    }
-
-    // ── P2: Behavioral data (audit log) ────────────────────────
-    let mut behavioral_encrypted = false;
-    if req.scope.include_behavioral {
-        if let Ok(logs) = vault.list_audit_log(MAX_AUDIT_LOG_EXPORT) {
-            let logs_json = serde_json::to_vec(&logs).unwrap_or_default();
-            if !logs_json.is_empty() {
-                extra_files.push(write_encrypted_extra(
-                    &mut zip,
-                    options,
-                    &key,
-                    &salt,
-                    b"solosoul:behavioral:v1",
-                    "behavioral.enc",
-                    &logs_json,
-                )?);
-                behavioral_encrypted = true;
-            }
-        }
-    }
+    // ── P2: Preferences + Behavioral data（audit log）──
+    let (extra_files, preferences_encrypted, behavioral_encrypted) = write_scope_extra_files(
+        vault,
+        &mut zip,
+        options,
+        &key,
+        &salt,
+        &account_id,
+        &req.scope,
+    )?;
 
     // ── manifest.json (plaintext) ─────────────────────────────
     let has_templates = !templates.is_empty();
@@ -670,24 +643,7 @@ pub async fn export_execute(
         &req.password_hint,
         &salt,
     );
-    let manifest_bytes = serde_json::to_vec_pretty(&manifest).map_err(|e| e.to_string())?;
-    zip.start_file("manifest.json", options)
-        .map_err(|e| e.to_string())?;
-    zip.write_all(&manifest_bytes).map_err(|e| e.to_string())?;
-
-    // ── payload.enc (encrypted via streaming chunked cipher — P1-023) ──
-    zip.start_file("payload.enc", options)
-        .map_err(|e| e.to_string())?;
-    {
-        let mut cursor = std::io::Cursor::new(&payload_bytes);
-        solosoul_crypto::cipher::encrypt_chunked_stream(
-            &key,
-            payload_bytes.len() as u64,
-            &mut cursor,
-            &mut zip,
-        )
-        .map_err(|e| format!("encrypt payload stream: {e}"))?;
-    }
+    write_manifest_and_payload(&mut zip, options, &manifest, &payload_bytes, &key)?;
 
     zip.finish().map_err(|e| format!("ZIP finish: {e}"))?;
 
@@ -708,6 +664,84 @@ pub async fn export_execute(
     Ok(zip_path)
 }
 
+/// 写入 P2 可选数据（preferences / behavioral audit log）。返回 (extra_files, preferences_encrypted, behavioral_encrypted)。
+fn write_scope_extra_files(
+    vault: &solosoul_vault::VaultStore,
+    zip: &mut ZipWriter<File>,
+    options: SimpleFileOptions,
+    key: &[u8; 32],
+    salt: &[u8],
+    account_id: &str,
+    scope: &ExportScope,
+) -> Result<(Vec<String>, bool, bool), String> {
+    // ── P2: Preferences ────────────────────────────────────────
+    let mut extra_files: Vec<String> = Vec::new();
+    let mut preferences_encrypted = false;
+    if scope.include_preferences {
+        if let Ok(Some(profile)) = vault.load_profile(account_id) {
+            extra_files.push(write_encrypted_extra(
+                zip,
+                options,
+                key,
+                salt,
+                b"solosoul:preferences:v1",
+                "preferences.enc",
+                &profile.data,
+            )?);
+            preferences_encrypted = true;
+        }
+    }
+
+    // ── P2: Behavioral data (audit log) ────────────────────────
+    let mut behavioral_encrypted = false;
+    if scope.include_behavioral {
+        if let Ok(logs) = vault.list_audit_log(MAX_AUDIT_LOG_EXPORT) {
+            let logs_json = serde_json::to_vec(&logs).unwrap_or_default();
+            if !logs_json.is_empty() {
+                extra_files.push(write_encrypted_extra(
+                    zip,
+                    options,
+                    key,
+                    salt,
+                    b"solosoul:behavioral:v1",
+                    "behavioral.enc",
+                    &logs_json,
+                )?);
+                behavioral_encrypted = true;
+            }
+        }
+    }
+    Ok((extra_files, preferences_encrypted, behavioral_encrypted))
+}
+
+/// 写明文 manifest.json + 加密 payload.enc（流式分块加密，P1-023）。
+fn write_manifest_and_payload(
+    zip: &mut ZipWriter<File>,
+    options: SimpleFileOptions,
+    manifest: &serde_json::Value,
+    payload_bytes: &[u8],
+    key: &[u8; 32],
+) -> Result<(), String> {
+    let manifest_bytes = serde_json::to_vec_pretty(&manifest).map_err(|e| e.to_string())?;
+    zip.start_file("manifest.json", options)
+        .map_err(|e| e.to_string())?;
+    zip.write_all(&manifest_bytes).map_err(|e| e.to_string())?;
+
+    // ── payload.enc (encrypted via streaming chunked cipher — P1-023) ──
+    zip.start_file("payload.enc", options)
+        .map_err(|e| e.to_string())?;
+    {
+        let mut cursor = std::io::Cursor::new(payload_bytes);
+        solosoul_crypto::cipher::encrypt_chunked_stream(
+            key,
+            payload_bytes.len() as u64,
+            &mut cursor,
+            zip,
+        )
+        .map_err(|e| format!("encrypt payload stream: {e}"))?;
+    }
+    Ok(())
+}
 /// 收集各对象的全部历史快照（含原时间戳），恢复后历史数量与旧设备一致。
 fn collect_object_snapshots(
     vault: &solosoul_vault::VaultStore,
