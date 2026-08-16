@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Plus, ChevronRight } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { CUSTOM_ICON_MAP, resolveCustomIcon, type CustomIconId } from '@/lib/pageIcons';
@@ -11,16 +11,12 @@ import type {
   SensitivityLevel,
   ContractRoleBinding,
 } from '@/types/template';
-import { TemplateTypeSelect } from './TemplateTypeSelect';
 import { TemplatePageSelect } from './TemplatePageSelect';
 import { IconPicker } from './IconPicker';
-import { DynamicGroupConfig } from './DynamicGroupConfig';
+import { TemplateFieldsPanel } from './TemplateFieldsPanel';
 import { ICON_SIZE } from '@/lib/constants';
-import { usePluginStore } from '@/stores/pluginStore';
-import { resolvePluginName, deriveContractBindings } from '@/lib/plugin';
-import { TemplateFieldRow, type FlattenedContract } from './TemplateFieldRow';
-import { DeprecatedFieldsSection, type FieldUsage } from './DeprecatedFieldsSection';
-import { logger } from '@/lib/logger';
+import type { FieldUsage } from './DeprecatedFieldsSection';
+import { useTemplateEditorState } from './useTemplateEditorState';
 
 interface TemplateEditorProps {
   editingTemplate: UserTemplate | null;
@@ -67,7 +63,8 @@ interface TemplateEditorProps {
 
 /**
  * 模板编辑器：编排层。
- * 字段行/插件绑定 → TemplateFieldRow；已归档字段 → DeprecatedFieldsSection。
+ * 本地状态/插件契约 → useTemplateEditorState；字段行/插件绑定 → TemplateFieldsPanel
+ * （内部 TemplateFieldRow）；已归档字段 → DeprecatedFieldsSection。
  */
 export function TemplateEditor({
   editName,
@@ -105,70 +102,19 @@ export function TemplateEditor({
   onDynamicGroupMaxItemsChange,
   onDynamicGroupSensitivityChange,
 }: TemplateEditorProps) {
-  const [showIconPicker, setShowIconPicker] = useState(false);
-
-  // 插件绑定 UI 状态
-  const [expandedBindingFields, setExpandedBindingFields] = useState<Set<string>>(new Set());
-  const [selectedContractId, setSelectedContractId] = useState<Record<string, string>>({});
-  const [selectedRoleId, setSelectedRoleId] = useState<Record<string, string>>({});
-
-  const installedPlugins = usePluginStore((s) => s.installedPlugins);
-  const loadInstalled = usePluginStore((s) => s.loadInstalled);
-  const { t, i18n } = useTranslation(['settings', 'common', 'editor']);
-
-  // 加载已安装插件列表（用于展示契约角色）
-  React.useEffect(() => {
-    if (installedPlugins.length === 0) {
-      // P042: 插件列表加载失败不再静默吞错（降级表现为契约角色绑定缺失，需可诊断）。
-      loadInstalled().catch((err) =>
-        logger.warn('[TemplateEditor] Load installed plugins failed:', err),
-      );
-    }
-  }, [installedPlugins.length, loadInstalled]);
-
-  // 将已安装插件的所有契约展平为一个列表
-  const flattenContracts = React.useMemo<FlattenedContract[]>(() => {
-    const currentLocale = i18n.language || 'zh-CN';
-    const list: FlattenedContract[] = [];
-    for (const plugin of installedPlugins) {
-      for (const contract of plugin.contracts || []) {
-        if (contract.roles && contract.roles.length > 0) {
-          list.push({
-            pluginId: plugin.id,
-            pluginName: resolvePluginName(plugin, currentLocale),
-            contract,
-          });
-        }
-      }
-    }
-    return list;
-  }, [installedPlugins, i18n.language]);
-
-  const toggleBindingExpanded = (fieldKey: string, fieldIdx: number) => {
-    const willExpand = !expandedBindingFields.has(fieldKey);
-    setExpandedBindingFields((prev) => {
-      const next = new Set(prev);
-      if (next.has(fieldKey)) {
-        next.delete(fieldKey);
-      } else {
-        next.add(fieldKey);
-      }
-      return next;
-    });
-    // 展开时自动推导并持久化 contractField: true 但无硬编码 bindings 的字段
-    if (willExpand) {
-      const prop = editProperties[fieldIdx];
-      if (prop) {
-        const existingBindings = prop.contractBindings || [];
-        if (existingBindings.length === 0 && prop.contractField && editContractTypeId) {
-          const derived = deriveContractBindings(editContractTypeId, prop.id, installedPlugins);
-          if (derived.length > 0) {
-            onUpdatePropertyContractBindings(fieldIdx, derived);
-          }
-        }
-      }
-    }
-  };
+  const { t } = useTranslation(['settings', 'common', 'editor']);
+  const {
+    showIconPicker,
+    setShowIconPicker,
+    expandedBindingFields,
+    selectedContractId,
+    setSelectedContractId,
+    selectedRoleId,
+    setSelectedRoleId,
+    installedPlugins,
+    flattenContracts,
+    toggleBindingExpanded,
+  } = useTemplateEditorState(editProperties, editContractTypeId, onUpdatePropertyContractBindings);
 
   const activeRows = editProperties
     .map((prop, idx) => ({ prop, idx }))
@@ -268,7 +214,9 @@ export function TemplateEditor({
               : resolveCustomIcon(editIconId),
             { size: ICON_SIZE.lg, style: { color: 'var(--accent-primary)', flexShrink: 0 } },
           )}
-          <span style={{ flex: 1 }}>{t('settings:template_icon', { defaultValue: '模板图标' })}</span>
+          <span style={{ flex: 1 }}>
+            {t('settings:template_icon', { defaultValue: '模板图标' })}
+          </span>
           <span style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
             {showIconPicker
               ? t('common:collapse', { defaultValue: '收起' })
@@ -278,183 +226,42 @@ export function TemplateEditor({
         {showIconPicker && <IconPicker value={editIconId} onChange={onEditIconIdChange} />}
       </div>
 
-      <div>
-        <div
-          style={{
-            fontSize: 'var(--text-body-sm)',
-            fontWeight: 500,
-            marginBottom: 8,
-            color: 'var(--text-secondary)',
-          }}
-        >
-          {t('settings:fields_section_title', { defaultValue: '字段列表' })}
-        </div>
-
-        <div
-          style={{
-            background: 'var(--bg-toolbar)',
-            borderRadius: 8,
-            padding: '8px 4px',
-            border: '1px solid var(--border-subtle)',
-          }}
-        >
-          {activeRows.length === 0 &&
-            editProperties.filter((p) => p.deprecatedAt).length === 0 && (
-              <div
-                style={{
-                  fontSize: 'var(--text-caption)',
-                  color: 'var(--text-tertiary)',
-                  padding: '12px 0',
-                }}
-              >
-                {t('settings:empty_template_hint', { defaultValue: '此模板暂无字段，点击下方添加' })}
-              </div>
-            )}
-
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 8,
-              maxHeight: '35vh',
-              overflowY: 'auto',
-              overflowX: 'hidden',
-              paddingRight: 4,
-            }}
-          >
-            {activeRows.map(({ prop, idx }) => {
-              const fieldKey = prop.id;
-              return (
-                <TemplateFieldRow
-                  key={prop.id}
-                  prop={prop}
-                  idx={idx}
-                  isExpanded={expandedBindingFields.has(fieldKey)}
-                  editContractTypeId={editContractTypeId}
-                  installedPlugins={installedPlugins}
-                  flattenContracts={flattenContracts}
-                  selectedContractId={selectedContractId[fieldKey] || ''}
-                  selectedRoleId={selectedRoleId[fieldKey] || ''}
-                  onToggleBindingExpanded={toggleBindingExpanded}
-                  onSelectedContractChange={(fk, value) => {
-                    setSelectedContractId((prev) => ({
-                      ...prev,
-                      [fk]: value,
-                    }));
-                    // 切换契约时重置角色选择
-                    setSelectedRoleId((prev) => {
-                      const next = { ...prev };
-                      delete next[fk];
-                      return next;
-                    });
-                  }}
-                  onSelectedRoleChange={(fk, value) => {
-                    setSelectedRoleId((prev) => ({
-                      ...prev,
-                      [fk]: value,
-                    }));
-                  }}
-                  onUpdatePropertyName={onUpdatePropertyName}
-                  onUpdatePropertyType={onUpdatePropertyType}
-                  onUpdatePropertySensitivity={onUpdatePropertySensitivity}
-                  onUpdatePropertyOptions={onUpdatePropertyOptions}
-                  onRemoveProperty={onRemoveProperty}
-                  onUpdatePropertyContractBindings={onUpdatePropertyContractBindings}
-                  onContractTypeIdChange={onContractTypeIdChange}
-                />
-              );
-            })}
-          </div>
-
-          {/* Deprecated fields */}
-          {editProperties.filter((p) => p.deprecatedAt).length > 0 && (
-            <DeprecatedFieldsSection
-              editProperties={editProperties}
-              showDeprecated={showDeprecated}
-              fieldUsageMap={fieldUsageMap}
-              onToggleShowDeprecated={onToggleShowDeprecated}
-              onRestoreProperty={onRestoreProperty}
-              onPermanentlyRemoveProperty={onPermanentlyRemoveProperty}
-            />
-          )}
-        </div>
-
-        {/* 动态字段组（模板级开关） */}
-        <div
-          style={{
-            marginTop: 10,
-            padding: '10px',
-            borderRadius: 8,
-            border: '1px solid var(--border-subtle)',
-            background: 'var(--bg-elevated)',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 10,
-          }}
-        >
-          <label
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 10,
-              cursor: 'pointer',
-              userSelect: 'none',
-              fontSize: 'var(--text-body-sm)',
-              fontWeight: 500,
-              color: 'var(--text-primary)',
-            }}
-          >
-            <input
-              type="checkbox"
-              checked={dynamicGroupEnabled}
-              onChange={(e) => onDynamicGroupEnabledChange(e.target.checked)}
-              style={{
-                width: 16,
-                height: 16,
-                cursor: 'pointer',
-                accentColor: 'var(--accent-primary)',
-              }}
-            />
-            {t('editor:enable_dynamic_group')}
-          </label>
-
-          {dynamicGroupEnabled && (
-            <DynamicGroupConfig
-              allowedTypes={dynamicGroupAllowedTypes}
-              maxItems={dynamicGroupMaxItems}
-              sensitivity={dynamicGroupSensitivity}
-              onAllowedTypesChange={onDynamicGroupAllowedTypesChange}
-              onMaxItemsChange={onDynamicGroupMaxItemsChange}
-              onSensitivityChange={onDynamicGroupSensitivityChange}
-            />
-          )}
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12 }}>
-          <TemplateTypeSelect value={newFieldType} onChange={onNewFieldTypeChange} />
-          <button
-            type="button"
-            onClick={onAddProperty}
-            className="interactive-toolbar"
-            style={{
-              height: 36,
-              padding: '0 14px',
-              borderRadius: 6,
-              borderWidth: 1,
-              borderStyle: 'solid',
-              fontSize: 'var(--text-body-sm)',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              whiteSpace: 'nowrap',
-            }}
-          >
-            <Plus size={ICON_SIZE.sm} />
-            {t('settings:add_field', { defaultValue: '添加字段' })}
-          </button>
-        </div>
-      </div>
+      <TemplateFieldsPanel
+        editProperties={editProperties}
+        activeRows={activeRows}
+        expandedBindingFields={expandedBindingFields}
+        editContractTypeId={editContractTypeId}
+        installedPlugins={installedPlugins}
+        flattenContracts={flattenContracts}
+        selectedContractId={selectedContractId}
+        selectedRoleId={selectedRoleId}
+        toggleBindingExpanded={toggleBindingExpanded}
+        setSelectedContractId={setSelectedContractId}
+        setSelectedRoleId={setSelectedRoleId}
+        onUpdatePropertyName={onUpdatePropertyName}
+        onUpdatePropertyType={onUpdatePropertyType}
+        onUpdatePropertySensitivity={onUpdatePropertySensitivity}
+        onUpdatePropertyOptions={onUpdatePropertyOptions}
+        onRemoveProperty={onRemoveProperty}
+        onUpdatePropertyContractBindings={onUpdatePropertyContractBindings}
+        onContractTypeIdChange={onContractTypeIdChange}
+        showDeprecated={showDeprecated}
+        fieldUsageMap={fieldUsageMap}
+        onToggleShowDeprecated={onToggleShowDeprecated}
+        onRestoreProperty={onRestoreProperty}
+        onPermanentlyRemoveProperty={onPermanentlyRemoveProperty}
+        dynamicGroupEnabled={dynamicGroupEnabled}
+        dynamicGroupAllowedTypes={dynamicGroupAllowedTypes}
+        dynamicGroupMaxItems={dynamicGroupMaxItems}
+        dynamicGroupSensitivity={dynamicGroupSensitivity}
+        onDynamicGroupEnabledChange={onDynamicGroupEnabledChange}
+        onDynamicGroupAllowedTypesChange={onDynamicGroupAllowedTypesChange}
+        onDynamicGroupMaxItemsChange={onDynamicGroupMaxItemsChange}
+        onDynamicGroupSensitivityChange={onDynamicGroupSensitivityChange}
+        newFieldType={newFieldType}
+        onNewFieldTypeChange={onNewFieldTypeChange}
+        onAddProperty={onAddProperty}
+      />
 
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, paddingTop: 4 }}>
         <Button variant="secondary" onClick={onClose}>
