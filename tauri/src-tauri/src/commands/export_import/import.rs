@@ -184,9 +184,14 @@ pub async fn import_decrypt_preview<R: tauri::Runtime>(
         })
         .unwrap_or_default();
 
+    // P043: 批量加载本地对象一次（IN 查询），替代逐条 load_object——
+    // 大导入包下将 N 次锁竞争 + N 次查询降为 1 次（非热路径但廉价且语义等价）。
+    let ids: Vec<String> = objects.iter().map(|o| o.id.clone()).collect();
+    let existing_map = vault.load_objects_batch(&ids).unwrap_or_default();
+
     let mut conflicts = Vec::new();
     for obj in &objects {
-        if let Ok(Some(existing)) = vault.load_object(&obj.id) {
+        if let Some(existing) = existing_map.get(&obj.id) {
             // Soft-deleted objects are in trash and should not be treated as conflicts.
             if !existing.is_deleted {
                 // 比较名称判断冲突类型：名称相同为 Identical，否则为 RenamedLocal
