@@ -61,7 +61,7 @@
 | P022 | 加密弱点   | `tauri/crates/solosoul-core/src/pin.rs:101` | PIN 凭证可离线爆破（6 位最坏约 1 天），锁定计数对离线攻击无效；设计权衡但未文档化 | `[x]` 已修复（P022） |
 | P023 | 路径遍历（加固） | `tauri/crates/solosoul-sync/src/attachments.rs:45-50` 对比 `solosoul-core/src/export_import.rs:1070-1088` | sync 侧附件文件名净化弱于 import 侧（未拒绝 `\`），同款安全控制两处强度不一致 | `[x]` 已修复（P023） |
 | P024 | 架构       | `tauri/crates/solosoul-sync/Cargo.toml`、`solosoul-plugin/Cargo.toml` | sync/plugin 依赖 core 拖入整个 OCR/PDF 重依赖栈（ort、pdfium-render 等），编译面与体积被拉大 | `[x]` 已修复（P024） |
-| P025 | 架构       | `tauri/crates/solosoul-core/src/vault_service.rs`（2559 行）、`tauri/src-tauri/src/lib.rs`（1020 行） | 账户生命周期/SAF/会话全塞一个文件；lib.rs setup 步骤堆积在入口 | `[ ]` 待修复 |
+| P025 | 架构       | `tauri/crates/solosoul-core/src/vault_service.rs`（2559 行）、`tauri/src-tauri/src/lib.rs`（1020 行） | 账户生命周期/SAF/会话全塞一个文件；lib.rs setup 步骤堆积在入口 | `[x]` 已修复（P025） |
 | P026 | 重复代码   | `solosoul-core/src/llm/client.rs`（475 行）vs `src-tauri/src/commands/llm/`（约 1185 行） | LLM HTTP/SSE 客户端 blocking/async 双份实现，请求构造与 SSE 解析可共享纯函数 | `[ ]` 待修复 |
 | P027 | 架构       | `tauri/src/stores/authStore.ts` ↔ 后端 `VaultService` | 解锁状态前后端双份维护，靠事件 + best-effort 收敛（已有多层缓解，残余窗口存疑） | `[ ]` 待修复 |
 | P028 | 架构       | `tauri/src/stores/syncStore.ts:20-66` ↔ `commands/sync.rs:6-27` | 同步历史存两份：localStorage（无清理逻辑，存疑）与后端 audit_log | `[ ]` 待修复 |
@@ -94,8 +94,8 @@
 
 ## 修复进度
 
-- 已完成：24 / 54
-- 当前处理：P025（vault_service.rs / lib.rs 巨型文件拆分）
+- 已完成：25 / 54
+- 当前处理：P026（移动端硬编码字体/颜色收敛）
 
 ---
 
@@ -255,6 +255,15 @@
 - **位置**：`docs/attachment-storage-spec.md`（新建）+ `AGENTS.md` 安全架构章节（AGENTS.md 未入版本控制，仅本地同步）。
 - **修复（用户选定方案 A）**：新建附件存储安全规范（对齐 biometric-spec.md 模式）——登记存储形态（`{vault}/attachments/{object_id}/{attachment_id}/` 明文 + vault 目录 0700/0600 + 附件 ID 白名单 + 元数据 `properties.__attachments` 永远加密 + 导出包加密）、已防御（目录权限/元数据加密/`resolve_verified_attachment_path` 鉴权/移动端 FBE 兜底）、残余缺口（同用户进程可读明文、vault 整体外拷泄露）、设计权衡（系统级打开/分享需真实文件路径 + 临时解密文件面与全量解密性能成本）、中期强化路线（敏感度 `sensitive`/`critical` 附件的可选加密开关，backlog 未排期）。
 - **验证**：纯文档变更，无代码影响。
+
+### P025 — vault_service.rs / lib.rs 巨型文件拆分（已修复：按域拆分 + setup 模块化）
+
+- **提交**：`67c0c1d5`（① vault_service 拆分）+ `107659c3`（② setup 模块抽取）
+- **位置**：`solosoul-core/src/vault_service/`（新建目录）、`src-tauri/src/setup/mod.rs`（新建）、`src-tauri/src/lib.rs`。
+- **修复**：
+  - ① vault_service.rs（2559 行）按域拆分到 `vault_service/` 目录 5 文件：mod.rs 446（类型/构造器/路径配置辅助 + 子模块声明）、account.rs 439（账户 CRUD：创建/删除/重命名/安全标志复位）、unlock.rs 914（密钥派生/解锁锁定/改密重加密/会话）、saf.rs 60（远端同步/脏标记）、tests.rs 784（测试整体迁移）；`impl VaultService` 拆为各子模块 `impl super::VaultService`，跨域私有方法（save_accounts/read_account_config/unlock_with_kdf_upgrade）改 pub(crate)。
+  - ② lib.rs setup 步骤抽到 `setup/` 模块：setup_panic_hook/resolve_app_data_dir/resolve_log_dir/init_tracing/七个 setup_* 步骤/setup_app 全部移入（pub(crate) 导出仅 setup_panic_hook/setup_app 两个入口），lib.rs 头部 LOG_DIR/OnceLock/Emitter/Manager/AppState 五个 import 迁出。
+- **验证**：纯重构零行为变化；solosoul-core 174 测试全绿（含 vault_service 32）；四消费方（src-tauri/sync/plugin/CLI）check 全绿；clippy `-D warnings` / fmt 全绿；src-tauri lib 测试 `STATUS_ENTRYPOINT_NOT_FOUND` 为预存在 Windows DLL 环境问题（stash 基线同样失败，与本次无关）。
 
 ### P024 — sync/plugin 拖入 OCR/PDF 重依赖栈（已修复：feature 门控）
 
