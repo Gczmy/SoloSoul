@@ -1,20 +1,27 @@
 //! Schema migration runner for vault database
 
 use chrono::Utc;
-use rusqlite::{params, Connection};
+use rusqlite::{params, Connection, OptionalExtension};
 
 use crate::storage::VaultStore;
 
 pub const CURRENT_SCHEMA_VERSION: u32 = 26;
 
 pub fn get_schema_version(conn: &Connection) -> Result<u32, String> {
-    let version: String = conn
+    // P032: 区分「首次建库无 data_version 行」与「真实读取错误」——
+    // QueryReturnedNoRows（optional() → None）视为版本 1（历史 unwrap_or(1)
+    // 的兜底语义）；其余读取/解析错误显式传播，不再静默重跑全部迁移。
+    let version: Option<String> = conn
         .query_row(
             "SELECT value FROM sys_config WHERE key = 'data_version'",
             [],
             |r| r.get(0),
         )
+        .optional()
         .map_err(|e| format!("Failed to get schema version: {}", e))?;
+    let Some(version) = version else {
+        return Ok(1);
+    };
     version
         .parse::<u32>()
         .map_err(|e| format!("Invalid version: {}", e))
@@ -42,7 +49,7 @@ fn has_column(conn: &Connection, table: &str, column: &str) -> bool {
 pub fn run_migrations(conn: &mut Connection) -> Result<(), String> {
     // `current` 在入口读取一次，后续所有版本判断均基于该快照，
     // 与历史实现完全一致（各 migrate_vN 内 set_schema_version 不影响判断）。
-    let current = get_schema_version(conn).unwrap_or(1);
+    let current = get_schema_version(conn)?;
 
     migrate_v2(conn, current)?;
     migrate_v3(conn, current)?;
