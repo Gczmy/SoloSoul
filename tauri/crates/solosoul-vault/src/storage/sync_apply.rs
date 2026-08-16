@@ -3,7 +3,7 @@
 //! 本模块承载 `VaultStore` 的同步记录应用与冲突处理方法（原 storage.rs 1069-1511 行，
 //! 逐行搬运零行为变更）：`apply_sync_record`（单事务）/ `apply_sync_records_batch`
 //! （P115 批量单事务）/ 四表域 `apply_*_sync_record_tx` 私有实现，以及同步冲突
-//! 全生命周期（`save_sync_conflict` / `list_sync_conflicts` / `get_sync_conflict` /
+//! 全生命周期（`save_sync_conflicts_batch` / `list_sync_conflicts` / `get_sync_conflict` /
 //! `get_sync_conflict_local_data` / `delete_sync_conflict` / `resolve_sync_conflict`）
 //! 与两个私有助手（`record_hlc_is_newer`、`hard_delete_record`）。
 //!
@@ -135,43 +135,9 @@ impl VaultStore {
 
     // ── Sync conflict helpers ────────────────────────────────
 
-    /// 持久化一条同步冲突记录。
-    #[allow(clippy::too_many_arguments)]
-    pub fn save_sync_conflict(
-        &self,
-        table: &str,
-        record_id: &str,
-        local_hlc: &crate::RecordHlc,
-        remote_hlc: &crate::RecordHlc,
-        local_data: &serde_json::Value,
-        remote_data: &serde_json::Value,
-        remote_deleted: bool,
-    ) -> Result<(), String> {
-        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
-        let conn = guard.as_mut().ok_or("Vault is locked")?;
-        let local_hlc_json = serde_json::to_string(local_hlc).map_err(|e| e.to_string())?;
-        let remote_hlc_json = serde_json::to_string(remote_hlc).map_err(|e| e.to_string())?;
-        let local_data_json = serde_json::to_string(local_data).map_err(|e| e.to_string())?;
-        let remote_data_json = serde_json::to_string(remote_data).map_err(|e| e.to_string())?;
-        conn.execute(
-        "INSERT INTO sync_conflicts (id, table_name, record_id, local_hlc, remote_hlc, local_data, remote_data, remote_deleted, winner, created_at, resolved)
-         VALUES ((lower(hex(randomblob(16)))), ?1, ?2, ?3, ?4, ?5, ?6, ?7, 'local', ?8, 0)
-         ON CONFLICT(table_name, record_id) DO UPDATE SET
-            local_hlc = excluded.local_hlc,
-            remote_hlc = excluded.remote_hlc,
-            local_data = excluded.local_data,
-            remote_data = excluded.remote_data,
-            remote_deleted = excluded.remote_deleted,
-            winner = excluded.winner",
-        params![table, record_id, local_hlc_json, remote_hlc_json, local_data_json, remote_data_json, remote_deleted, Self::now_rfc3339()],
-    )
-    .map_err(|e| format!("save_sync_conflict: {}", e))?;
-        Ok(())
-    }
-
     /// P016: 批量持久化同步冲突——单连接 + 单事务，N 条冲突一次 commit。
     ///
-    /// 相比逐条 `save_sync_conflict`（每次锁 + execute + 隐式事务）：大量冲突时
+    /// 相比旧单条版（每次锁 + execute + 隐式事务）：大量冲突时
     /// 不再 N 次锁竞争与 N 次写事务，写入开销从 O(N) 事务降至 O(1) 事务。
     pub fn save_sync_conflicts_batch(
         &self,
