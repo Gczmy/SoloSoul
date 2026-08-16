@@ -620,6 +620,12 @@ impl VaultStore {
         // Set busy timeout
         let _: Result<(), _> = conn.query_row("PRAGMA busy_timeout = 5000;", [], |_| Ok(()));
 
+        // P033: 显式启用 WAL 日志模式（幂等，确认而非假设）——读写并发下避免整库
+        // 写放大与读阻塞；lock() 收尾已用 wal_checkpoint(TRUNCATE)，与此模式配套。
+        // 只读 probe 连接（probe_data_key）在 WAL 下依赖快照隔离读未提交事务前的旧
+        // 数据，reencrypt 崩溃恢复判定不受影响。
+        let _: Result<_, _> = conn.query_row("PRAGMA journal_mode = WAL;", [], |_| Ok(()));
+
         // Initialize schema
         Self::init_schema(&conn)?;
         run_migrations(&mut conn)?;
