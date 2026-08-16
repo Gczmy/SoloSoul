@@ -50,9 +50,12 @@ vi.mock('@/stores/authStore', () => ({
 }));
 
 vi.mock('@/stores/objectStore', () => ({
-  useObjectStore: () => ({
-    createObject: mockCreateObject,
-  }),
+  // P047 后组件用 store 级选择器订阅（useObjectStore((s) => s.createObject)），
+  // mock 需透传 selector 才能返回 createObject 函数本身。
+  useObjectStore: (selector?: (s: { createObject: typeof mockCreateObject }) => unknown) => {
+    const state = { createObject: mockCreateObject };
+    return selector ? selector(state) : state;
+  },
 }));
 
 vi.mock('@/hooks/useToastError', () => ({
