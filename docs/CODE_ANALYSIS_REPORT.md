@@ -52,7 +52,7 @@
 
 | ID   | 类别       | 文件位置 | 描述 | 状态 |
 |------|------------|----------|------|------|
-| P016 | 规范       | `tauri/src/components/layout/AddPageButton.tsx:14,75` | ESLint 2 warning：`SAFE_AREA_BOTTOM` 未使用；useMemo 缺依赖 `isBottom` | `[ ]` 待修复 |
+| P016 | 规范       | `tauri/src/components/layout/AddPageButton.tsx:14,75` | ESLint 2 warning：`SAFE_AREA_BOTTOM` 未使用；useMemo 缺依赖 `isBottom` | `[x]` 已修复（P016） |
 | P017 | 漏洞（弱随机） | `tauri/crates/solosoul-sync/src/recovery.rs:366-374,394-399` | 恢复 PIN/恢复密码用 `thread_rng` 而非 OsRng，PIN 逐位 `% 10` 有取模偏差 | `[ ]` 待修复 |
 | P018 | 内存安全   | `tauri/crates/solosoul-crypto/src/kdf.rs:94-103`；调用点 `solosoul-core/src/export_import.rs:211,326` | `derive_export_key` 返回裸 `[u8;32]` 未以 Zeroizing 包裹，与全库内存卫生纪律不一致 | `[ ]` 待修复 |
 | P019 | 供应链     | `tauri/crates/solosoul-plugin/src/registry.rs:76-88` | 插件注册表 URL 与 minisign 公钥读自环境变量，信任锚弱于 embed registry 的编译期固化 | `[ ]` 待修复 |
@@ -94,8 +94,8 @@
 
 ## 修复进度
 
-- 已完成：15 / 54
-- 当前处理：P016（前端用未定义常量等小项清理）
+- 已完成：16 / 54
+- 当前处理：P017（rand::thread_rng → OsRng 密码学强随机 + PIN 拒绝采样）
 
 ---
 
@@ -212,6 +212,13 @@
 - **位置**：`tauri/src/App/routes.tsx:2-29` 27 个页面全静态 import；`vite.config.ts` 无 `build`/`manualChunks`。
 - **修复**：routes.tsx 全部 27 个页面 import 改为 `React.lazy(() => import(...).then((m) => ({ default: m.XxxPage })))`（vite 自动按页面分包，无需 manualChunks——动态导入即产生独立 chunk，跨页共享依赖由 rollup 自动提升到公共 chunk）；AppRoutes 的 BootstrapPage/LoginPage 同步懒加载；`<Suspense fallback={<LoadingPlaceholder minHeight="100vh" />}>` 承接 chunk 拉取期，纯色占位避免白屏闪烁。路由映射与 AuthGuard 逻辑零变化。
 - **验证**：tsc / eslint 全绿；vitest 82 文件 755 测试全绿（无测试渲染 AppRoutes，不受 lazy 影响）。
+
+### P016 — AddPageButton ESLint warning（已修复）
+
+- **提交**：`b488978c`
+- **位置**：`tauri/src/components/layout/AddPageButton.tsx:14,75`。
+- **修复**：删未使用的 `SAFE_AREA_BOTTOM` 导入（`SAFE_AREA_TOP` 仍在 popover top 计算使用）；`scrollMaxHeight` useMemo 依赖数组补 `isBottom`（函数体内引用 `isBottom` 早退，缺依赖时位置切换可能读到过期 memo，属于真实 stale-closure 隐患）。
+- **验证**：tsc / eslint 全绿；layout 域测试 6 全绿。
 
 ### P016–P054 摘要指引
 
