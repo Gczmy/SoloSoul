@@ -362,55 +362,19 @@ impl MobileSyncManager {
         let peer_callback = self.peer_callback.clone();
         let session_callback = self.session_callback.clone();
 
-        let accept_handle = spawn_blocking(move || loop {
-            if !running.load(Ordering::SeqCst) {
-                break;
-            }
-            match listener.accept() {
-                Ok((stream, addr)) => {
-                    if !running.load(Ordering::SeqCst) {
-                        break;
-                    }
-                    let node_id = node_id.clone();
-                    let account_id = account_id.clone();
-                    let keys = keys.clone();
-                    let vault = vault.clone();
-                    let guard = SessionGuard::new(active_sessions.clone());
-                    let cb = peer_callback.read().ok().and_then(|g| g.clone());
-                    let session_cb = session_callback.read().ok().and_then(|g| g.clone());
-                    spawn_blocking(move || {
-                        let _guard = guard; // 持有直到会话结束
-                        let mut transport = SyncTransport::from_stream(stream);
-                        // 响应方会话成功结束：通知 GUI 推送 sync-completed（与桌面端一致）。
-                        // 未信任/错误会话不通知完成（发起方已自行感知错误）。
-                        if let Ok(outcome) = handle_inbound(
-                            &mut transport,
-                            &node_id,
-                            &account_id,
-                            &keys,
-                            vault,
-                            addr.to_string(),
-                            cb,
-                        ) {
-                            if let Some(cb) = &session_cb {
-                                cb(SessionCompletedInfo {
-                                    peer_node_id: outcome.peer_node_id,
-                                    examined: outcome.result.data.examined,
-                                    applied: outcome.result.data.applied,
-                                    skipped: outcome.result.data.skipped,
-                                    conflicts: outcome.result.data.conflicts.len() as u64,
-                                    // B：响应方发回给发起方的记录条数（完整交换量）。
-                                    outbound_records: outcome.outbound_records,
-                                });
-                            }
-                        }
-                    });
-                }
-                Err(e) => {
-                    tracing::warn!("accept error: {}", e);
-                    std::thread::sleep(Duration::from_millis(100));
-                }
-            }
+        // P045: accept 循环与单连接会话处理拆分为独立函数，消除 8 层嵌套。
+        let accept_handle = spawn_blocking(move || {
+            accept_loop(
+                listener,
+                running,
+                node_id,
+                account_id,
+                keys,
+                vault,
+                active_sessions,
+                peer_callback,
+                session_callback,
+            )
         });
 
         if let Ok(mut handles) = self.worker_handles.lock() {
@@ -495,4 +459,92 @@ impl MobileSyncManager {
     fn forget_peer(&self, peer_node_id: &str) -> Result<(), String> {
         self.vault.delete_peer(peer_node_id)
     }
+}
+/// P045: accept 循环——阻塞接受入站连接，每连接派生 worker 处理会话。
+/// 从 `start()` 拆出，消除 8 层嵌套；单连接处理见 `handle_accepted_connection`。
+#[allow(clippy::too_many_arguments)]
+fn accept_loop(
+    listener: TcpListener,
+    running: Arc<AtomicBool>,
+    node_id: String,
+    account_id: String,
+    keys: NoiseKeys,
+    vault: Arc<VaultStore>,
+    active_sessions: Arc<AtomicUsize>,
+    peer_callback: Arc<RwLock<Option<PeerCallback>>>,
+    session_callback: Arc<RwLock<Option<SessionCompletedCallback>>>,
+) {
+    loop {
+        if !running.load(Ordering::SeqCst) {
+            break;
+        }
+        match listener.accept() {
+            Ok((stream, addr)) => {
+                if !running.load(Ordering::SeqCst) {
+                    break;
+                }
+                handle_accepted_connection(
+                    stream,
+                    addr,
+                    node_id.clone(),
+                    account_id.clone(),
+                    keys.clone(),
+                    vault.clone(),
+                    active_sessions.clone(),
+                    peer_callback.clone(),
+                    session_callback.clone(),
+                );
+            }
+            Err(e) => {
+                tracing::warn!("accept error: {}", e);
+                std::thread::sleep(Duration::from_millis(100));
+            }
+        }
+    }
+}
+
+/// P045: 单连接会话处理——派生 worker 执行 inbound 会话并通知完成。
+/// 从 accept 循环内拆出，消除 6 层嵌套。
+#[allow(clippy::too_many_arguments)]
+fn handle_accepted_connection(
+    stream: std::net::TcpStream,
+    addr: SocketAddr,
+    node_id: String,
+    account_id: String,
+    keys: NoiseKeys,
+    vault: Arc<VaultStore>,
+    active_sessions: Arc<AtomicUsize>,
+    peer_callback: Arc<RwLock<Option<PeerCallback>>>,
+    session_callback: Arc<RwLock<Option<SessionCompletedCallback>>>,
+) {
+    let guard = SessionGuard::new(active_sessions);
+    let cb = peer_callback.read().ok().and_then(|g| g.clone());
+    let session_cb = session_callback.read().ok().and_then(|g| g.clone());
+    spawn_blocking(move || {
+        let _guard = guard; // 持有直到会话结束
+        let mut transport = SyncTransport::from_stream(stream);
+        // 响应方会话成功结束：通知 GUI 推送 sync-completed（与桌面端一致）。
+        // 未信任/错误会话不通知完成（发起方已自行感知错误）。
+        if let Ok(outcome) = handle_inbound(
+            &mut transport,
+            &node_id,
+            &account_id,
+            &keys,
+            vault,
+            addr.to_string(),
+            cb,
+        ) {
+            if let Some(cb) = &session_cb {
+                cb(SessionCompletedInfo {
+                    peer_node_id: outcome.peer_node_id,
+                    examined: outcome.result.data.examined,
+                    applied: outcome.result.data.applied,
+                    skipped: outcome.result.data.skipped,
+                    conflicts: outcome.result.data.conflicts.len() as u64,
+                    // B：响应方发回给发起方的记录条数（完整交换量）。
+                    outbound_records: outcome.outbound_records,
+                });
+            }
+        }
+    });
 }
