@@ -22,10 +22,15 @@ pub mod template_service;
 pub mod vault_file_system;
 pub mod vault_service;
 
+// P024: 媒体模块按 feature 门控（ocr/pdf/watermark），桌面端 + 对应 feature 才编译。
+#[cfg(feature = "ocr")]
 pub mod ocr;
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
+#[cfg(all(feature = "pdf", not(any(target_os = "android", target_os = "ios"))))]
 pub mod pdfium;
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
+#[cfg(all(
+    feature = "watermark",
+    not(any(target_os = "android", target_os = "ios"))
+))]
 pub mod watermark;
 
 /// Crate version (from Cargo.toml at compile time).

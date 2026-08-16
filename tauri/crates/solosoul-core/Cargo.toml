@@ -15,6 +15,17 @@ description = "Shared core logic for SoloSoul GUI and CLI (vault lifecycle, temp
 # 启用方式：solosoul-core 的 consumers 声明 features = ["future-keychain"]。
 future-keychain = []
 
+# P024: 媒体重依赖（OCR / PDFium / 水印）feature 门控——仅真正需要的消费者才编译。
+# - 默认全开（src-tauri 不变，保持全部媒体能力）；
+# - solosoul-sync 声明 `default-features = false`（仅用 vault_service/path_util，
+#   不再拖入 ort/pdfium-render/image 等重依赖栈）；
+# - solosoul-plugin 声明 `default-features = false, features = ["watermark"]`
+#   （仅水印宿主功能，避开 OCR/PDF 模块与 ort/ndarray）。
+default = ["ocr", "pdf", "watermark"]
+ocr = ["dep:ort", "dep:image", "dep:ndarray"]
+pdf = ["dep:pdfium-render"]
+watermark = ["dep:image", "dep:pdfium-render", "dep:ab_glyph", "pdf"]
+
 [dependencies]
 # Workspace crates
 solosoul-crypto = { path = "../solosoul-crypto" }
@@ -49,14 +60,14 @@ sha2 = { workspace = true }
 # 加密导出/导入 ZIP 包
 zip = { version = "2", default-features = false, features = ["deflate"] }
 
-# 桌面端专属依赖：进程锁 / OCR / MRZ / PDFium
+# 桌面端专属依赖：进程锁 / OCR / MRZ / PDFium（P024: 媒体重依赖全部 optional，由 features 门控）
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 fs2 = "0.4.3"
-ort = { workspace = true }
-image = { workspace = true }
-ndarray = { workspace = true }
-ab_glyph = "0.2"
-pdfium-render = "0.9.2"
+ort = { workspace = true, optional = true }
+image = { workspace = true, optional = true }
+ndarray = { workspace = true, optional = true }
+ab_glyph = { version = "0.2", optional = true }
+pdfium-render = { version = "0.9.2", optional = true }
 tempfile.workspace = true
 
 [target.'cfg(target_os = "macos")'.dependencies]

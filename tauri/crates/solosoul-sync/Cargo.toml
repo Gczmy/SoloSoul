@@ -10,7 +10,8 @@ repository.workspace = true
 uuid = { workspace = true }
 solosoul-vault = { path = "../solosoul-vault" }
 # 需要 solosoul_core::VaultService 复用 GUI + CLI 账户生命周期逻辑
-solosoul-core = { path = "../solosoul-core" }
+# P024: 仅用 vault_service/path_util，关闭默认媒体 features（不再拖入 ort/pdfium-render/image 等重依赖）
+solosoul-core = { path = "../solosoul-core", default-features = false }
 
 tokio = { workspace = true }
 serde = { workspace = true }

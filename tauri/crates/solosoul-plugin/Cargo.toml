@@ -14,7 +14,8 @@ path = "src/mod.rs"
 [dependencies]
 # Internal
 solosoul-vault = { path = "../solosoul-vault" }
-solosoul-core = { path = "../solosoul-core" }
+# P024: 仅水印宿主功能需要 core 的 watermark 模块，关闭 OCR/PDF 默认 features（避开 ort/ndarray 重依赖）
+solosoul-core = { path = "../solosoul-core", default-features = false, features = ["watermark"] }
 
 # HTTP
 reqwest = { workspace = true }
