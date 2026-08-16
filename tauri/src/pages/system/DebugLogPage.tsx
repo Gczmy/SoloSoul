@@ -5,6 +5,7 @@ import { AppShell } from '@/components/layout/AppShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
+import { Button } from '@/components/ui/Button';
 
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import type { AuditLogEntry } from '@/types/auditLog';
@@ -15,10 +16,15 @@ import { Bug, Download, RefreshCw } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/constants';
 import { isUriPath, copyStagedFileToDest } from '@/lib/mobileFileTransfer';
 
+// P053: 单次渲染上限（「加载更多」步进量），避免 200 条多行日志全量挂载。
+const LOG_PAGE_SIZE = 50;
+
 export function DebugLogPage() {
   const navigate = useNavigate();
   const [logs, setLogs] = useState<AuditLogEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  // P053: 分页「加载更多」
+  const [visibleLimit, setVisibleLimit] = useState(LOG_PAGE_SIZE);
   const { t } = useTranslation(['settings', 'common']);
   const { onError, onSuccess } = useToastError();
 
@@ -138,7 +144,7 @@ export function DebugLogPage() {
                 lineHeight: 1.6,
               }}
             >
-              {logs.map((log) => (
+              {logs.slice(0, visibleLimit).map((log) => (
                 <div
                   key={log.id}
                   style={{
@@ -193,6 +199,16 @@ export function DebugLogPage() {
                   </span>
                 </div>
               ))}
+              {logs.length > visibleLimit && (
+                <Button
+                  variant="tertiary"
+                  size="sm"
+                  onClick={() => setVisibleLimit((n) => n + LOG_PAGE_SIZE)}
+                  style={{ marginTop: 4 }}
+                >
+                  {t('load_more', { defaultValue: '加载更多' })}
+                </Button>
+              )}
             </div>
           )}
         </Card>
