@@ -46,7 +46,7 @@
 | P012 | 结构       | `tauri/crates/solosoul-vault/src/storage/objects.rs:393` | `list_objects` 147 行，查询/解密/组装混杂，对象列表核心路径 | `[x]` 已修复（P012） |
 | P013 | 结构       | `tauri/crates/solosoul-vault/src/storage/sync_changes.rs:283` | `query_object_changes` 146 行，SQL 拼装与行解密混在一处 | `[x]` 已修复（P013） |
 | P014 | 结构       | `tauri/src-tauri/src/commands/export_import/export_docx/fields.rs:32` | `field_value_to_text` 嵌套 7 层（match 套 if-let 套循环） | `[x]` 已修复（P014） |
-| P015 | 性能       | `tauri/src/App/routes.tsx:2-29`、`tauri/vite.config.ts` | 27 个页面全部 eager import，无 `React.lazy`/`manualChunks`，移动端首屏需解析全部 bundle | `[ ]` 待修复 |
+| P015 | 性能       | `tauri/src/App/routes.tsx:2-29`、`tauri/vite.config.ts` | 27 个页面全部 eager import，无 `React.lazy`/`manualChunks`，移动端首屏需解析全部 bundle | `[x]` 已修复（P015） |
 
 ### P2（轻微，可排入 backlog）
 
@@ -94,8 +94,8 @@
 
 ## 修复进度
 
-- 已完成：14 / 54
-- 当前处理：P015（前端 27 页面 eager import → React.lazy 路由级懒加载）
+- 已完成：15 / 54
+- 当前处理：P016（前端用未定义常量等小项清理）
 
 ---
 
@@ -206,11 +206,12 @@
 - **修复**：Array 分支抽为 `field_array_to_text` 助手——动态组（全部元素为对象）按 `名称：值` 逐行、普通数组逐元素递归文本化逗号连接；主函数 50→14 行变为纯 match 分发；语义逐字节等价（动态组判定、name 非空过滤、递归调用原样迁移）。
 - **验证**：cargo check / clippy `-D warnings` / fmt 全绿。注：src-tauri 测试二进制在本机以 `0xc0000139`（STATUS_ENTRYPOINT_NOT_FOUND）启动失败——经全量导入符号校验（689 个名字导入 0 缺失、无 ordinal、无外部 DLL 引用）确认与本次零导入变更无关，系本机工具链/安全策略环境问题（详见轮次说明）。
 
-### P015 — 前端路由无代码分割
+### P015 — 前端路由无代码分割（已修复）
 
-- **位置**：`tauri/src/App/routes.tsx:2-29` 27 个页面全静态 import；`vite.config.ts`（28 行）无 `build`/`manualChunks`。
-- **影响**：首屏/移动端启动需解析全部页面代码（含 LlmConfigPage 466 行、DataManagementPage 491 行等重组件与 react-markdown/rehype-highlight 重依赖）。
-- **修复**：非首屏路由改 `React.lazy` + `Suspense`；vite `manualChunks` 拆重依赖。建议先 `vite build` 看主 chunk 体积再定拆分力度。
+- **提交**：`61a644a0`
+- **位置**：`tauri/src/App/routes.tsx:2-29` 27 个页面全静态 import；`vite.config.ts` 无 `build`/`manualChunks`。
+- **修复**：routes.tsx 全部 27 个页面 import 改为 `React.lazy(() => import(...).then((m) => ({ default: m.XxxPage })))`（vite 自动按页面分包，无需 manualChunks——动态导入即产生独立 chunk，跨页共享依赖由 rollup 自动提升到公共 chunk）；AppRoutes 的 BootstrapPage/LoginPage 同步懒加载；`<Suspense fallback={<LoadingPlaceholder minHeight="100vh" />}>` 承接 chunk 拉取期，纯色占位避免白屏闪烁。路由映射与 AuthGuard 逻辑零变化。
+- **验证**：tsc / eslint 全绿；vitest 82 文件 755 测试全绿（无测试渲染 AppRoutes，不受 lazy 影响）。
 
 ### P016–P054 摘要指引
 
