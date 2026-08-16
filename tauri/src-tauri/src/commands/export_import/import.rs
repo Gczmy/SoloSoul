@@ -727,7 +727,7 @@ fn decrypt_package(
     file_path: &str,
     password: &str,
     temp_base: &std::path::Path,
-) -> Result<(ManifestData, serde_json::Value, [u8; 32]), String> {
+) -> Result<(ManifestData, serde_json::Value, Zeroizing<[u8; 32]>), String> {
     let manifest = read_manifest(file_path)?;
     let salt = hex::decode(&manifest.salt_hex).map_err(|e| format!("Invalid salt: {}", e))?;
     // P202: 按 manifest 声明参数派生（旧格式包无 kdf 字段回退 balanced 兼容）。

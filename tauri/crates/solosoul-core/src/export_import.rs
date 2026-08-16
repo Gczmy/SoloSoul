@@ -25,6 +25,7 @@ use zip::{ZipArchive, ZipWriter};
 
 use solosoul_crypto::kdf::KdfConfig;
 use solosoul_vault::{ObjectRecord, UserTemplate, VaultStore};
+use zeroize::Zeroizing;
 
 // ── Constants ────────────────────────────────────────────
 
@@ -577,18 +578,19 @@ pub fn import_preview(path: &Path) -> Result<ImportPreviewData, ExportError> {
 /// 导出端（P202）：与主密钥派生一致走 `KdfConfig::from_env()`——release 为
 /// OWASP 推荐 production（64MiB/3iter），debug 为 development（测试快速）。
 /// 实际参数随导出写入 manifest 的 `kdf` 字段，导入端按声明参数派生。
-fn derive_export_key(password: &str, salt: &[u8]) -> Result<[u8; 32], ExportError> {
+fn derive_export_key(password: &str, salt: &[u8]) -> Result<Zeroizing<[u8; 32]>, ExportError> {
     use solosoul_crypto::kdf::KdfConfig;
     derive_export_key_cfg(password, salt, &KdfConfig::from_env())
 }
 
 /// 以指定 KDF 参数派生导出密钥（导入端按 manifest 声明参数调用）。
 /// P024: 薄包装 `solosoul-crypto::kdf::derive_export_key` 单一实现，仅映射错误类型。
+/// P018: 返回 `Zeroizing<[u8;32]>`，导出密钥不再以裸数组残留在内存。
 fn derive_export_key_cfg(
     password: &str,
     salt: &[u8],
     config: &KdfConfig,
-) -> Result<[u8; 32], ExportError> {
+) -> Result<Zeroizing<[u8; 32]>, ExportError> {
     solosoul_crypto::kdf::derive_export_key(password, salt, config)
         .map_err(|e| ExportError::Msg(format!("密钥派生失败: {}", e)))
 }

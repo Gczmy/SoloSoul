@@ -90,14 +90,15 @@ pub fn derive_key(
 }
 
 /// 派生固定 32 字节导出密钥（P024：导出/导入两端薄包装的单一实现）。
-/// 与 `derive_key` 等价，仅固定输出长度为 32 字节并返回数组而非 `Zeroizing<Vec<u8>>`。
+/// P018: 与 `derive_key` 等价，固定输出 32 字节，并同样以 `Zeroizing` 包裹——
+/// 密钥不再以裸数组残留在栈上，Drop 时自动清零。
 pub fn derive_export_key(
     password: &str,
     salt: &[u8],
     config: &KdfConfig,
-) -> Result<[u8; 32], KdfError> {
+) -> Result<Zeroizing<[u8; 32]>, KdfError> {
     let key_vec = derive_key(password, salt, config)?;
-    let mut key = [0u8; 32];
+    let mut key = Zeroizing::new([0u8; 32]);
     key.copy_from_slice(&key_vec);
     Ok(key)
 }

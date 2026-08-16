@@ -17,6 +17,7 @@ use std::io::{Read, Write};
 use tauri::Manager;
 use tauri::State;
 use uuid::Uuid;
+use zeroize::Zeroizing;
 use zip::write::SimpleFileOptions;
 use zip::ZipArchive;
 use zip::ZipWriter;
@@ -226,7 +227,10 @@ pub struct ImportResult {
 
 // ── Helpers ────────────────────────────────────────────────────
 
-pub(crate) fn derive_export_key(password: &str, salt: &[u8]) -> Result<[u8; 32], String> {
+pub(crate) fn derive_export_key(
+    password: &str,
+    salt: &[u8],
+) -> Result<Zeroizing<[u8; 32]>, String> {
     use solosoul_crypto::kdf::KdfConfig;
     derive_export_key_cfg(password, salt, &KdfConfig::from_env())
 }
@@ -234,11 +238,12 @@ pub(crate) fn derive_export_key(password: &str, salt: &[u8]) -> Result<[u8; 32],
 /// 以指定 KDF 参数派生导出密钥（P202：导入端按 manifest 声明的 `kdf` 字段调用；
 /// 导出端默认走 `from_env()`——release 为 production/OWASP，debug 为 development）。
 /// P024: 薄包装 `solosoul-crypto::kdf::derive_export_key` 单一实现，仅映射错误类型。
+/// P018: 返回 `Zeroizing<[u8;32]>`，导出密钥不再以裸数组残留在内存。
 pub(crate) fn derive_export_key_cfg(
     password: &str,
     salt: &[u8],
     config: &solosoul_crypto::kdf::KdfConfig,
-) -> Result<[u8; 32], String> {
+) -> Result<Zeroizing<[u8; 32]>, String> {
     solosoul_crypto::kdf::derive_export_key(password, salt, config).map_err(|e| e.to_string())
 }
 
