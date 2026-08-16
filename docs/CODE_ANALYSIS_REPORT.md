@@ -44,7 +44,7 @@
 | P010 | 重复代码   | `tauri/src-tauri/src/commands/export_import/helpers.rs:24-88` ↔ `tauri/crates/solosoul-core/src/export_import.rs:885-942` 等 | `build_package_ids`/`resolve_*_references`/`derive_export_key` 等函数 GUI 与 core 逐字重复（相似度 ≈100%） | `[x]` 已修复（P010） |
 | P011 | 性能       | `tauri/crates/solosoul-vault/src/storage/sync_changes.rs:136,495`、`storage/conversations.rs:204` | 同步热路径逐行 `record_hlc_or_fallback`（每行一次 SELECT + 加锁），objects/trash 已用 LEFT JOIN 批量，同文件两种模式并存 | `[x]` 已修复（P011） |
 | P012 | 结构       | `tauri/crates/solosoul-vault/src/storage/objects.rs:393` | `list_objects` 147 行，查询/解密/组装混杂，对象列表核心路径 | `[x]` 已修复（P012） |
-| P013 | 结构       | `tauri/crates/solosoul-vault/src/storage/sync_changes.rs:283` | `query_object_changes` 146 行，SQL 拼装与行解密混在一处 | `[ ]` 待修复 |
+| P013 | 结构       | `tauri/crates/solosoul-vault/src/storage/sync_changes.rs:283` | `query_object_changes` 146 行，SQL 拼装与行解密混在一处 | `[x]` 已修复（P013） |
 | P014 | 结构       | `tauri/src-tauri/src/commands/export_import/export_docx/fields.rs:32` | `field_value_to_text` 嵌套 7 层（match 套 if-let 套循环） | `[ ]` 待修复 |
 | P015 | 性能       | `tauri/src/App/routes.tsx:2-29`、`tauri/vite.config.ts` | 27 个页面全部 eager import，无 `React.lazy`/`manualChunks`，移动端首屏需解析全部 bundle | `[ ]` 待修复 |
 
@@ -94,8 +94,8 @@
 
 ## 修复进度
 
-- 已完成：12 / 54
-- 当前处理：P013（query_object_changes 146 行拆分）
+- 已完成：13 / 54
+- 当前处理：P014（field_value_to_text 嵌套 7 层拆分）
 
 ---
 
@@ -192,9 +192,12 @@
 - **修复**：查询/解密/组装三段分离——`build_list_objects_sql`（47 行，WHERE 条件拼接/参数占位符索引/排序尾缀）+ `map_object_list_row`（85 行，properties/property_labels 解密、tags 解析、has_attachments/敏感度推导组装 ObjectSummary），`list_objects` 主体 147→56 行变为编排（锁 → SQL → query_map 映射 → 内存 keyword 过滤）；语义逐字节等价（占位符索引、错误映射、列索引原样迁移，keyword 过滤仍走 json_contains_ignore_case）。
 - **验证**：solosoul-vault objects 域 11 测试全绿；clippy `-D warnings` exit 0；fmt 通过。
 
-### P013 — 过长核心函数
+### P013 — 过长核心函数（已修复）
 
-- `storage/sync_changes.rs:283` `query_object_changes`（146 行）：SQL 拼装与行解密分离。
+- **提交**：`53152c33`
+- **位置**：`solosoul-vault/src/storage/sync_changes.rs:292`（`query_object_changes` 146 行）。
+- **修复**：SQL 拼装与行解密分离——`object_changes_sql`（40 行：o. 前缀列拼接、keyset 分页游标三元组过滤、`usize::MAX → LIMIT -1` 语义）+ `map_object_changes_row`（83 行：properties/property_labels 解密、children/tags JSON 解析、LEFT JOIN HLC 有则用 HLC 否则回退 `updated_at`），`query_object_changes` 主体 146→44 行变为编排（锁 → prepare_cached → query_map → collect）；SQL 文本/参数索引/错误映射逐字节等价。
+- **验证**：solosoul-vault `cargo test --lib` 163 全绿；clippy `-D warnings` exit 0；fmt 通过。
 
 ### P014 — field_value_to_text 嵌套 7 层
 
