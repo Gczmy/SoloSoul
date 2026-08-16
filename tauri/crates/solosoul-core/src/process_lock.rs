@@ -6,7 +6,7 @@
 //! 移动端（Android/iOS）通常为单实例运行，暂不提供跨进程锁；通过应用级单实例
 //!（Android `singleTask` launchMode）避免并发写入。
 
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 use fs2::FileExt;
@@ -18,7 +18,6 @@ pub struct ProcessLock {
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     #[allow(dead_code)]
     file: File,
-    path: PathBuf,
 }
 
 impl ProcessLock {
@@ -40,23 +39,16 @@ impl ProcessLock {
             file.try_lock_exclusive()
                 .map_err(|_| "Vault 正被其他进程使用，请关闭后再试".to_string())?;
 
-            Ok(Self {
-                file,
-                path: lock_path,
-            })
+            Ok(Self { file })
         }
 
         #[cfg(any(target_os = "android", target_os = "ios"))]
         {
             // 移动端单实例由 Android manifest / iOS 生命周期保证，锁仅作占位。
-            Ok(Self { path: lock_path })
+            Ok(Self {})
         }
     }
 
-    /// 返回锁文件路径。
-    pub fn path(&self) -> &Path {
-        &self.path
-    }
 }
 
 #[cfg(test)]
@@ -70,8 +62,7 @@ mod tests {
         let base = dir.path().join(".solosoul");
 
         {
-            let lock = ProcessLock::acquire(&base).unwrap();
-            assert!(lock.path().exists());
+            let _lock = ProcessLock::acquire(&base).unwrap();
 
             // 同一线程/进程再次获取应失败（仅桌面端）
             #[cfg(not(any(target_os = "android", target_os = "ios")))]
