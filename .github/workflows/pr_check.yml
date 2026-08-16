@@ -75,6 +75,13 @@ jobs:
           cd tauri
           cargo clippy -- -D warnings
 
+      # P041: future-keychain 门控模块（macos_keychain.rs）默认脱离编译面，
+      # 在此加 feature 编译检查防腐化——长期不编译会腐化（接口漂移/不可编译）。
+      - name: Check future-keychain feature compiles (macOS)
+        run: |
+          cd tauri
+          cargo check -p solosoul-core --features future-keychain
+
       - name: Run Rust Tests
         run: |
           cd tauri

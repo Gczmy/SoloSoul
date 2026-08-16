@@ -189,6 +189,11 @@ jobs:
       - name: Install create-dmg (for DMG bundle)
         run: brew install create-dmg
 
+      # P041: future-keychain 门控模块（macos_keychain.rs）默认脱离编译面，
+      # 在此加 feature 编译检查防腐化（对齐 pr_check.yml rust-check 任务）。
+      - name: Check future-keychain feature compiles (macOS)
+        run: cargo check -p solosoul-core --features future-keychain
+
       - name: Build Tauri app
         run: npm run tauri build
 
