@@ -27,7 +27,18 @@ function loadSyncHistory(): SyncResult[] {
     if (!raw) return [];
     const parsed: unknown = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
-    return parsed.slice(0, SYNC_HISTORY_MAX) as SyncResult[];
+    // P028: 容量自愈——读取即按上限截断。早期版本若已写入超过 SYNC_HISTORY_MAX
+    // 条（当时无清理逻辑），这里截断后写回，保证 localStorage 不再残留超限旧数据
+    // （仅 slice 不写回会留下永久垃圾，随重启反复增长；写回失败静默降级为内存态）。
+    const trimmed = parsed.slice(0, SYNC_HISTORY_MAX) as SyncResult[];
+    if (trimmed.length !== parsed.length) {
+      try {
+        localStorage.setItem(SYNC_HISTORY_KEY, JSON.stringify(trimmed));
+      } catch {
+        // 存储不可用（隐私模式/配额）时忽略
+      }
+    }
+    return trimmed;
   } catch {
     return [];
   }

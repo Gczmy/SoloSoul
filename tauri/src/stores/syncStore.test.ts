@@ -528,3 +528,68 @@ describe('syncStore activity stamping (timestamp + peer info + failure record)',
     expect(unlisten).toBe(mockUnlisten);
   });
 });
+
+describe('syncStore history self-healing truncation (P028)', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    mockInvoke.mockReset();
+    mockUnlisten.mockClear();
+  });
+
+  it('truncates over-limit persisted history on store load and writes back', async () => {
+    // 模拟旧版本（当时无清理逻辑）写入的 15 条超限历史。历史数组头部为最新
+    // （pushSyncHistory 前插），故 15 条按 examined 14→0 递减排列。新版本在
+    // store 创建时 loadSyncHistory 读取即按 SYNC_HISTORY_MAX(10) 截断并写回，
+    // 避免 localStorage 残留永久垃圾（仅 slice 不写回会在每次重启后重复加载
+    // 同样的超限旧数据）。
+    const oversized = Array.from({ length: 15 }, (_, i) => ({
+      summary: `examined=${14 - i}`,
+      examined: 14 - i,
+      applied: 0,
+      skipped: 0,
+      conflicts: [],
+      per_table: [],
+      at: 1_700_000_000_000 + (14 - i),
+    }));
+    localStorage.setItem('solosoul.syncHistory.v1', JSON.stringify(oversized));
+
+    // 重新加载模块触发 store 创建（recentResults 初始值来自 loadSyncHistory）
+    vi.resetModules();
+    const { useSyncStore: reloadedStore } = await import('./syncStore');
+
+    // 内存态截断为上限
+    expect(reloadedStore.getState().recentResults).toHaveLength(10);
+    // 写回后 localStorage 同步截断（不再残留超限数据）
+    const persisted: unknown = JSON.parse(
+      localStorage.getItem('solosoul.syncHistory.v1') ?? 'null',
+    );
+    expect(Array.isArray(persisted)).toBe(true);
+    expect((persisted as unknown[]).length).toBe(10);
+    // 保留最新前 10 条（数组头部为最新）
+    expect((persisted as Array<{ examined: number }>)[0].examined).toBe(14);
+    expect((persisted as Array<{ examined: number }>)[9].examined).toBe(5);
+  });
+
+  it('keeps within-limit persisted history untouched', async () => {
+    const within = Array.from({ length: 3 }, (_, i) => ({
+      summary: `examined=${i}`,
+      examined: i,
+      applied: 0,
+      skipped: 0,
+      conflicts: [],
+      per_table: [],
+      at: 1_700_000_000_000 + i,
+    }));
+    localStorage.setItem('solosoul.syncHistory.v1', JSON.stringify(within));
+
+    vi.resetModules();
+    const { useSyncStore: reloadedStore } = await import('./syncStore');
+
+    expect(reloadedStore.getState().recentResults).toHaveLength(3);
+    // 未超限不触发写回（值与原写入一致，仅需无超限残留）
+    const persisted: unknown = JSON.parse(
+      localStorage.getItem('solosoul.syncHistory.v1') ?? 'null',
+    );
+    expect((persisted as unknown[]).length).toBe(3);
+  });
+});
