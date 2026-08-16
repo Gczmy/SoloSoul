@@ -332,33 +332,16 @@ pub async fn recovery_restore_from_host(
     std::fs::create_dir_all(&dest_dir).map_err(|e| e.to_string())?;
 
     // 阶段 1：从主机下载恢复包（0-40，下载进度按字节数换算）。
-    let app_for_download = app.clone();
-    let result = tokio::task::spawn_blocking(move || {
-        recover_from_host(
-            &host_addr,
-            &pin,
-            &dest_dir,
-            fingerprint.as_deref(),
-            nonce.as_deref(),
-            Some(Box::new(move |pct: u8| {
-                let _ = app_for_download.emit(
-                    "recovery-progress",
-                    serde_json::json!({
-                        "phase": "download",
-                        "percent": (u16::from(pct) * 40 / 100) as u8,
-                    }),
-                );
-            })),
-        )
-    })
-    .await
-    .map_err(|e| format!("Recovery task failed: {}", e))?;
-    let result = result?;
-
-    let account_id = result.account_id;
-    let account_name = result.account_name;
-    let file_path = result.downloaded_path.to_string_lossy().to_string();
-    let recovery_password = result.recovery_password;
+    let (account_id, account_name, downloaded_path, recovery_password) = download_recovery_package(
+        &app,
+        &host_addr,
+        &pin,
+        &dest_dir,
+        fingerprint.as_deref(),
+        nonce.as_deref(),
+    )
+    .await?;
+    let file_path = downloaded_path.to_string_lossy().to_string();
 
     // 阶段 2：使用主机的 account_id 和 account_name 创建本地账户。
     // 恢复场景允许同名账户共存（身份是 account_id）；
@@ -368,16 +351,14 @@ pub async fn recovery_restore_from_host(
             .vault_service
             .read()
             .map_err(|_| "Vault service lock poisoned".to_string())?;
-        if overwrite.unwrap_or(false) && svc.has_account(&account_id) {
-            emit_progress("overwrite", 45);
-            svc.delete_account(&account_id)?;
-        }
-        emit_progress("create", 50);
-        svc.create_account_with_id(
+        create_recovery_account(
+            &svc,
             &account_id,
             &account_name,
             &master_password,
             password_hint.as_deref(),
+            overwrite,
+            &emit_progress,
         )?;
     }
 
@@ -435,4 +416,67 @@ pub async fn recovery_restore_from_host(
         account_id,
         account_name,
     })
+}
+/// 阶段 1：从主机下载恢复包（0-40 进度按字节数换算）。
+async fn download_recovery_package(
+    app: &tauri::AppHandle,
+    host_addr: &str,
+    pin: &str,
+    dest_dir: &std::path::Path,
+    fingerprint: Option<&str>,
+    nonce: Option<&str>,
+) -> Result<(String, String, std::path::PathBuf, String), String> {
+    let app_for_download = app.clone();
+    let host_addr = host_addr.to_string();
+    let pin = pin.to_string();
+    let dest_dir = dest_dir.to_path_buf();
+    let fingerprint = fingerprint.map(|s| s.to_string());
+    let nonce = nonce.map(|s| s.to_string());
+    let result = tokio::task::spawn_blocking(move || {
+        recover_from_host(
+            &host_addr,
+            &pin,
+            &dest_dir,
+            fingerprint.as_deref(),
+            nonce.as_deref(),
+            Some(Box::new(move |pct: u8| {
+                let _ = app_for_download.emit(
+                    "recovery-progress",
+                    serde_json::json!({
+                        "phase": "download",
+                        "percent": (u16::from(pct) * 40 / 100) as u8,
+                    }),
+                );
+            })),
+        )
+    })
+    .await
+    .map_err(|e| format!("Recovery task failed: {}", e))?;
+    let result = result?;
+    Ok((
+        result.account_id,
+        result.account_name,
+        result.downloaded_path,
+        result.recovery_password,
+    ))
+}
+
+/// 阶段 2：使用主机的 account_id/account_name 创建本地账户。
+/// 覆盖模式下本机已存在相同 account_id 时先删除再创建（不可逆，前端已二次确认）。
+fn create_recovery_account(
+    svc: &solosoul_core::vault_service::VaultService,
+    account_id: &str,
+    account_name: &str,
+    master_password: &str,
+    password_hint: Option<&str>,
+    overwrite: Option<bool>,
+    emit_progress: &dyn Fn(&'static str, u8),
+) -> Result<(), String> {
+    if overwrite.unwrap_or(false) && svc.has_account(account_id) {
+        emit_progress("overwrite", 45);
+        svc.delete_account(account_id)?;
+    }
+    emit_progress("create", 50);
+    svc.create_account_with_id(account_id, account_name, master_password, password_hint)?;
+    Ok(())
 }
