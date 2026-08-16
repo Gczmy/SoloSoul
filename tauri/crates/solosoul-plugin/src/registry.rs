@@ -12,6 +12,15 @@ use std::time::Duration;
 /// 默认远程注册表 URL
 const DEFAULT_REGISTRY_URL: &str = "https://plugins.solosoul.app/registry.json";
 
+/// P019: 编译期固化的插件注册表 minisign 公钥（base64：2 字节算法前缀 + 8 字节 key_id +
+/// 32 字节 Ed25519 公钥），对齐 `embed_model.rs:14` 的 `EMBED_REGISTRY_PUBKEY_B64` 模式。
+///
+/// 公钥来源优先级：`SOLOSOUL_REGISTRY_PUBKEY` 环境变量（开发/测试覆盖）> 此编译期常量。
+/// 当前为 `None`——生产公钥由维护者离线保管，发布时随代码填入（同 embed 注册表 2026-08-03
+/// 的固化流程）；填入后 release 构建即获得不受运行环境影响的编译期信任锚，不再依赖部署方
+/// 配置环境变量，未配置时也不再静默跳过远程更新。
+const PLUGIN_REGISTRY_PUBKEY_B64: Option<&str> = None;
+
 /// 注册表文件顶层结构
 #[derive(Debug, Deserialize)]
 struct RegistryFile {
@@ -67,19 +76,29 @@ impl PluginRegistry {
 
     /// 从远程 URL 拉取并更新本地注册表
     ///
-    /// 1. 读取环境变量 `SOLOSOUL_REGISTRY_URL`（默认 `DEFAULT_REGISTRY_URL`）
-    /// 2. 读取环境变量 `SOLOSOUL_REGISTRY_PUBKEY`（必需）
+    /// 1. 确定注册表 URL（release 固定 `DEFAULT_REGISTRY_URL`；仅 debug 允许环境变量覆盖）
+    /// 2. 确定 minisign 公钥（环境变量 > 编译期常量 `PLUGIN_REGISTRY_PUBKEY_B64`）
     /// 3. 下载注册表文件与对应的 `.minisig` 签名
     /// 4. 使用 Minisign 验证签名
     /// 5. 校验 JSON 结构后原子写入缓存路径（数据目录，可写）
     pub async fn update_from_remote(&self) -> Result<(), PluginError> {
+        // P019: release 构建固定使用编译期 URL（防止运行环境重定向注册表端点）；
+        // debug（含测试）保留 `SOLOSOUL_REGISTRY_URL` 覆盖能力用于本地调试/集成测试。
+        #[cfg(debug_assertions)]
         let url = std::env::var("SOLOSOUL_REGISTRY_URL")
             .unwrap_or_else(|_| DEFAULT_REGISTRY_URL.to_string());
-        let pubkey_b64 = match std::env::var("SOLOSOUL_REGISTRY_PUBKEY") {
-            Ok(k) => k,
-            Err(_) => {
+        #[cfg(not(debug_assertions))]
+        let url = DEFAULT_REGISTRY_URL.to_string();
+
+        // P019: 公钥来源优先级：环境变量（dev/测试覆盖）> 编译期常量（生产信任锚）。
+        let pubkey_b64 = std::env::var("SOLOSOUL_REGISTRY_PUBKEY")
+            .ok()
+            .or_else(|| PLUGIN_REGISTRY_PUBKEY_B64.map(str::to_string));
+        let pubkey_b64 = match pubkey_b64 {
+            Some(k) => k,
+            None => {
                 tracing::warn!(
-                    "SOLOSOUL_REGISTRY_PUBKEY 未配置，跳过注册表远程更新，使用本地 bundled 注册表"
+                    "插件注册表公钥未配置（env 与编译期常量均为空），跳过注册表远程更新，使用本地 bundled 注册表"
                 );
                 return Ok(());
             }
