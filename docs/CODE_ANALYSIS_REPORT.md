@@ -73,7 +73,7 @@
 | P034 | 架构       | `commands/update.rs` 1902、`commands/ocr.rs` 1517、`migration.rs` 1536、`ocr/mrz.rs` 1423、`export_import/import.rs` 1225、`commands/biometric.rs` 1004、`commands/llm/rag.rs` 972 等 | 800+ 行文件群，与 P008/P025 同批纳入拆分 backlog | `[x]` 已处理（P034：backlog 挂账登记） |
 | P035 | 死代码     | `tauri/crates/solosoul-vault/src/storage/sync_apply.rs:140` | `save_sync_conflict`（单条版）无调用方，已被 batch 版取代 | `[x]` 已修复（P035） |
 | P036 | 死代码     | `tauri/crates/solosoul-core/src/biometric/mod.rs:370` | `BiometricService::test()` 无调用方（命令层直接调 `trigger_system_biometric`） | `[x]` 已修复（P036） |
-| P037 | 死代码     | `tauri/crates/solosoul-plugin/src/registry.rs:30-49` | `PluginRegistry::new()`/`Default`/`new_with_resource_dir()` 三个构造器无调用方 | `[ ]` 待修复 |
+| P037 | 死代码     | `tauri/crates/solosoul-plugin/src/registry.rs:30-49` | `PluginRegistry::new()`/`Default`/`new_with_resource_dir()` 三个构造器无调用方 | `[x]` 已修复（P037） |
 | P038 | 死代码     | `tauri/src-tauri/src/commands/object/trash.rs:149` | 命令 `trash_permanent_delete`（单条版）已注册但前端无 invoke（存疑：可能为 API 对齐保留） | `[ ]` 待修复 |
 | P039 | 死代码     | `tauri/crates/solosoul-core/src/process_lock.rs:19` | `ProcessLock` 的 `path` 字段从不读取（`file` 字段靠持有实现 RAII 属合理） | `[ ]` 待修复 |
 | P040 | 死代码     | `tauri/crates/solosoul-core/src/llm/service.rs:185` | 全库唯一遗留 `TODO(S003)`：会话存储迁移清理，需确认门槛版本是否已过 | `[ ]` 待修复 |
@@ -327,6 +327,13 @@
 - **位置**：`solosoul-core/src/biometric/mod.rs`。
 - **修复**：`BiometricService::test()`（自测方法，7 行）无调用方——命令层直接调 `trigger_system_biometric`，删除；`trigger_system_biometric` 本身仍被 verify/disable 路径使用故保留。
 - **验证**：纯死代码删除零行为变化；core check + clippy `-D warnings` + fmt 全绿。
+
+### P037 — 死代码：PluginRegistry 三个无用构造器（已修复：删除）
+
+- **提交**：`f9f4f17f`
+- **位置**：`solosoul-plugin/src/registry.rs`。
+- **修复**：`PluginRegistry::new()`/`impl Default`/`new_with_resource_dir()` 三个构造器无调用方（manager.rs 只用 `new_with_dirs`），删除；同步移除因此未使用的 `PluginStore` import。
+- **验证**：纯死代码删除零行为变化；plugin check + clippy `-D warnings` + fmt 全绿。
 
 ### P026 — LLM 客户端 blocking/async 双份实现（已修复：共享纯函数收敛）
 
