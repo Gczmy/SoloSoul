@@ -1230,6 +1230,37 @@ fn apply_sync_changes(
         tpl.properties.iter().map(|p| (p.id.clone(), p)).collect();
 
     // 1. 处理模板中已删除的字段：移入 __deprecatedFields
+    apply_deprecated_fields(&mut props_obj, &current_fields, result);
+
+    // 2. 处理新增与更新字段
+    apply_updated_fields(&mut props_obj, &current_fields, &tpl_map);
+    // 3. 重新生成 property_labels
+    rebuild_property_labels(record, tpl);
+
+    // 4. 将更新后的 props_obj 写回 record.properties
+    if let Some(obj) = record.properties.as_object_mut() {
+        for (k, v) in props_obj {
+            obj.insert(k, v);
+        }
+    }
+
+    // 5. 更新 template_hash
+    record.template_hash = Some(result.template_hash.clone());
+    if let Some(obj) = record.properties.as_object_mut() {
+        obj.insert(
+            "__templateHash".to_string(),
+            serde_json::Value::String(result.template_hash.clone()),
+        );
+    }
+}
+
+/// 1. 处理模板中已删除的字段：移入 __deprecatedFields。
+fn apply_deprecated_fields(
+    props_obj: &mut serde_json::Map<String, serde_json::Value>,
+    current_fields: &serde_json::Map<String, serde_json::Value>,
+    result: &TemplateSyncResult,
+) {
+    // 1. 处理模板中已删除的字段：移入 __deprecatedFields
     for dep in &result.fields_deprecated {
         if let Some(old_def) = current_fields.get(&dep.id) {
             let old_value = props_obj
@@ -1237,7 +1268,7 @@ fn apply_sync_changes(
                 .cloned()
                 .unwrap_or(serde_json::Value::Null);
             deprecate_field(
-                &mut props_obj,
+                props_obj,
                 &dep.id,
                 old_def.as_object().unwrap_or(&serde_json::Map::new()),
                 old_value,
@@ -1246,9 +1277,16 @@ fn apply_sync_changes(
             props_obj.remove(&dep.id);
         }
     }
+}
 
+/// 2. 处理新增与更新字段：类型变化安全转换/归档、同类型补默认值、新增字段写默认、更新 __fields 定义。
+fn apply_updated_fields(
+    props_obj: &mut serde_json::Map<String, serde_json::Value>,
+    current_fields: &serde_json::Map<String, serde_json::Value>,
+    tpl_map: &std::collections::HashMap<String, &solosoul_vault::TemplateProperty>,
+) {
     // 2. 处理新增与更新字段
-    for (field_id, prop) in &tpl_map {
+    for (field_id, prop) in tpl_map {
         let old_def = current_fields.get(field_id);
         let old_type = old_def
             .and_then(|d| d.get("type"))
@@ -1272,7 +1310,7 @@ fn apply_sync_changes(
                 } else {
                     // 不安全：归档旧字段并设置新默认值
                     deprecate_field(
-                        &mut props_obj,
+                        props_obj,
                         field_id,
                         old.as_object().unwrap_or(&serde_json::Map::new()),
                         old_value,
@@ -1306,25 +1344,6 @@ fn apply_sync_changes(
         {
             fields.insert(field_id.clone(), new_def);
         }
-    }
-
-    // 3. 重新生成 property_labels
-    rebuild_property_labels(record, tpl);
-
-    // 4. 将更新后的 props_obj 写回 record.properties
-    if let Some(obj) = record.properties.as_object_mut() {
-        for (k, v) in props_obj {
-            obj.insert(k, v);
-        }
-    }
-
-    // 5. 更新 template_hash
-    record.template_hash = Some(result.template_hash.clone());
-    if let Some(obj) = record.properties.as_object_mut() {
-        obj.insert(
-            "__templateHash".to_string(),
-            serde_json::Value::String(result.template_hash.clone()),
-        );
     }
 }
 
