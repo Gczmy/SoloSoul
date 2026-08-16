@@ -1,8 +1,10 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-16 00:08:05
+> 最后更新：2026-08-17 00:16:31
 > 当前分支：`main`
-> 修复轮次：1（初始分析，全量重新生成，未沿用历史报告）
+> 修复轮次：1（初始分析，全量重新生成，未沿用历史报告）
+
+> 验证轮次：1（2026-08-17 修复核验，结论见「修复验证（轮次 1）」章节）
 > 分析范围：`tauri/src-tauri/`、`tauri/crates/`、`tauri/src/`（忽略 `target/`、`node_modules/`、`dist/`、`.vite/`）
 
 ---
@@ -42,7 +44,7 @@
 | P008 | 架构       | `tauri/crates/solosoul-vault/src/storage.rs`（5915 行） | 上帝对象：VaultStore + 加密迁移 + 整表重写 + sync 密钥 + 搜索工具混在一个文件 | `[x]` 已修复（P008） |
 | P009 | 死代码     | `tauri/crates/solosoul-core/Cargo.toml:29,38,49` | `anyhow`、`tokio`、`rand` 三个直接依赖在 core 全库无引用 | `[x]` 已修复（P009） |
 | P010 | 重复代码   | `tauri/src-tauri/src/commands/export_import/helpers.rs:24-88` ↔ `tauri/crates/solosoul-core/src/export_import.rs:885-942` 等 | `build_package_ids`/`resolve_*_references`/`derive_export_key` 等函数 GUI 与 core 逐字重复（相似度 ≈100%） | `[x]` 已修复（P010） |
-| P011 | 性能       | `tauri/crates/solosoul-vault/src/storage/sync_changes.rs:136,495`、`storage/conversations.rs:204` | 同步热路径逐行 `record_hlc_or_fallback`（每行一次 SELECT + 加锁），objects/trash 已用 LEFT JOIN 批量，同文件两种模式并存 | `[x]` 已修复（P011） |
+| P011 | 性能       | `tauri/crates/solosoul-vault/src/storage/sync_changes.rs:136,495`、`storage/conversations.rs:204` | 同步热路径逐行 `record_hlc_or_fallback`（每行一次 SELECT + 加锁），objects/trash 已用 LEFT JOIN 批量，同文件两种模式并存 | `[x]` 已修复（P011）⚠️验证部分通过，见 V006 |
 | P012 | 结构       | `tauri/crates/solosoul-vault/src/storage/objects.rs:393` | `list_objects` 147 行，查询/解密/组装混杂，对象列表核心路径 | `[x]` 已修复（P012） |
 | P013 | 结构       | `tauri/crates/solosoul-vault/src/storage/sync_changes.rs:283` | `query_object_changes` 146 行，SQL 拼装与行解密混在一处 | `[x]` 已修复（P013） |
 | P014 | 结构       | `tauri/src-tauri/src/commands/export_import/export_docx/fields.rs:32` | `field_value_to_text` 嵌套 7 层（match 套 if-let 套循环） | `[x]` 已修复（P014） |
@@ -55,7 +57,7 @@
 | P016 | 规范       | `tauri/src/components/layout/AddPageButton.tsx:14,75` | ESLint 2 warning：`SAFE_AREA_BOTTOM` 未使用；useMemo 缺依赖 `isBottom` | `[x]` 已修复（P016） |
 | P017 | 漏洞（弱随机） | `tauri/crates/solosoul-sync/src/recovery.rs:366-374,394-399` | 恢复 PIN/恢复密码用 `thread_rng` 而非 OsRng，PIN 逐位 `% 10` 有取模偏差 | `[x]` 已修复（P017） |
 | P018 | 内存安全   | `tauri/crates/solosoul-crypto/src/kdf.rs:94-103`；调用点 `solosoul-core/src/export_import.rs:211,326` | `derive_export_key` 返回裸 `[u8;32]` 未以 Zeroizing 包裹，与全库内存卫生纪律不一致 | `[x]` 已修复（P018） |
-| P019 | 供应链     | `tauri/crates/solosoul-plugin/src/registry.rs:76-88` | 插件注册表 URL 与 minisign 公钥读自环境变量，信任锚弱于 embed registry 的编译期固化 | `[x]` 已修复（P019） |
+| P019 | 供应链     | `tauri/crates/solosoul-plugin/src/registry.rs:76-88` | 插件注册表 URL 与 minisign 公钥读自环境变量，信任锚弱于 embed registry 的编译期固化 | `[x]` 部分修复（验证打回，见 V003） |
 | P020 | 供应链/隐私 | `tauri/src-tauri/tauri.conf.json:82-88` | updater 5 个端点中 4 个为第三方 GitHub 代理，存在降级冻结与行为记录风险 | `[x]` 已修复（P020） |
 | P021 | 静态加密   | `tauri/src-tauri/src/commands/attachment/crud.rs:524` | 附件明文落盘 `{vault}/attachments/`，与 vault.db/导出包加密姿态不一致（0700 权限是唯一防线） | `[x]` 已修复（P021） |
 | P022 | 加密弱点   | `tauri/crates/solosoul-core/src/pin.rs:101` | PIN 凭证可离线爆破（6 位最坏约 1 天），锁定计数对离线攻击无效；设计权衡但未文档化 | `[x]` 已修复（P022） |
@@ -86,19 +88,64 @@
 | P047 | 性能       | `tauri/src/pages/scan/OcrPage.tsx:26`、`ScanLocalPage.tsx:50` | 全库仅两处 `useObjectStore()` 整 store 订阅，任意字段变化触发整页重渲染 | `[x]` 已修复（P047，选择器订阅） |
 | P048 | 结构       | 前端 10 个超长组件（310-490 行）：`AttachmentPreviewOverlay`、`PhotoAlbumOverlay`、`LlmConfigPage`、`DataManagementPage`、`PhotoViewerOverlay`、`ExportDocumentSection`、`ObjectEditorPage`、`TemplateEditor`、`SnapshotCard`、`RecoveryAccountView` | 建议参照 SyncPage/SettingsPage 既有拆分模式 | `[x]` 已修复（P048，9/10 组件拆分；`SnapshotCard` 无同名文件，已随前期重构更名） |
 | P049 | 重复代码   | `components/attachment/AttachmentPreviewOverlay.tsx:30-32,211-229` ↔ `PhotoViewerOverlay.tsx:36-38,214-216` | 缩放/平移常量与 `clampScale`/`zoomIn`/`fitToView` 等逻辑两处逐字重复，`useTouchZoom` 抽象只完成一半 | `[x]` 已修复（P049，photoZoom.ts 收敛） |
-| P050 | 性能       | `tauri/src/components/object/HistoryViewer.tsx`（599 行） | 全文件无 memo/useMemo，`flattenProperties` 渲染路径每次重算（实际渲染量小，影响存疑） | `[x]` 已修复（P050，fields 派生 useMemo） |
+| P050 | 性能       | `tauri/src/components/object/HistoryViewer.tsx`（599 行） | 全文件无 memo/useMemo，`flattenProperties` 渲染路径每次重算（实际渲染量小，影响存疑） | `[x]` 部分修复（验证⚠️ memo 被调用方击穿，见 V004） |
 | P051 | 死代码     | `tauri/src/lib/llm/guideService.ts:10` | `GuideContent` interface 与 `lib/guideApi.ts:41` 同名重复定义且无人使用 | `[x]` 已修复（P051，死代码删除） |
-| P052 | 性能       | `tauri/src/pages/sync/SyncHistoryPanel.tsx:83` | 前插列表用数组下标作 key，新记录导致全行重挂载（列表 cap=10，代价小） | `[x]` 已修复（P052，稳定 key） |
+| P052 | 性能       | `tauri/src/pages/sync/SyncHistoryPanel.tsx:83` | 前插列表用数组下标作 key，新记录导致全行重挂载（列表 cap=10，代价小） | `[x]` 部分修复（验证⚠️ 存量记录重复 key，见 V005） |
 | P053 | 性能       | `tauri/src/pages/system/DebugLogPage.tsx:28,141` | 一次性渲染 200 条多行日志无分页（其他日志页均有 visibleLimit 模式可参照） | `[x]` 已修复（P053，visibleLimit 分页） |
 | P054 | 文档       | `AGENTS.md` 常用文件速查表 | 仍指向已不存在的 `tauri/src-tauri/src/services/vault_service.rs` | `[x]` 已修复（P054，本地修正并登记） |
 
 ## 修复进度
 
-- 已完成：54 / 54
-- 剩余：无
+- 已完成：54 / 54（修复声称）；验证后修正：48 项通过、4 项部分修复（V003–V006）、2 项阻塞性回归（V001/V002）
+- 剩余：V001–V006 待处理（验证轮次 1 新发现，见下节）
 
 ---
 
+## 修复验证（轮次 1，2026-08-17）
+
+> 验证方式：`npm run check-all` 实测 + `solosoul_cli` 独立 `cargo check` + 三路专项逐项核对（安全 9 项 / Rust 重构 12 项 / 前端 10 项，全部读码核实）。
+> 验证对象：修复批次 a950f1c9..8eb69838（126 个提交，已确认全部推送至 origin/main）。
+
+### 总体结论
+
+「54/54 全部修复」的声称**基本属实**：抽查覆盖的 31 项中绝大多数修复真实、语义保真度高，提交描述与 diff 吻合，实质安全修复均附回归测试，文档化方案（P004/P021/P022）的威胁模型文档严谨。但验证发现 **2 处阻塞性回归** 与 **4 项名不副实/部分修复**，且修复批次的最终 HEAD 上 `check-all` 实际为红——提交信息中反复出现的「check/clippy/fmt 全绿」对最终状态不成立（最后一轮改动后未复跑全量检查）。
+
+### 验证新发现问题清单
+
+| ID   | 优先级 | 关联项 | 类别 | 位置 | 描述 | 状态 |
+|------|--------|--------|------|------|------|------|
+| V001 | P0 | P036 | 回归 | `solosoul_cli/src/commands/security.rs:290` | CLI 编译失败（E0599）：`BiometricManager::test()` 被当作死代码删除，但 CLI 正在调用。GUI 的 check-all 覆盖不到独立 Cargo 项目 solosoul_cli | `[ ]` 待修复 |
+| V002 | P0 | P038/P042 | 回归 | `tauri/src-tauri/src/lib.rs:654` | `cargo test` 红：`test_dispatch_cluster_prefixes_consistent` 断言 194 vs 195——删除 `trash_permanent_delete` 命令后未同步手工维护的命令计数列表（恰是 P042 加过「维护提醒」的双份真相） | `[ ]` 待修复 |
+| V003 | P1 | P019 | 部分修复 | `tauri/crates/solosoul-plugin/src/registry.rs:22,66-73` | 编译期常量 `PLUGIN_REGISTRY_PUBKEY_B64` 为 `None`，且 `SOLOSOUL_REGISTRY_PUBKEY` 环境变量在 release 构建仍生效（无 debug 门控，与 URL 的处理不一致）——「信任锚读环境变量」在生产环境未真正消除 | `[ ]` 待修复 |
+| V004 | P2 | P050 | 部分修复 | `tauri/src/pages/workspace/ObjectWorkspacePage.tsx:301-303` | HistoryViewer 的 useMemo 写法正确，但调用方传入内联 `.map()` 新数组（每次渲染新引用），memo 在该路径失效 | `[ ]` 待修复 |
+| V005 | P2 | P052 | 部分修复 | `tauri/src/pages/sync/SyncHistoryPanel.tsx:84` | 存量 localStorage（`solosoul.syncHistory.v1`）中无 `at`/`peerNodeId` 的旧记录产生重复 key `"undefined-local"`；未做 idx 兜底 | `[ ]` 待修复 |
+| V006 | P2 | P011 | 文档失实/隐患 | `tauri/crates/solosoul-vault/src/storage/sync_changes.rs:350-370,454` | 注释声称「与 parse_time_ms 逐字节一致（P110 断言）」失实——断言不存在，且 `migration.rs:639` 自述 julianday 浮点与 chrono 对部分时间戳差 1ms；SQL 过滤与 Rust 交付两套 fallback 并存，watermark 落在 1ms 区间时可能假阴性漏同步无真实 HLC 的行 | `[ ]` 待修复 |
+
+### 验证为正确修复的项（读码核实）
+
+- **安全类（9/9 全查）**：P003（redirect Policy::none + 回归测试，白名单边界严密；残留：未强制 https，属既有设计缺口）、P004（纯文档化，无兼容风险）、P017（OsRng + 拒绝采样阈值正确）、P018（Zeroizing 全链路，无裸数组副本）、P020（version_is_newer 双路径接入）、P021（文档化，威胁模型完整）、P022（最小 6 位 + 存量 4 位向后兼容 + KDF 强制 production）、P023（四处统一 `sanitize_file_name`）。例外：P019 → V003。
+- **Rust 重构（抽查 12 项）**：P005（`trash_and_soft_delete_batch` 单事务原子化）、P008（storage.rs 本体 1135 行，tests.rs/reencrypt.rs 纯移动，对外 API diff 无丢失）、P009（依赖移除且现存依赖全在用）、P010（去重后字节级一致，无分叉）、P012/P013（拆分边界合理）、P025（拆分前后 32 个 pub 方法名单完全相同，CLI 56 处引用均可对上——但注意 V001 是另一处 CLI 破坏）、P031（pub use 转发链完整，sha2/hex 为既有依赖）、P032（optional() 区分正确）、P033（WAL 显式设置；保留意见：设置错误被 `let _` 吞掉）、P040（按计划的破坏性变更，见复审点）、P044 抽查 2 项（object_create / handle_sse_stream 控制流等价）。
+- **前端（10 项全查）**：P015（27 页全 lazy + 单 Suspense，守卫逻辑不变，见复审点）、P016（eslint 实测 0 warning）、P047（两处选择器 + mock 升级）、P048 抽查 3 组件（组件降纯渲染，hook 内无整 store 订阅，re-export 兼容真实存在）、P049（常量值一致）、P053（分页正确）。例外：P050 → V004、P052 → V005。
+- **前端实测**：`tsc --noEmit` 0 错误、Vitest 82 文件 762 测试全绿、相关文件 eslint 0 warning；无持久化 key 变更（settingsStore/syncStore 的 localStorage key 均未变）。
+- **原基线问题**：P001（fmt）已修复；P002 的 2 个 swiftc 测试失败已消除（core 测试通过）。
+
+### 需人工复审的残余风险（不阻塞）
+
+1. **P015 UX**：27 个页面全部 lazy（含 Login 首屏）+ 单一 Suspense 包整棵路由树——每次切页全屏闪占位符、未解锁首屏也需异步拉 chunk。建议真机体验后决定首屏页是否保留 eager 或细分 Suspense。
+2. **P040 版本门槛假设**：S003 删键经 profile delta 传播，同步环内若存在 <2.9.2 旧设备，其仅存于 blob 的会话将被抹掉且无法自行迁移。代码无法强制该假设，需产品层面确认设备版本分布。
+3. **P005 配套 HLC 时序**：`trash_and_soft_delete_batch` 的 `new_local_hlc` 在读 sync_hlc 最大值时尚未持有连接锁/事务（代码注释自承），唯一性依赖进程级排他锁覆盖所有写入口，需确认 CLI/GUI 互斥无遗漏。
+4. **ipcClient 豁免名单完备性**：33 条 `UNLOCKED_EXEMPT_COMMANDS` 字符串名单无法机器验证，遗漏的命令只在运行时以「未解锁」错误暴露；测试环境 `MODE==='test'` 整体放行意味着既有测试覆盖不到名单遗漏。
+5. **P033 小保留**：`open()` 设置 WAL 的错误被吞（与 busy_timeout 同模式），失败时静默退回 delete 模式。
+
+### 流程观察（供后续修复轮次参考）
+
+- 修复批次最后阶段未复跑 `check-all`，导致 V001/V002 随「修复完毕」结论一起入库。
+- P019 修复提交曾推送悬空子模块指针 `e3c7102`（子模块远端不存在该 commit，已由 `a22f4d1a` 修正为 `bb2c499`），说明个别提交未经过完整 CI/plugin-market-check。
+- P042 给「命令列表双份真相」加的维护提醒，未能阻止同一批次 P038 犯下同类遗漏（V002）。
+- CLI（solosoul_cli）不在 `check-all` 覆盖范围内，core 的公开 API 删除类改动需单独跑 `cd solosoul_cli && cargo check` 验证。
+
+---
+
 ## 详细问题描述与修复指引
 
 ### P001 — cargo fmt 失败阻塞 check-all（已修复）
@@ -555,11 +602,11 @@
 
 多条 P2（P017/P019/P023）本质是「同类安全控制在不同模块强度不一致」——随机数源、信任锚固化、文件名净化各自有两套实现。建议收敛为共享实现（`solosoul-core` 已有 `path_util`/secure 落点），比逐条修补更能防回归。
 
-## 暂缓事项（按流程约束）
+## 暂缓事项（按流程约束）—— 已作废：修复轮次在用户确认后全部执行，留痕如下
 
-以下修复涉及**删除文件/模块**，按 `review_code_process.md` 约束暂缓，待修复阶段由用户确认后执行：
+本节为初始分析时登记的删除类暂缓项，修复轮次（a950f1c9..8eb69838）已实际执行：
 
-- P035 `save_sync_conflict` 单条版删除（函数级删除，影响小）
-- P037 `PluginRegistry` 三个无调用方构造器删除
-- P038 `trash_permanent_delete` 单条命令移除（若确认不为 API 对齐保留）
-- P041 `macos_keychain.rs` 若决定放弃 future-keychain 规划则整文件删除
+- P035 `save_sync_conflict` 单条版删除 —— 已执行（b052c939）
+- P037 `PluginRegistry` 三个无调用方构造器删除 —— 已执行（f9f4f17f）
+- P038 `trash_permanent_delete` 单条命令移除 —— 已执行（309b11a8），但遗漏同步命令计数测试，产生回归 V002
+- P041 `macos_keychain.rs` —— 未删除，改用 CI feature 编译检查防腐化（81bea1b9）
