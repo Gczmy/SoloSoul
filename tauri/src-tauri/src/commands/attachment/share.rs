@@ -22,14 +22,9 @@ pub(crate) fn copy_into_dir(
     file_name: &str,
 ) -> Result<PathBuf, String> {
     std::fs::create_dir_all(base_dir).map_err(|e| format!("Failed to prepare directory: {}", e))?;
-    let safe_name = Path::new(file_name)
-        .file_name()
-        .ok_or("Invalid file name")?
-        .to_string_lossy()
-        .to_string();
-    if safe_name == "." || safe_name == ".." {
-        return Err("Invalid file name".to_string());
-    }
+    // P023: 统一走 solosoul_core::path_util::sanitize_file_name（平台无关拒绝
+    // `/` `\\` 分隔符 + 取末段兜底 + 拒绝空/`.`/`..`），修复旧实现不拒反斜杠缺口。
+    let safe_name = solosoul_core::path_util::sanitize_file_name(file_name)?;
     let dest = make_unique_dest_path(&base_dir.join(safe_name));
     std::fs::copy(path, &dest).map_err(|e| format!("Failed to copy file for sharing: {}", e))?;
     Ok(dest)

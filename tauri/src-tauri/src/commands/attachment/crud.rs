@@ -510,12 +510,11 @@ pub async fn attachment_copy_to_vault(
     let dest_dir = attachment_dir(&base, &object_id, &attachment_id)?;
     std::fs::create_dir_all(&dest_dir).map_err(|e| format!("Mkdir: {}", e))?;
 
-    // R007: sanitize file_name to prevent path traversal; only the final component is allowed.
-    let safe_name = std::path::Path::new(&file_name)
-        .file_name()
-        .ok_or("Invalid file name")?
-        .to_string_lossy()
-        .to_string();
+    // R007 + P023: sanitize file_name to prevent path traversal.
+    // P023: 统一走 solosoul_core::path_util::sanitize_file_name（平台无关拒绝
+    // `/` `\\` 分隔符 + 取末段兜底 + 拒绝空/`.`/`..`），修复旧实现仅取末段
+    // 无法剥离 `..\\..\\evil.txt` 反斜杠的强度缺口。
+    let safe_name = solosoul_core::path_util::sanitize_file_name(&file_name)?;
     let dest_path = dest_dir.join(&safe_name);
     let dest_path_str = dest_path.to_string_lossy().to_string();
     // P007: 大文件复制移入阻塞线程池，避免卡住 tokio worker（路径校验已在上方完成）

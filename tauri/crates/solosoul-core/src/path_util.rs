@@ -66,6 +66,27 @@ pub fn is_path_under_workspace(workspace_dir: &Path, path: &Path) -> bool {
     canonical_path.starts_with(&canonical_ws)
 }
 
+/// 净化附件/导入文件名（P023 共享实现）。
+///
+/// 平台无关地拒绝含路径分隔符的名字（`/` 与 `\\`）——Unix 上 `\\` 不是分隔符，
+/// 仅靠 `Path::file_name()` 无法剥离 `..\\..\\evil.txt` 中的反斜杠，因此必须
+/// 显式拒绝；再取末段组件作为兜底；拒绝空名与 `.`/`..`。
+///
+/// P023 统一：sync（solosoul-sync）、导入（export_import）、附件落盘
+/// （src-tauri attachment crud/share/import_plugin）、插件附件（solosoul-plugin）
+/// 四处净化实现收敛到本函数，消除「同款安全控制强度不一致」。
+pub fn sanitize_file_name(file_name: &str) -> Result<String, String> {
+    if file_name.contains('/') || file_name.contains('\\') {
+        return Err(format!("附件文件名无效: {}", file_name));
+    }
+    let safe = Path::new(file_name)
+        .file_name()
+        .map(|s| s.to_string_lossy().to_string())
+        .filter(|s| !s.is_empty() && s != "." && s != "..")
+        .ok_or_else(|| format!("附件文件名无效: {}", file_name))?;
+    Ok(safe)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -136,5 +157,26 @@ mod tests {
         let non_existent = dir.path().join("future.txt");
         // File doesn't exist yet, but should still be considered under workspace
         assert!(is_path_under_workspace(dir.path(), &non_existent));
+    }
+
+    #[test]
+    fn test_sanitize_file_name_accepts_normal_name() {
+        assert_eq!(sanitize_file_name("doc.pdf").unwrap(), "doc.pdf");
+        assert_eq!(sanitize_file_name("...").unwrap(), "...");
+    }
+
+    #[test]
+    fn test_sanitize_file_name_rejects_path_separators() {
+        assert!(sanitize_file_name("../../evil.txt").is_err());
+        assert!(sanitize_file_name("..\\..\\evil.txt").is_err());
+        assert!(sanitize_file_name("a/b.txt").is_err());
+        assert!(sanitize_file_name("a\\b.txt").is_err());
+    }
+
+    #[test]
+    fn test_sanitize_file_name_rejects_dot_and_empty() {
+        assert!(sanitize_file_name("").is_err());
+        assert!(sanitize_file_name(".").is_err());
+        assert!(sanitize_file_name("..").is_err());
     }
 }

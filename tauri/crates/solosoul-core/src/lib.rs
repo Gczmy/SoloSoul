@@ -50,4 +50,4 @@ pub use search_filter::{
 };
 
 // 路径规范化工具函数
-pub use path_util::{is_path_under_workspace, resolve_path};
+pub use path_util::{is_path_under_workspace, resolve_path, sanitize_file_name};

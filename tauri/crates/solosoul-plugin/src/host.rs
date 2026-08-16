@@ -1304,19 +1304,12 @@ fn copy_attachment_to_workspace(
     Ok(dst)
 }
 
-/// 净化附件文件名（P003）：平台无关地拒绝含分隔符的名字
-/// （Unix 上 `\\` 不是分隔符，仅靠 `Path::file_name()` 无法剥离
-/// `..\\..\\evil.txt` 中的反斜杠），再取末段组件作为兜底。
+/// 净化附件文件名（P003 / P023 收敛到共享实现）。
+///
+/// P023：语义与 `path_util::sanitize_file_name` 完全一致（平台无关拒绝 `/` `\\`
+/// 分隔符 + 取末段兜底 + 拒绝空/`.`/`..`），此处直接转发，消除同款控制重复实现。
 fn sanitize_attachment_file_name(file_name: &str) -> Result<String, String> {
-    if file_name.contains('/') || file_name.contains('\\') {
-        return Err(format!("附件文件名无效: {}", file_name));
-    }
-    let safe = Path::new(file_name)
-        .file_name()
-        .map(|s| s.to_string_lossy().to_string())
-        .filter(|s| !s.is_empty() && s != "." && s != "..")
-        .ok_or_else(|| format!("附件文件名无效: {}", file_name))?;
-    Ok(safe)
+    solosoul_core::path_util::sanitize_file_name(file_name)
 }
 
 /// P004：对插件 `solosoul_result` 载荷做「盖章」处理。

@@ -1072,24 +1072,12 @@ fn import_attachments(
     Ok(())
 }
 
-/// 净化导入附件的文件名（P003）。
+/// 净化导入附件的文件名（P003 / P023 收敛到共享实现）。
 ///
-/// 显式拒绝包含路径分隔符的名字（`/` 与 `\\`）——Unix 上 `\\` 不是分隔符，
-/// 仅靠 `Path::file_name()` 无法剥离 `..\\..\\evil.txt` 中的反斜杠，
-/// 因此必须平台无关地拒绝，再取末段组件作为兜底。
+/// P023：语义与 `path_util::sanitize_file_name` 完全一致（平台无关拒绝 `/` `\\`
+/// 分隔符 + 取末段兜底 + 拒绝空/`.`/`..`），此处仅做 ExportError 包装转发。
 fn sanitize_import_file_name(file_name: &str) -> Result<String, ExportError> {
-    if file_name.contains('/') || file_name.contains('\\') {
-        return Err(ExportError::Msg(format!("附件文件名无效: {}", file_name)));
-    }
-    let base = Path::new(file_name)
-        .file_name()
-        .ok_or("附件文件名无效")?
-        .to_string_lossy()
-        .to_string();
-    if base.is_empty() || base == "." || base == ".." {
-        return Err(ExportError::Msg(format!("附件文件名无效: {}", file_name)));
-    }
-    Ok(base)
+    crate::path_util::sanitize_file_name(file_name).map_err(ExportError::Msg)
 }
 
 /// 导入偏好设置。

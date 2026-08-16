@@ -42,12 +42,8 @@ fn validate_attachment_id(id: &str) -> Result<(), String> {
     Ok(())
 }
 
-fn sanitize_file_name(name: &str) -> Result<String, String> {
-    Path::new(name)
-        .file_name()
-        .map(|s| s.to_string_lossy().to_string())
-        .ok_or_else(|| format!("Invalid attachment file name: {}", name))
-}
+// P023: 文件名净化统一走 solosoul_core::path_util::sanitize_file_name
+//（平台无关拒绝 `/` `\\` + 取末段兜底 + 拒绝空/`.`/`..`），不再本地弱实现。
 
 fn attachment_file_path(
     base: &Path,
@@ -57,7 +53,7 @@ fn attachment_file_path(
 ) -> Result<PathBuf, String> {
     validate_attachment_id(object_id)?;
     validate_attachment_id(attachment_id)?;
-    let safe_name = sanitize_file_name(file_name)?;
+    let safe_name = solosoul_core::path_util::sanitize_file_name(file_name)?;
     Ok(attachments_dir(base)
         .join(object_id)
         .join(attachment_id)

@@ -10,7 +10,6 @@
  * - 下载目标为 `content://` 时调用 `attachment_export_content_uri`。
  */
 use serde::{Deserialize, Serialize};
-use std::path::Path;
 use tauri::{
     plugin::{Builder, PluginApi, TauriPlugin},
     AppHandle, Manager, Runtime, State,
@@ -441,12 +440,8 @@ pub async fn attachment_import_content_uri<R: Runtime>(
     std::fs::create_dir_all(&dest_dir)
         .map_err(|e| format!("Failed to create attachment directory: {}", e))?;
 
-    // 清理文件名，防止路径遍历。
-    let safe_name = Path::new(&file_name)
-        .file_name()
-        .ok_or("Invalid file name")?
-        .to_string_lossy()
-        .to_string();
+    // 清理文件名，防止路径遍历（P023：统一走共享实现，平台无关拒绝 `/` `\\`）。
+    let safe_name = solosoul_core::path_util::sanitize_file_name(&file_name)?;
     let dest_path = dest_dir.join(&safe_name);
 
     let payload = ImportContentUriPayload {
