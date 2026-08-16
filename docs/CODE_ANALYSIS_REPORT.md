@@ -66,7 +66,7 @@
 | P027 | 架构       | `tauri/src/stores/authStore.ts` ↔ 后端 `VaultService` | 解锁状态前后端双份维护，靠事件 + best-effort 收敛（已有多层缓解，残余窗口存疑） | `[x]` 已修复（P027） |
 | P028 | 架构       | `tauri/src/stores/syncStore.ts:20-66` ↔ `commands/sync.rs:6-27` | 同步历史存两份：localStorage（无清理逻辑，存疑）与后端 audit_log | `[x]` 已修复（P028） |
 | P029 | 架构       | `tauri/src/stores/settingsStore.ts:156-232` | 偏好设置三副本（后端 DB / localStorage / ui_preferences.json），读路径异常时可能闪烁回跳 | `[x]` 已修复（P029） |
-| P030 | 架构       | `tauri/src-tauri/src/state/app_state.rs`（866 行） | AppState 聚合 8 个字段且混入 SAF config、DTO、自由函数 | `[ ]` 待修复 |
+| P030 | 架构       | `tauri/src-tauri/src/state/app_state.rs`（866 行） | AppState 聚合 8 个字段且混入 SAF config、DTO、自由函数 | `[x]` 已修复（P030） |
 | P031 | 架构       | `tauri/src-tauri/src/services/`（仅 3 文件）vs `commands/`（30+ 模块） | services 层萎缩，业务规则锁在 command 签名旁（如 `object/mod.rs` 的 dynamic_group 校验），CLI 无法复用 | `[ ]` 待修复 |
 | P032 | 健壮性     | `tauri/crates/solosoul-vault/src/migration.rs:45` | 迁移版本读取 `unwrap_or(1)` 吞掉读取错误，版本表读失败会静默重跑全部迁移 | `[ ]` 待修复 |
 | P033 | 性能       | `tauri/crates/solosoul-vault/src/storage.rs:423,607,962` | 单 `Mutex<Connection>` 全库串行，未见显式 `journal_mode=WAL`（存疑）；`reencrypt_all` 持锁期间全库阻塞 | `[ ]` 待修复 |
@@ -94,8 +94,8 @@
 
 ## 修复进度
 
-- 已完成：29 / 54
-- 当前处理：P030（AppState 聚合 8 个字段）
+- 已完成：30 / 54
+- 当前处理：P031（services 层萎缩，业务规则锁在 command 签名旁）
 
 ---
 
@@ -276,6 +276,13 @@
 - **位置**：`tauri/src/stores/settingsStore.ts`（`loadSettings` 合并基准，+ 测试）。
 - **修复（按指引「三源读路径顺序异常时可能闪烁，记录即可」落实为记录 + 真实回跳消除）**：写入侧 P129 已收敛单点（`writeUiPrefsCache`/`syncPlaintextPref` 唯一写入点），读路径残余问题在 `loadSettings`——旧实现以 `DEFAULT_SETTINGS` 为合并基准，vault ④ 缺失某 UI 键（旧版升级/未持久化）时会把登录前 `loadUiPreferences` 已应用的缓存值回跳默认（如暗色主题解锁瞬间闪回 system）。修复：合并基准改为「当前 settings + DEFAULT 兜底」——vault 有值的键仍以 vault 为准（设计意图不变），缺失键沿用已应用缓存值；`sidebarButtonModes` 显式拷贝避免下方原地赋值污染 store 既有对象（旧实现会原地改 `DEFAULT_SETTINGS` 共享引用）；P062 四副本矩阵注释区补 P029 读路径回跳残余说明。
 - **验证**：新增回归测试（vault 缺 UI 键保留缓存值 / vault 有键仍以 vault 为准），settingsStore 21 测试全绿；tsc + eslint 全绿。
+
+### P030 — AppState 聚合 8 字段混入 SAF config/DTO/自由函数（已修复：按域拆分）
+
+- **提交**：`8f55d2d8`
+- **位置**：`tauri/src-tauri/src/state/`（新建 `recovery.rs`、`saf_config.rs`；`app_state.rs`、`mod.rs`）。
+- **修复（按指引「拆 state/recovery.rs、state/saf_config.rs」）**：① `state/recovery.rs`（25 行）——`RecoveryState` 跨设备恢复主机运行时状态（取消信号/后台线程/临时导出文件/mDNS 实例名），引用方仅 `AppState.recovery_state` 字段（类型推断），外部零改动；② `state/saf_config.rs`（285 行）——SAF `.solosoul_config` 文件 IO（`app_config_path`/`load_saved_saf_uri`/`save_saf_uri`/`write_saf_config_to_remote`/`read_saf_config_uri`）+ 无 chrono 依赖的 `now_rfc3339` 时间戳工具 + Vault 初始化辅助（`try_init_saf_vault`/`try_init_local_vault`/`placeholder_vault`/`init_vault_service` 含 SAF 失效降级/临时缓存迁移逻辑）；全部以 `impl AppState` 扩展方法迁移，外部调用点（`AppState::write_saf_config_to_remote`、`Self::load_saved_saf_uri` 等）零改动，跨模块私有方法改 `pub(crate)`；③ `app_state.rs` 866→547 行保留纯编排（`new`/sync 组件装配/plugin 初始化/biometric lockout 5 方法/`initialize_vault`/`init_saf_sync`）+ `InitializeVaultResult` DTO。
+- **验证**：纯重构零行为变化；`cargo check` + `clippy --lib -D warnings` + `cargo fmt --check` 全绿；lib 测试 `STATUS_ENTRYPOINT_NOT_FOUND` 为预存在 Windows DLL 环境问题（历史多次确认与改动无关）。
 
 ### P026 — LLM 客户端 blocking/async 双份实现（已修复：共享纯函数收敛）
 
