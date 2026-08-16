@@ -182,6 +182,31 @@ describe('settingsStore', () => {
       await useSettingsStore.getState().loadSettings('acc-1');
       expect(invoke).toHaveBeenCalledWith('ui_update_preference', expect.any(Object));
     });
+
+    it('keeps pre-login cached UI prefs when vault lacks the key (P029 no bounce-back)', async () => {
+      // 模拟登录前 loadUiPreferences 已把主题/语言应用到 store（②③ 源）
+      useSettingsStore.setState({
+        settings: {
+          ...useSettingsStore.getState().settings,
+          theme: 'dark',
+          accentColor: 'rose',
+          language: 'zh-CN',
+        },
+      });
+      // vault ④ 偏好缺失这些 UI 键（旧版升级/未持久化）
+      vi.mocked(invoke).mockResolvedValue({ autoLockTimeoutMinutes: 10 });
+
+      await useSettingsStore.getState().loadSettings('acc-1');
+
+      const s = useSettingsStore.getState().settings;
+      // 旧实现以 DEFAULT_SETTINGS 为基准会把 theme/accentColor/language 回跳默认值
+      // （暗色主题解锁瞬间闪回 system）；P029 后缺失键沿用登录前缓存值。
+      expect(s.theme).toBe('dark');
+      expect(s.accentColor).toBe('rose');
+      expect(s.language).toBe('zh-CN');
+      // vault 有值的键仍以 vault 为准
+      expect(s.autoLockTimeoutMinutes).toBe(10);
+    });
   });
 
   describe('updateSetting', () => {

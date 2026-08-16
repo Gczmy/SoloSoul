@@ -167,6 +167,13 @@ const DEFAULT_SETTINGS: AppSettings = {
 //
 // P129: ②③ 副本写入已代码级集中——任何页面/组件不再直接写 localStorage 或
 // ui_preferences.json，统一走下方两个 helper，杜绝第 5 个漂移写入点。
+//
+// P029: 读路径顺序与回跳残余——解锁前 loadUiPreferences 已把 ②③ 的 UI 偏好
+// 应用到 store（主题/语言等登录页正确）；解锁后 loadSettings 以 vault ④ 为准覆盖。
+// 若 vault ④ 缺失某 UI 键（旧版升级/未持久化），旧实现以 DEFAULT_SETTINGS 为合并
+// 基准会把该键回跳回默认值（如暗色主题跳回 system），造成解锁瞬间主题闪烁回跳。
+// 修复：合并基准改为「当前 settings + DEFAULT 兜底」——vault 有值的键仍以 vault
+// 为准，缺失键沿用登录前已应用的缓存值，读路径不再产生回跳。
 
 /** ③ ui_preferences.json 明文副本涉及的键（含 language——initI18n 也读它）。 */
 const PLAINTEXT_PREF_KEYS = new Set<string>([
@@ -305,7 +312,15 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       const raw = await invoke<unknown>('user_data_get_preferences', { accountId: accountId });
       const parsedPrefsResult = accountPrefsSchema.safeParse(raw);
       const prefs: AccountPrefs = parsedPrefsResult.success ? parsedPrefsResult.data : {};
-      const parsed = { ...DEFAULT_SETTINGS };
+      // P029: 合并基准为「当前 settings + DEFAULT 兜底」——vault ④ 缺失的键沿用
+      // 登录前 loadUiPreferences 已应用的缓存值，避免解锁瞬间回跳默认（旧实现用
+      // DEFAULT_SETTINGS 作基准，vault 缺键时把已设好的主题等打回默认）。
+      // sidebarButtonModes 显式拷贝，避免下方原地赋值污染 store 中既有对象。
+      const parsed: AppSettings = {
+        ...DEFAULT_SETTINGS,
+        ...get().settings,
+        sidebarButtonModes: { ...get().settings.sidebarButtonModes },
+      };
       if (prefs.theme) parsed.theme = prefs.theme;
       if (prefs.accentColor) parsed.accentColor = prefs.accentColor;
       if (prefs.defaultLightTheme) parsed.defaultLightTheme = prefs.defaultLightTheme;
