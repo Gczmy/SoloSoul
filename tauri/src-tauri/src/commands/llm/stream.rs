@@ -73,19 +73,10 @@ async fn emit_typing_effect(app: &tauri::AppHandle, conversation_id: &str, full_
 
 /// 发送聊天请求并流式推送结果（Phase 2.3：SSE 流式 + 打字机降级）
 /// 返回 (完整文本, 可选的真实 TokenUsage)
-/// 从 SSE JSON chunk 提取 delta 文本（兼容 Anthropic delta.text 与 OpenAI choices[0].delta.content）。
+/// 从 SSE JSON chunk 提取 delta 文本（P026: 转发 core 共享纯函数，
+/// 兼容 Anthropic delta.text 与 OpenAI choices[0].delta.content）。
 fn extract_delta_text<'a>(json: &'a serde_json::Value, api_type: &ApiType) -> Option<&'a str> {
-    if is_anthropic(api_type) {
-        json.get("delta")
-            .and_then(|d| d.get("text"))
-            .and_then(|t| t.as_str())
-    } else {
-        json.get("choices")
-            .and_then(|c| c.get(0))
-            .and_then(|choice| choice.get("delta"))
-            .and_then(|delta| delta.get("content"))
-            .and_then(|c| c.as_str())
-    }
+    solosoul_core::llm::protocol::extract_delta_text(json, api_type)
 }
 
 /// SSE 流式解析：逐行解析 data: 行，提取 delta 文本与 usage，事件经 IPC 推送。
@@ -276,24 +267,17 @@ fn apply_openai_usage_chunk(token_usage: &mut TokenUsage, json: &serde_json::Val
 
 /// P034: 从 Anthropic SSE chunk 提取 usage（跨事件：message_start 提供 input_tokens，
 /// message_delta 提供 output_tokens）。返回 (input 更新, output 更新)，`None` 表示该
-/// 事件不携带该字段（保持累积值）。
+/// 事件不携带该字段（保持累积值）。P026: 字段提取转发 core 共享纯函数。
 fn extract_anthropic_usage(
     json: &serde_json::Value,
     current_event: &str,
 ) -> Option<(Option<u64>, Option<u64>)> {
     if current_event == "message_start" {
-        let input = json
-            .get("message")
-            .and_then(|m| m.get("usage"))
-            .and_then(|u| u.get("input_tokens"))
-            .and_then(|v| v.as_u64())?;
-        Some((Some(input), None))
+        solosoul_core::llm::protocol::extract_anthropic_input_tokens(json)
+            .map(|input| (Some(input), None))
     } else if current_event == "message_delta" {
-        let output = json
-            .get("usage")
-            .and_then(|u| u.get("output_tokens"))
-            .and_then(|v| v.as_u64())?;
-        Some((None, Some(output)))
+        solosoul_core::llm::protocol::extract_anthropic_output_tokens(json)
+            .map(|output| (None, Some(output)))
     } else {
         None
     }
@@ -302,11 +286,9 @@ fn extract_anthropic_usage(
 /// P034: 从 OpenAI SSE chunk 提取 usage（usage 可能在 choices 为空的 chunk 中）。
 /// 返回 (prompt, completion)，均为 `Option`——缺失的字段由调用方保留先前累积值
 /// （N008：旧实现缺字段用 0 兜底，会把前一 chunk 的累积值整体清零）。
+/// P026: 转发 core 共享纯函数。
 fn extract_openai_usage_from_chunk(json: &serde_json::Value) -> Option<(Option<u64>, Option<u64>)> {
-    let usage = json.get("usage")?;
-    let prompt = usage.get("prompt_tokens").and_then(|v| v.as_u64());
-    let completion = usage.get("completion_tokens").and_then(|v| v.as_u64());
-    Some((prompt, completion))
+    solosoul_core::llm::protocol::extract_openai_usage_from_chunk(json)
 }
 
 /// 非 SSE 响应：完整获取文本 + 打字机效果降级推送。

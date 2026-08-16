@@ -5,30 +5,22 @@
 
 use super::*;
 
-/// 根据 API 类型构建请求 URL。
+/// 根据 API 类型构建请求 URL（P026: 转发 core 共享纯函数）。
 pub fn build_api_url(base_url: &str, api_type: &ApiType) -> String {
-    let base = base_url.trim_end_matches('/');
-    if is_anthropic(api_type) {
-        format!("{}/messages", base)
-    } else {
-        format!("{}/chat/completions", base)
-    }
+    solosoul_core::llm::protocol::build_api_url(base_url, api_type)
 }
 
-/// 为请求添加认证与 Content-Type 头。
+/// 为请求添加认证与 Content-Type 头（P026: 转发 core 共享纯函数）。
 pub fn add_auth_headers(
     req: reqwest::RequestBuilder,
     api_key: &str,
     api_type: &ApiType,
 ) -> reqwest::RequestBuilder {
-    if is_anthropic(api_type) {
-        req.header("x-api-key", api_key)
-            .header("anthropic-version", "2023-06-01")
-            .header("Content-Type", "application/json")
-    } else {
-        req.header("Authorization", format!("Bearer {}", api_key))
-            .header("Content-Type", "application/json")
+    let mut req = req;
+    for (k, v) in solosoul_core::llm::protocol::auth_headers(api_key, api_type) {
+        req = req.header(k, v);
     }
+    req
 }
 
 /// 构建请求体（合并 Anthropic 与 OpenAI 的消息格式）。
@@ -78,28 +70,12 @@ pub fn build_request_body(
     }
 }
 
-/// 从 API 响应 JSON 中提取文本内容。
+/// 从 API 响应 JSON 中提取文本内容（P026: 转发 core 共享纯函数）。
 ///
 /// - Anthropic：`content[?(@.type=="text")].text`
 /// - OpenAI：`choices[0].message.content`
 pub fn extract_response_text(result: &serde_json::Value, api_type: &ApiType) -> Option<String> {
-    if is_anthropic(api_type) {
-        result["content"]
-            .as_array()
-            .and_then(|arr| {
-                arr.iter()
-                    .find(|c| {
-                        c.get("type").and_then(|t| t.as_str()) == Some("text")
-                            || c.get("type").is_none()
-                    })
-                    .and_then(|c| c.get("text").and_then(|v| v.as_str()))
-            })
-            .map(|s| s.to_string())
-    } else {
-        result["choices"][0]["message"]["content"]
-            .as_str()
-            .map(|s| s.to_string())
-    }
+    solosoul_core::llm::protocol::extract_response_text(result, api_type)
 }
 
 /// 检查 HTTP 响应状态，失败时返回格式化错误。
@@ -138,11 +114,9 @@ pub async fn send_json_request(
         .map_err(|e| format!("Parse response from {}: {}", url, e))
 }
 
-/// 从非流式响应中提取 token usage（OpenAI 格式）。
+/// 从非流式响应中提取 token usage（OpenAI 格式，P026: 转发 core 共享纯函数）。
 pub fn extract_openai_usage(result: &serde_json::Value) -> (u64, u64) {
-    let prompt = result["usage"]["prompt_tokens"].as_u64().unwrap_or(0);
-    let completion = result["usage"]["completion_tokens"].as_u64().unwrap_or(0);
-    (prompt, completion)
+    solosoul_core::llm::protocol::extract_openai_usage(result)
 }
 
 /// P031：SSRF 内网段判定。

@@ -1,5 +1,9 @@
 //! LLM HTTP client for OpenAI-compatible and Anthropic APIs with SSE streaming.
+//!
+//! P026: 请求构造与 SSE/JSON 解析纯函数收敛到 `super::protocol`（与
+//! src-tauri 的 async client 共享），本文件只保留 IO 绑定（blocking reqwest）。
 
+use super::protocol::{self, split_system_messages};
 use crate::llm::config::ApiType;
 
 /// LLM 请求构建结果：URL、JSON body、HTTP headers。
@@ -80,11 +84,11 @@ fn build_request(
     api_type: &ApiType,
     messages: &[serde_json::Value],
 ) -> Result<LlmRequestParts, String> {
-    match api_type {
+    let url = protocol::build_api_url(base_url, api_type);
+    let headers = protocol::auth_headers(api_key, api_type);
+    let body = match api_type {
         ApiType::Anthropic => {
-            let url = format!("{}/messages", base_url.trim_end_matches('/'));
             let (system_prompts, other_messages) = split_system_messages(messages);
-
             let mut body = serde_json::json!({
                 "model": model,
                 "max_tokens": 4096,
@@ -94,49 +98,16 @@ fn build_request(
             if !system_prompts.is_empty() {
                 body["system"] = serde_json::Value::Array(system_prompts);
             }
-
-            let headers = vec![
-                ("x-api-key".to_string(), api_key.to_string()),
-                ("anthropic-version".to_string(), "2023-06-01".to_string()),
-                ("content-type".to_string(), "application/json".to_string()),
-            ];
-            Ok((url, body, headers))
+            body
         }
-        ApiType::OpenAI => {
-            let url = format!("{}/chat/completions", base_url.trim_end_matches('/'));
-            let body = serde_json::json!({
-                "model": model,
-                "messages": messages,
-                "stream": true,
-                "stream_options": { "include_usage": true },
-            });
-            let headers = vec![
-                ("Authorization".to_string(), format!("Bearer {}", api_key)),
-                ("content-type".to_string(), "application/json".to_string()),
-            ];
-            Ok((url, body, headers))
-        }
-    }
-}
-
-fn split_system_messages(
-    messages: &[serde_json::Value],
-) -> (Vec<serde_json::Value>, Vec<serde_json::Value>) {
-    let mut system = Vec::new();
-    let mut other = Vec::new();
-    for msg in messages {
-        if msg.get("role").and_then(|r| r.as_str()) == Some("system") {
-            if let Some(content) = msg.get("content").and_then(|c| c.as_str()) {
-                system.push(serde_json::json!({
-                    "type": "text",
-                    "text": content
-                }));
-            }
-        } else {
-            other.push(msg.clone());
-        }
-    }
-    (system, other)
+        ApiType::OpenAI => serde_json::json!({
+            "model": model,
+            "messages": messages,
+            "stream": true,
+            "stream_options": { "include_usage": true },
+        }),
+    };
+    Ok((url, body, headers))
 }
 
 // ── SSE processing ───────────────────────────────────────────────
@@ -274,49 +245,27 @@ fn handle_sse_payload(
 ) {
     match api_type {
         ApiType::Anthropic => {
-            if let Some(usage) = json.get("message").and_then(|m| m.get("usage")) {
-                counters.anthropic_prompt_tokens = usage
-                    .get("input_tokens")
-                    .and_then(|v| v.as_u64())
-                    .unwrap_or(0);
+            if let Some(input) = protocol::extract_anthropic_input_tokens(json) {
+                counters.anthropic_prompt_tokens = input;
             }
-            if let Some(usage) = json.get("usage") {
-                counters.anthropic_completion_tokens = usage
-                    .get("output_tokens")
-                    .and_then(|v| v.as_u64())
-                    .unwrap_or(0);
+            if let Some(output) = protocol::extract_anthropic_output_tokens(json) {
+                counters.anthropic_completion_tokens = output;
             }
-
-            if let Some(delta) = json.get("delta") {
-                if let Some(text) = delta.get("text").and_then(|v| v.as_str()) {
-                    on_event(LlmStreamEvent::Chunk {
-                        content: text.to_string(),
-                    });
-                }
+            if let Some(text) = protocol::extract_delta_text(json, api_type) {
+                on_event(LlmStreamEvent::Chunk {
+                    content: text.to_string(),
+                });
             }
         }
         ApiType::OpenAI => {
-            if let Some(usage) = json.get("usage") {
-                counters.prompt_tokens = usage
-                    .get("prompt_tokens")
-                    .and_then(|v| v.as_u64())
-                    .unwrap_or(0);
-                counters.completion_tokens = usage
-                    .get("completion_tokens")
-                    .and_then(|v| v.as_u64())
-                    .unwrap_or(0);
+            if let Some((prompt, completion)) = protocol::extract_openai_usage_from_chunk(json) {
+                counters.prompt_tokens = prompt.unwrap_or(0);
+                counters.completion_tokens = completion.unwrap_or(0);
             }
-
-            if let Some(choices) = json.get("choices").and_then(|c| c.as_array()) {
-                for choice in choices {
-                    if let Some(delta) = choice.get("delta") {
-                        if let Some(content) = delta.get("content").and_then(|v| v.as_str()) {
-                            on_event(LlmStreamEvent::Chunk {
-                                content: content.to_string(),
-                            });
-                        }
-                    }
-                }
+            if let Some(text) = protocol::extract_delta_text(json, api_type) {
+                on_event(LlmStreamEvent::Chunk {
+                    content: text.to_string(),
+                });
             }
         }
     }
@@ -345,18 +294,7 @@ fn process_non_streaming(
     let json: serde_json::Value =
         serde_json::from_str(&body).map_err(|e| format!("Parse response: {}", e))?;
 
-    let text = match api_type {
-        ApiType::Anthropic => json["content"]
-            .as_array()
-            .and_then(|arr: &Vec<serde_json::Value>| arr.first())
-            .and_then(|b: &serde_json::Value| b["text"].as_str())
-            .unwrap_or("")
-            .to_string(),
-        ApiType::OpenAI => json["choices"][0]["message"]["content"]
-            .as_str()
-            .unwrap_or("")
-            .to_string(),
-    };
+    let text = protocol::extract_response_text(&json, api_type).unwrap_or_default();
 
     if !text.is_empty() {
         on_event(LlmStreamEvent::Chunk { content: text });
