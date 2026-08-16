@@ -585,9 +585,15 @@ fn decrypt_session_key_with_fallback(
     }
 }
 
-/// 校验 PIN 格式：仅数字，4~8 位。
+/// 校验 PIN 格式：仅数字，6~8 位（P022：最小位数 4→6，消 4 位离线穷举窗口）。
+///
+/// P022 强度登记：PIN 空间 10^6~10^8，配合 `pin_kdf_config` 的生产级 KDF
+/// （~1s/次派生），6 位最坏离线穷举约 11.6 天（单线程），4 位仅 ~2.8 小时。
+/// 前端 `PinSection` 的 `PIN_LENGTH` 已固定 6 位，此处收紧后端校验使直接 IPC
+/// 调用 / 未来 CLI 路径也无法设置 4-5 位短 PIN。存量 4 位凭证不受影响
+/// （解锁不校验长度，仅在设置/更换时按新规则校验）。
 fn validate_pin(pin: &str) -> Result<(), PinError> {
-    if pin.len() < 4 {
+    if pin.len() < 6 {
         return Err(PinError::TooShort);
     }
     if pin.len() > 8 {
@@ -644,8 +650,15 @@ mod tests {
     #[test]
     fn test_validate_pin_ok() {
         assert!(validate_pin("123456").is_ok());
-        assert!(validate_pin("1234").is_ok());
         assert!(validate_pin("12345678").is_ok());
+    }
+
+    #[test]
+    fn test_validate_pin_min_length_six() {
+        // P022: 最小位数 4→6——4/5 位短 PIN 离线穷举（10^4≈2.8h / 10^5≈1.2d）
+        // 窗口过大，一律拒绝；存量 4 位凭证解锁不校验长度不受影响。
+        assert!(matches!(validate_pin("1234"), Err(PinError::TooShort)));
+        assert!(matches!(validate_pin("12345"), Err(PinError::TooShort)));
     }
 
     #[test]
