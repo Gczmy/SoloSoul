@@ -53,7 +53,7 @@
 | ID   | 类别       | 文件位置 | 描述 | 状态 |
 |------|------------|----------|------|------|
 | P016 | 规范       | `tauri/src/components/layout/AddPageButton.tsx:14,75` | ESLint 2 warning：`SAFE_AREA_BOTTOM` 未使用；useMemo 缺依赖 `isBottom` | `[x]` 已修复（P016） |
-| P017 | 漏洞（弱随机） | `tauri/crates/solosoul-sync/src/recovery.rs:366-374,394-399` | 恢复 PIN/恢复密码用 `thread_rng` 而非 OsRng，PIN 逐位 `% 10` 有取模偏差 | `[ ]` 待修复 |
+| P017 | 漏洞（弱随机） | `tauri/crates/solosoul-sync/src/recovery.rs:366-374,394-399` | 恢复 PIN/恢复密码用 `thread_rng` 而非 OsRng，PIN 逐位 `% 10` 有取模偏差 | `[x]` 已修复（P017） |
 | P018 | 内存安全   | `tauri/crates/solosoul-crypto/src/kdf.rs:94-103`；调用点 `solosoul-core/src/export_import.rs:211,326` | `derive_export_key` 返回裸 `[u8;32]` 未以 Zeroizing 包裹，与全库内存卫生纪律不一致 | `[ ]` 待修复 |
 | P019 | 供应链     | `tauri/crates/solosoul-plugin/src/registry.rs:76-88` | 插件注册表 URL 与 minisign 公钥读自环境变量，信任锚弱于 embed registry 的编译期固化 | `[ ]` 待修复 |
 | P020 | 供应链/隐私 | `tauri/src-tauri/tauri.conf.json:82-88` | updater 5 个端点中 4 个为第三方 GitHub 代理，存在降级冻结与行为记录风险 | `[ ]` 待修复 |
@@ -94,8 +94,8 @@
 
 ## 修复进度
 
-- 已完成：16 / 54
-- 当前处理：P017（rand::thread_rng → OsRng 密码学强随机 + PIN 拒绝采样）
+- 已完成：17 / 54
+- 当前处理：P018（derive_export_key 返回 Zeroizing 防密钥残留在内存）
 
 ---
 
@@ -219,6 +219,13 @@
 - **位置**：`tauri/src/components/layout/AddPageButton.tsx:14,75`。
 - **修复**：删未使用的 `SAFE_AREA_BOTTOM` 导入（`SAFE_AREA_TOP` 仍在 popover top 计算使用）；`scrollMaxHeight` useMemo 依赖数组补 `isBottom`（函数体内引用 `isBottom` 早退，缺依赖时位置切换可能读到过期 memo，属于真实 stale-closure 隐患）。
 - **验证**：tsc / eslint 全绿；layout 域测试 6 全绿。
+
+### P017 — 恢复 PIN/密码弱随机（已修复）
+
+- **提交**：`cdb431f1`
+- **位置**：`tauri/crates/solosoul-sync/src/recovery.rs:366-374,394-399`。
+- **修复**：`generate_pin` 由 `thread_rng().next_u32() % 10` 改为 `OsRng` + 拒绝采样（`2^32 % 10 = 6`，直接取模使 0-5 六个数字多一次映射产生轻微偏差；拒绝落在最后不完整块 `>= 4_294_967_290` 的值后 `% 10` 完全无偏差）；`generate_recovery_password` 由 `thread_rng().fill_bytes` 改为 `OsRng.fill_bytes`（操作系统 CSPRNG 直取随机字节）。
+- **验证**：solosoul-sync check / clippy `-D warnings` / fmt 全绿（crate 无单元测试）。
 
 ### P016–P054 摘要指引
 
