@@ -246,7 +246,7 @@ impl OcrEngine {
     /// 注意：旧策略（A/B/C 多级裁剪+PP-OCR/模板匹配）已在此分支禁用，
     /// 代码保留在 main 分支历史中。
     pub fn scan_mrz(&mut self, image_path: &Path) -> Result<Option<MrzResult>, String> {
-        use super::mrz::{icao_normalize, locate_mrz_region, preprocess_for_mrz, split_text_lines};
+        use super::mrz::{locate_mrz_region, preprocess_for_mrz, split_text_lines};
 
         let img = load_rgb_image(image_path)?;
 
@@ -278,6 +278,52 @@ impl OcrEngine {
         } else {
             line_imgs.iter().collect()
         };
+
+        // 逐行识别（内部拆段 rec）抽为 recognize_mrz_lines（P044-4）
+        let (raw_texts, total_conf) = self.recognize_mrz_lines(&lines_to_process);
+
+        if raw_texts.is_empty() {
+            tracing::warn!("[MRZ] ❌ 所有行识别均失败");
+            return Ok(None);
+        }
+
+        let avg_conf = total_conf / raw_texts.len() as f64;
+
+        // ── 6. 宽松过滤 ──
+        // 只过滤掉明显非 MRZ 的行（纯填充符或太短），
+        // 真正的验证交给 parse_mrz（它会自动 padding + checksum 校验）
+        let is_plausible_mrz = |s: &str| -> bool {
+            let len = s.len();
+            len >= 5 && !s.chars().all(|c| c == '<')
+        };
+
+        let valid_texts: Vec<String> = raw_texts
+            .into_iter()
+            .filter(|t| is_plausible_mrz(t))
+            .collect();
+
+        if valid_texts.len() < 2 {
+            tracing::warn!("[MRZ] ❌ 有效 MRZ 行不足 2 (仅 {} 行)", valid_texts.len());
+            return Ok(None);
+        }
+
+        // ── 7. 尝试解析（parse_mrz 内部会 padding + checksum 校验）──
+        // 底部 2 行 → 底部 3 行 → 贪心合并 2 行 → 贪心合并 3 行 依次尝试（P044-4 抽取）
+        match try_parse_mrz_combos(&valid_texts, avg_conf) {
+            Ok(mrz) => Ok(Some(mrz)),
+            Err(_) => {
+                tracing::warn!("[MRZ] ❌ 所有解析尝试均失败");
+                Err("无法识别 MRZ 格式".to_string())
+            }
+        }
+    }
+    /// 逐行识别 MRZ 候选行：每行拆两段分别 rec 后拼接（行宽 ~852px 直接压缩
+    /// 字符过小），低置信/过短行跳过；返回 (规范化文本列表, 置信度累加)。
+    fn recognize_mrz_lines(
+        &mut self,
+        lines_to_process: &[&image::GrayImage],
+    ) -> (Vec<String>, f64) {
+        use super::mrz::icao_normalize;
 
         let mut raw_texts = Vec::new();
         let mut total_conf = 0.0f64;
@@ -340,71 +386,50 @@ impl OcrEngine {
             total_conf += avg_conf;
         }
 
-        if raw_texts.is_empty() {
-            tracing::warn!("[MRZ] ❌ 所有行识别均失败");
-            return Ok(None);
-        }
-
-        let avg_conf = total_conf / raw_texts.len() as f64;
-
-        // ── 6. 宽松过滤 ──
-        // 只过滤掉明显非 MRZ 的行（纯填充符或太短），
-        // 真正的验证交给 parse_mrz（它会自动 padding + checksum 校验）
-        let is_plausible_mrz = |s: &str| -> bool {
-            let len = s.len();
-            len >= 5 && !s.chars().all(|c| c == '<')
-        };
-
-        let valid_texts: Vec<String> = raw_texts
-            .into_iter()
-            .filter(|t| is_plausible_mrz(t))
-            .collect();
-
-        if valid_texts.len() < 2 {
-            tracing::warn!("[MRZ] ❌ 有效 MRZ 行不足 2 (仅 {} 行)", valid_texts.len());
-            return Ok(None);
-        }
-
-        // ── 7. 尝试解析（parse_mrz 内部会 padding + checksum 校验）──
-        // 尝试用底部 2 行
-        let bottom_2: Vec<String> = valid_texts[valid_texts.len().saturating_sub(2)..].to_vec();
-        if let Ok(mrz) = parse_mrz_fallback(&bottom_2, avg_conf) {
-            tracing::info!("[MRZ] ✅ 底部 2 行解析成功");
-            return Ok(Some(mrz));
-        }
-
-        // 尝试底部 3 行（TD-1）
-        if valid_texts.len() >= 3 {
-            let bottom_3: Vec<String> = valid_texts[valid_texts.len().saturating_sub(3)..].to_vec();
-            if let Ok(mrz) = parse_mrz_fallback(&bottom_3, avg_conf) {
-                tracing::info!("[MRZ] ✅ 底部 3 行解析成功");
-                return Ok(Some(mrz));
-            }
-        }
-
-        // 贪心合并尝试
-        let merged_2 = greedy_merge_lines(&valid_texts, 2);
-        if let Ok(mrz) = parse_mrz_fallback(&merged_2, avg_conf) {
-            tracing::info!("[MRZ] ✅ 合并 2 行解析成功");
-            return Ok(Some(mrz));
-        }
-
-        if valid_texts.len() >= 3 {
-            let merged_3 = greedy_merge_lines(&valid_texts, 3);
-            if let Ok(mrz) = parse_mrz_fallback(&merged_3, avg_conf) {
-                tracing::info!("[MRZ] ✅ 合并 3 行解析成功");
-                return Ok(Some(mrz));
-            }
-        }
-
-        tracing::warn!("[MRZ] ❌ 所有解析尝试均失败");
-        Err("无法识别 MRZ 格式".to_string())
+        (raw_texts, total_conf)
     }
 }
 
 // ─── MRZ 行重建辅助函数 ────────────────────────────────────────
 
 /// 尝试用给定的行列表直接解析 MRZ。成功时设置 confidence。
+/// 依次尝试四种解析组合：底部 2 行 → 底部 3 行（TD-1）→ 贪心合并 2 行 → 贪心合并 3 行。
+/// 任一组成功即返回；全部失败返回 Err。从 scan_mrz 抽出（P044-4），日志逐字保留。
+fn try_parse_mrz_combos(valid_texts: &[String], avg_conf: f64) -> Result<MrzResult, String> {
+    // 尝试用底部 2 行
+    let bottom_2: Vec<String> = valid_texts[valid_texts.len().saturating_sub(2)..].to_vec();
+    if let Ok(mrz) = parse_mrz_fallback(&bottom_2, avg_conf) {
+        tracing::info!("[MRZ] ✅ 底部 2 行解析成功");
+        return Ok(mrz);
+    }
+
+    // 尝试底部 3 行（TD-1）
+    if valid_texts.len() >= 3 {
+        let bottom_3: Vec<String> = valid_texts[valid_texts.len().saturating_sub(3)..].to_vec();
+        if let Ok(mrz) = parse_mrz_fallback(&bottom_3, avg_conf) {
+            tracing::info!("[MRZ] ✅ 底部 3 行解析成功");
+            return Ok(mrz);
+        }
+    }
+
+    // 贪心合并尝试
+    let merged_2 = greedy_merge_lines(valid_texts, 2);
+    if let Ok(mrz) = parse_mrz_fallback(&merged_2, avg_conf) {
+        tracing::info!("[MRZ] ✅ 合并 2 行解析成功");
+        return Ok(mrz);
+    }
+
+    if valid_texts.len() >= 3 {
+        let merged_3 = greedy_merge_lines(valid_texts, 3);
+        if let Ok(mrz) = parse_mrz_fallback(&merged_3, avg_conf) {
+            tracing::info!("[MRZ] ✅ 合并 3 行解析成功");
+            return Ok(mrz);
+        }
+    }
+
+    Err("无法识别 MRZ 格式".to_string())
+}
+
 fn parse_mrz_fallback(lines: &[String], confidence: f64) -> Result<MrzResult, String> {
     use super::mrz::{parse_mrz, verify_checksums_lenient};
     match parse_mrz(lines) {
