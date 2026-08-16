@@ -538,114 +538,17 @@ pub async fn object_create(
     // P114: 模板继承查询 + save_object 写入（AES 加密）移入 spawn_blocking。
     let data = tokio::task::spawn_blocking(move || -> Result<ObjectData, String> {
         let now = chrono::Utc::now().to_rfc3339();
-        let id = input
-            .id
-            .clone()
-            .unwrap_or_else(|| Uuid::new_v4().to_string());
 
-        // R025: 禁止客户端指定已存在活跃对象的 ID 进行覆盖
-        if input.id.is_some() {
-            if let Ok(Some(existing)) = vault.load_object(&id) {
-                if !existing.is_deleted {
-                    return Err(format!("Object with ID '{}' already exists", id));
-                }
-            }
-        }
-
-        // §13.10.3: 从模板继承 contract_type_id
-        let contract_type_id = inherit_contract_type_id(&vault, input.template_id.as_deref());
-        // §Bugfix: 从模板继承字段级敏感度，确保模板删除后对象仍保留敏感度信息
-        let property_labels = inherit_property_labels(&vault, input.template_id.as_deref());
-        // §Bugfix: 从模板继承字段定义（名称+类型），确保模板删除后对象仍保留字段名和类型
-        let property_fields = inherit_property_fields(&vault, input.template_id.as_deref());
-        let mut properties = input.properties.clone();
-        inject_property_fields(&mut properties, &property_fields);
-        // §Bugfix: 保存模板名称，模板删除后仍可显示
-        inject_template_meta(&vault, input.template_id.as_deref(), &mut properties);
-        // 计算并保存模板指纹，用于后续检测模板是否更新
-        let template_hash = input
-            .template_id
-            .as_deref()
-            .and_then(|tid| vault.load_user_template(tid).ok().flatten())
-            .map(|tpl| template_fingerprint(&tpl));
-        if let Some(ref hash) = template_hash {
-            if let Some(obj) = properties.as_object_mut() {
-                obj.insert(
-                    "__templateHash".to_string(),
-                    serde_json::Value::String(hash.clone()),
-                );
-            }
-        }
-        // 校验 dynamic_group 字段
-        validate_dynamic_groups(&properties)?;
-
-        let record = ObjectRecord {
-            contract_type_id,
-            id: id.clone(),
-            account_id: account_id.clone(),
-            type_id: input.collection_type.clone(),
-            section_type: input.collection_type.clone(), // §25.1.3: page affiliation (currently mirrors type_id)
-            name: input.name.clone(),
-            icon_name: input.icon_name.unwrap_or_else(|| "document".to_string()),
-            parent_id: input.parent_id.clone(),
-            children_ids: vec![],
-            properties,
-            property_labels,
-            sensitivity_level: "internal".to_string(),
-            is_deleted: false,
-            deleted_at: None,
-            tags_json: vec![],
-            template_id: input.template_id.clone(),
-            template_type: input.template_type.clone(),
-            template_hash,
-            ignored_template_hash: None,
-            created_at: now.clone(),
-            updated_at: now,
-            version: 1,
-        };
+        // R025 检查 + 模板继承 + record 构建（P044-9 拆分）
+        let record = build_create_record(&vault, &input, &account_id, &now)?;
 
         // If parent specified, update parent's children_ids
-        if let Some(ref pid) = input.parent_id {
-            if let Ok(Some(mut parent)) = vault.load_object(pid) {
-                if !parent.children_ids.contains(&id) {
-                    parent.children_ids.push(id.clone());
-                    parent.updated_at = chrono::Utc::now().to_rfc3339();
-                    parent.version += 1;
-                    vault.save_object(&parent)?;
-                }
-            }
-        }
+        attach_object_to_parent(&vault, &record.id, input.parent_id.as_deref())?;
 
         vault.save_object(&record)?;
-        // §25.5 — Initial snapshot on create
-        let snapshot_data = serde_json::to_vec(&serde_json::json!({
-            "name": record.name,
-            "tags": record.tags_json,
-            "properties": record.properties,
-            "propertyLabels": record.property_labels,
-        }))
-        .unwrap_or_default();
-        crate::commands::save_snapshot_best_effort(
-            &vault,
-            &id,
-            "user_edit",
-            &snapshot_data,
-            "diff_created",
-        );
-        let is_page = input.collection_type == "page";
-        crate::commands::log_audit_best_effort(
-            &vault,
-            if is_page {
-                "page_create"
-            } else {
-                "object_create"
-            },
-            if is_page { "page" } else { "object" },
-            Some(&id),
-            Some(&input.name),
-            "user",
-            Some(&format!("section={}", input.collection_type)),
-        );
+        // §25.5 — Initial snapshot on create + 审计日志
+        create_object_snapshot_and_audit(&vault, &record, &input)?;
+
         Ok(record_to_data(&record))
     })
     .await
@@ -654,6 +557,139 @@ pub async fn object_create(
     state.auto_sync.trigger_debounce();
     state.device_auto_sync.trigger_data_change();
     Ok(data)
+}
+
+/// 构建对象记录：ID 冲突检查（R025）+ 模板继承（contract_type_id/敏感度/字段定义/模板名/指纹）+ dynamic_group 校验。
+fn build_create_record(
+    vault: &solosoul_vault::VaultStore,
+    input: &CreateObjectInput,
+    account_id: &str,
+    now: &str,
+) -> Result<ObjectRecord, String> {
+    let id = input
+        .id
+        .clone()
+        .unwrap_or_else(|| Uuid::new_v4().to_string());
+
+    // R025: 禁止客户端指定已存在活跃对象的 ID 进行覆盖
+    if input.id.is_some() {
+        if let Ok(Some(existing)) = vault.load_object(&id) {
+            if !existing.is_deleted {
+                return Err(format!("Object with ID '{}' already exists", id));
+            }
+        }
+    }
+
+    // §13.10.3: 从模板继承 contract_type_id
+    let contract_type_id = inherit_contract_type_id(vault, input.template_id.as_deref());
+    // §Bugfix: 从模板继承字段级敏感度，确保模板删除后对象仍保留敏感度信息
+    let property_labels = inherit_property_labels(vault, input.template_id.as_deref());
+    // §Bugfix: 从模板继承字段定义（名称+类型），确保模板删除后对象仍保留字段名和类型
+    let property_fields = inherit_property_fields(vault, input.template_id.as_deref());
+    let mut properties = input.properties.clone();
+    inject_property_fields(&mut properties, &property_fields);
+    // §Bugfix: 保存模板名称，模板删除后仍可显示
+    inject_template_meta(vault, input.template_id.as_deref(), &mut properties);
+    // 计算并保存模板指纹，用于后续检测模板是否更新
+    let template_hash = input
+        .template_id
+        .as_deref()
+        .and_then(|tid| vault.load_user_template(tid).ok().flatten())
+        .map(|tpl| template_fingerprint(&tpl));
+    if let Some(ref hash) = template_hash {
+        if let Some(obj) = properties.as_object_mut() {
+            obj.insert(
+                "__templateHash".to_string(),
+                serde_json::Value::String(hash.clone()),
+            );
+        }
+    }
+    // 校验 dynamic_group 字段
+    validate_dynamic_groups(&properties)?;
+
+    Ok(ObjectRecord {
+        contract_type_id,
+        id,
+        account_id: account_id.to_string(),
+        type_id: input.collection_type.clone(),
+        section_type: input.collection_type.clone(), // §25.1.3: page affiliation (currently mirrors type_id)
+        name: input.name.clone(),
+        icon_name: input
+            .icon_name
+            .clone()
+            .unwrap_or_else(|| "document".to_string()),
+        parent_id: input.parent_id.clone(),
+        children_ids: vec![],
+        properties,
+        property_labels,
+        sensitivity_level: "internal".to_string(),
+        is_deleted: false,
+        deleted_at: None,
+        tags_json: vec![],
+        template_id: input.template_id.clone(),
+        template_type: input.template_type.clone(),
+        template_hash,
+        ignored_template_hash: None,
+        created_at: now.to_string(),
+        updated_at: now.to_string(),
+        version: 1,
+    })
+}
+
+/// If parent specified, update parent's children_ids
+fn attach_object_to_parent(
+    vault: &solosoul_vault::VaultStore,
+    child_id: &str,
+    parent_id: Option<&str>,
+) -> Result<(), String> {
+    if let Some(pid) = parent_id {
+        if let Ok(Some(mut parent)) = vault.load_object(pid) {
+            if !parent.children_ids.contains(&child_id.to_string()) {
+                parent.children_ids.push(child_id.to_string());
+                parent.updated_at = chrono::Utc::now().to_rfc3339();
+                parent.version += 1;
+                vault.save_object(&parent)?;
+            }
+        }
+    }
+    Ok(())
+}
+
+/// §25.5 — Initial snapshot on create + 审计日志
+fn create_object_snapshot_and_audit(
+    vault: &solosoul_vault::VaultStore,
+    record: &ObjectRecord,
+    input: &CreateObjectInput,
+) -> Result<(), String> {
+    let snapshot_data = serde_json::to_vec(&serde_json::json!({
+        "name": record.name,
+        "tags": record.tags_json,
+        "properties": record.properties,
+        "propertyLabels": record.property_labels,
+    }))
+    .unwrap_or_default();
+    crate::commands::save_snapshot_best_effort(
+        vault,
+        &record.id,
+        "user_edit",
+        &snapshot_data,
+        "diff_created",
+    );
+    let is_page = input.collection_type == "page";
+    crate::commands::log_audit_best_effort(
+        vault,
+        if is_page {
+            "page_create"
+        } else {
+            "object_create"
+        },
+        if is_page { "page" } else { "object" },
+        Some(&record.id),
+        Some(&record.name),
+        "user",
+        Some(&format!("section={}", input.collection_type)),
+    );
+    Ok(())
 }
 
 #[tauri::command]
