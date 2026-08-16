@@ -297,6 +297,11 @@ fn register_plugin_commands(
 
 /// IPC 命令分发器：按命令名前缀路由到对应簇，未命中前缀的落入核心簇（兜底）。
 /// 语义与原先单个 `generate_handler!` 大列表逐字等价（分发 + 簇内精确匹配双层兜底）。
+///
+/// ⚠️ P042 维护提醒：新增命令时必须同步三处——①加入对应 `register_*_commands` 的
+/// `generate_handler!` 列表；②若新命令前缀不在现有路由条件下，更新此处路由；
+/// ③同步 `tests::test_dispatch_cluster_prefixes_consistent` 的簇命令名/前缀映射
+/// 列表（该测试断言两处一致性，防止静默失配）。
 fn dispatch_ipc(invoke: tauri::ipc::Invoke<tauri::Wry>) -> bool {
     // 借用命令名（NLL：借用在其最后一次使用——路由 if 条件——后即结束，分支内 move invoke 不冲突，避免每 invoke 一次 String 分配）
     let cmd = invoke.message.command();
@@ -381,9 +386,14 @@ pub fn run() {
 mod tests {
     /// P223-③ 前缀路由守卫：每簇命令名必须匹配 `dispatch_ipc` 的路由前缀，
     /// 防止未来新增命令被放进错误簇导致静默失配（返回 false 等同未知命令）。
+    ///
+    /// ⚠️ P042 维护提醒：本列表为命令名的第二份真相（第一份是各 `register_*_commands`
+    /// 的 `generate_handler!` 列表）。Rust 宏输出不可内省，无法自动提取命令名，故以
+    /// 本守卫测试保证两份真相同步——新增命令时**必须**同时更新对应簇的列表与本映射。
     #[test]
     fn test_dispatch_cluster_prefixes_consistent() {
         // 各簇命令名与其路由前缀的映射（与 dispatch_ipc / register_*_commands 一一对应）
+        // ⚠️ 新增命令时同步更新下方命令名与总数断言（当前 total == 195）。
         let clusters: [(&str, &[&str], &[&str]); 5] = [
             (
                 "sync",
