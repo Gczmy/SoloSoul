@@ -57,7 +57,7 @@
 | P018 | 内存安全   | `tauri/crates/solosoul-crypto/src/kdf.rs:94-103`；调用点 `solosoul-core/src/export_import.rs:211,326` | `derive_export_key` 返回裸 `[u8;32]` 未以 Zeroizing 包裹，与全库内存卫生纪律不一致 | `[x]` 已修复（P018） |
 | P019 | 供应链     | `tauri/crates/solosoul-plugin/src/registry.rs:76-88` | 插件注册表 URL 与 minisign 公钥读自环境变量，信任锚弱于 embed registry 的编译期固化 | `[x]` 已修复（P019） |
 | P020 | 供应链/隐私 | `tauri/src-tauri/tauri.conf.json:82-88` | updater 5 个端点中 4 个为第三方 GitHub 代理，存在降级冻结与行为记录风险 | `[x]` 已修复（P020） |
-| P021 | 静态加密   | `tauri/src-tauri/src/commands/attachment/crud.rs:524` | 附件明文落盘 `{vault}/attachments/`，与 vault.db/导出包加密姿态不一致（0700 权限是唯一防线） | `[ ]` 待修复 |
+| P021 | 静态加密   | `tauri/src-tauri/src/commands/attachment/crud.rs:524` | 附件明文落盘 `{vault}/attachments/`，与 vault.db/导出包加密姿态不一致（0700 权限是唯一防线） | `[x]` 已修复（P021） |
 | P022 | 加密弱点   | `tauri/crates/solosoul-core/src/pin.rs:101` | PIN 凭证可离线爆破（6 位最坏约 1 天），锁定计数对离线攻击无效；设计权衡但未文档化 | `[ ]` 待修复 |
 | P023 | 路径遍历（加固） | `tauri/crates/solosoul-sync/src/attachments.rs:45-50` 对比 `solosoul-core/src/export_import.rs:1070-1088` | sync 侧附件文件名净化弱于 import 侧（未拒绝 `\`），同款安全控制两处强度不一致 | `[ ]` 待修复 |
 | P024 | 架构       | `tauri/crates/solosoul-sync/Cargo.toml`、`solosoul-plugin/Cargo.toml` | sync/plugin 依赖 core 拖入整个 OCR/PDF 重依赖栈（ort、pdfium-render 等），编译面与体积被拉大 | `[ ]` 待修复 |
@@ -94,8 +94,8 @@
 
 ## 修复进度
 
-- 已完成：20 / 54
-- 当前处理：P021（附件明文落盘静态加密）
+- 已完成：21 / 54
+- 当前处理：P022（PIN 凭证离线爆破强度文档化）
 
 ---
 
@@ -248,6 +248,13 @@
 - **位置**：`tauri/src-tauri/src/commands/update.rs`（Android `android_check_update` 与桌面 `desktop_info_from_github_release` 两条路径）。
 - **修复**：新增 `version_is_newer`（semver 严格比较，任一侧解析失败 fail-safe 判非新）与 `normalize_to_newer`（非新版本归一为当前版本）——Android 与桌面 GitHub 兜底路径的 `latest` 均经单调性归一，前端 `latest == current` 判等即不再提示，杜绝第三方代理重放旧 release 元数据诱导降级/压制升级提示。
 - **验证**：src-tauri cargo check / clippy `-D warnings` / fmt 全绿。
+
+### P021 — 附件明文落盘（已修复：威胁模型例外文档化）
+
+- **提交**：`e6e89fbe`
+- **位置**：`docs/attachment-storage-spec.md`（新建）+ `AGENTS.md` 安全架构章节（AGENTS.md 未入版本控制，仅本地同步）。
+- **修复（用户选定方案 A）**：新建附件存储安全规范（对齐 biometric-spec.md 模式）——登记存储形态（`{vault}/attachments/{object_id}/{attachment_id}/` 明文 + vault 目录 0700/0600 + 附件 ID 白名单 + 元数据 `properties.__attachments` 永远加密 + 导出包加密）、已防御（目录权限/元数据加密/`resolve_verified_attachment_path` 鉴权/移动端 FBE 兜底）、残余缺口（同用户进程可读明文、vault 整体外拷泄露）、设计权衡（系统级打开/分享需真实文件路径 + 临时解密文件面与全量解密性能成本）、中期强化路线（敏感度 `sensitive`/`critical` 附件的可选加密开关，backlog 未排期）。
+- **验证**：纯文档变更，无代码影响。
 
 ### P016–P054 摘要指引
 
