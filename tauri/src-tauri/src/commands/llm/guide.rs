@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 // =============================================================================
 // Help Guide Retrieval (§7)
@@ -249,8 +249,9 @@ fn is_stop_char(c: char) -> bool {
     )
 }
 
-fn is_stop_word(word: &str) -> bool {
-    let stops: &[&str] = &[
+/// P046: 停用词表（约 129 词）——由每次调用重建 slice + 线性查找改为 LazyLock 静态 HashSet，哈希查找 O(1)，分词热路径不再反复分配。
+static STOP_WORDS: LazyLock<HashSet<&'static str>> = LazyLock::new(|| {
+    HashSet::from([
         "的",
         "了",
         "是",
@@ -380,8 +381,11 @@ fn is_stop_word(word: &str) -> bool {
         "their",
         "theirs",
         "themselves",
-    ];
-    stops.contains(&word)
+    ])
+});
+
+fn is_stop_word(word: &str) -> bool {
+    STOP_WORDS.contains(word)
 }
 
 pub fn resolve_language(files: &HashMap<String, String>, requested: &str) -> String {
