@@ -47,7 +47,8 @@ export function ScanLocalPage() {
   const navigate = useNavigate();
   const { t } = useTranslation(['settings', 'common']);
   const accountId = useAuthStore((s) => s.currentAccount?.id);
-  const { createObject } = useObjectStore();
+  // P047: 仅订阅 createObject action（store 级选择器，避免任意字段变化触发整页重渲染）
+  const createObject = useObjectStore((s) => s.createObject);
   const { onError, onSuccess } = useToastError();
 
   const [files, setFiles] = useState<ScannedFile[]>([]);
@@ -68,7 +69,8 @@ export function ScanLocalPage() {
         const result = await invoke<ScannedFile[]>('fs_scan_directory', { path: dir });
         setFiles(result.filter((f) => SUPPORTED_EXTS.has(f.ext.toLowerCase())));
       }
-    } catch (e) {        onError(e, t('settings:scan_failed'));
+    } catch (e) {
+      onError(e, t('settings:scan_failed'));
     } finally {
       setIsScanning(false);
     }
@@ -132,13 +134,16 @@ export function ScanLocalPage() {
               <FolderOpen size={ICON_SIZE['2xl']} style={{ color: 'var(--accent-primary)' }} />
             </div>
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>{t('settings:scan_select_dir_title')}</div>
+              <div style={{ fontSize: 'var(--text-sm)', fontWeight: 600 }}>
+                {t('settings:scan_select_dir_title')}
+              </div>
               <div style={{ fontSize: 'var(--text-caption)', color: 'var(--text-tertiary)' }}>
                 {selectedDir || t('settings:scan_select_dir_desc')}
               </div>
             </div>
             <Button onClick={handleSelectDir} loading={isScanning}>
-              <Search size={ICON_SIZE.sm} style={{ marginRight: 4 }} /> {t('settings:scan_scan_button')}
+              <Search size={ICON_SIZE.sm} style={{ marginRight: 4 }} />{' '}
+              {t('settings:scan_scan_button')}
             </Button>
           </div>
         </Card>
@@ -151,7 +156,8 @@ export function ScanLocalPage() {
                 {t('settings:scan_files_found', { count: files.length })}
               </span>
               <Button size="sm" variant="secondary" onClick={handleImportAll}>
-                <Upload size={ICON_SIZE.sm} style={{ marginRight: 4 }} /> {t('settings:scan_import_all')}
+                <Upload size={ICON_SIZE.sm} style={{ marginRight: 4 }} />{' '}
+                {t('settings:scan_import_all')}
               </Button>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--card-gap-sm)' }}>

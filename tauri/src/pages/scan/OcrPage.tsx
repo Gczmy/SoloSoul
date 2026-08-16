@@ -23,7 +23,8 @@ export function OcrPage() {
   const location = useLocation();
   const { t } = useTranslation(['ocr', 'common']);
   const accountId = useAuthStore((s) => s.currentAccount?.id);
-  const { createObject } = useObjectStore();
+  // P047: 仅订阅 createObject action（store 级选择器，避免任意字段变化触发整页重渲染）
+  const createObject = useObjectStore((s) => s.createObject);
   const { onError, onSuccess } = useToastError();
 
   const initialFilePath = (location.state as { filePath?: string } | null)?.filePath || '';
@@ -287,27 +288,34 @@ export function OcrPage() {
           {
             icon: Scan,
             title: t('common:guide_ocr_step1_title', { defaultValue: 'Choose Input' }),
-            description:
-              t('common:guide_ocr_step1_desc', { defaultValue: 'Take a photo with the camera or select an image from your device. OCR extracts text from the image.' }),
+            description: t('common:guide_ocr_step1_desc', {
+              defaultValue:
+                'Take a photo with the camera or select an image from your device. OCR extracts text from the image.',
+            }),
           },
           {
             icon: Layers,
             title: t('common:guide_ocr_step2_title', { defaultValue: 'Select Tier' }),
-            description:
-              t('common:guide_ocr_step2_desc', { defaultValue: 'Pick an OCR model tier based on accuracy and speed. Larger tiers are more accurate but slower.' }),
+            description: t('common:guide_ocr_step2_desc', {
+              defaultValue:
+                'Pick an OCR model tier based on accuracy and speed. Larger tiers are more accurate but slower.',
+            }),
           },
           {
             icon: Import,
             title: t('common:guide_ocr_step3_title', { defaultValue: 'Extract & Import' }),
-            description:
-              t('common:guide_ocr_step3_desc', { defaultValue: 'Review the recognized text and import it as a new object. You can also copy or edit the result.' }),
+            description: t('common:guide_ocr_step3_desc', {
+              defaultValue:
+                'Review the recognized text and import it as a new object. You can also copy or edit the result.',
+            }),
           },
         ],
         helpLinks: [
           {
             title: t('common:guide_help_ocr_scan', { defaultValue: 'OCR & Scan' }),
-            description:
-              t('common:guide_help_ocr_scan_desc', { defaultValue: 'Scan images and import recognized text as objects' }),
+            description: t('common:guide_help_ocr_scan_desc', {
+              defaultValue: 'Scan images and import recognized text as objects',
+            }),
             href: '/help?id=ocr_scan',
           },
         ],
