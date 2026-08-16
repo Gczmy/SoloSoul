@@ -365,13 +365,6 @@ impl BiometricManager {
         Ok(())
     }
 
-    /// Trigger the system biometric dialog as a self-test.
-    /// 使用严格策略确保实际触发生物识别，不回落到设备密码。
-    pub fn test(&self, reason: &str) -> Result<bool, BiometricError> {
-        trigger_system_biometric(reason, true)?;
-        Ok(true)
-    }
-
     /// Verify the master password for the account.
     pub fn verify_password(&self, password: &str, account_id: &str) -> Result<(), BiometricError> {
         let cfg = read_account_config(account_id, &self.base_path)?;
