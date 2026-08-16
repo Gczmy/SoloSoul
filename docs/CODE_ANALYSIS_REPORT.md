@@ -79,7 +79,7 @@
 | P040 | 死代码     | `tauri/crates/solosoul-core/src/llm/service.rs:185` | 全库唯一遗留 `TODO(S003)`：会话存储迁移清理，需确认门槛版本是否已过 | `[x]` 已修复（P040） |
 | P041 | 维护性     | `tauri/crates/solosoul-core/src/biometric/macos_keychain.rs`（444 行） | 整模块被 `feature = "future-keychain"` 门控脱离默认编译面，长期腐化风险，建议 CI 加 feature 编译检查 | `[x]` 已修复（P041） |
 | P042 | 维护性     | `tauri/src-tauri/src/lib.rs:760-1019` | 测试手工维护 195 个命令名列表与 `generate_handler!` 双份真相，每次加命令需同步两处 | `[x]` 已修复（P042） |
-| P043 | 性能       | `src-tauri/src/commands/export_import/export.rs:717-739`、`import.rs:188-207`、`object/trash.rs:169-171` | 导出快照、导入冲突检测、回收站批量清理存在循环内逐条查询/事务（非热路径） | `[ ]` 待修复 |
+| P043 | 性能       | `src-tauri/src/commands/export_import/export.rs:717-739`、`import.rs:188-207`、`object/trash.rs:169-171` | 导出快照、导入冲突检测、回收站批量清理存在循环内逐条查询/事务（非热路径） | `[x]` 已修复（P043） |
 | P044 | 结构       | Rust 侧 14 个过长函数（100-133 行）：`import_one_object`、`reencrypt_all`、`receive_attachments`（嵌套 7 层）、`export_execute`、`recovery_restore_from_host`、`register_util_fns`、`scan_mrz`、`initialize_vault`、`biometric_save_credential`、`object_create`、`apply_sync_changes`、`handle_sse_stream` 等 | 建议随对应模块拆分时一并处理，清单详见下方详细描述 | `[ ]` 待修复 |
 | P045 | 结构       | `storage.rs:281`、`sync/mobile.rs:340`、`sync/manager.rs:156`、`core/llm/client.rs:269`、`app_state.rs:259`、`vault_directory.rs:388`、`update.rs:992` | 7 处嵌套深度 6-7 层的函数 | `[ ]` 待修复 |
 | P046 | 性能       | `tauri/src-tauri/src/commands/llm/guide.rs:252-385` | `is_stop_word` 每次调用重建 ~130 词 slice 线性查找，且在分词循环内逐 token 调用 | `[ ]` 待修复 |
@@ -94,8 +94,8 @@
 
 ## 修复进度
 
-- 已完成：42 / 54
-- 当前处理：P043（导出/导入/回收站批量路径批量 SQL）
+- 已完成：43 / 54
+- 当前处理：P044/P045（过长函数与深嵌套清单）
 
 ---
 
@@ -369,6 +369,16 @@
 - **位置**：`src-tauri/src/lib.rs`（`dispatch_ipc`、`test_dispatch_cluster_prefixes_consistent`）。
 - **修复（按指引「注释强化提醒或改宏生成命令列表」）**：Rust 宏输出不可内省，无法从 `generate_handler!` 自动提取命令名——宏生成方案不可行，选指引选项一「注释强化」：①`dispatch_ipc` 路由函数 doc 加 P042 维护提醒（新增命令需同步 `register_*_commands` 列表 + 路由条件 + 守卫测试映射）；②守卫测试 doc 注明本列表为命令名第二份真相及宏不可内省的根因；③命令名映射处加「新增命令同步更新下方列表与总数断言（当前 195）」提醒。
 - **验证**：纯注释零行为变化；check + tests 编译（Windows DLL 环境问题致运行失败，预存在）+ clippy `-D warnings` + fmt 全绿。
+
+### P043 — 批量路径批量 SQL（已修复：import 批量 + export/trash 评估挂账）
+
+- **提交**：`285679f8`（import.rs）
+- **位置**：`src-tauri/src/commands/export_import/import.rs`。
+- **修复（按指引「非热路径，低优先」）**：
+  - ✅ import.rs 冲突检测：逐条 `load_object`（N 次锁竞争 + N 次查询）→ `load_objects_batch` 一次 IN 查询 + HashMap 查找（复用既有批量 API，零新增 API）；语义逐字等价（软删排除、冲突类型判定不变）。
+  - ⏳ export.rs `collect_object_snapshots`：需新增 vault 批量快照 API（`list_snapshots_many`/`get_snapshots_many`），导出为低频用户动作且快照量有限，收益边际——**挂账**，随快照域下次改动一并处理。
+  - ⏳ trash.rs `cleanup_expired_trash`：核实现实现已是「一次批量查询 + 逐条删除」——删除须逐条保持失败隔离（单条物理删除失败跳过、保留回收站记录防孤儿），批量化会破坏语义——**记录为不适用**。
+- **验证**：check + clippy `-D warnings` + fmt 全绿。
 
 ### P026 — LLM 客户端 blocking/async 双份实现（已修复：共享纯函数收敛）
 
