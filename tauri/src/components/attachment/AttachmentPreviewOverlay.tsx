@@ -10,6 +10,8 @@ import { isMobilePlatformSync, isWindowsSync } from '@/lib/platform';
 import { useTouchZoom } from '@/hooks/useTouchZoom';
 import { syncStatusBarStyle } from '@/lib/theme';
 import { ICON_SIZE, SAFE_AREA_TOP, SAFE_AREA_BOTTOM } from '@/lib/constants';
+// P049: 缩放常量/纯函数收敛到共享模块（与 PhotoViewerOverlay 共用）
+import { MIN_SCALE, MAX_SCALE, ZOOM_STEP, clampScale, computeFitScale } from '@/lib/photoZoom';
 
 interface AttachmentPreviewOverlayProps {
   item: AttachmentItem | null;
@@ -26,10 +28,6 @@ interface AttachmentPreviewOverlayProps {
 }
 
 type PreviewKind = 'image' | 'pdf' | 'text' | 'other';
-
-const MIN_SCALE = 0.1;
-const MAX_SCALE = 5.0;
-const ZOOM_STEP = 1.2;
 
 function isUriPath(path: string): boolean {
   return path.startsWith('content://') || path.startsWith('file://');
@@ -172,11 +170,14 @@ export function AttachmentPreviewOverlay({
   const fitToView = useCallback(() => {
     const container = scrollRef.current;
     if (!container || !naturalSize) return;
-    const { clientWidth, clientHeight } = container;
     if (naturalSize.width === 0 || naturalSize.height === 0) return;
-    const scaleX = clientWidth / naturalSize.width;
-    const scaleY = clientHeight / naturalSize.height;
-    const fit = Number(Math.min(scaleX, scaleY, 1).toFixed(3));
+    // P049: 共享 computeFitScale（与 PhotoViewerOverlay 逐字同构，收敛消除重复）
+    const fit = computeFitScale(
+      container.clientWidth,
+      container.clientHeight,
+      naturalSize.width,
+      naturalSize.height,
+    );
     setFitScale(fit);
     setScale(fit);
   }, [naturalSize]);
@@ -207,8 +208,6 @@ export function AttachmentPreviewOverlay({
     minScale: MIN_SCALE,
     maxScale: MAX_SCALE,
   });
-
-  const clampScale = (value: number) => Math.min(MAX_SCALE, Math.max(MIN_SCALE, value));
 
   const zoomIn = () => setScale((s) => clampScale(s * ZOOM_STEP));
   const zoomOut = () => setScale((s) => clampScale(s / ZOOM_STEP));

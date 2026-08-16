@@ -18,6 +18,9 @@ import { useTouchZoom } from '@/hooks/useTouchZoom';
 import { ICON_SIZE } from '@/lib/constants';
 import type { AttachmentItem } from '@/lib/attachmentUtils';
 import { loadFullPreviewUrl } from '@/lib/photoAlbumPreview';
+// P049: 缩放常量/纯函数收敛到共享模块（测试直接 import computeFitScale，re-export 保持兼容）
+import { MIN_SCALE, MAX_SCALE, ZOOM_STEP, clampScale, computeFitScale } from '@/lib/photoZoom';
+export { computeFitScale } from '@/lib/photoZoom';
 
 export interface PhotoViewerOverlayProps {
   items: AttachmentItem[];
@@ -33,25 +36,6 @@ export interface PhotoViewerOverlayProps {
 
 /** 横向滑动翻页阈值（px）。 */
 const SWIPE_THRESHOLD = 60;
-const MIN_SCALE = 0.1;
-const MAX_SCALE = 5;
-const ZOOM_STEP = 1.2;
-
-/**
- * 纯函数：计算「适应视口」缩放比例（相对图片原始尺寸，与附件预览一致）。
- * 取宽/高两个方向的适配比中较小者，且不超过 1（小图不放大）。
- */
-export function computeFitScale(
-  clientWidth: number,
-  clientHeight: number,
-  naturalWidth: number,
-  naturalHeight: number,
-): number {
-  if (clientWidth <= 0 || clientHeight <= 0 || naturalWidth <= 0 || naturalHeight <= 0) {
-    return 1;
-  }
-  return Number(Math.min(clientWidth / naturalWidth, clientHeight / naturalHeight, 1).toFixed(3));
-}
 
 /** 纯函数：根据拖拽横向位移判断翻页方向（左滑 → 下一张，右滑 → 上一张）。 */
 export function swipeNavigation(offsetX: number, threshold = SWIPE_THRESHOLD): -1 | 0 | 1 {
@@ -211,7 +195,6 @@ export function PhotoViewerOverlay({
     return () => window.removeEventListener('keydown', handler);
   }, [goNext, goPrev, onClose]);
 
-  const clampScale = (v: number) => Math.min(MAX_SCALE, Math.max(MIN_SCALE, v));
   const zoomIn = () => setScale((s) => clampScale(s * ZOOM_STEP));
   const zoomOut = () => setScale((s) => clampScale(s / ZOOM_STEP));
 
