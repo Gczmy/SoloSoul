@@ -60,7 +60,7 @@
 | P021 | 静态加密   | `tauri/src-tauri/src/commands/attachment/crud.rs:524` | 附件明文落盘 `{vault}/attachments/`，与 vault.db/导出包加密姿态不一致（0700 权限是唯一防线） | `[x]` 已修复（P021） |
 | P022 | 加密弱点   | `tauri/crates/solosoul-core/src/pin.rs:101` | PIN 凭证可离线爆破（6 位最坏约 1 天），锁定计数对离线攻击无效；设计权衡但未文档化 | `[x]` 已修复（P022） |
 | P023 | 路径遍历（加固） | `tauri/crates/solosoul-sync/src/attachments.rs:45-50` 对比 `solosoul-core/src/export_import.rs:1070-1088` | sync 侧附件文件名净化弱于 import 侧（未拒绝 `\`），同款安全控制两处强度不一致 | `[x]` 已修复（P023） |
-| P024 | 架构       | `tauri/crates/solosoul-sync/Cargo.toml`、`solosoul-plugin/Cargo.toml` | sync/plugin 依赖 core 拖入整个 OCR/PDF 重依赖栈（ort、pdfium-render 等），编译面与体积被拉大 | `[ ]` 待修复 |
+| P024 | 架构       | `tauri/crates/solosoul-sync/Cargo.toml`、`solosoul-plugin/Cargo.toml` | sync/plugin 依赖 core 拖入整个 OCR/PDF 重依赖栈（ort、pdfium-render 等），编译面与体积被拉大 | `[x]` 已修复（P024） |
 | P025 | 架构       | `tauri/crates/solosoul-core/src/vault_service.rs`（2559 行）、`tauri/src-tauri/src/lib.rs`（1020 行） | 账户生命周期/SAF/会话全塞一个文件；lib.rs setup 步骤堆积在入口 | `[ ]` 待修复 |
 | P026 | 重复代码   | `solosoul-core/src/llm/client.rs`（475 行）vs `src-tauri/src/commands/llm/`（约 1185 行） | LLM HTTP/SSE 客户端 blocking/async 双份实现，请求构造与 SSE 解析可共享纯函数 | `[ ]` 待修复 |
 | P027 | 架构       | `tauri/src/stores/authStore.ts` ↔ 后端 `VaultService` | 解锁状态前后端双份维护，靠事件 + best-effort 收敛（已有多层缓解，残余窗口存疑） | `[ ]` 待修复 |
@@ -94,8 +94,8 @@
 
 ## 修复进度
 
-- 已完成：23 / 54
-- 当前处理：P024（sync/plugin 依赖 core 拖入 OCR/PDF 重依赖栈）
+- 已完成：24 / 54
+- 当前处理：P025（vault_service.rs / lib.rs 巨型文件拆分）
 
 ---
 
@@ -255,6 +255,13 @@
 - **位置**：`docs/attachment-storage-spec.md`（新建）+ `AGENTS.md` 安全架构章节（AGENTS.md 未入版本控制，仅本地同步）。
 - **修复（用户选定方案 A）**：新建附件存储安全规范（对齐 biometric-spec.md 模式）——登记存储形态（`{vault}/attachments/{object_id}/{attachment_id}/` 明文 + vault 目录 0700/0600 + 附件 ID 白名单 + 元数据 `properties.__attachments` 永远加密 + 导出包加密）、已防御（目录权限/元数据加密/`resolve_verified_attachment_path` 鉴权/移动端 FBE 兜底）、残余缺口（同用户进程可读明文、vault 整体外拷泄露）、设计权衡（系统级打开/分享需真实文件路径 + 临时解密文件面与全量解密性能成本）、中期强化路线（敏感度 `sensitive`/`critical` 附件的可选加密开关，backlog 未排期）。
 - **验证**：纯文档变更，无代码影响。
+
+### P024 — sync/plugin 拖入 OCR/PDF 重依赖栈（已修复：feature 门控）
+
+- **提交**：`0e4134f7`（+ `183141ff` lock 收尾）
+- **位置**：`solosoul-core/Cargo.toml`（features + target deps optional）、`core/lib.rs`（模块门控）、`solosoul-sync/Cargo.toml`、`solosoul-plugin/Cargo.toml`。
+- **修复**：core 新增 `ocr`/`pdf`/`watermark` 三个 feature（`default` 全开，src-tauri/CLI 零变化）——`ocr = ort+image+ndarray` 门控 ocr 模块、`pdf = pdfium-render` 门控 pdfium 模块、`watermark = image+pdfium-render+ab_glyph+pdf` 门控 watermark 模块（watermark 内部依赖 `crate::pdfium`，故传递启用 pdf）；① solosoul-sync 改 `default-features = false`（仅用 vault_service/path_util，依赖树重依赖归零）；② solosoul-plugin 改 `default-features = false + watermark`（水印宿主保留 image/pdfium-render，**ort/ndarray 不再进入编译面**）；③ 桌面端重依赖全部 `optional = true`。
+- **验证**：四 crate check/clippy `-D warnings` 全绿；core `--no-default-features` 编译通过；`cargo tree -p solosoul-sync` 中 ort/pdfium-render/ab_glyph 计数 0、`-p solosoul-plugin` 中 ort 计数 0；fmt 全绿；core ocr 27 测试全绿。
 
 ### P023 — sync/import/attachment 文件名净化强度不一致（已修复：收敛共享实现）
 
