@@ -63,7 +63,7 @@
 | P024 | 架构       | `tauri/crates/solosoul-sync/Cargo.toml`、`solosoul-plugin/Cargo.toml` | sync/plugin 依赖 core 拖入整个 OCR/PDF 重依赖栈（ort、pdfium-render 等），编译面与体积被拉大 | `[x]` 已修复（P024） |
 | P025 | 架构       | `tauri/crates/solosoul-core/src/vault_service.rs`（2559 行）、`tauri/src-tauri/src/lib.rs`（1020 行） | 账户生命周期/SAF/会话全塞一个文件；lib.rs setup 步骤堆积在入口 | `[x]` 已修复（P025） |
 | P026 | 重复代码   | `solosoul-core/src/llm/client.rs`（475 行）vs `src-tauri/src/commands/llm/`（约 1185 行） | LLM HTTP/SSE 客户端 blocking/async 双份实现，请求构造与 SSE 解析可共享纯函数 | `[x]` 已修复（P026） |
-| P027 | 架构       | `tauri/src/stores/authStore.ts` ↔ 后端 `VaultService` | 解锁状态前后端双份维护，靠事件 + best-effort 收敛（已有多层缓解，残余窗口存疑） | `[ ]` 待修复 |
+| P027 | 架构       | `tauri/src/stores/authStore.ts` ↔ 后端 `VaultService` | 解锁状态前后端双份维护，靠事件 + best-effort 收敛（已有多层缓解，残余窗口存疑） | `[x]` 已修复（P027） |
 | P028 | 架构       | `tauri/src/stores/syncStore.ts:20-66` ↔ `commands/sync.rs:6-27` | 同步历史存两份：localStorage（无清理逻辑，存疑）与后端 audit_log | `[ ]` 待修复 |
 | P029 | 架构       | `tauri/src/stores/settingsStore.ts:156-232` | 偏好设置三副本（后端 DB / localStorage / ui_preferences.json），读路径异常时可能闪烁回跳 | `[ ]` 待修复 |
 | P030 | 架构       | `tauri/src-tauri/src/state/app_state.rs`（866 行） | AppState 聚合 8 个字段且混入 SAF config、DTO、自由函数 | `[ ]` 待修复 |
@@ -94,8 +94,8 @@
 
 ## 修复进度
 
-- 已完成：26 / 54
-- 当前处理：P027（解锁状态前后端双份维护收敛）
+- 已完成：27 / 54
+- 当前处理：P028（AI 配置页风险接受回滚竞态修复）
 
 ---
 
@@ -255,6 +255,13 @@
 - **位置**：`docs/attachment-storage-spec.md`（新建）+ `AGENTS.md` 安全架构章节（AGENTS.md 未入版本控制，仅本地同步）。
 - **修复（用户选定方案 A）**：新建附件存储安全规范（对齐 biometric-spec.md 模式）——登记存储形态（`{vault}/attachments/{object_id}/{attachment_id}/` 明文 + vault 目录 0700/0600 + 附件 ID 白名单 + 元数据 `properties.__attachments` 永远加密 + 导出包加密）、已防御（目录权限/元数据加密/`resolve_verified_attachment_path` 鉴权/移动端 FBE 兜底）、残余缺口（同用户进程可读明文、vault 整体外拷泄露）、设计权衡（系统级打开/分享需真实文件路径 + 临时解密文件面与全量解密性能成本）、中期强化路线（敏感度 `sensitive`/`critical` 附件的可选加密开关，backlog 未排期）。
 - **验证**：纯文档变更，无代码影响。
+
+### P027 — 解锁状态前后端双份维护（已修复：前端解锁守卫默认启用）
+
+- **提交**：`daebef87`
+- **位置**：`tauri/src/lib/ipcClient.ts`（+ 测试）、`tauri/src/test/setup.ts`。
+- **修复（按指引「后端已鉴权可保持现状；扩大前端 requireUnlocked 默认启用面」）**：`invokeCommand` 默认启用解锁守卫——Vault 未解锁（`isAuthenticated === false`）时，除 `UNLOCKED_EXEMPT_COMMANDS` 豁免名单（认证/解锁流程 check_has_account/bootstrap/login/unlock 等 18 个 + 启动期系统命令 get_app_info/get_system_locale/set_titlebar_color/ui_get_preferences/android_install_apk/log_write 等 + OCR 模型管理 ocr_get_model_status/ocr_get_active_tier/ocr_download_model 等 7 个）外的所有命令在发起 IPC 前抛 `No account is currently unlocked`（与后端语义一致）；`opts.requireUnlocked` 显式覆盖（`true` 强制拦截豁免命令、`false` 显式豁免）；`getState` 缺失/异常 fail-open 交后端鉴权（前端守卫仅为减少无效 IPC 的 UX 优化）；测试环境（MODE===test）默认放行避免破坏既有 store/组件测试（部分模块链先于 mock 缓存真实 authStore），守卫逻辑由 ipcClient.test.ts 经 `vi.stubEnv(MODE=development)` + 6 个新用例全覆盖（默认拦截/已解锁放行/豁免放行/false 显式豁免/true 强制拦截）。
+- **验证**：761 测试全绿（84 文件）；tsc + eslint 全绿。
 
 ### P026 — LLM 客户端 blocking/async 双份实现（已修复：共享纯函数收敛）
 
