@@ -77,7 +77,7 @@
 | P038 | 死代码     | `tauri/src-tauri/src/commands/object/trash.rs:149` | 命令 `trash_permanent_delete`（单条版）已注册但前端无 invoke（存疑：可能为 API 对齐保留） | `[x]` 已修复（P038） |
 | P039 | 死代码     | `tauri/crates/solosoul-core/src/process_lock.rs:19` | `ProcessLock` 的 `path` 字段从不读取（`file` 字段靠持有实现 RAII 属合理） | `[x]` 已修复（P039） |
 | P040 | 死代码     | `tauri/crates/solosoul-core/src/llm/service.rs:185` | 全库唯一遗留 `TODO(S003)`：会话存储迁移清理，需确认门槛版本是否已过 | `[x]` 已修复（P040） |
-| P041 | 维护性     | `tauri/crates/solosoul-core/src/biometric/macos_keychain.rs`（444 行） | 整模块被 `feature = "future-keychain"` 门控脱离默认编译面，长期腐化风险，建议 CI 加 feature 编译检查 | `[ ]` 待修复 |
+| P041 | 维护性     | `tauri/crates/solosoul-core/src/biometric/macos_keychain.rs`（444 行） | 整模块被 `feature = "future-keychain"` 门控脱离默认编译面，长期腐化风险，建议 CI 加 feature 编译检查 | `[x]` 已修复（P041） |
 | P042 | 维护性     | `tauri/src-tauri/src/lib.rs:760-1019` | 测试手工维护 195 个命令名列表与 `generate_handler!` 双份真相，每次加命令需同步两处 | `[ ]` 待修复 |
 | P043 | 性能       | `src-tauri/src/commands/export_import/export.rs:717-739`、`import.rs:188-207`、`object/trash.rs:169-171` | 导出快照、导入冲突检测、回收站批量清理存在循环内逐条查询/事务（非热路径） | `[ ]` 待修复 |
 | P044 | 结构       | Rust 侧 14 个过长函数（100-133 行）：`import_one_object`、`reencrypt_all`、`receive_attachments`（嵌套 7 层）、`export_execute`、`recovery_restore_from_host`、`register_util_fns`、`scan_mrz`、`initialize_vault`、`biometric_save_credential`、`object_create`、`apply_sync_changes`、`handle_sse_stream` 等 | 建议随对应模块拆分时一并处理，清单详见下方详细描述 | `[ ]` 待修复 |
@@ -94,8 +94,8 @@
 
 ## 修复进度
 
-- 已完成：40 / 54
-- 当前处理：P041（CI 加 future-keychain feature 编译检查）
+- 已完成：41 / 54
+- 当前处理：P042（注释强化或宏生成命令列表）
 
 ---
 
@@ -355,6 +355,13 @@
 - **位置**：`solosoul-core/src/llm/service.rs`（`migrate_legacy_conversations`）。
 - **修复（按指引「确认 S003 迁移门槛版本是否已过，落实或删除 TODO」）**：核实当前版本 2.10.2 > 门槛 2.9.2+，CHANGELOG 已声称 v2.10 达成但代码从未实现——落实：迁移完成后经 `save_profile_data` 移除 `llmConversations` 键（键删除经 profile delta 传播到所有已升级设备），删除 `TODO(S003)`；空数组不再早退、统一落到删键；S001 永久删除路径不再依赖 blob 键（键已删，`remove_legacy_conversation_from_blob` 对缺失键天然 no-op）；同步更新函数 doc 与两处测试断言（R003 键保留 → S003 键已删）。
 - **验证**：llm 域 19 测试全绿（含 LWW 迁移、S001 不复活两测试改为断言键已删）；check + clippy `-D warnings` + fmt 全绿。
+
+### P041 — future-keychain 门控模块防腐化（已修复：CI 加 feature 编译检查）
+
+- **提交**：`81bea1b9`
+- **位置**：`.github/workflows/pr_check.yml`、`.github/workflows/ci_cd.yml`。
+- **修复（按指引「CI 加 future-keychain feature 编译检查防腐化」）**：pr_check.yml `rust-check`（macOS）与 ci_cd.yml `build-macos` 各新增 `cargo check -p solosoul-core --features future-keychain` 步骤——macos_keychain.rs 门控模块不再长期脱离编译面（接口漂移/不可编译腐化风险消除）；模块需 `target_os=macos` + feature 双条件，CI 两处均运行于 macOS 满足编译条件。
+- **验证**：本地 `cargo check -p solosoul-core --features future-keychain` 通过（Windows 下 target_os 不匹配不编译该模块属预期）；YAML 缩进/CRLF 与既有步骤一致。
 
 ### P026 — LLM 客户端 blocking/async 双份实现（已修复：共享纯函数收敛）
 
