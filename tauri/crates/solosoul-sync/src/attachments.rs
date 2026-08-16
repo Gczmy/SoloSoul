@@ -444,35 +444,15 @@ pub fn receive_attachments(
                     }
                 };
 
-                // Validate total_chunks consistency across chunks.
-                if total_chunks != stream.total_chunks {
-                    return Err(format!(
-                        "Attachment {}:{} total_chunks changed: {} -> {}",
-                        object_id, attachment_id, stream.total_chunks, total_chunks
-                    ));
-                }
-
-                // Detect duplicate chunk indices.
-                if !stream.seen_indices.insert(chunk_index) {
-                    return Err(format!(
-                        "Attachment {}:{} duplicate chunk index {}",
-                        object_id, attachment_id, chunk_index
-                    ));
-                }
-
-                // Write chunk data to the temp file at the correct offset.
-                // Chunks arrive sequentially in practice, but seeking to the
-                // correct offset makes the code robust against reordering.
-                let offset = (chunk_index as u64) * (CHUNK_SIZE as u64);
-                stream
-                    .file
-                    .seek(SeekFrom::Start(offset))
-                    .map_err(|e| format!("seek: {}", e))?;
-                stream
-                    .file
-                    .write_all(&data)
-                    .map_err(|e| format!("write: {}", e))?;
-                stream.received_chunks += 1;
+                // 校验 total_chunks 一致性 + 去重 + 定位写入临时文件
+                append_chunk(
+                    &object_id,
+                    &attachment_id,
+                    stream,
+                    chunk_index,
+                    total_chunks,
+                    &data,
+                )?;
 
                 send_msg(
                     session,
@@ -491,7 +471,57 @@ pub fn receive_attachments(
     }
 
     // All chunks received — finalize each attachment.
-    for ((object_id, att_id), mut stream) in streams {
+    finalize_received_attachments(&mut streams, stats)?;
+
+    Ok(())
+}
+/// 校验并写入单个附件 chunk（total_chunks 一致性 + 去重 + 定位写入）。
+fn append_chunk(
+    object_id: &str,
+    attachment_id: &str,
+    stream: &mut StreamingAttachment,
+    chunk_index: u32,
+    total_chunks: u32,
+    data: &[u8],
+) -> Result<(), String> {
+    // Validate total_chunks consistency across chunks.
+    if total_chunks != stream.total_chunks {
+        return Err(format!(
+            "Attachment {}:{} total_chunks changed: {} -> {}",
+            object_id, attachment_id, stream.total_chunks, total_chunks
+        ));
+    }
+
+    // Detect duplicate chunk indices.
+    if !stream.seen_indices.insert(chunk_index) {
+        return Err(format!(
+            "Attachment {}:{} duplicate chunk index {}",
+            object_id, attachment_id, chunk_index
+        ));
+    }
+
+    // Write chunk data to the temp file at the correct offset.
+    // Chunks arrive sequentially in practice, but seeking to the
+    // correct offset makes the code robust against reordering.
+    let offset = (chunk_index as u64) * (CHUNK_SIZE as u64);
+    stream
+        .file
+        .seek(SeekFrom::Start(offset))
+        .map_err(|e| format!("seek: {}", e))?;
+    stream
+        .file
+        .write_all(data)
+        .map_err(|e| format!("write: {}", e))?;
+    stream.received_chunks += 1;
+    Ok(())
+}
+
+/// 收尾全部已接收附件：flush → 校验块数与 SHA256 → rename 为最终文件名。
+fn finalize_received_attachments(
+    streams: &mut std::collections::HashMap<(String, String), StreamingAttachment>,
+    stats: &mut AttachmentSyncStats,
+) -> Result<(), String> {
+    for ((object_id, att_id), mut stream) in streams.drain() {
         // Flush and drop the file handle so sha256_file can re-open it.
         stream.file.flush().map_err(|e| format!("flush: {}", e))?;
         let total_chunks = stream.total_chunks;
