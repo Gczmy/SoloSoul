@@ -393,7 +393,7 @@ mod tests {
     #[test]
     fn test_dispatch_cluster_prefixes_consistent() {
         // 各簇命令名与其路由前缀的映射（与 dispatch_ipc / register_*_commands 一一对应）
-        // ⚠️ 新增命令时同步更新下方命令名与总数断言（当前 total == 195）。
+        // ⚠️ 新增命令时同步更新下方命令名与总数断言（当前 total == 194）。
         let clusters: [(&str, &[&str], &[&str]); 5] = [
             (
                 "sync",
@@ -650,7 +650,7 @@ mod tests {
                 assert_eq!(routed, cmds.len());
             }
         }
-        // 共 195 条命令全覆盖（核心 118 + 同步 20 + OCR 11 + LLM 32 + 插件 14）
-        assert_eq!(total, 195);
+        // 共 194 条命令全覆盖（核心 117 + 同步 20 + OCR 11 + LLM 32 + 插件 14）
+        assert_eq!(total, 194);
     }
 }

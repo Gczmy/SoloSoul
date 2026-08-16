@@ -97,7 +97,7 @@
 ## 修复进度
 
 - 已完成：54 / 54（修复声称）；验证后修正：48 项通过、4 项部分修复（V003–V006）、2 项阻塞性回归（V001/V002）
-- 剩余：V002–V006 待处理（验证轮次 1 新发现；V001 已于轮次 2 修复，见下节）
+- 剩余：V003–V006 待处理（验证轮次 1 新发现；V001/V002 已于轮次 2 修复，见下节）
 
 ---
 
@@ -115,7 +115,7 @@
 | ID   | 优先级 | 关联项 | 类别 | 位置 | 描述 | 状态 |
 |------|--------|--------|------|------|------|------|
 | V001 | P0 | P036 | 回归 | `solosoul_cli/src/commands/security.rs:290` | CLI 编译失败（E0599）：`BiometricManager::test()` 被当作死代码删除，但 CLI 正在调用。GUI 的 check-all 覆盖不到独立 Cargo 项目 solosoul_cli | `[x]` 已修复（V001，轮次 2） |
-| V002 | P0 | P038/P042 | 回归 | `tauri/src-tauri/src/lib.rs:654` | `cargo test` 红：`test_dispatch_cluster_prefixes_consistent` 断言 194 vs 195——删除 `trash_permanent_delete` 命令后未同步手工维护的命令计数列表（恰是 P042 加过「维护提醒」的双份真相） | `[ ]` 待修复 |
+| V002 | P0 | P038/P042 | 回归 | `tauri/src-tauri/src/lib.rs:654` | `cargo test` 红：`test_dispatch_cluster_prefixes_consistent` 断言 194 vs 195——删除 `trash_permanent_delete` 命令后未同步手工维护的命令计数列表（恰是 P042 加过「维护提醒」的双份真相） | `[x]` 已修复（V002，轮次 2） |
 | V003 | P1 | P019 | 部分修复 | `tauri/crates/solosoul-plugin/src/registry.rs:22,66-73` | 编译期常量 `PLUGIN_REGISTRY_PUBKEY_B64` 为 `None`，且 `SOLOSOUL_REGISTRY_PUBKEY` 环境变量在 release 构建仍生效（无 debug 门控，与 URL 的处理不一致）——「信任锚读环境变量」在生产环境未真正消除 | `[ ]` 待修复 |
 | V004 | P2 | P050 | 部分修复 | `tauri/src/pages/workspace/ObjectWorkspacePage.tsx:301-303` | HistoryViewer 的 useMemo 写法正确，但调用方传入内联 `.map()` 新数组（每次渲染新引用），memo 在该路径失效 | `[ ]` 待修复 |
 | V005 | P2 | P052 | 部分修复 | `tauri/src/pages/sync/SyncHistoryPanel.tsx:84` | 存量 localStorage（`solosoul.syncHistory.v1`）中无 `at`/`peerNodeId` 的旧记录产生重复 key `"undefined-local"`；未做 idx 兜底 | `[ ]` 待修复 |
@@ -157,7 +157,16 @@
 `trigger_system_biometric(reason, true)`（严格策略实际触发生物识别），`UserPresenceUnavailable`/`PlatformNotSupported`
 映射为「不可用」提示、其余错误透传；`solosoul_cli cargo check` 恢复通过。
 
-**提交**：TBD-V001
+**提交**：70c1b298
+
+### V002 — 命令计数断言 195 vs 194（已修复）
+
+P038 删除 `trash_permanent_delete` 单条命令后未同步更新手工维护的命令计数（恰是 P042 提醒过的双份真相）：
+`test_dispatch_cluster_prefixes_consistent` 断言 total==195 而实际 194，`cargo test` 红。修复：总数断言
+195→194、簇拆分解读「核心 118」→「核心 117」（同步 20 + OCR 11 + LLM 32 + 插件 14 不变），⚠️ 维护提醒
+注释同步；`cargo test` 恢复全绿。
+
+**提交**：TBD-V002
 
 ## 详细问题描述与修复指引
 
