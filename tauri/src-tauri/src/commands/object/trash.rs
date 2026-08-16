@@ -144,19 +144,6 @@ pub(crate) fn permanent_delete_one(
     Ok(())
 }
 
-/// Permanently delete a trash item (by trash_id → looks up original_id).
-#[tauri::command]
-pub async fn trash_permanent_delete(
-    state: State<'_, AppState>,
-    trash_id: String,
-) -> Result<(), String> {
-    let vault = vault_handle(&state)?;
-    permanent_delete_one(&vault, &trash_id)?;
-    state.auto_sync.trigger_debounce();
-    state.device_auto_sync.trigger_data_change();
-    Ok(())
-}
-
 /// P024: 批量永久删除——单次 IPC 在服务端循环处理（替代前端逐条 invoke，
 /// 数百条时 N 次 IPC → 1 次）。任一失败中止并返回 Err（已删项保持已删，
 /// 与既有并发逐条语义一致）；成功后触发一次自动同步/数据变更广播。
