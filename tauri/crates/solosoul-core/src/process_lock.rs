@@ -48,7 +48,6 @@ impl ProcessLock {
             Ok(Self {})
         }
     }
-
 }
 
 #[cfg(test)]

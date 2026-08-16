@@ -131,11 +131,11 @@ impl LlmService {
     /// 每次访问都会按 LWW 复查 blob 与会话行（首次迁移写入，此后跳过较新行）。
     /// GUI 与 CLI 共用同一实现。
     ///
-    /// R003：迁移后**保留** blob 键（不再清除）——键删除会经 profile delta 同步到
-    /// 仍从 blob 读取会话的旧版本设备（不认识 llm_conversations 行级表），导致旧
-    /// 设备会话被抹且无法自行迁移；只有确认所有设备同步升级后才可在未来版本安全
-    /// 移除该键。迁移幂等：重复调用仅多一次 profile 读取 + 逐条 LWW 比对，无写入
-    /// 副作用（旧设备编辑 blob 后经 profile delta 回流，也能被 LWW 复查拾取）。
+    /// S003（v2.10 门槛已达成，对齐 CHANGELOG「会话存储迁移」警示）：确认所有设备
+    /// 升级到支持行级表的版本（2.9.2+）后，本方法在迁移完成后经 `save_profile_data`
+    /// **移除** `llmConversations` blob 键——键删除经 profile delta 传播到所有已升级
+    /// 设备，行级表成为唯一数据源。迁移幂等：键已删时早期返回；重复调用仅多一次
+    /// profile 读取 + 逐条 LWW 比对，无写入副作用。
     ///
     /// LWW 保护：对每条会话按 `updated_at` 比较，仅当 blob 数据比行级表现有
     /// 数据更新（或行级表无此 id）时才写入，避免无条件 upsert 覆盖 CLI/其他
@@ -151,11 +151,7 @@ impl LlmService {
             .and_then(|p| p.get("llmConversations"))
             .and_then(|v| serde_json::from_value(v.clone()).ok());
         let Some(convs) = legacy else { return Ok(()) };
-        if convs.is_empty() {
-            // 空数组也视为已迁移。同样保留键（R003：删除会经 profile delta
-            // 影响仍读 blob 的旧版本设备）；重复调用仅多一次 profile 读取。
-            return Ok(());
-        }
+        // S003（v2.10 门槛已达成）：空数组也视为已迁移，不早退——统一落到下方删键逻辑。
 
         for mut c in convs {
             trim_conversation_messages(&mut c);
@@ -177,19 +173,24 @@ impl LlmService {
                 .save_conversation(account_id, &c.id, &c.updated_at, &data)
                 .map_err(|e| e.to_string())?;
         }
-        // R003：刻意保留 profile 中的 `llmConversations` 键，不在此删除。
-        // 键删除会随 profile delta 同步到仍从 blob 读取会话的旧版本设备，导致
-        // 旧设备会话被抹且无法自行迁移；只有确认所有设备同步升级后才可在
-        // 未来版本安全移除该键。
-        //
-        // TODO(S003) 清理时机与版本门槛（对应 CHANGELOG「会话存储迁移」警示）：
-        //   1. 删键：确认所有设备升级到支持行级表的版本（2.9.2+）后，在下一个
-        //      大版本（建议 v2.10，同步 bump versionCode）经 save_profile_data 移除
-        //      该键——让 profile delta 把键删除传播到所有设备，仅本地删键会残留。
-        //   2. 混合版本期删除传播限制（N005 迁移固有限制）：旧版本设备（只读 blob）
-        //      删除会话不会传播到新版本设备行级表（迁移只增不删、无墓碑）；新版本
-        //      设备永久删除已由 permanent_delete_conversation（S001）改值同步 + 行级
-        //      墓碑覆盖。若需彻底闭环旧端删除，须与删键清理一并规划行级墓碑协议升级。
+        // S003（v2.10 门槛已达成）：迁移完成后移除 blob 键——键删除经 profile delta
+        // 传播到所有已升级设备（2.9.2+），行级表成为唯一数据源；仅本地删键会残留，
+        // 必须经 save_profile_data 使其随同步传播。
+        // 混合版本期删除传播限制（N005 迁移固有限制）仍存在：旧版本设备（只读 blob）
+        // 删除会话不会传播到新版本设备行级表（迁移只增不删、无墓碑）；新版本设备
+        // 永久删除已由 permanent_delete_conversation（S001）改值同步 + 行级墓碑覆盖。
+        // 若需彻底闭环旧端删除，须与此并行规划行级墓碑协议升级。
+        if data
+            .get("preferences")
+            .and_then(|p| p.get("llmConversations"))
+            .is_some()
+        {
+            let mut data = data;
+            if let Some(prefs) = data.get_mut("preferences").and_then(|p| p.as_object_mut()) {
+                prefs.remove("llmConversations");
+            }
+            Self::save_profile_data(vault, account_id, &data)?;
+        }
         Ok(())
     }
 
@@ -790,8 +791,7 @@ mod tests {
             .unwrap();
         assert_eq!(c2.name, "old c2");
 
-        // R003：blob 键刻意保留（键删除会经 profile delta 同步到仍读 blob 的
-        // 旧版本设备，抹掉其会话且无法自行迁移）——再次迁移幂等，且不覆盖较新行。
+        // S003：blob 键已删（迁移完成后经 profile delta 同步删除）——再次迁移幂等，且不覆盖较新行。
         service
             .migrate_legacy_conversations(&vault, &account_id)
             .unwrap();
@@ -799,8 +799,8 @@ mod tests {
         assert!(
             data.get("preferences")
                 .and_then(|p| p.get("llmConversations"))
-                .is_some(),
-            "R003: 迁移后 blob 键应保留（延迟删键，保护混合版本同步）"
+                .is_none(),
+            "S003: 迁移后 blob 键应已删除（门槛已达成）"
         );
         let c1_again = service
             .get_conversation(&vault, &account_id, "c1")
@@ -877,18 +877,14 @@ mod tests {
         assert!(!convs.iter().any(|c| c.id == "c1"));
         assert!(convs.iter().any(|c| c.id == "c2"), "c2 不应受影响");
 
-        // R003：blob 键保留（仅值变化），c1 已从值中移除、c2 仍留存在 blob 中
+        // S003：在删键版本下，迁移后 blob 键已删——删除流程不再依赖 blob（键删除
+        // 经 profile delta 传播到所有已升级设备），验证键已从 profile 中完全移除。
         let data = LlmService::load_profile_data(&vault, &account_id).unwrap();
-        let blob = data
-            .get("preferences")
-            .and_then(|p| p.get("llmConversations"))
-            .and_then(|v| v.as_array())
-            .expect("R003: blob 键应保留");
-        assert!(!blob
-            .iter()
-            .any(|c| c.get("id").and_then(|v| v.as_str()) == Some("c1")));
-        assert!(blob
-            .iter()
-            .any(|c| c.get("id").and_then(|v| v.as_str()) == Some("c2")));
+        assert!(
+            data.get("preferences")
+                .and_then(|p| p.get("llmConversations"))
+                .is_none(),
+            "S003: blob 键应已删除"
+        );
     }
 }
