@@ -55,7 +55,7 @@
 | P016 | 规范       | `tauri/src/components/layout/AddPageButton.tsx:14,75` | ESLint 2 warning：`SAFE_AREA_BOTTOM` 未使用；useMemo 缺依赖 `isBottom` | `[x]` 已修复（P016） |
 | P017 | 漏洞（弱随机） | `tauri/crates/solosoul-sync/src/recovery.rs:366-374,394-399` | 恢复 PIN/恢复密码用 `thread_rng` 而非 OsRng，PIN 逐位 `% 10` 有取模偏差 | `[x]` 已修复（P017） |
 | P018 | 内存安全   | `tauri/crates/solosoul-crypto/src/kdf.rs:94-103`；调用点 `solosoul-core/src/export_import.rs:211,326` | `derive_export_key` 返回裸 `[u8;32]` 未以 Zeroizing 包裹，与全库内存卫生纪律不一致 | `[x]` 已修复（P018） |
-| P019 | 供应链     | `tauri/crates/solosoul-plugin/src/registry.rs:76-88` | 插件注册表 URL 与 minisign 公钥读自环境变量，信任锚弱于 embed registry 的编译期固化 | `[ ]` 待修复 |
+| P019 | 供应链     | `tauri/crates/solosoul-plugin/src/registry.rs:76-88` | 插件注册表 URL 与 minisign 公钥读自环境变量，信任锚弱于 embed registry 的编译期固化 | `[x]` 已修复（P019） |
 | P020 | 供应链/隐私 | `tauri/src-tauri/tauri.conf.json:82-88` | updater 5 个端点中 4 个为第三方 GitHub 代理，存在降级冻结与行为记录风险 | `[ ]` 待修复 |
 | P021 | 静态加密   | `tauri/src-tauri/src/commands/attachment/crud.rs:524` | 附件明文落盘 `{vault}/attachments/`，与 vault.db/导出包加密姿态不一致（0700 权限是唯一防线） | `[ ]` 待修复 |
 | P022 | 加密弱点   | `tauri/crates/solosoul-core/src/pin.rs:101` | PIN 凭证可离线爆破（6 位最坏约 1 天），锁定计数对离线攻击无效；设计权衡但未文档化 | `[ ]` 待修复 |
@@ -94,8 +94,8 @@
 
 ## 修复进度
 
-- 已完成：18 / 54
-- 当前处理：P019（插件注册表公钥编译期固化 + URL 环境变量仅 debug_assertions 生效）
+- 已完成：19 / 54
+- 当前处理：P020（插件市场第三方镜像权衡文档化 + 版本单调性检查 + 失败回退提示）
 
 ---
 
@@ -233,6 +233,14 @@
 - **位置**：`solosoul-crypto/src/kdf.rs:94-103`；薄包装 `solosoul-core/src/export_import.rs:211,326,578-592`、`src-tauri/.../export_import/mod.rs:229-242`。
 - **修复**：`derive_export_key` 返回 `Zeroizing<[u8; 32]>`（Drop 自动清零，与 `derive_key` 的 `Zeroizing<Vec<u8>>` 纪律一致）；solosoul-core / src-tauri 两侧薄包装与 `decrypt_package` 返回类型同步升级，消费点 `&key` 经 Deref 强转零改动（`derive_hkdf_key`/`encrypt_chunked_stream`/`decrypt_chunked_*` 均收 `&[u8;32]`）。
 - **验证**：solosoul-core 170 + solosoul-crypto 27 测试全绿；三 crate clippy `-D warnings` / fmt 全绿。
+
+### P019 — 插件注册表信任锚读自环境变量（已修复）
+
+- **提交**：`20d7b30b`（+ 子模块 `SoloSoul_plugin_market` README 文档同步 `e3c7102`）。
+- **位置**：`tauri/crates/solosoul-plugin/src/registry.rs:76-88`。
+- **修复**：① 新增编译期常量 `PLUGIN_REGISTRY_PUBKEY_B64: Option<&str>`（对齐 `embed_model.rs:14` 的 `EMBED_REGISTRY_PUBKEY_B64` 模式），公钥解析优先级改为「`SOLOSOUL_REGISTRY_PUBKEY` 环境变量 > 编译期常量」——测试/开发仍可覆盖，release 获得编译期信任锚；② `SOLOSOUL_REGISTRY_URL` 环境变量覆盖仅 `debug_assertions` 生效，release 固定 `DEFAULT_REGISTRY_URL`，运行环境无法重定向注册表端点；③ 插件市场 README 环境变量表同步说明。
+- **待办**：生产公钥由维护者离线保管，常量当前为 `None`，发布时随代码填入（同 embed 注册表 2026-08-03 固化流程）；填入后未配置公钥时不再静默跳过远程更新。
+- **验证**：solosoul-plugin check / clippy `-D warnings` / fmt 全绿。
 
 ### P016–P054 摘要指引
 
