@@ -405,19 +405,7 @@ pub(crate) fn migrate_vault_data(
         // 注意：SAF 降级场景（src 位于 dst 内部）必须传 false，
         // 否则会先删除源目录本身及应用级目录（logs/app_resources/models）。
         if depth == 0 && clear_dst {
-            if let Ok(entries) = std::fs::read_dir(dst) {
-                for entry in entries {
-                    let entry = entry.map_err(|e| format!("读取目标目录项失败: {e}"))?;
-                    let path = entry.path();
-                    if path.is_dir() {
-                        std::fs::remove_dir_all(&path)
-                            .map_err(|e| format!("删除目标子目录失败: {e}"))?;
-                    } else {
-                        std::fs::remove_file(&path)
-                            .map_err(|e| format!("删除目标文件失败: {e}"))?;
-                    }
-                }
-            }
+            clear_target_dir(dst)?;
         }
 
         for entry in std::fs::read_dir(src).map_err(|e| format!("读取源目录失败: {e}"))? {
@@ -444,6 +432,23 @@ pub(crate) fn migrate_vault_data(
     }
 
     inner(src, dst, 0, clear_dst)
+}
+
+/// P045: 清空目标目录（仅顶层迁移时调用）——从 migrate_vault_data 内层拆出，
+/// 消除「if depth==0 && clear_dst → for → if is_dir」3 层嵌套。
+fn clear_target_dir(dst: &std::path::Path) -> Result<(), String> {
+    if let Ok(entries) = std::fs::read_dir(dst) {
+        for entry in entries {
+            let entry = entry.map_err(|e| format!("读取目标目录项失败: {e}"))?;
+            let path = entry.path();
+            if path.is_dir() {
+                std::fs::remove_dir_all(&path).map_err(|e| format!("删除目标子目录失败: {e}"))?;
+            } else {
+                std::fs::remove_file(&path).map_err(|e| format!("删除目标文件失败: {e}"))?;
+            }
+        }
+    }
+    Ok(())
 }
 
 #[cfg(test)]
