@@ -297,19 +297,12 @@ pub fn object_field_sensitivity_levels(
     properties: &serde_json::Value,
 ) -> Vec<String> {
     let mut levels: Vec<String> = Vec::new();
-    let mut push_level = |lvl: &str| {
-        if matches!(lvl, "public" | "internal" | "sensitive" | "critical")
-            && !levels.iter().any(|l| l == lvl)
-        {
-            levels.push(lvl.to_string());
-        }
-    };
 
     // 1. property_labels（权威来源）
     if let Some(labels) = property_labels.and_then(|v| v.as_object()) {
         for lvl in labels.values() {
             if let Some(s) = lvl.as_str() {
-                push_level(s);
+                push_sensitivity_level(&mut levels, s);
             }
         }
     }
@@ -318,43 +311,65 @@ pub fn object_field_sensitivity_levels(
     if let Some(fields) = properties.get("__fields").and_then(|v| v.as_object()) {
         for def in fields.values() {
             if let Some(lvl) = def.get("sensitivityLevel").and_then(|v| v.as_str()) {
-                push_level(lvl);
+                push_sensitivity_level(&mut levels, lvl);
             }
         }
 
         // 3. dynamic_group 子项级 sensitivity——仅当 __fields 中存在 dynamic_group 字段才
         // 扫描对应 properties 键（避免对每个对象全量遍历 properties 的热路径开销）。
-        if fields
-            .values()
-            .any(|def| def.get("type").and_then(|t| t.as_str()) == Some("dynamic_group"))
-        {
-            if let Some(props) = properties.as_object() {
-                for (k, v) in props {
-                    if k.starts_with("__") {
-                        continue;
-                    }
-                    let is_dynamic_group = fields
-                        .get(k)
-                        .and_then(|def| def.get("type"))
-                        .and_then(|t| t.as_str())
-                        == Some("dynamic_group");
-                    if !is_dynamic_group {
-                        continue;
-                    }
-                    if let Some(items) = v.as_array() {
-                        for item in items {
-                            if let Some(lvl) = item.get("sensitivity").and_then(|s| s.as_str()) {
-                                push_level(lvl);
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        scan_dynamic_group_levels(fields, properties, &mut levels);
     }
 
     levels.sort_by_key(|l| sensitivity_rank(l));
     levels
+}
+
+/// P045: 收集单个敏感度级别（合法值去重）——从 object_field_sensitivity_levels 拆出。
+fn push_sensitivity_level(levels: &mut Vec<String>, lvl: &str) {
+    if matches!(lvl, "public" | "internal" | "sensitive" | "critical")
+        && !levels.iter().any(|l| l == lvl)
+    {
+        levels.push(lvl.to_string());
+    }
+}
+
+/// P045: 扫描 dynamic_group 字段的实际子项级 sensitivity——从 object_field_sensitivity_levels
+/// 内层拆出，消除「if fields.any → if let Some(props) → for → if → if → if let Some(items)
+/// → for → if let Some」8 层嵌套，改为早退守卫 + 平铺扫描。
+fn scan_dynamic_group_levels(
+    fields: &serde_json::Map<String, serde_json::Value>,
+    properties: &serde_json::Value,
+    levels: &mut Vec<String>,
+) {
+    if !fields
+        .values()
+        .any(|def| def.get("type").and_then(|t| t.as_str()) == Some("dynamic_group"))
+    {
+        return;
+    }
+    let Some(props) = properties.as_object() else {
+        return;
+    };
+    for (k, v) in props {
+        if k.starts_with("__") {
+            continue;
+        }
+        let is_dynamic_group = fields
+            .get(k)
+            .and_then(|def| def.get("type"))
+            .and_then(|t| t.as_str())
+            == Some("dynamic_group");
+        if !is_dynamic_group {
+            continue;
+        }
+        if let Some(items) = v.as_array() {
+            for item in items {
+                if let Some(lvl) = item.get("sensitivity").and_then(|s| s.as_str()) {
+                    push_sensitivity_level(levels, lvl);
+                }
+            }
+        }
+    }
 }
 
 /// R-4① 方案 2（probe 判定）：探测给定数据密钥能否解密指定 vault.db 中的现有数据。
