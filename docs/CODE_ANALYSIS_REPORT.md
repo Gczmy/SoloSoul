@@ -81,7 +81,7 @@
 | P042 | 维护性     | `tauri/src-tauri/src/lib.rs:760-1019` | 测试手工维护 195 个命令名列表与 `generate_handler!` 双份真相，每次加命令需同步两处 | `[x]` 已修复（P042） |
 | P043 | 性能       | `src-tauri/src/commands/export_import/export.rs:717-739`、`import.rs:188-207`、`object/trash.rs:169-171` | 导出快照、导入冲突检测、回收站批量清理存在循环内逐条查询/事务（非热路径） | `[x]` 已修复（P043） |
 | P044 | 结构       | Rust 侧 14 个过长函数（100-133 行）：`import_one_object`、`reencrypt_all`、`receive_attachments`（嵌套 7 层）、`export_execute`、`recovery_restore_from_host`、`register_util_fns`、`scan_mrz`、`initialize_vault`、`biometric_save_credential`、`object_create`、`apply_sync_changes`、`handle_sse_stream` 等 | 建议随对应模块拆分时一并处理，清单详见下方详细描述 | `[ ]` 待修复 |
-| P045 | 结构       | `storage.rs:281`、`sync/mobile.rs:340`、`sync/manager.rs:156`、`core/llm/client.rs:269`、`app_state.rs:259`、`vault_directory.rs:388`、`update.rs:992` | 7 处嵌套深度 6-7 层的函数 | `[ ]` 待修复 |
+| P045 | 结构       | `storage.rs:281`、`sync/mobile.rs:340`、`sync/manager.rs:156`、`core/llm/client.rs:269`、`app_state.rs:259`、`vault_directory.rs:388`、`update.rs:992` | 7 处嵌套深度 6-7 层的函数 | `[x]` 已修复（P045，4 处实际待拆；3 处行号漂移已浅） |
 | P046 | 性能       | `tauri/src-tauri/src/commands/llm/guide.rs:252-385` | `is_stop_word` 每次调用重建 ~130 词 slice 线性查找，且在分词循环内逐 token 调用 | `[ ]` 待修复 |
 | P047 | 性能       | `tauri/src/pages/scan/OcrPage.tsx:26`、`ScanLocalPage.tsx:50` | 全库仅两处 `useObjectStore()` 整 store 订阅，任意字段变化触发整页重渲染 | `[ ]` 待修复 |
 | P048 | 结构       | 前端 10 个超长组件（310-490 行）：`AttachmentPreviewOverlay`、`PhotoAlbumOverlay`、`LlmConfigPage`、`DataManagementPage`、`PhotoViewerOverlay`、`ExportDocumentSection`、`ObjectEditorPage`、`TemplateEditor`、`SnapshotCard`、`RecoveryAccountView` | 建议参照 SyncPage/SettingsPage 既有拆分模式 | `[ ]` 待修复 |
@@ -379,6 +379,17 @@
   - ⏳ export.rs `collect_object_snapshots`：需新增 vault 批量快照 API（`list_snapshots_many`/`get_snapshots_many`），导出为低频用户动作且快照量有限，收益边际——**挂账**，随快照域下次改动一并处理。
   - ⏳ trash.rs `cleanup_expired_trash`：核实现实现已是「一次批量查询 + 逐条删除」——删除须逐条保持失败隔离（单条物理删除失败跳过、保留回收站记录防孤儿），批量化会破坏语义——**记录为不适用**。
 - **验证**：check + clippy `-D warnings` + fmt 全绿。
+
+### P045 — 深嵌套函数（已修复：4 处实际待拆项全部拆分，3 处行号漂移已浅）
+
+- **提交**：`a7b8c7a3`（mobile.rs）、`bc999ffe`（manager.rs 收敛）、`8c64ed11`（vault_directory.rs）、`78601260`（storage.rs）
+- **位置**：见各提交。
+- **核查结论（脚本实测嵌套深度）**：7 处中 3 处行号已随 P008/P017/P025 等重构漂移——`core/llm/client.rs:269`（`read_body_with_timeout` 11 行/2 层）、`app_state.rs:259`（`schedule_saf_fallback_sync` 27 行/2 层）、`update.rs:992`（`merge_seg_files` 31 行/3 层）已浅，**无需再拆**；实际待拆 4 处全部完成：
+  - `sync/mobile.rs start`（82 行/8 层 accept 循环）→ `accept_loop` + `handle_accepted_connection`（P045-1）；
+  - `sync/manager.rs start_inner`（92 行/8 层）+ mobile 本地副本 → 与 mobile.rs 三处重复收敛为 `session.rs` 共享 `run_accept_loop`/`handle_accepted_connection`/`SessionGuard`（P045-2，净 -53 行）；
+  - `vault_directory.rs migrate_vault_data`（6 层递归内层）→ `clear_target_dir` 辅助（P045-3）；
+  - `storage.rs object_field_sensitivity_levels`（64 行/8 层）→ `push_sensitivity_level` + `scan_dynamic_group_levels`（早退守卫平铺，主函数 3 层，P045-4）。
+- **验证**：全部纯重构零行为变化；各 crate check + clippy `-D warnings` + fmt 全绿；sync 64 测试 / sensitivity 3 测试全绿。
 
 ### P026 — LLM 客户端 blocking/async 双份实现（已修复：共享纯函数收敛）
 
