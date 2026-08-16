@@ -62,7 +62,7 @@
 | P023 | 路径遍历（加固） | `tauri/crates/solosoul-sync/src/attachments.rs:45-50` 对比 `solosoul-core/src/export_import.rs:1070-1088` | sync 侧附件文件名净化弱于 import 侧（未拒绝 `\`），同款安全控制两处强度不一致 | `[x]` 已修复（P023） |
 | P024 | 架构       | `tauri/crates/solosoul-sync/Cargo.toml`、`solosoul-plugin/Cargo.toml` | sync/plugin 依赖 core 拖入整个 OCR/PDF 重依赖栈（ort、pdfium-render 等），编译面与体积被拉大 | `[x]` 已修复（P024） |
 | P025 | 架构       | `tauri/crates/solosoul-core/src/vault_service.rs`（2559 行）、`tauri/src-tauri/src/lib.rs`（1020 行） | 账户生命周期/SAF/会话全塞一个文件；lib.rs setup 步骤堆积在入口 | `[x]` 已修复（P025） |
-| P026 | 重复代码   | `solosoul-core/src/llm/client.rs`（475 行）vs `src-tauri/src/commands/llm/`（约 1185 行） | LLM HTTP/SSE 客户端 blocking/async 双份实现，请求构造与 SSE 解析可共享纯函数 | `[ ]` 待修复 |
+| P026 | 重复代码   | `solosoul-core/src/llm/client.rs`（475 行）vs `src-tauri/src/commands/llm/`（约 1185 行） | LLM HTTP/SSE 客户端 blocking/async 双份实现，请求构造与 SSE 解析可共享纯函数 | `[x]` 已修复（P026） |
 | P027 | 架构       | `tauri/src/stores/authStore.ts` ↔ 后端 `VaultService` | 解锁状态前后端双份维护，靠事件 + best-effort 收敛（已有多层缓解，残余窗口存疑） | `[ ]` 待修复 |
 | P028 | 架构       | `tauri/src/stores/syncStore.ts:20-66` ↔ `commands/sync.rs:6-27` | 同步历史存两份：localStorage（无清理逻辑，存疑）与后端 audit_log | `[ ]` 待修复 |
 | P029 | 架构       | `tauri/src/stores/settingsStore.ts:156-232` | 偏好设置三副本（后端 DB / localStorage / ui_preferences.json），读路径异常时可能闪烁回跳 | `[ ]` 待修复 |
@@ -94,8 +94,8 @@
 
 ## 修复进度
 
-- 已完成：25 / 54
-- 当前处理：P026（移动端硬编码字体/颜色收敛）
+- 已完成：26 / 54
+- 当前处理：P027（解锁状态前后端双份维护收敛）
 
 ---
 
@@ -255,6 +255,13 @@
 - **位置**：`docs/attachment-storage-spec.md`（新建）+ `AGENTS.md` 安全架构章节（AGENTS.md 未入版本控制，仅本地同步）。
 - **修复（用户选定方案 A）**：新建附件存储安全规范（对齐 biometric-spec.md 模式）——登记存储形态（`{vault}/attachments/{object_id}/{attachment_id}/` 明文 + vault 目录 0700/0600 + 附件 ID 白名单 + 元数据 `properties.__attachments` 永远加密 + 导出包加密）、已防御（目录权限/元数据加密/`resolve_verified_attachment_path` 鉴权/移动端 FBE 兜底）、残余缺口（同用户进程可读明文、vault 整体外拷泄露）、设计权衡（系统级打开/分享需真实文件路径 + 临时解密文件面与全量解密性能成本）、中期强化路线（敏感度 `sensitive`/`critical` 附件的可选加密开关，backlog 未排期）。
 - **验证**：纯文档变更，无代码影响。
+
+### P026 — LLM 客户端 blocking/async 双份实现（已修复：共享纯函数收敛）
+
+- **提交**：`aba5b997`
+- **位置**：`solosoul-core/src/llm/protocol.rs`（新建）+ `client.rs`、`src-tauri/src/commands/llm/request.rs`/`stream.rs`。
+- **修复**：core 新增 `llm/protocol.rs` 共享纯函数模块（无 IO、无 reqwest 依赖）——`build_api_url`/`auth_headers`/`split_system_messages`/`extract_delta_text`/`extract_openai_usage_from_chunk`/`extract_anthropic_input_tokens`/`extract_anthropic_output_tokens`/`extract_response_text`/`extract_openai_usage`；blocking client（`build_request`/`handle_sse_payload`/`process_non_streaming`）与 async client（`request.rs` 的 `build_api_url`/`add_auth_headers`/`extract_response_text`/`extract_openai_usage`、`stream.rs` 的 `extract_delta_text`/`extract_anthropic_usage`/`extract_openai_usage_from_chunk`）全部改为转发共享实现，两侧仅保留 IO 绑定与各自累积策略（blocking 覆盖语义 vs async N008 逐字段保留语义，均不改变）。
+- **验证**：零行为变化；core 182 测试全绿（新增 protocol 7 个纯函数测试）；四消费方 check 全绿；clippy `-D warnings` / fmt 全绿。
 
 ### P025 — vault_service.rs / lib.rs 巨型文件拆分（已修复：按域拆分 + setup 模块化）
 
