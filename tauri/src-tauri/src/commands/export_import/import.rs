@@ -573,62 +573,20 @@ fn import_one_object(
         return Ok(None);
     }
 
-    // Apply selection filter
-    if let Some(sel_ids) = selected_ids {
-        if !sel_ids.contains(id) {
-            return Ok(None);
-        }
-    }
-
-    // Check conflict & apply strategy (per-object override first, then global)
-    let effective_strategy = object_strategies.get(id).copied().unwrap_or(strategy);
-    // KeepBoth 不需要冲突判断（永远继续往下走）；SkipExisting 遇非软删既有对象则跳过
-    if effective_strategy != ImportStrategy::KeepBoth {
-        let existing = vault.load_object(id).ok().flatten();
-        if effective_strategy == ImportStrategy::SkipExisting
-            && existing.is_some_and(|e| !e.is_deleted)
-        {
-            return Ok(None);
-        }
+    // Apply selection filter & conflict check, resolve effective strategy
+    let (should_continue, effective_strategy) =
+        resolve_import_object_flow(vault, id, strategy, object_strategies, selected_ids)?;
+    if !should_continue {
+        return Ok(None);
     }
 
     // Resolve cross-scope RelationProperty references
     let mut properties = obj_val["properties"].clone();
     resolve_cross_scope_references(&mut properties, package_ids);
 
-    // ── 解析实际模板 ID ──
-    let resolved_template_id = obj_val["template_id"].as_str().map(|tid| {
-        template_id_map
-            .get(tid)
-            .cloned()
-            .unwrap_or_else(|| tid.to_string())
-    });
-
-    // ── 从模板继承字段敏感度、字段定义和模板名称 ──
-    // 即使模板后来被删除，对象仍保留自己的副本
-    let mut property_labels = if obj_val["property_labels"].is_null() {
-        None
-    } else {
-        Some(obj_val["property_labels"].clone())
-    };
-    if let Some(ref tid) = resolved_template_id {
-        // 合并 property_labels：payload 原有值优先，模板值作为兜底
-        let tpl_labels = crate::commands::object::inherit_property_labels(vault, Some(tid));
-        match (tpl_labels, &mut property_labels) {
-            (Some(tpl), Some(existing)) => merge_labels_into(&tpl, existing),
-            (Some(tpl), None) => {
-                property_labels = Some(tpl);
-            }
-            _ => {}
-        }
-
-        // 注入 __fields（字段名称 + 类型）
-        let fields = crate::commands::object::inherit_property_fields(vault, Some(tid));
-        crate::commands::object::inject_property_fields(&mut properties, &fields);
-
-        // 注入 __templateName
-        crate::commands::object::inject_template_meta(vault, Some(tid), &mut properties);
-    }
+    // ── 从模板继承字段敏感度、字段定义和模板名称（resolved_template_id + property_labels）──
+    let (resolved_template_id, property_labels) =
+        inherit_import_template_meta(vault, obj_val, template_id_map, &mut properties);
 
     // ── 重写 KeepBoth ID 引用（所有对象都需要，不仅仅是 KeepBoth 对象）
     // 这样如果 Object A（overwrite）引用 Object B（KeepBoth），A 的引用也会被更新
@@ -671,13 +629,118 @@ fn import_one_object(
         .save_object(&record)
         .map_err(|e| format!("save: {}", e))?;
 
-    // 恢复包内历史快照（若有），否则创建初始 snapshot 使历史 badge 正常显示。
-    // KeepBoth 场景下对象获得新 ID，快照随之挂到新 ID 上。
+    // 恢复包内历史快照（若有），否则创建 diff_imported 初始快照使历史 badge 正常显示。
     let snapshot_key = if effective_strategy == ImportStrategy::KeepBoth {
         &final_id
     } else {
         id
     };
+    restore_import_snapshots(
+        vault,
+        snapshot_key,
+        package_snapshots,
+        id,
+        effective_strategy,
+        &record,
+    )?;
+
+    if let Some(cb) = progress {
+        let total = objects_len.max(1);
+        // 对象阶段 0-80（按循环下标推进，跳过对象也前进，保证单调到达 80）
+        cb(((obj_index + 1) * 80 / total).min(80) as u8);
+    }
+
+    Ok(Some((
+        final_id,
+        effective_strategy == ImportStrategy::KeepBoth,
+    )))
+}
+
+/// 应用选择过滤 + 冲突检查并解析生效策略。返回 (是否继续处理, 生效策略)。
+fn resolve_import_object_flow(
+    vault: &solosoul_vault::VaultStore,
+    id: &str,
+    strategy: ImportStrategy,
+    object_strategies: &HashMap<String, ImportStrategy>,
+    selected_ids: Option<&BTreeSet<String>>,
+) -> Result<(bool, ImportStrategy), String> {
+    // Apply selection filter
+    if let Some(sel_ids) = selected_ids {
+        if !sel_ids.contains(id) {
+            return Ok((false, strategy));
+        }
+    }
+
+    // Check conflict & apply strategy (per-object override first, then global)
+    let effective_strategy = object_strategies.get(id).copied().unwrap_or(strategy);
+    // KeepBoth 不需要冲突判断（永远继续往下走）；SkipExisting 遇非软删既有对象则跳过
+    if effective_strategy != ImportStrategy::KeepBoth {
+        let existing = vault.load_object(id).ok().flatten();
+        if effective_strategy == ImportStrategy::SkipExisting
+            && existing.is_some_and(|e| !e.is_deleted)
+        {
+            return Ok((false, effective_strategy));
+        }
+    }
+    Ok((true, effective_strategy))
+}
+
+/// 解析实际模板 ID + 从模板继承字段敏感度、字段定义和模板名称（模板删除后对象仍保留副本）。
+/// 返回 (解析后的模板 ID, 合并后的 property_labels)。
+fn inherit_import_template_meta(
+    vault: &solosoul_vault::VaultStore,
+    obj_val: &serde_json::Value,
+    template_id_map: &std::collections::HashMap<String, String>,
+    properties: &mut serde_json::Value,
+) -> (Option<String>, Option<serde_json::Value>) {
+    // ── 解析实际模板 ID ──
+    let resolved_template_id = obj_val["template_id"].as_str().map(|tid| {
+        template_id_map
+            .get(tid)
+            .cloned()
+            .unwrap_or_else(|| tid.to_string())
+    });
+
+    // ── 从模板继承字段敏感度、字段定义和模板名称 ──
+    // 即使模板后来被删除，对象仍保留自己的副本
+    let mut property_labels = if obj_val["property_labels"].is_null() {
+        None
+    } else {
+        Some(obj_val["property_labels"].clone())
+    };
+    if let Some(ref tid) = resolved_template_id {
+        // 合并 property_labels：payload 原有值优先，模板值作为兜底
+        let tpl_labels = crate::commands::object::inherit_property_labels(vault, Some(tid));
+        match (tpl_labels, &mut property_labels) {
+            (Some(tpl), Some(existing)) => merge_labels_into(&tpl, existing),
+            (Some(tpl), None) => {
+                property_labels = Some(tpl);
+            }
+            _ => {}
+        }
+
+        // 注入 __fields（字段名称 + 类型）
+        let fields = crate::commands::object::inherit_property_fields(vault, Some(tid));
+        crate::commands::object::inject_property_fields(properties, &fields);
+
+        // 注入 __templateName
+        crate::commands::object::inject_template_meta(vault, Some(tid), properties);
+    }
+    (resolved_template_id, property_labels)
+}
+
+/// 恢复包内历史快照（若有），否则创建 diff_imported 初始快照使历史 badge 正常显示。
+/// KeepBoth 场景下对象获得新 ID，快照随之挂到新 ID 上。
+fn restore_import_snapshots(
+    vault: &solosoul_vault::VaultStore,
+    snapshot_key: &str,
+    package_snapshots: &HashMap<String, Vec<serde_json::Value>>,
+    id: &str,
+    effective_strategy: ImportStrategy,
+    record: &solosoul_vault::ObjectRecord,
+) -> Result<(), String> {
+    // 恢复包内历史快照（若有），否则创建初始 snapshot 使历史 badge 正常显示。
+    // KeepBoth 场景下对象获得新 ID，快照随之挂到新 ID 上。
     let restored = if let Some(snaps) = package_snapshots.get(id) {
         // P1: Overwrite 覆盖导入时，仅在包内确实携带【可恢复】的快照时先清空本地旧历史，
         // 防止包内快照叠加导致历史数量翻倍；损坏包（快照 base64 全部解码失败）保留本地
@@ -708,19 +771,8 @@ fn import_one_object(
             "diff_imported",
         );
     }
-
-    if let Some(cb) = progress {
-        let total = objects_len.max(1);
-        // 对象阶段 0-80（按循环下标推进，跳过对象也前进，保证单调到达 80）
-        cb(((obj_index + 1) * 80 / total).min(80) as u8);
-    }
-
-    Ok(Some((
-        final_id,
-        effective_strategy == ImportStrategy::KeepBoth,
-    )))
+    Ok(())
 }
-
 // ── 阶段化辅助函数（P023 拆分）──────────────────────────────────
 
 /// 阶段 1：读取并解密导入包，返回 (manifest, payload, 派生密钥)。
