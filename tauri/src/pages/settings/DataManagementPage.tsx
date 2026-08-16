@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useMemo, memo } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
@@ -6,101 +6,13 @@ import { AppShell } from '@/components/layout/AppShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 
-import { HardDrive, PieChart, X } from 'lucide-react';
+import { HardDrive, PieChart } from 'lucide-react';
 import { formatBytes } from '@/lib/utils';
 import { isMobilePlatformSync } from '@/lib/platform';
 import { ICON_SIZE } from '@/lib/constants';
 import { VaultDirectorySection } from './VaultDirectorySection';
-
-interface VaultStats {
-  profileCount: number;
-  totalSizeBytes: number;
-  lastModified?: string;
-  profilesSize: number;
-  objectsSize: number;
-  trashSize: number;
-  snapshotsSize: number;
-  attachmentsSize: number;
-  aiConversationsSize: number;
-}
-
-// ── Color palette for the pie chart ──────────────────────────
-const PIE_COLORS = [
-  '#5b7c99', // profiles
-  '#4a9eff', // objects
-  '#e68a00', // trash
-  '#7b61ff', // snapshots
-  '#2e7d32', // attachments
-  '#d32f2f', // AI conversations
-];
-
-// ── SVG Pie Chart ────────────────────────────────────────────
-
-interface PieSlice {
-  key: string;
-  value: number;
-  color: string;
-  label: string;
-}
-
-const PieChartSvg = memo(function PieChartSvg({ slices, size }: { slices: PieSlice[]; size: number }) {
-  const total = slices.reduce((s, p) => s + p.value, 0);
-  if (total === 0) return null;
-  const cx = size / 2;
-  const cy = size / 2;
-  const r = size / 2 - 4;
-  let cumulative = 0;
-
-  const arcs = slices.map((slice) => {
-    const sliceAngle = (slice.value / total) * 360;
-    const startAngle = (cumulative / total) * 360;
-    cumulative += slice.value;
-
-    const startRad = ((startAngle - 90) * Math.PI) / 180;
-    const endRad = ((startAngle + sliceAngle - 90) * Math.PI) / 180;
-
-    const x1 = cx + r * Math.cos(startRad);
-    const y1 = cy + r * Math.sin(startRad);
-    const x2 = cx + r * Math.cos(endRad);
-    const y2 = cy + r * Math.sin(endRad);
-
-    const largeArc = sliceAngle > 180 ? 1 : 0;
-
-    const path =
-      sliceAngle >= 360
-        ? `M ${cx} ${cy - r} A ${r} ${r} 0 1 1 ${cx - 0.01} ${cy - r} Z`
-        : `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2} Z`;
-
-    return (
-      <path
-        key={slice.key}
-        d={path}
-        fill={slice.color}
-        stroke="var(--bg-primary)"
-        strokeWidth={1}
-      />
-    );
-  });
-
-  return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ display: 'block' }}>
-      {arcs}
-      {total > 0 && (
-        <text
-          x={cx}
-          y={cy}
-          textAnchor="middle"
-          dominantBaseline="central"
-          fontSize={13}
-          fontWeight={600}
-          fill="var(--text-primary)"
-        >
-          {formatBytes(total)}
-        </text>
-      )}
-    </svg>
-  );
-});
+import { StorageBreakdownCard, type VaultStats } from './StorageBreakdownCard';
+import { PIE_COLORS, type PieSlice } from './PieChartSvg';
 
 // ── Component ────────────────────────────────────────────────
 
@@ -108,41 +20,54 @@ export function DataManagementPage() {
   const navigate = useNavigate();
   const { t } = useTranslation(['settings', 'common']);
   const isMobile = isMobilePlatformSync();
+
   const [stats, setStats] = useState<VaultStats | null>(null);
   const [showBreakdown, setShowBreakdown] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    invoke<VaultStats>('get_vault_stats')
-      .then(setStats)
-      .catch(() => setStats(null));
+    let cancelled = false;
+    invoke<VaultStats>('vault_get_stats')
+      .then((result) => {
+        if (!cancelled) setStats(result);
+      })
+      .catch(() => {
+        if (!cancelled) setStats(null);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   // Close breakdown card on outside click
   useEffect(() => {
     if (!showBreakdown) return;
-    const handleClick = (e: MouseEvent) => {
+    const onPointerDown = (e: PointerEvent) => {
       if (cardRef.current && !cardRef.current.contains(e.target as Node)) {
         setShowBreakdown(false);
       }
     };
-    document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
+    document.addEventListener('pointerdown', onPointerDown);
+    return () => document.removeEventListener('pointerdown', onPointerDown);
   }, [showBreakdown]);
 
   // ── Build breakdown items ────────────────────────────────────
   const breakdownItems = useMemo(
     () =>
-      !stats
-        ? []
-        : [
-            { key: 'profile', size: stats.profilesSize, labelKey: 'data_profile' },
-            { key: 'objects', size: stats.objectsSize, labelKey: 'data_objects' },
-            { key: 'trash', size: stats.trashSize, labelKey: 'data_trash' },
-            { key: 'snapshots', size: stats.snapshotsSize, labelKey: 'data_snapshots' },
-            { key: 'attachments', size: stats.attachmentsSize, labelKey: 'data_attachments' },
-            { key: 'ai', size: stats.aiConversationsSize, labelKey: 'data_ai_chat' },
-          ].filter((i) => i.size > 0),
+      stats
+        ? [
+            { key: 'profiles', labelKey: 'profiles_size', size: stats.profilesSize },
+            { key: 'objects', labelKey: 'objects_size', size: stats.objectsSize },
+            { key: 'trash', labelKey: 'trash_size', size: stats.trashSize },
+            { key: 'snapshots', labelKey: 'snapshots_size', size: stats.snapshotsSize },
+            { key: 'attachments', labelKey: 'attachments_size', size: stats.attachmentsSize },
+            {
+              key: 'ai_conversations',
+              labelKey: 'ai_conversations_size',
+              size: stats.aiConversationsSize,
+            },
+          ].filter((item) => item.size > 0)
+        : [],
     [stats],
   );
 
@@ -152,7 +77,7 @@ export function DataManagementPage() {
         key: item.key,
         value: item.size,
         color: PIE_COLORS[idx % PIE_COLORS.length],
-        label: t(`settings:${item.labelKey}`, item.key),
+        label: t(`settings:${item.labelKey}`),
       })),
     [breakdownItems, t],
   );
@@ -229,115 +154,12 @@ export function DataManagementPage() {
         </Card>
 
         {/* ── Breakdown popup card ──────────────────────────── */}
-        {showBreakdown && stats && (
-          <div
-            ref={cardRef}
-            style={{
-              position: 'fixed',
-              top: '50%',
-              left: '50%',
-              transform: 'translate(-50%, -50%)',
-              width: 340,
-              maxHeight: '80vh',
-              overflowY: 'auto',
-              zIndex: 100,
-              background: 'var(--bg-elevated)',
-              borderRadius: 12,
-              padding: 20,
-              boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
-            }}
-          >
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                marginBottom: 16,
-              }}
-            >
-              <h3 style={{ fontSize: 'var(--text-card-title)', fontWeight: 600, margin: 0 }}>
-                {t('settings:storage_breakdown')}
-              </h3>
-              <button
-                onClick={() => setShowBreakdown(false)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: 4,
-                  color: 'var(--text-tertiary)',
-                }}
-              >
-                <X size={ICON_SIZE.lg} />
-              </button>
-            </div>
-
-            {/* Pie chart */}
-            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 16 }}>
-              <PieChartSvg slices={pieSlices} size={180} />
-            </div>
-
-            {/* Legend */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {pieSlices.map((slice, _idx) => {
-                const pct = ((slice.value / stats.totalSizeBytes) * 100).toFixed(1);
-                return (
-                  <div
-                    key={slice.key}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 8,
-                      fontSize: 'var(--text-body-sm)',
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: 12,
-                        height: 12,
-                        borderRadius: 3,
-                        background: slice.color,
-                        flexShrink: 0,
-                      }}
-                    />
-                    <span style={{ flex: 1 }}>{slice.label}</span>
-                    <span
-                      style={{ color: 'var(--text-tertiary)', fontSize: 'var(--text-caption)' }}
-                    >
-                      {pct}%
-                    </span>
-                    <span style={{ fontWeight: 500 }}>{formatBytes(slice.value)}</span>
-                  </div>
-                );
-              })}
-              {/* Total */}
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  fontSize: 'var(--text-body-sm)',
-                  borderTop: '1px solid var(--border-subtle)',
-                  paddingTop: 8,
-                  marginTop: 4,
-                }}
-              >
-                <span style={{ flex: 1, fontWeight: 600 }}>{t('common:total')}</span>
-                <span style={{ fontWeight: 600 }}>{formatBytes(stats.totalSizeBytes)}</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ── Overlay when popup is open ───────────────────── */}
         {showBreakdown && (
-          <div
-            style={{
-              position: 'fixed',
-              inset: 0,
-              background: 'rgba(0,0,0,0.3)',
-              zIndex: 99,
-            }}
+          <StorageBreakdownCard
+            stats={stats}
+            pieSlices={pieSlices}
+            cardRef={cardRef}
+            onClose={() => setShowBreakdown(false)}
           />
         )}
 
