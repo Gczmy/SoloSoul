@@ -64,7 +64,7 @@
 | P025 | 架构       | `tauri/crates/solosoul-core/src/vault_service.rs`（2559 行）、`tauri/src-tauri/src/lib.rs`（1020 行） | 账户生命周期/SAF/会话全塞一个文件；lib.rs setup 步骤堆积在入口 | `[x]` 已修复（P025） |
 | P026 | 重复代码   | `solosoul-core/src/llm/client.rs`（475 行）vs `src-tauri/src/commands/llm/`（约 1185 行） | LLM HTTP/SSE 客户端 blocking/async 双份实现，请求构造与 SSE 解析可共享纯函数 | `[x]` 已修复（P026） |
 | P027 | 架构       | `tauri/src/stores/authStore.ts` ↔ 后端 `VaultService` | 解锁状态前后端双份维护，靠事件 + best-effort 收敛（已有多层缓解，残余窗口存疑） | `[x]` 已修复（P027） |
-| P028 | 架构       | `tauri/src/stores/syncStore.ts:20-66` ↔ `commands/sync.rs:6-27` | 同步历史存两份：localStorage（无清理逻辑，存疑）与后端 audit_log | `[ ]` 待修复 |
+| P028 | 架构       | `tauri/src/stores/syncStore.ts:20-66` ↔ `commands/sync.rs:6-27` | 同步历史存两份：localStorage（无清理逻辑，存疑）与后端 audit_log | `[x]` 已修复（P028） |
 | P029 | 架构       | `tauri/src/stores/settingsStore.ts:156-232` | 偏好设置三副本（后端 DB / localStorage / ui_preferences.json），读路径异常时可能闪烁回跳 | `[ ]` 待修复 |
 | P030 | 架构       | `tauri/src-tauri/src/state/app_state.rs`（866 行） | AppState 聚合 8 个字段且混入 SAF config、DTO、自由函数 | `[ ]` 待修复 |
 | P031 | 架构       | `tauri/src-tauri/src/services/`（仅 3 文件）vs `commands/`（30+ 模块） | services 层萎缩，业务规则锁在 command 签名旁（如 `object/mod.rs` 的 dynamic_group 校验），CLI 无法复用 | `[ ]` 待修复 |
@@ -94,8 +94,8 @@
 
 ## 修复进度
 
-- 已完成：27 / 54
-- 当前处理：P028（AI 配置页风险接受回滚竞态修复）
+- 已完成：28 / 54
+- 当前处理：P029（偏好设置三副本读路径闪烁回跳）
 
 ---
 
@@ -262,6 +262,13 @@
 - **位置**：`tauri/src/lib/ipcClient.ts`（+ 测试）、`tauri/src/test/setup.ts`。
 - **修复（按指引「后端已鉴权可保持现状；扩大前端 requireUnlocked 默认启用面」）**：`invokeCommand` 默认启用解锁守卫——Vault 未解锁（`isAuthenticated === false`）时，除 `UNLOCKED_EXEMPT_COMMANDS` 豁免名单（认证/解锁流程 check_has_account/bootstrap/login/unlock 等 18 个 + 启动期系统命令 get_app_info/get_system_locale/set_titlebar_color/ui_get_preferences/android_install_apk/log_write 等 + OCR 模型管理 ocr_get_model_status/ocr_get_active_tier/ocr_download_model 等 7 个）外的所有命令在发起 IPC 前抛 `No account is currently unlocked`（与后端语义一致）；`opts.requireUnlocked` 显式覆盖（`true` 强制拦截豁免命令、`false` 显式豁免）；`getState` 缺失/异常 fail-open 交后端鉴权（前端守卫仅为减少无效 IPC 的 UX 优化）；测试环境（MODE===test）默认放行避免破坏既有 store/组件测试（部分模块链先于 mock 缓存真实 authStore），守卫逻辑由 ipcClient.test.ts 经 `vi.stubEnv(MODE=development)` + 6 个新用例全覆盖（默认拦截/已解锁放行/豁免放行/false 显式豁免/true 强制拦截）。
 - **验证**：761 测试全绿（84 文件）；tsc + eslint 全绿。
+
+### P028 — 同步历史 localStorage 无清理逻辑（已修复：容量自愈）
+
+- **提交**：`6a1d5d20`
+- **位置**：`tauri/src/stores/syncStore.ts`（`loadSyncHistory`，+ 测试）。
+- **修复**：`loadSyncHistory` 读取时即按 `SYNC_HISTORY_MAX(10)` 截断并写回——早期版本若已写入超限条数（当时无清理逻辑），重启后不再重复加载同样的超限旧数据（仅 slice 不写回会留下永久垃圾）；写回失败（隐私模式/配额）静默降级为内存态。写入侧 `pushSyncHistory` 本已前插 + slice 截断，不重复改。localStorage 中仅存表名/计数/HLC 无解密内容，定位为后端 audit_log 的展示投影，与 P0#5 持久化设计一致，不做双份去除。
+- **验证**：新增 2 测试（超限截断写回保留最新前 10 条 / 未超限数据原样不动，经模块重载触发 store 创建路径）；syncStore 18 测试全绿；tsc + eslint 全绿。
 
 ### P026 — LLM 客户端 blocking/async 双份实现（已修复：共享纯函数收敛）
 
