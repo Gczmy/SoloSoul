@@ -54,7 +54,7 @@
 |------|------------|----------|------|------|
 | P016 | 规范       | `tauri/src/components/layout/AddPageButton.tsx:14,75` | ESLint 2 warning：`SAFE_AREA_BOTTOM` 未使用；useMemo 缺依赖 `isBottom` | `[x]` 已修复（P016） |
 | P017 | 漏洞（弱随机） | `tauri/crates/solosoul-sync/src/recovery.rs:366-374,394-399` | 恢复 PIN/恢复密码用 `thread_rng` 而非 OsRng，PIN 逐位 `% 10` 有取模偏差 | `[x]` 已修复（P017） |
-| P018 | 内存安全   | `tauri/crates/solosoul-crypto/src/kdf.rs:94-103`；调用点 `solosoul-core/src/export_import.rs:211,326` | `derive_export_key` 返回裸 `[u8;32]` 未以 Zeroizing 包裹，与全库内存卫生纪律不一致 | `[ ]` 待修复 |
+| P018 | 内存安全   | `tauri/crates/solosoul-crypto/src/kdf.rs:94-103`；调用点 `solosoul-core/src/export_import.rs:211,326` | `derive_export_key` 返回裸 `[u8;32]` 未以 Zeroizing 包裹，与全库内存卫生纪律不一致 | `[x]` 已修复（P018） |
 | P019 | 供应链     | `tauri/crates/solosoul-plugin/src/registry.rs:76-88` | 插件注册表 URL 与 minisign 公钥读自环境变量，信任锚弱于 embed registry 的编译期固化 | `[ ]` 待修复 |
 | P020 | 供应链/隐私 | `tauri/src-tauri/tauri.conf.json:82-88` | updater 5 个端点中 4 个为第三方 GitHub 代理，存在降级冻结与行为记录风险 | `[ ]` 待修复 |
 | P021 | 静态加密   | `tauri/src-tauri/src/commands/attachment/crud.rs:524` | 附件明文落盘 `{vault}/attachments/`，与 vault.db/导出包加密姿态不一致（0700 权限是唯一防线） | `[ ]` 待修复 |
@@ -94,8 +94,8 @@
 
 ## 修复进度
 
-- 已完成：17 / 54
-- 当前处理：P018（derive_export_key 返回 Zeroizing 防密钥残留在内存）
+- 已完成：18 / 54
+- 当前处理：P019（插件注册表公钥编译期固化 + URL 环境变量仅 debug_assertions 生效）
 
 ---
 
@@ -226,6 +226,13 @@
 - **位置**：`tauri/crates/solosoul-sync/src/recovery.rs:366-374,394-399`。
 - **修复**：`generate_pin` 由 `thread_rng().next_u32() % 10` 改为 `OsRng` + 拒绝采样（`2^32 % 10 = 6`，直接取模使 0-5 六个数字多一次映射产生轻微偏差；拒绝落在最后不完整块 `>= 4_294_967_290` 的值后 `% 10` 完全无偏差）；`generate_recovery_password` 由 `thread_rng().fill_bytes` 改为 `OsRng.fill_bytes`（操作系统 CSPRNG 直取随机字节）。
 - **验证**：solosoul-sync check / clippy `-D warnings` / fmt 全绿（crate 无单元测试）。
+
+### P018 — derive_export_key 返回裸数组（已修复）
+
+- **提交**：`062d34d7`
+- **位置**：`solosoul-crypto/src/kdf.rs:94-103`；薄包装 `solosoul-core/src/export_import.rs:211,326,578-592`、`src-tauri/.../export_import/mod.rs:229-242`。
+- **修复**：`derive_export_key` 返回 `Zeroizing<[u8; 32]>`（Drop 自动清零，与 `derive_key` 的 `Zeroizing<Vec<u8>>` 纪律一致）；solosoul-core / src-tauri 两侧薄包装与 `decrypt_package` 返回类型同步升级，消费点 `&key` 经 Deref 强转零改动（`derive_hkdf_key`/`encrypt_chunked_stream`/`decrypt_chunked_*` 均收 `&[u8;32]`）。
+- **验证**：solosoul-core 170 + solosoul-crypto 27 测试全绿；三 crate clippy `-D warnings` / fmt 全绿。
 
 ### P016–P054 摘要指引
 
