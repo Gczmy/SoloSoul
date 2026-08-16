@@ -2,7 +2,7 @@
 
 use color_eyre::Result;
 use serde_json::Value;
-use solosoul_core::biometric::BiometricManager;
+use solosoul_core::biometric::{BiometricError, BiometricManager, trigger_system_biometric};
 use std::time::Instant;
 use zeroize::Zeroizing;
 
@@ -287,12 +287,15 @@ fn handle_biometric(app: &mut App, action: Option<&str>, reason: Option<&str>) -
             let reason = reason
                 .map(|s| s.to_string())
                 .unwrap_or_else(|| "SoloSoul 生物识别测试".to_string());
-            match manager.test(&reason) {
-                Ok(true) => {
+            // V001: BiometricManager::test() 已随 P036 死代码删除，CLI 与 GUI 命令层一致直接调用
+            // trigger_system_biometric（严格策略，实际触发生物识别），避免依赖已删除的 core API。
+            match trigger_system_biometric(&reason, true) {
+                Ok(()) => {
                     app.success_message =
                         Some((t!(app.i18n, "cmd-biometric-test-passed"), Instant::now()))
                 }
-                Ok(false) => {
+                Err(BiometricError::UserPresenceUnavailable)
+                | Err(BiometricError::PlatformNotSupported) => {
                     app.error_message = Some(t!(app.i18n, "cmd-biometric-test-unavailable"))
                 }
                 Err(e) => app.error_message = Some(t!(app.i18n, "cmd-operation-failed", err = e)),
