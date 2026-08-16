@@ -315,17 +315,8 @@ impl AppState {
                 .map_err(|e| format!("初始化本地 Vault 失败: {e}"))?
         };
 
-        {
-            let mut guard = self
-                .vault_service
-                .write()
-                .map_err(|_| "Vault service lock poisoned".to_string())?;
-            // 热替换 VaultService 后重应用「同步设置偏好」开关：新实例默认 true，
-            // 若不重应用，用户关闭的偏好同步会在切换目录后静默重置为默认开启。
-            let ui_prefs_sync = guard.ui_prefs_sync_enabled();
-            *guard = new_svc;
-            guard.set_ui_prefs_sync_enabled(ui_prefs_sync);
-        }
+        // 热替换 VaultService 后重应用「同步设置偏好」开关（成功路径）
+        self.replace_vault_service(new_svc)?;
 
         // 清理占位目录，避免残留空数据。
         let placeholder_dir = data_dir.join(".uninitialized_vault");
@@ -358,74 +349,11 @@ impl AppState {
                 serde_json::json!({"phase": "sync_start", "current": 0, "total": 1}),
             );
 
+            // 首次同步：失败回退本地（P044-6 抽取），成功走收尾（进度完成/重载缓存/写配置/调度兜底）
             if let Err(e) = self.init_saf_sync().await {
-                // 同步失败：回退到本地 vault，避免留下半初始化的 SAF 状态。
-                // 同时不保存 SAF URI，下次启动仍走本地/占位路径。
-                tracing::warn!(
-                    "[initialize_vault] SAF initial sync failed, rolling back to local: {e}"
-                );
-                // 清除本次提前写入的 URI，保持「失败不保存」的既有语义。
-                let _ = Self::save_saf_uri(&data_dir, None);
-                let local_svc = Self::try_init_local_vault(&data_dir)
-                    .map_err(|e| format!("回退到本地 Vault 失败: {e}"))?;
-                {
-                    let mut guard = self
-                        .vault_service
-                        .write()
-                        .map_err(|_| "Vault service lock poisoned".to_string())?;
-                    // 与上方成功路径一致：热替换后重应用「同步设置偏好」开关。
-                    let ui_prefs_sync = guard.ui_prefs_sync_enabled();
-                    *guard = local_svc;
-                    guard.set_ui_prefs_sync_enabled(ui_prefs_sync);
-                }
-                // 取消 WorkManager 兜底同步：首次同步失败说明 SAF 不可用，
-                // 避免旧配置持续触发无效同步。
-                if let Err(e) = self.cancel_saf_fallback_sync() {
-                    tracing::warn!("[initialize_vault] failed to cancel SAF fallback sync: {e}");
-                }
-                return Err(format!("首次同步失败: {e}"));
+                return self.rollback_after_saf_sync_failure(&data_dir, &e);
             }
-            // 同步成功：通知前端进度完成
-            let _ = self.handle.emit(
-                "sync-progress",
-                serde_json::json!({"phase": "sync_complete", "current": 1, "total": 1}),
-            );
-
-            // 同步后重载账户缓存，使前端能感知已有账户
-            {
-                let svc = self
-                    .vault_service
-                    .read()
-                    .map_err(|_| "Vault service lock poisoned".to_string())?;
-                svc.load_accounts();
-            }
-
-            // 写入 .solosoul_config 到 SAF 目录（含 saf_tree_uri 元数据），
-            // 使卸载重装后用户选择相同目录时能自动恢复配置。
-            if let Some(ref uri) = saf_uri {
-                let temp_dir = data_dir.join("saf_vault_temp");
-                let sync_driver =
-                    Arc::new(TauriSafSyncDriver::<tauri::Wry>::new(self.handle.clone()));
-                Self::write_saf_config_to_remote(&temp_dir, uri, sync_driver).ok();
-
-                // 检测：同步后检查 .solosoul_config 是否写入成功
-                if let Some(config_uri) = Self::read_saf_config_uri(&temp_dir) {
-                    tracing::info!(
-                        "[AppState] .solosoul_config detected after sync, URI matches: {}",
-                        config_uri == *uri
-                    );
-                } else {
-                    tracing::warn!(
-                        "[AppState] .solosoul_config not found after writing (sync may be pending)"
-                    );
-                }
-                // 写入/检测 .solosoul_config 失败不影响主流程，仅打日志
-            }
-
-            // 调度 WorkManager 兜底同步，确保应用被系统回收后仍能同步到 SAF。
-            if let Err(e) = self.schedule_saf_fallback_sync() {
-                tracing::warn!("[AppState] failed to schedule SAF fallback sync: {e}");
-            }
+            self.after_saf_sync_success(&data_dir, saf_uri.as_deref())?;
         }
 
         let accounts: Vec<AccountSummary> = self
@@ -442,6 +370,94 @@ impl AppState {
             account_count,
             accounts,
         })
+    }
+    /// 热替换 VaultService 后重应用「同步设置偏好」开关：新实例默认 true，
+    /// 若不重应用，用户关闭的偏好同步会在切换目录后静默重置为默认开启。
+    fn replace_vault_service(
+        &self,
+        new_svc: solosoul_core::vault_service::VaultService,
+    ) -> Result<(), String> {
+        let mut guard = self
+            .vault_service
+            .write()
+            .map_err(|_| "Vault service lock poisoned".to_string())?;
+        let ui_prefs_sync = guard.ui_prefs_sync_enabled();
+        *guard = new_svc;
+        guard.set_ui_prefs_sync_enabled(ui_prefs_sync);
+        Ok(())
+    }
+
+    /// SAF 首次同步成功收尾：进度完成事件、重载账户缓存、写 .solosoul_config、
+    /// 调度 WorkManager 兜底同步。
+    fn after_saf_sync_success(
+        &self,
+        data_dir: &std::path::Path,
+        saf_uri: Option<&str>,
+    ) -> Result<(), String> {
+        // 同步成功：通知前端进度完成
+        let _ = self.handle.emit(
+            "sync-progress",
+            serde_json::json!({"phase": "sync_complete", "current": 1, "total": 1}),
+        );
+
+        // 同步后重载账户缓存，使前端能感知已有账户
+        {
+            let svc = self
+                .vault_service
+                .read()
+                .map_err(|_| "Vault service lock poisoned".to_string())?;
+            svc.load_accounts();
+        }
+
+        // 写入 .solosoul_config 到 SAF 目录（含 saf_tree_uri 元数据），
+        // 使卸载重装后用户选择相同目录时能自动恢复配置。
+        if let Some(uri) = saf_uri {
+            let temp_dir = data_dir.join("saf_vault_temp");
+            let sync_driver = Arc::new(TauriSafSyncDriver::<tauri::Wry>::new(self.handle.clone()));
+            Self::write_saf_config_to_remote(&temp_dir, uri, sync_driver).ok();
+
+            // 检测：同步后检查 .solosoul_config 是否写入成功
+            if let Some(config_uri) = Self::read_saf_config_uri(&temp_dir) {
+                tracing::info!(
+                    "[AppState] .solosoul_config detected after sync, URI matches: {}",
+                    config_uri == *uri
+                );
+            } else {
+                tracing::warn!(
+                    "[AppState] .solosoul_config not found after writing (sync may be pending)"
+                );
+            }
+            // 写入/检测 .solosoul_config 失败不影响主流程，仅打日志
+        }
+
+        // 调度 WorkManager 兜底同步，确保应用被系统回收后仍能同步到 SAF。
+        if let Err(e) = self.schedule_saf_fallback_sync() {
+            tracing::warn!("[AppState] failed to schedule SAF fallback sync: {e}");
+        }
+        Ok(())
+    }
+
+    /// SAF 首次同步失败：清除提前写入的 URI、回退本地 vault（保留「失败不保存」语义）、
+    /// 取消 WorkManager 兜底同步，返回「首次同步失败」错误。
+    fn rollback_after_saf_sync_failure(
+        &self,
+        data_dir: &std::path::Path,
+        err: &str,
+    ) -> Result<InitializeVaultResult, String> {
+        // 同步失败：回退到本地 vault，避免留下半初始化的 SAF 状态。
+        // 同时不保存 SAF URI，下次启动仍走本地/占位路径。
+        tracing::warn!("[initialize_vault] SAF initial sync failed, rolling back to local: {err}");
+        // 清除本次提前写入的 URI，保持「失败不保存」的既有语义。
+        let _ = Self::save_saf_uri(data_dir, None);
+        let local_svc = Self::try_init_local_vault(data_dir)
+            .map_err(|e| format!("回退到本地 Vault 失败: {e}"))?;
+        self.replace_vault_service(local_svc)?;
+        // 取消 WorkManager 兜底同步：首次同步失败说明 SAF 不可用，
+        // 避免旧配置持续触发无效同步。
+        if let Err(e) = self.cancel_saf_fallback_sync() {
+            tracing::warn!("[initialize_vault] failed to cancel SAF fallback sync: {e}");
+        }
+        Err(format!("首次同步失败: {err}"))
     }
 
     /// 设置生物识别临时锁定的到期时间（覆盖已有时间）。
