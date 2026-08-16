@@ -68,7 +68,7 @@
 | P029 | 架构       | `tauri/src/stores/settingsStore.ts:156-232` | 偏好设置三副本（后端 DB / localStorage / ui_preferences.json），读路径异常时可能闪烁回跳 | `[x]` 已修复（P029） |
 | P030 | 架构       | `tauri/src-tauri/src/state/app_state.rs`（866 行） | AppState 聚合 8 个字段且混入 SAF config、DTO、自由函数 | `[x]` 已修复（P030） |
 | P031 | 架构       | `tauri/src-tauri/src/services/`（仅 3 文件）vs `commands/`（30+ 模块） | services 层萎缩，业务规则锁在 command 签名旁（如 `object/mod.rs` 的 dynamic_group 校验），CLI 无法复用 | `[x]` 已修复（P031） |
-| P032 | 健壮性     | `tauri/crates/solosoul-vault/src/migration.rs:45` | 迁移版本读取 `unwrap_or(1)` 吞掉读取错误，版本表读失败会静默重跑全部迁移 | `[ ]` 待修复 |
+| P032 | 健壮性     | `tauri/crates/solosoul-vault/src/migration.rs:45` | 迁移版本读取 `unwrap_or(1)` 吞掉读取错误，版本表读失败会静默重跑全部迁移 | `[x]` 已修复（P032） |
 | P033 | 性能       | `tauri/crates/solosoul-vault/src/storage.rs:423,607,962` | 单 `Mutex<Connection>` 全库串行，未见显式 `journal_mode=WAL`（存疑）；`reencrypt_all` 持锁期间全库阻塞 | `[ ]` 待修复 |
 | P034 | 架构       | `commands/update.rs` 1902、`commands/ocr.rs` 1517、`migration.rs` 1536、`ocr/mrz.rs` 1423、`export_import/import.rs` 1225、`commands/biometric.rs` 1004、`commands/llm/rag.rs` 972 等 | 800+ 行文件群，与 P008/P025 同批纳入拆分 backlog | `[ ]` 待修复 |
 | P035 | 死代码     | `tauri/crates/solosoul-vault/src/storage/sync_apply.rs:140` | `save_sync_conflict`（单条版）无调用方，已被 batch 版取代 | `[ ]` 待修复 |
@@ -94,8 +94,8 @@
 
 ## 修复进度
 
-- 已完成：31 / 54
-- 当前处理：P032（迁移版本读取 unwrap_or(1) 吞错）
+- 已完成：32 / 54
+- 当前处理：P033（单 Mutex 串行 + WAL 存疑 + reencrypt_all 持锁阻塞）
 
 ---
 
@@ -290,6 +290,13 @@
 - **位置**：`solosoul-core/src/objects.rs`（新增）+ `src-tauri/src/commands/object/mod.rs`。
 - **修复（按指引「validate_dynamic_groups、inherit_*、template_fingerprint 下沉到 solosoul-core，commands 只做 DTO 适配」落实纯函数部分）**：`validate_dynamic_groups`（85 行动态字段组校验：`__fields` 声明遍历、数组要求/必填键/type 可解析/maxItems/allowedTypes 校验）与 `template_fingerprint`（模板指纹：排除 id/account_id/created_at/updated_at，按字段 id 稳定排序后 SHA-256 前 8 字节）逐字下沉至 solosoul-core `objects.rs`（core 依赖 solosoul-vault/sha2/hex 已具备，无需新增依赖）；`object/mod.rs` 改为 `pub use` 转发，re-export 链不变——`export_import/import.rs`、`export_docx/mod.rs`、`template.rs`、`object/tests/*` 等外部调用点零改动。`inherit_*` 系列依赖 `VaultService` 查询模板（非纯函数），保持原处不强制下沉。
 - **验证**：纯重构零行为变化；core 182 测试全绿；core/src-tauri 双 crate `clippy -D warnings` + `fmt --check` 全绿；src-tauri `check --tests`（含 object/tests/misc.rs 的 validate 测试）与 CLI check 全绿。
+
+### P032 — 迁移版本读取 unwrap_or(1) 吞错（已修复：区分首次建库与真实错误）
+
+- **提交**：`b4ae5441`
+- **位置**：`solosoul-vault/src/migration.rs`（`get_schema_version`、`run_migrations` 入口）。
+- **修复（按指引「版本读取失败显式报错或至少 tracing::error 留痕，不要 unwrap_or(1)」）**：`get_schema_version` 改用 rusqlite `optional()` 显式区分两类情况——「首次建库 sys_config 无 data_version 行」（`optional() → None`，返回 `Ok(1)`，完整保留历史 `unwrap_or(1)` 的兜底语义，首次初始化流程不受影响）与「真实读取/解析错误」（显式传播，不再吞掉）；`run_migrations` 入口 `unwrap_or(1)` 改 `?` 传播——版本表读失败时 fail-closed 上抛，不再静默按版本 1 重跑全部迁移（幂等迁移重复执行存在重复建列/数据损坏风险）。
+- **验证**：migration 域 12 测试全绿（含「首次建库后 get_schema_version 为 1」既有断言，天然覆盖新路径）；check + clippy `-D warnings` + fmt 全绿。
 
 ### P026 — LLM 客户端 blocking/async 双份实现（已修复：共享纯函数收敛）
 
