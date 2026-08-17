@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import { AppShell } from '@/components/layout/AppShell';
 import { PageContainer } from '@/components/layout/PageContainer';
@@ -42,6 +42,15 @@ export function ObjectWorkspacePage() {
   const { t } = ws;
   // 本地别名：属性访问无法在 JSX 守卫中做类型收窄，解构后可对 nullable 值正常 narrow。
   const { detailObj, historyObj, OBJECT_PAGE_SIZE } = ws;
+  // V004: fieldOrder 从内联 .find()?.properties.map() 提取为 useMemo——每次渲染新数组引用
+  // 会让 HistoryViewer 内部的 useMemo（依赖 [rawProps, fieldOrder]）在异步快照稳定后仍每次失效。
+  const historyFieldOrder = useMemo(
+    () =>
+      ws.userTemplates
+        .find((tpl) => tpl.id === historyObj?.templateId)
+        ?.properties.map((p) => p.id),
+    [ws.userTemplates, historyObj?.templateId],
+  );
   // P118: 解构出稳定引用供 useCallback 使用——直接引用 ws 会让 linter 把整个
   // ws 对象列为依赖（ws 每次渲染都是新对象，会把回调打成不稳定）。
   const {
@@ -298,9 +307,7 @@ export function ObjectWorkspacePage() {
               getFieldName={(fieldKey) =>
                 ws.getFieldName(historyObj.templateId, fieldKey, historyFields)
               }
-              fieldOrder={ws.userTemplates
-                .find((tpl) => tpl.id === historyObj.templateId)
-                ?.properties.map((p) => p.id)}
+              fieldOrder={historyFieldOrder}
             />
           );
         })()}
