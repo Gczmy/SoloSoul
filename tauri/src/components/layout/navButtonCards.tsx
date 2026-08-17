@@ -4,12 +4,12 @@
 // 差异点经参数注入：position、quick-chat setter、各按钮 ref 与弹层位置、placement 方向。
 
 import { createPortal } from 'react-dom';
+import { lazy, Suspense } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { NavigateFunction, Location } from 'react-router-dom';
 import type { Dispatch, MutableRefObject, ReactNode, SetStateAction } from 'react';
 import { NavButton } from './NavButton';
 import { SearchPopover } from './SearchPopover';
-import { AiQuickChatPopover } from './AiQuickChatPopover';
 import { OcrQuickScanPopover } from './OcrQuickScanPopover';
 import { PluginQuickPanel } from '@/components/plugin/PluginQuickPanel';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
@@ -18,6 +18,13 @@ import { usePluginQuickStore } from '@/stores/pluginQuickStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import type { PageIconKey } from '@/lib/pageIcons';
 import type { NavPosition } from './NavButton';
+
+// P015-R2: AiQuickChatPopover（内部 ChatMessageList→SafeMarkdown 携带 markdown 栈）
+// 由共享路径静态导入改为懒加载——弹层仅打开时拉取，markdown 栈不再进入
+// 首页/页面共享 chunk 的静态依赖图（PageContainer 561K 拆分目标之一）。
+const AiQuickChatPopover = lazy(() =>
+  import('./AiQuickChatPopover').then((m) => ({ default: m.AiQuickChatPopover })),
+);
 
 /** 与 useNavigationItems 的 NavItem 兼容的共享形状（该类型为模块私有）。 */
 export interface SharedNavLink {
@@ -167,11 +174,13 @@ export function useNavButtonCards(input: NavButtonCardInput) {
           />
           {showQuickChat &&
             createPortal(
-              <AiQuickChatPopover
-                position={quickChatPos}
-                onClose={() => setShowQuickChat(false)}
-                placement={placements.quickChat}
-              />,
+              <Suspense fallback={null}>
+                <AiQuickChatPopover
+                  position={quickChatPos}
+                  onClose={() => setShowQuickChat(false)}
+                  placement={placements.quickChat}
+                />
+              </Suspense>,
               document.body,
             )}
         </div>

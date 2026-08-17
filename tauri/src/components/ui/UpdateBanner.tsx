@@ -1,11 +1,22 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Download, CheckCircle2, X, Info, AlertTriangle } from 'lucide-react';
 import { formatBytes } from '@/lib/utils';
 import { ICON_SIZE } from '@/lib/constants';
 import { isMobilePlatformSync } from '@/lib/platform';
 import { Dialog } from '@/components/ui/Dialog';
-import { SafeMarkdown } from '@/components/ui/SafeMarkdown';
+
+// P015-R2: SafeMarkdown（react-markdown 全家桶约 350K）由静态导入改为按需动态加载——
+// UpdateBanner 被入口 AppRoutes 静态引用，原静态导入把整个 markdown 栈打进入口 chunk，
+// 每次启动（含登录页）都需解析。动态化后 markdown 仅在真正打开 release notes 时拉取。
+type SafeMarkdownComponent = typeof import('@/components/ui/SafeMarkdown')['SafeMarkdown'];
+const MARKDOWN_STYLE: React.CSSProperties = {
+  fontSize: 'var(--text-body-sm)',
+  color: 'var(--text-secondary)',
+  lineHeight: 1.6,
+  maxHeight: 420,
+  overflowY: 'auto',
+};
 
 export type UpdateBannerState = 'available' | 'downloading' | 'downloaded' | 'error';
 
@@ -46,8 +57,26 @@ export function UpdateBanner({
 }: UpdateBannerProps) {
   const { t } = useTranslation('common');
   const [notesOpen, setNotesOpen] = useState(false);
+  const [MarkdownRenderer, setMarkdownRenderer] = useState<SafeMarkdownComponent | null>(null);
   // 移动端仅显示图标按钮（竖屏空间有限），桌面端图标 + 文字。
   const isMobile = isMobilePlatformSync();
+
+  // 仅在用户真正打开 release notes 时才拉取 markdown 栈（横幅常驻期间不提前加载）；
+  // 模块缓存保证重复打开零成本，加载失败静默降级为纯文本。
+  useEffect(() => {
+    if (!notesOpen) return;
+    let mounted = true;
+    import('@/components/ui/SafeMarkdown')
+      .then((m) => {
+        if (mounted) setMarkdownRenderer(() => m.SafeMarkdown);
+      })
+      .catch(() => {
+        // 加载失败静默降级：release notes 以纯文本展示，不阻塞横幅
+      });
+    return () => {
+      mounted = false;
+    };
+  }, [notesOpen]);
 
   return (
     <div
@@ -299,18 +328,24 @@ export function UpdateBanner({
           dialogStyle={{ maxWidth: 480 }}
           priority="default"
         >
-          <SafeMarkdown
-            className="release-notes-md"
-            style={{
-              fontSize: 'var(--text-body-sm)',
-              color: 'var(--text-secondary)',
-              lineHeight: 1.6,
-              maxHeight: 420,
-              overflowY: 'auto',
-            }}
-          >
-            {releaseNotes}
-          </SafeMarkdown>
+          {MarkdownRenderer ? (
+            <MarkdownRenderer className="release-notes-md" style={MARKDOWN_STYLE}>
+              {releaseNotes}
+            </MarkdownRenderer>
+          ) : (
+            <pre
+              className="release-notes-md"
+              style={{
+                ...MARKDOWN_STYLE,
+                whiteSpace: 'pre-wrap',
+                wordBreak: 'break-word',
+                margin: 0,
+                fontFamily: 'inherit',
+              }}
+            >
+              {releaseNotes}
+            </pre>
+          )}
         </Dialog>
       )}
     </div>
