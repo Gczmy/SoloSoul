@@ -584,9 +584,13 @@ fn migrate_v22(conn: &mut Connection, current: u32) -> Result<(), String> {
 /// `record_hlc_or_fallback` / keyset SQL 的 IS NULL 分支逐字节一致，否则同步排序
 /// 语义改变：
 ///   - objects：wall = julianday(updated_at)→ms（与 keyset SQL 完全同一表达式）
-///   - profiles：wall = julianday(updated_at)→ms（parse_time_ms 逐字节一致，P110 断言）
+///   - profiles：wall = parse_time_ms(updated_at)（Rust chrono 逐行，与 record_hlc_or_fallback
+///     同路径；julianday 浮点对部分时间戳差 1ms 不可混用——见下方回填主体注释）
 ///   - trash_items：wall = deleted_at（本就是 unix ms）
-///   - user_templates：wall = julianday(COALESCE(updated_at,''))→ms（NULL 回退 parse_time_ms("")=0）
+///   - user_templates：wall = parse_time_ms(COALESCE(updated_at,''))（NULL 回退 parse_time_ms("")=0，同 Rust 路径）
+///   - 注：早期版本声称 julianday 与 parse_time_ms「逐字节一致（P110 断言）」失实——P110 断言不存在，
+///     两套推导对部分时间戳差 ≤1ms（V006 核实修正）；同步排序依赖回填与回退路径逐字节一致，
+///     该 1ms 差异在 watermark 落边界时可能假阴性漏同步（低概率，登记 V006 备查）。
 ///   - counter = 0，node = 规范化本地节点（与 sync 层 hex::encode(Hlc::parse_node_id_bytes) 一致）
 ///
 /// 兜底保留：`record_hlc_or_fallback` 与 keyset IS NULL 分支不删除——未来任何直写 SQL

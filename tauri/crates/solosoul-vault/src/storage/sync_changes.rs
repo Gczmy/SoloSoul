@@ -305,8 +305,11 @@ impl VaultStore {
             // 同时把水印过滤下推到 SQL：
             //   - 有 HLC 记录的行：按 HLC 三元组精确过滤（与 hlc_after_watermark 等价）
             //   - 无 HLC 记录的行（回退 updated_at）：同样按 (CAST(ms), 0, local) 三元组
-            //     精确过滤——julianday→ms 的浮点精度（~86µs）远低于 1ms，与 Rust
-            //     parse_time_ms 逐字节一致（P110 断言），故可安全下推，不再粗筛。
+            //     精确过滤。注意：julianday→ms 为 SQLite 浮点推导，与 Rust parse_time_ms
+            //     （chrono RFC3339→ms）对部分时间戳存在 ≤1ms 差异（migration.rs 639 自述），
+            //     并无测试断言两者逐字节一致（V006 核实：P110 断言不存在）。watermark 落在
+            //     该 1ms 边界时，SQL 过滤（julianday 推导）与 Rust 交付（parse_time_ms）两套
+            //     fallback 可能假阴性漏同步无真实 HLC 的行——低概率隐患，登记 V006 备查。
             let (sql, limit_param) = Self::object_changes_sql(limit);
             let mut stmt = conn
                 .prepare_cached(&sql)
