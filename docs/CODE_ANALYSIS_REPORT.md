@@ -96,8 +96,8 @@
 
 ## 修复进度
 
-- 已完成：54 / 54（修复声称）；验证后修正：48 项通过、6 项验证发现（V001–V006）全部于轮次 2 修复
-- 剩余：无（V001–V006 全部修复，见下节）
+- 已完成：54 / 54（修复声称）；验证后修正：48 项通过、7 项验证发现（V001–V007）全部于轮次 2、轮次 3 修复
+- 剩余：无（V001–V007 全部修复，见下节）
 
 ---
 
@@ -210,6 +210,15 @@ SQL 过滤（julianday 推导）与 Rust 交付（parse_time_ms）两套 fallbac
 vault cargo check --all-targets 0 错误 0 警告，行尾保持（sync LF / migration CRLF）。
 
 **提交**：见 V006 修复提交
+
+
+### V007 — ACL 白名单残留项（已修复）
+
+check-all 末尾 WARN：trash_permanent_delete 仍在 ACL 白名单中但 handler 已不注册——P038 删除时漏了一处（commit 声称「白名单三处同步删除」不完全准确：此时白名单仅有 permissions/solo-soul/default.toml 一处。脚本仅告警不失败，运行时无害（授权一个不存在的命令）。
+修复：从 default.toml 白名单删除该行（保持 CRLF）；locales 两处为审计日志事件名翻译（P038 声明保留）不动；capabilities 无残留。
+验证：check_acl_consistency.py 全绿（OK: 195 个命令均已登记），WARN 消除。
+
+**提交**：见 V007 修复提交
 
 ## 详细问题描述与修复指引
 

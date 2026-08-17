@@ -191,7 +191,6 @@ commands.allow = [
   "template_restore",
   "template_update",
   "trash_get_detail",
-  "trash_permanent_delete",
   "trash_permanent_delete_batch",
   "trash_restore",
   "ui_get_preferences",
