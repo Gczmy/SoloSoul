@@ -21,8 +21,12 @@ export default defineConfig({
         //   动态化改造，markdown 不再进入入口与首页共享路径（仅在帮助/LLM 聊天/
         //   更新横幅/快速聊天真正用到时加载）；实测 index 432K→317K、
         //   PageContainer 561K→338K，markdown/motion vendor 均不在 index.html 启动链。
-        //   注：因关闭递归并入，react-dom/@ungap 等通用依赖留在原 chunk；motion-dom/
-        //   motion-utils 与部分 markdown 子模块受环形 chunk 规避影响留在共享/动态块。
+        //   注：因关闭递归并入，react-dom/@ungap 等通用依赖留在原 chunk。
+        //   motion 组正则（framer-motion|motion- 前缀）修正后 motion-dom/motion-utils
+        //   已被捕获：PageContainer 561K→338K→238K、motion-vendor 32K→122K。
+        //   实测首导航闭包 361.6K→360.2K（仅 -1.4K）——共享组件（DropdownSelect 等）
+        //   真实使用 framer-motion，motion-vendor 必然随首导航加载，纯 chunk 归属无法
+        //   减总量；真杠杆在代码层替换共享组件动画（另议）。
         codeSplitting: {
           // includeDependenciesRecursively 仅顶层生效（group 级字段不存在，会被静默忽略）。
           // 默认 true 会把捕获模块的依赖递归并入组（react-markdown 依赖 react/
@@ -37,7 +41,9 @@ export default defineConfig({
             },
             {
               name: 'motion-vendor',
-              test: /node_modules[\\/](framer-motion|motion-)[\\/]/,
+              // 前缀项必须用 [^\\/]*（允许 motion-dom/motion-utils 等包名带子名），
+              // 旧的 (framer-motion|motion-)[\\/] 会漏掉 motion-dom/motion-utils。
+              test: /node_modules[\\/](framer-motion|motion-)[^\\/]*[\\/]/,
             },
           ],
         },
