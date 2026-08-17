@@ -88,3 +88,13 @@
     transform: translateX(100%);
   }
 }
+/* 减弱动效：关闭流光，骨架保持静态（组件级显式声明，不依赖 animations.css
+   全局兜底——即使该文件未被加载也尊重系统设置） */
+@media (prefers-reduced-motion: reduce) {
+  .title::after,
+  .tab::after,
+  .line::after,
+  .box::after {
+    animation: none;
+  }
+}
