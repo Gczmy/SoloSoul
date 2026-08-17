@@ -13,9 +13,9 @@ use std::time::Duration;
 const DEFAULT_REGISTRY_URL: &str = "https://plugins.solosoul.app/registry.json";
 
 /// P019: 编译期固化的插件注册表 minisign 公钥（base64：2 字节算法前缀 + 8 字节 key_id +
-/// 32 字节 Ed25519 公钥），对齐 `embed_model.rs:14` 的 `EMBED_REGISTRY_PUBKEY_B64` 模式。
+/// 32 字节 Ed25519 公钥），对齐 `src-tauri/src/commands/embed_model.rs` 的 `EMBED_REGISTRY_PUBKEY_B64` 模式。
 ///
-/// 公钥来源优先级：`SOLOSOUL_REGISTRY_PUBKEY` 环境变量（开发/测试覆盖）> 此编译期常量。
+/// 公钥来源优先级：`SOLOSOUL_REGISTRY_PUBKEY` 环境变量（仅 debug 构建，与 URL 门控一致）> 此编译期常量（release 忽略环境变量）。
 /// 当前为 `None`——生产公钥由维护者离线保管，发布时随代码填入（同 embed 注册表 2026-08-03
 /// 的固化流程）；填入后 release 构建即获得不受运行环境影响的编译期信任锚，不再依赖部署方
 /// 配置环境变量，未配置时也不再静默跳过远程更新。
@@ -69,10 +69,15 @@ impl PluginRegistry {
         #[cfg(not(debug_assertions))]
         let url = DEFAULT_REGISTRY_URL.to_string();
 
-        // P019: 公钥来源优先级：环境变量（dev/测试覆盖）> 编译期常量（生产信任锚）。
+        // P019/V003: 公钥来源优先级：环境变量（仅 debug/测试覆盖）> 编译期常量（生产信任锚）。
+        // release 构建忽略 SOLOSOUL_REGISTRY_PUBKEY——与 URL 的 debug 门控一致，生产环境
+        // 不再可经环境变量注入注册表信任锚。
+        #[cfg(debug_assertions)]
         let pubkey_b64 = std::env::var("SOLOSOUL_REGISTRY_PUBKEY")
             .ok()
             .or_else(|| PLUGIN_REGISTRY_PUBKEY_B64.map(str::to_string));
+        #[cfg(not(debug_assertions))]
+        let pubkey_b64 = PLUGIN_REGISTRY_PUBKEY_B64.map(str::to_string);
         let pubkey_b64 = match pubkey_b64 {
             Some(k) => k,
             None => {
