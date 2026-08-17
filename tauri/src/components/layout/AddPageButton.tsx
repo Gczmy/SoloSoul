@@ -1,6 +1,5 @@
 import React, { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/authStore';
@@ -229,68 +228,85 @@ export function AddPageButton({
       </div>{' '}
       {/* Popover create row — portaled to body so it sits above sidebar/tooltips */}
       {createPortal(
-        <AnimatePresence>
-          {isCreating && (
-            <motion.div
-              ref={popoverRef}
-              initial={{ opacity: 0, y: -6, scale: 0.96 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -6, scale: 0.96 }}
-              transition={{ duration: 0.15, ease: 'easeOut' }}
-              style={{
-                position: 'fixed',
-                left: isBottom
-                  ? 0
-                  : isHorizontal
-                    ? horizontalPopoverLeft
-                    : isRight
-                      ? 'auto'
-                      : buttonRect
-                        ? buttonRect.right + 8
-                        : 56,
-                right: isBottom
-                  ? 0
+        isCreating && (
+          <div
+            ref={popoverRef}
+            className={styles.addPagePopover}
+            style={{
+              position: 'fixed',
+              left: isBottom
+                ? 0
+                : isHorizontal
+                  ? horizontalPopoverLeft
                   : isRight
-                    ? buttonRect
-                      ? window.innerWidth - buttonRect.left + 8
-                      : 56
-                    : 'auto',
-                margin: isBottom ? '0 auto' : undefined,
-                top: isBottom
-                  ? `calc(${MOBILE_APP_BAR_HEIGHT}px + ${SAFE_AREA_TOP} + 8px)`
-                  : popoverTop,
-                bottom: isBottom
+                    ? 'auto'
+                    : buttonRect
+                      ? buttonRect.right + 8
+                      : 56,
+              right: isBottom
+                ? 0
+                : isRight
                   ? buttonRect
-                    ? window.innerHeight - buttonRect.top + 8
+                    ? window.innerWidth - buttonRect.left + 8
                     : 56
                   : 'auto',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 8,
-                padding: '10px 12px',
-                background: 'var(--bg-elevated)',
-                borderRadius: 8,
-                boxShadow: 'var(--shadow-lg)',
-                zIndex: 300,
-                border: '1px solid var(--border-subtle)',
-                transformOrigin: 'top',
-                maxWidth: 'calc(100vw - 32px)',
-                // 最大高度锚定卡片顶部：100vh - top - 16px 底部边距，保证
-                // 卡片底部始终位于窗口底部之上（修复：侧边栏靠下时卡片底部超屏）
-                maxHeight: isBottom ? undefined : `calc(100vh - ${popoverTop}px - 16px)`,
-                overflowY: isBottom ? 'hidden' : 'auto',
+              margin: isBottom ? '0 auto' : undefined,
+              top: isBottom
+                ? `calc(${MOBILE_APP_BAR_HEIGHT}px + ${SAFE_AREA_TOP} + 8px)`
+                : popoverTop,
+              bottom: isBottom
+                ? buttonRect
+                  ? window.innerHeight - buttonRect.top + 8
+                  : 56
+                : 'auto',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 8,
+              padding: '10px 12px',
+              background: 'var(--bg-elevated)',
+              borderRadius: 8,
+              boxShadow: 'var(--shadow-lg)',
+              zIndex: 300,
+              border: '1px solid var(--border-subtle)',
+              transformOrigin: 'top',
+              maxWidth: 'calc(100vw - 32px)',
+              // 最大高度锚定卡片顶部：100vh - top - 16px 底部边距，保证
+              // 卡片底部始终位于窗口底部之上（修复：侧边栏靠下时卡片底部超屏）
+              maxHeight: isBottom ? undefined : `calc(100vh - ${popoverTop}px - 16px)`,
+              overflowY: isBottom ? 'hidden' : 'auto',
+            }}
+          >
+            {/* Name input */}
+            <input
+              ref={inputRef}
+              value={name}
+              onChange={(e) => {
+                setName(e.target.value.slice(0, 20));
+                setNameError(null);
               }}
-            >
-              {/* Name input */}
+              onBlur={(e) => {
+                // Only confirm if the blur is not caused by clicking inside the popover
+                if (popoverRef.current && !popoverRef.current.contains(e.relatedTarget as Node)) {
+                  handleConfirm(false);
+                }
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleConfirm(true);
+                if (e.key === 'Escape') handleCancel();
+              }}
+              placeholder={t('add_page_placeholder')}
+              maxLength={20}
+              autoFocus
+              aria-label={t('add_page_placeholder')}
+              className={styles.addPageInput}
+              data-error={nameError ? 'true' : undefined}
+              style={{ flexShrink: 0 }}
+            />
+            {showDescription && (
               <input
-                ref={inputRef}
-                value={name}
-                onChange={(e) => {
-                  setName(e.target.value.slice(0, 20));
-                  setNameError(null);
-                }}
+                value={description}
+                onChange={(e) => setDescription(e.target.value.slice(0, 30))}
                 onBlur={(e) => {
-                  // Only confirm if the blur is not caused by clicking inside the popover
                   if (popoverRef.current && !popoverRef.current.contains(e.relatedTarget as Node)) {
                     handleConfirm(false);
                   }
@@ -299,143 +315,115 @@ export function AddPageButton({
                   if (e.key === 'Enter') handleConfirm(true);
                   if (e.key === 'Escape') handleCancel();
                 }}
-                placeholder={t('add_page_placeholder')}
-                maxLength={20}
-                autoFocus
-                aria-label={t('add_page_placeholder')}
+                placeholder={t('add_page_description_placeholder')}
+                maxLength={30}
+                aria-label={t('add_page_description_placeholder')}
                 className={styles.addPageInput}
-                data-error={nameError ? 'true' : undefined}
+                data-secondary
                 style={{ flexShrink: 0 }}
               />
-              {showDescription && (
-                <input
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value.slice(0, 30))}
-                  onBlur={(e) => {
-                    if (
-                      popoverRef.current &&
-                      !popoverRef.current.contains(e.relatedTarget as Node)
-                    ) {
-                      handleConfirm(false);
-                    }
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') handleConfirm(true);
-                    if (e.key === 'Escape') handleCancel();
-                  }}
-                  placeholder={t('add_page_description_placeholder')}
-                  maxLength={30}
-                  aria-label={t('add_page_description_placeholder')}
-                  className={styles.addPageInput}
-                  data-secondary
-                  style={{ flexShrink: 0 }}
-                />
-              )}
-              {nameError && (
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: 8,
-                    flexShrink: 0,
-                  }}
-                >
-                  <span
-                    style={{
-                      fontSize: 'var(--text-badge)',
-                      color: '#e74c3c',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    {nameError === 'empty' ? t('page_name_required') : t('page_name_exists')}
-                  </span>
-                  <button onClick={handleCancel} className={styles.cancelTextBtn}>
-                    {t('common:cancel')}
-                  </button>
-                </div>
-              )}
-
-              {/* Icon picker with category sections (scrollable) */}
+            )}
+            {nameError && (
               <div
                 style={{
                   display: 'flex',
-                  flexDirection: 'column',
-                  gap: 6,
-                  ...(isBottom && {
-                    flex: '1 1 auto',
-                    minHeight: isSmallWindow ? 80 : 120,
-                    overflow: 'hidden',
-                  }),
-                }}
-              >
-                <span style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
-                  {t('select_icon')}
-                </span>
-                <div
-                  style={{
-                    maxHeight: isBottom ? undefined : scrollMaxHeight,
-                    overflowY: 'auto',
-                    overflowX: 'hidden',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    gap: 10,
-                    ...(isBottom && { flex: '1 1 auto', minHeight: 0 }),
-                  }}
-                >
-                  <IconCategoryPicker
-                    selectedIconId={selectedIconId}
-                    onSelect={setSelectedIconId}
-                  />
-                </div>
-              </div>
-
-              {/* Cancel / Confirm buttons at bottom */}
-              <div
-                style={{
-                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
                   gap: 8,
-                  justifyContent: 'flex-end',
-                  paddingTop: 4,
-                  borderTop: '1px solid var(--border-subtle)',
                   flexShrink: 0,
-                  marginTop: isBottom ? 'auto' : undefined,
                 }}
               >
-                <button
-                  onClick={handleCancel}
-                  className={styles.cancelTextBtn}
+                <span
                   style={{
-                    padding: '6px 12px',
-                    borderRadius: 6,
-                    fontSize: 'var(--text-body-sm)',
-                    background: 'transparent',
-                    border: '1px solid var(--border-subtle)',
-                    color: 'var(--text-secondary)',
-                    cursor: 'pointer',
+                    fontSize: 'var(--text-badge)',
+                    color: '#e74c3c',
+                    whiteSpace: 'nowrap',
                   }}
                 >
+                  {nameError === 'empty' ? t('page_name_required') : t('page_name_exists')}
+                </span>
+                <button onClick={handleCancel} className={styles.cancelTextBtn}>
                   {t('common:cancel')}
-                </button>{' '}
-                <button
-                  onClick={() => handleConfirm(true)}
-                  style={{
-                    padding: '6px 12px',
-                    borderRadius: 6,
-                    fontSize: 'var(--text-body-sm)',
-                    background: 'var(--accent-primary)',
-                    border: 'none',
-                    color: '#fff',
-                    cursor: 'pointer',
-                    fontWeight: 500,
-                  }}
-                >
-                  {t('common:confirm')}
                 </button>
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>,
+            )}
+
+            {/* Icon picker with category sections (scrollable) */}
+            <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 6,
+                ...(isBottom && {
+                  flex: '1 1 auto',
+                  minHeight: isSmallWindow ? 80 : 120,
+                  overflow: 'hidden',
+                }),
+              }}
+            >
+              <span style={{ fontSize: 'var(--text-badge)', color: 'var(--text-tertiary)' }}>
+                {t('select_icon')}
+              </span>
+              <div
+                style={{
+                  maxHeight: isBottom ? undefined : scrollMaxHeight,
+                  overflowY: 'auto',
+                  overflowX: 'hidden',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 10,
+                  ...(isBottom && { flex: '1 1 auto', minHeight: 0 }),
+                }}
+              >
+                <IconCategoryPicker selectedIconId={selectedIconId} onSelect={setSelectedIconId} />
+              </div>
+            </div>
+
+            {/* Cancel / Confirm buttons at bottom */}
+            <div
+              style={{
+                display: 'flex',
+                gap: 8,
+                justifyContent: 'flex-end',
+                paddingTop: 4,
+                borderTop: '1px solid var(--border-subtle)',
+                flexShrink: 0,
+                marginTop: isBottom ? 'auto' : undefined,
+              }}
+            >
+              <button
+                onClick={handleCancel}
+                className={styles.cancelTextBtn}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: 6,
+                  fontSize: 'var(--text-body-sm)',
+                  background: 'transparent',
+                  border: '1px solid var(--border-subtle)',
+                  color: 'var(--text-secondary)',
+                  cursor: 'pointer',
+                }}
+              >
+                {t('common:cancel')}
+              </button>{' '}
+              <button
+                onClick={() => handleConfirm(true)}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: 6,
+                  fontSize: 'var(--text-body-sm)',
+                  background: 'var(--accent-primary)',
+                  border: 'none',
+                  color: '#fff',
+                  cursor: 'pointer',
+                  fontWeight: 500,
+                }}
+              >
+                {t('common:confirm')}
+              </button>
+            </div>
+          </div>
+        ),
         document.body,
       )}
     </div>

@@ -466,3 +466,26 @@
     color: var(--accent-primary);
   }
 }
+
+/* 添加页面弹层入场动画（替代 framer-motion 同参数 0.15s easeOut）；关闭瞬时。reduced-motion 关闭动画。 */
+.addPagePopover {
+  transform-origin: top;
+  animation: addPagePop 0.15s ease-out;
+}
+
+@keyframes addPagePop {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .addPagePopover {
+    animation: none;
+  }
+}

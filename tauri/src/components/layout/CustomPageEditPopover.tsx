@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { motion, AnimatePresence } from 'framer-motion';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/authStore';
@@ -165,170 +164,164 @@ export function CustomPageEditPopover({
   }, [isOpen]);
 
   return createPortal(
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          ref={popoverRef}
-          initial={{ opacity: 0, y: -6, scale: 0.96 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: -6, scale: 0.96 }}
-          transition={{ duration: 0.15, ease: 'easeOut' }}
-          style={{
-            position: 'fixed',
-            left: isBottom
+    isOpen && (
+      <div
+        ref={popoverRef}
+        className={styles.addPagePopover}
+        style={{
+          position: 'fixed',
+          left: isBottom
+            ? triggerRect
+              ? triggerRect.left
+              : 56
+            : isHorizontal
               ? triggerRect
                 ? triggerRect.left
                 : 56
-              : isHorizontal
-                ? triggerRect
-                  ? triggerRect.left
-                  : 56
-                : isRight
-                  ? 'auto'
-                  : triggerRect
-                    ? triggerRect.right + 8
-                    : 56,
-            right: isRight ? (triggerRect ? window.innerWidth - triggerRect.left + 8 : 56) : 'auto',
-            top: isBottom
-              ? triggerRect
+              : isRight
+                ? 'auto'
+                : triggerRect
+                  ? triggerRect.right + 8
+                  : 56,
+          right: isRight ? (triggerRect ? window.innerWidth - triggerRect.left + 8 : 56) : 'auto',
+          top: isBottom
+            ? triggerRect
+              ? triggerRect.bottom + 8
+              : '50%'
+            : triggerRect
+              ? isHorizontal
                 ? triggerRect.bottom + 8
-                : '50%'
-              : triggerRect
-                ? isHorizontal
-                  ? triggerRect.bottom + 8
-                  : triggerRect.top
-                : '50%',
-            bottom: 'auto',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 8,
-            padding: '6px 10px',
-            background: 'var(--bg-elevated)',
-            borderRadius: 8,
-            boxShadow: 'var(--shadow-lg)',
-            zIndex: 300,
-            border: '1px solid var(--border-subtle)',
-            transformOrigin: 'top',
-            maxWidth: 'calc(100vw - 32px)',
-            maxHeight:
-              `calc(100vh - ${SAFE_AREA_TOP} - ${SAFE_AREA_BOTTOM} - 32px)`,
-            overflowY: 'auto',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
-            {/* Icon picker trigger */}
-            <button
-              onClick={() => setShowIconPicker(!showIconPicker)}
-              style={{
-                width: 32,
-                height: 32,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                borderRadius: 6,
-                border: '1px solid var(--border-subtle)',
-                background: 'transparent',
-                cursor: 'pointer',
-                flexShrink: 0,
+                : triggerRect.top
+              : '50%',
+          bottom: 'auto',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 8,
+          padding: '6px 10px',
+          background: 'var(--bg-elevated)',
+          borderRadius: 8,
+          boxShadow: 'var(--shadow-lg)',
+          zIndex: 300,
+          border: '1px solid var(--border-subtle)',
+          transformOrigin: 'top',
+          maxWidth: 'calc(100vw - 32px)',
+          maxHeight: `calc(100vh - ${SAFE_AREA_TOP} - ${SAFE_AREA_BOTTOM} - 32px)`,
+          overflowY: 'auto',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: 6 }}>
+          {/* Icon picker trigger */}
+          <button
+            onClick={() => setShowIconPicker(!showIconPicker)}
+            style={{
+              width: 32,
+              height: 32,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderRadius: 6,
+              border: '1px solid var(--border-subtle)',
+              background: 'transparent',
+              cursor: 'pointer',
+              flexShrink: 0,
+            }}
+            title={t('navigation:add_page_placeholder', { defaultValue: 'Choose icon' })}
+          >
+            {React.createElement(CUSTOM_ICON_MAP[selectedIconId], {
+              size: 18,
+              style: { color: 'var(--accent-primary)' },
+            })}
+          </button>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <input
+              ref={inputRef}
+              value={name}
+              onChange={(e) => {
+                setName(e.target.value.slice(0, 30));
+                setRenameError(false);
               }}
-              title={t('navigation:add_page_placeholder', { defaultValue: 'Choose icon' })}
-            >
-              {React.createElement(CUSTOM_ICON_MAP[selectedIconId], {
-                size: 18,
-                style: { color: 'var(--accent-primary)' },
-              })}
-            </button>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              <input
-                ref={inputRef}
-                value={name}
-                onChange={(e) => {
-                  setName(e.target.value.slice(0, 30));
-                  setRenameError(false);
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleConfirm();
+                if (e.key === 'Escape') handleCancel();
+              }}
+              maxLength={30}
+              autoFocus
+              className={styles.addPageInput}
+              data-error={renameError || undefined}
+            />
+            <input
+              value={description}
+              onChange={(e) => setDescription(e.target.value.slice(0, 30))}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleConfirm();
+                if (e.key === 'Escape') handleCancel();
+              }}
+              maxLength={30}
+              placeholder={t('navigation:add_page_description_placeholder')}
+              aria-label={t('navigation:add_page_description_placeholder')}
+              className={styles.addPageInput}
+              data-secondary
+            />
+            {renameError && (
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: 8,
                 }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleConfirm();
-                  if (e.key === 'Escape') handleCancel();
-                }}
-                maxLength={30}
-                autoFocus
-                className={styles.addPageInput}
-                data-error={renameError || undefined}
-              />
-              <input
-                value={description}
-                onChange={(e) => setDescription(e.target.value.slice(0, 30))}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleConfirm();
-                  if (e.key === 'Escape') handleCancel();
-                }}
-                maxLength={30}
-                placeholder={t('navigation:add_page_description_placeholder')}
-                aria-label={t('navigation:add_page_description_placeholder')}
-                className={styles.addPageInput}
-                data-secondary
-              />
-              {renameError && (
-                <div
+              >
+                <span
                   style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: 8,
+                    fontSize: 'var(--text-badge)',
+                    color: '#e74c3c',
+                    whiteSpace: 'nowrap',
                   }}
                 >
-                  <span
-                    style={{
-                      fontSize: 'var(--text-badge)',
-                      color: '#e74c3c',
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    {t('page_name_exists')}
-                  </span>
-                  <button
-                    onClick={handleCancel}
-                    className="interactive-accent-link"
-                    style={{
-                      fontSize: 'var(--text-badge)',
-                      background: 'none',
-                      border: 'none',
-                      cursor: 'pointer',
-                      padding: 0,
-                    }}
-                  >
-                    {t('common:cancel')}
-                  </button>
-                </div>
-              )}
-            </div>
+                  {t('page_name_exists')}
+                </span>
+                <button
+                  onClick={handleCancel}
+                  className="interactive-accent-link"
+                  style={{
+                    fontSize: 'var(--text-badge)',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: 0,
+                  }}
+                >
+                  {t('common:cancel')}
+                </button>
+              </div>
+            )}
           </div>
+        </div>
 
-          {/* Icon picker grid — category sections (scrollable) */}
-          {showIconPicker && (
-            <div
-              style={{
-                maxHeight: scrollMaxHeight,
-                overflowY: 'auto',
-                overflowX: 'hidden',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 8,
+        {/* Icon picker grid — category sections (scrollable) */}
+        {showIconPicker && (
+          <div
+            style={{
+              maxHeight: scrollMaxHeight,
+              overflowY: 'auto',
+              overflowX: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 8,
+            }}
+          >
+            <IconCategoryPicker
+              variant="inline"
+              selectedIconId={selectedIconId}
+              onSelect={(id) => {
+                setSelectedIconId(id);
+                setShowIconPicker(false);
               }}
-            >
-              <IconCategoryPicker
-                variant="inline"
-                selectedIconId={selectedIconId}
-                onSelect={(id) => {
-                  setSelectedIconId(id);
-                  setShowIconPicker(false);
-                }}
-              />
-            </div>
-          )}
-        </motion.div>
-      )}
-    </AnimatePresence>,
+            />
+          </div>
+        )}
+      </div>
+    ),
     document.body,
   );
 }
