@@ -1,5 +1,3 @@
-import { motion } from 'framer-motion';
-
 import { PasswordVerificationDialog } from '@/components/forms/PasswordVerificationDialog';
 import { HistoryViewer } from '@/components/object/HistoryViewer';
 import { AttachmentViewer } from '@/components/object/AttachmentViewer';
@@ -91,10 +89,7 @@ export function ObjectDetailModal(props: ObjectDetailModalProps) {
     <>
       <div className={styles.overlay} onClick={onClose}>
         {!loading && obj && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.2 }}
+          <div
             ref={detailDragRef}
             onClick={(e) => e.stopPropagation()}
             className={styles.modal}
@@ -184,7 +179,7 @@ export function ObjectDetailModal(props: ObjectDetailModalProps) {
                 onDelete={onDelete ?? (() => setConfirmDelete(true))}
               />
             </>
-          </motion.div>
+          </div>
         )}
       </div>
 

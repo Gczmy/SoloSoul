@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
-import { motion } from 'framer-motion';
 import { Clock, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { SensitivityBadge, type SensitivityLevel } from '@/components/ui/SensitivityBadge';
 import { FieldTypeIcon } from '@/components/ui/FieldTypeIcon';
@@ -519,10 +518,7 @@ export function HistoryViewer({
       onClick={onClose}
     >
       {!loading && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.2 }}
+        <div
           onClick={(e) => e.stopPropagation()}
           style={{
             position: 'relative',
@@ -535,6 +531,7 @@ export function HistoryViewer({
             borderRadius: 16,
             boxShadow: '0 24px 80px rgba(0,0,0,0.25)',
             border: '1px solid var(--border-subtle)',
+            animation: 'fadeIn 0.2s ease-out',
             transform:
               animDir === 'left'
                 ? 'perspective(1200px) rotateY(-8deg)'
@@ -645,7 +642,7 @@ export function HistoryViewer({
                 return `${t('common:version')} #${total - currentIdx} · ${new Date(snap.timestamp).toLocaleString()} · ${triggerLabel}`;
               })()}
           </div>
-        </motion.div>
+        </div>
       )}
     </div>
   );

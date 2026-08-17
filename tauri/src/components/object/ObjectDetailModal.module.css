@@ -1,153 +1,230 @@
 .overlay {
   position: fixed;
+
   inset: 0;
+
   z-index: var(--z-modal);
+
   display: flex;
+
   align-items: center;
+
   justify-content: center;
+
   background: var(--bg-overlay);
+
   backdrop-filter: blur(4px);
 }
 
 .modal {
   background: var(--bg-elevated);
+
   border-radius: 16px;
+
   padding: 28px 32px;
+
   max-width: 560px;
+
   width: 90%;
+
   max-height: 80vh;
+
   overflow-y: auto;
+
   box-shadow: var(--shadow-lg);
+
   border: 1px solid var(--border-subtle);
+
   position: relative;
 }
 
 .fieldRow {
   display: flex;
+
   flex-direction: column;
+
   gap: 4px;
+
   padding: 8px 12px;
+
   border-radius: 8px;
+
   background: var(--bg-toolbar);
+
   border: 1px solid var(--border-subtle);
 }
 
 .fieldRowTop {
   display: flex;
+
   align-items: flex-start;
+
   justify-content: space-between;
+
   gap: 12px;
 }
 
 .fieldLabel {
   display: flex;
+
   align-items: center;
+
   gap: 6px;
+
   margin-bottom: 2px;
 }
 
 .fieldActions {
   display: flex;
+
   gap: 4px;
+
   flex-shrink: 0;
+
   margin-left: auto;
 }
 
 .fieldValue {
   font-size: var(--text-body);
+
   overflow: visible;
+
   text-overflow: clip;
+
   white-space: normal;
+
   word-break: break-word;
+
   width: 100%;
 }
 
 /* 头部（桌面端与原先 inline 样式等价；移动端由下方媒体查询改为固定顶栏） */
+
 .modalHeader {
   margin-bottom: 20px;
 }
 
 /* 底部操作栏（桌面端与原先 inline 样式等价；移动端固定底栏） */
+
 .modalFooter {
   margin-top: 20px;
+
   padding-top: 16px;
+
   border-top: 1px solid var(--border-subtle);
+
   display: flex;
+
   align-items: center;
+
   justify-content: space-between;
+
   gap: 8px;
+
   flex-wrap: wrap;
 }
 
 .footerActions {
   display: flex;
+
   align-items: center;
+
   gap: 8px;
+
   flex-shrink: 0;
 }
 
 /* 移动端：三段式布局——头部/底部固定，仅内容区滚动 */
+
 @media (max-width: 767px) {
   .modal {
     width: 92%;
+
     max-width: none;
+
     height: auto;
+
     max-height: 85vh;
+
     border-radius: 16px;
+
     display: flex;
+
     flex-direction: column;
+
     overflow: hidden;
+
     padding: 0;
   }
 
   .modalHeader {
     flex-shrink: 0;
+
     margin-bottom: 0;
+
     padding: 16px 20px 12px;
+
     border-bottom: 1px solid var(--border-subtle);
   }
 
   /* 三段式下用 header 的 border-bottom 替代旧分隔线 */
+
   .headerDivider {
     display: none;
   }
 
   .modalBody {
     flex: 1;
+
     min-height: 0;
+
     overflow-y: auto;
+
     padding: 16px 20px;
   }
 
   /* 底部操作栏：单行 5 个图标按钮均分，不再换行 */
+
   .modalFooter {
     flex-shrink: 0;
+
     margin-top: 0;
+
     padding: 12px 20px calc(12px + env(safe-area-inset-bottom, 0px));
+
     flex-wrap: nowrap;
+
     justify-content: space-between;
   }
 
   /* 字段行：标签与操作按钮在顶部，字段值独占一整行 */
+
   .fieldRow {
     display: flex;
+
     flex-direction: column;
   }
 
   .fieldRowTop {
     display: flex;
+
     align-items: flex-start;
+
     justify-content: space-between;
+
     gap: 8px;
   }
 
   /* 字段名与徽章在窄屏下允许折行，避免与右侧操作按钮拥挤 */
+
   .fieldLabel {
     flex-wrap: wrap;
+
     row-gap: 4px;
   }
 
   /* 操作按钮：仅显示图标，隐藏文本 */
+
   .actionLabel,
   .btnLabel {
     display: none;
@@ -160,6 +237,7 @@
   }
 
   /* PageGuide 触发器按钮也改为仅图标 */
+
   .guideWrapper button span {
     display: none;
   }
@@ -168,25 +246,39 @@
 /* 对象详情弹层 — 操作按钮与字段复制按钮样式 */
 
 /* 底部操作按钮（历史/附件/编辑） */
+
 .actionBtn {
   display: flex;
+
   align-items: center;
+
   gap: 6px;
+
   padding: 8px 12px;
+
   border-radius: 8px;
+
   border: 1px solid var(--border-subtle);
+
   background: var(--bg-toolbar);
+
   color: var(--text-secondary);
+
   cursor: pointer;
+
   font-size: var(--text-body-sm);
+
   font-weight: 500;
+
   min-height: 36px;
+
   transition: all 0.15s ease;
 }
 
 @media (max-width: 767px) {
   .actionBtn {
     min-height: 44px;
+
     padding: 10px 14px;
   }
 }
@@ -194,24 +286,38 @@
 @media (hover: hover) and (pointer: fine) {
   .actionBtn:hover {
     background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+
     border-color: var(--accent-primary);
+
     color: var(--accent-primary);
   }
 }
 
 /* 字段复制按钮 */
+
 .copyBtn {
   padding: 4px 10px;
+
   border-radius: 6px;
+
   border: 1px solid var(--border-subtle);
+
   background: transparent;
+
   cursor: pointer;
+
   font-size: var(--text-badge);
+
   color: var(--text-tertiary);
+
   display: flex;
+
   align-items: center;
+
   gap: 4px;
+
   min-height: 28px;
+
   transition: all var(--duration-fast) var(--ease-smooth);
 }
 
@@ -219,78 +325,113 @@
   .copyBtn,
   .revealBtn {
     min-height: 44px;
+
     padding: 10px 14px;
   }
 }
 
 .copyBtnCopied {
   border-color: var(--accent-primary);
+
   color: var(--accent-primary);
+
   box-shadow: 0 0 10px color-mix(in srgb, var(--accent-primary) 35%, transparent);
 }
 
 @media (hover: hover) and (pointer: fine) {
   .copyBtn:hover {
     background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+
     border-color: var(--accent-primary);
+
     color: var(--accent-primary);
   }
 }
 
 /* 字段揭示按钮 */
+
 .revealBtn {
   padding: 4px 10px;
+
   border-radius: 6px;
+
   border: 1px solid var(--border-subtle);
+
   background: transparent;
+
   cursor: pointer;
+
   font-size: var(--text-badge);
+
   color: var(--text-tertiary);
+
   display: flex;
+
   align-items: center;
+
   gap: 4px;
+
   min-height: 28px;
+
   transition: all 0.15s ease;
 }
 
 .revealBtnCritical {
   background: rgba(220, 38, 38, 0.06);
+
   color: #dc2626;
 }
 
 @media (hover: hover) and (pointer: fine) {
   .revealBtn:hover {
     background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+
     border-color: var(--accent-primary);
+
     color: var(--accent-primary);
   }
 
   .revealBtnCritical:hover {
     background: rgba(220, 38, 38, 0.12);
+
     border-color: var(--border-subtle);
+
     color: #dc2626;
   }
 }
 
 /* 关闭按钮 */
+
 .closeBtn {
   display: flex;
+
   align-items: center;
+
   justify-content: center;
+
   padding: 6px;
+
   border-radius: 8px;
+
   border: none;
+
   background: transparent;
+
   cursor: pointer;
+
   color: var(--text-tertiary);
+
   min-width: 36px;
+
   min-height: 36px;
+
   transition: all 0.15s ease;
 }
 
 @media (max-width: 767px) {
   .closeBtn {
     min-width: 44px;
+
     min-height: 44px;
   }
 }
@@ -298,49 +439,74 @@
 @media (hover: hover) and (pointer: fine) {
   .closeBtn:hover {
     background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+
     color: var(--accent-primary);
   }
 }
 
 /* 移动端：底部 5 个操作按钮统一为 44×44 纯图标方块。
+
    放在文件末尾，确保覆盖上方 .actionBtn/.sm 的移动端 padding 规则 */
+
 @media (max-width: 767px) {
   /* 历史/附件/编辑 */
+
   .footerBtn {
     width: 44px;
+
     height: 44px;
+
     padding: 0;
+
     justify-content: center;
+
     flex-shrink: 0;
   }
 
   /* PageGuide 触发器（覆盖其 inline padding/gap 需 !important） */
+
   .guideWrapper button {
     width: 44px;
+
     height: 44px;
+
     padding: 0 !important;
+
     gap: 0 !important;
+
     border-radius: 10px !important;
+
     justify-content: center;
   }
 
   /* 删除按钮（Button 共享组件）：44×44 方块，保留 danger 红色底/图标做视觉区分 */
+
   .deleteBtnWrapper button {
     width: 44px;
+
     height: 44px;
+
     min-width: 44px;
+
     min-height: 44px;
+
     padding: 0;
+
     gap: 0;
+
     border-radius: 10px;
   }
 
   /* 字段 reveal/copy 按钮：44×44 方块且图标居中
+
      （原 padding 10px 14px + min-width 44px 导致图标偏左，右侧余出 4~9px） */
+
   .copyBtn,
   .revealBtn {
     width: 44px;
+
     padding: 0;
+
     justify-content: center;
   }
 }

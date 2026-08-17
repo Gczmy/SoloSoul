@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion';
 import { Images } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/constants';
 
@@ -116,10 +115,7 @@ export function AttachmentViewer(props: AttachmentViewerProps) {
       }}
     >
       {!loading && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.2 }}
+        <div
           onClick={(e) => e.stopPropagation()}
           ref={dragRef}
           style={{
@@ -134,6 +130,7 @@ export function AttachmentViewer(props: AttachmentViewerProps) {
             border: '1px solid var(--border-subtle)',
             position: 'relative',
             margin: 16,
+            animation: 'fadeIn 0.2s ease-out',
           }}
         >
           {/* Header（P013 拆分） */}
@@ -237,7 +234,7 @@ export function AttachmentViewer(props: AttachmentViewerProps) {
           </div>
           {/* 拖拽上传覆盖层 */}
           <DragUploadOverlay dragState={dragState} borderRadius={16} />
-        </motion.div>
+        </div>
       )}{' '}
       {/* Preview overlay */}
       <AttachmentPreviewOverlay
