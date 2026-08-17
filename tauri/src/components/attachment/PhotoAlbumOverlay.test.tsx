@@ -32,9 +32,13 @@ describe('PhotoAlbumOverlay', () => {
     const cells = within(grid).getAllByRole('button');
     fireEvent.click(cells[0]);
 
-    await waitFor(() => {
-      expect(screen.getByTestId('photo-viewer-counter')).toHaveTextContent('1 / 2');
-    });
+    // 查看器为懒加载（LazyPhotoViewerOverlay 冷启动拉 framer-motion），放宽 waitFor 超时防抖动
+    await waitFor(
+      () => {
+        expect(screen.getByTestId('photo-viewer-counter')).toHaveTextContent('1 / 2');
+      },
+      { timeout: 8000 },
+    );
 
     fireEvent.click(screen.getByRole('button', { name: /common:back_to_album/i }));
     await waitFor(() => {
@@ -61,9 +65,13 @@ describe('PhotoAlbumOverlay', () => {
     const grid = await screen.findByTestId('photo-album-grid');
     const cells = within(grid).getAllByRole('button');
     fireEvent.click(cells[0]);
-    await waitFor(() => {
-      expect(screen.getByTestId('photo-viewer-counter')).toHaveTextContent('1 / 2');
-    });
+    // 查看器为懒加载（LazyPhotoViewerOverlay 冷启动拉 framer-motion），放宽 waitFor 超时防抖动
+    await waitFor(
+      () => {
+        expect(screen.getByTestId('photo-viewer-counter')).toHaveTextContent('1 / 2');
+      },
+      { timeout: 8000 },
+    );
 
     // 第一次返回：查看器层标记被弹出 → 回到网格，相册保持打开
     fireEvent.popState(window);
