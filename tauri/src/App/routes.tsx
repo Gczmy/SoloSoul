@@ -3,90 +3,131 @@ import { lazy } from 'react';
 
 // P015: 路由级懒加载——27 个页面全部改为 React.lazy 动态导入，vite 自动按页面分包，
 // 移动端首屏只加载登录/首页相关 chunk，进入其他页面时才拉取对应包。
-const HomePage = lazy(() => import('@/pages/home/HomePage').then((m) => ({ default: m.HomePage })));
-const SettingsPage = lazy(() =>
-  import('@/pages/settings/SettingsPage').then((m) => ({ default: m.SettingsPage })),
-);
+// P015-R: 每个页面拆出独立 loadXxx() 加载器，与下方 lazy() 及 routeLoaders（登录后
+// 后台预取）共用同一 import 工厂，保证懒加载与预取单真相源、chunk 划分不变。
+const loadHomePage = () => import('@/pages/home/HomePage');
+const HomePage = lazy(() => loadHomePage().then((m) => ({ default: m.HomePage })));
+const loadSettingsPage = () => import('@/pages/settings/SettingsPage');
+const SettingsPage = lazy(() => loadSettingsPage().then((m) => ({ default: m.SettingsPage })));
+const loadSecuritySettingsPage = () => import('@/pages/settings/SecuritySettingsPage');
 const SecuritySettingsPage = lazy(() =>
-  import('@/pages/settings/SecuritySettingsPage').then((m) => ({
+  loadSecuritySettingsPage().then((m) => ({
     default: m.SecuritySettingsPage,
   })),
 );
+const loadAccountSettingsPage = () => import('@/pages/settings/AccountSettingsPage');
 const AccountSettingsPage = lazy(() =>
-  import('@/pages/settings/AccountSettingsPage').then((m) => ({ default: m.AccountSettingsPage })),
+  loadAccountSettingsPage().then((m) => ({ default: m.AccountSettingsPage })),
 );
+const loadDataManagementPage = () => import('@/pages/settings/DataManagementPage');
 const DataManagementPage = lazy(() =>
-  import('@/pages/settings/DataManagementPage').then((m) => ({ default: m.DataManagementPage })),
+  loadDataManagementPage().then((m) => ({ default: m.DataManagementPage })),
 );
-const TrashPage = lazy(() =>
-  import('@/pages/settings/TrashPage').then((m) => ({ default: m.TrashPage })),
-);
+const loadTrashPage = () => import('@/pages/settings/TrashPage');
+const TrashPage = lazy(() => loadTrashPage().then((m) => ({ default: m.TrashPage })));
+const loadObjectWorkspacePage = () => import('@/pages/workspace/ObjectWorkspacePage');
 const ObjectWorkspacePage = lazy(() =>
-  import('@/pages/workspace/ObjectWorkspacePage').then((m) => ({ default: m.ObjectWorkspacePage })),
+  loadObjectWorkspacePage().then((m) => ({ default: m.ObjectWorkspacePage })),
 );
+const loadObjectEditorPage = () => import('@/pages/editor/ObjectEditorPage');
 const ObjectEditorPage = lazy(() =>
-  import('@/pages/editor/ObjectEditorPage').then((m) => ({ default: m.ObjectEditorPage })),
+  loadObjectEditorPage().then((m) => ({ default: m.ObjectEditorPage })),
 );
+const loadExportImportPage = () => import('@/pages/settings/ExportImportPage');
 const ExportImportPage = lazy(() =>
-  import('@/pages/settings/ExportImportPage').then((m) => ({ default: m.ExportImportPage })),
+  loadExportImportPage().then((m) => ({ default: m.ExportImportPage })),
 );
-const SearchPage = lazy(() =>
-  import('@/pages/search/SearchPage').then((m) => ({ default: m.SearchPage })),
-);
+const loadSearchPage = () => import('@/pages/search/SearchPage');
+const SearchPage = lazy(() => loadSearchPage().then((m) => ({ default: m.SearchPage })));
+const loadOperationLogPage = () => import('@/pages/settings/OperationLogPage');
 const OperationLogPage = lazy(() =>
-  import('@/pages/settings/OperationLogPage').then((m) => ({ default: m.OperationLogPage })),
+  loadOperationLogPage().then((m) => ({ default: m.OperationLogPage })),
 );
-const AboutPage = lazy(() =>
-  import('@/pages/system/AboutPage').then((m) => ({ default: m.AboutPage })),
-);
-const DebugLogPage = lazy(() =>
-  import('@/pages/system/DebugLogPage').then((m) => ({ default: m.DebugLogPage })),
-);
+const loadAboutPage = () => import('@/pages/system/AboutPage');
+const AboutPage = lazy(() => loadAboutPage().then((m) => ({ default: m.AboutPage })));
+const loadDebugLogPage = () => import('@/pages/system/DebugLogPage');
+const DebugLogPage = lazy(() => loadDebugLogPage().then((m) => ({ default: m.DebugLogPage })));
+const loadAppearanceSettingsPage = () => import('@/pages/settings/AppearanceSettingsPage');
 const AppearanceSettingsPage = lazy(() =>
-  import('@/pages/settings/AppearanceSettingsPage').then((m) => ({
+  loadAppearanceSettingsPage().then((m) => ({
     default: m.AppearanceSettingsPage,
   })),
 );
+const loadBackupConfigPage = () => import('@/pages/settings/BackupConfigPage');
 const BackupConfigPage = lazy(() =>
-  import('@/pages/settings/BackupConfigPage').then((m) => ({ default: m.BackupConfigPage })),
+  loadBackupConfigPage().then((m) => ({ default: m.BackupConfigPage })),
 );
-const PluginGatePage = lazy(() =>
-  import('@/pages/ai/PluginGatePage').then((m) => ({ default: m.PluginGatePage })),
-);
-const LlmChatPage = lazy(() =>
-  import('@/pages/ai/LlmChatPage').then((m) => ({ default: m.LlmChatPage })),
-);
-const LlmConfigPage = lazy(() =>
-  import('@/pages/ai/LlmConfigPage').then((m) => ({ default: m.LlmConfigPage })),
-);
+const loadPluginGatePage = () => import('@/pages/ai/PluginGatePage');
+const PluginGatePage = lazy(() => loadPluginGatePage().then((m) => ({ default: m.PluginGatePage })));
+const loadLlmChatPage = () => import('@/pages/ai/LlmChatPage');
+const LlmChatPage = lazy(() => loadLlmChatPage().then((m) => ({ default: m.LlmChatPage })));
+const loadLlmConfigPage = () => import('@/pages/ai/LlmConfigPage');
+const LlmConfigPage = lazy(() => loadLlmConfigPage().then((m) => ({ default: m.LlmConfigPage })));
+const loadTemplateManagerPage = () => import('@/pages/settings/TemplateManagerPage');
 const TemplateManagerPage = lazy(() =>
-  import('@/pages/settings/TemplateManagerPage').then((m) => ({ default: m.TemplateManagerPage })),
+  loadTemplateManagerPage().then((m) => ({ default: m.TemplateManagerPage })),
 );
+const loadOcrSettingsPage = () => import('@/pages/settings/OcrSettingsPage');
 const OcrSettingsPage = lazy(() =>
-  import('@/pages/settings/OcrSettingsPage').then((m) => ({ default: m.OcrSettingsPage })),
+  loadOcrSettingsPage().then((m) => ({ default: m.OcrSettingsPage })),
 );
+const loadGlobalAttachmentManager = () => import('@/pages/settings/GlobalAttachmentManager');
 const GlobalAttachmentManager = lazy(() =>
-  import('@/pages/settings/GlobalAttachmentManager').then((m) => ({
+  loadGlobalAttachmentManager().then((m) => ({
     default: m.GlobalAttachmentManager,
   })),
 );
+const loadVaultDirectoryPage = () => import('@/pages/settings/VaultDirectoryPage');
 const VaultDirectoryPage = lazy(() =>
-  import('@/pages/settings/VaultDirectoryPage').then((m) => ({ default: m.VaultDirectoryPage })),
+  loadVaultDirectoryPage().then((m) => ({ default: m.VaultDirectoryPage })),
 );
-const LlmStatsPage = lazy(() =>
-  import('@/pages/ai/LlmStatsPage').then((m) => ({ default: m.LlmStatsPage })),
-);
-const HelpPage = lazy(() => import('@/pages/help/HelpPage').then((m) => ({ default: m.HelpPage })));
-const ScanLocalPage = lazy(() =>
-  import('@/pages/scan/ScanLocalPage').then((m) => ({ default: m.ScanLocalPage })),
-);
-const OcrPage = lazy(() => import('@/pages/scan/OcrPage').then((m) => ({ default: m.OcrPage })));
-const HistoryPage = lazy(() =>
-  import('@/pages/editor/HistoryPage').then((m) => ({ default: m.HistoryPage })),
-);
-const SyncPage = lazy(() => import('@/pages/sync/SyncPage').then((m) => ({ default: m.SyncPage })));
+const loadLlmStatsPage = () => import('@/pages/ai/LlmStatsPage');
+const LlmStatsPage = lazy(() => loadLlmStatsPage().then((m) => ({ default: m.LlmStatsPage })));
+const loadHelpPage = () => import('@/pages/help/HelpPage');
+const HelpPage = lazy(() => loadHelpPage().then((m) => ({ default: m.HelpPage })));
+const loadScanLocalPage = () => import('@/pages/scan/ScanLocalPage');
+const ScanLocalPage = lazy(() => loadScanLocalPage().then((m) => ({ default: m.ScanLocalPage })));
+const loadOcrPage = () => import('@/pages/scan/OcrPage');
+const OcrPage = lazy(() => loadOcrPage().then((m) => ({ default: m.OcrPage })));
+const loadHistoryPage = () => import('@/pages/editor/HistoryPage');
+const HistoryPage = lazy(() => loadHistoryPage().then((m) => ({ default: m.HistoryPage })));
+const loadSyncPage = () => import('@/pages/sync/SyncPage');
+const SyncPage = lazy(() => loadSyncPage().then((m) => ({ default: m.SyncPage })));
 import { useAuthStore } from '@/stores/authStore';
 import type { ReactNode } from 'react';
+
+/** 受保护路由页面加载器集合：登录后在后台分批预取（见 AppRoutes useRoutePrefetch），
+ *  消除桌面端首次进入未访问页面时拉取 chunk（含共享依赖 chunk）造成的整窗空白。 */
+export const routeLoaders: Array<() => Promise<unknown>> = [
+  loadHomePage,
+  loadSettingsPage,
+  loadSecuritySettingsPage,
+  loadAccountSettingsPage,
+  loadDataManagementPage,
+  loadTrashPage,
+  loadObjectWorkspacePage,
+  loadObjectEditorPage,
+  loadExportImportPage,
+  loadSearchPage,
+  loadOperationLogPage,
+  loadAboutPage,
+  loadDebugLogPage,
+  loadAppearanceSettingsPage,
+  loadBackupConfigPage,
+  loadPluginGatePage,
+  loadLlmChatPage,
+  loadLlmConfigPage,
+  loadTemplateManagerPage,
+  loadOcrSettingsPage,
+  loadGlobalAttachmentManager,
+  loadVaultDirectoryPage,
+  loadLlmStatsPage,
+  loadHelpPage,
+  loadScanLocalPage,
+  loadOcrPage,
+  loadHistoryPage,
+  loadSyncPage,
+];
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);

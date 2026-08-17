@@ -27,15 +27,13 @@ import { useSafSyncStore } from '@/stores/safSyncStore';
 import { useUiStore } from '@/stores/uiStore';
 import { SafSyncIndicator } from '@/components/sync/SafSyncIndicator';
 import { PostLoginSetupGuide } from '@/components/guide/PostLoginSetupGuide';
-import { protectedRoutes, AuthGuard } from './routes';
-import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
+import { protectedRoutes, AuthGuard, routeLoaders } from './routes';
+import { RouteLoadingSkeleton } from '@/components/ui/RouteLoadingSkeleton';
 // P015: 认证页同样懒加载（首屏只加载当前需要的 chunk）
-const BootstrapPage = lazy(() =>
-  import('@/pages/auth/BootstrapPage').then((m) => ({ default: m.BootstrapPage })),
-);
-const LoginPage = lazy(() =>
-  import('@/pages/auth/LoginPage').then((m) => ({ default: m.LoginPage })),
-);
+const loadBootstrapPage = () => import('@/pages/auth/BootstrapPage');
+const BootstrapPage = lazy(() => loadBootstrapPage().then((m) => ({ default: m.BootstrapPage })));
+const loadLoginPage = () => import('@/pages/auth/LoginPage');
+const LoginPage = lazy(() => loadLoginPage().then((m) => ({ default: m.LoginPage })));
 
 export function AppRoutes() {
   const navigate = useNavigate();
@@ -290,6 +288,38 @@ export function AppRoutes() {
     };
   }, [navigate, isAuthenticated]);
 
+  // P015-R: 路由 chunk 后台预取——懒加载后首次进入未访问页面需拉取页面 chunk 及其
+  // 共享依赖 chunk（如 PageContainer 561K / RecoveryQrScanner 375K），期间整窗显示
+  // Suspense 占位，桌面端感知为半秒空白。登录解锁后分批预取全部路由 chunk（含认证页），
+  // 之后切换页面全部命中缓存，空白消失；移动端首屏仍保持瘦加载，预取仅登录后触发。
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    let cancelled = false;
+    const loaders = [loadBootstrapPage, loadLoginPage, ...routeLoaders];
+    let index = 0;
+    const BATCH = 3;
+    const TICK_MS = 80;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const tick = () => {
+      if (cancelled) return;
+      for (let n = 0; n < BATCH && index < loaders.length; n += 1, index += 1) {
+        void loaders[index]().catch(() => {
+          // 预取失败静默忽略：目标页面仍会按需加载
+        });
+      }
+      if (index < loaders.length) {
+        timer = setTimeout(tick, TICK_MS);
+      }
+    };
+    // 等一帧再开始，避免与登录后的首帧渲染竞争主线程
+    const raf = requestAnimationFrame(() => tick());
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(raf);
+      if (timer) clearTimeout(timer);
+    };
+  }, [isAuthenticated]);
+
   // 支持 /bootstrap?mode=create 在已有账户时仍能创建新账户
   const [searchParams] = useSearchParams();
   const bootstrapMode = searchParams.get('mode');
@@ -345,8 +375,9 @@ export function AppRoutes() {
         </div>
       )}
       {isAuthenticated && <PostLoginSetupGuide />}
-      {/* P015: Suspense 承接路由级懒加载 chunk 拉取期，纯色占位避免白屏闪烁 */}
-      <Suspense fallback={<LoadingPlaceholder variant="base" minHeight="100vh" />}>
+      {/* P015: Suspense 承接路由级懒加载 chunk 拉取期。P015-R: 纯色占位升级为骨架屏，
+          残余拉取期保持侧边栏/导航与内容区结构，避免「整窗空白」感知。 */}
+      <Suspense fallback={<RouteLoadingSkeleton />}>
         <Routes>
           <Route
             path="/bootstrap"

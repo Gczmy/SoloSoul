@@ -1,0 +1,151 @@
+.shell {
+  display: flex;
+  min-height: 100vh;
+  background: var(--bg-base);
+  touch-action: manipulation;
+}
+
+/* 桌面端左侧 48px 导航栏骨架 */
+.side {
+  width: 48px;
+  min-width: 48px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding-top: 12px;
+  background: var(--bg-toolbar);
+}
+
+.sideLogo {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--bg-elevated);
+  position: relative;
+  overflow: hidden;
+}
+
+.sideIcon {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--bg-elevated);
+  position: relative;
+  overflow: hidden;
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.top {
+  height: 56px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  overflow: hidden;
+}
+
+.bar {
+  height: 16px;
+  border-radius: 8px;
+  background: var(--bg-elevated);
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.title {
+  width: 180px;
+  height: 20px;
+}
+
+.card {
+  flex: 1;
+  border-radius: 12px;
+  background: var(--bg-elevated);
+  position: relative;
+  overflow: hidden;
+}
+
+/* 移动端底部导航骨架（与 AppShell column-reverse 的底部导航位置一致） */
+.bottom {
+  display: none;
+}
+
+.bottomIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--bg-elevated);
+  position: relative;
+  overflow: hidden;
+}
+
+@media (max-width: 767px) {
+  .shell {
+    flex-direction: column;
+  }
+
+  .side {
+    display: none;
+  }
+
+  .top {
+    height: 48px;
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  .content {
+    padding: 12px;
+  }
+
+  .bottom {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    height: 56px;
+    flex-shrink: 0;
+    padding: 0 24px calc(env(safe-area-inset-bottom, 0px) + 8px);
+    background: var(--bg-toolbar);
+  }
+}
+
+/* 轻微流光，示意「正在加载」而非死屏 */
+.bar::after,
+.card::after,
+.sideIcon::after,
+.sideLogo::after,
+.bottomIcon::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(128, 128, 128, 0.14),
+    transparent
+  );
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
