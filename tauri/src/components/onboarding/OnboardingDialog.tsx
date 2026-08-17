@@ -4,14 +4,8 @@ import { useOnboarding, type OnboardingDialogProps } from '@/hooks/useOnboarding
 import { OnboardingFrame, OnboardingBackButton, OnboardingNextButton } from '@/components/onboarding/OnboardingFrame';
 import { OnboardingVaultDirStep } from '@/components/onboarding/OnboardingVaultDirStep';
 import { OnboardingAccountSourceDecision } from '@/components/onboarding/OnboardingAccountSourceDecision';
-import { lazy, Suspense } from 'react';
-// P015-R2: 恢复接收对话框(内部 RecoveryQrScanner→html5-qrcode 375K)由入口静态导入
-// 改为懒加载——仅真正打开恢复对话框时拉取，html5-qrcode 移出启动链。
-const RecoveryReceiveDialog = lazy(() =>
-  import('@/components/recovery/RecoveryReceiveDialog').then((m) => ({
-    default: m.RecoveryReceiveDialog,
-  })),
-);
+import { Suspense } from 'react';
+import { LazyRecoveryReceiveDialog } from '@/components/recovery/LazyRecoveryReceiveDialog';
 
 /**
  * 首次启动引导向导（多步骤）：
@@ -93,7 +87,7 @@ export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDial
 
       {ob.recoveryOpen && (
         <Suspense fallback={null}>
-          <RecoveryReceiveDialog
+          <LazyRecoveryReceiveDialog
             isOpen
             onClose={() => {
               // 关闭恢复对话框后回到账户来源卡片，用户仍可改选"创建新账户"。

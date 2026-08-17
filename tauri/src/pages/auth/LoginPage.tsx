@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 
 import { ShieldLogo } from '@/components/ui/ShieldLogo';
-import { lazy, Suspense } from 'react';
+import { Suspense } from 'react';
 import { ICON_SIZE } from '@/lib/constants';
 
 import { useLoginPage } from './useLoginPage';
@@ -12,13 +12,7 @@ import { LoginAccountSelector } from './LoginAccountSelector';
 import { LoginQuickLinks } from './LoginQuickLinks';
 import { LoginIconBar } from './LoginIconBar';
 import styles from './LoginPage.module.css';
-// P015-R2: 恢复接收对话框(内部 RecoveryQrScanner→html5-qrcode 375K)由入口静态导入
-// 改为懒加载——仅真正打开恢复对话框时拉取，html5-qrcode 移出启动链。
-const RecoveryReceiveDialog = lazy(() =>
-  import('@/components/recovery/RecoveryReceiveDialog').then((m) => ({
-    default: m.RecoveryReceiveDialog,
-  })),
-);
+import { LazyRecoveryReceiveDialog } from '@/components/recovery/LazyRecoveryReceiveDialog';
 
 /**
  * 登录页 — P046 拆分后为纯展示组合层：
@@ -174,7 +168,7 @@ export function LoginPage() {
 
         {recoveryOpen && (
           <Suspense fallback={null}>
-            <RecoveryReceiveDialog
+            <LazyRecoveryReceiveDialog
               isOpen
               onClose={() => setRecoveryOpen(false)}
               onSuccess={() => {

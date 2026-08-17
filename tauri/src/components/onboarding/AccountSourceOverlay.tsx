@@ -1,16 +1,10 @@
-import { lazy, Suspense, useState } from 'react';
+import { Suspense, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useUiStore } from '@/stores/uiStore';
 import { useAuthStore } from '@/stores/authStore';
 import { OnboardingAccountSourceDecision } from '@/components/onboarding/OnboardingAccountSourceDecision';
-// P015-R2: 恢复接收对话框(内部 RecoveryQrScanner→html5-qrcode 375K)由入口静态导入
-// 改为懒加载——仅真正打开恢复对话框时拉取，html5-qrcode 移出启动链。
-const RecoveryReceiveDialog = lazy(() =>
-  import('@/components/recovery/RecoveryReceiveDialog').then((m) => ({
-    default: m.RecoveryReceiveDialog,
-  })),
-);
+import { LazyRecoveryReceiveDialog } from '@/components/recovery/LazyRecoveryReceiveDialog';
 
 /**
  * 「返回账户来源选择」独立浮层（从创建新账户页返回时使用）。
@@ -76,7 +70,7 @@ export function AccountSourceOverlay() {
       )}
       {recoveryOpen && (
         <Suspense fallback={null}>
-          <RecoveryReceiveDialog
+          <LazyRecoveryReceiveDialog
             isOpen
             onClose={() => setRecoveryOpen(false)}
             onSuccess={() => {
