@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useId } from 'react';
 import { ChevronDown } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import styles from './DropdownSelect.module.css';
 import { ICON_SIZE } from '@/lib/constants';
 
@@ -84,17 +83,8 @@ export function DropdownSelect({
         {triggerLabel}
         <ChevronDown size={ICON_SIZE.xs} className={styles.chevron} />
       </button>
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            className={styles.popover}
-            ref={listRef}
-            initial={{ opacity: 0, y: -6, scale: 0.96 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -6, scale: 0.96 }}
-            transition={{ duration: 0.15, ease: 'easeOut' }}
-            style={{ transformOrigin: 'top', width }}
-          >
+      {open && (
+        <div className={styles.popover} ref={listRef} style={{ width }}>
             {options.map((opt) => {
               const isActive = opt.value === value;
               return (
@@ -112,9 +102,8 @@ export function DropdownSelect({
                 </button>
               );
             })}
-          </motion.div>
-        )}
-      </AnimatePresence>
+        </div>
+      )}
     </div>
   );
 }

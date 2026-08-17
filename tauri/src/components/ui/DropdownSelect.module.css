@@ -48,6 +48,27 @@
     var(--shadow-md),
     inset 0 0.5px 0 color-mix(in srgb, var(--text-primary) 10%, transparent);
   padding: 4px 0;
+  /* 入口动画替代 framer-motion（与旧 AnimatePresence 入场 0.15s easeOut 等价）；
+     关闭瞬时（下拉菜单关闭动画丢失无感）；动画自包含无需任何 JS 依赖 */
+  transform-origin: top;
+  animation: dropdownPop 0.15s ease-out;
+}
+
+@keyframes dropdownPop {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .popover {
+    animation: none;
+  }
 }
 
 /* Frosted glass scrollbar */
