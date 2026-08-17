@@ -1,7 +1,8 @@
+import { Suspense } from 'react';
 import { ArrowDown, ArrowLeft, ArrowUp, ChevronDown, ChevronUp, Images, X } from 'lucide-react';
 import { BadgeIconButton } from '@/components/ui/BadgeIconButton';
 import { PhotoAlbumGrid } from '@/components/attachment/PhotoAlbumGrid';
-import { PhotoViewerOverlay } from '@/components/attachment/PhotoViewerOverlay';
+import { LazyPhotoViewerOverlay } from '@/components/attachment/LazyPhotoViewerOverlay';
 import { FilterChipGroup } from '@/components/ui/FilterChipGroup';
 import { DropdownSelect } from '@/components/ui/DropdownSelect';
 import { ICON_SIZE, SAFE_AREA_BOTTOM, SAFE_AREA_TOP } from '@/lib/constants';
@@ -363,14 +364,32 @@ export function PhotoAlbumOverlay({
 
       {/* 全屏查看器（覆盖整个相册；浏览范围为分组渲染顺序拍平的可见列表） */}
       {viewerIndex !== null && viewerItems[viewerIndex] && (
-        <PhotoViewerOverlay
-          items={viewerItems}
-          initialIndex={viewerIndex}
-          onBack={handleViewerBack}
-          onClose={onClose}
-          onOpenExternal={onOpenExternal}
-          onItemMetaUpdated={onAlbumItemMetaUpdated}
-        />
+        <Suspense
+          fallback={
+            <div
+              style={{
+                position: 'fixed',
+                inset: 0,
+                zIndex: 'var(--z-preview-overlay)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: '#000',
+              }}
+            >
+              <div className="spinner" style={{ width: 24, height: 24, borderTopColor: 'var(--text-secondary)' }} />
+            </div>
+          }
+        >
+          <LazyPhotoViewerOverlay
+            items={viewerItems}
+            initialIndex={viewerIndex}
+            onBack={handleViewerBack}
+            onClose={onClose}
+            onOpenExternal={onOpenExternal}
+            onItemMetaUpdated={onAlbumItemMetaUpdated}
+          />
+        </Suspense>
       )}
     </div>
   );
