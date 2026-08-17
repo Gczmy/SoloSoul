@@ -52,6 +52,10 @@ const UNLOCKED_EXEMPT_COMMANDS: ReadonlySet<string> = new Set([
   'unlock_with_password',
   'pin_unlock',
   'biometric_unlock',
+  // 可用性探测命令必须在未解锁时也可调：登录页据此决定是否展示
+  // 指纹/面容/PIN 等解锁方式（纯只读探测，无敏感数据，后端按 accountId 返回）。
+  'biometric_check_availability',
+  'pin_check_availability',
   'biometric_test',
   'biometric_save_credential',
   'biometric_delete_credential',

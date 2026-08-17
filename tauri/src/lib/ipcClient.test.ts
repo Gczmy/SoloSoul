@@ -85,6 +85,28 @@ describe('invokeCommand（统一 IPC 调用层）', () => {
     }
   });
 
+  it('P027 默认守卫：登录页可用性探测命令（biometric/pin check availability）未解锁时可调', async () => {
+    vi.stubEnv('MODE', 'development');
+    vi.mocked(useAuthStore).getState.mockReturnValue({ isAuthenticated: false } as never);
+    try {
+      await expect(
+        invokeCommand<{ configured: boolean }>('biometric_check_availability', {
+          accountId: 'acc_1',
+        }),
+      ).resolves.toBeUndefined();
+      await expect(
+        invokeCommand<{ configured: boolean }>('pin_check_availability', { accountId: 'acc_1' }),
+      ).resolves.toBeUndefined();
+      expect(invoke).toHaveBeenCalledTimes(2);
+      expect(invoke).toHaveBeenNthCalledWith(1, 'biometric_check_availability', {
+        accountId: 'acc_1',
+      });
+      expect(invoke).toHaveBeenNthCalledWith(2, 'pin_check_availability', { accountId: 'acc_1' });
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
   it('P027 默认守卫：requireUnlocked:false 显式豁免时未解锁可调', async () => {
     vi.stubEnv('MODE', 'development');
     vi.mocked(useAuthStore).getState.mockReturnValue({ isAuthenticated: false } as never);
