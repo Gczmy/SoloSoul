@@ -76,12 +76,18 @@ export function SyncHistoryPanel({
               gap: 12,
             }}
           >
-            {recentResults.map((result, _idx) => {
+            {recentResults.map((result, idx) => {
               const time = formatActivityTime(result.at);
               return (
                 <div
-                  // P052: 稳定 key（时间戳+对端）替代数组下标，前插新记录不再整行重挂载
-                  key={`${result.at}-${result.peerNodeId ?? 'local'}`}
+                  // P052: 稳定 key（时间戳+对端）替代数组下标，前插新记录不再整行重挂载。
+                  // V005: 存量旧记录无 at/peerNodeId（at 为 undefined）时 key 恒为 'undefined-local'
+                  // 重复冲突，改为 idx 兜底（带 legacy- 前缀避免与新记录 key 空间重叠）。
+                  key={
+                    result.at
+                      ? `${result.at}-${result.peerNodeId ?? 'local'}`
+                      : `legacy-${idx}`
+                  }
                   style={{
                     padding: 12,
                     borderRadius: 8,
