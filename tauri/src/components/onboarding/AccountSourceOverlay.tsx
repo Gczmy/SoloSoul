@@ -5,6 +5,7 @@ import { useUiStore } from '@/stores/uiStore';
 import { useAuthStore } from '@/stores/authStore';
 import { OnboardingAccountSourceDecision } from '@/components/onboarding/OnboardingAccountSourceDecision';
 import { LazyRecoveryReceiveDialog } from '@/components/recovery/LazyRecoveryReceiveDialog';
+import { RecoveryDialogSkeleton } from '@/components/recovery/RecoveryDialogSkeleton';
 
 /**
  * 「返回账户来源选择」独立浮层（从创建新账户页返回时使用）。
@@ -69,7 +70,7 @@ export function AccountSourceOverlay() {
         />
       )}
       {recoveryOpen && (
-        <Suspense fallback={null}>
+        <Suspense fallback={<RecoveryDialogSkeleton />}>
           <LazyRecoveryReceiveDialog
             isOpen
             onClose={() => setRecoveryOpen(false)}

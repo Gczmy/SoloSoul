@@ -13,6 +13,7 @@ import { LoginQuickLinks } from './LoginQuickLinks';
 import { LoginIconBar } from './LoginIconBar';
 import styles from './LoginPage.module.css';
 import { LazyRecoveryReceiveDialog } from '@/components/recovery/LazyRecoveryReceiveDialog';
+import { RecoveryDialogSkeleton } from '@/components/recovery/RecoveryDialogSkeleton';
 
 /**
  * 登录页 — P046 拆分后为纯展示组合层：
@@ -167,7 +168,7 @@ export function LoginPage() {
         )}
 
         {recoveryOpen && (
-          <Suspense fallback={null}>
+          <Suspense fallback={<RecoveryDialogSkeleton />}>
             <LazyRecoveryReceiveDialog
               isOpen
               onClose={() => setRecoveryOpen(false)}

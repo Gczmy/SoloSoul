@@ -6,6 +6,7 @@ import { OnboardingVaultDirStep } from '@/components/onboarding/OnboardingVaultD
 import { OnboardingAccountSourceDecision } from '@/components/onboarding/OnboardingAccountSourceDecision';
 import { Suspense } from 'react';
 import { LazyRecoveryReceiveDialog } from '@/components/recovery/LazyRecoveryReceiveDialog';
+import { RecoveryDialogSkeleton } from '@/components/recovery/RecoveryDialogSkeleton';
 
 /**
  * 首次启动引导向导（多步骤）：
@@ -86,7 +87,7 @@ export function OnboardingDialog({ onComplete, onSkip: _onSkip }: OnboardingDial
       )}
 
       {ob.recoveryOpen && (
-        <Suspense fallback={null}>
+        <Suspense fallback={<RecoveryDialogSkeleton />}>
           <LazyRecoveryReceiveDialog
             isOpen
             onClose={() => {

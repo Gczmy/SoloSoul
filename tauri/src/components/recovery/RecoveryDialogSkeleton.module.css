@@ -1,0 +1,90 @@
+/* 恢复对话框冷开骨架：视觉对齐 RecoveryReceiveDialog 的
+   fixed 遮罩 + 居中 Card（z-modal / bg-overlay / blur / 420px 卡片）。 */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-overlay);
+  backdrop-filter: blur(4px);
+  padding: 16px;
+}
+
+.card {
+  max-width: 420px;
+  width: 100%;
+  padding: 24px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px var(--shadow-color-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.title {
+  height: 22px;
+  width: 55%;
+  border-radius: 6px;
+}
+
+.tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.tab {
+  height: 28px;
+  width: 96px;
+  border-radius: 8px;
+}
+
+.line {
+  height: 14px;
+  border-radius: 7px;
+}
+
+.lineWide {
+  width: 88%;
+}
+
+.lineNarrow {
+  width: 64%;
+}
+
+.box {
+  height: 120px;
+  border-radius: 10px;
+}
+
+.title,
+.tab,
+.line,
+.box {
+  background: var(--bg-toolbar);
+  position: relative;
+  overflow: hidden;
+}
+
+/* 轻微流光，示意「正在加载」而非死屏（与 RouteLoadingSkeleton 同一模式） */
+.title::after,
+.tab::after,
+.line::after,
+.box::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(128, 128, 128, 0.14), transparent);
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
