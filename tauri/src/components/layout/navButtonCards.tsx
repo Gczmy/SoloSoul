@@ -170,11 +170,48 @@ export function useNavButtonCards(input: NavButtonCardInput) {
                 setShowQuickChat((prev) => !prev);
               }
             }}
+            // P015-R5: 仅「页面模式」下悬停预取 /llm-chat；卡片模式点击是打开弹层而非导航。
+            // 用 prefetchPath 而非 path，避免页面模式下多出 active 指示点（未请求的视觉变化）。
+            prefetchPath={aiChatMode === 'page' ? '/llm-chat' : undefined}
             position={position}
           />
           {showQuickChat &&
             createPortal(
-              <Suspense fallback={null}>
+              <Suspense
+                fallback={
+                  // P015-R4: chunk 拉取期占位（对齐 AiQuickChatPopover 卡片几何，
+                  // 避免弹层打开瞬间空白）。位置/尺寸与 styles.card 保持一致。
+                  <div
+                    data-testid="quick-chat-loading"
+                    style={{
+                      position: 'fixed',
+                      zIndex: 200,
+                      width: 380,
+                      height: 520,
+                      maxWidth: 'calc(100vw - 24px)',
+                      maxHeight: 'calc(100vh - 24px)',
+                      background: 'var(--bg-elevated)',
+                      borderRadius: 14,
+                      boxShadow: 'var(--shadow-lg), 0 0 0 1px var(--border-subtle)',
+                      border: '1px solid var(--border-subtle)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      ...(placements.quickChat === 'right'
+                        ? { right: 52, left: 'auto' }
+                        : placements.quickChat === 'top' || placements.quickChat === 'bottom'
+                          ? { right: 12, left: 'auto' }
+                          : { left: 52, right: 'auto' }),
+                      top: quickChatPos?.top ?? 100,
+                    }}
+                  >
+                    <div
+                      className="spinner"
+                      style={{ width: 24, height: 24, borderTopColor: 'var(--text-secondary)' }}
+                    />
+                  </div>
+                }
+              >
                 <AiQuickChatPopover
                   position={quickChatPos}
                   onClose={() => setShowQuickChat(false)}

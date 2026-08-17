@@ -1,4 +1,4 @@
-import { Suspense, lazy, useEffect } from 'react';
+import { Suspense, useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useShallow } from 'zustand/react/shallow';
@@ -17,6 +17,7 @@ import { useOcrFirstInstall } from '@/hooks/useOcrFirstInstall';
 import { initLlmNotificationListener } from '@/lib/notification';
 import { searchCache } from '@/lib/searchCache';
 import { applyTheme, getSystemTheme, listenForSystemTheme } from '@/lib/theme';
+import { isMobilePlatformSync, canPrefetchOnMobile } from '@/lib/platform';
 import { confirmWithPause } from '@/lib/dialog';
 import { UpdateBanner, type UpdateBannerState } from '@/components/ui/UpdateBanner';
 import { OcrInstallBanner } from '@/components/ui/OcrInstallBanner';
@@ -28,12 +29,32 @@ import { useUiStore } from '@/stores/uiStore';
 import { SafSyncIndicator } from '@/components/sync/SafSyncIndicator';
 import { PostLoginSetupGuide } from '@/components/guide/PostLoginSetupGuide';
 import { protectedRoutes, AuthGuard, routeLoaders } from './routes';
+import { lazyPage } from './lazyPage';
 import { RouteLoadingSkeleton } from '@/components/ui/RouteLoadingSkeleton';
 // P015: 认证页同样懒加载（首屏只加载当前需要的 chunk）
 const loadBootstrapPage = () => import('@/pages/auth/BootstrapPage');
-const BootstrapPage = lazy(() => loadBootstrapPage().then((m) => ({ default: m.BootstrapPage })));
+const BootstrapPage = lazyPage(loadBootstrapPage, 'BootstrapPage');
 const loadLoginPage = () => import('@/pages/auth/LoginPage');
-const LoginPage = lazy(() => loadLoginPage().then((m) => ({ default: m.LoginPage })));
+const LoginPage = lazyPage(loadLoginPage, 'LoginPage');
+
+// P015-R6: 登录后后台预取时序常量——最小延迟覆盖首页关键路径；idle 超时兜底保证
+// 极端繁忙时最终也会执行；无 requestIdleCallback 环境的降级 tick 间隔。
+const ROUTE_PREFETCH_DELAY_MS = 200;
+const ROUTE_PREFETCH_IDLE_TIMEOUT_MS = 2000;
+const ROUTE_PREFETCH_FALLBACK_TICK_MS = 100;
+
+/**
+ * 路由 chunk 后台预取门控（P015-R4）。
+ * 桌面端全量预取消除首次导航空白；移动端仅在确认网络快时预取（见 canPrefetchOnMobile），
+ * 省流量/省电（被跳过的页面仍会按需懒加载，不影响功能）。
+ */
+function shouldPrefetchRoutes(): boolean {
+  if (!isMobilePlatformSync()) return true;
+  const conn = (navigator as Navigator & {
+    connection?: { saveData?: boolean; effectiveType?: string };
+  }).connection;
+  return canPrefetchOnMobile(conn);
+}
 
 export function AppRoutes() {
   const navigate = useNavigate();
@@ -288,35 +309,60 @@ export function AppRoutes() {
     };
   }, [navigate, isAuthenticated]);
 
-  // P015-R: 路由 chunk 后台预取——懒加载后首次进入未访问页面需拉取页面 chunk 及其
-  // 共享依赖 chunk（如 PageContainer 561K / RecoveryQrScanner 375K），期间整窗显示
-  // Suspense 占位，桌面端感知为半秒空白。登录解锁后分批预取全部路由 chunk（含认证页），
-  // 之后切换页面全部命中缓存，空白消失；移动端首屏仍保持瘦加载，预取仅登录后触发。
+  // P015-R6: 桌面端登录后后台全量预取——「最小延迟 + requestIdleCallback 并行预取」双保险。
+  // 先让首页关键路径（chunk 加载 → 首帧渲染 → 首次数据 fetch）跑完（ROUTE_PREFETCH_DELAY_MS
+  // 兜底），再交给 requestIdleCallback 在主线程空闲时预取剩余路由 chunk（含认证页）；
+  // 用 deadline.timeRemaining() 控制每轮发起数量，既预热快、又不抢主线程。
+  // 无 requestIdleCallback 的环境（iOS WKWebView 等）降级为短间隔 setTimeout 全量发起。
+  // P015-R4: 移动端仍按网络状况门控（见 shouldPrefetchRoutes），本路径仅桌面端 / 快网移动端。
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || !shouldPrefetchRoutes()) return;
     let cancelled = false;
     const loaders = [loadBootstrapPage, loadLoginPage, ...routeLoaders];
     let index = 0;
-    const BATCH = 3;
-    const TICK_MS = 80;
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    const tick = () => {
+    let fallbackTimer: ReturnType<typeof setTimeout> | undefined;
+    let idleId: number | undefined;
+
+    // 空闲期预取：import() 异步、同步开销极小，一轮空闲通常即可全部发起；timeRemaining 仅在
+    // 极短空闲片时收手、留到下一轮；didTimeout 时兜底至少发起一个，避免繁忙期空转不前进。
+    const prefetchBatch = (deadline?: IdleDeadline): void => {
       if (cancelled) return;
-      for (let n = 0; n < BATCH && index < loaders.length; n += 1, index += 1) {
+      const start = index;
+      while (
+        index < loaders.length &&
+        (!deadline ||
+          deadline.timeRemaining() > 0 ||
+          (index === start && deadline.didTimeout))
+      ) {
         void loaders[index]().catch(() => {
           // 预取失败静默忽略：目标页面仍会按需加载
         });
+        index += 1;
       }
-      if (index < loaders.length) {
-        timer = setTimeout(tick, TICK_MS);
+      if (index < loaders.length) schedulePrefetch();
+    };
+
+    const schedulePrefetch = (): void => {
+      if (cancelled) return;
+      if (typeof requestIdleCallback === 'function') {
+        // timeout 兜底：极端繁忙时最迟 2s 后也会执行，避免无限延后
+        idleId = requestIdleCallback(prefetchBatch, { timeout: ROUTE_PREFETCH_IDLE_TIMEOUT_MS });
+      } else {
+        // 无 requestIdleCallback 的环境（iOS WKWebView 等）：短间隔后全量发起
+        fallbackTimer = setTimeout(prefetchBatch, ROUTE_PREFETCH_FALLBACK_TICK_MS);
       }
     };
-    // 等一帧再开始，避免与登录后的首帧渲染竞争主线程
-    const raf = requestAnimationFrame(() => tick());
+
+    // 最小延迟：让首页关键路径先跑完，再开始后台预取
+    const delayTimer = setTimeout(schedulePrefetch, ROUTE_PREFETCH_DELAY_MS);
+
     return () => {
       cancelled = true;
-      cancelAnimationFrame(raf);
-      if (timer) clearTimeout(timer);
+      if (delayTimer) clearTimeout(delayTimer);
+      if (fallbackTimer) clearTimeout(fallbackTimer);
+      if (idleId !== undefined && typeof cancelIdleCallback === 'function') {
+        cancelIdleCallback(idleId);
+      }
     };
   }, [isAuthenticated]);
 

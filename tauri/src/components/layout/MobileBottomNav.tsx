@@ -8,6 +8,7 @@ import { AddPageButton } from './AddPageButton';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
 import { useMobileNavActions } from './useNavigationItems';
 import { ICON_SIZE } from '@/lib/constants';
+import { prefetchRoute } from '@/App/routeLoaders';
 
 const NAV_ITEMS = [
   { path: '/', labelKey: 'home', Icon: Home },
@@ -53,6 +54,8 @@ export function MobileBottomNav() {
             item.action();
           }
         }}
+        onPointerEnter={item.type === 'link' ? () => prefetchRoute(item.path) : undefined}
+        onPointerDown={item.type === 'link' ? () => prefetchRoute(item.path) : undefined}
       >
         <Icon size={ICON_SIZE.xl} />
         <span className={styles.functionLabel}>{t(item.labelKey)}</span>
@@ -79,6 +82,8 @@ export function MobileBottomNav() {
               type="button"
               className={`${styles.navItem} ${isActive ? styles.navItemActive : ''}`}
               onClick={() => handleNavigate(path)}
+              onPointerEnter={() => prefetchRoute(path)}
+              onPointerDown={() => prefetchRoute(path)}
               aria-current={isActive ? 'page' : undefined}
             >
               <Icon size={22} />
