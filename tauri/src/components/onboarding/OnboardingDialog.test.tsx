@@ -38,6 +38,29 @@ vi.mock('@/stores/authStore', () => ({
   ),
 }));
 
+// 恢复对话框（真实实现含 html5-qrcode 摄像头扫描，jsdom 下挂载即抛
+// MediaStreamTrack is not defined 未处理异常，且与 waitFor 断言产生竞态抖动）。
+// 向导编排测试不需要真实对话框——其内部步骤机/扫码由自身测试覆盖，此处 mock。
+// 注意：组件侧已改为 lazy() 动态导入，vi.mock 同样拦截动态 import。
+vi.mock('@/components/recovery/RecoveryReceiveDialog', () => ({
+  RecoveryReceiveDialog: ({
+    isOpen,
+    onClose,
+    onSuccess,
+  }: {
+    isOpen: boolean;
+    onClose: () => void;
+    onSuccess?: () => void;
+  }) =>
+    isOpen ? (
+      <div data-testid="recovery-dialog">
+        <div>recovery_receive_title_mock</div>
+        <button onClick={onClose}>close-recovery</button>
+        <button onClick={onSuccess}>success-recovery</button>
+      </div>
+    ) : null,
+}));
+
 describe('OnboardingDialog', () => {
   it('renders the first step by default', async () => {
     renderWithRouter(<OnboardingDialog onComplete={vi.fn()} onSkip={vi.fn()} />);

@@ -97,14 +97,14 @@ describe('AccountSourceOverlay', () => {
     expect(mockNavigate).toHaveBeenCalledWith('/bootstrap?mode=create', { replace: true });
   });
 
-  it('shows the recovery dialog after choosing recovery, and returns to the decision card on close', () => {
+  it('shows the recovery dialog after choosing recovery, and returns to the decision card on close', async () => {
     renderOverlay();
 
     fireEvent.click(screen.getByText(/onboarding_account_source_sync/i));
 
     // 决策卡片隐藏、恢复对话框显示（互斥）
     expect(screen.queryByText(/onboarding_account_source_title/i)).not.toBeInTheDocument();
-    expect(screen.getByTestId('recovery-dialog')).toBeInTheDocument();
+    expect(await screen.findByTestId('recovery-dialog')).toBeInTheDocument();
 
     // 关闭恢复对话框 → 回到决策卡片
     fireEvent.click(screen.getByText('close-recovery'));
@@ -112,10 +112,12 @@ describe('AccountSourceOverlay', () => {
     expect(screen.queryByTestId('recovery-dialog')).not.toBeInTheDocument();
   });
 
-  it('clears the flag and navigates to login after recovery succeeds', () => {
+  it('clears the flag and navigates to login after recovery succeeds', async () => {
     renderOverlay();
 
     fireEvent.click(screen.getByText(/onboarding_account_source_sync/i));
+    // 懒加载后恢复对话框异步挂载（Suspense 内 resolve），需等待出现再触发成功按钮
+    await screen.findByTestId('recovery-dialog');
     fireEvent.click(screen.getByText('success-recovery'));
 
     expect(useUiStore.getState().reopenAccountSource).toBe(false);

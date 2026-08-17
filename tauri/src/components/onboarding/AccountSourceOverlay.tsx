@@ -1,10 +1,16 @@
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useUiStore } from '@/stores/uiStore';
 import { useAuthStore } from '@/stores/authStore';
 import { OnboardingAccountSourceDecision } from '@/components/onboarding/OnboardingAccountSourceDecision';
-import { RecoveryReceiveDialog } from '@/components/recovery/RecoveryReceiveDialog';
+// P015-R2: 恢复接收对话框(内部 RecoveryQrScanner→html5-qrcode 375K)由入口静态导入
+// 改为懒加载——仅真正打开恢复对话框时拉取，html5-qrcode 移出启动链。
+const RecoveryReceiveDialog = lazy(() =>
+  import('@/components/recovery/RecoveryReceiveDialog').then((m) => ({
+    default: m.RecoveryReceiveDialog,
+  })),
+);
 
 /**
  * 「返回账户来源选择」独立浮层（从创建新账户页返回时使用）。
@@ -69,15 +75,17 @@ export function AccountSourceOverlay() {
         />
       )}
       {recoveryOpen && (
-        <RecoveryReceiveDialog
-          isOpen
-          onClose={() => setRecoveryOpen(false)}
-          onSuccess={() => {
-            // 恢复成功后会写入账户，清标志并跳转到登录页解锁新账户
-            useUiStore.getState().setReopenAccountSource(false);
-            navigate('/login', { replace: true });
-          }}
-        />
+        <Suspense fallback={null}>
+          <RecoveryReceiveDialog
+            isOpen
+            onClose={() => setRecoveryOpen(false)}
+            onSuccess={() => {
+              // 恢复成功后会写入账户，清标志并跳转到登录页解锁新账户
+              useUiStore.getState().setReopenAccountSource(false);
+              navigate('/login', { replace: true });
+            }}
+          />
+        </Suspense>
       )}
     </div>
   );
