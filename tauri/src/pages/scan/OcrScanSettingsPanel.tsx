@@ -38,6 +38,10 @@ export function OcrScanSettingsPanel({
   onDownload,
 }: OcrScanSettingsPanelProps) {
   const { t } = useTranslation(['ocr', 'common']);
+  // 状态加载完成（statusMap['small'] 存在）后才判断——否则加载瞬间会误显下载 URL
+  // 输入框（含 https placeholder）造成闪烁
+  const showDownloadUrl =
+    !!statusMap['small'] && !statusMap['small'].installed && !statusMap['small'].bundled;
   return (
     <>
       {/* Model management（桌面端）；移动端使用系统 ML Kit，无需模型管理 */}
@@ -102,7 +106,7 @@ export function OcrScanSettingsPanel({
               })}
             </div>
 
-            {!statusMap['small']?.installed && !statusMap['small']?.bundled && (
+            {showDownloadUrl && (
               <div>
                 <label
                   style={{

@@ -49,6 +49,10 @@ export function OcrSettingsPage() {
         { confirmLabel, cancelLabel },
       ),
   });
+  // 状态加载完成（statusMap['small'] 存在）后才判断——否则加载瞬间会误显下载 URL
+  // 输入框（含 https placeholder）造成闪烁
+  const showDownloadUrl =
+    !!statusMap['small'] && !statusMap['small'].installed && !statusMap['small'].bundled;
 
   return (
     <PageShell title={t('ocr:settings_title')} onBack={() => navigate('/settings')}>
@@ -147,7 +151,7 @@ export function OcrSettingsPage() {
               })}
             </div>
 
-            {!statusMap['small']?.installed && !statusMap['small']?.bundled && (
+            {showDownloadUrl && (
               <div style={{ marginTop: 12 }}>
                 <label
                   style={{

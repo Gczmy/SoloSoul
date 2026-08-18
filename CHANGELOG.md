@@ -10,6 +10,8 @@ All notable changes to SoloSoul are documented in this file.
 
 ### Fixed
 
+- **OCR 页面下载 URL 输入框闪烁** — 进入 OCR 扫描/设置页时模型状态未加载（statusMap 为空），`!statusMap['small']?.installed` 误判未安装致下载 URL 输入框（含 https://example.com/models placeholder）一闪而过；改为 statusMap['small'] 存在（状态加载完成）后才渲染，两处页面同步修复。
+
 - **保险库大小存储详情分类名 i18n** — 饼图/图例/明细行的 6 个分类名 key（profiles_size/objects_size/trash_size/snapshots_size/attachments_size/ai_conversations_size）未在语言文件定义，界面显示英文 key 名；补全 en-US/zh-CN 双语 key，en-zh key 集合一致（933/933）。
 
 - **设备同步-同步活动展开列表限高** — 展开列表加 maxHeight 440（约 5 条记录高度）+ 内部滚动，同步记录多时不再撑长整个页面滚动条。
