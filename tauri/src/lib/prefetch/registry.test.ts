@@ -48,3 +48,52 @@ describe('prefetchRegistry.exportScope（导入导出页导出范围树）', () 
     expect(prefetchRegistry.exportScope.options.warmupPolicy).toBe('afterAuth');
   });
 });
+
+describe('prefetchRegistry.llmConfig（AI 对话弹层/聊天页 provider 配置）', () => {
+  beforeEach(() => {
+    vi.mocked(invoke).mockReset();
+    vi.mocked(invoke).mockResolvedValue(undefined);
+    vi.mocked(useAuthStore).getState.mockReset();
+    vi.mocked(useAuthStore).getState.mockReturnValue({ currentAccount: { id: 'acc-1' } } as never);
+    prefetchRegistry.llmConfig.reset();
+  });
+
+  it('loader 合并 llm_get_config + llm_get_providers（锁定命令名与 accountId 参数）', async () => {
+    const providers = [
+      {
+        id: 'openai',
+        name: 'OpenAI',
+        model: 'gpt-4o',
+        baseUrl: 'https://api.openai.com/v1',
+        apiType: 'openAI',
+      },
+    ];
+    vi.mocked(invoke).mockImplementation(async (cmd: string) => {
+      if (cmd === 'llm_get_config') {
+        return { activeProviderId: 'openai', aiFeaturesEnabled: { chat: true } };
+      }
+      if (cmd === 'llm_get_providers') return providers;
+      return undefined;
+    });
+
+    const data = await prefetchRegistry.llmConfig.load({ force: true });
+
+    expect(invoke).toHaveBeenCalledWith('llm_get_config', { accountId: 'acc-1' });
+    expect(invoke).toHaveBeenCalledWith('llm_get_providers', { accountId: 'acc-1' });
+    expect(data).toEqual({
+      activeProviderId: 'openai',
+      aiFeaturesEnabled: { chat: true },
+      providers,
+    });
+  });
+
+  it('无当前账户时 loader 抛错，data 保持 null（不缓存假数据）', async () => {
+    vi.mocked(useAuthStore).getState.mockReturnValue({ currentAccount: null } as never);
+
+    const data = await prefetchRegistry.llmConfig.load({ force: true });
+
+    expect(data).toBeNull();
+    expect(invoke).not.toHaveBeenCalled();
+    expect(prefetchRegistry.llmConfig.getSnapshot().error).not.toBeNull();
+  });
+});

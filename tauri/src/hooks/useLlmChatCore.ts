@@ -3,6 +3,8 @@ import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { useAuthStore } from '@/stores/authStore';
 import { useLlmStore } from '@/stores/llmStore';
 import { useUiStore } from '@/stores/uiStore';
+import { prefetchRegistry } from '@/lib/prefetch/registry';
+import { usePrefetchData } from '@/lib/prefetch/usePrefetchData';
 import i18n from '@/lib/i18n';
 import { COPY_FEEDBACK_DURATION_MS } from '@/lib/constants';
 import { logger } from '@/lib/logger';
@@ -98,50 +100,41 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
   const currentConvIdRef = useRef(currentConvId);
   currentConvIdRef.current = currentConvId;
 
-  /* Load provider + config */
+  /* Load provider + config — Prefetch Runtime：AI 快捷对话弹层/聊天页共享缓存，
+     登录后后台预热，打开弹层直接渲染（无 LoadingPlaceholder 占位期）；
+     设置页保存/删除/切换 provider 后 invalidate 强制刷新。 */
+  const { data: llmConfig, error: llmConfigError } = usePrefetchData(prefetchRegistry.llmConfig, {
+    enabled: !!accountId,
+  });
   useEffect(() => {
     if (!accountId) {
       setLoading(false);
       return;
     }
-    (async () => {
-      try {
-        const cfg = await invoke<{
-          activeProviderId?: string;
-          aiFeaturesEnabled?: { chat: boolean };
-          includeSystemPrompt?: boolean;
-        }>('llm_get_config', { accountId: accountId });
-        setIsAiEnabled(cfg.aiFeaturesEnabled?.chat ?? false);
-        if (!cfg.activeProviderId) {
-          setIsConfigured(false);
-          setLoading(false);
-          return;
-        }
-        const providers = await invoke<
-          Array<{ id: string; name: string; model: string; baseUrl: string; apiType: string }>
-        >('llm_get_providers', { accountId: accountId });
-        const active = providers.find((p) => p.id === cfg.activeProviderId);
-        if (active) {
-          setActiveProvider({
-            id: active.id,
-            name: active.name,
-            model: active.model,
-            baseUrl: active.baseUrl,
-            apiType: active.apiType,
-          });
-          setIsConfigured(true);
-        } else {
-          setIsConfigured(false);
-        }
-      } catch (err) {
-        // P227: 配置加载失败静默降级为未配置，留痕便于排查。
-        logger.warn('[useLlmChatCore] Load config failed:', err);
+    // 数据未就绪（冷启动加载中）：loading 保持 true，store 兜底加载完成后触发本 effect。
+    if (llmConfig === null && !llmConfigError) return;
+    if (llmConfig) {
+      setIsAiEnabled(llmConfig.aiFeaturesEnabled.chat ?? false);
+      const active = llmConfig.providers.find((p) => p.id === llmConfig.activeProviderId);
+      if (active) {
+        setActiveProvider({
+          id: active.id,
+          name: active.name,
+          model: active.model,
+          baseUrl: active.baseUrl,
+          apiType: active.apiType,
+        });
+        setIsConfigured(true);
+      } else {
         setIsConfigured(false);
-      } finally {
-        setLoading(false);
       }
-    })();
-  }, [accountId]);
+    } else {
+      // P227: 配置加载失败静默降级为未配置，留痕便于排查。
+      logger.warn('[useLlmChatCore] Load config failed:', llmConfigError);
+      setIsConfigured(false);
+    }
+    setLoading(false);
+  }, [accountId, llmConfig, llmConfigError]);
 
   /* Load conversation list */
   const loadConversationList = useCallback(async () => {

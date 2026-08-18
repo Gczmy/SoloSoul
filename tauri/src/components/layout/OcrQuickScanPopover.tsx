@@ -3,9 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { openWithPause } from '@/lib/dialog';
 import { useOcrScanStore, type OcrScanEntry } from '@/stores/ocrScanStore';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
-import type { OcrTierInfo, OcrModelStatus } from '@/lib/ipc';
 import { useToastError } from '@/hooks/useToastError';
 import { isMobilePlatformSync } from '@/lib/platform';
+import { prefetchRegistry } from '@/lib/prefetch/registry';
+import { usePrefetchData } from '@/lib/prefetch/usePrefetchData';
 import { OcrPopoverHeader } from '@/components/ocr/OcrPopoverHeader';
 import styles from './OcrQuickScanPopover.module.css';
 import { OcrHistoryTrashDropdown } from '@/components/ocr/OcrHistoryTrashDropdown';
@@ -36,9 +37,6 @@ export function OcrQuickScanPopover({
   const lastScanError = useOcrScanStore((s) => s.lastScanError);
   const scanHistory = useOcrScanStore((s) => s.scanHistory);
 
-  const [tiers, setTiers] = useState<OcrTierInfo[]>([]);
-  const [statusMap, setStatusMap] = useState<Record<string, OcrModelStatus>>({});
-  const [loadingStatus, setLoadingStatus] = useState(true);
   const [showHistory, setShowHistory] = useState(false);
   const [showTrash, setShowTrash] = useState(false);
 
@@ -47,35 +45,19 @@ export function OcrQuickScanPopover({
   const outsideClickTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const restoredCurrentScanRef = useRef(false);
 
-  // Load model tiers on mount
+  // Prefetch Runtime: 模型状态走共享缓存（与 OCR 扫描页/设置页同一份数据），
+  // 预热完成后打开弹层直接渲染，不再每次挂载重新 IPC + 骨架期。
+  const {
+    data: ocrModel,
+    loading: loadingStatus,
+    error: ocrModelError,
+  } = usePrefetchData(prefetchRegistry.ocrModel);
+  const tiers = ocrModel?.tiers ?? [];
+  const statusMap = ocrModel?.statusMap ?? {};
+  // 加载失败经 store.error 补 toast（原挂载 load 行为保持）。
   useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      try {
-        setLoadingStatus(true);
-        const list = await invoke<OcrTierInfo[]>('ocr_list_available_tiers');
-        if (cancelled) return;
-        setTiers(list);
-        const statuses: Record<string, OcrModelStatus> = {};
-        await Promise.all(
-          list.map(async (tier) => {
-            const st = await invoke<OcrModelStatus>('ocr_get_model_status', { tier: tier.tier });
-            statuses[tier.tier] = st;
-          }),
-        );
-        if (cancelled) return;
-        setStatusMap(statuses);
-      } catch (e) {
-        if (!cancelled) onError(e, t('ocr:load_status_failed'));
-      } finally {
-        if (!cancelled) setLoadingStatus(false);
-      }
-    }
-    load();
-    return () => {
-      cancelled = true;
-    };
-  }, [onError, t]);
+    if (ocrModelError) onError(new Error(ocrModelError), t('ocr:load_status_failed'));
+  }, [ocrModelError, onError, t]);
 
   // On first open, restore the most recent history entry as current result
   useEffect(() => {

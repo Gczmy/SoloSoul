@@ -79,4 +79,43 @@ export const prefetchRegistry = {
     ttlMs: 60_000,
     warmupPolicy: 'afterAuth',
   }),
+  /** LLM 配置（provider 列表 + 激活 provider + chat 开关）：AI 快捷对话弹层 /
+   *  聊天页共用，低频变更数据（设置页保存/删除/切换后 invalidate）。 */
+  llmConfig: createPrefetchStore<LlmConfigState>({
+    key: 'llm-config',
+    loader: async () => {
+      const accountId = useAuthStore.getState().currentAccount?.id;
+      if (!accountId) throw new Error('No account is currently unlocked');
+      const [cfg, providers] = await Promise.all([
+        invoke<{
+          activeProviderId?: string;
+          aiFeaturesEnabled?: { chat: boolean };
+        }>('llm_get_config', { accountId }),
+        invoke<LlmProviderInfo[]>('llm_get_providers', { accountId }),
+      ]);
+      return {
+        activeProviderId: cfg.activeProviderId ?? '',
+        aiFeaturesEnabled: cfg.aiFeaturesEnabled ?? { chat: false },
+        providers,
+      };
+    },
+    ttlMs: 60_000,
+    warmupPolicy: 'afterAuth',
+  }),
 };
+
+/** LLM provider 精简信息（与 useLlmChatCore 消费字段一致）。 */
+export interface LlmProviderInfo {
+  id: string;
+  name: string;
+  model: string;
+  baseUrl: string;
+  apiType: string;
+}
+
+/** LLM 配置缓存快照（llm_get_config + llm_get_providers 合并）。 */
+export interface LlmConfigState {
+  activeProviderId: string;
+  aiFeaturesEnabled: { chat: boolean };
+  providers: LlmProviderInfo[];
+}

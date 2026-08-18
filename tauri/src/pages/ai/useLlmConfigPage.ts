@@ -10,6 +10,7 @@ import { listen } from '@tauri-apps/api/event';
 import { useAuthStore } from '@/stores/authStore';
 import { useToastError } from '@/hooks/useToastError';
 import { useConfirm } from '@/hooks/useConfirm';
+import { prefetchRegistry } from '@/lib/prefetch/registry';
 import type { ProviderConfig } from '@/types/llmProvider';
 import { isOllama } from '@/types/llmChat';
 import { logger } from '@/lib/logger';
@@ -248,6 +249,8 @@ export function useLlmConfigPage() {
     setActiveId(id);
     try {
       await invoke('llm_set_active_provider', { accountId: accountId, providerId: id });
+      // Prefetch Runtime: 激活 provider 变更 → 刷新 LLM 配置缓存（AI 对话弹层/聊天页即时生效）
+      void prefetchRegistry.llmConfig.invalidate();
     } catch (err) {
       // P028-R1: 失败回滚需防竞态——仅当当前状态仍是本次操作写入的 id 时才回滚
       //（函数式比对），否则可能是后续更快的成功切换，误回滚会覆盖新状态。
@@ -290,6 +293,8 @@ export function useLlmConfigPage() {
           accountId: accountId,
           features: { chat: next, ...ALWAYS_DISABLED_FEATURES },
         });
+        // Prefetch Runtime: AI 功能开关变更 → 刷新 LLM 配置缓存
+        void prefetchRegistry.llmConfig.invalidate();
       } catch (err) {
         // P028-R1: 失败回滚需防竞态——仅当当前状态仍是本次操作写入的 next 时才回滚
         //（函数式比对），连续快速切换时旧失败不得覆盖后一次成功操作。
@@ -319,6 +324,8 @@ export function useLlmConfigPage() {
         accountId: accountId,
         features: { chat: true, ...ALWAYS_DISABLED_FEATURES },
       });
+      // Prefetch Runtime: AI 功能启用 → 刷新 LLM 配置缓存
+      void prefetchRegistry.llmConfig.invalidate();
     } catch (err) {
       // P028-R1: 启用功能失败需回滚 chatEnabled（函数式比对防竞态）
       logger.warn('[LLMConfig] Set features after risk accept failed:', err);
@@ -367,6 +374,8 @@ export function useLlmConfigPage() {
       }
       return [...prev, updated];
     });
+    // Prefetch Runtime: provider 变更 → 刷新 LLM 配置缓存（AI 对话弹层/聊天页即时生效）
+    void prefetchRegistry.llmConfig.invalidate();
     onSuccess(t('common:success'));
   };
 
@@ -389,6 +398,8 @@ export function useLlmConfigPage() {
         }
         setProviders((prev) => prev.filter((p) => p.id !== id));
         if (activeId === id) setActiveId('');
+        // Prefetch Runtime: provider 删除 → 刷新 LLM 配置缓存
+        void prefetchRegistry.llmConfig.invalidate();
       },
       {
         confirmLabel: t('common:delete', { defaultValue: 'Delete' }),

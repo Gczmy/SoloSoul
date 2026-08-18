@@ -13,6 +13,7 @@ import { useTemplateStore } from '@/stores/templateStore';
 import { useTrashStore } from '@/stores/trashStore';
 import { useAuthStore } from '@/stores/authStore';
 import { usePluginStore } from '@/stores/pluginStore';
+import { useSyncStore } from '@/stores/syncStore';
 
 export type WarmupPhase = 'mount' | 'afterAuth';
 
@@ -52,6 +53,24 @@ export const prefetchWarmupTasks: Array<{ phase: WarmupPhase; run: () => Promise
       // 挂载时直接渲染（页面零改动）。
       const store = usePluginStore.getState();
       await Promise.all([store.loadMarket(), store.loadInstalled()]);
+    },
+  },
+  {
+    phase: 'afterAuth',
+    run: async () => {
+      // LAN 设备同步状态：AppShell/GlobalSyncIndicator 均不预载（仅事件监听），
+      // 首次进入同步页时 store 全默认值，挂载 5 个 IPC 后才填充（状态卡先显示
+      // 「禁用/空设备」再跳变）。登录后后台预载，进入同步页直接渲染真实状态。
+      // 不注册 registry 缓存：连接/发现/冲突是实时性数据，syncStore 的 15s 轮询
+      // + 事件 + 操作后刷新已保证新鲜，TTL 缓存反而引入陈旧窗口。
+      const s = useSyncStore.getState();
+      await Promise.all([
+        s.loadStatus(),
+        s.loadListenAddr(),
+        s.loadAutoSyncStatus(),
+        s.loadUiPrefsSync(),
+        s.loadConflicts(),
+      ]);
     },
   },
 ];
