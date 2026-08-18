@@ -4,6 +4,10 @@ All notable changes to SoloSoul are documented in this file.
 
 ## [Unreleased]
 
+### Fixed
+
+- **数据管理-保险库大小显示失败** — P048-5 重构时前端调用命令名被误改为 `vault_get_stats`（后端实为 `get_vault_stats`，ACL 白名单一致），IPC 失败导致大小显示 `—` 且点击饼图按钮只出遮罩不出卡片。改回 `get_vault_stats`，新增防回归测试（锁定命令名 + 断言大小显示与卡片弹出）。
+
 ### Changed
 
 - **桌面/移动端路由切换手感回归修复（懒加载全面回退 + 壳常驻）** — ①AppShell 从各页面内提取为常驻布局（ShellLayout + PageShell 配置桥 + shellConfigStore，壳在路由 Suspense 之外，切页不再整窗卸载）；②P015 路由级懒加载全部回退为静态导入（28 个受保护页面 + Bootstrap/Login 认证页随首包加载，WebKit 实测首切骨架 320-340ms → 无骨架、内容 ~30ms 出现）；③预取机制整体删除（routeLoaders/lazyPage/prefetchRoute/canPrefetchOnMobile，含 NavButton/MobileBottomNav 悬停触摸预取）；④移动端 iOS 预取门控放开（connection 不可用放行，本地 chunk 无流量成本）后随预取机制一并移除。组件级懒加载（照片查看器/恢复对话框/AiQuickChat 弹层）保留，不受影响。

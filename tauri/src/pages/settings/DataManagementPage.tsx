@@ -27,7 +27,7 @@ export function DataManagementPage() {
 
   useEffect(() => {
     let cancelled = false;
-    invoke<VaultStats>('vault_get_stats')
+    invoke<VaultStats>('get_vault_stats')
       .then((result) => {
         if (!cancelled) setStats(result);
       })
