@@ -1,6 +1,6 @@
 import { memo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Circle, CircleDot, Lock } from 'lucide-react';
+import { Circle, CircleDot, Lock, TriangleAlert } from 'lucide-react';
 import type { SensitivityLevel } from '@/types/template';
 
 export type { SensitivityLevel };
@@ -20,9 +20,11 @@ function SensitivityIcon({ level, size = 10 }: { level: SensitivityLevel; size?:
       // Hollow ring (outline circle)
       return <Circle size={size} strokeWidth={2} />;
     case 'internal':
-    case 'sensitive':
       // Filled dot
       return <CircleDot size={size} strokeWidth={2} />;
+    case 'sensitive':
+      // Warning triangle
+      return <TriangleAlert size={size} strokeWidth={2} />;
     case 'critical':
       // Lock icon
       return <Lock size={size} strokeWidth={2.5} />;

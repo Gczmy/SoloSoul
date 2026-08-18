@@ -6,6 +6,8 @@ All notable changes to SoloSoul are documented in this file.
 
 ### Fixed
 
+- **敏感度徽章 internal/sensitive 图标区分** — 两档此前同为 CircleDot（圈内点）仅颜色不同，色弱/灰度下无法分辨；sensitive 改为 TriangleAlert（三角感叹号，lucide 内置），4 档图标现为环/点/三角/锁形状全异，全站 60 处徽章使用点统一生效。
+
 - **导出/导出为文档-选择对象行敏感度徽章溢出（安卓）** — 对象同时含 4 个字段敏感度徽章时行宽不足，对象名被挤没、徽章文本换行；SensitivityBadge 新增 showText 仅图标模式，ObjectSelectionTree 对象行移动端徽章只显示彩色图标（title 提示保留）且 flexShrink:0 防挤压，桌面端不变。排查 SearchPage/SearchPopover/SensitivityBadges 均已有换行保护，无同问题。
 
 - **导出为文档-格式选择按钮错位（安卓）** — 格式选择器容器无 flexWrap，5 个格式按钮在窄屏被压缩进单行导致文本溢出按钮框且未水平居中；容器加 flexWrap: wrap，按钮加 justifyContent/textAlign 居中与 whiteSpace: nowrap。
