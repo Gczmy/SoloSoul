@@ -56,6 +56,7 @@ All notable changes to SoloSoul are documented in this file.
 - P009 移除 solosoul-core 三个未使用依赖（anyhow/tokio/rand 全 crate 零引用）+ P019 子模块指针更新（插件市场 README 环境变量文档同步）。
 - 新增 analyze-chunks 体积分析脚本（chunk 表/启动链/静态闭包）。
 - 163 个 commit 自 v2.10.2 到 v2.11.0。
+- **v2.11.0 发布事故与修复（发布后补充）** — 首次发布的 Android APK 误用非正式 keystore（`~/.solosoul/keys/solosoul-upload.jks`，证书 `160c4a08...`）签名，已安装用户（v2.10.2 及更早，证书 `270fb489...`）升级报 INSTALL_FAILED_UPDATE_INCOMPATIBLE (-7)；已用正式 keystore（`~/SoloSoul/solosoul-upload.jks`，密码见 `~/SoloSoul/info.txt`）重新签名构建 APK，重新生成 SHA-256 校验和与 minisig 并替换 GitHub Release 资产（端到端复核证书与哈希一致）。防复发：新增 `scripts/verify-release-signatures.sh` 发布前签名一致性自检（APK 证书/updater 公钥/`.sig` keynum/校验和公钥逐项校验），`docs/release_process.md` 固化 keystore 唯一来源与自检必做步骤。
 
 ## [2.10.2] - 2026-08-15
 

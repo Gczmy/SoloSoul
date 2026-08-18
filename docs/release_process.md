@@ -193,16 +193,25 @@ Android 产物为通用 APK。构建前需要：
 ```bash
 export ANDROID_HOME=$HOME/Library/Android/sdk
 export ANDROID_NDK_HOME=$HOME/Library/Android/sdk/ndk/30.0.14904198
-export SOLOSOUL_KEYSTORE_PATH=<your-keystore-path>
-export SOLOSOUL_KEYSTORE_PASSWORD=<your-keystore-password>
+export SOLOSOUL_KEYSTORE_PATH=$HOME/SoloSoul/solosoul-upload.jks
+export SOLOSOUL_KEYSTORE_PASSWORD=<keystore 密码，见 $HOME/SoloSoul/info.txt>
 export SOLOSOUL_KEY_ALIAS=solosoul-upload
-export SOLOSOUL_KEY_PASSWORD=<your-key-password>
+export SOLOSOUL_KEY_PASSWORD=<同 keystore 密码>
 
 # 构建 Android 需使用 rustup 版本，避免 Homebrew Rust 不支持交叉编译
 export PATH="$HOME/.rustup/toolchains/stable-aarch64-apple-darwin/bin:$PATH"
 ```
 
 > 注：本地 Homebrew 版 Rust 不支持 Android 交叉编译目标，构建前必须将 rustup 版 Rust 置于 PATH 优先位置。
+
+> ⚠️ **keystore 唯一来源（v2.11.0 事故教训）**：本机发布 keystore **只有一把**：
+> `~/SoloSoul/solosoul-upload.jks`（别名 `solosoul-upload`，keystore 密码与 key 密码相同，
+> 记录在 `~/SoloSoul/info.txt`，权限 600）。
+> v2.11.0 曾因误用另一把本地 keystore（`~/.solosoul/keys/solosoul-upload.jks`，
+> 证书 OU=Engineering/Beijing）构建 APK，导致已安装用户升级报
+> **INSTALL_FAILED_UPDATE_INCOMPATIBLE (-7)「与已安装应用签名不同」**，被迫重新签名换包。
+> 请删除/归档该混淆 keystore；发布前必须运行
+> `bash scripts/verify-release-signatures.sh SoloSoul-Releases` 校验 APK 证书与历次发布一致。
 
 #### Debug APK（无需签名，适合功能测试）
 
@@ -250,6 +259,18 @@ Release APK 使用 `signingConfigs.release`，从环境变量读取 keystore 信
 - `SOLOSOUL_KEY_PASSWORD`
 
 本地构建时若环境变量缺失，则回退为未签名（debug），不会报错；CI 发布时必须提供上述变量。
+
+**发布 keystore 固定信息（v2.11.0 事故后固化）：**
+
+| 项 | 值 |
+|----|----|
+| keystore 路径 | `~/SoloSoul/solosoul-upload.jks`（**勿用** `~/.solosoul/keys/` 下的同名文件） |
+| 密码来源 | `~/SoloSoul/info.txt`（keystore 与 key 密码相同） |
+| 别名 | `solosoul-upload` |
+| 证书 SHA-256 | `270fb489d218b02bc12fbb3489c8131fcabe723a5b2580dc7c1bc23be1e5f86c`（历次发布一致，脚本内已钉死） |
+
+> 构建完成后、上传 Release 前，**必须**运行 `bash scripts/verify-release-signatures.sh SoloSoul-Releases`
+> 做签名一致性自检（APK 证书、updater 公钥、`.sig`/`.minisig` keynum 逐项校验，任一项失败即禁止发布）。
 
 #### APK 校验和（SHA-256）生成与签名（P003）
 
@@ -319,6 +340,21 @@ cd /path/to/SoloSoul
 - 产物目录在签名前消失时脚本会显式报错并以非零退出（fail-fast），不会静默继续。
 
 > Android AAB 签名由 Gradle 构建时完成，不需要在此步骤额外签名。
+
+**发布前签名一致性自检（v2.11.0 事故后新增，必做）：**
+
+```bash
+cd /path/to/SoloSoul
+bash scripts/verify-release-signatures.sh SoloSoul-Releases
+```
+
+校验项：
+
+1. **APK 签名证书** == 历次发布固定证书（`270fb489...`）——误用 keystore 会在发布前拦截（v2.11.0 事故直接原因）；
+2. **桌面端 updater 公钥**（`tauri.conf.json` 内置）== 本机签名私钥对应公钥；
+3. **macOS/Windows `.sig` 与 APK 校验和 `.minisig`** 的 minisign keynum 与客户端信任锚一致。
+
+任一项 FAIL 即非零退出，禁止继续发布；全部 PASS 后才能进入步骤 8 生成 `latest.json`。
 
 ### 7. 本地验证
 
