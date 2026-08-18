@@ -7,6 +7,7 @@ vi.mock('@/lib/ipcClient', () => ({
 
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { useOcrModelManager } from './useOcrModelManager';
+import { prefetchRegistry } from '@/lib/prefetch/registry';
 
 const tMock = ((key: string, opts?: Record<string, unknown>) =>
   String(key) + (opts ? JSON.stringify(opts) : '')) as never;
@@ -31,6 +32,8 @@ function makeOpts(overrides: Record<string, unknown> = {}) {
 describe('useOcrModelManager', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // 模块级 prefetch store 单例跨测试共享——重置避免缓存污染（TTL 命中会跳过 loader）
+    prefetchRegistry.ocrModel.reset();
     vi.mocked(invoke)
       .mockResolvedValueOnce(tiers) // ocr_list_available_tiers
       .mockResolvedValueOnce('small') // ocr_get_active_tier
@@ -55,7 +58,10 @@ describe('useOcrModelManager', () => {
     const { result } = renderHook(() => useOcrModelManager(opts as never));
 
     await waitFor(() => expect(result.current.loading).toBe(false));
-    expect(opts.onError).toHaveBeenCalledWith(expect.any(Error), expect.stringContaining('load_status_failed'));
+    expect(opts.onError).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.stringContaining('load_status_failed'),
+    );
   });
 
   it('切换档位成功后回调 onTierChangeSuccess', async () => {

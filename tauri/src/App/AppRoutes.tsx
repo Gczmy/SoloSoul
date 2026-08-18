@@ -30,6 +30,7 @@ import { PostLoginSetupGuide } from '@/components/guide/PostLoginSetupGuide';
 import { protectedRoutes, AuthGuard } from './routes';
 import { RouteLoadingSkeleton } from '@/components/ui/RouteLoadingSkeleton';
 import { ShellLayout } from '@/components/layout/ShellLayout';
+import { warmupPrefetchRegistry } from '@/lib/prefetch/warmup';
 // 方案 A 扩展（桌面 + 移动端全面静态导入）：认证页随首包加载，不再懒加载。
 import { BootstrapPage } from '@/pages/auth/BootstrapPage';
 import { LoginPage } from '@/pages/auth/LoginPage';
@@ -42,6 +43,11 @@ export function AppRoutes() {
       setGlobalNavigate(null);
     };
   }, [navigate]);
+
+  // Prefetch Runtime: App 挂载即预热 warmupPolicy='always' 的数据（当前为空集，P2 追加）
+  useEffect(() => {
+    warmupPrefetchRegistry('mount');
+  }, []);
   const { t } = useTranslation(['settings']);
   // P022: useShallow 字段级选择——避免 store 任意字段（error/backendError 等）翻转时整页重渲染
   const { checkHasAccount, hasAccount, isAuthenticated } = useAuthStore(
@@ -111,6 +117,13 @@ export function AppRoutes() {
     };
     checkVaultDir();
   }, [isAuthenticated, t]);
+
+  // Prefetch Runtime: 登录/解锁完成后后台预热页面数据（OCR 模型等），
+  // 用户在解锁期间完成加载，进入页面直接渲染（无骨架期）
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    warmupPrefetchRegistry('afterAuth');
+  }, [isAuthenticated]);
 
   // Load settings and profile after authentication
   useEffect(() => {

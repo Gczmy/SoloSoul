@@ -45,8 +45,12 @@ vi.mock('@/hooks/useToastError', () => ({
 
 const mockInvoke = vi.mocked(invoke);
 
+// 模块级 prefetch store 单例跨测试共享——重置避免 TTL 缓存跳过 loader（0 calls）
+import { prefetchRegistry } from '@/lib/prefetch/registry';
+
 describe('OcrSettingsPage', () => {
   beforeEach(() => {
+    prefetchRegistry.ocrModel.reset();
     vi.clearAllMocks();
     mockInvoke.mockImplementation(async (cmd: string, args?: unknown) => {
       if (cmd === 'ocr_list_available_tiers')
@@ -137,6 +141,8 @@ describe('OcrSettingsPage', () => {
       return undefined;
     });
 
+    // 更换 mock 后重置 prefetch 缓存，让第二次渲染重新加载（TTL 缓存会跳过 loader）
+    prefetchRegistry.ocrModel.reset();
     render(
       <MemoryRouter>
         <OcrSettingsPage />

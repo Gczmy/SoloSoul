@@ -75,8 +75,12 @@ vi.mock('@tauri-apps/plugin-dialog', () => ({
 
 const mockInvoke = vi.mocked(invoke);
 
+// 模块级 prefetch store 单例跨测试共享——重置避免 TTL 缓存跳过 loader（0 calls）
+import { prefetchRegistry } from '@/lib/prefetch/registry';
+
 describe('OcrPage', () => {
   beforeEach(() => {
+    prefetchRegistry.ocrModel.reset();
     vi.clearAllMocks();
     mockInvoke.mockImplementation(async (cmd: string, args?: unknown) => {
       if (cmd === 'ocr_list_available_tiers')

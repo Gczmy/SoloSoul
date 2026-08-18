@@ -4,13 +4,17 @@ All notable changes to SoloSoul are documented in this file.
 
 ## [Unreleased]
 
+### Added
+
+- **通用数据预取框架（Prefetch Runtime）P1 试点** — 新建 lib/prefetch 四件套（createPrefetchStore 工厂：in-flight 去重 + TTL 缓存 + invalidate + 平台门控；prefetchRegistry 注册表；usePrefetchData 消费 hook；warmup 空闲调度含 iOS requestIdleCallback 降级）。OCR 模型状态（OcrPage/OcrSettingsPage 共用）改为登录/解锁后后台预热 + 缓存共享——预热完成后进入页面直接渲染内容，无骨架期（Playwright 实测：预热后进入 select 立即渲染 vs 对照骨架期）；安装/下载/删除后强制刷新缓存，乐观档位切换保留。设计文档 docs/prefetch-runtime-design.md。
+
 ### Changed
 
 - **编辑模板/编辑对象保存按钮主视觉** — 两处保存按钮由 secondary 改为 primary（主题色背景 + 白字，hover 加深），与取消按钮主次分明。
 
 ### Fixed
 
-- **OCR 扫描页模型卡片布局跳动** — 进入页面时模型状态未加载，卡片仅「空 select」高度，下方扫描按钮先出现在偏上位置、状态加载完成后被推下（一闪而过）；模型状态加载期改为固定高度占位（spinner），加载完成后内容原地就位，按钮位置稳定。
+- **OCR 扫描页模型卡片布局跳动（骨架无图标 + 高度精确对齐）** — 模型状态加载期骨架去除全部圆形元素（spinner/图标/原生下拉箭头），select 骨架高度按实测校准为 35px 与真实内容一致；Playwright 3 轮实测按钮位移 0px，无布局跳动。
 
 - **OCR 页面下载 URL 输入框闪烁** — 进入 OCR 扫描/设置页时模型状态未加载（statusMap 为空），`!statusMap['small']?.installed` 误判未安装致下载 URL 输入框（含 https://example.com/models placeholder）一闪而过；改为 statusMap['small'] 存在（状态加载完成）后才渲染，两处页面同步修复。
 

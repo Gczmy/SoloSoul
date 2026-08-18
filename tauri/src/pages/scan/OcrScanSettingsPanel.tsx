@@ -2,8 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
 import { OcrTierStatusRow } from '@/components/ocr/OcrTierStatusRow';
 import { getTierLabel } from '@/lib/utils';
-import { Loader2 } from 'lucide-react';
-import { ICON_SIZE } from '@/lib/constants';
+import { isMacOSSync } from '@/lib/platform';
 import type { OcrModelStatus, OcrTierInfo } from '@/lib/ipc';
 
 interface OcrScanSettingsPanelProps {
@@ -44,6 +43,8 @@ export function OcrScanSettingsPanel({
   // 输入框（含 https placeholder）造成闪烁
   const showDownloadUrl =
     !!statusMap['small'] && !statusMap['small'].installed && !statusMap['small'].bundled;
+  // 骨架行数与后端 tier 行数一致（macOS 4 行，其他桌面 3 行），保证骨架高度 == 内容高度
+  const rowCount = isMacOSSync() ? 4 : 3;
   return (
     <>
       {/* Model management（桌面端）；移动端使用系统 ML Kit，无需模型管理 */}
@@ -53,19 +54,41 @@ export function OcrScanSettingsPanel({
             {t('ocr:model_title')}
           </h3>
 
-          {/* 模型状态加载期固定高度占位：避免卡片从「空 select」展开到完整内容时
-              把下方扫描按钮推下（布局跳动/一闪而过）。加载完成后内容原地就位。 */}
+          {/* 模型状态加载期骨架：结构与真实内容同构（真实 select + 同高行骨架），
+              浏览器自然算出与内容一致的高度，避免卡片展开时把下方扫描按钮推下
+              （布局跳动/一闪而过）。加载完成后内容原地就位。 */}
           {loadingStatus ? (
-            <div
-              style={{
-                height: 196,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                color: 'var(--text-tertiary)',
-              }}
-            >
-              <Loader2 size={ICON_SIZE.lg} className="spin" />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {/* select 骨架：与真实 select 同高（padding 8×2 + 行高 ~17 + 边框 2），无原生下拉箭头 */}
+              <div
+                aria-hidden
+                style={{
+                  height: 35,
+                  borderRadius: 8,
+                  border: '1px solid var(--border-subtle)',
+                  background: 'var(--bg-elevated)',
+                }}
+              />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {Array.from({ length: rowCount }).map((_, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '10px 12px',
+                      borderRadius: 8,
+                      background: 'var(--bg-toolbar)',
+                    }}
+                  >
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 'var(--text-body-sm)', fontWeight: 500 }}>&nbsp;</div>
+                      <div style={{ fontSize: 'var(--text-badge)' }}>&nbsp;</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
