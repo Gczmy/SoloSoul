@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useShallow } from 'zustand/react/shallow';
-import { AppShell } from '@/components/layout/AppShell';
+import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
@@ -143,7 +143,7 @@ export function BackupConfigPage() {
   };
 
   return (
-    <AppShell
+    <PageShell
       title={t('settings:backup_restore')}
       onBack={() => navigate('/settings')}
       actions={<PageGuideButton pages={backupGuidePages} />}
@@ -353,6 +353,6 @@ export function BackupConfigPage() {
           {t('settings:export_hint')}
         </p>
       </PageContainer>
-    </AppShell>
+    </PageShell>
   );
 }

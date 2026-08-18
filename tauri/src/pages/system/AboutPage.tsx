@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { AppShell } from '@/components/layout/AppShell';
+import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { ShieldLogo } from '@/components/ui/ShieldLogo';
 import { Code, Info, Shield } from 'lucide-react';
@@ -69,7 +69,7 @@ export function AboutPage() {
         }
         .about-retry-spin { animation: about-retry-spin 1s linear infinite; }
       `}</style>
-      <AppShell
+      <PageShell
         title={t('settings:about')}
         onBack={isMandatory ? undefined : () => navigate('/settings')}
       >
@@ -136,7 +136,7 @@ export function AboutPage() {
           downloadError={downloadError}
           handleUpdate={handleUpdate}
         />
-      </AppShell>
+      </PageShell>
     </>
   );
 }

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useCallback, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { AppShell } from '@/components/layout/AppShell';
+import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Button } from '@/components/ui/Button';
 import { useTemplateStore } from '@/stores/templateStore';
@@ -228,7 +228,7 @@ export function TemplateManagerPage() {
   };
 
   return (
-    <AppShell
+    <PageShell
       title={t('settings:template_manager_title', { defaultValue: '模板管理' })}
       onBack={handleBack}
       actions={
@@ -323,6 +323,6 @@ export function TemplateManagerPage() {
             />
           );
         })()}
-    </AppShell>
+    </PageShell>
   );
 }

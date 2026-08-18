@@ -1,0 +1,56 @@
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px;
+  overflow: hidden;
+}
+
+.bar {
+  height: 16px;
+  border-radius: 8px;
+  background: var(--bg-elevated);
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.card {
+  flex: 1;
+  border-radius: 12px;
+  background: var(--bg-elevated);
+  position: relative;
+  overflow: hidden;
+}
+
+@media (max-width: 767px) {
+  .content {
+    padding: 12px;
+  }
+}
+
+/* 轻微流光，示意「正在加载」而非死屏 */
+.bar::after,
+.card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(128, 128, 128, 0.14), transparent);
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* 减弱动效：关闭流光，骨架保持静态（组件级显式声明） */
+@media (prefers-reduced-motion: reduce) {
+  .bar::after,
+  .card::after {
+    animation: none;
+  }
+}

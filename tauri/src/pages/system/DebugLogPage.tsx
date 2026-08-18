@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { AppShell } from '@/components/layout/AppShell';
+import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
@@ -69,7 +69,7 @@ export function DebugLogPage() {
   };
 
   return (
-    <AppShell title={t('settings:debug_log')} onBack={() => navigate('/settings')}>
+    <PageShell title={t('settings:debug_log')} onBack={() => navigate('/settings')}>
       <PageContainer variant="wide" gap="default">
         {/* Toolbar */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
@@ -213,6 +213,6 @@ export function DebugLogPage() {
           )}
         </Card>
       </PageContainer>
-    </AppShell>
+    </PageShell>
   );
 }

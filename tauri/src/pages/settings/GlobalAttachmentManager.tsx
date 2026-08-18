@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Paperclip, Info, FolderTree, Upload, Trash2 } from 'lucide-react';
-import { AppShell } from '@/components/layout/AppShell';
+import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -135,7 +135,7 @@ export function GlobalAttachmentManager() {
   );
 
   return (
-    <AppShell
+    <PageShell
       title={t('settings:items.global_attachments', { defaultValue: 'Attachments' })}
       onBack={() => {
         const state = location.state as { from?: string } | undefined;
@@ -356,6 +356,6 @@ export function GlobalAttachmentManager() {
       />
 
       {confirmDialog}
-    </AppShell>
+    </PageShell>
   );
 }

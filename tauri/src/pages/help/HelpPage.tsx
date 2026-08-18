@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { AppShell } from '@/components/layout/AppShell';
+import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { GuideRenderer, resolveGuideIdFromHref } from '@/components/guide/GuideRenderer';
@@ -138,7 +138,7 @@ export function HelpPage() {
   };
 
   return (
-    <AppShell
+    <PageShell
       title={content ? content.title : t('settings:items.help_docs')}
       onBack={handleBack}
       actions={
@@ -243,6 +243,6 @@ export function HelpPage() {
           onSkip={() => setShowTutorial(false)}
         />
       )}
-    </AppShell>
+    </PageShell>
   );
 }

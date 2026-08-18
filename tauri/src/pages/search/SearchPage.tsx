@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { AppShell } from '@/components/layout/AppShell';
+import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
@@ -151,7 +151,7 @@ export function SearchPage() {
   );
 
   return (
-    <AppShell
+    <PageShell
       title={t('navigation:search')}
       onBack={() => navigate('/home')}
       actions={<PageGuideButton pages={searchGuidePages} />}
@@ -274,6 +274,6 @@ export function SearchPage() {
       {attachmentObjId && (
         <AttachmentViewer objectId={attachmentObjId} onClose={() => setAttachmentObjId(null)} />
       )}
-    </AppShell>
+    </PageShell>
   );
 }

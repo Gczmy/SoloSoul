@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useShallow } from 'zustand/react/shallow';
-import { AppShell } from '@/components/layout/AppShell';
+import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { useSettingsStore } from '@/stores/settingsStore';
@@ -128,7 +128,7 @@ export function AppearanceSettingsPage() {
   };
 
   return (
-    <AppShell title={t('settings:items.theme_appearance')} onBack={() => navigate('/settings')}>
+    <PageShell title={t('settings:items.theme_appearance')} onBack={() => navigate('/settings')}>
       <div
         style={{
           display: 'flex',
@@ -397,6 +397,6 @@ export function AppearanceSettingsPage() {
           </PageContainer>
         </div>
       </div>
-    </AppShell>
+    </PageShell>
   );
 }

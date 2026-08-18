@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { AppShell } from '@/components/layout/AppShell';
+import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { VaultDirectorySection } from './VaultDirectorySection';
 
@@ -9,10 +9,10 @@ export function VaultDirectoryPage() {
   const { t } = useTranslation(['settings', 'common']);
 
   return (
-    <AppShell title={t('settings:vault_directory')} onBack={() => navigate('/settings')}>
+    <PageShell title={t('settings:vault_directory')} onBack={() => navigate('/settings')}>
       <PageContainer variant="form" gap="default">
         <VaultDirectorySection />
       </PageContainer>
-    </AppShell>
+    </PageShell>
   );
 }

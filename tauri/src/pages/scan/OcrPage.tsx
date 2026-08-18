@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { AppShell } from '@/components/layout/AppShell';
+import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { useAuthStore } from '@/stores/authStore';
 import { useObjectStore } from '@/stores/objectStore';
@@ -331,7 +331,7 @@ export function OcrPage() {
     setMrzResult(null);
   };
   return (
-    <AppShell
+    <PageShell
       title={t('ocr:title')}
       onBack={() => {
         const state = location.state as { fromHome?: boolean } | undefined;
@@ -384,6 +384,6 @@ export function OcrPage() {
           }}
         />
       </PageContainer>
-    </AppShell>
+    </PageShell>
   );
 }

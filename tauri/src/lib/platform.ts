@@ -62,17 +62,3 @@ export const supportsHover = (): boolean =>
   // matchMedia 缺失（如 jsdom 测试环境）时默认 true：保持既有 hover 行为/测试不受影响；
   // 真实触屏设备（Android/iOS WebView）均实现 matchMedia，会正确返回 false。
   window.matchMedia?.('(hover: hover) and (pointer: fine)').matches ?? true;
-
-/**
- * 移动端路由预取网络门控（P015-R4）：仅在「非省流模式」且 effectiveType 为 4g
- * （Android WebView 上 WiFi 与 4G 均上报 '4g'）时允许后台预取路由 chunk。
- * iOS 的 WKWebView 不支持 Network Information API（connection 为 undefined），
- * 此时返回 false——移动端无法确认网络快则跳过预取，页面仍按需懒加载。
- * 供 AppRoutes.shouldPrefetchRoutes 复用，纯函数便于单测。
- */
-export function canPrefetchOnMobile(
-  connection?: { saveData?: boolean; effectiveType?: string } | null,
-): boolean {
-  if (connection?.saveData) return false;
-  return connection?.effectiveType === '4g';
-}

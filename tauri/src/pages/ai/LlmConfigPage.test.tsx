@@ -5,8 +5,8 @@ import { LlmConfigPage } from './LlmConfigPage';
 import { invoke } from '@tauri-apps/api/core';
 import { useAuthStore } from '@/stores/authStore';
 
-vi.mock('@/components/layout/AppShell', () => ({
-  AppShell: ({
+vi.mock('@/components/layout/PageShell', () => ({
+  PageShell: ({
     children,
     title,
     onBack,

@@ -8,8 +8,8 @@ const mockShowToast = vi.fn();
 const mockCreateObject = vi.fn();
 const mockOpen = vi.fn();
 
-vi.mock('@/components/layout/AppShell', () => ({
-  AppShell: ({
+vi.mock('@/components/layout/PageShell', () => ({
+  PageShell: ({
     children,
     title,
     onBack,

@@ -1,4 +1,4 @@
-import { AppShell } from '@/components/layout/AppShell';
+import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { BarChart3 } from 'lucide-react';
@@ -51,7 +51,7 @@ export function LlmConfigPage() {
   } = useLlmConfigPage();
 
   return (
-    <AppShell title={t('settings:llm_config')} onBack={() => navigate(backPath)}>
+    <PageShell title={t('settings:llm_config')} onBack={() => navigate(backPath)}>
       {confirmDialog}
       <PageContainer variant="xs" gap="default">
         {!hasAcceptedRisk && (
@@ -136,6 +136,6 @@ export function LlmConfigPage() {
           onAccept={handleAcceptRisk}
         />
       </PageContainer>
-    </AppShell>
+    </PageShell>
   );
 }

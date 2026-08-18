@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useShallow } from 'zustand/react/shallow';
-import { AppShell } from '@/components/layout/AppShell';
+import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { useAuthStore } from '@/stores/authStore';
@@ -23,7 +23,7 @@ export function SecuritySettingsPage() {
   );
 
   return (
-    <AppShell title={t('settings:items.security_settings')} onBack={() => navigate('/settings')}>
+    <PageShell title={t('settings:items.security_settings')} onBack={() => navigate('/settings')}>
       <PageContainer variant="form" gap="default">
         <Card>
           <h3 style={{ fontSize: 'var(--text-card-title)', fontWeight: 600, marginBottom: 4 }}>
@@ -252,6 +252,6 @@ export function SecuritySettingsPage() {
 
         <PasswordChangeForm accountId={currentAccount?.id} />
       </PageContainer>
-    </AppShell>
+    </PageShell>
   );
 }

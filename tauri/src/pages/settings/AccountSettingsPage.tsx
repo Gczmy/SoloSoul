@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { AppShell } from '@/components/layout/AppShell';
+import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -73,10 +73,7 @@ export function AccountSettingsPage() {
   };
 
   return (
-    <AppShell
-      title={t('settings:items.account_management')}
-      onBack={() => navigate('/settings')}
-    >
+    <PageShell title={t('settings:items.account_management')} onBack={() => navigate('/settings')}>
       <PageContainer variant="form" gap="default">
         <Card>
           <h3 style={{ fontSize: 'var(--text-card-title)', fontWeight: 600, marginBottom: 4 }}>
@@ -161,6 +158,6 @@ export function AccountSettingsPage() {
           </div>
         </Card>
       </PageContainer>
-    </AppShell>
+    </PageShell>
   );
 }

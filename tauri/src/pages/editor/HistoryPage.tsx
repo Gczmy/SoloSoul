@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
-import { AppShell } from '@/components/layout/AppShell';
+import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -72,7 +72,7 @@ export function HistoryPage() {
   };
 
   return (
-    <AppShell title={t('common:history')} onBack={() => navigate(-1)}>
+    <PageShell title={t('common:history')} onBack={() => navigate(-1)}>
       {confirmDialog}
       <PageContainer variant="xs" gap="default">
         {loading ? (
@@ -142,6 +142,6 @@ export function HistoryPage() {
           </>
         )}
       </PageContainer>
-    </AppShell>
+    </PageShell>
   );
 }

@@ -4,8 +4,8 @@ import { MemoryRouter } from 'react-router-dom';
 import { DebugLogPage } from './DebugLogPage';
 import { invoke } from '@tauri-apps/api/core';
 
-vi.mock('@/components/layout/AppShell', () => ({
-  AppShell: ({ children, title }: { children: React.ReactNode; title: string }) => (
+vi.mock('@/components/layout/PageShell', () => ({
+  PageShell: ({ children, title }: { children: React.ReactNode; title: string }) => (
     <div data-testid="app-shell" data-title={title}>
       {children}
     </div>

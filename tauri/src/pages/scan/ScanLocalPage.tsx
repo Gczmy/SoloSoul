@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { openWithPause } from '@/lib/dialog';
-import { AppShell } from '@/components/layout/AppShell';
+import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { formatBytes } from '@/lib/utils';
@@ -112,7 +112,7 @@ export function ScanLocalPage() {
   };
 
   return (
-    <AppShell
+    <PageShell
       title={t('settings:local_import', { defaultValue: 'Local Import' })}
       onBack={() => navigate(-1)}
     >
@@ -212,6 +212,6 @@ export function ScanLocalPage() {
           </Card>
         )}
       </PageContainer>
-    </AppShell>
+    </PageShell>
   );
 }

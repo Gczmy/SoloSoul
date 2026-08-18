@@ -1,7 +1,7 @@
 import React, { Fragment, useCallback, useState, useRef, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { AppShell } from '@/components/layout/AppShell';
+import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { CardGrid } from '@/components/ui/CardGrid';
@@ -331,7 +331,7 @@ export function HomePage() {
   };
 
   return (
-    <AppShell
+    <PageShell
       title={t('common:home')}
       actions={
         <PageGuideButton
@@ -471,6 +471,6 @@ export function HomePage() {
           }}
         />
       )}
-    </AppShell>
+    </PageShell>
   );
 }

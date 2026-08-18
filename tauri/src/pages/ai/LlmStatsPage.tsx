@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useShallow } from 'zustand/react/shallow';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
-import { AppShell } from '@/components/layout/AppShell';
+import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import styles from './LlmStatsPage.module.css';
 import { Button } from '@/components/ui/Button';
@@ -99,16 +99,16 @@ export function LlmStatsPage() {
 
   if (loading && !stats) {
     return (
-      <AppShell title={t('settings:llm_stats_page_title')} onBack={() => navigate(backPath)}>
+      <PageShell title={t('settings:llm_stats_page_title')} onBack={() => navigate(backPath)}>
         <LoadingPlaceholder variant="base" />
-      </AppShell>
+      </PageShell>
     );
   }
 
   const hasData = stats && (stats.usageCount > 0 || stats.totalTokens > 0);
 
   return (
-    <AppShell title={t('settings:llm_stats_page_title')} onBack={() => navigate(backPath)}>
+    <PageShell title={t('settings:llm_stats_page_title')} onBack={() => navigate(backPath)}>
       <PageContainer variant="medium" gap="section" className={styles.page}>
         {/* Model Info */}
         <section>
@@ -238,7 +238,7 @@ export function LlmStatsPage() {
           </Button>
         </div>
       </Dialog>
-    </AppShell>
+    </PageShell>
   );
 }
 

@@ -170,9 +170,6 @@ export function useNavButtonCards(input: NavButtonCardInput) {
                 setShowQuickChat((prev) => !prev);
               }
             }}
-            // P015-R5: 仅「页面模式」下悬停预取 /llm-chat；卡片模式点击是打开弹层而非导航。
-            // 用 prefetchPath 而非 path，避免页面模式下多出 active 指示点（未请求的视觉变化）。
-            prefetchPath={aiChatMode === 'page' ? '/llm-chat' : undefined}
             position={position}
           />
           {showQuickChat &&

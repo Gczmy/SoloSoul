@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
-import { AppShell } from '@/components/layout/AppShell';
+import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 
@@ -83,7 +83,7 @@ export function DataManagementPage() {
   );
 
   return (
-    <AppShell title={t('settings:data_management')} onBack={() => navigate('/settings')}>
+    <PageShell title={t('settings:data_management')} onBack={() => navigate('/settings')}>
       <PageContainer variant="form" gap="default">
         {/* Vault stats card */}
         <Card>
@@ -343,6 +343,6 @@ export function DataManagementPage() {
           </div>
         </Card>
       </PageContainer>
-    </AppShell>
+    </PageShell>
   );
 }

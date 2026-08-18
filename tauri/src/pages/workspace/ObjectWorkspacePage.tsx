@@ -1,6 +1,6 @@
 import { useCallback, useMemo } from 'react';
 import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
-import { AppShell } from '@/components/layout/AppShell';
+import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
@@ -107,7 +107,7 @@ export function ObjectWorkspacePage() {
   );
 
   return (
-    <AppShell
+    <PageShell
       title={ws.customPage?.name || ws.activeCategoryLabel || t('objects')}
       onBack={() => navigate('/home')}
       actions={
@@ -386,6 +386,6 @@ export function ObjectWorkspacePage() {
         biometricType={ws.bioAvailable.available ? ws.bioAvailable.biometryType : undefined}
         onBiometric={ws.bioAvailable.available ? ws.handleBiometricUnlock : undefined}
       />
-    </AppShell>
+    </PageShell>
   );
 }

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { AppShell } from '@/components/layout/AppShell';
+import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { ToggleSwitch } from '@/components/ui/ToggleSwitch';
@@ -103,7 +103,7 @@ export function SyncPage() {
     : undefined;
 
   return (
-    <AppShell
+    <PageShell
       title={t('settings:sync', { defaultValue: 'Device Sync' })}
       onBack={() => navigate(backTo || '/home', { replace: true })}
       actions={<PageGuideButton pages={syncGuidePages} />}
@@ -183,7 +183,7 @@ export function SyncPage() {
           onToggleActivity={() => setActivityOpen((v) => !v)}
         />
       </PageContainer>
-    </AppShell>
+    </PageShell>
   );
 }
 

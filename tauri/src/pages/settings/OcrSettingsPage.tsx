@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { AppShell } from '@/components/layout/AppShell';
+import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { useToastError } from '@/hooks/useToastError';
@@ -51,7 +51,7 @@ export function OcrSettingsPage() {
   });
 
   return (
-    <AppShell title={t('ocr:settings_title')} onBack={() => navigate('/settings')}>
+    <PageShell title={t('ocr:settings_title')} onBack={() => navigate('/settings')}>
       {confirmDialog}
       <PageContainer variant="medium" gap="default">
         {!isMobilePlatform && (
@@ -193,6 +193,6 @@ export function OcrSettingsPage() {
           </Card>
         )}
       </PageContainer>
-    </AppShell>
+    </PageShell>
   );
 }

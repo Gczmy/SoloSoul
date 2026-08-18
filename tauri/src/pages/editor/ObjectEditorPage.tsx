@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { AppShell } from '@/components/layout/AppShell';
+import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
@@ -42,7 +42,7 @@ export function ObjectEditorPage() {
   } = useObjectEditorPage();
 
   return (
-    <AppShell title={isNew ? t('common:new_object') : t('common:edit_object')} onBack={handleBack}>
+    <PageShell title={isNew ? t('common:new_object') : t('common:edit_object')} onBack={handleBack}>
       <PageContainer variant="xs" gap="default">
         <ObjectTemplateSelector
           isNew={isNew}
@@ -93,6 +93,6 @@ export function ObjectEditorPage() {
               </>
             )}
       </PageContainer>
-    </AppShell>
+    </PageShell>
   );
 }

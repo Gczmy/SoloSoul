@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
-import { AppShell } from '@/components/layout/AppShell';
+import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { formatBytes } from '@/lib/utils';
@@ -172,7 +172,7 @@ export function SettingsPage() {
   ], [t, vaultSize]);
 
   return (
-    <AppShell title={t('settings:title')} onBack={() => navigate('/home')}>
+    <PageShell title={t('settings:title')} onBack={() => navigate('/home')}>
       <PageContainer variant="small" gap="large">
         {settingGroups.map((group) => (
           <div key={group.title} className={styles.settingGroup}>
@@ -205,6 +205,6 @@ export function SettingsPage() {
           </div>
         ))}
       </PageContainer>
-    </AppShell>
+    </PageShell>
   );
 }

@@ -4,8 +4,8 @@ import { MemoryRouter, useNavigate } from 'react-router-dom';
 import { SettingsPage } from './SettingsPage';
 import { invoke } from '@tauri-apps/api/core';
 
-vi.mock('@/components/layout/AppShell', () => ({
-  AppShell: ({
+vi.mock('@/components/layout/PageShell', () => ({
+  PageShell: ({
     children,
     title,
     onBack,

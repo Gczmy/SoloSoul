@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { AppShell } from '@/components/layout/AppShell';
+import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
@@ -59,7 +59,7 @@ export function LlmChatPage() {
 
   if (chat.loading) {
     return (
-      <AppShell title={t('settings:ai_chat')} onBack={() => navigate('/home')}>
+      <PageShell title={t('settings:ai_chat')} onBack={() => navigate('/home')}>
         <div
           style={{
             position: 'fixed',
@@ -92,13 +92,13 @@ export function LlmChatPage() {
             <LoadingPlaceholder variant="base" />
           </div>
         </div>
-      </AppShell>
+      </PageShell>
     );
   }
 
   if (!chat.isAiEnabled || !chat.isConfigured) {
     return (
-      <AppShell
+      <PageShell
         title={t('settings:ai_chat')}
         onBack={() => navigate('/home')}
         actions={
@@ -165,12 +165,12 @@ export function LlmChatPage() {
             </button>
           </div>
         </PageContainer>
-      </AppShell>
+      </PageShell>
     );
   }
 
   return (
-    <AppShell
+    <PageShell
       title={t('settings:ai_chat')}
       onBack={() => navigate('/home')}
       actions={
@@ -325,6 +325,6 @@ export function LlmChatPage() {
         }
         @keyframes blink { 0%, 80%, 100% { opacity: 0.3; } 40% { opacity: 1; } }
       `}</style>
-    </AppShell>
+    </PageShell>
   );
 }

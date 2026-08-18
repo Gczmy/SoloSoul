@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 
-import { AppShell } from '@/components/layout/AppShell';
+import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -113,7 +113,7 @@ export function ExportImportPage() {
   } = useExportImportPage();
 
   return (
-    <AppShell
+    <PageShell
       title={t('settings:export_import')}
       onBack={() => navigate('/settings')}
       actions={<PageGuideButton pages={exportImportGuidePages} />}
@@ -258,6 +258,6 @@ export function ExportImportPage() {
           />
         ) : null}
       </PageContainer>
-    </AppShell>
+    </PageShell>
   );
 }

@@ -1,5 +1,5 @@
 import { useNavigate, useLocation } from 'react-router-dom';
-import { AppShell } from '@/components/layout/AppShell';
+import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
@@ -67,7 +67,7 @@ export function TrashPage() {
   } = useTrashPage();
 
   return (
-    <AppShell
+    <PageShell
       title={t('settings:trash')}
       actions={<PageGuideButton pages={trashGuidePages} />}
       onBack={() => {
@@ -289,6 +289,6 @@ export function TrashPage() {
           />
         )}
       </PageContainer>
-    </AppShell>
+    </PageShell>
   );
 }

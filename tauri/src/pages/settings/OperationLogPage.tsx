@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { AppShell } from '@/components/layout/AppShell';
+import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -117,7 +117,7 @@ export function OperationLogPage() {
   const visibleLogs = filteredLogs.slice(0, visibleLimit);
 
   return (
-    <AppShell title={t('settings:operation_log')} onBack={() => navigate('/settings')}>
+    <PageShell title={t('settings:operation_log')} onBack={() => navigate('/settings')}>
       <PageContainer variant="wide" gap="default">
         {/* Row 1: Search + Export */}
         <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
@@ -229,6 +229,6 @@ export function OperationLogPage() {
           </div>
         )}
       </PageContainer>
-    </AppShell>
+    </PageShell>
   );
 }

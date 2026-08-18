@@ -3,7 +3,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { RefreshCw, Info, LayoutGrid, Download, Settings } from 'lucide-react';
-import { AppShell } from '@/components/layout/AppShell';
+import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { PluginCard } from '@/components/plugin/PluginCard';
@@ -260,7 +260,7 @@ export function PluginDashboardPage() {
   );
 
   return (
-    <AppShell
+    <PageShell
       title={t('settings:items.plugins', { defaultValue: 'Plugins' })}
       onBack={() => navigate('/settings')}
       actions={<PageGuideButton pages={pluginGuidePages} />}
@@ -446,7 +446,7 @@ export function PluginDashboardPage() {
           onCancel={() => setPendingRun(null)}
         />
       )}
-    </AppShell>
+    </PageShell>
   );
 }
 

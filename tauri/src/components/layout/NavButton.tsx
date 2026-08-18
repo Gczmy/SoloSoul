@@ -5,14 +5,11 @@ import type { LucideIcon } from 'lucide-react';
 import styles from './NavButton.module.css';
 import { ICON_SIZE } from '@/lib/constants';
 import { useHoverCardPosition } from '@/hooks/useHoverCardPosition';
-import { prefetchRoute } from '@/App/routeLoaders';
 
 export type NavPosition = 'left' | 'right' | 'top' | 'bottom';
 
 interface NavButtonProps {
   path?: string;
-  /** 悬停/触摸预取目标路径；缺省时回退到 path（避免 ai_chat 卡片模式为预取而影响 active 指示点）。 */
-  prefetchPath?: string;
   Icon: LucideIcon;
   label: string;
   isActive?: boolean;
@@ -22,7 +19,6 @@ interface NavButtonProps {
 
 export function NavButton({
   path,
-  prefetchPath,
   Icon,
   label,
   isActive,
@@ -106,14 +102,6 @@ export function NavButton({
     </div>
   ) : null;
 
-  // P015-R5: 悬停（pointerenter）/按下（pointerdown）/聚焦（focus）时预热目标页面 chunk，
-  // 点击导航时 chunk 已命中缓存，消除切页骨架屏。prefetchPath 优先于 path，两者皆空
-  // （动作型按钮）时静默跳过。
-  const handlePrefetch = useCallback(() => {
-    const target = prefetchPath ?? path;
-    if (target) prefetchRoute(target);
-  }, [path, prefetchPath]);
-
   const activeIndicator =
     path && isActive ? (
       <div
@@ -134,13 +122,10 @@ export function NavButton({
       style={isHorizontal ? { width: 40, height: 40 } : {}}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
-      onPointerEnter={handlePrefetch}
-      onPointerDown={handlePrefetch}
     >
       <button
         className={`${styles.navButton} ${isActive ? styles.activeButton : ''}`}
         onClick={onClick}
-        onFocus={handlePrefetch}
         aria-label={label}
         aria-current={isActive ? 'page' : undefined}
         style={isHorizontal ? { width: 40, height: 40, borderRadius: 10 } : {}}

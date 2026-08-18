@@ -17,7 +17,6 @@ import { useOcrFirstInstall } from '@/hooks/useOcrFirstInstall';
 import { initLlmNotificationListener } from '@/lib/notification';
 import { searchCache } from '@/lib/searchCache';
 import { applyTheme, getSystemTheme, listenForSystemTheme } from '@/lib/theme';
-import { isMobilePlatformSync, canPrefetchOnMobile } from '@/lib/platform';
 import { confirmWithPause } from '@/lib/dialog';
 import { UpdateBanner, type UpdateBannerState } from '@/components/ui/UpdateBanner';
 import { OcrInstallBanner } from '@/components/ui/OcrInstallBanner';
@@ -28,33 +27,12 @@ import { useSafSyncStore } from '@/stores/safSyncStore';
 import { useUiStore } from '@/stores/uiStore';
 import { SafSyncIndicator } from '@/components/sync/SafSyncIndicator';
 import { PostLoginSetupGuide } from '@/components/guide/PostLoginSetupGuide';
-import { protectedRoutes, AuthGuard, routeLoaders } from './routes';
-import { lazyPage } from './lazyPage';
+import { protectedRoutes, AuthGuard } from './routes';
 import { RouteLoadingSkeleton } from '@/components/ui/RouteLoadingSkeleton';
-// P015: 认证页同样懒加载（首屏只加载当前需要的 chunk）
-const loadBootstrapPage = () => import('@/pages/auth/BootstrapPage');
-const BootstrapPage = lazyPage(loadBootstrapPage, 'BootstrapPage');
-const loadLoginPage = () => import('@/pages/auth/LoginPage');
-const LoginPage = lazyPage(loadLoginPage, 'LoginPage');
-
-// P015-R6: 登录后后台预取时序常量——最小延迟覆盖首页关键路径；idle 超时兜底保证
-// 极端繁忙时最终也会执行；无 requestIdleCallback 环境的降级 tick 间隔。
-const ROUTE_PREFETCH_DELAY_MS = 200;
-const ROUTE_PREFETCH_IDLE_TIMEOUT_MS = 2000;
-const ROUTE_PREFETCH_FALLBACK_TICK_MS = 100;
-
-/**
- * 路由 chunk 后台预取门控（P015-R4）。
- * 桌面端全量预取消除首次导航空白；移动端仅在确认网络快时预取（见 canPrefetchOnMobile），
- * 省流量/省电（被跳过的页面仍会按需懒加载，不影响功能）。
- */
-function shouldPrefetchRoutes(): boolean {
-  if (!isMobilePlatformSync()) return true;
-  const conn = (navigator as Navigator & {
-    connection?: { saveData?: boolean; effectiveType?: string };
-  }).connection;
-  return canPrefetchOnMobile(conn);
-}
+import { ShellLayout } from '@/components/layout/ShellLayout';
+// 方案 A 扩展（桌面 + 移动端全面静态导入）：认证页随首包加载，不再懒加载。
+import { BootstrapPage } from '@/pages/auth/BootstrapPage';
+import { LoginPage } from '@/pages/auth/LoginPage';
 
 export function AppRoutes() {
   const navigate = useNavigate();
@@ -309,63 +287,6 @@ export function AppRoutes() {
     };
   }, [navigate, isAuthenticated]);
 
-  // P015-R6: 桌面端登录后后台全量预取——「最小延迟 + requestIdleCallback 并行预取」双保险。
-  // 先让首页关键路径（chunk 加载 → 首帧渲染 → 首次数据 fetch）跑完（ROUTE_PREFETCH_DELAY_MS
-  // 兜底），再交给 requestIdleCallback 在主线程空闲时预取剩余路由 chunk（含认证页）；
-  // 用 deadline.timeRemaining() 控制每轮发起数量，既预热快、又不抢主线程。
-  // 无 requestIdleCallback 的环境（iOS WKWebView 等）降级为短间隔 setTimeout 全量发起。
-  // P015-R4: 移动端仍按网络状况门控（见 shouldPrefetchRoutes），本路径仅桌面端 / 快网移动端。
-  useEffect(() => {
-    if (!isAuthenticated || !shouldPrefetchRoutes()) return;
-    let cancelled = false;
-    const loaders = [loadBootstrapPage, loadLoginPage, ...routeLoaders];
-    let index = 0;
-    let fallbackTimer: ReturnType<typeof setTimeout> | undefined;
-    let idleId: number | undefined;
-
-    // 空闲期预取：import() 异步、同步开销极小，一轮空闲通常即可全部发起；timeRemaining 仅在
-    // 极短空闲片时收手、留到下一轮；didTimeout 时兜底至少发起一个，避免繁忙期空转不前进。
-    const prefetchBatch = (deadline?: IdleDeadline): void => {
-      if (cancelled) return;
-      const start = index;
-      while (
-        index < loaders.length &&
-        (!deadline ||
-          deadline.timeRemaining() > 0 ||
-          (index === start && deadline.didTimeout))
-      ) {
-        void loaders[index]().catch(() => {
-          // 预取失败静默忽略：目标页面仍会按需加载
-        });
-        index += 1;
-      }
-      if (index < loaders.length) schedulePrefetch();
-    };
-
-    const schedulePrefetch = (): void => {
-      if (cancelled) return;
-      if (typeof requestIdleCallback === 'function') {
-        // timeout 兜底：极端繁忙时最迟 2s 后也会执行，避免无限延后
-        idleId = requestIdleCallback(prefetchBatch, { timeout: ROUTE_PREFETCH_IDLE_TIMEOUT_MS });
-      } else {
-        // 无 requestIdleCallback 的环境（iOS WKWebView 等）：短间隔后全量发起
-        fallbackTimer = setTimeout(prefetchBatch, ROUTE_PREFETCH_FALLBACK_TICK_MS);
-      }
-    };
-
-    // 最小延迟：让首页关键路径先跑完，再开始后台预取
-    const delayTimer = setTimeout(schedulePrefetch, ROUTE_PREFETCH_DELAY_MS);
-
-    return () => {
-      cancelled = true;
-      if (delayTimer) clearTimeout(delayTimer);
-      if (fallbackTimer) clearTimeout(fallbackTimer);
-      if (idleId !== undefined && typeof cancelIdleCallback === 'function') {
-        cancelIdleCallback(idleId);
-      }
-    };
-  }, [isAuthenticated]);
-
   // 支持 /bootstrap?mode=create 在已有账户时仍能创建新账户
   const [searchParams] = useSearchParams();
   const bootstrapMode = searchParams.get('mode');
@@ -421,8 +342,8 @@ export function AppRoutes() {
         </div>
       )}
       {isAuthenticated && <PostLoginSetupGuide />}
-      {/* P015: Suspense 承接路由级懒加载 chunk 拉取期。P015-R: 纯色占位升级为骨架屏，
-          残余拉取期保持侧边栏/导航与内容区结构，避免「整窗空白」感知。 */}
+      {/* 方案 A 扩展：全部页面静态导入后无 lazy 组件，Suspense 边界保留（零触发）作为
+          未来若重新引入懒加载时的结构位；B1 壳常驻布局保持不变。 */}
       <Suspense fallback={<RouteLoadingSkeleton />}>
         <Routes>
           <Route
@@ -469,9 +390,19 @@ export function AppRoutes() {
               )
             }
           />
-          {protectedRoutes.map((r) => (
-            <Route key={r.path} path={r.path} element={<AuthGuard>{r.element}</AuthGuard>} />
-          ))}
+          {/* B1: 受保护路由统一挂在常驻壳布局下（AuthGuard 提升到布局层），
+              切页仅内容区（Outlet）等待新页面 chunk，壳不卸载。 */}
+          <Route
+            element={
+              <AuthGuard>
+                <ShellLayout />
+              </AuthGuard>
+            }
+          >
+            {protectedRoutes.map((r) => (
+              <Route key={r.path} path={r.path} element={r.element} />
+            ))}
+          </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>
