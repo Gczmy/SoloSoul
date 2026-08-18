@@ -86,7 +86,7 @@ export function ObjectEditorPage() {
                   <Button variant="secondary" onClick={() => navigate(-1)}>
                     {t('common:cancel')}
                   </Button>
-                  <Button variant="secondary" onClick={handleSave} loading={isSaving}>
+                  <Button variant="primary" onClick={handleSave} loading={isSaving}>
                     {t('common:save')}
                   </Button>
                 </div>

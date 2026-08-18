@@ -4,6 +4,10 @@ All notable changes to SoloSoul are documented in this file.
 
 ## [Unreleased]
 
+### Changed
+
+- **编辑模板/编辑对象保存按钮主视觉** — 两处保存按钮由 secondary 改为 primary（主题色背景 + 白字，hover 加深），与取消按钮主次分明。
+
 ### Fixed
 
 - **设备同步-同步活动展开列表限高** — 展开列表加 maxHeight 440（约 5 条记录高度）+ 内部滚动，同步记录多时不再撑长整个页面滚动条。

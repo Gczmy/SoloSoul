@@ -267,7 +267,7 @@ export function TemplateEditor({
         <Button variant="secondary" onClick={onClose}>
           {t('common:cancel', { defaultValue: '取消' })}
         </Button>
-        <Button variant="secondary" onClick={onSave}>
+        <Button variant="primary" onClick={onSave}>
           {t('common:save', { defaultValue: '保存' })}
         </Button>
       </div>
