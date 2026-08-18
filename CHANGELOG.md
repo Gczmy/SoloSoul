@@ -2,6 +2,12 @@
 
 All notable changes to SoloSoul are documented in this file.
 
+## [Unreleased]
+
+### Fixed
+
+- **P135 macOS Vision OCR 编译失败（`unable to load standard library for target 'arm64-apple-macosx26.0'`）** — `macos_vision.rs` 运行时 `swiftc` 编译 Vision CLI 不再依赖默认 target：显式指定保守部署目标 `-target {arch}-apple-macosx13.0`（Swift 源码使用 `recognitionLanguages` 需 macOS 13.0+）+ 经 `xcrun --sdk macosx --show-sdk-path` 显式传入 `-sdk` + `MACOSX_DEPLOYMENT_TARGET` 环境变量三重保险；此前 swiftc 默认取当前 SDK 版本（macOS 26 → macosx26.0）作为 target，本机 Xcode/CLT 与系统 SDK 错配时标准库加载失败（CODE_ANALYSIS_REPORT P002 曾归因环境、仅测试侧跳过，生产路径未修）；编译失败错误消息附用户可操作指引（`xcode-select --install` / 切换工具链 / 改用 PP-OCR 档位）；新增 2 条 target 构造单元测试。
+
 ## [2.10.2] - 2026-08-15
 
 ### Added

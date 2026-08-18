@@ -235,7 +235,8 @@ check-all 末尾 WARN：trash_permanent_delete 仍在 ACL 白名单中但 handle
 - **提交**：`e0e18c57`
 - **现象**：`ocr::macos_vision::tests::test_vision_not_available_in_test`、`test_scan_image_passes_real_path` 失败，panic 信息为 `swiftc 编译 Vision CLI 失败: unable to load standard library for target 'arm64-apple-macosx26.0'`。
 - **分析**：测试在运行时用 `swiftc` 编译 Vision CLI 辅助程序，本机 Xcode/CLT 与 macOS 26 SDK target 不匹配导致失败，属环境问题而非代码 bug；但测试依赖本机编译工具链本身较脆弱。
-- **修复**：两处测试在 `ensure_vision_cli()` 失败（swiftc 不可用）时改为 `eprintln!` 说明环境原因后 skip——`test_vision_not_available_in_test` 不再 panic；`test_scan_image_passes_real_path` 在编译前先探测 CLI 可用性。CI 装有完整 CLT 时测试行为不变，生产路径编译失败另有日志。
+- **修复**：两处测试在 `ensure_vision_cli()` 失败（swiftc 不可用）时改为 `eprintln!` 说明环境原因后 skip——`test_vision_not_available_in_test` 不再 panic；`test_scan_image_passes_real_path` 在编译前先探测 CLI 可用性。CI 装有完整 CLT 时测试行为不变，生产路径编译失败另有日志。
+- **P135 生产路径跟进（代码层修复）**：该错误后来在真实用户环境中复现（macOS 26 系统，`swiftc 编译 Vision CLI 失败: unable to load standard library for target 'arm64-apple-macosx26.0'`），确认并非纯粹环境问题：编译命令不指定部署目标时 swiftc 默认取当前 SDK 版本（macosx26.0），工具链标准库不包含该新 target 即失败。已改为显式 `-target {arch}-apple-macosx13.0` + `xcrun --sdk macosx` 解析的 `-sdk` + `MACOSX_DEPLOYMENT_TARGET` 环境变量三重保险，从代码层规避错配；测试不再需要 skip（保留 skip 分支仅兜底 swiftc 完全缺失的环境）。
 - **验证**：solosoul-core `cargo clippy --all-targets -- -D warnings` exit 0；`cargo fmt --check` exit 0。
 
 ### P003 — 插件域名白名单可被 HTTP 重定向绕过（已修复）

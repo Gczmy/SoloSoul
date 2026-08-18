@@ -218,6 +218,54 @@ fn resolve_swiftc() -> Result<PathBuf, String> {
     Ok(PathBuf::from("swiftc"))
 }
 
+/// Vision CLI 编译时的最低 macOS 部署目标主版本。
+///
+/// 取值依据：嵌入的 Swift 源码使用 `VNRecognizeTextRequest.recognitionLanguages`
+/// （macOS 13.0+ API），部署目标不能低于 13.0。
+///
+/// P135: 此前编译不指定部署目标，swiftc 默认取**当前 SDK 版本**作为 target
+/// （如 macOS 26 SDK → `arm64-apple-macosx26.0`）。当本机 Xcode/CLT 工具链的
+/// 标准库不包含该新 target 时编译失败：
+/// `unable to load standard library for target 'arm64-apple-macosx26.0'`
+/// （见 CODE_ANALYSIS_REPORT P002 与本机复现）。显式固定保守版本后，
+/// 任何够新的工具链都能找到对应标准库，从代码层规避该错配。
+const VISION_MIN_MACOS_VERSION: &str = "13.0";
+
+/// 当前进程架构对应的 Swift target 架构段（arm64 / x86_64）。
+fn target_arch() -> &'static str {
+    match std::env::consts::ARCH {
+        "aarch64" => "arm64",
+        _ => "x86_64",
+    }
+}
+
+/// 生成 swiftc 的 `-target` 三元组，如 `arm64-apple-macosx13.0`。
+fn vision_cli_target() -> String {
+    format!("{}-apple-macosx{}", target_arch(), VISION_MIN_MACOS_VERSION)
+}
+
+/// 解析 macOS SDK 路径（`xcrun --show-sdk-path --sdk macosx`）。
+///
+/// 显式传入 `-sdk` 可保证 swiftc 使用与系统一致的 SDK（而非自行猜测），
+/// 与显式 `-target` 形成双重规避。xcrun 不可用/未返回路径时返回 `None`，
+/// swiftc 会回退自行推断 SDK——显式 target 已是主防线，此处为加强。
+fn resolve_macos_sdk() -> Option<String> {
+    match Command::new("xcrun")
+        .args(["--sdk", "macosx", "--show-sdk-path"])
+        .output()
+    {
+        Ok(out) if out.status.success() => {
+            let sdk = String::from_utf8_lossy(&out.stdout).trim().to_string();
+            if sdk.is_empty() {
+                None
+            } else {
+                Some(sdk)
+            }
+        }
+        _ => None,
+    }
+}
+
 /// 获取或编译 Vision Framework CLI 二进制路径。
 ///
 /// # 安全
@@ -272,19 +320,33 @@ fn ensure_vision_cli() -> Result<PathBuf, String> {
         tracing::debug!("编译 Vision CLI...");
         let swiftc = resolve_swiftc()?;
         tracing::debug!("使用 swiftc: {}", swiftc.display());
-        let output = Command::new(&swiftc)
-            .args([
-                "-O",
-                "-o",
-                &binary_path.to_string_lossy(),
-                &source_path.to_string_lossy(),
-            ])
+        // P135: 显式指定部署目标（macOS 13.0）与 SDK 路径，规避工具链/SDK
+        // 版本错配导致的 `unable to load standard library for target ...` 编译失败。
+        // 同时以 MACOSX_DEPLOYMENT_TARGET 环境变量兜底，三重保险。
+        let mut cmd = Command::new(&swiftc);
+        cmd.arg("-target").arg(vision_cli_target());
+        if let Some(sdk) = resolve_macos_sdk() {
+            cmd.arg("-sdk").arg(&sdk);
+        }
+        cmd.env("MACOSX_DEPLOYMENT_TARGET", VISION_MIN_MACOS_VERSION)
+            .arg("-O")
+            .arg("-o")
+            .arg(&binary_path.to_string_lossy().as_ref())
+            .arg(&source_path.to_string_lossy().as_ref());
+        let output = cmd
             .output()
             .map_err(|e| format!("启动 swiftc 编译失败: {e}"))?;
 
         if !output.status.success() {
             let stderr = String::from_utf8_lossy(&output.stderr);
-            return Err(format!("swiftc 编译 Vision CLI 失败: {stderr}"));
+            // P135: 失败时附用户可操作的排查指引（而非裸工具链报错）。
+            return Err(format!(
+                "swiftc 编译 Vision CLI 失败: {stderr}。\n\n\
+                 解决建议：请在终端执行 `xcode-select --install` 安装或更新 \
+                 Xcode Command Line Tools（或 `sudo xcode-select --switch \
+                 /Applications/Xcode.app` 切换工具链），确保 Xcode/CLT 与系统版本匹配；\
+                 也可在 OCR 设置中改用 PP-OCR 档位（Small/Medium）作为替代。"
+            ));
         }
 
         let bin_meta =
@@ -432,6 +494,35 @@ pub fn scan_image(image_path: &Path) -> Result<(String, f64), String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// P135: `-target` 三元组必须显式指向保守部署目标（macOS 13.0），
+    /// 不得默认取当前 SDK 版本——否则工具链/SDK 错配时标准库加载失败。
+    #[test]
+    fn test_vision_cli_target_is_explicit_conservative() {
+        let triple = vision_cli_target();
+        // 必须显式携带 macosx13.0，而非随 SDK 漂移（如 macosx26.0）。
+        assert!(triple.ends_with("-apple-macosx13.0"), "got: {triple}");
+        let arch = if std::env::consts::ARCH == "aarch64" {
+            "arm64"
+        } else {
+            "x86_64"
+        };
+        assert!(triple.starts_with(arch), "got: {triple}");
+    }
+
+    /// P135: 部署目标版本常量与 Swift 源码 API 下限一致（recognitionLanguages 需 13.0+）。
+    #[test]
+    fn test_vision_min_macos_version_at_least_13() {
+        let major: u32 = VISION_MIN_MACOS_VERSION
+            .split('.')
+            .next()
+            .and_then(|v| v.parse().ok())
+            .expect("valid major version");
+        assert!(
+            major >= 13,
+            "recognitionLanguages requires macOS 13.0+, got {major}"
+        );
+    }
 
     /// 回归测试（BUG：`Cannot load image at --`）：图像路径必须原样传给 CLI。
     /// 此前 Rust 侧误传 "--" 分隔符，Swift 端把 arguments[1] 的 "--" 当路径。
