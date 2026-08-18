@@ -100,7 +100,7 @@ export function ExportDocumentSection({ accountId, pageGroups }: ExportDocumentS
         <h3 style={{ fontSize: 'var(--text-body)', fontWeight: 600, marginBottom: 8 }}>
           {t('settings:export_format_label', { defaultValue: 'Format' })}
         </h3>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
           {(['docx', 'pdf', 'html', 'txt', 'markdown'] as DocFormat[]).map((f) => {
             const active = format === f;
             const label =
@@ -121,6 +121,9 @@ export function ExportDocumentSection({ accountId, pageGroups }: ExportDocumentS
                 style={{
                   display: 'flex',
                   alignItems: 'center',
+                  justifyContent: 'center',
+                  textAlign: 'center',
+                  whiteSpace: 'nowrap',
                   padding: '8px 14px',
                   borderRadius: 8,
                   border: '1px solid var(--border-subtle)',

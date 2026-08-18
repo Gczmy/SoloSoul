@@ -6,6 +6,8 @@ All notable changes to SoloSoul are documented in this file.
 
 ### Fixed
 
+- **导出为文档-格式选择按钮错位（安卓）** — 格式选择器容器无 flexWrap，5 个格式按钮在窄屏被压缩进单行导致文本溢出按钮框且未水平居中；容器加 flexWrap: wrap，按钮加 justifyContent/textAlign 居中与 whiteSpace: nowrap。
+
 - **数据管理-保险库大小显示失败** — P048-5 重构时前端调用命令名被误改为 `vault_get_stats`（后端实为 `get_vault_stats`，ACL 白名单一致），IPC 失败导致大小显示 `—` 且点击饼图按钮只出遮罩不出卡片。改回 `get_vault_stats`，新增防回归测试（锁定命令名 + 断言大小显示与卡片弹出）。
 
 ### Changed
