@@ -35,8 +35,11 @@ export function getSensitivityStyle(level: SensitivityLevel) {
 
 export const SensitivityBadge = memo(function SensitivityBadge({
   level,
+  showText = true,
 }: {
   level: SensitivityLevel;
+  /** 仅图标模式（title 悬停提示保留）——窄屏多徽章行防溢出用 */
+  showText?: boolean;
 }) {
   const { t } = useTranslation('sensitivity');
   const s = getSensitivityStyle(level);
@@ -50,16 +53,17 @@ export const SensitivityBadge = memo(function SensitivityBadge({
         gap: 3,
         fontSize: 'var(--text-badge)',
         fontWeight: 600,
-        padding: '2px 6px',
+        padding: showText ? '2px 6px' : '2px 4px',
         borderRadius: 4,
         background: s.bg,
         color: s.fg,
         border: `1px solid ${s.fg}`,
         lineHeight: 1.3,
+        whiteSpace: 'nowrap',
       }}
     >
       <SensitivityIcon level={level} />
-      {label}
+      {showText && label}
     </span>
   );
 });

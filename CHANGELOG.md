@@ -6,6 +6,8 @@ All notable changes to SoloSoul are documented in this file.
 
 ### Fixed
 
+- **导出/导出为文档-选择对象行敏感度徽章溢出（安卓）** — 对象同时含 4 个字段敏感度徽章时行宽不足，对象名被挤没、徽章文本换行；SensitivityBadge 新增 showText 仅图标模式，ObjectSelectionTree 对象行移动端徽章只显示彩色图标（title 提示保留）且 flexShrink:0 防挤压，桌面端不变。排查 SearchPage/SearchPopover/SensitivityBadges 均已有换行保护，无同问题。
+
 - **导出为文档-格式选择按钮错位（安卓）** — 格式选择器容器无 flexWrap，5 个格式按钮在窄屏被压缩进单行导致文本溢出按钮框且未水平居中；容器加 flexWrap: wrap，按钮加 justifyContent/textAlign 居中与 whiteSpace: nowrap。
 
 - **数据管理-保险库大小显示失败** — P048-5 重构时前端调用命令名被误改为 `vault_get_stats`（后端实为 `get_vault_stats`，ACL 白名单一致），IPC 失败导致大小显示 `—` 且点击饼图按钮只出遮罩不出卡片。改回 `get_vault_stats`，新增防回归测试（锁定命令名 + 断言大小显示与卡片弹出）。

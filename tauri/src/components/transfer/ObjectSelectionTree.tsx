@@ -5,6 +5,7 @@ import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import { SelectCheckbox } from '@/components/ui/SelectCheckbox';
 import { formatBytes } from '@/lib/utils';
 import { ICON_SIZE } from '@/lib/constants';
+import { isMobilePlatformSync } from '@/lib/platform';
 import type { SensitivityLevel } from '@/components/ui/SensitivityBadge';
 
 export interface SelectionTreeObject {
@@ -92,6 +93,8 @@ export function ObjectSelectionTree({
   const { t } = useTranslation(['settings', 'common', 'navigation']);
   const totalObjects = pageGroups.reduce((s, g) => s + g.objects.length, 0);
   const selectAll = totalSelected < totalObjects;
+  // 窄屏（移动端）：对象行右侧多敏感度徽章只显示图标，防挤没对象名/徽章文本换行
+  const isMobile = isMobilePlatformSync();
 
   if (pageGroups.length === 0) {
     return (
@@ -252,12 +255,15 @@ export function ObjectSelectionTree({
                       >
                         {obj.name}
                       </span>
-                      {/* 字段敏感度徽章：sensitivityLevels 有值时逐档展示（升序已由后端排序），否则回退记录级单徽章 */}
+                      {/* 字段敏感度徽章：sensitivityLevels 有值时逐档展示（升序已由后端排序），否则回退记录级单徽章。
+                          移动端仅图标（防多徽章挤没对象名/徽章文本换行），flexShrink:0 防被压缩 */}
                       {(obj.sensitivityLevels && obj.sensitivityLevels.length > 0
                         ? obj.sensitivityLevels
                         : [obj.sensitivityLevel]
                       ).map((lvl) => (
-                        <SensitivityBadge key={lvl} level={lvl as SensitivityLevel} />
+                        <span key={lvl} style={{ flexShrink: 0, display: 'inline-flex' }}>
+                          <SensitivityBadge level={lvl as SensitivityLevel} showText={!isMobile} />
+                        </span>
                       ))}
                       {renderConflictBadge?.(obj)}
                       {showAttachmentExpand(obj) && (

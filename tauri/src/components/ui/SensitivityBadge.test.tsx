@@ -28,6 +28,13 @@ describe('SensitivityBadge', () => {
       fontWeight: '600',
     });
   });
+
+  it('hides text label in icon-only mode but keeps the title tooltip', () => {
+    render(<SensitivityBadge level="public" showText={false} />);
+    expect(screen.queryByText('public')).not.toBeInTheDocument();
+    // title 提示保留（悬停/长按可查等级）
+    expect(document.querySelector('span[title="sensitivity_label: public"]')).not.toBeNull();
+  });
 });
 
 describe('getSensitivityStyle', () => {
