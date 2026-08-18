@@ -74,6 +74,9 @@ export function SyncHistoryPanel({
               display: 'flex',
               flexDirection: 'column',
               gap: 12,
+              // 展开列表限高（约 5 条记录高度），超出后该项内部滚动，避免整页滚动条过长
+              maxHeight: 440,
+              overflowY: 'auto',
             }}
           >
             {recentResults.map((result, idx) => {
