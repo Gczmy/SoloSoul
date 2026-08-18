@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useToastError } from '@/hooks/useToastError';
@@ -17,7 +17,8 @@ import { Info, FolderOpen, Lock, GitCompare } from 'lucide-react';
 import { useExportEstimate } from '@/hooks/useExportEstimate';
 import { useExportScope } from '@/hooks/useExportScope';
 import { useImportState } from '@/hooks/useImportState';
-import type { PageGroup } from '@/types/exportImport';
+import { prefetchRegistry } from '@/lib/prefetch/registry';
+import { usePrefetchData } from '@/lib/prefetch/usePrefetchData';
 import type { ExportImportTabKey } from '@/components/settings/ExportImportTabBar';
 
 type TabKey = ExportImportTabKey;
@@ -75,7 +76,6 @@ export function useExportImportPage() {
   );
 
   // Export state
-  const [pageGroups, setPageGroups] = useState<PageGroup[]>([]);
   const [includeAttachments, setIncludeAttachments] = useState(false);
   const {
     selectedPageIds,
@@ -106,36 +106,29 @@ export function useExportImportPage() {
   const [includePreferences, setIncludePreferences] = useState(false);
   const [includeBehavioral, setIncludeBehavioral] = useState(false);
 
-  // Load scope tree
-  const [scopeLoaded, setScopeLoaded] = useState(false);
+  // Load scope tree — Prefetch Runtime：登录后后台预热，进入页面直接渲染；
+  // 冷启动兜底现场加载；导入成功后 reloadScope() 强制刷新缓存。
+  const {
+    data: scopeTree,
+    error: scopeStoreError,
+    reload: reloadScope,
+  } = usePrefetchData(prefetchRegistry.exportScope, { enabled: !!accountId });
+  // 引用稳定：scopeTree 不变时复用同一数组，避免 hasSensitiveData/allTags 的 useMemo 每帧重算。
+  const pageGroups = useMemo(() => scopeTree ?? [], [scopeTree]);
   // N-11: 加载失败态与「无数据」区分——失败时渲染错误占位 + 重试，不渲染空导出树。
-  const [scopeError, setScopeError] = useState<string | null>(null);
-  const loadScope = useCallback(() => {
-    if (!accountId) return;
-    setScopeLoaded(false);
-    setScopeError(null);
-    invoke<PageGroup[]>('export_get_scope_tree', { accountId: accountId })
-      .then((groups) => {
-        setPageGroups(groups);
-        setScopeLoaded(true);
-      })
-      .catch((err) => {
-        // P120: 失败不得静默——用户看到空导出范围会误以为数据丢失。
-        logger.warn('[ExportImportPage] Load export scope tree failed:', err);
-        const message = resolveBackendErrorMessage(err);
-        onError(
-          new Error(message),
-          t('settings:export_scope_load_failed', { defaultValue: '导出范围加载失败，请重试' }),
-        );
-        setPageGroups([]);
-        setScopeError(message);
-        setScopeLoaded(true);
-      });
-  }, [accountId, onError, t]);
-
+  const scopeLoaded = scopeTree !== null || scopeStoreError !== null;
+  const scopeError = scopeStoreError ? resolveBackendErrorMessage(scopeStoreError) : null;
+  // 加载失败经 store.error 补 toast（原 loadScope 行为保持）。
   useEffect(() => {
-    loadScope();
-  }, [loadScope]);
+    if (scopeStoreError) {
+      // P120: 失败不得静默——用户看到空导出范围会误以为数据丢失。
+      logger.warn('[ExportImportPage] Load export scope tree failed:', scopeStoreError);
+      onError(
+        new Error(scopeStoreError),
+        t('settings:export_scope_load_failed', { defaultValue: '导出范围加载失败，请重试' }),
+      );
+    }
+  }, [scopeStoreError, onError, t]);
 
   // Import state — 全部迁移至 useImportState hook（P013/3）
   const {
@@ -177,7 +170,7 @@ export function useExportImportPage() {
     onSuccess,
     t,
     i18n,
-    reloadScope: loadScope,
+    reloadScope,
   });
 
   // P034: 组件卸载时清空密码 state（JS 堆不可清零，尽早缩短驻留窗口）
@@ -351,7 +344,7 @@ export function useExportImportPage() {
     // scope
     scopeLoaded,
     scopeError,
-    loadScope,
+    reloadScope,
     pageGroups,
     // export selection (useExportScope)
     selectedPageIds,

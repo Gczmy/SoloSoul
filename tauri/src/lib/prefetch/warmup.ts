@@ -12,6 +12,7 @@ import { prefetchRegistry } from './registry';
 import { useTemplateStore } from '@/stores/templateStore';
 import { useTrashStore } from '@/stores/trashStore';
 import { useAuthStore } from '@/stores/authStore';
+import { usePluginStore } from '@/stores/pluginStore';
 
 export type WarmupPhase = 'mount' | 'afterAuth';
 
@@ -41,6 +42,16 @@ export const prefetchWarmupTasks: Array<{ phase: WarmupPhase; run: () => Promise
     run: () => {
       const account = useAuthStore.getState().currentAccount;
       return account ? useTrashStore.getState().loadItems(account.id) : Promise.resolve();
+    },
+  },
+  {
+    phase: 'afterAuth',
+    run: async () => {
+      // 插件市场与已装清单均为本地 IPC（plugin_list_all / plugin_list_installed，
+      // 网络刷新是独立的 plugin_update_registry），登录后预热，插件页/模板页
+      // 挂载时直接渲染（页面零改动）。
+      const store = usePluginStore.getState();
+      await Promise.all([store.loadMarket(), store.loadInstalled()]);
     },
   },
 ];

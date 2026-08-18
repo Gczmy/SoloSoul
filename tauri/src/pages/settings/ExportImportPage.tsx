@@ -31,7 +31,7 @@ export function ExportImportPage() {
     // scope
     scopeLoaded,
     scopeError,
-    loadScope,
+    reloadScope,
     pageGroups,
     // export selection (useExportScope)
     selectedPageIds,
@@ -141,7 +141,7 @@ export function ExportImportPage() {
               >
                 {scopeError}
               </p>
-              <Button variant="primary" size="sm" onClick={loadScope}>
+              <Button variant="primary" size="sm" onClick={reloadScope}>
                 {t('common:retry')}
               </Button>
             </div>

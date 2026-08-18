@@ -6,7 +6,7 @@ All notable changes to SoloSoul are documented in this file.
 
 ### Added
 
-- **通用数据预取框架（Prefetch Runtime）P1+P2+P3** — ①基础设施：lib/prefetch 四件套（createPrefetchStore 工厂：in-flight 去重 + TTL 缓存 + invalidate + 平台门控；prefetchRegistry 注册表；usePrefetchData 消费 hook；warmup 空闲调度含 iOS requestIdleCallback 降级）；②P1 OCR 模型状态（OcrPage/OcrSettingsPage 共用）改登录后后台预热 + 缓存共享，预热后进入页面直接渲染无骨架期（Playwright 实测），安装/下载/删除后强制刷新；③P2 高频数据：vaultStats（设置页+数据管理页共享）、backups（备份页）注册缓存项，templates/trash 经 warmup 任务后台预热现有 store（页面零改动）；LLM 统计/插件页/同步页因含网络检测/事件/轮询不预取；④P3 按需接入：logs（调试日志页+操作日志页跨页共享缓存，刷新强制 reload），导出范围树/搜索因单消费者/可变数据/已有查询缓存不接入，vault-locked 事件失效（resetPrefetchRegistry 锁定即清空全部预取缓存）。设计文档 docs/prefetch-runtime-design.md。
+- **通用数据预取框架（Prefetch Runtime）P1+P2+P3+扩展** — ①基础设施：lib/prefetch 四件套（createPrefetchStore 工厂：in-flight 去重 + TTL 缓存 + invalidate + 平台门控；prefetchRegistry 注册表；usePrefetchData 消费 hook；warmup 空闲调度含 iOS requestIdleCallback 降级）；②P1 OCR 模型状态（OcrPage/OcrSettingsPage 共用）改登录后后台预热 + 缓存共享，预热后进入页面直接渲染无骨架期（Playwright 实测），安装/下载/删除后强制刷新；③P2 高频数据：vaultStats（设置页+数据管理页共享）、backups（备份页）注册缓存项，templates/trash 经 warmup 任务后台预热现有 store（页面零改动）；LLM 统计/插件页/同步页因含网络检测/事件/轮询不预取；④P3 按需接入：logs（调试日志页+操作日志页跨页共享缓存，刷新强制 reload），搜索因已有查询缓存不接入，vault-locked 事件失效（resetPrefetchRegistry 锁定即清空全部预取缓存）；⑤扩展：插件市场/已装清单经 warmup 任务登录后预热（PluginDashboardPage/TemplateManagerPage 挂载直接渲染）；导入导出页导出范围树注册 exportScope 缓存项（登录后预热消除挂载空白期，导入成功后强制刷新，错误占位+重试语义保持），含命令名/参数防回归测试。设计文档 docs/prefetch-runtime-design.md。
 
 ### Changed
 

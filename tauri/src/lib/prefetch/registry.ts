@@ -8,10 +8,12 @@
 import { createPrefetchStore } from './createPrefetchStore';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { isMobilePlatformSync } from '@/lib/platform';
+import { useAuthStore } from '@/stores/authStore';
 import type { OcrTierInfo, OcrModelStatus } from '@/lib/ipc';
 import type { VaultStats } from '@/pages/settings/StorageBreakdownCard';
 import type { BackupInfo } from '@/types/backup';
 import type { AuditLogEntry } from '@/types/auditLog';
+import type { PageGroup } from '@/types/exportImport';
 
 export interface OcrModelState {
   tiers: OcrTierInfo[];
@@ -65,5 +67,16 @@ export const prefetchRegistry = {
     loader: () => invoke<AuditLogEntry[]>('log_get_recent', { limit: 200 }),
     ttlMs: 60_000,
     warmupPolicy: 'never',
+  }),
+  /** 导出范围树（导入导出页的导出/导出为文档两个 tab 共用；导入成功后 invalidate 刷新）。 */
+  exportScope: createPrefetchStore<PageGroup[]>({
+    key: 'export-scope',
+    loader: async () => {
+      const accountId = useAuthStore.getState().currentAccount?.id;
+      if (!accountId) throw new Error('No account is currently unlocked');
+      return invoke<PageGroup[]>('export_get_scope_tree', { accountId });
+    },
+    ttlMs: 60_000,
+    warmupPolicy: 'afterAuth',
   }),
 };
