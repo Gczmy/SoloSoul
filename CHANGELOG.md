@@ -2,11 +2,60 @@
 
 All notable changes to SoloSoul are documented in this file.
 
-## [Unreleased]
+## [2.11.0] - 2026-08-18
+
+### Added
+
+- **设备同步-同步活动信息增强** — ①每条记录盖章本地时间戳（相对时间+悬停完整时间）；②记录时从 connectedPeers 解析并固化对端设备名/客户端类型（面板显示设备图标+名称，避免对端被忘记后无法追溯）；③方向徽章（本机发起/对端发起）；④手动同步失败写入失败历史条目（此前失败仅横幅一闪而过），面板红色降级展示本地化错误；保留分表/冲突明细。补 syncStore 盖章 3 条 + SyncHistoryPanel 6 条测试。
+- **照片集数量显示调整** — ①顶栏右侧改为显示全部照片数（不随筛选变化）；②每个标签 chip 上显示该标签的照片数量（tagOptions 增加 count，chip label 内嵌数量徽标）；③排序/分组按钮行右侧显示当前选项数量（album-current-count），选择标签后联动更新。补 1 条回归测试。
+- **照片集标签筛选展开/折叠与滚动优化** — 滚动栏下方新增展开箭头按钮（ChevronDown，i18n common:expand/collapse）：点击后所有标签换行平铺、高度随标签数量自适应（FilterChipGroup flexWrap wrap），箭头切换为折叠图标；容器 overflowY:hidden + overflowX:auto + scrollbar-width:none + 内联 style 隐藏 webkit 滚动条，鼠标滚轮垂直滚动转横向滑动（同 SearchPopover.filterBar 交互，无溢出不拦截）。补 2 条回归测试。
+- **桌面端附件行布局优化** — 勾选框与名称行对齐（勾选框外增定高容器内部垂直居中，行容器显式 lineHeight 1.4），格式图标+徽章移入元信息行（复用 metaLeadingIcon），与移动端元信息行结构一致；补桌面端布局回归测试。
+- **Windows 端 PDF 附件预览（solosoul-pdf:// 自定义协议）** — WebView2/Chromium 内建 PDF 查看器对 data:/blob: URL 的 embed 均不可靠，且 fs_read_file_as_data_url 有 10 MiB 上限会拒绝真实 PDF。新增 tauri 2.x 异步 scheme（桌面端注册）：URL 路径经 encodeURIComponent 编码，后端 percent_decode 后走既有 resolve_allowed_path 白名单校验（与 fs 命令同一安全边界）+ .pdf 扩展名守卫 + 256 MiB 上限，直出 application/pdf 字节，无 base64 膨胀无大小上限；CSP frame-src/object-src 放行 solosoul-pdf: 与 http://solosoul-pdf.localhost；前端仅 Windows 走协议 URL（macOS/Linux 保持原 data URL 路径避免 WebKit 渲染回归，移动端仍走系统应用），新增 isWindowsSync 平台判定；Rust 4 单测（白名单内 200/非 pdf 404/缺失 404/超大 413）+ 前端 2 回归。
+- **恢复对话框冷开骨架 fallback（P015-R3-R3）** — 三处消费方 Suspense fallback 由 null 升级为轻量 RecoveryDialogSkeleton（纯 CSS shimmer、零第三方依赖，framer-motion 本身在懒加载链上）；视觉对齐真实对话框（fixed 遮罩 z-modal/bg-overlay/blur + 居中 420px 卡片：标题/标签页/内容行/内容区占位块）；无障碍与 RouteLoadingSkeleton 同策略整体 aria-hidden（无硬编码文案）；构建验证：骨架入 index chunk 仅 +0.5K（450.0K），对话框 chunk 25.27K 不变，启动链无 Recovery 引用。
+- **骨架组件 prefers-reduced-motion 显式降级（a11y）** — RouteLoadingSkeleton 与 RecoveryDialogSkeleton 的 shimmer 流光在系统减弱动效下 animation:none 保持静态；组件级自包含声明（不依赖 animations.css 既有的全局 0.01ms 兜底规则，即使该文件未加载也生效）。
+- **安全规范文档** — 新增 biometric-spec.md（三平台生物识别实现对比与威胁模型，明示 Windows DPAPI 同用户进程可直解不触发 Hello 的平台限制、强度低于 macOS Keychain ACL，登记中期强化路线）、attachment-storage-spec.md（附件明文落盘威胁模型、已防御/残余缺口与中期强化路线）、pin-spec.md（PIN 强度模型——生产 KDF ~1s/次、6 位最坏 ~11.6 天、锁定计数对离线无效，「启用 PIN ≈ 静态安全降级到 PIN 强度」明示）。
 
 ### Fixed
 
 - **P135 macOS Vision OCR 编译失败（`unable to load standard library for target 'arm64-apple-macosx26.0'`）** — `macos_vision.rs` 运行时 `swiftc` 编译 Vision CLI 不再依赖默认 target：显式指定保守部署目标 `-target {arch}-apple-macosx13.0`（Swift 源码使用 `recognitionLanguages` 需 macOS 13.0+）+ 经 `xcrun --sdk macosx --show-sdk-path` 显式传入 `-sdk` + `MACOSX_DEPLOYMENT_TARGET` 环境变量三重保险；此前 swiftc 默认取当前 SDK 版本（macOS 26 → macosx26.0）作为 target，本机 Xcode/CLT 与系统 SDK 错配时标准库加载失败（CODE_ANALYSIS_REPORT P002 曾归因环境、仅测试侧跳过，生产路径未修）；编译失败错误消息附用户可操作指引（`xcode-select --install` / 切换工具链 / 改用 PP-OCR 档位）；新增 2 条 target 构造单元测试。
+- **回收站时间筛选失效** — since 参数语义错位（偏移量直传 vs 后端绝对时间戳）。TIME_SINCE 表存相对偏移量（1d=86400000），此前 loadItems 原样直传，后端 SQL 按绝对时间戳比较 deleted_at >= 86400000，而真实 deleted_at≈1.78e12 恒 ≥ 它 → 任何时间筛选都等于全部（用户实测四天前对象在「一天内」仍显示）。修复：前端换算为 Date.now() - offset 再传（与后端既有语义及测试对齐）；新建 trashStore.test.ts 2 条回归（3d 传绝对时间戳、all 不传 since）。
+- **Windows 端 PDF 附件预览失败（两轮）** — 第一轮：WebView2/Chromium 内建 PDF 查看器不渲染 data: URL 的 embed（PDFium 拒绝加载 data:），改经 atob 手动解码转 blob: URL（createObjectURL）后交给 embed，图片仍走 data: URL，CSP object-src 补 blob:；第二轮（blob 方案仍不可靠 + data URL 10 MiB 上限）：改 solosoul-pdf:// 自定义协议（见 Added）。
+- **侧边栏添加页面卡片底部超屏** — popover maxHeight 由固定 calc(100vh-安全区-32px) 改为锚定实际顶部 calc(100vh - popoverTop - 16px)，侧边栏靠下时卡片高度同步收紧，底部始终位于窗口底部之上；scrollMaxHeight 同步基于 popoverTop 计算图标区可用高度。
+- **登录页可用性探测命令加入未解锁豁免名单** — biometric/pin check availability 加入 UNLOCKED_EXEMPT_COMMANDS（P027 默认守卫允许未解锁时只读探测），登录页据此展示指纹/面容/PIN 解锁方式；新增漂移保护测试。
+- **P001-P054 修复闭环（轮次 1-11，54/54）** — 核心修复：P003 插件域名白名单 302 重定向绕过（reqwest redirect(Policy::none()) 关闭跟随，3xx 原样返回插件，继续请求新域名仍走 is_domain_allowed 校验，补 302 不跟随回归测试）；P005 object_delete 回收站快照吞错（复用 trash_and_soft_delete_batch 单事务，快照写失败整体回滚中止删除，fail-closed）；P007 SQL 错误细节脱敏（新增 sql_err 脱敏函数，完整错误含 SQL 仅落 tracing，对外仅保留 ffi 层 code 消息）；P017 恢复 PIN/密码弱随机消除（thread_rng → OsRng + 拒绝采样，消除 2^32%10 轻微偏差）；P018 derive_export_key 返回 Zeroizing<[u8;32]>（Drop 自动清零）；P020 更新检查版本单调性归一（Android 与桌面 GitHub 兜底 latest 均经 normalize_to_newer 过滤，杜绝第三方代理重放旧 release 元数据诱导降级提示）；P022 PIN 最小位数 4→6（对齐前端 PIN_LENGTH=6，消 4 位离线穷举窗口；存量 4 位凭证解锁不校验长度，仅设置/更换时按新规则）；P023 附件文件名净化统一到 path_util::sanitize_file_name 单一实现（平台无关拒绝 / 与 \ 分隔符 + 取末段兜底 + 拒绝空/. /..，R007 落盘净化同步收紧）；P029 设置读路径回跳消除（loadSettings 合并基准改为「当前 settings + DEFAULT 兜底」，暗色主题解锁瞬间不再闪回 system）；P032 迁移版本读取吞错消除（get_schema_version 区分首次建库与真实读取错误，run_migrations 入口改 ? 传播 fail-closed，幂等迁移不再被重复执行）；P033 WAL 显式确认（open() 幂等设置 journal_mode=WAL，读写并发避免整库写放大）；P040 落实 S003 会话 blob 键清理（migrate_legacy_conversations 迁移完成后经 save_profile_data 移除 llmConversations 键，门槛 2.9.2+ 已过，删除 TODO(S003)）。
+- **V001-V007 验证轮修复** — V001 CLI 生物识别测试编译回归（改调 trigger_system_biometric(reason, true) 对齐 GUI 命令层）；V002 命令计数断言 195→194（P038 删除 trash_permanent_delete 后同步，簇拆分解读核心 118→117）；V003 注册表信任锚 env 门控补全（release 强制编译期常量或内置默认公钥，与 URL 处理一致）；V004 HistoryViewer fieldOrder memo 失效（调用方 ObjectWorkspacePage 仍传内联 .find()?.properties.map() 新数组，提取 useMemo 依赖 [ws.userTemplates, historyObj?.templateId]）；V005 同步历史旧记录重复 key（无 at/peerNodeId 用 legacy-${idx} 兜底独立 key 空间）；V006 失实注释修正（julianday→ms 与 parse_time_ms「逐字节一致」断言失实，改为诚实描述 + 登记 watermark 边界假阴性风险）；V007 ACL 白名单残留清理（permissions/solo-soul/default.toml 删除 trash_permanent_delete 残留行，check_acl_consistency 全绿 WARN 消除）。
+
+### Refactor
+
+- **framer-motion 移除系列（候选 2 三步）** — DropdownSelect 改纯 CSS 入口动画；AddPageButton/CustomPageEditPopover（同 DropdownSelect 模式）；HistoryViewer/ObjectDetailModal/AttachmentViewer 去 framer-motion；候选 1 修正 motion 组前缀正则捕获 motion-dom/motion-utils。
+- **恢复对话框 lazy 工厂收敛（P015-R3-R2）** — 三处入口（OnboardingDialog/AccountSourceOverlay/LoginPage）重复内联的同一份 lazy 工厂统一为共享导出 LazyRecoveryReceiveDialog.ts；新增漂移保护测试（重命名映射实测报 Element type is invalid 失败）。
+- **P024 媒体重依赖 feature 门控** — solosoul-core 新增 ocr/pdf/watermark 三个 feature（default 全开）；solosoul-sync 改 default-features=false（依赖树重依赖归零，仅编译 vault_service/path_util）；solosoul-plugin 改 default-features=false + watermark（ort/ndarray 不再进入编译面）；src-tauri 与 CLI 保持默认全开零变化。
+- **P008/P025/P030 巨型文件拆分** — storage.rs 内嵌 tests 模块拆出（5807→1113 行纯生产代码）+ reencrypt_all 抽 storage/reencrypt.rs 子模块；vault_service.rs 2559 行按域拆 5 文件（account/unlock/saf/tests）；lib.rs setup 步骤抽 setup/ 模块（lib.rs 405→43 行主体）；AppState 拆分（state/recovery.rs + state/saf_config.rs，app_state.rs 866→547 行纯编排）。
+- **P044 11 项过长函数拆分** — reencrypt_all（138 行→6 辅助函数）/receive_attachments（137→append_chunk + finalize_received_attachments）/register_util_fns（141→5 注册辅助）/scan_mrz（154→recognize_mrz_lines + try_parse_mrz_combos）/recovery_restore_from_host（126→download_recovery_package + create_recovery_account）/initialize_vault（149→3 impl 方法）/import_one_object（150→3 辅助）/export_execute（155→write_scope_extra_files + write_manifest_and_payload）/object_create（127→build_create_record + attach_object_to_parent + create_object_snapshot_and_audit）/apply_sync_changes（132→apply_deprecated_fields + apply_updated_fields）/handle_sse_stream（133→process_sse_line + emit_stream_done + build_usage_result）；纯重构零行为变化。
+- **P045 深嵌套拆分 + accept 循环收敛** — storage.rs object_field_sensitivity_levels 64 行/8 层拆 push_sensitivity_level + scan_dynamic_group_levels；migrate_vault_data 内层嵌套拆 clear_target_dir；session.rs 新增共享 run_accept_loop + handle_accepted_connection + SessionGuard（manager.rs 与 mobile.rs 均改调共享版，净 -53 行）。
+- **P048 9 项前端巨型组件拆分** — PhotoAlbumOverlay 640→377（usePhotoAlbumState 332 行）/AttachmentPreviewOverlay 622→392（useAttachmentPreview）/PhotoViewerOverlay 535→366（usePhotoViewer）/LlmConfigPage 515→141（useLlmConfigPage 452 行）/DataManagementPage 526→302（PieChartSvg + StorageBreakdownCard）/ExportDocumentSection 461→180（useExportDocumentSection）/ObjectEditorPage 474→94（useObjectEditorPage 380 行）/TemplateEditor 469→220（useTemplateEditorState + TemplateFieldsPanel）/RecoveryAccountView 428→289（RecoveryConnectionCard）；纯重构零行为变化。
+- **P026 LLM 请求构造与 SSE 解析收敛共享纯函数** — core 新增 llm/protocol.rs（build_api_url/auth_headers/split_system_messages/extract_delta_text/usage 字段提取等 7 个纯函数，无 IO 无 reqwest 依赖）；blocking client 与 async client 全部改为转发共享实现，两侧仅保留 IO 绑定与各自累积策略。
+- **P010/P012/P013/P014 跨 crate 重复与大函数收敛** — export_import build_package_ids/resolve_value_references/resolve_cross_scope_references 三函数（100% 逐字重复）收敛 core 单一实现；list_objects 147→56、query_object_changes 146→44、field_value_to_text 嵌套 5 层拆平（field_array_to_text）；P031 validate_dynamic_groups/template_fingerprint 业务规则下沉 solosoul-core。
+- **P035-P039/P051 死代码删除** — save_sync_conflict 单条版（P016 已用 batch 取代）/BiometricService::test()（无调用方）/PluginRegistry 三个无用构造器/trash_permanent_delete 单条命令（前端已用 batch 版，命令+注册+白名单三处同步删）/ProcessLock.path 字段/guideService.ts GuideContent 重复 interface；纯死代码删除零行为变化。
+- **P049 useTouchZoom 抽象收尾** — 缩放/平移常量与 clampScale/computeFitScale 纯函数两处逐字重复收敛到共享 lib/photoZoom.ts。
+
+### Performance
+
+- **P015 系列启动性能（首载 JS ~1000K→~690K）** — ①路由级懒加载（routes.tsx 27 页面 + AppRoutes 认证页全部 React.lazy 动态导入，vite 按页面分包，移动端首屏不再解析全部 bundle）；②路由切换整窗空白回归修复（登录后后台分批预取全部路由 chunk，每批 3 个/80ms 失败静默忽略 + Suspense fallback 升级 RouteLoadingSkeleton 骨架屏；routes.tsx 提取 loadXxx 加载器与 lazy 共用同一 import 工厂，routeLoaders 单真相源）；③重共享 chunk 拆分（vite codeSplitting 分组 markdown-vendor/motion-vendor + UpdateBanner SafeMarkdown 静态导入改动态加载 + navButtonCards AiQuickChatPopover 改 React.lazy，首页首载 JS ~1000K→~690K）；④恢复接收对话框懒加载（html5-qrcode 375K 移出启动链，净减约 360K/37%）；⑤PhotoViewerOverlay React.lazy 懒加载（达成首导航 -122K 目标）；⑥懒加载优化收束（悬停/触摸预取 + 登录后空闲并行预取 + lazyPage 助手）。
+- **P011 同步热路径 N+1 HLC 查询消除** — list_profile_changes_since/list_user_template_changes_since/list_conversation_changes_since 原循环内逐行 record_hlc_or_fallback（每行一次 SELECT + 锁获取）改 get_record_hlcs_batch 单次 WHERE table_name+IN 查询 + resolve_hlc_or_fallback_batch 批量构造 fallback。
+- **P043 导入冲突检测批量 SQL** — 逐条 load_object（N 次锁竞争 + N 次查询）改为 load_objects_batch 一次 IN 查询 + HashMap 查找，大导入包下冲突检测从 O(N) 查询降为 O(1)。
+- **P046 is_stop_word 静态化** — 每次调用重建 ~130 词 slice + 线性查找改为 LazyLock HashSet 静态表（哈希查找 O(1)，分词循环逐 token 不再反复分配）。
+- **P047/P050/P052/P053 订阅与列表收敛** — OcrPage/ScanLocalPage 整 store 订阅改 store 级选择器 useObjectStore((s) => s.createObject)；HistoryViewer fields 派生 useMemo（依赖 [rawProps, fieldOrder]）；同步活动列表数组下标 key 改 `${at}-${peerNodeId}` 组合稳定 key（前插新记录旧行不再整行重挂载）；诊断日志页分页 visibleLimit「加载更多」模式（LOG_PAGE_SIZE=50，对齐 OperationLogPage/HistoryPage 既有模式）。
+
+### Chores
+
+- 版本号同步升级到 2.11.0（versionCode 2011000）。
+- Cargo.lock 版本同步——workspace crates（solosoul-core/crypto/plugin/sync/vault/solo_soul）2.10.2→2.11.0 与 workspace 对齐（tauri 与 solosoul_cli 两份 lock）。
+- P041 CI future-keychain feature 编译检查防腐化（pr_check.yml rust-check 与 ci_cd.yml build-macos 各加 cargo check -p solosoul-core --features future-keychain，防止 macos_keychain.rs 门控模块长期脱离编译面腐化）。
+- P006 错误契约键完整性纳入 check-missing-i18n（backendError.ts 的 RUST_ERROR_MAP/RUST_PREFIX_MAP 映射引用的 i18n 键并入 used 集合与 t() 调用同规则校验双语存在性，当前 30 键双侧 0 缺失）。
+- P009 移除 solosoul-core 三个未使用依赖（anyhow/tokio/rand 全 crate 零引用）+ P019 子模块指针更新（插件市场 README 环境变量文档同步）。
+- 新增 analyze-chunks 体积分析脚本（chunk 表/启动链/静态闭包）。
+- 163 个 commit 自 v2.10.2 到 v2.11.0。
 
 ## [2.10.2] - 2026-08-15
 
