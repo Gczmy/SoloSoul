@@ -10,6 +10,8 @@ All notable changes to SoloSoul are documented in this file.
 
 ### Fixed
 
+- **保险库大小存储详情分类名 i18n** — 饼图/图例/明细行的 6 个分类名 key（profiles_size/objects_size/trash_size/snapshots_size/attachments_size/ai_conversations_size）未在语言文件定义，界面显示英文 key 名；补全 en-US/zh-CN 双语 key，en-zh key 集合一致（933/933）。
+
 - **设备同步-同步活动展开列表限高** — 展开列表加 maxHeight 440（约 5 条记录高度）+ 内部滚动，同步记录多时不再撑长整个页面滚动条。
 
 - **敏感度徽章 internal/sensitive 图标区分** — 两档此前同为 CircleDot（圈内点）仅颜色不同，色弱/灰度下无法分辨；sensitive 改为 TriangleAlert（三角感叹号，lucide 内置），4 档图标现为环/点/三角/锁形状全异，全站 60 处徽章使用点统一生效。
