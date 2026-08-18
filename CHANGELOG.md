@@ -10,6 +10,8 @@ All notable changes to SoloSoul are documented in this file.
 
 ### Fixed
 
+- **OCR 扫描页模型卡片布局跳动** — 进入页面时模型状态未加载，卡片仅「空 select」高度，下方扫描按钮先出现在偏上位置、状态加载完成后被推下（一闪而过）；模型状态加载期改为固定高度占位（spinner），加载完成后内容原地就位，按钮位置稳定。
+
 - **OCR 页面下载 URL 输入框闪烁** — 进入 OCR 扫描/设置页时模型状态未加载（statusMap 为空），`!statusMap['small']?.installed` 误判未安装致下载 URL 输入框（含 https://example.com/models placeholder）一闪而过；改为 statusMap['small'] 存在（状态加载完成）后才渲染，两处页面同步修复。
 
 - **保险库大小存储详情分类名 i18n** — 饼图/图例/明细行的 6 个分类名 key（profiles_size/objects_size/trash_size/snapshots_size/attachments_size/ai_conversations_size）未在语言文件定义，界面显示英文 key 名；补全 en-US/zh-CN 双语 key，en-zh key 集合一致（933/933）。

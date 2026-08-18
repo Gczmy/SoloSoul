@@ -2,6 +2,8 @@ import { useTranslation } from 'react-i18next';
 import { Card } from '@/components/ui/Card';
 import { OcrTierStatusRow } from '@/components/ocr/OcrTierStatusRow';
 import { getTierLabel } from '@/lib/utils';
+import { Loader2 } from 'lucide-react';
+import { ICON_SIZE } from '@/lib/constants';
 import type { OcrModelStatus, OcrTierInfo } from '@/lib/ipc';
 
 interface OcrScanSettingsPanelProps {
@@ -51,78 +53,27 @@ export function OcrScanSettingsPanel({
             {t('ocr:model_title')}
           </h3>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <div>
-              <select
-                value={activeTier}
-                onChange={(e) => onTierChange(e.target.value)}
-                disabled={loadingStatus}
-                style={{
-                  width: '100%',
-                  padding: '8px 10px',
-                  fontSize: 'var(--text-body-sm)',
-                  borderRadius: 8,
-                  border: '1px solid var(--border-subtle)',
-                  background: 'var(--bg-elevated)',
-                  color: 'var(--text-primary)',
-                }}
-              >
-                {tiers.map((tier) => {
-                  const label = getTierLabel(t, tier);
-                  return (
-                    <option key={tier.tier} value={tier.tier}>
-                      {label.name} — {label.description}
-                    </option>
-                  );
-                })}
-              </select>
+          {/* 模型状态加载期固定高度占位：避免卡片从「空 select」展开到完整内容时
+              把下方扫描按钮推下（布局跳动/一闪而过）。加载完成后内容原地就位。 */}
+          {loadingStatus ? (
+            <div
+              style={{
+                height: 196,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'var(--text-tertiary)',
+              }}
+            >
+              <Loader2 size={ICON_SIZE.lg} className="spin" />
             </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {tiers.map((tier) => {
-                const status = statusMap[tier.tier];
-                const statusText = status?.builtin
-                  ? t('ocr:status_builtin')
-                  : status?.installed
-                    ? t('ocr:status_installed')
-                    : status?.bundled
-                      ? t('ocr:status_bundled')
-                      : t('ocr:status_not_installed');
-                return (
-                  <OcrTierStatusRow
-                    key={tier.tier}
-                    tierKey={tier.tier}
-                    status={status}
-                    label={getTierLabel(t, tier).name}
-                    statusText={statusText}
-                    isInstalling={installingTier === tier.tier}
-                    isDownloading={downloadingTier === tier.tier}
-                    onInstall={status?.bundled && !status?.installed ? () => onInstallBundled(tier.tier) : undefined}
-                    onDownload={
-                      !status?.bundled && !status?.installed ? () => onDownload(tier.tier) : undefined
-                    }
-                  />
-                );
-              })}
-            </div>
-
-            {showDownloadUrl && (
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <div>
-                <label
-                  style={{
-                    display: 'block',
-                    fontSize: 'var(--text-caption)',
-                    color: 'var(--text-secondary)',
-                    marginBottom: 6,
-                  }}
-                >
-                  {t('ocr:download_url_label')}
-                </label>
-                <input
-                  type="text"
-                  value={downloadUrl}
-                  onChange={(e) => onDownloadUrlChange(e.target.value)}
-                  placeholder={t('ocr:download_url_placeholder')}
+                <select
+                  value={activeTier}
+                  onChange={(e) => onTierChange(e.target.value)}
+                  disabled={loadingStatus}
                   style={{
                     width: '100%',
                     padding: '8px 10px',
@@ -132,10 +83,81 @@ export function OcrScanSettingsPanel({
                     background: 'var(--bg-elevated)',
                     color: 'var(--text-primary)',
                   }}
-                />
+                >
+                  {tiers.map((tier) => {
+                    const label = getTierLabel(t, tier);
+                    return (
+                      <option key={tier.tier} value={tier.tier}>
+                        {label.name} — {label.description}
+                      </option>
+                    );
+                  })}
+                </select>
               </div>
-            )}
-          </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {tiers.map((tier) => {
+                  const status = statusMap[tier.tier];
+                  const statusText = status?.builtin
+                    ? t('ocr:status_builtin')
+                    : status?.installed
+                      ? t('ocr:status_installed')
+                      : status?.bundled
+                        ? t('ocr:status_bundled')
+                        : t('ocr:status_not_installed');
+                  return (
+                    <OcrTierStatusRow
+                      key={tier.tier}
+                      tierKey={tier.tier}
+                      status={status}
+                      label={getTierLabel(t, tier).name}
+                      statusText={statusText}
+                      isInstalling={installingTier === tier.tier}
+                      isDownloading={downloadingTier === tier.tier}
+                      onInstall={
+                        status?.bundled && !status?.installed
+                          ? () => onInstallBundled(tier.tier)
+                          : undefined
+                      }
+                      onDownload={
+                        !status?.bundled && !status?.installed
+                          ? () => onDownload(tier.tier)
+                          : undefined
+                      }
+                    />
+                  );
+                })}
+              </div>{' '}
+              {showDownloadUrl && (
+                <div>
+                  <label
+                    style={{
+                      display: 'block',
+                      fontSize: 'var(--text-caption)',
+                      color: 'var(--text-secondary)',
+                      marginBottom: 6,
+                    }}
+                  >
+                    {t('ocr:download_url_label')}
+                  </label>
+                  <input
+                    type="text"
+                    value={downloadUrl}
+                    onChange={(e) => onDownloadUrlChange(e.target.value)}
+                    placeholder={t('ocr:download_url_placeholder')}
+                    style={{
+                      width: '100%',
+                      padding: '8px 10px',
+                      fontSize: 'var(--text-body-sm)',
+                      borderRadius: 8,
+                      border: '1px solid var(--border-subtle)',
+                      background: 'var(--bg-elevated)',
+                      color: 'var(--text-primary)',
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          )}
         </Card>
       )}
 
