@@ -59,3 +59,14 @@ export function warmupPrefetchRegistry(phase: WarmupPhase): void {
     }
   });
 }
+
+/**
+ * 重置全部预取缓存（事件失效）：Vault 锁定/登出时调用，与 objectStore /
+ * settingsStore 的 clearOnVaultLock 同语义——解密数据（日志/统计/备份列表等）
+ * 不残留内存。store 自带缓存，页面重新进入时自动现场拉取兜底。
+ */
+export function resetPrefetchRegistry(): void {
+  for (const store of Object.values(prefetchRegistry)) {
+    store.reset();
+  }
+}

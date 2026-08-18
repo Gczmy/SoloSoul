@@ -11,6 +11,7 @@ import { isMobilePlatformSync } from '@/lib/platform';
 import type { OcrTierInfo, OcrModelStatus } from '@/lib/ipc';
 import type { VaultStats } from '@/pages/settings/StorageBreakdownCard';
 import type { BackupInfo } from '@/types/backup';
+import type { AuditLogEntry } from '@/types/auditLog';
 
 export interface OcrModelState {
   tiers: OcrTierInfo[];
@@ -57,5 +58,12 @@ export const prefetchRegistry = {
     loader: () => invoke<BackupInfo[]>('backup_list'),
     ttlMs: 60_000,
     warmupPolicy: 'afterAuth',
+  }),
+  /** 操作审计日志（调试日志页 + 操作日志页共用，跨页共享缓存；不预热）。 */
+  logs: createPrefetchStore<AuditLogEntry[]>({
+    key: 'logs',
+    loader: () => invoke<AuditLogEntry[]>('log_get_recent', { limit: 200 }),
+    ttlMs: 60_000,
+    warmupPolicy: 'never',
   }),
 };

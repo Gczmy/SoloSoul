@@ -30,7 +30,7 @@ import { PostLoginSetupGuide } from '@/components/guide/PostLoginSetupGuide';
 import { protectedRoutes, AuthGuard } from './routes';
 import { RouteLoadingSkeleton } from '@/components/ui/RouteLoadingSkeleton';
 import { ShellLayout } from '@/components/layout/ShellLayout';
-import { warmupPrefetchRegistry } from '@/lib/prefetch/warmup';
+import { warmupPrefetchRegistry, resetPrefetchRegistry } from '@/lib/prefetch/warmup';
 // 方案 A 扩展（桌面 + 移动端全面静态导入）：认证页随首包加载，不再懒加载。
 import { BootstrapPage } from '@/pages/auth/BootstrapPage';
 import { LoginPage } from '@/pages/auth/LoginPage';
@@ -256,6 +256,8 @@ export function AppRoutes() {
       // 并取消进行中的 llm-stream-chunk 事件订阅，避免对话内容残留内存。
       useLlmStore.getState().reset();
       searchCache.clear();
+      // Prefetch Runtime: 锁定后清除预取缓存（日志/统计/备份等解密数据不残留）。
+      resetPrefetchRegistry();
       useAuthStore.getState().logout();
       // Re-check account state so hasAccount resolves from null → true/false
       // (otherwise /login route stays on "Connecting...")

@@ -3,6 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { DebugLogPage } from './DebugLogPage';
 import { invoke } from '@tauri-apps/api/core';
+import { prefetchRegistry } from '@/lib/prefetch/registry';
 
 vi.mock('@/components/layout/PageShell', () => ({
   PageShell: ({ children, title }: { children: React.ReactNode; title: string }) => (
@@ -31,6 +32,8 @@ vi.mock('react-router-dom', async () => {
 describe('DebugLogPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // 模块级 prefetch store 单例跨测试缓存，需重置隔离。
+    prefetchRegistry.logs.reset();
   });
 
   it('renders loading placeholder initially', () => {

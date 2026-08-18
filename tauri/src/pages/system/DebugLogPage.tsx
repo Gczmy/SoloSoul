@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '@/components/layout/PageShell';
@@ -8,41 +8,27 @@ import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { Button } from '@/components/ui/Button';
 
 import { invokeCommand as invoke } from '@/lib/ipcClient';
-import type { AuditLogEntry } from '@/types/auditLog';
 import { saveWithPause } from '@/lib/dialog';
 import { useToastError } from '@/hooks/useToastError';
 import { logger } from '@/lib/logger';
 import { Bug, Download, RefreshCw } from 'lucide-react';
 import { ICON_SIZE } from '@/lib/constants';
 import { isUriPath, copyStagedFileToDest } from '@/lib/mobileFileTransfer';
+import { prefetchRegistry } from '@/lib/prefetch/registry';
+import { usePrefetchData } from '@/lib/prefetch/usePrefetchData';
 
 // P053: 单次渲染上限（「加载更多」步进量），避免 200 条多行日志全量挂载。
 const LOG_PAGE_SIZE = 50;
 
 export function DebugLogPage() {
   const navigate = useNavigate();
-  const [logs, setLogs] = useState<AuditLogEntry[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  // P3: 日志数据走 prefetch store（调试日志页 + 操作日志页共享缓存）。
+  const { data: rawLogs, loading: isLoading, reload } = usePrefetchData(prefetchRegistry.logs);
+  const logs = rawLogs ?? [];
   // P053: 分页「加载更多」
   const [visibleLimit, setVisibleLimit] = useState(LOG_PAGE_SIZE);
   const { t } = useTranslation(['settings', 'common']);
   const { onError, onSuccess } = useToastError();
-
-  const loadLogs = async () => {
-    setIsLoading(true);
-    try {
-      const entries = await invoke<AuditLogEntry[]>('log_get_recent', { limit: 200 });
-      setLogs(entries);
-    } catch {
-      setLogs([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadLogs();
-  }, []);
 
   const handleExport = async () => {
     try {
@@ -74,7 +60,7 @@ export function DebugLogPage() {
         {/* Toolbar */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
           <button
-            onClick={loadLogs}
+            onClick={() => reload()}
             style={{
               padding: '6px 10px',
               borderRadius: 6,

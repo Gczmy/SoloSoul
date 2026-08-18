@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { PageShell } from '@/components/layout/PageShell';
@@ -9,13 +9,14 @@ import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { useToastError } from '@/hooks/useToastError';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { saveWithPause } from '@/lib/dialog';
+import { prefetchRegistry } from '@/lib/prefetch/registry';
+import { usePrefetchData } from '@/lib/prefetch/usePrefetchData';
 import { Search, Download, X } from 'lucide-react';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { FilterChipGroup } from '@/components/ui/FilterChipGroup';
 import { ICON_SIZE } from '@/lib/constants';
 import { isUriPath, copyStagedFileToDest } from '@/lib/mobileFileTransfer';
 import { OperationLogCard } from '@/components/settings/OperationLogCard';
-import type { AuditLogEntry } from '@/components/settings/OperationLogCard';
 import buttonStyles from '@/components/ui/Button.module.css';
 
 /** All known entity types — used for filter buttons */
@@ -45,28 +46,19 @@ export function OperationLogPage() {
   const { onError, onSuccess } = useToastError();
   const { t } = useTranslation(['settings', 'common']);
   const customPages = useSettingsStore((s) => s.settings.customPages);
-  const [logs, setLogs] = useState<AuditLogEntry[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  // P3: 日志数据走 prefetch store（调试日志页 + 操作日志页共享缓存）。
+  const { data: rawLogs, loading: isLoading, error } = usePrefetchData(prefetchRegistry.logs);
+  // 引用稳定：rawLogs 不变时复用同一数组，避免下方 filteredLogs 的 useMemo 每帧重算。
+  const logs = useMemo(() => rawLogs ?? [], [rawLogs]);
   const [entityTypeFilter, setEntityTypeFilter] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   // P218: 分页「加载更多」，避免 200 条全量挂载。
   const [visibleLimit, setVisibleLimit] = useState(LOG_PAGE_SIZE);
 
-  const loadLogs = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const entries = await invoke<AuditLogEntry[]>('log_get_recent', { limit: 200 });
-      setLogs(entries);
-    } catch (e) {
-      onError(e, t('common:logs_load_failed'));
-    } finally {
-      setIsLoading(false);
-    }
-  }, [onError, t]);
-
+  // 加载失败经 store.error 补 toast（原 loadLogs 行为保持）。
   useEffect(() => {
-    loadLogs();
-  }, [loadLogs]);
+    if (error) onError(new Error(error), t('common:logs_load_failed'));
+  }, [error, onError, t]);
 
   // P218: 搜索词或筛选变更时重置分页游标。
   useEffect(() => {
