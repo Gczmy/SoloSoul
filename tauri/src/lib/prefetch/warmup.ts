@@ -9,8 +9,11 @@
  * （沿用 P015 路由预取 FALLBACK_TICK 模式），保证移动端行为一致。
  */
 import { prefetchRegistry } from './registry';
+import { useTemplateStore } from '@/stores/templateStore';
+import { useTrashStore } from '@/stores/trashStore';
+import { useAuthStore } from '@/stores/authStore';
 
-type WarmupPhase = 'mount' | 'afterAuth';
+export type WarmupPhase = 'mount' | 'afterAuth';
 
 const IDLE_FALLBACK_MS = 200;
 const IDLE_TIMEOUT_MS = 2000;
@@ -24,11 +27,34 @@ function scheduleIdle(callback: () => void): void {
   }
 }
 
+/**
+ * 已 store 化数据的后台预热任务（templateStore/trashStore 自带缓存与变更刷新，
+ * 仅需登录后提前填充，页面零改动）。返回 Promise 供调度吞错。
+ */
+export const prefetchWarmupTasks: Array<{ phase: WarmupPhase; run: () => Promise<unknown> }> = [
+  {
+    phase: 'afterAuth',
+    run: () => useTemplateStore.getState().loadTemplates(),
+  },
+  {
+    phase: 'afterAuth',
+    run: () => {
+      const account = useAuthStore.getState().currentAccount;
+      return account ? useTrashStore.getState().loadItems(account.id) : Promise.resolve();
+    },
+  },
+];
+
 export function warmupPrefetchRegistry(phase: WarmupPhase): void {
   scheduleIdle(() => {
     for (const store of Object.values(prefetchRegistry)) {
       if (store.options.warmupPolicy === 'always' || store.options.warmupPolicy === phase) {
         store.warmup();
+      }
+    }
+    for (const task of prefetchWarmupTasks) {
+      if (task.phase === phase) {
+        void task.run().catch(() => {});
       }
     }
   });

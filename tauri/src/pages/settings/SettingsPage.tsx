@@ -1,11 +1,12 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { formatBytes } from '@/lib/utils';
+import { usePrefetchData } from '@/lib/prefetch/usePrefetchData';
+import { prefetchRegistry } from '@/lib/prefetch/registry';
 import {
   Shield,
   HardDrive,
@@ -31,13 +32,9 @@ import styles from './SettingsPage.module.css';
 export function SettingsPage() {
   const navigate = useNavigate();
   const { t } = useTranslation(['settings', 'common']);
-  const [vaultSize, setVaultSize] = useState<string | null>(null);
-
-  useEffect(() => {
-    invoke<{ totalSizeBytes: number }>('get_vault_stats')
-      .then((s) => setVaultSize(formatBytes(s.totalSizeBytes)))
-      .catch(() => setVaultSize(null));
-  }, []);
+  // Prefetch Runtime: 保险库统计共享缓存（与数据管理页一致）
+  const { data: vaultStats } = usePrefetchData(prefetchRegistry.vaultStats);
+  const vaultSize = vaultStats ? formatBytes(vaultStats.totalSizeBytes) : null;
 
   const settingGroups = useMemo(() => [
     {

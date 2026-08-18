@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useShallow } from 'zustand/react/shallow';
@@ -11,6 +11,8 @@ import { useToastError } from '@/hooks/useToastError';
 import { useConfirm } from '@/hooks/useConfirm';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import type { BackupInfo } from '@/types/backup';
+import { usePrefetchData } from '@/lib/prefetch/usePrefetchData';
+import { prefetchRegistry } from '@/lib/prefetch/registry';
 import { HardDrive, RotateCcw, Plus, Bell, Info } from 'lucide-react';
 import { DeleteButton } from '@/components/ui/DeleteButton';
 import { ICON_SIZE } from '@/lib/constants';
@@ -24,8 +26,8 @@ export function BackupConfigPage() {
   const { onError, onSuccess } = useToastError();
   const { t } = useTranslation(['settings', 'common']);
   const { requestConfirm, dialog: confirmDialog } = useConfirm();
-  const [backups, setBackups] = useState<BackupInfo[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  // Prefetch Runtime: 备份列表共享缓存（预热后直接渲染）；变更操作后 reload 刷新
+  const { data: backups, reload } = usePrefetchData(prefetchRegistry.backups);
   const [backupName, setBackupName] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [restoringId, setRestoringId] = useState<string | null>(null);
@@ -74,21 +76,8 @@ export function BackupConfigPage() {
     [t],
   );
 
-  const loadBackups = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const list = await invoke<BackupInfo[]>('backup_list');
-      setBackups(list);
-    } catch (e) {
-      onError(e, t('common:backups_load_failed'));
-    } finally {
-      setIsLoading(false);
-    }
-  }, [onError, t]);
-
-  useEffect(() => {
-    loadBackups();
-  }, [loadBackups]);
+  // 数据未就绪（含加载失败）视为加载中，与旧「初始 isLoading=true」语义一致
+  const isLoading = backups === null;
 
   const handleCreate = async () => {
     if (!backupName.trim()) return;
@@ -97,7 +86,7 @@ export function BackupConfigPage() {
       const result = await invoke<BackupInfo>('backup_create', { name: backupName.trim() });
       onSuccess(t('settings:backup_created', { name: result.name, size: formatBytes(result.size_bytes) }));
       setBackupName('');
-      loadBackups();
+      reload();
     } catch (e) {
       onError(e, t('common:backup_failed'));
     } finally {
@@ -114,7 +103,7 @@ export function BackupConfigPage() {
         try {
           const count = await invoke<number>('backup_restore', { backupId: id });
           onSuccess(t('settings:restored_from_backup', { count }));
-          loadBackups();
+          reload();
         } catch (e) {
           onError(e, t('common:restore_failed'));
         } finally {
@@ -133,7 +122,7 @@ export function BackupConfigPage() {
         try {
           await invoke('backup_delete', { backupId: id });
           onSuccess(t('common:backup_deleted'));
-          loadBackups();
+          reload();
         } catch (e) {
           onError(e, t('common:delete_failed'));
         }

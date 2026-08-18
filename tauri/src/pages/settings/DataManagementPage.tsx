@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
-import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
@@ -10,8 +9,10 @@ import { HardDrive, PieChart } from 'lucide-react';
 import { formatBytes } from '@/lib/utils';
 import { isMobilePlatformSync } from '@/lib/platform';
 import { ICON_SIZE } from '@/lib/constants';
+import { usePrefetchData } from '@/lib/prefetch/usePrefetchData';
+import { prefetchRegistry } from '@/lib/prefetch/registry';
 import { VaultDirectorySection } from './VaultDirectorySection';
-import { StorageBreakdownCard, type VaultStats } from './StorageBreakdownCard';
+import { StorageBreakdownCard } from './StorageBreakdownCard';
 import { PIE_COLORS, type PieSlice } from './PieChartSvg';
 
 // ── Component ────────────────────────────────────────────────
@@ -21,23 +22,10 @@ export function DataManagementPage() {
   const { t } = useTranslation(['settings', 'common']);
   const isMobile = isMobilePlatformSync();
 
-  const [stats, setStats] = useState<VaultStats | null>(null);
+  // Prefetch Runtime: 保险库统计共享缓存（设置页/数据管理页一致，预热后直接渲染）
+  const { data: stats } = usePrefetchData(prefetchRegistry.vaultStats);
   const [showBreakdown, setShowBreakdown] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    invoke<VaultStats>('get_vault_stats')
-      .then((result) => {
-        if (!cancelled) setStats(result);
-      })
-      .catch(() => {
-        if (!cancelled) setStats(null);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   // Close breakdown card on outside click
   useEffect(() => {

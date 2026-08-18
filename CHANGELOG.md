@@ -6,7 +6,7 @@ All notable changes to SoloSoul are documented in this file.
 
 ### Added
 
-- **通用数据预取框架（Prefetch Runtime）P1 试点** — 新建 lib/prefetch 四件套（createPrefetchStore 工厂：in-flight 去重 + TTL 缓存 + invalidate + 平台门控；prefetchRegistry 注册表；usePrefetchData 消费 hook；warmup 空闲调度含 iOS requestIdleCallback 降级）。OCR 模型状态（OcrPage/OcrSettingsPage 共用）改为登录/解锁后后台预热 + 缓存共享——预热完成后进入页面直接渲染内容，无骨架期（Playwright 实测：预热后进入 select 立即渲染 vs 对照骨架期）；安装/下载/删除后强制刷新缓存，乐观档位切换保留。设计文档 docs/prefetch-runtime-design.md。
+- **通用数据预取框架（Prefetch Runtime）P1+P2** — ①基础设施：lib/prefetch 四件套（createPrefetchStore 工厂：in-flight 去重 + TTL 缓存 + invalidate + 平台门控；prefetchRegistry 注册表；usePrefetchData 消费 hook；warmup 空闲调度含 iOS requestIdleCallback 降级）；②P1 OCR 模型状态（OcrPage/OcrSettingsPage 共用）改登录后后台预热 + 缓存共享，预热后进入页面直接渲染无骨架期（Playwright 实测），安装/下载/删除后强制刷新；③P2 高频数据：vaultStats（设置页+数据管理页共享）、backups（备份页）注册缓存项，templates/trash 经 warmup 任务后台预热现有 store（页面零改动）；LLM 统计/插件页/同步页因含网络检测/事件/轮询不预取。设计文档 docs/prefetch-runtime-design.md。
 
 ### Changed
 

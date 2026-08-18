@@ -9,6 +9,8 @@ import { createPrefetchStore } from './createPrefetchStore';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { isMobilePlatformSync } from '@/lib/platform';
 import type { OcrTierInfo, OcrModelStatus } from '@/lib/ipc';
+import type { VaultStats } from '@/pages/settings/StorageBreakdownCard';
+import type { BackupInfo } from '@/types/backup';
 
 export interface OcrModelState {
   tiers: OcrTierInfo[];
@@ -41,5 +43,19 @@ export const prefetchRegistry = {
     ttlMs: 5 * 60_000,
     warmupPolicy: 'afterAuth',
     enabledOnPlatform: () => !isMobilePlatformSync(),
+  }),
+  /** 保险库统计（设置页 + 数据管理页共用）。 */
+  vaultStats: createPrefetchStore<VaultStats>({
+    key: 'vault-stats',
+    loader: () => invoke<VaultStats>('get_vault_stats'),
+    ttlMs: 60_000,
+    warmupPolicy: 'afterAuth',
+  }),
+  /** 备份列表（备份/恢复页）。 */
+  backups: createPrefetchStore<BackupInfo[]>({
+    key: 'backups',
+    loader: () => invoke<BackupInfo[]>('backup_list'),
+    ttlMs: 60_000,
+    warmupPolicy: 'afterAuth',
   }),
 };

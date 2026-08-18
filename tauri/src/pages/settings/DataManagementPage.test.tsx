@@ -3,6 +3,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter, useNavigate } from 'react-router-dom';
 import { DataManagementPage } from './DataManagementPage';
 import { invoke } from '@tauri-apps/api/core';
+import { prefetchRegistry } from '@/lib/prefetch/registry';
 
 vi.mock('@/components/layout/PageShell', () => ({
   PageShell: ({
@@ -41,6 +42,8 @@ describe('DataManagementPage', () => {
   const navigate = vi.fn();
 
   beforeEach(() => {
+    // 模块级 prefetch store 单例跨测试共享——重置避免 TTL 缓存污染
+    prefetchRegistry.vaultStats.reset();
     vi.clearAllMocks();
     vi.mocked(useNavigate).mockReturnValue(navigate);
   });
