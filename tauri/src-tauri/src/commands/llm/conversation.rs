@@ -153,10 +153,12 @@ pub async fn llm_soft_delete_conversation(
     conversation_id: String,
 ) -> Result<(), String> {
     let vault = vault_handle(&state)?;
-    let mut convs = load_conversations(&vault, &account_id)?;
-    if let Some(c) = convs.iter_mut().find(|c| c.id == conversation_id) {
-        c.deleted_at = Some(now_iso());
-        save_conversation(&vault, &account_id, c)?;
+    // P008：单行读取，不再整表解密只为更新一条记录
+    if let Some(data) = vault.load_conversation(&account_id, &conversation_id)? {
+        if let Ok(mut c) = serde_json::from_slice::<Conversation>(&data) {
+            c.deleted_at = Some(now_iso());
+            save_conversation(&vault, &account_id, &c)?;
+        }
     }
     Ok(())
 }
@@ -168,10 +170,12 @@ pub async fn llm_restore_conversation(
     conversation_id: String,
 ) -> Result<(), String> {
     let vault = vault_handle(&state)?;
-    let mut convs = load_conversations(&vault, &account_id)?;
-    if let Some(c) = convs.iter_mut().find(|c| c.id == conversation_id) {
-        c.deleted_at = None;
-        save_conversation(&vault, &account_id, c)?;
+    // P008：单行读取，不再整表解密只为更新一条记录
+    if let Some(data) = vault.load_conversation(&account_id, &conversation_id)? {
+        if let Ok(mut c) = serde_json::from_slice::<Conversation>(&data) {
+            c.deleted_at = None;
+            save_conversation(&vault, &account_id, &c)?;
+        }
     }
     Ok(())
 }
@@ -196,11 +200,13 @@ pub async fn llm_rename_conversation(
     name: String,
 ) -> Result<(), String> {
     let vault = vault_handle(&state)?;
-    let mut convs = load_conversations(&vault, &account_id)?;
-    if let Some(c) = convs.iter_mut().find(|c| c.id == conversation_id) {
-        c.name = name;
-        c.updated_at = now_iso();
-        save_conversation(&vault, &account_id, c)?;
+    // P008：单行读取，不再整表解密只为更新一条记录
+    if let Some(data) = vault.load_conversation(&account_id, &conversation_id)? {
+        if let Ok(mut c) = serde_json::from_slice::<Conversation>(&data) {
+            c.name = name;
+            c.updated_at = now_iso();
+            save_conversation(&vault, &account_id, &c)?;
+        }
     }
     Ok(())
 }
