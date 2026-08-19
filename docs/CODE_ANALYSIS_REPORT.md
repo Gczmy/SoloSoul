@@ -33,7 +33,7 @@
 | P001 | P1 | 安全 | `tauri/crates/solosoul-core/src/objects.rs:1043-1045` | Vault 附件以明文落盘，仅导出/同步时才加密，与零知识定位不符 | `[ ]` 待修复 |
 | P002 | P1 | 前端缺陷 | `tauri/src/stores/objectStore.ts:194-196` | `updateObject` 吞错不抛出，编辑保存失败被误报「保存成功」并退出页面，数据静默丢失 | `[x]` 已修复（f585f43f） |
 | P003 | P1 | 前端缺陷 | `tauri/src/stores/settingsStore.ts:491-523` | `addCustomPage` 失败仍无条件 `return newPage`，调用方导航到后端不存在的页面 | `[x]` 已修复（d8648b3f） |
-| P004 | P1 | 前端缺陷 | `tauri/src/pages/ai/useLlmConfigPage.ts:190-228` | 本地 Embedding 开关/选模型 invoke 无 try/catch，失败后前后端状态漂移 | `[ ]` 待修复 |
+| P004 | P1 | 前端缺陷 | `tauri/src/pages/ai/useLlmConfigPage.ts:190-228` | 本地 Embedding 开关/选模型 invoke 无 try/catch，失败后前后端状态漂移 | `[x]` 已修复（76cffe3d） |
 | P005 | P1 | 性能 | `tauri/src-tauri/src/commands/object/snapshot.rs:466-484` | 回收站子对象列表循环内逐条 `get_trash_item`（每次附带整条 data 解密），而 summary 已含 `original_id`，属纯浪费 | `[ ]` 待修复 |
 | P006 | P1 | 性能 | `tauri/src/pages/home/HomePage.tsx:235-255` + `tauri/src-tauri/src/commands/attachment/tree.rs:55` | 首页角标每次返回都调用 `attachment_list_all` 全表解密，仅为渲染两个计数 | `[ ]` 待修复 |
 | P007 | P1 | 代码质量 | `tauri/src-tauri/src/commands/attachment/crud.rs:47-69` ↔ `tauri/crates/solosoul-core/src/export_import.rs:64-84` | `AttachmentMeta` 结构体双定义，序列化契约靠注释维持，存在漂移风险 | `[ ]` 待修复 |
@@ -56,8 +56,8 @@
 
 ## 修复进度
 
-- 已完成：4 / 23（P008、P009、P002、P003）
-- 当前处理：P004（LLM 本地 Embedding 设置无错误处理）
+- 已完成：5 / 23（P008、P009、P002、P003、P004）
+- 当前处理：P001（附件明文落盘，需用户确认方向）
 
 ---
 
@@ -102,6 +102,8 @@ std::fs::copy(&src, &dest_path).map_err(|e| format!("复制文件失败: {}", e)
 
 `useLlmConfigPage.ts:190-216`（`handleToggleLocalEmbedding`）、:218-228（`handleSelectLocalModel`）的 `invoke('llm_set_local_embedding', ...)` 无 try/catch，且 `handleSelectLocalModel` 先改前端状态再 invoke，失败留下「前端已选模型 A、后端未生效」的漂移。同文件 `handleRebuildEmbeddings`（:233-243）等均有 try/catch + onError + 回滚，此处明显遗漏。
 **修复建议**：两处包 try/catch + onError；改为先 invoke 成功再 `setLocalModelId`，或失败回滚。
+
+**修复记录（76cffe3d）**：`handleToggleLocalEmbedding` / `handleSelectLocalModel` 的 invoke 均包 try/catch + `onError`；两处失败回滚 `setLocalModelId(prevModelId)`，开关失败不回改 `useLocalEmbedding`。tsc/eslint/prettier 通过。
 
 ### P005（P1 性能）回收站子对象 N+1 冗余解密
 
