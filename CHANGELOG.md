@@ -2,7 +2,7 @@
 
 All notable changes to SoloSoul are documented in this file.
 
-## [Unreleased]
+## [2.11.1] - 2026-08-19
 
 ### Added
 
