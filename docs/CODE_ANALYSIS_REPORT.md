@@ -1,9 +1,9 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-19 21:04:16
+> 最后更新：2026-08-20 00:17:00
 > 当前分支：`main`
-> 修复轮次：2（修复复核：23 项修复逐项核实，P001/P010/P012 打回，新增 P024）
-> 轮次 1 范围：仅分析并生成报告；轮次 1.5：开发者完成 23 项修复；轮次 2：独立复核（仅核实与登记，未改代码）；轮次 2.5：打回项与新登记项修复。
+> 修复轮次：4（轮次 3 二次复核打回项 P024 修复）
+> 轮次 1：仅分析并生成报告；轮次 1.5：开发者完成 23 项修复；轮次 2：独立复核（P001/P010/P012 打回，新增 P024）；轮次 2.5：打回项修复；轮次 3：二次复核（仅核实与登记，未改代码）；轮次 4：P024 根治修复。
 
 ---
 
@@ -53,7 +53,7 @@
 | P021 | P2 | 重复代码 | `tauri/src-tauri/src/commands/export_import/export_docx/docx.rs:110-129` ↔ `text.rs:29-48` | 导出文档「元信息段」构建块逐字相同 | `[x]` 已修复（4c5ce603） |
 | P022 | P2 | 可维护性 | 见下文 Top 10 表 | 超长函数/组件 10 个（357–391 行） | `[x]` 评估后不拆（见下文登记） |
 | P023 | P2 | 可维护性 | `tauri/src/hooks/useDragToAttach.ts:190-234` 等 | 深层嵌套热点（控制流 ≥5 层，JSX brace 深度最高 11） | `[x]` 部分修复（低风险两处）+ 其余登记（轮次2复核确认两处改动行为等价、登记无漏；「均无单测」措辞不实） |
-| P024 | P1 | 测试基线 | `tauri/src-tauri/src/lib.rs:656` | 轮次2新增：`test_dispatch_cluster_prefixes_consistent` 失败（断言 total==194，实际 195）——P006/P011/P014 增删命令后未同步手工维护的总数断言 | `[x]` 已修复（19ee54ca） |
+| P024 | P1 | 测试基线 | `tauri/src-tauri/src/lib.rs:656` | 轮次2新增：`test_dispatch_cluster_prefixes_consistent` 失败（断言 total==194，实际 195）——P006/P011/P014 增删命令后未同步手工维护的总数断言 | `[x]` 已修复（0bc7abd4：core 簇列表补登 `vault_rename_account`，断言 195→196，注释同步；全量测试 Rust 444/前端 838 全过） |
 
 ## 修复进度
 
@@ -70,6 +70,12 @@
 
 轮次 2.5（打回项修复，2026-08-19）：
 - P024 ✅ · P001 残留 3/3 ✅ · P010 ✅ · P012 ✅（见修复记录）· **小瑕疵批次 ✅（P003 i18n key 双语补齐 · P022/P023 债务持久登记 docs/TECH_DEBT.md · 报告措辞修正 P001/P023）**
+
+轮次 3（二次复核，2026-08-20）：
+- 复核确认修复无误：P001 三项残留（CLI 导入加密写盘 / 改密重加密两阶段原子化+回滚 / open 临时副本 UUID 目录+延迟清理）、P010（并发竞态物理消除）、P012（三条路径接入锁定 + pending 前导 + 锁定文案双语）、小瑕疵批次（i18n key、TECH_DEBT.md、措辞修正、哈希回填）——commit 哈希全部真实、新测试实跑通过
+- **复核打回：P024（测试虽转绿，但断言 195 与注册表实际 196 不符，`vault_rename_account` 漏登守卫列表）**
+- 基线复跑：fmt / clippy(--all-targets -D warnings) / tsc / eslint / Vitest 838 / cargo test 全部通过
+- 当前处理：无（本轮仅复核登记，未改代码）
 
 ---
 
@@ -135,6 +141,46 @@
 1. P024（一行修复，恢复测试基线）→ 2. P001 三项残留（数据丢失风险优先：改密重加密原子化 → CLI 导入重加密 → open 临时副本清理）→ 3. P012 三条未限速路径 → 4. P010 清理时机与竞态 → 5. 小瑕疵批次（P003 i18n key、P012 PinSection 文案、P022/P023 债务持久登记、报告措辞修正）。
 
 ---
+
+---
+
+## 轮次 3：二次复核记录（2026-08-20）
+
+复核方式：基线全量复跑 + 3 路并行逐项核实（代码现状 + commit diff + 新测试实跑）。基线结果：`cargo fmt --check` ✅、`cargo clippy --all-targets -- -D warnings` ✅、`tsc`/`eslint` ✅、Vitest 100 文件 838 测试 ✅、`cargo test` 全 suite ✅。
+
+### P024 复核再次打回（19ee54ca）：测试转绿但断言是错的
+
+断言已从 194 改为 195（`src-tauri/src/lib.rs:656`），测试确实转绿，195 与测试自身簇列表一致（核心 118 + 同步 20 + OCR 11 + LLM 32 + 插件 14）。但**与注册表不一致**：
+
+- `register_core_commands`（`lib.rs:46-183`）实有 **119** 条（桌面端；Android 因 `desktop_check_update` 被 cfg 掉为 118），测试 core 簇列表只有 118 条；
+- 唯一差异：**`vault_rename_account`（注册于 `lib.rs:106`，45f080c5 于 2026-08-11 加入）从未进入测试簇列表**，`git log -S '"vault_rename_account"'` 为空——V002（自称「逐簇机械核对」）与本轮修复均未发现；
+- 桌面端实际注册总数为 **196**，注释「共 195 条命令全覆盖」失实；
+- 结构性缺陷：该守卫只数自己列表的条目、不与注册表比对，天生无法发现漏登记——这是第三次演示（V002 → P024 → 本次）。
+
+**修复建议**：core 簇列表补 `vault_rename_account`，断言 195→196（Android 端 cfg 差异需一并处理），或给测试加注册表比对（消除手工双份真相）。
+
+### 轮次 2.5 修复复核结论（确认无误）
+
+- **P001-1（0f35a2a6）CLI 导入加密落盘** ✅：密钥透传链路完整（CLI → `import_vault` → `import_attachments`），解密 ZIP → UUID 临时明文 → `encrypt_file_stream` 落盘，闭包外无条件清理临时明文；GUI 导入路径独立实现、各自加密一次无冲突；`export_vault` 密文守卫保留；新单测实跑通过。
+- **P001-2（2a121b7e）重加密原子化** ✅：不再就地截断（写 `.rekey.new` + 同目录原子 rename）；prepare 失败清理全部已准备文件、原文件保持旧钥；commit 失败回滚 config/DB/内存密钥且回滚失败保留 pending 供下次 unlock 恢复；KDF 升级路径同样接入两阶段重加密（顺带修复的「升级后附件永久不可读」属实）；重试幂等。两条新单测实跑通过。
+- **P001-3（2bed4303）open 临时明文** ✅：`decrypt_to_temp_dir` 独立 UUID 子目录 + 线程延迟清理（30min），桌面/Android/分享三路径共用；并发安全有单测。
+- **P010（27a59de4）** ✅：每次分享独立 UUID 子目录，并发互删物理上不可能；旧 `cleanup_share_dir` 整目录清扫彻底移除（grep 零残留）；Windows `DataRequested` 延迟读取与 30min 宽限关系合理。
+- **P012（2eff0675）** ✅：导出校验（`export.rs:301-305`）、biometric 保存/删除（`biometric.rs:403/752`）、`pin_disable`（`pin.rs:392`）三处全部接入 `verify_password_with_lockout`，「密码错误」与「被锁定」正确区分；`recover_pending_reencrypt` 前导顺序正确（恢复 pending → 锁定预检 → KDF），有单测；PinSection 设置/禁用与 biometricError 锁定文案落地，`common:password_locked` 双语存在。
+- **小瑕疵批次（fd43f885）** ✅：`navigation:add_page_failed` 双语入档文案通顺；`docs/TECH_DEBT.md` 覆盖 P022 Top10 / P023 六处嵌套 / P012 残留 / P001 次要项，附触发条件与关闭约定，无漏项；报告两处措辞修正落实。小不实登记：commit 称「替换 AddPageButton 的中文 defaultValue」但实际未触碰该文件（功能上问题已解决，英文用户可见英文）。
+- **5b3e8ca4 / 00b1d7cf / 6226a944** ✅：fmt 重排无语义改动；四个回填哈希（P010=27a59de4、P012=2eff0675、P003=fd43f885、P024=19ee54ca）全部真实且内容对应。
+
+### 轮次 3 新登记瑕疵（建议转入 docs/TECH_DEBT.md，不构成打回）
+
+1. **崩溃窗口残留（P001-2）**：Err 路径已全覆盖，但 SIGKILL 窗口未闭合——`remove_config_pending` 先于附件 rename，若进程恰在两者之间被杀：(a) pending 尚在时 `recover_pending_reencrypt` 不含附件重加密步骤，promote 后附件仍旧钥不可读；(b) pending 已删、rename 半途则 config/DB 新钥 + 附件混态且无自恢复入口。毫秒级窗口，相比修复前「任何 Err 即永久混态」已大幅收敛。
+2. **延迟清理无启动兜底（P001-3/P010）**：进程在 30min 宽限内退出/被系统杀（Android 常见），该次明文副本依赖 OS 清理 temp（macOS `$TMPDIR` 无可靠定期清理）——残留面从「永久累积全部」降为「退出前 30 分钟内的最近若干份」。另：`test_decrypt_to_temp_dir_unique_and_delayed_cleanup` 单测用 30min grace 在真实系统 temp 留下明文副本（测试进程退出后清理线程消亡），属测试卫生瑕疵。
+3. **P012 导出路径 UX 后果**：合法用户在两次解锁间累计 5 次导出（每次用不同非主密码）会触发 30s 主密码锁定（`record_password_failure` 计数不自然衰减，仅成功时清零）——关闭布尔 oracle 的固有代价，方向正确但修复记录未说明；且导出锁定时前端显示英文原文 detail（`MASTER_VERIFY_FAILED` 映射），与 PinSection/biometric 的双语锁定文案不一致。
+4. **轮次 2 登记次要项仍在**（转入 TECH_DEBT 即可）：`Zeroizing<[u8;32]>` 拷为裸 `[u8;32]` 用后不清零（`attachment/mod.rs:492-495`、`import.rs:350-353`、CLI `export_import.rs:193-197`）；CLI `attachment.rs:107-111` 取钥失败静默降级明文写盘；CLI `export_import.rs:193-197` 同款 `.ok()` 降级。
+
+### 轮次 3 修复顺序建议
+
+1. P024 根治：core 簇列表补 `vault_rename_account` + 断言改 196（优先），并考虑注册表比对消除手工双份真相；
+2. 轮次 3 登记瑕疵 1–4 转入 `docs/TECH_DEBT.md`；
+3. 此后若全库重扫仅剩 P2/登记项，可按流程进入终版报告与打标签阶段。
 
 ---
 
