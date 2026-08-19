@@ -189,6 +189,13 @@ fn handle_import(app: &mut App, args: &[&str]) -> Result<()> {
     };
 
     let base = app.vault_service.base_path().to_path_buf();
+    // P001-1：CLI 导入附件不再明文落盘——从已解锁会话派生附件静态加密密钥，
+    // 导入时以该密钥加密写盘（与 GUI 导入路径一致）。
+    let vault_att_key: Option<[u8; 32]> = app
+        .vault_service
+        .attachment_encryption_key()
+        .ok()
+        .and_then(|k| k.as_slice().try_into().ok());
     prompt::open(
         app,
         PromptSpec::Text {
@@ -199,7 +206,15 @@ fn handle_import(app: &mut App, args: &[&str]) -> Result<()> {
         },
         Box::new(move |app, result| {
             if let PromptResult::Text(password) = result {
-                match import_vault(&vault, &account_id, &path, &password, strategy, &base) {
+                match import_vault(
+                    &vault,
+                    &account_id,
+                    &path,
+                    &password,
+                    strategy,
+                    &base,
+                    vault_att_key.as_ref(),
+                ) {
                     Ok(count) => {
                         app.success_message = Some((
                             t!(app.i18n, "cmd-import-success", count = count.to_string()),

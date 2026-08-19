@@ -320,6 +320,7 @@ pub fn import_vault(
     password: &str,
     strategy: ImportStrategy,
     base_path: &Path,
+    vault_att_key: Option<&[u8; 32]>,
 ) -> Result<usize, ExportError> {
     if password.is_empty() {
         return Err(ExportError::Msg("导入密码不能为空".to_string()));
@@ -378,6 +379,7 @@ pub fn import_vault(
             &salt,
             &imported_object_ids,
             &payload,
+            vault_att_key,
         )?;
     }
 
@@ -951,6 +953,11 @@ pub fn resolve_cross_scope_references(
 }
 
 /// 导入附件到 vault 存储目录。
+///
+/// P001-1：`vault_att_key` 为 vault 附件静态加密密钥（CLI 从已解锁会话派生）——
+/// 提供时解密 ZIP 条目后以该密钥加密落盘（不再明文写盘，与 GUI 路径一致）；
+/// 为 None（测试等无密钥上下文）时保持原明文写盘行为。
+#[allow(clippy::too_many_arguments)]
 fn import_attachments(
     vault: &VaultStore,
     base_path: &Path,
@@ -959,6 +966,7 @@ fn import_attachments(
     salt: &[u8],
     imported_object_ids: &HashSet<String>,
     payload: &serde_json::Value,
+    vault_att_key: Option<&[u8; 32]>,
 ) -> Result<(), ExportError> {
     let att_key = solosoul_crypto::hkdf_ext::derive_hkdf_key(key, salt, b"solosoul:attachments:v1")
         .map_err(|e| format!("派生附件密钥失败: {}", e))?;
@@ -1029,12 +1037,48 @@ fn import_attachments(
         // 用原始名 join 目标目录造成存储型路径遍历。
         let safe_name = sanitize_import_file_name(&old_meta.file_name)?;
         let file_path_dest = dest.join(&safe_name);
-        let mut out_file = File::create(&file_path_dest)?;
-        solosoul_crypto::cipher::decrypt_chunked_stream(&att_key, &mut f, &mut out_file)
-            .map_err(|e| format!("解密附件流失败: {}", e))?;
-        let file_size = std::fs::metadata(&file_path_dest)
-            .map(|m| m.len())
-            .unwrap_or(0);
+        let file_size = match vault_att_key {
+            // P001-1：先以导出密钥解密 ZIP 条目到临时明文，再以 vault 附件密钥加密落盘
+            // → 清理临时明文（与 GUI 导入路径 extract_att_meta_for_object 同款流程，
+            // 消除明文窗口）。注意这里两个密钥不同：`att_key` 解 ZIP 密文，
+            // `vault_att_key` 加密落盘。
+            Some(vault_key) => {
+                let temp_dir = std::env::temp_dir().join("solosoul_import_att");
+                std::fs::create_dir_all(&temp_dir)
+                    .map_err(|e| format!("创建临时目录失败: {}", e))?;
+                let temp_path = temp_dir.join(format!("{}.plain", uuid::Uuid::new_v4()));
+                // 解密/加密/清理三阶段，任何失败都必须删除临时明文（不残留）。
+                let result = (|| -> Result<u64, String> {
+                    let mut temp_file =
+                        File::create(&temp_path).map_err(|e| format!("创建临时文件失败: {}", e))?;
+                    solosoul_crypto::cipher::decrypt_chunked_stream(
+                        &att_key,
+                        &mut f,
+                        &mut temp_file,
+                    )
+                    .map_err(|e| format!("解密附件流失败: {}", e))?;
+                    drop(temp_file);
+                    let size = std::fs::metadata(&temp_path).map(|m| m.len()).unwrap_or(0);
+                    crate::attachment_crypto::encrypt_file_stream(
+                        vault_key,
+                        &temp_path,
+                        &file_path_dest,
+                    )
+                    .map_err(|e| format!("附件加密落盘失败: {}", e))?;
+                    Ok(size)
+                })();
+                let _ = std::fs::remove_file(&temp_path);
+                result?
+            }
+            None => {
+                let mut out_file = File::create(&file_path_dest)?;
+                solosoul_crypto::cipher::decrypt_chunked_stream(&att_key, &mut f, &mut out_file)
+                    .map_err(|e| format!("解密附件流失败: {}", e))?;
+                std::fs::metadata(&file_path_dest)
+                    .map(|m| m.len())
+                    .unwrap_or(0)
+            }
+        };
 
         imported_atts
             .entry(obj_id.to_string())
@@ -1244,6 +1288,7 @@ mod tests {
             TEST_EXPORT_PASSWORD,
             ImportStrategy::Overwrite,
             dir.path(),
+            None,
         )
         .unwrap();
         assert_eq!(imported, 1);
@@ -1283,6 +1328,7 @@ mod tests {
             "WrongPass1",
             ImportStrategy::Overwrite,
             dir.path(),
+            None,
         );
         assert!(result.is_err(), "应返回密码错误: {:?}", result);
     }
@@ -1318,6 +1364,7 @@ mod tests {
             TEST_EXPORT_PASSWORD,
             ImportStrategy::SkipExisting,
             dir.path(),
+            None,
         )
         .unwrap();
         assert_eq!(imported, 0);
@@ -1333,6 +1380,7 @@ mod tests {
             TEST_EXPORT_PASSWORD,
             ImportStrategy::SkipExisting,
             dir.path(),
+            None,
         )
         .unwrap();
         assert_eq!(imported2, 1);
@@ -1485,6 +1533,7 @@ mod tests {
             TEST_EXPORT_PASSWORD,
             ImportStrategy::Overwrite,
             dir.path(),
+            None,
         )
         .unwrap();
         assert_eq!(imported, 1);
@@ -1539,6 +1588,7 @@ mod tests {
             TEST_EXPORT_PASSWORD,
             ImportStrategy::Overwrite,
             dir.path(),
+            None,
         )
         .unwrap();
         assert_eq!(imported, 1);
@@ -1579,6 +1629,7 @@ mod tests {
             TEST_EXPORT_PASSWORD,
             ImportStrategy::Overwrite,
             dir.path(),
+            None,
         )
         .unwrap();
 
@@ -1620,6 +1671,7 @@ mod tests {
             TEST_EXPORT_PASSWORD,
             ImportStrategy::Overwrite,
             dir.path(),
+            None,
         )
         .unwrap();
 
@@ -1674,6 +1726,7 @@ mod tests {
             TEST_EXPORT_PASSWORD,
             ImportStrategy::Overwrite,
             dir.path(),
+            None,
         )
         .unwrap();
 
@@ -1875,6 +1928,7 @@ mod tests {
             TEST_EXPORT_PASSWORD,
             ImportStrategy::Overwrite,
             dir.path(),
+            None,
         )
         .unwrap();
         assert_eq!(imported, 1);
@@ -1924,10 +1978,125 @@ mod tests {
             TEST_EXPORT_PASSWORD,
             ImportStrategy::Overwrite,
             dir.path(),
+            None,
         )
         .unwrap();
         assert_eq!(imported, 1);
         let obj = vault.load_object("obj_new_decl").unwrap().unwrap();
         assert_eq!(obj.name, "Declared Balanced");
+    }
+
+    /// P001-1：CLI 导入（提供 vault 附件静态加密密钥）后附件必须加密落盘——
+    /// 不再是明文文件，且可用传入密钥解密还原（回归：原实现直接明文写盘，
+    /// 破坏「附件不再明文落盘」不变量）。
+    #[test]
+    fn test_import_attachments_encrypted_at_rest_with_vault_key() {
+        let (vault, account_id, dir) = test_setup();
+
+        // 在 vault attachments 目录放一个明文源附件，并写 __attachments 元数据。
+        let att_dir = dir.path().join("attachments").join("obj_1").join("att_1");
+        std::fs::create_dir_all(&att_dir).unwrap();
+        let src_file = att_dir.join("a.pdf");
+        let plain = b"import-attachment-at-rest".repeat(10);
+        std::fs::write(&src_file, &plain).unwrap();
+
+        let mut rec = make_test_record(&account_id, "obj_1", "Test Object");
+        rec.properties = serde_json::json!({
+            "title": "hello",
+            "__attachments": [{
+                "id": "att_1",
+                "objectId": "obj_1",
+                "fileName": "a.pdf",
+                "mimeType": "application/pdf",
+                "sizeBytes": plain.len() as u64,
+                "createdAt": "2024-01-01T00:00:00Z",
+                "vaultPath": src_file.to_string_lossy().to_string()
+            }]
+        });
+        vault.save_object(&rec).unwrap();
+
+        // 导出（含附件，ZIP 内以导出密钥加密）。
+        let path = dir.path().join("test_att_import.solosoul");
+        let scope = ExportScope {
+            full: true,
+            include_attachments: true,
+            ..Default::default()
+        };
+        export_vault(
+            &vault,
+            &account_id,
+            TEST_EXPORT_PASSWORD,
+            &path,
+            &scope,
+            dir.path(),
+        )
+        .unwrap();
+
+        // 删除本地明文源附件，模拟「仅剩导出包」的恢复场景。
+        std::fs::remove_file(&src_file).unwrap();
+        vault.delete_object("obj_1", false).unwrap();
+
+        // 以 vault 附件静态密钥导入（CLI 从已解锁会话派生）。
+        // 先快照临时目录（与其他测试共享，仅对比本次新增）。
+        let temp_dir = std::env::temp_dir().join("solosoul_import_att");
+        let snapshot_before: std::collections::HashSet<String> = if temp_dir.exists() {
+            std::fs::read_dir(&temp_dir)
+                .unwrap()
+                .flatten()
+                .map(|e| e.file_name().to_string_lossy().to_string())
+                .collect()
+        } else {
+            Default::default()
+        };
+        let vault_att_key: [u8; 32] = [0x11; 32];
+        let imported = import_vault(
+            &vault,
+            &account_id,
+            &path,
+            TEST_EXPORT_PASSWORD,
+            ImportStrategy::Overwrite,
+            dir.path(),
+            Some(&vault_att_key),
+        )
+        .unwrap();
+        assert_eq!(imported, 1);
+
+        // 导入后的附件文件必须加密落盘（SOLC magic），且可解密还原。
+        let restored = vault.load_object("obj_1").unwrap().unwrap();
+        let atts = load_attachments(&restored.properties);
+        assert_eq!(atts.len(), 1);
+        let new_att = &atts[0];
+        let new_file = std::path::Path::new(new_att.vault_path.as_deref().unwrap());
+        assert!(
+            new_file.exists(),
+            "导入附件文件应存在: {}",
+            new_file.display()
+        );
+        assert!(
+            crate::attachment_crypto::is_encrypted_file(new_file),
+            "CLI 导入附件必须加密落盘（非明文）: {}",
+            new_file.display()
+        );
+        let decrypted =
+            crate::attachment_crypto::read_file_decrypted(&vault_att_key, new_file, 1_000_000)
+                .expect("以 vault 密钥解密导入附件");
+        assert_eq!(decrypted, plain);
+
+        // 本次导入不得在临时目录留下新明文文件（对比导入前后快照）。
+        let new_leftovers: Vec<_> = if temp_dir.exists() {
+            std::fs::read_dir(&temp_dir)
+                .unwrap()
+                .flatten()
+                .map(|e| e.file_name().to_string_lossy().to_string())
+                .filter(|n| !snapshot_before.contains(n))
+                .collect()
+        } else {
+            vec![]
+        };
+        assert!(
+            new_leftovers.is_empty(),
+            "本次导入不应残留临时明文: {:?}",
+            new_leftovers
+        );
     }
 }
