@@ -66,6 +66,11 @@ const UNLOCKED_EXEMPT_COMMANDS: ReadonlySet<string> = new Set([
   // 「No account is currently unlocked」
   'vault_pick_directory',
   'init_vault_directory',
+  // 登录页「恢复数据」流程（未解锁时必须可用）：发现可恢复的主机 + 从主机
+  // 恢复；recovery_host_start/recovery_host_cancel（作为主机展示二维码）仅
+  // 在同步设置页 post-auth 可达，保持守卫
+  'recovery_discover_hosts',
+  'recovery_restore_from_host',
   'reset_security_flags',
   'dismiss_lock_mask',
   'get_lock_pending',
@@ -74,6 +79,10 @@ const UNLOCKED_EXEMPT_COMMANDS: ReadonlySet<string> = new Set([
   // ── 启动期系统 / UI 命令（App 初始化、主题、语言、偏好、更新检查）──
   'get_app_info',
   'get_system_locale',
+  // 登录页/引导页挂载即应用主题（useApplyThemeFromSettings，默认 theme=
+  // 'system' 时 getSystemTheme 与 applyTheme 内部都会调本命令）——未解锁时
+  // 不豁免则主题应用被守卫拦截且产生 unhandled rejection
+  'get_system_theme',
   'set_titlebar_color',
   'set_status_bar_style',
   'ui_get_preferences',

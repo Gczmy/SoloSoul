@@ -102,6 +102,20 @@ describe('invokeCommand（统一 IPC 调用层）', () => {
     }
   });
 
+  it('P027 默认守卫：登录页恢复数据与主题应用命令（recovery_*/get_system_theme）未解锁时可调', async () => {
+    vi.stubEnv('MODE', 'development');
+    vi.mocked(useAuthStore).getState.mockReturnValue({ isAuthenticated: false } as never);
+    try {
+      await expect(invokeCommand<void>('recovery_discover_hosts', {})).resolves.toBeUndefined();
+      await expect(invokeCommand<void>('recovery_restore_from_host', {})).resolves.toBeUndefined();
+      await expect(invokeCommand<void>('get_system_theme')).resolves.toBeUndefined();
+      expect(invoke).toHaveBeenCalledTimes(3);
+      expect(invoke).toHaveBeenNthCalledWith(1, 'recovery_discover_hosts', {});
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
   it('P027 默认守卫：自更新管线命令（android_check_update 等）未解锁时可调', async () => {
     vi.stubEnv('MODE', 'development');
     vi.mocked(useAuthStore).getState.mockReturnValue({ isAuthenticated: false } as never);
