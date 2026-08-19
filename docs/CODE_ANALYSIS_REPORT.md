@@ -39,7 +39,7 @@
 | P007 | P1 | 代码质量 | `tauri/src-tauri/src/commands/attachment/crud.rs:47-69` ↔ `tauri/crates/solosoul-core/src/export_import.rs:64-84` | `AttachmentMeta` 结构体双定义，序列化契约靠注释维持，存在漂移风险 | `[x]` 已修复（8824c261） |
 | P008 | P1 | 规范 | `tauri/crates/solosoul-core/src/vault_service/account.rs:91,118` | `cargo fmt --check` 失败（2 处 tracing 宏格式），CI 基线红 | `[x]` 已修复（9054d0b1） |
 | P009 | P1 | 规范 | `tauri/crates/solosoul-core/src/ocr/macos_vision.rs:334-335`；`vault_service/tests.rs:26` | `cargo clippy -- -D warnings` 失败：2 处 `needless_borrows_for_generic_args`；`--all-targets` 下另有 1 处 unused variable | `[x]` 已修复（346d7563） |
-| P010 | P2 | 安全 | `tauri/src-tauri/src/commands/attachment/share.rs:33-41` | 分享副本明文残留 `temp_dir()/solosoul_share/`，永不清理 | `[ ]` 轮次2复核打回（清理仅「下次分享前」触发，最近副本仍残留；桌面端并发分享竞态，见复核记录） |
+| P010 | P2 | 安全 | `tauri/src-tauri/src/commands/attachment/share.rs:33-41` | 分享副本明文残留 `temp_dir()/solosoul_share/`，永不清理 | `[x]` 轮次2打回项已修复（走 `decrypt_to_temp_dir` 一次性 UUID 子目录 + 延迟清理，消除残留窗口与并发竞态，见修复记录） |
 | P011 | P2 | 安全 | `tauri/src-tauri/src/commands/vault.rs:7-18`（注册于 `lib.rs:55`） | 遗留 `unlock` IPC 命令 `password: String` 未 `Zeroizing` 包装；前端已无调用（仅测试 mock 引用） | `[x]` 已修复（686d807c） |
 | P012 | P2 | 安全 | `tauri/src-tauri/src/commands/auth.rs:159-176` | `verify_password` 不计失败、不触发阶梯锁定，构成无限速密码验证 oracle | `[ ]` 轮次2复核打回（核心路径已限速，但 export/biometric/pin 三条未限速验证路径残留 + pending 恢复边缘回归，见复核记录） |
 | P013 | P2 | 性能 | `tauri/src-tauri/src/commands/export_import/export.rs:751-761` | 导出时快照收集为 N+M 嵌套查询（每对象 1 次 list + 每快照 1 次 get） | `[x]` 已修复（8612e564） |
@@ -67,6 +67,9 @@
 - **复核打回：3 / 23（P001、P010、P012，详见下方复核记录）**
 - **复核新增：P024（测试基线红，与报告「测试全绿」声称矛盾）**
 - 当前处理：无（本轮仅复核登记，未改代码）
+
+轮次 2.5（打回项修复，2026-08-19）：
+- P024 ✅（194→195）· P001 残留 3/3 ✅（改密/KDF 重加密原子化 + CLI 导入重加密 + open 临时副本清理）· P012 ⏳ · P010 ✅（见修复记录）· 小瑕疵批次 ⏳
 
 ---
 
@@ -223,6 +226,8 @@
 `share.rs:33-41` 桌面端分享前将附件明文复制到 `temp_dir()/solosoul_share/`，注释自认「跨会话残留但不自动清理」，全仓库无清理逻辑。
 
 **修复记录（b95b4ace）**：分享前清理旧副本——桌面端 `copy_to_share_dir` 复制前 `cleanup_share_dir` 清掉 `solosoul_share/` 内旧文件（上次分享必然已完成，无保留价值；目录本身保留供 `copy_into_dir` 复用，仅删平铺文件不递归）；Android 分支同样在解密复制前清理 `solosoul_share_{object_id}/` 旧副本。新增 cleanup 单测 1 条（旧明文删除 + 子目录保留）。附件测试 22 个全过，clippy/fmt 干净。
+
+**修复记录（轮次 2.5，复核打回项）**：弃用「下次分享前清理」方案，分享路径统一改走 P001 残留 3/3 新增的 `decrypt_to_temp_dir`（`attachment/mod.rs`，`share.rs` 中 `copy_to_share_dir` / Android 分支改为调用，`copy_into_dir`/`cleanup_share_dir`/`make_unique_dest_path` 等旧机制随 P047 整合移除）——每次分享解密到**一次性 UUID 子目录**：桌面端并发分享（分享面板 A 未关闭又发起 B）互不删除对方副本，消除复核指出的竞态；后台延迟清理（`SHARE_TEMP_GRACE` 30 分钟，覆盖分享面板等待用户选择目标应用的最坏停留时长），最近副本不再永久残留、明文窗口有界。测试更新为适配新机制（share 路径 UUID 子目录 + 延迟清理），删除对已移除函数的引用；attachment 21 测试全过；`cargo check --target aarch64-linux-android` 通过验证 Android 分享分支；clippy/fmt 干净。
 
 ### P011（P2 安全）遗留 `unlock` IPC 未 Zeroizing（已完成）
 

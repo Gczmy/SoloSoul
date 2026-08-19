@@ -8,8 +8,6 @@ use std::path::Path;
 use std::time::Duration;
 use tempfile::TempDir;
 // P047：tree/share 子模块的 pub(crate) 项需显式导入（mod.rs 不做 re-export，避免非测试构建 unused 警告）
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
-use super::share::{cleanup_share_dir, copy_into_dir};
 use super::tree::{build_attachment_tree_pages, group_objects_for_attachment_tree};
 
 fn setup_vault() -> (VaultStore, TempDir) {
@@ -570,55 +568,12 @@ fn test_make_unique_dest_path_fixes_system_suffix() {
     assert_eq!(result, tmp.path().join("a(1).pdf"));
 }
 
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
-#[test]
-fn test_copy_into_dir_same_name_no_overwrite() {
-    // 同名附件冲突：对象1与对象2各有名为 "2" 的附件（内容不同），分享时
-    // 不得互相覆盖——第二次分享应生成序号副本 a(1)。
-    let tmp = tempfile::tempdir().unwrap();
-    let src1 = tmp.path().join("src-1");
-    let src2 = tmp.path().join("src-2");
-    std::fs::write(&src1, b"content-A").unwrap();
-    std::fs::write(&src2, b"content-B").unwrap();
-    let att_key = [0x42u8; 32];
-
-    let r1 = copy_into_dir(tmp.path(), &src1, "2", &att_key).unwrap();
-    let r2 = copy_into_dir(tmp.path(), &src2, "2", &att_key).unwrap();
-
-    // 两次分享同名附件得到不同路径，内容互不覆盖
-    assert_ne!(r1, r2);
-    assert_eq!(std::fs::read(&r1).unwrap(), b"content-A");
-    assert_eq!(std::fs::read(&r2).unwrap(), b"content-B");
-    // 第二次生成序号副本
-    assert_eq!(r1, tmp.path().join("2"));
-    assert_eq!(r2, tmp.path().join("2(1)"));
-}
-
 #[test]
 fn test_sanitize_duplicate_suffix_variants() {
     assert_eq!(sanitize_duplicate_suffix("a.pdf(1)"), "a(1).pdf");
     assert_eq!(sanitize_duplicate_suffix("a (1).pdf"), "a(1).pdf");
     assert_eq!(sanitize_duplicate_suffix("a(1)"), "a(1)");
     assert_eq!(sanitize_duplicate_suffix("a.pdf"), "a.pdf");
-}
-
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
-#[test]
-fn test_cleanup_share_dir_removes_old_plaintext_copies() {
-    // P010: 分享前清理旧副本——上次分享的明文副本不得无限累积残留。
-    let tmp = tempfile::tempdir().unwrap();
-    // 造旧残留：一个明文文件 + 一个子目录（子目录应保留，仅清理平铺文件）
-    std::fs::write(tmp.path().join("old.png"), b"plaintext-1").unwrap();
-    std::fs::write(tmp.path().join("old(1).pdf"), b"plaintext-2").unwrap();
-    std::fs::create_dir(tmp.path().join("subdir")).unwrap();
-
-    cleanup_share_dir(tmp.path());
-
-    // 旧明文副本被删除
-    assert!(!tmp.path().join("old.png").exists());
-    assert!(!tmp.path().join("old(1).pdf").exists());
-    // 子目录保留（目录本身由后续 copy_into_dir 复用）
-    assert!(tmp.path().join("subdir").is_dir());
 }
 
 /// P001-3/P010: `decrypt_to_temp_dir`——解密到一次性 UUID 子目录、不同调用

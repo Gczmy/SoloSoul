@@ -2,58 +2,18 @@
 
 use super::*;
 
-/// 复制附件到共享临时目录 `solosoul_share/`，返回复制后的目标路径。
-///
-/// 桌面端（macOS/Windows/Linux）分享前统一走此副本逻辑：分享副本而非 vault 原文件，
-/// 避免把用户带进隐藏的 vault 目录、也避免用户误改 vault 内文件。
-///
-/// 将附件复制到指定目录（分享副本），返回最终目标路径。
-///
-/// - 清理文件名，防止路径遍历（file_name 来自 vault 元数据，不可直接 join）。
-/// - `file_name()` 对 "." / ".." 原样返回，显式拒绝避免写入目录之外。
-/// - 同名冲突：不同对象的附件可能同名（如对象1/对象2各有 "2"），若直接用
-///   文件名作为目标会互相覆盖（后分享的覆盖先分享的，且临时目录不自动清理）。
-///   复用下载路径的 `make_unique_dest_path` 去重：已存在同名时生成
-///   a(1).pdf / a(2).pdf 序号副本，保证分享副本互不覆盖。
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
-pub(crate) fn copy_into_dir(
-    base_dir: &Path,
-    path: &Path,
-    file_name: &str,
-    att_key: &[u8; 32],
-) -> Result<PathBuf, String> {
-    std::fs::create_dir_all(base_dir).map_err(|e| format!("Failed to prepare directory: {}", e))?;
-    // P023: 统一走 solosoul_core::path_util::sanitize_file_name（平台无关拒绝
-    // `/` `\\` 分隔符 + 取末段兜底 + 拒绝空/`.`/`..`），修复旧实现不拒反斜杠缺口。
-    let safe_name = solosoul_core::path_util::sanitize_file_name(file_name)?;
-    let dest = make_unique_dest_path(&base_dir.join(safe_name));
-    // P001: vault 内附件加密落盘，分享副本需解密（SOLC 密文自动解密，旧明文直拷）。
-    solosoul_core::attachment_crypto::copy_decrypt_file(att_key, path, &dest)
-        .map_err(|e| format!("Failed to copy file for sharing: {}", e))?;
-    Ok(dest)
-}
+/// 分享临时明文的保留宽限期（分享面板/文件管理器可能长时间保持打开，等待用户
+/// 选择目标应用——必须大于桌面分享面板的最坏停留时长）。
+const SHARE_TEMP_GRACE: std::time::Duration = std::time::Duration::from_secs(30 * 60);
 
-/// P010: 清理分享临时目录内的旧副本文件（分享面板/reveal 用完后无保留价值，
-/// 下次分享前清掉，避免 `temp_dir()/solosoul_share/` 明文残留无限累积）。
-/// 目录本身保留（后续 copy_into_dir 会复用）；仅删除文件不递归（分享副本为平铺文件）。
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
-pub(crate) fn cleanup_share_dir(dir: &Path) {
-    if let Ok(entries) = std::fs::read_dir(dir) {
-        for entry in entries.flatten() {
-            let p = entry.path();
-            if p.is_file() {
-                let _ = std::fs::remove_file(&p);
-            }
-        }
-    }
-}
-
-/// 分享副本落盘目录（系统临时目录）。P010: 复制前先清理上次分享的旧副本。
+/// 分享副本落盘目录（系统临时目录）。P010：走 `decrypt_to_temp_dir`——每次分享
+/// 解密到**一次性 UUID 子目录**（并发分享互不删除对方副本，消除桌面端
+/// 「分享面板 A 未关闭又发起分享 B，cleanup 删掉 A 副本」竞态），后台延迟
+/// 清理（30 分钟宽限，覆盖分享面板等待用户选择目标应用的场景），最近副本
+/// 不再永久残留（复核打回项：原实现「下次分享前清理」留下最近副本 + 竞态）。
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 fn copy_to_share_dir(path: &Path, file_name: &str, att_key: &[u8; 32]) -> Result<PathBuf, String> {
-    let dir = std::env::temp_dir().join("solosoul_share");
-    cleanup_share_dir(&dir);
-    copy_into_dir(&dir, path, file_name, att_key)
+    super::decrypt_to_temp_dir(att_key, path, file_name, "solosoul_share", SHARE_TEMP_GRACE)
 }
 
 /// 转发附件到其他应用。
@@ -91,23 +51,16 @@ pub async fn attachment_share<R: Runtime>(
 
     #[cfg(target_os = "android")]
     {
-        // P001: 分享给外部应用前解密到临时明文（FileProvider 无法读取 vault 密文）。
-        let temp_dir = std::env::temp_dir().join(format!("solosoul_share_{}", object_id));
-        std::fs::create_dir_all(&temp_dir)
-            .map_err(|e| format!("Failed to prepare share dir: {}", e))?;
-        // P010: 清理该对象目录下上次分享的旧副本明文，避免累积残留。
-        if let Ok(entries) = std::fs::read_dir(&temp_dir) {
-            for entry in entries.flatten() {
-                let p = entry.path();
-                if p.is_file() {
-                    let _ = std::fs::remove_file(&p);
-                }
-            }
-        }
-        let safe_name = solosoul_core::path_util::sanitize_file_name(&att.file_name)?;
-        let temp_path = temp_dir.join(&safe_name);
-        solosoul_core::attachment_crypto::copy_decrypt_file(&att_key, &path, &temp_path)
-            .map_err(|e| format!("Failed to decrypt for share: {}", e))?;
+        // P001/P010: 分享给外部应用前解密到一次性 UUID 子目录（FileProvider 无法
+        // 读取 vault 密文）；每次分享独立子目录互不覆盖，后台延迟清理（30 分钟宽限，
+        // 覆盖系统分享面板等待用户选择目标应用的场景）。
+        let temp_path = super::decrypt_to_temp_dir(
+            &att_key,
+            &path,
+            &att.file_name,
+            "solosoul_share",
+            SHARE_TEMP_GRACE,
+        )?;
         let handle = app.state::<AttachmentImportPluginHandle<R>>();
         handle.share_file(OpenFilePayload {
             path: temp_path.to_string_lossy().to_string(),
