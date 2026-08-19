@@ -126,10 +126,6 @@ pub enum ExportError {
     #[error("ZIP error: {0}")]
     Zip(#[from] zip::result::ZipError),
 
-    /// 加密操作错误。
-    #[error("Cryptography error: {0}")]
-    Crypto(String),
-
     /// 密码错误/文件损坏。
     #[error("解密失败：密码错误或文件已损坏")]
     DecryptionFailed,
