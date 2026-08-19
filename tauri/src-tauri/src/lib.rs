@@ -652,7 +652,7 @@ mod tests {
                 assert_eq!(routed, cmds.len());
             }
         }
-        // 共 194 条命令全覆盖（核心 117 + 同步 20 + OCR 11 + LLM 32 + 插件 14）
-        assert_eq!(total, 194);
+        // 共 195 条命令全覆盖（P006 新增 attachment_count_stats、P014 新增 trash_restore_batch、P011 删除 unlock，净 +1）
+        assert_eq!(total, 195);
     }
 }
