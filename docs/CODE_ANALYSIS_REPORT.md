@@ -46,7 +46,7 @@
 | P014 | P2 | 性能 | `tauri/src/pages/settings/useTrashPage.tsx:145-168` | 回收站批量恢复逐项串行 IPC，与批量删除的批量入参不一致 | `[x]` 已修复（c54c5524） |
 | P015 | P2 | 代码质量 | `tauri/src/pages/ai/useLlmConfigPage.ts:369,413`；`tauri/src/components/llm-config/ProviderManagerPanel.tsx:280` | API key 哨兵 `'••••••••'` 字面量硬编码三处，与 `lib/masking.ts:14` 的 `MASK_PLACEHOLDER` 脱钩 | `[x]` 已修复（5c841a19） |
 | P016 | P2 | 代码质量 | `tauri/src/hooks/useAttachmentManagerBatchOps.ts:105-107` | 批量附件下载 catch-all 将任意异常误判为「用户取消」，无日志 | `[x]` 已修复（268e2b1a） |
-| P017 | P2 | 死代码 | `tauri/crates/solosoul-core/src/export_import.rs:129-131` | `ExportError::Crypto` 变体从未被构造 | `[ ]` 待修复 |
+| P017 | P2 | 死代码 | `tauri/crates/solosoul-core/src/export_import.rs:129-131` | `ExportError::Crypto` 变体从未被构造 | `[x]` 已修复（4575755f） |
 | P018 | P2 | 死代码 | `tauri/scripts/tokenize-fonts.mjs`、`tokenize-icons.mjs`、`fix_invoke_keys.cjs`、`revert_invoke_keys.cjs` | 4 个一次性 codemod 脚本残留，package.json/CI/文档均无引用 | `[x]` 已修复（094e75b8，用户确认删除） |
 | P019 | P2 | 重复代码 | `tauri/src-tauri/src/commands/llm/provider.rs:25-55` ↔ `llm/unified_chat.rs:30-59` | LLM provider 合并逻辑跨文件复制（~20 行，>80% 相似） | `[ ]` 待修复 |
 | P020 | P2 | 重复代码 | `tauri/crates/solosoul-vault/src/storage/metadata.rs:535-560` ↔ `sync_changes.rs:475-500` | `user_templates` 行解密映射代码几乎逐字重复 | `[ ]` 待修复 |
@@ -59,7 +59,8 @@
 - 已完成：14 / 23（P008、P009、P002、P003、P004、P018、P001、P005、P006、P007、P010、P011、P012、P013）
 - 已完成：15 / 23（P008、P009、P002、P003、P004、P018、P001、P005、P006、P007、P010、P011、P012、P013、P014）
 - 已完成：17 / 23（P008、P009、P002、P003、P004、P018、P001、P005、P006、P007、P010、P011、P012、P013、P014、P015、P016）
-- 当前处理：P017
+- 已完成：18 / 23（P008、P009、P002、P003、P004、P018、P001、P005、P006、P007、P010、P011、P012、P013、P014、P015、P016、P017）
+- 当前处理：P019
 
 ---
 
@@ -182,9 +183,11 @@
 
 **修复记录（268e2b1a）**：catch 改为 `catch (e) { logger.warn('[AttachmentManager] Batch download failed:', e) }` 留痕——dialog 取消经 `openWithPause` 返回 null 提前 return（不抛异常），走到 catch 的必是真实错误（dialog 插件失败/动态 import 失败），不再误判为「用户取消」静默吞掉。prettier/eslint/tsc 全绿。
 
-### P017（P2 死代码）`ExportError::Crypto` 从未构造
+### P017（P2 死代码）`ExportError::Crypto` 从未构造（已完成）
 
-全库（含 src-tauri、solosoul_cli）搜索仅命中定义行。**修复建议**：删除该变体。
+全库（含 src-tauri、solosoul_cli）搜索仅命中定义行。
+
+**修复记录（4575755f）**：删除 `ExportError::Crypto(String)` 变体（加密错误统一走 `Msg`/`DecryptionFailed`）。workspace 各 crate 与 CLI 编译通过，core 195 测试全绿，clippy/fmt 干净。
 
 ### P018（P2 死代码）一次性 codemod 脚本残留
 
