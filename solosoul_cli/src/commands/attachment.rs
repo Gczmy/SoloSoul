@@ -103,12 +103,19 @@ fn add(app: &mut App, file_path: Option<&str>) -> Result<()> {
     };
 
     let base = app.vault_service.base_path().to_path_buf();
+    // P001: 附件加密落盘——从已解锁会话派生附件静态加密密钥。
+    let att_key: Option<[u8; 32]> = app
+        .vault_service
+        .attachment_encryption_key()
+        .ok()
+        .and_then(|k| k.as_slice().try_into().ok());
     match objects::add_attachments(
         &vault,
         &account_id,
         &object_id,
         std::path::Path::new(file_path),
         &base,
+        att_key.as_ref(),
     ) {
         Ok(_) => {
             app.success_message = Some((

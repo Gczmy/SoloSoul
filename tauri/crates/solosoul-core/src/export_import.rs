@@ -242,8 +242,16 @@ pub fn export_vault(
     let options = SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated);
 
     // 写入附件（流式加密避免完整明文和密文同时驻留内存）。
+    // P001: vault 附件现已加密落盘——CLI 无附件密钥（未解锁会话），检测到 SOLC 密文
+    // 必须明确报错而非双重加密（否则导入端解出仍是密文，附件损坏）。
     if let Some(ref ak) = att_key {
         for (obj_id, att_id, _file_name, src_path) in &attachment_entries {
+            if crate::attachment_crypto::is_encrypted_file(src_path) {
+                return Err(ExportError::Msg(format!(
+                    "附件 {}/{} 已加密落盘，请使用最新版 GUI 客户端导出（CLI 缺少附件解密密钥）",
+                    obj_id, att_id
+                )));
+            }
             let file_size = std::fs::metadata(src_path).map(|m| m.len()).unwrap_or(0);
             let zip_name = format!("attachments/{}/{}.enc", obj_id, att_id);
             zip.start_file(&zip_name, options)

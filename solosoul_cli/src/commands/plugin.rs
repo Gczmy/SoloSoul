@@ -121,6 +121,12 @@ pub fn run_plugin(app: &mut App, plugin_id: Option<&str>, raw_params: &[&str]) -
             return Ok(());
         }
     };
+    // P001: 附件静态加密密钥——插件复制附件到工作区前解密。
+    let attachment_key: Option<[u8; 32]> = app
+        .vault_service
+        .attachment_encryption_key()
+        .ok()
+        .and_then(|k| k.as_slice().try_into().ok());
 
     let market_dir = resolve_plugin_market_dir();
     let plugin_dir = market_dir.join("plugins").join(&plugin_id);
@@ -202,6 +208,7 @@ pub fn run_plugin(app: &mut App, plugin_id: Option<&str>, raw_params: &[&str]) -
                     sink,
                     Some(vault),
                     Some(account_id),
+                    attachment_key,
                 )
                 .await
             {

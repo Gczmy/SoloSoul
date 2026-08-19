@@ -9,6 +9,7 @@
 //! 设计目标：任何交互宿主（Tauri GUI、终端 CLI、自动化脚本）都可直接依赖此 crate，
 //! 而不必引入整个 Tauri 运行时。
 
+pub mod attachment_crypto;
 pub mod auth;
 pub mod biometric;
 pub mod export_import;

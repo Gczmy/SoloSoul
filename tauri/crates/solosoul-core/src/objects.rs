@@ -704,12 +704,15 @@ pub fn save_attachments(props: &mut serde_json::Value, atts: &[AttachmentMeta]) 
 }
 
 /// 添加附件（复制文件 + 更新元数据）。
+/// `attachment_key`：P001 附件静态加密密钥（`Some` 时加密落盘；`None` 保持旧明文行为，
+/// 供无会话密钥的宿主/测试使用——读取端自动兼容两种形态）。
 pub fn add_attachments(
     vault: &VaultStore,
     account_id: &str,
     object_id: &str,
     file_path: &Path,
     base_path: &Path,
+    attachment_key: Option<&[u8; 32]>,
 ) -> Result<AttachmentMeta, String> {
     let mut record = vault
         .load_object(object_id)?
@@ -743,9 +746,15 @@ pub fn add_attachments(
     let attachment_id = format!("att_{}", uuid::Uuid::new_v4());
     let created_at = chrono::Utc::now().to_rfc3339();
 
-    // 复制文件到 vault 附件目录
-    let vault_path =
-        copy_file_to_vault(file_path, base_path, object_id, &attachment_id, &file_name)?;
+    // 复制文件到 vault 附件目录（P001: 提供密钥时加密落盘）
+    let vault_path = copy_file_to_vault(
+        file_path,
+        base_path,
+        object_id,
+        &attachment_id,
+        &file_name,
+        attachment_key,
+    )?;
 
     let meta = AttachmentMeta {
         id: attachment_id,
@@ -1021,6 +1030,7 @@ fn copy_file_to_vault(
     object_id: &str,
     attachment_id: &str,
     file_name: &str,
+    attachment_key: Option<&[u8; 32]>,
 ) -> Result<String, String> {
     let src = src_path
         .canonicalize()
@@ -1042,7 +1052,16 @@ fn copy_file_to_vault(
 
     let safe_name = sanitize_file_name(file_name);
     let dest_path = dest_dir.join(&safe_name);
-    std::fs::copy(&src, &dest_path).map_err(|e| format!("复制文件失败: {}", e))?;
+    match attachment_key {
+        // P001: 附件加密落盘（SOLC 头）
+        Some(key) => {
+            crate::attachment_crypto::encrypt_file_stream(key, &src, &dest_path)
+                .map_err(|e| format!("复制文件失败: {}", e))?;
+        }
+        None => {
+            std::fs::copy(&src, &dest_path).map_err(|e| format!("复制文件失败: {}", e))?;
+        }
+    }
     Ok(dest_path.to_string_lossy().to_string())
 }
 
@@ -1376,7 +1395,8 @@ mod tests {
         let file_path = src_dir.path().join("test.txt");
         std::fs::write(&file_path, "hello").unwrap();
 
-        let meta = add_attachments(&vault, &account_id, &obj.id, &file_path, dir.path()).unwrap();
+        let meta =
+            add_attachments(&vault, &account_id, &obj.id, &file_path, dir.path(), None).unwrap();
         assert_eq!(meta.file_name, "test.txt");
         assert_eq!(meta.size_bytes, 5);
 

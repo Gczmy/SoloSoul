@@ -73,6 +73,9 @@ pub struct FieldResolver {
     allowed_patterns: Vec<String>,
     /// Stage 4 typed-lookup 契约绑定锚点（由 PluginManager::run 在构造时填充）
     contracts: Vec<PluginContractBinding>,
+    /// P001: 附件静态加密密钥（`Some` 时插件复制附件到工作区前解密；
+    /// `None` 保持旧明文行为，兼容无会话密钥的测试/未解锁场景）。
+    attachment_key: Option<[u8; 32]>,
     /// P004: 惰性缓存（templates / 全量对象 / 按 type_id 的对象）
     cache: Arc<Mutex<FieldCache>>,
 }
@@ -168,8 +171,20 @@ impl FieldResolver {
             account_id: Some(account_id),
             allowed_patterns,
             contracts: Vec::new(),
+            attachment_key: None,
             cache: Arc::new(Mutex::new(FieldCache::default())),
         }
+    }
+
+    /// P001: 设置附件静态加密密钥（插件复制附件到工作区前解密）。
+    pub fn with_attachment_key(mut self, key: [u8; 32]) -> Self {
+        self.attachment_key = Some(key);
+        self
+    }
+
+    /// P001: 获取附件静态加密密钥。
+    pub(crate) fn attachment_key_ref(&self) -> Option<&[u8; 32]> {
+        self.attachment_key.as_ref()
     }
 
     /// Stage 4-B：minimal-injection（仅 contracts；vault 由后续 with_vault 注入）
@@ -179,6 +194,7 @@ impl FieldResolver {
             account_id: None,
             allowed_patterns: Vec::new(),
             contracts,
+            attachment_key: None,
             cache: Arc::new(Mutex::new(FieldCache::default())),
         }
     }
@@ -195,6 +211,7 @@ impl FieldResolver {
             account_id: Some(account_id),
             allowed_patterns,
             contracts,
+            attachment_key: None,
             cache: Arc::new(Mutex::new(FieldCache::default())),
         }
     }

@@ -523,6 +523,79 @@ fn test_unlock_with_session_key() {
     assert!(svc.get_session_key().is_some());
 }
 
+/// P001：附件静态加密密钥由会话密钥确定性派生（同密码 → 同密钥），
+/// 且与数据库密钥（session_key 本身）域分离——不同用途密钥互相独立。
+#[test]
+fn test_attachment_encryption_key_derived_deterministically() {
+    let (svc, _dir) = setup_service();
+    svc.create_account("Ivy", "password123", None).unwrap();
+
+    let key1 = svc.attachment_encryption_key().unwrap();
+    let key2 = svc.attachment_encryption_key().unwrap();
+    assert_eq!(key1.len(), 32);
+    assert_eq!(key1.as_slice(), key2.as_slice());
+
+    // 域分离：附件密钥 ≠ 会话密钥（数据库密钥）。
+    let session_key = svc.get_session_key().unwrap();
+    assert_ne!(key1.as_slice(), session_key.as_slice());
+}
+
+/// P001：锁定（无会话密钥）时附件密钥派生必须失败，不泄露半初始化状态。
+#[test]
+fn test_attachment_encryption_key_requires_unlock() {
+    let (svc, _dir) = setup_service();
+    svc.create_account("Ivy", "password123", None).unwrap();
+    svc.lock();
+    assert!(svc.attachment_encryption_key().is_err());
+}
+/// P001：改密后附件目录自动重加密——旧附件密钥解不开，新附件密钥可解密读出。
+#[test]
+fn test_change_password_reencrypts_attachments() {
+    let (svc, _dir) = setup_service();
+    let account = svc.create_account("Rex", "password123", None).unwrap();
+    let account_id = account["id"].as_str().unwrap();
+
+    // 解锁后写入一个附件（加密落盘）。
+    let att_key_before = {
+        let k = svc.attachment_encryption_key().unwrap();
+        let arr: [u8; 32] = k.as_slice().try_into().unwrap();
+        arr
+    };
+    let account_dir = svc.base_path().join(account_id);
+    let att_dir = account_dir.join("attachments").join("obj_1").join("att_1");
+    std::fs::create_dir_all(&att_dir).unwrap();
+    let plain = b"secret attachment content".repeat(20);
+    let plain_path = att_dir.join("doc.txt");
+    std::fs::write(&plain_path, &plain).unwrap();
+    let enc_tmp = att_dir.join("doc.txt.enc");
+    crate::attachment_crypto::encrypt_file_stream(&att_key_before, &plain_path, &enc_tmp)
+        .expect("encrypt attachment");
+    std::fs::rename(&enc_tmp, &plain_path).unwrap();
+    assert!(crate::attachment_crypto::is_encrypted_file(&plain_path));
+
+    // 改密。
+    svc.change_password(account_id, "password123", "newpassword123")
+        .unwrap();
+
+    // 改密后：旧附件密钥应无法解密，新附件密钥可解密且内容一致。
+    let att_key_after = {
+        let k = svc.attachment_encryption_key().unwrap();
+        let arr: [u8; 32] = k.as_slice().try_into().unwrap();
+        arr
+    };
+    assert_ne!(att_key_before, att_key_after);
+    assert!(crate::attachment_crypto::is_encrypted_file(&plain_path));
+    // 旧密钥解密失败
+    let wrong =
+        crate::attachment_crypto::read_file_decrypted(&att_key_before, &plain_path, 1_000_000);
+    assert!(wrong.is_err());
+    // 新密钥解密成功且内容一致
+    let decrypted =
+        crate::attachment_crypto::read_file_decrypted(&att_key_after, &plain_path, 1_000_000)
+            .unwrap();
+    assert_eq!(decrypted, plain);
+}
+
 #[test]
 fn test_get_vault_store_when_locked() {
     let (svc, _dir) = setup_service();

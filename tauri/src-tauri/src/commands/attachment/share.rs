@@ -20,23 +20,27 @@ pub(crate) fn copy_into_dir(
     base_dir: &Path,
     path: &Path,
     file_name: &str,
+    att_key: &[u8; 32],
 ) -> Result<PathBuf, String> {
     std::fs::create_dir_all(base_dir).map_err(|e| format!("Failed to prepare directory: {}", e))?;
     // P023: 统一走 solosoul_core::path_util::sanitize_file_name（平台无关拒绝
     // `/` `\\` 分隔符 + 取末段兜底 + 拒绝空/`.`/`..`），修复旧实现不拒反斜杠缺口。
     let safe_name = solosoul_core::path_util::sanitize_file_name(file_name)?;
     let dest = make_unique_dest_path(&base_dir.join(safe_name));
-    std::fs::copy(path, &dest).map_err(|e| format!("Failed to copy file for sharing: {}", e))?;
+    // P001: vault 内附件加密落盘，分享副本需解密（SOLC 密文自动解密，旧明文直拷）。
+    solosoul_core::attachment_crypto::copy_decrypt_file(att_key, path, &dest)
+        .map_err(|e| format!("Failed to copy file for sharing: {}", e))?;
     Ok(dest)
 }
 
 /// 分享副本落盘目录（系统临时目录，跨会话残留但不自动清理）。
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
-fn copy_to_share_dir(path: &Path, file_name: &str) -> Result<PathBuf, String> {
+fn copy_to_share_dir(path: &Path, file_name: &str, att_key: &[u8; 32]) -> Result<PathBuf, String> {
     copy_into_dir(
         &std::env::temp_dir().join("solosoul_share"),
         path,
         file_name,
+        att_key,
     )
 }
 
@@ -56,31 +60,48 @@ pub async fn attachment_share<R: Runtime>(
 ) -> Result<(), String> {
     // 块作用域尽早释放 vault_service 读锁：复制/转发期间不占用锁，
     // 且保证 guard 在 spawn_blocking 的 await 点之前已销毁（async 状态机 Send 要求）。
-    let (path, att) = {
+    // P001: 附件密钥一并取出，分享副本需要解密（vault 内附件已加密落盘）。
+    let (path, att, att_key) = {
         let svc = state
             .vault_service
             .read()
             .map_err(|_| "Vault service lock poisoned".to_string())?;
-        resolve_verified_attachment_path(&svc, &object_id, &attachment_id)?
+        let key = svc
+            .attachment_encryption_key()
+            .map_err(|e| format!("无法获取附件密钥: {}", e))?;
+        let key_arr: [u8; 32] = key
+            .as_slice()
+            .try_into()
+            .map_err(|_| "附件密钥长度错误".to_string())?;
+        let (p, a) = resolve_verified_attachment_path(&svc, &object_id, &attachment_id)?;
+        (p, a, key_arr)
     };
 
     #[cfg(target_os = "android")]
     {
+        // P001: 分享给外部应用前解密到临时明文（FileProvider 无法读取 vault 密文）。
+        let temp_dir = std::env::temp_dir().join(format!("solosoul_share_{}", object_id));
+        std::fs::create_dir_all(&temp_dir)
+            .map_err(|e| format!("Failed to prepare share dir: {}", e))?;
+        let safe_name = solosoul_core::path_util::sanitize_file_name(&att.file_name)?;
+        let temp_path = temp_dir.join(&safe_name);
+        solosoul_core::attachment_crypto::copy_decrypt_file(&att_key, &path, &temp_path)
+            .map_err(|e| format!("Failed to decrypt for share: {}", e))?;
         let handle = app.state::<AttachmentImportPluginHandle<R>>();
         handle.share_file(OpenFilePayload {
-            path: path.to_string_lossy().to_string(),
+            path: temp_path.to_string_lossy().to_string(),
             mime_type: att.mime_type.clone(),
         })
     }
 
     #[cfg(target_os = "macos")]
     {
-        share_macos(app, path, att.file_name).await
+        share_macos(app, path, att.file_name, att_key).await
     }
 
     #[cfg(target_os = "windows")]
     {
-        share_windows(app, path, att.file_name).await
+        share_windows(app, path, att.file_name, att_key).await
     }
 
     #[cfg(all(
@@ -90,7 +111,7 @@ pub async fn attachment_share<R: Runtime>(
         not(target_os = "ios")
     ))]
     {
-        share_linux(path, att.file_name).await
+        share_linux(path, att.file_name, att_key).await
     }
 
     #[cfg(target_os = "ios")]
@@ -110,8 +131,12 @@ pub async fn attachment_share<R: Runtime>(
 /// N002：仅桌面三平台使用（macos/windows/linux）；iOS 显式不支持分享、Android 走自有分享链路，
 /// 需 cfg 门控否则 Android/iOS 编译报 E0425、Linux CI 报 dead code。
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
-async fn copy_to_share_dir_async(path: PathBuf, file_name: String) -> Result<PathBuf, String> {
-    tokio::task::spawn_blocking(move || copy_to_share_dir(&path, &file_name))
+async fn copy_to_share_dir_async(
+    path: PathBuf,
+    file_name: String,
+    att_key: [u8; 32],
+) -> Result<PathBuf, String> {
+    tokio::task::spawn_blocking(move || copy_to_share_dir(&path, &file_name, &att_key))
         .await
         .map_err(|e| format!("Share copy task panicked: {}", e))?
 }
@@ -142,13 +167,14 @@ async fn share_macos<R: Runtime>(
     app: AppHandle<R>,
     path: PathBuf,
     file_name: String,
+    att_key: [u8; 32],
 ) -> Result<(), String> {
     use objc2::AnyThread;
     use objc2_app_kit::{NSSharingServicePicker, NSWindow};
     use objc2_foundation::{NSArray, NSRect, NSRectEdge, NSString, NSURL};
     use tauri::Manager;
 
-    let dest = copy_to_share_dir_async(path, file_name).await?;
+    let dest = copy_to_share_dir_async(path, file_name, att_key).await?;
 
     // AppKit UI 必须在主线程执行，且 NSSharingServicePicker 不是 Send——
     // 通过 run_on_main_thread 调度到主线程，错误经 oneshot channel 回传。
@@ -193,6 +219,7 @@ async fn share_windows<R: Runtime>(
     app: AppHandle<R>,
     path: PathBuf,
     file_name: String,
+    att_key: [u8; 32],
 ) -> Result<(), String> {
     use tauri::Manager;
     use windows::core::{Interface, Ref, HSTRING};
@@ -205,7 +232,7 @@ async fn share_windows<R: Runtime>(
     use windows::Win32::UI::Shell::IDataTransferManagerInterop;
     use windows_collections::IIterable;
 
-    let dest = copy_to_share_dir_async(path, file_name).await?;
+    let dest = copy_to_share_dir_async(path, file_name, att_key).await?;
 
     // Windows 10 1809 以下不支持系统分享面板（ShowShareUIForWindow），降级为文件管理器显示
     if !DataTransferManager::IsSupported().unwrap_or(false) {
@@ -289,10 +316,10 @@ async fn share_windows<R: Runtime>(
     not(target_os = "windows"),
     not(target_os = "ios")
 ))]
-async fn share_linux(path: PathBuf, file_name: String) -> Result<(), String> {
+async fn share_linux(path: PathBuf, file_name: String, att_key: [u8; 32]) -> Result<(), String> {
     // Linux：复制到临时目录后 reveal 在文件管理器中显示，避免把用户带进隐藏的
     // vault 目录、也避免误改 vault 内文件。复制走 copy_to_share_dir_async（spawn_blocking），
     // reveal 在 async 上下文直接调用（文件管理器调用本身非阻塞、无 spawn_blocking 需求）。
-    let dest = copy_to_share_dir_async(path, file_name).await?;
+    let dest = copy_to_share_dir_async(path, file_name, att_key).await?;
     opener::reveal(&dest).map_err(|e| format!("Failed to reveal file: {}", e))
 }

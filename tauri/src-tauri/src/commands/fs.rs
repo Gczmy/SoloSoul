@@ -5,8 +5,9 @@ use std::path::{Path, PathBuf};
 // 测试变体的 `allowed_fs_bases` 直接返回文件系统根目录，不触碰 App 状态。
 #[cfg(not(test))]
 use tauri::Manager;
-// P107：桌面端访问 AppState 以读取 Vault 附件目录；仅桌面端需要。
-#[cfg(all(not(test), desktop))]
+// P107：访问 AppState 以读取 Vault 附件目录与附件解密密钥。
+// 桌面端：`allowed_fs_bases` 放行 Vault 附件目录；移动端：附件在应用数据目录内。
+#[cfg(not(test))]
 use crate::state::AppState;
 
 /// Maximum file size that can be read into memory for a data URL preview (10 MiB).
@@ -178,6 +179,51 @@ pub(crate) fn display_fs_path(path: &Path) -> String {
     }
 }
 
+/// P001：读取附件文件内容——SOLC 密文则用附件密钥解密，普通明文直接读。
+/// 前端预览/导出读取 vault 附件（现已加密落盘）时必须走此路径；
+/// 非加密文件（普通用户文件）原样读取，零影响。
+#[cfg(not(test))]
+pub(crate) fn read_file_with_attachment_decrypt<R: tauri::Runtime>(
+    app: &tauri::AppHandle<R>,
+    path: &Path,
+    max_size: u64,
+) -> Result<Vec<u8>, String> {
+    if solosoul_core::attachment_crypto::is_encrypted_file(path) {
+        let key_arr: [u8; 32] = {
+            let state = app
+                .try_state::<AppState>()
+                .ok_or_else(|| "无法获取附件解密密钥".to_string())?;
+            let svc = state
+                .vault_service
+                .read()
+                .map_err(|_| "Vault service lock poisoned".to_string())?;
+            let key = svc
+                .attachment_encryption_key()
+                .map_err(|e| format!("无法获取附件解密密钥: {}", e))?;
+            key.as_slice()
+                .try_into()
+                .map_err(|_| "附件密钥长度错误".to_string())?
+        };
+        solosoul_core::attachment_crypto::read_file_decrypted(&key_arr, path, max_size)
+    } else {
+        std::fs::read(path).map_err(|e| format!("Read: {}", e))
+    }
+}
+
+/// 测试变体：不依赖 AppState（测试环境无 Tauri 状态），非加密文件直接读。
+#[cfg(test)]
+pub(crate) fn read_file_with_attachment_decrypt<R: tauri::Runtime>(
+    _app: &tauri::AppHandle<R>,
+    path: &Path,
+    max_size: u64,
+) -> Result<Vec<u8>, String> {
+    let meta = std::fs::metadata(path).map_err(|e| format!("Read: {}", e))?;
+    if meta.len() > max_size {
+        return Err(format!("File too large: {} bytes", meta.len()));
+    }
+    std::fs::read(path).map_err(|e| format!("Read: {}", e))
+}
+
 /// Resolve `path` within any allowed filesystem base directory. Filesystem
 /// commands that operate on user-selected paths must use this helper.
 ///
@@ -308,20 +354,9 @@ pub async fn fs_read_file_as_data_url<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     path: String,
 ) -> Result<String, String> {
-    use std::io::Read;
     let p = resolve_allowed_path(&app, &path)?;
-    let mut file = std::fs::File::open(&p).map_err(|e| format!("Open: {}", e))?;
-    let meta = file.metadata().map_err(|e| format!("Metadata: {}", e))?;
-    if meta.len() > MAX_DATA_URL_SIZE {
-        return Err(format!(
-            "File too large for preview: {} bytes (max {})",
-            meta.len(),
-            MAX_DATA_URL_SIZE
-        ));
-    }
-    let mut buf = Vec::new();
-    file.read_to_end(&mut buf)
-        .map_err(|e| format!("Read: {}", e))?;
+    // P001: vault 附件密文自动解密；普通文件原样读取。
+    let buf = read_file_with_attachment_decrypt(&app, &p, MAX_DATA_URL_SIZE)?;
     let ext = p.extension().and_then(|e| e.to_str()).unwrap_or("");
     let mime = match ext.to_lowercase().as_str() {
         "png" => "image/png",
@@ -345,17 +380,10 @@ pub async fn fs_read_file_as_data_url<R: tauri::Runtime>(
 ///
 /// 纯函数便于单测；调用方（`fs_read_image_preview`）负责路径白名单校验与 spawn_blocking。
 /// 失败场景（文件不存在/超限/解码失败如 HEIC）均返回 Err，由前端降级为占位图。
-fn generate_image_preview(path: &Path, max_dim: u32) -> Result<String, String> {
+/// `bytes` 为文件内容（P001：调用方已对 vault 附件密文解密，此处直接解码内存）。
+fn generate_image_preview_from_bytes(bytes: &[u8], max_dim: u32) -> Result<String, String> {
     let max_dim = max_dim.min(MAX_PREVIEW_DIM);
-    let meta = std::fs::metadata(path).map_err(|e| format!("Metadata: {e}"))?;
-    if meta.len() > MAX_IMAGE_PREVIEW_READ_SIZE {
-        return Err(format!(
-            "File too large for image preview: {} bytes (max {})",
-            meta.len(),
-            MAX_IMAGE_PREVIEW_READ_SIZE
-        ));
-    }
-    let img = image::open(path).map_err(|e| format!("Decode: {e}"))?;
+    let img = image::load_from_memory(bytes).map_err(|e| format!("Decode: {e}"))?;
     let img = if max_dim > 0 && (img.width() > max_dim || img.height() > max_dim) {
         img.thumbnail(max_dim, max_dim)
     } else {
@@ -389,7 +417,20 @@ pub async fn fs_read_image_preview<R: tauri::Runtime>(
     max_dim: u32,
 ) -> Result<String, String> {
     let p = resolve_allowed_path(&app, &path)?;
-    tokio::task::spawn_blocking(move || generate_image_preview(&p, max_dim))
+    // P001: vault 附件密文自动解密（图片解码改为内存解码）。
+    let max_dim = max_dim.min(MAX_PREVIEW_DIM);
+    let bytes = {
+        let meta = std::fs::metadata(&p).map_err(|e| format!("Metadata: {e}"))?;
+        if meta.len() > MAX_IMAGE_PREVIEW_READ_SIZE {
+            return Err(format!(
+                "File too large for image preview: {} bytes (max {})",
+                meta.len(),
+                MAX_IMAGE_PREVIEW_READ_SIZE
+            ));
+        }
+        read_file_with_attachment_decrypt(&app, &p, MAX_IMAGE_PREVIEW_READ_SIZE)?
+    };
+    tokio::task::spawn_blocking(move || generate_image_preview_from_bytes(&bytes, max_dim))
         .await
         .map_err(|e| format!("fs_read_image_preview task failed: {e}"))?
 }
@@ -401,21 +442,10 @@ pub async fn fs_read_file_as_text<R: tauri::Runtime>(
     app: tauri::AppHandle<R>,
     path: String,
 ) -> Result<String, String> {
-    use std::io::Read;
     let p = resolve_allowed_path(&app, &path)?;
-    let mut file = std::fs::File::open(&p).map_err(|e| format!("Open: {}", e))?;
-    let meta = file.metadata().map_err(|e| format!("Metadata: {}", e))?;
-    if meta.len() > MAX_DATA_URL_SIZE {
-        return Err(format!(
-            "File too large for preview: {} bytes (max {})",
-            meta.len(),
-            MAX_DATA_URL_SIZE
-        ));
-    }
-    let mut buf = String::new();
-    file.read_to_string(&mut buf)
-        .map_err(|e| format!("Read: {}", e))?;
-    Ok(buf)
+    // P001: vault 附件密文自动解密；普通文件原样读取。
+    let buf = read_file_with_attachment_decrypt(&app, &p, MAX_DATA_URL_SIZE)?;
+    String::from_utf8(buf).map_err(|e| format!("Text decode: {}", e))
 }
 
 #[cfg(test)]
@@ -600,7 +630,8 @@ mod tests {
         image::RgbaImage::from_pixel(2000, 1000, image::Rgba([200, 30, 40, 255]))
             .save(&path)
             .unwrap();
-        let url = generate_image_preview(&path, 256).unwrap();
+        let bytes = std::fs::read(&path).unwrap();
+        let url = generate_image_preview_from_bytes(&bytes, 256).unwrap();
         assert!(url.starts_with("data:image/jpeg;base64,"));
 
         let b64 = url.strip_prefix("data:image/jpeg;base64,").unwrap();
@@ -618,7 +649,8 @@ mod tests {
         image::RgbaImage::from_pixel(100, 50, image::Rgba([10, 200, 30, 255]))
             .save(&path)
             .unwrap();
-        let url = generate_image_preview(&path, 256).unwrap();
+        let bytes = std::fs::read(&path).unwrap();
+        let url = generate_image_preview_from_bytes(&bytes, 256).unwrap();
         let b64 = url.strip_prefix("data:image/jpeg;base64,").unwrap();
         let bytes =
             base64::Engine::decode(&base64::engine::general_purpose::STANDARD, b64).unwrap();
@@ -634,7 +666,8 @@ mod tests {
         image::RgbaImage::from_pixel(2000, 1000, image::Rgba([1, 2, 3, 255]))
             .save(&path)
             .unwrap();
-        let url = generate_image_preview(&path, 0).unwrap();
+        let bytes = std::fs::read(&path).unwrap();
+        let url = generate_image_preview_from_bytes(&bytes, 0).unwrap();
         let b64 = url.strip_prefix("data:image/jpeg;base64,").unwrap();
         let bytes =
             base64::Engine::decode(&base64::engine::general_purpose::STANDARD, b64).unwrap();
@@ -644,22 +677,10 @@ mod tests {
     }
 
     #[test]
-    fn test_generate_image_preview_rejects_missing_file() {
-        let dir = TempDir::new().unwrap();
-        let missing = dir.path().join("missing.png");
-        assert!(generate_image_preview(&missing, 256).is_err());
-    }
-
-    #[test]
-    fn test_generate_image_preview_rejects_oversize_file() {
-        let dir = TempDir::new().unwrap();
-        let path = dir.path().join("huge.bin");
-        // 超过 MAX_IMAGE_PREVIEW_READ_SIZE 的稀疏文件（尺寸检查先于解码，无需真实内容）
-        fs::File::create(&path)
-            .unwrap()
-            .set_len(MAX_IMAGE_PREVIEW_READ_SIZE + 1)
-            .unwrap();
-        assert!(generate_image_preview(&path, 256).is_err());
+    fn test_generate_image_preview_rejects_undecodable_bytes() {
+        // 密文/损坏数据应返回 Err（解码失败），由前端降级为占位图。
+        let url = generate_image_preview_from_bytes(b"not an image at all", 256);
+        assert!(url.is_err());
     }
 
     #[test]
@@ -669,17 +690,10 @@ mod tests {
         image::RgbaImage::from_pixel(100, 50, image::Rgba([1, 1, 1, 255]))
             .save(&path)
             .unwrap();
+        let bytes = std::fs::read(&path).unwrap();
         // 即使传入超大的 max_dim，也按 MAX_PREVIEW_DIM 钳制后正常生成（小图不放大）
-        let url = generate_image_preview(&path, u32::MAX).unwrap();
+        let url = generate_image_preview_from_bytes(&bytes, u32::MAX).unwrap();
         assert!(url.starts_with("data:image/jpeg;base64,"));
-    }
-
-    #[test]
-    fn test_generate_image_preview_rejects_undecodable_file() {
-        let dir = TempDir::new().unwrap();
-        let path = dir.path().join("not-an-image.png");
-        fs::write(&path, b"definitely not a png").unwrap();
-        assert!(generate_image_preview(&path, 256).is_err());
     }
 
     // N001: `fs_read_image_preview` 内部经 `tokio::task::spawn_blocking` 解码缩略图，

@@ -840,6 +840,16 @@ impl super::VaultService {
         // R-4① 方案 2：config 写入成功 → 交换完成，清除 pending。
         self.remove_config_pending(account_id);
 
+        // P001：附件目录重加密——附件以附件密钥（HKDF 派生）加密落盘，改密后
+        // 会话密钥变化 → 附件密钥随之变化，必须把全部附件重加密到新密钥，
+        // 否则改密后附件全部无法解密。发生在 config 交换完成后、会话切换前：
+        // 此时旧密钥仍可派生旧附件密钥（self 仍持 old_key_arr 派生），且
+        // 失败可整体回滚（下方 reopen 失败路径已有回滚语义，附件重加密先于
+        // 会话切换，最坏情况是附件仍为旧钥——与数据库 reencrypt 事务同级对齐）。
+        let old_att_key: [u8; 32] = crate::attachment_crypto::derive_attachment_key(&old_key_arr)?;
+        let new_att_key: [u8; 32] = crate::attachment_crypto::derive_attachment_key(&new_key_arr)?;
+        self.reencrypt_attachments(&old_att_key, &new_att_key)?;
+
         // Update session key and reopen vault with new data key.
         self.reopen_vault_with_new_key(
             account_id,
@@ -874,8 +884,97 @@ impl super::VaultService {
         Ok(())
     }
 
+    /// P001：附件目录重加密（改密/换钥后调用）。
+    ///
+    /// 遍历当前账户的 `attachments/{object_id}/{attachment_id}/` 下所有文件，
+    /// 对 SOLC 密文解密后用新附件密钥重新加密；旧明文（未加密历史数据）直接
+    /// 加密为新密文。任一文件失败即整体返回 Err（保持与数据库 reencrypt 的
+    /// 事务式语义一致，避免部分附件可用部分不可用的混态）。
+    fn reencrypt_attachments(
+        &self,
+        old_att_key: &[u8; 32],
+        new_att_key: &[u8; 32],
+    ) -> Result<(), String> {
+        let account_id = self
+            .get_current_account()
+            .ok_or_else(|| "Vault not unlocked".to_string())?;
+        let account_dir = self
+            .fs
+            .local_path(&self.account_dir_rel(&account_id))
+            .ok_or("无法解析账户本地目录")?;
+        let attachments_root = account_dir.join("attachments");
+        if !attachments_root.exists() {
+            return Ok(()); // 无附件，无操作
+        }
+        // 递归遍历附件目录（结构固定：attachments/{object_id}/{attachment_id}/{file}，
+        // 手写 read_dir 递归避免为一次性遍历引入 walkdir 依赖）。
+        let mut files: Vec<std::path::PathBuf> = Vec::new();
+        Self::collect_attachment_files(&attachments_root, &mut files)?;
+        for path in files {
+            // 旧明文直接加密；SOLC 密文先解密再加密；其他密文格式错误则报错。
+            if crate::attachment_crypto::is_encrypted_file(&path) {
+                // 解密到临时文件，再用新密钥加密覆盖
+                let temp_path = path.with_extension("rekey.tmp");
+                crate::attachment_crypto::copy_decrypt_file(old_att_key, &path, &temp_path)
+                    .map_err(|e| format!("附件解密失败 ({}): {}", path.display(), e))?;
+                crate::attachment_crypto::encrypt_file_stream(new_att_key, &temp_path, &path)
+                    .map_err(|e| format!("附件重加密失败 ({}): {}", path.display(), e))?;
+                std::fs::remove_file(&temp_path)
+                    .map_err(|e| format!("附件临时文件清理失败: {}", e))?;
+            } else {
+                // 旧明文（未加密历史数据）：直接加密为新密文
+                let temp_path = path.with_extension("rekey.tmp");
+                crate::attachment_crypto::encrypt_file_stream(new_att_key, &path, &temp_path)
+                    .map_err(|e| format!("附件加密失败 ({}): {}", path.display(), e))?;
+                std::fs::rename(&temp_path, &path)
+                    .map_err(|e| format!("附件替换失败 ({}): {}", path.display(), e))?;
+            }
+        }
+        tracing::info!("附件目录已重加密（改密）: {}", attachments_root.display());
+        Ok(())
+    }
+
+    /// 递归收集目录下所有文件（P001 附件重加密用）。
+    fn collect_attachment_files(
+        dir: &std::path::Path,
+        out: &mut Vec<std::path::PathBuf>,
+    ) -> Result<(), String> {
+        let entries = std::fs::read_dir(dir).map_err(|e| format!("附件目录遍历失败: {}", e))?;
+        for entry in entries {
+            let entry = entry.map_err(|e| format!("附件目录遍历失败: {}", e))?;
+            let path = entry.path();
+            let ft = entry
+                .file_type()
+                .map_err(|e| format!("附件元数据读取失败: {}", e))?;
+            if ft.is_dir() {
+                Self::collect_attachment_files(&path, out)?;
+            } else if ft.is_file() {
+                out.push(path);
+            }
+        }
+        Ok(())
+    }
+
     pub fn get_session_key(&self) -> Option<zeroize::Zeroizing<[u8; 32]>> {
         self.session_key.read().ok()?.clone()
+    }
+
+    /// P001：附件静态加密密钥——由会话密钥经 HKDF 域分离派生。
+    ///
+    /// 同一密码在任何设备/会话上派生同一密钥（SAF/设备同步传输附件密文即可，
+    /// 无需额外分发密钥），且与数据库密钥（session_key 本身）密码学隔离——
+    /// 附件文件即使被挪作他用也无法用数据库密钥解密。
+    /// 未解锁（无会话密钥）时返回 Err。
+    pub fn attachment_encryption_key(&self) -> Result<Zeroizing<[u8; 32]>, String> {
+        let session_key = self
+            .get_session_key()
+            .ok_or_else(|| "Vault is locked".to_string())?;
+        let key_arr: [u8; 32] = session_key
+            .as_slice()
+            .try_into()
+            .map_err(|_| "Session key must be 32 bytes".to_string())?;
+        let att_key = crate::attachment_crypto::derive_attachment_key(&key_arr)?;
+        Ok(Zeroizing::new(att_key))
     }
 
     pub fn get_vault_store(&self) -> Option<Arc<solosoul_vault::VaultStore>> {

@@ -113,15 +113,21 @@ fn handle_request<R: tauri::Runtime>(
         return error_response(StatusCode::PAYLOAD_TOO_LARGE, "pdf too large");
     }
 
-    match std::fs::read(&resolved) {
-        Ok(bytes) => Response::builder()
-            .status(StatusCode::OK)
-            .header(header::CONTENT_TYPE, "application/pdf")
-            .header(header::CONTENT_LENGTH, bytes.len().to_string())
-            .body(bytes)
-            .unwrap(),
-        Err(_) => error_response(StatusCode::INTERNAL_SERVER_ERROR, "read failed"),
-    }
+    // P001: vault 附件 PDF 已加密落盘——SOLC 密文则解密后返回，旧明文直读。
+    let bytes = match crate::commands::fs::read_file_with_attachment_decrypt(
+        app,
+        &resolved,
+        MAX_PDF_PREVIEW_SIZE,
+    ) {
+        Ok(b) => b,
+        Err(_) => return error_response(StatusCode::INTERNAL_SERVER_ERROR, "read failed"),
+    };
+    Response::builder()
+        .status(StatusCode::OK)
+        .header(header::CONTENT_TYPE, "application/pdf")
+        .header(header::CONTENT_LENGTH, bytes.len().to_string())
+        .body(bytes)
+        .unwrap()
 }
 
 fn error_response(status: StatusCode, msg: &str) -> Response<Vec<u8>> {

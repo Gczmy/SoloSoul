@@ -579,9 +579,10 @@ fn test_copy_into_dir_same_name_no_overwrite() {
     let src2 = tmp.path().join("src-2");
     std::fs::write(&src1, b"content-A").unwrap();
     std::fs::write(&src2, b"content-B").unwrap();
+    let att_key = [0x42u8; 32];
 
-    let r1 = copy_into_dir(tmp.path(), &src1, "2").unwrap();
-    let r2 = copy_into_dir(tmp.path(), &src2, "2").unwrap();
+    let r1 = copy_into_dir(tmp.path(), &src1, "2", &att_key).unwrap();
+    let r2 = copy_into_dir(tmp.path(), &src2, "2", &att_key).unwrap();
 
     // 两次分享同名附件得到不同路径，内容互不覆盖
     assert_ne!(r1, r2);

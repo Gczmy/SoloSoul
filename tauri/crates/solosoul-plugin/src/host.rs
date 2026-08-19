@@ -1320,7 +1320,17 @@ fn copy_attachment_to_workspace(
     let dst = dst_dir.join(&safe_name);
 
     std::fs::create_dir_all(&dst_dir).map_err(|e| format!("创建工作区目录失败: {}", e))?;
-    std::fs::copy(&src, &dst).map_err(|e| format!("复制附件失败 ({}): {}", src.display(), e))?;
+    // P001: vault 附件加密落盘——插件需要明文，SOLC 密文先解密（旧明文直拷）。
+    match resolver.attachment_key_ref() {
+        Some(key) => {
+            solosoul_core::attachment_crypto::copy_decrypt_file(key, &src, &dst)
+                .map_err(|e| format!("复制附件失败 ({}): {}", src.display(), e))?;
+        }
+        None => {
+            std::fs::copy(&src, &dst)
+                .map_err(|e| format!("复制附件失败 ({}): {}", src.display(), e))?;
+        }
+    }
 
     Ok(dst)
 }

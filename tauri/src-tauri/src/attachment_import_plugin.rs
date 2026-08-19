@@ -425,14 +425,22 @@ pub async fn attachment_import_content_uri<R: Runtime>(
     // Vault 必须处于解锁状态。
     let _vault = vault_handle(&state)?;
 
-    // 尽早释放 vault_service read guard：先拿到 base_path 并创建目标目录，
+    // 尽早释放 vault_service read guard：先拿到 base_path + 附件密钥并创建目标目录，
     // 避免长时间阻塞在 JNI 文件复制期间仍持有锁。
-    let base = {
+    // P001: 附件密钥用于复制完成后就地加密（vault 内附件加密落盘）。
+    let (base, att_key) = {
         let svc = state
             .vault_service
             .read()
             .map_err(|_| "Vault service lock poisoned".to_string())?;
-        svc.base_path().clone()
+        let key = svc
+            .attachment_encryption_key()
+            .map_err(|e| format!("无法获取附件密钥: {}", e))?;
+        let key_arr: [u8; 32] = key
+            .as_slice()
+            .try_into()
+            .map_err(|_| "附件密钥长度错误".to_string())?;
+        (svc.base_path().clone(), key_arr)
     };
 
     // 计算并创建 Vault 目标目录。
@@ -448,18 +456,29 @@ pub async fn attachment_import_content_uri<R: Runtime>(
         object_id,
         attachment_id,
         content_uri,
-        file_name: safe_name,
+        file_name: safe_name.clone(),
         dest_path: dest_path.to_string_lossy().to_string(),
     };
 
     // JNI 文件复制会阻塞当前线程，放到 spawn_blocking 避免阻塞 tokio worker。
     // 注意：在 spawn_blocking 内部重新获取插件句柄，避免引用 `app` 导致生命周期错误。
-    tokio::task::spawn_blocking(move || {
+    let result = tokio::task::spawn_blocking(move || {
         let handle = app.state::<AttachmentImportPluginHandle<R>>();
         handle.import_content_uri(payload)
     })
     .await
-    .map_err(|e| format!("Import task failed: {}", e))?
+    .map_err(|e| format!("Import task failed: {}", e))??;
+
+    // P001: Kotlin 复制到 dest_path 的是明文——立即就地加密（读明文 → 写密文临时 → 原子替换），
+    // 消除明文落盘窗口。旧数据为密文时跳过（幂等）。
+    if !solosoul_core::attachment_crypto::is_encrypted_file(&dest_path) {
+        let tmp_path = dest_dir.join(format!("{}.enc.tmp", safe_name));
+        solosoul_core::attachment_crypto::encrypt_file_stream(&att_key, &dest_path, &tmp_path)
+            .map_err(|e| format!("附件落盘加密失败: {}", e))?;
+        std::fs::rename(&tmp_path, &dest_path).map_err(|e| format!("附件加密替换失败: {}", e))?;
+    }
+
+    Ok(result)
 }
 
 /// 把 Vault 中的附件文件直接导出到 Android content:// URI。
@@ -478,11 +497,20 @@ pub async fn attachment_export_content_uri<R: Runtime>(
     // Vault 必须处于解锁状态。
     let _vault = vault_handle(&state)?;
 
-    let svc = state
-        .vault_service
-        .read()
-        .map_err(|_| "Vault service lock poisoned".to_string())?;
-    let base = svc.base_path().clone();
+    let (base, att_key) = {
+        let svc = state
+            .vault_service
+            .read()
+            .map_err(|_| "Vault service lock poisoned".to_string())?;
+        let key = svc
+            .attachment_encryption_key()
+            .map_err(|e| format!("无法获取附件密钥: {}", e))?;
+        let key_arr: [u8; 32] = key
+            .as_slice()
+            .try_into()
+            .map_err(|_| "附件密钥长度错误".to_string())?;
+        (svc.base_path().clone(), key_arr)
+    };
     let attachments_dir = base.join("attachments");
 
     // 校验源文件在 Vault attachments 目录内，防止路径遍历。
@@ -527,11 +555,22 @@ pub async fn attachment_export_content_uri<R: Runtime>(
         return Err("Source path must be within vault attachments storage".to_string());
     }
 
+    // P001: Kotlin ContentResolver 只能读明文——先把 vault 密文解密到临时明文再交给插件。
+    let temp_dir = std::env::temp_dir().join("solosoul_export");
+    std::fs::create_dir_all(&temp_dir)
+        .map_err(|e| format!("Failed to prepare export dir: {}", e))?;
+    let temp_src = temp_dir.join(format!("{}.tmp", uuid::Uuid::new_v4()));
+    solosoul_core::attachment_crypto::copy_decrypt_file(&att_key, &src, &temp_src)
+        .map_err(|e| format!("Failed to decrypt for export: {}", e))?;
+
     let handle = app.state::<AttachmentImportPluginHandle<R>>();
-    handle.export_content_uri(ExportContentUriPayload {
-        src_path: src.to_string_lossy().to_string(),
+    let result = handle.export_content_uri(ExportContentUriPayload {
+        src_path: temp_src.to_string_lossy().to_string(),
         dest_uri,
-    })
+    });
+    // 清理临时明文（成功/失败都清理）。
+    let _ = std::fs::remove_file(&temp_src);
+    result
 }
 
 /// 把 Vault 中的附件文件导出到 Android SAF tree URI 目录。
@@ -552,11 +591,20 @@ pub async fn attachment_export_tree_uri<R: Runtime>(
     // Vault 必须处于解锁状态。
     let _vault = vault_handle(&state)?;
 
-    let svc = state
-        .vault_service
-        .read()
-        .map_err(|_| "Vault service lock poisoned".to_string())?;
-    let base = svc.base_path().clone();
+    let (base, att_key) = {
+        let svc = state
+            .vault_service
+            .read()
+            .map_err(|_| "Vault service lock poisoned".to_string())?;
+        let key = svc
+            .attachment_encryption_key()
+            .map_err(|e| format!("无法获取附件密钥: {}", e))?;
+        let key_arr: [u8; 32] = key
+            .as_slice()
+            .try_into()
+            .map_err(|_| "附件密钥长度错误".to_string())?;
+        (svc.base_path().clone(), key_arr)
+    };
     let attachments_dir = base.join("attachments");
 
     let (src, src_canonicalized) = std::path::Path::new(&src_path)
@@ -591,13 +639,24 @@ pub async fn attachment_export_tree_uri<R: Runtime>(
         return Err("Source path must be within vault attachments storage".to_string());
     }
 
+    // P001: Kotlin ContentResolver 只能读明文——先把 vault 密文解密到临时明文再交给插件。
+    let temp_dir = std::env::temp_dir().join("solosoul_export");
+    std::fs::create_dir_all(&temp_dir)
+        .map_err(|e| format!("Failed to prepare export dir: {}", e))?;
+    let temp_src = temp_dir.join(format!("{}.tmp", uuid::Uuid::new_v4()));
+    solosoul_core::attachment_crypto::copy_decrypt_file(&att_key, &src, &temp_src)
+        .map_err(|e| format!("Failed to decrypt for export: {}", e))?;
+
     let handle = app.state::<AttachmentImportPluginHandle<R>>();
-    handle.export_to_tree_uri(ExportToTreeUriPayload {
-        src_path: src.to_string_lossy().to_string(),
+    let result = handle.export_to_tree_uri(ExportToTreeUriPayload {
+        src_path: temp_src.to_string_lossy().to_string(),
         tree_uri,
         file_name,
         mime_type,
-    })
+    });
+    // 清理临时明文（成功/失败都清理）。
+    let _ = std::fs::remove_file(&temp_src);
+    result
 }
 
 /// 把 Android content:// URI 复制到应用缓存目录下的本地路径（通用中转，不绑定 Vault）。

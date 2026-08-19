@@ -518,6 +518,7 @@ impl PluginManager {
     }
 
     /// 运行插件
+    /// `attachment_key`: P001 附件静态加密密钥（插件复制附件到工作区前解密）。
     pub async fn run(
         &self,
         plugin_id: &str,
@@ -525,6 +526,7 @@ impl PluginManager {
         channel: std::sync::Arc<dyn PluginEventSink>,
         vault_store: Option<Arc<VaultStore>>,
         account_id: Option<String>,
+        attachment_key: Option<[u8; 32]>,
     ) -> Result<PluginResult, PluginError> {
         let wasm_bytes = self.store.load_wasm(plugin_id)?;
         let manifest = self.store.load_manifest(plugin_id)?;
@@ -540,12 +542,16 @@ impl PluginManager {
 
         let field_resolver = match (vault_store, account_id) {
             (Some(vault), Some(account)) => {
-                Arc::new(super::FieldResolver::with_vault_and_contracts(
+                let mut resolver = super::FieldResolver::with_vault_and_contracts(
                     vault,
                     account,
                     manifest.permissions.clone(),
                     manifest.contracts.clone(),
-                ))
+                );
+                if let Some(key) = attachment_key {
+                    resolver = resolver.with_attachment_key(key);
+                }
+                Arc::new(resolver)
             }
             _ => self.field_resolver.clone(),
         };

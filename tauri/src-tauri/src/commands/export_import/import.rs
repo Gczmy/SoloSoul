@@ -343,6 +343,14 @@ pub(crate) async fn import_execute_internal(
         selected_attachment_ids.map(|ids| ids.into_iter().collect());
 
     // ── 阶段 5+6：导入附件与偏好设置（附件进度续接 80-100）──
+    // P001: 导入落盘前取 vault 附件密钥（附件需加密落盘）。
+    let vault_att_key = svc
+        .attachment_encryption_key()
+        .map_err(|e| format!("无法获取附件密钥: {}", e))?;
+    let vault_att_key_arr: [u8; 32] = vault_att_key
+        .as_slice()
+        .try_into()
+        .map_err(|_| "附件密钥长度错误".to_string())?;
     let imported_attachments_count = import_attachments_and_preferences(
         vault,
         svc.base_path(),
@@ -356,6 +364,7 @@ pub(crate) async fn import_execute_internal(
         &now,
         progress.clone(),
         &account_id,
+        &vault_att_key_arr,
     )?;
 
     let details = build_import_details(imported, imported_attachments_count, &file_path, strategy);
@@ -457,6 +466,7 @@ fn import_attachments_and_preferences(
     now: &str,
     progress: Option<Arc<dyn Fn(u8) + Send + Sync>>,
     account_id: &str,
+    vault_att_key: &[u8; 32],
 ) -> Result<usize, String> {
     let att_progress = progress.map(wrap_attachment_progress);
     let imported_attachments_count = if manifest.has_attachments {
@@ -472,6 +482,7 @@ fn import_attachments_and_preferences(
             sel_att_ids_set,
             now,
             att_progress.as_deref(),
+            vault_att_key,
         )?
     } else {
         0
@@ -1048,6 +1059,7 @@ fn import_attachments(
     sel_att_ids_set: Option<&std::collections::HashSet<String>>,
     now: &str,
     progress: Option<&(dyn Fn(u8) + Send + Sync)>,
+    vault_att_key: &[u8; 32],
 ) -> Result<usize, String> {
     // Derive attachment key via HKDF
     let salt = hex::decode(&manifest.salt_hex).map_err(|e| format!("Invalid salt: {}", e))?;
@@ -1106,7 +1118,14 @@ fn import_attachments(
             None => continue,
         };
         let new_att = extract_att_meta_for_object(
-            base_path, &att_key, &mut f, obj_id, old_meta, id_map, now,
+            base_path,
+            &att_key,
+            &mut f,
+            obj_id,
+            old_meta,
+            id_map,
+            now,
+            vault_att_key,
         )?;
         imported_atts
             .entry(obj_id.to_string())
@@ -1172,6 +1191,7 @@ fn extract_att_meta_for_object(
     old_meta: &AttachmentMeta,
     id_map: &HashMap<String, String>,
     now: &str,
+    vault_att_key: &[u8; 32],
 ) -> Result<AttachmentMeta, String> {
     let new_att_id = generate_id();
     // KeepBoth 场景下附件目录应使用新对象 ID，否则后续 load_object 基于新 ID 查找会找不到
@@ -1200,13 +1220,25 @@ fn extract_att_meta_for_object(
         return Err("Invalid attachment file name in package".to_string());
     }
     let file_path_dest = dest.join(&safe_name);
-    let mut out_file =
-        File::create(&file_path_dest).map_err(|e| format!("create attachment file: {}", e))?;
-    solosoul_crypto::cipher::decrypt_chunked_stream(att_key, f, &mut out_file)
+
+    // P001: 先解密 ZIP 附件到临时明文，再以 vault 附件密钥加密落盘（消除明文窗口）。
+    let temp_dir = std::env::temp_dir().join("solosoul_import_att");
+    std::fs::create_dir_all(&temp_dir).map_err(|e| e.to_string())?;
+    let temp_path = temp_dir.join(format!("{}.plain", uuid::Uuid::new_v4()));
+    let mut temp_file =
+        File::create(&temp_path).map_err(|e| format!("create temp attachment: {}", e))?;
+    solosoul_crypto::cipher::decrypt_chunked_stream(att_key, f, &mut temp_file)
         .map_err(|e| format!("decrypt attachment stream: {}", e))?;
-    let file_size = std::fs::metadata(&file_path_dest)
-        .map(|m| m.len())
-        .unwrap_or(0);
+    drop(temp_file);
+    let file_size = std::fs::metadata(&temp_path).map(|m| m.len()).unwrap_or(0);
+    let encrypt_result = solosoul_core::attachment_crypto::encrypt_file_stream(
+        vault_att_key,
+        &temp_path,
+        &file_path_dest,
+    )
+    .map_err(|e| format!("encrypt attachment at rest: {}", e));
+    let _ = std::fs::remove_file(&temp_path);
+    encrypt_result?;
 
     Ok(AttachmentMeta {
         id: new_att_id,

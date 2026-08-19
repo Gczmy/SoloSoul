@@ -464,12 +464,15 @@ fn collect_attachment_entries(
 }
 
 /// 用 HKDF 派生附件密钥并流式加密写入 ZIP。返回是否写入过附件。
+/// `vault_att_key`：P001 vault 附件静态加密密钥——附件源在 vault 内加密落盘，
+/// 导出前需先解密；旧明文（未加密历史数据）自动跳过解密直接加密进包。
 fn write_attachment_entries(
     zip: &mut ZipWriter<File>,
     options: SimpleFileOptions,
     key: &[u8; 32],
     salt: &[u8],
     entries: &[ExportAttachmentEntry],
+    vault_att_key: &[u8; 32],
 ) -> Result<bool, String> {
     if entries.is_empty() {
         return Ok(false);
@@ -478,17 +481,41 @@ fn write_attachment_entries(
     let att_key = solosoul_crypto::hkdf_ext::derive_hkdf_key(key, salt, b"solosoul:attachments:v1")
         .map_err(|e| format!("derive att key: {e}"))?;
     for entry in entries {
-        let file_size = std::fs::metadata(&entry.src).map(|m| m.len()).unwrap_or(0);
         let zip_name = format!("attachments/{}/{}.enc", entry.obj_id, entry.att_id);
         zip.start_file(&zip_name, options)
             .map_err(|e| e.to_string())?;
 
-        // Always use streaming chunked encryption for attachments to avoid
-        // holding both plaintext and ciphertext in memory (P1-023).
-        let mut f = File::open(&entry.src).map_err(|e| format!("open attachment: {e}"))?;
-        let mut reader = std::io::BufReader::new(&mut f);
-        solosoul_crypto::cipher::encrypt_chunked_stream(&att_key, file_size, &mut reader, zip)
-            .map_err(|e| format!("encrypt attachment: {e}"))?;
+        // P001: vault 内附件可能为 SOLC 密文——先解密到临时明文再加密进包；
+        // 旧明文（无 SOLC 头）直接作为源（与历史行为一致，零迁移兼容）。
+        if solosoul_core::attachment_crypto::is_encrypted_file(&entry.src) {
+            let temp_dir = std::env::temp_dir().join("solosoul_export_att");
+            std::fs::create_dir_all(&temp_dir).map_err(|e| format!("prepare export temp: {e}"))?;
+            let temp_path = temp_dir.join(format!("{}.plain", uuid::Uuid::new_v4()));
+            solosoul_core::attachment_crypto::copy_decrypt_file(
+                vault_att_key,
+                &entry.src,
+                &temp_path,
+            )
+            .map_err(|e| format!("decrypt attachment: {e}"))?;
+            let file_size = std::fs::metadata(&temp_path).map(|m| m.len()).unwrap_or(0);
+            let mut f = File::open(&temp_path).map_err(|e| format!("open attachment: {e}"))?;
+            let mut reader = std::io::BufReader::new(&mut f);
+            let enc_result = solosoul_crypto::cipher::encrypt_chunked_stream(
+                &att_key,
+                file_size,
+                &mut reader,
+                zip,
+            )
+            .map_err(|e| format!("encrypt attachment: {e}"));
+            let _ = std::fs::remove_file(&temp_path);
+            enc_result?;
+        } else {
+            let file_size = std::fs::metadata(&entry.src).map(|m| m.len()).unwrap_or(0);
+            let mut f = File::open(&entry.src).map_err(|e| format!("open attachment: {e}"))?;
+            let mut reader = std::io::BufReader::new(&mut f);
+            solosoul_crypto::cipher::encrypt_chunked_stream(&att_key, file_size, &mut reader, zip)
+                .map_err(|e| format!("encrypt attachment: {e}"))?;
+        }
     }
     Ok(true)
 }
@@ -616,8 +643,22 @@ pub async fn export_execute(
         return Err(export_err("TOTAL_SIZE_EXCEEDED"));
     }
 
-    let has_attachments =
-        write_attachment_entries(&mut zip, options, &key, &salt, &attachment_entries)?;
+    // P001: 导出附件需 vault 附件密钥（源文件可能加密落盘，先解密再加密进包）。
+    let vault_att_key = svc
+        .attachment_encryption_key()
+        .map_err(|e| format!("无法获取附件密钥: {}", e))?;
+    let vault_att_key_arr: [u8; 32] = vault_att_key
+        .as_slice()
+        .try_into()
+        .map_err(|_| "附件密钥长度错误".to_string())?;
+    let has_attachments = write_attachment_entries(
+        &mut zip,
+        options,
+        &key,
+        &salt,
+        &attachment_entries,
+        &vault_att_key_arr,
+    )?;
 
     // ── P2: Preferences + Behavioral data（audit log）──
     let (extra_files, preferences_encrypted, behavioral_encrypted) = write_scope_extra_files(

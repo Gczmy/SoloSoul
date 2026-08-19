@@ -433,14 +433,22 @@ pub async fn attachment_copy_to_vault(
     attachment_id: String,
     file_name: String,
 ) -> Result<String, String> {
-    // P007: 提前在块作用域内取 base 并释放非 Send 的 vault_service guard，
+    // P007: 提前在块作用域内取 base + 附件密钥并释放非 Send 的 vault_service guard，
     // 避免后续 spawn_blocking 的 await 跨 guard 存活。
-    let base = {
+    // P001: 附件以加密形式落盘（at-rest），复制时用附件密钥加密写入。
+    let (base, att_key) = {
         let svc = state
             .vault_service
             .read()
             .map_err(|_| "Vault service lock poisoned".to_string())?;
-        svc.base_path().clone()
+        let key = svc
+            .attachment_encryption_key()
+            .map_err(|e| format!("无法获取附件密钥: {}", e))?;
+        let key_arr: [u8; 32] = key
+            .as_slice()
+            .try_into()
+            .map_err(|_| "附件密钥长度错误".to_string())?;
+        (svc.base_path().clone(), key_arr)
     };
 
     // Canonicalize src_path to resolve relative path traversal.
@@ -518,9 +526,11 @@ pub async fn attachment_copy_to_vault(
     let dest_path = dest_dir.join(&safe_name);
     let dest_path_str = dest_path.to_string_lossy().to_string();
     // P007: 大文件复制移入阻塞线程池，避免卡住 tokio worker（路径校验已在上方完成）
+    // P001: 加密写入（encrypt_chunked_stream，SOLC 头）——附件不再明文落盘。
     let (src, dest_path) = (src.clone(), dest_path);
     tauri::async_runtime::spawn_blocking(move || {
-        std::fs::copy(&src, &dest_path).map_err(|e| format!("Copy: {}", e))
+        solosoul_core::attachment_crypto::encrypt_file_stream(&att_key, &src, &dest_path)
+            .map_err(|e| format!("Encrypt copy: {}", e))
     })
     .await
     .map_err(|e| format!("Copy task panicked: {}", e))??;

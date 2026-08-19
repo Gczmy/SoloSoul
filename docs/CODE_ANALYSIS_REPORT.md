@@ -30,7 +30,7 @@
 
 | ID   | 优先级 | 类别       | 文件位置 | 描述 | 状态 |
 |------|--------|------------|----------|------|------|
-| P001 | P1 | 安全 | `tauri/crates/solosoul-core/src/objects.rs:1043-1045` | Vault 附件以明文落盘，仅导出/同步时才加密，与零知识定位不符 | `[ ]` 待修复 |
+| P001 | P1 | 安全 | `tauri/crates/solosoul-core/src/objects.rs:1043-1045` | Vault 附件以明文落盘，仅导出/同步时才加密，与零知识定位不符 | `[x]` 已修复（附件加密落盘，SOLC 头 + HKDF 派生密钥，写入/读取全链路覆盖） |
 | P002 | P1 | 前端缺陷 | `tauri/src/stores/objectStore.ts:194-196` | `updateObject` 吞错不抛出，编辑保存失败被误报「保存成功」并退出页面，数据静默丢失 | `[x]` 已修复（f585f43f） |
 | P003 | P1 | 前端缺陷 | `tauri/src/stores/settingsStore.ts:491-523` | `addCustomPage` 失败仍无条件 `return newPage`，调用方导航到后端不存在的页面 | `[x]` 已修复（d8648b3f） |
 | P004 | P1 | 前端缺陷 | `tauri/src/pages/ai/useLlmConfigPage.ts:190-228` | 本地 Embedding 开关/选模型 invoke 无 try/catch，失败后前后端状态漂移 | `[x]` 已修复（76cffe3d） |
@@ -56,25 +56,25 @@
 
 ## 修复进度
 
-- 已完成：6 / 23（P008、P009、P002、P003、P004、P018）
-- 当前处理：P001（附件加密落盘，用户已确认完整修复方向）
+- 已完成：7 / 23（P008、P009、P002、P003、P004、P018、P001）
+- 当前处理：P005
 
 ---
 
 ## 详细问题描述与修复指引
 
-### P001（P1 安全）Vault 附件明文落盘
+### P001（P1 安全）Vault 附件明文落盘（已完成）
 
-附件经 `copy_file_to_vault` 以明文复制到 `{base_path}/attachments/{object_id}/{attachment_id}/`：
+**修复方案（用户确认：完整加密落盘）**：附件以 `encrypt_chunked_stream`（SOLC magic 头）加密落盘，读取时检测 magic——SOLC 密文流式解密、旧明文直读（零迁移兼容）。密钥 = `HKDF(session_key, b"solosoul:attachments:at-rest", b"solosoul:attachments:at-rest:v1")`（与数据库密钥域分离，同密码跨设备派生同一密钥，同步无需分发）。
 
-```rust
-let safe_name = sanitize_file_name(file_name);
-let dest_path = dest_dir.join(&safe_name);
-std::fs::copy(&src, &dest_path).map_err(|e| format!("复制文件失败: {}", e))?;
-```
+**改动**（12 文件 + 1 新模块）：
+1. `attachment_crypto.rs`（新）— 密钥派生 / 流式加密 / 明文兼容解密 / magic 检测，+6 单测；
+2. `unlock.rs` — `VaultService::attachment_encryption_key()`（+2 单测）；`change_password` 改密后附件目录递归重加密（+1 集成单测）；
+3. 写入点：`crud.rs`（copy_to_vault 加密）、`attachment_import_plugin.rs`（Android importContentUri 复制后就地加密）、`import.rs`（导入落盘先解密 ZIP → 临时明文 → 加密写盘）、`objects.rs add_attachments`/`copy_file_to_vault`（CLI 用，`attachment_key: Option<&[u8; 32]>`）；
+4. 读取点：`mod.rs`（download/open 解密）、`share.rs`（分享解密）、`attachment_import_plugin.rs`（export_content_uri / export_tree_uri 先解密到临时明文再交 Kotlin）、`fs.rs`（三个预览命令 SOLC 自动解密，图片改内存解码）、`preview_pdf_protocol.rs`（PDF 协议解密）、`export.rs`（导出先解密源再加密进 ZIP）、`solosoul-plugin`（FieldResolver 注入密钥，插件工作区复制前解密）；
+5. CLI 同步：`solosoul_cli/commands/attachment.rs`（add_attachments 传密钥）、`plugin.rs`（run 传密钥）；solosoul-core `export_vault` 检测到密文附件时明确报错（CLI 无密钥，防双重加密损坏包）。
 
-`src-tauri/src/commands/attachment/` 全目录无 encrypt/decrypt 调用；仅导出（`export_import.rs:245-255`）与同步时才走 `encrypt_chunked_stream`。数据库字段加密而附件文件不加密，本地任意进程可直接读取附件内容。
-**修复建议**：附件按会话密钥加密落盘（crypto crate 已有分块基础设施，读取时流式解密）；或在文档/隐私政策中明确声明附件不做静态加密及理由。涉及威胁模型决策，修复前需用户确认方向。
+**验证**：workspace 测试全过（src-tauri 444 / core 194 / vault 163 / plugin 57…），clippy --all-targets 无警告，fmt 干净，solosoul-cli 编译通过。Kotlin 侧零改动（Rust 传临时明文路径）。
 
 ### P002（P1 前端缺陷）`updateObject` 吞错 → 假成功提示
 

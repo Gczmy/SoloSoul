@@ -198,16 +198,27 @@ pub async fn attachment_download(
     src_path: String,
     dest_path: String,
 ) -> Result<(), String> {
-    // P007: 提前在块作用域内取 vault_base 并释放非 Send 的 vault_service guard，
+    // P007: 提前在块作用域内取 vault_base + 附件密钥并释放非 Send 的 vault_service guard，
     // 避免后续 spawn_blocking 的 await 跨 guard 存活。
-    let vault_base = {
+    // P001: 附件在 vault 内加密存储，下载时解密复制（旧明文自动兼容）。
+    let (vault_base, att_key) = {
         let svc = state
             .vault_service
             .read()
             .map_err(|_| "Vault service lock poisoned".to_string())?;
-        svc.base_path()
-            .canonicalize()
-            .map_err(|_| "Invalid vault base path".to_string())?
+        let key = svc
+            .attachment_encryption_key()
+            .map_err(|e| format!("无法获取附件密钥: {}", e))?;
+        let key_arr: [u8; 32] = key
+            .as_slice()
+            .try_into()
+            .map_err(|_| "附件密钥长度错误".to_string())?;
+        (
+            svc.base_path()
+                .canonicalize()
+                .map_err(|_| "Invalid vault base path".to_string())?,
+            key_arr,
+        )
     };
 
     // Security: ensure the source path is within vault storage.
@@ -321,13 +332,15 @@ pub async fn attachment_download(
     let dest = make_unique_dest_path(dest);
 
     // P007: 建目录 + 大文件复制移入阻塞线程池，避免卡住 tokio worker
+    // P001: 解密复制（源为 SOLC 密文则解密，旧明文直接复制）。
     let (src, dest) = (src.clone(), dest.to_path_buf());
     tauri::async_runtime::spawn_blocking(move || {
         if let Some(parent) = dest.parent() {
             std::fs::create_dir_all(parent)
                 .map_err(|e| format!("Failed to create destination directory: {}", e))?;
         }
-        std::fs::copy(&src, &dest).map_err(|e| format!("Failed to copy file: {}", e))?;
+        solosoul_core::attachment_crypto::copy_decrypt_file(&att_key, &src, &dest)
+            .map_err(|e| format!("Failed to copy file: {}", e))?;
         Ok::<(), String>(())
     })
     .await
@@ -431,24 +444,50 @@ pub async fn attachment_open<R: Runtime>(
     object_id: String,
     attachment_id: String,
 ) -> Result<(), String> {
-    let svc = state
-        .vault_service
-        .read()
-        .map_err(|_| "Vault service lock poisoned".to_string())?;
-    let (path, _att) = resolve_verified_attachment_path(&svc, &object_id, &attachment_id)?;
+    let (path, _att, att_key) = {
+        let svc = state
+            .vault_service
+            .read()
+            .map_err(|_| "Vault service lock poisoned".to_string())?;
+        let key = svc
+            .attachment_encryption_key()
+            .map_err(|e| format!("无法获取附件密钥: {}", e))?;
+        let key_arr: [u8; 32] = key
+            .as_slice()
+            .try_into()
+            .map_err(|_| "附件密钥长度错误".to_string())?;
+        let (p, a) = resolve_verified_attachment_path(&svc, &object_id, &attachment_id)?;
+        (p, a, key_arr)
+    };
 
     #[cfg(target_os = "android")]
     {
+        // P001: 外部应用无法读取 vault 密文——先解密到临时明文再交给 FileProvider。
+        let temp_dir = std::env::temp_dir().join(format!("solosoul_open_{}", object_id));
+        std::fs::create_dir_all(&temp_dir)
+            .map_err(|e| format!("Failed to prepare open dir: {}", e))?;
+        let safe_name = solosoul_core::path_util::sanitize_file_name(&_att.file_name)?;
+        let temp_path = temp_dir.join(&safe_name);
+        solosoul_core::attachment_crypto::copy_decrypt_file(&att_key, &path, &temp_path)
+            .map_err(|e| format!("Failed to decrypt for open: {}", e))?;
         let handle = app.state::<AttachmentImportPluginHandle<R>>();
         handle.open_file(OpenFilePayload {
-            path: path.to_string_lossy().to_string(),
+            path: temp_path.to_string_lossy().to_string(),
             mime_type: _att.mime_type.clone(),
         })
     }
 
     #[cfg(not(target_os = "android"))]
     {
-        opener::open(&path).map_err(|e| format!("Failed to open file: {}", e))?;
+        // P001: 解密到临时明文再交给系统默认应用（外部应用无法读取 vault 密文）。
+        let temp_dir = std::env::temp_dir().join(format!("solosoul_open_{}", object_id));
+        std::fs::create_dir_all(&temp_dir)
+            .map_err(|e| format!("Failed to prepare open dir: {}", e))?;
+        let safe_name = solosoul_core::path_util::sanitize_file_name(&_att.file_name)?;
+        let temp_path = temp_dir.join(&safe_name);
+        solosoul_core::attachment_crypto::copy_decrypt_file(&att_key, &path, &temp_path)
+            .map_err(|e| format!("Failed to decrypt for open: {}", e))?;
+        opener::open(&temp_path).map_err(|e| format!("Failed to open file: {}", e))?;
         Ok(())
     }
 }

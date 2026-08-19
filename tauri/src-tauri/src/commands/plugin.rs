@@ -157,6 +157,13 @@ pub async fn plugin_run(
 ) -> Result<PluginResult, String> {
     let vault_store = vault_handle(&state).ok();
     let account_id = current_account_optional(&state);
+    // P001: 附件静态加密密钥——插件复制附件到工作区前解密。
+    let attachment_key = state
+        .vault_service
+        .read()
+        .ok()
+        .and_then(|svc| svc.attachment_encryption_key().ok())
+        .and_then(|k| k.as_slice().try_into().ok());
 
     // 将 Tauri IPC Channel 适配为 crate 的 PluginEventSink（P012 方向 B 第④步）
     let sink: std::sync::Arc<dyn crate::plugin::PluginEventSink> =
@@ -164,7 +171,14 @@ pub async fn plugin_run(
 
     state
         .plugin_manager
-        .run(&plugin_id, params, sink, vault_store, account_id)
+        .run(
+            &plugin_id,
+            params,
+            sink,
+            vault_store,
+            account_id,
+            attachment_key,
+        )
         .await
         .map_err(|e| e.to_string())
 }
