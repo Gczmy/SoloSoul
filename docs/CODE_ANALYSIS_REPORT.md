@@ -44,7 +44,7 @@
 | P012 | P2 | 安全 | `tauri/src-tauri/src/commands/auth.rs:159-176` | `verify_password` 不计失败、不触发阶梯锁定，构成无限速密码验证 oracle | `[x]` 已修复（937446b7） |
 | P013 | P2 | 性能 | `tauri/src-tauri/src/commands/export_import/export.rs:751-761` | 导出时快照收集为 N+M 嵌套查询（每对象 1 次 list + 每快照 1 次 get） | `[x]` 已修复（8612e564） |
 | P014 | P2 | 性能 | `tauri/src/pages/settings/useTrashPage.tsx:145-168` | 回收站批量恢复逐项串行 IPC，与批量删除的批量入参不一致 | `[x]` 已修复（c54c5524） |
-| P015 | P2 | 代码质量 | `tauri/src/pages/ai/useLlmConfigPage.ts:369,413`；`tauri/src/components/llm-config/ProviderManagerPanel.tsx:280` | API key 哨兵 `'••••••••'` 字面量硬编码三处，与 `lib/masking.ts:14` 的 `MASK_PLACEHOLDER` 脱钩 | `[ ]` 待修复 |
+| P015 | P2 | 代码质量 | `tauri/src/pages/ai/useLlmConfigPage.ts:369,413`；`tauri/src/components/llm-config/ProviderManagerPanel.tsx:280` | API key 哨兵 `'••••••••'` 字面量硬编码三处，与 `lib/masking.ts:14` 的 `MASK_PLACEHOLDER` 脱钩 | `[x]` 已修复（5c841a19） |
 | P016 | P2 | 代码质量 | `tauri/src/hooks/useAttachmentManagerBatchOps.ts:105-107` | 批量附件下载 catch-all 将任意异常误判为「用户取消」，无日志 | `[ ]` 待修复 |
 | P017 | P2 | 死代码 | `tauri/crates/solosoul-core/src/export_import.rs:129-131` | `ExportError::Crypto` 变体从未被构造 | `[ ]` 待修复 |
 | P018 | P2 | 死代码 | `tauri/scripts/tokenize-fonts.mjs`、`tokenize-icons.mjs`、`fix_invoke_keys.cjs`、`revert_invoke_keys.cjs` | 4 个一次性 codemod 脚本残留，package.json/CI/文档均无引用 | `[x]` 已修复（094e75b8，用户确认删除） |
@@ -58,7 +58,8 @@
 
 - 已完成：14 / 23（P008、P009、P002、P003、P004、P018、P001、P005、P006、P007、P010、P011、P012、P013）
 - 已完成：15 / 23（P008、P009、P002、P003、P004、P018、P001、P005、P006、P007、P010、P011、P012、P013、P014）
-- 当前处理：P015
+- 已完成：16 / 23（P008、P009、P002、P003、P004、P018、P001、P005、P006、P007、P010、P011、P012、P013、P014、P015）
+- 当前处理：P016
 
 ---
 
@@ -169,10 +170,11 @@
 
 **修复记录（c54c5524）**：新增 `trash_restore_batch(trash_ids, lang)` 命令——模板项复用 `template_restore`（含已存在检查）、其余走 `object_restore`（级联恢复），已被级联恢复/已删除的项幂等跳过（对齐单条路径「Trash item not found 视为成功」）；`trashStore.restoreBatch` 一次调用并按 `consumedTrashIds` 过滤本地列表，`useTrashPage.doRestore` 改用批量端点（toast 逐 outcome 保持）。注册 lib.rs（handler + ACL）与 permissions 白名单。新增前端单测 1 条；eslint/prettier/tsc/clippy/fmt 全绿。
 
-### P015（P2 代码质量）掩码哨兵字面量三处
+### P015（P2 代码质量）掩码哨兵字面量三处（已完成）
 
 `'••••••••'` 硬编码于 `useLlmConfigPage.ts:369,413` 与 `ProviderManagerPanel.tsx:280`，而 `lib/masking.ts:14` 已导出 `MASK_PLACEHOLDER`。常量一旦调整，三处静默断链（占位符被当真实 key 发往后端）。
-**修复建议**：三处统一 `import { MASK_PLACEHOLDER } from '@/lib/masking'`。
+
+**修复记录（5c841a19）**：三处统一 `import { MASK_PLACEHOLDER } from '@/lib/masking'`——`useLlmConfigPage`（保存后置掩码 + 测试连接前识别哨兵改取真实 key）与 `ProviderManagerPanel`（编辑占位提示）。eslint/prettier/tsc 全绿。
 
 ### P016（P2 代码质量）批量下载 catch-all 吞错
 
