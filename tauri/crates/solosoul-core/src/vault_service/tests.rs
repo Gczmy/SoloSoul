@@ -1060,7 +1060,9 @@ fn test_verify_password_with_lockout_recovers_pending() {
     // 改密/KDF 升级崩溃残留 pending 时，先完成 reencrypt→config 交换（promote：数据=新钥），
     // 校验基于一致 config，且不误判密码（promote 后新密码验证为 true）。
     let (svc, _dir) = setup_service();
-    let account = svc.create_account("VerifyRecover", "password123", None).unwrap();
+    let account = svc
+        .create_account("VerifyRecover", "password123", None)
+        .unwrap();
     let account_id = account["id"].as_str().unwrap();
     {
         let vault = svc.get_vault_store().unwrap();
