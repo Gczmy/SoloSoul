@@ -36,7 +36,7 @@
 | P004 | P1 | 前端缺陷 | `tauri/src/pages/ai/useLlmConfigPage.ts:190-228` | 本地 Embedding 开关/选模型 invoke 无 try/catch，失败后前后端状态漂移 | `[x]` 已修复（76cffe3d） |
 | P005 | P1 | 性能 | `tauri/src-tauri/src/commands/object/snapshot.rs:466-484` | 回收站子对象列表循环内逐条 `get_trash_item`（每次附带整条 data 解密），而 summary 已含 `original_id`，属纯浪费 | `[x]` 已修复（54b02ac8） |
 | P006 | P1 | 性能 | `tauri/src/pages/home/HomePage.tsx:235-255` + `tauri/src-tauri/src/commands/attachment/tree.rs:55` | 首页角标每次返回都调用 `attachment_list_all` 全表解密，仅为渲染两个计数 | `[x]` 已修复（df464e69） |
-| P007 | P1 | 代码质量 | `tauri/src-tauri/src/commands/attachment/crud.rs:47-69` ↔ `tauri/crates/solosoul-core/src/export_import.rs:64-84` | `AttachmentMeta` 结构体双定义，序列化契约靠注释维持，存在漂移风险 | `[ ]` 待修复 |
+| P007 | P1 | 代码质量 | `tauri/src-tauri/src/commands/attachment/crud.rs:47-69` ↔ `tauri/crates/solosoul-core/src/export_import.rs:64-84` | `AttachmentMeta` 结构体双定义，序列化契约靠注释维持，存在漂移风险 | `[x]` 已修复（8824c261） |
 | P008 | P1 | 规范 | `tauri/crates/solosoul-core/src/vault_service/account.rs:91,118` | `cargo fmt --check` 失败（2 处 tracing 宏格式），CI 基线红 | `[x]` 已修复（9054d0b1） |
 | P009 | P1 | 规范 | `tauri/crates/solosoul-core/src/ocr/macos_vision.rs:334-335`；`vault_service/tests.rs:26` | `cargo clippy -- -D warnings` 失败：2 处 `needless_borrows_for_generic_args`；`--all-targets` 下另有 1 处 unused variable | `[x]` 已修复（346d7563） |
 | P010 | P2 | 安全 | `tauri/src-tauri/src/commands/attachment/share.rs:33-41` | 分享副本明文残留 `temp_dir()/solosoul_share/`，永不清理 | `[ ]` 待修复 |
@@ -56,8 +56,8 @@
 
 ## 修复进度
 
-- 已完成：9 / 23（P008、P009、P002、P003、P004、P018、P001、P005、P006）
-- 当前处理：P007
+- 已完成：10 / 23（P008、P009、P002、P003、P004、P018、P001、P005、P006、P007）
+- 当前处理：P010
 
 ---
 
@@ -117,10 +117,11 @@
 
 **修复记录（df464e69）**：新增 `attachment_count_stats` 轻量命令——`vault.count_active_attachment_stats` 单 SQL（`SELECT properties ... WHERE is_deleted = 0`）解密 + P025 子串扫描统计活跃附件总数与照片数，免附件树分组/模板解析/文件存在性探测；照片判定与前端 `previewItemByMime` 对齐（mimeType `image/` 前缀或扩展名 ∈ {png,jpg,jpeg,gif,webp,svg}）。`HomePage.loadCounts` 改用新命令；P025 扫描抽出完整数组版（`extract_attachments_array_from_json_text`）供 id 提取与计数共用。含 vault 单测 1 条 + 前端测试 3 条同步更新；clippy/fmt/eslint/prettier/tsc 全绿。
 
-### P007（P1 代码质量）`AttachmentMeta` 双定义
+### P007（P1 代码质量）`AttachmentMeta` 双定义（已完成）
 
 `crud.rs:47-69` 与 `export_import.rs:64-84` 字段逐字段相同（含相同 serde 属性），靠注释维持隐式契约，任一侧加字段忘同步即产生导出/导入格式漂移。
-**修复建议**：以 `solosoul-core` 定义为唯一来源，`src-tauri` 侧 `pub use solosoul_core::export_import::AttachmentMeta;`。
+
+**修复记录（8824c261）**：删除 `crud.rs` 本地 `AttachmentMeta` struct，改为 `pub use solosoul_core::export_import::AttachmentMeta;`（序列化契约单一维护）；同时移除 crud.rs 变 unused 的 serde `Serialize/Deserialize` import。附件相关测试 27 个全过，clippy/fmt 干净。
 
 ### P008（P1 规范）`cargo fmt --check` 失败
 
