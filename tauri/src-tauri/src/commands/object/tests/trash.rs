@@ -376,21 +376,16 @@ fn test_trash_page_detail_includes_children() {
     let page_item = vault.get_trash_item("trash_page_001").unwrap().unwrap();
     assert_eq!(page_item.item_type, "page");
 
-    let all = vault.list_trash_items(None, None).unwrap();
+    // P005: 与 fetch_trash_child_items 对齐——直接用 summary 的 original_id，避免逐条 get_trash_item
+    let all = vault.list_trash_items(Some("object"), None).unwrap();
     let children: Vec<TrashChildSummary> = all
         .into_iter()
-        .filter(|t| t.item_type == "object" && t.original_section_type.as_deref() == Some(page_id))
-        .filter_map(|t| {
-            let item_id = t.id.clone();
-            match vault.get_trash_item(&item_id) {
-                Ok(Some(full)) => Some(TrashChildSummary {
-                    id: item_id,
-                    original_id: full.original_id,
-                    name: t.name,
-                    item_type: t.item_type,
-                }),
-                _ => None,
-            }
+        .filter(|t| t.original_section_type.as_deref() == Some(page_id))
+        .map(|t| TrashChildSummary {
+            id: t.id,
+            original_id: t.original_id,
+            name: t.name,
+            item_type: t.item_type,
         })
         .collect::<Vec<_>>();
     let mut children = children;

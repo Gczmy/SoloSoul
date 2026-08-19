@@ -463,23 +463,20 @@ fn fetch_trash_child_items(
     if trash.item_type != "page" {
         return Vec::new();
     }
-    let all = vault.list_trash_items(None, None).unwrap_or_default();
+    // P005: summary 已含 original_id，无需逐条 get_trash_item（避免每次附带整条 data 解密）；
+    // item_type 过滤下沉到 SQL，减少扫描量。
+    let all = vault
+        .list_trash_items(Some("object"), None)
+        .unwrap_or_default();
     let page_id = &trash.original_id;
     let mut children: Vec<TrashChildSummary> = all
         .into_iter()
-        .filter(|t| t.item_type == "object" && t.original_section_type.as_deref() == Some(page_id))
-        .filter_map(|t| {
-            // Look up full TrashItem to get original_id
-            let item_id = t.id.clone();
-            match vault.get_trash_item(&item_id) {
-                Ok(Some(full)) => Some(TrashChildSummary {
-                    id: item_id,
-                    original_id: full.original_id,
-                    name: t.name,
-                    item_type: t.item_type,
-                }),
-                _ => None,
-            }
+        .filter(|t| t.original_section_type.as_deref() == Some(page_id))
+        .map(|t| TrashChildSummary {
+            id: t.id,
+            original_id: t.original_id,
+            name: t.name,
+            item_type: t.item_type,
         })
         .collect();
     children.sort_by(|a, b| a.name.cmp(&b.name));
