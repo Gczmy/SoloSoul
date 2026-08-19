@@ -47,7 +47,7 @@
 | P015 | P2 | 代码质量 | `tauri/src/pages/ai/useLlmConfigPage.ts:369,413`；`tauri/src/components/llm-config/ProviderManagerPanel.tsx:280` | API key 哨兵 `'••••••••'` 字面量硬编码三处，与 `lib/masking.ts:14` 的 `MASK_PLACEHOLDER` 脱钩 | `[ ]` 待修复 |
 | P016 | P2 | 代码质量 | `tauri/src/hooks/useAttachmentManagerBatchOps.ts:105-107` | 批量附件下载 catch-all 将任意异常误判为「用户取消」，无日志 | `[ ]` 待修复 |
 | P017 | P2 | 死代码 | `tauri/crates/solosoul-core/src/export_import.rs:129-131` | `ExportError::Crypto` 变体从未被构造 | `[ ]` 待修复 |
-| P018 | P2 | 死代码 | `tauri/scripts/tokenize-fonts.mjs`、`tokenize-icons.mjs`、`fix_invoke_keys.cjs`、`revert_invoke_keys.cjs` | 4 个一次性 codemod 脚本残留，package.json/CI/文档均无引用 | `[ ]` 待修复 |
+| P018 | P2 | 死代码 | `tauri/scripts/tokenize-fonts.mjs`、`tokenize-icons.mjs`、`fix_invoke_keys.cjs`、`revert_invoke_keys.cjs` | 4 个一次性 codemod 脚本残留，package.json/CI/文档均无引用 | `[x]` 已修复（094e75b8，用户确认删除） |
 | P019 | P2 | 重复代码 | `tauri/src-tauri/src/commands/llm/provider.rs:25-55` ↔ `llm/unified_chat.rs:30-59` | LLM provider 合并逻辑跨文件复制（~20 行，>80% 相似） | `[ ]` 待修复 |
 | P020 | P2 | 重复代码 | `tauri/crates/solosoul-vault/src/storage/metadata.rs:535-560` ↔ `sync_changes.rs:475-500` | `user_templates` 行解密映射代码几乎逐字重复 | `[ ]` 待修复 |
 | P021 | P2 | 重复代码 | `tauri/src-tauri/src/commands/export_import/export_docx/docx.rs:110-129` ↔ `text.rs:29-48` | 导出文档「元信息段」构建块逐字相同 | `[ ]` 待修复 |
@@ -56,8 +56,8 @@
 
 ## 修复进度
 
-- 已完成：5 / 23（P008、P009、P002、P003、P004）
-- 当前处理：P001（附件明文落盘，需用户确认方向）
+- 已完成：6 / 23（P008、P009、P002、P003、P004、P018）
+- 当前处理：P001（附件加密落盘，用户已确认完整修复方向）
 
 ---
 
@@ -178,6 +178,8 @@ std::fs::copy(&src, &dest_path).map_err(|e| format!("复制文件失败: {}", e)
 
 `tokenize-fonts.mjs`（文件头自述一次性）、`tokenize-icons.mjs`、`fix_invoke_keys.cjs`、`revert_invoke_keys.cjs` 均无引用。
 **修复建议**：确认迁移已落地后删除，或移入 `scripts/archive/` 并注明。⚠️ 涉及删除文件，按流程约束暂缓，需用户确认后执行。
+
+**修复记录（094e75b8）**：用户确认删除，4 个脚本直接移除（净 -780 行）。
 
 ### P019–P021（P2 重复代码）
 
