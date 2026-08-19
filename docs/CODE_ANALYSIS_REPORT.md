@@ -1,9 +1,9 @@
 # 代码分析修复报告
 
-> 最后更新：2026-08-19 17:47:35
+> 最后更新：2026-08-19 21:04:16
 > 当前分支：`main`
-> 修复轮次：1（初始分析，全新生成，未沿用历史报告）
-> 本轮范围：仅分析并生成报告，**未执行任何修复**（应用户要求）。
+> 修复轮次：2（修复复核：23 项修复逐项核实，P001/P010/P012 打回，新增 P024）
+> 轮次 1 范围：仅分析并生成报告；轮次 1.5：开发者完成 23 项修复；轮次 2：独立复核（仅核实与登记，未改代码）。
 
 ---
 
@@ -30,7 +30,7 @@
 
 | ID   | 优先级 | 类别       | 文件位置 | 描述 | 状态 |
 |------|--------|------------|----------|------|------|
-| P001 | P1 | 安全 | `tauri/crates/solosoul-core/src/objects.rs:1043-1045` | Vault 附件以明文落盘，仅导出/同步时才加密，与零知识定位不符 | `[x]` 已修复（附件加密落盘，SOLC 头 + HKDF 派生密钥，写入/读取全链路覆盖） |
+| P001 | P1 | 安全 | `tauri/crates/solosoul-core/src/objects.rs:1043-1045` | Vault 附件以明文落盘，仅导出/同步时才加密，与零知识定位不符 | `[ ]` 轮次2复核打回（主体已修，3 处残留：CLI 导入明文写盘、改密重加密无回滚、open 临时明文不清理，见复核记录） |
 | P002 | P1 | 前端缺陷 | `tauri/src/stores/objectStore.ts:194-196` | `updateObject` 吞错不抛出，编辑保存失败被误报「保存成功」并退出页面，数据静默丢失 | `[x]` 已修复（f585f43f） |
 | P003 | P1 | 前端缺陷 | `tauri/src/stores/settingsStore.ts:491-523` | `addCustomPage` 失败仍无条件 `return newPage`，调用方导航到后端不存在的页面 | `[x]` 已修复（d8648b3f） |
 | P004 | P1 | 前端缺陷 | `tauri/src/pages/ai/useLlmConfigPage.ts:190-228` | 本地 Embedding 开关/选模型 invoke 无 try/catch，失败后前后端状态漂移 | `[x]` 已修复（76cffe3d） |
@@ -39,9 +39,9 @@
 | P007 | P1 | 代码质量 | `tauri/src-tauri/src/commands/attachment/crud.rs:47-69` ↔ `tauri/crates/solosoul-core/src/export_import.rs:64-84` | `AttachmentMeta` 结构体双定义，序列化契约靠注释维持，存在漂移风险 | `[x]` 已修复（8824c261） |
 | P008 | P1 | 规范 | `tauri/crates/solosoul-core/src/vault_service/account.rs:91,118` | `cargo fmt --check` 失败（2 处 tracing 宏格式），CI 基线红 | `[x]` 已修复（9054d0b1） |
 | P009 | P1 | 规范 | `tauri/crates/solosoul-core/src/ocr/macos_vision.rs:334-335`；`vault_service/tests.rs:26` | `cargo clippy -- -D warnings` 失败：2 处 `needless_borrows_for_generic_args`；`--all-targets` 下另有 1 处 unused variable | `[x]` 已修复（346d7563） |
-| P010 | P2 | 安全 | `tauri/src-tauri/src/commands/attachment/share.rs:33-41` | 分享副本明文残留 `temp_dir()/solosoul_share/`，永不清理 | `[x]` 已修复（b95b4ace） |
+| P010 | P2 | 安全 | `tauri/src-tauri/src/commands/attachment/share.rs:33-41` | 分享副本明文残留 `temp_dir()/solosoul_share/`，永不清理 | `[ ]` 轮次2复核打回（清理仅「下次分享前」触发，最近副本仍残留；桌面端并发分享竞态，见复核记录） |
 | P011 | P2 | 安全 | `tauri/src-tauri/src/commands/vault.rs:7-18`（注册于 `lib.rs:55`） | 遗留 `unlock` IPC 命令 `password: String` 未 `Zeroizing` 包装；前端已无调用（仅测试 mock 引用） | `[x]` 已修复（686d807c） |
-| P012 | P2 | 安全 | `tauri/src-tauri/src/commands/auth.rs:159-176` | `verify_password` 不计失败、不触发阶梯锁定，构成无限速密码验证 oracle | `[x]` 已修复（937446b7） |
+| P012 | P2 | 安全 | `tauri/src-tauri/src/commands/auth.rs:159-176` | `verify_password` 不计失败、不触发阶梯锁定，构成无限速密码验证 oracle | `[ ]` 轮次2复核打回（核心路径已限速，但 export/biometric/pin 三条未限速验证路径残留 + pending 恢复边缘回归，见复核记录） |
 | P013 | P2 | 性能 | `tauri/src-tauri/src/commands/export_import/export.rs:751-761` | 导出时快照收集为 N+M 嵌套查询（每对象 1 次 list + 每快照 1 次 get） | `[x]` 已修复（8612e564） |
 | P014 | P2 | 性能 | `tauri/src/pages/settings/useTrashPage.tsx:145-168` | 回收站批量恢复逐项串行 IPC，与批量删除的批量入参不一致 | `[x]` 已修复（c54c5524） |
 | P015 | P2 | 代码质量 | `tauri/src/pages/ai/useLlmConfigPage.ts:369,413`；`tauri/src/components/llm-config/ProviderManagerPanel.tsx:280` | API key 哨兵 `'••••••••'` 字面量硬编码三处，与 `lib/masking.ts:14` 的 `MASK_PLACEHOLDER` 脱钩 | `[x]` 已修复（5c841a19） |
@@ -52,25 +52,90 @@
 | P020 | P2 | 重复代码 | `tauri/crates/solosoul-vault/src/storage/metadata.rs:535-560` ↔ `sync_changes.rs:475-500` | `user_templates` 行解密映射代码几乎逐字重复 | `[x]` 已修复（1538c312） |
 | P021 | P2 | 重复代码 | `tauri/src-tauri/src/commands/export_import/export_docx/docx.rs:110-129` ↔ `text.rs:29-48` | 导出文档「元信息段」构建块逐字相同 | `[x]` 已修复（4c5ce603） |
 | P022 | P2 | 可维护性 | 见下文 Top 10 表 | 超长函数/组件 10 个（357–391 行） | `[x]` 评估后不拆（见下文登记） |
-| P023 | P2 | 可维护性 | `tauri/src/hooks/useDragToAttach.ts:190-234` 等 | 深层嵌套热点（控制流 ≥5 层，JSX brace 深度最高 11） | `[x]` 部分修复（低风险两处）+ 其余登记 |
+| P023 | P2 | 可维护性 | `tauri/src/hooks/useDragToAttach.ts:190-234` 等 | 深层嵌套热点（控制流 ≥5 层，JSX brace 深度最高 11） | `[x]` 部分修复（低风险两处）+ 其余登记（轮次2复核确认两处改动行为等价、登记无漏；「均无单测」措辞不实） |
+| P024 | P1 | 测试基线 | `tauri/src-tauri/src/lib.rs:656` | 轮次2新增：`test_dispatch_cluster_prefixes_consistent` 失败（断言 total==194，实际 195）——P006/P011/P014 增删命令后未同步手工维护的总数断言 | `[ ]` 待修复 |
 
 ## 修复进度
 
+轮次 1.5（开发者修复）：
 - 已完成：14 / 23（P008、P009、P002、P003、P004、P018、P001、P005、P006、P007、P010、P011、P012、P013）
-- 已完成：15 / 23（P008、P009、P002、P003、P004、P018、P001、P005、P006、P007、P010、P011、P012、P013、P014）
-- 已完成：17 / 23（P008、P009、P002、P003、P004、P018、P001、P005、P006、P007、P010、P011、P012、P013、P014、P015、P016）
-- 已完成：18 / 23（P008、P009、P002、P003、P004、P018、P001、P005、P006、P007、P010、P011、P012、P013、P014、P015、P016、P017）
-- 已完成：19 / 23（…、P019）
-- 已完成：20 / 23（…、P020）
-- 已完成：21 / 23（…、P021）
-- 已完成：22 / 23（…、P022 评估关闭）
-- 已完成：23 / 23（…、P023 评估关闭）
+- 已完成：23 / 23（全部标记完成，P022/P023 为评估关闭）
+
+轮次 2（独立复核，2026-08-19）：
+- 复核确认修复无误：17 / 23（P002、P003、P004、P005、P006、P007、P008、P009、P011、P013、P014、P015、P016、P017、P018、P019、P020、P021——commit 哈希全部真实、内容与声称对应、相关单测实跑通过）
+- 评估关闭复核通过：2 / 23（P022 不拆判断成立；P023 两处改动行为等价、登记清单无漏）
+- **复核打回：3 / 23（P001、P010、P012，详见下方复核记录）**
+- **复核新增：P024（测试基线红，与报告「测试全绿」声称矛盾）**
+- 当前处理：无（本轮仅复核登记，未改代码）
+
+---
+
+## 轮次 2：修复复核记录（2026-08-19）
+
+复核方式：基线全量复跑 + 6 路并行逐项核实（代码现状 + commit diff + 相关测试实跑）。
+
+### 基线复跑结果
+
+| 检查项 | 结果 |
+|--------|------|
+| `cargo fmt --check` | ✅ 通过 |
+| `cargo clippy --all-targets -- -D warnings` | ✅ 通过（比 CI 更严的一档也通过） |
+| `npx tsc --noEmit` / `npm run lint` | ✅ 通过 |
+| `npm run test`（Vitest） | ✅ 99 文件 / 833 测试全部通过 |
+| `cargo test` | ❌ **444 通过 / 1 失败**（见 P024） |
+
+### P024（P1 新增）命令计数守卫测试失败
+
+`src-tauri/src/lib.rs:656` `assert_eq!(total, 194)` 失败（left: 195）。根因：P006 新增 `attachment_count_stats`、P014 新增 `trash_restore_batch`、P011 删除 `unlock`，净 +1，三个 commit 均未同步该手工维护的总数断言。注意 commit `6ce7357a`（V002）与 `99a8f53c`（P042）刚修过同类问题并加了维护提醒注释，本轮修复又犯同样错误。
+**修复建议**：断言 194→195（一行修复）。报告中「src-tauri 444 测试全过」的声称失实，应修正。
+
+### P001 复核打回（原 542ddfbc，主体真实落地但有三处残留）
+
+已核实无误的部分：读取点全链路 magic 检测（download/open/share/预览/PDF 协议/导出/插件工作区）无遗漏；密钥 HKDF 域分离正确、不持久化、无日志泄露；lock 后派生必失败（有测试）；同步按密文直通设计自洽。
+打回原因：
+1. **CLI `/import` 明文写入遗漏**：`crates/solosoul-core/src/export_import.rs:1032`（`import_attachments`）解出 ZIP 明文后直接 `File::create` 明文落盘，未用 at-rest 密钥重加密（函数无 attachment_key 参数），「附件不再明文落盘」不变量被该路径破坏；
+2. **`change_password` 附件重加密无回滚**（`crates/solosoul-core/src/vault_service/unlock.rs:824-883`）：DB reencrypt 与新 config 写入在前，附件重加密中途失败直接 `return Err` 无任何回滚；且密文分支就地截断覆盖原文件——部分失败即产生新旧密钥混合态，旧钥附件永久不可读，并可能残留 `.rekey.tmp` 明文。属潜在数据丢失路径；
+3. **`attachment_open` 临时明文不清理**：`src-tauri/src/commands/attachment/mod.rs:466/483` 解密到 `temp_dir()/solosoul_open_{object_id}/` 后无清理（对比分享路径有 cleanup）——修复引入的新残留面。
+
+次要瑕疵（登记）：报告声称 `attachment_crypto.rs`「+6 单测」实际为 5 个；多处将 `Zeroizing<[u8;32]>` 拷为普通 `[u8;32]` 用后不清零；`attachment_import_content_uri` Kotlin 先明文落盘再由 Rust 就地加密，崩溃窗口仍在（仅缩短）；CLI `attachment.rs:106` 取钥匙失败 `.ok()` 静默降级为明文写入。
+
+### P010 复核打回（原 b95b4ace，清理逻辑真实但不彻底）
+
+清理逻辑确实存在（桌面三平台 + Android，含单测），但：
+1. **残留窗口未消除，只是被压缩**：清理时机为「下次分享前」而非「分享完成后」，最近一次分享的明文副本会一直留在 `temp_dir()/solosoul_share/`；
+2. **桌面端并发分享竞态**：macOS `NSSharingServicePicker` / Windows `DataRequested` 在用户稍后选择目标应用时才读文件；若分享面板 A 未关闭又发起分享 B，`cleanup_share_dir` 会删掉 A 的副本导致 A 失败/分享空文件。Android 的 per-object 子目录无此问题，桌面端有。
+
+### P012 复核打回（原 937446b7，核心路径已限速但声称范围过宽）
+
+核心修复质量高：`verify_password_with_lockout` 锁定预检先于 KDF、失败计数触发阶梯锁定、成功归零，单测覆盖完整；前端调用面核查无「verify 锁定阻塞合法解锁」回归。打回原因：
+1. **三条未限速主密码验证路径仍在**：`export.rs:300`（导出时校验导出密码≠主密码，构成布尔 oracle）、`biometric.rs:402/754`（`BiometricManager::verify_password` 直走 `verify_password_core` 不计数）、`pin.rs:392`（`disable_pin` 验证主密码）——「消除无限速 oracle」的声称不成立；
+2. **边缘回归**：`verify_password_with_lockout` 缺少旧 `verify_password` 的 `recover_pending_reencrypt` 前导（unlock.rs:599），改密/KDF 升级崩溃留下 pending config 时，先走 verify 会用不一致 config 误判并计数；
+3. **小 UX 瑕疵**：`PinSection.tsx:94-99` 捕获到锁定错误时显示通用 `pin_error_setup_failed`，而非已有的 `common:password_locked` 文案。
+
+### 其余条目复核结论（确认无误，附小瑕疵登记）
+
+- **P002/P003/P004**：修复真实、单测实跑通过。小瑕疵：P003 新增 i18n key `navigation:add_page_failed` 未入 zh-CN/en-US locales，靠中文 `defaultValue` 兜底，英文用户会看到中文提示。
+- **P005**：N+1 消除属实、行为等价。措辞夸大登记：commit 称「避免整条 data 解密」，但 `list_trash_items` 本身仍为提取 `contract_type_id` 解密每行 data（非本次引入），省掉的是第二次解密。
+- **P006**：新命令真实更轻（单 SQL + 子串扫描，无树构建/文件探测），计数口径与前端 `previewItemByMime` 逐条对齐，HomePage 已切换，注册/权限齐全。
+- **P007/P017/P018/P019/P020/P021**：全部真实。P019「顺带修复 provider.rs if 分支漏同步 `embedding_model` 的隐藏 bug」经 diff 核实属实且方向正确（旧 `llm_get_providers` 对已保存内置 provider 不返回用户改的 embedding_model）。
+- **P013**：批量 SQL 语义精确保留（ROW_NUMBER 窗口保留每对象 LIMIT 50）。两点瑕疵登记：错误处理由「静默跳过失败快照」变为「中止整个导出」（更合理但语义有变，报告未提及）；doc 注释声称的排序在 SQL 外层无 ORDER BY 保证（对导出导入无实际影响）。
+- **P014**：批量语义前后端对齐；真实错误会中止整个批次（前端 catch 后已恢复项在 UI 暂时残留，重试幂等）——代码注释已明确该取舍，属设计选择。
+- **P015/P016**：属实。P016 用户取消路径（`openWithPause` 返回 null 提前 return）核实不受留痕改动影响。
+- **P022**：「不拆」工程判断成立（无功能 bug、机械拆分有回归风险）；但债务登记只存在于本报告，无 TODO.md/issue/代码注释级追踪载体，报告归档后债务失去追踪入口——建议补持久登记。
+- **P023**：两处实际改动逐行比对行为等价；登记清单与原报告 6 个热点一致无漏登。措辞失实登记：「该批文件均无单测」不实（`settingsStore.test.ts`、`propertyFlatten.test.ts` 存在）。
+- **P011**：完全干净（命令、注册、ACL、权限白名单、前端豁免名单、旧 mock 测试五处同步删除，全仓 grep 零残留）。
+
+### 轮次 2 修复顺序建议
+
+1. P024（一行修复，恢复测试基线）→ 2. P001 三项残留（数据丢失风险优先：改密重加密原子化 → CLI 导入重加密 → open 临时副本清理）→ 3. P012 三条未限速路径 → 4. P010 清理时机与竞态 → 5. 小瑕疵批次（P003 i18n key、P012 PinSection 文案、P022/P023 债务持久登记、报告措辞修正）。
+
+---
 
 ---
 
 ## 详细问题描述与修复指引
 
-### P001（P1 安全）Vault 附件明文落盘（已完成）
+### P001（P1 安全）Vault 附件明文落盘（主体已修，轮次2复核打回，见上方复核记录）
 
 **修复方案（用户确认：完整加密落盘）**：附件以 `encrypt_chunked_stream`（SOLC magic 头）加密落盘，读取时检测 magic——SOLC 密文流式解密、旧明文直读（零迁移兼容）。密钥 = `HKDF(session_key, b"solosoul:attachments:at-rest", b"solosoul:attachments:at-rest:v1")`（与数据库密钥域分离，同密码跨设备派生同一密钥，同步无需分发）。
 
@@ -145,7 +210,7 @@
 
 **修复记录（346d7563）**：macos_vision.rs 两处 `.arg(&x.to_string_lossy().as_ref())` 去掉多余 `&`；tests.rs `account_id` → `_account_id`。`cargo clippy --all-targets -- -D warnings` 恢复通过，solosoul-core 186 测试全过。
 
-### P010（P2 安全）分享副本残留临时目录（已完成）
+### P010（P2 安全）分享副本残留临时目录（清理逻辑已加，轮次2复核打回：时机与竞态问题，见上方复核记录）
 
 `share.rs:33-41` 桌面端分享前将附件明文复制到 `temp_dir()/solosoul_share/`，注释自认「跨会话残留但不自动清理」，全仓库无清理逻辑。
 
@@ -157,7 +222,7 @@
 
 **修复记录（686d807c）**：删除命令定义、`lib.rs` 注册与 ACL 列表、`permissions/default.toml` 白名单条目、前端 P027 豁免名单 `'unlock'` 条目及 `ipc.test.ts` 对应 mock 测试；解锁统一走 `auth::unlock_with_password`（Zeroizing 包装）。编译/clippy/fmt/eslint/prettier/tsc 全绿，ipc 测试 11 个全过。
 
-### P012（P2 安全）`verify_password` 无限速（已完成）
+### P012（P2 安全）`verify_password` 无限速（核心路径已限速，轮次2复核打回：三条未限速路径残留，见上方复核记录）
 
 主密码解锁路径有阶梯锁定（`record_password_failure`），但 `verify_password`（`auth.rs:159-176`）不计失败、不触发锁定，可被无限次调用验证主密码。Argon2id 高参数使在线爆破成本高，风险有限，但与解锁路径限流策略不一致。
 
