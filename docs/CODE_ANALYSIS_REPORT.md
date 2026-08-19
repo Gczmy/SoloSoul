@@ -37,7 +37,7 @@
 | P005 | P1 | 性能 | `tauri/src-tauri/src/commands/object/snapshot.rs:466-484` | 回收站子对象列表循环内逐条 `get_trash_item`（每次附带整条 data 解密），而 summary 已含 `original_id`，属纯浪费 | `[ ]` 待修复 |
 | P006 | P1 | 性能 | `tauri/src/pages/home/HomePage.tsx:235-255` + `tauri/src-tauri/src/commands/attachment/tree.rs:55` | 首页角标每次返回都调用 `attachment_list_all` 全表解密，仅为渲染两个计数 | `[ ]` 待修复 |
 | P007 | P1 | 代码质量 | `tauri/src-tauri/src/commands/attachment/crud.rs:47-69` ↔ `tauri/crates/solosoul-core/src/export_import.rs:64-84` | `AttachmentMeta` 结构体双定义，序列化契约靠注释维持，存在漂移风险 | `[ ]` 待修复 |
-| P008 | P1 | 规范 | `tauri/crates/solosoul-core/src/vault_service/account.rs:91,118` | `cargo fmt --check` 失败（2 处 tracing 宏格式），CI 基线红 | `[ ]` 待修复 |
+| P008 | P1 | 规范 | `tauri/crates/solosoul-core/src/vault_service/account.rs:91,118` | `cargo fmt --check` 失败（2 处 tracing 宏格式），CI 基线红 | `[x]` 已修复（9054d0b1） |
 | P009 | P1 | 规范 | `tauri/crates/solosoul-core/src/ocr/macos_vision.rs:334-335`；`vault_service/tests.rs:26` | `cargo clippy -- -D warnings` 失败：2 处 `needless_borrows_for_generic_args`；`--all-targets` 下另有 1 处 unused variable | `[ ]` 待修复 |
 | P010 | P2 | 安全 | `tauri/src-tauri/src/commands/attachment/share.rs:33-41` | 分享副本明文残留 `temp_dir()/solosoul_share/`，永不清理 | `[ ]` 待修复 |
 | P011 | P2 | 安全 | `tauri/src-tauri/src/commands/vault.rs:7-18`（注册于 `lib.rs:55`） | 遗留 `unlock` IPC 命令 `password: String` 未 `Zeroizing` 包装；前端已无调用（仅测试 mock 引用） | `[ ]` 待修复 |
@@ -56,8 +56,8 @@
 
 ## 修复进度
 
-- 已完成：0 / 23
-- 当前处理：无（本轮仅分析，不修复）
+- 已完成：1 / 23（P008）
+- 当前处理：P009（clippy 基线）
 
 ---
 
@@ -117,6 +117,8 @@ std::fs::copy(&src, &dest_path).map_err(|e| format!("复制文件失败: {}", e)
 ### P008（P1 规范）`cargo fmt --check` 失败
 
 `crates/solosoul-core/src/vault_service/account.rs:91,118` 两处 `tracing::info!/warn!` 宏格式不符。**修复建议**：`cargo fmt` 即可。
+
+**修复记录（9054d0b1）**：`cargo fmt` 自动格式化两处 tracing 宏（91 行 warn 压缩为单行、118 行 info 展开为多行），`cargo fmt --check` 恢复通过，仅改动 account.rs 1 文件。
 
 ### P009（P1 规范）`cargo clippy -- -D warnings` 失败
 
