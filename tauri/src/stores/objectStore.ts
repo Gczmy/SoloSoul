@@ -121,7 +121,10 @@ export const useObjectStore = create<ObjectState>((set) => ({
   getObject: async (accountId, objectId) => {
     set({ isLoading: true, error: null });
     try {
-      const obj = await invoke<ObjectData | null>('object_get', { accountId: accountId, objectId: objectId });
+      const obj = await invoke<ObjectData | null>('object_get', {
+        accountId: accountId,
+        objectId: objectId,
+      });
       set((s) => ({
         currentObjectCache: obj
           ? { ...s.currentObjectCache, [objectId]: obj }
@@ -193,6 +196,10 @@ export const useObjectStore = create<ObjectState>((set) => ({
       invalidateSearchCache();
     } catch (err) {
       set({ error: String(err), isLoading: false });
+      // P002: 与 createObject 对齐——失败必须向上抛，调用方（useObjectEditorPage
+      // handleSave）依赖异常进入 onError 分支；吞错会导致「保存失败被误报成功并
+      // 退出页面」，编辑内容静默丢失。
+      throw err;
     }
   },
 

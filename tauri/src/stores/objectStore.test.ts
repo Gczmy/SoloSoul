@@ -208,6 +208,22 @@ describe('objectStore', () => {
       });
       expect(useObjectStore.getState().objects[1].name).toBe('Obj2');
     });
+
+    it('更新失败时向上抛出异常（P002：不吞错，调用方依赖 catch 进入 onError）', async () => {
+      mockInvoke.mockRejectedValue(new Error('Update failed'));
+
+      const { useObjectStore } = await import('./objectStore');
+      useObjectStore.setState({ objects: [] });
+
+      await expect(
+        useObjectStore.getState().updateObject('1', {
+          name: 'Updated',
+          properties: {},
+        }),
+      ).rejects.toThrow('Update failed');
+
+      expect(useObjectStore.getState().error).toBe('Error: Update failed');
+    });
   });
 
   describe('deleteObject', () => {
