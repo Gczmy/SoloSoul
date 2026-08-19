@@ -36,5 +36,11 @@ export interface AttachmentListAllResult {
   trashPages: AttachmentTreePage[];
 }
 
+/** 附件轻量计数（attachment_count_stats 返回结构，首页角标等场景）。 */
+export interface AttachmentCountStats {
+  attachmentCount: number;
+  photoCount: number;
+}
+
 /** 需要永久删除的附件（携带来源对象 ID）。 */
 export type AttachmentToPurge = AttachmentMeta & { _objectId: string };

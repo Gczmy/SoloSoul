@@ -98,34 +98,14 @@ describe('HomePage', () => {
   });
 
   it('附件管理与照片集快捷卡片显示数量角标', async () => {
-    // 3 个活跃附件（2 张图片 + 1 个 PDF）：附件角标 3、照片角标 2
-    const listAllResult = {
-      pages: [
-        {
-          pageName: '页面一',
-          objects: [
-            {
-              objectName: '对象一',
-              attachments: [
-                { id: 'a1', fileName: 'a.png', mimeType: 'image/png' },
-                { id: 'a2', fileName: 'b.pdf', mimeType: 'application/pdf' },
-              ],
-            },
-            {
-              objectName: '对象二',
-              attachments: [{ id: 'a3', fileName: 'c.jpg', mimeType: 'image/jpeg' }],
-            },
-          ],
-        },
-      ],
-      trashPages: [],
-    };
+    // 3 个活跃附件（2 张图片 + 1 个 PDF）：附件角标 3、照片角标 2（后端轻量计数返回）
+    const countStats = { attachmentCount: 3, photoCount: 2 };
     mockUseAuthStore.mockImplementation(
       (selector: (s: { currentAccount: { id: string; name: string } | null }) => unknown) =>
         selector({ currentAccount: { id: 'acc-1', name: 'Gczmy' } }),
     );
     vi.mocked(invoke).mockImplementation(async (cmd: string) =>
-      cmd === 'attachment_list_all' ? listAllResult : undefined,
+      cmd === 'attachment_count_stats' ? countStats : undefined,
     );
 
     render(
@@ -146,19 +126,16 @@ describe('HomePage', () => {
   });
 
   it('从其他页面返回首页时重新加载角标计数', async () => {
-    const listAllResult = {
-      pages: [{ pageName: 'P', objects: [{ attachments: [{ id: 'a1' }] }] }],
-      trashPages: [],
-    };
+    const countStats = { attachmentCount: 1, photoCount: 0 };
     mockUseAuthStore.mockImplementation(
       (selector: (s: { currentAccount: { id: string; name: string } | null }) => unknown) =>
         selector({ currentAccount: { id: 'acc-1', name: 'Gczmy' } }),
     );
     let callCount = 0;
     vi.mocked(invoke).mockImplementation(async (cmd: string) => {
-      if (cmd === 'attachment_list_all') {
+      if (cmd === 'attachment_count_stats') {
         callCount += 1;
-        return listAllResult;
+        return countStats;
       }
       return undefined;
     });
@@ -195,13 +172,16 @@ describe('HomePage', () => {
       ],
       trashPages: [],
     };
+    const countStats = { attachmentCount: 1, photoCount: 1 };
     mockUseAuthStore.mockImplementation(
       (selector: (s: { currentAccount: { id: string; name: string } | null }) => unknown) =>
         selector({ currentAccount: { id: 'acc-1', name: 'Gczmy' } }),
     );
-    vi.mocked(invoke).mockImplementation(async (cmd: string) =>
-      cmd === 'attachment_list_all' ? listAllResult : undefined,
-    );
+    vi.mocked(invoke).mockImplementation(async (cmd: string) => {
+      if (cmd === 'attachment_count_stats') return countStats;
+      if (cmd === 'attachment_list_all') return listAllResult;
+      return undefined;
+    });
 
     render(
       <MemoryRouter>

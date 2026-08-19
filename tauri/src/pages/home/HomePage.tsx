@@ -17,6 +17,7 @@ import { PhotoAlbumOverlay } from '@/components/attachment/PhotoAlbumOverlay';
 import type {
   AttachmentListAllResult,
   AttachmentMeta,
+  AttachmentCountStats,
 } from '@/components/attachment/attachmentManagerTypes';
 
 import { useLongPress } from '@/hooks/useLongPress';
@@ -229,17 +230,18 @@ export function HomePage() {
   const [attachmentCount, setAttachmentCount] = useState<number | null>(null);
 
   /**
-   * 加载照片与附件总数：一次 attachment_list_all 同时供「照片集」与「附件管理」
-   * 两张卡片角标（失败静默降级为 null，不阻塞卡片点击）。
+   * 加载照片与附件总数：一次轻量 attachment_count_stats（P006——单 SQL 解密 + 子串扫描，
+   * 免全表附件树构建/文件探测）同时供「照片集」与「附件管理」两张卡片角标
+   * （失败静默降级为 null，不阻塞卡片点击）。
    */
   const loadCounts = useCallback(async () => {
     if (!accountId) return;
     try {
-      const result = await invoke<AttachmentListAllResult>('attachment_list_all', {
+      const result = await invoke<AttachmentCountStats>('attachment_count_stats', {
         accountId,
       });
-      setPhotoCount(collectPhotoItems(result.pages).length);
-      setAttachmentCount(countActiveAttachments(result.pages));
+      setPhotoCount(result.photoCount);
+      setAttachmentCount(result.attachmentCount);
     } catch {
       setPhotoCount(null);
       setAttachmentCount(null);

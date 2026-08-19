@@ -456,7 +456,7 @@ impl VaultStore {
         Ok(result)
     }
 
-    /// P025: 从解密后的 properties JSON 文本中仅提取 `__attachments` 数组段的 id 列表，
+    /// P025: 从解密后的 properties JSON 文本中提取 `__attachments` 数组（完整条目），
     /// 避免 serde_json 构造完整对象属性树（大对象反复全量解析）。
     /// `"__attachments":` 是 JSON 键语法，字符串值不可能紧随冒号，故可唯一定位。
     /// 括号配平时正确处理字符串字面量内的转义字符。
@@ -464,8 +464,11 @@ impl VaultStore {
     /// - 字符串值内可含转义引号形态 `\"__attachments\":`（marker 前置 `\`），
     ///   此类命中位于字符串内部而非真实键，需跳过并继续向后搜索；
     /// - 首个候选解析失败（括号不配平/非法 JSON）时不再 `unwrap_or_default` 直接放弃，
-    ///   而是继续搜索后续 marker，避免真实附件 id 被静默丢弃。
-    pub(crate) fn extract_attachment_ids_from_json_text(text: &str) -> Vec<String> {
+    ///   而是继续搜索后续 marker，避免真实附件条目被静默丢弃。
+    ///
+    /// P006: 原 id 提取逻辑抽出完整数组版，id 版与轻量计数（count_active_attachment_stats）
+    /// 共用同一扫描语义，避免两处重复。
+    pub(crate) fn extract_attachments_array_from_json_text(text: &str) -> Vec<serde_json::Value> {
         let marker = "\"__attachments\":";
         let mut search_from = 0usize;
         while let Some(rel) = text[search_from..].find(marker) {
@@ -519,14 +522,85 @@ impl VaultStore {
             }
             let segment = &rest[bracket..bracket + end];
             if let Ok(arr) = serde_json::from_str::<Vec<serde_json::Value>>(segment) {
-                return arr
-                    .iter()
-                    .filter_map(|a| a.get("id").and_then(|i| i.as_str()).map(String::from))
-                    .collect();
+                return arr;
             }
             // 段解析失败（括号不配平/非法 JSON）→ 继续搜索下一个候选
         }
         Vec::new()
+    }
+
+    /// P025: 从解密后的 properties JSON 文本中仅提取 `__attachments` 数组段的 id 列表
+    /// （基于 `extract_attachments_array_from_json_text` 的便捷视图）。
+    pub(crate) fn extract_attachment_ids_from_json_text(text: &str) -> Vec<String> {
+        Self::extract_attachments_array_from_json_text(text)
+            .iter()
+            .filter_map(|a| a.get("id").and_then(|i| i.as_str()).map(String::from))
+            .collect()
+    }
+
+    /// P006: 轻量统计活跃附件总数与照片数（免构建完整附件树/文件存在性探测）。
+    /// 单次 SQL 全表解密 + P025 子串扫描，仅返回两个计数，供首页角标等轻量场景。
+    /// 照片判定与前端 `previewItemByMime`（attachmentUtils.ts）对齐：
+    /// mimeType 以 `image/` 开头，或扩展名 ∈ {png,jpg,jpeg,gif,webp,svg}。
+    /// 返回 (附件总数, 照片数)。
+    pub fn count_active_attachment_stats(
+        &self,
+        account_id: &str,
+    ) -> Result<(usize, usize), String> {
+        let key = self.data_key()?;
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        let mut stmt = conn
+            .prepare("SELECT properties FROM objects WHERE account_id = ?1 AND is_deleted = 0")
+            .map_err(|e| format!("count_active_attachment_stats: {}", e))?;
+        let rows = stmt
+            .query_map(params![account_id], |row| {
+                let props_str: String = row.get(0)?;
+                let decrypted = decrypt_text_field(&key, &props_str).map_err(|e| {
+                    rusqlite::Error::FromSqlConversionFailure(
+                        0,
+                        rusqlite::types::Type::Text,
+                        Box::new(std::io::Error::new(
+                            std::io::ErrorKind::InvalidData,
+                            format!("Object properties decryption failed: {}", e),
+                        )),
+                    )
+                })?;
+                Ok(decrypted)
+            })
+            .map_err(|e| format!("count_active_attachment_stats: {}", e))?;
+
+        let mut total = 0usize;
+        let mut photos = 0usize;
+        for row in rows {
+            let decrypted = row.map_err(|e| format!("count_active_attachment_stats: {}", e))?;
+            for att in Self::extract_attachments_array_from_json_text(&decrypted) {
+                // 仅统计活跃附件（与 build_attachment_tree_pages only_deleted=false 语义一致）
+                if att.get("deletedAt").and_then(|v| v.as_str()).is_some() {
+                    continue;
+                }
+                total += 1;
+                let mime = att.get("mimeType").and_then(|v| v.as_str()).unwrap_or("");
+                let is_image_mime = mime.starts_with("image/");
+                let ext = att
+                    .get("fileName")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("")
+                    .rsplit('.')
+                    .next()
+                    .unwrap_or("")
+                    .to_lowercase();
+                if is_image_mime
+                    || matches!(
+                        ext.as_str(),
+                        "png" | "jpg" | "jpeg" | "gif" | "webp" | "svg"
+                    )
+                {
+                    photos += 1;
+                }
+            }
+        }
+        Ok((total, photos))
     }
 
     pub fn list_objects(

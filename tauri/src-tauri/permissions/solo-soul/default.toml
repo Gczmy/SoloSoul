@@ -31,6 +31,7 @@ commands.allow = [
   "attachment_export_tree_uri",
   "attachment_import_content_uri",
   "attachment_list",
+  "attachment_count_stats",
   "attachment_list_all",
   "attachment_open",
   "attachment_share",

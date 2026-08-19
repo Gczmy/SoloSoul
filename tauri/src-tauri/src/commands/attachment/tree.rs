@@ -215,3 +215,32 @@ pub(crate) fn build_attachment_tree_pages(
 
     Ok(pages)
 }
+
+/// 附件计数（轻量）：返回活跃附件总数与照片数，供首页角标等场景。
+/// P006: 替代 `attachment_list_all` 全表解密 + 附件树构建——本命令单次 SQL
+/// 解密 + P025 子串扫描统计，不做分组/树构建/文件存在性探测，仅返回两个计数。
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AttachmentCountStats {
+    /// 活跃（非回收站）附件总数。
+    pub attachment_count: usize,
+    /// 活跃附件中的照片数（与前端 previewItemByMime 的 image 判定对齐）。
+    pub photo_count: usize,
+}
+
+#[tauri::command]
+pub async fn attachment_count_stats(
+    state: State<'_, AppState>,
+    account_id: String,
+) -> Result<AttachmentCountStats, String> {
+    let vault = vault_handle(&state)?;
+    tokio::task::spawn_blocking(move || {
+        let (attachment_count, photo_count) = vault.count_active_attachment_stats(&account_id)?;
+        Ok(AttachmentCountStats {
+            attachment_count,
+            photo_count,
+        })
+    })
+    .await
+    .map_err(|e| format!("attachment_count_stats task failed: {e}"))?
+}

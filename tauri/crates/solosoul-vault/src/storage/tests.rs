@@ -456,6 +456,83 @@ fn test_extract_attachment_ids_recovers_after_unparseable_candidate() {
     assert_eq!(ids, vec!["ok_2".to_string()], "应从后续候选恢复真实附件 id");
 }
 
+/// P006: 轻量附件计数——活跃附件总数与照片数（照片判定与前端 previewItemByMime 对齐）。
+#[test]
+fn test_count_active_attachment_stats() {
+    let (vault, _dir) = setup();
+    let mk = |id: &str, section: &str, atts: serde_json::Value, deleted: bool| ObjectRecord {
+        contract_type_id: None,
+        id: id.to_string(),
+        account_id: "acc-1".to_string(),
+        type_id: "note".to_string(),
+        section_type: section.to_string(),
+        name: format!("obj-{}", id),
+        icon_name: "document".to_string(),
+        parent_id: None,
+        children_ids: vec![],
+        properties: serde_json::json!({ "__attachments": atts }),
+        property_labels: None,
+        sensitivity_level: "internal".to_string(),
+        is_deleted: deleted,
+        deleted_at: None,
+        tags_json: vec![],
+        template_id: None,
+        template_type: None,
+        template_hash: None,
+        created_at: chrono::Utc::now().to_rfc3339(),
+        updated_at: chrono::Utc::now().to_rfc3339(),
+        version: 1,
+        ..Default::default()
+    };
+
+    // 对象 A：2 张图 + 1 个 PDF（活跃）
+    vault
+        .save_object(&mk(
+            "obj-a",
+            "identity",
+            serde_json::json!([
+                { "id": "a1", "fileName": "a.png", "mimeType": "image/png" },
+                { "id": "a2", "fileName": "b.jpg", "mimeType": "image/jpeg" },
+                { "id": "a3", "fileName": "c.pdf", "mimeType": "application/pdf" },
+            ]),
+            false,
+        ))
+        .unwrap();
+    // 对象 B：1 张图（仅扩展名判定，mimeType 空）+ 1 个已删除附件
+    vault
+        .save_object(&mk(
+            "obj-b",
+            "travel",
+            serde_json::json!([
+                { "id": "b1", "fileName": "d.webp", "mimeType": "" },
+                { "id": "b2", "fileName": "old.png", "mimeType": "image/png", "deletedAt": "2026-01-01T00:00:00Z" },
+            ]),
+            false,
+        ))
+        .unwrap();
+    // 软删除对象 C：附件不应计入
+    vault
+        .save_object(&mk(
+            "obj-c",
+            "financial",
+            serde_json::json!([{ "id": "c1", "fileName": "e.png", "mimeType": "image/png" }]),
+            true,
+        ))
+        .unwrap();
+
+    let (total, photos) = vault.count_active_attachment_stats("acc-1").unwrap();
+    // 活跃：a1,a2,a3,b1 = 4；b2 已删除、c1 对象软删除，均不计
+    assert_eq!(total, 4, "附件总数应为 4（排除已删除附件与软删除对象）");
+    // 照片：a1,a2,b1 = 3（b1 仅扩展名 webp 判定；PDF 不计）
+    assert_eq!(photos, 3, "照片数应为 3");
+
+    // 无附件账户 → 0/0
+    assert_eq!(
+        vault.count_active_attachment_stats("acc-empty").unwrap(),
+        (0, 0)
+    );
+}
+
 /// P004: properties 为加密列，旧实现 LIKE 匹配密文恒为 0；
 /// 修复后按账户取回逐行解密、内存判断字段 key，须能正确区分 active/软删除/无关对象。
 #[test]
