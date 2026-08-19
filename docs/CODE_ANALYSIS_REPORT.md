@@ -34,7 +34,7 @@
 | P002 | P1 | 前端缺陷 | `tauri/src/stores/objectStore.ts:194-196` | `updateObject` 吞错不抛出，编辑保存失败被误报「保存成功」并退出页面，数据静默丢失 | `[x]` 已修复（f585f43f） |
 | P003 | P1 | 前端缺陷 | `tauri/src/stores/settingsStore.ts:491-523` | `addCustomPage` 失败仍无条件 `return newPage`，调用方导航到后端不存在的页面 | `[x]` 已修复（d8648b3f） |
 | P004 | P1 | 前端缺陷 | `tauri/src/pages/ai/useLlmConfigPage.ts:190-228` | 本地 Embedding 开关/选模型 invoke 无 try/catch，失败后前后端状态漂移 | `[x]` 已修复（76cffe3d） |
-| P005 | P1 | 性能 | `tauri/src-tauri/src/commands/object/snapshot.rs:466-484` | 回收站子对象列表循环内逐条 `get_trash_item`（每次附带整条 data 解密），而 summary 已含 `original_id`，属纯浪费 | `[ ]` 待修复 |
+| P005 | P1 | 性能 | `tauri/src-tauri/src/commands/object/snapshot.rs:466-484` | 回收站子对象列表循环内逐条 `get_trash_item`（每次附带整条 data 解密），而 summary 已含 `original_id`，属纯浪费 | `[x]` 已修复（54b02ac8） |
 | P006 | P1 | 性能 | `tauri/src/pages/home/HomePage.tsx:235-255` + `tauri/src-tauri/src/commands/attachment/tree.rs:55` | 首页角标每次返回都调用 `attachment_list_all` 全表解密，仅为渲染两个计数 | `[ ]` 待修复 |
 | P007 | P1 | 代码质量 | `tauri/src-tauri/src/commands/attachment/crud.rs:47-69` ↔ `tauri/crates/solosoul-core/src/export_import.rs:64-84` | `AttachmentMeta` 结构体双定义，序列化契约靠注释维持，存在漂移风险 | `[ ]` 待修复 |
 | P008 | P1 | 规范 | `tauri/crates/solosoul-core/src/vault_service/account.rs:91,118` | `cargo fmt --check` 失败（2 处 tracing 宏格式），CI 基线红 | `[x]` 已修复（9054d0b1） |
@@ -56,8 +56,8 @@
 
 ## 修复进度
 
-- 已完成：7 / 23（P008、P009、P002、P003、P004、P018、P001）
-- 当前处理：P005
+- 已完成：8 / 23（P008、P009、P002、P003、P004、P018、P001、P005）
+- 当前处理：P006
 
 ---
 
@@ -105,10 +105,11 @@
 
 **修复记录（76cffe3d）**：`handleToggleLocalEmbedding` / `handleSelectLocalModel` 的 invoke 均包 try/catch + `onError`；两处失败回滚 `setLocalModelId(prevModelId)`，开关失败不回改 `useLocalEmbedding`。tsc/eslint/prettier 通过。
 
-### P005（P1 性能）回收站子对象 N+1 冗余解密
+### P005（P1 性能）回收站子对象 N+1 冗余解密（已完成）
 
 `snapshot.rs:466-484`：`list_trash_items` 返回的 `TrashItemSummary` **已包含 `original_id`**（`solosoul-vault/src/lib.rs:216`），但代码仍对每个子对象调 `get_trash_item`，每次附带整条 data blob 的 AES 解密（`trash.rs:193-194`），仅为取 `original_id`。
-**修复建议**：删除 `get_trash_item` 调用，直接用 `t.original_id`；可同时给 `list_trash_items` 传 `item_type: Some("object")` 过滤。
+
+**修复记录（54b02ac8）**：`fetch_trash_child_items` 删除 `get_trash_item` 循环调用，直接用 summary 的 `original_id`；`list_trash_items` 加 `item_type: Some("object")` 让对象过滤在 SQL 层完成（减少扫描量）；`commands/object/tests/trash.rs` 复制的同款逻辑同步对齐。相关 trash 测试 16 个全过，clippy/fmt 干净。
 
 ### P006（P1 性能）首页角标全量解密换计数
 
