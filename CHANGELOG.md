@@ -2,6 +2,18 @@
 
 All notable changes to SoloSoul are documented in this file.
 
+## [2.11.3] - 2026-08-19
+
+### Fixed
+
+- **安卓首次引导选择保险库存储位置报错（P027 守卫拦截引导期命令）** — 全新安装/重装后引导流程在账户创建前选择存储目录（外部 SAF 目录 / 本地目录），`vault_pick_directory` 与 `init_vault_directory` 不在解锁豁免名单被前端守卫拦截抛 `No account is currently unlocked`（后端本无鉴权，纯引导前置步骤，v2.11.0 起存在、首次全量安装暴露）；两条命令加入豁免名单，引导期恢复正常（含豁免断言测试 1 例）。
+
+- **P027 安全守卫全量排查补漏（登录页主题与恢复数据流程）** — 对全部 187 个 IPC 命令逐一核查未解锁可达性，补齐 3 条遗漏豁免：`get_system_theme`（登录页/引导页 `useApplyThemeFromSettings` 默认 theme=system 时挂载即调，被拦截致主题失效 + unhandled rejection，v2.11.0 起一直存在）、`recovery_discover_hosts` / `recovery_restore_from_host`（登录页「恢复数据」弹窗发现/恢复主机直接报错）；其余 142 条未豁免命令经调用方核查均仅 post-auth 可达（含豁免断言测试 1 例）。
+
+### Chore
+
+- 版本号同步 2.11.3（package.json / tauri.conf.json / Cargo.toml / tauri.properties versionCode 2011003 + Cargo.lock workspace 对齐）
+
 ## [2.11.2] - 2026-08-19
 
 ### Fixed
