@@ -35,7 +35,7 @@
 | P003 | P1 | 前端缺陷 | `tauri/src/stores/settingsStore.ts:491-523` | `addCustomPage` 失败仍无条件 `return newPage`，调用方导航到后端不存在的页面 | `[x]` 已修复（d8648b3f） |
 | P004 | P1 | 前端缺陷 | `tauri/src/pages/ai/useLlmConfigPage.ts:190-228` | 本地 Embedding 开关/选模型 invoke 无 try/catch，失败后前后端状态漂移 | `[x]` 已修复（76cffe3d） |
 | P005 | P1 | 性能 | `tauri/src-tauri/src/commands/object/snapshot.rs:466-484` | 回收站子对象列表循环内逐条 `get_trash_item`（每次附带整条 data 解密），而 summary 已含 `original_id`，属纯浪费 | `[x]` 已修复（54b02ac8） |
-| P006 | P1 | 性能 | `tauri/src/pages/home/HomePage.tsx:235-255` + `tauri/src-tauri/src/commands/attachment/tree.rs:55` | 首页角标每次返回都调用 `attachment_list_all` 全表解密，仅为渲染两个计数 | `[ ]` 待修复 |
+| P006 | P1 | 性能 | `tauri/src/pages/home/HomePage.tsx:235-255` + `tauri/src-tauri/src/commands/attachment/tree.rs:55` | 首页角标每次返回都调用 `attachment_list_all` 全表解密，仅为渲染两个计数 | `[x]` 已修复（df464e69） |
 | P007 | P1 | 代码质量 | `tauri/src-tauri/src/commands/attachment/crud.rs:47-69` ↔ `tauri/crates/solosoul-core/src/export_import.rs:64-84` | `AttachmentMeta` 结构体双定义，序列化契约靠注释维持，存在漂移风险 | `[ ]` 待修复 |
 | P008 | P1 | 规范 | `tauri/crates/solosoul-core/src/vault_service/account.rs:91,118` | `cargo fmt --check` 失败（2 处 tracing 宏格式），CI 基线红 | `[x]` 已修复（9054d0b1） |
 | P009 | P1 | 规范 | `tauri/crates/solosoul-core/src/ocr/macos_vision.rs:334-335`；`vault_service/tests.rs:26` | `cargo clippy -- -D warnings` 失败：2 处 `needless_borrows_for_generic_args`；`--all-targets` 下另有 1 处 unused variable | `[x]` 已修复（346d7563） |
@@ -56,8 +56,8 @@
 
 ## 修复进度
 
-- 已完成：8 / 23（P008、P009、P002、P003、P004、P018、P001、P005）
-- 当前处理：P006
+- 已完成：9 / 23（P008、P009、P002、P003、P004、P018、P001、P005、P006）
+- 当前处理：P007
 
 ---
 
@@ -111,10 +111,11 @@
 
 **修复记录（54b02ac8）**：`fetch_trash_child_items` 删除 `get_trash_item` 循环调用，直接用 summary 的 `original_id`；`list_trash_items` 加 `item_type: Some("object")` 让对象过滤在 SQL 层完成（减少扫描量）；`commands/object/tests/trash.rs` 复制的同款逻辑同步对齐。相关 trash 测试 16 个全过，clippy/fmt 干净。
 
-### P006（P1 性能）首页角标全量解密换计数
+### P006（P1 性能）首页角标全量解密换计数（已完成）
 
-`HomePage.tsx:235-255` 每次回到首页（`location.pathname === '/'`）触发 `loadCounts()` → `attachment_list_all`（`tree.rs:55` 第一步即 `vault.list_objects(...)` 全表解密），只为渲染「照片数」「附件数」两个角标。`GlobalAttachmentManager.tsx:251-277` 每次元数据编辑后整树 `loadData()` 属同一根因。
-**修复建议**：新增轻量计数命令（对含附件对象计数，或按 `updated_at` 指纹缓存计数结果，对象变更时失效）。
+`HomePage.tsx:235-255` 每次回到首页（`location.pathname === '/'`）触发 `loadCounts()` → `attachment_list_all`（`tree.rs:55` 第一步即 `vault.list_objects(...)` 全表解密），只为渲染「照片数」「附件数」两个角标。
+
+**修复记录（df464e69）**：新增 `attachment_count_stats` 轻量命令——`vault.count_active_attachment_stats` 单 SQL（`SELECT properties ... WHERE is_deleted = 0`）解密 + P025 子串扫描统计活跃附件总数与照片数，免附件树分组/模板解析/文件存在性探测；照片判定与前端 `previewItemByMime` 对齐（mimeType `image/` 前缀或扩展名 ∈ {png,jpg,jpeg,gif,webp,svg}）。`HomePage.loadCounts` 改用新命令；P025 扫描抽出完整数组版（`extract_attachments_array_from_json_text`）供 id 提取与计数共用。含 vault 单测 1 条 + 前端测试 3 条同步更新；clippy/fmt/eslint/prettier/tsc 全绿。
 
 ### P007（P1 代码质量）`AttachmentMeta` 双定义
 
