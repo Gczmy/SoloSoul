@@ -31,7 +31,7 @@
 | ID   | 优先级 | 类别       | 文件位置 | 描述 | 状态 |
 |------|--------|------------|----------|------|------|
 | P001 | P1 | 安全 | `tauri/crates/solosoul-core/src/objects.rs:1043-1045` | Vault 附件以明文落盘，仅导出/同步时才加密，与零知识定位不符 | `[ ]` 待修复 |
-| P002 | P1 | 前端缺陷 | `tauri/src/stores/objectStore.ts:194-196` | `updateObject` 吞错不抛出，编辑保存失败被误报「保存成功」并退出页面，数据静默丢失 | `[ ]` 待修复 |
+| P002 | P1 | 前端缺陷 | `tauri/src/stores/objectStore.ts:194-196` | `updateObject` 吞错不抛出，编辑保存失败被误报「保存成功」并退出页面，数据静默丢失 | `[x]` 已修复（f585f43f） |
 | P003 | P1 | 前端缺陷 | `tauri/src/stores/settingsStore.ts:491-523` | `addCustomPage` 失败仍无条件 `return newPage`，调用方导航到后端不存在的页面 | `[ ]` 待修复 |
 | P004 | P1 | 前端缺陷 | `tauri/src/pages/ai/useLlmConfigPage.ts:190-228` | 本地 Embedding 开关/选模型 invoke 无 try/catch，失败后前后端状态漂移 | `[ ]` 待修复 |
 | P005 | P1 | 性能 | `tauri/src-tauri/src/commands/object/snapshot.rs:466-484` | 回收站子对象列表循环内逐条 `get_trash_item`（每次附带整条 data 解密），而 summary 已含 `original_id`，属纯浪费 | `[ ]` 待修复 |
@@ -56,8 +56,8 @@
 
 ## 修复进度
 
-- 已完成：2 / 23（P008、P009）
-- 当前处理：P002（updateObject 吞错）
+- 已完成：3 / 23（P008、P009、P002）
+- 当前处理：P003（addCustomPage 失败仍返回成功值）
 
 ---
 
@@ -88,6 +88,8 @@ std::fs::copy(&src, &dest_path).map_err(|e| format!("复制文件失败: {}", e)
 
 同文件 `createObject`（:161-164）catch 后会 `throw err`。唯一调用方 `useObjectEditorPage.ts:422-428` 依赖异常进入 onError 分支；当前 `object_update` 失败时仍执行 `onSuccess(t('common:object_saved'))` 并 `navigate(-1)`，编辑内容静默丢失。
 **修复建议**：catch 中补 `throw err`，与 `createObject` 对齐。
+
+**修复记录（f585f43f）**：`updateObject` catch 补 `throw err`（注释说明调用方依赖），+1 单测验证失败抛错且 store.error 置位。objectStore 11 测试全过。
 
 ### P003（P1 前端缺陷）`addCustomPage` 失败仍返回成功值
 
