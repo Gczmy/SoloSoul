@@ -91,11 +91,7 @@ impl super::VaultService {
             let config: AccountConfig = match serde_json::from_slice(&content) {
                 Ok(c) => c,
                 Err(e) => {
-                    tracing::warn!(
-                        "[scan_orphan_accounts] 跳过损坏 config {}: {}",
-                        name,
-                        e
-                    );
+                    tracing::warn!("[scan_orphan_accounts] 跳过损坏 config {}: {}", name, e);
                     continue;
                 }
             };
@@ -118,7 +114,11 @@ impl super::VaultService {
                 .write()
                 .unwrap_or_else(|e| e.into_inner())
                 .insert(config.account_id.clone(), entry);
-            tracing::info!("[scan_orphan_accounts] 恢复孤儿账户 {} ({})", name, config.name);
+            tracing::info!(
+                "[scan_orphan_accounts] 恢复孤儿账户 {} ({})",
+                name,
+                config.name
+            );
             recovered.push(name);
         }
         if !recovered.is_empty() {
