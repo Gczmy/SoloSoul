@@ -14,6 +14,100 @@ fn setup_service() -> (VaultService, TempDir) {
 }
 
 #[test]
+fn test_scan_orphan_accounts_recovers_missing_from_manifest() {
+    let dir = TempDir::new().unwrap();
+    let base = dir.path().join(".solosoul");
+    std::fs::create_dir_all(&base).unwrap();
+
+    // 创建一个正常账户（会写入 accounts.json + acc_xxx 目录）
+    {
+        let svc = VaultService::with_base_path(base.clone());
+        let account = svc.create_account("Alice", "password123", None).unwrap();
+        let account_id = account["id"].as_str().unwrap().to_string();
+        assert_eq!(svc.list_accounts().len(), 1);
+
+        // 模拟「清单被覆盖」事故：手工写一个 accounts.json 仅含另一账户，
+        // 并把 Alice 的账户目录留下（成为孤儿）。
+        let orphan_manifest = serde_json::json!([{
+            "id": "acc_other",
+            "name": "Other",
+            "created_at": "2026-01-01T00:00:00+00:00",
+            "last_accessed": null
+        }]);
+        std::fs::write(
+            svc.base_path().join("accounts.json"),
+            serde_json::to_string_pretty(&orphan_manifest).unwrap(),
+        )
+        .unwrap();
+    }
+
+    // 全新 service 加载被覆盖的清单：仅 acc_other（Alice 不在清单中，但目录仍在）
+    let svc = VaultService::with_base_path(base);
+    svc.load_accounts();
+    assert_eq!(svc.list_accounts().len(), 1);
+    assert_eq!(svc.list_accounts()[0].name, "Other");
+
+    // 孤儿扫描应恢复 Alice
+    let recovered = svc.scan_orphan_accounts().unwrap();
+    assert!(!recovered.is_empty());
+    assert!(svc.list_accounts().iter().any(|a| a.name == "Alice"));
+    assert_eq!(svc.list_accounts().len(), 2);
+
+    // 幂等：再次扫描不重复添加
+    let recovered_again = svc.scan_orphan_accounts().unwrap();
+    assert!(recovered_again.is_empty());
+    assert_eq!(svc.list_accounts().len(), 2);
+}
+
+#[test]
+fn test_scan_orphan_accounts_skips_corrupt_or_mismatched_config() {
+    let (svc, _dir) = setup_service();
+
+    // 目录名与 config.account_id 不一致 → 跳过
+    let mismatch_dir = svc.base_path().join("acc_mismatch");
+    std::fs::create_dir_all(&mismatch_dir).unwrap();
+    let mismatched_config = serde_json::json!({
+        "account_id": "acc_actually_different",
+        "name": "Mismatch",
+        "salt": "AAAA",
+        "verify_hash": "BBBB",
+        "created_at": "2026-01-01T00:00:00+00:00",
+        "crypto_version": 3,
+        "password_hint": null,
+        "last_login_at": null,
+        "last_operation_at": null,
+        "last_operation_desc": null,
+        "biometricEnabled": false,
+        "pinEnabled": false,
+        "pinLength": 0,
+        "pinFailedAttempts": 0,
+        "pinLockedUntil": null,
+        "passwordFailedAttempts": 0,
+        "passwordLockedUntil": null
+    });
+    std::fs::write(
+        mismatch_dir.join("config.json"),
+        serde_json::to_string_pretty(&mismatched_config).unwrap(),
+    )
+    .unwrap();
+
+    // config.json 损坏 → 跳过
+    let corrupt_dir = svc.base_path().join("acc_corrupt");
+    std::fs::create_dir_all(&corrupt_dir).unwrap();
+    std::fs::write(corrupt_dir.join("config.json"), b"{not valid json").unwrap();
+
+    // 无 config.json → 跳过
+    let no_config_dir = svc.base_path().join("acc_no_config");
+    std::fs::create_dir_all(&no_config_dir).unwrap();
+
+    let recovered = svc.scan_orphan_accounts().unwrap();
+    assert!(recovered.is_empty());
+    assert!(!svc.has_account("acc_mismatch"));
+    assert!(!svc.has_account("acc_corrupt"));
+    assert!(!svc.has_account("acc_no_config"));
+}
+
+#[test]
 fn test_create_account_success() {
     let (svc, _dir) = setup_service();
     let result = svc.create_account("Alice", "password123", None);

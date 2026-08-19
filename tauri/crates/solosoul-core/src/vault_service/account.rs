@@ -65,6 +65,68 @@ impl super::VaultService {
             .unwrap_or(false)
     }
 
+    /// 扫描 Vault 根目录下存在账户数据目录（`acc_*`）但不在 accounts.json
+    /// 清单中的账户，按目录中的 config.json 重建清单条目并写回。
+    ///
+    /// 用于恢复「清单被覆盖但账户目录仍在」的场景（如 SAF 目录切换时
+    /// 本地新账户清单覆盖了远端 accounts.json，旧账户目录成为孤儿）。
+    ///
+    /// 返回恢复的账户 id 列表。
+    pub fn scan_orphan_accounts(&self) -> Result<Vec<String>, String> {
+        let names = self.fs.list_dir("").map_err(|e| e.to_string())?;
+        let mut recovered = Vec::new();
+        for name in names {
+            if !name.starts_with("acc_") {
+                continue;
+            }
+            // 已存在于清单中的账户跳过
+            if self.has_account(&name) {
+                continue;
+            }
+            let config_rel = self.config_path_rel(&name);
+            let content = match self.fs.read_file(&config_rel) {
+                Ok(c) => c,
+                Err(_) => continue,
+            };
+            let config: AccountConfig = match serde_json::from_slice(&content) {
+                Ok(c) => c,
+                Err(e) => {
+                    tracing::warn!(
+                        "[scan_orphan_accounts] 跳过损坏 config {}: {}",
+                        name,
+                        e
+                    );
+                    continue;
+                }
+            };
+            // 目录名与 config 内 account_id 不一致时跳过（防御性）
+            if config.account_id != name {
+                tracing::warn!(
+                    "[scan_orphan_accounts] 跳过不一致账户 {} (config.account_id={})",
+                    name,
+                    config.account_id
+                );
+                continue;
+            }
+            let entry = AccountEntry {
+                id: config.account_id.clone(),
+                name: config.name.clone(),
+                created_at: config.created_at.clone(),
+                last_accessed: config.last_login_at.clone(),
+            };
+            self.accounts_cache
+                .write()
+                .unwrap_or_else(|e| e.into_inner())
+                .insert(config.account_id.clone(), entry);
+            tracing::info!("[scan_orphan_accounts] 恢复孤儿账户 {} ({})", name, config.name);
+            recovered.push(name);
+        }
+        if !recovered.is_empty() {
+            self.save_accounts()?;
+        }
+        Ok(recovered)
+    }
+
     pub fn list_accounts(&self) -> Vec<AccountSummary> {
         let cache = self.accounts_cache.read().ok();
         let accounts = match cache {

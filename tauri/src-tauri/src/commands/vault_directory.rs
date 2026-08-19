@@ -9,6 +9,7 @@ use crate::fs::saf_sync_driver::TauriSafSyncDriver;
 use crate::state::{AppState, InitializeVaultResult};
 use serde::{Deserialize, Serialize};
 use solosoul_core::vault_file_system::{SafVaultFileSystem, VaultFileSystem};
+use solosoul_core::VaultService as CoreVaultService;
 use std::sync::Arc;
 use tauri::{AppHandle, Emitter, Manager, Runtime, State};
 
@@ -204,21 +205,43 @@ pub async fn vault_set_directory(
         let uri_owned = uri.clone();
         let handle = state.handle.clone();
         tokio::task::spawn_blocking(move || -> Result<(), String> {
+            // ① 先拉取远端（目标 SAF 目录）已有数据到 temp——
+            // 防止本地（可能只有新账户）清单覆盖远端 accounts.json 导致旧账户丢失。
+            // 远端为空目录时 no-op。
+            let fs: Arc<dyn VaultFileSystem> = Arc::new(SafVaultFileSystem::new(
+                uri_owned,
+                temp_dir_inner.clone(),
+                Arc::new(TauriSafSyncDriver::<tauri::Wry>::new(handle.clone())),
+            ));
+            fs.sync_from_remote()
+                .map_err(|e| format!("从 SAF 拉取已有数据失败: {e}"))?;
+
+            // ② 合并本地数据到 temp（clear_dst=false 不清空，保留刚拉取的远端数据）
             if local_dir != temp_dir_inner {
                 let _ = handle.emit(
                     "sync-progress",
                     serde_json::json!({"phase": "migrate", "current": 1, "total": 3}),
                 );
-                migrate_vault_data(&local_dir, &temp_dir_inner, true)?;
+                migrate_vault_data(&local_dir, &temp_dir_inner, false)?;
                 let _ = handle.emit(
                     "sync-progress",
                     serde_json::json!({"phase": "migrate", "current": 2, "total": 3}),
                 );
             }
 
-            // 通过临时文件系统同步到 SAF
-            let sync_driver = Arc::new(TauriSafSyncDriver::<tauri::Wry>::new(handle.clone()));
-            let fs = SafVaultFileSystem::new(uri_owned, temp_dir_inner, sync_driver);
+            // ③ 重建账户清单：load_accounts 读合并后 temp 的 accounts.json，
+            // 再扫描 acc_* 目录恢复「清单中缺失但目录还在」的旧账户
+            // （① 拉取的远端旧账户目录不被 ② 清空，此处即可找回）。
+            {
+                let svc = CoreVaultService::with_file_system(temp_dir_inner.clone(), fs.clone());
+                svc.load_accounts();
+                let recovered = svc.scan_orphan_accounts()?;
+                if !recovered.is_empty() {
+                    tracing::info!("[vault_set_directory] 恢复孤儿账户: {:?}", recovered);
+                }
+            }
+
+            // ④ 推送合并后的完整数据到 SAF
             fs.sync_to_remote()
                 .map_err(|e| format!("首次同步到 SAF 失败: {e}"))?;
 
