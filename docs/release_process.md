@@ -414,6 +414,11 @@ bash scripts/verify-release-signatures.sh SoloSoul-Releases
 
 ### 8. 生成 latest.json（含国内加速镜像清单）
 
+> **先写 release notes 文件，再生成清单**：latest.json 的 `notes` 字段（桌面端更新横幅
+> 「查看更新内容」弹卡的数据源）取自 `--notes-file` 指定的 markdown 文件。缺省时仅为
+> 占位符 `SoloSoul v<版本>`（横幅只会显示一行标题）。发布前先把完整的
+> `SoloSoul-Releases/release-notes-v<版本>.md` 写好，再执行下面的命令。
+
 在 Mac 上执行：
 
 ```bash
@@ -421,10 +426,11 @@ cd tauri
 node scripts/generate-latest-json.js \
   "$(node -p "require('./src-tauri/tauri.conf.json').version")" \
   ../SoloSoul-Releases \
-  ../SoloSoul-Releases/latest.json
+  ../SoloSoul-Releases/latest.json \
+  --notes-file ../SoloSoul-Releases/release-notes-v$(node -p "require('./src-tauri/tauri.conf.json').version").md
 ```
 
-生成的 `latest.json` 包含各平台安装包下载地址与 Ed25519 签名，供应用内更新器读取。
+生成的 `latest.json` 包含各平台安装包下载地址、Ed25519 签名与完整 release notes，供应用内更新器读取。
 
 脚本会**实时探测国内 GitHub 加速代理**（ghfast.top / ghproxy.net / gh-proxy.com / ghps.cc）：
 

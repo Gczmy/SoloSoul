@@ -3,12 +3,15 @@
  * 根据构建产物生成 Tauri updater 所需的 latest.json（及国内加速镜像清单）。
  *
  * 用法：
- *   node scripts/generate-latest-json.js <version> <artifacts-dir> <output-file> [--no-probe] [--proxies id=prefix,id=prefix]
+ *   node scripts/generate-latest-json.js <version> <artifacts-dir> <output-file> [--notes-file <path>] [--no-probe] [--proxies id=prefix,id=prefix]
  *
  * 参数：
  *   - version: 应用版本号（例如 2.1.0）
  *   - artifacts-dir: 存放 .dmg/.exe/.AppImage 及对应 .sig 的目录
  *   - output-file: 输出的 latest.json 路径
+ *   - --notes-file <path>: release notes 的 markdown 文件路径（写入 latest.json 的 notes 字段，
+ *                          桌面端更新横幅「查看更新内容」据此渲染完整正文；缺省时回退为
+ *                          占位符 `SoloSoul v<version>`）。发版前先写好该文件再生成清单。
  *   - --no-probe: 跳过代理探测（只生成直连 latest.json，不发网络请求）
  *   - --proxies: 覆盖默认代理列表，格式 `id1=https://prefix1/,id2=https://prefix2/`
  *
@@ -69,8 +72,9 @@ function resolveSignature(installerPath) {
 
 /**
  * 构建最新清单。urlPrefix 为空 → 直连 URL；非空 → 每个 URL 加代理前缀。
+ * notes 缺省时为占位符 `SoloSoul v<version>`（与旧行为一致）。
  */
-function buildLatestJson(version, artifactsDir, urlPrefix = '') {
+function buildLatestJson(version, artifactsDir, urlPrefix = '', notes) {
   const wrap = (url) => `${urlPrefix}${url}`;
   const platforms = {};
   // 文件名中包含版本号，避免目录中旧版本产物干扰
@@ -118,7 +122,7 @@ function buildLatestJson(version, artifactsDir, urlPrefix = '') {
 
   return {
     version,
-    notes: `SoloSoul v${version}`,
+    notes: notes ?? `SoloSoul v${version}`,
     pub_date: new Date().toISOString(),
     platforms,
   };
@@ -180,22 +184,35 @@ async function main() {
   if (proxyArgIdx >= 0 && args[proxyArgIdx + 1]) {
     proxies = parseProxyArg(args[proxyArgIdx + 1]);
   }
-  // 位置参数 = 去掉 --no-probe 与 --proxies <值> 后的前三个
+  // --notes-file <path>：release notes markdown，写入 latest.json 的 notes 字段
+  const notesFileIdx = args.indexOf('--notes-file');
+  let notes;
+  if (notesFileIdx >= 0 && args[notesFileIdx + 1]) {
+    const notesPath = args[notesFileIdx + 1];
+    if (!fs.existsSync(notesPath)) {
+      console.error(`--notes-file 指定的文件不存在: ${notesPath}`);
+      process.exit(1);
+    }
+    notes = readFile(notesPath);
+    console.log(`notes: 使用 ${notesPath}（${notes.length} 字符）`);
+  }
+  // 位置参数 = 去掉各选项及其值后的前三个
+  const optionValue = new Set(['--proxies', '--notes-file']);
   const stripped = args.filter((_, i) => {
-    if (args[i] === '--no-probe' || args[i] === '--proxies') return false;
-    return args[i - 1] !== '--proxies';
+    if (args[i] === '--no-probe' || optionValue.has(args[i])) return false;
+    return !optionValue.has(args[i - 1]);
   });
   const [version, artifactsDir, outputFile] = stripped;
 
   if (!version || !artifactsDir || !outputFile) {
-    console.error('Usage: node scripts/generate-latest-json.js <version> <artifacts-dir> <output-file> [--no-probe] [--proxies id=prefix,...]');
+    console.error('Usage: node scripts/generate-latest-json.js <version> <artifacts-dir> <output-file> [--notes-file <path>] [--no-probe] [--proxies id=prefix,...]');
     process.exit(1);
   }
 
   const outDir = path.dirname(outputFile);
 
   // 1. 直连清单（全球用户默认通道）
-  const latest = buildLatestJson(version, artifactsDir);
+  const latest = buildLatestJson(version, artifactsDir, '', notes);
   fs.mkdirSync(outDir, { recursive: true });
   fs.writeFileSync(outputFile, JSON.stringify(latest, null, 2));
   console.log(`Generated ${outputFile} with platforms: ${Object.keys(latest.platforms).join(', ')}`);
@@ -214,7 +231,7 @@ async function main() {
 
   for (const proxy of alive) {
     const mirrorFile = path.join(outDir, `latest-mirror-${proxy.id}.json`);
-    const mirror = buildLatestJson(version, artifactsDir, proxy.prefix);
+    const mirror = buildLatestJson(version, artifactsDir, proxy.prefix, notes);
     fs.writeFileSync(mirrorFile, JSON.stringify(mirror, null, 2));
     console.log(`Generated ${mirrorFile} (via ${proxy.prefix})`);
   }
