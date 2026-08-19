@@ -38,7 +38,7 @@
 | P006 | P1 | 性能 | `tauri/src/pages/home/HomePage.tsx:235-255` + `tauri/src-tauri/src/commands/attachment/tree.rs:55` | 首页角标每次返回都调用 `attachment_list_all` 全表解密，仅为渲染两个计数 | `[ ]` 待修复 |
 | P007 | P1 | 代码质量 | `tauri/src-tauri/src/commands/attachment/crud.rs:47-69` ↔ `tauri/crates/solosoul-core/src/export_import.rs:64-84` | `AttachmentMeta` 结构体双定义，序列化契约靠注释维持，存在漂移风险 | `[ ]` 待修复 |
 | P008 | P1 | 规范 | `tauri/crates/solosoul-core/src/vault_service/account.rs:91,118` | `cargo fmt --check` 失败（2 处 tracing 宏格式），CI 基线红 | `[x]` 已修复（9054d0b1） |
-| P009 | P1 | 规范 | `tauri/crates/solosoul-core/src/ocr/macos_vision.rs:334-335`；`vault_service/tests.rs:26` | `cargo clippy -- -D warnings` 失败：2 处 `needless_borrows_for_generic_args`；`--all-targets` 下另有 1 处 unused variable | `[ ]` 待修复 |
+| P009 | P1 | 规范 | `tauri/crates/solosoul-core/src/ocr/macos_vision.rs:334-335`；`vault_service/tests.rs:26` | `cargo clippy -- -D warnings` 失败：2 处 `needless_borrows_for_generic_args`；`--all-targets` 下另有 1 处 unused variable | `[x]` 已修复（346d7563） |
 | P010 | P2 | 安全 | `tauri/src-tauri/src/commands/attachment/share.rs:33-41` | 分享副本明文残留 `temp_dir()/solosoul_share/`，永不清理 | `[ ]` 待修复 |
 | P011 | P2 | 安全 | `tauri/src-tauri/src/commands/vault.rs:7-18`（注册于 `lib.rs:55`） | 遗留 `unlock` IPC 命令 `password: String` 未 `Zeroizing` 包装；前端已无调用（仅测试 mock 引用） | `[ ]` 待修复 |
 | P012 | P2 | 安全 | `tauri/src-tauri/src/commands/auth.rs:159-176` | `verify_password` 不计失败、不触发阶梯锁定，构成无限速密码验证 oracle | `[ ]` 待修复 |
@@ -56,8 +56,8 @@
 
 ## 修复进度
 
-- 已完成：1 / 23（P008）
-- 当前处理：P009（clippy 基线）
+- 已完成：2 / 23（P008、P009）
+- 当前处理：P002（updateObject 吞错）
 
 ---
 
@@ -126,6 +126,8 @@ std::fs::copy(&src, &dest_path).map_err(|e| format!("复制文件失败: {}", e)
 - 另 `cargo clippy --all-targets` 下 `vault_service/tests.rs:26` 有 unused variable `account_id`（建议改 `_account_id`）。
 
 **修复建议**：按 clippy 提示修改，两行级修复。
+
+**修复记录（346d7563）**：macos_vision.rs 两处 `.arg(&x.to_string_lossy().as_ref())` 去掉多余 `&`；tests.rs `account_id` → `_account_id`。`cargo clippy --all-targets -- -D warnings` 恢复通过，solosoul-core 186 测试全过。
 
 ### P010（P2 安全）分享副本残留临时目录
 
