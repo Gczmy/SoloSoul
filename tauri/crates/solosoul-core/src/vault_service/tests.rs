@@ -648,6 +648,129 @@ fn test_change_password_reencrypts_attachments() {
     assert_eq!(decrypted, plain);
 }
 
+/// P001-2：改密时附件重加密失败（一个损坏附件触发）→ 整体回滚到旧钥——
+/// config/DB/附件全部保持旧钥一致（P001 复核打回项：原实现直接上抛，
+/// 留下 config 新钥 + 附件混态的永久不可读数据丢失路径）。
+#[test]
+fn test_change_password_attachment_reencrypt_failure_rolls_back() {
+    let (svc, _dir) = setup_service();
+    let account = svc.create_account("Rex2", "password123", None).unwrap();
+    let account_id = account["id"].as_str().unwrap();
+
+    let att_key_before = {
+        let k = svc.attachment_encryption_key().unwrap();
+        let arr: [u8; 32] = k.as_slice().try_into().unwrap();
+        arr
+    };
+    let account_dir = svc.base_path().join(account_id);
+    let att_dir = account_dir.join("attachments").join("obj_1").join("att_1");
+    std::fs::create_dir_all(&att_dir).unwrap();
+    // 正常附件（加密落盘）。
+    let plain = b"good attachment content".repeat(20);
+    let good_path = att_dir.join("good.txt");
+    std::fs::write(&good_path, &plain).unwrap();
+    let enc_tmp = att_dir.join("good.txt.enc");
+    crate::attachment_crypto::encrypt_file_stream(&att_key_before, &good_path, &enc_tmp).unwrap();
+    std::fs::rename(&enc_tmp, &good_path).unwrap();
+    // 损坏附件（SOLC 头 + 垃圾内容 → 解密必失败）。
+    let bad_path = att_dir.join("bad.bin");
+    std::fs::write(&bad_path, b"SOLC\x00\x00\x00garbage-not-a-real-ciphertext").unwrap();
+
+    // 改密应失败，且错误文案明示回滚。
+    let err = svc
+        .change_password(account_id, "password123", "newpassword123")
+        .unwrap_err();
+    assert!(
+        err.contains("attachment re-encryption failed") && err.contains("rollback"),
+        "错误文案须同时含附件失败与回滚信息，实际: {}",
+        err
+    );
+
+    // 回滚后：旧密码仍可用、新密码不可用（config 未换钥）。
+    assert!(svc.verify_password(account_id, "password123").unwrap());
+    assert!(!svc.verify_password(account_id, "newpassword123").unwrap());
+
+    // 附件保持旧钥可读（未被部分重加密）。
+    let good_dec =
+        crate::attachment_crypto::read_file_decrypted(&att_key_before, &good_path, 1_000_000)
+            .unwrap();
+    assert_eq!(good_dec, plain);
+
+    // 无残留临时文件（.rekey.tmp/.rekey.new/.rekey.rb.tmp 均被清理）。
+    let mut leftovers = Vec::new();
+    for entry in std::fs::read_dir(&att_dir).unwrap().flatten() {
+        let name = entry.file_name().to_string_lossy().to_string();
+        if name.contains(".rekey.") {
+            leftovers.push(name);
+        }
+    }
+    assert!(leftovers.is_empty(), "残留临时文件: {:?}", leftovers);
+}
+
+/// P001-2：KDF 升级同样改变会话密钥 → 附件密钥随之变化，必须重加密附件
+/// （原实现遗漏此步，升级后附件全部无法解密）。
+#[test]
+fn test_kdf_upgrade_reencrypts_attachments() {
+    let (svc, _dir) = setup_service();
+    let account = svc.create_account("KdfRex", "password123", None).unwrap();
+    let account_id = account["id"].as_str().unwrap();
+
+    // 写入一个加密附件（旧附件密钥）。
+    let att_key_before = {
+        let k = svc.attachment_encryption_key().unwrap();
+        let arr: [u8; 32] = k.as_slice().try_into().unwrap();
+        arr
+    };
+    let account_dir = svc.base_path().join(account_id);
+    let att_dir = account_dir.join("attachments").join("obj_1").join("att_1");
+    std::fs::create_dir_all(&att_dir).unwrap();
+    let plain = b"kdf attachment".repeat(20);
+    let plain_path = att_dir.join("doc.txt");
+    std::fs::write(&plain_path, &plain).unwrap();
+    let enc_tmp = att_dir.join("doc.txt.enc");
+    crate::attachment_crypto::encrypt_file_stream(&att_key_before, &plain_path, &enc_tmp).unwrap();
+    std::fs::rename(&enc_tmp, &plain_path).unwrap();
+
+    // 模拟旧账户：将 config 的 KDF 参数改为开发档（8 MiB / 2 iter）。
+    let config_path = svc.base_path().join(account_id).join("config.json");
+    let mut raw: serde_json::Value =
+        serde_json::from_str(&fs::read_to_string(&config_path).unwrap()).unwrap();
+    raw["kdfMemoryKb"] = serde_json::Value::from(8 * 1024u32);
+    raw["kdfIterations"] = serde_json::Value::from(2u32);
+    raw["kdfParallelism"] = serde_json::Value::from(4u32);
+    fs::write(&config_path, serde_json::to_string_pretty(&raw).unwrap()).unwrap();
+
+    let old_kdf = KdfConfig::development();
+    let salt_bytes = base64::Engine::decode(
+        &base64::engine::general_purpose::STANDARD,
+        raw["salt"].as_str().unwrap(),
+    )
+    .unwrap();
+    let salt_arr: [u8; 16] = salt_bytes.as_slice().try_into().unwrap();
+    let old_key = derive_key("password123", &salt_arr, &old_kdf).unwrap();
+
+    // 执行 KDF 升级。
+    svc.unlock_with_kdf_upgrade(account_id, "password123", &old_key)
+        .unwrap();
+
+    // 升级后：旧附件密钥解不开，新附件密钥可解密且内容一致。
+    let att_key_after = {
+        let k = svc.attachment_encryption_key().unwrap();
+        let arr: [u8; 32] = k.as_slice().try_into().unwrap();
+        arr
+    };
+    assert_ne!(att_key_before, att_key_after);
+    assert!(crate::attachment_crypto::is_encrypted_file(&plain_path));
+    assert!(
+        crate::attachment_crypto::read_file_decrypted(&att_key_before, &plain_path, 1_000_000)
+            .is_err()
+    );
+    let decrypted =
+        crate::attachment_crypto::read_file_decrypted(&att_key_after, &plain_path, 1_000_000)
+            .unwrap();
+    assert_eq!(decrypted, plain);
+}
+
 #[test]
 fn test_get_vault_store_when_locked() {
     let (svc, _dir) = setup_service();

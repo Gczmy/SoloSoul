@@ -30,7 +30,7 @@
 
 | ID   | 优先级 | 类别       | 文件位置 | 描述 | 状态 |
 |------|--------|------------|----------|------|------|
-| P001 | P1 | 安全 | `tauri/crates/solosoul-core/src/objects.rs:1043-1045` | Vault 附件以明文落盘，仅导出/同步时才加密，与零知识定位不符 | `[ ]` 轮次2复核打回（主体已修，3 处残留：CLI 导入明文写盘、改密重加密无回滚、open 临时明文不清理，见复核记录） |
+| P001 | P1 | 安全 | `tauri/crates/solosoul-core/src/objects.rs:1043-1045` | Vault 附件以明文落盘，仅导出/同步时才加密，与零知识定位不符 | `[ ]` 轮次2复核打回（主体已修；残留 2/3 已修：改密/KDF 重加密原子化+回滚、KDF 升级漏重加密；残留 1/3 CLI 导入明文写盘、残留 3/3 open 临时明文不清理 待修，见复核记录） |
 | P002 | P1 | 前端缺陷 | `tauri/src/stores/objectStore.ts:194-196` | `updateObject` 吞错不抛出，编辑保存失败被误报「保存成功」并退出页面，数据静默丢失 | `[x]` 已修复（f585f43f） |
 | P003 | P1 | 前端缺陷 | `tauri/src/stores/settingsStore.ts:491-523` | `addCustomPage` 失败仍无条件 `return newPage`，调用方导航到后端不存在的页面 | `[x]` 已修复（d8648b3f） |
 | P004 | P1 | 前端缺陷 | `tauri/src/pages/ai/useLlmConfigPage.ts:190-228` | 本地 Embedding 开关/选模型 invoke 无 try/catch，失败后前后端状态漂移 | `[x]` 已修复（76cffe3d） |
@@ -149,6 +149,8 @@
 5. CLI 同步：`solosoul_cli/commands/attachment.rs`（add_attachments 传密钥）、`plugin.rs`（run 传密钥）；solosoul-core `export_vault` 检测到密文附件时明确报错（CLI 无密钥，防双重加密损坏包）。
 
 **验证**：workspace 测试全过（src-tauri 444 / core 194 / vault 163 / plugin 57…），clippy --all-targets 无警告，fmt 干净，solosoul-cli 编译通过。Kotlin 侧零改动（Rust 传临时明文路径）。
+
+**修复记录（轮次 2.5，残留 2/3）**：`reencrypt_attachments` 重写为**两阶段原子**（`unlock.rs`）——准备阶段逐个生成 `{path}.rekey.new` 新钥密文（原文件不动、明文临时文件 `{path}.rekey.tmp` 用后即删），任一失败清理全部临时文件后整体返回 Err（原文件保持旧钥）；提交阶段 rename 覆盖（同目录原子改名，不再就地截断）。`change_password` 附件重加密失败时调用既有 `rollback_reencrypt_and_config` 回滚 config + DB 到旧钥（附件仍为旧钥 → 账户整体一致），不再留下「config 新钥 + 附件混态」。**顺带修复同属 P001 的遗漏**：`unlock_with_kdf_upgrade`（KDF 参数透明升级）原实现完全不重加密附件——会话密钥变化后附件密钥随之变化，升级后全部附件永久无法解密；现同样接入两阶段原子重加密 + 失败回滚。新增 2 条单测（改密附件失败回滚 + KDF 升级重加密附件），core 197 测试全过，clippy/fmt 干净。
 
 ### P002（P1 前端缺陷）`updateObject` 吞错 → 假成功提示
 

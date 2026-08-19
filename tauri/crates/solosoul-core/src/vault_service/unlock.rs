@@ -519,6 +519,33 @@ impl super::VaultService {
         }
         // R-4① 方案 2：config 写入成功 → 交换完成，清除 pending。
         self.remove_config_pending(account_id);
+
+        // P001-2：KDF 升级同样改变会话密钥 → 附件密钥随之变化，必须把全部附件
+        // 重加密到新密钥（原实现遗漏此步，升级后附件全部无法解密）。两阶段原子
+        // + 失败回滚（与 change_password 同款语义）：失败时回滚 config + DB 到
+        // 旧钥，附件仍为旧钥 → 账户一致可用（P001 复核打回项）。
+        let old_att_key: [u8; 32] = crate::attachment_crypto::derive_attachment_key(&old_key_arr)?;
+        let new_att_key: [u8; 32] = crate::attachment_crypto::derive_attachment_key(&new_key_arr)?;
+        if let Err(e) = self.reencrypt_attachments(&old_att_key, &new_att_key) {
+            let rollback_note = match self.rollback_reencrypt_and_config(
+                account_id,
+                &vault,
+                &old_config_content,
+                &old_key,
+                &new_key_enc,
+            ) {
+                Ok(_) => {
+                    self.remove_config_pending(account_id);
+                    "an automatic rollback to the previous key was attempted.".to_string()
+                }
+                Err(rb) => format!("automatic rollback FAILED: {}", rb),
+            };
+            return Err(format!(
+                "KDF upgrade succeeded but attachment re-encryption failed: {}; {}",
+                e, rollback_note
+            ));
+        }
+
         // 释放临时 Vault 连接，随后以新密钥重开（避免同一 DB 双连接）
         drop(vault);
 
@@ -872,15 +899,42 @@ impl super::VaultService {
         // R-4① 方案 2：config 写入成功 → 交换完成，清除 pending。
         self.remove_config_pending(account_id);
 
-        // P001：附件目录重加密——附件以附件密钥（HKDF 派生）加密落盘，改密后
+        // P001-2：附件目录重加密——附件以附件密钥（HKDF 派生）加密落盘，改密后
         // 会话密钥变化 → 附件密钥随之变化，必须把全部附件重加密到新密钥，
-        // 否则改密后附件全部无法解密。发生在 config 交换完成后、会话切换前：
-        // 此时旧密钥仍可派生旧附件密钥（self 仍持 old_key_arr 派生），且
-        // 失败可整体回滚（下方 reopen 失败路径已有回滚语义，附件重加密先于
-        // 会话切换，最坏情况是附件仍为旧钥——与数据库 reencrypt 事务同级对齐）。
+        // 否则改密后附件全部无法解密。两阶段原子（准备阶段原文件不动，任一失败
+        // 全部临时文件清理、原文件保持旧钥）：失败时回滚 config + DB 到旧钥，
+        // 附件仍为旧钥 → 账户整体回到改密前一致状态（P001 复核打回项：
+        // 原实现直接 `?` 上抛无任何回滚，留下“config 新钥 + 附件混态”的
+        // 永久不可读数据丢失路径）。
         let old_att_key: [u8; 32] = crate::attachment_crypto::derive_attachment_key(&old_key_arr)?;
         let new_att_key: [u8; 32] = crate::attachment_crypto::derive_attachment_key(&new_key_arr)?;
-        self.reencrypt_attachments(&old_att_key, &new_att_key)?;
+        if let Err(e) = self.reencrypt_attachments(&old_att_key, &new_att_key) {
+            let rollback_note = if let Some(vault_guard) = self.get_vault_store() {
+                match self.rollback_reencrypt_and_config(
+                    account_id,
+                    vault_guard.as_ref(),
+                    &old_config_content,
+                    &old_key,
+                    &new_key_enc,
+                ) {
+                    Ok(_) => {
+                        // 回滚成功：数据已重加密回旧钥、config 已恢复 → pending 同步清除。
+                        self.remove_config_pending(account_id);
+                        "an automatic rollback to the previous key was attempted.".to_string()
+                    }
+                    Err(rb) => {
+                        // 回滚失败：保留 pending（恢复线索），并明示回滚未生效。
+                        format!("automatic rollback FAILED: {}", rb)
+                    }
+                }
+            } else {
+                "automatic rollback skipped (vault unavailable)".to_string()
+            };
+            return Err(format!(
+                "Password updated but attachment re-encryption failed: {}; {}",
+                e, rollback_note
+            ));
+        }
 
         // Update session key and reopen vault with new data key.
         self.reopen_vault_with_new_key(
@@ -916,12 +970,18 @@ impl super::VaultService {
         Ok(())
     }
 
-    /// P001：附件目录重加密（改密/换钥后调用）。
+    /// P001-2：附件目录重加密（改密/KDF 升级换钥后调用）——两阶段原子。
     ///
-    /// 遍历当前账户的 `attachments/{object_id}/{attachment_id}/` 下所有文件，
-    /// 对 SOLC 密文解密后用新附件密钥重新加密；旧明文（未加密历史数据）直接
-    /// 加密为新密文。任一文件失败即整体返回 Err（保持与数据库 reencrypt 的
-    /// 事务式语义一致，避免部分附件可用部分不可用的混态）。
+    /// 遍历当前账户的 `attachments/{object_id}/{attachment_id}/` 下所有文件：
+    /// - **准备阶段**：每个文件用新附件密钥加密到 `{path}.rekey.new` 临时文件，
+    ///   原文件全程不动；任一文件失败即删除全部临时文件并整体返回 Err
+    ///   （原文件仍全部为旧钥，调用方可回滚 DB/config，账户一致可用）；
+    /// - **提交阶段**：全部就绪后逐个 rename 覆盖原文件（同目录原子改名），
+    ///   改名失败则把已改名文件尽力重加密回旧钥并清理残留。
+    ///
+    /// 崩溃残留恢复：上次运行已换新钥的文件（旧钥解不开、新钥可解）自动跳过；
+    /// 残留 `.rekey.tmp`/`.rekey.new` 临时文件在收集时过滤、失败路径清理，
+    /// 不残留明文（P001 复核打回项）。
     fn reencrypt_attachments(
         &self,
         old_att_key: &[u8; 32],
@@ -942,24 +1002,118 @@ impl super::VaultService {
         // 手写 read_dir 递归避免为一次性遍历引入 walkdir 依赖）。
         let mut files: Vec<std::path::PathBuf> = Vec::new();
         Self::collect_attachment_files(&attachments_root, &mut files)?;
-        for path in files {
-            // 旧明文直接加密；SOLC 密文先解密再加密；其他密文格式错误则报错。
-            if crate::attachment_crypto::is_encrypted_file(&path) {
-                // 解密到临时文件，再用新密钥加密覆盖
-                let temp_path = path.with_extension("rekey.tmp");
-                crate::attachment_crypto::copy_decrypt_file(old_att_key, &path, &temp_path)
-                    .map_err(|e| format!("附件解密失败 ({}): {}", path.display(), e))?;
-                crate::attachment_crypto::encrypt_file_stream(new_att_key, &temp_path, &path)
-                    .map_err(|e| format!("附件重加密失败 ({}): {}", path.display(), e))?;
-                std::fs::remove_file(&temp_path)
-                    .map_err(|e| format!("附件临时文件清理失败: {}", e))?;
-            } else {
-                // 旧明文（未加密历史数据）：直接加密为新密文
-                let temp_path = path.with_extension("rekey.tmp");
-                crate::attachment_crypto::encrypt_file_stream(new_att_key, &path, &temp_path)
-                    .map_err(|e| format!("附件加密失败 ({}): {}", path.display(), e))?;
-                std::fs::rename(&temp_path, &path)
-                    .map_err(|e| format!("附件替换失败 ({}): {}", path.display(), e))?;
+        // 过滤崩溃残留的临时文件（准备阶段产物），避免被当作附件处理。
+        files.retain(|p| {
+            let name = p
+                .file_name()
+                .map(|n| n.to_string_lossy().to_string())
+                .unwrap_or_default();
+            !name.ends_with(".rekey.tmp")
+                && !name.ends_with(".rekey.new")
+                && !name.ends_with(".rekey.rb.tmp")
+        });
+
+        // 准备阶段：为每个文件生成新钥密文 `.rekey.new`（原文件不动）。
+        // Ok(true)=已准备新密文；Ok(false)=已是新钥（上次运行残留，跳过）。
+        let mut prepared: Vec<(std::path::PathBuf, std::path::PathBuf)> = Vec::new();
+        for path in &files {
+            let tmp_new = path.with_extension("rekey.new");
+            let tmp_plain = path.with_extension("rekey.tmp");
+            let outcome = (|| -> Result<bool, String> {
+                if !crate::attachment_crypto::is_encrypted_file(path) {
+                    // 旧明文（未加密历史数据）：直接加密为新密文
+                    crate::attachment_crypto::encrypt_file_stream(new_att_key, path, &tmp_new)
+                        .map_err(|e| format!("附件加密失败 ({}): {}", path.display(), e))?;
+                    return Ok(true);
+                }
+                match crate::attachment_crypto::copy_decrypt_file(old_att_key, path, &tmp_plain) {
+                    Ok(()) => {
+                        // 旧钥可解 → 解密到明文临时文件 → 新钥加密到 .rekey.new
+                        crate::attachment_crypto::encrypt_file_stream(
+                            new_att_key,
+                            &tmp_plain,
+                            &tmp_new,
+                        )
+                        .map_err(|e| format!("附件重加密失败 ({}): {}", path.display(), e))?;
+                        Ok(true)
+                    }
+                    Err(_) => {
+                        // 旧钥解不开 → 新钥可解则视为上次运行已重加密（崩溃残留），跳过
+                        let _ = std::fs::remove_file(&tmp_plain);
+                        if crate::attachment_crypto::copy_decrypt_file(
+                            new_att_key,
+                            path,
+                            &tmp_plain,
+                        )
+                        .is_ok()
+                        {
+                            Ok(false)
+                        } else {
+                            Err(format!(
+                                "附件无法解密 ({}): 新旧密钥均不匹配",
+                                path.display()
+                            ))
+                        }
+                    }
+                }
+            })();
+            // 无论成败，立即清理明文临时文件（不残留明文）。
+            let _ = std::fs::remove_file(&tmp_plain);
+            match outcome {
+                Ok(true) => prepared.push((path.clone(), tmp_new)),
+                Ok(false) => {
+                    // 已是新钥：清理可能残留的 .rekey.new
+                    let _ = std::fs::remove_file(&tmp_new);
+                }
+                Err(e) => {
+                    // 准备失败：清理本次与全部已准备临时文件，原文件保持旧钥
+                    let _ = std::fs::remove_file(&tmp_new);
+                    for (_, n) in &prepared {
+                        let _ = std::fs::remove_file(n);
+                    }
+                    return Err(e);
+                }
+            }
+        }
+
+        // 提交阶段：rename 覆盖原文件（同目录原子改名，不就地截断）。
+        for (idx, (orig, tmp_new)) in prepared.iter().enumerate() {
+            if let Err(e) = std::fs::rename(tmp_new, orig) {
+                // 极罕见（同目录改名）：已改名 [0..idx) 尽力回滚到旧钥，未改名清理。
+                let mut rb_errs = Vec::new();
+                for (done_orig, _) in &prepared[..idx] {
+                    let rb_plain = done_orig.with_extension("rekey.rb.tmp");
+                    let rb = crate::attachment_crypto::copy_decrypt_file(
+                        new_att_key,
+                        done_orig,
+                        &rb_plain,
+                    )
+                    .and_then(|_| {
+                        crate::attachment_crypto::encrypt_file_stream(
+                            old_att_key,
+                            &rb_plain,
+                            done_orig,
+                        )
+                    });
+                    let _ = std::fs::remove_file(&rb_plain);
+                    if let Err(rbe) = rb {
+                        rb_errs.push(format!("{}: {}", done_orig.display(), rbe));
+                    }
+                }
+                for (_, n) in &prepared[idx..] {
+                    let _ = std::fs::remove_file(n);
+                }
+                let rb_msg = if rb_errs.is_empty() {
+                    String::new()
+                } else {
+                    format!("; 回滚失败: {}", rb_errs.join("; "))
+                };
+                return Err(format!(
+                    "附件重加密提交失败 ({}): {}{}",
+                    orig.display(),
+                    e,
+                    rb_msg
+                ));
             }
         }
         tracing::info!("附件目录已重加密（改密）: {}", attachments_root.display());
