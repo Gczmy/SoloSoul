@@ -16,6 +16,11 @@ initPlatform().catch((err) => logger.warn('[main] Platform init failed:', err));
 preloadCameraCapability().catch((err) =>
   logger.warn('[main] Camera capability check failed:', err),
 );
+// 启动期预探测指纹/PIN 可用性（非阻塞）——登录页挂载时结果已就绪或更快返回，
+// 配合 loginMethodCache（localStorage 持久化登录方式）消灭「先显示主密码再跳指纹」闪屏。
+import('@/lib/loginAvailabilityPreflight')
+  .then((m) => m.preflightForLastAccount())
+  .catch((err) => logger.warn('[main] Login availability preflight failed:', err));
 
 // 移动端启动性能基线：记录应用启动时刻（MOB-P1-07）
 const appStartTime = performance.now();

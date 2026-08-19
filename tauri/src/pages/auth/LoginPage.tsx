@@ -117,8 +117,24 @@ export function LoginPage() {
           />
         )}
 
-        {/* Password input — 最低优先级；初始化或缓存回退时也显示，避免白屏 */}
-        {(loginMethod === 'password' || loginMethod === null) && (
+        {/* 登录方式视图区 — minHeight 152 与各视图一致，切换时不产生高度变化 */}
+        {/* 占位：loginMethod 尚未确定（首次无缓存 + 可用性探测中）时渲染空占位，
+            而不是先闪主密码再跳指纹（方案 B：消灭「先密码后指纹」内容闪现）。 */}
+        {loginMethod === null && (
+          <div
+            data-testid="login-method-placeholder"
+            style={{
+              minHeight: 152,
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              marginBottom: 16,
+            }}
+          />
+        )}
+
+        {/* Password input — 最低优先级 */}
+        {loginMethod === 'password' && (
           <LoginPasswordView
             password={password}
             onPasswordChange={(v) => {
@@ -138,9 +154,8 @@ export function LoginPage() {
               // T1：首个输入框获焦时记录，仅一次
               if (t1FiredRef.current) return;
               t1FiredRef.current = true;
-              const start = (
-                window as typeof window & { __SOLOSOUL_APP_START_TIME?: number }
-              ).__SOLOSOUL_APP_START_TIME;
+              const start = (window as typeof window & { __SOLOSOUL_APP_START_TIME?: number })
+                .__SOLOSOUL_APP_START_TIME;
               if (typeof start === 'number') {
                 // T1 timing is captured internally; no console output in production
               }
@@ -154,18 +169,18 @@ export function LoginPage() {
           onRestore={() => setRecoveryOpen(true)}
         />
 
-        {/* ===== 底部图标栏 — 切换解锁方式 ===== */}
-        {loginMethod !== null && (
-          <LoginIconBar
-            loginMethod={loginMethod}
-            iconMethods={iconMethods}
-            hoveredIcon={hoveredIcon}
-            committedIcon={committedIcon}
-            onIconEnter={handleIconEnter}
-            onIconLeave={handleIconLeave}
-            onIconClick={handleIconClick}
-          />
-        )}
+        {/* ===== 底部图标栏 — 切换解锁方式 =====
+            常驻渲染（方案 B）：登录方式未确定时只显示「主密码」图标，
+            高度恒定 → 卡片不生长 → 输入框不再随探测完成跳动。 */}
+        <LoginIconBar
+          loginMethod={loginMethod ?? 'password'}
+          iconMethods={iconMethods}
+          hoveredIcon={hoveredIcon}
+          committedIcon={committedIcon}
+          onIconEnter={handleIconEnter}
+          onIconLeave={handleIconLeave}
+          onIconClick={handleIconClick}
+        />
 
         {recoveryOpen && (
           <Suspense fallback={<RecoveryDialogSkeleton />}>

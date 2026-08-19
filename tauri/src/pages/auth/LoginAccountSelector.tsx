@@ -14,7 +14,7 @@ export function LoginAccountSelector({
   onSelect: (id: string) => void;
 }) {
   return (
-    <div style={{ marginBottom: 20, width: '100%', minHeight: accounts.length > 0 ? 'auto' : 50 }}>
+    <div style={{ marginBottom: 20, width: '100%', minHeight: 62 }}>
       {accounts.length > 0 &&
         (accounts.length > 1 ? (
           <select

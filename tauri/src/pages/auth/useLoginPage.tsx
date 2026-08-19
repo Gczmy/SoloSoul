@@ -6,20 +6,20 @@ import { useAuthStore, LAST_ACCOUNT_KEY } from '@/stores/authStore';
 import { useApplyThemeFromSettings } from '@/hooks/useApplyThemeFromSettings';
 import type { AccountInfo } from '@/lib/ipc';
 
+import {
+  readCachedLoginMethod,
+  writeCachedLoginMethod,
+  type LoginMethod,
+} from '@/lib/loginMethodCache';
+import {
+  normalizeBiometryType,
+  preflightLoginAvailability,
+} from '@/lib/loginAvailabilityPreflight';
+
 import { useLoginUnlockFlows } from './useLoginUnlockFlows';
 import { useLoginIconBar } from './useLoginIconBar';
 
-/** P038: 受支持的生物识别类型白名单（显示名由 LoginBiometricView 的查表负责） */
-const BIOMETRIC_INFO: Record<string, string> = {
-  faceId: 'faceId',
-  touchId: 'touchId',
-  windowsHello: 'windowsHello',
-};
-
-/** 模块级缓存 — 跨组件卸载持久化，避免锁定后重新挂载时闪烁 */
-let _cachedLoginMethod: 'faceId' | 'touchId' | 'windowsHello' | 'pin' | 'password' | null = null;
-
-export type LoginMethod = 'faceId' | 'touchId' | 'windowsHello' | 'pin' | 'password';
+export type { LoginMethod } from '@/lib/loginMethodCache';
 
 /**
  * 登录页全部编排逻辑（P046 拆分：数据 hook；W001-② 再拆后为组合层）。
@@ -94,10 +94,8 @@ export function useLoginPage() {
     })
       .then((r) => {
         if (ctrl.signal.aborted) return;
-        const info = r.biometryType ? BIOMETRIC_INFO[r.biometryType] : undefined;
-        if (info) {
-          setBiometryTypeRaw(info);
-        }
+        // 设备级提示：账户级探测（preflight）会再次校正
+        setBiometryTypeRaw(normalizeBiometryType(r.biometryType));
       })
       .catch(() => {
         // Ignore: account-specific check will handle availability.
@@ -139,13 +137,32 @@ export function useLoginPage() {
 
   // Priority-based login method selection
   // Priority: FaceID > Touch ID > Windows Hello > PIN > Password
-  // 从模块缓存初始化，避免锁定后重新挂载时闪烁
-  const [loginMethod, setLoginMethod] = useState<LoginMethod | null>(_cachedLoginMethod);
+  // 方案 A：从 localStorage 按账户同步恢复上次登录方式——冷启动首帧即正确方法，
+  // 消灭「先显示主密码再跳指纹」闪屏；可用性探测完成后仍会校正过期缓存。
+  const [loginMethod, setLoginMethod] = useState<LoginMethod | null>(() => {
+    let lastId = '';
+    try {
+      lastId = localStorage.getItem(LAST_ACCOUNT_KEY) || '';
+    } catch {
+      // localStorage 不可用时保持空串（无缓存 → 探测中占位）
+    }
+    return readCachedLoginMethod(lastId);
+  });
 
-  // 跨卸载持久化 — 锁定再登录后直接显示最后使用的方法
+  // 跨卸载持久化（localStorage，按账户隔离）——锁定再登录后直接显示最后使用的方法
   useEffect(() => {
-    if (loginMethod) _cachedLoginMethod = loginMethod;
-  }, [loginMethod]);
+    if (!loginMethod) return;
+    const accountId =
+      selectedAccountId ||
+      (() => {
+        try {
+          return localStorage.getItem(LAST_ACCOUNT_KEY) || '';
+        } catch {
+          return '';
+        }
+      })();
+    if (accountId) writeCachedLoginMethod(accountId, loginMethod);
+  }, [loginMethod, selectedAccountId]);
 
   // 三种解锁流程（PIN / 生物识别 / 主密码）+ 各自状态
   // 置于可用性 effect 之前：复位块需经组合层转调其 setter（setter 身份稳定）
@@ -179,6 +196,8 @@ export function useLoginPage() {
       setBioAvailable(false);
       setPinAvailable(false);
       setBioLockout(false);
+      // 直接定为主密码，避免 localStorage 缓存的上次方式短暂闪现
+      setLoginMethod('password');
       return () => controller.abort();
     }
 
@@ -193,55 +212,27 @@ export function useLoginPage() {
     setPinError(null);
     setSubmitError(null);
 
-    // Check biometric
-    // lockout 场景：系统因失败次数过多临时锁定生物识别（Android canAuthenticate 返回
-    // ERROR_LOCKOUT），此时后端 available 会变 false，但凭证仍已配置（configured=true）。
-    // 指纹项应继续显示，仅在解锁时提示"系统指纹识别未恢复"，而不是消失或显示"不支持"。
-    invoke<{
-      available: boolean;
-      configured: boolean;
-      biometryType?: string;
-      lockout?: boolean;
-    }>('biometric_check_availability', { accountId: selectedAccountId })
+    // 指纹/PIN 可用性探测：统一走预探测路径（方案 C）——启动期（main.tsx）可能
+    // 已按 LAST_ACCOUNT_KEY 发起同账户探测，这里直接复用结果；未发起则首次发起。
+    // 探测完成前保持固定高度占位（方案 B），不再先渲染主密码。
+    preflightLoginAvailability(selectedAccountId)
       .then((r) => {
         if (controller.signal.aborted) return;
-        // 已配置凭证且（设备可用或系统临时锁定）→ 保留指纹项。
-        // lockout 以 !!r.lockout 为准：即使 available 与 lockout 同时成立
-        // （Android 插件 status() 在锁定期间可能仍报可用），也正确显示警告。
-        if (r.configured && (r.available || r.lockout)) {
-          setBioAvailable(true);
-          setBioLockout(!!r.lockout);
-          const info = r.biometryType ? BIOMETRIC_INFO[r.biometryType] : undefined;
-          if (info) {
-            setBiometryTypeRaw(info);
-          }
-        } else {
-          setBioAvailable(false);
-          setBioLockout(false);
-        }
+        setBioAvailable(r.bioAvailable);
+        setBioLockout(r.bioLockout);
+        setBiometryTypeRaw(r.biometryTypeRaw);
+        setPinAvailable(r.pinAvailable);
       })
       .catch(() => {
         if (controller.signal.aborted) return;
         setBioAvailable(false);
-      })
-      .finally(() => {
-        if (!controller.signal.aborted) setBioChecked(true);
-      });
-
-    // Check PIN
-    invoke<{ configured: boolean; locked: boolean }>('pin_check_availability', {
-      accountId: selectedAccountId,
-    })
-      .then((r) => {
-        if (controller.signal.aborted) return;
-        setPinAvailable(r.configured && !r.locked);
-      })
-      .catch(() => {
-        if (controller.signal.aborted) return;
         setPinAvailable(false);
       })
       .finally(() => {
-        if (!controller.signal.aborted) setPinChecked(true);
+        if (!controller.signal.aborted) {
+          setBioChecked(true);
+          setPinChecked(true);
+        }
       });
 
     return () => controller.abort();
