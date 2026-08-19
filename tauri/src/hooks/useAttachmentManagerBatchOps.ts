@@ -5,7 +5,10 @@ import { useBatchSelect } from '@/hooks/useBatchSelect';
 import { isUriPath } from '@/lib/mobileFileTransfer';
 import { logger } from '@/lib/logger';
 import type { Toast } from '@/stores/uiStore';
-import type { AttachmentMeta, AttachmentTreePage } from '@/components/attachment/attachmentManagerTypes';
+import type {
+  AttachmentMeta,
+  AttachmentTreePage,
+} from '@/components/attachment/attachmentManagerTypes';
 
 export interface UseAttachmentManagerBatchOpsOptions {
   /** 当前显示的所有附件复合键（useBatchSelect 的 allSelected 推导依据）。 */
@@ -62,8 +65,10 @@ export function useAttachmentManagerBatchOps({
       if (typeof dirPath === 'string' && isUriPath(dirPath)) {
         showToast({
           type: 'warning',
-          message:
-            t('common:batch_download_mobile_unsupported', { defaultValue: 'Batch download to a directory is not supported on mobile. Please download files individually.' }),
+          message: t('common:batch_download_mobile_unsupported', {
+            defaultValue:
+              'Batch download to a directory is not supported on mobile. Please download files individually.',
+          }),
         });
         return;
       }
@@ -102,8 +107,11 @@ export function useAttachmentManagerBatchOps({
         }),
       });
       clearSelection();
-    } catch {
-      // dialog cancelled
+    } catch (e) {
+      // P016: dialog 取消经 openWithPause 返回 null 提前 return（不抛异常），
+      // 走到 catch 的是真实错误（dialog 插件失败 / 动态 import 失败等），
+      // 不再误判为「用户取消」静默吞掉——留痕日志便于排查。
+      logger.warn('[AttachmentManager] Batch download failed:', e);
     }
   }, [selectedIds, displayPages, t, showToast, clearSelection]);
 
@@ -124,7 +132,10 @@ export function useAttachmentManagerBatchOps({
     let failedCount = 0;
     for (const [objectId, attachmentIds] of byObject) {
       try {
-        await invoke('attachment_batch_soft_delete', { objectId: objectId, attachmentIds: attachmentIds });
+        await invoke('attachment_batch_soft_delete', {
+          objectId: objectId,
+          attachmentIds: attachmentIds,
+        });
         successCount += attachmentIds.length;
       } catch (e) {
         // P121: 逐对象失败不再静默吞错——记录真实错误，批量结果提示失败数
@@ -169,12 +180,20 @@ export function useAttachmentManagerBatchOps({
     let failedCount = 0;
     for (const [objectId, attachmentIds] of byObject) {
       try {
-        await invoke('attachment_batch_delete', { objectId: objectId, attachmentIds: attachmentIds });
+        await invoke('attachment_batch_delete', {
+          objectId: objectId,
+          attachmentIds: attachmentIds,
+        });
         successCount += attachmentIds.length;
       } catch (e) {
         // P121: 逐对象失败不再静默吞错——记录真实错误，批量结果提示失败数
         failedCount += attachmentIds.length;
-        logger.warn('[AttachmentManager] Batch permanent delete failed for object', objectId, ':', e);
+        logger.warn(
+          '[AttachmentManager] Batch permanent delete failed for object',
+          objectId,
+          ':',
+          e,
+        );
       }
     }
 
@@ -215,7 +234,10 @@ export function useAttachmentManagerBatchOps({
     let failedCount = 0;
     for (const [objectId, attachmentIds] of byObject) {
       try {
-        await invoke('attachment_batch_restore', { objectId: objectId, attachmentIds: attachmentIds });
+        await invoke('attachment_batch_restore', {
+          objectId: objectId,
+          attachmentIds: attachmentIds,
+        });
         successCount += attachmentIds.length;
       } catch (e) {
         // P121: 逐对象失败不再静默吞错——记录真实错误，批量结果提示失败数
