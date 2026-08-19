@@ -60,6 +60,12 @@ const UNLOCKED_EXEMPT_COMMANDS: ReadonlySet<string> = new Set([
   'biometric_save_credential',
   'biometric_delete_credential',
   'vault_list_accounts',
+  // 首次启动引导（无账户/未解锁）选择与初始化保险库存储位置：SAF 目录选择器
+  // 与目录初始化均与 Vault 数据内容无关、后端不鉴权，是引导流程的前置步骤；
+  // 否则 P027 在引导期拦截，安卓新装/重装用户选择存储目录即报
+  // 「No account is currently unlocked」
+  'vault_pick_directory',
+  'init_vault_directory',
   'reset_security_flags',
   'dismiss_lock_mask',
   'get_lock_pending',

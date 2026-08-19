@@ -85,6 +85,23 @@ describe('invokeCommand（统一 IPC 调用层）', () => {
     }
   });
 
+  it('P027 默认守卫：首次引导存储目录命令（vault_pick_directory/init_vault_directory）未解锁时可调', async () => {
+    vi.stubEnv('MODE', 'development');
+    vi.mocked(useAuthStore).getState.mockReturnValue({ isAuthenticated: false } as never);
+    try {
+      await expect(invokeCommand<void>('vault_pick_directory')).resolves.toBeUndefined();
+      await expect(
+        invokeCommand<void>('init_vault_directory', { payload: { safTreeUri: null } }),
+      ).resolves.toBeUndefined();
+      expect(invoke).toHaveBeenCalledTimes(2);
+      expect(invoke).toHaveBeenNthCalledWith(2, 'init_vault_directory', {
+        payload: { safTreeUri: null },
+      });
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
   it('P027 默认守卫：自更新管线命令（android_check_update 等）未解锁时可调', async () => {
     vi.stubEnv('MODE', 'development');
     vi.mocked(useAuthStore).getState.mockReturnValue({ isAuthenticated: false } as never);
