@@ -43,7 +43,7 @@
 | P011 | P2 | 安全 | `tauri/src-tauri/src/commands/vault.rs:7-18`（注册于 `lib.rs:55`） | 遗留 `unlock` IPC 命令 `password: String` 未 `Zeroizing` 包装；前端已无调用（仅测试 mock 引用） | `[x]` 已修复（686d807c） |
 | P012 | P2 | 安全 | `tauri/src-tauri/src/commands/auth.rs:159-176` | `verify_password` 不计失败、不触发阶梯锁定，构成无限速密码验证 oracle | `[x]` 已修复（937446b7） |
 | P013 | P2 | 性能 | `tauri/src-tauri/src/commands/export_import/export.rs:751-761` | 导出时快照收集为 N+M 嵌套查询（每对象 1 次 list + 每快照 1 次 get） | `[x]` 已修复（8612e564） |
-| P014 | P2 | 性能 | `tauri/src/pages/settings/useTrashPage.tsx:145-168` | 回收站批量恢复逐项串行 IPC，与批量删除的批量入参不一致 | `[ ]` 待修复 |
+| P014 | P2 | 性能 | `tauri/src/pages/settings/useTrashPage.tsx:145-168` | 回收站批量恢复逐项串行 IPC，与批量删除的批量入参不一致 | `[x]` 已修复（c54c5524） |
 | P015 | P2 | 代码质量 | `tauri/src/pages/ai/useLlmConfigPage.ts:369,413`；`tauri/src/components/llm-config/ProviderManagerPanel.tsx:280` | API key 哨兵 `'••••••••'` 字面量硬编码三处，与 `lib/masking.ts:14` 的 `MASK_PLACEHOLDER` 脱钩 | `[ ]` 待修复 |
 | P016 | P2 | 代码质量 | `tauri/src/hooks/useAttachmentManagerBatchOps.ts:105-107` | 批量附件下载 catch-all 将任意异常误判为「用户取消」，无日志 | `[ ]` 待修复 |
 | P017 | P2 | 死代码 | `tauri/crates/solosoul-core/src/export_import.rs:129-131` | `ExportError::Crypto` 变体从未被构造 | `[ ]` 待修复 |
@@ -57,7 +57,8 @@
 ## 修复进度
 
 - 已完成：14 / 23（P008、P009、P002、P003、P004、P018、P001、P005、P006、P007、P010、P011、P012、P013）
-- 当前处理：P014
+- 已完成：15 / 23（P008、P009、P002、P003、P004、P018、P001、P005、P006、P007、P010、P011、P012、P013、P014）
+- 当前处理：P015
 
 ---
 
@@ -162,10 +163,11 @@
 
 **修复记录（8612e564）**：新增 `VaultStore::list_snapshots_with_data_batch(object_ids)`——单 SQL `WHERE object_id IN (...)` + `ROW_NUMBER() OVER (PARTITION BY object_id ORDER BY timestamp DESC) <= 50` 窗口函数保留每对象 LIMIT 50 语义，含 data 列解密；`collect_object_snapshots` 改一次批量调用替代 N+M 次查询。新增 2 条单测（多对象批量正确性 + 50 条上限）。导出相关测试 69 个全过，clippy/fmt 干净。
 
-### P014（P2 性能）回收站批量恢复串行 IPC
+### P014（P2 性能）回收站批量恢复串行 IPC（已完成）
 
 `useTrashPage.tsx:145-168`：逐项 `await restoreItem(id)`，N 项 N 次串行往返；同文件 `permanentDelete(ids)` 已是批量入参。
-**修复建议**：后端加 `trash_restore_batch(ids)`，前端一次调用。
+
+**修复记录（c54c5524）**：新增 `trash_restore_batch(trash_ids, lang)` 命令——模板项复用 `template_restore`（含已存在检查）、其余走 `object_restore`（级联恢复），已被级联恢复/已删除的项幂等跳过（对齐单条路径「Trash item not found 视为成功」）；`trashStore.restoreBatch` 一次调用并按 `consumedTrashIds` 过滤本地列表，`useTrashPage.doRestore` 改用批量端点（toast 逐 outcome 保持）。注册 lib.rs（handler + ACL）与 permissions 白名单。新增前端单测 1 条；eslint/prettier/tsc/clippy/fmt 全绿。
 
 ### P015（P2 代码质量）掩码哨兵字面量三处
 
