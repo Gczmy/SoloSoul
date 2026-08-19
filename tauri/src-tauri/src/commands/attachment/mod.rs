@@ -437,6 +437,43 @@ fn resolve_verified_attachment_path(
 /// the vault's `attachments` directory before opening.
 /// On Android, uses the native FileProvider plugin so that external PDF viewers
 /// can read the app-private vault file.
+/// P001-3/P010：将附件解密到**一次性 UUID 临时子目录**并安排延迟清理。
+///
+/// 外部应用（系统默认打开器 / 分享面板 / FileProvider）会异步读取临时明文，
+/// 命令返回后无法立即删除。方案：
+/// - 每次调用生成独立 UUID 子目录 → 并发打开/分享互不覆盖、互不删除（消除
+///   P010 桌面端「分享面板 A 未关闭又发起分享 B 会删掉 A 副本」的竞态）；
+/// - 后台线程 sleep `grace` 后删除整个子目录 → 明文残留有界（不再无限累积，
+///   最近副本也不再永久残留；P001-3 修复 open 路径完全无清理的残留面）。
+///
+/// 返回解密后的临时文件路径（外部应用读此文件）。
+pub(crate) fn decrypt_to_temp_dir(
+    att_key: &[u8; 32],
+    src: &Path,
+    file_name: &str,
+    prefix: &str,
+    grace: std::time::Duration,
+) -> Result<PathBuf, String> {
+    let safe_name = solosoul_core::path_util::sanitize_file_name(file_name)?;
+    let root = std::env::temp_dir().join(prefix);
+    std::fs::create_dir_all(&root).map_err(|e| format!("Failed to prepare temp dir: {}", e))?;
+    let dir = root.join(uuid::Uuid::new_v4().to_string());
+    std::fs::create_dir_all(&dir).map_err(|e| format!("Failed to prepare temp subdir: {}", e))?;
+    let dest = dir.join(safe_name);
+    solosoul_core::attachment_crypto::copy_decrypt_file(att_key, src, &dest)
+        .map_err(|e| format!("Failed to decrypt for temp copy: {}", e))?;
+    // 延迟清理：外部应用异步读取期间保留，grace 后删除整个子目录（best-effort）。
+    let cleanup_dir = dir.clone();
+    std::thread::spawn(move || {
+        std::thread::sleep(grace);
+        let _ = std::fs::remove_dir_all(&cleanup_dir);
+    });
+    Ok(dest)
+}
+
+/// 打开附件临时明文的保留宽限期（外部应用读取所需的最坏情况）。
+const OPEN_TEMP_GRACE: std::time::Duration = std::time::Duration::from_secs(30 * 60);
+
 #[tauri::command]
 pub async fn attachment_open<R: Runtime>(
     #[allow(unused_variables)] app: AppHandle<R>,
@@ -460,16 +497,18 @@ pub async fn attachment_open<R: Runtime>(
         (p, a, key_arr)
     };
 
+    // P001-3: 解密到一次性 UUID 子目录（外部应用无法读取 vault 密文），
+    // 后台延迟清理——原实现永久残留明文（复核打回项）。
+    let temp_path = decrypt_to_temp_dir(
+        &att_key,
+        &path,
+        &_att.file_name,
+        "solosoul_open",
+        OPEN_TEMP_GRACE,
+    )?;
+
     #[cfg(target_os = "android")]
     {
-        // P001: 外部应用无法读取 vault 密文——先解密到临时明文再交给 FileProvider。
-        let temp_dir = std::env::temp_dir().join(format!("solosoul_open_{}", object_id));
-        std::fs::create_dir_all(&temp_dir)
-            .map_err(|e| format!("Failed to prepare open dir: {}", e))?;
-        let safe_name = solosoul_core::path_util::sanitize_file_name(&_att.file_name)?;
-        let temp_path = temp_dir.join(&safe_name);
-        solosoul_core::attachment_crypto::copy_decrypt_file(&att_key, &path, &temp_path)
-            .map_err(|e| format!("Failed to decrypt for open: {}", e))?;
         let handle = app.state::<AttachmentImportPluginHandle<R>>();
         handle.open_file(OpenFilePayload {
             path: temp_path.to_string_lossy().to_string(),
@@ -479,14 +518,6 @@ pub async fn attachment_open<R: Runtime>(
 
     #[cfg(not(target_os = "android"))]
     {
-        // P001: 解密到临时明文再交给系统默认应用（外部应用无法读取 vault 密文）。
-        let temp_dir = std::env::temp_dir().join(format!("solosoul_open_{}", object_id));
-        std::fs::create_dir_all(&temp_dir)
-            .map_err(|e| format!("Failed to prepare open dir: {}", e))?;
-        let safe_name = solosoul_core::path_util::sanitize_file_name(&_att.file_name)?;
-        let temp_path = temp_dir.join(&safe_name);
-        solosoul_core::attachment_crypto::copy_decrypt_file(&att_key, &path, &temp_path)
-            .map_err(|e| format!("Failed to decrypt for open: {}", e))?;
         opener::open(&temp_path).map_err(|e| format!("Failed to open file: {}", e))?;
         Ok(())
     }

@@ -5,6 +5,7 @@ use super::*;
 // P047：父模块 use 绑定不随 `use super::*` glob 导入，Path 需显式引入
 use solosoul_vault::{ObjectRecord, VaultConfig, VaultStore};
 use std::path::Path;
+use std::time::Duration;
 use tempfile::TempDir;
 // P047：tree/share 子模块的 pub(crate) 项需显式导入（mod.rs 不做 re-export，避免非测试构建 unused 警告）
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -618,6 +619,58 @@ fn test_cleanup_share_dir_removes_old_plaintext_copies() {
     assert!(!tmp.path().join("old(1).pdf").exists());
     // 子目录保留（目录本身由后续 copy_into_dir 复用）
     assert!(tmp.path().join("subdir").is_dir());
+}
+
+/// P001-3/P010: `decrypt_to_temp_dir`——解密到一次性 UUID 子目录、不同调用
+/// 路径互不覆盖，且后台延迟清理（grace 过后文件与子目录被删除）。
+#[test]
+fn test_decrypt_to_temp_dir_unique_and_delayed_cleanup() {
+    let tmp = tempfile::tempdir().unwrap();
+    let src = tmp.path().join("secret.bin");
+    let plain = b"temp-copy-plaintext".repeat(10);
+    std::fs::write(&src, &plain).unwrap();
+    let att_key = [0x42u8; 32];
+
+    // 两次调用 → 不同子目录（互不覆盖，消除并发竞态）。
+    let d1 = decrypt_to_temp_dir(
+        &att_key,
+        &src,
+        "a.pdf",
+        "solosoul_open",
+        Duration::from_secs(30 * 60),
+    )
+    .unwrap();
+    let d2 = decrypt_to_temp_dir(
+        &att_key,
+        &src,
+        "a.pdf",
+        "solosoul_open",
+        Duration::from_secs(30 * 60),
+    )
+    .unwrap();
+    assert_ne!(d1.parent(), d2.parent(), "每次调用应生成独立子目录");
+    assert!(d1.exists() && d2.exists());
+    assert!(d1.starts_with(std::env::temp_dir().join("solosoul_open")));
+    // 内容解密一致
+    assert_eq!(
+        solosoul_core::attachment_crypto::read_file_decrypted(&att_key, &d1, 10_000).unwrap(),
+        plain
+    );
+
+    // 短 grace（300ms）→ 延迟清理生效：文件与子目录被删除。
+    let d3 = decrypt_to_temp_dir(
+        &att_key,
+        &src,
+        "b.bin",
+        "solosoul_open",
+        Duration::from_millis(300),
+    )
+    .unwrap();
+    let parent = d3.parent().unwrap().to_path_buf();
+    assert!(d3.exists());
+    std::thread::sleep(Duration::from_millis(900));
+    assert!(!d3.exists(), "grace 过后临时明文应被删除");
+    assert!(!parent.exists(), "grace 过后子目录应被删除");
 }
 
 // ── resolve_verified_attachment_path（attachment_open / attachment_share 共享路径） ──

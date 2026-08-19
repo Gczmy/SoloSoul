@@ -30,7 +30,7 @@
 
 | ID   | 优先级 | 类别       | 文件位置 | 描述 | 状态 |
 |------|--------|------------|----------|------|------|
-| P001 | P1 | 安全 | `tauri/crates/solosoul-core/src/objects.rs:1043-1045` | Vault 附件以明文落盘，仅导出/同步时才加密，与零知识定位不符 | `[ ]` 轮次2复核打回（主体已修；残留 1/3、2/3 已修：CLI 导入重加密落盘、改密/KDF 重加密原子化+回滚、KDF 升级漏重加密；残留 3/3 open 临时明文不清理 待修，见复核记录） |
+| P001 | P1 | 安全 | `tauri/crates/solosoul-core/src/objects.rs:1043-1045` | Vault 附件以明文落盘，仅导出/同步时才加密，与零知识定位不符 | `[x]` 主体 + 3 处残留全部修复（见修复记录与复核记录） |
 | P002 | P1 | 前端缺陷 | `tauri/src/stores/objectStore.ts:194-196` | `updateObject` 吞错不抛出，编辑保存失败被误报「保存成功」并退出页面，数据静默丢失 | `[x]` 已修复（f585f43f） |
 | P003 | P1 | 前端缺陷 | `tauri/src/stores/settingsStore.ts:491-523` | `addCustomPage` 失败仍无条件 `return newPage`，调用方导航到后端不存在的页面 | `[x]` 已修复（d8648b3f） |
 | P004 | P1 | 前端缺陷 | `tauri/src/pages/ai/useLlmConfigPage.ts:190-228` | 本地 Embedding 开关/选模型 invoke 无 try/catch，失败后前后端状态漂移 | `[x]` 已修复（76cffe3d） |
@@ -153,6 +153,8 @@
 **修复记录（轮次 2.5，残留 2/3）**：`reencrypt_attachments` 重写为**两阶段原子**（`unlock.rs`）——准备阶段逐个生成 `{path}.rekey.new` 新钥密文（原文件不动、明文临时文件 `{path}.rekey.tmp` 用后即删），任一失败清理全部临时文件后整体返回 Err（原文件保持旧钥）；提交阶段 rename 覆盖（同目录原子改名，不再就地截断）。`change_password` 附件重加密失败时调用既有 `rollback_reencrypt_and_config` 回滚 config + DB 到旧钥（附件仍为旧钥 → 账户整体一致），不再留下「config 新钥 + 附件混态」。**顺带修复同属 P001 的遗漏**：`unlock_with_kdf_upgrade`（KDF 参数透明升级）原实现完全不重加密附件——会话密钥变化后附件密钥随之变化，升级后全部附件永久无法解密；现同样接入两阶段原子重加密 + 失败回滚。新增 2 条单测（改密附件失败回滚 + KDF 升级重加密附件），core 197 测试全过，clippy/fmt 干净。
 
 **修复记录（轮次 2.5，残留 1/3）**：CLI 导入附件明文写盘——`solosoul-core::export_import::import_attachments` 增加可选 `vault_att_key: Option<&[u8; 32]>` 参数（CLI 从已解锁会话经 `attachment_encryption_key()` 派生），提供时解密 ZIP 条目 → 临时明文 → 以 vault 附件密钥加密落盘（与 GUI 导入路径 `extract_att_meta_for_object` 同款流程，解密/加密/清理三阶段任何失败都删除临时明文，不残留）。`import_vault` 透传该参数（CLI 调用点传入）。无密钥上下文（测试）保持原明文写盘行为。新增 1 条单测（带密钥导入后附件 SOLC 加密落盘 + 可解密还原 + 临时目录无新增明文），core 198 测试全过，solosoul_cli 编译/clippy 干净。
+
+**修复记录（轮次 2.5，残留 3/3）**：`attachment_open` 临时明文不清理——新增共享 helper `decrypt_to_temp_dir`（`attachment/mod.rs`）：每次调用解密到**一次性 UUID 子目录**（并发打开互不覆盖），后台线程 grace（30 分钟）后删除文件与子目录（明文残留有界，不再永久累积）。桌面/Android 两条 open 路径统一改走该 helper。新增 1 条单测（两次调用子目录独立 + 短 grace 后文件与目录被清理），attachment 29 测试全过，clippy/fmt 干净。该 helper 同时为 P010 分享路径复用（下一项）。
 
 ### P002（P1 前端缺陷）`updateObject` 吞错 → 假成功提示
 
