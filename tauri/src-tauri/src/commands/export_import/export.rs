@@ -297,7 +297,8 @@ fn validate_export_password(
     }
 
     // ── Verify export password is NOT the master password ──────
-    match svc.verify_password(account_id, password) {
+    // P012：走阶梯锁定路径（失败计数/锁定与解锁一致，消除无限速布尔 oracle）
+    match svc.verify_password_with_lockout(account_id, password) {
         Ok(true) => Err(export_err("SAME_AS_MASTER_PASSWORD")),
         Ok(false) => Ok(()), // export password is different from master password — OK
         Err(e) => Err(export_err_with_detail("MASTER_VERIFY_FAILED", &e)),

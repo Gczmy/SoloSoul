@@ -387,10 +387,17 @@ impl PinManager {
         password: &str,
         vault_service: &VaultService,
     ) -> Result<(), PinError> {
-        // 验证主密码
+        // 验证主密码（P012：接入 VaultService 阶梯锁定——失败计数/锁定与解锁一致，
+        // 锁定期间返回公开的 Locked 而不泄露密码正确性，消除无限速验证 oracle）
         vault_service
-            .verify_password(account_id, password)
-            .map_err(|_| PinError::InvalidPassword)?
+            .verify_password_with_lockout(account_id, password)
+            .map_err(|e| {
+                if e.contains(crate::vault_service::MASTER_PASSWORD_LOCKED_ERR) {
+                    PinError::Locked
+                } else {
+                    PinError::InvalidPassword
+                }
+            })?
             .then_some(())
             .ok_or(PinError::InvalidPassword)?;
 

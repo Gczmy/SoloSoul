@@ -22,6 +22,10 @@ export function getBiometricErrorMessage(error: unknown, t: TFunction): string {
   if (lower.includes('invalid password')) {
     return t('settings:current_password_incorrect');
   }
+  // P012：主密码阶梯锁定的原始错误串（镜像 backendError.ts 的精确映射表，前缀匹配）
+  if (lower.includes('too many failed attempts')) {
+    return t('common:password_locked');
+  }
   if (lower.includes('cancel') || lower.includes('interrupted')) {
     return t('settings:biometric_error_cancelled', { defaultValue: 'Cancelled' });
   }

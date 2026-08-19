@@ -95,7 +95,12 @@ export function PinSection({ accountId }: PinSectionProps) {
       // P123: 后端异常≠密码错误——verify_password 对错误密码返回 false（不抛异常），
       // 走到 catch 的是真实后端故障（锁定/崩溃等），统一报「密码不正确」会误导用户。
       logger.warn('[PinSection] verify_password failed:', e);
-      setSetupPasswordError(t('settings:pin_error_setup_failed'));
+      // P012：主密码阶梯锁定的原始错误串（镜像 backendError.ts 精确映射表，前缀匹配）
+      setSetupPasswordError(
+        String(e).toLowerCase().includes('too many failed attempts')
+          ? t('common:password_locked')
+          : t('settings:pin_error_setup_failed'),
+      );
       return false;
     }
   };
@@ -170,6 +175,9 @@ export function PinSection({ accountId }: PinSectionProps) {
       const msg = String(e);
       if (msg.includes('__PIN_ERR__:invalid_password')) {
         setDisablePasswordError(t('settings:current_password_incorrect'));
+      } else if (msg.includes('__PIN_ERR__:locked')) {
+        // P012：主密码阶梯锁定（pin_disable 验证主密码被锁）——区别显示锁定文案
+        setDisablePasswordError(t('common:password_locked'));
       } else {
         setDisablePasswordError(t('settings:pin_error_disable_failed'));
       }

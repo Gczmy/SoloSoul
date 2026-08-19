@@ -41,7 +41,7 @@
 | P009 | P1 | 规范 | `tauri/crates/solosoul-core/src/ocr/macos_vision.rs:334-335`；`vault_service/tests.rs:26` | `cargo clippy -- -D warnings` 失败：2 处 `needless_borrows_for_generic_args`；`--all-targets` 下另有 1 处 unused variable | `[x]` 已修复（346d7563） |
 | P010 | P2 | 安全 | `tauri/src-tauri/src/commands/attachment/share.rs:33-41` | 分享副本明文残留 `temp_dir()/solosoul_share/`，永不清理 | `[x]` 轮次2打回项已修复（走 `decrypt_to_temp_dir` 一次性 UUID 子目录 + 延迟清理，消除残留窗口与并发竞态，见修复记录） |
 | P011 | P2 | 安全 | `tauri/src-tauri/src/commands/vault.rs:7-18`（注册于 `lib.rs:55`） | 遗留 `unlock` IPC 命令 `password: String` 未 `Zeroizing` 包装；前端已无调用（仅测试 mock 引用） | `[x]` 已修复（686d807c） |
-| P012 | P2 | 安全 | `tauri/src-tauri/src/commands/auth.rs:159-176` | `verify_password` 不计失败、不触发阶梯锁定，构成无限速密码验证 oracle | `[ ]` 轮次2复核打回（核心路径已限速，但 export/biometric/pin 三条未限速验证路径残留 + pending 恢复边缘回归，见复核记录） |
+| P012 | P2 | 安全 | `tauri/src-tauri/src/commands/auth.rs:159-176` | `verify_password` 不计失败、不触发阶梯锁定，构成无限速密码验证 oracle | `[x]` 轮次2打回项已修复（三条未限速路径全部接入阶梯锁定 + pending 恢复前导 + PinSection 锁定文案，见修复记录） |
 | P013 | P2 | 性能 | `tauri/src-tauri/src/commands/export_import/export.rs:751-761` | 导出时快照收集为 N+M 嵌套查询（每对象 1 次 list + 每快照 1 次 get） | `[x]` 已修复（8612e564） |
 | P014 | P2 | 性能 | `tauri/src/pages/settings/useTrashPage.tsx:145-168` | 回收站批量恢复逐项串行 IPC，与批量删除的批量入参不一致 | `[x]` 已修复（c54c5524） |
 | P015 | P2 | 代码质量 | `tauri/src/pages/ai/useLlmConfigPage.ts:369,413`；`tauri/src/components/llm-config/ProviderManagerPanel.tsx:280` | API key 哨兵 `'••••••••'` 字面量硬编码三处，与 `lib/masking.ts:14` 的 `MASK_PLACEHOLDER` 脱钩 | `[x]` 已修复（5c841a19） |
@@ -69,7 +69,7 @@
 - 当前处理：无（本轮仅复核登记，未改代码）
 
 轮次 2.5（打回项修复，2026-08-19）：
-- P024 ✅（194→195）· P001 残留 3/3 ✅（改密/KDF 重加密原子化 + CLI 导入重加密 + open 临时副本清理）· P012 ⏳ · P010 ✅（见修复记录）· 小瑕疵批次 ⏳
+- P024 ✅（194→195）· P001 残留 3/3 ✅· P010 ✅（见修复记录）· **P012 ✅（三条未限速路径接入锁定 + pending 恢复前导 + 锁定文案）** · 小瑕疵批次 ⏳
 
 ---
 
@@ -240,6 +240,16 @@
 主密码解锁路径有阶梯锁定（`record_password_failure`），但 `verify_password`（`auth.rs:159-176`）不计失败、不触发锁定，可被无限次调用验证主密码。Argon2id 高参数使在线爆破成本高，风险有限，但与解锁路径限流策略不一致。
 
 **修复记录（937446b7）**：新增 `VaultService::verify_password_with_lockout`——与 `unlock` 完全同款语义（锁定预检先于昂贵 KDF、失败经 `record_password_failure` 递增计数触发阶梯锁定、成功经 `clear_password_failures` 归零）；`verify_password` IPC 改走该方法并 `spawn_blocking`（验证含 Argon2id KDF 防阻塞 tokio）。错误密码仍返回 `false` 不抛异常（前端 P123「异常≠密码错误」语义不变），锁定期间返回与 unlock 一致的 `MASTER_PASSWORD_LOCKED_ERR`（前端 `backendError.ts` 已映射 `common:password_locked` 文案）。新增 core 限流单测 1 条；clippy/fmt 全绿。
+
+**修复记录（轮次 2.5，复核打回项 3/3）**：
+1. **pending 恢复边缘回归**：`verify_password_with_lockout` 补上与 `verify_password` 同款的 `recover_pending_reencrypt` 前导（unlock.rs）——改密/KDF 升级崩溃残留 pending 时先完成 reencrypt→config 交换，校验与失败计数基于一致 config；新增单测（promote 场景：新密码验证通过 + pending 清除 + 恢复前导不误计失败）。`MASTER_PASSWORD_LOCKED_ERR` 改 `pub(crate)` 供同 crate 引用。
+2. **三条未限速路径全部接入阶梯锁定**：
+   - `export.rs` `validate_export_password`：`svc.verify_password` → `verify_password_with_lockout`（锁定错误原样进 `MASTER_VERIFY_FAILED` detail）；
+   - `biometric.rs` 保存/删除两处（原 `manager.verify_password` 直走 `verify_password_core`）：改 `svc.verify_password_with_lockout`，密码错返回 `bio_err("invalid_password")`，锁定错误原样上抛；前端 `biometricError.ts` 新增锁定串前缀匹配 → `common:password_locked`（+5 条单测）；
+   - `core pin.rs` `disable_pin`：`verify_password` → `verify_password_with_lockout`，锁定映射 `PinError::Locked`（`__PIN_ERR__:locked`）；前端 `PinSection` 禁用流程新增该分支 → `common:password_locked`。
+3. **PinSection 锁定文案**：设置流程 catch 分支对锁定错误显示 `common:password_locked` 而非通用 `pin_error_setup_failed`（与 `backendError.ts` 精确映射一致的前缀匹配）。
+登记残留：`BiometricManager::verify_password`（`save_credential`/`delete_credential` 内部路径，CLI + 桌面命令层调用）仍走 `verify_password_core` 不限速——其构造不持有 VaultService，接入需改 API 与测试夹具（涉及面超出本轮打回项枚举，登记供下轮评估）；CLI 各 `verify_password` 调用同此（本地终端工具，shell 访问已等同持有账户目录，oracle 价值低）。
+验证：core 199 / src-tauri 444 / 前端 838 测试全过；clippy/fmt/eslint/tsc/prettier 全绿（`--all-features` 下 macOS_keychain 相关既有 dead-code 警告与基线一致，非本次引入）。
 
 ### P013（P2 性能）导出快照 N+M 查询（已完成）
 

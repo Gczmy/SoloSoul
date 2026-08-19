@@ -16,7 +16,7 @@ static PASSWORD_ATTEMPT_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
 
 /// P032：主密码锁定错误文案。前端 `rustErrors.ts` 精确匹配后映射为
 /// `common:password_locked` 双语文案（镜像 PIN 的 `__PIN_ERR__:locked` 约定）。
-const MASTER_PASSWORD_LOCKED_ERR: &str = "Too many failed attempts; try again later";
+pub(crate) const MASTER_PASSWORD_LOCKED_ERR: &str = "Too many failed attempts; try again later";
 
 /// P032：主密码失败限流阶梯（与 PIN 同款：0-4 次不锁，5-9 次锁 30s，
 /// 第 10 次锁 5 分钟，之后每次递增 5 分钟）。

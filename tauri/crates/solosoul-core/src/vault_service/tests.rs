@@ -1055,6 +1055,54 @@ fn test_recover_pending_wrong_password_preserves_pending() {
 }
 
 #[test]
+fn test_verify_password_with_lockout_recovers_pending() {
+    // P012 复核打回项：verify_password_with_lockout 必须带 recover_pending_reencrypt 前导——
+    // 改密/KDF 升级崩溃残留 pending 时，先完成 reencrypt→config 交换（promote：数据=新钥），
+    // 校验基于一致 config，且不误判密码（promote 后新密码验证为 true）。
+    let (svc, _dir) = setup_service();
+    let account = svc.create_account("VerifyRecover", "password123", None).unwrap();
+    let account_id = account["id"].as_str().unwrap();
+    {
+        let vault = svc.get_vault_store().unwrap();
+        vault
+            .save_profile(&solosoul_vault::Profile::new_with_id(
+                account_id,
+                "p",
+                b"sensitive".to_vec(),
+            ))
+            .unwrap();
+    }
+
+    // 模拟崩溃残留：数据重加密到新钥 + pending（新 config）残留 + active config 仍旧。
+    svc.unlock(account_id, "password123").unwrap();
+    let old_key = solosoul_vault::DataEncryptionKey::new(*svc.get_session_key().unwrap());
+    let (new_salt, new_key_arr) = make_new_key("newpassword123");
+    let new_key = solosoul_vault::DataEncryptionKey::new(new_key_arr);
+    let pending_json = build_pending_config_json(&svc, account_id, &new_salt, &new_key_arr);
+    svc.write_config_pending(account_id, pending_json.as_bytes())
+        .unwrap();
+    svc.get_vault_store()
+        .unwrap()
+        .reencrypt_all(&old_key, &new_key)
+        .unwrap();
+    svc.lock();
+    let pending_path = svc.base_path().join(account_id).join("config.json.pending");
+    assert!(pending_path.exists());
+
+    // verify_password_with_lockout 走新密码：前导恢复 promote → 校验通过且 pending 清除。
+    assert!(svc
+        .verify_password_with_lockout(account_id, "newpassword123")
+        .unwrap());
+    assert!(!pending_path.exists(), "promote 后 pending 应被删除");
+    // 恢复前导本身不得产生失败计数（否则首次成功校验被误计并错触发锁定）。
+    let cfg = svc.read_account_config(account_id).unwrap();
+    assert_eq!(cfg.password_failed_attempts, 0, "恢复前导不得误计失败");
+    assert!(!svc
+        .verify_password_with_lockout(account_id, "password123")
+        .unwrap());
+}
+
+#[test]
 fn test_change_password_success_removes_pending() {
     // 成功路径：change_password 完成后 pending 应被清除，无残留。
     let (svc, _dir) = setup_service();

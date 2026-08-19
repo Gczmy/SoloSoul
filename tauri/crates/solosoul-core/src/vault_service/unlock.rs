@@ -83,6 +83,11 @@ impl super::VaultService {
         account_id: &str,
         password: &str,
     ) -> Result<bool, String> {
+        // R-4① 方案 2（P012 复核打回项）：与 verify_password 同款 pending 恢复前导——
+        // 改密/KDF 升级崩溃残留的 reencrypt→config 交换先完成恢复，保证密码校验与
+        // 失败计数基于一致的 config（否则旧 verify 路径恢复后、新路径用不一致 config
+        // 误判密码并错误计数）。常态无 pending 零开销。
+        self.recover_pending_reencrypt(account_id, password)?;
         // P032：锁定预检（与 unlock 完全一致，先于昂贵 KDF）。
         let pre_config = self.read_account_config(account_id)?;
         if let Some(ref until) = pre_config.password_locked_until {

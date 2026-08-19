@@ -397,10 +397,12 @@ pub async fn biometric_save_credential(
         .map_err(|_| "Vault service lock poisoned".to_string())?;
     let manager = BiometricManager::new(svc.base_path().clone());
 
-    // 1. 验证主密码
-    manager
-        .verify_password(&password, &account_id)
-        .map_err(|e| map_bio_error(e, "save"))?;
+    // 1. 验证主密码（P012：走 VaultService 阶梯锁定——失败计数/锁定与解锁一致，
+    //    消除 BiometricManager::verify_password 直走 verify_password_core 的无限速 oracle；
+    //    锁定错误原样上抛，前端经 common:password_locked 展示）
+    if !svc.verify_password_with_lockout(&account_id, password.as_ref())? {
+        return Err(bio_err("invalid_password"));
+    }
 
     // 2. 派生主密钥并使用平台安全存储保存
     let key_hex = manager
@@ -749,10 +751,11 @@ pub async fn biometric_delete_credential(
         .map_err(|_| "Vault service lock poisoned".to_string())?;
     let manager = BiometricManager::new(svc.base_path().clone());
 
-    // 1. 验证主密码
-    manager
-        .verify_password(&password, &account_id)
-        .map_err(|e| map_bio_error(e, "delete"))?;
+    // 1. 验证主密码（P012：走 VaultService 阶梯锁定——失败计数/锁定与解锁一致，
+    //    锁定错误原样上抛，前端经 common:password_locked 展示）
+    if !svc.verify_password_with_lockout(&account_id, password.as_ref())? {
+        return Err(bio_err("invalid_password"));
+    }
 
     // 2. 删除移动端安全存储中的对应槽凭证
     #[cfg(target_os = "android")]
