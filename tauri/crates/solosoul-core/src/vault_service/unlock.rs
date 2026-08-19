@@ -1007,16 +1007,31 @@ impl super::VaultService {
         // 手写 read_dir 递归避免为一次性遍历引入 walkdir 依赖）。
         let mut files: Vec<std::path::PathBuf> = Vec::new();
         Self::collect_attachment_files(&attachments_root, &mut files)?;
-        // 过滤崩溃残留的临时文件（准备阶段产物），避免被当作附件处理。
+        // 清理崩溃残留的临时文件（准备阶段产物），避免被当作附件处理。
+        let mut cleaned_tmp_files = Vec::new();
         files.retain(|p| {
             let name = p
                 .file_name()
                 .map(|n| n.to_string_lossy().to_string())
                 .unwrap_or_default();
-            !name.ends_with(".rekey.tmp")
-                && !name.ends_with(".rekey.new")
-                && !name.ends_with(".rekey.rb.tmp")
+            if name.ends_with(".rekey.tmp")
+                || name.ends_with(".rekey.new")
+                || name.ends_with(".rekey.rb.tmp")
+            {
+                // 主动删除崩溃残留，而非静默跳过（P003 修复）
+                let _ = std::fs::remove_file(p);
+                cleaned_tmp_files.push(name);
+                false
+            } else {
+                true
+            }
         });
+        if !cleaned_tmp_files.is_empty() {
+            tracing::info!(
+                count = cleaned_tmp_files.len(),
+                "[reencrypt] 已清理崩溃残留临时文件"
+            );
+        }
 
         // 准备阶段：为每个文件生成新钥密文 `.rekey.new`（原文件不动）。
         // Ok(true)=已准备新密文；Ok(false)=已是新钥（上次运行残留，跳过）。
