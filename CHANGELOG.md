@@ -2,6 +2,30 @@
 
 All notable changes to SoloSoul are documented in this file.
 
+## [2.11.4] - 2026-08-19
+
+### Fixed
+
+- **帮助文档打开即报错「页面渲染出错」（生产构建 chunk 拆分 bug，v2.11.3 起全灭）** — 所有文档点击后报 `undefined is not an object (evaluating 't[n].add')`，错误被 ErrorBoundary 捕获显示重试卡片；根因是 rolldown codeSplitting 的 markdown-vendor 组正则 `micromark[\\/]` 只捕获核心包 `micromark`，漏掉 `micromark-util-*` / `micromark-core-commonmark` / `micromark-extension-*`（motion 组早前修过同款前缀 bug，markdown 组遗漏），这些模块留在 index chunk 与 vendor 形成跨 chunk 循环依赖：vendor 内 micromark 求值时 index 尚未初始化完，constructs 数组含 undefined，运行期 combineExtensions 报 `list[index].add`；WebKit/Chromium 双引擎实测复现（平凡内容也崩，与文档内容无关），关于页更新内容同受影响；改为 `micromark[^\\/]*` 前缀捕获整个家族，新增 scripts/check-markdown-chunk-boundary.mjs 构建边界回归守卫（接入 check-all，违规即失败），GuideRenderer +1 代码块渲染测试。
+
+- **重选旧外部目录识别不到旧账户（SAF 数据丢失，v2.11.0 引入）** — 安卓端「设置 → 数据管理」重新选择之前使用过的外部 SAF 目录后，旧账户从登录页消失（本地新账户清单覆盖远端 accounts.json，旧账户 `acc_*` 目录仍在但成孤儿）；`vault_set_directory(Some(uri))` 改为四步：先 `sync_from_remote` 拉远端 → `clear_dst=false` 合并迁移保留远端数据 → 新增 `VaultService::scan_orphan_accounts` 扫描 `acc_*` 目录读 config.json 重建缺失账户（配置损坏/目录名与 account_id 不一致跳过，幂等）→ `sync_to_remote` 推送合并结果；引导路径 initialize_vault 已正确不动；+2 单测。
+
+- **选择保险库外部目录一直「加载中」（Tauri Android 框架缺陷）** — 安卓端选择外部目录后无进度条、invoke 永久挂起无法进入下一步；根因是 PluginManager.onActivityCreate 用进程级单次注册守卫，ActivityResultLauncher 绑定进程内第一个 Activity 实例，SAF 选择器打开期间 Activity 被系统销毁重建（wry 保留 WebView → JS 存活）后 launcher 失效、结果无人接收；上游 #15798 修复未发布（最新 2.11.5 早于修复），构建时补丁移植修复版 PluginManager.kt（activities 集合跟踪 + onDestroy 迁移 launcher + activity 可空）+ PluginHandle.kt 空值守卫（patchTauriAndroidPluginManager gradle 任务，编译前覆盖 registry 源码，幂等 marker + tauri 升级守卫）；前端兜底：pickVaultDirectory 检测页面隐藏（选择器打开）→ 重新可见 8 秒 invoke 未返回抛 VaultDirPickLostError → i18n 提示重试，任何残余场景不再永久卡加载；+5 单测。
+
+- **登录页闪烁（冷启动先密码后指纹 + 输入框跳动）** — ①登录方式按账户持久化 localStorage（loginMethodCache，冷启动首帧同步恢复上次方法，指纹用户不再闪现主密码，缓存过期由后台探测校正）；②可用性探测收口为启动期预探测（loginAvailabilityPreflight，main.tsx 按 LAST_ACCOUNT_KEY 非阻塞发起、模块缓存按账户去重、失败清缓存，登录页 effect 复用）；③布局稳定：图标栏常驻渲染（探测中仅主密码图标）、loginMethod 未定时渲染 152px 固定占位而非先闪密码、账户选择器定高占位，卡片高度恒定输入框不再跳动；fromExisting 恢复场景强制主密码避免缓存方法闪现；+19 单测。
+
+- **设置页图标移动端不垂直居中** — 安卓端设置项描述换行多行时图标被 `flex-start` 顶到卡片顶部；媒体查询内 `.itemMain` 改 `align-items: center`，图标始终垂直居中于卡片，右侧箭头/徽章仍与首行对齐（itemRow 保持 flex-start）。
+
+- **全局同步指示器整页白屏（conflicts 空值）** — sync_list_conflicts 异常返回（undefined/null/非数组）时写入 store，GlobalSyncIndicator 全局壳层 `.length` 抛 TypeError 整页白屏；store 归一化为空数组并 warn（数据源根修）+ 崩溃点 Array.isArray 兜底；+4 单测（表驱动 3 例 + 正常数组保留）。
+
+### Changed
+
+- **帮助文档移除「新手教程」交互入口** — 帮助文档里打开 OnboardingDialog 的交互引导卡片（含安卓端选择保险库存储位置步骤，无跳过按钮易卡死无法退出）；帮助文档仅保留静态 markdown 指南（快速开始等不受影响），首次启动引导保持完整流程不变。
+
+### Chore
+
+- 版本号同步 2.11.4（package.json / tauri.conf.json / Cargo.toml / tauri.properties versionCode 2011004）
+
 ## [2.11.3] - 2026-08-19
 
 ### Fixed
