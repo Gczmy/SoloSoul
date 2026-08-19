@@ -48,9 +48,9 @@
 | P016 | P2 | 代码质量 | `tauri/src/hooks/useAttachmentManagerBatchOps.ts:105-107` | 批量附件下载 catch-all 将任意异常误判为「用户取消」，无日志 | `[x]` 已修复（268e2b1a） |
 | P017 | P2 | 死代码 | `tauri/crates/solosoul-core/src/export_import.rs:129-131` | `ExportError::Crypto` 变体从未被构造 | `[x]` 已修复（4575755f） |
 | P018 | P2 | 死代码 | `tauri/scripts/tokenize-fonts.mjs`、`tokenize-icons.mjs`、`fix_invoke_keys.cjs`、`revert_invoke_keys.cjs` | 4 个一次性 codemod 脚本残留，package.json/CI/文档均无引用 | `[x]` 已修复（094e75b8，用户确认删除） |
-| P019 | P2 | 重复代码 | `tauri/src-tauri/src/commands/llm/provider.rs:25-55` ↔ `llm/unified_chat.rs:30-59` | LLM provider 合并逻辑跨文件复制（~20 行，>80% 相似） | `[ ]` 待修复 |
-| P020 | P2 | 重复代码 | `tauri/crates/solosoul-vault/src/storage/metadata.rs:535-560` ↔ `sync_changes.rs:475-500` | `user_templates` 行解密映射代码几乎逐字重复 | `[ ]` 待修复 |
-| P021 | P2 | 重复代码 | `tauri/src-tauri/src/commands/export_import/export_docx/docx.rs:110-129` ↔ `text.rs:29-48` | 导出文档「元信息段」构建块逐字相同 | `[ ]` 待修复 |
+| P019 | P2 | 重复代码 | `tauri/src-tauri/src/commands/llm/provider.rs:25-55` ↔ `llm/unified_chat.rs:30-59` | LLM provider 合并逻辑跨文件复制（~20 行，>80% 相似） | `[x]` 已修复（cceca00f） |
+| P020 | P2 | 重复代码 | `tauri/crates/solosoul-vault/src/storage/metadata.rs:535-560` ↔ `sync_changes.rs:475-500` | `user_templates` 行解密映射代码几乎逐字重复 | `[x]` 已修复（1538c312） |
+| P021 | P2 | 重复代码 | `tauri/src-tauri/src/commands/export_import/export_docx/docx.rs:110-129` ↔ `text.rs:29-48` | 导出文档「元信息段」构建块逐字相同 | `[x]` 已修复（4c5ce603） |
 | P022 | P2 | 可维护性 | 见下文 Top 10 表 | 超长函数/组件 10 个（357–391 行） | `[ ]` 待修复 |
 | P023 | P2 | 可维护性 | `tauri/src/hooks/useDragToAttach.ts:190-234` 等 | 深层嵌套热点（控制流 ≥5 层，JSX brace 深度最高 11） | `[ ]` 待修复 |
 
@@ -60,7 +60,10 @@
 - 已完成：15 / 23（P008、P009、P002、P003、P004、P018、P001、P005、P006、P007、P010、P011、P012、P013、P014）
 - 已完成：17 / 23（P008、P009、P002、P003、P004、P018、P001、P005、P006、P007、P010、P011、P012、P013、P014、P015、P016）
 - 已完成：18 / 23（P008、P009、P002、P003、P004、P018、P001、P005、P006、P007、P010、P011、P012、P013、P014、P015、P016、P017）
-- 当前处理：P019
+- 已完成：19 / 23（…、P019）
+- 已完成：20 / 23（…、P020）
+- 已完成：21 / 23（…、P021）
+- 当前处理：P022（评估后处理）
 
 ---
 
@@ -201,6 +204,8 @@
 - **P019**：`provider.rs:25-55` 与 `unified_chat.rs:30-59` 的 provider 合并循环，仅差掩码步骤。建议提取 `merge_saved_providers`，掩码作为调用方后置步骤。
 - **P020**：`metadata.rs:535-560` 与 `sync_changes.rs:475-500` 同一 SQL + 同一解密映射。建议提取 `map_user_template_row`。
 - **P021**：`docx.rs:110-129` 与 `text.rs:29-48` 元信息段构建逐字相同。建议提取 `build_meta_lines`。
+
+**修复记录**：三项均按建议提取共享函数——P019 在 `commands/llm/mod.rs` 新增 `merge_providers_with_keys`（含 `embedding_model` 字段同步，顺带修复 provider.rs if 分支漏同步该字段的隐藏 bug），provider.rs / unified_chat.rs 统一调用；P020 在 `storage.rs` 新增 `map_user_template_row`，metadata.rs 的 load/list 与 sync_changes.rs 三处统一调用；P021 在 `export_docx/mod.rs` 新增 `build_meta_lines`，docx.rs / text.rs 统一调用。全量测试 + clippy + fmt 通过。
 
 ### P022（P2 可维护性）超长函数/组件 Top 10
 
