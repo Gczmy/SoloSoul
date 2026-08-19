@@ -26,6 +26,7 @@
   "custom_page": "My Projects",
   "page_name_exists": "Page name already exists",
   "page_name_required": "Page name is required",
+  "add_page_failed": "Failed to create page",
   "select_icon": "Choose Icon",
   "icon_category_all": "All",
   "icon_category_general": "General",

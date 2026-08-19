@@ -32,7 +32,7 @@
 |------|--------|------------|----------|------|------|
 | P001 | P1 | 安全 | `tauri/crates/solosoul-core/src/objects.rs:1043-1045` | Vault 附件以明文落盘，仅导出/同步时才加密，与零知识定位不符 | `[x]` 主体 + 3 处残留全部修复（见修复记录与复核记录） |
 | P002 | P1 | 前端缺陷 | `tauri/src/stores/objectStore.ts:194-196` | `updateObject` 吞错不抛出，编辑保存失败被误报「保存成功」并退出页面，数据静默丢失 | `[x]` 已修复（f585f43f） |
-| P003 | P1 | 前端缺陷 | `tauri/src/stores/settingsStore.ts:491-523` | `addCustomPage` 失败仍无条件 `return newPage`，调用方导航到后端不存在的页面 | `[x]` 已修复（d8648b3f） |
+| P003 | P1 | 前端缺陷 | `tauri/src/stores/settingsStore.ts:491-523` | `addCustomPage` 失败仍无条件 `return newPage`，调用方导航到后端不存在的页面 | `[x]` 已修复（d8648b3f）+ 轮次2.5 补 i18n key（见修复记录） |
 | P004 | P1 | 前端缺陷 | `tauri/src/pages/ai/useLlmConfigPage.ts:190-228` | 本地 Embedding 开关/选模型 invoke 无 try/catch，失败后前后端状态漂移 | `[x]` 已修复（76cffe3d） |
 | P005 | P1 | 性能 | `tauri/src-tauri/src/commands/object/snapshot.rs:466-484` | 回收站子对象列表循环内逐条 `get_trash_item`（每次附带整条 data 解密），而 summary 已含 `original_id`，属纯浪费 | `[x]` 已修复（54b02ac8） |
 | P006 | P1 | 性能 | `tauri/src/pages/home/HomePage.tsx:235-255` + `tauri/src-tauri/src/commands/attachment/tree.rs:55` | 首页角标每次返回都调用 `attachment_list_all` 全表解密，仅为渲染两个计数 | `[x]` 已修复（df464e69） |
@@ -69,7 +69,7 @@
 - 当前处理：无（本轮仅复核登记，未改代码）
 
 轮次 2.5（打回项修复，2026-08-19）：
-- P024 ✅（194→195）· P001 残留 3/3 ✅· P010 ✅（见修复记录）· **P012 ✅（三条未限速路径接入锁定 + pending 恢复前导 + 锁定文案）** · 小瑕疵批次 ⏳
+- P024 ✅ · P001 残留 3/3 ✅ · P010 ✅ · P012 ✅（见修复记录）· **小瑕疵批次 ✅（P003 i18n key 双语补齐 · P022/P023 债务持久登记 docs/TECH_DEBT.md · 报告措辞修正 P001/P023）**
 
 ---
 
@@ -145,7 +145,7 @@
 **修复方案（用户确认：完整加密落盘）**：附件以 `encrypt_chunked_stream`（SOLC magic 头）加密落盘，读取时检测 magic——SOLC 密文流式解密、旧明文直读（零迁移兼容）。密钥 = `HKDF(session_key, b"solosoul:attachments:at-rest", b"solosoul:attachments:at-rest:v1")`（与数据库密钥域分离，同密码跨设备派生同一密钥，同步无需分发）。
 
 **改动**（12 文件 + 1 新模块）：
-1. `attachment_crypto.rs`（新）— 密钥派生 / 流式加密 / 明文兼容解密 / magic 检测，+6 单测；
+1. `attachment_crypto.rs`（新）— 密钥派生 / 流式加密 / 明文兼容解密 / magic 检测，+5 单测（轮次 2 复核更正：原报告误写 +6）；
 2. `unlock.rs` — `VaultService::attachment_encryption_key()`（+2 单测）；`change_password` 改密后附件目录递归重加密（+1 集成单测）；
 3. 写入点：`crud.rs`（copy_to_vault 加密）、`attachment_import_plugin.rs`（Android importContentUri 复制后就地加密）、`import.rs`（导入落盘先解密 ZIP → 临时明文 → 加密写盘）、`objects.rs add_attachments`/`copy_file_to_vault`（CLI 用，`attachment_key: Option<&[u8; 32]>`）；
 4. 读取点：`mod.rs`（download/open 解密）、`share.rs`（分享解密）、`attachment_import_plugin.rs`（export_content_uri / export_tree_uri 先解密到临时明文再交 Kotlin）、`fs.rs`（三个预览命令 SOLC 自动解密，图片改内存解码）、`preview_pdf_protocol.rs`（PDF 协议解密）、`export.rs`（导出先解密源再加密进 ZIP）、`solosoul-plugin`（FieldResolver 注入密钥，插件工作区复制前解密）；
@@ -180,6 +180,8 @@
 **修复建议**：失败时 throw 或返回 `null`；`AddPageButton` 加 `.catch`/空值判断 + 错误 toast。
 
 **修复记录（d8648b3f）**：store catch 回滚后 `throw e`；`AddPageButton` 接 `.catch` + `useToastError.onError` 提示「创建页面失败」，不再触发 `onCreate` 导航；失败测试改为断言 `rejects.toThrow`。settingsStore 21 测试全过。
+
+**修复记录（轮次 2.5，复核登记项）**：新增 i18n key `navigation:add_page_failed` 入档 zh-CN（「创建页面失败」）/ en-US（「Failed to create page」）双语 navigation.json，替换 `AddPageButton` 的中文 `defaultValue` 兜底——英文用户不再看到中文提示。
 
 ### P004（P1 前端缺陷）LLM 本地 Embedding 设置无错误处理
 
@@ -322,7 +324,7 @@
 - 5 层边界：`useExportScope.ts:251-262`、`useTouchZoom.ts:184`、`propertyFlatten.ts:86`、`useExportImportPage.tsx:247`、`settingsStore.ts:446`。
 - JSX：`DeviceListKnownCard.tsx:93-106` 三元 + Fragment 嵌套 brace 深度 11，建议抽子组件。
 
-**修复记录（评估后处理）**：低风险两处已修——① `useAttachmentManagerBatchOps.ts` 三重 for + if 改为 flatMap 链（行为等价）；② `useDragToAttach.ts` drop 分支自监听器闭包抽出为模块级 `handleDropFiles`（目录过滤 → 提示/排队/立即上传，refs/setter 经 deps 注入，行为与原内联闭包一致，控制流 6 层降 4 层）。其余 5 层边界（useExportScope/useTouchZoom/propertyFlatten/useExportImportPage/settingsStore）与 JSX brace 深度 11（DeviceListKnownCard）为低风险嵌套但抽取收益有限、无测试覆盖（该批文件均无单测），登记为已知债务不处理——前端全量 833 测试通过验证。
+**修复记录（评估后处理）**：低风险两处已修——① `useAttachmentManagerBatchOps.ts` 三重 for + if 改为 flatMap 链（行为等价）；② `useDragToAttach.ts` drop 分支自监听器闭包抽出为模块级 `handleDropFiles`（目录过滤 → 提示/排队/立即上传，refs/setter 经 deps 注入，行为与原内联闭包一致，控制流 6 层降 4 层）。其余 5 层边界（useExportScope/useTouchZoom/propertyFlatten/useExportImportPage/settingsStore）与 JSX brace 深度 11（DeviceListKnownCard）为低风险嵌套但抽取收益有限、多数无单测覆盖，登记为已知债务不处理（轮次 2 复核更正：原措辞「该批文件均无单测」不实——`settingsStore.test.ts`、`propertyFlatten.test.ts` 存在）——前端全量 833 测试通过验证。
 
 ---
 
