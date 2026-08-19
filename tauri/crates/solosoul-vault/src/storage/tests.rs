@@ -2462,6 +2462,85 @@ fn test_count_snapshots_batch() {
 }
 
 #[test]
+fn test_list_snapshots_with_data_batch() {
+    // P013: 导出打包的批量快照加载——一次 SQL 返回多对象全部快照（含解密 data），
+    // 保留单对象 LIMIT 50 语义（窗口函数）。
+    let (vault, _dir) = setup();
+    vault
+        .save_snapshot_at(
+            "obj-a",
+            "user_edit",
+            b"a_old",
+            "diff_old",
+            1_000_000_000_000i64,
+        )
+        .unwrap();
+    vault
+        .save_snapshot_at(
+            "obj-a",
+            "user_edit",
+            b"a_new",
+            "diff_new",
+            2_000_000_000_000i64,
+        )
+        .unwrap();
+    vault.save_snapshot("obj-b", "auto", b"b1", "").unwrap();
+
+    let rows = vault
+        .list_snapshots_with_data_batch(&[
+            "obj-a".to_string(),
+            "obj-b".to_string(),
+            "obj-nonexistent".to_string(),
+        ])
+        .unwrap();
+
+    // obj-a 2 条（时间倒序 a_new 在前）+ obj-b 1 条；不存在的对象无条目
+    assert_eq!(rows.len(), 3);
+    let obj_a: Vec<_> = rows.iter().filter(|(oid, _, _)| oid == "obj-a").collect();
+    assert_eq!(obj_a.len(), 2);
+    assert_eq!(obj_a[0].1["timestamp"], 2_000_000_000_000i64);
+    assert_eq!(obj_a[0].2, b"a_new");
+    assert_eq!(obj_a[1].1["timestamp"], 1_000_000_000_000i64);
+    assert_eq!(obj_a[1].2, b"a_old");
+    assert_eq!(obj_a[1].1["diffSummary"], "diff_old");
+    let obj_b: Vec<_> = rows.iter().filter(|(oid, _, _)| oid == "obj-b").collect();
+    assert_eq!(obj_b.len(), 1);
+    assert_eq!(obj_b[0].2, b"b1");
+
+    // 空对象列表 → 空结果
+    assert!(vault
+        .list_snapshots_with_data_batch(&[])
+        .unwrap()
+        .is_empty());
+}
+
+#[test]
+fn test_list_snapshots_with_data_batch_limits_per_object_50() {
+    // P013: 单对象快照超过 50 条时，批量查询与 list_snapshots 的 LIMIT 50 语义一致。
+    let (vault, _dir) = setup();
+    for i in 0..60i64 {
+        vault
+            .save_snapshot_at(
+                "obj-50",
+                "user_edit",
+                format!("snap-{}", i).as_bytes(),
+                "",
+                1_000_000_000_000i64 + i,
+            )
+            .unwrap();
+    }
+    let rows = vault
+        .list_snapshots_with_data_batch(&["obj-50".to_string()])
+        .unwrap();
+    assert_eq!(rows.len(), 50, "应保留每对象 LIMIT 50 语义");
+    // 时间倒序：最新的 50 条（i=10..=59）
+    let newest_ts = rows[0].1["timestamp"].as_i64().unwrap();
+    assert_eq!(newest_ts, 1_000_000_000_000i64 + 59);
+    let oldest_ts = rows[49].1["timestamp"].as_i64().unwrap();
+    assert_eq!(oldest_ts, 1_000_000_000_000i64 + 10);
+}
+
+#[test]
 fn test_count_snapshots_batch_empty() {
     let (vault, _dir) = setup();
     let counts = vault.count_snapshots_batch(&[]).unwrap();

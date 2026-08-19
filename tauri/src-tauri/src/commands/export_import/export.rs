@@ -784,33 +784,25 @@ fn write_manifest_and_payload(
     Ok(())
 }
 /// 收集各对象的全部历史快照（含原时间戳），恢复后历史数量与旧设备一致。
+/// P013: 一次批量查询（list_snapshots_with_data_batch）替代逐对象 list_snapshots + 逐快照
+/// get_snapshot 的 N+M 次查询；单对象 LIMIT 50 语义由 SQL 窗口函数保留。
 fn collect_object_snapshots(
     vault: &solosoul_vault::VaultStore,
     records: &[solosoul_vault::ObjectRecord],
 ) -> Result<Vec<serde_json::Value>, String> {
+    let object_ids: Vec<String> = records.iter().map(|r| r.id.clone()).collect();
     let mut snapshots: Vec<serde_json::Value> = Vec::new();
-    for r in records {
-        let object_id = r.id.clone();
-        for meta in vault.list_snapshots(&object_id).unwrap_or_default() {
-            let snap_id = match meta["id"].as_str() {
-                Some(id) => id.to_string(),
-                None => continue,
-            };
-            let data = match vault.get_snapshot(&snap_id).ok().flatten() {
-                Some(d) => d,
-                None => continue,
-            };
-            snapshots.push(serde_json::json!({
-                "object_id": object_id,
-                "timestamp": meta["timestamp"],
-                "triggered_by": meta["triggeredBy"],
-                "diff_summary": meta["diffSummary"],
-                "data": base64::Engine::encode(
-                    &base64::engine::general_purpose::STANDARD,
-                    &data
-                ),
-            }));
-        }
+    for (object_id, meta, data) in vault.list_snapshots_with_data_batch(&object_ids)? {
+        snapshots.push(serde_json::json!({
+            "object_id": object_id,
+            "timestamp": meta["timestamp"],
+            "triggered_by": meta["triggeredBy"],
+            "diff_summary": meta["diffSummary"],
+            "data": base64::Engine::encode(
+                &base64::engine::general_purpose::STANDARD,
+                &data
+            ),
+        }));
     }
     Ok(snapshots)
 }

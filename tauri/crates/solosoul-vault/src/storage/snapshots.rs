@@ -39,6 +39,64 @@ impl VaultStore {
         Ok(snapshots)
     }
 
+    /// P013: 批量加载多对象全部快照（含 data 解密），一次 SQL 替代
+    /// 「每对象 list_snapshots + 每快照 get_snapshot」的 N+M 次查询（导出打包场景）。
+    /// 保留单对象 LIMIT 50 语义（ROW_NUMBER 窗口函数按 timestamp DESC 取前 50）。
+    /// 返回 `(object_id, meta_json, data_bytes)` 按 object_id 升序、对象内时间倒序。
+    pub fn list_snapshots_with_data_batch(
+        &self,
+        object_ids: &[String],
+    ) -> Result<Vec<(String, serde_json::Value, Vec<u8>)>, String> {
+        let key = self.data_key()?;
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        if object_ids.is_empty() {
+            return Ok(Vec::new());
+        }
+        // IN 子句参数绑定（与 count_snapshots_batch 同模式，数量随输入变化属 SQLite 限制，
+        // 仅查询本 Vault 内 object_id，无注入风险）。
+        let placeholders = std::iter::repeat_n("?", object_ids.len())
+            .collect::<Vec<_>>()
+            .join(",");
+        let sql = format!(
+            "SELECT object_id, id, timestamp, triggered_by, diff_summary, data FROM (\
+             SELECT object_id, id, timestamp, triggered_by, diff_summary, data, \
+             ROW_NUMBER() OVER (PARTITION BY object_id ORDER BY timestamp DESC) AS rn \
+             FROM object_snapshots WHERE object_id IN ({}) \
+             ) WHERE rn <= 50",
+            placeholders
+        );
+        let mut stmt = conn.prepare(&sql).map_err(|e| e.to_string())?;
+        let rows = stmt
+            .query_map(rusqlite::params_from_iter(object_ids.iter()), |row| {
+                let raw: Vec<u8> = row.get(5)?;
+                let decrypted = decrypt_field(&key, &raw).map_err(|e| {
+                    rusqlite::Error::FromSqlConversionFailure(
+                        5,
+                        rusqlite::types::Type::Blob,
+                        Box::new(std::io::Error::new(
+                            std::io::ErrorKind::InvalidData,
+                            format!("Snapshot decryption failed: {}", e),
+                        )),
+                    )
+                })?;
+                Ok((
+                    row.get::<_, String>(0)?,
+                    serde_json::json!({
+                        "id": row.get::<_, String>(1)?,
+                        "timestamp": row.get::<_, i64>(2)?,
+                        "triggeredBy": row.get::<_, String>(3)?,
+                        "diffSummary": row.get::<_, String>(4)?,
+                    }),
+                    decrypted,
+                ))
+            })
+            .map_err(|e| e.to_string())?
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(|e| e.to_string())?;
+        Ok(rows)
+    }
+
     pub fn get_snapshot(&self, snapshot_id: &str) -> Result<Option<Vec<u8>>, String> {
         let key = self.data_key()?;
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
