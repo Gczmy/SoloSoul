@@ -42,7 +42,7 @@
 | P010 | P2 | 安全 | `tauri/src-tauri/src/commands/attachment/share.rs:33-41` | 分享副本明文残留 `temp_dir()/solosoul_share/`，永不清理 | `[x]` 已修复（b95b4ace） |
 | P011 | P2 | 安全 | `tauri/src-tauri/src/commands/vault.rs:7-18`（注册于 `lib.rs:55`） | 遗留 `unlock` IPC 命令 `password: String` 未 `Zeroizing` 包装；前端已无调用（仅测试 mock 引用） | `[x]` 已修复（686d807c） |
 | P012 | P2 | 安全 | `tauri/src-tauri/src/commands/auth.rs:159-176` | `verify_password` 不计失败、不触发阶梯锁定，构成无限速密码验证 oracle | `[x]` 已修复（937446b7） |
-| P013 | P2 | 性能 | `tauri/src-tauri/src/commands/export_import/export.rs:751-761` | 导出时快照收集为 N+M 嵌套查询（每对象 1 次 list + 每快照 1 次 get） | `[ ]` 待修复 |
+| P013 | P2 | 性能 | `tauri/src-tauri/src/commands/export_import/export.rs:751-761` | 导出时快照收集为 N+M 嵌套查询（每对象 1 次 list + 每快照 1 次 get） | `[x]` 已修复（8612e564） |
 | P014 | P2 | 性能 | `tauri/src/pages/settings/useTrashPage.tsx:145-168` | 回收站批量恢复逐项串行 IPC，与批量删除的批量入参不一致 | `[ ]` 待修复 |
 | P015 | P2 | 代码质量 | `tauri/src/pages/ai/useLlmConfigPage.ts:369,413`；`tauri/src/components/llm-config/ProviderManagerPanel.tsx:280` | API key 哨兵 `'••••••••'` 字面量硬编码三处，与 `lib/masking.ts:14` 的 `MASK_PLACEHOLDER` 脱钩 | `[ ]` 待修复 |
 | P016 | P2 | 代码质量 | `tauri/src/hooks/useAttachmentManagerBatchOps.ts:105-107` | 批量附件下载 catch-all 将任意异常误判为「用户取消」，无日志 | `[ ]` 待修复 |
@@ -56,8 +56,8 @@
 
 ## 修复进度
 
-- 已完成：13 / 23（P008、P009、P002、P003、P004、P018、P001、P005、P006、P007、P010、P011、P012）
-- 当前处理：P013
+- 已完成：14 / 23（P008、P009、P002、P003、P004、P018、P001、P005、P006、P007、P010、P011、P012、P013）
+- 当前处理：P014
 
 ---
 
@@ -156,10 +156,11 @@
 
 **修复记录（937446b7）**：新增 `VaultService::verify_password_with_lockout`——与 `unlock` 完全同款语义（锁定预检先于昂贵 KDF、失败经 `record_password_failure` 递增计数触发阶梯锁定、成功经 `clear_password_failures` 归零）；`verify_password` IPC 改走该方法并 `spawn_blocking`（验证含 Argon2id KDF 防阻塞 tokio）。错误密码仍返回 `false` 不抛异常（前端 P123「异常≠密码错误」语义不变），锁定期间返回与 unlock 一致的 `MASTER_PASSWORD_LOCKED_ERR`（前端 `backendError.ts` 已映射 `common:password_locked` 文案）。新增 core 限流单测 1 条；clippy/fmt 全绿。
 
-### P013（P2 性能）导出快照 N+M 查询
+### P013（P2 性能）导出快照 N+M 查询（已完成）
 
 `export.rs:751-761`：每对象 1 次 `list_snapshots` + 每快照 1 次 `get_snapshot`。1000 对象 × 5 快照 ≈ 6000 次独立查询。
-**修复建议**：`solosoul-vault` 加 `list_snapshots_batch(object_ids)`（`WHERE object_id IN (...)`），消掉内层 get。
+
+**修复记录（8612e564）**：新增 `VaultStore::list_snapshots_with_data_batch(object_ids)`——单 SQL `WHERE object_id IN (...)` + `ROW_NUMBER() OVER (PARTITION BY object_id ORDER BY timestamp DESC) <= 50` 窗口函数保留每对象 LIMIT 50 语义，含 data 列解密；`collect_object_snapshots` 改一次批量调用替代 N+M 次查询。新增 2 条单测（多对象批量正确性 + 50 条上限）。导出相关测试 69 个全过，clippy/fmt 干净。
 
 ### P014（P2 性能）回收站批量恢复串行 IPC
 
