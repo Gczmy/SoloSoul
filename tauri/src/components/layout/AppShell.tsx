@@ -1,4 +1,5 @@
-import { useEffect } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import styles from './AppShell.module.css';
 import { SideNavigation } from './SideNavigation';
 import { TopFunctionBar } from './TopFunctionBar';
@@ -21,6 +22,14 @@ interface AppShellProps {
 export function AppShell({ children, title, actions, onBack }: AppShellProps) {
   const isNarrowViewport = useIsNarrowViewport();
   const sidebarPosition = useSettingsStore((s) => s.settings.sidebarPosition);
+  // 路由导航后内容区滚动位置重置到顶部——滚动发生在 .content（overflow-y: scroll）
+  // 而非 window，React Router 不会自动重置，上一页的 scrollTop 会被新页面继承
+  // （从长页面中部进入导出/同步等页面时表现为「页面从下方开始」）。
+  const contentRef = useRef<HTMLElement>(null);
+  const location = useLocation();
+  useLayoutEffect(() => {
+    if (contentRef.current) contentRef.current.scrollTop = 0;
+  }, [location.key]);
   // 窄视口下强制使用底部导航栏
   const effectivePosition = isNarrowViewport ? 'bottom' : sidebarPosition;
   const isTop = effectivePosition === 'top';
@@ -84,12 +93,7 @@ export function AppShell({ children, title, actions, onBack }: AppShellProps) {
             : 'row',
       }}
     >
-      <AppBar
-        title={title}
-        actions={actions}
-        onBack={onBack}
-        sidebarPosition={effectivePosition}
-      />
+      <AppBar title={title} actions={actions} onBack={onBack} sidebarPosition={effectivePosition} />
       {isNarrowViewport ? (
         <MobileBottomNav />
       ) : isHorizontal ? (
@@ -107,7 +111,9 @@ export function AppShell({ children, title, actions, onBack }: AppShellProps) {
               : undefined
         }
       >
-        <main className={styles.content}>{children}</main>
+        <main ref={contentRef} className={styles.content}>
+          {children}
+        </main>
       </div>
       {/* B 侧入站配对请求全局对话框（任意页面可弹出） */}
       <PairingDialog
