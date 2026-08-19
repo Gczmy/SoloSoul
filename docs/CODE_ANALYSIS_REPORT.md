@@ -181,7 +181,7 @@
 
 **修复记录（d8648b3f）**：store catch 回滚后 `throw e`；`AddPageButton` 接 `.catch` + `useToastError.onError` 提示「创建页面失败」，不再触发 `onCreate` 导航；失败测试改为断言 `rejects.toThrow`。settingsStore 21 测试全过。
 
-**修复记录（轮次 2.5，复核登记项）**：新增 i18n key `navigation:add_page_failed` 入档 zh-CN（「创建页面失败」）/ en-US（「Failed to create page」）双语 navigation.json，替换 `AddPageButton` 的中文 `defaultValue` 兜底——英文用户不再看到中文提示。
+**修复记录（轮次 2.5，复核登记项，fd43f885）**：新增 i18n key `navigation:add_page_failed` 入档 zh-CN（「创建页面失败」）/ en-US（「Failed to create page」）双语 navigation.json，替换 `AddPageButton` 的中文 `defaultValue` 兜底——英文用户不再看到中文提示。
 
 ### P004（P1 前端缺陷）LLM 本地 Embedding 设置无错误处理
 
@@ -229,7 +229,7 @@
 
 **修复记录（b95b4ace）**：分享前清理旧副本——桌面端 `copy_to_share_dir` 复制前 `cleanup_share_dir` 清掉 `solosoul_share/` 内旧文件（上次分享必然已完成，无保留价值；目录本身保留供 `copy_into_dir` 复用，仅删平铺文件不递归）；Android 分支同样在解密复制前清理 `solosoul_share_{object_id}/` 旧副本。新增 cleanup 单测 1 条（旧明文删除 + 子目录保留）。附件测试 22 个全过，clippy/fmt 干净。
 
-**修复记录（轮次 2.5，复核打回项）**：弃用「下次分享前清理」方案，分享路径统一改走 P001 残留 3/3 新增的 `decrypt_to_temp_dir`（`attachment/mod.rs`，`share.rs` 中 `copy_to_share_dir` / Android 分支改为调用，`copy_into_dir`/`cleanup_share_dir`/`make_unique_dest_path` 等旧机制随 P047 整合移除）——每次分享解密到**一次性 UUID 子目录**：桌面端并发分享（分享面板 A 未关闭又发起 B）互不删除对方副本，消除复核指出的竞态；后台延迟清理（`SHARE_TEMP_GRACE` 30 分钟，覆盖分享面板等待用户选择目标应用的最坏停留时长），最近副本不再永久残留、明文窗口有界。测试更新为适配新机制（share 路径 UUID 子目录 + 延迟清理），删除对已移除函数的引用；attachment 21 测试全过；`cargo check --target aarch64-linux-android` 通过验证 Android 分享分支；clippy/fmt 干净。
+**修复记录（轮次 2.5，复核打回项，27a59de4）**：弃用「下次分享前清理」方案，分享路径统一改走 P001 残留 3/3 新增的 `decrypt_to_temp_dir`（`attachment/mod.rs`，`share.rs` 中 `copy_to_share_dir` / Android 分支改为调用，`copy_into_dir`/`cleanup_share_dir`/`make_unique_dest_path` 等旧机制随 P047 整合移除）——每次分享解密到**一次性 UUID 子目录**：桌面端并发分享（分享面板 A 未关闭又发起 B）互不删除对方副本，消除复核指出的竞态；后台延迟清理（`SHARE_TEMP_GRACE` 30 分钟，覆盖分享面板等待用户选择目标应用的最坏停留时长），最近副本不再永久残留、明文窗口有界。测试更新为适配新机制（share 路径 UUID 子目录 + 延迟清理），删除对已移除函数的引用；attachment 21 测试全过；`cargo check --target aarch64-linux-android` 通过验证 Android 分享分支；clippy/fmt 干净。
 
 ### P011（P2 安全）遗留 `unlock` IPC 未 Zeroizing（已完成）
 
@@ -243,7 +243,7 @@
 
 **修复记录（937446b7）**：新增 `VaultService::verify_password_with_lockout`——与 `unlock` 完全同款语义（锁定预检先于昂贵 KDF、失败经 `record_password_failure` 递增计数触发阶梯锁定、成功经 `clear_password_failures` 归零）；`verify_password` IPC 改走该方法并 `spawn_blocking`（验证含 Argon2id KDF 防阻塞 tokio）。错误密码仍返回 `false` 不抛异常（前端 P123「异常≠密码错误」语义不变），锁定期间返回与 unlock 一致的 `MASTER_PASSWORD_LOCKED_ERR`（前端 `backendError.ts` 已映射 `common:password_locked` 文案）。新增 core 限流单测 1 条；clippy/fmt 全绿。
 
-**修复记录（轮次 2.5，复核打回项 3/3）**：
+**修复记录（轮次 2.5，复核打回项 3/3，2eff0675）**：
 1. **pending 恢复边缘回归**：`verify_password_with_lockout` 补上与 `verify_password` 同款的 `recover_pending_reencrypt` 前导（unlock.rs）——改密/KDF 升级崩溃残留 pending 时先完成 reencrypt→config 交换，校验与失败计数基于一致 config；新增单测（promote 场景：新密码验证通过 + pending 清除 + 恢复前导不误计失败）。`MASTER_PASSWORD_LOCKED_ERR` 改 `pub(crate)` 供同 crate 引用。
 2. **三条未限速路径全部接入阶梯锁定**：
    - `export.rs` `validate_export_password`：`svc.verify_password` → `verify_password_with_lockout`（锁定错误原样进 `MASTER_VERIFY_FAILED` detail）；
