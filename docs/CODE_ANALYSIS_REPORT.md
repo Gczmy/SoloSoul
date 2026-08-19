@@ -45,7 +45,7 @@
 | P013 | P2 | 性能 | `tauri/src-tauri/src/commands/export_import/export.rs:751-761` | 导出时快照收集为 N+M 嵌套查询（每对象 1 次 list + 每快照 1 次 get） | `[x]` 已修复（8612e564） |
 | P014 | P2 | 性能 | `tauri/src/pages/settings/useTrashPage.tsx:145-168` | 回收站批量恢复逐项串行 IPC，与批量删除的批量入参不一致 | `[x]` 已修复（c54c5524） |
 | P015 | P2 | 代码质量 | `tauri/src/pages/ai/useLlmConfigPage.ts:369,413`；`tauri/src/components/llm-config/ProviderManagerPanel.tsx:280` | API key 哨兵 `'••••••••'` 字面量硬编码三处，与 `lib/masking.ts:14` 的 `MASK_PLACEHOLDER` 脱钩 | `[x]` 已修复（5c841a19） |
-| P016 | P2 | 代码质量 | `tauri/src/hooks/useAttachmentManagerBatchOps.ts:105-107` | 批量附件下载 catch-all 将任意异常误判为「用户取消」，无日志 | `[ ]` 待修复 |
+| P016 | P2 | 代码质量 | `tauri/src/hooks/useAttachmentManagerBatchOps.ts:105-107` | 批量附件下载 catch-all 将任意异常误判为「用户取消」，无日志 | `[x]` 已修复（268e2b1a） |
 | P017 | P2 | 死代码 | `tauri/crates/solosoul-core/src/export_import.rs:129-131` | `ExportError::Crypto` 变体从未被构造 | `[ ]` 待修复 |
 | P018 | P2 | 死代码 | `tauri/scripts/tokenize-fonts.mjs`、`tokenize-icons.mjs`、`fix_invoke_keys.cjs`、`revert_invoke_keys.cjs` | 4 个一次性 codemod 脚本残留，package.json/CI/文档均无引用 | `[x]` 已修复（094e75b8，用户确认删除） |
 | P019 | P2 | 重复代码 | `tauri/src-tauri/src/commands/llm/provider.rs:25-55` ↔ `llm/unified_chat.rs:30-59` | LLM provider 合并逻辑跨文件复制（~20 行，>80% 相似） | `[ ]` 待修复 |
@@ -58,8 +58,8 @@
 
 - 已完成：14 / 23（P008、P009、P002、P003、P004、P018、P001、P005、P006、P007、P010、P011、P012、P013）
 - 已完成：15 / 23（P008、P009、P002、P003、P004、P018、P001、P005、P006、P007、P010、P011、P012、P013、P014）
-- 已完成：16 / 23（P008、P009、P002、P003、P004、P018、P001、P005、P006、P007、P010、P011、P012、P013、P014、P015）
-- 当前处理：P016
+- 已完成：17 / 23（P008、P009、P002、P003、P004、P018、P001、P005、P006、P007、P010、P011、P012、P013、P014、P015、P016）
+- 当前处理：P017
 
 ---
 
@@ -176,10 +176,11 @@
 
 **修复记录（5c841a19）**：三处统一 `import { MASK_PLACEHOLDER } from '@/lib/masking'`——`useLlmConfigPage`（保存后置掩码 + 测试连接前识别哨兵改取真实 key）与 `ProviderManagerPanel`（编辑占位提示）。eslint/prettier/tsc 全绿。
 
-### P016（P2 代码质量）批量下载 catch-all 吞错
+### P016（P2 代码质量）批量下载 catch-all 吞错（已完成）
 
 `useAttachmentManagerBatchOps.ts:105-107`：`catch { // dialog cancelled }` 吞掉 try 块内任意异常（含 dialog 插件错误），无任何日志。
-**修复建议**：`catch (e) { logger.warn(...) }` 留痕。
+
+**修复记录（268e2b1a）**：catch 改为 `catch (e) { logger.warn('[AttachmentManager] Batch download failed:', e) }` 留痕——dialog 取消经 `openWithPause` 返回 null 提前 return（不抛异常），走到 catch 的必是真实错误（dialog 插件失败/动态 import 失败），不再误判为「用户取消」静默吞掉。prettier/eslint/tsc 全绿。
 
 ### P017（P2 死代码）`ExportError::Crypto` 从未构造
 
