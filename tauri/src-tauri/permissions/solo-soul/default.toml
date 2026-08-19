@@ -196,7 +196,6 @@ commands.allow = [
   "trash_restore",
   "ui_get_preferences",
   "ui_update_preference",
-  "unlock",
   "unlock_with_password",
   "user_data_get_preferences",
   "user_data_update_preference",

@@ -61,11 +61,8 @@ describe('ipc interfaces', () => {
   });
 
   describe('Vault', () => {
-    it('unlock 传递 accountId + password', async () => {
-      mockInvoke.mockResolvedValue(undefined);
-      await invoke('unlock', { accountId: 'acc-1', password: 'pwd' });
-      expect(mockInvoke).toHaveBeenCalledWith('unlock', { accountId: 'acc-1', password: 'pwd' });
-    });
+    // P011: 遗留 unlock 命令已从 handler 面删除（生产前端零调用，改用 unlock_with_password），
+    // 对应 mock 测试一并移除。
 
     it('lock 调用 invoke("lock")', async () => {
       mockInvoke.mockResolvedValue(undefined);

@@ -52,7 +52,6 @@ fn register_core_commands(
         commands::auth::unlock_with_password,
         commands::auth::reset_security_flags,
         // Vault commands
-        commands::vault::unlock,
         commands::vault::lock,
         commands::vault_directory::vault_get_directory,
         commands::vault_directory::vault_set_directory,
@@ -507,7 +506,6 @@ mod tests {
                     "verify_password",
                     "unlock_with_password",
                     "reset_security_flags",
-                    "unlock",
                     "lock",
                     "vault_get_directory",
                     "vault_set_directory",

@@ -48,7 +48,6 @@ const UNLOCKED_EXEMPT_COMMANDS: ReadonlySet<string> = new Set([
   'login',
   'logout',
   'lock',
-  'unlock',
   'unlock_with_password',
   'pin_unlock',
   'biometric_unlock',

@@ -4,20 +4,6 @@ use solosoul_core::AccountSummary;
 use tauri::{Emitter, State};
 
 #[tauri::command]
-pub async fn unlock(
-    state: State<'_, AppState>,
-    account_id: String,
-    password: String,
-) -> Result<(), String> {
-    let svc = state
-        .vault_service
-        .read()
-        .map_err(|_| "Vault service lock poisoned".to_string())?;
-    svc.unlock(&account_id, &password)?;
-    Ok(())
-}
-
-#[tauri::command]
 pub async fn lock(state: State<'_, AppState>) -> Result<(), String> {
     let app_handle = state.handle.clone();
     let svc = state
