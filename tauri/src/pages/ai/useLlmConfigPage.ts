@@ -192,12 +192,20 @@ export function useLlmConfigPage() {
     if (enabled && !localModelId && embedModels.length > 0) {
       const firstInstalled = embedModels.find((m) => m.installed);
       if (firstInstalled) {
+        const prevModelId = localModelId;
         setLocalModelId(firstInstalled.id);
-        await invoke('llm_set_local_embedding', {
-          accountId: accountId,
-          enabled: true,
-          modelId: firstInstalled.id,
-        });
+        // P004: invoke 失败回滚模型选择并提示，避免「前端已选、后端未生效」漂移。
+        try {
+          await invoke('llm_set_local_embedding', {
+            accountId: accountId,
+            enabled: true,
+            modelId: firstInstalled.id,
+          });
+        } catch (e) {
+          setLocalModelId(prevModelId);
+          onError(e, t('settings:llm_enable_local_failed'));
+          return;
+        }
       } else {
         onError(
           new Error(t('settings:llm_enable_local_first')),
@@ -206,24 +214,37 @@ export function useLlmConfigPage() {
         return;
       }
     } else {
-      await invoke('llm_set_local_embedding', {
-        accountId: accountId,
-        enabled,
-        modelId: localModelId,
-      });
+      try {
+        await invoke('llm_set_local_embedding', {
+          accountId: accountId,
+          enabled,
+          modelId: localModelId,
+        });
+      } catch (e) {
+        // P004: 开关失败不回改 useLocalEmbedding，仅提示。
+        onError(e, t('settings:llm_enable_local_failed'));
+        return;
+      }
     }
     setUseLocalEmbedding(enabled);
   };
 
   const handleSelectLocalModel = async (modelId: string) => {
     if (!accountId) return;
+    const prevModelId = localModelId;
     setLocalModelId(modelId);
     if (useLocalEmbedding) {
-      await invoke('llm_set_local_embedding', {
-        accountId: accountId,
-        enabled: true,
-        modelId: modelId,
-      });
+      // P004: invoke 失败回滚模型选择并提示，避免前后端状态漂移。
+      try {
+        await invoke('llm_set_local_embedding', {
+          accountId: accountId,
+          enabled: true,
+          modelId: modelId,
+        });
+      } catch (e) {
+        setLocalModelId(prevModelId);
+        onError(e, t('settings:llm_enable_local_failed'));
+      }
     }
   };
 
