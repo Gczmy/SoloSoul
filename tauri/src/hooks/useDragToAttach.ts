@@ -1,4 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
+import {
+  useState,
+  useEffect,
+  useRef,
+  type Dispatch,
+  type MutableRefObject,
+  type SetStateAction,
+} from 'react';
 import { uploadAttachmentsSequentially, filterOutDirectories } from '@/lib/attachmentUpload';
 import { useUiStore } from '@/stores/uiStore';
 import i18n from '@/lib/i18n';
@@ -38,6 +45,64 @@ interface DragDropPayload {
   type: 'enter' | 'over' | 'drop' | 'leave';
   paths?: string[];
   position?: { x: number; y: number };
+}
+
+/** P023: drop 处理所需的可变状态依赖（refs/setter，由调用方注入）。 */
+type DragDropDeps = {
+  setDragState: Dispatch<SetStateAction<DragUploadState>>;
+  isUploadingRef: MutableRefObject<boolean>;
+  pendingQueueRef: MutableRefObject<string[][]>;
+  processBatchRef: MutableRefObject<(paths: string[], objId: string) => Promise<void>>;
+};
+
+/**
+ * P023: drop 事件主体——目录过滤 → 提示/排队/立即上传，自监听器闭包抽出降低嵌套。
+ * 与原内联闭包行为完全一致（含队列调度与上传状态切换）。
+ */
+async function handleDropFiles(
+  rawPaths: string[],
+  objId: string,
+  deps: DragDropDeps,
+): Promise<void> {
+  const { files, dirs } = await filterOutDirectories(rawPaths);
+
+  if (dirs.length > 0) {
+    useUiStore.getState().showToast({
+      type: 'warning',
+      message: i18n.t('folder_drop_not_supported', { n: dirs.length }),
+    });
+  }
+
+  if (files.length === 0) {
+    // 全是文件夹，重置拖拽状态用户界面
+    deps.setDragState(initialState);
+    return;
+  }
+
+  if (deps.isUploadingRef.current) {
+    // ── 正在上传中，将文件批次加入队列 ──
+    deps.pendingQueueRef.current.push(files);
+    const totalPending = deps.pendingQueueRef.current.reduce((sum, batch) => sum + batch.length, 0);
+    deps.setDragState((prev) => ({ ...prev, pendingFiles: totalPending }));
+    return;
+  }
+
+  // ── 空闲，立即开始上传 ──
+  deps.setDragState((prev) => ({ ...prev, isDraggingOver: false }));
+  deps.isUploadingRef.current = true;
+
+  const firstFileName = files[0]?.split('/').pop() || files[0]?.split('\\').pop() || '';
+
+  deps.setDragState({
+    isDraggingOver: false,
+    isUploading: true,
+    currentIndex: 0,
+    totalFiles: files.length,
+    currentFileName: firstFileName,
+    pendingFiles: 0,
+  });
+
+  deps.processBatchRef.current(files, objId);
 }
 
 /**
@@ -202,55 +267,12 @@ export function useDragToAttach(objectId: string | null, options?: UseDragToAtta
             // 去重：Tauri v2 onDragDropEvent 可能触发重复 drop 事件
             if (isDuplicateDrop(rawPaths)) break;
 
-            // ── 过滤目录：拖拽的文件夹无法上传，提示用户 ──
-            const doFilter = async () => {
-              const pathsToDrop = rawPaths;
-              const { files, dirs } = await filterOutDirectories(pathsToDrop);
-
-              if (dirs.length > 0) {
-                useUiStore.getState().showToast({
-                  type: 'warning',
-                  message: i18n.t('folder_drop_not_supported', { n: dirs.length }),
-                });
-              }
-
-              if (files.length === 0) {
-                // 全是文件夹，重置拖拽状态用户界面
-                setDragState(initialState);
-                return;
-              }
-
-              if (isUploadingRef.current) {
-                // ── 正在上传中，将文件批次加入队列 ──
-                pendingQueueRef.current.push(files);
-                const totalPending = pendingQueueRef.current.reduce(
-                  (sum, batch) => sum + batch.length,
-                  0,
-                );
-                setDragState((prev) => ({ ...prev, pendingFiles: totalPending }));
-                return;
-              }
-
-              // ── 空闲，立即开始上传 ──
-              setDragState((prev) => ({ ...prev, isDraggingOver: false }));
-              isUploadingRef.current = true;
-
-              const objId = currentObjectId;
-              const firstFileName = files[0]?.split('/').pop() || files[0]?.split('\\').pop() || '';
-
-              setDragState({
-                isDraggingOver: false,
-                isUploading: true,
-                currentIndex: 0,
-                totalFiles: files.length,
-                currentFileName: firstFileName,
-                pendingFiles: 0,
-              });
-
-              processBatchRef.current(files, objId);
-            };
-
-            doFilter();
+            void handleDropFiles(rawPaths, currentObjectId, {
+              setDragState,
+              isUploadingRef,
+              pendingQueueRef,
+              processBatchRef,
+            });
             break;
           }
         }

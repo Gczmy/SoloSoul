@@ -74,16 +74,12 @@ export function useAttachmentManagerBatchOps({
       }
 
       // Map entries to actual attachment items
-      const selectedItems: AttachmentMeta[] = [];
-      for (const page of displayPages) {
-        for (const obj of page.objects) {
-          for (const att of obj.attachments) {
-            if (entries.includes(`${obj.objectId}::${att.id}`)) {
-              selectedItems.push(att);
-            }
-          }
-        }
-      }
+      // P023: 三重 for + if 改为 flatMap 链（行为等价）
+      const selectedItems: AttachmentMeta[] = displayPages.flatMap((page) =>
+        page.objects.flatMap((obj) =>
+          obj.attachments.filter((att) => entries.includes(`${obj.objectId}::${att.id}`)),
+        ),
+      );
 
       // P054: 逐条串行 await 改为 Promise.allSettled 并发（各附件独立 IPC + 独立目标文件，
       // 并发安全）；allSettled 不会因单项失败整体 reject，successCount 语义与串行一致。
