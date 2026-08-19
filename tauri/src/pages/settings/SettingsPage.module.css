@@ -76,8 +76,9 @@
     align-items: flex-start;
   }
 
+  /* 图标始终在卡片中垂直居中（即使描述换行为多行） */
   .itemMain {
-    align-items: flex-start;
+    align-items: center;
   }
 
   .itemLabel,
