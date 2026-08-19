@@ -3,11 +3,9 @@ import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
-import { Card } from '@/components/ui/Card';
 import { GuideRenderer, resolveGuideIdFromHref } from '@/components/guide/GuideRenderer';
 import { GuideIndex } from '@/components/guide/GuideIndex';
 import { GuideSearch } from '@/components/guide/GuideSearch';
-import { OnboardingDialog } from '@/components/onboarding/OnboardingDialog';
 import {
   loadGuideIndex,
   loadGuideContent,
@@ -36,7 +34,6 @@ export function HelpPage() {
   const [error, setError] = useState<{ title: string; message: string; isTimeout: boolean } | null>(
     null,
   );
-  const [showTutorial, setShowTutorial] = useState(false);
 
   const formatIndexError = (e: unknown) => {
     const msg = e instanceof Error ? e.message : String(e);
@@ -196,26 +193,6 @@ export function HelpPage() {
               categories={index.categories}
               language={language}
               onSelect={handleSelect}
-              extraItems={{
-                basics: (
-                  <Card interactive onClick={() => setShowTutorial(true)}>
-                    <div
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                      }}
-                    >
-                      <span style={{ fontSize: 'var(--text-sm)', fontWeight: 500 }}>
-                        {t('common:tutorial')}
-                      </span>
-                      <span style={{ color: 'var(--text-tertiary)', fontSize: 'var(--text-md)' }}>
-                        ›
-                      </span>
-                    </div>
-                  </Card>
-                ),
-              }}
             />
           </motion.div>
         )}
@@ -237,12 +214,6 @@ export function HelpPage() {
           </motion.div>
         )}
       </PageContainer>
-      {showTutorial && (
-        <OnboardingDialog
-          onComplete={() => setShowTutorial(false)}
-          onSkip={() => setShowTutorial(false)}
-        />
-      )}
     </PageShell>
   );
 }

@@ -332,7 +332,6 @@
   "onboarding_back": "Back",
   "onboarding_skip": "Skip",
   "onboarding_done": "Done",
-  "tutorial": "Tutorial",
   "trash_desc": "View and manage deleted objects, restore or permanently purge",
   "plugins_desc": "Manage local plugin marketplace",
   "ocr_desc": "Scan images for text, quickly extract and create objects",
