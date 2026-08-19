@@ -459,9 +459,21 @@ pub(crate) fn decrypt_to_temp_dir(
     std::fs::create_dir_all(&root).map_err(|e| format!("Failed to prepare temp dir: {}", e))?;
     let dir = root.join(uuid::Uuid::new_v4().to_string());
     std::fs::create_dir_all(&dir).map_err(|e| format!("Failed to prepare temp subdir: {}", e))?;
+    // Unix: 设置目录权限 0700（仅当前用户可访问）
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let _ = std::fs::set_permissions(&dir, std::fs::Permissions::from_mode(0o700));
+    }
     let dest = dir.join(safe_name);
     solosoul_core::attachment_crypto::copy_decrypt_file(att_key, src, &dest)
         .map_err(|e| format!("Failed to decrypt for temp copy: {}", e))?;
+    // Unix: 设置文件权限 0600（仅当前用户可读写）
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let _ = std::fs::set_permissions(&dest, std::fs::Permissions::from_mode(0o600));
+    }
     // 延迟清理：外部应用异步读取期间保留，grace 后删除整个子目录（best-effort）。
     let cleanup_dir = dir.clone();
     std::thread::spawn(move || {
