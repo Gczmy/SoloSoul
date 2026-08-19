@@ -106,10 +106,9 @@ pub async fn attachment_delete(
         .filter(|a: &AttachmentMeta| a.id != attachment_id)
         .collect();
 
-    // Also delete the physical file from disk
+    // Also delete the physical file from disk — NotFound 容错（与 batch 版对齐）
     let attachments_dir = attachment_dir(svc.base_path(), &object_id, &attachment_id)?;
-    std::fs::remove_dir_all(&attachments_dir)
-        .map_err(|e| format!("Failed to delete attachment file: {}", e))?;
+    let _ = std::fs::remove_dir_all(&attachments_dir);
 
     save_attachments(&mut record.properties, &atts);
     record.updated_at = chrono::Utc::now().to_rfc3339();
