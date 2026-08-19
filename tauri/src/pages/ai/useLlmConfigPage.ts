@@ -11,6 +11,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useToastError } from '@/hooks/useToastError';
 import { useConfirm } from '@/hooks/useConfirm';
 import { prefetchRegistry } from '@/lib/prefetch/registry';
+import { MASK_PLACEHOLDER } from '@/lib/masking';
 import type { ProviderConfig } from '@/types/llmProvider';
 import { isOllama } from '@/types/llmChat';
 import { logger } from '@/lib/logger';
@@ -387,7 +388,7 @@ export function useLlmConfigPage() {
     }
     setProviders((prev) => {
       const idx = prev.findIndex((p) => p.id === provider.id);
-      const updated = { ...provider, apiKey: provider.apiKey ? '••••••••' : '' };
+      const updated = { ...provider, apiKey: provider.apiKey ? MASK_PLACEHOLDER : '' };
       if (idx >= 0) {
         const n = [...prev];
         n[idx] = updated;
@@ -431,7 +432,7 @@ export function useLlmConfigPage() {
 
   const handleTestConnection = async (provider: ProviderConfig, accId: string): Promise<string> => {
     let key = provider.apiKey;
-    if (key === '••••••••') {
+    if (key === MASK_PLACEHOLDER) {
       key = await invoke<string>('llm_get_api_key', {
         accountId: accId,
         providerId: provider.id,

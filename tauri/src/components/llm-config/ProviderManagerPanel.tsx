@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { LoadingPlaceholder } from '@/components/ui/LoadingPlaceholder';
 import { ICON_SIZE } from '@/lib/constants';
+import { MASK_PLACEHOLDER } from '@/lib/masking';
 
 import type { ProviderConfig } from '@/types/llmProvider';
 export type { ProviderConfig };
@@ -277,7 +278,7 @@ export function ProviderManagerPanel({
                   setEditingProvider((p) => (p ? { ...p, apiKey: e.target.value } : null))
                 }
                 placeholder={
-                  editingProvider.apiKey === '••••••••'
+                  editingProvider.apiKey === MASK_PLACEHOLDER
                     ? t('settings:llm_api_key_unchanged')
                     : t('settings:llm_api_key_enter')
                 }
