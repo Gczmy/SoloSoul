@@ -119,6 +119,21 @@ git push origin main
 
 ## 阶段二：分别编译（在三台机器/环境上并行执行）
 
+> ⚠️ **同机串行，跨机并行**（v2.11.1 教训，见 docs/build-pitfalls.md）：
+> macOS 与 Android 构建**不得在同一台机器上并行启动**——macOS 脚本的 `npm ci`
+> 会删除并重装 `tauri/node_modules`，Android 的 `beforeBuildCommand`（tsc）在此
+> 窗口期执行会报 `tsc: command not found`（exit 127）。两个构建务必**串行**。
+>
+> ⚠️ **长任务用 tmux 会话承载**：`nohup cmd &` 在部分工具环境中会被进程组清理，
+> 表现为「返回了 PID 但构建根本没跑」（日志文件还是旧时间戳）。正确姿势：
+>
+> ```bash
+> tmux new-session -d -s build "cd /path/to/SoloSoul && ./scripts/build_macos_release.sh > /tmp/build.log 2>&1; echo EXIT_CODE=\$? >> /tmp/build.log"
+> tmux has-session -t build && echo RUNNING || echo DONE   # 会话退出 = 构建结束
+> ```
+>
+> 每次构建日志用**版本号后缀文件名**（如 `*-v2111.log`），避免与历史残留同名文件混淆。
+
 ### 4a. macOS 构建（在 Mac 上执行）
 
 ```bash
@@ -129,12 +144,15 @@ cd /path/to/SoloSoul
 脚本自动从 `tauri/package.json` 读取版本号（如 `2.1.0`），产物：
 
 ```
-tauri/src-tauri/target/release/bundle/
+tauri/target/release/bundle/                  # 注意：是 tauri/target，不是 tauri/src-tauri/target！
 ├── macos/SoloSoul.app
 ├── macos/SoloSoul_2.1.0_arm64.app.tar.gz     # Tauri updater 用的 macOS 更新包
 ├── macos/SoloSoul_2.1.0_arm64.app.tar.gz.sig # updater 签名（生成 latest.json 用，不上传）
 └── dmg/SoloSoul_2.1.0_arm64.dmg              # 首次安装用的 DMG
 ```
+
+> 产物路径以脚本内 `BUNDLE_BASE="${TAURI_DIR}/target/release/bundle"` 定义为准
+> （`TAURI_DIR="tauri"`）。`tauri/src-tauri/target` 只是 cargo 工作区编译目录，不含 bundle。
 
 > 如需覆盖版本号，可传入参数：`VERSION="2.2.0" ./scripts/build_macos_release.sh`
 > （注意：传入参数不会修改源文件中的版本号，仅影响产物命名）
@@ -170,7 +188,7 @@ git pull origin main
 脚本会自动安装依赖并构建，产物：
 
 ```
-tauri/src-tauri/target/release/bundle/
+tauri/target/release/bundle/
 └── nsis/SoloSoul_2.1.0_x64-setup.exe
 ```
 
@@ -212,6 +230,23 @@ export PATH="$HOME/.rustup/toolchains/stable-aarch64-apple-darwin/bin:$PATH"
 > **INSTALL_FAILED_UPDATE_INCOMPATIBLE (-7)「与已安装应用签名不同」**，被迫重新签名换包。
 > 请删除/归档该混淆 keystore；发布前必须运行
 > `bash scripts/verify-release-signatures.sh SoloSoul-Releases` 校验 APK 证书与历次发布一致。
+> 也可立即用 `apksigner verify --print-certs <apk> | grep SHA-256` 验证（必须为
+> `270fb489d218b02bc12fbb3489c8131fcabe723a5b2580dc7c1bc23be1e5f86c`）。
+>
+> ⚠️ **keystore 密码提取（v2.11.1 教训）**：`~/SoloSoul/info.txt` 是**中文格式**
+> （`• keystore 密码：xxx`）且**行尾有对齐空格**——`grep password` 匹配不到，
+> 直接 sed 截取会带行尾空白导致密码错误（Gradle 报 `keystore password was incorrect`
+> 白等十几分钟）。必须按中文键匹配并 **trim 全部空白**：
+>
+> ```bash
+> SOLOSOUL_KEYSTORE_PASSWORD=$(
+>   grep 'keystore 密码' "$HOME/SoloSoul/info.txt" \
+>   | sed -E 's/.*密码[：:][[:space:]]*//' \
+>   | tr -d '[:space:]'
+> )
+> ```
+>
+> 启动构建前先验证长度（`echo ${#SOLOSOUL_KEYSTORE_PASSWORD}` 应约 20 字符）。
 
 #### Debug APK（无需签名，适合功能测试）
 
