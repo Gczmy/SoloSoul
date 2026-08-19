@@ -51,8 +51,8 @@
 | P019 | P2 | 重复代码 | `tauri/src-tauri/src/commands/llm/provider.rs:25-55` ↔ `llm/unified_chat.rs:30-59` | LLM provider 合并逻辑跨文件复制（~20 行，>80% 相似） | `[x]` 已修复（cceca00f） |
 | P020 | P2 | 重复代码 | `tauri/crates/solosoul-vault/src/storage/metadata.rs:535-560` ↔ `sync_changes.rs:475-500` | `user_templates` 行解密映射代码几乎逐字重复 | `[x]` 已修复（1538c312） |
 | P021 | P2 | 重复代码 | `tauri/src-tauri/src/commands/export_import/export_docx/docx.rs:110-129` ↔ `text.rs:29-48` | 导出文档「元信息段」构建块逐字相同 | `[x]` 已修复（4c5ce603） |
-| P022 | P2 | 可维护性 | 见下文 Top 10 表 | 超长函数/组件 10 个（357–391 行） | `[ ]` 待修复 |
-| P023 | P2 | 可维护性 | `tauri/src/hooks/useDragToAttach.ts:190-234` 等 | 深层嵌套热点（控制流 ≥5 层，JSX brace 深度最高 11） | `[ ]` 待修复 |
+| P022 | P2 | 可维护性 | 见下文 Top 10 表 | 超长函数/组件 10 个（357–391 行） | `[x]` 评估后不拆（见下文登记） |
+| P023 | P2 | 可维护性 | `tauri/src/hooks/useDragToAttach.ts:190-234` 等 | 深层嵌套热点（控制流 ≥5 层，JSX brace 深度最高 11） | `[x]` 部分修复（低风险两处）+ 其余登记 |
 
 ## 修复进度
 
@@ -63,7 +63,8 @@
 - 已完成：19 / 23（…、P019）
 - 已完成：20 / 23（…、P020）
 - 已完成：21 / 23（…、P021）
-- 当前处理：P022（评估后处理）
+- 已完成：22 / 23（…、P022 评估关闭）
+- 已完成：23 / 23（…、P023 评估关闭）
 
 ---
 
@@ -224,12 +225,16 @@
 
 项目已有拆分先例（W005、P046），建议按同模式拆子组件/子 hook。无功能 bug 证据。
 
+**评估结论（本轮）**：**不拆分，登记为已知可维护性债务**。理由：① 报告自述「无功能 bug 证据」，纯可读性问题；② 10 个组件/hook 多数在前几轮性能优化（懒加载/预取/去 framer-motion）中已被多次触碰且测试稳定（全量前端 833 测试全绿），机械拆分将引入大量 props/state 传递与回归风险；③ 拆分不改变任何运行时行为、无用户可见收益。若后续功能迭代需大幅修改其中某个组件，届时按 W005/P046 模式随改随拆。
+
 ### P023（P2 可维护性）深层嵌套热点
 
 - `useDragToAttach.ts:190-234`：drop 分支约 6 层嵌套，函数整体 276 行，建议抽独立函数。
 - `useAttachmentManagerBatchOps.ts:73-81`：try 内三重 for + if，建议 `flatMap`。
 - 5 层边界：`useExportScope.ts:251-262`、`useTouchZoom.ts:184`、`propertyFlatten.ts:86`、`useExportImportPage.tsx:247`、`settingsStore.ts:446`。
 - JSX：`DeviceListKnownCard.tsx:93-106` 三元 + Fragment 嵌套 brace 深度 11，建议抽子组件。
+
+**修复记录（评估后处理）**：低风险两处已修——① `useAttachmentManagerBatchOps.ts` 三重 for + if 改为 flatMap 链（行为等价）；② `useDragToAttach.ts` drop 分支自监听器闭包抽出为模块级 `handleDropFiles`（目录过滤 → 提示/排队/立即上传，refs/setter 经 deps 注入，行为与原内联闭包一致，控制流 6 层降 4 层）。其余 5 层边界（useExportScope/useTouchZoom/propertyFlatten/useExportImportPage/settingsStore）与 JSX brace 深度 11（DeviceListKnownCard）为低风险嵌套但抽取收益有限、无测试覆盖（该批文件均无单测），登记为已知债务不处理——前端全量 833 测试通过验证。
 
 ---
 
