@@ -9,6 +9,7 @@ import styles from './SideNavigation.module.css';
 import { DEFAULT_CUSTOM_ICON, type CustomIconId } from '@/lib/pageIcons';
 import { SYSTEM_PAGE_KEYS } from './useNavigationItems';
 import { useHoverCardPosition } from '@/hooks/useHoverCardPosition';
+import { useToastError } from '@/hooks/useToastError';
 import { IconCategoryPicker } from './IconCategoryPicker';
 import { ICON_SIZE, SAFE_AREA_TOP } from '@/lib/constants';
 
@@ -89,6 +90,7 @@ export function AddPageButton({
   }, [buttonRect, isCreating]);
 
   const { t } = useTranslation(['navigation', 'common']);
+  const { onError } = useToastError();
   const currentAccount = useAuthStore((s) => s.currentAccount);
   const addCustomPage = useSettingsStore((s) => s.addCustomPage);
 
@@ -122,14 +124,27 @@ export function AddPageButton({
         return;
       }
       const trimmedDesc = description.trim();
-      addCustomPage(currentAccount.id, trimmed, selectedIconId, trimmedDesc || undefined).then(
-        (page) => {
+      addCustomPage(currentAccount.id, trimmed, selectedIconId, trimmedDesc || undefined)
+        .then((page) => {
           onCreate(page);
-        },
-      );
+        })
+        // P003: 创建失败（store 已回滚并抛错）——提示错误，不导航到不存在的页面。
+        .catch((err) => {
+          onError(err, t('navigation:add_page_failed', { defaultValue: '创建页面失败' }));
+        });
       handleCancel();
     },
-    [name, description, selectedIconId, currentAccount, addCustomPage, onCreate, t, handleCancel],
+    [
+      name,
+      description,
+      selectedIconId,
+      currentAccount,
+      addCustomPage,
+      onCreate,
+      onError,
+      t,
+      handleCancel,
+    ],
   );
 
   // Close popover on outside click

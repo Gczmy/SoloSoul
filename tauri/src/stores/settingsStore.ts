@@ -339,7 +339,8 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       if (typeof prefs.backupReminderDays === 'number')
         parsed.backupReminderDays = prefs.backupReminderDays;
       if (typeof (prefs as Record<string, unknown>).lastBackupReminderAt === 'number')
-        parsed.lastBackupReminderAt = (prefs as Record<string, unknown>).lastBackupReminderAt as number;
+        parsed.lastBackupReminderAt = (prefs as Record<string, unknown>)
+          .lastBackupReminderAt as number;
       if (prefs.trashRetention) parsed.trashRetention = prefs.trashRetention;
       if (typeof prefs.biometricEnabled === 'boolean')
         parsed.biometricEnabled = prefs.biometricEnabled;
@@ -434,7 +435,11 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
           if (r.status === 'fulfilled') {
             migrated.push(oldPages[i]);
           } else {
-            logger.warn('[settingsStore] Failed to migrate custom page:', oldPages[i].name, r.reason);
+            logger.warn(
+              '[settingsStore] Failed to migrate custom page:',
+              oldPages[i].name,
+              r.reason,
+            );
           }
         });
         if (migrated.length > 0) {
@@ -518,6 +523,9 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       logger.warn('[settingsStore] Failed to add custom page:', name, e);
       // Rollback
       set((s) => ({ settings: { ...s.settings, customPages: prevPages } }));
+      // P003: 失败必须向上抛——调用方（AddPageButton）依赖异常进入 catch 提示错误；
+      // 此前无条件 return newPage，调用方 onCreate 导航到后端不存在的页面（刷新即消失）。
+      throw e;
     }
     return newPage;
   },
@@ -533,7 +541,11 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       // sectionType must be the actual page UUID so that page_delete's sub-object
       // matching (section_type == section_type || collection_type == section_type)
       // correctly finds all child objects assigned to this custom page.
-      await invoke('page_delete', { accountId: accountId, sectionType: pageId, pageObjectId: pageId });
+      await invoke('page_delete', {
+        accountId: accountId,
+        sectionType: pageId,
+        pageObjectId: pageId,
+      });
     } catch (e) {
       logger.warn('[settingsStore] Failed to remove custom page:', pageId, e);
       set((s) => ({ settings: { ...s.settings, customPages: prevPages } }));

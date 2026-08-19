@@ -255,9 +255,11 @@ describe('settingsStore', () => {
       );
     });
 
-    it('should rollback on creation failure', async () => {
+    it('should rollback and throw on creation failure (P003)', async () => {
       vi.mocked(invoke).mockRejectedValue(new Error('db locked'));
-      await useSettingsStore.getState().addCustomPage('acc-1', 'Fail Page');
+      await expect(useSettingsStore.getState().addCustomPage('acc-1', 'Fail Page')).rejects.toThrow(
+        'db locked',
+      );
       expect(useSettingsStore.getState().settings.customPages).toHaveLength(0);
     });
   });
