@@ -53,7 +53,7 @@
 | P021 | P2 | 重复代码 | `tauri/src-tauri/src/commands/export_import/export_docx/docx.rs:110-129` ↔ `text.rs:29-48` | 导出文档「元信息段」构建块逐字相同 | `[x]` 已修复（4c5ce603） |
 | P022 | P2 | 可维护性 | 见下文 Top 10 表 | 超长函数/组件 10 个（357–391 行） | `[x]` 评估后不拆（见下文登记） |
 | P023 | P2 | 可维护性 | `tauri/src/hooks/useDragToAttach.ts:190-234` 等 | 深层嵌套热点（控制流 ≥5 层，JSX brace 深度最高 11） | `[x]` 部分修复（低风险两处）+ 其余登记（轮次2复核确认两处改动行为等价、登记无漏；「均无单测」措辞不实） |
-| P024 | P1 | 测试基线 | `tauri/src-tauri/src/lib.rs:656` | 轮次2新增：`test_dispatch_cluster_prefixes_consistent` 失败（断言 total==194，实际 195）——P006/P011/P014 增删命令后未同步手工维护的总数断言 | `[x]` 已修复（9dab2d05） |
+| P024 | P1 | 测试基线 | `tauri/src-tauri/src/lib.rs:656` | 轮次2新增：`test_dispatch_cluster_prefixes_consistent` 失败（断言 total==194，实际 195）——P006/P011/P014 增删命令后未同步手工维护的总数断言 | `[x]` 已修复（19ee54ca） |
 
 ## 修复进度
 
@@ -89,7 +89,7 @@
 `src-tauri/src/lib.rs:656` `assert_eq!(total, 194)` 失败（left: 195）。根因：P006 新增 `attachment_count_stats`、P014 新增 `trash_restore_batch`、P011 删除 `unlock`，净 +1，三个 commit 均未同步该手工维护的总数断言。注意 commit `6ce7357a`（V002）与 `99a8f53c`（P042）刚修过同类问题并加了维护提醒注释，本轮修复又犯同样错误。
 **修复建议**：断言 194→195（一行修复）。报告中「src-tauri 444 测试全过」的声称失实，应修正。
 
-**修复记录（9dab2d05）**：断言 194→195，注释补充净 +1 来源（P006 新增 `attachment_count_stats`、P014 新增 `trash_restore_batch`、P011 删除 `unlock`）。测试实跑通过，基线恢复。
+**修复记录（19ee54ca）**：断言 194→195，注释补充净 +1 来源（P006 新增 `attachment_count_stats`、P014 新增 `trash_restore_batch`、P011 删除 `unlock`）。测试实跑通过，基线恢复。
 
 ### P001 复核打回（原 542ddfbc，主体真实落地但有三处残留）
 
