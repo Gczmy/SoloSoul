@@ -72,6 +72,38 @@ impl super::VaultService {
         self.write_config_atomic(account_id, json.as_bytes())
     }
 
+    /// P012：主密码验证（不解锁会话），与 `unlock` 同款阶梯锁定语义——
+    /// 锁定预检放在昂贵 KDF 之前，失败递增计数、成功归零。
+    /// 返回 `Ok(true)` 密码正确 / `Ok(false)` 密码错误（错误已计数），
+    /// 锁定期间返回 `Err(MASTER_PASSWORD_LOCKED_ERR)`。
+    /// 供 GUI `verify_password` IPC 使用（设置页 PIN 开启前验证主密码等场景），
+    /// 消除无限速密码验证 oracle。
+    pub fn verify_password_with_lockout(
+        &self,
+        account_id: &str,
+        password: &str,
+    ) -> Result<bool, String> {
+        // P032：锁定预检（与 unlock 完全一致，先于昂贵 KDF）。
+        let pre_config = self.read_account_config(account_id)?;
+        if let Some(ref until) = pre_config.password_locked_until {
+            if let Ok(until_time) = chrono::DateTime::parse_from_rfc3339(until) {
+                if chrono::Utc::now() < until_time {
+                    return Err(MASTER_PASSWORD_LOCKED_ERR.to_string());
+                }
+            }
+        }
+
+        let ok = crate::auth::verify_password_core(password, &pre_config)?;
+        if !ok {
+            // 失败：递增计数并持久化（阶梯锁定），随后返回 false 表示密码错误。
+            self.record_password_failure(account_id)?;
+            return Ok(false);
+        }
+        // 成功：归零失败计数/锁定（有残留时才写，避免每次验证多余 IO）。
+        self.clear_password_failures(account_id, &pre_config);
+        Ok(true)
+    }
+
     /// P032：主密码验证成功——归零失败计数与锁定。仅当有残留时才写 config，
     /// 避免每次成功登录都多一次磁盘写入。
     fn clear_password_failures(&self, account_id: &str, config: &AccountConfig) {

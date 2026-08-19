@@ -1,8 +1,6 @@
 use crate::commands::object::trash::run_expired_trash_cleanup;
 use crate::state::AppState;
-use solosoul_core::auth::verify_password_core;
 use solosoul_core::template_service::seed_default_templates;
-use solosoul_core::AccountConfig;
 use solosoul_core::AccountSummary;
 use tauri::State;
 use zeroize::Zeroizing;
@@ -163,17 +161,18 @@ pub async fn verify_password(
 ) -> Result<bool, String> {
     // P031: 密码以 Zeroizing<String> 接收，使用完毕后立即安全清零。
     let password = Zeroizing::new(password);
-    let svc = state
-        .vault_service
-        .read()
-        .map_err(|_| "Vault service lock poisoned".to_string())?;
-    let config_path = svc.base_path().join(&account_id).join("config.json");
-    let content =
-        std::fs::read_to_string(&config_path).map_err(|_| "Account not found".to_string())?;
-    let config: AccountConfig =
-        serde_json::from_str(&content).map_err(|_| "Parse error".to_string())?;
-
-    verify_password_core(password.as_ref(), &config)
+    let vault_service = state.vault_service.clone();
+    // P012: 接入与 unlock 同款阶梯锁定（失败计数/锁定预检/成功归零），
+    // 消除无限速密码验证 oracle；验证含 Argon2id KDF，spawn_blocking 防阻塞 tokio。
+    let ok = tokio::task::spawn_blocking(move || {
+        let svc = vault_service
+            .read()
+            .map_err(|_| "Vault service lock poisoned".to_string())?;
+        svc.verify_password_with_lockout(&account_id, password.as_ref())
+    })
+    .await
+    .map_err(|e| format!("verify_password task failed: {}", e))??;
+    Ok(ok)
 }
 
 #[tauri::command]
@@ -190,6 +189,10 @@ pub async fn logout(state: State<'_, AppState>) -> Result<(), String> {
 mod tests {
     use super::*;
     use base64::Engine;
+    // P012: verify_password 命令改为走 VaultService::verify_password_with_lockout，
+    // 这两个仅在测试中直接引用（生产路径由 solosoul-core 内部使用）。
+    use solosoul_core::auth::verify_password_core;
+    use solosoul_core::AccountConfig;
     use solosoul_crypto::kdf::{derive_key, KdfConfig};
 
     fn sample_account_config() -> AccountConfig {

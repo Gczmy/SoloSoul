@@ -241,6 +241,58 @@ fn test_unlock_rate_limit_locks_after_5_failures() {
 }
 
 #[test]
+fn test_verify_password_with_lockout_rate_limits() {
+    // P012: verify_password_with_lockout 与 unlock 同款阶梯锁定——
+    // 失败递增计数、第 5 次触发锁定、锁定期间拒绝、成功归零。
+    let (svc, _dir) = setup_service();
+    let account = svc.create_account("Grace", "password123", None).unwrap();
+    let account_id = account["id"].as_str().unwrap().to_string();
+
+    // 正确密码 → true（不计数）
+    assert!(svc
+        .verify_password_with_lockout(&account_id, "password123")
+        .unwrap());
+    // 前 4 次错误密码 → false（不抛异常，计数递增但未锁定）
+    for _ in 0..4 {
+        assert!(!svc
+            .verify_password_with_lockout(&account_id, "wrong")
+            .unwrap());
+    }
+    // 第 5 次失败触发 30s 阶梯锁定；锁定期间即使正确密码也被拒绝（文案稳定）
+    assert!(!svc
+        .verify_password_with_lockout(&account_id, "wrong")
+        .unwrap());
+    let err = svc
+        .verify_password_with_lockout(&account_id, "password123")
+        .unwrap_err();
+    assert!(err.contains("Too many failed attempts"));
+
+    // 成功路径归零：直接操作 config 清除锁定后，验证成功计数归零
+    // （通过 unlock 成功触发 clear_password_failures——与 unlock 共享同一归零逻辑）
+    let mut config = svc.read_account_config(&account_id).unwrap();
+    config.password_failed_attempts = 0;
+    config.password_locked_until = None;
+    svc.write_config_atomic(
+        &account_id,
+        serde_json::to_string_pretty(&config).unwrap().as_bytes(),
+    )
+    .unwrap();
+    assert!(svc
+        .verify_password_with_lockout(&account_id, "password123")
+        .unwrap());
+    // 计数已归零：再失败 5 次 → 第 5 次触发锁定
+    for _ in 0..5 {
+        assert!(!svc
+            .verify_password_with_lockout(&account_id, "wrong")
+            .unwrap());
+    }
+    let err = svc
+        .verify_password_with_lockout(&account_id, "password123")
+        .unwrap_err();
+    assert!(err.contains("Too many failed attempts"));
+}
+
+#[test]
 fn test_unlock_rate_limit_resets_on_success() {
     let (svc, _dir) = setup_service();
     let account = svc.create_account("Eve", "password123", None).unwrap();
