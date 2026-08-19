@@ -21,31 +21,9 @@ pub async fn llm_get_providers(
     account_id: String,
 ) -> Result<Vec<ProviderWithKey>, String> {
     let vault = vault_handle(&state)?;
-    let config = load_config(&vault, &account_id)?;
-    let keys = load_api_keys(&vault, &account_id)?;
-    let mut defaults = default_providers();
-    for saved in &config.providers {
-        if let Some(d) = defaults.iter_mut().find(|d| d.id == saved.id) {
-            d.name = saved.name.clone();
-            d.base_url = saved.base_url.clone();
-            d.model = saved.model.clone();
-            d.is_enabled = saved.is_enabled;
-            d.api_key = keys.get(&saved.id).cloned().unwrap_or_default();
-            d.api_type = saved.api_type.clone();
-        } else {
-            defaults.push(ProviderWithKey {
-                id: saved.id.clone(),
-                name: saved.name.clone(),
-                base_url: saved.base_url.clone(),
-                model: saved.model.clone(),
-                is_enabled: saved.is_enabled,
-                is_built_in: false,
-                api_key: keys.get(&saved.id).cloned().unwrap_or_default(),
-                api_type: saved.api_type.clone(),
-                embedding_model: saved.embedding_model.clone(),
-            });
-        }
-    }
+    // P019: 合并逻辑收敛到 llm::merge_providers_with_keys（含 embedding_model 同步，
+    // 原 if 分支漏同步该字段）；此处仅做密钥掩码展示。
+    let mut defaults = super::merge_providers_with_keys(&vault, &account_id)?;
     for p in &mut defaults {
         if !p.api_key.is_empty() {
             p.api_key = "••••••••".to_string();
