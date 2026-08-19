@@ -17,7 +17,9 @@
 
 use rusqlite::{params, Connection};
 
-use super::{with_tx, VaultStore, USER_TEMPLATE_LOAD_SQL, USER_TEMPLATE_SAVE_SQL};
+use super::{
+    map_user_template_row, with_tx, VaultStore, USER_TEMPLATE_LOAD_SQL, USER_TEMPLATE_SAVE_SQL,
+};
 use crate::encryption::{decrypt_text_field, encrypt_text_field, DataEncryptionKey};
 
 impl VaultStore {
@@ -490,32 +492,7 @@ impl VaultStore {
             .prepare_cached(USER_TEMPLATE_LOAD_SQL)
             .map_err(|e| format!("prepare load_user_template: {}", e))?;
 
-        let result = stmt.query_row(params![template_id], |row| {
-            let props_json: String = row.get(4)?;
-            let decrypted = decrypt_text_field(key, &props_json).map_err(|e| {
-                rusqlite::Error::FromSqlConversionFailure(
-                    4,
-                    rusqlite::types::Type::Text,
-                    Box::new(std::io::Error::new(
-                        std::io::ErrorKind::InvalidData,
-                        format!("Template properties decryption failed: {}", e),
-                    )),
-                )
-            })?;
-            let properties: Vec<crate::TemplateProperty> = serde_json::from_str(&decrypted)
-                .map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))?;
-            Ok(crate::UserTemplate {
-                contract_type_id: row.get(6)?,
-                id: row.get(0)?,
-                account_id: row.get(1)?,
-                name: row.get(2)?,
-                icon_id: row.get(3)?,
-                properties,
-                category: row.get(5)?,
-                created_at: row.get(7)?,
-                updated_at: row.get(8)?,
-            })
-        });
+        let result = stmt.query_row(params![template_id], |row| map_user_template_row(key, row));
 
         match result {
             Ok(tpl) => Ok(Some(tpl)),
@@ -538,32 +515,7 @@ impl VaultStore {
     ).map_err(|e| format!("prepare list_user_templates: {}", e))?;
 
         let rows = stmt
-            .query_map(params![account_id], |row| {
-                let props_json: String = row.get(4)?;
-                let decrypted = decrypt_text_field(&key, &props_json).map_err(|e| {
-                    rusqlite::Error::FromSqlConversionFailure(
-                        4,
-                        rusqlite::types::Type::Text,
-                        Box::new(std::io::Error::new(
-                            std::io::ErrorKind::InvalidData,
-                            format!("Template properties decryption failed: {}", e),
-                        )),
-                    )
-                })?;
-                let properties: Vec<crate::TemplateProperty> = serde_json::from_str(&decrypted)
-                    .map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))?;
-                Ok(crate::UserTemplate {
-                    contract_type_id: row.get(6)?,
-                    id: row.get(0)?,
-                    account_id: row.get(1)?,
-                    name: row.get(2)?,
-                    icon_id: row.get(3)?,
-                    properties,
-                    category: row.get(5)?,
-                    created_at: row.get(7)?,
-                    updated_at: row.get(8)?,
-                })
-            })
+            .query_map(params![account_id], |row| map_user_template_row(&key, row))
             .map_err(|e| format!("list_user_templates query: {}", e))?;
 
         let mut result = Vec::new();

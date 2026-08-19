@@ -129,6 +129,38 @@ const USER_TEMPLATE_SAVE_SQL: &str = "INSERT INTO user_templates (id, account_id
 const USER_TEMPLATE_LOAD_SQL: &str = "SELECT id, account_id, name, icon_id, properties_json, category, contract_type_id, created_at, updated_at \
      FROM user_templates WHERE id = ?1";
 
+/// P020: `user_templates` 行解密映射（load/list/sync 三处共用，列序需与
+/// USER_TEMPLATE_LOAD_SQL / list_user_templates / sync_changes 的 SELECT 完全一致）。
+fn map_user_template_row(
+    key: &DataEncryptionKey,
+    row: &rusqlite::Row<'_>,
+) -> Result<crate::UserTemplate, rusqlite::Error> {
+    let props_json: String = row.get(4)?;
+    let decrypted = decrypt_text_field(key, &props_json).map_err(|e| {
+        rusqlite::Error::FromSqlConversionFailure(
+            4,
+            rusqlite::types::Type::Text,
+            Box::new(std::io::Error::new(
+                std::io::ErrorKind::InvalidData,
+                format!("Template properties decryption failed: {}", e),
+            )),
+        )
+    })?;
+    let properties: Vec<crate::TemplateProperty> = serde_json::from_str(&decrypted)
+        .map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))?;
+    Ok(crate::UserTemplate {
+        contract_type_id: row.get(6)?,
+        id: row.get(0)?,
+        account_id: row.get(1)?,
+        name: row.get(2)?,
+        icon_id: row.get(3)?,
+        properties,
+        category: row.get(5)?,
+        created_at: row.get(7)?,
+        updated_at: row.get(8)?,
+    })
+}
+
 /// P213: 对象软删常量 SQL（回收站批量入站/单删共用）。
 const OBJECT_SOFT_DELETE_SQL: &str =
     "UPDATE objects SET is_deleted = 1, deleted_at = ?1, updated_at = ?1 WHERE id = ?2";

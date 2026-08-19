@@ -12,7 +12,7 @@
 
 use rusqlite::params;
 
-use super::{VaultStore, OBJECT_COLUMNS};
+use super::{map_user_template_row, VaultStore, OBJECT_COLUMNS};
 use crate::encryption::{decrypt_field, decrypt_text_field};
 
 impl VaultStore {
@@ -479,33 +479,7 @@ impl VaultStore {
             )
             .map_err(|e| format!("list_template_changes: {}", e))?;
             let rows = stmt
-                .query_map(params![account_id], |row| {
-                    let props_json: String = row.get(4)?;
-                    let decrypted = decrypt_text_field(&key, &props_json).map_err(|e| {
-                        rusqlite::Error::FromSqlConversionFailure(
-                            4,
-                            rusqlite::types::Type::Text,
-                            Box::new(std::io::Error::new(
-                                std::io::ErrorKind::InvalidData,
-                                format!("Template properties decryption failed: {}", e),
-                            )),
-                        )
-                    })?;
-                    let properties: Vec<crate::TemplateProperty> = serde_json::from_str(&decrypted)
-                        .map_err(|e| rusqlite::Error::ToSqlConversionFailure(Box::new(e)))?;
-                    let tpl = crate::UserTemplate {
-                        contract_type_id: row.get(6)?,
-                        id: row.get(0)?,
-                        account_id: row.get(1)?,
-                        name: row.get(2)?,
-                        icon_id: row.get(3)?,
-                        properties,
-                        category: row.get(5)?,
-                        created_at: row.get(7)?,
-                        updated_at: row.get(8)?,
-                    };
-                    Ok(tpl)
-                })
+                .query_map(params![account_id], |row| map_user_template_row(&key, row))
                 .map_err(|e| format!("list_template_changes query: {}", e))?
                 .collect::<Result<Vec<_>, _>>()
                 .map_err(|e| format!("list_template_changes collect: {}", e))?;
