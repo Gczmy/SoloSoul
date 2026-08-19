@@ -85,6 +85,28 @@ describe('invokeCommand（统一 IPC 调用层）', () => {
     }
   });
 
+  it('P027 默认守卫：自更新管线命令（android_check_update 等）未解锁时可调', async () => {
+    vi.stubEnv('MODE', 'development');
+    vi.mocked(useAuthStore).getState.mockReturnValue({ isAuthenticated: false } as never);
+    try {
+      await expect(invokeCommand<void>('android_check_update')).resolves.toBeUndefined();
+      await expect(
+        invokeCommand<void>('android_download_apk', { version: '2.11.1' }),
+      ).resolves.toBeUndefined();
+      await expect(
+        invokeCommand<void>('android_get_apk_path', { version: '2.11.1' }),
+      ).resolves.toBeUndefined();
+      await expect(
+        invokeCommand<void>('android_is_apk_downloaded', { version: '2.11.1' }),
+      ).resolves.toBeUndefined();
+      await expect(invokeCommand<void>('desktop_check_update')).resolves.toBeUndefined();
+      expect(invoke).toHaveBeenCalledTimes(5);
+      expect(invoke).toHaveBeenNthCalledWith(2, 'android_download_apk', { version: '2.11.1' });
+    } finally {
+      vi.unstubAllEnvs();
+    }
+  });
+
   it('P027 默认守卫：登录页可用性探测命令（biometric/pin check availability）未解锁时可调', async () => {
     vi.stubEnv('MODE', 'development');
     vi.mocked(useAuthStore).getState.mockReturnValue({ isAuthenticated: false } as never);

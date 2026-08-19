@@ -284,6 +284,7 @@
   "install_update": "Install Update",
   "update_error": "Update failed",
   "retry": "Retry",
+  "page_render_error": "This page failed to render. Please try again.",
   "onboarding_welcome_title": "Welcome to SoloSoul",
   "onboarding_welcome_desc": "Your personal digital twin and universal identity engine. All sensitive data is encrypted and stored locally.",
   "onboarding_vault_dir_title": "Choose Vault Storage Location",

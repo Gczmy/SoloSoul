@@ -283,6 +283,7 @@
   "install_update": "安装更新",
   "update_error": "更新失败",
   "retry": "重试",
+  "page_render_error": "页面渲染出错，请重试",
   "onboarding_welcome_title": "欢迎使用 SoloSoul",
   "onboarding_welcome_desc": "您的个人数字孪生与通用身份引擎。所有敏感数据本地加密，绝不上传云端。",
   "onboarding_vault_dir_title": "选择保险库存储位置",

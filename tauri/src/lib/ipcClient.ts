@@ -73,8 +73,17 @@ const UNLOCKED_EXEMPT_COMMANDS: ReadonlySet<string> = new Set([
   'ui_get_preferences',
   'ui_update_preference',
   'user_data_update_preference',
-  'android_install_apk',
   'log_write',
+  // ── 自更新管线（检查/下载/安装）：只读 GitHub Release 元数据与 APK 缓存文件，
+  //    与 Vault 数据完全无关。启动期（锁屏）即允许检查更新，横幅可提前出现；
+  //    否则 P027 在 App 挂载（未解锁）时拦截 android_check_update，Android 端
+  //    更新横幅永远不出现（桌面端走 updater 插件直连 HTTP 不受影响）。
+  'android_check_update',
+  'android_download_apk',
+  'android_get_apk_path',
+  'android_is_apk_downloaded',
+  'android_install_apk',
+  'desktop_check_update',
   // ── OCR 模型管理（useOcrFirstInstall / useOcrModelManager：模型与 vault 数据
   //    无关，后端不校验解锁；设置页与首次引导在未解锁时也可访问）──
   'ocr_get_model_status',

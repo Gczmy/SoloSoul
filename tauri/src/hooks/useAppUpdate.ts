@@ -10,6 +10,7 @@ import {
   type AndroidUpdateInfo,
 } from '@/lib/updater';
 import { isMobilePlatformSync } from '@/lib/platform';
+import { useAuthStore } from '@/stores/authStore';
 import { ST_SKIPPED_VERSION } from '@/lib/constants';
 
 export type AppUpdateState =
@@ -38,10 +39,14 @@ export type AppUpdateState =
 export function useAppUpdate() {
   const isMobilePlatform = isMobilePlatformSync();
   const { t } = useTranslation(['settings']);
+  // P027: 解锁后重查——App 挂载时 Vault 通常未解锁，启动检查曾被守卫拦截；
+  // 豁免后挂载检查可执行，同时依赖 isAuthenticated 保证解锁完成后必有一次重查
+  // （挂载期网络失败/被拦截的兜底），横幅在解锁后必然出现。
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
 
   const [updateState, setUpdateState] = useState<AppUpdateState>({ kind: 'hidden' });
 
-  // 启动时检查更新并显示非侵入式横幅（桌面端 + Android）
+  // 启动时检查更新并显示非侵入式横幅（桌面端 + Android）；解锁后重查一次
   useEffect(() => {
     if (isMobilePlatform) {
       androidCheckForUpdate().then((result) => {
@@ -83,7 +88,7 @@ export function useAppUpdate() {
         });
       });
     }
-  }, [isMobilePlatform]);
+  }, [isMobilePlatform, isAuthenticated]);
 
   const startDownload = useCallback(async () => {
     if (updateState.kind !== 'available' && updateState.kind !== 'error') return;

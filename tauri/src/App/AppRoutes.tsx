@@ -19,6 +19,7 @@ import { searchCache } from '@/lib/searchCache';
 import { applyTheme, getSystemTheme, listenForSystemTheme } from '@/lib/theme';
 import { confirmWithPause } from '@/lib/dialog';
 import { UpdateBanner, type UpdateBannerState } from '@/components/ui/UpdateBanner';
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { OcrInstallBanner } from '@/components/ui/OcrInstallBanner';
 import { ST_SKIPPED_VERSION, SAFE_AREA_TOP } from '@/lib/constants';
 import { logger } from '@/lib/logger';
@@ -415,7 +416,11 @@ export function AppRoutes() {
             }
           >
             {protectedRoutes.map((r) => (
-              <Route key={r.path} path={r.path} element={r.element} />
+              <Route
+                key={r.path}
+                path={r.path}
+                element={<ErrorBoundary label={`route:${r.path}`}>{r.element}</ErrorBoundary>}
+              />
             ))}
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
