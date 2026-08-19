@@ -33,15 +33,27 @@ pub(crate) fn copy_into_dir(
     Ok(dest)
 }
 
-/// 分享副本落盘目录（系统临时目录，跨会话残留但不自动清理）。
+/// P010: 清理分享临时目录内的旧副本文件（分享面板/reveal 用完后无保留价值，
+/// 下次分享前清掉，避免 `temp_dir()/solosoul_share/` 明文残留无限累积）。
+/// 目录本身保留（后续 copy_into_dir 会复用）；仅删除文件不递归（分享副本为平铺文件）。
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+pub(crate) fn cleanup_share_dir(dir: &Path) {
+    if let Ok(entries) = std::fs::read_dir(dir) {
+        for entry in entries.flatten() {
+            let p = entry.path();
+            if p.is_file() {
+                let _ = std::fs::remove_file(&p);
+            }
+        }
+    }
+}
+
+/// 分享副本落盘目录（系统临时目录）。P010: 复制前先清理上次分享的旧副本。
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 fn copy_to_share_dir(path: &Path, file_name: &str, att_key: &[u8; 32]) -> Result<PathBuf, String> {
-    copy_into_dir(
-        &std::env::temp_dir().join("solosoul_share"),
-        path,
-        file_name,
-        att_key,
-    )
+    let dir = std::env::temp_dir().join("solosoul_share");
+    cleanup_share_dir(&dir);
+    copy_into_dir(&dir, path, file_name, att_key)
 }
 
 /// 转发附件到其他应用。
@@ -83,6 +95,15 @@ pub async fn attachment_share<R: Runtime>(
         let temp_dir = std::env::temp_dir().join(format!("solosoul_share_{}", object_id));
         std::fs::create_dir_all(&temp_dir)
             .map_err(|e| format!("Failed to prepare share dir: {}", e))?;
+        // P010: 清理该对象目录下上次分享的旧副本明文，避免累积残留。
+        if let Ok(entries) = std::fs::read_dir(&temp_dir) {
+            for entry in entries.flatten() {
+                let p = entry.path();
+                if p.is_file() {
+                    let _ = std::fs::remove_file(&p);
+                }
+            }
+        }
         let safe_name = solosoul_core::path_util::sanitize_file_name(&att.file_name)?;
         let temp_path = temp_dir.join(&safe_name);
         solosoul_core::attachment_crypto::copy_decrypt_file(&att_key, &path, &temp_path)

@@ -8,7 +8,7 @@ use std::path::Path;
 use tempfile::TempDir;
 // P047：tree/share 子模块的 pub(crate) 项需显式导入（mod.rs 不做 re-export，避免非测试构建 unused 警告）
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
-use super::share::copy_into_dir;
+use super::share::{cleanup_share_dir, copy_into_dir};
 use super::tree::{build_attachment_tree_pages, group_objects_for_attachment_tree};
 
 fn setup_vault() -> (VaultStore, TempDir) {
@@ -599,6 +599,25 @@ fn test_sanitize_duplicate_suffix_variants() {
     assert_eq!(sanitize_duplicate_suffix("a (1).pdf"), "a(1).pdf");
     assert_eq!(sanitize_duplicate_suffix("a(1)"), "a(1)");
     assert_eq!(sanitize_duplicate_suffix("a.pdf"), "a.pdf");
+}
+
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+#[test]
+fn test_cleanup_share_dir_removes_old_plaintext_copies() {
+    // P010: 分享前清理旧副本——上次分享的明文副本不得无限累积残留。
+    let tmp = tempfile::tempdir().unwrap();
+    // 造旧残留：一个明文文件 + 一个子目录（子目录应保留，仅清理平铺文件）
+    std::fs::write(tmp.path().join("old.png"), b"plaintext-1").unwrap();
+    std::fs::write(tmp.path().join("old(1).pdf"), b"plaintext-2").unwrap();
+    std::fs::create_dir(tmp.path().join("subdir")).unwrap();
+
+    cleanup_share_dir(tmp.path());
+
+    // 旧明文副本被删除
+    assert!(!tmp.path().join("old.png").exists());
+    assert!(!tmp.path().join("old(1).pdf").exists());
+    // 子目录保留（目录本身由后续 copy_into_dir 复用）
+    assert!(tmp.path().join("subdir").is_dir());
 }
 
 // ── resolve_verified_attachment_path（attachment_open / attachment_share 共享路径） ──
