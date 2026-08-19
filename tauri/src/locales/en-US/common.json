@@ -298,6 +298,7 @@
   "onboarding_vault_dir_restart_desc": "The vault directory has changed. Please restart the app to use the new directory.",
   "onboarding_vault_dir_restart_btn": "Restart App",
   "onboarding_vault_dir_set_failed": "Failed to set directory",
+  "onboarding_vault_dir_pick_failed": "Failed to get the selected folder result. Please try again.",
   "onboarding_vault_dir_syncing": "SAF syncing...",
   "onboarding_vault_dir_syncing_file": "Syncing: {{fileName}}",
   "onboarding_vault_dir_sync_count": "{{count}} files synced",

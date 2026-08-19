@@ -14,7 +14,11 @@ import { useAuthStore } from '@/stores/authStore';
 import type { AccountInfo } from '@/lib/ipc';
 import { ST_ONBOARDING_SAF_URI } from '@/lib/constants';
 import { getPlatform } from '@/lib/platform';
-import { pickVaultDirectory, initVaultDirectory } from '@/lib/vaultDirectory';
+import {
+  pickVaultDirectory,
+  initVaultDirectory,
+  VaultDirPickLostError,
+} from '@/lib/vaultDirectory';
 
 export interface OnboardingDialogProps {
   onComplete: () => void;
@@ -139,8 +143,8 @@ export function useOnboarding({ onComplete, onSkip: _onSkip }: OnboardingDialogP
 
   const handleVaultDirPick = useCallback(async () => {
     // 注意：本回调不直接调用 onComplete，决策卡片由用户选择后再决定
-    const { pause, resume } = await import('@/stores/autoLockPauseStore').then(
-      (m) => m.useAutoLockPauseStore.getState(),
+    const { pause, resume } = await import('@/stores/autoLockPauseStore').then((m) =>
+      m.useAutoLockPauseStore.getState(),
     );
     pause();
     try {
@@ -197,7 +201,9 @@ export function useOnboarding({ onComplete, onSkip: _onSkip }: OnboardingDialogP
       }
     } catch (e) {
       setSyncPhase('idle');
-      setVaultDirError(String(e));
+      setVaultDirError(
+        e instanceof VaultDirPickLostError ? t('onboarding_vault_dir_pick_failed') : String(e),
+      );
     } finally {
       // 确保在任何路径下都清理 Kotlin 插件事件监听
       if (unlistenSync.current) {
@@ -211,8 +217,8 @@ export function useOnboarding({ onComplete, onSkip: _onSkip }: OnboardingDialogP
 
   /** 选择"使用本地目录"：初始化成功后前进到下一步。 */
   const handleLocalDirPick = useCallback(async () => {
-    const { pause, resume } = await import('@/stores/autoLockPauseStore').then(
-      (m) => m.useAutoLockPauseStore.getState(),
+    const { pause, resume } = await import('@/stores/autoLockPauseStore').then((m) =>
+      m.useAutoLockPauseStore.getState(),
     );
     pause();
     try {
