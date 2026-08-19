@@ -109,6 +109,50 @@ pub async fn trash_restore(
     object_restore(app, state, trash_id, lang).await
 }
 
+/// P014: 批量恢复——单次 IPC 在服务端循环处理（对齐 `trash_permanent_delete_batch`
+/// 的批量入参约定），替代前端逐条 invoke 的 N 次串行往返。
+/// - 模板项复用 `template_restore`（含「模板已存在」检查与审计）；
+/// - 其余类型走 `object_restore`（级联恢复页面/子对象）；
+/// - 已被级联恢复/已删除（trash 行已消费）的项**幂等跳过**，对齐单条路径
+///   前端「Trash item not found 视为成功」的兜底语义，批量中途不因已恢复项失败；
+/// - 真实错误（数据损坏/DB 异常）中止返回 Err，已恢复项保持已恢复（重试幂等）。
+#[tauri::command]
+pub async fn trash_restore_batch(
+    app: tauri::AppHandle,
+    state: State<'_, AppState>,
+    trash_ids: Vec<String>,
+    lang: Option<String>,
+) -> Result<Vec<RestoreOutcome>, String> {
+    let mut outcomes: Vec<RestoreOutcome> = Vec::with_capacity(trash_ids.len());
+    for trash_id in &trash_ids {
+        let item = {
+            let vault = vault_handle(&state)?;
+            vault.get_trash_item(trash_id)?
+        };
+        let Some(item) = item else {
+            continue; // 已被级联恢复/已删除 → 幂等跳过
+        };
+        if item.item_type == "template" {
+            let restored_id =
+                crate::commands::template::template_restore(state.clone(), trash_id.clone())
+                    .await?;
+            outcomes.push(RestoreOutcome {
+                restored_id,
+                name: item.name_snapshot,
+                cascaded_page_name: None,
+                cascaded_count: 0,
+                rebuilt_page_name: None,
+                consumed_trash_ids: vec![trash_id.clone()],
+            });
+        } else {
+            outcomes.push(
+                object_restore(app.clone(), state.clone(), trash_id.clone(), lang.clone()).await?,
+            );
+        }
+    }
+    Ok(outcomes)
+}
+
 /// P024: 单条永久删除的共享实现（单删/批量命令复用；逐条自含事务与墓碑，
 /// 与 `delete_object`/`delete_trash_item` 既有语义一致）。
 pub(crate) fn permanent_delete_one(

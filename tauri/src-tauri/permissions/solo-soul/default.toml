@@ -194,6 +194,7 @@ commands.allow = [
   "trash_get_detail",
   "trash_permanent_delete_batch",
   "trash_restore",
+  "trash_restore_batch",
   "ui_get_preferences",
   "ui_update_preference",
   "unlock_with_password",

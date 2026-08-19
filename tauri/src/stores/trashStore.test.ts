@@ -55,4 +55,35 @@ describe('trashStore time filter', () => {
     expect(cmd).toBe('object_trash_list');
     expect(args.since).toBeUndefined();
   });
+
+  // P014: 批量恢复单次 IPC——按 consumedTrashIds（含级联消费）过滤本地列表
+  it('restoreBatch invokes trash_restore_batch once and filters consumed ids', async () => {
+    useTrashStore.setState({
+      items: [
+        { id: 't1', itemType: 'object', originalId: 'o1', name: 'A', deletedAt: 1 },
+        { id: 't2', itemType: 'object', originalId: 'o2', name: 'B', deletedAt: 1 },
+        { id: 't3', itemType: 'page', originalId: 'p1', name: 'P', deletedAt: 1 },
+      ] as never,
+    });
+    // t3（页面）级联消费了 t1；t2 正常恢复
+    mockInvoke.mockResolvedValue([
+      {
+        restoredId: 'p1',
+        name: 'P',
+        cascadedCount: 1,
+        consumedTrashIds: ['t3', 't1'],
+      },
+      { restoredId: 'o2', name: 'B', cascadedCount: 0, consumedTrashIds: ['t2'] },
+    ]);
+
+    const outcomes = await useTrashStore.getState().restoreBatch(['t1', 't2', 't3']);
+
+    expect(mockInvoke).toHaveBeenCalledTimes(1);
+    const [cmd, args] = mockInvoke.mock.calls[0] as [string, { trashIds: string[]; lang: string }];
+    expect(cmd).toBe('trash_restore_batch');
+    expect(args.trashIds).toEqual(['t1', 't2', 't3']);
+    expect(outcomes).toHaveLength(2);
+    // 被级联消费的 t1/t3 与恢复的 t2 全部移出列表
+    expect(useTrashStore.getState().items.map((i) => i.id)).toEqual([]);
+  });
 });

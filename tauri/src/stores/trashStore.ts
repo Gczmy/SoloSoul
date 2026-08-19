@@ -60,6 +60,7 @@ interface TrashState {
   setTypeFilter: (f: TrashTypeFilter) => void;
   setSearchQuery: (q: string) => void;
   restoreItem: (trashId: string) => Promise<RestoreOutcome>;
+  restoreBatch: (trashIds: string[]) => Promise<RestoreOutcome[]>;
   permanentDelete: (trashIds: string[]) => Promise<void>;
   toggleSelection: (id: string) => void;
   selectAll: (ids: string[]) => void;
@@ -143,6 +144,22 @@ export const useTrashStore = create<TrashState>((set, get) => ({
     // P024: 服务端批量端点——N 次 IPC → 1 次；任一失败整体 reject（已删项保持已删）。
     await invoke('trash_permanent_delete_batch', { trashIds });
     set((s) => ({ items: s.items.filter((i) => !trashIds.includes(i.id)) }));
+  },
+
+  restoreBatch: async (trashIds: string[]) => {
+    // P014: 服务端批量端点（对齐 permanentDelete）——N 次串行 IPC → 1 次。
+    // 模板/对象统一由后端分派；级联恢复/已删除项幂等跳过。
+    const outcomes = await invoke<RestoreOutcome[]>('trash_restore_batch', {
+      trashIds,
+      lang: i18next.language,
+    });
+    // 按 consumedTrashIds（含级联消费的子对象/页面）过滤本地列表
+    const consumed = new Set<string>();
+    for (const o of outcomes) {
+      for (const id of o.consumedTrashIds ?? []) consumed.add(id);
+    }
+    set((s) => ({ items: s.items.filter((i) => !consumed.has(i.id)) }));
+    return outcomes;
   },
 
   toggleSelection: (id) => {

@@ -48,7 +48,7 @@ export function useTrashPage() {
   const setTimeFilter = useTrashStore((s) => s.setTimeFilter);
   const setTypeFilter = useTrashStore((s) => s.setTypeFilter);
   const setSearchQuery = useTrashStore((s) => s.setSearchQuery);
-  const restoreItem = useTrashStore((s) => s.restoreItem);
+  const restoreBatch = useTrashStore((s) => s.restoreBatch);
   const permanentDelete = useTrashStore((s) => s.permanentDelete);
   const isLoading = useTrashStore((s) => s.isLoading);
   const error = useTrashStore((s) => s.error);
@@ -61,9 +61,7 @@ export function useTrashPage() {
   const [detailTemplate, setDetailTemplate] = useState<UserTemplate | null>(null);
   const [, setLoadingDetail] = useState(false);
   // N-11: 详情加载失败态——与「无数据」区分，失败时显示错误占位 + 重试。
-  const [detailError, setDetailError] = useState<{ trashId: string; message: string } | null>(
-    null,
-  );
+  const [detailError, setDetailError] = useState<{ trashId: string; message: string } | null>(null);
   const getTemplate = useTemplateStore((s) => s.getTemplate);
 
   const [confirmAction, setConfirmAction] = useState<TrashConfirmAction | null>(null);
@@ -84,27 +82,34 @@ export function useTrashPage() {
           {
             icon: FileX,
             title: t('common:guide_trash_step1_title', { defaultValue: 'Soft Delete' }),
-            description:
-              t('common:guide_trash_step1_desc', { defaultValue: 'Deleting an object or page moves it to trash instead of removing it immediately. Use time and type filters to find items.' }),
+            description: t('common:guide_trash_step1_desc', {
+              defaultValue:
+                'Deleting an object or page moves it to trash instead of removing it immediately. Use time and type filters to find items.',
+            }),
           },
           {
             icon: RotateCcw,
             title: t('common:guide_trash_step2_title', { defaultValue: 'Restore' }),
-            description:
-              t('common:guide_trash_step2_desc', { defaultValue: 'Select items and tap Restore to recover them. Restoring a page may also restore its related objects.' }),
+            description: t('common:guide_trash_step2_desc', {
+              defaultValue:
+                'Select items and tap Restore to recover them. Restoring a page may also restore its related objects.',
+            }),
           },
           {
             icon: Trash2,
             title: t('common:guide_trash_step3_title', { defaultValue: 'Permanent Delete' }),
-            description:
-              t('common:guide_trash_step3_desc', { defaultValue: 'Use the trash can button to permanently remove selected items. This action cannot be undone.' }),
+            description: t('common:guide_trash_step3_desc', {
+              defaultValue:
+                'Use the trash can button to permanently remove selected items. This action cannot be undone.',
+            }),
           },
         ],
         helpLinks: [
           {
             title: t('common:guide_help_trash', { defaultValue: 'Trash' }),
-            description:
-              t('common:guide_help_trash_desc', { defaultValue: 'Restore or permanently delete trashed items' }),
+            description: t('common:guide_help_trash_desc', {
+              defaultValue: 'Restore or permanently delete trashed items',
+            }),
             href: '/help?id=trash',
           },
         ],
@@ -142,8 +147,10 @@ export function useTrashPage() {
         count: ids.length,
         callback: async () => {
           try {
-            for (const id of ids) {
-              const outcome = await restoreItem(id);
+            // P014: 批量端点一次 IPC（替代逐项串行 restoreItem）；模板/对象由后端
+            // 统一分派，级联恢复/已删除项幂等跳过，返回全部 outcome 供逐条 toast。
+            const outcomes = await restoreBatch(ids);
+            for (const outcome of outcomes) {
               if (outcome.cascadedPageName) {
                 // 恢复对象触发了页面级联恢复：同时显示两条 toast
                 onSuccess(t('settings:trash_restored', { name: outcome.name }));
@@ -183,7 +190,7 @@ export function useTrashPage() {
         },
       });
     },
-    [restoreItem, onSuccess, onError, t, clearSelection, accountId],
+    [restoreBatch, onSuccess, onError, t, clearSelection, accountId],
   );
 
   const doDelete = useCallback(
@@ -258,10 +265,7 @@ export function useTrashPage() {
         setConfirmAction(null);
       } catch (e) {
         // 失败不关闭对话框（可重试），toast 提示具体错误，避免 unhandled rejection
-        onError(
-          e,
-          action.type === 'delete' ? t('common:delete_permanently') : t('common:restore'),
-        );
+        onError(e, action.type === 'delete' ? t('common:delete_permanently') : t('common:restore'));
       }
     },
     [onError, t],
