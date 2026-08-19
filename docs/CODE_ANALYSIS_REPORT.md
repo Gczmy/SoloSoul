@@ -32,7 +32,7 @@
 |------|--------|------------|----------|------|------|
 | P001 | P1 | 安全 | `tauri/crates/solosoul-core/src/objects.rs:1043-1045` | Vault 附件以明文落盘，仅导出/同步时才加密，与零知识定位不符 | `[ ]` 待修复 |
 | P002 | P1 | 前端缺陷 | `tauri/src/stores/objectStore.ts:194-196` | `updateObject` 吞错不抛出，编辑保存失败被误报「保存成功」并退出页面，数据静默丢失 | `[x]` 已修复（f585f43f） |
-| P003 | P1 | 前端缺陷 | `tauri/src/stores/settingsStore.ts:491-523` | `addCustomPage` 失败仍无条件 `return newPage`，调用方导航到后端不存在的页面 | `[ ]` 待修复 |
+| P003 | P1 | 前端缺陷 | `tauri/src/stores/settingsStore.ts:491-523` | `addCustomPage` 失败仍无条件 `return newPage`，调用方导航到后端不存在的页面 | `[x]` 已修复（d8648b3f） |
 | P004 | P1 | 前端缺陷 | `tauri/src/pages/ai/useLlmConfigPage.ts:190-228` | 本地 Embedding 开关/选模型 invoke 无 try/catch，失败后前后端状态漂移 | `[ ]` 待修复 |
 | P005 | P1 | 性能 | `tauri/src-tauri/src/commands/object/snapshot.rs:466-484` | 回收站子对象列表循环内逐条 `get_trash_item`（每次附带整条 data 解密），而 summary 已含 `original_id`，属纯浪费 | `[ ]` 待修复 |
 | P006 | P1 | 性能 | `tauri/src/pages/home/HomePage.tsx:235-255` + `tauri/src-tauri/src/commands/attachment/tree.rs:55` | 首页角标每次返回都调用 `attachment_list_all` 全表解密，仅为渲染两个计数 | `[ ]` 待修复 |
@@ -56,8 +56,8 @@
 
 ## 修复进度
 
-- 已完成：3 / 23（P008、P009、P002）
-- 当前处理：P003（addCustomPage 失败仍返回成功值）
+- 已完成：4 / 23（P008、P009、P002、P003）
+- 当前处理：P004（LLM 本地 Embedding 设置无错误处理）
 
 ---
 
@@ -95,6 +95,8 @@ std::fs::copy(&src, &dest_path).map_err(|e| format!("复制文件失败: {}", e)
 
 `settingsStore.ts:491-523`：catch 里回滚了乐观更新（:520），但 `return newPage` 无条件执行（:522）且无 toast。调用方 `AddPageButton.tsx:125-130` 的 `.then((page) => onCreate(page))` 在失败时同样触发，UI 进入后端不存在的页面（刷新后消失）。
 **修复建议**：失败时 throw 或返回 `null`；`AddPageButton` 加 `.catch`/空值判断 + 错误 toast。
+
+**修复记录（d8648b3f）**：store catch 回滚后 `throw e`；`AddPageButton` 接 `.catch` + `useToastError.onError` 提示「创建页面失败」，不再触发 `onCreate` 导航；失败测试改为断言 `rejects.toThrow`。settingsStore 21 测试全过。
 
 ### P004（P1 前端缺陷）LLM 本地 Embedding 设置无错误处理
 
