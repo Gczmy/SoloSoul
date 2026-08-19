@@ -41,7 +41,7 @@
 | P009 | P1 | 规范 | `tauri/crates/solosoul-core/src/ocr/macos_vision.rs:334-335`；`vault_service/tests.rs:26` | `cargo clippy -- -D warnings` 失败：2 处 `needless_borrows_for_generic_args`；`--all-targets` 下另有 1 处 unused variable | `[x]` 已修复（346d7563） |
 | P010 | P2 | 安全 | `tauri/src-tauri/src/commands/attachment/share.rs:33-41` | 分享副本明文残留 `temp_dir()/solosoul_share/`，永不清理 | `[x]` 已修复（b95b4ace） |
 | P011 | P2 | 安全 | `tauri/src-tauri/src/commands/vault.rs:7-18`（注册于 `lib.rs:55`） | 遗留 `unlock` IPC 命令 `password: String` 未 `Zeroizing` 包装；前端已无调用（仅测试 mock 引用） | `[x]` 已修复（686d807c） |
-| P012 | P2 | 安全 | `tauri/src-tauri/src/commands/auth.rs:159-176` | `verify_password` 不计失败、不触发阶梯锁定，构成无限速密码验证 oracle | `[ ]` 待修复 |
+| P012 | P2 | 安全 | `tauri/src-tauri/src/commands/auth.rs:159-176` | `verify_password` 不计失败、不触发阶梯锁定，构成无限速密码验证 oracle | `[x]` 已修复（937446b7） |
 | P013 | P2 | 性能 | `tauri/src-tauri/src/commands/export_import/export.rs:751-761` | 导出时快照收集为 N+M 嵌套查询（每对象 1 次 list + 每快照 1 次 get） | `[ ]` 待修复 |
 | P014 | P2 | 性能 | `tauri/src/pages/settings/useTrashPage.tsx:145-168` | 回收站批量恢复逐项串行 IPC，与批量删除的批量入参不一致 | `[ ]` 待修复 |
 | P015 | P2 | 代码质量 | `tauri/src/pages/ai/useLlmConfigPage.ts:369,413`；`tauri/src/components/llm-config/ProviderManagerPanel.tsx:280` | API key 哨兵 `'••••••••'` 字面量硬编码三处，与 `lib/masking.ts:14` 的 `MASK_PLACEHOLDER` 脱钩 | `[ ]` 待修复 |
@@ -56,8 +56,8 @@
 
 ## 修复进度
 
-- 已完成：12 / 23（P008、P009、P002、P003、P004、P018、P001、P005、P006、P007、P010、P011）
-- 当前处理：P012
+- 已完成：13 / 23（P008、P009、P002、P003、P004、P018、P001、P005、P006、P007、P010、P011、P012）
+- 当前处理：P013
 
 ---
 
@@ -150,10 +150,11 @@
 
 **修复记录（686d807c）**：删除命令定义、`lib.rs` 注册与 ACL 列表、`permissions/default.toml` 白名单条目、前端 P027 豁免名单 `'unlock'` 条目及 `ipc.test.ts` 对应 mock 测试；解锁统一走 `auth::unlock_with_password`（Zeroizing 包装）。编译/clippy/fmt/eslint/prettier/tsc 全绿，ipc 测试 11 个全过。
 
-### P012（P2 安全）`verify_password` 无限速
+### P012（P2 安全）`verify_password` 无限速（已完成）
 
 主密码解锁路径有阶梯锁定（`record_password_failure`），但 `verify_password`（`auth.rs:159-176`）不计失败、不触发锁定，可被无限次调用验证主密码。Argon2id 高参数使在线爆破成本高，风险有限，但与解锁路径限流策略不一致。
-**修复建议**：接入同一失败计数/锁定预检。
+
+**修复记录（937446b7）**：新增 `VaultService::verify_password_with_lockout`——与 `unlock` 完全同款语义（锁定预检先于昂贵 KDF、失败经 `record_password_failure` 递增计数触发阶梯锁定、成功经 `clear_password_failures` 归零）；`verify_password` IPC 改走该方法并 `spawn_blocking`（验证含 Argon2id KDF 防阻塞 tokio）。错误密码仍返回 `false` 不抛异常（前端 P123「异常≠密码错误」语义不变），锁定期间返回与 unlock 一致的 `MASTER_PASSWORD_LOCKED_ERR`（前端 `backendError.ts` 已映射 `common:password_locked` 文案）。新增 core 限流单测 1 条；clippy/fmt 全绿。
 
 ### P013（P2 性能）导出快照 N+M 查询
 
