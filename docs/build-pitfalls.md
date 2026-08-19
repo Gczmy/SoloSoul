@@ -121,6 +121,42 @@ INSTALL_FAILED_UPDATE_INCOMPATIBLE (-7)「签名不同」。**v2.11.1 已固化�
 
 ---
 
+## 坑 7（v2.11.3）：Cargo.lock 的 sed 版本同步误改 tauri 框架 crate
+
+```bash
+sed -i '' 's/^version = "2.11.2"$/version = "2.11.3"/' Cargo.lock
+```
+
+这个「版本号同步」把 **tauri 框架 crate 自身**也连带改了：`tauri` /
+`tauri-runtime` / `tauri-runtime-wry` 的版本号与应用版本号恰好同号
+（如 2.11.2），sed 无从区分。tauri 2.11.3 要求 `tauri-build ^2.6.3`，
+与锁定的 2.6.2 冲突 → macOS 构建在依赖解析阶段立即失败
+（`failed to select a version for tauri-build`）。前两次发布（2.11.1/2.11.2）
+同样误改过，只是恰好兼容没暴露。
+
+**正确做法（只改 6 个工作区 crate）**：
+
+```bash
+# 按包块解析，只 bump 工作区 crate，框架三件套回退原版本
+python3 - <<'EOF'
+import re
+with open('Cargo.lock') as f:
+    blocks = re.split(r'(?m)^(?=name = )', f.read())
+for i, b in enumerate(blocks):
+    m = re.match(r'name = "([^"]+)"', b)
+    if m and m.group(1) not in ('solo_soul','solosoul-core','solosoul-crypto','solosoul-plugin','solosoul-sync','solosoul-vault'):
+        continue
+    blocks[i] = re.sub(r'(?m)^version = "2\.11\.2"$', 'version = "2.11.3"', b, count=1)
+open('Cargo.lock','w').write(''.join(blocks))
+EOF
+# 改完先验证解析：cargo check -p solo_soul
+```
+
+或更稳妥：**不手改 Cargo.lock**，bump Cargo.toml 后直接跑一次
+`cargo check`/构建，让 cargo 自动把工作区 crate 版本对齐（框架依赖保持锁定）。
+
+---
+
 ## 最佳实践速查（本版本教训的固化）
 
 | 场景 | 做法 |
