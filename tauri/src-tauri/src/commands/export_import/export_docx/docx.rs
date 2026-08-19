@@ -108,21 +108,7 @@ fn push_docx_object_section(
     document.push_str("</w:p>\n");
 
     // 元信息段
-    let tpl_name = rec
-        .template_id
-        .as_ref()
-        .and_then(|tid| template_names.get(tid))
-        .cloned()
-        .unwrap_or_default();
-    let mut meta_lines = Vec::new();
-    if !tpl_name.is_empty() {
-        meta_lines.push(format!("模板：{}", tpl_name));
-    }
-    meta_lines.push(format!("创建时间：{}", rec.created_at));
-    meta_lines.push(format!("更新时间：{}", rec.updated_at));
-    if !rec.tags_json.is_empty() {
-        meta_lines.push(format!("标签：{}", rec.tags_json.join(", ")));
-    }
+    let meta_lines = build_meta_lines(rec, template_names);
     for line in &meta_lines {
         document.push_str("<w:p>");
         document.push_str(&text_run(line));

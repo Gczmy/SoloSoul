@@ -162,6 +162,30 @@ fn load_template_names(
     names
 }
 
+/// P021: 对象「元信息段」行构建（模板名 + 创建/更新时间 + 标签）。
+/// docx / text 两种导出格式共用（逐字相同的构建块，提取避免两处漂移）。
+fn build_meta_lines(
+    rec: &solosoul_vault::ObjectRecord,
+    template_names: &std::collections::HashMap<String, String>,
+) -> Vec<String> {
+    let tpl_name = rec
+        .template_id
+        .as_ref()
+        .and_then(|tid| template_names.get(tid))
+        .cloned()
+        .unwrap_or_default();
+    let mut meta_lines = Vec::new();
+    if !tpl_name.is_empty() {
+        meta_lines.push(format!("模板：{}", tpl_name));
+    }
+    meta_lines.push(format!("创建时间：{}", rec.created_at));
+    meta_lines.push(format!("更新时间：{}", rec.updated_at));
+    if !rec.tags_json.is_empty() {
+        meta_lines.push(format!("标签：{}", rec.tags_json.join(", ")));
+    }
+    meta_lines
+}
+
 /// 导出格式对应的主扩展名（不含点）。
 fn format_extension(format: &str) -> Option<&'static str> {
     match format {

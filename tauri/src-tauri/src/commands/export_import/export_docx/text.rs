@@ -1,5 +1,6 @@
 //! export_docx 子模块 —— text（P047 拆分）
 
+use super::build_meta_lines;
 use super::fields::{attachment_lines, flatten_object_fields};
 
 /// 构造纯文本文档（UTF-8）：封面段 → 每对象（对象名称 / 元信息 / 字段 / 附件清单）。
@@ -27,21 +28,7 @@ pub(crate) fn build_text_document(
         out.push_str(&format!("对象名称：{}\n", rec.name));
 
         // 元信息段
-        let tpl_name = rec
-            .template_id
-            .as_ref()
-            .and_then(|tid| template_names.get(tid))
-            .cloned()
-            .unwrap_or_default();
-        let mut meta_lines = Vec::new();
-        if !tpl_name.is_empty() {
-            meta_lines.push(format!("模板：{}", tpl_name));
-        }
-        meta_lines.push(format!("创建时间：{}", rec.created_at));
-        meta_lines.push(format!("更新时间：{}", rec.updated_at));
-        if !rec.tags_json.is_empty() {
-            meta_lines.push(format!("标签：{}", rec.tags_json.join(", ")));
-        }
+        let meta_lines = build_meta_lines(rec, template_names);
         for line in &meta_lines {
             out.push_str(line);
             out.push('\n');
