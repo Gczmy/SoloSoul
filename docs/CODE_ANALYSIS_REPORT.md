@@ -39,7 +39,7 @@
 | P007 | P1 | 代码质量 | `tauri/src-tauri/src/commands/attachment/crud.rs:47-69` ↔ `tauri/crates/solosoul-core/src/export_import.rs:64-84` | `AttachmentMeta` 结构体双定义，序列化契约靠注释维持，存在漂移风险 | `[x]` 已修复（8824c261） |
 | P008 | P1 | 规范 | `tauri/crates/solosoul-core/src/vault_service/account.rs:91,118` | `cargo fmt --check` 失败（2 处 tracing 宏格式），CI 基线红 | `[x]` 已修复（9054d0b1） |
 | P009 | P1 | 规范 | `tauri/crates/solosoul-core/src/ocr/macos_vision.rs:334-335`；`vault_service/tests.rs:26` | `cargo clippy -- -D warnings` 失败：2 处 `needless_borrows_for_generic_args`；`--all-targets` 下另有 1 处 unused variable | `[x]` 已修复（346d7563） |
-| P010 | P2 | 安全 | `tauri/src-tauri/src/commands/attachment/share.rs:33-41` | 分享副本明文残留 `temp_dir()/solosoul_share/`，永不清理 | `[ ]` 待修复 |
+| P010 | P2 | 安全 | `tauri/src-tauri/src/commands/attachment/share.rs:33-41` | 分享副本明文残留 `temp_dir()/solosoul_share/`，永不清理 | `[x]` 已修复（b95b4ace） |
 | P011 | P2 | 安全 | `tauri/src-tauri/src/commands/vault.rs:7-18`（注册于 `lib.rs:55`） | 遗留 `unlock` IPC 命令 `password: String` 未 `Zeroizing` 包装；前端已无调用（仅测试 mock 引用） | `[ ]` 待修复 |
 | P012 | P2 | 安全 | `tauri/src-tauri/src/commands/auth.rs:159-176` | `verify_password` 不计失败、不触发阶梯锁定，构成无限速密码验证 oracle | `[ ]` 待修复 |
 | P013 | P2 | 性能 | `tauri/src-tauri/src/commands/export_import/export.rs:751-761` | 导出时快照收集为 N+M 嵌套查询（每对象 1 次 list + 每快照 1 次 get） | `[ ]` 待修复 |
@@ -56,8 +56,8 @@
 
 ## 修复进度
 
-- 已完成：10 / 23（P008、P009、P002、P003、P004、P018、P001、P005、P006、P007）
-- 当前处理：P010
+- 已完成：11 / 23（P008、P009、P002、P003、P004、P018、P001、P005、P006、P007、P010）
+- 当前处理：P011
 
 ---
 
@@ -138,10 +138,11 @@
 
 **修复记录（346d7563）**：macos_vision.rs 两处 `.arg(&x.to_string_lossy().as_ref())` 去掉多余 `&`；tests.rs `account_id` → `_account_id`。`cargo clippy --all-targets -- -D warnings` 恢复通过，solosoul-core 186 测试全过。
 
-### P010（P2 安全）分享副本残留临时目录
+### P010（P2 安全）分享副本残留临时目录（已完成）
 
 `share.rs:33-41` 桌面端分享前将附件明文复制到 `temp_dir()/solosoul_share/`，注释自认「跨会话残留但不自动清理」，全仓库无清理逻辑。
-**修复建议**：启动时随 import temps 一并清理，或复制时设 0600 权限。
+
+**修复记录（b95b4ace）**：分享前清理旧副本——桌面端 `copy_to_share_dir` 复制前 `cleanup_share_dir` 清掉 `solosoul_share/` 内旧文件（上次分享必然已完成，无保留价值；目录本身保留供 `copy_into_dir` 复用，仅删平铺文件不递归）；Android 分支同样在解密复制前清理 `solosoul_share_{object_id}/` 旧副本。新增 cleanup 单测 1 条（旧明文删除 + 子目录保留）。附件测试 22 个全过，clippy/fmt 干净。
 
 ### P011（P2 安全）遗留 `unlock` IPC 未 Zeroizing
 
