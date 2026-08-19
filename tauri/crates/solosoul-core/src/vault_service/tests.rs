@@ -23,7 +23,7 @@ fn test_scan_orphan_accounts_recovers_missing_from_manifest() {
     {
         let svc = VaultService::with_base_path(base.clone());
         let account = svc.create_account("Alice", "password123", None).unwrap();
-        let account_id = account["id"].as_str().unwrap().to_string();
+        let _account_id = account["id"].as_str().unwrap().to_string();
         assert_eq!(svc.list_accounts().len(), 1);
 
         // 模拟「清单被覆盖」事故：手工写一个 accounts.json 仅含另一账户，

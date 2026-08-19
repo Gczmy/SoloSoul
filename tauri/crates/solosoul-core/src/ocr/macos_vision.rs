@@ -331,8 +331,8 @@ fn ensure_vision_cli() -> Result<PathBuf, String> {
         cmd.env("MACOSX_DEPLOYMENT_TARGET", VISION_MIN_MACOS_VERSION)
             .arg("-O")
             .arg("-o")
-            .arg(&binary_path.to_string_lossy().as_ref())
-            .arg(&source_path.to_string_lossy().as_ref());
+            .arg(binary_path.to_string_lossy().as_ref())
+            .arg(source_path.to_string_lossy().as_ref());
         let output = cmd
             .output()
             .map_err(|e| format!("启动 swiftc 编译失败: {e}"))?;
