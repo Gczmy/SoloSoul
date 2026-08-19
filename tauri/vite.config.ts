@@ -37,7 +37,12 @@ export default defineConfig({
             {
               name: 'markdown-vendor',
               // 只捕获真正 markdown 专属的包；react/@ungap/structured-clone 等通用依赖留在原位。
-              test: /node_modules[\\/](react-markdown|remark-|rehype-|micromark|mdast-|hast-|unist-|unified|vfile|vfile-message|lowlight|refractor|highlight\.js|comma-separated-tokens|property-information|space-separated-tokens|stringify-entities|character-entities|decode-named-character-reference|ccount|bail|trough|extend|is-plain-obj|trim-lines|zwitch|longest-streak|markdown-table|escape-string-regexp|devlop|html-void-elements|html-whitespace|web-namespaces|estree-util-|style-to-object|style-to-jsx|inline-style-parser)[\\/]/,
+              // 注意：micromark 必须用 [^\\/]* 前缀形式（同 motion 组修正），否则只匹配核心包
+              // micromark，漏掉 micromark-util-*/micromark-core-commonmark/micromark-extension-*
+              // —— 这些留在 index chunk 后与 markdown-vendor 形成跨 chunk 循环依赖：
+              // vendor 内 micromark 求值时 index 尚未初始化完，constructs 数组里塞入 undefined，
+              // 运行期 combineExtensions 报 `t[n].add`（帮助文档全灭，含平凡内容）。
+              test: /node_modules[\\/](react-markdown|remark-|rehype-|micromark[^\\/]*|mdast-|hast-|unist-|unified|vfile|vfile-message|lowlight|refractor|highlight\.js|comma-separated-tokens|property-information|space-separated-tokens|stringify-entities|character-entities|decode-named-character-reference|ccount|bail|trough|extend|is-plain-obj|trim-lines|zwitch|longest-streak|markdown-table|escape-string-regexp|devlop|html-void-elements|html-whitespace|web-namespaces|estree-util-|style-to-object|style-to-jsx|inline-style-parser)[\\/]/,
             },
             {
               name: 'motion-vendor',

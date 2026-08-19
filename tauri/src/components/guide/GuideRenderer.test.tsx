@@ -36,6 +36,16 @@ describe('GuideRenderer H1 divider', () => {
   });
 });
 
+describe('GuideRenderer 代码块渲染', () => {
+  it('渲染围栏代码块（含 rehype-highlight 链路，不抛错）', () => {
+    const md =
+      '## 手动同步\n\n```text\nremote 胜出当且仅当：\n  remote.wall_time_ms > local.wall_time_ms\n```\n\n```bash\ncd tauri\nbash scripts/dev-two-instances.sh\n```\n';
+    expect(() => render(<GuideRenderer content={md} />)).not.toThrow();
+    expect(screen.getAllByRole('button', { name: /复制/ })).toHaveLength(2);
+    expect(screen.getAllByText(/remote 胜出当且仅当/).length).toBeGreaterThan(0);
+  });
+});
+
 describe('isSafeExternalUrl (P229)', () => {
   it('允许 http/https/mailto', () => {
     expect(isSafeExternalUrl('https://example.com')).toBe(true);
