@@ -4,7 +4,6 @@
 use super::{allowed_fs_bases, path_within_base};
 use crate::commands::vault_handle;
 use crate::state::AppState;
-use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use tauri::State;
@@ -20,6 +19,10 @@ const MAX_ATTACHMENT_TAG_LEN: usize = 30;
 
 /// 单个附件描述的最大字符数（超出部分截断）。
 const MAX_ATTACHMENT_DESCRIPTION_LEN: usize = 500;
+
+/// P007: 附件元数据唯一来源 = solosoul-core `export_import::AttachmentMeta`
+/// （camelCase 序列化契约单一维护，GUI 与 CLI 导入导出不再双定义漂移）。
+pub use solosoul_core::export_import::AttachmentMeta;
 
 /// 附件 ID 与对象 ID 允许使用的字符集，防止路径遍历。
 fn validate_attachment_id(id: &str) -> Result<(), String> {
@@ -42,31 +45,6 @@ pub(crate) fn attachment_dir(
     validate_attachment_id(object_id)?;
     validate_attachment_id(attachment_id)?;
     Ok(base.join("attachments").join(object_id).join(attachment_id))
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct AttachmentMeta {
-    pub id: String,
-    pub object_id: String,
-    pub file_name: String,
-    pub mime_type: String,
-    pub size_bytes: u64,
-    pub created_at: String,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub deleted_at: Option<String>,
-    /// Original source path (transient, only set at upload time)
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub src_path: Option<String>,
-    /// Vault storage path (persistent, survives original file deletion)
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub vault_path: Option<String>,
-    /// 附件描述（可选；前端通过 attachment_update_meta 维护）
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub description: Option<String>,
-    /// 附件标签（可选，去重后最多 MAX_ATTACHMENT_TAGS 个）
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    pub tags: Vec<String>,
 }
 
 pub(crate) fn load_attachments(props: &serde_json::Value) -> Vec<AttachmentMeta> {
