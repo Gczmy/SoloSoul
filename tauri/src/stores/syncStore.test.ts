@@ -593,3 +593,44 @@ describe('syncStore history self-healing truncation (P028)', () => {
     expect((persisted as unknown[]).length).toBe(3);
   });
 });
+
+describe('syncStore loadConflicts 异常数据归一化（防整页白屏）', () => {
+  beforeEach(() => {
+    handlers.clear();
+    mockInvoke.mockReset();
+    mockUnlisten.mockClear();
+    useSyncStore.setState({ conflicts: [], error: null });
+  });
+
+  it.each([
+    ['undefined', undefined],
+    ['null', null],
+    ['非数组对象', {}],
+  ])('后端返回 %s 时 conflicts 归一化为空数组', async (_label, bad) => {
+    mockInvoke.mockResolvedValueOnce(bad);
+    await useSyncStore.getState().loadConflicts();
+    expect(mockInvoke).toHaveBeenCalledWith('sync_list_conflicts');
+    // 关键不变量：conflicts 恒为数组——GlobalSyncIndicator 等消费点
+    // 的 `.length` 不会因异常数据抛 TypeError 整页白屏
+    expect(useSyncStore.getState().conflicts).toEqual([]);
+    expect(useSyncStore.getState().error).toBeNull();
+  });
+
+  it('后端返回正常数组时原样保留', async () => {
+    const list = [
+      {
+        id: 'c1',
+        table: 'objects',
+        record_id: 'obj-1',
+        local_hlc: { wall_time_ms: 1, counter: 1, node_id: 'a' },
+        remote_hlc: { wall_time_ms: 2, counter: 1, node_id: 'b' },
+        winner: 'remote',
+        created_at: '2026-01-01T00:00:00Z',
+      },
+    ];
+    mockInvoke.mockResolvedValueOnce(list);
+    await useSyncStore.getState().loadConflicts();
+    expect(useSyncStore.getState().conflicts).toEqual(list);
+    expect(useSyncStore.getState().error).toBeNull();
+  });
+});

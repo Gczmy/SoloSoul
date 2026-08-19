@@ -57,7 +57,13 @@ export function GlobalSyncIndicator() {
         return;
       }
 
-      if (phase === 'sync_start' || phase === 'sync_to_remote' || phase === 'sync_from_remote' || phase === 'migrate' || phase === 'auto_sync') {
+      if (
+        phase === 'sync_start' ||
+        phase === 'sync_to_remote' ||
+        phase === 'sync_from_remote' ||
+        phase === 'migrate' ||
+        phase === 'auto_sync'
+      ) {
         setSafSyncState('syncing');
         setSafSyncProgress({ current, total });
         setSafSyncError(null);
@@ -90,10 +96,19 @@ export function GlobalSyncIndicator() {
       unlistens.forEach((fn) => fn());
       if (hideTimeoutRef.current) clearTimeout(hideTimeoutRef.current);
     };
-  }, [setSafSyncState, setSafSyncProgress, setSafSyncError, setSafAuthRevoked, t, initConflictListener]);
+  }, [
+    setSafSyncState,
+    setSafSyncProgress,
+    setSafSyncError,
+    setSafAuthRevoked,
+    t,
+    initConflictListener,
+  ]);
 
   // 冲突徽章：当有未读冲突通知时显示，点击后标记已读并跳转到冲突页面。
-  const conflictCount = conflicts.length;
+  // 防御：conflicts 理论上恒为数组（store 入口已归一化），此处再兜底一层，
+  // 避免任何路径写入非数组导致全局壳层 `.length` 崩溃整页白屏。
+  const conflictCount = Array.isArray(conflicts) ? conflicts.length : 0;
   const showConflictBadge = hasUnreadConflicts && conflictCount > 0;
 
   if (!safAuthRevoked && safSyncState === 'idle' && !showConflictBadge) {

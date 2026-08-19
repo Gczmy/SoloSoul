@@ -464,6 +464,18 @@ export const useSyncStore = create<SyncStoreState>((set, get) => {
     loadConflicts: async () => {
       try {
         const conflicts = await invoke<SyncConflictSummary[]>('sync_list_conflicts');
+        // 防御：后端异常返回（undefined/null/非数组）时归一化为空数组。
+        // 否则 conflicts 被置为非数组后，GlobalSyncIndicator 等消费点 `.length`
+        // 会抛 TypeError，全局壳层崩溃 → 整页白屏（与「帮助文档 t[n].add」同级的
+        // 数据形状防线，见 check-markdown-chunk-boundary 说明）。
+        if (!Array.isArray(conflicts)) {
+          logger.warn(
+            '[syncStore] sync_list_conflicts 返回非数组，已归一化为空列表（返回类型: ' +
+              `${conflicts === null ? 'null' : typeof conflicts})`,
+          );
+          set({ conflicts: [], error: null });
+          return;
+        }
         set({ conflicts, error: null });
       } catch (err) {
         set({ error: String(err) });
