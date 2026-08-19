@@ -2,6 +2,20 @@
 
 All notable changes to SoloSoul are documented in this file.
 
+## [2.11.2] - 2026-08-19
+
+### Fixed
+
+- **安卓端更新横幅不出现（P027 守卫拦截启动期检查）** — App 挂载时 Vault 未解锁，`android_check_update` 不在解锁豁免名单，启动检查被守卫拦截且 effect 依赖不含登录态、解锁后永不重查（桌面端走 updater 插件直连 HTTP 不受影响）；自更新管线（检查/下载/查询/安装）只读 GitHub Release 元数据与 APK 缓存、与 Vault 数据无关，5 条命令（android_check_update / android_download_apk / android_get_apk_path / android_is_apk_downloaded / desktop_check_update）加入豁免名单，并订阅 isAuthenticated 保证解锁完成后必有一次重查——安卓横幅与桌面端行为对齐（含豁免名单防回归测试 1 例 + 解锁后重查测试 2 例）。
+
+- **页面渲染异常整屏消失（全应用无 ErrorBoundary）** — 应用无任何错误边界，单页渲染期未捕获异常会卸载整棵组件树（关于页白屏「所有内容消失」的直接结构原因）；新增 ErrorBoundary 组件（错误卡片 + 重试按钮 + logger 留痕），AppRoutes 包裹全部受保护路由，单页异常降级为可恢复错误卡片、导航/壳层保持可用（含 3 例组件测试：正常渲染/崩溃降级/重试恢复）。
+
+- **桌面端更新横幅「查看更新内容」无正文（latest.json notes 占位符）** — 横幅 release notes 来自 updater 插件的 latest.json `notes` 字段（区别于关于页的 GitHub API 路径），generate-latest-json.js 此前写死占位符 `SoloSoul v<版本>` 致弹卡只显示一行标题；新增 `--notes-file` 选项将完整 release notes markdown 写入 notes 字段（缺省回退占位符，向后兼容），发布流程文档步骤 8 补充「先写 notes 文件再生成清单」；v2.11.2 起横幅弹卡展示完整更新内容。
+
+### Chore
+
+- 版本号同步 2.11.2（package.json / tauri.conf.json / Cargo.toml / tauri.properties versionCode 2011002 + Cargo.lock workspace 对齐）
+
 ## [2.11.1] - 2026-08-19
 
 ### Added
