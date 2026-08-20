@@ -78,11 +78,11 @@
 | P033 | P2 | 可优化（冗余） | `tauri/crates/solosoul-crypto/src/cipher.rs:47-56,78-87` | `Payload` 构造的 match 重复且多余，`aad.unwrap_or(&[])` 一行可等价表达 | `[x]` 已修复（e27c2ed4） |
 | P034 | P2 | 可优化 | `tauri/src-tauri/src/commands/object/mod.rs:1021-1028` | `collect_updated_fields` 对 JSON 值双重 clone，大文本字段每字段复制两次 | `[x]` 已修复（89023d26） |
 | P035 | P2 | 架构 | `tauri/crates/solosoul-core/src/biometric/legacy.rs:19-20,70-104` | 桌面端生物识别降级为「文件 + account_id 派生密钥」，等价主密钥混淆落盘，建议 Keychain 失败时报错而非静默降级 | `[ ]` 待修复 |
-| P036 | P2 | 文档 | `AGENTS.md`（项目根） | KDF 参数说明已过时：代码 `kdf.rs:47-55` 的 `from_env()` 在 release 构建已默认 production 参数，与文档「默认 8MiB/2」不符 | `[ ]` 待修复 |
+| P036 | P2 | 文档 | `AGENTS.md`（项目根） | KDF 参数说明已过时：代码 `kdf.rs:47-55` 的 `from_env()` 在 release 构建已默认 production 参数，与文档「默认 8MiB/2」不符 | `[x]` 已修复（本轮） |
 
 ## 修复进度
 
-- 已完成：28 / 36（P001、P002、P003、P005、P006、P007、P008、P010、P011、P013、P014、P015、P016、P017、P018、P019、P020、P022、P023、P024、P027、P028、P029、P030、P031、P032、P033、P034）
+- 已完成：29 / 36（P001、P002、P003、P005、P006、P007、P008、P010、P011、P013、P014、P015、P016、P017、P018、P019、P020、P022、P023、P024、P027、P028、P029、P030、P031、P032、P033、P034、P036）
 
 ---
 
@@ -246,6 +246,8 @@
 
 文档称「开发模式默认 8MiB/2 iter，生产需 `SOLOSOUL_SECURE=1`」，但 `crates/solosoul-crypto/src/kdf.rs:47-55` 的 `from_env()` 在 release 构建已默认 production 参数。
 **建议**：更新 AGENTS.md 相应小节，与代码实际行为对齐。
+
+**修复说明**：加密参数表与「Apple Silicon Argon2 性能」陷阱小节均已改为与 `from_env()` 实际行为一致——release 默认 production、`SOLOSOUL_SECURE=1` 强制 production、仅 debug 用 development。注：`AGENTS.md` 被项目 `.gitignore` 忽略（代理本地文件），修改仅在工作区生效、不随仓库提交。
 
 ---
 
