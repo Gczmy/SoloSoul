@@ -168,7 +168,7 @@ export async function androidCheckForUpdate(): Promise<AndroidUpdateCheckResult>
  *
  * 返回一个取消监听函数。
  */
-export async function androidDownloadApk(
+async function androidDownloadApk(
   version: string,
   onProgress?: (progress: ApkDownloadProgress) => void,
 ): Promise<UnlistenFn> {
@@ -256,7 +256,7 @@ export async function androidInstallApk(version: string): Promise<void> {
 /**
  * 检查 APK 是否已下载。
  */
-export async function androidIsApkDownloaded(version: string): Promise<boolean> {
+async function androidIsApkDownloaded(version: string): Promise<boolean> {
   return invoke<boolean>('android_is_apk_downloaded', { version });
 }
 

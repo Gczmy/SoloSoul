@@ -64,7 +64,7 @@
 | P019 | P2 | 性能 | `tauri/src/components/object/useObjectDetailModal.tsx:234-235` | `fieldOrder` 与 `flattenProperties` 每次渲染重算未 memo，与项目已确立的 memo 化范式不一致 | `[x]` 已修复（3a5aa904） |
 | P020 | P2 | 漏洞（资源泄漏） | `tauri/src/lib/vaultDirectory.ts:71-92` | `pickVaultDirectory` 的 `visibilitychange` 监听器仅特定分支移除，桌面端正常返回后永久残留并逐次累积 | `[x]` 已修复（a37a7279） |
 | P021 | P2 | 架构（超长函数） | `tauri/src/hooks/useRecoveryReceive.ts:28`（478 行）、`useLlmChatCore.ts:63`（450 行）、`pages/ai/useLlmConfigPage.ts:49`（437 行）、`components/layout/AddPageButton.tsx:25`（422 行）、`components/settings/PinSection.tsx:20`（415 行） | 前端 5 个 400+ 行超长函数/组件，多职责混杂，建议拆分 | `[ ]` 待修复 |
-| P022 | P2 | 死代码 | `tauri/src/lib/updater.ts:171,259`、`tauri/src/lib/i18n.ts:24`、`tauri/src/lib/themeSchemes.ts:512` | 4 个导出无任何外部引用，仅文件内使用，`export` 多余（API 面污染，非真死代码） | `[ ]` 待修复 |
+| P022 | P2 | 死代码 | `tauri/src/lib/updater.ts:171,259`（另两处已复核为测试引用，非死代码） | 4 个导出无任何外部引用，仅文件内使用，`export` 多余（API 面污染，非真死代码） | `[x]` 已修复（本轮） |
 | P023 | P2 | 架构/健壮性 | `tauri/src-tauri/src/commands/llm/conversation.rs:23-27` | `load_conversations` 静默丢弃解析失败的会话行，无日志无上报，用户表现为「会话凭空消失」 | `[ ]` 待修复 |
 | P024 | P2 | 性能 | `tauri/crates/solosoul-vault/src/storage/objects.rs:219-232` | `save_object_tx` 每保存一对象额外执行一次未缓存的模板名 SELECT，批量导入放大为 N 次查询 | `[ ]` 待修复 |
 | P025 | P2 | 架构/性能 | `tauri/crates/solosoul-vault/src/storage.rs:484` | 全库单一 `Mutex<Connection>` 串行化，且逐行 AES 解密在持锁闭包内执行，长查询阻塞全部 DB 操作 | `[ ]` 待修复 |
@@ -82,7 +82,7 @@
 
 ## 修复进度
 
-- 已完成：17 / 36（P001、P002、P003、P005、P006、P007、P008、P010、P011、P013、P014、P015、P016、P017、P018、P019、P020）
+- 已完成：18 / 36（P001、P002、P003、P005、P006、P007、P008、P010、P011、P013、P014、P015、P016、P017、P018、P019、P020、P022）
 
 ---
 
@@ -195,8 +195,12 @@
 
 ### P022（P2 死代码）多余 export
 
-`src/lib/updater.ts:171,259`、`src/lib/i18n.ts:24`、`src/lib/themeSchemes.ts:512` 的导出无任何外部引用（已全库交叉验证，含 `import type`）。
+`src/lib/updater.ts:171,259` 的导出无任何外部引用（已全库交叉验证，含 `import type`）。
 **建议**：去掉 `export` 关键字即可，零风险。
+
+**修复说明**：报告中 `src/lib/i18n.ts:24`（`SUPPORTED_LANGS`）与 `src/lib/themeSchemes.ts:512`（`THEME_SCHEMES`）
+经本轮复核实际被各自单测引用（`i18n.test.ts:29`、`themeSchemes.test.ts:45/59/73`），非死代码，`export` 保留；
+仅移除 `updater.ts` 两处多余 `export`。
 
 ### P023（P2 健壮性）会话解析失败静默丢弃
 
