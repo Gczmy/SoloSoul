@@ -229,7 +229,8 @@
 `crates/solosoul-vault/src/storage.rs:484`：单一 `Mutex<Option<Connection>>` 串行化所有 DB 访问，逐行 AES 解密在持锁闭包内执行（如 `objects.rs:937-950`）。一次高级搜索/同步批量应用期间，GUI 其他 DB 操作全部阻塞。
 **建议**：评估「SQL 取数 → 释放锁 → 锁外解密」两阶段改造（属设计权衡，改动面大，可作为专项评估而非直接修复）。
 **评估结论**：专项评估已完成，见 `docs/design_map/26_全局DB_Mutex两阶段改造评估与方案.md`——结论为方案可行但仅需转换 6~8 个 N 行解密读者（全表扫描路径，持锁秒级）；~100 处锁点中单行操作与 `with_tx` 写事务不改造；WAL 对单连接设计无益，连接池属独立专项。
-**Phase 0 已完成**（60bf171f）：新增 `LockHoldObserver`（wait=争用等待 / hold=持锁时长，debug 级），插桩 5 个 N 行解密热点——`list_objects` / `list_object_records` / `load_objects_batch` / `list_conversations` / `list_snapshots_with_data_batch`（`list_audit_log` 已先 drop(guard) 再解密，无需插桩）；新增捕获型 subscriber 验证测试（`--nocapture` 可查看 wait/hold 基线）。待真实库现场收集基线后按文档 §3 Phase 1 实施。
+**Phase 0 已完成**（60bf171f）：新增 `LockHoldObserver`（wait=争用等待 / hold=持锁时长，debug 级），插桩 5 个 N 行解密热点——`list_objects` / `list_object_records` / `load_objects_batch` / `list_conversations` / `list_snapshots_with_data_batch`（`list_audit_log` 已先 drop(guard) 再解密，无需插桩）；新增捕获型 subscriber 验证测试（`--nocapture` 可查看 wait/hold 基线）。
+**Phase 1 已完成**（e8064bab）：新增 `ObjectRowRaw`（`from_row` 仅取列装箱 / `into_record` 承载原解密+JSON 解析，P225/P005 错误语义逐字保留），`object_row_to_record` 退化为薄委托（`load_object_tx` / `load_objects_batch` 语义不变）；`list_object_records` 已转换两阶段——持锁仅 SQL 取数、drop 锁后统一解密，hold 观测区间现仅覆盖 SQL 取数。新增测试断言两阶段列表路径同样报 properties 损坏而非静默降级。下一步按文档 §3 Phase 2 转换 `list_objects` / `load_objects_batch` / `list_conversations` / `list_snapshots_with_data_batch`。
 
 ### P026（P2 性能）导入导出 JSON 层未流式
 
