@@ -145,6 +145,9 @@ pub fn local_fingerprint_fallback(vault: &VaultStore) -> Result<String, String> 
 /// 收敛为单一实现防漂移。
 ///
 /// 键取值均为 `mdns_sd::TxtProperty`（Display 即字符串值），统一转为 String。
+/// P031 补充：mDNS 为桌面端能力（`mdns-sd` 依赖 target 门控，移动端二期换
+/// Android NSD / iOS Bonjour），类型与解析函数同样门控，避免 Android 交叉编译报错。
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 #[derive(Debug, Clone, Default)]
 pub struct MdnsTxtProps {
     pub account_hash: String,
@@ -155,6 +158,7 @@ pub struct MdnsTxtProps {
 }
 
 /// 从 `mdns_sd` 服务信息解析 TXT 属性（`ServiceInfo::get_properties()` 返回值）。
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
 pub fn parse_mdns_txt(props: &mdns_sd::TxtProperties) -> MdnsTxtProps {
     MdnsTxtProps {
         account_hash: props

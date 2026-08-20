@@ -60,6 +60,9 @@ sha2 = { workspace = true }
 # 加密导出/导入 ZIP 包
 zip = { version = "2", default-features = false, features = ["deflate"] }
 
+# P026: 导入导出流式化使用（通用代码路径，非桌面专属——Android 交叉编译同样需要）
+tempfile.workspace = true
+
 # 桌面端专属依赖：进程锁 / OCR / MRZ / PDFium（P024: 媒体重依赖全部 optional，由 features 门控）
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
 fs2 = "0.4.3"
@@ -68,7 +71,6 @@ image = { workspace = true, optional = true }
 ndarray = { workspace = true, optional = true }
 ab_glyph = { version = "0.2", optional = true }
 pdfium-render = { version = "0.9.2", optional = true }
-tempfile.workspace = true
 
 [target.'cfg(target_os = "macos")'.dependencies]
 dirs = "6.0"
