@@ -749,6 +749,11 @@ fn test_kdf_upgrade_reencrypts_attachments() {
     let salt_arr: [u8; 16] = salt_bytes.as_slice().try_into().unwrap();
     let old_key = derive_key("password123", &salt_arr, &old_kdf).unwrap();
 
+    // 锁定账户再触发 KDF 升级——模拟生产路径（unlock() 在主密码验证后、设置
+    // unlocked_account 之前进入升级分支；此前测试未 lock，unlocked_account
+    // 仍为 Some，掩盖了 reencrypt_attachments 依赖 get_current_account 的缺陷）。
+    svc.lock();
+
     // 执行 KDF 升级。
     svc.unlock_with_kdf_upgrade(account_id, "password123", &old_key)
         .unwrap();
@@ -833,6 +838,11 @@ fn test_unlock_with_kdf_upgrade_reencrypts_and_upgrades_params() {
     .unwrap();
     let salt_arr: [u8; 16] = salt_bytes.as_slice().try_into().unwrap();
     let old_key = derive_key("password123", &salt_arr, &old_kdf).unwrap();
+
+    // 锁定账户再触发升级——模拟生产路径（unlock() 验证密码后、设置
+    // unlocked_account 之前进入升级分支）。此前未 lock 时 unlocked_account 仍为
+    // Some，掩盖了 reencrypt_attachments 依赖 get_current_account 的缺陷。
+    svc.lock();
     svc.unlock_with_kdf_upgrade(account_id, "password123", &old_key)
         .unwrap();
 
@@ -844,6 +854,10 @@ fn test_unlock_with_kdf_upgrade_reencrypts_and_upgrades_params() {
     // 旧参数派生的密钥应不再匹配 verify hash（新密钥来自生产参数）。
     let old_verify = derive_key("password123", &salt_arr, &old_kdf).unwrap();
     assert_ne!(config.verify_hash, hex::encode(old_verify.as_slice()));
+
+    // 升级在锁定态完成，且会话已重建（unlocked_account / vault_store 均已设置）。
+    assert!(svc.is_unlocked());
+    assert!(svc.get_vault_store().is_some());
 
     // 用新会话密钥（生产参数）打开 Vault 后，升级前的加密数据仍可解密。
     let vault = svc.get_vault_store().expect("vault open after upgrade");

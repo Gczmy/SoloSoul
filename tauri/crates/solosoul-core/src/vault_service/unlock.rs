@@ -531,7 +531,7 @@ impl super::VaultService {
         // 旧钥，附件仍为旧钥 → 账户一致可用（P001 复核打回项）。
         let old_att_key: [u8; 32] = crate::attachment_crypto::derive_attachment_key(&old_key_arr)?;
         let new_att_key: [u8; 32] = crate::attachment_crypto::derive_attachment_key(&new_key_arr)?;
-        if let Err(e) = self.reencrypt_attachments(&old_att_key, &new_att_key) {
+        if let Err(e) = self.reencrypt_attachments(account_id, &old_att_key, &new_att_key) {
             let rollback_note = match self.rollback_reencrypt_and_config(
                 account_id,
                 &vault,
@@ -897,7 +897,7 @@ impl super::VaultService {
         // 永久不可读数据丢失路径）。
         let old_att_key: [u8; 32] = crate::attachment_crypto::derive_attachment_key(&old_key_arr)?;
         let new_att_key: [u8; 32] = crate::attachment_crypto::derive_attachment_key(&new_key_arr)?;
-        if let Err(e) = self.reencrypt_attachments(&old_att_key, &new_att_key) {
+        if let Err(e) = self.reencrypt_attachments(account_id, &old_att_key, &new_att_key) {
             let rollback_note = self.attempt_rekey_rollback(
                 account_id,
                 &old_config_content,
@@ -993,15 +993,13 @@ impl super::VaultService {
     /// 不残留明文（P001 复核打回项）。
     fn reencrypt_attachments(
         &self,
+        account_id: &str,
         old_att_key: &[u8; 32],
         new_att_key: &[u8; 32],
     ) -> Result<(), String> {
-        let account_id = self
-            .get_current_account()
-            .ok_or_else(|| "Vault not unlocked".to_string())?;
         let account_dir = self
             .fs
-            .local_path(&self.account_dir_rel(&account_id))
+            .local_path(&self.account_dir_rel(account_id))
             .ok_or("无法解析账户本地目录")?;
         let attachments_root = account_dir.join("attachments");
         if !attachments_root.exists() {
