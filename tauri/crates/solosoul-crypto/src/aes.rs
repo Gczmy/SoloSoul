@@ -97,5 +97,4 @@ mod tests {
         let blob = encrypt_blob(&key1, b"secret").unwrap();
         assert!(decrypt_blob(&key2, &blob).is_err());
     }
-
 }
