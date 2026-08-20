@@ -947,6 +947,59 @@ fn test_corrupt_object_properties_json_errors_on_load() {
 }
 
 #[test]
+fn test_corrupt_object_properties_json_errors_on_list_records() {
+    // P025 Phase 1: 两阶段读路径（list_object_records 锁外解密）必须同样保留 P005 语义——
+    // properties JSON 损坏时报错，而不是返回 properties=Null 的假记录静默降级。
+    let (vault, _dir) = setup();
+    let obj = ObjectRecord {
+        contract_type_id: None,
+        id: "obj-corrupt-list".to_string(),
+        account_id: "acc-1".to_string(),
+        type_id: "note".to_string(),
+        section_type: "identity".to_string(),
+        name: "Corrupt List Object".to_string(),
+        icon_name: "document".to_string(),
+        parent_id: None,
+        children_ids: vec![],
+        properties: serde_json::json!({"key": "value"}),
+        property_labels: None,
+        sensitivity_level: "internal".to_string(),
+        is_deleted: false,
+        deleted_at: None,
+        tags_json: vec![],
+        template_id: None,
+        template_type: None,
+        template_hash: None,
+        created_at: chrono::Utc::now().to_rfc3339(),
+        updated_at: chrono::Utc::now().to_rfc3339(),
+        version: 1,
+        ..Default::default()
+    };
+    vault.save_object(&obj).unwrap();
+
+    let key = DataEncryptionKey::new(test_key());
+    let corrupt_plaintext = "{ this is not valid json";
+    let corrupt_ciphertext = encrypt_text_field(&key, corrupt_plaintext).unwrap();
+    {
+        let mut guard = vault.conn.lock().unwrap();
+        let conn = guard.as_mut().unwrap();
+        conn.execute(
+            "UPDATE objects SET properties = ?1 WHERE id = ?2",
+            params![corrupt_ciphertext, "obj-corrupt-list"],
+        )
+        .unwrap();
+    }
+
+    // 两阶段列表路径必须报错（锁外解密阶段），且消息指明 properties 损坏。
+    let err = vault.list_object_records("acc-1").unwrap_err();
+    assert!(
+        err.contains("properties"),
+        "错误消息应指明 properties 损坏: {}",
+        err
+    );
+}
+
+#[test]
 fn test_save_object_upsert() {
     let (vault, _dir) = setup();
     let obj = ObjectRecord {

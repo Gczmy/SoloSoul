@@ -158,6 +158,168 @@ fn map_object_list_row(
     })
 }
 
+/// P025 Phase 1: 行 → 原始列数据（不解密、不解析 JSON），两阶段读模式的中间形态。
+///
+/// 持锁阶段仅做 `row.get()` 装箱（微秒级），AES-GCM 解密 + JSON 解析在锁外进行，
+/// 缩短对全库 `conn` 互斥锁的占用。`from_row` 供 `query_map` 闭包使用，
+/// `into_record` 承载原 `object_row_to_record` 的解密/解析逻辑（错误语义逐字保留：
+/// P225 统一 Object 前缀文案、P005 properties 损坏拒绝静默降级为空对象）。
+struct ObjectRowRaw {
+    id: String,
+    account_id: String,
+    type_id: String,
+    section_type: String,
+    name: String,
+    icon_name: String,
+    parent_id: Option<String>,
+    children_ids: String,
+    properties: String,
+    property_labels: String,
+    sensitivity_level: String,
+    is_deleted: i32,
+    deleted_at: Option<String>,
+    tags_json: String,
+    template_id: Option<String>,
+    template_type: Option<String>,
+    contract_type_id: Option<String>,
+    template_hash: Option<String>,
+    ignored_template_hash: Option<String>,
+    created_at: String,
+    updated_at: String,
+    version: u32,
+}
+
+impl ObjectRowRaw {
+    /// 仅按 OBJECT_COLUMNS 列序装箱（0..21），不触碰加密内容。
+    fn from_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<Self> {
+        Ok(Self {
+            id: row.get(0)?,
+            account_id: row.get(1)?,
+            type_id: row.get(2)?,
+            section_type: row.get(3)?,
+            name: row.get(4)?,
+            icon_name: row.get(5)?,
+            parent_id: row.get(6)?,
+            children_ids: row.get(7)?,
+            properties: row.get(8)?,
+            property_labels: row.get(9)?,
+            sensitivity_level: row.get(10)?,
+            is_deleted: row.get(11)?,
+            deleted_at: row.get(12)?,
+            tags_json: row.get(13)?,
+            template_id: row.get(14)?,
+            template_type: row.get(15)?,
+            contract_type_id: row.get(16)?,
+            template_hash: row.get(17)?,
+            ignored_template_hash: row.get(18)?,
+            created_at: row.get(19)?,
+            updated_at: row.get(20)?,
+            version: row.get(21)?,
+        })
+    }
+
+    /// 锁外解密 + JSON 解析为 `ObjectRecord`。
+    ///
+    /// 原 `object_row_to_record` 逻辑逐字搬入：错误列索引、文案、P005 日志均不变。
+    fn into_record(self, key: &DataEncryptionKey) -> rusqlite::Result<ObjectRecord> {
+        let decrypted_props = decrypt_text_field(key, &self.properties).map_err(|e| {
+            rusqlite::Error::FromSqlConversionFailure(
+                8,
+                rusqlite::types::Type::Text,
+                Box::new(std::io::Error::new(
+                    std::io::ErrorKind::InvalidData,
+                    format!("Object properties decryption failed: {}", e),
+                )),
+            )
+        })?;
+        let decrypted_labels = if self.property_labels.is_empty() {
+            Ok(String::new())
+        } else {
+            decrypt_text_field(key, &self.property_labels)
+        }
+        .map_err(|e| {
+            rusqlite::Error::FromSqlConversionFailure(
+                9,
+                rusqlite::types::Type::Text,
+                Box::new(std::io::Error::new(
+                    std::io::ErrorKind::InvalidData,
+                    format!("Object labels decryption failed: {}", e),
+                )),
+            )
+        })?;
+        Ok(ObjectRecord {
+            id: self.id.clone(),
+            account_id: self.account_id.clone(),
+            type_id: self.type_id.clone(),
+            section_type: self.section_type.clone(),
+            name: self.name.clone(),
+            icon_name: self.icon_name.clone(),
+            parent_id: self.parent_id.clone(),
+            children_ids: serde_json::from_str(&self.children_ids).map_err(|e| {
+                rusqlite::Error::FromSqlConversionFailure(
+                    7,
+                    rusqlite::types::Type::Text,
+                    Box::new(std::io::Error::new(
+                        std::io::ErrorKind::InvalidData,
+                        format!("Object children_ids corrupted: {}", e),
+                    )),
+                )
+            })?,
+            properties: serde_json::from_str(&decrypted_props).map_err(|e| {
+                tracing::error!(
+                    id = %self.id,
+                    name = %self.name,
+                    error = %e,
+                    "P005: 对象 properties JSON 反序列化失败，拒绝静默降级为空对象"
+                );
+                rusqlite::Error::FromSqlConversionFailure(
+                    8,
+                    rusqlite::types::Type::Text,
+                    Box::new(std::io::Error::new(
+                        std::io::ErrorKind::InvalidData,
+                        format!("Object properties corrupted (id={}): {}", self.id, e),
+                    )),
+                )
+            })?,
+            property_labels: if decrypted_labels.is_empty() {
+                None
+            } else {
+                Some(serde_json::from_str(&decrypted_labels).map_err(|e| {
+                    rusqlite::Error::FromSqlConversionFailure(
+                        9,
+                        rusqlite::types::Type::Text,
+                        Box::new(std::io::Error::new(
+                            std::io::ErrorKind::InvalidData,
+                            format!("Object property_labels corrupted: {}", e),
+                        )),
+                    )
+                })?)
+            },
+            sensitivity_level: self.sensitivity_level.clone(),
+            is_deleted: self.is_deleted != 0,
+            deleted_at: self.deleted_at.clone(),
+            tags_json: serde_json::from_str(&self.tags_json).map_err(|e| {
+                rusqlite::Error::FromSqlConversionFailure(
+                    13,
+                    rusqlite::types::Type::Text,
+                    Box::new(std::io::Error::new(
+                        std::io::ErrorKind::InvalidData,
+                        format!("Object tags_json corrupted: {}", e),
+                    )),
+                )
+            })?,
+            template_id: self.template_id.clone(),
+            template_type: self.template_type.clone(),
+            contract_type_id: self.contract_type_id.clone(),
+            template_hash: self.template_hash.clone(),
+            ignored_template_hash: self.ignored_template_hash.clone(),
+            created_at: self.created_at.clone(),
+            updated_at: self.updated_at.clone(),
+            version: self.version,
+        })
+    }
+}
+
 impl VaultStore {
     // ── Object CRUD ─────────────────────────────────────────
 
@@ -306,112 +468,13 @@ impl VaultStore {
 
     /// P225: 行 → ObjectRecord 映射（load_object_tx / load_objects_batch / list_object_records
     /// 三处重复闭包收敛为单一实现；错误文案统一为 Object 前缀，原 search 路径前缀为 Search）。
+    /// P025 Phase 1: 委托 `ObjectRowRaw`（from_row 装箱 + into_record 锁外解密），错误语义不变。
     fn object_row_to_record(
         key: &DataEncryptionKey,
         row: &rusqlite::Row,
     ) -> rusqlite::Result<ObjectRecord> {
-        let children_str: String = row.get(7)?;
-        let props_str: String = row.get(8)?;
-        let labels_str: String = row.get(9)?;
-        let tags_str: String = row.get(13)?;
-        let deleted: i32 = row.get(11)?;
-        let decrypted_props = decrypt_text_field(key, &props_str).map_err(|e| {
-            rusqlite::Error::FromSqlConversionFailure(
-                8,
-                rusqlite::types::Type::Text,
-                Box::new(std::io::Error::new(
-                    std::io::ErrorKind::InvalidData,
-                    format!("Object properties decryption failed: {}", e),
-                )),
-            )
-        })?;
-        let decrypted_labels = if labels_str.is_empty() {
-            Ok(String::new())
-        } else {
-            decrypt_text_field(key, &labels_str)
-        }
-        .map_err(|e| {
-            rusqlite::Error::FromSqlConversionFailure(
-                9,
-                rusqlite::types::Type::Text,
-                Box::new(std::io::Error::new(
-                    std::io::ErrorKind::InvalidData,
-                    format!("Object labels decryption failed: {}", e),
-                )),
-            )
-        })?;
-        Ok(ObjectRecord {
-            id: row.get(0)?,
-            account_id: row.get(1)?,
-            type_id: row.get(2)?,
-            section_type: row.get(3)?,
-            name: row.get(4)?,
-            icon_name: row.get(5)?,
-            parent_id: row.get(6)?,
-            children_ids: serde_json::from_str(&children_str).map_err(|e| {
-                rusqlite::Error::FromSqlConversionFailure(
-                    7,
-                    rusqlite::types::Type::Text,
-                    Box::new(std::io::Error::new(
-                        std::io::ErrorKind::InvalidData,
-                        format!("Object children_ids corrupted: {}", e),
-                    )),
-                )
-            })?,
-            properties: serde_json::from_str(&decrypted_props).map_err(|e| {
-                let obj_id = row.get::<_, String>(0).unwrap_or_default();
-                let name_preview = row.get::<_, String>(4).unwrap_or_default();
-                tracing::error!(
-                    id = %obj_id,
-                    name = %name_preview,
-                    error = %e,
-                    "P005: 对象 properties JSON 反序列化失败，拒绝静默降级为空对象"
-                );
-                rusqlite::Error::FromSqlConversionFailure(
-                    8,
-                    rusqlite::types::Type::Text,
-                    Box::new(std::io::Error::new(
-                        std::io::ErrorKind::InvalidData,
-                        format!("Object properties corrupted (id={}): {}", obj_id, e),
-                    )),
-                )
-            })?,
-            property_labels: if decrypted_labels.is_empty() {
-                None
-            } else {
-                Some(serde_json::from_str(&decrypted_labels).map_err(|e| {
-                    rusqlite::Error::FromSqlConversionFailure(
-                        9,
-                        rusqlite::types::Type::Text,
-                        Box::new(std::io::Error::new(
-                            std::io::ErrorKind::InvalidData,
-                            format!("Object property_labels corrupted: {}", e),
-                        )),
-                    )
-                })?)
-            },
-            sensitivity_level: row.get(10)?,
-            is_deleted: deleted != 0,
-            deleted_at: row.get(12)?,
-            tags_json: serde_json::from_str(&tags_str).map_err(|e| {
-                rusqlite::Error::FromSqlConversionFailure(
-                    13,
-                    rusqlite::types::Type::Text,
-                    Box::new(std::io::Error::new(
-                        std::io::ErrorKind::InvalidData,
-                        format!("Object tags_json corrupted: {}", e),
-                    )),
-                )
-            })?,
-            template_id: row.get(14)?,
-            template_type: row.get(15)?,
-            contract_type_id: row.get(16)?,
-            template_hash: row.get(17)?,
-            ignored_template_hash: row.get(18)?,
-            created_at: row.get(19)?,
-            updated_at: row.get(20)?,
-            version: row.get(21)?,
-        })
+        let raw = ObjectRowRaw::from_row(row)?;
+        raw.into_record(key)
     }
 
     pub fn load_object(&self, id: &str) -> Result<Option<ObjectRecord>, String> {
@@ -1010,19 +1073,32 @@ impl VaultStore {
         _obs.acquired();
         let conn = guard.as_mut().ok_or("Vault is locked")?;
         // properties 已加密，无法使用 SQL LIKE。所有匹配在解密后的内存数据上进行。
-        let mut stmt = conn
-            .prepare(&format!(
-                "SELECT {} FROM objects WHERE account_id = ?1 AND is_deleted = 0 ORDER BY updated_at DESC",
-                OBJECT_COLUMNS
-            ))
-            .map_err(|e| format!("list_object_records: {}", e))?;
-        let results = stmt
-            .query_map(params![account_id], |row| {
-                Self::object_row_to_record(&key, row)
-            })
-            .map_err(|e| format!("list_object_records query: {}", e))?
+        // P025 Phase 1: 两阶段读 —— 持锁阶段仅取列装箱（不解密），
+        // 释放锁后再统一 AES 解密 + JSON 解析，缩短对全库 conn 锁的占用。
+        // stmt 借自 conn（借自 guard），故收在块内先于 guard 释放。
+        let raws = {
+            let mut stmt = conn
+                .prepare(&format!(
+                    "SELECT {} FROM objects WHERE account_id = ?1 AND is_deleted = 0 ORDER BY updated_at DESC",
+                    OBJECT_COLUMNS
+                ))
+                .map_err(|e| format!("list_object_records: {}", e))?;
+            // 拆成两条语句：rows 先于 stmt drop（逆声明序），避免块末临时值借用残留。
+            let rows = stmt
+                .query_map(params![account_id], ObjectRowRaw::from_row)
+                .map_err(|e| format!("list_object_records query: {}", e))?;
+            rows.collect::<Result<Vec<_>, _>>()
+                .map_err(|e| format!("list_object_records collect: {}", e))?
+        };
+        // 观测结束：hold 现仅覆盖 SQL 取数（不含锁外解密），与改造前基线对比即收益。
+        drop(guard);
+        drop(_obs);
+        // 锁外阶段：解密 + JSON 解析，错误语义与 object_row_to_record 逐字一致。
+        let results = raws
+            .into_iter()
+            .map(|raw| raw.into_record(&key))
             .collect::<Result<Vec<_>, _>>()
-            .map_err(|e| format!("list_object_records collect: {}", e))?;
+            .map_err(|e| format!("list_object_records decrypt: {}", e))?;
         Ok(results)
     }
 
