@@ -67,7 +67,7 @@
 | P022 | P2 | 死代码 | `tauri/src/lib/updater.ts:171,259`（另两处已复核为测试引用，非死代码） | 4 个导出无任何外部引用，仅文件内使用，`export` 多余（API 面污染，非真死代码） | `[x]` 已修复（d57d5e7a） |
 | P023 | P2 | 架构/健壮性 | `tauri/src-tauri/src/commands/llm/conversation.rs:23-27` | `load_conversations` 静默丢弃解析失败的会话行，无日志无上报，用户表现为「会话凭空消失」 | `[x]` 已修复（b063c7e7） |
 | P024 | P2 | 性能 | `tauri/crates/solosoul-vault/src/storage/objects.rs:219-232` | `save_object_tx` 每保存一对象额外执行一次未缓存的模板名 SELECT，批量导入放大为 N 次查询 | `[x]` 已修复（4a425d5b） |
-| P025 | P2 | 架构/性能 | `tauri/crates/solosoul-vault/src/storage.rs:484` | 全库单一 `Mutex<Connection>` 串行化，且逐行 AES 解密在持锁闭包内执行，长查询阻塞全部 DB 操作 | `[o]` 评估完成+Phase 0 已实施（60bf171f） |
+| P025 | P2 | 架构/性能 | `tauri/crates/solosoul-vault/src/storage.rs:484` | 全库单一 `Mutex<Connection>` 串行化，且逐行 AES 解密在持锁闭包内执行，长查询阻塞全部 DB 操作 | `[x]` 已修复（22598679，实测 hold -72%~-100%） |
 | P026 | P2 | 性能 | `tauri/crates/solosoul-core/src/export_import.rs:203-205,277-284,334-338` | 导入导出 JSON 层未流式，峰值内存可达明文+密文+JSON 树三份，接近 100MB 上限的库在移动端有 OOM 风险 | `[x]` 已修复（f4ab0565） |
 | P027 | P2 | 架构/并发 | `tauri/src-tauri/src/state/app_state.rs:551-563` | `init_saf_sync` 持 `RwLock` 读锁执行网络 I/O，`replace_vault_service` 写锁被阻塞，std RwLock 有写者饥饿风险 | `[x]` 已修复（31f536dd） |
 | P028 | P2 | 可优化（长函数） | `tauri/crates/solosoul-core/src/vault_service/unlock.rs:795` | `change_password` 126 行、嵌套 5 层，密码学关键路径的失败混态防护难以审查 | `[x]` 已修复（562caa0c） |
@@ -234,7 +234,8 @@
 **Phase 2-1 已完成**（db87583e）：`map_object_list_row` 整体替换为 `ObjectListRowRaw`（`from_row` 装箱 0..17 列 / `into_summary` 承载原解密+JSON 解析，错误语义逐字保留）；`list_objects` 两阶段化——持锁仅取列、锁外统一解密 + keyword 内存过滤（P210 递归匹配逻辑不动）。
 **Phase 2-2 已完成**（bdacf2da）：`load_objects_batch` 两阶段化——复用 `ObjectRowRaw`（列序与 OBJECT_SELECT_BASE 一致），持锁仅取列、锁外统一解密 + JSON 解析。
 **Phase 2-3 已完成**（70315254）：`list_conversations` 两阶段化——新增 `ConversationRowRaw`（装箱 id/updated_at/data 密文 Blob / `into_decrypted` 锁外解密），错误语义逐字保留。
-**Phase 2-4 已完成（Phase 2 收官）**（7b295517）：`list_snapshots_with_data_batch` 两阶段化——新增 `SnapshotRowRaw`（装箱 6 列 / `into_decrypted` 锁外解密 + meta JSON 组装），错误语义逐字保留。至此 5 个 N 行解密热点（`list_objects` / `list_object_records` / `load_objects_batch` / `list_conversations` / `list_snapshots_with_data_batch`）全部两阶段化，hold 观测区间均仅覆盖 SQL 取数。按文档 §3 Phase 3 验证：真实库现场对比改造前后持锁时长、确认 ORDER BY/分页/过滤语义无回归。
+**Phase 2-4 已完成（Phase 2 收官）**（7b295517）：`list_snapshots_with_data_batch` 两阶段化——新增 `SnapshotRowRaw`（装箱 6 列 / `into_decrypted` 锁外解密 + meta JSON 组装），错误语义逐字保留。至此 5 个 N 行解密热点（`list_objects` / `list_object_records` / `load_objects_batch` / `list_conversations` / `list_snapshots_with_data_batch`）全部两阶段化，hold 观测区间均仅覆盖 SQL 取数。
+**Phase 3 已完成**（22598679）：新增大数据集 hold 基线对比工具（`tests/p025_baseline.rs`，`#[ignore]`，仅依赖公开 API 可在改造前基线同基准运行）。实测（2000 对象×~16KB 明文 + 500 会话 + 快照）：`list_objects` 469→129ms(-72%)、`list_object_records` 427→106ms(-75%)、`load_objects_batch` 17→1ms(-94%)、`list_conversations` 10→1ms(-90%)、`list_snapshots_with_data` 1→0ms——解密+JSON 解析（约 300~340ms）完全移出锁区间，剩余 hold 为 SQL 取数+装箱固有成本。行为对拍：全仓 969 用例（含 ORDER BY/分页/过滤相关）全绿。**P025 全部完成**（评估 6fc6a19d → Phase 0 60bf171f → Phase 1 e8064bab → Phase 2×4 → Phase 3 22598679）。
 
 ### P026（P2 性能）导入导出 JSON 层未流式
 

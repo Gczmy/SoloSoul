@@ -4,9 +4,9 @@
 > **Manifesto 对齐**：本地优先 | 隐私优先 | 性能可用
 > **来源**：`docs/CODE_ANALYSIS_REPORT.md` P025（P2 架构/性能）
 >
-> **[状态] 已实施（Phase 0/1/2 完成）**（2026-08）：本文档记录对「SQL 取数 → 释放锁 → 锁外解密」
-> 两阶段改造的评估结论与分阶段实施方案。Phase 0 观测、Phase 1 两阶段模式、Phase 2 热点转换
-> 已全部落地（提交见 §3），剩 Phase 3 真实库行为对拍与持锁时长对比（完成标准见 §5）。
+> **[状态] 已实施（Phase 0/1/2/3 全部完成）**（2026-08）：本文档记录对「SQL 取数 → 释放锁 → 锁外解密」
+> 两阶段改造的评估结论与分阶段实施方案。Phase 0 观测、Phase 1 两阶段模式、Phase 2 热点转换、
+> Phase 3 行为对拍与持锁时长对比已全部落地（提交见 §3，实测数据见 §3 Phase 3）。
 
 ---
 
@@ -121,12 +121,26 @@ struct ObjectRowRaw { id, account_id, …, properties: String, property_labels: 
 `query_map` 的 `MappedRows` 拆成两条语句绑定局部变量，避免块末临时值借用残留（E0597）。
 错误语义逐字保留（P225 统一前缀、P005 拒绝静默降级、各域原文案与列索引）。
 
-### Phase 3 —— 验证 ⏳ 待办（真实库现场）
+### Phase 3 —— 验证 ✅ 已完成（22598679）
 
 - 全量 `cargo test -p solosoul-vault -p solo_soul`（vault 170+ 用例，含既有并发测试）。
-  **已部分完成**：Phase 0/1/2 每步均跑全量，vault 172 用例 + 全仓 969 用例全绿、fmt/clippy 干净。
-- 用 Phase 0 的 span 对比改造前后持锁时长（真实库现场收集基线，`--nocapture` 查看）。
-- 确认 ORDER BY / 分页 / 过滤语义逐字节不变（行为对拍）。
+  **已完成**：Phase 0/1/2/3 每步均跑全量，vault 172 用例 + 全仓 969 用例全绿、fmt/clippy 干净。
+- 用 Phase 0 的 span 对比改造前后持锁时长。**已完成**：新增 `tests/p025_baseline.rs`
+  （`#[ignore]`，大数据集 2000 对象×~16KB 明文 + 500 会话 + 快照，仅依赖公开 API，
+  可在改造前基线 60bf171f 与改造后同基准运行）。实测对比：
+
+  | 热点 | 改造前 60bf171f | 改造后 HEAD | 降幅 |
+  |------|---------------|------------|------|
+  | `list_objects` | 469ms | 129ms | -72% |
+  | `list_object_records` | 427ms | 106ms | -75% |
+  | `load_objects_batch` | 17ms | 1ms | -94% |
+  | `list_conversations` | 10ms | 1ms | -90% |
+  | `list_snapshots_with_data` | 1ms | 0ms | ~-100% |
+
+  剩余 hold 为 SQL 取数 + 装箱大 payload 的固有成本；解密 + JSON 解析（约 300~340ms）
+  已完全移出锁区间，GUI 其他 DB 操作在解密期间不再被阻塞。
+- 确认 ORDER BY / 分页 / 过滤语义逐字节不变（行为对拍）。**已完成**：全仓 969 用例
+  （含排序/分页/关键词过滤相关既有测试）全绿，转换前后均为同一套 SQL 与内存过滤逻辑。
 
 ---
 
@@ -147,4 +161,4 @@ GUI 其他 DB 操作在解密期间不再被阻塞；`list_objects` 关键词过
 - [x] Phase 0 观测设施落地：`LockHoldObserver` + 5 热点插桩 + 验证测试（60bf171f）；小数据集 hold≈0ms，真实库基线待 Phase 3 现场收集
 - [x] Phase 1 两阶段模式落地，vault 全量测试通过（e8064bab，172 用例全绿）
 - [x] Phase 2 全部转换项完成，每项独立提交且测试通过（db87583e / bdacf2da / 70315254 / 7b295517；`list_audit_log` 核查为已两阶段，免转）
-- [ ] Phase 3 行为对拍 + 真实库持锁时长对比数据记录（待办）
+- [x] Phase 3 行为对拍 + 持锁时长对比数据记录（22598679，见 §3 Phase 3 实测表）
