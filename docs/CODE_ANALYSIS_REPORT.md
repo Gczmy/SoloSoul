@@ -236,6 +236,7 @@
 **Phase 2-3 已完成**（70315254）：`list_conversations` 两阶段化——新增 `ConversationRowRaw`（装箱 id/updated_at/data 密文 Blob / `into_decrypted` 锁外解密），错误语义逐字保留。
 **Phase 2-4 已完成（Phase 2 收官）**（7b295517）：`list_snapshots_with_data_batch` 两阶段化——新增 `SnapshotRowRaw`（装箱 6 列 / `into_decrypted` 锁外解密 + meta JSON 组装），错误语义逐字保留。至此 5 个 N 行解密热点（`list_objects` / `list_object_records` / `load_objects_batch` / `list_conversations` / `list_snapshots_with_data_batch`）全部两阶段化，hold 观测区间均仅覆盖 SQL 取数。
 **Phase 3 已完成**（22598679）：新增大数据集 hold 基线对比工具（`tests/p025_baseline.rs`，`#[ignore]`，仅依赖公开 API 可在改造前基线同基准运行）。实测（2000 对象×~16KB 明文 + 500 会话 + 快照）：`list_objects` 469→129ms(-72%)、`list_object_records` 427→106ms(-75%)、`load_objects_batch` 17→1ms(-94%)、`list_conversations` 10→1ms(-90%)、`list_snapshots_with_data` 1→0ms——解密+JSON 解析（约 300~340ms）完全移出锁区间，剩余 hold 为 SQL 取数+装箱固有成本。行为对拍：全仓 969 用例（含 ORDER BY/分页/过滤相关）全绿。**P025 全部完成**（评估 6fc6a19d → Phase 0 60bf171f → Phase 1 e8064bab → Phase 2×4 → Phase 3 22598679）。
+**调用方回归核查**（Phase 3 补）：五个转换方法签名未变，全部调用方（`sync_apply::get_sync_conflict_local_data_batch` / `core::objects` / `core::export_import` / `core::llm` / `sync::attachments` / `sync::delta` / src-tauri 命令层）均经公开 API，无嵌套持锁（`delta.rs:190` 调用点在事务外）；错误前缀变化（`collect:`→解密错误改 `decrypt:`）无测试/前端精确匹配依赖；`search_objects` 与 keyword 过滤有专门测试（tests.rs:820-824 等）且全绿。
 
 ### P026（P2 性能）导入导出 JSON 层未流式
 
