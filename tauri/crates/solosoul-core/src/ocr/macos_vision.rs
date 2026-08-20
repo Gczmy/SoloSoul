@@ -18,6 +18,18 @@ use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+/// P013: stderr 截断摘要——只保留前 `limit` 字符，避免 CLI 诊断细节全文外溢到
+/// 日志与错误消息（OCR 识别文本在 stdout，绝不进入任何诊断输出）。
+fn stderr_summary(stderr: &str, limit: usize) -> String {
+    let trimmed = stderr.trim();
+    if trimmed.chars().count() <= limit {
+        trimmed.to_string()
+    } else {
+        let truncated: String = trimmed.chars().take(limit).collect();
+        format!("{}… ({} bytes truncated)", truncated, trimmed.len() - limit)
+    }
+}
+
 /// Vision Framework 扫描结果的简化表示。
 #[derive(serde::Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
@@ -418,18 +430,21 @@ pub fn scan_image(image_path: &Path) -> Result<(String, f64), String> {
         .output()
         .map_err(|e| format!("执行 Vision CLI 失败: {e}"))?;
 
-    // 诊断：捕获并记录 stderr（含 CLI 版本号）
+    // P013: 诊断信息脱敏——stderr 可能携带 CLI 内部细节，只截断摘要入日志，
+    // 不落原文；stdout（OCR 识别文本）绝不写入日志与错误消息。
+    const STDERR_SUMMARY_LEN: usize = 300;
     let stderr_out = String::from_utf8_lossy(&output.stderr);
     if !stderr_out.is_empty() {
-        tracing::info!("Vision CLI stderr: {}", stderr_out.trim());
+        let summary = stderr_summary(&stderr_out, STDERR_SUMMARY_LEN);
+        tracing::info!("Vision CLI stderr (summary): {}", summary);
     }
 
     if !output.status.success() {
-        let stdout_out = String::from_utf8_lossy(&output.stdout);
+        let exit_code = output.status.code().unwrap_or(-1);
         return Err(format!(
-            "Vision CLI 异常退出 (stdout: {}, stderr: {})",
-            stdout_out.trim(),
-            stderr_out.trim()
+            "Vision CLI 异常退出 (exit: {}, stderr: {})",
+            exit_code,
+            stderr_summary(&stderr_out, STDERR_SUMMARY_LEN)
         ));
     }
 
@@ -439,21 +454,17 @@ pub fn scan_image(image_path: &Path) -> Result<(String, f64), String> {
     if stdout.trim().is_empty() {
         return Err(format!(
             "Vision CLI stdout 为空 (stderr: {})",
-            stderr_out.trim()
+            stderr_summary(&stderr_out, STDERR_SUMMARY_LEN)
         ));
     }
 
-    let vision_result: VisionOcrResult = serde_json::from_str(&stdout).map_err(|e| {
-        format!(
-            "解析 Vision JSON 失败: {e}, raw (first 500): {}",
-            &stdout[..stdout.len().min(500)]
-        )
-    })?;
+    let vision_result: VisionOcrResult =
+        serde_json::from_str(&stdout).map_err(|e| format!("解析 Vision JSON 失败: {e}"))?;
 
     if vision_result.results.is_empty() {
         return Err(format!(
             "Vision Framework 未检测到任何文本 (stderr: {})",
-            stderr_out.trim()
+            stderr_summary(&stderr_out, STDERR_SUMMARY_LEN)
         ));
     }
 
@@ -562,12 +573,18 @@ mod tests {
             );
         }
 
-        // 不存在的路径：错误应包含真实路径（证明参数按原样传递），而非 "--"。
+        // 不存在的路径：错误必须脱敏——不得携带 stdout（含真实路径的 JSON 错误
+        // 如 "Cannot load image at <path>"）与完整 stderr，只带退出码 + stderr 摘要
+        // （P013：OCR 错误路径不得外溢敏感内容到 UI/审计链）。
         let missing = dir.join("does-not-exist.png");
         let missing_err = scan_image(&missing).expect_err("不存在的路径应报错");
         assert!(
-            missing_err.contains("does-not-exist.png"),
-            "错误应包含真实路径，got: {missing_err}"
+            !missing_err.contains("does-not-exist.png"),
+            "错误消息不得回显真实路径（P013 脱敏），got: {missing_err}"
+        );
+        assert!(
+            !missing_err.contains("Cannot load image at"),
+            "错误消息不得携带 CLI stdout 内容，got: {missing_err}"
         );
 
         let _ = std::fs::remove_dir_all(&dir);
