@@ -322,17 +322,61 @@ impl VaultStore {
             name: row.get(4)?,
             icon_name: row.get(5)?,
             parent_id: row.get(6)?,
-            children_ids: serde_json::from_str(&children_str).unwrap_or_default(),
-            properties: serde_json::from_str(&decrypted_props).unwrap_or(serde_json::Value::Null),
+            children_ids: serde_json::from_str(&children_str).map_err(|e| {
+                rusqlite::Error::FromSqlConversionFailure(
+                    7,
+                    rusqlite::types::Type::Text,
+                    Box::new(std::io::Error::new(
+                        std::io::ErrorKind::InvalidData,
+                        format!("Object children_ids corrupted: {}", e),
+                    )),
+                )
+            })?,
+            properties: serde_json::from_str(&decrypted_props).map_err(|e| {
+                let obj_id = row.get::<_, String>(0).unwrap_or_default();
+                let name_preview = row.get::<_, String>(4).unwrap_or_default();
+                tracing::error!(
+                    id = %obj_id,
+                    name = %name_preview,
+                    error = %e,
+                    "P005: 对象 properties JSON 反序列化失败，拒绝静默降级为空对象"
+                );
+                rusqlite::Error::FromSqlConversionFailure(
+                    8,
+                    rusqlite::types::Type::Text,
+                    Box::new(std::io::Error::new(
+                        std::io::ErrorKind::InvalidData,
+                        format!("Object properties corrupted (id={}): {}", obj_id, e),
+                    )),
+                )
+            })?,
             property_labels: if decrypted_labels.is_empty() {
                 None
             } else {
-                serde_json::from_str(&decrypted_labels).ok()
+                Some(serde_json::from_str(&decrypted_labels).map_err(|e| {
+                    rusqlite::Error::FromSqlConversionFailure(
+                        9,
+                        rusqlite::types::Type::Text,
+                        Box::new(std::io::Error::new(
+                            std::io::ErrorKind::InvalidData,
+                            format!("Object property_labels corrupted: {}", e),
+                        )),
+                    )
+                })?)
             },
             sensitivity_level: row.get(10)?,
             is_deleted: deleted != 0,
             deleted_at: row.get(12)?,
-            tags_json: serde_json::from_str(&tags_str).unwrap_or_default(),
+            tags_json: serde_json::from_str(&tags_str).map_err(|e| {
+                rusqlite::Error::FromSqlConversionFailure(
+                    13,
+                    rusqlite::types::Type::Text,
+                    Box::new(std::io::Error::new(
+                        std::io::ErrorKind::InvalidData,
+                        format!("Object tags_json corrupted: {}", e),
+                    )),
+                )
+            })?,
             template_id: row.get(14)?,
             template_type: row.get(15)?,
             contract_type_id: row.get(16)?,

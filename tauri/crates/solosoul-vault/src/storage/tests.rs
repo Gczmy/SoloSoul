@@ -1,6 +1,7 @@
 //! P008-2: VaultStore unit tests (extracted from storage.rs inline mod tests).
 //! super points to crate::storage (parent module); private items via use super::*.
 use super::*;
+use crate::encryption::encrypt_text_field;
 use crate::{ObjectRecord, Profile, SyncWatermark, TrashItem};
 use tempfile::TempDir;
 
@@ -889,6 +890,60 @@ fn test_save_load_delete_object() {
 
     vault.delete_object("obj-1", false).unwrap();
     assert!(vault.load_object("obj-1").unwrap().is_none());
+}
+
+#[test]
+fn test_corrupt_object_properties_json_errors_on_load() {
+    let (vault, _dir) = setup();
+    let obj = ObjectRecord {
+        contract_type_id: None,
+        id: "obj-corrupt".to_string(),
+        account_id: "acc-1".to_string(),
+        type_id: "note".to_string(),
+        section_type: "identity".to_string(),
+        name: "Corrupt Object".to_string(),
+        icon_name: "document".to_string(),
+        parent_id: None,
+        children_ids: vec!["child-1".to_string()],
+        properties: serde_json::json!({"key": "value"}),
+        property_labels: None,
+        sensitivity_level: "internal".to_string(),
+        is_deleted: false,
+        deleted_at: None,
+        tags_json: vec!["tag1".to_string()],
+        template_id: None,
+        template_type: None,
+        template_hash: None,
+        created_at: chrono::Utc::now().to_rfc3339(),
+        updated_at: chrono::Utc::now().to_rfc3339(),
+        version: 1,
+        ..Default::default()
+    };
+    vault.save_object(&obj).unwrap();
+
+    // 用同一密钥把 properties 加密为「可解密但非 JSON」的明文——模拟
+    // 解密成功但 JSON 损坏（P005：详情路径不得静默降级为空对象，否则
+    // 用户编辑保存会用空 properties 覆盖原数据）。
+    let key = DataEncryptionKey::new(test_key());
+    let corrupt_plaintext = "{ this is not valid json";
+    let corrupt_ciphertext = encrypt_text_field(&key, corrupt_plaintext).unwrap();
+    {
+        let mut guard = vault.conn.lock().unwrap();
+        let conn = guard.as_mut().unwrap();
+        conn.execute(
+            "UPDATE objects SET properties = ?1 WHERE id = ?2",
+            params![corrupt_ciphertext, "obj-corrupt"],
+        )
+        .unwrap();
+    }
+
+    // 详情读取必须报错，而不是返回 properties=Null 的假记录
+    let err = vault.load_object("obj-corrupt").unwrap_err();
+    assert!(
+        err.contains("properties"),
+        "错误消息应指明 properties 损坏: {}",
+        err
+    );
 }
 
 #[test]
