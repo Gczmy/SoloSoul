@@ -77,7 +77,7 @@
 | P032 | P2 | 可优化（重复） | `tauri/crates/solosoul-vault/src/storage/metadata.rs:200-228` | `list_audit_log` 内两段同构解密 match 块，可提取闭包消除 | `[x]` 已修复（e612f1fb） |
 | P033 | P2 | 可优化（冗余） | `tauri/crates/solosoul-crypto/src/cipher.rs:47-56,78-87` | `Payload` 构造的 match 重复且多余，`aad.unwrap_or(&[])` 一行可等价表达 | `[x]` 已修复（e27c2ed4） |
 | P034 | P2 | 可优化 | `tauri/src-tauri/src/commands/object/mod.rs:1021-1028` | `collect_updated_fields` 对 JSON 值双重 clone，大文本字段每字段复制两次 | `[x]` 已修复（89023d26） |
-| P035 | P2 | 架构 | `tauri/crates/solosoul-core/src/biometric/legacy.rs:19-20,70-104` | 桌面端生物识别降级为「文件 + account_id 派生密钥」，等价主密钥混淆落盘，建议 Keychain 失败时报错而非静默降级 | `[ ]` 待修复 |
+| P035 | P2 | 架构 | `tauri/crates/solosoul-core/src/biometric/legacy.rs:19-20,70-104` | 桌面端生物识别降级为「文件 + account_id 派生密钥」，等价主密钥混淆落盘，建议 Keychain 失败时报错而非静默降级 | `[x]` 已修复（2c14989c，降级状态暴露 + UI 警告） |
 | P036 | P2 | 文档 | `AGENTS.md`（项目根） | KDF 参数说明已过时：代码 `kdf.rs:47-55` 的 `from_env()` 在 release 构建已默认 production 参数，与文档「默认 8MiB/2」不符 | `[x]` 已修复（本轮） |
 
 ## 修复进度
@@ -267,6 +267,7 @@
 
 `crates/solosoul-core/src/biometric/legacy.rs:19-20,70-104`：Keychain 不可用时 fallback 以 `account_id`（公开值）派生密钥保护主密钥，实际只依赖 OS 文件权限（注释已如实承认）。拿到用户目录的进程可还原主密钥。
 **建议**：Keychain 失败时向用户显式报错/确认，而非静默降级。
+**处置（2026-08）**：降级状态已暴露（2c14989c）——`BiometricAvailability` 新增 `uses_legacy_file` 字段（serde default 向后兼容，由 `storage.uses_legacy_file()` 填充：macOS 当前文件方案与 Windows DPAPI 为 true、iOS Keychain 为 false）；设置页 `BiometricSection` 在凭证存于本地文件时显示「弱于系统钥匙串」警告条 + 重新设置入口（双语 i18n）。事实澄清：macOS 当前即有意使用文件存储（无 keychain entitlement，`macos.rs` 自述），`macos_keychain.rs` 的 fallback 路径（`used_fallback`）仅在未来启用 Keychain 后触发；iOS 恒走 Keychain 不受影响。
 
 ### P036（P2 文档）AGENTS.md 的 KDF 参数说明过时
 
