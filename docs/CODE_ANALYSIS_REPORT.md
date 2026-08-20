@@ -53,7 +53,7 @@
 | P008 | P1 | 性能 | `tauri/src-tauri/src/commands/llm/conversation.rs:156,171,199` | 软删/恢复/重命名会话均整表解密只为更新一条记录，单行读取 `load_conversation` 已存在未用 | `[x]` 已修复（8d3d9f52） |
 | P009 | P1 | 死代码 | `tauri/crates/solosoul-crypto/src/aes.rs:95-245` | SOLO v3 分块加解密约 150 行仅被自身测试引用，生产路径全走 `cipher.rs` SOLC 格式，属平行重复实现且 v3 blob 已不可读 | `[ ]` 待修复 |
 | P010 | P1 | 重复代码 | `tauri/crates/solosoul-core/src/template_service.rs:199` vs `objects.rs:1248` | `template_fingerprint` 字节级重复实现两处，模板 hash 漂移将产生静默不一致 | `[x]` 已修复（a60a7ada） |
-| P011 | P1 | 重复代码/架构 | `tauri/crates/solosoul-core/src/llm/service.rs:362` vs `tauri/src-tauri/src/commands/llm/mod.rs:24` | LLM 内置 provider 默认值两处定义且已发散（id 体系、模型名均不同），GUI 与 CLI 默认配置不一致 | `[ ]` 待修复 |
+| P011 | P1 | 重复代码/架构 | `tauri/crates/solosoul-core/src/llm/service.rs:362` vs `tauri/src-tauri/src/commands/llm/mod.rs:24` | LLM 内置 provider 默认值两处定义且已发散（id 体系、模型名均不同），GUI 与 CLI 默认配置不一致 | `[x]` 已修复（本轮） |
 | P012 | P1 | 重复代码/架构 | `tauri/crates/solosoul-core/src/export_import.rs:961` vs `tauri/src-tauri/src/commands/export_import/import.rs:1050`（导出侧同理） | 加密导入导出存在 core（CLI）与 GUI 两套平行实现，加密格式安全敏感面双维护易漏同步 | `[ ]` 待修复 |
 | P013 | P2 | 漏洞 | `tauri/crates/solosoul-core/src/ocr/macos_vision.rs:429-433,424` | Vision CLI 失败路径把 OCR 识别文本带进错误消息与 info 级日志，敏感内容外溢到非加密存储面 | `[ ]` 待修复 |
 | P014 | P2 | 漏洞 | `tauri/crates/solosoul-core/src/path_util.rs:79-86` | `sanitize_file_name` 错误消息回显完整原始文件名，与 P019「错误不携带完整路径」既定约定不一致 | `[ ]` 待修复 |
@@ -82,7 +82,7 @@
 
 ## 修复进度
 
-- 已完成：8 / 36（P001、P002、P003、P005、P006、P007、P008、P010）
+- 已完成：9 / 36（P001、P002、P003、P005、P006、P007、P008、P010、P011）
 
 ---
 

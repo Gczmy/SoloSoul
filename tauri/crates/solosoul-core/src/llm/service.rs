@@ -359,7 +359,8 @@ impl LlmService {
         }
     }
 
-    fn default_providers() -> Vec<ProviderConfig> {
+    /// P011: 内置 provider 默认值唯一来源（GUI 命令层复用，消除跨 crate 漂移）。
+    pub fn default_providers() -> Vec<ProviderConfig> {
         use crate::llm::config::ApiType;
         vec![
             ProviderConfig {

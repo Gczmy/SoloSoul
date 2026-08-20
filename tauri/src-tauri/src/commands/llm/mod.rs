@@ -21,64 +21,31 @@ pub use solosoul_core::llm::config::{
     ProviderWithKey,
 };
 
+/// P011: 内置 provider 默认值唯一来源为 `solosoul_core::llm::service::LlmService::default_providers`。
+/// 本层仅做 GUI 适配：追加 `builtin_` id 前缀（前端持久化的 `active_provider_id` 依赖该
+/// 前缀，不可变更）与空的 `api_key` 字段。模型名/地址/embedding 等值全部来自 core 单一
+/// 来源，杜绝两处默认值漂移。
+/// 例外：Alibaba 的 core id 为 `dashscope`，GUI 历史持久化 id 为 `builtin_alibaba`
+/// （`merge_providers_with_keys` 按 id 匹配已保存配置，改名会使存量配置失配），故显式映射。
 pub fn default_providers() -> Vec<ProviderWithKey> {
-    vec![
-        ProviderWithKey {
-            id: "builtin_openai".into(),
-            name: "OpenAI".into(),
-            base_url: "https://api.openai.com/v1".into(),
-            model: "gpt-4o".into(),
-            is_enabled: false,
+    use solosoul_core::llm::service::LlmService;
+    LlmService::default_providers()
+        .into_iter()
+        .map(|p| ProviderWithKey {
+            id: match p.id.as_str() {
+                "dashscope" => "builtin_alibaba".to_string(),
+                other => format!("builtin_{}", other),
+            },
+            name: p.name,
+            base_url: p.base_url,
+            model: p.model,
+            is_enabled: p.is_enabled,
             is_built_in: true,
             api_key: String::new(),
-            api_type: ApiType::OpenAI,
-            embedding_model: Some("text-embedding-3-small".into()),
-        },
-        ProviderWithKey {
-            id: "builtin_anthropic".into(),
-            name: "Anthropic".into(),
-            base_url: "https://api.anthropic.com/v1".into(),
-            model: "claude-sonnet-4-20250514".into(),
-            is_enabled: false,
-            is_built_in: true,
-            api_key: String::new(),
-            api_type: ApiType::Anthropic,
-            embedding_model: None,
-        },
-        ProviderWithKey {
-            id: "builtin_ollama".into(),
-            name: "Ollama (Local)".into(),
-            base_url: "http://localhost:11434/v1".into(),
-            model: "llama3.1".into(),
-            is_enabled: false,
-            is_built_in: true,
-            api_key: String::new(),
-            api_type: ApiType::OpenAI,
-            embedding_model: Some("nomic-embed-text".into()),
-        },
-        ProviderWithKey {
-            id: "builtin_deepseek".into(),
-            name: "DeepSeek".into(),
-            base_url: "https://api.deepseek.com/v1".into(),
-            model: "deepseek-chat".into(),
-            is_enabled: false,
-            is_built_in: true,
-            api_key: String::new(),
-            api_type: ApiType::OpenAI,
-            embedding_model: Some("text-embedding".into()),
-        },
-        ProviderWithKey {
-            id: "builtin_alibaba".into(),
-            name: "Alibaba Cloud".into(),
-            base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1".into(),
-            model: "qwen-max".into(),
-            is_enabled: false,
-            is_built_in: true,
-            api_key: String::new(),
-            api_type: ApiType::OpenAI,
-            embedding_model: Some("text-embedding-v3".into()),
-        },
-    ]
+            api_type: p.api_type,
+            embedding_model: p.embedding_model,
+        })
+        .collect()
 }
 
 pub fn load_config(vault: &VaultStore, account_id: &str) -> Result<LlmConfig, String> {
