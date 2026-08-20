@@ -3549,6 +3549,85 @@ fn test_reencrypt_all_failure_rolls_back() {
     assert_eq!(raw_after, raw_before, "失败事务不得部分写入任何行");
 }
 
+// ── P006：profile prefs 原子读-改-写（并发不丢失更新）──────────────────
+
+#[test]
+fn test_update_profile_prefs_atomic_concurrent() {
+    let (vault, _dir) = setup();
+    // 两个写者各递增同一 counter 50 次。旧实现（load→改→save 跨两次锁获取）
+    // 会互相覆盖导致最终值 < 100；单次持锁原子实现必须精确 100。
+    let arc = std::sync::Arc::new(vault);
+    let v1 = arc.clone();
+    let v2 = arc.clone();
+    let t1 = std::thread::spawn(move || {
+        for _ in 0..50 {
+            v1.update_profile_prefs("acc-pre", |m| {
+                let n = m.get("counter").and_then(|v| v.as_i64()).unwrap_or(0);
+                m.insert("counter".to_string(), serde_json::json!(n + 1));
+                Ok(())
+            })
+            .unwrap();
+        }
+    });
+    let t2 = std::thread::spawn(move || {
+        for _ in 0..50 {
+            v2.update_profile_prefs("acc-pre", |m| {
+                let n = m.get("counter").and_then(|v| v.as_i64()).unwrap_or(0);
+                m.insert("counter".to_string(), serde_json::json!(n + 1));
+                Ok(())
+            })
+            .unwrap();
+        }
+    });
+    t1.join().unwrap();
+    t2.join().unwrap();
+
+    let profile = arc.load_profile("acc-pre").unwrap().unwrap();
+    let data: serde_json::Value = serde_json::from_slice(&profile.data).unwrap();
+    let counter = data["preferences"]["counter"].as_i64().unwrap();
+    assert_eq!(counter, 100, "并发写者不得互相覆盖（lost update）");
+}
+
+#[test]
+fn test_update_profile_prefs_creates_missing_profile() {
+    let (vault, _dir) = setup();
+    vault
+        .update_profile_prefs("acc-new", |m| {
+            m.insert("k".to_string(), serde_json::json!("v"));
+            Ok(())
+        })
+        .unwrap();
+    let profile = vault.load_profile("acc-new").unwrap().unwrap();
+    let data: serde_json::Value = serde_json::from_slice(&profile.data).unwrap();
+    assert_eq!(data["preferences"]["k"], serde_json::json!("v"));
+    // new_with_id 起算 version=1，保存前统一 +1（与原服务层行为一致）
+    assert_eq!(profile.version, 2);
+}
+
+#[test]
+fn test_update_profile_prefs_closure_err_rolls_back() {
+    let (vault, _dir) = setup();
+    vault
+        .update_profile_prefs("acc-roll", |m| {
+            m.insert("k".to_string(), serde_json::json!("v"));
+            Ok(())
+        })
+        .unwrap();
+    let err = vault
+        .update_profile_prefs("acc-roll", |m| {
+            m.insert("bad".to_string(), serde_json::json!(true));
+            Err("boom".to_string())
+        })
+        .unwrap_err();
+    assert!(err.contains("boom"));
+    // 闭包报错必须整体回滚：k 保留、bad 不写入、version 不推进
+    let profile = vault.load_profile("acc-roll").unwrap().unwrap();
+    let data: serde_json::Value = serde_json::from_slice(&profile.data).unwrap();
+    assert_eq!(data["preferences"]["k"], serde_json::json!("v"));
+    assert!(data["preferences"].get("bad").is_none());
+    assert_eq!(profile.version, 2);
+}
+
 // ── Sync helpers ──────────────────────────────────────────
 
 #[test]

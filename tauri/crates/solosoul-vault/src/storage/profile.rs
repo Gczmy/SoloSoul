@@ -71,40 +71,99 @@ impl VaultStore {
         let key = self.data_key()?;
         let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
         let conn = guard.as_mut().ok_or("Vault is locked")?;
+        Self::load_profile_tx(conn, &key, id)
+    }
+
+    /// P006: 锁内加载 Profile（连接由调用方持有）。
+    fn load_profile_tx(
+        conn: &Connection,
+        key: &DataEncryptionKey,
+        id: &str,
+    ) -> Result<Option<Profile>, String> {
         let mut stmt = conn
             .prepare_cached(PROFILE_LOAD_SQL)
             .map_err(|e| format!("Failed to prepare: {}", e))?;
-        let result = stmt
-            .query_row(params![id], |row| {
-                let created_str: String = row.get(3)?;
-                let updated_str: String = row.get(4)?;
-                let raw_data: Vec<u8> = row.get(2)?;
-                let data = decrypt_field(&key, &raw_data).map_err(|e| {
-                    rusqlite::Error::FromSqlConversionFailure(
-                        2,
-                        rusqlite::types::Type::Blob,
-                        Box::new(std::io::Error::new(
-                            std::io::ErrorKind::InvalidData,
-                            format!("Profile decryption failed: {}", e),
-                        )),
-                    )
-                })?;
-                Ok(Profile {
-                    id: row.get(0)?,
-                    name: row.get(1)?,
-                    data,
-                    created_at: chrono::DateTime::parse_from_rfc3339(&created_str)
-                        .map(|d| d.with_timezone(&chrono::Utc))
-                        .unwrap_or_else(|_| chrono::Utc::now()),
-                    updated_at: chrono::DateTime::parse_from_rfc3339(&updated_str)
-                        .map(|d| d.with_timezone(&chrono::Utc))
-                        .unwrap_or_else(|_| chrono::Utc::now()),
-                    version: row.get(5)?,
-                })
+        stmt.query_row(params![id], |row| {
+            let created_str: String = row.get(3)?;
+            let updated_str: String = row.get(4)?;
+            let raw_data: Vec<u8> = row.get(2)?;
+            let data = decrypt_field(key, &raw_data).map_err(|e| {
+                rusqlite::Error::FromSqlConversionFailure(
+                    2,
+                    rusqlite::types::Type::Blob,
+                    Box::new(std::io::Error::new(
+                        std::io::ErrorKind::InvalidData,
+                        format!("Profile decryption failed: {}", e),
+                    )),
+                )
+            })?;
+            Ok(Profile {
+                id: row.get(0)?,
+                name: row.get(1)?,
+                data,
+                created_at: chrono::DateTime::parse_from_rfc3339(&created_str)
+                    .map(|d| d.with_timezone(&chrono::Utc))
+                    .unwrap_or_else(|_| chrono::Utc::now()),
+                updated_at: chrono::DateTime::parse_from_rfc3339(&updated_str)
+                    .map(|d| d.with_timezone(&chrono::Utc))
+                    .unwrap_or_else(|_| chrono::Utc::now()),
+                version: row.get(5)?,
             })
-            .optional()
-            .map_err(|e| format!("Failed to load profile: {}", e))?;
-        Ok(result)
+        })
+        .optional()
+        .map_err(|e| format!("Failed to load profile: {}", e))
+    }
+
+    /// P006: 单次持锁的原子「读-改-写」——消除跨两次独立锁获取的 lost update。
+    ///
+    /// 原 `update_profile_prefs`（src-tauri 服务层）先 `load_profile` 释放锁、
+    /// 闭包改内存、再 `save_profile` 重新取锁；两写者并发时互相覆盖。此处在同一
+    /// 次 `conn` 锁内完成读取→闭包变更→保存（含 HLC），并发写者串行化。
+    ///
+    /// 语义与旧服务层实现一致：Profile 不存在时自动创建；`preferences` 键不存在
+    /// 时创建空对象；闭包返回 `Err` 则整个事务回滚。
+    pub fn update_profile_prefs(
+        &self,
+        account_id: &str,
+        update: impl FnOnce(&mut serde_json::Map<String, serde_json::Value>) -> Result<(), String>,
+    ) -> Result<(), String> {
+        let key = self.data_key()?;
+        // 方案 B：本地写统一生成并落库 HLC（new_local_hlc 内部自行锁 conn，须在持锁前调用）。
+        let hlc = self.new_local_hlc()?;
+        let mut guard = self.conn.lock().map_err(|e| e.to_string())?;
+        let conn = guard.as_mut().ok_or("Vault is locked")?;
+        with_tx(
+            conn,
+            "Failed to begin transaction",
+            "Failed to commit transaction",
+            |c| {
+                let mut profile = match Self::load_profile_tx(c, &key, account_id)? {
+                    Some(p) => p,
+                    None => crate::Profile::new_with_id(account_id, account_id, Vec::new()),
+                };
+                let mut data: serde_json::Value = if profile.data.is_empty() {
+                    serde_json::Value::Object(serde_json::Map::new())
+                } else {
+                    serde_json::from_slice(&profile.data).map_err(|e| format!("Parse: {}", e))?
+                };
+                let prefs = data
+                    .as_object_mut()
+                    .ok_or("Invalid")?
+                    .entry("preferences".to_string())
+                    .or_insert_with(|| serde_json::Value::Object(serde_json::Map::new()));
+                // 防御：preferences 若为异常非对象值，替换为空对象（与原 settings.rs 行为一致）
+                if !prefs.is_object() {
+                    *prefs = serde_json::Value::Object(serde_json::Map::new());
+                }
+                update(prefs.as_object_mut().ok_or("Invalid")?)?;
+                profile.data = serde_json::to_vec(&data).map_err(|e| e.to_string())?;
+                profile.updated_at = chrono::Utc::now();
+                profile.version += 1;
+                Self::save_profile_tx(c, &key, &profile)?;
+                Self::set_record_hlc_tx(c, "profiles", &profile.id, &hlc)?;
+                Ok(())
+            },
+        )
     }
 
     pub fn delete_profile(&self, id: &str) -> Result<(), String> {
