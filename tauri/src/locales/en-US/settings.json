@@ -495,6 +495,7 @@
   "pin_verify_password_title": "Verify Master Password",
   "pin_enter_title": "Set PIN Code",
   "pin_enter_desc": "Enter a {{length}}-digit PIN",
+  "pin_risk_notice": "PIN is a convenience unlock with lower strength than your master password. Avoid birthdays, repeated digits, and other easy-to-guess combinations.",
   "pin_confirm_title": "Confirm PIN",
   "pin_confirm_desc": "Enter the PIN again to confirm",
   "pin_disable_title": "Disable PIN",

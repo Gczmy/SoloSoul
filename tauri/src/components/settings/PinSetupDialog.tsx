@@ -86,6 +86,17 @@ export function PinSetupDialog({
               {t('settings:pin_enter_desc', { length: PIN_LENGTH })}
             </p>
             <PinInput length={PIN_LENGTH} onComplete={onPinEntered} />
+            {/* P004: PIN 为便利解锁，显式提示强度低于主密码（离线爆破残余风险） */}
+            <p
+              style={{
+                fontSize: 'var(--text-body-sm)',
+                color: 'var(--text-secondary)',
+                marginTop: 12,
+                lineHeight: 1.5,
+              }}
+            >
+              {t('settings:pin_risk_notice')}
+            </p>
             {setupError && (
               <div
                 style={{

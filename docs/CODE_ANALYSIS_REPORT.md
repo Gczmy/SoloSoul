@@ -46,7 +46,7 @@
 | P001 | P1 | 漏洞 | `tauri/crates/solosoul-sync/src/attachments.rs:48-60` | 同步附件落盘路径仅净化 `file_name`，`object_id`/`attachment_id` 未校验，恶意已信任对端可路径遍历写出 vault 目录 | `[ ]` 待修复 |
 | P002 | P1 | 漏洞 | `tauri/src-tauri/src/commands/attachment/mod.rs:450-475` 等 4 处 | 解密附件明文写入共享临时目录，未设 0600/0700，最长驻留 30 分钟，进程崩溃时永久残留 | `[x]` 已修复（4536a393） |
 | P003 | P1 | 漏洞 | `tauri/crates/solosoul-core/src/vault_service/unlock.rs:1034-1066` | 改密重加密把附件明文写 `.rekey.tmp` 临时文件，崩溃残留后无任何清理路径 | `[x]` 已修复（527f0e44） |
-| P004 | P1 | 漏洞（设计） | `tauri/crates/solosoul-core/src/pin.rs:341,602-613` | PIN（6-8 位纯数字）派生 KEK 加密 session key 落盘，可离线爆破（约 20 bit 熵），拉平主密码强度 | `[ ]` 待修复 |
+| P004 | P1 | 漏洞（设计） | `tauri/crates/solosoul-core/src/pin.rs:341,602-613` | PIN（6-8 位纯数字）派生 KEK 加密 session key 落盘，可离线爆破（约 20 bit 熵），拉平主密码强度 | `[x]` 已修复（UI 风险提示，PIN 凭证始终 production KDF） |
 | P005 | P1 | 架构/健壮性 | `tauri/crates/solosoul-vault/src/storage/objects.rs:326` | `object_row_to_record` 对 JSON 反序列化失败静默吞为 `Value::Null`，用户随后编辑保存将用空 properties 覆盖原数据 | `[x]` 已修复（18f0af93） |
 | P006 | P1 | 架构/并发 | `tauri/src-tauri/src/services/profile_prefs.rs:20-44` | `update_profile_prefs` 读-改-写跨两次独立锁获取，全量 UPSERT 无版本校验，并发写者互相覆盖（lost update） | `[x]` 已修复（b913a5d5） |
 | P007 | P1 | 架构/健壮性 | `tauri/src-tauri/src/commands/attachment/crud.rs:110-117` | `attachment_delete` 先删文件后改元数据，物理文件缺失时 `NotFound` 直接中止，元数据永远无法删除（与 batch 版容错行为不一致） | `[x]` 已修复（909539e3） |
@@ -107,6 +107,7 @@
 
 `crates/solosoul-core/src/pin.rs:341` 以 Argon2id 从 PIN 派生 KEK 加密 session key 落盘，`:602-613` 仅允许 6-8 位纯数字（约 20 bit 熵）。攻击者拿到 vault 目录文件后可离线枚举（即使 64MiB/3 iter 也是小时级），直接解锁全部数据。`pin_failed_attempts` 锁只防在线尝试。
 **建议**：至少在 UI 显著提示该风险；更彻底的做法是提高 PIN 最小熵（允许字母数字或更长长度），或对 PIN 凭据文件引入设备绑定（Keychain 包裹）。
+**处置（2026-08）**：UI 风险提示已实施（`PinSetupDialog` enter_pin 步骤新增 `settings:pin_risk_notice` 双语提示「PIN 为便利解锁，强度低于主密码」）。事实澄清：PIN 凭证已**始终使用** `KdfConfig::production()`（pin.rs:105-108，不随 SOLOSOUL_SECURE 降级），生产参数下单线程 6 位最坏离线穷举约 11.6 天（P022 已把最小位数 4→6）。残余风险为弱 PIN（生日/重复）与多机并行；设备绑定（Keychain 包裹）与弱 PIN 黑名单保留为可选后续项。
 
 ### P005（P1 架构/健壮性）对象读取静默吞 JSON 损坏
 
