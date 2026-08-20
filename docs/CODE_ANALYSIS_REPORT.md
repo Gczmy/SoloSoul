@@ -55,7 +55,7 @@
 | P010 | P1 | 重复代码 | `tauri/crates/solosoul-core/src/template_service.rs:199` vs `objects.rs:1248` | `template_fingerprint` 字节级重复实现两处，模板 hash 漂移将产生静默不一致 | `[x]` 已修复（a60a7ada） |
 | P011 | P1 | 重复代码/架构 | `tauri/crates/solosoul-core/src/llm/service.rs:362` vs `tauri/src-tauri/src/commands/llm/mod.rs:24` | LLM 内置 provider 默认值两处定义且已发散（id 体系、模型名均不同），GUI 与 CLI 默认配置不一致 | `[x]` 已修复（3355002b） |
 | P012 | P1 | 重复代码/架构 | `tauri/crates/solosoul-core/src/export_import.rs:961` vs `tauri/src-tauri/src/commands/export_import/import.rs:1050`（导出侧同理） | 加密导入导出存在 core（CLI）与 GUI 两套平行实现，加密格式安全敏感面双维护易漏同步 | `[ ]` 待修复 |
-| P013 | P2 | 漏洞 | `tauri/crates/solosoul-core/src/ocr/macos_vision.rs:429-433,424` | Vision CLI 失败路径把 OCR 识别文本带进错误消息与 info 级日志，敏感内容外溢到非加密存储面 | `[x]` 已修复（本轮） |
+| P013 | P2 | 漏洞 | `tauri/crates/solosoul-core/src/ocr/macos_vision.rs:429-433,424` | Vision CLI 失败路径把 OCR 识别文本带进错误消息与 info 级日志，敏感内容外溢到非加密存储面 | `[x]` 已修复（54124ff5） |
 | P014 | P2 | 漏洞 | `tauri/crates/solosoul-core/src/path_util.rs:79-86` | `sanitize_file_name` 错误消息回显完整原始文件名，与 P019「错误不携带完整路径」既定约定不一致 | `[ ]` 待修复 |
 | P015 | P2 | 漏洞 | `tauri/src-tauri/src/setup/mod.rs:92-93` | `RUST_LOG` 环境变量可静默提升日志级别，debug 级下更多标识信息落盘；发布构建建议固定上限 | `[ ]` 待修复 |
 | P016 | P2 | 性能 | `tauri/src/hooks/useAttachmentManagerBatchOps.ts:129,177,231` | 三个批量操作跨对象时循环内串行 `await invoke`，N 次顺序 IPC 往返（项目已有 `Promise.allSettled` 并行化先例） | `[ ]` 待修复 |
