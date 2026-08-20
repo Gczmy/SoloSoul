@@ -1025,7 +1025,9 @@ fn collect_updated_fields(
 
         // 类型改变
         if old_type != new_type {
-            if convert_value_for_type(old_type, new_type, old_value.clone()).is_some() {
+            // P034: 避免大文本值双重 clone——成功分支直接 move old_value（此分支
+            // 之后不再使用），失败分支改借 props_obj 原值做预览，不再复制。
+            if convert_value_for_type(old_type, new_type, old_value).is_some() {
                 // 可安全转换：视为普通更新
                 fields_updated.push(SyncFieldChange {
                     id: prop.id.clone(),
@@ -1037,7 +1039,7 @@ fn collect_updated_fields(
                     }],
                 });
             } else {
-                let preview = match &old_value {
+                let preview = match props_obj.get(&prop.id).unwrap_or(&serde_json::Value::Null) {
                     serde_json::Value::String(s) => s.chars().take(40).collect(),
                     serde_json::Value::Number(n) => n.to_string(),
                     serde_json::Value::Bool(b) => b.to_string(),
