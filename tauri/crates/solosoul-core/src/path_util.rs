@@ -76,14 +76,16 @@ pub fn is_path_under_workspace(workspace_dir: &Path, path: &Path) -> bool {
 /// （src-tauri attachment crud/share/import_plugin）、插件附件（solosoul-plugin）
 /// 四处净化实现收敛到本函数，消除「同款安全控制强度不一致」。
 pub fn sanitize_file_name(file_name: &str) -> Result<String, String> {
+    // P014: 错误消息不回显原始文件名——含路径的输入放进错误链会外溢用户目录结构，
+    // 与「错误不携带完整路径」约定不一致（attachment_import_plugin 同款约定）。
     if file_name.contains('/') || file_name.contains('\\') {
-        return Err(format!("附件文件名无效: {}", file_name));
+        return Err("附件文件名无效: 名称不得包含路径分隔符".to_string());
     }
     let safe = Path::new(file_name)
         .file_name()
         .map(|s| s.to_string_lossy().to_string())
         .filter(|s| !s.is_empty() && s != "." && s != "..")
-        .ok_or_else(|| format!("附件文件名无效: {}", file_name))?;
+        .ok_or_else(|| "附件文件名无效: 名称为空或非法".to_string())?;
     Ok(safe)
 }
 
@@ -171,6 +173,19 @@ mod tests {
         assert!(sanitize_file_name("..\\..\\evil.txt").is_err());
         assert!(sanitize_file_name("a/b.txt").is_err());
         assert!(sanitize_file_name("a\\b.txt").is_err());
+    }
+
+    #[test]
+    fn test_sanitize_file_name_error_does_not_echo_raw_name() {
+        // P014: 错误消息不得回显含路径的原始输入（用户目录结构不外溢到错误链）
+        let err = sanitize_file_name("/Users/someone/private/..\\evil.txt").unwrap_err();
+        assert!(!err.contains("Users"), "错误不应回显原始文件名，got: {err}");
+        assert!(
+            !err.contains("evil.txt"),
+            "错误不应回显原始文件名，got: {err}"
+        );
+        let err2 = sanitize_file_name("../").unwrap_err();
+        assert!(!err2.contains(".."), "错误不应回显原始文件名，got: {err2}");
     }
 
     #[test]
