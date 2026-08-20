@@ -67,7 +67,7 @@
 | P022 | P2 | 死代码 | `tauri/src/lib/updater.ts:171,259`（另两处已复核为测试引用，非死代码） | 4 个导出无任何外部引用，仅文件内使用，`export` 多余（API 面污染，非真死代码） | `[x]` 已修复（d57d5e7a） |
 | P023 | P2 | 架构/健壮性 | `tauri/src-tauri/src/commands/llm/conversation.rs:23-27` | `load_conversations` 静默丢弃解析失败的会话行，无日志无上报，用户表现为「会话凭空消失」 | `[x]` 已修复（b063c7e7） |
 | P024 | P2 | 性能 | `tauri/crates/solosoul-vault/src/storage/objects.rs:219-232` | `save_object_tx` 每保存一对象额外执行一次未缓存的模板名 SELECT，批量导入放大为 N 次查询 | `[x]` 已修复（4a425d5b） |
-| P025 | P2 | 架构/性能 | `tauri/crates/solosoul-vault/src/storage.rs:484` | 全库单一 `Mutex<Connection>` 串行化，且逐行 AES 解密在持锁闭包内执行，长查询阻塞全部 DB 操作 | `[ ]` 待修复 |
+| P025 | P2 | 架构/性能 | `tauri/crates/solosoul-vault/src/storage.rs:484` | 全库单一 `Mutex<Connection>` 串行化，且逐行 AES 解密在持锁闭包内执行，长查询阻塞全部 DB 操作 | `[o]` 评估完成+Phase 0 已实施（60bf171f） |
 | P026 | P2 | 性能 | `tauri/crates/solosoul-core/src/export_import.rs:203-205,277-284,334-338` | 导入导出 JSON 层未流式，峰值内存可达明文+密文+JSON 树三份，接近 100MB 上限的库在移动端有 OOM 风险 | `[x]` 已修复（f4ab0565） |
 | P027 | P2 | 架构/并发 | `tauri/src-tauri/src/state/app_state.rs:551-563` | `init_saf_sync` 持 `RwLock` 读锁执行网络 I/O，`replace_vault_service` 写锁被阻塞，std RwLock 有写者饥饿风险 | `[x]` 已修复（31f536dd） |
 | P028 | P2 | 可优化（长函数） | `tauri/crates/solosoul-core/src/vault_service/unlock.rs:795` | `change_password` 126 行、嵌套 5 层，密码学关键路径的失败混态防护难以审查 | `[x]` 已修复（562caa0c） |
@@ -228,7 +228,8 @@
 
 `crates/solosoul-vault/src/storage.rs:484`：单一 `Mutex<Option<Connection>>` 串行化所有 DB 访问，逐行 AES 解密在持锁闭包内执行（如 `objects.rs:937-950`）。一次高级搜索/同步批量应用期间，GUI 其他 DB 操作全部阻塞。
 **建议**：评估「SQL 取数 → 释放锁 → 锁外解密」两阶段改造（属设计权衡，改动面大，可作为专项评估而非直接修复）。
-**评估结论**：专项评估已完成，见 `docs/design_map/26_全局DB_Mutex两阶段改造评估与方案.md`——结论为方案可行但仅需转换 6~8 个 N 行解密读者（全表扫描路径，持锁秒级）；~100 处锁点中单行操作与 `with_tx` 写事务不改造；WAL 对单连接设计无益，连接池属独立专项。待 Phase 0 观测后按文档 §3 实施。
+**评估结论**：专项评估已完成，见 `docs/design_map/26_全局DB_Mutex两阶段改造评估与方案.md`——结论为方案可行但仅需转换 6~8 个 N 行解密读者（全表扫描路径，持锁秒级）；~100 处锁点中单行操作与 `with_tx` 写事务不改造；WAL 对单连接设计无益，连接池属独立专项。
+**Phase 0 已完成**（60bf171f）：新增 `LockHoldObserver`（wait=争用等待 / hold=持锁时长，debug 级），插桩 5 个 N 行解密热点——`list_objects` / `list_object_records` / `load_objects_batch` / `list_conversations` / `list_snapshots_with_data_batch`（`list_audit_log` 已先 drop(guard) 再解密，无需插桩）；新增捕获型 subscriber 验证测试（`--nocapture` 可查看 wait/hold 基线）。待真实库现场收集基线后按文档 §3 Phase 1 实施。
 
 ### P026（P2 性能）导入导出 JSON 层未流式
 
