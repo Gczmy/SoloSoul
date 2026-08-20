@@ -2,19 +2,15 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { useAuthStore } from '@/stores/authStore';
 import { useLlmStore } from '@/stores/llmStore';
-import { useUiStore } from '@/stores/uiStore';
-import { prefetchRegistry } from '@/lib/prefetch/registry';
-import { usePrefetchData } from '@/lib/prefetch/usePrefetchData';
-import i18n from '@/lib/i18n';
 import { COPY_FEEDBACK_DURATION_MS } from '@/lib/constants';
 import { logger } from '@/lib/logger';
 import { useTranslation } from 'react-i18next';
-import {
-  buildSystemPrompt,
-  buildMessagesWithSystemPromptAndGuide,
-} from '@/lib/llm/systemPromptBuilder';
-import { searchGuideChunks, formatChunksAsSystemMessage } from '@/lib/llm/guideService';
 import { markConversationPending } from '@/lib/notification';
+import { useLlmProviderConfig } from '@/hooks/useLlmProviderConfig';
+import { useLlmOnlineStatus } from '@/hooks/useLlmOnlineStatus';
+import { useLlmStreaming } from '@/hooks/useLlmStreaming';
+import { buildChatRequestMessages } from '@/lib/llm/chatRequest';
+import { saveConversationSafely } from '@/lib/llm/conversationPersistence';
 import {
   type ChatMsg,
   type Conversation,
@@ -70,71 +66,33 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
   // action（startStream/onChunk/reset）在 store 中定义一次，引用稳定，
   // 使 useCallback 依赖不随 store 更新而漂移。
   const streamBuffer = useLlmStore((s) => s.streamBuffer);
-  const isStreaming = useLlmStore((s) => s.isStreaming);
-  const streamingConvId = useLlmStore((s) => s.streamingConvId);
-  const streamError = useLlmStore((s) => s.streamError);
-  const persistFailed = useLlmStore((s) => s.persistFailed);
   const startStream = useLlmStore((s) => s.startStream);
   const onChunk = useLlmStore((s) => s.onChunk);
   const reset = useLlmStore((s) => s.reset);
-
-  const [activeProvider, setActiveProvider] = useState<ActiveProvider | null>(null);
-  const [isConfigured, setIsConfigured] = useState(false);
-  const [isAiEnabled, setIsAiEnabled] = useState(false);
-  const [loading, setLoading] = useState(true);
 
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [currentConvId, setCurrentConvId] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMsg[]>([]);
   const [input, setInput] = useState('');
   const [isSending, setIsSending] = useState(false);
-  const [isOnline, setIsOnline] = useState<boolean | null>(null);
-  const [checkingOnline, setCheckingOnline] = useState(false);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const messagesRef = useRef(messages);
-  messagesRef.current = messages;
-  const accountIdRef = useRef(accountId);
-  accountIdRef.current = accountId;
-  const currentConvIdRef = useRef(currentConvId);
-  currentConvIdRef.current = currentConvId;
-
-  /* Load provider + config — Prefetch Runtime：AI 快捷对话弹层/聊天页共享缓存，
-     登录后后台预热，打开弹层直接渲染（无 LoadingPlaceholder 占位期）；
-     设置页保存/删除/切换 provider 后 invalidate 强制刷新。 */
-  const { data: llmConfig, error: llmConfigError } = usePrefetchData(prefetchRegistry.llmConfig, {
-    enabled: !!accountId,
+  // 子 hook：provider 配置加载 / 在线状态轮询 / 流式副作用编排
+  const { activeProvider, isConfigured, isAiEnabled, loading } = useLlmProviderConfig({ accountId });
+  const { isOnline, checkingOnline, checkOnline } = useLlmOnlineStatus({
+    activeProvider,
+    accountId,
+    abortRef,
   });
-  useEffect(() => {
-    if (!accountId) {
-      setLoading(false);
-      return;
-    }
-    // 数据未就绪（冷启动加载中）：loading 保持 true，store 兜底加载完成后触发本 effect。
-    if (llmConfig === null && !llmConfigError) return;
-    if (llmConfig) {
-      setIsAiEnabled(llmConfig.aiFeaturesEnabled.chat ?? false);
-      const active = llmConfig.providers.find((p) => p.id === llmConfig.activeProviderId);
-      if (active) {
-        setActiveProvider({
-          id: active.id,
-          name: active.name,
-          model: active.model,
-          baseUrl: active.baseUrl,
-          apiType: active.apiType,
-        });
-        setIsConfigured(true);
-      } else {
-        setIsConfigured(false);
-      }
-    } else {
-      // P227: 配置加载失败静默降级为未配置，留痕便于排查。
-      logger.warn('[useLlmChatCore] Load config failed:', llmConfigError);
-      setIsConfigured(false);
-    }
-    setLoading(false);
-  }, [accountId, llmConfig, llmConfigError]);
+  useLlmStreaming({
+    messages,
+    setMessages,
+    accountId,
+    setIsSending,
+    onConversationSaved,
+    t,
+  });
 
   /* Load conversation list */
   const loadConversationList = useCallback(async () => {
@@ -154,51 +112,6 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
   useEffect(() => {
     loadConversationList();
   }, [loadConversationList]);
-
-  /* Online status */
-  const checkOnline = useCallback(() => {
-    if (!activeProvider || !accountId) return;
-    abortRef.current?.abort();
-    const controller = new AbortController();
-    abortRef.current = controller;
-    setCheckingOnline(true);
-    (async () => {
-      try {
-        let key = '';
-        try {
-          key = await invoke<string>('llm_get_api_key', {
-            accountId: accountId,
-            providerId: activeProvider.id,
-          });
-        } catch {
-          /* may not have key */
-        }
-        const online = await invoke<boolean>('llm_check_connection', {
-          baseUrl: activeProvider.baseUrl,
-          apiKey: key,
-          model: activeProvider.model,
-          apiType: activeProvider.apiType,
-        });
-        if (!controller.signal.aborted) setIsOnline(online);
-      } catch (err) {
-        // P227: 在线检查失败视为离线（可接受降级），留痕。
-        logger.warn('[useLlmChatCore] Online check failed:', err);
-        if (!controller.signal.aborted) setIsOnline(false);
-      } finally {
-        if (!controller.signal.aborted) setCheckingOnline(false);
-      }
-    })();
-  }, [activeProvider, accountId]);
-
-  useEffect(() => {
-    if (activeProvider && accountId) checkOnline();
-  }, [activeProvider, accountId, checkOnline]);
-
-  useEffect(() => {
-    if (!activeProvider) return;
-    const interval = setInterval(checkOnline, 60000);
-    return () => clearInterval(interval);
-  }, [activeProvider, checkOnline]);
 
   /* Cleanup copy timeout */
   useEffect(() => {
@@ -226,108 +139,6 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
     [accountId],
   );
 
-  /* Stream: update assistant message buffer */
-  useEffect(() => {
-    if (!isStreaming || !streamingConvId) return;
-    setMessages((prev) => {
-      if (prev.length === 0) return prev;
-      const lastIdx = prev.length - 1;
-      if (prev[lastIdx].role !== 'assistant') return prev;
-      const updated = [...prev];
-      updated[lastIdx] = { ...updated[lastIdx], content: streamBuffer };
-      return updated;
-    });
-  }, [streamBuffer, isStreaming, streamingConvId]);
-
-  /* Stream: persist failure — keep displayed reply, only toast (P002-R1) */
-  const persistFailedHandledRef = useRef(false);
-  useEffect(() => {
-    if (!persistFailed || persistFailedHandledRef.current) return;
-    persistFailedHandledRef.current = true;
-    // 后端 Auto-save 失败：回复已完整流式展示，不替换内容，仅提示用户记录可能未持久化。
-    useUiStore.getState().showToast({
-      type: 'error',
-      message: t('settings:ai_save_conversation_failed', {
-        defaultValue: '对话保存失败，记录可能丢失，请重试',
-      }),
-      duration: 5000,
-    });
-  }, [persistFailed, t]);
-
-  /* Stream: finalize after done */
-  useEffect(() => {
-    if (!isStreaming && streamingConvId && streamBuffer) {
-      // P002-R1: 持久化失败时后端已报错（Auto-save 失败）——回复已完整展示，
-      // 由 persistFailed effect 提示；此处跳过前端再次保存（重试大概率同样失败，
-      // 且避免「后端失败 toast + 前端重试成功」的重复/矛盾提示），仅收敛状态。
-      const wasPersistFailed = useLlmStore.getState().persistFailed;
-      if (!wasPersistFailed) {
-        const convId = streamingConvId;
-        const currentMsgs = messagesRef.current;
-        if (currentMsgs.length > 0 && currentMsgs[currentMsgs.length - 1].role === 'assistant') {
-          const firstUser = currentMsgs.find((m) => m.role === 'user');
-          const convName = firstUser ? firstUser.content.slice(0, 30) : '';
-          const finalConv: Conversation = {
-            id: convId,
-            name: convName,
-            isTemporary: false,
-            messages: currentMsgs,
-            updatedAt: nowISO(),
-          };
-          invoke('llm_save_conversation', {
-            accountId: accountIdRef.current,
-            conversation: finalConv,
-          }).catch((err) => {
-            // P007: 保存失败不得静默——提示用户记录可能丢失，避免丢失后无感知。
-            logger.warn('[useLlmChatCore] Save conversation failed:', err);
-            useUiStore.getState().showToast({
-              type: 'error',
-              message: t('settings:ai_save_conversation_failed', {
-                defaultValue: '对话保存失败，记录可能丢失，请重试',
-              }),
-              duration: 5000,
-            });
-          });
-          onConversationSaved?.();
-        }
-      }
-      reset();
-      setIsSending(false);
-      persistFailedHandledRef.current = false;
-    }
-  }, [
-    isStreaming,
-    streamingConvId,
-    streamBuffer,
-    onConversationSaved,
-    t,
-    reset,
-  ]);
-
-  /* Stream: error handling */
-  useEffect(() => {
-    if (streamError) {
-      const errMsg = streamError;
-      // P002-R1: 仅流级错误（生成中断）替换已展示内容；持久化失败走
-      // persistFailed 分支（保留回复、只 toast），不进入此路径。
-      setMessages((prev) => {
-        if (prev.length === 0) return prev;
-        const lastIdx = prev.length - 1;
-        if (prev[lastIdx].role !== 'assistant') return prev;
-        const updated = [...prev];
-        updated[lastIdx] = {
-          ...updated[lastIdx],
-          content: `${t('settings:ai_chat_error_prefix')}: ${errMsg}`,
-          isError: true,
-        };
-        return updated;
-      });
-      reset();
-      setIsSending(false);
-      persistFailedHandledRef.current = false;
-    }
-  }, [streamError, t, reset]);
-
   /* Send message */
   const sendMessage = useCallback(async () => {
     const text = input.trim();
@@ -354,20 +165,9 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
         messages: updatedMessages,
         updatedAt: nowISO(),
       };
-      try {
-        await invoke('llm_save_conversation', { accountId: accountId, conversation: partialConv });
-        onConversationSaved?.();
-      } catch (err) {
-        // P007: 首次保存失败若静默，整段新对话将不会被持久化且无提示。
-        logger.warn('[useLlmChatCore] First conversation save failed:', err);
-        useUiStore.getState().showToast({
-          type: 'error',
-          message: t('settings:ai_save_conversation_failed', {
-            defaultValue: '对话保存失败，记录可能丢失，请重试',
-          }),
-          duration: 5000,
-        });
-      }
+      // P007: 首次保存失败若静默，整段新对话将不会被持久化且无提示。
+      const saved = await saveConversationSafely(accountId, partialConv, t);
+      if (saved) onConversationSaved?.();
     }
 
     const assistantMsg: ChatMsg = {
@@ -386,22 +186,12 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
         providerId: activeProvider.id,
       });
 
-      let allMessages: Array<{ role: string; content: string }> = [];
       const effectiveIncludeSystemPrompt = optIncludeSystemPrompt ?? true;
-      if (effectiveIncludeSystemPrompt) {
-        const systemPrompt = buildSystemPrompt();
-        const chunks = await searchGuideChunks(text, i18n.language || 'zh-CN');
-        const docPrompt = formatChunksAsSystemMessage(chunks);
-        allMessages = buildMessagesWithSystemPromptAndGuide(
-          text,
-          updatedMessages,
-          systemPrompt,
-          docPrompt,
-        );
-      } else {
-        allMessages = updatedMessages.map((m) => ({ role: m.role, content: m.content }));
-        allMessages.push({ role: 'user', content: text });
-      }
+      const allMessages = await buildChatRequestMessages({
+        text,
+        history: updatedMessages,
+        includeSystemPrompt: effectiveIncludeSystemPrompt,
+      });
 
       markConversationPending(convId);
 
@@ -440,19 +230,8 @@ export function useLlmChatCore(options: UseLlmChatCoreOptions = {}): UseLlmChatC
         messages: errorMessages,
         updatedAt: nowISO(),
       };
-      try {
-        await invoke('llm_save_conversation', { accountId: accountId, conversation: errorConv });
-      } catch (err) {
-        // P007: 错误会话的保存失败同样不应静默。
-        logger.warn('[useLlmChatCore] Save error conversation failed:', err);
-        useUiStore.getState().showToast({
-          type: 'error',
-          message: t('settings:ai_save_conversation_failed', {
-            defaultValue: '对话保存失败，记录可能丢失，请重试',
-          }),
-          duration: 5000,
-        });
-      }
+      // P007: 错误会话的保存失败同样不应静默（saveConversationSafely 内已 toast）。
+      await saveConversationSafely(accountId, errorConv, t);
       reset();
       setIsSending(false);
     }
