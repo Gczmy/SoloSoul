@@ -67,12 +67,6 @@ pub struct BiometricAvailability {
     /// 临时锁定的预计解除时间（Unix 秒）。None 表示未锁定或已过期。
     #[serde(default)]
     pub lockout_until: Option<i64>,
-    /// 凭证是否存储于本地文件（弱于系统 Keychain/DPAPI 保护）。
-    /// P035: macOS（当前无 keychain entitlement 的文件方案）与 Windows
-    /// （DPAPI 格式落 legacy 路径）为 true；iOS Keychain 为 false。
-    /// 前端据此提示「文件存储弱保护」而非静默降级。
-    #[serde(default)]
-    pub uses_legacy_file: bool,
 }
 
 /// 生物识别存储层返回的错误。
@@ -288,7 +282,6 @@ impl BiometricManager {
             weak_configured: false,
             lockout: false,
             lockout_until: None,
-            uses_legacy_file: self.storage.uses_legacy_file(),
         }
     }
 
@@ -741,7 +734,6 @@ mod tests {
             weak_configured: false,
             lockout: false,
             lockout_until: None,
-            uses_legacy_file: false,
         };
         let json = serde_json::to_string(&original).unwrap();
         assert!(json.contains("touchId"));

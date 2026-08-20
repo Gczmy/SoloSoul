@@ -33,8 +33,6 @@ interface BioAvailability {
   lockout?: boolean;
   /** 临时锁定的预计解除时间（Unix 秒） */
   lockoutUntil?: number;
-  /** 凭证是否存储于本地文件（弱于系统 Keychain/DPAPI）——P035 */
-  usesLegacyFile?: boolean;
 }
 
 type BioMode = 'strong' | 'weak';
@@ -313,39 +311,6 @@ export function BiometricSection({ accountId }: BiometricSectionProps) {
                 </div>
               </>
             )}
-
-            {/* P035: 凭证存于本地文件（弱于系统 Keychain/DPAPI）——不再静默降级，
-                显式提示 + 重新设置入口（触发保存流程，凭证仍落当前平台存储） */}
-            {bioAvailable.usesLegacyFile &&
-              (bioAvailable.strongConfigured || bioAvailable.weakConfigured) && (
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    gap: 8,
-                    padding: 10,
-                    borderRadius: 8,
-                    background: 'rgba(212, 133, 10, 0.10)',
-                    border: '1px solid rgba(212, 133, 10, 0.25)',
-                    color: '#D4850A',
-                    fontSize: 'var(--text-caption)',
-                    lineHeight: 1.4,
-                  }}
-                >
-                  <AlertTriangle size={ICON_SIZE.md} style={{ flexShrink: 0, marginTop: 1 }} />
-                  <span style={{ flex: 1 }}>
-                    {t('settings:biometric_file_storage_warning')}
-                  </span>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => handleBioToggle('strong')}
-                    style={{ flexShrink: 0 }}
-                  >
-                    {t('settings:biometric_reconfigure_button')}
-                  </Button>
-                </div>
-              )}
           </>
         )}
 
