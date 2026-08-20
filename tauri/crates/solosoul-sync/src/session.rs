@@ -253,6 +253,48 @@ pub fn run_initiator_session(
     })
 }
 
+/// P030: 未信任 peer 的入站处理——从 `handle_inbound` 拆出以降低嵌套。
+///
+/// P103: 不落库、不回 HelloAck（不回 account_id 与指纹）。只要未信任
+/// （无论是否已存在记录——含旧版遗留的未信任记录/已撤销信任的记录），
+/// 都触发配对请求回调（数据取自握手认证值，纯内存传递）。
+/// 若仅对新 peer 触发，已存在未信任记录的对端重连时响应方不弹确认框，
+/// 发起方将永远等不到双向确认（表现为「扫描方在等待、响应方毫无反应」）。
+/// 重复事件由前端按 node_id 去重，用户确认/忽略后清除才允许重新弹出。
+#[allow(clippy::too_many_arguments)]
+fn handle_untrusted_peer(
+    session: &mut NoiseSession,
+    transport: &mut SyncTransport,
+    node_id: &str,
+    peer_node_id: &str,
+    remote_fingerprint: &str,
+    peer_addr: &str,
+    peer_client_type: &str,
+    peer_callback: Option<&PeerCallback>,
+) -> Result<InboundSessionOutcome, String> {
+    if let Some(cb) = peer_callback {
+        let device_name = peer_display_name(remote_fingerprint, peer_addr);
+        cb(NewPeerInfo {
+            node_id: peer_node_id.to_string(),
+            fingerprint: remote_fingerprint.to_string(),
+            addr: peer_addr.to_string(),
+            device_name,
+            client_type: peer_client_type.to_string(),
+            // 响应方从本地握手哈希派生 SAS 验证码，与发起方各自派生的值一致，
+            // 供 B 侧配对卡片展示（两侧显示同一 6 位数字供目视比对）。
+            sas_code: session.sas_code(),
+        });
+    }
+    send_msg(
+        session,
+        transport,
+        &SyncMessage::Error {
+            message: pairing_pending_message(node_id),
+        },
+    )?;
+    Err("Peer not trusted".to_string())
+}
+
 /// 作为响应方处理入站同步连接。
 ///
 /// `peer_callback`：入站 Hello 来自**未信任** peer（无论是否已有记录）时触发，
@@ -309,33 +351,17 @@ pub fn handle_inbound(
         .unwrap_or(false);
 
     if !trusted {
-        // P103: 未信任 peer——不落库、不回 HelloAck（不回 account_id 与指纹）。
-        // 只要未信任（无论是否已存在记录——含旧版遗留的未信任记录/已撤销信任的记录），
-        // 都触发配对请求回调（数据取自握手认证值，纯内存传递）。
-        // 若仅对新 peer 触发，已存在未信任记录的对端重连时响应方不弹确认框，
-        // 发起方将永远等不到双向确认（表现为「扫描方在等待、响应方毫无反应」）。
-        // 重复事件由前端按 node_id 去重，用户确认/忽略后清除才允许重新弹出。
-        if let Some(cb) = &peer_callback {
-            let device_name = peer_display_name(&remote_fingerprint, &peer_addr);
-            cb(NewPeerInfo {
-                node_id: peer_node_id.clone(),
-                fingerprint: remote_fingerprint.clone(),
-                addr: peer_addr.clone(),
-                device_name,
-                client_type: peer_client_type.clone(),
-                // 响应方从本地握手哈希派生 SAS 验证码，与发起方各自派生的值一致，
-                // 供 B 侧配对卡片展示（两侧显示同一 6 位数字供目视比对）。
-                sas_code: session.sas_code(),
-            });
-        }
-        send_msg(
+        // P030: 未信任分支收敛为 handle_untrusted_peer（P103 配对回调 + 回 Error）。
+        return handle_untrusted_peer(
             &mut session,
             transport,
-            &SyncMessage::Error {
-                message: pairing_pending_message(node_id),
-            },
-        )?;
-        return Err("Peer not trusted".to_string());
+            node_id,
+            &peer_node_id,
+            &remote_fingerprint,
+            &peer_addr,
+            &peer_client_type,
+            peer_callback.as_ref(),
+        );
     }
 
     // 已信任：此刻才刷新 last_seen/指纹落库（信任已确认，落库安全），
