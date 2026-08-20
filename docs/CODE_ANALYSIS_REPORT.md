@@ -75,7 +75,7 @@
 | P030 | P2 | 可优化（长函数） | `tauri/crates/solosoul-sync/src/session.rs:263` | `handle_inbound` 125 行、嵌套 5 层、7 参数（带 `too_many_arguments` allow） | `[ ]` 待修复 |
 | P031 | P2 | 可优化（嵌套/重复） | `tauri/crates/solosoul-sync/src/manager.rs:321` | `spawn_mdns_discovery` 79 行、嵌套 7 层；TXT 属性解析与 `commands/discovery.rs:136-190` 高度重复 | `[ ]` 待修复 |
 | P032 | P2 | 可优化（重复） | `tauri/crates/solosoul-vault/src/storage/metadata.rs:200-228` | `list_audit_log` 内两段同构解密 match 块，可提取闭包消除 | `[ ]` 待修复 |
-| P033 | P2 | 可优化（冗余） | `tauri/crates/solosoul-crypto/src/cipher.rs:47-56,78-87` | `Payload` 构造的 match 重复且多余，`aad.unwrap_or(&[])` 一行可等价表达 | `[x]` 已修复（本轮） |
+| P033 | P2 | 可优化（冗余） | `tauri/crates/solosoul-crypto/src/cipher.rs:47-56,78-87` | `Payload` 构造的 match 重复且多余，`aad.unwrap_or(&[])` 一行可等价表达 | `[x]` 已修复（e27c2ed4） |
 | P034 | P2 | 可优化 | `tauri/src-tauri/src/commands/object/mod.rs:1021-1028` | `collect_updated_fields` 对 JSON 值双重 clone，大文本字段每字段复制两次 | `[ ]` 待修复 |
 | P035 | P2 | 架构 | `tauri/crates/solosoul-core/src/biometric/legacy.rs:19-20,70-104` | 桌面端生物识别降级为「文件 + account_id 派生密钥」，等价主密钥混淆落盘，建议 Keychain 失败时报错而非静默降级 | `[ ]` 待修复 |
 | P036 | P2 | 文档 | `AGENTS.md`（项目根） | KDF 参数说明已过时：代码 `kdf.rs:47-55` 的 `from_env()` 在 release 构建已默认 production 参数，与文档「默认 8MiB/2」不符 | `[ ]` 待修复 |
@@ -234,7 +234,7 @@
 - P030 `solosoul-sync/src/session.rs:263` `handle_inbound`：125 行、嵌套 5 层、7 参数，参照已提取的 `validate_handshake_peer` 继续拆。
 - P031 `solosoul-sync/src/manager.rs:321` `spawn_mdns_discovery`：嵌套 7 层；TXT 属性解析与 `commands/discovery.rs:136-190` 高度重复，可提取共用解析结构体。
 - P032 `solosoul-vault/src/storage/metadata.rs:200-228`：两段同构解密 match，提取 `decrypt_field` 闭包。
-- P033 `solosoul-crypto/src/cipher.rs:47-56,78-87`：`Payload` 构造 match 用 `aad.unwrap_or(&[])` 收敛。`[x]` 已修复（本轮）
+- P033 `solosoul-crypto/src/cipher.rs:47-56,78-87`：`Payload` 构造 match 用 `aad.unwrap_or(&[])` 收敛。`[x]` 已修复（e27c2ed4）
 - P034 `commands/object/mod.rs:1021-1028`：`collect_updated_fields` 双重 clone，按分支移动所有权。
 
 ### P035（P2 架构）生物识别静默降级
