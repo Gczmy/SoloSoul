@@ -5,7 +5,6 @@ import { PageShell } from '@/components/layout/PageShell';
 import { PageContainer } from '@/components/layout/PageContainer';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
-import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { useAuthStore } from '@/stores/authStore';
 import { useToastError } from '@/hooks/useToastError';
 import { ICON_SIZE } from '@/lib/constants';
@@ -15,17 +14,13 @@ import { AttachmentViewer } from '@/components/object/AttachmentViewer';
 import { resolveCollectionLabel } from '@/lib/utils';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { DEBOUNCE_DELAY_MS } from '@/lib/constants';
-import { searchCache } from '@/lib/searchCache';
 import {
   Highlight,
   MatchHint,
   SearchItem,
-  buildSearchCacheParams,
-  buildSearchPayload,
-  ensurePageResultExists,
-  matchPageTranslation,
   resolveResultIcon,
   resolveResultName,
+  runUnifiedSearch,
   sortSensitivityLevels,
 } from '@/lib/searchShared';
 import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
@@ -54,42 +49,22 @@ export function SearchPage() {
   const [detailObjectId, setDetailObjectId] = useState<string | null>(null);
   const [attachmentObjId, setAttachmentObjId] = useState<string | null>(null);
 
+  // P018: doSearch 收敛到 lib/searchShared 的 runUnifiedSearch（SearchPopover 共用）
   const doSearch = useCallback(
     async (q: string) => {
-      if (!accountId || !q.trim()) {
-        setResults([]);
-        setHasSearched(false);
-        return;
-      }
-
-      const pageKey = matchPageTranslation(q, t);
-      const { cacheKey } = buildSearchCacheParams(accountId, q, pageKey, null, customPages);
-      const cached = searchCache.get<SearchItem[]>(cacheKey);
-      if (cached) {
-        setResults(cached);
-        setHasSearched(true);
-        return;
-      }
-
-      setIsSearching(true);
-      setHasSearched(true);
-      try {
-        const res = await invoke<{ items: SearchItem[]; total: number; hasMore: boolean }>(
-          'search_unified',
-          buildSearchPayload(accountId, q, pageKey, null, customPages),
-        );
-
-        const items = pageKey ? ensurePageResultExists(res.items, pageKey) : res.items;
-
-        searchCache.set(cacheKey, items);
-        setResults(items);
-      } catch (e) {
-        onError(e, t('common:search_failed'));
-      } finally {
-        setIsSearching(false);
-      }
+      await runUnifiedSearch({
+        accountId,
+        query: q,
+        filter: null,
+        customPages,
+        t,
+        onError,
+        setResults,
+        setHasSearched,
+        setIsSearching,
+      });
     },
-    [accountId, onError, t, customPages],
+    [accountId, customPages, onError, t],
   );
 
   const handleChange = (val: string) => {

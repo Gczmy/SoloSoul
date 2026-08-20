@@ -4,6 +4,7 @@
 
 import type { TFunction } from 'i18next';
 import type { LucideIcon } from 'lucide-react';
+import { invokeCommand as invoke } from '@/lib/ipcClient';
 import { PAGE_ICON_MAP, resolveCustomIcon } from '@/lib/pageIcons';
 import { searchCache } from '@/lib/searchCache';
 import type { CustomPage } from '@/stores/settingsStore';
@@ -250,4 +251,57 @@ export function ensurePageResultExists(items: SearchItem[], pageKey: string): Se
     } as SearchItem,
     ...items,
   ];
+}
+
+/**
+ * P018: 统一搜索执行（SearchPage / SearchPopover 的 doSearch 收敛）。
+ *
+ * 共享：空查询守卫、页面名翻译匹配、缓存命中短路、search_unified 调用、
+ * 页面结果补齐、缓存写入与错误处理。差异仅剩调用方的 state setter 与 filter。
+ */
+export async function runUnifiedSearch(params: {
+  accountId: string | null | undefined;
+  query: string;
+  filter: string | null;
+  customPages: CustomPage[];
+  t: TFunction;
+  onError: (e: unknown, fallback: string) => void;
+  setResults: (items: SearchItem[]) => void;
+  setHasSearched: (v: boolean) => void;
+  setIsSearching: (v: boolean) => void;
+}): Promise<void> {
+  const { accountId, query, filter, customPages, t, onError } = params;
+  const { setResults, setHasSearched, setIsSearching } = params;
+
+  if (!accountId || (!query.trim() && !filter)) {
+    setResults([]);
+    setHasSearched(false);
+    return;
+  }
+
+  // filter 存在时不参与页面名翻译匹配（popover 现状；page 页 filter 恒为 null 等价）
+  const pageKey = !filter ? matchPageTranslation(query, t) : null;
+  const { cacheKey } = buildSearchCacheParams(accountId, query, pageKey, filter, customPages);
+  const cached = searchCache.get<SearchItem[]>(cacheKey);
+  if (cached) {
+    setResults(cached);
+    setHasSearched(true);
+    return;
+  }
+
+  setIsSearching(true);
+  setHasSearched(true);
+  try {
+    const res = await invoke<{ items: SearchItem[]; total: number; hasMore: boolean }>(
+      'search_unified',
+      buildSearchPayload(accountId, query, pageKey, filter, customPages),
+    );
+    const items = pageKey ? ensurePageResultExists(res.items, pageKey) : res.items;
+    searchCache.set(cacheKey, items);
+    setResults(items);
+  } catch (e) {
+    onError(e, t('common:search_failed'));
+  } finally {
+    setIsSearching(false);
+  }
 }

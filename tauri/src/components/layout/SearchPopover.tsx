@@ -21,19 +21,15 @@ import { useSettingsStore, type CustomPage } from '@/stores/settingsStore';
 import { useToastError } from '@/hooks/useToastError';
 import { PAGE_ICON_MAP } from '@/lib/pageIcons';
 import { DEBOUNCE_DELAY_MS } from '@/lib/constants';
-import { searchCache } from '@/lib/searchCache';
 import { ObjectDetailModal } from '@/components/object/ObjectDetailModal';
 import { SensitivityBadge } from '@/components/ui/SensitivityBadge';
 import {
   Highlight,
   MatchHint,
   SearchItem,
-  buildSearchCacheParams,
-  buildSearchPayload,
-  ensurePageResultExists,
-  matchPageTranslation,
   resolveResultIcon,
   resolveResultName,
+  runUnifiedSearch,
   sortSensitivityLevels,
 } from '@/lib/searchShared';
 import styles from './SearchPopover.module.css';
@@ -101,40 +97,20 @@ export function SearchPopover({ onClose }: SearchPopoverProps) {
     };
   }, [onClose]);
 
+  // P018: doSearch 收敛到 lib/searchShared 的 runUnifiedSearch（SearchPage 共用）
   const doSearch = useCallback(
     async (q: string, filter: string | null) => {
-      if (!accountId || (!q.trim() && !filter)) {
-        setResults([]);
-        setHasSearched(false);
-        return;
-      }
-
-      const pageKey = !filter ? matchPageTranslation(q, t) : null;
-      const { cacheKey } = buildSearchCacheParams(accountId, q, pageKey, filter, customPages);
-      const cached = searchCache.get<SearchItem[]>(cacheKey);
-      if (cached) {
-        setResults(cached);
-        setHasSearched(true);
-        return;
-      }
-
-      setIsSearching(true);
-      setHasSearched(true);
-      try {
-        const res = await invoke<{ items: SearchItem[]; total: number; hasMore: boolean }>(
-          'search_unified',
-          buildSearchPayload(accountId, q, pageKey, filter, customPages),
-        );
-
-        const items = pageKey ? ensurePageResultExists(res.items, pageKey) : res.items;
-
-        searchCache.set(cacheKey, items);
-        setResults(items);
-      } catch (e) {
-        onError(e, t('common:search_failed'));
-      } finally {
-        setIsSearching(false);
-      }
+      await runUnifiedSearch({
+        accountId,
+        query: q,
+        filter,
+        customPages,
+        t,
+        onError,
+        setResults,
+        setHasSearched,
+        setIsSearching,
+      });
     },
     [accountId, customPages, onError, t],
   );
