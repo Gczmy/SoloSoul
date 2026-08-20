@@ -86,11 +86,20 @@ fn init_tracing(log_dir: &PathBuf) {
     // 污染 stderr。仅在用户未提供 RUST_LOG 时应用默认收敛策略（INFO + ort=WARN）；
     // 一旦用户在环境变量里写 RUST_LOG=ort=debug 这样的表达式，则完全交由 RUST_LOG 主导，
     // 避免 add_directive / from_env_lossy 在不同 tracing-subscriber 版本下的优先级差异。
-    let env_filter = std::env::var("RUST_LOG")
-        .ok()
-        .filter(|s| !s.trim().is_empty())
-        .map(|s| tracing_subscriber::EnvFilter::new(&s))
-        .unwrap_or_else(|| tracing_subscriber::EnvFilter::new("info,ort=warn"));
+    //
+    // P015: 发布构建固定 `info,ort=warn` 上限——debug 级会落盘更多标识信息（如
+    // biometric 的 account_id），本地威胁模型下风险低但无收益；仅 debug 构建响应
+    // RUST_LOG，发布构建无视用户环境变量以防日志级别被静默提升。
+    let release_override = !cfg!(debug_assertions);
+    let env_filter = if release_override {
+        tracing_subscriber::EnvFilter::new("info,ort=warn")
+    } else {
+        std::env::var("RUST_LOG")
+            .ok()
+            .filter(|s| !s.trim().is_empty())
+            .map(|s| tracing_subscriber::EnvFilter::new(&s))
+            .unwrap_or_else(|| tracing_subscriber::EnvFilter::new("info,ort=warn"))
+    };
 
     // 将 guard 泄漏，确保 non-blocking writer 在进程生命周期内不会 drop
     Box::leak(Box::new(guard));
